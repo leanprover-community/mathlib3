@@ -248,15 +248,15 @@ begin
   convert map_list_prod g _, rw list.comp_map,
 end
 
-@[to_additive]
-lemma noncomm_prod_eq_pow_of_forall_eq (s : finset α) (f : α → β)
+@[to_additive noncomm_sum_eq_card_nsmul]
+lemma noncomm_prod_eq_pow_card (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (m : β) (h : ∀ (x : α), x ∈ s → f x = m) : s.noncomm_prod f comm = m ^ s.card :=
 begin
   classical,
   revert comm, rw ← s.to_list_to_finset, intro,
   rw finset.noncomm_prod_to_finset _ _ _ s.nodup_to_list,
-  rw list.prod_eq_pow_of_forall_eq _ m,
+  rw list.prod_eq_pow_card _ m,
   { simp },
   { intro _, rw list.mem_map, rintros ⟨x, hx, rfl⟩, apply h x (s.mem_to_list.mp hx) },
 end
@@ -266,7 +266,7 @@ lemma noncomm_prod_eq_one_of_forall_eq_one (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (h : ∀ (x : α), x ∈ s → f x = 1) : s.noncomm_prod f comm = 1 :=
 begin
-  rw finset.noncomm_prod_eq_pow_of_forall_eq s f comm 1 h,
+  rw finset.noncomm_prod_eq_pow_card s f comm 1 h,
   exact one_pow _,
 end
 

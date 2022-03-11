@@ -181,16 +181,6 @@ end
 theorem principal_add_omega_opow (o : ordinal) : principal (+) (omega ^ o) :=
 principal_add_iff_add_left_eq_self.2 (λ a, add_omega_opow)
 
-theorem opow_principal_add_is_principal_add {a} (ha : principal (+) a) (b : ordinal) :
-  principal (+) (a ^ b) :=
-begin
-  rcases principal_add_iff_zero_or_omega_power.1 ha with rfl | ⟨c, rfl⟩,
-  { rcases eq_or_ne b 0 with rfl | hb,
-    { rw opow_zero, exact principal_add_one },
-    { rwa zero_opow hb } },
-  { rw ←opow_mul, exact principal_add_omega_opow _ }
-end
-
 /-- The main characterization theorem for additive principal ordinals. -/
 theorem principal_add_iff_zero_or_omega_opow {o : ordinal} :
   principal (+) o ↔ o = 0 ∨ ∃ a, o = omega ^ a :=
@@ -211,6 +201,16 @@ begin
     { simpa only [e] using le_add_right (omega ^ log omega o * ↑n) o },
     induction n with n IH, {simp only [nat.cast_zero, mul_zero, zero_add]},
     simp only [nat.cast_succ, mul_add_one, add_assoc, this, IH] }
+end
+
+theorem opow_principal_add_is_principal_add {a} (ha : principal (+) a) (b : ordinal) :
+  principal (+) (a ^ b) :=
+begin
+  rcases principal_add_iff_zero_or_omega_opow.1 ha with rfl | ⟨c, rfl⟩,
+  { rcases eq_or_ne b 0 with rfl | hb,
+    { rw opow_zero, exact principal_add_one },
+    { rwa zero_opow hb } },
+  { rw ←opow_mul, exact principal_add_omega_opow _ }
 end
 
 theorem add_absorp {a b c : ordinal} (h₁ : a < omega ^ b) (h₂ : omega ^ b ≤ c) : a + c = c :=

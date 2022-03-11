@@ -481,6 +481,7 @@ theorem foldr_strict_mono {f : α → β → β} (H : ∀ a, strict_mono (f a)) 
 λ _ _ h, list.rec_on l h (λ i l hl, H i hl)
 
 end list
+
 end composition
 
 /-! ### Monotonicity in linear orders  -/

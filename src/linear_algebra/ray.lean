@@ -12,7 +12,7 @@ This file defines rays in modules.
 
 ## Main definitions
 
-* `same_ray`: two vectors belong to the same ray if they are proportional with a positive
+* `same_ray`: two vectors belong to the same ray if they are proportional with a nonnegative
   coefficient.
 
 * `module.ray` is a type for the equivalence class of nonzero vectors in a module with some
@@ -30,9 +30,9 @@ variables {M : Type*} [add_comm_monoid M] [module R M]
 variables {N : Type*} [add_comm_monoid N] [module R N]
 variables (ι : Type*) [decidable_eq ι]
 
-/-- Two vectors are in the same ray if some positive multiples of them are equal (in the typical
-case over a field, this means each is a positive multiple of the other).  Over a field, this
-is equivalent to `mul_action.orbit_rel`. -/
+/-- Two vectors are in the same ray if either one of them is zero or some positive multiples of them
+are equal (in the typical case over a field, this means one of them is a nonnegative multiple of
+another). -/
 def same_ray (v₁ v₂ : M) : Prop :=
 v₁ = 0 ∨ v₂ = 0 ∨ ∃ (r₁ r₂ : R), 0 < r₁ ∧ 0 < r₂ ∧ r₁ • v₁ = r₂ • v₂
 
@@ -63,11 +63,17 @@ end
 @[symm] lemma symm (h : same_ray R x y) : same_ray R y x :=
 (or.left_comm.1 h).imp_right $ or.imp_right $ λ ⟨r₁, r₂, h₁, h₂, h⟩, ⟨r₂, r₁, h₂, h₁, h.symm⟩
 
+/-- If `x` and `y` are nonzero vectors on the same ray, then there exist positive numbers `r₁ r₂`
+such that `r₁ • x = r₂ • y`. -/
 lemma exists_pos (h : same_ray R x y) (hx : x ≠ 0) (hy : y ≠ 0) :
   ∃ r₁ r₂ : R, 0 < r₁ ∧ 0 < r₂ ∧ r₁ • x = r₂ • y :=
 (h.resolve_left hx).resolve_left hy
 
-/-- `same_ray` is transitive, if the vector in the middle is not equal to zero. -/
+lemma _root_.same_ray_comm : same_ray R x y ↔ same_ray R y x :=
+⟨same_ray.symm, same_ray.symm⟩
+
+/-- `same_ray` is transitive unless the vector in the middle is zero and both other vectors are
+nonzero. -/
 lemma trans (hxy : same_ray R x y) (hyz : same_ray R y z) (hy : y = 0 → x = 0 ∨ z = 0) :
   same_ray R x z :=
 begin
@@ -79,9 +85,6 @@ begin
   refine or.inr (or.inr $ ⟨r₃ * r₁, r₂ * r₄, mul_pos hr₃ hr₁, mul_pos hr₂ hr₄, _⟩),
   rw [mul_smul, mul_smul, h₁, ← h₂, smul_comm]
 end
-
-lemma _root_.same_ray_comm : same_ray R x y ↔ same_ray R y x :=
-⟨same_ray.symm, same_ray.symm⟩
 
 /-- A vector is in the same ray as a nonnegative multiple of itself. -/
 lemma _root_.same_ray_nonneg_smul_right (v : M) {r : R} (h : 0 ≤ r) : same_ray R v (r • v) :=
@@ -116,12 +119,13 @@ lemma nonneg_smul_left {r : R} (h : same_ray R x y) (hr : 0 ≤ r) : same_ray R 
 lemma pos_smul_left {r : R} (h : same_ray R x y) (hr : 0 < r) : same_ray R (r • x) y :=
 h.nonneg_smul_left hr.le
 
-/-- If two vectors are on the same ray then they remain so after appling a linear map. -/
+/-- If two vectors are on the same ray then they remain so after applying a linear map. -/
 lemma map (f : M →ₗ[R] N) (h : same_ray R x y) : same_ray R (f x) (f y) :=
 h.imp (λ hx, by rw [hx, map_zero]) $ or.imp (λ hy, by rw [hy, map_zero]) $
   λ ⟨r₁, r₂, hr₁, hr₂, h⟩, ⟨r₁, r₂, hr₁, hr₂, by rw [←f.map_smul, ←f.map_smul, h]⟩
 
-/-- If two vectors are on the same ray then they remain so after appling a linear equivalence. -/
+/-- The images of two vectors under a linear equivalence are on the same ray if and only if the
+original vectors are on the same ray. -/
 @[simp] lemma _root_.same_ray_map_iff (e : M ≃ₗ[R] N) : same_ray R (e x) (e y) ↔ same_ray R x y :=
 ⟨λ h, by simpa using same_ray.map e.symm.to_linear_map h, same_ray.map e.to_linear_map⟩
 
@@ -131,6 +135,7 @@ lemma smul {S : Type*} [monoid S] [distrib_mul_action S M] [smul_comm_class R S 
   (h : same_ray R x y) (s : S) : same_ray R (s • x) (s • y) :=
 h.map (s • (linear_map.id : M →ₗ[R] M))
 
+/-- If `x` and `y` are on the same ray as `z`, then so is `x + y`. -/
 lemma add_left (hx : same_ray R x z) (hy : same_ray R y z) : same_ray R (x + y) z :=
 begin
   rcases eq_or_ne x 0 with rfl|hx₀, { rwa zero_add },
@@ -144,6 +149,7 @@ begin
     rw smul_comm }
 end
 
+/-- If `y` and `z` are on the same ray as `x`, then so is `y + z`. -/
 lemma add_right (hy : same_ray R x y) (hz : same_ray R x z) : same_ray R x (y + z) :=
 (hy.symm.add_left hz.symm).symm
 
@@ -153,7 +159,8 @@ variables (R M)
 
 include R
 
-/-- Nonzero vectors, as used to define rays. -/
+/-- Nonzero vectors, as used to define rays. This type depends on an unused argument `R` so that
+`ray_vector.setoid` can be an instance. -/
 @[nolint unused_arguments]
 def ray_vector := {v : M // v ≠ 0}
 
@@ -462,54 +469,46 @@ end
 
 end linear_ordered_comm_ring
 
-section linear_ordered_field
+namespace same_ray
 
-variables (R : Type*) [linear_ordered_field R]
-variables {M : Type*} [add_comm_group M] [module R M]
+variables {R : Type*} [linear_ordered_field R]
+variables {M : Type*} [add_comm_group M] [module R M] {v₁ v₂ : M}
 
-lemma same_ray_tfae (v₁ v₂ : M) :
-  tfae [same_ray R v₁ v₂,
-    v₁ = 0 ∨ ∃ c : R, 0 ≤ c ∧ v₂ = c • v₁,
-    ∃ a b : R, 0 ≤ a ∧ 0 ≤ b ∧ a + b = 1 ∧ v₁ = a • (v₁ + v₂) ∧ v₂ = b • (v₁ + v₂)] :=
+/-- If a vector `v₂` is on the same ray as a nonzero vector `v₁`, then it is equal to `c • v₁` for
+some nonnegative `c`. -/
+lemma exists_right_eq_smul (h : same_ray R v₁ v₂) (h₀ : v₁ ≠ 0) :
+  ∃ c : R, 0 ≤ c ∧ v₂ = c • v₁ :=
 begin
-  tfae_have : 1 → 2,
-  { refine or.imp_right _,
-    rintro (rfl|⟨r₁, r₂, hr₁, hr₂, H⟩),
-    { exact ⟨0, le_rfl, (zero_smul _ _).symm⟩ },
-    { refine ⟨r₁ / r₂, div_nonneg hr₁.le hr₂.le, _⟩,
-      rwa [div_eq_inv_mul, mul_smul, H, inv_smul_smul₀ hr₂.ne'] } },
-  tfae_have : 2 → 3,
-  { rintro (rfl|⟨c, hc, rfl⟩),
-    { use [0, 1], simp },
-    { have hc₁ : 0 < 1 + c, from zero_lt_one.trans_le ((le_add_iff_nonneg_right _).2 hc),
-      have : v₁ + c • v₁ = (1 + c) • v₁, by rw [add_smul, one_smul],
-      refine ⟨(1 + c)⁻¹, c / (1 + c), inv_nonneg.2 hc₁.le, div_nonneg hc hc₁.le, _, _, _⟩,
-      { rw [← one_div, ← add_div, div_self hc₁.ne'] },
-      { rw [this, inv_smul_smul₀ hc₁.ne'] },
-      { rw [this, div_eq_mul_inv, mul_smul, inv_smul_smul₀ hc₁.ne'] } } },
-  tfae_have : 3 → 1,
-  { generalize : v₁ + v₂ = u,
-    rintro ⟨a, b, ha, hb, hab, rfl, rfl⟩,
-    exact (same_ray_nonneg_smul_right _ hb).nonneg_smul_left ha },
-  tfae_finish
+  rcases h.resolve_left h₀ with (rfl|⟨r₁, r₂, hr₁, hr₂, H⟩),
+  { exact ⟨0, le_rfl, (zero_smul _ _).symm⟩ },
+  { refine ⟨r₁ / r₂, div_nonneg hr₁.le hr₂.le, _⟩,
+    rwa [div_eq_inv_mul, mul_smul, H, inv_smul_smul₀ hr₂.ne'] }
 end
 
-variable {R}
-
-lemma same_ray.exists_right_eq_smul {v₁ v₂ : M} (h : same_ray R v₁ v₂) (h₀ : v₁ ≠ 0) :
-  ∃ c : R, 0 ≤ c ∧ v₂ = c • v₁ :=
-or.resolve_left (((same_ray_tfae R v₁ v₂).out 0 1).mp h) h₀
-
-lemma same_ray.exists_left_eq_smul {v₁ v₂ : M} (h : same_ray R v₁ v₂) (h₀ : v₂ ≠ 0) :
+/-- If a vector `v₁` is on the same ray as a nonzero vector `v₂`, then it is equal to `c • v₂` for
+some nonnegative `c`. -/
+lemma exists_left_eq_smul {v₁ v₂ : M} (h : same_ray R v₁ v₂) (h₀ : v₂ ≠ 0) :
   ∃ c : R, 0 ≤ c ∧ v₁ = c • v₂ :=
 h.symm.exists_right_eq_smul h₀
 
-lemma same_ray.exists_eq_smul_add {v₁ v₂ : M} (h : same_ray R v₁ v₂) :
+lemma exists_eq_smul_add {v₁ v₂ : M} (h : same_ray R v₁ v₂) :
   ∃ a b : R, 0 ≤ a ∧ 0 ≤ b ∧ a + b = 1 ∧ v₁ = a • (v₁ + v₂) ∧ v₂ = b • (v₁ + v₂) :=
-((same_ray_tfae R v₁ v₂).out 0 2).mp h
+begin
+  rcases h with rfl|rfl|⟨r₁, r₂, h₁, h₂, H⟩,
+  { use [0, 1], simp },
+  { use [1, 0], simp },
+  { have h₁₂ : 0 < r₁ + r₂, from add_pos h₁ h₂,
+    refine ⟨r₂ / (r₁ + r₂), r₁ / (r₁ + r₂), div_nonneg h₂.le h₁₂.le, div_nonneg h₁.le h₁₂.le,
+      _, _, _⟩,
+    { rw [← add_div, add_comm, div_self h₁₂.ne'] },
+    { rw [div_eq_inv_mul, mul_smul, smul_add, ← H, ← add_smul, add_comm r₂,
+        inv_smul_smul₀ h₁₂.ne'] },
+    { rw [div_eq_inv_mul, mul_smul, smul_add, H, ← add_smul, add_comm r₂,
+        inv_smul_smul₀ h₁₂.ne'] } }
+end
 
-lemma same_ray.exists_eq_smul {v₁ v₂ : M} (h : same_ray R v₁ v₂) :
+lemma exists_eq_smul {v₁ v₂ : M} (h : same_ray R v₁ v₂) :
   ∃ (u : M) (a b : R), 0 ≤ a ∧ 0 ≤ b ∧ a + b = 1 ∧ v₁ = a • u ∧ v₂ = b • u :=
 ⟨v₁ + v₂, h.exists_eq_smul_add⟩
 
-end linear_ordered_field
+end same_ray

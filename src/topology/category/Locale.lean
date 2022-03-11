@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.category.Frame
-import topology.category.Top.basic
-import topology.opens
 
 /-!
 # The category of locales
@@ -15,7 +13,7 @@ This file defines `Locale`, the category of locales. This is the opposite of the
 
 universes u
 
-open category_theory opposite order topological_space
+open category_theory opposite order
 
 /-- The category of locales. -/
 @[derive large_category] def Locale := Frameᵒᵖ
@@ -36,7 +34,4 @@ end Locale
 
 /-- The forgetful functor from `Top` to `Locale` which forgets that the space has "enough points".
 -/
-def Top_to_Locale : Top ⥤ Locale :=
-{ obj := λ X, Locale.of (opens X),
-  map := λ X Y f, quiver.hom.op (opens.comap f),
-  map_id' := λ X, quiver.hom.unop_inj opens.comap_id }
+@[simps] def Top_to_Locale : Top ⥤ Locale := Top_op_to_Frame.right_op

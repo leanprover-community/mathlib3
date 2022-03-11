@@ -1195,9 +1195,7 @@ end int
 
 section
 open finset
-/--
-Exactly `n / p` naturals in `[1, n]` are multiples of `p`.
--/
+/-- Exactly `n / p` naturals in `[1, n]` are multiples of `p`. -/
 lemma card_multiples (n p : ℕ) : card {e ∈ range n | p ∣ e + 1} = n / p :=
 begin
   induction n with n hn,

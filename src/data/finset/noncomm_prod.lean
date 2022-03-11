@@ -5,8 +5,6 @@ Authors: Yakov Pechersky
 -/
 
 import algebra.big_operators.basic
-import group_theory.submonoid.basic
-import group_theory.subgroup.basic
 
 /-!
 # Products (respectively, sums) over a finset or a multiset.
@@ -165,22 +163,6 @@ begin
         simp [hy] } } }
 end
 
-@[to_additive]
-lemma _root_.submonoid.multiset_noncomm_prod_mem (m : submonoid α) (s : multiset α)
-  (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute x y)
-  (h : ∀ (x ∈ s), x ∈ m) : s.noncomm_prod comm ∈ m :=
-begin
-  induction s using quotient.induction_on with l,
-  simp only [quot_mk_to_coe, noncomm_prod_coe],
-  exact submonoid.list_prod_mem _ h,
-end
-
-@[to_additive]
-lemma _root_.subgroup.multiset_noncomm_prod_mem {α : Type*} [group α] (m : subgroup α)
-  (s : multiset α) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute x y) :
-  (∀ (x ∈ s), x ∈ m) → s.noncomm_prod comm ∈ m :=
-m.to_submonoid.multiset_noncomm_prod_mem s comm
-
 @[to_additive] lemma noncomm_prod_eq_prod {α : Type*} [comm_monoid α] (s : multiset α) :
   noncomm_prod s (λ _ _ _ _, commute.all _ _) = prod s :=
 begin
@@ -252,24 +234,6 @@ by simp [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
   noncomm_prod ({a} : finset α) f
     (λ x hx y hy, by rw [mem_singleton.mp hx, mem_singleton.mp hy]) = f a :=
 by simp [noncomm_prod, multiset.singleton_eq_cons]
-
-@[to_additive]
-lemma _root_.submonoid.finset_noncomm_prod_mem (m : submonoid β) (s : finset α) (f : α → β)
-  (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
-  (h : ∀ (x : α), x ∈ s → f x ∈ m) : s.noncomm_prod f comm ∈ m :=
-begin
-  apply submonoid.multiset_noncomm_prod_mem,
-  intro y,
-  rw multiset.mem_map,
-  rintros ⟨x, ⟨hx, rfl⟩⟩,
-  exact h x hx,
-end
-
-@[to_additive]
-lemma _root_.subgroup.finset_noncomm_prod_mem {β : Type*} [group β] (m : subgroup β)
-  (s : finset α) (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y)) :
-  (∀ (x : α), x ∈ s → f x ∈ m) → s.noncomm_prod f comm ∈ m :=
-m.to_submonoid.finset_noncomm_prod_mem s f comm
 
 @[to_additive]
 lemma noncomm_prod_commute (s : finset α) (f : α → β)

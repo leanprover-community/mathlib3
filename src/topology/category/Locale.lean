@@ -13,7 +13,7 @@ This file defines `Locale`, the category of locales. This is the opposite of the
 
 universes u
 
-open category_theory opposite order
+open category_theory opposite order topological_space
 
 /-- The category of locales. -/
 @[derive large_category] def Locale := Frameᵒᵖ
@@ -36,5 +36,6 @@ end Locale
 -/
 @[simps] def Top_to_Locale : Top ⥤ Locale := Top_op_to_Frame.right_op
 
--- Note, `CompHaus` is too strong. We only need `t0_space`
-instance : faithful (CompHaus_to_Top ⋙ Top_to_Locale) := functor.right_op_faithful
+-- Note, `CompHaus` is too strong. We only need `t0_space`.
+instance CompHaus_to_Locale.faithful : faithful (CompHaus_to_Top ⋙ Top_to_Locale.{u}) :=
+⟨λ X Y f g h, by { dsimp at h, exact opens.comap_injective (quiver.hom.op_inj h) }⟩

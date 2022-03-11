@@ -65,5 +65,6 @@ end Frame
   map := λ X Y f, opens.comap $ quiver.hom.unop f,
   map_id' := λ X, opens.comap_id }
 
--- Note, `CompHaus` is too strong. We only need `t0_space`
-instance : faithful (CompHaus_to_Top.op ⋙ Top_op_to_Frame) := ⟨λ X Y, comap_injective⟩
+-- Note, `CompHaus` is too strong. We only need `t0_space`.
+instance CompHaus_op_to_Frame.faithful : faithful (CompHaus_to_Top.op ⋙ Top_op_to_Frame.{u}) :=
+⟨λ X Y f g h, quiver.hom.unop_inj $ opens.comap_injective h⟩

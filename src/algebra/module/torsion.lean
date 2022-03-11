@@ -20,14 +20,15 @@ import group_theory.torsion
   that `a • x = 0` for some `a` in `S`.
 * `submodule.torsion R M` : the torsion submoule, containing all elements `x` of `M` such that
   `a • x = 0` for some non-zero-divisor `a` in `R`.
-* `module.is_torsion R M` : the property that defines a torsion module.
+* `module.is_torsion_by R M a` : the property that defines a `a`-torsion module. Similarly,
+  `is_torsion'` and `is_torsion`.
 
 ## Main statements
 
 * `torsion' R M S` and `torsion R M` are submodules.
 * `torsion_by R M a` can be viewed as a `(R ⧸ R∙a)`-module.
-* `submodule.torsion_by_torsion_by_eq_top` : the `a`-torsion submodule of the `a`-torsion submodule
-  (viewed as a module) is the full `a`-torsion module. Similar lemmas for `torsion'` and `torsion`.
+* `submodule.torsion_by_is_torsion_by` : the `a`-torsion submodule is a `a`-torsion module.
+  Similar lemmas for `torsion'` and `torsion`.
 * `submodule.no_zero_smul_divisors_iff_torsion_bot` : a module over a domain has
   `no_zero_smul_divisors` (that is, there is no non-zero `a`, `x` such that `a • x = 0`)
   iff its torsion submodule is trivial.
@@ -72,11 +73,20 @@ namespace submodule
 @[reducible] def torsion := torsion' R M R⁰
 end submodule
 
-/-- A torsion module is a module whose torsion submodule is the full space. -/
-@[reducible] def module.is_torsion := submodule.torsion R M = ⊤
+namespace module
+/-- A `a`-torsion module is a module where every element is `a`-torsion. -/
+@[reducible] def is_torsion_by (a : R) := ∀ ⦃x : M⦄, a • x = 0
+include R
+/-- A `S`-torsion module is a module where every element is `a`-torsion for some `a` in `S`. -/
+@[reducible] def is_torsion' (S : Type*) [has_scalar S M] := ∀ ⦃x : M⦄, ∃ a : S, a • x = 0
+/-- A torsion module is a module where every element is `a`-torsion for some non-zero-divisor `a`.
+-/
+@[reducible] def is_torsion := ∀ ⦃x : M⦄, ∃ a : R⁰, a • x = 0
+end module
 end defs
 
 namespace submodule
+open module
 variables {R M : Type*}
 section torsion_by
 variables [comm_semiring R] [add_comm_monoid M] [module R M] (a : R)
@@ -85,10 +95,13 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M] (a : R)
 @[simp] lemma smul'_torsion_by (x : torsion_by R M a) : a • (x:M) = 0 := x.prop
 @[simp] lemma mem_torsion_by_iff (x : M) : x ∈ torsion_by R M a ↔ a • x = 0 := iff.rfl
 
-/-- The `a`-torsion submodule of the `a`-torsion submodule (viewed as a module) is the full
-`a`-torsion module. -/
+/-- A `a`-torsion module is a module whose `a`-torsion submodule is the full space. -/
+lemma is_torsion_by_iff_torsion_by_eq_top : is_torsion_by R M a ↔ torsion_by R M a = ⊤ :=
+⟨λ h, eq_top_iff.mpr (λ _ _, @h _), λ h x, by { rw [← mem_torsion_by_iff, h], trivial }⟩
+/-- The `a`-torsion submodule is a `a`-torsion module. -/
+lemma torsion_by_is_torsion_by : is_torsion_by R (torsion_by R M a) a := λ _, smul_torsion_by _ _
 @[simp] lemma torsion_by_torsion_by_eq_top : torsion_by R (torsion_by R M a) a = ⊤ :=
-eq_top_iff.mpr (λ _ _, smul_torsion_by _ _)
+(is_torsion_by_iff_torsion_by_eq_top a).mp $ torsion_by_is_torsion_by a
 
 end torsion_by
 
@@ -123,30 +136,29 @@ variables (S : Type*) [comm_monoid S] [distrib_mul_action S M] [smul_comm_class 
 @[simp] lemma mem_torsion'_iff (x : M) : x ∈ torsion' R M S ↔ ∃ a : S, a • x = 0 := iff.rfl
 @[simp] lemma mem_torsion_iff (x : M) : x ∈ torsion R M ↔ ∃ a : R⁰, a • x = 0 := iff.rfl
 
-instance : has_scalar S (torsion' R M S) :=
+@[simps] instance : has_scalar S (torsion' R M S) :=
 ⟨λ s x, ⟨s • x, by { obtain ⟨x, a, h⟩ := x, use a, dsimp, rw [smul_comm, h, smul_zero] }⟩⟩
 instance : distrib_mul_action S (torsion' R M S) := subtype.coe_injective.distrib_mul_action
   ((torsion' R M S).subtype).to_add_monoid_hom (λ (c : S) x, rfl)
 instance : smul_comm_class S R (torsion' R M S) := ⟨λ s a x, subtype.ext $ smul_comm _ _ _⟩
 
-/-- The `S`-torsion submodule of the `S`-torsion submodule (viewed as a module) is the full
-`S`-torsion module. -/
+/-- A `S`-torsion module is a module whose `S`-torsion submodule is the full space. -/
+lemma is_torsion'_iff_torsion'_eq_top : is_torsion' R M S ↔ torsion' R M S = ⊤ :=
+⟨λ h, eq_top_iff.mpr (λ _ _, @h _), λ h x, by { rw [← @mem_torsion'_iff R, h], trivial }⟩
+/-- The `a`-torsion submodule is a `a`-torsion module. -/
+lemma torsion'_is_torsion' : is_torsion' R (torsion' R M S) S := λ ⟨x, ⟨a, h⟩⟩, ⟨a, subtype.ext h⟩
 @[simp] lemma torsion'_torsion'_eq_top : torsion' R (torsion' R M S) S = ⊤ :=
-eq_top_iff.mpr (λ ⟨x, ⟨a, h⟩⟩ _, ⟨a, subtype.ext h⟩)
+(is_torsion'_iff_torsion'_eq_top S).mp $ torsion'_is_torsion' S
 /-- The torsion submodule of the torsion submodule (viewed as a module) is the full
 torsion module. -/
 @[simp] lemma torsion_torsion_eq_top : torsion R (torsion R M) = ⊤ := torsion'_torsion'_eq_top R⁰
 /-- The torsion submodule is always a torsion module. -/
-lemma torsion_is_torsion : module.is_torsion R (torsion R M) := torsion_torsion_eq_top
+lemma torsion_is_torsion : module.is_torsion R (torsion R M) := torsion'_is_torsion' R⁰
 
 end torsion'
 
 section torsion
-variables [comm_semiring R] [add_comm_monoid M] [module R M]
-lemma mem_torsion_of_is_torsion (h : module.is_torsion R M) (x : M) : x ∈ torsion R M :=
-by convert mem_top
-
-variables [no_zero_divisors R] [nontrivial R]
+variables [comm_semiring R] [add_comm_monoid M] [module R M] [no_zero_divisors R] [nontrivial R]
 
 lemma coe_torsion_eq_annihilator_ne_bot :
   (torsion R M : set M) = { x : M | (R ∙ x).annihilator ≠ ⊥ } :=
@@ -195,16 +207,16 @@ no_zero_smul_divisors_iff_torsion_eq_bot.mpr torsion_eq_bot
 end quotient_torsion
 end submodule
 
-section ℕ_torsion
+namespace add_monoid
 variables {M : Type*} [add_comm_monoid M]
 
-theorem is_torsion_iff_torsion_eq_top : add_monoid.is_torsion M ↔ module.is_torsion ℕ M :=
+theorem is_torsion_iff_is_torsion_nat : add_monoid.is_torsion M ↔ module.is_torsion ℕ M :=
 begin
-  refine ⟨λ h, eq_top_iff.mpr $ λ x _, _, λ h x, _⟩,
+  refine ⟨λ h x, _, λ h x, _⟩,
   { obtain ⟨n, h0, hn⟩ := (is_of_fin_add_order_iff_nsmul_eq_zero x).mp (h x),
     exact ⟨⟨n, mem_non_zero_divisors_of_ne_zero (ne_of_gt h0)⟩, hn⟩ },
   { rw is_of_fin_add_order_iff_nsmul_eq_zero,
-    obtain ⟨n, hn⟩ := submodule.mem_torsion_of_is_torsion h x,
+    obtain ⟨n, hn⟩ := @h x,
     refine ⟨n, nat.pos_of_ne_zero (non_zero_divisors.coe_ne_zero _), hn⟩ }
 end
-end ℕ_torsion
+end add_monoid

@@ -113,14 +113,10 @@ lemma cancel_right {g₁ g₂ f : centroid_hom α} (hf : surjective f) :
 lemma cancel_left {g f₁ f₂ : centroid_hom α} (hg : injective g) : g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
 ⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
 
-
-
-
-
 lemma comm_comp_mul (T S : centroid_hom α) (a b : α) : (T ∘ S)(a * b) = (S ∘ T)(a * b) :=
   by rw [comp_app, map_mul_right, map_mul_left, ←map_mul_right, ←map_mul_left]
 
-lemma comm_apply_sq {α : Type*} [non_unital_non_assoc_ring α] (T S : centroid_hom α) (a b : α) :
+lemma comm_apply_sq {α : Type*} [non_unital_non_assoc_ring α] (T S : centroid_hom α) (a : α) :
   ((T ∘ S) a - (S ∘ T) a) * ((T ∘ S) a - (S ∘ T) a) = 0 :=
 by rw [sub_mul, comp_app, comp_app, ← map_mul_right, ← map_mul_right, ← map_mul_right,
     ← map_mul_right, ← comp_app T S, comm_comp_mul, ← comp_app T S, sub_self]

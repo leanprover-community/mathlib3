@@ -465,12 +465,6 @@ begin
       exact enat.lt_add_one (ne_top_iff_finite.mpr
         (finite_nat_iff.mpr ⟨(fact.elim hp).ne_one, hn⟩)), },
     { apply_instance } }
-  -- rw multiplicity.pow_dvd_iff_le_multiplicity,
-  -- rw padic_val_nat_def (ne_of_gt hn),
-  -- { rw [nat.cast_add, enat.coe_get],
-  --   simp only [nat.cast_one, not_le],
-  --   apply enat.lt_add_one (ne_top_iff_finite.2 (finite_nat_iff.2 ⟨hp.elim.ne_one, hn⟩)) },
-  -- { apply_instance }
 end
 
 lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime]

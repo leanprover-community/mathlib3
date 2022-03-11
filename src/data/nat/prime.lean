@@ -1201,7 +1201,7 @@ Exactly `n / p` naturals in `[1, n]` are multiples of `p`.
 lemma card_multiples (n p : ℕ) : card {e ∈ range n | p ∣ e + 1} = n / p :=
 begin
   induction n with n hn,
-  { refl },
+  { rw [nat.zero_div, sep_def, range_zero, filter_empty, card_empty] },
   { rw [nat.succ_div, add_ite, add_zero, range_succ, sep_def, filter_insert, apply_ite card,
       card_insert_of_not_mem, ←sep_def, hn],
     { congr },

@@ -560,6 +560,14 @@ lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e
 
 @[simp] lemma trans_refl (e : α ≃o β) : e.trans (refl β) = e := by { ext x, refl }
 
+/-- `prod.swap` as an `order_iso`. -/
+def prod_comm : (α × β) ≃o (β × α) :=
+{ to_equiv := equiv.prod_comm α β,
+  map_rel_iff' := λ a b, prod.swap_le_swap }
+
+@[simp] lemma coe_prod_comm : ⇑(prod_comm : (α × β) ≃o (β × α)) = prod.swap := rfl
+@[simp] lemma prod_comm_symm : (prod_comm : (α × β) ≃o (β × α)).symm = prod_comm := rfl
+
 variables (α)
 
 /-- The order isomorphism between a type and its double dual. -/

@@ -41,6 +41,10 @@ instance commutator : has_bracket (subgroup G) (subgroup G) :=
 lemma commutator_def (H₁ H₂ : subgroup G) :
   ⁅H₁, H₂⁆ = closure {g | ∃ (g₁ ∈ H₁) (g₂ ∈ H₂), ⁅g₁, g₂⁆ = g} := rfl
 
+lemma commutator_mem_commutator {H₁ H₂ : subgroup G} {g₁ g₂ : G} (hp : g₁ ∈ H₁) (hq : g₂ ∈ H₂) :
+  ⁅g₁, g₂⁆ ∈ ⁅H₁, H₂⁆ :=
+subset_closure ⟨g₁, h₁, g₂, h₂, rfl⟩
+
 instance commutator_normal (H₁ H₂ : subgroup G) [h₁ : H₁.normal]
   [h₂ : H₂.normal] : normal ⁅H₁, H₂⁆ :=
 begin
@@ -77,10 +81,6 @@ begin
   { rintros h x ⟨p, hp, q, hq, rfl⟩,
     exact h p hp q hq, }
 end
-
-lemma commutator_mem_commutator {H₁ H₂ : subgroup G} {p q : G} (hp : p ∈ H₁) (hq : q ∈ H₂) :
-  ⁅p, q⁆ ∈ ⁅H₁, H₂⁆ :=
-(commutator_le H₁ H₂ ⁅H₁, H₂⁆).mp (le_refl ⁅H₁, H₂⁆) p hp q hq
 
 lemma commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=
 begin

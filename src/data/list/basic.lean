@@ -2101,6 +2101,9 @@ end
 | []     := rfl
 | (a::l) := by rw [foldr_cons, foldr_fixed l]
 
+@[simp] theorem foldl_combinator_K {a : α} : Π l : list β, foldl combinator.K a l = a :=
+foldl_fixed
+
 @[simp] theorem foldl_join (f : α → β → α) :
   ∀ (a : α) (L : list (list β)), foldl f a (join L) = foldl (foldl f) a L
 | a []     := rfl

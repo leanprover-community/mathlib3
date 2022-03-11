@@ -349,10 +349,10 @@ nnreal.eq $ norm_mul a b
 @[simp] lemma nnnorm_pow (a : α) (n : ℕ) : ∥a ^ n∥₊ = ∥a∥₊ ^ n :=
 (nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_pow a n
 
-lemma list.norm_prod (l : list α) : ∥l.prod∥ = (l.map norm).prod :=
+protected lemma list.norm_prod (l : list α) : ∥l.prod∥ = (l.map norm).prod :=
 (norm_hom.to_monoid_hom : α →* ℝ).map_list_prod _
 
-lemma list.nnnorm_prod (l : list α) : ∥l.prod∥₊ = (l.map nnnorm).prod :=
+protected lemma list.nnnorm_prod (l : list α) : ∥l.prod∥₊ = (l.map nnnorm).prod :=
 (nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_list_prod _
 
 @[simp] lemma norm_div (a b : α) : ∥a / b∥ = ∥a∥ / ∥b∥ := (norm_hom : α →*₀ ℝ).map_div a b

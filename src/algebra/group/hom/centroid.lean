@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 import algebra.ring.basic
 import tactic.nth_rewrite
+import algebra.group.hom_instances
 
 /-!
 # Centroid homomorphisms
@@ -112,6 +113,49 @@ lemma cancel_right {g₁ g₂ f : centroid_hom α} (hf : surjective f) :
 
 lemma cancel_left {g f₁ f₂ : centroid_hom α} (hg : injective g) : g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
 ⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
+
+-- c.f. https://github.com/leanprover-community/mathlib/blob/5d405e2a7028f87e962e7cc2133dc0cfc9c55f7d/src/algebra/group/hom.lean#L885
+instance : monoid (centroid_hom α) :=
+{ mul := centroid_hom.comp,
+  one := centroid_hom.id α,
+  mul_assoc := λ _ _ _, centroid_hom.comp_assoc _ _ _,
+  mul_one := centroid_hom.comp_id,
+  one_mul := centroid_hom.id_comp }
+
+/-- Addition of `centroid_hom`s as a `centroid_hom`. -/
+def add (g f : centroid_hom α) : centroid_hom α :=
+⟨g.to_add_monoid_hom + f.to_add_monoid_hom,
+λ a b, by rw [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.add_apply,
+  ← add_monoid_hom.to_fun_eq_coe, ← add_monoid_hom.to_fun_eq_coe, map_mul_left', map_mul_left',
+  ← mul_add, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.add_apply],
+λ a b, by rw [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.add_apply,
+  ← add_monoid_hom.to_fun_eq_coe, ← add_monoid_hom.to_fun_eq_coe, map_mul_right', map_mul_right',
+  ← add_mul, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.add_apply]
+⟩
+
+/-- The zero `centroid_hom` -/
+def zero : centroid_hom α :=
+⟨(0 : add_monoid.End α) ,
+λ a b, by simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.zero_apply, mul_zero],
+λ a b, by simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.zero_apply, zero_mul],⟩
+
+-- c.f. https://github.com/leanprover-community/mathlib/blob/master/src/algebra/group/hom_instances.lean#L28
+instance : add_comm_monoid (centroid_hom α) :=
+{ add := centroid_hom.add,
+  add_assoc := by intros; ext; apply add_assoc,
+  zero := zero,
+  zero_add := by intros; ext; apply zero_add,
+  add_zero := by intros; ext; apply add_zero,
+  add_comm := by intros; ext; apply add_comm, }
+
+-- c.f https://github.com/leanprover-community/mathlib/blob/master/src/algebra/group/hom_instances.lean#L58
+instance : semiring (centroid_hom α) :=
+{ zero_mul := λ x, centroid_hom.ext $ λ i, rfl,
+  mul_zero := λ x, centroid_hom.ext $ λ i, add_monoid_hom.map_zero _,
+  left_distrib :=  λ x y z, centroid_hom.ext $ λ i, add_monoid_hom.map_add _ _ _,
+  right_distrib := λ x y z, centroid_hom.ext $ λ i, rfl,
+  .. centroid_hom.monoid,
+  .. centroid_hom.add_comm_monoid }
 
 lemma comm_comp_mul (T S : centroid_hom α) (a b : α) : (T ∘ S)(a * b) = (S ∘ T)(a * b) :=
   by rw [comp_app, map_mul_right, map_mul_left, ←map_mul_right, ←map_mul_left]

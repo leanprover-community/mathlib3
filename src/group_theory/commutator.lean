@@ -93,30 +93,20 @@ begin
   group,
 end
 
-lemma commutator_le_right (H₁ H₂ : subgroup G) [h : normal H₂] :
-  ⁅H₁, H₂⁆ ≤ H₂ :=
-begin
-  rw commutator_le,
-  intros p hp q hq,
-  exact mul_mem H₂ (h.conj_mem q hq p) (inv_mem H₂ hq),
-end
+lemma commutator_le_right (H₁ H₂ : subgroup G) [h : normal H₂] : ⁅H₁, H₂⁆ ≤ H₂ :=
+(commutator_le _ _ _).mpr (λ g₁ h₁ g₂ h₂, H₂.mul_mem (h.conj_mem g₂ h₂ g₁) (H₂.inv_mem h₂))
 
-lemma commutator_le_left (H₁ H₂ : subgroup G) [h : normal H₁] :
-  ⁅H₁, H₂⁆ ≤ H₁ :=
-begin
-  rw commutator_comm,
-  exact commutator_le_right H₂ H₁,
-end
+lemma commutator_le_left (H₁ H₂ : subgroup G) [h : normal H₁] : ⁅H₁, H₂⁆ ≤ H₁ :=
+commutator_comm H₂ H₁ ▸ commutator_le_right H₂ H₁
 
-@[simp] lemma commutator_bot (H : subgroup G) : ⁅H, ⊥⁆ = (⊥ : subgroup G) :=
-by { rw eq_bot_iff, exact commutator_le_right H ⊥ }
+@[simp] lemma bot_commutator_left (H : subgroup G) : ⁅(⊥ : subgroup G), H⁆ = ⊥ :=
+le_bot_iff.mp (commutator_le_left ⊥ H)
 
-@[simp] lemma bot_commutator (H : subgroup G) : ⁅(⊥ : subgroup G), H⁆ = (⊥ : subgroup G) :=
-by { rw eq_bot_iff, exact commutator_le_left ⊥ H }
+@[simp] lemma commutator_bot_right (H : subgroup G) : ⁅H, ⊥⁆ = (⊥ : subgroup G) :=
+le_bot_iff.mp (commutator_le_right H ⊥)
 
-lemma commutator_le_inf (H₁ H₂ : subgroup G) [normal H₁] [normal H₂] :
-  ⁅H₁, H₂⁆ ≤ H₁ ⊓ H₂ :=
-by simp only [commutator_le_left, commutator_le_right, le_inf_iff, and_self]
+lemma commutator_le_inf (H₁ H₂ : subgroup G) [normal H₁] [normal H₂] : ⁅H₁, H₂⁆ ≤ H₁ ⊓ H₂ :=
+le_inf (commutator_le_left H₁ H₂) (commutator_le_right H₁ H₂)
 
 lemma map_commutator {G₂ : Type*} [group G₂] (f : G →* G₂) (H₁ H₂ : subgroup G)  :
   map f ⁅H₁, H₂⁆ = ⁅map f H₁, map f H₂⁆ :=

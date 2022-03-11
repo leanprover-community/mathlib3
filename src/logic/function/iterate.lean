@@ -171,10 +171,7 @@ open function
 
 theorem foldl_const (f : α → α) (a : α) (l : list β) : l.foldl (λ b _, f b) a = (f^[l.length]) a :=
 begin
-  revert l a,
-  intro l,
-  induction l with b l H;
-  intro a,
+  induction l with b l H generalizing a,
   { refl },
   { rw [length_cons, foldl, iterate_succ_apply, H] }
 end

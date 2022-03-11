@@ -383,6 +383,11 @@ theorem is_normal.strict_mono {f} (H : is_normal f) : strict_mono f :=
   (λ b l IH h, lt_of_lt_of_le (H.1 a)
     ((H.2 _ l _).1 le_rfl _ (l.2 _ h)))
 
+theorem is_normal_iff_strict_mono_limit (f : ordinal → ordinal) :
+  is_normal f ↔ (strict_mono f ∧ ∀ o, is_limit o → ∀ a, (∀ b < o, f b ≤ a) → f o ≤ a) :=
+⟨λ hf, ⟨hf.strict_mono, λ a ha c, (hf.2 a ha c).2⟩, λ ⟨hs, hl⟩, ⟨λ a, hs (ordinal.lt_succ_self a),
+  λ a ha c, ⟨λ hac b hba, ((hs hba).trans_le hac).le, hl a ha c⟩⟩⟩
+
 theorem is_normal.lt_iff {f} (H : is_normal f) {a b} : f a < f b ↔ a < b :=
 strict_mono.lt_iff_lt $ H.strict_mono
 
@@ -1342,6 +1347,13 @@ theorem bsup_eq_blsub_iff_lt_bsup {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ i hi, f i hi < bsup o f :=
 ⟨λ h i, (by { rw h, apply lt_blsub }), λ h, le_antisymm (bsup_le_blsub f) (blsub_le.2 h)⟩
 
+theorem bsup_eq_blsub_of_lt_succ_limit {o} (ho : is_limit o) {f : Π a < o, ordinal}
+  (hf : ∀ a ha, f a ha < f a.succ (ho.2 a ha)) : bsup o f = blsub o f :=
+begin
+  rw bsup_eq_blsub_iff_lt_bsup,
+  exact λ i hi, (hf i hi).trans_le (le_bsup f _ _)
+end
+
 @[simp] theorem blsub_eq_zero_iff {o} {f : Π a < o, ordinal} : blsub o f = 0 ↔ o = 0 :=
 by { rw [blsub_eq_lsub, lsub_eq_zero_iff], exact out_empty_iff_eq_zero }
 
@@ -1405,9 +1417,21 @@ by { rw [←is_normal.bsup.{u u} H (λ x _, x) h.1, bsup_id_limit h.2] }
 
 theorem is_normal.blsub_eq {f} (H : is_normal f) {o : ordinal} (h : is_limit o) :
   blsub.{u} o (λ x _, f x) = f o :=
+by { rw [←H.bsup_eq h, bsup_eq_blsub_of_lt_succ_limit h], exact (λ a _, H.1 a) }
+
+theorem is_normal_iff_lt_succ_and_bsup_eq {f} :
+  is_normal f ↔ (∀ a, f a < f a.succ) ∧ ∀ o, is_limit o → bsup o (λ x _, f x) = f o :=
+⟨λ h, ⟨h.1, @is_normal.bsup_eq f h⟩, λ ⟨h₁, h₂⟩, ⟨h₁, λ o ho a, (by {rw ←h₂ o ho, exact bsup_le})⟩⟩
+
+theorem is_normal_iff_lt_succ_and_blsub_eq {f} :
+  is_normal f ↔ (∀ a, f a < f a.succ) ∧ ∀ o, is_limit o → blsub o (λ x _, f x) = f o :=
 begin
-  rw ←H.bsup_eq h,
-  exact ((bsup_eq_blsub_iff_lt_bsup _).2 (λ a ha, (H.1 a).trans_le (le_bsup _ _ (h.2 a ha)))).symm
+  rw [is_normal_iff_lt_succ_and_bsup_eq, and.congr_right_iff],
+  intro h,
+  split;
+  intros H o ho;
+  have := H o ho;
+  rwa ←bsup_eq_blsub_of_lt_succ_limit ho (λ a _, h a) at *
 end
 
 theorem is_normal.eq_iff_zero_and_succ {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {g}
@@ -1687,7 +1711,19 @@ begin
           (lt_of_lt_of_le (ordinal.pos_iff_ne_zero.2 a0) ab) (le_of_lt h))) } }
 end
 
-theorem le_opow_self {a : ordinal} (b) (a1 : 1 < a) : b ≤ a ^ b :=
+theorem left_le_opow (a : ordinal) {b : ordinal} (b1 : 0 < b) : a ≤ a ^ b :=
+begin
+  nth_rewrite 0 ←opow_one a,
+  cases le_or_gt a 1 with a1 a1,
+  { cases lt_or_eq_of_le a1 with a0 a1,
+    { rw lt_one_iff_zero at a0,
+      rw [a0, zero_opow ordinal.one_ne_zero],
+      exact ordinal.zero_le _ },
+    rw [a1, one_opow, one_opow] },
+  rwa [opow_le_opow_iff_right a1, one_le_iff_pos]
+end
+
+theorem right_le_opow {a : ordinal} (b) (a1 : 1 < a) : b ≤ a ^ b :=
 (opow_is_normal a1).self_le _
 
 theorem opow_lt_opow_left_of_succ {a b c : ordinal}
@@ -1717,6 +1753,9 @@ begin
     exact (((mul_is_normal $ opow_pos b (ordinal.pos_iff_ne_zero.2 a0)).trans
       (opow_is_normal a1)).limit_le l).symm }
 end
+
+theorem opow_one_add (a b : ordinal) : a ^ (1 + b) = a * a ^ b :=
+by rw [opow_add, opow_one]
 
 theorem opow_dvd_opow (a) {b c : ordinal}
   (h : b ≤ c) : a ^ b ∣ a ^ c :=
@@ -1758,7 +1797,7 @@ if h : 1 < b then pred (Inf {o | x < b ^ o}) else 0
 
 /-- The set in the definition of `log` is nonempty. -/
 theorem log_nonempty {b x : ordinal} (h : 1 < b) : {o | x < b ^ o}.nonempty :=
-⟨succ x, succ_le.1 (le_opow_self _ h)⟩
+⟨succ x, succ_le.1 (right_le_opow _ h)⟩
 
 @[simp] theorem log_not_one_lt {b : ordinal} (b1 : ¬ 1 < b) (x : ordinal) : log b x = 0 :=
 by simp only [log, dif_neg b1]
@@ -1833,7 +1872,7 @@ else by simp only [log_not_one_lt b1, ordinal.zero_le]
 theorem log_le_self (b x : ordinal) : log b x ≤ x :=
 if x0 : x = 0 then by simp only [x0, log_zero, ordinal.zero_le] else
 if b1 : 1 < b then
-  le_trans (le_opow_self _ b1) (opow_log_le b (ordinal.pos_iff_ne_zero.2 x0))
+  le_trans (right_le_opow _ b1) (opow_log_le b (ordinal.pos_iff_ne_zero.2 x0))
 else by simp only [log_not_one_lt b1, ordinal.zero_le]
 
 @[simp] theorem log_one (b : ordinal) : log b 1 = 0 :=
@@ -2243,7 +2282,7 @@ theorem opow_omega {a : ordinal} (a1 : 1 < a) (h : a < omega) : a ^ omega = omeg
 le_antisymm
   ((opow_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2
     (λ b hb, le_of_lt (opow_lt_omega h hb)))
-  (le_opow_self _ a1)
+  (right_le_opow _ a1)
 
 theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
   sup.{0 u} (f ∘ nat.cast) = f omega :=

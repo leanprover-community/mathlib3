@@ -3,11 +3,11 @@ Copyright (c) 2021 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Eric Wieser
 -/
-
 import ring_theory.ideal.basic
 import ring_theory.ideal.operations
 import linear_algebra.finsupp
 import ring_theory.graded_algebra.basic
+import algebra.direct_sum.ring
 
 /-!
 # Homogeneous ideals of a graded algebra
@@ -474,12 +474,14 @@ end galois_connection
 
 section irrelevant_ideal
 
-open graded_algebra finset set_like.graded_monoid
+open graded_algebra finset set_like.graded_monoid direct_sum
 
 variables [comm_semiring R] [semiring A]
 variables [algebra R A] [decidable_eq ι]
 variables [canonically_ordered_add_monoid ι] [covariant_class ι ι has_add.add has_lt.lt]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+
+instance test : semiring (𝒜 0) := grade_zero.semiring (λ i, 𝒜 i)
 
 /--
 If `A` is graded by a canonically ordered add monoid, then the projection map `x ↦ x₀` is a ring
@@ -569,3 +571,5 @@ lemma homogeneous_ideal.irrelevant_eq :
   ↑(homogeneous_ideal.irrelevant 𝒜) = (graded_algebra.proj_zero_ring_hom 𝒜).ker := rfl
 
 end irrelevant_ideal
+
+#lint

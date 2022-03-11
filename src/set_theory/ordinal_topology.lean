@@ -217,7 +217,7 @@ begin
     rcases ha with ⟨b, hb, hab⟩,
     exact ⟨b, hb, λ c hc,
       set.mem_preimage.2 (has ⟨hab.trans (h.strict_mono hc.1), h.strict_mono hc.2⟩)⟩ },
-  { rw is_normal_iff_strict_mono_and_limit_le,
+  { rw is_normal_iff_strict_mono_limit,
     rintro ⟨h, h'⟩,
     refine ⟨h, λ o ho a h, _⟩,
     suffices : o ∈ (f ⁻¹' set.Iic a), from set.mem_preimage.1 this,
@@ -230,7 +230,7 @@ theorem enum_ord_is_normal_iff_is_closed {S : set ordinal.{u}} (hS : S.unbounded
   is_normal (enum_ord S) ↔ is_closed S :=
 begin
   refine ⟨λ h, is_closed_iff_sup.2 (λ ι hι f hf, _),
-    λ h, is_normal_iff_strict_mono_and_limit_le.2 ⟨enum_ord.strict_mono hS, λ a ha o H, _⟩⟩,
+    λ h, is_normal_iff_strict_mono_limit.2 ⟨enum_ord.strict_mono hS, λ a ha o H, _⟩⟩,
   { let g : ι → ordinal.{u} := λ i, (enum_ord.order_iso hS).symm ⟨_, hf i⟩,
     suffices : enum_ord S (sup.{u u} g) = sup.{u u} f,
     { rw ←this, exact enum_ord_mem hS _ },

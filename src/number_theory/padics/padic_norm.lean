@@ -145,6 +145,13 @@ by simp [padic_val_rat, padic_val_int]
 @[simp]
 protected lemma zero (m : nat) : padic_val_rat m 0 = 0 := by simp [padic_val_rat, padic_val_int]
 
+/--
+`padic_val_rat p q` for nonzero `q` is the difference in valuations of the numerator and
+denominator.
+-/
+lemma nonzero {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
+  (padic_val_int p q.num : ℤ) - (padic_val_nat p q.denom : ℤ) := by rw padic_val_rat
+
 /-- `padic_val_rat p 1` is 0 for any `p`. -/
 @[simp] protected lemma one : padic_val_rat p 1 = 0 := by simp [padic_val_rat, padic_val_int]
 
@@ -237,21 +244,18 @@ have hn : n ≠ 0, from rat.mk_num_ne_zero_of_ne_zero hqz qdf,
 have hd : d ≠ 0, from rat.mk_denom_ne_zero_of_ne_zero hqz qdf,
 let ⟨c, hc1, hc2⟩ := rat.num_denom_mk hn hd qdf in
 begin
-  rw [padic_val_rat, padic_val_int.defn, padic_val_nat, dif_pos];
+  rw [padic_val_rat.nonzero hqz, padic_val_int.defn, padic_val_nat, dif_pos];
   simp [hc1, hc2, multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime.1),
     (ne.symm (ne_of_lt p_prime.1.one_lt)), hqz],
   simp_rw [int.coe_nat_multiplicity p q.denom],
   refl,
-  rw pos_iff_ne_zero,
-  -- split,
-  -- repeat { exact nat.prime.ne_one p_prime.out, },
-  { intro hq,
+  { rw pos_iff_ne_zero,
+    intro hq,
     simp [hq] at hc2,
     exact hd hc2, },
   { intro hq,
     simp [hq] at hc1,
     exact hn hc1, },
-    -- multiplicity.mul
 end
 
 /-- A rewrite lemma for `padic_val_rat p (q * r)` with conditions `q ≠ 0`, `r ≠ 0`. -/

@@ -27,8 +27,8 @@ begin
   { rw [list.repeat_succ, list.prod_cons, ih, pow_succ] }
 end
 
-@[to_additive]
-lemma prod_eq_pow_of_forall_eq [monoid α] (l : list α) (m : α) (h : ∀ (x ∈ l), x = m) :
+@[to_additive sum_eq_card_nsmul]
+lemma prod_eq_pow_card [monoid α] (l : list α) (m : α) (h : ∀ (x ∈ l), x = m) :
   l.prod = m ^ l.length :=
 begin
   convert list.prod_repeat m l.length,

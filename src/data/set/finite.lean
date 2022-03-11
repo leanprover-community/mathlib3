@@ -828,7 +828,7 @@ finite.induction_on H
   (by simp only [bUnion_empty, bdd_above_empty, ball_empty_iff])
   (λ a s ha _ hs, by simp only [bUnion_insert, ball_insert_iff, bdd_above_union, hs])
 
-lemma infinite_of_not_bdd_above [_root_.infinite α] : ¬ bdd_above s → s.infinite :=
+lemma infinite_of_not_bdd_above : ¬ bdd_above s → s.infinite :=
 begin
   contrapose!,
   rw not_infinite,
@@ -850,7 +850,7 @@ lemma finite.bdd_below_bUnion {I : set β} {S : β → set α} (H : finite I) :
   (bdd_below (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_below (S i)) :=
 @finite.bdd_above_bUnion (order_dual α) _ _ _ _ _ H
 
-lemma infinite_of_not_bdd_below [_root_.infinite α] : ¬ bdd_below s → s.infinite :=
+lemma infinite_of_not_bdd_below : ¬ bdd_below s → s.infinite :=
 begin
   contrapose!,
   rw not_infinite,

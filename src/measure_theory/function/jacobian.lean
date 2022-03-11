@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
+Copyright (c) 2022 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
@@ -293,8 +293,7 @@ begin
     have L1 : tendsto (λ ε, μ (closed_ball 0 ε + A '' (closed_ball 0 1)))
       (𝓝[>] 0) (𝓝 (μ (A '' (closed_ball 0 1)))),
     { apply L0.congr' _,
-      filter_upwards [self_mem_nhds_within],
-      assume r hr,
+      filter_upwards [self_mem_nhds_within] with r hr,
       rw [HC.cthickening_eq_add_closed_ball (le_of_lt hr), add_comm] },
     have L2 : tendsto (λ ε, μ (closed_ball 0 ε + A '' (closed_ball 0 1)))
       (𝓝[>] 0) (𝓝 (d * μ (closed_ball 0 1))),
@@ -345,8 +344,7 @@ begin
   -- covering `s` by closed balls with total measure very close to `μ s`, one deduces that the
   -- measure of `f '' s` is at most `m * (μ s + a)` for any positive `a`.
   have J : ∀ᶠ a in 𝓝[>] (0 : ℝ≥0∞), μ (f '' s) ≤ m * (μ s + a),
-  { filter_upwards [self_mem_nhds_within],
-    assume a ha,
+  { filter_upwards [self_mem_nhds_within] with a ha,
     change 0 < a at ha,
     obtain ⟨t, r, t_count, ts, rpos, st, μt⟩ : ∃ (t : set E) (r : E → ℝ), t.countable ∧ t ⊆ s
       ∧ (∀ (x : E), x ∈ t → 0 < r x) ∧ (s ⊆ ⋃ (x ∈ t), closed_ball x (r x))
@@ -638,8 +636,7 @@ begin
     end
   ... = ∑' n, ε * μ (s ∩ t n) :
     begin
-      congr,
-      ext1 n,
+      congr' with n,
       congr,
       rcases Af' h's n with ⟨y, ys, hy⟩,
       simp only [hy, h'f' y ys, real.to_nnreal_zero, abs_zero, zero_add]

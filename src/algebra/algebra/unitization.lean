@@ -47,26 +47,38 @@ extension to a (unital) algebra homomorphism from `algebra.unitization R A` to `
 * prove the image of the coercion is an essential ideal, maximal if scalars are a field.
 -/
 
-def algebra.unitization (R A : Type*) [comm_ring R] [non_unital_ring A] := R × A
+/-- The minimal unitization of a non-unital `R`-algebra `A`. This is just a type synonym for
+`R × A`.-/
+def algebra.unitization (R A : Type*) := R × A
 
-variables {R A : Type*} [comm_ring R] [non_unital_ring A]
+instance unitization.inhabited (R A : Type*) [inhabited R] [inhabited A] :
+  inhabited (algebra.unitization R A) :=
+{ default := (default, default) }
+
+/-- The explicit identity map between `R × A` and `algebra.unitization R A`. -/
+def to_unitization {R A : Type*} : R × A ≃ algebra.unitization R A := equiv.refl _
+
+variables {R A : Type*}
 
 open algebra
 
-def to_unitization : R × A ≃ unitization R A := equiv.refl _
-
 namespace unitization
 
-instance : has_coe A (unitization R A) := { coe := λ a, to_unitization (0, a) }
+instance [has_zero R] : has_coe_t A (unitization R A) := { coe := λ a, to_unitization (0, a) }
 
 @[simp]
-lemma coe_apply (a : A) : (↑a : unitization R A) = to_unitization (0, a) := rfl
+lemma coe_apply [has_zero R] (a : A) : (↑a : unitization R A) = to_unitization (0, a) := rfl
 
-lemma coe_injective : function.injective (coe : A → unitization R A) := λ a₁ a₂, by simp
+lemma coe_injective [has_zero R] : function.injective (coe : A → unitization R A) :=
+λ a₁ a₂, by simp
 
 lemma decomp (x : unitization R A) : ∃ r a, x = to_unitization (r, a) :=
 ⟨(to_unitization.symm x).1, (to_unitization.symm x).2,
   by simp only [prod.mk.eta, equiv.apply_symm_apply]⟩
+
+section ring
+
+variables [comm_ring R] [non_unital_ring A]
 
 instance : add_comm_group (unitization R A) := prod.add_comm_group
 instance [module R A] : module R (unitization R A) := prod.module
@@ -133,8 +145,12 @@ instance [module R A] [is_scalar_tower R A A] [smul_comm_class R A A] :
   ..unitization.has_mul,
   ..unitization.add_comm_group }
 
+end ring
 
-variables [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
+section algebra
+
+variables [comm_ring R] [non_unital_ring A]
+[module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
 
 instance : algebra R (unitization R A) :=
 { to_fun := λ r, to_unitization (r, 0),
@@ -153,6 +169,8 @@ instance : algebra R (unitization R A) :=
   end,
   ..unitization.module }
 
+/-- The coercion from a non-unital `R`-algebra `A` to its unitization `algebra.unitization R A`
+realized as a non-unital algebra homomorphism. -/
 @[simps]
 def coe_non_unital_alg_hom : non_unital_alg_hom R A (unitization R A) :=
 { to_fun := coe,
@@ -165,14 +183,19 @@ lemma decomp' (x : unitization R A) :
   ∃ r (a : A), x = algebra_map R (unitization R A) r + a :=
 by { rcases decomp x with ⟨r, a, rfl⟩, exact ⟨r, a, by simp [algebra_map_eq_smul_one]⟩ }
 
+end algebra
+
 end unitization
 
 open unitization
 
 variables
+[comm_ring R] [non_unital_ring A]
 [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
 {B : Type*} [ring B] [algebra R B]
 
+/-- The extension to `unitization R A →ₐ[R] B` of a non-unital algebra homomorphism `φ : A → B`
+from a non-unital `R`-algebra `A` into a unital `R`-algebra `B`. -/
 @[simps]
 def non_unital_alg_hom.to_alg_hom (φ : non_unital_alg_hom R A B) : (unitization R A) →ₐ[R] B :=
 { to_fun := λ ra, algebra_map R B (to_unitization.symm ra).1 + φ (to_unitization.symm ra).2,

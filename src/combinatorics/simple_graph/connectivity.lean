@@ -108,11 +108,13 @@ begin
 end
 
 lemma get_vert_of_length_le {u v} (w : G.walk u v) {i : ℕ} (hi : w.length ≤ i) :
-  w.get_vert w.length = v :=
+  w.get_vert i = v :=
 begin
-  induction w with _ x y z hxy wyz IH,
+  induction w with _ x y z hxy wyz IH generalizing i,
   { refl },
-  { simp [length, get_vert, IH] }
+  { cases i,
+    { cases hi, },
+    { exact IH (nat.succ_le_succ_iff.1 hi) } }
 end
 
 

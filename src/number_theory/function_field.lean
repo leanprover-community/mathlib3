@@ -114,19 +114,20 @@ end ring_of_integers
 section infty_valuation
 
 variable [dec : decidable_eq (ratfunc Fq)]
+
 include dec
+
 /-- The valuation at infinity is the nonarchimedean valuation on `Fq(t)` with uniformizer `1/t`.
 Explicitly, if `f/g ∈ Fq(t)` is a nonzero quotient of polynomials, its valuation at infinity is
 `multiplicative.of_add(degree(f) - degree(g))`. -/
 def infty_valuation_def (r : ratfunc Fq) : with_zero (multiplicative ℤ) :=
-if r = 0 then 0 else (multiplicative.of_add ((r.num.nat_degree : ℤ) - r.denom.nat_degree))
+if r = 0 then 0 else (multiplicative.of_add r.int_degree)
 
 lemma infty_valuation.map_zero' : infty_valuation_def Fq 0 = 0 := if_pos rfl
 
 lemma infty_valuation.map_one' : infty_valuation_def Fq 1 = 1 :=
 (if_neg one_ne_zero).trans $
-  by simp only [polynomial.nat_degree_one, ratfunc.num_one, int.coe_nat_zero, sub_zero,
-    ratfunc.denom_one, of_add_zero, with_zero.coe_one]
+  by rw [ratfunc.int_degree_one, of_add_zero, with_zero.coe_one]
 
 lemma infty_valuation.map_mul' (x y : ratfunc Fq) :
   infty_valuation_def Fq (x * y) = infty_valuation_def Fq x * infty_valuation_def Fq y :=
@@ -137,16 +138,7 @@ begin
   { by_cases hy : y = 0,
     { rw [hy, mul_zero, if_pos (eq.refl _), mul_zero] },
     { rw [if_neg hx, if_neg hy, if_neg (mul_ne_zero hx hy), ← with_zero.coe_mul,
-        with_zero.coe_inj, ← of_add_add],
-      apply congr_arg,
-      rw [add_sub, sub_add, sub_sub_assoc_swap, sub_sub, sub_eq_sub_iff_add_eq_add],
-      norm_cast,
-      rw [← polynomial.nat_degree_mul x.denom_ne_zero y.denom_ne_zero,
-        ← polynomial.nat_degree_mul (ratfunc.num_ne_zero (mul_ne_zero hx hy))
-          (mul_ne_zero x.denom_ne_zero y.denom_ne_zero),
-        ← polynomial.nat_degree_mul (ratfunc.num_ne_zero hx) (ratfunc.num_ne_zero hy),
-        ← polynomial.nat_degree_mul (mul_ne_zero (ratfunc.num_ne_zero hx) (ratfunc.num_ne_zero hy))
-          (x * y).denom_ne_zero, ratfunc.num_denom_mul]} }
+        with_zero.coe_inj, ← of_add_add, ratfunc.int_degree_mul hx hy], }}
 end
 
 lemma infty_valuation.map_add_le_max' (x y : ratfunc Fq) :
@@ -165,13 +157,11 @@ begin
     { by_cases hxy : x + y = 0,
       { rw [infty_valuation_def, if_pos hxy], exact zero_le',},
       { rw [infty_valuation_def, infty_valuation_def, infty_valuation_def, if_neg hx, if_neg hy,
-        if_neg hxy, ratfunc.nat_degree_add_eq_nat_degree_num_denom_add hxy,
-        ← ratfunc.nat_degree_rescale_eq_nat_degree hx y.denom_ne_zero, mul_comm y.denom,
-        ← ratfunc.nat_degree_rescale_eq_nat_degree hy x.denom_ne_zero, le_max_iff,
+        if_neg hxy],
+        rw [le_max_iff,
         with_zero.coe_le_coe, multiplicative.of_add_le, with_zero.coe_le_coe,
-        multiplicative.of_add_le, sub_le_sub_iff_right, int.coe_nat_le, sub_le_sub_iff_right,
-        int.coe_nat_le, ← le_max_iff, mul_comm y.num],
-        exact polynomial.nat_degree_add_le _ _ }}}
+        multiplicative.of_add_le, ← le_max_iff],
+        exact ratfunc.int_degree_add_le hx hy hxy }}}
 end
 
 /-- The valuation at infinity on `Fq(t)`. -/
@@ -185,19 +175,16 @@ def infty_valuation  : valuation (ratfunc Fq) (with_zero (multiplicative ℤ)) :
 @[simp] lemma infty_valuation_apply {x : ratfunc Fq} :
   infty_valuation Fq x = infty_valuation_def Fq x := rfl
 
-@[simp] lemma infty_valuation.X :
-  infty_valuation_def Fq (ratfunc.X) = (multiplicative.of_add (1 : ℤ)) :=
-by rw [infty_valuation_def, if_neg ratfunc.X_ne_zero, with_zero.coe_inj, ratfunc.num_X,
-       polynomial.nat_degree_X, ratfunc.denom_X, polynomial.nat_degree_one, int.coe_nat_one,
-       int.coe_nat_zero, sub_zero]
-
 @[simp] lemma infty_valuation.C {k : Fq} (hk : k ≠ 0) :
   infty_valuation_def Fq (ratfunc.C k) = (multiplicative.of_add (0 : ℤ)) :=
 begin
   have hCk : ratfunc.C k ≠ 0 := (ring_hom.map_ne_zero _).mpr hk,
-  rw [infty_valuation_def, if_neg hCk, ratfunc.num_C,
-    polynomial.nat_degree_C, ratfunc.denom_C, polynomial.nat_degree_one, sub_self],
+  rw [infty_valuation_def, if_neg hCk, ratfunc.int_degree_C],
 end
+
+@[simp] lemma infty_valuation.X :
+  infty_valuation_def Fq (ratfunc.X) = (multiplicative.of_add (1 : ℤ)) :=
+by rw [infty_valuation_def, if_neg ratfunc.X_ne_zero, ratfunc.int_degree_X]
 
 @[simp] lemma infty_valuation.polynomial {p : polynomial Fq} (hp : p ≠ 0) :
   infty_valuation_def Fq (algebra_map (polynomial Fq) (ratfunc Fq) p) =
@@ -205,8 +192,7 @@ end
 begin
   have hp' : algebra_map (polynomial Fq) (ratfunc Fq) p ≠ 0,
   { rw [ne.def, ratfunc.algebra_map_eq_zero_iff], exact hp },
-  rw [infty_valuation_def, if_neg hp', ratfunc.num_algebra_map, ratfunc.denom_algebra_map,
-    polynomial.nat_degree_one, int.coe_nat_zero, sub_zero],
+  rw [infty_valuation_def, if_neg hp', ratfunc.int_degree_polynomial]
 end
 
 end infty_valuation

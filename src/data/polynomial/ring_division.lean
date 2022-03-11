@@ -116,6 +116,16 @@ begin
   rw [nat_degree_mul h2.1 h2.2], exact nat.le_add_right _ _
 end
 
+/-- This lemma is useful for working with the `int_degree` of a rational function. -/
+lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : polynomial R} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
+  (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁*q₂ = p₂*q₁) :
+  (p₁.nat_degree : ℤ) - q₁.nat_degree = (p₂.nat_degree : ℤ) - q₂.nat_degree :=
+begin
+  rw sub_eq_sub_iff_add_eq_add,
+  norm_cast,
+  rw [← nat_degree_mul hp₁ hq₂, ← nat_degree_mul hp₂ hq₁, h_eq]
+end
+
 end no_zero_divisors
 
 section no_zero_divisors

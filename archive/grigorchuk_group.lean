@@ -131,15 +131,13 @@ psi: H -> GxG.
 1) psi almost bijection: injective, image has index 8.
 
 2) if psi(h) = (g_0,g_1), then |g_0|+|g_1| <= eta*(|h|+|a|)
- 
+              (so: "essentially" gamma(n) <= 1/2 gamma(eta n)^2, by finding good g_0,g_1)
+--> upper bound
 
-Finite set S e.g. {a,b,c,d,1}
-Finite set X eg. {tt,ff}
-map \Psi : SxX -> XxS
+3) similarly, |h| <= 2(|g_0|+|g_1|) + constant
+              (so: "essentially" gamma(n) >= 8gamma(n/2)^2, by finding good h)
+--> lower bound
 
----> semigroup G = <S> acting on X^*. Action is: s(x_1x_2...x_n) = y_1 t(x_2...x_n) when Psi(s,x_1)=(y_1,t)
-
-in case Psi(s,-).1 is permutation for all s, then G is group.
 -/
 
 end grigorchuk_group

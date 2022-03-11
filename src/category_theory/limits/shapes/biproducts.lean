@@ -3,9 +3,11 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import algebra.group.ext
 import category_theory.limits.shapes.finite_products
 import category_theory.limits.shapes.binary_products
 import category_theory.preadditive
+import category_theory.limits.shapes.kernels
 
 /-!
 # Biproducts and binary biproducts
@@ -52,7 +54,9 @@ universes v u
 open category_theory
 open category_theory.functor
 
-namespace category_theory.limits
+namespace category_theory
+
+namespace limits
 
 variables {J : Type v} [decidable_eq J]
 variables {C : Type u} [category.{v} C] [has_zero_morphisms C]
@@ -70,7 +74,8 @@ structure bicone (F : J → C) :=
 (ι : Π j, F j ⟶ X)
 (ι_π : ∀ j j', ι j ≫ π j' = if h : j = j' then eq_to_hom (congr_arg F h) else 0)
 
-@[simp] lemma bicone_ι_π_self {F : J → C} (B : bicone F) (j : J) : B.ι j ≫ B.π j = 𝟙 (F j) :=
+@[simp, reassoc] lemma bicone_ι_π_self {F : J → C} (B : bicone F) (j : J) :
+  B.ι j ≫ B.π j = 𝟙 (F j) :=
 by simpa using B.ι_π j j
 
 @[simp, reassoc] lemma bicone_ι_π_ne {F : J → C} (B : bicone F) {j j' : J} (h : j ≠ j') :
@@ -216,9 +221,9 @@ def biproduct_iso (F : J → C) [has_biproduct F] :
 (is_limit.cone_point_unique_up_to_iso (limit.is_limit _) (biproduct.is_limit F)).trans $
   is_colimit.cocone_point_unique_up_to_iso (biproduct.is_colimit F) (colimit.is_colimit _)
 
-end category_theory.limits
+end limits
 
-namespace category_theory.limits
+namespace limits
 variables {J : Type v} [decidable_eq J]
 variables {C : Type u} [category.{v} C] [has_zero_morphisms C]
 
@@ -282,13 +287,13 @@ lemma biproduct.ι_desc {f : J → C} [has_biproduct f] {P : C} (p : Π b, f b �
 
 /-- Given a collection of maps between corresponding summands of a pair of biproducts
 indexed by the same type, we obtain a map between the biproducts. -/
-abbreviation biproduct.map [fintype J] {f g : J → C} [has_finite_biproducts C]
+abbreviation biproduct.map {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π b, f b ⟶ g b) : ⨁ f ⟶ ⨁ g :=
 is_limit.map (biproduct.bicone f).to_cone (biproduct.is_limit g) (discrete.nat_trans p)
 
 /-- An alternative to `biproduct.map` constructed via colimits.
 This construction only exists in order to show it is equal to `biproduct.map`. -/
-abbreviation biproduct.map' [fintype J] {f g : J → C} [has_finite_biproducts C]
+abbreviation biproduct.map' {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π b, f b ⟶ g b) : ⨁ f ⟶ ⨁ g :=
 is_colimit.map (biproduct.is_colimit f) (biproduct.bicone g).to_cocone (discrete.nat_trans p)
 
@@ -302,7 +307,7 @@ is_colimit.map (biproduct.is_colimit f) (biproduct.bicone g).to_cocone (discrete
   (w : ∀ j, biproduct.ι f j ≫ g = biproduct.ι f j ≫ h) : g = h :=
 (biproduct.is_colimit f).hom_ext w
 
-lemma biproduct.map_eq_map' [fintype J] {f g : J → C} [has_finite_biproducts C]
+lemma biproduct.map_eq_map' {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π b, f b ⟶ g b) : biproduct.map p = biproduct.map' p :=
 begin
   ext j j',
@@ -316,13 +321,13 @@ begin
 end
 
 @[simp, reassoc]
-lemma biproduct.map_π [fintype J] {f g : J → C} [has_finite_biproducts C]
+lemma biproduct.map_π {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π j, f j ⟶ g j) (j : J) :
   biproduct.map p ≫ biproduct.π g j = biproduct.π f j ≫ p j :=
 limits.is_limit.map_π _ _ _ _
 
 @[simp, reassoc]
-lemma biproduct.ι_map [fintype J] {f g : J → C} [has_finite_biproducts C]
+lemma biproduct.ι_map {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π j, f j ⟶ g j) (j : J) :
   biproduct.ι f j ≫ biproduct.map p = p j ≫ biproduct.ι g j :=
 begin
@@ -331,13 +336,13 @@ begin
 end
 
 @[simp, reassoc]
-lemma biproduct.map_desc [fintype J] {f g : J → C} [has_finite_biproducts C]
+lemma biproduct.map_desc {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π j, f j ⟶ g j) {P : C} (k : Π j, g j ⟶ P) :
   biproduct.map p ≫ biproduct.desc k = biproduct.desc (λ j, p j ≫ k j) :=
 by { ext, simp, }
 
 @[simp, reassoc]
-lemma biproduct.lift_map [fintype J] {f g : J → C} [has_finite_biproducts C]
+lemma biproduct.lift_map {f g : J → C} [has_biproduct f] [has_biproduct g]
   {P : C} (k : Π j, P ⟶ f j) (p : Π j, f j ⟶ g j)  :
   biproduct.lift k ≫ biproduct.map p = biproduct.lift (λ j, k j ≫ p j) :=
 by { ext, simp, }
@@ -345,10 +350,161 @@ by { ext, simp, }
 /-- Given a collection of isomorphisms between corresponding summands of a pair of biproducts
 indexed by the same type, we obtain an isomorphism between the biproducts. -/
 @[simps]
-def biproduct.map_iso [fintype J] {f g : J → C} [has_finite_biproducts C]
+def biproduct.map_iso {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π b, f b ≅ g b) : ⨁ f ≅ ⨁ g :=
 { hom := biproduct.map (λ b, (p b).hom),
   inv := biproduct.map (λ b, (p b).inv), }
+
+section π_kernel
+
+section
+variables (f : J → C) [has_biproduct f]
+variables (p : J → Prop) [has_biproduct (subtype.restrict f p)]
+
+/-- The canonical morphism from the biproduct over a restricted index type to the biproduct of
+the full index type. -/
+def biproduct.from_subtype : ⨁ subtype.restrict f p ⟶ ⨁ f :=
+biproduct.desc $ λ j, biproduct.ι _ _
+
+/-- The canonical morophism from a biproduct to the biproduct over a restriction of its index
+type. -/
+def biproduct.to_subtype : ⨁ f ⟶ ⨁ subtype.restrict f p :=
+biproduct.lift $ λ j, biproduct.π _ _
+
+@[simp, reassoc]
+lemma biproduct.from_subtype_π (j : J) [decidable (p j)] :
+  biproduct.from_subtype f p ≫ biproduct.π f j =
+    if h : p j then biproduct.π (subtype.restrict f p) ⟨j, h⟩ else 0 :=
+begin
+  ext i,
+  rw [biproduct.from_subtype, biproduct.ι_desc_assoc, biproduct.ι_π],
+  by_cases h : p j,
+  { rw [dif_pos h, biproduct.ι_π],
+    split_ifs with h₁ h₂ h₂,
+    exacts [rfl, false.elim (h₂ (subtype.ext h₁)),
+      false.elim (h₁ (congr_arg subtype.val h₂)), rfl] },
+  { rw [dif_neg h, dif_neg (show (i : J) ≠ j, from λ h₂, h (h₂ ▸ i.2)), comp_zero] }
+end
+
+lemma biproduct.from_subtype_eq_lift [decidable_pred p] : biproduct.from_subtype f p =
+    biproduct.lift (λ j, if h : p j then biproduct.π (subtype.restrict f p) ⟨j, h⟩ else 0) :=
+biproduct.hom_ext _ _ (by simp)
+
+@[simp, reassoc]
+lemma biproduct.from_subtype_π_subtype (j : subtype p) :
+  biproduct.from_subtype f p ≫ biproduct.π f j = biproduct.π (subtype.restrict f p) j :=
+begin
+  ext i,
+  rw [biproduct.from_subtype, biproduct.ι_desc_assoc, biproduct.ι_π, biproduct.ι_π],
+  split_ifs with h₁ h₂ h₂,
+  exacts [rfl, false.elim (h₂ (subtype.ext h₁)), false.elim (h₁ (congr_arg subtype.val h₂)), rfl]
+end
+
+@[simp, reassoc]
+lemma biproduct.to_subtype_π (j : subtype p) :
+  biproduct.to_subtype f p ≫ biproduct.π (subtype.restrict f p) j = biproduct.π f j :=
+biproduct.lift_π _ _
+
+@[simp, reassoc]
+lemma biproduct.ι_to_subtype (j : J) [decidable (p j)] :
+  biproduct.ι f j ≫ biproduct.to_subtype f p =
+    if h : p j then biproduct.ι (subtype.restrict f p) ⟨j, h⟩ else 0 :=
+begin
+  ext i,
+  rw [biproduct.to_subtype, category.assoc, biproduct.lift_π, biproduct.ι_π],
+  by_cases h : p j,
+  { rw [dif_pos h, biproduct.ι_π],
+    split_ifs with h₁ h₂ h₂,
+    exacts [rfl, false.elim (h₂ (subtype.ext h₁)),
+      false.elim (h₁ (congr_arg subtype.val h₂)), rfl] },
+  { rw [dif_neg h, dif_neg (show j ≠ i, from λ h₂, h (h₂.symm ▸ i.2)), zero_comp] }
+end
+
+lemma biproduct.to_subtype_eq_desc [decidable_pred p] : biproduct.to_subtype f p =
+  biproduct.desc (λ j, if h : p j then biproduct.ι (subtype.restrict f p) ⟨j, h⟩ else 0) :=
+biproduct.hom_ext' _ _ (by simp)
+
+@[simp, reassoc]
+lemma biproduct.ι_to_subtype_subtype (j : subtype p) :
+  biproduct.ι f j ≫ biproduct.to_subtype f p = biproduct.ι (subtype.restrict f p) j :=
+begin
+  ext i,
+  rw [biproduct.to_subtype, category.assoc, biproduct.lift_π, biproduct.ι_π, biproduct.ι_π],
+  split_ifs with h₁ h₂ h₂,
+  exacts [rfl, false.elim (h₂ (subtype.ext h₁)), false.elim (h₁ (congr_arg subtype.val h₂)), rfl]
+end
+
+@[simp, reassoc]
+lemma biproduct.ι_from_subtype (j : subtype p) :
+  biproduct.ι (subtype.restrict f p) j ≫ biproduct.from_subtype f p = biproduct.ι f j :=
+biproduct.ι_desc _ _
+
+@[simp, reassoc]
+lemma biproduct.from_subtype_to_subtype :
+  biproduct.from_subtype f p ≫ biproduct.to_subtype f p = 𝟙 (⨁ subtype.restrict f p) :=
+begin
+  refine biproduct.hom_ext _ _ (λ j, _),
+  rw [category.assoc, biproduct.to_subtype_π, biproduct.from_subtype_π_subtype, category.id_comp]
+end
+
+@[simp, reassoc]
+lemma biproduct.to_subtype_from_subtype [decidable_pred p] :
+  biproduct.to_subtype f p ≫ biproduct.from_subtype f p =
+    biproduct.map (λ j, if p j then 𝟙 (f j) else 0) :=
+begin
+  ext1 i,
+  by_cases h : p i,
+  { simp [h], congr },
+  { simp [h] }
+end
+
+end
+
+variables (f : J → C) (i : J) [has_biproduct f] [has_biproduct (subtype.restrict f (λ j, i ≠ j))]
+
+/-- The kernel of `biproduct.π f i` is the inclusion from the biproduct which omits `i`
+from the index set `J` into the biproduct over `J`. -/
+def biproduct.is_limit_from_subtype : is_limit
+  (kernel_fork.of_ι (biproduct.from_subtype f (λ j, i ≠ j))
+    (by simp) : kernel_fork (biproduct.π f i)) :=
+fork.is_limit.mk' _ $ λ s,
+⟨s.ι ≫ biproduct.to_subtype _ _,
+ begin
+   ext j,
+   rw [kernel_fork.ι_of_ι, category.assoc, category.assoc,
+     biproduct.to_subtype_from_subtype_assoc, biproduct.map_π],
+   rcases em (i = j) with (rfl|h),
+   { rw [if_neg (not_not.2 rfl), comp_zero, comp_zero, kernel_fork.condition] },
+   { rw [if_pos h, category.comp_id] }
+ end,
+ begin
+   intros m hm,
+   rw [← hm, kernel_fork.ι_of_ι, category.assoc, biproduct.from_subtype_to_subtype],
+   exact (category.comp_id _).symm
+ end⟩
+
+/-- The cokernel of `biproduct.ι f i` is the projection from the biproduct over the index set `J`
+onto the biproduct omitting `i`. -/
+def biproduct.is_colimit_to_subtype : is_colimit
+  (cokernel_cofork.of_π (biproduct.to_subtype f (λ j, i ≠ j))
+    (by simp) : cokernel_cofork (biproduct.ι f i)) :=
+cofork.is_colimit.mk' _ $ λ s,
+⟨biproduct.from_subtype _ _ ≫ s.π,
+ begin
+   ext j,
+   rw [cokernel_cofork.π_of_π, biproduct.to_subtype_from_subtype_assoc,
+     biproduct.ι_map_assoc],
+   rcases em (i = j) with (rfl|h),
+   { rw [if_neg (not_not.2 rfl), zero_comp, cokernel_cofork.condition] },
+   { rw [if_pos h, category.id_comp] }
+ end,
+ begin
+   intros m hm,
+   rw [← hm, cokernel_cofork.π_of_π, ← category.assoc, biproduct.from_subtype_to_subtype],
+   exact (category.id_comp _).symm
+ end⟩
+
+end π_kernel
 
 section
 variables [fintype J] {K : Type v} [fintype K] [decidable_eq K] {f : J → C} {g : K → C}
@@ -902,6 +1058,64 @@ def biprod.unique_up_to_iso (X Y : C) [has_binary_biproduct X Y] {b : binary_bic
   inv_hom_id' := by rw [← biprod.cone_point_unique_up_to_iso_hom X Y hb,
     ← biprod.cone_point_unique_up_to_iso_inv X Y hb, iso.inv_hom_id] }
 
+section biprod_kernel
+
+variables (X Y : C) [has_binary_biproduct X Y]
+
+/-- A kernel fork for the kernel of `biprod.fst`. It consists of the
+morphism `biprod.inr`. -/
+def biprod.fst_kernel_fork : kernel_fork (biprod.fst : X ⊞ Y ⟶ X) :=
+kernel_fork.of_ι biprod.inr biprod.inr_fst
+
+@[simp]
+lemma biprod.fst_kernel_fork_ι : fork.ι (biprod.fst_kernel_fork X Y) = biprod.inr :=
+rfl
+
+/-- The fork `biprod.fst_kernel_fork` is indeed a limit.  -/
+def biprod.is_kernel_fst_kernel_fork : is_limit (biprod.fst_kernel_fork X Y) :=
+fork.is_limit.mk' _ $ λ s, ⟨s.ι ≫ biprod.snd, by ext; simp, λ m hm, by simp [← hm]⟩
+
+/-- A kernel fork for the kernel of `biprod.snd`. It consists of the
+morphism `biprod.inl`. -/
+def biprod.snd_kernel_fork : kernel_fork (biprod.snd : X ⊞ Y ⟶ Y) :=
+kernel_fork.of_ι biprod.inl biprod.inl_snd
+
+@[simp]
+lemma biprod.snd_kernel_fork_ι : fork.ι (biprod.snd_kernel_fork X Y) = biprod.inl :=
+rfl
+
+/-- The fork `biprod.snd_kernel_fork` is indeed a limit.  -/
+def biprod.is_kernel_snd_kernel_fork : is_limit (biprod.snd_kernel_fork X Y) :=
+fork.is_limit.mk' _ $ λ s, ⟨s.ι ≫ biprod.fst, by ext; simp, λ m hm, by simp [← hm]⟩
+
+/-- A cokernel cofork for the cokernel of `biprod.inl`. It consists of the
+morphism `biprod.snd`. -/
+def biprod.inl_cokernel_fork : cokernel_cofork (biprod.inl : X ⟶ X ⊞ Y) :=
+cokernel_cofork.of_π biprod.snd biprod.inl_snd
+
+@[simp]
+lemma biprod.inl_cokernel_fork_π : cofork.π (biprod.inl_cokernel_fork X Y) = biprod.snd :=
+rfl
+
+/-- The cofork `biprod.inl_cokernel_fork` is indeed a colimit.  -/
+def biprod.is_cokernel_inl_cokernel_fork : is_colimit (biprod.inl_cokernel_fork X Y) :=
+cofork.is_colimit.mk' _ $ λ s, ⟨biprod.inr ≫ s.π, by ext; simp, λ m hm, by simp [← hm]⟩
+
+/-- A cokernel cofork for the cokernel of `biprod.inr`. It consists of the
+morphism `biprod.fst`. -/
+def biprod.inr_cokernel_fork : cokernel_cofork (biprod.inr : Y ⟶ X ⊞ Y) :=
+cokernel_cofork.of_π biprod.fst biprod.inr_fst
+
+@[simp]
+lemma biprod.inr_cokernel_fork_π : cofork.π (biprod.inr_cokernel_fork X Y) = biprod.fst :=
+rfl
+
+/-- The cofork `biprod.inr_cokernel_fork` is indeed a colimit.  -/
+def biprod.is_cokernel_inr_cokernel_fork : is_colimit (biprod.inr_cokernel_fork X Y) :=
+cofork.is_colimit.mk' _ $ λ s, ⟨biprod.inl ≫ s.π, by ext; simp, λ m hm, by simp [← hm]⟩
+
+end biprod_kernel
+
 section
 variables [has_binary_biproducts C]
 
@@ -947,9 +1161,9 @@ end
 -- If someone is interested, they could provide the constructions:
 --   has_binary_biproducts ↔ has_finite_biproducts
 
-end category_theory.limits
+end limits
 
-namespace category_theory.limits
+namespace limits
 
 section preadditive
 variables {C : Type u} [category.{v} C] [preadditive C]
@@ -999,6 +1213,7 @@ def is_bilimit_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j 
 /--
 In a preadditive category, we can construct a biproduct for `f : J → C` from
 any bicone `b` for `f` satisfying `total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X`.
+
 (That is, such a bicone is a limit cone and a colimit cocone.)
 -/
 lemma has_biproduct_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X) :
@@ -1017,6 +1232,8 @@ def bicone_is_bilimit_of_limit_cone_of_is_limit {f : J → C} {t : cone (discret
   (ht : is_limit t) : (bicone.of_limit_cone ht).is_bilimit :=
 is_bilimit_of_is_limit _ $ is_limit.of_iso_limit ht $ cones.ext (iso.refl _) (by tidy)
 
+/-- In a preadditive category, if the product over `f : J → C` exists,
+    then the biproduct over `f` exists. -/
 lemma has_biproduct.of_has_product (f : J → C) [has_product f] : has_biproduct f :=
 has_biproduct.mk
 { bicone := _,
@@ -1034,6 +1251,8 @@ def bicone_is_bilimit_of_colimit_cocone_of_is_colimit {f : J → C} {t : cocone 
   (ht : is_colimit t) : (bicone.of_colimit_cocone ht).is_bilimit :=
 is_bilimit_of_is_colimit _ $ is_colimit.of_iso_colimit ht $ cocones.ext (iso.refl _) (by tidy)
 
+/-- In a preadditive category, if the coproduct over `f : J → C` exists,
+    then the biproduct over `f` exists. -/
 lemma has_biproduct.of_has_coproduct (f : J → C) [has_coproduct f] : has_biproduct f :=
 has_biproduct.mk
 { bicone := _,
@@ -1142,6 +1361,7 @@ def is_binary_bilimit_of_total {X Y : C} (b : binary_bicone X Y)
 /--
 In a preadditive category, we can construct a binary biproduct for `X Y : C` from
 any binary bicone `b` satisfying `total : b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X`.
+
 (That is, such a bicone is a limit cone and a colimit cocone.)
 -/
 lemma has_binary_biproduct_of_total {X Y : C} (b : binary_bicone X Y)
@@ -1299,13 +1519,48 @@ end
   biprod.lift f g ≫ biprod.desc h i = f ≫ h + g ≫ i :=
 by simp [biprod.lift_eq, biprod.desc_eq]
 
-
 lemma biprod.map_eq [has_binary_biproducts C] {W X Y Z : C} {f : W ⟶ Y} {g : X ⟶ Z} :
   biprod.map f g = biprod.fst ≫ f ≫ biprod.inl + biprod.snd ≫ g ≫ biprod.inr :=
 by apply biprod.hom_ext; apply biprod.hom_ext'; simp
 
 end
 
+section
+variables {X Y : C} (f g : X ⟶ Y)
+
+/-- The existence of binary biproducts implies that there is at most one preadditive structure. -/
+lemma biprod.add_eq_lift_id_desc [has_binary_biproduct X X] :
+  f + g = biprod.lift (𝟙 X) (𝟙 X) ≫ biprod.desc f g :=
+by simp
+
+/-- The existence of binary biproducts implies that there is at most one preadditive structure. -/
+lemma biprod.add_eq_lift_desc_id [has_binary_biproduct Y Y] :
+  f + g = biprod.lift f g ≫ biprod.desc (𝟙 Y) (𝟙 Y) :=
+by simp
+
+end
+
 end preadditive
 
-end category_theory.limits
+end limits
+
+open category_theory.limits
+
+local attribute [ext] preadditive
+
+/-- The existence of binary biproducts implies that there is at most one preadditive structure. -/
+instance subsingleton_preadditive_of_has_binary_biproducts {C : Type u} [category.{v} C]
+  [has_zero_morphisms C] [has_binary_biproducts C] : subsingleton (preadditive C) :=
+subsingleton.intro $ λ a b,
+begin
+  ext X Y f g,
+  have h₁ := @biprod.add_eq_lift_id_desc _ _ a _ _ f g
+    (by convert (infer_instance : has_binary_biproduct X X)),
+  have h₂ := @biprod.add_eq_lift_id_desc _ _ b _ _ f g
+    (by convert (infer_instance : has_binary_biproduct X X)),
+  refine h₁.trans (eq.trans _ h₂.symm),
+  congr' 2;
+  exact subsingleton.elim _ _
+end
+
+end category_theory

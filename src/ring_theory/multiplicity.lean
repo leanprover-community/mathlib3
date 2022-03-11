@@ -306,7 +306,7 @@ begin
   simp only [true_iff, eq_self_iff_true] at h,
   cases h,
   { conv_rhs { rw h },
-   apply nat_cast_nat_abs, },
+    apply nat_cast_nat_abs, },
   { conv_rhs { rw h },
     rw multiplicity.neg,
     apply nat_cast_nat_abs, },

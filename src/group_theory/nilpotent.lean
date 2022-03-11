@@ -312,7 +312,7 @@ theorem lower_central_series_is_descending_central_series :
 begin
   split, refl,
   intros x n hxn g,
-  exact commutator_containment _ _ hxn (mem_top g),
+  exact commutator_mem_commutator hxn (mem_top g),
 end
 
 /-- Any descending central series for a group is bounded below by the lower central series. -/

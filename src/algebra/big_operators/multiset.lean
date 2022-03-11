@@ -70,7 +70,7 @@ lemma prod_nsmul (m : multiset α) : ∀ (n : ℕ), (n • m).prod = m.prod ^ n
 @[simp, to_additive] lemma prod_repeat (a : α) (n : ℕ) : (repeat a n).prod = a ^ n :=
 by simp [repeat, list.prod_repeat]
 
-@[to_additive nsmul_count]
+@[to_additive]
 lemma pow_count [decidable_eq α] (a : α) : a ^ s.count a = (s.filter (eq a)).prod :=
 by rw [filter_eq, prod_repeat]
 
@@ -105,7 +105,7 @@ lemma prod_map_one : prod (m.map (λ i, (1 : α))) = 1 := by rw [map_const, prod
 lemma prod_map_mul : (m.map $ λ i, f i * g i).prod = (m.map f).prod * (m.map g).prod :=
 m.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
 
-@[to_additive sum_map_nsmul]
+@[to_additive]
 lemma prod_map_pow {n : ℕ} : (m.map $ λ i, f i ^ n).prod = (m.map f).prod ^ n :=
 m.prod_hom' (pow_monoid_hom n : α →* α) f
 

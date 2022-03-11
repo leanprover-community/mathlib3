@@ -27,7 +27,7 @@ begin
   { rw [list.repeat_succ, list.prod_cons, ih, pow_succ] }
 end
 
-@[to_additive]
+@[to_additive sum_le_card_nsmul]
 lemma prod_le_pow_card [ordered_comm_monoid α] (l : list α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
   l.prod ≤ n ^ l.length :=
 begin

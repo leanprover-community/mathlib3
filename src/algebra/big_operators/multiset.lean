@@ -267,7 +267,7 @@ quotient.induction_on s $ λ l hl, by simpa using list.one_le_prod_of_one_le hl
 lemma single_le_prod : (∀ x ∈ s, (1 : α) ≤ x) → ∀ x ∈ s, x ≤ s.prod :=
 quotient.induction_on s $ λ l hl x hx, by simpa using list.single_le_prod hl x hx
 
-@[to_additive]
+@[to_additive sum_le_card_nsmul]
 lemma prod_le_pow_card (s : multiset α) (n : α) (h : ∀ x ∈ s, x ≤ n) : s.prod ≤ n ^ s.card :=
 begin
   induction s using quotient.induction_on,

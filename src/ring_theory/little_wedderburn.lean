@@ -14,136 +14,11 @@ import tactic.by_contra
 
 open_locale nnreal big_operators polynomial
 
-section pr12428
-
-@[simp] lemma complex.nnnorm_coe_real (r : ℝ) : ∥(r : ℂ)∥₊ = ∥r∥₊ :=
-subtype.ext $ by simp only [complex.norm_real, coe_nnnorm]
-
-@[simp] lemma complex.nnnorm_nat_cast (n : ℕ) : ∥(n : ℂ)∥₊ = n :=
-by rw [← real.nnnorm_coe_nat, ← complex.nnnorm_coe_real, complex.of_real_nat_cast]
-
-@[simp] lemma complex.nnnorm_int_cast (n : ℤ) : ∥(n : ℂ)∥₊ = ∥n∥₊ :=
-begin
-  obtain ⟨k, rfl | rfl⟩ := int.eq_coe_or_neg n,
-  { rw [int.cast_coe_nat, complex.nnnorm_nat_cast, ← nnreal.coe_nat_abs, int.nat_abs_of_nat] },
-  { rw [int.cast_neg, nnnorm_neg, nnnorm_neg, int.cast_coe_nat, complex.nnnorm_nat_cast,
-        ←nnreal.coe_nat_abs, int.nat_abs_of_nat], },
-end
-
-lemma complex.nnnorm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :
-  ∥ζ∥₊ = 1 :=
-begin
-  refine (@pow_left_inj ℝ≥0 _ _ _ _ zero_le' zero_le' hn.bot_lt).mp _,
-  rw [←nnnorm_pow, h, nnnorm_one, one_pow],
-end
-
-lemma complex.norm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :
-  ∥ζ∥ = 1 :=
-congr_arg coe (complex.nnnorm_eq_one_of_pow_eq_one h hn)
-
-lemma is_primitive_root.nnnorm_eq_one {ζ : ℂ} {n : ℕ} (h : is_primitive_root ζ n) (hn : n ≠ 0) :
-  ∥ζ∥ = 1 :=
-complex.norm_eq_one_of_pow_eq_one h.pow_eq_one hn
-
-end pr12428
-
 /-- The ring homomorphism associated to an inclusion of subrings. -/
 def subring.inclusion' {R : Type*} [ring R] {S T : subring R} (h : S ≤ T) : S →+* T :=
 S.subtype.cod_restrict' _ (λ x, h x.2)
 
 namespace little_wedderburn
-
-section cyclotomic
-open polynomial
-
-lemma sub_one_lt_nat_abs_cyclotomic_eval (n : ℕ) (q : ℕ) (hn' : 1 < n) (hq' : q ≠ 1) :
-  q - 1 < ((cyclotomic n ℤ).eval ↑q).nat_abs :=
-begin
-  have : _ ∨ 2 ≤ q := (iff_iff_not_or_and_or_not.mp nat.one_lt_iff_ne_zero_and_ne_one).2.symm,
-  simp only [not_and_distrib, ne.def, not_not] at this,
-  rcases this with (rfl | rfl) | hq,
-  { rw [zero_tsub, int.coe_nat_zero, ←coeff_zero_eq_eval_zero, cyclotomic_coeff_zero _ hn'],
-    norm_num },
-  { exact (hq' rfl).elim },
-  rw [←@nat.cast_lt ℝ≥0],
-  calc ↑(q - 1)
-      < ∥(cyclotomic n ℂ).eval ↑q∥₊ : _
-  ... = (int.nat_abs ((cyclotomic n ℤ).eval ↑q) : ℝ≥0) :
-  by rw [← map_cyclotomic_int, eval_map, eval₂_at_nat_cast, ring_hom.eq_int_cast,
-         int.nat_cast_eq_coe_nat, nnreal.coe_nat_abs, complex.nnnorm_int_cast],
-  have hn : 0 < n := pos_of_gt hn',
-  let ζ := complex.exp (2 * ↑real.pi * complex.I / ↑n),
-  have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn.ne',
-  have norm_ζ : ∥ζ∥ = 1 := hζ.nnnorm_eq_one hn.ne',
-  rw [cyclotomic_eq_prod_X_sub_primitive_roots hζ, eval_prod, nnnorm_prod],
-  simp only [eval_C, eval_X, ring_hom.eq_int_cast, eval_sub],
-  rw [←finset.prod_sdiff (finset.singleton_subset_iff.mpr $ (mem_primitive_roots hn).mpr hζ),
-      finset.prod_singleton, ←one_mul (↑(q - 1) : ℝ≥0)],
-  have aux : 1 ≤ ∏ (x : ℂ) in primitive_roots n ℂ \ {ζ}, ∥↑q - x∥₊,
-  { apply finset.one_le_prod',
-    intros x hx,
-    rw ← nnreal.coe_le_coe,
-    refine le_trans _ (norm_sub_norm_le _ _),
-    simp only [finset.mem_sdiff, finset.mem_singleton, mem_primitive_roots hn] at hx,
-    simp only [nonneg.coe_one, complex.norm_nat, hx.1.nnnorm_eq_one hn.ne', le_sub_iff_add_le],
-    exact_mod_cast hq },
-  refine mul_lt_mul' aux _ zero_le' (lt_of_lt_of_le zero_lt_one aux),
-  rw [← nnreal.coe_lt_coe, coe_nnnorm, nnreal.coe_nat_cast, complex.norm_eq_abs],
-  refine lt_of_lt_of_le _ (complex.re_le_abs _),
-  rw [nat.cast_sub (one_le_two.trans hq), nat.cast_one, complex.sub_re],
-  simp only [complex.nat_cast_re, sub_lt_sub_iff_left],
-  rw [complex.norm_eq_abs, complex.abs,
-      real.sqrt_eq_iff_sq_eq (complex.norm_sq_nonneg _) zero_le_one,
-      one_pow, complex.norm_sq_apply] at norm_ζ,
-  rcases lt_trichotomy ζ.re 1 with (H|H|H),
-  { exact H },
-  { simp only [H, mul_one, self_eq_add_right, or_self, mul_eq_zero] at norm_ζ,
-    have : ζ = 1, { ext, assumption' },
-    rw this at hζ,
-    exact (hζ.pow_ne_one_of_pos_of_lt zero_lt_one hn' $ by rw pow_one).elim },
-  { refine (ne_of_lt _ norm_ζ).elim,
-    nlinarith }
-end
-
--- #12426
-lemma cyclotomic_dvd_geom_sum_of_dvd {R} [comm_ring R] [is_domain R] {d n : ℕ} (hdn : d ∣ n)
-  (hd : d ≠ 1) : cyclotomic d R ∣ geom_sum X n :=
-begin
-  rcases n.eq_zero_or_pos with rfl | hn,
-  { simp },
-  rw ←prod_cyclotomic_eq_geom_sum hn,
-  apply finset.dvd_prod_of_mem,
-  simp [hd, hdn, hn.ne']
-end
-
--- #12426
-lemma X_pow_sub_one_mul_cyclotomic_dvd_X_pow_sub_one_of_dvd {R : Type*} [comm_ring R] {d n : ℕ}
-  (hd : d ∣ n) (hdn : d < n) : (X ^ d - 1) * cyclotomic n R ∣ X ^ n - 1 :=
-begin
-  rcases n.eq_zero_or_pos with rfl | h0n,
-  { simp },
-  rcases d.eq_zero_or_pos with rfl | h0d,
-  { linarith [eq_zero_of_zero_dvd hd] },
-  rw [←prod_cyclotomic_eq_X_pow_sub_one h0d, ←prod_cyclotomic_eq_X_pow_sub_one h0n,
-      mul_comm, ←finset.prod_insert $ λ h, hdn.not_le $ nat.divisor_le h],
-  refine finset.prod_dvd_prod_of_subset _ _ _ (λ k hk, _),
-  rcases finset.mem_insert.mp hk with (rfl | hkd),
-  { exact k.mem_divisors_self h0n.ne' },
-  { exact nat.divisors_subset_of_dvd h0n.ne' hd hkd }
-end
-
--- todo: move into proof
-lemma cyclotomic_eval_dvd_pow_sub_one_div_pow_sub_one_of_dvd (q d n : ℕ)
-  (hd : d ∣ n) (hdn : d < n) : (cyclotomic n ℤ).eval q ∣ (q ^ n - 1) / (q ^ d - 1) :=
-begin
-  apply int.dvd_div_of_mul_dvd,
-  have aux : ∀ {k : ℕ}, ((X : ℤ[X]) ^ k - 1).eval q = q ^ k - 1,
-  { simp only [eval_X, eval_one, eval_pow, eval_sub, eq_self_iff_true, forall_const] },
-  rw [← aux, ← aux, ← eval_mul],
-  exact (eval_ring_hom ↑q).map_dvd (X_pow_sub_one_mul_cyclotomic_dvd_X_pow_sub_one_of_dvd hd hdn),
-end
-
-end cyclotomic
 
 variables (D : Type*) [division_ring D] [fintype D]
 variables {R : Type*} [ring R]
@@ -295,15 +170,21 @@ begin
   simp only [←int.nat_cast_eq_coe_nat, nat.cast_sub h1qd, nat.cast_sub h1qn,
     nat.cast_one, nat.cast_pow],
   simp only [int.nat_cast_eq_coe_nat],
-  apply cyclotomic_eval_dvd_pow_sub_one_div_pow_sub_one_of_dvd _ _ _ hdn,
+  suffices hd : d < n,
+  { apply int.dvd_div_of_mul_dvd,
+    have aux : ∀ {k : ℕ}, ((X : ℤ[X]) ^ k - 1).eval q = q ^ k - 1,
+    { simp only [eval_X, eval_one, eval_pow, eval_sub, eq_self_iff_true, forall_const] },
+    rw [← aux, ← aux, ← eval_mul],
+    refine (eval_ring_hom ↑q).map_dvd (X_pow_sub_one_mul_cyclotomic_dvd_X_pow_sub_one_of_dvd ℤ _),
+    exact nat.mem_proper_divisors.mpr ⟨hdn, hd⟩ },
   rw [← (nat.pow_right_strict_mono hq).lt_iff_lt],
   dsimp,
   rw [← card_D, ← card_Zx],
   obtain ⟨b, -, hb⟩ := set_like.exists_of_lt hZx,
-  refine fintype.card_lt_of_injective_of_not_mem _ subtype.val_injective _,
-  exact b,
+  refine fintype.card_lt_of_injective_of_not_mem _ subtype.val_injective (_ : b ∉ _),
   simp only [not_exists, set.mem_range, subtype.val_eq_coe],
-  rintro y rfl, exact hb y.2
+  rintro y rfl,
+  exact hb y.2
 end
 
 end induction_hyp

@@ -80,12 +80,12 @@ nfp_le.2 $ λ n, (ho.iterate_lt hao n).le
 /-- The least strict upper bound of `op` applied to all pairs of ordinals less than `o`. This is
 essentially a two-argument version of `ordinal.blsub`. -/
 def blsub₂ (op : ordinal → ordinal → ordinal) (o : ordinal) : ordinal :=
-lsub (λ x : o.out.α × o.out.α, op (typein o.out.r x.1) (typein o.out.r x.2))
+lsub (λ x : o.out.α × o.out.α, op (typein (<) x.1) (typein (<) x.2))
 
 theorem lt_blsub₂ (op : ordinal → ordinal → ordinal) {o : ordinal} {a b : ordinal} (ha : a < o)
   (hb : b < o) : op a b < blsub₂ op o :=
 begin
-  convert lt_lsub _ (prod.mk (enum o.out.r a (by rwa type_out)) (enum o.out.r b (by rwa type_out))),
+  convert lt_lsub _ (prod.mk (enum (<) a (by rwa type_lt)) (enum (<) b (by rwa type_lt))),
   simp only [typein_enum]
 end
 

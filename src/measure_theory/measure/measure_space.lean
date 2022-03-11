@@ -666,12 +666,9 @@ instance [monoid R] [mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ�
   mul_action R (measure α) :=
 injective.mul_action _ to_outer_measure_injective smul_to_outer_measure
 
--- there is no `function.injective.add_comm_monoid_smul` so we do this in two steps
 instance add_comm_monoid [measurable_space α] : add_comm_monoid (measure α) :=
-{ ..(to_outer_measure_injective.add_monoid_smul to_outer_measure zero_to_outer_measure
-      add_to_outer_measure (λ _ _, smul_to_outer_measure _ _) : add_monoid (measure α)),
-  ..(to_outer_measure_injective.add_comm_semigroup to_outer_measure add_to_outer_measure :
-      add_comm_semigroup (measure α)) }
+to_outer_measure_injective.add_comm_monoid to_outer_measure zero_to_outer_measure
+      add_to_outer_measure (λ _ _, smul_to_outer_measure _ _)
 
 /-- Coercion to function as an additive monoid homomorphism. -/
 def coe_add_hom {m : measurable_space α} : measure α →+ (set α → ℝ≥0∞) :=
@@ -1795,6 +1792,14 @@ lemma ae_restrict_iff' {p : α → Prop} (hs : measurable_set s) :
 begin
   simp only [ae_iff, ← compl_set_of, restrict_apply_eq_zero' hs],
   congr' with x, simp [and_comm]
+end
+
+lemma _root_.filter.eventually_eq.restrict {f g : α → δ} {s : set α} (hfg : f =ᵐ[μ] g) :
+  f =ᵐ[μ.restrict s] g :=
+begin -- note that we cannot use `ae_restrict_iff` since we do not require measurability
+  refine hfg.filter_mono _,
+  rw measure.ae_le_iff_absolutely_continuous,
+  exact measure.absolutely_continuous_of_le measure.restrict_le_self,
 end
 
 lemma ae_restrict_mem (hs : measurable_set s) :

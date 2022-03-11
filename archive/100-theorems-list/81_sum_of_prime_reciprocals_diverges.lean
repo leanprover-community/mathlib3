@@ -227,7 +227,7 @@ begin
   -- This is indeed a partition, so `|U| + |M| = |range x| = x`.
   have h2 : x = card U + card M,
   { rw [← card_range x, hU, hM, ← range_sdiff_eq_bUnion],
-    exact card_eq_card_sdiff_add_card (finset.filter_subset _ _) },
+    exact (card_sdiff_add_card_eq_card (finset.filter_subset _ _)).symm },
 
   -- But for the `x` we have chosen above, both `|U|` and `|M|` are less than or equal to `x / 2`,
   -- and for U, the inequality is strict.

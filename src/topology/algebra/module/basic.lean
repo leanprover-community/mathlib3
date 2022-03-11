@@ -1162,6 +1162,11 @@ write `A.det` instead of `(A : M →ₗ[R] M).det`. -/
   {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M →L[R] M) : R :=
 linear_map.det (A : M →ₗ[R] M)
 
+@[simp] _root_.lemma continuous_linear_equiv.det_coe_symm {R : Type*} [field R]
+  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M ≃L[R] M) :
+  (A.symm : M →L[R] M).det = (A : M →L[R] M).det ⁻¹ :=
+linear_equiv.det_coe_symm A.to_linear_equiv
+
 variables
 {R : Type*} [comm_ring R]
 {M : Type*} [topological_space M] [add_comm_group M]

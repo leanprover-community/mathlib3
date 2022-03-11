@@ -392,16 +392,13 @@ begin
   have hA : A.det ≠ 0,
   { assume h, simpa only [h, ennreal.not_lt_zero, ennreal.of_real_zero, abs_zero] using hm },
   -- let `B` be the continuous linear equiv version of `A`.
-  let B := ((A : E →ₗ[ℝ] E).equiv_of_det_ne_zero hA).to_continuous_linear_equiv,
-  have : (B : E →L[ℝ] E) = A,
-  { ext x,
-    simp only [linear_equiv.of_is_unit_det_apply, continuous_linear_equiv.coe_coe,
-      continuous_linear_map.coe_coe, linear_equiv.coe_to_continuous_linear_equiv'] },
+  let B := A.to_continuous_linear_equiv_of_det_ne_zero hA,
+  have : (B : E →L[ℝ] E) = A, by simp,
   -- the determinant of `B.symm` is bounded by `m⁻¹`
-  have I : ennreal.of_real (|(B.symm : E →ₗ[ℝ] E).det|) < (m⁻¹ : ℝ≥0),
-  { simp only [linear_equiv.coe_to_continuous_linear_equiv_symm, linear_equiv.det_coe_symm, abs_inv,
-               linear_equiv.coe_of_is_unit_det, ennreal.of_real, ennreal.coe_lt_coe,
-               real.to_nnreal_inv] at ⊢ hm,
+  have I : ennreal.of_real (|(B.symm : E →L[ℝ] E).det|) < (m⁻¹ : ℝ≥0),
+  { simp only [ennreal.of_real, abs_inv, real.to_nnreal_inv, continuous_linear_equiv.det_coe_symm,
+      continuous_linear_map.coe_to_continuous_linear_equiv_of_det_ne_zero, ennreal.coe_lt_coe]
+      at ⊢ hm,
     exact nnreal.inv_lt_inv mpos.ne' hm },
   -- therefore, we may apply `add_haar_image_le_mul_of_det_lt` to `B.symm` and `m⁻¹`.
   obtain ⟨δ₀, δ₀pos, hδ₀⟩ : ∃ (δ : ℝ≥0), 0 < δ ∧ ∀ (t : set E) (g : E → E),
@@ -637,7 +634,6 @@ begin
   ... = ∑' n, ε * μ (s ∩ t n) :
     begin
       congr' with n,
-      congr,
       rcases Af' h's n with ⟨y, ys, hy⟩,
       simp only [hy, h'f' y ys, real.to_nnreal_zero, abs_zero, zero_add]
     end

@@ -181,6 +181,14 @@ by rw [odd_iff_not_even, even_sub, not_iff, not_iff_comm, odd_iff_not_even]
 theorem even.sub_odd (hm : even m) (hn : odd n) : odd (m - n) :=
 odd_sub'.2 $ iff_of_true hn hm
 
+@[simp]
+lemma int.odd_add_one_iff_even (z : ℤ) : odd (z + 1) ↔ even z :=
+int.odd_add'.trans (by simp)
+
+@[simp]
+lemma int.odd_sub_one_iff_even (z : ℤ) : odd (z - 1) ↔ even z :=
+int.odd_sub'.trans (by simp)
+
 lemma even_mul_succ_self (n : ℤ) : even (n * (n + 1)) :=
 begin
   rw even_mul,

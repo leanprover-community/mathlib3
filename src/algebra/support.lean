@@ -189,6 +189,14 @@ mul_support_binop_subset (/) (by simp only [div_one]) f g
   support (λ x, f x * g x) = support f ∩ support g :=
 set.ext $ λ x, by simp only [mem_support, mul_ne_zero_iff, mem_inter_eq, not_or_distrib]
 
+@[simp] lemma support_mul_subset_left [mul_zero_class R] (f g : α → R) :
+  support (λ x, f x * g x) ⊆ support f :=
+λ x hfg hf, hfg $ by simp only [hf, zero_mul]
+
+@[simp] lemma support_mul_subset_right [mul_zero_class R] (f g : α → R) :
+  support (λ x, f x * g x) ⊆ support g :=
+λ x hfg hg, hfg $ by simp only [hg, mul_zero]
+
 lemma support_smul_subset_right [add_monoid A] [monoid B] [distrib_mul_action B A]
   (b : B) (f : α → A) :
   support (b • f) ⊆ support f :=

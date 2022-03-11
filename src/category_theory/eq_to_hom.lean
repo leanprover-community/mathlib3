@@ -24,7 +24,8 @@ This file introduces various `simp` lemmas which in favourable circumstances
 result in the various `eq_to_hom` morphisms to drop out at the appropriate moment!
 -/
 
-universes v₁ v₂ u₁ u₂ -- morphism levels before object levels. See note [category_theory universes].
+universes v₁ v₂ v₃ u₁ u₂ u₃
+-- morphism levels before object levels. See note [category_theory universes].
 
 namespace category_theory
 open opposite
@@ -120,17 +121,16 @@ begin
   simpa using h_map X Y f
 end
 
+/-- Two morphisms are conjugate via eq_to_hom if and only if they are heterogeneously equal. --/
+lemma conj_eq_to_hom_iff_heq {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z) (h : W = Y) (h' : X = Z) :
+  f = eq_to_hom h ≫ g ≫ eq_to_hom h'.symm ↔ f == g :=
+by { cases h, cases h', simp }
+
 /-- Proving equality between functors using heterogeneous equality. -/
 lemma hext {F G : C ⥤ D} (h_obj : ∀ X, F.obj X = G.obj X)
   (h_map : ∀ X Y (f : X ⟶ Y), F.map f == G.map f) : F = G :=
-begin
-  cases F with F_obj _ _ _, cases G with G_obj _ _ _,
-  have : F_obj = G_obj, by ext X; apply h_obj,
-  subst this,
-  congr,
-  funext X Y f,
-  exact eq_of_heq (h_map X Y f)
-end
+functor.ext h_obj (λ _ _ f,
+  (conj_eq_to_hom_iff_heq _ _ (h_obj _) (h_obj _)).2 $ h_map _ _ f)
 
 -- Using equalities between functors.
 
@@ -140,6 +140,39 @@ by subst h
 lemma congr_hom {F G : C ⥤ D} (h : F = G) {X Y} (f : X ⟶ Y) :
   F.map f = eq_to_hom (congr_obj h X) ≫ G.map f ≫ eq_to_hom (congr_obj h Y).symm :=
 by subst h; simp
+
+section heq
+
+/- Composition of functors and maps w.r.t. heq -/
+
+variables {E : Type u₃} [category.{v₃} E] {F G : C ⥤ D} {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z}
+
+lemma map_comp_heq (hx : F.obj X = G.obj X) (hy : F.obj Y = G.obj Y) (hz : F.obj Z = G.obj Z)
+  (hf : F.map f == G.map f) (hg : F.map g == G.map g) : F.map (f ≫ g) == G.map (f ≫ g) :=
+by { rw [F.map_comp, G.map_comp], congr' }
+
+lemma map_comp_heq' (hobj : ∀ X : C, F.obj X = G.obj X)
+  (hmap : ∀ {X Y} (f : X ⟶ Y), F.map f == G.map f) :
+  F.map (f ≫ g) == G.map (f ≫ g) :=
+by rw functor.hext hobj (λ _ _, hmap)
+
+lemma precomp_map_heq (H : E ⥤ C)
+  (hmap : ∀ {X Y} (f : X ⟶ Y), F.map f == G.map f) {X Y : E} (f : X ⟶ Y) :
+  (H ⋙ F).map f == (H ⋙ G).map f := hmap _
+
+lemma postcomp_map_heq (H : D ⥤ E) (hx : F.obj X = G.obj X) (hy : F.obj Y = G.obj Y)
+  (hmap : F.map f == G.map f) : (F ⋙ H).map f == (G ⋙ H).map f :=
+by { dsimp, congr' }
+
+lemma postcomp_map_heq' (H : D ⥤ E) (hobj : ∀ X : C, F.obj X = G.obj X)
+  (hmap : ∀ {X Y} (f : X ⟶ Y), F.map f == G.map f) :
+  (F ⋙ H).map f == (G ⋙ H).map f :=
+by rw functor.hext hobj (λ _ _, hmap)
+
+lemma hcongr_hom {F G : C ⥤ D} (h : F = G) {X Y} (f : X ⟶ Y) : F.map f == G.map f :=
+by subst h
+
+end heq
 
 end functor
 

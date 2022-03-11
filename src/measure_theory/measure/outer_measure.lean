@@ -82,6 +82,10 @@ theorem mono' (m : outer_measure α) {s₁ s₂}
 theorem mono_null (m : outer_measure α) {s t} (h : s ⊆ t) (ht : m t = 0) : m s = 0 :=
 nonpos_iff_eq_zero.mp $ ht ▸ m.mono' h
 
+lemma pos_of_subset_ne_zero (m : outer_measure α) {a b : set α} (hs : a ⊆ b) (hnz : m a ≠ 0) :
+  0 < m b :=
+(lt_of_lt_of_le (pos_iff_ne_zero.mpr hnz) (m.mono hs))
+
 protected theorem Union (m : outer_measure α)
   {β} [encodable β] (s : β → set α) :
   m (⋃ i, s i) ≤ ∑' i, m (s i) :=
@@ -266,12 +270,9 @@ instance [monoid R] [mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ�
   mul_action R (outer_measure α) :=
 injective.mul_action _ coe_fn_injective coe_smul
 
--- there is no `function.injective.add_comm_monoid_smul` so we do this in two steps
 instance add_comm_monoid : add_comm_monoid (outer_measure α) :=
-{ ..injective.add_monoid_smul (show outer_measure α → set α → ℝ≥0∞, from coe_fn)
-    coe_fn_injective rfl (λ _ _, rfl) (λ _ _, rfl),
-  ..injective.add_comm_semigroup (show outer_measure α → set α → ℝ≥0∞, from coe_fn)
-    coe_fn_injective (λ _ _, rfl) }
+injective.add_comm_monoid (show outer_measure α → set α → ℝ≥0∞, from coe_fn)
+    coe_fn_injective rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- `coe_fn` as an `add_monoid_hom`. -/
 @[simps] def coe_fn_add_monoid_hom : outer_measure α →+ (set α → ℝ≥0∞) :=

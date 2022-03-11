@@ -23,7 +23,7 @@ order...
 * `pred_order`: Order equipped with a sensible predecessor function.
 * `is_succ_archimedean`: `succ_order` where `succ` iterated to an element gives all the greater
   ones.
-* `is_pred_archimedean`: `pred_order` where `pred` iterated to an element gives all the greater
+* `is_pred_archimedean`: `pred_order` where `pred` iterated to an element gives all the smaller
   ones.
 
 ## Implementation notes

@@ -236,16 +236,36 @@ end⟩
 /-- A recursion principle for `pfun.fix`. -/
 @[elab_as_eliminator] def fix_induction
   {f : α →. β ⊕ α} {b : β} {C : α → Sort*} {a : α} (h : b ∈ f.fix a)
-  (H : ∀ a, b ∈ f.fix a →
-    (∀ a', b ∈ f.fix a' → sum.inr a' ∈ f a → C a') → C a) : C a :=
+  (H : ∀ a', b ∈ f.fix a' →
+    (∀ a'', b ∈ f.fix a'' → sum.inr a'' ∈ f a' → C a'') → C a') : C a :=
 begin
   replace h := part.mem_assert_iff.1 h,
   have := h.snd, revert this,
   induction h.fst with a ha IH, intro h₂,
   refine H a (part.mem_assert_iff.2 ⟨⟨_, ha⟩, h₂⟩)
-    (λ a' ha' fa', _),
-  have := (part.mem_assert_iff.1 ha').snd,
-  exact IH _ fa' ⟨ha _ fa', this⟩ this
+    (λ a'' ha'' fa'', _),
+  have := (part.mem_assert_iff.1 ha'').snd,
+  exact IH _ fa'' ⟨ha _ fa'', this⟩ this,
+end
+
+/--
+Another induction lemma for `b ∈ f.fix a` which allows one to prove a predicate `P` holds for
+`a` given that `f a` inherits `P` from `a` and `P` holds for preimages of `b`.
+-/
+@[elab_as_eliminator]
+def fix_induction'
+  (f : α →. β ⊕ α) (b : β) {C : α → Sort*} {a : α} (h : b ∈ f.fix a)
+  (hbase : ∀ a_final : α, sum.inl b ∈ f a_final → C a_final)
+  (hind : ∀ a₀ a₁ : α, b ∈ f.fix a₁ → sum.inr a₁ ∈ f a₀ → C a₁ → C a₀) : C a :=
+begin
+  refine fix_induction h (λ a' h ih, _),
+  cases e : (f a').get (dom_of_mem_fix h) with b' a''; replace e : _ ∈ f a' := ⟨_, e⟩,
+  { have : b' = b,
+    { obtain h'' | ⟨a, h'', _⟩ := mem_fix_iff.1 h; cases part.mem_unique e h'', refl },
+    subst this, exact hbase _ e },
+  { have : b ∈ f.fix a'',
+    { obtain h'' | ⟨a, h'', e'⟩ := mem_fix_iff.1 h; cases part.mem_unique e h'', exact e' },
+    refine hind _ _ this e (ih _ this e) },
 end
 
 variables (f : α →. β)

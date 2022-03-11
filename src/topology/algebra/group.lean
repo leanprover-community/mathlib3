@@ -110,14 +110,6 @@ lemma is_closed.right_coset {U : set G} (h : is_closed U) (x : G) : is_closed (r
 is_closed_map_mul_right x _ h
 
 @[to_additive]
-lemma is_open_map_div_right (a : G) : is_open_map (λ x, x / a) :=
-by simpa only [div_eq_mul_inv] using is_open_map_mul_right (a⁻¹)
-
-@[to_additive]
-lemma is_closed_map_div_right (a : G) : is_closed_map (λ x, x / a) :=
-by simpa only [div_eq_mul_inv] using is_closed_map_mul_right (a⁻¹)
-
-@[to_additive]
 lemma discrete_topology_of_open_singleton_one (h : is_open ({1} : set G)) : discrete_topology G :=
 begin
   rw ← singletons_open_iff_discrete,
@@ -710,6 +702,35 @@ lemma continuous_on.div' (hf : continuous_on f s) (hg : continuous_on g s) :
 λ x hx, (hf x hx).div' (hg x hx)
 
 end has_continuous_div
+
+section div_in_topological_group
+variables [group G] [topological_space G] [topological_group G]
+
+/-- A version of `homeomorph.mul_left a b⁻¹` that is defeq to `a / b`. -/
+@[to_additive /-" A version of `homeomorph.add_left a (-b)` that is defeq to `a - b`. "-/,
+  simps {simp_rhs := tt}]
+def homeomorph.div_left (x : G) : G ≃ₜ G :=
+{ continuous_to_fun := continuous_const.div' continuous_id,
+  continuous_inv_fun := continuous_inv.mul continuous_const,
+  .. equiv.div_left x }
+
+/-- A version of `homeomorph.mul_right a⁻¹ b` that is defeq to `b / a`. -/
+@[to_additive /-" A version of `homeomorph.add_right (-a) b` that is defeq to `b - a`. "-/,
+  simps {simp_rhs := tt}]
+def homeomorph.div_right (x : G) : G ≃ₜ G :=
+{ continuous_to_fun := continuous_id.div' continuous_const,
+  continuous_inv_fun := continuous_id.mul continuous_const,
+  .. equiv.div_right x }
+
+@[to_additive]
+lemma is_open_map_div_right (a : G) : is_open_map (λ x, x / a) :=
+(homeomorph.div_right a).is_open_map
+
+@[to_additive]
+lemma is_closed_map_div_right (a : G) : is_closed_map (λ x, x / a) :=
+(homeomorph.div_right a).is_closed_map
+
+end div_in_topological_group
 
 @[to_additive]
 lemma nhds_translation_div [topological_space G] [group G] [topological_group G] (x : G) :

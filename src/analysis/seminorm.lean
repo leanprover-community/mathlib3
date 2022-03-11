@@ -333,7 +333,7 @@ variables [has_scalar 𝕜 E]
 instance fun_like : fun_like (seminorm 𝕜 E) E (λ _, ℝ) :=
 { coe := seminorm.to_fun, coe_injective' := λ f g h, by cases f; cases g; congr' }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn`. -/
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`. -/
 instance : has_coe_to_fun (seminorm 𝕜 E) (λ _, E → ℝ) := ⟨λ p, p.to_fun⟩
 
 @[ext] lemma ext {p q : seminorm 𝕜 E} (h : ∀ x, (p : E → ℝ) x = q x) : p = q := fun_like.ext p q h
@@ -393,13 +393,10 @@ lemma coe_add (p q : seminorm 𝕜 E) : ⇑(p + q) = p + q := rfl
 @[simp] lemma add_apply (p q : seminorm 𝕜 E) (x : E) : (p + q) x = p x + q x := rfl
 
 instance : add_monoid (seminorm 𝕜 E) :=
-fun_like.coe_injective.add_monoid_smul _ rfl coe_add (λ p n, coe_smul n p)
+fun_like.coe_injective.add_monoid _ rfl coe_add (λ p n, coe_smul n p)
 
 instance : ordered_cancel_add_comm_monoid (seminorm 𝕜 E) :=
-{ nsmul := (•),  -- to avoid introducing a diamond
-  ..seminorm.add_monoid,
-  ..(fun_like.coe_injective.ordered_cancel_add_comm_monoid _ rfl coe_add
-      : ordered_cancel_add_comm_monoid (seminorm 𝕜 E)) }
+fun_like.coe_injective.ordered_cancel_add_comm_monoid _ rfl coe_add (λ p n, coe_smul n p)
 
 instance [monoid R] [mul_action R ℝ] [has_scalar R ℝ≥0] [is_scalar_tower R ℝ≥0 ℝ] :
   mul_action R (seminorm 𝕜 E) :=

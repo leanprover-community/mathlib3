@@ -234,7 +234,7 @@ begin
   induction n with n hn,
   { refine root_multiplicity_eq_zero _,
     simp only [eval_one, is_root.def, not_false_iff, one_ne_zero, pow_zero] },
-  have hzero :=  (ne_zero_of_monic (monic_pow (monic_X_sub_C a) n.succ)),
+  have hzero := pow_ne_zero n.succ (X_sub_C_ne_zero a),
   rw pow_succ (X - C a) n at hzero ⊢,
   simp only [root_multiplicity_mul hzero, root_multiplicity_X_sub_C_self, hn, nat.one_add]
 end
@@ -570,6 +570,19 @@ le_antisymm nat_degree_comp_le
 lemma leading_coeff_comp (hq : nat_degree q ≠ 0) : leading_coeff (p.comp q) =
   leading_coeff p * leading_coeff q ^ nat_degree p :=
 by rw [← coeff_comp_degree_mul_degree hq, ← nat_degree_comp]; refl
+
+lemma monic.comp (hp : p.monic) (hq : q.monic) (h : q.nat_degree ≠ 0) : (p.comp q).monic :=
+by rw [monic.def, leading_coeff_comp h, monic.def.1 hp, monic.def.1 hq, one_pow, one_mul]
+
+lemma monic.comp_X_add_C (hp : p.monic) (r : R) : (p.comp (X + C r)).monic :=
+begin
+  refine hp.comp (monic_X_add_C _) (λ ha, _),
+  rw [nat_degree_X_add_C] at ha,
+  exact one_ne_zero ha
+end
+
+lemma monic.comp_X_sub_C (hp : p.monic) (r : R) : (p.comp (X - C r)).monic :=
+by simpa using hp.comp_X_add_C (-r)
 
 lemma units_coeff_zero_smul (c : R[X]ˣ) (p : R[X]) :
   (c : R[X]).coeff 0 • p = c * p :=

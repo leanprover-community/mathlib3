@@ -1,7 +1,7 @@
 [package]
 name = "mathlib"
 version = "0.1"
-lean_version = "leanprover-community/lean:3.39.2"
+lean_version = "leanprover-community/lean:3.40.0"
 path = "src"
 
 [dependencies]

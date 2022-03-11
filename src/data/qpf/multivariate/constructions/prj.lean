@@ -22,7 +22,7 @@ variables {n : ℕ} (i : fin2 n)
 def prj (v : typevec.{u} n) : Type u := v i
 
 instance prj.inhabited {v : typevec.{u} n} [inhabited (v i)] : inhabited (prj i v) :=
-⟨ (default _ : v i) ⟩
+⟨ (default : v i) ⟩
 
 /-- `map` on functor `prj i` -/
 def prj.map ⦃α β : typevec n⦄ (f : α ⟹ β) : prj i α → prj i β :=

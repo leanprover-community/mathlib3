@@ -220,17 +220,20 @@ def subtype : s →+* R :=
 
 /-- A subsemiring of an `ordered_semiring` is an `ordered_semiring`. -/
 instance to_ordered_semiring {R} [ordered_semiring R] (s : subsemiring R) : ordered_semiring s :=
-subtype.coe_injective.ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
 instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] (s : subsemiring R) :
   ordered_comm_semiring s :=
-subtype.coe_injective.ordered_comm_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
 instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] (s : subsemiring R) :
   linear_ordered_semiring s :=
-subtype.coe_injective.linear_ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
 
@@ -359,7 +362,7 @@ instance : has_Inf (subsemiring R) :=
 @[simp, norm_cast] lemma coe_Inf (S : set (subsemiring R)) :
   ((Inf S : subsemiring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
-lemma mem_Inf {S : set (subsemiring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+lemma mem_Inf {S : set (subsemiring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 @[simp] lemma Inf_to_submonoid (s : set (subsemiring R)) :
   (Inf s).to_submonoid = ⨅ t ∈ s, subsemiring.to_submonoid t :=
@@ -524,6 +527,25 @@ lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hadd : ∀ x y, p x → p y → p (x + y)) (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 (@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd⟩).2 Hs h
 
+/-- An induction principle for closure membership for predicates with two arguments. -/
+@[elab_as_eliminator]
+lemma closure_induction₂ {s : set R} {p : R → R → Prop} {x} {y : R} (hx : x ∈ closure s)
+  (hy : y ∈ closure s)
+  (Hs : ∀ (x ∈ s) (y ∈ s), p x y)
+  (H0_left : ∀ x, p 0 x)
+  (H0_right : ∀ x, p x 0)
+  (H1_left : ∀ x, p 1 x)
+  (H1_right : ∀ x, p x 1)
+  (Hadd_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ + x₂) y)
+  (Hadd_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ + y₂))
+  (Hmul_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ * x₂) y)
+  (Hmul_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ * y₂))
+  : p x y :=
+closure_induction hx
+  (λ x₁ x₁s, closure_induction hy (Hs x₁ x₁s) (H0_right x₁) (H1_right x₁) (Hadd_right x₁)
+                                                                                (Hmul_right x₁))
+  (H0_left y) (H1_left y) (λ z z', Hadd_left z z' y) (λ z z', Hmul_left z z' y)
+
 lemma mem_closure_iff_exists_list {R} [semiring R] {s : set R} {x} : x ∈ closure s ↔
   ∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s) ∧ (L.map list.prod).sum = x :=
 ⟨λ hx, add_submonoid.closure_induction (mem_closure_iff.1 hx)
@@ -591,12 +613,12 @@ lemma comap_infi {ι : Sort*} (f : R →+* S) (s : ι → subsemiring S) :
 /-- Given `subsemiring`s `s`, `t` of semirings `R`, `S` respectively, `s.prod t` is `s × t`
 as a subsemiring of `R × S`. -/
 def prod (s : subsemiring R) (t : subsemiring S) : subsemiring (R × S) :=
-{ carrier := (s : set R).prod t,
+{ carrier := (s : set R) ×ˢ (t : set S),
   .. s.to_submonoid.prod t.to_submonoid, .. s.to_add_submonoid.prod t.to_add_submonoid}
 
 @[norm_cast]
 lemma coe_prod (s : subsemiring R) (t : subsemiring S) :
-  (s.prod t : set (R × S)) = (s : set R).prod (t : set S) :=
+  (s.prod t : set (R × S)) = (s : set R) ×ˢ (t : set S) :=
 rfl
 
 lemma mem_prod {s : subsemiring R} {t : subsemiring S} {p : R × S} :
@@ -787,6 +809,13 @@ def sof_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g 
   {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : f.srange) :
   (sof_left_inverse h).symm x = g x := rfl
 
+/-- Given an equivalence `e : R ≃+* S` of semirings and a subsemiring `s` of `R`,
+`subsemiring_map e s` is the induced equivalence between `s` and `s.map e` -/
+@[simps] def subsemiring_map (e : R ≃+* S) (s : subsemiring R) :
+  s ≃+* s.map e.to_ring_hom :=
+{ ..e.to_add_equiv.add_submonoid_map s.to_add_submonoid,
+  ..e.to_mul_equiv.submonoid_map s.to_submonoid }
+
 end ring_equiv
 
 /-! ### Actions by `subsemiring`s
@@ -843,6 +872,25 @@ S.to_submonoid.mul_distrib_mul_action
 instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=
 { smul := (•), .. module.comp_hom _ S.subtype }
 
+/-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
+def closure_comm_semiring_of_comm {s : set R'} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
+  comm_semiring (closure s) :=
+{ mul_comm := λ x y,
+  begin
+    ext,
+    simp only [subsemiring.coe_mul],
+    refine closure_induction₂ x.prop y.prop hcomm
+    (λ x, by simp only [zero_mul, mul_zero])
+    (λ x, by simp only [zero_mul, mul_zero])
+    (λ x, by simp only [one_mul, mul_one])
+    (λ x, by simp only [one_mul, mul_one])
+    (λ x y z h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
+    (λ x y z h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
+    (λ x y z h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc, h₁, mul_assoc])
+    (λ x y z h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc])
+  end,
+  ..(closure s).to_semiring }
+
 end subsemiring
 
 end actions
@@ -857,5 +905,5 @@ def pos_submonoid (R : Type*) [ordered_semiring R] [nontrivial R] : submonoid R 
   one_mem' := show (0 : R) < 1, from zero_lt_one,
   mul_mem' := λ x y (hx : 0 < x) (hy : 0 < y), mul_pos hx hy }
 
-@[simp] lemma mem_pos_monoid {R : Type*} [ordered_semiring R] [nontrivial R] (u : units R) :
+@[simp] lemma mem_pos_monoid {R : Type*} [ordered_semiring R] [nontrivial R] (u : Rˣ) :
   ↑u ∈ pos_submonoid R ↔ (0 : R) < u := iff.rfl

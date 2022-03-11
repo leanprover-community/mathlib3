@@ -96,8 +96,8 @@ end
 lemma map_permutations_aux2 (t : α) (ts : list α) (ys : list α) (f : list α → β) :
   (permutations_aux2 t ts [] ys id).2.map f = (permutations_aux2 t ts [] ys f).2 :=
 begin
-  convert map_permutations_aux2' id _ _ _ _ _ _ _ _; simp only [map_id, id.def],
-  exact (λ _, rfl)
+  rw [map_permutations_aux2' id, map_id, map_id], refl,
+  simp
 end
 
 /-- An expository lemma to show how all of `ts`, `r`, and `f` can be eliminated from

@@ -271,6 +271,19 @@ instance is_open_map.functor_faithful {X Y : Top} {f : X ⟶ Y} (hf : is_open_ma
 namespace topological_space.opens
 open topological_space
 
+@[simp] lemma open_embedding_obj_top {X : Top} (U : opens X) :
+  U.open_embedding.is_open_map.functor.obj ⊤ = U :=
+by { ext1, exact set.image_univ.trans subtype.range_coe }
+
+@[simp] lemma inclusion_map_eq_top {X : Top} (U : opens X) :
+  (opens.map U.inclusion).obj U = ⊤ :=
+by { ext1, exact subtype.coe_preimage_self _ }
+
+@[simp]
+lemma adjunction_counit_app_self {X : Top} (U : opens X) :
+  U.open_embedding.is_open_map.adjunction.counit.app U = eq_to_hom (by simp) :=
+by ext
+
 lemma inclusion_top_functor (X : Top) :
   (@opens.open_embedding X ⊤).is_open_map.functor =
   map (inclusion_top_iso X).inv :=

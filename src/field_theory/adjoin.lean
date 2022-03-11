@@ -27,7 +27,7 @@ For example, `algebra.adjoin K {x}` might not include `x⁻¹`.
 -/
 
 open finite_dimensional polynomial
-open_locale classical
+open_locale classical polynomial
 
 namespace intermediate_field
 
@@ -55,7 +55,7 @@ lemma gc : galois_connection (adjoin F : set E → intermediate_field F E) coe :
 def gi : galois_insertion (adjoin F : set E → intermediate_field F E) coe :=
 { choice := λ s hs, (adjoin F s).copy s $ le_antisymm (gc.le_u_l s) hs,
   gc := intermediate_field.gc,
-  le_l_u := λ S, (intermediate_field.gc (S : set E) (adjoin F S)).1 $ le_refl _,
+  le_l_u := λ S, (intermediate_field.gc (S : set E) (adjoin F S)).1 $ le_rfl,
   choice_eq := λ _ _, copy_eq _ _ _ }
 
 instance : complete_lattice (intermediate_field F E) :=
@@ -824,11 +824,9 @@ begin
       exact (S1 ⊔ S2).zero_mem },
     { obtain ⟨y, h⟩ := this.mul_inv_cancel hx',
       exact (congr_arg (∈ S1 ⊔ S2) (eq_inv_of_mul_right_eq_one (subtype.ext_iff.mp h))).mp y.2 } },
-  refine is_field_of_is_integral_of_is_field' _ (field.to_is_field K),
-  have h1 : algebra.is_algebraic K E1 := algebra.is_algebraic_of_finite,
-  have h2 : algebra.is_algebraic K E2 := algebra.is_algebraic_of_finite,
-  rw is_algebraic_iff_is_integral' at h1 h2,
-  exact is_integral_sup.mpr ⟨h1, h2⟩,
+  exact is_field_of_is_integral_of_is_field'
+    (is_integral_sup.mpr ⟨algebra.is_integral_of_finite K E1, algebra.is_integral_of_finite K E2⟩)
+    (field.to_is_field K),
 end
 
 lemma finite_dimensional_sup {K L : Type*} [field K] [field L] [algebra K L]
@@ -863,7 +861,7 @@ noncomputable def equiv_adjoin_simple (pb : power_basis K L) :
     (by rw [adjoin.power_basis_gen, adjoin_simple.algebra_map_gen]))
 
 @[simp]
-lemma equiv_adjoin_simple_aeval (pb : power_basis K L) (f : polynomial K) :
+lemma equiv_adjoin_simple_aeval (pb : power_basis K L) (f : K[X]) :
   pb.equiv_adjoin_simple (aeval (adjoin_simple.gen K pb.gen) f) = aeval pb.gen f :=
 equiv_of_minpoly_aeval _ pb _ f
 
@@ -873,7 +871,7 @@ lemma equiv_adjoin_simple_gen (pb : power_basis K L) :
 equiv_of_minpoly_gen _ pb _
 
 @[simp]
-lemma equiv_adjoin_simple_symm_aeval (pb : power_basis K L) (f : polynomial K) :
+lemma equiv_adjoin_simple_symm_aeval (pb : power_basis K L) (f : K[X]) :
   pb.equiv_adjoin_simple.symm (aeval pb.gen f) = aeval (adjoin_simple.gen K pb.gen) f :=
 by rw [equiv_adjoin_simple, equiv_of_minpoly_symm, equiv_of_minpoly_aeval, adjoin.power_basis_gen]
 

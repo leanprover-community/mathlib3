@@ -37,7 +37,7 @@ variables {C : Type u₂} [category.{u₁} C]
 /-- This type indexes the connected components of the category `J`. -/
 def connected_components (J : Type u₁) [category.{v₁} J] : Type u₁ := quotient (zigzag.setoid J)
 
-instance [inhabited J] : inhabited (connected_components J) := ⟨quotient.mk' (default J)⟩
+instance [inhabited J] : inhabited (connected_components J) := ⟨quotient.mk' default⟩
 
 /-- Given an index for a connected component, produce the actual component as a full subcategory. -/
 @[derive category]

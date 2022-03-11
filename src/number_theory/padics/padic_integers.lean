@@ -38,7 +38,7 @@ Coercions into `ℤ_p` are set up to work with the `norm_cast` tactic.
 
 ## References
 
-* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [F. Q. Gouvêa, *p-adic numbers*][gouvea1997]
 * [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
 * <https://en.wikipedia.org/wiki/P-adic_number>
 
@@ -144,7 +144,7 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
   map_add' := coe_add }
 
 @[simp, norm_cast] lemma coe_pow (x : ℤ_[p]) (n : ℕ) : (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n :=
-coe.ring_hom.map_pow x n
+(coe.ring_hom : ℤ_[p] →+* ℚ_[p]).map_pow x n
 
 @[simp] lemma mk_coe : ∀ (k : ℤ_[p]), (⟨k, k.2⟩ : ℤ_[p]) = k
 | ⟨_, _⟩ := rfl
@@ -313,7 +313,7 @@ begin
   obtain ⟨k, hk⟩ := exists_nat_gt ε⁻¹,
   use k,
   rw ← inv_lt_inv hε (_root_.zpow_pos_of_pos _ _),
-  { rw [zpow_neg₀, inv_inv₀, zpow_coe_nat],
+  { rw [zpow_neg₀, inv_inv, zpow_coe_nat],
     apply lt_of_lt_of_le hk,
     norm_cast,
     apply le_of_lt,
@@ -429,19 +429,19 @@ calc  ∥z1 * z2∥ = ∥z1∥ * ∥z2∥ : by simp
 by rw lt_iff_le_and_ne; simp [norm_le_one z, nonunits, is_unit_iff]
 
 /-- A `p`-adic number `u` with `∥u∥ = 1` is a unit of `ℤ_[p]`. -/
-def mk_units {u : ℚ_[p]} (h : ∥u∥ = 1) : units ℤ_[p] :=
+def mk_units {u : ℚ_[p]} (h : ∥u∥ = 1) : ℤ_[p]ˣ :=
 let z : ℤ_[p] := ⟨u, le_of_eq h⟩ in ⟨z, z.inv, mul_inv h, inv_mul h⟩
 
 @[simp]
 lemma mk_units_eq {u : ℚ_[p]} (h : ∥u∥ = 1) : ((mk_units h : ℤ_[p]) : ℚ_[p]) = u :=
 rfl
 
-@[simp] lemma norm_units (u : units ℤ_[p]) : ∥(u : ℤ_[p])∥ = 1 :=
+@[simp] lemma norm_units (u : ℤ_[p]ˣ) : ∥(u : ℤ_[p])∥ = 1 :=
 is_unit_iff.mp $ by simp
 
 /-- `unit_coeff hx` is the unit `u` in the unique representation `x = u * p ^ n`.
 See `unit_coeff_spec`. -/
-def unit_coeff {x : ℤ_[p]} (hx : x ≠ 0) : units ℤ_[p] :=
+def unit_coeff {x : ℤ_[p]} (hx : x ≠ 0) : ℤ_[p]ˣ :=
 let u : ℚ_[p] := x*p^(-x.valuation) in
 have hu : ∥u∥ = 1,
 by simp [hx, nat.zpow_ne_zero_of_pos (by exact_mod_cast hp_prime.1.pos) x.valuation,
@@ -537,7 +537,7 @@ section dvr
 /-! ### Discrete valuation ring -/
 
 instance : local_ring ℤ_[p] :=
-local_of_nonunits_ideal zero_ne_one $ λ x y, by simp; exact norm_lt_one_add
+local_of_nonunits_ideal zero_ne_one $ by simp only [mem_nonunits]; exact λ x h y, norm_lt_one_add h
 
 lemma p_nonnunit : (p : ℤ_[p]) ∈ nonunits ℤ_[p] :=
 have (p : ℝ)⁻¹ < 1, from inv_lt_one $ by exact_mod_cast hp_prime.1.one_lt,

@@ -137,6 +137,9 @@ def object_to_sort : has_coe_to_sort C (Type (max u v)) :=
 
 local attribute [instance] object_to_sort
 
+localized "attribute [instance] category_theory.abelian.pseudoelement.object_to_sort"
+  in pseudoelement
+
 /-- A coercion from an arrow with codomain `P` to its associated pseudoelement. -/
 def over_to_sort {P : C} : has_coe (over P) (pseudoelement P) :=
 ⟨quot.mk (pseudo_equal P)⟩
@@ -159,6 +162,8 @@ quotient.map (λ (g : over P), app f g) (pseudo_apply_aux f)
 def hom_to_fun {P Q : C} : has_coe_to_fun (P ⟶ Q) (λ _, P → Q) := ⟨pseudo_apply⟩
 
 local attribute [instance] hom_to_fun
+
+localized "attribute [instance] category_theory.abelian.pseudoelement.hom_to_fun" in pseudoelement
 
 lemma pseudo_apply_mk {P Q : C} (f : P ⟶ Q) (a : over P) : f ⟦a⟧ = ⟦a.hom ≫ f⟧ :=
 rfl
@@ -231,11 +236,14 @@ quotient.induction_on a $ λ a',
   by { rw [pseudo_zero_def, pseudo_apply_mk], simp }
 
 /-- An extensionality lemma for being the zero arrow. -/
-@[ext] theorem zero_morphism_ext {P Q : C} (f : P ⟶ Q) : (∀ a, f a = 0) → f = 0 :=
+theorem zero_morphism_ext {P Q : C} (f : P ⟶ Q) : (∀ a, f a = 0) → f = 0 :=
 λ h, by { rw ←category.id_comp f, exact (pseudo_zero_iff ((𝟙 P ≫ f) : over Q)).1 (h (𝟙 P)) }
 
-@[ext] theorem zero_morphism_ext' {P Q : C} (f : P ⟶ Q) : (∀ a, f a = 0) → 0 = f :=
+theorem zero_morphism_ext' {P Q : C} (f : P ⟶ Q) : (∀ a, f a = 0) → 0 = f :=
 eq.symm ∘ zero_morphism_ext f
+
+localized "attribute [ext] category_theory.abelian.pseudoelement.zero_morphism_ext
+  category_theory.abelian.pseudoelement.zero_morphism_ext'" in pseudoelement
 
 theorem eq_zero_iff {P Q : C} (f : P ⟶ Q) : f = 0 ↔ ∀ a, f a = 0 :=
 ⟨λ h a, by simp [h], zero_morphism_ext _⟩

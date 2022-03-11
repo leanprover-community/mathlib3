@@ -86,7 +86,7 @@ namespace holor
 
 variables {α : Type} {d : ℕ} {ds : list ℕ} {ds₁ : list ℕ} {ds₂ : list ℕ} {ds₃ : list ℕ}
 
-instance [inhabited α] : inhabited (holor α ds) := ⟨λ t, default α⟩
+instance [inhabited α] : inhabited (holor α ds) := ⟨λ t, default⟩
 instance [has_zero α] : has_zero (holor α ds) := ⟨λ t, 0⟩
 instance [has_add α] : has_add (holor α ds) := ⟨λ x y t, x t + y t⟩
 instance [has_neg α] : has_neg (holor α ds) :=  ⟨λ a t, - a t⟩

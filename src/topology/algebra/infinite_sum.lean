@@ -7,7 +7,7 @@ import algebra.big_operators.intervals
 import algebra.big_operators.nat_antidiagonal
 import data.equiv.encodable.lattice
 import topology.algebra.mul_action
-import topology.algebra.ordered.monotone_convergence
+import topology.algebra.order.monotone_convergence
 import topology.instances.real
 
 /-!
@@ -766,13 +766,13 @@ end topological_ring
 
 section const_smul
 variables {R : Type*}
-[monoid R] [topological_space R]
+[monoid R]
 [topological_space α] [add_comm_monoid α]
-[distrib_mul_action R α] [has_continuous_smul R α]
+[distrib_mul_action R α] [has_continuous_const_smul R α]
 {f : β → α}
 
 lemma has_sum.const_smul {a : α} {r : R} (hf : has_sum f a) : has_sum (λ z, r • f z) (r • a) :=
-hf.map (distrib_mul_action.to_add_monoid_hom α r) (continuous_const.smul continuous_id)
+hf.map (distrib_mul_action.to_add_monoid_hom α r) (continuous_const_smul r)
 
 lemma summable.const_smul {r : R} (hf : summable f) : summable (λ z, r • f z) :=
 hf.has_sum.const_smul.summable
@@ -1022,6 +1022,7 @@ section uniform_group
 
 variables [add_comm_group α] [uniform_space α]
 
+/-- The **Cauchy criterion** for infinite sums, also known as the **Cauchy convergence test** -/
 lemma summable_iff_cauchy_seq_finset [complete_space α] {f : β → α} :
   summable f ↔ cauchy_seq (λ (s : finset β), ∑ b in s, f b) :=
 cauchy_map_iff_exists_tendsto.symm
@@ -1233,6 +1234,22 @@ calc summable (λ x, |f x|) ↔
 
 alias summable_abs_iff ↔ summable.of_abs summable.abs
 
+lemma finite_of_summable_const [linear_ordered_add_comm_group β] [archimedean β]
+  [topological_space β] [order_closed_topology β] {b : β} (hb : 0 < b)
+  (hf : summable (λ a : α, b)) :
+  set.finite (set.univ : set α) :=
+begin
+  have H : ∀ s : finset α, s.card • b ≤ ∑' a : α, b,
+  { intros s,
+    simpa using sum_le_has_sum s (λ a ha, hb.le) hf.has_sum },
+  obtain ⟨n, hn⟩ := archimedean.arch (∑' a : α, b) hb,
+  have : ∀ s : finset α, s.card ≤ n,
+  { intros s,
+    simpa [nsmul_le_nsmul_iff hb] using (H s).trans hn },
+  haveI : fintype α := fintype_of_finset_card_le n this,
+  exact set.finite_univ
+end
+
 end linear_order
 
 section cauchy_seq
@@ -1279,7 +1296,7 @@ end
 
 lemma cauchy_seq_of_summable_dist [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) : cauchy_seq f :=
-cauchy_seq_of_dist_le_of_summable _ (λ _, le_refl _) h
+cauchy_seq_of_dist_le_of_summable _ (λ _, le_rfl) h
 
 lemma dist_le_tsum_of_dist_le_of_tendsto [pseudo_metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
   (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) {a : α} (ha : tendsto f at_top (𝓝 a))
@@ -1303,7 +1320,7 @@ lemma dist_le_tsum_dist_of_tendsto [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) (n) :
   dist (f n) a ≤ ∑' m, dist (f (n+m)) (f (n+m).succ) :=
 show dist (f n) a ≤ ∑' m, (λx, dist (f x) (f x.succ)) (n + m), from
-dist_le_tsum_of_dist_le_of_tendsto (λ n, dist (f n) (f n.succ)) (λ _, le_refl _) h ha n
+dist_le_tsum_of_dist_le_of_tendsto (λ n, dist (f n) (f n.succ)) (λ _, le_rfl) h ha n
 
 lemma dist_le_tsum_dist_of_tendsto₀ [pseudo_metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) :

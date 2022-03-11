@@ -65,11 +65,11 @@ lemma neg_mem_center [ring M] {a : M} (ha : a ∈ set.center M) : -a ∈ set.cen
 
 @[to_additive subset_add_center_add_units]
 lemma subset_center_units [monoid M] :
-  (coe : units M → M) ⁻¹' center M ⊆ set.center (units M) :=
+  (coe : Mˣ → M) ⁻¹' center M ⊆ set.center Mˣ :=
 λ a ha b, units.ext $ ha _
 
 lemma center_units_subset [group_with_zero M] :
-  set.center (units M) ⊆ (coe : units M → M) ⁻¹' center M :=
+  set.center Mˣ ⊆ (coe : Mˣ → M) ⁻¹' center M :=
 λ a ha b, begin
   obtain rfl | hb := eq_or_ne b 0,
   { rw [zero_mul, mul_zero], },
@@ -78,7 +78,7 @@ end
 
 /-- In a group with zero, the center of the units is the preimage of the center. -/
 lemma center_units_eq [group_with_zero M] :
-  set.center (units M) = (coe : units M → M) ⁻¹' center M :=
+  set.center Mˣ = (coe : Mˣ → M) ⁻¹' center M :=
 subset.antisymm center_units_subset subset_center_units
 
 @[simp]

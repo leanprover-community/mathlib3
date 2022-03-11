@@ -165,9 +165,8 @@ begin
   assume t ht,
   have := dist_triangle4_right (f' t) (g' t) (v t (f t)) (v t (g t)),
   rw [dist_eq_norm] at this,
-  apply le_trans this,
-  apply le_trans (add_le_add (add_le_add (f_bound t ht) (g_bound t ht))
-    (hv t (f t) (g t) (hfs t ht) (hgs t ht))),
+  refine this.trans ((add_le_add (add_le_add (f_bound t ht) (g_bound t ht))
+    (hv t (f t) (hfs t ht) (g t) (hgs t ht))).trans _),
   rw [dist_eq_norm, add_comm]
 end
 
@@ -188,7 +187,7 @@ theorem dist_le_of_approx_trajectories_ODE {v : ℝ → E → E}
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ gronwall_bound δ K (εf + εg) (t - a) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_approx_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
+dist_le_of_approx_trajectories_ODE_of_mem_set (λ t x hx y hy, (hv t).dist_le_mul x y)
   hf hf' f_bound hfs hg hg' g_bound (λ t ht, trivial) ha
 
 /-- If `f` and `g` are two exact solutions of the same ODE, then the distance between them
@@ -234,7 +233,7 @@ theorem dist_le_of_trajectories_ODE {v : ℝ → E → E}
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ δ * exp (K * (t - a)) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
+dist_le_of_trajectories_ODE_of_mem_set (λ t x hx y hy, (hv t).dist_le_mul x y)
   hf hf' hfs hg hg' (λ t ht, trivial) ha
 
 /-- There exists only one solution of an ODE \(\dot x=v(t, x)\) in a set `s ⊆ ℝ × E` with
@@ -270,5 +269,5 @@ theorem ODE_solution_unique {v : ℝ → E → E}
   (ha : f a = g a) :
   ∀ t ∈ Icc a b, f t = g t :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-ODE_solution_unique_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
+ODE_solution_unique_of_mem_set (λ t x hx y hy, (hv t).dist_le_mul x y)
   hf hf' hfs hg hg' (λ t ht, trivial) ha

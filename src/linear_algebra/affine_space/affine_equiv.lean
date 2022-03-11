@@ -264,7 +264,7 @@ lemma inv_def (e : P₁ ≃ᵃ[k] P₁) : e⁻¹ = e.symm := rfl
 
 This is the affine version of `linear_map.general_linear_group.general_linear_equiv`. -/
 @[simps]
-def equiv_units_affine_map : (P₁ ≃ᵃ[k] P₁) ≃* units (P₁ →ᵃ[k] P₁) :=
+def equiv_units_affine_map : (P₁ ≃ᵃ[k] P₁) ≃* (P₁ →ᵃ[k] P₁)ˣ :=
 { to_fun := λ e, ⟨e, e.symm, congr_arg coe e.symm_trans_self, congr_arg coe e.self_trans_symm⟩,
   inv_fun := λ u,
   { to_fun := (u : P₁ →ᵃ[k] P₁), inv_fun := (↑(u⁻¹) : P₁ →ᵃ[k] P₁),
@@ -315,20 +315,20 @@ include V
 
 /-- Fixing a point in affine space, homothety about this point gives a group homomorphism from (the
 centre of) the units of the scalars into the group of affine equivalences. -/
-def homothety_units_mul_hom (p : P) : units R →* P ≃ᵃ[R] P :=
+def homothety_units_mul_hom (p : P) : Rˣ →* P ≃ᵃ[R] P :=
 equiv_units_affine_map.symm.to_monoid_hom.comp $ units.map (affine_map.homothety_hom p)
 
-@[simp] lemma coe_homothety_units_mul_hom_apply (p : P) (t : units R) :
+@[simp] lemma coe_homothety_units_mul_hom_apply (p : P) (t : Rˣ) :
   (homothety_units_mul_hom p t : P → P) = affine_map.homothety p (t : R) :=
 rfl
 
-@[simp] lemma coe_homothety_units_mul_hom_apply_symm (p : P) (t : units R) :
+@[simp] lemma coe_homothety_units_mul_hom_apply_symm (p : P) (t : Rˣ) :
   ((homothety_units_mul_hom p t).symm : P → P) = affine_map.homothety p (↑t⁻¹ : R) :=
 rfl
 
 @[simp] lemma coe_homothety_units_mul_hom_eq_homothety_hom_coe (p : P) :
   (coe : (P ≃ᵃ[R] P) → P →ᵃ[R] P) ∘ homothety_units_mul_hom p =
-  (affine_map.homothety_hom p) ∘ (coe : units R → R) :=
+  (affine_map.homothety_hom p) ∘ (coe : Rˣ → R) :=
 funext $ λ _, rfl
 
 end homothety

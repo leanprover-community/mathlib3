@@ -39,9 +39,9 @@ end
 lemma has_deriv_at_sin (x : ℂ) : has_deriv_at sin (cos x) x :=
 (has_strict_deriv_at_sin x).has_deriv_at
 
-lemma times_cont_diff_sin {n} : times_cont_diff ℂ n sin :=
-(((times_cont_diff_neg.mul times_cont_diff_const).cexp.sub
-  (times_cont_diff_id.mul times_cont_diff_const).cexp).mul times_cont_diff_const).div_const
+lemma cont_diff_sin {n} : cont_diff ℂ n sin :=
+(((cont_diff_neg.mul cont_diff_const).cexp.sub
+  (cont_diff_id.mul cont_diff_const).cexp).mul cont_diff_const).div_const
 
 lemma differentiable_sin : differentiable ℂ sin :=
 λx, (has_deriv_at_sin x).differentiable_at
@@ -67,9 +67,9 @@ end
 lemma has_deriv_at_cos (x : ℂ) : has_deriv_at cos (-sin x) x :=
 (has_strict_deriv_at_cos x).has_deriv_at
 
-lemma times_cont_diff_cos {n} : times_cont_diff ℂ n cos :=
-((times_cont_diff_id.mul times_cont_diff_const).cexp.add
-  (times_cont_diff_neg.mul times_cont_diff_const).cexp).div_const
+lemma cont_diff_cos {n} : cont_diff ℂ n cos :=
+((cont_diff_id.mul cont_diff_const).cexp.add
+  (cont_diff_neg.mul cont_diff_const).cexp).div_const
 
 lemma differentiable_cos : differentiable ℂ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
@@ -97,8 +97,8 @@ end
 lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
 (has_strict_deriv_at_sinh x).has_deriv_at
 
-lemma times_cont_diff_sinh {n} : times_cont_diff ℂ n sinh :=
-(times_cont_diff_exp.sub times_cont_diff_neg.cexp).div_const
+lemma cont_diff_sinh {n} : cont_diff ℂ n sinh :=
+(cont_diff_exp.sub cont_diff_neg.cexp).div_const
 
 lemma differentiable_sinh : differentiable ℂ sinh :=
 λx, (has_deriv_at_sinh x).differentiable_at
@@ -123,8 +123,8 @@ end
 lemma has_deriv_at_cosh (x : ℂ) : has_deriv_at cosh (sinh x) x :=
 (has_strict_deriv_at_cosh x).has_deriv_at
 
-lemma times_cont_diff_cosh {n} : times_cont_diff ℂ n cosh :=
-(times_cont_diff_exp.add times_cont_diff_neg.cexp).div_const
+lemma cont_diff_cosh {n} : cont_diff ℂ n cosh :=
+(cont_diff_exp.add cont_diff_neg.cexp).div_const
 
 lemma differentiable_cosh : differentiable ℂ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
@@ -281,21 +281,21 @@ hf.has_fderiv_within_at.ccos.fderiv_within hxs
   fderiv ℂ (λx, complex.cos (f x)) x = - complex.sin (f x) • (fderiv ℂ f x) :=
 hc.has_fderiv_at.ccos.fderiv
 
-lemma times_cont_diff.ccos {n} (h : times_cont_diff ℂ n f) :
-  times_cont_diff ℂ n (λ x, complex.cos (f x)) :=
-complex.times_cont_diff_cos.comp h
+lemma cont_diff.ccos {n} (h : cont_diff ℂ n f) :
+  cont_diff ℂ n (λ x, complex.cos (f x)) :=
+complex.cont_diff_cos.comp h
 
-lemma times_cont_diff_at.ccos {n} (hf : times_cont_diff_at ℂ n f x) :
-  times_cont_diff_at ℂ n (λ x, complex.cos (f x)) x :=
-complex.times_cont_diff_cos.times_cont_diff_at.comp x hf
+lemma cont_diff_at.ccos {n} (hf : cont_diff_at ℂ n f x) :
+  cont_diff_at ℂ n (λ x, complex.cos (f x)) x :=
+complex.cont_diff_cos.cont_diff_at.comp x hf
 
-lemma times_cont_diff_on.ccos {n} (hf : times_cont_diff_on ℂ n f s) :
-  times_cont_diff_on ℂ n (λ x, complex.cos (f x)) s :=
-complex.times_cont_diff_cos.comp_times_cont_diff_on  hf
+lemma cont_diff_on.ccos {n} (hf : cont_diff_on ℂ n f s) :
+  cont_diff_on ℂ n (λ x, complex.cos (f x)) s :=
+complex.cont_diff_cos.comp_cont_diff_on  hf
 
-lemma times_cont_diff_within_at.ccos {n} (hf : times_cont_diff_within_at ℂ n f s x) :
-  times_cont_diff_within_at ℂ n (λ x, complex.cos (f x)) s x :=
-complex.times_cont_diff_cos.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+lemma cont_diff_within_at.ccos {n} (hf : cont_diff_within_at ℂ n f s x) :
+  cont_diff_within_at ℂ n (λ x, complex.cos (f x)) s x :=
+complex.cont_diff_cos.cont_diff_at.comp_cont_diff_within_at x hf
 
 /-! #### `complex.sin` -/
 
@@ -336,21 +336,21 @@ hf.has_fderiv_within_at.csin.fderiv_within hxs
   fderiv ℂ (λx, complex.sin (f x)) x = complex.cos (f x) • (fderiv ℂ f x) :=
 hc.has_fderiv_at.csin.fderiv
 
-lemma times_cont_diff.csin {n} (h : times_cont_diff ℂ n f) :
-  times_cont_diff ℂ n (λ x, complex.sin (f x)) :=
-complex.times_cont_diff_sin.comp h
+lemma cont_diff.csin {n} (h : cont_diff ℂ n f) :
+  cont_diff ℂ n (λ x, complex.sin (f x)) :=
+complex.cont_diff_sin.comp h
 
-lemma times_cont_diff_at.csin {n} (hf : times_cont_diff_at ℂ n f x) :
-  times_cont_diff_at ℂ n (λ x, complex.sin (f x)) x :=
-complex.times_cont_diff_sin.times_cont_diff_at.comp x hf
+lemma cont_diff_at.csin {n} (hf : cont_diff_at ℂ n f x) :
+  cont_diff_at ℂ n (λ x, complex.sin (f x)) x :=
+complex.cont_diff_sin.cont_diff_at.comp x hf
 
-lemma times_cont_diff_on.csin {n} (hf : times_cont_diff_on ℂ n f s) :
-  times_cont_diff_on ℂ n (λ x, complex.sin (f x)) s :=
-complex.times_cont_diff_sin.comp_times_cont_diff_on  hf
+lemma cont_diff_on.csin {n} (hf : cont_diff_on ℂ n f s) :
+  cont_diff_on ℂ n (λ x, complex.sin (f x)) s :=
+complex.cont_diff_sin.comp_cont_diff_on  hf
 
-lemma times_cont_diff_within_at.csin {n} (hf : times_cont_diff_within_at ℂ n f s x) :
-  times_cont_diff_within_at ℂ n (λ x, complex.sin (f x)) s x :=
-complex.times_cont_diff_sin.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+lemma cont_diff_within_at.csin {n} (hf : cont_diff_within_at ℂ n f s x) :
+  cont_diff_within_at ℂ n (λ x, complex.sin (f x)) s x :=
+complex.cont_diff_sin.cont_diff_at.comp_cont_diff_within_at x hf
 
 /-! #### `complex.cosh` -/
 
@@ -391,21 +391,21 @@ hf.has_fderiv_within_at.ccosh.fderiv_within hxs
   fderiv ℂ (λx, complex.cosh (f x)) x = complex.sinh (f x) • (fderiv ℂ f x) :=
 hc.has_fderiv_at.ccosh.fderiv
 
-lemma times_cont_diff.ccosh {n} (h : times_cont_diff ℂ n f) :
-  times_cont_diff ℂ n (λ x, complex.cosh (f x)) :=
-complex.times_cont_diff_cosh.comp h
+lemma cont_diff.ccosh {n} (h : cont_diff ℂ n f) :
+  cont_diff ℂ n (λ x, complex.cosh (f x)) :=
+complex.cont_diff_cosh.comp h
 
-lemma times_cont_diff_at.ccosh {n} (hf : times_cont_diff_at ℂ n f x) :
-  times_cont_diff_at ℂ n (λ x, complex.cosh (f x)) x :=
-complex.times_cont_diff_cosh.times_cont_diff_at.comp x hf
+lemma cont_diff_at.ccosh {n} (hf : cont_diff_at ℂ n f x) :
+  cont_diff_at ℂ n (λ x, complex.cosh (f x)) x :=
+complex.cont_diff_cosh.cont_diff_at.comp x hf
 
-lemma times_cont_diff_on.ccosh {n} (hf : times_cont_diff_on ℂ n f s) :
-  times_cont_diff_on ℂ n (λ x, complex.cosh (f x)) s :=
-complex.times_cont_diff_cosh.comp_times_cont_diff_on  hf
+lemma cont_diff_on.ccosh {n} (hf : cont_diff_on ℂ n f s) :
+  cont_diff_on ℂ n (λ x, complex.cosh (f x)) s :=
+complex.cont_diff_cosh.comp_cont_diff_on  hf
 
-lemma times_cont_diff_within_at.ccosh {n} (hf : times_cont_diff_within_at ℂ n f s x) :
-  times_cont_diff_within_at ℂ n (λ x, complex.cosh (f x)) s x :=
-complex.times_cont_diff_cosh.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+lemma cont_diff_within_at.ccosh {n} (hf : cont_diff_within_at ℂ n f s x) :
+  cont_diff_within_at ℂ n (λ x, complex.cosh (f x)) s x :=
+complex.cont_diff_cosh.cont_diff_at.comp_cont_diff_within_at x hf
 
 /-! #### `complex.sinh` -/
 
@@ -446,21 +446,21 @@ hf.has_fderiv_within_at.csinh.fderiv_within hxs
   fderiv ℂ (λx, complex.sinh (f x)) x = complex.cosh (f x) • (fderiv ℂ f x) :=
 hc.has_fderiv_at.csinh.fderiv
 
-lemma times_cont_diff.csinh {n} (h : times_cont_diff ℂ n f) :
-  times_cont_diff ℂ n (λ x, complex.sinh (f x)) :=
-complex.times_cont_diff_sinh.comp h
+lemma cont_diff.csinh {n} (h : cont_diff ℂ n f) :
+  cont_diff ℂ n (λ x, complex.sinh (f x)) :=
+complex.cont_diff_sinh.comp h
 
-lemma times_cont_diff_at.csinh {n} (hf : times_cont_diff_at ℂ n f x) :
-  times_cont_diff_at ℂ n (λ x, complex.sinh (f x)) x :=
-complex.times_cont_diff_sinh.times_cont_diff_at.comp x hf
+lemma cont_diff_at.csinh {n} (hf : cont_diff_at ℂ n f x) :
+  cont_diff_at ℂ n (λ x, complex.sinh (f x)) x :=
+complex.cont_diff_sinh.cont_diff_at.comp x hf
 
-lemma times_cont_diff_on.csinh {n} (hf : times_cont_diff_on ℂ n f s) :
-  times_cont_diff_on ℂ n (λ x, complex.sinh (f x)) s :=
-complex.times_cont_diff_sinh.comp_times_cont_diff_on  hf
+lemma cont_diff_on.csinh {n} (hf : cont_diff_on ℂ n f s) :
+  cont_diff_on ℂ n (λ x, complex.sinh (f x)) s :=
+complex.cont_diff_sinh.comp_cont_diff_on  hf
 
-lemma times_cont_diff_within_at.csinh {n} (hf : times_cont_diff_within_at ℂ n f s x) :
-  times_cont_diff_within_at ℂ n (λ x, complex.sinh (f x)) s x :=
-complex.times_cont_diff_sinh.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+lemma cont_diff_within_at.csinh {n} (hf : cont_diff_within_at ℂ n f s x) :
+  cont_diff_within_at ℂ n (λ x, complex.sinh (f x)) s x :=
+complex.cont_diff_sinh.cont_diff_at.comp_cont_diff_within_at x hf
 
 end
 
@@ -474,8 +474,8 @@ lemma has_strict_deriv_at_sin (x : ℝ) : has_strict_deriv_at sin (cos x) x :=
 lemma has_deriv_at_sin (x : ℝ) : has_deriv_at sin (cos x) x :=
 (has_strict_deriv_at_sin x).has_deriv_at
 
-lemma times_cont_diff_sin {n} : times_cont_diff ℝ n sin :=
-complex.times_cont_diff_sin.real_of_complex
+lemma cont_diff_sin {n} : cont_diff ℝ n sin :=
+complex.cont_diff_sin.real_of_complex
 
 lemma differentiable_sin : differentiable ℝ sin :=
 λx, (has_deriv_at_sin x).differentiable_at
@@ -492,8 +492,8 @@ lemma has_strict_deriv_at_cos (x : ℝ) : has_strict_deriv_at cos (-sin x) x :=
 lemma has_deriv_at_cos (x : ℝ) : has_deriv_at cos (-sin x) x :=
 (complex.has_deriv_at_cos x).real_of_complex
 
-lemma times_cont_diff_cos {n} : times_cont_diff ℝ n cos :=
-complex.times_cont_diff_cos.real_of_complex
+lemma cont_diff_cos {n} : cont_diff ℝ n cos :=
+complex.cont_diff_cos.real_of_complex
 
 lemma differentiable_cos : differentiable ℝ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
@@ -513,8 +513,8 @@ lemma has_strict_deriv_at_sinh (x : ℝ) : has_strict_deriv_at sinh (cosh x) x :
 lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
 (complex.has_deriv_at_sinh x).real_of_complex
 
-lemma times_cont_diff_sinh {n} : times_cont_diff ℝ n sinh :=
-complex.times_cont_diff_sinh.real_of_complex
+lemma cont_diff_sinh {n} : cont_diff ℝ n sinh :=
+complex.cont_diff_sinh.real_of_complex
 
 lemma differentiable_sinh : differentiable ℝ sinh :=
 λx, (has_deriv_at_sinh x).differentiable_at
@@ -531,8 +531,8 @@ lemma has_strict_deriv_at_cosh (x : ℝ) : has_strict_deriv_at cosh (sinh x) x :
 lemma has_deriv_at_cosh (x : ℝ) : has_deriv_at cosh (sinh x) x :=
 (complex.has_deriv_at_cosh x).real_of_complex
 
-lemma times_cont_diff_cosh {n} : times_cont_diff ℝ n cosh :=
-complex.times_cont_diff_cosh.real_of_complex
+lemma cont_diff_cosh {n} : cont_diff ℝ n cosh :=
+complex.cont_diff_cosh.real_of_complex
 
 lemma differentiable_cosh : differentiable ℝ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
@@ -694,21 +694,21 @@ hf.has_fderiv_within_at.cos.fderiv_within hxs
   fderiv ℝ (λx, real.cos (f x)) x = - real.sin (f x) • (fderiv ℝ f x) :=
 hc.has_fderiv_at.cos.fderiv
 
-lemma times_cont_diff.cos {n} (h : times_cont_diff ℝ n f) :
-  times_cont_diff ℝ n (λ x, real.cos (f x)) :=
-real.times_cont_diff_cos.comp h
+lemma cont_diff.cos {n} (h : cont_diff ℝ n f) :
+  cont_diff ℝ n (λ x, real.cos (f x)) :=
+real.cont_diff_cos.comp h
 
-lemma times_cont_diff_at.cos {n} (hf : times_cont_diff_at ℝ n f x) :
-  times_cont_diff_at ℝ n (λ x, real.cos (f x)) x :=
-real.times_cont_diff_cos.times_cont_diff_at.comp x hf
+lemma cont_diff_at.cos {n} (hf : cont_diff_at ℝ n f x) :
+  cont_diff_at ℝ n (λ x, real.cos (f x)) x :=
+real.cont_diff_cos.cont_diff_at.comp x hf
 
-lemma times_cont_diff_on.cos {n} (hf : times_cont_diff_on ℝ n f s) :
-  times_cont_diff_on ℝ n (λ x, real.cos (f x)) s :=
-real.times_cont_diff_cos.comp_times_cont_diff_on  hf
+lemma cont_diff_on.cos {n} (hf : cont_diff_on ℝ n f s) :
+  cont_diff_on ℝ n (λ x, real.cos (f x)) s :=
+real.cont_diff_cos.comp_cont_diff_on  hf
 
-lemma times_cont_diff_within_at.cos {n} (hf : times_cont_diff_within_at ℝ n f s x) :
-  times_cont_diff_within_at ℝ n (λ x, real.cos (f x)) s x :=
-real.times_cont_diff_cos.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+lemma cont_diff_within_at.cos {n} (hf : cont_diff_within_at ℝ n f s x) :
+  cont_diff_within_at ℝ n (λ x, real.cos (f x)) s x :=
+real.cont_diff_cos.cont_diff_at.comp_cont_diff_within_at x hf
 
 /-! #### `real.sin` -/
 
@@ -749,21 +749,21 @@ hf.has_fderiv_within_at.sin.fderiv_within hxs
   fderiv ℝ (λx, real.sin (f x)) x = real.cos (f x) • (fderiv ℝ f x) :=
 hc.has_fderiv_at.sin.fderiv
 
-lemma times_cont_diff.sin {n} (h : times_cont_diff ℝ n f) :
-  times_cont_diff ℝ n (λ x, real.sin (f x)) :=
-real.times_cont_diff_sin.comp h
+lemma cont_diff.sin {n} (h : cont_diff ℝ n f) :
+  cont_diff ℝ n (λ x, real.sin (f x)) :=
+real.cont_diff_sin.comp h
 
-lemma times_cont_diff_at.sin {n} (hf : times_cont_diff_at ℝ n f x) :
-  times_cont_diff_at ℝ n (λ x, real.sin (f x)) x :=
-real.times_cont_diff_sin.times_cont_diff_at.comp x hf
+lemma cont_diff_at.sin {n} (hf : cont_diff_at ℝ n f x) :
+  cont_diff_at ℝ n (λ x, real.sin (f x)) x :=
+real.cont_diff_sin.cont_diff_at.comp x hf
 
-lemma times_cont_diff_on.sin {n} (hf : times_cont_diff_on ℝ n f s) :
-  times_cont_diff_on ℝ n (λ x, real.sin (f x)) s :=
-real.times_cont_diff_sin.comp_times_cont_diff_on  hf
+lemma cont_diff_on.sin {n} (hf : cont_diff_on ℝ n f s) :
+  cont_diff_on ℝ n (λ x, real.sin (f x)) s :=
+real.cont_diff_sin.comp_cont_diff_on  hf
 
-lemma times_cont_diff_within_at.sin {n} (hf : times_cont_diff_within_at ℝ n f s x) :
-  times_cont_diff_within_at ℝ n (λ x, real.sin (f x)) s x :=
-real.times_cont_diff_sin.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+lemma cont_diff_within_at.sin {n} (hf : cont_diff_within_at ℝ n f s x) :
+  cont_diff_within_at ℝ n (λ x, real.sin (f x)) s x :=
+real.cont_diff_sin.cont_diff_at.comp_cont_diff_within_at x hf
 
 /-! #### `real.cosh` -/
 
@@ -804,21 +804,21 @@ hf.has_fderiv_within_at.cosh.fderiv_within hxs
   fderiv ℝ (λx, real.cosh (f x)) x = real.sinh (f x) • (fderiv ℝ f x) :=
 hc.has_fderiv_at.cosh.fderiv
 
-lemma times_cont_diff.cosh {n} (h : times_cont_diff ℝ n f) :
-  times_cont_diff ℝ n (λ x, real.cosh (f x)) :=
-real.times_cont_diff_cosh.comp h
+lemma cont_diff.cosh {n} (h : cont_diff ℝ n f) :
+  cont_diff ℝ n (λ x, real.cosh (f x)) :=
+real.cont_diff_cosh.comp h
 
-lemma times_cont_diff_at.cosh {n} (hf : times_cont_diff_at ℝ n f x) :
-  times_cont_diff_at ℝ n (λ x, real.cosh (f x)) x :=
-real.times_cont_diff_cosh.times_cont_diff_at.comp x hf
+lemma cont_diff_at.cosh {n} (hf : cont_diff_at ℝ n f x) :
+  cont_diff_at ℝ n (λ x, real.cosh (f x)) x :=
+real.cont_diff_cosh.cont_diff_at.comp x hf
 
-lemma times_cont_diff_on.cosh {n} (hf : times_cont_diff_on ℝ n f s) :
-  times_cont_diff_on ℝ n (λ x, real.cosh (f x)) s :=
-real.times_cont_diff_cosh.comp_times_cont_diff_on  hf
+lemma cont_diff_on.cosh {n} (hf : cont_diff_on ℝ n f s) :
+  cont_diff_on ℝ n (λ x, real.cosh (f x)) s :=
+real.cont_diff_cosh.comp_cont_diff_on  hf
 
-lemma times_cont_diff_within_at.cosh {n} (hf : times_cont_diff_within_at ℝ n f s x) :
-  times_cont_diff_within_at ℝ n (λ x, real.cosh (f x)) s x :=
-real.times_cont_diff_cosh.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+lemma cont_diff_within_at.cosh {n} (hf : cont_diff_within_at ℝ n f s x) :
+  cont_diff_within_at ℝ n (λ x, real.cosh (f x)) s x :=
+real.cont_diff_cosh.cont_diff_at.comp_cont_diff_within_at x hf
 
 /-! #### `real.sinh` -/
 
@@ -859,20 +859,20 @@ hf.has_fderiv_within_at.sinh.fderiv_within hxs
   fderiv ℝ (λx, real.sinh (f x)) x = real.cosh (f x) • (fderiv ℝ f x) :=
 hc.has_fderiv_at.sinh.fderiv
 
-lemma times_cont_diff.sinh {n} (h : times_cont_diff ℝ n f) :
-  times_cont_diff ℝ n (λ x, real.sinh (f x)) :=
-real.times_cont_diff_sinh.comp h
+lemma cont_diff.sinh {n} (h : cont_diff ℝ n f) :
+  cont_diff ℝ n (λ x, real.sinh (f x)) :=
+real.cont_diff_sinh.comp h
 
-lemma times_cont_diff_at.sinh {n} (hf : times_cont_diff_at ℝ n f x) :
-  times_cont_diff_at ℝ n (λ x, real.sinh (f x)) x :=
-real.times_cont_diff_sinh.times_cont_diff_at.comp x hf
+lemma cont_diff_at.sinh {n} (hf : cont_diff_at ℝ n f x) :
+  cont_diff_at ℝ n (λ x, real.sinh (f x)) x :=
+real.cont_diff_sinh.cont_diff_at.comp x hf
 
-lemma times_cont_diff_on.sinh {n} (hf : times_cont_diff_on ℝ n f s) :
-  times_cont_diff_on ℝ n (λ x, real.sinh (f x)) s :=
-real.times_cont_diff_sinh.comp_times_cont_diff_on  hf
+lemma cont_diff_on.sinh {n} (hf : cont_diff_on ℝ n f s) :
+  cont_diff_on ℝ n (λ x, real.sinh (f x)) s :=
+real.cont_diff_sinh.comp_cont_diff_on  hf
 
-lemma times_cont_diff_within_at.sinh {n} (hf : times_cont_diff_within_at ℝ n f s x) :
-  times_cont_diff_within_at ℝ n (λ x, real.sinh (f x)) s x :=
-real.times_cont_diff_sinh.times_cont_diff_at.comp_times_cont_diff_within_at x hf
+lemma cont_diff_within_at.sinh {n} (hf : cont_diff_within_at ℝ n f s x) :
+  cont_diff_within_at ℝ n (λ x, real.sinh (f x)) s x :=
+real.cont_diff_sinh.cont_diff_at.comp_cont_diff_within_at x hf
 
 end

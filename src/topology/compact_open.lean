@@ -7,6 +7,7 @@ import tactic.tidy
 import topology.continuous_function.basic
 import topology.homeomorph
 import topology.subset_properties
+import topology.maps
 
 /-!
 # The compact-open topology
@@ -44,6 +45,20 @@ variables [topological_space α] [topological_space β] [topological_space γ]
 
 /-- A generating set for the compact-open topology (when `s` is compact and `u` is open). -/
 def compact_open.gen (s : set α) (u : set β) : set C(α,β) := {f | f '' s ⊆ u}
+
+@[simp] lemma gen_empty (u : set β) : compact_open.gen (∅ : set α) u = set.univ :=
+set.ext (λ f, iff_true_intro ((congr_arg (⊆ u) (image_empty f)).mpr u.empty_subset))
+
+@[simp] lemma gen_univ (s : set α) : compact_open.gen s (set.univ : set β) = set.univ :=
+set.ext (λ f, iff_true_intro (f '' s).subset_univ)
+
+@[simp] lemma gen_inter (s : set α) (u v : set β) :
+  compact_open.gen s (u ∩ v) = compact_open.gen s u ∩ compact_open.gen s v :=
+set.ext (λ f, subset_inter_iff)
+
+@[simp] lemma gen_union (s t : set α) (u : set β) :
+  compact_open.gen (s ∪ t) u = compact_open.gen s u ∩ compact_open.gen t u :=
+set.ext (λ f, (iff_of_eq (congr_arg (⊆ u) (image_union f s t))).trans union_subset_iff)
 
 -- The compact-open topology on the space of continuous maps α → β.
 instance compact_open : topological_space C(α, β) :=
@@ -92,7 +107,7 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
       (f.continuous.tendsto x this) in
   let ⟨u, us, uo, xu⟩ := mem_nhds_iff.mp hs in
   show (ev α β) ⁻¹' n ∈ 𝓝 (f, x), from
-  let w := set.prod (compact_open.gen s v) u in
+  let w := compact_open.gen s v ×ˢ u in
   have w ⊆ ev α β ⁻¹' n, from assume ⟨f', x'⟩ ⟨hf', hx'⟩, calc
     f' x' ∈ f' '' s  : mem_image_of_mem f' (us hx')
     ...       ⊆ v            : hf'
@@ -104,11 +119,19 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
 lemma continuous_ev₁ [locally_compact_space α] (a : α) : continuous (λ f : C(α, β), f a) :=
 continuous_ev.comp (continuous_id.prod_mk continuous_const)
 
-instance [t2_space β] [locally_compact_space α] : t2_space C(α, β) :=
+instance [t2_space β] : t2_space C(α, β) :=
 ⟨ begin
     intros f₁ f₂ h,
-    obtain ⟨p, hp⟩ := not_forall.mp (mt continuous_map.ext h),
-    exact separated_by_continuous (continuous_ev₁ p) hp,
+    obtain ⟨x, hx⟩ := not_forall.mp (mt (fun_like.ext f₁ f₂) h),
+    obtain ⟨u, v, hu, hv, hxu, hxv, huv⟩ := t2_separation hx,
+    refine ⟨compact_open.gen {x} u, compact_open.gen {x} v, continuous_map.is_open_gen
+      is_compact_singleton hu, continuous_map.is_open_gen is_compact_singleton hv, _, _, _⟩,
+    { rwa [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff] },
+    { rwa [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff] },
+    { rw [←continuous_map.gen_inter, huv],
+      refine subset_empty_iff.mp (λ f, _),
+      rw [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff],
+      exact id },
   end ⟩
 
 end ev
@@ -142,7 +165,7 @@ begin
   simp only [← generate_from_Union, induced_generate_from_eq, continuous_map.compact_open],
   apply generate_from_mono,
   rintros _ ⟨s, hs, u, hu, rfl⟩,
-  rw mem_bUnion_iff',
+  rw mem_Union₂,
   refine ⟨s, hs, _, ⟨univ, is_compact_iff_is_compact_univ.mp hs, u, hu, rfl⟩, _⟩,
   ext f,
   simp only [compact_open.gen, mem_set_of_eq, mem_preimage, continuous_map.coe_restrict],
@@ -215,7 +238,7 @@ on `α` sending `y` to `(x, y)`. -/
 def coev (b : β) : C(α, β × α) := ⟨λ a, (b, a), continuous.prod_mk continuous_const continuous_id⟩
 
 variables {α β}
-lemma image_coev {y : β} (s : set α) : (coev α β y) '' s = set.prod {y} s := by tidy
+lemma image_coev {y : β} (s : set α) : (coev α β y) '' s = ({y} : set β) ×ˢ s := by tidy
 
 -- The coevaluation map β → C(α, β × α) is continuous (always).
 lemma continuous_coev : continuous (coev α β) :=
@@ -276,7 +299,7 @@ lemma curry_apply (f : C(α × β, γ)) (a : α) (b : β) : f.curry a b = f (a, 
 lemma continuous_uncurry_of_continuous [locally_compact_space β] (f : C(α, C(β, γ))) :
   continuous (function.uncurry (λ x y, f x y)) :=
 have hf : function.uncurry (λ x y, f x y) = ev β γ ∘ prod.map f id, by { ext, refl },
-hf ▸ continuous.comp continuous_ev $ continuous.prod_map f.2 id.2
+hf ▸ continuous.comp continuous_ev $ continuous.prod_map f.2 continuous_id
 
 /-- The uncurried form of a continuous map `α → C(β, γ)` as a continuous map `α × β → γ` (if `β` is
     locally compact). If `α` is also locally compact, then this is a homeomorphism between the two
@@ -290,16 +313,16 @@ lemma continuous_uncurry [locally_compact_space α] [locally_compact_space β] :
 begin
   apply continuous_of_continuous_uncurry,
   rw ←homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _),
-  apply continuous.comp continuous_ev (continuous.prod_map continuous_ev id.2);
+  apply continuous.comp continuous_ev (continuous.prod_map continuous_ev continuous_id);
   apply_instance
 end
 
 /-- The family of constant maps: `β → C(α, β)` as a continuous map. -/
 def const' : C(β, C(α, β)) := curry ⟨prod.fst, continuous_fst⟩
 
-@[simp] lemma coe_const' : (const' : β → C(α, β)) = const := rfl
+@[simp] lemma coe_const' : (const' : β → C(α, β)) = const α := rfl
 
-lemma continuous_const' : continuous (const : β → C(α, β)) := const'.continuous
+lemma continuous_const' : continuous (const α : β → C(α, β)) := const'.continuous
 
 end curry
 
@@ -320,9 +343,9 @@ def curry [locally_compact_space α] [locally_compact_space β] : C(α × β, γ
 /-- If `α` has a single element, then `β` is homeomorphic to `C(α, β)`. -/
 def continuous_map_of_unique [unique α] : β ≃ₜ C(α, β) :=
 { to_fun := continuous_map.comp ⟨_, continuous_fst⟩ ∘ coev α β,
-  inv_fun := ev α β ∘ (λ f, (f, default α)),
+  inv_fun := ev α β ∘ (λ f, (f, default)),
   left_inv := λ a, rfl,
-  right_inv := λ f, by { ext, rw unique.eq_default x, refl },
+  right_inv := λ f, by { ext, rw unique.eq_default a, refl },
   continuous_to_fun := continuous.comp (continuous_comp _) continuous_coev,
   continuous_inv_fun :=
     continuous.comp continuous_ev (continuous.prod_mk continuous_id continuous_const) }
@@ -332,7 +355,43 @@ def continuous_map_of_unique [unique α] : β ≃ₜ C(α, β) :=
 rfl
 
 @[simp] lemma continuous_map_of_unique_symm_apply [unique α] (f : C(α, β)) :
-  continuous_map_of_unique.symm f = f (default α) :=
+  continuous_map_of_unique.symm f = f default :=
 rfl
 
 end homeomorph
+
+section quotient_map
+
+variables {X₀ X Y Z : Type*} [topological_space X₀] [topological_space X]
+  [topological_space Y] [topological_space Z] [locally_compact_space Y] {f : X₀ → X}
+
+lemma quotient_map.continuous_lift_prod_left (hf : quotient_map f) {g : X × Y → Z}
+  (hg : continuous (λ p : X₀ × Y, g (f p.1, p.2))) : continuous g :=
+begin
+  let Gf : C(X₀, C(Y, Z)) := continuous_map.curry ⟨_, hg⟩,
+  have h : ∀ x : X, continuous (λ y, g (x, y)),
+  { intros x,
+    obtain ⟨x₀, rfl⟩ := hf.surjective x,
+    exact (Gf x₀).continuous },
+  let G : X → C(Y, Z) := λ x, ⟨_, h x⟩,
+  have : continuous G,
+  { rw hf.continuous_iff,
+    exact Gf.continuous },
+  convert continuous_map.continuous_uncurry_of_continuous ⟨G, this⟩,
+  ext x,
+  cases x,
+  refl,
+end
+
+lemma quotient_map.continuous_lift_prod_right (hf : quotient_map f) {g : Y × X → Z}
+  (hg : continuous (λ p : Y × X₀, g (p.1, f p.2))) : continuous g :=
+begin
+  have : continuous (λ p : X₀ × Y, g ((prod.swap p).1, f (prod.swap p).2)),
+  { exact hg.comp continuous_swap },
+  have : continuous (λ p : X₀ × Y, (g ∘ prod.swap) (f p.1, p.2)) := this,
+  convert (hf.continuous_lift_prod_left this).comp continuous_swap,
+  ext x,
+  simp,
+end
+
+end quotient_map

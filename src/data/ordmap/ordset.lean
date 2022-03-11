@@ -673,8 +673,8 @@ def raised (n m : ℕ) : Prop := m = n ∨ m = n + 1
 theorem raised_iff {n m} : raised n m ↔ n ≤ m ∧ m ≤ n + 1 :=
 begin
   split, rintro (rfl | rfl),
-  { exact ⟨le_refl _, nat.le_succ _⟩ },
-  { exact ⟨nat.le_succ _, le_refl _⟩ },
+  { exact ⟨le_rfl, nat.le_succ _⟩ },
+  { exact ⟨nat.le_succ _, le_rfl⟩ },
   { rintro ⟨h₁, h₂⟩,
     rcases eq_or_lt_of_le h₁ with rfl | h₁,
     { exact or.inl rfl },
@@ -1410,7 +1410,7 @@ theorem insert_eq_insert_with [@decidable_rel α (≤)]
 theorem insert.valid [is_total α (≤)] [@decidable_rel α (≤)]
   (x : α) {t} (h : valid t) : valid (ordnode.insert x t) :=
 by rw insert_eq_insert_with; exact
-insert_with.valid _ _ (λ _ _, ⟨le_refl _, le_refl _⟩) h
+insert_with.valid _ _ (λ _ _, ⟨le_rfl, le_rfl⟩) h
 
 theorem insert'_eq_insert_with [@decidable_rel α (≤)]
   (x : α) : ∀ t, insert' x t = insert_with id x t

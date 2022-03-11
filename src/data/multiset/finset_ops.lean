@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.multiset.erase_dup
+import data.multiset.dedup
 
 /-!
 # Preparations for defining operations on `finset`.
@@ -59,8 +59,8 @@ theorem length_ndinsert_of_not_mem {a : α} {s : multiset α} (h : a ∉ s) :
   card (ndinsert a s) = card s + 1 :=
 by simp [h]
 
-theorem erase_dup_cons {a : α} {s : multiset α} :
-  erase_dup (a ::ₘ s) = ndinsert a (erase_dup s) :=
+theorem dedup_cons {a : α} {s : multiset α} :
+  dedup (a ::ₘ s) = ndinsert a (dedup s) :=
 by by_cases a ∈ s; simp [h]
 
 theorem nodup_ndinsert (a : α) {s : multiset α} : nodup s → nodup (ndinsert a s) :=
@@ -151,8 +151,8 @@ quotient.induction_on₂ s t $ λ l₁ l₂, list.nodup_union _
 theorem ndunion_eq_union {s t : multiset α} (d : nodup s) : ndunion s t = s ∪ t :=
 le_antisymm (ndunion_le_union _ _) $ union_le (le_ndunion_left _ d) (le_ndunion_right _ _)
 
-theorem erase_dup_add (s t : multiset α) : erase_dup (s + t) = ndunion s (erase_dup t) :=
-quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ erase_dup_append _ _
+theorem dedup_add (s t : multiset α) : dedup (s + t) = ndunion s (dedup t) :=
+quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ dedup_append _ _
 
 /-! ### finset inter -/
 
@@ -185,13 +185,13 @@ theorem le_ndinter {s t u : multiset α} : s ≤ ndinter t u ↔ s ≤ t ∧ s �
 by simp [ndinter, le_filter, subset_iff]
 
 theorem ndinter_le_left (s t : multiset α) : ndinter s t ≤ s :=
-(le_ndinter.1 (le_refl _)).1
+(le_ndinter.1 le_rfl).1
 
 theorem ndinter_subset_left (s t : multiset α) : ndinter s t ⊆ s :=
 subset_of_le (ndinter_le_left s t)
 
 theorem ndinter_subset_right (s t : multiset α) : ndinter s t ⊆ t :=
-(le_ndinter.1 (le_refl _)).2
+(le_ndinter.1 le_rfl).2
 
 theorem ndinter_le_right {s} (t : multiset α) (d : nodup s) : ndinter s t ≤ t :=
 (le_iff_subset $ nodup_ndinter _ d).2 (ndinter_subset_right _ _)

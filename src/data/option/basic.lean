@@ -152,9 +152,13 @@ theorem map_none {α β} {f : α → β} : f <$> none = none := rfl
 
 theorem map_some {α β} {a : α} {f : α → β} : f <$> some a = some (f a) := rfl
 
+theorem map_coe {α β} {a : α} {f : α → β} : f <$> (a : option α) = ↑(f a) := rfl
+
 @[simp] theorem map_none' {f : α → β} : option.map f none = none := rfl
 
 @[simp] theorem map_some' {a : α} {f : α → β} : option.map f (some a) = some (f a) := rfl
+
+@[simp] theorem map_coe' {a : α} {f : α → β} : option.map f (a : option α) = ↑(f a) := rfl
 
 theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} :
   f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
@@ -379,9 +383,11 @@ theorem iget_of_mem [inhabited α] {a : α} : ∀ {o : option α}, a ∈ o → o
   guard p a = some b ↔ a = b ∧ p a :=
 by by_cases p a; simp [option.guard, h]; intro; contradiction
 
-@[simp] theorem guard_eq_some' {p : Prop} [decidable p] :
-  ∀ u, _root_.guard p = some u ↔ p
-| () := by by_cases p; simp [guard, h, pure]; intro; contradiction
+@[simp] theorem guard_eq_some' {p : Prop} [decidable p] (u) : _root_.guard p = some u ↔ p :=
+begin
+  cases u,
+  by_cases p; simp [_root_.guard, h]; refl <|> contradiction,
+end
 
 theorem lift_or_get_choice {f : α → α → α} (h : ∀ a b, f a b = a ∨ f a b = b) :
   ∀ o₁ o₂, lift_or_get f o₁ o₂ = o₁ ∨ lift_or_get f o₁ o₂ = o₂

@@ -454,7 +454,7 @@ classical.some_spec $ f.surj z
   f.to_map (f.sec z).1 = f.to_map (f.sec z).2 * z :=
 by rw [mul_comm, sec_spec]
 
-/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
+/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ Nˣ`, for all
 `w : M, z : N` and `y ∈ S`, we have `w * (f y)⁻¹ = z ↔ w = f y * z`. -/
 @[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `w : M, z : N` and `y ∈ S`, we have `w - f y = z ↔ w = f y + z`."]
@@ -463,7 +463,7 @@ lemma mul_inv_left {f : M →* N} (h : ∀ y : S, is_unit (f y))
 by rw mul_comm; convert units.inv_mul_eq_iff_eq_mul _;
   exact (is_unit.coe_lift_right (f.mrestrict S) h _).symm
 
-/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
+/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ Nˣ`, for all
 `w : M, z : N` and `y ∈ S`, we have `z = w * (f y)⁻¹ ↔ z * f y = w`. -/
 @[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `w : M, z : N` and `y ∈ S`, we have `z = w - f y ↔ z + f y = w`."]
@@ -472,7 +472,7 @@ lemma mul_inv_right {f : M →* N} (h : ∀ y : S, is_unit (f y))
 by rw [eq_comm, mul_inv_left h, mul_comm, eq_comm]
 
 /-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that
-`f(S) ⊆ units N`, for all `x₁ x₂ : M` and `y₁, y₂ ∈ S`, we have
+`f(S) ⊆ Nˣ`, for all `x₁ x₂ : M` and `y₁, y₂ ∈ S`, we have
 `f x₁ * (f y₁)⁻¹ = f x₂ * (f y₂)⁻¹ ↔ f (x₁ * y₂) = f (x₂ * y₁)`. -/
 @[simp, to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `x₁ x₂ : M` and `y₁, y₂ ∈ S`, we have
@@ -483,7 +483,7 @@ lemma mul_inv {f : M →* N} (h : ∀ y : S, is_unit (f y)) {x₁ x₂} {y₁ y�
 by rw [mul_inv_right h, mul_assoc, mul_comm _ (f y₂), ←mul_assoc, mul_inv_left h, mul_comm x₂,
   f.map_mul, f.map_mul]
 
-/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
+/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ Nˣ`, for all
 `y, z ∈ S`, we have `(f y)⁻¹ = (f z)⁻¹ → f y = f z`. -/
 @[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `y, z ∈ S`, we have `- (f y) = - (f z) → f y = f z`."]
@@ -493,7 +493,7 @@ lemma inv_inj {f : M →* N} (hf : ∀ y : S, is_unit (f y)) {y z}
 by rw [←mul_one (f y), eq_comm, ←mul_inv_left hf y (f z) 1, h];
   convert units.inv_mul _; exact (is_unit.coe_lift_right (f.mrestrict S) hf _).symm
 
-/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
+/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ Nˣ`, for all
 `y ∈ S`, `(f y)⁻¹` is unique. -/
 @[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `y ∈ S`, `- (f y)` is unique."]

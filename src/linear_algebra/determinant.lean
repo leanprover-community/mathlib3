@@ -318,8 +318,8 @@ namespace linear_equiv
 
 variables [is_domain R]
 
-/-- On a `linear_equiv`, the domain of `linear_map.det` can be promoted to `units R`. -/
-protected def det : (M ≃ₗ[R] M) →* units R :=
+/-- On a `linear_equiv`, the domain of `linear_map.det` can be promoted to `Rˣ`. -/
+protected def det : (M ≃ₗ[R] M) →* Rˣ :=
 (units.map (linear_map.det : (M →ₗ[R] M) →* R)).comp
   (linear_map.general_linear_group.general_linear_equiv R M).symm.to_monoid_hom
 
@@ -331,6 +331,11 @@ protected def det : (M ≃ₗ[R] M) →* units R :=
 @[simp] lemma det_trans (f g : M ≃ₗ[R] M) : (f.trans g).det = g.det * f.det := map_mul _ g f
 
 @[simp] lemma det_symm (f : M ≃ₗ[R] M) : f.symm.det = f.det⁻¹ := map_inv _ f
+
+/-- Conjugating a linear equiv by a linear equiv does not change its determinant. -/
+@[simp] lemma det_conj (f : M ≃ₗ[R] M) (e : M ≃ₗ[R] M') :
+  ((e.symm.trans f).trans e).det = f.det :=
+by rw [←units.eq_iff, coe_det, coe_det, ←comp_coe, ←comp_coe, linear_map.det_conj]
 
 end linear_equiv
 
@@ -380,6 +385,11 @@ def linear_equiv.of_is_unit_det {f : M →ₗ[R] M'} {v : basis ι R M} {v' : ba
         = to_lin v' v' (to_matrix v v' f ⬝ (to_matrix v v' f)⁻¹) x :
       by { rw [to_lin_mul v' v v', linear_map.comp_apply, to_lin_to_matrix v v'] }
     ... = x : by simp [h] }
+
+@[simp] lemma linear_equiv.coe_of_is_unit_det {f : M →ₗ[R] M'} {v : basis ι R M} {v' : basis ι R M'}
+  (h : is_unit (linear_map.to_matrix v v' f).det) :
+  (linear_equiv.of_is_unit_det h : M →ₗ[R] M') = f :=
+by { ext x, refl }
 
 /-- Builds a linear equivalence from a linear map on a finite-dimensional vector space whose
 determinant is nonzero. -/
@@ -511,3 +521,12 @@ begin
   { rw [basis.mk_coord_apply_ne hik, mul_zero, eq_comm],
     exact e.det.map_eq_zero_of_eq _ (by simp [hik, function.update_apply]) hik, },
 end
+
+/-- The determinant of a basis constructed by `units_smul` is the product of the given units. -/
+@[simp] lemma basis.det_units_smul (w : ι → Rˣ) : e.det (e.units_smul w) = ∏ i, w i :=
+by simp [basis.det_apply]
+
+/-- The determinant of a basis constructed by `is_unit_smul` is the product of the given units. -/
+@[simp] lemma basis.det_is_unit_smul {w : ι → R} (hw : ∀ i, is_unit (w i)) :
+  e.det (e.is_unit_smul hw) = ∏ i, w i :=
+e.det_units_smul _

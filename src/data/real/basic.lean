@@ -108,6 +108,7 @@ instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
 instance : star_ring ℝ          := star_ring_of_comm
+instance : has_trivial_star ℝ   := ⟨λ _, rfl⟩
 
 /-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
 is `cau_seq.completion.of_rat`, not `rat.cast`. -/
@@ -241,10 +242,6 @@ noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : is_domain ℝ :=
 { .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.is_domain }
 
-/-- The real numbers are an ordered `*`-ring, with the trivial `*`-structure. -/
-instance : star_ordered_ring ℝ :=
-{ star_mul_self_nonneg := λ r, mul_self_nonneg r, }
-
 @[irreducible] private noncomputable def inv' : ℝ → ℝ | ⟨a⟩ := ⟨a⁻¹⟩
 noncomputable instance : has_inv ℝ := ⟨inv'⟩
 lemma inv_cauchy {f} : (⟨f⟩ : ℝ)⁻¹ = ⟨f⁻¹⟩ := show inv' _ = _, by rw inv'
@@ -290,12 +287,12 @@ begin
   rintro ⟨K, K0, hK⟩,
   obtain ⟨i, H⟩ := exists_forall_ge_and h
     (exists_forall_ge_and hK (f.cauchy₃ $ half_pos K0)),
-  apply not_lt_of_le (H _ (le_refl _)).1,
+  apply not_lt_of_le (H _ le_rfl).1,
   rw ← of_rat_eq_cast,
   rw [mk_lt] {md := tactic.transparency.semireducible},
   refine ⟨_, half_pos K0, i, λ j ij, _⟩,
   have := add_le_add (H _ ij).2.1
-    (le_of_lt (abs_lt.1 $ (H _ (le_refl _)).2.2 _ ij).1),
+    (le_of_lt (abs_lt.1 $ (H _ le_rfl).2.2 _ ij).1),
   rwa [← sub_eq_add_neg, sub_self_div_two, sub_apply, sub_add_sub_cancel] at this
 end
 
@@ -372,13 +369,13 @@ begin
   have hg : is_cau_seq abs (λ n, f n / n : ℕ → ℚ),
   { intros ε ε0,
     suffices : ∀ j k ≥ ⌈ε⁻¹⌉₊, (f j / j - f k / k : ℚ) < ε,
-    { refine ⟨_, λ j ij, abs_lt.2 ⟨_, this _ _ ij (le_refl _)⟩⟩,
-      rw [neg_lt, neg_sub], exact this _ _ (le_refl _) ij },
-    intros j k ij ik,
+    { refine ⟨_, λ j ij, abs_lt.2 ⟨_, this _ ij  _ le_rfl⟩⟩,
+      rw [neg_lt, neg_sub], exact this _ le_rfl _ ij },
+    intros j ij k ik,
     replace ij := le_trans (nat.le_ceil _) (nat.cast_le.2 ij),
     replace ik := le_trans (nat.le_ceil _) (nat.cast_le.2 ik),
-    have j0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ij),
-    have k0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ik),
+    have j0 := nat.cast_pos.1 ((inv_pos.2 ε0).trans_le ij),
+    have k0 := nat.cast_pos.1 ((inv_pos.2 ε0).trans_le ik),
     rcases hf₁ _ j0 with ⟨y, yS, hy⟩,
     refine lt_of_lt_of_le ((@rat.cast_lt ℝ _ _ _).1 _)
       ((inv_le ε0 (nat.cast_pos.2 k0)).1 ik),
@@ -390,9 +387,9 @@ begin
     cases exists_nat_gt (x - z)⁻¹ with K hK,
     refine le_mk_of_forall_le ⟨K, λ n nK, _⟩,
     replace xz := sub_pos.2 xz,
-    replace hK := le_trans (le_of_lt hK) (nat.cast_le.2 nK),
-    have n0 : 0 < n := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 xz) hK),
-    refine le_trans _ (le_of_lt $ hf₂ _ n0 _ xS),
+    replace hK := hK.le.trans (nat.cast_le.2 nK),
+    have n0 : 0 < n := nat.cast_pos.1 ((inv_pos.2 xz).trans_le hK),
+    refine le_trans _ (hf₂ _ n0 _ xS).le,
     rwa [le_sub, inv_le ((nat.cast_pos.2 n0):((_:ℝ) < _)) xz] },
   { exact mk_le_of_forall_le ⟨1, λ n n1,
       let ⟨x, xS, hx⟩ := hf₁ _ n1 in le_trans hx (h xS)⟩ }
@@ -572,6 +569,6 @@ begin
     exact ih _ ij }
 end
 
-noncomputable instance : cau_seq.is_complete ℝ abs := ⟨cau_seq_converges⟩
+instance : cau_seq.is_complete ℝ abs := ⟨cau_seq_converges⟩
 
 end real

@@ -5,7 +5,7 @@ Authors: Simon Hudon
 -/
 import control.applicative
 import data.list.forall2
-import data.set.lattice
+import data.set.functor
 
 /-!
 # Traversable instances

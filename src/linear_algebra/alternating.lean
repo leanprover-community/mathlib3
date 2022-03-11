@@ -172,6 +172,26 @@ end
 as `multilinear_map`
 -/
 
+section has_scalar
+
+variables {S : Type*} [monoid S] [distrib_mul_action S N] [smul_comm_class R S N]
+
+instance : has_scalar S (alternating_map R M N ι) :=
+⟨λ c f,
+  { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+    ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
+
+@[simp] lemma smul_apply (c : S) (m : ι → M) :
+  (c • f) m = c • f m := rfl
+
+@[norm_cast] lemma coe_smul (c : S):
+  ((c • f : alternating_map R M N ι) : multilinear_map R (λ i : ι, M) N) = c • f := rfl
+
+lemma coe_fn_smul (c : S) (f : alternating_map R M N ι) : ⇑(c • f) = c • f :=
+rfl
+
+end has_scalar
+
 instance : has_add (alternating_map R M N ι) :=
 ⟨λ a b,
   { map_eq_zero_of_eq' :=
@@ -194,16 +214,7 @@ instance : has_zero (alternating_map R M N ι) :=
 instance : inhabited (alternating_map R M N ι) := ⟨0⟩
 
 instance : add_comm_monoid (alternating_map R M N ι) :=
-{ zero := 0,
-  add := (+),
-  zero_add := by intros; ext; simp [add_comm, add_left_comm],
-  add_zero := by intros; ext; simp [add_comm, add_left_comm],
-  add_comm := by intros; ext; simp [add_comm, add_left_comm],
-  add_assoc := by intros; ext; simp [add_comm, add_left_comm],
-  nsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
-    .. ((n • f : multilinear_map R (λ i : ι, M) N)) },
-  nsmul_zero' := by { intros, ext, simp [add_smul], },
-  nsmul_succ' := by { intros, ext, simp [add_smul, nat.succ_eq_one_add], } }
+coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, coe_fn_smul _ _)
 
 instance : has_neg (alternating_map R M N' ι) :=
 ⟨λ f,
@@ -226,40 +237,12 @@ instance : has_sub (alternating_map R M N' ι) :=
 @[norm_cast] lemma coe_sub : (↑(g - g₂) : multilinear_map R (λ i : ι, M) N') = g - g₂ := rfl
 
 instance : add_comm_group (alternating_map R M N' ι) :=
-by refine
-{ zero := 0,
-  add := (+),
-  neg := has_neg.neg,
-  sub := has_sub.sub,
-  sub_eq_add_neg := _,
-  nsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
-    .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
-  zsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
-    .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
-  zsmul_zero' := _,
-  zsmul_succ' := _,
-  zsmul_neg' := _,
-  .. alternating_map.add_comm_monoid, .. };
-intros; ext;
-simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, coe_nat_zsmul]
+coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, coe_fn_smul _ _) (λ _ _, coe_fn_smul _ _)
 
 section distrib_mul_action
 
 variables {S : Type*} [monoid S] [distrib_mul_action S N] [smul_comm_class R S N]
-
-instance : has_scalar S (alternating_map R M N ι) :=
-⟨λ c f,
-  { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
-    ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
-
-@[simp] lemma smul_apply (c : S) (m : ι → M) :
-  (c • f) m = c • f m := rfl
-
-@[norm_cast] lemma coe_smul (c : S):
-  ((c • f : alternating_map R M N ι) : multilinear_map R (λ i : ι, M) N) = c • f := rfl
-
-lemma coe_fn_smul (c : S) (f : alternating_map R M N ι) : ⇑(c • f) = c • f :=
-rfl
 
 instance : distrib_mul_action S (alternating_map R M N ι) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,

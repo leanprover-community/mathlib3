@@ -75,8 +75,6 @@ lemma is_of_fin_order_iff_coe {G : Type u} [group G] (H : subgroup G) (x : H) :
   is_of_fin_order x ↔ is_of_fin_order (x : G) :=
 by { rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one], norm_cast }
 
-variables 
-
 /-- Elements of finite order are of finite order in quotient groups.-/
 @[to_additive is_of_fin_add_order_iff_quotient]
 lemma is_of_fin_order.quotient {G : Type u} [group G] (N : subgroup G) [N.normal] (x : G) :
@@ -209,7 +207,7 @@ by simp_rw [order_of_eq_order_of_iff, ←f.map_pow, ←f.map_one, hf.eq_iff, iff
   (y : H) : order_of (y : G) = order_of y :=
 order_of_injective H.subtype subtype.coe_injective y
 
-@[to_additive order_of_add_units]
+@[to_additive]
 lemma order_of_units {y : Gˣ} : order_of (y : G) = order_of y :=
 order_of_injective (units.coe_hom G) units.ext y
 

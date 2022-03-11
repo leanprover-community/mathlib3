@@ -123,7 +123,7 @@ theorem is_integral_alg_equiv (f : A ≃ₐ[R] B) {x : A} : is_integral R (f x) 
 theorem is_integral_of_is_scalar_tower [algebra A B] [is_scalar_tower R A B]
   (x : B) (hx : is_integral R x) : is_integral A x :=
 let ⟨p, hp, hpx⟩ := hx in
-⟨p.map $ algebra_map R A, monic_map _ hp,
+⟨p.map $ algebra_map R A, hp.map _,
   by rw [← aeval_def, ← is_scalar_tower.aeval_apply, aeval_def, hpx]⟩
 
 theorem is_integral_of_subring {x : A} (T : subring R)
@@ -708,7 +708,7 @@ begin
   { suffices h : (q.map (algebra_map (adjoin R S) B)).monic,
     { refine monic_of_injective _ h,
       exact subtype.val_injective },
-    { rw hq, exact monic_map _ pmonic } },
+    { rw hq, exact pmonic.map _ } },
   { convert hp using 1,
     replace hq := congr_arg (eval x) hq,
     convert hq using 1; symmetry; apply eval_map },
@@ -778,7 +778,7 @@ is_integral_tower_bot_of_is_integral (algebra_map A B).injective h
 
 lemma ring_hom.is_integral_elem_of_is_integral_elem_comp {x : T}
   (h : (g.comp f).is_integral_elem x) : g.is_integral_elem x :=
-let ⟨p, ⟨hp, hp'⟩⟩ := h in ⟨p.map f, monic_map f hp, by rwa ← eval₂_map at hp'⟩
+let ⟨p, ⟨hp, hp'⟩⟩ := h in ⟨p.map f, hp.map f, by rwa ← eval₂_map at hp'⟩
 
 lemma ring_hom.is_integral_tower_top_of_is_integral (h : (g.comp f).is_integral) : g.is_integral :=
 λ x, ring_hom.is_integral_elem_of_is_integral_elem_comp f g (h x)
@@ -788,7 +788,7 @@ then if the entire tower is an integral extension so is `A → B`. -/
 lemma is_integral_tower_top_of_is_integral {x : B} (h : is_integral R x) : is_integral A x :=
 begin
   rcases h with ⟨p, ⟨hp, hp'⟩⟩,
-  refine ⟨p.map (algebra_map R A), ⟨monic_map (algebra_map R A) hp, _⟩⟩,
+  refine ⟨p.map (algebra_map R A), ⟨hp.map (algebra_map R A), _⟩⟩,
   rw [is_scalar_tower.algebra_map_eq R A B, ← eval₂_map] at hp',
   exact hp',
 end
@@ -798,7 +798,7 @@ lemma ring_hom.is_integral_quotient_of_is_integral {I : ideal S} (hf : f.is_inte
 begin
   rintros ⟨x⟩,
   obtain ⟨p, ⟨p_monic, hpx⟩⟩ := hf x,
-  refine ⟨p.map (ideal.quotient.mk _), ⟨monic_map _ p_monic, _⟩⟩,
+  refine ⟨p.map (ideal.quotient.mk _), ⟨p_monic.map _, _⟩⟩,
   simpa only [hom_eval₂, eval₂_map] using congr_arg (ideal.quotient.mk I) hpx
 end
 

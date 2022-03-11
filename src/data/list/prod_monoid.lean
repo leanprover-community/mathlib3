@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alex J. Best
 -/
 import data.list.big_operators
+import algebra.group.commute
 
 /-!
 # Products / sums of lists of terms of a monoid
@@ -32,9 +33,19 @@ lemma prod_le_of_forall_le [ordered_comm_monoid α] (l : list α) (n : α) (h : 
 begin
   induction l with y l IH,
   { simp },
-  { specialize IH (λ x hx, h x (mem_cons_of_mem _ hx)),
-    have hy : y ≤ n := h y (mem_cons_self _ _),
-    simpa [pow_succ] using mul_le_mul' hy IH }
+  { rw list.ball_cons at h,
+    simpa [pow_succ] using mul_le_mul' h.1 (IH h.2) }
+end
+
+@[to_additive]
+lemma prod_commute [monoid α] (l : list α)
+  (y : α) (h : ∀ (x ∈ l), commute y x) : commute y l.prod :=
+begin
+  induction l with y l IH,
+  { simp },
+  { rw list.ball_cons at h,
+    rw list.prod_cons,
+    exact commute.mul_right h.1 (IH h.2), }
 end
 
 end list

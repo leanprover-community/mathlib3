@@ -192,26 +192,26 @@ variables {U : (E →L[𝕜] E)}
 
 /-- Builds a linear equivalence from `U ∈ unitary (E →L[𝕜] E)`. -/
 def linear_equiv_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) : (E ≃ₗ[𝕜] E) :=
-  { to_fun    := U,
-    map_add'  := map_add U,
-    map_smul' := map_smul U,
-    inv_fun   := (star U : (E →L[𝕜] E)),
-    left_inv  := by { rw function.left_inverse_iff_comp, ext, simp only [id.def, function.comp_app,
-      ← continuous_linear_map.mul_apply, unitary.star_mul_self_of_mem hU,
-      continuous_linear_map.one_apply] },
-    right_inv := by { rw function.right_inverse_iff_comp, ext, simp only [id.def, function.comp_app,
-      ← continuous_linear_map.mul_apply, unitary.mul_star_self_of_mem hU,
-      continuous_linear_map.one_apply] } }
+{ to_fun    := U,
+  map_add'  := map_add U,
+  map_smul' := map_smul U,
+  inv_fun   := (star U : (E →L[𝕜] E)),
+  left_inv  := by { rw function.left_inverse_iff_comp, ext, simp only [id.def, function.comp_app,
+    ← continuous_linear_map.mul_apply, unitary.star_mul_self_of_mem hU,
+    continuous_linear_map.one_apply] },
+  right_inv := by { rw function.right_inverse_iff_comp, ext, simp only [id.def, function.comp_app,
+    ← continuous_linear_map.mul_apply, unitary.mul_star_self_of_mem hU,
+    continuous_linear_map.one_apply] } }
 
 /-- Builds a linear isometric equivalence from `U ∈ unitary (E →L[𝕜] E)`. -/
 def linear_isometry_equiv_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) : (E ≃ₗᵢ[𝕜] E) :=
-  { to_linear_equiv := linear_equiv_of_unitary hU,
-    norm_map' := λ x : E, by { simp only [linear_equiv_of_unitary, linear_equiv.coe_mk],
-      rw [← sq_eq_sq (norm_nonneg (U x)) (norm_nonneg x), norm_sq_eq_inner,
-        ← continuous_linear_map.adjoint_inner_left, ← continuous_linear_map.mul_apply],
-      rw unitary.mem_iff at hU,
-      rw [← continuous_linear_map.star_eq_adjoint, hU.1, continuous_linear_map.one_apply,
-        inner_self_eq_norm_sq] } }
+{ to_linear_equiv := linear_equiv_of_unitary hU,
+  norm_map' := λ x : E, by { simp only [linear_equiv_of_unitary, linear_equiv.coe_mk],
+    rw [← sq_eq_sq (norm_nonneg (U x)) (norm_nonneg x), norm_sq_eq_inner,
+      ← continuous_linear_map.adjoint_inner_left, ← continuous_linear_map.mul_apply],
+    rw unitary.mem_iff at hU,
+    rw [← continuous_linear_map.star_eq_adjoint, hU.1, continuous_linear_map.one_apply,
+      inner_self_eq_norm_sq] } }
 
 lemma norm_map_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) (x : E) : ∥U x∥ = ∥x∥ :=
 begin

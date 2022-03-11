@@ -110,6 +110,36 @@ lemma alpha_lt_one : α < 1 :=
   calc 2 * η < 2 * 1 : (mul_lt_mul_left two_pos).2 eta_lt_one
   ... = 2 : mul_one _
 
+/- 
+definitions: normed group, multiplication operation.
+definition: equiv. of norms
+lemma: for f.g. group, canonical equiv. class of norms
 
+definition: growth of a group = function gamma(n) = #{g in G | |g|<=n}.
+definition: gamma ≾, (asymptotic domination) delta if exist C: gamma(n)<=delta(C n). ~ equiv relation.
+lemma: independent of choice of metric, for f.g. group
+
+theorem: exp(C n^(1/2)) <= gamma(n) <= exp(C n^alpha)
+theorem: exp(n^(1/2)) <~ gamma(n) <~ exp(n^alpha)
+
+-------------------------------------------------
+H subgroup of index 2
+|.| on G, defined using eta
+
+psi: H -> GxG.
+
+1) psi almost bijection: injective, image has index 8.
+
+2) if psi(h) = (g_0,g_1), then |g_0|+|g_1| <= eta*(|h|+|a|)
+ 
+
+Finite set S e.g. {a,b,c,d,1}
+Finite set X eg. {tt,ff}
+map \Psi : SxX -> XxS
+
+---> semigroup G = <S> acting on X^*. Action is: s(x_1x_2...x_n) = y_1 t(x_2...x_n) when Psi(s,x_1)=(y_1,t)
+
+in case Psi(s,-).1 is permutation for all s, then G is group.
+-/
 
 end grigorchuk_group

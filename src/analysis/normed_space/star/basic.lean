@@ -212,6 +212,6 @@ end
 @[priority 100] -- see Note [lower instance priority]
 noncomputable instance matrix.to_normed_star_monoid {n : Type*} [normed_ring E] [star_add_monoid E]
   [normed_star_monoid E] [fintype n] : normed_star_monoid (matrix n n E) :=
-  ⟨matrix.entrywise_sup_norm_star_eq_norm⟩
+⟨matrix.entrywise_sup_norm_star_eq_norm⟩
 
 end matrix

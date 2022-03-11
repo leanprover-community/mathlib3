@@ -2093,11 +2093,11 @@ end
 | b []      l₂ := rfl
 | b (a::l₁) l₂ := by simp only [cons_append, foldr_cons, foldr_append b l₁ l₂]
 
-theorem foldl_fixed {a : α} : Π l : list β, foldl (λ a b, a) a l = a
+@[simp] theorem foldl_fixed {a : α} : Π l : list β, foldl (λ a b, a) a l = a
 | []     := rfl
 | (b::l) := by rw [foldl_cons, foldl_fixed l]
 
-theorem foldr_fixed {b : β} : Π l : list α, foldr (λ a b, b) b l = b
+@[simp] theorem foldr_fixed {b : β} : Π l : list α, foldr (λ a b, b) b l = b
 | []     := rfl
 | (a::l) := by rw [foldr_cons, foldr_fixed l]
 

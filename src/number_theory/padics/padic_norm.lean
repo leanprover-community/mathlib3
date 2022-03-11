@@ -99,6 +99,17 @@ namespace padic_val_int
 open multiplicity
 variables {p : ℕ}
 
+lemma defn {z : ℤ} (hp : p ≠ 1) (hz : z ≠ 0) : padic_val_int p z =
+  (multiplicity (p : ℤ) z).get (by {apply multiplicity.finite_int_iff.2, simp [hp, hz]}) :=
+begin
+  rw [padic_val_int, padic_val_nat, dif_pos],
+  simp_rw  multiplicity.int.nat_abs p z,
+  refl,
+  simp [hp, hz],
+  exact int.nat_abs_pos_of_ne_zero hz, -- TODO make simp lemma
+  -- see nat_abs_ne_zero (and make that a simp lemma too)
+end
+
 /-- `padic_val_int p 0` is 0 for any `p`. -/
 @[simp]
 protected lemma zero : padic_val_int p 0 = 0 :=

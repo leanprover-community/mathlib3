@@ -294,6 +294,12 @@ by { ext x, simp [odd, eq_comm] }
 theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
 dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
 
+lemma even_iff_bit0 (a : α) : even a ↔ ∃ x, bit0 x = a :=
+by simp only [even, bit0, add_mul, eq_comm, one_mul]
+
+lemma odd_iff_bit1 (a : α) : odd a ↔ ∃ x, bit1 x = a :=
+by simp only [odd, bit1, bit0, add_mul, eq_comm, one_mul]
+
 end semiring
 
 namespace add_hom
@@ -922,6 +928,24 @@ protected def function.surjective.ring
   ring β :=
 { .. hf.add_comm_group f zero add neg sub nsmul zsmul,
   .. hf.monoid f one mul npow, .. hf.distrib f add mul }
+
+@[simp]
+lemma odd_add_one_iff_even {R : Type*} [ring R] (a : R) : odd (a + 1) ↔ even a :=
+by simp [even_iff_bit0, odd_iff_bit1, bit0, bit1]
+
+@[simp]
+lemma odd_sub_one_iff_even {R : Type*} [ring R] (a : R) : odd (a - 1) ↔ even a :=
+begin
+  refine ⟨_, _⟩,
+  { rintro ⟨w, hw⟩,
+    refine ⟨w + 1, _⟩,
+    rw [sub_eq_iff_eq_add.mp hw, mul_add, add_assoc, mul_one],
+    refl },
+  { rintro ⟨w, rfl⟩,
+    refine ⟨w - 1, _⟩,
+    rw [mul_sub, sub_add, sub_right_inj, mul_one, sub_eq_iff_eq_add.mpr],
+    refl }
+end
 
 end ring
 

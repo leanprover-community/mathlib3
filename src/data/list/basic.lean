@@ -20,11 +20,10 @@ attribute [inline] list.head
 -- TODO[gh-6025]: make this an instance once safe to do so
 /-- There is only one list of an empty type -/
 def unique_of_is_empty [is_empty α] : unique (list α) :=
-{ uniq := begin
-    rintro (_ | ⟨a, l⟩),
-    { refl },
-    { exact is_empty_elim a}
-  end
+{ uniq := λ l, match l with
+    | [] := rfl
+    | (a :: l) := is_empty_elim a
+    end,
   ..list.inhabited α }
 
 instance : is_left_id (list α) has_append.append [] :=

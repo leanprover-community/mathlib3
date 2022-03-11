@@ -240,6 +240,7 @@ _ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.order
 end partition
 
 /-- A finite setoid partition furnishes a finpartition -/
+@[simps]
 def is_partition.finpartition {c : finset (set α)}
   (hc : setoid.is_partition (c : set (set α))) : finpartition (set.univ : set α) :=
 { parts := c,

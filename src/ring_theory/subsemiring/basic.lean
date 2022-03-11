@@ -422,17 +422,21 @@ section centralizer
 /-- The centralizer of a set as subsemiring. -/
 def centralizer {R} [semiring R] (s : set R) : subsemiring R :=
 { carrier := s.centralizer,
-  zero_mem' := by { intros y h, simp, },
-  add_mem' := λ a b ha hb c mc, by rw [add_mul, mul_add, ha _ mc, hb _ mc],
+  zero_mem' := set.zero_mem_centralizer _,
+  add_mem' := λ x y hx hy, set.add_mem_centralizer hx hy,
   ..submonoid.centralizer s }
 
+@[simp, norm_cast]
 lemma coe_centralizer {R} [semiring R] (s : set R) : (centralizer s : set R) = s.centralizer := rfl
+
+lemma centralizer_to_submonoid {R} [semiring R] (s : set R) :
+  (centralizer s).to_submonoid = submonoid.centralizer s := rfl
 
 lemma mem_centralizer_iff {R} [semiring R] {s : set R} {z : R} :
   z ∈ centralizer s ↔ ∀ g ∈ s, g * z = z * g :=
 iff.rfl
 
-lemma centralizer_subset {R} [semiring R] (s t : set R) (h : s ⊆ t) :
+lemma centralizer_le {R} [semiring R] (s t : set R) (h : s ⊆ t) :
   centralizer t ≤ centralizer s :=
 set.centralizer_subset h
 

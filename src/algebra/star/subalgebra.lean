@@ -46,6 +46,7 @@ def centralizer
 { star_mem' := λ x xm y hy, by simpa using congr_arg star (xm _ (w _ hy)).symm,
   ..subalgebra.centralizer R s, }
 
+@[simp]
 lemma coe_centralizer (s : set A) (w : ∀ (a : A), a ∈ s → star a ∈ s) :
   (centralizer R s w : set A) = s.centralizer := rfl
 
@@ -53,7 +54,7 @@ lemma mem_centralizer_iff {s : set A} {w} {z : A} :
   z ∈ centralizer R s w ↔ ∀ g ∈ s, g * z = z * g :=
 iff.rfl
 
-lemma centralizer_subset (s t : set A)
+lemma centralizer_le (s t : set A)
   (ws : ∀ (a : A), a ∈ s → star a ∈ s) (wt : ∀ (a : A), a ∈ t → star a ∈ t) (h : s ⊆ t) :
   centralizer R t wt ≤ centralizer R s ws :=
 set.centralizer_subset h

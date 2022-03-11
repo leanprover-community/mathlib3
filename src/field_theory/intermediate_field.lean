@@ -321,6 +321,9 @@ begin
     left, refl }
 end
 
+/-- Let `L/K` be a field extension and let `E, F` be intermediate fields with `E ≤ F`(where
+  `hEF` is a term of type `E ≤ F`). Then `intermediate_field.incusion hEF` is the `K`-algebra
+  homomorphism `E →ₐ[K] F` given by the inclusion. -/
 def inclusion {K L : Type*} [field K] [field L] [algebra K L]
   {E F : intermediate_field K L} (hEF : E ≤ F):
   E →ₐ[K] F :=

@@ -409,3 +409,10 @@ Logic and computation:
     ordinal: 'ordinal'
     cardinal: 'cardinal'
     model of ZFC: 'Set'
+  Model theory:
+    first-order structure: 'first_order.language.Structure'
+    first-order formula: 'first_order.language.formula'
+    satisfiability: 'first_order.language.Theory.is_satisfiable'
+    substructure: 'first_order.language.substructure'
+    definable set: 'first_order.language.definable_set'
+    elementary embedding: 'first_order.language.elementary_embedding'

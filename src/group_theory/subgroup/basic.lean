@@ -335,46 +335,61 @@ instance has_inv : has_inv H := ⟨λ a, ⟨a⁻¹, H.inv_mem a.2⟩⟩
 @[to_additive "An `add_subgroup` of an `add_group` inherits a subtraction."]
 instance has_div : has_div H := ⟨λ a b, ⟨a / b, H.div_mem a.2 b.2⟩⟩
 
+/-- An `add_subgroup` of an `add_group` inherits a natural scaling. -/
+instance _root_.add_subgroup.has_nsmul {G} [add_group G] {H : add_subgroup G} : has_scalar ℕ H :=
+⟨λ n a, ⟨n • a, H.nsmul_mem a.2 n⟩⟩
+
+/-- A subgroup of a group inherits a natural power -/
+@[to_additive]
+instance has_npow : has_pow H ℕ := ⟨λ a n, ⟨a ^ n, H.pow_mem a.2 n⟩⟩
+
+/-- An `add_subgroup` of an `add_group` inherits an integer scaling. -/
+instance _root_.add_subgroup.has_zsmul {G} [add_group G] {H : add_subgroup G} : has_scalar ℤ H :=
+⟨λ n a, ⟨n • a, H.zsmul_mem a.2 n⟩⟩
+
+/-- A subgroup of a group inherits an integer power -/
+@[to_additive]
+instance has_zpow : has_pow H ℤ := ⟨λ a n, ⟨a ^ n, H.zpow_mem a.2 n⟩⟩
+
 @[simp, norm_cast, to_additive] lemma coe_mul (x y : H) : (↑(x * y) : G) = ↑x * ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : H) : G) = 1 := rfl
 @[simp, norm_cast, to_additive] lemma coe_inv (x : H) : ↑(x⁻¹ : H) = (x⁻¹ : G) := rfl
 @[simp, norm_cast, to_additive] lemma coe_div (x y : H) : (↑(x / y) : G) = ↑x / ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_mk (x : G) (hx : x ∈ H) : ((⟨x, hx⟩ : H) : G) = x := rfl
+@[simp, norm_cast, to_additive] lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n := rfl
+@[simp, norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n := rfl
 
 /-- A subgroup of a group inherits a group structure. -/
 @[to_additive "An `add_subgroup` of an `add_group` inherits an `add_group` structure."]
 instance to_group {G : Type*} [group G] (H : subgroup G) : group H :=
-subtype.coe_injective.group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subgroup of a `comm_group` is a `comm_group`. -/
 @[to_additive "An `add_subgroup` of an `add_comm_group` is an `add_comm_group`."]
 instance to_comm_group {G : Type*} [comm_group G] (H : subgroup G) : comm_group H :=
-subtype.coe_injective.comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.comm_group _
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subgroup of an `ordered_comm_group` is an `ordered_comm_group`. -/
 @[to_additive "An `add_subgroup` of an `add_ordered_comm_group` is an `add_ordered_comm_group`."]
 instance to_ordered_comm_group {G : Type*} [ordered_comm_group G] (H : subgroup G) :
   ordered_comm_group H :=
-subtype.coe_injective.ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_comm_group _
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subgroup of a `linear_ordered_comm_group` is a `linear_ordered_comm_group`. -/
 @[to_additive "An `add_subgroup` of a `linear_ordered_add_comm_group` is a
   `linear_ordered_add_comm_group`."]
 instance to_linear_ordered_comm_group {G : Type*} [linear_ordered_comm_group G]
   (H : subgroup G) : linear_ordered_comm_group H :=
-subtype.coe_injective.linear_ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_comm_group _
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- The natural group hom from a subgroup of group `G` to `G`. -/
 @[to_additive "The natural group hom from an `add_subgroup` of `add_group` `G` to `G`."]
 def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑H.subtype = coe := rfl
-
-@[simp, norm_cast, to_additive coe_smul]
-lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
-coe_subtype H ▸ monoid_hom.map_pow _ _ _
-@[simp, norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
-coe_subtype H ▸ monoid_hom.map_zpow _ _ _
 
 @[simp, norm_cast, to_additive] theorem coe_list_prod (l : list H) :
   (l.prod : G) = (l.map coe).prod :=
@@ -1197,10 +1212,10 @@ begin
   { intros h x hx i hi, refine h i hi ⟨_, hx, rfl⟩, }
 end
 
-@[simp]
-lemma single_mem_pi [decidable_eq η] {I : set η} {H : Π i, subgroup (f i)}
+@[simp, to_additive]
+lemma mul_single_mem_pi [decidable_eq η] {I : set η} {H : Π i, subgroup (f i)}
   (i : η) (x : f i) :
-  monoid_hom.single f i x ∈ pi I H ↔ (i ∈ I → x ∈ H i) :=
+  pi.mul_single i x ∈ pi I H ↔ (i ∈ I → x ∈ H i) :=
 begin
   split,
   { intros h hi, simpa using h i hi, },
@@ -1210,7 +1225,8 @@ begin
     { simp [heq, one_mem], }, }
 end
 
-lemma pi_mem_of_single_mem_aux [decidable_eq η] (I : finset η) {H : subgroup (Π i, f i) }
+@[to_additive]
+lemma pi_mem_of_mul_single_mem_aux [decidable_eq η] (I : finset η) {H : subgroup (Π i, f i) }
   (x : Π i, f i) (h1 : ∀ i, i ∉ I → x i = 1) (h2 : ∀ i, i ∈ I → pi.mul_single i (x i) ∈ H ) :
   x ∈ H :=
 begin
@@ -1237,19 +1253,23 @@ begin
     { apply h2, simp, } }
 end
 
-lemma pi_mem_of_single_mem [fintype η] [decidable_eq η] {H : subgroup (Π i, f i) } (x : Π i, f i)
-  (h : ∀ i, pi.mul_single i (x i) ∈ H) : x ∈ H :=
-pi_mem_of_single_mem_aux finset.univ x (by simp) (λ i _, h i)
+@[to_additive]
+lemma pi_mem_of_mul_single_mem [fintype η] [decidable_eq η] {H : subgroup (Π i, f i)}
+  (x : Π i, f i) (h : ∀ i, pi.mul_single i (x i) ∈ H) : x ∈ H :=
+pi_mem_of_mul_single_mem_aux finset.univ x (by simp) (λ i _, h i)
 
 /-- For finite index types, the `subgroup.pi` is generated by the embeddings of the groups.  -/
+@[to_additive "For finite index types, the `subgroup.pi` is generated by the embeddings of the
+additive groups."]
 lemma pi_le_iff [decidable_eq η] [fintype η] {H : Π i, subgroup (f i)} {J : subgroup (Π i, f i)} :
   pi univ H ≤ J ↔ (∀ i : η, map (monoid_hom.single f i) (H i) ≤ J) :=
 begin
   split,
   { rintros h i _ ⟨x, hx, rfl⟩, apply h, simpa using hx },
-  { exact λ h x hx, pi_mem_of_single_mem  x (λ i, h i (mem_map_of_mem _ (hx i trivial))), }
+  { exact λ h x hx, pi_mem_of_mul_single_mem  x (λ i, h i (mem_map_of_mem _ (hx i trivial))), }
 end
 
+@[to_additive]
 lemma pi_eq_bot_iff (H : Π i, subgroup (f i)) :
   pi set.univ H = ⊥ ↔ ∀ i, H i = ⊥ :=
 begin
@@ -1258,7 +1278,7 @@ begin
   split,
   { intros h i x hx,
     have : monoid_hom.single f i x = 1 :=
-    h (monoid_hom.single f i x) ((single_mem_pi i x).mpr (λ _, hx)),
+    h (monoid_hom.single f i x) ((mul_single_mem_pi i x).mpr (λ _, hx)),
     simpa using congr_fun this i, },
   { exact λ h x hx, funext (λ i, h _ _ (hx i trivial)), },
 end
@@ -2710,6 +2730,25 @@ begin
 end
 
 end subgroup_normal
+
+@[to_additive]
+lemma disjoint_def {H₁ H₂ : subgroup G} :
+  disjoint H₁ H₂ ↔ ∀ {x : G}, x ∈ H₁ → x ∈ H₂ → x = 1 :=
+show (∀ x, x ∈ H₁ ∧ x ∈ H₂ → x ∈ ({1} : set G)) ↔ _, by simp
+
+@[to_additive]
+lemma disjoint_def' {H₁ H₂ : subgroup G} :
+  disjoint H₁ H₂ ↔ ∀ {x y : G}, x ∈ H₁ → y ∈ H₂ → x = y → x = 1 :=
+disjoint_def.trans ⟨λ h x y hx hy hxy, h hx $ hxy.symm ▸ hy,
+  λ h x hx hx', h hx hx' rfl⟩
+
+@[to_additive]
+lemma disjoint_iff_mul_eq_one {H₁ H₂ : subgroup G} :
+  disjoint H₁ H₂ ↔ ∀ {x y : G}, x ∈ H₁ → y ∈ H₂ → x * y = 1 → x = 1 ∧ y = 1 :=
+disjoint_def'.trans ⟨λ h x y hx hy hxy,
+  let hx1 : x = 1 := h hx (H₂.inv_mem hy) (eq_inv_iff_mul_eq_one.mpr hxy) in
+  ⟨hx1, by simpa [hx1] using hxy⟩,
+  λ h x y hx hy hxy, (h hx (H₂.inv_mem hy) (mul_inv_eq_one.mpr hxy)).1 ⟩
 
 end subgroup
 

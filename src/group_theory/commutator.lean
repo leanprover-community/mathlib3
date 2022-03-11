@@ -99,7 +99,7 @@ lemma commutator_le_right (H₁ H₂ : subgroup G) [h : normal H₂] : ⁅H₁, 
 lemma commutator_le_left (H₁ H₂ : subgroup G) [h : normal H₁] : ⁅H₁, H₂⁆ ≤ H₁ :=
 commutator_comm H₂ H₁ ▸ commutator_le_right H₂ H₁
 
-@[simp] lemma bot_commutator_left (H : subgroup G) : ⁅(⊥ : subgroup G), H⁆ = ⊥ :=
+@[simp] lemma commutator_bot_left (H : subgroup G) : ⁅(⊥ : subgroup G), H⁆ = ⊥ :=
 le_bot_iff.mp (commutator_le_left ⊥ H)
 
 @[simp] lemma commutator_bot_right (H : subgroup G) : ⁅H, ⊥⁆ = (⊥ : subgroup G) :=

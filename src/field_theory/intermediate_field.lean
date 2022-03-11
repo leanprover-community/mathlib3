@@ -339,7 +339,8 @@ lemma inclusion_commutes_with_val {K L : Type*} [field K] [field L] [algebra K L
   {E F : intermediate_field K L} (hEF : E ≤ F) :
   F.val ∘ (intermediate_field.inclusion hEF) = E.val := rfl
 
-lemma inclusion_commutes_with_mk {K L : Type*} [field K] [field L] [algebra K L] {E F : intermediate_field K L}
+lemma inclusion_commutes_with_mk {K L : Type*} [field K] [field L] [algebra K L]
+{E F : intermediate_field K L}
 (hEF : E ≤ F) {x : L} (hx : x ∈ E) :
 (intermediate_field.inclusion hEF) ⟨x, hx⟩ = ⟨x, hEF hx⟩ :=
 begin

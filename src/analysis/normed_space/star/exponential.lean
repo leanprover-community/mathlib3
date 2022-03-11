@@ -14,7 +14,8 @@ subtypes `self_adjoint A` and `unitary A`.
 ## TODO
 
 * Show that any exponential unitary is path-connected in `unitary A` to `1 : unitary A`.
-* Prove any unitary whose distance to `1 : unitary A` can be expressed as an exponential unitary.
+* Prove any unitary whose distance to `1 : unitary A` is less than `1` can be expressed as an
+  exponential unitary.
 * A unitary is in the path component of `1` if and only if it is a finite product of exponential
   unitaries.
 -/

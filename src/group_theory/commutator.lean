@@ -41,7 +41,7 @@ instance commutator : has_bracket (subgroup G) (subgroup G) :=
 lemma commutator_def (H₁ H₂ : subgroup G) :
   ⁅H₁, H₂⁆ = closure {g | ∃ (g₁ ∈ H₁) (g₂ ∈ H₂), ⁅g₁, g₂⁆ = g} := rfl
 
-lemma commutator_mem_commutator {H₁ H₂ : subgroup G} {g₁ g₂ : G} (hp : g₁ ∈ H₁) (hq : g₂ ∈ H₂) :
+lemma commutator_mem_commutator {H₁ H₂ : subgroup G} {g₁ g₂ : G} (h₁ : g₁ ∈ H₁) (h₂ : g₂ ∈ H₂) :
   ⁅g₁, g₂⁆ ∈ ⁅H₁, H₂⁆ :=
 subset_closure ⟨g₁, h₁, g₂, h₂, rfl⟩
 

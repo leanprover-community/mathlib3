@@ -244,5 +244,5 @@ let hi := is_inducing A E, hc := hi.continuous in
 end continuous_monoid_hom
 
 /-- The Pontryagin dual of `G` is the group of continuous homomorphism `G → circle`. -/
-@[derive [topological_space, t2_space, comm_group, topological_group]]
+@[derive [topological_space, t2_space, comm_group, topological_group, inhabited]]
 def pontryagin_dual (G : Type*) [monoid G] [topological_space G] := continuous_monoid_hom G circle

@@ -57,8 +57,6 @@ begin
     apply _root_.le_antisymm; { apply nat.find_mono, norm_cast, simp } }
 end
 
-example (a b : ℤ) : a ∣ b ↔ a ∣ b.nat_abs := int.dvd_nat_abs.symm
-
 theorem nat_cast_nat_abs (a b : ℕ) :
     multiplicity a (b : ℤ).nat_abs = multiplicity (a : ℤ) (b : ℤ) :=
 begin

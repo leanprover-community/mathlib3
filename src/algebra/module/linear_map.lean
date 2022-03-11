@@ -536,6 +536,39 @@ by { intros f g h, ext, exact linear_map.congr_fun h x }
 
 namespace linear_map
 
+section has_scalar
+
+variables [semiring R] [semiring R₂] [semiring R₃]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M] [module R₂ M₂] [module R₃ M₃]
+variables {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
+variables [monoid S] [distrib_mul_action S M₂] [smul_comm_class R₂ S M₂]
+variables [monoid S₃] [distrib_mul_action S₃ M₃] [smul_comm_class R₃ S₃ M₃]
+variables [monoid T] [distrib_mul_action T M₂] [smul_comm_class R₂ T M₂]
+
+instance : has_scalar S (M →ₛₗ[σ₁₂] M₂) :=
+⟨λ a f, { to_fun := a • f,
+          map_add' := λ x y, by simp only [pi.smul_apply, f.map_add, smul_add],
+          map_smul' := λ c x, by simp [pi.smul_apply, smul_comm (σ₁₂ c)] }⟩
+
+@[simp] lemma smul_apply (a : S) (f : M →ₛₗ[σ₁₂] M₂) (x : M) : (a • f) x = a • f x := rfl
+
+lemma coe_smul (a : S) (f : M →ₛₗ[σ₁₂] M₂) : ⇑(a • f) = a • f := rfl
+
+instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₛₗ[σ₁₂] M₂) :=
+⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
+
+-- example application of this instance: if S -> T -> R are homomorphisms of commutative rings and
+-- M and M₂ are R-modules then the S-module and T-module structures on Hom_R(M,M₂) are compatible.
+instance [has_scalar S T] [is_scalar_tower S T M₂] : is_scalar_tower S T (M →ₛₗ[σ₁₂] M₂) :=
+{ smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
+
+instance [distrib_mul_action Sᵐᵒᵖ M₂] [smul_comm_class R₂ Sᵐᵒᵖ M₂] [is_central_scalar S M₂] :
+  is_central_scalar S (M →ₛₗ[σ₁₂] M₂) :=
+{ op_smul_eq_smul := λ a b, ext $ λ x, op_smul_eq_smul _ _ }
+
+end has_scalar
+
 /-! ### Arithmetic on the codomain -/
 section arithmetic
 
@@ -578,22 +611,7 @@ ext $ λ _, h.map_add _ _
 
 /-- The type of linear maps is an additive monoid. -/
 instance : add_comm_monoid (M →ₛₗ[σ₁₂] M₂) :=
-{ zero := 0,
-  add := (+),
-  add_assoc := λ f g h, linear_map.ext $ λ x, add_assoc _ _ _,
-  zero_add := λ f, linear_map.ext $ λ x, zero_add _,
-  add_zero := λ f, linear_map.ext $ λ x, add_zero _,
-  add_comm := λ f g, linear_map.ext $ λ x, add_comm _ _,
-  nsmul := λ n f,
-  { to_fun := λ x, n • (f x),
-    map_add' := λ x y, by rw [f.map_add, smul_add],
-    map_smul' := λ c x,
-    begin
-      rw [f.map_smulₛₗ],
-      simp [smul_comm n (σ₁₂ c) (f x)],
-    end },
-  nsmul_zero' := λ f, linear_map.ext $ λ x, add_comm_monoid.nsmul_zero' _,
-  nsmul_succ' := λ n f, linear_map.ext $ λ x, add_comm_monoid.nsmul_succ' _ _ }
+fun_like.coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- The negation of a linear map is linear. -/
 instance : has_neg (M →ₛₗ[σ₁₂] N₂) :=
@@ -627,24 +645,8 @@ omit σ₁₃
 
 /-- The type of linear maps is an additive group. -/
 instance : add_comm_group (M →ₛₗ[σ₁₂] N₂) :=
-{ zero := 0,
-  add := (+),
-  neg := has_neg.neg,
-  sub := has_sub.sub,
-  sub_eq_add_neg := λ f g, linear_map.ext $ λ m, sub_eq_add_neg _ _,
-  add_left_neg := λ f, linear_map.ext $ λ m, add_left_neg _,
-  nsmul := λ n f,
-  { to_fun := λ x, n • (f x),
-    map_add' := λ x y, by rw [f.map_add, smul_add],
-    map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
-  zsmul := λ n f,
-  { to_fun := λ x, n • (f x),
-    map_add' := λ x y, by rw [f.map_add, smul_add],
-    map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
-  zsmul_zero' := λ a, linear_map.ext $ λ m, zero_smul _ _,
-  zsmul_succ' := λ n a, linear_map.ext $ λ m, add_comm_group.zsmul_succ' n _,
-  zsmul_neg' := λ n a, linear_map.ext $ λ m, add_comm_group.zsmul_neg' n _,
-  .. linear_map.add_comm_monoid }
+fun_like.coe_injective.add_comm_group _
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)  (λ _ _, rfl)
 
 end arithmetic
 
@@ -659,27 +661,6 @@ section has_scalar
 variables [monoid S] [distrib_mul_action S M₂] [smul_comm_class R₂ S M₂]
 variables [monoid S₃] [distrib_mul_action S₃ M₃] [smul_comm_class R₃ S₃ M₃]
 variables [monoid T] [distrib_mul_action T M₂] [smul_comm_class R₂ T M₂]
-
-instance : has_scalar S (M →ₛₗ[σ₁₂] M₂) :=
-⟨λ a f, { to_fun := a • f,
-          map_add' := λ x y, by simp only [pi.smul_apply, f.map_add, smul_add],
-          map_smul' := λ c x, by simp [pi.smul_apply, smul_comm (σ₁₂ c)] }⟩
-
-@[simp] lemma smul_apply (a : S) (f : M →ₛₗ[σ₁₂] M₂) (x : M) : (a • f) x = a • f x := rfl
-
-lemma coe_smul (a : S) (f : M →ₛₗ[σ₁₂] M₂) : ⇑(a • f) = a • f := rfl
-
-instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₛₗ[σ₁₂] M₂) :=
-⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
-
--- example application of this instance: if S -> T -> R are homomorphisms of commutative rings and
--- M and M₂ are R-modules then the S-module and T-module structures on Hom_R(M,M₂) are compatible.
-instance [has_scalar S T] [is_scalar_tower S T M₂] : is_scalar_tower S T (M →ₛₗ[σ₁₂] M₂) :=
-{ smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
-
-instance [distrib_mul_action Sᵐᵒᵖ M₂] [smul_comm_class R₂ Sᵐᵒᵖ M₂] [is_central_scalar S M₂] :
-  is_central_scalar S (M →ₛₗ[σ₁₂] M₂) :=
-{ op_smul_eq_smul := λ a b, ext $ λ x, op_smul_eq_smul _ _ }
 
 instance : distrib_mul_action S (M →ₛₗ[σ₁₂] M₂) :=
 { one_smul := λ f, ext $ λ _, one_smul _ _,

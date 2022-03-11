@@ -235,7 +235,7 @@ begin
   { exact mem_top x },
   { rw key,
     exact (derived_series_normal _ _).conj_mem _
-      (commutator_containment _ _ ih ((derived_series_normal _ _).conj_mem _ ih _)) _ },
+      (commutator_mem_commutator ih ((derived_series_normal _ _).conj_mem _ ih _)) _ },
 end
 
 lemma equiv.perm.not_solvable (X : Type*) (hX : 5 ≤ cardinal.mk X) :

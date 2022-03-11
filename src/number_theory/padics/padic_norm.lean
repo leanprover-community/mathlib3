@@ -156,7 +156,7 @@ begin
     sub_zero, multiplicity.get_one_right],
   refl,
   simp [hp],
-  simp [hp],
+  simp only [hp, ne.def, not_false_iff, rat.coe_int_num, true_and],
   apply nat.pos_of_ne_zero,
   simp [hz],
 end
@@ -231,8 +231,7 @@ begin
   simp [hc1, hc2, multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime.1),
     (ne.symm (ne_of_lt p_prime.1.one_lt)), hqz],
   rw [padic_val_rat, padic_val_int, padic_val_nat, padic_val_nat, dif_pos, dif_pos],
-  simp_rw [int.coe_nat_multiplicity p q.denom],
-  simp_rw multiplicity.int.nat_abs,
+  simp_rw [int.coe_nat_multiplicity p q.denom, multiplicity.int.nat_abs],
   refl,
   split,
   { exact nat.prime.ne_one p_prime.out, },

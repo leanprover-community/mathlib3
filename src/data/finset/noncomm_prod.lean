@@ -179,7 +179,7 @@ end
 lemma _root_.subgroup.multiset_noncomm_prod_mem {α : Type*} [group α] (m : subgroup α)
   (s : multiset α) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute x y) :
   (∀ (x ∈ s), x ∈ m) → s.noncomm_prod comm ∈ m :=
-by simpa [subgroup.mem_to_submonoid] using m.to_submonoid.multiset_noncomm_prod_mem s comm
+m.to_submonoid.multiset_noncomm_prod_mem s comm
 
 @[to_additive] lemma noncomm_prod_eq_prod {α : Type*} [comm_monoid α] (s : multiset α) :
   noncomm_prod s (λ _ _ _ _, commute.all _ _) = prod s :=
@@ -269,7 +269,7 @@ end
 lemma _root_.subgroup.finset_noncomm_prod_mem {β : Type*} [group β] (m : subgroup β)
   (s : finset α) (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y)) :
   (∀ (x : α), x ∈ s → f x ∈ m) → s.noncomm_prod f comm ∈ m :=
-by simpa [subgroup.mem_to_submonoid] using m.to_submonoid.finset_noncomm_prod_mem s f comm
+m.to_submonoid.finset_noncomm_prod_mem s f comm
 
 @[to_additive]
 lemma noncomm_prod_commute (s : finset α) (f : α → β)

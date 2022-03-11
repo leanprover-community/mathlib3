@@ -162,7 +162,6 @@ lemma padic_val_rat_of_int (z : ℤ) (hp : p ≠ 1) (hz : z ≠ 0) :
     (finite_int_iff.2 ⟨hp, hz⟩) :=
 begin
   rw [padic_val_rat, padic_val_int.defn, padic_val_nat, dif_pos],
-  -- simp_rw multiplicity.int.nat_abs,
   simp only [rat.coe_int_denom, int.coe_nat_zero, rat.coe_int_num, int.coe_nat_inj',
     sub_zero, multiplicity.get_one_right],
   refl,

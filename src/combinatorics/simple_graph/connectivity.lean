@@ -117,7 +117,6 @@ begin
     { exact IH (nat.succ_le_succ_iff.1 hi) } }
 end
 
-
 lemma adj_get_vert_succ {u v} (w : G.walk u v) {i : ℕ} (hi : i < w.length) :
   G.adj (w.get_vert i) (w.get_vert (i+1)) :=
 begin
@@ -127,7 +126,6 @@ begin
     { simp [get_vert, hxy] },
     { exact IH (nat.succ_lt_succ_iff.1 hi) } },
 end
-
 
 @[simp] lemma cons_append {u v w x : V} (h : G.adj u v) (p : G.walk v w) (q : G.walk w x) :
   (cons h p).append q = cons h (p.append q) := rfl

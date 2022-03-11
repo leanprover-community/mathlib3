@@ -59,45 +59,6 @@ Those `e < x` for which `e + 1` is a product of powers of primes smaller than or
 noncomputable def M (x k : ℕ) := {e ∈ range x | ∀ p : ℕ, (nat.prime p ∧ p ∣ e + 1) → p ≤ k}
 
 /--
-At most `n / p` naturals in `[1, n]` are multiples of `p`.
--/
-lemma card_le_div_nat {n p : ℕ} (hp : 0 < p) : card {e ∈ range n | p ∣ e + 1} ≤ n / p :=
-begin
-  let f : ℕ → ℕ := λ e, (e + 1) / p - 1,
-  let Np := {e ∈ range n | p ∣ e + 1},
-
-  have hf : ∀ a : ℕ, a ∈ Np → f a ∈ range (n / p),
-  { simp only [f, Np, sep_def, mem_filter, mem_range],
-    rintros a ⟨han, ⟨w, hw⟩⟩,
-    have hnp : 1 ≤ n / p,
-    { have : 0 < w := by nlinarith,
-      rw ← nat.div_self hp,
-      exact nat.div_le_div_right (by nlinarith) },
-    calc (a + 1) / p - 1 ≤ n / p - 1 : nat.sub_le_sub_right
-                                         (nat.div_le_div_right (nat.succ_le_iff.mpr han)) 1
-    ...                  < n / p     : nat.sub_lt (zero_lt_one.trans_le hnp) zero_lt_one },
-
-  have hf_inj : ∀ a₁ : ℕ, a₁ ∈ Np → ∀ a₂ : ℕ, a₂ ∈ Np → f a₁ = f a₂ → a₁ = a₂,
-  { simp_intros a₁ ha₁ a₂ ha₂ hfeq only [f, Np, sep_def, mem_filter, mem_range],
-    obtain ⟨⟨hna₁, ⟨w₁, hw₁⟩⟩, ⟨hna₂, ⟨w₂, hw₂⟩⟩⟩ := ⟨ha₁, ha₂⟩,
-    rw [hw₁, hw₂, nat.mul_div_cancel_left w₁ hp, nat.mul_div_cancel_left w₂ hp] at hfeq,
-    have hw₁_eq_w₂ : w₁ = w₂, { refine nat.pred_inj _ _ hfeq; nlinarith },
-    rw [← add_left_inj 1, hw₁, hw₂, hw₁_eq_w₂] },
-
-  calc card Np ≤ card (range (n / p)) : card_le_card_of_inj_on f hf hf_inj
-  ...          = n / p                : card_range (n / p),
-end
-
-/--
-At most `n / p` naturals in `[1, n]` are multiples of `p`.
--/
-lemma card_le_div_real {n p : ℕ} (hp : 0 < p) :
-  (card {e ∈ range n | p ∣ e + 1} : ℝ) ≤ n / p :=
-calc  (card {e ∈ range n | p ∣ e + 1} : ℝ)
-    ≤ ↑(n / p) : nat.cast_le.mpr $ card_le_div_nat hp
-... ≤ n / p    : nat.cast_div_le
-
-/--
 If the sum of the reciprocals of the primes converges, there exists a `k : ℕ` such that the sum of
 the reciprocals of the primes greater than `k` is less than 1/2.
 
@@ -163,10 +124,8 @@ begin
 
   calc  (card (finset.bUnion P N) : ℝ)
       ≤ ∑ p in P, card (N p)  : by assumption_mod_cast
-  ... ≤ ∑ p in P, x * (1 / p) : by { refine sum_le_sum (λ p, _),
-                                     simp only [P, sep_def, mem_filter, mem_range, N, mul_one_div],
-                                     rintros ⟨-, -, hpp⟩,
-                                     exact card_le_div_real hpp.pos }
+  ... ≤ ∑ p in P, x * (1 / p) :
+    sum_le_sum (λ p hp, by simp only [mul_one_div, N, card_multiples, nat.cast_div_le])
   ... = x * ∑ p in P, 1 / p   : mul_sum.symm,
 end
 

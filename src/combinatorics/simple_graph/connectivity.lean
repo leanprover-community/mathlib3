@@ -100,12 +100,21 @@ def get_vert : Π {u v : V} (p : G.walk u v) (n : ℕ), V
 @[simp] lemma get_vert_zero {u v} (w : G.walk u v) : w.get_vert 0 = u :=
 by { cases w; refl }
 
-@[simp] lemma get_vert_last {u v} (w : G.walk u v) : w.get_vert w.length = v :=
+@[simp] lemma get_vert_length {u v} (w : G.walk u v) : w.get_vert w.length = v :=
 begin
   induction w with _ x y z hxy wyz IH,
   { refl },
   { simp [length, get_vert, IH] }
 end
+
+lemma get_vert_of_length_le {u v} (w : G.walk u v) {i : ℕ} (hi : w.length ≤ i) :
+  w.get_vert w.length = v :=
+begin
+  induction w with _ x y z hxy wyz IH,
+  { refl },
+  { simp [length, get_vert, IH] }
+end
+
 
 lemma adj_get_vert_succ {u v} (w : G.walk u v) {i : ℕ} (hi : i < w.length) :
   G.adj (w.get_vert i) (w.get_vert (i+1)) :=

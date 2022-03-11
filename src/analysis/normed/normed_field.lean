@@ -57,7 +57,7 @@ class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
 
-/-- A normed division ring is a division ring endowed with a seminorm which satisfies the inequality
+/-- A normed division ring is a division ring endowed with a seminorm which satisfies the equality
 `∥x y∥ = ∥x∥ ∥y∥`. -/
 class normed_division_ring (α : Type*) extends has_norm α, division_ring α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
@@ -370,7 +370,7 @@ nnreal.eq $ by simp
 (nnnorm_hom : α →*₀ ℝ≥0).map_zpow
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_division_ring.has_continuous_inv₀ : has_continuous_inv₀ α :=
+instance normed_division_ring.to_has_continuous_inv₀ : has_continuous_inv₀ α :=
 begin
   refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
@@ -400,7 +400,7 @@ class normed_field (α : Type*) extends has_norm α, field α, metric_space α :
 `0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by multiplication
 by the powers of any element, and thus to relate algebra and topology. -/
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
-(non_trivial : ∃x:α, 1<∥x∥)
+(non_trivial : ∃ x : α, 1 < ∥x∥)
 
 section normed_field
 
@@ -408,7 +408,7 @@ variables [normed_field α]
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_field.to_normed_division_ring : normed_division_ring α :=
-{ norm_mul' := normed_field.norm_mul', ..‹normed_field α› }
+{ ..‹normed_field α› }
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_field.to_normed_comm_ring : normed_comm_ring α :=

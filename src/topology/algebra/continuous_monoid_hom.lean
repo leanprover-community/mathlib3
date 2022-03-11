@@ -243,25 +243,6 @@ let hi := is_inducing A E, hc := hi.continuous in
 
 end continuous_monoid_hom
 
-section pontryagin_dual
-
-variables (G : Type*) [monoid G] [topological_space G]
-
 /-- The Pontryagin dual of `G` is the group of continuous homomorphism `G → circle`. -/
-def pontryagin_dual := continuous_monoid_hom G circle
-
-variables {G}
-
-noncomputable instance : topological_space (pontryagin_dual G) :=
-continuous_monoid_hom.topological_space
-
-instance : t2_space (pontryagin_dual G) :=
-continuous_monoid_hom.t2_space
-
-noncomputable instance : comm_group (pontryagin_dual G) :=
-continuous_monoid_hom.comm_group
-
-instance : topological_group (pontryagin_dual G) :=
-continuous_monoid_hom.topological_group
-
-end pontryagin_dual
+@[derive [topological_space, t2_space, comm_group, topological_group]]
+def pontryagin_dual (G : Type*) [monoid G] [topological_space G] := continuous_monoid_hom G circle

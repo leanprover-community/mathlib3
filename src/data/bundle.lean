@@ -45,6 +45,9 @@ instance {x : B} : has_coe_t (E x) (total_space E) := ⟨sigma.mk x⟩
 
 lemma to_total_space_coe {x : B} (v : E x) : (v : total_space E) = ⟨x, v⟩ := rfl
 
+-- notation for the direct sum of two bundles over the same base
+notation E₁ `×ᵇ`:100 E₂ := λ x, E₁ x × E₂ x
+
 /-- `bundle.trivial B F` is the trivial bundle over `B` of fiber `F`. -/
 def trivial (B : Type*) (F : Type*) : B → Type* := function.const B F
 

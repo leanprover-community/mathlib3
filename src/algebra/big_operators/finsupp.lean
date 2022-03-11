@@ -35,7 +35,7 @@ open_locale classical
 
 theorem finsupp.sum_sum_index' : (∑ x in s, f x).sum t = ∑ x in s, (f x).sum t :=
 finset.induction_on s rfl $ λ a s has ih,
-by simp_rw [finset.sum_insert has, finsupp.sum_add_index h0 h1, ih]
+by simp_rw [finset.sum_insert has, finsupp.sum_add_index' h0 h1, ih]
 
 end
 

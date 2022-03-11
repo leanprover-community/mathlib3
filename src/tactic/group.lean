@@ -50,6 +50,7 @@ open tactic.simp_arg_type interactive tactic.group
 /-- Auxiliary tactic for the `group` tactic. Calls the simplifier only. -/
 meta def aux_group₁ (locat : loc) : tactic unit :=
   simp_core {} skip tt [
+  expr ``(commutator_element_def),
   expr ``(mul_one),
   expr ``(one_mul),
   expr ``(one_pow),

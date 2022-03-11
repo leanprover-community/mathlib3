@@ -220,17 +220,20 @@ def subtype : s →+* R :=
 
 /-- A subsemiring of an `ordered_semiring` is an `ordered_semiring`. -/
 instance to_ordered_semiring {R} [ordered_semiring R] (s : subsemiring R) : ordered_semiring s :=
-subtype.coe_injective.ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
 instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] (s : subsemiring R) :
   ordered_comm_semiring s :=
-subtype.coe_injective.ordered_comm_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
 instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] (s : subsemiring R) :
   linear_ordered_semiring s :=
-subtype.coe_injective.linear_ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
 
@@ -523,6 +526,25 @@ lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H0 : p 0) (H1 : p 1)
   (Hadd : ∀ x y, p x → p y → p (x + y)) (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 (@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd⟩).2 Hs h
+
+/-- An induction principle for closure membership for predicates with two arguments. -/
+@[elab_as_eliminator]
+lemma closure_induction₂ {s : set R} {p : R → R → Prop} {x} {y : R} (hx : x ∈ closure s)
+  (hy : y ∈ closure s)
+  (Hs : ∀ (x ∈ s) (y ∈ s), p x y)
+  (H0_left : ∀ x, p 0 x)
+  (H0_right : ∀ x, p x 0)
+  (H1_left : ∀ x, p 1 x)
+  (H1_right : ∀ x, p x 1)
+  (Hadd_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ + x₂) y)
+  (Hadd_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ + y₂))
+  (Hmul_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ * x₂) y)
+  (Hmul_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ * y₂))
+  : p x y :=
+closure_induction hx
+  (λ x₁ x₁s, closure_induction hy (Hs x₁ x₁s) (H0_right x₁) (H1_right x₁) (Hadd_right x₁)
+                                                                                (Hmul_right x₁))
+  (H0_left y) (H1_left y) (λ z z', Hadd_left z z' y) (λ z z', Hmul_left z z' y)
 
 lemma mem_closure_iff_exists_list {R} [semiring R] {s : set R} {x} : x ∈ closure s ↔
   ∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s) ∧ (L.map list.prod).sum = x :=
@@ -849,6 +871,25 @@ S.to_submonoid.mul_distrib_mul_action
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=
 { smul := (•), .. module.comp_hom _ S.subtype }
+
+/-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
+def closure_comm_semiring_of_comm {s : set R'} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
+  comm_semiring (closure s) :=
+{ mul_comm := λ x y,
+  begin
+    ext,
+    simp only [subsemiring.coe_mul],
+    refine closure_induction₂ x.prop y.prop hcomm
+    (λ x, by simp only [zero_mul, mul_zero])
+    (λ x, by simp only [zero_mul, mul_zero])
+    (λ x, by simp only [one_mul, mul_one])
+    (λ x, by simp only [one_mul, mul_one])
+    (λ x y z h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
+    (λ x y z h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
+    (λ x y z h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc, h₁, mul_assoc])
+    (λ x y z h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc])
+  end,
+  ..(closure s).to_semiring }
 
 end subsemiring
 

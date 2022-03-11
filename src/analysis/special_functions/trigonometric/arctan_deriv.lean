@@ -7,10 +7,9 @@ import analysis.special_functions.trigonometric.arctan
 import analysis.special_functions.trigonometric.complex_deriv
 
 /-!
-# The `arctan` function.
+# Derivatives of the `tan` and `arctan` functions.
 
-Inequalities, derivatives,
-and `real.tan` as a `local_homeomorph` between `(-(π / 2), π / 2)` and the whole line.
+Continuity and derivatives of the tangent and arctangent functions.
 -/
 
 noncomputable theory

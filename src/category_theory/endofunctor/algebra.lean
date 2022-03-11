@@ -3,8 +3,7 @@ Copyright (c) 2022 Joseph Hua. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta, Johan Commelin, Reid Barton, Rob Lewis, Joseph Hua
 -/
-import category_theory.functor_category
-import category_theory.concrete_category.reflects_isomorphisms
+import category_theory.functor.category
 import category_theory.limits.final
 
 /-!

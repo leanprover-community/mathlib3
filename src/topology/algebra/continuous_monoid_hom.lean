@@ -3,6 +3,7 @@ Copyright (c) 2022 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
+import analysis.complex.circle
 import topology.continuous_function.algebra
 
 /-!
@@ -241,3 +242,26 @@ let hi := is_inducing A E, hc := hi.continuous in
   continuous_inv := hi.continuous_iff.mpr (continuous_inv.comp hc) }
 
 end continuous_monoid_hom
+
+section pontryagin_dual
+
+variables (G : Type*) [monoid G] [topological_space G]
+
+/-- The Pontryagin dual of `G` is the group of continuous homomorphism `G → circle`. -/
+def pontryagin_dual := continuous_monoid_hom G circle
+
+variables {G}
+
+noncomputable instance : topological_space (pontryagin_dual G) :=
+continuous_monoid_hom.topological_space
+
+instance : t2_space (pontryagin_dual G) :=
+continuous_monoid_hom.t2_space
+
+noncomputable instance : comm_group (pontryagin_dual G) :=
+continuous_monoid_hom.comm_group
+
+instance : topological_group (pontryagin_dual G) :=
+continuous_monoid_hom.topological_group
+
+end pontryagin_dual

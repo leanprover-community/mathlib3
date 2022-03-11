@@ -393,7 +393,6 @@ begin
   { assume h, simpa only [h, ennreal.not_lt_zero, ennreal.of_real_zero, abs_zero] using hm },
   -- let `B` be the continuous linear equiv version of `A`.
   let B := A.to_continuous_linear_equiv_of_det_ne_zero hA,
-  have : (B : E →L[ℝ] E) = A, by simp,
   -- the determinant of `B.symm` is bounded by `m⁻¹`
   have I : ennreal.of_real (|(B.symm : E →L[ℝ] E).det|) < (m⁻¹ : ℝ≥0),
   { simp only [ennreal.of_real, abs_inv, real.to_nnreal_inv, continuous_linear_equiv.det_coe_symm,

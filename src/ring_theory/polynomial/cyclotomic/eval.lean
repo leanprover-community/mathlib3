@@ -160,4 +160,52 @@ begin
     exact nat.pow_right_injective hp.two_le hxy }
 end
 
+lemma sub_one_lt_nat_abs_cyclotomic_eval (n : ℕ) (q : ℕ) (hn' : 1 < n) (hq' : q ≠ 1) :
+  q - 1 < ((cyclotomic n ℤ).eval ↑q).nat_abs :=
+begin
+  have : _ ∨ 2 ≤ q := (iff_iff_not_or_and_or_not.mp nat.one_lt_iff_ne_zero_and_ne_one).2.symm,
+  simp only [not_and_distrib, ne.def, not_not] at this,
+  rcases this with (rfl | rfl) | hq,
+  { rw [zero_tsub, int.coe_nat_zero, ←coeff_zero_eq_eval_zero, cyclotomic_coeff_zero _ hn'],
+    norm_num },
+  { exact (hq' rfl).elim },
+  rw [←@nat.cast_lt nnreal],
+  suffices : ↑(q - 1) < ∥(cyclotomic n ℂ).eval ↑q∥₊,
+  { calc ↑(q - 1) < ∥(cyclotomic n ℂ).eval ↑q∥₊ : this
+              ... = (int.nat_abs ((cyclotomic n ℤ).eval ↑q) : nnreal) :
+                    by rw [←map_cyclotomic_int, eval_map, eval₂_at_nat_cast, ring_hom.eq_int_cast,
+                           int.nat_cast_eq_coe_nat, nnreal.coe_nat_abs, complex.nnnorm_int] },
+  have hn : 0 < n := pos_of_gt hn',
+  let ζ := complex.exp (2 * ↑real.pi * complex.I / ↑n),
+  have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn.ne',
+  have norm_ζ : ∥ζ∥ = 1 := hζ.nnnorm_eq_one hn.ne',
+  simp only [cyclotomic_eq_prod_X_sub_primitive_roots hζ, eval_prod, nnnorm_prod, eval_C, eval_X,
+             ring_hom.eq_int_cast, eval_sub],
+  rw [←finset.prod_sdiff (finset.singleton_subset_iff.mpr $ (mem_primitive_roots hn).mpr hζ),
+      finset.prod_singleton, ←one_mul (↑(q - 1) : nnreal)],
+  have aux : 1 ≤ ∏ (x : ℂ) in primitive_roots n ℂ \ {ζ}, ∥↑q - x∥₊,
+  { refine finset.one_le_prod' (λ x hx, _),
+    rw ← nnreal.coe_le_coe,
+    refine le_trans _ (norm_sub_norm_le _ _),
+    simp only [finset.mem_sdiff, mem_primitive_roots hn] at hx,
+    simp only [nonneg.coe_one, complex.norm_nat, hx.1.nnnorm_eq_one hn.ne', le_sub_iff_add_le],
+    exact_mod_cast hq },
+  refine mul_lt_mul' aux _ zero_le' (lt_of_lt_of_le zero_lt_one aux),
+  rw [← nnreal.coe_lt_coe, coe_nnnorm, nnreal.coe_nat_cast, complex.norm_eq_abs],
+  refine lt_of_lt_of_le _ (complex.re_le_abs _),
+  rw [nat.cast_sub (one_le_two.trans hq), nat.cast_one, complex.sub_re, complex.nat_cast_re,
+      sub_lt_sub_iff_left],
+  rw [complex.norm_eq_abs, complex.abs,
+      real.sqrt_eq_iff_sq_eq (complex.norm_sq_nonneg _) zero_le_one,
+      one_pow, complex.norm_sq_apply] at norm_ζ,
+  rcases lt_trichotomy ζ.re 1 with (H|H|H),
+  { exact H },
+  { simp only [H, mul_one, self_eq_add_right, or_self, mul_eq_zero] at norm_ζ,
+    have : ζ = 1, { ext, assumption' },
+    rw this at hζ,
+    exact (hζ.pow_ne_one_of_pos_of_lt zero_lt_one hn' $ by rw pow_one).elim },
+  { refine (ne_of_lt _ norm_ζ).elim,
+    nlinarith }
+end
+
 end polynomial

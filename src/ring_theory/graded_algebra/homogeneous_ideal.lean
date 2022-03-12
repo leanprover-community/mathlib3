@@ -483,6 +483,7 @@ variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 If `A` is graded by a canonically ordered add monoid, then the projection map `x ↦ x₀` is a ring
 homomorphism.
 -/
+@[simps]
 def graded_algebra.proj_zero_ring_hom : A →+* A :=
 { to_fun := λ a, decompose 𝒜 a 0,
   map_one' := decompose_of_mem_same 𝒜 one_mem,

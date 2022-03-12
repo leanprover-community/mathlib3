@@ -139,6 +139,7 @@ begin
 
 end
 
+/-- Theorem 3.4 of Conrad -/
 lemma strong_probable_prime_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : nat.prime p)
   (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
 begin
@@ -165,7 +166,9 @@ begin
   haveI : fact (0 < p ^ α),
   { exact {out := zero_lt_n}, },
   split,
-  { intro hspp,
+  { -- a is a Miller-Rabin nonwitness for n = p^α
+    intro hspp,
+    -- Euler's theorem tells us that `a^φ(n) = 1`.
     have euler : a ^ nat.totient (p^α) = 1,
     { have a_unit : is_unit a,
       { apply is_unit_of_pow_eq_one _ (p^α - 1),
@@ -179,12 +182,27 @@ begin
       rw <-coe_this,
       rw units.coe_pow,
       congr, },
-    rw nat.totient_prime_pow at euler,
-    {
-      sorry,
-    },
-    exact hp,
-    exact nat.succ_le_iff.mp hα,
+    rw nat.totient_prime_pow hp (nat.succ_le_iff.mp hα) at euler,
+    -- ... both cases imply a^n-1 = 1
+    have h2 : a ^ (p^α - 1) = 1,
+    { -- since a is a nonwitness, we have either ...
+      cases hspp,
+      { -- ... a^k = 1
+        sorry, -- TODO(Sean)
+      },
+      { -- ... or a^(2^i k) = -1
+        rcases hspp with ⟨r, hrlt, hrpow⟩,
+        rw lt_iff_exists_add at hrlt,
+        rcases hrlt with ⟨c, Hc, hc⟩,
+        replace hrpow := congr_arg (^(2^c)) hrpow,
+        simp only [] at hrpow,
+        convert hrpow using 1,
+        {  -- TODO(Sean)
+          sorry, },
+        {  -- TODO(Sean) use Hc to complete this. Might need to make new lemmas or do library_search
+          sorry, },
+      }, }
+
   },
   {
     intro h,

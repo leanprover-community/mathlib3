@@ -1196,13 +1196,11 @@ end int
 section
 open finset
 /-- Exactly `n / p` naturals in `[1, n]` are multiples of `p`. -/
-lemma card_multiples (n p : ℕ) : card {e ∈ range n | p ∣ e + 1} = n / p :=
+lemma card_multiples (n p : ℕ) : card ((range n).filter (λ e, p ∣ e + 1)) = n / p :=
 begin
   induction n with n hn,
-  { rw [nat.zero_div, sep_def, range_zero, filter_empty, card_empty] },
-  { rw [nat.succ_div, add_ite, add_zero, range_succ, sep_def, filter_insert, apply_ite card,
-      card_insert_of_not_mem, ←sep_def, hn],
-    { congr },
-    { simp_rw [mem_filter, not_mem_range_self, false_and, not_false_iff] } },
+  { rw [nat.zero_div, range_zero, filter_empty, card_empty] },
+  { rw [nat.succ_div, add_ite, add_zero, range_succ, filter_insert, apply_ite card,
+      card_insert_of_not_mem (mem_filter.not.mpr (not_and_of_not_left _ not_mem_range_self)), hn] }
 end
 end

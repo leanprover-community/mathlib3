@@ -106,7 +106,7 @@ begin
 end
 
 omit assoc
-variables [monoid α]
+variables [monoid α] [monoid β]
 
 /-- Product of a `s : multiset α` with `[monoid α]`, given a proof that `*` commutes
 on all elements `x ∈ s`. -/
@@ -161,6 +161,27 @@ begin
         simp [hx] },
       { cases hy;
         simp [hy] } } }
+end
+
+@[to_additive, protected]
+lemma nocomm_prod_map_aux (s : multiset α)
+  (comm : ∀ (x ∈ s) (y ∈ s), commute x y)
+  {F : Type*} [monoid_hom_class F α β] (f : F) :
+  ∀ (x ∈ s.map f) (y ∈ s.map f), commute x y :=
+begin
+  simp only [multiset.mem_map],
+  rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
+  exact (comm _ hx _ hy).map f,
+end
+
+@[to_additive]
+lemma noncomm_prod_map (s : multiset α)
+  (comm : ∀ (x ∈ s) (y ∈ s), commute x y)
+  {F : Type*} [monoid_hom_class F α β] (f : F) :
+  f (s.noncomm_prod comm) = (s.map f).noncomm_prod (nocomm_prod_map_aux s comm f) :=
+begin
+  induction s using quotient.induction_on,
+  simpa using map_list_prod f _,
 end
 
 @[to_additive] lemma noncomm_prod_eq_prod {α : Type*} [comm_monoid α] (s : multiset α) :
@@ -240,13 +261,8 @@ lemma noncomm_prod_map (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   {F : Type*} [monoid_hom_class F β γ] (g : F) :
   g (s.noncomm_prod f comm) = s.noncomm_prod (λ i, g (f i))
-  (λ x hx y hy, commute.map (comm x hx y hy) g)  :=
-begin
-  classical,
-  revert comm, rw ← s.to_list_to_finset, intro,
-  iterate 2 { rw finset.noncomm_prod_to_finset _ _ _ s.nodup_to_list },
-  convert map_list_prod g _, rw list.comp_map,
-end
+  (λ x hx y hy, (comm x hx y hy).map g)  :=
+by simp [noncomm_prod, multiset.noncomm_prod_map],
 
 @[to_additive noncomm_sum_eq_card_nsmul]
 lemma noncomm_prod_eq_pow_card (s : finset α) (f : α → β)

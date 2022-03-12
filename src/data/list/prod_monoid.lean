@@ -27,6 +27,14 @@ begin
   { rw [list.repeat_succ, list.prod_cons, ih, pow_succ] }
 end
 
+@[to_additive sum_eq_card_nsmul]
+lemma prod_eq_pow_card [monoid α] (l : list α) (m : α) (h : ∀ (x ∈ l), x = m) :
+  l.prod = m ^ l.length :=
+begin
+  convert list.prod_repeat m l.length,
+  exact list.eq_repeat.mpr ⟨rfl, h⟩,
+end
+
 @[to_additive]
 lemma prod_le_of_forall_le [ordered_comm_monoid α] (l : list α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
   l.prod ≤ n ^ l.length :=

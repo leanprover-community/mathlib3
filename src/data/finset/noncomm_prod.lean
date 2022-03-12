@@ -5,8 +5,6 @@ Authors: Yakov Pechersky
 -/
 
 import algebra.big_operators.basic
-import group_theory.submonoid.basic
-import group_theory.subgroup.basic
 
 /-!
 # Products (respectively, sums) over a finset or a multiset.
@@ -165,22 +163,6 @@ begin
         simp [hy] } } }
 end
 
-@[to_additive]
-lemma _root_.submonoid.multiset_noncomm_prod_mem (m : submonoid α) (s : multiset α)
-  (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute x y)
-  (h : ∀ (x ∈ s), x ∈ m) : s.noncomm_prod comm ∈ m :=
-begin
-  induction s using quotient.induction_on with l,
-  simp only [quot_mk_to_coe, noncomm_prod_coe],
-  exact submonoid.list_prod_mem _ h,
-end
-
-@[to_additive]
-lemma _root_.subgroup.multiset_noncomm_prod_mem {α : Type*} [group α] (m : subgroup α)
-  (s : multiset α) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute x y) :
-  (∀ (x ∈ s), x ∈ m) → s.noncomm_prod comm ∈ m :=
-by simpa [subgroup.mem_to_submonoid] using m.to_submonoid.multiset_noncomm_prod_mem s comm
-
 @[to_additive] lemma noncomm_prod_eq_prod {α : Type*} [comm_monoid α] (s : multiset α) :
   noncomm_prod s (λ _ _ _ _, commute.all _ _) = prod s :=
 begin
@@ -254,24 +236,6 @@ by simp [noncomm_prod, insert_val_of_not_mem ha, multiset.noncomm_prod_cons']
 by simp [noncomm_prod, multiset.singleton_eq_cons]
 
 @[to_additive]
-lemma _root_.submonoid.finset_noncomm_prod_mem (m : submonoid β) (s : finset α) (f : α → β)
-  (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
-  (h : ∀ (x : α), x ∈ s → f x ∈ m) : s.noncomm_prod f comm ∈ m :=
-begin
-  apply submonoid.multiset_noncomm_prod_mem,
-  intro y,
-  rw multiset.mem_map,
-  rintros ⟨x, ⟨hx, rfl⟩⟩,
-  exact h x hx,
-end
-
-@[to_additive]
-lemma _root_.subgroup.finset_noncomm_prod_mem {β : Type*} [group β] (m : subgroup β)
-  (s : finset α) (f : α → β) (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y)) :
-  (∀ (x : α), x ∈ s → f x ∈ m) → s.noncomm_prod f comm ∈ m :=
-by simpa [subgroup.mem_to_submonoid] using m.to_submonoid.finset_noncomm_prod_mem s f comm
-
-@[to_additive]
 lemma noncomm_prod_commute (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (y : β) (h : ∀ (x : α), x ∈ s → commute y (f x)) : commute y (s.noncomm_prod f comm) :=
@@ -293,7 +257,7 @@ begin
 end
 
 /- The non-commutative version of `finset.prod_union` -/
-@[to_additive /-" The non-commutative version of `finset.sum_union` "-/]
+@[to_additive "The non-commutative version of `finset.sum_union`"]
 lemma noncomm_prod_union_of_disjoint [decidable_eq α] {s t : finset α}
   (h : disjoint s t) (f : α → β)
   (comm : ∀ (x ∈ s ∪ t) (y ∈ s ∪ t), commute (f x) (f y))
@@ -308,6 +272,50 @@ begin
   rw list.disjoint_to_finset_iff_disjoint at h,
   simp [sl', tl', noncomm_prod_to_finset, ←list.prod_append, ←list.to_finset_append,
         list.nodup_append_of_nodup sl' tl' h]
+end
+
+@[protected, to_additive]
+lemma noncomm_prod_mul_distrib_aux {s : finset α} {f : α → β} {g : α → β}
+  (comm_ff : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
+  (comm_gg : ∀ (x ∈ s) (y ∈ s), commute (g x) (g y))
+  (comm_gf : ∀ (x ∈ s) (y ∈ s), x ≠ y → commute (g x) (f y)) :
+  (∀ (x ∈ s) (y ∈ s), commute ((f * g) x) ((f * g) y)) :=
+begin
+  intros x hx y hy,
+  by_cases h : x = y, { subst h },
+  apply commute.mul_left; apply commute.mul_right,
+  { exact comm_ff x hx y hy },
+  { exact (comm_gf y hy x hx (ne.symm h)).symm },
+  { exact comm_gf x hx y hy h },
+  { exact comm_gg x hx y hy },
+end
+
+/-- The non-commutative version of `finset.prod_mul_distrib` -/
+@[to_additive "The non-commutative version of `finset.sum_add_distrib`"]
+lemma noncomm_prod_mul_distrib {s : finset α} (f : α → β) (g : α → β)
+  (comm_ff : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
+  (comm_gg : ∀ (x ∈ s) (y ∈ s), commute (g x) (g y))
+  (comm_gf : ∀ (x ∈ s) (y ∈ s), x ≠ y → commute (g x) (f y)) :
+  noncomm_prod s (f * g) (noncomm_prod_mul_distrib_aux comm_ff comm_gg comm_gf)
+    = noncomm_prod s f comm_ff * noncomm_prod s g comm_gg :=
+begin
+  classical,
+  induction s using finset.induction_on with x s hnmem ih,
+  { simp, },
+  { simp only [finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem],
+    specialize ih
+      (λ x hx y hy, comm_ff x (mem_insert_of_mem hx) y (mem_insert_of_mem hy))
+      (λ x hx y hy, comm_gg x (mem_insert_of_mem hx) y (mem_insert_of_mem hy))
+      (λ x hx y hy hne, comm_gf x (mem_insert_of_mem hx) y (mem_insert_of_mem hy) hne),
+    rw [ih, pi.mul_apply],
+    simp only [mul_assoc],
+    congr' 1,
+    simp only [← mul_assoc],
+    congr' 1,
+    apply noncomm_prod_commute,
+    intros y hy,
+    have : x ≠ y, by {rintro rfl, contradiction},
+    exact comm_gf x (mem_insert_self x s) y (mem_insert_of_mem hy) this, }
 end
 
 /-- `finset.noncomm_prod` is “injective” in `f` if `f` maps into independent subgroups.  It

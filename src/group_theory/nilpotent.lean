@@ -319,12 +319,7 @@ end
 lemma descending_central_series_ge_lower (H : ℕ → subgroup G)
   (hH : is_descending_central_series H) : ∀ n : ℕ, lower_central_series G n ≤ H n
 | 0 := hH.1.symm ▸ le_refl ⊤
-| (n + 1) := begin
-  specialize descending_central_series_ge_lower n,
-  apply (commutator_le _ _ _).2,
-  intros x hx q _,
-  exact hH.2 x n (descending_central_series_ge_lower hx) q,
-end
+| (n + 1) := commutator_le.mpr (λ x hx q _, hH.2 x n (descending_central_series_ge_lower n hx) q)
 
 /-- A group is nilpotent if and only if its lower central series eventually reaches
   the trivial subgroup. -/

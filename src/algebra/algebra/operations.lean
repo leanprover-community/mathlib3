@@ -5,6 +5,7 @@ Authors: Kenny Lau
 -/
 import algebra.algebra.bilinear
 import algebra.module.submodule_pointwise
+import algebra.module.opposites
 
 /-!
 # Multiplication and division of submodules of an algebra.
@@ -30,7 +31,7 @@ multiplication of submodules, division of subodules, submodule semiring
 
 universes uι u v
 
-open algebra set
+open algebra set mul_opposite
 open_locale big_operators
 open_locale pointwise
 
@@ -66,6 +67,26 @@ end
 
 theorem one_le : (1 : submodule R A) ≤ P ↔ (1 : A) ∈ P :=
 by simpa only [one_eq_span, span_le, set.singleton_subset_iff]
+
+protected lemma map_one {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
+  map f.to_linear_map (1 : submodule R A) = 1 :=
+by { ext, simp }
+
+@[simp] lemma map_op_one :
+  map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (1 : submodule R A) = 1 :=
+by { ext, induction x using mul_opposite.rec, simp }
+
+@[simp] lemma comap_op_one :
+  comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (1 : submodule R Aᵐᵒᵖ) = 1 :=
+by { ext, simp }
+
+@[simp] lemma map_unop_one :
+  map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) (1 : submodule R Aᵐᵒᵖ) = 1 :=
+by rw [←comap_equiv_eq_map_symm, comap_op_one]
+
+@[simp] lemma comap_unop_one :
+  comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) (1 : submodule R A) = 1 :=
+by rw [←map_equiv_eq_comap_symm, map_op_one]
 
 /-- Multiplication of sub-R-modules of an R-algebra A. The submodule `M * N` is the
 smallest R-submodule of `A` containing the elements `m * n` for `m ∈ M` and `n ∈ N`. -/
@@ -113,8 +134,8 @@ begin
   apply le_antisymm,
   { rw mul_le, intros a ha b hb,
     apply span_induction ha,
-    work_on_goal 0 { intros, apply span_induction hb,
-      work_on_goal 0 { intros, exact subset_span ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
+    work_on_goal 1 { intros, apply span_induction hb,
+      work_on_goal 1 { intros, exact subset_span ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
     all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
         left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
       try {apply add_mem _ _ _}, try {apply smul_mem _ _ _} }, assumption' },
@@ -172,7 +193,7 @@ le_antisymm (mul_le.2 $ λ mn hmn p hp, let ⟨m, hm, n, hn, hmn⟩ := mem_sup.1
 lemma mul_subset_mul : (↑M : set A) * (↑N : set A) ⊆ (↑(M * N) : set A) :=
 by { rintros _ ⟨i, j, hi, hj, rfl⟩, exact mul_mem_mul hi hj }
 
-lemma map_mul {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
+protected lemma map_mul {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
   map f.to_linear_map (M * N) = map f.to_linear_map M * map f.to_linear_map N :=
 calc map f.to_linear_map (M * N)
     = ⨆ (i : M), (N.map (lmul R A i)).map f.to_linear_map : map_supr _ _
@@ -191,6 +212,75 @@ calc map f.to_linear_map (M * N)
       rw f.to_linear_map_apply at fy_eq,
       ext,
       simp [fy_eq] }
+end
+
+lemma map_op_mul :
+  map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (M * N) =
+    map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) N *
+      map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) M :=
+begin
+  apply le_antisymm,
+  { simp_rw map_le_iff_le_comap,
+    refine mul_le.2 (λ m hm n hn, _),
+    rw [mem_comap, map_equiv_eq_comap_symm, map_equiv_eq_comap_symm],
+    show op n * op m ∈ _,
+    exact mul_mem_mul hn hm },
+  { refine mul_le.2 (mul_opposite.rec $ λ m hm, mul_opposite.rec $ λ n hn, _),
+    rw submodule.mem_map_equiv at ⊢ hm hn,
+    exact mul_mem_mul hn hm, }
+end
+
+lemma comap_unop_mul :
+  comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) (M * N) =
+    comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) N *
+      comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) M :=
+by simp_rw [←map_equiv_eq_comap_symm, map_op_mul]
+
+lemma map_unop_mul (M N : submodule R Aᵐᵒᵖ) :
+  map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) (M * N) =
+    map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) N *
+      map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) M :=
+have function.injective (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) :=
+  linear_equiv.injective _,
+map_injective_of_injective this $
+  by rw [← map_comp, map_op_mul, ←map_comp, ←map_comp, linear_equiv.comp_coe,
+         linear_equiv.symm_trans_self, linear_equiv.refl_to_linear_map, map_id, map_id, map_id]
+
+lemma comap_op_mul (M N : submodule R Aᵐᵒᵖ) :
+  comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (M * N) =
+    comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) N *
+      comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) M :=
+by simp_rw [comap_equiv_eq_map_symm, map_unop_mul]
+
+section
+open_locale pointwise
+
+/-- `submodule.has_pointwise_neg` distributes over multiplication.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def has_distrib_pointwise_neg {A} [ring A] [algebra R A] :
+  has_distrib_neg (submodule R A) :=
+{ neg := has_neg.neg,
+  neg_mul := λ x y, begin
+    refine le_antisymm
+      (mul_le.2 $ λ m hm n hn, _)
+      ((submodule.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
+    simp only [submodule.mem_neg, ←neg_mul] at *,
+    { exact mul_mem_mul hm hn,},
+    { exact mul_mem_mul (neg_mem_neg.2 hm) hn },
+  end,
+  mul_neg := λ x y, begin
+    refine le_antisymm
+      (mul_le.2 $ λ m hm n hn, _)
+      ((submodule.neg_le _ _).2 $ mul_le.2 $ λ m hm n hn, _);
+    simp only [submodule.mem_neg, ←mul_neg] at *,
+    { exact mul_mem_mul hm hn,},
+    { exact mul_mem_mul hm (neg_mem_neg.2 hn) },
+  end,
+  ..submodule.has_involutive_pointwise_neg }
+
+localized "attribute [instance] submodule.has_distrib_pointwise_neg" in pointwise
+
 end
 
 section decidable_eq
@@ -262,7 +352,7 @@ begin
 end
 
 /-- Dependent version of `submodule.pow_induction_on`. -/
-protected theorem pow_induction_on'
+@[elab_as_eliminator] protected theorem pow_induction_on'
   {C : Π (n : ℕ) x, x ∈ M ^ n → Prop}
   (hr : ∀ r : R, C 0 (algebra_map _ _ r) (algebra_map_mem r))
   (hadd : ∀ x y i hx hy, C i x hx → C i y hy → C i (x + y) (add_mem _ ‹_› ‹_›))
@@ -280,7 +370,7 @@ end
 
 /-- To show a property on elements of `M ^ n` holds, it suffices to show that it holds for scalars,
 is closed under addition, and holds for `m * x` where `m ∈ M` and it holds for `x` -/
-protected theorem pow_induction_on
+@[elab_as_eliminator] protected theorem pow_induction_on
   {C : A → Prop}
   (hr : ∀ r : R, C (algebra_map _ _ r))
   (hadd : ∀ x y, C x → C y → C (x + y))
@@ -288,6 +378,50 @@ protected theorem pow_induction_on
   {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C x :=
 submodule.pow_induction_on' M
   (by exact hr) (λ x y i hx hy, hadd x y) (λ m hm i x hx, hmul _ hm _) hx
+
+/-- `submonoid.map` as a `monoid_with_zero_hom`, when applied to `alg_hom`s. -/
+@[simps]
+def map_hom {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') :
+  submodule R A →*₀ submodule R A' :=
+{ to_fun := map f.to_linear_map,
+  map_zero' := submodule.map_bot _,
+  map_one' := submodule.map_one _,
+  map_mul' := λ _ _, submodule.map_mul _ _ _}
+
+/-- The ring of submodules of the opposite algebra is isomorphic to the opposite ring of
+submodules. -/
+@[simps apply symm_apply]
+def equiv_opposite : submodule R Aᵐᵒᵖ ≃+* (submodule R A)ᵐᵒᵖ :=
+{ to_fun := λ p, op $ p.comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ),
+  inv_fun := λ p, p.unop.comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A),
+  left_inv := λ p, set_like.coe_injective $ rfl,
+  right_inv := λ p, unop_injective $ set_like.coe_injective rfl,
+  map_add' := λ p q, by simp [comap_equiv_eq_map_symm, ←op_add],
+  map_mul' := λ p q, congr_arg op $ comap_op_mul _ _ }
+
+protected lemma map_pow {A'} [semiring A'] [algebra R A'] (f : A →ₐ[R] A') (n : ℕ) :
+  map f.to_linear_map (M ^ n) = map f.to_linear_map M ^ n :=
+map_pow (map_hom f) M n
+
+lemma comap_unop_pow (n : ℕ) :
+  comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) (M ^ n) =
+    comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) M ^ n :=
+(equiv_opposite : submodule R Aᵐᵒᵖ ≃+* _).symm.map_pow (op M) n
+
+lemma comap_op_pow (n : ℕ) (M : submodule R Aᵐᵒᵖ) :
+  comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (M ^ n) =
+    comap (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) M ^ n :=
+op_injective $ (equiv_opposite : submodule R Aᵐᵒᵖ ≃+* _).map_pow M n
+
+lemma map_op_pow (n : ℕ) :
+  map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) (M ^ n) =
+    map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ) : A →ₗ[R] Aᵐᵒᵖ) M ^ n :=
+by rw [map_equiv_eq_comap_symm, map_equiv_eq_comap_symm, comap_unop_pow]
+
+lemma map_unop_pow (n : ℕ) (M : submodule R Aᵐᵒᵖ) :
+  map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) (M ^ n) =
+    map (↑(op_linear_equiv R : A ≃ₗ[R] Aᵐᵒᵖ).symm : Aᵐᵒᵖ →ₗ[R] A) M ^ n :=
+by rw [←comap_equiv_eq_map_symm, ←comap_equiv_eq_map_symm, comap_op_pow]
 
 /-- `span` is a semiring homomorphism (recall multiplication is pointwise multiplication of subsets
 on either side). -/
@@ -423,7 +557,7 @@ begin
   exact hn m hm,
 end
 
-@[simp] lemma map_div {B : Type*} [comm_ring B] [algebra R B]
+@[simp] protected lemma map_div {B : Type*} [comm_ring B] [algebra R B]
   (I J : submodule R A) (h : A ≃ₐ[R] B) :
   (I / J).map h.to_linear_map = I.map h.to_linear_map / J.map h.to_linear_map :=
 begin

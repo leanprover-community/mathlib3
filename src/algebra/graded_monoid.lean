@@ -218,7 +218,7 @@ instance grade_zero.has_one : has_one (A 0) :=
 end one
 
 section mul
-variables [add_monoid ι] [ghas_mul A]
+variables [add_zero_class ι] [ghas_mul A]
 
 /-- `(•) : A 0 → A i → A i` is the value provided in `graded_monoid.ghas_mul.mul`, composed with
 an `eq.rec` to turn `A (0 + i)` into `A i`.
@@ -245,9 +245,19 @@ end mul
 section monoid
 variables [add_monoid ι] [gmonoid A]
 
+instance : has_pow (A 0) ℕ :=
+{ pow := λ x n, (nsmul_zero n).rec (gmonoid.gnpow n x : A (n • 0)) }
+
+variables {A}
+
+@[simp] lemma mk_zero_pow (a : A 0) (n : ℕ) : mk _ (a ^ n) = mk _ a ^ n :=
+sigma.ext (nsmul_zero n).symm $ eq_rec_heq _ _
+
+variables (A)
+
 /-- The `monoid` structure derived from `gmonoid A`. -/
 instance grade_zero.monoid : monoid (A 0) :=
-function.injective.monoid (mk 0) sigma_mk_injective rfl mk_zero_smul
+function.injective.monoid (mk 0) sigma_mk_injective rfl mk_zero_smul mk_zero_pow
 
 end monoid
 
@@ -256,7 +266,7 @@ variables [add_comm_monoid ι] [gcomm_monoid A]
 
 /-- The `comm_monoid` structure derived from `gcomm_monoid A`. -/
 instance grade_zero.comm_monoid : comm_monoid (A 0) :=
-function.injective.comm_monoid (mk 0) sigma_mk_injective rfl mk_zero_smul
+function.injective.comm_monoid (mk 0) sigma_mk_injective rfl mk_zero_smul mk_zero_pow
 
 end monoid
 

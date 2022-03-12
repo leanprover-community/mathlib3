@@ -387,7 +387,7 @@ def proj_right : πₓ (Top.of (A × B)) ⥤ πₓ B := πₘ ⟨_, continuous_s
 The map taking the product of two fundamental groupoids to the fundamental groupoid of the product
 of the two topological spaces. This is in fact an isomorphism (see `prod_iso`).
 -/
-@[simps]
+@[simps obj]
 def prod_to_prod_Top : (πₓ A) × (πₓ B) ⥤ πₓ (Top.of (A × B)) :=
 { obj := λ g, g,
   map := λ x y p, match x, y, p with
@@ -403,6 +403,11 @@ def prod_to_prod_Top : (πₓ A) × (πₓ B) ⥤ πₓ (Top.of (A × B)) :=
     | (x₀, x₁), (y₀, y₁), (z₀, z₁), (f₀, f₁), (g₀, g₁) :=
     (path.homotopic.comp_prod_eq_prod_comp f₀ f₁ g₀ g₁).symm
   end }
+
+lemma prod_to_prod_Top_map {x₀ x₁ : πₓ A} {y₀ y₁ : πₓ B}
+  (p₀ : x₀ ⟶ x₁) (p₁ : y₀ ⟶ y₁) :
+  @category_theory.functor.map _ _ _ _
+  (prod_to_prod_Top A B) (x₀, y₀) (x₁, y₁) (p₀, p₁) = path.homotopic.prod p₀ p₁ := rfl
 
 /--
 Shows `prod_to_prod_Top` is an isomorphism, whose inverse is precisely the product

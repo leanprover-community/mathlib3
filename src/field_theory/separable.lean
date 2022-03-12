@@ -540,7 +540,7 @@ begin
   rw or_iff_not_imp_right,
   rintro hn : n ≠ 0,
   have hf2 : (expand F (p ^ n) f).derivative = 0,
-  { by rw [derivative_expand, nat.cast_pow, char_p.cast_eq_zero,
+  { rw [derivative_expand, nat.cast_pow, char_p.cast_eq_zero,
       zero_pow hn.bot_lt, zero_mul, mul_zero] },
   rw [separable_def, hf2, is_coprime_zero_right, is_unit_iff] at hf,
   rcases hf with ⟨r, hr, hrf⟩,

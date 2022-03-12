@@ -94,7 +94,7 @@ begin
   have hp : ¬ is_unit (p : 𝕎 k),
   { intro hp,
     simpa only [constant_coeff_apply, coeff_p_zero, not_is_unit_zero]
-      using constant_coeff.is_unit_map hp, },
+      using (constant_coeff : witt_vector p k →+* _).is_unit_map hp, },
   refine ⟨hp, λ a b hab, _⟩,
   obtain ⟨ha0, hb0⟩ : a ≠ 0 ∧ b ≠ 0,
   { rw ← mul_ne_zero_iff, intro h, rw h at hab, exact p_nonzero p k hab },

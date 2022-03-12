@@ -187,6 +187,17 @@ one_hom_class.map_one f
 hf.eq_iff' (map_one f)
 
 @[to_additive]
+lemma map_ne_one_iff {R S F : Type*} [has_one R] [has_one S] [one_hom_class F R S]
+  (f : F) (hf : function.injective f) {x : R} :
+  f x ≠ 1 ↔ x ≠ 1 :=
+(map_eq_one_iff f hf).not
+
+@[to_additive]
+lemma ne_one_of_map {R S F : Type*} [has_one R] [has_one S] [one_hom_class F R S]
+  {f : F} {x : R} (hx : f x ≠ 1) : x ≠ 1 :=
+ne_of_apply_ne f $ ne_of_ne_of_eq hx (map_one f).symm
+
+@[to_additive]
 instance [one_hom_class F M N] : has_coe_t F (one_hom M N) :=
 ⟨λ f, { to_fun := f, map_one' := map_one f }⟩
 
@@ -294,7 +305,7 @@ by rw [map_mul, map_inv]
   (f : F) (x y : G) : f (x / y) = f x / f y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul_inv]
 
-@[simp, to_additive map_nsmul] theorem map_pow [monoid G] [monoid H] [monoid_hom_class F G H]
+@[simp, to_additive] theorem map_pow [monoid G] [monoid H] [monoid_hom_class F G H]
   (f : F) (a : G) :
   ∀ (n : ℕ), f (a ^ n) = (f a) ^ n
 | 0     := by rw [pow_zero, pow_zero, map_one]
@@ -458,80 +469,99 @@ lemma monoid_with_zero_hom.to_monoid_hom_coe [mul_zero_one_class M] [mul_zero_on
   (f : M →*₀ N) :
   (f.to_monoid_hom : M → N) = f := rfl
 
-@[to_additive]
-theorem one_hom.congr_fun [has_one M] [has_one N]
-  {f g : one_hom M N} (h : f = g) (x : M) : f x = g x :=
-congr_arg (λ h : one_hom M N, h x) h
-@[to_additive]
-theorem mul_hom.congr_fun [has_mul M] [has_mul N]
-  {f g : mul_hom M N} (h : f = g) (x : M) : f x = g x :=
-congr_arg (λ h : mul_hom M N, h x) h
-@[to_additive]
-theorem monoid_hom.congr_fun [mul_one_class M] [mul_one_class N]
-  {f g : M →* N} (h : f = g) (x : M) : f x = g x :=
-congr_arg (λ h : M →* N, h x) h
-theorem monoid_with_zero_hom.congr_fun [mul_zero_one_class M] [mul_zero_one_class N] {f g : M →*₀ N}
-  (h : f = g) (x : M) : f x = g x :=
-congr_arg (λ h : M →*₀ N, h x) h
-
-@[to_additive]
-theorem one_hom.congr_arg [has_one M] [has_one N]
-  (f : one_hom M N) {x y : M} (h : x = y) : f x = f y :=
-congr_arg (λ x : M, f x) h
-@[to_additive]
-theorem mul_hom.congr_arg [has_mul M] [has_mul N]
-  (f : mul_hom M N) {x y : M} (h : x = y) : f x = f y :=
-congr_arg (λ x : M, f x) h
-@[to_additive]
-theorem monoid_hom.congr_arg [mul_one_class M] [mul_one_class N]
-  (f : M →* N) {x y : M} (h : x = y) : f x = f y :=
-congr_arg (λ x : M, f x) h
-theorem monoid_with_zero_hom.congr_arg [mul_zero_one_class M] [mul_zero_one_class N] (f : M →*₀ N)
-  {x y : M} (h : x = y) : f x = f y :=
-congr_arg (λ x : M, f x) h
-
-@[to_additive]
-lemma one_hom.coe_inj [has_one M] [has_one N] ⦃f g : one_hom M N⦄ (h : (f : M → N) = g) : f = g :=
-by cases f; cases g; cases h; refl
-@[to_additive]
-lemma mul_hom.coe_inj [has_mul M] [has_mul N] ⦃f g : mul_hom M N⦄ (h : (f : M → N) = g) : f = g :=
-by cases f; cases g; cases h; refl
-@[to_additive]
-lemma monoid_hom.coe_inj [mul_one_class M] [mul_one_class N]
-  ⦃f g : M →* N⦄ (h : (f : M → N) = g) : f = g :=
-by cases f; cases g; cases h; refl
-lemma monoid_with_zero_hom.coe_inj [mul_zero_one_class M] [mul_zero_one_class N]
-  ⦃f g : M →*₀ N⦄ (h : (f : M → N) = g) : f = g :=
-by cases f; cases g; cases h; refl
-
 @[ext, to_additive]
 lemma one_hom.ext [has_one M] [has_one N] ⦃f g : one_hom M N⦄ (h : ∀ x, f x = g x) : f = g :=
-one_hom.coe_inj (funext h)
+fun_like.ext _ _ h
 @[ext, to_additive]
 lemma mul_hom.ext [has_mul M] [has_mul N] ⦃f g : mul_hom M N⦄ (h : ∀ x, f x = g x) : f = g :=
-mul_hom.coe_inj (funext h)
+fun_like.ext _ _ h
 @[ext, to_additive]
 lemma monoid_hom.ext [mul_one_class M] [mul_one_class N]
   ⦃f g : M →* N⦄ (h : ∀ x, f x = g x) : f = g :=
-monoid_hom.coe_inj (funext h)
+fun_like.ext _ _ h
 @[ext]
 lemma monoid_with_zero_hom.ext [mul_zero_one_class M] [mul_zero_one_class N] ⦃f g : M →*₀ N⦄
   (h : ∀ x, f x = g x) : f = g :=
-monoid_with_zero_hom.coe_inj (funext h)
+fun_like.ext _ _ h
 
+section deprecated
+
+/-- Deprecated: use `fun_like.congr_fun` instead. -/
+@[to_additive]
+theorem one_hom.congr_fun [has_one M] [has_one N]
+  {f g : one_hom M N} (h : f = g) (x : M) : f x = g x :=
+fun_like.congr_fun h x
+/-- Deprecated: use `fun_like.congr_fun` instead. -/
+@[to_additive]
+theorem mul_hom.congr_fun [has_mul M] [has_mul N]
+  {f g : mul_hom M N} (h : f = g) (x : M) : f x = g x :=
+fun_like.congr_fun h x
+/-- Deprecated: use `fun_like.congr_fun` instead. -/
+@[to_additive]
+theorem monoid_hom.congr_fun [mul_one_class M] [mul_one_class N]
+  {f g : M →* N} (h : f = g) (x : M) : f x = g x :=
+fun_like.congr_fun h x
+/-- Deprecated: use `fun_like.congr_fun` instead. -/
+theorem monoid_with_zero_hom.congr_fun [mul_zero_one_class M] [mul_zero_one_class N] {f g : M →*₀ N}
+  (h : f = g) (x : M) : f x = g x :=
+fun_like.congr_fun h x
+
+/-- Deprecated: use `fun_like.congr_arg` instead. -/
+@[to_additive]
+theorem one_hom.congr_arg [has_one M] [has_one N]
+  (f : one_hom M N) {x y : M} (h : x = y) : f x = f y :=
+fun_like.congr_arg f h
+/-- Deprecated: use `fun_like.congr_arg` instead. -/
+@[to_additive]
+theorem mul_hom.congr_arg [has_mul M] [has_mul N]
+  (f : mul_hom M N) {x y : M} (h : x = y) : f x = f y :=
+fun_like.congr_arg f h
+/-- Deprecated: use `fun_like.congr_arg` instead. -/
+@[to_additive]
+theorem monoid_hom.congr_arg [mul_one_class M] [mul_one_class N]
+  (f : M →* N) {x y : M} (h : x = y) : f x = f y :=
+fun_like.congr_arg f h
+/-- Deprecated: use `fun_like.congr_arg` instead. -/
+theorem monoid_with_zero_hom.congr_arg [mul_zero_one_class M] [mul_zero_one_class N] (f : M →*₀ N)
+  {x y : M} (h : x = y) : f x = f y :=
+fun_like.congr_arg f h
+
+/-- Deprecated: use `fun_like.coe_injective` instead. -/
+@[to_additive]
+lemma one_hom.coe_inj [has_one M] [has_one N] ⦃f g : one_hom M N⦄ (h : (f : M → N) = g) : f = g :=
+fun_like.coe_injective h
+/-- Deprecated: use `fun_like.coe_injective` instead. -/
+@[to_additive]
+lemma mul_hom.coe_inj [has_mul M] [has_mul N] ⦃f g : mul_hom M N⦄ (h : (f : M → N) = g) : f = g :=
+fun_like.coe_injective h
+/-- Deprecated: use `fun_like.coe_injective` instead. -/
+@[to_additive]
+lemma monoid_hom.coe_inj [mul_one_class M] [mul_one_class N]
+  ⦃f g : M →* N⦄ (h : (f : M → N) = g) : f = g :=
+fun_like.coe_injective h
+/-- Deprecated: use `fun_like.coe_injective` instead. -/
+lemma monoid_with_zero_hom.coe_inj [mul_zero_one_class M] [mul_zero_one_class N]
+  ⦃f g : M →*₀ N⦄ (h : (f : M → N) = g) : f = g :=
+fun_like.coe_injective h
+
+/-- Deprecated: use `fun_like.ext_iff` instead. -/
 @[to_additive]
 lemma one_hom.ext_iff [has_one M] [has_one N] {f g : one_hom M N} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, λ h, one_hom.ext h⟩
+fun_like.ext_iff
+/-- Deprecated: use `fun_like.ext_iff` instead. -/
 @[to_additive]
 lemma mul_hom.ext_iff [has_mul M] [has_mul N] {f g : mul_hom M N} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, λ h, mul_hom.ext h⟩
+fun_like.ext_iff
+/-- Deprecated: use `fun_like.ext_iff` instead. -/
 @[to_additive]
 lemma monoid_hom.ext_iff [mul_one_class M] [mul_one_class N]
   {f g : M →* N} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, λ h, monoid_hom.ext h⟩
+fun_like.ext_iff
+/-- Deprecated: use `fun_like.ext_iff` instead. -/
 lemma monoid_with_zero_hom.ext_iff [mul_zero_one_class M] [mul_zero_one_class N] {f g : M →*₀ N} :
   f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, λ h, monoid_with_zero_hom.ext h⟩
+fun_like.ext_iff
+end deprecated
 
 @[simp, to_additive]
 lemma one_hom.mk_coe [has_one M] [has_one N]

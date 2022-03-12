@@ -118,8 +118,8 @@ begin
   { by_cases has : a ∈ s,
     { exact ⟨punit, by apply_instance, λ _, a, λ _, has, sup_const a⟩ },
     { have H := λ b (hba : b < a), h _ (@is_open_Ioo _ _ _ _ b (a + 1)) ⟨hba, lt_succ_self a⟩,
-      let f : a.out.α → ordinal := λ i, classical.some (H (typein a.out.r i) (typein_lt_self i)),
-      have hf : ∀ i, f i ∈ set.Ioo (typein a.out.r i) (a + 1) ∩ s :=
+      let f : a.out.α → ordinal := λ i, classical.some (H (typein (<) i) (typein_lt_self i)),
+      have hf : ∀ i, f i ∈ set.Ioo (typein (<) i) (a + 1) ∩ s :=
         λ i, classical.some_spec (H _ _),
       rcases eq_zero_or_pos a with rfl | ha₀,
       { rcases h _ (is_open_singleton_iff.2 not_zero_is_limit) rfl with ⟨b, hb, hb'⟩,
@@ -131,8 +131,8 @@ begin
       cases H _ h with b hb,
       rcases eq_or_lt_of_le (lt_succ.1 hb.1.2) with rfl | hba,
       { exact has hb.2 },
-      { have : b < f (enum a.out.r b (by rwa type_out)) := begin
-          have := (hf (enum a.out.r b (by rwa type_out))).1.1,
+      { have : b < f (enum (<) b (by rwa type_lt)) := begin
+          have := (hf (enum (<) b (by rwa type_lt))).1.1,
           rwa typein_enum at this
         end,
         have : b ≤ sup.{u u} f := this.le.trans (le_sup f _),
@@ -230,17 +230,17 @@ theorem enum_ord_is_normal_iff_is_closed {S : set ordinal.{u}} (hS : S.unbounded
   is_normal (enum_ord S) ↔ is_closed S :=
 begin
   refine ⟨λ h, is_closed_iff_sup.2 (λ ι hι f hf, _),
-    λ h, is_normal_iff_strict_mono_limit.2 ⟨enum_ord.strict_mono hS, λ a ha o H, _⟩⟩,
-  { let g : ι → ordinal.{u} := λ i, (enum_ord.order_iso hS).symm ⟨_, hf i⟩,
+    λ h, (is_normal_iff_strict_mono_limit _).2 ⟨enum_ord.strict_mono hS, λ a ha o H, _⟩⟩,
+  { let g : ι → ordinal.{u} := λ i, (enum_ord_order_iso hS).symm ⟨_, hf i⟩,
     suffices : enum_ord S (sup.{u u} g) = sup.{u u} f,
     { rw ←this, exact enum_ord_mem hS _ },
     rw is_normal.sup.{u u u} h g hι,
     congr, ext,
-    change ((enum_ord.order_iso hS) _).val = f x,
+    change ((enum_ord_order_iso hS) _).val = f x,
     rw order_iso.apply_symm_apply },
   { rw is_closed_iff_bsup at h,
     suffices : enum_ord S a ≤ bsup.{u u} a (λ b < a, enum_ord S b), from this.trans (bsup_le.2 H),
-    cases enum_ord.surjective hS _ (h ha.1 (λ b hb, enum_ord S b) (λ b hb, enum_ord_mem hS b))
+    cases enum_ord_surjective hS _ (h ha.1 (λ b hb, enum_ord S b) (λ b hb, enum_ord_mem hS b))
       with b hb,
     rw ←hb,
     apply (enum_ord.strict_mono hS).monotone,

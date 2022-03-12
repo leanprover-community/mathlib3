@@ -106,10 +106,7 @@ end
 
 theorem nfp_family_eq_self {f : ι → ordinal → ordinal} {a} (h : ∀ i, f i a = a) :
   nfp_family f a = a :=
-le_antisymm (sup_le.2 (λ l, (begin
-rw list.foldr_fixed l,
-
-end))) (self_le_nfp_family f a)
+le_antisymm (sup_le.2 (λ l, (by rw list.foldr_fixed' h l))) (self_le_nfp_family f a)
 
 /-- A generalization of the fixed point lemma for normal functions: any family of normal functions
     has an unbounded set of common fixed points. -/
@@ -206,8 +203,8 @@ theorem nfp_bfamily_eq_nfp_family {o : ordinal} (f : Π b < o, ordinal → ordin
   nfp_bfamily o f = nfp_family (family_of_bfamily o f) :=
 rfl
 
-theorem iterate_le_nfp_bfamily {o : ordinal} (f : Π b < o, ordinal → ordinal) (a l) :
-  nfp_family_iterate (family_of_bfamily o f) a l ≤ nfp_bfamily o f a :=
+theorem foldr_le_nfp_bfamily {o : ordinal} (f : Π b < o, ordinal → ordinal) (a l) :
+  list.foldr (family_of_bfamily o f) a l ≤ nfp_bfamily o f a :=
 le_sup _ _
 
 theorem self_le_nfp_bfamily {o : ordinal} (f : Π b < o, ordinal → ordinal) (a) :
@@ -215,11 +212,11 @@ theorem self_le_nfp_bfamily {o : ordinal} (f : Π b < o, ordinal → ordinal) (a
 le_sup _ []
 
 theorem lt_nfp_bfamily {a b} :
-  a < nfp_bfamily o f b ↔ ∃ l, a < nfp_family_iterate (family_of_bfamily o f) b l :=
+  a < nfp_bfamily o f b ↔ ∃ l, a < list.foldr (family_of_bfamily o f) b l :=
 lt_sup
 
 theorem nfp_bfamily_le {o : ordinal} {f : Π b < o, ordinal → ordinal} {a b} :
-  nfp_bfamily o f a ≤ b ↔ ∀ l, nfp_family_iterate (family_of_bfamily o f) a l ≤ b :=
+  nfp_bfamily o f a ≤ b ↔ ∀ l, list.foldr (family_of_bfamily o f) a l ≤ b :=
 sup_le
 
 theorem nfp_bfamily_monotone (hf : ∀ i hi, monotone (f i hi)) : monotone (nfp_bfamily o f) :=
@@ -336,9 +333,9 @@ begin
   apply le_antisymm _ (sup_le.2 (λ l, _)),
   { rw sup_le,
     intro n,
-    rw [←list.length_repeat unit.star n, ←nfp_family_iterate_eq_iterate.{0 u} f a],
+    rw [←list.length_repeat unit.star n, ←list.foldr_const f a],
     exact le_sup _ _ },
-  { rw nfp_family_iterate_eq_iterate.{0 u} f a l,
+  { rw l.foldr_const f a,
     exact le_sup _ _ },
 end
 

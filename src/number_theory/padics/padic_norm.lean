@@ -166,12 +166,12 @@ by simp [padic_val_rat, padic_val_int]
 @[simp]
 protected lemma zero (m : nat) : padic_val_rat m 0 = 0 := by simp [padic_val_rat, padic_val_int]
 
-/--
-`padic_val_rat p q` for nonzero `q` is the difference in valuations of the numerator and
-denominator.
--/
-lemma of_ne_zero {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
-  (padic_val_int p q.num : ℤ) - (padic_val_nat p q.denom : ℤ) := by rw padic_val_rat
+-- /--
+-- `padic_val_rat p q` for nonzero `q` is the difference in valuations of the numerator and
+-- denominator.
+-- -/
+-- lemma of_ne_zero {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
+--   (padic_val_int p q.num : ℤ) - (padic_val_nat p q.denom : ℤ) := by rw padic_val_rat
 
 /-- `padic_val_rat p 1` is 0 for any `p`. -/
 @[simp] protected lemma one : padic_val_rat p 1 = 0 := by simp [padic_val_rat, padic_val_int]
@@ -200,7 +200,7 @@ lemma multiplicity_sub_multiplicity {q : ℚ} (hp : p ≠ 1) (hq : q ≠ 0) :
   (multiplicity p q.denom).get
     (by { rw [←finite_iff_dom, finite_nat_iff, and_iff_right hp], exact q.pos }) :=
 begin
-  rw [padic_val_rat.of_ne_zero hq, padic_val_int.of_ne_one_ne_zero hp, padic_val_nat, dif_pos],
+  rw [padic_val_rat, padic_val_int.of_ne_one_ne_zero hp, padic_val_nat, dif_pos],
   refl,
   simp [hp],
   exact q.pos,

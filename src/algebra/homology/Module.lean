@@ -25,17 +25,19 @@ attribute [elementwise] category_theory.limits.image_subobject_arrow_comp
 
 open category_theory category_theory.limits homological_complex
 
-variables {R : Type v} [comm_ring R]
+local attribute [instance] concrete_category.has_coe_to_sort concrete_category.has_coe_to_fun
 
--- Generalize to any concrete category.
 @[ext]
-lemma cokernel_funext {M N K : Module R} {f : M ⟶ N} {g h : cokernel f ⟶ K}
+lemma cokernel_funext {C : Type*} [category C] [has_zero_morphisms C] [concrete_category C]
+  {M N K : C} {f : M ⟶ N} [has_cokernel f] {g h : cokernel f ⟶ K}
   (w : ∀ (n : N), g (cokernel.π f n) = h (cokernel.π f n)) : g = h :=
 begin
   apply coequalizer.hom_ext,
-  ext,
-  exact w x,
+  apply concrete_category.hom_ext _ _,
+  simpa using w,
 end
+
+variables {R : Type v} [comm_ring R]
 
 @[ext]
 lemma cokernel_π_ext {M N : Module.{v} R} (f : M ⟶ N) {x y : N} (m : M) (w : f m + x = y) :
@@ -106,6 +108,9 @@ begin
 end
 
 end homological_complex
+
+attribute [elementwise] homological_complex.hom.comm_from homological_complex.hom.comm_to
+  cycles_map_arrow
 
 @[simp] lemma cycles_map_to_cycles (f : C ⟶ D) {i : ι} {x : C.X i} (p : C.d_from i x = 0) :
   (cycles_map f i) (C.to_cycles x p) = D.to_cycles (f.f i x) (by simp [p]) :=

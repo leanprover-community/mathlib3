@@ -845,7 +845,7 @@ begin
   { simpa }
 end
 
-@[simp] lemma modify_modify_head (l : list α) (f g : α → α) :
+@[simp] lemma modify_head_modify_head (l : list α) (f g : α → α) :
   (l.modify_head f).modify_head g = l.modify_head (g ∘ f) :=
 by cases l; simp
 
@@ -2502,17 +2502,17 @@ lemma split_on_p_ne_nil : xs.split_on_p p ≠ [] := split_on_p_aux_ne_nil _ _ id
 by { simp only [split_on_p, split_on_p_aux], split_ifs, { simp }, rw split_on_p_aux_spec, refl, }
 
 /-- If no element satisfies `p` in the list `xs`, then `xs.split_on_p p = [xs]` -/
-lemma split_single (h : ∀ x ∈ xs, ¬p x) : xs.split_on_p p = [xs] :=
+lemma split_on_p_eq_single (h : ∀ x ∈ xs, ¬p x) : xs.split_on_p p = [xs] :=
 by { induction xs with hd tl ih, { refl, }, simp [h hd _, ih (λ t ht, h t (or.inr ht))], }
 
-/-- When an array of the form `[...xs, sep, ...as]` splits on `p`, the first element is `xs`,
+/-- When a list of the form `[...xs, sep, ...as]` is split on `p`, the first element is `xs`,
   assuming no element in `xs` satisfies `p` but `sep` does satisfy `p` -/
-lemma split_first (h : ∀ x ∈ xs, ¬p x) (sep : α) (hsep : p sep)
+lemma split_on_p_first (h : ∀ x ∈ xs, ¬p x) (sep : α) (hsep : p sep)
   (as : list α) : (xs ++ sep :: as).split_on_p p = xs :: as.split_on_p p :=
 by { induction xs with hd tl ih, { simp [hsep], }, simp [h hd _, ih (λ t ht, h t (or.inr ht))], }
 
 /-- `intercalate [x]` is the left inverse of `split_on x`  -/
-lemma intercalate_split (x : α) [decidable_eq α] : [x].intercalate (xs.split_on x) = xs :=
+lemma intercalate_split_on (x : α) [decidable_eq α] : [x].intercalate (xs.split_on x) = xs :=
 begin
   simp only [intercalate, split_on],
   induction xs with hd tl ih, { simp [join], }, simp only [split_on_p_cons],
@@ -2523,18 +2523,18 @@ end
 
 /-- `split_on x` is the left inverse of `intercalate [x]`, on the domain
   consisting of each nonempty list of lists `ls` whose elements do not contain `x`  -/
-lemma split_intercalate [decidable_eq α] (x : α) (hx : ∀ l ∈ ls, x ∉ l) (hls : ls ≠ []) :
+lemma split_on_intercalate [decidable_eq α] (x : α) (hx : ∀ l ∈ ls, x ∉ l) (hls : ls ≠ []) :
   ([x].intercalate ls).split_on x = ls :=
 begin
   simp only [intercalate],
   induction ls with hd tl ih, { contradiction, },
   cases tl,
   { suffices : hd.split_on x = [hd], { simpa [join], },
-    refine split_single _ _ _, intros y hy H, rw H at hy,
+    refine split_on_p_eq_single _ _ _, intros y hy H, rw H at hy,
     refine hx hd _ hy, simp, },
   { simp only [intersperse_cons_cons, singleton_append, join],
     specialize ih _ _, { intros l hl, apply hx l, simp at hl ⊢, tauto, }, { trivial, },
-    have := split_first (=x) hd _ x rfl _,
+    have := split_on_p_first (=x) hd _ x rfl _,
     { simp only [split_on] at ⊢ ih, rw this, rw ih, },
     intros y hy H, rw H at hy, exact hx hd (or.inl rfl) hy, }
 end

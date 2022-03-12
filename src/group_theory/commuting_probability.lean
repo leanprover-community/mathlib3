@@ -54,7 +54,7 @@ instance commutator_element {G : Type*} [group G] : has_bracket G G :=
 lemma three_subgroups_lemma {G : Type*} [group G] {X Y Z : subgroup G}
   (h1 : ⁅⁅X, Y⁆, Z⁆ = ⊥) (h2 : ⁅⁅Y, Z⁆, X⁆ = ⊥) : ⁅⁅Z, X⁆, Y⁆ = ⊥ :=
 begin
-  rw [general_commutator_eq_bot_iff_le_centralizer, general_commutator_le] at h1 h2 ⊢,
+  rw [general_commutator_eq_bot_iff_le_centralizer, subgroup.commutator_le] at h1 h2 ⊢,
   simp_rw [subgroup.mem_centralizer_iff_commutator_eq_one] at h1 h2 ⊢,
   intros z hz x hx y hy,
   change ⁅y, ⁅z, x⁆⁆ = _,
@@ -71,8 +71,8 @@ lemma commutator_centralizer_commutator_le_center (G : Type*) [group G] :
 begin
   rw [←centralizer_top_eq_center, ←general_commutator_eq_bot_iff_le_centralizer],
   suffices : ⁅⁅⊤, (commutator G).centralizer⁆, (commutator G).centralizer⁆ = ⊥,
-  { exact three_subgroups_lemma (by rwa general_commutator_comm (commutator G).centralizer) this },
-  rw [general_commutator_comm, general_commutator_eq_bot_iff_le_centralizer],
+  { exact three_subgroups_lemma (by rwa subgroup.commutator_comm (commutator G).centralizer) this },
+  rw [subgroup.commutator_comm, general_commutator_eq_bot_iff_le_centralizer],
   apply centralizer_mono,
   apply general_commutator_le_commutator,
 end
@@ -307,25 +307,25 @@ section neumann
 
 def weak_neumann_commutator_bound : ℚ → ℕ := sorry
 
-def weak_neumann_commutator_index_bound : ℚ → ℕ := sorry
+def weak_neumann_index_bound : ℚ → ℕ := sorry
 
 lemma weak_neumann :
   ∃ K : subgroup G, K.normal ∧
   card (commutator K) ≤ weak_neumann_commutator_bound (comm_prob G)
-  ∧ K.index ≤ weak_neumann_commutator_index_bound (comm_prob G) :=
+  ∧ K.index ≤ weak_neumann_index_bound (comm_prob G) :=
 begin
   sorry
 end
 
 def strong_neumann_commutator_bound : ℚ → ℕ := weak_neumann_commutator_bound
 
-def strong_neumann_commutator_index_bound : ℚ → ℕ :=
-λ q, weak_neumann_commutator_index_bound q * (weak_neumann_commutator_bound q).factorial
+def strong_neumann_index_bound : ℚ → ℕ :=
+λ q, weak_neumann_index_bound q * (weak_neumann_commutator_bound q).factorial
 
 lemma strong_neumann :
   ∃ K : subgroup G, K.normal ∧ commutator K ≤ K.center ∧
   card (commutator K) ≤ strong_neumann_commutator_bound (comm_prob G)
-  ∧ K.index ≤ strong_neumann_commutator_index_bound (comm_prob G) :=
+  ∧ K.index ≤ strong_neumann_index_bound (comm_prob G) :=
 begin
   obtain ⟨K, hK1, hK2, hK3⟩ := weak_neumann G,
   refine ⟨(commutator K).centralizer.map K.subtype, _, _, _, _⟩,

@@ -76,7 +76,7 @@ begin
   rw [mem_bot, commutator_element_eq_one_iff_mul_comm, eq_comm],
 end
 
-/-- **The Three Subgroups Lemma** -/
+/-- **The Three Subgroups Lemma** (via the Hall-Witt identity) -/
 lemma commutator_commutator_eq_bot_of_rotate
   (h1 : ⁅⁅H₂, H₃⁆, H₁⁆ = ⊥) (h2 : ⁅⁅H₃, H₁⁆, H₂⁆ = ⊥) : ⁅⁅H₁, H₂⁆, H₃⁆ = ⊥ :=
 begin

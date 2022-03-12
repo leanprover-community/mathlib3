@@ -32,6 +32,8 @@ attribute [instance]  BoundedOrder.is_bounded_order
 /-- Construct a bundled `BoundedOrder` from a `fintype` `partial_order`. -/
 def of (α : Type*) [partial_order α] [bounded_order α] : BoundedOrder := ⟨⟨α⟩⟩
 
+@[simp] lemma coe_of (α : Type*) [partial_order α] [bounded_order α] : ↥(of α) = α := rfl
+
 instance : inhabited BoundedOrder := ⟨of punit⟩
 
 instance large_category : large_category.{u} BoundedOrder :=
@@ -74,7 +76,7 @@ end BoundedOrder
 
 lemma BoundedOrder_dual_comp_forget_to_PartialOrder :
   BoundedOrder.dual ⋙ forget₂ BoundedOrder PartialOrder =
-    forget₂ BoundedOrder PartialOrder ⋙ PartialOrder.to_dual := rfl
+    forget₂ BoundedOrder PartialOrder ⋙ PartialOrder.dual := rfl
 
 lemma BoundedOrder_dual_comp_forget_to_Bipointed :
   BoundedOrder.dual ⋙ forget₂ BoundedOrder Bipointed =

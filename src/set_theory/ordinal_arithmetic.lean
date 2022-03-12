@@ -340,7 +340,7 @@ end
 by rw [limit_rec_on, wf.fix_eq, dif_neg h.1, dif_neg (not_succ_of_is_limit h)]; refl
 
 lemma has_succ_of_is_limit {α} {r : α → α → Prop} [wo : is_well_order α r]
-  (h : (type r).is_limit) (x : α) : ∃y, r x y :=
+  (h : (type r).is_limit) (x : α) : ∃ y, r x y :=
 begin
   use enum r (typein r x).succ (h.2 _ (typein_lt_type r x)),
   convert (enum_lt_enum (typein_lt_type r x) _).mpr (lt_succ_self _), rw [enum_typein]

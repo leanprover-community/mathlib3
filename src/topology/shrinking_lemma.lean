@@ -58,7 +58,7 @@ namespace partial_refinement
 
 variables {u : ι → set X} {s : set X}
 
-instance : has_coe_to_fun (partial_refinement u s) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (partial_refinement u s) (λ _, ι → set X) := ⟨to_fun⟩
 
 lemma subset_Union (v : partial_refinement u s) : s ⊆ ⋃ i, v i := v.subset_Union'
 
@@ -119,10 +119,10 @@ begin
   rw find,
   split_ifs,
   { have : i ∈ h.some.carrier ∧ i ∈ chain_Sup_carrier c,
-      from ⟨h.some_spec.snd, mem_bUnion_iff.2 h⟩,
+      from ⟨h.some_spec.snd, mem_Union₂.2 h⟩,
     simp only [this] },
   { have : i ∉ ne.some.carrier ∧ i ∉ chain_Sup_carrier c,
-      from ⟨λ hi, h ⟨_, ne.some_spec, hi⟩, mt mem_bUnion_iff.1 h⟩,
+      from ⟨λ hi, h ⟨_, ne.some_spec, hi⟩, mt mem_Union₂.1 h⟩,
     simp only [this] }
 end
 
@@ -130,7 +130,7 @@ lemma find_apply_of_mem {c : set (partial_refinement u s)} (hc : chain (≤) c) 
   {i v} (hv : v ∈ c) (hi : i ∈ carrier v) :
   find c ne i i = v i :=
 apply_eq_of_chain hc (find_mem _ _) hv
-  ((mem_find_carrier_iff _).2 $ mem_bUnion_iff.2 ⟨v, hv, hi⟩) hi
+  ((mem_find_carrier_iff _).2 $ mem_Union₂.2 ⟨v, hv, hi⟩) hi
 
 /-- Least upper bound of a nonempty chain of partial refinements. -/
 def chain_Sup (c : set (partial_refinement u s)) (hc : chain (≤) c)
@@ -145,7 +145,7 @@ begin
   rcases em (∃ i ∉ chain_Sup_carrier c, x ∈ u i) with ⟨i, hi, hxi⟩|hx,
   { use i,
     rwa (find c ne i).apply_eq (mt (mem_find_carrier_iff _).1 hi) },
-  { simp_rw [not_exists, not_imp_not, chain_Sup_carrier, mem_bUnion_iff] at hx,
+  { simp_rw [not_exists, not_imp_not, chain_Sup_carrier, mem_Union₂] at hx,
     haveI : nonempty (partial_refinement u s) := ⟨ne.some⟩,
     choose! v hvc hiv using hx,
     rcases (hfin x hxs).exists_maximal_wrt v _ (mem_Union.1 (hU hxs))
@@ -176,7 +176,7 @@ begin
     rcases mem_Union.1 (v.subset_Union hxs) with ⟨j, hj⟩,
     exact (em (j = i)).elim (λ h, h ▸ hj) (λ h, (H j h hj).elim) },
   have C : is_closed (s ∩ (⋂ j ≠ i, (v j)ᶜ)),
-    from is_closed_inter hs (is_closed_bInter $ λ _ _, is_closed_compl_iff.2 $ v.is_open _),
+    from is_closed.inter hs (is_closed_bInter $ λ _ _, is_closed_compl_iff.2 $ v.is_open _),
   rcases normal_exists_closure_subset C (v.is_open i) I with ⟨vi, ovi, hvi, cvi⟩,
   refine ⟨⟨update v i vi, insert i v.carrier, _, _, _, _⟩, _, _⟩,
   { intro j, by_cases h : j = i; simp [h, ovi, v.is_open] },
@@ -231,7 +231,7 @@ lemma exists_subset_Union_closed_subset (hs : is_closed s) (uo : ∀ i, is_open 
   (uf : ∀ x ∈ s, finite {i | x ∈ u i}) (us : s ⊆ ⋃ i, u i) :
   ∃ v : ι → set X, s ⊆ Union v ∧ (∀ i, is_closed (v i)) ∧ ∀ i, v i ⊆ u i :=
 let ⟨v, hsv, hvo, hv⟩ := exists_subset_Union_closure_subset hs uo uf us
-in ⟨λ i, closure (v i), subset.trans hsv (Union_subset_Union $ λ i, subset_closure),
+in ⟨λ i, closure (v i), subset.trans hsv (Union_mono $ λ i, subset_closure),
   λ i, is_closed_closure, hv⟩
 
 /-- Shrinking lemma. A point-finite open cover of a closed subset of a normal space can be "shrunk"

@@ -25,7 +25,7 @@ meta def field_simp.ne_zero : tactic unit := do
   end
 
 namespace interactive
-open interactive interactive.types
+setup_tactic_parser
 
 /--
 The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`

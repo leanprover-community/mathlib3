@@ -114,6 +114,15 @@ lemma map_hom_comp {α : Type u} {β : Type v} [monoid α] [monoid β] (f : α �
   map_hom α γ (g.comp f) = map_hom α β f ⋙ map_hom β γ g :=
 rfl
 
+/-- Given a function `f : C → G` from a category to a group, we get a functor
+    `C ⥤ G` sending any morphism `x ⟶ y` to `f y * (f x)⁻¹`. -/
+@[simps] def difference_functor {C G} [category C] [group G] (f : C → G) : C ⥤ single_obj G :=
+{ obj := λ _, (),
+  map := λ x y _, f y * (f x)⁻¹,
+  map_id' := by { intro, rw [single_obj.id_as_one, mul_right_inv] },
+  map_comp' := by { intros, rw [single_obj.comp_as_mul, ←mul_assoc,
+    mul_left_inj, mul_assoc, inv_mul_self, mul_one] } }
+
 end single_obj
 
 end category_theory
@@ -143,13 +152,13 @@ variables (α : Type u) [monoid α]
 /--
 The units in a monoid are (multiplicatively) equivalent to
 the automorphisms of `star` when we think of the monoid as a single-object category. -/
-def to_Aut : units α ≃* Aut (single_obj.star α) :=
+def to_Aut : αˣ ≃* Aut (single_obj.star α) :=
 (units.map_equiv (single_obj.to_End α)).trans $
   Aut.units_End_equiv_Aut _
 
-@[simp] lemma to_Aut_hom (x : units α) : (to_Aut α x).hom = single_obj.to_End α x := rfl
-@[simp] lemma to_Aut_inv (x : units α) :
-  (to_Aut α x).inv = single_obj.to_End α (x⁻¹ : units α) :=
+@[simp] lemma to_Aut_hom (x : αˣ) : (to_Aut α x).hom = single_obj.to_End α x := rfl
+@[simp] lemma to_Aut_inv (x : αˣ) :
+  (to_Aut α x).inv = single_obj.to_End α (x⁻¹ : αˣ) :=
 rfl
 end units
 

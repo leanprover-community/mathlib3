@@ -3,7 +3,9 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin, Bhavik Mehta
 -/
-import category_theory.natural_isomorphism
+import category_theory.isomorphism
+import category_theory.functor.category
+import category_theory.eq_to_hom
 
 /-!
 # Comma categories
@@ -45,7 +47,7 @@ comma, slice, coslice, over, under, arrow
 namespace category_theory
 
 -- declare the `v`'s first; see `category_theory.category` for an explanation
-universes v₁ v₂ v₃ u₁ u₂ u₃
+universes v₁ v₂ v₃ v₄ v₅ u₁ u₂ u₃ u₄ u₅
 variables {A : Type u₁} [category.{v₁} A]
 variables {B : Type u₂} [category.{v₂} B]
 variables {T : Type u₃} [category.{v₃} T]
@@ -60,9 +62,9 @@ structure comma (L : A ⥤ T) (R : B ⥤ T) : Type (max u₁ u₂ v₃) :=
 -- Satisfying the inhabited linter
 instance comma.inhabited [inhabited T] : inhabited (comma (𝟭 T) (𝟭 T)) :=
 { default :=
-  { left := default T,
-    right := default T,
-    hom := 𝟙 (default T) } }
+  { left := default,
+    right := default,
+    hom := 𝟙 default } }
 
 variables {L : A ⥤ T} {R : B ⥤ T}
 
@@ -76,10 +78,8 @@ variables {L : A ⥤ T} {R : B ⥤ T}
 
 -- Satisfying the inhabited linter
 instance comma_morphism.inhabited [inhabited (comma L R)] :
-  inhabited (comma_morphism (default (comma L R)) (default (comma L R))) :=
-{ default :=
-  { left := 𝟙 _,
-    right := 𝟙 _ } }
+  inhabited (comma_morphism (default : comma L R) default) :=
+⟨⟨𝟙 _, 𝟙 _⟩⟩
 
 restate_axiom comma_morphism.w'
 attribute [simp, reassoc] comma_morphism.w
@@ -126,6 +126,12 @@ def snd : comma L R ⥤ B :=
 @[simps]
 def nat_trans : fst L R ⋙ L ⟶ snd L R ⋙ R :=
 { app := λ X, X.hom }
+
+@[simp] lemma eq_to_hom_left (X Y : comma L R) (H : X = Y) :
+  comma_morphism.left (eq_to_hom H) = eq_to_hom (by { cases H, refl }) := by { cases H, refl }
+
+@[simp] lemma eq_to_hom_right (X Y : comma L R) (H : X = Y) :
+  comma_morphism.right (eq_to_hom H) = eq_to_hom (by { cases H, refl }) := by { cases H, refl }
 
 section
 variables {L₁ L₂ L₃ : A ⥤ T} {R₁ R₂ R₃ : B ⥤ T}
@@ -210,6 +216,26 @@ def map_right_comp (r : R₁ ⟶ R₂) (r' : R₂ ⟶ R₃) :
 
 end
 
+section
+variables {C : Type u₄} [category.{v₄} C] {D : Type u₅} [category.{v₅} D]
+
+/-- The functor `(F ⋙ L, R) ⥤ (L, R)` -/
+@[simps] def pre_left (F: C ⥤ A) (L : A ⥤ T) (R : B ⥤ T) : comma (F ⋙ L) R ⥤ comma L R :=
+{ obj := λ X, { left := F.obj X.left, right := X.right, hom := X.hom },
+  map := λ X Y f, { left := F.map f.left, right := f.right, w' := by simpa using f.w } }
+
+/-- The functor `(F ⋙ L, R) ⥤ (L, R)` -/
+@[simps] def pre_right (L : A ⥤ T) (F: C ⥤ B) (R : B ⥤ T) : comma L (F ⋙ R) ⥤ comma L R :=
+{ obj := λ X, { left := X.left, right := F.obj X.right, hom := X.hom },
+  map := λ X Y f, { left := f.left, right := F.map f.right, w' := by simp } }
+
+/-- The functor `(L, R) ⥤ (L ⋙ F, R ⋙ F)` -/
+@[simps] def post (L : A ⥤ T) (R : B ⥤ T) (F: T ⥤ C) : comma L R ⥤ comma (L ⋙ F) (R ⋙ F) :=
+{ obj := λ X, { left := X.left, right := X.right, hom := F.map X.hom },
+  map := λ X Y f, { left := f.left, right := f.right, w' :=
+    by { simp only [functor.comp_map, ←F.map_comp, f.w] } } }
+
+end
 end comma
 
 end category_theory

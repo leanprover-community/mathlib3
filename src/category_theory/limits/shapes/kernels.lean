@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
-import category_theory.limits.shapes.zero
+import category_theory.limits.preserves.shapes.zero
 
 /-!
 # Kernels and cokernels
@@ -46,7 +46,7 @@ general limits can be used.
 
 noncomputable theory
 
-universes v u u'
+universes v u u' u₂
 
 open category_theory
 open category_theory.limits.walking_parallel_pair
@@ -151,6 +151,11 @@ abbreviation kernel.ι : kernel f ⟶ X := equalizer.ι f 0
 @[simp, reassoc] lemma kernel.condition : kernel.ι f ≫ f = 0 :=
 kernel_fork.condition _
 
+/-- The kernel built from `kernel.ι f` is limiting. -/
+def kernel_is_kernel :
+  is_limit (fork.of_ι (kernel.ι f) ((kernel.condition f).trans (comp_zero.symm))) :=
+is_limit.of_iso_limit (limit.is_limit _) (fork.ext (iso.refl _) (by tidy))
+
 /-- Given any morphism `k : W ⟶ X` satisfying `k ≫ f = 0`, `k` factors through `kernel.ι f`
     via `kernel.lift : W ⟶ kernel f`. -/
 abbreviation kernel.lift {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel f :=
@@ -176,6 +181,34 @@ end⟩
     `l ≫ kernel.ι f = k`. -/
 def kernel.lift' {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : {l : W ⟶ kernel f // l ≫ kernel.ι f = k} :=
 ⟨kernel.lift f k h, kernel.lift_ι _ _ _⟩
+
+/-- A commuting square induces a morphism of kernels. -/
+abbreviation kernel.map {X' Y' : C} (f' : X' ⟶ Y') [has_kernel f']
+  (p : X ⟶ X') (q : Y ⟶ Y') (w : f ≫ q = p ≫ f') : kernel f ⟶ kernel f' :=
+kernel.lift f' (kernel.ι f ≫ p) (by simp [←w])
+
+/--
+Given a commutative diagram
+    X --f--> Y --g--> Z
+    |        |        |
+    |        |        |
+    v        v        v
+    X' -f'-> Y' -g'-> Z'
+with horizontal arrows composing to zero,
+then we obtain a commutative square
+   X ---> kernel g
+   |         |
+   |         | kernel.map
+   |         |
+   v         v
+   X' --> kernel g'
+-/
+lemma kernel.lift_map {X Y Z X' Y' Z' : C}
+  (f : X ⟶ Y) (g : Y ⟶ Z) [has_kernel g] (w : f ≫ g = 0)
+  (f' : X' ⟶ Y') (g' : Y' ⟶ Z') [has_kernel g'] (w' : f' ≫ g' = 0)
+  (p : X ⟶ X') (q : Y ⟶ Y') (r : Z ⟶ Z') (h₁ : f ≫ q = p ≫ f') (h₂ : g ≫ r = q ≫ g') :
+  kernel.lift g f w ≫ kernel.map g g' q r h₂ = p ≫ kernel.lift g' f' w' :=
+by { ext, simp [h₁], }
 
 /-- Every kernel of the zero morphism is an isomorphism -/
 instance kernel.ι_zero_is_iso : is_iso (kernel.ι (0 : X ⟶ Y)) :=
@@ -203,6 +236,28 @@ has_limit.iso_of_nat_iso (by simp[h])
 @[simp]
 lemma kernel_iso_of_eq_refl {h : f = f} : kernel_iso_of_eq h = iso.refl (kernel f) :=
 by { ext, simp [kernel_iso_of_eq], }
+
+@[simp, reassoc]
+lemma kernel_iso_of_eq_hom_comp_ι {f g : X ⟶ Y} [has_kernel f] [has_kernel g] (h : f = g) :
+  (kernel_iso_of_eq h).hom ≫ kernel.ι _ = kernel.ι _ :=
+by { unfreezingI { induction h, simp } }
+
+@[simp, reassoc]
+lemma kernel_iso_of_eq_inv_comp_ι {f g : X ⟶ Y} [has_kernel f] [has_kernel g] (h : f = g) :
+  (kernel_iso_of_eq h).inv ≫ kernel.ι _ = kernel.ι _ :=
+by { unfreezingI { induction h, simp } }
+
+@[simp, reassoc]
+lemma lift_comp_kernel_iso_of_eq_hom {Z} {f g : X ⟶ Y} [has_kernel f] [has_kernel g]
+  (h : f = g) (e : Z ⟶ X) (he) :
+  kernel.lift _ e he ≫ (kernel_iso_of_eq h).hom = kernel.lift _ e (by simp [← h, he]) :=
+by { unfreezingI { induction h, simp } }
+
+@[simp, reassoc]
+lemma lift_comp_kernel_iso_of_eq_inv {Z} {f g : X ⟶ Y} [has_kernel f] [has_kernel g]
+  (h : f = g) (e : Z ⟶ X) (he) :
+  kernel.lift _ e he ≫ (kernel_iso_of_eq h).inv = kernel.lift _ e (by simp [h, he]) :=
+by { unfreezingI { induction h, simp } }
 
 @[simp]
 lemma kernel_iso_of_eq_trans {f g h : X ⟶ Y} [has_kernel f] [has_kernel g] [has_kernel h]
@@ -257,7 +312,7 @@ end
 section has_zero_object
 variables [has_zero_object C]
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- The morphism from the zero object determines a cone on a kernel diagram -/
 def kernel.zero_cone : cone (parallel_pair f 0) :=
@@ -401,6 +456,11 @@ abbreviation cokernel.π : Y ⟶ cokernel f := coequalizer.π f 0
 @[simp, reassoc] lemma cokernel.condition : f ≫ cokernel.π f = 0 :=
 cokernel_cofork.condition _
 
+/-- The cokernel built from `cokernel.π f` is colimiting. -/
+def cokernel_is_cokernel :
+  is_colimit (cofork.of_π (cokernel.π f) ((cokernel.condition f).trans (zero_comp.symm))) :=
+is_colimit.of_iso_colimit (colimit.is_colimit _) (cofork.ext (iso.refl _) (by tidy))
+
 /-- Given any morphism `k : Y ⟶ W` such that `f ≫ k = 0`, `k` factors through `cokernel.π f`
     via `cokernel.desc : cokernel f ⟶ W`. -/
 abbreviation cokernel.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) : cokernel f ⟶ W :=
@@ -430,6 +490,34 @@ def cokernel.desc' {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) :
   {l : cokernel f ⟶ W // cokernel.π f ≫ l = k} :=
 ⟨cokernel.desc f k h, cokernel.π_desc _ _ _⟩
 
+/-- A commuting square induces a morphism of cokernels. -/
+abbreviation cokernel.map {X' Y' : C} (f' : X' ⟶ Y') [has_cokernel f']
+  (p : X ⟶ X') (q : Y ⟶ Y') (w : f ≫ q = p ≫ f') : cokernel f ⟶ cokernel f' :=
+cokernel.desc f (q ≫ cokernel.π f') (by simp [reassoc_of w])
+
+/--
+Given a commutative diagram
+    X --f--> Y --g--> Z
+    |        |        |
+    |        |        |
+    v        v        v
+    X' -f'-> Y' -g'-> Z'
+with horizontal arrows composing to zero,
+then we obtain a commutative square
+   cokernel f ---> Z
+   |               |
+   | cokernel.map  |
+   |               |
+   v               v
+   cokernel f' --> Z'
+-/
+lemma cokernel.map_desc {X Y Z X' Y' Z' : C}
+  (f : X ⟶ Y) [has_cokernel f] (g : Y ⟶ Z) (w : f ≫ g = 0)
+  (f' : X' ⟶ Y') [has_cokernel f'] (g' : Y' ⟶ Z') (w' : f' ≫ g' = 0)
+  (p : X ⟶ X') (q : Y ⟶ Y') (r : Z ⟶ Z') (h₁ : f ≫ q = p ≫ f') (h₂ : g ≫ r = q ≫ g') :
+  cokernel.map f f' p q h₁ ≫ cokernel.desc f' g' w' = cokernel.desc f g w ≫ r :=
+by { ext, simp [h₂], }
+
 /-- The cokernel of the zero morphism is an isomorphism -/
 instance cokernel.π_zero_is_iso :
   is_iso (cokernel.π (0 : X ⟶ Y)) :=
@@ -457,6 +545,28 @@ has_colimit.iso_of_nat_iso (by simp[h])
 @[simp]
 lemma cokernel_iso_of_eq_refl {h : f = f} : cokernel_iso_of_eq h = iso.refl (cokernel f) :=
 by { ext, simp [cokernel_iso_of_eq], }
+
+@[simp, reassoc]
+lemma π_comp_cokernel_iso_of_eq_hom {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g] (h : f = g) :
+  cokernel.π _ ≫ (cokernel_iso_of_eq h).hom = cokernel.π _ :=
+by { unfreezingI { induction h, simp } }
+
+@[simp, reassoc]
+lemma π_comp_cokernel_iso_of_eq_inv {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g] (h : f = g) :
+  cokernel.π _ ≫ (cokernel_iso_of_eq h).inv = cokernel.π _ :=
+by { unfreezingI { induction h, simp } }
+
+@[simp, reassoc]
+lemma cokernel_iso_of_eq_hom_comp_desc {Z} {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g]
+  (h : f = g) (e : Y ⟶ Z) (he) :
+  (cokernel_iso_of_eq h).hom ≫ cokernel.desc _ e he = cokernel.desc _ e (by simp [h, he]) :=
+by { unfreezingI { induction h, simp } }
+
+@[simp, reassoc]
+lemma cokernel_iso_of_eq_inv_comp_desc {Z} {f g : X ⟶ Y} [has_cokernel f] [has_cokernel g]
+  (h : f = g) (e : Y ⟶ Z) (he) :
+  (cokernel_iso_of_eq h).inv ≫ cokernel.desc _ e he = cokernel.desc _ e (by simp [← h, he]) :=
+by { unfreezingI { induction h, simp } }
 
 @[simp]
 lemma cokernel_iso_of_eq_trans {f g h : X ⟶ Y} [has_cokernel f] [has_cokernel g] [has_cokernel h]
@@ -515,7 +625,7 @@ end
 section has_zero_object
 variables [has_zero_object C]
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- The morphism to the zero object determines a cocone on a cokernel diagram -/
 def cokernel.zero_cocone : cocone (parallel_pair f 0) :=
@@ -583,7 +693,7 @@ end
 section has_zero_object
 variables [has_zero_object C]
 
-local attribute [instance] has_zero_object.has_zero
+open_locale zero_object
 
 /-- The kernel of the cokernel of an epimorphism is an isomorphism -/
 instance kernel.of_cokernel_of_epi [has_cokernel f]
@@ -631,6 +741,52 @@ def cokernel.cokernel_iso [has_cokernel f]
 is_cokernel.cokernel_iso f l (colimit.is_colimit _) i h
 
 end transport
+
+section comparison
+
+variables {D : Type u₂} [category.{v} D] [has_zero_morphisms D]
+variables (G : C ⥤ D) [functor.preserves_zero_morphisms G]
+
+/--
+The comparison morphism for the kernel of `f`.
+This is an isomorphism iff `G` preserves the kernel of `f`; see
+`category_theory/limits/preserves/shapes/kernels.lean`
+-/
+def kernel_comparison [has_kernel f] [has_kernel (G.map f)] :
+  G.obj (kernel f) ⟶ kernel (G.map f) :=
+kernel.lift _ (G.map (kernel.ι f)) (by simp only [←G.map_comp, kernel.condition, functor.map_zero])
+
+@[simp, reassoc]
+lemma kernel_comparison_comp_π [has_kernel f] [has_kernel (G.map f)] :
+  kernel_comparison f G ≫ kernel.ι (G.map f) = G.map (kernel.ι f) :=
+kernel.lift_ι _ _ _
+
+@[simp, reassoc]
+lemma map_lift_kernel_comparison [has_kernel f] [has_kernel (G.map f)]
+  {Z : C} {h : Z ⟶ X} (w : h ≫ f = 0) :
+    G.map (kernel.lift _ h w) ≫ kernel_comparison f G =
+      kernel.lift _ (G.map h) (by simp only [←G.map_comp, w, functor.map_zero]) :=
+by { ext, simp [← G.map_comp] }
+
+/-- The comparison morphism for the cokernel of `f`. -/
+def cokernel_comparison [has_cokernel f] [has_cokernel (G.map f)] :
+  cokernel (G.map f) ⟶ G.obj (cokernel f) :=
+cokernel.desc _ (G.map (coequalizer.π _ _))
+  (by simp only [←G.map_comp, cokernel.condition, functor.map_zero])
+
+@[simp, reassoc]
+lemma ι_comp_cokernel_comparison [has_cokernel f] [has_cokernel (G.map f)] :
+  cokernel.π (G.map f) ≫ cokernel_comparison f G = G.map (cokernel.π _) :=
+cokernel.π_desc _ _ _
+
+@[simp, reassoc]
+lemma cokernel_comparison_map_desc [has_cokernel f] [has_cokernel (G.map f)]
+  {Z : C} {h : Y ⟶ Z} (w : f ≫ h = 0) :
+  cokernel_comparison f G ≫ G.map (cokernel.desc _ h w) =
+    cokernel.desc _ (G.map h) (by simp only [←G.map_comp, w, functor.map_zero]) :=
+by { ext, simp [← G.map_comp] }
+
+end comparison
 
 end category_theory.limits
 

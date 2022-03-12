@@ -35,8 +35,8 @@ begin
 
   have h₅ : ((x^3 - 1)^2*x^2*(y^2 + z^2))/((x^5+y^2+z^2)*(x^3*(x^2+y^2+z^2))) ≥ 0,
   { refine div_nonneg _ _,
-    refine mul_nonneg (mul_nonneg (pow_two_nonneg _) (pow_two_nonneg _)) _,
-    exact add_nonneg (pow_two_nonneg _) (pow_two_nonneg _),
+    refine mul_nonneg (mul_nonneg (sq_nonneg _) (sq_nonneg _)) _,
+    exact add_nonneg (sq_nonneg _) (sq_nonneg _),
     exact le_of_lt (mul_pos h₁ h₄) },
 
   calc  (x^5-x^2)/(x^5+y^2+z^2)
@@ -63,6 +63,6 @@ begin
   ... = 1/2*( (x-y)^2 + (y-z)^2 + (z-x)^2 ) / (x^2+y^2+z^2) : by ring
   ... ≥ 0 :
         by { exact div_nonneg
-                (by linarith [pow_two_nonneg (x-y), pow_two_nonneg (y-z), pow_two_nonneg (z-x)])
-                (by linarith [pow_two_nonneg x, pow_two_nonneg y, pow_two_nonneg z]) },
+                (by linarith [sq_nonneg (x-y), sq_nonneg (y-z), sq_nonneg (z-x)])
+                (by linarith [sq_nonneg x, sq_nonneg y, sq_nonneg z]) },
 end

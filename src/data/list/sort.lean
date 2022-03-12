@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
 import data.list.perm
-import data.list.chain
 
 /-!
 # Sorting algorithms on lists
@@ -16,6 +15,8 @@ in the case that `r` is a `<` or `≤`-like relation. Then we define two sorting
 
 open list.perm
 
+universe uu
+
 namespace list
 
 /-!
@@ -23,7 +24,7 @@ namespace list
 -/
 
 section sorted
-universe variable uu
+
 variables {α : Type uu} {r : α → α → Prop}
 
 /-- `sorted r l` is the same as `pairwise r l`, preferred in the case that `r`
@@ -71,6 +72,10 @@ begin
     split; simp [iff_true_intro this, or_comm] }
 end
 
+theorem sublist_of_subperm_of_sorted [is_antisymm α r]
+  {l₁ l₂ : list α} (p : l₁ <+~ l₂) (s₁ : l₁.sorted r) (s₂ : l₂.sorted r) : l₁ <+ l₂ :=
+let ⟨_, h, h'⟩ := p in by rwa ←list.eq_of_perm_of_sorted h (list.pairwise_of_sublist h' s₂) s₁
+
 @[simp] theorem sorted_singleton (a : α) : sorted r [a] := pairwise_singleton _ _
 
 lemma sorted.rel_nth_le_of_lt {l : list α}
@@ -101,7 +106,6 @@ end
 end sorted
 
 section sort
-universe variable uu
 variables {α : Type uu} (r : α → α → Prop) [decidable_rel r]
 local infix ` ≼ ` : 50 := r
 
@@ -262,8 +266,8 @@ def merge_sort : list α → list α
   cases length_split_lt e with h₁ h₂,
   exact merge r (merge_sort l₁) (merge_sort l₂)
 end
-using_well_founded {
-  rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
+using_well_founded
+{ rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
   dec_tac := tactic.assumption }
 
 theorem merge_sort_cons_cons {a b} {l l₁ l₂ : list α}
@@ -280,7 +284,7 @@ end
 section correctness
 
 theorem perm_merge : ∀ (l l' : list α), merge r l l' ~ l ++ l'
-| []       []        := perm.nil
+| []       []        := by simp [merge]
 | []       (b :: l') := by simp [merge]
 | (a :: l) []        := by simp [merge]
 | (a :: l) (b :: l') := begin
@@ -291,8 +295,8 @@ theorem perm_merge : ∀ (l l' : list α), merge r l l' ~ l ++ l'
 end
 
 theorem perm_merge_sort : ∀ l : list α, merge_sort r l ~ l
-| []        := perm.refl _
-| [a]       := perm.refl _
+| []        := by simp [merge_sort]
+| [a]       := by simp [merge_sort]
 | (a::b::l) := begin
   cases e : split (a::b::l) with l₁ l₂,
   cases length_split_lt e with h₁ h₂,
@@ -300,8 +304,8 @@ theorem perm_merge_sort : ∀ l : list α, merge_sort r l ~ l
   apply (perm_merge r _ _).trans,
   exact ((perm_merge_sort l₁).append (perm_merge_sort l₂)).trans (perm_split e).symm
 end
-using_well_founded {
-  rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
+using_well_founded
+{ rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
   dec_tac := tactic.assumption }
 
 @[simp] lemma length_merge_sort (l : list α) : (merge_sort r l).length = l.length :=
@@ -311,7 +315,7 @@ section total_and_transitive
 variables {r} [is_total α r] [is_trans α r]
 
 theorem sorted.merge : ∀ {l l' : list α}, sorted r l → sorted r l' → sorted r (merge r l l')
-| []       []        h₁ h₂ := sorted_nil
+| []       []        h₁ h₂ := by simp [merge]
 | []       (b :: l') h₁ h₂ := by simpa [merge] using h₂
 | (a :: l) []        h₁ h₂ := by simpa [merge] using h₁
 | (a :: l) (b :: l') h₁ h₂ := begin
@@ -338,16 +342,16 @@ end
 variable (r)
 
 theorem sorted_merge_sort : ∀ l : list α, sorted r (merge_sort r l)
-| []        := sorted_nil
-| [a]       := sorted_singleton _
+| []        := by simp [merge_sort]
+| [a]       := by simp [merge_sort]
 | (a::b::l) := begin
   cases e : split (a::b::l) with l₁ l₂,
   cases length_split_lt e with h₁ h₂,
   rw [merge_sort_cons_cons r e],
   exact (sorted_merge_sort l₁).merge (sorted_merge_sort l₂)
 end
-using_well_founded {
-  rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
+using_well_founded
+{ rel_tac := λ_ _, `[exact ⟨_, inv_image.wf length nat.lt_wf⟩],
   dec_tac := tactic.assumption }
 
 theorem merge_sort_eq_self [is_antisymm α r] {l : list α} : sorted r l → merge_sort r l = l :=

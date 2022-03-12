@@ -3,11 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.group.pi
 import algebra.category.Mon.basic
-import group_theory.submonoid
-import category_theory.limits.types
+import algebra.group.pi
 import category_theory.limits.creates
+import category_theory.limits.types
+import group_theory.submonoid.operations
 
 /-!
 # The category of (commutative) (additive) monoids has all limits
@@ -72,7 +72,7 @@ Construction of a limit cone in `Mon`.
 (Internal use only; use the limits API.)
 -/
 @[to_additive "(Internal use only; use the limits API.)"]
-def limit_cone (F : J ⥤ Mon) : cone F :=
+def limit_cone (F : J ⥤ Mon.{u}) : cone F :=
 { X := Mon.of (types.limit_cone (F ⋙ forget _)).X,
   π :=
   { app := limit_π_monoid_hom F,
@@ -144,7 +144,7 @@ creates_limit_of_reflects_iso (λ c' t,
     π :=
     { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ CommMon Mon),
       naturality' := (Mon.has_limits.limit_cone (F ⋙ forget₂ _ _)).π.naturality, } },
-  valid_lift := is_limit.unique_up_to_iso (Mon.has_limits.limit_cone_is_limit _) t,
+  valid_lift := by apply is_limit.unique_up_to_iso (Mon.has_limits.limit_cone_is_limit _) t,
   makes_limit := is_limit.of_faithful (forget₂ CommMon Mon.{u})
     (Mon.has_limits.limit_cone_is_limit _) (λ s, _) (λ s, rfl) })
 

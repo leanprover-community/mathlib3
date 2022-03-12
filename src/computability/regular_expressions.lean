@@ -3,8 +3,6 @@ Copyright (c) 2020 Fox Thomson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Fox Thomson
 -/
-import data.fintype.basic
-import data.finset.basic
 import tactic.rcases
 import computability.language
 
@@ -133,9 +131,7 @@ lemma add_rmatch_iff (P Q : regular_expression α) (x : list α) :
   (P + Q).rmatch x ↔ P.rmatch x ∨ Q.rmatch x :=
 begin
   induction x with _ _ ih generalizing P Q,
-  { repeat {rw rmatch},
-    rw match_epsilon,
-    finish },
+  { simp only [rmatch, match_epsilon, bor_coe_iff] },
   { repeat {rw rmatch},
     rw deriv,
     exact ih _ _ }
@@ -156,7 +152,7 @@ begin
       subst ht,
       subst hu,
       repeat {rw rmatch at h₂},
-      finish } },
+      simp [h₂] } },
   { rw [rmatch, deriv],
     split_ifs with hepsilon,
     { rw [add_rmatch_iff, ih],
@@ -171,20 +167,22 @@ begin
           rw ←h at hQ,
           exact hQ },
         { left,
-          refine ⟨ t, u, by finish, _, hQ ⟩,
+          simp only [list.cons_append] at h,
+          refine ⟨ t, u, h.2, _, hQ ⟩,
           rw rmatch at hP,
           convert hP,
-          finish } } },
+          exact h.1 } } },
     { rw ih,
       split;
       rintro ⟨ t, u, h, hP, hQ ⟩,
       { exact ⟨ a :: t, u, by tauto ⟩ },
       { cases t with b t,
         { contradiction },
-        { refine ⟨ t, u, by finish, _, hQ ⟩,
+        { simp only [list.cons_append] at h,
+          refine ⟨ t, u, h.2, _, hQ ⟩,
           rw rmatch at hP,
           convert hP,
-          finish } } } }
+          exact h.1 } } } }
 end
 
 lemma star_rmatch_iff (P : regular_expression α) : ∀ (x : list α),
@@ -212,7 +210,7 @@ begin
       rcases hu with ⟨ S', hsum, helem ⟩,
       use (a :: t) :: S',
       split,
-      { finish },
+      { simp [hs, hsum] },
       { intros t' ht',
         cases ht' with ht' ht',
         { rw ht',
@@ -225,26 +223,26 @@ begin
       cases S with t' U,
       { exact ⟨ [], [], by tauto ⟩ },
       { cases t' with b t,
-        { finish },
-        refine ⟨ t, U.join, by finish, _, _ ⟩,
-        { specialize helem (b :: t) _,
-          { finish },
+        { simp only [forall_eq_or_imp, list.mem_cons_iff] at helem,
+          simp only [eq_self_iff_true, not_true, ne.def, false_and] at helem,
+          cases helem },
+        simp only [list.join, list.cons_append] at hsum,
+        refine ⟨ t, U.join, hsum.2, _, _ ⟩,
+        { specialize helem (b :: t) (by simp),
           rw rmatch at helem,
           convert helem.2,
-          finish },
+          exact hsum.1 },
         { have hwf : U.join.length < (list.cons a x).length,
-          { rw hsum,
-            simp only
-              [list.join, list.length_append, list.cons_append, list.length_join, list.length],
+          { rw [hsum.1, hsum.2],
+            simp only [list.length_append, list.length_join, list.length],
             apply A },
           rw IH _ hwf,
           refine ⟨ U, rfl, λ t h, helem t _ ⟩,
           right,
           assumption } } } }
 end
-using_well_founded {
-  rel_tac := λ _ _, `[exact ⟨(λ L₁ L₂ : list _, L₁.length < L₂.length), inv_image.wf _ nat.lt_wf⟩]
-}
+using_well_founded
+{ rel_tac := λ _ _, `[exact ⟨(λ L₁ L₂ : list _, L₁.length < L₂.length), inv_image.wf _ nat.lt_wf⟩] }
 
 @[simp] lemma rmatch_iff_matches (P : regular_expression α) :
   ∀ x : list α, P.rmatch x ↔ x ∈ P.matches :=
@@ -257,20 +255,20 @@ begin
     try {rw plus_def},
     try {rw comp_def},
     rw matches },
-  case zero : {
-    rw zero_rmatch,
+  case zero :
+  { rw zero_rmatch,
     tauto },
-  case epsilon : {
-    rw one_rmatch_iff,
+  case epsilon :
+  { rw one_rmatch_iff,
     refl },
-  case char : {
-    rw char_rmatch_iff,
+  case char :
+  { rw char_rmatch_iff,
     refl },
-  case plus : _ _ ih₁ ih₂ {
-    rw [add_rmatch_iff, ih₁, ih₂],
+  case plus : _ _ ih₁ ih₂
+  { rw [add_rmatch_iff, ih₁, ih₂],
     refl },
-  case comp : P Q ih₁ ih₂ {
-    simp only [mul_rmatch_iff, comp_def, language.mul_def, exists_and_distrib_left, set.mem_image2,
+  case comp : P Q ih₁ ih₂
+  { simp only [mul_rmatch_iff, comp_def, language.mul_def, exists_and_distrib_left, set.mem_image2,
       set.image_prod],
     split,
     { rintro ⟨ x, y, hsum, hmatch₁, hmatch₂ ⟩,
@@ -281,8 +279,8 @@ begin
       rw ←ih₁ at hmatch₁,
       rw ←ih₂ at hmatch₂,
       exact ⟨ x, y, hsum.symm, hmatch₁, hmatch₂ ⟩ } },
-  case star : _ ih {
-    rw [star_rmatch_iff, language.star_def_nonempty],
+  case star : _ ih
+  { rw [star_rmatch_iff, language.star_def_nonempty],
     split,
     all_goals
     { rintro ⟨ S, hx, hS ⟩,

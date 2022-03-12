@@ -8,7 +8,7 @@ import algebra.category.Group.preadditive
 import category_theory.over
 import category_theory.limits.concrete_category
 import category_theory.limits.shapes.concrete_category
-import group_theory.subgroup
+import group_theory.subgroup.basic
 
 /-!
 # The category of (commutative) (additive) groups has all limits
@@ -72,7 +72,7 @@ creates_limit_of_reflects_iso (λ c' t,
     π :=
     { app := Mon.limit_π_monoid_hom (F ⋙ forget₂ Group Mon.{u}),
       naturality' := (Mon.has_limits.limit_cone (F ⋙ forget₂ _ _)).π.naturality, } },
-  valid_lift := is_limit.unique_up_to_iso (Mon.has_limits.limit_cone_is_limit _) t,
+  valid_lift := by apply is_limit.unique_up_to_iso (Mon.has_limits.limit_cone_is_limit _) t,
   makes_limit := is_limit.of_faithful (forget₂ Group Mon.{u}) (Mon.has_limits.limit_cone_is_limit _)
     (λ s, _) (λ s, rfl) })
 

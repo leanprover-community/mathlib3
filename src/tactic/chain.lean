@@ -29,7 +29,7 @@ inductive tactic_script (α : Type) : Type
 
 meta def tactic_script.to_string : tactic_script string → string
 | (tactic_script.base a) := a
-| (tactic_script.work n a l c) :=  "work_on_goal " ++ (to_string n) ++
+| (tactic_script.work n a l c) :=  "work_on_goal " ++ (to_string (n+1)) ++
     " { " ++ (", ".intercalate (a :: l.map tactic_script.to_string)) ++ " }"
 
 meta instance : has_to_string (tactic_script string) :=
@@ -47,8 +47,8 @@ do
   else do
     m ← mk_meta_var type,
     a ← tac m,
-    do {
-      val ← instantiate_mvars m,
+    do
+    { val ← instantiate_mvars m,
       guard (val.list_meta_vars = []),
       c  ← new_aux_decl_name,
       gs ← get_goals,
@@ -70,14 +70,14 @@ do set_goals [g],
   return (a, l)
 with chain_many : list expr → tactic (list (tactic_script α))
 | [] := return []
-| [g] := do {
-  (a, l) ← chain_single g,
+| [g] := do
+{ (a, l) ← chain_single g,
   return (tactic_script.base a :: l) } <|> return []
 | gs := chain_iter gs []
 with chain_iter : list expr → list expr → tactic (list (tactic_script α))
 | [] _ := return []
-| (g :: later_goals) stuck_goals := do {
-  (a, l) ← abstract_if_success chain_single g,
+| (g :: later_goals) stuck_goals := do
+{ (a, l) ← abstract_if_success chain_single g,
   new_goals ← get_goals,
   let w := tactic_script.work stuck_goals.length a l (new_goals = []),
   let current_goals := stuck_goals.reverse ++ new_goals ++ later_goals,

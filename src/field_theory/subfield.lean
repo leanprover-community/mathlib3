@@ -91,21 +91,37 @@ instance : set_like (subfield K) K :=
 @[simp]
 lemma mem_carrier {s : subfield K} {x : K} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
 
+@[simp]
+lemma mem_mk {S : set K} {x : K} (h₁ h₂ h₃ h₄ h₅ h₆) :
+  x ∈ (⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) ↔ x ∈ S := iff.rfl
+
+@[simp] lemma coe_set_mk (S : set K) (h₁ h₂ h₃ h₄ h₅ h₆) :
+  ((⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) : set K) = S := rfl
+
+@[simp]
+lemma mk_le_mk {S S' : set K} (h₁ h₂ h₃  h₄ h₅ h₆ h₁' h₂' h₃'  h₄' h₅' h₆') :
+  (⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) ≤ (⟨S', h₁', h₂', h₃', h₄', h₅', h₆'⟩ : subfield K) ↔
+  S ⊆ S' :=
+iff.rfl
+
 /-- Two subfields are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subfield K} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
 
-/-- Copy of a submodule with a new `carrier` equal to the old one. Useful to fix definitional
+/-- Copy of a subfield with a new `carrier` equal to the old one. Useful to fix definitional
 equalities. -/
 protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
 { carrier := s,
   inv_mem' := hs.symm ▸ S.inv_mem',
   ..S.to_subring.copy s hs }
 
+@[simp] lemma coe_copy (S : subfield K) (s : set K) (hs : s = ↑S) :
+  (S.copy s hs : set K) = s := rfl
+
+lemma copy_eq (S : subfield K) (s : set K) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
+
 @[simp] lemma coe_to_subring (s : subfield K) : (s.to_subring : set K) = s :=
 rfl
-
-@[simp] lemma mem_mk (s : set K) (ho hm hz ha hn hi) (x : K) :
-  x ∈ subfield.mk s ho hm hz ha hn hi ↔ x ∈ s := iff.rfl
 
 @[simp] lemma mem_to_subring (s : subfield K) (x : K) :
   x ∈ s.to_subring ↔ x ∈ s := iff.rfl
@@ -176,26 +192,36 @@ s.to_add_subgroup.sum_mem h
 
 lemma pow_mem {x : K} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
 
-lemma gsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
-  n •ℤ x ∈ s := s.to_add_subgroup.gsmul_mem hx n
+lemma zsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
+  n • x ∈ s := s.to_add_subgroup.zsmul_mem hx n
 
 lemma coe_int_mem (n : ℤ) : (n : K) ∈ s :=
-by simp only [← gsmul_one, gsmul_mem, one_mem]
+by simp only [← zsmul_one, zsmul_mem, one_mem]
+
+lemma zpow_mem {x : K} (hx : x ∈ s) (n : ℤ) : x^n ∈ s :=
+begin
+  cases n,
+  { simpa using s.pow_mem hx n },
+  { simpa [pow_succ] using s.inv_mem (s.mul_mem hx (s.pow_mem hx n)) },
+end
 
 instance : ring s := s.to_subring.to_ring
 instance : has_div s := ⟨λ x y, ⟨x / y, s.div_mem x.2 y.2⟩⟩
 instance : has_inv s := ⟨λ x, ⟨x⁻¹, s.inv_mem x.2⟩⟩
+instance : has_pow s ℤ := ⟨λ x z, ⟨x ^ z, s.zpow_mem x.2 z⟩⟩
 
 /-- A subfield inherits a field structure -/
 instance to_field : field s :=
 subtype.coe_injective.field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subfield of a `linear_ordered_field` is a `linear_ordered_field`. -/
 instance to_linear_ordered_field {K} [linear_ordered_field K] (s : subfield K) :
   linear_ordered_field s :=
 subtype.coe_injective.linear_ordered_field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
@@ -214,6 +240,9 @@ def subtype (s : subfield K) : s →+* K :=
 instance to_algebra : algebra s K := ring_hom.to_algebra s.subtype
 
 @[simp] theorem coe_subtype : ⇑s.subtype = coe := rfl
+
+lemma to_subring.subtype_eq_subtype (F : Type*) [field F] (S : subfield F) :
+  S.to_subring.subtype = S.subtype := rfl
 
 /-! # Partial order -/
 
@@ -286,13 +315,10 @@ variables (g : L →+* M) (f : K →+* L)
 
 /-! # range -/
 
-/-- The range of a ring homomorphism, as a subfield of the target. -/
+/-- The range of a ring homomorphism, as a subfield of the target. See Note [range copy pattern]. -/
 def field_range : subfield L :=
 ((⊤ : subfield K).map f).copy (set.range f) set.image_univ.symm
 
-/-- Note that `ring_hom.field_range` is deliberately defined in a way that makes this true by `rfl`,
-as this means the types `↥(set.range f)` and `↥f.field_range` are interchangeable without proof
-obligations. -/
 @[simp] lemma coe_field_range : (f.field_range : set L) = set.range f := rfl
 
 @[simp] lemma mem_field_range {f : K →+* L} {y : L} : y ∈ f.field_range ↔ ∃ x, f x = y := iff.rfl
@@ -302,6 +328,12 @@ by { ext, simp }
 
 lemma map_field_range : f.field_range.map g = (g.comp f).field_range :=
 by simpa only [field_range_eq_map] using (⊤ : subfield K).map_map g f
+
+/-- The range of a morphism of fields is a fintype, if the domain is a fintype.
+
+Note that this instance can cause a diamond with `subtype.fintype` if `L` is also a fintype.-/
+instance fintype_field_range [fintype K] [decidable_eq L] (f : K →+* L) : fintype f.field_range :=
+set.fintype_range f
 
 end ring_hom
 
@@ -400,7 +432,7 @@ def closure (s : set K) : subfield K :=
     obtain ⟨ny, hny, dy, hdy, rfl⟩ := id y_mem,
     exact ⟨nx * ny, subring.mul_mem _ hnx hny,
            dx * dy, subring.mul_mem _ hdx hdy,
-           (div_mul_div _ _ _ _).symm⟩
+           (div_mul_div_comm₀ _ _ _ _).symm⟩
   end }
 
 lemma mem_closure_iff {s : set K} {x} :
@@ -412,6 +444,9 @@ lemma subring_closure_le (s : set K) : subring.closure s ≤ (closure s).to_subr
 /-- The subfield generated by a set includes the set. -/
 @[simp] lemma subset_closure {s : set K} : s ⊆ closure s :=
 set.subset.trans subring.subset_closure (subring_closure_le s)
+
+lemma not_mem_of_not_mem_closure {s : set K} {P : K} (hP : P ∉ closure s) : P ∉ s :=
+λ h, hP (subset_closure h)
 
 lemma mem_closure {x : K} {s : set K} : x ∈ closure s ↔ ∀ S : subfield K, s ⊆ S → x ∈ S :=
 ⟨λ ⟨y, hy, z, hz, x_eq⟩ t le, x_eq ▸

@@ -20,9 +20,6 @@ universes v u
 open_locale classical
 noncomputable theory
 
-attribute [elementwise] category_theory.limits.cokernel.π_desc
-attribute [elementwise] category_theory.limits.image_subobject_arrow_comp
-
 open category_theory category_theory.limits homological_complex
 
 local attribute [instance] concrete_category.has_coe_to_sort concrete_category.has_coe_to_fun
@@ -58,8 +55,6 @@ end
 def to_kernel_subobject {M N : Module R} {f : M ⟶ N} (m : M) (w : f m = 0) : kernel_subobject f :=
 (kernel_subobject_iso f ≪≫ Module.kernel_iso_ker f).inv ⟨m, w⟩
 
-attribute [elementwise] kernel_subobject_arrow'
-
 @[simp] lemma to_kernel_subobject_arrow {M N : Module R} {f : M ⟶ N} (m : M) (w : f m = 0) :
   (kernel_subobject f).arrow (to_kernel_subobject m w) = m :=
 by simp [to_kernel_subobject]
@@ -93,10 +88,8 @@ to_kernel_subobject x p
 @[ext] lemma cycles_ext {C : homological_complex (Module.{v} R) c} {i : ι}
   {x y : C.cycles i} (w : (C.cycles i).arrow x = (C.cycles i).arrow y) : x = y :=
 begin
-  apply_fun (C.cycles i).arrow,
+  apply_fun (C.cycles i).arrow using (Module.mono_iff_injective _).mp (cycles C i).arrow_mono,
   exact w,
-  apply (Module.mono_iff_injective _).mp,
-  exact (cycles C i).arrow_mono,
 end
 
 end homological_complex
@@ -119,9 +112,6 @@ lemma homological_complex.ext {M : Module R} (i : ι) {h k : C.homology i ⟶ M}
   (w : ∀ (x : C.X i) (p : C.d_from i x = 0), h (C.to_homology x p) = k (C.to_homology x p)) :
   h = k :=
 homology_ext _ w
-
-attribute [elementwise] kernel_subobject_map_arrow image_to_kernel_arrow
-attribute [elementwise] homology.π_desc homology.π_map
 
 /-- We give an alternative proof of `homology_map_eq_of_homotopy`,
 specialized to the setting of `V = Module R`,

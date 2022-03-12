@@ -649,6 +649,10 @@ end
 class t2_space (α : Type u) [topological_space α] : Prop :=
 (t2 : ∀x y, x ≠ y → ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
+lemma t2_space_def : t2_space α ↔
+  ∀x y, x ≠ y → ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
+⟨λ h, h.t2, λ h, ⟨h⟩⟩
+
 lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :
   ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
 t2_space.t2 x y h

@@ -86,7 +86,7 @@ begin
   apply iff.intro,
   { intro h,
     by_contra c,
-    simp only [auto.not_or_eq, ne.def, not_not] at c,
+    simp only [not_or_distrib, ne.def, not_not] at c,
     simpa [c.1, c.2, cons_zero_zero] using h },
   { intro h,
     cases h,

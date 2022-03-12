@@ -455,44 +455,46 @@ variables
 [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
 {B : Type*} [ring B] [algebra R B]
 
-/-- The extension to `unitization R A →ₐ[R] B` of a non-unital algebra homomorphism `φ : A → B`
-from a non-unital `R`-algebra `A` into a unital `R`-algebra `B`. -/
-@[simps]
-def non_unital_alg_hom.to_alg_hom (φ : non_unital_alg_hom R A B) : (unitization R A) →ₐ[R] B :=
-{ to_fun := λ x, algebra_map R B x.fst + φ x.snd,
-  map_one' := by simp only [fst_one, map_one, snd_one, φ.map_zero, add_zero],
-  map_mul' := λ x y,
-  begin
-    induction x using unitization.ind,
-    induction y using unitization.ind,
-    simp only [mul_add, add_mul, inr_mul_inr, fst_add, fst_mul, fst_inl, fst_inr, mul_zero,
-      add_zero, zero_mul, map_mul, snd_add, snd_mul, snd_inl, smul_zero, snd_inr, zero_add,
-      φ.map_add, φ.map_smul, φ.map_mul],
-    rw ←algebra.commutes _ (φ x_a),
-    simp only [algebra_map_eq_smul_one, smul_one_mul, add_assoc],
-  end,
-  map_zero' := by simp only [fst_zero, map_zero, snd_zero, φ.map_zero, add_zero],
-  map_add' := λ x y,
-  begin
-    induction x using unitization.ind,
-    induction y using unitization.ind,
-    simp only [fst_add, fst_inl, fst_inr, add_zero, map_add, snd_add, snd_inl, snd_inr, zero_add,
-      φ.map_add],
-    rw add_add_add_comm,
-  end,
-  commutes' := λ r, by simp only [algebra_map_eq_inl, fst_inl, snd_inl, φ.map_zero, add_zero] }
-
-local postfix `¹`:std.prec.max_plus := non_unital_alg_hom.to_alg_hom
-
-lemma non_unital_alg_hom.to_alg_hom_apply_coe (φ : non_unital_alg_hom R A B) (a : A) : φ¹ a = φ a :=
-by simp only [coe_apply, φ.to_alg_hom_apply, fst_inr, map_zero, snd_inr, zero_add]
-
-lemma non_unital_alg_hom.to_alg_hom_unique (φ : non_unital_alg_hom R A B)
-  (ψ : unitization R A →ₐ[R] B) (h : ∀ a : A, ψ a = φ¹ a) : ψ = φ¹ :=
+lemma unitization.alg_hom_ext {φ ψ : unitization R A →ₐ[R] B} (h : ∀ a : A, φ a = ψ a) :
+  φ = ψ :=
 begin
   ext,
   induction x using unitization.ind,
   simp only [map_add, ←algebra_map_eq_inl, ←coe_apply, h, alg_hom.commutes],
 end
+
+/-- Non-unital algebra homomorphisms from `A` into a unital `R`-algebra `B` lift to
+`unitization R A →ₐ[R] B`. -/
+@[simps apply_apply]
+def unitization.lift : non_unital_alg_hom R A B ≃ (unitization R A →ₐ[R] B) :=
+{ to_fun := λ φ,
+  { to_fun := λ x, algebra_map R B x.fst + φ x.snd,
+    map_one' := by simp only [fst_one, map_one, snd_one, φ.map_zero, add_zero],
+    map_mul' := λ x y,
+    begin
+      induction x using unitization.ind,
+      induction y using unitization.ind,
+      simp only [mul_add, add_mul, inr_mul_inr, fst_add, fst_mul, fst_inl, fst_inr, mul_zero,
+        add_zero, zero_mul, map_mul, snd_add, snd_mul, snd_inl, smul_zero, snd_inr, zero_add,
+        φ.map_add, φ.map_smul, φ.map_mul],
+      rw ←algebra.commutes _ (φ x_a),
+      simp only [algebra_map_eq_smul_one, smul_one_mul, add_assoc],
+    end,
+    map_zero' := by simp only [fst_zero, map_zero, snd_zero, φ.map_zero, add_zero],
+    map_add' := λ x y,
+    begin
+      induction x using unitization.ind,
+      induction y using unitization.ind,
+      simp only [fst_add, fst_inl, fst_inr, add_zero, map_add, snd_add, snd_inl, snd_inr, zero_add,
+        φ.map_add],
+      rw add_add_add_comm,
+    end,
+    commutes' := λ r, by simp only [algebra_map_eq_inl, fst_inl, snd_inl, φ.map_zero, add_zero] },
+  inv_fun := λ φ, φ.to_non_unital_alg_hom.comp coe_non_unital_alg_hom,
+  left_inv := λ φ, by { ext, simp, },
+  right_inv := λ φ, unitization.alg_hom_ext (by simp), }
+
+lemma unitization.lift_symm_apply (φ : unitization R A →ₐ[R] B) (a : A) :
+  unitization.lift.symm φ a = φ a := rfl
 
 end alg_hom

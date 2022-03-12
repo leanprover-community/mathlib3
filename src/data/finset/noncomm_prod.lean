@@ -283,12 +283,6 @@ begin
 end
 
 @[to_additive]
-lemma noncomm_prod_eq_one_of_forall_eq_one (s : finset α) (f : α → β)
-  (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
-  (h : ∀ (x : α), x ∈ s → f x = 1) : s.noncomm_prod f comm = 1 :=
-by rw [noncomm_prod_eq_pow_card s f comm 1 h, one_pow]
-
-@[to_additive]
 lemma noncomm_prod_commute (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (y : β) (h : ∀ (x : α), x ∈ s → commute y (f x)) : commute y (s.noncomm_prod f comm) :=
@@ -387,7 +381,8 @@ begin
     (pi.eval_monoid_hom M i)).trans,
   rw [ ← insert_erase (mem_univ i),
     noncomm_prod_insert_of_not_mem' _ _ _ _ (not_mem_erase _ _),
-    noncomm_prod_eq_one_of_forall_eq_one ],
+    noncomm_prod_eq_pow_card,
+    one_pow],
   { simp, },
   { intros i h, simp at h, simp [h], },
 end

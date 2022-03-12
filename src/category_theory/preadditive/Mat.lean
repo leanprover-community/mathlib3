@@ -9,6 +9,10 @@ import category_theory.limits.shapes.biproducts
 import category_theory.preadditive
 import category_theory.preadditive.additive_functor
 import data.matrix.dmatrix
+import data.matrix.basic
+import category_theory.Fintype
+import category_theory.preadditive.single_obj
+import algebra.opposites
 
 /-!
 # Matrices over a category.
@@ -458,8 +462,10 @@ universe u
 
 /-- A type synonym for `Fintype`, which we will equip with a category structure
 where the morphisms are matrices with components in `R`. -/
-@[nolint unused_arguments, derive [has_coe_to_sort]]
+@[nolint unused_arguments]
 def Mat (R : Type u) := Fintype.{u}
+
+instance (R : Type u) : has_coe_to_sort (Mat R) (Type u) := bundled.has_coe_to_sort
 
 open_locale classical matrix
 
@@ -504,31 +510,38 @@ variables (R : Type u) [ring R]
 
 open opposite
 
+/-- Auxiliary definition for `category_theory.Mat.equivalence_single_obj`. -/
 @[simps]
-def equivalence_single_obj_inverse : Mat_ (single_obj Rᵒᵖ) ⥤ Mat R :=
+def equivalence_single_obj_inverse : Mat_ (single_obj Rᵐᵒᵖ) ⥤ Mat R :=
 { obj := λ X, Fintype.of X.ι,
-  map := λ X Y f i j, unop (f i j),
+  map := λ X Y f i j, mul_opposite.unop (f i j),
   map_id' := λ X, by { ext i j, simp [id_def, Mat_.id_def], split_ifs; refl, }, }
 
 instance : faithful (equivalence_single_obj_inverse R) :=
 { map_injective' := λ X Y f g w, begin
     ext i j,
-    apply_fun unop using unop_injective,
+    apply_fun mul_opposite.unop using mul_opposite.unop_injective,
     exact (congr_fun (congr_fun w i) j),
   end }
 
 instance : full (equivalence_single_obj_inverse R) :=
-{ preimage := λ X Y f i j, op (f i j), }
+{ preimage := λ X Y f i j, mul_opposite.op (f i j), }
 
 instance : ess_surj (equivalence_single_obj_inverse R) :=
 { mem_ess_image := λ X,
   ⟨{ ι := X, X := λ _, punit.star }, ⟨eq_to_iso (by { dsimp, cases X, congr, })⟩⟩, }
 
-def equivalence_single_obj : Mat R ≌ Mat_ (single_obj Rᵒᵖ) :=
+/-- The categorical equivalence between the category of matrices over a ring,
+and the category of matrices over that ring considered as a single-object category. -/
+def equivalence_single_obj : Mat R ≌ Mat_ (single_obj Rᵐᵒᵖ) :=
 begin
-  haveI := equivalence.equivalence_of_fully_faithfully_ess_surj (equivalence_single_obj_inverse R),
+  haveI := equivalence.of_fully_faithfully_ess_surj (equivalence_single_obj_inverse R),
   exact (equivalence_single_obj_inverse R).as_equivalence.symm,
 end
+
+instance : preadditive (Mat R) :=
+{ add_comp' := by { intros, ext, simp [add_mul, finset.sum_add_distrib], },
+  comp_add' := by { intros, ext, simp [mul_add, finset.sum_add_distrib], }, }
 
 -- TODO show `Mat R` has biproducts, and that `biprod.map` "is" forming a block diagonal matrix.
 

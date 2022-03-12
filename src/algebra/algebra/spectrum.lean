@@ -433,8 +433,7 @@ end
 
 lemma mem_resolvent_set_apply (φ : A →ₐ[R] B) {a : A} {r : R} (h : r ∈ resolvent_set R a) :
   r ∈ resolvent_set R (φ a) :=
-by simpa only [to_ring_hom_eq_coe, ring_hom.to_monoid_hom_eq_coe, ring_hom.coe_monoid_hom,
-  coe_to_ring_hom, map_sub, commutes] using h.map φ.to_ring_hom.to_monoid_hom
+by simpa only [map_sub, commutes] using h.map φ
 
 lemma spectrum_apply_subset (φ : A →ₐ[R] B) (a : A) : σ (φ a) ⊆ σ a :=
 λ _, mt (mem_resolvent_set_apply φ)

@@ -128,7 +128,7 @@ by simp [padic_val_int]
 by simp [padic_val_int]
 
 /-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
-@[simp] lemma self (hp : 1 < p) : padic_val_int p p = 1 :=
+lemma self (hp : 1 < p) : padic_val_int p p = 1 :=
 by simp [padic_val_int, padic_val_nat.self hp]
 
 /-- The p-adic value of an natural is its p-adic_value as an integer -/
@@ -176,14 +176,6 @@ protected lemma zero (m : nat) : padic_val_rat m 0 = 0 := by simp [padic_val_rat
 /-- `padic_val_rat p 1` is 0 for any `p`. -/
 @[simp] protected lemma one : padic_val_rat p 1 = 0 := by simp [padic_val_rat, padic_val_int]
 
-/-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
-@[simp] lemma self (hp : 1 < p) : padic_val_rat p p = 1 :=
-begin
-  simp only [padic_val_rat, padic_val_int, rat.coe_nat_num, int.nat_abs_of_nat, rat.coe_nat_denom,
-    padic_val_nat.one, int.coe_nat_zero, sub_zero, padic_val_nat.self hp],
-  refl,
-end
-
 /-- The p-adic value of an integer `z ≠ 0` is its p-adic_value as a rational -/
 @[simp] lemma of_int {z : ℤ} : padic_val_rat p (z : ℚ) = padic_val_int p z :=
 by simp [padic_val_rat]
@@ -202,7 +194,7 @@ lemma multiplicity_sub_multiplicity {q : ℚ} (hp : p ≠ 1) (hq : q ≠ 0) :
 begin
   rw [padic_val_rat, padic_val_int.of_ne_one_ne_zero hp, padic_val_nat, dif_pos],
   refl,
-  simp [hp],
+  simp only [hp, ne.def, not_false_iff, true_and],
   exact q.pos,
   -- library_search, -- fails, but shouldn't
   intro h, apply hq,
@@ -213,6 +205,13 @@ end
 @[simp] lemma of_nat {n : ℕ} : padic_val_rat p (n : ℚ) = padic_val_nat p n :=
 by simp [padic_val_rat, padic_val_int]
 
+-- /-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
+-- @[simp] lemma self (hp : 1 < p) : padic_val_rat p p = 1 :=
+-- begin
+--   simp,
+--   rw padic_val_nat.self hp, -- Why does this fail to fire with simp?
+--   refl,
+-- end
 
 end padic_val_rat
 

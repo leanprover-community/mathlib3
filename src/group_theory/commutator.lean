@@ -92,16 +92,12 @@ lemma commutator_def' (H₁ H₂ : subgroup G) [H₁.normal] [H₂.normal] :
   ⁅H₁, H₂⁆ = normal_closure {g | ∃ (g₁ ∈ H₁) (g₂ ∈ H₂), ⁅g₁, g₂⁆ = g} :=
 le_antisymm closure_le_normal_closure (normal_closure_le_normal subset_closure)
 
+lemma commutator_comm_le (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ ≤ ⁅H₂, H₁⁆ :=
+commutator_le.mpr (λ g₁ h₁ g₂ h₂,
+  commutator_element_inv g₂ g₁ ▸ ⁅H₂, H₁⁆.inv_mem_iff.mpr (commutator_mem_commutator h₂ h₁))
+
 lemma commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=
-begin
-  suffices : ∀ H₁ H₂ : subgroup G, ⁅H₁, H₂⁆ ≤ ⁅H₂, H₁⁆, { exact le_antisymm (this _ _) (this _ _) },
-  intros H₁ H₂,
-  rw commutator_le,
-  intros p hp q hq,
-  have h : (p * q * p⁻¹ * q⁻¹)⁻¹ ∈ ⁅H₂, H₁⁆ := subset_closure ⟨q, hq, p, hp, by group⟩,
-  convert inv_mem ⁅H₂, H₁⁆ h,
-  group,
-end
+le_antisymm (commutator_comm_le H₁ H₂) (commutator_comm_le H₂ H₁)
 
 lemma commutator_le_right (H₁ H₂ : subgroup G) [h : normal H₂] : ⁅H₁, H₂⁆ ≤ H₂ :=
 commutator_le.mpr (λ g₁ h₁ g₂ h₂, H₂.mul_mem (h.conj_mem g₂ h₂ g₁) (H₂.inv_mem h₂))

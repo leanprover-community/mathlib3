@@ -196,9 +196,7 @@ begin
   refl,
   simp only [hp, ne.def, not_false_iff, true_and],
   exact q.pos,
-  -- library_search, -- fails, but shouldn't
-  intro h, apply hq,
-  exact rat.zero_of_num_zero h,
+  exact rat.num_ne_zero_of_ne_zero hq,
 end
 
 /-- The p-adic value of an integer `z ≠ 0` is its p-adic_value as a rational -/

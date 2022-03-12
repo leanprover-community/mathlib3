@@ -65,7 +65,7 @@ module.ray.map $ alternating_map.dom_lcongr R R ι R e
   (orientation.map ι $ linear_equiv.refl R M) = equiv.refl _ :=
 by rw [orientation.map, alternating_map.dom_lcongr_refl, module.ray.map_refl]
 
-@[simp] lemma orientation.map_symm [nontrivial R] (e : M ≃ₗ[R] N) :
+@[simp] lemma orientation.map_symm (e : M ≃ₗ[R] N) :
   (orientation.map ι e).symm = orientation.map ι e.symm := rfl
 
 end ordered_comm_semiring
@@ -89,7 +89,7 @@ by simp_rw [basis.orientation, orientation.map_apply, basis.det_map']
 
 /-- The value of `orientation.map` when the index type has the cardinality of a basis, in terms
 of `f.det`. -/
-lemma map_orientation_eq_det_inv_smul [nontrivial R] [is_domain R] (e : basis ι R M)
+lemma map_orientation_eq_det_inv_smul [is_domain R] (e : basis ι R M)
   (x : orientation R M ι) (f : M ≃ₗ[R] M) : orientation.map ι f x = (f.det)⁻¹ • x :=
 begin
   induction x using module.ray.ind with g hg,

@@ -155,24 +155,28 @@ lemma add_right (hy : same_ray R x y) (hz : same_ray R x z) : same_ray R x (y + 
 
 end same_ray
 
-variables (R M)
-
-include R
-
 /-- Nonzero vectors, as used to define rays. This type depends on an unused argument `R` so that
 `ray_vector.setoid` can be an instance. -/
-@[nolint unused_arguments]
-def ray_vector := {v : M // v ≠ 0}
+@[nolint unused_arguments has_inhabited_instance]
+def ray_vector (R M : Type*) [has_zero M] := {v : M // v ≠ 0}
 
-omit R
+instance ray_vector.has_coe {R M : Type*} [has_zero M] :
+  has_coe (ray_vector R M) M := coe_subtype
 
-instance ray_vector.has_coe : has_coe (ray_vector R M) M := coe_subtype
+instance {R M : Type*} [has_zero M] [nontrivial M] : nonempty (ray_vector R M) :=
+let ⟨x, hx⟩ := exists_ne (0 : M) in ⟨⟨x, hx⟩⟩
+
+variables (R M)
 
 /-- The setoid of the `same_ray` relation for the subtype of nonzero vectors. -/
 instance : setoid (ray_vector R M) :=
 { r := λ x y, same_ray R (x : M) y,
   iseqv := ⟨λ x, same_ray.refl _, λ x y h, h.symm,
     λ x y z hxy hyz, hxy.trans hyz $ λ hy, (y.2 hy).elim⟩ }
+
+/-- A ray (equivalence class of nonzero vectors with common positive multiples) in a module. -/
+@[nolint has_inhabited_instance]
+def module.ray := quotient (ray_vector.setoid R M)
 
 variables {R M}
 
@@ -181,13 +185,7 @@ lemma equiv_iff_same_ray {v₁ v₂ : ray_vector R M} :
   v₁ ≈ v₂ ↔ same_ray R (v₁ : M) v₂ :=
 iff.rfl
 
-variables (R M)
-
-/-- A ray (equivalence class of nonzero vectors with common positive multiples) in a module. -/
-@[nolint has_inhabited_instance]
-def module.ray := quotient (ray_vector.setoid R M)
-
-variables {M}
+variables (R)
 
 /-- The ray given by a nonzero vector. -/
 protected def ray_of_ne_zero (v : M) (h : v ≠ 0) : module.ray R M := ⟦⟨v, h⟩⟧
@@ -200,7 +198,7 @@ quotient.ind (subtype.rec $ by exact h) x
 variable {R}
 
 instance [nontrivial M] : nonempty (module.ray R M) :=
-let ⟨x, hx⟩ := exists_ne (0 : M) in ⟨ray_of_ne_zero R x hx⟩
+nonempty.map quotient.mk infer_instance
 
 /-- The rays given by two nonzero vectors are equal if and only if those vectors
 satisfy `same_ray`. -/
@@ -227,18 +225,20 @@ quotient.congr (ray_vector.map_linear_equiv e) $ λ ⟨a, ha⟩ ⟨b, hb⟩, (sa
 @[simp] lemma module.ray.map_refl : (module.ray.map $ linear_equiv.refl R M) = equiv.refl _ :=
 equiv.ext $ module.ray.ind R $ λ _ _, rfl
 
-@[simp] lemma module.ray.map_symm [nontrivial R] (e : M ≃ₗ[R] N) :
+@[simp] lemma module.ray.map_symm (e : M ≃ₗ[R] N) :
   (module.ray.map e).symm = module.ray.map e.symm := rfl
 
 section action
-variables {G : Type*} [group G] [distrib_mul_action G M] [smul_comm_class R G M]
+variables {G : Type*} [group G] [distrib_mul_action G M]
 
 /-- Any invertible action preserves the non-zeroness of ray vectors. This is primarily of interest
 when `G = Rˣ` -/
-instance : mul_action G (ray_vector R M) :=
+instance {R : Type*} : mul_action G (ray_vector R M) :=
 { smul := λ r, (subtype.map ((•) r) $ λ a, (smul_ne_zero_iff_ne _).2),
   mul_smul := λ a b m, subtype.ext $ mul_smul a b _,
   one_smul := λ m, subtype.ext $ one_smul _ _ }
+
+variables [smul_comm_class R G M]
 
 /-- Any invertible action preserves the non-zeroness of rays. This is primarily of interest when
 `G = Rˣ` -/
@@ -329,13 +329,13 @@ end
 namespace ray_vector
 
 /-- Negating a nonzero vector. -/
-instance : has_neg (ray_vector R M) := ⟨λ v, ⟨-v, neg_ne_zero.2 v.prop⟩⟩
+instance {R : Type*} : has_neg (ray_vector R M) := ⟨λ v, ⟨-v, neg_ne_zero.2 v.prop⟩⟩
 
 /-- Negating a nonzero vector commutes with coercion to the underlying module. -/
-@[simp, norm_cast] lemma coe_neg (v : ray_vector R M) : ↑(-v) = -(v : M) := rfl
+@[simp, norm_cast] lemma coe_neg {R : Type*} (v : ray_vector R M) : ↑(-v) = -(v : M) := rfl
 
 /-- Negating a nonzero vector twice produces the original vector. -/
-instance : has_involutive_neg (ray_vector R M) :=
+instance {R : Type*} : has_involutive_neg (ray_vector R M) :=
 { neg := has_neg.neg,
   neg_neg := λ v, by rw [subtype.ext_iff, coe_neg, coe_neg, neg_neg] }
 
@@ -487,11 +487,13 @@ end
 
 /-- If a vector `v₁` is on the same ray as a nonzero vector `v₂`, then it is equal to `c • v₂` for
 some nonnegative `c`. -/
-lemma exists_left_eq_smul {v₁ v₂ : M} (h : same_ray R v₁ v₂) (h₀ : v₂ ≠ 0) :
+lemma exists_left_eq_smul (h : same_ray R v₁ v₂) (h₀ : v₂ ≠ 0) :
   ∃ c : R, 0 ≤ c ∧ v₁ = c • v₂ :=
 h.symm.exists_right_eq_smul h₀
 
-lemma exists_eq_smul_add {v₁ v₂ : M} (h : same_ray R v₁ v₂) :
+/-- If vectors `v₁` and `v₂` are on the same ray, then for some nonnegative `a b`, `a + b = 1`, we
+have `v₁ = a • (v₁ + v₂)` and `v₂ = b • (v₁ + v₂)`. -/
+lemma exists_eq_smul_add (h : same_ray R v₁ v₂) :
   ∃ a b : R, 0 ≤ a ∧ 0 ≤ b ∧ a + b = 1 ∧ v₁ = a • (v₁ + v₂) ∧ v₂ = b • (v₁ + v₂) :=
 begin
   rcases h with rfl|rfl|⟨r₁, r₂, h₁, h₂, H⟩,
@@ -507,7 +509,9 @@ begin
         inv_smul_smul₀ h₁₂.ne'] } }
 end
 
-lemma exists_eq_smul {v₁ v₂ : M} (h : same_ray R v₁ v₂) :
+/-- If vectors `v₁` and `v₂` are on the same ray, then they are nonnegative multiples of the same
+vector. Actually, this vector can be assumed to be `v₁ + v₂`, see `same_ray.exists_eq_smul_add`. -/
+lemma exists_eq_smul (h : same_ray R v₁ v₂) :
   ∃ (u : M) (a b : R), 0 ≤ a ∧ 0 ≤ b ∧ a + b = 1 ∧ v₁ = a • u ∧ v₂ = b • u :=
 ⟨v₁ + v₂, h.exists_eq_smul_add⟩
 

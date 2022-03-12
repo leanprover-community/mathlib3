@@ -50,7 +50,7 @@ universes u v w x
 variables {R : Type u} {S₁ : Type v} {S₂ : Type w} {S₃ : Type x}
 
 namespace mv_polynomial
-variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
+variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {s : σ →₀ ℕ}
 
 section equiv
 
@@ -331,17 +331,17 @@ begin
   simp only [mv_polynomial.fin_succ_equiv_apply, mv_polynomial.eval₂_hom_C],
 end
 
-variables {n} {R}
+variables {n : ℕ} {R}
 
-lemma fin_succ_equiv_X_zero {n : ℕ} :
+lemma fin_succ_equiv_X_zero :
   fin_succ_equiv R n (X 0) = polynomial.X := by simp
 
-lemma fin_succ_equiv_X_succ {n : ℕ} {j : fin n} :
+lemma fin_succ_equiv_X_succ {j : fin n} :
   fin_succ_equiv R n (X j.succ) = polynomial.C (X j) := by simp
 
 /-- The coefficient of `m` in the `i`-th coefficient of `fin_succ_equiv R n f` equals the
     coefficient of `finsupp.cons i m` in `f`. -/
-lemma fin_succ_equiv_coeff_coeff {n : ℕ} (m : fin n →₀  ℕ)
+lemma fin_succ_equiv_coeff_coeff (m : fin n →₀ ℕ)
   (f : mv_polynomial (fin (n + 1)) R) (i : ℕ) :
   coeff m (polynomial.coeff (fin_succ_equiv R n f) i) = coeff (m.cons i) f :=
 begin
@@ -364,7 +364,7 @@ begin
       using coeff_monomial m j.tail (1:R), }
 end
 
-lemma eval_eq_eval_mv_eval' {n : ℕ} (s : fin n → R) (y : R) (f : mv_polynomial (fin (n + 1)) R) :
+lemma eval_eq_eval_mv_eval' (s : fin n → R) (y : R) (f : mv_polynomial (fin (n + 1)) R) :
   eval (fin.cons y s : fin (n + 1) → R) f =
     polynomial.eval y (polynomial.map (eval s) (fin_succ_equiv R n f)) :=
 begin
@@ -384,11 +384,11 @@ begin
   fin.cons_succ, fin.cases_succ, eval_X, polynomial.eval_C, implies_true_iff, and_self],
 end
 
-lemma coeff_eval_eq_eval_coeff {n : ℕ} (s' : fin n → R) (f : polynomial (mv_polynomial (fin n) R))
+lemma coeff_eval_eq_eval_coeff (s' : fin n → R) (f : polynomial (mv_polynomial (fin n) R))
   (i : ℕ) : polynomial.coeff (polynomial.map (eval s') f) i = eval s' (polynomial.coeff f i) :=
 by simp only [polynomial.coeff_map]
 
-lemma support_coeff_fin_succ_equiv {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} {i : ℕ}
+lemma support_coeff_fin_succ_equiv {f : mv_polynomial (fin (n + 1)) R} {i : ℕ}
   {m : fin n →₀ ℕ } : m ∈ (polynomial.coeff ((fin_succ_equiv R n) f) i).support
    ↔ (finsupp.cons i m) ∈ f.support :=
 begin
@@ -399,7 +399,7 @@ begin
     simpa [mem_support_iff, ←fin_succ_equiv_coeff_coeff m f i] using h },
 end
 
-lemma fin_succ_equiv_support {n : ℕ} (f : mv_polynomial (fin (n + 1)) R) :
+lemma fin_succ_equiv_support (f : mv_polynomial (fin (n + 1)) R) :
   (fin_succ_equiv R n f).support = finset.image (λ m : fin (n + 1)→₀ ℕ, m 0) f.support :=
 begin
   ext i,
@@ -414,7 +414,7 @@ begin
     rwa [← coeff, ← mem_support_iff, support_coeff_fin_succ_equiv, cons_tail] },
 end
 
-lemma fin_succ_equiv_support' {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} {i : ℕ} :
+lemma fin_succ_equiv_support' {f : mv_polynomial (fin (n + 1)) R} {i : ℕ} :
   finset.image (finsupp.cons i) (polynomial.coeff ((fin_succ_equiv R n) f) i).support
    = f.support.filter(λ m, m 0 = i) :=
 begin
@@ -434,7 +434,7 @@ begin
     simp [h.1] }
 end
 
-lemma support_fin_succ_equiv_nonempty  {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :
+lemma support_fin_succ_equiv_nonempty {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :
   (fin_succ_equiv R n f).support.nonempty :=
 begin
   by_contradiction c,
@@ -442,15 +442,15 @@ begin
   have t'' : (fin_succ_equiv R n f) ≠ 0,
   { let ii := (fin_succ_equiv R n).symm,
     have h' : f = 0 :=
-      calc f =  ii (fin_succ_equiv R n f) : by  simpa only [ii, ←alg_equiv.inv_fun_eq_symm]
-                                                using ((fin_succ_equiv R n).left_inv f).symm
-      ...    =  ii 0 : by rw c
+      calc f = ii (fin_succ_equiv R n f) : by simpa only [ii, ←alg_equiv.inv_fun_eq_symm]
+                                             using ((fin_succ_equiv R n).left_inv f).symm
+      ...    = ii 0 : by rw c
       ...    = 0 : by simp,
     simpa [h'] using h },
   simpa [c] using h,
 end
 
-lemma degree_fin_succ_equiv {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :
+lemma degree_fin_succ_equiv {f : mv_polynomial (fin (n + 1)) R} (h : f ≠ 0) :
   (fin_succ_equiv R n f).degree = degree_of 0 f :=
 begin
   have h' : (fin_succ_equiv R n f).support.sup (λ x , x)  = degree_of 0 f,
@@ -459,7 +459,7 @@ begin
   congr,
 end
 
-lemma nat_degree_fin_succ_equiv {n : ℕ} (f : mv_polynomial (fin (n + 1)) R) :
+lemma nat_degree_fin_succ_equiv (f : mv_polynomial (fin (n + 1)) R) :
   (fin_succ_equiv R n f).nat_degree = degree_of 0 f :=
 begin
   by_cases c : f = 0,
@@ -468,7 +468,7 @@ begin
     simp },
 end
 
-lemma degree_of_coeff_fin_succ_equiv {n : ℕ} (p : mv_polynomial (fin (n + 1)) R) (j : fin n)
+lemma degree_of_coeff_fin_succ_equiv (p : mv_polynomial (fin (n + 1)) R) (j : fin n)
   (i : ℕ) : degree_of j (polynomial.coeff (fin_succ_equiv R n p) i) ≤ degree_of j.succ p :=
 begin
   rw [degree_of_eq_sup, degree_of_eq_sup, finset.sup_le_iff],

@@ -86,17 +86,9 @@ variables {ι : Type*} {c : complex_shape ι} {C D : homological_complex (Module
 namespace homological_complex
 
 /-- Bundle an element `C.X i` such that `C.d_from i x = 0` as a term of `C.cycles i`. -/
-def to_cycles (C : homological_complex (Module.{v} R) c)
+abbreviation to_cycles (C : homological_complex (Module.{v} R) c)
   {i : ι} (x : C.X i) (p : C.d_from i x = 0) : C.cycles i :=
 to_kernel_subobject x p
-
-@[simp] lemma to_cycles_arrow {C : homological_complex (Module.{v} R) c} {i : ι}
-  (x : C.X i) (p : C.d_from i x = 0) : (C.cycles i).arrow (C.to_cycles x p) = x :=
-begin
-  simp [to_cycles],
-  dsimp [to_kernel_subobject, cycles, kernel_subobject_iso],
-  simp,
-end
 
 @[ext] lemma cycles_ext {C : homological_complex (Module.{v} R) c} {i : ι}
   {x y : C.cycles i} (w : (C.cycles i).arrow x = (C.cycles i).arrow y) : x = y :=
@@ -117,10 +109,10 @@ attribute [elementwise] homological_complex.hom.comm_from homological_complex.ho
 by { ext, simp, }
 
 /-- Build a term of `C.homology i` from an element `C.X i` such that `C.d_from i x = 0`. -/
-def homological_complex.to_homology
+abbreviation homological_complex.to_homology
   (C : homological_complex (Module.{v} R) c) {i : ι} (x : C.X i) (p : C.d_from i x = 0) :
   C.homology i :=
-cokernel.π (C.boundaries_to_cycles i) (C.to_cycles x p)
+homology.π (C.d_to i) (C.d_from i) _ (C.to_cycles x p)
 
 @[ext]
 lemma homological_complex.ext {M : Module R} (i : ι) {h k : C.homology i ⟶ M}
@@ -128,16 +120,22 @@ lemma homological_complex.ext {M : Module R} (i : ι) {h k : C.homology i ⟶ M}
   h = k :=
 homology_ext _ w
 
-theorem homology_map_eq_of_homotopy' (f g : C ⟶ D) (h : homotopy f g) (i : ι) :
+attribute [elementwise] kernel_subobject_map_arrow image_to_kernel_arrow
+attribute [elementwise] homology.π_desc homology.π_map
+
+/-- We give an alternative proof of `homology_map_eq_of_homotopy`,
+specialized to the setting of `V = Module R`,
+to demonstrate the use of extensionality lemmas for homology in `Module R`. -/
+example (f g : C ⟶ D) (h : homotopy f g) (i : ι) :
   (homology_functor (Module.{v} R) c i).map f = (homology_functor (Module.{v} R) c i).map g :=
 begin
   -- To check two morphisms out of a homology group agree, it suffices to check on cycles:
   ext,
-  dsimp [homology_functor, homological_complex.to_homology],
-  simp only [cokernel.π_desc_apply, coe_comp],
+  dsimp,
+  simp only [homology.π_map_apply],
   -- To check that two elements are equal mod coboundaries, it suffices to exhibit a coboundary:
   ext1,
-  swap, exact -(h.to_prev i i) x,
+  swap, exact -(to_prev i h.hom) x,
   -- Moreover, to check that two cycles are equal, it suffices to check their underlying elements:
   ext1,
   simp [h.comm i, p],

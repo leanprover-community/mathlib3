@@ -39,12 +39,12 @@ section cycles
 variables [has_kernels V]
 
 /-- The cycles at index `i`, as a subobject. -/
-def cycles (i : ι) : subobject (C.X i) :=
+abbreviation cycles (i : ι) : subobject (C.X i) :=
 kernel_subobject (C.d_from i)
 
-@[simp, reassoc]
-lemma cycles_arrow_d_from (i : ι) : (C.cycles i).arrow ≫ C.d_from i = 0 :=
-by { dsimp [cycles], simp, }
+-- @[simp, reassoc]
+-- lemma cycles_arrow_d_from (i : ι) : (C.cycles i).arrow ≫ C.d_from i = 0 :=
+-- by { dsimp [cycles], simp, }
 
 lemma cycles_eq_kernel_subobject {i j : ι} (r : c.rel i j) :
   C.cycles i = kernel_subobject (C.d i j) :=
@@ -116,10 +116,10 @@ image_to_kernel _ _ (C.d_to_comp_d_from i)
   (C.boundaries i).of_le (C.cycles i) h = C.boundaries_to_cycles i :=
 rfl
 
-@[simp, reassoc]
-lemma boundaries_to_cycles_arrow (C : homological_complex V c) (i : ι) :
-  C.boundaries_to_cycles i ≫ (C.cycles i).arrow = (C.boundaries i).arrow :=
-by { dsimp [cycles], simp, }
+-- @[simp, reassoc]
+-- lemma boundaries_to_cycles_arrow (C : homological_complex V c) (i : ι) :
+--   C.boundaries_to_cycles i ≫ (C.cycles i).arrow = (C.boundaries i).arrow :=
+-- by { dsimp [cycles], simp, }
 
 variables [has_cokernels V]
 

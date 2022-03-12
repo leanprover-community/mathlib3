@@ -36,7 +36,7 @@ instance : set_like (star_subalgebra R A) A :=
 instance : has_top (star_subalgebra R A) :=
 ⟨{ star_mem' := by tidy, ..(⊤ : subalgebra R A) }⟩
 
-instance : inhabited (star_subalgebra R A) := ⊤
+instance : inhabited (star_subalgebra R A) := ⟨⊤⟩
 
 section centralizer
 variables {A}

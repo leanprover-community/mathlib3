@@ -472,11 +472,11 @@ end galois_connection
 
 section irrelevant_ideal
 
-open graded_algebra finset set_like.graded_monoid direct_sum
+open graded_algebra set_like.graded_monoid direct_sum
 
 variables [comm_semiring R] [semiring A]
 variables [algebra R A] [decidable_eq ι]
-variables [canonically_ordered_add_monoid ι] [covariant_class ι ι has_add.add has_lt.lt]
+variables [canonically_ordered_add_monoid ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 
 /--
@@ -486,32 +486,26 @@ homomorphism.
 def graded_algebra.proj_zero_ring_hom : A →+* A :=
 { to_fun := λ a, decompose 𝒜 a 0,
   map_one' := decompose_of_mem_same 𝒜 one_mem,
-  map_mul' := λ x y, begin
-    haveI : Π (i : ι) (x : (𝒜 i)), decidable (x ≠ 0) := λ _ _, classical.dec_pred _ _,
-    have mem_top : ∀ x, x ∈ _ := λ x, ((is_internal 𝒜).supr_eq_top.ge : _) submodule.mem_top,
-    apply submodule.supr_induction 𝒜 (mem_top x),
-    { intros i c hc,
-      apply submodule.supr_induction 𝒜 (mem_top y),
-      { intros j c' hc',
-        by_cases ineq1 : i + j = 0,
-        { rw [decompose_of_mem_same 𝒜 (show c * c' ∈ 𝒜 0, by { convert mul_mem hc hc', rw ineq1 })],
-          rw add_eq_zero_iff at ineq1,
-          rw [decompose_of_mem_same 𝒜 (show c ∈ 𝒜 0, by { convert hc, rw ineq1.1 }),
-            decompose_of_mem_same 𝒜 (show c' ∈ 𝒜 0, by { convert hc', rw ineq1.2 })] },
-        { rw [decompose_of_mem_ne 𝒜 (mul_mem hc hc') ineq1],
-          rw [add_eq_zero_iff, not_and_distrib] at ineq1,
-          cases ineq1,
-          { simp only [decompose_of_mem_ne 𝒜 hc ineq1, zero_mul] },
-          { simp only [decompose_of_mem_ne 𝒜 hc' ineq1, mul_zero] } } },
-      { rw [mul_zero, map_zero, zero_apply, submodule.coe_zero, mul_zero] },
-      { rintros d e (hd : _ = _ * _) (he : _ = _ * _),
-        simp only [mul_add, map_add, add_apply, submodule.coe_add, hd, he] } },
-    { rw [zero_mul, map_zero, zero_apply, submodule.coe_zero, zero_mul] },
-    { rintros a b (ha : _ = _ * _) (hb : _ = _ * _),
-      simp only [add_mul, map_add, add_apply, submodule.coe_add, ha, hb] }
-  end,
-  map_zero' := by { simp only [subtype.ext_iff_val, map_zero, zero_apply, submodule.coe_zero] },
-  map_add' := λ _ _, by { simp [subtype.ext_iff_val, map_add, add_apply, submodule.coe_add] } }
+  map_zero' := by simp only [subtype.ext_iff_val, map_zero, zero_apply, submodule.coe_zero],
+  map_add' := λ _ _, by simp [subtype.ext_iff_val, map_add, add_apply, submodule.coe_add],
+  map_mul' := λ x y,
+    have m : ∀ x, x ∈ supr 𝒜, from λ x, (is_internal 𝒜).supr_eq_top.symm ▸ submodule.mem_top,
+    begin
+    refine submodule.supr_induction 𝒜 (m x) (λ i c hc, _) _ _,
+    { refine submodule.supr_induction 𝒜 (m y) (λ j c' hc', _) _ _,
+      { by_cases h : i + j = 0,
+        { rw [decompose_of_mem_same 𝒜 (show c * c' ∈ 𝒜 0, from h ▸ mul_mem hc hc'),
+            decompose_of_mem_same 𝒜 (show c ∈ 𝒜 0, from (add_eq_zero_iff.mp h).1 ▸ hc),
+            decompose_of_mem_same 𝒜 (show c' ∈ 𝒜 0, from (add_eq_zero_iff.mp h).2 ▸ hc')] },
+        { rw [decompose_of_mem_ne 𝒜 (mul_mem hc hc') h],
+          cases (show i ≠ 0 ∨ j ≠ 0, by rwa [add_eq_zero_iff, not_and_distrib] at h) with h' h',
+          { simp only [decompose_of_mem_ne 𝒜 hc h', zero_mul] },
+          { simp only [decompose_of_mem_ne 𝒜 hc' h', mul_zero] } } },
+      { simp only [map_zero, zero_apply, submodule.coe_zero, mul_zero] },
+      { intros _ _ hd he, simp only [mul_add, map_add, add_apply, submodule.coe_add, hd, he] } },
+    { simp only [map_zero, zero_apply, submodule.coe_zero, zero_mul] },
+    { rintros _ _ ha hb, simp only [add_mul, map_add, add_apply, submodule.coe_add, ha, hb] },
+  end }
 
 /--
 For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `canonically_ordered_add_monoid ι`, the irrelevant ideal

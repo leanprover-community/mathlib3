@@ -396,6 +396,6 @@ theorem opow_omega {a : ordinal} (a1 : 1 < a) (h : a < omega) : a ^ omega = omeg
 le_antisymm
   ((opow_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2
     (λ b hb, (principal_opow_omega h hb).le))
-  (le_opow_self _ a1)
+  (right_le_opow _ a1)
 
 end ordinal

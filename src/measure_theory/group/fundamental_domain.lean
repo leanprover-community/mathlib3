@@ -181,7 +181,9 @@ begin
 end
 
 /-- If `s` and `t` are two fundamental domains of the same action, then their measures are equal. -/
-@[to_additive] protected lemma measure_eq (hs : is_fundamental_domain G s μ)
+@[to_additive "If `s` and `t` are two fundamental domains of the same action, then their measures
+are equal."]
+protected lemma measure_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) : μ s = μ t :=
 by simpa only [set_lintegral_one] using hs.set_lintegral_eq ht (λ _, 1) (λ _ _, rfl)
 
@@ -261,7 +263,10 @@ end
 /-- If `f` is invariant under the action of a countable group `G`, and `μ` is a `G`-invariant
   measure with a fundamental domain `s`, then the `ess_sup` of `f` restricted to `s` is the same as
   that of `f` on all of its domain. -/
-@[to_additive] lemma ess_sup_measure_restrict (hs : is_fundamental_domain G s μ)
+@[to_additive "If `f` is invariant under the action of a countable additive group `G`, and `μ` is a
+`G`-invariant measure with a fundamental domain `s`, then the `ess_sup` of `f` restricted to `s` is
+the same as that of `f` on all of its domain."]
+lemma ess_sup_measure_restrict (hs : is_fundamental_domain G s μ)
   {f : α → ℝ≥0∞} (hf : ∀ γ : G, ∀ x: α, f (γ • x) =  f x) :
   ess_sup f (μ.restrict s) = ess_sup f μ :=
 begin

@@ -262,12 +262,29 @@ end
 
 ------------------ADDING STUFF HERE -------------------
 
-theorem _root_.measure_theory.integral_sum_measure {α : Type*} {m : measurable_space α} {ι : Type*}
-  (f : α → E) (μ : ι → measure_theory.measure α)
-  (hf : integrable f (measure_theory.measure.sum μ)) :
-∫ (a : α), f a ∂measure_theory.measure.sum μ = ∑' (i : ι), ∫ (a : α), f a ∂μ i :=
+/-- If `f` is invariant under the action of a countable group `G`, and `μ` is a `G`-invariant
+  measure with a fundamental domain `s`, then the `ess_sup` of `f` restricted to `s` is the same as
+  that of `f` on all of its domain. -/
+@[to_additive "If `f` is invariant under the action of a countable additive group `G`, and `μ` is a
+`G`-invariant measure with a fundamental domain `s`, then the `ess_sup` of `f` restricted to `s` is
+the same as that of `f` on all of its domain."]
+lemma ess_sup_measure_restrict (hs : is_fundamental_domain G s μ)
+  {f : α → ℝ≥0∞} (hf : ∀ γ : G, ∀ x: α, f (γ • x) =  f x) :
+  ess_sup f (μ.restrict s) = ess_sup f μ :=
 begin
-  sorry,
+  refine le_antisymm (ess_sup_mono_measure' measure.restrict_le_self) _,
+  rw [ess_sup_eq_Inf (μ.restrict s) f, ess_sup_eq_Inf μ f],
+  refine Inf_le_Inf _,
+  intros a,
+  dsimp,
+  intros ha,
+  refine measure_zero_of_invariant hs _ _ _,
+  { intros γ,
+    ext x,
+    rw mem_smul_set_iff_inv_smul_mem,
+    simp only [mem_set_of_eq, hf (γ⁻¹) x], },
+  rwa measure.restrict_apply' at ha,
+  exact hs.measurable_set,
 end
 
 @[to_additive] lemma integral_eq_tsum_of_ac (h : is_fundamental_domain G s μ) (hν : ν ≪ μ)
@@ -299,33 +316,6 @@ calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :
 ... = ∑' g : G, ∫ x in g • t ∩ s, f (g⁻¹ • x) ∂μ :
   tsum_congr $ λ g, (measure_preserving_smul g⁻¹ μ).set_integral_image_emb
     (measurable_embedding_const_smul _) _ _
-
-
-
-/-- If `f` is invariant under the action of a countable group `G`, and `μ` is a `G`-invariant
-  measure with a fundamental domain `s`, then the `ess_sup` of `f` restricted to `s` is the same as
-  that of `f` on all of its domain. -/
-@[to_additive "If `f` is invariant under the action of a countable additive group `G`, and `μ` is a
-`G`-invariant measure with a fundamental domain `s`, then the `ess_sup` of `f` restricted to `s` is
-the same as that of `f` on all of its domain."]
-lemma ess_sup_measure_restrict (hs : is_fundamental_domain G s μ)
-  {f : α → ℝ≥0∞} (hf : ∀ γ : G, ∀ x: α, f (γ • x) =  f x) :
-  ess_sup f (μ.restrict s) = ess_sup f μ :=
-begin
-  refine le_antisymm (ess_sup_mono_measure' measure.restrict_le_self) _,
-  rw [ess_sup_eq_Inf (μ.restrict s) f, ess_sup_eq_Inf μ f],
-  refine Inf_le_Inf _,
-  intros a,
-  dsimp,
-  intros ha,
-  refine measure_zero_of_invariant hs _ _ _,
-  { intros γ,
-    ext x,
-    rw mem_smul_set_iff_inv_smul_mem,
-    simp only [mem_set_of_eq, hf (γ⁻¹) x], },
-  rwa measure.restrict_apply' at ha,
-  exact hs.measurable_set,
-end
 
 end is_fundamental_domain
 

@@ -757,7 +757,7 @@ def kernel_comparison [has_kernel f] [has_kernel (G.map f)] :
 kernel.lift _ (G.map (kernel.ι f)) (by simp only [←G.map_comp, kernel.condition, functor.map_zero])
 
 @[simp, reassoc]
-lemma kernel_comparison_comp_π [has_kernel f] [has_kernel (G.map f)] :
+lemma kernel_comparison_comp_ι [has_kernel f] [has_kernel (G.map f)] :
   kernel_comparison f G ≫ kernel.ι (G.map f) = G.map (kernel.ι f) :=
 kernel.lift_ι _ _ _
 
@@ -775,7 +775,7 @@ cokernel.desc _ (G.map (coequalizer.π _ _))
   (by simp only [←G.map_comp, cokernel.condition, functor.map_zero])
 
 @[simp, reassoc]
-lemma ι_comp_cokernel_comparison [has_cokernel f] [has_cokernel (G.map f)] :
+lemma π_comp_cokernel_comparison [has_cokernel f] [has_cokernel (G.map f)] :
   cokernel.π (G.map f) ≫ cokernel_comparison f G = G.map (cokernel.π _) :=
 cokernel.π_desc _ _ _
 

@@ -62,6 +62,10 @@ lemma commutator_mem_commutator {H₁ H₂ : subgroup G} {g₁ g₂ : G} (h₁ :
   ⁅g₁, g₂⁆ ∈ ⁅H₁, H₂⁆ :=
 subset_closure ⟨g₁, h₁, g₂, h₂, rfl⟩
 
+lemma commutator_le {H₁ H₂ H₃ : subgroup G} :
+  ⁅H₁, H₂⁆ ≤ H₃ ↔ ∀ (g₁ ∈ H₁) (g₂ ∈ H₂), ⁅g₁, g₂⁆ ∈ H₃ :=
+H₃.closure_le.trans ⟨λ h a b c d, h ⟨a, b, c, d, rfl⟩, λ h g ⟨a, b, c, d, h_eq⟩, h_eq ▸ h a b c d⟩
+
 instance commutator_normal (H₁ H₂ : subgroup G) [h₁ : H₁.normal]
   [h₂ : H₂.normal] : normal ⁅H₁, H₂⁆ :=
 begin
@@ -78,40 +82,29 @@ end
 
 lemma commutator_mono {H₁ H₂ K₁ K₂ : subgroup G} (h₁ : H₁ ≤ K₁) (h₂ : H₂ ≤ K₂) :
   ⁅H₁, H₂⁆ ≤ ⁅K₁, K₂⁆ :=
-begin
-  apply closure_mono,
-  rintros x ⟨p, hp, q, hq, rfl⟩,
-  exact ⟨p, h₁ hp, q, h₂ hq, rfl⟩,
-end
+commutator_le.mpr (λ g₁ hg₁ g₂ hg₂, commutator_mem_commutator (h₁ hg₁) (h₂ hg₂))
 
 lemma commutator_def' (H₁ H₂ : subgroup G) [H₁.normal] [H₂.normal] :
   ⁅H₁, H₂⁆ = normal_closure {g | ∃ (g₁ ∈ H₁) (g₂ ∈ H₂), ⁅g₁, g₂⁆ = g} :=
 le_antisymm closure_le_normal_closure (normal_closure_le_normal subset_closure)
 
-lemma commutator_le (H₁ H₂ : subgroup G) (K : subgroup G) :
-  ⁅H₁, H₂⁆ ≤ K ↔ ∀ (p ∈ H₁) (q ∈ H₂), ⁅p, q⁆ ∈ K :=
-begin
-  rw [subgroup.commutator, closure_le],
-  split,
-  { intros h p hp q hq,
-    exact h ⟨p, hp, q, hq, rfl⟩, },
-  { rintros h x ⟨p, hp, q, hq, rfl⟩,
-    exact h p hp q hq, }
-end
+lemma commutator_comm_le (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ ≤ ⁅H₂, H₁⁆ :=
+commutator_le.mpr (λ g₁ h₁ g₂ h₂,
+  commutator_element_inv g₂ g₁ ▸ ⁅H₂, H₁⁆.inv_mem_iff.mpr (commutator_mem_commutator h₂ h₁))
 
 lemma commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=
+le_antisymm (commutator_comm_le H₁ H₂) (commutator_comm_le H₂ H₁)
+
+lemma commutator_eq_bot_iff_le_centralizer {H₁ H₂ : subgroup G} :
+  ⁅H₁, H₂⁆ = ⊥ ↔ H₁ ≤ H₂.centralizer :=
 begin
-  suffices : ∀ H₁ H₂ : subgroup G, ⁅H₁, H₂⁆ ≤ ⁅H₂, H₁⁆, { exact le_antisymm (this _ _) (this _ _) },
-  intros H₁ H₂,
-  rw commutator_le,
-  intros p hp q hq,
-  have h : (p * q * p⁻¹ * q⁻¹)⁻¹ ∈ ⁅H₂, H₁⁆ := subset_closure ⟨q, hq, p, hp, by group⟩,
-  convert inv_mem ⁅H₂, H₁⁆ h,
-  group,
+  rw [eq_bot_iff, commutator_le],
+  refine forall_congr (λ p, forall_congr (λ hp, forall_congr (λ q, forall_congr (λ hq, _)))),
+  rw [mem_bot, commutator_element_eq_one_iff_mul_comm, eq_comm],
 end
 
 lemma commutator_le_right (H₁ H₂ : subgroup G) [h : normal H₂] : ⁅H₁, H₂⁆ ≤ H₂ :=
-(commutator_le _ _ _).mpr (λ g₁ h₁ g₂ h₂, H₂.mul_mem (h.conj_mem g₂ h₂ g₁) (H₂.inv_mem h₂))
+commutator_le.mpr (λ g₁ h₁ g₂ h₂, H₂.mul_mem (h.conj_mem g₂ h₂ g₁) (H₂.inv_mem h₂))
 
 lemma commutator_le_left (H₁ H₂ : subgroup G) [h : normal H₁] : ⁅H₁, H₂⁆ ≤ H₁ :=
 commutator_comm H₂ H₁ ▸ commutator_le_right H₂ H₁
@@ -159,7 +152,7 @@ See `commutator_pi_pi_of_fintype` for equality given `fintype η`.
 lemma commutator_pi_pi_le {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)]
   (H K : Π i, subgroup (Gs i)) :
   ⁅subgroup.pi set.univ H, subgroup.pi set.univ K⁆ ≤ subgroup.pi set.univ (λ i, ⁅H i, K i⁆) :=
-(commutator_le _ _ _).mpr $ λ p hp q hq i hi, commutator_mem_commutator (hp i hi) (hq i hi)
+commutator_le.mpr $ λ p hp q hq i hi, commutator_mem_commutator (hp i hi) (hq i hi)
 
 /-- The commutator of a finite direct product is contained in the direct product of the commutators.
 -/

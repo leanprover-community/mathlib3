@@ -35,8 +35,8 @@ begin
   exact list.eq_repeat.mpr ⟨rfl, h⟩,
 end
 
-@[to_additive]
-lemma prod_le_of_forall_le [ordered_comm_monoid α] (l : list α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
+@[to_additive sum_le_card_nsmul]
+lemma prod_le_pow_card [ordered_comm_monoid α] (l : list α) (n : α) (h : ∀ (x ∈ l), x ≤ n) :
   l.prod ≤ n ^ l.length :=
 begin
   induction l with y l IH,

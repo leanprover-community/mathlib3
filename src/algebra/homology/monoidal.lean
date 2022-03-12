@@ -5,6 +5,7 @@ import data.finset.nat_antidiagonal
 import category_theory.monoidal.functorial
 import algebra.category.Module.monoidal
 import algebra.category.Module.abelian
+import category_theory.monoidal.preadditive
 
 open category_theory
 open category_theory.limits
@@ -13,23 +14,12 @@ universes v u
 
 noncomputable theory
 
-variables {C : Type u} [category.{0} C] [has_zero_object C] [preadditive C] [has_finite_biproducts C] [monoidal_category C]
+variables {C : Type u} [category.{0} C] [has_zero_object C] [preadditive C]
+  [has_finite_biproducts C] [monoidal_category C] [monoidal_preadditive C]
 
 open_locale big_operators
 
-def left_distributor {J : Type} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
-  X ⊗ (⨁ f) ≅ ⨁ (λ j, X ⊗ f j) :=
-{ hom := ∑ j : J, (𝟙 X ⊗ biproduct.π f j) ≫ biproduct.ι _ j,
-  inv := ∑ j : J, biproduct.π _ j ≫ (𝟙 X ⊗ biproduct.ι f j),
-  hom_inv_id' := sorry,
-  inv_hom_id' := sorry, }
-
-def right_distributor {J : Type} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
-  (⨁ f) ⊗ X ≅ ⨁ (λ j, f j ⊗ X) :=
-{ hom := ∑ j : J, (biproduct.π f j ⊗ 𝟙 X) ≫ biproduct.ι _ j,
-  inv := ∑ j : J, biproduct.π _ j ≫ (biproduct.ι f j ⊗ 𝟙 X),
-  hom_inv_id' := sorry,
-  inv_hom_id' := sorry, }
+open category_theory.monoidal_category
 
 def antidiagonal (i : ℕ) := { p : ℕ × ℕ // p.1 + p.2 = i }
 instance (i : ℕ) : fintype (antidiagonal i) := sorry

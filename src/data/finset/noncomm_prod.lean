@@ -175,13 +175,21 @@ begin
 end
 
 @[to_additive]
-lemma noncomm_prod_map (s : multiset α)
-  (comm : ∀ (x ∈ s) (y ∈ s), commute x y)
+lemma noncomm_prod_map (s : multiset α) (comm : ∀ (x ∈ s) (y ∈ s), commute x y)
   {F : Type*} [monoid_hom_class F α β] (f : F) :
   f (s.noncomm_prod comm) = (s.map f).noncomm_prod (nocomm_prod_map_aux s comm f) :=
 begin
   induction s using quotient.induction_on,
   simpa using map_list_prod f _,
+end
+
+@[to_additive noncomm_sum_eq_card_nsmul]
+lemma noncomm_prod_eq_pow_card (s : multiset α) (comm : ∀ (x ∈ s) (y ∈ s), commute x y)
+  (m : α) (h : ∀ (x ∈ s), x = m) : s.noncomm_prod comm = m ^ s.card :=
+begin
+  induction s using quotient.induction_on,
+  simp only [quot_mk_to_coe, noncomm_prod_coe, coe_card, mem_coe] at *,
+  exact list.prod_eq_pow_card _ m h,
 end
 
 @[to_additive] lemma noncomm_prod_eq_prod {α : Type*} [comm_monoid α] (s : multiset α) :
@@ -262,19 +270,16 @@ lemma noncomm_prod_map (s : finset α) (f : α → β)
   {F : Type*} [monoid_hom_class F β γ] (g : F) :
   g (s.noncomm_prod f comm) = s.noncomm_prod (λ i, g (f i))
   (λ x hx y hy, (comm x hx y hy).map g)  :=
-by simp [noncomm_prod, multiset.noncomm_prod_map],
+by simp [noncomm_prod, multiset.noncomm_prod_map]
 
 @[to_additive noncomm_sum_eq_card_nsmul]
 lemma noncomm_prod_eq_pow_card (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (m : β) (h : ∀ (x : α), x ∈ s → f x = m) : s.noncomm_prod f comm = m ^ s.card :=
 begin
-  classical,
-  revert comm, rw ← s.to_list_to_finset, intro,
-  rw finset.noncomm_prod_to_finset _ _ _ s.nodup_to_list,
-  rw list.prod_eq_pow_card _ m,
-  { simp },
-  { intro _, rw list.mem_map, rintros ⟨x, hx, rfl⟩, apply h x (s.mem_to_list.mp hx) },
+  rw [noncomm_prod, multiset.noncomm_prod_eq_pow_card _ _ m],
+  simp only [finset.card_def, multiset.card_map],
+  simpa using h,
 end
 
 @[to_additive]

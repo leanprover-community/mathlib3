@@ -5,6 +5,7 @@ Authors: Alexander Bentkamp, Yury Kudriashov
 -/
 import analysis.convex.jensen
 import analysis.normed_space.finite_dimension
+import analysis.normed_space.ray
 import topology.path_connected
 import topology.algebra.affine
 
@@ -286,10 +287,8 @@ loc_path_connected_of_bases (λ x, metric.nhds_basis_ball)
 lemma dist_add_dist_of_mem_segment {x y z : E} (h : y ∈ [x -[ℝ] z]) :
   dist x y + dist y z = dist x z :=
 begin
-  rw [segment_eq_image_line_map] at h,
-  rcases h with ⟨t, ⟨ht₀, ht₁⟩, rfl⟩,
-  rw [dist_left_line_map, dist_line_map_right, real.norm_of_nonneg ht₀,
-    real.norm_of_nonneg (sub_nonneg.2 ht₁), ← add_mul, add_sub_cancel'_right, one_mul]
+  simp only [dist_eq_norm, mem_segment_iff_same_ray] at *,
+  simpa only [sub_add_sub_cancel', norm_sub_rev] using h.norm_add.symm
 end
 
 end normed_space

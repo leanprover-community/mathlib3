@@ -90,22 +90,6 @@ lemma norm_smul_of_nonneg [normed_space ℝ β] {t : ℝ} (ht : 0 ≤ t) (x : β
 variables {E : Type*} [semi_normed_group E] [normed_space α E]
 variables {F : Type*} [semi_normed_group F] [normed_space α F]
 
-/-- If `x` and `y` are proportional, then `∥x + y∥ = ∥x∥ + ∥y∥`. -/
-theorem norm_add_eq_of_norm_smul_eq [normed_space ℝ E] {x y : E} (h : ∥x∥ • y = ∥y∥ • x) :
-  ∥x + y∥ = ∥x∥ + ∥y∥ :=
-begin
-  by_cases hx : ∥x∥ = 0,
-  { refine (norm_add_le x y).antisymm _,
-    rw [hx, zero_add, ← sub_zero (∥y∥), ← hx, add_comm, ← norm_neg x, ← sub_neg_eq_add],
-    exact norm_sub_norm_le _ _ },
-  obtain ⟨c, hc, rfl⟩ : ∃ (c : ℝ), 0 ≤ c ∧ y = c • x,
-  { refine ⟨∥x∥⁻¹ * ∥y∥, mul_nonneg (inv_nonneg.2 (norm_nonneg x)) (norm_nonneg y), _⟩,
-    rwa [mul_smul, ← smul_right_inj hx, smul_inv_smul₀ hx], apply_instance },
-  calc ∥x + c • x∥ = ∥(1 + c) • x∥ : by rw [add_smul, one_smul]
-  ... = ∥x∥ + ∥c • x∥ : by rw [norm_smul, norm_smul, real.norm_of_nonneg hc,
-    real.norm_of_nonneg (add_nonneg zero_le_one hc), add_mul, one_mul]
-end
-
 theorem eventually_nhds_norm_smul_sub_lt (c : α) (x : E) {ε : ℝ} (h : 0 < ε) :
   ∀ᶠ y in 𝓝 x, ∥c • (y - x)∥ < ε :=
 have tendsto (λ y, ∥c • (y - x)∥) (𝓝 x) (𝓝 0),

@@ -498,7 +498,7 @@ def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
   { rw [decompose_of_mem_ne 𝒜 (submodule.coe_mem _) h] }
 end⟩
 
-lemma homogeneous_ideal.mem_irrelevant_iff (a : A) :
+@[simp] lemma homogeneous_ideal.mem_irrelevant_iff (a : A) :
   a ∈ homogeneous_ideal.irrelevant 𝒜 ↔ proj 𝒜 0 a = 0 := iff.rfl
 
 lemma homogeneous_ideal.irrelevant_eq :

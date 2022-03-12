@@ -288,7 +288,7 @@ variables [linear_ordered_field 𝕜]
 section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
 
-lemma mem_segment_iff_same_ray [no_zero_smul_divisors 𝕜 E] {x y z : E} :
+lemma mem_segment_iff_same_ray {x y z : E} :
   x ∈ [y -[𝕜] z] ↔ same_ray 𝕜 (x - y) (z - x) :=
 begin
   refine ⟨same_ray_of_mem_segment, λ h, _⟩,

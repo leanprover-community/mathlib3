@@ -22,21 +22,21 @@ Note, when `A` is a *unital* `R`-algebra, then `unitization R A` constructs a ne
 identity different from the old one, and so in general `unitization R A` and `A` will not be
 isomorphic even in the unital case. This approach actually has nice functorial properties.
 
-There is a natural coercion from `A` to `algebra.unitization R A` given by `λ a, (0, a)`, the image
+There is a natural coercion from `A` to `unitization R A` given by `λ a, (0, a)`, the image
 of which is a proper ideal (TODO), and when `R` is a field this ideal is maximal. Moreover,
 this ideal is always an essential ideal (it has nontrivial intersection with every other nontrivial
 ideal).
 
 Every non-unital algebra homomorphism from `A` into a *unital* `R`-algebra `B` has a unique
-extension to a (unital) algebra homomorphism from `algebra.unitization R A` to `B`.
+extension to a (unital) algebra homomorphism from `unitization R A` to `B`.
 
 ## Main definitions
 
-* `algebra.unitization R A`: the unitization of a non-unital `R`-algebra `A`.
+* `unitization R A`: the unitization of a non-unital `R`-algebra `A`.
 * `unitization.algebra`: the unitization of `A` as a (unital) `R`-algebra.
 * `unitization.coe_non_unital_alg_hom`: coercion as a non-unital algebra homomorphism.
 * `non_unital_alg_hom.to_alg_hom φ`: the extension of a non-unital algebra homomorphism `φ : A → B`
-  into a unital `R`-algebra `B` to an algebra homomorphism `algebra.unitization R A →ₐ[R] B`.
+  into a unital `R`-algebra `B` to an algebra homomorphism `unitization R A →ₐ[R] B`.
 
 ## Main results
 
@@ -50,13 +50,7 @@ extension to a (unital) algebra homomorphism from `algebra.unitization R A` to `
 
 /-- The minimal unitization of a non-unital `R`-algebra `A`. This is just a type synonym for
 `R × A`.-/
-def algebra.unitization (R A : Type*) := R × A
-
-instance unitization.inhabited (R A : Type*) [inhabited R] [inhabited A] :
-  inhabited (algebra.unitization R A) :=
-{ default := (default, default) }
-
-open algebra
+def unitization (R A : Type*) := R × A
 
 namespace unitization
 
@@ -346,9 +340,10 @@ instance [comm_monoid R] [non_unital_semiring A] [distrib_mul_action R A] [is_sc
       (x.1 • y.2 + y.1 • x.2 + x.2 * y.2) * z.2 =
       x.1 • (y.1 • z.2 + z.1 • y.2 + y.2 * z.2) + (y.1 * z.1) • x.2 +
       x.2 * (y.1 • z.2 + z.1 • y.2 + y.2 * z.2),
-    by { simp only [smul_add, mul_add, add_mul, smul_smul, smul_mul_assoc, mul_comm z.fst,
-           mul_smul_comm, mul_assoc],
-         abel },
+    { simp only [smul_add, mul_add, add_mul, smul_smul, smul_mul_assoc, mul_smul_comm, mul_assoc],
+      nth_rewrite 1 mul_comm,
+      nth_rewrite 2 mul_comm,
+      abel },
   ..unitization.mul_one_class }
 
 -- This should work for `non_unital_comm_semiring`s, but we don't seem to have those
@@ -443,11 +438,7 @@ def coe_non_unital_alg_hom [comm_semiring R] [non_unital_semiring A] [module R A
 
 end coe
 
-end unitization
-
 section alg_hom
-
-open unitization
 
 variables
 {R A : Type*}
@@ -455,7 +446,7 @@ variables
 [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
 {B : Type*} [ring B] [algebra R B]
 
-lemma unitization.alg_hom_ext {φ ψ : unitization R A →ₐ[R] B} (h : ∀ a : A, φ a = ψ a) :
+lemma alg_hom_ext {φ ψ : unitization R A →ₐ[R] B} (h : ∀ a : A, φ a = ψ a) :
   φ = ψ :=
 begin
   ext,
@@ -466,7 +457,7 @@ end
 /-- Non-unital algebra homomorphisms from `A` into a unital `R`-algebra `B` lift to
 `unitization R A →ₐ[R] B`. -/
 @[simps apply_apply]
-def unitization.lift : non_unital_alg_hom R A B ≃ (unitization R A →ₐ[R] B) :=
+def lift : non_unital_alg_hom R A B ≃ (unitization R A →ₐ[R] B) :=
 { to_fun := λ φ,
   { to_fun := λ x, algebra_map R B x.fst + φ x.snd,
     map_one' := by simp only [fst_one, map_one, snd_one, φ.map_zero, add_zero],
@@ -478,7 +469,7 @@ def unitization.lift : non_unital_alg_hom R A B ≃ (unitization R A →ₐ[R] B
         add_zero, zero_mul, map_mul, snd_add, snd_mul, snd_inl, smul_zero, snd_inr, zero_add,
         φ.map_add, φ.map_smul, φ.map_mul],
       rw ←algebra.commutes _ (φ x_a),
-      simp only [algebra_map_eq_smul_one, smul_one_mul, add_assoc],
+      simp only [algebra.algebra_map_eq_smul_one, smul_one_mul, add_assoc],
     end,
     map_zero' := by simp only [fst_zero, map_zero, snd_zero, φ.map_zero, add_zero],
     map_add' := λ x y,
@@ -494,7 +485,9 @@ def unitization.lift : non_unital_alg_hom R A B ≃ (unitization R A →ₐ[R] B
   left_inv := λ φ, by { ext, simp, },
   right_inv := λ φ, unitization.alg_hom_ext (by simp), }
 
-lemma unitization.lift_symm_apply (φ : unitization R A →ₐ[R] B) (a : A) :
+lemma lift_symm_apply (φ : unitization R A →ₐ[R] B) (a : A) :
   unitization.lift.symm φ a = φ a := rfl
 
 end alg_hom
+
+end unitization

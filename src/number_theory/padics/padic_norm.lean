@@ -203,11 +203,7 @@ end padic_val_rat
 
 section padic_val_nat
 
-lemma zero_le_padic_val_rat_of_nat (p n : ℕ) : 0 ≤ padic_val_rat p n :=
-begin
-  unfold padic_val_rat padic_val_int padic_val_nat,
-  split_ifs; simp,
-end
+lemma zero_le_padic_val_rat_of_nat (p n : ℕ) : 0 ≤ padic_val_rat p n := by simp
 
 -- /-- `padic_val_rat` coincides with `padic_val_nat`. -/
 @[norm_cast] lemma padic_val_rat_of_nat (p n : ℕ) :

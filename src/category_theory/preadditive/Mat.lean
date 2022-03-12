@@ -3,13 +3,12 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.preadditive.default
-import category_theory.preadditive.single_obj
-import category_theory.preadditive.additive_functor
-import category_theory.limits.shapes.biproducts
-import category_theory.Fintype
 import algebra.big_operators.basic
-import data.matrix.notation
+import algebra.big_operators.pi
+import category_theory.limits.shapes.biproducts
+import category_theory.preadditive
+import category_theory.preadditive.additive_functor
+import data.matrix.dmatrix
 
 /-!
 # Matrices over a category.
@@ -175,16 +174,19 @@ instance has_finite_biproducts : has_finite_biproducts (Mat_ C) :=
         simp only [if_congr, if_true, dif_ctx_congr, finset.sum_dite_irrel, finset.mem_univ,
           finset.sum_const_zero, finset.sum_congr, finset.sum_dite_eq'],
         split_ifs with h h',
-        { substs h h', simp, },
-        { subst h, simp at h', simp [h'], },
+        { substs h h',
+          simp only [category_theory.eq_to_hom_refl, category_theory.Mat_.id_apply_self], },
+        { subst h,
+          simp only [id_apply_of_ne _ _ _ h', category_theory.eq_to_hom_refl], },
         { refl, },
       end, }
     begin
+      dsimp,
       funext i₁,
       dsimp at i₁ ⊢,
       rcases i₁ with ⟨j₁, i₁⟩,
       -- I'm not sure why we can't just `simp` by `finset.sum_apply`: something doesn't quite match
-      convert finset.sum_apply _ _ _,
+      convert finset.sum_apply _ _ _ using 1,
       { refl, },
       { apply heq_of_eq,
         symmetry,
@@ -269,7 +271,7 @@ instance : functor.additive (embedding C) := {}
 
 end embedding
 
-instance [inhabited C] : inhabited (Mat_ C) := ⟨(embedding C).obj (default C)⟩
+instance [inhabited C] : inhabited (Mat_ C) := ⟨(embedding C).obj default⟩
 
 open category_theory.limits
 
@@ -329,6 +331,8 @@ variables [has_finite_biproducts D]
 begin
   -- This is disappointingly tedious.
   ext,
+  simp only [additive_obj_iso_biproduct_hom, category.assoc, biproduct.lift_π, functor.map_bicone_π,
+    biproduct.bicone_π, biproduct.lift_matrix],
   dsimp [embedding],
   simp only [←F.map_comp, biproduct.lift_π, biproduct.matrix_π, category.assoc],
   simp only [←F.map_comp, ←F.map_sum, biproduct.lift_desc, biproduct.lift_π_assoc, comp_sum],

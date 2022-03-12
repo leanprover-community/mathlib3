@@ -12,7 +12,7 @@ import algebra.big_operators.nat_antidiagonal
 
 In this file we define the following power series:
 
-* `power_series.inv_units_sub`: given `u : units R`, this is the series for `1 / (u - x)`.
+* `power_series.inv_units_sub`: given `u : Rˣ`, this is the series for `1 / (u - x)`.
   It is given by `∑ n, x ^ n /ₚ u ^ (n + 1)`.
 
 * `power_series.sin`, `power_series.cos`, `power_series.exp` : power series for sin, cosine, and
@@ -26,17 +26,17 @@ section ring
 variables {R S : Type*} [ring R] [ring S]
 
 /-- The power series for `1 / (u - x)`. -/
-def inv_units_sub (u : units R) : power_series R := mk $ λ n, 1 /ₚ u ^ (n + 1)
+def inv_units_sub (u : Rˣ) : power_series R := mk $ λ n, 1 /ₚ u ^ (n + 1)
 
-@[simp] lemma coeff_inv_units_sub (u : units R) (n : ℕ) :
+@[simp] lemma coeff_inv_units_sub (u : Rˣ) (n : ℕ) :
   coeff R n (inv_units_sub u) = 1 /ₚ u ^ (n + 1) :=
 coeff_mk _ _
 
-@[simp] lemma constant_coeff_inv_units_sub (u : units R) :
+@[simp] lemma constant_coeff_inv_units_sub (u : Rˣ) :
   constant_coeff R (inv_units_sub u) = 1 /ₚ u :=
 by rw [← coeff_zero_eq_constant_coeff_apply, coeff_inv_units_sub, zero_add, pow_one]
 
-@[simp] lemma inv_units_sub_mul_X (u : units R) :
+@[simp] lemma inv_units_sub_mul_X (u : Rˣ) :
   inv_units_sub u * X = inv_units_sub u * C R u - 1 :=
 begin
   ext (_|n),
@@ -44,12 +44,12 @@ begin
   { simp [n.succ_ne_zero, pow_succ] }
 end
 
-@[simp] lemma inv_units_sub_mul_sub (u : units R) : inv_units_sub u * (C R u - X) = 1 :=
+@[simp] lemma inv_units_sub_mul_sub (u : Rˣ) : inv_units_sub u * (C R u - X) = 1 :=
 by simp [mul_sub, sub_sub_cancel]
 
-lemma map_inv_units_sub (f : R →+* S) (u : units R) :
+lemma map_inv_units_sub (f : R →+* S) (u : Rˣ) :
   map f (inv_units_sub u) = inv_units_sub (units.map (f : R →* S) u) :=
-by { ext, simp [← monoid_hom.map_pow] }
+by { ext, simp [← map_pow] }
 
 end ring
 
@@ -74,7 +74,8 @@ variables {A A'} (n : ℕ) (f : A →+* A')
 
 @[simp] lemma coeff_exp : coeff A n (exp A) = algebra_map ℚ A (1 / n!) := coeff_mk _ _
 
-@[simp] lemma constant_coeff_exp : constant_coeff A (exp A) = 1 := ring_hom.map_one _
+@[simp] lemma constant_coeff_exp : constant_coeff A (exp A) = 1 :=
+by { rw [← coeff_zero_eq_constant_coeff_apply, coeff_exp], simp }
 
 @[simp] lemma map_exp : map (f : A →+* A') (exp A) = exp A' := by { ext, simp }
 

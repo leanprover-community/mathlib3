@@ -77,7 +77,7 @@ begin
   { exact false.elim (char_p.char_ne_one R 1 rfl), }
 end
 
-/-- The exponential characteristic is one if the characteristic is zero. -/
+/-- The characteristic is zero if the exponential characteristic is one. -/
 @[priority 100] -- see Note [lower instance priority]
 instance char_zero_of_exp_char_one' [hq : exp_char R 1] : char_zero R :=
 begin
@@ -116,7 +116,7 @@ begin
   casesI char_p.exists R with p hp,
   have p_ne_zero : p ≠ 0,
   { intro p_zero,
-    haveI : char_p R 0 := by { rwa ←p_zero },
+    haveI : char_p R 0, { rwa ←p_zero },
     have : q = 1 := exp_char_one_of_char_zero R q,
     contradiction, },
   have p_eq_q : p = q := (char_eq_exp_char_iff R p q).mpr (char_prime_of_ne_zero R p_ne_zero),

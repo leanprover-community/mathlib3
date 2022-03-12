@@ -1,4 +1,4 @@
-import tactic
+import data.finset.basic
 
 /-!
 ## Miscellaneous examples

@@ -63,16 +63,7 @@ instance : subsingleton (is_kernel_pair f a b) :=
 
 /-- If `f` is a monomorphism, then `(𝟙 _, 𝟙 _)`  is a kernel pair for `f`. -/
 def id_of_mono [mono f] : is_kernel_pair f (𝟙 _) (𝟙 _) :=
-{ comm := rfl,
-  is_limit :=
-  pullback_cone.is_limit_aux' _ $ λ s,
-  begin
-    refine ⟨s.snd, _, comp_id _, λ m m₁ m₂, _⟩,
-    { rw [← cancel_mono f, s.condition, pullback_cone.mk_fst, cancel_mono f],
-      apply comp_id },
-    rw [← m₂],
-    apply (comp_id _).symm,
-  end }
+⟨rfl, pullback_cone.is_limit_mk_id_id _⟩
 
 instance [mono f] : inhabited (is_kernel_pair f (𝟙 _) (𝟙 _)) := ⟨id_of_mono f⟩
 

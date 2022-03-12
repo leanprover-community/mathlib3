@@ -31,7 +31,10 @@ namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
 local notation `⟦`:max a `⟧` := quot.mk _ a
 
-instance [inhabited α] : inhabited (quot ra) := ⟨⟦default _⟧⟩
+instance (r : α → α → Prop) [inhabited α] : inhabited (quot r) := ⟨⟦default⟧⟩
+
+instance [subsingleton α] : subsingleton (quot ra) :=
+⟨λ x, quot.induction_on x (λ y, quot.ind (λ b, congr_arg _ (subsingleton.elim _ _)))⟩
 
 /-- Recursion on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)
@@ -136,7 +139,10 @@ namespace quotient
 variables [sa : setoid α] [sb : setoid β]
 variables {φ : quotient sa → quotient sb → Sort*}
 
-instance [inhabited α] : inhabited (quotient sa) := ⟨⟦default _⟧⟩
+instance (s : setoid α) [inhabited α] : inhabited (quotient s) := ⟨⟦default⟧⟩
+
+instance (s : setoid α) [subsingleton α] : subsingleton (quotient s) :=
+quot.subsingleton
 
 /-- Induction on two `quotient` arguments `a` and `b`, result type depends on `⟦a⟧` and `⟦b⟧`. -/
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : Π a b, φ ⟦a⟧ ⟦b⟧)
@@ -163,6 +169,9 @@ protected def map₂ (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f
   quotient sa → quotient sb → quotient sc :=
 quotient.lift₂ (λ x y, ⟦f x y⟧) (λ x₁ y₁ x₂ y₂ h₁ h₂, quot.sound $ h h₁ h₂)
 
+@[simp] lemma map₂_mk (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f) (x : α) (y : β) :
+  quotient.map₂ f h (⟦x⟧ : quotient sa) (⟦y⟧ : quotient sb) = (⟦f x y⟧ : quotient sc) := rfl
+
 end quotient
 
 lemma quot.eq {α : Type*} {r : α → α → Prop} {x y : α} :
@@ -179,6 +188,16 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
 @[simp] lemma quotient.lift_mk [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
   (x : α) :
   quotient.lift f h (quotient.mk x) = f x := rfl
+
+@[simp] lemma quotient.lift_comp_mk [setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) :
+  quotient.lift f h ∘ quotient.mk = f :=
+rfl
+
+@[simp] lemma quotient.lift₂_mk {α : Sort*} {β : Sort*} {γ : Sort*} [setoid α] [setoid β]
+  (f : α → β → γ)
+  (h : ∀ (a₁ : α) (a₂ : β) (b₁ : α) (b₂ : β), a₁ ≈ b₁ → a₂ ≈ b₂ → f a₁ a₂ = f b₁ b₂)
+  (a : α) (b : β) :
+  quotient.lift₂ f h (quotient.mk a) (quotient.mk b) = f a b := rfl
 
 @[simp] lemma quotient.lift_on_mk [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
   (x : α) :
@@ -218,6 +237,30 @@ noncomputable def quotient.out [s : setoid α] : quotient s → α := quot.out
 theorem quotient.mk_out [s : setoid α] (a : α) : ⟦a⟧.out ≈ a :=
 quotient.exact (quotient.out_eq _)
 
+lemma quotient.mk_eq_iff_out [s : setoid α] {x : α} {y : quotient s} :
+  ⟦x⟧ = y ↔ x ≈ quotient.out y :=
+begin
+  refine iff.trans _ quotient.eq,
+  rw quotient.out_eq y,
+end
+
+lemma quotient.eq_mk_iff_out [s : setoid α] {x : quotient s} {y : α} :
+  x = ⟦y⟧ ↔ quotient.out x ≈ y  :=
+begin
+  refine iff.trans _ quotient.eq,
+  rw quotient.out_eq x,
+end
+
+@[simp] lemma quotient.out_equiv_out {s : setoid α} {x y : quotient s} :
+  x.out ≈ y.out ↔ x = y :=
+by rw [← quotient.eq_mk_iff_out, quotient.out_eq]
+
+@[simp] lemma quotient.out_inj {s : setoid α} {x y : quotient s} :
+  x.out = y.out ↔ x = y :=
+⟨λ h, quotient.out_equiv_out.1 $ h ▸ setoid.refl _, λ h, h ▸ rfl⟩
+
+section pi
+
 instance pi_setoid {ι : Sort*} {α : ι → Sort*} [∀ i, setoid (α i)] : setoid (Π i, α i) :=
 { r := λ a b, ∀ i, a i ≈ b i,
   iseqv := ⟨
@@ -231,9 +274,20 @@ noncomputable def quotient.choice {ι : Type*} {α : ι → Type*} [S : Π i, se
   (f : Π i, quotient (S i)) : @quotient (Π i, α i) (by apply_instance) :=
 ⟦λ i, (f i).out⟧
 
-theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [Π i, setoid (α i)]
+@[simp] theorem quotient.choice_eq {ι : Type*} {α : ι → Type*} [Π i, setoid (α i)]
   (f : Π i, α i) : quotient.choice (λ i, ⟦f i⟧) = ⟦f⟧ :=
 quotient.sound $ λ i, quotient.mk_out _
+
+@[elab_as_eliminator] lemma quotient.induction_on_pi
+   {ι : Type*} {α : ι → Sort*} [s : ∀ i, setoid (α i)]
+   {p : (Π i, quotient (s i)) → Prop} (f : Π i, quotient (s i))
+   (h : ∀ a : Π i, α i, p (λ i, ⟦a i⟧)) : p f :=
+begin
+  rw ← (funext (λ i, quotient.out_eq (f i)) : (λ i,  ⟦(f i).out⟧) = f),
+  apply h,
+end
+
+end pi
 
 lemma nonempty_quotient_iff (s : setoid α) : nonempty (quotient s) ↔ nonempty α :=
 ⟨assume ⟨a⟩, quotient.induction_on a nonempty.intro, assume ⟨a⟩, ⟨⟦a⟧⟩⟩
@@ -253,7 +307,7 @@ namespace trunc
 /-- Constructor for `trunc α` -/
 def mk (a : α) : trunc α := quot.mk _ a
 
-instance [inhabited α] : inhabited (trunc α) := ⟨mk (default _)⟩
+instance [inhabited α] : inhabited (trunc α) := ⟨mk default⟩
 
 /-- Any constant function lifts to a function out of the truncation -/
 def lift (f : α → β) (c : ∀ a b : α, f a = f b) : trunc α → β :=
@@ -444,7 +498,7 @@ rfl
 
 /-- Map a function `f : α → β` that sends equivalent elements to equivalent elements
 to a function `quotient sa → quotient sb`. Useful to define unary operations on quotients. -/
-protected def map' (f : α → β) (h : ((≈) ⇒ (≈)) f f) :
+protected def map' (f : α → β) (h : (s₁.r ⇒ s₂.r) f f) :
   quotient s₁ → quotient s₂ :=
 quot.map f h
 
@@ -453,7 +507,7 @@ quot.map f h
 rfl
 
 /-- A version of `quotient.map₂` using curly braces and unification. -/
-protected def map₂' (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f) :
+protected def map₂' (f : α → β → γ) (h : (s₁.r ⇒ s₂.r ⇒ s₃.r) f f) :
   quotient s₁ → quotient s₂ → quotient s₃ :=
 quotient.map₂ f h
 
@@ -481,4 +535,20 @@ noncomputable def out' (a : quotient s₁) : α := quotient.out a
 
 theorem mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a : quotient s₁).out' a :=
 quotient.exact (quotient.out_eq _)
+
+section
+
+variables [setoid α]
+
+protected lemma mk'_eq_mk (x : α) : quotient.mk' x = ⟦x⟧ := rfl
+
+@[simp] protected lemma lift_on'_mk (x : α) (f : α → β) (h) : ⟦x⟧.lift_on' f h = f x := rfl
+
+@[simp] protected lemma lift_on₂'_mk [setoid β] (f : α → β → γ) (h) (a : α) (b : β) :
+  quotient.lift_on₂' ⟦a⟧ ⟦b⟧ f h = f a b := quotient.lift_on₂'_mk' _ _ _ _
+
+@[simp] lemma map'_mk [setoid β] (f : α → β) (h) (x : α) : ⟦x⟧.map' f h = ⟦f x⟧ := rfl
+
+end
+
 end quotient

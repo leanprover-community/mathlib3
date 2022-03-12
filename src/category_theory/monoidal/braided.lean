@@ -213,7 +213,7 @@ A braided functor between braided monoidal categories is a monoidal functor
 which preserves the braiding.
 -/
 structure braided_functor extends monoidal_functor C D :=
--- Note this is stated different than for `lax_braided_functor`.
+-- Note this is stated differently than for `lax_braided_functor`.
 -- We move the `μ X Y` to the right hand side,
 -- so that this makes a good `@[simp]` lemma.
 (braided' :

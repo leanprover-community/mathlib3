@@ -5,6 +5,7 @@ Authors: Simon Hudon, Patrick Massot, Eric Wieser
 -/
 import algebra.module.basic
 import group_theory.group_action.prod
+
 /-!
 # Prod instances for module and multiplicative actions
 
@@ -14,6 +15,18 @@ This file defines instances for binary product of modules
 variables {R : Type*} {S : Type*} {M : Type*} {N : Type*}
 
 namespace prod
+
+instance smul_with_zero [has_zero R] [has_zero M] [has_zero N]
+  [smul_with_zero R M] [smul_with_zero R N] : smul_with_zero R (M × N) :=
+{ smul_zero := λ r, prod.ext (smul_zero' _ _) (smul_zero' _ _),
+  zero_smul := λ ⟨m, n⟩, prod.ext (zero_smul _ _) (zero_smul _ _),
+  ..prod.has_scalar }
+
+instance mul_action_with_zero [monoid_with_zero R] [has_zero M] [has_zero N]
+  [mul_action_with_zero R M] [mul_action_with_zero R N] : mul_action_with_zero R (M × N) :=
+{ smul_zero := λ r, prod.ext (smul_zero' _ _) (smul_zero' _ _),
+  zero_smul := λ ⟨m, n⟩, prod.ext (zero_smul _ _) (zero_smul _ _),
+  ..prod.mul_action }
 
 instance {r : semiring R} [add_comm_monoid M] [add_comm_monoid N]
   [module R M] [module R N] : module R (M × N) :=

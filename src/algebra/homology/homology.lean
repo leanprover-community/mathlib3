@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.homology.image_to_kernel
-import category_theory.subobject.lattice
+import algebra.homology.homological_complex
 import category_theory.graded_object
 
 /-!
@@ -28,7 +28,7 @@ variables {ι : Type*}
 variables {V : Type u} [category.{v} V] [has_zero_morphisms V]
 variables {c : complex_shape ι} (C : homological_complex V c)
 
-open_locale classical
+open_locale classical zero_object
 noncomputable theory
 
 namespace homological_complex
@@ -116,7 +116,7 @@ image_to_kernel _ _ (C.d_to_comp_d_from i)
   (C.boundaries i).of_le (C.cycles i) h = C.boundaries_to_cycles i :=
 rfl
 
-@[simp, reassoc, elementwise]
+@[simp, reassoc]
 lemma boundaries_to_cycles_arrow (C : homological_complex V c) (i : ι) :
   C.boundaries_to_cycles i ≫ (C.cycles i).arrow = (C.boundaries i).arrow :=
 by { dsimp [cycles], simp, }
@@ -127,7 +127,7 @@ variables [has_cokernels V]
 The homology of a complex at index `i`.
 -/
 abbreviation homology (C : homological_complex V c) (i : ι) : V :=
-cokernel (C.boundaries_to_cycles i)
+homology (C.d_to i) (C.d_from i) (C.d_to_comp_d_from i)
 
 end
 
@@ -146,7 +146,7 @@ The morphism between cycles induced by a chain map.
 abbreviation cycles_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.cycles i : V) ⟶ (C₂.cycles i : V) :=
 subobject.factor_thru _ ((C₁.cycles i).arrow ≫ f.f i) (kernel_subobject_factors _ _ (by simp))
 
-@[simp, elementwise] lemma cycles_map_arrow (f : C₁ ⟶ C₂) (i : ι) :
+@[simp] lemma cycles_map_arrow (f : C₁ ⟶ C₂) (i : ι) :
   (cycles_map f i) ≫ (C₂.cycles i).arrow = (C₁.cycles i).arrow ≫ f.f i :=
 by { simp, }
 
@@ -201,28 +201,50 @@ by { ext, simp, }
 
 variables (V c)
 
-/--
-The natural transformation from the boundaries functor to the cycles functor.
--/
-def boundaries_to_cycles_nat_trans (i : ι) :
+/-- The natural transformation from the boundaries functor to the cycles functor. -/
+@[simps] def boundaries_to_cycles_nat_trans (i : ι) :
   boundaries_functor V c i ⟶ cycles_functor V c i :=
 { app := λ C, C.boundaries_to_cycles i,
   naturality' := λ C₁ C₂ f, boundaries_to_cycles_naturality f i, }
 
 /-- The `i`-th homology, as a functor to `V`. -/
 @[simps]
-def homology_functor [has_cokernels V] (i : ι) : homological_complex V c ⥤ V :=
+def homology_functor [has_cokernels V] (i : ι) :
+  homological_complex V c ⥤ V :=
 -- It would be nice if we could just write
 -- `cokernel (boundaries_to_cycles_nat_trans V c i)`
 -- here, but universe implementation details get in the way...
 { obj := λ C, C.homology i,
-  map := λ C₁ C₂ f, cokernel.desc _ (cycles_map f i ≫ cokernel.π _)
-    (by rw [←boundaries_to_cycles_naturality_assoc, cokernel.condition, comp_zero]), }
+  map := λ C₁ C₂ f, _root_.homology.map _ _ (f.sq_to i) (f.sq_from i) rfl,
+  map_id' :=
+  begin
+    intros, ext1,
+    simp only [homology.π_map, kernel_subobject_map_id, hom.sq_from_id,
+      category.id_comp, category.comp_id]
+  end,
+  map_comp' :=
+  begin
+    intros, ext1,
+    simp only [hom.sq_from_comp, kernel_subobject_map_comp, homology.π_map_assoc,
+      homology.π_map, category.assoc]
+  end }
 
 /-- The homology functor from `ι`-indexed complexes to `ι`-graded objects in `V`. -/
-@[simps]
-def graded_homology_functor [has_cokernels V] : homological_complex V c ⥤ graded_object ι V :=
+@[simps] def graded_homology_functor [has_cokernels V] :
+  homological_complex V c ⥤ graded_object ι V :=
 { obj := λ C i, C.homology i,
-  map := λ C C' f i, (homology_functor V c i).map f }
+  map := λ C C' f i, (homology_functor V c i).map f,
+  map_id' :=
+  begin
+    intros, ext,
+    simp only [pi.id_apply, homology.π_map, homology_functor_map, kernel_subobject_map_id,
+      hom.sq_from_id, category.id_comp, category.comp_id]
+  end,
+  map_comp' :=
+  begin
+    intros, ext,
+    simp only [hom.sq_from_comp, kernel_subobject_map_comp, homology.π_map_assoc,
+      pi.comp_apply, homology.π_map, homology_functor_map, category.assoc]
+  end }
 
 end

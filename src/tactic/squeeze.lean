@@ -6,7 +6,7 @@ Authors: Simon Hudon
 import control.traversable.basic
 import tactic.simpa
 
-open interactive interactive.types lean.parser
+setup_tactic_parser
 
 private meta def loc.to_string_aux : option name → string
 | none := "⊢"
@@ -25,21 +25,33 @@ meta def pos.move_left (p : pos) (n : ℕ) : pos :=
 
 namespace tactic
 
+attribute [derive decidable_eq] simp_arg_type
+
+/-- Turn a `simp_arg_type` into a string. -/
+meta instance simp_arg_type.has_to_string : has_to_string simp_arg_type :=
+⟨λ a, match a with
+| simp_arg_type.all_hyps := "*"
+| (simp_arg_type.except n) := "-" ++ to_string n
+| (simp_arg_type.expr e) := to_string e
+| (simp_arg_type.symm_expr e) := "←" ++ to_string e
+end⟩
+
 open list
 
 /-- parse structure instance of the shape `{ field1 := value1, .. , field2 := value2 }` -/
 meta def struct_inst : lean.parser pexpr :=
-do tk "{",
-   ls ← sep_by (skip_info (tk ","))
-     ( sum.inl <$> (tk ".." *> texpr) <|>
-       sum.inr <$> (prod.mk <$> ident <* tk ":=" <*> texpr)),
-   tk "}",
-   let (srcs,fields) := partition_map id ls,
-   let (names,values) := unzip fields,
-   pure $ pexpr.mk_structure_instance
-     { field_names := names,
-       field_values := values,
-       sources := srcs }
+with_desc "cfg" $ do
+  tk "{",
+  ls ← sep_by (skip_info (tk ","))
+    ( sum.inl <$> (tk ".." *> texpr) <|>
+      sum.inr <$> (prod.mk <$> ident <* tk ":=" <*> texpr)),
+  tk "}",
+  let (srcs,fields) := partition_map id ls,
+  let (names,values) := unzip fields,
+  pure $ pexpr.mk_structure_instance
+    { field_names := names,
+      field_values := values,
+      sources := srcs }
 
 /-- pretty print structure instance -/
 meta def struct.to_tactic_format (e : pexpr) : tactic format :=
@@ -50,7 +62,7 @@ do r ← e.get_structure_instance_info,
      r.field_names r.field_values,
    let ss := r.sources.map (λ s, format!" .. {s}"),
    let x : format := format.join $ list.intersperse ", " (fs ++ ss),
-   pure format!" {{{x}}"
+   pure format!" {{{x}}}"
 
 /-- Attribute containing a table that accumulates multiple `squeeze_simp` suggestions -/
 @[user_attribute]
@@ -66,10 +78,13 @@ def squeeze_loc_attr_carrier := ()
 run_cmd squeeze_loc_attr.set ``squeeze_loc_attr_carrier none tt
 
 /-- Format a list of arguments for use with `simp` and friends. This omits the
-list entirely if it is empty. -/
-meta def render_simp_arg_list : list simp_arg_type → tactic format
-| [] := pure ""
-| args := (++) " " <$> to_line_wrap_format <$> args.mmap pp
+list entirely if it is empty.
+
+Patch: `pp` was changed to `to_string` because it was getting rid of prefixes
+that would be necessary for some disambiguations. -/
+meta def render_simp_arg_list : list simp_arg_type → format
+| [] := ""
+| args := (++) " " $ to_line_wrap_format $ args.map to_string
 
 /-- Emit a suggestion to the user. If inside a `squeeze_scope` block,
 the suggestions emitted through `mk_suggestion` will be aggregated so that
@@ -81,7 +96,7 @@ meta def mk_suggestion (p : pos) (pre post : string) (args : list simp_arg_type)
 do xs ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier,
    match xs with
    | none := do
-     args ← render_simp_arg_list args,
+     let args := render_simp_arg_list args,
      if at_pos then
        @scope_trace _ p.line p.column $
          λ _, _root_.trace sformat!"{pre}{args}{post}" (pure () : tactic unit)
@@ -90,8 +105,6 @@ do xs ← squeeze_loc_attr.get_param ``squeeze_loc_attr_carrier,
    | some xs := do
      squeeze_loc_attr.set ``squeeze_loc_attr_carrier ((p,pre,args,post) :: xs) ff
    end
-
-local postfix `?`:9001 := optional
 
 /-- translate a `pexpr` into a `simp` configuration -/
 meta def parse_config : option pexpr → tactic (simp_config_ext × format)
@@ -117,17 +130,21 @@ meta def same_result (pr : proof_state) (tac : tactic unit) : tactic bool :=
 do s ← get_proof_state_after tac,
    pure $ some pr = s
 
+/--
+Consumes the first list of `simp` arguments, accumulating required arguments
+on the second one and unnecessary arguments on the third one.
+-/
 private meta def filter_simp_set_aux
   (tac : bool → list simp_arg_type → tactic unit)
   (args : list simp_arg_type) (pr : proof_state) :
   list simp_arg_type → list simp_arg_type →
   list simp_arg_type → tactic (list simp_arg_type × list simp_arg_type)
-| [] ys ds := pure (ys.reverse, ds.reverse)
+| [] ys ds := pure (ys, ds)
 | (x :: xs) ys ds :=
   do b ← same_result pr (tac tt (args ++ xs ++ ys)),
      if b
-       then filter_simp_set_aux xs ys (x:: ds)
-       else filter_simp_set_aux xs (x :: ys) ds
+       then filter_simp_set_aux xs ys (ds.concat x)
+       else filter_simp_set_aux xs (ys.concat x) ds
 
 declare_trace squeeze.deleted
 
@@ -148,8 +165,17 @@ do some s ← get_proof_state_after (tac ff (user_args ++ simp_args)),
    pure (user_args' ++ simp_args')
 
 /-- make a `simp_arg_type` that references the name given as an argument -/
-meta def name.to_simp_args (n : name) : tactic simp_arg_type :=
-do e ← resolve_name' n, pure $ simp_arg_type.expr e
+meta def name.to_simp_args (n : name) : simp_arg_type :=
+simp_arg_type.expr $ @expr.local_const ff n n (default) pexpr.mk_placeholder
+
+/-- If the `name` is (likely) to be overloaded, then prepend a `_root_` on it. The `expr` of an
+overloaded name is constructed using `expr.macro`; this is how we guess whether it's overloaded. -/
+meta def prepend_root_if_needed (n : name) : tactic name :=
+do x ← resolve_name' n,
+return $ match x with
+| expr.macro _ _ := `_root_ ++ n
+| _ := n
+end
 
 /-- tactic combinator to create a `simp`-like tactic that minimizes its
 argument list.
@@ -159,7 +185,6 @@ argument list.
  * `no_dflt`: did the user use the `only` keyword?
  * `args`:    list of `simp` arguments
  * `tac`:     how to invoke the underlying `simp` tactic
-
 -/
 meta def squeeze_simp_core
   (slow no_dflt : bool) (args : list simp_arg_type)
@@ -176,26 +201,15 @@ do v ← target >>= mk_meta_var,
    { g ← main_goal,
      tac no_dflt args,
      instantiate_mvars g },
-   let vs := g.list_constant,
+   let vs := g.list_constant',
    vs ← vs.mfilter is_simp_lemma,
    vs ← vs.mmap strip_prefix,
-   vs ← vs.to_list.mmap name.to_simp_args,
-   with_local_goals' [v] (filter_simp_set tac args vs)
+   vs ← vs.mmap prepend_root_if_needed,
+   with_local_goals' [v] (filter_simp_set tac args $ vs.map name.to_simp_args)
      >>= mk_suggestion,
    tac no_dflt args
 
 namespace interactive
-
-attribute [derive decidable_eq] simp_arg_type
-
-/-- Turn a `simp_arg_type` into a string. -/
-meta instance simp_arg_type.has_to_string : has_to_string simp_arg_type :=
-⟨λ a, match a with
-| simp_arg_type.all_hyps := "*"
-| (simp_arg_type.except n) := "-" ++ to_string n
-| (simp_arg_type.expr e) := to_string e
-| (simp_arg_type.symm_expr e) := "←" ++ to_string e
-end⟩
 
 /-- combinator meant to aggregate the suggestions issued by multiple calls
 of `squeeze_simp` (due, for instance, to `;`).
@@ -208,15 +222,16 @@ example {α β} (xs ys : list α) (f : α → β) :
 begin
   have : xs = ys, admit,
   squeeze_scope
-  { split; squeeze_simp, -- `squeeze_simp` is run twice, the first one requires
-                         -- `list.map_append` and the second one
-                         -- `[list.length_map, list.length_tail]`
-                         -- prints only one message and combine the suggestions:
-                         -- > Try this: simp only [list.length_map, list.length_tail, list.map_append]
-    squeeze_simp [this]  -- `squeeze_simp` is run only once
-                         -- prints:
-                         -- > Try this: simp only [this]
- },
+  { split; squeeze_simp,
+    -- `squeeze_simp` is run twice, the first one requires
+    -- `list.map_append` and the second one
+    -- `[list.length_map, list.length_tail]`
+    -- prints only one message and combine the suggestions:
+    -- > Try this: simp only [list.length_map, list.length_tail, list.map_append]
+    squeeze_simp [this]
+    -- `squeeze_simp` is run only once
+    -- prints:
+    -- > Try this: simp only [this] },
 end
 ```
 

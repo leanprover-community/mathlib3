@@ -3,10 +3,9 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
-import logic.relation
-import data.option.basic
-import data.subtype
 import algebra.group.defs
+import data.option.basic
+import logic.relation
 
 /-!
 # Shapes of homological complexes
@@ -33,10 +32,12 @@ expected (which would often require rewriting by equations in the indexing type)
 Instead such identities become separate proof obligations when verifying that a
 complex we've constructed is of the desired shape.
 
-We define `up α : complex_shape α`, the shape appropriate for cohomology,
-so `d : X i ⟶ X j` is nonzero only when `j = i + 1`, as well as `down α : complex_shape α`,
-appropriate for homology, so `d : X i ⟶ X j` is nonzero only when `i = j + 1`.
-
+If `α` is an `add_right_cancel_semigroup`, then we define `up α : complex_shape α`,
+the shape appropriate for cohomology,so `d : X i ⟶ X j` is nonzero only when `j = i + 1`,
+as well as `down α : complex_shape α`, appropriate for homology,
+so `d : X i ⟶ X j` is nonzero only when `i = j + 1`.
+(Later we'll introduce `cochain_complex` and `chain_complex` as abbreviations for
+`homological_complex` with one of these shapes baked in.)
 -/
 
 open_locale classical
@@ -84,6 +85,7 @@ def symm (c : complex_shape ι) : complex_shape ι :=
   next_eq := λ i j j' w w', c.prev_eq w w',
   prev_eq := λ i i' j w w', c.next_eq w w', }
 
+@[simp]
 lemma symm_symm (c : complex_shape ι) : c.symm.symm = c :=
 by { ext, simp, }
 
@@ -145,27 +147,6 @@ option.choice_eq _
 
 lemma prev_eq_some (c : complex_shape ι) {i j : ι} (h : c.rel i j) : c.prev j = some ⟨i, h⟩ :=
 option.choice_eq _
-
-/--
-The relation of being related in `k` steps.
--/
-def rel_step (c : complex_shape ι) (k : ℤ) : ι → ι → Prop :=
-if h : 0 ≤ k then
-  ((complex_shape.trans c)^[k.nat_abs] (complex_shape.refl ι)).rel
-else
-  ((complex_shape.trans c.symm)^[k.nat_abs] (complex_shape.refl ι)).rel
-
-instance subsingleton_rel_step (c : complex_shape ι) (k : ℤ) (i : ι) :
-  subsingleton { j // c.rel_step k i j } :=
-begin
-  dsimp [rel_step],
-  split_ifs,
-  apply complex_shape.subsingleton_next,
-  apply complex_shape.subsingleton_next,
-end
-
--- TODO we may need to prove that `c.rel_step n i j → c.rel_step m j k → c.rel_step (n+m) i k`
--- (and also the converse, when `n` and `m` are both non-negative).
 
 /--
 The `complex_shape` allowing differentials from `X i` to `X (i+a)`.

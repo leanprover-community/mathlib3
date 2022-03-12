@@ -37,11 +37,11 @@ lemma strict_convex_closed_ball [strict_convex_space 𝕜 E] (x : E) (r : ℝ) :
 begin
   cases le_or_lt r 0 with hr hr,
   { exact (subsingleton_closed_ball x hr).strict_convex },
-  rw ← vadd_closed_ball_zero,
+  rw ←vadd_closed_ball_zero,
   exact (strict_convex_space.strict_convex_closed_ball r hr).vadd _,
 end
 
-variables [normed_space ℝ E] [strict_convex_space ℝ E] {x y z : E} {a b r : ℝ}
+variables [normed_space ℝ E]
 
 /-- A real normed vector space is strictly convex provided that the unit ball is strictly convex. -/
 lemma strict_convex_space.of_strict_convex_closed_unit_ball
@@ -55,7 +55,7 @@ lemma strict_convex_space.of_norm_add
 begin
   refine strict_convex_space.of_strict_convex_closed_unit_ball ℝ (λ x hx y hy hne a b ha hb hab, _),
   have hx' := hx, have hy' := hy,
-  rw [← closure_closed_ball, closure_eq_interior_union_frontier,
+  rw [←closure_closed_ball, closure_eq_interior_union_frontier,
     frontier_closed_ball (0 : E) one_ne_zero] at hx hy,
   cases hx, { exact (convex_closed_ball _ _).combo_mem_interior_left hx hy' ha hb.le hab },
   cases hy, { exact (convex_closed_ball _ _).combo_mem_interior_right hx' hy ha.le hb hab },
@@ -73,6 +73,8 @@ begin
     smul_right_inj hb.ne'] using this.symm
 end
 
+variables [strict_convex_space ℝ E] {x y z : E} {a b r : ℝ}
+
 lemma norm_combo_lt_of_ne (hx : ∥x∥ ≤ r) (hy : ∥y∥ ≤ r) (hxy : x ≠ y) (ha : 0 < a) (hb : 0 < b)
   (hab : a + b = 1) : ∥a • x + b • y∥ < r :=
 begin
@@ -80,7 +82,7 @@ begin
   { rintro rfl,
     rw [norm_le_zero_iff] at hx hy,
     exact hxy (hx.trans hy.symm) },
-  simp only [← mem_closed_ball_zero_iff, ← mem_ball_zero_iff, ← interior_closed_ball _ hr]
+  simp only [←mem_closed_ball_zero_iff, ←mem_ball_zero_iff, ←interior_closed_ball _ hr]
     at hx hy ⊢,
   exact strict_convex_closed_ball ℝ (0 : E) r hx hy hxy ha hb hab
 end
@@ -90,10 +92,10 @@ end
 lemma norm_add_lt_of_div_norm_ne (hx : x ≠ 0) (hy : y ≠ 0) (h : ∥x∥⁻¹ • x ≠ ∥y∥⁻¹ • y) :
   ∥x + y∥ < ∥x∥ + ∥y∥ :=
 begin
-  rw ← norm_pos_iff at hx hy,
-  rw [← div_lt_one (add_pos hx hy)],
+  rw ←norm_pos_iff at hx hy,
+  rw [←div_lt_one (add_pos hx hy)],
   simpa [interior_closed_ball _ one_ne_zero, smul_smul, div_eq_inv_mul,
-    mul_inv_cancel_right₀ hx.ne', mul_inv_cancel_right₀ hy.ne', ← smul_add, norm_smul,
+    mul_inv_cancel_right₀ hx.ne', mul_inv_cancel_right₀ hy.ne', ←smul_add, norm_smul,
     real.norm_of_nonneg (add_pos hx hy).le]
     using strict_convex_iff_div.1 (strict_convex_closed_ball ℝ (0 : E) 1)
       (inv_norm_smul_mem_closed_unit_ball x) (inv_norm_smul_mem_closed_unit_ball y) h hx hy,
@@ -106,8 +108,8 @@ begin
   have hx : x ≠ 0, { rintro rfl, simpa using h },
   have hy : y ≠ 0, { rintro rfl, simpa using h },
   refine norm_add_lt_of_div_norm_ne hx hy _,
-  rw ← norm_ne_zero_iff at hx hy,
-  rwa [ne.def, ← smul_right_inj hx, smul_inv_smul₀ hx, smul_comm, ← smul_right_inj hy,
+  rw ←norm_ne_zero_iff at hx hy,
+  rwa [ne.def, ←smul_right_inj hx, smul_inv_smul₀ hx, smul_comm, ←smul_right_inj hy,
     smul_inv_smul₀ hy, eq_comm]; apply_instance
 end
 
@@ -120,11 +122,11 @@ middle point belongs to the segment joining two other points. -/
 lemma dist_add_dist_eq_iff : dist x y + dist y z = dist x z ↔ y ∈ [x -[ℝ] z] :=
 begin
   refine ⟨_, dist_add_dist_of_mem_segment⟩, intro h,
-  simp only [dist_eq_norm, ← sub_add_sub_cancel x y z, eq_comm.trans norm_add_eq_iff] at h,
+  simp only [dist_eq_norm, ←sub_add_sub_cancel x y z, eq_comm.trans norm_add_eq_iff] at h,
   rcases eq_or_ne x y with rfl|hx, { apply left_mem_segment },
   rcases eq_or_ne y z with rfl|hy, { apply right_mem_segment },
-  rw [← sub_ne_zero, ← norm_pos_iff] at hx hy,
-  rw [← mem_segment_translate ℝ (-y), add_left_neg, ← sub_eq_neg_add, ← sub_eq_neg_add],
+  rw [←sub_ne_zero, ←norm_pos_iff] at hx hy,
+  rw [←mem_segment_translate ℝ (-y), add_left_neg, ←sub_eq_neg_add, ←sub_eq_neg_add],
   refine mem_segment_iff_div.2 ⟨∥y - z∥, ∥x - y∥, hy.le, hx.le, add_pos hy hx, _⟩,
-  simp only [div_eq_inv_mul, mul_smul, ← h, ← smul_add, sub_add_sub_cancel', sub_self, smul_zero]
+  simp only [div_eq_inv_mul, mul_smul, ←h, ←smul_add, sub_add_sub_cancel', sub_self, smul_zero]
 end

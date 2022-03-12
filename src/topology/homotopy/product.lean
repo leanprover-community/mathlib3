@@ -42,18 +42,6 @@ of products.
   class of paths up to path homotopy.
 
 - `path.homotopic.prod` The product of two path classes.
-
-## Fundamental groupoid preserves products
-  - `fundamental_groupoid_functor.pi_iso` An isomorphism between Π i, (π Xᵢ) and π (Πi, Xᵢ), whose
-    inverse is precisely the product of the maps π (Π i, Xᵢ) → π (Xᵢ), each induced by
-    the projection in `Top` Π i, Xᵢ → Xᵢ.
-
-  - `fundamental_groupoid_functor.prod_iso` An isomorphism between πX × πY and π (X × Y), whose
-    inverse is precisely the product of the maps π (X × Y) → πX and π (X × Y) → Y, each induced by
-    the projections X × Y → X and X × Y → Y
-
-  - `fundamental_groupoid_functor.preserves_product` A proof that the fundamental groupoid functor
-    preserves all products.
 -/
 
 noncomputable theory

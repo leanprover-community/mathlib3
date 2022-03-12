@@ -12,10 +12,6 @@ import topology.algebra.order.basic
 This file defines strictly convex sets.
 
 A set is strictly convex if the open segment between any two distinct points lies in its interior.
-
-## TODO
-
-Define strictly convex spaces.
 -/
 
 open set
@@ -213,10 +209,8 @@ begin
   rintro _ ⟨v, w, hv, hw, rfl⟩ _ ⟨x, y, hx, hy, rfl⟩ h a b ha hb hab,
   rw [smul_add, smul_add, add_add_add_comm],
   obtain rfl | hvx := eq_or_ne v x,
-  { rw convex.combo_self hab,
-    suffices : v + (a • w + b • y) ∈ interior ({v} + t),
-      from interior_mono (add_subset_add (singleton_subset_iff.2 hv) subset.rfl) this,
-    rw singleton_add,
+  { refine interior_mono (add_subset_add (singleton_subset_iff.2 hv) subset.rfl) _,
+    rw [convex.combo_self hab, singleton_add],
     exact (is_open_map_add_left _).image_interior_subset _
       (mem_image_of_mem _ $ ht hw hy (ne_of_apply_ne _ h) ha hb hab) },
   exact subset_interior_add_left (add_mem_add (hs hv hx hvx ha hb hab) $

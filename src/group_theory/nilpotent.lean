@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Ines Wright, Joachim Breitner
 -/
 
-import group_theory.general_commutator
 import group_theory.quotient_group
 import group_theory.solvable
 import group_theory.p_group
@@ -313,19 +312,14 @@ theorem lower_central_series_is_descending_central_series :
 begin
   split, refl,
   intros x n hxn g,
-  exact commutator_containment _ _ hxn (mem_top g),
+  exact commutator_mem_commutator hxn (mem_top g),
 end
 
 /-- Any descending central series for a group is bounded below by the lower central series. -/
 lemma descending_central_series_ge_lower (H : ℕ → subgroup G)
   (hH : is_descending_central_series H) : ∀ n : ℕ, lower_central_series G n ≤ H n
 | 0 := hH.1.symm ▸ le_refl ⊤
-| (n + 1) := begin
-  specialize descending_central_series_ge_lower n,
-  apply (commutator_le _ _ _).2,
-  intros x hx q _,
-  exact hH.2 x n (descending_central_series_ge_lower hx) q,
-end
+| (n + 1) := commutator_le.mpr (λ x hx q _, hH.2 x n (descending_central_series_ge_lower n hx) q)
 
 /-- A group is nilpotent if and only if its lower central series eventually reaches
   the trivial subgroup. -/
@@ -500,7 +494,7 @@ begin
       (λ y hy, by simp [f.map_inv, subgroup.inv_mem _ hy]),
     rintros a ⟨y, hy, z, ⟨-, rfl⟩⟩,
     apply mem_closure.mpr,
-    exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp⟩ }
+    exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp [commutator_element_def]⟩ }
 end
 
 lemma lower_central_series_succ_eq_bot {n : ℕ} (h : lower_central_series G n ≤ center G) :

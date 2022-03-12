@@ -140,7 +140,7 @@ variables (K) [field K] [fintype K]
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
 begin
   haveI hp : fact p.prime := ⟨char_p.char_is_prime K p⟩,
-  letI : module (zmod p) K := { .. (zmod.cast_hom dvd_rfl K).to_module },
+  letI : module (zmod p) K := { .. (zmod.cast_hom dvd_rfl K : zmod p →+* _).to_module },
   obtain ⟨n, h⟩ := vector_space.card_fintype (zmod p) K,
   rw zmod.card at h,
   refine ⟨⟨n, _⟩, hp.1, h⟩,
@@ -266,10 +266,10 @@ begin
   rw [←this, multiset.to_finset_val, eq_comm, multiset.dedup_eq_self],
   apply nodup_roots,
   rw separable_def,
-  convert is_coprime_one_right.neg_right,
-  rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
-    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub],
-end
+  convert is_coprime_one_right.neg_right using 1,
+  { rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
+    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub], },
+  end
 
 instance : is_splitting_field (zmod p) K (X^q - X) :=
 { splits :=

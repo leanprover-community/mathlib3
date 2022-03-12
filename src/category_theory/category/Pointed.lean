@@ -35,6 +35,8 @@ attribute [protected] Pointed.X
 /-- Turns a point into a pointed type. -/
 def of {X : Type*} (point : X) : Pointed := ⟨X, point⟩
 
+@[simp] lemma coe_of {X : Type*} (point : X) : ↥(of point) = X := rfl
+
 alias of ← prod.Pointed
 
 instance : inhabited Pointed := ⟨of ((), ())⟩

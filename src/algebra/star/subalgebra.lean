@@ -33,9 +33,10 @@ variables (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
 instance : set_like (star_subalgebra R A) A :=
 ⟨star_subalgebra.carrier, λ p q h, by cases p; cases q; congr'⟩
 
-instance (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
-  [semiring A] [star_ring A] [algebra R A] [star_module R A] : has_top (star_subalgebra R A) :=
+instance : has_top (star_subalgebra R A) :=
 ⟨{ star_mem' := by tidy, ..(⊤ : subalgebra R A) }⟩
+
+instance : inhabited (star_subalgebra R A) := ⊤
 
 section centralizer
 variables {A}

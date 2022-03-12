@@ -388,15 +388,6 @@ lemma coeff_eval_eq_eval_coeff {n : ℕ} (s' : fin n → R) (f : polynomial (mv_
   (i : ℕ) : polynomial.coeff (polynomial.map (eval s') f) i = eval s' (polynomial.coeff f i) :=
 by simp only [polynomial.coeff_map]
 
-lemma degree_eval_le_degree {n : ℕ} (s' : fin n → R) (f : polynomial (mv_polynomial (fin n) R)) :
-  polynomial.degree (polynomial.map (eval s') f) ≤ polynomial.degree f :=
-polynomial.degree_mono (polynomial.support_map_subset _ f)
-
-lemma nat_degree_eval_le_nat_degree {n : ℕ} (s : fin n → R)
-  (f : polynomial (mv_polynomial (fin n) R)) :
-  polynomial.nat_degree (polynomial.map (eval s) f) ≤ polynomial.nat_degree f :=
-polynomial.nat_degree_le_nat_degree (degree_eval_le_degree s f)
-
 lemma support_coeff_fin_succ_equiv {n : ℕ} {f : mv_polynomial (fin (n + 1)) R} {i : ℕ}
   {m : fin n →₀ ℕ } : m ∈ (polynomial.coeff ((fin_succ_equiv R n) f) i).support
    ↔ (finsupp.cons i m) ∈ f.support :=

@@ -372,8 +372,7 @@ variables (x : Π i, M i)
 
 @[to_additive]
 lemma noncomm_prod_mul_single :
-  univ.noncomm_prod (λ i, pi.mul_single i (x i))
-  (λ i _ j _, by { by_cases h : i = j, { rw h }, { apply pi.mul_single_commute i j h } })
+  univ.noncomm_prod (λ i, pi.mul_single i (x i)) (λ i _ j _, pi.mul_single_apply_commute x i j)
   = x :=
 begin
   ext i,

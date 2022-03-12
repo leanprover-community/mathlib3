@@ -267,11 +267,11 @@ quotient.induction_on s $ λ l hl, by simpa using list.one_le_prod_of_one_le hl
 lemma single_le_prod : (∀ x ∈ s, (1 : α) ≤ x) → ∀ x ∈ s, x ≤ s.prod :=
 quotient.induction_on s $ λ l hl x hx, by simpa using list.single_le_prod hl x hx
 
-@[to_additive]
-lemma prod_le_of_forall_le (s : multiset α) (n : α) (h : ∀ x ∈ s, x ≤ n) : s.prod ≤ n ^ s.card :=
+@[to_additive sum_le_card_nsmul]
+lemma prod_le_pow_card (s : multiset α) (n : α) (h : ∀ x ∈ s, x ≤ n) : s.prod ≤ n ^ s.card :=
 begin
   induction s using quotient.induction_on,
-  simpa using list.prod_le_of_forall_le _ _ h,
+  simpa using list.prod_le_pow_card _ _ h,
 end
 
 @[to_additive all_zero_of_le_zero_le_of_sum_eq_zero]
@@ -303,10 +303,6 @@ lemma prod_le_sum_prod (f : α → α) (h : ∀ x, x ∈ s → x ≤ f x) : s.pr
 @[to_additive card_nsmul_le_sum]
 lemma pow_card_le_prod (h : ∀ x ∈ s, a ≤ x) : a ^ s.card ≤ s.prod :=
 by { rw [←multiset.prod_repeat, ←multiset.map_const], exact prod_map_le_prod _ h }
-
-@[to_additive sum_le_card_nsmul]
-lemma prod_le_pow_card (h : ∀ x ∈ s, x ≤ a) : s.prod ≤ a ^ s.card :=
-@pow_card_le_prod (order_dual α) _ _ _ h
 
 end ordered_comm_monoid
 

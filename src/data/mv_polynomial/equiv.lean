@@ -289,16 +289,18 @@ alg_equiv.of_alg_hom
       polynomial.aeval_X, alg_hom.coe_id, id.def, aeval_tower_X],
   end
 
+variables (n : ℕ)
+
 /--
 The algebra isomorphism between multivariable polynomials in `fin (n + 1)` and
 polynomials over multivariable polynomials in `fin n`.
 -/
-def fin_succ_equiv (n : ℕ) :
+def fin_succ_equiv :
   mv_polynomial (fin (n + 1)) R ≃ₐ[R] polynomial (mv_polynomial (fin n) R) :=
 (rename_equiv R (fin_succ_equiv n)).trans
   (option_equiv_left R (fin n))
 
-lemma fin_succ_equiv_eq (n : ℕ) :
+lemma fin_succ_equiv_eq :
   (fin_succ_equiv R n : mv_polynomial (fin (n + 1)) R →+* polynomial (mv_polynomial (fin n) R)) =
   eval₂_hom (polynomial.C.comp (C : R →+* mv_polynomial (fin n) R))
     (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) :=
@@ -313,7 +315,7 @@ begin
     simp [fin_succ_equiv] }
 end
 
-@[simp] lemma fin_succ_equiv_apply (n : ℕ) (p : mv_polynomial (fin (n + 1)) R) :
+@[simp] lemma fin_succ_equiv_apply (p : mv_polynomial (fin (n + 1)) R) :
   fin_succ_equiv R n p =
   eval₂_hom (polynomial.C.comp (C : R →+* mv_polynomial (fin n) R))
     (λ i : fin (n+1), fin.cases polynomial.X (λ k, polynomial.C (X k)) i) p :=
@@ -331,7 +333,7 @@ begin
   simp only [mv_polynomial.fin_succ_equiv_apply, mv_polynomial.eval₂_hom_C],
 end
 
-variables {n : ℕ} {R}
+variables {n} {R}
 
 lemma fin_succ_equiv_X_zero :
   fin_succ_equiv R n (X 0) = polynomial.X := by simp

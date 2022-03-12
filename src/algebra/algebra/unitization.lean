@@ -283,12 +283,12 @@ variables (A)
 
 @[simp] lemma inl_one [has_one R] [has_zero A] : (inl 1 : unitization R A) = 1 := rfl
 
-@[simp] lemma inl_mul [monoid R] [non_unital_semiring A] [distrib_mul_action R A]
+@[simp] lemma inl_mul [monoid R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
   (r₁ r₂ : R) : (inl (r₁ * r₂) : unitization R A) = inl r₁ * inl r₂ :=
 ext rfl $ show (0 : A) = r₁ • (0 : A) + r₂ • 0 + 0 * 0, by simp only [smul_zero, add_zero, mul_zero]
 
-lemma inl_mul_inl [monoid R] [non_unital_semiring A] [distrib_mul_action R A] (r₁ r₂ : R) :
-  (inl r₁ * inl r₂ : unitization R A) = inl (r₁ * r₂) :=
+lemma inl_mul_inl [monoid R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
+  (r₁ r₂ : R) : (inl r₁ * inl r₂ : unitization R A) = inl (r₁ * r₂) :=
 (inl_mul A r₁ r₂).symm
 
 end
@@ -296,24 +296,24 @@ end
 section
 variables (R)
 
-@[simp] lemma inr_mul_inr [semiring R] [non_unital_semiring A] [module R A] (a₁ a₂ : A) :
+@[simp] lemma inr_mul_inr [semiring R] [non_unital_non_assoc_semiring A] [module R A] (a₁ a₂ : A) :
   (inr a₁ * inr a₂ : unitization R A) = inr (a₁ * a₂) :=
 ext (mul_zero _) $ show (0 : R) • a₂ + (0 : R) • a₁ + a₁ * a₂ = a₁ * a₂,
   by simp only [zero_smul, zero_add]
 
 end
 
-lemma inl_mul_inr [semiring R] [non_unital_semiring A] [module R A] (r : R) (a : A) :
+lemma inl_mul_inr [semiring R] [non_unital_non_assoc_semiring A] [module R A] (r : R) (a : A) :
   (inl r * inr a : unitization R A) = inr (r • a) :=
 ext (mul_zero r) $ show r • a + (0 : R) • 0 + 0 * a = r • a,
   by rw [smul_zero, add_zero, zero_mul, add_zero]
 
-lemma inr_mul_inl [semiring R] [non_unital_semiring A] [module R A] (r : R) (a : A) :
+lemma inr_mul_inl [semiring R] [non_unital_non_assoc_semiring A] [module R A] (r : R) (a : A) :
   (inr a * inl r : unitization R A) = inr (r • a) :=
 ext (zero_mul r) $ show (0 : R) • 0 + r • a + a * 0 = r • a,
   by rw [smul_zero, zero_add, mul_zero, add_zero]
 
-instance [monoid R] [non_unital_semiring A] [distrib_mul_action R A] :
+instance [monoid R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A] :
   mul_one_class (unitization R A) :=
 { one_mul := λ x, ext (one_mul x.1) $ show (1 : R) • x.2 + x.1 • 0 + 0 * x.2 = x.2,
     by rw [one_smul, smul_zero, add_zero, zero_mul, add_zero],
@@ -322,7 +322,7 @@ instance [monoid R] [non_unital_semiring A] [distrib_mul_action R A] :
   .. unitization.has_one,
   .. unitization.has_mul }
 
-instance [semiring R] [non_unital_semiring A] [module R A] :
+instance [semiring R] [non_unital_non_assoc_semiring A] [module R A] :
   non_assoc_semiring (unitization R A) :=
 { zero_mul := λ x, ext (zero_mul x.1) $ show (0 : R) • x.2 + x.1 • 0 + 0 * x.2 = 0,
     by rw [zero_smul, zero_add, smul_zero, zero_mul, add_zero],
@@ -338,8 +338,6 @@ instance [semiring R] [non_unital_semiring A] [module R A] :
     by { rw [add_smul, smul_add, add_mul], ac_refl },
   .. unitization.mul_one_class,
   .. unitization.add_comm_monoid }
-
-.
 
 instance [comm_monoid R] [non_unital_semiring A] [distrib_mul_action R A] [is_scalar_tower R A A]
   [smul_comm_class R A A] : monoid (unitization R A) :=

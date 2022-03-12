@@ -107,13 +107,12 @@ lemma general_commutator_general_commutator_eq_bot_of_rotate {H₁ H₂ H₃ : s
   (h1 : ⁅⁅H₂, H₃⁆, H₁⁆ = ⊥) (h2 : ⁅⁅H₃, H₁⁆, H₂⁆ = ⊥) : ⁅⁅H₁, H₂⁆, H₃⁆ = ⊥ :=
 begin
   simp_rw [commutator_eq_bot_iff_le_centralizer, commutator_le,
-    mem_centralizer_iff_commutator_eq_one] at h1 h2 ⊢,
+    mem_centralizer_iff_commutator_eq_one, ←commutator_element_def] at h1 h2 ⊢,
   intros x hx y hy z hz,
-  have : ⁅z, ⁅x, y⁆⁆ = x * z * ⁅y, ⁅z⁻¹, x⁻¹⁆⁆⁻¹ * z⁻¹ * y * ⁅x⁻¹, ⁅y⁻¹, z⁆⁆⁻¹ * y⁻¹ * x⁻¹ :=
-  by group,
-  simp only [commutator_element_def] at *,
-  rw [this, h1 _ (H₂.inv_mem hy) z hz _ (H₁.inv_mem hx), h2 _ (H₃.inv_mem hz) _ (H₁.inv_mem hx) y hy,
-    one_inv, mul_one, mul_one, mul_inv_cancel_right, mul_inv_cancel_right, mul_inv_self],
+  transitivity x * z * ⁅y, ⁅z⁻¹, x⁻¹⁆⁆⁻¹ * z⁻¹ * y * ⁅x⁻¹, ⁅y⁻¹, z⁆⁆⁻¹ * y⁻¹ * x⁻¹,
+  { group },
+  { rw [h1 _ (H₂.inv_mem hy) _ hz _ (H₁.inv_mem hx), h2 _ (H₃.inv_mem hz) _ (H₁.inv_mem hx) _ hy],
+    group },
 end
 
 lemma commutator_le_right (H₁ H₂ : subgroup G) [h : normal H₂] : ⁅H₁, H₂⁆ ≤ H₂ :=

@@ -543,7 +543,27 @@ instance : preadditive (Mat R) :=
 { add_comp' := by { intros, ext, simp [add_mul, finset.sum_add_distrib], },
   comp_add' := by { intros, ext, simp [mul_add, finset.sum_add_distrib], }, }
 
+section
 -- TODO show `Mat R` has biproducts, and that `biprod.map` "is" forming a block diagonal matrix.
+
+open category_theory.limits
+
+variables {J : Type u} [decidable_eq J] [fintype J]
+
+def foo (F : J → Fintype) {j j' : J} (h : j = j') : F j → F j' :=
+cast (congr_arg (λ j : J, (F j : Type u)) h : _)
+
+/-- The bilimit bicone in `Mat R` is just the sigma type,
+with appropriate block diagonal matrixes as the projections and inclusions. -/
+def bicone (F : J → Mat R) : bicone F :=
+{ X := Fintype.of (Σ (j : J), F j),
+  π := λ j x y, if h : j = x.1 then if x.2 = foo F h y then 1 else 0 else 0,
+  ι := λ j x y, if h : j = y.1 then if foo F h x = y.2 then 1 else 0 else 0,
+  ι_π := λ j j', begin ext x y, dsimp, end, }
+
+instance : has_finite_biproducts (Mat R) := sorry
+
+end
 
 end Mat
 

@@ -203,13 +203,13 @@ end
 @[simp] lemma of_nat {n : ℕ} : padic_val_rat p (n : ℚ) = padic_val_nat p n :=
 by simp [padic_val_rat, padic_val_int]
 
--- /-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
--- @[simp] lemma self (hp : 1 < p) : padic_val_rat p p = 1 :=
--- begin
---   simp,
---   rw padic_val_nat.self hp, -- Why does this fail to fire with simp?
---   refl,
--- end
+/-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
+lemma self (hp : 1 < p) : padic_val_rat p p = 1 :=
+begin
+  simp only [of_nat],
+  rw padic_val_nat.self hp, -- Why does this fail to fire with simp above?
+  refl,
+end
 
 end padic_val_rat
 
@@ -621,7 +621,7 @@ The p-adic norm of `p` is `1/p` if `p > 1`.
 See also `padic_norm.padic_norm_p_of_prime` for a version that assumes `p` is prime.
 -/
 lemma padic_norm_p {p : ℕ} (hp : 1 < p) : padic_norm p p = 1 / p :=
-by simp [padic_norm, (show p ≠ 0, by linarith), padic_val_rat.self hp]
+by simp [padic_norm, (show p ≠ 0, by linarith), padic_val_nat.self hp]
 
 /--
 The p-adic norm of `p` is `1/p` if `p` is prime.

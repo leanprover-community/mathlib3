@@ -84,6 +84,14 @@ begin
   simp [padic_val_nat, neq_one, eq_zero_false],
 end
 
+lemma eq_zero_of_not_dvd {n : ℕ} (h : ¬ p ∣ n) : padic_val_nat p n = 0 :=
+begin
+  rw padic_val_nat,
+  split_ifs,
+  { simp [multiplicity_eq_zero_of_not_dvd h], },
+  refl,
+end
+
 end padic_val_nat
 
 /--
@@ -103,7 +111,7 @@ lemma of_ne_one_ne_zero {z : ℤ} (hp : p ≠ 1) (hz : z ≠ 0) : padic_val_int 
   (multiplicity (p : ℤ) z).get (by {apply multiplicity.finite_int_iff.2, simp [hp, hz]}) :=
 begin
   rw [padic_val_int, padic_val_nat, dif_pos],
-  simp_rw  multiplicity.int.nat_abs p z,
+  simp_rw multiplicity.int.nat_abs p z,
   refl,
   simp [hp, hz],
   exact int.nat_abs_pos_of_ne_zero hz, -- TODO make simp lemma
@@ -122,6 +130,19 @@ by simp [padic_val_int]
 /-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
 @[simp] lemma self (hp : 1 < p) : padic_val_int p p = 1 :=
 by simp [padic_val_int, padic_val_nat.self hp]
+
+/-- The p-adic value of an natural is its p-adic_value as an integer -/
+@[simp] lemma of_nat {n : ℕ} : padic_val_int p (n : ℤ) = padic_val_nat p n :=
+by simp [padic_val_int]
+
+lemma eq_zero_of_not_dvd {z : ℤ} (h : ¬ (p : ℤ) ∣ z) : padic_val_int p z = 0 :=
+begin
+  rw [padic_val_int, padic_val_nat],
+  split_ifs,
+  { simp_rw multiplicity.int.nat_abs,
+    simp [multiplicity_eq_zero_of_not_dvd h], },
+  refl,
+end
 
 end padic_val_int
 
@@ -163,17 +184,16 @@ begin
   refl,
 end
 
-/-- The p-adic value of an integer `z ≠ 0` is the multiplicity of `p` in `z`. -/
-lemma of_int {z : ℤ} (hp : p ≠ 1) :
-  padic_val_rat p (z : ℚ) = padic_val_int p z := by simp [padic_val_rat]
+/-- The p-adic value of an integer `z ≠ 0` is its p-adic_value as a rational -/
+@[simp] lemma of_int {z : ℤ} : padic_val_rat p (z : ℚ) = padic_val_int p z :=
+by simp [padic_val_rat]
 
 /-- The p-adic value of an integer `z ≠ 0` is the multiplicity of `p` in `z`. -/
 lemma of_int_multiplicity (z : ℤ) (hp : p ≠ 1) (hz : z ≠ 0) :
   padic_val_rat p (z : ℚ) = (multiplicity (p : ℤ) z).get
     (finite_int_iff.2 ⟨hp, hz⟩) :=
-by rw [of_int hp, padic_val_int.of_ne_one_ne_zero hp hz]
+by rw [of_int, padic_val_int.of_ne_one_ne_zero hp hz]
 
-/-- The p-adic value of a rational `z ≠ 0` is the multiplicity of `p` in `z`. -/
 lemma multiplicity_sub_multiplicity {q : ℚ} (hp : p ≠ 1) (hq : q ≠ 0) :
   padic_val_rat p q =
   (multiplicity (p : ℤ) q.num).get (finite_int_iff.2 ⟨hp, rat.num_ne_zero_of_ne_zero hq⟩) -
@@ -188,6 +208,11 @@ begin
   exact rat.zero_of_num_zero h,
 end
 
+/-- The p-adic value of an integer `z ≠ 0` is its p-adic_value as a rational -/
+@[simp] lemma of_nat {n : ℕ} : padic_val_rat p (n : ℚ) = padic_val_nat p n :=
+by simp [padic_val_rat, padic_val_int]
+
+
 end padic_val_rat
 
 section padic_val_nat
@@ -198,8 +223,8 @@ begin
   split_ifs; simp,
 end
 
-/-- `padic_val_rat` coincides with `padic_val_nat`. -/
-@[simp, norm_cast] lemma padic_val_rat_of_nat (p n : ℕ) :
+-- /-- `padic_val_rat` coincides with `padic_val_nat`. -/
+@[norm_cast] lemma padic_val_rat_of_nat (p n : ℕ) :
   ↑(padic_val_nat p n) = padic_val_rat p n :=
 by simp [padic_val_rat, padic_val_int]
 
@@ -691,9 +716,9 @@ begin
   rw [if_neg _],
   { refine zpow_le_one_of_nonpos _ _,
     { exact_mod_cast le_of_lt hp.1.one_lt, },
-    { rw [padic_val_rat.of_int_multiplicity _ hp.1.ne_one hz, neg_nonpos],
+    { rw [padic_val_rat.of_int, neg_nonpos],
       norm_cast, simp }},
-  exact_mod_cast hz
+  exact_mod_cast hz,
 end
 
 private lemma nonarchimedean_aux {q r : ℚ} (h : padic_val_rat p q ≤ padic_val_rat p r) :
@@ -798,7 +823,8 @@ begin
   { norm_cast at hz,
     have : 0 ≤ (p^n : ℚ), {apply pow_nonneg, exact_mod_cast le_of_lt hp.1.pos },
     simp [hz, this] },
-  { rw [zpow_le_iff_le, neg_le_neg_iff, padic_val_rat.of_int_multiplicity _ hp.1.ne_one _],
+  { rw [zpow_le_iff_le, neg_le_neg_iff, padic_val_rat.of_int,
+      padic_val_int.of_ne_one_ne_zero hp.1.ne_one _],
     { norm_cast,
       rw [← enat.coe_le_coe, enat.coe_get, ← multiplicity.pow_dvd_iff_le_multiplicity],
       simp },

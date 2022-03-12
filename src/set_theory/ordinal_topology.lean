@@ -222,7 +222,7 @@ begin
     refine ⟨h, λ o ho a h, _⟩,
     suffices : o ∈ (f ⁻¹' set.Iic a), from set.mem_preimage.1 this,
     rw mem_closed_iff_sup (is_closed.preimage h' (@is_closed_Iic _ _ _ _  a)),
-    exact ⟨_, out_nonempty_iff_ne_zero.2 ho.1, typein o.out.r,
+    exact ⟨_, out_nonempty_iff_ne_zero.2 ho.1, typein (<),
       λ i, h _ (typein_lt_self i), sup_typein_limit ho.2⟩ }
 end
 

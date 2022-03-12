@@ -516,7 +516,7 @@ construction where `ι` is always `ℕ` so the irrelevant ideal is simply elemen
 # Future work
 Here in the definition, `ι` is assumed to be `canonically_ordered_add_monoid`. However, the notion
 of irrelevant ideal makes sense in a more general setting by defining it as the ideal of elements
-with `0` as i-th coordinate for all`i ≤ 0`, i,e, `{a | ∀ (i : ι), i ≤ 0 → aᵢ = 0}`.
+with `0` as i-th coordinate for all `i ≤ 0`, i.e. `{a | ∀ (i : ι), i ≤ 0 → aᵢ = 0}`.
 -/
 def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
 ⟨(graded_algebra.proj_zero_ring_hom 𝒜).ker, λ i r (hr : (decompose 𝒜 r 0 : A) = 0), begin

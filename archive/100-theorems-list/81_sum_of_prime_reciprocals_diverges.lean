@@ -125,7 +125,7 @@ begin
   calc  (card (finset.bUnion P N) : ℝ)
       ≤ ∑ p in P, card (N p)  : by assumption_mod_cast
   ... ≤ ∑ p in P, x * (1 / p) :
-    sum_le_sum (λ p hp, by simp only [mul_one_div, N, card_multiples, nat.cast_div_le])
+    sum_le_sum (λ p hp, by simp only [mul_one_div, N, sep_def, card_multiples, nat.cast_div_le])
   ... = x * ∑ p in P, 1 / p   : mul_sum.symm,
 end
 

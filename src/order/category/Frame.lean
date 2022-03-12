@@ -31,6 +31,8 @@ instance (X : Frame) : frame X := X.str
 /-- Construct a bundled `Frame` from a `frame`. -/
 def of (α : Type*) [frame α] : Frame := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [frame α] : ↥(of α) = α := rfl
+
 instance : inhabited Frame := ⟨of punit⟩
 
 /-- An abbreviation of `frame_hom` that assumes `frame` instead of the weaker `complete_lattice`.

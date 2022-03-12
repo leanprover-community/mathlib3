@@ -223,64 +223,88 @@ section equalizers
 variables {C : Type u} [category.{v} C] [preadditive C]
 
 section
-variables {X Y : C} (f : X ⟶ Y) (g : X ⟶ Y)
+variables {X Y : C} {f : X ⟶ Y} {g : X ⟶ Y}
+
+/-- Map a kernel cone on the difference of two morphisms to the equalizer fork. -/
+def fork_of_kernel_fork (c : kernel_fork (f - g)) : fork f g :=
+fork.of_ι c.ι $ by rw [← sub_eq_zero, ← comp_sub, c.condition]
+
+/-- Map any equalizer fork to a cone on the difference of the two morphisms. -/
+def kernel_fork_of_fork (c : fork f g) : kernel_fork (f - g) :=
+fork.of_ι c.ι $ by rw [comp_sub, comp_zero, sub_eq_zero, c.condition]
 
 /-- A kernel of `f - g` is an equalizer of `f` and `g`. -/
-lemma has_limit_parallel_pair [has_kernel (f - g)] :
-  has_limit (parallel_pair f g) :=
-has_limit.mk { cone := fork.of_ι (kernel.ι (f - g)) (sub_eq_zero.1 $
-    by { rw ←comp_sub, exact kernel.condition _ }),
-  is_limit := fork.is_limit.mk _
-    (λ s, kernel.lift (f - g) (fork.ι s) $
-      by { rw comp_sub, apply sub_eq_zero.2, exact fork.condition _ })
-    (λ s, by simp)
-    (λ s m h, by { ext, simpa using h walking_parallel_pair.zero }) }
+def is_limit_fork_of_kernel_fork {c : kernel_fork (f - g)} (i : is_limit c) :
+  is_limit (fork_of_kernel_fork c) :=
+fork.is_limit.mk' _ $ λ s,
+  ⟨i.lift (kernel_fork_of_fork s), i.fac _ _,
+   λ m h, by { apply fork.is_limit.hom_ext i, rw [i.fac], exact h }⟩
 
-/-- Conversely, an equalizer of `f` and `g` is a kernel of `f - g`. -/
-lemma has_kernel_of_has_equalizer
-  [has_equalizer f g] : has_kernel (f - g) :=
-has_limit.mk
-  { cone := fork.of_ι (equalizer.ι f g)
-      (by erw [comp_zero, comp_sub, equalizer.condition f g, sub_self]),
-    is_limit := fork.is_limit.mk _
-      (λ s, equalizer.lift s.ι (by simpa only [comp_sub, comp_zero, sub_eq_zero]
-        using s.condition))
-      (λ s, by simp only [fork.ι_eq_app_zero, fork.of_ι_π_app, equalizer.lift_ι])
-      (λ s m h, by { ext, simpa only [equalizer.lift_ι] using h walking_parallel_pair.zero, }), }
+/-- An equalizer of `f` and `g` is a kernel of `f - g`. -/
+def is_limit_kernel_fork_of_fork {c : fork f g} (i : is_limit c) :
+  is_limit (kernel_fork_of_fork c) :=
+fork.is_limit.mk' _ $ λ s,
+  ⟨i.lift (fork_of_kernel_fork s), i.fac _ _,
+    λ m h, by { apply fork.is_limit.hom_ext i, rw [i.fac], exact h }⟩
+
+variables (f g)
+
+/-- A preadditive category has an equalizer for `f` and `g` if it has a kernel for `f - g`. -/
+lemma has_equalizer_of_has_kernel [has_kernel (f - g)] : has_equalizer f g :=
+has_limit.mk { cone := fork_of_kernel_fork _,
+  is_limit := is_limit_fork_of_kernel_fork (equalizer_is_equalizer (f - g) 0) }
+
+/-- A preadditive category has a kernel for `f - g` if it has an equalizer for `f` and `g`. -/
+lemma has_kernel_of_has_equalizer [has_equalizer f g] : has_kernel (f - g) :=
+has_limit.mk { cone := kernel_fork_of_fork (equalizer.fork f g),
+  is_limit := is_limit_kernel_fork_of_fork (limit.is_limit (parallel_pair f g)) }
+
+variables {f g}
+
+/-- Map a cokernel cocone on the difference of two morphisms to the coequalizer cofork. -/
+def cofork_of_cokernel_cofork (c : cokernel_cofork (f - g)) : cofork f g :=
+cofork.of_π c.π $ by rw [← sub_eq_zero, ← sub_comp, c.condition]
+
+/-- Map any coequalizer cofork to a cocone on the difference of the two morphisms. -/
+def cokernel_cofork_of_cofork (c : cofork f g) : cokernel_cofork (f - g) :=
+cofork.of_π c.π $ by rw [sub_comp, zero_comp, sub_eq_zero, c.condition]
+
+/-- A cokernel of `f - g` is a coequalizer of `f` and `g`. -/
+def is_colimit_cofork_of_cokernel_cofork {c : cokernel_cofork (f - g)} (i : is_colimit c) :
+  is_colimit (cofork_of_cokernel_cofork c) :=
+cofork.is_colimit.mk' _ $ λ s,
+  ⟨i.desc (cokernel_cofork_of_cofork s), i.fac _ _,
+   λ m h, by { apply cofork.is_colimit.hom_ext i, rw [i.fac], exact h }⟩
+
+/-- A coequalizer of `f` and `g` is a cokernel of `f - g`. -/
+def is_colimit_cokernel_cofork_of_cofork {c : cofork f g} (i : is_colimit c) :
+  is_colimit (cokernel_cofork_of_cofork c) :=
+cofork.is_colimit.mk' _ $ λ s,
+  ⟨i.desc (cofork_of_cokernel_cofork s), i.fac _ _,
+    λ m h, by { apply cofork.is_colimit.hom_ext i, rw [i.fac], exact h }⟩
+
+variables (f g)
+
+/-- A preadditive category has a coequalizer for `f` and `g` if it has a cokernel for `f - g`. -/
+lemma has_coequalizer_of_has_cokernel [has_cokernel (f - g)] : has_coequalizer f g :=
+has_colimit.mk { cocone := cofork_of_cokernel_cofork _,
+  is_colimit := is_colimit_cofork_of_cokernel_cofork (coequalizer_is_coequalizer (f - g) 0) }
+
+/-- A preadditive category has a cokernel for `f - g` if it has a coequalizer for `f` and `g`. -/
+lemma has_cokernel_of_has_coequalizer [has_coequalizer f g] : has_cokernel (f - g) :=
+has_colimit.mk { cocone := cokernel_cofork_of_cofork (coequalizer.cofork f g),
+  is_colimit := is_colimit_cokernel_cofork_of_cofork (colimit.is_colimit (parallel_pair f g)) }
 
 end
-
-section
 
 /-- If a preadditive category has all kernels, then it also has all equalizers. -/
 lemma has_equalizers_of_has_kernels [has_kernels C] : has_equalizers C :=
-@has_equalizers_of_has_limit_parallel_pair _ _ (λ _ _ f g, has_limit_parallel_pair f g)
+@has_equalizers_of_has_limit_parallel_pair _ _ (λ _ _ f g, has_equalizer_of_has_kernel f g)
 
-end
-
-section
-variables {X Y : C} (f : X ⟶ Y) (g : X ⟶ Y)
-
-/-- A cokernel of `f - g` is a coequalizer of `f` and `g`. -/
-lemma has_colimit_parallel_pair [has_cokernel (f - g)] :
-  has_colimit (parallel_pair f g) :=
-has_colimit.mk { cocone := cofork.of_π (cokernel.π (f - g)) (sub_eq_zero.1 $
-    by { rw ←sub_comp, exact cokernel.condition _ }),
-  is_colimit := cofork.is_colimit.mk _
-    (λ s, cokernel.desc (f - g) (cofork.π s) $
-      by { rw sub_comp, apply sub_eq_zero.2, exact cofork.condition _ })
-    (λ s, by simp)
-    (λ s m h, by { ext, simpa using h walking_parallel_pair.one }) }
-
-end
-
-section
 
 /-- If a preadditive category has all cokernels, then it also has all coequalizers. -/
 lemma has_coequalizers_of_has_cokernels [has_cokernels C] : has_coequalizers C :=
-@has_coequalizers_of_has_colimit_parallel_pair _ _ (λ _ _ f g, has_colimit_parallel_pair f g)
-
-end
+@has_coequalizers_of_has_colimit_parallel_pair _ _ (λ _ _ f g, has_coequalizer_of_has_cokernel f g)
 
 end equalizers
 

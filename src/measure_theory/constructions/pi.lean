@@ -297,8 +297,12 @@ def finite_spanning_sets_in.pi {C : Π i, set (set (α i))}
 begin
   haveI := λ i, (hμ i).sigma_finite,
   haveI := fintype.encodable ι,
+  refine ⟨λ n, pi univ (λ i, (hμ i).set ((decode (ι → ℕ) n).iget i)), λ n, _, λ n, _, _⟩;
+  -- TODO (kmill) If this let comes before the refine, while the noncomputability checker
+  -- correctly sees this definition is computable, the Lean VM fails to see the binding is
+  -- computationally irrelevant. The `noncomputable theory` doesn't help because all it does
+  -- is insert `noncomputable` for you when necessary.
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
-  refine ⟨λ n, pi univ (λ i, (hμ i).set (e n i)), λ n, _, λ n, _, _⟩,
   { refine mem_image_of_mem _ (λ i _, (hμ i).set_mem _) },
   { calc measure.pi μ (pi univ (λ i, (hμ i).set (e n i)))
         ≤ measure.pi μ (pi univ (λ i, to_measurable (μ i) ((hμ i).set (e n i)))) :

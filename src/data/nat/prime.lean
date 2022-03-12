@@ -1192,3 +1192,17 @@ namespace int
 lemma prime_two : prime (2 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_two
 lemma prime_three : prime (3 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_three
 end int
+
+section
+open finset
+/-- Exactly `n / p` naturals in `[1, n]` are multiples of `p`. -/
+lemma card_multiples (n p : ℕ) : card {e ∈ range n | p ∣ e + 1} = n / p :=
+begin
+  induction n with n hn,
+  { rw [nat.zero_div, sep_def, range_zero, filter_empty, card_empty] },
+  { rw [nat.succ_div, add_ite, add_zero, range_succ, sep_def, filter_insert, apply_ite card,
+      card_insert_of_not_mem, ←sep_def, hn],
+    { congr },
+    { simp_rw [mem_filter, not_mem_range_self, false_and, not_false_iff] } },
+end
+end

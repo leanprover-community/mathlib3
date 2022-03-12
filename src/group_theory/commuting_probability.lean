@@ -21,10 +21,6 @@ This file introduces the commuting probability of finite groups.
 
 section for_mathlib
 
-/-lemma subgroup.mem_centralizer_iff_commutator_eq_one {G : Type*} [group G] {H : subgroup G} {g : G} :
-  g ∈ H.centralizer ↔ ∀ h ∈ H, g * h * g⁻¹ * h⁻¹ = 1 :=
-by simp_rw [mul_inv_eq_one, mul_inv_eq_iff_eq_mul, subgroup.mem_centralizer_iff, eq_comm]-/
-
 @[to_additive] instance subgroup.centralizer.characteristic
   {G : Type*} [group G] (H : subgroup G) [H.characteristic] :
   H.centralizer.characteristic := sorry
@@ -32,29 +28,20 @@ by simp_rw [mul_inv_eq_one, mul_inv_eq_iff_eq_mul, subgroup.mem_centralizer_iff,
 instance subgroup.commutator.characteristic (G : Type*) [group G] :
   (commutator G).characteristic := sorry
 
-lemma general_commutator_eq_bot_iff_le_centralizer {G : Type*} [group G] {H K : subgroup G} :
-  ⁅H, K⁆ = ⊥ ↔ H ≤ K.centralizer :=
-sorry
+lemma commutator_le_commutator {G : Type*} [group G] (H K : subgroup G) :
+  ⁅H, K⁆ ≤ commutator G :=
+subgroup.commutator_mono le_top le_top
 
-lemma general_commutator_le_commutator {G : Type*} [group G] (H K : subgroup G) :
-  ⁅H, K⁆ ≤ commutator G := sorry
-
-lemma centralizer_top_eq_center (G : Type*) [group G] :
-  (⊤ : subgroup G).centralizer = subgroup.center G :=
+lemma centralizer_le {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
+  K.centralizer ≤ H.centralizer :=
 begin
-  sorry
+  exact set.centralizer_subset h,
 end
-
-lemma centralizer_mono {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
-  K.centralizer ≤ H.centralizer := sorry
-
-instance commutator_element {G : Type*} [group G] : has_bracket G G :=
-⟨λ g₁ g₂, g₁ * g₂ * g₁⁻¹ * g₂⁻¹⟩
 
 lemma three_subgroups_lemma {G : Type*} [group G] {X Y Z : subgroup G}
   (h1 : ⁅⁅X, Y⁆, Z⁆ = ⊥) (h2 : ⁅⁅Y, Z⁆, X⁆ = ⊥) : ⁅⁅Z, X⁆, Y⁆ = ⊥ :=
 begin
-  rw [general_commutator_eq_bot_iff_le_centralizer, subgroup.commutator_le] at h1 h2 ⊢,
+  rw [subgroup.commutator_eq_bot_iff_le_centralizer, subgroup.commutator_le] at h1 h2 ⊢,
   simp_rw [subgroup.mem_centralizer_iff_commutator_eq_one] at h1 h2 ⊢,
   intros z hz x hx y hy,
   change ⁅y, ⁅z, x⁆⁆ = _,
@@ -69,12 +56,12 @@ end
 lemma commutator_centralizer_commutator_le_center (G : Type*) [group G] :
   ⁅(commutator G).centralizer, (commutator G).centralizer⁆ ≤ subgroup.center G :=
 begin
-  rw [←centralizer_top_eq_center, ←general_commutator_eq_bot_iff_le_centralizer],
+  rw [←subgroup.centralizer_top, ←subgroup.commutator_eq_bot_iff_le_centralizer],
   suffices : ⁅⁅⊤, (commutator G).centralizer⁆, (commutator G).centralizer⁆ = ⊥,
   { exact three_subgroups_lemma (by rwa subgroup.commutator_comm (commutator G).centralizer) this },
-  rw [subgroup.commutator_comm, general_commutator_eq_bot_iff_le_centralizer],
-  apply centralizer_mono,
-  apply general_commutator_le_commutator,
+  rw [subgroup.commutator_comm, subgroup.commutator_eq_bot_iff_le_centralizer],
+  apply centralizer_le,
+  apply commutator_le_commutator,
 end
 
 lemma subgroup.map_subtype_le_map_subtype {G' : Type*} [group G'] {G : subgroup G'}
@@ -83,17 +70,11 @@ subgroup.map_le_map_iff_of_injective subtype.coe_injective
 
 lemma map_commutator_eq_general_commutator {G H : Type*} [group G] [group H] (ϕ : G →* H) :
   (commutator G).map ϕ = ⁅ϕ.range, ϕ.range⁆ :=
-sorry
+by rw [commutator_def, subgroup.map_commutator, ←monoid_hom.range_eq_map]
 
 lemma subgroup.commutator_eq_general_commutator {G : Type*} [group G] (H : subgroup G) :
   (commutator H).map H.subtype = ⁅H, H⁆ :=
 by rw [map_commutator_eq_general_commutator, subgroup.subtype_range]
-
-lemma general_commutator_map {G G' : Type*} [group G] [group G'] (ϕ : G →* G') {H K : subgroup G} :
-  ⁅H, K⁆.map ϕ = ⁅H.map ϕ, K.map ϕ⁆ :=
-begin
-  sorry
-end
 
 lemma map_center_map {G : Type*} [group G] (H : subgroup G) (K : subgroup H) :
   (subgroup.center (K.map H.subtype)).map (subgroup.subtype _) =
@@ -213,6 +194,7 @@ begin
   convert key.trans _,
   convert (card_mul_le R S).trans _,
   convert mul_le_mul' _ hS_card,
+  sorry,
 end
 
 end technical
@@ -332,8 +314,9 @@ begin
   { haveI : (commutator K).characteristic := by apply_instance,
     -- why doesn't apply_instance work directly?
     apply_instance },
-  { rw [←subgroup.map_subtype_le_map_subtype, subgroup.commutator_eq_general_commutator,
-        ←general_commutator_map, map_center_map, subgroup.map_subtype_le_map_subtype],
+  { have key := commutator_centralizer_commutator_le_center K,
+    rw [←subgroup.map_subtype_le_map_subtype, subgroup.commutator_eq_general_commutator,
+        ←subgroup.map_commutator, map_center_map, subgroup.map_subtype_le_map_subtype],
     refine (commutator_centralizer_commutator_le_center K).trans _,
     refine λ a ha, ⟨⟨a, λ b hb, ha b⟩, λ b, subtype.ext (ha b), rfl⟩, },
   { refine le_trans _ hK2,
@@ -346,7 +329,7 @@ begin
         ((commutator H).equiv_map_of_injective H.subtype subtype.coe_injective).to_equiv },
     rw [key, key],
     apply subgroup.card_dvd_of_le,
-    apply general_commutator_mono (commutator ↥K).centralizer.map_subtype_le
+    apply subgroup.commutator_mono (commutator ↥K).centralizer.map_subtype_le
       (commutator ↥K).centralizer.map_subtype_le },
   { sorry },
 end

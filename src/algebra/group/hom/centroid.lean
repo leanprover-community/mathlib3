@@ -26,6 +26,8 @@ be satisfied by itself and all stricter types.
 
 open function
 
+
+
 variables {F α : Type*}
 
 /-- The type of centroid homomorphisms from `α` to `α`. -/
@@ -51,6 +53,9 @@ instance [non_unital_non_assoc_semiring α] [centroid_hom_class F α] :
 /-! ### Centroid homomorphisms -/
 
 namespace centroid_hom
+
+section non_unital_non_assoc_semiring
+
 variables [non_unital_non_assoc_semiring α]
 
 instance : centroid_hom_class (centroid_hom α) α :=
@@ -160,9 +165,35 @@ instance : semiring (centroid_hom α) :=
 lemma comm_comp_mul (T S : centroid_hom α) (a b : α) : (T ∘ S)(a * b) = (S ∘ T)(a * b) :=
   by rw [comp_app, map_mul_right, map_mul_left, ←map_mul_right, ←map_mul_left]
 
-lemma comm_apply_sq {α : Type*} [non_unital_non_assoc_ring α] (T S : centroid_hom α) (a : α) :
+end non_unital_non_assoc_semiring
+
+section non_unital_non_assoc_ring
+
+variables [non_unital_non_assoc_ring α]
+
+/-- Negation of `centroid_hom`s as a `centroid_hom`. -/
+def neg (f : centroid_hom α) : centroid_hom α :=
+⟨ -(f.to_add_monoid_hom) ,
+λ a b, by rw [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.neg_apply, add_monoid_hom.neg_apply,
+  mul_neg, ← add_monoid_hom.to_fun_eq_coe, map_mul_left'],
+λ a b, by rw [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.neg_apply, add_monoid_hom.neg_apply,
+  ← add_monoid_hom.to_fun_eq_coe, map_mul_right', ← neg_mul],
+⟩
+
+instance : add_comm_group (centroid_hom α) :=
+{ neg := neg,
+  add_left_neg := by intros; ext; apply add_left_neg,
+  ..centroid_hom.add_comm_monoid }
+
+instance  : ring (centroid_hom α) :=
+{ .. centroid_hom.semiring,
+  .. centroid_hom.add_comm_group }
+
+lemma comm_apply_sq (T S : centroid_hom α) (a : α) :
   ((T ∘ S) a - (S ∘ T) a) * ((T ∘ S) a - (S ∘ T) a) = 0 :=
 by rw [sub_mul, comp_app, comp_app, ← map_mul_right, ← map_mul_right, ← map_mul_right,
     ← map_mul_right, ← comp_app T S, comm_comp_mul, ← comp_app T S, sub_self]
+
+end non_unital_non_assoc_ring
 
 end centroid_hom

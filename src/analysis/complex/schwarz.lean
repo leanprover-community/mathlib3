@@ -60,8 +60,8 @@ begin
   rw mem_ball at hz,
   filter_upwards [Ioo_mem_nhds_within_Iio ⟨hz, le_rfl⟩] with r hr,
   have hr₀ : 0 < r, from dist_nonneg.trans_lt hr.1,
-  replace hd : differentiable_on ℂ (dslope f c) (closed_ball c r),
-    from ((differentiable_on_dslope $ ball_mem_nhds _ hR₁).mpr hd).mono (closed_ball_subset_ball hr.2),
+  replace hd : differentiable_on ℂ (dslope f c) (closed_ball c r) :=
+    ((differentiable_on_dslope $ ball_mem_nhds _ hR₁).mpr hd).mono (closed_ball_subset_ball hr.2),
   refine norm_le_of_forall_mem_frontier_norm_le (is_compact_closed_ball c r)
     hd.continuous_on (hd.mono interior_subset) _ hr.1.le,
   rw frontier_closed_ball',

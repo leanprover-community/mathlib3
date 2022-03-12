@@ -809,7 +809,7 @@ subtype.ext rfl
 
 lemma inclusion_eq_identity {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   {E F : subalgebra R A} (hEF : E ≤ F) (x : E) : F.val ((subalgebra.inclusion hEF) x) = E.val x :=
-  rfl
+rfl
 
 lemma val_injective {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   {E : subalgebra R A} : function.injective E.val := λ x y hxy, subtype.ext hxy

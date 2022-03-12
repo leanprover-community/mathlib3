@@ -146,7 +146,8 @@ The morphism between cycles induced by a chain map.
 abbreviation cycles_map (f : C₁ ⟶ C₂) (i : ι) : (C₁.cycles i : V) ⟶ (C₂.cycles i : V) :=
 subobject.factor_thru _ ((C₁.cycles i).arrow ≫ f.f i) (kernel_subobject_factors _ _ (by simp))
 
-@[simp] lemma cycles_map_arrow (f : C₁ ⟶ C₂) (i : ι) :
+@[simp, reassoc, elementwise]
+lemma cycles_map_arrow (f : C₁ ⟶ C₂) (i : ι) :
   (cycles_map f i) ≫ (C₂.cycles i).arrow = (C₁.cycles i).arrow ≫ f.f i :=
 by { simp, }
 

@@ -46,6 +46,9 @@ class wstar_algebra (M : Type u) [normed_ring M] [star_ring M] [cstar_ring M]
 (exists_predual : ∃ (X : Type u) [normed_group X] [normed_space ℂ X] [complete_space X],
   nonempty (normed_space.dual ℂ X ≃ₗᵢ⋆[ℂ] M))
 
+-- TODO: Without this, `von_neumann_algebra` times out. Why?
+set_option old_structure_cmd true
+
 /--
 The double commutant definition of a von Neumann algebra,
 as a *-closed subalgebra of bounded operators on a Hilbert space,

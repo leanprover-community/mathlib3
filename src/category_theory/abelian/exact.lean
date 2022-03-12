@@ -115,7 +115,7 @@ lemma is_equivalence.exact_iff {D : Type u₁} [category.{v₁} D] [abelian D]
   exact (F.map f) (F.map g) ↔ exact f g :=
 begin
   simp only [exact_iff, ← F.map_eq_zero_iff, F.map_comp, category.assoc,
-    ← kernel_comparison_comp_π g F, ← ι_comp_cokernel_comparison f F],
+    ← kernel_comparison_comp_ι g F, ← π_comp_cokernel_comparison f F],
   rw [is_iso.comp_left_eq_zero (kernel_comparison g F), ← category.assoc,
     is_iso.comp_right_eq_zero _ (cokernel_comparison f F)],
 end

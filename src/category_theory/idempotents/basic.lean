@@ -111,7 +111,7 @@ begin
     rw [sub_sub_cancel], },
   { intros h X p hp,
     haveI : has_kernel (𝟙 _ - p) := h X (𝟙 _ - p) (idem_of_id_sub_idem p hp),
-    apply preadditive.has_limit_parallel_pair, },
+    apply preadditive.has_equalizer_of_has_kernel, },
 end
 
 /-- An abelian category is idempotent complete. -/

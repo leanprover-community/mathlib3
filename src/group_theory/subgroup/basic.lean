@@ -292,6 +292,12 @@ is in the `add_subgroup`."]
 lemma multiset_prod_mem {G} [comm_group G] (K : subgroup G) (g : multiset G) :
   (∀ a ∈ g, a ∈ K) → g.prod ∈ K := K.to_submonoid.multiset_prod_mem g
 
+@[to_additive]
+lemma multiset_noncomm_prod_mem (K : subgroup G) (g : multiset G)
+  (comm : ∀ (x ∈ g) (y ∈ g), commute x y) :
+  (∀ a ∈ g, a ∈ K) → g.noncomm_prod comm ∈ K :=
+K.to_submonoid.multiset_noncomm_prod_mem g comm
+
 /-- Product of elements of a subgroup of a `comm_group` indexed by a `finset` is in the
     subgroup. -/
 @[to_additive "Sum of elements in an `add_subgroup` of an `add_comm_group` indexed by a `finset`
@@ -300,6 +306,13 @@ lemma prod_mem {G : Type*} [comm_group G] (K : subgroup G)
   {ι : Type*} {t : finset ι} {f : ι → G} (h : ∀ c ∈ t, f c ∈ K) :
   ∏ c in t, f c ∈ K :=
 K.to_submonoid.prod_mem h
+
+@[to_additive]
+lemma noncomm_prod_mem (K : subgroup G)
+  {ι : Type*} {t : finset ι} {f : ι → G} (comm : ∀ (x ∈ t) (y ∈ t), commute (f x) (f y)) :
+  (∀ c ∈ t, f c ∈ K) → t.noncomm_prod f comm ∈ K :=
+K.to_submonoid.noncomm_prod_mem t f comm
+
 
 @[to_additive add_subgroup.nsmul_mem]
 lemma pow_mem {x : G} (hx : x ∈ K) : ∀ n : ℕ, x ^ n ∈ K := K.to_submonoid.pow_mem hx

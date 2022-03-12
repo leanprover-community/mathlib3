@@ -1195,34 +1195,14 @@ end int
 
 section
 open finset
-/--
-Exactly `n / p` naturals in `[1, n]` are multiples of `p`.
--/
+/-- Exactly `n / p` naturals in `[1, n]` are multiples of `p`. -/
 lemma card_multiples (n p : ℕ) : card {e ∈ range n | p ∣ e + 1} = n / p :=
 begin
-  obtain rfl|hp := p.eq_zero_or_pos,
-  { rw [sep_def, filter_false_of_mem, card_empty, nat.div_zero],
-    rintro x -,
-    rw zero_dvd_iff,
-    exact (nat.succ_pos _).ne' },
-  refine card_eq_of_bijective (λ e he, (e + 1) * p - 1) _ _ _,
-  { simp_intros a ha [sep_def, mem_filter, mem_range],
-    use (a + 1) / p - 1,
-    have := nat.one_le_iff_ne_zero.mpr (nat.div_pos (nat.le_of_dvd a.succ_pos ha.2) hp).ne',
-    rw [←nat.add_one_le_iff, nat.sub_add_cancel this, nat.div_mul_cancel ha.2, nat.add_sub_cancel],
-    exact ⟨nat.div_le_div_right $ nat.add_one_le_iff.mpr ha.1, rfl⟩ },
-  { simp_intros a ha only [sep_def, mem_filter, mem_range],
-    have := nat.one_le_iff_ne_zero.mpr (mul_ne_zero a.succ_ne_zero hp.ne'),
-    split,
-    { rwa [←nat.add_one_le_iff, nat.sub_add_cancel this, ←nat.le_div_iff_mul_le _ _ hp,
-        nat.add_one_le_iff] },
-    { rw nat.sub_add_cancel this,
-      exact dvd_mul_left _ _ } },
-  { simp_intros a b ha hb hab only,
-    rw ←add_left_inj 1,
-    refine nat.eq_of_mul_eq_mul_right hp _,
-    rwa ←tsub_left_inj;
-    { rw nat.add_one_le_iff,
-      exact mul_pos (nat.succ_pos _) hp } },
+  induction n with n hn,
+  { rw [nat.zero_div, sep_def, range_zero, filter_empty, card_empty] },
+  { rw [nat.succ_div, add_ite, add_zero, range_succ, sep_def, filter_insert, apply_ite card,
+      card_insert_of_not_mem, ←sep_def, hn],
+    { congr },
+    { simp_rw [mem_filter, not_mem_range_self, false_and, not_false_iff] } },
 end
 end

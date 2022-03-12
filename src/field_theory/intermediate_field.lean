@@ -305,10 +305,6 @@ S.to_subalgebra.val
 
 @[simp] lemma val_mk {x : L} (hx : x ∈ S) : S.val ⟨x, hx⟩ = x := rfl
 
-lemma val_inj {K L : Type*} [field K] [field L] [algebra K L]
-  {E : intermediate_field K L} :
-  function.injective E.val := λ x y hxy, subtype.ext hxy
-
 lemma range_val : S.val.range = S.to_subalgebra :=
 S.to_subalgebra.range_val
 
@@ -319,37 +315,6 @@ begin
   { rw [aeval_add, aeval_add, coe_add, hf, hg] },
   { simp only [coe_mul, aeval_monomial, coe_pow, mul_eq_mul_right_iff],
     left, refl }
-end
-
-/-- Let `L/K` be a field extension and let `E, F` be intermediate fields with `E ≤ F`(where
-  `hEF` is a term of type `E ≤ F`). Then `intermediate_field.incusion hEF` is the `K`-algebra
-  homomorphism `E →ₐ[K] F` given by the inclusion. -/
-def inclusion {K L : Type*} [field K] [field L] [algebra K L]
-  {E F : intermediate_field K L} (hEF : E ≤ F):
-  E →ₐ[K] F :=
-{ to_fun := set.inclusion hEF,
-  map_one' := rfl,
-  map_add' := λ _ _, rfl,
-  map_mul' := λ _ _, rfl,
-  map_zero' := rfl,
-  commutes' := λ _, rfl }
-
-lemma inclusion_eq_identity {K L : Type*} [field K] [field L] [algebra K L]
-  {E F : intermediate_field K L} (hEF : E ≤ F) (x : E) :
-  F.val ((intermediate_field.inclusion hEF) x) = E.val x := rfl
-
-lemma inclusion_commutes_with_val {K L : Type*} [field K] [field L] [algebra K L]
-  {E F : intermediate_field K L} (hEF : E ≤ F) :
-  F.val ∘ (intermediate_field.inclusion hEF) = E.val := rfl
-
-lemma inclusion_commutes_with_mk {K L : Type*} [field K] [field L] [algebra K L]
-{E F : intermediate_field K L}
-(hEF : E ≤ F) {x : L} (hx : x ∈ E) :
-(intermediate_field.inclusion hEF) ⟨x, hx⟩ = ⟨x, hEF hx⟩ :=
-begin
-  apply intermediate_field.val_inj,
-  rw intermediate_field.inclusion_eq_identity,
-  simp,
 end
 
 lemma coe_is_integral_iff {R : Type*} [comm_ring R] [algebra R K] [algebra R L]

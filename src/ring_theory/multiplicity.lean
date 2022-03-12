@@ -57,16 +57,6 @@ begin
     apply _root_.le_antisymm; { apply nat.find_mono, norm_cast, simp } }
 end
 
-theorem nat_cast_nat_abs (a b : ℕ) :
-    multiplicity a (b : ℤ).nat_abs = multiplicity (a : ℤ) (b : ℤ) :=
-begin
-  apply part.ext',
-  { repeat { rw [← finite_iff_dom, finite_def] },
-    norm_cast },
-  { intros h1 h2,
-    apply _root_.le_antisymm; { apply nat.find_mono, norm_cast, simp } }
-end
-
 lemma not_finite_iff_forall {a b : α} : (¬ finite a b) ↔ ∀ n : ℕ, a ^ n ∣ b :=
 ⟨λ h n, nat.cases_on n (by { rw pow_zero, exact one_dvd _ }) (by simpa [finite, not_not] using h),
   by simp [finite, multiplicity, not_not]; tauto⟩

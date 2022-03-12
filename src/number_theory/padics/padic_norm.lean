@@ -197,12 +197,7 @@ end
 by simp [padic_val_rat, padic_val_int]
 
 /-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
-lemma self (hp : 1 < p) : padic_val_rat p p = 1 :=
-begin
-  simp only [of_nat],
-  rw padic_val_nat.self hp, -- Why does simp fail to fire this here?
-  refl,
-end
+lemma self (hp : 1 < p) : padic_val_rat p p = 1 := by simp [of_nat, hp]
 
 end padic_val_rat
 

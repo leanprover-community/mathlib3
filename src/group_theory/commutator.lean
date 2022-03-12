@@ -76,7 +76,8 @@ begin
   rw [mem_bot, commutator_element_eq_one_iff_mul_comm, eq_comm],
 end
 
-lemma general_commutator_general_commutator_eq_bot_of_rotate
+/-- **The Three Subgroups Lemma** -/
+lemma commutator_commutator_eq_bot_of_rotate
   (h1 : ⁅⁅H₂, H₃⁆, H₁⁆ = ⊥) (h2 : ⁅⁅H₃, H₁⁆, H₂⁆ = ⊥) : ⁅⁅H₁, H₂⁆, H₃⁆ = ⊥ :=
 begin
   simp_rw [commutator_eq_bot_iff_le_centralizer, commutator_le,

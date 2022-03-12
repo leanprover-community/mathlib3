@@ -428,7 +428,8 @@ begin
   -- let `δ` be small enough, and `f` approximated by `B` up to `δ`.
   filter_upwards [L1, L2],
   assume δ h1δ h2δ s f hf,
-  have hf' : approximates_linear_on f (B : E →L[ℝ] E) s δ, by convert hf,
+  have hf' : approximates_linear_on f (B : E →L[ℝ] E) s δ,
+    by { convert hf, exact A.coe_to_continuous_linear_equiv_of_det_ne_zero _ },
   let F := hf'.to_local_equiv h1δ,
   -- the condition to be checked can be reformulated in terms of the inverse maps
   suffices H : μ ((F.symm) '' F.target) ≤ (m⁻¹ : ℝ≥0) * μ F.target,

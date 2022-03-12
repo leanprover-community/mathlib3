@@ -501,7 +501,7 @@ end⟩
 @[simp] lemma homogeneous_ideal.mem_irrelevant_iff (a : A) :
   a ∈ homogeneous_ideal.irrelevant 𝒜 ↔ proj 𝒜 0 a = 0 := iff.rfl
 
-lemma homogeneous_ideal.irrelevant_eq :
+@[simp, norm_cast] lemma homogeneous_ideal.coe_irrelevant :
   ↑(homogeneous_ideal.irrelevant 𝒜) = (graded_algebra.proj_zero_ring_hom 𝒜).ker := rfl
 
 end irrelevant_ideal

@@ -81,7 +81,7 @@ namespace is_cyclotomic_extension
 noncomputable def aut.comm_group [ne_zero ((n : ℕ) : K)] : comm_group (L ≃ₐ[K] L) :=
 let _ := of_no_zero_smul_divisors K L n in by exactI
 ((zeta_primitive_root n K L).aut_to_pow_injective K).comm_group _
-  (map_one _) (map_mul _) (map_inv _) (map_div _)
+  (map_one _) (map_mul _) (map_inv _) (map_div _) (map_pow _) (map_zpow _)
 
 variables (h : irreducible (cyclotomic n K)) {K} (L)
 

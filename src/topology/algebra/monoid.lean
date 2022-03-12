@@ -372,7 +372,7 @@ lemma continuous_list_prod {f : ι → X → M} (l : list ι)
 continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
   continuous_iff_continuous_at.1 (h c hc) x
 
-@[continuity, to_additive continuous_nsmul]
+@[continuity, to_additive]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 | 0 := by simpa using continuous_const
 | (k+1) := by { simp only [pow_succ], exact continuous_id.mul (continuous_pow _) }
@@ -385,11 +385,11 @@ lemma continuous.pow {f : X → M} (h : continuous f) (n : ℕ) :
   continuous (λ b, (f b) ^ n) :=
 (continuous_pow n).comp h
 
-@[to_additive continuous_on_nsmul]
+@[to_additive]
 lemma continuous_on_pow {s : set M} (n : ℕ) : continuous_on (λ x, x ^ n) s :=
 (continuous_pow n).continuous_on
 
-@[to_additive continuous_at_nsmul]
+@[to_additive]
 lemma continuous_at_pow (x : M) (n : ℕ) : continuous_at (λ x, x ^ n) x :=
 (continuous_pow n).continuous_at
 

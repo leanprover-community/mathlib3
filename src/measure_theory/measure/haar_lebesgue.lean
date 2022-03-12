@@ -69,10 +69,6 @@ by { convert (add_haar_measure_unique volume Icc01).symm, simp [Icc01] }
 instance : is_add_haar_measure (volume : measure ℝ) :=
 by { rw ← add_haar_measure_eq_volume, apply_instance }
 
-instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
-  is_add_left_invariant (volume : measure (ι → ℝ)) :=
-⟨by simp [map_add_left_eq_self]⟩
-
 /-- The Haar measure equals the Lebesgue measure on `ℝ^ι`. -/
 lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :
   add_haar_measure (pi_Icc01 ι) = volume :=
@@ -218,7 +214,7 @@ begin
   haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
-  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), linear_map.map_smul,
+  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), map_smul,
     map_map Cesymm.measurable Ce.measurable, ecomp, measure.map_id]
 end
 

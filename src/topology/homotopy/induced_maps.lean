@@ -49,7 +49,8 @@ def upath01 : path (ulift.up 0 : ulift.{u} I) (ulift.up 1) :=
 
 local attribute [instance] path.homotopic.setoid
 /-- The homotopy path class of 0 → 1 in `ulift I` -/
-def uhpath01 := @fundamental_groupoid.from_path (Top.of $ ulift.{u} I) _ _ ⟦upath01⟧
+def uhpath01 : @from_top (Top.of $ ulift.{u} I) (ulift.up (0 : I)) ⟶ from_top (ulift.up 1) :=
+⟦upath01⟧
 
 end unit_interval
 

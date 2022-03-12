@@ -290,14 +290,9 @@ part.ext' (by simp only [multiplicity, enat.find, dvd_neg])
 theorem int.nat_abs (a : ℕ) (b : ℤ) :
     multiplicity a b.nat_abs = multiplicity (a : ℤ) b :=
 begin
-  have h := @int.nat_abs_eq_iff b b.nat_abs,
-  simp only [true_iff, eq_self_iff_true] at h,
-  cases h,
-  { conv_rhs { rw h },
-    apply nat_cast_nat_abs, },
-  { conv_rhs { rw h },
-    rw multiplicity.neg,
-    apply nat_cast_nat_abs, },
+  cases int.nat_abs_eq b with h h; conv_rhs { rw h },
+  { rw [int.coe_nat_multiplicity], },
+  { rw [multiplicity.neg, int.coe_nat_multiplicity], },
 end
 
 lemma multiplicity_add_of_gt {p a b : α} (h : multiplicity p b < multiplicity p a) :

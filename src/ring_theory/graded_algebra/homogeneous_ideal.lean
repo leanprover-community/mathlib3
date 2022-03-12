@@ -509,12 +509,14 @@ def graded_algebra.proj_zero_ring_hom : A →+* A :=
 
 /--
 For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `canonically_ordered_add_monoid ι`, the irrelevant ideal
-refers to `⨁_{i>0} 𝒜ᵢ`, or equivalently `{a | a₀ = 0}`.
+refers to `⨁_{i>0} 𝒜ᵢ`, or equivalently `{a | a₀ = 0}`. This definition is used in `Proj`
+construction where `ι` is always `ℕ` so the irrelevant ideal is simply elements with `0` as
+0-th coordinate.
 
-This definition is used in Proj construction where `ι` is always `ℕ` so the irrelevant ideal is
-simply elements with `0` as 0-th coordinate. But the notion of irrelevant ideal makes sense in a
-more general setting by defining it as the ideal of elements with `0` as i-th coordinate for all
-`i ≤ 0`, i.e. `{a | ∀ (i : ι), i ≤ 0 → aᵢ = 0 }`.
+# Future work
+Here in the definition, `ι` is assumed to be `canonically_ordered_add_monoid`. However, the notion
+of irrelevant ideal makes sense in a more general setting by defining it as the ideal of elements
+with `0` as i-th coordinate for all`i ≤ 0`, i,e, `{a | ∀ (i : ι), i ≤ 0 → aᵢ = 0}`.
 -/
 def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
 ⟨(graded_algebra.proj_zero_ring_hom 𝒜).ker, λ i r (hr : (decompose 𝒜 r 0 : A) = 0), begin
@@ -524,10 +526,10 @@ def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
   { rw [decompose_of_mem_ne 𝒜 (submodule.coe_mem _) h] }
 end⟩
 
-@[simp] lemma homogeneous_ideal.mem_irrelevant_iff (a : A) :
+lemma homogeneous_ideal.mem_irrelevant_iff (a : A) :
   a ∈ homogeneous_ideal.irrelevant 𝒜 ↔ proj 𝒜 0 a = 0 := iff.rfl
 
-@[simp, norm_cast] lemma homogeneous_ideal.coe_irrelevant :
+lemma homogeneous_ideal.irrelevant_eq :
   ↑(homogeneous_ideal.irrelevant 𝒜) = (graded_algebra.proj_zero_ring_hom 𝒜).ker := rfl
 
 end irrelevant_ideal

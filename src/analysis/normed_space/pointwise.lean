@@ -164,12 +164,13 @@ begin
   { exact smul_sphere' hc x r }
 end
 
-/-- Any ball `metric.ball x r`, `0 < r` is the unit ball under `λ y, x + r • y`. -/
+/-- Any ball `metric.ball x r`, `0 < r` is the image of the unit ball under `λ y, x + r • y`. -/
 lemma affinity_unit_ball {r : ℝ} (hr : 0 < r) (x : E) : x +ᵥ r • ball 0 1 = ball x r :=
 by rw [smul_unit_ball_of_pos hr, vadd_ball_zero]
 
-/-- Any closed ball `metric.ball x r`, `0 ≤ r` is the unit closed ball under `λ y, x + r • y`. -/
-lemma affinity_closed_ball {r : ℝ} (hr : 0 ≤ r) (x : E) :
+/-- Any closed ball `metric.closed_ball x r`, `0 ≤ r` is the image of the unit closed ball under
+`λ y, x + r • y`. -/
+lemma affinity_unit_closed_ball {r : ℝ} (hr : 0 ≤ r) (x : E) :
   x +ᵥ r • closed_ball 0 1 = closed_ball x r :=
 by rw [smul_closed_unit_ball, real.norm_of_nonneg hr, vadd_closed_ball_zero]
 

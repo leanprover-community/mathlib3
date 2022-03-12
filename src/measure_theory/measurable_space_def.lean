@@ -302,7 +302,7 @@ def generate_from (s : set (set α)) : measurable_space α :=
   measurable_set_Union := generate_measurable.union }
 
 lemma measurable_set_generate_from {s : set (set α)} {t : set α} (ht : t ∈ s) :
-  (generate_from s).measurable_set' t :=
+  @measurable_set _ (generate_from s) t :=
 generate_measurable.basic t ht
 
 lemma generate_from_le {s : set (set α)} {m : measurable_space α}

@@ -166,13 +166,6 @@ by simp [padic_val_rat, padic_val_int]
 @[simp]
 protected lemma zero (m : nat) : padic_val_rat m 0 = 0 := by simp [padic_val_rat, padic_val_int]
 
--- /--
--- `padic_val_rat p q` for nonzero `q` is the difference in valuations of the numerator and
--- denominator.
--- -/
--- lemma of_ne_zero {q : ℚ} (hq : q ≠ 0) : padic_val_rat p q =
---   (padic_val_int p q.num : ℤ) - (padic_val_nat p q.denom : ℤ) := by rw padic_val_rat
-
 /-- `padic_val_rat p 1` is 0 for any `p`. -/
 @[simp] protected lemma one : padic_val_rat p 1 = 0 := by simp [padic_val_rat, padic_val_int]
 
@@ -207,7 +200,7 @@ by simp [padic_val_rat, padic_val_int]
 lemma self (hp : 1 < p) : padic_val_rat p p = 1 :=
 begin
   simp only [of_nat],
-  rw padic_val_nat.self hp, -- Why does this fail to fire with simp above?
+  rw padic_val_nat.self hp, -- Why does simp fail to fire this here?
   refl,
 end
 

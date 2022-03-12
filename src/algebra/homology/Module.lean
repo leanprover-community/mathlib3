@@ -78,11 +78,11 @@ to demonstrate the use of extensionality lemmas for homology in `Module R`. -/
 example (f g : C ⟶ D) (h : homotopy f g) (i : ι) :
   (homology_functor (Module.{u} R) c i).map f = (homology_functor (Module.{u} R) c i).map g :=
 begin
-  -- To check two morphisms out of a homology group agree, it suffices to check on cycles:
+  -- To check that two morphisms out of a homology group agree, it suffices to check on cycles:
   ext,
   dsimp,
   simp only [homology.π_map_apply],
-  -- To check that two elements are equal mod coboundaries, it suffices to exhibit a coboundary:
+  -- To check that two elements are equal mod boundaries, it suffices to exhibit a boundary:
   ext1,
   swap, exact (to_prev i h.hom) x.1,
   -- Moreover, to check that two cycles are equal, it suffices to check their underlying elements:

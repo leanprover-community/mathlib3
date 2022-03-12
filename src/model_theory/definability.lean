@@ -45,7 +45,6 @@ structure definable (s : set (α → M)) : Prop :=
 
 variables {L} {A} {B : set M} {s : set (α → M)}
 
-
 @[simp]
 lemma definable_empty : L.definable A (∅ : set (α → M)) :=
 ⟨⟨⊥, by {ext, simp} ⟩⟩

@@ -82,11 +82,7 @@ end
 
 lemma commutator_mono {H₁ H₂ K₁ K₂ : subgroup G} (h₁ : H₁ ≤ K₁) (h₂ : H₂ ≤ K₂) :
   ⁅H₁, H₂⁆ ≤ ⁅K₁, K₂⁆ :=
-begin
-  apply closure_mono,
-  rintros x ⟨p, hp, q, hq, rfl⟩,
-  exact ⟨p, h₁ hp, q, h₂ hq, rfl⟩,
-end
+commutator_le.mpr (λ g₁ hg₁ g₂ hg₂, commutator_mem_commutator (h₁ hg₁) (h₂ hg₂))
 
 lemma commutator_def' (H₁ H₂ : subgroup G) [H₁.normal] [H₂.normal] :
   ⁅H₁, H₂⁆ = normal_closure {g | ∃ (g₁ ∈ H₁) (g₂ ∈ H₂), ⁅g₁, g₂⁆ = g} :=

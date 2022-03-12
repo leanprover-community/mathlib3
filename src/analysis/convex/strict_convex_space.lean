@@ -41,7 +41,7 @@ begin
   exact (strict_convex_space.strict_convex_closed_ball r hr).vadd _,
 end
 
-variables [normed_space ℝ E] [strict_convex_space ℝ E] {x y z : E} {a b r : ℝ}
+variables [normed_space ℝ E]
 
 /-- A real normed vector space is strictly convex provided that the unit ball is strictly convex. -/
 lemma strict_convex_space.of_strict_convex_closed_unit_ball
@@ -69,6 +69,8 @@ begin
   simpa only [norm_smul, hx₁, hy₁, ha', hb', mul_one, smul_comm a, smul_right_inj ha.ne',
     smul_right_inj hb.ne'] using H
 end
+
+variables [strict_convex_space ℝ E] {x y z : E} {a b r : ℝ}
 
 lemma combo_mem_ball_of_ne (hx : x ∈ closed_ball z r) (hy : y ∈ closed_ball z r) (hne : x ≠ y)
   (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1) : a • x + b • y ∈ ball z r :=

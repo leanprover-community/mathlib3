@@ -57,16 +57,6 @@ begin
     apply _root_.le_antisymm; { apply nat.find_mono, norm_cast, simp } }
 end
 
-theorem nat_cast_nat_abs (a b : ℕ) :
-    multiplicity a (b : ℤ).nat_abs = multiplicity (a : ℤ) (b : ℤ) :=
-begin
-  apply part.ext',
-  { repeat { rw [← finite_iff_dom, finite_def] },
-    norm_cast },
-  { intros h1 h2,
-    apply _root_.le_antisymm; { apply nat.find_mono, norm_cast, simp } }
-end
-
 lemma not_finite_iff_forall {a b : α} : (¬ finite a b) ↔ ∀ n : ℕ, a ^ n ∣ b :=
 ⟨λ h n, nat.cases_on n (by { rw pow_zero, exact one_dvd _ }) (by simpa [finite, not_not] using h),
   by simp [finite, multiplicity, not_not]; tauto⟩
@@ -300,14 +290,9 @@ part.ext' (by simp only [multiplicity, enat.find, dvd_neg])
 theorem int.nat_abs (a : ℕ) (b : ℤ) :
     multiplicity a b.nat_abs = multiplicity (a : ℤ) b :=
 begin
-  have h := @int.nat_abs_eq_iff b b.nat_abs,
-  simp only [true_iff, eq_self_iff_true] at h,
-  cases h,
-  { conv_rhs { rw h },
-    apply nat_cast_nat_abs, },
-  { conv_rhs { rw h },
-    rw multiplicity.neg,
-    apply nat_cast_nat_abs, },
+  cases int.nat_abs_eq b with h h; conv_rhs { rw h },
+  { rw [int.coe_nat_multiplicity], },
+  { rw [multiplicity.neg, int.coe_nat_multiplicity], },
 end
 
 lemma multiplicity_add_of_gt {p a b : α} (h : multiplicity p b < multiplicity p a) :

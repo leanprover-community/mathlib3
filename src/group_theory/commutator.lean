@@ -95,6 +95,14 @@ commutator_le.mpr (λ g₁ h₁ g₂ h₂,
 lemma commutator_comm (H₁ H₂ : subgroup G) : ⁅H₁, H₂⁆ = ⁅H₂, H₁⁆ :=
 le_antisymm (commutator_comm_le H₁ H₂) (commutator_comm_le H₂ H₁)
 
+lemma commutator_eq_bot_iff_le_centralizer {H₁ H₂ : subgroup G} :
+  ⁅H₁, H₂⁆ = ⊥ ↔ H₁ ≤ H₂.centralizer :=
+begin
+  rw [eq_bot_iff, commutator_le],
+  refine forall_congr (λ p, forall_congr (λ hp, forall_congr (λ q, forall_congr (λ hq, _)))),
+  rw [mem_bot, commutator_element_eq_one_iff_mul_comm, eq_comm],
+end
+
 lemma commutator_le_right (H₁ H₂ : subgroup G) [h : normal H₂] : ⁅H₁, H₂⁆ ≤ H₂ :=
 commutator_le.mpr (λ g₁ h₁ g₂ h₂, H₂.mul_mem (h.conj_mem g₂ h₂ g₁) (H₂.inv_mem h₂))
 

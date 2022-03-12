@@ -286,10 +286,7 @@ end
 lemma noncomm_prod_eq_one_of_forall_eq_one (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (h : ∀ (x : α), x ∈ s → f x = 1) : s.noncomm_prod f comm = 1 :=
-begin
-  rw finset.noncomm_prod_eq_pow_card s f comm 1 h,
-  exact one_pow _,
-end
+by rw [noncomm_prod_eq_pow_card s f comm 1 h, one_pow]
 
 @[to_additive]
 lemma noncomm_prod_commute (s : finset α) (f : α → β)

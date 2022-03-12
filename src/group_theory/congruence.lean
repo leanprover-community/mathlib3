@@ -985,7 +985,7 @@ variables {α : Type*} [monoid M] {c : con M}
 where `c : con M` is a multiplicative congruence on a monoid, it suffices to define a function `f`
 that takes elements `x y : M` with proofs of `c (x * y) 1` and `c (y * x) 1`, and returns an element
 of `α` provided that `f x y _ _ = f x' y' _ _` whenever `c x x'` and `c y y'`. -/
-@[to_additive lift_on_add_units] def lift_on_units (u : units c.quotient)
+@[to_additive] def lift_on_units (u : units c.quotient)
   (f : Π (x y : M), c (x * y) 1 → c (y * x) 1 → α)
   (Hf : ∀ x y hxy hyx x' y' hxy' hyx', c x x' → c y y' → f x y hxy hyx = f x' y' hxy' hyx') :
   α :=
@@ -1014,7 +1014,7 @@ lemma lift_on_units_mk (f : Π (x y : M), c (x * y) 1 → c (y * x) 1 → α)
   lift_on_units ⟨(x : c.quotient), y, hxy, hyx⟩ f Hf = f x y (c.eq.1 hxy) (c.eq.1 hyx) :=
 rfl
 
-@[elab_as_eliminator, to_additive induction_on_add_units]
+@[elab_as_eliminator, to_additive]
 lemma induction_on_units {p : units c.quotient → Prop} (u : units c.quotient)
   (H : ∀ (x y : M) (hxy : c (x * y) 1) (hyx : c (y * x) 1), p ⟨x, y, c.eq.2 hxy, c.eq.2 hyx⟩) :
   p u :=

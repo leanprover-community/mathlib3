@@ -232,7 +232,7 @@ end⟩⟩
 
 variables {A B C D E}
 
-instance [locally_compact_space A] [t2_space B] : t2_space (continuous_monoid_hom A B) :=
+instance [t2_space B] : t2_space (continuous_monoid_hom A B) :=
 (is_embedding A B).t2_space
 
 instance : topological_group (continuous_monoid_hom A E) :=

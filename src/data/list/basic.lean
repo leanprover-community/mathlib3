@@ -17,6 +17,15 @@ variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 attribute [inline] list.head
 
+-- TODO[gh-6025]: make this an instance once safe to do so
+/-- There is only one list of an empty type -/
+def unique_of_is_empty [is_empty α] : unique (list α) :=
+{ uniq := λ l, match l with
+    | [] := rfl
+    | (a :: l) := is_empty_elim a
+    end,
+  ..list.inhabited α }
+
 instance : is_left_id (list α) has_append.append [] :=
 ⟨ nil_append ⟩
 
@@ -772,6 +781,10 @@ theorem last'_append_of_ne_nil (l₁ : list α) : ∀ {l₂ : list α} (hl₂ : 
 | [] hl₂ := by contradiction
 | (b::l₂) _ := last'_append_cons l₁ b l₂
 
+theorem last'_append {l₁ l₂ : list α} {x : α} (h : x ∈ l₂.last') :
+  x ∈ (l₁ ++ l₂).last' :=
+by { cases l₂, { contradiction, }, { rw list.last'_append_cons, exact h } }
+
 /-! ### head(') and tail -/
 
 theorem head_eq_head' [inhabited α] (l : list α) : head l = (head' l).iget :=
@@ -794,6 +807,11 @@ by {induction s, contradiction, refl}
 theorem head'_append {s t : list α} {x : α} (h : x ∈ s.head') :
   x ∈ (s ++ t).head' :=
 by { cases s, contradiction, exact h }
+
+theorem head'_append_of_ne_nil : ∀ (l₁ : list α) {l₂ : list α} (hl₁ : l₁ ≠ []),
+  head' (l₁ ++ l₂) = head' l₁
+| [] _ hl₁ := by contradiction
+| (x::l₁) _ _ := rfl
 
 theorem tail_append_singleton_of_ne_nil {a : α} {l : list α} (h : l ≠ nil) :
   tail (l ++ [a]) = tail l ++ [a] :=
@@ -2083,6 +2101,17 @@ end
   ∀ (b : β) (l₁ l₂ : list α), foldr f b (l₁++l₂) = foldr f (foldr f b l₂) l₁
 | b []      l₂ := rfl
 | b (a::l₁) l₂ := by simp only [cons_append, foldr_cons, foldr_append b l₁ l₂]
+
+@[simp] theorem foldl_fixed {a : α} : Π l : list β, foldl (λ a b, a) a l = a
+| []     := rfl
+| (b::l) := by rw [foldl_cons, foldl_fixed l]
+
+@[simp] theorem foldr_fixed {b : β} : Π l : list α, foldr (λ a b, b) b l = b
+| []     := rfl
+| (a::l) := by rw [foldr_cons, foldr_fixed l]
+
+@[simp] theorem foldl_combinator_K {a : α} : Π l : list β, foldl combinator.K a l = a :=
+foldl_fixed
 
 @[simp] theorem foldl_join (f : α → β → α) :
   ∀ (a : α) (L : list (list β)), foldl f a (join L) = foldl (foldl f) a L

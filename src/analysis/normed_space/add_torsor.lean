@@ -37,7 +37,7 @@ by simp [homothety_def, norm_smul, ← dist_eq_norm_vsub, dist_comm]
   dist (homothety p₁ c p₂) p₁ = ∥c∥ * dist p₁ p₂ :=
 by rw [dist_comm, dist_center_homothety]
 
-lemma dist_line_map_line_map (p₁ p₂ : P) (c₁ c₂ : 𝕜) :
+@[simp] lemma dist_line_map_line_map (p₁ p₂ : P) (c₁ c₂ : 𝕜) :
   dist (line_map p₁ p₂ c₁) (line_map p₁ p₂ c₂) = dist c₁ c₂ * dist p₁ p₂ :=
 begin
   rw dist_comm p₁ p₂,
@@ -45,19 +45,24 @@ begin
     vsub_eq_sub],
 end
 
-lemma dist_line_map_left (p₁ p₂ : P) (c : 𝕜) :
+lemma lipschitz_with_line_map (p₁ p₂ : P) :
+  lipschitz_with (nndist p₁ p₂) (line_map p₁ p₂ : 𝕜 → P) :=
+lipschitz_with.of_dist_le_mul $ λ c₁ c₂,
+  ((dist_line_map_line_map p₁ p₂ c₁ c₂).trans (mul_comm _ _)).le
+
+@[simp] lemma dist_line_map_left (p₁ p₂ : P) (c : 𝕜) :
   dist (line_map p₁ p₂ c) p₁ = ∥c∥ * dist p₁ p₂ :=
 by simpa only [line_map_apply_zero, dist_zero_right] using dist_line_map_line_map p₁ p₂ c 0
 
-lemma dist_left_line_map (p₁ p₂ : P) (c : 𝕜) :
+@[simp] lemma dist_left_line_map (p₁ p₂ : P) (c : 𝕜) :
   dist p₁ (line_map p₁ p₂ c) = ∥c∥ * dist p₁ p₂ :=
 (dist_comm _ _).trans (dist_line_map_left _ _ _)
 
-lemma dist_line_map_right (p₁ p₂ : P) (c : 𝕜) :
+@[simp] lemma dist_line_map_right (p₁ p₂ : P) (c : 𝕜) :
   dist (line_map p₁ p₂ c) p₂ = ∥1 - c∥ * dist p₁ p₂ :=
 by simpa only [line_map_apply_one, dist_eq_norm'] using dist_line_map_line_map p₁ p₂ c 1
 
-lemma dist_right_line_map (p₁ p₂ : P) (c : 𝕜) :
+@[simp] lemma dist_right_line_map (p₁ p₂ : P) (c : 𝕜) :
   dist p₂ (line_map p₁ p₂ c) = ∥1 - c∥ * dist p₁ p₂ :=
 (dist_comm _ _).trans (dist_line_map_right _ _ _)
 

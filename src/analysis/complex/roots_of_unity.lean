@@ -94,3 +94,6 @@ begin
 end
 
 end complex
+
+lemma is_primitive_root.nnnorm_eq_one {ζ : ℂ} {n : ℕ} (h : is_primitive_root ζ n) (hn : n ≠ 0) :
+  ∥ζ∥ = 1 := complex.norm_eq_one_of_pow_eq_one h.pow_eq_one hn

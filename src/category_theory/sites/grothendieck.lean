@@ -33,12 +33,12 @@ Grothendieck topology, coverage, pretopology, site
 
 ## References
 
-* [https://ncatlab.org/nlab/show/Grothendieck+topology][nlab]
-* [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM91]
+* [nLab, *Grothendieck topology*](https://ncatlab.org/nlab/show/Grothendieck+topology)
+* [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
 
 ## Implementation notes
 
-We use the definition of [nlab] and [MM91](Chapter III, Section 2), where Grothendieck topologies
+We use the definition of [nlab] and [MM92][] (Chapter III, Section 2), where Grothendieck topologies
 are saturated collections of morphisms, rather than the notions of the Stacks project (00VG) and
 the Elephant, in which topologies are allowed to be unsaturated, and are then completed.
 TODO (BM): Add the definition from Stacks, as a pretopology, and complete to a topology.
@@ -65,7 +65,7 @@ three axioms:
 
 A sieve `S` on `X` is referred to as `J`-covering, (or just covering), if `S ∈ J X`.
 
-See https://stacks.math.columbia.edu/tag/00Z4, or [nlab], or [MM92] Chapter III, Section 2,
+See https://stacks.math.columbia.edu/tag/00Z4, or [nlab], or [MM92][] Chapter III, Section 2,
 Definition 1.
 -/
 structure grothendieck_topology :=

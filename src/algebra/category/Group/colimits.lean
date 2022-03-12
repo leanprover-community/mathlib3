@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import algebra.category.Group.preadditive
 import group_theory.quotient_group
-import category_theory.limits.limits
 import category_theory.limits.concrete_category
 import category_theory.limits.shapes.kernels
 import category_theory.limits.shapes.concrete_category
@@ -258,8 +257,7 @@ begin
     -- add_comm
     { rw add_comm, },
     -- add_assoc
-    { rw add_assoc, },
-  }
+    { rw add_assoc, } }
 end
 
 /-- The group homomorphism from the colimit abelian group to the cone point of any other cocone. -/
@@ -269,7 +267,7 @@ def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
   map_add' := λ x y, by { induction x; induction y; refl }, }
 
 /-- Evidence that the proposed colimit is the colimit. -/
-def colimit_is_colimit : is_colimit (colimit_cocone F) :=
+def colimit_cocone_is_colimit : is_colimit (colimit_cocone F) :=
 { desc := λ s, desc_morphism F s,
   uniq' := λ s m w,
   begin
@@ -286,10 +284,10 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
   end }.
 
 instance has_colimits_AddCommGroup : has_colimits AddCommGroup :=
-{ has_colimits_of_shape := λ J 𝒥,
-  { has_colimit := λ F, by exactI
+{ has_colimits_of_shape := λ J 𝒥, by exactI
+  { has_colimit := λ F, has_colimit.mk
     { cocone := colimit_cocone F,
-      is_colimit := colimit_is_colimit F } } }
+      is_colimit := colimit_cocone_is_colimit F } } }
 
 end AddCommGroup.colimits
 
@@ -301,10 +299,22 @@ open quotient_add_group
 The categorical cokernel of a morphism in `AddCommGroup`
 agrees with the usual group-theoretical quotient.
 -/
-def cokernel_iso_quotient {G H : AddCommGroup} (f : G ⟶ H) :
-  cokernel f ≅ AddCommGroup.of (quotient (add_monoid_hom.range f)) :=
+noncomputable def cokernel_iso_quotient {G H : AddCommGroup.{u}} (f : G ⟶ H) :
+  cokernel f ≅ AddCommGroup.of (H ⧸ (add_monoid_hom.range f)) :=
 { hom := cokernel.desc f (mk' _)
-    (by { ext, apply quotient.sound, fsplit, exact -x, simp, }),
-  inv := add_monoid_hom.of (quotient_add_group.lift _ (cokernel.π f) (by tidy)), }
+    (by { ext, apply quotient.sound, fsplit, exact -x,
+          simp only [add_zero, add_monoid_hom.map_neg], }),
+  inv := quotient_add_group.lift _ (cokernel.π f)
+    (by { intros x H_1, cases H_1, induction H_1_h,
+          simp only [cokernel.condition_apply, zero_apply]}),
+  -- obviously can take care of the next goals, but it is really slow
+  hom_inv_id' := begin
+    ext1, simp only [coequalizer_as_cokernel, category.comp_id, cokernel.π_desc_assoc], ext1, refl,
+  end,
+  inv_hom_id' := begin
+    ext x : 2,
+    simp only [colimit.ι_desc_apply, id_apply, lift_mk, mk'_apply,
+               cofork.of_π_ι_app, comp_apply, add_monoid_hom.comp_apply],
+  end, }
 
 end AddCommGroup

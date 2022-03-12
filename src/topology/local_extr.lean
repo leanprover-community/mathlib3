@@ -113,13 +113,14 @@ hf.filter_mono $ inf_le_right
 
 lemma is_local_min_on.is_local_min (hf : is_local_min_on f s a) (hs : s ∈ 𝓝 a) : is_local_min f a :=
 have 𝓝 a ≤ 𝓟 s, from le_principal_iff.2 hs,
-hf.filter_mono $ le_inf (le_refl _) this
+hf.filter_mono $ le_inf le_rfl this
 
 lemma is_local_max_on.is_local_max (hf : is_local_max_on f s a) (hs : s ∈ 𝓝 a) : is_local_max f a :=
 have 𝓝 a ≤ 𝓟 s, from le_principal_iff.2 hs,
-hf.filter_mono $ le_inf (le_refl _) this
+hf.filter_mono $ le_inf le_rfl this
 
-lemma is_local_extr_on.is_local_extr (hf : is_local_extr_on f s a) (hs : s ∈ 𝓝 a) : is_local_extr f a :=
+lemma is_local_extr_on.is_local_extr (hf : is_local_extr_on f s a) (hs : s ∈ 𝓝 a) :
+  is_local_extr f a :=
 hf.elim (λ hf, (hf.is_local_min hs).is_extr) (λ hf, (hf.is_local_max hs).is_extr)
 
 lemma is_min_on.is_local_min (hf : is_min_on f s a) (hs : s ∈ 𝓝 a) : is_local_min f a :=
@@ -130,6 +131,24 @@ hf.localize.is_local_max hs
 
 lemma is_extr_on.is_local_extr (hf : is_extr_on f s a) (hs : s ∈ 𝓝 a) : is_local_extr f a :=
 hf.localize.is_local_extr hs
+
+lemma is_local_min_on.not_nhds_le_map [topological_space β]
+  (hf : is_local_min_on f s a) [ne_bot (𝓝[<] (f a))] :
+  ¬𝓝 (f a) ≤ map f (𝓝[s] a) :=
+λ hle,
+have ∀ᶠ y in 𝓝[<] (f a), f a ≤ y,
+  from (eventually_map.2 hf).filter_mono (inf_le_left.trans hle),
+let ⟨y, hy⟩ := (this.and self_mem_nhds_within).exists in hy.1.not_lt hy.2
+
+lemma is_local_max_on.not_nhds_le_map [topological_space β]
+  (hf : is_local_max_on f s a) [ne_bot (𝓝[>] (f a))] :
+  ¬𝓝 (f a) ≤ map f (𝓝[s] a) :=
+@is_local_min_on.not_nhds_le_map α (order_dual β) _ _ _ _ _ ‹_› hf ‹_›
+
+lemma is_local_extr_on.not_nhds_le_map [topological_space β]
+  (hf : is_local_extr_on f s a) [ne_bot (𝓝[<] (f a))] [ne_bot (𝓝[>] (f a))] :
+  ¬𝓝 (f a) ≤ map f (𝓝[s] a) :=
+hf.elim (λ h, h.not_nhds_le_map) (λ h, h.not_nhds_le_map)
 
 /-! ### Constant -/
 
@@ -155,20 +174,20 @@ lemma is_local_extr.comp_mono (hf : is_local_extr f a) {g : β → γ} (hg : mon
   is_local_extr (g ∘ f) a :=
 hf.comp_mono hg
 
-lemma is_local_min.comp_antimono (hf : is_local_min f a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+lemma is_local_min.comp_antitone (hf : is_local_min f a) {g : β → γ}
+  (hg : antitone g) :
   is_local_max (g ∘ f) a :=
-hf.comp_antimono hg
+hf.comp_antitone hg
 
-lemma is_local_max.comp_antimono (hf : is_local_max f a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+lemma is_local_max.comp_antitone (hf : is_local_max f a) {g : β → γ}
+  (hg : antitone g) :
   is_local_min (g ∘ f) a :=
-hf.comp_antimono hg
+hf.comp_antitone hg
 
-lemma is_local_extr.comp_antimono (hf : is_local_extr f a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+lemma is_local_extr.comp_antitone (hf : is_local_extr f a) {g : β → γ}
+  (hg : antitone g) :
   is_local_extr (g ∘ f) a :=
-hf.comp_antimono hg
+hf.comp_antitone hg
 
 lemma is_local_min_on.comp_mono (hf : is_local_min_on f s a) {g : β → γ} (hg : monotone g) :
   is_local_min_on (g ∘ f) s a :=
@@ -182,20 +201,20 @@ lemma is_local_extr_on.comp_mono (hf : is_local_extr_on f s a) {g : β → γ} (
   is_local_extr_on (g ∘ f) s a :=
 hf.comp_mono hg
 
-lemma is_local_min_on.comp_antimono (hf : is_local_min_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+lemma is_local_min_on.comp_antitone (hf : is_local_min_on f s a) {g : β → γ}
+  (hg : antitone g) :
   is_local_max_on (g ∘ f) s a :=
-hf.comp_antimono hg
+hf.comp_antitone hg
 
-lemma is_local_max_on.comp_antimono (hf : is_local_max_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+lemma is_local_max_on.comp_antitone (hf : is_local_max_on f s a) {g : β → γ}
+  (hg : antitone g) :
   is_local_min_on (g ∘ f) s a :=
-hf.comp_antimono hg
+hf.comp_antitone hg
 
-lemma is_local_extr_on.comp_antimono (hf : is_local_extr_on f s a) {g : β → γ}
-  (hg : ∀ ⦃x y⦄, x ≤ y → g y ≤ g x) :
+lemma is_local_extr_on.comp_antitone (hf : is_local_extr_on f s a) {g : β → γ}
+  (hg : antitone g) :
   is_local_extr_on (g ∘ f) s a :=
-hf.comp_antimono hg
+hf.comp_antitone hg
 
 lemma is_local_min.bicomp_mono [preorder δ] {op : β → γ → δ} (hop : ((≤) ⇒ (≤) ⇒ (≤)) op op)
   (hf : is_local_min f a) {g : α → γ} (hg : is_local_min g a) :
@@ -252,20 +271,23 @@ lemma is_local_extr.comp_continuous_on [topological_space δ] {s : set δ} (g : 
 hf.elim (λ hf, (hf.comp_continuous_on hg hb).is_extr)
   (λ hf, (is_local_max.comp_continuous_on hf hg hb).is_extr)
 
-lemma is_local_min_on.comp_continuous_on [topological_space δ] {t : set α} {s : set δ} {g : δ → α} {b : δ}
-  (hf : is_local_min_on f t (g b)) (hst : s ⊆ g ⁻¹' t) (hg : continuous_on g s) (hb : b ∈ s) :
+lemma is_local_min_on.comp_continuous_on [topological_space δ] {t : set α} {s : set δ} {g : δ → α}
+  {b : δ} (hf : is_local_min_on f t (g b)) (hst : s ⊆ g ⁻¹' t) (hg : continuous_on g s)
+  (hb : b ∈ s) :
   is_local_min_on (f ∘ g) s b :=
 hf.comp_tendsto (tendsto_nhds_within_mono_right (image_subset_iff.mpr hst)
   (continuous_within_at.tendsto_nhds_within_image (hg b hb)))
 
-lemma is_local_max_on.comp_continuous_on [topological_space δ] {t : set α} {s : set δ} {g : δ → α} {b : δ}
-  (hf : is_local_max_on f t (g b)) (hst : s ⊆ g ⁻¹' t) (hg : continuous_on g s) (hb : b ∈ s) :
+lemma is_local_max_on.comp_continuous_on [topological_space δ] {t : set α} {s : set δ} {g : δ → α}
+  {b : δ} (hf : is_local_max_on f t (g b)) (hst : s ⊆ g ⁻¹' t) (hg : continuous_on g s)
+  (hb : b ∈ s) :
   is_local_max_on (f ∘ g) s b :=
 hf.comp_tendsto (tendsto_nhds_within_mono_right (image_subset_iff.mpr hst)
   (continuous_within_at.tendsto_nhds_within_image (hg b hb)))
 
-lemma is_local_extr_on.comp_continuous_on [topological_space δ] {t : set α} {s : set δ} (g : δ → α) {b : δ}
-  (hf : is_local_extr_on f t (g b)) (hst : s ⊆ g ⁻¹' t) (hg : continuous_on g s) (hb : b ∈ s) :
+lemma is_local_extr_on.comp_continuous_on [topological_space δ] {t : set α} {s : set δ} (g : δ → α)
+  {b : δ} (hf : is_local_extr_on f t (g b)) (hst : s ⊆ g ⁻¹' t) (hg : continuous_on g s)
+  (hb : b ∈ s) :
   is_local_extr_on (f ∘ g) s b :=
 hf.elim (λ hf, (hf.comp_continuous_on hst hg hb).is_extr)
   (λ hf, (is_local_max_on.comp_continuous_on hf hst hg hb).is_extr)
@@ -386,9 +408,9 @@ end semilattice_inf
 
 /-! ### Pointwise `min`/`max` -/
 
-section decidable_linear_order
+section linear_order
 
-variables [decidable_linear_order β] {f g : α → β} {a : α} {s : set α} {l : filter α}
+variables [linear_order β] {f g : α → β} {a : α} {s : set α} {l : filter α}
 
 lemma is_local_min.min (hf : is_local_min f a) (hg : is_local_min g a) :
   is_local_min (λ x, min (f x) (g x)) a :=
@@ -422,7 +444,7 @@ lemma is_local_max_on.max (hf : is_local_max_on f s a) (hg : is_local_max_on g s
   is_local_max_on (λ x, max (f x) (g x)) s a :=
 hf.max hg
 
-end decidable_linear_order
+end linear_order
 
 section eventually
 

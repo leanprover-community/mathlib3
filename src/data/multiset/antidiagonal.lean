@@ -1,8 +1,9 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
+import data.multiset.bind
 import data.multiset.powerset
 
 /-!
@@ -40,7 +41,8 @@ quotient.induction_on s $ λ l, begin
   haveI := classical.dec_eq α,
   simp [revzip_powerset_aux_lemma l revzip_powerset_aux, h.symm],
   cases x with x₁ x₂,
-  exact ⟨_, le_add_right _ _, by rw add_sub_cancel_left _ _⟩
+  dsimp only,
+  exact ⟨x₁, le_add_right _ _, by rw add_tsub_cancel_left x₁ x₂⟩
 end
 
 @[simp] theorem antidiagonal_map_fst (s : multiset α) :
@@ -53,9 +55,9 @@ by simp [powerset_aux']
 quotient.induction_on s $ λ l,
 by simp [powerset_aux']
 
-@[simp] theorem antidiagonal_zero : @antidiagonal α 0 = (0, 0)::0 := rfl
+@[simp] theorem antidiagonal_zero : @antidiagonal α 0 = {(0, 0)} := rfl
 
-@[simp] theorem antidiagonal_cons (a : α) (s) : antidiagonal (a::s) =
+@[simp] theorem antidiagonal_cons (a : α) (s) : antidiagonal (a ::ₘ s) =
   map (prod.map id (cons a)) (antidiagonal s) +
   map (prod.map (cons a) id) (antidiagonal s) :=
 quotient.induction_on s $ λ l, begin
@@ -77,7 +79,9 @@ begin
   refine s.induction_on _ _,
   { simp },
   { assume a s ih,
-    simp [ih, add_mul, mul_comm, mul_left_comm, mul_assoc, sum_map_mul_left.symm],
+    have := @sum_map_mul_left α β _,
+    simp [ih, add_mul, mul_comm, mul_left_comm (f a), mul_left_comm (g a), mul_assoc,
+      sum_map_mul_left.symm],
     cc },
 end
 

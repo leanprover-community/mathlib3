@@ -504,8 +504,7 @@ variables [monoid γ] [has_continuous_mul γ]
 instance : has_mul (α →ₘ[μ] γ) := ⟨comp₂ (*) continuous_mul⟩
 
 @[simp, to_additive] lemma mk_mul_mk (f g : α → γ) (hf hg) :
-  (mk f hf : α →ₘ[μ] γ) * (mk g hg) =
-    mk (f * g) (hf.mul hg) :=
+  (mk f hf : α →ₘ[μ] γ) * (mk g hg) = mk (f * g) (hf.mul hg) :=
 rfl
 
 @[to_additive] lemma coe_fn_mul (f g : α →ₘ[μ] γ) : ⇑(f * g) =ᵐ[μ] f * g :=
@@ -556,30 +555,25 @@ section div
 
 @[simp, to_additive] lemma mk_div (f g : α → γ)
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
-  mk (f / g) (continuous_div'.comp₂_ae_strongly_measurable hf hg) =
-    (mk f hf : α →ₘ[μ] γ) / (mk g hg) :=
+  mk (f / g) (hf.div hg) = (mk f hf : α →ₘ[μ] γ) / (mk g hg) :=
 rfl
 
 @[to_additive] lemma coe_fn_div (f g : α →ₘ[μ] γ) : ⇑(f / g) =ᵐ[μ] f / g :=
-coe_fn_comp₂_measurable _ _ _ _
+coe_fn_comp₂ _ _ _ _
 
 @[to_additive] lemma div_to_germ (f g : α →ₘ[μ] γ) : (f / g).to_germ = f.to_germ / g.to_germ :=
-comp₂_measurable_to_germ _ _ _ _
+comp₂_to_germ _ _ _ _
 
 end div
 
 @[to_additive]
-instance [second_countable_topology γ] [metrizable_space γ] [measurable_space γ] [borel_space γ]
-  [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [has_measurable_inv γ] :
-  group (α →ₘ[μ] γ) :=
+instance : group (α →ₘ[μ] γ) :=
 to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ
 
 end group
 
 @[to_additive]
-instance [second_countable_topology γ] [metrizable_space γ] [measurable_space γ] [borel_space γ]
-  [comm_group γ] [has_measurable_mul₂ γ] [has_measurable_div₂ γ] [has_measurable_inv γ] :
-  comm_group (α →ₘ[μ] γ) :=
+instance [comm_group γ] [topological_group γ] : comm_group (α →ₘ[μ] γ) :=
 { .. ae_eq_fun.group, .. ae_eq_fun.comm_monoid }
 
 section module
@@ -590,14 +584,14 @@ instance [topological_space 𝕜] [monoid 𝕜] [mul_action 𝕜 γ] [has_contin
   mul_action 𝕜 (α →ₘ[μ] γ) :=
 to_germ_injective.mul_action to_germ smul_to_germ
 
-instance [topological_space 𝕜] [monoid 𝕜] [add_monoid γ] [has_continuous_add₂ γ]
+instance [topological_space 𝕜] [monoid 𝕜] [add_monoid γ] [has_continuous_add γ]
   [distrib_mul_action 𝕜 γ] [has_continuous_smul 𝕜 γ] :
   distrib_mul_action 𝕜 (α →ₘ[μ] γ) :=
 to_germ_injective.distrib_mul_action (to_germ_add_monoid_hom : (α →ₘ[μ] γ) →+ _)
   (λ c : 𝕜, smul_to_germ c)
 
-instance [measurable_space 𝕜] [semiring 𝕜] [add_comm_monoid γ] [has_measurable_add₂ γ] [module 𝕜 γ]
-  [has_measurable_smul 𝕜 γ] :
+instance [topological_space 𝕜] [semiring 𝕜] [add_comm_monoid γ] [has_continuous_add γ] [module 𝕜 γ]
+  [has_continuous_smul 𝕜 γ] :
   module 𝕜 (α →ₘ[μ] γ) :=
 to_germ_injective.module 𝕜 (to_germ_add_monoid_hom : (α →ₘ[μ] γ) →+ _) smul_to_germ
 
@@ -618,56 +612,52 @@ by rw [← lintegral_mk, mk_coe_fn]
 @[simp] lemma lintegral_zero : lintegral (0 : α →ₘ[μ] ℝ≥0∞) = 0 := lintegral_zero
 
 @[simp] lemma lintegral_eq_zero_iff {f : α →ₘ[μ] ℝ≥0∞} : lintegral f = 0 ↔ f = 0 :=
-induction_on f $ λ f hf, (lintegral_eq_zero_iff' hf).trans mk_eq_mk.symm
+induction_on f $ λ f hf, (lintegral_eq_zero_iff' hf.ae_measurable).trans mk_eq_mk.symm
 
 lemma lintegral_add (f g : α →ₘ[μ] ℝ≥0∞) : lintegral (f + g) = lintegral f + lintegral g :=
-induction_on₂ f g $ λ f hf g hg, by simp [lintegral_add' hf hg]
+induction_on₂ f g $ λ f hf g hg, by simp [lintegral_add' hf.ae_measurable hg.ae_measurable]
 
 lemma lintegral_mono {f g : α →ₘ[μ] ℝ≥0∞} : f ≤ g → lintegral f ≤ lintegral g :=
 induction_on₂ f g $ λ f hf g hg hfg, lintegral_mono_ae hfg
 
 section pos_part
 
-variables [topological_space γ] [linear_order γ] [order_closed_topology γ]
-  [second_countable_topology γ] [has_zero γ] [opens_measurable_space γ]
+variables [linear_order γ] [order_closed_topology γ] [has_zero γ]
 
 /-- Positive part of an `ae_eq_fun`. -/
 def pos_part (f : α →ₘ[μ] γ) : α →ₘ[μ] γ :=
-comp (λ x, max x 0) (measurable_id.max measurable_const) f
+comp (λ x, max x 0) (continuous_id.max continuous_const) f
 
 @[simp] lemma pos_part_mk (f : α → γ) (hf) :
-  pos_part (mk f hf : α →ₘ[μ] γ) = mk (λ x, max (f x) 0) (hf.max ae_measurable_const) :=
+  pos_part (mk f hf : α →ₘ[μ] γ) =
+    mk (λ x, max (f x) 0) ((continuous_id.max continuous_const).comp_ae_strongly_measurable hf) :=
 rfl
 
 lemma coe_fn_pos_part (f : α →ₘ[μ] γ) : ⇑(pos_part f) =ᵐ[μ] (λ a, max (f a) 0) :=
 coe_fn_comp _ _ _
 
 end pos_part
--/
 
 end ae_eq_fun
 
 end measure_theory
-
-
-/-
 
 namespace continuous_map
 
 open measure_theory
 
 variables [topological_space α] [borel_space α] (μ)
-variables [topological_space β]
+variables [topological_space β] [second_countable_topology β] [metrizable_space β]
 
 /-- The equivalence class of `μ`-almost-everywhere measurable functions associated to a continuous
 map. -/
 def to_ae_eq_fun (f : C(α, β)) : α →ₘ[μ] β :=
-ae_eq_fun.mk f f.continuous.measurable.ae_measurable
+ae_eq_fun.mk f f.continuous.ae_strongly_measurable
 
 lemma coe_fn_to_ae_eq_fun (f : C(α, β)) : f.to_ae_eq_fun μ =ᵐ[μ] f :=
 ae_eq_fun.coe_fn_mk f _
 
-variables [group β] [topological_group β] [second_countable_topology β]
+variables [group β] [topological_group β]
 
 /-- The `mul_hom` from the group of continuous maps from `α` to `β` to the group of equivalence
 classes of `μ`-almost-everywhere measurable functions. -/
@@ -676,19 +666,18 @@ equivalence classes of `μ`-almost-everywhere measurable functions."]
 def to_ae_eq_fun_mul_hom : C(α, β) →* α →ₘ[μ] β :=
 { to_fun := continuous_map.to_ae_eq_fun μ,
   map_one' := rfl,
-  map_mul' := λ f g, ae_eq_fun.mk_mul_mk f g f.continuous.measurable.ae_measurable
-    g.continuous.measurable.ae_measurable }
+  map_mul' := λ f g, ae_eq_fun.mk_mul_mk _ _
+    f.continuous.ae_strongly_measurable g.continuous.ae_strongly_measurable }
 
-variables {𝕜 : Type*} [semiring 𝕜] [measurable_space 𝕜]
-variables [topological_space γ] [measurable_space γ] [borel_space γ] [add_comm_group γ]
-  [module 𝕜 γ] [topological_add_group γ] [has_measurable_smul 𝕜 γ] [has_continuous_const_smul 𝕜 γ]
+variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜]
+variables [topological_space γ] [metrizable_space γ] [add_comm_group γ]
+  [module 𝕜 γ] [topological_add_group γ] [has_continuous_smul 𝕜 γ] [has_continuous_const_smul 𝕜 γ]
   [second_countable_topology γ]
 
 /-- The linear map from the group of continuous maps from `α` to `β` to the group of equivalence
 classes of `μ`-almost-everywhere measurable functions. -/
 def to_ae_eq_fun_linear_map : C(α, γ) →ₗ[𝕜] α →ₘ[μ] γ :=
-{ map_smul' := λ c f, ae_eq_fun.smul_mk c f f.continuous.measurable.ae_measurable,
+{ map_smul' := λ c f, ae_eq_fun.smul_mk c f f.continuous.ae_strongly_measurable,
   .. to_ae_eq_fun_add_hom μ }
 
 end continuous_map
--/

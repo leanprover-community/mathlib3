@@ -12,6 +12,8 @@ import group_theory.group_action.defs
 import group_theory.group_action.basic
 import group_theory.group_action.group
 import group_theory.group_action.conj_act
+import group_theory.group_action.sub_mul_action
+
 import .ad_sub_mul_actions
 -- import order.partition.finpartition
 
@@ -84,6 +86,8 @@ def is_fixed_block -- (G X : Type*) [group G] [hGX : mul_action G X]
 
 def is_invariant_block (B : set X) := ∀ (g : G), g • B ≤ B
 
+-- Possible redefinition :
+-- (range (λ g : G, g • B)).pairwise_disjoint id
 /-- A block is a set which is either fixed or moved to a disjoint subset -/
 def is_block -- (G X : Type*) [group G] [hGX : mul_action G X]
   (B : set X) := ∀ (g : G), g • B = B ∨ disjoint (g • B) B

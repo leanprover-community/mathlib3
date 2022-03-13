@@ -67,13 +67,13 @@ theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : or
   (hao : a < o) (H : is_normal (op a)) (ho : principal op o) (ho' : is_limit o) : op a o = o :=
 begin
   refine le_antisymm _ (H.self_le _),
-  rw [←is_normal.bsup_eq.{u u} H ho', bsup_le],
+  rw [←is_normal.bsup_eq.{u u} H ho', bsup_le_iff],
   exact λ b hbo, (ho hao hbo).le
 end
 
 theorem nfp_le_of_principal {op : ordinal → ordinal → ordinal}
   {a o : ordinal} (hao : a < o) (ho : principal op o) : nfp (op a) a ≤ o :=
-nfp_le.2 $ λ n, (ho.iterate_lt hao n).le
+nfp_le $ λ n, (ho.iterate_lt hao n).le
 
 /-! ### Principal ordinals are unbounded -/
 

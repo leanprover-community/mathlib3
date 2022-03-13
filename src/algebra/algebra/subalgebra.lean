@@ -807,21 +807,15 @@ subtype.ext rfl
 @[simp] lemma coe_inclusion {S T : subalgebra R A} (h : S ≤ T) (s : S) :
   (inclusion h s : A) = s := rfl
 
-lemma inclusion_eq_identity {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-  {E F : subalgebra R A} (hEF : E ≤ F) (x : E) : F.val ((subalgebra.inclusion hEF) x) = E.val x :=
-rfl
+@[simp] lemma coe_inclusion_apply {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+  {E F : subalgebra R A} (hEF : E ≤ F) (x : E) : ↑(subalgebra.inclusion hEF x) = (x : A) := rfl
 
 lemma val_injective {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   {E : subalgebra R A} : function.injective E.val := λ x y hxy, subtype.ext hxy
 
 lemma inclusion_mk {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   {E F : subalgebra R A} (hEF : E ≤ F) {x : A} (hx : x ∈ E) : (subalgebra.inclusion hEF) ⟨x, hx⟩ =
-  ⟨x, hEF hx⟩ :=
-begin
-  apply subalgebra.val_injective,
-  rw subalgebra.inclusion_eq_identity,
-  simp,
-end
+  ⟨x, hEF hx⟩ := rfl
 
 /-- Two subalgebras that are equal are also equivalent as algebras.
 

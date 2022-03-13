@@ -15,8 +15,8 @@ then using additive submonoid closures. This theorem solves the 2-variable varia
 general Frobenius coin problem
 
 ## Theorem Statement
-The Chicken McNugget Theorem states, for two relatively prime integers larger than 1,
-the greatest integer not expressible as a sum of nonnegative multiples of these two
+The Chicken McNugget Theorem states, for two relatively prime integers `m` and `n`, both larger
+than 1, the greatest integer not expressible as a sum of nonnegative multiples of these two
 is `m * n - m - n`. The general problem of finding this greatest integer for any number of
 (not pairwise) relatively prime integers is called the Frobenius coin problem.
 
@@ -37,7 +37,7 @@ chicken mcnugget, frobenius coin, chinese remainder theorem, submonoid.closure
 
 namespace nat
 
-/-- Auxiliary lemma for upper bound. -/
+/- No solution for the product over the natural numbers. -/
 lemma mul_add_mul_ne_mul_of_coprime {a b m n : ℕ} (ha : a ≠ 0) (hb : b ≠ 0)
   (cop : coprime m n) : a * m + b * n ≠ m * n :=
 begin
@@ -51,8 +51,8 @@ begin
   exact mul_ne_zero hb.2 ha.2 (eq_zero_of_mul_eq_self_left (ne_of_gt (add_le_add ha.1 hb.1)) h),
 end
 
-/-- No solution for the maximal value over the natural numbers. -/
-lemma upper_bound_not_in_clos_nat_pair {m n : ℕ} (cop : coprime m n) (hm : 1 < m) (hn : 1 < n)
+/- No solution for the maximal value over the natural numbers. -/
+lemma mul_add_mul_ne_max_val {m n : ℕ} (cop : coprime m n) (hm : 1 < m) (hn : 1 < n)
   (a b : ℕ) :
   a * m + b * n ≠ m * n - m - n :=
 begin
@@ -62,7 +62,7 @@ begin
       ←add_assoc, h, nat.sub_sub, nat.sub_add_cancel (add_le_mul hm hn)],
 end
 
-/-- Providing construction. -/
+/- Providing construction for all larger values. -/
 lemma not_in_clos_nat_pair {m n : ℕ} (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   ∀ k, m * n - m - n < k → ∃ (a b : ℕ), a * m + b * n = k :=
 begin
@@ -78,32 +78,19 @@ begin
   exact ⟨a, b, by rw [mul_comm, ←ha, mul_comm, ←hb, nat.add_sub_of_le key]⟩,
 end
 
-/-- Combines both sublemmas in a single claim. -/
-theorem max_not_sum_mult_split {m n : ℕ} (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
-  (¬ ∃ a b, a * m + b * n = m * n - m - n) ∧ ∀ k, m * n - m - n < k → ∃ a b, a * m + b * n = k :=
-begin
-  push_neg,
-  exact ⟨upper_bound_not_in_clos_nat_pair cop hm hn, not_in_clos_nat_pair cop hm hn⟩,
-end
-
-/-- Rewrites the above with `is_greatest`. -/
+/-- The **Chicken Mcnugget theorem** stated using `is_greatest`. -/
 theorem max_not_sum_mult {m n : ℕ} (cop: coprime m n) (hm : 1 < m) (hn : 1 < n) :
   is_greatest {k | ∀ a b, a * m + b * n ≠ k} (m * n - m - n) :=
-let h := max_not_sum_mult_split cop hm hn in
-  ⟨λ a b H, h.1 ⟨a, b, H⟩, λ k hk, not_lt.mp (mt (h.2 k) (λ ⟨a, b, H⟩, hk a b H))⟩
+⟨mul_add_mul_ne_max_val cop hm hn,
+  λ k hk, not_lt.mp (mt (not_in_clos_nat_pair cop hm hn k) (λ ⟨a, b, H⟩, hk a b H))⟩
 
-/-- Restates the original theorem with `add_submonoid.closure`. -/
-lemma max_not_in_clos_nat_pair_aux {m n : ℕ} (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
-  m * n - m - n ∉ add_submonoid.closure ({m, n} : set ℕ) ∧
-  ∀ k, m * n - m - n < k → k ∈ add_submonoid.closure ({m, n} : set ℕ) :=
-begin
-  simp_rw add_submonoid.mem_closure_pair,
-  exact max_not_sum_mult_split cop hm hn,
-end
-
-/-- Rewrites the above with `is_greatest`. -/
+/-- The **Chicken Mcnugget theorem** stated using `add_monoid.closure. -/
 theorem max_not_in_clos_nat_pair_eq {m n : ℕ} (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   is_greatest {k | k ∉ add_submonoid.closure ({m, n} : set ℕ)} (m * n - m - n) :=
-let h := max_not_in_clos_nat_pair_aux cop hm hn in ⟨h.1, λ k, not_lt.mp ∘ mt (h.2 k)⟩
+begin
+  simp_rw add_submonoid.mem_closure_pair,
+  push_neg,
+  exact max_not_sum_mult cop hm hn,
+end
 
 end nat

@@ -25,7 +25,7 @@ In this file we prove various facts about membership in a submonoid:
   of products;
 * `closure_singleton_eq`, `mem_closure_singleton`, `mem_closure_pair`: the multiplicative (resp.,
   additive) closure of `{x}` consists of powers (resp., natural multiples) of `x`, and a similar
-  result holds for the closure of '{x, y}.
+  result holds for the closure of `{x, y}`.
 
 ## Tags
 submonoid, submonoids

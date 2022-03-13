@@ -5,9 +5,6 @@ Authors: Jujian Zhang, Scott Morrison
 -/
 import category_theory.preadditive.injective
 import algebra.homology.single
-import algebra.homology.homological_complex
-import algebra.homology.homotopy_category
-import category_theory.abelian.exact
 
 /-!
 # Injective resolutions
@@ -24,19 +21,6 @@ v       v                 v
 J⁰ ---> J¹ ---> ... ----> Jⁿ ---> ...
 ```
 
-When `C` is abelian, this exactness condition is equivalent to `π` being a quasi-isomorphism.
-It turns out that this formulation allows us to set up the basic theory of derived functors
-without even assuming `C` is abelian.
-
-We show that given `P : InjectiveResolution X` and `Q : InjectiveResolution Y`,
-any morphism `X ⟶ Y` admits a descent to a chain map `P.cocomplex ⟶ Q.cocomplex`.
-(It is a lift in the sense that
-the projection maps `P.ι` and `Q.ι` intertwine the lift and the original morphism.)
-
-Moreover, we show that any two such lifts are homotopic.
-
-As a consequence, if every object admits a projective resolution,
-we can construct a functor `injective_resolutions C : C ⥤ homotopy_category C`.
 -/
 
 noncomputable theory

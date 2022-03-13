@@ -31,8 +31,8 @@ It is naturally endowed with a topology: the Zariski topology.
   is the intersection of points in `t` (viewed as relevant prime homogeneous ideals).
 
 ## Implementation note
-The type of `vanishing_ideal` is an `ideal` but instead of `homogeneous_ideal` is to take advantage
-of `ideal_gc` so that setting up a galois connection is easier.
+The type of `vanishing_ideal` is an `ideal` but instead of `homogeneous_ideal`; this is to take 
+advantage of `ideal_gc` so that setting up a galois connection is easier.
 -/
 
 noncomputable theory

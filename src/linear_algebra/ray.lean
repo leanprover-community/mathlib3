@@ -32,7 +32,7 @@ variables (ι : Type*) [decidable_eq ι]
 
 /-- Two vectors are in the same ray if either one of them is zero or some positive multiples of them
 are equal (in the typical case over a field, this means one of them is a nonnegative multiple of
-another). -/
+the other). -/
 def same_ray (v₁ v₂ : M) : Prop :=
 v₁ = 0 ∨ v₂ = 0 ∨ ∃ (r₁ r₂ : R), 0 < r₁ ∧ 0 < r₂ ∧ r₁ • v₁ = r₂ • v₂
 

@@ -1501,7 +1501,7 @@ theorem blsub_le_enum_ord (hS : unbounded (<) S) (o) :
   blsub.{u u} o (λ c _, enum_ord S c) ≤ enum_ord S o :=
 (enum_ord_mem_aux hS o).right
 
-theorem enum_ord.strict_mono (hS : unbounded (<) S) : strict_mono (enum_ord S) :=
+theorem enum_ord_strict_mono (hS : unbounded (<) S) : strict_mono (enum_ord S) :=
 λ _ _ h, (lt_blsub.{u u} _ _ h).trans_le (blsub_le_enum_ord hS _)
 
 /-- A more workable definition for `enum_ord`. -/
@@ -1516,7 +1516,7 @@ end
 /-- The set in `enum_ord_def` is nonempty. -/
 lemma enum_ord_def_nonempty (hS : unbounded (<) S) {o} :
   {x | x ∈ S ∧ ∀ c, c < o → enum_ord S c < x}.nonempty :=
-(⟨_, enum_ord_mem hS o, λ _ b, enum_ord.strict_mono hS b⟩)
+(⟨_, enum_ord_mem hS o, λ _ b, enum_ord_strict_mono hS b⟩)
 
 @[simp] theorem enum_ord_range {f : ordinal → ordinal} (hf : strict_mono f) :
   enum_ord (range f) = f :=
@@ -1543,7 +1543,7 @@ theorem enum_ord_succ_le {a b} (hS : unbounded (<) S) (ha : a ∈ S) (hb : enum_
   enum_ord S b.succ ≤ a :=
 begin
   rw enum_ord_def,
-  exact cInf_le' ⟨ha, λ c hc, ((enum_ord.strict_mono hS).monotone (lt_succ.1 hc)).trans_lt hb⟩
+  exact cInf_le' ⟨ha, λ c hc, ((enum_ord_strict_mono hS).monotone (lt_succ.1 hc)).trans_lt hb⟩
 end
 
 theorem enum_ord_le_of_subset {S T : set ordinal} (hS : unbounded (<) S) (hST : S ⊆ T) (a) :
@@ -1552,7 +1552,7 @@ begin
   apply wf.induction a,
   intros b H,
   rw enum_ord_def,
-  exact cInf_le' ⟨hST (enum_ord_mem hS b), λ c h, (H c h).trans_lt (enum_ord.strict_mono hS h)⟩
+  exact cInf_le' ⟨hST (enum_ord_mem hS b), λ c h, (H c h).trans_lt (enum_ord_strict_mono hS h)⟩
 end
 
 theorem enum_ord_surjective (hS : unbounded (<) S) : ∀ s ∈ S, ∃ a, enum_ord S a = s :=
@@ -1562,16 +1562,16 @@ theorem enum_ord_surjective (hS : unbounded (<) S) : ∀ s ∈ S, ∃ a, enum_or
     refine cInf_le' ⟨hs, λ a ha, _⟩,
     have : enum_ord S 0 ≤ s := by { rw enum_ord_zero, exact cInf_le' hs },
     rcases exists_lt_of_lt_cSup (by exact ⟨0, this⟩) ha with ⟨b, hb, hab⟩,
-    exact (enum_ord.strict_mono hS hab).trans_le hb },
+    exact (enum_ord_strict_mono hS hab).trans_le hb },
   { by_contra' h,
     exact (le_cSup ⟨s, λ a,
-      (well_founded.self_le_of_strict_mono wf (enum_ord.strict_mono hS) a).trans⟩
+      (well_founded.self_le_of_strict_mono wf (enum_ord_strict_mono hS) a).trans⟩
       (enum_ord_succ_le hS hs h)).not_lt (lt_succ_self _) }
 end⟩
 
 /-- An order isomorphism between an unbounded set of ordinals and the ordinals. -/
 def enum_ord_order_iso (hS : unbounded (<) S) : ordinal ≃o S :=
-strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) (enum_ord.strict_mono hS)
+strict_mono.order_iso_of_surjective (λ o, ⟨_, enum_ord_mem hS o⟩) (enum_ord_strict_mono hS)
   (λ s, let ⟨a, ha⟩ := enum_ord_surjective hS s s.prop in ⟨a, subtype.eq ha⟩)
 
 theorem range_enum_ord (hS : unbounded (<) S) : range (enum_ord S) = S :=
@@ -1583,9 +1583,9 @@ theorem eq_enum_ord (f : ordinal → ordinal) (hS : unbounded (<) S) :
 begin
   split,
   { rintro ⟨h₁, h₂⟩,
-    rwa [←wf.eq_strict_mono_iff_eq_range h₁ (enum_ord.strict_mono hS), range_enum_ord hS] },
+    rwa [←wf.eq_strict_mono_iff_eq_range h₁ (enum_ord_strict_mono hS), range_enum_ord hS] },
   { rintro rfl,
-    exact ⟨enum_ord.strict_mono hS, range_enum_ord hS⟩ }
+    exact ⟨enum_ord_strict_mono hS, range_enum_ord hS⟩ }
 end
 
 end

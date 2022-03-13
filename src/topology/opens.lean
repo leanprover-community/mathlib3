@@ -21,7 +21,7 @@ We define the subtype of open sets in a topological space.
 - `open_nhds_of x` is the type of open subsets of a topological space `α` containing `x : α`.
 -/
 
-open filter order set
+open filter function order set
 
 variables {α β γ : Type*} [topological_space α] [topological_space β] [topological_space γ]
 
@@ -192,11 +192,18 @@ order_hom_class.mono (comap f) h
 @[simp] lemma comap_val (f : C(α, β)) (U : opens β) : (comap f U).1 = f ⁻¹' U := rfl
 
 protected lemma comap_comp (g : C(β, γ)) (f : C(α, β)) :
-  comap (g.comp f) = (comap f).comp (comap g) :=
-rfl
+  comap (g.comp f) = (comap f).comp (comap g) := rfl
 
 protected lemma comap_comap (g : C(β, γ)) (f : C(α, β)) (U : opens γ) :
   comap f (comap g U) = comap (g.comp f) U := rfl
+
+lemma comap_injective [t0_space β] : injective (comap : C(α, β) → frame_hom (opens β) (opens α)) :=
+λ f g h, continuous_map.ext $ λ a, indistinguishable.eq $ λ s hs, begin
+  simp_rw ←mem_preimage,
+  congr' 2,
+  have := fun_like.congr_fun h ⟨_, hs⟩,
+  exact congr_arg (coe : opens α → set α) this,
+end
 
 /-- A homeomorphism induces an equivalence on open sets, by taking comaps. -/
 @[simp] protected def equiv (f : α ≃ₜ β) : opens α ≃ opens β :=

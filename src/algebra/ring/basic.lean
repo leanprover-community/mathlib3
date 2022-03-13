@@ -520,7 +520,7 @@ lemma domain_nontrivial [nontrivial β] : nontrivial α :=
 end
 
 lemma is_unit_map [semiring α] [semiring β] (f : α →+* β) {a : α} (h : is_unit a) : is_unit (f a) :=
-h.map f.to_monoid_hom
+h.map f
 
 /-- The identity ring homomorphism from a semiring to itself. -/
 def id (α : Type*) [non_assoc_semiring α] : α →+* α :=

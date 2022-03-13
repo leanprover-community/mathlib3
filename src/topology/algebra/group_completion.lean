@@ -3,7 +3,7 @@ Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Johannes Hölzl
 -/
-import algebra.group.hom_instances
+import algebra.group.hom.instances
 import topology.uniform_space.completion
 import topology.algebra.uniform_group
 

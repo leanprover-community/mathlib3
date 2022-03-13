@@ -1,4 +1,4 @@
-import algebra.group.hom
+import algebra.group.hom.basic
 import data.sum.basic
 import tactic.simps
 

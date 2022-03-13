@@ -193,21 +193,6 @@ by simp_rw coe_supr
 @[simp] lemma coe_infi₂ (f : Π i, κ i → upper_set α) : (↑(⨅ i j, f i j) : set α) = ⋂ i j, f i j :=
 by simp_rw coe_infi
 
-@[simp] lemma mem_top : a ∈ (⊤ : upper_set α) := trivial
-@[simp] lemma not_mem_bot : a ∉ (⊥ : upper_set α) := id
-@[simp] lemma mem_sup_iff : a ∈ s ⊔ t ↔ a ∈ s ∨ a ∈ t := iff.rfl
-@[simp] lemma mem_inf_iff : a ∈ s ⊓ t ↔ a ∈ s ∧ a ∈ t := iff.rfl
-@[simp] lemma mem_Sup_iff : a ∈ Sup S ↔ ∃ s ∈ S, a ∈ s := mem_Union₂
-@[simp] lemma mem_Inf_iff  : a ∈ Inf S ↔ ∀ s ∈ S, a ∈ s := mem_Inter₂
-@[simp] lemma mem_supr_iff {f : ι → upper_set α} : a ∈ (⨆ i, f i) ↔ ∃ i, a ∈ f i :=
-by { rw [←set_like.mem_coe, coe_supr], exact mem_Union }
-@[simp] lemma mem_infi_iff {f : ι → upper_set α} : a ∈ (⨅ i, f i) ↔ ∀ i, a ∈ f i :=
-by { rw [←set_like.mem_coe, coe_infi], exact mem_Inter }
-@[simp] lemma mem_supr₂_iff {f : Π i, κ i → upper_set α} : a ∈ (⨆ i j, f i j) ↔ ∃ i j, a ∈ f i j :=
-by simp_rw mem_supr_iff
-@[simp] lemma mem_infi₂_iff {f : Π i, κ i → upper_set α} : a ∈ (⨅ i j, f i j) ↔ ∀ i j, a ∈ f i j :=
-by simp_rw mem_infi_iff
-
 end upper_set
 
 namespace lower_set
@@ -240,21 +225,6 @@ by simp_rw [infi, coe_Inf, mem_range, Inter_exists, Inter_Inter_eq']
 by simp_rw coe_supr
 @[simp] lemma coe_infi₂ (f : Π i, κ i → lower_set α) : (↑(⨅ i j, f i j) : set α) = ⋂ i j, f i j :=
 by simp_rw coe_infi
-
-@[simp] lemma mem_top : a ∈ (⊤ : lower_set α) := trivial
-@[simp] lemma not_mem_bot : a ∉ (⊥ : lower_set α) := id
-@[simp] lemma mem_sup_iff : a ∈ s ⊔ t ↔ a ∈ s ∨ a ∈ t := iff.rfl
-@[simp] lemma mem_inf_iff : a ∈ s ⊓ t ↔ a ∈ s ∧ a ∈ t := iff.rfl
-@[simp] lemma mem_Sup_iff : a ∈ Sup S ↔ ∃ s ∈ S, a ∈ s := mem_Union₂
-@[simp] lemma mem_Inf_iff  : a ∈ Inf S ↔ ∀ s ∈ S, a ∈ s := mem_Inter₂
-@[simp] lemma mem_supr_iff {f : ι → lower_set α} : a ∈ (⨆ i, f i) ↔ ∃ i, a ∈ f i :=
-by { rw [←set_like.mem_coe, coe_supr], exact mem_Union }
-@[simp] lemma mem_infi_iff {f : ι → lower_set α} : a ∈ (⨅ i, f i) ↔ ∀ i, a ∈ f i :=
-by { rw [←set_like.mem_coe, coe_infi], exact mem_Inter }
-@[simp] lemma mem_supr₂_iff {f : Π i, κ i → lower_set α} : a ∈ (⨆ i j, f i j) ↔ ∃ i j, a ∈ f i j :=
-by simp_rw mem_supr_iff
-@[simp] lemma mem_infi₂_iff {f : Π i, κ i → lower_set α} : a ∈ (⨅ i j, f i j) ↔ ∀ i j, a ∈ f i j :=
-by simp_rw mem_infi_iff
 
 end lower_set
 

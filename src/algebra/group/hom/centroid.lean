@@ -206,31 +206,23 @@ variables [non_unital_ring α]
 
 -- https://msp.org/pjm/1975/60-1/pjm-v60-n1-p06-s.pdf
 /-- A prime associative ring has commutative centroid -/
-def prime_centroid_commutative (h: ∀ a b : α, ∀ r : α, a * r * b = 0 → a = 0 ∨ b = 0) :
+def prime_centroid_commutative (h: ∀ a b : α, (∀ r : α, a * r * b = 0) → a = 0 ∨ b = 0) :
   comm_ring (centroid_hom α) :=
 {
   mul_comm := λ f g, begin
     rw ← sub_eq_zero,
-    have h' : ∀ a : α, ∀ r : α, a * r * a = 0 → a = 0 := begin
-      intros a r h'',
+    have h' : ∀ a : α, (∀ r : α, a * r * a = 0) → a = 0 := begin
+      intros a h'',
       rw ← or_self (a=0),
-      apply h a a r,
+      apply h a a,
       exact h'',
     end,
     ext,
     rw zero_apply,
-    have h''' : ∀ r : α, ((f * g - g * f) a) * r * ((f * g - g * f) a) = 0 := λ r, by rw [mul_assoc,
-      sub_apply, sub_mul, sub_eq_zero, ← map_mul_right, ← map_mul_right, coe_mul, coe_mul,
-      comm_comp_mul],
-    have e : (f * g - g * f) a = 0 := begin
-      apply h' ((f * g - g * f) a),
-      apply h''',
-      sorry,
-      --apply h' ((f * g - g * f) a) h''',
-    end,
-    --rw zero_apply,
-    --convert h' ((f * g - g * f) a),
-    apply e,
+    apply h' ((f * g - g * f) a),
+    intro,
+    rw [mul_assoc, sub_apply, sub_mul, sub_eq_zero, ← map_mul_right, ← map_mul_right, coe_mul,
+      coe_mul, comm_comp_mul],
   end,
   ..centroid_hom.ring
 }

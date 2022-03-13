@@ -114,8 +114,8 @@ begin
     finset.sum_dite_irrel, finset.sum_dite_eq', finset.sum_const_zero],
   simp only [←id_tensor_comp, biproduct.ι_π],
   simp only [id_tensor_comp, tensor_dite, comp_dite],
-  simp only [category.comp_id, comp_zero, monoidal_preadditive.tensor_zero, eq_to_hom_refl, tensor_id,
-    if_true, dif_ctx_congr, finset.sum_congr, finset.mem_univ, finset.sum_dite_eq'],
+  simp only [category.comp_id, comp_zero, monoidal_preadditive.tensor_zero, eq_to_hom_refl,
+    tensor_id, if_true, dif_ctx_congr, finset.sum_congr, finset.mem_univ, finset.sum_dite_eq'],
   simp only [←tensor_id, associator_naturality, iso.inv_hom_id_assoc],
 end
 

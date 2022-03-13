@@ -24,7 +24,7 @@ It is naturally endowed with a topology: the Zariski topology.
 * `projective_spectrum 𝒜`: The projective spectrum of a graded ring `A`, or equivalently, the set of
   all homogeneous ideals of `A` that is both prime and relevant i.e. not containing all irrelevant
   ideal. Henceforth, we call elements of projective spectrum relevant prime homogeneous ideals.
-* `zero_locus s`: The zero locus of a subset `s` of `A`
+* `zero_locus 𝒜 s`: The zero locus of a subset `s` of `A`
   is the subset of `projective_spectrum 𝒜` consisting of all relevant prime homogeneous ideals
   that contain `s`.
 * `vanishing_ideal t`: The vanishing ideal of a subset `t` of `projective_spectrum 𝒜`
@@ -89,8 +89,9 @@ def zero_locus (s : set A) : set (projective_spectrum 𝒜) :=
   zero_locus 𝒜 (ideal.span s) = zero_locus 𝒜 s :=
 by { ext x, exact (submodule.gi _ _).gc s x.as_homogeneous_ideal }
 
+variable {𝒜}
 /-- The vanishing ideal of a set `t` of points
-of the projective spectrum of a commutative ring `R`
+of the prime spectrum of a commutative ring `R`
 is the intersection of all the prime ideals in the set `t`.
 
 An element `f` of `A` can be thought of as a dependent function on the projective spectrum of `𝒜`.
@@ -103,7 +104,7 @@ def vanishing_ideal (t : set (projective_spectrum 𝒜)) : ideal A :=
 ⨅ (x : projective_spectrum 𝒜) (h : x ∈ t), x.as_homogeneous_ideal.1
 
 lemma vanishing_ideal.is_homogeneous (t : set (projective_spectrum 𝒜)) :
-  ideal.is_homogeneous 𝒜 $ vanishing_ideal 𝒜 t :=
+  ideal.is_homogeneous 𝒜 $ vanishing_ideal t :=
 ideal.is_homogeneous.Inf $ λ I hI, begin
   obtain ⟨y, rfl⟩ := hI,
   apply ideal.is_homogeneous.Inf (λ I hI, _),
@@ -112,7 +113,7 @@ ideal.is_homogeneous.Inf $ λ I hI, begin
 end
 
 lemma coe_vanishing_ideal (t : set (projective_spectrum 𝒜)) :
-  (vanishing_ideal 𝒜 t : set A) =
+  (vanishing_ideal t : set A) =
   {f | ∀ x : projective_spectrum 𝒜, x ∈ t → f ∈ x.as_homogeneous_ideal} :=
 begin
   ext f,
@@ -122,18 +123,18 @@ begin
 end
 
 lemma mem_vanishing_ideal (t : set (projective_spectrum 𝒜)) (f : A) :
-  f ∈ vanishing_ideal 𝒜 t ↔
+  f ∈ vanishing_ideal t ↔
   ∀ x : projective_spectrum 𝒜, x ∈ t → f ∈ x.as_homogeneous_ideal :=
 by rw [← set_like.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
 
 @[simp] lemma vanishing_ideal_singleton (x : projective_spectrum 𝒜) :
-  vanishing_ideal 𝒜 ({x} : set (projective_spectrum 𝒜)) = x.as_homogeneous_ideal :=
+  vanishing_ideal ({x} : set (projective_spectrum 𝒜)) = x.as_homogeneous_ideal :=
 by simp [vanishing_ideal]
 
 lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (projective_spectrum 𝒜))
   (I : ideal A) :
-  t ⊆ zero_locus 𝒜 I ↔ I ≤ vanishing_ideal 𝒜 t :=
-⟨λ h f k, (mem_vanishing_ideal _ _ _).mpr (λ x j, (mem_zero_locus _ _ _).mpr (h j) k), λ h,
-  λ x j, (mem_zero_locus _ _ _).mpr (le_trans h (λ f h, ((mem_vanishing_ideal _ _ _).mp h) x j))⟩
+  t ⊆ zero_locus 𝒜 I ↔ I ≤ vanishing_ideal t :=
+⟨λ h f k, (mem_vanishing_ideal _ _).mpr (λ x j, (mem_zero_locus _ _ _).mpr (h j) k), λ h,
+  λ x j, (mem_zero_locus _ _ _).mpr (le_trans h (λ f h, ((mem_vanishing_ideal _ _).mp h) x j))⟩
 
 end projective_spectrum

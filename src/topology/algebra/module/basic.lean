@@ -490,12 +490,9 @@ by rw [← coe_id, coe_inj]
 
 instance [hE : nontrivial M₁] : nontrivial (M₁ →L[R₁] M₁) :=
 begin
-  rw nontrivial_iff,
-  refine ⟨1, 0, _⟩,
   obtain ⟨x, y, h⟩ := exists_pair_ne M₁,
-  contrapose! h,
-  show (1 : (M₁ →L[R₁] M₁)) x = (1 : (M₁ →L[R₁] M₁)) y,
-  simp only [h, continuous_linear_map.zero_apply],
+  exact nontrivial_iff.mpr
+    ⟨1, 0, λ heq, h (by rw [←one_apply x, ←one_apply y, heq, zero_apply, zero_apply])⟩
 end
 
 section add

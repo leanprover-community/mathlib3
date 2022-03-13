@@ -68,3 +68,10 @@ and instead will use `⊤ : von_neumann_algebra H`.
 structure von_neumann_algebra (H : Type u) [inner_product_space ℂ H] [complete_space H] extends
   star_subalgebra ℂ (H →L[ℂ] H) :=
 (double_commutant : set.centralizer (set.centralizer carrier) = carrier)
+
+/--
+Consider a von Neumann algebra acting on a Hilbert space `H` as a *-subalgebra of `H →L[ℂ] H`.
+(That is, we forget that it is equal to its double commutant
+or equivalently that it is closed in the weak and strong operator topologies.)
+-/
+add_decl_doc von_neumann_algebra.to_star_subalgebra

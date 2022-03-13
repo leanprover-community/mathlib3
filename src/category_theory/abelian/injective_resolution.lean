@@ -9,15 +9,18 @@ import algebra.homology.homotopy_category
 
 /-!
 # Main result
-We show that given `P : InjectiveResolution X` and `Q : InjectiveResolution Y`,
-any morphism `X ⟶ Y` admits a descent to a chain map `P.cocomplex ⟶ Q.cocomplex`.
-(It is a lift in the sense that
-the projection maps `P.ι` and `Q.ι` intertwine the lift and the original morphism.)
 
-Moreover, we show that any two such lifts are homotopic.
+When the underlying category is abelian:
+* Given `P : InjectiveResolution X` and `Q : InjectiveResolution Y`, any morphism `X ⟶ Y` admits a
+  descent to a chain map `P.cocomplex ⟶ Q.cocomplex`. It is a descent in the sense that `P.ι` and
+  `Q.ι` intertwine the descent and the original morphism.
+* Any two such descents are homotopic.
+* As a consequence, if every object admits an injective resolution, we can construct a functor
+  `injective_resolutions C : C ⥤ homotopy_category C`.
 
-As a consequence, if every object admits a projective resolution,
-we can construct a functor `injective_resolutions C : C ⥤ homotopy_category C`.
+* `f` and `injective.d f` are exact.
+* Hence, starting from a monomorphism `X ⟶ J`, where `J` is injective, we can apply `injective.d`
+  repeatedly to obtain an injective resolution of `X`.
 -/
 
 noncomputable theory
@@ -241,5 +244,46 @@ def injective_resolutions : C ⥤ homotopy_category C (complex_shape.up ℕ) :=
   end, }
 
 end
+
+section
+
+variables [abelian C] [enough_injectives C]
+
+lemma exact_d_f {X Y : C} (f : X ⟶ Y) : exact f (d f) :=
+(abelian.exact_iff _ _).2 $
+  ⟨by simp, zero_of_comp_mono (ι _) $ by rw [category.assoc, kernel.condition]⟩
+
+end
+
+namespace InjectiveResolution
+
+variables [abelian C] [enough_injectives C]
+
+@[simps]
+def of_cocomplex (Z : C) : cochain_complex C ℕ :=
+cochain_complex.mk'
+  (injective.under Z) (injective.syzygies (injective.ι Z)) (injective.d (injective.ι Z))
+  (λ ⟨X, Y, f⟩, ⟨injective.syzygies f, injective.d f, (exact_d_f f).w⟩)
+
+@[irreducible] def of (Z : C) : InjectiveResolution Z :=
+{ cocomplex := of_cocomplex Z,
+  ι := cochain_complex.mk_hom _ _ (injective.ι Z) 0
+    (by { simp only [of_cocomplex_d, eq_self_iff_true, eq_to_hom_refl, category.comp_id,
+      dite_eq_ite, if_true, exact.w],
+      exact (exact_d_f (injective.ι Z)).w, } ) (λ n _, ⟨0, by ext⟩),
+  injective := by { rintros (_|_|_|n); { apply injective.injective_under, } },
+  exact₀ := by simpa using exact_d_f (injective.ι Z),
+  exact := by { rintros (_|n); { simp, apply exact_d_f } },
+  mono := injective.ι_mono Z }
+
+@[priority 100]
+instance (Z : C) : has_injective_resolution Z :=
+{ out := ⟨of Z⟩ }
+
+@[priority 100]
+instance : has_injective_resolutions C :=
+{ out := λ _, infer_instance }
+
+end InjectiveResolution
 
 end category_theory

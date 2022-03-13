@@ -712,7 +712,7 @@ apply linear_equiv.of_bijective
 { rw [← linear_map.range_eq_top, linear_map.range_eq_map, linear_map.map_cod_restrict,
     ← linear_map.range_le_iff_comap, range_subtype, map_top],
   rw finsupp.range_total,
-  apply le_refl (span R (range v)) },
+  exact le_rfl },
 { intro l,
   rw ← finsupp.range_total,
   rw linear_map.mem_range,

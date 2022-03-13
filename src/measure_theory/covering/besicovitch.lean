@@ -3,12 +3,12 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.metric_space.basic
-import set_theory.cardinal_ordinal
-import measure_theory.integral.lebesgue
-import measure_theory.covering.vitali_family
-import measure_theory.measure.regular
 import measure_theory.covering.differentiation
+import measure_theory.covering.vitali_family
+import measure_theory.integral.lebesgue
+import measure_theory.measure.regular
+import set_theory.ordinal_arithmetic
+import topology.metric_space.basic
 
 /-!
 # Besicovitch covering theorems
@@ -18,7 +18,7 @@ number `N` such that, from any family of balls with bounded radii, one can extra
 each made of disjoint balls, covering together all the centers of the initial family.
 
 By "nice metric space", we mean a technical property stated as follows: there exists no satellite
-configuration of `N+1` points (with a given parameter `τ > 1`). Such a configuration is a family
+configuration of `N + 1` points (with a given parameter `τ > 1`). Such a configuration is a family
 of `N + 1` balls, where the first `N` balls all intersect the last one, but none of them contains
 the center of another one and their radii are controlled. This property is for instance
 satisfied by finite-dimensional real vector spaces.
@@ -38,10 +38,10 @@ context to make them more easily usable.
 
 ## Main definitions and results
 
-* `satellite_config α N τ` is the type of all satellite configurations of `N+1` points
+* `satellite_config α N τ` is the type of all satellite configurations of `N + 1` points
   in the metric space `α`, with parameter `τ`.
 * `has_besicovitch_covering` is a class recording that there exist `N` and `τ > 1` such that
-  there is no satellite configuration of `N+1` points with parameter `τ`.
+  there is no satellite configuration of `N + 1` points with parameter `τ`.
 * `exist_disjoint_covering_families` is the topological Besicovitch covering theorem: from any
   family of balls one can extract finitely many disjoint subfamilies covering the same set.
 * `exists_disjoint_closed_ball_covering` is the measurable Besicovitch covering theorem: from any
@@ -74,22 +74,23 @@ Then define inductively a coloring of the balls. A ball will be of color `i` if 
 already chosen balls of color `0`, ..., `i - 1`, but none of color `i`. In this way, balls of the
 same color form a disjoint family, and the space is covered by the families of the different colors.
 
-The nontrivial part is to show that at most `N` colors are used. If one needs `N+1` colors, consider
-the first time this happens. Then the corresponding ball intersects `N` balls of the different
-colors. Moreover, the inductive construction ensures that the radii of all the balls are controlled:
-they form a satellite configuration with `N+1` balls (essentially by definition of satellite
-configurations). Since we assume that there are no such configurations, this is a contradiction.
+The nontrivial part is to show that at most `N` colors are used. If one needs `N + 1` colors,
+consider the first time this happens. Then the corresponding ball intersects `N` balls of the
+different colors. Moreover, the inductive construction ensures that the radii of all the balls are
+controlled: they form a satellite configuration with `N + 1` balls (essentially by definition of
+satellite configurations). Since we assume that there are no such configurations, this is a
+contradiction.
 
 #### Sketch of proof of the measurable Besicovitch theorem:
 
 From the topological Besicovitch theorem, one can find a disjoint countable family of balls
-covering a proportion `> 1/(N+1)` of the space. Taking a large enough finite subset of these balls,
-one gets the same property for finitely many balls. Their union is closed. Therefore, any point in
-the complement has around it an admissible ball not intersecting these finitely many balls. Applying
-again the topological Besicovitch theorem, one extracts from these a disjoint countable subfamily
-covering a proportion `> 1/(N+1)` of the remaining points, and then even a disjoint finite
-subfamily. Then one goes on again and again, covering at each step a positive proportion of the
-remaining points, while remaining disjoint from the already chosen balls. The union of all these
+covering a proportion `> 1 / (N + 1)` of the space. Taking a large enough finite subset of these
+balls, one gets the same property for finitely many balls. Their union is closed. Therefore, any
+point in the complement has around it an admissible ball not intersecting these finitely many balls.
+Applying again the topological Besicovitch theorem, one extracts from these a disjoint countable
+subfamily covering a proportion `> 1 / (N + 1)` of the remaining points, and then even a disjoint
+finite subfamily. Then one goes on again and again, covering at each step a positive proportion of
+the remaining points, while remaining disjoint from the already chosen balls. The union of all these
 balls is the desired almost everywhere covering.
 -/
 

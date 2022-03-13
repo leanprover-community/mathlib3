@@ -50,8 +50,8 @@ variables [t2_space M] [fintype ι] {s : set M} (f : smooth_bump_covering ι I M
 /-- Smooth embedding of `M` into `(E × ℝ) ^ ι`. -/
 def embedding_pi_tangent : C^∞⟮I, M; 𝓘(ℝ, ι → (E × ℝ)), ι → (E × ℝ)⟯ :=
 { to_fun := λ x i, (f i x • ext_chart_at I (f.c i) x, f i x),
-  times_cont_mdiff_to_fun := times_cont_mdiff_pi_space.2 $ λ i,
-    ((f i).smooth_smul times_cont_mdiff_on_ext_chart_at).prod_mk_space ((f i).smooth) }
+  cont_mdiff_to_fun := cont_mdiff_pi_space.2 $ λ i,
+    ((f i).smooth_smul cont_mdiff_on_ext_chart_at).prod_mk_space ((f i).smooth) }
 
 local attribute [simp] lemma embedding_pi_tangent_coe :
   ⇑f.embedding_pi_tangent = λ x i, (f i x • ext_chart_at I (f.c i) x, f i x) :=

@@ -46,7 +46,7 @@ lemma interval_integrable_pow : interval_integrable (λ x, x^n) μ a b :=
 
 lemma interval_integrable_zpow {n : ℤ} (h : 0 ≤ n ∨ (0 : ℝ) ∉ [a, b]) :
   interval_integrable (λ x, x ^ n) μ a b :=
-(continuous_on_id.zpow n $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
+(continuous_on_id.zpow₀ n $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
 
 lemma interval_integrable_rpow {r : ℝ} (h : 0 ≤ r ∨ (0 : ℝ) ∉ [a, b]) :
   interval_integrable (λ x, x ^ r) μ a b :=
@@ -397,7 +397,7 @@ begin
   let C := cos b ^ (n + 1) * sin b - cos a ^ (n + 1) * sin a,
   have h : ∀ α β γ : ℝ, α * (β * α * γ) = β * (α * α * γ) := λ α β γ, by ring,
   have hu : ∀ x ∈ _, has_deriv_at (λ y, cos y ^ (n + 1)) (-(n + 1) * sin x * cos x ^ n) x :=
-    λ x hx, by simpa only [mul_right_comm, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm]
+    λ x hx, by simpa only [mul_right_comm, neg_mul, mul_neg]
       using (has_deriv_at_cos x).pow,
   have hv : ∀ x ∈ [a, b], has_deriv_at sin (cos x) x := λ x hx, has_deriv_at_sin x,
   have H := integral_mul_deriv_eq_deriv_mul hu hv _ _,

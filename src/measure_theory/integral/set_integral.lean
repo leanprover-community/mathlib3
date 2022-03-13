@@ -155,7 +155,7 @@ begin
   refine metric.nhds_basis_closed_ball.tendsto_right_iff.2 (λ ε ε0, _),
   lift ε to ℝ≥0 using ε0.le,
   have : ∀ᶠ i in at_top, ν (s i) ∈ Icc (ν S - ε) (ν S + ε),
-    from tendsto_measure_Union hsm h_mono (ennreal.Icc_mem_nhds hfi'.ne (ennreal.coe_pos.2 ε0).ne'),
+    from tendsto_measure_Union h_mono (ennreal.Icc_mem_nhds hfi'.ne (ennreal.coe_pos.2 ε0).ne'),
   refine this.mono (λ i hi, _),
   rw [mem_closed_ball_iff_norm', ← integral_diff (hsm i) hfi (hfi.mono_set hsub) hsub,
     ← coe_nnnorm, nnreal.coe_le_coe, ← ennreal.coe_le_coe],
@@ -165,17 +165,20 @@ begin
     (hi.2.trans_lt $ ennreal.add_lt_top.2 ⟨hfi', ennreal.coe_lt_top⟩).ne]
 end
 
+lemma has_sum_integral_Union_ae {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
+  (hm : ∀ i, null_measurable_set (s i) μ) (hd : pairwise (ae_disjoint μ on s))
+  (hfi : integrable_on f (⋃ i, s i) μ) :
+  has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
+begin
+  simp only [integrable_on, measure.restrict_Union_ae hd hm] at hfi ⊢,
+  exact has_sum_integral_measure hfi
+end
+
 lemma has_sum_integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
   (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s))
   (hfi : integrable_on f (⋃ i, s i) μ) :
   has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
-begin
-  have hfi' : ∀ i, integrable_on f (s i) μ, from λ i, hfi.mono_set (subset_Union _ _),
-  simp only [has_sum, ← integral_finset_bUnion _ (λ i _, hm i) (hd.set_pairwise _) (λ i _, hfi' i)],
-  rw Union_eq_Union_finset at hfi ⊢,
-  exact tendsto_set_integral_of_monotone (λ t, t.measurable_set_bUnion (λ i _, hm i))
-    (λ t₁ t₂ h, bUnion_subset_bUnion_left h) hfi
-end
+has_sum_integral_Union_ae (λ i, (hm i).null_measurable_set) (hd.mono (λ i j h, h.ae_disjoint)) hfi
 
 lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
   (hm : ∀ i, measurable_set (s i)) (hd : pairwise (disjoint on s))
@@ -183,22 +186,11 @@ lemma integral_Union {ι : Type*} [encodable ι] {s : ι → set α} {f : α →
   (∫ a in (⋃ n, s n), f a ∂μ) = ∑' n, ∫ a in s n, f a ∂ μ :=
 (has_sum.tsum_eq (has_sum_integral_Union hm hd hfi)).symm
 
-lemma has_sum_integral_Union_of_null_inter {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
-  (hm : ∀ i, null_measurable_set (s i) μ) (hd : pairwise (ae_disjoint μ on s))
-  (hfi : integrable_on f (⋃ i, s i) μ) :
-  has_sum (λ n, ∫ a in s n, f a ∂ μ) (∫ a in ⋃ n, s n, f a ∂μ) :=
-begin
-  rcases exists_subordinate_pairwise_disjoint hm hd with ⟨t, ht_sub, ht_eq, htm, htd⟩,
-  have htU_eq : (⋃ i, s i) =ᵐ[μ] ⋃ i, t i := eventually_eq.countable_Union ht_eq,
-  simp only [set_integral_congr_set_ae (ht_eq _), set_integral_congr_set_ae htU_eq, htU_eq],
-  exact has_sum_integral_Union htm htd (hfi.congr_set_ae htU_eq.symm)
-end
-
-lemma integral_Union_of_null_inter {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
+lemma integral_Union_ae {ι : Type*} [encodable ι] {s : ι → set α} {f : α → E}
   (hm : ∀ i, null_measurable_set (s i) μ) (hd : pairwise (ae_disjoint μ on s))
   (hfi : integrable_on f (⋃ i, s i) μ) :
   (∫ a in (⋃ n, s n), f a ∂μ) = ∑' n, ∫ a in s n, f a ∂ μ :=
-(has_sum.tsum_eq (has_sum_integral_Union_of_null_inter hm hd hfi)).symm
+(has_sum.tsum_eq (has_sum_integral_Union_ae hm hd hfi)).symm
 
 lemma set_integral_eq_zero_of_forall_eq_zero {f : α → E} (hf : measurable f)
   (ht_eq : ∀ x ∈ t, f x = 0) :
@@ -740,8 +732,6 @@ variables {μ : measure α} {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E
   [normed_group F] [normed_space 𝕜 F]
   {p : ennreal}
 
-local attribute [instance] fact_one_le_one_ennreal
-
 namespace continuous_linear_map
 
 variables [measurable_space F] [borel_space F]
@@ -894,5 +884,87 @@ lemma integral_eq_zero_of_forall_integral_inner_eq_zero (f : α → E') (hf : in
 by { specialize hf_int (∫ x, f x ∂μ), rwa [integral_inner hf, inner_self_eq_zero] at hf_int }
 
 end inner
+
+lemma integral_with_density_eq_integral_smul
+  {f : α → ℝ≥0} (f_meas : measurable f) (g : α → E) :
+  ∫ a, g a ∂(μ.with_density (λ x, f x)) = ∫ a, f a • g a ∂μ :=
+begin
+  by_cases hg : integrable g (μ.with_density (λ x, f x)), swap,
+  { rw [integral_undef hg, integral_undef],
+    rwa [← integrable_with_density_iff_integrable_smul f_meas];
+    apply_instance },
+  refine integrable.induction _ _ _ _ _ hg,
+  { assume c s s_meas hs,
+    rw integral_indicator s_meas,
+    simp_rw [← indicator_smul_apply, integral_indicator s_meas],
+    simp only [s_meas, integral_const, measure.restrict_apply', univ_inter, with_density_apply],
+    rw [lintegral_coe_eq_integral, ennreal.to_real_of_real, ← integral_smul_const],
+    { refl },
+    { exact integral_nonneg (λ x, nnreal.coe_nonneg _) },
+    { refine ⟨(f_meas.coe_nnreal_real).ae_measurable, _⟩,
+      rw with_density_apply _ s_meas at hs,
+      rw has_finite_integral,
+      convert hs,
+      ext1 x,
+      simp only [nnreal.nnnorm_eq] } },
+  { assume u u' h_disj u_int u'_int h h',
+    change ∫ (a : α), (u a + u' a) ∂μ.with_density (λ (x : α), ↑(f x)) =
+      ∫ (a : α), f a • (u a + u' a) ∂μ,
+    simp_rw [smul_add],
+    rw [integral_add u_int u'_int, h, h', integral_add],
+    { exact (integrable_with_density_iff_integrable_smul f_meas).1 u_int },
+    { exact (integrable_with_density_iff_integrable_smul f_meas).1 u'_int } },
+  { have C1 : continuous (λ (u : Lp E 1 (μ.with_density (λ x, f x))),
+      ∫ x, u x ∂(μ.with_density (λ x, f x))) := continuous_integral,
+    have C2 : continuous (λ (u : Lp E 1 (μ.with_density (λ x, f x))),
+      ∫ x, f x • u x ∂μ),
+    { have : continuous ((λ (u : Lp E 1 μ), ∫ x, u x ∂μ) ∘ (with_density_smul_li μ f_meas)) :=
+        continuous_integral.comp (with_density_smul_li μ f_meas).continuous,
+      convert this,
+      ext1 u,
+      simp only [function.comp_app, with_density_smul_li_apply],
+      exact integral_congr_ae (mem_ℒ1_smul_of_L1_with_density f_meas u).coe_fn_to_Lp.symm },
+    exact is_closed_eq C1 C2 },
+  { assume u v huv u_int hu,
+    rw [← integral_congr_ae huv, hu],
+    apply integral_congr_ae,
+    filter_upwards [(ae_with_density_iff f_meas.coe_nnreal_ennreal).1 huv] with x hx,
+    rcases eq_or_ne (f x) 0 with h'x|h'x,
+    { simp only [h'x, zero_smul]},
+    { rw [hx _],
+      simpa only [ne.def, ennreal.coe_eq_zero] using h'x } }
+end
+
+lemma integral_with_density_eq_integral_smul₀
+  {f : α → ℝ≥0} (hf : ae_measurable f μ) (g : α → E) :
+  ∫ a, g a ∂(μ.with_density (λ x, f x)) = ∫ a, f a • g a ∂μ :=
+begin
+  let f' := hf.mk _,
+  calc ∫ a, g a ∂(μ.with_density (λ x, f x))
+      = ∫ a, g a ∂(μ.with_density (λ x, f' x)) :
+  begin
+    congr' 1,
+    apply with_density_congr_ae,
+    filter_upwards [hf.ae_eq_mk] with x hx,
+    rw hx,
+  end
+  ... = ∫ a, f' a • g a ∂μ : integral_with_density_eq_integral_smul hf.measurable_mk _
+  ... = ∫ a, f a • g a ∂μ :
+  begin
+    apply integral_congr_ae,
+    filter_upwards [hf.ae_eq_mk] with x hx,
+    rw hx,
+  end
+end
+
+lemma set_integral_with_density_eq_set_integral_smul
+  {f : α → ℝ≥0} (f_meas : measurable f) (g : α → E) {s : set α} (hs : measurable_set s) :
+  ∫ a in s, g a ∂(μ.with_density (λ x, f x)) = ∫ a in s, f a • g a ∂μ :=
+by rw [restrict_with_density hs, integral_with_density_eq_integral_smul f_meas]
+
+lemma set_integral_with_density_eq_set_integral_smul₀ {f : α → ℝ≥0} {s : set α}
+  (hf : ae_measurable f (μ.restrict s)) (g : α → E) (hs : measurable_set s) :
+  ∫ a in s, g a ∂(μ.with_density (λ x, f x)) = ∫ a in s, f a • g a ∂μ :=
+by rw [restrict_with_density hs, integral_with_density_eq_integral_smul₀ hf]
 
 end

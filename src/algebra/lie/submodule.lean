@@ -604,11 +604,11 @@ variables {f}
 (gc_map_comap f).l_sup
 
 lemma map_comap_le : map f (comap f J) ≤ J :=
-by { rw map_le_iff_le_comap, apply le_refl _, }
+by { rw map_le_iff_le_comap, exact le_rfl, }
 
 /-- See also `lie_ideal.map_comap_eq`. -/
 lemma comap_map_le : I ≤ comap f (map f I) :=
-by { rw ← map_le_iff_le_comap, apply le_refl _, }
+by { rw ← map_le_iff_le_comap, exact le_rfl, }
 
 @[mono] lemma map_mono : monotone (map f) :=
 λ I₁ I₂ h,

@@ -49,7 +49,8 @@ di.to_inducing.continuous
 lemma closure_range : closure (range i) = univ :=
 di.dense.closure_range
 
-lemma preconnected_space [preconnected_space α] (di : dense_inducing i) : preconnected_space β :=
+protected lemma preconnected_space [preconnected_space α] (di : dense_inducing i) :
+  preconnected_space β :=
 di.dense.preconnected_space di.continuous
 
 lemma closure_image_mem_nhds {s : set α} {a : α} (di : dense_inducing i) (hs : s ∈ 𝓝 a) :
@@ -69,6 +70,19 @@ begin
   trivial
 end
 
+/-- If `i : α → β` is a dense embedding with dense complement of the range, then any compact set in
+`α` has empty interior. -/
+lemma interior_compact_eq_empty [t2_space β] (di : dense_inducing i) (hd : dense (range i)ᶜ)
+  {s : set α} (hs : is_compact s) : interior s = ∅ :=
+begin
+  refine eq_empty_iff_forall_not_mem.2 (λ x hx, _),
+  rw [mem_interior_iff_mem_nhds] at hx,
+  have := di.closure_image_mem_nhds hx,
+  rw (hs.image di.continuous).is_closed.closure_eq at this,
+  rcases hd.inter_nhds_nonempty this with ⟨y, hyi, hys⟩,
+  exact hyi (image_subset_range _ _ hys)
+end
+
 /-- The product of two dense inducings is a dense inducing -/
 protected lemma prod [topological_space γ] [topological_space δ]
   {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_inducing e₁) (de₂ : dense_inducing e₂) :
@@ -84,9 +98,11 @@ di.dense.separable_space di.continuous
 
 variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 /--
+```
  γ -f→ α
 g↓     ↓e
  δ -h→ β
+```
 -/
 lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (di : dense_inducing i)
   (H : tendsto h (𝓝 d) (𝓝 (i a))) (comm : h ∘ g = i ∘ f) : tendsto f (comap g (𝓝 d)) (𝓝 a) :=

@@ -72,6 +72,11 @@ instance has_lipschitz_mul.has_continuous_mul : has_continuous_mul β :=
     convert lipschitz_with_lipschitz_const_mul_edist ⟨(x₁:β), x₂⟩ ⟨y₁, y₂⟩ using 1
   end⟩ }
 
+@[to_additive] instance mul_opposite.has_lipschitz_mul : has_lipschitz_mul βᵐᵒᵖ :=
+{ lipschitz_mul := ⟨has_lipschitz_mul.C β, λ ⟨x₁, x₂⟩ ⟨y₁, y₂⟩,
+    (lipschitz_with_lipschitz_const_mul_edist ⟨x₂.unop, x₁.unop⟩ ⟨y₂.unop, y₁.unop⟩).trans_eq
+      (congr_arg _ $ max_comm _ _)⟩ }
+
 -- this instance could be deduced from `normed_group.has_lipschitz_add`, but we prove it separately
 -- here so that it is available earlier in the hierarchy
 instance real.has_lipschitz_add : has_lipschitz_add ℝ :=
@@ -161,5 +166,13 @@ instance real.has_bounded_smul : has_bounded_smul ℝ ℝ :=
 instance nnreal.has_bounded_smul : has_bounded_smul ℝ≥0 ℝ≥0 :=
 { dist_smul_pair' := λ x y₁ y₂, by convert dist_smul_pair (x:ℝ) (y₁:ℝ) y₂ using 1,
   dist_pair_smul' := λ x₁ x₂ y, by convert dist_pair_smul (x₁:ℝ) x₂ (y:ℝ) using 1 }
+
+/-- If a scalar is central, then its right action is bounded when its left action is. -/
+instance has_bounded_smul.op [has_scalar αᵐᵒᵖ β] [is_central_scalar α β] :
+  has_bounded_smul αᵐᵒᵖ β :=
+{ dist_smul_pair' := mul_opposite.rec $ λ x y₁ y₂,
+    by simpa only [op_smul_eq_smul] using dist_smul_pair x y₁ y₂,
+  dist_pair_smul' := mul_opposite.rec $ λ x₁, mul_opposite.rec $ λ x₂ y,
+    by simpa only [op_smul_eq_smul] using dist_pair_smul x₁ x₂ y }
 
 end has_bounded_smul

@@ -310,13 +310,12 @@ begin
   exact bot_le,
 end
 
-lemma finset_sup_le_apply {p : ι → seminorm 𝕜 E} {s : finset ι} {x : E} {a : ℝ} (ha : 0 < a)
-  (h: ∀ (i : ι), i ∈ s → p i x ≤ a) : s.sup p x ≤ a :=
+lemma finset_sup_apply_le {p : ι → seminorm 𝕜 E} {s : finset ι} {x : E} {a : ℝ} (ha : 0 ≤ a)
+  (h : ∀ i, i ∈ s → p i x ≤ a) : s.sup p x ≤ a :=
 begin
-  rw [finset_sup_apply, ←a.coe_to_nnreal ha.le, nnreal.coe_le_coe],
-  refine finset.sup_le (λ i hi, _),
-  rw [←nnreal.coe_le_coe, subtype.coe_mk, a.coe_to_nnreal ha.le],
-  exact h i hi,
+  lift a to ℝ≥0 using ha,
+  rw [finset_sup_apply, nnreal.coe_le_coe],
+  exact finset.sup_le h,
 end
 
 lemma finset_sup_lt_apply {p : ι → seminorm 𝕜 E} {s : finset ι} {x : E} {a : ℝ} (ha : 0 < a)

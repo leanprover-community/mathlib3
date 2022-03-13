@@ -6,6 +6,7 @@ Authors: Riccardo Brasca
 
 import data.set.finite
 import data.finset
+import group_theory.quotient_group
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
 
@@ -250,3 +251,17 @@ instance group.fg_of_mul_group_fg [add_group.fg H] : group.fg (multiplicative H)
 add_group.fg_iff_mul_fg.1 ‹_›
 
 end group
+
+section quotient_group
+
+@[to_additive] lemma quotient_group.fg [hG : group.fg G] (N : subgroup G) [subgroup.normal N] :
+  group.fg $ G ⧸ N :=
+let S := group.fg_iff.mp hG in group.fg_iff.mpr ⟨_,
+(subgroup.eq_top_iff' _).mpr $ λ g, subgroup.mem_closure.mpr $ λ H hH,
+  by { rw [← quotient_group.out_eq' g],
+       exact subgroup.mem_comap.mp
+         (subgroup.mem_closure.mp (eq_top_iff.mp S.some_spec.left $ subgroup.mem_top g.out')
+          (subgroup.comap (quotient_group.mk' N) H) $ set.image_subset_iff.mp hH) },
+set.finite.image _ S.some_spec.right⟩
+
+end quotient_group

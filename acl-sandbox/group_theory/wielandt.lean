@@ -988,7 +988,7 @@ end
 
 /- Theorem 8.4 : if the action of a subgroup H on an orbit is primitive,
    and if that orbit is small enough, then the action of G is primitive -/
-theorem is_primitive_of_subgroup' [hfX : fintype X] (htGX : is_pretransitive G X)
+theorem is_primitive_of_subgroup' [hfX : fintype X] [decidable_eq X] (htGX : is_pretransitive G X)
   (H : subgroup G) {C : sub_mul_action H X} (hH : is_preprimitive H C)
   (hC : 2 * C.carrier.to_finset.card > fintype.card X) :
   is_preprimitive G X :=
@@ -1096,12 +1096,10 @@ begin
     apply le_trans _ (hyp' g),
     apply le_of_eq,
     rw ← finset.card_image_of_inj_on (function.injective.inj_on (subtype.coe_injective) _),
-    apply congr_arg,
-
+    refine congr_arg _ _, apply_instance,
     rw [← finset.coe_inj, set.coe_to_finset, finset.coe_image, set.coe_to_finset],
     rw set.inter_comm,
-    simp_rw [← subtype.image_preimage_coe],
-    apply classical.dec_eq X },
+    simp_rw [← subtype.image_preimage_coe] },
 
   -- en déduire que le système de blocs { g • B } a pour cardinal au moins card(C)
   have : C.carrier.to_finset.card ≤ (set.range (λ g, g • B)).to_finset.card,

@@ -7,6 +7,13 @@ import algebra.algebra.operations
 import algebra.algebra.subalgebra.basic
 import ring_theory.subring.pointwise
 
+/-!
+# Pointwise actions on subalgebras.
+
+If `R'` acts on an `R`-algebra `A` (so that `R'` and `R` actions commute)
+then we get an `R'` action on the collection of `R`-subalgebras.
+-/
+
 namespace subalgebra
 
 section pointwise

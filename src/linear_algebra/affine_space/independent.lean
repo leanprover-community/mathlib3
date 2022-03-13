@@ -464,6 +464,18 @@ begin
   { simp only [finset.sum_dite_of_true (λx h, h), subtype.val_eq_coe, finset.mk_coe, f, hwt, hw], },
 end
 
+lemma exists_nontrivial_relation_sum_zero_of_not_affine_ind'
+  {ι} {p : ι → V} (h : ¬ affine_independent k p) : ∃ t : finset ι,
+  (∃ f : ι → k, ∑ e in t, f e • p e = 0 ∧ ∑ e in t, f e = 0 ∧ ∃ x ∈ t, f x ≠ 0) :=
+begin
+  rw affine_independent_def at h,
+  simp only [exists_prop, not_forall] at h,
+  obtain ⟨t, w, hw, hwt, i, hi, hi'⟩ := h,
+  simp only [finset.weighted_vsub_eq_weighted_vsub_of_point_of_sum_eq_zero _ w p hw 0,
+    vsub_eq_sub, finset.weighted_vsub_of_point_apply, sub_zero] at hwt,
+  exact ⟨t, w, hwt, hw, i, hi, hi'⟩
+end
+
 end affine_independent
 
 section division_ring

@@ -45,6 +45,15 @@ instance t2_space_of_metrizable_space
   (α : Type*) [topological_space α] [metrizable_space α] : t2_space α :=
 by { letI : metric_space α := metrizable_space_metric α, apply_instance }
 
+instance metrizable_space_prod (α : Type*) [topological_space α] [metrizable_space α]
+  (β : Type*) [topological_space β] [metrizable_space β] :
+  metrizable_space (α × β) :=
+begin
+  letI : metric_space α := metrizable_space_metric α,
+  letI : metric_space β := metrizable_space_metric β,
+  apply_instance
+end
+
 /-- Given an embedding of a topological space into a metrizable space, the source space is also
 metrizable. -/
 lemma _root_.embedding.metrizable_space {α β : Type*} [topological_space α] [topological_space β]

@@ -1,13 +1,13 @@
 /-
 Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rémy Degenne
+Authors: Rémy Degenne, Sébastien Gouëzel
 -/
-
 import measure_theory.function.ess_sup
 import measure_theory.integral.mean_inequalities
 import topology.continuous_function.compact
 import topology.metric_space.metrizable
+import measure_theory.function.simple_func_dense
 
 /-!
 # Strongly measurable and finitely strongly measurable functions
@@ -56,12 +56,13 @@ results for those functions as if the measure was sigma-finite.
 open measure_theory filter topological_space function
 open_locale ennreal topological_space measure_theory
 
+variables {α β γ : Type*}
 namespace measure_theory
 
 local infixr ` →ₛ `:25 := simple_func
 
 section definitions
-variables {α β : Type*} [topological_space β]
+variable [topological_space β]
 
 /-- A function is `strongly_measurable` if it is the limit of simple functions. -/
 def strongly_measurable [measurable_space α] (f : α → β) : Prop :=
@@ -117,7 +118,7 @@ lemma strongly_measurable_const {α β} {m : measurable_space α} [topological_s
 
 namespace strongly_measurable
 
-variables {α β δ : Type*} {f g : α → β}
+variables {f g : α → β}
 
 section basic_properties_in_any_topological_space
 variables [topological_space β]
@@ -197,6 +198,11 @@ protected lemma measurable [measurable_space α] [topological_space β] [metriza
 measurable_of_tendsto_metrizable (λ n, (hf.approx n).measurable)
   (tendsto_pi_nhds.mpr hf.tendsto_approx)
 
+lemma _root_.continuous.comp_strongly_measurable
+  {m : measurable_space α} [topological_space β] [topological_space γ] {g : β → γ} {f : α → β}
+  (hg : continuous g) (hf : strongly_measurable f) : strongly_measurable (λ x, g (f x)) :=
+⟨λ n, simple_func.map g (hf.approx n), λ x, (hg.tendsto _).comp (hf.tendsto_approx x)⟩
+
 section arithmetic
 variables [measurable_space α] [topological_space β]
 
@@ -235,6 +241,15 @@ begin
   exact ⟨f_approx, hf.tendsto_approx⟩,
 end
 
+protected lemma prod_mk {m : measurable_space α} [topological_space β] [topological_space γ]
+  {f : α → β} {g : α → γ} (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  strongly_measurable (λ x, (f x, g x)) :=
+begin
+  refine ⟨λ n, simple_func.pair (hf.approx n) (hg.approx n), λ x, _⟩,
+  rw nhds_prod_eq,
+  exact tendsto.prod_mk (hf.tendsto_approx x) (hg.tendsto_approx x),
+end
+
 section order
 variables [measurable_space α] [topological_space β]
 
@@ -253,6 +268,36 @@ protected lemma inf [has_inf β] [has_continuous_inf β] (hf : strongly_measurab
 
 end order
 
+section second_countable_strongly_measurable
+
+variables [measurable_space α] [measurable_space β]
+
+/-- In a space with second countable topology, measurable implies strongly measurable. -/
+lemma _root_.measurable.strongly_measurable [topological_space β] [metrizable_space β]
+  [opens_measurable_space β] [second_countable_topology β] (hf : measurable f) :
+  strongly_measurable f :=
+begin
+  letI := metrizable_space_metric β,
+  rcases is_empty_or_nonempty β; resetI,
+  { exact subsingleton.strongly_measurable f, },
+  { inhabit β,
+    exact ⟨simple_func.approx_on f hf set.univ default (set.mem_univ _),
+      λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simp)⟩, },
+end
+
+lemma strongly_measurable_id [topological_space α] [metrizable_space α] [opens_measurable_space α]
+  [second_countable_topology α] :
+  strongly_measurable (id : α → α) :=
+measurable_id.strongly_measurable
+
+/-- In a space with second countable topology, strongly measurable and measurable are equivalent. -/
+lemma strongly_measurable_iff_measurable [metric_space β] [borel_space β]
+  [second_countable_topology β] :
+  strongly_measurable f ↔ measurable f :=
+⟨λ h, h.measurable, λ h, measurable.strongly_measurable h⟩
+
+end second_countable_strongly_measurable
+
 end strongly_measurable
 
 /-! ## Finitely strongly measurable functions -/
@@ -266,7 +311,7 @@ lemma fin_strongly_measurable_zero {α β} {m : measurable_space α} {μ : measu
 
 namespace fin_strongly_measurable
 
-variables {α β : Type*} {m0 : measurable_space α} {μ : measure α} {f g : α → β}
+variables {m0 : measurable_space α} {μ : measure α} {f g : α → β}
 
 lemma ae_fin_strongly_measurable [has_zero β] [topological_space β]
   (hf : fin_strongly_measurable f μ) :
@@ -415,9 +460,14 @@ lemma ae_fin_strongly_measurable_zero {α β} {m : measurable_space α} (μ : me
 
 /-! ### Almost everywhere strongly measurable functions -/
 
+lemma ae_strongly_measurable_const {α β} {m : measurable_space α} {μ : measure α}
+  [topological_space β] {b : β} :
+  ae_strongly_measurable (λ a : α, b) μ :=
+strongly_measurable_const.ae_strongly_measurable
+
 namespace ae_strongly_measurable
 
-variables {α β : Type*} {m : measurable_space α} {μ : measure α} [topological_space β]
+variables {m : measurable_space α} {μ : measure α} [topological_space β] [topological_space γ]
   {f g : α → β}
 
 section mk
@@ -445,32 +495,43 @@ protected lemma ae_measurable {β} [measurable_space β] [topological_space β] 
 
 end mk
 
+/-- The composition of a continuous function and an ae strongly measurable function is ae strongly
+measurable. -/
+lemma _root_.continuous.comp_ae_strongly_measurable {g : β → γ} {f : α → β}
+  (hg : continuous g) (hf : ae_strongly_measurable f μ) :
+  ae_strongly_measurable (λ x, g (f x)) μ :=
+⟨_, hg.comp_strongly_measurable hf.strongly_measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk g⟩
+
 section arithmetic
 
+@[to_additive]
 protected lemma mul [monoid β] [has_continuous_mul β]
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   ae_strongly_measurable (f * g) μ :=
 ⟨hf.mk f * hg.mk g, hf.strongly_measurable_mk.mul hg.strongly_measurable_mk,
   hf.ae_eq_mk.mul hg.ae_eq_mk⟩
 
-protected lemma add [add_monoid β] [has_continuous_add β]
+@[to_additive]
+protected lemma inv [group β] [topological_group β] (hf : ae_strongly_measurable f μ) :
+  ae_strongly_measurable (f⁻¹) μ :=
+⟨(hf.mk f)⁻¹, hf.strongly_measurable_mk.inv, hf.ae_eq_mk.inv⟩
+
+@[to_additive]
+protected lemma div [group β] [topological_group β]
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
-  ae_strongly_measurable (f + g) μ :=
-⟨hf.mk f + hg.mk g, hf.strongly_measurable_mk.add hg.strongly_measurable_mk,
-  hf.ae_eq_mk.add hg.ae_eq_mk⟩
+  ae_strongly_measurable (f / g) μ :=
+⟨hf.mk f / hg.mk g, hf.strongly_measurable_mk.div hg.strongly_measurable_mk,
+  hf.ae_eq_mk.div' hg.ae_eq_mk⟩
 
-protected lemma neg [add_group β] [topological_add_group β] (hf : ae_strongly_measurable f μ) :
-  ae_strongly_measurable (-f) μ :=
-⟨-hf.mk f, hf.strongly_measurable_mk.neg, hf.ae_eq_mk.neg⟩
-
-protected lemma sub [add_group β] [has_continuous_sub β]
+protected lemma sub [add_group β] [topological_add_group β]
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   ae_strongly_measurable (f - g) μ :=
 ⟨hf.mk f - hg.mk g, hf.strongly_measurable_mk.sub hg.strongly_measurable_mk,
   hf.ae_eq_mk.sub hg.ae_eq_mk⟩
 
-protected lemma const_smul {𝕜} [topological_space 𝕜] [add_monoid β] [monoid 𝕜]
-  [distrib_mul_action 𝕜 β] [has_continuous_smul 𝕜 β]
+attribute [to_additive] measure_theory.ae_strongly_measurable.div
+
+protected lemma const_smul {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
   (hf : ae_strongly_measurable f μ) (c : 𝕜) :
   ae_strongly_measurable (c • f) μ :=
 ⟨c • hf.mk f, hf.strongly_measurable_mk.const_smul c, hf.ae_eq_mk.const_smul c⟩
@@ -493,13 +554,43 @@ protected lemma inf [semilattice_inf β] [has_continuous_inf β]
 
 end order
 
+protected lemma prod_mk {f : α → β} {g : α → γ}
+  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+  ae_strongly_measurable (λ x, (f x, g x)) μ :=
+⟨λ x, (hf.mk f x, hg.mk g x), hf.strongly_measurable_mk.prod_mk hg.strongly_measurable_mk,
+  hf.ae_eq_mk.prod_mk hg.ae_eq_mk⟩
+
+section second_countable_ae_strongly_measurable
+
+variables [measurable_space β]
+
+/-- In a space with second countable topology, measurable implies strongly measurable. -/
+lemma _root_.ae_measurable.ae_strongly_measurable [metrizable_space β]
+  [opens_measurable_space β] [second_countable_topology β] (hf : ae_measurable f μ) :
+  ae_strongly_measurable f μ :=
+⟨hf.mk f, hf.measurable_mk.strongly_measurable, hf.ae_eq_mk⟩
+
+lemma ae_strongly_measurable_id {α : Type*} [topological_space α] [metrizable_space α]
+  {m : measurable_space α} [opens_measurable_space α] [second_countable_topology α]
+  {μ : measure α} :
+  ae_strongly_measurable (id : α → α) μ :=
+ae_measurable_id.ae_strongly_measurable
+
+/-- In a space with second countable topology, strongly measurable and measurable are equivalent. -/
+lemma ae_strongly_measurable_iff_ae_measurable [metrizable_space β] [borel_space β]
+  [second_countable_topology β] :
+  ae_strongly_measurable f μ ↔ ae_measurable f μ :=
+⟨λ h, h.ae_measurable, λ h, h.ae_strongly_measurable⟩
+
+end second_countable_ae_strongly_measurable
+
 end ae_strongly_measurable
 
 /-! ### Almost everywhere finitely strongly measurable functions -/
 
 namespace ae_fin_strongly_measurable
 
-variables {α β : Type*} {m : measurable_space α} {μ : measure α} [topological_space β]
+variables {m : measurable_space α} {μ : measure α} [topological_space β]
   {f g : α → β}
 
 section mk

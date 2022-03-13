@@ -7,33 +7,6 @@ open_locale ennreal topological_space measure_theory
 
 namespace measure_theory
 
-section second_countable_strongly_measurable
-variables {α β : Type*} [measurable_space α] [measurable_space β] {f : α → β}
-
-/-- In a space with second countable topology, measurable implies strongly measurable. -/
-lemma _root_.measurable.strongly_measurable [emetric_space β] [opens_measurable_space β]
-  [second_countable_topology β] (hf : measurable f) :
-  strongly_measurable f :=
-begin
-  rcases is_empty_or_nonempty β; resetI,
-  { exact subsingleton.strongly_measurable f, },
-  { inhabit β,
-    exact ⟨simple_func.approx_on f hf set.univ default (set.mem_univ _),
-      λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simp)⟩, },
-end
-
-lemma strongly_measurable_id [emetric_space α] [opens_measurable_space α]
-  [second_countable_topology α] :
-  strongly_measurable (id : α → α) :=
-measurable_id.strongly_measurable
-
-/-- In a space with second countable topology, strongly measurable and measurable are equivalent. -/
-lemma strongly_measurable_iff_measurable [metric_space β] [borel_space β]
-  [second_countable_topology β] :
-  strongly_measurable f ↔ measurable f :=
-⟨λ h, h.measurable, λ h, measurable.strongly_measurable h⟩
-
-end second_countable_strongly_measurable
 
 
 section second_countable_topology

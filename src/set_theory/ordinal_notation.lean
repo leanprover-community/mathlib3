@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
-import set_theory.ordinal_arithmetic
+import set_theory.principal
 
 /-!
 # Ordinal notation
@@ -629,7 +629,7 @@ begin
   cases NF_repr_split h with h₁ h₂,
   cases h₁.of_dvd_omega (split_dvd h) with e0 d,
   have := h₁.fst, have := h₁.snd,
-  refine add_lt_omega_opow h₁.snd'.repr_lt (lt_of_lt_of_le (nat_lt_omega _) _),
+  apply principal_add_omega_opow _ h₁.snd'.repr_lt (lt_of_lt_of_le (nat_lt_omega _) _),
   simpa using opow_le_opow_right omega_pos (one_le_iff_ne_zero.2 e0),
 end
 
@@ -726,7 +726,7 @@ begin
   { rw [RR, ← opow_mul _ _ (succ k.succ)],
     have e0 := ordinal.pos_iff_ne_zero.2 e0,
     have rr0 := lt_of_lt_of_le e0 (le_add_left _ _),
-    apply add_lt_omega_opow,
+    apply principal_add_omega_opow,
     { simp [opow_mul, ω0, opow_add, mul_assoc],
       rw [mul_lt_mul_iff_left ω00, ← ordinal.opow_add],
       have := (No.below_of_lt _).repr_lt, unfold repr at this,
@@ -746,7 +746,7 @@ begin
         add_mul_limit _ (is_limit_iff_omega_dvd.2 ⟨ne_of_gt α0, αd⟩), mul_assoc,
         @mul_omega_dvd n (nat_cast_pos.2 n.pos) (nat_lt_omega _) _ αd],
     apply @add_absorp _ (repr a0 * succ k),
-    { refine add_lt_omega_opow _ Rl,
+    { refine principal_add_omega_opow _ _ Rl,
       rw [opow_mul, opow_succ, mul_lt_mul_iff_left ω00],
       exact No.snd'.repr_lt },
     { have := mul_le_mul_left' (one_le_iff_pos.2 $ nat_cast_pos.2 n.pos) (ω0 ^ succ k),

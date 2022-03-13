@@ -332,7 +332,7 @@ begin
       rcases an with ⟨b, rfl⟩,
       rw mul_ne_zero_iff at h0,
       rw unique_factorization_monoid.squarefree_iff_nodup_normalized_factors h0.1 at hsq,
-      rw [multiset.to_finset_subset, multiset.to_finset_val, hsq.erase_dup, ← associated_iff_eq,
+      rw [multiset.to_finset_subset, multiset.to_finset_val, hsq.dedup, ← associated_iff_eq,
         normalized_factors_mul h0.1 h0.2],
       exact ⟨multiset.subset_of_le (multiset.le_add_right _ _), normalized_factors_prod h0.1⟩ },
     { rintro ⟨s, hs, rfl⟩,
@@ -342,12 +342,12 @@ begin
         simp only [exists_prop, id.def, exists_eq_right],
         intro con,
         apply not_irreducible_zero (irreducible_of_normalized_factor 0
-            (multiset.mem_erase_dup.1 (multiset.mem_of_le hs con))) },
+            (multiset.mem_dedup.1 (multiset.mem_of_le hs con))) },
       rw (normalized_factors_prod h0).symm.dvd_iff_dvd_right,
-      refine ⟨⟨multiset.prod_dvd_prod_of_le (le_trans hs (multiset.erase_dup_le _)), h0⟩, _⟩,
+      refine ⟨⟨multiset.prod_dvd_prod_of_le (le_trans hs (multiset.dedup_le _)), h0⟩, _⟩,
       have h := unique_factorization_monoid.factors_unique irreducible_of_normalized_factor
         (λ x hx, irreducible_of_normalized_factor x (multiset.mem_of_le
-          (le_trans hs (multiset.erase_dup_le _)) hx)) (normalized_factors_prod hs0),
+          (le_trans hs (multiset.dedup_le _)) hx)) (normalized_factors_prod hs0),
       rw [associated_eq_eq, multiset.rel_eq] at h,
       rw [unique_factorization_monoid.squarefree_iff_nodup_normalized_factors hs0, h],
       apply s.nodup } },

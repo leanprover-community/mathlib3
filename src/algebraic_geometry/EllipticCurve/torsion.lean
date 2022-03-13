@@ -71,12 +71,13 @@ section functoriality
 
 variables (φ : K →ₐ[F] L)
 
-/-- Group homomorphism `E(K)[n] → E(L)[n]`. -/
+/-- The group homomorphism `E(K)[n] → E(L)[n]`. -/
 def ker_hom : E⟮K⟯[n] →+ E⟮L⟯[n] :=
 { to_fun    := λ ⟨P, hP⟩, ⟨point_hom φ P,
-  by { change n • P = 0 at hP, change n • _ = (0 : E⟮L⟯), rw [← map_nsmul, hP], refl }⟩,
+  by { change n • P = 0 at hP, change n • _ = (0 : E⟮L⟯), simpa only [← map_nsmul, hP] }⟩,
   map_zero' := rfl,
-  map_add'  := λ ⟨_, _⟩ ⟨_, _⟩, by { change (⟨_, _⟩ : E⟮L⟯[n]) = ⟨_, _⟩, simp only, apply map_add } }
+  map_add'  := λ ⟨_, _⟩ ⟨_, _⟩,
+  by { change (⟨_, _⟩ : E⟮L⟯[n]) = ⟨_, _⟩, simp only, apply map_add } }
 
 @[simp] lemma ker_hom.map_zero : ker_hom n φ 0 = (0 : E⟮L⟯[n]) := (ker_hom n φ).map_zero'
 
@@ -100,7 +101,7 @@ begin
   simpa only [subtype.mk_eq_mk] using point_hom.injective φ hPQ
 end
 
-/-- Canonical inclusion map `E(K)[n] ↪ E(L)[n]`. -/
+/-- The canonical inclusion `E(K)[n] ↪ E(L)[n]`. -/
 def ιₙ : E⟮K⟯[n] →+ E⟮L⟯[n] := ker_hom n $ K⟶[F]L
 
 end functoriality
@@ -114,7 +115,7 @@ variables (σ τ : L ≃ₐ[K] L)
 
 /-- The Galois action `Gal(L/K) ↷ E(L)[n]`. -/
 def ker_gal : E⟮L⟯[n] → E⟮L⟯[n] := λ ⟨P, hP⟩, ⟨σ • P,
-by { change n • P = 0 at hP, change n • σ • P = 0, rw [mul_by.map_smul, hP], refl }⟩
+by { change n • P = 0 at hP, change n • σ • P = 0, simpa only [mul_by.map_smul, hP] }⟩
 
 /-- `Gal(L/K) ↷ E(L)[n]` is a scalar action. -/
 instance : has_scalar (L ≃ₐ[K] L) E⟮L⟯[n] := ⟨ker_gal n⟩
@@ -133,9 +134,8 @@ def ker_gal.fixed : add_subgroup E⟮L⟯[n] :=
   zero_mem' := λ _, rfl,
   add_mem'  :=
   begin
-    rintro ⟨P, _⟩ ⟨Q, _⟩ hP hQ,
-    change ∀ σ : L ≃ₐ[K] L, (⟨σ • P, _⟩ : E⟮L⟯[n]) = ⟨P, _⟩ at hP,
-    change ∀ σ : L ≃ₐ[K] L, (⟨σ • Q, _⟩ : E⟮L⟯[n]) = ⟨Q, _⟩ at hQ,
+    rintro ⟨P, _⟩ ⟨Q, _⟩ (hP : ∀ σ : L ≃ₐ[K] L, (⟨σ • P, _⟩ : E⟮L⟯[n]) = ⟨P, _⟩)
+      (hQ : ∀ σ : L ≃ₐ[K] L, (⟨σ • Q, _⟩ : E⟮L⟯[n]) = ⟨Q, _⟩),
     simp only at hP hQ,
     change ∀ σ : L ≃ₐ[K] L, (⟨σ • (P + Q), _⟩ : E⟮L⟯[n]) = ⟨P + Q, _⟩,
     simp only,
@@ -143,8 +143,7 @@ def ker_gal.fixed : add_subgroup E⟮L⟯[n] :=
   end,
   neg_mem'  :=
   begin
-    rintro ⟨P, _⟩ hP,
-    change ∀ σ : L ≃ₐ[K] L, (⟨σ • P, _⟩ : E⟮L⟯[n]) = ⟨P, _⟩ at hP,
+    rintro ⟨P, _⟩ (hP : ∀ σ : L ≃ₐ[K] L, (⟨σ • P, _⟩ : E⟮L⟯[n]) = ⟨P, _⟩),
     simp only at hP,
     change ∀ σ : L ≃ₐ[K] L, (⟨σ • -P, _⟩ : E⟮L⟯[n]) = ⟨-P, _⟩,
     simp only,
@@ -180,8 +179,7 @@ begin
     { rw [← hQ, ← map_nsmul] at hP,
       change n • Q = 0,
       apply_fun (ιₚ : E⟮K⟯ →+ E⟮L⟯) using point_hom.injective,
-      rw [hP],
-      refl } },
+      simpa only [hP] } },
   { rintro ⟨⟨Q⟩, hQ⟩,
     exact ⟨Q, by injection hQ⟩ }
 end

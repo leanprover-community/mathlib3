@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: María Inés de Frutos-Fernández
 -/
 import algebraic_geometry.prime_spectrum.basic
-import ring_theory.dedekind_domain
+import ring_theory.dedekind_domain.ideal
 import topology.algebra.valued_field
 
 /-!
@@ -103,21 +103,6 @@ lemma of_add_lt (α : Type*) [partial_order α] (x y : α) :
 lemma of_add_inj (α : Type*) (x y : α)
   (hxy : multiplicative.of_add x = multiplicative.of_add y) : x = y :=
 by rw [← to_add_of_add x, ← to_add_of_add y, hxy]
-
--- is_localization lemmas
-lemma is_localization.mk'_zero {R : Type*} [comm_ring R] {M : submonoid R}
-  {S : Type*} [comm_ring S] [algebra R S] [is_localization M S] {y : M} :
-  is_localization.mk' S 0 y = 0 :=
-by rw [eq_comm, is_localization.eq_mk'_iff_mul_eq, zero_mul, map_zero]
-
-lemma is_localization.mk'_num_ne_zero_of_ne_zero {R : Type*} [comm_ring R] {M : submonoid R}
-  {S : Type*} [comm_ring S] [algebra R S] [is_localization M S] {z : S}  {x : R} {y : M}
-  (hxyz : z = is_localization.mk' S x y) (hz : z ≠ 0) : x ≠ 0 :=
-begin
-  intro hx,
-  rw [hx, is_localization.mk'_zero] at hxyz,
-  exact hz hxyz,
-end
 
 variables {A : Type*} [comm_ring A] [is_domain A] {S : Type*} [field S] [algebra A S]
   [is_fraction_ring A S]
@@ -422,11 +407,11 @@ end
 lemma valuation.map_mul' (v : maximal_spectrum R) (x y : K) :
   v.valuation_def (x * y) = v.valuation_def x * v.valuation_def y :=
 begin
-  rw [valuation_def, valuation_def, valuation_def, div_mul_div _ _ _ _,
+  rw [valuation_def, valuation_def, valuation_def, div_mul_div_comm₀,
     ← int_valuation.map_mul', ← int_valuation.map_mul', ← submonoid.coe_mul],
   apply valuation_well_defined K v,
   rw [(classical.some_spec (valuation_def._proof_2 (x * y))), is_fraction_ring.mk'_eq_div,
-    (algebra_map R K).map_mul, submonoid.coe_mul, (algebra_map R K).map_mul, ← div_mul_div,
+    (algebra_map R K).map_mul, submonoid.coe_mul, (algebra_map R K).map_mul, ← div_mul_div_comm₀,
     ← is_fraction_ring.mk'_eq_div, ← is_fraction_ring.mk'_eq_div,
     (classical.some_spec (valuation_def._proof_2 x)),
     (classical.some_spec (valuation_def._proof_2 y))],
@@ -459,8 +444,8 @@ begin
 end
 
 /-- The `v`-adic valuation on `K`. -/
-def valuation (v : maximal_spectrum R) : valuation K (with_zero (multiplicative ℤ)) := {
-  to_fun          := v.valuation_def,
+def valuation (v : maximal_spectrum R) : valuation K (with_zero (multiplicative ℤ)) :=
+{ to_fun          := v.valuation_def,
   map_zero'       := valuation.map_zero' v,
   map_one'        := valuation.map_one' v,
   map_mul'        := valuation.map_mul' v,

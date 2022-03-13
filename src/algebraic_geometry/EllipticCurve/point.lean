@@ -407,13 +407,13 @@ section functoriality
 
 variables (φ : K →ₐ[F] L)
 
-/-- Set function `E(K) → E(L)`. -/
+/-- The set function `E(K) → E(L)`. -/
 def point_hom.to_fun : E⟮K⟯ → E⟮L⟯
 | 0            := 0
 | (some x y w) := some (φ x) (φ y) $
 by { apply_fun φ at w, simp only [map_add, map_mul, map_pow, alg_hom.commutes] at w, exact w }
 
-/-- Group homomorphism `E(K) → E(L)`. -/
+/-- The group homomorphism `E(K) → E(L)`. -/
 def point_hom : E⟮K⟯ →+ E⟮L⟯ :=
 { to_fun    := point_hom.to_fun φ,
   map_zero' := rfl,
@@ -447,7 +447,7 @@ begin
     exact ⟨φ.to_ring_hom.injective hx, φ.to_ring_hom.injective hy⟩ }
 end
 
-/-- Canonical inclusion map `E(K) ↪ E(L)`. -/
+/-- The canonical inclusion `E(K) ↪ E(L)`. -/
 def ιₚ : E⟮K⟯ →+ E⟮L⟯ := point_hom $ K⟶[F]L
 
 end functoriality
@@ -511,9 +511,11 @@ begin
     { apply add_subgroup.zero_mem },
     { change ∀ σ : L ≃ₐ[K] L, σ • some x y w = some x y w at hP,
       simp only [has_scalar.smul, point_gal, forall_and_distrib] at hP,
-      have hx : x ∈ intermediate_field.fixed_field (⊤ : subgroup (L ≃ₐ[K] L)) := λ σ, hP.left σ,
-      have hy : y ∈ intermediate_field.fixed_field (⊤ : subgroup (L ≃ₐ[K] L)) := λ σ, hP.right σ,
-      rw [((@is_galois.tfae K _ L _ _ _).out 0 1).mp _inst_9, intermediate_field.mem_bot] at hx hy,
+      have hx : x ∈ intermediate_field.fixed_field (⊤ : subgroup $ L ≃ₐ[K] L) := λ σ, hP.left σ,
+      have hy : y ∈ intermediate_field.fixed_field (⊤ : subgroup $ L ≃ₐ[K] L) := λ σ, hP.right σ,
+      have hgal : intermediate_field.fixed_field (⊤ : subgroup $ L ≃ₐ[K] L) = ⊥ :=
+      ((@is_galois.tfae K _ L _ _ _).out 0 1).mp _inst_9,
+      rw [hgal, intermediate_field.mem_bot] at hx hy,
       change ∃ x' : K, (K⟶[F]L)x' = x at hx,
       change ∃ y' : K, (K⟶[F]L)y' = y at hy,
       rw [add_monoid_hom.mem_range],
@@ -533,8 +535,9 @@ begin
         simp only at hQ,
         have hx : x ∈ set.range (K↑L) := exists.intro x' hQ.left,
         have hy : y ∈ set.range (K↑L) := exists.intro y' hQ.right,
-        rw [← intermediate_field.mem_bot,
-            ← ((@is_galois.tfae K _ L _ _ _).out 0 1).mp _inst_9] at hx hy,
+        have hgal : intermediate_field.fixed_field (⊤ : subgroup $ L ≃ₐ[K] L) = ⊥ :=
+        ((@is_galois.tfae K _ L _ _ _).out 0 1).mp _inst_9,
+        rw [← intermediate_field.mem_bot, ← hgal] at hx hy,
         simp only [has_scalar.smul, point_gal],
         exact ⟨hx ⟨σ, subgroup.mem_top σ⟩, hy ⟨σ, subgroup.mem_top σ⟩⟩ } } }
 end

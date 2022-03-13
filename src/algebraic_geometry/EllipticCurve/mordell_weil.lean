@@ -7,17 +7,15 @@ Authors: David Kurniadi Angdinata
 import algebra.char_p.algebra
 import group_theory.finiteness
 
-import algebraic_geometry.EllipticCurve.torsion
-
--- Note: temporary
 import algebraic_geometry.EllipticCurve.kummer
+import algebraic_geometry.EllipticCurve.torsion
 
 /-!
 # The Mordell-Weil theorem for an elliptic curve over a number field
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical number_field
 
 universe u
 
@@ -40,14 +38,14 @@ variables (n : ℕ)
 
 /-- `nE(F)` is a subgroup of `ιₚ⁻¹(nE(K))`. -/
 lemma range_le_comap_range : (E⟮F⟯⬝n) ≤ add_subgroup.comap ιₚ E⟮K⟯⬝n :=
-by { rintro P ⟨Q, hQ⟩, rw [← hQ], exact ⟨ιₚ Q, (map_nsmul ιₚ Q n).symm⟩ }
+by { rintro _ ⟨Q, hQ⟩, rw [← hQ], exact ⟨ιₚ Q, (map_nsmul ιₚ Q n).symm⟩ }
 
 /-- The kernel `Φ` of the cokernel map `E(F)/nE(F) → E(K)/nE(K)` induced by `ιₚ : E(F) ↪ E(K)`. -/
 def Φ (E : EllipticCurve F) (K : Type u) [field K] [algebra F K] : add_subgroup E⟮F⟯/n :=
 (quotient_add_group.map _ _ _ $ @range_le_comap_range _ _ _ K _ _ n).ker
 
 /-- If `[P] ∈ Φ`, then `ιₚ(P) ∈ nE(K)`. -/
-lemma Φ_mem_range (P : Φ n E K) : ιₚ (quot.out P.val) ∈ E⟮K⟯⬝n :=
+lemma Φ_mem_range (P : Φ n E K) : ιₚ P.val.out' ∈ E⟮K⟯⬝n :=
 begin
   cases P with P hP,
   change (quotient_add_group.lift _ ((quotient_add_group.mk' _).comp _) _) P = 0 at hP,
@@ -67,17 +65,17 @@ begin
   change σ • mul_by n _ - mul_by n _ = 0,
   rw [(Φ_mem_range n P).some_spec, sub_eq_zero],
   revert σ,
-  change ιₚ (quot.out P.val) ∈ E⟮K⟯^F,
+  change ιₚ P.val.out' ∈ E⟮K⟯^F,
   rw [point_gal.fixed.eq],
-  exact ⟨quot.out P.val, rfl⟩
+  exact ⟨P.val.out', rfl⟩
 end⟩
 
 /-- `κ` is injective. -/
 lemma κ.injective : function.injective $ @κ _ _ E K _ _ n _ _ :=
 begin
   intros P₁_ P₂_ hP_,
-  let P₁ := quot.out P₁_.val,
-  let P₂ := quot.out P₂_.val,
+  let P₁ := P₁_.val.out',
+  let P₂ := P₂_.val.out',
   have hP₁ : ∃ Q₁ : E⟮K⟯, n • Q₁ = ιₚ P₁ := Φ_mem_range n P₁_,
   have hP₂ : ∃ Q₂ : E⟮K⟯, n • Q₂ = ιₚ P₂ := Φ_mem_range n P₂_,
   have hP : hP₁.some - hP₂.some ∈ (ιₚ : E⟮F⟯ →+ E⟮K⟯).range :=
@@ -111,8 +109,8 @@ section complete_2_descent
 
 -- Note: requires minimality of Weierstrass equation
 /-- The primes of a number field dividing `n` or at which `E` has bad reduction. -/
-lemma bad_primes [number_field K] (n : ℕ) : finset $ primes K :=
-@set.to_finset _ {p : primes K | (p.valuation ((F↑K)E.disc_unit) ≠ 1) ∨ (p.valuation ((ℤ↑K)n) < 1)}
+lemma bad_primes [number_field K] (n : ℕ) : finset $ maximal_spectrum $ 𝓞 K :=
+@set.to_finset _ {p : maximal_spectrum $ 𝓞 K | (p.valuation ((F↑K)E.disc_unit) ≠ 1) ∨ (p.valuation ((ℤ↑K)n) < 1)}
 begin
   sorry
 end
@@ -182,7 +180,7 @@ begin
     apply prod.ext,
     all_goals { rw [← quotient_group.out_eq' (δ ha₁ ha₃ h3 Q).1,
                     ← quotient_group.out_eq' (δ ha₁ ha₃ h3 Q).2],
-                exact (quotient_group.eq_one_iff _).mpr ⟨quot.out _, rfl⟩ } }
+                exact (quotient_group.eq_one_iff _).mpr ⟨quotient.out' _, rfl⟩ } }
 end
 
 -- Input: local analysis for `im δ ≤ K(E; 2) × K(E; 2)`

@@ -216,27 +216,11 @@ def pow_alt_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
     intros a b ha hb,
     cases ha with ha1 ha2,
     cases hb with hb1 hb2,
-    left,
-    rw mul_pow,
-    rw ha1,
-    rw hb1,
-    simp,
-    right,
-    rw mul_pow,
-    rw ha1,
-    rw hb2,
-    simp,
+    simp_rw [mul_pow, ha1, hb1, mul_one, eq_self_iff_true, true_or],
+    simp_rw [mul_pow, ha1, hb2, one_mul, eq_self_iff_true, or_true],
     cases hb with hb1 hb2,
-    right,
-    rw mul_pow,
-    rw ha2,
-    rw hb1,
-    simp,
-    left,
-    rw mul_pow,
-    rw ha2,
-    rw hb2,
-    simp,
+    simp_rw [mul_pow, ha2, hb1, mul_one, eq_self_iff_true, or_true],
+    simp_rw [mul_pow, ha2, hb2, mul_neg, mul_one, neg_neg, eq_self_iff_true, true_or],
   end,
   inv_mem' := begin
     simp,
@@ -279,7 +263,7 @@ begin
         sorry, -- TODO(Sean): Prove this using mul_two_power_part_odd_part
       }
     ),
-    let G : subgroup ((zmod n)ˣ) :=
+    --let G : subgroup ((zmod n)ˣ) :=
   },
   {
     sorry,

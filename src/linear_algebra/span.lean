@@ -716,12 +716,6 @@ lemma to_span_singleton_one (x : M) : to_span_singleton R M x 1 = x := one_smul 
 
 end
 
-
-
-end linear_map
-
-namespace submodule
-
 section add_comm_monoid
 
 variables [semiring R] [add_comm_monoid M] [module R M]
@@ -756,6 +750,10 @@ lemma ext_on_range {ι : Type*} {v : ι → M} {f g : M →ₛₗ[σ₁₂] M₂
 ext_on hv (set.forall_range_iff.2 h)
 
 end add_comm_monoid
+
+end linear_map
+
+namespace submodule
 
 section field
 

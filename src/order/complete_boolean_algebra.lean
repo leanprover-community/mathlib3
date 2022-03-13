@@ -211,20 +211,14 @@ section lift
 @[reducible] -- See note [reducible non-instances]
 protected def function.injective.frame [has_sup α] [has_inf α] [has_Sup α] [has_Inf α] [has_top α]
   [has_bot α] [frame β] (f : α → β) (hf : injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
-  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = Sup (f '' s))
-  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = ⨆ a ∈ s, f a)
+  (map_Inf : ∀ s, f (Inf s) = ⨅ a ∈ s, f a) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
   frame α :=
 { inf_Sup_le_supr_inf := λ a s, begin
-    change f (a ⊓ Sup s) ≤ f (Sup $ range $ λ b, Sup _),
-    rw [map_inf, map_Sup, map_Sup, Sup_image, inf_bsupr_eq, ←range_comp],
-    refine le_of_eq _,
-    congr',
-    ext b,
-    refine eq.trans _ (map_Sup _).symm,
-    rw [←range_comp, supr],
-    congr',
-    ext h,
-    exact (map_inf _ _).symm,
+    change f (a ⊓ Sup s) ≤ f _,
+    rw [←Sup_image, map_inf, map_Sup s, inf_bsupr_eq],
+    simp_rw ←map_inf,
+    exact ((map_Sup _).trans supr_image).ge,
   end,
   ..hf.complete_lattice f map_sup map_inf map_Sup map_Inf map_top map_bot }
 
@@ -232,20 +226,14 @@ protected def function.injective.frame [has_sup α] [has_inf α] [has_Sup α] [h
 @[reducible] -- See note [reducible non-instances]
 protected def function.injective.coframe [has_sup α] [has_inf α] [has_Sup α] [has_Inf α] [has_top α]
   [has_bot α] [coframe β] (f : α → β) (hf : injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
-  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = Sup (f '' s))
-  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = ⨆ a ∈ s, f a)
+  (map_Inf : ∀ s, f (Inf s) = ⨅ a ∈ s, f a) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
   coframe α :=
 { infi_sup_le_sup_Inf := λ a s, begin
-    change f (Inf $ range $ λ b, Inf _) ≤ f (a ⊔ Inf s),
-    rw [map_sup, map_Inf s, Inf_image, map_Inf, ←range_comp],
-    refine ((sup_binfi_eq _).trans _ ).ge,
-    congr',
-    ext b,
-    refine eq.trans _ (map_Inf _).symm,
-    rw [←range_comp, infi],
-    congr',
-    ext h,
-    exact (map_sup _ _).symm,
+    change f _ ≤ f (a ⊔ Inf s),
+    rw [←Inf_image, map_sup, map_Inf s, sup_binfi_eq],
+    simp_rw ←map_sup,
+    exact ((map_Inf _).trans infi_image).le,
   end,
   ..hf.complete_lattice f map_sup map_inf map_Sup map_Inf map_top map_bot }
 
@@ -254,8 +242,8 @@ protected def function.injective.coframe [has_sup α] [has_inf α] [has_Sup α] 
 protected def function.injective.complete_distrib_lattice [has_sup α] [has_inf α] [has_Sup α]
   [has_Inf α] [has_top α] [has_bot α] [complete_distrib_lattice β]
   (f : α → β) (hf : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
-  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = Sup (f '' s))
-  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = ⨆ a ∈ s, f a)
+  (map_Inf : ∀ s, f (Inf s) = ⨅ a ∈ s, f a) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
   complete_distrib_lattice α :=
 { ..hf.frame f map_sup map_inf map_Sup map_Inf map_top map_bot,
   ..hf.coframe f map_sup map_inf map_Sup map_Inf map_top map_bot }
@@ -265,8 +253,8 @@ protected def function.injective.complete_distrib_lattice [has_sup α] [has_inf 
 protected def function.injective.complete_boolean_algebra [has_sup α] [has_inf α] [has_Sup α]
   [has_Inf α] [has_top α] [has_bot α] [has_compl α] [has_sdiff α] [complete_boolean_algebra β]
   (f : α → β) (hf : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
-  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = Sup (f '' s))
-  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥)
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = ⨆ a ∈ s, f a)
+  (map_Inf : ∀ s, f (Inf s) = ⨅ a ∈ s, f a) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥)
   (map_compl : ∀ a, f aᶜ = (f a)ᶜ) (map_sdiff : ∀ a b, f (a \ b) = f a \ f b) :
   complete_boolean_algebra α :=
 { ..hf.complete_distrib_lattice f map_sup map_inf map_Sup map_Inf map_top map_bot,

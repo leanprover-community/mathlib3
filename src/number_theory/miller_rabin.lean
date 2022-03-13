@@ -189,8 +189,8 @@ begin
       cases hspp,
       { -- ... a^k = 1
         sorry, -- TODO(Sean)
-      },
-      { -- ... or a^(2^i k) = -1
+    },
+    { -- ... or a^(2^i k) = -1
         rcases hspp with ⟨r, hrlt, hrpow⟩,
         rw lt_iff_exists_add at hrlt,
         rcases hrlt with ⟨c, Hc, hc⟩,
@@ -271,14 +271,19 @@ begin
         {
           exact _inst_1.out,
         },
-        have hn' : n ≠ 0,
+        have hn' : n - 1 ≠ 0,
         {
           simp,
-          exact ne_of_gt hn,
+          have one_lt_p : 1 < p,
+          exact nat.prime.one_lt p_prime,
+          have p_lt_n : p ≤ n,
+          exact nat.le_of_dvd hn p_dvd,
+          exact gt_of_ge_of_gt p_lt_n one_lt_p,
         },
         apply hn',
         clear hn hn',
-        sorry, -- TODO(Sean): Prove this using mul_two_power_part_odd_part
+        rw ← mul_two_power_part_odd_part (n - 1),
+        rw [h, mul_zero],
       }
     ),
     --let G : subgroup ((zmod n)ˣ) :=

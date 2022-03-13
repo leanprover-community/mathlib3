@@ -206,6 +206,9 @@ def mkq : M →ₗ[R] M ⧸ p :=
 
 @[simp] theorem mkq_apply (x : M) : p.mkq x = quotient.mk x := rfl
 
+@[simp] theorem mkq_eq_zero : p.mkq x = 0 ↔ x ∈ p :=
+quotient.mk_eq_zero p
+
 end
 
 variables {R₂ M₂ : Type*} [ring R₂] [add_comm_group M₂] [module R₂ M₂] {τ₁₂ : R →+* R₂}

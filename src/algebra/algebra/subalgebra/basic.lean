@@ -16,7 +16,7 @@ More lemmas about `adjoin` can be found in `ring_theory.adjoin`.
 -/
 universes u u' v w w'
 
-open_locale tensor_product big_operators
+open_locale big_operators
 
 set_option old_structure_cmd true
 

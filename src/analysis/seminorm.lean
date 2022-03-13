@@ -310,6 +310,26 @@ begin
   exact bot_le,
 end
 
+lemma sup_le_apply (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) {a : ℝ} (ha : 0 < a):
+  (∀ (i : ι), i ∈ s → p i x ≤ a) → s.sup p x ≤ a :=
+begin
+  intro h,
+  rw [finset_sup_apply, ←a.coe_to_nnreal ha.le, nnreal.coe_le_coe],
+  refine finset.sup_le (λ i hi, _),
+  rw [←nnreal.coe_le_coe, subtype.coe_mk, a.coe_to_nnreal ha.le],
+  exact h i hi,
+end
+
+lemma sup_lt_apply {p : ι → seminorm 𝕜 E} {s : finset ι} {x : E} {a : ℝ} (ha : 0 < a):
+  (∀ (i : ι), i ∈ s → p i x < a) → s.sup p x < a :=
+begin
+  intro h,
+  rw [finset_sup_apply, ←a.coe_to_nnreal ha.le, nnreal.coe_lt_coe],
+  refine (finset.sup_lt_iff (real.to_nnreal_pos.mpr ha)).mpr (λ i hi, _),
+  rw [←nnreal.coe_lt_coe, subtype.coe_mk, a.coe_to_nnreal ha.le],
+  exact h i hi,
+end
+
 end norm_one_class
 end module
 end semi_normed_ring

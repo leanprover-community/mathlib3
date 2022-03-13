@@ -84,6 +84,13 @@ lemma subsemiring.topological_closure_minimal
   s.topological_closure ≤ t :=
 closure_minimal h ht
 
+/-- If a subsemiring of a topological semiring is commutative, then so is its
+topological closure. -/
+def subsemiring.comm_semiring_topological_closure [t2_space α] (s : subsemiring α)
+  (hs : ∀ (x y : s), x * y = y * x) : comm_semiring s.topological_closure :=
+{ ..s.topological_closure.to_semiring,
+  ..s.to_submonoid.comm_monoid_topological_closure hs }
+
 /-- The product topology on the cartesian product of two topological semirings
   makes the product into a topological semiring. -/
 instance {β : Type*} [semiring β] [topological_space β] [topological_ring β] :
@@ -181,6 +188,12 @@ lemma subring.is_closed_topological_closure (s : subring α) :
 lemma subring.topological_closure_minimal
   (s : subring α) {t : subring α} (h : s ≤ t) (ht : is_closed (t : set α)) :
   s.topological_closure ≤ t := closure_minimal h ht
+
+/-- If a subring of a topological ring is commutative, then so is its topological closure. -/
+def subring.comm_ring_topological_closure [t2_space α] (s : subring α)
+  (hs : ∀ (x y : s), x * y = y * x) : comm_ring s.topological_closure :=
+{ ..s.topological_closure.to_ring,
+  ..s.to_submonoid.comm_monoid_topological_closure hs }
 
 end topological_ring
 

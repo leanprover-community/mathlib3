@@ -15,7 +15,7 @@ Some of the main results include
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical polynomial
 
 open finsupp finset
 
@@ -24,7 +24,7 @@ universes u v w
 variables {R : Type u} {S : Type v} { ι : Type w} {a b : R} {m n : ℕ}
 
 section semiring
-variables [semiring R] {p q r : polynomial R}
+variables [semiring R] {p q r : R[X]}
 
 section degree
 
@@ -49,7 +49,7 @@ else with_bot.coe_le_coe.1 $
         (le_nat_degree_of_ne_zero (mem_support_iff.1 hn))
         (nat.zero_le _))
 
-lemma degree_pos_of_root {p : polynomial R} (hp : p ≠ 0) (h : is_root p a) : 0 < degree p :=
+lemma degree_pos_of_root {p : R[X]} (hp : p ≠ 0) (h : is_root p a) : 0 < degree p :=
 lt_of_not_ge $ λ hlt, begin
   have := eq_C_of_degree_le_zero hlt,
   rw [is_root, this, eval_C] at h,
@@ -61,14 +61,14 @@ lemma nat_degree_le_iff_coeff_eq_zero :
   p.nat_degree ≤ n ↔ ∀ N : ℕ, n < N → p.coeff N = 0 :=
 by simp_rw [nat_degree_le_iff_degree_le, degree_le_iff_coeff_zero, with_bot.coe_lt_coe]
 
-lemma nat_degree_C_mul_le (a : R) (f : polynomial R) :
+lemma nat_degree_C_mul_le (a : R) (f : R[X]) :
   (C a * f).nat_degree ≤ f.nat_degree :=
 calc
   (C a * f).nat_degree ≤ (C a).nat_degree + f.nat_degree : nat_degree_mul_le
   ... = 0 + f.nat_degree : by rw nat_degree_C a
   ... = f.nat_degree : zero_add _
 
-lemma nat_degree_mul_C_le (f : polynomial R) (a : R) :
+lemma nat_degree_mul_C_le (f : R[X]) (a : R) :
   (f * C a).nat_degree ≤ f.nat_degree :=
 calc
   (f * C a).nat_degree ≤ f.nat_degree + (C a).nat_degree : nat_degree_mul_le
@@ -119,7 +119,7 @@ begin
   rwa coeff_C_mul,
 end
 
-lemma nat_degree_add_coeff_mul (f g : polynomial R) :
+lemma nat_degree_add_coeff_mul (f g : R[X]) :
   (f * g).coeff (f.nat_degree + g.nat_degree) = f.coeff f.nat_degree * g.coeff g.nat_degree :=
 by simp only [coeff_nat_degree, coeff_mul_degree_add_degree]
 
@@ -127,7 +127,7 @@ lemma nat_degree_lt_coeff_mul (h : p.nat_degree + q.nat_degree < m + n) :
   (p * q).coeff (m + n) = 0 :=
 coeff_eq_zero_of_nat_degree_lt (nat_degree_mul_le.trans_lt h)
 
-lemma degree_sum_eq_of_disjoint (f : S → polynomial R) (s : finset S)
+lemma degree_sum_eq_of_disjoint (f : S → R[X]) (s : finset S)
   (h : set.pairwise { i | i ∈ s ∧ f i ≠ 0 } (ne on (degree ∘ f))) :
   degree (s.sum f) = s.sup (λ i, degree (f i)) :=
 begin
@@ -153,7 +153,7 @@ begin
     { rw [←IH, sup_eq_left.mpr H.le, degree_add_eq_left_of_degree_lt H] } }
 end
 
-lemma nat_degree_sum_eq_of_disjoint (f : S → polynomial R) (s : finset S)
+lemma nat_degree_sum_eq_of_disjoint (f : S → R[X]) (s : finset S)
   (h : set.pairwise { i | i ∈ s ∧ f i ≠ 0 } (ne on (nat_degree ∘ f))) :
   nat_degree (s.sum f) = s.sup (λ i, nat_degree (f i)) :=
 begin
@@ -188,7 +188,7 @@ end
 
 variables [semiring S]
 
-lemma nat_degree_pos_of_eval₂_root {p : polynomial R} (hp : p ≠ 0) (f : R →+* S)
+lemma nat_degree_pos_of_eval₂_root {p : R[X]} (hp : p ≠ 0) (f : R →+* S)
   {z : S} (hz : eval₂ f z p = 0) (inj : ∀ (x : R), f x = 0 → x = 0) :
   0 < nat_degree p :=
 lt_of_not_ge $ λ hlt, begin
@@ -198,12 +198,12 @@ lt_of_not_ge $ λ hlt, begin
   exact hp A
 end
 
-lemma degree_pos_of_eval₂_root {p : polynomial R} (hp : p ≠ 0) (f : R →+* S)
+lemma degree_pos_of_eval₂_root {p : R[X]} (hp : p ≠ 0) (f : R →+* S)
   {z : S} (hz : eval₂ f z p = 0) (inj : ∀ (x : R), f x = 0 → x = 0) :
   0 < degree p :=
 nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_eval₂_root hp f hz inj)
 
-@[simp] lemma coe_lt_degree {p : polynomial R} {n : ℕ} :
+@[simp] lemma coe_lt_degree {p : R[X]} {n : ℕ} :
   ((n : with_bot ℕ) < degree p) ↔ n < nat_degree p :=
 begin
   by_cases h : p = 0,
@@ -215,7 +215,7 @@ end degree
 end semiring
 
 section no_zero_divisors
-variables [semiring R] [no_zero_divisors R] {p q : polynomial R}
+variables [semiring R] [no_zero_divisors R] {p q : R[X]}
 
 lemma nat_degree_mul_C_eq_of_no_zero_divisors (a0 : a ≠ 0) :
   (p * C a).nat_degree = p.nat_degree :=

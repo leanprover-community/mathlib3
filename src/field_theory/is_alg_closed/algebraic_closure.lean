@@ -25,7 +25,7 @@ algebraic closure, algebraically closed
 
 universes u v w
 noncomputable theory
-open_locale classical big_operators
+open_locale classical big_operators polynomial
 open polynomial
 
 variables (k : Type u) [field k]
@@ -36,7 +36,7 @@ open mv_polynomial
 
 /-- The subtype of monic irreducible polynomials -/
 @[reducible] def monic_irreducible : Type u :=
-{ f : polynomial k // monic f ∧ irreducible f }
+{ f : k[X] // monic f ∧ irreducible f }
 
 /-- Sends a monic irreducible polynomial `f` to `f(x_f)` where `x_f` is a formal indeterminate. -/
 def eval_X_self (f : monic_irreducible k) : mv_polynomial (monic_irreducible k) k :=
@@ -51,7 +51,7 @@ ideal.span $ set.range $ eval_X_self k
 splitting field of the product of the polynomials sending each indeterminate `x_f` represented by
 the polynomial `f` in the finset to a root of `f`. -/
 def to_splitting_field (s : finset (monic_irreducible k)) :
-  mv_polynomial (monic_irreducible k) k →ₐ[k] splitting_field (∏ x in s, x : polynomial k) :=
+  mv_polynomial (monic_irreducible k) k →ₐ[k] splitting_field (∏ x in s, x : k[X]) :=
 mv_polynomial.aeval $ λ f,
   if hf : f ∈ s
   then root_of_splits _
@@ -116,7 +116,7 @@ mv_polynomial.induction_on p (λ x, is_integral_algebra_map) (λ p q, is_integra
               ideal.quotient.eq_zero_iff_mem],
       exact le_max_ideal k (ideal.subset_span ⟨f, rfl⟩) }⟩)
 
-theorem adjoin_monic.exists_root {f : polynomial k} (hfm : f.monic) (hfi : irreducible f) :
+theorem adjoin_monic.exists_root {f : k[X]} (hfm : f.monic) (hfi : irreducible f) :
   ∃ x : adjoin_monic k, f.eval₂ (to_adjoin_monic k) x = 0 :=
 ⟨ideal.quotient.mk _ $ X (⟨f, hfm, hfi⟩ : monic_irreducible k),
  by { rw [to_adjoin_monic, ← hom_eval₂, ideal.quotient.eq_zero_iff_mem],

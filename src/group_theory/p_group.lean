@@ -46,13 +46,13 @@ of_card (subgroup.card_bot.trans (pow_zero p).symm)
 lemma iff_card [fact p.prime] [fintype G] :
   is_p_group p G ↔ ∃ n : ℕ, card G = p ^ n :=
 begin
-  have hG : 0 < card G := card_pos_iff.mpr has_one.nonempty,
+  have hG : card G ≠ 0 := card_ne_zero,
   refine ⟨λ h, _, λ ⟨n, hn⟩, of_card hn⟩,
   suffices : ∀ q ∈ nat.factors (card G), q = p,
   { use (card G).factors.length,
     rw [←list.prod_repeat, ←list.eq_repeat_of_mem this, nat.prod_factors hG] },
   intros q hq,
-  obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG.ne').mp hq,
+  obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG).mp hq,
   haveI : fact q.prime := ⟨hq1⟩,
   obtain ⟨g, hg⟩ := equiv.perm.exists_prime_order_of_dvd_card q hq2,
   obtain ⟨k, hk⟩ := (iff_order_of.mp h) g,

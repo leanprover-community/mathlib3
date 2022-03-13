@@ -40,13 +40,13 @@ equals the number of real roots plus the number of roots not fixed by complex co
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical polynomial
 
 open finite_dimensional
 
 namespace polynomial
 
-variables {F : Type*} [field F] (p q : polynomial F) (E : Type*) [field E] [algebra F E]
+variables {F : Type*} [field F] (p q : F[X]) (E : Type*) [field E] [algebra F E]
 
 /-- The Galois group of a polynomial. -/
 @[derive [group, fintype]]
@@ -74,22 +74,22 @@ def unique_gal_of_splits (h : p.splits (ring_hom.id F)) : unique p.gal :=
 instance [h : fact (p.splits (ring_hom.id F))] : unique p.gal :=
 unique_gal_of_splits _ (h.1)
 
-instance unique_gal_zero : unique (0 : polynomial F).gal :=
+instance unique_gal_zero : unique (0 : F[X]).gal :=
 unique_gal_of_splits _ (splits_zero _)
 
-instance unique_gal_one : unique (1 : polynomial F).gal :=
+instance unique_gal_one : unique (1 : F[X]).gal :=
 unique_gal_of_splits _ (splits_one _)
 
 instance unique_gal_C (x : F) : unique (C x).gal :=
 unique_gal_of_splits _ (splits_C _ _)
 
-instance unique_gal_X : unique (X : polynomial F).gal :=
+instance unique_gal_X : unique (X : F[X]).gal :=
 unique_gal_of_splits _ (splits_X _)
 
 instance unique_gal_X_sub_C (x : F) : unique (X - C x).gal :=
 unique_gal_of_splits _ (splits_X_sub_C _)
 
-instance unique_gal_X_pow (n : ℕ) : unique (X ^ n : polynomial F).gal :=
+instance unique_gal_X_pow (n : ℕ) : unique (X ^ n : F[X]).gal :=
 unique_gal_of_splits _ (splits_X_pow _ _)
 
 instance [h : fact (p.splits (algebra_map F E))] : algebra p.splitting_field E :=
@@ -257,7 +257,7 @@ begin
   { rwa [ne.def, mul_eq_zero, map_eq_zero, map_eq_zero, ←mul_eq_zero] }
 end
 
-lemma mul_splits_in_splitting_field_of_mul {p₁ q₁ p₂ q₂ : polynomial F}
+lemma mul_splits_in_splitting_field_of_mul {p₁ q₁ p₂ q₂ : F[X]}
   (hq₁ : q₁ ≠ 0) (hq₂ : q₂ ≠ 0) (h₁ : p₁.splits (algebra_map F q₁.splitting_field))
   (h₂ : p₂.splits (algebra_map F q₂.splitting_field)) :
   (p₁ * p₂).splits (algebra_map F (q₁ * q₂).splitting_field) :=
@@ -275,8 +275,8 @@ end
 lemma splits_in_splitting_field_of_comp (hq : q.nat_degree ≠ 0) :
   p.splits (algebra_map F (p.comp q).splitting_field) :=
 begin
-  let P : polynomial F → Prop := λ r, r.splits (algebra_map F (r.comp q).splitting_field),
-  have key1 : ∀ {r : polynomial F}, irreducible r → P r,
+  let P : F[X] → Prop := λ r, r.splits (algebra_map F (r.comp q).splitting_field),
+  have key1 : ∀ {r : F[X]}, irreducible r → P r,
   { intros r hr,
     by_cases hr' : nat_degree r = 0,
     { exact splits_of_nat_degree_le_one _ (le_trans (le_of_eq hr') zero_le_one) },
@@ -290,7 +290,7 @@ begin
       (minpoly.ne_zero qx_int)
       (normal.splits h_normal _)
       ((minpoly.irreducible qx_int).dvd_symm hr (minpoly.dvd F _ hx)) },
-  have key2 : ∀ {p₁ p₂ : polynomial F}, P p₁ → P p₂ → P (p₁ * p₂),
+  have key2 : ∀ {p₁ p₂ : F[X]}, P p₁ → P p₂ → P (p₁ * p₂),
   { intros p₁ p₂ hp₁ hp₂,
     by_cases h₁ : p₁.comp q = 0,
     { cases comp_eq_zero_iff.mp h₁ with h h,
@@ -351,14 +351,14 @@ end
 
 section rationals
 
-lemma splits_ℚ_ℂ {p : polynomial ℚ} : fact (p.splits (algebra_map ℚ ℂ)) :=
+lemma splits_ℚ_ℂ {p : ℚ[X]} : fact (p.splits (algebra_map ℚ ℂ)) :=
 ⟨is_alg_closed.splits_codomain p⟩
 
 local attribute [instance] splits_ℚ_ℂ
 
 /-- The number of complex roots equals the number of real roots plus
     the number of roots not fixed by complex conjugation (i.e. with some imaginary component). -/
-lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : polynomial ℚ) :
+lemma card_complex_roots_eq_card_real_add_card_not_gal_inv (p : ℚ[X]) :
   (p.root_set ℂ).to_finset.card = (p.root_set ℝ).to_finset.card +
   (gal_action_hom p ℂ (restrict p ℂ (complex.conj_ae.restrict_scalars ℚ))).support.card :=
 begin
@@ -411,7 +411,7 @@ end
 
 /-- An irreducible polynomial of prime degree with two non-real roots has full Galois group. -/
 lemma gal_action_hom_bijective_of_prime_degree
-  {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
+  {p : ℚ[X]} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
   (p_roots : fintype.card (p.root_set ℂ) = fintype.card (p.root_set ℝ) + 2) :
   function.bijective (gal_action_hom p ℂ) :=
 begin
@@ -439,7 +439,7 @@ end
 
 /-- An irreducible polynomial of prime degree with 1-3 non-real roots has full Galois group. -/
 lemma gal_action_hom_bijective_of_prime_degree'
-  {p : polynomial ℚ} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
+  {p : ℚ[X]} (p_irr : irreducible p) (p_deg : p.nat_degree.prime)
   (p_roots1 : fintype.card (p.root_set ℝ) + 1 ≤ fintype.card (p.root_set ℂ))
   (p_roots2 : fintype.card (p.root_set ℂ) ≤ fintype.card (p.root_set ℝ) + 3) :
   function.bijective (gal_action_hom p ℂ) :=

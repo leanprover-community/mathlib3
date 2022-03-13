@@ -297,7 +297,7 @@ theorem of_inv (h : irrational x⁻¹) : irrational x :=
 λ ⟨q, hq⟩, h $ hq ▸ ⟨q⁻¹, q.cast_inv⟩
 
 protected theorem inv (h : irrational x) : irrational x⁻¹ :=
-of_inv $ by rwa inv_inv₀
+of_inv $ by rwa inv_inv
 
 /-!
 #### Division

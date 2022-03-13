@@ -9,13 +9,22 @@ import data.nat.basic
 # Basic properties of lists
 -/
 
-open function nat
+open function nat (hiding one_pos)
 
 namespace list
 universes u v w x
 variables {ι : Type*} {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 attribute [inline] list.head
+
+-- TODO[gh-6025]: make this an instance once safe to do so
+/-- There is only one list of an empty type -/
+def unique_of_is_empty [is_empty α] : unique (list α) :=
+{ uniq := λ l, match l with
+    | [] := rfl
+    | (a :: l) := is_empty_elim a
+    end,
+  ..list.inhabited α }
 
 instance : is_left_id (list α) has_append.append [] :=
 ⟨ nil_append ⟩
@@ -772,6 +781,10 @@ theorem last'_append_of_ne_nil (l₁ : list α) : ∀ {l₂ : list α} (hl₂ : 
 | [] hl₂ := by contradiction
 | (b::l₂) _ := last'_append_cons l₁ b l₂
 
+theorem last'_append {l₁ l₂ : list α} {x : α} (h : x ∈ l₂.last') :
+  x ∈ (l₁ ++ l₂).last' :=
+by { cases l₂, { contradiction, }, { rw list.last'_append_cons, exact h } }
+
 /-! ### head(') and tail -/
 
 theorem head_eq_head' [inhabited α] (l : list α) : head l = (head' l).iget :=
@@ -794,6 +807,11 @@ by {induction s, contradiction, refl}
 theorem head'_append {s t : list α} {x : α} (h : x ∈ s.head') :
   x ∈ (s ++ t).head' :=
 by { cases s, contradiction, exact h }
+
+theorem head'_append_of_ne_nil : ∀ (l₁ : list α) {l₂ : list α} (hl₁ : l₁ ≠ []),
+  head' (l₁ ++ l₂) = head' l₁
+| [] _ hl₁ := by contradiction
+| (x::l₁) _ _ := rfl
 
 theorem tail_append_singleton_of_ne_nil {a : α} {l : list α} (h : l ≠ nil) :
   tail (l ++ [a]) = tail l ++ [a] :=
@@ -2084,6 +2102,25 @@ end
 | b []      l₂ := rfl
 | b (a::l₁) l₂ := by simp only [cons_append, foldr_cons, foldr_append b l₁ l₂]
 
+theorem foldl_fixed' {f : α → β → α} {a : α} (hf : ∀ b, f a b = a) :
+  Π l : list β, foldl f a l = a
+| []     := rfl
+| (b::l) := by rw [foldl_cons, hf b, foldl_fixed' l]
+
+theorem foldr_fixed' {f : α → β → β} {b : β} (hf : ∀ a, f a b = b) :
+  Π l : list α, foldr f b l = b
+| []     := rfl
+| (a::l) := by rw [foldr_cons, foldr_fixed' l, hf a]
+
+@[simp] theorem foldl_fixed {a : α} : Π l : list β, foldl (λ a b, a) a l = a :=
+foldl_fixed' (λ _, rfl)
+
+@[simp] theorem foldr_fixed {b : β} : Π l : list α, foldr (λ a b, b) b l = b :=
+foldr_fixed' (λ _, rfl)
+
+@[simp] theorem foldl_combinator_K {a : α} : Π l : list β, foldl combinator.K a l = a :=
+foldl_fixed
+
 @[simp] theorem foldl_join (f : α → β → α) :
   ∀ (a : α) (L : list (list β)), foldl f a (join L) = foldl (foldl f) a L
 | a []     := rfl
@@ -2923,6 +2960,9 @@ begin
     have := filter_sublist l, rw e at this,
     exact not_lt_of_ge (length_le_of_sublist this) (lt_succ_self _) }
 end
+
+theorem filter_length_eq_length {l} : (filter p l).length = l.length ↔ ∀ a ∈ l, p a :=
+iff.trans ⟨eq_of_sublist_of_length_eq l.filter_sublist, congr_arg list.length⟩ filter_eq_self
 
 theorem filter_eq_nil {l} : filter p l = [] ↔ ∀ a ∈ l, ¬p a :=
 by simp only [eq_nil_iff_forall_not_mem, mem_filter, not_and]

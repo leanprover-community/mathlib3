@@ -90,11 +90,14 @@ le_trans h (le_Sup hb)
 theorem Sup_le_Sup (h : s ⊆ t) : Sup s ≤ Sup t :=
 (is_lub_Sup s).mono (is_lub_Sup t) h
 
-@[simp] theorem Sup_le_iff : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
+@[simp] theorem Sup_le_iff : Sup s ≤ a ↔ ∀b ∈ s, b ≤ a :=
 is_lub_le_iff (is_lub_Sup s)
 
-lemma le_Sup_iff : a ≤ Sup s ↔ (∀ b ∈ upper_bounds s, a ≤ b) :=
+lemma le_Sup_iff : a ≤ Sup s ↔ ∀ b ∈ upper_bounds s, a ≤ b :=
 ⟨λ h b hb, le_trans h (Sup_le hb), λ hb, hb _ (λ x, le_Sup)⟩
+
+lemma le_supr_iff {s : ι → α} : a ≤ supr s ↔ ∀ b, (∀ i, s i ≤ b) → a ≤ b :=
+by simp [supr, le_Sup_iff, upper_bounds]
 
 theorem Sup_le_Sup_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, x ≤ y) : Sup s ≤ Sup t :=
 le_Sup_iff.2 $ λ b hb, Sup_le $ λ a ha, let ⟨c, hct, hac⟩ := h a ha in hac.trans (hb hct)
@@ -138,8 +141,11 @@ theorem Inf_le_Inf (h : s ⊆ t) : Inf t ≤ Inf s :=
 le_is_glb_iff (is_glb_Inf s)
 
 lemma Inf_le_iff :
-  Inf s ≤ a ↔ (∀ b, (∀ x ∈ s, b ≤ x) → b ≤ a) :=
+  Inf s ≤ a ↔ (∀ b ∈ lower_bounds s, b ≤ a) :=
 ⟨λ h b hb, le_trans (le_Inf hb) h, λ hb, hb _ (λ x, Inf_le)⟩
+
+lemma infi_le_iff {s : ι → α} : infi s ≤ a ↔ (∀ b, (∀ i, b ≤ s i) → b ≤ a) :=
+by simp [infi, Inf_le_iff, lower_bounds]
 
 theorem Inf_le_Inf_of_forall_exists_le (h : ∀ x ∈ s, ∃ y ∈ t, y ≤ x) : Inf t ≤ Inf s :=
 le_of_forall_le begin
@@ -467,7 +473,7 @@ theorem bsupr_le_bsupr' {p q : ι → Prop} (hpq : ∀ i, p i → q i) {f : ι �
   (⨆ i (hpi : p i), f i) ≤ ⨆ i (hqi : q i), f i :=
 supr_le_supr $ λ i, supr_le_supr_const (hpq i)
 
-@[simp] theorem supr_le_iff : supr s ≤ a ↔ (∀i, s i ≤ a) :=
+@[simp] theorem supr_le_iff : supr s ≤ a ↔ ∀ i, s i ≤ a :=
 (is_lub_le_iff is_lub_supr).trans forall_range_iff
 
 theorem supr_lt_iff : supr s < a ↔ ∃ b < a, ∀ i, s i ≤ b :=
@@ -492,9 +498,6 @@ begin
   { apply supr_le (λ t, _),
     exact supr_le (λ ts, Sup_le_Sup (λ x xt, ⟨t, ts, xt⟩)) }
 end
-
-lemma le_supr_iff : (a ≤ supr s) ↔ (∀ b, (∀ i, s i ≤ b) → a ≤ b) :=
-⟨λ h b hb, le_trans h (supr_le hb), λ h, h _ $ λ i, le_supr s i⟩
 
 lemma monotone.le_map_supr [complete_lattice β] {f : α → β} (hf : monotone f) :
   (⨆ i, f (s i)) ≤ f (supr s) :=
@@ -1301,6 +1304,29 @@ lemma disjoint_Sup_right {a : set α} {b : α} (d : disjoint b (Sup a)) {i} (hi 
 
 end complete_lattice
 
+/-- Pullback a `complete_lattice` along an injection. -/
+@[reducible] -- See note [reducible non-instances]
+protected def function.injective.complete_lattice [has_sup α] [has_inf α] [has_Sup α]
+  [has_Inf α] [has_top α] [has_bot α] [complete_lattice β]
+  (f : α → β) (hf : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = Sup (f '' s))
+  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  complete_lattice α :=
+{ Sup := Sup,
+  le_Sup := λ s a h, (le_Sup $ mem_image_of_mem f h).trans (map_Sup _).ge,
+  Sup_le := λ s a h, (map_Sup _).le.trans $ Sup_le $ set.ball_image_of_ball $ by exact h,
+  Inf := Inf,
+  Inf_le := λ s a h, (map_Inf _).le.trans $ Inf_le $ mem_image_of_mem f h,
+  le_Inf := λ s a h, (le_Inf $ set.ball_image_of_ball $ by exact h).trans (map_Inf _).ge,
+  -- we cannot use bounded_order.lift here as the `has_le` instance doesn't exist yet
+  top := ⊤,
+  le_top := λ a, (@le_top β _ _ _).trans map_top.ge,
+  bot := ⊥,
+  bot_le := λ a, map_bot.le.trans bot_le,
+  ..hf.lattice f map_sup map_inf }
+
+/-! ### Supremum independence-/
+
 namespace complete_lattice
 variables [complete_lattice α]
 
@@ -1321,6 +1347,19 @@ theorem set_independent.mono {t : set α} (hst : t ⊆ s) :
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
 lemma set_independent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
 disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, by simp [h.symm]⟩)
+
+lemma set_independent_pair {a b : α} (hab : a ≠ b) :
+  set_independent ({a, b} : set α) ↔ disjoint a b :=
+begin
+  split,
+  { intro h,
+    exact h.disjoint (mem_insert _ _) (mem_insert_of_mem _ (mem_singleton _)) hab, },
+  { rintros h c ((rfl : c = a) | (rfl : c = b)),
+    { convert h using 1,
+      simp [hab, Sup_singleton] },
+    { convert h.symm using 1,
+      simp [hab, Sup_singleton] }, },
+end
 
 include hs
 
@@ -1394,6 +1433,20 @@ lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
 λ i, (hs (f i)).mono_right begin
   refine (supr_le_supr $ λ i, _).trans (supr_comp_le _ f),
   exact supr_le_supr_const hf.ne,
+end
+
+lemma independent_pair {i j : ι} (hij : i ≠ j) (huniv : ∀ k, k = i ∨ k = j):
+  independent t ↔ disjoint (t i) (t j) :=
+begin
+  split,
+  { intro h,
+    exact h.disjoint hij, },
+  { rintros h k,
+    obtain rfl | rfl := huniv k,
+    { refine h.mono_right (supr_le $ λ i, supr_le $ λ hi, eq.le _),
+      rw (huniv i).resolve_left hi },
+    { refine h.symm.mono_right (supr_le $ λ j, supr_le $ λ hj, eq.le _),
+      rw (huniv j).resolve_right hj } },
 end
 
 /-- Composing an indepedent indexed family with an order isomorphism on the elements results in

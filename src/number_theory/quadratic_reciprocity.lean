@@ -166,7 +166,7 @@ begin
       split_ifs,
       { erw [mul_div_cancel' _ hap, val_min_abs_def_pos, val_cast_of_lt (hep hb),
           if_pos (le_of_lt_succ (mem_Ico.1 hb).2), int.nat_abs_of_nat], },
-      { erw [mul_neg_eq_neg_mul_symm, mul_div_cancel' _ hap, nat_abs_val_min_abs_neg,
+      { erw [mul_neg, mul_div_cancel' _ hap, nat_abs_val_min_abs_neg,
           val_min_abs_def_pos, val_cast_of_lt (hep hb), if_pos (le_of_lt_succ (mem_Ico.1 hb).2),
           int.nat_abs_of_nat] } } },
   exact multiset.map_eq_map_of_bij_of_nodup _ _ (finset.nodup _) (finset.nodup _)

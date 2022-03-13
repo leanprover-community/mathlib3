@@ -24,7 +24,7 @@ is the same as being a splitting field (`normal.of_is_splitting_field` and
 noncomputable theory
 
 open_locale big_operators
-open_locale classical
+open_locale classical polynomial
 
 open polynomial is_scalar_tower
 
@@ -62,7 +62,7 @@ variables {K}
 variables (K)
 
 theorem normal.exists_is_splitting_field [h : normal F K] [finite_dimensional F K] :
-  ∃ p : polynomial F, is_splitting_field F K p :=
+  ∃ p : F[X], is_splitting_field F K p :=
 begin
   let s := basis.of_vector_space F K,
   refine ⟨∏ x, minpoly F (s x),
@@ -124,7 +124,7 @@ end
 lemma alg_equiv.transfer_normal (f : E ≃ₐ[F] E') : normal F E ↔ normal F E' :=
 ⟨λ h, by exactI normal.of_alg_equiv f, λ h, by exactI normal.of_alg_equiv f.symm⟩
 
-lemma normal.of_is_splitting_field (p : polynomial F) [hFEp : is_splitting_field F E p] :
+lemma normal.of_is_splitting_field (p : F[X]) [hFEp : is_splitting_field F E p] :
   normal F E :=
 begin
   by_cases hp : p = 0,
@@ -190,7 +190,7 @@ begin
   rw [set.image_singleton, ring_hom.algebra_map_to_algebra, adjoin_root.lift_root]
 end
 
-instance (p : polynomial F) : normal F p.splitting_field := normal.of_is_splitting_field p
+instance (p : F[X]) : normal F p.splitting_field := normal.of_is_splitting_field p
 
 end normal_tower
 

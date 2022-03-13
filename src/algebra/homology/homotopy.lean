@@ -65,12 +65,6 @@ begin
   { dsimp [d_next, from_next], simp },
 end
 
-@[simp, elementwise]
-lemma kernel_subobject_arrow_d_next
-  [has_zero_object V] [has_kernels V] (f : Π i j, C.X i ⟶ D.X j) (i : ι) :
-  (kernel_subobject (C.d_from i)).arrow ≫ d_next i f = 0 :=
-by simp [d_next_eq_d_from_from_next]
-
 lemma d_next_eq (f : Π i j, C.X i ⟶ D.X j) {i i' : ι} (w : c.rel i i') :
   d_next i f = C.d i i' ≫ f i' i :=
 begin

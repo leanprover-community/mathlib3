@@ -29,14 +29,13 @@ namespace Module
 To prove that two maps out of a homology group are equal,
 it suffices to check they are equal on the images of cycles.
 -/
-@[ext]
 lemma homology_ext {L M N K : Module R} {f : L ⟶ M} {g : M ⟶ N} (w : f ≫ g = 0)
   {h k : homology f g w ⟶ K}
   (w : ∀ (x : linear_map.ker g),
     h (cokernel.π (image_to_kernel _ _ w) (to_kernel_subobject x)) =
       k (cokernel.π (image_to_kernel _ _ w) (to_kernel_subobject x))) : h = k :=
 begin
-  ext n,
+  refine cokernel_funext (λ n, _),
   -- Gosh it would be nice if `equiv_rw` could directly use an isomorphism, or an enriched `≃`.
   equiv_rw (kernel_subobject_iso g ≪≫ Module.kernel_iso_ker g).to_linear_equiv.to_equiv at n,
   convert w n; simp [to_kernel_subobject],
@@ -47,7 +46,8 @@ abbreviation to_cycles {C : homological_complex (Module.{u} R) c}
   {i : ι} (x : linear_map.ker (C.d_from i)) : C.cycles i :=
 to_kernel_subobject x
 
-@[ext] lemma cycles_ext {C : homological_complex (Module.{u} R) c} {i : ι}
+@[ext]
+lemma cycles_ext {C : homological_complex (Module.{u} R) c} {i : ι}
   {x y : C.cycles i} (w : (C.cycles i).arrow x = (C.cycles i).arrow y) : x = y :=
 begin
   apply_fun (C.cycles i).arrow using (Module.mono_iff_injective _).mp (cycles C i).arrow_mono,
@@ -67,7 +67,7 @@ abbreviation to_homology
 homology.π (C.d_to i) (C.d_from i) _ (to_cycles x)
 
 @[ext]
-lemma homological_complex.ext {M : Module R} (i : ι) {h k : C.homology i ⟶ M}
+lemma homology_ext' {M : Module R} (i : ι) {h k : C.homology i ⟶ M}
   (w : ∀ (x : linear_map.ker (C.d_from i)), h (to_homology x) = k (to_homology x)) :
   h = k :=
 homology_ext _ w

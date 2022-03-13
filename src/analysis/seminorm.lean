@@ -318,13 +318,13 @@ begin
   exact finset.sup_le h,
 end
 
-lemma finset_sup_lt_apply {p : ι → seminorm 𝕜 E} {s : finset ι} {x : E} {a : ℝ} (ha : 0 < a)
-  (h : ∀ (i : ι), i ∈ s → p i x < a) : s.sup p x < a :=
+lemma finset_sup_apply_lt {p : ι → seminorm 𝕜 E} {s : finset ι} {x : E} {a : ℝ} (ha : 0 < a)
+  (h : ∀ i, i ∈ s → p i x < a) : s.sup p x < a :=
 begin
-  rw [finset_sup_apply, ←a.coe_to_nnreal ha.le, nnreal.coe_lt_coe],
-  refine (finset.sup_lt_iff (real.to_nnreal_pos.mpr ha)).mpr (λ i hi, _),
-  rw [←nnreal.coe_lt_coe, subtype.coe_mk, a.coe_to_nnreal ha.le],
-  exact h i hi,
+  lift a to ℝ≥0 using ha.le,
+  rw [finset_sup_apply, nnreal.coe_lt_coe, finset.sup_lt_iff],
+  { exact h },
+  { exact nnreal.coe_pos.mpr ha },
 end
 
 end norm_one_class

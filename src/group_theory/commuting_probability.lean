@@ -76,13 +76,6 @@ lemma subgroup.commutator_eq_general_commutator {G : Type*} [group G] (H : subgr
   (commutator H).map H.subtype = ⁅H, H⁆ :=
 by rw [map_commutator_eq_general_commutator, subgroup.subtype_range]
 
-lemma map_center_map {G : Type*} [group G] (H : subgroup G) (K : subgroup H) :
-  (subgroup.center (K.map H.subtype)).map (subgroup.subtype _) =
-    (K.center.map K.subtype).map H.subtype :=
-begin
-  sorry
-end
-
 end for_mathlib
 
 noncomputable theory
@@ -314,11 +307,15 @@ begin
   { haveI : (commutator K).characteristic := by apply_instance,
     -- why doesn't apply_instance work directly?
     apply_instance },
-  { have key := commutator_centralizer_commutator_le_center K,
-    rw [←subgroup.map_subtype_le_map_subtype, subgroup.commutator_eq_general_commutator,
-        ←subgroup.map_commutator, map_center_map, subgroup.map_subtype_le_map_subtype],
-    refine (commutator_centralizer_commutator_le_center K).trans _,
-    refine λ a ha, ⟨⟨a, λ b hb, ha b⟩, λ b, subtype.ext (ha b), rfl⟩, },
+  { rw [commutator_def, commutator_def, ←subgroup.map_subtype_le_map_subtype,
+        subgroup.map_commutator, ←monoid_hom.range_eq_map, subgroup.subtype_range],
+    have key := commutator_centralizer_commutator_le_center K,
+    rw [commutator_def, ←subgroup.map_subtype_le_map_subtype, subgroup.map_commutator] at key,
+    refine key.trans _,
+    rintros - ⟨g, hg, rfl⟩,
+    refine ⟨⟨g, g, λ h hh, hg h, rfl⟩, _, rfl⟩,
+    rintros ⟨-, h, hh, rfl⟩,
+    exact subtype.ext (show _, from subtype.ext_iff.mp (hg h)) },
   { refine le_trans _ hK2,
     refine nat.le_of_dvd card_pos _,
     have key : ∀ H : subgroup G, card (commutator H) =

@@ -22,20 +22,6 @@ subtypes `self_adjoint A` and `unitary A`.
 
 section star
 
-lemma star_exp {𝕜 A : Type*} [is_R_or_C 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
-  [star_ring A] [normed_star_monoid A] [complete_space A]
-  [star_module 𝕜 A] (a : A) : star (exp 𝕜 A a) = exp 𝕜 A (star a) :=
-begin
-  rw exp_eq_tsum,
-  have := continuous_linear_map.map_tsum
-    (starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A).to_linear_isometry.to_continuous_linear_map
-    (exp_series_summable' a),
-  dsimp at this,
-  convert this,
-  funext,
-  simp only [star_smul, star_pow, one_div, star_inv', star_nat_cast],
-end
-
 variables {A : Type*}
 [normed_ring A] [normed_algebra ℂ A] [star_ring A] [cstar_ring A] [complete_space A]
 [star_module ℂ A]

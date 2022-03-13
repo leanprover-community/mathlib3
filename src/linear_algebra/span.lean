@@ -759,7 +759,7 @@ end add_comm_monoid
 
 section field
 
-variables (K V) [field K] [add_comm_group V] [module K V]
+variables {K V} [field K] [add_comm_group V] [module K V]
 open linear_map
 
 noncomputable theory
@@ -773,6 +773,8 @@ eq_top_iff.2 (λ y hy, submodule.mem_sup.2 ⟨(f y * (f x)⁻¹) • x,
       by rw [linear_map.mem_ker, f.map_sub, f.map_smul, smul_eq_mul, mul_assoc,
              inv_mul_cancel hx, mul_one, sub_self],
       by simp only [add_sub_cancel'_right]⟩⟩)
+
+variables (K V)
 
 lemma ker_to_span_singleton {x : V} (h : x ≠ 0) : (to_span_singleton K V x).ker = ⊥ :=
 begin

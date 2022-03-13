@@ -1048,6 +1048,27 @@ lemma mem_span_singleton_self (x : P) :
   x ∈ span_singleton S x :=
 (mem_span_singleton S).mpr ⟨1, one_smul _ _⟩
 
+lemma span_singleton_eq_span_singleton [no_zero_smul_divisors R P] {x y : P} (hx : x ≠ 0)
+  (hy : y ≠ 0) : span_singleton S x = span_singleton S y ↔ ∃ z : Rˣ, z • x = y :=
+begin
+  split,
+  { intro hxy,
+    cases (mem_span_singleton S).mp (by { rw [hxy], apply mem_span_singleton_self }) with v hv,
+    cases (mem_span_singleton S).mp (by { rw [← hxy], apply mem_span_singleton_self }) with i hi,
+    have vi : v * i = 1 :=
+    by { rw [← one_smul R y, ← hi, smul_smul, ← sub_eq_zero, ← sub_smul, smul_eq_zero] at hv,
+         exact sub_eq_zero.mp (or.resolve_right hv hy) },
+    have iv : i * v = 1 :=
+    by { rw [← one_smul R x, ← hv, smul_smul, ← sub_eq_zero, ← sub_smul, smul_eq_zero] at hi,
+         exact sub_eq_zero.mp (or.resolve_right hi hx) },
+    exact ⟨⟨v, i, vi, iv⟩, hv⟩ },
+  { rintro ⟨⟨v, i, _, iv⟩, hxy : v • x = y⟩,
+    ext,
+    rw [mem_span_singleton, mem_span_singleton],
+    exact ⟨λ ⟨z, hz⟩, ⟨z * i, by rw [← smul_smul, ← hxy, smul_smul i v, iv, one_smul, ← hz]⟩,
+           λ ⟨z, hz⟩, ⟨z * v, by rw [← smul_smul, ← hz, ← hxy]⟩⟩ }
+end
+
 variables {S}
 
 lemma eq_span_singleton_of_principal (I : fractional_ideal S P)
@@ -1084,6 +1105,14 @@ lemma span_singleton_mul_span_singleton (x y : P) :
 begin
   apply coe_to_submodule_injective,
   simp only [coe_mul, coe_span_singleton, span_mul_span, singleton_mul_singleton],
+end
+
+@[simp]
+lemma span_singleton_pow (x : P) (n : ℕ) : span_singleton S x ^ n = span_singleton S (x ^ n) :=
+begin
+  induction n with n hn,
+  { rw [pow_zero, pow_zero, span_singleton_one] },
+  { rw [pow_succ, hn, span_singleton_mul_span_singleton, pow_succ] }
 end
 
 @[simp]

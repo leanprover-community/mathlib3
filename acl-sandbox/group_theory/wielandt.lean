@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Chambert-Loir
 -/
 
-/- import group_theory.subgroup.pointwise
+import group_theory.subgroup.pointwise
 import group_theory.coset
 import group_theory.quotient_group
 import group_theory.abelianization
@@ -14,14 +14,14 @@ import group_theory.group_action.group
 import group_theory.group_action.conj_act
 import .ad_sub_mul_actions
 -- import order.partition.finpartition
--/
+
 import data.setoid.partition
 import data.set.basic
 import data.fintype.basic
 import order.rel_classes
 import algebra.big_operators.order
 
-open_locale big_operators -- pointwise
+open_locale big_operators pointwise
 
 open_locale classical
 
@@ -968,30 +968,6 @@ begin
     exact h },
 end
 
-
-lemma set.coe_subtype_eq_inter {α : Type*} (s t : set α) :
-  set.image coe { x : ↥s | ↑x ∈ t } = s ∩ t :=
-begin
-  ext x,
-  rw set.mem_image,
-  split,
-  { rintro ⟨a, ha, ha'⟩,
-    simp only [set.mem_set_of_eq] at ha,
-    rw ← ha',
-    simp only [set.mem_inter_eq, subtype.coe_prop, true_and, ha] },
-  { intro h, rw set.mem_inter_eq at h,
-    use ⟨x, h.left⟩,
-    simp only [h.right, set.mem_set_of_eq, subtype.coe_mk, eq_self_iff_true, and_self] }
-end
-
-example {C : sub_mul_action G X} (B : set X) :
-  set.image coe (coe ⁻¹' B : set C) = B ∩ ↑C :=
-begin
-  simp only [subtype.image_preimage_coe, set_like.mem_coe],
-  refl
-end
-
-
 lemma setoid.is_partition.card_eq_sum_parts {α : Type*} [fintype α] {s : set α} {P : set (set α)}
   (hP : setoid.is_partition P) :
   s.to_finset.card =
@@ -1010,18 +986,6 @@ begin
       (setoid.is_partition.pairwise_disjoint hP ht hu htu) }
 end
 
-example (α : Type*) [fintype α] (s : set α) (P : set (set α))
-  (hP : setoid.is_partition P) (hP' : ∀ (t : set α), t ∈ P → (s ∩ t).to_finset.card ≤ 1) :
-  s.to_finset.card ≤ P.to_finset.card :=
-begin
-  rw setoid.is_partition.card_eq_sum_parts hP,
-  rw finset.card_eq_sum_ones,
-  refine finset.sum_le_sum _,
-  intros t ht,
-  exact hP' t (set.mem_to_finset.mp ht) ,
-end
-
-
 /- Theorem 8.4 : if the action of a subgroup H on an orbit is primitive,
    and if that orbit is small enough, then the action of G is primitive -/
 theorem is_primitive_of_subgroup' [hfX : fintype X] (htGX : is_pretransitive G X)
@@ -1034,36 +998,32 @@ begin
   cases set.eq_empty_or_nonempty B with hB_e hB_ne,
   { exact or.intro_left _ hB_e, },
   apply or.intro_right,
-  let hfB := set.finite.of_fintype B,
-  have hba : ∀ (g : G), is_block H C (coe ⁻¹' (g • B)),
-  { intro g,
-    apply sub_mul_action.is_block,
-    exact subgroup.is_block G X (is_block_of_block G X g hB) },
+
+  rw or_iff_not_imp_right,
+  intro hB_nt,
+
+  -- hB_ne : B.nonempty
   have hB_ne' : 0 < fintype.card B,
   { rw [fintype.card_pos_iff, set.nonempty_coe_sort], exact hB_ne },
-  cases em (∃ (g : G), (C : set X) ≤ (g • B)) with hyp hyp,
-  { obtain ⟨g,hg⟩ := hyp,
-    suffices : 2 * B.to_finset.card > fintype.card X,
-    { obtain ⟨k, hXk⟩ := @card_of_block_divides G X _ _ _ _ B hB_ne hB,
-      simp only [mul_comm, hXk, set.to_finset_card] at this,
-      have hk : k < 2, { rw ← (mul_lt_mul_right hB_ne'), exact this },
 
-      cases nat.eq_or_lt_of_le (nat.le_of_lt_succ hk) with hk1 hk0,
-      { rw [hk1, mul_one] at hXk,
-        apply or.intro_right, simp only [set.top_eq_univ],
-        rw [← set.coe_to_finset B, ← finset.coe_univ, finset.coe_inj],
-        apply finset.eq_univ_of_card B.to_finset, rw hXk,
-        exact set.to_finset_card B },
-      { rw [nat.eq_zero_of_le_zero (nat.le_of_lt_succ hk0), mul_zero] at hXk,
-        exfalso,
-        have : fintype.card ↥B ≤ fintype.card X := set_fintype_card_le_univ B,
-        rw hXk at this,
-        rw (nat.eq_zero_of_le_zero this) at hB_ne',
-        exact lt_irrefl 0 hB_ne' } },
-    apply lt_of_lt_of_le hC,
-    simp only [mul_le_mul_left, nat.succ_pos'],
-    have : B.to_finset.card = (g • B).to_finset.card,
-    { rw finset.card_congr (λ b hb, g • b) _ _ _ ,
+
+  suffices : fintype.card B < 2,
+  { simp_rw [← set.to_finset_inj, set.to_finset_singleton],
+-- have : ∀ (x : X), ({x} : set X).to_finset = {x},
+-- intro x, exact set.to_finset_singleton x,
+    rw ← finset.card_eq_one,
+    rw ← fintype.card_coe ,
+
+    have thisB : ↥(B.to_finset)=↥B,
+    { rw ← finset.coe_sort_coe, simp only [set.coe_to_finset] },
+    simp_rw thisB,
+    apply nat.le_antisymm
+    (nat.le_of_lt_succ this)
+    hB_ne' },
+
+    have hcard_eq : ∀ (g : G), B.to_finset.card = (g • B).to_finset.card,
+    { intro g,
+      rw finset.card_congr (λ b hb, g • b) _ _ _ ,
       swap,
       { intros a ha, simp, simp at ha, exact ⟨a,ha,rfl⟩, },
       { intros a b _ _ h,
@@ -1073,7 +1033,36 @@ begin
         simp only [set.mem_to_finset] at hb,
         obtain ⟨a, ha, rfl⟩ := hb,
         use a, use (set.mem_to_finset.mpr ha) } },
-    rw this,
+
+  have hba : ∀ (g : G), is_block H C (coe ⁻¹' (g • B)),
+  { intro g,
+    apply sub_mul_action.is_block,
+    exact subgroup.is_block G X (is_block_of_block G X g hB) },
+
+  have hyp : ∀ (g : G), ¬ (C : set X) ≤ (g • B),
+  { intros g hg,
+    suffices : 2 * B.to_finset.card > fintype.card X,
+    { obtain ⟨k, hXk⟩ := @card_of_block_divides G X _ _ _ _ B hB_ne hB,
+      simp only [mul_comm, hXk, set.to_finset_card] at this,
+      have hk : k < 2, { rw ← (mul_lt_mul_right hB_ne'), exact this },
+
+      cases nat.eq_or_lt_of_le (nat.le_of_lt_succ hk) with hk1 hk0,
+      { apply hB_nt,
+        rw [hk1, mul_one] at hXk,
+        simp only [set.top_eq_univ],
+        rw [← set.coe_to_finset B, ← finset.coe_univ, finset.coe_inj],
+        apply finset.eq_univ_of_card B.to_finset, rw hXk,
+        exact set.to_finset_card B },
+      { rw [nat.eq_zero_of_le_zero (nat.le_of_lt_succ hk0), mul_zero] at hXk,
+        exfalso,
+        have : fintype.card ↥B ≤ fintype.card X := set_fintype_card_le_univ B,
+        rw hXk at this,
+        rw (nat.eq_zero_of_le_zero this) at hB_ne',
+        exact lt_irrefl 0 hB_ne' } },
+
+    apply lt_of_lt_of_le hC,
+    simp only [mul_le_mul_left, nat.succ_pos'],
+    rw hcard_eq,
     rw set.le_eq_subset at hg,
     refine le_trans _ (finset.card_le_of_subset (set.to_finset_mono.mpr hg)),
     apply le_of_eq, apply congr_arg,
@@ -1081,6 +1070,7 @@ begin
 
   -- À ce point, on a prouvé hyp :
   -- ∀ g, g • B ne contient pas C.
+  -- On reformule :
   have hyp : ∀ (g : G), (coe ⁻¹' (g • B) : set C) ≠ (⊤ : set C),
   { simp only [not_exists, set.le_eq_subset] at hyp,
     intros g h,
@@ -1091,7 +1081,7 @@ begin
     rw [← h, set.mem_preimage, sub_mul_action.coe_mk] at hx',
     exact hx' },
 
-  -- en déduire, via la primitivité (hH), que (C ∩ (g • B)) ≤ 1
+  -- en déduire, via la preprimitivité (hH), que (C ∩ (g • B)) ≤ 1
   have hyp' : ∀ (g : G), (coe ⁻¹' (g • B) : set C).to_finset.card ≤ 1,
   { intro g,
     cases hH.has_trivial_blocks (hba g) with h h',
@@ -1100,319 +1090,49 @@ begin
     { obtain ⟨x, h⟩ := h, rw h, simp only [set.to_finset_card, fintype.card_unique] },
     { exfalso, exact hyp g h, } },
 
---  let z := (is_block_system.of_block G X hB hB_ne).left,
-  have z : (set.range (λ (g : G), g • B)).to_finset.card ≥ C.carrier.to_finset.card,
+  -- on reformule :
+  have hyp' : ∀ (g : G), (C.carrier ∩ (g • B)).to_finset.card ≤ 1,
+  { intro g,
+    apply le_trans _ (hyp' g),
+    apply le_of_eq,
+    rw ← finset.card_image_of_inj_on (function.injective.inj_on (subtype.coe_injective) _),
+    apply congr_arg,
+
+    rw [← finset.coe_inj, set.coe_to_finset, finset.coe_image, set.coe_to_finset],
+    rw set.inter_comm,
+    simp_rw [← subtype.image_preimage_coe],
+    apply classical.dec_eq X },
 
   -- en déduire que le système de blocs { g • B } a pour cardinal au moins card(C)
-  -- mais c'est card(X)/card(B),
-  -- donc card(X)/card(B) ≥ card(C) > n/2
-  -- donc card(B) < 2
-  sorry, sorry
+  have : C.carrier.to_finset.card ≤ (set.range (λ g, g • B)).to_finset.card,
+  { rw setoid.is_partition.card_eq_sum_parts
+      (is_block_system.of_block G X hB hB_ne).left,
+    rw finset.card_eq_sum_ones,
+    refine finset.sum_le_sum _,
+    intros t ht,
+    simp only [set.mem_to_finset, set.mem_range] at ht,
+    obtain ⟨g, ht⟩ := ht,
+    rw ← ht,
+    exact (hyp' g) },
+
+  have thisX : fintype.card X = fintype.card B * (set.range (λ (g : G), g • B)).to_finset.card,
+  { rw ← @card_of_block_mul_card_of_orbit_of G X _ _ _ _ B hB_ne hB,
+    conv_rhs { rw mul_comm, },
+    apply congr_arg2,
+    { apply congr_arg,
+      rw [← finset.coe_inj, set.coe_to_finset, set.finite.coe_to_finset],
+      refl },
+    refl },
+
+  /- On peut conclure que B < 2 :
+ via thisX : X = P * B, this : C ≤ P, hC : 2 * C > X -/
+
+  rw thisX at hC, -- 2 * C > P * B
+  apply lt_of_mul_lt_mul_right',
+  apply lt_of_le_of_lt _ hC,
+  exact nat.mul_le_mul_left _ this,
 end
-
-
-
-#exit
-
-
-
-  -- en déduire que le système de blocs { g • B } a pour cardinal au moins (orbit ↥H a)
-  -- mais c'est card(X)/card(B),
-  -- donc card(X)/card(B) ≥ card(orbit ↥H a) > n/2
-  -- donc card(B) < 2
-    sorry, sorry}, sorry,
-end
-
 
 end mul_action
 
 end FundamentalConcepts
-
-#exit
-
-
-
-example (α : Type*) [fintype α] (s : set α) (a : α) (h : s.to_finset = {a}) :
-  s = {a} :=
-begin
-  suffices : ({a} : finset α) = ({a} : set α).to_finset,
-  { rw this at h,
-    simpa [← finset.coe_inj, set.coe_to_finset] using h },
-  ext,
-  simp only [finset.mem_singleton, set.mem_to_finset, set.mem_singleton_iff]
-end
-
-
-  /-
-  theorem is_primitive_of_subgroup [hfX : fintype X] (htGX : is_pretransitive G X)
-  (H : subgroup G) (a : X) (hH : is_preprimitive H (orbit H a)) :
-  let hf_orbit :=  set.finite.of_fintype (orbit H a) in
-  (2 * hf_orbit.to_finset.card > fintype.card X) →
-  is_preprimitive G X :=
-  begin
-    let hf_orbit := set.finite.of_fintype (orbit H a),
-    simp only,
-    intro hA,
-    apply is_preprimitive.mk htGX,
-    intros B hB,
-    cases set.eq_empty_or_nonempty B with hB_e hB_ne,
-    { exact or.intro_left _ hB_e, },
-    apply or.intro_right,
-    let hfB := set.finite.of_fintype B,
-    have hba : ∀ (g : G), is_block H X ((orbit H a) ∩ (g • B)),
-    { intro g,
-      apply is_block.inter H X,
-      exact is_block_of_orbit H X a,
-      apply subgroup.is_block,
-      apply is_block_of_block,
-      exact hB },
-
-    have hB_ne' : 0 < fintype.card B,
-    { rw [fintype.card_pos_iff, set.nonempty_coe_sort], exact hB_ne },
-    cases em (∃ (g : G), (orbit H a) ≤ (g • B)) with hyp hyp,
-    { obtain ⟨g,hg⟩ := hyp,
-      suffices : 2 * B.to_finset.card > fintype.card X,
-      { obtain ⟨k, hXk⟩ := @card_of_block_divides G X _ _ _ _ B hB_ne hB,
-        simp only [mul_comm, hXk, set.to_finset_card] at this,
-        have hk : k < 2,
-        { rw ← (mul_lt_mul_right hB_ne'), exact this },
-
-        cases nat.eq_or_lt_of_le (nat.le_of_lt_succ hk) with hk1 hk0,
-        { rw [hk1, mul_one] at hXk,
-          apply or.intro_right, simp only [set.top_eq_univ],
-          rw [← set.coe_to_finset B, ← finset.coe_univ, finset.coe_inj],
-          apply finset.eq_univ_of_card B.to_finset, rw hXk,
-          exact set.to_finset_card B },
-        { rw [nat.eq_zero_of_le_zero (nat.le_of_lt_succ hk0), mul_zero] at hXk,
-          exfalso,
-          have : fintype.card ↥B ≤ fintype.card X := set_fintype_card_le_univ B,
-          rw hXk at this,
-          rw (nat.eq_zero_of_le_zero this) at hB_ne',
-          exact lt_irrefl 0 hB_ne' } },
-
-      apply lt_of_lt_of_le hA,
-      simp only [mul_le_mul_left, nat.succ_pos'],
-
-      have : B.to_finset.card = (g • B).to_finset.card,
-      { rw finset.card_congr (λ b hb, g • b) _ _ _ ,
-        swap,
-        { intros a ha, simp, simp at ha, exact ⟨a,ha,rfl⟩, },
-        { intros a b _ _ h,
-          apply mul_action.injective g,
-          simp only at h, exact h },
-        { intros b hb,
-          simp only [set.mem_to_finset] at hb,
-          obtain ⟨a, ha, rfl⟩ := hb,
-          use a, use (set.mem_to_finset.mpr ha) } },
-      rw this,
-      rw set.le_eq_subset at hg,
-      refine le_trans _ (finset.card_le_of_subset (set.to_finset_mono.mpr hg)),
-      apply le_of_eq, apply congr_arg,
-      simp only [← finset.coe_inj, set.finite.coe_to_finset, set.coe_to_finset] },
-
-  -- À ce point, on a prouvé hyp :
-  -- ∀ g, g • B ne contient pas l'orbite de a sous H.
-  have hyp : ∀ (g : G), (orbit ↥H a) ∩ (g • B) ≠ (orbit ↥H a),
-  { simp only [not_exists, set.le_eq_subset] at hyp,
-    intros g h, apply hyp g, intros x hx,
-    rw ← h at hx, exact set.mem_of_mem_inter_right hx },
-
-  -- en déduire, via la primitivité (hH), que ((orbit ↥H a) ∩ (g • B)) ≤ 1
-  have hyp' : ∀ (g : G), ((orbit ↥H a) ∩ (g • B)).to_finset.card ≤ 1,
-  { intro g,
-    let Bg := {x : ↥(orbit ↥H a) | ↑x ∈ g • B} ,
-    have hBg' := set.coe_subtype_eq_inter (orbit H a) (g • B),
-
-    have hBg : is_block H (orbit ↥H a) Bg,
-    { intro h,
-      suffices : is_block H X ((orbit H a) ∩ (g • B)),
-      { cases this h with h1 h2,
-        sorry,
-
-      sorry },
-
-
-      sorry, },
-
-    have : Bg ≠ set.univ, sorry,
-    cases (hH.has_trivial_blocks hBg) with h h',
-
-
-
-
-
-    sorry },
-  -- en déduire que le système de blocs { g • B } a pour cardinal au moins (orbit ↥H a)
-  -- mais c'est card(X)/card(B),
-  -- donc card(X)/card(B) ≥ card(orbit ↥H a) > n/2
-  -- donc card(B) < 2
-    sorry
-  end
--/
-
-lemma is_block.subgroup_orbit_inter_block (H : subgroup G) (a : X)
-  {B : set X} (hB : is_block G X B) :
-  is_block H (orbit H a) { x : ↥(orbit H a) | ↑x ∈ B } :=
-begin
-  intro h,
-  cases hB ↑h with H1 H2,
-  { apply or.intro_left,
-    ext x,
-    split,
-    { rintro ⟨y, hy, rfl⟩,
-      simp only [set.mem_set_of_eq] at hy ⊢,
-      simp only [orbit.coe_smul], rw ← H1,
-      exact ⟨↑y, hy, rfl⟩, },
-    { intro hx,
-      simp only [set.mem_set_of_eq] at hx,
-      use h⁻¹ • x,
-      simp only [set.mem_set_of_eq, orbit.coe_smul, smul_inv_smul, eq_self_iff_true, and_true],
-      rw ← mem_smul_set_iff_inv_smul_mem,
-      change  h • B = B at H1, rw H1, exact hx } },
-  { apply or.intro_right,
-    simp only [disjoint_iff, set.inf_eq_inter, set.bot_eq_empty, set.eq_empty_iff_forall_not_mem],
-    intros x hx,
-    refine set.disjoint_left.mp H2 _ _,
-    use ↑x,
-    { obtain ⟨y, hy, hy'⟩ := hx.left,
-      rw ← hy',
-      simp only [orbit.coe_smul],
-      exact set.smul_mem_smul_set (set.mem_set_of_eq.mp hy) },
-    exact hx.right }
-end
-
-example (H : subgroup G)
-  {C : set X} (hC : is_block H X C)
-  {B : set X} (hB : is_block G X B) :
-  is_block H X (B ∩ C) :=
-begin
-  apply is_block.inter,
-  apply subgroup.is_block, exact hB,
-  exact hC
-end
-
-example (H : subgroup G)
-  {C : sub_mul_action H X}
-  {B : set X} (hB : is_block G X B) :
-  is_block H C {x : ↥C | ↑x ∈ B} :=
-begin
-
-end
-
-
-lemma test (m n : ℕ) (hm : 2 * m > n) (hn : n > 0) (hmn : m ∣ n) : m  = n :=
-begin
-  let hkm := nat.div_mul_cancel hmn,
-  rw ← nat.div_mul_cancel hmn at hm,
- --  suffices : n/m = 1,
- --  { rw this at hk, simpa only [one_mul] using hk },
-  --  rw mul_le_mul_iff_left at hm,
-  cases nat.eq_zero_or_pos (n/m) with hk hk,
-  { exfalso,
-    rw [hk, zero_mul] at hkm,
-    apply gt_irrefl n,
-    rw hkm at hn, exact hn },
-  cases nat.eq_or_lt_of_le hk with hk hk,
-  { rw [← hkm, ← hk, one_mul] },
-  exfalso,
-  apply not_lt.mpr (nat.succ_le_iff.mpr hk),
-  exact lt_of_mul_lt_mul_right' hm,
-end
-
-
-end mul_action
-
-end FundamentalConcepts
-
-
-
-#exit
-
-
-example (hX : fintype X) (A : set X) : A.finite :=
-begin
-exact set.finite.of_fintype A,
-end
-
-
-example (A B : set X) (h : A ≤ B) (hB : B.finite) :
-let hA : A.finite := set.finite.subset hB h in
-hA.to_finset.card ≤ hB.to_finset.card :=
-begin
-  let hA := set.finite.subset hB h,
-
-  simp,
-  rw @set.finite.card_to_finset _ _ hA.fintype hA,
-  rw @set.finite.card_to_finset _ _ hB.fintype hB,
-  apply set.card_le_of_subset,
-  apply h,
-end
-
-example (hX : fintype X) (A B : set X) (h : A ≤ B)  :
-let hA : set.finite A := set.finite.of_fintype A in
-let hB : set.finite B := set.finite.of_fintype B in
-hA.to_finset.card ≤ hB.to_finset.card :=
-begin
-  let hA := set.finite.of_fintype A,
-  let hB := set.finite.of_fintype B,
-  simp,
-  apply finset.card_le_of_subset,
-  rw set.finite.to_finset_mono,
-  exact h,
-end
-
-example (s t : set X) (hs : s.finite) (ht : t.finite) (hst : s ≤ t)
-(hc : hs.to_finset.card = ht.to_finset.card) :
-  s = t :=
-begin
-  rw ← set.finite.to_finset_inj,
-  refine finset.eq_of_subset_of_card_le _ _,
-    exact hs, exact ht,
-  rw set.finite.to_finset_mono, exact hst,
-  exact eq.ge hc,
-end
-
-
-example (B : set X) (g k : G) (hg : g • B = B) (hk : k • B = B):
-  g • B ≤ k • B :=
-  begin
-  rw hg, rw hk, rw set.le_eq_subset,
-  end
-
-
-example (H : subgroup G) (a : X) (g : G) (h : H) :
-  h • g • a = (↑h * g) • a :=
-  begin
-    rw mul_action.mul_smul, rw subgroup.smul_def,
-  end
-
-
-/-
-example {α β : Type*} {f : α → β} {s t : set α} (hf : function.injective f) :
-  f '' s = f '' t ↔ s = t := set.image_eq_image hf
-
-example {α β : Type*} {f : α → β} {s t : set α} (hf : function.injective f) :
-  f '' (s ∩ t) = f '' s ∩ f '' t :=
-set.inj_on.image_inter (set.inj_on_of_injective hf _)  (set.subset_univ s) (set.subset_univ t)
-
-example {C : sub_mul_action G X} {B B' : set C} :
-  B = B' ↔ ((λ(x : ↥C), (x : X)) '' B) = ((λ(x : ↥C), (x : X)) '' B')  :=
-(set.image_eq_image subtype.coe_injective).symm
-
-lemma test {C : sub_mul_action G X} {B B' : set C} :
-  (coe '' (B ∩ B') : set X) = (coe '' B) ∩ (coe '' B') :=
-begin
-refine set.inj_on.image_inter _  (set.subset_univ B) (set.subset_univ B'),
-apply set.inj_on_of_injective ,
-exact subtype.coe_injective,
-end
-
-example {C : sub_mul_action G X} {B B' : set C} :
-  disjoint B B'  ↔ disjoint ((λ(x : ↥C), (x : X)) '' B) ((λ(x : ↥C), (x : X)) '' B')  :=
-begin
-  simp only [set.disjoint_iff, set.subset_empty_iff],
-  rw ← set.inj_on.image_inter (set.inj_on_of_injective subtype.coe_injective _)
-    (set.subset_univ B) (set.subset_univ B'),
-  simp only [set.image_eq_empty],
-end
--/

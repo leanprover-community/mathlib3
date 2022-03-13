@@ -149,7 +149,7 @@ end limits
 
 section colimits
 
-@[ext]
+-- We don't mark this as an `@[ext]` lemma as we don't always want to work elementwise.
 lemma cokernel_funext {C : Type*} [category C] [has_zero_morphisms C] [concrete_category C]
   {M N K : C} {f : M ⟶ N} [has_cokernel f] {g h : cokernel f ⟶ K}
   (w : ∀ (n : N), g (cokernel.π f n) = h (cokernel.π f n)) : g = h :=

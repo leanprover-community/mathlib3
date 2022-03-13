@@ -6,6 +6,7 @@ Authors: Kenny Lau
 
 import field_theory.splitting_field
 import field_theory.perfect_closure
+import field_theory.separable
 
 /-!
 # Algebraically Closed Field
@@ -335,6 +336,23 @@ omit hS
 noncomputable instance perfect_ring (p : ℕ) [fact p.prime] [char_p k p]
   [is_alg_closed k] : perfect_ring k p :=
 perfect_ring.of_surjective k p $ λ x, is_alg_closed.exists_pow_nat_eq _ $ fact.out _
+
+/-- Algebraically closed fields are infinite since `Xⁿ⁺¹ - 1` is separable when `#K = n` -/
+@[priority 500]
+instance {K : Type*} [field K] [is_alg_closed K] : infinite K :=
+begin
+  apply infinite.mk,
+  introsI hfin,
+  set n := fintype.card K with hn,
+  set f := (X : K[X]) ^ (n + 1) - 1 with hf,
+  have hfsep : separable f := separable_X_pow_sub_C 1 (by simp) one_ne_zero,
+  apply nat.not_succ_le_self (fintype.card K),
+  have hroot : n.succ = fintype.card (f.root_set K),
+  { erw [card_root_set_eq_nat_degree hfsep (is_alg_closed.splits_domain _),
+         nat_degree_X_pow_sub_C] },
+  rw hroot,
+  exact fintype.card_le_of_injective coe subtype.coe_injective,
+end
 
 end is_alg_closed
 

@@ -207,13 +207,13 @@ tensor_product.lift
   map_add' := sorry,
   map_smul' := sorry,  }
 
-@[simp, to_additive] lemma CommGroup.of_hom_apply {X Y : Type*} [comm_group X] [comm_group Y] (f : X →* Y) (x : X) :
-  CommGroup.of_hom f x = f x :=
-rfl
+-- @[simp, to_additive] lemma CommGroup.of_hom_apply {X Y : Type*} [comm_group X] [comm_group Y] (f : X →* Y) (x : X) :
+--   CommGroup.of_hom f x = f x :=
+-- rfl
 
-@[simp] lemma Module.of_hom_apply {X Y : Type*} [add_comm_group X] [add_comm_group Y] [module R X] [module R Y] (f : X →ₗ[R] Y) (x : X) :
-  Module.of_hom f x = f x :=
-rfl
+-- @[simp] lemma Module.of_hom_apply {X Y : Type*} [add_comm_group X] [add_comm_group Y] [module R X] [module R Y] (f : X →ₗ[R] Y) (x : X) :
+--   Module.of_hom f x = f x :=
+-- rfl
 
 
 section
@@ -381,7 +381,7 @@ begin
 end
 
 lemma foo {M : Type*} [add_comm_group M] [module R M] (p : submodule R M) (x : M) : p.mkq x = 0 ↔ x ∈ p :=
-sorry
+submodule.quotient.mk_eq_zero p
 
 @[simp]
 lemma mk_to_kernel (z : M) : mk f g w (to_kernel f g w z) = 0 :=

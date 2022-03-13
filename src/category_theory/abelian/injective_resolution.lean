@@ -122,11 +122,6 @@ def self (Z : C) [category_theory.injective Z] : InjectiveResolution Z :=
   exact := λ n, by { dsimp, apply_instance, },
   mono := by { dsimp, apply_instance, }, }
 
-/-- Auxiliary construction for `desc`. -/
-def desc_f_zero {Y Z : C} (f : Z ⟶ Y) (P : InjectiveResolution Y) (Q : InjectiveResolution Z) :
-  Q.cocomplex.X 0 ⟶ P.cocomplex.X 0 :=
-factor_thru (f ≫ P.ι.f 0) (Q.ι.f 0)
-
 end InjectiveResolution
 
 end category_theory

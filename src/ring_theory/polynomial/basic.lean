@@ -243,14 +243,14 @@ begin
   nontriviality R,
   cases n, { exact (hn rfl).elim },
   rw [geom_sum_succ', geom_sum_def],
-  refine monic_add_of_left (monic_pow hP _) _,
+  refine (hP.pow _).add_of_left _,
   refine lt_of_le_of_lt (degree_sum_le _ _) _,
   rw [finset.sup_lt_iff],
-  { simp only [finset.mem_range, degree_eq_nat_degree (monic_pow hP _).ne_zero,
+  { simp only [finset.mem_range, degree_eq_nat_degree (hP.pow _).ne_zero,
       with_bot.coe_lt_coe, hP.nat_degree_pow],
     intro k, exact nsmul_lt_nsmul hdeg },
   { rw [bot_lt_iff_ne_bot, ne.def, degree_eq_bot],
-    exact (monic_pow hP _).ne_zero }
+    exact (hP.pow _).ne_zero }
 end
 
 lemma monic.geom_sum' {R : Type*} [semiring R] {P : R[X]}

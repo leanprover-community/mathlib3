@@ -471,12 +471,10 @@ eq_of_mem_singleton (is_wf.min_mem hs hn)
 
 end set
 
-@[simp]
 theorem finset.is_wf_sup {ι : Type*} [partial_order α] (f : finset ι) (g : ι → set α)
   (hf : ∀ i : ι, i ∈ f → (g i).is_wf) : (f.sup g).is_wf :=
 finset.sup_induction set.is_pwo_empty.is_wf (λ a ha b hb, ha.union hb) hf
 
-@[simp]
 theorem finset.is_pwo_sup {ι : Type*} [partial_order α] (f : finset ι) (g : ι → set α)
   (hf : ∀ i : ι, i ∈ f → (g i).is_pwo) : (f.sup g).is_pwo :=
 finset.sup_induction set.is_pwo_empty (λ a ha b hb, ha.union hb) hf

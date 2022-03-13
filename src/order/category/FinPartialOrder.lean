@@ -38,6 +38,8 @@ attribute [instance]  FinPartialOrder.is_fintype
 /-- Construct a bundled `FinPartialOrder` from `fintype` + `partial_order`. -/
 def of (α : Type*) [partial_order α] [fintype α] : FinPartialOrder := ⟨⟨α⟩⟩
 
+@[simp] lemma coe_of (α : Type*) [partial_order α] [fintype α] : ↥(of α) = α := rfl
+
 instance : inhabited FinPartialOrder := ⟨of punit⟩
 
 instance large_category : large_category FinPartialOrder :=
@@ -73,4 +75,4 @@ end FinPartialOrder
 
 lemma FinPartialOrder_dual_comp_forget_to_PartialOrder :
   FinPartialOrder.dual ⋙ forget₂ FinPartialOrder PartialOrder =
-    forget₂ FinPartialOrder PartialOrder ⋙ PartialOrder.to_dual := rfl
+    forget₂ FinPartialOrder PartialOrder ⋙ PartialOrder.dual := rfl

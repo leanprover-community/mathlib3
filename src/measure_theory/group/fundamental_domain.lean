@@ -273,16 +273,13 @@ begin
   refine le_antisymm (ess_sup_mono_measure' measure.restrict_le_self) _,
   rw [ess_sup_eq_Inf (μ.restrict s) f, ess_sup_eq_Inf μ f],
   refine Inf_le_Inf _,
-  intros a,
-  dsimp,
-  intros ha,
-  refine measure_zero_of_invariant hs _ _ _,
-  { intros γ,
-    ext x,
-    rw mem_smul_set_iff_inv_smul_mem,
-    simp only [mem_set_of_eq, hf (γ⁻¹) x], },
-  rwa measure.restrict_apply' at ha,
-  exact hs.measurable_set,
+  rintro a (ha : (μ.restrict s) {x : α | a < f x} = 0),
+  rw measure.restrict_apply' hs.measurable_set at ha,
+  refine measure_zero_of_invariant hs _ _ ha,
+  intros γ,
+  ext x,
+  rw mem_smul_set_iff_inv_smul_mem,
+  simp only [mem_set_of_eq, hf (γ⁻¹) x],
 end
 
 end is_fundamental_domain

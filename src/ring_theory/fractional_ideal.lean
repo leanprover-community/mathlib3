@@ -457,6 +457,10 @@ lemma coe_pow (I : fractional_ideal S P) (n : ℕ) : ↑(I ^ n) = (I ^ n : submo
   (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
 submodule.mul_induction_on hr hm ha
 
+instance : add_monoid_with_one (fractional_ideal S P) :=
+function.injective.add_monoid_with_one _ subtype.coe_injective
+  coe_zero coe_add (λ _ _, coe_nsmul _ _)
+
 instance : comm_semiring (fractional_ideal S P) :=
 function.injective.comm_semiring _ subtype.coe_injective
   coe_zero coe_one coe_add coe_mul (λ _ _, coe_nsmul _ _) coe_pow

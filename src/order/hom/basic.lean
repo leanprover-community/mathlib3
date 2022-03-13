@@ -125,6 +125,32 @@ instance : has_coe_t F (α →o β) := ⟨λ f, { to_fun := f, monotone' := orde
 
 end order_hom_class
 
+section order_iso_class
+section has_le
+variables [has_le α] [has_le β] [order_iso_class F α β]
+
+@[simp] lemma map_inv_le_iff (f : F) {a : α} {b : β} : equiv_like.inv f b ≤ a ↔ b ≤ f a :=
+by { convert (map_le_map_iff _).symm, exact (equiv_like.right_inv _ _).symm }
+
+@[simp] lemma le_map_inv_iff (f : F) {a : α} {b : β} : a ≤ equiv_like.inv f b ↔ f a ≤ b :=
+by { convert (map_le_map_iff _).symm, exact (equiv_like.right_inv _ _).symm }
+
+end has_le
+
+variables [preorder α] [preorder β] [order_iso_class F α β]
+include β
+
+lemma map_lt_map_iff (f : F) {a b : α} : f a < f b ↔ a < b :=
+lt_iff_lt_of_le_iff_le' (map_le_map_iff f) (map_le_map_iff f)
+
+@[simp] lemma map_inv_lt_iff (f : F) {a : α} {b : β} : equiv_like.inv f b < a ↔ b < f a :=
+by { convert (map_lt_map_iff _).symm, exact (equiv_like.right_inv _ _).symm }
+
+@[simp] lemma lt_map_inv_iff (f : F) {a : α} {b : β} : a < equiv_like.inv f b ↔ f a < b :=
+by { convert (map_lt_map_iff _).symm, exact (equiv_like.right_inv _ _).symm }
+
+end order_iso_class
+
 namespace order_hom
 variables [preorder α] [preorder β] [preorder γ] [preorder δ]
 
@@ -450,7 +476,7 @@ instance : order_iso_class (α ≃o β) α β :=
 
 @[simp] lemma to_fun_eq_coe {f : α ≃o β} : f.to_fun = f := rfl
 
-@[ext] -- See library note [partially-applied ext lemmas]
+@[ext] -- See note [partially-applied ext lemmas]
 lemma ext {f g : α ≃o β} (h : (f : α → β) = g) : f = g := fun_like.coe_injective h
 
 /-- Reinterpret an order isomorphism as an order embedding. -/
@@ -533,6 +559,14 @@ lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e
 @[simp] lemma refl_trans (e : α ≃o β) : (refl α).trans e = e := by { ext x, refl }
 
 @[simp] lemma trans_refl (e : α ≃o β) : e.trans (refl β) = e := by { ext x, refl }
+
+/-- `prod.swap` as an `order_iso`. -/
+def prod_comm : (α × β) ≃o (β × α) :=
+{ to_equiv := equiv.prod_comm α β,
+  map_rel_iff' := λ a b, prod.swap_le_swap }
+
+@[simp] lemma coe_prod_comm : ⇑(prod_comm : (α × β) ≃o (β × α)) = prod.swap := rfl
+@[simp] lemma prod_comm_symm : (prod_comm : (α × β) ≃o (β × α)).symm = prod_comm := rfl
 
 variables (α)
 

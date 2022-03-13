@@ -625,7 +625,7 @@ protected lemma ae_measurable (f : Lp.simple_func E p μ) : ae_measurable (to_si
 (simple_func.measurable f).ae_measurable
 
 lemma to_simple_func_eq_to_fun (f : Lp.simple_func E p μ) : to_simple_func f =ᵐ[μ] f :=
-show ⇑(to_simple_func f) =ᵐ[μ] ⇑(f : α →ₘ[μ] E), by
+show ⇑(to_simple_func f) =ᵐ[μ] ⇑(f : α →ₘ[μ] E),
 begin
   convert (ae_eq_fun.coe_fn_mk (to_simple_func f) (simple_func.ae_measurable f)).symm using 2,
   exact (classical.some_spec f.2).symm,

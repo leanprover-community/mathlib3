@@ -65,25 +65,26 @@ instance has_pow {β : Type*} [has_pow α β] : has_pow (ulift α) β :=
 
 @[to_additive]
 instance monoid [monoid α] : monoid (ulift α) :=
-equiv.ulift.injective.monoid_pow _ rfl (λ _ _, rfl) (λ _ _, rfl)
+equiv.ulift.injective.monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance comm_monoid [comm_monoid α] : comm_monoid (ulift α) :=
-{ .. ulift.monoid, .. ulift.comm_semigroup }
+equiv.ulift.injective.comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance div_inv_monoid [div_inv_monoid α] : div_inv_monoid (ulift α) :=
-equiv.ulift.injective.div_inv_monoid_pow _ rfl (λ _ _, rfl) (λ _, rfl)
+equiv.ulift.injective.div_inv_monoid _ rfl (λ _ _, rfl) (λ _, rfl)
   (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance group [group α] : group (ulift α) :=
-equiv.ulift.injective.group_pow _ rfl (λ _ _, rfl) (λ _, rfl)
+equiv.ulift.injective.group _ rfl (λ _ _, rfl) (λ _, rfl)
   (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance comm_group [comm_group α] : comm_group (ulift α) :=
-{ .. ulift.group, .. ulift.comm_semigroup }
+equiv.ulift.injective.comm_group _ rfl (λ _ _, rfl) (λ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [left_cancel_semigroup α] :
@@ -98,22 +99,22 @@ equiv.ulift.injective.right_cancel_semigroup _ (λ _ _, rfl)
 @[to_additive add_left_cancel_monoid]
 instance left_cancel_monoid [left_cancel_monoid α] :
   left_cancel_monoid (ulift α) :=
-{ .. ulift.monoid, .. ulift.left_cancel_semigroup }
+equiv.ulift.injective.left_cancel_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive add_right_cancel_monoid]
 instance right_cancel_monoid [right_cancel_monoid α] :
   right_cancel_monoid (ulift α) :=
-{ .. ulift.monoid, .. ulift.right_cancel_semigroup }
+equiv.ulift.injective.right_cancel_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive add_cancel_monoid]
 instance cancel_monoid [cancel_monoid α] :
   cancel_monoid (ulift α) :=
-{ .. ulift.left_cancel_monoid, .. ulift.right_cancel_semigroup }
+equiv.ulift.injective.cancel_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive add_cancel_monoid]
 instance cancel_comm_monoid [cancel_comm_monoid α] :
   cancel_comm_monoid (ulift α) :=
-{ .. ulift.cancel_monoid, .. ulift.comm_semigroup }
+equiv.ulift.injective.cancel_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 instance nontrivial [nontrivial α] : nontrivial (ulift α) :=
 equiv.ulift.symm.injective.nontrivial

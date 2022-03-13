@@ -1,33 +1,22 @@
+/-
+Copyright (c) 2022 Joseph Hua. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Joseph Hua
+-/
 import model_theory.terms_and_formulas
+
+/-!
+# The language of rings
+
+## Main Definitions
+* A `first_order.language.ring.L` defines the language of rings,
+  which consists of 0,1,-,+,*.
+-/
+universes u v u'
 
 namespace first_order
 namespace language
 namespace ring
-
-universes u v u'
-
------------------
--- inductive consts' : Type*
--- | zero : consts'
-
--- def functions' : ℕ → Type*
--- | 0 := consts'
--- | (n+1) := pempty
-
--- /-- The language of rings -/
--- @[reducible] def L' : language.{u v} :=
--- { functions := functions',
---   relations := λ n, pempty }
-
--- variable {α : Type u'}
-
--- @[simps] instance : has_zero (L'.term α) := ⟨ @func L' _ 0 consts'.zero fin_zero_elim ⟩
-
--- example {C : L'.term α → Sort*} {x0 : C 0} (ts : fin 0 → L'.term α) :
---   C $ @func L' _ 0 consts'.zero ts :=
--- cast (by {have h : ts = fin_zero_elim, simp, simp [h] } ) x0
-
------------------
 
 /-- The constant symbols in ring.L -/
 inductive consts : Type*
@@ -50,42 +39,17 @@ def functions : ℕ → Type*
 | 2 := binaries
 | (n + 3) := pempty
 
-/-- To make a map out of `ring.functions`, omitting the empty case -/
-def functions_rec {C : Π {n}, functions n → Sort*} (h0 : @C 0 consts.zero) (h1 : @C 0 consts.one)
-  (hn : @C 1 unaries.neg) (ha : @C 2 binaries.add) (hm : @C 2 binaries.mul) :
-  Π {n} (f : functions n), C f
-| 0 consts.zero := h0
-| 0 consts.one := h1
-| 1 unaries.neg := hn
-| 2 binaries.add := ha
-| 2 binaries.mul := hm
-| (n + 3) f := pempty.elim f
-
 instance : inhabited consts := ⟨ consts.zero ⟩
 instance : inhabited unaries := ⟨ unaries.neg ⟩
 instance : inhabited binaries := ⟨ binaries.add ⟩
-
-/-- The type `bool` is equivalent to the type of constant symbols -/
-def bool_equiv_ring_consts : _root_.equiv bool consts :=
-{ to_fun := λ x, match x with | ff := consts.zero | tt := consts.one end,
-  inv_fun := λ c, match c with | consts.zero := ff | consts.one := tt end,
-  left_inv := λ x, match x with | ff := rfl | tt := rfl end,
-  right_inv := λ c, match c with | consts.zero := rfl | consts.one := rfl end }
+instance : inhabited (functions 0) := ⟨ consts.zero ⟩
 
 /-- The language of rings -/
 def L : language.{u v} :=
 { functions := functions,
   relations := λ n, pempty }
 
-variable (α : Type u')
-
--- The terms in the language of rings, which will have instances of 0,1,-,+,*
--- @[reducible] def term := L.term α
-
--- The formuals in the language of rings
--- @[reducible] def formula := L.bounded_formula α
-
-variable {α}
+variable {α : Type u'}
 
 @[simp] instance : has_zero (L.term α) := ⟨ @func L _ 0 consts.zero fin_zero_elim ⟩
 
@@ -106,7 +70,12 @@ instance : has_pow (L.term α) ℕ := ⟨ λ t n, npow_rec n t ⟩
 
 lemma fin_zero_elim_uniq (f : fin 0 → α) : f = fin_zero_elim := subsingleton.elim _ _
 
--- set_option pp.all true
+lemma fin_one_eta (f : fin 1 → α) : (λ (_ : fin 1), f 0) = f :=
+funext (λ x, by {simp [unique.eq_default x] })
+
+lemma not_succ_succ_lt_two {n : ℕ} (h : n.succ.succ < 2) : false :=
+by {apply nat.not_lt_zero n, repeat {rw nat.succ_lt_succ_iff at h}, exact h }
+
 /-- Part of the definition of ring_term_rec -/
 @[simp] def term_rec_functions {C : L.term α → Sort*} (h0 : C 0)
   (h1 : C 1) (hn : Π {t}, C t → C (- t)) (ha : Π {s t}, C s → C t → C (s + t))
@@ -115,22 +84,22 @@ lemma fin_zero_elim_uniq (f : fin 0 → α) : f = fin_zero_elim := subsingleton.
   (Π (i : fin l), C (ts i)) → C (func f ts)
 | 0 consts.zero ts h := cast (by {rw [fin_zero_elim_uniq ts], refl} ) h0
 | 0 consts.one ts h := cast (by {rw [fin_zero_elim_uniq ts], refl}) h1
-| 1 unaries.neg ts h := sorry
-| 2 binaries.add ts h := sorry
-| 2 binaries.mul ts h := sorry
+| 1 unaries.neg ts h := cast (by {simp only [has_neg.neg], congr, apply fin_one_eta}) $ hn $ h 0
+| 2 binaries.add ts h := cast (
+  by {simp only [has_add.add], congr, funext x, cases x with val hval, cases val, refl, cases val,
+    refl, exfalso, exact not_succ_succ_lt_two hval } : C (ts 0 + ts 1) = C _)
+    $ ha (h 0) (h 1)
+| 2 binaries.mul ts h := cast (
+  by {simp only [has_mul.mul], congr, funext x, cases x with val hval, cases val, refl, cases val,
+    refl, exfalso, exact not_succ_succ_lt_two hval } : C (ts 0 * ts 1) = C _)
+  $ hm (h 0) (h 1)
 | (n + 3) f ts h := pempty.elim f
 
 /-- An interface for mapping out of term α (basically term.rec) -/
-def term_rec {C : term α → Sort*} (hv : Π (x : α), C (var x)) (h0 : C 0) (h1 : C 1)
+@[simp] def term_rec {C : L.term α → Sort*} (hv : Π (x : α), C (var x)) (h0 : C 0) (h1 : C 1)
   (hn : Π {t}, C t → C (- t)) (ha : Π {s t}, C s → C t → C (s + t))
-  (hm : Π {s t}, C s → C t → C (s * t)) : Π (t : term α), C t :=
-term.rec hv (term_rec_functions h0 h1 hn ha hm)
--- | (var x) := hv x
--- | (func f d) := _
-
-
-
-
+  (hm : Π {s t}, C s → C t → C (s * t)) : Π (t : L.term α), C t :=
+term.rec hv (λ _, term_rec_functions h0 h1 (λ _, hn) (λ _ _, ha) (λ _ _, hm))
 
 end ring
 end language

@@ -1807,6 +1807,23 @@ end
 
 end indicator_const_Lp
 
+lemma mem_ℒp.norm_rpow [opens_measurable_space E] {f : α → E}
+  (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
+  mem_ℒp (λ (x : α), ∥f x∥ ^ p.to_real) 1 μ :=
+begin
+  refine ⟨hf.1.norm.pow_const _, _⟩,
+  have := hf.snorm_ne_top,
+  rw snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top at this,
+  rw snorm_one_eq_lintegral_nnnorm,
+  convert ennreal.rpow_lt_top_of_nonneg (@ennreal.to_real_nonneg p) this,
+  rw [← ennreal.rpow_mul, one_div_mul_cancel (ennreal.to_real_pos hp_ne_zero hp_ne_top).ne.symm,
+      ennreal.rpow_one],
+  congr,
+  ext1 x,
+  rw [ennreal.coe_rpow_of_nonneg _ ennreal.to_real_nonneg, real.nnnorm_of_nonneg],
+  congr
+end
+
 end measure_theory
 
 open measure_theory

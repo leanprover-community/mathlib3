@@ -370,6 +370,24 @@ lemma coe_add (I J : fractional_ideal S P) : (↑(I + J) : submodule R P) = I + 
 lemma coe_ideal_sup (I J : ideal R) : ↑(I ⊔ J) = (I + J : fractional_ideal S P) :=
 coe_to_submodule_injective $ coe_submodule_sup _ _ _
 
+lemma _root_.is_fractional.nsmul {I : submodule R P} :
+  Π n : ℕ, is_fractional S I → is_fractional S (n • I : submodule R P)
+| 0 _ := begin
+    rw [zero_smul],
+    convert ((0 : ideal R) : fractional_ideal S P).is_fractional,
+    simp,
+  end
+| (n + 1) h := begin
+  rw succ_nsmul,
+  exact h.sup (_root_.is_fractional.nsmul n h)
+end
+
+instance : has_scalar ℕ (fractional_ideal S P) :=
+{ smul := λ n I, ⟨n • I, I.is_fractional.nsmul n⟩}
+
+@[norm_cast]
+lemma coe_nsmul (n : ℕ) (I : fractional_ideal S P) : (↑(n • I) : submodule R P) = n • I := rfl
+
 lemma _root_.is_fractional.mul {I J : submodule R P} :
   is_fractional S I → is_fractional S J → is_fractional S (I * J : submodule R P)
 | ⟨aI, haI, hI⟩ ⟨aJ, haJ, hJ⟩ := ⟨aI * aJ, S.mul_mem haI haJ, λ b hb, begin
@@ -439,15 +457,9 @@ lemma coe_pow (I : fractional_ideal S P) (n : ℕ) : ↑(I ^ n) = (I ^ n : submo
   (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
 submodule.mul_induction_on hr hm ha
 
--- There is no `function.injective.comm_semiring_pow` so we need to do this in three parts to keep
--- our custom power operator.
 instance : comm_semiring (fractional_ideal S P) :=
-{ ..(function.injective.monoid_pow _ subtype.coe_injective
-      coe_one coe_mul coe_pow : monoid (fractional_ideal S P)),
-  ..(function.injective.comm_semigroup _ subtype.coe_injective
-      coe_mul : comm_semigroup (fractional_ideal S P)),
-  ..(function.injective.non_unital_non_assoc_semiring _ subtype.coe_injective
-      coe_zero coe_add coe_mul : non_unital_non_assoc_semiring (fractional_ideal S P)) }
+function.injective.comm_semiring _ subtype.coe_injective
+  coe_zero coe_one coe_add coe_mul (λ _ _, coe_nsmul _ _) coe_pow
 
 section order
 

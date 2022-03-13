@@ -3,9 +3,8 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
-import algebra.ring.basic
-import tactic.nth_rewrite
 import algebra.group.hom_instances
+import algebra.ring.basic
 
 /-!
 # Centroid homomorphisms
@@ -17,7 +16,7 @@ be satisfied by itself and all stricter types.
 
 ## Types of morphisms
 
-* `centroid_hom`: Maps which preserve `⊔`.
+* `centroid_hom`: Maps which preserve left and right multiplication.
 
 ## Typeclasses
 
@@ -125,83 +124,89 @@ instance : monoid (centroid_hom α) :=
   mul_one := centroid_hom.comp_id,
   one_mul := centroid_hom.id_comp }
 
-@[simp] lemma coe_mul (f g) : ((f * g : centroid_hom α) : α → α) = f ∘ g := rfl
+@[simp] lemma coe_mul (f g : centroid_hom α) : ⇑(f * g) = f ∘ g := rfl
+@[simp] lemma coe_one : ⇑(1 : centroid_hom α) = id := rfl
 
-/-- Addition of `centroid_hom`s as a `centroid_hom`. -/
-def add (g f : centroid_hom α) : centroid_hom α :=
-⟨g.to_add_monoid_hom + f.to_add_monoid_hom,
-λ a b, by rw [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.add_apply,
-  ← add_monoid_hom.to_fun_eq_coe, ← add_monoid_hom.to_fun_eq_coe, map_mul_left', map_mul_left',
-  ← mul_add, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.add_apply],
-λ a b, by rw [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.add_apply,
-  ← add_monoid_hom.to_fun_eq_coe, ← add_monoid_hom.to_fun_eq_coe, map_mul_right', map_mul_right',
-  ← add_mul, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.to_fun_eq_coe, add_monoid_hom.add_apply]
-⟩
+instance : has_add (centroid_hom α) :=
+⟨λ f g, { to_add_monoid_hom := f.to_add_monoid_hom + g.to_add_monoid_hom,
+  map_mul_left' := λ a b, begin
+    refine eq.trans (_ : _ + _ = _) (mul_add _ _ _).symm,
+    congr',
+    exact f.map_mul_left' _ _,
+    exact g.map_mul_left' _ _,
+  end,
+  map_mul_right' := λ a b, begin
+    refine eq.trans (_ : _ + _ = _) (add_mul _ _ _).symm,
+    congr',
+    exact f.map_mul_right' _ _,
+    exact g.map_mul_right' _ _,
+  end }⟩
 
 /-- The zero `centroid_hom` -/
-def zero : centroid_hom α :=
-⟨(0 : add_monoid.End α) ,
-λ a b, by simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.zero_apply, mul_zero],
-λ a b, by simp only [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.zero_apply, zero_mul],⟩
+instance : has_zero (centroid_hom α) :=
+⟨⟨(0 : add_monoid.End α), λ a b, (mul_zero _).symm, λ a b, (zero_mul _).symm⟩⟩
 
 -- c.f. https://github.com/leanprover-community/mathlib/blob/master/src/algebra/group/hom_instances.lean#L28
 instance : add_comm_monoid (centroid_hom α) :=
-{ add := centroid_hom.add,
+{ add := (+),
   add_assoc := by intros; ext; apply add_assoc,
-  zero := zero,
+  zero := 0,
   zero_add := by intros; ext; apply zero_add,
   add_zero := by intros; ext; apply add_zero,
-  add_comm := by intros; ext; apply add_comm, }
+  add_comm := by intros; ext; apply add_comm }
 
-lemma add_apply (f g : centroid_hom α) (a : α) : (f + g) a = f a + g a := rfl
+@[simp] lemma coe_zero : ⇑(0 : centroid_hom α) = 0 := rfl
+@[simp] lemma coe_add (f g : centroid_hom α) : ⇑(f + g) = f + g := rfl
 
-@[simp] lemma zero_apply (a: α): (0 : centroid_hom α) a = 0 := rfl
+@[simp] lemma zero_apply (a : α) : (0 : centroid_hom α) a = 0 := rfl
+@[simp] lemma add_apply (f g : centroid_hom α) (a : α) : (f + g) a = f a + g a := rfl
 
 -- c.f https://github.com/leanprover-community/mathlib/blob/master/src/algebra/group/hom_instances.lean#L58
 instance : semiring (centroid_hom α) :=
-{ zero_mul := λ x, centroid_hom.ext $ λ i, rfl,
-  mul_zero := λ x, centroid_hom.ext $ λ i, add_monoid_hom.map_zero _,
-  left_distrib :=  λ x y z, centroid_hom.ext $ λ i, add_monoid_hom.map_add _ _ _,
-  right_distrib := λ x y z, centroid_hom.ext $ λ i, rfl,
+{ zero_mul := λ x, ext $ λ i, rfl,
+  mul_zero := λ x, ext $ λ i, add_monoid_hom.map_zero _,
+  left_distrib :=  λ x y z, ext $ λ i, add_monoid_hom.map_add _ _ _,
+  right_distrib := λ x y z, ext $ λ i, rfl,
   .. centroid_hom.monoid,
   .. centroid_hom.add_comm_monoid }
 
-lemma comm_comp_mul (T S : centroid_hom α) (a b : α) : (T ∘ S)(a * b) = (S ∘ T)(a * b) :=
-  by rw [comp_app, map_mul_right, map_mul_left, ←map_mul_right, ←map_mul_left]
+lemma comp_mul_comm (T S : centroid_hom α) (a b : α) : (T ∘ S) (a * b) = (S ∘ T) (a * b) :=
+by rw [comp_app, map_mul_right, map_mul_left, ←map_mul_right, ←map_mul_left]
 
 end non_unital_non_assoc_semiring
 
 section non_unital_non_assoc_ring
-
 variables [non_unital_non_assoc_ring α]
 
 /-- Negation of `centroid_hom`s as a `centroid_hom`. -/
-def neg (f : centroid_hom α) : centroid_hom α :=
-⟨ -(f.to_add_monoid_hom) ,
+instance : has_neg (centroid_hom α) :=
+⟨λ f, ⟨-f.to_add_monoid_hom,
 λ a b, by rw [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.neg_apply, add_monoid_hom.neg_apply,
   mul_neg, ← add_monoid_hom.to_fun_eq_coe, map_mul_left'],
 λ a b, by rw [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.neg_apply, add_monoid_hom.neg_apply,
   ← add_monoid_hom.to_fun_eq_coe, map_mul_right', ← neg_mul],
-⟩
+⟩⟩
+
+instance : has_sub (centroid_hom α) :=
+⟨λ f g, ⟨f.to_add_monoid_hom - g.to_add_monoid_hom, sorry, sorry⟩⟩
 
 instance : add_comm_group (centroid_hom α) :=
-{ neg := neg,
+{ neg := (-),
   add_left_neg := by intros; ext; apply add_left_neg,
   ..centroid_hom.add_comm_monoid }
 
 instance  : ring (centroid_hom α) :=
-{ .. centroid_hom.semiring,
-  .. centroid_hom.add_comm_group }
+{ ..centroid_hom.semiring, ..centroid_hom.add_comm_group }
 
-lemma neg_apply (f : centroid_hom α) (a : α) : (-f) a = - (f a) := rfl
+lemma coe_neg (f : centroid_hom α) : ⇑(-f) = -f := rfl
+lemma coe_sub (f g : centroid_hom α) : ⇑(f - g) = f - g := rfl
 
-lemma sub_apply (f g : centroid_hom α) (a : α) : (f - g) a = f a - g a :=
-by rw [sub_eq_add_neg, sub_eq_add_neg, add_apply, neg_apply]
+lemma neg_apply (f : centroid_hom α) (a : α) : (-f) a = - f a := rfl
+lemma sub_apply (f g : centroid_hom α) (a : α) : (f - g) a = f a - g a := rfl
 
 end non_unital_non_assoc_ring
 
 section non_unital_ring
-
 variables [non_unital_ring α]
 
 -- https://msp.org/pjm/1975/60-1/pjm-v60-n1-p06-s.pdf
@@ -221,10 +226,9 @@ def prime_centroid_commutative (h: ∀ a b : α, (∀ r : α, a * r * b = 0) →
     apply h' ((f * g - g * f) a),
     intro,
     rw [mul_assoc, sub_apply, sub_mul, sub_eq_zero, ← map_mul_right, ← map_mul_right, coe_mul,
-      coe_mul, comm_comp_mul],
+      coe_mul, comp_mul_comm],
   end,
   ..centroid_hom.ring }
 
 end non_unital_ring
-
 end centroid_hom

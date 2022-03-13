@@ -208,8 +208,7 @@ variables [non_unital_ring α]
 /-- A prime associative ring has commutative centroid -/
 def prime_centroid_commutative (h: ∀ a b : α, (∀ r : α, a * r * b = 0) → a = 0 ∨ b = 0) :
   comm_ring (centroid_hom α) :=
-{
-  mul_comm := λ f g, begin
+{ mul_comm := λ f g, begin
     rw ← sub_eq_zero,
     have h' : ∀ a : α, (∀ r : α, a * r * a = 0) → a = 0 := begin
       intros a h'',
@@ -224,8 +223,7 @@ def prime_centroid_commutative (h: ∀ a b : α, (∀ r : α, a * r * b = 0) →
     rw [mul_assoc, sub_apply, sub_mul, sub_eq_zero, ← map_mul_right, ← map_mul_right, coe_mul,
       coe_mul, comm_comp_mul],
   end,
-  ..centroid_hom.ring
-}
+  ..centroid_hom.ring }
 
 end non_unital_ring
 

@@ -214,12 +214,7 @@ def linear_isometry_equiv_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) : (E 
       inner_self_eq_norm_sq] } }
 
 lemma norm_map_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) (x : E) : ∥U x∥ = ∥x∥ :=
-begin
-  have := (linear_isometry_equiv_of_unitary hU).norm_map' x,
-  simp only [linear_isometry_equiv_of_unitary, linear_equiv_of_unitary, linear_equiv.coe_mk]
-    at this,
-  exact this,
-end
+(linear_isometry_equiv_of_unitary hU).norm_map' _ 
 
 end unitary
 

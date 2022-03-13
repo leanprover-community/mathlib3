@@ -30,6 +30,9 @@ It is naturally endowed with a topology: the Zariski topology.
 * `vanishing_ideal t`: The vanishing ideal of a subset `t` of `projective_spectrum 𝒜`
   is the intersection of points in `t` (viewed as relevant prime homogeneous ideals).
 
+## Implementation note
+The type of `vanishing_ideal` is an `ideal` but instead of `homogeneous_ideal` is to take advantage
+of `ideal_gc` so that setting up a galois connection is easier.
 -/
 
 noncomputable theory
@@ -100,16 +103,12 @@ consisting of all "functions" that vanish on all of `t`.
 def vanishing_ideal (t : set (projective_spectrum 𝒜)) : ideal A :=
 ⨅ (x : projective_spectrum 𝒜) (h : x ∈ t), x.as_homogeneous_ideal.1
 
-lemma vanishing_ideal.is_prime (t : set (projective_spectrum 𝒜)) :
+lemma vanishing_ideal.is_homogeneous (t : set (projective_spectrum 𝒜)) :
   ideal.is_homogeneous 𝒜 $ vanishing_ideal 𝒜 t :=
-begin
-  apply ideal.is_homogeneous.Inf, intros I hI,
-  rw set.mem_range at hI,
-  obtain ⟨y, hy⟩ := hI,
-  rw ←hy,
-  apply ideal.is_homogeneous.Inf, intros J HJ,
-  rw set.mem_range at HJ,
-  obtain ⟨hy2, rfl⟩ := HJ,
+ideal.is_homogeneous.Inf $ λ I hI, begin
+  obtain ⟨y, rfl⟩ := hI,
+  apply ideal.is_homogeneous.Inf (λ I hI, _),
+  obtain ⟨_, rfl⟩ := hI,
   exact y.1.2,
 end
 

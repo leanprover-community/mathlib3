@@ -42,13 +42,6 @@ open set function
 /-! ### Factorization of fractional ideals of Dedekind domains -/
 
 variables {A : Type*} [comm_ring A] (B : submonoid A) (C : Type*) [comm_ring C] [algebra A C]
-lemma fractional_ideal.coe_pow (I : ideal A) (n : ℕ) :
-  (↑(I^n) : fractional_ideal B C) = (↑I)^n :=
-begin
-  induction n with n ih,
-  { simp, },
-  { simp [pow_succ, ih], },
-end
 
 lemma fractional_ideal.coe_finprod [is_localization B C] {α : Type*} {f : α → ideal A}
   (hB : B ≤ non_zero_divisors A) :
@@ -58,15 +51,6 @@ begin
   rw [← h_coe, monoid_hom.map_finprod_of_injective
     (fractional_ideal.coe_ideal_hom B C).to_monoid_hom, h_coe],
   exact fractional_ideal.coe_to_fractional_ideal_injective hB,
-end
-
-lemma associates.count_self {α : Type*} [cancel_comm_monoid_with_zero α]
-  [unique_factorization_monoid α] [nontrivial α] [dec : decidable_eq α]
-  [dec' : decidable_eq (associates α)] {p : associates α} (hp : irreducible p) :
-  p.count p.factors = 1 :=
-begin
-  rw [← pow_one p, associates.factors_prime_pow hp, pow_one, associates.count_some hp],
-  exact multiset.count_singleton_self _,
 end
 
 /-- If a prime `p` divides a `finprod`, then it must divide one of its factors. -/
@@ -208,7 +192,8 @@ lemma ideal.finite_mul_support_coe {I : ideal R} (hI : I ≠ 0):
   ((associates.mk v.val.val).count (associates.mk I).factors : ℤ))).finite :=
 begin
   rw mul_support,
-  simp_rw [ne.def, zpow_coe_nat, ← fractional_ideal.coe_pow, fractional_ideal.coe_ideal_eq_one_iff],
+  simp_rw [ne.def, zpow_coe_nat, ← fractional_ideal.coe_ideal_pow,
+    fractional_ideal.coe_ideal_eq_one_iff],
   exact ideal.finite_mul_support hI,
 end
 
@@ -299,7 +284,7 @@ lemma ideal.factorization_coe (I : ideal R) (hI : I ≠ 0) :
 begin
   conv_rhs{rw ← ideal.factorization I hI},
   rw fractional_ideal.coe_finprod,
-  simp_rw [fractional_ideal.coe_pow, zpow_coe_nat],
+  simp_rw [fractional_ideal.coe_ideal_pow, zpow_coe_nat],
   { exact le_refl _ }
 end
 
@@ -533,7 +518,8 @@ lemma fractional_ideal.count_zpow (n : ℤ) (I : fractional_ideal (non_zero_divi
   fractional_ideal.count K v (I^n) = n * fractional_ideal.count K v I :=
 begin
   cases n,
-  { exact fractional_ideal.count_pow K v n I, },
+  { rw [int.of_nat_eq_coe, zpow_coe_nat],
+    exact fractional_ideal.count_pow K v n I, },
   { rw [int.neg_succ_of_nat_coe, fractional_ideal.count_inv, zpow_coe_nat,
       fractional_ideal.count_pow], ring, }
 end

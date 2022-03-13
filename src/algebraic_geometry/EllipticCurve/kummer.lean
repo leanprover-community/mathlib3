@@ -24,6 +24,11 @@ variables {K : Type u} [field K]
 ----------------------------------------------------------------------------------------------------
 /-! # Lemmas -/
 
+private lemma is_localization.mk'_num_ne_zero_of_ne_zero {R : Type u} [comm_ring R] [algebra R K]
+  {S : submonoid R} [is_localization S K] {z : K} {x : R} {y : S}
+  (hxyz : z = is_localization.mk' K x y) (hz : z ≠ 0) : x ≠ 0 :=
+by { intro hx, rw [hx, is_localization.mk'_zero] at hxyz, exact hz hxyz }
+
 private lemma is_integrally_closed.exists_algebra_map_eq_of_pow_mem {R : Type*} [comm_ring R]
   [algebra R K] {S : subalgebra R K} [is_integrally_closed S] [is_fraction_ring S K] {x : K} {n : ℕ}
   (hn : 0 < n) (hx : x ^ n ∈ S) : ∃ y : S, algebra_map S K y = x :=
@@ -43,8 +48,8 @@ begin
     exact hI },
   all_goals { rw [zpow_mul₀'] at hI },
   any_goals { rw [← neg_add', zpow_neg₀, inv_eq_one₀] at hI ⊢ },
-  all_goals { rw [zpow_coe_nat, ← fractional_ideal.coe_pow] at hI,
-              rw [int.coe_nat_add_one_out, zpow_coe_nat, ← fractional_ideal.coe_pow,
+  all_goals { rw [zpow_coe_nat, ← fractional_ideal.coe_ideal_pow] at hI,
+              rw [int.coe_nat_add_one_out, zpow_coe_nat, ← fractional_ideal.coe_ideal_pow,
                   fractional_ideal.coe_ideal_eq_one_iff, ideal.one_eq_top, ideal.eq_top_iff_one]
                 at hI ⊢, rw [pow_succ I, mul_pow] at hI, exact ideal.mul_le_right hI }
 end
@@ -129,8 +134,6 @@ end
 ----------------------------------------------------------------------------------------------------
 
 namespace number_field
-
-local attribute [-instance] number_field.ring_of_integers_algebra
 
 ----------------------------------------------------------------------------------------------------
 /-! ## Primes and valuations -/
@@ -345,7 +348,7 @@ begin
   rw [val_of_ne_zero_mod, monoid_hom.comp_apply, mul_equiv.coe_to_monoid_hom,
       mul_equiv.map_eq_one_iff, quotient_group.map_coe, quotient_group.eq_one_iff] at hp,
   cases hp with z hz,
-  exact ⟨-z, by simpa only [neg_mul_eq_neg_mul_symm, neg_inj] using hz⟩
+  exact ⟨-z, by simpa only [neg_mul, neg_inj] using hz⟩
 end
 
 lemma K_0_n.val_support_finite [fact $ 0 < n] {x : Kˣ} (hx : quotient_group.mk x ∈ K⟮∅, n⟯) :
@@ -386,8 +389,8 @@ begin
     congr' 1,
     rw [← mul_left_inj' $ int.coe_nat_ne_zero_iff_pos.mpr _inst_3.elim,
         (K_0_n.val_exists p ⟨_, hx⟩).some_spec, subtype.val_eq_coe, subtype.coe_mk, hy, map_mul,
-        to_add_mul, add_mul, (K_0_n.val_exists_of_mk p hx).some_spec, neg_mul_eq_neg_mul_symm,
-        mul_comm _ (n : ℤ), ← neg_add, neg_inj, add_right_inj],
+        to_add_mul, add_mul, (K_0_n.val_exists_of_mk p hx).some_spec, neg_mul, mul_comm _ (n : ℤ),
+        ← neg_add, neg_inj, add_right_inj],
     simp_rw [← hz],
     exact map_zpow (val_of_ne_zero p) z n
   end,

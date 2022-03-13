@@ -224,7 +224,7 @@ end
 variables (L ι)
 
 /-- The canonical map from a component to the direct limit. -/
-noncomputable def of (i : ι) : G i ↪[L] direct_limit G f :=
+def of (i : ι) : G i ↪[L] direct_limit G f :=
 { to_fun := quotient.mk ∘ sigma.mk i,
   inj' := λ x y h, begin
     simp only [quotient.eq] at h,
@@ -264,7 +264,7 @@ variables (L ι G f)
 /-- The universal property of the direct limit: maps from the components to another module
 that respect the directed system structure (i.e. make some diagram commute) give rise
 to a unique map out of the direct limit. -/
-noncomputable def lift : direct_limit G f ↪[L] P :=
+def lift : direct_limit G f ↪[L] P :=
 { to_fun := quotient.lift (λ (x : Σ i, G i), (g x.1) x.2) (λ x y xy, begin
     simp only,
     obtain ⟨i, hx, hy⟩ := directed_of (≤) x.1 y.1,

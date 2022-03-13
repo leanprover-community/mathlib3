@@ -96,7 +96,7 @@ begin
     have h : nat_degree tl.prod ≤ n * tl.length,
     { refine (nat_degree_list_prod_le _).trans _,
       rw [←tl.length_map nat_degree, mul_comm],
-      refine list.sum_le_of_forall_le _ _ _,
+      refine list.sum_le_card_nsmul _ _ _,
       simpa using hl' },
     have hdn : nat_degree hd ≤ n := hl _ (list.mem_cons_self _ _),
     rcases hdn.eq_or_lt with rfl|hdn',
@@ -241,16 +241,16 @@ variables [comm_ring R]
 open monic
 -- Eventually this can be generalized with Vieta's formulas
 -- plus the connection between roots and factorization.
-lemma multiset_prod_X_sub_C_next_coeff [nontrivial R] (t : multiset R) :
+lemma multiset_prod_X_sub_C_next_coeff (t : multiset R) :
   next_coeff (t.map (λ x, X - C x)).prod = -t.sum :=
 begin
   rw next_coeff_multiset_prod,
   { simp only [next_coeff_X_sub_C],
-    refine t.sum_hom ⟨has_neg.neg, _, _⟩; simp [add_comm] },
+    exact t.sum_hom (-add_monoid_hom.id R) },
   { intros, apply monic_X_sub_C }
 end
 
-lemma prod_X_sub_C_next_coeff [nontrivial R] {s : finset ι} (f : ι → R) :
+lemma prod_X_sub_C_next_coeff {s : finset ι} (f : ι → R) :
   next_coeff ∏ i in s, (X - C (f i)) = -∑ i in s, f i :=
 by simpa using multiset_prod_X_sub_C_next_coeff (s.1.map f)
 

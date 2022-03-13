@@ -376,7 +376,7 @@ begin
   have E2 : (⨆ x, ⨅ y, g (inl x, inr y)) + dist f g = ⨆ x, (⨅ y, g (inl x, inr y)) + dist f g,
   { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
-    { by simpa using HD_bound_aux1 _ 0 } },
+    { simpa using HD_bound_aux1 _ 0 } },
   -- deduce the result from the above two steps
   simpa [E2, E1, function.comp]
 end
@@ -405,7 +405,7 @@ begin
   have E2 : (⨆ y, ⨅ x, g (inl x, inr y)) + dist f g = ⨆ y, (⨅ x, g (inl x, inr y)) + dist f g,
   { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
-    { by simpa using HD_bound_aux2 _ 0 } },
+    { simpa using HD_bound_aux2 _ 0 } },
   -- deduce the result from the above two steps
   simpa [E2, E1]
 end

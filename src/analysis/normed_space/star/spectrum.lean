@@ -10,8 +10,10 @@ import analysis.normed_space.spectrum
 In this file, we establish various propreties related to the spectrum of elements in C⋆-algebras.
 -/
 
+local postfix `⋆`:std.prec.max_plus := star
+
 open_locale topological_space ennreal
-open filter ennreal spectrum
+open filter ennreal spectrum cstar_ring
 
 section unitary_spectrum
 
@@ -57,8 +59,22 @@ begin
   simp,
 end
 
-lemma self_adjoint.coe_spectral_radius_eq_nnnorm (a : self_adjoint A) :
-  spectral_radius ℂ (a : A) = ∥(a : A)∥₊ :=
-spectral_radius_eq_nnnorm_of_self_adjoint a.property
+lemma spectral_radius_eq_nnnorm_of_star_normal (a : A) [is_star_normal a] :
+  spectral_radius ℂ a = ∥a∥₊ :=
+begin
+  refine (ennreal.pow_strict_mono (by linarith : 2 ≠ 0)).injective _,
+  have ha : a⋆ * a ∈ self_adjoint A,
+    from self_adjoint.mem_iff.mpr (by simpa only [star_star] using (star_mul a⋆ a)),
+  have heq : (λ n : ℕ, ((∥(a⋆ * a) ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞))
+    = (λ x, x ^ 2) ∘ (λ n : ℕ, ((∥a ^ n∥₊ ^ (1 / n : ℝ)) : ℝ≥0∞)),
+  { funext,
+    rw [function.comp_apply, ←rpow_nat_cast, ←rpow_mul, mul_comm, rpow_mul, rpow_nat_cast,
+      ←coe_pow, sq, ←nnnorm_star_mul_self, commute.mul_pow (star_comm_self' a), star_pow], },
+  have h₂ := ((ennreal.continuous_pow 2).tendsto (spectral_radius ℂ a)).comp
+    (spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius a),
+  rw ←heq at h₂,
+  convert tendsto_nhds_unique h₂ (pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius (a⋆ * a)),
+  rw [spectral_radius_eq_nnnorm_of_self_adjoint ha, sq, nnnorm_star_mul_self, coe_mul],
+end
 
 end complex_scalars

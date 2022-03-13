@@ -26,8 +26,6 @@ be satisfied by itself and all stricter types.
 
 open function
 
-
-
 variables {F α : Type*}
 
 /-- The type of centroid homomorphisms from `α` to `α`. -/
@@ -127,6 +125,8 @@ instance : monoid (centroid_hom α) :=
   mul_one := centroid_hom.comp_id,
   one_mul := centroid_hom.id_comp }
 
+@[simp] lemma coe_mul (f g) : ((f * g : centroid_hom α) : α → α) = f ∘ g := rfl
+
 /-- Addition of `centroid_hom`s as a `centroid_hom`. -/
 def add (g f : centroid_hom α) : centroid_hom α :=
 ⟨g.to_add_monoid_hom + f.to_add_monoid_hom,
@@ -152,6 +152,10 @@ instance : add_comm_monoid (centroid_hom α) :=
   zero_add := by intros; ext; apply zero_add,
   add_zero := by intros; ext; apply add_zero,
   add_comm := by intros; ext; apply add_comm, }
+
+lemma add_apply (f g : centroid_hom α) (a : α) : (f + g) a = f a + g a := rfl
+
+@[simp] lemma zero_apply (a: α): (0 : centroid_hom α) a = 0 := rfl
 
 -- c.f https://github.com/leanprover-community/mathlib/blob/master/src/algebra/group/hom_instances.lean#L58
 instance : semiring (centroid_hom α) :=
@@ -189,11 +193,48 @@ instance  : ring (centroid_hom α) :=
 { .. centroid_hom.semiring,
   .. centroid_hom.add_comm_group }
 
-lemma comm_apply_sq (T S : centroid_hom α) (a : α) :
-  ((T ∘ S) a - (S ∘ T) a) * ((T ∘ S) a - (S ∘ T) a) = 0 :=
-by rw [sub_mul, comp_app, comp_app, ← map_mul_right, ← map_mul_right, ← map_mul_right,
-    ← map_mul_right, ← comp_app T S, comm_comp_mul, ← comp_app T S, sub_self]
+lemma neg_apply (f : centroid_hom α) (a : α) : (-f) a = - (f a) := rfl
+
+lemma sub_apply (f g : centroid_hom α) (a : α) : (f - g) a = f a - g a :=
+by rw [sub_eq_add_neg, sub_eq_add_neg, add_apply, neg_apply]
 
 end non_unital_non_assoc_ring
+
+section non_unital_ring
+
+variables [non_unital_ring α]
+
+-- https://msp.org/pjm/1975/60-1/pjm-v60-n1-p06-s.pdf
+/-- A prime associative ring has commutative centroid -/
+def prime_centroid_commutative (h: ∀ a b : α, ∀ r : α, a * r * b = 0 → a = 0 ∨ b = 0) :
+  comm_ring (centroid_hom α) :=
+{
+  mul_comm := λ f g, begin
+    rw ← sub_eq_zero,
+    have h' : ∀ a : α, ∀ r : α, a * r * a = 0 → a = 0 := begin
+      intros a r h'',
+      rw ← or_self (a=0),
+      apply h a a r,
+      exact h'',
+    end,
+    ext,
+    rw zero_apply,
+    have h''' : ∀ r : α, ((f * g - g * f) a) * r * ((f * g - g * f) a) = 0 := λ r, by rw [mul_assoc,
+      sub_apply, sub_mul, sub_eq_zero, ← map_mul_right, ← map_mul_right, coe_mul, coe_mul,
+      comm_comp_mul],
+    have e : (f * g - g * f) a = 0 := begin
+      apply h' ((f * g - g * f) a),
+      apply h''',
+      sorry,
+      --apply h' ((f * g - g * f) a) h''',
+    end,
+    --rw zero_apply,
+    --convert h' ((f * g - g * f) a),
+    apply e,
+  end,
+  ..centroid_hom.ring
+}
+
+end non_unital_ring
 
 end centroid_hom

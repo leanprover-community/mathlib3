@@ -37,8 +37,10 @@ chicken mcnugget, frobenius coin, chinese remainder theorem, submonoid.closure
 
 namespace nat
 
+variables {m n : ℕ}
+
 /- No solution for the product over the natural numbers. -/
-lemma mul_add_mul_ne_mul_of_coprime {a b m n : ℕ} (ha : a ≠ 0) (hb : b ≠ 0)
+lemma mul_add_mul_ne_mul_of_coprime {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0)
   (cop : coprime m n) : a * m + b * n ≠ m * n :=
 begin
   intro h,
@@ -52,7 +54,7 @@ begin
 end
 
 /- No solution for the maximal value over the natural numbers. -/
-lemma mul_add_mul_ne_max_val {m n : ℕ} (cop : coprime m n) (hm : 1 < m) (hn : 1 < n)
+lemma mul_add_mul_ne_max_val (cop : coprime m n) (hm : 1 < m) (hn : 1 < n)
   (a b : ℕ) :
   a * m + b * n ≠ m * n - m - n :=
 begin
@@ -63,7 +65,7 @@ begin
 end
 
 /- Providing construction for all larger values. -/
-lemma not_in_clos_nat_pair {m n : ℕ} (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
+lemma not_in_clos_nat_pair (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   ∀ k, m * n - m - n < k → ∃ (a b : ℕ), a * m + b * n = k :=
 begin
   intros k hk,
@@ -79,13 +81,13 @@ begin
 end
 
 /-- The **Chicken Mcnugget theorem** stated using `is_greatest`. -/
-theorem max_not_sum_mult {m n : ℕ} (cop: coprime m n) (hm : 1 < m) (hn : 1 < n) :
+theorem max_not_sum_mult (cop: coprime m n) (hm : 1 < m) (hn : 1 < n) :
   is_greatest {k | ∀ a b, a * m + b * n ≠ k} (m * n - m - n) :=
 ⟨mul_add_mul_ne_max_val cop hm hn,
   λ k hk, not_lt.mp (mt (not_in_clos_nat_pair cop hm hn k) (λ ⟨a, b, H⟩, hk a b H))⟩
 
 /-- The **Chicken Mcnugget theorem** stated using `add_monoid.closure. -/
-theorem max_not_in_clos_nat_pair_eq {m n : ℕ} (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
+theorem max_not_in_clos_nat_pair_eq (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
   is_greatest {k | k ∉ add_submonoid.closure ({m, n} : set ℕ)} (m * n - m - n) :=
 begin
   simp_rw add_submonoid.mem_closure_pair,

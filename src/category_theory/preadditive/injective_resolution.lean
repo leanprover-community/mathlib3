@@ -5,9 +5,6 @@ Authors: Jujian Zhang, Scott Morrison
 -/
 import category_theory.preadditive.injective
 import algebra.homology.single
-import algebra.homology.homological_complex
-import algebra.homology.homotopy_category
-import category_theory.abelian.exact
 
 /-!
 # Injective resolutions

@@ -199,13 +199,13 @@ def linear_isometry_equiv_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) : (E 
     inv_fun   := (star U : (E →L[𝕜] E)),
     left_inv  := λ x, by rw [←mul_apply, unitary.star_mul_self_of_mem hU, one_apply],
     right_inv := λ x, by rw [←mul_apply, unitary.mul_star_self_of_mem hU, one_apply] },
-  norm_map' := λ x, by {
-    rw unitary.mem_iff at hU,
+  norm_map' := λ x, by
+  { rw unitary.mem_iff at hU,
     rw [linear_equiv.coe_mk, ←sq_eq_sq (norm_nonneg (U x)) (norm_nonneg x), norm_sq_eq_inner,
       ←adjoint_inner_left, ←mul_apply, ←star_eq_adjoint, hU.1, one_apply, inner_self_eq_norm_sq] } }
 
 lemma norm_map_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) (x : E) : ∥U x∥ = ∥x∥ :=
-(linear_isometry_equiv_of_unitary hU).norm_map' _ 
+(linear_isometry_equiv_of_unitary hU).norm_map' _
 
 end unitary
 

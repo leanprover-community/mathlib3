@@ -379,26 +379,31 @@ def inl_ring_hom [semiring R] [non_unital_semiring A] [module R A] : R →+* uni
 end mul
 
 section algebra
-variables (R A : Type*)
-variables [comm_semiring R] [non_unital_semiring A]
-variables [module R A] [is_scalar_tower R A A] [smul_comm_class R A A]
+variables (S R A : Type*)
+[comm_semiring S] [comm_semiring R] [non_unital_semiring A]
+[module R A] [is_scalar_tower R A A] [smul_comm_class R A A]
+[algebra S R] [distrib_mul_action S A] [is_scalar_tower S R A]
 
-instance algebra : algebra R (unitization R A) :=
+instance algebra : algebra S (unitization R A) :=
 { commutes' := λ r x,
   begin
     induction x using unitization.ind,
-    simp only [ring_hom.to_fun_eq_coe, inl_ring_hom_apply, mul_add, add_mul, inl_mul_inl],
+    simp only [mul_add, add_mul, ring_hom.to_fun_eq_coe, ring_hom.coe_comp, function.comp_app,
+      inl_ring_hom_apply, inl_mul_inl],
     rw [inl_mul_inr, inr_mul_inl, mul_comm]
   end,
-  smul_def' := λ r x,
+  smul_def' := λ s x,
   begin
     induction x using unitization.ind,
-    simp only [mul_add, inl_mul_inr, smul_add, ring_hom.to_fun_eq_coe, inl_ring_hom_apply,
-      inr_smul],
-    rw [inl_mul_inl, ←smul_eq_mul, inl_smul],
+    simp only [mul_add, smul_add, ring_hom.to_fun_eq_coe, ring_hom.coe_comp, function.comp_app,
+      inl_ring_hom_apply, algebra.algebra_map_eq_smul_one],
+    rw [inl_mul_inl, inl_mul_inr, smul_one_mul, inl_smul, inr_smul, smul_one_smul]
   end,
-  ..(unitization.inl_ring_hom R A) }
+  ..(unitization.inl_ring_hom R A).comp (algebra_map S R) }
 
+lemma algebra_map_eq_inl_comp : ⇑(algebra_map S (unitization R A)) = inl ∘ algebra_map S R := rfl
+lemma algebra_map_eq_inl_ring_hom_comp :
+  algebra_map S (unitization R A) = (inl_ring_hom R A).comp (algebra_map S R) := rfl
 lemma algebra_map_eq_inl : ⇑(algebra_map R (unitization R A)) = inl := rfl
 lemma algebra_map_eq_inl_hom : algebra_map R (unitization R A) = inl_ring_hom R A := rfl
 
@@ -441,25 +446,32 @@ end coe
 section alg_hom
 
 variables
-{R A : Type*}
-[comm_semiring R] [non_unital_semiring A]
+{S R A : Type*}
+[comm_semiring S] [comm_semiring R] [non_unital_semiring A]
 [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
-{B : Type*} [ring B] [algebra R B]
+{B : Type*} [ring B] [algebra S B]
+[algebra S R] [distrib_mul_action S A] [is_scalar_tower S R A]
+{C : Type*} [ring C] [algebra R C]
 
-lemma alg_hom_ext {φ ψ : unitization R A →ₐ[R] B} (h : ∀ a : A, φ a = ψ a) :
+lemma alg_hom_ext {φ ψ : unitization R A →ₐ[S] B} (h : ∀ a : A, φ a = ψ a)
+  (h' : ∀ r, φ (algebra_map R (unitization R A) r) = ψ (algebra_map R (unitization R A) r)) :
   φ = ψ :=
 begin
   ext,
   induction x using unitization.ind,
-  simp only [map_add, ←algebra_map_eq_inl, ←coe_apply, h, alg_hom.commutes],
+  simp only [map_add, ←algebra_map_eq_inl, ←coe_apply, h, h'],
 end
 
-/-- Non-unital algebra homomorphisms from `A` into a unital `R`-algebra `B` lift to
-`unitization R A →ₐ[R] B`. -/
+lemma alg_hom_ext' {φ ψ : unitization R A →ₐ[R] C} (h : ∀ a : A, φ a = ψ a) :
+  φ = ψ :=
+alg_hom_ext h (by simp [alg_hom.commutes])
+
+/-- Non-unital algebra homomorphisms from `A` into a unital `R`-algebra `C` lift uniquely to
+`unitization R A →ₐ[R] C`. This is the universal property of the unitization. -/
 @[simps apply_apply]
-def lift : non_unital_alg_hom R A B ≃ (unitization R A →ₐ[R] B) :=
+def lift : non_unital_alg_hom R A C ≃ (unitization R A →ₐ[R] C) :=
 { to_fun := λ φ,
-  { to_fun := λ x, algebra_map R B x.fst + φ x.snd,
+  { to_fun := λ x, algebra_map R C x.fst + φ x.snd,
     map_one' := by simp only [fst_one, map_one, snd_one, φ.map_zero, add_zero],
     map_mul' := λ x y,
     begin
@@ -483,9 +495,9 @@ def lift : non_unital_alg_hom R A B ≃ (unitization R A →ₐ[R] B) :=
     commutes' := λ r, by simp only [algebra_map_eq_inl, fst_inl, snd_inl, φ.map_zero, add_zero] },
   inv_fun := λ φ, φ.to_non_unital_alg_hom.comp coe_non_unital_alg_hom,
   left_inv := λ φ, by { ext, simp, },
-  right_inv := λ φ, unitization.alg_hom_ext (by simp), }
+  right_inv := λ φ, unitization.alg_hom_ext' (by simp), }
 
-lemma lift_symm_apply (φ : unitization R A →ₐ[R] B) (a : A) :
+lemma lift_symm_apply (φ : unitization R A →ₐ[R] C) (a : A) :
   unitization.lift.symm φ a = φ a := rfl
 
 end alg_hom

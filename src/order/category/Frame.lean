@@ -5,6 +5,8 @@ Authors: Yaël Dillies
 -/
 import order.category.Lattice
 import order.hom.complete_lattice
+import topology.category.CompHaus
+import topology.opens
 
 /-!
 # The category of frames
@@ -18,7 +20,7 @@ This file defines `Frame`, the category of frames.
 
 universes u
 
-open category_theory order
+open category_theory opposite order topological_space
 
 /-- The category of frames. -/
 def Frame := bundled frame
@@ -58,3 +60,13 @@ instance has_forget_to_Lattice : has_forget₂ Frame Lattice :=
   inv_hom_id' := by { ext, exact e.apply_symm_apply _ } }
 
 end Frame
+
+/-- The forgetful functor from `Topᵒᵖ` to `Frame`. -/
+@[simps] def Top_op_to_Frame : Topᵒᵖ ⥤ Frame :=
+{ obj := λ X, Frame.of (opens (unop X : Top)),
+  map := λ X Y f, opens.comap $ quiver.hom.unop f,
+  map_id' := λ X, opens.comap_id }
+
+-- Note, `CompHaus` is too strong. We only need `t0_space`.
+instance CompHaus_op_to_Frame.faithful : faithful (CompHaus_to_Top.op ⋙ Top_op_to_Frame.{u}) :=
+⟨λ X Y f g h, quiver.hom.unop_inj $ opens.comap_injective h⟩

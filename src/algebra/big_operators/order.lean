@@ -169,24 +169,24 @@ calc f a = ∏ i in {a}, f i : prod_singleton.symm
      ... ≤ ∏ i in s, f i   :
   prod_le_prod_of_subset_of_one_le' (singleton_subset_iff.2 h) $ λ i hi _, hf i hi
 
-@[to_additive]
-lemma prod_le_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, f x ≤ n) :
+@[to_additive sum_le_card_nsmul]
+lemma prod_le_pow_card (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, f x ≤ n) :
   s.prod f ≤ n ^ s.card :=
 begin
-  refine (multiset.prod_le_of_forall_le (s.val.map f) n _).trans _,
+  refine (multiset.prod_le_pow_card (s.val.map f) n _).trans _,
   { simpa using h },
   { simpa }
 end
 
-@[to_additive]
-lemma le_prod_of_forall_le (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, n ≤ f x) :
+@[to_additive card_nsmul_le_sum]
+lemma pow_card_le_prod (s : finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, n ≤ f x) :
   n ^ s.card ≤ s.prod f :=
-@finset.prod_le_of_forall_le _ (order_dual N) _ _ _ _ h
+@finset.prod_le_pow_card _ (order_dual N) _ _ _ _ h
 
 lemma card_bUnion_le_card_mul [decidable_eq β] (s : finset ι) (f : ι → finset β) (n : ℕ)
   (h : ∀ a ∈ s, (f a).card ≤ n) :
   (s.bUnion f).card ≤ s.card * n :=
-card_bUnion_le.trans $ sum_le_of_forall_le _ _ _ h
+card_bUnion_le.trans $ sum_le_card_nsmul _ _ _ h
 
 variables {ι' : Type*} [decidable_eq ι']
 
@@ -264,7 +264,7 @@ times how many they are. -/
 lemma sum_card_inter_le (h : ∀ a ∈ s, (B.filter $ (∈) a).card ≤ n) :
   ∑ t in B, (s ∩ t).card ≤ s.card * n :=
 begin
-  refine le_trans _ (s.sum_le_of_forall_le _ _ h),
+  refine le_trans _ (s.sum_le_card_nsmul _ _ h),
   simp_rw [←filter_mem_eq_inter, card_eq_sum_ones, sum_filter],
   exact sum_comm.le,
 end
@@ -281,7 +281,7 @@ times how many they are. -/
 lemma le_sum_card_inter (h : ∀ a ∈ s, n ≤ (B.filter $ (∈) a).card) :
   s.card * n ≤ ∑ t in B, (s ∩ t).card :=
 begin
-  apply (s.le_sum_of_forall_le _ _ h).trans,
+  apply (s.card_nsmul_le_sum _ _ h).trans,
   simp_rw [←filter_mem_eq_inter, card_eq_sum_ones, sum_filter],
   exact sum_comm.le,
 end

@@ -90,14 +90,13 @@ def zero_locus (s : set A) : set (projective_spectrum 𝒜) :=
 by { ext x, exact (submodule.gi _ _).gc s x.as_homogeneous_ideal }
 
 /-- The vanishing ideal of a set `t` of points
-of the prime spectrum of a commutative ring `R`
+of the projective spectrum of a commutative ring `R`
 is the intersection of all the prime ideals in the set `t`.
 
-An element `f` of `R` can be thought of as a dependent function
-on the prime spectrum of `R`.
-At a point `x` (a prime ideal)
-the function (i.e., element) `f` takes values in the quotient ring `R` modulo the prime ideal `x`.
-In this manner, `vanishing_ideal t` is exactly the ideal of `R`
+An element `f` of `A` can be thought of as a dependent function on the projective spectrum of `𝒜`.
+At a point `x` (a prime homogeneous ideal)
+the function (i.e., element) `f` takes values in the quotient ring `A` modulo the prime ideal `x`.
+In this manner, `vanishing_ideal t` is exactly the ideal of `A`
 consisting of all "functions" that vanish on all of `t`.
 -/
 def vanishing_ideal (t : set (projective_spectrum 𝒜)) : ideal A :=

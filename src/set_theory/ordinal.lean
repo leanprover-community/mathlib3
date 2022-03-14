@@ -1267,6 +1267,9 @@ le_antisymm (ord_le.2 $ by simp only [card_nat]) $ begin
     ord_lt_ord.2 $ nat_cast_lt.2 (nat.lt_succ_self n)) }
 end
 
+@[simp] theorem ord_one : ord 1 = 1 :=
+by simpa using ord_nat 1
+
 @[simp] theorem lift_ord (c) : (ord c).lift = ord (lift c) :=
 eq_of_forall_ge_iff $ λ o, le_iff_le_iff_lt_iff_lt.2 $ begin
   split; intro h,

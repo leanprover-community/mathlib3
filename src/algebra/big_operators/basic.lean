@@ -766,13 +766,15 @@ end
   (∏ x in s, (ite (a = x) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
 prod_dite_eq s a (λ x _, b x)
 
-/--
-  When a product is taken over a conditional whose condition is an equality test on the index
-  and whose alternative is 1, then the product's value is either the term at that index or `1`.
+/-- A product taken over a conditional whose condition is an equality test on the index and whose
+alternative is `1` has value either the term at that index or `1`.
 
-  The difference with `prod_ite_eq` is that the arguments to `eq` are swapped.
--/
-@[simp, to_additive] lemma prod_ite_eq' [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
+The difference with `finset.prod_ite_eq` is that the arguments to `eq` are swapped. -/
+@[simp, to_additive "A sum taken over a conditional whose condition is an equality test on the index
+and whose alternative is `0` has value either the term at that index or `0`.
+
+The difference with `finset.sum_ite_eq` is that the arguments to `eq` are swapped."]
+lemma prod_ite_eq' [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
   (∏ x in s, (ite (x = a) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
 prod_dite_eq' s a (λ x _, b x)
 
@@ -991,7 +993,7 @@ lemma sum_range_induction {M : Type*} [add_comm_monoid M]
   ∑ k in finset.range n, f k = s n :=
 @prod_range_induction (multiplicative M) _ f s h0 h n
 
-/-- A telescoping sum along `{0, ..., n-1}` of an additive commutative group valued function
+/-- A telescoping sum along `{0, ..., n - 1}` of an additive commutative group valued function
 reduces to the difference of the last and first terms.-/
 lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
@@ -1001,8 +1003,8 @@ lemma sum_range_sub' {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
   ∑ i in range n, (f i - f (i+1)) = f 0 - f n :=
 by { apply sum_range_induction; simp }
 
-/-- A telescoping product along `{0, ..., n-1}` of a commutative group valued function
-reduces to the ratio of the last and first factors.-/
+/-- A telescoping product along `{0, ..., n - 1}` of a commutative group valued function reduces to
+the ratio of the last and first factors. -/
 @[to_additive]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f (i+1) * (f i)⁻¹) = f n * (f 0)⁻¹ :=
@@ -1010,7 +1012,7 @@ by simpa only [← div_eq_mul_inv] using @sum_range_sub (additive M) _ f n
 
 @[to_additive]
 lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∏ i in range n, (f i * (f (i+1))⁻¹) = (f 0) * (f n)⁻¹ :=
+  ∏ i in range n, (f i * (f (i+1))⁻¹) = f 0 * (f n)⁻¹ :=
 by simpa only [← div_eq_mul_inv] using @sum_range_sub' (additive M) _ f n
 
 /--
@@ -1092,9 +1094,10 @@ finset.strong_induction_on s
         prod_insert (not_mem_erase _ _), ih', mul_one, h x hx]))
 
 
-/-- The product of the composition of functions `f` and `g`, is the product
-over `b ∈ s.image g` of `f b` to the power of the cardinality of the fibre of `b`. See also
-`finset.prod_image`. -/
+/-- The product of the composition of functions `f` and `g`, is the product over `b ∈ s.image g` of
+`f b` to the power of the cardinality of the fibre of `b`. See also `finset.prod_image`. -/
+@[to_additive "The sum of the composition of functions `f` and `g`, is the sum over `b ∈ s.image g`
+of `f b` times of the cardinality of the fibre of `b`. See also `finset.sum_image`."]
 lemma prod_comp [decidable_eq γ] (f : γ → β) (g : α → γ) :
   ∏ a in s, f (g a) = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card  :=
 calc ∏ a in s, f (g a)
@@ -1290,13 +1293,6 @@ end
 lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : decidable_pred p} :
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
 by simp [sum_ite]
-
-lemma sum_comp [add_comm_monoid β] [decidable_eq γ] (f : γ → β) (g : α → γ) :
-  ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card • (f b) :=
-@prod_comp (multiplicative β) _ _ _ _ _ _ _
-attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
-over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`. See also
-`finset.sum_image`."] prod_comp
 
 lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
   f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=

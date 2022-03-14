@@ -544,8 +544,8 @@ variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 def comp (g : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) : M₁ →SL[σ₁₃] M₃ :=
 ⟨(g : M₂ →ₛₗ[σ₂₃] M₃).comp ↑f, g.2.comp f.2⟩
 
-infixr ` ∘L `:80 := @continuous_linear_map.comp _ _ _ _ _ _ (ring_hom.id _) (ring_hom.id _)
-  _ _ _ _ _ _ _ _ _ _ _ _ (ring_hom.id _) ring_hom_comp_triple.ids
+infixr ` ∘L `:80 := @continuous_linear_map.comp _ _ _ _ _ _
+  (ring_hom.id _) (ring_hom.id _) (ring_hom.id _) _ _ _ _ _ _ _ _ _ _ _ _ ring_hom_comp_triple.ids
 
 @[simp, norm_cast] lemma coe_comp (h : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) :
   (h.comp f : M₁ →ₛₗ[σ₁₃] M₃) = (h : M₂ →ₛₗ[σ₂₃] M₃).comp (f : M₁ →ₛₗ[σ₁₂] M₂) := rfl

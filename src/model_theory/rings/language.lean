@@ -63,6 +63,8 @@ variable {α : Type u'}
 @[simp] instance : has_mul (L.term α) :=
 ⟨ λ x y, @func L _ 2 binaries.mul ![x, y] ⟩
 
+@[simp] instance : has_sub (L.term α) := ⟨ λ x y, x + - y ⟩
+
 instance : has_pow (L.term α) ℕ := ⟨ λ t n, npow_rec n t ⟩
 
 @[simp] lemma pow_zero (t : L.term α) : t ^ 0 = 1 := rfl

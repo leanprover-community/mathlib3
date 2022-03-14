@@ -354,5 +354,4 @@ fundamental groupoid of that space. -/
 @[reducible]
 def from_path {X : Top} {x₀ x₁ : X} (p : path.homotopic.quotient x₀ x₁) : (x₀ ⟶ x₁) := p
 
-
 end fundamental_groupoid

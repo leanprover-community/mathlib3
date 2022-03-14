@@ -327,7 +327,7 @@ section semiring
 
 variables
 {R₁ : Type*} {R₂ : Type*} {R₃ : Type*} [semiring R₁] [semiring R₂] [semiring R₃]
-{σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃}
+{σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R₁ →+* R₃}
 {M₁ : Type*} [topological_space M₁] [add_comm_monoid M₁]
 {M'₁ : Type*} [topological_space M'₁] [add_comm_monoid M'₁]
 {M₂ : Type*} [topological_space M₂] [add_comm_monoid M₂]
@@ -446,6 +446,30 @@ begin
   exact hf'.dense_image f.continuous hs
 end
 
+section smul_monoid
+
+variables {S₂ T₂ : Type*} [monoid S₂] [monoid T₂]
+variables [distrib_mul_action S₂ M₂] [smul_comm_class R₂ S₂ M₂] [has_continuous_const_smul S₂ M₂]
+variables [distrib_mul_action T₂ M₂] [smul_comm_class R₂ T₂ M₂] [has_continuous_const_smul T₂ M₂]
+
+instance : mul_action S₂ (M₁ →SL[σ₁₂] M₂) :=
+{ smul := λ c f, ⟨c • f, (f.2.const_smul _ : continuous (λ x, c • f x))⟩,
+  one_smul := λ f, ext $ λ x, one_smul _ _,
+  mul_smul := λ a b f, ext $ λ x, mul_smul _ _ _ }
+
+lemma smul_apply (c : S₂) (f : M₁ →SL[σ₁₂] M₂) (x : M₁) : (c • f) x = c • (f x) := rfl
+@[simp, norm_cast]
+lemma coe_smul (c : S₂) (f : M₁ →SL[σ₁₂] M₂) : (↑(c • f) : M₁ →ₛₗ[σ₁₂] M₂) = c • f := rfl
+@[simp, norm_cast] lemma coe_smul' (c : S₂) (f : M₁ →SL[σ₁₂] M₂) : ⇑(c • f) = c • f := rfl
+
+instance [has_scalar S₂ T₂] [is_scalar_tower S₂ T₂ M₂] : is_scalar_tower S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
+⟨λ a b f, ext $ λ x, smul_assoc a b (f x)⟩
+
+instance [smul_comm_class S₂ T₂ M₂] : smul_comm_class S₂ T₂ (M₁ →SL[σ₁₂] M₂) :=
+⟨λ a b f, ext $ λ x, smul_comm a b (f x)⟩
+
+end smul_monoid
+
 /-- The continuous map that is constantly zero. -/
 instance: has_zero (M₁ →SL[σ₁₂] M₂) := ⟨⟨0, continuous_zero⟩⟩
 instance : inhabited (M₁ →SL[σ₁₂] M₂) := ⟨0⟩
@@ -498,18 +522,7 @@ instance : has_add (M₁ →SL[σ₁₂] M₂) :=
 @[norm_cast] lemma coe_add' (f g : M₁ →SL[σ₁₂] M₂) : ⇑(f + g) = f + g := rfl
 
 instance : add_comm_monoid (M₁ →SL[σ₁₂] M₂) :=
-{ zero := (0 : M₁ →SL[σ₁₂] M₂),
-  add := (+),
-  zero_add := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
-  add_zero := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
-  add_comm := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
-  add_assoc := by intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm],
-  nsmul := λ n f,
-    { to_fun := λ x, n • (f x),
-      map_add' := by simp,
-      map_smul' := by simp [smul_comm n] },
-  nsmul_zero' := λ f, by { ext, simp },
-  nsmul_succ' := λ n f, by { ext, simp [nat.succ_eq_one_add, add_smul] } }
+fun_like.coe_injective.add_comm_monoid _ coe_zero' coe_add' (λ _ _, coe_smul' _ _)
 
 @[simp, norm_cast] lemma coe_sum {ι : Type*} (t : finset ι) (f : ι → M₁ →SL[σ₁₂] M₂) :
   ↑(∑ d in t, f d) = (∑ d in t, f d : M₁ →ₛₗ[σ₁₂] M₂) :=
@@ -525,7 +538,7 @@ by simp only [coe_sum', finset.sum_apply]
 
 end add
 
-variables {σ₁₃ : R₁ →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
+variables [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
 /-- Composition of bounded linear maps. -/
 def comp (g : M₂ →SL[σ₂₃] M₃) (f : M₁ →SL[σ₁₂] M₂) : M₁ →SL[σ₁₃] M₃ :=
@@ -923,30 +936,13 @@ instance : has_neg (M →SL[σ₁₂] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 
 instance : has_sub (M →SL[σ₁₂] M₂) := ⟨λ f g, ⟨f - g, f.2.sub g.2⟩⟩
 
-instance : add_comm_group (M →SL[σ₁₂] M₂) :=
-by refine
-{ zero := 0,
-  add := (+),
-  neg := has_neg.neg,
-  sub := has_sub.sub,
-  sub_eq_add_neg := _,
-  nsmul := λ n f,
-    { to_fun := λ x, n • (f x),
-      map_add' := by simp,
-      map_smul' := by simp [smul_comm n] },
-  zsmul := λ n f,
-    { to_fun := λ x, n • (f x),
-      map_add' := by simp,
-      map_smul' := by simp [smul_comm n] },
-  zsmul_zero' := λ f, by { ext, simp },
-  zsmul_succ' := λ n f, by { ext, simp [add_smul, add_comm] },
-  zsmul_neg' := λ n f, by { ext, simp [nat.succ_eq_add_one, add_smul] },
-  .. continuous_linear_map.add_comm_monoid, .. };
-intros; ext; apply_rules [zero_add, add_assoc, add_zero, add_left_neg, add_comm, sub_eq_add_neg]
-
 lemma sub_apply (f g : M →SL[σ₁₂] M₂) (x : M) : (f - g) x = f x - g x := rfl
 @[simp, norm_cast] lemma coe_sub (f g : M →SL[σ₁₂] M₂) : (↑(f - g) : M →ₛₗ[σ₁₂] M₂) = f - g := rfl
 @[simp, norm_cast] lemma coe_sub' (f g : M →SL[σ₁₂] M₂) : ⇑(f - g) = f - g := rfl
+
+instance : add_comm_group (M →SL[σ₁₂] M₂) :=
+fun_like.coe_injective.add_comm_group _
+  coe_zero' coe_add' coe_neg' coe_sub' (λ _ _, coe_smul' _ _) (λ _ _, coe_smul' _ _)
 
 end
 
@@ -1011,11 +1007,6 @@ variables {R R₂ R₃ S S₃ : Type*} [semiring R] [semiring R₂] [semiring R�
   [distrib_mul_action S N₃] [smul_comm_class R S N₃] [has_continuous_const_smul S N₃]
   {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
 
-instance : mul_action S₃ (M →SL[σ₁₃] M₃) :=
-{ smul := λ c f, ⟨c • f, (f.2.const_smul _ : continuous (λ x, c • f x))⟩,
-  one_smul := λ f, ext $ λ x, one_smul _ _,
-  mul_smul := λ a b f, ext $ λ x, mul_smul _ _ _ }
-
 include σ₁₃
 @[simp] lemma smul_comp (c : S₃) (h : M₂ →SL[σ₂₃] M₃) (f : M →SL[σ₁₂] M₂) :
   (c • h).comp f = c • (h.comp f) := rfl
@@ -1023,11 +1014,6 @@ omit σ₁₃
 
 variables [distrib_mul_action S₃ M₂] [has_continuous_const_smul S₃ M₂] [smul_comm_class R₂ S₃ M₂]
 variables [distrib_mul_action S N₂] [has_continuous_const_smul S N₂] [smul_comm_class R S N₂]
-
-lemma smul_apply (c : S₃) (f : M →SL[σ₁₂] M₂) (x : M) : (c • f) x = c • (f x) := rfl
-@[simp, norm_cast]
-lemma coe_smul (c : S₃) (f : M →SL[σ₁₂] M₂) : (↑(c • f) : M →ₛₗ[σ₁₂] M₂) = c • f := rfl
-@[simp, norm_cast] lemma coe_smul' (c : S₃) (f : M →SL[σ₁₂] M₂) : ⇑(c • f) = c • f := rfl
 
 @[simp] lemma comp_smul [linear_map.compatible_smul N₂ N₃ S R]
   (hₗ : N₂ →L[R] N₃) (c : S) (fₗ : M →L[R] N₂) :
@@ -1041,16 +1027,6 @@ include σ₁₃
   h.comp (c • f) = (σ₂₃ c) • (h.comp f) :=
 by { ext x, simp only [coe_smul', coe_comp', function.comp_app, pi.smul_apply, map_smulₛₗ] }
 omit σ₁₃
-
-instance {T : Type*} [monoid T] [distrib_mul_action T M₂]
-  [has_continuous_const_smul T M₂] [smul_comm_class R₂ T M₂] [has_scalar S₃ T]
-  [is_scalar_tower S₃ T M₂] : is_scalar_tower S₃ T (M →SL[σ₁₂] M₂) :=
-⟨λ a b f, ext $ λ x, smul_assoc a b (f x)⟩
-
-instance {T : Type*} [monoid T] [distrib_mul_action T M₂]
-  [has_continuous_const_smul T M₂] [smul_comm_class R₂ T M₂] [smul_comm_class S₃ T M₂] :
-  smul_comm_class S₃ T (M →SL[σ₁₂] M₂) :=
-⟨λ a b f, ext $ λ x, smul_comm a b (f x)⟩
 
 instance [has_continuous_add M₂] : distrib_mul_action S₃ (M →SL[σ₁₂] M₂) :=
 { smul_add := λ a f g, ext $ λ x, smul_add a (f x) (g x),

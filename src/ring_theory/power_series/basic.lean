@@ -384,7 +384,7 @@ lemma coeff_zero_eq_constant_coeff_apply (φ : mv_power_series σ R) :
  then so is its constant coefficient.-/
 lemma is_unit_constant_coeff (φ : mv_power_series σ R) (h : is_unit φ) :
   is_unit (constant_coeff σ R φ) :=
-h.map (constant_coeff σ R).to_monoid_hom
+h.map _
 
 @[simp]
 lemma coeff_smul (f : mv_power_series σ R) (n) (a : R) :

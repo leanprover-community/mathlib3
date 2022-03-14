@@ -3,12 +3,10 @@ Copyright (c) 2021 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Eric Wieser
 -/
-
 import ring_theory.ideal.basic
 import ring_theory.ideal.operations
 import linear_algebra.finsupp
 import ring_theory.graded_algebra.basic
-
 /-!
 # Homogeneous ideals of a graded algebra
 
@@ -471,3 +469,39 @@ lemma ideal.homogeneous_hull_eq_Inf (I : ideal A) :
 eq.symm $ is_glb.Inf_eq $ (ideal.homogeneous_hull.gc 𝒜).is_least_l.is_glb
 
 end galois_connection
+
+section irrelevant_ideal
+
+variables [comm_semiring R] [semiring A]
+variables [algebra R A] [decidable_eq ι]
+variables [canonically_ordered_add_monoid ι]
+variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+
+open graded_algebra set_like.graded_monoid direct_sum
+
+/--
+For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `canonically_ordered_add_monoid ι`, the irrelevant ideal
+refers to `⨁_{i>0} 𝒜ᵢ`, or equivalently `{a | a₀ = 0}`. This definition is used in `Proj`
+construction where `ι` is always `ℕ` so the irrelevant ideal is simply elements with `0` as
+0-th coordinate.
+
+# Future work
+Here in the definition, `ι` is assumed to be `canonically_ordered_add_monoid`. However, the notion
+of irrelevant ideal makes sense in a more general setting by defining it as the ideal of elements
+with `0` as i-th coordinate for all `i ≤ 0`, i.e. `{a | ∀ (i : ι), i ≤ 0 → aᵢ = 0}`.
+-/
+def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
+⟨(graded_algebra.proj_zero_ring_hom 𝒜).ker, λ i r (hr : (decompose 𝒜 r 0 : A) = 0), begin
+  change (decompose 𝒜 (decompose 𝒜 r _) 0 : A) = 0,
+  by_cases h : i = 0,
+  { rw [h, hr, map_zero, zero_apply, submodule.coe_zero] },
+  { rw [decompose_of_mem_ne 𝒜 (submodule.coe_mem _) h] }
+end⟩
+
+@[simp] lemma homogeneous_ideal.mem_irrelevant_iff (a : A) :
+  a ∈ homogeneous_ideal.irrelevant 𝒜 ↔ proj 𝒜 0 a = 0 := iff.rfl
+
+@[simp, norm_cast] lemma homogeneous_ideal.coe_irrelevant :
+  ↑(homogeneous_ideal.irrelevant 𝒜) = (graded_algebra.proj_zero_ring_hom 𝒜).ker := rfl
+
+end irrelevant_ideal

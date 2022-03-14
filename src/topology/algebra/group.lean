@@ -6,8 +6,8 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 import group_theory.quotient_group
 import order.filter.pointwise
 import topology.algebra.monoid
-import topology.compacts
 import topology.compact_open
+import topology.sets.compacts
 
 /-!
 # Theory of topological groups

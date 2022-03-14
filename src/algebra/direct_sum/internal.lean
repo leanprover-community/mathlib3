@@ -5,7 +5,7 @@ Authors: Eric Wieser, Kevin Buzzard, Jujian Zhang
 -/
 
 import algebra.algebra.operations
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
 import algebra.direct_sum.algebra
 
 /-!

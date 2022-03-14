@@ -5,7 +5,7 @@ Authors: Praneeth Kolichala
 -/
 
 import category_theory.groupoid
-import algebraic_topology.fundamental_groupoid.fundamental_groupoid
+import algebraic_topology.fundamental_groupoid.basic
 import topology.category.Top.limits
 import topology.homotopy.product
 import category_theory.limits.preserves.shapes.products

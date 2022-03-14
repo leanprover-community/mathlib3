@@ -76,12 +76,12 @@ instance has_mul.to_has_scalar (α : Type*) [has_mul α] : has_scalar α α := �
 @[simp, to_additive] lemma smul_eq_mul (α : Type*) [has_mul α] {a a' : α} : a • a' = a * a' := rfl
 
 /-- Type class for additive monoid actions. -/
-@[protect_proj] class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
+@[ext, protect_proj] class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
 (zero_vadd : ∀ p : P, (0 : G) +ᵥ p = p)
 (add_vadd : ∀ (g₁ g₂ : G) (p : P), (g₁ + g₂) +ᵥ p = g₁ +ᵥ (g₂ +ᵥ p))
 
 /-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
-@[protect_proj, to_additive]
+@[ext, protect_proj, to_additive]
 class mul_action (α : Type*) (β : Type*) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
@@ -296,6 +296,15 @@ variables [monoid M] [mul_action M α]
 variable (M)
 @[simp, to_additive] theorem one_smul (b : α) : (1 : M) • b = b := mul_action.one_smul _
 
+/-- `has_scalar` version of `one_mul_eq_id` -/
+@[to_additive]
+lemma one_smul_eq_id : ((•) (1 : M) : α → α) = id := funext $ one_smul _
+
+/-- `has_scalar` version of `comp_mul_left` -/
+@[to_additive]
+lemma comp_smul_left (a₁ a₂ : M) : (•) a₁ ∘ (•) a₂ = ((•) (a₁ * a₂) : α → α) :=
+funext $ λ _, (mul_smul _ _ _).symm
+
 variables {M}
 
 /-- Pullback a multiplicative action along an injective map respecting `•`.
@@ -443,7 +452,7 @@ lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_scalar M N]
 end compatible_scalar
 
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
-class distrib_mul_action (M : Type*) (A : Type*) [monoid M] [add_monoid A]
+@[ext] class distrib_mul_action (M : Type*) (A : Type*) [monoid M] [add_monoid A]
   extends mul_action M A :=
 (smul_add : ∀(r : M) (x y : A), r • (x + y) = r • x + r • y)
 (smul_zero : ∀(r : M), r • (0 : A) = 0)
@@ -538,7 +547,7 @@ end
 
 /-- Typeclass for multiplicative actions on multiplicative structures. This generalizes
 conjugation actions. -/
-class mul_distrib_mul_action (M : Type*) (A : Type*) [monoid M] [monoid A]
+@[ext] class mul_distrib_mul_action (M : Type*) (A : Type*) [monoid M] [monoid A]
   extends mul_action M A :=
 (smul_mul : ∀ (r : M) (x y : A), r • (x * y) = (r • x) * (r • y))
 (smul_one : ∀ (r : M), r • (1 : A) = 1)

@@ -84,6 +84,9 @@ instance [comm_semiring R] [algebra R ℝ] : algebra R ℂ :=
   commutes' := λ r ⟨xr, xi⟩, by ext; simp [smul_re, smul_im, algebra.commutes],
   ..complex.of_real.comp (algebra_map R ℝ) }
 
+instance : star_module ℝ ℂ :=
+⟨λ r x, by simp only [star_def, star_trivial, real_smul, map_mul, conj_of_real]⟩
+
 @[simp] lemma coe_algebra_map : (algebra_map ℝ ℂ : ℝ → ℂ) = coe := rfl
 
 section
@@ -183,6 +186,12 @@ cardinal.lift_inj.1 $
 lemma finrank_real_of_complex (E : Type*) [add_comm_group E] [module ℂ E] :
   finite_dimensional.finrank ℝ E = 2 * finite_dimensional.finrank ℂ E :=
 by rw [← finite_dimensional.finrank_mul_finrank ℝ ℂ E, complex.finrank_real_complex]
+
+@[priority 900]
+instance star_module.complex_to_real {E : Type*} [add_comm_group E] [has_star E] [module ℂ E]
+  [star_module ℂ E] : star_module ℝ E :=
+⟨λ r a, by rw [star_trivial r, restrict_scalars_smul_def, restrict_scalars_smul_def, star_smul,
+  complex.coe_algebra_map, complex.star_def, complex.conj_of_real]⟩
 
 namespace complex
 

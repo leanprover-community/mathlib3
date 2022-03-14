@@ -180,7 +180,7 @@ begin
 end
 
 @[simp] lemma size_up_to_length : c.size_up_to c.length = n :=
-c.size_up_to_of_length_le c.length (le_refl _)
+c.size_up_to_of_length_le c.length le_rfl
 
 lemma size_up_to_le (i : ℕ) : c.size_up_to i ≤ n :=
 begin
@@ -286,8 +286,7 @@ begin
   set i := c.index j with hi,
   push_neg at H,
   have i_pos : (0 : ℕ) < i,
-  { by_contradiction i_pos,
-    push_neg at i_pos,
+  { by_contra' i_pos,
     revert H, simp [nonpos_iff_eq_zero.1 i_pos, c.size_up_to_zero] },
   let i₁ := (i : ℕ).pred,
   have i₁_lt_i : i₁ < i := nat.pred_lt (ne_of_gt i_pos),

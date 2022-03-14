@@ -113,7 +113,7 @@ begin
   have : set.univ ⊆ ↑hI.to_finset ∪ J, { rwa [hI.coe_to_finset] },
   refine le_trans (infi_ker_proj_le_supr_range_std_basis R φ this) (supr_le_supr $ assume i, _),
   rw [set.finite.mem_to_finset],
-  exact le_refl _
+  exact le_rfl
 end
 
 lemma supr_range_std_basis [fintype ι] : (⨆i:ι, range (std_basis R φ i)) = ⊤ :=

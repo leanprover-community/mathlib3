@@ -114,8 +114,7 @@ setoid.mk (λ α β, diff α β = 1) ⟨λ α, diff_self α, λ α β h₁,
 def quotient_diff [H.normal] :=
 quotient H.setoid_diff
 
-instance [H.normal] : inhabited H.quotient_diff :=
-quotient.inhabited
+instance [H.normal] : inhabited H.quotient_diff := quotient.inhabited _
 
 variables {H}
 

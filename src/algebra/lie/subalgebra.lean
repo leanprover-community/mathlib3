@@ -97,6 +97,8 @@ lemma add_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x + y : L) ∈ L' :=
 lemma sub_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x - y : L) ∈ L' :=
 (L' : submodule R L).sub_mem hx hy
 
+@[simp] lemma neg_mem_iff {x : L} : -x ∈ L' ↔ x ∈ L' := L'.to_submodule.neg_mem_iff
+
 lemma lie_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (⁅x, y⁆ : L) ∈ L' := L'.lie_mem' hx hy
 
 @[simp] lemma mem_carrier {x : L} : x ∈ L'.carrier ↔ x ∈ (L' : set L) := iff.rfl
@@ -131,6 +133,8 @@ by { cases p, refl, }
 
 lemma coe_injective : function.injective (coe : lie_subalgebra R L → set L) :=
 by { rintro ⟨⟨⟩⟩ ⟨⟨⟩⟩ h, congr' }
+
+instance : set_like (lie_subalgebra R L) L := ⟨coe, coe_injective⟩
 
 @[norm_cast] theorem coe_set_eq (L₁' L₂' : lie_subalgebra R L) :
   (L₁' : set L) = L₂' ↔ L₁' = L₂' := coe_injective.eq_iff
@@ -232,6 +236,18 @@ begin
   use x,
   simp only [subtype.mk_eq_mk, range_restrict_apply],
 end
+
+/-- A Lie algebra is equivalent to its range under an injective Lie algebra morphism. -/
+noncomputable def equiv_range_of_injective (h : function.injective f) : L ≃ₗ⁅R⁆ f.range :=
+lie_equiv.of_bijective f.range_restrict (λ x y hxy,
+begin
+  simp only [subtype.mk_eq_mk, range_restrict_apply] at hxy,
+  exact h hxy,
+end) f.surjective_range_restrict
+
+@[simp] lemma equiv_range_of_injective_apply (h : function.injective f) (x : L) :
+  f.equiv_range_of_injective h x = ⟨f x, mem_range_self f x⟩ :=
+rfl
 
 end lie_hom
 
@@ -382,6 +398,9 @@ begin
   simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, mem_bot],
 end
 
+lemma subsingleton_bot : subsingleton ↥(⊥ : lie_subalgebra R L) :=
+show subsingleton ((⊥ : lie_subalgebra R L) : set L), by simp
+
 variables (R L)
 
 lemma well_founded_of_noetherian [is_noetherian R L] :
@@ -427,6 +446,17 @@ end
 lemma of_le_eq_comap_incl : of_le h = K.comap K'.incl :=
 by { ext, rw mem_of_le, refl, }
 
+@[simp] lemma coe_of_le : (of_le h : submodule R K') = (submodule.of_le h).range := rfl
+
+/-- Given nested Lie subalgebras `K ⊆ K'`, there is a natural equivalence from `K` to its image in
+`K'`.  -/
+noncomputable def equiv_of_le : K ≃ₗ⁅R⁆ of_le h :=
+(hom_of_le h).equiv_range_of_injective (hom_of_le_injective h)
+
+@[simp] lemma equiv_of_le_apply (x : K) :
+  equiv_of_le h x = ⟨hom_of_le h x, (hom_of_le h).mem_range_self x⟩ :=
+rfl
+
 end nested_subalgebras
 
 lemma map_le_iff_le_comap {K : lie_subalgebra R L} {K' : lie_subalgebra R L₂} :
@@ -446,7 +476,7 @@ def lie_span : lie_subalgebra R L := Inf {N | s ⊆ N}
 variables {R L s}
 
 lemma mem_lie_span {x : L} : x ∈ lie_span R L s ↔ ∀ K : lie_subalgebra R L, s ⊆ K → x ∈ K :=
-by { change x ∈ (lie_span R L s : set L) ↔ _, erw Inf_coe, exact set.mem_bInter_iff, }
+by { change x ∈ (lie_span R L s : set L) ↔ _, erw Inf_coe, exact set.mem_Inter₂, }
 
 lemma subset_lie_span : s ⊆ lie_span R L s :=
 by { intros m hm, erw mem_lie_span, intros K hK, exact hK hm, }

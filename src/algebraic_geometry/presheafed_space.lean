@@ -158,6 +158,11 @@ by { induction U using opposite.rec, cases U, simp only [id_c], dsimp, simp, }
 @[simp] lemma comp_base {X Y Z : PresheafedSpace C} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).base = f.base ≫ g.base := rfl
 
+instance (X Y : PresheafedSpace C) : has_coe_to_fun (X ⟶ Y) (λ _, X → Y) :=
+⟨λ f, f.base⟩
+
+lemma coe_to_fun_eq {X Y : PresheafedSpace C} (f : X ⟶ Y) : (f : X → Y) = f.base := rfl
+
 -- The `reassoc` attribute was added despite the LHS not being a composition of two homs,
 -- for the reasons explained in the docstring.
 /-- Sometimes rewriting with `comp_c_app` doesn't work because of dependent type issues.

@@ -546,14 +546,14 @@ instance : complete_lattice (affine_subspace k P) :=
   bot_le := λ _ _, false.elim,
   Sup := λ s, affine_span k (⋃ s' ∈ s, (s' : set P)),
   Inf := λ s, mk (⋂ s' ∈ s, (s' : set P))
-                 (λ c p1 p2 p3 hp1 hp2 hp3, set.mem_bInter_iff.2 $ λ s2 hs2,
-                   s2.smul_vsub_vadd_mem c (set.mem_bInter_iff.1 hp1 s2 hs2)
-                                           (set.mem_bInter_iff.1 hp2 s2 hs2)
-                                           (set.mem_bInter_iff.1 hp3 s2 hs2)),
+                 (λ c p1 p2 p3 hp1 hp2 hp3, set.mem_Inter₂.2 $ λ s2 hs2, begin
+                   rw set.mem_Inter₂ at *,
+                   exact s2.smul_vsub_vadd_mem c (hp1 s2 hs2) (hp2 s2 hs2) (hp3 s2 hs2)
+                 end),
   le_Sup := λ _ _ h, set.subset.trans (set.subset_bUnion_of_mem h) (subset_span_points k _),
-  Sup_le := λ _ _ h, span_points_subset_coe_of_subset_coe (set.bUnion_subset h),
+  Sup_le := λ _ _ h, span_points_subset_coe_of_subset_coe (set.Union₂_subset h),
   Inf_le := λ _ _, set.bInter_subset_of_mem,
-  le_Inf := λ _ _, set.subset_bInter,
+  le_Inf := λ _ _, set.subset_Inter₂,
   .. partial_order.lift (coe : affine_subspace k P → set P) coe_injective }
 
 instance : inhabited (affine_subspace k P) := ⟨⊤⟩
@@ -601,7 +601,7 @@ variables (k V)
 /-- The affine span is the `Inf` of subspaces containing the given
 points. -/
 lemma affine_span_eq_Inf (s : set P) : affine_span k s = Inf {s' | s ⊆ s'} :=
-le_antisymm (span_points_subset_coe_of_subset_coe (set.subset_bInter (λ _ h, h)))
+le_antisymm (span_points_subset_coe_of_subset_coe $ set.subset_Inter₂ $ λ _, id)
             (Inf_le (subset_span_points k _))
 
 variables (P)
@@ -1217,7 +1217,7 @@ def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
     begin
       rintros t - - - ⟨p₁, h₁, rfl⟩ ⟨p₂, h₂, rfl⟩ ⟨p₃, h₃, rfl⟩,
       use t • (p₁ -ᵥ p₂) +ᵥ p₃,
-      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { by simp [this], },
+      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { simp [this], },
       exact s.smul_vsub_vadd_mem t h₁ h₂ h₃,
     end }
 

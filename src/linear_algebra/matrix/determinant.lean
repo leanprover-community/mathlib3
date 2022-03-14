@@ -156,7 +156,7 @@ calc det (M ⬝ N) = ∑ p : n → n, ∑ σ : perm n, ε σ * ∏ i, (M (σ i) 
   sum_congr rfl (λ σ _, fintype.sum_equiv (equiv.mul_right σ⁻¹) _ _
     (λ τ,
       have ∏ j, M (τ j) (σ j) = ∏ j, M ((τ * σ⁻¹) j) j,
-        by { rw ← σ⁻¹.prod_comp, simp only [equiv.perm.coe_mul, apply_inv_self] },
+        by { rw ← (σ⁻¹ : _ ≃ _).prod_comp, simp only [equiv.perm.coe_mul, apply_inv_self] },
       have h : ε σ * ε (τ * σ⁻¹) = ε τ :=
         calc ε σ * ε (τ * σ⁻¹) = ε ((τ * σ⁻¹) * σ) :
           by { rw [mul_comm, sign_mul (τ * σ⁻¹)], simp only [int.cast_mul, units.coe_mul] }
@@ -240,10 +240,23 @@ det_minor_equiv_self e.symm A
 by rw [←matrix.mul_one (σ.to_pequiv.to_matrix : matrix n n R), pequiv.to_pequiv_mul_matrix,
   det_permute, det_one, mul_one]
 
-@[simp] lemma det_smul (A : matrix n n R) (c : R) : det (c • A) = c ^ fintype.card n * det A :=
+lemma det_smul (A : matrix n n R) (c : R) : det (c • A) = c ^ fintype.card n * det A :=
 calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_diagonal_mul]
              ... = det (diagonal (λ _, c)) * det A        : det_mul _ _
              ... = c ^ fintype.card n * det A             : by simp [card_univ]
+
+@[simp] lemma det_smul_of_tower {α} [monoid α] [distrib_mul_action α R] [is_scalar_tower α R R]
+  [smul_comm_class α R R] (c : α) (A : matrix n n R) :
+  det (c • A) = c ^ fintype.card n • det A :=
+by rw [←smul_one_smul R c A, det_smul, smul_pow, one_pow, smul_mul_assoc, one_mul]
+
+lemma det_neg (A : matrix n n R) : det (-A) = (-1) ^ fintype.card n * det A :=
+by rw [←det_smul, neg_one_smul]
+
+/-- A variant of `matrix.det_neg` with scalar multiplication by `units ℤ` instead of multiplication
+by `R`. -/
+lemma det_neg_eq_smul (A : matrix n n R) : det (-A) = (-1 : units ℤ) ^ fintype.card n • det A :=
+by rw [←det_smul_of_tower, units.neg_smul, one_smul]
 
 /-- Multiplying each row by a fixed `v i` multiplies the determinant by
 the product of the `v`s. -/
@@ -286,7 +299,7 @@ f.to_alg_hom.map_det _
 end hom_map
 
 @[simp] lemma det_conj_transpose [star_ring R] (M : matrix m m R) : det (Mᴴ) = star (det M) :=
-((star_ring_aut : ring_aut R).map_det _).symm.trans $ congr_arg star M.det_transpose
+((star_ring_end R).map_det _).symm.trans $ congr_arg star M.det_transpose
 
 section det_zero
 /-!
@@ -582,8 +595,7 @@ begin
     rw fintype.prod_sum_type,
     simp_rw [equiv.sum_congr_apply, sum.map_inr, sum.map_inl, from_blocks_apply₁₁,
       from_blocks_apply₂₂],
-    have hr : ∀ (a b c d : R), (a * b) * (c * d) = a * c * (b * d), { intros, ac_refl },
-    rw hr,
+    rw mul_mul_mul_comm,
     congr,
     rw [sign_sum_congr, units.coe_mul, int.cast_mul] },
   { intros σ₁ σ₂ h₁ h₂,
@@ -646,7 +658,7 @@ begin
       equiv.perm.decompose_fin_symm_apply_zero, equiv.perm.decompose_fin_symm_apply_succ]
   ... = (-1) * (A (fin.succ i) 0 * (σ.sign : ℤ) •
         ∏ i', A (((fin.succ i).succ_above) (fin.cycle_range i (σ i'))) i'.succ) :
-    by simp only [mul_assoc, mul_comm, neg_mul_eq_neg_mul_symm, one_mul, zsmul_eq_mul, neg_inj,
+    by simp only [mul_assoc, mul_comm, _root_.neg_mul, one_mul, zsmul_eq_mul, neg_inj,
       neg_smul, fin.succ_above_cycle_range],
 end
 

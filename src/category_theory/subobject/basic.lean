@@ -329,11 +329,11 @@ by simp [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp underlying]
 by simp [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp_assoc underlying]
 
 @[simp] lemma of_le_refl {B : C} (X : subobject B) :
-  of_le X X (le_refl _) = 𝟙 _ :=
+  of_le X X le_rfl = 𝟙 _ :=
 by { apply (cancel_mono X.arrow).mp, simp }
 
 @[simp] lemma of_mk_le_mk_refl {B A₁ : C} (f : A₁ ⟶ B) [mono f] :
-  of_mk_le_mk f f (le_refl _) = 𝟙 _ :=
+  of_mk_le_mk f f le_rfl = 𝟙 _ :=
 by { apply (cancel_mono f).mp, simp }
 
 /-- An equality of subobjects gives an isomorphism of the corresponding objects.

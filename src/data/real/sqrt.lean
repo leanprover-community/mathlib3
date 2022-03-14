@@ -3,8 +3,8 @@ Copyright (c) 2020 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Yury Kudryashov
 -/
+import topology.algebra.order.monotone_continuity
 import topology.instances.nnreal
-import topology.algebra.ordered.monotone_continuity
 
 /-!
 # Square root of a real number
@@ -83,7 +83,7 @@ lemma sqrt_mul (x y : ℝ≥0) : sqrt (x * y) = sqrt x * sqrt y :=
 by rw [sqrt_eq_iff_sq_eq, mul_mul_mul_comm, mul_self_sqrt, mul_self_sqrt]
 
 /-- `nnreal.sqrt` as a `monoid_with_zero_hom`. -/
-noncomputable def sqrt_hom : monoid_with_zero_hom ℝ≥0 ℝ≥0 := ⟨sqrt, sqrt_zero, sqrt_one, sqrt_mul⟩
+noncomputable def sqrt_hom : ℝ≥0 →*₀ ℝ≥0 := ⟨sqrt, sqrt_zero, sqrt_one, sqrt_mul⟩
 
 lemma sqrt_inv (x : ℝ≥0) : sqrt (x⁻¹) = (sqrt x)⁻¹ := sqrt_hom.map_inv x
 
@@ -252,7 +252,7 @@ theorem le_sqrt_of_sq_le (h : x^2 ≤ y) : x ≤ sqrt y :=
 by simp [le_antisymm_iff, hx, hy]
 
 @[simp] theorem sqrt_eq_zero (h : 0 ≤ x) : sqrt x = 0 ↔ x = 0 :=
-by simpa using sqrt_inj h (le_refl _)
+by simpa using sqrt_inj h le_rfl
 
 theorem sqrt_eq_zero' : sqrt x = 0 ↔ x ≤ 0 :=
 by rw [sqrt, nnreal.coe_eq_zero, nnreal.sqrt_eq_zero, real.to_nnreal_eq_zero]
@@ -306,6 +306,13 @@ end
 theorem neg_sqrt_lt_of_sq_lt (h : x^2 < y) : -sqrt y < x := (sq_lt.mp h).1
 
 theorem lt_sqrt_of_sq_lt (h : x^2 < y) : x < sqrt y := (sq_lt.mp h).2
+
+instance : star_ordered_ring ℝ :=
+{ nonneg_iff := λ r, by
+  { refine ⟨λ hr, ⟨sqrt r, show r = sqrt r * sqrt r, by rw [←sqrt_mul hr, sqrt_mul_self hr]⟩, _⟩,
+    rintros ⟨s, rfl⟩,
+    exact mul_self_nonneg s },
+  ..real.ordered_add_comm_group }
 
 end real
 

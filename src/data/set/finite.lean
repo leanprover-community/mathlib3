@@ -420,6 +420,15 @@ theorem infinite.exists_lt_map_eq_of_maps_to [linear_order α] {s : set α} {t :
 let ⟨x, hx, y, hy, hxy, hf⟩ := hs.exists_ne_map_eq_of_maps_to hf ht
 in hxy.lt_or_lt.elim (λ hxy, ⟨x, hx, y, hy, hxy, hf⟩) (λ hyx, ⟨y, hy, x, hx, hyx, hf.symm⟩)
 
+lemma finite.exists_lt_map_eq_of_range_subset [linear_order α] [_root_.infinite α] {t : set β}
+  {f : α → β} (hf : range f ⊆ t) (ht : finite t) :
+  ∃ a b, a < b ∧ f a = f b :=
+begin
+  rw [range_subset_iff, ←maps_univ_to] at hf,
+  obtain ⟨a, -, b, -, h⟩ := (@infinite_univ α _).exists_lt_map_eq_of_maps_to hf ht,
+  exact ⟨a, b, h⟩,
+end
+
 theorem infinite_range_of_injective [_root_.infinite α] {f : α → β} (hi : injective f) :
   infinite (range f) :=
 by { rw [←image_univ, infinite_image_iff (inj_on_of_injective hi _)], exact infinite_univ }
@@ -566,9 +575,6 @@ variables {s : finset α}
 
 lemma finite_to_set (s : finset α) : set.finite (↑s : set α) :=
 set.finite_mem_finset s
-
-@[simp] lemma coe_bUnion {f : α → finset β} : ↑(s.bUnion f) = (⋃x ∈ (↑s : set α), ↑(f x) : set β) :=
-by simp [set.ext_iff]
 
 @[simp] lemma finite_to_set_to_finset {α : Type*} (s : finset α) :
   (finite_to_set s).to_finset = s :=
@@ -802,7 +808,7 @@ lemma card_ne_eq [fintype α] (a : α) [fintype {x : α | x ≠ a}] :
 begin
   haveI := classical.dec_eq α,
   rw [←to_finset_card, to_finset_ne_eq_erase, finset.card_erase_of_mem (finset.mem_univ _),
-      finset.card_univ, nat.pred_eq_sub_one],
+      finset.card_univ],
 end
 
 end decidable_eq
@@ -822,6 +828,13 @@ finite.induction_on H
   (by simp only [bUnion_empty, bdd_above_empty, ball_empty_iff])
   (λ a s ha _ hs, by simp only [bUnion_insert, ball_insert_iff, bdd_above_union, hs])
 
+lemma infinite_of_not_bdd_above : ¬ bdd_above s → s.infinite :=
+begin
+  contrapose!,
+  rw not_infinite,
+  apply finite.bdd_above,
+end
+
 end
 
 section
@@ -836,6 +849,13 @@ protected lemma finite.bdd_below (hs : finite s) : bdd_below s :=
 lemma finite.bdd_below_bUnion {I : set β} {S : β → set α} (H : finite I) :
   (bdd_below (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_below (S i)) :=
 @finite.bdd_above_bUnion (order_dual α) _ _ _ _ _ H
+
+lemma infinite_of_not_bdd_below : ¬ bdd_below s → s.infinite :=
+begin
+  contrapose!,
+  rw not_infinite,
+  apply finite.bdd_below,
+end
 
 end
 

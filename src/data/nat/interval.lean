@@ -70,16 +70,16 @@ lemma Iio_eq_range : Iio = range := by { ext b x, rw [mem_Iio, mem_range] }
 lemma _root_.finset.range_eq_Ico : range = Ico 0 := Ico_zero_eq_range.symm
 
 @[simp] lemma card_Icc : (Icc a b).card = b + 1 - a :=
-by rw [Icc_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
+by rw [Icc_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.length_range']
 
 @[simp] lemma card_Ico : (Ico a b).card = b - a :=
-by rw [Ico_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
+by rw [Ico_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.length_range']
 
 @[simp] lemma card_Ioc : (Ioc a b).card = b - a :=
-by rw [Ioc_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
+by rw [Ioc_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.length_range']
 
 @[simp] lemma card_Ioo : (Ioo a b).card = b - a - 1 :=
-by rw [Ioo_eq_range', list.card_to_finset, (list.nodup_range' _ _).erase_dup, list.length_range']
+by rw [Ioo_eq_range', list.card_to_finset, (list.nodup_range' _ _).dedup, list.length_range']
 
 @[simp] lemma card_Iic : (Iic b).card = b + 1 := by rw [Iic, card_Icc, bot_eq_zero, tsub_zero]
 @[simp] lemma card_Iio : (Iio b).card = b := by rw [Iio, card_Ico, bot_eq_zero, tsub_zero]
@@ -173,6 +173,71 @@ begin
   rw [Ico_succ_left, mem_erase, mem_Ico, mem_Ioo, ←and_assoc, ne_comm, and_comm (a ≠ x),
     lt_iff_le_and_ne],
 end
+
+lemma mod_inj_on_Ico (n a : ℕ) : set.inj_on (% a) (finset.Ico n (n+a)) :=
+begin
+  induction n with n ih,
+  { simp only [zero_add, nat_zero_eq_zero, Ico_zero_eq_range],
+    rintro k hk l hl (hkl : k % a = l % a),
+    simp only [finset.mem_range, finset.mem_coe] at hk hl,
+    rwa [mod_eq_of_lt hk, mod_eq_of_lt hl] at hkl, },
+  rw [Ico_succ_left_eq_erase_Ico, succ_add, Ico_succ_right_eq_insert_Ico le_self_add],
+  rintro k hk l hl (hkl : k % a = l % a),
+  have ha : 0 < a,
+  { by_contra ha, simp only [not_lt, nonpos_iff_eq_zero] at ha, simpa [ha] using hk },
+  simp only [finset.mem_coe, finset.mem_insert, finset.mem_erase] at hk hl,
+  rcases hk with ⟨hkn, (rfl|hk)⟩; rcases hl with ⟨hln, (rfl|hl)⟩,
+  { refl },
+  { rw add_mod_right at hkl,
+    refine (hln $ ih hl _ hkl.symm).elim,
+    simp only [lt_add_iff_pos_right, set.left_mem_Ico, finset.coe_Ico, ha], },
+  { rw add_mod_right at hkl,
+    suffices : k = n, { contradiction },
+    refine ih hk _ hkl,
+    simp only [lt_add_iff_pos_right, set.left_mem_Ico, finset.coe_Ico, ha], },
+  { refine ih _ _ hkl; simp only [finset.mem_coe, hk, hl], },
+end
+
+/-- Note that while this lemma cannot be easily generalized to a type class, it holds for ℤ as
+well. See `int.image_Ico_mod` for the ℤ version. -/
+lemma image_Ico_mod (n a : ℕ) :
+  (Ico n (n+a)).image (% a) = range a :=
+begin
+  obtain rfl | ha := eq_or_ne a 0,
+  { rw [range_zero, add_zero, Ico_self, image_empty], },
+  ext i,
+  simp only [mem_image, exists_prop, mem_range, mem_Ico],
+  split,
+  { rintro ⟨i, h, rfl⟩, exact mod_lt i ha.bot_lt },
+  intro hia,
+  have hn := nat.mod_add_div n a,
+  obtain hi | hi := lt_or_le i (n % a),
+  { refine ⟨i + a * (n/a + 1), ⟨_, _⟩, _⟩,
+    { rw [add_comm (n/a), mul_add, mul_one, ← add_assoc],
+      refine hn.symm.le.trans (add_le_add_right _ _),
+      simpa only [zero_add] using add_le_add (zero_le i) (nat.mod_lt n ha.bot_lt).le, },
+    { refine lt_of_lt_of_le (add_lt_add_right hi (a * (n/a + 1))) _,
+      rw [mul_add, mul_one, ← add_assoc, hn], },
+    { rw [nat.add_mul_mod_self_left, nat.mod_eq_of_lt hia], } },
+  { refine ⟨i + a * (n/a), ⟨_, _⟩, _⟩,
+    { exact hn.symm.le.trans (add_le_add_right hi _), },
+    { rw [add_comm n a],
+      refine add_lt_add_of_lt_of_le hia (le_trans _ hn.le),
+      simp only [zero_le, le_add_iff_nonneg_left], },
+    { rw [nat.add_mul_mod_self_left, nat.mod_eq_of_lt hia], } },
+end
+
+section multiset
+open multiset
+
+lemma multiset_Ico_map_mod (n a : ℕ) : (multiset.Ico n (n+a)).map (% a) = range a :=
+begin
+  convert congr_arg finset.val (image_Ico_mod n a),
+  refine ((nodup_map_iff_inj_on (finset.Ico _ _).nodup).2 $ _).dedup.symm,
+  exact mod_inj_on_Ico _ _,
+end
+
+end multiset
 
 end nat
 

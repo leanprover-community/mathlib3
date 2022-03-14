@@ -215,7 +215,7 @@ variables (F)
 def Lp_meas_subgroup (m : measurable_space α) [measurable_space α] (p : ℝ≥0∞) (μ : measure α) :
   add_subgroup (Lp F p μ) :=
 { carrier   := {f : (Lp F p μ) | ae_measurable' m f μ} ,
-  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α m _ _, Lp.coe_fn_zero _ _ _⟩,
+  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α _ m _, Lp.coe_fn_zero _ _ _⟩,
   add_mem'  := λ f g hf hg, (hf.add hg).congr (Lp.coe_fn_add f g).symm,
   neg_mem' := λ f hf, ae_measurable'.congr hf.neg (Lp.coe_fn_neg f).symm, }
 
@@ -226,7 +226,7 @@ def Lp_meas [opens_measurable_space 𝕜] (m : measurable_space α) [measurable_
   (μ : measure α) :
   submodule 𝕜 (Lp F p μ) :=
 { carrier   := {f : (Lp F p μ) | ae_measurable' m f μ} ,
-  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α m _ _, Lp.coe_fn_zero _ _ _⟩,
+  zero_mem' := ⟨(0 : α → F), @measurable_zero _ α _ m _, Lp.coe_fn_zero _ _ _⟩,
   add_mem'  := λ f g hf hg, (hf.add hg).congr (Lp.coe_fn_add f g).symm,
   smul_mem' := λ c f hf, (hf.const_smul c).congr (Lp.coe_fn_smul c f).symm, }
 variables {F 𝕜}
@@ -688,8 +688,6 @@ We define a conditional expectation in `L2`: it is the orthogonal projection on 
 
 section condexp_L2
 
-local attribute [instance] fact_one_le_two_ennreal
-
 variables [complete_space E] {m m0 : measurable_space α} {μ : measure α}
   {s t : set α}
 
@@ -1117,15 +1115,13 @@ end condexp_L2
 
 section condexp_ind
 
-/-! ## Conditional expectation of an indicator as a condinuous linear map.
+/-! ## Conditional expectation of an indicator as a continuous linear map.
 
 The goal of this section is to build
 `condexp_ind (hm : m ≤ m0) (μ : measure α) (s : set s) : G →L[ℝ] α →₁[μ] G`, which
 takes `x : G` to the conditional expectation of the indicator of the set `s` with value `x`,
 seen as an element of `α →₁[μ] G`.
 -/
-
-local attribute [instance] fact_one_le_two_ennreal
 
 variables {m m0 : measurable_space α} {μ : measure α} {s t : set α} [normed_space ℝ G]
 
@@ -1409,8 +1405,6 @@ end condexp_ind
 
 section condexp_L1
 
-local attribute [instance] fact_one_le_one_ennreal
-
 variables {m m0 : measurable_space α} {μ : measure α}
   {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
 
@@ -1581,7 +1575,7 @@ begin
     exact ae_measurable'_condexp_L1_clm _, },
   { rw condexp_L1_undef hf,
     refine ae_measurable'.congr _ (coe_fn_zero _ _ _).symm,
-    exact measurable.ae_measurable' (@measurable_zero _ _ m _ _), },
+    exact measurable.ae_measurable' (@measurable_zero _ _ _ m _), },
 end
 
 lemma integrable_condexp_L1 (f : α → F') : integrable (condexp_L1 hm μ f) μ :=
@@ -1628,8 +1622,6 @@ section condexp
 /-! ### Conditional expectation of a function -/
 
 open_locale classical
-
-local attribute [instance] fact_one_le_one_ennreal
 
 variables {𝕜} {m m0 : measurable_space α} {μ : measure α}
   {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
@@ -1684,7 +1676,7 @@ begin
 end
 
 @[simp] lemma condexp_zero : μ[(0 : α → F')|m,hm] = 0 :=
-condexp_of_measurable (@measurable_zero _ _ m _ _) (integrable_zero _ _ _)
+condexp_of_measurable (@measurable_zero _ _ _ m _) (integrable_zero _ _ _)
 
 lemma measurable_condexp : measurable[m] (μ[f|m,hm]) :=
 begin

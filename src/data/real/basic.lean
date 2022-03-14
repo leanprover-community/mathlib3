@@ -108,6 +108,7 @@ instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
 instance : star_ring ℝ          := star_ring_of_comm
+instance : has_trivial_star ℝ   := ⟨λ _, rfl⟩
 
 /-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
 is `cau_seq.completion.of_rat`, not `rat.cast`. -/
@@ -241,10 +242,6 @@ noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
 instance : is_domain ℝ :=
 { .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.is_domain }
 
-/-- The real numbers are an ordered `*`-ring, with the trivial `*`-structure. -/
-instance : star_ordered_ring ℝ :=
-{ star_mul_self_nonneg := λ r, mul_self_nonneg r, }
-
 @[irreducible] private noncomputable def inv' : ℝ → ℝ | ⟨a⟩ := ⟨a⁻¹⟩
 noncomputable instance : has_inv ℝ := ⟨inv'⟩
 lemma inv_cauchy {f} : (⟨f⟩ : ℝ)⁻¹ = ⟨f⁻¹⟩ := show inv' _ = _, by rw inv'
@@ -290,12 +287,12 @@ begin
   rintro ⟨K, K0, hK⟩,
   obtain ⟨i, H⟩ := exists_forall_ge_and h
     (exists_forall_ge_and hK (f.cauchy₃ $ half_pos K0)),
-  apply not_lt_of_le (H _ (le_refl _)).1,
+  apply not_lt_of_le (H _ le_rfl).1,
   rw ← of_rat_eq_cast,
   rw [mk_lt] {md := tactic.transparency.semireducible},
   refine ⟨_, half_pos K0, i, λ j ij, _⟩,
   have := add_le_add (H _ ij).2.1
-    (le_of_lt (abs_lt.1 $ (H _ (le_refl _)).2.2 _ ij).1),
+    (le_of_lt (abs_lt.1 $ (H _ le_rfl).2.2 _ ij).1),
   rwa [← sub_eq_add_neg, sub_self_div_two, sub_apply, sub_add_sub_cancel] at this
 end
 
@@ -572,6 +569,6 @@ begin
     exact ih _ ij }
 end
 
-noncomputable instance : cau_seq.is_complete ℝ abs := ⟨cau_seq_converges⟩
+instance : cau_seq.is_complete ℝ abs := ⟨cau_seq_converges⟩
 
 end real

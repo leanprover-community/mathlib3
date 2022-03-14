@@ -175,13 +175,13 @@ instance : has_Inf (submonoid M) :=
 { carrier := ⋂ t ∈ s, ↑t,
   one_mem' := set.mem_bInter $ λ i h, i.one_mem,
   mul_mem' := λ x y hx hy, set.mem_bInter $ λ i h,
-    i.mul_mem (by apply set.mem_bInter_iff.1 hx i h) (by apply set.mem_bInter_iff.1 hy i h) }⟩
+    i.mul_mem (by apply set.mem_Inter₂.1 hx i h) (by apply set.mem_Inter₂.1 hy i h) }⟩
 
 @[simp, norm_cast, to_additive]
 lemma coe_Inf (S : set (submonoid M)) : ((Inf S : submonoid M) : set M) = ⋂ s ∈ S, ↑s := rfl
 
 @[to_additive]
-lemma mem_Inf {S : set (submonoid M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+lemma mem_Inf {S : set (submonoid M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 @[to_additive]
 lemma mem_infi {ι : Sort*} {S : ι → submonoid M} {x : M} : (x ∈ ⨅ i, S i) ↔ ∀ i, x ∈ S i :=
@@ -275,6 +275,33 @@ lemma closure_induction {p : M → Prop} {x} (h : x ∈ closure s)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
 (@closure_le _ _ _ ⟨p, H1, Hmul⟩).2 Hs h
 
+/-- A dependent version of `submonoid.closure_induction`.  -/
+@[elab_as_eliminator, to_additive "A dependent version of `add_submonoid.closure_induction`. "]
+lemma closure_induction' (s : set M) {p : Π x, x ∈ closure s → Prop}
+  (Hs : ∀ x (h : x ∈ s), p x (subset_closure h))
+  (H1 : p 1 (one_mem _))
+  (Hmul : ∀ x hx y hy, p x hx → p y hy → p (x * y) (mul_mem _ hx hy))
+  {x} (hx : x ∈ closure s) :
+  p x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ closure s) (hc : p x hx), hc),
+  exact closure_induction hx
+    (λ x hx, ⟨_, Hs x hx⟩) ⟨_, H1⟩ (λ x y ⟨hx', hx⟩ ⟨hy', hy⟩, ⟨_, Hmul _ _ _ _ hx hy⟩),
+end
+
+/-- An induction principle for closure membership for predicates with two arguments.  -/
+@[elab_as_eliminator, to_additive "An induction principle for additive closure membership for
+predicates with two arguments."]
+lemma closure_induction₂ {p : M → M → Prop} {x} {y : M} (hx : x ∈ closure s) (hy : y ∈ closure s)
+  (Hs : ∀ (x ∈ s) (y ∈ s), p x y)
+  (H1_left : ∀ x, p 1 x)
+  (H1_right : ∀ x, p x 1)
+  (Hmul_left : ∀ x y z, p x z → p y z → p (x * y) z)
+  (Hmul_right : ∀ x y z, p z x → p z y → p z (x * y)) : p x y :=
+closure_induction hx
+  (λ x xs, closure_induction hy (Hs x xs) (H1_right x) (λ z y h₁ h₂, Hmul_right z _ _ h₁ h₂))
+  (H1_left y) (λ x z h₁ h₂, Hmul_left _ _ _ h₁ h₂)
+
 /-- If `s` is a dense set in a monoid `M`, `submonoid.closure s = ⊤`, then in order to prove that
 some predicate `p` holds for all `x : M` it suffices to verify `p x` for `x ∈ s`, verify `p 1`,
 and verify that `p x` and `p y` imply `p (x * y)`. -/
@@ -317,6 +344,35 @@ lemma closure_union (s t : set M) : closure (s ∪ t) = closure s ⊔ closure t 
 @[to_additive]
 lemma closure_Union {ι} (s : ι → set M) : closure (⋃ i, s i) = ⨆ i, closure (s i) :=
 (submonoid.gi M).gc.l_supr
+
+@[simp, to_additive]
+lemma closure_singleton_le_iff_mem (m : M) (p : submonoid M) :
+  closure {m} ≤ p ↔ m ∈ p :=
+by rw [closure_le, singleton_subset_iff, set_like.mem_coe]
+
+@[to_additive]
+lemma mem_supr {ι : Sort*} (p : ι → submonoid M) {m : M} :
+  (m ∈ ⨆ i, p i) ↔ (∀ N, (∀ i, p i ≤ N) → m ∈ N) :=
+begin
+  rw [← closure_singleton_le_iff_mem, le_supr_iff],
+  simp only [closure_singleton_le_iff_mem],
+end
+
+@[to_additive]
+lemma supr_eq_closure {ι : Sort*} (p : ι → submonoid M) :
+  (⨆ i, p i) = submonoid.closure (⋃ i, (p i : set M)) :=
+by simp_rw [submonoid.closure_Union, submonoid.closure_eq]
+
+@[to_additive]
+lemma disjoint_def {p₁ p₂ : submonoid M} :
+  disjoint p₁ p₂ ↔ ∀ {x : M}, x ∈ p₁ → x ∈ p₂ → x = 1 :=
+show (∀ x, x ∈ p₁ ∧ x ∈ p₂ → x ∈ ({1} : set M)) ↔ _, by simp
+
+@[to_additive]
+lemma disjoint_def' {p₁ p₂ : submonoid M} :
+  disjoint p₁ p₂ ↔ ∀ {x y : M}, x ∈ p₁ → y ∈ p₂ → x = y → x = 1 :=
+disjoint_def.trans ⟨λ h x y hx hy hxy, h hx $ hxy.symm ▸ hy,
+  λ h x hx hx', h hx hx' rfl⟩
 
 end submonoid
 

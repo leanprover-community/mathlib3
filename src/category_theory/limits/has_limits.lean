@@ -189,6 +189,10 @@ is_limit.cone_point_unique_up_to_iso_hom_comp _ _ _
   (is_limit.cone_point_unique_up_to_iso (limit.is_limit _) hc).inv ≫ limit.π F j = c.π.app j :=
 is_limit.cone_point_unique_up_to_iso_inv_comp _ _ _
 
+lemma limit.exists_unique {F : J ⥤ C} [has_limit F] (t : cone F) :
+  ∃! (l : t.X ⟶ limit F), ∀ j, l ≫ limit.π F j = t.π.app j :=
+(limit.is_limit F).exists_unique _
+
 /--
 Given any other limit cone for `F`, the chosen `limit F` is isomorphic to the cone point.
 -/
@@ -635,6 +639,10 @@ is_colimit.comp_cocone_point_unique_up_to_iso_hom _ _ _
   colimit.ι F j ≫ (is_colimit.cocone_point_unique_up_to_iso hc (colimit.is_colimit _)).inv =
     c.ι.app j :=
 is_colimit.comp_cocone_point_unique_up_to_iso_inv _ _ _
+
+lemma colimit.exists_unique {F : J ⥤ C} [has_colimit F] (t : cocone F) :
+  ∃! (d : colimit F ⟶ t.X), ∀ j, colimit.ι F j ≫ d = t.ι.app j :=
+(colimit.is_colimit F).exists_unique _
 
 /--
 Given any other colimit cocone for `F`, the chosen `colimit F` is isomorphic to the cocone point.

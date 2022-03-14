@@ -159,9 +159,9 @@ theorem mem_closure_iff_bsup {s : set ordinal.{u}} {a : ordinal.{u}} :
   (∀ i hi, f i hi ∈ s) ∧ bsup.{u u} o f = a :=
 mem_closure_iff_sup.trans ⟨
   λ ⟨ι, ⟨i⟩, f, hf, ha⟩, ⟨_, λ h, (type_eq_zero_iff_is_empty.1 h).elim i, bfamily_of_family f,
-    λ i hi, hf _, by rwa ←sup_eq_bsup⟩,
+    λ i hi, hf _, by rwa bsup_eq_sup⟩,
   λ ⟨o, ho, f, hf, ha⟩, ⟨_, out_nonempty_iff_ne_zero.2 ho, family_of_bfamily o f,
-    λ i, hf _ _, by rwa ←bsup_eq_sup⟩⟩
+    λ i, hf _ _, by rwa sup_eq_bsup⟩⟩
 
 theorem mem_closed_iff_bsup {s : set ordinal.{u}} {a : ordinal.{u}} (hs : is_closed s) :
   a ∈ s ↔ ∃ {o : ordinal} (ho : o ≠ 0) (f : Π a < o, ordinal.{u}),
@@ -186,7 +186,7 @@ begin
   rw is_closed_iff_sup,
   refine ⟨λ H o ho f hf, H (out_nonempty_iff_ne_zero.2 ho) _ _, λ  H ι hι f hf, _⟩,
   { exact λ i, hf _ _ },
-  { rw sup_eq_bsup,
+  { rw ←bsup_eq_sup,
     apply H (type_ne_zero_iff_nonempty.2 hι),
     exact λ i hi, hf _ }
 end
@@ -229,8 +229,9 @@ end
 theorem enum_ord_is_normal_iff_is_closed {S : set ordinal.{u}} (hS : S.unbounded (<)) :
   is_normal (enum_ord S) ↔ is_closed S :=
 begin
+  have HS := enum_ord_strict_mono hS,
   refine ⟨λ h, is_closed_iff_sup.2 (λ ι hι f hf, _),
-    λ h, (is_normal_iff_strict_mono_limit _).2 ⟨enum_ord.strict_mono hS, λ a ha o H, _⟩⟩,
+    λ h, (is_normal_iff_strict_mono_limit _).2 ⟨HS, λ a ha o H, _⟩⟩,
   { let g : ι → ordinal.{u} := λ i, (enum_ord_order_iso hS).symm ⟨_, hf i⟩,
     suffices : enum_ord S (sup.{u u} g) = sup.{u u} f,
     { rw ←this, exact enum_ord_mem hS _ },
@@ -243,9 +244,9 @@ begin
     cases enum_ord_surjective hS _ (h ha.1 (λ b hb, enum_ord S b) (λ b hb, enum_ord_mem hS b))
       with b hb,
     rw ←hb,
-    apply (enum_ord.strict_mono hS).monotone,
+    apply HS.monotone,
     by_contra' hba,
-    apply ((enum_ord.strict_mono hS) (lt_succ_self b)).not_le,
+    apply (HS (lt_succ_self b)).not_le,
     rw hb,
     exact le_bsup.{u u} _ _ (ha.2 _ hba) }
 end

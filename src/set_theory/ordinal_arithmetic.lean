@@ -1964,8 +1964,8 @@ by rw [CNF_rec, dif_pos rfl]; refl
   @CNF_rec b b0 C H0 H o = H o o0 (@CNF_rec b b0 C H0 H _) :=
 by rw [CNF_rec, dif_neg o0]
 
-/-- The Cantor normal form of an ordinal is the list of coefficients and exponents
-    in the base-`b` expansion of `o`.
+/-- The Cantor normal form of an ordinal `o` is the list of coefficients and exponents in the
+    base-`b` expansion of `o`.
 
     `CNF b (b ^ u₁ * v₁ + b ^ u₂ * v₂) = [(u₁, v₁), (u₂, v₂)]` -/
 def CNF (b := omega) (o : ordinal) : list (ordinal × ordinal) :=
@@ -1976,8 +1976,7 @@ CNF_rec b0 [] (λ o o0 IH, (log b o, o / b ^ log b o) :: IH) o
 dif_pos rfl
 
 @[simp] theorem CNF_zero (b) : CNF b 0 = [] :=
-if b0 : b = 0 then dif_pos b0 else
-(dif_neg b0).trans $ CNF_rec_zero _
+if b0 : b = 0 then dif_pos b0 else (dif_neg b0).trans $ CNF_rec_zero _
 
 theorem CNF_ne_zero {b o : ordinal} (b0 : b ≠ 0) (o0 : o ≠ 0) :
   CNF b o = (log b o, o / b ^ log b o) :: CNF b (o % b ^ log b o) :=
@@ -1994,8 +1993,7 @@ CNF_rec b0 (by rw CNF_zero; refl)
   (λ o o0 IH, by rw [CNF_ne_zero b0 o0, list.foldr_cons, IH, div_add_mod]) o
 
 private theorem CNF_pairwise_aux (b := omega) (o) :
-  (∀ p ∈ CNF b o, prod.fst p ≤ log b o) ∧
-  (CNF b o).pairwise (λ p q, q.1 < p.1) :=
+  (∀ p ∈ CNF b o, prod.fst p ≤ log b o) ∧ (CNF b o).pairwise (λ p q, q.1 < p.1) :=
 begin
   by_cases b0 : b = 0,
   { simp only [b0, zero_CNF, list.pairwise.nil, and_true], exact λ _, false.elim },
@@ -2017,19 +2015,16 @@ begin
       list.pairwise_singleton] }
 end
 
-theorem CNF_pairwise (b := omega) (o) :
-  (CNF b o).pairwise (λ p q, prod.fst q < p.1) :=
+theorem CNF_pairwise (b := omega) (o) : (CNF b o).pairwise (λ p q, prod.fst q < p.1) :=
 (CNF_pairwise_aux _ _).2
 
-theorem CNF_fst_le_log (b := omega) (o) :
-  ∀ p ∈ CNF b o, prod.fst p ≤ log b o :=
+theorem CNF_fst_le_log (b := omega) (o) : ∀ p ∈ CNF b o, prod.fst p ≤ log b o :=
 (CNF_pairwise_aux _ _).1
 
 theorem CNF_fst_le (b := omega) (o) (p ∈ CNF b o) : prod.fst p ≤ o :=
 le_trans (CNF_fst_le_log _ _ p H) (log_le_self _ _)
 
-theorem CNF_snd_lt {b : ordinal} (b1 : 1 < b) (o) :
-  ∀ p ∈ CNF b o, prod.snd p < b :=
+theorem CNF_snd_lt {b : ordinal} (b1 : 1 < b) (o) : ∀ p ∈ CNF b o, prod.snd p < b :=
 begin
   have b0 := ne_of_gt (lt_trans zero_lt_one b1),
   refine CNF_rec b0 (λ _, by rw [CNF_zero]; exact false.elim) _ o,
@@ -2039,8 +2034,7 @@ begin
   exact lt_opow_succ_log b1 _,
 end
 
-theorem CNF_lt_snd {b : ordinal} (b1 : 1 < b) (o) :
-  ∀ p ∈ CNF b o, (0 : ordinal) < prod.snd p :=
+theorem CNF_lt_snd {b : ordinal} (b1 : 1 < b) (o) : ∀ p ∈ CNF b o, (0 : ordinal) < prod.snd p :=
 begin
   have b0 := ne_of_gt (lt_trans zero_lt_one b1),
   refine CNF_rec b0 (λ _, by rw [CNF_zero]; exact false.elim) _ o,
@@ -2051,8 +2045,7 @@ begin
   rwa ordinal.pos_iff_ne_zero
 end
 
-theorem CNF_sorted (b := omega) (o) :
-  ((CNF b o).map prod.fst).sorted (>) :=
+theorem CNF_sorted (b := omega) (o) : ((CNF b o).map prod.fst).sorted (>) :=
 by rw [list.sorted, list.pairwise_map]; exact CNF_pairwise b o
 
 /-! ### Casting naturals into ordinals, compatibility with operations -/

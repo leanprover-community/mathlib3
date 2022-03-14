@@ -6,6 +6,7 @@ Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 import algebraic_geometry.prime_spectrum.noetherian
 import ring_theory.fractional_ideal
 import ring_theory.dedekind_domain.basic
+import algebra.algebra.subalgebra.pointwise
 
 /-!
 # Dedekind domains and ideals

@@ -98,8 +98,9 @@ private theorem pseudo_metric_space.dist_nonneg' {α} {x y : α} (dist : α → 
   (dist_self : ∀ x : α, dist x x = 0)
   (dist_comm : ∀ x y : α, dist x y = dist y x)
   (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z): 0 ≤ dist x y :=
-have 0 ≤ 2 * dist x y,
-  by simpa only [dist_comm, two_mul, dist_self] using dist_triangle x y x,
+have 2 * dist x y ≥ 0,
+  from calc 2 * dist x y = dist x y + dist y x : by rw [dist_comm x y, two_mul]
+    ... ≥ 0 : by rw ← dist_self x; apply dist_triangle,
 nonneg_of_mul_nonneg_left this zero_lt_two
 
 /-- This tactic is used to populate `pseudo_metric_space.edist_dist` when the default `edist` is

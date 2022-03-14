@@ -369,7 +369,7 @@ end bounded_formula
 attribute [protected] bounded_formula.falsum bounded_formula.equal bounded_formula.rel
 attribute [protected] bounded_formula.imp bounded_formula.all
 
-localized "infix ` ≃ `:88 := first_order.language.term.bd_equal" in first_order
+localized "infix ` =' `:88 := first_order.language.term.bd_equal" in first_order
   -- input \~- or \simeq
 localized "infixr ` ⟹ `:62 := first_order.language.bounded_formula.imp" in first_order
   -- input \==>

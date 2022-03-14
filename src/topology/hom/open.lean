@@ -46,7 +46,7 @@ instance [topological_space α] [topological_space β] [continuous_open_map_clas
   has_coe_t F (α →CO β) :=
 ⟨λ f, ⟨f, map_open f⟩⟩
 
-/-! ### Top homomorphisms -/
+/-! ### Continuous open maps -/
 
 namespace continuous_open_map
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]

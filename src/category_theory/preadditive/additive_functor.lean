@@ -82,25 +82,6 @@ lemma map_sum {X Y : C} {α : Type*} (f : α → (X ⟶ Y)) (s : finset α) :
   F.map (∑ a in s, f a) = ∑ a in s, F.map (f a) :=
 (F.map_add_hom : (X ⟶ Y) →+ _).map_sum f s
 
-universes w u v
-
-/-- The isomorphism `parallel_pair f 0 ⋙ F ≅ parallel_pair (F.map f) 0`. -/
-def parallel_pair_zero_iso_parallel_pair_map_zero {C : Type u} {D : Type v} [category.{w} C]
-  [category.{w} D] [preadditive C] [preadditive D] (F : C ⥤ D) [additive F] {X Y : C}
-  (f : X ⟶ Y) : limits.parallel_pair f 0 ⋙ F ≅ limits.parallel_pair (F.map f) 0 :=
-nat_iso.of_components (λ A,
-  match A with
-  | limits.walking_parallel_pair.zero := iso.refl _
-  | limits.walking_parallel_pair.one := iso.refl _
-  end)
-begin
-  rintros (a|a) (b|b) (f|f),
-  { dsimp at *, simp at *, dsimp at *, simp at * },
-  { dsimp at *, unfold_aux, dsimp at *, simp at * },
-  { dsimp at *, simp at * },
-  { dsimp at *, simp at *, dsimp at *, simp at * },
-end
-
 end
 
 section induced_category

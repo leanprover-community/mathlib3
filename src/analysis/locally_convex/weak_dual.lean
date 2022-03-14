@@ -24,14 +24,14 @@ seminorm `B.to_seminorm_family`.
 
 ## References
 
-* [F. Bar, *Quuxes*][bibkey]
+* [Bourbaki, *Topological Vector Spaces*][bourbaki1987]
 
 ## Tags
 
 weak dual, seminorm
 -/
 
-variables {α β 𝕜 E F ι : Type*}
+variables {𝕜 E F ι : Type*}
 
 open_locale topological_space
 
@@ -41,6 +41,8 @@ namespace linear_map
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
 
+/-- Construct a seminorm from a linear form `f : E →ₗ[𝕜] 𝕜` over a normed field `𝕜` by
+`λ x, ∥f x∥` -/
 def to_seminorm (f : E →ₗ[𝕜] 𝕜) : seminorm 𝕜 E :=
 { to_fun := λ x, ∥f x∥,
   smul' := λ a x, by simp only [map_smulₛₗ, ring_hom.id_apply, smul_eq_mul, norm_mul],
@@ -60,11 +62,13 @@ lemma to_seminorm_comp (f : F →ₗ[𝕜] 𝕜) (g : E →ₗ[𝕜] F) :
   f.to_seminorm.comp g = (f.comp g).to_seminorm :=
 by { ext, simp only [seminorm.comp_apply, to_seminorm_apply, coe_comp] }
 
+/-- Construct a family of seminorms from a bilinear form. -/
 def to_seminorm_family (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) (y : F) : seminorm 𝕜 E := (B.flip y).to_seminorm
 
 @[simp] lemma to_seminorm_family_apply {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} {x y} :
   (B.to_seminorm_family y) x = ∥B x y∥ := rfl
 
+/-- A basis of the weak topology `weak_bilin B`. -/
 def weak_bilin_basis_zero (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : set (set E) :=
 ⋃ (s : finset F) (hs : s.nonempty) r (hr : 0 < r), { s.inf' hs (λ y, { x : E | ∥B x y∥ < r}) }
 

@@ -653,10 +653,6 @@ In this section, we will develope some API for `uniform_integrable` and prove th
 (Currently we only have the forward direction.)
 -/
 
-lemma _root_.div_div₀ {G₀} [comm_group_with_zero G₀] {a b c : G₀} :
-  a / b / c = a / (b * c) :=
-by { field_simp }
-
 variables [measurable_space β] [hβ : second_countable_topology β]
   {p : ℝ≥0∞} {f : ι → α → β}
 
@@ -769,7 +765,7 @@ begin
     begin
       refine add_le_add_left _ _,
       rw [← ennreal.of_real_coe_nnreal, ← ennreal.of_real_mul (nnreal.coe_nonneg _),
-        ← div_div₀, mul_div_cancel' _ (nnreal.coe_pos.2 hCpos).ne.symm],
+        ← div_div_eq_div_mul, mul_div_cancel' _ (nnreal.coe_pos.2 hCpos).ne.symm],
       exact le_rfl,
     end
     ... ≤ ennreal.of_real ε :

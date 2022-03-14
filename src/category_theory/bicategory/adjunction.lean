@@ -441,18 +441,152 @@ begin
       (comp_aux_free (of.map f₁) (of.map g₁) (of.map f₂) (of.map g₂)) }
 end
 
--- def comp {f₁ : a ⟶ b} {g₁ : b ⟶ a} {f₂ : b ⟶ c} {g₂ : c ⟶ b}
---   (adj₁ : f₁ ⊣ g₁) (adj₂ : f₂ ⊣ g₂) : (f₁ ≫ f₂ ⊣ g₂ ≫ g₁) :=
--- { unit :=
---     (λ_ _).inv ≫ (_ ◁ adj₁.unit) ≫ (α_ _ _ _).inv ≫
---       ((λ_ f₁).hom ≫ (ρ_ f₁).inv ▷ _) ≫ (α_ _ _ _).hom ≫ (f₁ ◁ adj₂.unit ▷ g₁) ≫
---         (_ ◁ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv,
---   counit :=
---     (α_ _ _ _).hom ≫ (g₂ ◁ (α_ _ _ _).inv) ≫ (g₂ ◁ adj₁.counit ▷ f₂) ≫
---       (_ ◁ (λ_ f₂).hom ≫ (ρ_ f₂).inv) ≫ (α_ _ _ _).inv ≫
---         (adj₂.counit ▷ _) ≫ (λ_ _).hom,
---   left_triangle' := comp_triangle_aux adj₁ adj₂,
---   right_triangle' := sorry, }
+example {B : Type u₁}
+  [bicategory B]
+  {a b c : B}
+  {f₁ : a ⟶ b}
+  {g₁ : b ⟶ a}
+  {f₂ : b ⟶ c}
+  {g₂ : c ⟶ b}
+  (adj₁ : f₁ ⊣ g₁)
+  (adj₂ : f₂ ⊣ g₂) :
+  (g₂ ≫ g₁ ◁
+         (λ_ (𝟙 a)).inv ≫
+           (𝟙 a ◁ adj₁.unit) ≫
+             (α_ (𝟙 a) f₁ g₁).inv ≫
+               ((λ_ f₁).hom ≫ (ρ_ f₁).inv ▷ g₁) ≫
+                 (α_ f₁ (𝟙 b) g₁).hom ≫
+                   (f₁ ◁ adj₂.unit ▷ g₁) ≫
+                     (f₁ ◁ (α_ f₂ g₂ g₁).hom) ≫
+                       (α_ f₁ f₂ (g₂ ≫ g₁)).inv) ≫
+      (α_ (g₂ ≫ g₁) (f₁ ≫ f₂) (g₂ ≫ g₁)).inv ≫
+        ((α_ g₂ g₁ (f₁ ≫ f₂)).hom ≫
+             (g₂ ◁ (α_ g₁ f₁ f₂).inv) ≫
+               (g₂ ◁ adj₁.counit ▷ f₂) ≫
+                 (g₂ ◁ (λ_ f₂).hom ≫ (ρ_ f₂).inv) ≫
+                   (α_ g₂ f₂ (𝟙 c)).inv ≫
+                     (adj₂.counit ▷ 𝟙 c) ≫ (λ_ (𝟙 c)).hom ▷
+           g₂ ≫ g₁) =
+    (ρ_ (g₂ ≫ g₁)).hom ≫ (λ_ (g₂ ≫ g₁)).inv :=
+begin
+  admit,
+end
+
+def comp {f₁ : a ⟶ b} {g₁ : b ⟶ a} {f₂ : b ⟶ c} {g₂ : c ⟶ b}
+  (adj₁ : f₁ ⊣ g₁) (adj₂ : f₂ ⊣ g₂) : (f₁ ≫ f₂ ⊣ g₂ ≫ g₁) :=
+{ unit :=
+    (λ_ _).inv ≫ (_ ◁ adj₁.unit) ≫ (α_ _ _ _).inv ≫
+      ((λ_ f₁).hom ≫ (ρ_ f₁).inv ▷ _) ≫ (α_ _ _ _).hom ≫ (f₁ ◁ adj₂.unit ▷ g₁) ≫
+        (_ ◁ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv,
+  counit :=
+    (α_ _ _ _).hom ≫ (g₂ ◁ (α_ _ _ _).inv) ≫ (g₂ ◁ adj₁.counit ▷ f₂) ≫
+      (_ ◁ (λ_ f₂).hom ≫ (ρ_ f₂).inv) ≫ (α_ _ _ _).inv ≫
+        (adj₂.counit ▷ _) ≫ (λ_ _).hom,
+  left_triangle' := comp_triangle_aux adj₁ adj₂,
+  right_triangle' := begin
+    extract_goal,
+  end, }
+
+
+def comp_unit {f₁ : a ⟶ b} {g₁ : b ⟶ a} {f₂ : b ⟶ c} {g₂ : c ⟶ b}
+  (adj₁ : f₁ ⊣ g₁) (adj₂ : f₂ ⊣ g₂) : 𝟙 a ⟶ (f₁ ≫ f₂) ≫ g₂ ≫ g₁ :=
+(λ_ _).inv ≫ (_ ◁ adj₁.unit) ≫ (α_ _ _ _).inv ≫
+  ((λ_ f₁).hom ≫ (ρ_ f₁).inv ▷ _) ≫ (α_ _ _ _).hom ≫ (f₁ ◁ adj₂.unit ▷ g₁) ≫
+    (_ ◁ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv
+
+def id (a : B) : 𝟙 a ⊣ 𝟙 a :=
+{ unit := (ρ_ _).inv,
+  counit := (ρ_ _).hom,
+  left_triangle' := by
+  { rw [triangle_assoc_comp_right_inv_assoc, unitors_inv_equal, unitors_equal], simp },
+  right_triangle' := by
+  { rw [triangle_assoc_comp_right, unitors_inv_equal, unitors_equal], simp } }
+
+/-- The right adjoint mate `fᘁ : Xᘁ ⟶ Yᘁ` of a morphism `f : X ⟶ Y`. -/
+def right_adjoint_mate {a b a' b': B} {f : a ⟶ b} {u : b ⟶ a} {f' : a' ⟶ b'} {u' : b' ⟶ a'}
+{x : a ⟶ a'} {y : b ⟶ b'}
+  (adj : f ⊣ u) (adj' : f' ⊣ u') (η : x ≫ f' ⟶ f ≫ y) :
+    u ≫ x ⟶ y ≫ u' :=
+(_ ◁ (ρ_ _).inv) ≫ (u ◁ x ◁ adj'.unit) ≫ (_ ◁ (α_ _ _ _).inv) ≫
+  (u ◁ η ▷ u') ≫ (_ ◁ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv ≫
+    (adj.counit ▷ y ≫ u') ≫ (α_ _ _ _).inv ≫ ((λ_ _).hom ▷ _)
+
+/-- The left adjoint mate `ᘁf : ᘁY ⟶ ᘁX` of a morphism `f : X ⟶ Y`. -/
+def left_adjoint_mate
+  {a b a' b': B} {f : a ⟶ b} {u : b ⟶ a} {f' : a' ⟶ b'} {u' : b' ⟶ a'}
+  {x : a ⟶ a'} {y : b ⟶ b'}
+  (adj : f ⊣ u) (adj' : f' ⊣ u') (η : u ≫ x ⟶ y ≫ u') :
+    x ≫ f' ⟶ f ≫ y :=
+((λ_ _).inv ▷ _) ≫ (α_ _ _ _).hom ≫ (adj.unit ▷ x ≫ f') ≫
+  (α_ _ _ _).hom ≫ (_ ◁ (α_ _ _ _).inv) ≫ (_ ◁ η ▷ _) ≫
+    (_ ◁ (α_ _ _ _).hom) ≫ (f ◁ y ◁ adj'.counit) ≫ (_ ◁ (ρ_ _).hom)
+
+section
+variables
+  {a' b': B} {f : a ⟶ b} {u : b ⟶ a} {f' : a' ⟶ b'} {u' : b' ⟶ a'}
+  {x : a ⟶ a'} {y : b ⟶ b'}
+  (adj : f ⊣ u) (adj' : f' ⊣ u') (η : u ≫ x ⟶ y ≫ u')
+
+lemma right_adjoint_mate_unitors_aux
+  {a b : free_bicategory B}
+  (f : a ⟶ b)
+  (u : b ⟶ a) :
+  (u ◁ (λ_ (f ≫ u)).inv) ≫
+      (u ◁ (α_ (𝟙 a) f u).inv) ≫
+        (u ◁ (λ_ f).hom ≫ (ρ_ f).inv ▷ u) ≫
+          (u ◁ (α_ f (𝟙 b) u).hom) ≫
+            (α_ u f (𝟙 b ≫ u)).inv ≫ (u ≫ f ◁ (λ_ u).hom) =
+    (α_ u f u).inv :=
+subsingleton.elim _ _
+
+#print right_adjoint_mate
+
+@[simp]
+lemma right_adjoint_mate_unitors {f : a ⟶ b} {u : b ⟶ a} (adj : f ⊣ u) :
+  right_adjoint_mate adj adj ((λ_ f).hom ≫ (ρ_ f).inv) =
+    (ρ_ u).hom ≫ (λ_ u).inv :=
+begin
+  rw right_adjoint_mate,
+  rw [←whisker_left_comp_assoc u, ←unitors_inv_equal,
+      ←left_unitor_inv_naturality, whisker_left_comp,
+      unitors_equal, triangle_assoc_comp_right, ←whisker_exchange],
+  rw ←adj.right_triangle,
+  simp_rw ←assoc, congr' 1, simp_rw assoc, congr' 1,
+  simp [-whisker_left_comp, ←whisker_left_comp_assoc u]
+  -- apply congr_arg
+  --   (λ η, (free_bicategory.lift (prefunctor.id B)).map₂ η)
+  --   (right_adjoint_mate_unitors_aux (of.map f) (of.map u))
+end
+
+lemma left_adjoint_mate_unitors_aux
+  {a b : free_bicategory B}
+  (f : a ⟶ b)
+  (u : b ⟶ a) :
+  (f ≫ u ◁ (λ_ f).inv) ≫
+      (α_ f u (𝟙 a ≫ f)).hom ≫
+        (f ◁ (α_ u (𝟙 a) f).inv) ≫
+          (f ◁ (ρ_ u).hom ≫ (λ_ u).inv ▷ f) ≫
+            (f ◁ (α_ (𝟙 b) u f).hom) ≫ (f ◁ (λ_ (u ≫ f)).hom) =
+    (α_ f u f).hom :=
+subsingleton.elim _ _
+
+@[simp]
+lemma left_adjoint_mate_unitors {f : a ⟶ b} {u : b ⟶ a} (adj : f ⊣ u) :
+  left_adjoint_mate adj adj ((ρ_ u).hom ≫ (λ_ u).inv) =
+    (λ_ f).hom ≫ (ρ_ f).inv :=
+begin
+  rw left_adjoint_mate,
+  rw [unitors_inv_equal, triangle_assoc_comp_right_inv_assoc, whisker_exchange_assoc,
+    ←whisker_left_comp f, ←unitors_equal, left_unitor_naturality, whisker_left_comp],
+  rw ←adj.left_triangle,
+  congr' 1, simp_rw ←assoc, congr' 1, simp_rw assoc,
+  simp [-whisker_left_comp, ←whisker_left_comp f]
+  -- apply congr_arg
+  --   (λ η, (free_bicategory.lift (prefunctor.id B)).map₂ η)
+  --   (left_adjoint_mate_unitors_aux (of.map f) (of.map u))
+end
+
+end
 
 end adjunction
 

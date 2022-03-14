@@ -5,9 +5,6 @@ Authors: Jujian Zhang, Scott Morrison
 -/
 import category_theory.preadditive.injective
 import algebra.homology.single
-import algebra.homology.homological_complex
-import algebra.homology.homotopy_category
-import category_theory.abelian.exact
 
 /-!
 # Injective resolutions
@@ -24,9 +21,12 @@ v       v                 v
 I⁰ ---> I¹ ---> ... ----> Iⁿ ---> ...
 ```
 
+<<<<<<< HEAD
 When `C` is abelian, this exactness condition is equivalent to `ι` being a quasi-isomorphism.
 It turns out that this formulation allows us to set up the basic theory of derived functors
 without even assuming `C` is abelian.
+=======
+>>>>>>> dc5d5035eaf1c55cbae2b78dfd7dfcdb94ec7b51
 -/
 
 noncomputable theory

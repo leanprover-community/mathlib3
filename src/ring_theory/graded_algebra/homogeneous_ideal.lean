@@ -71,11 +71,7 @@ lemma homogeneous_ideal.to_ideal_injective :
 
 instance homogeneous_ideal.set_like : set_like (homogeneous_ideal 𝒜) A :=
 { coe := λ I, I.to_ideal,
-  coe_injective' := λ I J h, begin
-    apply_fun homogeneous_ideal.to_ideal,
-    exact set_like.coe_injective h,
-    exact homogeneous_ideal.to_ideal_injective,
-  end }
+  coe_injective' := λ I J h, homogeneous_ideal.to_ideal_injective $ set_like.coe_injective h }
 
 @[ext] lemma homogeneous_ideal.ext {I J : homogeneous_ideal 𝒜}
   (h : I.to_ideal = J.to_ideal) : I = J := homogeneous_ideal.to_ideal_injective h

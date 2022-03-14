@@ -76,7 +76,6 @@ end submodule
 namespace module
 /-- A `a`-torsion module is a module where every element is `a`-torsion. -/
 @[reducible] def is_torsion_by (a : R) := ∀ ⦃x : M⦄, a • x = 0
-include R
 /-- A `S`-torsion module is a module where every element is `a`-torsion for some `a` in `S`. -/
 @[reducible] def is_torsion' (S : Type*) [has_scalar S M] := ∀ ⦃x : M⦄, ∃ a : S, a • x = 0
 /-- A torsion module is a module where every element is `a`-torsion for some non-zero-divisor `a`.
@@ -143,10 +142,10 @@ instance : distrib_mul_action S (torsion' R M S) := subtype.coe_injective.distri
 instance : smul_comm_class S R (torsion' R M S) := ⟨λ s a x, subtype.ext $ smul_comm _ _ _⟩
 
 /-- A `S`-torsion module is a module whose `S`-torsion submodule is the full space. -/
-lemma is_torsion'_iff_torsion'_eq_top : is_torsion' R M S ↔ torsion' R M S = ⊤ :=
+lemma is_torsion'_iff_torsion'_eq_top : is_torsion' M S ↔ torsion' R M S = ⊤ :=
 ⟨λ h, eq_top_iff.mpr (λ _ _, @h _), λ h x, by { rw [← @mem_torsion'_iff R, h], trivial }⟩
 /-- The `a`-torsion submodule is a `a`-torsion module. -/
-lemma torsion'_is_torsion' : is_torsion' R (torsion' R M S) S := λ ⟨x, ⟨a, h⟩⟩, ⟨a, subtype.ext h⟩
+lemma torsion'_is_torsion' : is_torsion' (torsion' R M S) S := λ ⟨x, ⟨a, h⟩⟩, ⟨a, subtype.ext h⟩
 @[simp] lemma torsion'_torsion'_eq_top : torsion' R (torsion' R M S) S = ⊤ :=
 (is_torsion'_iff_torsion'_eq_top S).mp $ torsion'_is_torsion' S
 /-- The torsion submodule of the torsion submodule (viewed as a module) is the full

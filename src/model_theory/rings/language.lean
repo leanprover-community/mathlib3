@@ -45,12 +45,9 @@ instance : inhabited binaries := ⟨ binaries.add ⟩
 instance : inhabited (functions 0) := ⟨ consts.zero ⟩
 
 /-- The language of rings -/
-@[simps] def L : language.{u v} :=
+@[reducible] def L : language.{u v} :=
 { functions := functions.{u},
   relations := λ n, pempty.{v} }
-
-instance : is_algebraic L := 
-{ empty_relations := λ n, by {simp only [L_relations], apply_instance} }
 
 variable {α : Type u'}
 

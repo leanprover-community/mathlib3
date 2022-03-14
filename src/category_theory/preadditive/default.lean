@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
 import algebra.big_operators.basic
-import algebra.hom.basic
+import algebra.hom.group
 import algebra.module.basic
 import category_theory.endomorphism
 import category_theory.limits.shapes.kernels

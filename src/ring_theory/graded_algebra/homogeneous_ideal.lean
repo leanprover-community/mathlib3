@@ -65,8 +65,9 @@ def homogeneous_ideal.to_ideal (I : homogeneous_ideal 𝒜) : ideal A := I.to_su
 lemma homogeneous_ideal.is_homogeneous (I : homogeneous_ideal 𝒜) :
   I.to_ideal.is_homogeneous 𝒜 := I.is_homogeneous'
 
-@[ext] lemma homogeneous_ideal.ext {I J : homogeneous_ideal 𝒜} (h : I.to_ideal = J.to_ideal) :
-  I = J := by cases I; cases J; simpa [homogeneous_ideal.to_ideal] using h
+lemma homogeneous_ideal.to_ideal_injective :
+  function.injective (homogeneous_ideal.to_ideal : homogeneous_ideal 𝒜 → ideal A) :=
+sorry
 
 instance homogeneous_ideal.set_like : set_like (homogeneous_ideal 𝒜) A :=
 { coe := λ I, I.to_ideal,

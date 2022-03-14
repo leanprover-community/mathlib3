@@ -116,6 +116,10 @@ lemma strongly_measurable_const {α β} {m : measurable_space α} [topological_s
   strongly_measurable (λ a : α, b) :=
 ⟨λ n, simple_func.const α b, λ a, tendsto_const_nhds⟩
 
+lemma strongly_measurable_zero {α β} {m : measurable_space α} [topological_space β] [has_zero β] :
+  strongly_measurable (0 : α → β) :=
+@strongly_measurable_const _ _ _ _ 0
+
 namespace strongly_measurable
 
 variables {f g : α → β}
@@ -476,6 +480,11 @@ lemma ae_strongly_measurable_const {α β} {m : measurable_space α} {μ : measu
   ae_strongly_measurable (λ a : α, b) μ :=
 strongly_measurable_const.ae_strongly_measurable
 
+lemma ae_strongly_measurable_zero {α β} {m : measurable_space α} {μ : measure α}
+  [topological_space β] [has_zero β] :
+  ae_strongly_measurable (0 : α → β) μ :=
+strongly_measurable_zero.ae_strongly_measurable
+
 namespace ae_strongly_measurable
 
 variables {m : measurable_space α} {μ : measure α} [topological_space β] [topological_space γ]
@@ -505,6 +514,21 @@ protected lemma ae_measurable {β} [measurable_space β] [topological_space β] 
 ⟨hf.mk f, hf.strongly_measurable_mk.measurable, hf.ae_eq_mk⟩
 
 end mk
+
+lemma congr (hf : ae_strongly_measurable f μ) (h : f =ᵐ[μ] g) : ae_strongly_measurable g μ :=
+⟨hf.mk f, hf.strongly_measurable_mk, h.symm.trans hf.ae_eq_mk⟩
+
+lemma _root_.ae_strongly_measurable_congr (h : f =ᵐ[μ] g) :
+  ae_strongly_measurable f μ ↔ ae_strongly_measurable g μ :=
+⟨λ hf, hf.congr h, λ hg, hg.congr h.symm⟩
+
+lemma mono_measure {ν : measure α} (hf : ae_strongly_measurable f μ) (h : ν ≤ μ) :
+  ae_strongly_measurable f ν :=
+⟨hf.mk f, hf.strongly_measurable_mk, eventually.filter_mono (ae_mono h) hf.ae_eq_mk⟩
+
+protected lemma mono' {ν : measure α} (h : ae_strongly_measurable f μ) (h' : ν ≪ μ) :
+  ae_strongly_measurable f ν :=
+⟨h.mk f, h.strongly_measurable_mk, h' h.ae_eq_mk⟩
 
 /-- The composition of a continuous function and an ae strongly measurable function is ae strongly
 measurable. -/

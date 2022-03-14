@@ -23,16 +23,19 @@ It is naturally endowed with a topology: the Zariski topology.
 
 * `projective_spectrum 𝒜`: The projective spectrum of a graded ring `A`, or equivalently, the set of
   all homogeneous ideals of `A` that is both prime and relevant i.e. not containing irrelevant
-  ideal. Henceforth, we call elements of the projective spectrum *relevant prime homogeneous ideals*.
+  ideal. Henceforth, we call elements of the projective spectrum *relevant homogeneous prime ideals*.
 * `projective_spectrum.zero_locus 𝒜 s`: The zero locus of a subset `s` of `A`
-  is the subset of `projective_spectrum 𝒜` consisting of all relevant prime homogeneous ideals
-  that contain `s`.
-* `projective_spectrum.vanishing_ideal t`: The vanishing ideal of a subset `t` of `projective_spectrum 𝒜`
-  is the intersection of points in `t` (viewed as relevant prime homogeneous ideals).
+  is the subset of `projective_spectrum 𝒜` consisting of all relevant homogeneous prime ideals that
+  contain `s`.
+* `projective_spectrum.vanishing_ideal t`: The vanishing ideal of a subset `t` of
+  `projective_spectrum 𝒜` is the intersection of points in `t` (viewed as relevant homogeneous prime
+  ideals).
+
 
 ## Implementation note
-The type of `vanishing_ideal` is an `ideal` but instead of `homogeneous_ideal`; this is to take 
-advantage of `ideal_gc` so that setting up a galois connection is easier.
+The type of `vanishing_ideal` is an `ideal` but instead of `homogeneous_ideal`. This is because we
+want a galois connection in `ideal A` as the lemmas like `le_vanishing_ideal_zero_locus` are about
+ideals of `A`, not necessarily homogeneous.
 -/
 
 noncomputable theory
@@ -45,7 +48,7 @@ variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
 
 /--
 The projective spectrum of a graded commutative ring is the subtype of all homogenous ideals that
-are prime and not containing all the irrelevant ideal.
+are prime and do not contain the irrelevant ideal.
 -/
 @[nolint has_inhabited_instance]
 def projective_spectrum :=
@@ -71,10 +74,10 @@ subtype.ext_iff_val
 
 variable (𝒜)
 /-- The zero locus of a set `s` of elements of a commutative ring `A`
-is the set of all relevant prime homogeneous ideals of the ring that contain the set `s`.
+is the set of all relevant homogeneous prime ideals of the ring that contain the set `s`.
 
 An element `f` of `A` can be thought of as a dependent function on the projective spectrum of `𝒜`.
-At a point `x` (a prime homogeneous ideal)
+At a point `x` (a homogeneous prime ideal)
 the function (i.e., element) `f` takes values in the quotient ring `A` modulo the prime ideal `x`.
 In this manner, `zero_locus s` is exactly the subset of `projective_spectrum 𝒜`
 where all "functions" in `s` vanish simultaneously. -/
@@ -94,7 +97,7 @@ of the prime spectrum of a commutative ring `R`
 is the intersection of all the prime ideals in the set `t`.
 
 An element `f` of `A` can be thought of as a dependent function on the projective spectrum of `𝒜`.
-At a point `x` (a prime homogeneous ideal)
+At a point `x` (a homogeneous prime ideal)
 the function (i.e., element) `f` takes values in the quotient ring `A` modulo the prime ideal `x`.
 In this manner, `vanishing_ideal t` is exactly the ideal of `A`
 consisting of all "functions" that vanish on all of `t`. -/

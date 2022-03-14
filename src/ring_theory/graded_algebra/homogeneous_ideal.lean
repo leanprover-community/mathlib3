@@ -59,11 +59,8 @@ def ideal.is_homogeneous : Prop :=
 abbreviation homogeneous_ideal : Type* := { I : ideal A // I.is_homogeneous 𝒜 }
 
 instance homogeneous_ideal.set_like : set_like (homogeneous_ideal 𝒜) A :=
-{ coe := λ I, ((I : ideal A) : set A),
-  coe_injective' := λ ⟨I, hI⟩ ⟨J, hJ⟩ h, begin
-    congr,
-    exact set_like.coe_injective h,
-  end }
+{ coe := λ I, I.1.carrier,
+  coe_injective' := λ ⟨I, hI⟩ ⟨J, hJ⟩ h, by congr; exact set_like.coe_injective h }
 
 lemma homogeneous_ideal.mem_iff {I : homogeneous_ideal 𝒜} {x : A} : x ∈ I ↔ x ∈ (↑I : ideal A) :=
 iff.rfl
@@ -251,6 +248,8 @@ end ideal.is_homogeneous
 variables {𝒜}
 
 namespace homogeneous_ideal
+
+instance : partial_order (homogeneous_ideal 𝒜) := set_like.partial_order
 
 instance : has_bot (homogeneous_ideal 𝒜) :=
 ⟨⟨⊥, ideal.is_homogeneous.bot 𝒜⟩⟩

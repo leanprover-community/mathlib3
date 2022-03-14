@@ -1463,11 +1463,11 @@ Inf_mem (nonempty_compl_range f)
 theorem ne_mex {ι} (f : ι → ordinal) : ∀ i, f i ≠ mex f :=
 by simpa using mex_nmem_range f
 
-theorem mex_le_of_nmem {ι} {f : ι → ordinal} {a} (ha : ∀ i, f i ≠ a) : mex f ≤ a :=
+theorem mex_le_of_ne {ι} {f : ι → ordinal} {a} (ha : ∀ i, f i ≠ a) : mex f ≤ a :=
 cInf_le' (by simp [ha])
 
-theorem mem_of_lt_mex {ι} {f : ι → ordinal} {a} (ha : a < mex f) : ∃ i, f i = a :=
-by { by_contra' ha', exact ha.not_le (mex_le_of_nmem ha') }
+theorem exists_of_lt_mex {ι} {f : ι → ordinal} {a} (ha : a < mex f) : ∃ i, f i = a :=
+by { by_contra' ha', exact ha.not_le (mex_le_of_ne ha') }
 
 theorem mex_le_lsub {ι} (f : ι → ordinal) : mex f ≤ lsub f :=
 cInf_le' (lsub_nmem_range f)
@@ -1475,7 +1475,7 @@ cInf_le' (lsub_nmem_range f)
 theorem mex_monotone {α β} {f : α → ordinal} {g : β → ordinal} (h : set.range f ⊆ set.range g) :
   mex f ≤ mex g :=
 begin
-  refine mex_le_of_nmem (λ i hi, _),
+  refine mex_le_of_ne (λ i hi, _),
   cases h ⟨i, rfl⟩ with j hj,
   rw ←hj at hi,
   exact ne_mex g j hi
@@ -1485,7 +1485,7 @@ theorem mex_lt_ord_succ_mk {ι} (f : ι → ordinal) : mex f < (#ι).succ.ord :=
 begin
   by_contra' h,
   apply not_le_of_lt (cardinal.lt_succ_self (#ι)),
-  have H := λ a, mem_of_lt_mex ((typein_lt_self a).trans_le h),
+  have H := λ a, exists_of_lt_mex ((typein_lt_self a).trans_le h),
   let g : (#ι).succ.ord.out.α → ι := λ a, classical.some (H a),
   have hg : function.injective g := λ a b h', begin
     have Hf : ∀ x, f (g x) = typein (<) x := λ a, classical.some_spec (H a),
@@ -1511,14 +1511,14 @@ begin
   rw family_of_bfamily_enum
 end
 
-theorem bmex_le_of_nmem {o : ordinal} {f : Π a < o, ordinal} {a} (ha : ∀ i hi, f i hi ≠ a) :
+theorem bmex_le_of_ne {o : ordinal} {f : Π a < o, ordinal} {a} (ha : ∀ i hi, f i hi ≠ a) :
   bmex o f ≤ a :=
-mex_le_of_nmem (λ i, ha _ _)
+mex_le_of_ne (λ i, ha _ _)
 
-theorem mem_of_lt_bmex {o : ordinal} {f : Π a < o, ordinal} {a} (ha : a < bmex o f) :
+theorem exists_of_lt_bmex {o : ordinal} {f : Π a < o, ordinal} {a} (ha : a < bmex o f) :
   ∃ i hi, f i hi = a :=
 begin
-  cases mem_of_lt_mex ha with i hi,
+  cases exists_of_lt_mex ha with i hi,
   exact ⟨_, typein_lt_self i, hi⟩
 end
 

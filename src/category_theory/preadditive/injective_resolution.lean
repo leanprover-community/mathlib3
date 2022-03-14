@@ -12,31 +12,21 @@ import category_theory.abelian.exact
 /-!
 # Injective resolutions
 
-A injective resolution `P : InjectiveResolution Z` of an object `Z : C` consists of
-a `ℕ`-indexed cochain complex `P.cocomplex` of injective objects,
-along with a cochain map `P.ι` from cochain complex consisting just of `Z` in degree zero to `C`,
+A injective resolution `I : InjectiveResolution Z` of an object `Z : C` consists of
+a `ℕ`-indexed cochain complex `I.cocomplex` of injective objects,
+along with a cochain map `I.ι` from cochain complex consisting just of `Z` in degree zero to `C`,
 so that the augmented chain complex is exact.
 ```
 Z ----> 0 ----> ... ----> 0 ----> ...
 |       |                 |
 |       |                 |
 v       v                 v
-J⁰ ---> J¹ ---> ... ----> Jⁿ ---> ...
+I⁰ ---> I¹ ---> ... ----> Iⁿ ---> ...
 ```
 
-When `C` is abelian, this exactness condition is equivalent to `π` being a quasi-isomorphism.
+When `C` is abelian, this exactness condition is equivalent to `ι` being a quasi-isomorphism.
 It turns out that this formulation allows us to set up the basic theory of derived functors
 without even assuming `C` is abelian.
-
-We show that given `P : InjectiveResolution X` and `Q : InjectiveResolution Y`,
-any morphism `X ⟶ Y` admits a descent to a chain map `P.cocomplex ⟶ Q.cocomplex`.
-(It is a lift in the sense that
-the projection maps `P.ι` and `Q.ι` intertwine the lift and the original morphism.)
-
-Moreover, we show that any two such lifts are homotopic.
-
-As a consequence, if every object admits a projective resolution,
-we can construct a functor `injective_resolutions C : C ⥤ homotopy_category C`.
 -/
 
 noncomputable theory
@@ -100,14 +90,14 @@ end
 
 namespace InjectiveResolution
 
-@[simp] lemma ι_f_succ {Z : C} (P : InjectiveResolution Z) (n : ℕ) :
-  P.ι.f (n+1) = 0 :=
+@[simp] lemma ι_f_succ {Z : C} (I : InjectiveResolution Z) (n : ℕ) :
+  I.ι.f (n+1) = 0 :=
 begin
   apply zero_of_source_iso_zero,
   dsimp, refl,
 end
 
-instance {Z : C} (P : InjectiveResolution Z) (n : ℕ) : category_theory.mono (P.ι.f n) :=
+instance {Z : C} (I : InjectiveResolution Z) (n : ℕ) : category_theory.mono (I.ι.f n) :=
 by cases n; apply_instance
 
 /-- An injective object admits a trivial injective resolution: itself in degree 0. -/

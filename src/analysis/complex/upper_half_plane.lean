@@ -42,6 +42,8 @@ localized "notation `ℍ` := upper_half_plane" in upper_half_plane
 
 namespace upper_half_plane
 
+instance : inhabited ℍ := ⟨⟨complex.I, by simp⟩⟩
+
 /-- Imaginary part -/
 def im (z : ℍ) := (z : ℂ).im
 

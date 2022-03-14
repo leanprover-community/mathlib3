@@ -375,7 +375,7 @@ lemma ideal.homogeneous_core.gc : galois_connection to_ideal (ideal.homogeneous_
   λ H, I.homogeneous_core_coe_eq_self ▸ ideal.homogeneous_core_mono 𝒜 H,
   λ H, le_trans H (ideal.homogeneous_core'_le _ _)⟩
 
-/--`coe : homogeneous_ideal 𝒜 → ideal A` and `ideal.homogeneous_core 𝒜` forms a galois
+/--`to_ideal : homogeneous_ideal 𝒜 → ideal A` and `ideal.homogeneous_core 𝒜` forms a galois
 coinsertion-/
 def ideal.homogeneous_core.gi : galois_coinsertion to_ideal (ideal.homogeneous_core 𝒜) :=
 { choice := λ I HI,
@@ -487,7 +487,8 @@ lemma ideal.homogeneous_hull.gc : galois_connection (ideal.homogeneous_hull 𝒜
   le_trans (ideal.le_coe_homogeneous_hull _ _),
   λ H, J.homogeneous_hull_coe_eq_self ▸ ideal.homogeneous_hull_mono 𝒜 H⟩
 
-/-- `ideal.homogeneous_hull 𝒜` and `coe : homogeneous_ideal 𝒜 → ideal A` forms a galois insertion-/
+/-- `ideal.homogeneous_hull 𝒜` and `to_linear_map : homogeneous_ideal 𝒜 → ideal A` forms a galois
+insertion-/
 def ideal.homogeneous_hull.gi : galois_insertion (ideal.homogeneous_hull 𝒜) to_ideal :=
 { choice := λ I H, ⟨I, le_antisymm H (I.le_coe_homogeneous_hull 𝒜) ▸ is_homogeneous _⟩,
   gc := ideal.homogeneous_hull.gc 𝒜,

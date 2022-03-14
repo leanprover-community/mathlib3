@@ -35,7 +35,7 @@ finitely many vertices.
 * `simple_graph.dart` is an ordered pair of adjacent vertices, thought of as being an
   orientated edge.
 
-* `simple_graph.homo`, `simple_graph.embedding`, and `simple_graph.iso` for graph
+* `simple_graph.hom`, `simple_graph.embedding`, and `simple_graph.iso` for graph
   homomorphisms, graph embeddings, and
   graph isomorphisms. Note that a graph embedding is a stronger notion than an
   injective graph homomorphism, since its image is an induced subgraph.

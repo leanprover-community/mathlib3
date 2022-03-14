@@ -288,7 +288,7 @@ def matrix.normed_space {α : Type*} [normed_field α] {n m : Type*} [fintype n]
   normed_space α (matrix n m α) :=
 pi.normed_space
 
-lemma matrix.norm_entry_le_entrywise_sup_norm {α : Type*} [normed_field α] {n m : Type*} [fintype n]
+lemma matrix.norm_entry_le_entrywise_sup_norm {α : Type*} [normed_ring α] {n m : Type*} [fintype n]
   [fintype m] (M : (matrix n m α)) {i : n} {j : m} :
   ∥M i j∥ ≤ ∥M∥ :=
 (norm_le_pi_norm (M i) j).trans (norm_le_pi_norm M i)
@@ -358,6 +358,20 @@ begin
 end
 
 variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
+
+/-- The inclusion of the base field in a normed algebra as a continuous linear map. -/
+@[simps]
+def algebra_map_clm [semi_normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] : 𝕜 →L[𝕜] 𝕜' :=
+{ to_fun := algebra_map 𝕜 𝕜',
+  map_add' := (algebra_map 𝕜 𝕜').map_add,
+  map_smul' := λ r x, by rw [algebra.id.smul_eq_mul, map_mul, ring_hom.id_apply, algebra.smul_def],
+  cont := (algebra_map_isometry 𝕜 𝕜').continuous }
+
+lemma algebra_map_clm_coe [semi_normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
+  (algebra_map_clm 𝕜 𝕜' : 𝕜 → 𝕜') = (algebra_map 𝕜 𝕜' : 𝕜 → 𝕜') := rfl
+
+lemma algebra_map_clm_to_linear_map [semi_normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
+  (algebra_map_clm 𝕜 𝕜').to_linear_map = algebra.linear_map 𝕜 𝕜' := rfl
 
 @[priority 100]
 instance normed_algebra.to_normed_space [semi_normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] :

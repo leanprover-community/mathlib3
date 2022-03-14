@@ -183,7 +183,7 @@ lemma to_unit_cont (f : part α →o part α) (hc : continuous f) : continuous (
   erw [hc, chain.map_comp], refl
 end
 
-noncomputable instance : lawful_fix (part α) :=
+instance : lawful_fix (part α) :=
 ⟨λ f hc, show part.fix (to_unit_mono f) () = _, by rw part.fix_eq (to_unit_cont f hc); refl⟩
 
 end part
@@ -192,7 +192,7 @@ open sigma
 
 namespace pi
 
-noncomputable instance {β} : lawful_fix (α → part β) := ⟨λ f, part.fix_eq⟩
+instance {β} : lawful_fix (α → part β) := ⟨λ f, part.fix_eq⟩
 
 variables {γ : Π a : α, β a → Type*}
 

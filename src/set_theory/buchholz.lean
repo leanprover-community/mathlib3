@@ -1,65 +1,25 @@
+/-
+Copyright (c) 2022 Violeta Hernández Palacios. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Violeta Hernández Palacios
+-/
 import set_theory.cardinal_ordinal
+
+/-!
+# Buchholz's psi functions
+
+Buchholz's psi functions are a fast-growing family of ordinal functions. Intuitively speaking,
+`buchholz a v` is the least ordinal that can't be made with reference to `buchholz o v` for `o < a`,
+and `aleph v`.
+-/
 
 noncomputable theory
 
 universes u v
 
+open cardinal
 open_locale cardinal
 
--- This should go on another PR.
-
-namespace ordinal
-
-/-- The minimum excluded ordinal in a family of ordinals. -/
-def mex {ι : Type u} (f : ι → ordinal.{max u v}) : ordinal :=
-Inf (set.range f)ᶜ
-
-theorem nonempty_compl_range {ι : Type u} (f : ι → ordinal.{max u v}) : (set.range f)ᶜ.nonempty :=
-⟨_, lsub_nmem_range f⟩
-
-theorem ne_mex {ι} (f : ι → ordinal) (i) : f i ≠ mex f :=
-begin
-  have := Inf_mem (nonempty_compl_range f),
-  simp at this,
-  exact this i
-end
-
-theorem mex_le_of_nmem {ι} {f : ι → ordinal} {a} (ha : ∀ i, f i ≠ a) : mex f ≤ a :=
-cInf_le' (by simp [ha])
-
-theorem mem_of_lt_mex {ι} {f : ι → ordinal} {a} (ha : a < mex f) : ∃ i, f i = a :=
-by { by_contra' ha', exact not_le_of_lt ha (mex_le_of_nmem ha') }
-
-theorem mex_le_lsub {ι} (f : ι → ordinal) : mex f ≤ lsub f :=
-cInf_le' (lsub_nmem_range f)
-
-theorem mex.monotone {α β} (f : α → ordinal) (g : β → ordinal) (h : set.range f ⊆ set.range g) :
-  mex f ≤ mex g :=
-begin
-  refine mex_le_of_nmem (λ i hi, _),
-  cases h ⟨i, rfl⟩ with j hj,
-  rw ←hj at hi,
-  exact ne_mex g j hi
-end
-
-theorem mex_lt_card_succ {ι} (f : ι → ordinal) : mex f < (#ι).succ.ord :=
-begin
-  by_contra' h,
-  apply not_le_of_lt (cardinal.lt_succ_self (#ι)),
-  have H := λ a, mem_of_lt_mex ((typein_lt_self a).trans_le h),
-  let g : (#ι).succ.ord.out.α → ι := λ a, classical.some (H a),
-  have hg : function.injective g := λ a b h', begin
-    have Hf : ∀ x, f (g x) = typein (<) x := λ a, classical.some_spec (H a),
-    apply_fun f at h',
-    rwa [Hf, Hf, typein_inj] at h'
-  end,
-  convert cardinal.mk_le_of_injective hg,
-  rw cardinal.mk_ord_out
-end
-
-end ordinal
-
-open cardinal
 namespace ordinal
 
 /-- The `Ωᵥ` function as defined by Buchholz. -/
@@ -92,11 +52,7 @@ begin
 end
 
 theorem principal_add_Omega : Π v : ℕ, principal (+) (Omega v).ord
-| 0 := begin
-  rw [Omega_zero],
-  convert principal_add_one,
-  sorry,
-end
+| 0 := by { rw [Omega_zero, ord_one], exact principal_add_one }
 | (v + 1) := aleph_is_principal_add _
 
 /-- The type of all Buchholz expressions. These may consist of
@@ -135,7 +91,11 @@ typein_enum _ _
 theorem zero_value {o : ordinal} (ho : o = 0) {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal) :
   Π (e : buchholz_exp' v), e.value Ψ < (Omega v).ord
 | (lt_Omega' a)  := typein_lt_self _
-| (add a b)      := sorry -- this is a theorem about additive principal ordinals.
+| (add a b)      := begin
+  unfold value,
+  apply principal_add_Omega;
+  apply zero_value
+end
 | (psi u a)      := begin
   unfold value,
   split_ifs,
@@ -191,7 +151,7 @@ begin
   rw hm (add.inj h).right
 end
 
-private theorem card_of_height (v : ℕ) : Π h, mk {e : buchholz_exp' v | e.height ≤ h} ≤ aleph v
+private theorem card_of_height (v : ℕ) : Π h, # {e : buchholz_exp' v | e.height ≤ h} ≤ aleph v
 | 0 := begin
   refine le_trans _ (Omega_le_aleph v),
   let f : ↥{e : buchholz_exp' v | e.height = 0} → (Omega v).ord.out.α :=
@@ -423,6 +383,13 @@ theorem buchholz_def (o : ordinal) (v : ℕ) :
   buchholz o v = mex (@buchholz_exp.value o v (λ a _, buchholz a)) :=
 by rw buchholz_def'
 
+theorem lt_buchholz {o a : ordinal} {v : ℕ} (ha : a < buchholz o v) :
+  ∃ e : buchholz_exp o v (λ a _, buchholz a), e.value = a :=
+begin
+  rw buchholz_def at ha,
+  exact mem_of_lt_mex ha
+end
+
 theorem Omega_le_buchholz (o : ordinal) (v : ℕ) : (Omega v).ord ≤ buchholz o v :=
 begin
   rw buchholz_def,
@@ -437,12 +404,15 @@ begin
   exact (mex_le_lsub _).trans (lsub_le.2 (buchholz_exp.zero_value rfl _))
 end
 
--- Buchholz is additive principal
+theorem principal_add_buchholz (o : ordinal) (v : ℕ) : principal (+) (buchholz o v) :=
+begin
+  intros a b,
+end
 
 theorem buchholz_lt_Omega (o : ordinal) (v : ℕ) : buchholz o v < (Omega (v + 1)).ord :=
 begin
   rw buchholz_def,
-  convert mex_lt_card_succ.{0 0} buchholz_exp.value,
+  convert mex_lt_ord_succ_mk.{0 0} buchholz_exp.value,
   rw [buchholz_exp.card_eq_aleph, ←aleph_succ],
   refl
 end
@@ -458,7 +428,7 @@ begin
   intros a b h,
   unfold function.swap,
   rw [buchholz_def, buchholz_def],
-  apply mex.monotone,
+  apply mex_monotone,
   rintros o ⟨e, he⟩,
   use buchholz_exp.lift h (buchholz_exp.lift_H h buchholz) e,
   rw ←he,

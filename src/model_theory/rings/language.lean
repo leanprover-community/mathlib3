@@ -10,7 +10,7 @@ import model_theory.terms_and_formulas
 
 ## Main Definitions
 * A `first_order.language.ring.L` defines the language of rings,
-  which consists of 0,1,-,+,*.
+  which consists of `0`, `1`, `-`, `+`, `*`.
 -/
 universes u v u'
 
@@ -55,10 +55,10 @@ variable {α : Type u'}
 
 @[simp] instance : has_one (L.term α) := ⟨ @func L _ 0 consts.one fin_zero_elim ⟩
 
-@[simp] instance : has_neg (L.term α) := ⟨ λ x, @func L _ 1 unaries.neg (λ _, x) ⟩
+@[simp] instance : has_neg (L.term α) := ⟨ λ x, @func L _ 1 unaries.neg ![x] ⟩
 
 @[simp] instance : has_add (L.term α) :=
-⟨ λ x y, @func L _ 2 binaries.add (λ i, match i with | ⟨0, _⟩ := x | ⟨n+1, _⟩ := y end) ⟩
+⟨ λ x y, @func L _ 2 binaries.add ![x, y] ⟩
 
 @[simp] instance : has_mul (L.term α) :=
 ⟨ λ x y, @func L _ 2 binaries.mul (λ i, match i with | ⟨0, _⟩ := x | ⟨n+1, _⟩ := y end) ⟩

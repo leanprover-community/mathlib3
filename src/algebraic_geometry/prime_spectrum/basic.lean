@@ -9,7 +9,7 @@ import ring_theory.nilpotent
 import ring_theory.localization.away
 import ring_theory.ideal.prod
 import ring_theory.ideal.over
-import topology.opens
+import topology.sets.opens
 import topology.sober
 
 /-!

@@ -79,7 +79,9 @@ class add_freiman_hom_class (F : Type*) (A : out_param $ set α) (β : out_param
 
 /-- `freiman_hom_class F A β n` states that `F` is a type of `n`-ary products-preserving morphisms.
 You should extend this class when you extend `freiman_hom`. -/
-@[to_additive add_freiman_hom_class]
+@[to_additive add_freiman_hom_class
+"`add_freiman_hom_class F A β n` states that `F` is a type of `n`-ary sums-preserving morphisms.
+You should extend this class when you extend `add_freiman_hom`."]
 class freiman_hom_class (F : Type*) (A : out_param $ set α) (β : out_param $ Type*) [comm_monoid α]
   [comm_monoid β] (n : ℕ) [fun_like F α (λ _, β)] :=
 (map_prod_eq_map_prod' (f : F) {s t : multiset α} (hsA : ∀ ⦃x⦄, x ∈ s → x ∈ A)
@@ -216,7 +218,8 @@ instance : has_mul (A →*[n] β) :=
 
 /-- If `f` is a Freiman homomorphism to a commutative group, then `f⁻¹` is the Freiman homomorphism
 sending `x` to `(f x)⁻¹`. -/
-@[to_additive]
+@[to_additive "If `f` is a Freiman homomorphism to an additive commutative group, then `-f` is the
+Freiman homomorphism sending `x` to `-f x`."]
 instance : has_inv (A →*[n] G) :=
 ⟨λ f, { to_fun := λ x, (f x)⁻¹,
   map_prod_eq_map_prod' := λ s t hsA htA hs ht h,
@@ -288,7 +291,11 @@ end freiman_hom
 
 We can't leave the domain `A : set α` of the `freiman_hom` a free variable, since it wouldn't be
 inferrable. -/
-@[to_additive]
+@[to_additive " An additive monoid homomorphism is naturally an `add_freiman_hom` on its entire
+domain.
+
+We can't leave the domain `A : set α` of the `freiman_hom` a free variable, since it wouldn't be
+inferrable."]
 instance monoid_hom.freiman_hom_class : freiman_hom_class (α →* β) set.univ β n :=
 { map_prod_eq_map_prod' := λ f s t _ _ _ _ h, by rw [←f.map_multiset_prod, h, f.map_multiset_prod] }
 

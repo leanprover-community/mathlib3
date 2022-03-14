@@ -54,7 +54,7 @@ by { delta minpoly, rw dif_pos hx, exact (well_founded.min_mem degree_lt_wf _ hx
 
 /-- A minimal polynomial is nonzero. -/
 lemma ne_zero [nontrivial A] (hx : is_integral A x) : minpoly A x ≠ 0 :=
-ne_zero_of_monic (monic hx)
+(monic hx).ne_zero
 
 lemma eq_zero (hx : ¬ is_integral A x) : minpoly A x = 0 :=
 dif_neg hx
@@ -359,7 +359,7 @@ minpoly.unique _ _ (minpoly.monic hx)
     (is_scalar_tower.aeval_eq_zero_of_aeval_algebra_map_eq_zero K S T hST
       (h ▸ root_q : polynomial.aeval (algebra_map S T x) q = 0)))
 
-lemma minpoly_add_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
+lemma add_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
   (hx : is_integral A x) (a : A) :
   minpoly A (x + (algebra_map A B a)) = (minpoly A x).comp (X - C a) :=
 begin
@@ -375,10 +375,10 @@ begin
       nat_degree_X_add_C, mul_one] at H }
 end
 
-lemma minpoly_sub_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
+lemma sub_algebra_map {B : Type*} [comm_ring B] [algebra A B] {x : B}
   (hx : is_integral A x) (a : A) :
   minpoly A (x - (algebra_map A B a)) = (minpoly A x).comp (X + C a) :=
-by simpa [sub_eq_add_neg] using minpoly_add_algebra_map hx (-a)
+by simpa [sub_eq_add_neg] using add_algebra_map hx (-a)
 
 section gcd_domain
 
@@ -396,7 +396,7 @@ begin
       (polynomial.monic.is_primitive (monic hx))).1 (irreducible hx) },
   { have htower := is_scalar_tower.aeval_apply A K R x (minpoly A x),
     rwa [aeval, eq_comm] at htower },
-  { exact monic_map _ (monic hx) }
+  { exact (monic hx).map _ }
 end
 
 /-- For GCD domains, the minimal polynomial divides any primitive polynomial that has the integral

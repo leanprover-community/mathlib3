@@ -247,7 +247,7 @@ lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
 /-- The injection into a pi group at different indices commutes.
 
 For injections of commuting elements at the same index, see `commute.map` -/
-@[to_additive "The injection into an pi additive group at different indices commutes.
+@[to_additive "The injection into an additive pi group at different indices commutes.
 
 For injections of commuting elements at the same index, see `add_commute.map`"]
 lemma pi.mul_single_commute [Π i, mul_one_class $ f i] :
@@ -260,7 +260,7 @@ begin
 end
 
 /-- The injection into a pi group with the same values commutes. -/
-@[to_additive "The injection into a pi additive group with the same values commutes."]
+@[to_additive "The injection into an additive pi group with the same values commutes."]
 lemma pi.mul_single_apply_commute [Π i, mul_one_class $ f i] (x : Π i, f i) (i j : I) :
   commute (mul_single i (x i)) (mul_single j (x j)) :=
 begin

@@ -172,7 +172,7 @@ def finsupp_equiv_dfinsupp [decidable_eq ι] [has_zero M] [Π m : M, decidable (
 /-- The additive version of `finsupp.to_finsupp`. Note that this is `noncomputable` because
 `finsupp.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def finsupp_add_equiv_dfinsupp
+def finsupp_add_equiv_dfinsupp
   [decidable_eq ι] [add_zero_class M] [Π m : M, decidable (m ≠ 0)] :
   (ι →₀ M) ≃+ (Π₀ i : ι, M) :=
 { to_fun := finsupp.to_dfinsupp, inv_fun := dfinsupp.to_finsupp,
@@ -184,7 +184,7 @@ variables (R)
 /-- The additive version of `finsupp.to_finsupp`. Note that this is `noncomputable` because
 `finsupp.has_add` is noncomputable. -/
 @[simps {fully_applied := ff}]
-noncomputable def finsupp_lequiv_dfinsupp
+def finsupp_lequiv_dfinsupp
   [decidable_eq ι] [semiring R] [add_comm_monoid M] [Π m : M, decidable (m ≠ 0)] [module R M] :
   (ι →₀ M) ≃ₗ[R] (Π₀ i : ι, M) :=
 { to_fun := finsupp.to_dfinsupp, inv_fun := dfinsupp.to_finsupp,

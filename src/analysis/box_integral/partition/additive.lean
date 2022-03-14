@@ -83,8 +83,12 @@ instance : has_add (ι →ᵇᵃ[I₀] M) :=
 ⟨λ f g, ⟨f + g, λ I hI π hπ,
   by simp only [pi.add_apply, sum_add_distrib, sum_partition_boxes _ hI hπ]⟩⟩
 
+instance {R} [monoid R] [distrib_mul_action R M] : has_scalar R (ι →ᵇᵃ[I₀] M) :=
+⟨λ r f, ⟨r • f, λ I hI π hπ,
+  by simp only [pi.smul_apply, ←smul_sum, sum_partition_boxes _ hI hπ]⟩⟩
+
 instance : add_comm_monoid (ι →ᵇᵃ[I₀] M) :=
-function.injective.add_comm_monoid _ coe_injective rfl (λ _ _, rfl)
+function.injective.add_comm_monoid _ coe_injective rfl (λ _ _, rfl) (λ _ _, rfl)
 
 @[simp] lemma map_split_add (f : ι →ᵇᵃ[I₀] M) (hI : ↑I ≤ I₀) (i : ι) (x : ℝ) :
   (I.split_lower i x).elim 0 f + (I.split_upper i x).elim 0 f = f I :=

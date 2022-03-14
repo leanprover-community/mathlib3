@@ -49,7 +49,7 @@ theorem pow_one (a : M) : a^1 = a :=
 by rw [pow_succ, pow_zero, mul_one]
 
 /-- Note that most of the lemmas about powers of two refer to it as `sq`. -/
-@[to_additive two_nsmul]
+@[to_additive two_nsmul, nolint to_additive_doc]
 theorem pow_two (a : M) : a^2 = a * a :=
 by rw [pow_succ, pow_one]
 
@@ -318,11 +318,23 @@ end
 
 lemma pow_ne_zero_iff [monoid_with_zero R] [no_zero_divisors R] {a : R} {n : ℕ} (hn : 0 < n) :
   a ^ n ≠ 0 ↔ a ≠ 0 :=
-by rwa [not_iff_not, pow_eq_zero_iff]
+(pow_eq_zero_iff hn).not
 
 @[field_simps] theorem pow_ne_zero [monoid_with_zero R] [no_zero_divisors R]
   {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
+
+lemma pow_dvd_pow_iff [cancel_comm_monoid_with_zero R]
+  {x : R} {n m : ℕ} (h0 : x ≠ 0) (h1 : ¬ is_unit x) :
+  x ^ n ∣ x ^ m ↔ n ≤ m :=
+begin
+  split,
+  { intro h, rw [← not_lt], intro hmn, apply h1,
+    have : x ^ m * x ∣ x ^ m * 1,
+    { rw [← pow_succ', mul_one], exact (pow_dvd_pow _ (nat.succ_le_of_lt hmn)).trans h },
+    rwa [mul_dvd_mul_iff_left, ← is_unit_iff_dvd_one] at this, apply pow_ne_zero m h0 },
+  { apply pow_dvd_pow }
+end
 
 section semiring
 variables [semiring R]

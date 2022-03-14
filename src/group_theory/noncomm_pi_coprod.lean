@@ -69,19 +69,13 @@ See also `linear_map.lsum` for a linear version without the commutativity assump
 def noncomm_pi_coprod : (Π (i : ι), N i) →* M :=
 { to_fun := λ f, finset.univ.noncomm_prod (λ i, ϕ i (f i)) $
     by { rintros i - j -, by_cases h : i = j, { subst h }, { exact hcomm _ _ h _ _ } },
-  map_one' := finset.noncomm_prod_eq_one_of_forall_eq_one _ _ _(by simp),
+  map_one' := by {apply (finset.noncomm_prod_eq_pow_card _ _ _ _ _).trans (one_pow _), simp},
   map_mul' := λ f g,
   begin
     classical,
-    convert finset.noncomm_prod_mul_distrib (λ i, ϕ i (f i)) (λ i, ϕ i (g i)) _ _ _ _,
-    { ext i, simp, },
-    { rintros i - j -,
-      by_cases h : i = j,
-      { subst h, },
-      { simp only [← monoid_hom.map_mul],
-        exact hcomm _ _ h _ _ } },
-    { rintros i - j - h,
-      exact hcomm _ _ h _ _ },
+    convert @finset.noncomm_prod_mul_distrib _ _ _ _ (λ i, ϕ i (f i)) (λ i, ϕ i (g i)) _ _ _,
+    { ext i, exact map_mul (ϕ i) (f i) (g i), },
+    { rintros i - j - h, exact hcomm _ _ h _ _ },
   end }
 
 variable {hcomm}
@@ -96,8 +90,8 @@ begin
   simp only [←finset.insert_erase (finset.mem_univ i)] {single_pass := tt},
   rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ (finset.not_mem_erase i _),
   rw pi.mul_single_eq_same,
-  rw finset.noncomm_prod_eq_one_of_forall_eq_one,
-  { exact mul_one _, },
+  rw finset.noncomm_prod_eq_pow_card,
+  { rw one_pow, exact mul_one _  },
   { intros j hj, simp only [finset.mem_erase] at hj, simp [hj], },
 end
 
@@ -125,7 +119,7 @@ begin
   classical,
   apply le_antisymm,
   { rintro x ⟨f, rfl⟩,
-    refine finset.noncomm_prod_mem_submonoid _ _ _ _ _,
+    refine submonoid.noncomm_prod_mem _ _ _ _ _,
     intros i hi,
     apply submonoid.mem_Sup_of_mem, { use i },
     simp, },
@@ -150,38 +144,6 @@ include hcomm
 -- We use `f` and `g` to denote elements of `Π (i : ι), H i`
 variables (f g : Π (i : ι), H i)
 
-  /-
--- The subgroup version of `noncomm_pi_coprod_on.to_fun_mem_bsupr_mrange`
-@[to_additive noncomm_pi_coprod_on.add_to_fun_mem_bsupr_range]
-lemma noncomm_pi_coprod_on.to_fun_mem_bsupr_range (S : finset ι) :
-  noncomm_pi_coprod_on.to_fun ϕ hcomm f S ∈ ⨆ i ∈ S, (ϕ i).range :=
-begin
-  classical,
-  induction S using finset.induction_on with i S hnmem ih,
-  { simp, },
-  { simp only [noncomm_pi_coprod_on.to_fun_insert_of_not_mem _ _ _ _ hnmem],
-    refine (subgroup.mul_mem _ _ _),
-    { apply subgroup.mem_Sup_of_mem, { use i }, { simp, }, },
-    { refine @bsupr_le_bsupr' _ _ _ _ _ _ (λ i, (ϕ i).range) _ ih,
-      exact λ i, finset.mem_insert_of_mem } }
-end
-
--- The subgroup version of `noncomm_pi_coprod_on.mrange`
-@[to_additive noncomm_pi_coprod_on.add_range]
-lemma noncomm_pi_coprod_on.range (S : finset ι) :
-  (noncomm_pi_coprod_on.hom ϕ hcomm S).range = ⨆ i ∈ S, (ϕ i).range :=
-begin
-  classical,
-  apply le_antisymm,
-  { rintro x ⟨f, rfl⟩,
-    exact (noncomm_pi_coprod_on.to_fun_mem_bsupr_range ϕ f S), },
-  { refine (bsupr_le _),
-    rintro i hmem x ⟨y, rfl⟩,
-    use (monoid_hom.single _ i y),
-    simp [hmem], }
-end
-  -/
-
 include hfin
 
 namespace monoid_hom
@@ -193,7 +155,7 @@ begin
   classical,
   apply le_antisymm,
   { rintro x ⟨f, rfl⟩,
-    refine finset.noncomm_prod_mem_subgroup _ _ _ _ _,
+    refine subgroup.noncomm_prod_mem _ _ _,
     intros i hi,
     apply subgroup.mem_Sup_of_mem, { use i },
     simp, },
@@ -215,7 +177,7 @@ begin
   change finset.univ.noncomm_prod (λ i, ϕ i (f i)) _ = 1 at heq1,
   change f = 1,
   have : ∀ i, i ∈ finset.univ → ϕ i (f i) = 1 :=
-    finset.eq_one_of_noncomm_prod_eq_one_of_independent _ _ _ _ hind (by simp) heq1,
+    subgroup.eq_one_of_noncomm_prod_eq_one_of_independent _ _ _ _ hind (by simp) heq1,
   ext i,
   apply hinj,
   simp [this i (finset.mem_univ i)],

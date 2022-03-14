@@ -198,20 +198,30 @@ lemma zsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
 lemma coe_int_mem (n : ℤ) : (n : K) ∈ s :=
 by simp only [← zsmul_one, zsmul_mem, one_mem]
 
+lemma zpow_mem {x : K} (hx : x ∈ s) (n : ℤ) : x^n ∈ s :=
+begin
+  cases n,
+  { simpa using s.pow_mem hx n },
+  { simpa [pow_succ] using s.inv_mem (s.mul_mem hx (s.pow_mem hx n)) },
+end
+
 instance : ring s := s.to_subring.to_ring
 instance : has_div s := ⟨λ x y, ⟨x / y, s.div_mem x.2 y.2⟩⟩
 instance : has_inv s := ⟨λ x, ⟨x⁻¹, s.inv_mem x.2⟩⟩
+instance : has_pow s ℤ := ⟨λ x z, ⟨x ^ z, s.zpow_mem x.2 z⟩⟩
 
 /-- A subfield inherits a field structure -/
 instance to_field : field s :=
 subtype.coe_injective.field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subfield of a `linear_ordered_field` is a `linear_ordered_field`. -/
 instance to_linear_ordered_field {K} [linear_ordered_field K] (s : subfield K) :
   linear_ordered_field s :=
 subtype.coe_injective.linear_ordered_field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
@@ -422,7 +432,7 @@ def closure (s : set K) : subfield K :=
     obtain ⟨ny, hny, dy, hdy, rfl⟩ := id y_mem,
     exact ⟨nx * ny, subring.mul_mem _ hnx hny,
            dx * dy, subring.mul_mem _ hdx hdy,
-           (div_mul_div _ _ _ _).symm⟩
+           (div_mul_div_comm₀ _ _ _ _).symm⟩
   end }
 
 lemma mem_closure_iff {s : set K} {x} :

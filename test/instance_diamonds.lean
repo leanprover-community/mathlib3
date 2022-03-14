@@ -21,6 +21,9 @@ example :
   (sub_neg_monoid.has_scalar_int : has_scalar ℤ ℂ) = (complex.has_scalar : has_scalar ℤ ℂ) :=
 rfl
 
+example : restrict_scalars.module ℝ ℂ ℂ = complex.module := rfl
+example : restrict_scalars.algebra ℝ ℂ ℂ = complex.algebra := rfl
+
 example (α β : Type*) [add_monoid α] [add_monoid β] :
   (prod.has_scalar : has_scalar ℕ (α × β)) = add_monoid.has_scalar_nat := rfl
 

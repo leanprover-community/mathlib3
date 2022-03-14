@@ -123,9 +123,6 @@ theorem nat_cast_succ (n : ℕ) : (succ n : ordinal) = n.succ := rfl
 theorem add_left_cancel (a) {b c : ordinal} : a + b = a + c ↔ b = c :=
 by simp only [le_antisymm_iff, add_le_add_iff_left]
 
-theorem lt_succ {a b : ordinal} : a < succ b ↔ a ≤ b :=
-by rw [← not_le, succ_le, not_lt]
-
 theorem lt_one_iff_zero {a : ordinal} : a < 1 ↔ a = 0 :=
 by rw [←succ_zero, lt_succ, ordinal.le_zero]
 
@@ -181,6 +178,9 @@ type_ne_zero_iff_nonempty.2 ⟨punit.star⟩
 
 instance : nontrivial ordinal.{u} :=
 ⟨⟨1, 0, ordinal.one_ne_zero⟩⟩
+
+instance : nonempty (1 : ordinal).out.α :=
+out_nonempty_iff_ne_zero.2 ordinal.one_ne_zero
 
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
@@ -341,12 +341,22 @@ end
 by rw [limit_rec_on, well_founded.fix_eq,
        dif_neg h.1, dif_neg (not_succ_of_is_limit h)]; refl
 
-lemma has_succ_of_is_limit {α} {r : α → α → Prop} [wo : is_well_order α r]
-  (h : (type r).is_limit) (x : α) : ∃y, r x y :=
+instance (o : ordinal) : order_top o.succ.out.α :=
+⟨_, le_enum_succ⟩
+
+theorem enum_succ_eq_top {o : ordinal} :
+  enum (<) o (by { rw type_lt, apply lt_succ_self }) = (⊤ : o.succ.out.α) :=
+rfl
+
+lemma has_succ_of_type_succ_lt {α} {r : α → α → Prop} [wo : is_well_order α r]
+  (h : ∀ a < type r, succ a < type r) (x : α) : ∃ y, r x y :=
 begin
-  use enum r (typein r x).succ (h.2 _ (typein_lt_type r x)),
+  use enum r (typein r x).succ (h _ (typein_lt_type r x)),
   convert (enum_lt_enum (typein_lt_type r x) _).mpr (lt_succ_self _), rw [enum_typein]
 end
+
+theorem out_no_max_of_succ_lt {o : ordinal} (ho : ∀ a < o, succ a < o) : no_max_order o.out.α :=
+⟨has_succ_of_type_succ_lt (by rwa type_lt)⟩
 
 lemma type_subrel_lt (o : ordinal.{u}) :
   type (subrel (<) {o' : ordinal | o' < o}) = ordinal.lift.{u+1} o :=

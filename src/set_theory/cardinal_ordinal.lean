@@ -213,6 +213,12 @@ by rwa [←aleph'_zero, aleph'_lt]
 theorem aleph_pos (o : ordinal) : 0 < aleph o :=
 omega_pos.trans_le (omega_le_aleph o)
 
+instance (o : ordinal) : nonempty (aleph o).ord.out.α :=
+begin
+  rw [out_nonempty_iff_ne_zero, ←ord_zero],
+  exact λ h, (ord_injective h).not_gt (aleph_pos o)
+end
+
 theorem ord_aleph_is_limit (o : ordinal) : is_limit (aleph o).ord :=
 ord_is_limit $ omega_le_aleph _
 

@@ -178,10 +178,10 @@ dvd.elim H (λl H1, by rw mul_assoc at H1; exact ⟨_, mul_left_cancel₀ k_non_
 theorem dvd_of_mul_dvd_mul_right {i j k : ℤ} (k_non_zero : k ≠ 0) (H : i * k ∣ j * k) : i ∣ j :=
 by rw [mul_comm i k, mul_comm j k] at H; exact dvd_of_mul_dvd_mul_left k_non_zero H
 
-lemma prime.dvd_nat_abs_of_coe_dvd_sq {p : ℕ} (hp : p.prime) (k : ℤ) (h : ↑p ∣ k ^ 2) :
+lemma prime.dvd_nat_abs_of_coe_dvd_sq {p : ℕ} (hp : prime p) (k : ℤ) (h : ↑p ∣ k ^ 2) :
   p ∣ k.nat_abs :=
 begin
-  apply @nat.prime.dvd_of_dvd_pow _ _ 2 hp,
+  apply hp.dvd_of_dvd_pow,
   rwa [sq, ← nat_abs_mul, ← coe_nat_dvd_left, ← sq]
 end
 

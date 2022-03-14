@@ -262,7 +262,8 @@ lemma prime.divisors {p : ℕ} (pp : p.prime) :
   divisors p = {1, p} :=
 begin
   ext,
-  rw [mem_divisors, dvd_prime pp, and_iff_left pp.ne_zero, finset.mem_insert, finset.mem_singleton]
+  rw [mem_divisors, dvd_prime pp.irreducible, and_iff_left pp.ne_zero, finset.mem_insert,
+    finset.mem_singleton]
 end
 
 lemma prime.proper_divisors {p : ℕ} (pp : p.prime) :
@@ -340,9 +341,11 @@ lemma sum_proper_divisors_eq_one_iff_prime :
   ∑ x in n.proper_divisors, x = 1 ↔ n.prime :=
 begin
   cases n,
-  { simp [nat.not_prime_zero] },
+  { refine iff_of_false _ not_prime_zero,
+    simp },
   cases n,
-  { simp [nat.not_prime_one] },
+  { refine iff_of_false _ not_prime_one,
+    simp },
   rw [← proper_divisors_eq_singleton_one_iff_prime],
   refine ⟨λ h, _, λ h, h.symm ▸ sum_singleton⟩,
   rw [@eq_comm (finset ℕ) _ _],

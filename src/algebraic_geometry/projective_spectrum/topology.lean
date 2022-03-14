@@ -46,7 +46,7 @@ are prime and do not contain the irrelevant ideal.
 -/
 @[nolint has_inhabited_instance]
 def projective_spectrum :=
-{I : homogeneous_ideal 𝒜 // I.1.is_prime ∧ ¬(homogeneous_ideal.irrelevant 𝒜 ≤ I)}
+{I : homogeneous_ideal 𝒜 // I.to_ideal.is_prime ∧ ¬(homogeneous_ideal.irrelevant 𝒜 ≤ I)}
 
 namespace projective_spectrum
 
@@ -54,13 +54,13 @@ namespace projective_spectrum
 variable {𝒜}
 /-- A method to view a point in the projective spectrum of a graded ring
 as a homogeneous ideal of that ring. -/
-abbreviation as_homogeneous_ideal (x : projective_spectrum 𝒜) : homogeneous_ideal 𝒜 := x.val
+abbreviation as_homogeneous_ideal (x : projective_spectrum 𝒜) : homogeneous_ideal 𝒜 := x.1
 
 lemma as_homogeneous_ideal_def (x : projective_spectrum 𝒜) :
   x.as_homogeneous_ideal = x.1 := rfl
 
 instance is_prime (x : projective_spectrum 𝒜) :
-  x.as_homogeneous_ideal.1.is_prime := x.2.1
+  x.as_homogeneous_ideal.to_ideal.is_prime := x.2.1
 
 @[ext] lemma ext {x y : projective_spectrum 𝒜} :
   x = y ↔ x.as_homogeneous_ideal = y.as_homogeneous_ideal :=
@@ -83,7 +83,7 @@ def zero_locus (s : set A) : set (projective_spectrum 𝒜) :=
 
 @[simp] lemma zero_locus_span (s : set A) :
   zero_locus 𝒜 (ideal.span s) = zero_locus 𝒜 s :=
-by { ext x, exact (submodule.gi _ _).gc s x.as_homogeneous_ideal }
+by { ext x, exact (submodule.gi _ _).gc s x.as_homogeneous_ideal.to_ideal }
 
 variable {𝒜}
 /-- The vanishing ideal of a set `t` of points
@@ -121,7 +121,7 @@ by simp [vanishing_ideal]
 
 lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (projective_spectrum 𝒜))
   (I : ideal A) :
-  t ⊆ zero_locus 𝒜 I ↔ I ≤ vanishing_ideal t :=
+  t ⊆ zero_locus 𝒜 I ↔ I ≤ (vanishing_ideal t).to_ideal :=
 ⟨λ h f k, (mem_vanishing_ideal _ _).mpr (λ x j, (mem_zero_locus _ _ _).mpr (h j) k), λ h,
   λ x j, (mem_zero_locus _ _ _).mpr (le_trans h (λ f h, ((mem_vanishing_ideal _ _).mp h) x j))⟩
 

@@ -61,7 +61,7 @@ variable {α : Type u'}
 ⟨ λ x y, @func L _ 2 binaries.add ![x, y] ⟩
 
 @[simp] instance : has_mul (L.term α) :=
-⟨ λ x y, @func L _ 2 binaries.mul (λ i, match i with | ⟨0, _⟩ := x | ⟨n+1, _⟩ := y end) ⟩
+⟨ λ x y, @func L _ 2 binaries.mul ![x, y] ⟩
 
 instance : has_pow (L.term α) ℕ := ⟨ λ t n, npow_rec n t ⟩
 

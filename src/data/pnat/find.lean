@@ -101,10 +101,7 @@ lemma find_le {h : ∃ n, p n} (hn : p n) : pnat.find h ≤ n :=
 lemma find_comp_succ (h : ∃ n, p n) (h₂ : ∃ n, p (n + 1)) (h1 : ¬ p 1) :
   pnat.find h = pnat.find h₂ + 1 :=
 begin
-  refine (find_eq_iff _).2 ⟨pnat.find_spec h₂, λ n hn, _⟩,
-  revert n,
-  intro n,
-  refine pnat.rec_on n _ _,
+  refine (find_eq_iff _).2 ⟨pnat.find_spec h₂, λ n, pnat.rec_on n _ _⟩,
   { simp [h1] },
   intros m IH hm,
   simp only [add_lt_add_iff_right, lt_find_iff] at hm,

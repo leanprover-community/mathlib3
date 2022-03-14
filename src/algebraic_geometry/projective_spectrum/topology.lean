@@ -101,26 +101,19 @@ At a point `x` (a homogeneous prime ideal)
 the function (i.e., element) `f` takes values in the quotient ring `A` modulo the prime ideal `x`.
 In this manner, `vanishing_ideal t` is exactly the ideal of `A`
 consisting of all "functions" that vanish on all of `t`. -/
-def vanishing_ideal (t : set (projective_spectrum 𝒜)) : ideal A :=
-⨅ (x : projective_spectrum 𝒜) (h : x ∈ t), x.as_homogeneous_ideal.1
-
-lemma vanishing_ideal.is_homogeneous (t : set (projective_spectrum 𝒜)) :
-  ideal.is_homogeneous 𝒜 $ vanishing_ideal t :=
-ideal.is_homogeneous.Inf $ λ I hI, begin
-  obtain ⟨y, rfl⟩ := hI,
-  apply ideal.is_homogeneous.Inf (λ I hI, _),
-  obtain ⟨_, rfl⟩ := hI,
-  exact y.1.2,
-end
+def vanishing_ideal (t : set (projective_spectrum 𝒜)) : homogeneous_ideal 𝒜 :=
+⨅ (x : projective_spectrum 𝒜) (h : x ∈ t), x.as_homogeneous_ideal
 
 lemma coe_vanishing_ideal (t : set (projective_spectrum 𝒜)) :
   (vanishing_ideal t : set A) =
   {f | ∀ x : projective_spectrum 𝒜, x ∈ t → f ∈ x.as_homogeneous_ideal} :=
 begin
   ext f,
-  rw [vanishing_ideal, set_like.mem_coe, submodule.mem_infi],
+  rw [vanishing_ideal, set_like.mem_coe, homogeneous_ideal.mem_iff, homogeneous_ideal.coe_infi,
+    submodule.mem_infi],
   apply forall_congr, intro x,
-  rw [submodule.mem_infi], refl,
+  rw [homogeneous_ideal.coe_infi, submodule.mem_infi],
+  refl,
 end
 
 lemma mem_vanishing_ideal (t : set (projective_spectrum 𝒜)) (f : A) :

@@ -32,6 +32,8 @@ variables {𝕜 E : Type*}
 
 open_locale topological_space pointwise
 
+namespace topological_space
+
 section semi_normed_ring
 
 section has_zero
@@ -100,3 +102,6 @@ bornology.of_bounded (set_of (is_bounded 𝕜)) (is_bounded.empty 𝕜 E)
   (λ _ hs _, is_bounded_subset hs) (λ _ hs _, is_bounded_union hs) is_bounded_covers
 
 end normed_field
+
+end topological_space
+

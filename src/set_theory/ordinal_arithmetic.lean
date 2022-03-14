@@ -1091,8 +1091,8 @@ theorem sup_eq_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' 
 sup_eq_of_range_eq.{u u v} (by simp)
 
 /-- The supremum of a family of ordinals indexed by the set of ordinals less than some
-  `o : ordinal.{u}`. This is a special case of `sup` over the family provided by
-  `family_of_bfamily`. -/
+    `o : ordinal.{u}`. This is a special case of `sup` over the family provided by
+    `family_of_bfamily`. -/
 def bsup (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 sup (family_of_bfamily o f)
 
@@ -1253,6 +1253,9 @@ theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
 theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
 
+theorem nonempty_compl_range {ι : Type u} (f : ι → ordinal.{max u v}) : (set.range f)ᶜ.nonempty :=
+⟨_, lsub_nmem_range f⟩
+
 @[simp] theorem lsub_typein (o : ordinal) :
   lsub.{u u} (typein ((<) : o.out.α → o.out.α → Prop)) = o :=
 (lsub_le.{u u}.2 typein_lt_self).antisymm begin
@@ -1277,7 +1280,9 @@ begin
   apply lsub_typein
 end
 
-/-- The bounded least strict upper bound of a family of ordinals. -/
+/-- The least strict upper bound of a family of ordinals indexed by the set of ordinals less than
+    some `o : ordinal.{u}`. This is a special case of `lsub` over the family provided by
+    `family_of_bfamily`.-/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
 
@@ -1445,6 +1450,87 @@ theorem is_normal.eq_iff_zero_and_succ {f : ordinal.{u} → ordinal.{u}} (hf : i
   ext b hb,
   exact H b hb
 end)⟩
+
+/-! ### Minimum excluded ordinals -/
+
+/-- The minimum excluded ordinal in a family of ordinals. -/
+def mex {ι : Type u} (f : ι → ordinal.{max u v}) : ordinal :=
+Inf (set.range f)ᶜ
+
+theorem mex_nmem_range {ι : Type u} (f : ι → ordinal.{max u v}) : mex f ∉ set.range f :=
+Inf_mem (nonempty_compl_range f)
+
+theorem ne_mex {ι} (f : ι → ordinal) : ∀ i, f i ≠ mex f :=
+by simpa using mex_nmem_range f
+
+theorem mex_le_of_nmem {ι} {f : ι → ordinal} {a} (ha : ∀ i, f i ≠ a) : mex f ≤ a :=
+cInf_le' (by simp [ha])
+
+theorem mem_of_lt_mex {ι} {f : ι → ordinal} {a} (ha : a < mex f) : ∃ i, f i = a :=
+by { by_contra' ha', exact ha.not_le (mex_le_of_nmem ha') }
+
+theorem mex_le_lsub {ι} (f : ι → ordinal) : mex f ≤ lsub f :=
+cInf_le' (lsub_nmem_range f)
+
+theorem mex_monotone {α β} {f : α → ordinal} {g : β → ordinal} (h : set.range f ⊆ set.range g) :
+  mex f ≤ mex g :=
+begin
+  refine mex_le_of_nmem (λ i hi, _),
+  cases h ⟨i, rfl⟩ with j hj,
+  rw ←hj at hi,
+  exact ne_mex g j hi
+end
+
+theorem mex_lt_ord_succ_mk {ι} (f : ι → ordinal) : mex f < (#ι).succ.ord :=
+begin
+  by_contra' h,
+  apply not_le_of_lt (cardinal.lt_succ_self (#ι)),
+  have H := λ a, mem_of_lt_mex ((typein_lt_self a).trans_le h),
+  let g : (#ι).succ.ord.out.α → ι := λ a, classical.some (H a),
+  have hg : function.injective g := λ a b h', begin
+    have Hf : ∀ x, f (g x) = typein (<) x := λ a, classical.some_spec (H a),
+    apply_fun f at h',
+    rwa [Hf, Hf, typein_inj] at h'
+  end,
+  convert cardinal.mk_le_of_injective hg,
+  rw cardinal.mk_ord_out
+end
+
+/-- The minimum excluded ordinal of a family of ordinals indexed by the set of ordinals less than
+    some `o : ordinal.{u}`. This is a special case of `mex` over the family provided by
+    `family_of_bfamily`.-/
+def bmex (o : ordinal) (f : Π a < o, ordinal) : ordinal :=
+mex (family_of_bfamily o f)
+
+theorem bmex_nmem_brange {o : ordinal} (f : Π a < o, ordinal) : bmex o f ∉ brange o f :=
+by { rw ←range_family_of_bfamily, apply mex_nmem_range }
+
+theorem ne_bmex {o : ordinal} (f : Π a < o, ordinal) {i} (hi) : f i hi ≠ bmex o f :=
+begin
+  convert ne_mex _ (enum (<) i (by rwa type_lt)),
+  rw family_of_bfamily_enum
+end
+
+theorem bmex_le_of_nmem {o : ordinal} {f : Π a < o, ordinal} {a} (ha : ∀ i hi, f i hi ≠ a) :
+  bmex o f ≤ a :=
+mex_le_of_nmem (λ i, ha _ _)
+
+theorem mem_of_lt_bmex {o : ordinal} {f : Π a < o, ordinal} {a} (ha : a < bmex o f) :
+  ∃ i hi, f i hi = a :=
+begin
+  cases mem_of_lt_mex ha with i hi,
+  exact ⟨_, typein_lt_self i, hi⟩
+end
+
+theorem bmex_le_blsub {o : ordinal} (f : Π a < o, ordinal) : bmex o f ≤ blsub o f :=
+mex_le_lsub _
+
+theorem bmex_monotone {o o' : ordinal} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
+  (h : brange o f ⊆ brange o' g) : bmex o f ≤ bmex o' g :=
+mex_monotone (by rwa [range_family_of_bfamily, range_family_of_bfamily])
+
+theorem bmex_lt_ord_succ_card {o : ordinal} (f : Π a < o, ordinal) : bmex o f < o.card.succ.ord :=
+by { rw ←mk_ordinal_out, exact (mex_lt_ord_succ_mk (family_of_bfamily o f)) }
 
 end ordinal
 

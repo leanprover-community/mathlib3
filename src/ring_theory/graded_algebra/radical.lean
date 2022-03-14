@@ -171,11 +171,7 @@ end
 
 lemma ideal.is_homogeneous.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :
   I.radical.is_homogeneous 𝒜 :=
-begin
-  convert (Inf {J : homogeneous_ideal 𝒜 | I ≤ J.val ∧ J.val.is_prime}).prop using 2,
-  simp_rw [h.radical_eq, homogeneous_ideal.coe_Inf, subtype.coe_image, set.mem_set_of_eq,
-    exists_prop]
-end
+by { rw h.radical_eq, exact ideal.is_homogeneous.Inf (λ _, and.left) }
 
 /-- The radical of a homogenous ideal, as another homogenous ideal. -/
 def homogeneous_ideal.radical (I : homogeneous_ideal 𝒜) : homogeneous_ideal 𝒜 :=

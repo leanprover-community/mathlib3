@@ -1172,6 +1172,9 @@ theorem bsup_eq_of_brange_eq {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordi
 def lsub {ι} (f : ι → ordinal) : ordinal :=
 sup (ordinal.succ ∘ f)
 
+@[simp] theorem sup_eq_lsub {ι} (f : ι → ordinal) : sup (ordinal.succ ∘ f) = lsub f :=
+rfl
+
 theorem lsub_le {ι} {f : ι → ordinal} {a} : lsub f ≤ a ↔ ∀ i, f i < a :=
 by { convert sup_le, simp [succ_le] }
 
@@ -1280,6 +1283,10 @@ end
 /-- The bounded least strict upper bound of a family of ordinals. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
+
+@[simp] theorem bsup_eq_blsub (o : ordinal) (f : Π a < o, ordinal) :
+  bsup o (λ a ha, (f a ha).succ) = blsub o f :=
+rfl
 
 theorem lsub_eq_blsub' {ι} (r : ι → ι → Prop) [is_well_order ι r] {o} (ho : type r = o) (f) :
   lsub (family_of_bfamily' r ho f) = blsub o f :=

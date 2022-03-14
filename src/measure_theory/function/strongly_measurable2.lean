@@ -1,13 +1,28 @@
+/-
+Copyright (c) 2021 Rémy Degenne. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Rémy Degenne, Sébastien Gouëzel
+-/
 import measure_theory.function.simple_func_dense
 import measure_theory.function.strongly_measurable
+import measure_theory.function.l1_space
 
+
+/-!
+# Strongly measurable and finitely strongly measurable functions
+
+A function `f` is said to be strongly measurable if `f` is the sequential limit of simple functions.
+It is said to be finitely strongly measurable with respect to a measure `μ` if the supports
+of those simple functions have finite measure.
+
+If the target space has a second countable topology, strongly measurable and measurable are
+equivalent.
+-/
 
 open measure_theory filter topological_space function
 open_locale ennreal topological_space measure_theory
 
 namespace measure_theory
-
-
 
 section second_countable_topology
 

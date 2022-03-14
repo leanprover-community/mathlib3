@@ -1071,7 +1071,8 @@ lemma is_qf.induction_on_inf_not {P : L.bounded_formula α n → Prop} {φ : L.b
     (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
   P φ :=
 h.induction_on_sup_not hf ha (λ φ₁ φ₂ h1 h2,
-  ((hse (φ₁.sup_semantically_equivalent_not_inf_not φ₂)).2 (hnot (hinf (hnot h1) (hnot h2)))))(λ _, hnot) (λ _ _, hse)
+  ((hse (φ₁.sup_semantically_equivalent_not_inf_not φ₂)).2 (hnot (hinf (hnot h1) (hnot h2)))))
+  (λ _, hnot) (λ _ _, hse)
 
 lemma imp_semantically_equivalent_to_prenex_imp_right {φ ψ : L.bounded_formula α n}
   (hφ : is_qf φ) (hψ : is_prenex ψ) :

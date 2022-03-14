@@ -650,11 +650,8 @@ of function `(fₙ)` satisfies for all `ε > 0`, there exists some `C ≥ 0` suc
 
 In this section, we will develope some API for `uniform_integrable` and prove that
 `uniform_integrable` is equivalent to this definition of uniform integrability.
+(Currently we only have the forward direction.)
 -/
-
-lemma _root_.set.indicator_meas_zero (s : set α) (hs : μ s = 0) (f : α → β) :
-  s.indicator f =ᵐ[μ] 0 :=
-(indicator_empty' f) ▸ indicator_ae_eq_of_ae_eq_set (ae_eq_empty.2 hs)
 
 lemma _root_.div_div₀ {G₀} [comm_group_with_zero G₀] {a b c : G₀} :
   a / b / c = a / (b * c) :=
@@ -727,8 +724,7 @@ begin
   refine ⟨(ε / (2 * C)) ^ ennreal.to_real p, real.rpow_pos_of_pos
     (div_pos hε (mul_pos two_pos (nnreal.coe_pos.2 hCpos))) _, λ i s hs hμs, _⟩,
   by_cases hμs' : μ s = 0,
-  { rw (snorm_eq_zero_iff ((hf i).indicator hs).ae_measurable hpzero).2
-      (s.indicator_meas_zero hμs' _),
+  { rw (snorm_eq_zero_iff ((hf i).indicator hs).ae_measurable hpzero).2 (indicator_meas_zero hμs'),
     norm_num },
   calc snorm (indicator s (f i)) p μ ≤ snorm (indicator (s ∩ {x | C ≤ ∥f i x∥₊}) (f i)) p μ +
     snorm (indicator (s ∩ {x | ∥f i x∥₊ < C}) (f i)) p μ :

@@ -1,7 +1,6 @@
 import category_theory.bicategory.coherence
 
-open category_theory
-open category_theory.bicategory
+open category_theory category_theory.bicategory category_theory.free_bicategory
 open_locale bicategory
 
 namespace tactic

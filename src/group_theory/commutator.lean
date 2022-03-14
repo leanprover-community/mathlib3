@@ -76,6 +76,19 @@ begin
   rw [mem_bot, commutator_element_eq_one_iff_mul_comm, eq_comm],
 end
 
+/-- **The Three Subgroups Lemma** (via the Hall-Witt identity) -/
+lemma commutator_commutator_eq_bot_of_rotate
+  (h1 : ⁅⁅H₂, H₃⁆, H₁⁆ = ⊥) (h2 : ⁅⁅H₃, H₁⁆, H₂⁆ = ⊥) : ⁅⁅H₁, H₂⁆, H₃⁆ = ⊥ :=
+begin
+  simp_rw [commutator_eq_bot_iff_le_centralizer, commutator_le,
+    mem_centralizer_iff_commutator_eq_one, ←commutator_element_def] at h1 h2 ⊢,
+  intros x hx y hy z hz,
+  transitivity x * z * ⁅y, ⁅z⁻¹, x⁻¹⁆⁆⁻¹ * z⁻¹ * y * ⁅x⁻¹, ⁅y⁻¹, z⁆⁆⁻¹ * y⁻¹ * x⁻¹,
+  { group },
+  { rw [h1 _ (H₂.inv_mem hy) _ hz _ (H₁.inv_mem hx), h2 _ (H₃.inv_mem hz) _ (H₁.inv_mem hx) _ hy],
+    group },
+end
+
 variables (H₁ H₂)
 
 lemma commutator_comm_le : ⁅H₁, H₂⁆ ≤ ⁅H₂, H₁⁆ :=

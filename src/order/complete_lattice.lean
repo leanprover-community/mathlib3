@@ -1340,16 +1340,6 @@ variables {s : set α} (hs : set_independent s)
 lemma set_independent_empty : set_independent (∅ : set α) :=
 λ x hx, (set.not_mem_empty x hx).elim
 
-
-@[simp] theorem insert_diff_eq_singleton {a : α} {s : set α} (h : a ∉ s) : insert a s \ s = {a} :=
-begin
-  ext,
-  rw [set.mem_diff, set.mem_insert_iff, set.mem_singleton_iff, or_and_distrib_right,
-    and_not_self, or_false, and_iff_left_iff_imp],
-  rintro rfl,
-  exact h,
-end
-
 theorem set_independent.mono {t : set α} (hst : t ⊆ s) :
   set_independent t :=
 λ a ha, (hs (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))

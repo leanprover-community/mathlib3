@@ -91,8 +91,8 @@ lemma exists_mem_adjoin_mul_eq_pow_nat_degree {x : S} (hx : aeval x f = 0)
   (algebra_map R S) p * y = x ^ (f.map (algebra_map R S)).nat_degree :=
 begin
   rw [aeval_def, polynomial.eval₂_eq_eval_map, eval_eq_finset_sum, range_add_one,
-    sum_insert not_mem_range_self, sum_range, (monic_map
-    (algebra_map R S) hmo).coeff_nat_degree, one_mul] at hx,
+    sum_insert not_mem_range_self, sum_range, (hmo.map
+    (algebra_map R S)).coeff_nat_degree, one_mul] at hx,
   replace hx := eq_neg_of_add_eq_zero hx,
   have : ∀ n < f.nat_degree, p ∣ f.coeff n,
   { intros n hn,
@@ -151,7 +151,7 @@ begin
     rw [hk, pow_add],
     refine mul_mem_right _ _ this },
   rw [aeval_def, eval₂_eq_eval_map, ← is_root.def] at hx,
-  refine pow_nat_degree_le_of_root_of_monic_mem (hf.map _) hx (monic_map _ hmo) _ rfl.le
+  refine pow_nat_degree_le_of_root_of_monic_mem (hf.map _) hx (hmo.map _) _ rfl.le
 end
 
 end comm_ring
@@ -271,10 +271,10 @@ begin
   have deg_K_P : (minpoly K B.gen).nat_degree = B.dim := B.nat_degree_minpoly,
   have deg_R_P : P.nat_degree = B.dim,
   { rw [← deg_K_P, minpoly.gcd_domain_eq_field_fractions K hBint,
-        nat_degree_map_of_monic (minpoly.monic hBint) (algebra_map R K)] },
+        (minpoly.monic hBint).nat_degree_map (algebra_map R K)] },
   choose! f hf using hei.is_weakly_eisenstein_at.exists_mem_adjoin_mul_eq_pow_nat_degree_le
     (minpoly.aeval R B.gen) (minpoly.monic hBint),
-  simp only [nat_degree_map_of_monic (minpoly.monic hBint), deg_R_P] at hf,
+  simp only [(minpoly.monic hBint).nat_degree_map, deg_R_P] at hf,
 
   -- The Eisenstein condition shows that `p` divides `Q.coeff 0`
   -- if `p^n.succ` divides the following multiple of `Q.coeff 0^n.succ`:
@@ -430,7 +430,7 @@ begin
       rw [smul_mul_assoc, ← pow_add, ← nat.add_sub_assoc H, ← add_assoc j 1 1,
         add_comm (j + 1) 1, add_assoc (j + 1), add_comm _ (k + P.nat_degree),
         nat.add_sub_add_right, ← (hf (k + P.nat_degree - 1) _).2, mul_smul_comm],
-      rw [nat_degree_map_of_monic (minpoly.monic hBint), add_comm, nat.add_sub_assoc,
+      rw [(minpoly.monic hBint).nat_degree_map, add_comm, nat.add_sub_assoc,
         le_add_iff_nonneg_right],
       { exact nat.zero_le _ },
       { refine one_le_iff_ne_zero.2 (λ h, _),
@@ -445,7 +445,7 @@ begin
   { convert this,
     rw [nat.succ_eq_add_one, add_assoc, ← nat.add_sub_assoc H, ← add_assoc, add_comm (j + 1),
       nat.add_sub_add_left, ← nat.add_sub_assoc, nat.add_sub_add_left, hP,
-      ← nat_degree_map_of_monic (minpoly.monic hBint) (algebra_map R K),
+      ← (minpoly.monic hBint).nat_degree_map  (algebra_map R K),
       ← minpoly.gcd_domain_eq_field_fractions K hBint, nat_degree_minpoly, hn, nat.sub_one,
       nat.pred_succ],
     linarith },
@@ -474,7 +474,7 @@ begin
         (is_integral.sum _ (λ k hk, is_integral_mul (is_integral_smul _ (is_integral.pow hBint _))
         ((is_integral.pow hBint _))))),
       refine adjoin_le_integral_closure hBint (hf _ _).1,
-      rw [nat_degree_map_of_monic (minpoly.monic hBint) (algebra_map R L)],
+      rw [(minpoly.monic hBint).nat_degree_map (algebra_map R L)],
       rw [add_comm, nat.add_sub_assoc, le_add_iff_nonneg_right],
       { exact zero_le _ },
       { refine one_le_iff_ne_zero.2 (λ h, _),

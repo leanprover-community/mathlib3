@@ -65,7 +65,7 @@ lemma sup_indep_iff_disjoint_erase [decidable_eq ι] :
 ⟨λ hs i hi, hs (erase_subset _ _) hi (not_mem_erase _ _), λ hs t ht i hi hit,
   (hs i hi).mono_right (sup_mono $ λ j hj, mem_erase.2 ⟨ne_of_mem_of_not_mem hj hit, ht hj⟩)⟩
 
-lemma sup_indep_pair [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
+@[simp] lemma sup_indep_pair [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
   ({i, j} : finset ι).sup_indep f ↔ disjoint (f i) (f j) :=
 ⟨λ h, h.pairwise_disjoint (by simp) (by simp) hij, λ h, begin
   rw sup_indep_iff_disjoint_erase,
@@ -85,7 +85,7 @@ lemma sup_indep_pair [decidable_eq ι] {i j : ι} (hij : i ≠ j) :
     rw [this, finset.sup_singleton] }
 end⟩
 
-@[simp] lemma sup_indep_univ_bool (f : bool → α) :
+lemma sup_indep_univ_bool (f : bool → α) :
   (finset.univ : finset bool).sup_indep f ↔ disjoint (f ff) (f tt) :=
 begin
   have : tt ≠ ff := by simp only [ne.def, not_false_iff],
@@ -157,6 +157,7 @@ end
 alias complete_lattice.independent_iff_sup_indep ↔ complete_lattice.independent.sup_indep
   finset.sup_indep.independent
 
+/-- A variant of `complete_lattice.independent_iff_sup_indep` for `fintype`s. -/
 lemma complete_lattice.independent_iff_sup_indep_univ [complete_lattice α] [fintype ι] {f : ι → α} :
   complete_lattice.independent f ↔ finset.univ.sup_indep f :=
 begin

@@ -1022,6 +1022,7 @@ section uniform_group
 
 variables [add_comm_group α] [uniform_space α]
 
+/-- The **Cauchy criterion** for infinite sums, also known as the **Cauchy convergence test** -/
 lemma summable_iff_cauchy_seq_finset [complete_space α] {f : β → α} :
   summable f ↔ cauchy_seq (λ (s : finset β), ∑ b in s, f b) :=
 cauchy_map_iff_exists_tendsto.symm

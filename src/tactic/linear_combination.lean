@@ -141,6 +141,7 @@ Given that `l_sum1 = r_sum1`, `l_h1 = r_h1`, ..., `l_hn = r_hn`, and given
   `= r_sum1 + (c_1 * r_h1) + ... + (c_n * r_hn)`
 
 * Input:
+  * `expected_tp`: the type of the terms being compared in the target equality
   * an `option (tactic expr)` : `none`, if there is no sum to add to yet, or
       `some` containing the base summation equation
   * a `list name` : a list of names, referring to equalities in the local context
@@ -150,16 +151,21 @@ Given that `l_sum1 = r_sum1`, `l_h1 = r_h1`, ..., `l_hn = r_hn`, and given
 * Output: an `expr`, which proves that the weighted sum of the given
     equalities added to the base equation holds
 -/
-meta def make_sum_of_hyps_helper :
+meta def make_sum_of_hyps_helper (expected_tp : expr) :
   option (tactic expr) → list name → list pexpr → tactic expr
 | none [] []                                                             :=
-  do fail "There are no hypotheses to add"
+  to_expr ``(rfl : (0 : %%expected_tp) = 0)
 | (some tactic_hcombo) [] []                                             :=
   do tactic_hcombo
 | none (h_equality_nam :: h_eqs_names) (coeff :: coeffs)                 :=
  do
     -- This is the first equality, and we do not have anything to add to it
     h_equality ← get_local h_equality_nam,
+    `(@eq %%eqtp _ _) ← infer_type h_equality |
+      fail!"{h_equality_nam} is expected to be a proof of an equality",
+    is_def_eq eqtp expected_tp <|>
+      fail!("{h_equality_nam} is an equality between terms of type {eqtp}, but is expected to be" ++
+        " between terms of type {expected_tp}"),
     make_sum_of_hyps_helper
       (some (mul_equality_expr h_equality coeff))
       h_eqs_names
@@ -184,6 +190,7 @@ Given a list of names referencing equalities and a list of pexprs representing
   (where each equation is multiplied by the corresponding coefficient) holds.
 
 * Input:
+  * `expected_tp`: the type of the terms being compared in the target equality
   * `h_eqs_names` : a list of names, referring to equalities in the local
       context
   * `coeffs` : a list of coefficients to be multiplied with the corresponding
@@ -192,10 +199,9 @@ Given a list of names referencing equalities and a list of pexprs representing
 * Output: an `expr`, which proves that the weighted sum of the equalities
     holds
 -/
-meta def make_sum_of_hyps (h_eqs_names : list name) (coeffs : list pexpr) :
+meta def make_sum_of_hyps (expected_tp : expr) (h_eqs_names : list name) (coeffs : list pexpr) :
   tactic expr :=
-make_sum_of_hyps_helper none h_eqs_names coeffs
-
+make_sum_of_hyps_helper expected_tp none h_eqs_names coeffs
 
 /-! ### Part 2: Simplifying -/
 
@@ -303,7 +309,8 @@ Note: The left and right sides of all the equalities should have the same
 meta def linear_combination (h_eqs_names : list name) (coeffs : list pexpr)
   (config : linear_combination_config := {}) : tactic unit :=
 do
-  hsum ← make_sum_of_hyps h_eqs_names coeffs,
+  `(@eq %%ext _ _) ← target | fail "linear_combination can only be used to prove equality goals",
+  hsum ← make_sum_of_hyps ext h_eqs_names coeffs,
   hsum_on_left ← move_to_left_side hsum,
   move_target_to_left_side,
   set_goal_to_hleft_eq_tleft hsum_on_left,
@@ -388,7 +395,7 @@ add_tactic_doc
 { name := "linear_combination",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.linear_combination],
-  tags := [] }
+  tags := ["arithmetic"] }
 
 end interactive_mode
 end linear_combo

@@ -20,7 +20,7 @@ Instances for the following typeclasses are defined:
 * `second_countable_topology ℝ≥0`
 * `order_topology ℝ≥0`
 * `has_continuous_sub ℝ≥0`
-* `has_continuous_inv' ℝ≥0` (continuity of `x⁻¹` away from `0`)
+* `has_continuous_inv₀ ℝ≥0` (continuity of `x⁻¹` away from `0`)
 * `has_continuous_smul ℝ≥0 ℝ`
 
 Everything is inherited from the corresponding structures on the reals.

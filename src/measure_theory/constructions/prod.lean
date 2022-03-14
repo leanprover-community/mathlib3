@@ -568,8 +568,8 @@ begin
   /- if `μa = 0`, then the lemma is trivial, otherwise we can use `hg`
   to deduce `sigma_finite μc`. -/
   rcases eq_or_ne μa 0 with (rfl|ha),
-  { rw [← hf.map_eq, zero_prod, (map f).map_zero, zero_prod],
-    exact ⟨this, (map _).map_zero⟩ },
+  { rw [← hf.map_eq, zero_prod, measure.map_zero, zero_prod],
+    exact ⟨this, (mapₗ _).map_zero⟩ },
   haveI : sigma_finite μc,
   { rcases (ae_ne_bot.2 ha).nonempty_of_mem hg with ⟨x, hx : map (g x) μc = μd⟩,
     exact sigma_finite.of_map _ hgm.of_uncurry_left (by rwa hx) },

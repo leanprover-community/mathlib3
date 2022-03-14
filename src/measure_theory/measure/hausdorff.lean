@@ -349,8 +349,8 @@ begin
   refine λ s, le_of_tendsto_of_tendsto (mk_metric'.tendsto_pre _ s)
     (ennreal.tendsto.const_mul (mk_metric'.tendsto_pre _ s) (or.inr hc))
     (mem_of_superset (Ioo_mem_nhds_within_Ioi ⟨le_rfl, hr0⟩) (λ r' hr', _)),
-  simp only [mem_set_of_eq, mk_metric'.pre],
-  rw [← smul_apply, smul_bounded_by hc],
+  simp only [mem_set_of_eq, mk_metric'.pre, ring_hom.id_apply],
+  rw [←smul_eq_mul, ← smul_apply, smul_bounded_by hc],
   refine le_bounded_by.2 (λ t, (bounded_by_le _).trans _) _,
   simp only [smul_eq_mul, pi.smul_apply, extend, infi_eq_if],
   split_ifs with ht ht,
@@ -587,7 +587,7 @@ mk_metric_le_liminf_sum s r hr t ht hst _
 lemma hausdorff_measure_zero_or_top {d₁ d₂ : ℝ} (h : d₁ < d₂) (s : set X) :
   μH[d₂] s = 0 ∨ μH[d₁] s = ∞ :=
 begin
-  by_contra' H, 
+  by_contra' H,
   suffices : ∀ (c : ℝ≥0), c ≠ 0 → μH[d₂] s ≤ c * μH[d₁] s,
   { rcases ennreal.exists_nnreal_pos_mul_lt H.2 H.1 with ⟨c, hc0, hc⟩,
     exact hc.not_le (this c (pos_iff_ne_zero.1 hc0)) },

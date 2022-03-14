@@ -124,6 +124,6 @@ hc.smul diff_on_int_cont_const
 
 lemma inv {f : E → 𝕜} (hf : diff_on_int_cont 𝕜 f s) (h₀ : ∀ x ∈ s, f x ≠ 0) :
   diff_on_int_cont 𝕜 f⁻¹ s :=
-_
+⟨differentiable_on_inv.comp hf.1 $ λ x hx, h₀ _ (interior_subset hx), hf.2.inv₀ h₀⟩
 
 end diff_on_int_cont

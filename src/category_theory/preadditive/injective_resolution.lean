@@ -12,7 +12,7 @@ import algebra.homology.single
 A injective resolution `I : InjectiveResolution Z` of an object `Z : C` consists of
 a `ℕ`-indexed cochain complex `I.cocomplex` of injective objects,
 along with a cochain map `I.ι` from cochain complex consisting just of `Z` in degree zero to `C`,
-so that the augmented chain complex is exact.
+so that the augmented cochain complex is exact.
 ```
 Z ----> 0 ----> ... ----> 0 ----> ...
 |       |                 |

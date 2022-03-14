@@ -39,9 +39,6 @@ begin
   exact (pow_one _).ge,
 end
 
-lemma algebra_map_mem_even_odd_zero (r : R) : algebra_map R _ r ∈ even_odd Q 0 :=
-one_le_even_odd_zero _ $ submodule.algebra_map_mem _
-
 lemma ι_mem_even_odd_one (m : M) : ι Q m ∈ even_odd Q 1 :=
 range_ι_le_even_odd_one Q $ linear_map.mem_range_self _ m
 
@@ -173,7 +170,7 @@ end
 scalars, closed under addition, and under left-multiplication by a pair of vectors. -/
 @[elab_as_eliminator]
 lemma even_induction  {P : Π x, x ∈ even_odd Q 0 → Prop}
-  (hr : ∀ r : R, P (algebra_map _ _ r) (algebra_map_mem_even_odd_zero _ _))
+  (hr : ∀ r : R, P (algebra_map _ _ r) (set_like.has_graded_one.algebra_map_mem _ _))
   (hadd : ∀ {x y hx hy}, P x hx → P y hy → P (x + y) (submodule.add_mem _ hx hy))
   (hιι_mul : ∀ m₁ m₂ {x hx}, P x hx → P (ι Q m₁ * ι Q m₂ * x)
     (zero_add 0 ▸ set_like.graded_monoid.mul_mem (ι_mul_ι_mem_even_odd_zero Q m₁ m₂) hx))

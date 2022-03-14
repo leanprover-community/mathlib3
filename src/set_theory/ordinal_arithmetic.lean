@@ -2042,6 +2042,17 @@ begin
   exact lt_opow_succ_log b1 _,
 end
 
+theorem CNF_lt_snd {b : ordinal} (b1 : 1 < b) (o) : ∀ p ∈ CNF b o, (0 : ordinal) < prod.snd p :=
+begin
+  have b0 := ne_of_gt (lt_trans zero_lt_one b1),
+  refine CNF_rec b0 (λ _, by rw [CNF_zero]; exact false.elim) _ o,
+  intros o o0 IH,
+  simp only [CNF_ne_zero b0 o0, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro IH],
+  rw [and_true, ←succ_le, le_div (opow_ne_zero _ b0), succ_zero, mul_one],
+  apply opow_log_le,
+  rwa ordinal.pos_iff_ne_zero
+end
+
 theorem CNF_sorted (b := omega) (o) :
   ((CNF b o).map prod.fst).sorted (>) :=
 by rw [list.sorted, list.pairwise_map]; exact CNF_pairwise b o

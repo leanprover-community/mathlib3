@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
+import algebra.algebra.bilinear
 
 /-!
 # Towers of algebras

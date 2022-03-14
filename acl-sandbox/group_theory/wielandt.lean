@@ -1124,13 +1124,7 @@ begin
 
   have thisX : fintype.card X = fintype.card B * (set.range (λ (g : G), g • B)).to_finset.card,
   { rw ← @card_of_block_mul_card_of_orbit_of G X _ _ _ _ B hB_ne hB,
-    conv_rhs { rw mul_comm, },
-    apply congr_arg2,
-    { apply congr_arg,
-      rw [← finset.coe_inj, set.coe_to_finset, set.finite.coe_to_finset],
-      refl },
-    refl },
-
+    conv_rhs { rw mul_comm, } },
   /- On peut conclure que B < 2 :
  via thisX : X = P * B, this : C ≤ P, hC : 2 * C > X -/
 
@@ -1139,6 +1133,8 @@ begin
   apply lt_of_le_of_lt _ hC,
   exact nat.mul_le_mul_left _ this,
 end
+
+end primitivity
 
 end mul_action
 

@@ -37,63 +37,6 @@ open_locale topological_space
 
 section topological_add_group
 
-
--- Stuff to be moved to `analysis.seminorm`
-
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
-variables [topological_space E] [topological_add_group E]
-variables [nonempty ι]
-
-
-lemma with_seminorms_of_nhds (p : ι → seminorm 𝕜 E)
-  (h : 𝓝 (0 : E) = (seminorm.seminorm_module_filter_basis p).to_filter_basis.filter) :
-  seminorm.with_seminorms p :=
-begin
-  refine ⟨topological_add_group.ext (by apply_instance)
-    ((seminorm.seminorm_add_group_filter_basis _).is_topological_add_group) _⟩,
-  rw add_group_filter_basis.nhds_zero_eq,
-  exact h,
-end
-
-lemma with_seminorms_of_has_basis (p : ι → seminorm 𝕜 E) (h : (𝓝 (0 : E)).has_basis
-  (λ (s : set E), s ∈ (seminorm.seminorm_basis_zero p)) id) :
-  seminorm.with_seminorms p :=
-with_seminorms_of_nhds p $ filter.has_basis.eq_of_same_basis h
-  ((seminorm.seminorm_add_group_filter_basis p).to_filter_basis.has_basis)
-
-end topological_add_group
-
-section seminorm_sup
-
-namespace seminorm
-
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
-
-lemma sup_le_apply (p : ι → seminorm 𝕜 E) (s : finset ι) (x : E) {a : ℝ} (ha : 0 < a):
-  (∀ (i : ι), i ∈ s → p i x ≤ a) → s.sup p x ≤ a :=
-begin
-  intro h,
-  rw [finset_sup_apply, ←a.coe_to_nnreal ha.le, nnreal.coe_le_coe],
-  refine finset.sup_le (λ i hi, _),
-  rw [←nnreal.coe_le_coe, subtype.coe_mk, a.coe_to_nnreal ha.le],
-  exact h i hi,
-end
-
-lemma sup_lt_apply {p : ι → seminorm 𝕜 E} {s : finset ι} {x : E} {a : ℝ} (ha : 0 < a):
-  (∀ (i : ι), i ∈ s → p i x < a) → s.sup p x < a :=
-begin
-  intro h,
-  rw [finset_sup_apply, ←a.coe_to_nnreal ha.le, nnreal.coe_lt_coe],
-  refine (finset.sup_lt_iff (real.to_nnreal_pos.mpr ha)).mpr (λ i hi, _),
-  rw [←nnreal.coe_lt_coe, subtype.coe_mk, a.coe_to_nnreal ha.le],
-  exact h i hi,
-end
-
-end seminorm
-
-end seminorm_sup
-
-
 section linear_maps
 
 namespace linear_map
@@ -123,9 +66,6 @@ by { ext, simp only [seminorm.comp_apply, to_seminorm_apply, coe_comp] }
 end linear_map
 
 end linear_maps
-
--- End of stuff to be moved to `analysis.seminorm`
-
 
 section topology
 
@@ -200,7 +140,8 @@ begin
   exact hx y hy,
 end
 
-instance : seminorm.with_seminorms (linear_map.to_seminorm_family B : F → seminorm 𝕜 (weak_bilin B)) :=
+instance : seminorm.with_seminorms
+  (linear_map.to_seminorm_family B : F → seminorm 𝕜 (weak_bilin B)) :=
 with_seminorms_of_has_basis _ (has_basis_weak_bilin _)
 
 variables [has_scalar ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]

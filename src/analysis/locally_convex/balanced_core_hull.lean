@@ -64,15 +64,6 @@ def balanced_hull (s : set E) := ⋃ (r : 𝕜) (hr : ∥r∥ ≤ 1), r • s
 
 variables {𝕜}
 
--- Begin of lemmas to be moved
-
-lemma balanced_mem {s : set E} (hs : balanced 𝕜 s) {x : E} (hx : x ∈ s) {a : 𝕜} (ha : ∥a∥ ≤ 1) :
-  a • x ∈ s :=
-mem_of_subset_of_mem (hs a ha) (smul_mem_smul_set hx)
-
-
--- End of lemmas to be moved
-
 lemma balanced_core_subset (s : set E) : balanced_core 𝕜 s ⊆ s :=
 begin
   refine sUnion_subset (λ t ht, _),
@@ -132,17 +123,6 @@ end has_scalar
 section add_comm_monoid
 
 variables [add_comm_monoid E] [module 𝕜 E]
-
--- Begin of lemmas to be moved
-
---variables (𝕜 E)
-
-lemma zero_singleton_balanced : balanced 𝕜 ({0} : set E) :=
-λ a ha, by simp only [smul_set_singleton, smul_zero]
-
---variables {𝕜 E}
-
--- End of lemmas to be moved
 
 lemma balanced_core_nonempty_iff {s : set E} : (balanced_core 𝕜 s).nonempty ↔ (0 : E) ∈ s :=
 begin

@@ -10,11 +10,35 @@ import set_theory.cardinal_ordinal
 
 Buchholz's psi functions are a fast-growing family of ordinal functions. Intuitively speaking,
 `buchholz a v` is the least ordinal that can't be made with reference to `buchholz o v` for `o < a`,
-and `aleph v`.
+and `Omega v`. Here, `Omega v` is defined so that `Omega 0 = 1` and `Omega v = aleph v` otherwise.
+
+More explicitly, we define an inductive type `buchholz_exp' o v` of "Buchholz expressions",
+containing an expression for all ordinals up to `Omega v`, and closed under sums and applications of
+a function `Ψ u` for `u : ℕ`. Any such expression can be evaluated by plugging in a family of
+functions `Ψ`. We then define the type of well-formed Buchholz expressions `buchholz_exp' o v Ψ`
+with respect to `Ψ` as those expressions where `Ψ` is only evaluated at values less than `o`.
+Finally, we define `buchholz o v` as the least ordinal that isn't the value of some well-formed
+Buchholz expression with respect to the Buchholz functions at lesser values.
+
+## Main definitions
+
+- `buchholz_exp'`: the type of Buchholz expressions.
+- `buchholz_exp`: the type of well-formed Buchholz expressions.
+- `buchholz`: the Buchholz psi functions.
+
+## Implementation details
+
+Buchholz originally defined his psi functions up to `Ψ ω`. However, for the sake of simplicity, we
+build them only for natural indices. In truth, one could index them by any countable ordinal, and
+many of the results would remain true.
+
+## Todo
+
+Prove all the theorems in Section 1 of Buchholz's paper.
 
 ## References:
 
-- https://linkinghub.elsevier.com/retrieve/pii/0168007286900527
+- [W. Buchholz, A New System of Proof-Theoretic Ordinal Functions][buchholz1986]
 -/
 
 noncomputable theory
@@ -83,6 +107,9 @@ buchholz_exp'.lt_Omega' (enum (<) a (by rwa type_lt))
 instance (v : ℕ) : has_zero (buchholz_exp' v) :=
 ⟨lt_Omega (ord_lt_ord.2 (Omega_pos v))⟩
 
+instance (v : ℕ) : inhabited (buchholz_exp' v) :=
+⟨0⟩
+
 /-- The value of a well-formed Buchholz expression when interpreted as an ordinal. -/
 noncomputable def value {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal) :
   buchholz_exp' v → ordinal
@@ -119,6 +146,10 @@ end
   (e₁ e₂ : buchholz_exp' v) : (e₁ + e₂).value Ψ = e₁.value Ψ + e₂.value Ψ :=
 by unfold value
 
+@[simp] theorem add_value' {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal)
+  (e₁ e₂ : buchholz_exp' v) : (add e₁ e₂).value Ψ = e₁.value Ψ + e₂.value Ψ :=
+add_value Ψ e₁ e₂
+
 @[simp] theorem psi_value {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal)
   (u : ℕ) {e : buchholz_exp' v} (he : e.value Ψ < o) : (psi u e).value Ψ = Ψ (e.value Ψ) he u :=
 by { unfold value, exact dif_pos he }
@@ -129,7 +160,7 @@ noncomputable def height {v : ℕ} : buchholz_exp' v → ℕ
 | (a + b)       := max (height a) (height b) + 1
 | (psi u a)     := height a + 1
 
-theorem lt_Omega'_height {v : ℕ} (a) : height (@lt_Omega' v a) = 0 :=
+@[simp] theorem lt_Omega'_height {v : ℕ} (a) : height (@lt_Omega' v a) = 0 :=
 rfl
 
 theorem lt_Omega'_of_height {v : ℕ} {e : buchholz_exp' v} (he : height e = 0) :
@@ -142,15 +173,16 @@ by { unfold height, exact nat.lt_succ_iff.2 (le_max_left _ _) }
 theorem right_height_lt_add_height {v : ℕ} (a b : buchholz_exp' v) : b.height < (a + b).height :=
 by { unfold height, exact nat.lt_succ_iff.2 (le_max_right _ _) }
 
-theorem psi_height {v : ℕ} (u : ℕ) (a : buchholz_exp' v) : (psi u a).height = a.height + 1 :=
+@[simp] theorem psi_height {v : ℕ} (u : ℕ) (a : buchholz_exp' v) :
+  (psi u a).height = a.height + 1 :=
 by unfold height
 
 /-- An auxiliary definition which gives a denumerable family of well-formed Buchholz expressions. -/
 def add_iterate (n : ℕ) : buchholz_exp' 0 :=
-(add 0)^[n] 0
+((+) 0)^[n] 0
 
-theorem add_iterate_succ (n : ℕ) : add_iterate n.succ = (add 0) ((add 0)^[n] 0) :=
-by { unfold add_iterate, rw function.iterate_succ_apply' }
+theorem add_iterate_succ (n : ℕ) : add_iterate n.succ = 0 + (((+) 0)^[n] 0) :=
+function.iterate_succ_apply' _ _ _
 
 theorem add_iterate.inj : function.injective add_iterate :=
 begin
@@ -161,7 +193,7 @@ begin
   rw hm (add.inj h).right
 end
 
-private theorem card_of_height (v : ℕ) : Π h, # {e : buchholz_exp' v | e.height ≤ h} ≤ aleph v
+private theorem mk_height_le_aleph (v : ℕ) : Π h, # {e : buchholz_exp' v | e.height ≤ h} ≤ aleph v
 | 0 := begin
   refine le_trans _ (Omega_le_aleph v),
   let f : ↥{e : buchholz_exp' v | e.height = 0} → (Omega v).ord.out.α :=
@@ -179,7 +211,7 @@ private theorem card_of_height (v : ℕ) : Π h, # {e : buchholz_exp' v | e.heig
 end
 | (h + 1) := begin
   let α : Type := {e : buchholz_exp' v | e.height ≤ h},
-  have hα : mk α ≤ aleph v := card_of_height h,
+  have hα : mk α ≤ aleph v := mk_height_le_aleph h,
   let f : ↥{e : buchholz_exp' v | e.height ≤ h + 1} → (Omega v).ord.out.α ⊕ (α × α) ⊕ (ℕ × α) :=
   begin
     rintro ⟨a | ⟨a, b⟩ | ⟨u, a⟩, he⟩;
@@ -199,7 +231,7 @@ end
     simp [f] at *;
     assumption
   end,
-  apply le_trans (mk_le_of_injective hf),
+  apply (mk_le_of_injective hf).trans,
   simp only [mk_prod, mk_sum, lift_uzero, mk_denumerable],
   convert cardinal.add_le_add (Omega_le_aleph v)
     (cardinal.add_le_add (mul_le_mul' hα hα) (mul_le_mul' (omega_le_aleph v) hα)),
@@ -207,8 +239,8 @@ end
   { simp only [cardinal.mul_eq_self (omega_le_aleph v), cardinal.add_eq_self (omega_le_aleph v)] }
 end
 
-private theorem card_eq_Union_height (v : ℕ) :
-  mk (buchholz_exp' v) = mk (⋃ h, {e : buchholz_exp' v | e.height ≤ h}) :=
+private theorem mk_eq_Union_height (v : ℕ) :
+  #(buchholz_exp' v) = #(⋃ h, {e : buchholz_exp' v | e.height ≤ h}) :=
 begin
   let f : buchholz_exp' v → ⋃ h, {e : buchholz_exp' v | e.height ≤ h} :=
     λ e', ⟨e', by { rw set.mem_Union, exact ⟨_, le_refl e'.height⟩ }⟩,
@@ -219,15 +251,15 @@ begin
   { simp only [f, subtype.coe_eta] }
 end
 
-theorem card_eq_aleph (v : ℕ) : mk (buchholz_exp' v) = cardinal.aleph v :=
+theorem mk_eq_aleph (v : ℕ) : #(buchholz_exp' v) = cardinal.aleph v :=
 begin
   apply le_antisymm,
-  { rw card_eq_Union_height,
+  { rw mk_eq_Union_height,
     apply le_trans (mk_Union_le _) _,
-    rw [mk_nat],
+    rw mk_nat,
     refine le_trans (mul_le_max _ _) (max_le (max_le (omega_le_aleph v) _) (omega_le_aleph v)),
     { rw cardinal.sup_le,
-      exact card_of_height v } },
+      exact mk_height_le_aleph v } },
   { induction v with v hv,
     { convert cardinal.mk_le_of_injective add_iterate.inj, simp },
     { convert cardinal.mk_le_of_injective (@lt_Omega'.inj (v + 1)),
@@ -238,7 +270,7 @@ end
 less than `o`. -/
 def well_formed {o : ordinal} (v : ℕ) (Ψ : Π a, a < o → ℕ → ordinal) : set (buchholz_exp' v)
 | (lt_Omega' a)  := tt
-| (add a b)      := a.well_formed ∧ b.well_formed
+| (a + b)        := a.well_formed ∧ b.well_formed
 | (psi u a)      := a.well_formed ∧ a.value Ψ < o
 
 theorem lt_Omega'_well_formed {o : ordinal} (v : ℕ) (Ψ : Π a, a < o → ℕ → ordinal)
@@ -254,7 +286,7 @@ theorem zero_well_formed {o : ordinal} (v : ℕ) (Ψ : Π a, a < o → ℕ → o
 lt_Omega_well_formed v Ψ _
 
 theorem add_well_formed {o : ordinal} {v : ℕ} {Ψ : Π a, a < o → ℕ → ordinal} {e₁ e₂} :
-  e₁ ∈ well_formed v Ψ ∧ e₂ ∈ well_formed v Ψ ↔ add e₁ e₂ ∈ well_formed v Ψ :=
+  e₁ ∈ well_formed v Ψ ∧ e₂ ∈ well_formed v Ψ ↔ e₁ + e₂ ∈ well_formed v Ψ :=
 iff.rfl
 
 theorem psi_well_formed {o : ordinal} {v : ℕ} {Ψ : Π a, a < o → ℕ → ordinal} {e : buchholz_exp' v}
@@ -262,7 +294,7 @@ theorem psi_well_formed {o : ordinal} {v : ℕ} {Ψ : Π a, a < o → ℕ → or
 iff.rfl
 
 theorem add_iterate_well_formed {o : ordinal} (Ψ : Π a, a < o → ℕ → ordinal) (n : ℕ) :
-  (add_iterate n) ∈ well_formed 0 Ψ :=
+  add_iterate n ∈ well_formed 0 Ψ :=
 begin
   have h := zero_well_formed 0 Ψ,
   induction n with n hn,
@@ -272,7 +304,7 @@ end
 
 theorem value_eq_of_extend_psi {o o' : ordinal} (ho : o ≤ o') {v : ℕ} {Ψ : Π a, a < o → ℕ → ordinal}
   {Ψ' : Π a, a < o' → ℕ → ordinal} (H : ∀ a (ha : a < o) u, Ψ a ha u = Ψ' a (ha.trans_le ho) u)
-  (e : buchholz_exp' v) (he : e ∈ well_formed v Ψ) : e.value Ψ = e.value Ψ' :=
+  {e : buchholz_exp' v} (he : e ∈ well_formed v Ψ) : e.value Ψ = e.value Ψ' :=
 begin
   induction e with a a b ha hb u a h,
   { refl },
@@ -295,6 +327,12 @@ definition. -/
 def buchholz_exp (o : ordinal) (v : ℕ) (Ψ : Π a, a < o → ℕ → ordinal) : Type 0 :=
 buchholz_exp'.well_formed v Ψ
 
+instance (o v Ψ) : has_zero (buchholz_exp o v Ψ) :=
+⟨⟨0, buchholz_exp'.zero_well_formed v Ψ⟩⟩
+
+instance (o v Ψ) : inhabited (buchholz_exp o v Ψ) :=
+⟨0⟩
+
 namespace buchholz_exp
 
 /-- A well-formed Buchholz expression from an ordinal less than `Ωᵥ`. -/
@@ -312,17 +350,31 @@ theorem lt_Omega'.inj {o : ordinal} (v : ℕ) (Ψ : Π a, a < o → ℕ → ordi
 λ a b h, buchholz_exp'.lt_Omega'.inj (subtype.mk.inj h)
 
 /-- The sum of two well-formed Buchholz expressions. -/
-def add {o v Ψ} (e₁ e₂ : buchholz_exp o v Ψ) : buchholz_exp o v Ψ :=
-⟨buchholz_exp'.add _ _, buchholz_exp'.add_well_formed.2 ⟨e₁.2, e₂.2⟩⟩
+instance (o v Ψ) : has_add (buchholz_exp o v Ψ) :=
+⟨λ e₁ e₂, ⟨e₁.1 + e₂.1, buchholz_exp'.add_well_formed.2 ⟨e₁.2, e₂.2⟩⟩⟩
 
 /-- The value of a well-formed Buchholz expression when interpreted as an ordinal. -/
-def value {o : ordinal} {v : ℕ} {Ψ : Π a, a < o → ℕ → ordinal} (a : buchholz_exp o v Ψ) :
-  ordinal :=
-a.val.value Ψ
+def value {o v Ψ} (a : buchholz_exp o v Ψ) : ordinal :=
+a.1.value Ψ
 
-theorem lt_Omega_value {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal) {a : ordinal}
+/-- A function `Ψ u` applied to a well-formed Buchholz expression with value less than `o`. -/
+def psi {o v Ψ} (u : ℕ) {e : buchholz_exp o v Ψ} (he : e.value < o) : buchholz_exp o v Ψ :=
+⟨buchholz_exp'.psi u e.1, (buchholz_exp'.psi_well_formed u).2 ⟨e.2, he⟩⟩
+
+@[simp] theorem lt_Omega_value {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal) {a : ordinal}
   (ha : a < (Omega v).ord) : (lt_Omega ha Ψ).value = a :=
 buchholz_exp'.lt_Omega_value Ψ ha
+
+@[simp] theorem zero_value {o v Ψ} : (0 : buchholz_exp o v Ψ).value = 0 :=
+buchholz_exp'.zero_value Ψ
+
+@[simp] theorem add_value {o v Ψ} (e₁ e₂ : buchholz_exp o v Ψ) :
+  (e₁ + e₂).value = e₁.value + e₂.value :=
+buchholz_exp'.add_value Ψ e₁.val e₂.val
+
+@[simp] theorem psi_value {o v Ψ} (u : ℕ) {e : buchholz_exp o v Ψ} (he : e.value < o) :
+  (psi u he).value = Ψ e.value he u :=
+buchholz_exp'.psi_value Ψ u he
 
 theorem value_zero {o : ordinal} (ho : o = 0) {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal)
   (e : buchholz_exp o v Ψ) : e.value < (Omega v).ord :=
@@ -340,7 +392,7 @@ def lift {o o' : ordinal} {v : ℕ} {Ψ : Π a, a < o → ℕ → ordinal} (ho :
   { exact buchholz_exp'.lt_Omega'_well_formed v Ψ' a },
   { exact buchholz_exp'.add_well_formed.2 ⟨ha he.1, hb he.2⟩ },
   { refine (buchholz_exp'.psi_well_formed u).2 ⟨ha he.1, _⟩,
-    rw ←buchholz_exp'.value_eq_of_extend_psi ho H _ he.1,
+    rw ←buchholz_exp'.value_eq_of_extend_psi ho H he.1,
     exact he.2.trans_le ho }
 end⟩
 
@@ -358,8 +410,7 @@ begin
   unfold lift value,
   induction e with a a b ha hb u a ha,
   { refl },
-  { unfold buchholz_exp'.value,
-    rw [ha he.1, hb he.2] },
+  { simp_rw [buchholz_exp'.add_value', ha he.1, hb he.2] },
   { rw [buchholz_exp'.psi_value _ u he.2, buchholz_exp'.psi_value];
     simp_rw ha he.1,
     { exact (H _ _ u).symm },
@@ -374,11 +425,11 @@ theorem add_iterate.inj {o : ordinal} (Ψ : Π a, a < o → ℕ → ordinal) :
   function.injective (add_iterate Ψ) :=
 λ a b h, buchholz_exp'.add_iterate.inj (subtype.mk.inj h)
 
-theorem card_eq_aleph {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal) :
-  mk (buchholz_exp o v Ψ) = cardinal.aleph v :=
+theorem mk_eq_aleph {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal) :
+  #(buchholz_exp o v Ψ) = cardinal.aleph v :=
 begin
   apply le_antisymm,
-  { rw ←buchholz_exp'.card_eq_aleph,
+  { rw ←buchholz_exp'.mk_eq_aleph,
     exact mk_le_of_injective (λ a b h, subtype.ext_val h) },
   { induction v with v hv,
     { convert cardinal.mk_le_of_injective (add_iterate.inj Ψ), simp },
@@ -427,15 +478,15 @@ begin
   rcases exists_lt_add_of_not_principal_add h with ⟨a, b, ha, hb, hab⟩,
   rcases exists_of_lt_buchholz ha with ⟨e₁, rfl⟩,
   rcases exists_of_lt_buchholz hb with ⟨e₂, rfl⟩,
-  rw add_value
-  refine (value_ne_buchholz _) hab,
+  rw ←buchholz_exp.add_value at hab,
+  exact value_ne_buchholz _ hab
 end
 
 theorem buchholz_lt_Omega (o : ordinal) (v : ℕ) : buchholz o v < (Omega (v + 1)).ord :=
 begin
   rw buchholz_def,
   convert mex_lt_ord_succ_mk.{0 0} buchholz_exp.value,
-  rw [buchholz_exp.card_eq_aleph, ←aleph_succ],
+  rw [buchholz_exp.mk_eq_aleph, ←aleph_succ],
   refl
 end
 
@@ -446,8 +497,7 @@ theorem buchholz_strict_mono (o : ordinal) : strict_mono (buchholz o) :=
 
 /-- Buchholz's psi function is monotonic in its ordinal argument. -/
 theorem buchholz_monotone (v : ℕ) : monotone (function.swap buchholz v) :=
-begin
-  intros a b h,
+λ a b h, begin
   unfold function.swap,
   rw [buchholz_def, buchholz_def],
   apply mex_monotone,

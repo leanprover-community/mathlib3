@@ -32,6 +32,9 @@ Buchholz originally defined his psi functions up to `Ψ ω`. However, for the sa
 build them only for natural indices. In truth, one could index them by any countable ordinal, and
 many of the results would remain true.
 
+Moreover, Buchholz phrased his definition in terms of inductively defined sets Cᵥ(o). This set is
+equal to the range of the value function defined on `buchholz_exp o v (λ a _, buchholz a)`.
+
 ## Todo
 
 Prove all the theorems in Section 1 of Buchholz's paper.

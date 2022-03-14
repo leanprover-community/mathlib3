@@ -28,6 +28,110 @@ open_locale big_operators pointwise
 open_locale classical
 
 
+section partition
+variables {α : Type*}
+
+
+open_locale big_operators classical
+
+
+/-- The cardinal of ambient fintype equals
+  the sum of cardinals of the parts of a partition (finset style)-/
+lemma partition.card_of_partition' [fintype α] {c : finset (finset α)}
+  (hc : setoid.is_partition
+    ({ s : set α | ∃ (t : finset α), s.to_finset = t ∧ t ∈ c } : set (set α))) :
+  ∑ (s : finset α) in c, s.card = fintype.card α :=
+begin
+  rw [← mul_one (fintype.card α), ← finset.sum_card],
+  intro a,
+  rw finset.card_eq_one,
+  obtain ⟨s, hs, hs'⟩ := hc.right a,
+  simp only [exists_unique_iff_exists, exists_prop, and_imp, exists_eq_left', set.mem_set_of_eq]
+    at hs hs',
+  have hs'2 : ∀ (z : finset α), z ∈ c → a ∈ z → z = s.to_finset,
+  { intros z hz ha,
+    rw [← finset.coe_inj, set.coe_to_finset],
+    refine  hs' z _ (finset.mem_coe.mpr ha),
+  -- To get the correct type automatically and perform the rewrite
+    suffices : ∀ {u v : finset α}, v ∈ c → u = v → u ∈ c,
+    { refine this hz _,
+      rw [← finset.coe_inj, set.coe_to_finset] },
+    { intros u v hu huv, rw huv, exact hu },
+  },
+  use s.to_finset,
+  ext t,
+  simp only [finset.mem_filter, finset.mem_singleton],
+  split,
+  { rintro ⟨ht,ha⟩,
+    exact hs'2 t ht ha },
+  { intro ht,
+    rw ← ht at hs, apply and.intro hs.left,
+    rw ht, simp only [set.mem_to_finset],  exact hs.right,}
+end
+
+/-- The cardinal of ambient fintype equals
+  the sum of cardinals of the parts of a partition (set style)-/
+lemma partition.card_of_partition [fintype α] {c : set (set α)} (hc : setoid.is_partition c) :
+  ∑ (s : set α) in c.to_finset, s.to_finset.card = fintype.card α :=
+begin
+  let c' : finset (finset α) := { s : finset (α) | (s : set α) ∈ c }.to_finset,
+  have hcc' : c = { s : set α | ∃ (t : finset α), s.to_finset = t ∧ t ∈ c' },
+  { simp only [set.mem_to_finset, set.mem_set_of_eq, exists_eq_left',
+      set.coe_to_finset, set.set_of_mem_eq] },
+  rw hcc' at hc,
+  rw ← partition.card_of_partition'  hc,
+  have hi : ∀ (a : set α) (ha : a ∈ c.to_finset), a.to_finset ∈ c',
+  { intros a ha,
+    simp only [set.mem_to_finset, set.mem_set_of_eq, set.coe_to_finset],
+    simpa only [set.mem_to_finset] using ha,  },
+  have hj : ∀ (a : finset α) (ha : a ∈ c'), (a : set α) ∈ c.to_finset,
+  { intros a ha, simpa only [set.mem_to_finset] using ha },
+  rw finset.sum_bij' _ hi _ _ hj,
+  { intros a ha, simp only [set.coe_to_finset],  },
+  { intros a ha, rw [← finset.coe_inj, set.coe_to_finset] },
+  { intros a ha, refl },
+end
+
+lemma setoid.is_partition.card_set_eq_sum_parts {α : Type*} [fintype α] {s : set α} {P : set (set α)}
+  (hP : setoid.is_partition P) :
+  s.to_finset.card =
+    finset.sum P.to_finset (λ (t : set α), (s ∩ t).to_finset.card) :=
+begin
+  rw ← finset.card_bUnion,
+  apply congr_arg,
+  { rw ← finset.coe_inj, simp only [set.coe_to_finset, finset.coe_bUnion],
+    rw [set.bUnion_eq_Union, ← set.inter_Union, ← set.sUnion_eq_Union],
+    rw setoid.is_partition.sUnion_eq_univ hP,
+    exact (set.inter_univ s).symm },
+  { intros t ht u hu htu,
+    simp only [set.mem_to_finset] at ht hu,
+    simp only [set.to_finset_disjoint_iff],
+    exact set.disjoint_of_subset (set.inter_subset_right s t) (set.inter_subset_right s u)
+      (setoid.is_partition.pairwise_disjoint hP ht hu htu) }
+end
+
+lemma setoid.is_partition.card_eq_sum_parts {α : Type*} [fintype α] {P : set (set α)}
+  (hP : setoid.is_partition P) :
+  fintype.card α =
+    finset.sum P.to_finset (λ (t : set α), t.to_finset.card) :=
+begin
+  change finset.univ.card = _,
+  have : (finset.univ : finset α) = (set.univ : set α).to_finset :=
+  by rw [← finset.coe_inj, set.to_finset_univ],
+  rw this,
+  have h : ∀ (t : set α) (ht : t ∈ P.to_finset), t.to_finset.card = (set.univ ∩ t).to_finset.card,
+  { intros t ht, apply congr_arg,
+    rw set.to_finset_inj, exact (set.univ_inter t).symm,  },
+  simp_rw finset.sum_congr rfl h,
+  let z := @setoid.is_partition.card_set_eq_sum_parts _ _ (set.univ) P hP,
+  simpa only [set.to_finset_univ, set.to_finset_card, fintype.card_of_finset]
+    using z,
+end
+
+#check setoid.is_partition.card_eq_sum_parts
+
+end partition
+
 /-!
 # Finite permutation groups
 A formalization of Wielandt's book, *Finite permutation groups*
@@ -425,110 +529,23 @@ begin
   use g⁻¹, simp only [inv_smul_smul]
 end
 
-section partition
-variables {α : Type*}
-
-
-open_locale big_operators classical
-
-
-/-- The cardinal of ambient fintype equal the sum of cardinals of the parts of a partition (finset style)-/
-lemma _root_.partition.card_of_partition' [fintype α] {c : finset (finset α)} (hc : setoid.is_partition ({ s : set α | ∃ (t : finset α), s.to_finset = t ∧ t ∈ c } : set (set α))) :
-  ∑ (s : finset α) in c, s.card = fintype.card α :=
-begin
-  rw ← mul_one (fintype.card α),
-  rw ← finset.sum_card,
-  intro a,
-  rw finset.card_eq_one,
-  obtain ⟨s, hs, hs'⟩ := hc.right a,
-  simp only [exists_unique_iff_exists, exists_prop, and_imp, exists_eq_left', set.mem_set_of_eq] at hs hs',
-  have hs'2 : ∀ (z : finset α), z ∈ c → a ∈ z → z = s.to_finset,
-  { intros z hz ha,
-    rw ← finset.coe_inj, simp,
-    refine  hs' z _ (finset.mem_coe.mpr ha),
--- To get the correct type automatically and perform the rewrite
-    suffices : ∀ {u v : finset α}, v ∈ c → u = v → u ∈ c,
-    { refine this hz _,
-      rw [← finset.coe_inj, set.coe_to_finset] },
-    { intros u v hu huv, rw huv, exact hu },
-  },
-  use s.to_finset,
-  ext t,
-  simp only [finset.mem_filter, finset.mem_singleton],
-  split,
-  { rintro ⟨ht,ha⟩,
-    exact hs'2 t ht ha },
-  { intro ht,
-    rw ← ht at hs, apply and.intro hs.left,
-    rw ht, simp only [set.mem_to_finset],  exact hs.right,}
-end
-
-/-- The cardinal of ambient fintype equal the sum of cardinals of the parts of a partition (set style)-/
-lemma _root_.partition.card_of_partition [fintype α] {c : set (set α)} (hc : setoid.is_partition c) :
-  ∑ (s : set α) in c.to_finset, s.to_finset.card = fintype.card α :=
-begin
-let c' : finset (finset α) := { s : finset (α) | (s : set α) ∈ c }.to_finset,
-have hcc' : c = { s : set α | ∃ (t : finset α), s.to_finset = t ∧ t ∈ c' },
-{ simp only [set.mem_to_finset, set.mem_set_of_eq, exists_eq_left', set.coe_to_finset, set.set_of_mem_eq] },
-rw hcc' at hc,
-rw ← partition.card_of_partition'  hc,
-have hi : ∀ (a : set α) (ha : a ∈ c.to_finset), a.to_finset ∈ c',
-{ intros a ha,
-  simp only [set.mem_to_finset, set.mem_set_of_eq, set.coe_to_finset],
-  simpa only [set.mem_to_finset] using ha,  },
-have hj : ∀ (a : finset α) (ha : a ∈ c'), (a : set α) ∈ c.to_finset,
-{ intros a ha,
-  simpa only [set.mem_to_finset] using ha },
-rw finset.sum_bij' _ hi _ _ hj,
-{ intros a ha, simp only [set.coe_to_finset],  },
-{ intros a ha,
-  rw [← finset.coe_inj, set.coe_to_finset] },
-{ intros a ha, refl },
-end
-
-end partition
 
 open_locale classical
 
+
 lemma card_of_block_mul_card_of_orbit_of [hfX : fintype X] [is_pretransitive G X]
   (B : set X) [hB_ne : B.nonempty] (hB : is_block G X B) :
-  (set.finite.of_fintype (orbit G B)).to_finset.card * fintype.card B = fintype.card X :=
+  (set.range (λ (g : G), g • B)).to_finset.card * fintype.card B = fintype.card X :=
 begin
-  apply symm,
-  rw ← partition.card_of_partition (is_block_system.of_block G X hB hB_ne).left,
-
-  have hgB : ∀ (g : G),  (g • B).finite :=  λ g, set.finite.of_fintype (g • B),
-  have hgB' : ∀ (g : G),  (set.finite.of_fintype (g • B)).to_finset.card = fintype.card B,
-  { intro g,
-    let gB := (set.finite.of_fintype (g • B)).to_finset,
-    let fz := finset.card_image_of_injective B.to_finset (mul_action.injective g),
-    simp only [set.to_finset_card, finset.filter_congr_decidable] at fz,
-    rw ← fz, refine congr rfl _, rw ← finset.coe_inj,
-    simp only [set.finite.coe_to_finset, finset.coe_image, set.coe_to_finset, set.image_smul] },
-  have hoB : (set.finite.of_fintype (orbit G B)).to_finset
-    = (set.range (λ (g : G), g • B)).to_finset,
-  { rw ← finset.coe_inj, simp only [set.finite.coe_to_finset, set.coe_to_finset],
-    refl },
-
-  suffices : ∀ (s : set X) (hs :  s ∈ (set.range (λ (g : G), g • B)).to_finset),
-    s.to_finset.card  = fintype.card ↥B,
-  rw finset.sum_congr rfl this,
-
-  rw [finset.sum_const (fintype.card ↥B), nsmul_eq_mul, nat.cast_id],
-  refine congr_arg2 nat.mul _ rfl,
-  suffices : (set.finite.of_fintype (orbit G B)).to_finset
-    = (set.range (λ (g : G), g • B)).to_finset,
-  rw this,
-  simp only [← finset.coe_inj, set.finite.coe_to_finset, set.coe_to_finset],
-  refl,
-
-  { intros s hs,
-    simp only [set.mem_to_finset, set.mem_range] at hs,
-    obtain ⟨g, rfl⟩ := hs,
-    simp only [← set.to_finset_card],
-    rw ← finset.card_image_of_injective B.to_finset (mul_action.injective g),
-    refine congr_arg _ _,
-    simp only [← finset.coe_inj, set.coe_to_finset, finset.coe_image, set.image_smul] },
+  rw setoid.is_partition.card_eq_sum_parts (is_block_system.of_block G X hB hB_ne).left,
+  rw [finset.sum_congr rfl _, finset.sum_const (fintype.card ↥B), nsmul_eq_mul, nat.cast_id],
+  intros s hs,
+  simp only [set.mem_to_finset, set.mem_range] at hs,
+  obtain ⟨g, rfl⟩ := hs,
+  simp only [← set.to_finset_card],
+  rw ← finset.card_image_of_injective B.to_finset (mul_action.injective g),
+  refine congr_arg _ _,
+  simp only [← finset.coe_inj, set.coe_to_finset, finset.coe_image, set.image_smul],
 end
 
 lemma card_of_block_divides [hfX : fintype X] [is_pretransitive G X]
@@ -546,8 +563,8 @@ with an explicit N.normal hypothesis,
 so that the typeclass inference machine works.
 -/
 
-lemma normal_mul'' (N:subgroup G) (nN:N.normal) (K: subgroup G)
-  (h : N ⊔ K = ⊤) (g:G) : ∃ (n:N) (k:K), g = n*k :=
+lemma normal_mul'' (N : subgroup G) (nN : N.normal) (K : subgroup G)
+  (h : N ⊔ K = ⊤) (g : G) : ∃ (n : N) (k : K), g = n * k :=
 begin
     have hg : g ∈ ↑(N ⊔ K), { rw h, exact subgroup.mem_top g,},
     rw [subgroup.normal_mul, set.mem_mul] at hg,
@@ -606,48 +623,9 @@ begin
   apply orbit.is_block_of_normal,
 end
 
-
-/-- An action is preprimitive if it is pretransitive and
-the only blocks are the trivial ones -/
-structure is_preprimitive
-extends is_pretransitive G X : Prop :=
-(has_trivial_blocks : ∀ {B : set X}, (is_block G X B) →
-  B = ∅ ∨ (∃ (x : X), B = {x}) ∨ B = ⊤)
-
-theorem transitive_of_normal_of_preprimitive (N : subgroup G) [nN : subgroup.normal N]
-  (hGX : mul_action.is_preprimitive G X) (hNX : mul_action.fixed_points N X ≠ ⊤) :
-  mul_action.is_pretransitive N X :=
-begin
-    have : ∃ (x : X), x ∉ fixed_points N X,
-    { rw [← set.ne_univ_iff_exists_not_mem, ← set.top_eq_univ],
-      exact hNX },
-    obtain ⟨a, ha⟩ := this,
-    suffices : mul_action.orbit N a = ⊤,
-    { rw set.top_eq_univ at this,
-      refine mul_action.orbit.is_pretransitive' _ _ _ this },
-    cases hGX.has_trivial_blocks (orbit.is_block_of_normal G X N a) with h h,
-    { exfalso, -- orbit N a = ∅
-      apply set.nonempty.ne_empty (mul_action.orbit_nonempty a),
-      rw ← h },
-    cases h with h h,
-    { exfalso, -- orbit N a = {x}
-      have ha' : orbit N a = {a},
-      { obtain ⟨x,hx⟩ := h,
-        let haB : a ∈ orbit N a := mul_action.mem_orbit_self a,
-        rw [hx, set.mem_singleton_iff] at haB,
-        rw [hx, haB] },
-      apply ha,
-      rw mem_fixed_points, intro n,
-      let hn : n • a ∈ (orbit N a) := mul_action.mem_orbit a n,
-      rw [ha', set.mem_singleton_iff] at hn,
-      exact hn },
-    -- orbit N a = ⊤
-    exact h,
-end
-
 -- TODO : Is the assumption B.finite necessary ?
-/-- The intersection of the translates of a finite subset which contain a given point
-is a block -/
+/-- The intersection of the translates of a *finite* subset which contain a given point
+is a block (Wielandt, th. 7.3 )-/
 lemma is_block.of_subset (hGX : is_pretransitive G X) (a : X) (B : set X) (hfB : B.finite) :
   is_block G X (⋂ (k : G) (hg : a ∈ k • B), k • B) :=
 begin
@@ -728,6 +706,50 @@ begin
   rw ← hgkB', rw hkB',
 end
 
+
+section primitivity
+
+/-- An action is preprimitive if it is pretransitive and
+the only blocks are the trivial ones -/
+structure is_preprimitive
+extends is_pretransitive G X : Prop :=
+(has_trivial_blocks : ∀ {B : set X}, (is_block G X B) →
+  B = ∅ ∨ (∃ (x : X), B = {x}) ∨ B = ⊤)
+
+/-- In a preprimitive action,
+  any normal subgroup that acts nontrivially is pretransitive
+  (Wielandt, th. 7.1)-/
+theorem transitive_of_normal_of_preprimitive (N : subgroup G) [nN : subgroup.normal N]
+  (hGX : mul_action.is_preprimitive G X) (hNX : mul_action.fixed_points N X ≠ ⊤) :
+  mul_action.is_pretransitive N X :=
+begin
+    have : ∃ (x : X), x ∉ fixed_points N X,
+    { rw [← set.ne_univ_iff_exists_not_mem, ← set.top_eq_univ],
+      exact hNX },
+    obtain ⟨a, ha⟩ := this,
+    suffices : mul_action.orbit N a = ⊤,
+    { rw set.top_eq_univ at this,
+      refine mul_action.orbit.is_pretransitive' _ _ _ this },
+    cases hGX.has_trivial_blocks (orbit.is_block_of_normal G X N a) with h h,
+    { exfalso, -- orbit N a = ∅
+      apply set.nonempty.ne_empty (mul_action.orbit_nonempty a),
+      rw ← h },
+    cases h with h h,
+    { exfalso, -- orbit N a = {x}
+      have ha' : orbit N a = {a},
+      { obtain ⟨x,hx⟩ := h,
+        let haB : a ∈ orbit N a := mul_action.mem_orbit_self a,
+        rw [hx, set.mem_singleton_iff] at haB,
+        rw [hx, haB] },
+      apply ha,
+      rw mem_fixed_points, intro n,
+      let hn : n • a ∈ (orbit N a) := mul_action.mem_orbit a n,
+      rw [ha', set.mem_singleton_iff] at hn,
+      exact hn },
+    -- orbit N a = ⊤
+    exact h,
+end
+
 /-- Theorem of Rudio (Wieland, 1964, Th. 8.1) -/
 theorem rudio [hpGX : is_preprimitive G X]
   (A : set X) (hfA : A.finite) (hA : A.nonempty) (hA' : A ≠ ⊤)
@@ -774,7 +796,8 @@ end
   `stabilizer_block_equiv` between
   - blocks of `mul_action G X` containing a point a ∈ X,
   and
-  - subgroups of G containing `stabilizer G a`. -/
+  - subgroups of G containing `stabilizer G a`.
+  (Wielandt, th. 7.5) -/
 
 /-- The orbit of a under a subgroup containing the stabilizer of a
  is a block -/
@@ -862,7 +885,7 @@ begin
 end
 
 /-- Order equivalence between blocks in X containing a point a
- and subgroups of G containing the stabilizer of a -/
+ and subgroups of G containing the stabilizer of a (Wielandt, th. 7.5)-/
 theorem stabilizer_block_equiv [htGX : is_pretransitive G X] (a : X) :
   { B : set X // a ∈ B ∧ is_block G X B } ≃o set.Ici (stabilizer G a) :=
 { to_fun := λ ⟨B, ha, hB⟩, ⟨stabilizer G B, stabilizer_of_block G X hB ha⟩,
@@ -896,6 +919,8 @@ let htop : is_block G X ⊤ := top_is_block G X in
       simp only [set.top_eq_univ, subtype.mk_le_mk, set.le_eq_subset, set.subset_univ],
     end,  }
 
+/-- An pretransitive action is preprimitive
+  iff the stabilizer of any point is a maximal subgroup (Wielandt, th. 7.5) -/
 theorem maximal_stabilizer_iff_primitive [hnX : nontrivial X] [htGX : is_pretransitive G X] (a : X) :
   (stabilizer G a).is_maximal ↔ is_preprimitive G X :=
 begin
@@ -970,24 +995,6 @@ begin
       rw [← set.mem_singleton_iff, ← h],
       exact mul_action.mem_orbit_self a },
     exact h },
-end
-
-lemma setoid.is_partition.card_eq_sum_parts {α : Type*} [fintype α] {s : set α} {P : set (set α)}
-  (hP : setoid.is_partition P) :
-  s.to_finset.card =
-    finset.sum P.to_finset (λ (t : set α), (s ∩ t).to_finset.card) :=
-begin
-  rw ← finset.card_bUnion,
-  apply congr_arg,
-  { rw ← finset.coe_inj, simp only [set.coe_to_finset, finset.coe_bUnion],
-    rw [set.bUnion_eq_Union, ← set.inter_Union, ← set.sUnion_eq_Union],
-    rw setoid.is_partition.sUnion_eq_univ hP,
-    exact (set.inter_univ s).symm },
-  { intros t ht u hu htu,
-    simp only [set.mem_to_finset] at ht hu,
-    simp only [set.to_finset_disjoint_iff],
-    exact set.disjoint_of_subset (set.inter_subset_right s t) (set.inter_subset_right s u)
-      (setoid.is_partition.pairwise_disjoint hP ht hu htu) }
 end
 
 /- Theorem 8.4 : if the action of a subgroup H on an orbit is primitive,

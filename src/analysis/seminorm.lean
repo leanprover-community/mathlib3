@@ -310,6 +310,23 @@ begin
   exact bot_le,
 end
 
+lemma finset_sup_apply_le {p : ι → seminorm 𝕜 E} {s : finset ι} {x : E} {a : ℝ} (ha : 0 ≤ a)
+  (h : ∀ i, i ∈ s → p i x ≤ a) : s.sup p x ≤ a :=
+begin
+  lift a to ℝ≥0 using ha,
+  rw [finset_sup_apply, nnreal.coe_le_coe],
+  exact finset.sup_le h,
+end
+
+lemma finset_sup_apply_lt {p : ι → seminorm 𝕜 E} {s : finset ι} {x : E} {a : ℝ} (ha : 0 < a)
+  (h : ∀ i, i ∈ s → p i x < a) : s.sup p x < a :=
+begin
+  lift a to ℝ≥0 using ha.le,
+  rw [finset_sup_apply, nnreal.coe_lt_coe, finset.sup_lt_iff],
+  { exact h },
+  { exact nnreal.coe_pos.mpr ha },
+end
+
 end norm_one_class
 end module
 end semi_normed_ring
@@ -803,8 +820,7 @@ end bounded
 
 section topology
 
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
-variables [nonempty ι] [nonempty ι']
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι]
 
 /-- The proposition that the topology of `E` is induced by a family of seminorms `p`. -/
 class with_seminorms (p : ι → seminorm 𝕜 E) [t : topological_space E] : Prop :=
@@ -812,6 +828,34 @@ class with_seminorms (p : ι → seminorm 𝕜 E) [t : topological_space E] : Pr
 
 lemma with_seminorms_eq (p : ι → seminorm 𝕜 E) [t : topological_space E] [with_seminorms p] :
   t = ((seminorm_module_filter_basis p).topology) := with_seminorms.topology_eq_with_seminorms
+
+end topology
+
+section topological_add_group
+
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables [topological_space E] [topological_add_group E]
+variables [nonempty ι]
+
+lemma with_seminorms_of_nhds (p : ι → seminorm 𝕜 E)
+  (h : 𝓝 (0 : E) = (seminorm_module_filter_basis p).to_filter_basis.filter) :
+  with_seminorms p :=
+begin
+  refine ⟨topological_add_group.ext (by apply_instance)
+    ((seminorm_add_group_filter_basis _).is_topological_add_group) _⟩,
+  rw add_group_filter_basis.nhds_zero_eq,
+  exact h,
+end
+
+lemma with_seminorms_of_has_basis (p : ι → seminorm 𝕜 E) (h : (𝓝 (0 : E)).has_basis
+  (λ (s : set E), s ∈ (seminorm_basis_zero p)) id) :
+  with_seminorms p :=
+with_seminorms_of_nhds p $ filter.has_basis.eq_of_same_basis h
+  ((seminorm_add_group_filter_basis p).to_filter_basis.has_basis)
+
+end topological_add_group
+
+section normed_space
 
 /-- The topology of a `normed_space 𝕜 E` is induced by the seminorm `norm_seminorm 𝕜 E`. -/
 instance norm_with_seminorms (𝕜 E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] :
@@ -833,6 +877,13 @@ begin
   rw [finset.not_nonempty_iff_eq_empty.mp h, finset.sup_empty, ball_bot _ hr],
   exact set.subset_univ _,
 end
+
+end normed_space
+
+section continuous_bounded
+
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
+variables [nonempty ι] [nonempty ι']
 
 lemma continuous_from_bounded (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F)
   [uniform_space E] [uniform_add_group E] [with_seminorms p]
@@ -876,7 +927,7 @@ begin
   exact continuous_from_bounded (λ _ : fin 1, norm_seminorm 𝕜 E) q f hf,
 end
 
-end topology
+end continuous_bounded
 
 section locally_convex_space
 

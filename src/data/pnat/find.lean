@@ -24,26 +24,19 @@ decidable_of_iff' (∃ (h : 0 < n'), p ⟨n', h⟩) $ subtype.exists.trans $
 
 include h
 
-/--
-If `p` is a (decidable) predicate on `ℕ+` and `hp : ∃ (n : ℕ+), p n` is a proof that
-there exists some positive natural number satisfying `p`, then `pnat.find hp` is the
-smallest positive natural number satisfying `p`. Note that `pnat.find` is protected,
-meaning that you can't just write `find`, even if the `pnat` namespace is open.
-
-The API for `pnat.find` is:
-
-* `pnat.find_spec` is the proof that `pnat.find hp` satisfies `p`.
-* `pnat.find_min` is the proof that if `m < pnat.find hp` then `m` does not satisfy `p`.
-* `pnat.find_min'` is the proof that if `m` does satisfy `p` then `pnat.find hp ≤ m`.
--/
-protected def find_aux
-  (H' : ∃ (n' : ℕ) (n : ℕ+) (hn' : n' = n), p n := exists.elim h (λ n hn, ⟨n, n, rfl, hn⟩)) : ℕ :=
-nat.find H'
-
-protected theorem find_aux_spec
-  (H' : ∃ (n' : ℕ) (n : ℕ+) (hn' : n' = n), p n := exists.elim h (λ n hn, ⟨n, n, rfl, hn⟩)) :
-  ∃ (n : ℕ+) (hn' : pnat.find_aux h = n), p n :=
-nat.find_spec H'
+/-- The `pnat` version of `nat.find_x` -/
+protected def find_x : {n // p n ∧ ∀ m : ℕ+, m < n → ¬p m} :=
+begin
+  have : ∃ (n' : ℕ) (n : ℕ+) (hn' : n' = n), p n, from exists.elim h (λ n hn, ⟨n, n, rfl, hn⟩),
+  have n := nat.find_x this,
+  refine ⟨⟨n, _⟩, _, λ m hm pm, _⟩,
+  { obtain ⟨n', hn', -⟩ := n.prop.1,
+    rw hn',
+    exact n'.prop },
+  { obtain ⟨n', hn', pn'⟩ := n.prop.1,
+    simpa [hn', subtype.coe_eta] using pn' },
+  { exact n.prop.2 m hm ⟨m, rfl, pm⟩ }
+end
 
 /--
 If `p` is a (decidable) predicate on `ℕ+` and `hp : ∃ (n : ℕ+), p n` is a proof that
@@ -58,25 +51,13 @@ The API for `pnat.find` is:
 * `pnat.find_min'` is the proof that if `m` does satisfy `p` then `pnat.find hp ≤ m`.
 -/
 protected def find : ℕ+ :=
-⟨pnat.find_aux h, begin
-  obtain ⟨⟨n, hn⟩, h, -⟩ := pnat.find_aux_spec h,
-  rw h,
-  exact hn
-end⟩
+pnat.find_x h
 
 protected theorem find_spec : p (pnat.find h) :=
-begin
-  rw pnat.find,
-  obtain ⟨n, h, hp⟩ := pnat.find_aux_spec h,
-  simp [h, hp]
-end
+(pnat.find_x h).prop.left
 
 protected theorem find_min : ∀ {m : ℕ+}, m < pnat.find h → ¬p m :=
-begin
-  simp only [pnat.find, ←pnat.coe_lt_coe, pnat.find_aux, mk_coe, nat.lt_find_iff, exists_prop,
-             not_exists, not_and],
-  exact λ m h, h m le_rfl m rfl
-end
+(pnat.find_x h).prop.right
 
 protected theorem find_min' {m : ℕ+} (hm : p m) : pnat.find h ≤ m :=
 le_of_not_lt (λ l, pnat.find_min h l hm)

@@ -709,7 +709,7 @@ variables (R) (M) [semiring R] [add_comm_monoid M] [module R M]
 @[simps] def to_span_singleton (x : M) : R →ₗ[R] M := linear_map.id.smul_right x
 
 /-- The range of `to_span_singleton x` is the span of `x`.-/
-lemma span_singleton_eq_range' (x : M) : (R ∙ x) = (to_span_singleton R M x).range :=
+lemma span_singleton_eq_range (x : M) : (R ∙ x) = (to_span_singleton R M x).range :=
 submodule.ext $ λ y, by {refine iff.trans _ linear_map.mem_range.symm, exact mem_span_singleton }
 
 lemma to_span_singleton_one (x : M) : to_span_singleton R M x 1 = x := one_smul _ _
@@ -801,7 +801,7 @@ linear_equiv.trans
   (linear_equiv.of_injective
     (linear_map.to_span_singleton K V x) (ker_eq_bot.1 $ linear_map.ker_to_span_singleton K V h))
   (linear_equiv.of_eq (to_span_singleton K V x).range (K ∙ x)
-    (span_singleton_eq_range' K V x).symm)
+    (span_singleton_eq_range K V x).symm)
 
 lemma to_span_nonzero_singleton_one (x : V) (h : x ≠ 0) :
   linear_equiv.to_span_nonzero_singleton K V x h 1 =

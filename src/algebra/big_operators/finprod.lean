@@ -430,15 +430,6 @@ begin
   simp [mul_support_mul]
 end
 
-@[to_additive] lemma finprod_pow (hf : (mul_support f).finite) (n : ℕ) :
-  (∏ᶠ i, f i) ^ n = ∏ᶠ i, f i ^ n :=
-begin
-  induction n with n hfn,
-  { simpa only [pow_zero] using finprod_one.symm },
-  { simpa only [pow_succ, hfn]
-      using (finprod_mul_distrib hf $ set.finite.subset hf $ mul_support_pow f n).symm }
-end
-
 /-- If the multiplicative supports of `f` and `g` are finite, then the product of `f i / g i`
 equals the product of `f i` divided by the product over `g i`. -/
 @[to_additive] lemma finprod_div_distrib {G : Type*} [comm_group G] {f g : α → G}
@@ -488,6 +479,10 @@ finprod_mem_mul_distrib' (hs.inter_of_left _) (hs.inter_of_left _)
 @[to_additive] lemma monoid_hom.map_finprod {f : α → M} (g : M →* N) (hf : (mul_support f).finite) :
   g (∏ᶠ i, f i) = ∏ᶠ i, g (f i) :=
 g.map_finprod_plift f $ hf.preimage $ equiv.plift.injective.inj_on _
+
+@[to_additive] lemma finprod_pow (hf : (mul_support f).finite) (n : ℕ) :
+  (∏ᶠ i, f i) ^ n = ∏ᶠ i, f i ^ n :=
+(pow_monoid_hom n).map_finprod hf
 
 /-- A more general version of `monoid_hom.map_finprod_mem` that requires `s ∩ mul_support f` and
   instead of `s` to be finite. -/

@@ -113,9 +113,7 @@ end ring_of_integers
 
 section infty_valuation
 
-variable [dec : decidable_eq (ratfunc Fq)]
-
-include dec
+variable [decidable_eq (ratfunc Fq)]
 
 /-- The valuation at infinity is the nonarchimedean valuation on `Fq(t)` with uniformizer `1/t`.
 Explicitly, if `f/g ∈ Fq(t)` is a nonzero quotient of polynomials, its valuation at infinity is
@@ -163,6 +161,10 @@ begin
         multiplicative.of_add_le, ← le_max_iff],
         exact ratfunc.int_degree_add_le hx hy hxy }}}
 end
+
+@[simp] lemma infty_valuation_of_nonzero {x : ratfunc Fq} (hx : x ≠ 0) :
+  infty_valuation_def Fq x = (multiplicative.of_add x.int_degree) :=
+by rw [infty_valuation_def, if_neg hx]
 
 /-- The valuation at infinity on `Fq(t)`. -/
 def infty_valuation  : valuation (ratfunc Fq) (with_zero (multiplicative ℤ)) :=

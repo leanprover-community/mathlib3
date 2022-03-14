@@ -62,6 +62,11 @@ We also have a set of recursion and induction principles:
  - `ratfunc.induction_on`: if `P` holds on `p / q` for all polynomials `p q`, then `P` holds on all
    rational functions
 
+We define the degree of a rational function, with values in `ℤ`:
+ - `int_degree` is the degree of a rational function, defined as the difference between the
+   `nat_degree` of its numerator and the `nat_degree` of its denominator. In particular,
+   `int_degree 0 = 0`.
+
 ## Implementation notes
 
 To provide good API encapsulation and speed up unification problems,
@@ -1264,8 +1269,8 @@ section int_degree
 open polynomial
 
 omit hring
-variables [hfield : field K]
-include hfield
+
+variables [field K]
 
 /-- `int_degree x` is the degree of the rational function `x`, defined as the difference between
 the `nat_degree` of its numerator and the `nat_degree` of its denominator. In particular,
@@ -1312,7 +1317,7 @@ begin
       (neg_ne_zero.mpr (num_ne_zero hx)) (denom_ne_zero x) (num_denom_neg x) }
 end
 
-lemma int_degree_add_eq_nat_degree_num_add_sub_nat_degree_denom_add {x y : ratfunc K}
+lemma int_degree_add {x y : ratfunc K}
   (hxy : x + y ≠ 0) : (x + y).int_degree  =
     (x.num * y.denom + x.denom * y.num).nat_degree - (x.denom * y.denom).nat_degree :=
 nat_degree_sub_eq_of_prod_eq (num_ne_zero hxy) ((x + y).denom_ne_zero)
@@ -1331,7 +1336,7 @@ end
 lemma int_degree_add_le {x y : ratfunc K} (hx : x ≠ 0) (hy : y ≠ 0) (hxy : x + y ≠ 0) :
   int_degree (x + y) ≤ max (int_degree x) (int_degree y) :=
 begin
-  rw [int_degree_add_eq_nat_degree_num_add_sub_nat_degree_denom_add hxy,
+  rw [int_degree_add hxy,
     ← nat_degree_num_mul_right_sub_nat_degree_denom_mul_left_eq_int_degree hx y.denom_ne_zero,
     mul_comm y.denom,
     ← nat_degree_num_mul_right_sub_nat_degree_denom_mul_left_eq_int_degree hy x.denom_ne_zero,

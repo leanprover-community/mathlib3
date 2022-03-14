@@ -118,7 +118,7 @@ end
 
 /-- This lemma is useful for working with the `int_degree` of a rational function. -/
 lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : polynomial R} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
-  (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁*q₂ = p₂*q₁) :
+  (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁ * q₂ = p₂ * q₁) :
   (p₁.nat_degree : ℤ) - q₁.nat_degree = (p₂.nat_degree : ℤ) - q₂.nat_degree :=
 begin
   rw sub_eq_sub_iff_add_eq_add,

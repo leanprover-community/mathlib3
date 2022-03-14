@@ -3,6 +3,7 @@ Copyright (c) 2021 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
+import algebra.big_operators.order
 import combinatorics.hall.basic
 import data.fintype.card
 import set_theory.fincard
@@ -130,7 +131,9 @@ begin
   by_cases hs₃ : sᶜ.card = 0,
   { rw [hs₃, nat.le_zero_iff],
     rw [finset.card_compl, tsub_eq_zero_iff_le, has_le.le.le_iff_eq (finset.card_le_univ _),
-        eq_comm, finset.card_eq_iff_eq_univ, hs₃, finset.eq_univ_iff_forall] at hs₃ ⊢,
+        eq_comm, finset.card_eq_iff_eq_univ] at hs₃ ⊢,
+    rw hs₃,
+    rw finset.eq_univ_iff_forall at hs₃ ⊢,
     exact λ p, exists.elim (exists_line p) -- If `s = univ`, then show `s.bUnion t = univ`
       (λ l hl, finset.mem_bUnion.mpr ⟨l, finset.mem_univ l, set.mem_to_finset.mpr hl⟩) },
   { exact hs₂.trans (nat.one_le_iff_ne_zero.mpr hs₃) }, -- If `s < univ`, then consequence of `hs₂`
@@ -394,6 +397,58 @@ variables (P) {L}
 
 lemma point_count_eq [projective_plane P L] (l : L) : point_count P l = order P L + 1 :=
 (line_count_eq (dual P) l).trans (congr_arg (λ n, n + 1) (dual.order P L))
+
+variables (P L)
+
+lemma one_lt_order [projective_plane P L] : 1 < order P L :=
+begin
+  obtain ⟨p₁, p₂, p₃, l₁, l₂, l₃, -, -, h₂₁, h₂₂, h₂₃, h₃₁, h₃₂, h₃₃⟩ := @exists_config P L _ _,
+  classical,
+  rw [←add_lt_add_iff_right, ←point_count_eq, point_count, nat.card_eq_fintype_card],
+  simp_rw [fintype.two_lt_card_iff, ne, subtype.ext_iff],
+  have h := mk_point_ax (λ h, h₂₁ ((congr_arg _ h).mpr h₂₂)),
+  exact ⟨⟨mk_point _, h.2⟩, ⟨p₂, h₂₂⟩, ⟨p₃, h₃₂⟩,
+    ne_of_mem_of_not_mem h.1 h₂₁, ne_of_mem_of_not_mem h.1 h₃₁, ne_of_mem_of_not_mem h₂₃ h₃₃⟩,
+end
+
+variables {P} (L)
+
+lemma two_lt_line_count [projective_plane P L] (p : P) : 2 < line_count L p :=
+by simpa only [line_count_eq L p, nat.succ_lt_succ_iff] using one_lt_order P L
+
+variables (P) {L}
+
+lemma two_lt_point_count [projective_plane P L] (l : L) : 2 < point_count P l :=
+by simpa only [point_count_eq P l, nat.succ_lt_succ_iff] using one_lt_order P L
+
+variables (P) (L)
+
+lemma card_points [projective_plane P L] : fintype.card P = order P L ^ 2 + order P L + 1 :=
+begin
+  obtain ⟨p, -⟩ := @exists_config P L _ _,
+  let ϕ : {q // q ≠ p} ≃ Σ (l : {l : L // p ∈ l}), {q // q ∈ l.1 ∧ q ≠ p} :=
+  { to_fun := λ q, ⟨⟨mk_line q.2, (mk_line_ax q.2).2⟩, q, (mk_line_ax q.2).1, q.2⟩,
+    inv_fun := λ lq, ⟨lq.2, lq.2.2.2⟩,
+    left_inv := λ q, subtype.ext rfl,
+    right_inv := λ lq, sigma.subtype_ext (subtype.ext ((eq_or_eq (mk_line_ax lq.2.2.2).1
+      (mk_line_ax lq.2.2.2).2 lq.2.2.1 lq.1.2).resolve_left lq.2.2.2)) rfl },
+  classical,
+  have h1 : fintype.card {q // q ≠ p} + 1 = fintype.card P,
+  { apply (eq_tsub_iff_add_eq_of_le (nat.succ_le_of_lt (fintype.card_pos_iff.mpr ⟨p⟩))).mp,
+    convert (fintype.card_subtype_compl).trans (congr_arg _ (fintype.card_subtype_eq p)) },
+  have h2 : ∀ l : {l : L // p ∈ l}, fintype.card {q // q ∈ l.1 ∧ q ≠ p} = order P L,
+  { intro l,
+    rw [←fintype.card_congr (equiv.subtype_subtype_equiv_subtype_inter _ _),
+        fintype.card_subtype_compl, ←nat.card_eq_fintype_card],
+    refine tsub_eq_of_eq_add ((point_count_eq P l.1).trans _),
+    rw ← fintype.card_subtype_eq (⟨p, l.2⟩ : {q : P // q ∈ l.1}),
+    simp_rw subtype.ext_iff_val },
+  simp_rw [←h1, fintype.card_congr ϕ, fintype.card_sigma, h2, finset.sum_const, finset.card_univ],
+  rw [←nat.card_eq_fintype_card, ←line_count, line_count_eq, smul_eq_mul, nat.succ_mul, sq],
+end
+
+lemma card_lines [projective_plane P L] : fintype.card L = order P L ^ 2 + order P L + 1 :=
+(card_points (dual L) (dual P)).trans (congr_arg (λ n, n ^ 2 + n + 1) (dual.order P L))
 
 end projective_plane
 

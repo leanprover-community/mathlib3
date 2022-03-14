@@ -363,7 +363,7 @@ begin
       end
     ... ≤ ρ (to_measurable (ρ + μ) (u m) ∩ w n) : begin
         rw [← coe_nnreal_smul_apply],
-        refine v.measure_le_of_frequently_le _ (absolutely_continuous.rfl.coe_nnreal_smul _) _ _,
+        refine v.measure_le_of_frequently_le _ (absolutely_continuous.rfl.smul _) _ _,
         assume x hx,
         have L : tendsto (λ (a : set α), ρ a / μ a) (v.filter_at x) (𝓝 (v.lim_ratio ρ x)) :=
           tendsto_nhds_lim hx.2.1.1,
@@ -460,7 +460,7 @@ begin
       end
     ... ≤ ρ s :
       by { rw [A, mul_zero, add_zero], exact measure_mono (inter_subset_left _ _) },
-  refine v.measure_le_of_frequently_le _ (absolutely_continuous.rfl.coe_nnreal_smul _) _ _,
+  refine v.measure_le_of_frequently_le _ (absolutely_continuous.rfl.smul _) _ _,
   assume x hx,
   have I : ∀ᶠ a in v.filter_at x, (q : ℝ≥0∞) < ρ a / μ a := (tendsto_order.1 hx.2).1 _ (h hx.1),
   apply I.frequently.mono (λ a ha, _),
@@ -515,8 +515,7 @@ begin
     exact nhds_within_le_nhds },
   simp only [zero_mul, ennreal.coe_zero] at B,
   apply ge_of_tendsto B,
-  filter_upwards [self_mem_nhds_within],
-  exact A
+  filter_upwards [self_mem_nhds_within] using A,
 end
 
 /-- As an intermediate step to show that `μ.with_density (v.lim_ratio_meas hρ) = ρ`, we show here
@@ -650,17 +649,15 @@ begin
                    not_false_iff] } },
     simp only [one_pow, one_mul, ennreal.coe_one] at this,
     refine ge_of_tendsto this _,
-    filter_upwards [self_mem_nhds_within],
-    assume t ht,
-    exact v.with_density_le_mul hρ hs ht },
+    filter_upwards [self_mem_nhds_within] with _ ht,
+    exact v.with_density_le_mul hρ hs ht, },
   { have : tendsto (λ (t : ℝ≥0), (t : ℝ≥0∞) * μ.with_density (v.lim_ratio_meas hρ) s) (𝓝[>] 1)
             (𝓝 ((1 : ℝ≥0) * μ.with_density (v.lim_ratio_meas hρ) s)),
     { refine ennreal.tendsto.mul_const (ennreal.tendsto_coe.2 nhds_within_le_nhds) _,
       simp only [ennreal.coe_one, true_or, ne.def, not_false_iff, one_ne_zero], },
     simp only [one_mul, ennreal.coe_one] at this,
     refine ge_of_tendsto this _,
-    filter_upwards [self_mem_nhds_within],
-    assume t ht,
+    filter_upwards [self_mem_nhds_within] with _ ht,
     exact v.le_mul_with_density hρ hs ht }
 end
 
@@ -678,8 +675,7 @@ begin
   have A : (μ.with_density (v.lim_ratio_meas hρ)).rn_deriv μ =ᵐ[μ] v.lim_ratio_meas hρ :=
     rn_deriv_with_density μ (v.lim_ratio_meas_measurable hρ),
   rw v.with_density_lim_ratio_meas_eq hρ at A,
-  filter_upwards [v.ae_tendsto_lim_ratio_meas hρ, A],
-  assume x hx h'x,
+  filter_upwards [v.ae_tendsto_lim_ratio_meas hρ, A] with _ _ h'x,
   rwa h'x,
 end
 
@@ -702,8 +698,7 @@ begin
     rn_deriv_with_density μ (measurable_rn_deriv ρ μ),
   have C : ∀ᵐ x ∂μ, tendsto (λ a, t a / μ a) (v.filter_at x) (𝓝 (t.rn_deriv μ x)) :=
     v.ae_tendsto_rn_deriv_of_absolutely_continuous (with_density_absolutely_continuous _ _),
-  filter_upwards [A, B, C],
-  assume x Ax Bx Cx,
+  filter_upwards [A, B, C] with _ Ax Bx Cx,
   convert Ax.add Cx,
   { ext1 a,
     conv_lhs { rw [eq_add] },
@@ -740,15 +735,12 @@ begin
     exact measurable_set_to_measurable _ _ },
   have B : ∀ᵐ x ∂(μ.restrict s), t.indicator 1 x = (1 : ℝ≥0∞),
   { refine ae_restrict_of_ae_restrict_of_subset (subset_to_measurable μ s) _,
-    filter_upwards [ae_restrict_mem (measurable_set_to_measurable μ s)],
-    assume x hx,
+    filter_upwards [ae_restrict_mem (measurable_set_to_measurable μ s)] with _ hx,
     simp only [hx, pi.one_apply, indicator_of_mem] },
-  filter_upwards [A, B],
-  assume x hx h'x,
+  filter_upwards [A, B] with x hx h'x,
   rw [h'x] at hx,
   apply hx.congr' _,
-  filter_upwards [v.eventually_filter_at_measurable_set x],
-  assume a ha,
+  filter_upwards [v.eventually_filter_at_measurable_set x] with _ ha,
   congr' 1,
   exact measure_to_measurable_inter_of_sigma_finite ha _,
 end

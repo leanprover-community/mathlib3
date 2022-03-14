@@ -74,8 +74,6 @@ Hilbert space, Hilbert sum, l2, Hilbert basis, unitary equivalence, isometric is
 open is_R_or_C submodule filter
 open_locale big_operators nnreal ennreal classical complex_conjugate
 
-local attribute [instance] fact_one_le_two_ennreal
-
 noncomputable theory
 
 variables {ι : Type*}

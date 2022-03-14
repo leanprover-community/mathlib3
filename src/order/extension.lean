@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 import data.set.lattice
 import order.zorn
+import tactic.by_contra
 
 /-!
 # Extend a partial order to a linear order
@@ -47,8 +48,7 @@ begin
   resetI,
   refine ⟨s, { total := _ }, rs⟩,
   intros x y,
-  by_contra h,
-  push_neg at h,
+  by_contra' h,
   let s' := λ x' y', s x' y' ∨ s x' x ∧ s y y',
   rw ←hs₂ s' _ (λ _ _, or.inl) at h,
   { apply h.1 (or.inr ⟨refl _, refl _⟩) },

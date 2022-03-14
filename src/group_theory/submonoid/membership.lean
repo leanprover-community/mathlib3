@@ -7,6 +7,7 @@ Amelia Livingston, Yury Kudryashov
 import group_theory.submonoid.operations
 import algebra.big_operators.basic
 import algebra.free_monoid
+import data.finset.noncomm_prod
 
 /-!
 # Submonoids: membership criteria
@@ -40,10 +41,6 @@ namespace submonoid
 section assoc
 variables [monoid M] (S : submonoid M)
 
-@[simp, norm_cast, to_additive coe_nsmul] theorem coe_pow (x : S) (n : ℕ) :
-  ↑(x ^ n) = (x ^ n : M) :=
-S.subtype.map_pow x n
-
 @[simp, norm_cast, to_additive] theorem coe_list_prod (l : list S) :
   (l.prod : M) = (l.map coe).prod :=
 S.subtype.map_list_prod l
@@ -69,6 +66,16 @@ lemma multiset_prod_mem {M} [comm_monoid M] (S : submonoid M) (m : multiset M)
   (hm : ∀ a ∈ m, a ∈ S) : m.prod ∈ S :=
 by { lift m to multiset S using hm, rw ← coe_multiset_prod, exact m.prod.coe_prop }
 
+@[to_additive]
+lemma multiset_noncomm_prod_mem (S : submonoid M) (m : multiset M)
+  (comm : ∀ (x ∈ m) (y ∈ m), commute x y) (h : ∀ (x ∈ m), x ∈ S) :
+  m.noncomm_prod comm ∈ S :=
+begin
+  induction m using quotient.induction_on with l,
+  simp only [multiset.quot_mk_to_coe, multiset.noncomm_prod_coe],
+  exact submonoid.list_prod_mem _ h,
+end
+
 /-- Product of elements of a submonoid of a `comm_monoid` indexed by a `finset` is in the
     submonoid. -/
 @[to_additive "Sum of elements in an `add_submonoid` of an `add_comm_monoid` indexed by a `finset`
@@ -78,8 +85,17 @@ lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   ∏ c in t, f c ∈ S :=
 S.multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
 
-@[to_additive nsmul_mem] lemma pow_mem {x : M} (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
-by simpa only [coe_pow] using ((⟨x, hx⟩ : S) ^ n).coe_prop
+@[to_additive]
+lemma noncomm_prod_mem (S : submonoid M) {ι : Type*} (t : finset ι) (f : ι → M)
+  (comm : ∀ (x ∈ t) (y ∈ t), commute (f x) (f y)) (h : ∀ c ∈ t, f c ∈ S) :
+  t.noncomm_prod f comm ∈ S :=
+begin
+  apply multiset_noncomm_prod_mem,
+  intro y,
+  rw multiset.mem_map,
+  rintros ⟨x, ⟨hx, rfl⟩⟩,
+  exact h x hx,
+end
 
 end assoc
 
@@ -135,7 +151,7 @@ lemma mul_mem_sup {S T : submonoid M} {x y : M} (hx : x ∈ S) (hy : y ∈ T) : 
 (S ⊔ T).mul_mem (mem_sup_left hx) (mem_sup_right hy)
 
 @[to_additive]
-lemma mem_supr_of_mem {ι : Type*} {S : ι → submonoid M} (i : ι) :
+lemma mem_supr_of_mem {ι : Sort*} {S : ι → submonoid M} (i : ι) :
   ∀ {x : M}, x ∈ S i → x ∈ supr S :=
 show S i ≤ supr S, from le_supr _ _
 
@@ -143,6 +159,39 @@ show S i ≤ supr S, from le_supr _ _
 lemma mem_Sup_of_mem {S : set (submonoid M)} {s : submonoid M}
   (hs : s ∈ S) : ∀ {x : M}, x ∈ s → x ∈ Sup S :=
 show s ≤ Sup S, from le_Sup hs
+
+/-- An induction principle for elements of `⨆ i, S i`.
+If `C` holds for `1` and all elements of `S i` for all `i`, and is preserved under multiplication,
+then it holds for all elements of the supremum of `S`. -/
+@[elab_as_eliminator, to_additive /-" An induction principle for elements of `⨆ i, S i`.
+If `C` holds for `0` and all elements of `S i` for all `i`, and is preserved under addition,
+then it holds for all elements of the supremum of `S`. "-/]
+lemma supr_induction {ι : Sort*} (S : ι → submonoid M) {C : M → Prop} {x : M} (hx : x ∈ ⨆ i, S i)
+  (hp : ∀ i (x ∈ S i), C x)
+  (h1 : C 1)
+  (hmul : ∀ x y, C x → C y → C (x * y)) : C x :=
+begin
+  rw supr_eq_closure at hx,
+  refine closure_induction hx (λ x hx, _) h1 hmul,
+  obtain ⟨i, hi⟩ := set.mem_Union.mp hx,
+  exact hp _ _ hi,
+end
+
+/-- A dependent version of `submonoid.supr_induction`. -/
+@[elab_as_eliminator, to_additive /-"A dependent version of `add_submonoid.supr_induction`. "-/]
+lemma supr_induction' {ι : Sort*} (S : ι → submonoid M) {C : Π x, (x ∈ ⨆ i, S i) → Prop}
+  (hp : ∀ i (x ∈ S i), C x (mem_supr_of_mem i ‹_›))
+  (h1 : C 1 (one_mem _))
+  (hmul : ∀ x y hx hy, C x hx → C y hy → C (x * y) (mul_mem _ ‹_› ‹_›))
+  {x : M} (hx : x ∈ ⨆ i, S i) : C x hx :=
+begin
+  refine exists.elim _ (λ (hx : x ∈ ⨆ i, S i) (hc : C x hx), hc),
+  refine supr_induction S hx (λ i x hx, _) _ (λ x y, _),
+  { exact ⟨_, hp _ _ hx⟩ },
+  { exact ⟨_, h1⟩ },
+  { rintro ⟨_, Cx⟩ ⟨_, Cy⟩,
+    refine ⟨_, hmul _ _ _ _ Cx Cy⟩ },
+end
 
 end non_assoc
 
@@ -260,6 +309,23 @@ theorem log_pow_int_eq_self {x : ℤ} (h : 1 < x.nat_abs) (m : ℕ) : log (pow x
 @[simp] lemma map_powers {N : Type*} [monoid N] (f : M →* N) (m : M) :
   (powers m).map f = powers (f m) :=
 by simp only [powers_eq_closure, f.map_mclosure, set.image_singleton]
+
+/-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
+@[to_additive "If all the elements of a set `s` commute, then `closure s` forms an additive
+commutative monoid."]
+def closure_comm_monoid_of_comm {s : set M} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
+  comm_monoid (closure s) :=
+{ mul_comm := λ x y,
+  begin
+    ext,
+    simp only [submonoid.coe_mul],
+    exact closure_induction₂ x.prop y.prop hcomm
+      (λ x, by simp only [mul_one, one_mul])
+      (λ x, by simp only [mul_one, one_mul])
+      (λ x y z h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc, h₁, mul_assoc])
+      (λ x y z h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc]),
+  end,
+  ..(closure s).to_monoid }
 
 end submonoid
 

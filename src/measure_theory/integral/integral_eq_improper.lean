@@ -183,8 +183,8 @@ begin
   obtain ⟨u, hu⟩ := l.exists_seq_tendsto,
   have := ae_measurable_Union_iff.mpr (λ (n : ℕ), hfm (u n)),
   rwa measure.restrict_eq_self_of_ae_mem at this,
-  filter_upwards [hφ.ae_eventually_mem]
-    (λ x hx, let ⟨i, hi⟩ := (hu.eventually hx).exists in mem_Union.mpr ⟨i, hi⟩)
+  filter_upwards [hφ.ae_eventually_mem] with x hx using
+    let ⟨i, hi⟩ := (hu.eventually hx).exists in mem_Union.mpr ⟨i, hi⟩
 end
 
 end ae_cover
@@ -267,7 +267,7 @@ lemma ae_cover.supr_lintegral_eq_of_countably_generated [nonempty ι] [l.ne_bot]
 begin
   have := hφ.lintegral_tendsto_of_countably_generated hfm,
   refine csupr_eq_of_forall_le_of_forall_lt_exists_gt
-    (λ i, lintegral_mono' measure.restrict_le_self (le_refl _)) (λ w hw, _),
+    (λ i, lintegral_mono' measure.restrict_le_self le_rfl) (λ w hw, _),
   rcases exists_between hw with ⟨m, hm₁, hm₂⟩,
   rcases (eventually_ge_of_tendsto_gt hm₂ this).exists with ⟨i, hi⟩,
   exact ⟨i, lt_of_lt_of_le hm₁ hi⟩,
@@ -413,8 +413,8 @@ begin
   let c : α := classical.choice ‹_›,
   have hφ : ae_cover μ l _ := ae_cover_Ioc ha hb,
   refine hφ.integrable_of_integral_norm_bounded I hfi (h.mp _),
-  filter_upwards [ha.eventually (eventually_le_at_bot c), hb.eventually (eventually_ge_at_top c)],
-  intros i hai hbi ht,
+  filter_upwards [ha.eventually (eventually_le_at_bot c), hb.eventually (eventually_ge_at_top c)]
+    with i hai hbi ht,
   rwa ←interval_integral.integral_of_le (hai.trans hbi)
 end
 
@@ -437,8 +437,7 @@ begin
     rw [integrable_on, measure.restrict_restrict (hφ.measurable i)],
     exact hfi i },
   refine hφ.integrable_of_integral_norm_bounded I hfi (h.mp _),
-  filter_upwards [ha.eventually (eventually_le_at_bot b)],
-  intros i hai,
+  filter_upwards [ha.eventually (eventually_le_at_bot b)] with i hai,
   rw [interval_integral.integral_of_le hai, measure.restrict_restrict (hφ.measurable i)],
   exact id
 end
@@ -461,8 +460,7 @@ begin
     rw [integrable_on, measure.restrict_restrict (hφ.measurable i), inter_comm],
     exact hfi i },
   refine hφ.integrable_of_integral_norm_bounded I hfi (h.mp _),
-  filter_upwards [hb.eventually (eventually_ge_at_top a)],
-  intros i hbi,
+  filter_upwards [hb.eventually (eventually_ge_at_top a)] with i hbi,
   rw [interval_integral.integral_of_le hbi, measure.restrict_restrict (hφ.measurable i),
       inter_comm],
   exact id
@@ -495,8 +493,8 @@ begin
   let c : α := classical.choice ‹_›,
   have hφ : ae_cover μ l φ := ae_cover_Ioc ha hb,
   refine (hφ.integral_tendsto_of_countably_generated hfi).congr' _,
-  filter_upwards [ha.eventually (eventually_le_at_bot c), hb.eventually (eventually_ge_at_top c)],
-  intros i hai hbi,
+  filter_upwards [ha.eventually (eventually_le_at_bot c), hb.eventually (eventually_ge_at_top c)]
+    with i hai hbi,
   exact (interval_integral.integral_of_le (hai.trans hbi)).symm
 end
 
@@ -507,10 +505,9 @@ begin
   let φ := λ i, Ioi (a i),
   have hφ : ae_cover (μ.restrict $ Iic b) l φ := ae_cover_Ioi ha,
   refine (hφ.integral_tendsto_of_countably_generated hfi).congr' _,
-  filter_upwards [ha.eventually (eventually_le_at_bot $ b)],
-  intros i hai,
+  filter_upwards [ha.eventually (eventually_le_at_bot $ b)] with i hai,
   rw [interval_integral.integral_of_le hai, measure.restrict_restrict (hφ.measurable i)],
-  refl
+  refl,
 end
 
 lemma interval_integral_tendsto_integral_Ioi (a : α)
@@ -520,11 +517,10 @@ begin
   let φ := λ i, Iic (b i),
   have hφ : ae_cover (μ.restrict $ Ioi a) l φ := ae_cover_Iic hb,
   refine (hφ.integral_tendsto_of_countably_generated hfi).congr' _,
-  filter_upwards [hb.eventually (eventually_ge_at_top $ a)],
-  intros i hbi,
+  filter_upwards [hb.eventually (eventually_ge_at_top $ a)] with i hbi,
   rw [interval_integral.integral_of_le hbi, measure.restrict_restrict (hφ.measurable i),
       inter_comm],
-  refl
+  refl,
 end
 
 end integral_of_interval_integral

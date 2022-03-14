@@ -179,6 +179,11 @@ lemma exists_measurable_superset_forall_eq {ι} [encodable ι] (μ : ι → meas
 by simpa only [← measure_eq_trim]
   using outer_measure.exists_measurable_superset_forall_eq_trim (λ i, (μ i).to_outer_measure) s
 
+lemma exists_measurable_superset₂ (μ ν : measure α) (s : set α) :
+  ∃ t, s ⊆ t ∧ measurable_set t ∧ μ t = μ s ∧ ν t = ν s :=
+by simpa only [bool.forall_bool.trans and.comm]
+  using exists_measurable_superset_forall_eq (λ b, cond b μ ν) s
+
 lemma exists_measurable_superset_of_null (h : μ s = 0) :
   ∃ t, s ⊆ t ∧ measurable_set t ∧ μ t = 0 :=
 h ▸ exists_measurable_superset μ s
@@ -263,7 +268,7 @@ not_iff_not.1 $ by simp only [← lt_top_iff_ne_top, ← ne.def, not_or_distrib,
 lemma exists_measure_pos_of_not_measure_Union_null [encodable β] {s : β → set α}
   (hs : μ (⋃ n, s n) ≠ 0) : ∃ n, 0 < μ (s n) :=
 begin
-  by_contra, push_neg at h,
+  by_contra' h,
   simp_rw nonpos_iff_eq_zero at h,
   exact hs (measure_Union_null h),
 end

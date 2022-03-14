@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.equiv.basic
+import data.fun_like.embedding
+import data.pprod
 import data.set.basic
 import data.sigma.basic
-import data.pprod
 
 /-!
 # Injective functions
@@ -27,6 +28,16 @@ infixr ` ↪ `:25 := embedding
 instance {α : Sort u} {β : Sort v} : has_coe_to_fun (α ↪ β) (λ _, α → β) := ⟨embedding.to_fun⟩
 
 initialize_simps_projections embedding (to_fun → apply)
+
+instance {α : Sort u} {β : Sort v} : embedding_like (α ↪ β) α β :=
+{ coe := embedding.to_fun,
+  injective' := embedding.inj',
+  coe_injective' := λ f g h, by { cases f, cases g, congr' } }
+
+instance {α β : Sort*} : can_lift (α → β) (α ↪ β) :=
+{ coe := coe_fn,
+  cond := injective,
+  prf := λ f hf, ⟨⟨f, hf⟩, rfl⟩ }
 
 end function
 
@@ -72,14 +83,11 @@ end equiv
 namespace function
 namespace embedding
 
-lemma coe_injective {α β} : @function.injective (α ↪ β) (α → β) coe_fn
-| ⟨x, _⟩ ⟨y, _⟩ rfl := rfl
+lemma coe_injective {α β} : @function.injective (α ↪ β) (α → β) coe_fn := fun_like.coe_injective
 
-@[ext] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g :=
-coe_injective (funext h)
+@[ext] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g := fun_like.ext f g h
 
-lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
-⟨ext, λ h _, by rw h⟩
+lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g := fun_like.ext_iff.symm
 
 @[simp] theorem to_fun_eq_coe {α β} (f : α ↪ β) : to_fun f = f := rfl
 
@@ -89,10 +97,10 @@ lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=
 @[simp] lemma mk_coe {α β : Type*} (f : α ↪ β) (inj) : (⟨f, inj⟩ : α ↪ β) = f :=
 by { ext, simp }
 
-protected theorem injective {α β} (f : α ↪ β) : injective f := f.inj'
+protected theorem injective {α β} (f : α ↪ β) : injective f := embedding_like.injective f
 
-@[simp] lemma apply_eq_iff_eq {α β} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
-f.injective.eq_iff
+lemma apply_eq_iff_eq {α β} (f : α ↪ β) (x y : α) : f x = f y ↔ x = y :=
+embedding_like.apply_eq_iff_eq f
 
 /-- The identity map as a `function.embedding`. -/
 @[refl, simps {simp_rhs := tt}]

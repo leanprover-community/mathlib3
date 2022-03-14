@@ -339,6 +339,90 @@ begin
         real.angle.sub_coe_pi_eq_add_coe_pi] }
 end
 
+lemma arg_mul_cos_add_sin_mul_I_eq_mul_fract {r : ℝ} (hr : 0 < r) (θ : ℝ) :
+  arg (r * (cos θ + sin θ * I)) = π - 2 * π * int.fract ((π - θ) / (2 * π)) :=
+begin
+  have hi : π - 2 * π * int.fract ((π - θ) / (2 * π)) ∈ Ioc (-π) π,
+  { rw [←mem_preimage, preimage_const_sub_Ioc, ←mem_preimage,
+        preimage_const_mul_Ico _ _ real.two_pi_pos, sub_self, zero_div, sub_neg_eq_add,
+        ←two_mul, div_self real.two_pi_pos.ne.symm],
+    refine set.mem_of_mem_of_subset (set.mem_range_self _) _,
+    rw [←image_univ, int.image_fract],
+    simp },
+  have hs : π - 2 * π * int.fract ((π - θ) / (2 * π)) = 2 * π * ⌊(π - θ) / (2 * π)⌋ + θ,
+  { rw [int.fract, mul_sub, mul_div_cancel' _ real.two_pi_pos.ne.symm],
+    abel },
+  convert arg_mul_cos_add_sin_mul_I hr hi using 3,
+  simp_rw [hs, mul_comm (2 * π), add_comm _ θ, ←of_real_cos, ←of_real_sin,
+           real.cos_add_int_mul_two_pi, real.sin_add_int_mul_two_pi]
+end
+
+lemma arg_cos_add_sin_mul_I_eq_mul_fract (θ : ℝ) :
+  arg (cos θ + sin θ * I) = π - 2 * π * int.fract ((π - θ) / (2 * π)) :=
+by rw [←one_mul (_ + _), ←of_real_one, arg_mul_cos_add_sin_mul_I_eq_mul_fract zero_lt_one]
+
+lemma arg_mul_cos_add_sin_mul_I_sub {r : ℝ} (hr : 0 < r) (θ : ℝ) :
+  arg (r * (cos θ + sin θ * I)) - θ = 2 * π * ⌊(π - θ) / (2 * π)⌋ :=
+begin
+  rw [arg_mul_cos_add_sin_mul_I_eq_mul_fract hr, int.fract, mul_sub,
+      mul_div_cancel' _ real.two_pi_pos.ne.symm],
+  abel
+end
+
+lemma arg_cos_add_sin_mul_I_sub (θ : ℝ) :
+  arg (cos θ + sin θ * I) - θ = 2 * π * ⌊(π - θ) / (2 * π)⌋ :=
+by rw [←one_mul (_ + _), ←of_real_one, arg_mul_cos_add_sin_mul_I_sub zero_lt_one]
+
+lemma arg_mul_cos_add_sin_mul_I_coe_angle {r : ℝ} (hr : 0 < r) (θ : real.angle) :
+  (arg (r * (real.angle.cos θ + real.angle.sin θ * I)) : real.angle) = θ :=
+begin
+  induction θ using real.angle.induction_on,
+  rw [real.angle.cos_coe, real.angle.sin_coe, real.angle.angle_eq_iff_two_pi_dvd_sub],
+  use ⌊(π - θ) / (2 * π)⌋,
+  exact_mod_cast arg_mul_cos_add_sin_mul_I_sub hr θ
+end
+
+lemma arg_cos_add_sin_mul_I_coe_angle (θ : real.angle) :
+  (arg (real.angle.cos θ + real.angle.sin θ * I) : real.angle) = θ :=
+by rw [←one_mul (_ + _), ←of_real_one, arg_mul_cos_add_sin_mul_I_coe_angle zero_lt_one]
+
+lemma arg_mul_coe_angle {x y : ℂ} (hx : x ≠ 0) (hy : y ≠ 0) :
+  (arg (x * y) : real.angle) = arg x + arg y :=
+begin
+  convert arg_mul_cos_add_sin_mul_I_coe_angle (mul_pos (abs_pos.2 hx) (abs_pos.2 hy))
+                                              (arg x + arg y : real.angle) using 3,
+  simp_rw [←real.angle.coe_add, real.angle.sin_coe, real.angle.cos_coe, of_real_cos,
+           of_real_sin, cos_add_sin_I, of_real_add, add_mul, exp_add, of_real_mul],
+  rw [mul_assoc, mul_comm (exp _), ←mul_assoc (abs y : ℂ), abs_mul_exp_arg_mul_I, mul_comm y,
+      ←mul_assoc, abs_mul_exp_arg_mul_I]
+end
+
+lemma arg_div_coe_angle {x y : ℂ} (hx : x ≠ 0) (hy : y ≠ 0) :
+  (arg (x / y) : real.angle) = arg x - arg y :=
+by rw [div_eq_mul_inv, arg_mul_coe_angle hx (inv_ne_zero hy), arg_inv_coe_angle, sub_eq_add_neg]
+
+@[simp] lemma arg_coe_angle_eq_iff {x y : ℂ} : (arg x : real.angle) = arg y ↔ arg x = arg y :=
+begin
+  split,
+  { intro h,
+    rw real.angle.angle_eq_iff_two_pi_dvd_sub at h,
+    rcases h with ⟨k, hk⟩,
+    rw ←sub_eq_zero,
+    have ha : -(2 * π) < arg x - arg y,
+    { linarith only [neg_pi_lt_arg x, arg_le_pi y] },
+    have hb : arg x - arg y < 2 * π,
+    { linarith only [arg_le_pi x, neg_pi_lt_arg y] },
+    rw [hk, neg_lt, neg_mul_eq_mul_neg, mul_lt_iff_lt_one_right real.two_pi_pos, neg_lt,
+        ←int.cast_one, ←int.cast_neg, int.cast_lt] at ha,
+    rw [hk, mul_lt_iff_lt_one_right real.two_pi_pos, ←int.cast_one, int.cast_lt] at hb,
+    have hk' : k = 0,
+    { linarith only [ha, hb] },
+    rw hk' at hk,
+    simpa using hk },
+  { intro h,
+    rw h }
+end
+
 section continuity
 
 variables {x z : ℂ}
@@ -395,9 +479,8 @@ begin
     tendsto (λ x : ℂ, real.arcsin ((-x).im / x.abs) - π) (𝓝[{z : ℂ | z.im < 0}] z) (𝓝 (-π)),
   { refine H.congr' _,
     have : ∀ᶠ x : ℂ in 𝓝 z, x.re < 0, from continuous_re.tendsto z (gt_mem_nhds hre),
-    filter_upwards [self_mem_nhds_within, mem_nhds_within_of_mem_nhds this],
-    intros w him hre,
-    rw [arg, if_neg hre.not_le, if_neg him.not_le] },
+    filter_upwards [self_mem_nhds_within, mem_nhds_within_of_mem_nhds this] with _ him hre,
+    rw [arg, if_neg hre.not_le, if_neg him.not_le], },
   convert (real.continuous_at_arcsin.comp_continuous_within_at
     ((continuous_im.continuous_at.comp_continuous_within_at continuous_within_at_neg).div
       continuous_abs.continuous_within_at _)).sub tendsto_const_nhds,
@@ -411,8 +494,7 @@ lemma continuous_within_at_arg_of_re_neg_of_im_zero
 begin
   have : arg =ᶠ[𝓝[{z : ℂ | 0 ≤ z.im}] z] λ x, real.arcsin ((-x).im / x.abs) + π,
   { have : ∀ᶠ x : ℂ in 𝓝 z, x.re < 0, from continuous_re.tendsto z (gt_mem_nhds hre),
-    filter_upwards [self_mem_nhds_within, mem_nhds_within_of_mem_nhds this],
-    intros w him hre,
+    filter_upwards [self_mem_nhds_within, mem_nhds_within_of_mem_nhds this] with _ him hre,
     rw [arg, if_neg hre.not_le, if_pos him] },
   refine continuous_within_at.congr_of_eventually_eq _ this _,
   { refine (real.continuous_at_arcsin.comp_continuous_within_at

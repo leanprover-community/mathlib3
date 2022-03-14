@@ -114,9 +114,9 @@ variables [decidable_eq α]
 
 /-- Shrink a total function by shrinking the lists that represent it. -/
 protected def shrink : shrink_fn (total_function α β)
-| ⟨m, x⟩ := (sampleable.shrink (m, x)).map $ λ ⟨⟨m', x'⟩, h⟩, ⟨⟨list.erase_dupkeys m', x'⟩,
+| ⟨m, x⟩ := (sampleable.shrink (m, x)).map $ λ ⟨⟨m', x'⟩, h⟩, ⟨⟨list.dedupkeys m', x'⟩,
             lt_of_le_of_lt
-              (by unfold_wf; refine @list.sizeof_erase_dupkeys _ _ _ (@sampleable.wf _ _) _) h ⟩
+              (by unfold_wf; refine @list.sizeof_dedupkeys _ _ _ (@sampleable.wf _ _) _) h ⟩
 
 variables [has_repr α] [has_repr β]
 
@@ -144,7 +144,7 @@ variables [decidable_eq α] [decidable_eq β]
 @[simp]
 def zero_default_supp : total_function α β → finset α
 | (with_default A y) :=
-  list.to_finset $ (A.erase_dupkeys.filter (λ ab, sigma.snd ab ≠ 0)).map sigma.fst
+  list.to_finset $ (A.dedupkeys.filter (λ ab, sigma.snd ab ≠ 0)).map sigma.fst
 
 /-- Create a finitely supported function from a total function by taking the default value to
 zero. -/
@@ -158,16 +158,16 @@ def apply_finsupp (tf : total_function α β) : α →₀ β :=
       list.mem_to_finset, exists_eq_right, sigma.exists, ne.def, zero_default],
     split,
     { rintro ⟨od, hval, hod⟩,
-      have := list.mem_lookup (list.nodupkeys_erase_dupkeys A) hval,
+      have := list.mem_lookup (list.nodupkeys_dedupkeys A) hval,
       rw (_ : list.lookup a A = od),
       { simpa, },
-      { simpa [list.lookup_erase_dupkeys, with_top.some_eq_coe], }, },
+      { simpa [list.lookup_dedupkeys, with_top.some_eq_coe], }, },
     { intro h,
       use (A.lookup a).get_or_else (0 : β),
-      rw ← list.lookup_erase_dupkeys at h ⊢,
-      simp only [h, ←list.mem_lookup_iff A.nodupkeys_erase_dupkeys,
+      rw ← list.lookup_dedupkeys at h ⊢,
+      simp only [h, ←list.mem_lookup_iff A.nodupkeys_dedupkeys,
         and_true, not_false_iff, option.mem_def],
-      cases list.lookup a A.erase_dupkeys,
+      cases list.lookup a A.dedupkeys,
       { simpa using h, },
       { simp, }, }
   end }

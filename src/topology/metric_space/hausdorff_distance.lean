@@ -133,18 +133,15 @@ lemma inf_edist_image (hΦ : isometry Φ) :
 by simp only [inf_edist, infi_image, hΦ.edist_eq]
 
 lemma _root_.is_open.exists_Union_is_closed {U : set α} (hU : is_open U) :
-  ∃ F : ℕ → set α, (∀ n, is_closed (F n)) ∧ (∀ n, F n ⊆ U) ∧ ((⋃ n, F n) = U) ∧ (monotone F) :=
+  ∃ F : ℕ → set α, (∀ n, is_closed (F n)) ∧ (∀ n, F n ⊆ U) ∧ ((⋃ n, F n) = U) ∧ monotone F :=
 begin
   obtain ⟨a, a_pos, a_lt_one⟩ : ∃ (a : ℝ≥0∞), 0 < a ∧ a < 1 := exists_between (ennreal.zero_lt_one),
   let F := λ (n : ℕ), (λ x, inf_edist x Uᶜ) ⁻¹' (Ici (a^n)),
   have F_subset : ∀ n, F n ⊆ U,
   { assume n x hx,
-    by_contra h,
-    rw [← mem_compl_iff,
-      mem_iff_inf_edist_zero_of_closed (is_open.is_closed_compl hU)] at h,
-    have : 0 < inf_edist x Uᶜ := lt_of_lt_of_le (ennreal.pow_pos a_pos _) hx,
-    rw h at this,
-    exact lt_irrefl _ this },
+    have : inf_edist x Uᶜ ≠ 0 := ((ennreal.pow_pos a_pos _).trans_le hx).ne',
+    contrapose! this,
+    exact inf_edist_zero_of_mem this },
   refine ⟨F, λ n, is_closed.preimage continuous_inf_edist is_closed_Ici, F_subset, _, _⟩,
   show monotone F,
   { assume m n hmn x hx,
@@ -153,7 +150,7 @@ begin
   show (⋃ n, F n) = U,
   { refine subset.antisymm (by simp only [Union_subset_iff, F_subset, forall_const]) (λ x hx, _),
     have : ¬(x ∈ Uᶜ), by simpa using hx,
-    rw mem_iff_inf_edist_zero_of_closed (is_open.is_closed_compl hU) at this,
+    rw mem_iff_inf_edist_zero_of_closed hU.is_closed_compl at this,
     have B : 0 < inf_edist x Uᶜ, by simpa [pos_iff_ne_zero] using this,
     have : filter.tendsto (λ n, a^n) at_top (𝓝 0) :=
       ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 a_lt_one,
@@ -477,6 +474,11 @@ variable {s}
 /-- The minimal distance to a set and its closure coincide -/
 lemma inf_dist_eq_closure : inf_dist x (closure s) = inf_dist x s :=
 by simp [inf_dist, inf_edist_closure]
+
+/-- If a point belongs to the closure of `s`, then its infimum distance to `s` equals zero.
+The converse is true provided that `s` is nonempty, see `mem_closure_iff_inf_dist_zero`. -/
+lemma inf_dist_zero_of_mem_closure (hx : x ∈ closure s) : inf_dist x s = 0 :=
+by { rw ← inf_dist_eq_closure, exact inf_dist_zero_of_mem hx }
 
 /-- A point belongs to the closure of `s` iff its infimum distance to this set vanishes -/
 lemma mem_closure_iff_inf_dist_zero (h : s.nonempty) : x ∈ closure s ↔ inf_dist x s = 0 :=
@@ -1014,7 +1016,7 @@ lemma cthickening_eq_Inter_cthickening' {δ : ℝ}
   cthickening δ E = ⋂ ε ∈ s, cthickening ε E :=
 begin
   apply subset.antisymm,
-  { exact subset_bInter (λ _ hε, cthickening_mono (le_of_lt (hsδ hε)) E), },
+  { exact subset_Inter₂ (λ _ hε, cthickening_mono (le_of_lt (hsδ hε)) E), },
   { unfold thickening cthickening,
     intros x hx,
     simp only [mem_Inter, mem_set_of_eq] at *,
@@ -1038,15 +1040,12 @@ lemma cthickening_eq_Inter_thickening' {δ : ℝ} (δ_nn : 0 ≤ δ)
   (s : set ℝ) (hsδ : s ⊆ Ioi δ) (hs : ∀ ε, δ < ε → (s ∩ (Ioc δ ε)).nonempty) (E : set α) :
   cthickening δ E = ⋂ ε ∈ s, thickening ε E :=
 begin
-  apply subset.antisymm,
-  { apply subset_bInter,
-    intros ε hε,
-    rcases hs ε (mem_Ioi.mp (hsδ hε)) with ⟨ε', ⟨hsε', hε'⟩⟩,
+  refine (subset_Inter₂ $ λ ε hε, _).antisymm _,
+  { obtain ⟨ε', hsε', hε'⟩ := hs ε (hsδ hε),
     have ss := cthickening_subset_thickening' (lt_of_le_of_lt δ_nn hε'.1) hε'.1 E,
     exact ss.trans (thickening_mono hε'.2 E), },
   { rw cthickening_eq_Inter_cthickening' s hsδ hs E,
-    apply bInter_mono,
-    exact λ ε hε, thickening_subset_cthickening ε E, },
+    exact Inter₂_mono (λ ε hε, thickening_subset_cthickening ε E) }
 end
 
 lemma cthickening_eq_Inter_thickening {δ : ℝ} (δ_nn : 0 ≤ δ) (E : set α) :
@@ -1068,7 +1067,7 @@ begin
   obtain ⟨δ, hδs, δ_nonpos⟩ := not_subset.mp hs₀,
   rw [set.mem_Ioi, not_lt] at δ_nonpos,
   apply subset.antisymm,
-  { exact subset_bInter (λ ε _, closure_subset_cthickening ε E), },
+  { exact subset_Inter₂ (λ ε _, closure_subset_cthickening ε E), },
   { rw ← cthickening_of_nonpos δ_nonpos E,
     exact bInter_subset_of_mem hδs, },
 end
@@ -1132,7 +1131,7 @@ lemma _root_.is_compact.cthickening_eq_bUnion_closed_ball
 begin
   rcases eq_empty_or_nonempty E with rfl|hne,
   { simp only [cthickening_empty, Union_false, Union_empty] },
-  refine subset.antisymm (λ x hx, _) (bUnion_subset (λ x hx, closed_ball_subset_cthickening hx _)),
+  refine subset.antisymm (λ x hx, _) (Union₂_subset $ λ x hx, closed_ball_subset_cthickening hx _),
   obtain ⟨y, yE, hy⟩ : ∃ y ∈ E, emetric.inf_edist x E = edist x y :=
     hE.exists_inf_edist_eq_edist hne _,
   have D1 : edist x y ≤ ennreal.of_real δ := (le_of_eq hy.symm).trans hx,

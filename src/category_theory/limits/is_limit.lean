@@ -5,7 +5,6 @@ Authors: Reid Barton, Mario Carneiro, Scott Morrison, Floris van Doorn
 -/
 import category_theory.adjunction.basic
 import category_theory.limits.cones
-import category_theory.reflects_isomorphisms
 
 /-!
 # Limits and colimits
@@ -17,7 +16,7 @@ it is repeated, with slightly different names, for colimits.
 The main structures defined in this file is
 * `is_limit c`, for `c : cone F`, `F : J ⥤ C`, expressing that `c` is a limit cone,
 
-See also `category_theory.limits.limits` which further builds:
+See also `category_theory.limits.has_limits` which further builds:
 * `limit_cone F`, which consists of a choice of cone for `F` and the fact it is a limit cone, and
 * `has_limit F`, asserting the mere existence of some limit cone for `F`.
 
@@ -91,6 +90,16 @@ lemma uniq_cone_morphism {s t : cone F} (h : is_limit t) {f f' : s ⟶ t} :
   f = f' :=
 have ∀ {g : s ⟶ t}, g = h.lift_cone_morphism s, by intro g; ext; exact h.uniq _ _ g.w,
 this.trans this.symm
+
+/-- Restating the definition of a limit cone in terms of the ∃! operator. -/
+lemma exists_unique {t : cone F} (h : is_limit t) (s : cone F) :
+  ∃! (l : s.X ⟶ t.X), ∀ j, l ≫ t.π.app j = s.π.app j :=
+⟨h.lift s, h.fac s, h.uniq s⟩
+
+/-- Noncomputably make a colimit cocone from the existence of unique factorizations. -/
+def of_exists_unique {t : cone F}
+  (ht : ∀ s : cone F, ∃! l : s.X ⟶ t.X, ∀ j, l ≫ t.π.app j = s.π.app j) : is_limit t :=
+by { choose s hs hs' using ht, exact ⟨s, hs, hs'⟩ }
 
 /--
 Alternative constructor for `is_limit`,
@@ -239,6 +248,15 @@ the original cone is.
 def postcompose_inv_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cone G) :
   is_limit ((cones.postcompose α.inv).obj c) ≃ is_limit c :=
 postcompose_hom_equiv α.symm c
+
+/--
+Constructing an equivalence `is_limit c ≃ is_limit d` from a natural isomorphism
+between the underlying functors, and then an isomorphism between `c` transported along this and `d`.
+-/
+def equiv_of_nat_iso_of_iso {F G : J ⥤ C} (α : F ≅ G) (c : cone F) (d : cone G)
+  (w : (cones.postcompose α.hom).obj c ≅ d) :
+  is_limit c ≃ is_limit d :=
+(postcompose_hom_equiv α _).symm.trans (equiv_iso_limit w)
 
 /--
 The cone points of two limit cones for naturally isomorphic functors
@@ -523,6 +541,16 @@ lemma uniq_cocone_morphism {s t : cocone F} (h : is_colimit t) {f f' : t ⟶ s} 
 have ∀ {g : t ⟶ s}, g = h.desc_cocone_morphism s, by intro g; ext; exact h.uniq _ _ g.w,
 this.trans this.symm
 
+/-- Restating the definition of a colimit cocone in terms of the ∃! operator. -/
+lemma exists_unique {t : cocone F} (h : is_colimit t) (s : cocone F) :
+  ∃! (d : t.X ⟶ s.X), ∀ j, t.ι.app j ≫ d = s.ι.app j :=
+⟨h.desc s, h.fac s, h.uniq s⟩
+
+/-- Noncomputably make a colimit cocone from the existence of unique factorizations. -/
+def of_exists_unique {t : cocone F}
+  (ht : ∀ s : cocone F, ∃! d : t.X ⟶ s.X, ∀ j, t.ι.app j ≫ d = s.ι.app j) : is_colimit t :=
+by { choose s hs hs' using ht, exact ⟨s, hs, hs'⟩ }
+
 /--
 Alternative constructor for `is_colimit`,
 providing a morphism of cocones rather than a morphism between the cocone points
@@ -670,6 +698,15 @@ if and only if the original cocone is.
 def precompose_inv_equiv {F G : J ⥤ C} (α : F ≅ G) (c : cocone F) :
   is_colimit ((cocones.precompose α.inv).obj c) ≃ is_colimit c :=
 precompose_hom_equiv α.symm c
+
+/--
+Constructing an equivalence `is_colimit c ≃ is_colimit d` from a natural isomorphism
+between the underlying functors, and then an isomorphism between `c` transported along this and `d`.
+-/
+def equiv_of_nat_iso_of_iso {F G : J ⥤ C} (α : F ≅ G) (c : cocone F) (d : cocone G)
+  (w : (cocones.precompose α.inv).obj c ≅ d) :
+  is_colimit c ≃ is_colimit d :=
+(precompose_inv_equiv α _).symm.trans (equiv_iso_colimit w)
 
 /--
 The cocone points of two colimit cocones for naturally isomorphic functors

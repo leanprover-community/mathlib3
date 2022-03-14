@@ -82,8 +82,7 @@ begin
 
   have h₃ : ∀ x > 0, f(x) = x ∨ f(x) = 1 / x, { simpa [sub_eq_zero] using h₂ },
 
-  by_contradiction,
-  push_neg at h,
+  by_contra' h,
   rcases h with ⟨⟨b, hb, hfb₁⟩, ⟨a, ha, hfa₁⟩⟩,
   obtain hfa₂ := or.resolve_right (h₃ a ha) hfa₁, -- f(a) ≠ 1/a, f(a) = a
   obtain hfb₂ := or.resolve_left (h₃ b hb) hfb₁,  -- f(b) ≠ b, f(b) = 1/b

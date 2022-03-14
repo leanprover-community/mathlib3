@@ -41,7 +41,7 @@ lemma coe_fn_nonneg (f : Lp E p μ) : 0 ≤ᵐ[μ] f ↔ 0 ≤ f :=
 begin
   rw ← coe_fn_le,
   have h0 := Lp.coe_fn_zero E p μ,
-  split; intro h; filter_upwards [h, h0]; intros a h1 h2,
+  split; intro h; filter_upwards [h, h0] with _ _ h2,
   { rwa h2, },
   { rwa ← h2, },
 end
@@ -50,8 +50,7 @@ instance : covariant_class (Lp E p μ) (Lp E p μ) (+) (≤) :=
 begin
   refine ⟨λ f g₁ g₂ hg₁₂, _⟩,
   rw ← coe_fn_le at hg₁₂ ⊢,
-  filter_upwards [coe_fn_add f g₁, coe_fn_add f g₂, hg₁₂],
-  intros a h1 h2 h3,
+  filter_upwards [coe_fn_add f g₁, coe_fn_add f g₂, hg₁₂] with _ h1 h2 h3,
   rw [h1, h2, pi.add_apply, pi.add_apply],
   exact add_le_add le_rfl h3,
 end

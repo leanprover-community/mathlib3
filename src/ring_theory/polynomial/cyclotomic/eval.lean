@@ -215,7 +215,7 @@ begin
   { simp [*], },
 end
 
-lemma sub_one_lt_nat_abs_cyclotomic_eval (n : ℕ) (q : ℝ) (hn' : 2 ≤ n) (hq' : 1 < q) :
+lemma sub_one_pow_totient_lt_cyclotomic_eval (n : ℕ) (q : ℝ) (hn' : 2 ≤ n) (hq' : 1 < q) :
   (q - 1) ^ totient n < (cyclotomic n ℝ).eval q :=
 begin
   have hn : 0 < n := pos_of_gt hn',
@@ -318,8 +318,20 @@ begin
     exact hex, },
 end
 
+lemma cyclotomic_eval_lt_sub_one_pow_totient (n : ℕ) (q : ℝ) (hn' : 3 ≤ n) (hq' : 1 < q) :
+  (cyclotomic n ℝ).eval q < (q - 1) ^ totient n :=
+sorry -- similar proof, todo is it possible to combine both proofs?
+
 lemma sub_one_lt_nat_abs_cyclotomic_eval (n : ℕ) (q : ℕ) (hn' : 1 < n) (hq' : q ≠ 1) :
   q - 1 < ((cyclotomic n ℤ).eval ↑q).nat_abs :=
-sorry
+begin
+  rcases q with _ | _ | q,
+  { sorry, }, -- should follow from irred?
+  { sorry, }, -- should follow from irred?
+  have := sub_one_pow_totient_lt_cyclotomic_eval n (q + 2) (by linarith) (by norm_cast; linarith),
+  norm_num at *,
+  norm_cast at this,
+  sorry,
+end
 
 end polynomial

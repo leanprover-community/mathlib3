@@ -188,12 +188,22 @@ instance : has_neg (centroid_hom α) :=
 ⟩⟩
 
 instance : has_sub (centroid_hom α) :=
-⟨λ f g, ⟨f.to_add_monoid_hom - g.to_add_monoid_hom, sorry, sorry⟩⟩
+⟨λ f g, ⟨f.to_add_monoid_hom - g.to_add_monoid_hom, λ a b, begin
+    change _ - _ = _,
+    convert (mul_sub _ _ _).symm,
+    { exact f.map_mul_left' _ _ },
+    { exact g.map_mul_left' _ _ }
+  end, λ a b, begin
+    change _ - _ = _,
+    convert (sub_mul _ _ _).symm,
+    { exact f.map_mul_right' _ _ },
+    { exact g.map_mul_right' _ _ }
+  end⟩⟩
 
 instance : add_comm_group (centroid_hom α) :=
-{ neg := (-),
-  add_left_neg := by intros; ext; apply add_left_neg,
-  ..centroid_hom.add_comm_monoid }
+{ sub_eq_add_neg := λ _ _, ext $ λ _, sub_eq_add_neg _ _,
+  add_left_neg := λ _, ext $ λ _, add_left_neg _,
+  ..centroid_hom.add_comm_monoid, ..centroid_hom.has_neg, ..centroid_hom.has_sub }
 
 instance  : ring (centroid_hom α) :=
 { ..centroid_hom.semiring, ..centroid_hom.add_comm_group }
@@ -210,23 +220,15 @@ section non_unital_ring
 variables [non_unital_ring α]
 
 -- https://msp.org/pjm/1975/60-1/pjm-v60-n1-p06-s.pdf
-/-- A prime associative ring has commutative centroid -/
-def prime_centroid_commutative (h: ∀ a b : α, (∀ r : α, a * r * b = 0) → a = 0 ∨ b = 0) :
+/-- A prime associative ring has commutative centroid. -/
+@[reducible] -- See note [reducible non instances]
+def centroid_hom.comm_ring (h: ∀ a b : α, (∀ r : α, a * r * b = 0) → a = 0 ∨ b = 0) :
   comm_ring (centroid_hom α) :=
 { mul_comm := λ f g, begin
-    rw ← sub_eq_zero,
-    have h' : ∀ a : α, (∀ r : α, a * r * a = 0) → a = 0 := begin
-      intros a h'',
-      rw ← or_self (a=0),
-      apply h a a,
-      exact h'',
-    end,
     ext,
-    rw zero_apply,
-    apply h' ((f * g - g * f) a),
-    intro,
-    rw [mul_assoc, sub_apply, sub_mul, sub_eq_zero, ← map_mul_right, ← map_mul_right, coe_mul,
-      coe_mul, comp_mul_comm],
+    refine sub_eq_zero.1 ((or_self _).1 $ h _ _ $ λ r, _),
+    dsimp,
+    sorry, -- sorry, I broke it :(`nonempty α` `is_empty α`
   end,
   ..centroid_hom.ring }
 

@@ -23,7 +23,7 @@ It is naturally endowed with a topology: the Zariski topology.
 
 * `projective_spectrum 𝒜`: The projective spectrum of a graded ring `A`, or equivalently, the set of
   all homogeneous ideals of `A` that is both prime and relevant i.e. not containing irrelevant
-  ideal. Henceforth, we call elements of the projective spectrum *relevant homogeneous prime ideals*.
+  ideal. Henceforth, we call elements of projective spectrum *relevant homogeneous prime ideals*.
 * `projective_spectrum.zero_locus 𝒜 s`: The zero locus of a subset `s` of `A`
   is the subset of `projective_spectrum 𝒜` consisting of all relevant homogeneous prime ideals that
   contain `s`.

@@ -62,7 +62,7 @@ noncomputable theory
 open filter
 open_locale topological_space
 
-variables {α 𝕜 R E F M : Type*}
+variables {α 𝕜 𝕝 R E F M : Type*}
 
 section weak_topology
 
@@ -74,6 +74,17 @@ def weak_bilin [comm_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] [add_com
 
 instance [comm_semiring 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_monoid F]
   [module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : add_comm_group (weak_bilin B) :=
+by { dunfold weak_bilin, apply_instance }
+
+instance module_weak_bilin [comm_semiring 𝕜] [comm_semiring 𝕝] [add_comm_group E] [module 𝕜 E]
+  [add_comm_group F] [module 𝕜 F] [has_scalar 𝕝 𝕜] [module 𝕝 E] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
+  module 𝕝 (weak_bilin B) :=
+by { dunfold weak_bilin, apply_instance }
+
+instance scalar_tower_weak_bilin [comm_semiring 𝕜] [comm_semiring 𝕝] [add_comm_group E] [module 𝕜 E]
+  [add_comm_group F] [module 𝕜 F] [has_scalar 𝕝 𝕜] [module 𝕝 E] [is_scalar_tower 𝕝 𝕜 E]
+  (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
+  is_scalar_tower 𝕝 𝕜 (weak_bilin B) :=
 by { dunfold weak_bilin, apply_instance }
 
 section semiring
@@ -192,7 +203,7 @@ continuous_linear_map.distrib_mul_action
 
 /-- If `𝕜` is a topological module over a semiring `R` and scalar multiplication commutes with the
 multiplication on `𝕜`, then `weak_dual 𝕜 E` is a module over `R`. -/
-instance R_module (R) [semiring R] [module R 𝕜] [smul_comm_class 𝕜 R 𝕜]
+instance weak_dual_module (R) [semiring R] [module R 𝕜] [smul_comm_class 𝕜 R 𝕜]
   [has_continuous_const_smul R 𝕜] :
   module R (weak_dual 𝕜 E) :=
 continuous_linear_map.module

@@ -135,20 +135,6 @@ instance : seminorm.with_seminorms
   (linear_map.to_seminorm_family B : F → seminorm 𝕜 (weak_bilin B)) :=
 seminorm.with_seminorms_of_has_basis _ (has_basis_weak_bilin _)
 
-variables [has_scalar ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
-
--- todo: it should be possible to this in more generality in `topology.algebra.module.weak_dual`
-instance module_ℝ [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F]
-  [module 𝕜 F] [has_scalar ℝ 𝕜] [module ℝ E] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
-  module ℝ (weak_bilin B) :=
-by { dunfold weak_bilin, apply_instance }
-
-instance scalar_tower_ℝ [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F]
-  [module 𝕜 F] [has_scalar ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
-  is_scalar_tower ℝ 𝕜 (weak_bilin B) :=
-by { dunfold weak_bilin, apply_instance }
-
-
 end topology
 
 section locally_convex
@@ -156,8 +142,7 @@ section locally_convex
 -- todo: fix stuff in `analysis.seminorm` so that `normed_linear_ordered_field` is not used.
 variables [normed_linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F]
   [module 𝕜 F]
-variables [nonempty ι]
-variables [normed_space ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
+variables [nonempty ι] [normed_space ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
 variables {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜}
 
 lemma weak_bilin.to_locally_convex_space' :

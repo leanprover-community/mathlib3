@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Johan Commelin
 -/
 
-import topology.opens
+import topology.sets.opens
 import ring_theory.graded_algebra.homogeneous_ideal
 
 /-!

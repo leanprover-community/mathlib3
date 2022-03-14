@@ -215,6 +215,10 @@ begin
   { simp [*], },
 end
 
+lemma helper {C R : Type*} (q : R) (n : ℕ) [ring C] [ring R] (f : R →+* C) :
+  eval (f q) (cyclotomic n C) = f (eval q (cyclotomic n R)) :=
+by rw [← map_cyclotomic n f, eval_map, eval₂_at_apply]
+
 lemma sub_one_pow_totient_lt_cyclotomic_eval (n : ℕ) (q : ℝ) (hn' : 2 ≤ n) (hq' : 1 < q) :
   (q - 1) ^ totient n < (cyclotomic n ℝ).eval q :=
 begin
@@ -275,13 +279,9 @@ begin
       linarith, },
     { subst this,
       linarith, }, }, --fixme
-  have helper : eval ↑q (cyclotomic n ℂ) = ↑(eval q (cyclotomic n ℝ)), -- TODO this could be a general lemma
-  { rw [← map_cyclotomic n (algebra_map ℝ ℂ), eval_map],
-    erw eval₂_at_apply,
-    refl, },
   have : ¬eval ↑q (cyclotomic n ℂ) = 0, -- this is also a general lemma
-  { rw helper,
-    norm_cast,
+  { erw helper q n (algebra_map ℝ ℂ),
+    simp only [complex.coe_algebra_map, complex.of_real_eq_zero],
     exact (cyclotomic_pos' n hq').ne.symm, },
   suffices : (units.mk0 (q - 1) (by linarith)) ^ totient n
              < units.mk0 (∥(cyclotomic n ℂ).eval q∥) (by simp [this]),
@@ -289,8 +289,7 @@ begin
     norm_cast at this,
     convert this;
     simp only [units.coe_mk0, units.coe_pow],
-    rw [helper, complex.abs_of_nonneg],
-    exact cyclotomic_nonneg n hq'.le, },
+    erw [helper, complex.abs_of_nonneg (cyclotomic_nonneg n hq'.le)], },
   suffices : (units.mk0 (real.to_nnreal (q - 1)) (by simp [hq'])) ^ totient n
               < units.mk0 (∥(cyclotomic n ℂ).eval q∥₊) (by simp [this]),
   { norm_cast at this,
@@ -328,10 +327,23 @@ begin
   rcases q with _ | _ | q,
   { sorry, }, -- should follow from irred?
   { sorry, }, -- should follow from irred?
-  have := sub_one_pow_totient_lt_cyclotomic_eval n (q + 2) (by linarith) (by norm_cast; linarith),
-  norm_num at *,
-  norm_cast at this,
-  sorry,
+  suffices : (q.succ : ℝ) < (eval (↑q + 1 + 1) (cyclotomic n ℤ)).nat_abs,
+  { exact_mod_cast this, },
+  calc _ ≤ ((q + 2 - 1) ^ n.totient : ℝ) : _
+    ...  < _ : _,
+  { norm_num,
+    convert pow_mono (by simp : 1 ≤ (q : ℝ) + 1) (totient_pos (pos_of_gt hn') : 1 ≤ n.totient),
+    { simp, },
+    { ring, }, },
+  convert sub_one_pow_totient_lt_cyclotomic_eval n (q + 2) (by linarith) (by norm_cast; linarith),
+  norm_cast,
+  erw helper (q + 2 : ℤ) n (algebra_map ℤ ℝ),
+  simp only [int.coe_nat_succ, ring_hom.eq_int_cast],
+  norm_cast,
+  rw int.coe_nat_abs_eq_normalize,
+  rw int.normalize_of_nonneg,
+  simp only [int.coe_nat_succ],
+  exact cyclotomic_nonneg n (by linarith),
 end
 
 end polynomial

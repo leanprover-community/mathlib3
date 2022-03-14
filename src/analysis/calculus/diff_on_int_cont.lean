@@ -6,6 +6,11 @@ Authors: Yury G. Kudryashov
 import analysis.calculus.deriv
 
 /-!
+# Functions continuous on a domain and differentiable on its interior
+
+Many theorems in complex analysis assume that a function is continuous on a domain and is complex
+differentiable on its interior. In this file we define a predicate `diff_on_int_cont` that expresses
+this property and prove basic facts about this predicate.
 -/
 
 open set filter metric
@@ -15,6 +20,8 @@ variables (𝕜 : Type*) {E F G : Type*} [nondiscrete_normed_field 𝕜] [normed
   [normed_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_group G] [normed_space 𝕜 G]
   {f g : E → F} {s t : set E} {x : E}
 
+/-- A predicate saying that a function is continuous on a set and is differentiable on its interior.
+This assumption naturally appears in many theorems in complex analysis. -/
 @[protect_proj] structure diff_on_int_cont (f : E → F) (s : set E) : Prop :=
 (differentiable_on : differentiable_on 𝕜 f (interior s))
 (continuous_on : continuous_on f s)
@@ -117,7 +124,7 @@ lemma smul {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜
 ⟨hc.1.smul hf.1, hc.2.smul hf.2⟩
 
 lemma smul_const {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
-  [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F] {c : E → 𝕜'} {f : E → F} {s : set E}
+  [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F] {c : E → 𝕜'} {s : set E}
   (hc : diff_on_int_cont 𝕜 c s) (y : F) :
   diff_on_int_cont 𝕜 (λ x, c x • y) s :=
 hc.smul diff_on_int_cont_const

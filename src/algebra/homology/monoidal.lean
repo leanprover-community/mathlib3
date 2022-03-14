@@ -90,9 +90,24 @@ def associator_hom (X Y Z : cochain_complex C ℕ) :
   comm' := begin
     intros, ext ⟨⟨p₁, p₂⟩, ph⟩ ⟨⟨q₁, q₂⟩, qh⟩,
     dsimp [biproduct.matrix],
-    simp [preadditive.sum_comp],
+    simp only [biproduct.ι_desc_assoc, biproduct.lift_desc, category.assoc, finset.sum_congr],
+    simp only [preadditive.comp_sum, preadditive.sum_comp,
+      biproduct.lift_π_assoc, biproduct.lift_π, biproduct.ι_desc_assoc,
+      category.assoc, finset.sum_congr],
+    simp only [associator_hom_aux, comp_dite, dite_comp],
+    simp only [and_congr,
+ dif_ctx_congr,
+ category_theory.category.assoc,
+ category_theory.limits.comp_zero,
+ category_theory.limits.zero_comp,
+ finset.sum_congr,
+ subtype.val_eq_coe],
+ -- Need to work on those `dite`, simplifying the conditions using antidiagonal.
+    -- split_ifs,
+    -- simp?,
+    -- simp [preadditive.sum_comp],
   end, }
-
+#exit
 def associator_inv_aux (X Y Z : ℕ → C) (i : ℕ)
   (p q : antidiagonal i) (j : antidiagonal p.1.2) (k : antidiagonal q.1.1) :
     X p.1.1 ⊗ (Y j.1.1 ⊗ Z j.1.2) ⟶ (X k.1.1 ⊗ Y k.1.2) ⊗ Z q.1.2 :=

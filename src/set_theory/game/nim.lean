@@ -191,8 +191,6 @@ by rw [(equiv_iff_grundy_value_eq 0 (nim 0)).1 (equiv_symm nim.zero_first_loses)
 lemma equiv_zero_iff_grundy_value (G : pgame) [G.impartial] : G ≈ 0 ↔ grundy_value G = 0 :=
 by rw [equiv_iff_grundy_value_eq, grundy_value_zero]
 
-set_option pp.universes true
-
 lemma grundy_value_nim_add_nim (n m : ℕ) : grundy_value (nim.{u} n + nim.{u} m) = nat.lxor n m :=
 begin
   induction n using nat.strong_induction_on with n hn generalizing m,

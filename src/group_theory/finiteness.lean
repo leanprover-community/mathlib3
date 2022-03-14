@@ -254,7 +254,7 @@ end group
 
 section quotient_group
 
-@[to_additive] lemma quotient_group.fg [hG : group.fg G] (N : subgroup G) [subgroup.normal N] :
+@[to_additive] instance quotient_group.fg [hG : group.fg G] (N : subgroup G) [subgroup.normal N] :
   group.fg $ G ⧸ N :=
 let S := group.fg_iff.mp hG in group.fg_iff.mpr ⟨_,
 (subgroup.eq_top_iff' _).mpr $ λ g, subgroup.mem_closure.mpr $ λ H hH,

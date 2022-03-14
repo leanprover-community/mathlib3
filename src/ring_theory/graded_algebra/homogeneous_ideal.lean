@@ -210,15 +210,6 @@ lemma inf {I J : ideal A} (HI : I.is_homogeneous 𝒜) (HJ : J.is_homogeneous �
   (I ⊓ J).is_homogeneous 𝒜 :=
 λ i r hr, ⟨HI _ hr.1, HJ _ hr.2⟩
 
-lemma Inf {ℐ : set (ideal A)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous 𝒜 I) :
-  (Inf ℐ).is_homogeneous 𝒜 :=
-begin
-  intros i x Hx,
-  simp only [ideal.mem_Inf] at Hx ⊢,
-  intros J HJ,
-  exact h _ HJ _ (Hx HJ),
-end
-
 lemma sup {I J : ideal A} (HI : I.is_homogeneous 𝒜) (HJ : J.is_homogeneous 𝒜) :
   (I ⊔ J).is_homogeneous 𝒜 :=
 begin
@@ -229,15 +220,42 @@ begin
   exact (submodule.span_union _ _).symm,
 end
 
-lemma Sup {ℐ : set (ideal A)} (Hℐ : ∀ (I ∈ ℐ), ideal.is_homogeneous 𝒜 I) :
-  (Sup ℐ).is_homogeneous 𝒜 :=
+protected lemma supr {κ : Sort*} {f : κ → ideal A} (h : ∀ i, (f i).is_homogeneous 𝒜) :
+  (⨆ i, f i).is_homogeneous 𝒜 :=
 begin
-  simp_rw iff_exists at Hℐ ⊢,
-  choose 𝓈 h𝓈 using Hℐ,
-  refine ⟨⋃ I hI, 𝓈 I hI, _⟩,
-  simp_rw [set.image_Union, ideal.span_Union, Sup_eq_supr],
-  conv in (ideal.span _) { rw ←h𝓈 i x },
+  simp_rw iff_exists at h ⊢,
+  choose s hs using h,
+  refine ⟨⋃ i, s i, _⟩,
+  simp_rw [set.image_Union, ideal.span_Union],
+  congr',
+  exact funext hs,
 end
+
+protected lemma infi {κ : Sort*} {f : κ → ideal A} (h : ∀ i, (f i).is_homogeneous 𝒜) :
+  (⨅ i, f i).is_homogeneous 𝒜 :=
+begin
+  intros i x hx,
+  simp only [ideal.mem_infi] at ⊢ hx,
+  exact λ j, h _ _ (hx j),
+end
+
+lemma supr₂ {κ : Sort*} {κ' : κ → Sort*} {f : Π i, κ' i → ideal A}
+  (h : ∀ i j, (f i j).is_homogeneous 𝒜) :
+  (⨆ i j, f i j).is_homogeneous 𝒜 :=
+is_homogeneous.supr $ λ i, is_homogeneous.supr $ h i
+
+lemma infi₂ {κ : Sort*} {κ' : κ → Sort*} {f : Π i, κ' i → ideal A}
+  (h : ∀ i j, (f i j).is_homogeneous 𝒜) :
+  (⨅ i j, f i j).is_homogeneous 𝒜 :=
+is_homogeneous.infi $ λ i, is_homogeneous.infi $ h i
+
+lemma Sup {ℐ : set (ideal A)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous 𝒜 I) :
+  (Sup ℐ).is_homogeneous 𝒜 :=
+by { rw Sup_eq_supr, exact supr₂ h }
+
+lemma Inf {ℐ : set (ideal A)} (h : ∀ I ∈ ℐ, ideal.is_homogeneous 𝒜 I) :
+  (Inf ℐ).is_homogeneous 𝒜 :=
+by { rw Inf_eq_infi, exact infi₂ h }
 
 end ideal.is_homogeneous
 
@@ -248,51 +266,40 @@ namespace homogeneous_ideal
 instance : partial_order (homogeneous_ideal 𝒜) :=
 partial_order.lift _ subtype.coe_injective
 
-instance : has_bot (homogeneous_ideal 𝒜) :=
-⟨⟨⊥, ideal.is_homogeneous.bot 𝒜⟩⟩
-
-@[simp] lemma coe_bot : ↑(⊥ : homogeneous_ideal 𝒜) = (⊥ : ideal A) := rfl
-
-@[simp] lemma eq_bot_iff (I : homogeneous_ideal 𝒜) : I = ⊥ ↔ (I : ideal A) = ⊥ :=
-subtype.ext_iff
-
-instance : has_top (homogeneous_ideal 𝒜) :=
-⟨⟨⊤, ideal.is_homogeneous.top 𝒜⟩⟩
-
-@[simp] lemma coe_top : ↑(⊤ : homogeneous_ideal 𝒜) = (⊤ : ideal A) := rfl
-
-@[simp] lemma eq_top_iff (I : homogeneous_ideal 𝒜) : I = ⊤ ↔ (I : ideal A) = ⊤ :=
-subtype.ext_iff
-
-instance : has_inf (homogeneous_ideal 𝒜) :=
-{ inf := λ I J, ⟨I ⊓ J, I.prop.inf J.prop⟩ }
-
-@[simp] lemma coe_inf (I J : homogeneous_ideal 𝒜) : ↑(I ⊓ J) = (I ⊓ J : ideal A) := rfl
-
-instance : has_Inf (homogeneous_ideal 𝒜) :=
-{ Inf := λ ℐ, ⟨Inf (coe '' ℐ), ideal.is_homogeneous.Inf $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
-
-@[simp] lemma coe_Inf (ℐ : set (homogeneous_ideal 𝒜)) : ↑(Inf ℐ) = (Inf (coe '' ℐ) : ideal A) :=
-rfl
-
-@[simp] lemma coe_infi {ι' : Sort*} (s : ι' → homogeneous_ideal 𝒜) :
-  ↑(⨅ i, s i) = ⨅ i, (s i : ideal A) :=
-by rw [infi, infi, coe_Inf, ←set.range_comp]
-
-instance : has_sup (homogeneous_ideal 𝒜) :=
-{ sup := λ I J, ⟨I ⊔ J, I.prop.sup J.prop⟩ }
-
-@[simp] lemma coe_sup (I J : homogeneous_ideal 𝒜) : ↑(I ⊔ J) = (I ⊔ J : ideal A) := rfl
-
+instance : has_top (homogeneous_ideal 𝒜) := ⟨⟨⊤, ideal.is_homogeneous.top 𝒜⟩⟩
+instance : has_bot (homogeneous_ideal 𝒜) := ⟨⟨⊥, ideal.is_homogeneous.bot 𝒜⟩⟩
+instance : has_sup (homogeneous_ideal 𝒜) := ⟨λ I J, ⟨I ⊔ J, I.prop.sup J.prop⟩⟩
+instance : has_inf (homogeneous_ideal 𝒜) := ⟨λ I J, ⟨I ⊓ J, I.prop.inf J.prop⟩⟩
 instance : has_Sup (homogeneous_ideal 𝒜) :=
-{ Sup := λ ℐ, ⟨Sup (coe '' ℐ), ideal.is_homogeneous.Sup $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
+⟨λ S, ⟨⨆ s ∈ S, ↑s, ideal.is_homogeneous.supr₂ $ λ s _, s.prop⟩⟩
+instance : has_Inf (homogeneous_ideal 𝒜) :=
+⟨λ S, ⟨⨅ s ∈ S, ↑s, ideal.is_homogeneous.infi₂ $ λ s _, s.prop⟩⟩
 
-@[simp] lemma coe_Sup (ℐ : set (homogeneous_ideal 𝒜)) : ↑(Sup ℐ) = (Sup (coe '' ℐ) : ideal A) :=
-rfl
+@[simp] lemma coe_top : ((⊤ : homogeneous_ideal 𝒜) : ideal A) = ⊤ := rfl
+@[simp] lemma coe_bot : ((⊥ : homogeneous_ideal 𝒜) : ideal A) = ⊥ := rfl
+@[simp] lemma coe_sup (I J : homogeneous_ideal 𝒜) : ↑(I ⊔ J) = (I ⊔ J : ideal A) := rfl
+@[simp] lemma coe_inf (I J : homogeneous_ideal 𝒜) : (↑(I ⊓ J) : ideal A) = I ⊓ J  := rfl
+@[simp] lemma coe_Sup (ℐ : set (homogeneous_ideal 𝒜)) : ↑(Sup ℐ) = ⨆ s ∈ ℐ, (s : ideal A) := rfl
+@[simp] lemma coe_Inf (ℐ : set (homogeneous_ideal 𝒜)) : ↑(Inf ℐ) = ⨅ s ∈ ℐ, (s : ideal A) := rfl
 
-@[simp] lemma coe_supr {ι' : Sort*} (s : ι' → homogeneous_ideal 𝒜) :
+@[simp] lemma coe_supr {κ : Sort*} (s : κ → homogeneous_ideal 𝒜) :
   ↑(⨆ i, s i) = ⨆ i, (s i : ideal A) :=
-by rw [supr, supr, coe_Sup, ←set.range_comp]
+by rw [supr, coe_Sup, supr_range]
+
+@[simp] lemma coe_infi {κ : Sort*} (s : κ → homogeneous_ideal 𝒜) :
+  ↑(⨅ i, s i) = ⨅ i, (s i : ideal A) :=
+by rw [infi, coe_Inf, infi_range]
+
+@[simp] lemma coe_supr₂ {κ : Sort*} {κ' : κ → Sort*} (s : Π i, κ' i → homogeneous_ideal 𝒜) :
+  ↑(⨆ i j, s i j) = ⨆ i j, (s i j : ideal A) :=
+by simp_rw coe_supr
+
+@[simp] lemma coe_infi₂ {κ : Sort*} {κ' : κ → Sort*} (s : Π i, κ' i → homogeneous_ideal 𝒜) :
+  ↑(⨅ i j, s i j) = ⨅ i j, (s i j : ideal A) :=
+by simp_rw coe_infi
+
+@[simp] lemma eq_top_iff (I : homogeneous_ideal 𝒜) : I = ⊤ ↔ (I : ideal A) = ⊤ := subtype.ext_iff
+@[simp] lemma eq_bot_iff (I : homogeneous_ideal 𝒜) : I = ⊥ ↔ (I : ideal A) = ⊥ := subtype.ext_iff
 
 instance : complete_lattice (homogeneous_ideal 𝒜) :=
 subtype.coe_injective.complete_lattice _ coe_sup coe_inf coe_Sup coe_Inf coe_top coe_bot

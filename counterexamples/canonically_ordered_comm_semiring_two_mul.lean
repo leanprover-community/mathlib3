@@ -193,9 +193,6 @@ def L_subsemiring : subsemiring (ℕ × zmod 2) :=
   add_mem' := λ _ _, add_L,
   mul_mem' := λ _ _, mul_L }
 
-instance : add_monoid_with_one L :=
-function.injective.add_monoid_with_one _ subtype.coe_injective rfl (by rintros ⟨⟩ ⟨⟩; refl)
-
 instance : ordered_comm_semiring L :=
 L_subsemiring.to_ordered_comm_semiring
 

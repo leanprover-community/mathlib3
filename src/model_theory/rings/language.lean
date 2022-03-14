@@ -46,8 +46,8 @@ instance : inhabited (functions 0) := ⟨ consts.zero ⟩
 
 /-- The language of rings -/
 @[simps] def L : language.{u v} :=
-{ functions := functions,
-  relations := λ n, pempty }
+{ functions := functions.{u},
+  relations := λ n, pempty.{v} }
 
 instance : is_algebraic L := { empty_relations :=
 λ n, by {simp, apply_instance} }

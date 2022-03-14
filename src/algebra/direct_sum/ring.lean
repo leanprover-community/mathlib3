@@ -375,9 +375,13 @@ variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gsemiring A]
 
 /-- The `semiring` structure derived from `gsemiring A`. -/
 instance grade_zero.semiring : semiring (A 0) :=
-function.injective.semiring' (of A 0) dfinsupp.single_injective
-  (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
-  (λ x n, dfinsupp.single_smul n x) (λ x n, of_zero_pow _ _ _)
+begin
+  letI := function.injective.add_monoid_with_one (of A 0) dfinsupp.single_injective
+    (of A 0).map_zero (of A 0).map_add (of A 0).map_nsmul,
+  exact function.injective.semiring (of A 0) dfinsupp.single_injective
+    (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
+    (of A 0).map_nsmul (λ x n, of_zero_pow _ _ _)
+end
 
 /-- `of A 0` is a `ring_hom`, using the `direct_sum.grade_zero.semiring` structure. -/
 def of_zero_ring_hom : A 0 →+* (⨁ i, A i) :=

@@ -175,19 +175,6 @@ protected def function.injective.semiring
   .. hf.monoid_with_zero f zero one mul npow, .. hf.add_comm_monoid f zero add nsmul,
   .. hf.distrib f add mul }
 
-/-- Pullback a `semiring` instance along an injective function.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def function.injective.semiring'
-  {α : Type u} [semiring α]
-  {β : Type v} [has_zero β] [has_one β] [has_add β] [has_mul β] [has_scalar ℕ β] [has_pow β ℕ]
-  (f : β → α) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
-  semiring β :=
-by letI := hf.add_monoid_with_one f zero add nsmul; exact
-hf.semiring f zero one add mul nsmul npow
-
 /-- Pushforward a `non_unital_non_assoc_semiring` instance along a surjective function.
 See note [reducible non-instances]. -/
 @[reducible]

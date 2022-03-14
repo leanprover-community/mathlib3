@@ -1281,8 +1281,7 @@ begin
 end
 
 /-- The least strict upper bound of a family of ordinals indexed by the set of ordinals less than
-    some `o : ordinal.{u}`. This is a special case of `lsub` over the family provided by
-    `family_of_bfamily`.-/
+    some `o : ordinal.{u}`. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
 

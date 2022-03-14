@@ -344,8 +344,7 @@ end
 lemma cyclotomic.monic (n : ℕ) (R : Type*) [ring R] : (cyclotomic n R).monic :=
 begin
   rw ←map_cyclotomic_int,
-  apply monic_map,
-  exact (int_cyclotomic_spec n).2.2
+  exact (int_cyclotomic_spec n).2.2.map _,
 end
 
 /-- `cyclotomic n` is primitive. -/
@@ -354,7 +353,7 @@ lemma cyclotomic.is_primitive (n : ℕ) (R : Type*) [comm_ring R] : (cyclotomic 
 
 /-- `cyclotomic n R` is different from `0`. -/
 lemma cyclotomic_ne_zero (n : ℕ) (R : Type*) [ring R] [nontrivial R] : cyclotomic n R ≠ 0 :=
-monic.ne_zero (cyclotomic.monic n R)
+(cyclotomic.monic n R).ne_zero
 
 /-- The degree of `cyclotomic n` is `totient n`. -/
 lemma degree_cyclotomic (n : ℕ) (R : Type*) [ring R] [nontrivial R] :
@@ -895,7 +894,7 @@ begin
   haveI := ne_zero.of_pos hnpos,
   suffices : expand ℤ p (cyclotomic n ℤ) = (cyclotomic (n * p) ℤ) * (cyclotomic n ℤ),
   { rw [← map_cyclotomic_int, ← map_expand, this, map_mul, map_cyclotomic_int] },
-  refine eq_of_monic_of_dvd_of_nat_degree_le (monic_mul (cyclotomic.monic _ _)
+  refine eq_of_monic_of_dvd_of_nat_degree_le ((cyclotomic.monic _ _).mul
     (cyclotomic.monic _ _)) ((cyclotomic.monic n ℤ).expand hp.pos) _ _,
   { refine (is_primitive.int.dvd_iff_map_cast_dvd_map_cast _ _ (is_primitive.mul
       (cyclotomic.is_primitive (n * p) ℤ) (cyclotomic.is_primitive n ℤ))

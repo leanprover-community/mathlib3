@@ -5,6 +5,7 @@ Authors: Simon Hudon, Patrick Massot
 -/
 import data.pi
 import data.set.function
+import data.set.pairwise
 import tactic.pi_instances
 import algebra.group.hom_instances
 
@@ -43,7 +44,7 @@ by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, (x i) ^
 tactic.pi_instance_derive_field
 
 -- the attributes are intentionally out of order. `smul_apply` proves `nsmul_apply`.
-@[to_additive nsmul_apply, simp]
+@[to_additive, simp]
 lemma pow_apply [∀ i, monoid $ f i] (n : ℕ) : (x^n) i = (x i)^n := rfl
 
 @[to_additive]
@@ -242,6 +243,31 @@ lemma pi.single_div [Π i, group $ f i] (i : I) (x y : f i) :
 lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
 (mul_hom.single f i).map_mul x y
+
+/-- The injection into a pi group at different indices commutes.
+
+For injections of commuting elements at the same index, see `commute.map` -/
+@[to_additive "The injection into an additive pi group at different indices commutes.
+
+For injections of commuting elements at the same index, see `add_commute.map`"]
+lemma pi.mul_single_commute [Π i, mul_one_class $ f i] :
+  pairwise (λ i j, ∀ (x : f i) (y : f j), commute (mul_single i x) (mul_single j y)) :=
+begin
+  intros i j hij x y, ext k,
+  by_cases h1 : i = k, { subst h1, simp [hij], },
+  by_cases h2 : j = k, { subst h2, simp [hij], },
+  simp [h1,  h2],
+end
+
+/-- The injection into a pi group with the same values commutes. -/
+@[to_additive "The injection into an additive pi group with the same values commutes."]
+lemma pi.mul_single_apply_commute [Π i, mul_one_class $ f i] (x : Π i, f i) (i j : I) :
+  commute (mul_single i (x i)) (mul_single j (x j)) :=
+begin
+  obtain rfl | hij := decidable.eq_or_ne i j,
+  { refl },
+  { exact pi.mul_single_commute _ _ hij _ _, },
+end
 
 @[to_additive update_eq_sub_add_single]
 lemma pi.update_eq_div_mul_single [Π i, group $ f i] (g : Π (i : I), f i) (x : f i) :

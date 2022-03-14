@@ -1,9 +1,12 @@
 /-
 Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Markus Himmel
+Authors: Markus Himmel, Adam Topaz, Johan Commelin
 -/
-import category_theory.abelian.basic
+import category_theory.abelian.opposite
+import category_theory.limits.preserves.shapes.zero
+import category_theory.limits.preserves.shapes.kernels
+import category_theory.adjunction.limits
 import algebra.homology.exact
 import tactic.tfae
 
@@ -105,6 +108,16 @@ begin
   tfae_have : 1 ↔ 2, { apply exact_iff },
   tfae_have : 1 ↔ 3, { apply exact_iff_image_eq_kernel },
   tfae_finish
+end
+
+lemma is_equivalence.exact_iff {D : Type u₁} [category.{v₁} D] [abelian D]
+  (F : C ⥤ D) [is_equivalence F] :
+  exact (F.map f) (F.map g) ↔ exact f g :=
+begin
+  simp only [exact_iff, ← F.map_eq_zero_iff, F.map_comp, category.assoc,
+    ← kernel_comparison_comp_ι g F, ← π_comp_cokernel_comparison f F],
+  rw [is_iso.comp_left_eq_zero (kernel_comparison g F), ← category.assoc,
+    is_iso.comp_right_eq_zero _ (cokernel_comparison f F)],
 end
 
 /-- If `(f, g)` is exact, then `images.image.ι f` is a kernel of `g`. -/
@@ -225,6 +238,36 @@ lemma epi_iff_cokernel_π_eq_zero : epi f ↔ cokernel.π f = 0 :=
 
 end
 
+section opposite
+
+instance exact.op [exact f g] : exact g.op f.op :=
+begin
+  rw exact_iff,
+  refine ⟨by simp [← op_comp], _⟩,
+  apply_fun quiver.hom.unop using quiver.hom.unop_inj,
+  simp only [unop_comp, cokernel.π_op, eq_to_hom_refl, kernel.ι_op, category.id_comp,
+    category.assoc, kernel_comp_cokernel_assoc, zero_comp, comp_zero, unop_zero],
+end
+
+lemma exact.op_iff : exact g.op f.op ↔ exact f g :=
+⟨λ e, begin
+  rw ← is_equivalence.exact_iff _ _ (op_op_equivalence C).inverse,
+  dsimp, resetI, apply_instance,
+end, λ e, @@exact.op _ _ _ _ e⟩
+
+
+instance exact.unop {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) [h : exact g f] : exact f.unop g.unop :=
+begin
+  rw [← f.op_unop, ← g.op_unop] at h,
+  rwa ← exact.op_iff,
+end
+
+lemma exact.unop_iff {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) : exact f.unop g.unop ↔ exact g f :=
+⟨λ e, by rwa [← f.op_unop, ← g.op_unop, ← exact.op_iff] at e, λ e, @@exact.unop _ _ g f e⟩
+
+end opposite
+
+
 end abelian
 
 namespace functor
@@ -237,8 +280,10 @@ instance reflects_exact_sequences_of_preserves_zero_morphisms_of_faithful (F : C
   begin
     rw [abelian.exact_iff, ← F.map_comp, F.map_eq_zero_iff] at hfg,
     refine (abelian.exact_iff _ _).2 ⟨hfg.1, F.zero_of_map_zero _ _⟩,
-    obtain ⟨k, hk⟩ := kernel.lift' (F.map g) (F.map (kernel.ι g)) (by simp [← F.map_comp]),
-    obtain ⟨l, hl⟩ := cokernel.desc' (F.map f) (F.map (cokernel.π f)) (by simp [← F.map_comp]),
+    obtain ⟨k, hk⟩ := kernel.lift' (F.map g) (F.map (kernel.ι g))
+      (by simp only [← F.map_comp, kernel.condition, category_theory.functor.map_zero]),
+    obtain ⟨l, hl⟩ := cokernel.desc' (F.map f) (F.map (cokernel.π f))
+      (by simp only [← F.map_comp, cokernel.condition, category_theory.functor.map_zero]),
     rw [F.map_comp, ← hk, ← hl, category.assoc, reassoc_of hfg.2, zero_comp, comp_zero]
   end }
 

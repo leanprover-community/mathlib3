@@ -5,7 +5,8 @@ Authors: Aaron Anderson
 -/
 
 import order.closure
-import model_theory.basic
+import model_theory.terms_and_formulas
+import set_theory.cardinal_ordinal
 
 /-!
 # First-Order Substructures
@@ -34,12 +35,15 @@ restrict the domain and codomain respectively of first-order embeddings to subst
 
 -/
 
+universes u v w
+
 namespace first_order
 namespace language
 
-variables {L : language} {M N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
-open_locale first_order
-open Structure
+variables {L : language.{u v}} {M : Type w} {N P : Type*}
+variables [L.Structure M] [L.Structure N] [L.Structure P]
+open_locale first_order cardinal
+open Structure cardinal
 
 section closed_under
 
@@ -107,7 +111,19 @@ protected def copy (S : L.substructure M) (s : set M) (hs : s = S) : L.substruct
 { carrier := s,
   fun_mem := λ n f, hs.symm ▸ (S.fun_mem f) }
 
+end substructure
+
 variable {S : L.substructure M}
+
+lemma term.realize_mem {α : Type*} (t : L.term α) (xs : α → M) (h : ∀ a, xs a ∈ S) :
+  t.realize xs ∈ S :=
+begin
+  induction t with a n f ts ih,
+  { exact h a },
+  { exact substructure.fun_mem _ _ _ ih }
+end
+
+namespace substructure
 
 @[simp] lemma coe_copy {s : set M} (hs : s = S) :
   (S.copy s hs : set M) = s := rfl
@@ -115,7 +131,7 @@ variable {S : L.substructure M}
 lemma copy_eq {s : set M} (hs : s = S) : S.copy s hs = S :=
 set_like.coe_injective hs
 
-lemma constants_mem {c : L.constants} : ↑c ∈ S :=
+lemma constants_mem (c : L.constants) : ↑c ∈ S :=
 mem_carrier.2 (S.fun_mem c _ fin.elim0)
 
 /-- The substructure `M` of the structure `M`. -/
@@ -213,6 +229,38 @@ lemma closure_mono ⦃s t : set M⦄ (h : s ⊆ t) : closure L s ≤ closure L t
 
 lemma closure_eq_of_le (h₁ : s ⊆ S) (h₂ : S ≤ closure L s) : closure L s = S :=
 (closure L).eq_of_le h₁ h₂
+
+lemma coe_closure_eq_range_term_realize :
+  (closure L s : set M) = range (@term.realize L _ _ _ (coe : s → M)) :=
+begin
+  let S : L.substructure M := ⟨range (term.realize coe), λ n f x hx, _⟩,
+  { change _ = (S : set M),
+    rw ← set_like.ext'_iff,
+    refine closure_eq_of_le (λ x hx, ⟨var ⟨x, hx⟩, rfl⟩) (le_Inf (λ S' hS', _)),
+    { rintro _ ⟨t, rfl⟩,
+      exact t.realize_mem _ (λ i, hS' i.2) } },
+  { simp only [mem_range] at *,
+    refine ⟨func f (λ i, (classical.some (hx i))), _⟩,
+    simp only [term.realize, λ i, classical.some_spec (hx i)] }
+end
+
+lemma mem_closure_iff_exists_term {x : M} :
+  x ∈ closure L s ↔ ∃ (t : L.term s), t.realize (coe : s → M) = x :=
+by rw [← set_like.mem_coe, coe_closure_eq_range_term_realize, mem_range]
+
+lemma lift_card_closure_le_card_term : cardinal.lift.{max u w} (# (closure L s)) ≤ # (L.term s) :=
+begin
+  rw [← set_like.coe_sort_coe, coe_closure_eq_range_term_realize],
+  rw [← cardinal.lift_id'.{w (max u w)} (# (L.term s))],
+  exact cardinal.mk_range_le_lift,
+end
+
+theorem lift_card_closure_le : cardinal.lift.{(max u w) w} (# (closure L s)) ≤
+  cardinal.lift.{(max u w) w} (#s) + cardinal.lift.{(max u w) u} (#(Σ i, L.functions i)) + ω :=
+begin
+  refine lift_card_closure_le_card_term.trans (term.card_le.trans _),
+  rw [mk_sum, lift_umax', lift_umax],
+end
 
 variable (S)
 
@@ -488,6 +536,79 @@ def top_equiv : (⊤ : L.substructure M) ≃[L] M  :=
 begin
   refine exists.elim _ (λ (hx : x ∈ closure L s) (hc : p x hx), hc),
   exact closure_induction hx (λ x hx, ⟨subset_closure hx, Hs x hx⟩) @Hfun
+end
+
+end substructure
+
+namespace Lhom
+open substructure
+
+variables {L' : language} [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+include φ
+
+/-- Reduces the language of a substructure along a language hom. -/
+def substructure_reduct : L'.substructure M ↪o L.substructure M :=
+{ to_fun := λ S, { carrier := S,
+    fun_mem := λ n f x hx, begin
+      have h := S.fun_mem (φ.on_function f) x hx,
+      simp only [is_expansion_on.map_on_function, substructure.mem_carrier] at h,
+      exact h,
+    end },
+  inj' := λ S T h, begin
+    simp only [set_like.coe_set_eq] at h,
+    exact h,
+  end,
+  map_rel_iff' := λ S T, iff.rfl }
+
+@[simp] lemma mem_substructure_reduct {x : M} {S : L'.substructure M} :
+  x ∈ φ.substructure_reduct S ↔ x ∈ S := iff.rfl
+
+@[simp] lemma coe_substructure_reduct {S : L'.substructure M} :
+  (φ.substructure_reduct S : set M) = ↑S := rfl
+
+end Lhom
+
+namespace substructure
+
+/-- Turns any substructure containing a constant set `A` into a `L[[A]]`-substructure. -/
+def with_constants (S : L.substructure M) {A : set M} (h : A ⊆ S) : L[[A]].substructure M :=
+{ carrier := S,
+  fun_mem := λ n f, begin
+    cases f,
+    { exact S.fun_mem f },
+    { cases n,
+      { exact λ _ _, h f.2 },
+      { exact pempty.elim f } }
+  end }
+
+variables {A : set M} {s : set M} (h : A ⊆ S)
+
+@[simp] lemma mem_with_constants {x : M} : x ∈ S.with_constants h ↔ x ∈ S := iff.rfl
+
+@[simp] lemma coe_with_constants : (S.with_constants h : set M) = ↑S := rfl
+
+@[simp] lemma reduct_with_constants :
+  (L.Lhom_with_constants A).substructure_reduct (S.with_constants h) = S :=
+by { ext, simp }
+
+lemma subset_closure_with_constants : A ⊆ (closure (L[[A]]) s) :=
+begin
+  intros a ha,
+  simp only [set_like.mem_coe],
+  let a' : (L[[A]]).constants := sum.inr ⟨a, ha⟩,
+  exact constants_mem a',
+end
+
+lemma closure_with_constants_eq : (closure (L[[A]]) s) = (closure L (A ∪ s)).with_constants
+  ((A.subset_union_left s).trans subset_closure) :=
+begin
+  refine closure_eq_of_le ((A.subset_union_right s).trans subset_closure) _,
+  rw ← ((L.Lhom_with_constants A).substructure_reduct).le_iff_le,
+  simp only [subset_closure, reduct_with_constants, closure_le, Lhom.coe_substructure_reduct,
+    set.union_subset_iff, and_true],
+  { exact subset_closure_with_constants },
+  { apply_instance },
+  { apply_instance },
 end
 
 end substructure

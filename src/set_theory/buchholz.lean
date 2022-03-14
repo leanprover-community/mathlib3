@@ -22,7 +22,8 @@ open_locale cardinal
 
 namespace ordinal
 
-/-- The `Ωᵥ` function as defined by Buchholz. -/
+/-- The `Ωᵥ` function as defined by Buchholz. This is such that `Omega 0 = 1` and
+`Omega v = aleph v` otherwise. -/
 def Omega : ℕ → cardinal.{0}
 | 0       := 1
 | (v + 1) := aleph (v + 1)
@@ -53,7 +54,7 @@ end
 
 theorem principal_add_Omega : Π v : ℕ, principal (+) (Omega v).ord
 | 0 := by { rw [Omega_zero, ord_one], exact principal_add_one }
-| (v + 1) := aleph_is_principal_add _
+| (v + 1) := principal_add_aleph _
 
 /-- The type of all Buchholz expressions. These may consist of
 * ordinals less than `Ωᵥ`
@@ -383,11 +384,11 @@ theorem buchholz_def (o : ordinal) (v : ℕ) :
   buchholz o v = mex (@buchholz_exp.value o v (λ a _, buchholz a)) :=
 by rw buchholz_def'
 
-theorem lt_buchholz {o a : ordinal} {v : ℕ} (ha : a < buchholz o v) :
+theorem exists_of_lt_buchholz {o a : ordinal} {v : ℕ} (ha : a < buchholz o v) :
   ∃ e : buchholz_exp o v (λ a _, buchholz a), e.value = a :=
 begin
   rw buchholz_def at ha,
-  exact mem_of_lt_mex ha
+  exact exists_of_lt_mex ha
 end
 
 theorem Omega_le_buchholz (o : ordinal) (v : ℕ) : (Omega v).ord ≤ buchholz o v :=
@@ -406,7 +407,9 @@ end
 
 theorem principal_add_buchholz (o : ordinal) (v : ℕ) : principal (+) (buchholz o v) :=
 begin
-  intros a b,
+  intros a b ha hb,
+  rcases exists_of_lt_buchholz ha with ⟨e₁, rfl⟩,
+  rcases exists_of_lt_buchholz hb with ⟨e₂, rfl⟩,
 end
 
 theorem buchholz_lt_Omega (o : ordinal) (v : ℕ) : buchholz o v < (Omega (v + 1)).ord :=

@@ -8,6 +8,7 @@ import algebra.big_operators.finprod
 import ring_theory.valuation.basic
 import algebra.module.pi
 import ring_theory.power_series.basic
+import data.finsupp.pwo
 
 /-!
 # Hahn Series
@@ -39,7 +40,7 @@ in the file `ring_theory/laurent_series`.
 
 ## TODO
   * Build an API for the variable `X` (defined to be `single 1 1 : hahn_series Γ R`) in analogy to
-    `X : polynomial R` and `X : power_series R`
+    `X : R[X]` and `X : power_series R`
 
 ## References
 - [J. van der Hoeven, *Operators on Generalized Power Series*][van_der_hoeven]
@@ -47,7 +48,7 @@ in the file `ring_theory/laurent_series`.
 -/
 
 open finset function
-open_locale big_operators classical pointwise
+open_locale big_operators classical pointwise polynomial
 noncomputable theory
 
 /-- If `Γ` is linearly ordered and `R` has zero, then `hahn_series Γ R` consists of
@@ -1073,6 +1074,44 @@ begin
   rw [pow_succ, ih, of_power_series_X, mul_comm, single_mul_single, one_mul, nat.cast_succ]
 end
 
+-- Lemmas about converting hahn_series over fintype to and from mv_power_series
+
+/-- The ring `hahn_series (σ →₀ ℕ) R` is isomorphic to `mv_power_series σ R` for a `fintype` `σ`.
+We take the index set of the hahn series to be `finsupp` rather than `pi`,
+even though we assume `fintype σ` as this is more natural for alignment with `mv_power_series`.
+After importing `algebra.order.pi` the ring `hahn_series (σ → ℕ) R` could be constructed instead.
+ -/
+@[simps] def to_mv_power_series {σ : Type*} [fintype σ] :
+  hahn_series (σ →₀ ℕ) R ≃+* mv_power_series σ R :=
+{ to_fun := λ f, f.coeff,
+  inv_fun := λ f, ⟨(f : (σ →₀ ℕ) → R), finsupp.is_pwo _⟩,
+  left_inv := λ f, by { ext, simp },
+  right_inv := λ f, by { ext, simp },
+  map_add' := λ f g, by { ext, simp },
+  map_mul' := λ f g, begin
+    ext n,
+    simp only [mv_power_series.coeff_mul],
+    classical,
+    change (f * g).coeff n = _,
+    simp_rw [mul_coeff],
+    refine sum_filter_ne_zero.symm.trans ((sum_congr _ (λ _ _, rfl)).trans sum_filter_ne_zero),
+    ext m,
+    simp only [and.congr_left_iff, mem_add_antidiagonal, ne.def, and_iff_left_iff_imp, mem_filter,
+      mem_support, finsupp.mem_antidiagonal],
+    intros h1 h2,
+    contrapose h1,
+    rw ← decidable.or_iff_not_and_not at h1,
+    cases h1; simp [h1],
+  end }
+
+variables {σ : Type*} [fintype σ]
+lemma coeff_to_mv_power_series {f : hahn_series (σ →₀ ℕ) R} {n : σ →₀ ℕ} :
+  mv_power_series.coeff R n f.to_mv_power_series = f.coeff n :=
+rfl
+
+lemma coeff_to_mv_power_series_symm {f : mv_power_series σ R} {n : σ →₀ ℕ} :
+  (hahn_series.to_mv_power_series.symm f).coeff n = mv_power_series.coeff R n f := rfl
+
 end semiring
 
 section algebra
@@ -1109,11 +1148,11 @@ variables {R} {S : Type*} [comm_semiring S] [algebra S (power_series R)]
 lemma algebra_map_apply' (x : S) :
   algebra_map S (hahn_series Γ R) x = of_power_series Γ R (algebra_map S (power_series R) x) := rfl
 
-@[simp] lemma _root_.polynomial.algebra_map_hahn_series_apply (f : polynomial R) :
-  algebra_map (polynomial R) (hahn_series Γ R) f = of_power_series Γ R f := rfl
+@[simp] lemma _root_.polynomial.algebra_map_hahn_series_apply (f : R[X]) :
+  algebra_map R[X] (hahn_series Γ R) f = of_power_series Γ R f := rfl
 
 lemma _root_.polynomial.algebra_map_hahn_series_injective :
-  function.injective (algebra_map (polynomial R) (hahn_series Γ R)) :=
+  function.injective (algebra_map R[X] (hahn_series Γ R)) :=
 of_power_series_injective.comp (polynomial.coe_injective R)
 
 end algebra

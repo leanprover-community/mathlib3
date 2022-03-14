@@ -10,7 +10,7 @@ import topology.uniform_space.basic
 -/
 universes u v
 
-open filter topological_space set classical uniform_space
+open filter topological_space set classical uniform_space function
 open_locale classical uniformity topological_space filter
 
 variables {α : Type u} {β : Type v} [uniform_space α]
@@ -39,7 +39,7 @@ lemma cauchy_iff {f : filter α} :
   cauchy f ↔ (ne_bot f ∧ (∀ s ∈ 𝓤 α, ∃t∈f, t ×ˢ t ⊆ s)) :=
 cauchy_iff'.trans $ by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id, ball_mem_comm]
 
-lemma cauchy.to_ultrafilter {l : filter α} (h : cauchy l) :
+lemma cauchy.ultrafilter_of {l : filter α} (h : cauchy l) :
   cauchy (@ultrafilter.of _ l h.1 : filter α) :=
 begin
   haveI := h.1,
@@ -164,7 +164,7 @@ lemma filter.tendsto.cauchy_seq [semilattice_sup β] [nonempty β] {f : β → �
   cauchy_seq f :=
 hx.cauchy_map
 
-lemma cauchy_seq_const (x : α) : cauchy_seq (λ n : ℕ, x) :=
+lemma cauchy_seq_const [semilattice_sup β] [nonempty β] (x : α) : cauchy_seq (λ n : β, x) :=
 tendsto_const_nhds.cauchy_seq
 
 lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
@@ -175,6 +175,19 @@ lemma cauchy_seq.comp_tendsto {γ} [semilattice_sup β] [semilattice_sup γ] [no
   {f : β → α} (hf : cauchy_seq f) {g : γ → β} (hg : tendsto g at_top at_top) :
   cauchy_seq (f ∘ g) :=
 cauchy_seq_iff_tendsto.2 $ hf.tendsto_uniformity.comp (hg.prod_at_top hg)
+
+lemma cauchy_seq.comp_injective [semilattice_sup β] [no_max_order β] [nonempty β]
+  {u : ℕ → α} (hu : cauchy_seq u) {f : β → ℕ} (hf : injective f) :
+  cauchy_seq (u ∘ f) :=
+hu.comp_tendsto $ nat.cofinite_eq_at_top ▸ hf.tendsto_cofinite.mono_left at_top_le_cofinite
+
+lemma function.bijective.cauchy_seq_comp_iff {f : ℕ → ℕ} (hf : bijective f) (u : ℕ → α) :
+  cauchy_seq (u ∘ f) ↔ cauchy_seq u :=
+begin
+  refine ⟨λ H, _, λ H, H.comp_injective hf.injective⟩,
+  lift f to ℕ ≃ ℕ using hf,
+  simpa only [(∘), f.apply_symm_apply] using H.comp_injective f.symm.injective
+end
 
 lemma cauchy_seq.subseq_subseq_mem {V : ℕ → set (α × α)} (hV : ∀ n, V n ∈ 𝓤 α)
   {u : ℕ → α} (hu : cauchy_seq u)
@@ -294,7 +307,7 @@ lemma is_complete_iff_ultrafilter {s : set α} :
 begin
   refine ⟨λ h l, h l, λ H, is_complete_iff_cluster_pt.2 $ λ l hl hls, _⟩,
   haveI := hl.1,
-  rcases H (ultrafilter.of l) hl.to_ultrafilter ((ultrafilter.of_le l).trans hls)
+  rcases H (ultrafilter.of l) hl.ultrafilter_of ((ultrafilter.of_le l).trans hls)
     with ⟨x, hxs, hxl⟩,
   exact ⟨x, hxs, (cluster_pt.of_le_nhds hxl).mono (ultrafilter.of_le l)⟩
 end
@@ -309,6 +322,28 @@ begin
   simp only [is_complete_iff_ultrafilter', ultrafilter.union_mem_iff, or_imp_distrib] at *,
   exact λ l hl, ⟨λ hsl, (hs l hl hsl).imp $ λ x hx, ⟨or.inl hx.fst, hx.snd⟩,
     λ htl, (ht l hl htl).imp $ λ x hx, ⟨or.inr hx.fst, hx.snd⟩⟩
+end
+
+lemma is_complete_Union_separated {ι : Sort*} {s : ι → set α} (hs : ∀ i, is_complete (s i))
+  {U : set (α × α)} (hU : U ∈ 𝓤 α) (hd : ∀ (i j : ι) (x ∈ s i) (y ∈ s j), (x, y) ∈ U → i = j) :
+  is_complete (⋃ i, s i) :=
+begin
+  set S := ⋃ i, s i,
+  intros l hl hls,
+  rw le_principal_iff at hls,
+  casesI cauchy_iff.1 hl with hl_ne hl',
+  obtain ⟨t, htS, htl, htU⟩ : ∃ t ⊆ S, t ∈ l ∧ t ×ˢ t ⊆ U,
+  { rcases hl' U hU with ⟨t, htl, htU⟩,
+    exact ⟨t ∩ S, inter_subset_right _ _, inter_mem htl hls,
+      (set.prod_mono (inter_subset_left _ _) (inter_subset_left _ _)).trans htU⟩ },
+  obtain ⟨i, hi⟩ : ∃ i, t ⊆ s i,
+  { rcases filter.nonempty_of_mem htl with ⟨x, hx⟩,
+    rcases mem_Union.1 (htS hx) with ⟨i, hi⟩,
+    refine ⟨i, λ y hy, _⟩,
+    rcases mem_Union.1 (htS hy) with ⟨j, hj⟩,
+    convert hj, exact hd i j x hi y hj (htU $ mk_mem_prod hx hy) },
+  rcases hs i l hl (le_principal_iff.2 $ mem_of_superset htl hi) with ⟨x, hxs, hlx⟩,
+  exact ⟨x, mem_Union.2 ⟨i, hxs⟩, hlx⟩
 end
 
 /-- A complete space is defined here using uniformities. A uniform space
@@ -342,6 +377,10 @@ lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : com
 lemma complete_space_iff_is_complete_univ :
   complete_space α ↔ is_complete (univ : set α) :=
 ⟨@complete_univ α _, complete_space_of_is_complete_univ⟩
+
+lemma complete_space_iff_ultrafilter :
+  complete_space α ↔ ∀ l : ultrafilter α, cauchy (l : filter α) → ∃ x : α, ↑l ≤ 𝓝 x :=
+by simp [complete_space_iff_is_complete_univ, is_complete_iff_ultrafilter]
 
 lemma cauchy_iff_exists_le_nhds [complete_space α] {l : filter α} [ne_bot l] :
   cauchy l ↔ (∃x, l ≤ 𝓝 x) :=
@@ -431,7 +470,7 @@ let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ :
     ... ⊆ _ : Union₂_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
       (subset_bUnion_of_mem hi)⟩
 
-/-- The image of a totally bounded set under a unifromly continuous map is totally bounded. -/
+/-- The image of a totally bounded set under a uniformly continuous map is totally bounded. -/
 lemma totally_bounded.image [uniform_space β] {f : α → β} {s : set α}
   (hs : totally_bounded s) (hf : uniform_continuous f) : totally_bounded (f '' s) :=
 assume t ht,
@@ -551,7 +590,7 @@ indefinite_description _ $ (cauchy_iff.1 hf).2 (U n) (U_mem n)
 
 /-- Given a Cauchy filter `f` and a sequence `U` of entourages, `set_seq` provides
 an antitone sequence of sets `s n ∈ f` such that `s n ×ˢ s n ⊆ U`. -/
-def set_seq (n : ℕ) : set α :=  ⋂ m ∈ Iic n, (set_seq_aux hf U_mem m).val
+def set_seq (n : ℕ) : set α :=  ⋂ m ∈ set.Iic n, (set_seq_aux hf U_mem m).val
 
 lemma set_seq_mem (n : ℕ) : set_seq hf U_mem n ∈ f :=
 (bInter_mem (finite_le_nat n)).2 (λ m _, (set_seq_aux hf U_mem m).2.fst)

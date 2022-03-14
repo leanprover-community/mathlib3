@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
+import data.nat.factorization
 import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
@@ -467,6 +468,17 @@ begin
   rwa [h, card_bot] at key,
 end
 
+/-- The cardinality of a Sylow group is `p ^ n`
+ where `n` is the multiplicity of `p` in the group order. -/
+lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
+  card P = p ^ nat.factorization (card G) p :=
+begin
+  obtain ⟨n, heq : card P = _⟩ := is_p_group.iff_card.mp (P.is_p_group'),
+  refine nat.dvd_antisymm _ (P.pow_dvd_card_of_pow_dvd_card (nat.pow_factorization_dvd _ p)),
+  rw [heq, ←hp.out.pow_dvd_iff_dvd_pow_factorization (show card G ≠ 0, from card_ne_zero), ←heq],
+  exact P.1.card_subgroup_dvd_card,
+end
+
 lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
   (h : (P : subgroup G).normal) : subsingleton (sylow p G) :=
 begin
@@ -544,6 +556,23 @@ begin
     ←comap_subtype_normalizer_eq le_rfl, comap_subtype_self_eq_top] at this,
   rw [←subtype_range (P : subgroup G).normalizer.normalizer, monoid_hom.range_eq_map, ←this rfl],
   exact map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))),
+end
+
+lemma normal_of_all_max_subgroups_normal [fintype G]
+  (hnc : ∀ (H : subgroup G), is_coatom H → H.normal)
+  {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+  (↑P : subgroup G).normal :=
+normalizer_eq_top.mp begin
+  rcases eq_top_or_exists_le_coatom ((↑P : subgroup G).normalizer) with heq | ⟨K, hK, hNK⟩,
+  { exact heq },
+  { haveI := hnc _ hK,
+    have hPK := le_trans le_normalizer hNK,
+    let P' := P.subtype K hPK,
+    exfalso,
+    apply hK.1,
+    calc K = (↑P : subgroup G).normalizer ⊔ K : by { rw sup_eq_right.mpr, exact hNK }
+    ... = (map K.subtype (↑P' : subgroup K)).normalizer ⊔ K : by simp [map_comap_eq_self, hPK]
+    ... = ⊤ : normalizer_sup_eq_top P' },
 end
 
 lemma normal_of_normalizer_condition (hnc : normalizer_condition G)

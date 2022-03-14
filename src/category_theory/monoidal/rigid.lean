@@ -36,6 +36,10 @@ exact pairings and duals.
 * Show that `X ⊗ Y` and `Yᘁ ⊗ Xᘁ` form an exact pairing.
 * Show that the left adjoint mate of the right adjoint mate of a morphism is the morphism itself.
 * Simplify constructions in the case where a symmetry or braiding is present.
+* Connect this definition to `monoidal_closed`: an object with a (left?) dual is
+  a closed object `X` such that the right adjoint of `X ⊗ -` is given by `Y ⊗ -` for some `Y`.
+* Show that `ᘁ` gives an equivalence of categories `C ≅ (Cᵒᵖ)ᴹᵒᵖ`.
+* Define pivotal categories (rigid categories equipped with a natural isomorphism `ᘁᘁ ≅ 𝟙 C`).
 
 ## References
 
@@ -91,13 +95,13 @@ instance exact_pairing_unit : exact_pairing (𝟙_ C) (𝟙_ C) :=
 
 /-- A class of objects which have a right dual. -/
 class has_right_dual (X : C) :=
-  (right_dual : C)
-  [exact : exact_pairing X right_dual]
+(right_dual : C)
+[exact : exact_pairing X right_dual]
 
 /-- A class of objects with have a left dual. -/
 class has_left_dual (Y : C) :=
-  (left_dual : C)
-  [exact : exact_pairing left_dual Y]
+(left_dual : C)
+[exact : exact_pairing left_dual Y]
 
 attribute [instance] has_right_dual.exact
 attribute [instance] has_left_dual.exact
@@ -259,11 +263,11 @@ by { ext, simp only [left_dual_iso, iso.refl_hom, left_adjoint_mate_id] }
 
 /-- A right rigid monoidal category is one in which every object has a right dual. -/
 class right_rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
-  [right_dual : Π (X : C), has_right_dual X]
+[right_dual : Π (X : C), has_right_dual X]
 
 /-- A left rigid monoidal category is one in which every object has a right dual. -/
 class left_rigid_category (C : Type u) [category.{v} C] [monoidal_category.{v} C] :=
-  [left_dual : Π (X : C), has_left_dual X]
+[left_dual : Π (X : C), has_left_dual X]
 
 attribute [instance, priority 100] right_rigid_category.right_dual
 attribute [instance, priority 100] left_rigid_category.left_dual

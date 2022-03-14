@@ -61,10 +61,17 @@ protected def has_inv [has_inv β] : has_inv α := ⟨λ x, e.symm (e x)⁻¹⟩
 lemma inv_def [has_inv β] (x : α) : @has_inv.inv _ (equiv.has_inv e) x = e.symm (e x)⁻¹ := rfl
 
 /-- Transfer `has_scalar` across an `equiv` -/
-protected def has_scalar {R : Type*} [has_scalar R β] : has_scalar R α  :=
+protected def has_scalar (R : Type*) [has_scalar R β] : has_scalar R α  :=
 ⟨λ r x, e.symm (r • (e x))⟩
 lemma smul_def {R : Type*} [has_scalar R β] (r : R) (x : α) :
-  @has_scalar.smul _ _ (equiv.has_scalar e) r x = e.symm (r • (e x)) := rfl
+  @has_scalar.smul _ _ (e.has_scalar R) r x = e.symm (r • (e x)) := rfl
+
+/-- Transfer `has_pow` across an `equiv` -/
+@[to_additive has_scalar]
+protected def has_pow (N : Type*) [has_pow β N] : has_pow α N  :=
+⟨λ x n, e.symm (e x ^ n)⟩
+lemma pow_def {N : Type*} [has_pow β N] (n : N) (x : α) :
+  @has_pow.pow _ _ (e.has_pow N) x n = e.symm (e x ^ n) := rfl
 
 /--
 An equivalence `e : α ≃ β` gives a multiplicative equivalence `α ≃* β`
@@ -153,69 +160,89 @@ by resetI; apply e.injective.mul_zero_one_class _; intros; exact e.apply_symm_ap
 /-- Transfer `monoid` across an `equiv` -/
 @[to_additive "Transfer `add_monoid` across an `equiv`"]
 protected def monoid [monoid β] : monoid α :=
-let one := e.has_one, mul := e.has_mul in
+let one := e.has_one, mul := e.has_mul, pow := e.has_pow ℕ in
 by resetI; apply e.injective.monoid _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_monoid` across an `equiv` -/
 @[to_additive "Transfer `add_comm_monoid` across an `equiv`"]
 protected def comm_monoid [comm_monoid β] : comm_monoid α :=
-let one := e.has_one, mul := e.has_mul in
+let one := e.has_one, mul := e.has_mul, pow := e.has_pow ℕ in
 by resetI; apply e.injective.comm_monoid _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `group` across an `equiv` -/
 @[to_additive "Transfer `add_group` across an `equiv`"]
 protected def group [group β] : group α :=
-let one := e.has_one, mul := e.has_mul, inv := e.has_inv, div := e.has_div in
+let one := e.has_one, mul := e.has_mul, inv := e.has_inv, div := e.has_div,
+  npow := e.has_pow ℕ, zpow := e.has_pow ℤ in
 by resetI; apply e.injective.group _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_group` across an `equiv` -/
 @[to_additive "Transfer `add_comm_group` across an `equiv`"]
 protected def comm_group [comm_group β] : comm_group α :=
-let one := e.has_one, mul := e.has_mul, inv := e.has_inv, div := e.has_div in
+let one := e.has_one, mul := e.has_mul, inv := e.has_inv, div := e.has_div,
+  npow := e.has_pow ℕ, zpow := e.has_pow ℤ in
 by resetI; apply e.injective.comm_group _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `non_unital_non_assoc_semiring` across an `equiv` -/
 protected def non_unital_non_assoc_semiring [non_unital_non_assoc_semiring β] :
   non_unital_non_assoc_semiring α :=
-let zero := e.has_zero, add := e.has_add, mul := e.has_mul in
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul, nsmul := e.has_scalar ℕ in
 by resetI; apply e.injective.non_unital_non_assoc_semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `non_unital_semiring` across an `equiv` -/
 protected def non_unital_semiring [non_unital_semiring β] :  non_unital_semiring α :=
-let zero := e.has_zero, add := e.has_add, mul := e.has_mul in
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul, nsmul := e.has_scalar ℕ in
 by resetI; apply e.injective.non_unital_semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `non_assoc_semiring` across an `equiv` -/
 protected def non_assoc_semiring [non_assoc_semiring β] : non_assoc_semiring α :=
-let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul,
+  nsmul := e.has_scalar ℕ in
 by resetI; apply e.injective.non_assoc_semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `semiring` across an `equiv` -/
 protected def semiring [semiring β] : semiring α :=
-let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul,
+  nsmul := e.has_scalar ℕ, npow := e.has_pow ℕ in
 by resetI; apply e.injective.semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_semiring` across an `equiv` -/
 protected def comm_semiring [comm_semiring β] : comm_semiring α :=
-let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul in
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul,
+  nsmul := e.has_scalar ℕ, npow := e.has_pow ℕ in
 by resetI; apply e.injective.comm_semiring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `non_unital_non_assoc_ring` across an `equiv` -/
 protected def non_unital_non_assoc_ring [non_unital_non_assoc_ring β] :
   non_unital_non_assoc_ring α :=
-let zero := e.has_zero, add := e.has_add, mul := e.has_mul, neg := e.has_neg, sub := e.has_sub in
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul, neg := e.has_neg, sub := e.has_sub,
+  nsmul := e.has_scalar ℕ, zsmul := e.has_scalar ℤ in
 by resetI; apply e.injective.non_unital_non_assoc_ring _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `non_unital_ring` across an `equiv` -/
+protected def non_unital_ring [non_unital_ring β] :
+  non_unital_ring α :=
+let zero := e.has_zero, add := e.has_add, mul := e.has_mul, neg := e.has_neg, sub := e.has_sub,
+  nsmul := e.has_scalar ℕ, zsmul := e.has_scalar ℤ in
+by resetI; apply e.injective.non_unital_ring _; intros; exact e.apply_symm_apply _
+
+/-- Transfer `non_assoc_ring` across an `equiv` -/
+protected def non_assoc_ring [non_assoc_ring β] :
+  non_assoc_ring α :=
+let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
+  sub := e.has_sub, nsmul := e.has_scalar ℕ, zsmul := e.has_scalar ℤ in
+by resetI; apply e.injective.non_assoc_ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `ring` across an `equiv` -/
 protected def ring [ring β] : ring α :=
 let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
-  sub := e.has_sub in
+  sub := e.has_sub, nsmul := e.has_scalar ℕ, zsmul := e.has_scalar ℤ, npow := e.has_pow ℕ in
 by resetI; apply e.injective.ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `comm_ring` across an `equiv` -/
 protected def comm_ring [comm_ring β] : comm_ring α :=
 let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
-  sub := e.has_sub in
+  sub := e.has_sub, nsmul := e.has_scalar ℕ, zsmul := e.has_scalar ℤ, npow := e.has_pow ℕ in
 by resetI; apply e.injective.comm_ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `nontrivial` across an `equiv` -/
@@ -229,13 +256,15 @@ function.injective.is_domain e.to_ring_hom e.injective
 /-- Transfer `division_ring` across an `equiv` -/
 protected def division_ring [division_ring β] : division_ring α :=
 let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
-  sub := e.has_sub, inv := e.has_inv, div := e.has_div in
+  sub := e.has_sub, inv := e.has_inv, div := e.has_div,
+  nsmul := e.has_scalar ℕ, zsmul := e.has_scalar ℤ, npow := e.has_pow ℕ, zpow := e.has_pow ℤ in
 by resetI; apply e.injective.division_ring _; intros; exact e.apply_symm_apply _
 
 /-- Transfer `field` across an `equiv` -/
 protected def field [field β] : field α :=
 let zero := e.has_zero, add := e.has_add, one := e.has_one, mul := e.has_mul, neg := e.has_neg,
-  sub := e.has_sub, inv := e.has_inv, div := e.has_div in
+  sub := e.has_sub, inv := e.has_inv, div := e.has_div,
+  nsmul := e.has_scalar ℕ, zsmul := e.has_scalar ℤ, npow := e.has_pow ℕ, zpow := e.has_pow ℤ in
 by resetI; apply e.injective.field _; intros; exact e.apply_symm_apply _
 
 section R
@@ -249,7 +278,7 @@ variables [monoid R]
 protected def mul_action (e : α ≃ β) [mul_action R β] : mul_action R α :=
 { one_smul := by simp [smul_def],
   mul_smul := by simp [smul_def, mul_smul],
-  ..equiv.has_scalar e }
+  ..e.has_scalar R }
 
 /-- Transfer `distrib_mul_action` across an `equiv` -/
 protected def distrib_mul_action (e : α ≃ β) [add_comm_monoid β] :

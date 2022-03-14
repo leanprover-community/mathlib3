@@ -22,11 +22,12 @@ import data.polynomial.hasse_deriv
 noncomputable theory
 
 namespace polynomial
+open_locale polynomial
 
-variables {R : Type*} [semiring R] (r : R) (f : polynomial R)
+variables {R : Type*} [semiring R] (r : R) (f : R[X])
 
 /-- The Taylor expansion of a polynomial `f` at `r`. -/
-def taylor (r : R) : polynomial R →ₗ[R] polynomial R :=
+def taylor (r : R) : R[X] →ₗ[R] R[X] :=
 { to_fun := λ f, f.comp (X + C r),
   map_add' := λ f g, add_comp,
   map_smul' := λ c f, by simp only [smul_eq_C_mul, C_mul_comp, ring_hom.id_apply] }
@@ -46,10 +47,10 @@ begin
              linear_map.coe_comp]
 end
 
-lemma taylor_zero (f : polynomial R) : taylor 0 f = f :=
+lemma taylor_zero (f : R[X]) : taylor 0 f = f :=
 by rw [taylor_zero', linear_map.id_apply]
 
-@[simp] lemma taylor_one : taylor r (1 : polynomial R) = C 1 :=
+@[simp] lemma taylor_one : taylor r (1 : R[X]) = C 1 :=
 by rw [← C_1, taylor_C]
 
 @[simp] lemma taylor_monomial (i : ℕ) (k : R) : taylor r (monomial i k) = C k * (X + C r) ^ i :=
@@ -75,7 +76,7 @@ by rw [taylor_coeff, hasse_deriv_zero, linear_map.id_apply]
 @[simp] lemma taylor_coeff_one : (taylor r f).coeff 1 = f.derivative.eval r :=
 by rw [taylor_coeff, hasse_deriv_one]
 
-@[simp] lemma nat_degree_taylor (p : polynomial R) (r : R) :
+@[simp] lemma nat_degree_taylor (p : R[X]) (r : R) :
   nat_degree (taylor r p) = nat_degree p :=
 begin
   refine map_nat_degree_eq_nat_degree _ _,
@@ -84,19 +85,19 @@ begin
   simp [taylor_monomial, nat_degree_C_mul_eq_of_mul_ne_zero, nat_degree_pow_X_add_C, c0]
 end
 
-@[simp] lemma taylor_mul {R} [comm_semiring R] (r : R) (p q : polynomial R) :
+@[simp] lemma taylor_mul {R} [comm_semiring R] (r : R) (p q : R[X]) :
   taylor r (p * q) = taylor r p * taylor r q :=
 by simp only [taylor_apply, mul_comp]
 
-lemma taylor_taylor {R} [comm_semiring R] (f : polynomial R) (r s : R) :
+lemma taylor_taylor {R} [comm_semiring R] (f : R[X]) (r s : R) :
   taylor r (taylor s f) = taylor (r + s) f :=
 by simp only [taylor_apply, comp_assoc, map_add, add_comp, X_comp, C_comp, C_add, add_assoc]
 
-lemma taylor_eval {R} [comm_semiring R] (r : R) (f : polynomial R) (s : R) :
+lemma taylor_eval {R} [comm_semiring R] (r : R) (f : R[X]) (s : R) :
   (taylor r f).eval s = f.eval (s + r) :=
 by simp only [taylor_apply, eval_comp, eval_C, eval_X, eval_add]
 
-lemma taylor_eval_sub {R} [comm_ring R] (r : R) (f : polynomial R) (s : R) :
+lemma taylor_eval_sub {R} [comm_ring R] (r : R) (f : R[X]) (s : R) :
   (taylor r f).eval (s - r) = f.eval s :=
 by rw [taylor_eval, sub_add_cancel]
 
@@ -108,7 +109,7 @@ begin
     neg_add_cancel_right, comp_X] using h,
 end
 
-lemma eq_zero_of_hasse_deriv_eq_zero {R} [comm_ring R] (f : polynomial R) (r : R)
+lemma eq_zero_of_hasse_deriv_eq_zero {R} [comm_ring R] (f : R[X]) (r : R)
   (h : ∀ k, (hasse_deriv k f).eval r = 0) :
   f = 0 :=
 begin
@@ -119,7 +120,7 @@ begin
 end
 
 /-- Taylor's formula. -/
-lemma sum_taylor_eq {R} [comm_ring R] (f : polynomial R) (r : R) :
+lemma sum_taylor_eq {R} [comm_ring R] (f : R[X]) (r : R) :
   (taylor r f).sum (λ i a, C a * (X - C r) ^ i) = f :=
 by rw [←comp_eq_sum_left, sub_eq_add_neg, ←C_neg, ←taylor_apply, taylor_taylor, neg_add_self,
        taylor_zero]

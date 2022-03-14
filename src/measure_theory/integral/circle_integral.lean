@@ -84,6 +84,12 @@ def circle_map (c : ℂ) (R : ℝ) : ℝ → ℂ := λ θ, c + R * exp (θ * I)
 lemma periodic_circle_map (c : ℂ) (R : ℝ) : periodic (circle_map c R) (2 * π) :=
 λ θ, by simp [circle_map, add_mul, exp_periodic _]
 
+lemma set.countable.preimage_circle_map {s : set ℂ} (hs : s.countable) (c : ℂ)
+  {R : ℝ} (hR : R ≠ 0) : (circle_map c R ⁻¹' s).countable :=
+show (coe ⁻¹' ((* I) ⁻¹' (exp ⁻¹' ((*) R ⁻¹' ((+) c ⁻¹' s))))).countable,
+  from (((hs.preimage (add_right_injective _)).preimage $ mul_right_injective₀ $ of_real_ne_zero.2
+    hR).preimage_cexp.preimage $ mul_left_injective₀ I_ne_zero).preimage of_real_injective
+
 @[simp] lemma circle_map_sub_center (c : ℂ) (R : ℝ) (θ : ℝ) :
   circle_map c R θ - c = circle_map 0 R θ :=
 by simp [circle_map]
@@ -126,7 +132,7 @@ lemma has_deriv_at_circle_map (c : ℂ) (R : ℝ) (θ : ℝ) :
 by simpa only [mul_assoc, one_mul, of_real_clm_apply, circle_map, of_real_one, zero_add]
  using ((of_real_clm.has_deriv_at.mul_const I).cexp_real.const_mul (R : ℂ)).const_add c
 
-/- TODO: prove `times_cont_diff ℝ (circle_map c R)`. This needs a version of `times_cont_diff.mul`
+/- TODO: prove `cont_diff ℝ (circle_map c R)`. This needs a version of `cont_diff.mul`
 for multiplication in a normed algebra over the base field. -/
 
 lemma differentiable_circle_map (c : ℂ) (R : ℝ) :
@@ -254,7 +260,7 @@ begin
     refine (zpow_strict_anti this.1 this.2).le_iff_le.2 (int.lt_add_one_iff.1 _), exact hn },
   { rintro (rfl|H),
     exacts [circle_integrable_zero_radius,
-      ((continuous_on_id.sub continuous_on_const).zpow _ $ λ z hz, H.symm.imp_left $
+      ((continuous_on_id.sub continuous_on_const).zpow₀ _ $ λ z hz, H.symm.imp_left $
         λ hw, sub_ne_zero.2 $ ne_of_mem_of_not_mem hz hw).circle_integrable'] },
 end
 
@@ -278,6 +284,16 @@ by simp [circle_integral]
 lemma integral_congr {f g : ℂ → E} {c : ℂ} {R : ℝ} (hR : 0 ≤ R) (h : eq_on f g (sphere c R)) :
   ∮ z in C(c, R), f z = ∮ z in C(c, R), g z :=
 interval_integral.integral_congr $ λ θ hθ, by simp only [h (circle_map_mem_sphere _ hR _)]
+
+lemma integral_sub_inv_smul_sub_smul (f : ℂ → E) (c w : ℂ) (R : ℝ) :
+  ∮ z in C(c, R), (z - w)⁻¹ • (z - w) • f z = ∮ z in C(c, R), f z :=
+begin
+  rcases eq_or_ne R 0 with rfl|hR, { simp only [integral_radius_zero] },
+  have : countable (circle_map c R ⁻¹' {w}), from (countable_singleton _).preimage_circle_map c hR,
+  refine interval_integral.integral_congr_ae ((this.ae_not_mem _).mono $ λ θ hθ hθ', _),
+  change circle_map c R θ ≠ w at hθ,
+  simp only [inv_smul_smul₀ (sub_ne_zero.2 $ hθ)]
+end
 
 lemma integral_undef {f : ℂ → E} {c : ℂ} {R : ℝ} (hf : ¬circle_integrable f c R) :
   ∮ z in C(c, R), f z = 0 :=

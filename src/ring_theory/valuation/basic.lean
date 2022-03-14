@@ -46,8 +46,13 @@ on R / J = `ideal.quotient J` is `on_quot v h`.
   linearly ordered additive commutative group with a top element, `Γ₀`.
 
 ## Implementation Details
+
 `add_valuation R Γ₀` is implemented as `valuation R (multiplicative (order_dual Γ₀))`.
 
+## TODO
+
+If ever someone extends `valuation`, we should fully comply to the `fun_like` by migrating the
+boilerplate lemmas to `valuation_class`.
 -/
 
 open_locale classical big_operators
@@ -55,18 +60,29 @@ noncomputable theory
 
 open function ideal
 
-variables {R : Type*} -- This will be a ring, assumed commutative in some sections
+variables {F R : Type*} -- This will be a ring, assumed commutative in some sections
 
 section
-variables (R) (Γ₀ : Type*) [linear_ordered_comm_monoid_with_zero Γ₀] [ring R]
+variables (F R) (Γ₀ : Type*) [linear_ordered_comm_monoid_with_zero Γ₀] [ring R]
 
-/-- The type of `Γ₀`-valued valuations on `R`. -/
+/-- The type of `Γ₀`-valued valuations on `R`.
+
+When you extend this structure, make sure to extend `valuation_class`. -/
 @[nolint has_inhabited_instance]
 structure valuation extends R →*₀ Γ₀ :=
-(map_add' : ∀ x y, to_fun (x + y) ≤ max (to_fun x) (to_fun y))
+(map_add_le_max' : ∀ x y, to_fun (x + y) ≤ max (to_fun x) (to_fun y))
 
-/-- The `monoid_with_zero_hom` underlying a valuation. -/
-add_decl_doc valuation.to_monoid_with_zero_hom
+/-- `valuation_class F α β` states that `F` is a type of valuations.
+
+You should also extend this typeclass when you extend `valuation`. -/
+class valuation_class extends monoid_with_zero_hom_class F R Γ₀ :=
+(map_add_le_max (f : F) (x y : R) : f (x + y) ≤ max (f x) (f y))
+
+export valuation_class (map_add_le_max)
+
+instance [valuation_class F R Γ₀] : has_coe_t F (valuation R Γ₀) :=
+⟨λ f, { to_fun := f, map_one' := map_one f, map_zero' := map_zero f, map_mul' := map_mul f,
+  map_add_le_max' := map_add_le_max f }⟩
 
 end
 
@@ -77,28 +93,34 @@ variables {Γ'₀  : Type*}
 variables {Γ''₀ : Type*} [linear_ordered_comm_monoid_with_zero Γ''₀]
 
 section basic
-
-variables (R) (Γ₀) [ring R]
+variables [ring R]
 
 section monoid
 variables [linear_ordered_comm_monoid_with_zero Γ₀] [linear_ordered_comm_monoid_with_zero Γ'₀]
 
-/-- A valuation is coerced to the underlying function `R → Γ₀`. -/
-instance : has_coe_to_fun (valuation R Γ₀) (λ _, R → Γ₀) :=
-{ coe := λ v, v.to_monoid_with_zero_hom.to_fun }
+instance : valuation_class (valuation R Γ₀) R Γ₀ :=
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, by { obtain ⟨⟨_, _⟩, _⟩ := f, obtain ⟨⟨_, _⟩, _⟩ := g, congr' },
+  map_mul := λ f, f.map_mul',
+  map_one := λ f, f.map_one',
+  map_zero := λ f, f.map_zero',
+  map_add_le_max := λ f, f.map_add_le_max' }
 
-/-- A valuation is coerced to a monoid morphism R → Γ₀. -/
-instance : has_coe (valuation R Γ₀) (R →*₀ Γ₀) :=
-⟨valuation.to_monoid_with_zero_hom⟩
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
+instance : has_coe_to_fun (valuation R Γ₀) (λ _, R → Γ₀) := fun_like.has_coe_to_fun
 
-variables {R} {Γ₀} (v : valuation R Γ₀) {x y z : R}
+@[simp] lemma to_fun_eq_coe (v : valuation R Γ₀) : v.to_fun = v := rfl
+@[ext] lemma ext {v₁ v₂ : valuation R Γ₀} (h : ∀ r, v₁ r = v₂ r) : v₁ = v₂ := fun_like.ext _ _ h
 
-@[simp, norm_cast] lemma coe_coe : ((v : R →*₀ Γ₀) : R → Γ₀) = v := rfl
+variables (v : valuation R Γ₀) {x y z : R}
+
+@[simp, norm_cast] lemma coe_coe : ⇑(v : R →*₀ Γ₀) = v := rfl
 
 @[simp] lemma map_zero : v 0 = 0 := v.map_zero'
 @[simp] lemma map_one  : v 1 = 1 := v.map_one'
 @[simp] lemma map_mul  : ∀ x y, v (x * y) = v x * v y := v.map_mul'
-@[simp] lemma map_add  : ∀ x y, v (x + y) ≤ max (v x) (v y) := v.map_add'
+@[simp] lemma map_add  : ∀ x y, v (x + y) ≤ max (v x) (v y) := v.map_add_le_max'
 
 lemma map_add_le {x y g} (hx : v x ≤ g) (hy : v y ≤ g) : v (x + y) ≤ g :=
 le_trans (v.map_add x y) $ max_le hx hy
@@ -131,11 +153,8 @@ v.map_sum_lt (ne_of_gt hg) hf
 @[simp] lemma map_pow  : ∀ x (n:ℕ), v (x^n) = (v x)^n :=
 v.to_monoid_with_zero_hom.to_monoid_hom.map_pow
 
-@[ext] lemma ext {v₁ v₂ : valuation R Γ₀} (h : ∀ r, v₁ r = v₂ r) : v₁ = v₂ :=
-by { rcases v₁ with ⟨⟨⟩⟩, rcases v₂ with ⟨⟨⟩⟩, congr, funext r, exact h r }
-
-lemma ext_iff {v₁ v₂ : valuation R Γ₀} : v₁ = v₂ ↔ ∀ r, v₁ r = v₂ r :=
-⟨λ h r, congr_arg _ h, ext⟩
+/-- Deprecated. Use `fun_like.ext_iff`. -/
+lemma ext_iff {v₁ v₂ : valuation R Γ₀} : v₁ = v₂ ↔ ∀ r, v₁ r = v₂ r := fun_like.ext_iff
 
 -- The following definition is not an instance, because we have more than one `v` on a given `R`.
 -- In addition, type class inference would not be able to infer `v`.
@@ -159,7 +178,7 @@ theorem unit_map_eq (u : Rˣ) :
 def comap {S : Type*} [ring S] (f : S →+* R) (v : valuation R Γ₀) :
   valuation S Γ₀ :=
 { to_fun := v ∘ f,
-  map_add' := λ x y, by simp only [comp_app, map_add, f.map_add],
+  map_add_le_max' := λ x y, by simp only [comp_app, map_add, f.map_add],
   .. v.to_monoid_with_zero_hom.comp f.to_monoid_with_zero_hom, }
 
 @[simp] lemma comap_id : v.comap (ring_hom.id R) = v := ext $ λ r, rfl
@@ -173,7 +192,7 @@ ext $ λ r, rfl
 def map (f : Γ₀ →*₀ Γ'₀) (hf : monotone f) (v : valuation R Γ₀) :
   valuation R Γ'₀ :=
 { to_fun := f ∘ v,
-  map_add' := λ r s,
+  map_add_le_max' := λ r s,
     calc f (v (r + s)) ≤ f (max (v r) (v s))     : hf (v.map_add r s)
                    ... = max (f (v r)) (f (v s)) : hf.map_max,
   .. monoid_with_zero_hom.comp f v.to_monoid_with_zero_hom }
@@ -382,7 +401,7 @@ def on_quot {J : ideal R} (hJ : J ≤ supp v) :
   map_zero' := v.map_zero,
   map_one'  := v.map_one,
   map_mul'  := λ xbar ybar, quotient.ind₂' v.map_mul xbar ybar,
-  map_add'  := λ xbar ybar, quotient.ind₂' v.map_add xbar ybar }
+  map_add_le_max'  := λ xbar ybar, quotient.ind₂' v.map_add xbar ybar }
 
 @[simp] lemma on_quot_comap_eq {J : ideal R} (hJ : J ≤ supp v) :
   (v.on_quot hJ).comap (ideal.quotient.mk J) = v :=
@@ -465,7 +484,7 @@ def of : add_valuation R Γ₀ :=
 { to_fun := f,
   map_one' := h1,
   map_zero' := h0,
-  map_add' := hadd,
+  map_add_le_max' := hadd,
   map_mul' := hmul }
 
 variables {h0} {h1} {hadd} {hmul} {r : R}

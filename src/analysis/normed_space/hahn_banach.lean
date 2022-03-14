@@ -78,10 +78,10 @@ begin
     rw this,
     apply ext,
     { simp only [add_zero, algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add,
-        zero_sub, I_im', zero_mul, of_real_re, eq_self_iff_true, sub_zero, mul_neg_eq_neg_mul_symm,
+        zero_sub, I_im', zero_mul, of_real_re, eq_self_iff_true, sub_zero, mul_neg,
         of_real_neg, mul_re, mul_zero, sub_neg_eq_add, continuous_linear_map.map_smul] },
     { simp only [algebra.id.smul_eq_mul, I_re, of_real_im, add_monoid_hom.map_add, zero_sub, I_im',
-        zero_mul, of_real_re, mul_neg_eq_neg_mul_symm, mul_im, zero_add, of_real_neg, mul_re,
+        zero_mul, of_real_re, mul_neg, mul_im, zero_add, of_real_neg, mul_re,
         sub_neg_eq_add, continuous_linear_map.map_smul] } },
   -- And we derive the equality of the norms by bounding on both sides.
   refine ⟨h, le_antisymm _ _⟩,

@@ -375,22 +375,22 @@ quaternion_algebra.ext_iff a b
 @[simp] lemma mul_re :
   (a * b).re = a.re * b.re - a.im_i * b.im_i - a.im_j * b.im_j - a.im_k * b.im_k :=
 (quaternion_algebra.has_mul_mul_re a b).trans $
-  by simp only [one_mul, ← neg_mul_eq_neg_mul, sub_eq_add_neg, neg_neg]
+  by simp only [one_mul, neg_mul, sub_eq_add_neg, neg_neg]
 
 @[simp] lemma mul_im_i :
   (a * b).im_i = a.re * b.im_i + a.im_i * b.re + a.im_j * b.im_k - a.im_k * b.im_j :=
 (quaternion_algebra.has_mul_mul_im_i a b).trans $
-  by simp only [one_mul, ← neg_mul_eq_neg_mul, sub_eq_add_neg, neg_neg]
+  by simp only [one_mul, neg_mul, sub_eq_add_neg, neg_neg]
 
 @[simp] lemma mul_im_j :
   (a * b).im_j = a.re * b.im_j - a.im_i * b.im_k + a.im_j * b.re + a.im_k * b.im_i :=
 (quaternion_algebra.has_mul_mul_im_j a b).trans $
-  by simp only [one_mul, ← neg_mul_eq_neg_mul, sub_eq_add_neg, neg_neg]
+  by simp only [one_mul, neg_mul, sub_eq_add_neg, neg_neg]
 
 @[simp] lemma mul_im_k :
   (a * b).im_k = a.re * b.im_k + a.im_i * b.im_j - a.im_j * b.im_i + a.im_k * b.re :=
 (quaternion_algebra.has_mul_mul_im_k a b).trans $
-  by simp only [one_mul, ← neg_mul_eq_neg_mul, sub_eq_add_neg, neg_neg]
+  by simp only [one_mul, neg_mul, sub_eq_add_neg, neg_neg]
 
 @[simp, norm_cast] lemma coe_mul : ((x * y : R) : ℍ[R]) = x * y := quaternion_algebra.coe_mul x y
 
@@ -496,7 +496,7 @@ def norm_sq : ℍ[R] →*₀ R :=
 lemma norm_sq_def : norm_sq a = (a * a.conj).re := rfl
 
 lemma norm_sq_def' : norm_sq a = a.1^2 + a.2^2 + a.3^2 + a.4^2 :=
-by simp only [norm_sq_def, sq, ← neg_mul_eq_mul_neg, sub_neg_eq_add,
+by simp only [norm_sq_def, sq, mul_neg, sub_neg_eq_add,
   mul_re, conj_re, conj_im_i, conj_im_j, conj_im_k]
 
 lemma norm_sq_coe : norm_sq (x : ℍ[R]) = x^2 :=

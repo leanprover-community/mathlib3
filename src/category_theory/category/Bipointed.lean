@@ -34,6 +34,8 @@ attribute [protected] Bipointed.X
 /-- Turns a bipointing into a bipointed type. -/
 def of {X : Type*} (to_prod : X × X) : Bipointed := ⟨X, to_prod⟩
 
+@[simp] lemma coe_of {X : Type*} (to_prod : X × X) : ↥(of to_prod) = X := rfl
+
 alias of ← prod.Bipointed
 
 instance : inhabited Bipointed := ⟨of ((), ())⟩
@@ -104,7 +106,10 @@ def Bipointed_to_Pointed_snd : Bipointed ⥤ Pointed :=
 @[simp] lemma swap_comp_Bipointed_to_Pointed_snd :
   Bipointed.swap ⋙ Bipointed_to_Pointed_snd = Bipointed_to_Pointed_fst := rfl
 
---TODO: This is actually an equivalence
+/-- The functor from `Pointed` to `Bipointed` which bipoints the point. -/
+def Pointed_to_Bipointed : Pointed.{u} ⥤ Bipointed :=
+{ obj := λ X, ⟨X, X.point, X.point⟩, map := λ X Y f, ⟨f.to_fun, f.map_point, f.map_point⟩ }
+
 /-- The functor from `Pointed` to `Bipointed` which adds a second point. -/
 def Pointed_to_Bipointed_fst : Pointed.{u} ⥤ Bipointed :=
 { obj := λ X, ⟨option X, X.point, none⟩,
@@ -112,7 +117,6 @@ def Pointed_to_Bipointed_fst : Pointed.{u} ⥤ Bipointed :=
   map_id' := λ X, Bipointed.hom.ext _ _ option.map_id,
   map_comp' := λ X Y Z f g, Bipointed.hom.ext _ _ (option.map_comp_map  _ _).symm }
 
---TODO: This is actually an equivalence
 /-- The functor from `Pointed` to `Bipointed` which adds a first point. -/
 def Pointed_to_Bipointed_snd : Pointed.{u} ⥤ Bipointed :=
 { obj := λ X, ⟨option X, none, X.point⟩,
@@ -120,11 +124,21 @@ def Pointed_to_Bipointed_snd : Pointed.{u} ⥤ Bipointed :=
   map_id' := λ X, Bipointed.hom.ext _ _ option.map_id,
   map_comp' := λ X Y Z f g, Bipointed.hom.ext _ _ (option.map_comp_map  _ _).symm }
 
-@[simp] lemma Pointed_to_Bipointed_fst_comp :
+@[simp] lemma Pointed_to_Bipointed_fst_comp_swap :
   Pointed_to_Bipointed_fst ⋙ Bipointed.swap = Pointed_to_Bipointed_snd := rfl
 
-@[simp] lemma Pointed_to_Bipointed_snd_comp :
+@[simp] lemma Pointed_to_Bipointed_snd_comp_swap :
   Pointed_to_Bipointed_snd ⋙ Bipointed.swap = Pointed_to_Bipointed_fst := rfl
+
+/-- `Bipointed_to_Pointed_fst` is inverse to `Pointed_to_Bipointed`. -/
+@[simps] def Pointed_to_Bipointed_comp_Bipointed_to_Pointed_fst :
+  Pointed_to_Bipointed ⋙ Bipointed_to_Pointed_fst ≅ 𝟭 _ :=
+nat_iso.of_components (λ X, { hom := ⟨id, rfl⟩, inv := ⟨id, rfl⟩ }) $ λ X Y f, rfl
+
+/-- `Bipointed_to_Pointed_snd` is inverse to `Pointed_to_Bipointed`. -/
+@[simps] def Pointed_to_Bipointed_comp_Bipointed_to_Pointed_snd :
+  Pointed_to_Bipointed ⋙ Bipointed_to_Pointed_snd ≅ 𝟭 _ :=
+nat_iso.of_components (λ X, { hom := ⟨id, rfl⟩, inv := ⟨id, rfl⟩ }) $ λ X Y f, rfl
 
 /-- The free/forgetful adjunction between `Pointed_to_Bipointed_fst` and `Bipointed_to_Pointed_fst`.
 -/

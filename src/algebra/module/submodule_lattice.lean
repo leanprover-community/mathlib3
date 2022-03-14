@@ -48,6 +48,10 @@ variables (R)
 @[simp] lemma mem_bot {x : M} : x ∈ (⊥ : submodule R M) ↔ x = 0 := set.mem_singleton_iff
 end
 
+@[simp] lemma restrict_scalars_eq_bot_iff {p : submodule R M} :
+  restrict_scalars S p = ⊥ ↔ p = ⊥ :=
+by simp [set_like.ext_iff]
+
 instance unique_bot : unique (⊥ : submodule R M) :=
 ⟨infer_instance, λ x, subtype.ext $ (mem_bot R).1 x.mem⟩
 
@@ -105,6 +109,10 @@ section
 variables (R)
 @[simp] lemma restrict_scalars_top : restrict_scalars S (⊤ : submodule R M) = ⊤ := rfl
 end
+
+@[simp] lemma restrict_scalars_eq_top_iff {p : submodule R M} :
+  restrict_scalars S p = ⊤ ↔ p = ⊤ :=
+by simp [set_like.ext_iff]
 
 instance : order_top (submodule R M) :=
 { top := ⊤,

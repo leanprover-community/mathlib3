@@ -23,7 +23,7 @@ open category_theory.monoidal_category
 variables (C : Type*) [category C] [preadditive C] [monoidal_category C]
 
 /--
-A category is `monoidal_preadditive` if tensoring is linear in both factors.
+A category is `monoidal_preadditive` if tensoring is additive in both factors.
 
 Note we don't `extend preadditive C` here, as `abelian C` already extends it,
 and we'll need to have both typeclasses sometimes.

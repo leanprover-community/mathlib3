@@ -259,6 +259,9 @@ instance : has_sup (L.bounded_formula α n) := ⟨λ f g, f.not.imp g⟩
 /-- The biimplication between two bounded formulas. -/
 protected def iff (φ ψ : L.bounded_formula α n) := φ.imp ψ ⊓ ψ.imp φ
 
+/-- A slightly better-behaved version of the automatic
+  `first_order.language.bounded_formula.rec_on`, which
+  uses `⊥`, `term.bd_equal`, and `relations.bounded_formula`. -/
 protected theorem induction_on {P : ∀ {n}, L.bounded_formula α n → Sort*}
   (φ : L.bounded_formula α n)
   (hf : ∀ {n}, P (⊥ : L.bounded_formula α n))
@@ -267,14 +270,7 @@ protected theorem induction_on {P : ∀ {n}, L.bounded_formula α n → Sort*}
   (hi : ∀ {n} {φ ψ : L.bounded_formula α n}, P φ → P ψ → P (φ.imp ψ))
   (ha : ∀ {n} {φ : L.bounded_formula α (n + 1)}, P φ → P (φ.all)) :
   P φ :=
-begin
-  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
-  { exact hf },
-  { exact he _ _ },
-  { exact hr _ _ },
-  { exact hi ih1 ih2 },
-  { exact ha ih3 }
-end
+bounded_formula.rec_on φ (λ _, hf) (λ _, he) (λ _ _, hr) (λ _ _ _ hφ hψ, hi hφ hψ) (λ _ _, ha)
 
 /-- Casts `L.bounded_formula α m` as `L.bounded_formula α n`, where `m = n`. -/
 def cast : ∀ {m n : ℕ} (h : m = n), L.bounded_formula α m → L.bounded_formula α n
@@ -484,7 +480,8 @@ begin
     simp }
 end
 
-/-- An atomic formula is either equality or a relation symbol applied to terms. -/
+/-- An atomic formula is either equality or a relation symbol applied to terms.
+  Note that `⊥` and `⊤` are not considered atomic in this convention. -/
 inductive is_atomic : L.bounded_formula α n → Prop
 | equal (t₁ t₂ : L.term (α ⊕ fin n)) : is_atomic (bd_equal t₁ t₂)
 | rel {l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)) :
@@ -1061,8 +1058,8 @@ lemma is_qf.induction_on_sup_not {P : L.bounded_formula α n → Prop} {φ : L.b
   (hse : ∀ {φ₁ φ₂ : L.bounded_formula α n}
     (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
   P φ :=
-h.induction_on hf ha
-  (λ φ₁ φ₂ h1 h2, (hse (φ₁.imp_semantically_equivalent_not_sup φ₂)).2 (hsup (hnot h1) h2))
+h.induction_on hf ha (λ φ₁ φ₂ h1 h2,
+  (hse (φ₁.imp_semantically_equivalent_not_sup φ₂)).2 (hsup (hnot h1) h2))
 
 lemma is_qf.induction_on_inf_not {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
   (h : is_qf φ)
@@ -1073,11 +1070,8 @@ lemma is_qf.induction_on_inf_not {P : L.bounded_formula α n → Prop} {φ : L.b
   (hse : ∀ {φ₁ φ₂ : L.bounded_formula α n}
     (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
   P φ :=
-begin
-  refine h.induction_on_sup_not hf ha (λ φ₁ φ₂ h1 h2, _) (λ _, hnot) (λ _ _, hse),
-  rw hse (φ₁.sup_semantically_equivalent_not_inf_not φ₂),
-  exact hnot (hinf (hnot h1) (hnot h2)),
-end
+h.induction_on_sup_not hf ha (λ φ₁ φ₂ h1 h2,
+  ((hse (φ₁.sup_semantically_equivalent_not_inf_not φ₂)).2 (hnot (hinf (hnot h1) (hnot h2)))))(λ _, hnot) (λ _ _, hse)
 
 lemma imp_semantically_equivalent_to_prenex_imp_right {φ ψ : L.bounded_formula α n}
   (hφ : is_qf φ) (hψ : is_prenex ψ) :

@@ -266,18 +266,16 @@ calc  b ≤ c     : hbc
     ... = 1 * c : (one_mul c).symm
     ... ≤ a * c : mul_le_mul_right' ha c
 
-/--
-Assume monotonicity on the `left`. The lemma assuming `right` is `right.mul_lt_one`. -/
-@[to_additive]
+/-- Assumes left covariance. The lemma assuming right covariance is `right.mul_lt_one`. -/
+@[to_additive "Assumes left covariance. The lemma assuming right covariance is `right.add_neg`."]
 lemma left.mul_lt_one [covariant_class α α (*) (<)]
   {a b : α} (ha : a < 1) (hb : b < 1) : a * b < 1 :=
 calc  a * b < a * 1 : mul_lt_mul_left' hb a
         ... = a     : mul_one a
         ... < 1     : ha
 
-/--
-Assume monotonicity on the `right`. The lemma assuming `left` is `left.mul_lt_one`. -/
-@[to_additive]
+/-- Assumes right covariance. The lemma assuming left covariance is `left.mul_lt_one`. -/
+@[to_additive "Assumes right covariance. The lemma assuming left covariance is `left.add_neg`"]
 lemma right.mul_lt_one [covariant_class α α (swap (*)) (<)]
   {a b : α} (ha : a < 1) (hb : b < 1) : a * b < 1 :=
 calc  a * b < 1 * b : mul_lt_mul_right' ha b
@@ -307,7 +305,7 @@ calc  b ≤ c     : hbc
     ... < a * c : mul_lt_mul_right' ha c
 
 /-- Assumes left covariance. -/
-@[to_additive]
+@[to_additive "Assumes left covariance."]
 lemma le_mul_of_le_of_le_one [covariant_class α α (*) (≤)]
   {a b c : α} (ha : c ≤ a) (hb : 1 ≤ b) : c ≤ a * b :=
 calc  c ≤ a     : ha
@@ -321,7 +319,7 @@ lemma one_le_mul [covariant_class α α (*) (≤)]
 le_mul_of_le_of_le_one ha hb
 
 /-- Assumes left covariance. -/
-@[to_additive]
+@[to_additive "Assumes left covariance."]
 lemma lt_mul_of_lt_of_one_lt [covariant_class α α (*) (<)]
   {a b c : α} (ha : c < a) (hb : 1 < b) : c < a * b :=
 calc  c < a     : ha
@@ -329,7 +327,7 @@ calc  c < a     : ha
     ... < a * b : mul_lt_mul_left' hb a
 
 /-- Assumes left covariance. -/
-@[to_additive]
+@[to_additive "Assumes left covariance."]
 lemma left.mul_lt_one_of_lt_of_lt_one [covariant_class α α (*) (<)]
   {a b c : α} (ha : a < c) (hb : b < 1) : a * b < c :=
 calc  a * b < a * 1 : mul_lt_mul_left' hb a
@@ -337,7 +335,7 @@ calc  a * b < a * 1 : mul_lt_mul_left' hb a
         ... < c     : ha
 
 /-- Assumes right covariance. -/
-@[to_additive]
+@[to_additive "Assumes right covariance."]
 lemma right.mul_lt_one_of_lt_of_lt_one [covariant_class α α (swap (*)) (<)]
   {a b c : α} (ha : a < 1) (hb : b < c) : a * b < c :=
 calc  a * b < 1 * b : mul_lt_mul_right' ha b
@@ -345,7 +343,7 @@ calc  a * b < 1 * b : mul_lt_mul_right' ha b
         ... < c     : hb
 
 /-- Assumes right covariance. -/
-@[to_additive right.add_nonneg]
+@[to_additive right.add_nonneg "Assumes right covariance."]
 lemma right.one_le_mul [covariant_class α α (swap (*)) (≤)]
   {a b : α} (ha : 1 ≤ a) (hb : 1 ≤ b) : 1 ≤ a * b :=
 calc  1 ≤ b     : hb
@@ -353,7 +351,7 @@ calc  1 ≤ b     : hb
     ... ≤ a * b : mul_le_mul_right' ha b
 
 /-- Assumes right covariance. -/
-@[to_additive right.add_pos]
+@[to_additive right.add_pos "Assumes right covariance."]
 lemma right.one_lt_mul [covariant_class α α (swap (*)) (<)]
   {b : α} (hb : 1 < b) {a: α} (ha : 1 < a) : 1 < a * b :=
 calc  1 < b     : hb

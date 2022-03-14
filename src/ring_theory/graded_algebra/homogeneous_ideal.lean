@@ -252,9 +252,6 @@ variables {𝒜}
 
 namespace homogeneous_ideal
 
-instance : partial_order (homogeneous_ideal 𝒜) :=
-partial_order.lift _ subtype.coe_injective
-
 instance : has_bot (homogeneous_ideal 𝒜) :=
 ⟨⟨⊥, ideal.is_homogeneous.bot 𝒜⟩⟩
 

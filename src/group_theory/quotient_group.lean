@@ -440,7 +440,7 @@ noncomputable def fintype_of_ker_le_range (h : g.ker ≤ f.range) : fintype G :=
 /-- If `F` and `H` are finite such that `ker(G →* H) = im(F →* G)`, then `G` is finite. -/
 @[to_additive "If `F` and `H` are finite such that `ker(G →+ H) = im(F →+ G)`, then `G` is finite."]
 noncomputable def fintype_of_ker_eq_range (h : g.ker = f.range) : fintype G :=
-fintype_of_ker_le_range (eq_iff_le_not_lt.mp h).left
+fintype_of_ker_le_range h.le
 
 /-- If `ker(G →* H)` and `H` are finite, then `G` is finite. -/
 @[to_additive "If `ker(G →+ H)` and `H` are finite, then `G` is finite."]

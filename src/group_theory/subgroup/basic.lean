@@ -436,6 +436,10 @@ by { ext, simp }
 instance : has_top (subgroup G) :=
 ⟨{ inv_mem' := λ _ _, set.mem_univ _ , .. (⊤ : submonoid G) }⟩
 
+/-- A group is isomorphic to itself as a subgroup. -/
+@[to_additive "An additive group is isomorphic to itself as an additive subgroup.", simps]
+def top_equiv : (⊤ : subgroup G) ≃* G := submonoid.top_equiv
+
 /-- The trivial subgroup `{1}` of an group `G`. -/
 @[to_additive "The trivial `add_subgroup` `{0}` of an `add_group` `G`."]
 instance : has_bot (subgroup G) :=
@@ -451,10 +455,6 @@ instance : inhabited (subgroup G) := ⟨⊥⟩
 @[simp, to_additive] lemma coe_top : ((⊤ : subgroup G) : set G) = set.univ := rfl
 
 @[simp, to_additive] lemma coe_bot : ((⊥ : subgroup G) : set G) = {1} := rfl
-
-/-- A group is isomorphic to itself as a subgroup. -/
-@[to_additive "An additive group is isomorphic to itself as an additive subgroup."]
-def equiv_top : G ≃* (⊤ : subgroup G) := submonoid.equiv_top
 
 @[to_additive] instance : unique (⊥ : subgroup G) := ⟨⟨1⟩, λ g, subtype.ext g.2⟩
 

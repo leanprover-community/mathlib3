@@ -386,6 +386,15 @@ end galois_insertion
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits an addition."]
 instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
 
+/-- A monoid is isomorphic to itself as a submonoid. -/
+@[to_additive "An additive monoid is isomorphic to itself as an additive submonoid.", simps]
+def top_equiv : (⊤ : submonoid M) ≃* M :=
+{ to_fun    := λ x, x,
+  inv_fun   := λ x, ⟨x, mem_top x⟩,
+  left_inv  := λ x, x.eta _,
+  right_inv := λ _, rfl,
+  map_mul'  := λ _ _, rfl }
+
 /-- A submonoid of a monoid inherits a 1. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
 instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
@@ -398,15 +407,6 @@ instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
 
 @[to_additive] lemma mul_def (x y : S) : x * y = ⟨x * y, S.mul_mem x.2 y.2⟩ := rfl
 @[to_additive] lemma one_def : (1 : S) = ⟨1, S.one_mem⟩ := rfl
-
-/-- A monoid is isomorphic to itself as a submonoid. -/
-@[to_additive "An additive monoid is isomorphic to itself as an additive submonoid."]
-def equiv_top : M ≃* (⊤ : submonoid M) :=
-{ to_fun    := λ x, ⟨x, mem_top x⟩,
-  inv_fun   := λ x, x,
-  left_inv  := λ _, rfl,
-  right_inv := λ x, x.eta _,
-  map_mul'  := λ _ _, rfl }
 
 /-- A submonoid of a unital magma inherits a unital magma structure. -/
 @[to_additive "An `add_submonoid` of an unital additive magma inherits an unital additive magma

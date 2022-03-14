@@ -190,11 +190,9 @@ begin
   intros a ha x hx,
   rcases mem_smul_set.mp hx with ⟨y, hy, hx⟩,
   by_cases (a = 0),
-  {
-    simp[h] at hx,
+  { simp[h] at hx,
     rw ←hx,
-    exact h0,
-  },
+    exact h0 },
   rw [←hx, balanced_core_aux_mem_iff],
   rw balanced_core_aux_mem_iff at hy,
   intros r hr,

@@ -163,6 +163,15 @@ suffices h : cokernel.desc f g (by simp) =
     ≫ image.ι g, by { rw h, apply mono_comp },
 (cancel_epi (cokernel.π f)).1 $ by simp
 
+/-- If `ex : exact f g` and `epi g`, then `cokernel.desc _ _ ex.w` is an isomorphism. -/
+instance [exact f g] [epi g] : is_iso (cokernel.desc f g (by simp)) :=
+is_iso_of_mono_of_epi (limits.cokernel.desc f g exact.w)
+
+@[simp, reassoc]
+lemma cokernel.desc.inv [epi g] (ex : exact f g) :
+  g ≫ inv (cokernel.desc _ _ ex.w) = cokernel.π _ :=
+by simp
+
 /-- If `X ⟶ Y ⟶ Z ⟶ 0` is exact, then the second map is a cokernel of the first. -/
 def is_colimit_of_exact_of_epi [epi g] (h : exact f g) :
   is_colimit (cokernel_cofork.of_π _ h.w) :=

@@ -154,7 +154,7 @@ begin
   unfold principal at ha,
   push_neg at ha,
   rcases ha with ⟨b, c, hb, hc, H⟩,
-  refine ⟨b, hb, a - b, lt_of_le_of_ne (sub_le_self a b) (λ hab, _),
+  refine ⟨b, _, hb, lt_of_le_of_ne (sub_le_self a b) (λ hab, _),
     ordinal.add_sub_cancel_of_le hb.le⟩,
   rw [←sub_le, hab] at H,
   exact H.not_lt hc

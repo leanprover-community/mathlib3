@@ -35,9 +35,7 @@ variables {α β 𝕜 E F ι : Type*}
 
 open_locale topological_space
 
-section topological_add_group
-
-section linear_maps
+section bilin_form
 
 namespace linear_map
 
@@ -62,28 +60,10 @@ lemma to_seminorm_comp (f : F →ₗ[𝕜] 𝕜) (g : E →ₗ[𝕜] F) :
   f.to_seminorm.comp g = (f.comp g).to_seminorm :=
 by { ext, simp only [seminorm.comp_apply, to_seminorm_apply, coe_comp] }
 
-
-end linear_map
-
-end linear_maps
-
-section topology
-
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
-variables [nonempty ι]
-
-variables {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} (x : E) (y : F)
-
-namespace linear_map
-
 def to_seminorm_family (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) (y : F) : seminorm 𝕜 E := (B.flip y).to_seminorm
 
 @[simp] lemma to_seminorm_family_apply {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} {x y} :
   (B.to_seminorm_family y) x = ∥B x y∥ := rfl
-
-end linear_map
-
-namespace seminorm
 
 def weak_bilin_basis_zero (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : set (set E) :=
 ⋃ (s : finset F) (hs : s.nonempty) r (hr : 0 < r), { s.inf' hs (λ y, { x : E | ∥B x y∥ < r}) }
@@ -93,8 +73,15 @@ lemma weak_bilin_basis_zero_iff {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} {U : se
     U = s.inf' hs (λ y, { x : E | ∥B x y∥ < r}) :=
 by simp only [weak_bilin_basis_zero, set.mem_Union, set.mem_singleton_iff]
 
-end seminorm
+end linear_map
 
+end bilin_form
+
+section topology
+
+variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
+variables [nonempty ι]
+variables {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜}
 
 lemma has_basis_weak_bilin (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
   (𝓝 (0 : weak_bilin B)).has_basis (seminorm.seminorm_basis_zero B.to_seminorm_family) id :=
@@ -135,14 +122,14 @@ begin
   refine ⟨(s, λ _, r), ⟨by simp only [s.finite_to_set], λ y hy, hr⟩, λ x hx, _⟩,
   simp only [set.mem_preimage, set.mem_pi, finset.mem_coe, mem_ball_zero_iff] at hx,
   simp only [id.def, seminorm.mem_ball, sub_zero],
-  refine seminorm.sup_lt_apply hr (λ y hy, _),
+  refine seminorm.finset_sup_apply_lt hr (λ y hy, _),
   rw linear_map.to_seminorm_family_apply,
   exact hx y hy,
 end
 
 instance : seminorm.with_seminorms
   (linear_map.to_seminorm_family B : F → seminorm 𝕜 (weak_bilin B)) :=
-with_seminorms_of_has_basis _ (has_basis_weak_bilin _)
+seminorm.with_seminorms_of_has_basis _ (has_basis_weak_bilin _)
 
 variables [has_scalar ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
 

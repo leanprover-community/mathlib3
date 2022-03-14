@@ -389,7 +389,7 @@ def to_iso {x₀ x₁ : X} (α : path x₀ x₁) : (x₀ ≅ x₁) :=
 as the lift of some path connecting the two points (and its `.symm`).
 -/
 def iso_of_path_conn [path_connected_space X] (x₀ x₁ : X) : (x₀ ≅ x₁) :=
-to_iso (joined.some_path (path_connected_space.joined x₀ x₁))
+category_theory.as_iso ⟦joined.some_path (path_connected_space.joined x₀ x₁)⟧
 
 end path_connected
 

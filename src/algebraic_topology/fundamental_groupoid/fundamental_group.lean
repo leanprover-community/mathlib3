@@ -8,7 +8,7 @@ import category_theory.groupoid
 import topology.category.Top.basic
 import topology.path_connected
 import topology.homotopy.path
-import topology.homotopy.fundamental_groupoid
+import algebraic_topology.fundamental_groupoid.basic
 
 /-!
 # Fundamental group of a space

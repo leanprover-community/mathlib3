@@ -405,7 +405,7 @@ top_unique $ λ x _,
 
 end trivial
 
-@[to_additive quotient_add_grup.comap_comap_center]
+@[to_additive quotient_add_group.comap_comap_center]
 lemma comap_comap_center {H₁ : subgroup G} [H₁.normal] {H₂ : subgroup (G ⧸ H₁)} [H₂.normal] :
   (((subgroup.center ((G ⧸ H₁) ⧸ H₂))).comap (mk' H₂)).comap (mk' H₁) =
   (subgroup.center (G ⧸ H₂.comap (mk' H₁))).comap (mk' (H₂.comap (mk' H₁))) :=
@@ -420,3 +420,38 @@ begin
 end
 
 end quotient_group
+
+namespace group
+
+open_locale classical
+open subgroup quotient_group
+
+variables {F G H : Type u} [group F] [group G] [group H] [fintype F] [fintype H]
+variables {f : F →* G} {g : G →* H}
+
+/-- If `F` and `H` are finite such that `ker(G →* H) ≤ im(F →* G)`, then `G` is finite. -/
+@[to_additive "If `F` and `H` are finite such that `ker(G →+ H) ≤ im(F →+ G)`, then `G` is finite."]
+noncomputable def fintype_of_ker_le_range (h : g.ker ≤ f.range) : fintype G :=
+@fintype.of_equiv _ _
+  (@prod.fintype _ _ (fintype.of_injective _ $ ker_lift_injective g) $
+                      fintype.of_injective _ $ inclusion_injective h)
+  group_equiv_quotient_times_subgroup.symm
+
+/-- If `F` and `H` are finite such that `ker(G →* H) = im(F →* G)`, then `G` is finite. -/
+@[to_additive "If `F` and `H` are finite such that `ker(G →+ H) = im(F →+ G)`, then `G` is finite."]
+noncomputable def fintype_of_ker_eq_range (h : g.ker = f.range) : fintype G :=
+fintype_of_ker_le_range (eq_iff_le_not_lt.mp h).left
+
+/-- If `ker(G →* H)` and `H` are finite, then `G` is finite. -/
+@[to_additive "If `ker(G →+ H)` and `H` are finite, then `G` is finite."]
+noncomputable def fintype_of_ker_of_codom [fintype g.ker] : fintype G :=
+@fintype_of_ker_le_range g.ker _ _ _ _ _ _ _
+  ((equiv_top.symm : (⊤ : subgroup G) ≃* G).to_monoid_hom.comp $ inclusion le_top) _ $
+  λ x hx, ⟨⟨x, hx⟩, rfl⟩
+
+/-- If `F` and `coker(F →* G)` are finite, then `G` is finite. -/
+@[to_additive "If `F` and `coker(F →+ G)` are finite, then `G` is finite."]
+noncomputable def fintype_of_dom_of_coker [normal f.range] [fintype $ G ⧸ f.range] : fintype G :=
+@fintype_of_ker_le_range _ _ _ _ _ _ _ _ _ (mk' f.range) $ λ x, (eq_one_iff x).mp
+
+end group

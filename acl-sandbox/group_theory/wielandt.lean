@@ -128,8 +128,6 @@ begin
     using z,
 end
 
-#check setoid.is_partition.card_eq_sum_parts
-
 end partition
 
 /-!
@@ -1114,7 +1112,7 @@ begin
 
   -- en déduire que le système de blocs { g • B } a pour cardinal au moins card(C)
   have : C.carrier.to_finset.card ≤ (set.range (λ g, g • B)).to_finset.card,
-  { rw setoid.is_partition.card_eq_sum_parts
+  { rw setoid.is_partition.card_set_eq_sum_parts
       (is_block_system.of_block G X hB hB_ne).left,
     rw finset.card_eq_sum_ones,
     refine finset.sum_le_sum _,

@@ -507,8 +507,7 @@ cofork.is_colimit.mk' _ $ λ s,
 end π_kernel
 
 section
-variables [fintype J] {K : Type v} [fintype K] [decidable_eq K] {f : J → C} {g : K → C}
-  [has_finite_biproducts C]
+variables {K : Type v} [decidable_eq K] {f : J → C} {g : K → C} [has_biproduct f] [has_biproduct g]
 
 /--
 Convert a (dependently typed) matrix to a morphism of biproducts.

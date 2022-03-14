@@ -47,29 +47,43 @@ local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_
 instance tensoring_left_additive (X : C) : ((tensoring_left C).obj X).additive := {}
 instance tensoring_right_additive (X : C) : ((tensoring_right C).obj X).additive := {}
 
+variables {C} {W X Y Z : C} {f : W ⟶ X} {g : Y ⟶ Z}
+
+namespace preadditive
+
+/-- Tensoring on the left with a fixed morphism, as an `add_monoid_hom`. -/
+def left_tensor {W X : C} (f : W ⟶ X) (Y Z : C) : (Y ⟶ Z) →+ (W ⊗ Y ⟶ X ⊗ Z) :=
+add_monoid_hom.mk' (λ g, f ⊗ g) $ λ g g', by simp
+
+/-- Tensoring on the right with a fixed morphism, as an `add_monoid_hom`. -/
+def right_tensor (W X : C) {Y Z : C} (g : Y ⟶ Z) : (W ⟶ X) →+ (W ⊗ Y ⟶ X ⊗ Z) :=
+add_monoid_hom.mk' (λ f, f ⊗ g) $ λ g g', by simp
+
+end preadditive
+
+open preadditive
+
+lemma nsmul_tensor (n : ℕ) : (n • f) ⊗ g = n • (f ⊗ g) :=
+map_nsmul (right_tensor W X g) f n
+
+lemma tensor_nsmul (n : ℕ) : f ⊗ (n • g) = n • (f ⊗ g) :=
+map_nsmul (left_tensor f Y Z) g n
+
+lemma zsmul_tensor (n : ℤ) : (n • f) ⊗ g = n • (f ⊗ g) :=
+map_zsmul (right_tensor W X g) f n
+
+lemma tensor_zsmul (n : ℤ) : f ⊗ (n • g) = n • (f ⊗ g) :=
+map_zsmul (left_tensor f Y Z) g n
+
 open_locale big_operators
 
 lemma tensor_sum {P Q R S : C} {J : Type*} (s : finset J) (f : P ⟶ Q) (g : J → (R ⟶ S)) :
   f ⊗ ∑ j in s, g j = ∑ j in s, f ⊗ g j :=
-begin
-  rw ←tensor_id_comp_id_tensor,
-  let tQ := (((tensoring_left C).obj Q).map_add_hom : (R ⟶ S) →+ _),
-  change _ ≫ tQ _ = _,
-  rw [tQ.map_sum, preadditive.comp_sum],
-  dsimp [tQ],
-  simp only [tensor_id_comp_id_tensor],
-end
+(left_tensor f R S).map_sum _ _
 
 lemma sum_tensor {P Q R S : C} {J : Type*} (s : finset J) (f : P ⟶ Q) (g : J → (R ⟶ S)) :
   (∑ j in s, g j) ⊗ f = ∑ j in s, g j ⊗ f :=
-begin
-  rw ←tensor_id_comp_id_tensor,
-  let tQ := (((tensoring_right C).obj P).map_add_hom : (R ⟶ S) →+ _),
-  change tQ _ ≫ _ = _,
-  rw [tQ.map_sum, preadditive.sum_comp],
-  dsimp [tQ],
-  simp only [tensor_id_comp_id_tensor],
-end
+(right_tensor R S f).map_sum _ _
 
 variables {C} [has_finite_biproducts C]
 

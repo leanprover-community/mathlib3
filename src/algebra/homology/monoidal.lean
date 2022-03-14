@@ -22,12 +22,19 @@ open_locale big_operators
 open category_theory.monoidal_category
 
 def antidiagonal (i : ℕ) := { p : ℕ × ℕ // p.1 + p.2 = i }
-instance (i : ℕ) : fintype (antidiagonal i) := sorry
+instance (i : ℕ) : fintype (antidiagonal i) :=
+{ elems := (finset.nat.antidiagonal i).attach.map
+  { to_fun := λ x, ⟨x.1, finset.nat.mem_antidiagonal.mp x.2⟩,
+    inj' := sorry, },
+  complete := sorry, }
+
+instance (i : ℕ) : has_coe (antidiagonal i) (ℕ × ℕ) :=
+{ coe := subtype.val, }
 
 namespace cochain_complex
 
 def tensor_d (X Y : cochain_complex C ℕ) (i j : ℕ) (p : antidiagonal i) (q : antidiagonal j) :
-  X.X p.1.1 ⊗ Y.X p.1.2 ⟶ X.X q.1.1 ⊗ Y.X q.1.2 :=
+  X.X (p : ℕ × ℕ).1 ⊗ Y.X (p : ℕ × ℕ).2 ⟶ X.X (q : ℕ × ℕ).1 ⊗ Y.X (q : ℕ × ℕ).2 :=
 if h : p.1.1 = q.1.1 then
   (-1 : ℤ)^p.1.1 • eq_to_hom (congr_arg X.X h) ⊗ Y.d p.1.2 q.1.2
 else if h : p.1.2 = q.1.2 then
@@ -35,6 +42,7 @@ else if h : p.1.2 = q.1.2 then
 else
   0
 
+@[simps]
 def tensor_obj (X Y : cochain_complex C ℕ) : cochain_complex C ℕ :=
 { X := λ i, ⨁ (λ p : antidiagonal i, X.X p.1.1 ⊗ Y.X p.1.2),
   d := λ i j, biproduct.matrix (tensor_d X Y i j),
@@ -44,7 +52,23 @@ def tensor_obj (X Y : cochain_complex C ℕ) : cochain_complex C ℕ :=
 def tensor_hom {X₁ X₂ Y₁ Y₂ : cochain_complex C ℕ} (f : X₁ ⟶ X₂) (g : Y₁ ⟶ Y₂) :
   tensor_obj X₁ Y₁ ⟶ tensor_obj X₂ Y₂ :=
 { f := λ i, biproduct.map (λ p, f.f p.1.1 ⊗ g.f p.1.2),
-  comm' := sorry, }
+  comm' := begin
+    intros, ext ⟨⟨p₁, p₂⟩, ph⟩ ⟨⟨q₁, q₂⟩, qh⟩,
+    -- `simp` lemmas for `biproduct.matrix` don't seem to be working properly,
+    -- so we unfold it.
+    dsimp [biproduct.matrix],
+    simp only [category.assoc, biproduct.lift_map, biproduct.lift_π, biproduct.ι_desc,
+      biproduct.map_desc, biproduct.ι_desc_assoc],
+    simp only [tensor_d, dif_ctx_congr, subtype.val_eq_coe],
+    split_ifs with h₁ h₂,
+    { dsimp at h₁, cases h₁,
+      dsimp,
+      simp [zsmul_tensor, ←tensor_comp], },
+    { dsimp at h₂, cases h₂,
+      dsimp,
+      simp [←tensor_comp], },
+    { simp, },
+  end, }
 
 def tensor_unit : cochain_complex C ℕ := (cochain_complex.single₀ C).obj (𝟙_ C)
 
@@ -63,7 +87,11 @@ def associator_hom (X Y Z : cochain_complex C ℕ) :
 { f := λ i, biproduct.matrix (λ p q,
   (right_distributor _ _).hom ≫ biproduct.matrix (associator_hom_aux X.X Y.X Z.X i p q) ≫
     (left_distributor _ _).inv),
-  comm' := sorry }
+  comm' := begin
+    intros, ext ⟨⟨p₁, p₂⟩, ph⟩ ⟨⟨q₁, q₂⟩, qh⟩,
+    dsimp [biproduct.matrix],
+    simp [preadditive.sum_comp],
+  end, }
 
 def associator_inv_aux (X Y Z : ℕ → C) (i : ℕ)
   (p q : antidiagonal i) (j : antidiagonal p.1.2) (k : antidiagonal q.1.1) :

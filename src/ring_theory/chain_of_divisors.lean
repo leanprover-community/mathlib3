@@ -3,7 +3,6 @@ Copyright (c) 2021 Paul Lezeau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anne Baanen, Paul Lezeau
 -/
-
 import algebra.is_prime_pow
 import algebra.squarefree
 
@@ -87,32 +86,25 @@ end
 
 lemma prime_dvd_eq_second_of_chain {p q r : associates M} {n : ℕ} (hn : n ≠ 0)
   {c : fin (n + 1) → associates M} (h₁ : strict_mono c)
-  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i)
-  (hp : prime p) (hr : r ∣ q) (hp' : p ∣ r) :
+  (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i) (hp : prime p) (hr : r ∣ q) (hp' : p ∣ r) :
   p = c 1 :=
 begin
+  cases n,
+  { contradiction },
   obtain ⟨i, rfl⟩ := h₂.1 (dvd_trans hp' hr),
-  suffices h : i = 1,
-  { subst h },
-  refine le_antisymm _ _, swap,
-  { cases n, { contradiction },
-    rw [fin.le_iff_coe_le_coe, fin.coe_one, nat.succ_le_iff, ← fin.coe_zero,
+  refine congr_arg c (eq_of_ge_of_not_gt _ $ λ hi, _),
+  { rw [fin.le_iff_coe_le_coe, fin.coe_one, nat.succ_le_iff, ← fin.coe_zero,
         ← fin.lt_iff_coe_lt_coe, fin.pos_iff_ne_zero],
     rintro rfl,
-    exact prime.not_unit hp (first_of_chain_is_unit h₁ @h₂) },
-  { refine le_of_not_lt (λ hi, _),
-    have hp' := hp.irreducible,
-    contrapose hp',
-    obtain (rfl | ⟨j, rfl⟩) := i.eq_zero_or_eq_succ,
-    { cases hi },
-    refine (not_irreducible_of_not_unit_dvd_not_unit
-      (dvd_not_unit.not_unit (associates.dvd_not_unit_iff_lt.2
-      (h₁ (show (0 : fin (n + 1)) < j, from _)) )) _),
-    { cases n, { contradiction },
-      simpa [← fin.succ_zero_eq_one, fin.succ_lt_succ_iff] using hi },
-    rw associates.dvd_not_unit_iff_lt,
-    apply h₁,
-    simpa using fin.lt_succ },
+    exact hp.not_unit (first_of_chain_is_unit h₁ @h₂) },
+  obtain (rfl | ⟨j, rfl⟩) := i.eq_zero_or_eq_succ,
+  { cases hi },
+  refine not_irreducible_of_not_unit_dvd_not_unit
+    (dvd_not_unit.not_unit (associates.dvd_not_unit_iff_lt.2
+    (h₁ (show (0 : fin (n + 2)) < j, from _)) )) _ hp.irreducible,
+  { simpa [← fin.succ_zero_eq_one, fin.succ_lt_succ_iff] using hi },
+  { refine associates.dvd_not_unit_iff_lt.2 (h₁ _),
+    simpa only [fin.coe_eq_cast_succ] using fin.lt_succ }
 end
 
 lemma card_subset_divisors_le_length_of_chain {q : associates M}
@@ -122,12 +114,10 @@ begin
   classical,
   have mem_image : ∀ (r : associates M), r ≤ q → r ∈ finset.univ.image c,
   { intros r hr,
-    rw finset.mem_image,
     obtain ⟨i, hi⟩ := h₂.1 hr,
-    exact ⟨i, finset.mem_univ _, hi.symm⟩ },
-  have subset_image : m ⊆ finset.univ.image c := λ x hx, (mem_image x) (hm x hx),
-  rw ← finset.card_fin (n + 1),
-  exact (finset.card_le_of_subset subset_image).trans (finset.card_image_le),
+    exact finset.mem_image.2 ⟨i, finset.mem_univ _, hi.symm⟩ },
+  rw ←finset.card_fin (n + 1),
+  exact (finset.card_le_of_subset $ λ x hx, mem_image x $ hm x hx).trans finset.card_image_le,
 end
 
 variables [unique_factorization_monoid M]
@@ -177,10 +167,8 @@ lemma eq_pow_second_of_chain_of_has_chain {q : associates M} {n : ℕ} (hn : n �
 begin
   classical,
   obtain ⟨i, hi'⟩ := mem_chain_eq_pow_second_of_chain hn h₁ (λ r, h₂) (dvd_refl q) hq,
-  suffices : n ≤ i,
-  { rwa le_antisymm (nat.succ_le_succ_iff.mp i.prop) this at hi' },
-
-  refine nat.le_of_succ_le_succ _,
+  convert hi',
+  refine (nat.lt_succ_iff.1 i.prop).antisymm' (nat.le_of_succ_le_succ _),
   calc n + 1 = (finset.univ : finset (fin (n + 1))).card : (finset.card_fin _).symm
          ... = (finset.univ.image c).card :
     (finset.card_image_eq_iff_inj_on.mpr (h₁.injective.inj_on _)).symm
@@ -201,9 +189,8 @@ end
 lemma is_prime_pow_of_has_chain {q : associates M} {n : ℕ} (hn : n ≠ 0)
   {c : fin (n + 1) → associates M} (h₁ : strict_mono c)
   (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i) (hq : q ≠ 0) : is_prime_pow q :=
-(is_prime_pow_def q).mpr (exists.intro (c 1) (exists.intro n
-  ⟨irreducible_iff_prime.mp (second_of_chain_is_irreducible hn h₁ @h₂ hq),
-  zero_lt_iff.mpr hn, (eq_pow_second_of_chain_of_has_chain hn h₁ @h₂ hq).symm⟩  ) )
+⟨c 1, n, irreducible_iff_prime.mp (second_of_chain_is_irreducible hn h₁ @h₂ hq),
+  zero_lt_iff.mpr hn, (eq_pow_second_of_chain_of_has_chain hn h₁ @h₂ hq).symm⟩
 
 end divisor_chain
 
@@ -250,15 +237,10 @@ lemma multiplicity_prime_le_multiplicity_image_by_factor_order_iso {m p : associ
   (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
   multiplicity p m ≤ multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n :=
 begin
-  have H_finite := multiplicity.finite_prime_left (prime_of_normalized_factor p hp) hm,
-  have temp : ↑((multiplicity p m).get H_finite) ≤
-    (multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n),
-  { rw ← multiplicity.pow_dvd_iff_le_multiplicity,
-    refine pow_image_of_prime_by_factor_order_iso_dvd hn hp d (λ H, _)
-      (multiplicity.pow_multiplicity_dvd _),
-    refine (multiplicity.dvd_iff_multiplicity_pos.2 (dvd_of_mem_normalized_factors hp)).ne'
-      (part.eq_some_iff.mpr _),
-    rw ← H,
-    exact part.get_mem H_finite },
-  exact (enat.get_le_iff_of_dom _).1 temp,
+  rw [←enat.coe_get (finite_iff_dom.1 $ finite_prime_left (prime_of_normalized_factor p hp) hm),
+    ←pow_dvd_iff_le_multiplicity],
+  refine pow_image_of_prime_by_factor_order_iso_dvd hn hp d (λ H, _) (pow_multiplicity_dvd _),
+  refine (dvd_of_mem_normalized_factors hp).multiplicity_pos.ne' (part.eq_some_iff.mpr _),
+  rw ←H,
+  exact part.get_mem _,
 end

@@ -265,16 +265,6 @@ lemma eq_top_iff_forall_le (x : enat) : x = ⊤ ↔ ∀ n : ℕ, (n : enat) ≤ 
 (eq_top_iff_forall_lt x).trans
 ⟨λ h n, (h n).le, λ h n, lt_of_lt_of_le (coe_lt_coe.mpr n.lt_succ_self) (h (n + 1))⟩
 
-lemma get_le_iff_of_dom {a b : enat} (h : a.dom) : ↑(a.get h) ≤ b ↔ a ≤ b :=
-begin
-  refine ⟨λ H, _, λ H, (enat.coe_le_iff (a.get h) b).mpr (λ h', enat.get_le_get.2 H)⟩,
-  by_cases h' : b.dom,
-  { rw ← enat.get_le_get,
-    exact (enat.coe_le_iff (a.get h) b).mp H h' },
-  { rw [← enat.ne_top_iff_dom, not_not] at h',
-    simp only [h', le_top] }
-end
-
 lemma pos_iff_one_le {x : enat} : 0 < x ↔ 1 ≤ x :=
 enat.cases_on x (by simp only [iff_true, le_top, coe_lt_top, ← @nat.cast_zero enat]) $
   λ n, by { rw [← nat.cast_zero, ← nat.cast_one, enat.coe_lt_coe, enat.coe_le_coe], refl }

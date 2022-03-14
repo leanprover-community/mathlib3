@@ -1023,6 +1023,9 @@ rfl
 def sup {ι : Type u} (f : ι → ordinal.{max u v}) : ordinal.{max u v} :=
 Sup (set.range f)
 
+@[simp] theorem Sup_eq_sup {ι : Type u} (f : ι → ordinal.{max u v}) : Sup (set.range f) = sup f :=
+rfl
+
 /-- The range of any family of ordinals is bounded above. See also `lsub_nmem_range`. -/
 theorem bdd_above_range {ι : Type u} (f : ι → ordinal.{max u v}) : bdd_above (set.range f) :=
 ⟨(cardinal.sup.{u v} (cardinal.succ ∘ card ∘ f)).ord, begin
@@ -1103,6 +1106,9 @@ sup (family_of_bfamily o f)
 
 theorem bsup_eq_sup {o} (f : Π a < o, ordinal) : bsup o f = sup (family_of_bfamily o f) :=
 rfl
+
+@[simp] theorem Sup_eq_bsup {o} (f : Π a < o, ordinal) : Sup (brange o f) = bsup o f :=
+by { congr, rw range_family_of_bfamily }
 
 theorem bsup_eq_sup' {o ι} (r : ι → ι → Prop) [is_well_order ι r] (ho : type r = o) (f) :
   bsup o f = sup (family_of_bfamily' r ho f) :=

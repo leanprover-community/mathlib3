@@ -30,12 +30,6 @@ It is naturally endowed with a topology: the Zariski topology.
 * `projective_spectrum.vanishing_ideal t`: The vanishing ideal of a subset `t` of
   `projective_spectrum 𝒜` is the intersection of points in `t` (viewed as relevant homogeneous prime
   ideals).
-
-
-## Implementation note
-The type of `vanishing_ideal` is an `ideal` but instead of `homogeneous_ideal`. This is because we
-want a galois connection in `ideal A` as the lemmas like `le_vanishing_ideal_zero_locus` are about
-ideals of `A`, not necessarily homogeneous.
 -/
 
 noncomputable theory

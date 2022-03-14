@@ -367,9 +367,9 @@ theorem cof_bsup_le_lift {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, 
 induction_on o $ λ α r _ f H,
 begin
   resetI,
-  rw bsup_eq_sup' r rfl,
+  rw ←sup_eq_bsup' r rfl,
   refine cof_sup_le_lift _ _,
-  rw ← bsup_eq_sup',
+  rw sup_eq_bsup',
   exact λ a, H _ _
 end
 

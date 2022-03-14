@@ -19,21 +19,21 @@ namespace language
 namespace ring
 
 /-- The constant symbols in `first_order.language.ring.L` -/
-inductive consts : Type*
+inductive consts : Type u
 | zero : consts
 | one : consts
 
 /-- The unary function symbols in `first_order.language.ring.L` -/
-inductive unaries : Type*
+inductive unaries : Type u
 | neg : unaries
 
 /-- The binary function symbols in `first_order.language.ring.L` -/
-inductive binaries : Type*
+inductive binaries : Type u
 | add : binaries
 | mul : binaries
 
 /-- All function symbols in `first_order.language.ring.L` -/
-def functions : ℕ → Type*
+def functions : ℕ → Type u
 | 0 := consts
 | 1 := unaries
 | 2 := binaries
@@ -45,9 +45,12 @@ instance : inhabited binaries := ⟨ binaries.add ⟩
 instance : inhabited (functions 0) := ⟨ consts.zero ⟩
 
 /-- The language of rings -/
-def L : language.{u v} :=
+@[simps] def L : language.{u v} :=
 { functions := functions,
   relations := λ n, pempty }
+
+instance : is_algebraic L := { empty_relations :=
+λ n, by {simp, apply_instance} }
 
 variable {α : Type u'}
 

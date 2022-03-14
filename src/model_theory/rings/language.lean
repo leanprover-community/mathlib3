@@ -12,28 +12,28 @@ import model_theory.terms_and_formulas
 * A `first_order.language.ring.L` defines the language of rings,
   which consists of `0`, `1`, `-`, `+`, `*`.
 -/
-universes u v u'
+universes u
 
 namespace first_order
 namespace language
 namespace ring
 
 /-- The constant symbols in `first_order.language.ring.L` -/
-inductive consts : Type u
+inductive consts : Type
 | zero : consts
 | one : consts
 
 /-- The unary function symbols in `first_order.language.ring.L` -/
-inductive unaries : Type u
+inductive unaries : Type
 | neg : unaries
 
 /-- The binary function symbols in `first_order.language.ring.L` -/
-inductive binaries : Type u
+inductive binaries : Type
 | add : binaries
 | mul : binaries
 
 /-- All function symbols in `first_order.language.ring.L` -/
-def functions : ℕ → Type u
+def functions : ℕ → Type
 | 0 := consts
 | 1 := unaries
 | 2 := binaries
@@ -45,11 +45,11 @@ instance : inhabited binaries := ⟨ binaries.add ⟩
 instance : inhabited (functions 0) := ⟨ consts.zero ⟩
 
 /-- The language of rings -/
-@[reducible] def L : language.{u v} :=
-{ functions := functions.{u},
-  relations := λ n, pempty.{v+1} }
+@[reducible] def L : language :=
+{ functions := functions,
+  relations := λ n, empty }
 
-variable {α : Type u'}
+variable {α : Type u}
 
 @[simp] instance : has_zero (L.term α) := ⟨ @func L _ 0 consts.zero fin_zero_elim ⟩
 

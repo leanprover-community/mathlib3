@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2022 Yuma Mizuno. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yuma Mizuno
+-/
 import category_theory.monoidal.free.coherence
 import category_theory.bicategory.coherence
 
@@ -106,6 +111,10 @@ end bicategory
 namespace interactive
 setup_tactic_parser
 
+/--
+`coherence` uses coherence theorem for monoidal categories or bicategories to prove the goal. It
+can prove any equality made up only of associators and unitors.
+-/
 meta def coherence : tactic unit :=
 do
   (lhs, rhs) ← get_goal >>= infer_type >>= match_eq,
@@ -117,51 +126,12 @@ do
   apply ``(congr_arg (λ η, (free_monoidal_category.project id).map η) %%h) <|>
   apply ``(congr_arg (λ η, (free_bicategory.lift (prefunctor.id _)).map₂ η) %%h)
 
+add_tactic_doc
+{ name        := "coherence",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.coherence],
+  tags        := ["category theory"] }
+
 end interactive
 
 end tactic
-
-section test
-
-universes w v u
-
-section bicategory
-open_locale bicategory
-
-variables {B : Type u} [bicategory.{w v} B] {a b c d e : B}
-
-example : (λ_ (𝟙 a)).hom = (ρ_ (𝟙 a)).hom := by coherence
-
-example : (λ_ (𝟙 a)).inv = (ρ_ (𝟙 a)).inv := by coherence
-
-example (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) :
-  (f ◁ (α_ g h i).hom) ≫ (α_ f g (h ≫ i)).inv ≫ (α_ (f ≫ g) h i).inv =
-    (α_ f (g ≫ h) i).inv ≫ ((α_ f g h).inv ▷ i) :=
-by coherence
-
-example (f : a ⟶ b) (g : b ⟶ c) :
-  (f ◁ (λ_ g).inv) ≫ (α_ f (𝟙 b) g).inv = (ρ_ f).inv ▷ g :=
-by coherence
-
-end bicategory
-
-section monoidal
-
-variables {C : Type u} [category.{v} C] [monoidal_category C]
-
-example : (λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ C)).hom := by coherence
-
-example : (λ_ (𝟙_ C)).inv = (ρ_ (𝟙_ C)).inv := by coherence
-
-example (X Y Z W : C) :
-  (𝟙 X ⊗ (α_ Y Z W).hom) ≫ (α_ X Y (Z ⊗ W)).inv ≫ (α_ (X ⊗ Y) Z W).inv =
-    (α_ X (Y ⊗ Z) W).inv ≫ ((α_ X Y Z).inv ⊗ 𝟙 W) :=
-by coherence
-
-example (X Y : C) :
-  (𝟙 X ⊗ (λ_ Y).inv) ≫ (α_ X (𝟙_ C) Y).inv = (ρ_ X).inv ⊗ 𝟙 Y :=
-by coherence
-
-end monoidal
-
-end test

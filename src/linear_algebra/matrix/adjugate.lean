@@ -459,4 +459,32 @@ adjugate_adjugate _ $ fintype.one_lt_card.ne'
 
 end adjugate
 
+local notation `!ᵇ[` a `, ` b `; ` c `, ` d `]` := from_blocks a b c d
+
+
+lemma det_add_col_mul_row {A : matrix n n α} {u v : n → α} :
+  det (A + col u ⬝ row v) = det A + det (row v ⬝ A.adjugate ⬝ col u) :=
+begin
+  let u' := (col u).map polynomial.C,
+  let v' := (row v).map polynomial.C,
+  suffices : ∀ M : matrix n n α,
+    let A' := (polynomial.X : polynomial α) • (1 : matrix n n (polynomial α)) - M.map polynomial.C in
+       det (A' + (u' ⬝ v')) = det A' + det (v' ⬝ A'.adjugate ⬝ u'),
+  {
+      specialize this (-A),
+      replace this := congr_arg (polynomial.aeval (0 : α)) this,
+      simp only [alg_hom.map_add, alg_hom.map_det, alg_hom.map_sub, alg_hom.map_smul] at this,
+      simp [matrix.map_smul] at this,
+
+  }
+
+  -- express `A` as an evaluation of a polynomial in n^2 variables, and solve in the polynomial ring
+  -- where `A'.det` is non-zero.
+  let A' := mv_polynomial.X • (1 : matrix n n ℤ),
+  suffices : A'.adjugate.det = A'.det ^ (fintype.card n - 1),
+  { rw [←mv_polynomial_X_map_matrix_aeval ℤ A, ←alg_hom.map_adjugate, ←alg_hom.map_det,
+      ←alg_hom.map_det, ←alg_hom.map_pow, this] },
+
+end
+
 end matrix

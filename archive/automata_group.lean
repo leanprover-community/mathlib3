@@ -10,19 +10,18 @@ open set function real
 
 namespace automata_group
 
-variables {S : Type} {X : Type}
+variables {S T : Type} {X : Type} [decidable_eq X] [fintype X]
 
 --!! does the following structuring sound reasonable to you?
 -- notation machine := S×X → X×S
 -- structure transducer := ⟨machine : S×X→X×S,s : S⟩
 
 -- we could implement in lean the composition of transducers -- it's again given by a transducer, with stateset S the product of the states of the factors.
--- more precisely, ⟨machine1,s1⟩∘⟨machine2,s2⟩ := ⟨machine1∘machine2,(s1,s2)⟩,
--- with (machine1∘machine2) ((t1,t2),x) := let ⟨y,u2⟩ := machine2 (t2,x) in let ⟨z,u1⟩ := machine1 (t1,y) in (z,(u1,u2))
+-- more precisely, ⟨machine1,s1⟩∘⟨machine2,s2⟩ := ⟨machine1∘machine2,(s1,s2)⟩, as below
+--!! also, let dec_trivial decide if two transducers are equal by testing if their quotient is 1, and test if a transducer is 1 by testing if all states reachable from the initial state induce trivial permutation X→X.
 
-def isinvertible_machine (machine : S×X → X×S) := ∀ s x, ∃! y, (machine (s,y)).1 = x
--- we could also implement the inverse, for invertible machines: they would be the machine S×X→X×S given by
--- (invmachine machine) (s,x) := ("the y such that machine (s,y).1=x",machine (s,x).2).
+def isinvertible_machine (machine : S×X → X×S) := ∀ s, bijective (λ x, (machine (s,x)).1)
+
 -- then ⟨machine,s⟩⁻¹ := ⟨invmachine machine,s⟩
 
 -- transducer action: written in action notation?
@@ -30,22 +29,22 @@ def transducer_action (machine : S×X → X×S) : S → (list X) → (list X)
 | _ [] := []
 | state (head :: tail) := (machine (state,head)).1 :: transducer_action (machine (state,head)).2 tail
 
--- action of inverses of states
-def transducer_invaction (machine : S×X → X×S) (inv : isinvertible_machine machine) : S → (list X) → (list X)
-| _ [] := []
---!! extract a value from an existential quantifier, to form the head of a new list?
-| state (head :: tail) := (exists_of_exists_unique (inv state head)).1 :: transducer_invaction (machine (state,head)).2 tail
+def machine_inverse {machine : S×X → X×S} (inv : isinvertible_machine machine) : S×X → X×S := λ p, let σ := fintype.bij_inv (inv p.1) in (σ p.2,(machine (p.1,σ p.2)).2)
 
-def transducer_perm (machine : S×X → X×S) [inv : isinvertible_machine machine] (state : S) : equiv.perm (list X) := {
+--!! could (inv :...) be automatically deduced (in [])?
+def transducer_perm (machine : S×X → X×S) (inv : isinvertible_machine machine) (state : S) : equiv.perm (list X) := {
   to_fun := transducer_action machine state,
-  inv_fun := transducer_invaction machine inv state,
+  inv_fun := transducer_action (machine_inverse inv) state,
   left_inv := sorry,
   right_inv := sorry
 }
 
+--!! notation ∘ ?
+def machine_composition (machine₁ : S×X → X×S) (machine₂ : T×X → X×T) : ((S×T)×X→X×(S×T)) := λ p, let q := machine₂ (p.1.2,p.2) in let r := machine₁ (p.1.1,q.1) in (r.1,(r.2,q.2))
+
 --!! set syntax when going over a type ?
-def automata_group (machine : S×X → X×S) [inv : isinvertible_machine machine] : subgroup (equiv.perm (list X)) :=
-  subgroup.closure {transducer_perm machine s : s ∈ S}
+def automata_group (machine : S×X → X×S) (inv : isinvertible_machine machine) : subgroup (equiv.perm (list X)) :=
+  subgroup.closure {transducer_perm machine s | s : S}
 
 end automata_group
 
@@ -64,9 +63,27 @@ def grigorchuk_machine : S×X → X×S := λ p,
   if p=(0,3) then (0,4) else if p=(1,3) then (1,1) else
   if p=(0,4) then (0,4) else                 (1,4)
 
-instance inv : isinvertible_machine grigorchuk_machine := dec_trivial
+#check isinvertible_machine grigorchuk_machine
+-- this fails, though it should be easily decidable
+def inv : isinvertible_machine grigorchuk_machine := dec_trivial
 
-def _root_.grigorchuk_group : subgroup (equiv.perm (list X)) := automata_group grigorchuk_machine
+def _root_.grigorchuk_group : subgroup (equiv.perm (list X)) := automata_group grigorchuk_machine inv
+
+def grigorchuk_group.a : equiv.perm (list X) := transducer_perm grigorchuk_machine inv 0
+def grigorchuk_group.b : equiv.perm (list X) := transducer_perm grigorchuk_machine inv 1
+def grigorchuk_group.c : equiv.perm (list X) := transducer_perm grigorchuk_machine inv 2
+def grigorchuk_group.d : equiv.perm (list X) := transducer_perm grigorchuk_machine inv 3
+
+notation `𝔾` := grigorchuk_group
+notation `a` := grigorchuk_group.a
+notation `b` := grigorchuk_group.b
+notation `c` := grigorchuk_group.c
+notation `d` := grigorchuk_group.d
+
+#check a*a = 1
+#check b*b = 1
+#check b*c*d = 1
+#check (a*d)^4 = 1
 
 end grigorchuk_example
 

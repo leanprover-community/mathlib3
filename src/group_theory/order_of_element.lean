@@ -3,9 +3,9 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Julian Kuelshammer
 -/
-import data.nat.modeq
-import algebra.iterate_hom
+import algebra.hom.iterate
 import algebra.pointwise
+import data.nat.modeq
 import dynamics.periodic_pts
 import group_theory.coset
 import group_theory.quotient_group

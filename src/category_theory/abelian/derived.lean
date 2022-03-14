@@ -35,32 +35,6 @@ open category_theory.limits category_theory category_theory.functor
 variables {C : Type u} [category.{w} C] {D : Type u} [category.{w} D]
 variables (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) {g : Y ⟶ Z}
 
-namespace category_theory.preadditive
-
-variables [preadditive C] [preadditive D] [additive F]
-
-/-- The isomorphism `F.obj (cokernel f) ≅ cokernel (F.map f)` if `preserves_finite_colimits F`. -/
-def preserves_cokernel_of_preserves_finite_colimits [preserves_finite_colimits F] [has_cokernel f]
-  [has_cokernel (F.map f)] [has_colimit (limits.parallel_pair f 0 ⋙ F)] :
-  F.obj (cokernel f) ≅ cokernel (F.map f) :=
-(is_colimit_of_preserves _ (colimit.is_colimit _)).cocone_point_unique_up_to_iso
-  (colimit.is_colimit _) ≪≫ limits.has_colimit.iso_of_nat_iso
-  (parallel_pair_zero_iso_parallel_pair_map_zero _ _)
-
-@[simp, reassoc]
-lemma map_preserves_cokernel_of_preserves_finite_colimits_hom [preserves_finite_colimits F]
-  [has_cokernel f] [has_cokernel (F.map f)] [has_colimit (parallel_pair f 0 ⋙ F)] :
-  F.map (cokernel.π f) ≫ (preserves_cokernel_of_preserves_finite_colimits F f).hom =
-  cokernel.π (F.map f) :=
-begin
-  erw (is_colimit_of_preserves F (colimit.is_colimit (parallel_pair f 0))).fac_assoc,
-  dsimp, simp only [has_colimit.iso_of_nat_iso_ι_hom],
-  dsimp [parallel_pair_zero_iso_parallel_pair_map_zero],
-  simp,
-end
-
-end category_theory.preadditive
-
 namespace category_theory.abelian.functor
 
 open category_theory.preadditive
@@ -96,26 +70,12 @@ lemma cokernel.desc.inv [epi g] (ex : exact f g) :
   g ≫ inv (cokernel.desc _ _ ex.w) = cokernel.π _ :=
 by simp
 
-lemma map_comp_cokernel.desc.inv_comp_preserves_cokernel_of_preserves_finite_colimits
-  [preserves_finite_colimits F] [epi g] (ex : exact f g) :
-  F.map g ≫ (F.map $ inv (cokernel.desc _ _ ex.w)) ≫
-  (preserves_cokernel_of_preserves_finite_colimits _ _).hom =
-  cokernel.π (F.map f) :=
-by simp only [← category.assoc, ← F.map_comp, cokernel.desc.inv,
-  map_preserves_cokernel_of_preserves_finite_colimits_hom]
-
 /-- If `preserves_finite_colimits F` and `epi g`, then `exact (F.map f) (F.map g)` if
 `exact f g`. -/
 lemma preserves_exact_of_preserves_finite_colimits_of_epi [preserves_finite_colimits F] [epi g]
   (ex : exact f g) : exact (F.map f) (F.map g) :=
-begin
-  let I : F.obj Z ≅ cokernel (F.map f) :=
-    (F.map_iso $ (as_iso $ cokernel.desc _ _ ex.w).symm) ≪≫
-    preserves_cokernel_of_preserves_finite_colimits _ _,
-  suffices : category_theory.exact (F.map f) (F.map g ≫ I.hom), by rwa exact_comp_iso at this,
-  erw map_comp_cokernel.desc.inv_comp_preserves_cokernel_of_preserves_finite_colimits,
-  exact abelian.exact_cokernel (F.map f)
-end
+abelian.exact_of_is_cokernel _ _ (by simp [← functor.map_comp, ex.w])
+  $ limits.is_colimit_cofork_map_of_is_colimit' _ ex.w (abelian.is_colimit_of_exact_of_epi _ _ ex)
 
 lemma exact_of_map_projective_resolution (P: ProjectiveResolution X) [preserves_finite_colimits F] :
   exact (((F.map_homological_complex (complex_shape.down ℕ)).obj P.complex).d_to 0)

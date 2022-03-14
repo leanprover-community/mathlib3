@@ -75,12 +75,40 @@ def tensor_unit : cochain_complex C ℕ := (cochain_complex.single₀ C).obj (�
 def associator_hom_aux (X Y Z : ℕ → C) (i : ℕ)
   (p q : antidiagonal i) (j : antidiagonal p.1.1) (k : antidiagonal q.1.2) :
     (X j.1.1 ⊗ Y j.1.2) ⊗ Z p.1.2 ⟶ X q.1.1 ⊗ (Y k.1.1 ⊗ Z k.1.2) :=
-if h : j.1.1 = q.1.1 ∧ j.1.2 = k.1.1 ∧ p.1.2 = k.1.2 then
+if h : p.1.2 = k.1.2 ∧ j.1.2 = k.1.1 ∧ j.1.1 = q.1.1 then
   (α_ _ _ _).hom ≫
-    (eq_to_hom (congr_arg X h.1) ⊗ eq_to_hom (congr_arg Y h.2.1) ⊗
-      eq_to_hom (congr_arg Z h.2.2))
+    (eq_to_hom (congr_arg X h.2.2) ⊗ eq_to_hom (congr_arg Y h.2.1) ⊗
+      eq_to_hom (congr_arg Z h.1))
 else
   0
+
+lemma dite_and {P Q : Prop} [decidable P] [decidable Q] {α : Type*} (a : P ∧ Q → α) (b : ¬ (P ∧ Q) → α) :
+  (if h : P ∧ Q then a h else b h) =
+    if h₁ : P then
+      (if h₂ : Q then a ⟨h₁, h₂⟩ else b (not_and_of_not_right P h₂))
+    else
+      b (not_and_of_not_left Q h₁) :=
+by { by_cases h₁ : P; by_cases h₂ : Q; simp [h₁, h₂], }
+
+lemma dite_and' {P Q : Prop} [decidable P] [decidable Q] {α : Type*} (a : P ∧ Q → α) (b : ¬ (P ∧ Q) → α) :
+  (if h : P ∧ Q then a h else b h) =
+    if h₂ : Q then
+      (if h₁ : P then a ⟨h₁, h₂⟩ else b (not_and_of_not_left Q h₁))
+    else
+      b (not_and_of_not_right P h₂) :=
+by { by_cases h₁ : P; by_cases h₂ : Q; simp [h₁, h₂], }
+
+lemma foo (n j : ℕ) (p : antidiagonal n) : (p : ℕ × ℕ).1 = j ↔ p = ⟨⟨j, n-j⟩, sorry⟩ := sorry
+
+lemma bar (n k : ℕ) (Q : Prop) [decidable Q] {α : Type*} [add_comm_monoid α] (X : Π p : antidiagonal n, k = (p : ℕ × ℕ).2 ∧ Q → α) :
+  (∑ (p : antidiagonal n), if h : k = (p : ℕ × ℕ).2 ∧ Q then X p h else 0) =
+    if h : k ≤ n ∧ Q then X ⟨⟨n-k, k⟩, sorry⟩ ⟨rfl, h.2⟩ else 0 :=
+sorry
+
+lemma bar' (n k : ℕ) {α : Type*} [add_comm_monoid α] (X : Π p : antidiagonal n, k = (p : ℕ × ℕ).2 → α) :
+  (∑ (p : antidiagonal n), if h : k = (p : ℕ × ℕ).2 then X p h else 0) =
+    if h : k ≤ n then X ⟨⟨n-k, k⟩, sorry⟩ rfl else 0 :=
+sorry
 
 def associator_hom (X Y Z : cochain_complex C ℕ) :
   tensor_obj (tensor_obj X Y) Z ⟶ tensor_obj X (tensor_obj Y Z) :=
@@ -102,6 +130,10 @@ def associator_hom (X Y Z : cochain_complex C ℕ) :
  category_theory.limits.zero_comp,
  finset.sum_congr,
  subtype.val_eq_coe],
+ simp_rw [dite_and],
+ simp_rw [bar'],
+ have : ∀ (x : antidiagonal i), p₂ ≤ (x : ℕ × ℕ).snd := sorry,
+ simp? [this],
  -- Need to work on those `dite`, simplifying the conditions using antidiagonal.
     -- split_ifs,
     -- simp?,

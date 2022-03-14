@@ -313,6 +313,33 @@ lemma strongly_measurable_iff_measurable [metric_space β] [borel_space β]
 
 end second_countable_strongly_measurable
 
+protected lemma piecewise [measurable_space α] [topological_space β]
+  {s : set α} {_ : decidable_pred (∈ s)} (hs : measurable_set s)
+  (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  strongly_measurable (set.piecewise s f g) :=
+begin
+  refine ⟨λ n, simple_func.piecewise s hs (hf.approx n) (hg.approx n), λ x, _⟩,
+  by_cases hx : x ∈ s,
+  { simpa [hx] using hf.tendsto_approx x },
+  { simpa [hx] using hg.tendsto_approx x },
+end
+
+/-- this is slightly different from `strongly_measurable.piecewise`. It can be used to show
+`strongly_measurable (ite (x=0) 0 1)` by
+`exact strongly_measurable.ite (measurable_set_singleton 0) strongly_measurable_const
+strongly_measurable_const`, but replacing `strongly_measurable.ite` by
+`strongly_measurable.piecewise` in that example proof does not work. -/
+lemma measurable.ite [measurable_space α] [topological_space β]
+  {p : α → Prop} {_ : decidable_pred p}
+  (hp : measurable_set {a : α | p a}) (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  strongly_measurable (λ x, ite (p x) (f x) (g x)) :=
+strongly_measurable.piecewise hp hf hg
+
+protected lemma indicator [measurable_space α] [topological_space β] [has_zero β]
+  (hf : strongly_measurable f) {s : set α} (hs : measurable_set s) :
+  strongly_measurable (s.indicator f) :=
+hf.piecewise hs strongly_measurable_const
+
 end strongly_measurable
 
 /-! ## Finitely strongly measurable functions -/
@@ -616,6 +643,58 @@ lemma ae_strongly_measurable_iff_ae_measurable [metrizable_space β] [borel_spac
 ⟨λ h, h.ae_measurable, λ h, h.ae_strongly_measurable⟩
 
 end second_countable_ae_strongly_measurable
+
+
+protected lemma norm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
+  ae_strongly_measurable (λ x, ∥f x∥) μ :=
+continuous_norm.comp_ae_strongly_measurable hf
+
+protected lemma nnnorm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
+  ae_strongly_measurable (λ x, nnnorm (f x)) μ :=
+continuous_nnnorm.comp_ae_strongly_measurable hf
+
+protected lemma ennnorm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
+  ae_measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) μ :=
+(ennreal.continuous_coe.comp_ae_strongly_measurable hf.nnnorm).ae_measurable
+
+section
+variables {𝕜 : Type*} [is_R_or_C 𝕜]
+
+protected lemma re {f : α → 𝕜} (hf : ae_strongly_measurable f μ) :
+  ae_strongly_measurable (λ x, is_R_or_C.re (f x)) μ :=
+is_R_or_C.continuous_re.comp_ae_strongly_measurable hf
+
+protected lemma im {f : α → 𝕜} (hf : ae_strongly_measurable f μ) :
+  ae_strongly_measurable (λ x, is_R_or_C.im (f x)) μ :=
+is_R_or_C.continuous_im.comp_ae_strongly_measurable hf
+
+end
+
+open set
+
+lemma ae_stronggly_measurable_indicator_iff [has_zero β] {s : set α} (hs : measurable_set s) :
+  ae_strongly_measurable (indicator s f) μ ↔ ae_strongly_measurable f (μ.restrict s)  :=
+begin
+  have Z := measurable.indicator,
+  split,
+  { intro h,
+    exact (h.mono_measure measure.restrict_le_self).congr (indicator_ae_eq_restrict hs) },
+  { intro h,
+    refine ⟨indicator s (h.mk f), h.strongly_measurable_mk.indicator hs, _⟩,
+    have A : s.indicator f =ᵐ[μ.restrict s] s.indicator (ae_measurable.mk f h) :=
+      (indicator_ae_eq_restrict hs).trans (h.ae_eq_mk.trans $ (indicator_ae_eq_restrict hs).symm),
+    have B : s.indicator f =ᵐ[μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
+      (indicator_ae_eq_restrict_compl hs).trans (indicator_ae_eq_restrict_compl hs).symm,
+    exact ae_of_ae_restrict_of_ae_restrict_compl _ A B },
+end
+
+@[measurability]
+lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
+  ae_measurable (s.indicator f) μ :=
+(ae_measurable_indicator_iff hs).mpr hfm.restrict
+
+
+#check ae_measurable.indicator
 
 end ae_strongly_measurable
 

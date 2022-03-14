@@ -1538,17 +1538,30 @@ begin
   exact indicator_apply_le id
 end
 
-lemma lintegral_eq_top_of_measure_eq_top_pos {f : α → ℝ≥0∞} (hf : measurable f)
+lemma mul_meas_ge_le_lintegral₀ {f : α → ℝ≥0∞} (hf : ae_measurable f μ) (ε : ℝ≥0∞) :
+  ε * μ {x | ε ≤ f x} ≤ ∫⁻ a, f a ∂μ :=
+begin
+  have A : μ {x | ε ≤ f x} = μ {x | ε ≤ hf.mk f x},
+  { apply eventually_eq.measure_eq,
+    filter_upwards [hf.ae_eq_mk] with x hx,
+    change (ε ≤ f x) = (ε ≤ hf.mk f x),
+    simp [hx] },
+  have B : ∫⁻ a, f a ∂μ = ∫⁻ a, hf.mk f a ∂μ := lintegral_congr_ae hf.ae_eq_mk,
+  rw [A, B],
+  exact mul_meas_ge_le_lintegral hf.measurable_mk ε,
+end
+
+lemma lintegral_eq_top_of_measure_eq_top_pos {f : α → ℝ≥0∞} (hf : ae_measurable f μ)
   (hμf : 0 < μ {x | f x = ∞}) : ∫⁻ x, f x ∂μ = ∞ :=
 eq_top_iff.mpr $
 calc ∞ = ∞ * μ {x | ∞ ≤ f x} : by simp [mul_eq_top, hμf.ne.symm]
-   ... ≤ ∫⁻ x, f x ∂μ : mul_meas_ge_le_lintegral hf ∞
+   ... ≤ ∫⁻ x, f x ∂μ : mul_meas_ge_le_lintegral₀ hf ∞
 
-lemma meas_ge_le_lintegral_div {f : α → ℝ≥0∞} (hf : measurable f) {ε : ℝ≥0∞}
+lemma meas_ge_le_lintegral_div {f : α → ℝ≥0∞} (hf : ae_measurable f μ) {ε : ℝ≥0∞}
   (hε : ε ≠ 0) (hε' : ε ≠ ∞) :
   μ {x | ε ≤ f x} ≤ (∫⁻ a, f a ∂μ) / ε :=
 (ennreal.le_div_iff_mul_le (or.inl hε) (or.inl hε')).2 $
-by { rw [mul_comm], exact mul_meas_ge_le_lintegral hf ε }
+by { rw [mul_comm], exact mul_meas_ge_le_lintegral₀ hf ε }
 
 @[simp] lemma lintegral_eq_zero_iff {f : α → ℝ≥0∞} (hf : measurable f) :
   ∫⁻ a, f a ∂μ = 0 ↔ (f =ᵐ[μ] 0) :=

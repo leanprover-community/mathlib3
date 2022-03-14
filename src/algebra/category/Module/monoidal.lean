@@ -8,6 +8,7 @@ import category_theory.closed.monoidal
 import algebra.category.Module.basic
 import linear_algebra.tensor_product
 import category_theory.linear.yoneda
+import category_theory.monoidal.preadditive
 
 /-!
 # The symmetric monoidal category structure on R-modules
@@ -15,6 +16,10 @@ import category_theory.linear.yoneda
 Mostly this uses existing machinery in `linear_algebra.tensor_product`.
 We just need to provide a few small missing pieces to build the
 `monoidal_category` instance and then the `symmetric_category` instance.
+
+Note the universe level of the modules must be at least the universe level of the ring,
+so that we have a monoidal unit.
+For now, we simplify by insisting both universe levels are the same.
 
 We then construct the monoidal closed structure on `Module R`.
 
@@ -261,6 +266,12 @@ namespace monoidal_category
 end monoidal_category
 
 open opposite
+
+instance : monoidal_preadditive (Module.{u} R) :=
+{ tensor_zero' := by { intros, ext, simp, },
+  zero_tensor' := by { intros, ext, simp, },
+  tensor_add' := by { intros, ext, simp [tensor_product.tmul_add], },
+  add_tensor' := by { intros, ext, simp [tensor_product.add_tmul], }, }
 
 /--
 Auxiliary definition for the `monoidal_closed` instance on `Module R`.

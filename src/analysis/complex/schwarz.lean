@@ -70,7 +70,7 @@ begin
   replace hd : differentiable_on ℂ (dslope f c) (closed_ball c r) :=
     ((differentiable_on_dslope $ ball_mem_nhds _ hR₁).mpr hd).mono (closed_ball_subset_ball hr.2),
   refine norm_le_of_forall_mem_frontier_norm_le (is_compact_closed_ball c r)
-    hd.continuous_on (hd.mono interior_subset) _ hr.1.le,
+    hd.diff_on_int_cont _ hr.1.le,
   rw frontier_closed_ball',
   intros z hz,
   have hz' : z ≠ c, by { rintro rfl, simpa [hr₀.ne] using hz },

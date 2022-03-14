@@ -11,7 +11,7 @@ import ring_theory.graded_algebra.homogeneous_ideal
 # Projective spectrum of a graded ring
 
 The projective spectrum of a graded commutative ring is the subtype of all homogenous ideals that
-are prime and not containing all the irrelevant ideal.
+are prime and do not contain the irrelevant ideal.
 It is naturally endowed with a topology: the Zariski topology.
 
 ## Notation
@@ -22,12 +22,12 @@ It is naturally endowed with a topology: the Zariski topology.
 ## Main definitions
 
 * `projective_spectrum 𝒜`: The projective spectrum of a graded ring `A`, or equivalently, the set of
-  all homogeneous ideals of `A` that is both prime and relevant i.e. not containing all irrelevant
-  ideal. Henceforth, we call elements of projective spectrum relevant prime homogeneous ideals.
-* `zero_locus 𝒜 s`: The zero locus of a subset `s` of `A`
+  all homogeneous ideals of `A` that is both prime and relevant i.e. not containing irrelevant
+  ideal. Henceforth, we call elements of the projective spectrum *relevant prime homogeneous ideals*.
+* `projective_spectrum.zero_locus 𝒜 s`: The zero locus of a subset `s` of `A`
   is the subset of `projective_spectrum 𝒜` consisting of all relevant prime homogeneous ideals
   that contain `s`.
-* `vanishing_ideal t`: The vanishing ideal of a subset `t` of `projective_spectrum 𝒜`
+* `projective_spectrum.vanishing_ideal t`: The vanishing ideal of a subset `t` of `projective_spectrum 𝒜`
   is the intersection of points in `t` (viewed as relevant prime homogeneous ideals).
 
 ## Implementation note
@@ -59,7 +59,7 @@ variable {𝒜}
 as a homogeneous ideal of that ring. -/
 abbreviation as_homogeneous_ideal (x : projective_spectrum 𝒜) : homogeneous_ideal 𝒜 := x.val
 
-lemma as_homogeneous_ideal.explicit (x : projective_spectrum 𝒜) :
+lemma as_homogeneous_ideal_def (x : projective_spectrum 𝒜) :
   x.as_homogeneous_ideal = x.1 := rfl
 
 instance is_prime (x : projective_spectrum 𝒜) :
@@ -77,8 +77,7 @@ An element `f` of `A` can be thought of as a dependent function on the projectiv
 At a point `x` (a prime homogeneous ideal)
 the function (i.e., element) `f` takes values in the quotient ring `A` modulo the prime ideal `x`.
 In this manner, `zero_locus s` is exactly the subset of `projective_spectrum 𝒜`
-where all "functions" in `s` vanish simultaneously.
--/
+where all "functions" in `s` vanish simultaneously. -/
 def zero_locus (s : set A) : set (projective_spectrum 𝒜) :=
 {x | s ⊆ x.as_homogeneous_ideal}
 
@@ -98,8 +97,7 @@ An element `f` of `A` can be thought of as a dependent function on the projectiv
 At a point `x` (a prime homogeneous ideal)
 the function (i.e., element) `f` takes values in the quotient ring `A` modulo the prime ideal `x`.
 In this manner, `vanishing_ideal t` is exactly the ideal of `A`
-consisting of all "functions" that vanish on all of `t`.
--/
+consisting of all "functions" that vanish on all of `t`. -/
 def vanishing_ideal (t : set (projective_spectrum 𝒜)) : ideal A :=
 ⨅ (x : projective_spectrum 𝒜) (h : x ∈ t), x.as_homogeneous_ideal.1
 

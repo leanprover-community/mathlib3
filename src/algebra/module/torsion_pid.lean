@@ -100,18 +100,28 @@ section p_torsion
 variables {p : R} [hp : irreducible p] {N : ℕ} (hM : ∀ x : M, p ^ N • x = 0) [decidable_eq M]
 def p_order (x : M) := nat.find ⟨N, hM x⟩
 
-open associates ideal
+open associates ideal submodule.is_principal
 include hp hM
 variables {p}
 lemma torsion_of_eq_p_order (x : M) : torsion_of R M x = span {p ^ p_order hM x} :=
 begin
   rw [← (torsion_of R M x).span_singleton_generator, span_singleton_eq_span_singleton,
-    ← mk_eq_mk_iff_associated],
-  have := (is_principal.mem_iff_generator_dvd _).mp
-    ((mem_torsion_of_iff x $ p ^ p_order hM x).mpr _),
+    ← mk_eq_mk_iff_associated, mk_pow],
+  have : generator (torsion_of R M x) ∣ p ^ p_order hM x :=
+    (mem_iff_generator_dvd _).mp (nat.find_spec ⟨N, hM x⟩),
+  classical,
+  rw [← mk_le_mk_iff_dvd_iff, mk_pow, ← factors_le] at this,
+  apply eq_of_eq_counts,
+  { rw [mk_ne_zero, ne.def, ← eq_bot_iff_generator_eq_zero, ← ne.def, submodule.ne_bot_iff],
+    exact ⟨p ^ p_order hM x, nat.find_spec ⟨N, hM x⟩, pow_ne_zero _ hp.ne_zero⟩ },
+  { exact pow_ne_zero _ (mk_ne_zero.mpr hp.ne_zero) },
+  intros q hq, apply le_antisymm,
   { sorry },
-  {
-    sorry }
+  { rw count_pow (mk_ne_zero.mpr hp.ne_zero) hq,
+    by_cases h : q = associates.mk p,
+    { rw [h, count_self ((irreducible_mk _).mpr hp), mul_one],
+      sorry },
+    { sorry } }
 end
 
 open finset multiset list submodule.quotient

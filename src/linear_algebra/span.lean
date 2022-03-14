@@ -751,19 +751,14 @@ ext_on hv (set.forall_range_iff.2 h)
 
 end add_comm_monoid
 
-end linear_map
-
-namespace submodule
-
 section field
 
 variables {K V} [field K] [add_comm_group V] [module K V]
-open linear_map
 
 noncomputable theory
 open_locale classical
 
-lemma _root_.linear_map.span_singleton_sup_ker_eq_top (f : V →ₗ[K] K) {x : V} (hx : f x ≠ 0) :
+lemma span_singleton_sup_ker_eq_top (f : V →ₗ[K] K) {x : V} (hx : f x ≠ 0) :
   (K ∙ x) ⊔ f.ker = ⊤ :=
 eq_top_iff.2 (λ y hy, submodule.mem_sup.2 ⟨(f y * (f x)⁻¹) • x,
   submodule.mem_span_singleton.2 ⟨f y * (f x)⁻¹, rfl⟩,
@@ -786,17 +781,31 @@ begin
   { rw [mem_ker, submodule.mem_bot], intros h, rw h, simp }
 end
 
+end field
+
+end linear_map
+
+open linear_map
+
+namespace linear_equiv
+
+section field
+
+variables (K V) [field K] [add_comm_group V] [module K V]
+
 /-- Given a nonzero element `x` of a vector space `V` over a field `K`, the natural
     map from `K` to the span of `x`, with invertibility check to consider it as an
     isomorphism.-/
 def to_span_nonzero_singleton (x : V) (h : x ≠ 0) : K ≃ₗ[K] (K ∙ x) :=
 linear_equiv.trans
-  (linear_equiv.of_injective (to_span_singleton K V x) (ker_eq_bot.1 $ ker_to_span_singleton K V h))
+  (linear_equiv.of_injective
+    (linear_map.to_span_singleton K V x) (ker_eq_bot.1 $ linear_map.ker_to_span_singleton K V h))
   (linear_equiv.of_eq (to_span_singleton K V x).range (K ∙ x)
     (span_singleton_eq_range' K V x).symm)
 
-lemma to_span_nonzero_singleton_one (x : V) (h : x ≠ 0) : to_span_nonzero_singleton K V x h 1
-  = (⟨x, submodule.mem_span_singleton_self x⟩ : K ∙ x) :=
+lemma to_span_nonzero_singleton_one (x : V) (h : x ≠ 0) :
+  linear_equiv.to_span_nonzero_singleton K V x h 1 =
+    (⟨x, submodule.mem_span_singleton_self x⟩ : K ∙ x) :=
 begin
   apply set_like.coe_eq_coe.mp,
   have : ↑(to_span_nonzero_singleton K V x h 1) = to_span_singleton K V x 1 := rfl,
@@ -814,4 +823,4 @@ by rw [← to_span_nonzero_singleton_one K V x h, linear_equiv.symm_apply_apply]
 
 end field
 
-end submodule
+end linear_equiv

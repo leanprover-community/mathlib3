@@ -213,6 +213,12 @@ by rwa [←aleph'_zero, aleph'_lt]
 theorem aleph_pos (o : ordinal) : 0 < aleph o :=
 omega_pos.trans_le (omega_le_aleph o)
 
+instance (o : ordinal) : nonempty (aleph o).ord.out.α :=
+begin
+  rw [out_nonempty_iff_ne_zero, ←ord_zero],
+  exact λ h, (ord_injective h).not_gt (aleph_pos o)
+end
+
 theorem ord_aleph_is_limit (o : ordinal) : is_limit (aleph o).ord :=
 ord_is_limit $ omega_le_aleph _
 
@@ -525,11 +531,11 @@ protected lemma eq_of_add_eq_add_right {a b c : cardinal} (h : a + b = c + b) (h
   a = c :=
 by { rw [add_comm a b, add_comm c b] at h, exact cardinal.eq_of_add_eq_add_left h hb }
 
-theorem ord_is_principal_add {c : cardinal} (hc : ω ≤ c) : ordinal.principal (+) c.ord :=
+theorem principal_add_ord {c : cardinal} (hc : ω ≤ c) : ordinal.principal (+) c.ord :=
 λ a b ha hb, by { rw [lt_ord, ordinal.card_add] at *, exact add_lt_of_lt hc ha hb }
 
-theorem aleph_is_principal_add (o : ordinal) : ordinal.principal (+) (aleph o).ord :=
-ord_is_principal_add $ omega_le_aleph o
+theorem principal_add_aleph (o : ordinal) : ordinal.principal (+) (aleph o).ord :=
+principal_add_ord $ omega_le_aleph o
 
 /-! ### Properties about power -/
 

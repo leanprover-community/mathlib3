@@ -33,42 +33,13 @@ universes w v u
 open category_theory.limits category_theory category_theory.functor
 
 variables {C : Type u} [category.{w} C] {D : Type u} [category.{w} D]
-variables (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) {g : Y ⟶ Z}
+variables (F : C ⥤ D) {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z}
 
 namespace category_theory.abelian.functor
 
 open category_theory.preadditive
 
 variables [abelian C] [abelian D] [additive F]
-
-variable {f}
-
-local attribute [instance] abelian.pseudoelement.over_to_sort
-  abelian.pseudoelement.hom_to_fun
-  abelian.pseudoelement.has_zero
-
-/-- If `ex : exact f g` and `epi g`, then `cokernel.desc _ _ ex.w` is an isomorphism. -/
-instance cokernel.desc_is_iso_of_epi_of_exact [epi g] (ex : exact f g) :
-  is_iso (cokernel.desc _ _ ex.w) :=
-begin
-  refine (is_iso_iff_mono_and_epi _).2 ⟨_, limits.cokernel.desc_epi _ _ _⟩,
-  refine abelian.pseudoelement.mono_of_zero_of_map_zero _ (λ a ha, _),
-  obtain ⟨b, hb⟩ := abelian.pseudoelement.pseudo_surjective_of_epi (cokernel.π f) a,
-  have hbz : g b = 0,
-  { have : g = (cokernel.π f) ≫ (cokernel.desc _ _ ex.w) :=
-      (cokernel.π_desc _ _ _).symm,
-    rw [this, abelian.pseudoelement.comp_apply, hb, ha] },
-  obtain ⟨c, hc : f c = b⟩ := abelian.pseudoelement.pseudo_exact_of_exact.2 _ hbz,
-  { rw [← hc, ← abelian.pseudoelement.comp_apply, cokernel.condition,
-      abelian.pseudoelement.zero_apply] at hb,
-    exact hb.symm },
-  { exact ex }
-end
-
-@[simp, reassoc]
-lemma cokernel.desc.inv [epi g] (ex : exact f g) :
-  g ≫ inv (cokernel.desc _ _ ex.w) = cokernel.π _ :=
-by simp
 
 /-- If `preserves_finite_colimits F` and `epi g`, then `exact (F.map f) (F.map g)` if
 `exact f g`. -/
@@ -107,8 +78,8 @@ end
 def left_derived_zero_to_self_app_inv [enough_projectives C] [preserves_finite_colimits F] {X : C}
   (P : ProjectiveResolution X) : F.obj X ⟶ (F.left_derived 0).obj X :=
 begin
-  refine ((@as_iso _ _ _ _ _ (category_theory.abelian.functor.cokernel.desc_is_iso_of_epi_of_exact
-    (exact_of_map_projective_resolution F P))).inv) ≫ _ ≫ (homology_iso_cokernel_lift _ _ _).inv ≫
+  haveI ex := (exact_of_map_projective_resolution F P),
+  refine ((as_iso (cokernel.desc _ _ ex.w)).inv) ≫ _ ≫ (homology_iso_cokernel_lift _ _ _).inv ≫
     (left_derived_obj_iso F 0 P).inv,
   exact cokernel.map _ _ (𝟙 _) (kernel.lift _ (𝟙 _) (by simp)) (by { ext, simp }),
 end
@@ -124,15 +95,15 @@ begin
   refine (iso.comp_inv_eq _).2 _,
   rw [category.comp_id, iso.inv_hom_id, iso.comp_inv_eq, category.id_comp],
   ext,
-  simp only [category.assoc, homology.π'_desc'_assoc, cokernel.desc.inv_assoc,
+  simp [category.assoc, homology.π'_desc'_assoc,
     cokernel.π_desc, homology.π', iso.inv_hom_id, category.comp_id],
   nth_rewrite 1 [← category.comp_id (cokernel.π _)],
   refine congr_arg (category_struct.comp _) _,
   dsimp [homology.desc'],
   rw [← category.assoc, ← category.assoc, ← category.assoc, iso.inv_hom_id, category.id_comp],
   ext,
-  simp only [coequalizer_as_cokernel, category.assoc, cokernel.π_desc_assoc,
-    cokernel.desc.inv_assoc, cokernel.π_desc, category.comp_id],
+  simp [coequalizer_as_cokernel, category.assoc, cokernel.π_desc_assoc,
+    cokernel.π_desc, category.comp_id],
   rw [← category.assoc],
   nth_rewrite 1 [← category.id_comp (cokernel.π _)],
   refine congr_fun (congr_arg category_struct.comp _) _,

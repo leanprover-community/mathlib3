@@ -438,7 +438,7 @@ begin
   let A' := mv_polynomial_X n n ℤ,
   suffices : adjugate (adjugate A') = det A' ^ (fintype.card n - 2) • A',
   { rw [←mv_polynomial_X_map_matrix_aeval ℤ A, ←alg_hom.map_adjugate, ←alg_hom.map_adjugate, this,
-      ←alg_hom.map_det, ← alg_hom.map_pow],
+      ←alg_hom.map_det, ← alg_hom.map_pow, alg_hom.map_smul_of_tower],
     -- TODO: missing an `alg_hom.map_smul_of_tower` here.
     ext i j,
     dsimp [-mv_polynomial_X],

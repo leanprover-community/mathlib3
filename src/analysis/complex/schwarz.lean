@@ -18,7 +18,7 @@ In this file we prove several versions of the Schwarz lemma.
 
 * `complex.dist_le_div_mul_dist_of_maps_to_ball`: if `f : ℂ → E` sends an open disk with center `c`
   and radius `R₁` to an open disk with center `f c` and radius `R₂`, then for any `z` in the former
-  disk we have ``dist (f z) (f c) ≤ (R₂ / R₁) * dist z c`;
+  disk we have `dist (f z) (f c) ≤ (R₂ / R₁) * dist z c`;
 
 * `complex.abs_deriv_le_one_of_maps_to_ball`: if `f : ℂ → ℂ` sends an open disk of positive radius
   to itself and the center of this disk to itself, then the absolute value of the derivative of `f`
@@ -28,7 +28,7 @@ In this file we prove several versions of the Schwarz lemma.
   `c` of this disk to itself, then for any point `z` of this disk we have `dist (f z) c ≤ dist z c`;
 
 * `complex.abs_le_abs_of_maps_to_ball`: if `f : ℂ → ℂ` sends an open disk with center `0` to itself,
-  the for any point `z` of this disk we have `abs (f z) ≤ abs z`.
+  then for any point `z` of this disk we have `abs (f z) ≤ abs z`.
 
 ## Implementation notes
 
@@ -55,7 +55,7 @@ section space
 
 variables {E : Type*} [normed_group E] [normed_space ℂ E] {R R₁ R₂ : ℝ} {f : ℂ → E} {c z : ℂ}
 
-/-- An auxiliary lemma. -/
+/-- An auxiliary lemma for `complex.norm_dslope_le_div_of_maps_to_ball`. -/
 lemma schwarz_aux {f : ℂ → ℂ} (hd : differentiable_on ℂ f (ball c R₁))
   (h_maps : maps_to f (ball c R₁) (ball (f c) R₂)) (hz : z ∈ ball c R₁) :
   ∥dslope f c z∥ ≤ R₂ / R₁ :=

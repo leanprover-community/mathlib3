@@ -18,7 +18,7 @@ namespace first_order
 namespace language
 namespace ring
 
-/-- The constant symbols in ring.L -/
+/-- The constant symbols in `first_order.language.ring.L` -/
 inductive consts : Type*
 | zero : consts
 | one : consts

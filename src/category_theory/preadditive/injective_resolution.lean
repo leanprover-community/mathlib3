@@ -12,7 +12,7 @@ import algebra.homology.single
 A injective resolution `I : InjectiveResolution Z` of an object `Z : C` consists of
 a `ℕ`-indexed cochain complex `I.cocomplex` of injective objects,
 along with a cochain map `I.ι` from cochain complex consisting just of `Z` in degree zero to `C`,
-so that the augmented chain complex is exact.
+so that the augmented cochain complex is exact.
 ```
 Z ----> 0 ----> ... ----> 0 ----> ...
 |       |                 |
@@ -40,7 +40,7 @@ variables [has_zero_object C] [has_zero_morphisms C] [has_equalizers C] [has_ima
 An `InjectiveResolution Z` consists of a bundled `ℕ`-indexed cochain complex of injective objects,
 along with a quasi-isomorphism to the complex consisting of just `Z` supported in degree `0`.
 
-Except in situations where you want to provide a particular projective resolution
+Except in situations where you want to provide a particular injective resolution
 (for example to compute a derived functor),
 you will not typically need to use this bundled object, and will instead use
 * `injective_resolution Z`: the `ℕ`-indexed cochain complex

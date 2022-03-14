@@ -61,6 +61,18 @@ abbreviation homogeneous_ideal : Type* := { I : ideal A // I.is_homogeneous 𝒜
 instance : has_mem A (homogeneous_ideal 𝒜) :=
 { mem := λ r I, r ∈ (I : ideal A) }
 
+lemma homogeneous_ideal.mem_iff {I : homogeneous_ideal 𝒜} {x : A} : x ∈ I ↔ x ∈ (↑I : ideal A) :=
+iff.rfl
+
+instance homogeneous_ideal.set_like : set_like (homogeneous_ideal 𝒜) A :=
+{ coe := λ I, I.1.carrier,
+  coe_injective' := λ ⟨I, hI⟩ ⟨J, hJ⟩ (h : I.carrier = J.carrier), begin
+    rw subtype.ext_iff_val,
+    ext,
+    change x ∈ I.carrier ↔ x ∈ J.carrier,
+    rw h
+  end }
+
 end homogeneous_def
 
 section homogeneous_core

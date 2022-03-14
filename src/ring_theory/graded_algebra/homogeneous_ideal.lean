@@ -17,7 +17,7 @@ operations on them.
 
 For any `I : ideal A`:
 * `ideal.is_homogeneous 𝒜 I`: The property that an ideal is closed under `graded_algebra.proj`.
-* `homogeneous_ideal 𝒜`: The subtype of ideals which satisfy `ideal.is_homogeneous`
+* `homogeneous_ideal 𝒜`: The structure extending ideals which satisfy `ideal.is_homogeneous`
 * `ideal.homogeneous_core I 𝒜`: The largest homogeneous ideal smaller than `I`.
 * `ideal.homogeneous_hull I 𝒜`: The smallest homogeneous ideal larger than `I`.
 
@@ -60,6 +60,7 @@ structure homogeneous_ideal extends submodule A A :=
 (is_homogeneous' : ideal.is_homogeneous 𝒜 to_submodule)
 
 variable {𝒜}
+/--Converting a homogeneous ideal to an ideal-/
 def homogeneous_ideal.to_ideal (I : homogeneous_ideal 𝒜) : ideal A := I.to_submodule
 
 lemma homogeneous_ideal.is_homogeneous (I : homogeneous_ideal 𝒜) :

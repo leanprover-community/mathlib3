@@ -2,25 +2,36 @@ import set_theory.cardinal_ordinal
 
 noncomputable theory
 
+universes u v
+
+open_locale cardinal
+
 -- This should go on another PR.
 
 namespace ordinal
 
 /-- The minimum excluded ordinal in a family of ordinals. -/
-def mex {ι} (f : ι → ordinal) : ordinal :=
-omin (set.range f)ᶜ ⟨_, lsub_nmem_range f⟩
+def mex {ι : Type u} (f : ι → ordinal.{max u v}) : ordinal :=
+Inf (set.range f)ᶜ
 
-theorem mex_nmem {ι} (f : ι → ordinal) (i) : f i ≠ mex f :=
-λ h, (omin_mem (set.range f)ᶜ _) ⟨i, h⟩
+theorem nonempty_compl_range {ι : Type u} (f : ι → ordinal.{max u v}) : (set.range f)ᶜ.nonempty :=
+⟨_, lsub_nmem_range f⟩
+
+theorem ne_mex {ι} (f : ι → ordinal) (i) : f i ≠ mex f :=
+begin
+  have := Inf_mem (nonempty_compl_range f),
+  simp at this,
+  exact this i
+end
 
 theorem mex_le_of_nmem {ι} {f : ι → ordinal} {a} (ha : ∀ i, f i ≠ a) : mex f ≤ a :=
-by { apply omin_le, simp [ha] }
+cInf_le' (by simp [ha])
 
 theorem mem_of_lt_mex {ι} {f : ι → ordinal} {a} (ha : a < mex f) : ∃ i, f i = a :=
 by { by_contra' ha', exact not_le_of_lt ha (mex_le_of_nmem ha') }
 
 theorem mex_le_lsub {ι} (f : ι → ordinal) : mex f ≤ lsub f :=
-omin_le (lsub_nmem_range f)
+cInf_le' (lsub_nmem_range f)
 
 theorem mex.monotone {α β} (f : α → ordinal) (g : β → ordinal) (h : set.range f ⊆ set.range g) :
   mex f ≤ mex g :=
@@ -28,21 +39,19 @@ begin
   refine mex_le_of_nmem (λ i hi, _),
   cases h ⟨i, rfl⟩ with j hj,
   rw ←hj at hi,
-  exact mex_nmem g j hi
+  exact ne_mex g j hi
 end
 
-theorem mex_lt_card_succ {ι} (f : ι → ordinal) : mex f < (cardinal.mk ι).succ.ord :=
+theorem mex_lt_card_succ {ι} (f : ι → ordinal) : mex f < (#ι).succ.ord :=
 begin
   by_contra' h,
-  apply not_le_of_lt (cardinal.lt_succ_self (cardinal.mk ι)),
-  let g : (cardinal.mk ι).succ.ord.out.α → ι :=
-    λ a, classical.some (mem_of_lt_mex ((typein_lt_self a).trans_le h)),
-  have hg : function.injective g := begin
-    intros a b h',
-    have H : ∀ x, f (g x) = typein _ x :=
-      λ x, classical.some_spec (mem_of_lt_mex ((typein_lt_self x).trans_le h)),
+  apply not_le_of_lt (cardinal.lt_succ_self (#ι)),
+  have H := λ a, mem_of_lt_mex ((typein_lt_self a).trans_le h),
+  let g : (#ι).succ.ord.out.α → ι := λ a, classical.some (H a),
+  have hg : function.injective g := λ a b h', begin
+    have Hf : ∀ x, f (g x) = typein (<) x := λ a, classical.some_spec (H a),
     apply_fun f at h',
-    rwa [H, H, typein_inj] at h'
+    rwa [Hf, Hf, typein_inj] at h'
   end,
   convert cardinal.mk_le_of_injective hg,
   rw cardinal.mk_ord_out
@@ -58,13 +67,20 @@ def Omega : ℕ → cardinal.{0}
 | 0       := 1
 | (v + 1) := aleph (v + 1)
 
+theorem Omega_zero : Omega 0 = 1 :=
+rfl
+
 theorem Omega_pos : Π v, 0 < Omega v
 | 0       := cardinal.zero_lt_one
 | (v + 1) := aleph_pos _
 
+theorem Omega_eq_aleph : Π v : ℕ, 0 < v → Omega v = aleph v
+| 0       := λ h, h.false.elim
+| (v + 1) := λ _, rfl
+
 theorem Omega_le_aleph : Π v, Omega v ≤ aleph v
 | 0       := by { convert le_of_lt cardinal.one_lt_omega, exact aleph_zero }
-| (v + 1) := le_of_eq rfl
+| (v + 1) := rfl.le
 
 theorem Omega_strict_mono : strict_mono Omega :=
 begin
@@ -75,7 +91,13 @@ begin
   { exact cardinal.aleph_lt.2 (ordinal.nat_cast_lt.2 h) }
 end
 
--- Omega is principal additive
+theorem principal_add_Omega : Π v : ℕ, principal (+) (Omega v).ord
+| 0 := begin
+  rw [Omega_zero],
+  convert principal_add_one,
+  sorry,
+end
+| (v + 1) := aleph_is_principal_add _
 
 /-- The type of all Buchholz expressions. These may consist of
 * ordinals less than `Ωᵥ`
@@ -90,7 +112,7 @@ namespace buchholz_exp'
 
 /-- A Buchholz expression from an ordinal less than `Ωᵥ`. -/
 def lt_Omega {v : ℕ} {a : ordinal} (ha : a < (Omega v).ord) : buchholz_exp' v :=
-buchholz_exp'.lt_Omega' (enum (Omega v).ord.out.r a (by rwa type_out))
+buchholz_exp'.lt_Omega' (enum (<) a (by rwa type_lt))
 
 instance (v : ℕ) : has_zero (buchholz_exp' v) :=
 ⟨lt_Omega (ord_lt_ord.2 (Omega_pos v))⟩
@@ -98,12 +120,12 @@ instance (v : ℕ) : has_zero (buchholz_exp' v) :=
 /-- The value of a well-formed Buchholz expression when interpreted as an ordinal. -/
 noncomputable def value {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal) :
   buchholz_exp' v → ordinal
-| (lt_Omega' a)  := typein (Omega v).ord.out.r a
+| (lt_Omega' a)  := typein (<) a
 | (add a b)      := a.value + b.value
 | (psi u a)      := if ha : a.value < o then Ψ _ ha u else 0
 
 @[simp] theorem lt_Omega'_value {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal)
-  (a : (Omega v).ord.out.α) : (lt_Omega' a).value Ψ = typein (Omega v).ord.out.r a :=
+  (a : (Omega v).ord.out.α) : (lt_Omega' a).value Ψ = typein (<) a :=
 rfl
 
 @[simp] theorem lt_Omega_value {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal) {a : ordinal}
@@ -405,7 +427,7 @@ theorem Omega_le_buchholz (o : ordinal) (v : ℕ) : (Omega v).ord ≤ buchholz o
 begin
   rw buchholz_def,
   by_contra' h,
-  exact mex_nmem _ (buchholz_exp.lt_Omega h _) (buchholz_exp.lt_Omega_value _ _)
+  exact ne_mex _ (buchholz_exp.lt_Omega h _) (buchholz_exp.lt_Omega_value _ _)
 end
 
 theorem buchholz_zero (v : ℕ) : buchholz 0 v = (Omega v).ord :=

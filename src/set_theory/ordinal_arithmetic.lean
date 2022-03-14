@@ -1277,9 +1277,6 @@ begin
   apply lsub_typein
 end
 
-theorem lsub_nmem_range {ι : Type u} (f : ι → ordinal.{max u v}) : lsub f ∉ set.range f :=
-λ ⟨i, hi⟩, ne_of_lt (lt_lsub f i) hi
-
 /-- The bounded least strict upper bound of a family of ordinals. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)

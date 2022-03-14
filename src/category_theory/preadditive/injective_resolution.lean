@@ -61,19 +61,15 @@ structure InjectiveResolution (Z : C) :=
 attribute [instance] InjectiveResolution.injective InjectiveResolution.exact₀
   InjectiveResolution.exact InjectiveResolution.mono
 
-/--
-An object admits a injective resolution.
--/
+/-- An object admits a injective resolution. -/
 class has_injective_resolution (Z : C) : Prop :=
 (out [] : nonempty (InjectiveResolution Z))
 
 section
 variables (C)
 
-/--
-You will rarely use this typeclass directly: it is implied by the combination
-`[enough_injectives C]` and `[abelian C]`.
--/
+/-- You will rarely use this typeclass directly: it is implied by the combination
+`[enough_injectives C]` and `[abelian C]`. -/
 class has_injective_resolutions : Prop :=
 (out : ∀ Z : C, has_injective_resolution Z)
 

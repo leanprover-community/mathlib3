@@ -390,7 +390,7 @@ section order
 /-!
 ## The specialization order
 
-We endow `prime_spectrum R` with a partial order,
+We endow `projective_spectrum 𝒜` with a partial order,
 where `x ≤ y` if and only if `y ∈ closure {x}`.
 
 TODO: maybe define sober topological spaces, and generalise this instance to those

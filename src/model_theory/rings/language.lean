@@ -47,7 +47,7 @@ instance : inhabited (functions 0) := ⟨ consts.zero ⟩
 /-- The language of rings -/
 @[reducible] def L : language.{u v} :=
 { functions := functions.{u},
-  relations := λ n, pempty.{v} }
+  relations := λ n, pempty.{v+1} }
 
 variable {α : Type u'}
 

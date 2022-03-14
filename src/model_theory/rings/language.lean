@@ -49,8 +49,8 @@ instance : inhabited (functions 0) := ⟨ consts.zero ⟩
 { functions := functions.{u},
   relations := λ n, pempty.{v} }
 
-instance : is_algebraic L := { empty_relations :=
-λ n, by {simp, apply_instance} }
+instance : is_algebraic L := 
+{ empty_relations := λ n, by {simp only [L_relations], apply_instance} }
 
 variable {α : Type u'}
 

@@ -40,7 +40,7 @@ variables [has_zero_object C] [has_zero_morphisms C] [has_equalizers C] [has_ima
 An `InjectiveResolution Z` consists of a bundled `ℕ`-indexed cochain complex of injective objects,
 along with a quasi-isomorphism to the complex consisting of just `Z` supported in degree `0`.
 
-Except in situations where you want to provide a particular projective resolution
+Except in situations where you want to provide a particular injective resolution
 (for example to compute a derived functor),
 you will not typically need to use this bundled object, and will instead use
 * `injective_resolution Z`: the `ℕ`-indexed cochain complex

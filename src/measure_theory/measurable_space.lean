@@ -448,7 +448,7 @@ begin
 end
 
 lemma measurable_of_restrict_of_restrict_compl {f : α → β} {s : set α}
-  (hs : measurable_set s) (h₁ : measurable (restrict f s)) (h₂ : measurable (restrict f sᶜ)) :
+  (hs : measurable_set s) (h₁ : measurable (s.restrict f)) (h₂ : measurable (sᶜ.restrict f)) :
   measurable f :=
 measurable_of_measurable_union_cover s sᶜ hs hs.compl (union_compl_self s).ge h₁ h₂
 
@@ -458,7 +458,7 @@ lemma measurable.dite [∀ x, decidable (x ∈ s)] {f : s → β} (hf : measurab
 measurable_of_restrict_of_restrict_compl hs (by simpa) (by simpa)
 
 lemma measurable_of_measurable_on_compl_finite [measurable_singleton_class α]
-  {f : α → β} (s : set α) (hs : finite s) (hf : measurable (set.restrict f sᶜ)) :
+  {f : α → β} (s : set α) (hs : finite s) (hf : measurable (sᶜ.restrict f)) :
   measurable f :=
 begin
   letI : fintype s := finite.fintype hs,
@@ -467,7 +467,7 @@ begin
 end
 
 lemma measurable_of_measurable_on_compl_singleton [measurable_singleton_class α]
-  {f : α → β} (a : α) (hf : measurable (set.restrict f {x | x ≠ a})) :
+  {f : α → β} (a : α) (hf : measurable ({x | x ≠ a}.restrict f)) :
   measurable f :=
 measurable_of_measurable_on_compl_finite {a} (finite_singleton a) hf
 

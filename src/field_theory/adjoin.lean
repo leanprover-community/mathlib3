@@ -166,7 +166,7 @@ end
 
 /-- The top intermediate_field is isomorphic to the field. -/
 @[simps apply] def top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E :=
-(subalgebra.equiv_of_eq _ _ top_to_subalgebra).trans algebra.top_equiv
+(subalgebra.equiv_of_eq _ _ top_to_subalgebra).trans subalgebra.top_equiv
 
 @[simp] lemma top_equiv_symm_apply_coe (a : E) :
   ↑((top_equiv.symm) a : (⊤ : intermediate_field F E)) = a := rfl

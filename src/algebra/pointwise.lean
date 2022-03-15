@@ -49,6 +49,8 @@ Appropriate definitions and results are also transported to the additive theory 
 
 ## TODO
 
+Add the missing `finset` operations.
+
 ## Tags
 
 set multiplication, set addition, pointwise addition, pointwise multiplication,

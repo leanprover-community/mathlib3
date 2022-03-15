@@ -262,8 +262,7 @@ lemma prime.divisors {p : ℕ} (pp : p.prime) :
   divisors p = {1, p} :=
 begin
   ext,
-  rw [mem_divisors, dvd_prime pp.irreducible, and_iff_left pp.ne_zero, finset.mem_insert,
-    finset.mem_singleton]
+  rw [mem_divisors, dvd_prime pp, and_iff_left pp.ne_zero, finset.mem_insert, finset.mem_singleton]
 end
 
 lemma prime.proper_divisors {p : ℕ} (pp : p.prime) :

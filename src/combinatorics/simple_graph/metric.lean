@@ -21,6 +21,13 @@ pairs of vertices to the length of the shortest walk between them.
 - Provide an additional computable version of `simple_graph.dist`
   for when `G` is connected.
 
+- Evaluate `nat` vs `enat` for the codomain of `dist`, or potentially
+  having an additional `edist` when the objects under consideration are
+  disconnected graphs.
+
+- When directed graphs exist, a directed notion of distance,
+  likely `enat`-valued.
+
 ## Tags
 
 graph metric
@@ -84,7 +91,8 @@ begin
   apply dist_le,
 end
 
-lemma dist_comm_le {u v : V} (h : G.reachable u v) : G.dist u v ≤ G.dist v u :=
+private
+lemma dist_comm_aux {u v : V} (h : G.reachable u v) : G.dist u v ≤ G.dist v u :=
 begin
   obtain ⟨p, hp⟩ := h.symm.exists_walk_of_dist,
   rw [← hp, ← walk.length_reverse],
@@ -94,7 +102,7 @@ end
 lemma dist_comm {u v : V} : G.dist u v = G.dist v u :=
 begin
   by_cases h : G.reachable u v,
-  { apply le_antisymm (dist_comm_le h) (dist_comm_le h.symm), },
+  { apply le_antisymm (dist_comm_aux h) (dist_comm_aux h.symm), },
   { have h' : ¬ G.reachable v u := λ h', absurd h'.symm h,
     simp [h, h', dist_eq_zero_of_not_reachable], },
 end

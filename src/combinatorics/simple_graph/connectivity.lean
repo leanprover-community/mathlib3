@@ -878,18 +878,6 @@ lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := H.coe.connected
 
-/-- A graph is *acyclic* (or a *forest*) if it has no cycles.
-A characterization: `simple_graph.is_acyclic_iff`.-/
-def is_acyclic : Prop := ∀ (v : V) (c : G.walk v v), ¬c.is_cycle
-
-/-- A *tree* is a connected acyclic graph. -/
-def is_tree : Prop := G.connected ∧ G.is_acyclic
-
-/-- A graph is *k-edge-connected* if it remains connected whenever
-fewer than k edges are removed. -/
-def edge_connected (k : ℕ) : Prop :=
-∀ (s ⊆ G.edge_set) (h : s.finite), h.to_finset.card < k → (G.delete_edges s).connected
-
 variables {G}
 
 lemma preconnected.set_univ_walk_nonempty (hconn : G.preconnected) (u v : V) :

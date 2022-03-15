@@ -68,14 +68,6 @@ lemma subgroup.map_subtype_le_map_subtype {G' : Type*} [group G'] {G : subgroup 
   {H K : subgroup G} : H.map G.subtype ≤ K.map G.subtype ↔ H ≤ K :=
 subgroup.map_le_map_iff_of_injective subtype.coe_injective
 
-lemma map_commutator_eq_general_commutator {G H : Type*} [group G] [group H] (ϕ : G →* H) :
-  (commutator G).map ϕ = ⁅ϕ.range, ϕ.range⁆ :=
-by rw [commutator_def, subgroup.map_commutator, ←monoid_hom.range_eq_map]
-
-lemma subgroup.commutator_eq_general_commutator {G : Type*} [group G] (H : subgroup G) :
-  (commutator H).map H.subtype = ⁅H, H⁆ :=
-by rw [map_commutator_eq_general_commutator, subgroup.subtype_range]
-
 end for_mathlib
 
 noncomputable theory
@@ -316,19 +308,16 @@ begin
     refine ⟨⟨g, g, λ h hh, hg h, rfl⟩, _, rfl⟩,
     rintros ⟨-, h, hh, rfl⟩,
     exact subtype.ext (show _, from subtype.ext_iff.mp (hg h)) },
-  { refine le_trans _ hK2,
-    refine nat.le_of_dvd card_pos _,
-    have key : ∀ H : subgroup G, card (commutator H) =
-      card ↥⁅H, H⁆,
+  { have key : ∀ H : subgroup G, card (commutator H) = card ↥⁅H, H⁆,
     { intro H,
-      rw ← subgroup.commutator_eq_general_commutator,
-      exact fintype.card_congr
+      conv_rhs { rw [←H.subtype_range, monoid_hom.range_eq_map, ←subgroup.map_commutator] },
+      refine fintype.card_congr
         ((commutator H).equiv_map_of_injective H.subtype subtype.coe_injective).to_equiv },
-    rw [key, key],
-    apply subgroup.card_dvd_of_le,
-    apply subgroup.commutator_mono (commutator ↥K).centralizer.map_subtype_le
-      (commutator ↥K).centralizer.map_subtype_le },
-  { sorry },
+    rw key at hK2 ⊢,
+    refine let h := (commutator ↥K).centralizer.map_subtype_le in
+    (nat.le_of_dvd card_pos (subgroup.card_dvd_of_le (subgroup.commutator_mono h h))).trans hK2 },
+  {
+    sorry },
 end
 
 end neumann

@@ -14,24 +14,35 @@ lemma baz (α : Type*) [has_one α] : α := 1
 @[to_additive add_quuz]
 lemma quux (α : Type*) [has_one α] : α := 1
 
+lemma no_to_additive (α : Type*) [has_one α] : α := 1
+
 open tactic
 run_cmd do
   decl ← get_decl ``foo,
   res ← linter.to_additive_doc.test decl,
   -- linter complains
-  guard $ res.is_some,
+  guard $ res.is_some
 
+run_cmd do
   decl ← get_decl ``bar,
   res ← linter.to_additive_doc.test decl,
   -- linter complains
-  guard $ res.is_some,
+  guard $ res.is_some
 
+run_cmd do
   decl ← get_decl ``baz,
   res ← linter.to_additive_doc.test decl,
   -- linter is happy
-  guard $ res.is_none,
+  guard $ res.is_none
 
+run_cmd do
   decl ← get_decl ``quux,
+  res ← linter.to_additive_doc.test decl,
+  -- linter is happy
+  guard $ res.is_none
+
+run_cmd do
+  decl ← get_decl ``no_to_additive,
   res ← linter.to_additive_doc.test decl,
   -- linter is happy
   guard $ res.is_none

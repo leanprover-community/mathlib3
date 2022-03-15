@@ -67,6 +67,9 @@ lemma coe_mk' : (mk' N : G → G ⧸ N) = coe := rfl
 @[simp, to_additive]
 lemma mk'_apply (x : G) : mk' N x = x := rfl
 
+@[to_additive]
+lemma mk'_surjective : function.surjective $ mk' N := @mk_surjective _ _ N
+
 /-- Two `monoid_hom`s from a quotient group are equal if their compositions with
 `quotient_group.mk'` are equal.
 
@@ -397,7 +400,8 @@ section trivial
 trunc.subsingleton
 
 /-- If the quotient by a subgroup gives a singleton then the subgroup is the whole group. -/
-@[to_additive] lemma subgroup_eq_top_of_subsingleton (H : subgroup G)
+@[to_additive "If the quotient by an additive subgroup gives a singleton then the additive subgroup
+is the whole additive group."] lemma subgroup_eq_top_of_subsingleton (H : subgroup G)
   (h : subsingleton (G ⧸ H)) : H = ⊤ :=
 top_unique $ λ x _,
   have this : 1⁻¹ * x ∈ H := quotient_group.eq.1 (subsingleton.elim _ _),

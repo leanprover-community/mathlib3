@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import data.finsupp.basic
 import linear_algebra.pi
+import linear_algebra.span
 
 /-!
 # Properties of the module `α →₀ M`

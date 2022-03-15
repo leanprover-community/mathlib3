@@ -309,6 +309,7 @@ minpoly.ne_zero $ is_integral_of_noetherian (is_noetherian.iff_fg.2 infer_instan
 
 variable (E)
 
+/-- The set of basis elements of `E` as a `K`-vector space -/
 def basis_set: set E :=
 set.range (finite_dimensional.fin_basis K E : _ → E)
 
@@ -932,7 +933,7 @@ CompHaus :=
 
 /-- Term of type `totally_disconnected_space (L ≃ₐ[K] L)`, showing that the Krull topology
   is totally disconnected. -/
-def krull_topology_totally_disconnected_space {K L : Type*} [field K] [field L] [algebra K L]
+lemma krull_topology_totally_disconnected_space {K L : Type*} [field K] [field L] [algebra K L]
 (h_int : ∀ (x : L), is_integral K x) :
 totally_disconnected_space (L ≃ₐ[K] L) :=
 { is_totally_disconnected_univ := krull_topology_totally_disconnected h_int}

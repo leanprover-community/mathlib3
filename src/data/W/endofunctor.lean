@@ -1,7 +1,28 @@
+/-
+Copyright (c) 2022 Joseph Hua. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Joseph Hua
+-/
 import data.W.basic
 import category_theory.endofunctor.algebra
 import category_theory.equivalence
 import category_theory.functor.category
+
+/-!
+# Endofunctors associated to `W_type`s
+
+Any `W_type` can be seen as initial algebras of their associated polynomial endofunctors.
+
+
+## Main results
+* `W_type.endofunctor`: makes the endofunctor associated to the `W_type`
+* `W_type.data`: combines the data of `α : Type _` and `β : α → Type _` into a structure.
+  This is given an instance of a category, which can be seen as a subcategory of `Type _ ⥤ Type _`
+* `W_type.data.endofunctor`: packages `W_type.endofunctor` into a (fully faithful) functor from
+  `W_type.data` to the endofunctor category `Type _ ⥤ Type _`
+* `W_type.algebra` makes a `W_type` an algbera over its associated endofunctor
+* `W_type.is_initial` shows that `W_type.algebra` is an initial algebra
+-/
 
 universes u₀ u₁
 
@@ -117,20 +138,20 @@ end data
 variables {α : Type u₀} (β : α → Type u₁)
 
 /-- `W_type` β as an algebra of its associated polynomial endofunctor -/
-def as_algebra : algebra (endofunctor β) :=
+def algebra : algebra (endofunctor β) :=
 { A   := W_type β,
   str := W_type.of_sigma }
 
-variables {β} (A : algebra (endofunctor β))
+variables {β} (A : endofunctor.algebra (endofunctor β))
 
 /-- The map in `Type` from the initial algebra `W_type` to any other algebra -/
 def lift_f : W_type β → A.A
 | (W_type.mk a b) := A.str ⟨ a , λ x, lift_f (b x) ⟩
 
 /-- The map in `endofunctor.algebra` from the initial algebra `W_type` to any other algebra -/
-def lift : as_algebra β ⟶ A := { f := lift_f A }
+def lift : algebra β ⟶ A := { f := lift_f A }
 
-lemma lift_uniq (f : as_algebra β ⟶ A) : f = lift A :=
+lemma lift_uniq (f : algebra β ⟶ A) : f = lift A :=
 begin
   ext w,
   induction w with a b hw,
@@ -140,12 +161,12 @@ begin
   exact (hw x).symm,
 end
 
-instance (A : algebra (endofunctor β)) : unique (as_algebra β ⟶ A) :=
+instance (A : endofunctor.algebra (endofunctor β)) : unique (algebra β ⟶ A) :=
 { default := lift A,
   uniq := lift_uniq A }.
 
 /-- A `W_Type` is the initial algebra of its associated polynomial endofunctor -/
-def is_initial : limits.is_initial (as_algebra β) :=
+def is_initial : limits.is_initial (algebra β) :=
 limits.is_initial.of_unique _
 
 end W_type

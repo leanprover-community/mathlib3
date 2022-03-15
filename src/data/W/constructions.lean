@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2015 Joseph Hua. All rights reserved.
+Copyright (c) 2022 Joseph Hua. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Hua
 -/
@@ -18,8 +18,12 @@ This file contains `nat` and `list` as examples of W types.
 ## Main results
 * `W_type.equiv_nat`: the construction of the naturals as a W-type is equivalent
   to `nat`
+* `W_type.data_nat_β_eq_one_add_X`: the polynomial endofunctor associated to `ℕ`
+  is `1 + X`
 * `W_type.equiv_list`: the construction of lists on a type `γ` as a W-type is equivalent to
   `list γ`
+* `W_type.data_list_β_eq_one_add_type`: the polynomial endofunctor associated to `list γ`
+  is `1 + γ X`
 -/
 
 universes u v

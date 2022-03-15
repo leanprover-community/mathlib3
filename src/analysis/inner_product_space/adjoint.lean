@@ -313,6 +313,24 @@ instance : star_module 𝕜 (E →ₗ[𝕜] E) := ⟨linear_equiv.map_smulₛₗ
 
 lemma star_eq_adjoint (A : E →ₗ[𝕜] E) : star A = A.adjoint := rfl
 
+section unitary
+
+variables {U : (E →ₗ[𝕜] E)}
+
+lemma norm_map_of_unitary (hU : U ∈ unitary (E →ₗ[𝕜] E)) (x : E) : ∥U x∥ = ∥x∥ :=
+  by rw [←sq_eq_sq (norm_nonneg (U x)) (norm_nonneg x), norm_sq_eq_inner,
+    ←adjoint_inner_left, ←mul_apply, ←star_eq_adjoint, unitary.star_mul_self_of_mem hU, one_apply,
+    inner_self_eq_norm_sq]
+
+/-- Builds a linear isometric equivalence from `U ∈ unitary (E →ₗ[𝕜] E)`. -/
+def linear_isometry_equiv_of_unitary (hU : U ∈ unitary (E →ₗ[𝕜] E)) : (E ≃ₗᵢ[𝕜] E) :=
+{ to_linear_equiv :=
+    linear_map.general_linear_group.to_linear_equiv $
+      (unitary.to_units ⟨U, hU⟩),
+  norm_map' := norm_map_of_unitary hU }
+
+end unitary
+
 section real
 
 variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_space ℝ F']

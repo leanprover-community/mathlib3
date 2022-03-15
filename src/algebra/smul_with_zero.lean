@@ -34,6 +34,8 @@ We also add an `instance`:
 * `smul_monoid_with_zero_hom`: Scalar multiplication bundled as a morphism of monoids with zero.
 -/
 
+open function
+
 variables {R R' M M' : Type*}
 
 section has_zero
@@ -166,7 +168,7 @@ variables [add_monoid M] (R M)
 /--  An action of a monoid with zero `R` on a Type `M`, also with `0`, extends `distrib_mul_action`
 and is compatible with `0` (both in `R` and in `M`), with `1 ∈ R`, and with associativity of
 multiplication on the monoid `M`. -/
-class distrib_mul_action_with_zero extends distrib_mul_action R M :=
+@[ext] class distrib_mul_action_with_zero extends distrib_mul_action R M :=
 -- this field is copied from `mul_action_with_zero`, as `extends` behaves poorly
 (zero_smul : ∀ m : M, (0 : R) • m = 0)
 
@@ -178,22 +180,20 @@ instance distrib_mul_action_with_zero.to_mul_action_with_zero
 
 variables {R M} [distrib_mul_action_with_zero R M] [add_monoid M'] [has_scalar R M']
 
-/-- Pullback a `distrib_mul_action_with_zero` structure along an injective monoid homomorphism.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def function.injective.distrib_mul_action_with_zero
-  (f : M' →+ M) (hf : function.injective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
+/-- Pullback a `distrib_mul_action_with_zero` structure along an injective monoid homomorphism. -/
+@[reducible] -- See note [reducible non-instances]
+protected def function.injective.distrib_mul_action_with_zero (f : M' →+ M) (hf : injective f)
+  (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   distrib_mul_action_with_zero R M' :=
 { ..hf.distrib_mul_action f smul, ..hf.mul_action_with_zero (f : zero_hom M' M) smul }
 
 /-- Pushforward a `distrib_mul_action_with_zero` structure along a surjective monoid homomorphism.
-See note [reducible non-instances]. -/
-@[reducible]
-protected def function.surjective.distrib_mul_action_with_zero
-  (f : M →+ M') (hf : function.surjective f) (smul : ∀ (a : R) b, f (a • b) = a • f b) :
+-/
+@[reducible] -- See note [reducible non-instances]
+protected def function.surjective.distrib_mul_action_with_zero (f : M →+ M') (hf : surjective f)
+  (smul : ∀ (a : R) b, f (a • b) = a • f b) :
   distrib_mul_action_with_zero R M' :=
-{ ..hf.distrib_mul_action f smul, ..function.surjective.mul_action_with_zero (f : zero_hom M M')
-  (by rwa [add_monoid_hom.coe_eq_to_zero_hom, add_monoid_hom.to_zero_hom_coe]) smul }
+{ ..hf.distrib_mul_action f smul, ..hf.mul_action_with_zero (f : zero_hom M M') smul }
 
 variables (M)
 

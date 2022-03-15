@@ -188,7 +188,7 @@ begin
     { -- since a is a nonwitness, we have either ...
       cases hspp,
       { -- ... a^k = 1
-        sorry, -- TODO(Sean)
+        sorry, -- TODO(Sean) (easier) mul_two_power_part_odd_part
     },
     { -- ... or a^(2^i k) = -1
         rcases hspp with ⟨r, hrlt, hrpow⟩,
@@ -197,9 +197,9 @@ begin
         replace hrpow := congr_arg (^(2^c)) hrpow,
         simp only [] at hrpow,
         convert hrpow using 1,
-        {  -- TODO(Sean)
-          sorry, },
-        {  -- TODO(Sean) use Hc to complete this. Might need to make new lemmas or do library_search
+        { rw [mul_comm (2^r), ← pow_mul, mul_assoc, ← pow_add 2, mul_comm, ← hc, ← two_power_part, mul_two_power_part_odd_part],
+         },
+        {
           sorry, },
       }, }
 

@@ -126,6 +126,9 @@ namespace irreducible
 lemma not_unit [monoid α] {p : α} (hp : irreducible p) : ¬ is_unit p :=
 hp.1
 
+lemma not_dvd_one [comm_monoid α] {p : α} (hp : irreducible p) : ¬ p ∣ 1 :=
+mt (is_unit_of_dvd_one _) hp.not_unit
+
 lemma is_unit_or_is_unit [monoid α] {p : α} (hp : irreducible p) {a b : α} (h : p = a * b) :
   is_unit a ∨ is_unit b :=
 irreducible.is_unit_or_is_unit' a b h

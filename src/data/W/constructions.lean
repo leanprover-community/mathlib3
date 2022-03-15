@@ -83,14 +83,14 @@ This is useful when considering the associated polynomial endofunctor.
   left_inv := λ c, match c with | nat_α.zero := rfl | nat_α.succ := rfl end,
   right_inv := λ b, match b with | inl star := rfl | inr star := rfl end }
 
-open data
+open data equiv
 
 /-- The polynomial endofunctor of the `W_type` for `ℕ` is `1 + X` (a.k.a the maybe monad) -/
 def data_nat_β_eq_one_add_X : data.mk nat_β ≅ 1 + X :=
 iso_of_equiv nat_α_equiv_punit_sum_punit
   (λ c, match c with
-    | nat_α.zero := by {dsimp [nat_β, nat_α_equiv_punit_sum_punit], exact (equiv.equiv_empty _).symm }
-    | nat_α.succ := by {dsimp [nat_β, nat_α_equiv_punit_sum_punit], exact equiv_of_unique_of_unique }
+    | nat_α.zero := by {dsimp [nat_β, nat_α_equiv_punit_sum_punit], exact (equiv_empty _).symm}
+    | nat_α.succ := by {dsimp [nat_β, nat_α_equiv_punit_sum_punit], exact equiv_of_unique_of_unique}
     end)
 
 end nat
@@ -158,14 +158,14 @@ def list_α_equiv_punit_sum : list_α γ ≃ punit.{v + 1} ⊕ γ :=
   left_inv := λ c, match c with | list_α.nil := rfl | list_α.cons x := rfl end,
   right_inv := λ x, match x with | sum.inl punit.star := rfl | sum.inr x := rfl end, }
 
-open data
+open data equiv
 
 /-- The polynomial endofunctor for the `W_type` for `list γ` is `1 + γ X` -/
 def data_list_β_eq_one_add_type (γ : Type u) : data.mk (list_β γ) ≅ 1 + monomial γ 1 :=
 iso_of_equiv (list_α_equiv_punit_sum γ)
   (λ c, match c with
-    | list_α.nil := by { dsimp [list_β, list_α_equiv_punit_sum], exact (equiv.equiv_pempty _).symm }
-    | list_α.cons x := by { dsimp [list_β, list_α_equiv_punit_sum], exact equiv_of_unique_of_unique }
+    | list_α.nil := by { dsimp [list_β, list_α_equiv_punit_sum], exact (equiv_pempty _).symm}
+    | list_α.cons x := by { dsimp [list_β, list_α_equiv_punit_sum], exact equiv_of_unique_of_unique}
     end)
 
 end list

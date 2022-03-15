@@ -353,21 +353,18 @@ topological_space.opens.ext $ by simpa using zero_locus_singleton_pow 𝒜 f n h
 
 lemma basic_open_as_union_of_projection (f : A) :
   basic_open 𝒜 f = ⨆ (i : ℕ), basic_open 𝒜 (graded_algebra.proj 𝒜 i f) :=
-begin
-  ext z, split; intro hz,
-  { rw mem_coe_basic_open at hz,
-    rcases show ∃ i, graded_algebra.proj 𝒜 i f ∉ z.as_homogeneous_ideal,
-    { contrapose! hz with H,
+topological_space.opens.ext $ set.ext $ λ z, begin
+  erw [mem_coe_basic_open, topological_space.opens.mem_Sup],
+  split; intros hz,
+  { rcases show ∃ i, graded_algebra.proj 𝒜 i f ∉ z.as_homogeneous_ideal, begin
+      contrapose! hz with H,
       haveI : Π (i : ℕ) (x : 𝒜 i), decidable (x ≠ 0) := λ _, classical.dec_pred _,
       rw ←graded_algebra.sum_support_decompose 𝒜 f,
-      apply ideal.sum_mem _ (λ i hi, H i) } with ⟨i, hi⟩,
-    erw topological_space.opens.mem_Sup,
+      apply ideal.sum_mem _ (λ i hi, H i)
+    end with ⟨i, hi⟩,
     exact ⟨basic_open 𝒜 (graded_algebra.proj 𝒜 i f), ⟨i, rfl⟩, by rwa mem_basic_open⟩ },
-  { rw mem_coe_basic_open,
-    erw topological_space.opens.mem_Sup at hz,
-    obtain ⟨_, ⟨i, rfl⟩, hz⟩ := hz,
-    intro rid,
-    exact hz (z.1.2 i rid) },
+  { obtain ⟨_, ⟨i, rfl⟩, hz⟩ := hz,
+    exact λ rid, hz (z.1.2 i rid) },
 end
 
 lemma is_topological_basis_basic_opens : topological_space.is_topological_basis

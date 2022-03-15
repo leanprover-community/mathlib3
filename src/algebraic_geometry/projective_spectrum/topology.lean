@@ -105,9 +105,9 @@ begin
   ext f,
   rw [vanishing_ideal, set_like.mem_coe, homogeneous_ideal.mem_iff, homogeneous_ideal.to_ideal_infi,
     submodule.mem_infi],
-  apply forall_congr, intro x,
-  rw [homogeneous_ideal.to_ideal_infi, submodule.mem_infi],
-  refl,
+  apply forall_congr,
+  intro x,
+  rw [homogeneous_ideal.to_ideal_infi, submodule.mem_infi, homogeneous_ideal.mem_iff],
 end
 
 lemma mem_vanishing_ideal (t : set (projective_spectrum 𝒜)) (f : A) :

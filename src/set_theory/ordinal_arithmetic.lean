@@ -743,9 +743,9 @@ begin
   { exact mul_is_limit l.pos lb }
 end
 
-theorem smul_eq_mul {a : ordinal} : ∀ {n : ℕ}, n • a = a * n
-| 0       := by rw [zero_smul, nat.cast_zero, mul_zero]
-| (n + 1) := by rw [succ_nsmul', nat.cast_add, mul_add, nat.cast_one, mul_one, smul_eq_mul]
+theorem smul_eq_mul : ∀ (n : ℕ) (a : ordinal), n • a = a * n
+| 0       a := by rw [zero_smul, nat.cast_zero, mul_zero]
+| (n + 1) a := by rw [succ_nsmul', nat.cast_add, mul_add, nat.cast_one, mul_one, smul_eq_mul]
 
 /-! ### Division on ordinals -/
 

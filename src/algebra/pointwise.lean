@@ -10,23 +10,34 @@ import data.set.finite
 import group_theory.submonoid.basic
 
 /-!
-# Pointwise addition, multiplication, scalar multiplication and vector subtraction of sets.
+# Pointwise operations of sets
 
 This file defines pointwise algebraic operations on sets.
-* For a type `α` with multiplication, multiplication is defined on `set α` by taking
-  `s * t` to be the set of all `x * y` where `x ∈ s` and `y ∈ t`. Similarly for addition.
-* For `α` a semigroup, `set α` is a semigroup.
-* If `α` is a (commutative) monoid, we define an alias `set_semiring α` for `set α`, which then
-  becomes a (commutative) semiring with union as addition and pointwise multiplication as
-  multiplication.
-* For a type `β` with scalar multiplication by another type `α`, this
-  file defines a scalar multiplication of `set β` by `set α` and a separate scalar
-  multiplication of `set β` by `α`.
-* We also define pointwise multiplication on `finset`.
+
+## Main declarations
+
+For sets or finsets `s` and `t` and scalar `a`:
+* `s * t`: Multiplication, set of all `x * y` where `x ∈ s` and `y ∈ t`.
+* `s + t`: Addition, set of all `x + y` where `x ∈ s` and `y ∈ t`.
+* `s⁻¹`: Inversion, set of all `x⁻¹` where `x ∈ s`.
+* `-s`: Negation, set of all `-x` where `x ∈ s`.
+* `s / t`: Division, set of all `x / y` where `x ∈ s` and `y ∈ t`.
+* `s - t`: Subtraction, set of all `x - y` where `x ∈ s` and `y ∈ t`.
+* `s • t`: Scalar multiplication, set of all `x • y` where `x ∈ s` and `y ∈ t`.
+* `s +ᵥ t`: Scalar addition, set of all `x +ᵥ y` where `x ∈ s` and `y ∈ t`.
+* `s -ᵥ t`: Scalar subtraction, set of all `x -ᵥ y` where `x ∈ s` and `y ∈ t`.
+* `a • s`: Scalar multiplication, set of all `a • x` where `x ∈ s`.
+* `a +ᵥ s`: Scalar addition, set of all `a +ᵥ x` where `x ∈ s`.
+
+For `α` a semigroup, `set α` is a semigroup.
+
+We define `set_semiring α`, an alias of `set α`, which we endow with `∪` as addition and `*` as
+multiplication. If `α` is a (commutative) monoid, `set_semiring α` is a (commutative) semiring.
 
 Appropriate definitions and results are also transported to the additive theory via `to_additive`.
 
 ## Implementation notes
+
 * The following expressions are considered in simp-normal form in a group:
   `(λ h, h * g) ⁻¹' s`, `(λ h, g * h) ⁻¹' s`, `(λ h, h * g⁻¹) ⁻¹' s`, `(λ h, g⁻¹ * h) ⁻¹' s`,
   `s * t`, `s⁻¹`, `(1 : set _)` (and similarly for additive variants).
@@ -35,6 +46,8 @@ Appropriate definitions and results are also transported to the additive theory 
   default. Note that we do not mark them as reducible (as argued by note [reducible non-instances])
   since we expect the locale to be open whenever the instances are actually used (and making the
   instances reducible changes the behavior of `simp`).
+
+## TODO
 
 ## Tags
 
@@ -46,9 +59,11 @@ open function
 
 variables {α β γ : Type*}
 
+/-! ### Sets -/
+
 namespace set
 
-/-! ### Properties about 1 -/
+/-! #### `0`/`1` as sets -/
 
 section one
 variables [has_one α] {s : set α} {a : α}
@@ -82,7 +97,7 @@ end one
 
 open_locale pointwise
 
-/-! ### Properties about multiplication -/
+/-! #### Set addition/multiplication -/
 
 section mul
 variables {s s₁ s₂ t t₁ t₂ u : set α} {a b : α}
@@ -414,7 +429,7 @@ end
 
 end big_operators
 
-/-! ### Properties about inversion -/
+/-! #### Set negation/inversion -/
 
 section inv
 variables {s t : set α} {a : α}
@@ -499,7 +514,128 @@ by simp_rw [←image_inv, ←image2_mul, image_image2, image2_image_left, image2
 
 end inv
 
-/-! ### Properties about scalar multiplication -/
+open_locale pointwise
+
+/-! #### Set addition/division -/
+
+section div
+variables {s s₁ s₂ t t₁ t₂ u : set α} {a b : α}
+
+/-- The set `(s / t : set α)` is defined as `{x / y | x ∈ s, y ∈ t}` in locale `pointwise`. -/
+@[to_additive "The set `(s - t : set α)` is defined as `{x - y | x ∈ s, y ∈ t}` in locale
+`pointwise`."]
+protected def has_div [has_div α] : has_div (set α) := ⟨image2 has_div.div⟩
+
+localized "attribute [instance] set.has_div set.has_sub" in pointwise
+
+section has_div
+variables {ι : Sort*} {κ : ι → Sort*} [has_div α]
+
+@[simp, to_additive]
+lemma image2_div : image2 has_div.div s t = s / t := rfl
+
+@[to_additive]
+lemma mem_div : a ∈ s / t ↔ ∃ x y, x ∈ s ∧ y ∈ t ∧ x / y = a := iff.rfl
+
+@[to_additive]
+lemma div_mem_div (ha : a ∈ s) (hb : b ∈ t) : a / b ∈ s / t := mem_image2_of_mem ha hb
+
+@[to_additive]
+lemma div_subset_div (h₁ : s₁ ⊆ t₁) (h₂ : s₂ ⊆ t₂) : s₁ / s₂ ⊆ t₁ / t₂ := image2_subset h₁ h₂
+
+@[to_additive add_image_prod]
+lemma image_div_prod : (λ x : α × α, x.fst / x.snd) '' (s ×ˢ t) = s / t := image_prod _
+
+@[simp, to_additive] lemma empty_div : ∅ / s = ∅ := image2_empty_left
+@[simp, to_additive] lemma div_empty : s / ∅ = ∅ := image2_empty_right
+
+@[simp, to_additive] lemma div_singleton : s / {b} = (/ b) '' s := image2_singleton_right
+@[simp, to_additive] lemma singleton_div : {a} / t = ((/) a) '' t := image2_singleton_left
+
+@[simp, to_additive]
+lemma singleton_div_singleton : ({a} : set α) / {b} = {a / b} := image2_singleton
+
+@[to_additive] lemma div_subset_div_left (h : t₁ ⊆ t₂) : s / t₁ ⊆ s / t₂ := image2_subset_left h
+@[to_additive] lemma div_subset_div_right (h : s₁ ⊆ s₂) : s₁ / t ⊆ s₂ / t := image2_subset_right h
+
+@[to_additive] lemma union_div : (s₁ ∪ s₂) / t = s₁ / t ∪ s₂ / t := image2_union_left
+@[to_additive] lemma div_union : s / (t₁ ∪ t₂) = s / t₁ ∪ s / t₂ := image2_union_right
+
+@[to_additive]
+lemma inter_div_subset : (s₁ ∩ s₂) / t ⊆ s₁ / t ∩ (s₂ / t) := image2_inter_subset_left
+
+@[to_additive]
+lemma div_inter_subset : s / (t₁ ∩ t₂) ⊆ s / t₁ ∩ (s / t₂) := image2_inter_subset_right
+
+@[to_additive]
+lemma Union_div_left_image : (⋃ a ∈ s, (λ x, a / x) '' t) = s / t := Union_image_left _
+
+@[to_additive]
+lemma Union_div_right_image : (⋃ a ∈ t, (λ x, x / a) '' s) = s / t := Union_image_right _
+
+@[to_additive]
+lemma Union_div (s : ι → set α) (t : set α) : (⋃ i, s i) / t = ⋃ i, s i / t :=
+image2_Union_left _ _ _
+
+@[to_additive]
+lemma div_Union (s : set α) (t : ι → set α) : s / (⋃ i, t i) = ⋃ i, s / t i :=
+image2_Union_right _ _ _
+
+@[to_additive]
+lemma Union₂_div (s : Π i, κ i → set α) (t : set α) : (⋃ i j, s i j) / t = ⋃ i j, s i j / t :=
+image2_Union₂_left _ _ _
+
+@[to_additive]
+lemma div_Union₂ (s : set α) (t : Π i, κ i → set α) : s / (⋃ i j, t i j) = ⋃ i j, s / t i j :=
+image2_Union₂_right _ _ _
+
+@[to_additive]
+lemma Inter_div_subset (s : ι → set α) (t : set α) : (⋂ i, s i) / t ⊆ ⋂ i, s i / t :=
+image2_Inter_subset_left _ _ _
+
+@[to_additive]
+lemma div_Inter_subset (s : set α) (t : ι → set α) : s / (⋂ i, t i) ⊆ ⋂ i, s / t i :=
+image2_Inter_subset_right _ _ _
+
+@[to_additive]
+lemma Inter₂_div_subset (s : Π i, κ i → set α) (t : set α) :
+  (⋂ i j, s i j) / t ⊆ ⋂ i j, s i j / t :=
+image2_Inter₂_subset_left _ _ _
+
+@[to_additive]
+lemma div_Inter₂_subset (s : set α) (t : Π i, κ i → set α) :
+  s / (⋂ i j, t i j) ⊆ ⋂ i j, s / t i j :=
+image2_Inter₂_subset_right _ _ _
+
+end has_div
+
+/-TODO: The below instances are duplicate because there is no typeclass greater than
+`div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
+
+@[to_additive]
+instance [group α] : div_inv_monoid (set α) :=
+{ div_eq_mul_inv := λ s t, begin
+    rw [←image2_div, ←image2_mul],
+    convert (image2_image_right (*) has_inv.inv).symm,
+    { ext,
+      exact div_eq_mul_inv _ _ },
+    { exact image_inv.symm }
+  end,
+  ..set.monoid, ..set.has_inv, ..set.has_div }
+
+instance set.div_inv_monoid' [group_with_zero α] : div_inv_monoid (set α) :=
+{ div_eq_mul_inv := λ s t, begin
+    rw [←image2_div, ←image2_mul],
+    convert (image2_image_right (*) has_inv.inv).symm,
+    { ext,
+      exact div_eq_mul_inv _ _ },
+    { exact image_inv.symm }
+  end,
+  ..set.monoid, ..set.has_inv, ..set.has_div }
+
+end div
+
+/-! #### Scalar addition/multiplication of sets -/
 
 section smul
 
@@ -808,7 +944,7 @@ end ring
 
 section monoid
 
-/-! ### `set α` as a `(∪,*)`-semiring -/
+/-! #### `set α` as a `(∪, *)`-semiring -/
 
 /-- An alias for `set α`, which has a semiring structure given by `∪` as "addition" and pointwise
   multiplication `*` as "multiplication". -/

@@ -267,4 +267,26 @@ instance [decidable_rel ((≤) : ideal A → ideal A → Prop)] : linear_order (
 
 end
 
+section
+
+variables {𝒪 K Γ : Type*}
+  [comm_ring 𝒪] [is_domain 𝒪] [field K] [algebra 𝒪 K]
+  [linear_ordered_comm_group_with_zero Γ]
+  (v : _root_.valuation K Γ) (hh : _root_.valuation.integers v 𝒪)
+
+include hh
+
+instance of_integers : valuation_ring 𝒪 :=
+begin
+  constructor,
+  intros a b,
+  cases _root_.le_total (v (algebra_map 𝒪 K a)) (v (algebra_map 𝒪 K b)),
+  { obtain ⟨c,hc⟩ := valuation.integers.dvd_of_le hh h,
+    use c, exact or.inr hc.symm },
+  { obtain ⟨c,hc⟩ := valuation.integers.dvd_of_le hh h,
+    use c, exact or.inl hc.symm }
+end
+
+end
+
 end valuation_ring

@@ -73,7 +73,7 @@ begin
   simp only [tensor_id_comp_id_tensor],
 end
 
-variables {C} [has_finite_biproducts C]
+variables {C}
 
 -- In a closed monoidal category, this would hold because
 -- `tensor_left X` is a left adjoint and hence preserves all colimits.
@@ -85,6 +85,16 @@ instance (X : C) : preserves_finite_biproducts (tensor_left X) :=
       dsimp,
       simp only [←tensor_comp, category.comp_id, ←tensor_sum, ←tensor_id, is_bilimit.total i],
     end } } }
+
+instance (X : C) : preserves_finite_biproducts (tensor_right X) :=
+{ preserves := λ J _ _, by exactI
+  { preserves := λ f,
+    { preserves := λ b i, is_bilimit_of_total _ begin
+      dsimp,
+      simp only [←tensor_comp, category.comp_id, ←sum_tensor, ←tensor_id, is_bilimit.total i],
+    end } } }
+
+variables [has_finite_biproducts C]
 
 /-- The isomorphism showing how tensor product on the left distributes over direct sums. -/
 def left_distributor {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
@@ -124,14 +134,6 @@ begin
     tensor_id, if_true, dif_ctx_congr, finset.sum_congr, finset.mem_univ, finset.sum_dite_eq'],
   simp only [←tensor_id, associator_naturality, iso.inv_hom_id_assoc],
 end
-
-instance (X : C) : preserves_finite_biproducts (tensor_right X) :=
-{ preserves := λ J _ _, by exactI
-  { preserves := λ f,
-    { preserves := λ b i, is_bilimit_of_total _ begin
-      dsimp,
-      simp only [←tensor_comp, category.comp_id, ←sum_tensor, ←tensor_id, is_bilimit.total i],
-    end } } }
 
 /-- The isomorphism showing how tensor product on the right distributes over direct sums. -/
 def right_distributor {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :

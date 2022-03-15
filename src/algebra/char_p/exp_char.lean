@@ -57,7 +57,7 @@ begin
       exact false.elim (one_ne_zero (hp.eq R (char_p.of_char_zero R))) },
     { intro pprime,
       rw (char_p.eq R hp infer_instance : p = 0) at pprime,
-      exact false.elim (nat.not_prime_zero pprime) } },
+      exact false.elim (not_prime_zero pprime) } },
   { split,
     { intro hpq, rw hpq, exact hq_prime, },
     { intro _,

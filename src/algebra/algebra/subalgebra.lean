@@ -807,9 +807,6 @@ subtype.ext rfl
 @[simp] lemma coe_inclusion {S T : subalgebra R A} (h : S ≤ T) (s : S) :
   (inclusion h s : A) = s := rfl
 
-lemma val_injective {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-  {E : subalgebra R A} : function.injective E.val := λ x y hxy, subtype.ext hxy
-
 lemma inclusion_mk {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   {E F : subalgebra R A} (hEF : E ≤ F) {x : A} (hx : x ∈ E) : (subalgebra.inclusion hEF) ⟨x, hx⟩ =
   ⟨x, hEF hx⟩ := rfl

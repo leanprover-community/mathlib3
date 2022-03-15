@@ -283,6 +283,10 @@ by simp only [metric.diam, convex_hull_ediam]
 by simp only [metric.bounded_iff_ediam_ne_top, convex_hull_ediam]
 
 @[priority 100]
+instance normed_space.path_connected : path_connected_space E :=
+topological_add_group.path_connected
+
+@[priority 100]
 instance normed_space.loc_path_connected : loc_path_connected_space E :=
 loc_path_connected_of_bases (λ x, metric.nhds_basis_ball)
   (λ x r r_pos, (convex_ball x r).is_path_connected $ by simp [r_pos])

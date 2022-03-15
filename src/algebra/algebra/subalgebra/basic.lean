@@ -712,7 +712,9 @@ variables {R : Type u} {A : Type v} {B : Type w}
 variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B]
 variables (S : subalgebra R A)
 
-/-- The top subalgebra is isomorphic to the algebra. -/
+/-- The top subalgebra is isomorphic to the algebra.
+
+This is the algebra version of `submodule.top_equiv`. -/
 @[simps] def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
 alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ _, subtype.ext rfl
 

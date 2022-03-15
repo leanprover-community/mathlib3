@@ -386,15 +386,6 @@ end galois_insertion
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits an addition."]
 instance has_mul : has_mul S := ⟨λ a b, ⟨a.1 * b.1, S.mul_mem a.2 b.2⟩⟩
 
-/-- A monoid is isomorphic to itself as a submonoid. -/
-@[to_additive "An additive monoid is isomorphic to itself as an additive submonoid.", simps]
-def top_equiv : (⊤ : submonoid M) ≃* M :=
-{ to_fun    := λ x, x,
-  inv_fun   := λ x, ⟨x, mem_top x⟩,
-  left_inv  := λ x, x.eta _,
-  right_inv := λ _, rfl,
-  map_mul'  := λ _ _, rfl }
-
 /-- A submonoid of a monoid inherits a 1. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits a zero."]
 instance has_one : has_one S := ⟨⟨_, S.one_mem⟩⟩
@@ -481,8 +472,18 @@ def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
 
-@[simp, to_additive]
-lemma top_equiv_subtype : (top_equiv : _ ≃* M).to_monoid_hom = (⊤ : submonoid M).subtype := rfl
+/-- The top submonoid is isomorphic to the monoid. -/
+@[to_additive "The top additive submonoid is isomorphic to the additive monoid.", simps]
+def top_equiv : (⊤ : submonoid M) ≃* M :=
+{ to_fun    := λ x, x,
+  inv_fun   := λ x, ⟨x, mem_top x⟩,
+  left_inv  := λ x, x.eta _,
+  right_inv := λ _, rfl,
+  map_mul'  := λ _ _, rfl }
+
+@[simp, to_additive] lemma top_equiv_to_monoid_hom :
+  (top_equiv : _ ≃* M).to_monoid_hom = (⊤ : submonoid M).subtype :=
+rfl
 
 /-- A submonoid is isomorphic to its image under an injective function -/
 @[to_additive "An additive submonoid is isomorphic to its image under an injective function"]

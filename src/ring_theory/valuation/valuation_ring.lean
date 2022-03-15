@@ -6,6 +6,7 @@ Authors: Adam Topaz
 import ring_theory.valuation.integers
 import ring_theory.ideal.local_ring
 import ring_theory.localization.fraction_ring
+import ring_theory.discrete_valuation_ring
 import tactic.field_simp
 
 /-!
@@ -285,6 +286,49 @@ begin
     use c, exact or.inr hc.symm },
   { obtain ⟨c,hc⟩ := valuation.integers.dvd_of_le hh h,
     use c, exact or.inl hc.symm }
+end
+
+end
+
+section
+
+variables (K : Type*) [field K]
+
+instance of_field : valuation_ring K :=
+begin
+  constructor,
+  intros a b,
+  by_cases b = 0,
+  { use 0, left, simp [h] },
+  { use a * b⁻¹, right, field_simp, rw mul_comm }
+end
+
+end
+
+section
+
+variables (A : Type*) [comm_ring A] [is_domain A] [discrete_valuation_ring A]
+
+instance of_discrete_valuation_ring : valuation_ring A :=
+begin
+  constructor,
+  intros a b,
+  by_cases ha : a = 0, { use 0, right, simp [ha] },
+  by_cases hb : b = 0, { use 0, left, simp [hb] },
+  obtain ⟨ϖ,hϖ⟩ := discrete_valuation_ring.exists_irreducible A,
+  obtain ⟨m,u,rfl⟩ := discrete_valuation_ring.eq_unit_mul_pow_irreducible ha hϖ,
+  obtain ⟨n,v,rfl⟩ := discrete_valuation_ring.eq_unit_mul_pow_irreducible hb hϖ,
+  cases _root_.le_total m n with h h,
+  { use (u⁻¹ * v : Aˣ) * ϖ^(n-m), left,
+    simp_rw [mul_comm (u : A), units.coe_mul, ← mul_assoc, mul_assoc _ (u : A)],
+    simp only [units.mul_inv, mul_one, mul_comm _ (v : A), mul_assoc, ← pow_add],
+    congr' 2,
+    linarith },
+  { use (v⁻¹ * u : Aˣ) * ϖ^(m-n), right,
+    simp_rw [mul_comm (v : A), units.coe_mul, ← mul_assoc, mul_assoc _ (v : A)],
+    simp only [units.mul_inv, mul_one, mul_comm _ (u : A), mul_assoc, ← pow_add],
+    congr' 2,
+    linarith }
 end
 
 end

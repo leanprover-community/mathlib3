@@ -747,7 +747,8 @@ protected lemma inner {m : measurable_space α} {μ : measure α} {f g : α → 
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   ae_strongly_measurable (λ x, ⟪f x, g x⟫) μ :=
 begin
-  refine ⟨λ x, ⟪hf.mk f x, hg.mk g x⟫, hf.strongly_measurable_mk.inner hg.strongly_measurable_mk, _⟩,
+  refine ⟨λ x, ⟪hf.mk f x, hg.mk g x⟫,
+    hf.strongly_measurable_mk.inner hg.strongly_measurable_mk, _⟩,
   refine hf.ae_eq_mk.mp (hg.ae_eq_mk.mono (λ x hxg hxf, _)),
   dsimp only,
   congr,

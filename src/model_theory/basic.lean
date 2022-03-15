@@ -572,6 +572,8 @@ def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
 
 variable {L}
 
+instance : has_coe α (L[[α]].constants) := ⟨sum.inr⟩
+
 /-- Adds constants to a language map.  -/
 def Lhom.add_constants {L' : language} (φ : L →ᴸ L') :
   L[[α]] →ᴸ L'[[α]] := φ.sum_map (Lhom.id _)
@@ -613,6 +615,8 @@ instance add_constants_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ
   [φ.is_expansion_on M] :
   (φ.add_constants A).is_expansion_on M :=
 Lhom.sum_map_is_expansion_on _ _ M
+
+@[simp] lemma coe_coe_param {a : A} : ((a : L[[A]].constants) : M) = a := rfl
 
 variables {A} {B : set M} (h : A ⊆ B)
 

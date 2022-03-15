@@ -146,11 +146,11 @@ encodable.of_left_injection list_encode (λ l, (list_decode l).head')
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 
-instance inhabited_of_constant [inhabited L.constants] : inhabited (L.term α) :=
-⟨func (default : L.constants) default⟩
-
 instance : has_coe L.constants (L.term α) :=
 ⟨λ c, func c default⟩
+
+instance inhabited_of_constant [inhabited L.constants] : inhabited (L.term α) :=
+⟨↑(default : L.constants)⟩
 
 /-- A term `t` with variables indexed by `α` can be evaluated by giving a value to each variable. -/
 @[simp] def realize (v : α → M) :
@@ -165,6 +165,10 @@ begin
   { refl, },
   { simp [ih] }
 end
+
+@[simp] lemma realize_coe_constant {c : L.constants} {v : α → M} :
+  (↑c : L.term α).realize v = c :=
+fun_map_eq_coe_constants
 
 end term
 
@@ -543,7 +547,7 @@ def is_satisfiable : Prop :=
 
 /-- A theory is finitely satisfiable if all of its finite subtheories are satisfiable. -/
 def is_finitely_satisfiable : Prop :=
-∀ (T0 : finset L.sentence), (T0 : L.Theory) ⊆ T → (T0 : L.Theory).is_satisfiable
+∀ (T0 : finset L.sentence), (↑T0 : L.Theory) ⊆ T → (↑T0 : L.Theory).is_satisfiable
 
 variables {T} {T' : L.Theory}
 

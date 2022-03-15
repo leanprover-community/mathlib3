@@ -276,7 +276,7 @@ def relabel_aux (g : α → (β ⊕ fin n)) (k : ℕ) :
 @[simp] lemma sum_elim_comp_relabel_aux {m : ℕ} {g : α → (β ⊕ fin n)}
   {v : β → M} {xs : fin (n + m) → M} :
   sum.elim v xs ∘ relabel_aux g m =
-    sum.elim (sum.elim v (xs ∘ (cast_add m)) ∘ g) (xs ∘ (nat_add n)) :=
+    sum.elim (sum.elim v (xs ∘ cast_add m) ∘ g) (xs ∘ nat_add n) :=
 begin
   ext x,
   cases x,

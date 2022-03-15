@@ -78,10 +78,10 @@ section nat
 
 lemma is_prime_pow_nat_iff (n : ℕ) :
   is_prime_pow n ↔ ∃ (p k : ℕ), nat.prime p ∧ 0 < k ∧ p ^ k = n :=
-by simp only [is_prime_pow_def, nat.prime_iff]
+iff.rfl
 
 lemma nat.prime.is_prime_pow {p : ℕ} (hp : p.prime) : is_prime_pow p :=
-(nat.prime_iff.mp hp).is_prime_pow
+hp.is_prime_pow
 
 lemma is_prime_pow_nat_iff_bounded (n : ℕ) :
   is_prime_pow n ↔ ∃ (p : ℕ), p ≤ n ∧ ∃ (k : ℕ), k ≤ n ∧ p.prime ∧ 0 < k ∧ p ^ k = n :=
@@ -100,7 +100,6 @@ lemma is_prime_pow.min_fac_pow_factorization_eq {n : ℕ} (hn : is_prime_pow n) 
   n.min_fac ^ n.factorization n.min_fac = n :=
 begin
   obtain ⟨p, k, hp, hk, rfl⟩ := hn,
-  rw ←nat.prime_iff at hp,
   rw [hp.pow_min_fac hk.ne', hp.factorization_pow, finsupp.single_eq_same],
 end
 
@@ -110,7 +109,7 @@ lemma is_prime_pow_of_min_fac_pow_factorization_eq {n : ℕ}
 begin
   rcases eq_or_ne n 0 with rfl | hn',
   { simpa using h },
-  refine ⟨_, _, nat.prime_iff.1 (nat.min_fac_prime hn), _, h⟩,
+  refine ⟨_, _, nat.min_fac_prime hn, _, h⟩,
   rw [pos_iff_ne_zero, ←finsupp.mem_support_iff, nat.factor_iff_mem_factorization,
     nat.mem_factors_iff_dvd hn' (nat.min_fac_prime hn)],
   apply nat.min_fac_dvd

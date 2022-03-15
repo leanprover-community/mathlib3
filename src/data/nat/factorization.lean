@@ -133,7 +133,7 @@ begin
 end
 
 /-- For prime `p` the only prime factor of `p^k` is `p` with multiplicity `k` -/
-lemma prime.factorization_pow {p k : ℕ} (hp : prime p) :
+lemma _root_.prime.factorization_pow {p k : ℕ} (hp : prime p) :
   factorization (p ^ k) = single p k :=
 by simp [hp]
 

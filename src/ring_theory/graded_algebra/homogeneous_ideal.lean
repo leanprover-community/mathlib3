@@ -77,8 +77,8 @@ instance homogeneous_ideal.set_like : set_like (homogeneous_ideal 𝒜) A :=
 @[ext] lemma homogeneous_ideal.ext {I J : homogeneous_ideal 𝒜}
   (h : I.to_ideal = J.to_ideal) : I = J := homogeneous_ideal.to_ideal_injective h
 
-lemma homogeneous_ideal.mem_iff {I : homogeneous_ideal 𝒜} {x : A} : x ∈ I ↔ x ∈ I.to_ideal :=
-iff.rfl
+@[simp] lemma homogeneous_ideal.mem_iff {I : homogeneous_ideal 𝒜} {x : A} :
+  x ∈ I.to_ideal ↔ x ∈ I := iff.rfl
 
 end homogeneous_def
 

@@ -572,7 +572,7 @@ def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
 
 variable {L}
 
-instance : has_coe α (L[[α]].constants) := ⟨sum.inr⟩
+instance : has_coe_t α (L[[α]].constants) := ⟨sum.inr⟩
 
 /-- Adds constants to a language map.  -/
 def Lhom.add_constants {L' : language} (φ : L →ᴸ L') :

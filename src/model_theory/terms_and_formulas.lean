@@ -547,7 +547,7 @@ def is_satisfiable : Prop :=
 
 /-- A theory is finitely satisfiable if all of its finite subtheories are satisfiable. -/
 def is_finitely_satisfiable : Prop :=
-∀ (T0 : finset L.sentence), (↑T0 : L.Theory) ⊆ T → (↑T0 : L.Theory).is_satisfiable
+∀ (T0 : finset L.sentence), (T0 : L.Theory) ⊆ T → (T0 : L.Theory).is_satisfiable
 
 variables {T} {T' : L.Theory}
 

@@ -168,6 +168,8 @@ end
 
 end term
 
+localized "prefix `&`:max := first_order.language.term.var ∘ sum.inr" in first_order
+
 /-- Maps a term's symbols along a language map. -/
 @[simp] def Lhom.on_term {α : Type} (φ : L →ᴸ L') : L.term α → L'.term α
 | (var i) := var i
@@ -424,6 +426,16 @@ end Lhom
 
 attribute [protected] bounded_formula.falsum bounded_formula.equal bounded_formula.rel
 attribute [protected] bounded_formula.imp bounded_formula.all
+
+localized "infix ` =' `:88 := first_order.language.term.bd_equal" in first_order
+  -- input \~- or \simeq
+localized "infixr ` ⟹ `:62 := first_order.language.bounded_formula.imp" in first_order
+  -- input \==>
+localized "prefix `∀'`:110 := first_order.language.bounded_formula.all" in first_order
+localized "prefix `∼`:max := first_order.language.bounded_formula.not" in first_order
+  -- input \~, the ASCII character ~ has too low precedence
+localized "infix ` ⇔ `:61 := first_order.language.bounded_formula.iff" in first_order -- input \<=>
+localized "prefix `∃'`:110 := first_order.language.bounded_formula.ex" in first_order -- input \ex
 
 namespace formula
 

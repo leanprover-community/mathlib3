@@ -249,7 +249,7 @@ lemma sup_vanishing_ideal_le (t t' : set (projective_spectrum 𝒜)) :
   vanishing_ideal t ⊔ vanishing_ideal t' ≤ vanishing_ideal (t ∩ t') :=
 begin
   intros r,
-  rw [homogeneous_ideal.mem_iff, homogeneous_ideal.to_ideal_sup, mem_vanishing_ideal,
+  rw [← homogeneous_ideal.mem_iff, homogeneous_ideal.to_ideal_sup, mem_vanishing_ideal,
     submodule.mem_sup],
   rintro ⟨f, hf, g, hg, rfl⟩ x ⟨hxt, hxt'⟩,
   erw mem_vanishing_ideal at hf hg,

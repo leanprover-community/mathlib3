@@ -204,15 +204,14 @@ end
 end is_R_or_C
 
 @[simp]
-lemma key (n : ℕ) : conj (complex.exp (2 * ↑real.pi * complex.I / ↑n)) =
-                          complex.exp (- (2 * ↑real.pi * complex.I / ↑n)) :=
+lemma conj_exp_primitive_root (n : ℕ) : conj (complex.exp (2 * ↑real.pi * complex.I / ↑n)) =
+                                        complex.exp (- (2 * ↑real.pi * complex.I / ↑n)) :=
 begin
   rw ← complex.exp_conj,
   congr,
-  rw conj_eq_neg_iff,
-  simp only [div_eq_mul_inv, is_R_or_C.re_to_complex, complex.mul_re, complex.bit0_im,
-    complex.one_im, bit0_zero, complex.of_real_im, mul_zero, sub_zero, complex.I_re,
-    complex.mul_im, zero_mul, add_zero, complex.inv_im, complex.nat_cast_im, neg_zero],
+  simp only [div_eq_mul_inv, is_R_or_C.re_to_complex, complex.mul_re, complex.bit0_im, complex.I_re,
+             complex.one_im, bit0_zero, complex.of_real_im, mul_zero, sub_zero, conj_eq_neg_iff,
+             complex.mul_im, zero_mul, add_zero, complex.inv_im, complex.nat_cast_im, neg_zero],
 end
 
 lemma units.mk0_prod {β α : Type} [_inst_1 : comm_group_with_zero β] (s : finset α)
@@ -223,11 +222,9 @@ begin
   induction s using finset.induction_on with x si hsi hi; simp*
 end
 
-lemma helper {C R : Type*} (q : R) (n : ℕ) [ring C] [ring R] (f : R →+* C) :
+lemma cyclotomic.eval_apply {C R : Type*} (q : R) (n : ℕ) [ring C] [ring R] (f : R →+* C) :
   eval (f q) (cyclotomic n C) = f (eval q (cyclotomic n R)) :=
 by rw [← map_cyclotomic n f, eval_map, eval₂_at_apply]
-
-.
 
 lemma sub_one_pow_totient_lt_cyclotomic_eval (n : ℕ) (q : ℝ) (hn' : 2 ≤ n) (hq' : 1 < q) :
   (q - 1) ^ totient n < (cyclotomic n ℝ).eval q :=
@@ -246,11 +243,8 @@ begin
   have hex : ∃ ζ' ∈ primitive_roots n ℂ, real.to_nnreal (q - 1) < ∥↑q - ζ'∥₊,
   -- todo: when Yael gets the strictly convex stuff in master, this will be very easy
   -- (the triangle inequality will be strict as q and ζ are not in the `same_ray`)
-  sorry;{ use ζ,
-    rw ← mem_primitive_roots hn at hζ,
-    refine ⟨hζ, _⟩,
-    apply lt_of_le_of_ne (hfor ζ hζ),
-    intro h,
+  { rw ← mem_primitive_roots hn at hζ,
+    refine ⟨ζ, hζ, (hfor ζ hζ).lt_of_ne (λ h, _)⟩,
     have : (real.to_nnreal (q - 1))^2 = ∥↑q - ζ∥₊^2 := congr_fun (congr_arg pow h) 2,
     apply_fun (coe : ℝ≥0 → ℂ) at this,
     simp only [coe_coe, nnreal.coe_pow, real.coe_to_nnreal _ (show (0 : ℝ) ≤ q - 1, by linarith),
@@ -261,7 +255,7 @@ begin
     rw complex.norm_sq_eq_conj_mul_self at this,
     simp only [ζ, pow_two, mul_sub, sub_mul, ←complex.exp_add, mul_one, one_mul,
       complex.of_real_sub, complex.of_real_mul, complex.of_real_one, ring_hom.map_sub,
-      is_R_or_C.conj_of_real, key, complex.exp_zero, add_left_neg] at this,
+      is_R_or_C.conj_of_real, conj_exp_primitive_root, complex.exp_zero, add_left_neg] at this,
     rw ← sub_eq_zero at this,
     ring_nf at this,
     simp only [mul_eq_zero, complex.of_real_eq_zero] at this,
@@ -288,9 +282,9 @@ begin
       norm_cast,
       linarith, },
     { subst this,
-      linarith, }, }, --fixme
+      linarith, }, }, --END TOFIX
   have : ¬eval ↑q (cyclotomic n ℂ) = 0, -- this is also a general lemma
-  { erw helper q n (algebra_map ℝ ℂ),
+  { erw cyclotomic.eval_apply q n (algebra_map ℝ ℂ),
     simp only [complex.coe_algebra_map, complex.of_real_eq_zero],
     exact (cyclotomic_pos' n hq').ne.symm, },
   suffices : (units.mk0 (real.to_nnreal (q - 1)) (by simp [hq'])) ^ totient n
@@ -299,7 +293,7 @@ begin
                real.to_nnreal_lt_to_nnreal_iff_of_nonneg, coe_nnnorm, complex.norm_eq_abs,
                nnreal.coe_pow, real.coe_to_nnreal', max_eq_left, sub_nonneg] at this,
     convert this,
-    erw (helper q n (algebra_map ℝ ℂ)),
+    erw (cyclotomic.eval_apply q n (algebra_map ℝ ℂ)),
     symmetry,
     simp [cyclotomic_nonneg n hq'.le], },
   simp only [cyclotomic_eq_prod_X_sub_primitive_roots hζ, eval_prod, eval_C,
@@ -311,13 +305,9 @@ begin
   { simpa only [subtype.coe_mk, mem_attach, exists_true_left, subtype.exists, ←units.coe_lt_coe] },
 end
 
-
-#exit
-.
 lemma cyclotomic_eval_lt_sub_one_pow_totient (n : ℕ) (q : ℝ) (hn' : 3 ≤ n) (hq' : 1 < q) :
   (cyclotomic n ℝ).eval q < (q + 1) ^ totient n :=
 sorry -- similar proof, todo is it possible to combine both proofs
-
 
 lemma nat.totient_eq_one_iff : ∀ {n : ℕ}, n.totient = 1 ↔ n = 1 ∨ n = 2
 | 0 := by simp
@@ -328,7 +318,7 @@ begin
   have : 3 ≤ n + 3 := le_add_self,
   have := totient_even this,
   simp only [succ_succ_ne_one, false_or],
-  exact ⟨λ h, (not_even_one).elim $ by rwa ←h, λ h, match h with end⟩,
+  exact ⟨λ h, (not_even_one).elim $ by rwa ←h, by rintro ⟨⟩⟩,
 end
 
 lemma sub_one_lt_nat_abs_cyclotomic_eval (n : ℕ) (q : ℕ) (hn' : 1 < n) (hq' : q ≠ 1) :
@@ -351,11 +341,10 @@ begin
     { ring, }, },
   convert sub_one_pow_totient_lt_cyclotomic_eval n (q + 2) (by linarith) (by norm_cast; linarith),
   norm_cast,
-  erw helper (q + 2 : ℤ) n (algebra_map ℤ ℝ),
+  erw cyclotomic.eval_apply (q + 2 : ℤ) n (algebra_map ℤ ℝ),
   simp only [int.coe_nat_succ, ring_hom.eq_int_cast],
   norm_cast,
-  rw int.coe_nat_abs_eq_normalize,
-  rw int.normalize_of_nonneg,
+  rw [int.coe_nat_abs_eq_normalize, int.normalize_of_nonneg],
   simp only [int.coe_nat_succ],
   exact cyclotomic_nonneg n (by linarith),
 end

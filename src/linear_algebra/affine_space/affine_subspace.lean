@@ -1217,7 +1217,7 @@ def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
     begin
       rintros t - - - ⟨p₁, h₁, rfl⟩ ⟨p₂, h₂, rfl⟩ ⟨p₃, h₃, rfl⟩,
       use t • (p₁ -ᵥ p₂) +ᵥ p₃,
-      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { by simp [this], },
+      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { simp [this], },
       exact s.smul_vsub_vadd_mem t h₁ h₂ h₃,
     end }
 

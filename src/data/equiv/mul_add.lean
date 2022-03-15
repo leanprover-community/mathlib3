@@ -31,8 +31,7 @@ these are deprecated.
 equiv, mul_equiv, add_equiv
 -/
 
-variables {A : Type*} {B : Type*} {M : Type*} {N : Type*}
-  {P : Type*} {Q : Type*} {G : Type*} {H : Type*}
+variables {F α β A B M N P Q G H : Type*}
 
 /-- Makes a multiplicative inverse from a bijection which preserves multiplication. -/
 @[to_additive "Makes an additive inverse from a bijection which preserves addition."]
@@ -89,11 +88,8 @@ class mul_equiv_class (F A B : Type*) [has_mul A] [has_mul B]
 infix ` ≃* `:25 := mul_equiv
 infix ` ≃+ `:25 := add_equiv
 
-section mul_equiv_class
-
-variables (F : Type*)
-
 namespace mul_equiv_class
+variables (F)
 
 @[priority 100, -- See note [lower instance priority]
   to_additive]
@@ -114,23 +110,31 @@ instance [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N] :
        ... = 1 : right_inv e 1,
   .. mul_equiv_class.mul_hom_class F }
 
+@[priority 100] -- See note [lower instance priority]
+instance to_monoid_with_zero_hom_class {α β : Type*} [mul_zero_one_class α]
+  [mul_zero_one_class β] [mul_equiv_class F α β] : monoid_with_zero_hom_class F α β :=
+{ map_zero := λ e, calc e 0 = e 0 * e (equiv_like.inv e 0) : by rw [←map_mul, zero_mul]
+                        ... = 0 : by { convert mul_zero _, exact equiv_like.right_inv e _ }
+  ..mul_equiv_class.monoid_hom_class _ }
+
 variables {F}
 
 @[simp, to_additive]
 lemma map_eq_one_iff {M N} [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N]
-  (h : F) {x : M} :
-  h x = 1 ↔ x = 1 :=
-by rw [← map_one h, equiv_like.apply_eq_iff_eq h]
+  (h : F) {x : M} : h x = 1 ↔ x = 1 :=
+map_eq_one_iff h (equiv_like.injective h)
 
 @[to_additive]
 lemma map_ne_one_iff {M N} [mul_one_class M] [mul_one_class N] [mul_equiv_class F M N]
   (h : F) {x : M} :
   h x ≠ 1 ↔ x ≠ 1 :=
-not_congr (map_eq_one_iff h)
+map_ne_one_iff h (equiv_like.injective h)
 
 end mul_equiv_class
 
-end mul_equiv_class
+@[to_additive] instance [has_mul α] [has_mul β] [mul_equiv_class F α β] : has_coe_t F (α ≃* β) :=
+⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
+  right_inv := equiv_like.right_inv f, map_mul' := map_mul f }⟩
 
 namespace mul_equiv
 
@@ -274,6 +278,18 @@ e.to_equiv.symm_apply_eq
 @[to_additive]
 lemma eq_symm_apply (e : M ≃* N) {x y} : y = e.symm x ↔ e y = x :=
 e.to_equiv.eq_symm_apply
+
+@[to_additive] lemma eq_comp_symm {α : Type*} (e : M ≃* N) (f : N → α) (g : M → α) :
+  f = g ∘ e.symm ↔ f ∘ e = g := e.to_equiv.eq_comp_symm f g
+
+@[to_additive] lemma comp_symm_eq {α : Type*} (e : M ≃* N) (f : N → α) (g : M → α) :
+  g ∘ e.symm = f ↔ g = f ∘ e := e.to_equiv.comp_symm_eq f g
+
+@[to_additive] lemma eq_symm_comp {α : Type*} (e : M ≃* N) (f : α → M) (g : α → N) :
+  f = e.symm ∘ g ↔ e ∘ f = g := e.to_equiv.eq_symm_comp f g
+
+@[to_additive] lemma symm_comp_eq {α : Type*} (e : M ≃* N) (f : α → M) (g : α → N) :
+  e.symm ∘ g = f ↔ g = e ∘ f := e.to_equiv.symm_comp_eq f g
 
 /-- Two multiplicative isomorphisms agree if they are defined by the
     same underlying function. -/
@@ -460,7 +476,7 @@ def monoid_hom.to_mul_equiv [mul_one_class M] [mul_one_class N] (f : M →* N) (
   map_mul' := f.map_mul }
 
 /-- A group is isomorphic to its group of units. -/
-@[to_additive to_add_units "An additive group is isomorphic to its group of additive units"]
+@[to_additive "An additive group is isomorphic to its group of additive units"]
 def to_units [group G] : G ≃* Gˣ :=
 { to_fun := λ x, ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩,
   inv_fun := coe,
@@ -468,9 +484,10 @@ def to_units [group G] : G ≃* Gˣ :=
   right_inv := λ u, units.ext rfl,
   map_mul' := λ x y, units.ext rfl }
 
-@[simp, to_additive coe_to_add_units] lemma coe_to_units [group G] (g : G) :
+@[simp, to_additive] lemma coe_to_units [group G] (g : G) :
   (to_units g : G) = g := rfl
 
+@[to_additive]
 protected lemma group.is_unit {G} [group G] (x : G) : is_unit x := (to_units x).is_unit
 
 namespace units
@@ -534,7 +551,7 @@ variables (G) [has_involutive_inv G]
 /-- Inversion on a `group` or `group_with_zero` is a permutation of the underlying type. -/
 @[to_additive "Negation on an `add_group` is a permutation of the underlying type.",
   simps apply {fully_applied := ff}]
-protected def inv : perm G := inv_involutive.to_equiv _
+protected def inv : perm G := inv_involutive.to_perm _
 
 variable {G}
 

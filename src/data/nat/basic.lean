@@ -607,6 +607,12 @@ theorem mul_self_inj {n m : ℕ} : n * n = m * m ↔ n = m :=
 le_antisymm_iff.trans (le_antisymm_iff.trans
   (and_congr mul_self_le_mul_self_iff mul_self_le_mul_self_iff)).symm
 
+lemma le_add_pred_of_pos (n : ℕ) {i : ℕ} (hi : i ≠ 0) : n ≤ i + (n - 1) :=
+begin
+  refine le_trans _ (add_tsub_le_assoc),
+  simp [add_comm, nat.add_sub_assoc, one_le_iff_ne_zero.2 hi]
+end
+
 /-!
 ### Recursion and induction principles
 
@@ -793,6 +799,12 @@ le_div_iff_mul_le x y k0
 
 theorem div_lt_iff_lt_mul' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x / k < y ↔ x < y * k :=
 lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le' k0
+
+lemma one_le_div_iff {a b : ℕ} (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
+by rw [le_div_iff_mul_le _ _ hb, one_mul]
+
+lemma div_lt_one_iff {a b : ℕ} (hb : 0 < b) : a / b < 1 ↔ a < b :=
+lt_iff_lt_of_le_iff_le $ one_le_div_iff hb
 
 protected theorem div_le_div_right {n m : ℕ} (h : n ≤ m) {k : ℕ} : n / k ≤ m / k :=
 (nat.eq_zero_or_pos k).elim (λ k0, by simp [k0]) $ λ hk,
@@ -1104,7 +1116,7 @@ show ∃ d, b = c * a * d, from ⟨d, by cc⟩
 @[simp] lemma dvd_div_iff {a b c : ℕ} (hbc : c ∣ b) : a ∣ b / c ↔ c * a ∣ b :=
 ⟨λ h, mul_dvd_of_dvd_div hbc h, λ h, dvd_div_of_mul_dvd h⟩
 
-lemma div_mul_div {a b c d : ℕ} (hab : b ∣ a) (hcd : d ∣ c) :
+lemma div_mul_div_comm {a b c d : ℕ} (hab : b ∣ a) (hcd : d ∣ c) :
       (a / b) * (c / d) = (a * c) / (b * d) :=
 have exi1 : ∃ x, a = b * x, from hab,
 have exi2 : ∃ y, c = d * y, from hcd,

@@ -98,9 +98,9 @@ end monoid_hom
 section is_unit
 variables {M : Type*} {N : Type*}
 
-@[to_additive] lemma is_unit.map [monoid M] [monoid N]
-  (f : M →* N) {x : M} (h : is_unit x) : is_unit (f x) :=
-by rcases h with ⟨y, rfl⟩; exact (units.map f y).is_unit
+@[to_additive] lemma is_unit.map {F : Type*} [monoid M] [monoid N] [monoid_hom_class F M N]
+  (f : F) {x : M} (h : is_unit x) : is_unit (f x) :=
+by rcases h with ⟨y, rfl⟩; exact (units.map (f : M →* N) y).is_unit
 
 /-- If a homomorphism `f : M →* N` sends each element to an `is_unit`, then it can be lifted
 to `f : M →* Nˣ`. See also `units.lift_right` for a computable version. -/

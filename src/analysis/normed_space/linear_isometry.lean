@@ -67,7 +67,8 @@ instance : add_monoid_hom_class (E →ₛₗᵢ[σ₁₂] E₂) E E₂ :=
   map_add := λ f, map_add f.to_linear_map,
   map_zero := λ f, map_zero f.to_linear_map }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly.
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly.
 -/
 instance : has_coe_to_fun (E →ₛₗᵢ[σ₁₂] E₂) (λ _, E → E₂) := ⟨λ f, f.to_fun⟩
 
@@ -266,7 +267,8 @@ instance : add_monoid_hom_class (E ≃ₛₗᵢ[σ₁₂] E₂) E E₂ :=
   map_add := λ f, map_add f.to_linear_equiv,
   map_zero := λ f, map_zero f.to_linear_equiv }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly.
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly.
 -/
 instance : has_coe_to_fun (E ≃ₛₗᵢ[σ₁₂] E₂) (λ _, E → E₂) := ⟨λ f, f.to_fun⟩
 
@@ -395,6 +397,10 @@ def trans (e' : E₂ ≃ₛₗᵢ[σ₂₃] E₃) : E ≃ₛₗᵢ[σ₁₃] E�
 
 include σ₁₃ σ₂₁
 @[simp] lemma coe_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) : ⇑(e₁.trans e₂) = e₂ ∘ e₁ :=
+rfl
+
+@[simp] lemma trans_apply (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) (c : E) :
+  (e₁.trans e₂ : E ≃ₛₗᵢ[σ₁₃] E₃) c = e₂ (e₁ c) :=
 rfl
 
 @[simp] lemma to_linear_equiv_trans (e' : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
@@ -550,7 +556,7 @@ variables {R}
 variables (R E E₂ E₃)
 
 /-- The natural equivalence `(E × E₂) × E₃ ≃ E × (E₂ × E₃)` is a linear isometry. -/
-noncomputable def prod_assoc [module R E₂] [module R E₃] : (E × E₂) × E₃ ≃ₗᵢ[R] E × E₂ × E₃ :=
+def prod_assoc [module R E₂] [module R E₃] : (E × E₂) × E₃ ≃ₗᵢ[R] E × E₂ × E₃ :=
 { to_fun    := equiv.prod_assoc E E₂ E₃,
   inv_fun   := (equiv.prod_assoc E E₂ E₃).symm,
   map_add'  := by simp,

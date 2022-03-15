@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Ines Wright, Joachim Breitner
 -/
 
-import group_theory.general_commutator
 import group_theory.quotient_group
 import group_theory.solvable
 import group_theory.p_group
+import group_theory.sylow
+import data.nat.factorization
 
 /-!
 
@@ -76,6 +77,8 @@ are not central series if `G` is not nilpotent is a standard abuse of notation.
 -/
 
 open subgroup
+
+section with_group
 
 variables {G : Type*} [group G] (H : subgroup G) [normal H]
 
@@ -286,7 +289,7 @@ instance (n : ℕ) : normal (lower_central_series G n) :=
 begin
   induction n with d hd,
   { exact (⊤ : subgroup G).normal_of_characteristic },
-  { exactI general_commutator_normal (lower_central_series G d) ⊤ },
+  { exactI subgroup.commutator_normal (lower_central_series G d) ⊤ },
 end
 
 lemma lower_central_series_antitone :
@@ -309,19 +312,14 @@ theorem lower_central_series_is_descending_central_series :
 begin
   split, refl,
   intros x n hxn g,
-  exact general_commutator_containment _ _ hxn (subgroup.mem_top g),
+  exact commutator_mem_commutator hxn (mem_top g),
 end
 
 /-- Any descending central series for a group is bounded below by the lower central series. -/
 lemma descending_central_series_ge_lower (H : ℕ → subgroup G)
   (hH : is_descending_central_series H) : ∀ n : ℕ, lower_central_series G n ≤ H n
 | 0 := hH.1.symm ▸ le_refl ⊤
-| (n + 1) := begin
-  specialize descending_central_series_ge_lower n,
-  apply (general_commutator_le _ _ _).2,
-  intros x hx q _,
-  exact hH.2 x n (descending_central_series_ge_lower hx) q,
-end
+| (n + 1) := commutator_le.mpr (λ x hx q _, hH.2 x n (descending_central_series_ge_lower n hx) q)
 
 /-- A group is nilpotent if and only if its lower central series eventually reaches
   the trivial subgroup. -/
@@ -496,7 +494,7 @@ begin
       (λ y hy, by simp [f.map_inv, subgroup.inv_mem _ hy]),
     rintros a ⟨y, hy, z, ⟨-, rfl⟩⟩,
     apply mem_closure.mpr,
-    exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp⟩ }
+    exact λ K hK, hK ⟨f y, hd (mem_map_of_mem f hy), by simp [commutator_element_def]⟩ }
 end
 
 lemma lower_central_series_succ_eq_bot {n : ℕ} (h : lower_central_series G n ≤ center G) :
@@ -533,7 +531,7 @@ begin
   simp only [lower_central_series_nilpotency_class, le_bot_iff],
 end
 
-/-- The range of a surejctive homomorphism from a nilpotent group is nilpotent -/
+/-- The range of a surjective homomorphism from a nilpotent group is nilpotent -/
 lemma nilpotent_of_surjective {G' : Type*} [group G'] [h : is_nilpotent G]
   (f : G →* G') (hf : function.surjective f) :
   is_nilpotent G' :=
@@ -562,6 +560,11 @@ begin
     ... = subgroup.map f (upper_central_series G n) : by rw hn
     ... ≤ upper_central_series G' n : upper_central_series.map hf n,
 end
+
+/-- Nilpotency respects isomorphisms -/
+lemma nilpotent_of_mul_equiv {G' : Type*} [group G'] [h : is_nilpotent G] (f : G ≃* G') :
+  is_nilpotent G' :=
+nilpotent_of_surjective f.to_monoid_hom (mul_equiv.surjective f)
 
 /-- A quotient of a nilpotent group is nilpotent -/
 instance nilpotent_quotient_of_nilpotent (H : subgroup G) [H.normal] [h : is_nilpotent G] :
@@ -662,7 +665,7 @@ end
 
 
 lemma derived_le_lower_central (n : ℕ) : derived_series G n ≤ lower_central_series G n :=
-by { induction n with i ih, { simp }, { apply general_commutator_mono ih, simp } }
+by { induction n with i ih, { simp }, { apply commutator_mono ih, simp } }
 
 /-- Abelian groups are nilpotent -/
 @[priority 100]
@@ -706,7 +709,7 @@ begin
     ... = ⁅(lower_central_series G₁ n).prod (lower_central_series G₂ n), (⊤ : subgroup G₁).prod ⊤⁆ :
       by simp
     ... = ⁅lower_central_series G₁ n, (⊤ : subgroup G₁)⁆.prod ⁅lower_central_series G₂ n, ⊤⁆ :
-      general_commutator_prod_prod _ _ _ _
+      commutator_prod_prod _ _ _ _
     ... = (lower_central_series G₁ n.succ).prod (lower_central_series G₂ n.succ) : rfl }
 end
 
@@ -746,9 +749,9 @@ begin
   { simp [pi_top] },
   { calc lower_central_series (Π i, Gs i) n.succ
         = ⁅lower_central_series (Π i, Gs i) n, ⊤⁆           : rfl
-    ... ≤ ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆    : general_commutator_mono ih (le_refl _)
+    ... ≤ ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆    : commutator_mono ih (le_refl _)
     ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), pi (λ i, ⊤)⁆ : by simp [pi, pi_top]
-    ... ≤ pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)    : general_commutator_pi_pi_le _ _
+    ... ≤ pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)    : commutator_pi_pi_le _ _
     ... = pi (λ i, lower_central_series (Gs i) n.succ)      : rfl }
 end
 
@@ -784,7 +787,7 @@ begin
         = ⁅lower_central_series (Π i, Gs i) n, ⊤⁆          : rfl
     ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), ⊤⁆   : by rw ih
     ... = ⁅pi (λ i, (lower_central_series (Gs i) n)), pi (λ i, ⊤)⁆ : by simp [pi, pi_top]
-    ... = pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)   : general_commutator_pi_pi_of_fintype _ _
+    ... = pi (λ i, ⁅(lower_central_series (Gs i) n), ⊤⁆)   : commutator_pi_pi_of_fintype _ _
     ... = pi (λ i, lower_central_series (Gs i) n.succ)     : rfl }
 end
 
@@ -823,32 +826,6 @@ begin
   exact derived_le_lower_central n,
 end
 
-section classical
-
-open_locale classical -- to get the fintype instance for quotient groups
-
-/-- A p-group is nilpotent -/
-lemma is_p_group.is_nilpotent {G : Type*} [hG : group G] [hf : fintype G]
-  {p : ℕ} (hp : fact (nat.prime p)) (h : is_p_group p G) :
-  is_nilpotent G :=
-begin
-  unfreezingI
-  { revert hG,
-    induction hf using fintype.induction_subsingleton_or_nontrivial with G hG hS G hG hN ih },
-  { apply_instance, },
-  { introI _, intro h,
-    have hc : center G > ⊥ := gt_iff_lt.mp h.bot_lt_center,
-    have hcq : fintype.card (G ⧸ center G) < fintype.card G,
-    { rw card_eq_card_quotient_mul_card_subgroup (center G),
-      apply lt_mul_of_one_lt_right,
-      exact (fintype.card_pos_iff.mpr has_one.nonempty),
-      exact ((subgroup.one_lt_card_iff_ne_bot _).mpr (ne_of_gt hc)), },
-    have hnq : is_nilpotent (G ⧸ center G) := ih _ hcq (h.to_quotient (center G)),
-    exact (of_quotient_center_nilpotent hnq), }
-end
-
-end classical
-
 lemma normalizer_condition_of_is_nilpotent [h : is_nilpotent G] : normalizer_condition G :=
 begin
   -- roughly based on https://groupprops.subwiki.org/wiki/Nilpotent_implies_normalizer_condition
@@ -871,3 +848,47 @@ begin
     apply map_injective_of_ker_le (mk' (center G)) hkh le_top,
     exact (ih H' hH').trans (symm (map_top_of_surjective _ hsur)), },
 end
+
+end with_group
+
+section with_finite_group
+
+open group
+
+variables {G : Type*} [hG : group G] [hf : fintype G]
+include hG hf
+
+/-- A p-group is nilpotent -/
+lemma is_p_group.is_nilpotent {p : ℕ} [hp : fact (nat.prime p)] (h : is_p_group p G) :
+  is_nilpotent G :=
+begin
+  classical,
+  unfreezingI
+  { revert hG,
+    induction hf using fintype.induction_subsingleton_or_nontrivial with G hG hS G hG hN ih },
+  { apply_instance, },
+  { introI _, intro h,
+    have hcq : fintype.card (G ⧸ center G) < fintype.card G,
+    { rw card_eq_card_quotient_mul_card_subgroup (center G),
+      apply lt_mul_of_one_lt_right,
+      exact (fintype.card_pos_iff.mpr has_one.nonempty),
+      exact ((subgroup.one_lt_card_iff_ne_bot _).mpr (ne_of_gt h.bot_lt_center)), },
+    have hnq : is_nilpotent (G ⧸ center G) := ih _ hcq (h.to_quotient (center G)),
+    exact (of_quotient_center_nilpotent hnq), }
+end
+
+/-- If a finite group is the direct product of its Sylow groups, it is nilpotent -/
+theorem is_nilpotent_of_product_of_sylow_group
+  (e : (Π p : (fintype.card G).factorization.support, Π P : sylow p G, (↑P : subgroup G)) ≃* G) :
+  is_nilpotent G :=
+begin
+  classical,
+  let ps := (fintype.card G).factorization.support,
+  haveI : ∀ (p : ps) (P : sylow p G), is_nilpotent (↑P : subgroup G),
+  { intros p P,
+    haveI : fact (nat.prime ↑p) := fact.mk (nat.prime_of_mem_factorization (finset.coe_mem p)),
+    exact P.is_p_group'.is_nilpotent, },
+  exact nilpotent_of_mul_equiv e,
+end
+
+end with_finite_group

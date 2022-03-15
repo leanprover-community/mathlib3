@@ -81,7 +81,7 @@ open polynomial
 open_locale polynomial
 
 variables {R : Type*} [comm_ring R] [algebra R S] [algebra R K] [is_scalar_tower R K S]
-variables {A : Type*} [comm_ring A] [algebra R A] [algebra S A] [is_domain S]
+variables {A : Type*} [comm_ring A] [algebra R A] [algebra S A]
 variables [is_scalar_tower R S A] {B : power_basis S A} (hB : is_integral R B.gen)
 
 include hB
@@ -90,8 +90,9 @@ include hB
 `is_integral R (B.basis.repr (B.gen ^ n) i)` for all `i` if
 `minpoly S B.gen = (minpoly R B.gen).map (algebra_map R S)`. This is the case if `R` is a GCD domain
 and `S` is its fraction ring. -/
-lemma repr_gen_pow_is_integral (hmin : minpoly S B.gen = (minpoly R B.gen).map (algebra_map R S))
-  (n : ℕ) : ∀ i, is_integral R (B.basis.repr (B.gen ^ n) i) :=
+lemma repr_gen_pow_is_integral [is_domain S]
+  (hmin : minpoly S B.gen = (minpoly R B.gen).map (algebra_map R S)) (n : ℕ) :
+  ∀ i, is_integral R (B.basis.repr (B.gen ^ n) i) :=
 begin
   intro i,
   let Q := (X ^ n) %ₘ (minpoly R B.gen),
@@ -126,7 +127,7 @@ variable {B}
 integral coordinates in the base `B.basis`. Then `is_integral R ((B.basis.repr (x * y) i)` for all
 `i` if `minpoly S B.gen = (minpoly R B.gen).map (algebra_map R S)`. This is the case if `R` is a GCD
 domain and `S` is its fraction ring. -/
-lemma repr_prod_is_integral {x y : A} (hx : ∀ i, is_integral R (B.basis.repr x i))
+lemma repr_prod_is_integral [is_domain S] {x y : A} (hx : ∀ i, is_integral R (B.basis.repr x i))
   (hy : ∀ i, is_integral R (B.basis.repr y i))
   (hmin : minpoly S B.gen = (minpoly R B.gen).map (algebra_map R S)) :
   ∀ i, is_integral R ((B.basis.repr (x * y) i)) :=
@@ -146,7 +147,7 @@ end
 with integral coordinates in the base `B.basis`. Then `is_integral R ((B.basis.repr (x ^ n) i)` for
 all `i` and all `n` if `minpoly S B.gen = (minpoly R B.gen).map (algebra_map R S)`. This is the case
 if `R` is a GCD domain and `S` is its fraction ring. -/
-lemma repr_pow_is_integral {x : A} (hx : ∀ i, is_integral R (B.basis.repr x i))
+lemma repr_pow_is_integral [is_domain S] {x : A} (hx : ∀ i, is_integral R (B.basis.repr x i))
   (hmin : minpoly S B.gen = (minpoly R B.gen).map (algebra_map R S)) (n : ℕ) :
   ∀ i, is_integral R ((B.basis.repr (x ^ n) i)) :=
 begin

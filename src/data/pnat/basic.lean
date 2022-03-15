@@ -114,10 +114,7 @@ coe_injective.add_right_cancel_semigroup coe (λ _ _, rfl)
 
 @[priority 10]
 instance : covariant_class ℕ+ ℕ+ ((+)) (≤) :=
-⟨begin
-  rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩,
-  simp [←pnat.coe_le_coe]
-end⟩
+⟨by { rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, simp [←pnat.coe_le_coe] }⟩
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := n.2.ne'
 
@@ -192,12 +189,15 @@ begin
   { simp [←pnat.coe_le_coe, subtype.ext_iff, nat.succ_le_succ_iff, nat.succ_inj'], }
 end
 
-lemma lt_add_right (n m : ℕ+) : n < n + m :=
+lemma lt_add_left (n m : ℕ+) : n < m + n :=
 begin
   rcases m with ⟨_|m, hm⟩,
   { exact absurd hm (lt_irrefl _) },
   { simp [←pnat.coe_lt_coe] }
 end
+
+lemma lt_add_right (n m : ℕ+) : n < n + m :=
+(lt_add_left n m).trans_le (add_comm _ _).le
 
 @[simp] lemma coe_bit0 (a : ℕ+) : ((bit0 a : ℕ+) : ℕ) = bit0 (a : ℕ) := rfl
 @[simp] lemma coe_bit1 (a : ℕ+) : ((bit1 a : ℕ+) : ℕ) = bit1 (a : ℕ) := rfl

@@ -108,11 +108,19 @@ theorem trace_conj' (f g : M →ₗ[R] M) [invertible f] :
   trace R M (f * g * ⅟ f) = trace R M g :=
 by { rw trace_mul_comm, simp }
 
+end
+
+section
+
+variables (R : Type u) [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+variables {ι : Type w} [fintype ι]
+
 /-- The trace of a linear map correspond to the contraction pairing under the isomorphism
  `End(M) ≃ M* ⊗ M`-/
 lemma trace_eq_contract_of_basis (b : basis ι R M) :
   (linear_map.trace R M) ∘ₗ (dual_tensor_hom R M M) = contract_left R M :=
 begin
+  classical,
   apply basis.ext (basis.tensor_product (basis.dual_basis b) b),
   rintros ⟨i, j⟩,
   simp only [function.comp_app, basis.tensor_product_apply, basis.coe_dual_basis, coe_comp],
@@ -125,7 +133,7 @@ end
 
 /-- The trace of a linear map correspond to the contraction pairing under the isomorphism
  `End(M) ≃ M* ⊗ M`-/
-lemma trace_eq_contract_of_basis' (b : basis ι R M) :
+lemma trace_eq_contract_of_basis' [decidable_eq ι] (b : basis ι R M) :
   (linear_map.trace R M) =
   (contract_left R M) ∘ₗ (dual_tensor_hom_equiv_of_basis b).symm.to_linear_map :=
 by simp [linear_equiv.eq_comp_to_linear_map_symm, trace_eq_contract_of_basis R b]
@@ -147,6 +155,7 @@ lemma trace_eq_contract' [finite_dimensional R M] :
   (linear_map.trace R M) =
   (contract_left R M) ∘ₗ (dual_tensor_hom_equiv R M M).symm.to_linear_map :=
   trace_eq_contract_of_basis' R (fin_basis R M)
+
 
 /-- The trace of the identity endomorphism is the dimension of the vector space -/
 @[simp] theorem trace_one : trace R M 1 = (finrank R M : R) :=

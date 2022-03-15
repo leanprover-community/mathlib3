@@ -130,7 +130,7 @@ end
 /-- Cyclotomic polynomials are always nonnegative on inputs one or more. -/
 lemma cyclotomic_nonneg (n : ℕ) {R} [linear_ordered_comm_ring R] {x : R} (hx : 1 ≤ x) :
   0 ≤ eval x (cyclotomic n R) :=
-begin
+begin -- I wish we could reduce this duplication :/
   rcases n with _ | _ | _ | n,
   { simp, },
   { simpa, },
@@ -206,13 +206,11 @@ begin
 end
 
 lemma units.mk0_prod {β α : Type} [_inst_1 : comm_group_with_zero β] (s : finset α)
-  (f : α → β) (ho) :
-  units.mk0 (∏ b in s, f b) ho = ∏ b in s.attach, units.mk0 (f b) (λ hh, ho (prod_eq_zero b.2 hh)) :=
+  (f : α → β) (h) :
+  units.mk0 (∏ b in s, f b) h = ∏ b in s.attach, units.mk0 (f b) (λ hh, h (prod_eq_zero b.2 hh)) :=
 begin
   classical,
-  induction s using finset.induction_on with x si hsi hi,
-  { simp, },
-  { simp [*], },
+  induction s using finset.induction_on with x si hsi hi; simp*
 end
 
 lemma helper {C R : Type*} (q : R) (n : ℕ) [ring C] [ring R] (f : R →+* C) :
@@ -317,16 +315,35 @@ begin
     exact hex, },
 end
 
+.
+
 lemma cyclotomic_eval_lt_sub_one_pow_totient (n : ℕ) (q : ℝ) (hn' : 3 ≤ n) (hq' : 1 < q) :
   (cyclotomic n ℝ).eval q < (q - 1) ^ totient n :=
-sorry -- similar proof, todo is it possible to combine both proofs?
+sorry -- similar proof, todo is it possible to combine both proofs
+
+
+lemma nat.totient_eq_one_iff : ∀ {n : ℕ}, n.totient = 1 ↔ n = 1 ∨ n = 2
+| 0 := by simp
+| 1 := by simp
+| 2 := by simp
+| (n+3) :=
+begin
+  have : 3 ≤ n + 3 := le_add_self,
+  have := totient_even this,
+  simp only [succ_succ_ne_one, false_or],
+  exact ⟨λ h, (not_even_one).elim $ by rwa ←h, λ h, match h with end⟩,
+end
 
 lemma sub_one_lt_nat_abs_cyclotomic_eval (n : ℕ) (q : ℕ) (hn' : 1 < n) (hq' : q ≠ 1) :
   q - 1 < ((cyclotomic n ℤ).eval ↑q).nat_abs :=
 begin
   rcases q with _ | _ | q,
-  { sorry, }, -- should follow from irred?
-  { sorry, }, -- should follow from irred?
+  iterate 2
+  { rw [pos_iff_ne_zero, ne.def, int.nat_abs_eq_zero],
+    intro h,
+    have := degree_eq_one_of_irreducible_of_root (cyclotomic.irreducible (pos_of_gt hn')) h,
+    rw [degree_cyclotomic, with_top.coe_eq_one, nat.totient_eq_one_iff] at this,
+    rcases this with rfl|rfl; simpa using h },
   suffices : (q.succ : ℝ) < (eval (↑q + 1 + 1) (cyclotomic n ℤ)).nat_abs,
   { exact_mod_cast this, },
   calc _ ≤ ((q + 2 - 1) ^ n.totient : ℝ) : _

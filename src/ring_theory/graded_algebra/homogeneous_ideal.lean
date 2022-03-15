@@ -77,8 +77,8 @@ instance homogeneous_ideal.set_like : set_like (homogeneous_ideal 𝒜) A :=
 @[ext] lemma homogeneous_ideal.ext {I J : homogeneous_ideal 𝒜}
   (h : I.to_ideal = J.to_ideal) : I = J := homogeneous_ideal.to_ideal_injective h
 
-lemma homogeneous_ideal.mem_iff {I : homogeneous_ideal 𝒜} {x : A} : x ∈ I ↔ x ∈ I.to_ideal :=
-iff.rfl
+@[simp] lemma homogeneous_ideal.mem_iff {I : homogeneous_ideal 𝒜} {x : A} :
+  x ∈ I.to_ideal ↔ x ∈ I := iff.rfl
 
 end homogeneous_def
 
@@ -488,7 +488,8 @@ lemma ideal.homogeneous_hull.gc : galois_connection (ideal.homogeneous_hull 𝒜
   le_trans (ideal.le_to_ideal_homogeneous_hull _ _),
   λ H, J.homogeneous_hull_to_ideal_eq_self ▸ ideal.homogeneous_hull_mono 𝒜 H⟩
 
-/-- `ideal.homogeneous_hull 𝒜` and `to_ideal : homogeneous_ideal 𝒜 → ideal A` forms a galois
+
+/-- `ideal.homogeneous_hull 𝒜` and `to_ideal : homogeneous_ideal 𝒜 → ideal A` form a galois
 insertion-/
 def ideal.homogeneous_hull.gi : galois_insertion (ideal.homogeneous_hull 𝒜) to_ideal :=
 { choice := λ I H, ⟨I, le_antisymm H (I.le_to_ideal_homogeneous_hull 𝒜) ▸ is_homogeneous _⟩,

@@ -94,7 +94,7 @@ end
 
 @[simp] lemma nat_is_prime_iff : prime (n : cardinal) ↔ n.prime :=
 begin
-  simp only [prime, nat.prime_iff],
+  simp only [prime],
   refine and_congr (by simp) (and_congr _ ⟨λ h b c hbc, _, λ h b c hbc, _⟩),
   { simp only [is_unit_iff, nat.is_unit_iff],
     exact_mod_cast iff.rfl },

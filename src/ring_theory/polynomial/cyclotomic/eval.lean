@@ -111,36 +111,29 @@ begin
     { simpa only [eval_X, eval_one, cyclotomic_two, eval_add] using h.right.le } }
 end
 
+lemma cyclotomic_pos_and_nonneg (n : ℕ) {R} [linear_ordered_comm_ring R] (x : R) :
+  (1 < x → 0 < eval x (cyclotomic n R)) ∧ (1 ≤ x → 0 ≤ eval x (cyclotomic n R)) :=
+begin
+  rcases n with _ | _ | _ | n;
+  simp only [cyclotomic_zero, cyclotomic_one, cyclotomic_two, succ_eq_add_one,
+    eval_X, eval_one, eval_add, eval_sub, sub_nonneg, sub_pos,
+    zero_lt_one, zero_le_one, implies_true_iff, imp_self, and_self],
+  { split; intro; linarith, },
+  { have : 2 < n + 3 := dec_trivial,
+    split; intro; [skip, apply le_of_lt]; apply cyclotomic_pos this, },
+end
+
 /-- Cyclotomic polynomials are always positive on inputs larger than one.
 Similar to `cyclotomic_pos` but with the condition on the input rather than index of the
 cyclotomic polynomial. -/
 lemma cyclotomic_pos' (n : ℕ) {R} [linear_ordered_comm_ring R] {x : R} (hx : 1 < x) :
   0 < eval x (cyclotomic n R) :=
-begin
-  rcases n with _ | _ | _ | n,
-  { simp, },
-  { simpa, },
-  { simp only [cyclotomic_two, eval_add, eval_X, eval_one],
-    linarith, },
-  { apply cyclotomic_pos,
-    simp only [succ_eq_add_one],
-    linarith, },
-end
+(cyclotomic_pos_and_nonneg n x).1 hx
 
 /-- Cyclotomic polynomials are always nonnegative on inputs one or more. -/
 lemma cyclotomic_nonneg (n : ℕ) {R} [linear_ordered_comm_ring R] {x : R} (hx : 1 ≤ x) :
   0 ≤ eval x (cyclotomic n R) :=
-begin -- I wish we could reduce this duplication :/
-  rcases n with _ | _ | _ | n,
-  { simp, },
-  { simpa, },
-  { simp only [cyclotomic_two, eval_add, eval_X, eval_one],
-    linarith, },
-  { apply le_of_lt,
-    apply cyclotomic_pos,
-    simp only [succ_eq_add_one],
-    linarith, },
-end
+(cyclotomic_pos_and_nonneg n x).2 hx
 
 lemma eval_one_cyclotomic_not_prime_pow {R : Type*} [comm_ring R] {n : ℕ}
   (h : ∀ {p : ℕ}, p.prime → ∀ k : ℕ, p ^ k ≠ n) : eval 1 (cyclotomic n R) = 1 :=

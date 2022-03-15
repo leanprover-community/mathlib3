@@ -77,7 +77,7 @@ section prime
 /-- Primality predicate for `ℕ+`, defined in terms of `nat.prime`. -/
 def prime (p : ℕ+) : Prop := (p : ℕ).prime
 
-lemma prime.one_lt {p : ℕ+} : p.prime → 1 < p := nat.prime.one_lt
+lemma prime.one_lt {p : ℕ+} : p.prime → 1 < p := prime.one_lt
 
 lemma prime_two : (2 : ℕ+).prime := nat.prime_two
 
@@ -85,10 +85,10 @@ lemma dvd_prime {p m : ℕ+} (pp : p.prime) :
 (m ∣ p ↔ m = 1 ∨ m = p) := by { rw pnat.dvd_iff, rw nat.dvd_prime pp, simp }
 
 lemma prime.ne_one {p : ℕ+} : p.prime → p ≠ 1 :=
-by { intro pp, intro contra, apply nat.prime.ne_one pp, rw pnat.coe_eq_one_iff, apply contra }
+by { rw [ne.def, ←pnat.coe_eq_one_iff], exact prime.ne_one }
 
 @[simp]
-lemma not_prime_one : ¬ (1: ℕ+).prime :=  nat.not_prime_one
+lemma not_prime_one : ¬ (1: ℕ+).prime := not_prime_one
 
 lemma prime.not_dvd_one {p : ℕ+} :
 p.prime →  ¬ p ∣ 1 := λ pp : p.prime, by {rw dvd_iff, apply nat.prime.not_dvd_one pp}
@@ -96,7 +96,7 @@ p.prime →  ¬ p ∣ 1 := λ pp : p.prime, by {rw dvd_iff, apply nat.prime.not_
 lemma exists_prime_and_dvd {n : ℕ+} (hn : n ≠ 1) : (∃ (p : ℕ+), p.prime ∧ p ∣ n) :=
 begin
   obtain ⟨p, hp⟩ := nat.exists_prime_and_dvd (mt coe_eq_one_iff.mp hn),
-  existsi (⟨p, nat.prime.pos hp.left⟩ : ℕ+), rw dvd_iff, apply hp
+  existsi (⟨p, hp.left.pos⟩ : ℕ+), rw dvd_iff, apply hp
 end
 
 end prime

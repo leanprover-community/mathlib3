@@ -449,10 +449,11 @@ noncomputable def indicator (hU : is_clopen U) :
     end, }
 
 variables (a : X)
+open_locale classical
 
 theorem apply_indicator (hU : is_clopen U) :
-  indicator f hU a = @ite _ (a ∈ U) (classical.dec (a ∈ U)) (f a) 0 :=
-by {rw [indicator_apply, set.indicator_apply]}
+  indicator f hU a = ite (a ∈ U) (f a) 0 :=
+by {rw [indicator_apply, set.indicator_apply], }
 
 variables {a}
 

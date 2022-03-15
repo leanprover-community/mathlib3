@@ -78,8 +78,7 @@ variables (Y) [mul_zero_one_class Y] {U V : set X}
 
 /-- Characteristic functions are locally constant functions taking `x : X` to `1` if `x ∈ U`,
   where `U` is a clopen set, and `0` otherwise. -/
-noncomputable def char_fn (hU : is_clopen U) : locally_constant X Y :=
-  indicator 1 hU
+noncomputable def char_fn (hU : is_clopen U) : locally_constant X Y := indicator 1 hU
 
 lemma char_fn_one [nontrivial Y] (x : X) (hU : is_clopen U) :
   x ∈ U ↔ char_fn Y hU x = (1 : Y) :=

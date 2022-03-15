@@ -488,7 +488,6 @@ lemma ideal.homogeneous_hull.gc : galois_connection (ideal.homogeneous_hull 𝒜
   le_trans (ideal.le_to_ideal_homogeneous_hull _ _),
   λ H, J.homogeneous_hull_to_ideal_eq_self ▸ ideal.homogeneous_hull_mono 𝒜 H⟩
 
-
 /-- `ideal.homogeneous_hull 𝒜` and `to_ideal : homogeneous_ideal 𝒜 → ideal A` form a galois
 insertion-/
 def ideal.homogeneous_hull.gi : galois_insertion (ideal.homogeneous_hull 𝒜) to_ideal :=

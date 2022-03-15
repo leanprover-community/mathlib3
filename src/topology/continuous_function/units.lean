@@ -11,7 +11,7 @@ import algebra.algebra.spectrum
 # Units of continuous functions
 
 This file concerns itself with `C(α, β)ˣ` and `C(α, βˣ)` when `α` is a topological space
-and `β` is a normed ring.
+and `β` has an appropriate algebraic and topological structure.
 -/
 
 variables {α β : Type*} [topological_space α]
@@ -22,8 +22,8 @@ section monoid
 
 variables [monoid β] [topological_space β] [has_continuous_mul β]
 
-/-- Equivalence between continuous maps into the units of a normed ring the
-the units of the ring of continuous functions. -/
+/-- Equivalence between continuous maps into the units of a monoid with continuous multiplication
+and the units of the monoid of continuous maps. -/
 @[to_additive add_units_lift, simps]
 def units_lift : C(α, βˣ) ≃ C(α, β)ˣ :=
 { to_fun := λ f,

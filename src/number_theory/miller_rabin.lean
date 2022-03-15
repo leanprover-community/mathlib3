@@ -139,6 +139,16 @@ begin
 
 end
 
+example (c : ℕ) (hc : 0 < c) : ∃ d : ℕ, c = d.succ :=
+begin
+  sorry
+end
+
+example (c d : ℕ)  : c < d ↔ c.succ ≤ d :=
+begin
+  exact nat.lt_iff_add_one_le,
+end
+
 /-- Theorem 3.4 of Conrad -/
 lemma strong_probable_prime_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : nat.prime p)
   (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
@@ -188,20 +198,31 @@ begin
     { -- since a is a nonwitness, we have either ...
       cases hspp,
       { -- ... a^k = 1
-        sorry, -- TODO(Sean) (easier) mul_two_power_part_odd_part
-    },
-    { -- ... or a^(2^i k) = -1
-        rcases hspp with ⟨r, hrlt, hrpow⟩,
-        rw lt_iff_exists_add at hrlt,
-        rcases hrlt with ⟨c, Hc, hc⟩,
-        replace hrpow := congr_arg (^(2^c)) hrpow,
-        simp only [] at hrpow,
-        convert hrpow using 1,
-        { rw [mul_comm (2^r), ← pow_mul, mul_assoc, ← pow_add 2, mul_comm, ← hc, ← two_power_part, mul_two_power_part_odd_part],
-         },
-        {
-          sorry, },
-      }, }
+        -- TODO(Sean) the only lemma you should need from this file is mul_two_power_part_odd_part
+        -- and the only hypothesis you should need is hspp. The only other lemmas you should need
+        -- will be manipulating multiplications and/or exponentials
+        sorry,
+      },
+      { -- ... or a^(2^i k) = -1
+          rcases hspp with ⟨r, hrlt, hrpow⟩,
+          rw lt_iff_exists_add at hrlt,
+          rcases hrlt with ⟨c, Hc, hc⟩,
+          replace hrpow := congr_arg (^(2^c)) hrpow,
+          simp only [] at hrpow,
+          convert hrpow using 1,
+          { rw [mul_comm (2^r), ← pow_mul, mul_assoc, ← pow_add 2, mul_comm, ← hc, ← two_power_part, mul_two_power_part_odd_part],
+          },
+          { simp at Hc,
+            rw nat.lt_iff_add_one_le at Hc,
+            simp at Hc,
+            rw le_iff_exists_add at Hc,
+            rcases Hc with ⟨d, hd⟩,
+            -- TODO(Sean):
+            -- You should be able to solve this sorry using hd and no other hypotheses.
+            -- you will have to do some manipluation to get a RHS of the form (-1)^2 ^ something
+            -- then try to do library search to prove (-1)^2 = 1 and simplify.
+            sorry, },
+        }, }
 
   },
   {

@@ -205,7 +205,7 @@ of_grades_by (add_monoid_hom.id ι)
 @[simp]
 lemma of_grades_by_of (i : ι) (x : grade_by R f i) :
   of_grades_by f (direct_sum.of (λ i, grade_by R f i) i x) = x :=
-direct_sum.submodule_coe_alg_hom_of (grade_by R f) i x
+by convert direct_sum.submodule_coe_alg_hom_of (grade_by R f) i x
 
 @[simp]
 lemma of_grades_of (i : ι) (x : grade R i) :

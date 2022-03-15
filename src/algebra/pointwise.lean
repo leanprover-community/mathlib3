@@ -1280,9 +1280,10 @@ localized "attribute [instance] finset.mul_one_class finset.add_zero_class finse
 
 open_locale classical
 
-/-- A finite set `U` contained in the product of two sets `S * S'` is also contained in the product
-of two finite sets `T * T' ⊆ S * S'`. -/
-@[to_additive]
+/-- If a finset `U` contained in the product of two sets `S * S'`, we can find two finsets `T`, `T'`
+such that `U ⊆ T * T'` and `T * T' ⊆ S * S'`. -/
+@[to_additive "If a finset `U` contained in the product of two sets `S * S'`, we can find two
+finsets `T`, `T'` such that `U ⊆ T * T'` and `T * T' ⊆ S * S'`."]
 lemma subset_mul {M : Type*} [monoid M] {S : set M} {S' : set M} {U : finset M} (f : ↑U ⊆ S * S') :
   ∃ (T T' : finset M), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ U ⊆ T * T' :=
 begin

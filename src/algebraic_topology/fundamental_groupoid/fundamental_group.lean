@@ -39,7 +39,7 @@ instance group (x : X) : group (fundamental_group X x) := Aut.group x
 
 instance inhabited : inhabited (fundamental_group X x₀) := Aut.inhabited x₀
 
-/-- Get an isomorphism between the fundamental groups at two points given a path-/
+/-- Get an isomorphism between the fundamental groups at two points given a path -/
 def iso_fundamental_group_of_path (p : path x₀ x₁) :
   fundamental_group X x₀ ≃* fundamental_group X x₁ := Aut.iso_Aut_of_iso (as_iso ⟦p⟧)
 

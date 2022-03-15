@@ -223,7 +223,7 @@ by simpa using cof_le_card c.ord
 theorem ord_cof_le (o : ordinal.{u}) : o.cof.ord ≤ o :=
 (ord_le_ord.2 (cof_le_card o)).trans (ord_card_le o)
 
-theorem exists_lsub_cof (o : ordinal) : ∃ {ι} (f : ι → ordinal), (lsub.{u u} f = o) ∧ #ι = cof o :=
+theorem exists_lsub_cof (o : ordinal) : ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = cof o :=
 by { rw cof_eq_Inf_lsub, exact Inf_mem (cof_lsub_def_nonempty o) }
 
 theorem cof_lsub_le {ι} (f : ι → ordinal) : cof (lsub.{u u} f) ≤ #ι :=
@@ -251,15 +251,11 @@ by { convert cof_lsub_le _, exact (mk_ordinal_out o).symm }
 
 theorem le_cof_iff_blsub {b : ordinal} {a : cardinal} :
   a ≤ cof b ↔ ∀ {o} (f : Π a < o, ordinal), blsub.{u u} o f = b → a ≤ o.card :=
-begin
-  refine le_cof_iff_lsub.trans ⟨λ H o f hf, _, λ H ι f hf, _⟩,
-  { convert H _ hf,
-    exact (mk_ordinal_out o).symm },
-  { rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
-    rw @lsub_eq_blsub' ι r hr at hf,
-    have := H _ hf,
-    rwa [←hι', card_ord] at this }
-end
+le_cof_iff_lsub.trans ⟨λ H o f hf, by simpa using H _ hf, λ H ι f hf, begin
+  rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
+  rw @lsub_eq_blsub' ι r hr at hf,
+  simpa using H _ hf
+end⟩
 
 @[simp] theorem cof_zero : cof 0 = 0 :=
 (cof_le_card 0).antisymm (cardinal.zero_le _)

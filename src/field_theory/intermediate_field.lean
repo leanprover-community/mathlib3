@@ -331,9 +331,9 @@ begin
     rw [← aeval_def, aeval_coe, aeval_def, hProot, coe_zero] },
 end
 
-/-- Let `L/K` be a field extension, and let `E ≤ F` be intermediate fields, where `hEF` is a term
-  of type `E ≤ F`. Then `intermediate_field.inclusion hEF` is the `K`-algebra homomorphism
-  `E →ₐ[K] F` given by inclusion. -/
+/-- The map `E → F` when `E` is an intermediate field contained in the intermediate field `F`.
+
+This is the intermediate field version of `subalgebra.inclusion`. -/
 def inclusion {E F : intermediate_field K L} (hEF : E ≤ F) : E →ₐ[K] F :=
 subalgebra.inclusion hEF
 

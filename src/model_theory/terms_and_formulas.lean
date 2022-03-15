@@ -262,7 +262,7 @@ protected def iff (φ ψ : L.bounded_formula α n) := φ.imp ψ ⊓ ψ.imp φ
 /-- A slightly better-behaved version of the automatic
   `first_order.language.bounded_formula.rec_on`, which
   uses `⊥`, `term.bd_equal`, and `relations.bounded_formula`. -/
-protected theorem induction_on {P : ∀ {n}, L.bounded_formula α n → Sort*}
+protected def induction_on {P : ∀ {n}, L.bounded_formula α n → Sort*}
   (φ : L.bounded_formula α n)
   (hf : ∀ {n}, P (⊥ : L.bounded_formula α n))
   (he : ∀ {n} (t₁ t₂ : L.term (α ⊕ fin n)), P (t₁.bd_equal t₂))
@@ -488,7 +488,7 @@ inductive is_atomic : L.bounded_formula α n → Prop
     is_atomic (R.bounded_formula ts)
 
 /-- A slightly better-behaved version of `is_atomic.rec_on`.  -/
-lemma is_atomic.induction_on {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
+def is_atomic.induction_on {P : L.bounded_formula α n → Sort*} {φ : L.bounded_formula α n}
   (h : is_atomic φ)
   (he : ∀ (t₁ t₂ : L.term (α ⊕ fin n)), P (bd_equal t₁ t₂))
   (hr : ∀ {l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)), P (R.bounded_formula ts)) :
@@ -515,7 +515,7 @@ inductive is_qf : L.bounded_formula α n → Prop
 | imp {φ₁ φ₂} (h₁ : is_qf φ₁) (h₂ : is_qf φ₂) : is_qf (φ₁.imp φ₂)
 
 /-- A slightly better-behaved version of `is_qf.rec_on`, using `⊥` for `falsum`.  -/
-lemma is_qf.induction_on {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
+def is_qf.induction_on {P : L.bounded_formula α n → Sort*} {φ : L.bounded_formula α n}
   (h : is_qf φ)
   (hf : P (⊥ : L.bounded_formula α n))
   (ha : ∀ {ψ : L.bounded_formula α n}, is_atomic ψ → P ψ)
@@ -558,7 +558,8 @@ is_prenex.of_is_qf
 lemma is_atomic.is_prenex {φ : L.bounded_formula α n} (h : is_atomic φ) : is_prenex φ :=
 h.is_qf.is_prenex
 
-lemma is_prenex.induction_on {P : ∀ {n}, L.bounded_formula α n → Prop}
+/-- A slightly better-behaved version of `is_prenex.induction_on`.  -/
+def is_prenex.induction_on {P : ∀ {n}, L.bounded_formula α n → Sort*}
   {φ : L.bounded_formula α n}
   (h : is_prenex φ)
   (hq : ∀ {m} {ψ : L.bounded_formula α m}, ψ.is_qf → P ψ)

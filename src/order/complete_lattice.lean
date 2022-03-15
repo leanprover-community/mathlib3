@@ -1304,31 +1304,6 @@ lemma disjoint_Sup_right {a : set α} {b : α} (d : disjoint b (Sup a)) {i} (hi 
 
 end complete_lattice
 
-section lift
-
-/-- Pullback an `order_top`. -/
-@[reducible] -- See note [reducible non-instances]
-def order_top.lift [has_le α] [has_top α] [has_le β] [order_top β] (f : α → β)
-  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_top : f ⊤ = ⊤) :
-  order_top α :=
-⟨⊤, λ a, map_le _ _ $ by { rw map_top, exact le_top }⟩
-
-/-- Pullback an `order_bot`. -/
-@[reducible] -- See note [reducible non-instances]
-def order_bot.lift [has_le α] [has_bot α] [has_le β] [order_bot β] (f : α → β)
-  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_bot : f ⊥ = ⊥) :
-  order_bot α :=
-⟨⊥, λ a, map_le _ _ $ by { rw map_bot, exact bot_le }⟩
-
-/-- Pullback a `bounded_order`. -/
-@[reducible] -- See note [reducible non-instances]
-def bounded_order.lift [has_le α] [has_top α] [has_bot α] [has_le β] [bounded_order β] (f : α → β)
-  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
-  bounded_order α :=
-{ ..order_top.lift f map_le map_top, ..order_bot.lift f map_le map_bot }
-
-end lift
-
 /-- Pullback a `complete_lattice` along an injection. -/
 @[reducible] -- See note [reducible non-instances]
 protected def function.injective.complete_lattice [has_sup α] [has_inf α] [has_Sup α]
@@ -1372,6 +1347,19 @@ theorem set_independent.mono {t : set α} (hst : t ⊆ s) :
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
 lemma set_independent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
 disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, by simp [h.symm]⟩)
+
+lemma set_independent_pair {a b : α} (hab : a ≠ b) :
+  set_independent ({a, b} : set α) ↔ disjoint a b :=
+begin
+  split,
+  { intro h,
+    exact h.disjoint (mem_insert _ _) (mem_insert_of_mem _ (mem_singleton _)) hab, },
+  { rintros h c ((rfl : c = a) | (rfl : c = b)),
+    { convert h using 1,
+      simp [hab, Sup_singleton] },
+    { convert h.symm using 1,
+      simp [hab, Sup_singleton] }, },
+end
 
 include hs
 
@@ -1445,6 +1433,20 @@ lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
 λ i, (hs (f i)).mono_right begin
   refine (supr_le_supr $ λ i, _).trans (supr_comp_le _ f),
   exact supr_le_supr_const hf.ne,
+end
+
+lemma independent_pair {i j : ι} (hij : i ≠ j) (huniv : ∀ k, k = i ∨ k = j):
+  independent t ↔ disjoint (t i) (t j) :=
+begin
+  split,
+  { intro h,
+    exact h.disjoint hij, },
+  { rintros h k,
+    obtain rfl | rfl := huniv k,
+    { refine h.mono_right (supr_le $ λ i, supr_le $ λ hi, eq.le _),
+      rw (huniv i).resolve_left hi },
+    { refine h.symm.mono_right (supr_le $ λ j, supr_le $ λ hj, eq.le _),
+      rw (huniv j).resolve_right hj } },
 end
 
 /-- Composing an indepedent indexed family with an order isomorphism on the elements results in

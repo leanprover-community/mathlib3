@@ -1060,6 +1060,16 @@ lemma insert_diff_self_of_not_mem {a : α} {s : set α} (h : a ∉ s) :
   insert a s \ {a} = s :=
 by { ext, simp [and_iff_left_of_imp (λ hx : x ∈ s, show x ≠ a, from λ hxa, h $ hxa ▸ hx)] }
 
+@[simp] lemma insert_diff_eq_singleton {a : α} {s : set α} (h : a ∉ s) :
+  insert a s \ s = {a} :=
+begin
+  ext,
+  rw [set.mem_diff, set.mem_insert_iff, set.mem_singleton_iff, or_and_distrib_right,
+    and_not_self, or_false, and_iff_left_iff_imp],
+  rintro rfl,
+  exact h,
+end
+
 lemma insert_inter_of_mem {s₁ s₂ : set α} {a : α} (h : a ∈ s₂) :
   insert a s₁ ∩ s₂ = insert a (s₁ ∩ s₂) :=
 by simp [set.insert_inter, h]
@@ -1596,6 +1606,9 @@ ext $ λ y, ⟨λ hy, (hs hx hy) ▸ mem_singleton _, λ hy, (eq_of_mem_singleto
 
 @[simp] lemma subsingleton_singleton {a} : ({a} : set α).subsingleton :=
 λ x hx y hy, (eq_of_mem_singleton hx).symm ▸ (eq_of_mem_singleton hy).symm ▸ rfl
+
+lemma subsingleton_of_subset_singleton (h : s ⊆ {a}) : s.subsingleton :=
+subsingleton_singleton.mono h
 
 lemma subsingleton_of_forall_eq (a : α) (h : ∀ b ∈ s, b = a) : s.subsingleton :=
 λ b hb c hc, (h _ hb).trans (h _ hc).symm

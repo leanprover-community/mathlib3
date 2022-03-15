@@ -646,7 +646,7 @@ end
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
-class t2_space (α : Type u) [topological_space α] : Prop :=
+@[mk_iff] class t2_space (α : Type u) [topological_space α] : Prop :=
 (t2 : ∀x y, x ≠ y → ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
 lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :
@@ -1149,32 +1149,22 @@ begin
 end
 
 lemma is_preirreducible_iff_subsingleton [t2_space α] (S : set α) :
-  is_preirreducible S ↔ subsingleton S :=
+  is_preirreducible S ↔ set.subsingleton S :=
 begin
   split,
-  { intro h,
-    constructor,
-    intros x y,
-    ext,
+  { intros h x hx y hy,
     by_contradiction e,
     obtain ⟨U, V, hU, hV, hxU, hyV, h'⟩ := t2_separation e,
-    have := h U V hU hV ⟨x, x.prop, hxU⟩ ⟨y, y.prop, hyV⟩,
+    have := h U V hU hV ⟨x, hx, hxU⟩ ⟨y, hy, hyV⟩,
     rw [h', inter_empty] at this,
     exact this.some_spec },
-  { exact @@is_preirreducible_of_subsingleton _ _ }
+  { exact set.subsingleton.is_preirreducible }
 end
 
 lemma is_irreducible_iff_singleton [t2_space α] (S : set α) :
   is_irreducible S ↔ ∃ x, S = {x} :=
-begin
-  split,
-  { intro h,
-    rw exists_eq_singleton_iff_nonempty_subsingleton,
-    use h.1,
-    intros a ha b hb,
-    injection @@subsingleton.elim ((is_preirreducible_iff_subsingleton _).mp h.2) ⟨_, ha⟩ ⟨_, hb⟩ },
-  { rintro ⟨x, rfl⟩, exact is_irreducible_singleton }
-end
+by rw [is_irreducible, is_preirreducible_iff_subsingleton,
+  exists_eq_singleton_iff_nonempty_subsingleton]
 
 end separation
 

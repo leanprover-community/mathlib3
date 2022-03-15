@@ -390,12 +390,24 @@ def pseudo_emetric_space.induced {α β} (f : α → β)
   end }
 
 /-- Pseudoemetric space instance on subsets of pseudoemetric spaces -/
-instance {α : Type*} {p : α → Prop} [t : pseudo_emetric_space α] :
-  pseudo_emetric_space (subtype p) := t.induced coe
+instance {α : Type*} {p : α → Prop} [pseudo_emetric_space α] : pseudo_emetric_space (subtype p) :=
+pseudo_emetric_space.induced coe ‹_›
 
 /-- The extended psuedodistance on a subset of a pseudoemetric space is the restriction of
 the original pseudodistance, by definition -/
 theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist (x : α) y := rfl
+
+namespace mul_opposite
+
+/-- Pseudoemetric space instance on multiplicative opposites of pseudoemetric spaces -/
+@[to_additive]
+instance {α : Type*} [pseudo_emetric_space α] : pseudo_emetric_space αᵐᵒᵖ :=
+pseudo_emetric_space.induced unop ‹_›
+
+@[to_additive] theorem edist_unop (x y : αᵐᵒᵖ) : edist (unop x) (unop y) = edist x y := rfl
+@[to_additive] theorem edist_op (x y : α) : edist (op x) (op y) = edist x y := rfl
+
+end mul_opposite
 
 /-- The product of two pseudoemetric spaces, with the max distance, is an extended
 pseudometric spaces. We make sure that the uniform structure thus constructed is the one
@@ -910,8 +922,13 @@ def emetric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
   end }
 
 /-- Emetric space instance on subsets of emetric spaces -/
-instance {α : Type*} {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
-t.induced coe (λ x y, subtype.ext_iff_val.2)
+instance {α : Type*} {p : α → Prop} [emetric_space α] : emetric_space (subtype p) :=
+emetric_space.induced coe subtype.coe_injective ‹_›
+
+/-- Emetric space instance on multiplicative opposites of emetric spaces -/
+@[to_additive]
+instance {α : Type*} [emetric_space α] : emetric_space αᵐᵒᵖ :=
+emetric_space.induced mul_opposite.unop mul_opposite.unop_injective ‹_›
 
 /-- The product of two emetric spaces, with the max distance, is an extended
 metric spaces. We make sure that the uniform structure thus constructed is the one

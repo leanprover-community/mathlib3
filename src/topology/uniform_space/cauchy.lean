@@ -470,7 +470,7 @@ let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ :
     ... ⊆ _ : Union₂_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
       (subset_bUnion_of_mem hi)⟩
 
-/-- The image of a totally bounded set under a unifromly continuous map is totally bounded. -/
+/-- The image of a totally bounded set under a uniformly continuous map is totally bounded. -/
 lemma totally_bounded.image [uniform_space β] {f : α → β} {s : set α}
   (hs : totally_bounded s) (hf : uniform_continuous f) : totally_bounded (f '' s) :=
 assume t ht,
@@ -590,7 +590,7 @@ indefinite_description _ $ (cauchy_iff.1 hf).2 (U n) (U_mem n)
 
 /-- Given a Cauchy filter `f` and a sequence `U` of entourages, `set_seq` provides
 an antitone sequence of sets `s n ∈ f` such that `s n ×ˢ s n ⊆ U`. -/
-def set_seq (n : ℕ) : set α :=  ⋂ m ∈ Iic n, (set_seq_aux hf U_mem m).val
+def set_seq (n : ℕ) : set α :=  ⋂ m ∈ set.Iic n, (set_seq_aux hf U_mem m).val
 
 lemma set_seq_mem (n : ℕ) : set_seq hf U_mem n ∈ f :=
 (bInter_mem (finite_le_nat n)).2 (λ m _, (set_seq_aux hf U_mem m).2.fst)

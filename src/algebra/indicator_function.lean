@@ -101,9 +101,11 @@ ite_ne_right_iff
   mul_support (s.mul_indicator f) = s ∩ mul_support f :=
 ext $ λ x, by simp [mem_mul_support, mul_indicator_apply_eq_one]
 
-/-- If a multiplicative indicator function is not equal to one at a point, then that
-point is in the set. -/
-@[to_additive] lemma mem_of_mul_indicator_ne_one (h : mul_indicator s f a ≠ 1) : a ∈ s :=
+/-- If a multiplicative indicator function is not equal to `1` at a point, then that point is in the
+set. -/
+@[to_additive "If an additive indicator function is not equal to `0` at a point, then that point is
+in the set."]
+lemma mem_of_mul_indicator_ne_one (h : mul_indicator s f a ≠ 1) : a ∈ s :=
 not_imp_comm.1 (λ hn, mul_indicator_of_not_mem hn f) h
 
 @[to_additive] lemma eq_on_mul_indicator : eq_on (mul_indicator s f) f s :=
@@ -166,6 +168,11 @@ s.apply_piecewise _ _ (λ _, h)
   {x : β} :
   mul_indicator (f ⁻¹' s) (g ∘ f) x = mul_indicator s g (f x) :=
 by { simp only [mul_indicator], split_ifs; refl }
+
+@[to_additive] lemma mul_indicator_image {f : β → M} {g : α → β} [decidable_pred (∈ s)]
+  [decidable_pred (∈ g '' s)] (hg : injective g) {a : α} :
+  mul_indicator (g '' s) f (g a) = mul_indicator s (f ∘ g) a :=
+by { classical, rw [←mul_indicator_comp_right, preimage_image_eq _ hg], congr }
 
 @[to_additive] lemma mul_indicator_comp_of_one {g : M → N} (hg : g 1 = 1) :
   mul_indicator s (g ∘ f) = g ∘ (mul_indicator s f) :=
@@ -348,8 +355,7 @@ by rw [mul_indicator_diff' h, div_eq_mul_inv]
 end group
 
 section comm_monoid
-
-variables [comm_monoid M]
+variables [comm_monoid M] {s t : finset α}
 
 /-- Consider a product of `g i (f i)` over a `finset`.  Suppose `g` is a
 function such as `pow`, which maps a second argument of `1` to
@@ -372,7 +378,7 @@ begin
     exact mul_indicator_of_not_mem hn _ }
 end
 
-/-- Consider a sum of `g i (f i)` over a `finset`.  Suppose `g` is a
+/-- Consider a sum of `g i (f i)` over a `finset`. Suppose `g` is a
 function such as multiplication, which maps a second argument of 0 to
 0.  (A typical use case would be a weighted sum of `f i * h i` or `f i
 • h i`, where `f` gives the weights that are multiplied by some other
@@ -381,15 +387,14 @@ function, the `finset` may be replaced by a possibly larger `finset`
 without changing the value of the sum. -/
 add_decl_doc set.sum_indicator_subset_of_eq_zero
 
-@[to_additive] lemma prod_mul_indicator_subset (f : α → M) {s t : finset α}
-  [decidable_pred (∈ (s : set α))] (h : s ⊆ t) :
+/-- Taking the product of an indicator function over a possibly larger `finset` is the same as
+taking the original function over the original `finset`. -/
+@[to_additive "Summing an indicator function over a possibly larger `finset` is the same as summing
+the original function over the original `finset`."]
+lemma prod_mul_indicator_subset (f : α → M) [decidable_pred (∈ (s : set α))]
+  (h : s ⊆ t) :
   ∏ i in s, f i = ∏ i in t, mul_indicator ↑s f i :=
 prod_mul_indicator_subset_of_eq_one _ (λ a b, b) h (λ _, rfl)
-
-/-- Summing an indicator function over a possibly larger `finset` is
-the same as summing the original function over the original
-`finset`. -/
-add_decl_doc sum_indicator_subset
 
 @[to_additive] lemma _root_.finset.prod_mul_indicator_eq_prod_filter
   (s : finset ι) (f : ι → α → M) (t : ι → set α) [Π i, decidable_pred (∈ t i)] (g : ι → α) :

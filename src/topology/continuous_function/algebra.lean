@@ -665,9 +665,8 @@ instance {α : Type*} [topological_space α] [locally_compact_space α]
 end⟩
 
 instance {α : Type*} [topological_space α] [locally_compact_space α]
-  {R : Type*} [semiring R] [topological_space R]
-  {M : Type*} [topological_space M] [add_comm_monoid M]
-  [module R M] [has_continuous_const_smul R M] :
+  {R : Type*} [topological_space R] {M : Type*} [topological_space M]
+  [has_scalar R M] [has_continuous_const_smul R M] :
   has_continuous_const_smul R C(α, M) := ⟨λ γ,
     continuous_of_continuous_uncurry _ (continuous.const_smul continuous_ev γ)⟩
 

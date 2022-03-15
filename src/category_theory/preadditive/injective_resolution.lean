@@ -9,18 +9,17 @@ import algebra.homology.single
 /-!
 # Injective resolutions
 
-A injective resolution `P : InjectiveResolution Z` of an object `Z : C` consists of
-a `ℕ`-indexed cochain complex `P.cocomplex` of injective objects,
-along with a cochain map `P.ι` from cochain complex consisting just of `Z` in degree zero to `C`,
-so that the augmented chain complex is exact.
+A injective resolution `I : InjectiveResolution Z` of an object `Z : C` consists of
+a `ℕ`-indexed cochain complex `I.cocomplex` of injective objects,
+along with a cochain map `I.ι` from cochain complex consisting just of `Z` in degree zero to `C`,
+so that the augmented cochain complex is exact.
 ```
 Z ----> 0 ----> ... ----> 0 ----> ...
 |       |                 |
 |       |                 |
 v       v                 v
-J⁰ ---> J¹ ---> ... ----> Jⁿ ---> ...
+I⁰ ---> I¹ ---> ... ----> Iⁿ ---> ...
 ```
-
 -/
 
 noncomputable theory
@@ -41,7 +40,7 @@ variables [has_zero_object C] [has_zero_morphisms C] [has_equalizers C] [has_ima
 An `InjectiveResolution Z` consists of a bundled `ℕ`-indexed cochain complex of injective objects,
 along with a quasi-isomorphism to the complex consisting of just `Z` supported in degree `0`.
 
-Except in situations where you want to provide a particular projective resolution
+Except in situations where you want to provide a particular injective resolution
 (for example to compute a derived functor),
 you will not typically need to use this bundled object, and will instead use
 * `injective_resolution Z`: the `ℕ`-indexed cochain complex
@@ -62,19 +61,15 @@ structure InjectiveResolution (Z : C) :=
 attribute [instance] InjectiveResolution.injective InjectiveResolution.exact₀
   InjectiveResolution.exact InjectiveResolution.mono
 
-/--
-An object admits a injective resolution.
--/
+/-- An object admits a injective resolution. -/
 class has_injective_resolution (Z : C) : Prop :=
 (out [] : nonempty (InjectiveResolution Z))
 
 section
 variables (C)
 
-/--
-You will rarely use this typeclass directly: it is implied by the combination
-`[enough_injectives C]` and `[abelian C]`.
--/
+/-- You will rarely use this typeclass directly: it is implied by the combination
+`[enough_injectives C]` and `[abelian C]`. -/
 class has_injective_resolutions : Prop :=
 (out : ∀ Z : C, has_injective_resolution Z)
 
@@ -84,14 +79,14 @@ end
 
 namespace InjectiveResolution
 
-@[simp] lemma ι_f_succ {Z : C} (P : InjectiveResolution Z) (n : ℕ) :
-  P.ι.f (n+1) = 0 :=
+@[simp] lemma ι_f_succ {Z : C} (I : InjectiveResolution Z) (n : ℕ) :
+  I.ι.f (n+1) = 0 :=
 begin
   apply zero_of_source_iso_zero,
   dsimp, refl,
 end
 
-instance {Z : C} (P : InjectiveResolution Z) (n : ℕ) : category_theory.mono (P.ι.f n) :=
+instance {Z : C} (I : InjectiveResolution Z) (n : ℕ) : category_theory.mono (I.ι.f n) :=
 by cases n; apply_instance
 
 /-- An injective object admits a trivial injective resolution: itself in degree 0. -/

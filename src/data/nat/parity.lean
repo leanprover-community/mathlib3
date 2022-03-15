@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Benjamin Davidson
 -/
 import data.nat.modeq
-import algebra.parity
 
 /-!
 # Parity of natural numbers

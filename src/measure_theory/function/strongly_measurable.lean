@@ -53,7 +53,7 @@ results for those functions as if the measure was sigma-finite.
 
 -/
 
-open measure_theory filter topological_space function
+open measure_theory filter topological_space function set
 open_locale ennreal topological_space measure_theory
 
 variables {α β γ : Type*}
@@ -557,6 +557,10 @@ protected lemma mono' {ν : measure α} (h : ae_strongly_measurable f μ) (h' : 
   ae_strongly_measurable f ν :=
 ⟨h.mk f, h.strongly_measurable_mk, h' h.ae_eq_mk⟩
 
+protected lemma restrict (hfm : ae_strongly_measurable f μ) {s} :
+  ae_strongly_measurable f (μ.restrict s) :=
+hfm.mono_measure measure.restrict_le_self
+
 /-- The composition of a continuous function and an ae strongly measurable function is ae strongly
 measurable. -/
 lemma _root_.continuous.comp_ae_strongly_measurable {g : β → γ} {f : α → β}
@@ -670,31 +674,26 @@ is_R_or_C.continuous_im.comp_ae_strongly_measurable hf
 
 end
 
-open set
-
-lemma ae_stronggly_measurable_indicator_iff [has_zero β] {s : set α} (hs : measurable_set s) :
+lemma _root_.ae_strongly_measurable_indicator_iff [has_zero β]
+  {s : set α} (hs : measurable_set s) :
   ae_strongly_measurable (indicator s f) μ ↔ ae_strongly_measurable f (μ.restrict s)  :=
 begin
-  have Z := measurable.indicator,
   split,
   { intro h,
     exact (h.mono_measure measure.restrict_le_self).congr (indicator_ae_eq_restrict hs) },
   { intro h,
     refine ⟨indicator s (h.mk f), h.strongly_measurable_mk.indicator hs, _⟩,
-    have A : s.indicator f =ᵐ[μ.restrict s] s.indicator (ae_measurable.mk f h) :=
+    have A : s.indicator f =ᵐ[μ.restrict s] s.indicator (h.mk f) :=
       (indicator_ae_eq_restrict hs).trans (h.ae_eq_mk.trans $ (indicator_ae_eq_restrict hs).symm),
-    have B : s.indicator f =ᵐ[μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
+    have B : s.indicator f =ᵐ[μ.restrict sᶜ] s.indicator (h.mk f) :=
       (indicator_ae_eq_restrict_compl hs).trans (indicator_ae_eq_restrict_compl hs).symm,
     exact ae_of_ae_restrict_of_ae_restrict_compl _ A B },
 end
 
-@[measurability]
-lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
-  ae_measurable (s.indicator f) μ :=
-(ae_measurable_indicator_iff hs).mpr hfm.restrict
-
-
-#check ae_measurable.indicator
+protected lemma indicator [has_zero β]
+  (hfm : ae_strongly_measurable f μ) {s : set α} (hs : measurable_set s) :
+  ae_strongly_measurable (s.indicator f) μ :=
+(ae_strongly_measurable_indicator_iff hs).mpr hfm.restrict
 
 end ae_strongly_measurable
 

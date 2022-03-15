@@ -172,34 +172,6 @@ variables {α β 𝕜 E F : Type*} [linear_order α] [measurable_space α]
   [measurable_space E] [normed_group E]
 
 /-!
-### Almost everywhere on an interval
--/
-
-section
-variables {μ : measure α} {a b : α} {P : α → Prop}
-
-lemma ae_interval_oc_iff :
-  (∀ᵐ x ∂μ, x ∈ Ι a b → P x) ↔ (∀ᵐ x ∂μ, x ∈ Ioc a b → P x) ∧ (∀ᵐ x ∂μ, x ∈ Ioc b a → P x) :=
-by { dsimp [interval_oc], cases le_total a b with hab hab ; simp [hab] }
-
-lemma ae_measurable_interval_oc_iff {μ : measure α} {β : Type*} [measurable_space β] {f : α → β} :
-  (ae_measurable f $ μ.restrict $ Ι a b) ↔
-  (ae_measurable f $ μ.restrict $ Ioc a b) ∧ (ae_measurable f $ μ.restrict $ Ioc b a) :=
-by { dsimp [interval_oc], cases le_total a b with hab hab ; simp [hab] }
-
-variables [topological_space α] [opens_measurable_space α] [order_closed_topology α]
-
-lemma ae_interval_oc_iff' : (∀ᵐ x ∂μ, x ∈ Ι a b → P x) ↔
-  (∀ᵐ x ∂ (μ.restrict $ Ioc a b), P x) ∧ (∀ᵐ x ∂ (μ.restrict $ Ioc b a), P x) :=
-begin
-  simp_rw ae_interval_oc_iff,
-  rw [ae_restrict_eq, eventually_inf_principal, ae_restrict_eq, eventually_inf_principal] ;
-  exact measurable_set_Ioc
-end
-
-end
-
-/-!
 ### Integrability at an interval
 -/
 

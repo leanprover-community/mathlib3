@@ -252,7 +252,7 @@ end
   which does not need to be decomposed depending on whether `c = 0`. -/
 lemma smul_eq_lc_row0_add {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) (z : ℍ) {g : SL(2,ℤ)}
   (hg : ↑ₘg 1 = p) :
-  ↑(g • z) = ((lc_row0 p ↑(g : SL(2, ℝ))) : ℂ) / (p 0 ^ 2 + p 1 ^ 2)
+  ↑(g • z) = ((lc_row0 p ↑(g : SL(2, ℝ) )) : ℂ) / (p 0 ^ 2 + p 1 ^ 2)
     + ((p 1 : ℂ) * z - p 0) / ((p 0 ^ 2 + p 1 ^ 2) * (p 0 * z + p 1)) :=
 begin
   have nonZ1 : (p 0 : ℂ) ^ 2 + (p 1) ^ 2 ≠ 0 := by exact_mod_cast hp.sq_add_sq_ne_zero,
@@ -261,8 +261,8 @@ begin
   field_simp [nonZ1, nonZ2, denom_ne_zero, -upper_half_plane.denom, -denom_apply],
   rw (by simp : (p 1 : ℂ) * z - p 0 = ((p 1) * z - p 0) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
   rw [←hg, det_fin_two],
-  simp only [int.coe_cast_ring_hom, coe_matrix_coe, coe_fn_eq_coe,
-    int.cast_mul, of_real_int_cast, map_apply, denom, int.cast_sub],
+  simp only [int.coe_cast_ring_hom, coe_matrix_coe, int.cast_mul, of_real_int_cast, map_apply,
+  denom, int.cast_sub, _root_.coe_coe, coe_GL_pos_coe_GL_coe_matrix],
   ring,
 end
 
@@ -403,11 +403,11 @@ end
 
 
 /-- Crucial lemma showing that if `c≠0`, then `3/4 < 4/(3c^4)` -/
-lemma ineq_1 (z : ℍ) (g: SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg: g • z ∈ 𝒟ᵒ) (c_ne_z : g 1 0 ≠ 0) :
-  (3 : ℝ)/4 < 4/ (3* (g 1 0)^4) :=
+lemma ineq_1 (z : ℍ) (g: SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg: g • z ∈ 𝒟ᵒ) (c_ne_z : ↑ₘg 1 0 ≠ 0) :
+  (3 : ℝ)/4 < 4/ (3* (↑ₘg 1 0)^4) :=
 begin
   have z_im := z.im_ne_zero,
-  have c_4_pos : (0 : ℝ) < (g 1 0)^4,
+  have c_4_pos : (0 : ℝ) < (↑ₘg 1 0)^4,
     exact_mod_cast (by simp: even 4).pow_pos c_ne_z ,
   /- Any point `w∈𝒟ᵒ` has imaginary part at least `sqrt (3/4)` -/
   have ImGeInD : ∀ (w : ℍ), w ∈ 𝒟ᵒ → 3/4 < (w.im)^2,
@@ -416,9 +416,9 @@ begin
     have := hw.2,
     cases abs_cases w.re; nlinarith, },
   /- The next argument is simply that `c^2 y^2 ≤ |c z + d|^2`. -/
-  have czPdGecy : (g 1 0 : ℝ)^2 * (z.im)^2 ≤ norm_sq (denom g z) :=
+  have czPdGecy : (↑ₘg 1 0 : ℝ)^2 * (z.im)^2 ≤ norm_sq (denom g z) :=
     calc
-    (g 1 0 : ℝ)^2 * (z.im)^2 ≤ (g 1 0 : ℝ)^2 * (z.im)^2 + (g 1 0 * z.re + g 1 1)^2 : by nlinarith
+    (↑ₘg 1 0 : ℝ)^2 * (z.im)^2 ≤ (↑ₘg 1 0 : ℝ)^2 * (z.im)^2 + (↑ₘg 1 0 * z.re + ↑ₘg 1 1)^2 : by nlinarith
     ... = norm_sq (denom g z) : by simp [norm_sq]; ring,
   have zIm : (3 : ℝ) / 4 < (z.im)^2 := ImGeInD _ hz,
   /- This is the main calculation:
@@ -427,8 +427,8 @@ begin
   calc
   (3 : ℝ) / 4 < ((g • z).im) ^ 2 : ImGeInD _ hg
   ... = (z.im) ^ 2 / (norm_sq (denom g z)) ^ 2 : _
-  ... ≤ (1 : ℝ) / ((g 1 0) ^ 4 * (z.im) ^ 2) : _
-  ... < (4 : ℝ) / (3 * (g 1 0) ^ 4) : _,
+  ... ≤ (1 : ℝ) / ((↑ₘg 1 0) ^ 4 * (z.im) ^ 2) : _
+  ... < (4 : ℝ) / (3 * (↑ₘg 1 0) ^ 4) : _,
   { convert congr_arg (λ (x:ℝ), x ^ 2) (im_smul_eq_div_norm_sq g z) using 1,
     exact (div_pow _ _ 2).symm, },
   { rw div_le_div_iff,
@@ -470,7 +470,7 @@ end ⟩
 
 /- If c=1, then `g=[[1,a],[0,1]] * S * [[1,d],[0,1]]`. -/
 lemma g_eq_of_c_eq_one (g : SL(2,ℤ)) (hc : ↑ₘg 1 0 = 1) :
-  g = T_pow (g 0 0) * S * T_pow (g 1 1) :=
+  g = T_pow (↑ₘg 0 0) * S * T_pow (↑ₘg 1 1) :=
 begin
   rw [T_pow, T_pow],
   ext i,
@@ -555,7 +555,7 @@ end
 
 /-- If `c=1`, then `[[1,-a],[0,1]]*g = S * [[1,d],[0,1]]`. -/
 lemma T_pow_mul_g_eq_S_mul_T_pow_of_c_eq_one (g : SL(2,ℤ))
-  (hc : g 1 0 = 1) : T_pow (- g 0 0) * g = S * T_pow (g 1 1) :=
+  (hc : ↑ₘg 1 0 = 1) : T_pow (- ↑ₘg 0 0) * g = S * T_pow (↑ₘg 1 1) :=
 begin
   rw g_eq_of_c_eq_one g hc,
   ext i,
@@ -568,13 +568,13 @@ begin
 end
 
 /-- If both `z` and `g•z` are in `𝒟ᵒ`, then `c` can't be `1`. -/
-lemma c_ne_one {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : g 1 0 ≠ 1 :=
+lemma c_ne_one {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : ↑ₘg 1 0 ≠ 1 :=
 begin
   by_contra hc,
-  let z₁ := T_pow (g 1 1) • z,
-  let w₁ := T_pow (- g 0 0) • (g • z),
-  have w₁_norm : 1 < norm_sq w₁ := move_by_T hg (- g 0 0),
-  have z₁_norm : 1 < norm_sq z₁ := move_by_T hz (g 1 1),
+  let z₁ := T_pow (↑ₘg 1 1) • z,
+  let w₁ := T_pow (- ↑ₘg 0 0) • (g • z),
+  have w₁_norm : 1 < norm_sq w₁ := move_by_T hg (- ↑ₘg 0 0),
+  have z₁_norm : 1 < norm_sq z₁ := move_by_T hz (↑ₘg 1 1),
   have w₁_S_z₁ : w₁ = S • z₁,
   { dsimp only [w₁, z₁],
     rw [← mul_action.mul_smul, T_pow_mul_g_eq_S_mul_T_pow_of_c_eq_one g hc,
@@ -591,24 +591,23 @@ begin
 /-  The argument overview is: either `c=0`, in which case the action is translation, which must be
   by `0`, OR
   `c=±1`, which gives a contradiction from considering `im z`, `im(g•z)`, and `norm_sq(T^* z)`. -/
-  have g_det : matrix.det g = (g 0 0)*(g 1 1)-(g 1 0)*(g 0 1),
-  { convert det_fin_two g using 1,
+  have g_det : matrix.det ↑ₘg = (↑ₘg 0 0)*(↑ₘg 1 1)-(↑ₘg 1 0)*(↑ₘg 0 1),
+  { convert det_fin_two ↑ₘg using 1,
     ring, },
-  by_cases (g 1 0 = 0),
+  by_cases (↑ₘg 1 0 = 0),
   { -- case c=0
     have := g_det,
     rw h at this,
     simp only [matrix.special_linear_group.coe_fn_eq_coe, matrix.special_linear_group.det_coe,
       zero_mul, sub_zero] at this,
     have := int.eq_one_or_neg_one_of_mul_eq_one' (this.symm),
-    have gzIs : ∀ (gg : SL(2,ℤ)), gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 →
-      ↑(gg • z : ℍ) = (z : ℂ) + gg 0 1,
+    have gzIs : ∀ (gg : SL(2,ℤ)), ↑ₘgg 1 0 = 0 → ↑ₘgg 0 0 = 1 → ↑ₘgg 1 1 = 1 →
+      ↑(gg • z : ℍ) = (z : ℂ) + ↑ₘgg 0 1,
     { intros gg h₀ h₁ h₂,
-      simp only [coe_fn_eq_coe] at h₀ h₁ h₂,
       simp [h₀, h₁, h₂], },
-    have gIsId : ∀ (gg : SL(2,ℤ)), gg • z ∈ 𝒟ᵒ → gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → gg = 1,
+    have gIsId : ∀ (gg : SL(2,ℤ)), gg • z ∈ 𝒟ᵒ → ↑ₘgg 1 0 = 0 → ↑ₘgg 0 0 = 1 → ↑ₘgg 1 1 = 1 →
+      gg = 1,
     { intros gg hh h₀ h₁ h₂,
-      simp only [coe_fn_eq_coe] at h₀ h₁ h₂,
       ext i,
       fin_cases i; fin_cases j,
       simp only [h₁, coe_one, one_apply_eq],
@@ -619,9 +618,9 @@ begin
         { exact_mod_cast hz.2, },
         have reGz : |((gg • z):ℍ ).re| < 1/2,
         { exact_mod_cast hh.2, },
-        have reZpN : |z.re + gg 0 1| < 1/2,
+        have reZpN : |z.re + ↑ₘgg 0 1| < 1/2,
         { convert reGz using 2,
-          rw (by simp : z.re + gg 0 1 = ((z:ℂ )+ gg 0 1).re),
+          rw (by simp : z.re + ↑ₘgg 0 1 = ((z:ℂ )+ ↑ₘgg 0 1).re),
           apply congr_arg complex.re,
           exact_mod_cast (gzIs gg h₀ h₁ h₂).symm, },
         have move_by_large : ∀ x y : ℝ, |x| < 1/2 → |x+y|<1/2 → 1 ≤ |y| → false := λ x y hx hxy hy,
@@ -631,7 +630,8 @@ begin
       simp only [h₀, nat.one_ne_zero, coe_one, fin.one_eq_zero_iff, ne.def, not_false_iff,
         one_apply_ne],
       simp only [h₂, coe_one, one_apply_eq], },
-    have zIsGz : ∀ (gg : SL(2,ℤ)), gg 1 0 = 0 → gg 0 0 = 1 → gg 1 1 = 1 → gg • z ∈ 𝒟ᵒ → z = gg • z,
+    have zIsGz : ∀ (gg : SL(2,ℤ)), ↑ₘgg 1 0 = 0 → ↑ₘgg 0 0 = 1 → ↑ₘgg 1 1 = 1 → gg • z ∈ 𝒟ᵒ →
+      z = gg • z,
     { intros gg h₀ h₁ h₂ hh,
       have := gIsId gg hh h₀ h₁ h₂,
       rw this,
@@ -656,7 +656,7 @@ begin
     { -- c = 1
       exact c_ne_one hz hg  hc, },
     { -- c = -1
-      have neg_c_one : (-g) 1 0 = 1,
+      have neg_c_one : ↑ₘ(-g) 1 0 = 1,
       { have := eq_neg_of_eq_neg this,
         simp [this], },
       have neg_g_𝒟 : (-g) • z ∈ 𝒟ᵒ,

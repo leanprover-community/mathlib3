@@ -131,7 +131,7 @@ begin
   { intro h1,
     contrapose! h1,
     rw finset.mem_range,
-    exact nat.prime.pos (fact.out _) }
+    exact prime.pos (fact.out _) }
 end
 
 theorem add_pow_char_pow_of_commute [semiring R] {p : ℕ} [fact p.prime]

@@ -130,8 +130,7 @@ begin
   exact hinj p hp,
 end
 
-lemma not_is_field  :
-  ¬ is_field (ring_of_integers Fq F) :=
+lemma not_is_field : ¬ is_field (ring_of_integers Fq F) :=
 by simpa [← (is_integral.is_field_iff_is_field (is_integral_closure.is_integral_algebra Fq[X] F)
   (algebra_map_injective Fq F))] using (polynomial.not_is_field Fq)
 

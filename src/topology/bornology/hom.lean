@@ -22,7 +22,7 @@ be satisfied by itself and all stricter types.
 * `locally_bounded_map_class`
 -/
 
-open bornology filter function
+open bornology filter function set
 
 variables {F α β γ δ : Type*}
 
@@ -41,10 +41,9 @@ class locally_bounded_map_class (F : Type*) (α β : out_param $ Type*) [bornolo
 
 export locally_bounded_map_class (comap_cobounded_le)
 
-/-
-TODO: Add instances from `continuous_linear_map_class` (warning, does not exist yet) to
-`locally_bounded_map_class` here, or alternately in the file with `continuous_linear_map_class`.
--/
+lemma is_bounded.image [bornology α] [bornology β] [locally_bounded_map_class F α β] {f : F}
+  {s : set α} (hs : is_bounded s) : is_bounded (f '' s) :=
+comap_cobounded_le_iff.1 (comap_cobounded_le f) hs
 
 instance [bornology α] [bornology β] [locally_bounded_map_class F α β] :
   has_coe_t F (locally_bounded_map α β) :=
@@ -71,8 +70,14 @@ instance : has_coe_to_fun (locally_bounded_map α β) (λ _, α → β) := fun_l
 definitional equalities. -/
 protected def copy (f : locally_bounded_map α β) (f' : α → β) (h : f' = f) :
   locally_bounded_map α β :=
-{ to_fun := f',
-  comap_cobounded_le' := h.symm ▸ f.comap_cobounded_le' }
+⟨f', h.symm ▸ f.comap_cobounded_le'⟩
+
+/-- Construct a `locally_bounded_map` from the fact that the function maps bounded sets to bounded
+sets. -/
+def of_map_bounded (f : α → β) (h) : locally_bounded_map α β := ⟨f, comap_cobounded_le_iff.2 h⟩
+
+@[simp] lemma coe_of_map_bounded (f : α → β) {h} : ⇑(of_map_bounded f h) = f := rfl
+@[simp] lemma of_map_bounded_apply (f : α → β) {h} (a : α) : of_map_bounded f h a = f a := rfl
 
 variables (α)
 
@@ -94,10 +99,9 @@ def comp (f : locally_bounded_map β γ) (g : locally_bounded_map α β) : local
     comap_comap.ge.trans $ (comap_mono f.comap_cobounded_le').trans g.comap_cobounded_le' }
 
 @[simp] lemma coe_comp (f : locally_bounded_map β γ) (g : locally_bounded_map α β) :
-  (f.comp g : α → γ) = f ∘ g :=
-rfl
+  ⇑(f.comp g) = f ∘ g := rfl
 @[simp] lemma comp_apply (f : locally_bounded_map β γ) (g : locally_bounded_map α β) (a : α) :
-  (f.comp g) a = f (g a) := rfl
+  f.comp g a = f (g a) := rfl
 @[simp] lemma comp_assoc (f : locally_bounded_map γ δ) (g : locally_bounded_map β γ)
   (h : locally_bounded_map α β) :
   (f.comp g).comp h = f.comp (g.comp h) := rfl

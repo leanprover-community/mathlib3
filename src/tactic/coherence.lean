@@ -6,6 +6,14 @@ Authors: Yuma Mizuno
 import category_theory.monoidal.free.coherence
 import category_theory.bicategory.coherence
 
+/-!
+# Coherence tactic for monoidal categories and bicategories
+
+The coherence theorem for monoidal categories (resp. bicategories) asserts that every diagram in
+a monoidal category (resp. bicategory) made up of associators and unitors commutes. This file
+gives a tactic counterpart of this theorem.
+-/
+
 open category_theory
 
 namespace tactic
@@ -76,6 +84,12 @@ setup_tactic_parser
 /--
 `coherence` uses the coherence theorem for monoidal categories or bicategories to prove the goal.
 It can prove any equality made up only of associators and unitors.
+
+```lean
+example {C : Type} [category C] [monoidal_category C] :
+  (λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ C)).hom :=
+by coherence
+```
 -/
 meta def coherence : tactic unit :=
 do

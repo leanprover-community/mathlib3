@@ -807,9 +807,9 @@ subtype.ext rfl
 @[simp] lemma coe_inclusion {S T : subalgebra R A} (h : S ≤ T) (s : S) :
   (inclusion h s : A) = s := rfl
 
-lemma inclusion_mk {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
-  {E F : subalgebra R A} (hEF : E ≤ F) {x : A} (hx : x ∈ E) : (subalgebra.inclusion hEF) ⟨x, hx⟩ =
-  ⟨x, hEF hx⟩ := rfl
+lemma inclusion_mk {E F : subalgebra R A} (hEF : E ≤ F) {x : A} (hx : x ∈ E) :
+  (subalgebra.inclusion hEF) ⟨x, hx⟩ = ⟨x, hEF hx⟩ :=
+rfl
 
 /-- Two subalgebras that are equal are also equivalent as algebras.
 

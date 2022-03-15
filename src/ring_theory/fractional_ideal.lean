@@ -1050,6 +1050,10 @@ lemma mem_span_singleton_self (x : P) :
 
 variables {S}
 
+lemma span_singleton_eq_span_singleton [no_zero_smul_divisors R P] {x y : P} :
+  span_singleton S x = span_singleton S y ↔ ∃ z : Rˣ, z • x = y :=
+by { rw [← span_eq_span], exact subtype.mk_eq_mk }
+
 lemma eq_span_singleton_of_principal (I : fractional_ideal S P)
   [is_principal (I : submodule R P)] :
   I = span_singleton S (generator (I : submodule R P)) :=

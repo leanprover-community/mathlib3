@@ -30,6 +30,8 @@ instance : has_coe_to_sort LinearOrder Type* := bundled.has_coe_to_sort
 /-- Construct a bundled `LinearOrder` from the underlying type and typeclass. -/
 def of (α : Type*) [linear_order α] : LinearOrder := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [linear_order α] : ↥(of α) = α := rfl
+
 instance : inhabited LinearOrder := ⟨of punit⟩
 
 instance (α : LinearOrder) : linear_order α := α.str

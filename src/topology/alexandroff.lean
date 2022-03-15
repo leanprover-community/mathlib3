@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang, Yury Kudryashov
 -/
 import topology.separation
-import topology.opens
+import topology.sets.opens
 
 /-!
 # The Alexandroff Compactification

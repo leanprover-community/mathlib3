@@ -148,7 +148,7 @@ end
 /-- `E →L[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →L[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →L[𝕜] E) := ⟨adjoint_adjoint⟩
-instance : star_monoid (E →L[𝕜] E) := ⟨adjoint_comp⟩
+instance : star_semigroup (E →L[𝕜] E) := ⟨adjoint_comp⟩
 instance : star_ring (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →L[𝕜] E) := ⟨linear_isometry_equiv.map_smulₛₗ adjoint⟩
 
@@ -273,10 +273,14 @@ begin
   refine ext_inner_right_basis b (λ i, by simp only [h i, adjoint_inner_left]),
 end
 
+lemma is_self_adjoint_iff_eq_adjoint (A : E →ₗ[𝕜] E) :
+  is_self_adjoint A ↔ A = A.adjoint :=
+by rw [is_self_adjoint, ← linear_map.eq_adjoint_iff]
+
 /-- `E →ₗ[𝕜] E` is a star algebra with the adjoint as the star operation. -/
 instance : has_star (E →ₗ[𝕜] E) := ⟨adjoint⟩
 instance : has_involutive_star (E →ₗ[𝕜] E) := ⟨adjoint_adjoint⟩
-instance : star_monoid (E →ₗ[𝕜] E) := ⟨adjoint_comp⟩
+instance : star_semigroup (E →ₗ[𝕜] E) := ⟨adjoint_comp⟩
 instance : star_ring (E →ₗ[𝕜] E) := ⟨linear_equiv.map_add adjoint⟩
 instance : star_module 𝕜 (E →ₗ[𝕜] E) := ⟨linear_equiv.map_smulₛₗ adjoint⟩
 
@@ -293,6 +297,20 @@ lemma is_adjoint_pair (A : E' →ₗ[ℝ] F') :
 λ x y, by simp only [adjoint_inner_right, bilin_form_of_real_inner_apply]
 
 end real
+
+/-- The Gram operator T†T is self-adjoint. -/
+lemma is_self_adjoint_adjoint_mul_self (T : E →ₗ[𝕜] E) : is_self_adjoint (T.adjoint * T) :=
+λ x y, by simp only [linear_map.mul_apply, linear_map.adjoint_inner_left,
+  linear_map.adjoint_inner_right]
+
+/-- The Gram operator T†T is a positive operator. -/
+lemma re_inner_adjoint_mul_self_nonneg (T : E →ₗ[𝕜] E) (x : E) :
+  0 ≤ is_R_or_C.re ⟪ x, (T.adjoint * T) x ⟫ := by {simp only [linear_map.mul_apply,
+  linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast, exact sq_nonneg _}
+
+@[simp] lemma im_inner_adjoint_mul_self_eq_zero (T : E →ₗ[𝕜] E) (x : E) :
+  is_R_or_C.im ⟪ x, linear_map.adjoint T (T x) ⟫ = 0 := by {simp only [linear_map.mul_apply,
+    linear_map.adjoint_inner_right, inner_self_eq_norm_sq_to_K], norm_cast}
 
 end linear_map
 

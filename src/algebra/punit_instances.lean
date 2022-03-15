@@ -6,6 +6,7 @@ Authors: Kenny Lau
 
 import algebra.module.basic
 import algebra.gcd_monoid.basic
+import algebra.group_ring_action
 import group_theory.group_action.defs
 
 /-!
@@ -136,8 +137,8 @@ instance [monoid R] : mul_distrib_mul_action R punit :=
 by refine { ..punit.mul_action, .. };
 intros; exact subsingleton.elim _ _
 
-/-! TODO: provide `mul_semiring_action R punit` -/
--- importing it here currently causes timeouts elsewhere due to the import order changing
+instance [semiring R] : mul_semiring_action R punit :=
+{ ..punit.distrib_mul_action, ..punit.mul_distrib_mul_action }
 
 instance [monoid_with_zero R] : mul_action_with_zero R punit :=
 { .. punit.mul_action, .. punit.smul_with_zero }

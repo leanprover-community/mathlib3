@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import ring_theory.int.basic
-import ring_theory.localization
+import ring_theory.localization.integral
 
 /-!
 # Gauss's Lemma
@@ -51,7 +51,7 @@ end
 lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreducible (map φ f)) :
   irreducible f :=
 begin
-  refine ⟨λ h, h_irr.not_unit (is_unit.map ((map_ring_hom φ).to_monoid_hom) h), _⟩,
+  refine ⟨λ h, h_irr.not_unit (is_unit.map (map_ring_hom φ) h), _⟩,
   intros a b h,
   rcases h_irr.is_unit_or_is_unit (by rw [h, map_mul]) with hu | hu,
   { left,

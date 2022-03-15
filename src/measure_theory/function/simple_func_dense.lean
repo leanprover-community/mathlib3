@@ -625,7 +625,7 @@ protected lemma ae_measurable (f : Lp.simple_func E p μ) : ae_measurable (to_si
 (simple_func.measurable f).ae_measurable
 
 lemma to_simple_func_eq_to_fun (f : Lp.simple_func E p μ) : to_simple_func f =ᵐ[μ] f :=
-show ⇑(to_simple_func f) =ᵐ[μ] ⇑(f : α →ₘ[μ] E), by
+show ⇑(to_simple_func f) =ᵐ[μ] ⇑(f : α →ₘ[μ] E),
 begin
   convert (ae_eq_fun.coe_fn_mk (to_simple_func f) (simple_func.ae_measurable f)).symm using 2,
   exact (classical.some_spec f.2).symm,
@@ -901,7 +901,7 @@ begin
     hx_nonneg_Lp n⟩, λ n, mem_range_self _, _⟩,
   suffices : tendsto (λ (n : ℕ), ↑(to_Lp (x n) (hx_mem_ℒp n))) at_top (𝓝 (g : Lp G p μ)),
   { rw tendsto_iff_dist_tendsto_zero at this ⊢,
-    simp_rw subtype.pseudo_dist_eq,
+    simp_rw subtype.dist_eq,
     convert this, },
   rw Lp.tendsto_Lp_iff_tendsto_ℒp',
   convert hx_tendsto,

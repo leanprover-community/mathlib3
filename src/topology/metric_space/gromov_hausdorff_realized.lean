@@ -97,7 +97,7 @@ private lemma max_var_bound : dist x y ≤ max_var X Y := calc
     diam_union (mem_image_of_mem _ (mem_univ _)) (mem_image_of_mem _ (mem_univ _))
   ... = diam (univ : set X) + (dist default default + 1 + dist default default) +
           diam (univ : set Y) :
-    by { rw [isometry_on_inl.diam_image, isometry_on_inr.diam_image], refl }
+    by { rw [isometry_inl.diam_image, isometry_inr.diam_image], refl }
   ... = 1 * diam (univ : set X) + 1 + 1 * diam (univ : set Y) : by simp
   ... ≤ 2 * diam (univ : set X) + 1 + 2 * diam (univ : set Y) :
   begin
@@ -376,7 +376,7 @@ begin
   have E2 : (⨆ x, ⨅ y, g (inl x, inr y)) + dist f g = ⨆ x, (⨅ y, g (inl x, inr y)) + dist f g,
   { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
-    { by simpa using HD_bound_aux1 _ 0 } },
+    { simpa using HD_bound_aux1 _ 0 } },
   -- deduce the result from the above two steps
   simpa [E2, E1, function.comp]
 end
@@ -405,7 +405,7 @@ begin
   have E2 : (⨆ y, ⨅ x, g (inl x, inr y)) + dist f g = ⨆ y, (⨅ x, g (inl x, inr y)) + dist f g,
   { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
-    { by simpa using HD_bound_aux2 _ 0 } },
+    { simpa using HD_bound_aux2 _ 0 } },
   -- deduce the result from the above two steps
   simpa [E2, E1]
 end

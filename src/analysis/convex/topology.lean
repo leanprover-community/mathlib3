@@ -74,10 +74,10 @@ end std_simplex
 
 /-! ### Topological vector space -/
 
-section has_continuous_smul
+section has_continuous_const_smul
 
 variables [add_comm_group E] [module ℝ E] [topological_space E]
-  [topological_add_group E] [has_continuous_smul ℝ E]
+  [topological_add_group E] [has_continuous_const_smul ℝ E]
 
 lemma convex.combo_interior_self_subset_interior {s : set E} (hs : convex ℝ s) {a b : ℝ}
   (ha : 0 < a) (hb : 0 ≤ b) (hab : a + b = 1) :
@@ -134,10 +134,17 @@ lemma convex.closure {s : set E} (hs : convex ℝ s) : convex ℝ (closure s) :=
 λ x y hx hy a b ha hb hab,
 let f : E → E → E := λ x' y', a • x' + b • y' in
 have hf : continuous (λ p : E × E, f p.1 p.2), from
-  (continuous_const.smul continuous_fst).add (continuous_const.smul continuous_snd),
+  (continuous_fst.const_smul _).add (continuous_snd.const_smul _),
 show f x y ∈ closure s, from
   mem_closure_of_continuous2 hf hx hy (λ x' hx' y' hy', subset_closure
   (hs hx' hy' ha hb hab))
+
+end has_continuous_const_smul
+
+section has_continuous_smul
+
+variables [add_comm_group E] [module ℝ E] [topological_space E]
+  [topological_add_group E] [has_continuous_smul ℝ E]
 
 /-- Convex hull of a finite set is compact. -/
 lemma set.finite.compact_convex_hull {s : set E} (hs : finite s) :
@@ -199,8 +206,12 @@ begin
     (line_map_apply_one _ _) H
 end
 
-@[priority 100]
-instance topological_add_group.path_connected : path_connected_space E :=
+/--
+Every topological vector space over ℝ is path connected.
+
+Not an instance, because it creates enormous TC subproblems (turn on `pp.all`).
+-/
+lemma topological_add_group.path_connected : path_connected_space E :=
 path_connected_space_iff_univ.mpr $ convex_univ.is_path_connected ⟨(0 : E), trivial⟩
 
 end has_continuous_smul
@@ -270,6 +281,10 @@ by simp only [metric.diam, convex_hull_ediam]
 @[simp] lemma bounded_convex_hull {s : set E} :
   metric.bounded (convex_hull ℝ s) ↔ metric.bounded s :=
 by simp only [metric.bounded_iff_ediam_ne_top, convex_hull_ediam]
+
+@[priority 100]
+instance normed_space.path_connected : path_connected_space E :=
+topological_add_group.path_connected
 
 @[priority 100]
 instance normed_space.loc_path_connected : loc_path_connected_space E :=

@@ -314,9 +314,8 @@ end
 
 #exit
 .
--- what's the correct statement? this is the above inequality flipped
 lemma cyclotomic_eval_lt_sub_one_pow_totient (n : ℕ) (q : ℝ) (hn' : 3 ≤ n) (hq' : 1 < q) :
-  (cyclotomic n ℝ).eval q < (q - 1) ^ totient n :=
+  (cyclotomic n ℝ).eval q < (q + 1) ^ totient n :=
 sorry -- similar proof, todo is it possible to combine both proofs
 
 

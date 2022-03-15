@@ -684,7 +684,7 @@ let ⟨g, hg⟩ := (f : E →ₗ[𝕜] F).exists_right_inverse_of_surjective hf 
 ⟨g.to_continuous_linear_map, continuous_linear_map.ext $ linear_map.ext_iff.1 hg⟩
 
 lemma closed_embedding_smul_left {c : E} (hc : c ≠ 0) : closed_embedding (λ x : 𝕜, x • c) :=
-linear_equiv.closed_embedding_of_injective (linear_equiv.ker_to_span_singleton 𝕜 E hc)
+linear_equiv.closed_embedding_of_injective (linear_map.ker_to_span_singleton 𝕜 E hc)
 
 /- `smul` is a closed map in the first argument. -/
 lemma is_closed_map_smul_left (c : E) : is_closed_map (λ x : 𝕜, x • c) :=

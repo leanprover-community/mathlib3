@@ -6,6 +6,7 @@ Authors: Riccardo Brasca
 
 import data.set.finite
 import data.finset
+import group_theory.quotient_group
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
 
@@ -143,11 +144,16 @@ begin
 end
 
 @[to_additive]
+instance monoid.fg_range {M' : Type*} [monoid M'] [monoid.fg M] (f : M →* M') :
+  monoid.fg f.mrange :=
+monoid.fg_of_surjective f.mrange_restrict f.mrange_restrict_surjective
+
+@[to_additive add_submonoid.multiples_fg]
 lemma submonoid.powers_fg (r : M) : (submonoid.powers r).fg :=
 ⟨{r}, (finset.coe_singleton r).symm ▸ (submonoid.powers_eq_closure r).symm⟩
 
-@[to_additive]
-instance (r : M) : monoid.fg (submonoid.powers r) :=
+@[to_additive add_monoid.multiples_fg]
+instance monoid.powers_fg (r : M) : monoid.fg (submonoid.powers r) :=
 (monoid.fg_iff_submonoid_fg _).mpr (submonoid.powers_fg r)
 
 /-! ### Groups and subgroups -/
@@ -249,4 +255,21 @@ group_fg.iff_add_fg.1 ‹_›
 instance group.fg_of_mul_group_fg [add_group.fg H] : group.fg (multiplicative H) :=
 add_group.fg_iff_mul_fg.1 ‹_›
 
+@[to_additive]
+lemma group.fg_of_surjective {G' : Type*} [group G'] [hG : group.fg G] {f : G →* G'}
+  (hf : function.surjective f) : group.fg G' :=
+group.fg_iff_monoid.fg.mpr $ @monoid.fg_of_surjective G _ G' _ (group.fg_iff_monoid.fg.mp hG) f hf
+
+@[to_additive]
+instance group.fg_range {G' : Type*} [group G'] [group.fg G] (f : G →* G') : group.fg f.range :=
+group.fg_of_surjective f.range_restrict_surjective
+
 end group
+
+section quotient_group
+
+@[to_additive]
+instance quotient_group.fg [group.fg G] (N : subgroup G) [subgroup.normal N] : group.fg $ G ⧸ N :=
+group.fg_of_surjective $ quotient_group.mk'_surjective N
+
+end quotient_group

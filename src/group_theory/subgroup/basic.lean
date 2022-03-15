@@ -292,6 +292,12 @@ is in the `add_subgroup`."]
 lemma multiset_prod_mem {G} [comm_group G] (K : subgroup G) (g : multiset G) :
   (∀ a ∈ g, a ∈ K) → g.prod ∈ K := K.to_submonoid.multiset_prod_mem g
 
+@[to_additive]
+lemma multiset_noncomm_prod_mem (K : subgroup G) (g : multiset G)
+  (comm : ∀ (x ∈ g) (y ∈ g), commute x y) :
+  (∀ a ∈ g, a ∈ K) → g.noncomm_prod comm ∈ K :=
+K.to_submonoid.multiset_noncomm_prod_mem g comm
+
 /-- Product of elements of a subgroup of a `comm_group` indexed by a `finset` is in the
     subgroup. -/
 @[to_additive "Sum of elements in an `add_subgroup` of an `add_comm_group` indexed by a `finset`
@@ -300,6 +306,13 @@ lemma prod_mem {G : Type*} [comm_group G] (K : subgroup G)
   {ι : Type*} {t : finset ι} {f : ι → G} (h : ∀ c ∈ t, f c ∈ K) :
   ∏ c in t, f c ∈ K :=
 K.to_submonoid.prod_mem h
+
+@[to_additive]
+lemma noncomm_prod_mem (K : subgroup G)
+  {ι : Type*} {t : finset ι} {f : ι → G} (comm : ∀ (x ∈ t) (y ∈ t), commute (f x) (f y)) :
+  (∀ c ∈ t, f c ∈ K) → t.noncomm_prod f comm ∈ K :=
+K.to_submonoid.noncomm_prod_mem t f comm
+
 
 @[to_additive add_subgroup.nsmul_mem]
 lemma pow_mem {x : G} (hx : x ∈ K) : ∀ n : ℕ, x ^ n ∈ K := K.to_submonoid.pow_mem hx
@@ -2749,6 +2762,39 @@ disjoint_def'.trans ⟨λ h x y hx hy hxy,
   let hx1 : x = 1 := h hx (H₂.inv_mem hy) (eq_inv_iff_mul_eq_one.mpr hxy) in
   ⟨hx1, by simpa [hx1] using hxy⟩,
   λ h x y hx hy hxy, (h hx (H₂.inv_mem hy) (mul_inv_eq_one.mpr hxy)).1 ⟩
+
+/-- `finset.noncomm_prod` is “injective” in `f` if `f` maps into independent subgroups.  This
+generalizes (one direction of) `subgroup.disjoint_iff_mul_eq_one`. -/
+@[to_additive "`finset.noncomm_sum` is “injective” in `f` if `f` maps into independent subgroups.
+This generalizes (one direction of) `add_subgroup.disjoint_iff_add_eq_zero`. "]
+lemma eq_one_of_noncomm_prod_eq_one_of_independent {β : Type*} [group β]
+  (s : finset G) (f : G → β) (comm : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
+  (K : G → subgroup β) (hind : complete_lattice.independent K) (hmem : ∀ (x ∈ s), f x ∈ K x)
+  (heq1 : s.noncomm_prod f comm = 1) : ∀ (i ∈ s), f i = 1 :=
+begin
+  classical,
+  revert heq1,
+  induction s using finset.induction_on with i s hnmem ih,
+  { simp, },
+  { simp only [finset.forall_mem_insert] at comm hmem,
+    specialize ih (λ x hx, (comm.2 x hx).2) hmem.2,
+    have hmem_bsupr: s.noncomm_prod f (λ x hx, (comm.2 x hx).2) ∈ ⨆ (i ∈ (s : set G)), K i,
+    { refine subgroup.noncomm_prod_mem _ _ _,
+      intros x hx,
+      have : K x ≤ ⨆ (i ∈ (s : set G)), K i := le_bsupr x hx,
+      exact this (hmem.2 x hx), },
+    intro heq1,
+    rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem at heq1,
+    have hnmem' : i ∉ (s : set G), by simpa,
+    obtain ⟨heq1i : f i = 1, heq1S : s.noncomm_prod f _ = 1⟩ :=
+      subgroup.disjoint_iff_mul_eq_one.mp (hind.disjoint_bsupr hnmem') hmem.1 hmem_bsupr heq1,
+    specialize ih heq1S,
+    intros i h,
+    simp only [finset.mem_insert] at h,
+    rcases h with ⟨rfl | _⟩,
+    { exact heq1i },
+    { exact (ih _ h), } }
+end
 
 end subgroup
 

@@ -69,6 +69,12 @@ lemma finite_range (f : α →ₛ β) : (set.range f).finite := f.finite_range'
 lemma measurable_set_fiber (f : α →ₛ β) (x : β) : measurable_set (f ⁻¹' {x}) :=
 f.measurable_set_fiber' x
 
+/-- Simple function defined on the empty type. -/
+def of_is_empty [is_empty α] : α →ₛ β :=
+{ to_fun := is_empty_elim,
+  measurable_set_fiber' := λ x, subsingleton.measurable_set,
+  finite_range' := by simp [range_eq_empty] }
+
 /-- Range of a simple function `α →ₛ β` as a `finset β`. -/
 protected def range (f : α →ₛ β) : finset β := f.finite_range.to_finset
 
@@ -278,6 +284,11 @@ def extend [measurable_space β] (f₁ : α →ₛ γ) (g : α → β)
 @[simp] lemma extend_apply [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
   (hg : measurable_embedding g) (f₂ : β →ₛ γ) (x : α) : (f₁.extend g hg f₂) (g x) = f₁ x :=
 function.extend_apply hg.injective _ _ _
+
+@[simp] lemma extend_apply' [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
+  (hg : measurable_embedding g) (f₂ : β →ₛ γ) {y : β} (h : ¬∃ x, g x = y) :
+  (f₁.extend g hg f₂) y = f₂ y :=
+function.extend_apply' _ _ _ h
 
 @[simp] lemma extend_comp_eq' [measurable_space β] (f₁ : α →ₛ γ) {g : α → β}
   (hg : measurable_embedding g) (f₂ : β →ₛ γ) : (f₁.extend g hg f₂) ∘ g = f₁ :=

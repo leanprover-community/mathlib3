@@ -68,6 +68,8 @@ variable [topological_space β]
 def strongly_measurable [measurable_space α] (f : α → β) : Prop :=
 ∃ fs : ℕ → α →ₛ β, ∀ x, tendsto (λ n, fs n x) at_top (𝓝 (f x))
 
+localized "notation `strongly_measurable[` m `]` := @strongly_measurable _ _ _ m" in measure_theory
+
 /-- A function is `fin_strongly_measurable` with respect to a measure if it is the limit of simple
   functions with support with finite measure. -/
 def fin_strongly_measurable [has_zero β] {m0 : measurable_space α} (f : α → β) (μ : measure α) :
@@ -112,6 +114,10 @@ lemma simple_func.strongly_measurable {α β} {m : measurable_space α} [topolog
   strongly_measurable f :=
 ⟨λ _, f, λ x, tendsto_const_nhds⟩
 
+lemma strongly_measurable_of_is_empty [is_empty α] {m : measurable_space α} [topological_space β]
+  (f : α → β) : strongly_measurable f :=
+⟨λ n, simple_func.of_is_empty, is_empty_elim⟩
+
 lemma strongly_measurable_const {α β} {m : measurable_space α} [topological_space β] {b : β} :
   strongly_measurable (λ a : α, b) :=
 ⟨λ n, simple_func.const α b, λ a, tendsto_const_nhds⟩
@@ -119,6 +125,16 @@ lemma strongly_measurable_const {α β} {m : measurable_space α} [topological_s
 lemma strongly_measurable_zero {α β} {m : measurable_space α} [topological_space β] [has_zero β] :
   strongly_measurable (0 : α → β) :=
 @strongly_measurable_const _ _ _ _ 0
+
+/-- A version of `strongly_measurable_const` that assumes `f x = f y` for all `x, y`.
+This version works for functions between empty types. -/
+lemma strongly_measurable_const' {α β} {m : measurable_space α} [topological_space β] {f : α → β}
+  (hf : ∀ x y, f x = f y) : strongly_measurable f :=
+begin
+  casesI is_empty_or_nonempty α,
+  { exact strongly_measurable_of_is_empty f },
+  { convert strongly_measurable_const, exact funext (λ x, hf x h.some) }
+end
 
 namespace strongly_measurable
 
@@ -254,6 +270,11 @@ begin
   exact tendsto.prod_mk (hf.tendsto_approx x) (hg.tendsto_approx x),
 end
 
+lemma comp_measurable [topological_space β] {m : measurable_space α} {m' : measurable_space γ}
+  {f : α → β} {g : γ → α} (hf : strongly_measurable f) (hg : measurable g) :
+  strongly_measurable (f ∘ g) :=
+⟨λ n, simple_func.comp (hf.approx n) g hg, λ x, hf.tendsto_approx (g x)⟩
+
 section order
 variables [measurable_space α] [topological_space β]
 
@@ -329,7 +350,7 @@ end
 `exact strongly_measurable.ite (measurable_set_singleton 0) strongly_measurable_const
 strongly_measurable_const`, but replacing `strongly_measurable.ite` by
 `strongly_measurable.piecewise` in that example proof does not work. -/
-lemma measurable.ite [measurable_space α] [topological_space β]
+protected lemma ite [measurable_space α] [topological_space β]
   {p : α → Prop} {_ : decidable_pred p}
   (hp : measurable_set {a : α | p a}) (hf : strongly_measurable f) (hg : strongly_measurable g) :
   strongly_measurable (λ x, ite (p x) (f x) (g x)) :=
@@ -339,6 +360,57 @@ protected lemma indicator [measurable_space α] [topological_space β] [has_zero
   (hf : strongly_measurable f) {s : set α} (hs : measurable_set s) :
   strongly_measurable (s.indicator f) :=
 hf.piecewise hs strongly_measurable_const
+
+protected lemma norm [measurable_space α] {β : Type*} [normed_group β] {f : α → β}
+  (hf : strongly_measurable f) :
+  strongly_measurable (λ x, ∥f x∥) :=
+continuous_norm.comp_strongly_measurable hf
+
+protected lemma nnnorm [measurable_space α] {β : Type*} [normed_group β] {f : α → β}
+  (hf : strongly_measurable f) :
+  strongly_measurable (λ x, nnnorm (f x)) :=
+continuous_nnnorm.comp_strongly_measurable hf
+
+protected lemma ennnorm [measurable_space α] {β : Type*} [normed_group β] {f : α → β}
+  (hf : strongly_measurable f) :
+  measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) :=
+(ennreal.continuous_coe.comp_strongly_measurable hf.nnnorm).measurable
+
+lemma _root_.measurable_embedding.strongly_measurable_extend {f : α → β} {g : α → γ} {g' : γ → β}
+  {mα : measurable_space α} {mγ : measurable_space γ} [topological_space β]
+  (hg : measurable_embedding g)
+  (hf : strongly_measurable f) (hg' : strongly_measurable g') :
+  strongly_measurable (function.extend g f g') :=
+begin
+  refine ⟨λ n, simple_func.extend (hf.approx n) g hg (hg'.approx n), _⟩,
+  assume x,
+  by_cases hx : ∃ y, g y = x,
+  { rcases hx with ⟨y, rfl⟩,
+    simpa only [simple_func.extend_apply, hg.injective, extend_apply] using hf.tendsto_approx y },
+  { simpa only [hx, simple_func.extend_apply', not_false_iff, extend_apply']
+      using hg'.tendsto_approx x }
+end
+
+lemma _root_.measurable_embedding.exists_strongly_measurable_extend
+  {f : α → β} {g : α → γ}
+  {mα : measurable_space α} {mγ : measurable_space γ} [topological_space β]
+  (hg : measurable_embedding g) (hf : strongly_measurable f) (hne : γ → nonempty β) :
+  ∃ f' : γ → β, strongly_measurable f' ∧ f' ∘ g = f :=
+⟨function.extend g f (λ x, classical.choice (hne x)),
+  hg.strongly_measurable_extend hf (strongly_measurable_const' $ λ _ _, rfl),
+  funext $ λ x, extend_apply hg.injective _ _ _⟩
+
+
+section
+variables {𝕜 : Type*} {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
+
+protected lemma inner {m : measurable_space α}
+  {f g : α → E} (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  strongly_measurable (λ t, ⟪f t, g t⟫) :=
+continuous.comp_strongly_measurable continuous_inner (hf.prod_mk hg)
+
+end
 
 end strongly_measurable
 
@@ -648,7 +720,6 @@ lemma ae_strongly_measurable_iff_ae_measurable [metrizable_space β] [borel_spac
 
 end second_countable_ae_strongly_measurable
 
-
 protected lemma norm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable (λ x, ∥f x∥) μ :=
 continuous_norm.comp_ae_strongly_measurable hf
@@ -662,7 +733,8 @@ protected lemma ennnorm {β : Type*} [normed_group β] {f : α → β} (hf : ae_
 (ennreal.continuous_coe.comp_ae_strongly_measurable hf.nnnorm).ae_measurable
 
 section
-variables {𝕜 : Type*} [is_R_or_C 𝕜]
+variables {𝕜 : Type*} {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
 protected lemma re {f : α → 𝕜} (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable (λ x, is_R_or_C.re (f x)) μ :=
@@ -671,6 +743,17 @@ is_R_or_C.continuous_re.comp_ae_strongly_measurable hf
 protected lemma im {f : α → 𝕜} (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable (λ x, is_R_or_C.im (f x)) μ :=
 is_R_or_C.continuous_im.comp_ae_strongly_measurable hf
+
+protected lemma inner {m : measurable_space α} {μ : measure α} {f g : α → E}
+  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+  ae_strongly_measurable (λ x, ⟪f x, g x⟫) μ :=
+begin
+  refine ⟨λ x, ⟪hf.mk f x, hg.mk g x⟫, hf.strongly_measurable_mk.inner hg.strongly_measurable_mk, _⟩,
+  refine hf.ae_eq_mk.mp (hg.ae_eq_mk.mono (λ x hxg hxf, _)),
+  dsimp only,
+  congr,
+  exacts [hxf, hxg],
+end
 
 end
 
@@ -694,6 +777,27 @@ protected lemma indicator [has_zero β]
   (hfm : ae_strongly_measurable f μ) {s : set α} (hs : measurable_set s) :
   ae_strongly_measurable (s.indicator f) μ :=
 (ae_strongly_measurable_indicator_iff hs).mpr hfm.restrict
+
+lemma _root_.ae_strongly_measurable_of_ae_strongly_measurable_trim {α} {m m0 : measurable_space α}
+  {μ : measure α} (hm : m ≤ m0) {f : α → β} (hf : ae_strongly_measurable f (μ.trim hm)) :
+  ae_strongly_measurable f μ :=
+⟨hf.mk f, strongly_measurable.mono hf.strongly_measurable_mk hm, ae_eq_of_ae_eq_trim hf.ae_eq_mk⟩
+
+lemma comp_measurable {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α} {f : γ → α}
+  {μ : measure γ} (hg : ae_strongly_measurable g (measure.map f μ)) (hf : measurable f) :
+  ae_strongly_measurable (g ∘ f) μ :=
+⟨(hg.mk g) ∘ f, hg.strongly_measurable_mk.comp_measurable hf, ae_eq_comp hf hg.ae_eq_mk⟩
+
+lemma _root_.measurable_embedding.ae_strongly_measurable_map_iff
+  {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α}
+  {f : γ → α} {μ : measure γ} (hf : measurable_embedding f) {g : α → β} :
+  ae_strongly_measurable g (measure.map f μ) ↔ ae_strongly_measurable (g ∘ f) μ :=
+begin
+  refine ⟨λ H, H.comp_measurable hf.measurable, _⟩,
+  rintro ⟨g₁, hgm₁, heq⟩,
+  rcases hf.exists_strongly_measurable_extend hgm₁ (λ x, ⟨g x⟩) with ⟨g₂, hgm₂, rfl⟩,
+  exact ⟨g₂, hgm₂, hf.ae_map_iff.2 heq⟩
+end
 
 end ae_strongly_measurable
 

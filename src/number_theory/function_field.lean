@@ -86,7 +86,7 @@ begin
     exact one_ne_zero, }
 end
 
-lemma algebra_map_injective [algebra Fq[X] F] [algebra (ratfunc Fq) F] [function_field Fq F]
+lemma algebra_map_injective [algebra Fq[X] F] [algebra (ratfunc Fq) F]
   [is_scalar_tower Fq[X] (ratfunc Fq) F] : function.injective ⇑(algebra_map Fq[X] F) :=
 begin
   rw is_scalar_tower.algebra_map_eq Fq[X] (ratfunc Fq) F,
@@ -114,18 +114,7 @@ instance : is_domain (ring_of_integers Fq F) :=
 instance : is_integral_closure (ring_of_integers Fq F) Fq[X] F :=
 integral_closure.is_integral_closure _ _
 
-variables [algebra (ratfunc Fq) F] [function_field Fq F]
-variables [is_scalar_tower Fq[X] (ratfunc Fq) F]
-
-instance : is_fraction_ring (ring_of_integers Fq F) F :=
-integral_closure.is_fraction_ring_of_finite_extension (ratfunc Fq) F
-
-instance : is_integrally_closed (ring_of_integers Fq F) :=
-integral_closure.is_integrally_closed_of_finite_extension (ratfunc Fq)
-
-instance [is_separable (ratfunc Fq) F] :
-  is_dedekind_domain (ring_of_integers Fq F) :=
-is_integral_closure.is_dedekind_domain Fq[X] (ratfunc Fq) F _
+variables [algebra (ratfunc Fq) F] [is_scalar_tower Fq[X] (ratfunc Fq) F]
 
 lemma algebra_map_injective :
   function.injective ⇑(algebra_map Fq[X] (ring_of_integers Fq F)) :=
@@ -145,6 +134,18 @@ lemma not_is_field  :
   ¬ is_field (ring_of_integers Fq F) :=
 by simpa [← (is_integral.is_field_iff_is_field (is_integral_closure.is_integral_algebra Fq[X] F)
   (algebra_map_injective Fq F))] using (polynomial.not_is_field Fq)
+
+variables [function_field Fq F]
+
+instance : is_fraction_ring (ring_of_integers Fq F) F :=
+integral_closure.is_fraction_ring_of_finite_extension (ratfunc Fq) F
+
+instance : is_integrally_closed (ring_of_integers Fq F) :=
+integral_closure.is_integrally_closed_of_finite_extension (ratfunc Fq)
+
+instance [is_separable (ratfunc Fq) F] :
+  is_dedekind_domain (ring_of_integers Fq F) :=
+is_integral_closure.is_dedekind_domain Fq[X] (ratfunc Fq) F _
 
 end ring_of_integers
 

@@ -322,14 +322,13 @@ wf.fix (λ o IH,
   else H₃ _ ⟨o0, λ a, (succ_lt_of_not_succ h).2⟩ IH) o
 
 @[simp] theorem limit_rec_on_zero {C} (H₁ H₂ H₃) : @limit_rec_on C 0 H₁ H₂ H₃ = H₁ :=
-by rw [limit_rec_on, well_founded.fix_eq, dif_pos rfl]; refl
+by rw [limit_rec_on, wf.fix_eq, dif_pos rfl]; refl
 
 @[simp] theorem limit_rec_on_succ {C} (o H₁ H₂ H₃) :
   @limit_rec_on C (succ o) H₁ H₂ H₃ = H₂ o (@limit_rec_on C o H₁ H₂ H₃) :=
 begin
   have h : ∃ a, succ o = succ a := ⟨_, rfl⟩,
-  rw [limit_rec_on, well_founded.fix_eq,
-      dif_neg (succ_ne_zero o), dif_pos h],
+  rw [limit_rec_on, wf.fix_eq, dif_neg (succ_ne_zero o), dif_pos h],
   generalize : limit_rec_on._proof_2 (succ o) h = h₂,
   generalize : limit_rec_on._proof_3 (succ o) h = h₃,
   revert h₂ h₃, generalize e : pred (succ o) = o', intros,
@@ -338,8 +337,7 @@ end
 
 @[simp] theorem limit_rec_on_limit {C} (o H₁ H₂ H₃ h) :
   @limit_rec_on C o H₁ H₂ H₃ = H₃ o h (λ x h, @limit_rec_on C x H₁ H₂ H₃) :=
-by rw [limit_rec_on, well_founded.fix_eq,
-       dif_neg h.1, dif_neg (not_succ_of_is_limit h)]; refl
+by rw [limit_rec_on, wf.fix_eq, dif_neg h.1, dif_neg (not_succ_of_is_limit h)]; refl
 
 instance (o : ordinal) : order_top o.succ.out.α :=
 ⟨_, le_enum_succ⟩
@@ -743,6 +741,10 @@ begin
   { exact mul_is_limit l.pos lb }
 end
 
+theorem smul_eq_mul : ∀ (n : ℕ) (a : ordinal), n • a = a * n
+| 0       a := by rw [zero_smul, nat.cast_zero, mul_zero]
+| (n + 1) a := by rw [succ_nsmul', nat.cast_add, mul_add, nat.cast_one, mul_one, smul_eq_mul]
+
 /-! ### Division on ordinals -/
 
 protected lemma div_aux (a b : ordinal.{u}) (h : b ≠ 0) : set.nonempty {o | a < b * succ o} :=
@@ -1065,7 +1067,7 @@ begin
   exact le_sup f i
 end
 
-theorem is_normal.sup {f} (H : is_normal f) {ι} {g : ι → ordinal} (h : nonempty ι) :
+theorem is_normal.sup {f} (H : is_normal f) {ι} (g : ι → ordinal) (h : nonempty ι) :
   f (sup g) = sup (f ∘ g) :=
 eq_of_forall_ge_iff $ λ a,
 by rw [sup_le, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
@@ -1136,7 +1138,7 @@ by simpa only [not_forall, not_le] using not_congr (@bsup_le _ f a)
 theorem is_normal.bsup {f} (H : is_normal f) {o} :
   ∀ (g : Π a < o, ordinal) (h : o ≠ 0), f (bsup o g) = bsup o (λ a h, f (g a h)) :=
 induction_on o $ λ α r _ g h,
-by { resetI, rw [←sup_eq_bsup' r, H.sup (type_ne_zero_iff_nonempty.1 h), ←sup_eq_bsup' r]; refl }
+by { resetI, rw [←sup_eq_bsup' r, H.sup _ (type_ne_zero_iff_nonempty.1 h), ←sup_eq_bsup' r]; refl }
 
 theorem lt_bsup_of_ne_bsup {o : ordinal} {f : Π a < o, ordinal} :
   (∀ i h, f i h ≠ o.bsup f) ↔ ∀ i h, f i h < o.bsup f :=
@@ -1583,7 +1585,7 @@ theorem enum_ord_surjective (hS : unbounded (<) S) : ∀ s ∈ S, ∃ a, enum_or
     exact (enum_ord_strict_mono hS hab).trans_le hb },
   { by_contra' h,
     exact (le_cSup ⟨s, λ a,
-      (well_founded.self_le_of_strict_mono wf (enum_ord_strict_mono hS) a).trans⟩
+      (wf.self_le_of_strict_mono (enum_ord_strict_mono hS) a).trans⟩
       (enum_ord_succ_le hS hs h)).not_lt (lt_succ_self _) }
 end⟩
 
@@ -2304,7 +2306,7 @@ le_antisymm
 
 theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
   sup.{0 u} (f ∘ nat.cast) = f omega :=
-by rw [←sup_nat_cast, is_normal.sup.{0 u u} hf ⟨0⟩]
+by rw [←sup_nat_cast, is_normal.sup.{0 u u} hf _ ⟨0⟩]
 
 @[simp] theorem sup_add_nat (o : ordinal.{u}) : sup (λ n : ℕ, o + n) = o + omega :=
 (add_is_normal o).apply_omega

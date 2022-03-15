@@ -48,13 +48,6 @@ counterparts in [Chou1994].
 * `simple_graph.connected_component` is the type of connected components of
   a given graph.
 
-* `simple_graph.is_acyclic` is the predicate for a graph being acyclic
-  (that is, whether it is a *forest*).
-
-* `simple_graph.is_tree` is the predicate for connected acyclic graphs.
-
-* `simple_graph.edge_connected` is a predicate for k-edge-connectivity.
-
 * `simple_graph.subgraph.connected` gives subgraphs the connectivity
   predicate via `simple_graph.subgraph.coe`.
 

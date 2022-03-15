@@ -83,11 +83,10 @@ instance colimit_has_scalar : has_scalar R M :=
 @[simp]
 lemma colimit_smul_mk_eq (r : R) (x : Σ j, F.obj j) : r • M.mk x = M.mk ⟨x.1, r • x.2⟩ := rfl
 
-instance colimit_module : module R M :=
+instance colimit_distrib_mul_action_with_zero : distrib_mul_action_with_zero R M :=
 { one_smul := λ x, begin
     apply quot.induction_on x, clear x, intro x, cases x with j x,
     erw [colimit_smul_mk_eq F 1 ⟨j, x⟩, one_smul],
-    dsimp,
     refl,
   end,
   mul_smul := λ r s x, begin
@@ -111,8 +110,10 @@ instance colimit_module : module R M :=
     apply quot.induction_on x, clear x, intro x, cases x with j x,
     erw [colimit_smul_mk_eq, zero_smul, colimit_zero_eq _ j],
     refl,
-  end,
-  add_smul := λ r s x, begin
+  end }
+
+instance colimit_module : module R M :=
+{ add_smul := λ r s x, begin
     apply quot.induction_on x, clear x, intro x, cases x with j x,
     erw [colimit_smul_mk_eq, add_smul, colimit_smul_mk_eq, colimit_smul_mk_eq,
       colimit_add_mk_eq _ ⟨j, _⟩ ⟨j, _⟩ j (𝟙 j) (𝟙 j), category_theory.functor.map_id,

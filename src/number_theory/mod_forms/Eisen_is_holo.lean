@@ -156,7 +156,7 @@ begin
   simp_rw F,
   apply this.mono,
   apply hball2,},
-  apply unif_of_diff_is_diff F (extend_by_zero (Eisenstein_series_of_weight_ k)) x ε (2⁻¹*ε) hε _ _
+  apply uniform_of_diff_circle_int_is_diff F (extend_by_zero (Eisenstein_series_of_weight_ k)) x ε (2⁻¹*ε) hε _ _
   hdiff hunif,
   ring_nf,
   linarith,

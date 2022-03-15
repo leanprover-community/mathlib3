@@ -194,10 +194,8 @@ lemma tendsto_in_measure.exists_seq_tendsto_ae
 begin
   /- Since `f` tends to `g` in measure, it has a subsequence `k ↦ f (ns k)` such that
   `μ {|f (ns k) - g| ≥ 2⁻ᵏ} ≤ 2⁻ᵏ` for all `k`. Defining
-  `s := ⋂ k, ⋃ i ≥ k, {|f (ns k) - g| ≥ 2⁻ᵏ}`, we see that `μ s = 0` by observing
-  `μ s ≤ 2 * 2⁻ᵏ` for all `k`. Indeed, as `s ⊆ ⋃ i ≥ k, {|f (ns k) - g| ≥ 2⁻ᵏ}`,
-  `μ s ≤ μ (⋃ i ≥ k, {|f (ns k) - g| ≥ 2⁻ᵏ}) ≤ ∑ i ≥ k, μ {|f (ns k) - g| ≥ 2⁻ᵏ} ≤ ∑ i ≥ k, 2⁻ᵏ`
-  which by geometric series equals to `2 * 2⁻ᵏ` as required.
+  `s := ⋂ k, ⋃ i ≥ k, {|f (ns k) - g| ≥ 2⁻ᵏ}`, we see that `μ s = 0` by the
+  first Borel-Cantelli lemma.
 
   On the other hand, as `s` is precisely the set for which `f (ns k)`
   doesn't converge to `g`, `f (ns k)` converges almost everywhere to `g` as required. -/
@@ -211,44 +209,16 @@ begin
   let S := λ k, {x | 2⁻¹ ^ k ≤ dist (f (ns k) x) (g x)},
   have hμS_le : ∀ k, μ (S k) ≤ 2⁻¹ ^ k :=
     λ k, exists_seq_tendsto_ae.seq_tendsto_ae_seq_spec hfg k (ns k) (le_rfl),
-  let s := ⋂ k, ⋃ i (hik : k ≤ i), S i,
+  set s := filter.at_top.limsup S with hs,
   have hμs : μ s = 0,
-  { suffices hμs_le : ∀ k : ℕ, μ s ≤ ennreal.of_real (2 * 2⁻¹ ^ k),
-    { refine le_antisymm (ennreal.le_of_forall_pos_le_add (λ ε hε _, _)) (zero_le _),
-      rw zero_add,
-      obtain ⟨k, hk_lt_ε⟩ := h_lt_ε_real ε hε,
-      exact ((hμs_le k).trans (ennreal.of_real_le_of_real hk_lt_ε.le)).trans
-        (ennreal.of_real_coe_nnreal).le },
-    have : ∀ k, s ⊆ ⋃ i (hik : k ≤ i), S i := λ k, infi_le (λ k, ⋃ i (hik : k ≤ i), S i) k,
-    refine λ k, (measure_mono (this k)).trans ((measure_Union_le _).trans _),
-    have hμ_if_eq : ∀ i, μ (⋃ (hik : k ≤ i), S i) = if k ≤ i then μ (S i) else 0,
-    { intro i, split_ifs; simp only [h, measure_empty, set.Union_true, set.Union_false] },
-    rw tsum_congr hμ_if_eq,
-    have tsum_le_tsum : ∑' i, ite (k ≤ i) (μ (S i)) 0 ≤ ∑' i, ite (k ≤ i) (2⁻¹ ^ i) 0,
-    { refine tsum_le_tsum (λ i, _) ennreal.summable ennreal.summable,
-      split_ifs; simp only [hμS_le i, nonpos_iff_eq_zero] },
-    refine tsum_le_tsum.trans _,
-    suffices tsum_eq_of_real_tsum : ∑' i, ite (k ≤ i) ((2 : ℝ≥0∞)⁻¹ ^ i) 0
-      = ennreal.of_real (∑' i, ite (k ≤ i) (2⁻¹ ^ i) 0),
-    { rw tsum_eq_of_real_tsum,
-      exact ennreal.of_real_le_of_real (tsum_geometric_inv_two_ge k).le },
-    rw ennreal.of_real_tsum_of_nonneg,
-    { refine tsum_congr (λ i, _),
-      split_ifs,
-      { rw [ennreal.of_real_pow (inv_nonneg.mpr zero_le_two) i,
-        ← ennreal.of_real_inv_of_pos zero_lt_two, ennreal.of_real_bit0 zero_le_one,
-        ennreal.of_real_one] },
-      { exact ennreal.of_real_zero.symm } },
-    { intro n,
-      split_ifs,
-      { refine pow_nonneg _ _, norm_num },
-      { exact le_rfl } },
-    { refine summable.summable_of_eq_zero_or_self summable_geometric_two (λ i, _),
-      simp only [one_div, inv_eq_zero, not_le, inv_pow₀, zero_eq_inv],
-      exact (ite_eq_or_eq _ _ _).symm } },
+  { refine measure_limsup_eq_zero (ne_of_lt $ lt_of_le_of_lt (ennreal.tsum_le_tsum hμS_le) _),
+    simp only [ennreal.tsum_geometric, ennreal.one_sub_inv_two, inv_inv],
+    dec_trivial },
   have h_tendsto : ∀ x ∈ sᶜ, tendsto (λ i, f (ns i) x) at_top (𝓝 (g x)),
   { refine λ x hx, metric.tendsto_at_top.mpr (λ ε hε, _),
-    simp_rw [s, set.compl_Inter, set.compl_Union, set.mem_Union, set.mem_Inter] at hx,
+    rw [hs, limsup_eq_infi_supr_of_nat] at hx,
+    simp only [set.supr_eq_Union, set.infi_eq_Inter, set.compl_Inter, set.compl_Union,
+      set.mem_Union, set.mem_Inter, set.mem_compl_eq, set.mem_set_of_eq, not_le] at hx,
     obtain ⟨N, hNx⟩ := hx,
     obtain ⟨k, hk_lt_ε⟩ := h_lt_ε_real ε hε,
     refine ⟨max N (k - 1), λ n hn_ge, lt_of_le_of_lt _ hk_lt_ε⟩,
@@ -260,12 +230,9 @@ begin
       exact pow_le_pow_of_le_one ((one_div (2 : ℝ)) ▸ one_half_pos.le) (inv_le_one one_le_two)
         ((le_tsub_add.trans (add_le_add_right (le_max_right _ _) 1)).trans
         (add_le_add_right hn_ge 1)) },
-    refine le_trans _ h_inv_n_le_k,
-    rw [set.mem_compl_iff, set.nmem_set_of_eq, not_le] at hNx,
-    exact hNx.le },
+    exact le_trans hNx.le h_inv_n_le_k },
   rw ae_iff,
-  refine ⟨exists_seq_tendsto_ae.seq_tendsto_ae_seq_strict_mono hfg,
-    measure_mono_null (λ x, _) hμs⟩,
+  refine ⟨exists_seq_tendsto_ae.seq_tendsto_ae_seq_strict_mono hfg, measure_mono_null (λ x, _) hμs⟩,
   rw [set.mem_set_of_eq, ← @not_not (x ∈ s), not_imp_not],
   exact h_tendsto x,
 end

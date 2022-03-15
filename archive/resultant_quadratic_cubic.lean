@@ -93,8 +93,8 @@ lemma resultant_eq_zero_of_common_root (hUV : ![U, V] ≠ 0) (hq : eval ![U, V] 
   (hc : eval ![U, V] (c b₀ b₁ b₂ b₃) = 0) :
   det (mat a₀ a₁ a₂ b₀ b₁ b₂ b₃) = 0 :=
 begin
-  simp only [q, c, algebra.smul_mul_assoc, _root_.map_add, smul_eval, map_pow, eval_X, cons_val_zero,
-    _root_.map_mul, cons_val_one, head_cons] at hq hc,
+  simp only [q, c, algebra.smul_mul_assoc, _root_.map_add, smul_eval, map_pow, eval_X,
+    cons_val_zero, _root_.map_mul, cons_val_one, head_cons] at hq hc,
   rw ← matrix.exists_mul_vec_eq_zero_iff,
   refine ⟨![U ^ 4, U ^ 3 * V, U ^ 2 * V ^ 2, U * V ^ 3, V ^ 4], _, _⟩,
   { contrapose! hUV,

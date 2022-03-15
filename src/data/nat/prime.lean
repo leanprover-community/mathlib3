@@ -181,6 +181,9 @@ theorem _root_.irreducible.dvd_mul {p m n : ℕ} (pp : irreducible p) : p ∣ m 
 ⟨λ H, or_iff_not_imp_left.2 $ λ h, (pp.coprime_iff_not_dvd.2 h).dvd_of_dvd_mul_left H,
  or.rec (λ h : p ∣ m, h.mul_right _) (λ h : p ∣ n, h.mul_left _)⟩
 
+theorem _root_.prime.dvd_mul {p m n : ℕ} (pp : prime p) : p ∣ m * n ↔ p ∣ m ∨ p ∣ n :=
+pp.irreducible.dvd_mul
+
 theorem _root_.irreducible_iff_nat_prime (a : ℕ) : irreducible a ↔ prime a :=
 ⟨λ h, ⟨h.ne_zero, h.not_unit, λ a b, h.dvd_mul.mp⟩, prime.irreducible⟩
 
@@ -1230,17 +1233,6 @@ lemma eq_two_pow_or_exists_odd_prime_and_dvd (n : ℕ) :
 end nat
 
 abbreviation nat.prime := @prime ℕ
-
-theorem prime.dvd_mul {p m n : ℕ} (pp : prime p) :
-p ∣ m * n ↔ p ∣ m ∨ p ∣ n :=
-begin
-  split,
-  apply pp.dvd_or_dvd,
-  rintro (h|h),
-  exact dvd_mul_of_dvd_left h n,
-  exact dvd_mul_of_dvd_right h m,
-end
-
 
 namespace int
 lemma prime_two : prime (2 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_two

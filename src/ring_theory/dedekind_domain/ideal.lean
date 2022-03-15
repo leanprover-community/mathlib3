@@ -6,6 +6,7 @@ Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 import algebraic_geometry.prime_spectrum.noetherian
 import ring_theory.fractional_ideal
 import ring_theory.dedekind_domain.basic
+import algebra.algebra.subalgebra.pointwise
 
 /-!
 # Dedekind domains and ideals
@@ -593,6 +594,7 @@ noncomputable instance ideal.cancel_comm_monoid_with_zero :
   cancel_comm_monoid_with_zero (ideal A) :=
 function.injective.cancel_comm_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
   coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
+  (ring_hom.map_pow _)
 
 /-- For ideals in a Dedekind domain, to divide is to contain. -/
 lemma ideal.dvd_iff_le {I J : ideal A} : (I ∣ J) ↔ J ≤ I :=

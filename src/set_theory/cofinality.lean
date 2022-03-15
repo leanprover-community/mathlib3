@@ -173,24 +173,24 @@ theorem cof_eq_Inf_lsub (o : ordinal.{u}) :
 begin
   refine le_antisymm (le_cInf (cof_lsub_def_nonempty o) _) (cInf_le' _),
   { rintros a ⟨ι, f, hf, rfl⟩,
-    rw ←type_out o,
+    rw ←type_lt o,
     refine (cof_type_le _ (λ a, _)).trans (@mk_le_of_injective _ _
-      (λ s : (typein o.out.r)⁻¹' (set.range f), classical.some s.prop)
+      (λ s : (typein ((<) : o.out.α → o.out.α → Prop))⁻¹' (set.range f), classical.some s.prop)
       (λ s t hst, let H := congr_arg f hst in by rwa [classical.some_spec s.prop,
         classical.some_spec t.prop, typein_inj, subtype.coe_inj] at H)),
     have := typein_lt_self a,
     simp_rw [←hf, lt_lsub_iff] at this,
     cases this with i hi,
-    refine ⟨enum o.out.r (f i) _, _, _⟩,
-    { rw [type_out, ←hf], apply lt_lsub },
+    refine ⟨enum (<) (f i) _, _, _⟩,
+    { rw [type_lt, ←hf], apply lt_lsub },
     { rw [mem_preimage, typein_enum], exact mem_range_self i },
     { rwa [←typein_le_typein, typein_enum] } },
-  { rcases cof_eq o.out.r with ⟨S, hS, hS'⟩,
-    let f : S → ordinal := λ s, typein o.out.r s,
+  { rcases cof_eq (<) with ⟨S, hS, hS'⟩,
+    let f : S → ordinal := λ s, typein (<) s.val,
     refine ⟨S, f, le_antisymm (lsub_le.2 (λ i, typein_lt_self i)) (le_of_forall_lt (λ a ha, _)),
-      by rwa type_out o at hS'⟩,
-    rw ←type_out o at ha,
-    rcases hS (enum o.out.r a ha) with ⟨b, hb, hb'⟩,
+      by rwa type_lt o at hS'⟩,
+    rw ←type_lt o at ha,
+    rcases hS (enum (<) a ha) with ⟨b, hb, hb'⟩,
     rw [←typein_le_typein, typein_enum] at hb',
     exact hb'.trans_lt (lt_lsub.{u u} f ⟨b, hb⟩) }
 end
@@ -404,9 +404,9 @@ theorem cof_bsup_le_lift {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, 
 induction_on o $ λ α r _ f H,
 begin
   resetI,
-  rw bsup_eq_sup' r rfl,
+  rw ←sup_eq_bsup' r rfl,
   refine cof_sup_le_lift _ _,
-  rw ← bsup_eq_sup',
+  rw sup_eq_bsup',
   exact λ a, H _ _
 end
 
@@ -578,6 +578,9 @@ theorem succ_is_regular {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) 
     rw [← lt_succ, ← lt_ord, ← αe, re],
     apply typein_lt_type }
 end⟩
+
+theorem is_regular_aleph_one : is_regular (aleph 1) :=
+by { rw ← succ_omega, exact succ_is_regular le_rfl }
 
 theorem aleph'_succ_is_regular {o : ordinal} (h : ordinal.omega ≤ o) : is_regular (aleph' o.succ) :=
 by { rw aleph'_succ, exact succ_is_regular (omega_le_aleph'.2 h) }

@@ -337,6 +337,21 @@ This is the intermediate field version of `subalgebra.inclusion`. -/
 def inclusion {E F : intermediate_field K L} (hEF : E ≤ F) : E →ₐ[K] F :=
 subalgebra.inclusion hEF
 
+lemma inclusion_injective {E F : intermediate_field K L} (hEF : E ≤ F) :
+  function.injective (inclusion hEF) :=
+λ _ _, subtype.ext ∘ subtype.mk.inj
+
+@[simp] lemma inclusion_self {E F : intermediate_field K L}:
+  inclusion (le_refl S) = alg_hom.id R S :=
+alg_hom.ext $ λ x, subtype.ext rfl
+
+@[simp] lemma inclusion_inclusion {E F G : intermediate_field K L} (hEF : E ≤ F) (hFG : F ≤ G)
+  (x : E) : inclusion hFG (inclusion hEF x) = inclusion (le_trans hEF hFG) x :=
+subtype.ext rfl
+
+@[simp] lemma coe_inclusion {E F : intermediate_field K L} (hEF : E ≤ F)  (e : E) :
+  (inclusion hEF e : L) = e := rfl
+
 variables {S}
 
 lemma to_subalgebra_injective {S S' : intermediate_field K L}

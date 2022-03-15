@@ -26,10 +26,10 @@ For sets or finsets `s` and `t` and scalar `a`:
 * `s • t`: Scalar multiplication, set of all `x • y` where `x ∈ s` and `y ∈ t`.
 * `s +ᵥ t`: Scalar addition, set of all `x +ᵥ y` where `x ∈ s` and `y ∈ t`.
 * `s -ᵥ t`: Scalar subtraction, set of all `x -ᵥ y` where `x ∈ s` and `y ∈ t`.
-* `a • s`: Scalar multiplication, set of all `a • x` where `x ∈ s`.
-* `a +ᵥ s`: Scalar addition, set of all `a +ᵥ x` where `x ∈ s`.
+* `a • s`: Scaling, set of all `a • x` where `x ∈ s`.
+* `a +ᵥ s`: Translation, set of all `a +ᵥ x` where `x ∈ s`.
 
-For `α` a semigroup, `set α` is a semigroup.
+For `α` a semigroup/monoid, `set α` is a semigroup/monoid.
 
 We define `set_semiring α`, an alias of `set α`, which we endow with `∪` as addition and `*` as
 multiplication. If `α` is a (commutative) monoid, `set_semiring α` is a (commutative) semiring.
@@ -614,8 +614,9 @@ end has_div
 /-TODO: The below instances are duplicate because there is no typeclass greater than
 `div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
 
-@[to_additive]
-instance [group α] : div_inv_monoid (set α) :=
+/-- `s / t = s * t⁻¹` for all `s t : set α` if `a / b = a * b⁻¹` for all `a b : α`. -/
+@[to_additive "`s - t = s + -t` for all `s t : set α` if `a - b = a + -b` for all `a b : α`."]
+protected def div_inv_monoid [group α] : div_inv_monoid (set α) :=
 { div_eq_mul_inv := λ s t, begin
     rw [←image2_div, ←image2_mul],
     convert (image2_image_right (*) has_inv.inv).symm,
@@ -625,7 +626,8 @@ instance [group α] : div_inv_monoid (set α) :=
   end,
   ..set.monoid, ..set.has_inv, ..set.has_div }
 
-instance set.div_inv_monoid' [group_with_zero α] : div_inv_monoid (set α) :=
+/-- `s / t = s * t⁻¹` for all `s t : set α` if `a / b = a * b⁻¹` for all `a b : α`. -/
+protected def div_inv_monoid' [group_with_zero α] : div_inv_monoid (set α) :=
 { div_eq_mul_inv := λ s t, begin
     rw [←image2_div, ←image2_mul],
     convert (image2_image_right (*) has_inv.inv).symm,
@@ -634,6 +636,9 @@ instance set.div_inv_monoid' [group_with_zero α] : div_inv_monoid (set α) :=
     { exact image_inv.symm }
   end,
   ..set.monoid, ..set.has_inv, ..set.has_div }
+
+localized "attribute [instance] set.div_inv_monoid set.div_inv_monoid' set.sub_neg_add_monoid"
+  in pointwise
 
 end div
 
@@ -952,9 +957,9 @@ section monoid
   multiplication `*` as "multiplication". -/
 @[derive [inhabited, partial_order, order_bot]] def set_semiring (α : Type*) : Type* := set α
 
-/-- The identitiy function `set α → set_semiring α`. -/
+/-- The identity function `set α → set_semiring α`. -/
 protected def up (s : set α) : set_semiring α := s
-/-- The identitiy function `set_semiring α → set α`. -/
+/-- The identity function `set_semiring α → set α`. -/
 protected def set_semiring.down (s : set_semiring α) : set α := s
 @[simp] protected lemma down_up {s : set α} : s.up.down = s := rfl
 @[simp] protected lemma up_down {s : set_semiring α} : s.down.up = s := rfl

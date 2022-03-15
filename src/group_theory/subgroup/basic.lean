@@ -436,6 +436,14 @@ by { ext, simp }
 instance : has_top (subgroup G) :=
 ⟨{ inv_mem' := λ _ _, set.mem_univ _ , .. (⊤ : submonoid G) }⟩
 
+/-- The top subgroup is isomorphic to the group.
+
+This is the group version of `submonoid.top_equiv`. -/
+@[to_additive "The top additive subgroup is isomorphic to the additive group.
+
+This is the additive group version of `add_submonoid.top_equiv`.", simps]
+def top_equiv : (⊤ : subgroup G) ≃* G := submonoid.top_equiv
+
 /-- The trivial subgroup `{1}` of an group `G`. -/
 @[to_additive "The trivial `add_subgroup` `{0}` of an `add_group` `G`."]
 instance : has_bot (subgroup G) :=

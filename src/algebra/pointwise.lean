@@ -31,8 +31,8 @@ For sets or finsets `s` and `t` and scalar `a`:
 
 For `α` a semigroup/monoid, `set α` is a semigroup/monoid.
 As an unfortunate side effect, this means that `n • s`, where `n : ℕ`, is ambiguous between
-pointwise scaling and repeated pointwise addition; the former has `(2 : ℕ) • {1, 2} = {2, 4}`, while the
-latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`.
+pointwise scaling and repeated pointwise addition; the former has `(2 : ℕ) • {1, 2} = {2, 4}`, while
+the latter has `(2 : ℕ) • {1, 2} = {2, 3, 4}`.
 
 We define `set_semiring α`, an alias of `set α`, which we endow with `∪` as addition and `*` as
 multiplication. If `α` is a (commutative) monoid, `set_semiring α` is a (commutative) semiring.

@@ -334,8 +334,7 @@ end
 /-- Let `L/K` be a field extension, and let `E ≤ F` be intermediate fields, where `hEF` is a term
   of type `E ≤ F`. Then `intermediate_field.inclusion hEF` is the `K`-algebra homomorphism
   `E →ₐ[K] F` given by inclusion. -/
-def inclusion {E F : intermediate_field K L} (hEF : E ≤ F):
-  E →ₐ[K] F :=
+def inclusion {E F : intermediate_field K L} (hEF : E ≤ F) : E →ₐ[K] F :=
 subalgebra.inclusion hEF
 
 variables {S}

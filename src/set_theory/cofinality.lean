@@ -241,7 +241,7 @@ theorem exists_blsub_cof (o : ordinal) : ∃ (f : Π a < (cof o).ord, ordinal), 
 begin
   rcases exists_lsub_cof o with ⟨ι, f, hf, hι⟩,
   rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
-  rw @lsub_eq_blsub' ι r hr at hf,
+  rw ←@blsub_eq_lsub' ι r hr at hf,
   rw [←hι, hι'],
   exact ⟨_, hf⟩
 end
@@ -253,7 +253,7 @@ theorem le_cof_iff_blsub {b : ordinal} {a : cardinal} :
   a ≤ cof b ↔ ∀ {o} (f : Π a < o, ordinal), blsub.{u u} o f = b → a ≤ o.card :=
 le_cof_iff_lsub.trans ⟨λ H o f hf, by simpa using H _ hf, λ H ι f hf, begin
   rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
-  rw @lsub_eq_blsub' ι r hr at hf,
+  rw ←@blsub_eq_lsub' ι r hr at hf,
   simpa using H _ hf
 end⟩
 

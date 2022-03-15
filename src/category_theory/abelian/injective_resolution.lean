@@ -11,16 +11,19 @@ import algebra.homology.homotopy_category
 # Main result
 
 When the underlying category is abelian:
-* Given `I : InjectiveResolution X` and `J : InjectiveResolution Y`, any morphism `X ⟶ Y` admits a
-  descent to a chain map `J.cocomplex ⟶ I.cocomplex`. It is a descent in the sense that `I.ι` and
-  `I.ι` intertwine the descent and the original morphism.
-* Any two such descents are homotopic.
-* As a consequence, if every object admits an injective resolution, we can construct a functor
-  `injective_resolutions C : C ⥤ homotopy_category C`.
+* `category_theory.InjectiveResolution.desc`: Given `I : InjectiveResolution X` and
+  `J : InjectiveResolution Y`, any morphism `X ⟶ Y` admits a descent to a chain map
+  `J.cocomplex ⟶ I.cocomplex`. It is a descent in the sense that `I.ι` intertwine the descent and
+  the original morphism, see `category_theory.InjectiveResolution.desc_commutes`.
+* `category_theory.InjectiveResolution.desc_homotopy`: Any two such descents are homotopic.
+* `category_theory.InjectiveResolution.homotopy_equiv`: Any two injective resolutions of the same
+  object are homotopy equivalent.
+* `category_theory.injective_resolutions`: If every object admits an injective resolution, we can
+  construct a functor `injective_resolutions C : C ⥤ homotopy_category C`.
 
-* `f` and `injective.d f` are exact.
-* Hence, starting from a monomorphism `X ⟶ J`, where `J` is injective, we can apply `injective.d`
-  repeatedly to obtain an injective resolution of `X`.
+* `category_theory.injective.exact_d_f`: `f` and `injective.d f` are exact.
+* `category_theory.InjectiveResolution.of`: Hence, starting from a monomorphism `X ⟶ J`, where `J`
+  is injective, we can apply `injective.d` repeatedly to obtain an injective resolution of `X`.
 -/
 
 noncomputable theory
@@ -190,11 +193,11 @@ def homotopy_equiv {X : C} (I J : InjectiveResolution X) :
     apply desc_id_homotopy,
   end }
 
-@[simp, reassoc] lemma homotopy_equiv_hom_π {X : C} (I J : InjectiveResolution X) :
+@[simp, reassoc] lemma homotopy_equiv_hom_ι {X : C} (I J : InjectiveResolution X) :
   I.ι ≫ (homotopy_equiv I J).hom = J.ι :=
 by simp [homotopy_equiv]
 
-@[simp, reassoc] lemma homotopy_equiv_inv_π {X : C} (I J : InjectiveResolution X) :
+@[simp, reassoc] lemma homotopy_equiv_inv_ι {X : C} (I J : InjectiveResolution X) :
   J.ι ≫ (homotopy_equiv I J).inv = I.ι :=
 by simp [homotopy_equiv]
 
@@ -256,15 +259,28 @@ lemma injective.exact_d_f {X Y : C} (f : X ⟶ Y) : exact f (d f) :=
 end
 
 namespace InjectiveResolution
+/-!
+Our goal is to define `InjectiveResolution.of Z : InjectiveResolution Z`.
+The `0`-th object in this resolution will just be `injective.under Z`,
+i.e. an arbitrarily chosen injective object with a map from `Z`.
+After that, we build the `n+1`-st object as `injective.syzygies`
+applied to the previously constructed morphism,
+and the map from the `n`-th object as `injective.d`.
+-/
 
 variables [abelian C] [enough_injectives C]
 
+/-- Auxiliary definition for `InjectiveResolution.of`. -/
 @[simps]
 def of_cocomplex (Z : C) : cochain_complex C ℕ :=
 cochain_complex.mk'
   (injective.under Z) (injective.syzygies (injective.ι Z)) (injective.d (injective.ι Z))
   (λ ⟨X, Y, f⟩, ⟨injective.syzygies f, injective.d f, (injective.exact_d_f f).w⟩)
 
+/--
+In any abelian category with enough injectives,
+`InjectiveResolution.of Z` constructs an injective resolution of the object `Z`.
+-/
 @[irreducible] def of (Z : C) : InjectiveResolution Z :=
 { cocomplex := of_cocomplex Z,
   ι := cochain_complex.mk_hom _ _ (injective.ι Z) 0

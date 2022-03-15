@@ -153,7 +153,11 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
               ≤ 4 ^ n.succ : primorial_le_4_pow (n + 1)
           ... ≤ 4 ^ (n + 2) : pow_le_pow (by norm_num) (nat.le_succ _), },
       { have n_zero : n = 0 := eq_bot_iff.2 (succ_le_succ_iff.1 n_le_one),
-        norm_num [n_zero, primorial, range_succ, prod_filter, nat.not_prime_zero, nat.prime_two] },
+        simp only [n_zero, primorial, range_succ, prod_filter, is_lawful_singleton.insert_emptyc_eq,
+          finset.prod_singleton, mul_one, prod_insert, range_zero, ite_mul, zero_add,
+          prod_insert_one, mul_ite, prod_congr, mul_zero] { discharger := `[norm_num] },
+        rw [if_neg not_prime_zero, if_pos nat.prime_two],
+        norm_num },
     end
 
 end

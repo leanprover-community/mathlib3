@@ -285,14 +285,14 @@ to_ideal_injective.eq_iff.symm
 instance : has_inf (homogeneous_ideal 𝒜) :=
 { inf := λ I J, ⟨I.to_ideal ⊓ J.to_ideal, I.is_homogeneous.inf J.is_homogeneous⟩ }
 
-@[simp] lemma to_ideal_inf (I J : homogeneous_ideal 𝒜) : (I ⊓ J).to_ideal = I.to_ideal ⊓ J.to_ideal :=
-rfl
+@[simp] lemma to_ideal_inf (I J : homogeneous_ideal 𝒜) :
+  (I ⊓ J).to_ideal = I.to_ideal ⊓ J.to_ideal := rfl
 
 instance : has_Inf (homogeneous_ideal 𝒜) :=
 ⟨λ ℐ, ⟨Inf (to_ideal '' ℐ), ideal.is_homogeneous.Inf $ λ _ ⟨I, _, hI⟩, hI ▸ I.is_homogeneous⟩⟩
 
-@[simp] lemma to_ideal_Inf (ℐ : set (homogeneous_ideal 𝒜)) : (Inf ℐ).to_ideal = Inf (to_ideal '' ℐ) :=
-rfl
+@[simp] lemma to_ideal_Inf (ℐ : set (homogeneous_ideal 𝒜)) :
+  (Inf ℐ).to_ideal = Inf (to_ideal '' ℐ) := rfl
 
 @[simp] lemma to_ideal_infi {ι' : Sort*} (s : ι' → homogeneous_ideal 𝒜) :
   (⨅ i, s i).to_ideal = ⨅ i, (s i).to_ideal :=
@@ -301,8 +301,8 @@ by rw [infi, infi, to_ideal_Inf, ←set.range_comp]
 instance : has_sup (homogeneous_ideal 𝒜) :=
 { sup := λ I J, ⟨I.to_ideal ⊔ J.to_ideal, I.is_homogeneous.sup J.is_homogeneous⟩ }
 
-@[simp] lemma to_ideal_sup (I J : homogeneous_ideal 𝒜) : (I ⊔ J).to_ideal = I.to_ideal ⊔ J.to_ideal :=
-rfl
+@[simp] lemma to_ideal_sup (I J : homogeneous_ideal 𝒜) :
+  (I ⊔ J).to_ideal = I.to_ideal ⊔ J.to_ideal := rfl
 
 instance : has_Sup (homogeneous_ideal 𝒜) :=
 ⟨λ ℐ, ⟨Sup (to_ideal '' ℐ), ideal.is_homogeneous.Sup $ λ _ ⟨I, _, hI⟩, hI ▸ I.is_homogeneous⟩⟩
@@ -320,8 +320,8 @@ to_ideal_injective.complete_lattice _ to_ideal_sup to_ideal_inf to_ideal_Sup to_
 
 instance : has_add (homogeneous_ideal 𝒜) := ⟨(⊔)⟩
 
-@[simp] lemma to_ideal_add (I J : homogeneous_ideal 𝒜) : (I + J).to_ideal = I.to_ideal + J.to_ideal :=
-rfl
+@[simp] lemma to_ideal_add (I J : homogeneous_ideal 𝒜) :
+  (I + J).to_ideal = I.to_ideal + J.to_ideal := rfl
 
 instance : inhabited (homogeneous_ideal 𝒜) := { default := ⊥ }
 

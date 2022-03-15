@@ -273,11 +273,13 @@ section
 variables {𝒪 K Γ : Type*}
   [comm_ring 𝒪] [is_domain 𝒪] [field K] [algebra 𝒪 K]
   [linear_ordered_comm_group_with_zero Γ]
-  (v : _root_.valuation K Γ) (hh : _root_.valuation.integers v 𝒪)
+  (v : _root_.valuation K Γ) (hh : v.integers 𝒪)
 
 include hh
 
-instance of_integers : valuation_ring 𝒪 :=
+/-- If `𝒪` satisfies `v.integers 𝒪` where `v` is a valuation on a field, then `𝒪`
+is a valuation ring. -/
+lemma of_integers : valuation_ring 𝒪 :=
 begin
   constructor,
   intros a b,
@@ -294,6 +296,7 @@ section
 
 variables (K : Type*) [field K]
 
+@[priority 100]
 instance of_field : valuation_ring K :=
 begin
   constructor,
@@ -309,6 +312,7 @@ section
 
 variables (A : Type*) [comm_ring A] [is_domain A] [discrete_valuation_ring A]
 
+@[priority 100]
 instance of_discrete_valuation_ring : valuation_ring A :=
 begin
   constructor,

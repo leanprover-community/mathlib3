@@ -148,9 +148,9 @@ lemma ideal.is_prime.homogeneous_core {I : ideal A} (h : I.is_prime) :
   (I.homogeneous_core 𝒜).to_ideal.is_prime :=
 begin
   apply (ideal.homogeneous_core 𝒜 I).is_homogeneous.is_prime_of_homogeneous_mem_or_mem,
-  { exact ne_top_of_le_ne_top h.ne_top (ideal.coe_homogeneous_core_le 𝒜 I) },
+  { exact ne_top_of_le_ne_top h.ne_top (ideal.to_ideal_homogeneous_core_le 𝒜 I) },
   rintros x y hx hy hxy,
-  have H := h.mem_or_mem (ideal.coe_homogeneous_core_le 𝒜 I hxy),
+  have H := h.mem_or_mem (ideal.to_ideal_homogeneous_core_le 𝒜 I hxy),
   refine H.imp _ _,
   { exact ideal.mem_homogeneous_core_of_is_homogeneous_of_mem hx, },
   { exact ideal.mem_homogeneous_core_of_is_homogeneous_of_mem hy, },
@@ -164,9 +164,9 @@ begin
   { exact Inf_le_Inf (λ J, and.right), },
   { refine Inf_le_Inf_of_forall_exists_le _,
     rintros J ⟨HJ₁, HJ₂⟩,
-    refine ⟨(J.homogeneous_core 𝒜).to_ideal, _, J.coe_homogeneous_core_le _⟩,
+    refine ⟨(J.homogeneous_core 𝒜).to_ideal, _, J.to_ideal_homogeneous_core_le _⟩,
     refine ⟨homogeneous_ideal.is_homogeneous _, _, HJ₂.homogeneous_core⟩,
-    refine hI.coe_homogeneous_core_eq_self.symm.trans_le (ideal.homogeneous_core_mono _ HJ₁), }
+    refine hI.to_ideal_homogeneous_core_eq_self.symm.trans_le (ideal.homogeneous_core_mono _ HJ₁), }
 end
 
 lemma ideal.is_homogeneous.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :
@@ -174,7 +174,7 @@ lemma ideal.is_homogeneous.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :
 begin
   convert (Inf {J : homogeneous_ideal 𝒜 | I ≤ J.to_ideal ∧ J.to_ideal.is_prime}).is_homogeneous
     using 2,
-  simp_rw [h.radical_eq, homogeneous_ideal.coe_Inf],
+  simp_rw [h.radical_eq, homogeneous_ideal.to_ideal_Inf],
   congr' 1,
   ext1,
   rw [set.mem_image, set.mem_set_of_eq],

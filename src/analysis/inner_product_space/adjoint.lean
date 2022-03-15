@@ -190,20 +190,26 @@ section unitary
 
 variables {U : (E →L[𝕜] E)}
 
+/-- forgetting continuity preserves composition -/
+@[simps]
+def _root_.continuous_linear_map.to_linear_map_hom :
+  (E →L[𝕜] E) →* (E →ₗ[𝕜] E) :=
+{ to_fun := continuous_linear_map.to_linear_map,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl }
+
+lemma norm_map_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) (x : E) : ∥U x∥ = ∥x∥ :=
+  by rw [←sq_eq_sq (norm_nonneg (U x)) (norm_nonneg x), norm_sq_eq_inner,
+    ←adjoint_inner_left, ←mul_apply, ←star_eq_adjoint, unitary.star_mul_self_of_mem hU, one_apply,
+    inner_self_eq_norm_sq]
+
 /-- Builds a linear isometric equivalence from `U ∈ unitary (E →L[𝕜] E)`. -/
 def linear_isometry_equiv_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) : (E ≃ₗᵢ[𝕜] E) :=
 { to_linear_equiv :=
     linear_map.general_linear_group.to_linear_equiv $
-      units.map (continuous_linear_map.to_linear_map_hom : (E →L[𝕜] E) →* _)
+      units.map (to_linear_map_hom : (E →L[𝕜] E) →* _)
         (unitary.to_units ⟨U, hU⟩),
-  norm_map' := λ x,
-    show ∥U x∥ = ∥x∥,
-    by rw [←sq_eq_sq (norm_nonneg (U x)) (norm_nonneg x), norm_sq_eq_inner,
-      ←adjoint_inner_left, ←mul_apply, ←star_eq_adjoint, unitary.star_mul_self_of_mem hU, one_apply,
-      inner_self_eq_norm_sq] }
-
-lemma norm_map_of_unitary (hU : U ∈ unitary (E →L[𝕜] E)) (x : E) : ∥U x∥ = ∥x∥ :=
-(linear_isometry_equiv_of_unitary hU).norm_map' _
+  norm_map' := norm_map_of_unitary hU }
 
 end unitary
 

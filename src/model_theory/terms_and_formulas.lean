@@ -488,7 +488,7 @@ inductive is_atomic : L.bounded_formula α n → Prop
     is_atomic (R.bounded_formula ts)
 
 /-- A slightly better-behaved version of `is_atomic.rec_on`.  -/
-def is_atomic.induction_on {P : L.bounded_formula α n → Sort*} {φ : L.bounded_formula α n}
+lemma is_atomic.induction_on {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
   (h : is_atomic φ)
   (he : ∀ (t₁ t₂ : L.term (α ⊕ fin n)), P (bd_equal t₁ t₂))
   (hr : ∀ {l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)), P (R.bounded_formula ts)) :
@@ -515,7 +515,7 @@ inductive is_qf : L.bounded_formula α n → Prop
 | imp {φ₁ φ₂} (h₁ : is_qf φ₁) (h₂ : is_qf φ₂) : is_qf (φ₁.imp φ₂)
 
 /-- A slightly better-behaved version of `is_qf.rec_on`, using `⊥` for `falsum`.  -/
-def is_qf.induction_on {P : L.bounded_formula α n → Sort*} {φ : L.bounded_formula α n}
+lemma is_qf.induction_on {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
   (h : is_qf φ)
   (hf : P (⊥ : L.bounded_formula α n))
   (ha : ∀ {ψ : L.bounded_formula α n}, is_atomic ψ → P ψ)
@@ -559,7 +559,7 @@ lemma is_atomic.is_prenex {φ : L.bounded_formula α n} (h : is_atomic φ) : is_
 h.is_qf.is_prenex
 
 /-- A slightly better-behaved version of `is_prenex.induction_on`.  -/
-def is_prenex.induction_on {P : ∀ {n}, L.bounded_formula α n → Sort*}
+lemma is_prenex.induction_on {P : ∀ {n}, L.bounded_formula α n → Prop}
   {φ : L.bounded_formula α n}
   (h : is_prenex φ)
   (hq : ∀ {m} {ψ : L.bounded_formula α m}, ψ.is_qf → P ψ)

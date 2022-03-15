@@ -73,7 +73,7 @@ end
 @[simp] def prime (n : pos_num) : Prop := nat.prime n
 
 instance decidable_prime : decidable_pred pos_num.prime
-| 1 := decidable.is_false nat.not_prime_one
+| 1 := decidable.is_false not_prime_one
 | (bit0 n) := decidable_of_iff' (n = 1) begin
     refine nat.prime_def_min_fac.trans ((and_iff_right _).trans $ eq_comm.trans _),
     { exact bit0_le_bit0.2 (to_nat_pos _) },
@@ -103,7 +103,7 @@ def min_fac : num → pos_num
 @[simp] def prime (n : num) : Prop := nat.prime n
 
 instance decidable_prime : decidable_pred num.prime
-| 0 := decidable.is_false nat.not_prime_zero
+| 0 := decidable.is_false not_prime_zero
 | (pos n) := pos_num.decidable_prime n
 
 end num

@@ -359,22 +359,22 @@ section π_kernel
 
 section
 variables (f : J → C) [has_biproduct f]
-variables (p : J → Prop) [has_biproduct (subtype.restrict f p)]
+variables (p : J → Prop) [has_biproduct (subtype.restrict p f)]
 
 /-- The canonical morphism from the biproduct over a restricted index type to the biproduct of
 the full index type. -/
-def biproduct.from_subtype : ⨁ subtype.restrict f p ⟶ ⨁ f :=
+def biproduct.from_subtype : ⨁ subtype.restrict p f ⟶ ⨁ f :=
 biproduct.desc $ λ j, biproduct.ι _ _
 
 /-- The canonical morophism from a biproduct to the biproduct over a restriction of its index
 type. -/
-def biproduct.to_subtype : ⨁ f ⟶ ⨁ subtype.restrict f p :=
+def biproduct.to_subtype : ⨁ f ⟶ ⨁ subtype.restrict p f :=
 biproduct.lift $ λ j, biproduct.π _ _
 
 @[simp, reassoc]
 lemma biproduct.from_subtype_π (j : J) [decidable (p j)] :
   biproduct.from_subtype f p ≫ biproduct.π f j =
-    if h : p j then biproduct.π (subtype.restrict f p) ⟨j, h⟩ else 0 :=
+    if h : p j then biproduct.π (subtype.restrict p f) ⟨j, h⟩ else 0 :=
 begin
   ext i,
   rw [biproduct.from_subtype, biproduct.ι_desc_assoc, biproduct.ι_π],
@@ -387,12 +387,12 @@ begin
 end
 
 lemma biproduct.from_subtype_eq_lift [decidable_pred p] : biproduct.from_subtype f p =
-    biproduct.lift (λ j, if h : p j then biproduct.π (subtype.restrict f p) ⟨j, h⟩ else 0) :=
+    biproduct.lift (λ j, if h : p j then biproduct.π (subtype.restrict p f) ⟨j, h⟩ else 0) :=
 biproduct.hom_ext _ _ (by simp)
 
 @[simp, reassoc]
 lemma biproduct.from_subtype_π_subtype (j : subtype p) :
-  biproduct.from_subtype f p ≫ biproduct.π f j = biproduct.π (subtype.restrict f p) j :=
+  biproduct.from_subtype f p ≫ biproduct.π f j = biproduct.π (subtype.restrict p f) j :=
 begin
   ext i,
   rw [biproduct.from_subtype, biproduct.ι_desc_assoc, biproduct.ι_π, biproduct.ι_π],
@@ -402,13 +402,13 @@ end
 
 @[simp, reassoc]
 lemma biproduct.to_subtype_π (j : subtype p) :
-  biproduct.to_subtype f p ≫ biproduct.π (subtype.restrict f p) j = biproduct.π f j :=
+  biproduct.to_subtype f p ≫ biproduct.π (subtype.restrict p f) j = biproduct.π f j :=
 biproduct.lift_π _ _
 
 @[simp, reassoc]
 lemma biproduct.ι_to_subtype (j : J) [decidable (p j)] :
   biproduct.ι f j ≫ biproduct.to_subtype f p =
-    if h : p j then biproduct.ι (subtype.restrict f p) ⟨j, h⟩ else 0 :=
+    if h : p j then biproduct.ι (subtype.restrict p f) ⟨j, h⟩ else 0 :=
 begin
   ext i,
   rw [biproduct.to_subtype, category.assoc, biproduct.lift_π, biproduct.ι_π],
@@ -421,12 +421,12 @@ begin
 end
 
 lemma biproduct.to_subtype_eq_desc [decidable_pred p] : biproduct.to_subtype f p =
-  biproduct.desc (λ j, if h : p j then biproduct.ι (subtype.restrict f p) ⟨j, h⟩ else 0) :=
+  biproduct.desc (λ j, if h : p j then biproduct.ι (subtype.restrict p f) ⟨j, h⟩ else 0) :=
 biproduct.hom_ext' _ _ (by simp)
 
 @[simp, reassoc]
 lemma biproduct.ι_to_subtype_subtype (j : subtype p) :
-  biproduct.ι f j ≫ biproduct.to_subtype f p = biproduct.ι (subtype.restrict f p) j :=
+  biproduct.ι f j ≫ biproduct.to_subtype f p = biproduct.ι (subtype.restrict p f) j :=
 begin
   ext i,
   rw [biproduct.to_subtype, category.assoc, biproduct.lift_π, biproduct.ι_π, biproduct.ι_π],
@@ -436,12 +436,12 @@ end
 
 @[simp, reassoc]
 lemma biproduct.ι_from_subtype (j : subtype p) :
-  biproduct.ι (subtype.restrict f p) j ≫ biproduct.from_subtype f p = biproduct.ι f j :=
+  biproduct.ι (subtype.restrict p f) j ≫ biproduct.from_subtype f p = biproduct.ι f j :=
 biproduct.ι_desc _ _
 
 @[simp, reassoc]
 lemma biproduct.from_subtype_to_subtype :
-  biproduct.from_subtype f p ≫ biproduct.to_subtype f p = 𝟙 (⨁ subtype.restrict f p) :=
+  biproduct.from_subtype f p ≫ biproduct.to_subtype f p = 𝟙 (⨁ subtype.restrict p f) :=
 begin
   refine biproduct.hom_ext _ _ (λ j, _),
   rw [category.assoc, biproduct.to_subtype_π, biproduct.from_subtype_π_subtype, category.id_comp]
@@ -460,7 +460,7 @@ end
 
 end
 
-variables (f : J → C) (i : J) [has_biproduct f] [has_biproduct (subtype.restrict f (λ j, i ≠ j))]
+variables (f : J → C) (i : J) [has_biproduct f] [has_biproduct (subtype.restrict (λ j, i ≠ j) f)]
 
 /-- The kernel of `biproduct.π f i` is the inclusion from the biproduct which omits `i`
 from the index set `J` into the biproduct over `J`. -/

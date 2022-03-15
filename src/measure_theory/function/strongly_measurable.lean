@@ -321,13 +321,13 @@ begin
   exact hf.measurable.strongly_measurable,
 end
 
-lemma strongly_measurable_id [topological_space α] [metrizable_space α] [opens_measurable_space α]
+lemma _root_.strongly_measurable_id [topological_space α] [metrizable_space α] [opens_measurable_space α]
   [second_countable_topology α] :
   strongly_measurable (id : α → α) :=
 measurable_id.strongly_measurable
 
 /-- In a space with second countable topology, strongly measurable and measurable are equivalent. -/
-lemma strongly_measurable_iff_measurable [metric_space β] [borel_space β]
+lemma _root_.strongly_measurable_iff_measurable [metric_space β] [borel_space β]
   [second_countable_topology β] :
   strongly_measurable f ↔ measurable f :=
 ⟨λ h, h.measurable, λ h, measurable.strongly_measurable h⟩
@@ -705,7 +705,7 @@ lemma _root_.ae_measurable.ae_strongly_measurable [metrizable_space β]
   ae_strongly_measurable f μ :=
 ⟨hf.mk f, hf.measurable_mk.strongly_measurable, hf.ae_eq_mk⟩
 
-lemma ae_strongly_measurable_id {α : Type*} [topological_space α] [metrizable_space α]
+lemma _root_.ae_strongly_measurable_id {α : Type*} [topological_space α] [metrizable_space α]
   {m : measurable_space α} [opens_measurable_space α] [second_countable_topology α]
   {μ : measure α} :
   ae_strongly_measurable (id : α → α) μ :=
@@ -910,8 +910,8 @@ hf.exists_set_sigma_finite.some_spec.2.2
 
 end ae_fin_strongly_measurable
 
-lemma measurable_uncurry_of_continuous_of_measurable {α β ι : Type*} [emetric_space ι]
-  [measurable_space ι] [second_countable_topology ι] [opens_measurable_space ι]
+lemma measurable_uncurry_of_continuous_of_measurable {α β ι : Type*} [topological_space ι]
+  [metrizable_space ι] [measurable_space ι] [second_countable_topology ι] [opens_measurable_space ι]
   {mβ : measurable_space β} [metric_space β] [borel_space β]
   {m : measurable_space α} {u : ι → α → β}
   (hu_cont : ∀ x, continuous (λ i, u i x)) (h : ∀ i, measurable (u i)) :

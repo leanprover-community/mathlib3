@@ -140,7 +140,7 @@ lemma eval_one_cyclotomic_not_prime_pow {R : Type*} [comm_ring R] {n : ℕ}
 begin
   rcases n.eq_zero_or_pos with rfl | hn',
   { simp },
-  have hn'' : 1 < n := one_lt_iff_ne_zero_and_ne_one.mpr ⟨hn'.ne', (h nat.prime_two 0).symm⟩,
+  have hn : 1 < n := one_lt_iff_ne_zero_and_ne_one.mpr ⟨hn'.ne', (h nat.prime_two 0).symm⟩,
   suffices : eval 1 (cyclotomic n ℤ) = 1 ∨ eval 1 (cyclotomic n ℤ) = -1,
   { cases this with h h,
     { have := eval_int_cast_map (int.cast_ring_hom R) (cyclotomic n ℤ) 1,
@@ -158,7 +158,7 @@ begin
         ←one_geom_sum, ←eval_geom_sum, ←prod_cyclotomic_eq_geom_sum hn'],
     apply eval_dvd,
     apply finset.dvd_prod_of_mem,
-    simpa using and.intro hn'.ne' hn''.ne' },
+    simpa using and.intro hn'.ne' hn.ne' },
 
   have := prod_cyclotomic_eq_geom_sum hn' ℤ,
   apply_fun eval 1 at this,
@@ -170,7 +170,7 @@ begin
   swap,
   { simp only [not_exists, true_and, exists_prop, dvd_rfl, finset.mem_image, finset.mem_range,
     finset.mem_singleton, finset.singleton_subset_iff, finset.mem_sdiff, nat.mem_divisors, not_and],
-    exact ⟨⟨hn'.ne', hn''.ne'⟩, λ t _, h hp _⟩ },
+    exact ⟨⟨hn'.ne', hn.ne'⟩, λ t _, h hp _⟩ },
   rw [←int.nat_abs_of_nat p, int.nat_abs_dvd_iff_dvd] at hpe,
   obtain ⟨t, ht⟩ := hpe,
   rw [finset.prod_singleton, ht, mul_left_comm, mul_comm, ←mul_assoc, mul_assoc] at this,
@@ -182,9 +182,10 @@ begin
     apply nat.succ_injective,
     exact nat.pow_right_injective hp.two_le hxy }
 end
+
 open_locale complex_conjugate nnreal
 
-section
+section is_R_or_C
 open is_R_or_C
 
 lemma eq_neg_iff {R : Type*} [ring R] [invertible (2 : R)] (x : R) :
@@ -198,9 +199,9 @@ lemma conj_eq_neg_iff {K : Type*} [is_R_or_C K] (z : K) :
   conj z = -z ↔ re z = 0 :=
 begin
   rw [← re_add_im z, ring_hom.map_add, ring_hom.map_mul, conj_of_real, conj_of_real, conj_I,
-    neg_add, re_add_im, mul_neg, add_left_inj, eq_neg_iff, of_real_eq_zero],
+      neg_add, re_add_im, mul_neg, add_left_inj, eq_neg_iff, of_real_eq_zero],
 end
-end
+end is_R_or_C
 
 @[simp]
 lemma key (n : ℕ) : conj (complex.exp (2 * ↑real.pi * complex.I / ↑n)) =
@@ -226,6 +227,8 @@ lemma helper {C R : Type*} (q : R) (n : ℕ) [ring C] [ring R] (f : R →+* C) :
   eval (f q) (cyclotomic n C) = f (eval q (cyclotomic n R)) :=
 by rw [← map_cyclotomic n f, eval_map, eval₂_at_apply]
 
+.
+
 lemma sub_one_pow_totient_lt_cyclotomic_eval (n : ℕ) (q : ℝ) (hn' : 2 ≤ n) (hq' : 1 < q) :
   (q - 1) ^ totient n < (cyclotomic n ℝ).eval q :=
 begin
@@ -234,16 +237,16 @@ begin
   { intros ζ' hζ',
     rw mem_primitive_roots hn at hζ',
     have norm_ζ' : ∥ζ'∥ = 1 := hζ'.nnnorm_eq_one hn.ne',
-    rw ← nnreal.coe_le_coe,
-    simp only [coe_nnnorm, subtype.coe_mk, complex.norm_eq_abs],
+    simp only [← nnreal.coe_le_coe, coe_nnnorm, subtype.coe_mk, complex.norm_eq_abs],
     convert norm_sub_norm_le (↑q) ζ',
-    rw [complex.norm_real, real.norm_of_nonneg (zero_le_one.trans_lt hq').le],
-    rw norm_ζ',
+    rw [complex.norm_real, real.norm_of_nonneg (zero_le_one.trans_lt hq').le, norm_ζ'],
     simp [hq'.le], },
   let ζ := complex.exp (2 * ↑real.pi * complex.I / ↑n),
   have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn.ne',
   have hex : ∃ ζ' ∈ primitive_roots n ℂ, real.to_nnreal (q - 1) < ∥↑q - ζ'∥₊,
-  { use ζ,
+  -- todo: when Yael gets the strictly convex stuff in master, this will be very easy
+  -- (the triangle inequality will be strict as q and ζ are not in the `same_ray`)
+  sorry;{ use ζ,
     rw ← mem_primitive_roots hn at hζ,
     refine ⟨hζ, _⟩,
     apply lt_of_le_of_ne (hfor ζ hζ),
@@ -292,35 +295,26 @@ begin
     exact (cyclotomic_pos' n hq').ne.symm, },
   suffices : (units.mk0 (real.to_nnreal (q - 1)) (by simp [hq'])) ^ totient n
               < units.mk0 (∥(cyclotomic n ℂ).eval q∥₊) (by simp [this]),
-  { rw ← units.coe_lt_coe at this,
-    simp only [units.coe_pow, units.coe_mk0] at this,
-    rw ← nnreal.coe_lt_coe at this,
-    simp only [hq'.le, nnreal.coe_pow, real.coe_to_nnreal', max_eq_left, sub_nonneg,
-      real.to_nnreal_lt_to_nnreal_iff_of_nonneg, coe_nnnorm, complex.norm_eq_abs] at this,
+  { simp only [←units.coe_lt_coe, units.coe_pow, units.coe_mk0, ← nnreal.coe_lt_coe, hq'.le,
+               real.to_nnreal_lt_to_nnreal_iff_of_nonneg, coe_nnnorm, complex.norm_eq_abs,
+               nnreal.coe_pow, real.coe_to_nnreal', max_eq_left, sub_nonneg] at this,
     convert this,
     erw (helper q n (algebra_map ℝ ℂ)),
     symmetry,
     simp [cyclotomic_nonneg n hq'.le], },
   simp only [cyclotomic_eq_prod_X_sub_primitive_roots hζ, eval_prod, eval_C,
-    eval_X, eval_sub, nnnorm_prod],
-  rw units.mk0_prod,
+             eval_X, eval_sub, nnnorm_prod, units.mk0_prod],
   convert prod_lt_prod' _ _,
-  swap,
-  exact λ _, units.mk0 (real.to_nnreal (q - 1)) (by simp [hq']),
+  swap, { exact λ _, units.mk0 (real.to_nnreal (q - 1)) (by simp [hq']) },
   { simp [complex.card_primitive_roots], }, -- TODO make this and card roots of unity a simp lemma
-  { simp only [subtype.coe_mk, mem_attach, forall_true_left, subtype.forall],
-    intros ζ' hζ',
-    rw ← units.coe_le_coe,
-    simp only [units.coe_mk0],
-    exact hfor ζ' hζ', },
-  { simp only [subtype.coe_mk, mem_attach, exists_true_left, subtype.exists],
-    simp_rw [← units.coe_lt_coe],
-    simp only [units.coe_mk0],
-    exact hex, },
+  { simpa only [subtype.coe_mk, mem_attach, forall_true_left, subtype.forall, ←units.coe_le_coe] },
+  { simpa only [subtype.coe_mk, mem_attach, exists_true_left, subtype.exists, ←units.coe_lt_coe] },
 end
 
-.
 
+#exit
+.
+-- what's the correct statement? this is the above inequality flipped
 lemma cyclotomic_eval_lt_sub_one_pow_totient (n : ℕ) (q : ℝ) (hn' : 3 ≤ n) (hq' : 1 < q) :
   (cyclotomic n ℝ).eval q < (q - 1) ^ totient n :=
 sorry -- similar proof, todo is it possible to combine both proofs

@@ -10,7 +10,7 @@ import set_theory.cardinal_ordinal
 
 /-!
 # Basics on First-Order Structures
-This file defines first-order languages and structures in the style of the
+This file defines first-order languages and structures in a style inspired by the
 [Flypitch project](https://flypitch.github.io/).
 
 ## Main Definitions
@@ -29,6 +29,13 @@ equivalence once it is known that this is equivalent to the proof-theoretic defi
 ## Main Results
 * `first_order.language.term.card_le` shows that the number of terms in `L.term α` is at most
 `# (α ⊕ Σ i, L.functions i) + ω`.
+
+## Implementation Notes
+* Formulas use a modified version of de Bruijn variables. Specifically, a `L.bounded_formula α n`
+is a formula with some variables indexed by a type `α`, which cannot be quantified over, and some
+indexed by `fin n`, which can. For any `φ : L.bounded_formula α (n + 1)`, we define the formula
+`∀' φ : L.bounded_formula α n` by universally quantifying over the variable indexed by
+`n : fin (n + 1)`.
 
 ## References
 For the Flypitch project:
@@ -260,13 +267,13 @@ instance : has_sup (L.bounded_formula α n) := ⟨λ f g, f.not.imp g⟩
 protected def iff (φ ψ : L.bounded_formula α n) := φ.imp ψ ⊓ ψ.imp φ
 
 /-- Casts `L.bounded_formula α m` as `L.bounded_formula α n`, where `m = n`. -/
-def cast : ∀ {m n : ℕ} (h : m = n), L.bounded_formula α m → L.bounded_formula α n
+def cast_le : ∀ {m n : ℕ} (h : m ≤ n), L.bounded_formula α m → L.bounded_formula α n
 | m n h falsum := falsum
-| m n h (equal t₁ t₂) := (t₁.relabel (sum.map id (fin.cast h))).bd_equal
-    (t₂.relabel (sum.map id (fin.cast h)))
-| m n h (rel R ts) := R.bounded_formula (term.relabel (sum.map id (fin.cast h)) ∘ ts)
-| m n h (imp f₁ f₂) := (f₁.cast h).imp (f₂.cast h)
-| m n h (all f) := (f.cast (congr rfl h)).all
+| m n h (equal t₁ t₂) := (t₁.relabel (sum.map id (fin.cast_le h))).bd_equal
+    (t₂.relabel (sum.map id (fin.cast_le h)))
+| m n h (rel R ts) := R.bounded_formula (term.relabel (sum.map id (fin.cast_le h)) ∘ ts)
+| m n h (imp f₁ f₂) := (f₁.cast_le h).imp (f₂.cast_le h)
+| m n h (all f) := (f.cast_le (add_le_add_right h 1)).all
 
 /-- A function to help relabel the variables in bounded formulas. -/
 def relabel_aux (g : α → (β ⊕ fin n)) (k : ℕ) :
@@ -311,7 +318,7 @@ def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_f
 | n n' m (equal t₁ t₂) := (t₁.lift_at n' m).bd_equal (t₂.lift_at n' m)
 | n n' m (rel R ts) := R.bounded_formula (term.lift_at n' m ∘ ts)
 | n n' m (imp f₁ f₂) := (f₁.lift_at n' m).imp (f₂.lift_at n' m)
-| n n' m (all f) := ((f.lift_at n' m).cast (by rw [add_assoc, add_comm 1, ← add_assoc])).all
+| n n' m (all f) := ((f.lift_at n' m).cast_le (by rw [add_assoc, add_comm 1, ← add_assoc])).all
 
 /-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
 def realize :
@@ -370,19 +377,18 @@ end
 @[simp] lemma realize_iff : (φ.iff ψ).realize v xs ↔ (φ.realize v xs ↔ ψ.realize v xs) :=
 by simp only [bounded_formula.iff, realize_inf, realize_imp, and_imp, ← iff_def]
 
-@[simp] lemma realize_cast {m n : ℕ} {h : m = n} {φ : L.bounded_formula α m}
+lemma realize_cast_le_of_eq {m n : ℕ} (h : m = n) {h' : m ≤ n} {φ : L.bounded_formula α m}
   {v : α → M} {xs : fin n → M} :
-  (φ.cast h).realize v xs ↔ φ.realize v (xs ∘ fin.cast h) :=
+  (φ.cast_le h').realize v xs ↔ φ.realize v (xs ∘ fin.cast h) :=
 begin
-  revert n,
-  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 k _ ih3; intros n h xs,
-  { simp [cast, realize] },
-  { simp only [cast, realize, realize_bd_equal, term.realize_relabel, sum.elim_comp_map,
-      function.comp.right_id], },
-  { simp only [cast, realize, realize_rel, term.realize_relabel, sum.elim_comp_map,
-      function.comp.right_id] },
-  { simp only [cast, realize, ih1, ih2] },
-  { simp only [cast, realize, ih3],
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 k _ ih3 generalizing n xs h h',
+  { simp [cast_le, realize] },
+  { simp only [cast_le, realize, realize_bd_equal, term.realize_relabel, sum.elim_comp_map,
+      function.comp.right_id, cast_le_of_eq h], },
+  { simp only [cast_le, realize, realize_rel, term.realize_relabel, sum.elim_comp_map,
+      function.comp.right_id, cast_le_of_eq h] },
+  { simp only [cast_le, realize, ih1 h, ih2 h], },
+  { simp only [cast_le, realize, ih3 (nat.succ_inj'.2 h)],
     refine forall_congr (λ x, iff_eq_eq.mpr (congr rfl (funext (last_cases _ (λ i, _))))),
     { rw [function.comp_app, snoc_last, cast_last, snoc_last] },
     { rw [function.comp_app, snoc_cast_succ, cast_cast_succ, snoc_cast_succ] } }
@@ -419,7 +425,9 @@ begin
   { simp only [lift_at, realize, realize_rel, realize_lift_at, sum.elim_comp_map,
       function.comp.right_id] },
   { simp only [lift_at, realize, ih1 hmn, ih2 hmn], },
-  { simp only [lift_at, realize, realize_cast, ih3 (hmn.trans k.succ.le_succ)],
+  { have h : k + 1 + n' = k + n'+ 1,
+    { rw [add_assoc, add_comm 1 n', ← add_assoc], },
+    simp only [lift_at, realize, realize_cast_le_of_eq h, ih3 (hmn.trans k.succ.le_succ)],
     refine forall_congr (λ x, iff_eq_eq.mpr (congr rfl (funext (fin.last_cases _ (λ i, _))))),
     { simp only [function.comp_app, coe_last, snoc_last],
       by_cases (k < m),

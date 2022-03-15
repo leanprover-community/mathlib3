@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
 import analysis.normed.normed_field
-import analysis.seminorm
+import analysis.locally_convex.basic
 import topology.algebra.module.basic
 import topology.bornology.basic
 
@@ -104,4 +104,3 @@ bornology.of_bounded (set_of (is_bounded 𝕜)) (is_bounded.empty 𝕜 E)
 end normed_field
 
 end topological_space
-

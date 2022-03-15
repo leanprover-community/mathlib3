@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 
-/--  This file proves some general facts about even and odd elements of semirings. -/
+/-!  This file proves some general facts about even and odd elements of semirings. -/
 import algebra.ring.basic
 
 variables {α : Type*}

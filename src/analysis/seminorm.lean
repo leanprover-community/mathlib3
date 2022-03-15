@@ -559,8 +559,8 @@ set.ext $ λ _, by rw [mem_preimage, mem_ball, mem_ball,
 
 end normed_field
 
-section normed_linear_ordered_field
-variables [normed_linear_ordered_field 𝕜] [add_comm_group E] [normed_space ℝ 𝕜] [module 𝕜 E]
+section convex
+variables [normed_field 𝕜] [add_comm_group E] [normed_space ℝ 𝕜] [module 𝕜 E]
 
 section has_scalar
 variables [has_scalar ℝ E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E)
@@ -592,7 +592,7 @@ begin
 end
 
 end module
-end normed_linear_ordered_field
+end convex
 end seminorm
 
 /-! ### The norm as a seminorm -/
@@ -933,7 +933,7 @@ section locally_convex_space
 
 open locally_convex_space
 
-variables [nonempty ι] [normed_linear_ordered_field 𝕜] [normed_space ℝ 𝕜]
+variables [nonempty ι] [normed_field 𝕜] [normed_space ℝ 𝕜]
   [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
   [topological_add_group E]
 
@@ -956,7 +956,7 @@ end seminorm
 
 section normed_space
 
-variables (𝕜) [normed_linear_ordered_field 𝕜] [normed_space ℝ 𝕜] [semi_normed_group E]
+variables (𝕜) [normed_field 𝕜] [normed_space ℝ 𝕜] [semi_normed_group E]
 
 /-- Not an instance since `𝕜` can't be inferred. See `normed_space.to_locally_convex_space` for a
 slightly weaker instance version. -/

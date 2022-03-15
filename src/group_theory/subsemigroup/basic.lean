@@ -341,7 +341,8 @@ def eq_mlocus (f g : mul_hom M N) : subsemigroup M :=
   mul_mem' := λ x y (hx : _ = _) (hy : _ = _), by simp [*] }
 
 /-- If two mul homomorphisms are equal on a set, then they are equal on its subsemigroup closure. -/
-@[to_additive]
+@[to_additive "If two add homomorphisms are equal on a set,
+then they are equal on its additive subsemigroup closure."]
 lemma eq_on_mclosure {f g : mul_hom M N} {s : set M} (h : set.eq_on f g s) :
   set.eq_on f g (closure s) :=
 show closure s ≤ f.eq_mlocus g, from closure_le.2 h

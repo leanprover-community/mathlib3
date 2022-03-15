@@ -39,11 +39,11 @@ instance group (x : X) : group (fundamental_group X x) := Aut.group x
 
 instance inhabited : inhabited (fundamental_group X x₀) := Aut.inhabited x₀
 
+/-- Get an isomorphism between the fundamental groups at two points given a path-/
 def iso_fundamental_group_of_path (p : path x₀ x₁) :
   fundamental_group X x₀ ≃* fundamental_group X x₁ := Aut.iso_Aut_of_iso (as_iso ⟦p⟧)
 
-/-- The fundamental group of a path connected space is independent of the choice
-of basepoint. -/
+/-- The fundamental group of a path connected space is independent of the choice of basepoint. -/
 def iso_fundamental_group_of_path_connected [path_connected_space X] :
   (fundamental_group X x₀) ≃* (fundamental_group X x₁) :=
 iso_fundamental_group_of_path (path_connected_space.some_path x₀ x₁)

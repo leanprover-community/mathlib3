@@ -85,7 +85,7 @@ end
 
 variables [is_domain A] [valuation_ring A] [is_fraction_ring A K]
 
-lemma le_total (a b : value_group A K) : a ≤ b ∨ b ≤ a :=
+protected lemma le_total (a b : value_group A K) : a ≤ b ∨ b ≤ a :=
 begin
   rcases a with ⟨a⟩, rcases b with ⟨b⟩,
   obtain ⟨xa,ya,hya,rfl⟩ : ∃ (a b : A), _ := is_fraction_ring.div_surjective a,
@@ -125,7 +125,7 @@ instance : linear_ordered_comm_group_with_zero (value_group A K) :=
     apply quotient.sound',
     use [this.unit, rfl],
   end,
-  le_total := le_total _ _,
+  le_total := valuation_ring.le_total _ _,
   decidable_le := by { classical, apply_instance },
   mul_assoc := by { rintros ⟨a⟩ ⟨b⟩ ⟨c⟩, apply quotient.sound', rw mul_assoc, apply setoid.refl' },
   one_mul := by { rintros ⟨a⟩, apply quotient.sound', rw one_mul, apply setoid.refl' },
@@ -281,7 +281,7 @@ instance of_integers : valuation_ring 𝒪 :=
 begin
   constructor,
   intros a b,
-  cases _root_.le_total (v (algebra_map 𝒪 K a)) (v (algebra_map 𝒪 K b)),
+  cases le_total (v (algebra_map 𝒪 K a)) (v (algebra_map 𝒪 K b)),
   { obtain ⟨c,hc⟩ := valuation.integers.dvd_of_le hh h,
     use c, exact or.inr hc.symm },
   { obtain ⟨c,hc⟩ := valuation.integers.dvd_of_le hh h,
@@ -318,7 +318,7 @@ begin
   obtain ⟨ϖ,hϖ⟩ := discrete_valuation_ring.exists_irreducible A,
   obtain ⟨m,u,rfl⟩ := discrete_valuation_ring.eq_unit_mul_pow_irreducible ha hϖ,
   obtain ⟨n,v,rfl⟩ := discrete_valuation_ring.eq_unit_mul_pow_irreducible hb hϖ,
-  cases _root_.le_total m n with h h,
+  cases le_total m n with h h,
   { use (u⁻¹ * v : Aˣ) * ϖ^(n-m), left,
     simp_rw [mul_comm (u : A), units.coe_mul, ← mul_assoc, mul_assoc _ (u : A)],
     simp only [units.mul_inv, mul_one, mul_comm _ (v : A), mul_assoc, ← pow_add],

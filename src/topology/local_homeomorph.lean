@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import data.equiv.local_equiv
-import topology.opens
+import topology.sets.opens
 
 /-!
 # Local homeomorphisms
@@ -1012,7 +1012,7 @@ noncomputable def subtype_restr : local_homeomorph s β := s.local_homeomorph_su
 lemma subtype_restr_def : e.subtype_restr s = s.local_homeomorph_subtype_coe.trans e := rfl
 
 @[simp, mfld_simps] lemma subtype_restr_coe : ((e.subtype_restr s : local_homeomorph s β) : s → β)
-  = set.restrict (e : α → β) s := rfl
+  = set.restrict ↑s (e : α → β) := rfl
 
 @[simp, mfld_simps] lemma subtype_restr_source : (e.subtype_restr s).source = coe ⁻¹' e.source :=
 by simp only [subtype_restr_def] with mfld_simps

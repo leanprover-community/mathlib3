@@ -25,9 +25,9 @@ We also show that valuation rings are local and that their lattice of ideals is 
 
 /-- An integral domain is called a `valuation ring` provided that for any pair
 of elements `a b : A`, either `a` divides `b` or vice versa. -/
+
 class valuation_ring (A : Type*) [comm_ring A] [is_domain A] : Prop :=
 (cond [] : ∀ a b : A, ∃ c : A, a * c = b ∨ b * c = a)
-
 
 namespace valuation_ring
 

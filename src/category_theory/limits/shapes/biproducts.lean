@@ -1210,6 +1210,10 @@ def is_bilimit_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j 
       dsimp, simp,
     end } }
 
+lemma is_bilimit.total {f : J → C} {b : bicone f} (i : b.is_bilimit) :
+  ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X :=
+i.is_limit.hom_ext (λ j, by simp [sum_comp, b.ι_π, comp_dite])
+
 /--
 In a preadditive category, we can construct a biproduct for `f : J → C` from
 any bicone `b` for `f` satisfying `total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X`.
@@ -1276,10 +1280,7 @@ In any preadditive category, any biproduct satsifies
 `∑ j : J, biproduct.π f j ≫ biproduct.ι f j = 𝟙 (⨁ f)`
 -/
 @[simp] lemma biproduct.total : ∑ j : J, biproduct.π f j ≫ biproduct.ι f j = 𝟙 (⨁ f) :=
-begin
-  ext j j',
-  simp [comp_sum, sum_comp, biproduct.ι_π, comp_dite, dite_comp],
-end
+is_bilimit.total (biproduct.is_bilimit _)
 
 lemma biproduct.lift_eq {T : C} {g : Π j, T ⟶ f j} :
   biproduct.lift g = ∑ j, g j ≫ biproduct.ι f j :=
@@ -1357,6 +1358,10 @@ def is_binary_bilimit_of_total {X Y : C} (b : binary_bicone X Y)
     uniq' := λ s m h, by erw [←category.id_comp m, ←total,
       add_comp, category.assoc, category.assoc, h walking_pair.left, h walking_pair.right],
     fac' := λ s j, by cases j; simp, } }
+
+lemma is_bilimit.binary_total {X Y : C} {b : binary_bicone X Y} (i : b.is_bilimit) :
+  b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X :=
+i.is_limit.hom_ext (λ j, by { cases j; simp, })
 
 /--
 In a preadditive category, we can construct a binary biproduct for `X Y : C` from

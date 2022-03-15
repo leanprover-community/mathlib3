@@ -932,4 +932,3 @@ def krull_topology_profinite {K L : Type*} [field K] [field L] [algebra K L]
 Profinite :=
 { to_CompHaus := krull_topology_comphaus h_int,
   is_totally_disconnected := krull_topology_totally_disconnected_space h_int}
-#lint

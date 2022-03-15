@@ -743,6 +743,10 @@ begin
   { exact mul_is_limit l.pos lb }
 end
 
+theorem smul_eq_mul {a : ordinal} : ∀ {n : ℕ}, n • a = a * n
+| 0       := by rw [zero_smul, nat.cast_zero, mul_zero]
+| (n + 1) := by rw [succ_nsmul', nat.cast_add, mul_add, nat.cast_one, mul_one, smul_eq_mul]
+
 /-! ### Division on ordinals -/
 
 protected lemma div_aux (a b : ordinal.{u}) (h : b ≠ 0) : set.nonempty {o | a < b * succ o} :=

@@ -922,6 +922,14 @@ def split_mono_of_equalizer {X Y : C} {f : X ⟶ Y} {r : Y ⟶ X} (hr : f ≫ r 
   id' := fork.is_limit.hom_ext h
     ((category.assoc _ _ _).trans $ hr.trans (category.id_comp _).symm) }
 
+
+def comp_mono_equalizes {c : fork f g} (i : is_limit c) {Z : C} (h : Y ⟶ Z) [hm : mono h] :
+  is_limit (fork.of_ι c.ι (by simp) : fork (f ≫ h) (g ≫ h)) :=
+fork.is_limit.mk' _ $ λ s,
+  let s' : fork f g := fork.of_ι s.ι (by apply hm.right_cancellation; simp only [s.condition, category.assoc]) in
+  let l := fork.is_limit.lift' i s'.ι s'.condition in
+  ⟨l.1, l.2, λ m hm, by { apply fork.is_limit.hom_ext i, rw fork.ι_of_ι at hm, rw hm, exact l.2.symm }⟩
+
 /-- An equalizer of an idempotent morphism and the identity is split mono. -/
 def split_mono_of_idempotent_of_is_limit_fork {X : C} {f : X ⟶ X} (hf : f ≫ f = f)
   {c : fork f (𝟙 X)} (i : is_limit c) : split_mono c.ι :=

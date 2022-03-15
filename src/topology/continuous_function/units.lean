@@ -24,7 +24,7 @@ variables [monoid β] [topological_space β] [has_continuous_mul β]
 
 /-- Equivalence between continuous maps into the units of a monoid with continuous multiplication
 and the units of the monoid of continuous maps. -/
-@[to_additive add_units_lift, simps]
+@[to_additive, simps]
 def units_lift : C(α, βˣ) ≃ C(α, β)ˣ :=
 { to_fun := λ f,
   { val := ⟨λ x, f x, units.continuous_coe.comp f.continuous⟩,

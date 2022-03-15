@@ -165,7 +165,7 @@ begin
   exact lift_f_succ P Q n g g' w,
 end
 
-/-- The resolution maps interwine the lift of a morphism and that morphism. -/
+/-- The resolution maps intertwine the lift of a morphism and that morphism. -/
 @[simp, reassoc]
 lemma lift_commutes
   {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :

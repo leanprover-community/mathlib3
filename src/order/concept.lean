@@ -100,11 +100,11 @@ lemma subset_intent_closure_extent_closure (t : set β) :
   t ⊆ intent_closure r (extent_closure r t) :=
 subset_extent_closure_intent_closure _ t
 
-lemma intent_closure_extent_closure_intent_closure (s : set α) :
+@[simp] lemma intent_closure_extent_closure_intent_closure (s : set α) :
   intent_closure r (extent_closure r $ intent_closure r s) = intent_closure r s :=
 (gc_intent_closure_extent_closure r).l_u_l_eq_l _
 
-lemma extent_closure_intent_closure_extent_closure (t : set β) :
+@[simp] lemma extent_closure_intent_closure_extent_closure (t : set β) :
   extent_closure r (intent_closure r $ extent_closure r t) = extent_closure r t :=
 intent_closure_extent_closure_intent_closure _ t
 
@@ -242,15 +242,15 @@ instance : inhabited (concept α β r) := ⟨⊥⟩
 @[simps] def swap (c : concept α β r) : concept β α (swap r) :=
 ⟨c.to_prod.swap, c.closure_snd, c.closure_fst⟩
 
-lemma swap_swap (c : concept α β r) : c.swap.swap = c := ext rfl
+@[simp] lemma swap_swap (c : concept α β r) : c.swap.swap = c := ext rfl
 
-lemma swap_le_swap_iff : c.swap ≤ d.swap ↔ d ≤ c := snd_subset_snd_iff
-lemma swap_lt_swap_iff : c.swap < d.swap ↔ d < c := snd_ssubset_snd_iff
+@[simp] lemma swap_le_swap_iff : c.swap ≤ d.swap ↔ d ≤ c := snd_subset_snd_iff
+@[simp] lemma swap_lt_swap_iff : c.swap < d.swap ↔ d < c := snd_ssubset_snd_iff
 
 /-- The dual of a concept lattice is isomorphic to the concept lattice of the dual context. -/
-def swap_equiv : order_dual (concept α β r) ≃o concept β α (function.swap r) :=
-{ to_fun := swap,
-  inv_fun := swap,
+@[simps] def swap_equiv : order_dual (concept α β r) ≃o concept β α (function.swap r) :=
+{ to_fun := swap ∘ of_dual,
+  inv_fun := to_dual ∘ swap,
   left_inv := swap_swap,
   right_inv := swap_swap,
   map_rel_iff' := λ c d, swap_le_swap_iff }

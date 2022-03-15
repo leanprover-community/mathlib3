@@ -74,6 +74,26 @@ begin
     intros c x, convert (this (e.symm c) x).symm, simp only [e.apply_symm_apply] },
 end
 
+lemma polynomial.not_is_field : ¬ is_field Fq[X] :=
+begin
+  rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
+  use ideal.span{polynomial.X},
+  split,
+  { rw [bot_lt_iff_ne_bot, ne.def, ideal.span_singleton_eq_bot],
+    exact polynomial.X_ne_zero, },
+  { rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ideal.mem_span_singleton,
+      polynomial.X_dvd_iff, polynomial.coeff_one_zero],
+    exact one_ne_zero, }
+end
+
+lemma algebra_map_injective [algebra Fq[X] F] [algebra (ratfunc Fq) F] [function_field Fq F]
+  [is_scalar_tower Fq[X] (ratfunc Fq) F] : function.injective ⇑(algebra_map Fq[X] F) :=
+begin
+  rw is_scalar_tower.algebra_map_eq Fq[X] (ratfunc Fq) F,
+  exact function.injective.comp ((algebra_map (ratfunc Fq) F).injective)
+    (is_fraction_ring.injective Fq[X] (ratfunc Fq)),
+end
+
 namespace function_field
 
 /-- The function field analogue of `number_field.ring_of_integers`:
@@ -106,6 +126,25 @@ integral_closure.is_integrally_closed_of_finite_extension (ratfunc Fq)
 instance [is_separable (ratfunc Fq) F] :
   is_dedekind_domain (ring_of_integers Fq F) :=
 is_integral_closure.is_dedekind_domain Fq[X] (ratfunc Fq) F _
+
+lemma algebra_map_injective :
+  function.injective ⇑(algebra_map Fq[X] (ring_of_integers Fq F)) :=
+begin
+  have hinj : function.injective ⇑(algebra_map Fq[X] F),
+  { rw is_scalar_tower.algebra_map_eq Fq[X] (ratfunc Fq) F,
+    exact function.injective.comp ((algebra_map (ratfunc Fq) F).injective)
+      (is_fraction_ring.injective Fq[X] (ratfunc Fq)), },
+  rw (algebra_map Fq[X] ↥(ring_of_integers Fq F)).injective_iff,
+  intros p hp,
+  rw [← subtype.coe_inj, subalgebra.coe_zero] at hp,
+  rw (algebra_map Fq[X] F).injective_iff at hinj,
+  exact hinj p hp,
+end
+
+lemma not_is_field  :
+  ¬ is_field (ring_of_integers Fq F) :=
+by simpa [← (is_integral.is_field_iff_is_field (is_integral_closure.is_integral_algebra Fq[X] F)
+  (algebra_map_injective Fq F))] using (polynomial.not_is_field Fq)
 
 end ring_of_integers
 

@@ -223,7 +223,8 @@ by simp only [zero_locus_Union]
 
 lemma vanishing_ideal_Union {γ : Sort*} (t : γ → set (projective_spectrum 𝒜)) :
   vanishing_ideal (⋃ i, t i) = (⨅ i, vanishing_ideal (t i)) :=
-by ext1; convert (gc 𝒜).u_infi; exact homogeneous_ideal.coe_infi _
+homogeneous_ideal.to_ideal_injective $
+by convert (gc 𝒜).u_infi; exact homogeneous_ideal.to_ideal_infi _
 
 lemma zero_locus_inf (I J : ideal A) :
   zero_locus 𝒜 ((I ⊓ J : ideal A) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
@@ -249,7 +250,8 @@ lemma sup_vanishing_ideal_le (t t' : set (projective_spectrum 𝒜)) :
   vanishing_ideal t ⊔ vanishing_ideal t' ≤ vanishing_ideal (t ∩ t') :=
 begin
   intros r,
-  rw [homogeneous_ideal.mem_iff, homogeneous_ideal.coe_sup, mem_vanishing_ideal, submodule.mem_sup],
+  rw [homogeneous_ideal.mem_iff, homogeneous_ideal.to_ideal_sup, mem_vanishing_ideal,
+    submodule.mem_sup],
   rintro ⟨f, hf, g, hg, rfl⟩ x ⟨hxt, hxt'⟩,
   erw mem_vanishing_ideal at hf hg,
   apply submodule.add_mem; solve_by_elim

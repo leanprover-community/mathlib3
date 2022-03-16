@@ -114,8 +114,8 @@ lemma closure_induction_left {G : Type*} [group G] {S : set G} {p : G → Prop} 
   (h : x ∈ closure S) (H1 : p 1) (Hmul : ∀ (x ∈ S) y, p y → p (x * y))
   (Hinv : ∀ (x ∈ S) y, p y → p (x⁻¹ * y)) : p x :=
 begin
-  have key := le_of_eq (closure_to_submonoid S),
-  obtain ⟨l, hl, rfl⟩ := submonoid.exists_list_of_mem_closure (key h),
+  have := le_of_eq (closure_to_submonoid S),
+  obtain ⟨l, hl, rfl⟩ := submonoid.exists_list_of_mem_closure (this h),
   induction l with g l ih generalizing hl,
   { exact H1 },
   { rw list.prod_cons,
@@ -129,9 +129,9 @@ lemma closure_induction_right {G : Type*} [group G] {S : set G} {p : G → Prop}
   (h : x ∈ closure S) (H1 : p 1) (Hmul : ∀ x (y ∈ S), p x → p (x * y))
   (Hinv : ∀ x (y ∈ S), p x → p (x * y⁻¹)) : p x :=
 begin
-  rw ← inv_inv x,
   let q : G → Prop := λ g, p g⁻¹,
   have q_def : ∀ g, q g = p g⁻¹ := λ g, rfl,
+  rw ← inv_inv x,
   change q x⁻¹,
   apply closure_induction_left ((closure S).inv_mem h),
   { rwa [q_def, one_inv] },
@@ -140,7 +140,7 @@ begin
     exact Hinv y⁻¹ x hx hy },
   { intros x hx y hy,
     rw [q_def, mul_inv_rev, inv_inv],
-      exact Hmul y⁻¹ x hx hy },
+    exact Hmul y⁻¹ x hx hy },
 end
 
 lemma schreier' {G : Type*} [group G] {H : subgroup G} {R S : set G}

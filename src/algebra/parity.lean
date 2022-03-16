@@ -8,10 +8,10 @@ import algebra.ring.basic
 
 /-!  This file proves some general facts about even and odd elements of semirings. -/
 
-variables {α : Type*}
+variables {α β : Type*}
 
 section semiring
-variable [semiring α]
+variables [semiring α] [semiring β]
 
 lemma even.add_even {m n : α} (hm : even m) (hn : even n) : even (m + n) :=
 begin
@@ -37,6 +37,18 @@ begin
   refine ⟨n + m + 1, _⟩,
   rw [←add_assoc, add_comm _ (2 * n), ←add_assoc, ←mul_add, add_assoc, mul_add _ (n + m), mul_one],
   refl
+end
+
+lemma even_to_even {m : α} (f : α →+ β) (hm : even m) : even (f m) :=
+begin
+  rcases hm with ⟨m, rfl⟩,
+  exact ⟨f m, by simp [two_mul]⟩
+end
+
+lemma odd_to_odd {m : α} (f : α →+* β) (hm : odd m) : odd (f m) :=
+begin
+  rcases hm with ⟨m, rfl⟩,
+  exact ⟨f m, by simp [two_mul]⟩
 end
 
 end semiring

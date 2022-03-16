@@ -13,7 +13,7 @@ import algebra.homology.homotopy_category
 When the underlying category is abelian:
 * `category_theory.InjectiveResolution.desc`: Given `I : InjectiveResolution X` and
   `J : InjectiveResolution Y`, any morphism `X ⟶ Y` admits a descent to a chain map
-  `J.cocomplex ⟶ I.cocomplex`. It is a descent in the sense that `I.ι` intertwine the descent and
+  `J.cocomplex ⟶ I.cocomplex`. It is a descent in the sense that `I.ι` intertwines the descent and
   the original morphism, see `category_theory.InjectiveResolution.desc_commutes`.
 * `category_theory.InjectiveResolution.desc_homotopy`: Any two such descents are homotopic.
 * `category_theory.InjectiveResolution.homotopy_equiv`: Any two injective resolutions of the same
@@ -75,19 +75,19 @@ def desc_f_succ {Y Z : C}
   (J.cocomplex.d (n+1) (n+2)) _
   (by simp [←category.assoc, w]), (by simp)⟩
 
-/-- A morphism in `C` descents to a chain map between injective resolutions. -/
+/-- A morphism in `C` descends to a chain map between injective resolutions. -/
 def desc {Y Z : C}
   (f : Z ⟶ Y) (I : InjectiveResolution Y) (J : InjectiveResolution Z) :
   J.cocomplex ⟶ I.cocomplex :=
 begin
   fapply cochain_complex.mk_hom,
-  apply desc_f_zero f,
-  apply desc_f_one f,
+  exact desc_f_zero f,
+  exact desc_f_one f,
   symmetry,
-  apply desc_f_one_zero_comm f,
+  exact desc_f_one_zero_comm f,
   rintro n ⟨g, g', w⟩,
   obtain ⟨g'', eq1⟩ := desc_f_succ I J n g g' w.symm,
-  refine ⟨g'', eq1.symm⟩,
+  exact ⟨g'', eq1.symm⟩,
 end
 
 /-- The resolution maps intertwine the descent of a morphism and that morphism. -/
@@ -97,10 +97,8 @@ lemma desc_commutes {Y Z : C}
   J.ι ≫ desc f I J = (cochain_complex.single₀ C).map f ≫ I.ι :=
 begin
   ext n,
-  rcases n with (_|_|n),
-  { dsimp [desc, desc_f_zero], simp, },
-  { dsimp [desc, desc_f_one], simp, },
-  { dsimp, simp, },
+  rcases n with (_|_|n);
+  { dsimp [desc, desc_f_one, desc_f_zero], simp, },
 end
 
 -- Now that we've checked this property of the descent,

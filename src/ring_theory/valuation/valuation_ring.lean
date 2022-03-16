@@ -313,9 +313,9 @@ section
 
 variables (A : Type*) [comm_ring A] [is_domain A] [discrete_valuation_ring A]
 
--- @[priority 100]
 /-- A DVR is a valuation ring. -/
-lemma of_discrete_valuation_ring : valuation_ring A :=
+@[priority 100]
+instance of_discrete_valuation_ring : valuation_ring A :=
 begin
   constructor,
   intros a b,

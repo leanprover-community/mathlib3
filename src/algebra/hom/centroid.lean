@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 import algebra.group.hom_instances
 import algebra.ring.basic
+import tactic.nth_rewrite
 
 /-!
 # Centroid homomorphisms
@@ -227,8 +228,8 @@ def centroid_hom.comm_ring (h: ∀ a b : α, (∀ r : α, a * r * b = 0) → a =
 { mul_comm := λ f g, begin
     ext,
     refine sub_eq_zero.1 ((or_self _).1 $ h _ _ $ λ r, _),
-    dsimp,
-    sorry, -- sorry, I broke it :(`nonempty α` `is_empty α`
+    rw [mul_assoc, sub_mul, sub_eq_zero, ← map_mul_right, ← map_mul_right, coe_mul, coe_mul,
+      comp_mul_comm],
   end,
   ..centroid_hom.ring }
 

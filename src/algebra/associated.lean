@@ -432,6 +432,11 @@ end
 theorem associated_eq_eq : (associated : α → α → Prop) = eq :=
 by { ext, rw associated_iff_eq }
 
+lemma prime_dvd_prime_iff_eq
+  {M : Type*} [cancel_comm_monoid_with_zero M] [unique Mˣ] {p q : M} (pp : prime p) (qp : prime q) :
+  p ∣ q ↔ p = q :=
+by rw [pp.dvd_prime_iff_associated qp, ←associated_eq_eq]
+
 end unique_units
 
 /-- The quotient of a monoid by the `associated` relation. Two elements `x` and `y`

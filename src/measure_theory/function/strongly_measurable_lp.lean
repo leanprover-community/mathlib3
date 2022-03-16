@@ -1,22 +1,27 @@
 /-
-Copyright (c) 2021 Rémy Degenne. All rights reserved.
+Copyright (c) 2022 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Rémy Degenne, Sébastien Gouëzel
+Authors: Rémy Degenne
 -/
-import measure_theory.function.simple_func_dense
-import measure_theory.function.strongly_measurable
-import measure_theory.function.l1_space
 
+import measure_theory.function.simple_func_dense_lp
+import measure_theory.function.strongly_measurable
 
 /-!
-# Strongly measurable and finitely strongly measurable functions
+# Finitely strongly measurable functions in `Lp`
 
-A function `f` is said to be strongly measurable if `f` is the sequential limit of simple functions.
-It is said to be finitely strongly measurable with respect to a measure `μ` if the supports
-of those simple functions have finite measure.
+Functions in `Lp` for `0 < p < ∞` are finitely strongly measurable.
 
-If the target space has a second countable topology, strongly measurable and measurable are
-equivalent.
+## Main statements
+
+* `mem_ℒp.ae_fin_strongly_measurable`: if `mem_ℒp f p μ` with `0 < p < ∞`, then
+  `ae_fin_strongly_measurable f μ`.
+* `Lp.fin_strongly_measurable`: for `0 < p < ∞`, `Lp` functions are finitely strongly measurable.
+
+## References
+
+* Hytönen, Tuomas, Jan Van Neerven, Mark Veraar, and Lutz Weis. Analysis in Banach spaces.
+Springer, 2016.
 -/
 
 open measure_theory filter topological_space function
@@ -24,25 +29,11 @@ open_locale ennreal topological_space measure_theory
 
 namespace measure_theory
 
-section second_countable_topology
+local infixr ` →ₛ `:25 := simple_func
 
 variables {α G : Type*} {p : ℝ≥0∞} {m m0 : measurable_space α} {μ : measure α}
   [normed_group G] [measurable_space G] [borel_space G] [second_countable_topology G]
   {f : α → G}
-
-/-- In a space with second countable topology and a sigma-finite measure, `fin_strongly_measurable`
-  and `measurable` are equivalent. -/
-lemma fin_strongly_measurable_iff_measurable {m0 : measurable_space α} (μ : measure α)
-  [sigma_finite μ] :
-  fin_strongly_measurable f μ ↔ measurable f :=
-⟨λ h, h.measurable, λ h, (measurable.strongly_measurable h).fin_strongly_measurable μ⟩
-
-/-- In a space with second countable topology and a sigma-finite measure,
-  `ae_fin_strongly_measurable` and `ae_measurable` are equivalent. -/
-lemma ae_fin_strongly_measurable_iff_ae_measurable {m0 : measurable_space α} (μ : measure α)
-  [sigma_finite μ] :
-  ae_fin_strongly_measurable f μ ↔ ae_measurable f μ :=
-by simp_rw [ae_fin_strongly_measurable, ae_measurable, fin_strongly_measurable_iff_measurable]
 
 lemma mem_ℒp.fin_strongly_measurable_of_measurable (hf : mem_ℒp f p μ) (hf_meas : measurable f)
   (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
@@ -70,7 +61,5 @@ lemma integrable.ae_fin_strongly_measurable (hf : integrable f μ) :
 lemma Lp.fin_strongly_measurable (f : Lp G p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   fin_strongly_measurable f μ :=
 (Lp.mem_ℒp f).fin_strongly_measurable_of_measurable (Lp.measurable f) hp_ne_zero hp_ne_top
-
-end second_countable_topology
 
 end measure_theory

@@ -5,12 +5,20 @@ Authors: Zhouhang Zhou, Yury Kudryashov, Heather Macbeth
 -/
 import measure_theory.function.l1_space
 import measure_theory.function.lp_order
+import measure_theory.function.simple_func_dense
 
 /-!
-# Glou
+# Density of simple functions
+
+Show that each `Lᵖ` Borel measurable function can be approximated in `Lᵖ` norm
+by a sequence of simple functions.
+
+## Main definitions
 
 * `measure_theory.Lp.simple_func`, the type of `Lp` simple functions
 * `coe_to_Lp`, the embedding of `Lp.simple_func E p μ` into `Lp E p μ`
+
+## Main results
 
 * `tendsto_approx_on_univ_Lp` (Lᵖ convergence): If `E` is a `normed_group` and `f` is measurable
   and `mem_ℒp` (for `p < ∞`), then the simple functions `simple_func.approx_on f hf s 0 h₀ n` may
@@ -25,9 +33,22 @@ import measure_theory.function.lp_order
 
 For `E` finite-dimensional, simple functions `α →ₛ E` are dense in L^∞ -- prove this.
 
+## Notations
+
+* `α →ₛ β` (local notation): the type of simple functions `α → β`.
 * `α →₁ₛ[μ] E`: the type of `L1` simple functions `α → β`.
 -/
 
+noncomputable theory
+open set function filter topological_space ennreal emetric finset
+open_locale classical topological_space ennreal measure_theory big_operators
+variables {α β ι E F 𝕜 : Type*}
+
+namespace measure_theory
+
+local infixr ` →ₛ `:25 := simple_func
+
+namespace simple_func
 
 /-! ### Lp approximation by simple functions -/
 
@@ -864,3 +885,5 @@ begin
 end
 
 end integrable
+
+end measure_theory

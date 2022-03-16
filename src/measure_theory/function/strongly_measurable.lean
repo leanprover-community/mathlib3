@@ -19,7 +19,6 @@ of those simple functions have finite measure.
 If the target space has a second countable topology, strongly measurable and measurable are
 equivalent.
 
-Functions in `Lp` for `0 < p < ∞` are finitely strongly measurable.
 If the measure is sigma-finite, strongly measurable and finitely strongly measurable are equivalent.
 
 The main property of finitely strongly measurable functions is
@@ -42,9 +41,6 @@ results for those functions as if the measure was sigma-finite.
 
 * `ae_fin_strongly_measurable.exists_set_sigma_finite`: there exists a measurable set `t` such that
   `f =ᵐ[μ.restrict tᶜ] 0` and `μ.restrict t` is sigma-finite.
-* `mem_ℒp.ae_fin_strongly_measurable`: if `mem_ℒp f p μ` with `0 < p < ∞`, then
-  `ae_fin_strongly_measurable f μ`.
-* `Lp.fin_strongly_measurable`: for `0 < p < ∞`, `Lp` functions are finitely strongly measurable.
 
 ## References
 

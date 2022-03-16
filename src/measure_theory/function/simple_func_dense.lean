@@ -10,8 +10,8 @@ import topology.metric_space.metrizable
 /-!
 # Density of simple functions
 
-Show that each Borel measurable function can be approximated pointwise, and each `Lᵖ` Borel
-measurable function can be approximated in `Lᵖ` norm, by a sequence of simple functions.
+Show that each Borel measurable function can be approximated pointwise
+by a sequence of simple functions.
 
 ## Main definitions
 
@@ -46,7 +46,6 @@ namespace simple_func
 
 /-! ### Pointwise approximation by simple functions -/
 
-section pointwise
 variables [measurable_space α] [emetric_space α] [opens_measurable_space α]
 
 /-- `nearest_pt_ind e N x` is the index `k` such that `e k` is the nearest point to `x` among the

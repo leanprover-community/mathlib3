@@ -6,9 +6,6 @@ Authors: Reid Barton, Scott Morrison, David Wärn
 import category_theory.full_subcategory
 import category_theory.products.basic
 import category_theory.pi.basic
-import category_theory.discrete_category
-import category_theory.punit
-import category_theory.thin
 
 /-!
 # Groupoids
@@ -85,8 +82,8 @@ def groupoid.of_is_iso (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), is_iso f) : gr
 { inv := λ X Y f, inv f }
 
 /-- A category with a unique morphism between any two objects is a groupoid -/
-def groupoid.of_all_unique (all_unique : ∀ {X Y : C}, unique (X ⟶ Y)) :
-  groupoid.{v} C := { inv := λ X Y f, all_unique.default }
+def groupoid.of_hom_unique (all_unique : ∀ {X Y : C}, unique (X ⟶ Y)) : groupoid.{v} C :=
+{ inv := λ X Y f, all_unique.default }
 
 end
 

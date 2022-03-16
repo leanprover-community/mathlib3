@@ -1536,6 +1536,9 @@ namespace tactic
 
 setup_tactic_parser
 
+/- With this option, turn off the messages if the result is exactly `true` -/
+declare_trace silence_norm_num_if_true
+
 /--
 The basic usage is `#norm_num e`, where `e` is an expression,
 which will print the `norm_num` form of `e`.
@@ -1570,7 +1573,7 @@ do
   (ts, mappings) ← synthesize_tactic_state_with_variables_as_hyps (e :: hs_es),
 
   /- Enter the `tactic` monad, *critically* using the synthesized tactic state `ts`. -/
-  simp_result ← lean.parser.of_tactic $ λ _, do
+  result ← lean.parser.of_tactic $ λ _, do
   { /- Resolve the local variables added by the parser to `e` (when it was parsed) against the local
        hypotheses added to the `ts : tactic_state` which we are using. -/
     e ← to_expr e,
@@ -1597,8 +1600,8 @@ do
     tactic.expr_norm_num step no_dflt hs attr_names e } ts,
 
   /- Trace the result. -/
-  when (¬ is_trace_enabled_for `silence_simp_if_true ∨ simp_result ≠ expr.const `true [])
-    (trace simp_result)
+  when (¬ is_trace_enabled_for `silence_norm_num_if_true ∨ result ≠ expr.const `true [])
+    (trace result)
 
 add_tactic_doc
 { name                     := "#norm_num",

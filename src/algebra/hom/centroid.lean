@@ -1,11 +1,10 @@
 /-
 Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Yaël Dillies
+Authors: Yaël Dillies, Christopher Hoskin
 -/
 import algebra.group.hom_instances
 import algebra.ring.basic
-import tactic.nth_rewrite
 
 /-!
 # Centroid homomorphisms
@@ -22,6 +21,10 @@ be satisfied by itself and all stricter types.
 ## Typeclasses
 
 * `centroid_hom_class`
+
+## Tags
+
+centroid
 -/
 
 open function
@@ -220,7 +223,6 @@ end non_unital_non_assoc_ring
 section non_unital_ring
 variables [non_unital_ring α]
 
--- https://msp.org/pjm/1975/60-1/pjm-v60-n1-p06-s.pdf
 /-- A prime associative ring has commutative centroid. -/
 @[reducible] -- See note [reducible non instances]
 def centroid_hom.comm_ring (h: ∀ a b : α, (∀ r : α, a * r * b = 0) → a = 0 ∨ b = 0) :

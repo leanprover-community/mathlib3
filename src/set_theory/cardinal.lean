@@ -714,6 +714,20 @@ calc lift.{(max v w)} a = lift.{(max u w)} b
   ↔ lift.{w} (lift.{v} a) = lift.{w} (lift.{u} b) : by simp
   ... ↔ lift.{v} a = lift.{u} b : lift_inj
 
+@[simp] theorem lift_min' {a b : cardinal} : lift (min a b) = min (lift a) (lift b) :=
+begin
+  cases le_total a b,
+  { rw [min_eq_left h, min_eq_left (lift_le.2 h)] },
+  { rw [min_eq_right h, min_eq_right (lift_le.2 h)] }
+end
+
+@[simp] theorem lift_max' {a b : cardinal} : lift (max a b) = max (lift a) (lift b) :=
+begin
+  cases le_total a b,
+  { rw [max_eq_right h, max_eq_right (lift_le.2 h)] },
+  { rw [max_eq_left h, max_eq_left (lift_le.2 h)] }
+end
+
 protected lemma le_sup_iff {ι : Type v} {f : ι → cardinal.{max v w}} {c : cardinal} :
   (c ≤ sup f) ↔ (∀ b, (∀ i, f i ≤ b) → c ≤ b) :=
 ⟨λ h b hb, le_trans h (sup_le hb), λ h, h _ $ le_sup f⟩

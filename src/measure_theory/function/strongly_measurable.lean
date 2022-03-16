@@ -380,26 +380,14 @@ begin
   refine ⟨λ H, _, λ H, hg.continuous.comp_strongly_measurable H⟩,
   refine strongly_measurable_iff_measurable_second_countable.2 ⟨_, _⟩,
   { exact hg.measurable_embedding.measurable_comp_iff.1 H.measurable },
-  { have Z := H.second_countable_range,
-    have A : embedding (g ∘ (coe : range f → β)) := hg.to_embedding.comp embedding_subtype_coe,
+  { haveI := H.second_countable_range,
     let G : range f → range (λ x, g (f x)),
     { apply cod_restrict  (g ∘ (coe : range f → β)),
       rintros ⟨-, ⟨y, rfl⟩⟩,
       apply mem_range_self },
-    have : embedding G,
-    { have B : (g ∘ (coe : range f → β)) = coe ∘ G, by { ext x, refl },
-      rw B at A,
-      apply embedding_of_embedding_compose _ continuous_subtype_coe A,
-      apply continuous.cod_restrict,
-      exact A.continuous,
-
-    },
-    resetI,
+    have : embedding G := (hg.to_embedding.comp embedding_subtype_coe).cod_restrict _ _,
     exact embedding.second_countable_topology this }
 end
-
-#exit
-
 
 protected lemma piecewise [measurable_space α] [topological_space β]
   {s : set α} {_ : decidable_pred (∈ s)} (hs : measurable_set s)
@@ -855,6 +843,58 @@ lemma comp_measurable {γ : Type*} {mγ : measurable_space γ} {mα : measurable
   ae_strongly_measurable (g ∘ f) μ :=
 ⟨(hg.mk g) ∘ f, hg.strongly_measurable_mk.comp_measurable hf, ae_eq_comp hf hg.ae_eq_mk⟩
 
+
+/-- A function is almost everywhere strongly measurable if and only if it is almost everywhere
+measurable, and its range is almost everywhere contained in a second countable set. -/
+theorem _root_.ae_strongly_measurable_iff_ae_measurable_second_countable
+  [topological_space β] [metrizable_space β] [measurable_space β] [borel_space β] :
+  ae_strongly_measurable f μ ↔
+    (ae_measurable f μ ∧ ∃ (t : set β), second_countable_topology t ∧ f ⁻¹' t ∈ μ.ae) :=
+begin
+  letI : metric_space β := metrizable_space_metric β,
+  classical,
+  split,
+  { assume H,
+    refine ⟨H.ae_measurable, _⟩,
+    refine ⟨range (H.mk f), H.strongly_measurable_mk.second_countable_range, _⟩,
+    filter_upwards [H.ae_eq_mk] with x hx,
+    simp [hx] },
+  { rintros ⟨H, ⟨t, t_sec, ht⟩⟩,
+    rcases eq_empty_or_nonempty t with rfl|⟨⟨y₀, y₀t⟩⟩,
+    { simp only [preimage_empty] at ht,
+      rcases is_empty_or_nonempty α with hα|⟨⟨x₀⟩⟩,
+      { exactI (strongly_measurable_of_is_empty _).ae_strongly_measurable },
+      { refine ⟨λ x, f x₀, strongly_measurable_const, _⟩,
+        filter_upwards [ht],
+        simp only [mem_empty_eq, forall_false_left, implies_true_iff] } },
+    { let s : set α := to_measurable μ {x | f x = H.mk f x ∧ f x ∈ t}ᶜ,
+      let g : α → β := piecewise s (λ x, y₀) (H.mk f),
+      refine ⟨g, strongly_measurable_iff_measurable_second_countable.2 ⟨_, _⟩, _⟩,
+      { exact measurable.piecewise (measurable_set_to_measurable _ _) measurable_const
+          H.measurable_mk },
+      { have : range g ⊆ t,
+        { rintros - ⟨x, rfl⟩,
+          by_cases hx : x ∈ s,
+          { simpa [g, hx] using y₀t },
+          { simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
+            contrapose! hx,
+            apply subset_to_measurable,
+            simp only [hx, mem_compl_eq, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
+              {contextual := tt} } },
+        exactI metric.secound_countable_subtype_of_subset this },
+      { have A : μ (to_measurable μ {x | f x = H.mk f x ∧ f x ∈ t}ᶜ) = 0,
+        { rw [measure_to_measurable, ← compl_mem_ae_iff, compl_compl],
+          exact H.ae_eq_mk.and ht },
+        filter_upwards [compl_mem_ae_iff.2 A] with x hx,
+        rw mem_compl_iff at hx,
+        simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
+        contrapose! hx,
+        apply subset_to_measurable,
+        simp only [hx, mem_compl_eq, mem_set_of_eq, false_and, not_false_iff] } } }
+end
+
+#exit
+
 lemma _root_.measurable_embedding.ae_strongly_measurable_map_iff
   {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α}
   {f : γ → α} {μ : measure γ} (hf : measurable_embedding f) {g : α → β} :
@@ -865,6 +905,26 @@ begin
   rcases hf.exists_strongly_measurable_extend hgm₁ (λ x, ⟨g x⟩) with ⟨g₂, hgm₂, rfl⟩,
   exact ⟨g₂, hgm₂, hf.ae_map_iff.2 heq⟩
 end
+
+lemma _root_.closed_embedding.ae_strongly_measurable_comp_iff
+  [metrizable_space β] [metrizable_space γ]
+  {g : β → γ} {f : α → β} (hg : closed_embedding g) :
+  ae_strongly_measurable (λ x, g (f x)) μ ↔ ae_strongly_measurable f μ :=
+begin
+  refine ⟨λ H, _, λ H, hg.continuous.comp_ae_strongly_measurable H⟩,
+  suffices : ae_strongly_measurable ((range_splitting g ∘ range_factorization g) ∘ f) μ,
+    by rwa [(right_inverse_range_splitting hg.inj).comp_eq_id] at this,
+
+  let F := H.mk _,
+  have Z := measurable_embedding.ae_measurable_comp_iff,
+  sorry,
+end
+
+#exit
+
+suffices : ae_measurable ((range_splitting g ∘ range_factorization g) ∘ f) μ,
+    by rwa [(right_inverse_range_splitting hg.injective).comp_eq_id] at this,
+  exact hg.measurable_range_splitting.comp_ae_measurable (H.subtype_mk hg.measurable_set_range)
 
 end ae_strongly_measurable
 

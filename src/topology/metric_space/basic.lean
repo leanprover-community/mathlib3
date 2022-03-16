@@ -1576,6 +1576,11 @@ begin
   exact ⟨y, mem_image_of_mem (coe : t → α) yc, xy⟩,
 end
 
+lemma secound_countable_subtype_of_subset
+  {s t : set α} [ht : second_countable_topology t] (hs : s ⊆ t) :
+  second_countable_topology s :=
+secound_countable_subtype_of_subset_closure (hs.trans subset_closure)
+
 end metric
 
 section pi

@@ -94,14 +94,8 @@ by cases mod_two_eq_zero_or_one m with h₁ h₁;
    simp [even_iff, h₁, h₂, int.add_mod];
    norm_num
 
-theorem even.add_even (hm : even m) (hn : even n) : even (m + n) :=
-even_add.2 $ iff_of_true hm hn
-
 theorem even_add' : even (m + n) ↔ (odd m ↔ odd n) :=
 by rw [even_add, even_iff_not_odd, even_iff_not_odd, not_iff_not]
-
-theorem odd.add_odd (hm : odd m) (hn : odd n) : even (m + n) :=
-even_add'.2 $ iff_of_true hm hn
 
 @[simp] theorem not_even_bit1 (n : ℤ) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
@@ -157,14 +151,8 @@ even_pow.trans $ and_iff_left h
 @[parity_simps] theorem odd_add : odd (m + n) ↔ (odd m ↔ even n) :=
 by rw [odd_iff_not_even, even_add, not_iff, odd_iff_not_even]
 
-theorem odd.add_even (hm : odd m) (hn : even n) : odd (m + n) :=
-odd_add.2 $ iff_of_true hm hn
-
 theorem odd_add' : odd (m + n) ↔ (odd n ↔ even m) :=
 by rw [add_comm, odd_add]
-
-theorem even.add_odd (hm : even m) (hn : odd n) : odd (m + n) :=
-odd_add'.2 $ iff_of_true hn hm
 
 lemma ne_of_odd_add (h : odd (m + n)) : m ≠ n :=
 λ hnot, by simpa [hnot] with parity_simps using h

@@ -65,10 +65,10 @@ lemma cycle_type_eq {σ : perm α} (l : list (perm α)) (h0 : l.prod = σ)
 begin
   have hl : l.nodup := nodup_of_pairwise_disjoint_cycles h1 h2,
   rw cycle_type_eq' l.to_finset,
-  { simp [list.erase_dup_eq_self.mpr hl] },
+  { simp [list.dedup_eq_self.mpr hl] },
   { simpa using h1 },
   { simpa [hl] using h0 },
-  { simpa [list.erase_dup_eq_self.mpr hl] using list.forall_of_pairwise disjoint.symmetric h2 }
+  { simpa [list.dedup_eq_self.mpr hl] using list.forall_of_pairwise disjoint.symmetric h2 }
 end
 
 lemma cycle_type_one : (1 : perm α).cycle_type = 0 :=
@@ -145,13 +145,36 @@ cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card) σ
   (λ σ hσ, by rw [hσ.cycle_type, coe_sum, list.sum_singleton])
   (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, sum_add, hσ, hτ, hστ.card_support_mul])
 
-lemma sign_of_cycle_type (σ : perm α) :
+lemma sign_of_cycle_type' (σ : perm α) :
   sign σ = (σ.cycle_type.map (λ n, -(-1 : ℤˣ) ^ n)).prod :=
 cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : ℤˣ) ^ n)).prod) σ
   (by rw [sign_one, cycle_type_one, multiset.map_zero, prod_zero])
   (λ σ hσ, by rw [hσ.sign, hσ.cycle_type, coe_map, coe_prod,
     list.map_singleton, list.prod_singleton])
   (λ σ τ hστ hc hσ hτ, by rw [sign_mul, hσ, hτ, hστ.cycle_type, multiset.map_add, prod_add])
+
+lemma sign_of_cycle_type (f : perm α) :
+  sign f = (-1 : ℤˣ)^(f.cycle_type.sum + f.cycle_type.card) :=
+cycle_induction_on
+  (λ f : perm α, sign f = (-1 : ℤˣ)^(f.cycle_type.sum + f.cycle_type.card))
+  f
+  ( -- base_one
+    by rw [equiv.perm.cycle_type_one, sign_one, multiset.sum_zero, multiset.card_zero, pow_zero] )
+  ( -- base_cycles
+    λ f hf,
+      by rw [equiv.perm.is_cycle.cycle_type hf, hf.sign,
+      coe_sum, list.sum_cons, sum_nil, add_zero, coe_card, length_singleton,
+      pow_add, pow_one, mul_comm, neg_mul, one_mul] )
+  ( -- induction_disjoint
+    λ f g hfg hf Pf Pg,
+    by rw [equiv.perm.disjoint.cycle_type hfg,
+      multiset.sum_add, multiset.card_add,← add_assoc,
+      add_comm f.cycle_type.sum g.cycle_type.sum,
+      add_assoc g.cycle_type.sum _ _,
+      add_comm g.cycle_type.sum _,
+      add_assoc, pow_add,
+      ← Pf, ← Pg,
+      equiv.perm.sign_mul])
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
@@ -560,7 +583,7 @@ by rw [←card_cycle_type_eq_one, h.cycle_type, card_singleton]
 
 lemma sign (h : is_three_cycle σ) : sign σ = 1 :=
 begin
-  rw [sign_of_cycle_type, h.cycle_type],
+  rw [equiv.perm.sign_of_cycle_type, h.cycle_type],
   refl,
 end
 

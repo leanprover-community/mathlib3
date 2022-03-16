@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
-import linear_algebra.basic
+import linear_algebra.span
 
 /-!
 # Quotients by submodules
@@ -345,7 +345,7 @@ begin
     rw ker_le_iff, use [y, h₁ hy], rw ← set.singleton_subset_iff at hy,
     exact set.subset.trans subset_span (span_mono (set.preimage_mono hy)), },
   rw ← left_eq_sup at hk, rw f.range_coe at h₁,
-  rw [hk, ← map_le_map_iff, map_span, map_comap_eq, set.image_preimage_eq_of_subset h₁],
+  rw [hk, ←linear_map.map_le_map_iff, map_span, map_comap_eq, set.image_preimage_eq_of_subset h₁],
   exact inf_le_right,
 end
 

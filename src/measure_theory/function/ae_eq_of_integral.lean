@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 
 import analysis.normed_space.dual
-import measure_theory.function.strongly_measurable
+import measure_theory.function.strongly_measurable_lp
 import measure_theory.integral.set_integral
 
 /-! # From equality of integrals to equality of functions
@@ -490,7 +490,7 @@ begin
   have htf_zero : f =ᵐ[μ.restrict tᶜ] 0,
   { rw [eventually_eq, ae_restrict_iff' (measurable_set.compl (hm _ ht_meas))],
     exact eventually_of_forall htf_zero, },
-  have hf_meas_m : @measurable _ _ m _ f, from hf.measurable,
+  have hf_meas_m : measurable[m] f, from hf.measurable,
   suffices : f =ᵐ[μ.restrict t] 0,
     from ae_of_ae_restrict_of_ae_restrict_compl _ this htf_zero,
   refine measure_eq_zero_of_trim_eq_zero hm _,
@@ -498,15 +498,15 @@ begin
   { intros s hs hμs,
     rw [integrable_on, restrict_trim hm (μ.restrict t) hs, measure.restrict_restrict (hm s hs)],
     rw [← restrict_trim hm μ ht_meas, measure.restrict_apply hs,
-      trim_measurable_set_eq hm (@measurable_set.inter _ m _ _ hs ht_meas)] at hμs,
+      trim_measurable_set_eq hm (hs.inter ht_meas)] at hμs,
     refine integrable.trim hm _ hf_meas_m,
-    exact hf_int_finite _ (@measurable_set.inter _ m _ _ hs ht_meas) hμs, },
+    exact hf_int_finite _ (hs.inter ht_meas) hμs, },
   { intros s hs hμs,
     rw [restrict_trim hm (μ.restrict t) hs, measure.restrict_restrict (hm s hs)],
     rw [← restrict_trim hm μ ht_meas, measure.restrict_apply hs,
-      trim_measurable_set_eq hm (@measurable_set.inter _ m _ _ hs ht_meas)] at hμs,
+      trim_measurable_set_eq hm (hs.inter ht_meas)] at hμs,
     rw ← integral_trim hm hf_meas_m,
-    exact hf_zero _ (@measurable_set.inter _ m _ _ hs ht_meas) hμs, },
+    exact hf_zero _ (hs.inter ht_meas) hμs, },
 end
 
 lemma integrable.ae_eq_zero_of_forall_set_integral_eq_zero {f : α → E} (hf : integrable f μ)

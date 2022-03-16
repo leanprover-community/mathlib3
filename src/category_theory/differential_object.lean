@@ -219,7 +219,7 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
   { X := X.X⟦n⟧,
     d := X.d⟦n⟧' ≫ (shift_comm _ _ _).hom,
     d_squared' := by rw [functor.map_comp, category.assoc, shift_comm_hom_comp_assoc,
-        ←functor.map_comp_assoc, X.d_squared, is_equivalence_preserves_zero_morphisms, zero_comp] },
+        ←functor.map_comp_assoc, X.d_squared, functor.map_zero, zero_comp] },
   map := λ X Y f,
   { f := f.f⟦n⟧',
     comm' := by { dsimp, rw [category.assoc, shift_comm_hom_comp, ← functor.map_comp_assoc,

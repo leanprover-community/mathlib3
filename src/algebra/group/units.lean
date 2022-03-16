@@ -53,7 +53,7 @@ structure add_units (α : Type u) [add_monoid α] :=
 (val_neg : val + neg = 0)
 (neg_val : neg + val = 0)
 
-attribute [to_additive add_units] units
+attribute [to_additive] units
 
 section has_elem
 
@@ -115,7 +115,7 @@ lemma copy_eq (u : αˣ) (val hv inv hi) :
 ext hv
 
 /-- Units of a monoid form a group. -/
-@[to_additive] instance : group αˣ :=
+@[to_additive "Additive units of an additive monoid form an additive group."] instance : group αˣ :=
 { mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
     by rw [mul_assoc, ← mul_assoc u₂.val, val_inv, one_mul, val_inv],
     by rw [mul_assoc, ← mul_assoc u₁.inv, inv_val, one_mul, inv_val]⟩,
@@ -278,12 +278,12 @@ variables {M : Type*} {N : Type*}
 /-- An element `a : M` of a monoid is a unit if it has a two-sided inverse.
 The actual definition says that `a` is equal to some `u : Mˣ`, where
 `Mˣ` is a bundled version of `is_unit`. -/
-@[to_additive is_add_unit "An element `a : M` of an add_monoid is an `add_unit` if it has
+@[to_additive "An element `a : M` of an add_monoid is an `add_unit` if it has
 a two-sided additive inverse. The actual definition says that `a` is equal to some
 `u : add_units M`, where `add_units M` is a bundled version of `is_add_unit`."]
 def is_unit [monoid M] (a : M) : Prop := ∃ u : Mˣ, (u : M) = a
 
-@[nontriviality, to_additive is_add_unit_of_subsingleton]
+@[nontriviality, to_additive]
 lemma is_unit_of_subsingleton [monoid M] [subsingleton M] (a : M) : is_unit a :=
 ⟨⟨a, a, subsingleton.elim _ _, subsingleton.elim _ _⟩, rfl⟩
 
@@ -301,10 +301,10 @@ attribute [nontriviality] is_add_unit_of_subsingleton
 @[simp, to_additive is_add_unit_add_unit]
 protected lemma units.is_unit [monoid M] (u : Mˣ) : is_unit (u : M) := ⟨u, rfl⟩
 
-@[simp, to_additive is_add_unit_zero]
+@[simp, to_additive]
 theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
 
-@[to_additive is_add_unit_of_add_eq_zero] theorem is_unit_of_mul_eq_one [comm_monoid M]
+@[to_additive] theorem is_unit_of_mul_eq_one [comm_monoid M]
   (a b : M) (h : a * b = 1) : is_unit a :=
 ⟨units.mk_of_mul_eq_one a b h, rfl⟩
 
@@ -316,12 +316,12 @@ by { rcases h with ⟨⟨a, b, hab, _⟩, rfl⟩, exact ⟨b, hab⟩ }
   {a : M} (h : is_unit a) : ∃ b, b * a = 1 :=
 by { rcases h with ⟨⟨a, b, _, hba⟩, rfl⟩, exact ⟨b, hba⟩ }
 
-@[to_additive is_add_unit_iff_exists_neg] theorem is_unit_iff_exists_inv [comm_monoid M]
+@[to_additive] theorem is_unit_iff_exists_inv [comm_monoid M]
   {a : M} : is_unit a ↔ ∃ b, a * b = 1 :=
 ⟨λ h, h.exists_right_inv,
  λ ⟨b, hab⟩, is_unit_of_mul_eq_one _ b hab⟩
 
-@[to_additive is_add_unit_iff_exists_neg'] theorem is_unit_iff_exists_inv' [comm_monoid M]
+@[to_additive] theorem is_unit_iff_exists_inv' [comm_monoid M]
   {a : M} : is_unit a ↔ ∃ b, b * a = 1 :=
 by simp [is_unit_iff_exists_inv, mul_comm]
 
@@ -330,7 +330,7 @@ lemma is_unit.mul [monoid M] {x y : M} : is_unit x → is_unit y → is_unit (x 
 by { rintros ⟨x, rfl⟩ ⟨y, rfl⟩, exact ⟨x * y, units.coe_mul _ _⟩ }
 
 /-- Multiplication by a `u : Mˣ` on the right doesn't affect `is_unit`. -/
-@[simp, to_additive is_add_unit_add_add_units "Addition of a `u : add_units M` on the right doesn't
+@[simp, to_additive "Addition of a `u : add_units M` on the right doesn't
 affect `is_add_unit`."]
 theorem units.is_unit_mul_units [monoid M] (a : M) (u : Mˣ) :
   is_unit (a * u) ↔ is_unit a :=
@@ -341,8 +341,7 @@ iff.intro
   (λ v, v.mul u.is_unit)
 
 /-- Multiplication by a `u : Mˣ` on the left doesn't affect `is_unit`. -/
-@[simp, to_additive is_add_unit_add_units_add "Addition of a `u : add_units M` on the left doesn't
-affect `is_add_unit`."]
+@[simp, to_additive "Addition of a `u : add_units M` on the left doesn't affect `is_add_unit`."]
 theorem units.is_unit_units_mul {M : Type*} [monoid M] (u : Mˣ) (a : M) :
   is_unit (↑u * a) ↔ is_unit a :=
 iff.intro
@@ -351,7 +350,7 @@ iff.intro
     by rwa [←mul_assoc, units.inv_mul, one_mul] at this)
   u.is_unit.mul
 
-@[to_additive is_add_unit_of_add_is_add_unit_left]
+@[to_additive]
 theorem is_unit_of_mul_is_unit_left [comm_monoid M] {x y : M}
   (hu : is_unit (x * y)) : is_unit x :=
 let ⟨z, hz⟩ := is_unit_iff_exists_inv.1 hu in

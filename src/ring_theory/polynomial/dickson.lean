@@ -3,11 +3,11 @@ Copyright (c) 2021 Julian Kuelshammer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
-
-import ring_theory.polynomial.chebyshev
-import ring_theory.localization
-import data.zmod.basic
 import algebra.char_p.invertible
+import data.zmod.basic
+import field_theory.finite.basic
+import ring_theory.localization.fraction_ring
+import ring_theory.polynomial.chebyshev
 
 
 /-!

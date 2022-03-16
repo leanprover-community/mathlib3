@@ -41,7 +41,7 @@ begin
   ext y,
   rw mem_smul_set_iff_inv_smul_mem₀ hc,
   conv_lhs { rw ←inv_smul_smul₀ hc x },
-  simp only [mem_sphere, dist_smul, normed_field.norm_inv, ← div_eq_inv_mul,
+  simp only [mem_sphere, dist_smul, norm_inv, ← div_eq_inv_mul,
     div_eq_iff (norm_pos_iff.2 hc).ne', mul_comm r],
 end
 
@@ -104,18 +104,19 @@ begin
   rw [smul_smul, inv_mul_cancel hc, one_smul],
 end
 
-/-- Any ball is the isometric image of a ball centered at the origin. -/
-@[simp] lemma vadd_ball_zero (x : E) (r : ℝ) : x +ᵥ ball 0 r = ball x r :=
+/-- Any ball is the image of a ball centered at the origin under a shift. -/
+lemma vadd_ball_zero (x : E) (r : ℝ) : x +ᵥ ball 0 r = ball x r :=
 by rw [vadd_ball, vadd_eq_add, add_zero]
 
-/-- Any closed ball is the isometric image of a closed ball centered at the origin. -/
-lemma closed_ball_isometry (x : E) (r : ℝ) : closed_ball x r = x +ᵥ closed_ball 0 r :=
+/-- Any closed ball is the image of a closed ball centered at the origin under a shift. -/
+lemma vadd_closed_ball_zero (x : E) (r : ℝ) : x +ᵥ closed_ball 0 r = closed_ball x r :=
 by rw [vadd_closed_ball, vadd_eq_add, add_zero]
 
 variables [normed_space ℝ E]
 
-/-- Any ball centered at the origin is the scalar multiplication of the unit ball. -/
-lemma smul_unit_ball_real {r : ℝ} (hr : 0 < r) : r • ball 0 1 = ball (0 : E) r :=
+/-- In a real normed space, the image of the unit ball under scalar multiplication by a positive
+constant `r` is the ball of radius `r`. -/
+lemma smul_unit_ball_of_pos {r : ℝ} (hr : 0 < r) : r • ball 0 1 = ball (0 : E) r :=
 by rw [smul_unit_ball hr.ne', real.norm_of_nonneg hr.le]
 
 end semi_normed_group
@@ -134,11 +135,12 @@ end
 lemma smul_closed_unit_ball (c : 𝕜) : c • closed_ball (0 : E) (1 : ℝ) = closed_ball (0 : E) (∥c∥) :=
 by rw [smul_closed_ball _ _ zero_le_one, smul_zero, mul_one]
 
-variables [normed_space ℝ E] {r : ℝ}
+variables [normed_space ℝ E]
 
-/-- Any closed ball is the isometric image of a closed ball centered at the origin. -/
-lemma closed_ball_zero_eq_smul_closed_unit_ball {r : ℝ} (hr : 0 ≤ r) :
-  closed_ball (0 : E) r = r • closed_ball 0 1 :=
+/-- In a real normed space, the image of the unit closed ball under multiplication by a nonnegative
+number `r` is the closed ball of radius `r` with center at the origin. -/
+lemma smul_closed_unit_ball_of_nonneg {r : ℝ} (hr : 0 ≤ r) :
+  r • closed_ball 0 1 = closed_ball (0 : E) r :=
 by rw [smul_closed_unit_ball, real.norm_of_nonneg hr]
 
 /-- In a nontrivial real normed space, a sphere is nonempty if and only if its radius is
@@ -161,12 +163,14 @@ begin
   { exact smul_sphere' hc x r }
 end
 
-/-- Any ball is the affine image of the unit ball. -/
-lemma ball_affinity (hr : 0 < r) (x : E) : x +ᵥ r • ball 0 1 = ball x r :=
-by rw [smul_unit_ball hr.ne', real.norm_of_nonneg hr.le, ball_isometry]
+/-- Any ball `metric.ball x r`, `0 < r` is the image of the unit ball under `λ y, x + r • y`. -/
+lemma affinity_unit_ball {r : ℝ} (hr : 0 < r) (x : E) : x +ᵥ r • ball 0 1 = ball x r :=
+by rw [smul_unit_ball_of_pos hr, vadd_ball_zero]
 
-/-- Any closed ball is the affine image of the unit closed ball. -/
-lemma closed_ball_affinity (hr : 0 ≤ r) (x : E) : x +ᵥ r • closed_ball 0 1 = closed_ball x r :=
-by rw [smul_closed_unit_ball, real.norm_of_nonneg hr, closed_ball_isometry]
+/-- Any closed ball `metric.closed_ball x r`, `0 ≤ r` is the image of the unit closed ball under
+`λ y, x + r • y`. -/
+lemma affinity_unit_closed_ball {r : ℝ} (hr : 0 ≤ r) (x : E) :
+  x +ᵥ r • closed_ball 0 1 = closed_ball x r :=
+by rw [smul_closed_unit_ball, real.norm_of_nonneg hr, vadd_closed_ball_zero]
 
 end normed_group

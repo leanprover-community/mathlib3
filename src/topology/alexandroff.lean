@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang, Yury Kudryashov
 -/
 import topology.separation
-import topology.opens
+import topology.sets.opens
 
 /-!
 # The Alexandroff Compactification
@@ -56,6 +56,10 @@ localized "notation `∞` := alexandroff.infty" in alexandroff
 instance : has_coe_t X (alexandroff X) := ⟨option.some⟩
 
 instance : inhabited (alexandroff X) := ⟨∞⟩
+
+instance [fintype X] : fintype (alexandroff X) := option.fintype
+
+instance infinite [infinite X] : infinite (alexandroff X) := option.infinite
 
 lemma coe_injective : function.injective (coe : X → alexandroff X) :=
 option.some_injective X
@@ -389,4 +393,31 @@ instance [preconnected_space X] [noncompact_space X] : connected_space (alexandr
 { to_preconnected_space := dense_embedding_coe.to_dense_inducing.preconnected_space,
   to_nonempty := infer_instance }
 
+/-- If `X` is an infinite type with discrete topology (e.g., `ℕ`), then the identity map from
+`cofinite_topology (alexandroff X)` to `alexandroff X` is not continuous. -/
+lemma not_continuous_cofinite_topology_of_symm [infinite X] [discrete_topology X] :
+  ¬(continuous (@cofinite_topology.of (alexandroff X)).symm) :=
+begin
+  inhabit X,
+  simp only [continuous_iff_continuous_at, continuous_at, not_forall],
+  use [cofinite_topology.of ↑(default : X)],
+  simpa [nhds_coe_eq, nhds_discrete, cofinite_topology.nhds_eq]
+    using (finite_singleton ((default : X) : alexandroff X)).infinite_compl
+end
+
 end alexandroff
+
+/--
+A concrete counterexample shows that  `continuous.homeo_of_equiv_compact_to_t2`
+cannot be generalized from `t2_space` to `t1_space`.
+
+Let `α = alexandroff ℕ` be the one-point compactification of `ℕ`, and let `β` be the same space
+`alexandroff ℕ` with the cofinite topology.  Then `α` is compact, `β` is T1, and the identity map
+`id : α → β` is a continuous equivalence that is not a homeomorphism.
+-/
+lemma continuous.homeo_of_equiv_compact_to_t2.t1_counterexample :
+  ∃ (α β : Type) (Iα : topological_space α) (Iβ : topological_space β), by exactI
+  compact_space α ∧ t1_space β ∧ ∃ f : α ≃ β, continuous f ∧ ¬ continuous f.symm :=
+⟨alexandroff ℕ, cofinite_topology (alexandroff ℕ), infer_instance, infer_instance,
+  infer_instance, infer_instance, cofinite_topology.of, cofinite_topology.continuous_of,
+  alexandroff.not_continuous_cofinite_topology_of_symm⟩

@@ -71,11 +71,11 @@ lemma is_atom.Iic (ha : is_atom a) (hax : a ≤ x) : is_atom (⟨a, hax⟩ : set
 lemma is_atom.of_is_atom_coe_Iic {a : set.Iic x} (ha : is_atom a) : is_atom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, hba.le.trans a.prop⟩ hba)⟩
 
-@[simp] lemma bot_covers_iff : ⊥ ⋖ a ↔ is_atom a :=
+@[simp] lemma bot_covby_iff : ⊥ ⋖ a ↔ is_atom a :=
 ⟨λ h, ⟨h.lt.ne', λ b hba, not_not.1 $ λ hb, h.2 (ne.bot_lt hb) hba⟩,
   λ h, ⟨h.1.bot_lt, λ b hb hba, hb.ne' $ h.2 _ hba⟩⟩
 
-alias bot_covers_iff ↔ covers.is_atom is_atom.bot_covers
+alias bot_covby_iff ↔ covby.is_atom is_atom.bot_covby
 
 end is_atom
 
@@ -97,11 +97,11 @@ lemma is_coatom.of_is_coatom_coe_Ici {a : set.Ici x} (ha : is_coatom a) :
   is_coatom (a : α) :=
 ⟨λ con, ha.1 (subtype.ext con), λ b hba, subtype.mk_eq_mk.1 (ha.2 ⟨b, le_trans a.prop hba.le⟩ hba)⟩
 
-@[simp] lemma covers_top_iff : a ⋖ ⊤ ↔ is_coatom a :=
+@[simp] lemma covby_top_iff : a ⋖ ⊤ ↔ is_coatom a :=
 ⟨λ h, ⟨h.ne, λ b hab, not_not.1 $ λ hb, h.2 hab $ ne.lt_top hb⟩,
   λ h, ⟨h.1.lt_top, λ b hab hb, hb.ne $ h.2 _ hab⟩⟩
 
-alias covers_top_iff ↔ covers.is_coatom is_coatom.covers_top
+alias covby_top_iff ↔ covby.is_coatom is_coatom.covby_top
 
 end is_coatom
 
@@ -346,7 +346,7 @@ protected def is_simple_order.linear_order [decidable_eq α] : linear_order α :
 
 @[simp] lemma is_coatom_bot : is_coatom (⊥ : α) := is_atom_dual_iff_is_coatom.1 is_atom_top
 
-lemma bot_covers_top : (⊥ : α) ⋖ ⊤ := is_atom_top.bot_covers
+lemma bot_covby_top : (⊥ : α) ⋖ ⊤ := is_atom_top.bot_covby
 
 end is_simple_order
 

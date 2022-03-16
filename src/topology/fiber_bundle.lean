@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 import topology.local_homeomorph
 import topology.algebra.order.basic
-import topology.continuous_function.continuous_section
+import data.bundle
 
 /-!
 # Fiber bundles
@@ -747,6 +747,10 @@ open bundle topological_fiber_bundle
 variable {E : B → Type*}
 
 variables [topological_space B] [topological_space (total_space E)] [topological_space F]
+
+@[nolint unused_arguments]
+instance bundle_section_to_right_inv : has_coe (bundle_section E) (right_inv (proj E)) :=
+⟨bundle_section_equiv_right_inv⟩
 
 lemma mem_base_set_right_inv_fst (g : right_inv (proj E)) {b : B}
   {e : trivialization F (proj E)} (hb : b ∈ e.base_set) : (g b).fst ∈ e.base_set :=

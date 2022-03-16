@@ -28,42 +28,6 @@ section for_mathlib
 instance subgroup.commutator.characteristic (G : Type*) [group G] :
   (commutator G).characteristic := sorry
 
-lemma commutator_le_commutator {G : Type*} [group G] (H K : subgroup G) :
-  ⁅H, K⁆ ≤ commutator G :=
-subgroup.commutator_mono le_top le_top
-
-lemma centralizer_le {G : Type*} [group G] {H K : subgroup G} (h : H ≤ K) :
-  K.centralizer ≤ H.centralizer :=
-begin
-  exact set.centralizer_subset h,
-end
-
-lemma three_subgroups_lemma {G : Type*} [group G] {X Y Z : subgroup G}
-  (h1 : ⁅⁅X, Y⁆, Z⁆ = ⊥) (h2 : ⁅⁅Y, Z⁆, X⁆ = ⊥) : ⁅⁅Z, X⁆, Y⁆ = ⊥ :=
-begin
-  rw [subgroup.commutator_eq_bot_iff_le_centralizer, subgroup.commutator_le] at h1 h2 ⊢,
-  simp_rw [subgroup.mem_centralizer_iff_commutator_eq_one] at h1 h2 ⊢,
-  intros z hz x hx y hy,
-  change ⁅y, ⁅z, x⁆⁆ = _,
-  change ∀ (x ∈ X) (y ∈ Y) (z ∈ Z), ⁅z, ⁅x, y⁆⁆ = (1 : G) at h1,
-  change ∀ (y ∈ Y) (z ∈ Z) (x ∈ X), ⁅x, ⁅y, z⁆⁆ = (1 : G) at h2,
-  have key : ⁅y, ⁅z, x⁆⁆ = z * y * ⁅x, ⁅y⁻¹, z⁻¹⁆⁆⁻¹ * y⁻¹ * x * ⁅z⁻¹, ⁅x⁻¹, y⁆⁆⁻¹ * x⁻¹ * z⁻¹ :=
-  by { dsimp only [commutator_element], group, },
-  rw [key, h2 _ (Y.inv_mem hy) _ (Z.inv_mem hz) x hx, h1 _ (X.inv_mem hx) y hy _ (Z.inv_mem hz),
-      one_inv, mul_one, mul_one, mul_inv_cancel_right, mul_inv_cancel_right, mul_inv_self],
-end
-
-lemma commutator_centralizer_commutator_le_center (G : Type*) [group G] :
-  ⁅(commutator G).centralizer, (commutator G).centralizer⁆ ≤ subgroup.center G :=
-begin
-  rw [←subgroup.centralizer_top, ←subgroup.commutator_eq_bot_iff_le_centralizer],
-  suffices : ⁅⁅⊤, (commutator G).centralizer⁆, (commutator G).centralizer⁆ = ⊥,
-  { exact three_subgroups_lemma (by rwa subgroup.commutator_comm (commutator G).centralizer) this },
-  rw [subgroup.commutator_comm, subgroup.commutator_eq_bot_iff_le_centralizer],
-  apply centralizer_le,
-  apply commutator_le_commutator,
-end
-
 lemma subgroup.map_subtype_le_map_subtype {G' : Type*} [group G'] {G : subgroup G'}
   {H K : subgroup G} : H.map G.subtype ≤ K.map G.subtype ↔ H ≤ K :=
 subgroup.map_le_map_iff_of_injective subtype.coe_injective
@@ -95,9 +59,13 @@ def to_fun {G : Type*} [group G] {H : subgroup G} {S : set G}
   (hS : S ∈ subgroup.left_transversals (H : set G)) : G → S :=
 to_equiv hS ∘ quotient.mk'
 
-lemma to_fun_inv_mul {G : Type*} [group G] {H : subgroup G} {S : set G}
+lemma inv_to_fun_mul_mem {G : Type*} [group G] {H : subgroup G} {S : set G}
   (hS : S ∈ subgroup.left_transversals (H : set G)) (g : G) : (to_fun hS g : G)⁻¹ * g ∈ H :=
 quotient.exact' (mk'_to_equiv hS g)
+
+lemma inv_mul_to_fun_mem {G : Type*} [group G] {H : subgroup G} {S : set G}
+  (hS : S ∈ subgroup.left_transversals (H : set G)) (g : G) : g⁻¹ * to_fun hS g ∈ H :=
+(congr_arg (∈ H) (by rw [mul_inv_rev, inv_inv])).mp (H.inv_mem (inv_to_fun_mul_mem hS g))
 
 end mem_left_transversals
 
@@ -116,33 +84,99 @@ def to_fun {G : Type*} [group G] {H : subgroup G} {S : set G}
   (hS : S ∈ subgroup.right_transversals (H : set G)) : G → S :=
 to_equiv hS ∘ quotient.mk'
 
-lemma to_fun_mul_inv {G : Type*} [group G] {H : subgroup G} {S : set G}
+lemma mul_inv_to_fun_mem {G : Type*} [group G] {H : subgroup G} {S : set G}
   (hS : S ∈ subgroup.right_transversals (H : set G)) (g : G) : g * (to_fun hS g : G)⁻¹ ∈ H :=
 quotient.exact' (mk'_to_equiv hS _)
 
+lemma to_fun_mul_inv_mem {G : Type*} [group G] {H : subgroup G} {S : set G}
+  (hS : S ∈ subgroup.right_transversals (H : set G)) (g : G) : (to_fun hS g : G) * g⁻¹ ∈ H :=
+(congr_arg (∈ H) (by rw [mul_inv_rev, inv_inv])).mp (H.inv_mem (mul_inv_to_fun_mem hS g))
+
 end mem_right_transversals
 
-/-- **Schreier's Lemma** -/
-lemma schreier' {G : Type*} [group G] {H : subgroup G} {R S : set G}
-  (hR : R ∈ subgroup.right_transversals (H : set G)) (hS : subgroup.closure S = ⊤) :
-  subgroup.closure ((R * S).image (λ g, (⟨g * (mem_right_transversals.to_fun hR g)⁻¹,
-    mem_right_transversals.to_fun_mul_inv hR g⟩ : H))) =
-    (⊤ : subgroup H) :=
+def finitely_generated (G : Type*) [group G] :=
+∃ S : finset G, subgroup.closure (S : set G) = ⊤
+
+lemma finite_generated_def (G : Type*) [group G] :
+finitely_generated G ↔ ∃ S : finset G, subgroup.closure (S : set G) = ⊤ :=
+iff.rfl
+
+lemma finite_generated_def' (G : Type*) [group G] :
+finitely_generated G ↔ ∃ n : ℕ, ∃ S : finset G, S.card = n ∧ subgroup.closure (S : set G) = ⊤ :=
+sorry
+
+def min_generators (G : Type*) [group G] [h : finitely_generated G] :=
+nat.find ((finite_generated_def' G).mp h)
+
+namespace subgroup
+
+lemma closure_induction_left {G : Type*} [group G] {k : set G} {p : G → Prop} {x : G}
+  (h : x ∈ closure k) (H1 : p 1) (Hmul : ∀ (x ∈ k) y, p y → p (x * y))
+  (Hinv : ∀ x (y ∈ k), p y → p (x * y⁻¹)) : p x :=
 begin
-  sorry
+  sorry,
+end
+
+lemma closure_induction_right {G : Type*} [group G] {k : set G} {p : G → Prop} {x : G}
+  (h : x ∈ closure k) (H1 : p 1) (Hmul : ∀ x (y ∈ k), p x → p (x * y))
+  (Hinv : ∀ x (y ∈ k), p x → p (x * y⁻¹)) : p x :=
+begin
+  sorry,
+end
+
+lemma schreier' {G : Type*} [group G] {H : subgroup G} {R S : set G}
+  (hR : R ∈ right_transversals (H : set G)) (hR1 : (1 : G) ∈ R) (hS : closure S = ⊤) :
+  (closure ((R * S).image (λ g, g * (mem_right_transversals.to_fun hR g)⁻¹)) : set G) * R = ⊤ :=
+begin
+  let f : G → R := λ g, mem_right_transversals.to_fun hR g,
+  let U : set G := (R * S).image (λ g, g * (f g)⁻¹),
+  change (closure U : set G) * R = ⊤,
+  refine top_le_iff.mp (λ g hg, _),
+  apply closure_induction_right (eq_top_iff.mp hS (mem_top g)),
+  { exact ⟨1, 1, (closure U).one_mem, hR1, one_mul 1⟩ },
+  { rintros - s hs ⟨u, r, hu, hr, rfl⟩,
+    rw show u * r * s = u * ((r * s) * (f (r * s))⁻¹) * f (r * s), by group,
+    refine set.mul_mem_mul ((closure U).mul_mem hu _) (f (r * s)).coe_prop,
+    exact subset_closure ⟨r * s, set.mul_mem_mul hr hs, rfl⟩ },
+  { rintros - s hs ⟨u, r, hu, hr, rfl⟩,
+    rw show u * r * s⁻¹ = u * (f (r * s⁻¹) * s * r⁻¹)⁻¹ * f (r * s⁻¹), by group,
+    refine set.mul_mem_mul ((closure U).mul_mem hu ((closure U).inv_mem _)) (f (r * s⁻¹)).2,
+    refine subset_closure ⟨f (r * s⁻¹) * s, set.mul_mem_mul (f (r * s⁻¹)).2 hs, _⟩,
+    rw [mul_right_inj, inv_inj],
+    have key : (f (r * s⁻¹) : G) * (r * s⁻¹)⁻¹ ∈ H :=
+    mem_right_transversals.to_fun_mul_inv_mem hR (r * s⁻¹),
+    rw [mul_inv_rev, inv_inv, ←mul_assoc] at key,
+    have key : f (f (r * s⁻¹) * s) = ⟨r, hr⟩,
+    exact (mem_right_transversals_iff_exists_unique_mul_inv_mem.mp hR (f (r * s⁻¹) * s)).unique
+      (mem_right_transversals.mul_inv_to_fun_mem hR (f (r * s⁻¹) * s)) key,
+    exact subtype.ext_iff.mp key },
 end
 
 /-- **Schreier's Lemma** -/
 lemma schreier {G : Type*} [group G] {H : subgroup G} {R S : set G}
-  (hR : R ∈ subgroup.right_transversals (H : set G)) (hS : subgroup.closure S = ⊤) :
-  subgroup.closure ((R * S).image (λ g, g * (mem_right_transversals.to_fun hR g)⁻¹)) = H :=
+  (hR : R ∈ right_transversals (H : set G)) (hR1 : (1 : G) ∈ R) (hS : closure S = ⊤) :
+  closure ((R * S).image (λ g, g * (mem_right_transversals.to_fun hR g)⁻¹)) = H :=
 begin
-  conv_rhs { rw [←H.subtype_range] },
-  rw [monoid_hom.range_eq_map, ←schreier' hR hS, monoid_hom.map_closure],
-  apply congr_arg subgroup.closure,
-  simp only [set.ext_iff],
-  simp only [set.mem_image, subgroup.coe_subtype, exists_exists_and_eq_and, subgroup.coe_mk, iff_self, forall_const],
+  let U : set G := (R * S).image (λ g, g * (mem_right_transversals.to_fun hR g)⁻¹),
+  change closure U = H,
+  have hU : closure U ≤ H,
+  { rw closure_le,
+    rintros - ⟨g, -, rfl⟩,
+    exact mem_right_transversals.mul_inv_to_fun_mem hR g },
+  refine le_antisymm hU (λ h hh, _),
+  have h_mem : h ∈ (closure U : set G) * R := eq_top_iff.mp (schreier' hR hR1 hS) (mem_top h),
+  obtain ⟨g, r, hg, hr, rfl⟩ := h_mem,
+  have h_eq : (⟨r, hr⟩ : R) = (⟨1, hR1⟩ : R),
+  { refine (mem_right_transversals_iff_exists_unique_mul_inv_mem.mp hR r).unique _ _,
+    { rw [subtype.coe_mk, mul_inv_self],
+      exact H.one_mem },
+    { rw [subtype.coe_mk, one_inv, mul_one],
+      exact (H.mul_mem_cancel_left (hU hg)).mp hh } },
+  replace h_eq : r = 1 := subtype.ext_iff.mp h_eq,
+  rwa [h_eq, mul_one],
 end
+
+end subgroup
 
 def generated_by (G : Type*) [group G] (n : ℕ) :=
 ∃ S : set G, subgroup.closure S = ⊤ ∧ ∃ hS, @fintype.card S hS ≤ n
@@ -311,10 +345,10 @@ begin
   { have key : ∀ H : subgroup G, card (commutator H) = card ↥⁅H, H⁆,
     { intro H,
       conv_rhs { rw [←H.subtype_range, monoid_hom.range_eq_map, ←subgroup.map_commutator] },
-      refine fintype.card_congr
+      exact fintype.card_congr
         ((commutator H).equiv_map_of_injective H.subtype subtype.coe_injective).to_equiv },
     rw key at hK2 ⊢,
-    refine let h := (commutator ↥K).centralizer.map_subtype_le in
+    exact let h := (commutator ↥K).centralizer.map_subtype_le in
     (nat.le_of_dvd card_pos (subgroup.card_dvd_of_le (subgroup.commutator_mono h h))).trans hK2 },
   {
     sorry },

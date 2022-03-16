@@ -56,7 +56,7 @@ begin
     exact ⟨p^(n - i : ℕ), (pow_mul_pow_sub p (nat.succ_le_succ_iff.mp i.2)).symm⟩ }
 end
 
-lemma mem_chain_not_is_unit_of_index_ne_zero {n : ℕ} {i : fin (n + 1)} (i_pos : i ≠ 0)
+lemma element_of_chain_not_is_unit_of_index_ne_zero {n : ℕ} {i : fin (n + 1)} (i_pos : i ≠ 0)
   {c : fin (n + 1) → associates M} (h₁ : strict_mono c) :
   ¬ is_unit (c i) :=
 dvd_not_unit.not_unit (associates.dvd_not_unit_iff_lt.2
@@ -122,7 +122,7 @@ end
 
 variables [unique_factorization_monoid M]
 
-lemma mem_chain_eq_pow_second_of_chain {q r : associates M} {n : ℕ} (hn : n ≠ 0)
+lemma element_of_chain_eq_pow_second_of_chain {q r : associates M} {n : ℕ} (hn : n ≠ 0)
   {c : fin (n + 1) → associates M} (h₁ : strict_mono c)
   (h₂ : ∀ {r}, r ≤ q ↔ ∃ i, r = c i) (hr : r ∣ q)
   (hq : q ≠ 0) : ∃ (i : fin (n + 1)), r = (c 1) ^ (i : ℕ) :=
@@ -132,7 +132,7 @@ begin
   have hi : normalized_factors r = multiset.repeat (c 1) i,
   { apply multiset.eq_repeat_of_mem,
     intros b hb,
-    refine prime_dvd_eq_second_of_chain hn h₁ (λ r', h₂) (prime_of_normalized_factor b hb) hr
+    refine eq_second_of_chain_of_prime_dvd hn h₁ (λ r', h₂) (prime_of_normalized_factor b hb) hr
       (dvd_of_mem_normalized_factors hb) },
   have H : r = (c 1)^i,
   { have := unique_factorization_monoid.normalized_factors_prod (ne_zero_of_dvd_ne_zero hq hr),
@@ -145,7 +145,8 @@ begin
     cases n, { contradiction },
     rw finset.card_image_eq_iff_inj_on,
     refine set.inj_on_of_injective (λ m m' h, fin.ext _) _,
-    refine pow_injective_of_not_unit (mem_chain_not_is_unit_of_index_ne_zero (by simp) h₁) _ h,
+    refine pow_injective_of_not_unit
+      (element_of_chain_not_is_unit_of_index_ne_zero (by simp) h₁) _ h,
     exact irreducible.ne_zero (second_of_chain_is_irreducible hn h₁ @h₂ hq) },
 
   suffices H' : ∀ r ∈ (finset.univ.image (λ (m : fin (i + 1)), (c 1) ^ (m : ℕ))), r ≤ q,
@@ -166,7 +167,7 @@ lemma eq_pow_second_of_chain_of_has_chain {q : associates M} {n : ℕ} (hn : n �
   (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i) (hq : q ≠ 0) : q = (c 1)^n :=
 begin
   classical,
-  obtain ⟨i, hi'⟩ := mem_chain_eq_pow_second_of_chain hn h₁ (λ r, h₂) (dvd_refl q) hq,
+  obtain ⟨i, hi'⟩ := element_of_chain_eq_pow_second_of_chain hn h₁ (λ r, h₂) (dvd_refl q) hq,
   convert hi',
   refine (nat.lt_succ_iff.1 i.prop).antisymm' (nat.le_of_succ_le_succ _),
   calc n + 1 = (finset.univ : finset (fin (n + 1))).card : (finset.card_fin _).symm

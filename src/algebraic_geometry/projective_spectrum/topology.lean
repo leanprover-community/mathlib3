@@ -126,7 +126,7 @@ lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (projective_spectrum �
 
 variable (𝒜)
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
-lemma gc : @galois_connection
+lemma gc_ideal : @galois_connection
   (ideal A) (order_dual (set (projective_spectrum 𝒜))) _ _
   (λ I, zero_locus 𝒜 I) (λ t, (vanishing_ideal t).to_ideal) :=
 λ I t, subset_zero_locus_iff_le_vanishing_ideal t I
@@ -136,7 +136,13 @@ lemma gc_set : @galois_connection
   (set A) (order_dual (set (projective_spectrum 𝒜))) _ _
   (λ s, zero_locus 𝒜 s) (λ t, vanishing_ideal t) :=
 have ideal_gc : galois_connection (ideal.span) coe := (submodule.gi A _).gc,
-by simpa [zero_locus_span, function.comp] using galois_connection.compose ideal_gc (gc 𝒜)
+by simpa [zero_locus_span, function.comp] using galois_connection.compose ideal_gc (gc_ideal 𝒜)
+
+lemma gc_homogeneous_ideal : @galois_connection
+  (homogeneous_ideal 𝒜) (order_dual (set (projective_spectrum 𝒜))) _ _
+  (λ I, zero_locus 𝒜 I) (λ t, (vanishing_ideal t)) :=
+λ I t, by simpa [show I.to_ideal ≤ (vanishing_ideal t).to_ideal ↔ I ≤ (vanishing_ideal t),
+  from iff.rfl] using subset_zero_locus_iff_le_vanishing_ideal t I.to_ideal
 
 lemma subset_zero_locus_iff_subset_vanishing_ideal (t : set (projective_spectrum 𝒜))
   (s : set A) :
@@ -147,28 +153,36 @@ lemma subset_vanishing_ideal_zero_locus (s : set A) :
   s ⊆ vanishing_ideal (zero_locus 𝒜 s) :=
 (gc_set _).le_u_l s
 
-lemma le_vanishing_ideal_zero_locus (I : ideal A) :
+lemma ideal_le_vanishing_ideal_zero_locus (I : ideal A) :
   I ≤ (vanishing_ideal (zero_locus 𝒜 I)).to_ideal :=
-(gc _).le_u_l I
+(gc_ideal _).le_u_l I
+
+lemma homogeneous_ideal_le_vanishing_ideal_zero_locus (I : homogeneous_ideal 𝒜) :
+  I ≤ vanishing_ideal (zero_locus 𝒜 I) :=
+(gc_homogeneous_ideal _).le_u_l I
 
 lemma subset_zero_locus_vanishing_ideal (t : set (projective_spectrum 𝒜)) :
   t ⊆ zero_locus 𝒜 (vanishing_ideal t) :=
-(gc _).l_u_le t
+(gc_ideal _).l_u_le t
 
 lemma zero_locus_anti_mono {s t : set A} (h : s ⊆ t) : zero_locus 𝒜 t ⊆ zero_locus 𝒜 s :=
 (gc_set _).monotone_l h
 
 lemma zero_locus_anti_mono_ideal {s t : ideal A} (h : s ≤ t) :
   zero_locus 𝒜 (t : set A) ⊆ zero_locus 𝒜 (s : set A) :=
-(gc _).monotone_l h
+(gc_ideal _).monotone_l h
+
+lemma zero_locus_anti_mono_homogeneous_ideal {s t : homogeneous_ideal 𝒜} (h : s ≤ t) :
+  zero_locus 𝒜 (t : set A) ⊆ zero_locus 𝒜 (s : set A) :=
+(gc_homogeneous_ideal _).monotone_l h
 
 lemma vanishing_ideal_anti_mono {s t : set (projective_spectrum 𝒜)} (h : s ⊆ t) :
   vanishing_ideal t ≤ vanishing_ideal s :=
-(gc _).monotone_u h
+(gc_ideal _).monotone_u h
 
 lemma zero_locus_bot :
   zero_locus 𝒜 ((⊥ : ideal A) : set A) = set.univ :=
-(gc 𝒜).l_bot
+(gc_ideal 𝒜).l_bot
 
 @[simp] lemma zero_locus_singleton_zero :
   zero_locus 𝒜 ({0} : set A) = set.univ :=
@@ -180,7 +194,7 @@ zero_locus_bot _
 
 @[simp] lemma vanishing_ideal_univ :
   vanishing_ideal (∅ : set (projective_spectrum 𝒜)) = ⊤ :=
-by simpa using (gc _).u_top
+by simpa using (gc_ideal _).u_top
 
 lemma zero_locus_empty_of_one_mem {s : set A} (h : (1:A) ∈ s) :
   zero_locus 𝒜 s = ∅ :=
@@ -196,9 +210,13 @@ zero_locus_empty_of_one_mem 𝒜 (set.mem_singleton (1 : A))
   zero_locus 𝒜 (set.univ : set A) = ∅ :=
 zero_locus_empty_of_one_mem _ (set.mem_univ 1)
 
-lemma zero_locus_sup (I J : ideal A) :
+lemma zero_locus_sup_ideal (I J : ideal A) :
   zero_locus 𝒜 ((I ⊔ J : ideal A) : set A) = zero_locus _ I ∩ zero_locus _ J :=
-(gc 𝒜).l_sup
+(gc_ideal 𝒜).l_sup
+
+lemma zero_locus_sup_homogeneous_ideal (I J : homogeneous_ideal 𝒜) :
+  zero_locus 𝒜 ((I ⊔ J : homogeneous_ideal 𝒜) : set A) = zero_locus _ I ∩ zero_locus _ J :=
+(gc_homogeneous_ideal 𝒜).l_sup
 
 lemma zero_locus_union (s s' : set A) :
   zero_locus 𝒜 (s ∪ s') = zero_locus _ s ∩ zero_locus _ s' :=
@@ -206,11 +224,15 @@ lemma zero_locus_union (s s' : set A) :
 
 lemma vanishing_ideal_union (t t' : set (projective_spectrum 𝒜)) :
   vanishing_ideal (t ∪ t') = vanishing_ideal t ⊓ vanishing_ideal t' :=
-by ext1; convert (gc 𝒜).u_inf
+by ext1; convert (gc_ideal 𝒜).u_inf
 
-lemma zero_locus_supr {γ : Sort*} (I : γ → ideal A) :
+lemma zero_locus_supr_ideal {γ : Sort*} (I : γ → ideal A) :
   zero_locus _ ((⨆ i, I i : ideal A) : set A) = (⋂ i, zero_locus 𝒜 (I i)) :=
-(gc 𝒜).l_supr
+(gc_ideal 𝒜).l_supr
+
+lemma zero_locus_supr_homogeneous_ideal {γ : Sort*} (I : γ → homogeneous_ideal 𝒜) :
+  zero_locus _ ((⨆ i, I i : homogeneous_ideal 𝒜) : set A) = (⋂ i, zero_locus 𝒜 (I i)) :=
+(gc_homogeneous_ideal 𝒜).l_supr
 
 lemma zero_locus_Union {γ : Sort*} (s : γ → set A) :
   zero_locus 𝒜 (⋃ i, s i) = (⋂ i, zero_locus 𝒜 (s i)) :=
@@ -223,7 +245,7 @@ by simp only [zero_locus_Union]
 lemma vanishing_ideal_Union {γ : Sort*} (t : γ → set (projective_spectrum 𝒜)) :
   vanishing_ideal (⋃ i, t i) = (⨅ i, vanishing_ideal (t i)) :=
 homogeneous_ideal.to_ideal_injective $
-by convert (gc 𝒜).u_infi; exact homogeneous_ideal.to_ideal_infi _
+by convert (gc_ideal 𝒜).u_infi; exact homogeneous_ideal.to_ideal_infi _
 
 lemma zero_locus_inf (I J : ideal A) :
   zero_locus 𝒜 ((I ⊓ J : ideal A) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
@@ -233,8 +255,12 @@ lemma union_zero_locus (s s' : set A) :
   zero_locus 𝒜 s ∪ zero_locus 𝒜 s' = zero_locus 𝒜 ((ideal.span s) ⊓ (ideal.span s'): ideal A) :=
 by { rw zero_locus_inf, simp }
 
-lemma zero_locus_mul (I J : ideal A) :
+lemma zero_locus_mul_ideal (I J : ideal A) :
   zero_locus 𝒜 ((I * J : ideal A) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
+set.ext $ λ x, by simpa using x.2.1.mul_le
+
+lemma zero_locus_mul_homogeneous_ideal (I J : homogeneous_ideal 𝒜) :
+  zero_locus 𝒜 ((I * J : homogeneous_ideal 𝒜) : set A) = zero_locus 𝒜 I ∪ zero_locus 𝒜 J :=
 set.ext $ λ x, by simpa using x.2.1.mul_le
 
 lemma zero_locus_singleton_mul (f g : A) :
@@ -304,7 +330,7 @@ end
 lemma vanishing_ideal_closure (t : set (projective_spectrum 𝒜)) :
   vanishing_ideal (closure t) = vanishing_ideal t :=
 begin
-  have := (gc 𝒜).u_l_u_eq_u t,
+  have := (gc_ideal 𝒜).u_l_u_eq_u t,
   dsimp only at this,
   ext1,
   erw zero_locus_vanishing_ideal_eq_closure 𝒜 t at this,

@@ -334,6 +334,46 @@ lemma eventually_ge_of_tendsto_gt {l : filter γ} {f : γ → α} {u v : α} (hv
   (h : tendsto f l (𝓝 v)) : ∀ᶠ a in l, u ≤ f a :=
 (eventually_gt_of_tendsto_gt hv h).mono (λ v, le_of_lt)
 
+lemma tendsto_le_of_eventually_le {l : filter γ} [ne_bot l] {f g : γ → α} {u v : α}
+  (hf : filter.tendsto f l (𝓝 u)) (hg : filter.tendsto g l (𝓝 v)) (hfg : f ≤ᶠ[l] g) :
+  u ≤ v :=
+begin
+  by_contradiction H,
+  push_neg at H,
+
+  by_cases h_sep : ∃ x, v < x ∧ x < u,
+  { cases h_sep with x hx,
+    cases filter.nonempty_of_mem (l.inter_sets (hf (Ioi_mem_nhds hx.right)) (l.inter_sets (hg (Iio_mem_nhds hx.left)) hfg)) with c hc,
+    simp at hc,
+    exact ne_of_lt (
+      calc f c ≤ g c : hc.right.right
+        ... < x : hc.right.left
+        ... < f c : hc.left
+    ) rfl,
+  },
+  { cases filter.nonempty_of_mem (l.inter_sets (hf (Ioi_mem_nhds H)) (l.inter_sets (hg (Iio_mem_nhds H)) hfg)) with c hc,
+    simp at hc,
+
+    push_neg at h_sep,
+    by_cases hf_lt : f c < u,
+      specialize h_sep (f c) hc.left,
+      exact not_le_of_lt hf_lt h_sep,
+
+    by_cases hg_lt : v < g c,
+      specialize h_sep (g c) hg_lt,
+      exact ne_of_lt (calc u ≤ g c : h_sep ... < u : hc.right.left) rfl,
+
+    push_neg at hf_lt,
+    push_neg at hg_lt,
+    have : u < u,
+      calc u ≤ f c : hf_lt
+        ... ≤ g c : hc.right.right
+        ... ≤ v : hg_lt
+        ... < u : H,
+   exact ne_of_lt this rfl,
+  },
+end
+
 variables [topological_space γ]
 /-!
 ### Neighborhoods to the left and to the right on an `order_closed_topology`

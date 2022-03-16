@@ -21,7 +21,6 @@ is isometric, as expressed by the typeclass `[ring_hom_isometric σ]`.
 
 -/
 
-noncomputable theory
 open_locale classical nnreal topological_space
 
 -- the `ₗ` subscript variables are for special cases about linear (as opposed to semilinear) maps
@@ -73,7 +72,7 @@ lemma linear_map.continuous_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x
 /-- Construct a continuous linear map from a linear map and a bound on this linear map.
 The fact that the norm of the continuous linear map is then controlled is given in
 `linear_map.mk_continuous_norm_le`. -/
-def linear_map.mk_continuous (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) : E →SL[σ] F :=
+@[inline] def linear_map.mk_continuous (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) : E →SL[σ] F :=
 ⟨f, linear_map.continuous_of_bound f C h⟩
 
 /-- Reinterpret a linear map `𝕜 →ₗ[𝕜] E` as a continuous linear map. This construction
@@ -245,8 +244,8 @@ section op_norm
 open set real
 
 /-- The operator norm of a continuous linear map is the inf of all its bounds. -/
-def op_norm (f : E →SL[σ₁₂] F) := Inf {c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥}
-instance has_op_norm : has_norm (E →SL[σ₁₂] F) := ⟨op_norm⟩
+noncomputable def op_norm (f : E →SL[σ₁₂] F) := Inf {c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥}
+noncomputable instance has_op_norm : has_norm (E →SL[σ₁₂] F) := ⟨op_norm⟩
 
 lemma norm_def (f : E →SL[σ₁₂] F) : ∥f∥ = Inf {c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥} := rfl
 
@@ -390,7 +389,7 @@ lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F
 
 /-- Continuous linear maps themselves form a seminormed space with respect to
     the operator norm. -/
-instance to_semi_normed_group : semi_normed_group (E →SL[σ₁₂] F) :=
+noncomputable instance to_semi_normed_group : semi_normed_group (E →SL[σ₁₂] F) :=
 semi_normed_group.of_core _ ⟨op_norm_zero, λ x y, op_norm_add_le x y, op_norm_neg⟩
 
 instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
@@ -406,7 +405,7 @@ lemma op_norm_comp_le (f : E →SL[σ₁₂] F) : ∥h.comp f∥ ≤ ∥h∥ * �
 omit σ₁₃
 
 /-- Continuous linear maps form a seminormed ring with respect to the operator norm. -/
-instance to_semi_normed_ring : semi_normed_ring (E →L[𝕜] E) :=
+noncomputable instance to_semi_normed_ring : semi_normed_ring (E →L[𝕜] E) :=
 { norm_mul := λ f g, op_norm_comp_le f g,
   .. continuous_linear_map.to_semi_normed_group }
 
@@ -544,7 +543,7 @@ variables [ring_hom_isometric σ₂₃]
 /-- Create a bilinear map (represented as a map `E →L[𝕜] F →L[𝕜] G`) from the corresponding linear
 map and a bound on the norm of the image. The linear map can be constructed using
 `linear_map.mk₂`. -/
-def mk_continuous₂ (f : E →ₛₗ[σ₁₃] F →ₛₗ[σ₂₃] G) (C : ℝ)
+@[inline] def mk_continuous₂ (f : E →ₛₗ[σ₁₃] F →ₛₗ[σ₂₃] G) (C : ℝ)
   (hC : ∀ x y, ∥f x y∥ ≤ C * ∥x∥ * ∥y∥) :
   E →SL[σ₁₃] F →SL[σ₂₃] G :=
 linear_map.mk_continuous
@@ -575,10 +574,13 @@ namespace continuous_linear_map
 
 variables [ring_hom_isometric σ₂₃] [ring_hom_isometric σ₁₃]
 
+-- TODO: move this. This makes `flip` computable!
+attribute [inline] continuous_linear_map.to_linear_map continuous_linear_map.to_fun linear_map.mk₂'ₛₗ
+
 /-- Flip the order of arguments of a continuous bilinear map.
 For a version bundled as `linear_isometry_equiv`, see
 `continuous_linear_map.flipL`. -/
-def flip (f : E →SL[σ₁₃] F →SL[σ₂₃] G) : F →SL[σ₂₃] E →SL[σ₁₃] G :=
+@[inline] def flip (f : E →SL[σ₁₃] F →SL[σ₂₃] G) : F →SL[σ₂₃] E →SL[σ₁₃] G :=
 linear_map.mk_continuous₂
   (linear_map.mk₂'ₛₗ σ₂₃ σ₁₃ (λ y x, f x y)
     (λ x y z, (f z).map_add x y)
@@ -657,6 +659,8 @@ vector.
 
 This is the continuous version of `linear_map.applyₗ`. -/
 def apply' : E →SL[σ₁₂] (E →SL[σ₁₂] F) →L[𝕜₂] F := flip (id 𝕜₂ (E →SL[σ₁₂] F))
+
+example := id 𝕜₂ (E →SL[σ₁₂] F)
 
 variables {F σ₁₂}
 

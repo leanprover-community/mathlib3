@@ -7,8 +7,8 @@ Authors: David Kurniadi Angdinata
 import data.zmod.quotient
 import number_theory.class_number.number_field
 
-import algebraic_geometry.EllipticCurve.group
 import algebraic_geometry.EllipticCurve.fractional_ideal
+import algebraic_geometry.EllipticCurve.group
 
 /-!
 # Kummer theory lemmas
@@ -64,71 +64,6 @@ begin
   { exact finset.prod_ne_zero_iff.mpr
       (λ p _, zpow_ne_zero _ $ fractional_ideal.coe_ideal_ne_zero p.property) },
   { exact one_ne_zero }
-end
-
-@[simp] private lemma fractional_ideal.span_singleton_eq_span_singleton {R : Type u} [comm_ring R]
-  [algebra R K] [no_zero_smul_divisors R K] (S : submonoid R) [is_localization S K] {x y : K}
-  (hx : x ≠ 0) (hy : y ≠ 0) :
-  fractional_ideal.span_singleton S x = fractional_ideal.span_singleton S y
-    ↔ ∃ u : Rˣ, u • x = y :=
-begin
-  split,
-  { intro hxy,
-    cases (fractional_ideal.mem_span_singleton S).mp
-      (by { rw [hxy], apply fractional_ideal.mem_span_singleton_self }) with v hv,
-    cases (fractional_ideal.mem_span_singleton S).mp
-      (by { rw [← hxy], apply fractional_ideal.mem_span_singleton_self }) with i hi,
-    have vi : v * i = 1 :=
-    begin
-      rw [← one_smul R y, ← hi, smul_smul, ← sub_eq_zero, ← sub_smul, smul_eq_zero] at hv,
-      cases hv,
-      { exact sub_eq_zero.mp hv },
-      { contradiction }
-    end,
-    have iv : i * v = 1 :=
-    begin
-      rw [← one_smul R x, ← hv, smul_smul, ← sub_eq_zero, ← sub_smul, smul_eq_zero] at hi,
-      cases hi,
-      { exact sub_eq_zero.mp hi },
-      { contradiction }
-    end,
-    exact ⟨⟨v, i, vi, iv⟩, hv⟩ },
-  { rintro ⟨⟨v, i, _, iv⟩, hxy : v • x = y⟩,
-    ext,
-    rw [fractional_ideal.mem_span_singleton, fractional_ideal.mem_span_singleton],
-    exact ⟨λ ⟨z, hz⟩, ⟨z * i, by rw [← smul_smul, ← hxy, smul_smul i v, iv, one_smul, ← hz]⟩,
-           λ ⟨z, hz⟩, ⟨z * v, by rw [← smul_smul, ← hz, ← hxy]⟩⟩ }
-end
-
-@[simp] private lemma fractional_ideal.span_singleton_pow {R : Type u} [comm_ring R] [algebra R K]
-  (S : submonoid R) [is_localization S K] (x : K) (n : ℕ) :
-  fractional_ideal.span_singleton S x ^ n = fractional_ideal.span_singleton S (x ^ n) :=
-begin
-  induction n with n hn,
-  { rw [pow_zero, pow_zero, fractional_ideal.span_singleton_one] },
-  { rw [pow_succ, pow_succ, hn, fractional_ideal.span_singleton_mul_span_singleton] }
-end
-
-private lemma function.mul_support_pow {α R : Type u} [comm_semiring R] {f : α → R}
-  (hf : (function.mul_support f).finite) (n : ℕ) : (function.mul_support $ λ x, f x ^ n).finite :=
-begin
-  induction n with n hfn,
-  { simp_rw [pow_zero],
-    rw [function.mul_support_one],
-    exact set.finite_empty },
-  { simp_rw [pow_succ],
-    exact set.finite.subset (set.finite.union hf hfn) (function.mul_support_mul f $ f ^ n) }
-end
-
-@[simp] private lemma finprod_pow {α R : Type u} [comm_semiring R] {f : α → R}
-  (hf : (function.mul_support f).finite) (n : ℕ) : finprod f ^ n = ∏ᶠ x, f x ^ n :=
-begin
-  induction n with n hn,
-  { simp_rw [pow_zero],
-    exact finprod_one.symm },
-  { simp_rw [pow_succ],
-    rw [hn],
-    exact (finprod_mul_distrib hf $ function.mul_support_pow hf n).symm }
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -193,7 +128,7 @@ def val_of_ne_zero_mod (p : maximal_spectrum $ 𝓞 K) : Kˣ ⧸ (n⬝Kˣ) →* 
 begin
   rintro x ⟨y, hy⟩,
   rw [← hy],
-  exact ⟨val_of_ne_zero p y, by simpa only [zpow_group_hom_apply, map_zpow, int.to_add_zpow]⟩
+  exact ⟨val_of_ne_zero p y, by simpa only [pow_monoid_hom_apply, map_pow, int.to_add_pow] ⟩
 end
 
 end valuation
@@ -245,8 +180,8 @@ by simpa only [val_of_ne_zero_mod, monoid_hom.comp_apply, quotient_group.map_coe
 instance : group.fg (𝓞 K)ˣ := sorry
 
 /-- `𝓞ˣ/(𝓞ˣ)ⁿ` is finite. -/
-instance : fintype $ (𝓞 K)ˣ ⧸ (n⬝(𝓞 K)ˣ) :=
-@quotient_group.fintype_of_fg _ _ (by apply @units.group.fg K _) n
+instance [fact $ 0 < n] : fintype $ (𝓞 K)ˣ ⧸ (n⬝(𝓞 K)ˣ) :=
+@quotient_group.fintype_of_fg _ _ (by apply @units.group.fg K _) n _
 
 end unit
 
@@ -324,8 +259,7 @@ begin
     cases is_integrally_closed.exists_algebra_map_eq_of_pow_mem _inst_3.elim hv with v' hv',
     cases is_integrally_closed.exists_algebra_map_eq_of_pow_mem _inst_3.elim hi with i' hi',
     existsi [(⟨v', i', _, _⟩ : (𝓞 K)ˣ)],
-    { rw [units.ext_iff, subtype.ext_iff, zpow_group_hom_apply, zpow_coe_nat, units.coe_pow,
-          subalgebra.coe_pow],
+    { rw [units.ext_iff, subtype.ext_iff, pow_monoid_hom_apply, units.coe_pow, subalgebra.coe_pow],
       simp_rw [units.coe_zpow₀, zpow_coe_nat],
       exact congr_arg (flip (^) n) hv' },
     all_goals { apply_fun (algebra_map (𝓞 K) K),
@@ -334,11 +268,11 @@ begin
     { exact x.val_inv },
     { exact x.inv_val } },
   { rintro ⟨⟨⟨v', _⟩, ⟨i', _⟩, vi', iv'⟩, hx⟩,
-    rw [units.ext_iff, subtype.ext_iff, zpow_group_hom_apply, zpow_coe_nat, units.coe_pow,
-        subalgebra.coe_pow] at hx,
+    rw [units.ext_iff, subtype.ext_iff, pow_monoid_hom_apply, units.coe_pow, subalgebra.coe_pow]
+      at hx,
     exact subtype.mk_eq_mk.mpr ((quotient_group.eq_one_iff _).mpr
       ⟨⟨v', i', by injection vi', by injection iv'⟩,
-       by simpa only [units.ext_iff, zpow_group_hom_apply, zpow_coe_nat, units.coe_pow] using hx⟩) }
+       by simpa only [units.ext_iff, pow_monoid_hom_apply, zpow_coe_nat, units.coe_pow] using hx⟩) }
 end
 
 lemma K_0_n.val_exists_of_mk (p : maximal_spectrum $ 𝓞 K) {x : Kˣ}
@@ -389,10 +323,10 @@ begin
     congr' 1,
     rw [← mul_left_inj' $ int.coe_nat_ne_zero_iff_pos.mpr _inst_3.elim,
         (K_0_n.val_exists p ⟨_, hx⟩).some_spec, subtype.val_eq_coe, subtype.coe_mk, hy, map_mul,
-        to_add_mul, add_mul, (K_0_n.val_exists_of_mk p hx).some_spec, neg_mul, mul_comm _ (n : ℤ),
+        to_add_mul, add_mul, (K_0_n.val_exists_of_mk p hx).some_spec, neg_mul, ← int.to_add_pow,
         ← neg_add, neg_inj, add_right_inj],
     simp_rw [← hz],
-    exact map_zpow (val_of_ne_zero p) z n
+    exact map_pow (val_of_ne_zero p) z n
   end,
   rw [K_0_n.to_class.to_fun],
   simp_rw [quotient_group.mk'_apply, fractional_ideal.units_of_factorization, val,
@@ -478,8 +412,8 @@ begin
     rw [fractional_ideal.span_singleton_pow, fractional_ideal.units_of_factorization, units.coe_mk0,
         finprod_pow $ K_0_n.val_support_finite hx] at hy,
     simp_rw [← zpow_coe_nat, ← zpow_mul₀, (K_0_n.val_exists_of_mk _ hx).some_spec] at hy,
-    rw [fractional_ideal.factorization_of_ne_zero, fractional_ideal.span_singleton_eq_span_singleton
-          (𝓞 K)⁰ (zpow_ne_zero n y.ne_zero) x.out'.ne_zero] at hy,
+    rw [fractional_ideal.factorization_of_ne_zero,
+        fractional_ideal.span_singleton_eq_span_singleton] at hy,
     cases hy with y hy,
     existsi [y],
     rcases y with ⟨⟨v, hv⟩, ⟨i, hi⟩, vi, iv⟩,
@@ -512,21 +446,21 @@ begin
 end
 
 /-- `K(∅, n)` is finite. -/
-def K_0_n.fintype : fintype K⟮∅, n⟯ := group.fintype_of_ker_codom
+def K_0_n.fintype : fintype K⟮∅, n⟯ :=
+@group.fintype_of_ker_of_codom _ _ _ _ (ring_of_integers.class_group.fintype K) _
 begin
   rw [K_0_n.to_class_ker],
   apply fintype.of_equiv _ (quotient_group.quotient_ker_equiv_range K_0_n.from_unit).to_equiv,
   rw [K_0_n.from_unit_ker],
   exact has_quotient.quotient.fintype
-end $ ring_of_integers.class_group.fintype K
+end
 
 /-- `K(S, n)` is finite. -/
-instance : fintype K⟮S, n⟯ := group.fintype_of_ker_codom
-begin
-  rw [@K_S_n.val_ker K _ _ S n],
-  exact @fintype.of_equiv _ K⟮∅, n⟯ K_0_n.fintype
-    (subgroup.comap_subtype_equiv_of_le $ K_S_n.monotone $ finset.empty_subset S).symm.to_equiv
-end $ by exact pi.fintype
+instance : fintype K⟮S, n⟯ :=
+@group.fintype_of_ker_of_codom _ _ _ _ pi.fintype (@K_S_n.val K _ _ S n) $
+by simpa only [K_S_n.val_ker]
+   using @fintype.of_equiv _ K⟮∅, n⟯ K_0_n.fintype
+         (subgroup.comap_subtype_equiv_of_le $ K_S_n.monotone $ finset.empty_subset S).symm.to_equiv
 
 notation K⟮S, n⟯`²` := (K⟮S, n⟯.prod K⟮S, n⟯).to_add_subgroup
 

@@ -98,7 +98,7 @@ end
 
 /-- If `E(K)/2E(K)` is finite, then `E(F)/2E(F)` is finite. -/
 def coker_2_of_fg_extension.fintype [invertible (2 : F)] : fintype (E⟮K⟯/2) → fintype E⟮F⟯/2 :=
-add_group.fintype_of_ker_codom $ fintype.of_injective (κ 2) (κ.injective 2)
+λ h, @add_group.fintype_of_ker_of_codom _ _ _ _ h _ $ fintype.of_injective (κ 2) (κ.injective 2)
 
 end reduction
 
@@ -110,7 +110,8 @@ section complete_2_descent
 -- Note: requires minimality of Weierstrass equation
 /-- The primes of a number field dividing `n` or at which `E` has bad reduction. -/
 lemma bad_primes [number_field K] (n : ℕ) : finset $ maximal_spectrum $ 𝓞 K :=
-@set.to_finset _ {p : maximal_spectrum $ 𝓞 K | (p.valuation ((F↑K)E.disc_unit) ≠ 1) ∨ (p.valuation ((ℤ↑K)n) < 1)}
+@set.to_finset _ {p : maximal_spectrum $ 𝓞 K | (p.valuation ((F↑K)E.disc_unit) ≠ 1)
+                                             ∨ (p.valuation ((ℤ↑K)n) < 1)}
 begin
   sorry
 end
@@ -127,10 +128,8 @@ variables {a b c : K} (h3 : (cubic.map (F↑K) $ ψ₂_x E F).roots = {a, b, c})
 
 include ha₁ ha₃ h3
 
-local notation n`⬝`K := (zpow_group_hom n : Kˣ →* Kˣ).range
-
 /-- The complete 2-descent function `δ : E(K) → Kˣ/(Kˣ)² × Kˣ/(Kˣ)²`. -/
-def δ.to_fun : E⟮K⟯ → (Kˣ ⧸ (2⬝K)) × (Kˣ ⧸ (2⬝K))
+def δ.to_fun : E⟮K⟯ → (Kˣ ⧸ (2⬝Kˣ)) × (Kˣ ⧸ (2⬝Kˣ))
 | 0            := 1
 | (some x y w) :=
 if ha : x = a then
@@ -148,7 +147,7 @@ omit ha₁ ha₃ h3
 
 -- Input: explicit computation
 /-- The complete 2-descent homomorphism `δ : E(K) → Kˣ/(Kˣ)² × Kˣ/(Kˣ)²`. -/
-def δ : E⟮K⟯ →+ additive ((Kˣ ⧸ (2⬝K)) × (Kˣ ⧸ (2⬝K))) :=
+def δ : E⟮K⟯ →+ additive ((Kˣ ⧸ (2⬝Kˣ)) × (Kˣ ⧸ (2⬝Kˣ))) :=
 { to_fun    := δ.to_fun ha₁ ha₃ h3,
   map_zero' := rfl,
   map_add'  := sorry }

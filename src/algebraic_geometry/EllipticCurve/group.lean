@@ -4,20 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: David Kurniadi Angdinata
 -/
 
-import group_theory.quotient_group
-import group_theory.finiteness
+import group_theory.torsion
 
 /-!
 # Group theory lemmas
 -/
 
 noncomputable theory
+open_locale classical
 
 universe u
 
 variables {G H : Type u}
 
-notation n`⬝`G := (zpow_group_hom n : G →* G).range
+notation n`⬝`G := (pow_monoid_hom n : G →* G).range
 
 ----------------------------------------------------------------------------------------------------
 /-! ## Group theory -/
@@ -40,26 +40,26 @@ def group.with_zero_units [group G] : (with_zero G)ˣ ≃* G :=
            (with_zero.ne_zero_iff_exists.mp y.ne_zero).some_spec],
        refl } }
 
-/-- If `ker(G →* H)` and `H` are finite, then `G` is finite. -/
-@[to_additive "If `ker(G →+ H)` and `H` are finite, then `G` is finite."]
-def group.fintype_of_ker_codom [group G] [group H] {f : G →* H} :
-  fintype f.ker → fintype H → fintype G :=
-λ hK hH, @fintype.of_equiv _ _
-  (@prod.fintype _ _ (@fintype.of_injective _ _ hH _ $ quotient_group.ker_lift_injective f) hK)
-  subgroup.group_equiv_quotient_times_subgroup.symm
-
-variables [comm_group G] [comm_group H]
-
-/-- If `G` is finitely generated, then `G/Gⁿ` is finite. -/
-@[to_additive "If `G` is finitely generated, then `G/nG` is finite."]
-def quotient_group.fintype_of_fg [group.fg G] (n : ℤ) : fintype $ G ⧸ (n⬝G) :=
+/-- If `G` is finitely generated torsion abelian, then `G` is finite. -/
+@[to_additive "If `G` is finitely generated torsion abelian, then `G` is finite."]
+def comm_group.fintype_of_fg_torsion [comm_group G] [hfg : group.fg G] (hit : monoid.is_torsion G) :
+  fintype G :=
 begin
   sorry
 end
 
+variables [comm_group G] [comm_group H]
+
+/-- If `G` is finitely generated, then `G/Gⁿ` is finite. -/
+@[to_additive "If `G` is finitely generated, then `G/Gⁿ` is finite."]
+def quotient_group.fintype_of_fg [group.fg G] (n : ℕ) [fact $ 0 < n] : fintype $ G ⧸ (n⬝G) :=
+@comm_group.fintype_of_fg_torsion _ _ (quotient_group.fg (n⬝G)) $
+  λ g, (is_of_fin_order_iff_pow_eq_one g).mpr ⟨n, _inst_4.elim,
+  by { rw [← quotient_group.out_eq' g], exact (quotient_group.eq_one_iff _).mpr ⟨g.out', rfl⟩ }⟩
+
 /-- If `G ≃* H`, then `G/Gⁿ ≃* H/Hⁿ`. -/
 @[to_additive "If `G ≃+ H`, then `G/nG ≃+ H/nH`."]
-def quotient_group.quotient_equiv_of_equiv (e : G ≃* H) (n : ℤ) : G ⧸ (n⬝G) ≃* H ⧸ (n⬝H) :=
+def quotient_group.quotient_equiv_of_equiv (e : G ≃* H) (n : ℕ) : G ⧸ (n⬝G) ≃* H ⧸ (n⬝H) :=
 begin
   have ker_eq_range : (n⬝G) = ((quotient_group.mk' (n⬝H)).comp e.to_monoid_hom).ker :=
   begin
@@ -67,8 +67,8 @@ begin
     change (∃ h : G, h ^ n = g) ↔ ↑(e.to_monoid_hom g) = _,
     rw [quotient_group.eq_one_iff],
     change _ ↔ ∃ h : H, h ^ n = e.to_monoid_hom g,
-    exact ⟨λ hg, ⟨e.to_monoid_hom hg.some, by rw [← map_zpow, hg.some_spec]⟩,
-           λ hg, ⟨e.symm.to_monoid_hom hg.some, by simpa only [← map_zpow, hg.some_spec]
+    exact ⟨λ hg, ⟨e.to_monoid_hom hg.some, by rw [← map_pow, hg.some_spec]⟩,
+           λ hg, ⟨e.symm.to_monoid_hom hg.some, by simpa only [← map_pow, hg.some_spec]
                                                    using e.left_inv g⟩⟩
   end,
   rw [ker_eq_range],

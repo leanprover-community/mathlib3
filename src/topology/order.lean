@@ -63,6 +63,10 @@ def generate_from (g : set (set α)) : topological_space α :=
   is_open_inter  := generate_open.inter,
   is_open_sUnion := generate_open.sUnion }
 
+lemma is_open_generate_from_of_mem {g : set (set α)} {s : set α} (hs : s ∈ g) :
+  @is_open _ (generate_from g) s :=
+generate_open.basic s hs
+
 lemma nhds_generate_from {g : set (set α)} {a : α} :
   @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, 𝓟 s) :=
 by rw nhds_def; exact le_antisymm
@@ -696,6 +700,13 @@ continuous_iff_le_induced.2 $ bot_le
 
 @[continuity] lemma continuous_top {t : tspace α} : cont t ⊤ f :=
 continuous_iff_coinduced_le.2 $ le_top
+
+lemma continuous_id_of_le {t t' : tspace α} (h : t ≤ t') : cont t t' id :=
+begin
+  rw continuous_def,
+  assume u hu,
+  exact h u hu
+end
 
 /- 𝓝 in the induced topology -/
 

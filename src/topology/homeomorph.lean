@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot, Sébastien Gouëzel, Zhouhang Zhou, Reid Barton
 -/
 import topology.dense_embedding
+import topology.support
 import data.equiv.fin
 
 /-!
@@ -230,6 +231,11 @@ by rw [← preimage_symm, preimage_interior]
 lemma preimage_frontier (h : α ≃ₜ β) (s : set β) : h ⁻¹' (frontier s) = frontier (h ⁻¹' s) :=
 h.is_open_map.preimage_frontier_eq_frontier_preimage h.continuous _
 
+@[to_additive]
+lemma _root_.has_compact_mul_support.comp_homeomorph {M} [has_one M] {f : β → M}
+  (hf : has_compact_mul_support f) (φ : α ≃ₜ β) : has_compact_mul_support (f ∘ φ) :=
+hf.comp_closed_embedding φ.closed_embedding
+
 @[simp] lemma map_nhds_eq (h : α ≃ₜ β) (x : α) : map h (𝓝 x) = 𝓝 (h x) :=
 h.embedding.map_nhds_of_mem _ (by simp)
 
@@ -434,6 +440,14 @@ def image (e : α ≃ₜ β) (s : set α) : s ≃ₜ e '' s :=
   ..e.to_equiv.image s, }
 
 end homeomorph
+
+/-- An inducing equiv between topological spaces is a homeomorphism. -/
+@[simps] def equiv.to_homeomorph_of_inducing [topological_space α] [topological_space β] (f : α ≃ β)
+  (hf : inducing f) :
+  α ≃ₜ β :=
+{ continuous_to_fun := hf.continuous,
+  continuous_inv_fun := hf.continuous_iff.2 $ by simpa using continuous_id,
+  .. f }
 
 namespace continuous
 variables [topological_space α] [topological_space β]

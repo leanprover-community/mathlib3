@@ -53,6 +53,13 @@ instance [comm_semiring α] : comm_semiring αᵐᵒᵖ :=
 instance [non_unital_non_assoc_ring α] : non_unital_non_assoc_ring αᵐᵒᵖ :=
 { .. mul_opposite.add_comm_group α, .. mul_opposite.mul_zero_class α, .. mul_opposite.distrib α}
 
+instance [non_unital_ring α] : non_unital_ring αᵐᵒᵖ :=
+{ .. mul_opposite.add_comm_group α, .. mul_opposite.semigroup_with_zero α,
+  .. mul_opposite.distrib α}
+
+instance [non_assoc_ring α] : non_assoc_ring αᵐᵒᵖ :=
+{ .. mul_opposite.add_comm_group α, .. mul_opposite.mul_zero_one_class α, .. mul_opposite.distrib α}
+
 instance [ring α] : ring αᵐᵒᵖ :=
 { .. mul_opposite.add_comm_group α, .. mul_opposite.monoid α, .. mul_opposite.semiring α }
 

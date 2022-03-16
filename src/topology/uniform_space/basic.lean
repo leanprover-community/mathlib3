@@ -299,6 +299,13 @@ uniform_space.is_open_uniformity s
 lemma refl_le_uniformity : 𝓟 id_rel ≤ 𝓤 α :=
 (@uniform_space.to_core α _).refl
 
+instance uniformity.ne_bot [nonempty α] : ne_bot (𝓤 α) :=
+begin
+  inhabit α,
+  refine (principal_ne_bot_iff.2 _).mono refl_le_uniformity,
+  exact ⟨(default, default), rfl⟩
+end
+
 lemma refl_mem_uniformity {x : α} {s : set (α × α)} (h : s ∈ 𝓤 α) :
   (x, x) ∈ s :=
 refl_le_uniformity h rfl
@@ -1183,6 +1190,27 @@ begin
   rw continuous_on_iff_continuous_restrict,
   exact h.continuous
 end
+
+@[to_additive]
+instance [uniform_space α] : uniform_space (αᵐᵒᵖ) :=
+uniform_space.comap mul_opposite.unop ‹_›
+
+@[to_additive]
+lemma uniformity_mul_opposite [uniform_space α] :
+  𝓤 (αᵐᵒᵖ) = comap (λ q : αᵐᵒᵖ × αᵐᵒᵖ, (q.1.unop, q.2.unop)) (𝓤 α) :=
+rfl
+
+namespace mul_opposite
+
+@[to_additive]
+lemma uniform_continuous_unop [uniform_space α] : uniform_continuous (unop : αᵐᵒᵖ → α) :=
+uniform_continuous_comap
+
+@[to_additive]
+lemma uniform_continuous_op [uniform_space α] : uniform_continuous (op : α → αᵐᵒᵖ) :=
+uniform_continuous_comap' uniform_continuous_id
+
+end mul_opposite
 
 section prod
 

@@ -74,18 +74,6 @@ begin
     intros c x, convert (this (e.symm c) x).symm, simp only [e.apply_symm_apply] },
 end
 
-lemma polynomial.not_is_field : ¬ is_field Fq[X] :=
-begin
-  rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
-  use ideal.span{polynomial.X},
-  split,
-  { rw [bot_lt_iff_ne_bot, ne.def, ideal.span_singleton_eq_bot],
-    exact polynomial.X_ne_zero, },
-  { rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ideal.mem_span_singleton,
-      polynomial.X_dvd_iff, polynomial.coeff_one_zero],
-    exact one_ne_zero, }
-end
-
 lemma algebra_map_injective [algebra Fq[X] F] [algebra (ratfunc Fq) F]
   [is_scalar_tower Fq[X] (ratfunc Fq) F] : function.injective ⇑(algebra_map Fq[X] F) :=
 begin

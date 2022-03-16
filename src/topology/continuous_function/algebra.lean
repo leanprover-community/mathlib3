@@ -397,6 +397,11 @@ variables {α β : Type*} [topological_space α] [topological_space β]
 instance [has_scalar R M] [has_continuous_const_smul R M] : has_scalar R C(α, M) :=
 ⟨λ r f, ⟨r • f, f.continuous.const_smul r⟩⟩
 
+instance {α : Type*} [topological_space α] [locally_compact_space α]
+  {R : Type*} {M : Type*} [topological_space M] [has_scalar R M] [has_continuous_const_smul R M] :
+  has_continuous_const_smul R C(α, M) :=
+⟨λ γ, continuous_of_continuous_uncurry _ (continuous.const_smul continuous_ev γ)⟩
+
 @[simp, to_additive, norm_cast]
 lemma coe_smul [has_scalar R M] [has_continuous_const_smul R M]
   (c : R) (f : C(α, M)) : ⇑(c • f) = c • f := rfl
@@ -663,11 +668,6 @@ instance {α : Type*} [topological_space α] [locally_compact_space α]
   exact (continuous_fst.comp ((continuous_fst.comp continuous_fst).prod_mk h)).smul
     (continuous_snd.comp ((continuous_fst.comp continuous_fst).prod_mk h)),
 end⟩
-
-instance {α : Type*} [topological_space α] [locally_compact_space α]
-  {R : Type*} {M : Type*} [topological_space M] [has_scalar R M] [has_continuous_const_smul R M] :
-  has_continuous_const_smul R C(α, M) := ⟨λ γ,
-    continuous_of_continuous_uncurry _ (continuous.const_smul continuous_ev γ)⟩
 
 instance module' {α : Type*} [topological_space α]
   (R : Type*) [ring R] [topological_space R] [topological_ring R]

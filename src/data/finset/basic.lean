@@ -1427,9 +1427,13 @@ ext $ assume a, by simp only [mem_filter, and_false]; refl
 
 variables {p q}
 
+lemma filter_eq_self (s : finset α) :
+  s.filter p = s ↔ ∀ x ∈ s, p x :=
+by simp [finset.ext_iff]
+
 /-- If all elements of a `finset` satisfy the predicate `p`, `s.filter p` is `s`. -/
 @[simp] lemma filter_true_of_mem {s : finset α} (h : ∀ x ∈ s, p x) : s.filter p = s :=
-ext $ λ x, ⟨λ h, (mem_filter.1 h).1, λ hx, mem_filter.2 ⟨hx, h x hx⟩⟩
+(filter_eq_self s).mpr h
 
 /-- If all elements of a `finset` fail to satisfy the predicate `p`, `s.filter p` is `∅`. -/
 lemma filter_false_of_mem {s : finset α} (h : ∀ x ∈ s, ¬ p x) : s.filter p = ∅ :=
@@ -1446,13 +1450,6 @@ end
 
 lemma filter_nonempty_iff {s : finset α} : (s.filter p).nonempty ↔ ∃ a ∈ s, p a :=
 by simp only [nonempty_iff_ne_empty, ne.def, filter_eq_empty_iff, not_not, not_forall]
-
-lemma filter_eq_self (s : finset α) :
-  s.filter p = s ↔ ∀ x ∈ s, p x :=
-begin
-  cases s,
-  simp [finset.filter, finset.mem_mk, multiset.filter_eq_self],
-end
 
 lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s = filter q s :=
 eq_of_veq $ filter_congr H

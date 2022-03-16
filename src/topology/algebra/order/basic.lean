@@ -343,15 +343,16 @@ begin
 
   by_cases h_sep : ∃ x, v < x ∧ x < u,
   { cases h_sep with x hx,
-    cases filter.nonempty_of_mem (l.inter_sets (hf (Ioi_mem_nhds hx.right)) (l.inter_sets (hg (Iio_mem_nhds hx.left)) hfg)) with c hc,
+    cases filter.nonempty_of_mem (
+      l.inter_sets (hf $ Ioi_mem_nhds hx.right) (l.inter_sets (hg $ Iio_mem_nhds hx.left) hfg)) with c hc,
     simp at hc,
     exact ne_of_lt (
       calc f c ≤ g c : hc.right.right
         ... < x : hc.right.left
         ... < f c : hc.left
-    ) rfl,
-  },
-  { cases filter.nonempty_of_mem (l.inter_sets (hf (Ioi_mem_nhds H)) (l.inter_sets (hg (Iio_mem_nhds H)) hfg)) with c hc,
+    ) rfl, },
+  { cases filter.nonempty_of_mem (
+      l.inter_sets (hf (Ioi_mem_nhds H)) (l.inter_sets (hg (Iio_mem_nhds H)) hfg)) with c hc,
     simp at hc,
 
     push_neg at h_sep,
@@ -370,8 +371,7 @@ begin
         ... ≤ g c : hc.right.right
         ... ≤ v : hg_lt
         ... < u : H,
-   exact ne_of_lt this rfl,
-  },
+   exact ne_of_lt this rfl, },
 end
 
 variables [topological_space γ]

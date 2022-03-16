@@ -1,3 +1,4 @@
+import data.nat.log
 import set_theory.ordinal_notation
 
 namespace onote
@@ -30,7 +31,7 @@ instance (b : ℕ) : inhabited (hereditary b) := ⟨0⟩
 
 namespace hereditary
 
-def oadd {b} (e : hereditary b) {n : ℕ+} (hn : n.1 < b) (a : hereditary b)
+def oadd {b} (e : hereditary b) (n : ℕ+) (hn : n.1 < b) (a : hereditary b)
   (h : nonote.below a.1 e.1) : hereditary b :=
 ⟨nonote.oadd e.1 n a.1 h, e.2, hn⟩
 
@@ -59,5 +60,21 @@ unique_hereditary_of_le_one le_rfl
 /-- Computes the value of the notation. -/
 def to_nat {b : ℕ} (e : hereditary b) : ℕ :=
 e.1.1.to_nat b
+
+def of_nat {b : ℕ} : ℕ → hereditary b
+| 0 := 0
+| n :=
+let H₁ : nat.log b n < n := begin
+  have := nat.log
+
+end in
+let H₂ : n % b ^ nat.log b n < n := sorry in
+oadd
+  (of_nat (nat.log b n))
+  ⟨n / b ^ nat.log b n, sorry⟩
+  sorry
+  (of_nat (n % b ^ nat.log b n))
+  sorry
+using_well_founded {dec_tac := `[assumption]}
 
 end hereditary

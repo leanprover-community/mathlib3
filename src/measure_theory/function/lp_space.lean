@@ -1113,15 +1113,14 @@ lemma snorm'_sum_le {ι} {f : ι → α → E} {s : finset ι}
   snorm' (∑ i in s, f i) q μ ≤ ∑ i in s, snorm' (f i) q μ :=
 finset.le_sum_of_subadditive_on_pred (λ (f : α → E), snorm' f q μ)
   (λ f, ae_strongly_measurable f μ) (snorm'_zero (zero_lt_one.trans_le hq1))
-  (λ f g hf hg, snorm'_add_le hf hg hq1) (λ x y, ae_strongly_measurable.add) _ hfs
-
+  (λ f g hf hg, snorm'_add_le hf hg hq1) (λ f g hf hg, hf.add hg) _ hfs
 
 lemma snorm_sum_le {ι} {f : ι → α → E} {s : finset ι}
   (hfs : ∀ i, i ∈ s → ae_strongly_measurable (f i) μ) (hp1 : 1 ≤ p) :
   snorm (∑ i in s, f i) p μ ≤ ∑ i in s, snorm (f i) p μ :=
 finset.le_sum_of_subadditive_on_pred (λ (f : α → E), snorm f p μ)
   (λ f, ae_strongly_measurable f μ) snorm_zero (λ f g hf hg, snorm_add_le hf hg hp1)
-  (λ x y, ae_strongly_measurable.add) _ hfs
+  (λ f g hf hg, hf.add hg) _ hfs
 
 lemma mem_ℒp.add {f g : α → E} (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) : mem_ℒp (f + g) p μ :=
 ⟨ae_strongly_measurable.add hf.1 hg.1, snorm_add_lt_top hf hg⟩
@@ -1796,11 +1795,11 @@ end
 
 end indicator_const_Lp
 
-lemma mem_ℒp.norm_rpow [opens_measurable_space E] {f : α → E}
+lemma mem_ℒp.norm_rpow {f : α → E}
   (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   mem_ℒp (λ (x : α), ∥f x∥ ^ p.to_real) 1 μ :=
 begin
-  refine ⟨hf.1.norm.pow_const _, _⟩,
+  refine ⟨(hf.1.norm.ae_measurable.pow_const p.to_real).ae_strongly_measurable, _⟩,
   have := hf.snorm_ne_top,
   rw snorm_eq_lintegral_rpow_nnnorm hp_ne_zero hp_ne_top at this,
   rw snorm_one_eq_lintegral_nnnorm,

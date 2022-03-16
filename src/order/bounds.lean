@@ -386,9 +386,46 @@ lemma bdd_above_Iio : bdd_above (Iio a) := ⟨a, λ x hx, le_of_lt hx⟩
 
 lemma bdd_below_Ioi : bdd_below (Ioi a) := ⟨a, λ x hx, le_of_lt hx⟩
 
+lemma lub_Iio_le (a : α) (hb : is_lub (set.Iio a) b) : b ≤ a :=
+(is_lub_le_iff hb).mpr $ λ k hk, le_of_lt hk
+
+lemma le_glb_Ioi (a : α) (hb : is_glb (set.Ioi a) b) : a ≤ b :=
+@lub_Iio_le (order_dual α) _ _ a hb
+
+lemma lub_Iio_eq_self_or_Iio_eq_Iic [partial_order γ] {j : γ} (i : γ) (hj : is_lub (set.Iio i) j) :
+  j = i ∨ set.Iio i = set.Iic j :=
+begin
+  cases eq_or_lt_of_le (lub_Iio_le i hj) with hj_eq_i hj_lt_i,
+  { exact or.inl hj_eq_i, },
+  { right,
+    exact set.ext (λ k, ⟨λ hk_lt, hj.1 hk_lt, λ hk_le_j, lt_of_le_of_lt hk_le_j hj_lt_i⟩), },
+end
+
+lemma glb_Ioi_eq_self_or_Ioi_eq_Ici [partial_order γ] {j : γ} (i : γ) (hj : is_glb (set.Ioi i) j) :
+  j = i ∨ set.Ioi i = set.Ici j :=
+@lub_Iio_eq_self_or_Iio_eq_Iic (order_dual γ) _ j i hj
+
 section
 
-variables [linear_order γ] [densely_ordered γ]
+variables [linear_order γ]
+
+lemma exists_lub_Iio (i : γ) : ∃ j, is_lub (set.Iio i) j :=
+begin
+  by_cases h_exists_lt : ∃ j, j ∈ upper_bounds (set.Iio i) ∧ j < i,
+  { obtain ⟨j, hj_ub, hj_lt_i⟩ := h_exists_lt,
+    exact ⟨j, hj_ub, λ k hk_ub, hk_ub hj_lt_i⟩, },
+  { refine ⟨i, λ j hj, le_of_lt hj, _⟩,
+    rw mem_lower_bounds,
+    by_contra,
+    refine h_exists_lt _,
+    push_neg at h,
+    exact h, },
+end
+
+lemma exists_glb_Ioi (i : γ) : ∃ j, is_glb (set.Ioi i) j :=
+@exists_lub_Iio (order_dual γ) _ i
+
+variables [densely_ordered γ]
 
 lemma is_lub_Iio {a : γ} : is_lub (Iio a) a :=
 ⟨λ x hx, le_of_lt hx, λ y hy, le_of_forall_ge_of_dense hy⟩

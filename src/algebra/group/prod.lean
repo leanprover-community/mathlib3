@@ -42,6 +42,8 @@ lemma snd_mul [has_mul M] [has_mul N] (p q : M × N) : (p * q).2 = p.2 * q.2 := 
 @[simp, to_additive]
 lemma mk_mul_mk [has_mul M] [has_mul N] (a₁ a₂ : M) (b₁ b₂ : N) :
   (a₁, b₁) * (a₂, b₂) = (a₁ * a₂, b₁ * b₂) := rfl
+@[simp, to_additive]
+lemma swap_mul [has_mul M] [has_mul N] (p q : M × N) : (p * q).swap = p.swap * q.swap := rfl
 @[to_additive]
 lemma mul_def [has_mul M] [has_mul N] (p q : M × N) : p * q = (p.1 * q.1, p.2 * q.2) := rfl
 
@@ -57,6 +59,8 @@ lemma one_eq_mk [has_one M] [has_one N] : (1 : M × N) = (1, 1) := rfl
 @[simp, to_additive]
 lemma mk_eq_one [has_one M] [has_one N] {x : M} {y : N} : (x, y) = 1 ↔ x = 1 ∧ y = 1 :=
 mk.inj_iff
+@[simp, to_additive]
+lemma swap_one [has_one M] [has_one N] : (1 : M × N).swap = 1 := rfl
 
 @[to_additive]
 lemma fst_mul_snd [mul_one_class M] [mul_one_class N] (p : M × N) :
@@ -72,14 +76,18 @@ lemma fst_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).1 = (p.1)⁻¹ := 
 lemma snd_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).2 = (p.2)⁻¹ := rfl
 @[simp, to_additive]
 lemma inv_mk [has_inv G] [has_inv H] (a : G) (b : H) : (a, b)⁻¹ = (a⁻¹, b⁻¹) := rfl
+@[simp, to_additive]
+lemma swap_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).swap = p.swap⁻¹ := rfl
 
 @[to_additive]
 instance [has_div M] [has_div N] : has_div (M × N) := ⟨λ p q, ⟨p.1 / q.1, p.2 / q.2⟩⟩
 
-@[simp] lemma fst_sub [add_group A] [add_group B] (a b : A × B) : (a - b).1 = a.1 - b.1 := rfl
-@[simp] lemma snd_sub [add_group A] [add_group B] (a b : A × B) : (a - b).2 = a.2 - b.2 := rfl
-@[simp] lemma mk_sub_mk [add_group A] [add_group B] (x₁ x₂ : A) (y₁ y₂ : B) :
-(x₁, y₁) - (x₂, y₂) = (x₁ - x₂, y₁ - y₂) := rfl
+@[simp, to_additive] lemma fst_div [group G] [group H] (a b : G × H) : (a / b).1 = a.1 / b.1 := rfl
+@[simp, to_additive] lemma snd_div [group G] [group H] (a b : G × H) : (a / b).2 = a.2 / b.2 := rfl
+@[simp, to_additive] lemma mk_div_mk [group G] [group H] (x₁ x₂ : G) (y₁ y₂ : H) :
+  (x₁, y₁) / (x₂, y₂) = (x₁ / x₂, y₁ / y₂) := rfl
+@[simp, to_additive] lemma swap_div [group G] [group H] (a b : G × H) :
+  (a / b).swap = a.swap / b.swap := rfl
 
 instance [mul_zero_class M] [mul_zero_class N] : mul_zero_class (M × N) :=
 { zero_mul := assume a, prod.rec_on a $ λa b, mk.inj_iff.mpr ⟨zero_mul _, zero_mul _⟩,
@@ -254,14 +262,14 @@ variables [has_mul M] [has_mul N] [comm_semigroup P] (f : mul_hom M P) (g : mul_
 
 /-- Coproduct of two `mul_hom`s with the same codomain:
 `f.coprod g (p : M × N) = f p.1 * g p.2`. -/
-@[to_additive "Coproduct of two `add__hom`s with the same codomain:
+@[to_additive "Coproduct of two `add_hom`s with the same codomain:
 `f.coprod g (p : M × N) = f p.1 + g p.2`."]
 def coprod : mul_hom (M × N) P := f.comp (fst M N) * g.comp (snd M N)
 
 @[simp, to_additive]
 lemma coprod_apply (p : M × N) : f.coprod g p = f p.1 * g p.2 := rfl
 
-@[to_additive] --TODO: add to_additive in group_theory.submonoid.operations
+@[to_additive]
 lemma comp_coprod {Q : Type*} [comm_semigroup Q]
   (h : mul_hom P Q) (f : mul_hom M P) (g : mul_hom N P) :
   h.comp (f.coprod g) = (h.comp f).coprod (h.comp g) :=
@@ -395,6 +403,7 @@ ext $ λ x, by simp [coprod_apply, inl_apply, inr_apply, ← map_mul]
   (inl M N).coprod (inr M N) = id (M × N) :=
 coprod_unique (id $ M × N)
 
+@[to_additive]
 lemma comp_coprod {Q : Type*} [comm_monoid Q] (h : P →* Q) (f : M →* P) (g : N →* P) :
   h.comp (f.coprod g) = (h.comp f).coprod (h.comp g) :=
 ext $ λ x, by simp
@@ -493,6 +502,6 @@ def div_monoid_with_zero_hom [comm_group_with_zero α] : α × α →*₀ α :=
 { to_fun := λ a, a.1 / a.2,
   map_zero' := zero_div _,
   map_one' := div_one _,
-  map_mul' := λ a b, (div_mul_div _ _ _ _).symm }
+  map_mul' := λ a b, (div_mul_div_comm₀ _ _ _ _).symm }
 
 end bundled_mul_div

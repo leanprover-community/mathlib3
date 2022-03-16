@@ -3,7 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
 import field_theory.finiteness
 
 /-!
@@ -596,7 +596,8 @@ b.map (linear_equiv.smul_of_unit (units.mk0
   basis_singleton ι h v hv i = v :=
 calc basis_singleton ι h v hv i
     = (((basis_unique ι h).repr) v) default • (basis_unique ι h) default :
-      by simp [subsingleton.elim i default, basis_singleton, linear_equiv.smul_of_unit]
+      by simp [subsingleton.elim i default, basis_singleton, linear_equiv.smul_of_unit,
+               units.smul_def]
 ... = v : by rw [← finsupp.total_unique K (basis.repr _ v), basis.total_repr]
 
 @[simp] lemma range_basis_singleton (ι : Type*) [unique ι]
@@ -792,23 +793,16 @@ protected theorem finite_dimensional (f : V ≃ₗ[K] V₂) [finite_dimensional 
   finite_dimensional K V₂ :=
 module.finite.equiv f
 
+variables {R M M₂ : Type*} [ring R] [add_comm_group M] [add_comm_group M₂]
+variables [module R M] [module R M₂]
+
 /-- The dimension of a finite dimensional space is preserved under linear equivalence. -/
-theorem finrank_eq (f : V ≃ₗ[K] V₂) :
-  finrank K V = finrank K V₂ :=
-begin
-  by_cases h : finite_dimensional K V,
-  { resetI,
-    haveI : finite_dimensional K V₂ := f.finite_dimensional,
-    simpa [← finrank_eq_dim] using f.lift_dim_eq },
-  { rw [finrank_of_infinite_dimensional h, finrank_of_infinite_dimensional],
-    contrapose! h,
-    resetI,
-    exact f.symm.finite_dimensional }
-end
+theorem finrank_eq (f : M ≃ₗ[R] M₂) : finrank R M = finrank R M₂ :=
+by { unfold finrank, rw [← cardinal.to_nat_lift, f.lift_dim_eq, cardinal.to_nat_lift] }
 
 /-- Pushforwards of finite-dimensional submodules along a `linear_equiv` have the same finrank. -/
-lemma finrank_map_eq (f : V ≃ₗ[K] V₂) (p : submodule K V) :
-  finrank K (p.map (f : V →ₗ[K] V₂)) = finrank K p :=
+lemma finrank_map_eq (f : M ≃ₗ[R] M₂) (p : submodule R M) :
+  finrank R (p.map (f : M →ₗ[R] M₂)) = finrank R p :=
 (f.submodule_map p).finrank_eq.symm
 
 end linear_equiv

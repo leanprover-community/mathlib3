@@ -152,6 +152,23 @@ lemma is_unit_map_of_injective (hg : function.injective g)
 is_unit.mk0 (g y) $ show g.to_monoid_with_zero_hom y ≠ 0,
   from map_ne_zero_of_mem_non_zero_divisors g hg y.2
 
+@[simp] lemma mk'_eq_zero_iff_eq_zero [algebra R K] [is_fraction_ring R K] {x : R}
+  {y : non_zero_divisors R} : mk' K x y = 0 ↔ x = 0 :=
+begin
+  refine ⟨λ hxy, _, λ h, by rw [h, mk'_zero]⟩,
+  { simp_rw [mk'_eq_zero_iff, mul_right_coe_non_zero_divisors_eq_zero_iff] at hxy,
+    exact (exists_const _).mp hxy },
+end
+
+lemma mk'_eq_one_iff_eq {x : A} {y : non_zero_divisors A} : mk' K x y = 1 ↔ x = y :=
+begin
+  refine ⟨_, λ hxy, by rw [hxy, mk'_self']⟩,
+  { intro hxy, have hy : (algebra_map A K) ↑y ≠ (0 : K) :=
+    is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors y.property,
+    rw [is_fraction_ring.mk'_eq_div, div_eq_one_iff_eq hy] at hxy,
+    exact is_fraction_ring.injective A K hxy }
+end
+
 open function
 
 /-- Given an integral domain `A` with field of fractions `K`,
@@ -249,8 +266,8 @@ commutative ring `R` is an integral domain only when this is needed for proving.
 
 namespace fraction_ring
 
-instance [subsingleton R] : subsingleton (fraction_ring R) :=
-localization.subsingleton
+instance unique [subsingleton R] : unique (fraction_ring R) :=
+localization.unique
 
 instance [nontrivial R] : nontrivial (fraction_ring R) :=
 ⟨⟨(algebra_map R _) 0, (algebra_map _ _) 1,

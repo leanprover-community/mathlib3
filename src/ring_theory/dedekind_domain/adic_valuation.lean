@@ -53,8 +53,8 @@ namespace is_dedekind_domain.height_one_spectrum
 ideal `(r)`, if `r` is nonzero, or infinity, if `r = 0`. `int_valuation_def` is the corresponding
 multiplicative valuation. -/
 def int_valuation_def (r : R) : with_zero (multiplicative ℤ) :=
-ite (r = 0) 0 (multiplicative.of_add
-  (-(associates.mk v.as_ideal).count (associates.mk (ideal.span {r} : ideal R)).factors : ℤ))
+if r = 0 then 0 else multiplicative.of_add
+  (-(associates.mk v.as_ideal).count (associates.mk (ideal.span {r} : ideal R)).factors : ℤ)
 
 lemma int_valuation_def_if_pos {r : R} (hr : r = 0) : v.int_valuation_def r = 0 := if_pos hr
 

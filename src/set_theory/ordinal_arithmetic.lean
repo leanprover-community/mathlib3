@@ -1828,8 +1828,8 @@ by simp only [log, dif_pos b1]
 @[simp] theorem log_of_not_one_lt_left {b : ordinal} (b1 : ¬ 1 < b) (x : ordinal) : log b x = 0 :=
 by simp only [log, dif_neg b1]
 
-@[simp] theorem log_of_left_le_one {b : ordinal} (b1 : b ≤ 1) (x : ordinal) : log b x = 0 :=
-log_of_not_one_lt_left b1.not_lt x
+@[simp] theorem log_of_left_le_one {b : ordinal} (b1 : b ≤ 1) : ∀ x, log b x = 0 :=
+log_of_not_one_lt_left b1.not_lt
 
 @[simp] lemma log_zero_left : ∀ b, log 0 b = 0 :=
 log_of_left_le_one ordinal.zero_le_one

@@ -225,7 +225,7 @@ variables [non_unital_ring α]
 
 /-- A prime associative ring has commutative centroid. -/
 @[reducible] -- See note [reducible non instances]
-def centroid_hom.comm_ring (h: ∀ a b : α, (∀ r : α, a * r * b = 0) → a = 0 ∨ b = 0) :
+def comm_ring (h: ∀ a b : α, (∀ r : α, a * r * b = 0) → a = 0 ∨ b = 0) :
   comm_ring (centroid_hom α) :=
 { mul_comm := λ f g, begin
     ext,

@@ -792,6 +792,10 @@ end eval
 
 section map
 
+--TODO rename to `map_dvd_map`
+lemma map_dvd {R S} [semiring R] [comm_semiring S] (f : R →+* S) {x y : R[X]} :
+  x ∣ y → x.map f ∣ y.map f := eval₂_dvd _ _
+
 variables [comm_semiring R] [comm_semiring S] (f : R →+* S)
 
 protected lemma map_multiset_prod (m : multiset R[X]) : m.prod.map f = (m.map $ map f).prod :=

@@ -194,7 +194,7 @@ begin
   { exact derived_series_one G },
   rw [derived_series_succ, ih],
   cases (commutator.normal G).eq_bot_or_eq_top with h h,
-  { rw [h, commutator_bot] },
+  { rw [h, commutator_bot_left] },
   { rwa h },
 end
 
@@ -227,15 +227,12 @@ begin
   let x : equiv.perm (fin 5) := ⟨![1, 2, 0, 3, 4], ![2, 0, 1, 3, 4], dec_trivial, dec_trivial⟩,
   let y : equiv.perm (fin 5) := ⟨![3, 4, 2, 0, 1], ![3, 4, 2, 0, 1], dec_trivial, dec_trivial⟩,
   let z : equiv.perm (fin 5) := ⟨![0, 3, 2, 1, 4], ![0, 3, 2, 1, 4], dec_trivial, dec_trivial⟩,
-  have x_ne_one : x ≠ 1, { rw [ne.def, equiv.ext_iff], dec_trivial },
-  have key : x = z * (x * (y * x * y⁻¹) * x⁻¹ * (y * x * y⁻¹)⁻¹) * z⁻¹,
-  { ext a, dec_trivial! },
-  refine not_solvable_of_mem_derived_series x_ne_one (λ n, _),
+  have key : x = z * ⁅x, y * x * y⁻¹⁆ * z⁻¹ := by dec_trivial,
+  refine not_solvable_of_mem_derived_series (show x ≠ 1, by dec_trivial) (λ n, _),
   induction n with n ih,
   { exact mem_top x },
-  { rw key,
-    exact (derived_series_normal _ _).conj_mem _
-      (commutator_containment _ _ ih ((derived_series_normal _ _).conj_mem _ ih _)) _ },
+  { rw [key, (derived_series_normal _ _).mem_comm_iff, inv_mul_cancel_left],
+    exact commutator_mem_commutator ih ((derived_series_normal _ _).conj_mem _ ih _) },
 end
 
 lemma equiv.perm.not_solvable (X : Type*) (hX : 5 ≤ cardinal.mk X) :

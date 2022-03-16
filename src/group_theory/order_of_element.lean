@@ -75,8 +75,6 @@ lemma is_of_fin_order_iff_coe {G : Type u} [group G] (H : subgroup G) (x : H) :
   is_of_fin_order x ↔ is_of_fin_order (x : G) :=
 by { rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one], norm_cast }
 
-variables 
-
 /-- Elements of finite order are of finite order in quotient groups.-/
 @[to_additive is_of_fin_add_order_iff_quotient]
 lemma is_of_fin_order.quotient {G : Type u} [group G] (N : subgroup G) [N.normal] (x : G) :
@@ -154,6 +152,11 @@ is_periodic_pt.minimal_period_dvd ((is_periodic_pt_mul_iff_pow_eq_one _).mpr h)
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of x ∣ n ↔ x ^ n = 1 :=
 ⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
 
+@[to_additive add_order_of_map_dvd]
+lemma order_of_map_dvd {H : Type*} [monoid H] (ψ : G →* H) (x : G) :
+  order_of (ψ x) ∣ order_of x :=
+by { apply order_of_dvd_of_pow_eq_one, rw [←map_pow, pow_order_of_eq_one], apply map_one }
+
 @[to_additive]
 lemma exists_pow_eq_self_of_coprime (h : n.coprime (order_of x)) :
   ∃ m : ℕ, (x ^ n) ^ m = x :=
@@ -209,7 +212,7 @@ by simp_rw [order_of_eq_order_of_iff, ←f.map_pow, ←f.map_one, hf.eq_iff, iff
   (y : H) : order_of (y : G) = order_of y :=
 order_of_injective H.subtype subtype.coe_injective y
 
-@[to_additive order_of_add_units]
+@[to_additive]
 lemma order_of_units {y : Gˣ} : order_of (y : G) = order_of y :=
 order_of_injective (units.coe_hom G) units.ext y
 
@@ -334,6 +337,10 @@ begin
   { rw [dvd_neg, int.coe_nat_dvd, zpow_neg, inv_eq_one, zpow_coe_nat,
       order_of_dvd_iff_pow_eq_one] }
 end
+
+@[simp, to_additive]
+lemma order_of_inv (x : G) : order_of x⁻¹ = order_of x :=
+by simp [order_of_eq_order_of_iff]
 
 @[simp, norm_cast, to_additive] lemma order_of_subgroup {H : subgroup G}
   (y: H) : order_of (y : G) = order_of y :=

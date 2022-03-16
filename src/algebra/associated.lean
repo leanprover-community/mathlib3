@@ -126,6 +126,9 @@ namespace irreducible
 lemma not_unit [monoid α] {p : α} (hp : irreducible p) : ¬ is_unit p :=
 hp.1
 
+lemma not_dvd_one [comm_monoid α] {p : α} (hp : irreducible p) : ¬ p ∣ 1 :=
+mt (is_unit_of_dvd_one _) hp.not_unit
+
 lemma is_unit_or_is_unit [monoid α] {p : α} (hp : irreducible p) {a b : α} (h : p = a * b) :
   is_unit a ∨ is_unit b :=
 irreducible.is_unit_or_is_unit' a b h
@@ -428,6 +431,11 @@ end
 
 theorem associated_eq_eq : (associated : α → α → Prop) = eq :=
 by { ext, rw associated_iff_eq }
+
+lemma prime_dvd_prime_iff_eq
+  {M : Type*} [cancel_comm_monoid_with_zero M] [unique Mˣ] {p q : M} (pp : prime p) (qp : prime q) :
+  p ∣ q ↔ p = q :=
+by rw [pp.dvd_prime_iff_associated qp, ←associated_eq_eq]
 
 end unique_units
 

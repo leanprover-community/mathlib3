@@ -7,6 +7,7 @@ Amelia Livingston, Yury Kudryashov
 import group_theory.submonoid.operations
 import algebra.big_operators.basic
 import algebra.free_monoid
+import data.finset.noncomm_prod
 
 /-!
 # Submonoids: membership criteria
@@ -65,6 +66,16 @@ lemma multiset_prod_mem {M} [comm_monoid M] (S : submonoid M) (m : multiset M)
   (hm : ∀ a ∈ m, a ∈ S) : m.prod ∈ S :=
 by { lift m to multiset S using hm, rw ← coe_multiset_prod, exact m.prod.coe_prop }
 
+@[to_additive]
+lemma multiset_noncomm_prod_mem (S : submonoid M) (m : multiset M)
+  (comm : ∀ (x ∈ m) (y ∈ m), commute x y) (h : ∀ (x ∈ m), x ∈ S) :
+  m.noncomm_prod comm ∈ S :=
+begin
+  induction m using quotient.induction_on with l,
+  simp only [multiset.quot_mk_to_coe, multiset.noncomm_prod_coe],
+  exact submonoid.list_prod_mem _ h,
+end
+
 /-- Product of elements of a submonoid of a `comm_monoid` indexed by a `finset` is in the
     submonoid. -/
 @[to_additive "Sum of elements in an `add_submonoid` of an `add_comm_monoid` indexed by a `finset`
@@ -73,6 +84,18 @@ lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   {ι : Type*} {t : finset ι} {f : ι → M} (h : ∀c ∈ t, f c ∈ S) :
   ∏ c in t, f c ∈ S :=
 S.multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
+
+@[to_additive]
+lemma noncomm_prod_mem (S : submonoid M) {ι : Type*} (t : finset ι) (f : ι → M)
+  (comm : ∀ (x ∈ t) (y ∈ t), commute (f x) (f y)) (h : ∀ c ∈ t, f c ∈ S) :
+  t.noncomm_prod f comm ∈ S :=
+begin
+  apply multiset_noncomm_prod_mem,
+  intro y,
+  rw multiset.mem_map,
+  rintros ⟨x, ⟨hx, rfl⟩⟩,
+  exact h x hx,
+end
 
 end assoc
 

@@ -306,5 +306,3 @@ lemma is_complement'_of_coprime [fintype G] [fintype H] [fintype K]
 is_complement'_of_card_mul_and_disjoint h1 (disjoint_iff.mpr (inf_eq_bot_of_coprime h2))
 
 end subgroup
-
-#lint

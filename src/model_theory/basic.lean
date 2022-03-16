@@ -572,6 +572,7 @@ def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
 
 variables {α}
 
+/-- The constant symbol indexed by a particular element. -/
 protected def con (a : α) : L[[α]].constants := sum.inr a
 
 variables {L} (α)

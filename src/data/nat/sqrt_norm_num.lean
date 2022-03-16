@@ -16,10 +16,7 @@ open tactic nat
 
 lemma is_sqrt {n a a2 b : ℕ}
   (ha2 : a * a = a2) (hb : a2 + b = n) (hle : b ≤ bit0 a) : sqrt n = a :=
-begin
-  refine (eq_sqrt.2 ⟨by rw [ha2, ← hb]; apply nat.le_add_right, _⟩).symm,
-  rwa [succ_mul, mul_succ, add_succ, lt_succ_iff, ha2, ← hb, add_assoc, add_le_add_iff_left],
-end
+by { rw [← hb, ← ha2, ← pow_two], exact sqrt_add_eq' _ hle }
 
 /-- Given `n` proves `(a, ⊢ nat.sqrt n = a)`. -/
 meta def prove_sqrt (ic : instance_cache) (n : expr) : tactic (instance_cache × expr × expr) := do

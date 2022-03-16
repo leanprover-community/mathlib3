@@ -15,7 +15,8 @@ import group_theory.group_action.conj_act
 import group_theory.group_action.sub_mul_action
 
 import .ad_sub_mul_actions
--- import order.partition.finpartition
+import order.partition.finpartition
+import data.finset.lattice
 
 import data.setoid.partition
 import data.set.basic
@@ -92,8 +93,11 @@ begin
   { intros a ha, refl },
 end
 
-lemma setoid.is_partition.card_set_eq_sum_parts {α : Type*} [fintype α] {s : set α} {P : set (set α)}
-  (hP : setoid.is_partition P) :
+-- TODO : remove the finiteness assumption on α and put it on s
+/-- Given a partition of the ambient finite type,
+the cardinal of a set is the sum of the cardinalities of its trace on the parts of the partition -/
+lemma setoid.is_partition.card_set_eq_sum_parts {α : Type*} [fintype α] (s : set α)
+  {P : set (set α)} (hP : setoid.is_partition P) :
   s.to_finset.card =
     finset.sum P.to_finset (λ (t : set α), (s ∩ t).to_finset.card) :=
 begin
@@ -110,22 +114,20 @@ begin
       (setoid.is_partition.pairwise_disjoint hP ht hu htu) }
 end
 
+/-- The cardinality of a finite type is
+  the sum of the cardinalities of the parts of any partition -/
 lemma setoid.is_partition.card_eq_sum_parts {α : Type*} [fintype α] {P : set (set α)}
   (hP : setoid.is_partition P) :
   fintype.card α =
     finset.sum P.to_finset (λ (t : set α), t.to_finset.card) :=
 begin
   change finset.univ.card = _,
-  have : (finset.univ : finset α) = (set.univ : set α).to_finset :=
-  by rw [← finset.coe_inj, set.to_finset_univ],
-  rw this,
-  have h : ∀ (t : set α) (ht : t ∈ P.to_finset), t.to_finset.card = (set.univ ∩ t).to_finset.card,
+  have : ∀ (t : set α) (ht : t ∈ P.to_finset), t.to_finset.card = (set.univ ∩ t).to_finset.card,
   { intros t ht, apply congr_arg,
     rw set.to_finset_inj, exact (set.univ_inter t).symm,  },
-  simp_rw finset.sum_congr rfl h,
-  let z := @setoid.is_partition.card_set_eq_sum_parts _ _ (set.univ) P hP,
+  simp_rw finset.sum_congr rfl this,
   simpa only [set.to_finset_univ, set.to_finset_card, fintype.card_of_finset]
-    using z,
+    using setoid.is_partition.card_set_eq_sum_parts (set.univ) hP,
 end
 
 end partition
@@ -717,6 +719,7 @@ extends is_pretransitive G X : Prop :=
 /-- In a preprimitive action,
   any normal subgroup that acts nontrivially is pretransitive
   (Wielandt, th. 7.1)-/
+
 theorem transitive_of_normal_of_preprimitive (N : subgroup G) [nN : subgroup.normal N]
   (hGX : mul_action.is_preprimitive G X) (hNX : mul_action.fixed_points N X ≠ ⊤) :
   mul_action.is_pretransitive N X :=
@@ -1112,7 +1115,7 @@ begin
 
   -- en déduire que le système de blocs { g • B } a pour cardinal au moins card(C)
   have : C.carrier.to_finset.card ≤ (set.range (λ g, g • B)).to_finset.card,
-  { rw setoid.is_partition.card_set_eq_sum_parts
+  { rw setoid.is_partition.card_set_eq_sum_parts C.carrier
       (is_block_system.of_block G X hB hB_ne).left,
     rw finset.card_eq_sum_ones,
     refine finset.sum_le_sum _,
@@ -1136,6 +1139,140 @@ end
 
 end primitivity
 
+section multiple_transitivity
+
+def card_ge (α : Type*) (n : ℕ) :=
+  ∃ (x : list α), x.length = n ∧ x.nodup
+
+def is_multiply_transitive (M α : Type*) [has_scalar M α] (n : ℕ) :=
+card_ge α n ∧
+∀ {x : list α} (hx : x.length = n) (ndx : x.nodup)
+  {y : list α} (hy : y.length = n) (ndy : y.nodup),
+∃ (g : M), g • x = y
+
+lemma list.nodup_take (α : Type*) (l : list α) (n : ℕ) (hl : l.nodup) :
+  list.nodup (list.take n l) :=
+begin
+  refine (list.nodup_append.mp _).left,
+  exact list.drop n l,
+  rw list.take_append_drop n l,
+  exact hl,
+end
+
+lemma aux1 {α: Type*} (l1 l2 : list α) (h1 : l1.nodup) :
+  (list.reverse (l2 ++ l1.reverse).dedup).take l1.length = l1 :=
+begin
+    have : l1.reverse.dedup = l1.reverse,
+    rw [list.dedup_eq_self, list.nodup_reverse], exact h1,
+
+    rw list.dedup_append,
+    rw this,
+    obtain ⟨t, ht, ht'⟩ := list.sublist_suffix_of_union l2 l1.reverse,
+    rw ← ht',
+    rw list.reverse_append,
+    simp only [list.reverse_reverse, list.take_left]
+end
+
+lemma aux1' {α: Type*} (l1 l2 : list α) (h1 : l1.nodup) :
+  (list.reverse (l2 ++ l1.reverse).dedup).take l1.length = l1 :=
+begin
+  induction l2 with a l2' hrec,
+  { rw [list.nil_append],
+    suffices : l1.reverse.dedup.reverse = l1,
+      rw [this, list.take_length],
+    rw [list.reverse_eq_iff, list.dedup_eq_self, list.nodup_reverse],
+    exact h1 },
+  { rw [list.dedup_append, list.cons_union, ← list.dedup_append],
+    unfold list.dedup at hrec ⊢,
+    cases dec_em (a ∈ list.pw_filter ne (l2' ++ l1.reverse)) with ha ha',
+    { simp only [ha, list.insert_of_mem], exact hrec, },
+    { simp only [ha', list.insert_of_not_mem, not_false_iff, list.reverse_cons],
+      rw list.take_append_eq_append_take,
+      rw hrec,
+      have : ∀ (s : list α) (hs : s = list.nil), l1 ++ s = l1,
+        { intros s hs, rw [hs, list.append_nil], },
+      refine this _ _,
+      simp only [list.length_reverse, list.take_eq_nil_iff, tsub_eq_zero_iff_le, false_or],
+      conv_lhs { rw ← hrec },
+      simp only [list.length_take, list.length_reverse, min_le_iff, le_refl, or_true] } }
+end
+
+lemma list.union_nil {α : Type*} (l : list α) : l ∪ list.nil = l.dedup :=
+begin
+  rw [← list.dedup_nil, ← list.dedup_append, list.append_nil],
+end
+
+lemma aux2 {α: Type*} (l1 l2 : list α) (h2 : l2.nodup):
+  ((l2 ++ l1).dedup).length ≥ l2.length :=
+begin
+  rw ← list.to_finset_card_of_nodup (list.nodup_dedup _),
+  rw ← list.to_finset_card_of_nodup h2,
+  apply finset.card_le_of_subset ,
+  rw list.dedup_append,
+  simp only [list.to_finset_union],
+  exact (list.to_finset l2).subset_union_left (list.dedup l1).to_finset,
+end
+
+example {α : Type*} (n : ℕ) (l : list α) :
+  (list.take n l).length = min n l.length :=
+begin
+refine list.length_take n l,
+end
+
+lemma list.extend_nodup {α : Type*} (n : ℕ) (hα : card_ge α n)
+  (l : list α) (hln : l.nodup) (hl : l.length ≤ n) :
+  ∃ (l' : list α), l'.length = n ∧ l'.nodup ∧ l'.take l.length = l :=
+begin
+  obtain ⟨z, hzn, hznd⟩ := hα,
+  induction n with n hrec,
+  { simp only [nat.nat_zero_eq_zero, nonpos_iff_eq_zero] at hl,
+    use l,
+    suffices : l = list.nil,
+    { rw this,
+      simp only [list.length, eq_self_iff_true, list.nodup_nil, list.take_nil, and_self] },
+    exact (list.eq_nil_of_length_eq_zero hl) },
+  { use (list.reverse (z ++ l.reverse).dedup).take z.length,
+    split,
+    { rw ← hzn, rw list.length_take,
+      simp only [list.length_reverse, min_eq_left_iff],
+      refine aux2 _ _ hznd },
+    split,
+    { apply list.nodup_take,
+      rw list.nodup_reverse,
+      apply list.nodup_dedup },
+    { rw list.take_take ,
+      rw ← hzn at hl,
+      rw [min_eq_left hl, aux1 l z hln] } }
+end
+
+lemma is_multiply_pretransitive_of_higher (M α : Type*) [has_scalar M α] (m n : ℕ) (hmn : m ≤ n)
+  (hn : is_multiply_transitive M α n) : is_multiply_transitive M α m :=
+begin
+  obtain ⟨z, hzn, hznd⟩ := id hn.left,
+  split,
+  { use (list.take m z),
+    split,
+    { simp only [list.length, list.take, list.length_take, min_eq_left_iff],
+      rw hzn, exact hmn, },
+    { refine (list.nodup_append.mp _).left,
+      exact list.drop m z,
+      rw list.take_append_drop m z,
+      exact hznd } },
+  intros x hx hxn y hy hyn,
+  obtain ⟨x', hx', hx'n, hx'e⟩ := list.extend_nodup n hn.left x hxn _,
+  swap, { rw hx, exact hmn },
+  obtain ⟨y', hy', hy'n, hy'e⟩ := list.extend_nodup n hn.left y hyn _,
+  swap, { rw hy, exact hmn },
+  obtain ⟨g, hg⟩ := hn.right hx' hx'n hy' hy'n,
+  use g,
+  rw [← hx'e, ← hy'e, ← smul_take, hg, hx, hy],
+end
+
+
+
+
+
+end multiple_transitivity
 end mul_action
 
 end FundamentalConcepts

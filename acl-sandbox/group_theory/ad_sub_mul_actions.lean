@@ -68,6 +68,13 @@ end
 /-- If G acts on X, then G acts on lists of X -/
 instance : has_scalar G (list X) := { smul := λ g s, list.map (λ x, g • x) s }
 
+lemma smul_take (l : list X) (n : ℕ) (g : G) :
+  (g • l).take n = g • l.take n :=
+begin
+  change (list.map (λ x, g • x) l).take n = list.map (λ x, g • x) (l.take n),
+  rw list.map_take
+end
+
 /-- If G acts on X, then G acts on finite subsets of X -/
 instance [decidable_eq X] : has_scalar G (finset X) :=
 { smul := λ g s, finset.image (λ x, g • x) s }
@@ -120,6 +127,7 @@ begin
   funext x,
   simp only [function.comp_app, mul_smul],
 end }
+
 
 /- lemma finset.image_congr {α β : Type*} [decidable_eq α] [decidable_eq β]
   {f g : α → β} {s : finset α} (h : ∀ (a : α), a ∈ s → f a = g a) :

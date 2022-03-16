@@ -25,10 +25,11 @@ def nullhomotopic {X Y : Type*} [topological_space X] [topological_space Y] (f :
 end continuous_map
 
 open continuous_map
+open_locale continuous_map
 
 /-- A contractible space is one that is homotopy equivalent to `unit`. -/
 class contractible_space (X : Type*) [topological_space X] : Prop :=
-(hequiv_unit : nonempty (homotopy_equiv X unit))
+(hequiv_unit : nonempty (X ≃ₕ unit))
 
 namespace contractible_space
 variables (X : Type*) [topological_space X] [contractible_space X]

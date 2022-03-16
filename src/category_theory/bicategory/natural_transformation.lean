@@ -150,7 +150,6 @@ def vcomp (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tran
       pentagon_inv_hom_hom_hom_inv_assoc, pentagon_inv_inv_hom_hom_inv,
       pentagon_inv_inv_hom_hom_inv_assoc],
     congr' 5, simp_rw ←assoc, congr' 4, simp_rw assoc,
-    extract_goal,
     rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc,
       associator_naturality_right] } }
 

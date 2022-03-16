@@ -78,6 +78,10 @@ theorem small_of_surjective {α : Type v} {β : Type w} [small.{u} α] {f : α �
   (hf : function.surjective f) : small.{u} β :=
 small_of_injective (function.injective_surj_inv hf)
 
+theorem small_subset {α : Type v} {s t : set α} (hts : t ⊆ s) [small.{u} s] : small.{u} t :=
+let f : t → s := λ x, ⟨x, hts x.prop⟩ in
+  @small_of_injective _ _ _ f (λ x y hxy, subtype.ext (subtype.mk.inj hxy))
+
 @[priority 100]
 instance small_subsingleton (α : Type v) [subsingleton α] : small.{w} α :=
 begin

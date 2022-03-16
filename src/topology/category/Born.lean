@@ -29,13 +29,13 @@ def of (α : Type*) [bornology α] : Born := bundled.of α
 
 instance : inhabited Born := ⟨of punit⟩
 
-instance : bundled_hom @bounded_map :=
+instance : bundled_hom @locally_bounded_map :=
 { to_fun := λ _ _ _ _, coe_fn,
-  id := @bounded_map.id,
-  comp := @bounded_map.comp,
+  id := @locally_bounded_map.id,
+  comp := @locally_bounded_map.comp,
   hom_ext := λ X Y _ _, by exactI fun_like.coe_injective }
 
-instance : large_category.{u} Born := bundled_hom.category bounded_map
-instance : concrete_category Born := bundled_hom.concrete_category bounded_map
+instance : large_category.{u} Born := bundled_hom.category locally_bounded_map
+instance : concrete_category Born := bundled_hom.concrete_category locally_bounded_map
 
 end Born

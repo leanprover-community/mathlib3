@@ -3,6 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.multiset.bind
 import data.multiset.powerset
 
 /-!
@@ -40,7 +41,8 @@ quotient.induction_on s $ λ l, begin
   haveI := classical.dec_eq α,
   simp [revzip_powerset_aux_lemma l revzip_powerset_aux, h.symm],
   cases x with x₁ x₂,
-  exact ⟨_, le_add_right _ _, by rw add_sub_cancel_left _ _⟩
+  dsimp only,
+  exact ⟨x₁, le_add_right _ _, by rw add_tsub_cancel_left x₁ x₂⟩
 end
 
 @[simp] theorem antidiagonal_map_fst (s : multiset α) :
@@ -53,7 +55,7 @@ by simp [powerset_aux']
 quotient.induction_on s $ λ l,
 by simp [powerset_aux']
 
-@[simp] theorem antidiagonal_zero : @antidiagonal α 0 = (0, 0) ::ₘ 0 := rfl
+@[simp] theorem antidiagonal_zero : @antidiagonal α 0 = {(0, 0)} := rfl
 
 @[simp] theorem antidiagonal_cons (a : α) (s) : antidiagonal (a ::ₘ s) =
   map (prod.map id (cons a)) (antidiagonal s) +

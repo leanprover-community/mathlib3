@@ -3,11 +3,10 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.pi
 import data.prod
 import data.subtype
-import logic.unique
 import logic.function.basic
+import logic.unique
 
 /-!
 # Nontrivial types
@@ -62,6 +61,8 @@ lemma subtype.nontrivial_iff_exists_ne (p : α → Prop) (x : subtype p) :
   nontrivial (subtype p) ↔ ∃ (y : α) (hy : p y), y ≠ x :=
 by simp only [nontrivial_iff_exists_ne x, subtype.exists, ne.def, subtype.ext_iff, subtype.coe_mk]
 
+instance : nontrivial Prop := ⟨⟨true, false, true_ne_false⟩⟩
+
 /--
 See Note [lower instance priority]
 
@@ -78,12 +79,12 @@ attribute [instance, priority 500] nonempty_of_inhabited
 noncomputable def nontrivial_psum_unique (α : Type*) [inhabited α] :
   psum (nontrivial α) (unique α) :=
 if h : nontrivial α then psum.inl h else psum.inr
-{ default := default α,
+{ default := default,
   uniq := λ (x : α),
   begin
-    change x = default α,
+    change x = default,
     contrapose! h,
-    use [x, default α]
+    use [x, default]
   end }
 
 lemma subsingleton_iff : subsingleton α ↔ ∀ (x y : α), x = y :=
@@ -103,7 +104,7 @@ lemma false_of_nontrivial_of_subsingleton (α : Type*) [nontrivial α] [subsingl
 let ⟨x, y, h⟩ := exists_pair_ne α in h $ subsingleton.elim x y
 
 instance option.nontrivial [nonempty α] : nontrivial (option α) :=
-by { inhabit α, use [none, some (default α)] }
+by { inhabit α, use [none, some default] }
 
 /-- Pushforward a `nontrivial` instance along an injective function. -/
 protected lemma function.injective.nontrivial [nontrivial α]
@@ -149,13 +150,12 @@ by classical; exact
 (function.update_injective (λ i, classical.choice (inst i)) i').nontrivial
 
 /--
-As a convenience, provide an instance automatically if `(f (default I))` is nontrivial.
+As a convenience, provide an instance automatically if `(f default)` is nontrivial.
 
 If a different index has the non-trivial type, then use `haveI := nontrivial_at that_index`.
 -/
-instance nontrivial [inhabited I] [inst : Π i, nonempty (f i)] [nontrivial (f (default I))] :
-  nontrivial (Π i : I, f i) :=
-nontrivial_at (default I)
+instance nontrivial [inhabited I] [inst : Π i, nonempty (f i)] [nontrivial (f default)] :
+  nontrivial (Π i : I, f i) := nontrivial_at default
 
 end pi
 

@@ -130,7 +130,7 @@ begin
     { have h7 : nat_predicate N (n - m) m, from h2.reduction h4,
       obtain ⟨k : ℕ, hnm : n - m = fib k, rfl : m = fib (k+1)⟩ := h1 m h6 (n - m) h7,
       use [k + 1, rfl],
-      rw [fib_succ_succ, ← hnm, nat.sub_add_cancel h3] } }
+      rw [fib_add_two, ← hnm, tsub_add_cancel_of_le h3] } }
 end
 
 end nat_predicate
@@ -156,6 +156,7 @@ begin
          ... ≤ fib (K+1) : fib_mono h6 } },
   { have h7 : N < n,
     { have h8 : K + 2 ≤ k + 1, from succ_le_succ (not_lt.mp h2),
+      rw ← fib_add_two at HK,
       calc N < fib (K+2) : HK
          ... ≤ fib (k+1) : fib_mono h8
          ... = n         : hn.symm, },
@@ -199,6 +200,6 @@ theorem imo1981_q3 : is_greatest (specified_set 1981) 3524578 :=
 begin
   have := λ h, @solution_greatest 1981 16 h 3524578,
   simp only [show fib (16:ℕ) = 987 ∧ fib (16+1:ℕ) = 1597,
-    by norm_num [fib_succ_succ]] at this,
+    by norm_num [fib_add_two]] at this,
   apply_mod_cast this; norm_num [problem_predicate_iff],
 end

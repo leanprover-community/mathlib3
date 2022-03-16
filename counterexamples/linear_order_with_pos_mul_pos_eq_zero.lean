@@ -1,10 +1,10 @@
 /-
-Copyright (c) 2021 Johan Commelin (inspired by Kevin Buzzard, copied by Damiano Testa).
+Copyright (c) 2021 Johan Commelin.
 All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin (inspired by Kevin Buzzard, copied by Damiano Testa)
+Authors: Johan Commelin, Damiano Testa, Kevin Buzzard
 -/
-import algebra.ordered_monoid
+import algebra.order.monoid
 
 /-!
 An example of a `linear_ordered_comm_monoid_with_zero` in which the product of two positive
@@ -68,7 +68,6 @@ instance : linear_ordered_comm_monoid_with_zero foo :=
   zero_mul := by boom,
   mul_zero := by boom,
   mul_le_mul_left := by { rintro ⟨⟩ ⟨⟩ h ⟨⟩; revert h; dec_trivial },
-  lt_of_mul_lt_mul_left := by { rintro ⟨⟩ ⟨⟩ ⟨⟩; dec_trivial },
   zero_le_one := dec_trivial,
   .. foo.linear_order,
   .. foo.comm_monoid }

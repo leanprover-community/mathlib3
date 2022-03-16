@@ -34,7 +34,6 @@ section lie_subalgebra
 
 variables (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
 
-set_option old_structure_cmd true
 /-- A Lie subalgebra of a Lie algebra is submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie algebra. -/
 structure lie_subalgebra extends submodule R L :=
@@ -52,19 +51,39 @@ instance : inhabited (lie_subalgebra R L) := ⟨0⟩
 instance : has_coe (lie_subalgebra R L) (submodule R L) := ⟨lie_subalgebra.to_submodule⟩
 instance : has_mem L (lie_subalgebra R L) := ⟨λ x L', x ∈ (L' : set L)⟩
 
+namespace lie_subalgebra
+
 /-- A Lie subalgebra forms a new Lie ring. -/
-instance lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' :=
+instance (L' : lie_subalgebra R L) : lie_ring L' :=
 { bracket      := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem' x.property y.property⟩,
   lie_add      := by { intros, apply set_coe.ext, apply lie_add, },
   add_lie      := by { intros, apply set_coe.ext, apply add_lie, },
   lie_self     := by { intros, apply set_coe.ext, apply lie_self, },
   leibniz_lie  := by { intros, apply set_coe.ext, apply leibniz_lie, } }
 
-/-- A Lie subalgebra forms a new Lie algebra. -/
-instance lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) : lie_algebra R L' :=
-{ lie_smul := by { intros, apply set_coe.ext, apply lie_smul } }
+section
 
-namespace lie_subalgebra
+variables {R₁ : Type*} [semiring R₁]
+
+/-- A Lie subalgebra inherits module structures from `L`. -/
+instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+  (L' : lie_subalgebra R L) : module R₁ L' :=
+L'.to_submodule.module'
+
+instance [has_scalar R₁ R] [has_scalar R₁ᵐᵒᵖ R] [module R₁ L] [module R₁ᵐᵒᵖ L]
+  [is_scalar_tower R₁ R L] [is_scalar_tower R₁ᵐᵒᵖ R L] [is_central_scalar R₁ L]
+  (L' : lie_subalgebra R L) : is_central_scalar R₁ L' :=
+L'.to_submodule.is_central_scalar
+
+instance [has_scalar R₁ R] [module R₁ L] [is_scalar_tower R₁ R L]
+  (L' : lie_subalgebra R L) : is_scalar_tower R₁ R L' :=
+L'.to_submodule.is_scalar_tower
+
+end
+
+/-- A Lie subalgebra forms a new Lie algebra. -/
+instance (L' : lie_subalgebra R L) : lie_algebra R L' :=
+{ lie_smul := by { intros, apply set_coe.ext, apply lie_smul } }
 
 variables {R L} (L' : lie_subalgebra R L)
 
@@ -78,12 +97,14 @@ lemma add_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x + y : L) ∈ L' :=
 lemma sub_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (x - y : L) ∈ L' :=
 (L' : submodule R L).sub_mem hx hy
 
+@[simp] lemma neg_mem_iff {x : L} : -x ∈ L' ↔ x ∈ L' := L'.to_submodule.neg_mem_iff
+
 lemma lie_mem {x y : L} (hx : x ∈ L') (hy : y ∈ L') : (⁅x, y⁆ : L) ∈ L' := L'.lie_mem' hx hy
 
 @[simp] lemma mem_carrier {x : L} : x ∈ L'.carrier ↔ x ∈ (L' : set L) := iff.rfl
 
 @[simp] lemma mem_mk_iff (S : set L) (h₁ h₂ h₃ h₄) {x : L} :
-  x ∈ (⟨S, h₁, h₂, h₃, h₄⟩ : lie_subalgebra R L) ↔ x ∈ S :=
+  x ∈ (⟨⟨S, h₁, h₂, h₃⟩, h₄⟩ : lie_subalgebra R L) ↔ x ∈ S :=
 iff.rfl
 
 @[simp] lemma mem_coe_submodule {x : L} : x ∈ (L' : submodule R L) ↔ x ∈ L' := iff.rfl
@@ -104,14 +125,16 @@ lemma ext_iff' (L₁' L₂' : lie_subalgebra R L) : L₁' = L₂' ↔ ∀ x, x �
 ⟨λ h x, by rw h, ext L₁' L₂'⟩
 
 @[simp] lemma mk_coe (S : set L) (h₁ h₂ h₃ h₄) :
-  ((⟨S, h₁, h₂, h₃, h₄⟩ : lie_subalgebra R L) : set L) = S := rfl
+  ((⟨⟨S, h₁, h₂, h₃⟩, h₄⟩ : lie_subalgebra R L) : set L) = S := rfl
 
 @[simp] lemma coe_to_submodule_mk (p : submodule R L) (h) :
   (({lie_mem' := h, ..p} : lie_subalgebra R L) : submodule R L) = p :=
 by { cases p, refl, }
 
 lemma coe_injective : function.injective (coe : lie_subalgebra R L → set L) :=
-λ L₁' L₂' h, by cases L₁'; cases L₂'; congr'
+by { rintro ⟨⟨⟩⟩ ⟨⟨⟩⟩ h, congr' }
+
+instance : set_like (lie_subalgebra R L) L := ⟨coe, coe_injective⟩
 
 @[norm_cast] theorem coe_set_eq (L₁' L₂' : lie_subalgebra R L) :
   (L₁' : set L) = L₂' ↔ L₁' = L₂' := coe_injective.eq_iff
@@ -214,6 +237,18 @@ begin
   simp only [subtype.mk_eq_mk, range_restrict_apply],
 end
 
+/-- A Lie algebra is equivalent to its range under an injective Lie algebra morphism. -/
+noncomputable def equiv_range_of_injective (h : function.injective f) : L ≃ₗ⁅R⁆ f.range :=
+lie_equiv.of_bijective f.range_restrict (λ x y hxy,
+begin
+  simp only [subtype.mk_eq_mk, range_restrict_apply] at hxy,
+  exact h hxy,
+end) f.surjective_range_restrict
+
+@[simp] lemma equiv_range_of_injective_apply (h : function.injective f) (x : L) :
+  f.equiv_range_of_injective h x = ⟨f x, mem_range_self f x⟩ :=
+rfl
+
 end lie_hom
 
 lemma submodule.exists_lie_subalgebra_coe_eq_iff (p : submodule R L) :
@@ -234,8 +269,8 @@ by { rw ← coe_to_submodule_eq_iff, exact (K : submodule R L).range_subtype, }
 /-- The image of a Lie subalgebra under a Lie algebra morphism is a Lie subalgebra of the
 codomain. -/
 def map : lie_subalgebra R L₂ :=
-{ lie_mem' := λ x y hx hy, by {
-    erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
+{ lie_mem' := λ x y hx hy, by
+  { erw submodule.mem_map at hx, rcases hx with ⟨x', hx', hx⟩, rw ←hx,
     erw submodule.mem_map at hy, rcases hy with ⟨y', hy', hy⟩, rw ←hy,
     erw submodule.mem_map,
     exact ⟨⁅x', y'⁆, K.lie_mem hx' hy', f.map_lie x' y'⟩, },
@@ -363,17 +398,18 @@ begin
   simp only [true_iff, eq_self_iff_true, submodule.mk_eq_zero, mem_bot],
 end
 
+lemma subsingleton_bot : subsingleton ↥(⊥ : lie_subalgebra R L) :=
+show subsingleton ((⊥ : lie_subalgebra R L) : set L), by simp
+
 variables (R L)
 
 lemma well_founded_of_noetherian [is_noetherian R L] :
   well_founded ((>) : lie_subalgebra R L → lie_subalgebra R L → Prop) :=
-begin
   let f : ((>) : lie_subalgebra R L → lie_subalgebra R L → Prop) →r
           ((>) : submodule R L → submodule R L → Prop) :=
   { to_fun       := coe,
-    map_rel' := λ N N' h, h, },
-  apply f.well_founded, rw ← is_noetherian_iff_well_founded, apply_instance,
-end
+    map_rel' := λ N N' h, h, }
+in rel_hom_class.well_founded f (is_noetherian_iff_well_founded.mp infer_instance)
 
 variables {R L K K' f}
 
@@ -410,6 +446,17 @@ end
 lemma of_le_eq_comap_incl : of_le h = K.comap K'.incl :=
 by { ext, rw mem_of_le, refl, }
 
+@[simp] lemma coe_of_le : (of_le h : submodule R K') = (submodule.of_le h).range := rfl
+
+/-- Given nested Lie subalgebras `K ⊆ K'`, there is a natural equivalence from `K` to its image in
+`K'`.  -/
+noncomputable def equiv_of_le : K ≃ₗ⁅R⁆ of_le h :=
+(hom_of_le h).equiv_range_of_injective (hom_of_le_injective h)
+
+@[simp] lemma equiv_of_le_apply (x : K) :
+  equiv_of_le h x = ⟨hom_of_le h x, (hom_of_le h).mem_range_self x⟩ :=
+rfl
+
 end nested_subalgebras
 
 lemma map_le_iff_le_comap {K : lie_subalgebra R L} {K' : lie_subalgebra R L₂} :
@@ -429,7 +476,7 @@ def lie_span : lie_subalgebra R L := Inf {N | s ⊆ N}
 variables {R L s}
 
 lemma mem_lie_span {x : L} : x ∈ lie_span R L s ↔ ∀ K : lie_subalgebra R L, s ⊆ K → x ∈ K :=
-by { change x ∈ (lie_span R L s : set L) ↔ _, erw Inf_coe, exact set.mem_bInter_iff, }
+by { change x ∈ (lie_span R L s : set L) ↔ _, erw Inf_coe, exact set.mem_Inter₂, }
 
 lemma subset_lie_span : s ⊆ lie_span R L s :=
 by { intros m hm, erw mem_lie_span, intros K hK, exact hK hm, }
@@ -495,9 +542,8 @@ variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [li
 /-- An injective Lie algebra morphism is an equivalence onto its range. -/
 noncomputable def of_injective (f : L₁ →ₗ⁅R⁆ L₂) (h : function.injective f) :
   L₁ ≃ₗ⁅R⁆ f.range :=
-have h' : (f : L₁ →ₗ[R] L₂).ker = ⊥ := linear_map.ker_eq_bot_of_injective h,
 { map_lie' := λ x y, by { apply set_coe.ext, simpa, },
-..(linear_equiv.of_injective ↑f h')}
+..(linear_equiv.of_injective ↑f $ by rwa [lie_hom.coe_to_linear_map])}
 
 @[simp] lemma of_injective_apply (f : L₁ →ₗ⁅R⁆ L₂) (h : function.injective f) (x : L₁) :
   ↑(of_injective f h x) = f x := rfl
@@ -517,11 +563,11 @@ variables (e : L₁ ≃ₗ⁅R⁆ L₂)
 
 /-- An equivalence of Lie algebras restricts to an equivalence from any Lie subalgebra onto its
 image. -/
-def of_subalgebra : L₁'' ≃ₗ⁅R⁆ (L₁''.map e : lie_subalgebra R L₂) :=
+def lie_subalgebra_map : L₁'' ≃ₗ⁅R⁆ (L₁''.map e : lie_subalgebra R L₂) :=
 { map_lie' := λ x y, by { apply set_coe.ext, exact lie_hom.map_lie (↑e : L₁ →ₗ⁅R⁆ L₂) ↑x ↑y, }
-  ..(linear_equiv.of_submodule (e : L₁ ≃ₗ[R] L₂) ↑L₁'') }
+  ..(linear_equiv.submodule_map (e : L₁ ≃ₗ[R] L₂) ↑L₁'') }
 
-@[simp] lemma of_subalgebra_apply (x : L₁'') : ↑(e.of_subalgebra _  x) = e x := rfl
+@[simp] lemma lie_subalgebra_map_apply (x : L₁'') : ↑(e.lie_subalgebra_map _  x) = e x := rfl
 
 /-- An equivalence of Lie algebras restricts to an equivalence from any Lie subalgebra onto its
 image. -/

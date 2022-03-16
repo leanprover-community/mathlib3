@@ -43,7 +43,7 @@ begin
   -- however, this needs to be done here instead of at the end
   -- else, a later `simp`, which depends on the `fintype` instance, won't work.
 
-  have : ∀ (f : fin n ↪ β), ‖fin 1 ↪ ↥((set.range f)ᶜ)‖ = ‖β‖ - n,
+  have : ∀ (f : fin n ↪ β), ‖fin 1 ↪ ((set.range f)ᶜ : set β)‖ = ‖β‖ - n,
   { intro f,
     rw card_embedding_eq_of_unique,
     rw card_of_finset' (finset.map f finset.univ)ᶜ,

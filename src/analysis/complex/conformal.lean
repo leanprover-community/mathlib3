@@ -32,6 +32,7 @@ this file.
 noncomputable theory
 
 open complex continuous_linear_map
+open_locale complex_conjugate
 
 lemma is_conformal_map_conj : is_conformal_map (conj_lie : ℂ →L[ℝ] ℂ) :=
 conj_lie.to_linear_isometry.is_conformal_map
@@ -39,7 +40,7 @@ conj_lie.to_linear_isometry.is_conformal_map
 section conformal_into_complex_normed
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space ℂ E]
-  [is_scalar_tower ℝ ℂ E] {z : ℂ} {g : ℂ →L[ℝ] E} {f : ℂ → E}
+  {z : ℂ} {g : ℂ →L[ℝ] E} {f : ℂ → E}
 
 lemma is_conformal_map_complex_linear
   {map : ℂ →L[ℂ] E} (nonzero : map ≠ 0) : is_conformal_map (map.restrict_scalars ℝ) :=
@@ -52,7 +53,7 @@ begin
     have : x = x • 1 := by rw [smul_eq_mul, mul_one],
     nth_rewrite 0 [this],
     rw [_root_.coe_coe map, linear_map.coe_coe_is_scalar_tower],
-    simp only [map.coe_coe, map.map_smul, norm_smul, normed_field.norm_inv, norm_norm],
+    simp only [map.coe_coe, map.map_smul, norm_smul, norm_inv, norm_norm],
     field_simp [minor₁], },
   { ext1,
     rw [← linear_isometry.coe_to_linear_map],
@@ -74,7 +75,7 @@ variables {f : ℂ → ℂ} {z : ℂ} {g : ℂ →L[ℝ] ℂ}
 
 lemma is_conformal_map.is_complex_or_conj_linear (h : is_conformal_map g) :
   (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g) ∨
-  (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g.comp ↑conj_cle) :=
+  (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g ∘L ↑conj_cle) :=
 begin
   rcases h with ⟨c, hc, li, hg⟩,
   rcases linear_isometry_complex (li.to_linear_isometry_equiv rfl) with ⟨a, ha⟩,
@@ -100,7 +101,7 @@ end
 lemma is_conformal_map_iff_is_complex_or_conj_linear:
   is_conformal_map g ↔
   ((∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g) ∨
-   (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g.comp ↑conj_cle)) ∧ g ≠ 0 :=
+   (∃ (map : ℂ →L[ℂ] ℂ), map.restrict_scalars ℝ = g ∘L ↑conj_cle)) ∧ g ≠ 0 :=
 begin
   split,
   { exact λ h, ⟨h.is_complex_or_conj_linear, h.ne_zero⟩, },
@@ -108,7 +109,7 @@ begin
     { refine is_conformal_map_complex_linear _,
       contrapose! h₂ with w,
       simp [w] },
-    { have minor₁ : g = (map.restrict_scalars ℝ).comp ↑conj_cle,
+    { have minor₁ : g = (map.restrict_scalars ℝ) ∘L ↑conj_cle,
       { ext1,
         simp [hmap] },
       rw minor₁ at ⊢ h₂,

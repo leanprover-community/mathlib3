@@ -98,14 +98,8 @@ by cases mod_two_eq_zero_or_one m with h₁ h₁;
    simp [even_iff, h₁, h₂, nat.add_mod];
    norm_num
 
-theorem even.add_even (hm : even m) (hn : even n) : even (m + n) :=
-even_add.2 $ iff_of_true hm hn
-
 theorem even_add' : even (m + n) ↔ (odd m ↔ odd n) :=
 by rw [even_add, even_iff_not_odd, even_iff_not_odd, not_iff_not]
-
-theorem odd.add_odd (hm : odd m) (hn : odd n) : even (m + n) :=
-even_add'.2 $ iff_of_true hm hn
 
 @[simp] theorem not_even_bit1 (n : ℕ) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
@@ -118,14 +112,14 @@ lemma two_not_dvd_two_mul_sub_one : Π {n} (w : 0 < n), ¬(2 ∣ 2 * n - 1)
 
 @[parity_simps] theorem even_sub (h : n ≤ m) : even (m - n) ↔ (even m ↔ even n) :=
 begin
-  conv { to_rhs, rw [←nat.sub_add_cancel h, even_add] },
+  conv { to_rhs, rw [←tsub_add_cancel_of_le h, even_add] },
   by_cases h : even n; simp [h]
 end
 
 theorem even.sub_even (hm : even m) (hn : even n) : even (m - n) :=
 (le_total n m).elim
   (λ h, by simp only [even_sub h, *])
-  (λ h, by simp only [sub_eq_zero_of_le h, even_zero])
+  (λ h, by simp only [tsub_eq_zero_iff_le.mpr h, even_zero])
 
 theorem even_sub' (h : n ≤ m) : even (m - n) ↔ (odd m ↔ odd n) :=
 by rw [even_sub h, even_iff_not_odd, even_iff_not_odd, not_iff_not]
@@ -133,7 +127,7 @@ by rw [even_sub h, even_iff_not_odd, even_iff_not_odd, not_iff_not]
 theorem odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 (le_total n m).elim
   (λ h, by simp only [even_sub' h, *])
-  (λ h, by simp only [sub_eq_zero_of_le h, even_zero])
+  (λ h, by simp only [tsub_eq_zero_iff_le.mpr h, even_zero])
 
 @[parity_simps] theorem even_succ : even (succ n) ↔ ¬ even n :=
 by rw [succ_eq_add_one, even_add]; simp [not_even_one]
@@ -176,14 +170,8 @@ by rw [even_iff_two_dvd, dvd_iff_mod_eq_zero, nat.div_mod_eq_mod_mul_div, mul_co
 @[parity_simps] theorem odd_add : odd (m + n) ↔ (odd m ↔ even n) :=
 by rw [odd_iff_not_even, even_add, not_iff, odd_iff_not_even]
 
-theorem odd.add_even (hm : odd m) (hn : even n) : odd (m + n) :=
-odd_add.2 $ iff_of_true hm hn
-
 theorem odd_add' : odd (m + n) ↔ (odd n ↔ even m) :=
 by rw [add_comm, odd_add]
-
-theorem even.add_odd (hm : even m) (hn : odd n) : odd (m + n) :=
-odd_add'.2 $ iff_of_true hn hm
 
 lemma ne_of_odd_add (h : odd (m + n)) : m ≠ n :=
 λ hnot, by simpa [hnot] with parity_simps using h
@@ -207,6 +195,17 @@ begin
   simp with parity_simps
 end
 
+lemma even_mul_self_pred (n : ℕ) : even (n * (n - 1)) :=
+begin
+  cases n,
+  { exact even_zero },
+  { rw mul_comm,
+    apply even_mul_succ_self }
+end
+
+lemma even_sub_one_of_prime_ne_two {p : ℕ} (hp : prime p) (hodd : p ≠ 2) : even (p - 1) :=
+odd.sub_odd (odd_iff.2 $ hp.eq_two_or_odd.resolve_left hodd) (odd_iff.2 rfl)
+
 variables {R : Type*} [ring R]
 
 theorem neg_one_pow_eq_one_iff_even (h1 : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
@@ -224,11 +223,26 @@ by { rintro ⟨c, rfl⟩, simp [pow_mul] }
 theorem neg_one_pow_of_odd : odd n → (-1 : R) ^ n = -1 :=
 by { rintro ⟨c, rfl⟩, simp [pow_add, pow_mul] }
 
+<<<<<<< HEAD
 theorem even.neg_pow (h : even n) (x : R) : (-x) ^ n = x ^ n :=
 by rw [neg_pow, neg_one_pow_of_even h, one_mul]
 
 theorem odd.neg_pow (h : odd n) (x : R) : (-x) ^ n = -x ^ n :=
 by rw [neg_pow, neg_one_pow_of_odd h, neg_one_mul]
+=======
+lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n := nat.mul_div_cancel_left'
+
+lemma div_two_mul_two_of_even : even n → n / 2 * 2 = n := nat.div_mul_cancel
+
+lemma two_mul_div_two_add_one_of_odd (h : odd n) : 2 * (n / 2) + 1 = n :=
+by { rw mul_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
+
+lemma div_two_mul_two_add_one_of_odd (h : odd n) : n / 2 * 2 + 1 = n :=
+by { convert nat.div_add_mod' n 2, rw odd_iff.mp h }
+
+lemma one_add_div_two_mul_two_of_odd (h : odd n) : 1 + n / 2 * 2 = n :=
+by { rw add_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
+>>>>>>> origin/master
 
 -- Here are examples of how `parity_simps` can be used with `nat`.
 

@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 import data.set.lattice
 import order.zorn
+import tactic.by_contra
 
 /-!
 # Extend a partial order to a linear order
@@ -21,7 +22,7 @@ open_locale classical
 Any partial order can be extended to a linear order.
 -/
 theorem extend_partial_order {α : Type u} (r : α → α → Prop) [is_partial_order α r] :
-  ∃ (s : α → α → Prop) [is_linear_order α s], r ≤ s :=
+  ∃ (s : α → α → Prop) (_ : is_linear_order α s), r ≤ s :=
 begin
   let S := {s | is_partial_order α s},
   have hS : ∀ c, c ⊆ S → zorn.chain (≤) c → ∀ y ∈ c, (∃ ub ∈ S, ∀ z ∈ c, z ≤ ub),
@@ -47,8 +48,7 @@ begin
   resetI,
   refine ⟨s, { total := _ }, rs⟩,
   intros x y,
-  by_contra h,
-  push_neg at h,
+  by_contra' h,
   let s' := λ x' y', s x' y' ∨ s x' x ∧ s y y',
   rw ←hs₂ s' _ (λ _ _, or.inl) at h,
   { apply h.1 (or.inr ⟨refl _, refl _⟩) },
@@ -86,4 +86,4 @@ def to_linear_extension {α : Type u} [partial_order α] :
   map_rel' := λ a b, (extend_partial_order ((≤) : α → α → Prop)).some_spec.some_spec _ _ }
 
 instance {α : Type u} [inhabited α] : inhabited (linear_extension α) :=
-⟨(default _ : α)⟩
+⟨(default : α)⟩

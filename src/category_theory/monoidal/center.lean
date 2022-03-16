@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.monoidal.braided
-import category_theory.reflects_isomorphisms
+import category_theory.functor.reflects_isomorphisms
 
 /-!
 # Half braidings and the Drinfeld center of a monoidal category
@@ -155,7 +155,7 @@ def tensor_hom {X₁ Y₁ X₂ Y₂ : center C} (f : X₁ ⟶ Y₁) (g : X₂ �
       id_tensor_comp_tensor_id_assoc, ←tensor_id_comp_id_tensor g.f, category.assoc,
       ←comp_tensor_id_assoc, f.comm, comp_tensor_id_assoc, id_tensor_associator_naturality,
       associator_naturality_assoc, ←id_tensor_comp, tensor_id_comp_id_tensor],
-  end  }
+  end }
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 @[simps]

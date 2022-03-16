@@ -3,6 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
+import data.multiset.bind
 import data.multiset.powerset
 import data.multiset.range
 
@@ -32,7 +33,7 @@ quot.induction_on s $ λ l, nodup_cons
 theorem nodup_cons_of_nodup {a : α} {s : multiset α} (m : a ∉ s) (n : nodup s) : nodup (a ::ₘ s) :=
 nodup_cons.2 ⟨m, n⟩
 
-theorem nodup_singleton : ∀ a : α, nodup (a ::ₘ 0) := nodup_singleton
+theorem nodup_singleton : ∀ a : α, nodup ({a} : multiset α) := nodup_singleton
 
 theorem nodup_of_nodup_cons {a : α} {s : multiset α} (h : nodup (a ::ₘ s)) : nodup s :=
 (nodup_cons.1 h).2
@@ -191,10 +192,10 @@ theorem range_le {m n : ℕ} : range m ≤ range n ↔ m ≤ n :=
 
 theorem mem_sub_of_nodup [decidable_eq α] {a : α} {s t : multiset α} (d : nodup s) :
   a ∈ s - t ↔ a ∈ s ∧ a ∉ t :=
-⟨λ h, ⟨mem_of_le (sub_le_self _ _) h, λ h',
-  by refine count_eq_zero.1 _ h; rw [count_sub a s t, nat.sub_eq_zero_iff_le];
+⟨λ h, ⟨mem_of_le tsub_le_self h, λ h',
+  by refine count_eq_zero.1 _ h; rw [count_sub a s t, tsub_eq_zero_iff_le];
      exact le_trans (nodup_iff_count_le_one.1 d _) (count_pos.2 h')⟩,
- λ ⟨h₁, h₂⟩, or.resolve_right (mem_add.1 $ mem_of_le (le_sub_add _ _) h₁) h₂⟩
+ λ ⟨h₁, h₂⟩, or.resolve_right (mem_add.1 $ mem_of_le le_tsub_add h₁) h₂⟩
 
 lemma map_eq_map_of_bij_of_nodup (f : α → γ) (g : β → γ) {s : multiset α} {t : multiset β}
   (hs : s.nodup) (ht : t.nodup) (i : Πa∈s, β)
@@ -211,6 +212,6 @@ have t = s.attach.map (λ x, i x.1 x.2),
       exact ⟨i_surj _, λ ⟨y, hy⟩, hy.snd.symm ▸ hi _ _⟩),
 calc s.map f = s.pmap  (λ x _, f x) (λ _, id) : by rw [pmap_eq_map]
 ... = s.attach.map (λ x, f x.1) : by rw [pmap_eq_map_attach]
-... = t.map g : by rw [this, multiset.map_map]; exact map_congr (λ x _, h _ _)
+... = t.map g : by rw [this, multiset.map_map]; exact map_congr rfl (λ x _, h _ _)
 
 end multiset

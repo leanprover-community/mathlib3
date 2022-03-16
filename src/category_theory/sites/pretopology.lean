@@ -24,9 +24,9 @@ coverage, pretopology, site
 
 ## References
 
-* [https://ncatlab.org/nlab/show/Grothendieck+pretopology][nlab]
+* [nLab, *Grothendieck pretopology*](https://ncatlab.org/nlab/show/Grothendieck+pretopology)
 * [S. MacLane, I. Moerdijk, *Sheaves in Geometry and Logic*][MM92]
-* [https://stacks.math.columbia.edu/tag/00VG][Stacks]
+* [Stacks, *00VG*](https://stacks.math.columbia.edu/tag/00VG)
 -/
 
 universes v u
@@ -68,14 +68,22 @@ structure pretopology :=
 
 namespace pretopology
 
-instance : has_coe_to_fun (pretopology C) :=
-⟨_, λ J, J.coverings⟩
+instance : has_coe_to_fun (pretopology C) (λ _, Π X : C, set (presieve X)) := ⟨coverings⟩
+
+variable {C}
+
+instance : has_le (pretopology C) :=
+{ le := λ K₁ K₂, (K₁ : Π (X : C), set (presieve X)) ≤ K₂ }
+
+lemma le_def {K₁ K₂ : pretopology C} : K₁ ≤ K₂ ↔ (K₁ : Π (X : C), set (presieve X)) ≤ K₂ := iff.rfl
+
+variable (C)
 
 instance : partial_order (pretopology C) :=
-{ le := λ K₁ K₂, (K₁ : Π (X : C), set _) ≤ K₂,
-  le_refl := λ K, le_refl _,
-  le_trans := λ K₁ K₂ K₃ h₁₂ h₂₃, le_trans h₁₂ h₂₃,
-  le_antisymm := λ K₁ K₂ h₁₂ h₂₁, pretopology.ext _ _ (le_antisymm h₁₂ h₂₁) }
+{ le_refl := λ K, le_def.mpr le_rfl,
+  le_trans := λ K₁ K₂ K₃ h₁₂ h₂₃, le_def.mpr (le_trans h₁₂ h₂₃),
+  le_antisymm := λ K₁ K₂ h₁₂ h₂₁, pretopology.ext _ _ (le_antisymm h₁₂ h₂₁),
+  ..pretopology.has_le }
 
 instance : order_top (pretopology C) :=
 { top :=
@@ -83,8 +91,7 @@ instance : order_top (pretopology C) :=
     has_isos := λ _ _ _ _, set.mem_univ _,
     pullbacks := λ _ _ _ _ _, set.mem_univ _,
     transitive := λ _ _ _ _ _, set.mem_univ _ },
-  le_top := λ K X S hS, set.mem_univ _,
-  ..pretopology.partial_order C }
+  le_top := λ K X S hS, set.mem_univ _ }
 
 instance : inhabited (pretopology C) := ⟨⊤⟩
 
@@ -155,7 +162,7 @@ def gi : galois_insertion (to_grothendieck C) (of_grothendieck C) :=
       apply J.superset_covering _ (h _ hR),
       rwa sieve.gi_generate.gc }
   end,
-  le_l_u := λ J X S hS, ⟨S, J.superset_covering S.le_generate hS, le_refl _⟩,
+  le_l_u := λ J X S hS, ⟨S, J.superset_covering S.le_generate hS, le_rfl⟩,
   choice := λ x hx, to_grothendieck C x,
   choice_eq := λ _ _, rfl }
 
@@ -203,8 +210,7 @@ instance : order_bot (pretopology C) :=
   begin
     rintro ⟨Y, f, hf, rfl⟩,
     exactI K.has_isos f,
-  end,
-  ..pretopology.partial_order C }
+  end }
 
 /-- The trivial pretopology induces the trivial grothendieck topology. -/
 lemma to_grothendieck_bot : to_grothendieck C ⊥ = ⊥ :=

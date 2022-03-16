@@ -6,7 +6,7 @@ Authors: Kevin Buzzard
 
 import algebra.module.basic
 import linear_algebra.finsupp
-import linear_algebra.free_module
+import linear_algebra.free_module.basic
 
 /-!
 

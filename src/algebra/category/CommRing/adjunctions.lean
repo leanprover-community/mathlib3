@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl
 -/
 import algebra.category.CommRing.basic
-import data.mv_polynomial
+import data.mv_polynomial.comm_ring
 
 /-!
 Multivariable polynomials on a type is the left adjoint of the

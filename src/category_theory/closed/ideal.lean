@@ -61,6 +61,8 @@ end⟩
 instance : exponential_ideal (𝟭 C) :=
 exponential_ideal.mk' _ (λ B A, ⟨_, ⟨iso.refl _⟩⟩)
 
+open cartesian_closed
+
 /-- The subcategory of subterminal objects is an exponential ideal. -/
 instance : exponential_ideal (subterminal_inclusion C) :=
 begin
@@ -112,6 +114,8 @@ lemma reflective_products [has_finite_products C] [reflective i] : has_finite_pr
 
 local attribute [instance, priority 10] reflective_products
 
+open cartesian_closed
+
 variables [has_finite_products C] [reflective i] [cartesian_closed C]
 
 /--
@@ -120,7 +124,7 @@ This is the converse of `preserves_binary_products_of_exponential_ideal`.
 -/
 @[priority 10]
 instance exponential_ideal_of_preserves_binary_products
-  [preserves_limits_of_shape (discrete walking_pair) (left_adjoint i)] :
+  [preserves_limits_of_shape (discrete.{v₁} walking_pair) (left_adjoint i)] :
   exponential_ideal i :=
 begin
   let ir := adjunction.of_right_adjoint i,
@@ -131,7 +135,7 @@ begin
   intros B A,
   let q : i.obj (L.obj (A ⟹ i.obj B)) ⟶ A ⟹ i.obj B,
     apply cartesian_closed.curry (ir.hom_equiv _ _ _),
-    apply _ ≫ (ir.hom_equiv _ _).symm ((ev A).app (i.obj B)),
+    apply _ ≫ (ir.hom_equiv _ _).symm ((exp.ev A).app (i.obj B)),
     refine prod_comparison L A _ ≫ limits.prod.map (𝟙 _) (ε.app _) ≫ inv (prod_comparison _ _ _),
   have : η.app (A ⟹ i.obj B) ≫ q = 𝟙 (A ⟹ i.obj B),
   { dsimp,
@@ -150,7 +154,7 @@ If `i` witnesses that `D` is a reflective subcategory and an exponential ideal, 
 itself cartesian closed.
 -/
 def cartesian_closed_of_reflective : cartesian_closed D :=
-{ closed := λ B,
+{ closed' := λ B,
   { is_adj :=
     { right := i ⋙ exp (i.obj B) ⋙ left_adjoint i,
       adj :=
@@ -159,7 +163,8 @@ def cartesian_closed_of_reflective : cartesian_closed D :=
         { symmetry,
           apply nat_iso.of_components _ _,
           { intro X,
-            haveI := adjunction.right_adjoint_preserves_limits (adjunction.of_right_adjoint i),
+            haveI :=
+              adjunction.right_adjoint_preserves_limits.{v₁ v₁} (adjunction.of_right_adjoint i),
             apply as_iso (prod_comparison i B X) },
           { intros X Y f,
             dsimp,
@@ -273,8 +278,8 @@ noncomputable def preserves_finite_products_of_exponential_ideal (J : Type*) [fi
   preserves_limits_of_shape (discrete J) (left_adjoint i) :=
 begin
   letI := preserves_binary_products_of_exponential_ideal i,
-  letI := left_adjoint_preserves_terminal_of_reflective i,
-  apply preserves_finite_products_of_preserves_binary_and_terminal (left_adjoint i) J
+  letI := left_adjoint_preserves_terminal_of_reflective.{v₁} i,
+  apply preserves_finite_products_of_preserves_binary_and_terminal (left_adjoint i) J,
 end
 
 end

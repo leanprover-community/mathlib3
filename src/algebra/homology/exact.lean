@@ -37,7 +37,7 @@ these results are found in `category_theory/abelian/exact.lean`.
 
 -/
 
-universes v u
+universes v v₂ u u₂
 
 open category_theory
 open category_theory.limits
@@ -81,6 +81,35 @@ lemma preadditive.exact_iff_homology_zero {A B C : V} (f : A ⟶ B) (g : B ⟶ C
   λ h, begin
     obtain ⟨w, ⟨i⟩⟩ := h,
     exact ⟨w, preadditive.epi_of_cokernel_zero ((cancel_mono i.hom).mp (by ext))⟩,
+  end⟩
+
+lemma preadditive.exact_of_iso_of_exact {A₁ B₁ C₁ A₂ B₂ C₂ : V}
+  (f₁ : A₁ ⟶ B₁) (g₁ : B₁ ⟶ C₁) (f₂ : A₂ ⟶ B₂) (g₂ : B₂ ⟶ C₂)
+  (α : arrow.mk f₁ ≅ arrow.mk f₂) (β : arrow.mk g₁ ≅ arrow.mk g₂) (p : α.hom.right = β.hom.left)
+  (h : exact f₁ g₁) :
+  exact f₂ g₂ :=
+begin
+  rw preadditive.exact_iff_homology_zero at h ⊢,
+  rcases h with ⟨w₁, ⟨i⟩⟩,
+  suffices w₂ : f₂ ≫ g₂ = 0, from ⟨w₂, ⟨(homology.map_iso w₁ w₂ α β p).symm.trans i⟩⟩,
+  rw [← cancel_epi α.hom.left, ← cancel_mono β.inv.right, comp_zero, zero_comp, ← w₁],
+  simp only [← arrow.mk_hom f₁, ← arrow.left_hom_inv_right α.hom,
+      ← arrow.mk_hom g₁, ← arrow.left_hom_inv_right β.hom, p],
+  simp only [arrow.mk_hom, is_iso.inv_hom_id_assoc, category.assoc, ← arrow.inv_right,
+    is_iso.iso.inv_hom]
+end
+
+lemma preadditive.exact_iff_exact_of_iso {A₁ B₁ C₁ A₂ B₂ C₂ : V}
+  (f₁ : A₁ ⟶ B₁) (g₁ : B₁ ⟶ C₁) (f₂ : A₂ ⟶ B₂) (g₂ : B₂ ⟶ C₂)
+  (α : arrow.mk f₁ ≅ arrow.mk f₂) (β : arrow.mk g₁ ≅ arrow.mk g₂) (p : α.hom.right = β.hom.left) :
+  exact f₁ g₁ ↔ exact f₂ g₂ :=
+⟨preadditive.exact_of_iso_of_exact _ _ _ _ _ _ p,
+preadditive.exact_of_iso_of_exact _ _ _ _ α.symm β.symm
+  begin
+    rw ← cancel_mono α.hom.right,
+    simp only [iso.symm_hom, ← comma.comp_right, α.inv_hom_id],
+    simp only [p, ←comma.comp_left, arrow.id_right, arrow.id_left, iso.inv_hom_id],
+    refl
   end⟩
 
 end
@@ -261,7 +290,7 @@ end
 section
 variables [preadditive V]
 
-lemma mono_iff_exact_zero_left [has_kernels V]{B C : V} (f : B ⟶ C) :
+lemma mono_iff_exact_zero_left [has_kernels V] {B C : V} (f : B ⟶ C) :
   mono f ↔ exact (0 : (0 ⟶ B)) f :=
 ⟨λ h, by { resetI, apply_instance, },
   λ h, preadditive.mono_of_kernel_iso_zero
@@ -285,5 +314,24 @@ lemma epi_iff_exact_zero_right [has_equalizers V] {A B : V} (f : A ⟶ B) :
 end
 
 end
+
+namespace functor
+variables [has_zero_morphisms V] [has_kernels V] {W : Type u₂} [category.{v₂} W]
+variables [has_images W] [has_zero_morphisms W] [has_kernels W]
+
+/-- A functor reflects exact sequences if any composable pair of morphisms that is mapped to an
+    exact pair is itself exact. -/
+class reflects_exact_sequences (F : V ⥤ W) :=
+(reflects : ∀ {A B C : V} (f : A ⟶ B) (g : B ⟶ C), exact (F.map f) (F.map g) → exact f g)
+
+lemma exact_of_exact_map (F : V ⥤ W) [reflects_exact_sequences F] {A B C : V} {f : A ⟶ B}
+  {g : B ⟶ C} (hfg : exact (F.map f) (F.map g)) : exact f g :=
+reflects_exact_sequences.reflects f g hfg
+
+lemma exact_of_exact_map' (F : V ⥤ W) [reflects_exact_sequences F] {A B C : V} {f : A ⟶ B}
+  {g : B ⟶ C} [hfg : exact (F.map f) (F.map g)] : exact f g :=
+F.exact_of_exact_map hfg
+
+end functor
 
 end category_theory

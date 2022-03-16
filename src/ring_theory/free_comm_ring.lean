@@ -49,7 +49,7 @@ free commutative ring, free ring
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical polynomial
 
 universes u v
 
@@ -98,7 +98,7 @@ private def lift_to_multiset : (α → R) ≃ (multiplicative (multiset α) →*
                           ... = _ : multiset.prod_add _ _,
     map_one' := rfl},
   inv_fun := λ F x, F (multiplicative.of_add ({x} : multiset α)),
-  left_inv := λ f, funext $ λ x, show (multiset.map f (x ::ₘ 0)).prod = _, by simp,
+  left_inv := λ f, funext $ λ x, show (multiset.map f {x}).prod = _, by simp,
   right_inv := λ F, monoid_hom.ext $ λ x,
     let F' := F.to_additive'', x' := x.to_add in show (multiset.map (λ a, F' {a}) x').sum = F' x',
     begin
@@ -194,7 +194,7 @@ suffices is_supported (of p) s → p ∈ s, from ⟨this, λ hps, subring.subset
 assume hps : is_supported (of p) s, begin
   haveI := classical.dec_pred s,
   have : ∀ x, is_supported x s →
-    ∃ (n : ℤ), lift (λ a, if a ∈ s then (0 : polynomial ℤ) else polynomial.X) x = n,
+    ∃ (n : ℤ), lift (λ a, if a ∈ s then (0 : ℤ[X]) else polynomial.X) x = n,
   { intros x hx, refine subring.in_closure.rec_on hx _ _ _ _,
     { use 1, rw [ring_hom.map_one], norm_cast },
     { use -1, rw [ring_hom.map_neg, ring_hom.map_one], norm_cast },
@@ -307,7 +307,7 @@ def subsingleton_equiv_free_comm_ring [subsingleton α] :
   begin
     delta functor.map_equiv,
     rw congr_arg is_ring_hom _,
-    work_on_goal 2 { symmetry, exact coe_eq α },
+    work_on_goal 3 { symmetry, exact coe_eq α },
     exact (coe_ring_hom _).to_is_ring_hom,
   end
 
@@ -334,7 +334,8 @@ ring_equiv.of_hom_inv
 
 /-- The free commutative ring on the empty type is isomorphic to `ℤ`. -/
 def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃+* ℤ :=
-ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.pempty_ring_equiv _)
+ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _)
+  (mv_polynomial.is_empty_ring_equiv _ pempty)
 
 /-- The free commutative ring on a type with one term is isomorphic to `ℤ[X]`. -/
 def free_comm_ring_punit_equiv_polynomial_int : free_comm_ring punit.{u+1} ≃+* polynomial ℤ :=

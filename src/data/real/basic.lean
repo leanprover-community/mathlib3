@@ -3,11 +3,12 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
-import order.conditionally_complete_lattice
-import data.real.cau_seq_completion
-import algebra.archimedean
-import algebra.star.basic
+import algebra.module.basic
 import algebra.bounds
+import algebra.order.archimedean
+import algebra.star.basic
+import data.real.cau_seq_completion
+import order.conditionally_complete_lattice
 
 /-!
 # Real numbers from Cauchy sequences
@@ -16,6 +17,8 @@ This file defines `ℝ` as the type of equivalence classes of Cauchy sequences o
 This choice is motivated by how easy it is to prove that `ℝ` is a commutative ring, by simply
 lifting everything to `ℚ`.
 -/
+
+open_locale pointwise
 
 /-- The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational
 numbers. -/
@@ -61,15 +64,15 @@ lemma mul_cauchy {a b} : (⟨a⟩ * ⟨b⟩ : ℝ) = ⟨a * b⟩ := show mul _ _
 
 instance : comm_ring ℝ :=
 begin
-  refine_struct { zero  := 0,
-                  one   := 1,
+  refine_struct { zero  := (0 : ℝ),
+                  one   := (1 : ℝ),
                   mul   := (*),
                   add   := (+),
                   neg   := @has_neg.neg ℝ _,
                   sub   := λ a b, a + (-b),
-                  npow  := @npow_rec _ ⟨1⟩ ⟨(*)⟩,
-                  nsmul := @nsmul_rec _ ⟨0⟩ ⟨(+)⟩,
-                  gsmul := @gsmul_rec _ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
+                  npow  := @npow_rec ℝ ⟨1⟩ ⟨(*)⟩,
+                  nsmul := @nsmul_rec ℝ ⟨0⟩ ⟨(+)⟩,
+                  zsmul := @zsmul_rec ℝ ⟨0⟩ ⟨(+)⟩ ⟨@has_neg.neg ℝ _⟩ };
   repeat { rintro ⟨_⟩, };
   try { refl };
   simp [← zero_cauchy, ← one_cauchy, add_cauchy, neg_cauchy, mul_cauchy];
@@ -85,6 +88,8 @@ end
 instance : ring ℝ               := by apply_instance
 instance : comm_semiring ℝ      := by apply_instance
 instance : semiring ℝ           := by apply_instance
+instance : comm_monoid_with_zero ℝ := by apply_instance
+instance : monoid_with_zero ℝ   := by apply_instance
 instance : add_comm_group ℝ     := by apply_instance
 instance : add_group ℝ          := by apply_instance
 instance : add_comm_monoid ℝ    := by apply_instance
@@ -103,6 +108,7 @@ instance : inhabited ℝ          := ⟨0⟩
 
 /-- The real numbers are a `*`-ring, with the trivial `*`-structure. -/
 instance : star_ring ℝ          := star_ring_of_comm
+instance : has_trivial_star ℝ   := ⟨λ _, rfl⟩
 
 /-- Coercion `ℚ` → `ℝ` as a `ring_hom`. Note that this
 is `cau_seq.completion.of_rat`, not `rat.cast`. -/
@@ -196,7 +202,7 @@ begin
   simpa only [mk_lt, mk_pos, ← mk_mul] using cau_seq.mul_pos
 end
 
-instance : ordered_ring ℝ :=
+instance : ordered_comm_ring ℝ :=
 { add_le_add_left :=
   begin
     simp only [le_iff_eq_or_lt],
@@ -208,6 +214,7 @@ instance : ordered_ring ℝ :=
   mul_pos     := @real.mul_pos,
   .. real.comm_ring, .. real.partial_order, .. real.semiring }
 
+instance : ordered_ring ℝ               := by apply_instance
 instance : ordered_semiring ℝ           := by apply_instance
 instance : ordered_add_comm_group ℝ     := by apply_instance
 instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
@@ -232,12 +239,8 @@ noncomputable instance : linear_ordered_comm_ring ℝ :=
 /- Extra instances to short-circuit type class resolution -/
 noncomputable instance : linear_ordered_ring ℝ        := by apply_instance
 noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
-instance : domain ℝ                     :=
-{ .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.to_domain }
-
-/-- The real numbers are an ordered `*`-ring, with the trivial `*`-structure. -/
-instance : star_ordered_ring ℝ :=
-{ star_mul_self_nonneg := λ r, mul_self_nonneg r, }
+instance : is_domain ℝ :=
+{ .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.is_domain }
 
 @[irreducible] private noncomputable def inv' : ℝ → ℝ | ⟨a⟩ := ⟨a⁻¹⟩
 noncomputable instance : has_inv ℝ := ⟨inv'⟩
@@ -252,15 +255,13 @@ noncomputable instance : linear_ordered_field ℝ :=
     exact cau_seq.completion.inv_mul_cancel h,
   end,
   inv_zero := by simp [← zero_cauchy, inv_cauchy],
-  ..real.linear_ordered_comm_ring,
-  ..real.domain }
+  ..real.linear_ordered_comm_ring, }
 
 /- Extra instances to short-circuit type class resolution -/
 
 noncomputable instance : linear_ordered_add_comm_group ℝ          := by apply_instance
 noncomputable instance field : field ℝ                            := by apply_instance
 noncomputable instance : division_ring ℝ                          := by apply_instance
-noncomputable instance : integral_domain ℝ                        := by apply_instance
 noncomputable instance : distrib_lattice ℝ                        := by apply_instance
 noncomputable instance : lattice ℝ                                := by apply_instance
 noncomputable instance : semilattice_inf ℝ                        := by apply_instance
@@ -286,12 +287,12 @@ begin
   rintro ⟨K, K0, hK⟩,
   obtain ⟨i, H⟩ := exists_forall_ge_and h
     (exists_forall_ge_and hK (f.cauchy₃ $ half_pos K0)),
-  apply not_lt_of_le (H _ (le_refl _)).1,
+  apply not_lt_of_le (H _ le_rfl).1,
   rw ← of_rat_eq_cast,
   rw [mk_lt] {md := tactic.transparency.semireducible},
   refine ⟨_, half_pos K0, i, λ j ij, _⟩,
   have := add_le_add (H _ ij).2.1
-    (le_of_lt (abs_lt.1 $ (H _ (le_refl _)).2.2 _ ij).1),
+    (le_of_lt (abs_lt.1 $ (H _ le_rfl).2.2 _ ij).1),
   rwa [← sub_eq_add_neg, sub_self_div_two, sub_apply, sub_add_sub_cancel] at this
 end
 
@@ -304,7 +305,7 @@ begin
 end
 
 theorem mk_near_of_forall_near {f : cau_seq ℚ abs} {x : ℝ} {ε : ℝ}
-  (H : ∃ i, ∀ j ≥ i, abs ((f j : ℝ) - x) ≤ ε) : abs (mk f - x) ≤ ε :=
+  (H : ∃ i, ∀ j ≥ i, |(f j : ℝ) - x| ≤ ε) : |mk f - x| ≤ ε :=
 abs_sub_le_iff.2
   ⟨sub_le_iff_le_add'.2 $ mk_le_of_forall_le $
     H.imp $ λ i h j ij, sub_le_iff_le_add'.1 (abs_sub_le_iff.1 $ h j ij).1,
@@ -319,7 +320,8 @@ let ⟨M, M0, H⟩ := f.bounded' 0 in
 
 noncomputable instance : floor_ring ℝ := archimedean.floor_ring _
 
-theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq abs f ↔ is_cau_seq abs (λ i, (f i : ℝ)) :=
+theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq abs f ↔ is_cau_seq
+  abs (λ i, (f i : ℝ)) :=
 ⟨λ H ε ε0,
   let ⟨δ, δ0, δε⟩ := exists_pos_rat_lt ε0 in
   (H _ δ0).imp $ λ i hi j ij, lt_trans
@@ -328,7 +330,7 @@ theorem is_cau_seq_iff_lift {f : ℕ → ℚ} : is_cau_seq abs f ↔ is_cau_seq 
    λ i hi j ij, (@rat.cast_lt ℝ _ _ _).1 $ by simpa using hi _ ij⟩
 
 theorem of_near (f : ℕ → ℚ) (x : ℝ)
-  (h : ∀ ε > 0, ∃ i, ∀ j ≥ i, abs ((f j : ℝ) - x) < ε) :
+  (h : ∀ ε > 0, ∃ i, ∀ j ≥ i, |(f j : ℝ) - x| < ε) :
   ∃ h', real.mk ⟨f, h'⟩ = x :=
 ⟨is_cau_seq_iff_lift.2 (of_near _ (const abs x) h),
  sub_eq_zero.1 $ abs_eq_zero.1 $
@@ -354,27 +356,26 @@ begin
     refine int.cast_le.1 (hy.trans _),
     push_cast,
     exact mul_le_mul_of_nonneg_right ((hU yS).trans hk.le) d.cast_nonneg },
-  choose f hf using λ d : ℕ, int.exists_greatest_of_bdd (this d) ⟨⌊L * d⌋, L, hL, floor_le _⟩,
+  choose f hf using λ d : ℕ, int.exists_greatest_of_bdd (this d) ⟨⌊L * d⌋, L, hL, int.floor_le _⟩,
   have hf₁ : ∀ n > 0, ∃ y ∈ S, ((f n / n:ℚ):ℝ) ≤ y := λ n n0,
     let ⟨y, yS, hy⟩ := (hf n).1 in
     ⟨y, yS, by simpa using (div_le_iff ((nat.cast_pos.2 n0):((_:ℝ) < _))).2 hy⟩,
   have hf₂ : ∀ (n > 0) (y ∈ S), (y - (n:ℕ)⁻¹ : ℝ) < (f n / n:ℚ),
   { intros n n0 y yS,
-    have := lt_of_lt_of_le (sub_one_lt_floor _)
-      (int.cast_le.2 $ (hf n).2 _ ⟨y, yS, floor_le _⟩),
+    have := (int.sub_one_lt_floor _).trans_le (int.cast_le.2 $ (hf n).2 _ ⟨y, yS, int.floor_le _⟩),
     simp [-sub_eq_add_neg],
     rwa [lt_div_iff ((nat.cast_pos.2 n0):((_:ℝ) < _)), sub_mul, _root_.inv_mul_cancel],
     exact ne_of_gt (nat.cast_pos.2 n0) },
   have hg : is_cau_seq abs (λ n, f n / n : ℕ → ℚ),
   { intros ε ε0,
     suffices : ∀ j k ≥ ⌈ε⁻¹⌉₊, (f j / j - f k / k : ℚ) < ε,
-    { refine ⟨_, λ j ij, abs_lt.2 ⟨_, this _ _ ij (le_refl _)⟩⟩,
-      rw [neg_lt, neg_sub], exact this _ _ (le_refl _) ij },
-    intros j k ij ik,
-    replace ij := le_trans (le_nat_ceil _) (nat.cast_le.2 ij),
-    replace ik := le_trans (le_nat_ceil _) (nat.cast_le.2 ik),
-    have j0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ij),
-    have k0 := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 ε0) ik),
+    { refine ⟨_, λ j ij, abs_lt.2 ⟨_, this _ ij  _ le_rfl⟩⟩,
+      rw [neg_lt, neg_sub], exact this _ le_rfl _ ij },
+    intros j ij k ik,
+    replace ij := le_trans (nat.le_ceil _) (nat.cast_le.2 ij),
+    replace ik := le_trans (nat.le_ceil _) (nat.cast_le.2 ik),
+    have j0 := nat.cast_pos.1 ((inv_pos.2 ε0).trans_le ij),
+    have k0 := nat.cast_pos.1 ((inv_pos.2 ε0).trans_le ik),
     rcases hf₁ _ j0 with ⟨y, yS, hy⟩,
     refine lt_of_lt_of_le ((@rat.cast_lt ℝ _ _ _).1 _)
       ((inv_le ε0 (nat.cast_pos.2 k0)).1 ik),
@@ -386,9 +387,9 @@ begin
     cases exists_nat_gt (x - z)⁻¹ with K hK,
     refine le_mk_of_forall_le ⟨K, λ n nK, _⟩,
     replace xz := sub_pos.2 xz,
-    replace hK := le_trans (le_of_lt hK) (nat.cast_le.2 nK),
-    have n0 : 0 < n := nat.cast_pos.1 (lt_of_lt_of_le (inv_pos.2 xz) hK),
-    refine le_trans _ (le_of_lt $ hf₂ _ n0 _ xS),
+    replace hK := hK.le.trans (nat.cast_le.2 nK),
+    have n0 : 0 < n := nat.cast_pos.1 ((inv_pos.2 xz).trans_le hK),
+    refine le_trans _ (hf₂ _ n0 _ xS).le,
     rwa [le_sub, inv_le ((nat.cast_pos.2 n0):((_:ℝ) < _)) xz] },
   { exact mk_le_of_forall_le ⟨1, λ n n1,
       let ⟨x, xS, hx⟩ := hf₁ _ n1 in le_trans hx (h xS)⟩ }
@@ -454,6 +455,21 @@ end
 
 @[simp] theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 
+lemma csupr_empty {α : Sort*} [is_empty α] (f : α → ℝ) : (⨆ i, f i) = 0 :=
+begin
+  dsimp [supr],
+  convert real.Sup_empty,
+  rw set.range_eq_empty_iff,
+  apply_instance
+end
+
+@[simp] lemma csupr_const_zero {α : Sort*} : (⨆ i : α, (0:ℝ)) = 0 :=
+begin
+  casesI is_empty_or_nonempty α,
+  { exact real.csupr_empty _ },
+  { exact csupr_const },
+end
+
 theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : Sup s = 0 :=
 dif_neg $ assume h, hs h.2
 
@@ -462,6 +478,21 @@ real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.
 
 @[simp] theorem Inf_empty : Inf (∅ : set ℝ) = 0 :=
 by simp [Inf_def, Sup_empty]
+
+lemma cinfi_empty {α : Sort*} [is_empty α] (f : α → ℝ) : (⨅ i, f i) = 0 :=
+begin
+  dsimp [infi],
+  convert real.Inf_empty,
+  rw set.range_eq_empty_iff,
+  apply_instance
+end
+
+@[simp] lemma cinfi_const_zero {α : Sort*} : (⨅ i : α, (0:ℝ)) = 0 :=
+begin
+  casesI is_empty_or_nonempty α,
+  { exact real.cinfi_empty _ },
+  { exact cinfi_const },
+end
 
 theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : Inf s = 0 :=
 neg_eq_zero.2 $ Sup_of_not_bdd_above $ mt bdd_above_neg.1 hs
@@ -538,6 +569,6 @@ begin
     exact ih _ ij }
 end
 
-noncomputable instance : cau_seq.is_complete ℝ abs := ⟨cau_seq_converges⟩
+instance : cau_seq.is_complete ℝ abs := ⟨cau_seq_converges⟩
 
 end real

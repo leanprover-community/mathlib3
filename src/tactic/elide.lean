@@ -47,7 +47,7 @@ end
 end elide
 
 namespace interactive
-open interactive.types interactive lean.parser
+setup_tactic_parser
 
 /-- The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
 beyond depth `n` by replacing them with `hidden`, which is a variant

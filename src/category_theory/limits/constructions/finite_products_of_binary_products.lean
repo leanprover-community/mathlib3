@@ -3,11 +3,10 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.shapes.finite_products
-import category_theory.limits.shapes.binary_products
-import category_theory.limits.preserves.shapes.products
 import category_theory.limits.preserves.shapes.binary_products
-import category_theory.limits.shapes.pullbacks
+import category_theory.limits.preserves.shapes.products
+import category_theory.limits.shapes.binary_products
+import category_theory.limits.shapes.finite_products
 import category_theory.pempty
 import data.equiv.fin
 
@@ -103,18 +102,18 @@ This is a helper lemma for `has_finite_products_of_has_binary_and_terminal`, whi
 than this.
 -/
 private lemma has_product_ulift_fin :
-  Π (n : ℕ) (f : ulift (fin n) → C), has_product f
+  Π (n : ℕ) (f : ulift.{v} (fin n) → C), has_product f
 | 0 := λ f,
   begin
-    letI : has_limits_of_shape (discrete (ulift (fin 0))) C :=
+    letI : has_limits_of_shape (discrete (ulift.{v} (fin 0))) C :=
       has_limits_of_shape_of_equivalence
-        (discrete.equivalence (equiv.ulift.trans fin_zero_equiv').symm),
+        (discrete.equivalence.{v} (equiv.ulift.trans fin_zero_equiv').symm),
     apply_instance,
   end
 | (n+1) := λ f,
   begin
     haveI := has_product_ulift_fin n,
-    apply has_limit.mk ⟨_, extend_fan_is_limit f (limit.is_limit _) (limit.is_limit _)⟩,
+    apply has_limit.mk ⟨_, extend_fan_is_limit f (limit.is_limit.{v} _) (limit.is_limit _)⟩,
   end
 
 /--
@@ -124,7 +123,7 @@ This is a helper lemma for `has_finite_products_of_has_binary_and_terminal`, whi
 than this.
 -/
 private lemma has_limits_of_shape_ulift_fin (n : ℕ) :
-  has_limits_of_shape (discrete (ulift (fin n))) C :=
+  has_limits_of_shape (discrete (ulift.{v} (fin n))) C :=
 { has_limit := λ K,
 begin
   letI := has_product_ulift_fin n K.obj,
@@ -145,8 +144,8 @@ end
 
 section preserves
 variables (F : C ⥤ D)
-variables [preserves_limits_of_shape (discrete walking_pair) F]
-variables [preserves_limits_of_shape (discrete pempty) F]
+variables [preserves_limits_of_shape (discrete.{v} walking_pair) F]
+variables [preserves_limits_of_shape (discrete.{v} pempty) F]
 variables [has_finite_products.{v} C]
 
 /--
@@ -154,11 +153,11 @@ If `F` preserves the terminal object and binary products, then it preserves prod
 `ulift (fin n)` for any `n`.
 -/
 noncomputable def preserves_fin_of_preserves_binary_and_terminal  :
-  Π (n : ℕ) (f : ulift (fin n) → C), preserves_limit (discrete.functor f) F
+  Π (n : ℕ) (f : ulift.{v} (fin n) → C), preserves_limit (discrete.functor f) F
 | 0 := λ f,
   begin
     letI : preserves_limits_of_shape (discrete (ulift (fin 0))) F :=
-      preserves_limits_of_shape_of_equiv
+      preserves_limits_of_shape_of_equiv.{v v}
         (discrete.equivalence (equiv.ulift.trans fin_zero_equiv').symm) _,
     apply_instance,
   end
@@ -167,7 +166,7 @@ noncomputable def preserves_fin_of_preserves_binary_and_terminal  :
     haveI := preserves_fin_of_preserves_binary_and_terminal n,
     intro f,
     refine preserves_limit_of_preserves_limit_cone
-      (extend_fan_is_limit f (limit.is_limit _) (limit.is_limit _)) _,
+      (extend_fan_is_limit f (limit.is_limit.{v} _) (limit.is_limit _)) _,
     apply (is_limit_map_cone_fan_mk_equiv _ _ _).symm _,
     let := extend_fan_is_limit (λ i, F.obj (f i))
               (is_limit_of_has_product_of_preserves_limit F _)
@@ -207,7 +206,8 @@ begin
   classical,
   let e := fintype.equiv_fin J,
   haveI := preserves_ulift_fin_of_preserves_binary_and_terminal F (fintype.card J),
-  apply preserves_limits_of_shape_of_equiv (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
+  apply preserves_limits_of_shape_of_equiv.{v v}
+    (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
 end
 
 end preserves
@@ -281,19 +281,19 @@ This is a helper lemma for `has_cofinite_products_of_has_binary_and_terminal`, w
 than this.
 -/
 private lemma has_coproduct_ulift_fin :
-  Π (n : ℕ) (f : ulift (fin n) → C), has_coproduct f
+  Π (n : ℕ) (f : ulift.{v} (fin n) → C), has_coproduct f
 | 0 := λ f,
   begin
-    letI : has_colimits_of_shape (discrete (ulift (fin 0))) C :=
+    letI : has_colimits_of_shape (discrete (ulift.{v} (fin 0))) C :=
       has_colimits_of_shape_of_equivalence
-        (discrete.equivalence (equiv.ulift.trans fin_zero_equiv').symm),
+        (discrete.equivalence.{v} (equiv.ulift.trans fin_zero_equiv').symm),
     apply_instance,
   end
 | (n+1) := λ f,
   begin
     haveI := has_coproduct_ulift_fin n,
     apply has_colimit.mk
-      ⟨_, extend_cofan_is_colimit f (colimit.is_colimit _) (colimit.is_colimit _)⟩,
+      ⟨_, extend_cofan_is_colimit f (colimit.is_colimit.{v} _) (colimit.is_colimit _)⟩,
   end
 
 /--
@@ -303,7 +303,7 @@ This is a helper lemma for `has_cofinite_products_of_has_binary_and_terminal`, w
 than this.
 -/
 private lemma has_colimits_of_shape_ulift_fin (n : ℕ) :
-  has_colimits_of_shape (discrete (ulift (fin n))) C :=
+  has_colimits_of_shape (discrete (ulift.{v} (fin n))) C :=
 { has_colimit := λ K,
 begin
   letI := has_coproduct_ulift_fin n K.obj,
@@ -324,8 +324,8 @@ end
 
 section preserves
 variables (F : C ⥤ D)
-variables [preserves_colimits_of_shape (discrete walking_pair) F]
-variables [preserves_colimits_of_shape (discrete pempty) F]
+variables [preserves_colimits_of_shape (discrete.{v} walking_pair) F]
+variables [preserves_colimits_of_shape (discrete.{v} pempty) F]
 variables [has_finite_coproducts.{v} C]
 
 /--
@@ -333,11 +333,11 @@ If `F` preserves the initial object and binary coproducts, then it preserves pro
 `ulift (fin n)` for any `n`.
 -/
 noncomputable def preserves_fin_of_preserves_binary_and_initial  :
-  Π (n : ℕ) (f : ulift (fin n) → C), preserves_colimit (discrete.functor f) F
+  Π (n : ℕ) (f : ulift.{v} (fin n) → C), preserves_colimit (discrete.functor f) F
 | 0 := λ f,
   begin
     letI : preserves_colimits_of_shape (discrete (ulift (fin 0))) F :=
-      preserves_colimits_of_shape_of_equiv
+      preserves_colimits_of_shape_of_equiv.{v v}
         (discrete.equivalence (equiv.ulift.trans fin_zero_equiv').symm) _,
     apply_instance,
   end
@@ -346,7 +346,7 @@ noncomputable def preserves_fin_of_preserves_binary_and_initial  :
     haveI := preserves_fin_of_preserves_binary_and_initial n,
     intro f,
     refine preserves_colimit_of_preserves_colimit_cocone
-      (extend_cofan_is_colimit f (colimit.is_colimit _) (colimit.is_colimit _)) _,
+      (extend_cofan_is_colimit f (colimit.is_colimit.{v} _) (colimit.is_colimit _)) _,
     apply (is_colimit_map_cocone_cofan_mk_equiv _ _ _).symm _,
     let := extend_cofan_is_colimit (λ i, F.obj (f i))
               (is_colimit_of_has_coproduct_of_preserves_colimit F _)
@@ -385,7 +385,8 @@ begin
   classical,
   let e := fintype.equiv_fin J,
   haveI := preserves_ulift_fin_of_preserves_binary_and_initial F (fintype.card J),
-  apply preserves_colimits_of_shape_of_equiv (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
+  apply preserves_colimits_of_shape_of_equiv.{v v}
+    (discrete.equivalence (e.trans equiv.ulift.symm)).symm,
 end
 
 end preserves

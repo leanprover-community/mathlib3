@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.int.gcd
+import data.nat.sqrt_norm_num
 import data.nat.prime
 import algebra.squarefree
 
@@ -12,6 +13,17 @@ import algebra.squarefree
 -/
 
 -- coverage tests
+example : nat.sqrt 0 = 0 := by norm_num
+example : nat.sqrt 1 = 1 := by norm_num
+example : nat.sqrt 2 = 1 := by norm_num
+example : nat.sqrt 3 = 1 := by norm_num
+example : nat.sqrt 4 = 2 := by norm_num
+example : nat.sqrt 9 = 3 := by norm_num
+example : nat.sqrt 10 = 3 := by norm_num
+example : nat.sqrt 100 = 10 := by norm_num
+example : nat.sqrt 120 = 10 := by norm_num
+example : nat.sqrt 121 = 11 := by norm_num
+
 example : nat.coprime 1 2 := by norm_num
 example : nat.coprime 2 1 := by norm_num
 example : ¬ nat.coprime 0 0 := by norm_num

@@ -63,7 +63,7 @@ noncomputable instance as_module : module (monoid_algebra k G) V :=
 lemma as_module_apply (a : monoid_algebra k G) (v : V):
   a • v = (as_algebra_hom k G V a) v := rfl
 
-lemma smul_of (g : G) (v : V) :
+lemma of_smul (g : G) (v : V) :
   (of k G g) • v =  g • v := by simp [as_module_apply]
 
 instance as_module_scalar_tower : is_scalar_tower k (monoid_algebra k G) V :=

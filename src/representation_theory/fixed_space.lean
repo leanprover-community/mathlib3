@@ -90,7 +90,7 @@ variables [fintype G] [invertible (fintype.card G : k)]
 Scalar multiplication by `average k G` sends elements of `V` to the subspace of fixed points
 -/
 theorem smul_average_fixed (v : V) : (average k G) • v ∈ fixed_space k G V :=
-λ g, by rw [←smul_of k, smul_smul, of_apply, mul_average_left]
+λ g, by rw [←of_smul k, smul_smul, of_apply, mul_average_left]
 
 /--
 `average k G` acts as the identity on the subspace of fixed points
@@ -98,7 +98,7 @@ theorem smul_average_fixed (v : V) : (average k G) • v ∈ fixed_space k G V :
 theorem smul_average_id (v ∈ fixed_space k G V) : (average k G) • v = v :=
 begin
   simp at H,
-  simp [average_def, sum_smul, H, card_univ, nsmul_eq_smul_cast k _ v, smul_smul, smul_of,
+  simp [average_def, sum_smul, H, card_univ, nsmul_eq_smul_cast k _ v, smul_smul, of_smul,
     -of_apply],
 end
 

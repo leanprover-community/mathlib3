@@ -835,32 +835,17 @@ end
   (Hinv : ∀ (x ∈ k) y, p y → p (x⁻¹ * y)) : p x :=
 begin
   have := le_of_eq (closure_to_submonoid k),
-  obtain ⟨l, hl, rfl⟩ := submonoid.exists_list_of_mem_closure (this h),
-  induction l with g l ih generalizing hl,
-  { exact H1 },
-  { rw list.prod_cons,
-    rw list.forall_mem_cons at hl,
-    specialize ih ((closure k).list_prod_mem (λ g hg, (hl.2 g hg).elim (λ hg, subset_closure hg)
-      (λ hg, (closure k).inv_mem_iff.mp (subset_closure hg)))) hl.2,
-    exact hl.1.elim (λ hg, Hmul g hg _ ih) (λ hg, (congr_arg _ (inv_inv g)).mp (Hinv _ hg _ ih)) },
+  exact submonoid.closure_induction_left (this h) H1 (λ x hx, hx.elim (Hmul x)
+    (λ hx y hy, (congr_arg _ (inv_inv x)).mp (Hinv x⁻¹ hx y hy))),
 end
 
 @[to_additive] lemma closure_induction_right {p : G → Prop} {x : G}
   (h : x ∈ closure k) (H1 : p 1) (Hmul : ∀ x (y ∈ k), p x → p (x * y))
   (Hinv : ∀ x (y ∈ k), p x → p (x * y⁻¹)) : p x :=
 begin
-  let q : G → Prop := λ g, p g⁻¹,
-  have q_def : ∀ g, q g = p g⁻¹ := λ g, rfl,
-  rw ← inv_inv x,
-  change q x⁻¹,
-  apply closure_induction_left ((closure k).inv_mem h),
-  { rwa [q_def, one_inv] },
-  { intros x hx y hy,
-    rw [q_def, mul_inv_rev],
-    exact Hinv y⁻¹ x hx hy },
-  { intros x hx y hy,
-    rw [q_def, mul_inv_rev, inv_inv],
-    exact Hmul y⁻¹ x hx hy },
+  have := le_of_eq (closure_to_submonoid k),
+  exact submonoid.closure_induction_right (this h) H1 (λ x y hy, hy.elim (Hmul x y)
+    (λ hy hx, (congr_arg _ (inv_inv y)).mp (Hinv x y⁻¹ hy hx))),
 end
 
 /-- An induction principle for closure membership. If `p` holds for `1` and all elements of

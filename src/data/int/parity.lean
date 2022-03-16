@@ -101,14 +101,8 @@ by convert not_even_bit1 n; exact two_mul n
 @[parity_simps] theorem even_sub : even (m - n) ↔ (even m ↔ even n) :=
 by simp [sub_eq_add_neg] with parity_simps
 
-theorem even.sub_even (hm : even m) (hn : even n) : even (m - n) :=
-even_sub.2 $ iff_of_true hm hn
-
 theorem even_sub' : even (m - n) ↔ (odd m ↔ odd n) :=
 by rw [even_sub, even_iff_not_odd, even_iff_not_odd, not_iff_not]
-
-theorem odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
-even_sub'.2 $ iff_of_true hm hn
 
 @[parity_simps] theorem even_add_one : even (n + 1) ↔ ¬ even n :=
 by simp [even_add]
@@ -146,14 +140,8 @@ lemma ne_of_odd_add (h : odd (m + n)) : m ≠ n :=
 @[parity_simps] theorem odd_sub : odd (m - n) ↔ (odd m ↔ even n) :=
 by rw [odd_iff_not_even, even_sub, not_iff, odd_iff_not_even]
 
-theorem odd.sub_even (hm : odd m) (hn : even n) : odd (m - n) :=
-odd_sub.2 $ iff_of_true hm hn
-
 theorem odd_sub' : odd (m - n) ↔ (odd n ↔ even m) :=
 by rw [odd_iff_not_even, even_sub, not_iff, not_iff_comm, odd_iff_not_even]
-
-theorem even.sub_odd (hm : even m) (hn : odd n) : odd (m - n) :=
-odd_sub'.2 $ iff_of_true hn hm
 
 lemma even_mul_succ_self (n : ℤ) : even (n * (n + 1)) :=
 begin

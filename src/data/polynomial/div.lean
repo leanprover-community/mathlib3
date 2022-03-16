@@ -412,6 +412,8 @@ lemma sum_mod_by_monic_coeff [nontrivial R] (hq : q.monic)
   ((degree_mod_by_monic_lt _ hq).trans_le hn)).trans
   (sum_monomial_eq _)
 
+variable (R)
+
 lemma not_is_field [nontrivial R] : ¬ is_field R[X] :=
 begin
   rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
@@ -423,6 +425,8 @@ begin
       polynomial.X_dvd_iff, polynomial.coeff_one_zero],
     exact one_ne_zero, }
 end
+
+variable {R}
 
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.

@@ -86,7 +86,7 @@ theorem iterate_map_smul (f : M →+ M) (n m : ℕ) (x : M) :
   f^[n] (m • x) = m • (f^[n] x) :=
 f.to_multiplicative.iterate_map_pow n x m
 
-attribute [to_additive iterate_map_smul, to_additive_reorder 5] monoid_hom.iterate_map_pow
+attribute [to_additive, to_additive_reorder 5] monoid_hom.iterate_map_pow
 
 theorem iterate_map_zsmul (f : G →+ G) (n : ℕ) (m : ℤ) (x : G) :
   f^[n] (m • x) = m • (f^[n] x) :=

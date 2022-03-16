@@ -425,7 +425,7 @@ variables (P) (L)
 
 lemma card_points [projective_plane P L] : fintype.card P = order P L ^ 2 + order P L + 1 :=
 begin
-  let p : P := (classical.some (@exists_config P L _ _)),
+  obtain ⟨p, -⟩ := @exists_config P L _ _,
   let ϕ : {q // q ≠ p} ≃ Σ (l : {l : L // p ∈ l}), {q // q ∈ l.1 ∧ q ≠ p} :=
   { to_fun := λ q, ⟨⟨mk_line q.2, (mk_line_ax q.2).2⟩, q, (mk_line_ax q.2).1, q.2⟩,
     inv_fun := λ lq, ⟨lq.2, lq.2.2.2⟩,

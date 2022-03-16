@@ -81,7 +81,7 @@ variables [monoid M] [linear_order M] [covariant_class M M (*) (≤)]
 lemma one_le_pow_iff {x : M} {n : ℕ} (hn : n ≠ 0) : 1 ≤ x ^ n ↔ 1 ≤ x :=
 ⟨le_imp_le_of_lt_imp_lt $ λ h, pow_lt_one' h hn, λ h, one_le_pow_of_one_le' h n⟩
 
-@[to_additive nsmul_nonpos_iff]
+@[to_additive]
 lemma pow_le_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n ≤ 1 ↔ x ≤ 1 :=
 @one_le_pow_iff (order_dual M) _ _ _ _ _ hn
 
@@ -89,11 +89,11 @@ lemma pow_le_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n ≤ 1 ↔ x ≤ 1 
 lemma one_lt_pow_iff {x : M} {n : ℕ} (hn : n ≠ 0) : 1 < x ^ n ↔ 1 < x :=
 lt_iff_lt_of_le_iff_le (pow_le_one_iff hn)
 
-@[to_additive nsmul_neg_iff]
+@[to_additive]
 lemma pow_lt_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n < 1 ↔ x < 1 :=
 lt_iff_lt_of_le_iff_le (one_le_pow_iff hn)
 
-@[to_additive nsmul_eq_zero_iff]
+@[to_additive]
 lemma pow_eq_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n = 1 ↔ x = 1 :=
 by simp only [le_antisymm_iff, pow_le_one_iff hn, one_le_pow_iff hn]
 
@@ -179,6 +179,9 @@ monotone_nat_of_le_succ $ λ n,
 
 theorem pow_le_pow (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
 pow_mono ha h
+
+theorem le_self_pow (ha : 1 ≤ a) (h : 1 ≤ m) : a ≤ a ^ m :=
+eq.trans_le (pow_one a).symm (pow_le_pow ha h)
 
 lemma strict_mono_pow (h : 1 < a) : strict_mono (λ n : ℕ, a ^ n) :=
 have 0 < a := zero_le_one.trans_lt h,

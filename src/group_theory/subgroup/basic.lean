@@ -672,7 +672,7 @@ lemma closure_induction {p : G → Prop} {x} (h : x ∈ closure k)
   (Hk : ∀ x ∈ k, p x) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y))
   (Hinv : ∀ x, p x → p x⁻¹) : p x :=
-(@closure_le _ _ ⟨p, H1, Hmul, Hinv⟩ _).2 Hk h
+(@closure_le _ _ ⟨p, Hmul, H1, Hinv⟩ _).2 Hk h
 
 /-- A dependent version of `subgroup.closure_induction`.  -/
 @[elab_as_eliminator, to_additive "A dependent version of `add_subgroup.closure_induction`. "]

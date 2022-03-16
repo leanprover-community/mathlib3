@@ -296,8 +296,9 @@ section
 
 variables (K : Type*) [field K]
 
-@[priority 100]
-instance of_field : valuation_ring K :=
+--@[priority 100]
+/-- A field is a valuation ring. -/
+def of_field : valuation_ring K :=
 begin
   constructor,
   intros a b,
@@ -312,8 +313,9 @@ section
 
 variables (A : Type*) [comm_ring A] [is_domain A] [discrete_valuation_ring A]
 
-@[priority 100]
-instance of_discrete_valuation_ring : valuation_ring A :=
+-- @[priority 100]
+/-- A DVR is a valuation ring. -/
+def of_discrete_valuation_ring : valuation_ring A :=
 begin
   constructor,
   intros a b,

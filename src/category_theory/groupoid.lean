@@ -88,27 +88,6 @@ def groupoid.of_is_iso (all_is_iso : ∀ {X Y : C} (f : X ⟶ Y), is_iso f) : gr
 def groupoid.of_all_unique (all_unique : ∀ {X Y : C}, unique (X ⟶ Y)) :
   groupoid.{v} C := { inv := λ X Y f, all_unique.default }
 
-/-- A category being equivalent to `punit` is equivalent to it having a unique morphism between
-  any two objects. (In fact, such a category is also a groupoid; see `groupoid.of_all_unique`) -/
-theorem equiv_punit_iff_unique :
-  nonempty (C ≌ discrete punit) ↔ (nonempty C) ∧ (∀ x y : C, nonempty $ unique (x ⟶ y)) :=
-begin
-  split,
-  { rintro ⟨h⟩, refine ⟨⟨h.inverse.obj punit.star⟩, λ x y, nonempty.intro _⟩,
-    apply (unique_of_subsingleton _), swap,
-    { have hx : x ⟶ h.inverse.obj punit.star := by convert h.unit.app x,
-      have hy : h.inverse.obj punit.star ⟶ y := by convert h.unit_inv.app y,
-      exact hx ≫ hy, },
-    suffices : ∀ z, z = h.unit.app x ≫ (h.functor ⋙ h.inverse).map z ≫ h.unit_inv.app y,
-    { apply subsingleton.intro, intros a b, rw [this a, this b],
-      simp only [functor.comp_map], congr, },
-    intro z, have := congr_arg (≫ (h.unit_inv.app y)) (h.unit.naturality z), simpa, },
-  { rintro ⟨⟨p⟩, h⟩, haveI := λ x y, (h x y).some,
-    refine nonempty.intro (category_theory.equivalence.mk
-      ((functor.const _).obj punit.star) ((functor.const _).obj p) _ (by apply functor.punit_ext)),
-    exact nat_iso.of_components (λ _, iso_of_both_ways default default) (λ _ _ _, by tidy), },
-end
-
 end
 
 instance induced_category.groupoid {C : Type u} (D : Type u₂) [groupoid.{v} D] (F : C → D) :

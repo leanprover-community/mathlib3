@@ -147,7 +147,7 @@ homotopy.equiv_sub_zero.inv_fun (desc_homotopy_zero _ (by simp [g_comm, h_comm])
 /-- The descent of the identity morphism is homotopic to the identity cochain map. -/
 def desc_id_homotopy (X : C) (I : InjectiveResolution X) :
   homotopy (desc (𝟙 X) I I) (𝟙 I.cocomplex) :=
-by { apply desc_homotopy (𝟙 X); simp, }
+by apply desc_homotopy (𝟙 X); simp
 
 /-- The descent of a composition is homotopic to the composition of the descents. -/
 def desc_comp_homotopy {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)

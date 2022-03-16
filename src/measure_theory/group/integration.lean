@@ -18,9 +18,31 @@ namespace measure_theory
 open measure topological_space
 open_locale ennreal
 
-variables {𝕜 G E : Type*} [measurable_space G] {μ : measure G}
+variables {𝕜 G E F : Type*} [measurable_space G]
 variables [normed_group E] [second_countable_topology E] [normed_space ℝ E] [complete_space E]
-  [measurable_space E] [borel_space E]
+variables [measurable_space E] [borel_space E]
+variables [normed_group F] [measurable_space F] [opens_measurable_space F]
+variables {μ : measure G} {f : G → E} {g : G}
+
+section measurable_inv
+
+variables [group G] [has_measurable_inv G]
+
+@[to_additive]
+lemma integrable.comp_inv [is_inv_invariant μ] {f : G → F} (hf : integrable f μ) :
+  integrable (λ t, f t⁻¹) μ :=
+(hf.mono_measure (map_inv_eq_self μ).le).comp_measurable measurable_inv
+
+@[to_additive]
+lemma integral_inv_eq_self (f : G → E) (μ : measure G) [is_inv_invariant μ] :
+  ∫ x, f (x⁻¹) ∂μ = ∫ x, f x ∂μ :=
+begin
+  have h : measurable_embedding (λ x : G, x⁻¹) :=
+  (measurable_equiv.inv G).measurable_embedding,
+  rw [← h.integral_map, map_inv_eq_self]
+end
+
+end measurable_inv
 
 section measurable_mul
 
@@ -71,18 +93,53 @@ end
 /-- If some left-translate of a function negates it, then the integral of the function with respect
 to a left-invariant measure is 0. -/
 @[to_additive]
-lemma integral_zero_of_mul_left_eq_neg [is_mul_left_invariant μ] {f : G → E} {g : G}
-  (hf' : ∀ x, f (g * x) = - f x) :
+lemma integral_eq_zero_of_mul_left_eq_neg [is_mul_left_invariant μ] (hf' : ∀ x, f (g * x) = - f x) :
   ∫ x, f x ∂μ = 0 :=
 by simp_rw [← self_eq_neg ℝ E, ← integral_neg, ← hf', integral_mul_left_eq_self]
 
 /-- If some right-translate of a function negates it, then the integral of the function with respect
 to a right-invariant measure is 0. -/
 @[to_additive]
-lemma integral_zero_of_mul_right_eq_neg [is_mul_right_invariant μ] {f : G → E} {g : G}
-  (hf' : ∀ x, f (x * g) = - f x) :
-  ∫ x, f x ∂μ = 0 :=
+lemma integral_eq_zero_of_mul_right_eq_neg [is_mul_right_invariant μ]
+  (hf' : ∀ x, f (x * g) = - f x) : ∫ x, f x ∂μ = 0 :=
 by simp_rw [← self_eq_neg ℝ E, ← integral_neg, ← hf', integral_mul_right_eq_self]
+
+@[to_additive]
+lemma integrable.comp_mul_left {f : G → F} [is_mul_left_invariant μ] (hf : integrable f μ)
+  (g : G) : integrable (λ t, f (g * t)) μ :=
+(hf.mono_measure (map_mul_left_eq_self μ g).le).comp_measurable $ measurable_const_mul g
+
+@[to_additive]
+lemma integrable.comp_mul_right {f : G → F} [is_mul_right_invariant μ] (hf : integrable f μ)
+  (g : G) : integrable (λ t, f (t * g)) μ :=
+(hf.mono_measure (map_mul_right_eq_self μ g).le).comp_measurable $ measurable_mul_const g
+
+@[to_additive]
+lemma integrable.comp_div_right {f : G → F} [is_mul_right_invariant μ] (hf : integrable f μ)
+  (g : G) : integrable (λ t, f (t / g)) μ :=
+by { simp_rw [div_eq_mul_inv], exact hf.comp_mul_right g⁻¹ }
+
+variables [has_measurable_inv G]
+
+@[to_additive]
+lemma integrable.comp_div_left {f : G → F}
+  [is_inv_invariant μ] [is_mul_left_invariant μ] (hf : integrable f μ) (g : G) :
+  integrable (λ t, f (g / t)) μ :=
+begin
+  rw [← map_mul_right_inv_eq_self μ g⁻¹, integrable_map_measure, function.comp],
+  { simp_rw [div_inv_eq_mul, mul_inv_cancel_left], exact hf },
+  { refine ae_measurable.comp_measurable _ (measurable_id.const_div g),
+    simp_rw [map_map (measurable_id'.const_div g) (measurable_id'.const_mul g⁻¹).inv,
+      function.comp, div_inv_eq_mul, mul_inv_cancel_left, map_id'],
+    exact hf.ae_measurable },
+  exact (measurable_id'.const_mul g⁻¹).inv
+end
+
+@[to_additive]
+lemma integral_div_left_eq_self (f : G → E) (μ : measure G) [is_inv_invariant μ]
+  [is_mul_left_invariant μ] (x' : G) : ∫ x, f (x' / x) ∂μ = ∫ x, f x ∂μ :=
+by simp_rw [div_eq_mul_inv, integral_inv_eq_self (λ x, f (x' * x)) μ,
+  integral_mul_left_eq_self f x']
 
 end measurable_mul
 

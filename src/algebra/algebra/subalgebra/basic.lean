@@ -3,9 +3,8 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
-import algebra.algebra.operations
+import algebra.algebra.basic
 import data.set.Union_lift
-import ring_theory.subring.pointwise
 
 /-!
 # Subalgebras over Commutative Semiring
@@ -16,7 +15,7 @@ More lemmas about `adjoin` can be found in `ring_theory.adjoin`.
 -/
 universes u u' v w w'
 
-open_locale tensor_product big_operators
+open_locale big_operators
 
 set_option old_structure_cmd true
 
@@ -321,19 +320,6 @@ rfl
   [algebra R A] (S : subalgebra R A) : S.to_subring.subtype = (S.val : S →+* A) :=
 rfl
 
-
-/-- As submodules, subalgebras are idempotent. -/
-@[simp] theorem mul_self : S.to_submodule * S.to_submodule = S.to_submodule :=
-begin
-  apply le_antisymm,
-  { rw submodule.mul_le,
-    intros y hy z hz,
-    exact mul_mem S hy hz },
-  { intros x hx1,
-    rw ← mul_one x,
-    exact submodule.mul_mem_mul hx1 (one_mem S) }
-end
-
 /-- Linear equivalence between `S : submodule R A` and `S`. Though these types are equal,
 we define it as a `linear_equiv` to avoid type equalities. -/
 def to_submodule_equiv (S : subalgebra R A) : S.to_submodule ≃ₗ[R] S :=
@@ -405,6 +391,42 @@ instance is_domain {R A : Type*} [comm_ring R] [ring A] [is_domain A] [algebra R
 subring.is_domain S.to_subring
 
 end subalgebra
+
+namespace submodule
+
+variables {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
+variables (p : submodule R A)
+
+/-- A submodule containing `1` and closed under multiplication is a subalgebra. -/
+def to_subalgebra (p : submodule R A) (h_one : (1 : A) ∈ p)
+  (h_mul : ∀ x y, x ∈ p → y ∈ p → x * y ∈ p) : subalgebra R A :=
+{ mul_mem' := h_mul,
+  algebra_map_mem' := λ r, begin
+    rw algebra.algebra_map_eq_smul_one,
+    exact p.smul_mem _ h_one,
+  end,
+  ..p}
+
+@[simp] lemma mem_to_subalgebra {p : submodule R A} {h_one h_mul} {x} :
+  x ∈ p.to_subalgebra h_one h_mul ↔ x ∈ p := iff.rfl
+
+@[simp] lemma coe_to_subalgebra (p : submodule R A) (h_one h_mul) :
+  (p.to_subalgebra h_one h_mul : set A) = p := rfl
+
+@[simp] lemma to_subalgebra_mk (s : set A) (h0 hadd hsmul h1 hmul) :
+  (submodule.mk s hadd h0 hsmul : submodule R A).to_subalgebra h1 hmul =
+    subalgebra.mk s @hmul h1 @hadd h0
+      (λ r, by { rw algebra.algebra_map_eq_smul_one, exact hsmul r h1 }) := rfl
+
+@[simp] lemma to_subalgebra_to_submodule (p : submodule R A) (h_one h_mul) :
+  (p.to_subalgebra h_one h_mul).to_submodule = p :=
+set_like.coe_injective rfl
+
+@[simp] lemma _root_.subalgebra.to_submodule_to_subalgebra (S : subalgebra R A) :
+  S.to_submodule.to_subalgebra S.one_mem (λ _ _, S.mul_mem) = S :=
+set_like.coe_injective rfl
+
+end submodule
 
 namespace alg_hom
 
@@ -681,10 +703,6 @@ noncomputable def bot_equiv (F R : Type*) [field F] [semiring R] [nontrivial R] 
   (⊥ : subalgebra F R) ≃ₐ[F] F :=
 bot_equiv_of_injective (ring_hom.injective _)
 
-/-- The top subalgebra is isomorphic to the field. -/
-@[simps] def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
-alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ x, subtype.ext rfl
-
 end algebra
 
 namespace subalgebra
@@ -693,6 +711,12 @@ open algebra
 variables {R : Type u} {A : Type v} {B : Type w}
 variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B]
 variables (S : subalgebra R A)
+
+/-- The top subalgebra is isomorphic to the algebra.
+
+This is the algebra version of `submodule.top_equiv`. -/
+@[simps] def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
+alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ _, subtype.ext rfl
 
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_subsingleton [subsingleton A] : subsingleton (subalgebra R A) :=
@@ -972,39 +996,6 @@ instance no_zero_smul_divisors_top [no_zero_divisors A] (S : subalgebra R A) :
   this.imp_left (@subtype.ext_iff _ _ c 0).mpr⟩
 
 end actions
-
-section pointwise
-variables {R' : Type*} [semiring R'] [mul_semiring_action R' A] [smul_comm_class R' R A]
-
-/-- The action on a subalgebra corresponding to applying the action to every element.
-
-This is available as an instance in the `pointwise` locale. -/
-protected def pointwise_mul_action : mul_action R' (subalgebra R A) :=
-{ smul := λ a S, S.map (mul_semiring_action.to_alg_hom _ _ a),
-  one_smul := λ S,
-    (congr_arg (λ f, S.map f) (alg_hom.ext $ by exact one_smul R')).trans S.map_id,
-  mul_smul := λ a₁ a₂ S,
-    (congr_arg (λ f, S.map f) (alg_hom.ext $ by exact mul_smul _ _)).trans (S.map_map _ _).symm }
-
-localized "attribute [instance] subalgebra.pointwise_mul_action" in pointwise
-open_locale pointwise
-
-@[simp] lemma coe_pointwise_smul (m : R') (S : subalgebra R A) : ↑(m • S) = m • (S : set A) := rfl
-
-@[simp] lemma pointwise_smul_to_subsemiring (m : R') (S : subalgebra R A) :
-  (m • S).to_subsemiring = m • S.to_subsemiring := rfl
-
-@[simp] lemma pointwise_smul_to_submodule (m : R') (S : subalgebra R A) :
-  (m • S).to_submodule = m • S.to_submodule := rfl
-
-@[simp] lemma pointwise_smul_to_subring {R' R A : Type*} [semiring R'] [comm_ring R] [ring A]
-  [mul_semiring_action R' A] [algebra R A] [smul_comm_class R' R A] (m : R') (S : subalgebra R A) :
-  (m • S).to_subring = m • S.to_subring := rfl
-
-lemma smul_mem_pointwise_smul (m : R') (r : A) (S : subalgebra R A) : r ∈ S → m • r ∈ m • S :=
-(set.smul_mem_smul_set : _ → _ ∈ m • (S : set A))
-
-end pointwise
 
 section center
 

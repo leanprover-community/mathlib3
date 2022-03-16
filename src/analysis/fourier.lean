@@ -205,7 +205,7 @@ begin
   have hij : -i + j ≠ 0,
   { rw add_comm,
     exact sub_ne_zero.mpr (ne.symm h) },
-  exact integral_zero_of_mul_left_eq_neg (fourier_add_half_inv_index hij)
+  exact integral_eq_zero_of_mul_left_eq_neg (fourier_add_half_inv_index hij)
 end
 
 end monomials

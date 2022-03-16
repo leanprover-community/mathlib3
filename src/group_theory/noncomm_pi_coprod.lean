@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2022 Jocchim Breitner. All rights reserved.
+Copyright (c) 2022 Joachim Breitner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joachim Breitner
 -/
@@ -10,10 +10,10 @@ import data.fintype.card
 /-!
 # Canonical homomorphism from a finite family of monoids
 
-This file defines the construction of the canoncial homomorphism from a family of monoids.
+This file defines the construction of the canonical homomorphism from a family of monoids.
 
 Given a family of morphisms `ϕ i : N i →* M` for each `i : ι` where elements in the
-image of different morphism commute, we obtain a canoncial morphism
+images of different morphisms commute, we obtain a canonical morphism
 `monoid_hom.noncomm_pi_coprod : (Π i, N i) →* M` that coincides with `ϕ`
 
 ## Main definitions
@@ -24,7 +24,7 @@ image of different morphism commute, we obtain a canoncial morphism
 
 ## Main theorems
 
-* `monoid_hom.noncomm_pi_coprod` conicides with `ϕ i` when restricted to `N i`
+* `monoid_hom.noncomm_pi_coprod` coincides with `ϕ i` when restricted to `N i`
 * `monoid_hom.noncomm_pi_coprod_mrange`: The range of `monoid_hom.noncomm_pi_coprod` is
   `⨆ (i : ι), (ϕ i).mrange`
 * `monoid_hom.noncomm_pi_coprod_range`: The range of `monoid_hom.noncomm_pi_coprod` is
@@ -34,7 +34,7 @@ image of different morphism commute, we obtain a canoncial morphism
    injective if the `ϕ` are injective and the ranges of the `ϕ` are independent.
 * `monoid_hom.independent_range_of_coprime_order`: If the `N i` have coprime orders, then the ranges
    of the `ϕ` are independent.
-* `subgroup.independent_of_coprime_order`: If commuting, normal subgroups `H i` have coprime orders,
+* `subgroup.independent_of_coprime_order`: If commuting normal subgroups `H i` have coprime orders,
    they are independent.
 
 -/

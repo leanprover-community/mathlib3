@@ -400,7 +400,7 @@ begin
       show (0 : L) = algebra_map K L 0, by simp] at hzero,
     exact (ne_zero.ne (2 : K)) ((algebra_map K L).injective hzero),
     apply_instance },
-  refine is_primitive_root.sub_one_norm_pow_two _ hk hirr,
+  refine sub_one_norm_pow_two _ hk hirr,
   simpa using zeta_primitive_root (2 ^ k) K L,
 end
 

@@ -47,12 +47,12 @@ begin
   have m_size : m + 1 ≤ 2 * m + 1 := le_of_lt (lt_of_lt_of_le p_big p_small),
   have s : ¬(p ∣ (m + 1)!),
   { intros p_div_fact,
-    have p_le_succ_m : p ≤ m + 1 := (prime.dvd_factorial is_prime).mp p_div_fact,
-    linarith, },
+    exact lt_le_antisymm p_big (is_prime.dvd_factorial.mp p_div_fact), },
   have t : ¬(p ∣ (2 * m + 1 - (m + 1))!),
   { intros p_div_fact,
-    have p_small : p ≤ 2 * m + 1 - (m + 1) := (prime.dvd_factorial is_prime).mp p_div_fact,
-    linarith, },
+    refine lt_le_antisymm (lt_of_succ_lt p_big) _,
+    convert is_prime.dvd_factorial.mp p_div_fact,
+    rw [two_mul, add_assoc, nat.add_sub_cancel] },
   have expanded :
     choose (2 * m + 1) (m + 1) * (m + 1)! * (2 * m + 1 - (m + 1))! = (2 * m + 1)! :=
     @choose_mul_factorial_mul_factorial (2 * m + 1) (m + 1) m_size,
@@ -62,7 +62,7 @@ begin
     (prime.dvd_mul is_prime).1 p_div_big_fact,
   { exact p_div_choose, },
   cases (prime.dvd_mul is_prime).1 p_div_facts,
-  cc, cc,
+  exacts [(s h).elim, (t h).elim],
 end
 
 lemma prod_primes_dvd {s : finset ℕ} : ∀ (n : ℕ) (h : ∀ a ∈ s, nat.prime a) (div : ∀ a ∈ s, a ∣ n),
@@ -94,16 +94,15 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
   | or.inl n_odd :=
     match nat.even_iff.2 n_odd with
     | ⟨m, twice_m⟩ :=
-      let recurse : m + 1 < n + 2 := by linarith in
+      have recurse : m + 1 < n + 2 := by linarith,
       begin
         calc (n + 2)#
             = ∏ i in filter nat.prime (range (2 * m + 2)), i : by simpa [←twice_m]
         ... = ∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
               begin
                 rw [range_eq_Ico, finset.union_comm, finset.Ico_union_Ico_eq_Ico],
-                exact bot_le,
-                simp only [add_le_add_iff_right],
-                linarith,
+                { exact bot_le },
+                { simpa only [add_le_add_iff_right, two_mul] using nat.le_add_left m m },
               end
         ... = ∏ i in (filter nat.prime (finset.Ico (m + 2) (2 * m + 2))
               ∪ (filter nat.prime (range (m + 2)))), i :
@@ -125,7 +124,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
                 have s : ∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2)),
                   i ∣ choose (2 * m + 1) (m + 1),
                 { refine prod_primes_dvd  (choose (2 * m + 1) (m + 1)) _ _,
-                  { intros a, rw finset.mem_filter, cc, },
+                  { intros a, rw finset.mem_filter, apply and.right, },
                   { intros a, rw finset.mem_filter,
                     intros pr,
                     rcases pr with ⟨ size, is_prime ⟩,
@@ -148,7 +147,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
   | or.inr n_even :=
     begin
       obtain one_lt_n | n_le_one : 1 < n + 1 ∨ n + 1 ≤ 1 := lt_or_le 1 (n + 1),
-      { rw primorial_succ (by linarith) n_even,
+      { rw primorial_succ one_lt_n n_even,
         calc (n + 1)#
               ≤ 4 ^ n.succ : primorial_le_4_pow (n + 1)
           ... ≤ 4 ^ (n + 2) : pow_le_pow (by norm_num) (nat.le_succ _), },

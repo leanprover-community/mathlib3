@@ -65,10 +65,11 @@ multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
   end)
 
 lemma prod_primes_dvd
-  [cancel_comm_monoid_with_zero α] [decidable_eq α] [unique αˣ]
+  [cancel_comm_monoid_with_zero α] [unique αˣ]
   {s : finset α} (n : α) (h : ∀ a ∈ s, prime a) (div : ∀ a ∈ s, a ∣ n) :
   (∏ p in s, p) ∣ n :=
 begin
+  classical,
   induction s using finset.induction_on with a s a_not_in_s induct n primes divs generalizing n,
   { simp only [finset.prod_empty, one_dvd] },
   { rw finset.prod_insert a_not_in_s,

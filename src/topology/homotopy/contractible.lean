@@ -26,6 +26,7 @@ end continuous_map
 
 open continuous_map
 
+/-- A contractible space is one that is homotopy equivalent to `unit`. -/
 class contractible_space (X : Type*) [topological_space X] : Prop :=
 (hequiv_unit : nonempty (homotopy_equiv X unit))
 

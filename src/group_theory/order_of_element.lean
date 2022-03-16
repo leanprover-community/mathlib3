@@ -336,7 +336,7 @@ variables [group G] [add_group A] {x a} {i : ℤ}
 
 /-- Inverses of elements of finite order have finite order. -/
 @[to_additive "Inverses of elements of finite additive order have finite additive order."]
-lemma is_of_fin_order_inv (x : G) : is_of_fin_order x → is_of_fin_order x⁻¹ :=
+lemma is_of_fin_order.inv (x : G) : is_of_fin_order x → is_of_fin_order x⁻¹ :=
 λ hx, (is_of_fin_order_iff_pow_eq_one _).mpr $ begin
   rcases (is_of_fin_order_iff_pow_eq_one x).mp hx with ⟨n, npos, hn⟩,
   refine ⟨n, npos, by simp_rw [inv_pow, hn, one_inv]⟩,
@@ -345,7 +345,7 @@ end
 /-- Inverses of elements of finite order have finite order. -/
 @[simp, to_additive "Inverses of elements of finite additive order have finite additive order."]
 lemma is_of_fin_order_inv_iff {x : G} : is_of_fin_order x⁻¹ ↔ is_of_fin_order x :=
-⟨λ h, by rw [←inv_inv x]; exact (is_of_fin_order_inv x⁻¹) h, is_of_fin_order_inv x⟩
+⟨λ h, by rw [←inv_inv x]; exact h.inv x⁻¹, is_of_fin_order.inv x⟩
 
 @[to_additive add_order_of_dvd_iff_zsmul_eq_zero]
 lemma order_of_dvd_iff_zpow_eq_one : (order_of x : ℤ) ∣ i ↔ x ^ i = 1 :=
@@ -399,6 +399,24 @@ end
 
 
 end group
+
+section comm_group
+
+variables [comm_group G]
+
+/-- Elements of finite order are closed under multiplication. -/
+@[to_additive "Elements of finite order are closed under addition."]
+lemma is_of_fin_order.mul (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
+  is_of_fin_order (x * y) :=
+begin
+  rw is_of_fin_order_iff_pow_eq_one at *,
+  rcases hx with ⟨na, napos, hna⟩,
+  rcases hy with ⟨nb, nbpos, hnb⟩,
+  exact ⟨na * nb, mul_pos napos nbpos, by
+    rw [mul_pow x y, pow_mul, hna, mul_comm na, pow_mul, hnb, one_pow, one_pow, mul_one]⟩,
+end
+
+end comm_group
 
 section fintype
 variables [fintype G] [fintype A]

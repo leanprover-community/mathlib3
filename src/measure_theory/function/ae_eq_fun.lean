@@ -470,9 +470,8 @@ instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α default⟩
 section has_scalar
 
 variables {𝕜 𝕜' : Type*}
-variables [topological_space 𝕜] [topological_space 𝕜']
-variables [has_scalar 𝕜 γ] [has_continuous_smul 𝕜 γ]
-variables [has_scalar 𝕜' γ] [has_continuous_smul 𝕜' γ]
+variables [has_scalar 𝕜 γ] [has_continuous_const_smul 𝕜 γ]
+variables [has_scalar 𝕜' γ] [has_continuous_const_smul 𝕜' γ]
 
 instance : has_scalar 𝕜 (α →ₘ[μ] γ) :=
 ⟨λ c f, comp ((•) c) (continuous_id.const_smul c) f⟩
@@ -632,18 +631,18 @@ section module
 
 variables {𝕜 : Type*}
 
-instance [topological_space 𝕜] [monoid 𝕜] [mul_action 𝕜 γ] [has_continuous_smul 𝕜 γ] :
+instance [monoid 𝕜] [mul_action 𝕜 γ] [has_continuous_const_smul 𝕜 γ] :
   mul_action 𝕜 (α →ₘ[μ] γ) :=
 to_germ_injective.mul_action to_germ smul_to_germ
 
-instance [topological_space 𝕜] [monoid 𝕜] [add_monoid γ] [has_continuous_add γ]
-  [distrib_mul_action 𝕜 γ] [has_continuous_smul 𝕜 γ] :
+instance [monoid 𝕜] [add_monoid γ] [has_continuous_add γ]
+  [distrib_mul_action 𝕜 γ] [has_continuous_const_smul 𝕜 γ] :
   distrib_mul_action 𝕜 (α →ₘ[μ] γ) :=
 to_germ_injective.distrib_mul_action (to_germ_add_monoid_hom : (α →ₘ[μ] γ) →+ _)
   (λ c : 𝕜, smul_to_germ c)
 
-instance [topological_space 𝕜] [semiring 𝕜] [add_comm_monoid γ] [has_continuous_add γ] [module 𝕜 γ]
-  [has_continuous_smul 𝕜 γ] :
+instance [semiring 𝕜] [add_comm_monoid γ] [has_continuous_add γ] [module 𝕜 γ]
+  [has_continuous_const_smul 𝕜 γ] :
   module 𝕜 (α →ₘ[μ] γ) :=
 to_germ_injective.module 𝕜 (to_germ_add_monoid_hom : (α →ₘ[μ] γ) →+ _) smul_to_germ
 
@@ -721,9 +720,9 @@ def to_ae_eq_fun_mul_hom : C(α, β) →* α →ₘ[μ] β :=
   map_mul' := λ f g, ae_eq_fun.mk_mul_mk _ _
     f.continuous.ae_strongly_measurable g.continuous.ae_strongly_measurable }
 
-variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜]
+variables {𝕜 : Type*} [semiring 𝕜]
 variables [topological_space γ] [metrizable_space γ] [add_comm_group γ]
-  [module 𝕜 γ] [topological_add_group γ] [has_continuous_smul 𝕜 γ] [has_continuous_const_smul 𝕜 γ]
+  [module 𝕜 γ] [topological_add_group γ] [has_continuous_const_smul 𝕜 γ]
   [second_countable_topology γ]
 
 /-- The linear map from the group of continuous maps from `α` to `β` to the group of equivalence

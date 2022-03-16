@@ -243,7 +243,7 @@ protected lemma div [has_div β] [has_continuous_div β]
   strongly_measurable (f / g) :=
 ⟨λ n, hf.approx n / hg.approx n, λ x, (hf.tendsto_approx x).div' (hg.tendsto_approx x)⟩
 
-protected lemma const_smul {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
+protected lemma const_smul {𝕜} [has_scalar 𝕜 β] [has_continuous_const_smul 𝕜 β]
   (hf : strongly_measurable f) (c : 𝕜) :
   strongly_measurable (c • f) :=
 ⟨λ n, c • (hf.approx n), λ x, (hf.tendsto_approx x).const_smul c⟩
@@ -666,7 +666,7 @@ protected lemma div [group β] [topological_group β]
 ⟨hf.mk f / hg.mk g, hf.strongly_measurable_mk.div hg.strongly_measurable_mk,
   hf.ae_eq_mk.div hg.ae_eq_mk⟩
 
-protected lemma const_smul {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
+protected lemma const_smul {𝕜} [has_scalar 𝕜 β] [has_continuous_const_smul 𝕜 β]
   (hf : ae_strongly_measurable f μ) (c : 𝕜) :
   ae_strongly_measurable (c • f) μ :=
 ⟨c • hf.mk f, hf.strongly_measurable_mk.const_smul c, hf.ae_eq_mk.const_smul c⟩

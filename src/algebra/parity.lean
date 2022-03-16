@@ -48,7 +48,7 @@ end
 
 @[simp] lemma even_two : even (2 : α) := ⟨1, (mul_one _).symm⟩
 
-@[simp] lemma even_two_mul (m : α) : even (2 * m) := ⟨m, rfl⟩
+lemma even_two_mul (m : α) : even (2 * m) := ⟨m, rfl⟩
 
 @[simp] lemma odd_two_mul_add_one (m : α) : odd (2 * m + 1) := ⟨m, rfl⟩
 
@@ -79,15 +79,33 @@ begin
     ← nat.cast_two, ← nat.cast_comm],
 end
 
---/-- If `m` and `n` are natural numbers, then the natural number `m^n` is even
---if and only if `m` is even and `n` is positive. -/
---@[parity_simps]
-theorem even.pow_of_ne_zero (hm : even m) : ∀ {a : ℕ}, a ≠ 0 → even (m ^ a)
+lemma even.pow_of_ne_zero (hm : even m) : ∀ {a : ℕ}, a ≠ 0 → even (m ^ a)
 | 0       a0 := (a0 rfl).elim
 | (a + 1) _  := by { rw pow_succ, exact hm.mul_right _ }
 
-theorem odd.pow (hm : odd m) : ∀ {a : ℕ}, odd (m ^ a)
+lemma odd.pow (hm : odd m) : ∀ {a : ℕ}, odd (m ^ a)
 | 0       := by { rw pow_zero, exact odd_one }
 | (a + 1) := by { rw pow_succ, exact hm.mul_odd odd.pow }
 
 end semiring
+
+section ring
+variables [ring α] {m n : α}
+
+@[simp] lemma odd_neg_one : odd (- 1 : α) := by simp
+
+@[simp] lemma even_neg_two : even (- 2 : α) := by simp
+
+lemma even.sub_even (hm : even m) (hn : even n) : even (m - n) :=
+by { rw sub_eq_add_neg, exact hm.add_even ((even_neg n).mpr hn) }
+
+theorem odd.sub_even (hm : odd m) (hn : even n) : odd (m - n) :=
+by { rw sub_eq_add_neg, exact hm.add_even ((even_neg n).mpr hn) }
+
+theorem even.sub_odd (hm : even m) (hn : odd n) : odd (m - n) :=
+by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
+
+lemma odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
+by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
+
+end ring

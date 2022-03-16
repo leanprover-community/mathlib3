@@ -570,9 +570,11 @@ localized "notation L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
 /-- The language map adding constants.  -/
 def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
 
-variable {L}
+variables {α}
 
-instance : has_coe_t α (L[[α]].constants) := ⟨sum.inr⟩
+protected def con (a : α) : L[[α]].constants := sum.inr a
+
+variables {L} (α)
 
 /-- Adds constants to a language map.  -/
 def Lhom.add_constants {L' : language} (φ : L →ᴸ L') :
@@ -616,7 +618,7 @@ instance add_constants_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ
   (φ.add_constants A).is_expansion_on M :=
 Lhom.sum_map_is_expansion_on _ _ M
 
-@[simp] lemma coe_coe_param {a : A} : ((a : L[[A]].constants) : M) = a := rfl
+@[simp] lemma coe_con {a : A} : ((L.con a) : M) = a := rfl
 
 variables {A} {B : set M} (h : A ⊆ B)
 

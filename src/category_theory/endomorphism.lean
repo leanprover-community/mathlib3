@@ -131,7 +131,7 @@ def units_End_equiv_Aut : (End X)ˣ ≃* Aut X :=
   map_mul' := λ f g, by rcases f; rcases g; refl }
 
 /-- Isomorphisms induce isomorphisms of the automorphism group -/
-def iso_Aut_of_iso {X Y : C} (h : X ≅ Y) : Aut X ≃* Aut Y :=
+def Aut_mul_equiv_of_iso {X Y : C} (h : X ≅ Y) : Aut X ≃* Aut Y :=
 { to_fun := λ x, ⟨h.inv ≫ x.hom ≫ h.hom, h.inv ≫ x.inv ≫ h.hom⟩,
   inv_fun := λ y, ⟨h.hom ≫ y.hom ≫ h.inv, h.hom ≫ y.inv ≫ h.inv⟩,
   left_inv := by tidy,

@@ -26,8 +26,8 @@ noncomputable theory
 open category_theory
 
 /-- The fundamental group is the automorphism group (vertex group) of the basepoint
-in the fundamental groupoid.
--/
+in the fundamental groupoid. -/
+@[derive [group,inhabited]]
 def fundamental_group (X : Type u) [topological_space X] (x : X) :=
 @Aut (fundamental_groupoid X) _ x
 
@@ -35,17 +35,15 @@ namespace fundamental_group
 
 local attribute [instance] path.homotopic.setoid
 
-instance group (x : X) : group (fundamental_group X x) := Aut.group x
-
-instance inhabited : inhabited (fundamental_group X x₀) := Aut.inhabited x₀
-
 /-- Get an isomorphism between the fundamental groups at two points given a path -/
-def iso_fundamental_group_of_path (p : path x₀ x₁) :
-  fundamental_group X x₀ ≃* fundamental_group X x₁ := Aut.iso_Aut_of_iso (as_iso ⟦p⟧)
+def fundamental_group_mul_equiv_of_path (p : path x₀ x₁) :
+  fundamental_group X x₀ ≃* fundamental_group X x₁ := Aut.Aut_mul_equiv_of_iso (as_iso ⟦p⟧)
+
+variables (x₀ x₁)
 
 /-- The fundamental group of a path connected space is independent of the choice of basepoint. -/
-def iso_fundamental_group_of_path_connected [path_connected_space X] :
+def fundamental_group_mul_equiv_of_path_connected [path_connected_space X] :
   (fundamental_group X x₀) ≃* (fundamental_group X x₁) :=
-iso_fundamental_group_of_path (path_connected_space.some_path x₀ x₁)
+fundamental_group_mul_equiv_of_path (path_connected_space.some_path x₀ x₁)
 
 end fundamental_group

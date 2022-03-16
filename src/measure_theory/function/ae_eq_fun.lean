@@ -497,18 +497,18 @@ instance [has_scalar 𝕜ᵐᵒᵖ γ] [is_central_scalar 𝕜 γ] : is_central_
 
 end has_scalar
 
-section monoid
-variables [monoid γ] [has_continuous_mul γ]
+section has_mul
+variables [has_mul γ] [has_continuous_mul γ]
 
 @[to_additive]
 instance : has_mul (α →ₘ[μ] γ) := ⟨comp₂ (*) continuous_mul⟩
 
-@[simp, to_additive] lemma mk_mul_mk (f g : α → γ) (hf hg) :
+@[simp, to_additive] lemma mk_mul_mk (f g : α → γ) (hf : ae_strongly_measurable f μ)
+  (hg : ae_strongly_measurable g μ) :
   (mk f hf : α →ₘ[μ] γ) * (mk g hg) = mk (f * g) (hf.mul hg) :=
 rfl
 
-@[to_additive] lemma coe_fn_mul (f g : α →ₘ[μ] γ) : ⇑(f * g) =ᵐ[μ] f * g :=
-coe_fn_comp₂ _ _ _ _
+@[to_additive] lemma coe_fn_mul (f g : α →ₘ[μ] γ) : ⇑(f * g) =ᵐ[μ] f * g := coe_fn_comp₂ _ _ _ _
 
 @[simp, to_additive] lemma mul_to_germ (f g : α →ₘ[μ] γ) :
   (f * g).to_germ = f.to_germ * g.to_germ :=
@@ -516,19 +516,22 @@ comp₂_to_germ _ _ _ _
 
 end has_mul
 
-instance [add_monoid γ] [has_measurable_add₂ γ] : add_monoid (α →ₘ[μ] γ) :=
+open_locale topological_space
+
+instance [add_monoid γ] [has_continuous_add γ] : add_monoid (α →ₘ[μ] γ) :=
 to_germ_injective.add_monoid to_germ zero_to_germ add_to_germ (λ _ _, smul_to_germ _ _)
 
-instance [add_comm_monoid γ] [has_measurable_add₂ γ] : add_comm_monoid (α →ₘ[μ] γ) :=
+instance [add_comm_monoid γ] [has_continuous_add γ] : add_comm_monoid (α →ₘ[μ] γ) :=
 to_germ_injective.add_comm_monoid to_germ zero_to_germ add_to_germ (λ _ _, smul_to_germ _ _)
 
 section monoid
-variables [monoid γ] [has_measurable_mul₂ γ]
+variables [monoid γ] [has_continuous_mul γ]
 
-instance : has_pow (α →ₘ[μ] γ) ℕ := ⟨λ f n, comp (^ n) (measurable.pow_const measurable_id _) f⟩
+instance : has_pow (α →ₘ[μ] γ) ℕ := ⟨λ f n, comp _ (continuous_pow n) f⟩
 
 @[simp] lemma mk_pow (f : α → γ) (hf) (n : ℕ) :
-  (mk f hf : α →ₘ[μ] γ) ^ n = mk (f ^ n) (hf.pow_const n) :=
+  (mk f hf : α →ₘ[μ] γ) ^ n =
+    mk (f ^ n) ((_root_.continuous_pow n).comp_ae_strongly_measurable hf) :=
 rfl
 
 lemma coe_fn_pow (f : α →ₘ[μ] γ) (n : ℕ) : ⇑(f ^ n) =ᵐ[μ] f ^ n :=
@@ -552,7 +555,7 @@ def to_germ_monoid_hom : (α →ₘ[μ] γ) →* μ.ae.germ γ :=
 end monoid
 
 @[to_additive]
-instance comm_monoid [comm_monoid γ] [has_continuous_mul γ] : comm_monoid (α →ₘ[μ] γ) :=
+instance [comm_monoid γ] [has_continuous_mul γ] : comm_monoid (α →ₘ[μ] γ) :=
 to_germ_injective.comm_monoid to_germ one_to_germ mul_to_germ pow_to_germ
 
 section group
@@ -562,14 +565,11 @@ section inv
 
 @[to_additive] instance : has_inv (α →ₘ[μ] γ) := ⟨comp has_inv.inv continuous_inv⟩
 
-@[simp, to_additive] lemma inv_mk (f : α → γ) (hf) :
-  (mk f hf : α →ₘ[μ] γ)⁻¹ = mk f⁻¹ (continuous_inv.comp_ae_strongly_measurable hf) := rfl
+@[simp, to_additive] lemma inv_mk (f : α → γ) (hf) : (mk f hf : α →ₘ[μ] γ)⁻¹ = mk f⁻¹ hf.inv := rfl
 
-@[to_additive] lemma coe_fn_inv (f : α →ₘ[μ] γ) : ⇑(f⁻¹) =ᵐ[μ] f⁻¹ :=
-coe_fn_comp _ _ _
+@[to_additive] lemma coe_fn_inv (f : α →ₘ[μ] γ) : ⇑(f⁻¹) =ᵐ[μ] f⁻¹ := coe_fn_comp _ _ _
 
-@[to_additive] lemma inv_to_germ (f : α →ₘ[μ] γ) : (f⁻¹).to_germ = f.to_germ⁻¹ :=
-comp_to_germ _ _ _
+@[to_additive] lemma inv_to_germ (f : α →ₘ[μ] γ) : (f⁻¹).to_germ = f.to_germ⁻¹ := comp_to_germ _ _ _
 
 end inv
 
@@ -582,37 +582,20 @@ section div
   mk (f / g) (hf.div hg) = (mk f hf : α →ₘ[μ] γ) / (mk g hg) :=
 rfl
 
-@[to_additive] lemma coe_fn_div (f g : α →ₘ[μ] γ) : ⇑(f / g) =ᵐ[μ] f / g :=
-coe_fn_comp₂ _ _ _ _
+@[to_additive] lemma coe_fn_div (f g : α →ₘ[μ] γ) : ⇑(f / g) =ᵐ[μ] f / g := coe_fn_comp₂ _ _ _ _
 
 @[to_additive] lemma div_to_germ (f g : α →ₘ[μ] γ) : (f / g).to_germ = f.to_germ / g.to_germ :=
 comp₂_to_germ _ _ _ _
 
 end div
 
-instance [sub_neg_monoid γ] [has_measurable_add₂ γ] [has_measurable_neg γ] :
-  sub_neg_monoid (α →ₘ[μ] γ) :=
-to_germ_injective.sub_neg_monoid to_germ zero_to_germ add_to_germ neg_to_germ sub_to_germ
-  (λ _ _, smul_to_germ _ _) (λ _ _, smul_to_germ _ _)
-
-instance [add_group γ] [has_measurable_add₂ γ] [has_measurable_neg γ] :
-  add_group (α →ₘ[μ] γ) :=
-to_germ_injective.add_group to_germ zero_to_germ add_to_germ neg_to_germ sub_to_germ
-  (λ _ _, smul_to_germ _ _) (λ _ _, smul_to_germ _ _)
-
-instance [add_comm_group γ] [has_measurable_add₂ γ] [has_measurable_neg γ] :
-  add_comm_group (α →ₘ[μ] γ) :=
-to_germ_injective.add_comm_group to_germ zero_to_germ add_to_germ neg_to_germ sub_to_germ
-  (λ _ _, smul_to_germ _ _) (λ _ _, smul_to_germ _ _)
-
-section div_inv_monoid
-variables [div_inv_monoid γ] [has_measurable_mul₂ γ] [has_measurable_inv γ]
+section zpow
 
 instance has_int_pow : has_pow (α →ₘ[μ] γ) ℤ :=
-⟨λ f n, comp (^ n) (measurable_id.pow_const _) f⟩
+⟨λ f n, comp _ (continuous_zpow n) f⟩
 
 @[simp] lemma mk_zpow (f : α → γ) (hf) (n : ℤ) :
-  (mk f hf : α →ₘ[μ] γ) ^ n = mk (f ^ n) (hf.pow_const n) :=
+  (mk f hf : α →ₘ[μ] γ) ^ n = mk (f ^ n) ((continuous_zpow n).comp_ae_strongly_measurable hf) :=
 rfl
 
 lemma coe_fn_zpow (f : α →ₘ[μ] γ) (n : ℤ) : ⇑(f ^ n) =ᵐ[μ] f ^ n :=
@@ -622,18 +605,23 @@ coe_fn_comp _ _ _
   (f ^ n).to_germ = f.to_germ ^ n :=
 comp_to_germ _ _ _
 
-@[to_additive sub_neg_monoid]
-instance : div_inv_monoid (α →ₘ[μ] γ) :=
-to_germ_injective.div_inv_monoid _
-  one_to_germ mul_to_germ inv_to_germ div_to_germ pow_to_germ zpow_to_germ
-
-end div_inv_monoid
-
-@[to_additive]
-instance : group (α →ₘ[μ] γ) :=
-to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ pow_to_germ zpow_to_germ
+end zpow
 
 end group
+
+instance [add_group γ] [topological_add_group γ] :
+  add_group (α →ₘ[μ] γ) :=
+to_germ_injective.add_group to_germ zero_to_germ add_to_germ neg_to_germ sub_to_germ
+  (λ _ _, smul_to_germ _ _) (λ _ _, smul_to_germ _ _)
+
+instance [add_comm_group γ] [topological_add_group γ] :
+  add_comm_group (α →ₘ[μ] γ) :=
+to_germ_injective.add_comm_group to_germ zero_to_germ add_to_germ neg_to_germ sub_to_germ
+  (λ _ _, smul_to_germ _ _) (λ _ _, smul_to_germ _ _)
+
+@[to_additive]
+instance [group γ] [topological_group γ] : group (α →ₘ[μ] γ) :=
+to_germ_injective.group _ one_to_germ mul_to_germ inv_to_germ div_to_germ pow_to_germ zpow_to_germ
 
 @[to_additive]
 instance [comm_group γ] [topological_group γ] : comm_group (α →ₘ[μ] γ) :=

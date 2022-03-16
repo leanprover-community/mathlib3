@@ -321,8 +321,8 @@ begin
   exact hf.measurable.strongly_measurable,
 end
 
-lemma _root_.strongly_measurable_id [topological_space α] [metrizable_space α] [opens_measurable_space α]
-  [second_countable_topology α] :
+lemma _root_.strongly_measurable_id [topological_space α] [metrizable_space α]
+  [opens_measurable_space α] [second_countable_topology α] :
   strongly_measurable (id : α → α) :=
 measurable_id.strongly_measurable
 
@@ -648,7 +648,7 @@ hf.strongly_measurable.ae_strongly_measurable
 section arithmetic
 
 @[to_additive]
-protected lemma mul [monoid β] [has_continuous_mul β]
+protected lemma mul [has_mul β] [has_continuous_mul β]
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   ae_strongly_measurable (f * g) μ :=
 ⟨hf.mk f * hg.mk g, hf.strongly_measurable_mk.mul hg.strongly_measurable_mk,

@@ -71,7 +71,7 @@ variables {R M}
 end
 section
 variables {R M : Type*} [ring R] [add_comm_group M] [module R M]
-noncomputable def span_singleton_equiv_quot_torsion_of (x : M) :
+noncomputable def quot_torsion_of_equiv_span_singleton (x : M) :
 (R ⧸ torsion_of R M x) ≃ₗ[R] (R ∙ x) :=
 by { convert (linear_map.to_span_singleton R M x).quot_ker_equiv_range,
      repeat { exact linear_map.span_singleton_eq_range R M x } }
@@ -114,6 +114,8 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 @[simp] lemma smul_torsion_by (a : R) (x : torsion_by R M a) : a • x = 0 := subtype.ext x.prop
 @[simp] lemma smul'_torsion_by (a : R) (x : torsion_by R M a) : a • (x:M) = 0 := x.prop
 @[simp] lemma mem_torsion_by_iff (a : R) (x : M) : x ∈ torsion_by R M a ↔ a • x = 0 := iff.rfl
+@[simp] lemma torsion_by_one : torsion_by R M 1 = ⊥ :=
+eq_bot_iff.mpr (λ _ (h : _ • _ = _), by { rw one_smul at h, exact h })
 
 /-- The `a`-torsion submodule of the `a`-torsion submodule (viewed as a module) is the full
 `a`-torsion module. -/
@@ -130,50 +132,54 @@ end
 section coprime
 open_locale big_operators
 open dfinsupp
-variables {ι : Type*} [fintype ι] {p : ι → R} (hp : pairwise (is_coprime on p))
+variables {ι : Type*} {p : ι → R} {S : finset ι} (hp : pairwise (is_coprime on λ s : S, p s))
 include hp
-
 lemma supr_torsion_by_eq_torsion_by_prod :
-  (⨆ i, torsion_by R M (p i)) = torsion_by R M (∏ i, p i) :=
+  (⨆ i : S, torsion_by R M (p i)) = torsion_by R M (∏ i in S, p i) :=
 begin
+  cases S.eq_empty_or_nonempty,
+  { rw [h, finset.prod_empty, torsion_by_one],
+    convert supr_of_empty _, exact subtype.is_empty_false },
   apply le_antisymm,
-  { apply supr_le _, intro i,
-    apply torsion_le_torsion_of_dvd, apply finset.dvd_prod_of_mem, apply finset.mem_univ },
+  { apply supr_le _, rintro ⟨i, is⟩,
+    exact torsion_le_torsion_of_dvd _ _ (finset.dvd_prod_of_mem p is) },
   { intros x hx, classical, rw mem_supr_iff_exists_dfinsupp',
-    cases exists_sum_eq_one_iff_pairwise_coprime.mpr hp with f hf,
-    use equiv_fun_on_fintype.inv_fun (λ i, ⟨(f i * ∏ j in {i}ᶜ, p j) • x, begin
-      change _ • _ = _, change _ • _ = _ at hx,
-      rw [smul_smul, mul_comm, mul_assoc, mul_smul, ← fintype.prod_eq_prod_compl_mul, hx, smul_zero]
+    cases (exists_sum_eq_one_iff_pairwise_coprime h).mpr hp with f hf,
+    use equiv_fun_on_fintype.inv_fun (λ i, ⟨(f i * ∏ j in S \ {i}, p j) • x, begin
+      obtain ⟨i, is⟩ := i,
+      change p i • (f i * ∏ j in S \ {i}, _) • _ = _, change _ • _ = _ at hx,
+      rw [smul_smul, mul_comm, mul_assoc, mul_smul, ← finset.prod_eq_prod_diff_singleton_mul is,
+        hx, smul_zero]
     end⟩),
-    simp only [equiv.inv_fun_as_coe, sum_eq_sum_fintype, coe_eq_zero,
-      eq_self_iff_true, implies_true_iff, equiv_fun_on_fintype_apply],
-    change ∑ i, ((f i * ∏ j in {i}ᶜ, p j) • x) = x,
-    rw [← finset.sum_smul, hf, one_smul] }
+    simp only [equiv.inv_fun_as_coe, sum_eq_sum_fintype, coe_eq_zero, eq_self_iff_true,
+      implies_true_iff, finset.univ_eq_attach, equiv_fun_on_fintype_apply],
+    change ∑ i : S, ((f i * ∏ j in S \ {i}, p j) • x) = x,
+    have : ∑ i : S, _ = _ := S.sum_finset_coe (λ i, f i * ∏ j in S \ {i}, p j),
+    rw [← finset.sum_smul, this, hf, one_smul] }
 end
-
-lemma torsion_by_independent : complete_lattice.independent (λ i, torsion_by R M (p i)) := λ i,
-begin
+lemma torsion_by_independent : complete_lattice.independent (λ i : S, torsion_by R M (p i)) :=
+λ i, begin
   classical,
   dsimp, rw [disjoint_iff, eq_bot_iff], intros x hx,
   rw submodule.mem_inf at hx, obtain ⟨hxi, hxj⟩ := hx,
   have hxi : p i • x = 0 := hxi,
   rw mem_supr_iff_exists_dfinsupp' at hxj, cases hxj with f hf,
-  obtain ⟨b, c, h1⟩ := pairwise_coprime_iff_coprime_prod.mp hp i,
+  obtain ⟨b, c, h1⟩ := pairwise_coprime_iff_coprime_prod.mp hp i i.2,
   rw [mem_bot, ← one_smul _ x, ← h1, add_smul],
   convert (zero_add (0:M)),
   { rw [mul_smul, hxi, smul_zero] },
   { rw [← hf, smul_sum, sum_eq_zero],
-    intro j, by_cases hj : j = i,
+    intro j, by_cases ji : j = i,
     { convert smul_zero _,
       rw ← mem_bot _, convert coe_mem (f j),
       symmetry, rw supr_eq_bot, intro hj',
-      exfalso, exact hj' hj },
-    { have hj : j ∈ ({i} : finset ι)ᶜ,
-      { rw finset.mem_compl, intro hj', apply hj, rw ← finset.mem_singleton, exact hj' },
-      rw [finset.prod_eq_prod_diff_singleton_mul hj, ← mul_assoc, mul_smul],
+      exfalso, exact hj' ji },
+    { have hj' : ↑j ∈ S \ {i},
+      { rw finset.mem_sdiff, refine ⟨j.2, λ hj', ji _⟩, ext, rw ← finset.mem_singleton, exact hj' },
+      rw [finset.prod_eq_prod_diff_singleton_mul hj', ← mul_assoc, mul_smul],
       have : (⨆ (H : ¬j = i), torsion_by R M (p j)) ≤ torsion_by R M (p j) := supr_const_le,
       have : (f j : M) ∈ torsion_by R M (p j) := this (coe_mem _),
-      have : p j • (f j : M) = 0 := this,
+      have : _ • _ = _ := this,
       rw [this, smul_zero] } }
 end
 end coprime
@@ -184,10 +190,10 @@ variables [comm_ring R] [add_comm_group M] [module R M] (a : R)
 
 section
 open_locale big_operators
-variables {ι : Type*} [fintype ι] {p : ι → R} (hp : pairwise (is_coprime on p))
+variables {ι : Type*} {p : ι → R} {S : finset ι} (hp : pairwise (is_coprime on λ s : S, p s))
 include hp
-lemma torsion_is_internal [decidable_eq ι] (hM : torsion_by R M (∏ i, p i) = ⊤) :
-  direct_sum.submodule_is_internal (λ i, torsion_by R M (p i)) :=
+lemma torsion_is_internal [decidable_eq ι] (hM : torsion_by R M (∏ i in S, p i) = ⊤) :
+  direct_sum.submodule_is_internal (λ i : S, torsion_by R M (p i)) :=
 direct_sum.submodule_is_internal_of_independent_of_supr_eq_top
   (torsion_by_independent hp) (by { rw ← hM, exact supr_torsion_by_eq_torsion_by_prod hp})
 end

@@ -79,16 +79,9 @@ def desc_f_succ {Y Z : C}
 def desc {Y Z : C}
   (f : Z ⟶ Y) (I : InjectiveResolution Y) (J : InjectiveResolution Z) :
   J.cocomplex ⟶ I.cocomplex :=
-begin
-  fapply cochain_complex.mk_hom,
-  exact desc_f_zero f,
-  exact desc_f_one f,
-  symmetry,
-  exact desc_f_one_zero_comm f,
-  rintro n ⟨g, g', w⟩,
-  obtain ⟨g'', eq1⟩ := desc_f_succ I J n g g' w.symm,
-  exact ⟨g'', eq1.symm⟩,
-end
+cochain_complex.mk_hom _ _ (desc_f_zero f _ _) (desc_f_one f _ _)
+  (desc_f_one_zero_comm f I J).symm
+  (λ n ⟨g, g', w⟩, ⟨(desc_f_succ I J n g g' w.symm).1, (desc_f_succ I J n g g' w.symm).2.symm⟩)
 
 /-- The resolution maps intertwine the descent of a morphism and that morphism. -/
 @[simp, reassoc]

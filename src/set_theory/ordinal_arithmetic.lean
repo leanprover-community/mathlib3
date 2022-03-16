@@ -185,6 +185,9 @@ out_nonempty_iff_ne_zero.2 ordinal.one_ne_zero
 theorem zero_lt_one : (0 : ordinal) < 1 :=
 lt_iff_le_and_ne.2 ⟨ordinal.zero_le _, ne.symm $ ordinal.one_ne_zero⟩
 
+theorem zero_le_one : (0 : ordinal) ≤ 1 :=
+zero_lt_one.le
+
 theorem le_one_iff {a : ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
 begin
   refine ⟨λ ha, _, _⟩,
@@ -1812,20 +1815,26 @@ end
 
 /-- The ordinal logarithm is the solution `u` to the equation `x = b ^ u * v + w` where `v < b` and
     `w < b ^ u`. -/
-def log (b : ordinal) (x : ordinal) : ordinal :=
+@[pp_nodot] def log (b : ordinal) (x : ordinal) : ordinal :=
 if h : 1 < b then pred (Inf {o | x < b ^ o}) else 0
 
 /-- The set in the definition of `log` is nonempty. -/
 theorem log_nonempty {b x : ordinal} (h : 1 < b) : {o | x < b ^ o}.nonempty :=
-⟨succ x, succ_le.1 (right_le_opow _ h)⟩
-
-@[simp] theorem log_not_one_lt {b : ordinal} (b1 : ¬ 1 < b) (x : ordinal) : log b x = 0 :=
-by simp only [log, dif_neg b1]
+⟨_, succ_le.1 (right_le_opow _ h)⟩
 
 theorem log_def {b : ordinal} (b1 : 1 < b) (x : ordinal) : log b x = pred (Inf {o | x < b ^ o}) :=
 by simp only [log, dif_pos b1]
 
-@[simp] theorem log_zero (b : ordinal) : log b 0 = 0 :=
+@[simp] theorem log_of_not_one_lt_left {b : ordinal} (b1 : ¬ 1 < b) (x : ordinal) : log b x = 0 :=
+by simp only [log, dif_neg b1]
+
+@[simp] theorem log_of_left_le_one {b : ordinal} (b1 : b ≤ 1) (x : ordinal) : log b x = 0 :=
+log_of_not_one_lt_left b1.not_lt x
+
+@[simp] lemma log_zero_left : ∀ b, log 0 b = 0 :=
+log_of_left_le_one ordinal.zero_le_one
+
+@[simp] theorem log_zero_right (b : ordinal) : log b 0 = 0 :=
 if b1 : 1 < b then begin
   rw [log_def b1, ← ordinal.le_zero, pred_le],
   apply cInf_le',
@@ -1833,7 +1842,10 @@ if b1 : 1 < b then begin
   rw [succ_zero, opow_one],
   exact zero_lt_one.trans b1
 end
-else by simp only [log_not_one_lt b1]
+else by simp only [log_of_not_one_lt_left b1]
+
+@[simp] theorem log_one_left : ∀ b, log 1 b = 0 :=
+log_of_left_le_one le_rfl
 
 theorem succ_log_def {b x : ordinal} (b1 : 1 < b) (x0 : 0 < x) :
   succ (log b x) = Inf {o | x < b ^ o} :=
@@ -1849,16 +1861,14 @@ begin
     exact (not_le_of_lt h₁).elim ((le_cInf_iff'' (log_nonempty b1)).1 (le_refl t) a h₂) }
 end
 
-theorem lt_opow_succ_log {b : ordinal} (b1 : 1 < b) (x : ordinal) :
-  x < b ^ succ (log b x) :=
+theorem lt_opow_succ_log_self {b : ordinal} (b1 : 1 < b) (x : ordinal) : x < b ^ succ (log b x) :=
 begin
   cases lt_or_eq_of_le (ordinal.zero_le x) with x0 x0,
   { rw [succ_log_def b1 x0], exact Inf_mem (log_nonempty b1) },
   { subst x, apply opow_pos _ (lt_trans zero_lt_one b1) }
 end
 
-theorem opow_log_le (b) {x : ordinal} (x0 : 0 < x) :
-  b ^ log b x ≤ x :=
+theorem opow_log_le_self (b) {x : ordinal} (x0 : 0 < x) : b ^ log b x ≤ x :=
 begin
   by_cases b0 : b = 0,
   { rw [b0, zero_opow'],
@@ -1870,43 +1880,37 @@ begin
   { rw [← b1, one_opow], exact one_le_iff_pos.2 x0 }
 end
 
-theorem le_log {b x c : ordinal} (b1 : 1 < b) (x0 : 0 < x) :
-  c ≤ log b x ↔ b ^ c ≤ x :=
-⟨λ h, le_trans ((opow_le_opow_iff_right b1).2 h) (opow_log_le b x0),
- λ h, le_of_not_lt $ λ hn,
-   not_le_of_lt (lt_opow_succ_log b1 x) $
-   le_trans ((opow_le_opow_iff_right b1).2 (succ_le.2 hn)) h⟩
+/-- `opow b` and `log b` (almost) form a Galois connection. -/
+theorem opow_le_iff_le_log {b x c : ordinal} (b1 : 1 < b) (x0 : 0 < x) : b ^ c ≤ x ↔ c ≤ log b x :=
+⟨λ h, le_of_not_lt $ λ hn,
+   not_le_of_lt (lt_opow_succ_log_self b1 x) $
+   le_trans ((opow_le_opow_iff_right b1).2 (succ_le.2 hn)) h,
+λ h, le_trans ((opow_le_opow_iff_right b1).2 h) (opow_log_le_self b x0)⟩
 
-theorem log_lt {b x c : ordinal} (b1 : 1 < b) (x0 : 0 < x) :
-  log b x < c ↔ x < b ^ c :=
-lt_iff_lt_of_le_iff_le (le_log b1 x0)
+theorem lt_opow_iff_log_lt {b x c : ordinal} (b1 : 1 < b) (x0 : 0 < x) : x < b ^ c ↔ log b x < c :=
+lt_iff_lt_of_le_iff_le (opow_le_iff_le_log b1 x0)
 
-theorem log_le_log (b) {x y : ordinal} (xy : x ≤ y) :
-  log b x ≤ log b y :=
-if x0 : x = 0 then by simp only [x0, log_zero, ordinal.zero_le] else
+theorem log_le_log_of_le (b) {x y : ordinal} (xy : x ≤ y) : log b x ≤ log b y :=
+if x0 : x = 0 then by simp only [x0, log_zero_right, ordinal.zero_le] else
 have x0 : 0 < x, from ordinal.pos_iff_ne_zero.2 x0,
 if b1 : 1 < b then
-  (le_log b1 (lt_of_lt_of_le x0 xy)).2 $ le_trans (opow_log_le _ x0) xy
-else by simp only [log_not_one_lt b1, ordinal.zero_le]
+  (opow_le_iff_le_log b1 (lt_of_lt_of_le x0 xy)).1 $ le_trans (opow_log_le_self _ x0) xy
+else by simp only [log_of_not_one_lt_left b1, ordinal.zero_le]
 
 theorem log_le_self (b x : ordinal) : log b x ≤ x :=
-if x0 : x = 0 then by simp only [x0, log_zero, ordinal.zero_le] else
+if x0 : x = 0 then by simp only [x0, log_zero_right, ordinal.zero_le] else
 if b1 : 1 < b then
-  le_trans (right_le_opow _ b1) (opow_log_le b (ordinal.pos_iff_ne_zero.2 x0))
-else by simp only [log_not_one_lt b1, ordinal.zero_le]
+  le_trans (right_le_opow _ b1) (opow_log_le_self b (ordinal.pos_iff_ne_zero.2 x0))
+else by simp only [log_of_not_one_lt_left b1, ordinal.zero_le]
 
-@[simp] theorem log_one (b : ordinal) : log b 1 = 0 :=
-if hb : 1 < b then by rwa [←lt_one_iff_zero, log_lt hb zero_lt_one, opow_one]
-else log_not_one_lt hb 1
+@[simp] theorem log_one_right (b : ordinal) : log b 1 = 0 :=
+if hb : 1 < b then by rwa [←lt_one_iff_zero, ←lt_opow_iff_log_lt hb zero_lt_one, opow_one]
+else log_of_not_one_lt_left hb 1
 
-theorem mod_opow_log_lt_self {b o : ordinal} (b0 : b ≠ 0) (o0 : o ≠ 0) :
-  o % b ^ log b o < o :=
-lt_of_lt_of_le
-  (mod_lt _ $ opow_ne_zero _ b0)
-  (opow_log_le _ $ ordinal.pos_iff_ne_zero.2 o0)
+theorem mod_opow_log_lt_self {b o : ordinal} (b0 : b ≠ 0) (o0 : o ≠ 0) : o % b ^ log b o < o :=
+(mod_lt _ $ opow_ne_zero _ b0).trans_le (opow_log_le_self _ $ ordinal.pos_iff_ne_zero.2 o0)
 
-lemma opow_mul_add_pos {b v : ordinal} (hb : 0 < b) (u) (hv : 0 < v) (w) :
-  0 < b ^ u * v + w :=
+lemma opow_mul_add_pos {b v : ordinal} (hb : 0 < b) (u) (hv : 0 < v) (w) : 0 < b ^ u * v + w :=
 (opow_pos u hb).trans_le ((le_mul_left _ hv).trans (le_add_right _ _))
 
 lemma opow_mul_add_lt_opow_mul_succ {b u w : ordinal} (v : ordinal) (hw : w < b ^ u) :
@@ -1926,10 +1930,10 @@ begin
   have hpos := opow_mul_add_pos (zero_lt_one.trans hb) u hv w,
   by_contra' hne,
   cases lt_or_gt_of_ne hne with h h,
-  { rw log_lt hb hpos at h,
+  { rw ←lt_opow_iff_log_lt hb hpos at h,
     exact not_le_of_lt h ((le_mul_left _ hv).trans (le_add_right _ _)) },
   { change _ < _ at h,
-    rw [←succ_le, le_log hb hpos] at h,
+    rw [←succ_le, ←opow_le_iff_le_log hb hpos] at h,
     exact (not_lt_of_le h) (opow_mul_add_lt_opow_succ hvb hw) }
 end
 
@@ -1943,9 +1947,9 @@ theorem add_log_le_log_mul {x y : ordinal} (b : ordinal) (x0 : 0 < x) (y0 : 0 < 
   log b x + log b y ≤ log b (x * y) :=
 begin
   by_cases hb : 1 < b,
-  { rw [le_log hb (mul_pos x0 y0), opow_add],
-    exact mul_le_mul' (opow_log_le b x0) (opow_log_le b y0) },
-  simp only [log_not_one_lt hb, zero_add]
+  { rw [←opow_le_iff_le_log hb (mul_pos x0 y0), opow_add],
+    exact mul_le_mul' (opow_log_le_self b x0) (opow_log_le_self b y0) },
+  simp only [log_of_not_one_lt_left hb, zero_add]
 end
 
 /-! ### The Cantor normal form -/
@@ -1984,10 +1988,8 @@ theorem CNF_ne_zero {b o : ordinal} (b0 : b ≠ 0) (o0 : o ≠ 0) :
   CNF b o = (log b o, o / b ^ log b o) :: CNF b (o % b ^ log b o) :=
 by unfold CNF; rw [dif_neg b0, dif_neg b0, CNF_rec_ne_zero b0 o0]
 
-@[simp] theorem one_CNF {o : ordinal} (o0 : o ≠ 0) :
-  CNF 1 o = [(0, o)] :=
-by rw [CNF_ne_zero ordinal.one_ne_zero o0, log_not_one_lt (lt_irrefl _), opow_zero, mod_one,
-       CNF_zero, div_one]
+@[simp] theorem one_CNF {o : ordinal} (o0 : o ≠ 0) : CNF 1 o = [(0, o)] :=
+by rw [CNF_ne_zero ordinal.one_ne_zero o0, log_one_left, opow_zero, mod_one, CNF_zero, div_one]
 
 theorem CNF_foldr {b : ordinal} (b0 : b ≠ 0) (o) :
   (CNF b o).foldr (λ p r, b ^ p.1 * p.2 + r) 0 = o :=
@@ -2005,15 +2007,15 @@ begin
     intros o o0 IH, cases IH with IH₁ IH₂,
     simp only [CNF_ne_zero b0 o0, list.forall_mem_cons, list.pairwise_cons, IH₂, and_true],
     refine ⟨⟨le_rfl, λ p m, _⟩, λ p m, _⟩,
-    { exact le_trans (IH₁ p m) (log_le_log _ $ le_of_lt $ mod_opow_log_lt_self b0 o0) },
-    { refine lt_of_le_of_lt (IH₁ p m) ((log_lt b1 _).2 _),
+    { exact le_trans (IH₁ p m) (log_le_log_of_le _ $ le_of_lt $ mod_opow_log_lt_self b0 o0) },
+    { refine (IH₁ p m).trans_lt ((lt_opow_iff_log_lt b1 _).1 _),
       { rw ordinal.pos_iff_ne_zero, intro e,
         rw e at m, simpa only [CNF_zero] using m },
       { exact mod_lt _ (opow_ne_zero _ b0) } } },
   { by_cases o0 : o = 0,
     { simp only [o0, CNF_zero, list.pairwise.nil, and_true], exact λ _, false.elim },
     rw [← b1, one_CNF o0],
-    simp only [list.mem_singleton, log_not_one_lt (lt_irrefl _), forall_eq, le_refl, true_and,
+    simp only [list.mem_singleton, log_one_left, forall_eq, le_refl, true_and,
       list.pairwise_singleton] }
 end
 
@@ -2033,7 +2035,7 @@ begin
   intros o o0 IH,
   simp only [CNF_ne_zero b0 o0, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro IH, and_true],
   rw [div_lt (opow_ne_zero _ b0), ← opow_succ],
-  exact lt_opow_succ_log b1 _,
+  apply lt_opow_succ_log_self b1,
 end
 
 theorem CNF_sorted (b := omega) (o) : ((CNF b o).map prod.fst).sorted (>) :=

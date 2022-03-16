@@ -169,8 +169,6 @@ calc edist y₀ (approx_on f hf s y₀ h₀ n x) ≤
   edist y₀ (f x) + edist (approx_on f hf s y₀ h₀ n x) (f x) : edist_triangle_right _ _ _
 ... ≤ edist y₀ (f x) + edist y₀ (f x) : add_le_add_left (edist_approx_on_le hf h₀ x n) _
 
-end pointwise
-
 end simple_func
 
 end measure_theory

@@ -33,7 +33,7 @@ inductive binaries : Type
 | mul : binaries
 
 /-- All function symbols in `first_order.language.ring.L` -/
-def functions : ℕ → Type
+@[reducible] def functions : ℕ → Type
 | 0 := consts
 | 1 := unaries
 | 2 := binaries
@@ -51,7 +51,10 @@ instance : inhabited (functions 0) := ⟨ consts.zero ⟩
 
 variable {α : Type u}
 
-@[simp] instance : has_zero (L.term α) := ⟨ @func L _ 0 consts.zero fin_zero_elim ⟩
+/-- I don't want this extra definition -/
+@[simp] def zero : L.constants := consts.zero
+
+@[simp] instance : has_zero (L.term α) := ⟨ zero ⟩
 
 @[simp] instance : has_one (L.term α) := ⟨ @func L _ 0 consts.one fin_zero_elim ⟩
 

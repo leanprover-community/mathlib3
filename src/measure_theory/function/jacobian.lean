@@ -749,8 +749,7 @@ begin
     filter_upwards [ae_restrict_mem (t_meas n)],
     exact hg n },
   -- putting these two properties together gives the conclusion.
-  filter_upwards [E₁, E₂],
-  assume x hx1 hx2,
+  filter_upwards [E₁, E₂] with x hx1 hx2,
   rw ← nndist_eq_nnnorm at hx1,
   rw [hx2, dist_comm],
   exact hx1,
@@ -1216,7 +1215,7 @@ begin
       set_lintegral_with_density_eq_set_lintegral_mul_non_measurable₀ _ _ _ hs],
   { refl },
   { simp only [eventually_true, ennreal.of_real_lt_top] },
-  { apply ae_measurable_of_real_abs_det_fderiv_within μ hs hf' }
+  { exact ae_measurable_of_real_abs_det_fderiv_within μ hs hf' }
 end
 
 variables [measurable_space F] [borel_space F]
@@ -1236,8 +1235,7 @@ begin
   rw [← (measurable_embedding.subtype_coe hs).integrable_map_iff, map_comap_subtype_coe hs],
   simp only [ennreal.of_real],
   rw [restrict_with_density hs, integrable_with_density_iff_integrable_coe_smul₀, integrable_on],
-  { congr' 2,
-    ext x,
+  { congr' 2 with x,
     rw real.coe_to_nnreal,
     exact abs_nonneg _ },
   { exact ae_measurable_to_nnreal_abs_det_fderiv_within μ hs hf' }
@@ -1258,8 +1256,7 @@ begin
   rw [← (measurable_embedding.subtype_coe hs).integral_map, map_comap_subtype_coe hs,
       set_integral_with_density_eq_set_integral_smul₀
         (ae_measurable_to_nnreal_abs_det_fderiv_within μ hs hf') _ hs],
-  congr,
-  ext x,
+  congr' with x,
   conv_rhs { rw ← real.coe_to_nnreal _ (abs_nonneg (f' x).det) },
   refl
 end

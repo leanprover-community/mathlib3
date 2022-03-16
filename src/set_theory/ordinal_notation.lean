@@ -53,17 +53,22 @@ def omega : onote := oadd 1 1 0
 | 0 := 0
 | (oadd e n a) := ω ^ repr e * n + repr a
 
-/-- Auxiliary definition to print an ordinal notation -/
-def to_string_aux1 (e : onote) (n : ℕ) (s : string) : string :=
+/-- Auxiliary definition to print an ordinal notation, using a given string as a base (instead of
+  `"ω"`). -/
+def to_string_aux1 (e : onote) (n : ℕ) (b : string) (s : string) : string :=
 if e = 0 then _root_.to_string n else
-(if e = 1 then "ω" else "ω^(" ++ s ++ ")") ++
+(if e = 1 then b else b ++ "^(" ++ s ++ ")") ++
 if n = 1 then "" else "*" ++ _root_.to_string n
 
-/-- Print an ordinal notation -/
-def to_string : onote → string
+/-- Print an ordinal notation, using a given string as a base (instead of `"ω"`). -/
+def to_string_with_base (b : string) : onote → string
 | zero := "0"
-| (oadd e n 0) := to_string_aux1 e n (to_string e)
-| (oadd e n a) := to_string_aux1 e n (to_string e) ++ " + " ++ to_string a
+| (oadd e n 0) := to_string_aux1 e n b (to_string_with_base e)
+| (oadd e n a) := to_string_aux1 e n b (to_string_with_base e) ++ " + " ++ to_string_with_base a
+
+/-- Print an ordinal notation -/
+def to_string : onote → string :=
+to_string_with_base "ω"
 
 /-- Print an ordinal notation -/
 def repr' : onote → string

@@ -822,6 +822,8 @@ variables {k G} [comm_semiring k] [monoid G]
 variables {V : Type*} [add_comm_monoid V]
 variables [module k V] [module (monoid_algebra k G) V] [is_scalar_tower k (monoid_algebra k G) V]
 
+/-- A submodule over `k` which is stable under scalar multiplication by elements of `G` is a
+submodule over `monoid_algebra k G`  -/
 def submodule_of_smul_mem (W : submodule k V) (h : ∀ (g : G) (v : V), v ∈ W → (of k G g) • v ∈ W) :
   submodule (monoid_algebra k G) V :=
 { carrier := W,

@@ -98,6 +98,84 @@ end
 -- we can seal away the actual definition.
 attribute [irreducible] desc
 
+/-- An auxiliary definition for `desc_homotopy_zero`. -/
+def desc_homotopy_zero_zero {Y Z : C} {I : InjectiveResolution Y} {J : InjectiveResolution Z}
+  (f : I.cocomplex ⟶ J.cocomplex)
+  (comm : I.ι ≫ f = 0) : I.cocomplex.X 1 ⟶ J.cocomplex.X 0 :=
+exact.desc (f.f 0) (I.ι.f 0) (I.cocomplex.d 0 1)
+  (congr_fun (congr_arg homological_complex.hom.f comm) 0)
+
+/-- An auxiliary definition for `desc_homotopy_zero`. -/
+def desc_homotopy_zero_one {Y Z : C} {I : InjectiveResolution Y} {J : InjectiveResolution Z}
+  (f : I.cocomplex ⟶ J.cocomplex)
+  (comm : I.ι ≫ f = (0 : _ ⟶ J.cocomplex)) : I.cocomplex.X 2 ⟶ J.cocomplex.X 1 :=
+exact.desc (f.f 1 - desc_homotopy_zero_zero f comm ≫ J.cocomplex.d 0 1)
+  (I.cocomplex.d 0 1) (I.cocomplex.d 1 2)
+  (by simp [desc_homotopy_zero_zero, ←category.assoc])
+
+/-- An auxiliary definition for `desc_homotopy_zero`. -/
+def desc_homotopy_zero_succ {Y Z : C} {I : InjectiveResolution Y} {J : InjectiveResolution Z}
+  (f : I.cocomplex ⟶ J.cocomplex) (n : ℕ)
+  (g : I.cocomplex.X (n + 1) ⟶ J.cocomplex.X n)
+  (g' : I.cocomplex.X (n + 2) ⟶ J.cocomplex.X (n + 1))
+  (w : f.f (n + 1) = I.cocomplex.d (n+1) (n+2) ≫ g' + g ≫ J.cocomplex.d n (n+1)) :
+  I.cocomplex.X (n + 3) ⟶ J.cocomplex.X (n + 2) :=
+exact.desc (f.f (n+2) - g' ≫ J.cocomplex.d _ _) (I.cocomplex.d (n+1) (n+2))
+  (I.cocomplex.d (n+2) (n+3))
+  (by simp [preadditive.comp_sub, ←category.assoc, preadditive.sub_comp,
+        show I.cocomplex.d (n+1) (n+2) ≫ g' = f.f (n + 1) - g ≫ J.cocomplex.d n (n+1),
+        by {rw w, simp only [add_sub_cancel] } ])
+
+/-- Any descent of the zero morphism is homotopic to zero. -/
+def desc_homotopy_zero {Y Z : C} {I : InjectiveResolution Y} {J : InjectiveResolution Z}
+  (f : I.cocomplex ⟶ J.cocomplex)
+  (comm : I.ι ≫ f = 0) :
+  homotopy f 0 :=
+homotopy.mk_coinductive _ (desc_homotopy_zero_zero f comm) (by simp [desc_homotopy_zero_zero])
+  (desc_homotopy_zero_one f comm) (by simp [desc_homotopy_zero_one])
+  (λ n ⟨g, g', w⟩, ⟨desc_homotopy_zero_succ f n g g' (by simp only [w, add_comm]),
+    by simp [desc_homotopy_zero_succ, w]⟩)
+
+/-- Two descents of the same morphism are homotopic. -/
+def desc_homotopy {Y Z : C} (f : Y ⟶ Z) {I : InjectiveResolution Y} {J : InjectiveResolution Z}
+  (g h : I.cocomplex ⟶ J.cocomplex)
+  (g_comm : I.ι ≫ g = (cochain_complex.single₀ C).map f ≫ J.ι)
+  (h_comm : I.ι ≫ h = (cochain_complex.single₀ C).map f ≫ J.ι) :
+  homotopy g h :=
+homotopy.equiv_sub_zero.inv_fun (desc_homotopy_zero _ (by simp [g_comm, h_comm]))
+
+/-- The descent of the identity morphism is homotopic to the identity cochain map. -/
+def desc_id_homotopy (X : C) (I : InjectiveResolution X) :
+  homotopy (desc (𝟙 X) I I) (𝟙 I.cocomplex) :=
+by { apply desc_homotopy (𝟙 X); simp, }
+
+/-- The descent of a composition is homotopic to the composition of the descents. -/
+def desc_comp_homotopy {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  (I : InjectiveResolution X) (J : InjectiveResolution Y) (K : InjectiveResolution Z) :
+  homotopy (desc (f ≫ g) K I) (desc f J I ≫ desc g K J)  :=
+by apply desc_homotopy (f ≫ g); simp
+
+-- We don't care about the actual definitions of these homotopies.
+attribute [irreducible] desc_homotopy_zero desc_homotopy desc_id_homotopy desc_comp_homotopy
+
+/-- Any two injective resolutions are homotopy equivalent. -/
+def homotopy_equiv {X : C} (I J : InjectiveResolution X) :
+  homotopy_equiv I.cocomplex J.cocomplex :=
+{ hom := desc (𝟙 X) J I,
+  inv := desc (𝟙 X) I J,
+  homotopy_hom_inv_id := (desc_comp_homotopy (𝟙 X) (𝟙 X) I J I).symm.trans $
+    by simpa [category.id_comp] using desc_id_homotopy _ _,
+  homotopy_inv_hom_id := (desc_comp_homotopy (𝟙 X) (𝟙 X) J I J).symm.trans $
+    by simpa [category.id_comp] using desc_id_homotopy _ _ }
+
+@[simp, reassoc] lemma homotopy_equiv_hom_ι {X : C} (I J : InjectiveResolution X) :
+  I.ι ≫ (homotopy_equiv I J).hom = J.ι :=
+by simp [homotopy_equiv]
+
+@[simp, reassoc] lemma homotopy_equiv_inv_ι {X : C} (I J : InjectiveResolution X) :
+  J.ι ≫ (homotopy_equiv I J).inv = I.ι :=
+by simp [homotopy_equiv]
+
 end abelian
 
 end InjectiveResolution

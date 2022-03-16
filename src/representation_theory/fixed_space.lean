@@ -71,7 +71,7 @@ variables [module k V] [distrib_mul_action G V] [smul_comm_class G k V]
 /--
 The subspace of vectors fixed by all elements of `G`
 -/
-noncomputable def fixed_space : submodule k V :=
+def fixed_space : submodule k V :=
 { carrier := set_of (λ v, ∀ (g : G), g • v = v),
   zero_mem' := by simp,
   add_mem' := λ v w hv hw g, by simp [hv g, hw g],

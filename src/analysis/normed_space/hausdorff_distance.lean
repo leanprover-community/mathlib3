@@ -3,7 +3,13 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
+import analysis.normed_space.basic
 import topology.metric_space.hausdorff_distance
+
+/-! # Topological facts about normed spaces
+
+Merge this with `analysis.normed_space.riesz`?
+-/
 
 open_locale topological_space
 open metric set

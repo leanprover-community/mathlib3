@@ -5,7 +5,7 @@ Authors: Johan Commelin
 -/
 
 import analysis.normed_space.basic
-import analysis.specific_limits
+import analysis.specific_limits.normed
 import topology.sequences
 
 /-!

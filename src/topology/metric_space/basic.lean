@@ -1481,23 +1481,100 @@ theorem ball_subset_interior_closed_ball : ball x ε ⊆ interior (closed_ball x
 interior_maximal ball_subset_closed_ball is_open_ball
 
 /-- ε-characterization of the closure in pseudometric spaces-/
-theorem mem_closure_iff {α : Type u} [pseudo_metric_space α] {s : set α} {a : α} :
+theorem mem_closure_iff {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 (mem_closure_iff_nhds_basis nhds_basis_ball).trans $
   by simp only [mem_ball, dist_comm]
 
-lemma mem_closure_range_iff {α : Type u} [pseudo_metric_space α] {e : β → α} {a : α} :
+lemma mem_closure_range_iff {e : β → α} {a : α} :
   a ∈ closure (range e) ↔ ∀ε>0, ∃ k : β, dist a (e k) < ε :=
 by simp only [mem_closure_iff, exists_range_iff]
 
-lemma mem_closure_range_iff_nat {α : Type u} [pseudo_metric_space α] {e : β → α} {a : α} :
+lemma mem_closure_range_iff_nat {e : β → α} {a : α} :
   a ∈ closure (range e) ↔ ∀n : ℕ, ∃ k : β, dist a (e k) < 1 / ((n : ℝ) + 1) :=
 (mem_closure_iff_nhds_basis nhds_basis_ball_inv_nat_succ).trans $
   by simp only [mem_ball, dist_comm, exists_range_iff, forall_const]
 
-theorem mem_of_closed' {α : Type u} [pseudo_metric_space α] {s : set α} (hs : is_closed s)
+theorem mem_of_closed' {s : set α} (hs : is_closed s)
   {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 by simpa only [hs.closure_eq] using @mem_closure_iff _ _ s a
+
+lemma dense_iff {s : set α} :
+  dense s ↔ ∀ x, ∀ r > 0, (ball x r ∩ s).nonempty :=
+begin
+  split,
+  { assume hs x r rpos,
+    exact hs.inter_open_nonempty _ metric.is_open_ball (metric.nonempty_ball.2 rpos) },
+  { assume H,
+    rw [dense_iff_closure_eq, ← univ_subset_iff],
+    assume x hx,
+    apply metric.mem_closure_iff.2 (λ r rpos, _),
+    rcases H x r rpos with ⟨y, hy⟩,
+    exact ⟨y, hy.2, metric.mem_ball'.1 hy.1⟩ }
+end
+
+lemma metric.dense_range_iff {f : β → α} :
+  dense_range f ↔ ∀ x, ∀ r > 0, ∃ y, dist x (f y) < r :=
+begin
+  rw [dense_range, metric.dense_iff],
+  refine forall_congr (λ x, forall_congr (λ r, forall_congr (λ rpos, ⟨_, _⟩))),
+  { rintros ⟨-, hz, ⟨z, rfl⟩⟩,
+    exact ⟨z, metric.mem_ball'.1 hz⟩ },
+  { rintros ⟨z, hz⟩,
+    exact ⟨f z, metric.mem_ball'.1 hz, mem_range_self _⟩ }
+end
+
+lemma secound_countable_subtype_of_subset_closure_countable
+  {s : set α} (c : set α) (hc : countable c) (h'c : s ⊆ closure c) :
+  second_countable_topology s :=
+begin
+  classical,
+  suffices : separable_space s, by exactI uniform_space.second_countable_of_separable s,
+  rcases eq_empty_or_nonempty s with rfl|⟨⟨x₀, x₀s⟩⟩,
+  { haveI : encodable (∅ : set α) := fintype.encodable ↥∅, exact encodable.separable_space },
+  haveI : encodable c := hc.to_encodable,
+  have Z := exists_seq_strict_anti_tendsto (0 : ℝ),
+  obtain ⟨u, -, u_pos, u_lim⟩ : ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧
+    tendsto u at_top (𝓝 0) := exists_seq_strict_anti_tendsto (0 : ℝ),
+  let f : c × ℕ → α := λ p, if h : (metric.ball (p.1 : α) (u p.2) ∩ s).nonempty then h.some else x₀,
+  have fs : ∀ p, f p ∈ s,
+  { rintros ⟨y, n⟩,
+    by_cases h : (ball (y : α) (u n) ∩ s).nonempty,
+    { simpa only [f, h, dif_pos] using h.some_spec.2 },
+    { simpa only [f, h, not_false_iff, dif_neg] } },
+  let g : c × ℕ → s := λ p, ⟨f p, fs p⟩,
+  apply separable_space_of_dense_range g,
+  apply metric.dense_range_iff.2,
+  rintros ⟨x, xs⟩ r (rpos : 0 < r),
+  obtain ⟨n, hn⟩ : ∃ n, u n < r / 2 := ((tendsto_order.1 u_lim).2 _ (half_pos rpos)).exists,
+  obtain ⟨z, zc, hz⟩ : ∃ z ∈ c, dist x z < u n :=
+    metric.mem_closure_iff.1 (h'c xs) _ (u_pos n),
+  refine ⟨(⟨z, zc⟩, n), _⟩,
+  change dist x (f (⟨z, zc⟩, n)) < r,
+  have A : (metric.ball z (u n) ∩ s).nonempty := ⟨x, hz, xs⟩,
+  dsimp [f],
+  simp only [A, dif_pos],
+  calc dist x A.some
+      ≤ dist x z + dist z A.some : dist_triangle _ _ _
+  ... < r/2 + r/2 : add_lt_add (hz.trans hn) ((metric.mem_ball'.1 A.some_spec.1).trans hn)
+  ... = r : add_halves _
+end
+
+lemma secound_countable_subtype_of_subset_closure
+  {s t : set α} [ht : second_countable_topology t] (hs : s ⊆ closure t) :
+  second_countable_topology s :=
+begin
+  have : separable_space t := by apply_instance,
+  rcases this with ⟨c, c_count, c_dense⟩,
+  refine secound_countable_subtype_of_subset_closure_countable (coe '' c) (c_count.image _) _,
+  refine hs.trans _,
+  suffices : t ⊆ closure (coe '' c), by simpa only [closure_closure] using closure_mono this,
+  assume x hx,
+  apply metric.mem_closure_iff.2 (λ r rpos, _),
+  have : (⟨x, hx⟩ : t) ∈ closure c, by { rw c_dense.closure_eq, exact mem_univ _ },
+  rcases metric.mem_closure_iff.1 this r rpos with ⟨⟨y, hy⟩, yc, xy⟩,
+  exact ⟨y, mem_image_of_mem (coe : t → α) yc, xy⟩,
+end
 
 end metric
 

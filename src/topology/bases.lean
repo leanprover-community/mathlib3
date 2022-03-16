@@ -293,6 +293,10 @@ variable {α}
 instance encodable.separable_space [encodable α] : separable_space α :=
 { exists_countable_dense := ⟨set.univ, set.countable_encodable set.univ, dense_univ⟩ }
 
+lemma separable_space_of_dense_range {ι : Type*} [encodable ι] (u : ι → α) (hu : dense_range u) :
+  separable_space α :=
+⟨⟨range u, countable_range u, hu⟩⟩
+
 /-- In a separable space, a family of nonempty disjoint open sets is countable. -/
 lemma _root_.set.pairwise_disjoint.countable_of_is_open [separable_space α] {ι : Type*}
   {s : ι → set α} {a : set ι} (h : a.pairwise_disjoint s) (ha : ∀ i ∈ a, is_open (s i))

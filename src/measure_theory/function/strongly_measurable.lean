@@ -289,6 +289,22 @@ protected lemma inf [has_inf β] [has_continuous_inf β] (hf : strongly_measurab
 
 end order
 
+
+/-- The range of a strongly measurable function is second-countable. -/
+lemma second_countable_range {m : measurable_space α} [topological_space β] [metrizable_space β]
+  (hf : strongly_measurable f) :
+  second_countable_topology (range f) :=
+begin
+  letI := metrizable_space_metric β,
+  apply secound_countable_subtype_of_subset_closure_countable (⋃ n, range (hf.approx n)),
+  { exact countable_Union (λ n, (simple_func.finite_range _).countable) },
+  { rintros - ⟨x, rfl⟩,
+    apply mem_closure_of_tendsto (hf.tendsto_approx x),
+    apply eventually_of_forall (λ n, _),
+    apply mem_Union_of_mem n,
+    exact mem_range_self _ }
+end
+
 section second_countable_strongly_measurable
 
 variables [measurable_space α] [measurable_space β]
@@ -323,12 +339,46 @@ lemma _root_.strongly_measurable_id [topological_space α] [metrizable_space α]
 measurable_id.strongly_measurable
 
 /-- In a space with second countable topology, strongly measurable and measurable are equivalent. -/
-lemma _root_.strongly_measurable_iff_measurable [metric_space β] [borel_space β]
-  [second_countable_topology β] :
+lemma _root_.strongly_measurable_iff_measurable
+  [topological_space β] [metrizable_space β] [borel_space β] [second_countable_topology β] :
   strongly_measurable f ↔ measurable f :=
 ⟨λ h, h.measurable, λ h, measurable.strongly_measurable h⟩
 
 end second_countable_strongly_measurable
+
+/-- A function is strongly measurable if and only if it is measurable and has second countable
+range. -/
+theorem _root_.strongly_measurable_iff_measurable_second_countable {m : measurable_space α}
+  [topological_space β] [metrizable_space β] [measurable_space β] [borel_space β] :
+  strongly_measurable f ↔ (measurable f ∧ second_countable_topology (range f)) :=
+begin
+  refine ⟨λ H, ⟨H.measurable, H.second_countable_range⟩, _⟩,
+  rintros ⟨H, H'⟩,
+  letI := metrizable_space_metric β,
+  let g := cod_restrict f (closure (range f)) (λ x, subset_closure (mem_range_self x)),
+  have fg : f = (coe : closure (range f) → β) ∘ g, by { ext x, refl },
+  have T : measurable_embedding (coe : closure (range f) → β),
+  { apply closed_embedding.measurable_embedding,
+    exact closed_embedding_subtype_coe is_closed_closure },
+  have g_meas : measurable g,
+  { rw fg at H, exact T.measurable_comp_iff.1 H },
+  haveI : second_countable_topology (closure (range f)) :=
+    secound_countable_subtype_of_subset_closure subset.rfl,
+  have g_smeas : strongly_measurable g := measurable.strongly_measurable g_meas,
+  rw fg,
+  exact continuous_subtype_coe.comp_strongly_measurable g_smeas,
+end
+
+lemma _root_.embedding.comp_strongly_measurable_iff
+  {m : measurable_space α} [topological_space β] [topological_space γ] {g : β → γ} {f : α → β}
+  (hg : embedding g) :
+  strongly_measurable (λ x, g (f x)) ↔ strongly_measurable f :=
+begin
+  refine ⟨λ H, _, λ H, hg.continuous.comp_strongly_measurable H⟩,
+end
+
+#exit
+
 
 protected lemma piecewise [measurable_space α] [topological_space β]
   {s : set α} {_ : decidable_pred (∈ s)} (hs : measurable_set s)

@@ -90,6 +90,7 @@ open_locale nnreal ennreal topological_space pointwise
 
 variables {E F : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
 [normed_group F] [normed_space ℝ F] [topological_space.second_countable_topology F]
+{s : set E} {f : E → E} {f' : E → E →L[ℝ] E}
 
 /-!
 ### Decomposition lemmas
@@ -447,7 +448,7 @@ end
 /-- If a differentiable function `f` is approximated by a linear map `A` on a set `s`, up to `δ`,
 then at almost every `x` in `s` one has `∥f' x - A∥ ≤ δ`. -/
 lemma _root_.approximates_linear_on.norm_fderiv_sub_le
-  {f : E → E} {A : E →L[ℝ] E} {s : set E} {δ : ℝ≥0}
+  {A : E →L[ℝ] E} {δ : ℝ≥0}
   (hf : approximates_linear_on f A s δ) (hs : measurable_set s)
   (f' : E → E →L[ℝ] E) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
   ∀ᵐ x ∂(μ.restrict s), ∥f' x - A∥₊ ≤ δ :=
@@ -549,7 +550,7 @@ assumptions.
 
 /-- A differentiable function maps sets of measure zero to sets of measure zero. -/
 lemma add_haar_image_eq_zero_of_differentiable_on_of_add_haar_eq_zero
-  {f : E → E} {s : set E} (hf : differentiable_on ℝ f s) (hs : μ s = 0) :
+  (hf : differentiable_on ℝ f s) (hs : μ s = 0) :
   μ (f '' s) = 0 :=
 begin
   refine le_antisymm _ (zero_le _),
@@ -595,7 +596,7 @@ end
 a set where the differential is not invertible, then the image of this set has zero measure.
 Here, we give an auxiliary statement towards this result. -/
 lemma add_haar_image_eq_zero_of_det_fderiv_within_eq_zero_aux
-  (f : E → E) (s : set E) (f' : E → (E →L[ℝ] E)) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
   (R : ℝ) (hs : s ⊆ closed_ball 0 R) (ε : ℝ≥0) (εpos : 0 < ε)
   (h'f' : ∀ x ∈ s, (f' x).det = 0) :
   μ (f '' s) ≤ ε * μ (closed_ball 0 R) :=
@@ -660,7 +661,7 @@ end
 /-- A version of Sard lemma in fixed dimension: given a differentiable function from `E` to `E` and
 a set where the differential is not invertible, then the image of this set has zero measure. -/
 lemma add_haar_image_eq_zero_of_det_fderiv_within_eq_zero
-  {f : E → E} {s : set E} {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
   (h'f' : ∀ x ∈ s, (f' x).det = 0) :
   μ (f '' s) = 0 :=
 begin
@@ -672,7 +673,7 @@ begin
     ... ≤ 0 : by simp only [H, tsum_zero, nonpos_iff_eq_zero] },
   assume R,
   have A : ∀ (ε : ℝ≥0) (εpos : 0 < ε), μ (f '' (s ∩ closed_ball 0 R)) ≤ ε * μ (closed_ball 0 R) :=
-    λ ε εpos, add_haar_image_eq_zero_of_det_fderiv_within_eq_zero_aux μ _ _ f'
+    λ ε εpos, add_haar_image_eq_zero_of_det_fderiv_within_eq_zero_aux μ
       (λ x hx, (hf' x hx.1).mono (inter_subset_left _ _)) R (inter_subset_right _ _) ε εpos
       (λ x hx, h'f' x hx.1),
   have B : tendsto (λ (ε : ℝ≥0), (ε : ℝ≥0∞) * μ (closed_ball 0 R)) (𝓝[>] 0) (𝓝 0),
@@ -699,8 +700,7 @@ Lusin-Souslin theorem.
 /-- The derivative of a function on a measurable set is almost everywhere measurable on this set
 with respect to Lebesgue measure. Note that, in general, it is not genuinely measurable there,
 as `f'` is not unique (but only on a set of measure `0`, as the argument shows). -/
-lemma ae_measurable_fderiv_within
-  {f : E → E} {s : set E} (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+lemma ae_measurable_fderiv_within (hs : measurable_set s)
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
   ae_measurable f' (μ.restrict s) :=
 begin
@@ -755,8 +755,7 @@ begin
   exact hx1,
 end
 
-lemma ae_measurable_of_real_abs_det_fderiv_within
-  {f : E → E} {s : set E} (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+lemma ae_measurable_of_real_abs_det_fderiv_within (hs : measurable_set s)
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
   ae_measurable (λ x, ennreal.of_real (|(f' x).det|)) (μ.restrict s) :=
 begin
@@ -766,8 +765,7 @@ begin
   exact ae_measurable_fderiv_within μ hs hf'
 end
 
-lemma ae_measurable_to_nnreal_abs_det_fderiv_within
-  {f : E → E} {s : set E} (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+lemma ae_measurable_to_nnreal_abs_det_fderiv_within (hs : measurable_set s)
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
   ae_measurable (λ x, |(f' x).det|.to_nnreal) (μ.restrict s) :=
 begin
@@ -779,8 +777,7 @@ end
 
 /-- If a function is differentiable and injective on a measurable set,
 then the image is measurable.-/
-lemma measurable_image_of_fderiv_within
-  {f : E → E} {s : set E} (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+lemma measurable_image_of_fderiv_within (hs : measurable_set s)
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) :
   measurable_set (f '' s) :=
 begin
@@ -790,8 +787,7 @@ end
 
 /-- If a function is differentiable and injective on a measurable set `s`, then its restriction
 to `s` is a measurable embedding. -/
-lemma measurable_embedding_of_fderiv_within
-  {f : E → E} {s : set E} (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+lemma measurable_embedding_of_fderiv_within (hs : measurable_set s)
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) :
   measurable_embedding (s.restrict f) :=
 begin
@@ -807,10 +803,8 @@ in `lintegral_abs_det_fderiv_eq_add_haar_image`. For this, we show both inequali
 directions, first up to controlled errors and then letting these errors tend to `0`.
 -/
 
-lemma add_haar_image_le_lintegral_abs_det_fderiv_aux1
-  {f : E → E} {s : set E} (hs : measurable_set s)
-  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
-  {ε : ℝ≥0} (εpos : 0 < ε) :
+lemma add_haar_image_le_lintegral_abs_det_fderiv_aux1 (hs : measurable_set s)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) {ε : ℝ≥0} (εpos : 0 < ε) :
   μ (f '' s) ≤ ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ + 2 * ε * μ s :=
 begin
   /- To bound `μ (f '' s)`, we cover `s` by sets where `f` is well-approximated by linear maps
@@ -901,9 +895,8 @@ begin
     end
 end
 
-lemma add_haar_image_le_lintegral_abs_det_fderiv_aux2
-  {f : E → E} {s : set E} (hs : measurable_set s) (h's : μ s ≠ ∞)
-  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
+lemma add_haar_image_le_lintegral_abs_det_fderiv_aux2 (hs : measurable_set s) (h's : μ s ≠ ∞)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
   μ (f '' s) ≤ ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ :=
 begin
   /- We just need to let the error tend to `0` in the previous lemma. -/
@@ -921,8 +914,8 @@ begin
   exact add_haar_image_le_lintegral_abs_det_fderiv_aux1 μ hs hf' εpos,
 end
 
-lemma add_haar_image_le_lintegral_abs_det_fderiv {f : E → E} {s : set E} (hs : measurable_set s)
-  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
+lemma add_haar_image_le_lintegral_abs_det_fderiv (hs : measurable_set s)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) :
   μ (f '' s) ≤ ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ :=
 begin
   /- We already know the result for finite-measure sets. We cover `s` by finite-measure sets using
@@ -957,9 +950,8 @@ begin
     end
 end
 
-lemma lintegral_abs_det_fderiv_le_add_haar_image_aux1
-  {f : E → E} {s : set E} (hs : measurable_set s)
-  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s)
+lemma lintegral_abs_det_fderiv_le_add_haar_image_aux1 (hs : measurable_set s)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s)
   {ε : ℝ≥0} (εpos : 0 < ε) :
   ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ ≤ μ (f '' s) + 2 * ε * μ s :=
 begin
@@ -1067,9 +1059,8 @@ begin
     end
 end
 
-lemma lintegral_abs_det_fderiv_le_add_haar_image_aux2
-  {f : E → E} {s : set E} (hs : measurable_set s) (h's : μ s ≠ ∞)
-  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) :
+lemma lintegral_abs_det_fderiv_le_add_haar_image_aux2 (hs : measurable_set s) (h's : μ s ≠ ∞)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) :
   ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ ≤ μ (f '' s) :=
 begin
   /- We just need to let the error tend to `0` in the previous lemma. -/
@@ -1087,8 +1078,8 @@ begin
   exact lintegral_abs_det_fderiv_le_add_haar_image_aux1 μ hs hf' hf εpos
 end
 
-lemma lintegral_abs_det_fderiv_le_add_haar_image {f : E → E} {s : set E} (hs : measurable_set s)
-  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) :
+lemma lintegral_abs_det_fderiv_le_add_haar_image (hs : measurable_set s)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) :
   ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ ≤ μ (f '' s) :=
 begin
   /- We already know the result for finite-measure sets. We cover `s` by finite-measure sets using
@@ -1135,8 +1126,8 @@ end
 injective and differentiable on a measurable set `s`, then the measure of `f '' s` is given by the
 integral of `|(f' x).det|` on `s`.
 Note that the measurability of `f '' s` is given by `measurable_image_of_fderiv_within`. -/
-theorem lintegral_abs_det_fderiv_eq_add_haar_image {f : E → E} {s : set E} (hs : measurable_set s)
-  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) :
+theorem lintegral_abs_det_fderiv_eq_add_haar_image (hs : measurable_set s)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) :
   ∫⁻ x in s, ennreal.of_real (|(f' x).det|) ∂μ = μ (f '' s) :=
 le_antisymm (lintegral_abs_det_fderiv_le_add_haar_image μ hs hf' hf)
   (add_haar_image_le_lintegral_abs_det_fderiv μ hs hf')
@@ -1148,8 +1139,8 @@ that `f` is measurable, as otherwise `measure.map f` is zero per our definitions
 For a version without measurability assumption but dealing with the restricted
 function `s.restrict f`, see `restrict_map_with_density_abs_det_fderiv_eq_add_haar`.
 -/
-theorem map_with_density_abs_det_fderiv_eq_add_haar {f : E → E} {s : set E} (hs : measurable_set s)
-  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s)
+theorem map_with_density_abs_det_fderiv_eq_add_haar (hs : measurable_set s)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s)
   (h'f : measurable f) :
   measure.map f ((μ.restrict s).with_density (λ x, ennreal.of_real (|(f' x).det|)))
     = μ.restrict (f '' s) :=
@@ -1169,9 +1160,8 @@ in terms of the restricted function `s.restrict f`.
 For a version for the original function, but with a measurability assumption,
 see `map_with_density_abs_det_fderiv_eq_add_haar`.
 -/
-theorem restrict_map_with_density_abs_det_fderiv_eq_add_haar
-  {f : E → E} {s : set E} (hs : measurable_set s)
-  {f' : E → (E →L[ℝ] E)} (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) :
+theorem restrict_map_with_density_abs_det_fderiv_eq_add_haar (hs : measurable_set s)
+  (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) :
   measure.map (s.restrict f)
     (comap coe (μ.with_density (λ x, ennreal.of_real (|(f' x).det|)))) = μ.restrict (f '' s) :=
 begin
@@ -1202,8 +1192,7 @@ end
 injective and differentiable on a measurable set `s`, then the Lebesgue integral of a function
 `g : E → ℝ≥0∞` on `f '' s` coincides with the integral of `|(f' x).det| * g ∘ f` on `s`.
 Note that the measurability of `f '' s` is given by `measurable_image_of_fderiv_within`. -/
-theorem lintegral_image_eq_lintegral_abs_det_fderiv_mul {f : E → E} {s : set E}
-  (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+theorem lintegral_image_eq_lintegral_abs_det_fderiv_mul (hs : measurable_set s)
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → ℝ≥0∞) :
   ∫⁻ x in f '' s, g x ∂μ = ∫⁻ x in s, ennreal.of_real (|(f' x).det|) * g (f x) ∂μ :=
 begin
@@ -1224,8 +1213,7 @@ variables [measurable_space F] [borel_space F]
 function `f` is injective and differentiable on a measurable set `s`, then a function
 `g : E → F` is integrable on `f '' s` if and only if `|(f' x).det| • g ∘ f` is
 integrable on `s`. -/
-theorem integrable_on_image_iff_integrable_on_abs_det_fderiv_smul {f : E → E} {s : set E}
-  (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+theorem integrable_on_image_iff_integrable_on_abs_det_fderiv_smul (hs : measurable_set s)
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → F) :
   integrable_on g (f '' s) μ ↔ integrable_on (λ x, |(f' x).det| • g (f x)) s μ :=
 begin
@@ -1244,8 +1232,7 @@ end
 /-- Change of variable formula for differentiable functions: if a function `f` is
 injective and differentiable on a measurable set `s`, then the Bochner integral of a function
 `g : E → F` on `f '' s` coincides with the integral of `|(f' x).det| • g ∘ f` on `s`. -/
-theorem integral_image_eq_integral_abs_det_fderiv_smul [complete_space F] {f : E → E} {s : set E}
-  (hs : measurable_set s) {f' : E → (E →L[ℝ] E)}
+theorem integral_image_eq_integral_abs_det_fderiv_smul [complete_space F] (hs : measurable_set s)
   (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x) (hf : inj_on f s) (g : E → F) :
   ∫ x in f '' s, g x ∂μ = ∫ x in s, |(f' x).det| • g (f x) ∂μ :=
 begin

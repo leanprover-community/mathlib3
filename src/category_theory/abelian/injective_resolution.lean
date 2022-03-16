@@ -21,7 +21,7 @@ When the underlying category is abelian:
 * `category_theory.injective_resolutions`: If every object admits an injective resolution, we can
   construct a functor `injective_resolutions C : C ⥤ homotopy_category C`.
 
-* `category_theory.injective.exact_d_f`: `f` and `injective.d f` are exact.
+* `category_theory.exact_f_d`: `f` and `injective.d f` are exact.
 * `category_theory.InjectiveResolution.of`: Hence, starting from a monomorphism `X ⟶ J`, where `J`
   is injective, we can apply `injective.d` repeatedly to obtain an injective resolution of `X`.
 -/
@@ -243,7 +243,7 @@ section
 
 variables [abelian C] [enough_injectives C]
 
-lemma injective.exact_d_f {X Y : C} (f : X ⟶ Y) : exact f (d f) :=
+lemma exact_f_d {X Y : C} (f : X ⟶ Y) : exact f (d f) :=
 (abelian.exact_iff _ _).2 $
   ⟨by simp, zero_of_comp_mono (ι _) $ by rw [category.assoc, kernel.condition]⟩
 
@@ -266,7 +266,7 @@ variables [abelian C] [enough_injectives C]
 def of_cocomplex (Z : C) : cochain_complex C ℕ :=
 cochain_complex.mk'
   (injective.under Z) (injective.syzygies (injective.ι Z)) (injective.d (injective.ι Z))
-  (λ ⟨X, Y, f⟩, ⟨injective.syzygies f, injective.d f, (injective.exact_d_f f).w⟩)
+  (λ ⟨X, Y, f⟩, ⟨injective.syzygies f, injective.d f, (exact_f_d f).w⟩)
 
 /--
 In any abelian category with enough injectives,
@@ -277,10 +277,10 @@ In any abelian category with enough injectives,
   ι := cochain_complex.mk_hom _ _ (injective.ι Z) 0
     (by { simp only [of_cocomplex_d, eq_self_iff_true, eq_to_hom_refl, category.comp_id,
       dite_eq_ite, if_true, exact.w],
-      exact (injective.exact_d_f (injective.ι Z)).w, } ) (λ n _, ⟨0, by ext⟩),
+      exact (exact_f_d (injective.ι Z)).w, } ) (λ n _, ⟨0, by ext⟩),
   injective := by { rintros (_|_|_|n); { apply injective.injective_under, } },
-  exact₀ := by simpa using injective.exact_d_f (injective.ι Z),
-  exact := by { rintros (_|n); { simp, apply injective.exact_d_f } },
+  exact₀ := by simpa using exact_f_d (injective.ι Z),
+  exact := by { rintros (_|n); { simp, apply exact_f_d } },
   mono := injective.ι_mono Z }
 
 @[priority 100]

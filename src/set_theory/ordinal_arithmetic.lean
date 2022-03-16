@@ -322,14 +322,13 @@ wf.fix (λ o IH,
   else H₃ _ ⟨o0, λ a, (succ_lt_of_not_succ h).2⟩ IH) o
 
 @[simp] theorem limit_rec_on_zero {C} (H₁ H₂ H₃) : @limit_rec_on C 0 H₁ H₂ H₃ = H₁ :=
-by rw [limit_rec_on, well_founded.fix_eq, dif_pos rfl]; refl
+by rw [limit_rec_on, wf.fix_eq, dif_pos rfl]; refl
 
 @[simp] theorem limit_rec_on_succ {C} (o H₁ H₂ H₃) :
   @limit_rec_on C (succ o) H₁ H₂ H₃ = H₂ o (@limit_rec_on C o H₁ H₂ H₃) :=
 begin
   have h : ∃ a, succ o = succ a := ⟨_, rfl⟩,
-  rw [limit_rec_on, well_founded.fix_eq,
-      dif_neg (succ_ne_zero o), dif_pos h],
+  rw [limit_rec_on, wf.fix_eq, dif_neg (succ_ne_zero o), dif_pos h],
   generalize : limit_rec_on._proof_2 (succ o) h = h₂,
   generalize : limit_rec_on._proof_3 (succ o) h = h₃,
   revert h₂ h₃, generalize e : pred (succ o) = o', intros,
@@ -338,8 +337,7 @@ end
 
 @[simp] theorem limit_rec_on_limit {C} (o H₁ H₂ H₃ h) :
   @limit_rec_on C o H₁ H₂ H₃ = H₃ o h (λ x h, @limit_rec_on C x H₁ H₂ H₃) :=
-by rw [limit_rec_on, well_founded.fix_eq,
-       dif_neg h.1, dif_neg (not_succ_of_is_limit h)]; refl
+by rw [limit_rec_on, wf.fix_eq, dif_neg h.1, dif_neg (not_succ_of_is_limit h)]; refl
 
 instance (o : ordinal) : order_top o.succ.out.α :=
 ⟨_, le_enum_succ⟩
@@ -742,6 +740,10 @@ begin
   { rw mul_succ, exact add_is_limit _ l },
   { exact mul_is_limit l.pos lb }
 end
+
+theorem smul_eq_mul : ∀ (n : ℕ) (a : ordinal), n • a = a * n
+| 0       a := by rw [zero_smul, nat.cast_zero, mul_zero]
+| (n + 1) a := by rw [succ_nsmul', nat.cast_add, mul_add, nat.cast_one, mul_one, smul_eq_mul]
 
 /-! ### Division on ordinals -/
 
@@ -1583,7 +1585,7 @@ theorem enum_ord_surjective (hS : unbounded (<) S) : ∀ s ∈ S, ∃ a, enum_or
     exact (enum_ord_strict_mono hS hab).trans_le hb },
   { by_contra' h,
     exact (le_cSup ⟨s, λ a,
-      (well_founded.self_le_of_strict_mono wf (enum_ord_strict_mono hS) a).trans⟩
+      (wf.self_le_of_strict_mono (enum_ord_strict_mono hS) a).trans⟩
       (enum_ord_succ_le hS hs h)).not_lt (lt_succ_self _) }
 end⟩
 
@@ -2018,8 +2020,8 @@ end
 theorem CNF_pairwise (b := omega) (o) : (CNF b o).pairwise (λ p q, prod.fst q < p.1) :=
 (CNF_pairwise_aux _ _).2
 
-theorem CNF_fst_le_log (b := omega) {o p} (hp : p ∈ CNF b o) : prod.fst p ≤ log b o :=
-(CNF_pairwise_aux _ _).1 p hp
+theorem CNF_fst_le_log (b := omega) {o p} : p ∈ CNF b o → prod.fst p ≤ log b o :=
+(CNF_pairwise_aux _ _).1 p
 
 theorem CNF_fst_le (b := omega) {o p} (hp : p ∈ CNF b o) : prod.fst p ≤ o :=
 (CNF_fst_le_log _ hp).trans (log_le_self _ _)

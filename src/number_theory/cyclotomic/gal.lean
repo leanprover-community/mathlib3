@@ -30,11 +30,11 @@ it is always a subgroup, and if the `n`th cyclotomic polynomial is irreducible, 
 
 ## TODO
 
-* `zeta_pow_power_basis` is not sufficiently general; the correct solution is some
-  `power_basis.map_conjugate`, but figuring out the exact correct assumptions + proof for this is
-  mathematically nontrivial. (Current thoughts: the ideal of polynomials with α as a root is equal
-  to the ideal of polynomials with β as a root, which, in an integrally closed domain, reduces
-  to the usual condition that they are the roots of each others' minimal polynomials.)
+* We currently can get away with the fact that the power of a primitive root is a primitive root,
+  but the correct long-term solution for computing other explicit Galois groups is creating
+  `power_basis.map_conjugate`; but figuring out the exact correct assumptions + proof for this is
+  mathematically nontrivial. (Current thoughts: the correct condition is that the annihilating
+  ideal of both elements is equal. This may not hold in an ID, and definitely holds in an ICD.)
 
 -/
 

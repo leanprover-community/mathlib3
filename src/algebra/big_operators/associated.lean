@@ -64,6 +64,26 @@ multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
       exact ⟨q, multiset.mem_cons.2 (or.inr hq₁), hq₂⟩ }
   end)
 
+lemma prod_primes_dvd
+  [cancel_comm_monoid_with_zero α] [decidable_eq α] [unique αˣ]
+  {s : finset α} (n : α) (h : ∀ a ∈ s, prime a) (div : ∀ a ∈ s, a ∣ n) :
+  (∏ p in s, p) ∣ n :=
+begin
+  induction s using finset.induction_on with a s a_not_in_s induct n primes divs generalizing n,
+  { simp only [finset.prod_empty, one_dvd] },
+  { rw finset.prod_insert a_not_in_s,
+    obtain ⟨k, rfl⟩ : a ∣ n := div a (finset.mem_insert_self a s),
+    apply mul_dvd_mul_left a,
+    apply induct (λ b b_in_s, h b (finset.mem_insert_of_mem b_in_s)) k (λ b b_in_s, _),
+    have b_div_n := div b (finset.mem_insert_of_mem b_in_s),
+    have a_prime := h a (finset.mem_insert_self a s),
+    have b_prime := h b (finset.mem_insert_of_mem b_in_s),
+    refine (b_prime.dvd_or_dvd b_div_n).resolve_left (λ b_div_a, _),
+    refine ne_of_mem_of_not_mem b_in_s a_not_in_s _,
+    rw ←associated_iff_eq,
+    exact b_prime.associated_of_dvd a_prime b_div_a }
+end
+
 namespace associates
 
 section comm_monoid

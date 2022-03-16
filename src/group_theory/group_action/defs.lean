@@ -516,18 +516,19 @@ See note [reducible non-instances]. -/
   smul_add := λ x, smul_add (f x),
   .. mul_action.comp_hom A f }
 
-/-- Each element of the monoid defines a additive monoid homomorphism. -/
-@[simps]
-def distrib_mul_action.to_add_monoid_hom (x : M) : A →+ A :=
+/-- For each element `a` of the monoid, `λ b, a • b` is an additive monoid endomorphism. -/
+@[simps] def distrib_mul_action.to_add_monoid_hom (x : M) : A →+ A :=
 { to_fun := (•) x,
   map_zero' := smul_zero x,
   map_add' := smul_add x }
 
 variables (M)
 
-/-- Each element of the monoid defines an additive monoid homomorphism. -/
-@[simps]
-def distrib_mul_action.to_add_monoid_End : M →* add_monoid.End A :=
+/-- (•) as a monoid homomorphism. For each element `a` of the monoid, `λ b, a • b` is an additive
+monoid endomorphism.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_hom`. -/
+@[simps] def distrib_mul_action.to_add_monoid_End : M →* add_monoid.End A :=
 { to_fun := distrib_mul_action.to_add_monoid_hom A,
   map_one' := add_monoid_hom.ext $ one_smul M,
   map_mul' := λ x y, add_monoid_hom.ext $ mul_smul x y }

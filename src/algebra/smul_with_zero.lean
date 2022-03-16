@@ -189,7 +189,12 @@ variables (M)
 def distrib_mul_action_with_zero.comp_hom (f : R' →*₀ R) : distrib_mul_action_with_zero R' M :=
 { ..distrib_mul_action.comp_hom M f.to_monoid_hom, ..mul_action_with_zero.comp_hom M f }
 
-/-- Each element of the monoid defines an additive monoid homomorphism. -/
+variables (R)
+
+/-- (•) as a monoid with zero homomorphism. For each element `a` of the monoid, `λ b, a • b` is an
+additive monoid endomorphism.
+
+This is a stronger version of `distrib_mul_action.to_add_monoid_End`. -/
 @[simps] def distrib_mul_action_with_zero.to_add_monoid_End : R →*₀ add_monoid.End M :=
 { map_zero' := add_monoid_hom.ext $ λ x, zero_smul _ _,
   ..distrib_mul_action.to_add_monoid_End R M }

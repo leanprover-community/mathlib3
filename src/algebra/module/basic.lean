@@ -119,14 +119,13 @@ See note [reducible non-instances]. -/
 
 variables (R) (M)
 
-/-- `(•)` as an `add_monoid_hom`.
+/-- `(•)` as a ring homomorphism. For each element `a` of the monoid, `λ b, a • b` is an additive
+monoid endomorphism.
 
-This is a stronger version of `distrib_mul_action.to_add_monoid_End` -/
-@[simps apply_apply]
-def module.to_add_monoid_End : R →+* add_monoid.End M :=
-{ map_zero' := add_monoid_hom.ext $ λ r, by simp,
-  map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul],
-  ..distrib_mul_action.to_add_monoid_End R M }
+This is a stronger version of `distrib_mul_action.to_add_monoid_End`. -/
+@[simps apply_apply] def module.to_add_monoid_End : R →+* add_monoid.End M :=
+{ map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul],
+  ..distrib_mul_action_with_zero.to_add_monoid_End R M }
 
 /-- A convenience alias for `module.to_add_monoid_End` as an `add_monoid_hom`, usually to allow the
 use of `add_monoid_hom.flip`. -/

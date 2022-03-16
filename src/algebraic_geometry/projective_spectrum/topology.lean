@@ -17,7 +17,7 @@ It is naturally endowed with a topology: the Zariski topology.
 ## Notation
 - `R` is a commutative semiring;
 - `A` is a commutative ring and an `R`-algebra;
-- `𝒜 : ℕ → submodule R A` is the grading of `A`.
+- `𝒜 : ℕ → submodule R A` is the grading of `A`;
 
 ## Main definitions
 

@@ -342,13 +342,12 @@ def curry [locally_compact_space α] [locally_compact_space β] : C(α × β, γ
 
 /-- If `α` has a single element, then `β` is homeomorphic to `C(α, β)`. -/
 def continuous_map_of_unique [unique α] : β ≃ₜ C(α, β) :=
-{ to_fun := continuous_map.comp ⟨_, continuous_fst⟩ ∘ coev α β,
+{ to_fun := const α,
   inv_fun := λ f, f default,
   left_inv := λ a, rfl,
   right_inv := λ f, by { ext, rw unique.eq_default a, refl },
-  continuous_to_fun := continuous.comp (continuous_comp _) continuous_coev,
-  continuous_inv_fun :=
-    continuous.comp continuous_eval' (continuous.prod_mk continuous_id continuous_const) }
+  continuous_to_fun := continuous_const',
+  continuous_inv_fun := continuous_eval'.comp (continuous_id.prod_mk continuous_const) }
 
 @[simp] lemma continuous_map_of_unique_apply [unique α] (b : β) (a : α) :
   continuous_map_of_unique b a = b :=

@@ -102,8 +102,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
               begin
                 rw [range_eq_Ico, finset.union_comm, finset.Ico_union_Ico_eq_Ico],
                 { exact bot_le },
-                { simp only [add_le_add_iff_right, two_mul],
-                  apply nat.le_add_left },
+                { simpa only [add_le_add_iff_right, two_mul] using nat.le_add_left m m },
               end
         ... = ∏ i in (filter nat.prime (finset.Ico (m + 2) (2 * m + 2))
               ∪ (filter nat.prime (range (m + 2)))), i :

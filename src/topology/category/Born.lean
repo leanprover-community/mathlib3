@@ -7,25 +7,25 @@ import category_theory.concrete_category.bundled_hom
 import topology.bornology.hom
 
 /-!
-# The category of bornological spaces
+# The category of bornologies
 
-This defines `Born`, the category of bornological spaces.
+This defines `Born`, the category of bornologies.
 -/
 
 universes u
 
 open category_theory
 
-/-- The category of bornological_spaces. -/
-def Born := bundled bornological_space
+/-- The category of bornologies. -/
+def Born := bundled bornology
 
 namespace Born
 
 instance : has_coe_to_sort Born Type* := bundled.has_coe_to_sort
-instance (X : Born) : bornological_space X := X.str
+instance (X : Born) : bornology X := X.str
 
-/-- Construct a bundled `Born` from a `bornological_space`. -/
-def of (α : Type*) [bornological_space α] : Born := bundled.of α
+/-- Construct a bundled `Born` from a `bornology`. -/
+def of (α : Type*) [bornology α] : Born := bundled.of α
 
 instance : inhabited Born := ⟨of punit⟩
 

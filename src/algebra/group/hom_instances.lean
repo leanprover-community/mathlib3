@@ -55,12 +55,16 @@ instance {M G} [mul_one_class M] [comm_group G] : comm_group (M →* G) :=
   zpow_neg'  := λ n f, by { ext x, simp },
   ..monoid_hom.comm_monoid }
 
-instance [add_comm_monoid M] : semiring (add_monoid.End M) :=
+instance [add_monoid M] : monoid_with_zero (add_monoid.End M) :=
 { zero_mul := λ x, add_monoid_hom.ext $ λ i, rfl,
   mul_zero := λ x, add_monoid_hom.ext $ λ i, add_monoid_hom.map_zero _,
-  left_distrib := λ x y z, add_monoid_hom.ext $ λ i, add_monoid_hom.map_add _ _ _,
-  right_distrib := λ x y z, add_monoid_hom.ext $ λ i, rfl,
   .. add_monoid.End.monoid M,
+  .. add_monoid_hom.has_zero }
+
+instance [add_comm_monoid M] : semiring (add_monoid.End M) :=
+{ left_distrib := λ x y z, add_monoid_hom.ext $ λ i, add_monoid_hom.map_add _ _ _,
+  right_distrib := λ x y z, add_monoid_hom.ext $ λ i, rfl,
+  .. add_monoid.End.monoid_with_zero,
   .. add_monoid_hom.add_comm_monoid }
 
 instance [add_comm_group M] : ring (add_monoid.End M) :=

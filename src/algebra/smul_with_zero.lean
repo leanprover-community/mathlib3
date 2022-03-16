@@ -3,33 +3,21 @@ Copyright (c) 2021 Damiano Testa. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
-import algebra.group_power.basic
+import algebra.group.hom_instances
 import algebra.ring.opposite
 import group_theory.group_action.opposite
 import group_theory.group_action.prod
 
 /-!
-# Introduce `smul_with_zero`
+# Scalar actions preserving zero
 
-In analogy with the usual monoid action on a Type `M`, we introduce an action of a
-`monoid_with_zero` on a Type with `0`.
-
-In particular, for Types `R` and `M`, both containing `0`, we define `smul_with_zero R M` to
-be the typeclass where the products `r • 0` and `0 • m` vanish for all `r : R` and all `m : M`.
-
-Moreover, in the case in which `R` is a `monoid_with_zero`, we introduce the typeclass
-`mul_action_with_zero R M`, mimicking group actions and having an absorbing `0` in `R`.
-Thus, the action is required to be compatible with
-
-* the unit of the monoid, acting as the identity;
-* the zero of the monoid_with_zero, acting as zero;
-* associativity of the monoid.
-
-We also add an `instance`:
-
-* any `monoid_with_zero` has a `mul_action_with_zero R R` acting on itself.
+This file defines a few types of scalar actions with left and right absorbent zeroes.
 
 ## Main declarations
+
+* `smul_with_zero`: Scalar action such that `r • 0 = 0` and `0 • m = 0` for all `r` and `m`.
+* `mul_action_with_zero`: Combination of `mul_action` and `smul_with_zero`.
+* `distrib_mul_action_with_zero`: Combination of `distrib_mul_action` and `smul_with_zero`.
 
 * `smul_monoid_with_zero_hom`: Scalar multiplication bundled as a morphism of monoids with zero.
 -/
@@ -165,9 +153,8 @@ end has_zero
 section add_monoid
 variables [add_monoid M] (R M)
 
-/--  An action of a monoid with zero `R` on a Type `M`, also with `0`, extends `distrib_mul_action`
-and is compatible with `0` (both in `R` and in `M`), with `1 ∈ R`, and with associativity of
-multiplication on the monoid `M`. -/
+/-- Typeclass for a distributive multiplicative action of a monoid with zero `R` on an additive
+monoid `M` such that `0 : R` is left-absorbent and `0 : M` is right-absorbent. -/
 @[ext] class distrib_mul_action_with_zero extends distrib_mul_action R M :=
 -- this field is copied from `mul_action_with_zero`, as `extends` behaves poorly
 (zero_smul : ∀ m : M, (0 : R) • m = 0)
@@ -199,9 +186,13 @@ variables (M)
 
 /-- Compose a `distrib_mul_action_with_zero` with a `monoid_with_zero_hom`, with action
 `f r' • m`. -/
-def distrib_mul_action_with_zero.comp_hom (f : monoid_with_zero_hom R' R) :
-  distrib_mul_action_with_zero R' M :=
+def distrib_mul_action_with_zero.comp_hom (f : R' →*₀ R) : distrib_mul_action_with_zero R' M :=
 { ..distrib_mul_action.comp_hom M f.to_monoid_hom, ..mul_action_with_zero.comp_hom M f }
+
+/-- Each element of the monoid defines an additive monoid homomorphism. -/
+@[simps] def distrib_mul_action_with_zero.to_add_monoid_End : R →*₀ add_monoid.End M :=
+{ map_zero' := add_monoid_hom.ext $ λ x, zero_smul _ _,
+  ..distrib_mul_action.to_add_monoid_End R M }
 
 end add_monoid
 end monoid_with_zero

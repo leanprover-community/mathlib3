@@ -14,6 +14,12 @@ sup-independent if, for all `a`, `f a` and the supremum of the rest are disjoint
 
 In distributive lattices, this is equivalent to being pairwise disjoint.
 
+## Main definitions
+
+* `finset.sup_indep s f`: a family of elements `f` are supremum independent on the finite set `s`.
+* `complete_lattice.set_independent s`: a set of elements are supremum independent.
+* `complete_lattice.independent f`: a family of elements are supremum independent.
+
 ## Implementation notes
 
 For the finite version, we avoid the "obvious" definition

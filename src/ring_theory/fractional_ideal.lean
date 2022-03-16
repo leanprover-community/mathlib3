@@ -631,8 +631,11 @@ def map_equiv (g : P ≃ₐ[R] P') :
   (map_equiv g : fractional_ideal S P → fractional_ideal S P') = map g :=
 rfl
 
-@[simp] lemma map_equiv_apply (g : P ≃ₐ[R] P') (I : fractional_ideal S P) :
+lemma map_equiv_apply (g : P ≃ₐ[R] P') (I : fractional_ideal S P) :
   map_equiv g I = map ↑g I := rfl
+
+@[simp] lemma map_equiv_apply' (g : P ≃ₐ[R] P') :
+  (map_equiv g : fractional_ideal S P → fractional_ideal S P') = map ↑g := rfl
 
 @[simp] lemma map_equiv_symm (g : P ≃ₐ[R] P') :
   ((map_equiv g).symm : fractional_ideal S P' ≃+* _) = map_equiv g.symm := rfl

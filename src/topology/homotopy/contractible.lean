@@ -54,6 +54,7 @@ begin
   { exact h.symm, }, { convert homotopic.refl (continuous_map.id unit), ext, },
 end
 
+@[priority 100]
 instance : path_connected_space X :=
 begin
   obtain ⟨p, ⟨h⟩⟩ := id_nullhomotopic X,

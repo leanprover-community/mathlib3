@@ -227,17 +227,11 @@ lemma test_against_nn_smul [is_scalar_tower R ℝ≥0 ℝ≥0] [pseudo_metric_sp
   (μ : finite_measure α) (c : R) (f : α →ᵇ ℝ≥0) :
   μ.test_against_nn (c • f) = c • μ.test_against_nn f :=
 begin
-<<<<<<< HEAD
-  simp only [←ennreal.coe_eq_coe, algebra.id.smul_eq_mul, bounded_continuous_function.smul_apply,
-             test_against_nn_coe_eq, ennreal.coe_mul],
-  exact @lintegral_const_mul _ _ (μ : measure α) c _
-=======
   simp only [←ennreal.coe_eq_coe, bounded_continuous_function.coe_smul,
              test_against_nn_coe_eq, ennreal.coe_smul],
   simp_rw [←smul_one_smul ℝ≥0∞ c (f _ : ℝ≥0∞), ←smul_one_smul ℝ≥0∞ c (lintegral _ _ : ℝ≥0∞),
     smul_eq_mul],
   exact @lintegral_const_mul _ _ (μ : measure α) (c • 1)  _
->>>>>>> origin/master
                    (bounded_continuous_function.nnreal.to_ennreal_comp_measurable f),
 end
 

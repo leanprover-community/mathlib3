@@ -146,11 +146,12 @@ encodable.of_left_injection list_encode (λ l, (list_decode l).head')
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 
-instance : has_coe L.constants (L.term α) :=
-⟨λ c, func c default⟩
+/-- The representation of a constant symbol as a term. -/
+def con (c : L.constants) : (L.term α) :=
+func c default
 
 instance inhabited_of_constant [inhabited L.constants] : inhabited (L.term α) :=
-⟨↑(default : L.constants)⟩
+⟨con default⟩
 
 /-- A term `t` with variables indexed by `α` can be evaluated by giving a value to each variable. -/
 @[simp] def realize (v : α → M) :
@@ -166,8 +167,8 @@ begin
   { simp [ih] }
 end
 
-@[simp] lemma realize_coe_constant {c : L.constants} {v : α → M} :
-  (↑c : L.term α).realize v = c :=
+@[simp] lemma realize_con {c : L.constants} {v : α → M} :
+  (con c).realize v = c :=
 fun_map_eq_coe_constants
 
 end term

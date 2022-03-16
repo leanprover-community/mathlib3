@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.module.basic
-import linear_algebra.basic
+import linear_algebra.span
 import tactic.abel
 import data.equiv.ring_aut
 

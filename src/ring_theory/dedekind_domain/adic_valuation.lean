@@ -54,12 +54,12 @@ ideal `(r)`, if `r` is nonzero, or infinity, if `r = 0`. `int_valuation_def` is 
 multiplicative valuation. -/
 def int_valuation_def (r : R) : with_zero (multiplicative ℤ) :=
 ite (r = 0) 0 (multiplicative.of_add
-  (-(associates.mk v.as_ideal).count (associates.mk (ideal.span{r} : ideal R)).factors : ℤ))
+  (-(associates.mk v.as_ideal).count (associates.mk (ideal.span {r} : ideal R)).factors : ℤ))
 
 lemma int_valuation_def_if_pos {r : R} (hr : r = 0) : v.int_valuation_def r = 0 := if_pos hr
 
 lemma int_valuation_def_if_neg {r : R} (hr : r ≠ 0) : v.int_valuation_def r = (multiplicative.of_add
-  (-(associates.mk v.as_ideal).count (associates.mk (ideal.span{r} : ideal R)).factors : ℤ)) :=
+  (-(associates.mk v.as_ideal).count (associates.mk (ideal.span {r} : ideal R)).factors : ℤ)) :=
 if_neg hr
 
 /-- Nonzero elements have nonzero adic valuation. -/
@@ -128,7 +128,6 @@ by rw [v.int_valuation_def_if_neg (zero_ne_one.symm : (1 : R) ≠ 0), ideal.span
   ← ideal.one_eq_top, associates.mk_one, associates.factors_one, associates.count_zero
   (by apply v.associates_irreducible), int.coe_nat_zero, neg_zero, of_add_zero, with_zero.coe_one]
 
---set_option profiler true
 /-- The `v`-adic valuation of a product equals the product of the valuations. -/
 lemma int_valuation.map_mul' (x y : R) :
   v.int_valuation_def (x * y) = v.int_valuation_def x * v.int_valuation_def y :=

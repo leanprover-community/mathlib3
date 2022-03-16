@@ -1332,7 +1332,7 @@ end is_primary
 end ideal
 
 lemma associates.mk_ne_zero' {R : Type*} [comm_ring R] {r : R} :
-  (associates.mk (ideal.span{r} : ideal R)) ≠ 0 ↔ (r ≠ 0):=
+  (associates.mk (ideal.span {r} : ideal R)) ≠ 0 ↔ (r ≠ 0):=
 by rw [associates.mk_ne_zero, ideal.zero_eq_bot, ne.def, ideal.span_singleton_eq_bot]
 
 namespace ring_hom

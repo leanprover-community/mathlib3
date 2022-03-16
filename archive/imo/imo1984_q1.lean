@@ -69,7 +69,7 @@ begin
   { have xyz_ineq := mul_nonneg xy_ineq z_ineq,
     have ineq1 := geom_mean_le_arith_mean3_weighted ineq' ineq' ineq' x_ineq y_ineq z_ineq eq',
     simp only [← mul_add] at ineq1,
-    rw [calc 1 - 2 * x + (1 - 2 * y) + (1 - 2 * z) = 3 - 2 * (x + y + z) : by ring, add_eq] at ineq1,
+    rw [calc 1 - 2*x + (1 - 2*y) + (1 - 2*z) = 3 - 2*(x+y+z) : by ring, add_eq] at ineq1,
     norm_num at ineq1,
     rw [←mul_rpow, ←mul_rpow, ←rpow_le_rpow_iff _ _ (_ : (0 : ℝ) < 3), ←rpow_mul] at ineq1,
     norm_num at ineq1,

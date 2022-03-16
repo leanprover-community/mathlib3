@@ -110,18 +110,37 @@ nat.find ((finite_generated_def' G).mp h)
 
 namespace subgroup
 
-lemma closure_induction_left {G : Type*} [group G] {k : set G} {p : G → Prop} {x : G}
-  (h : x ∈ closure k) (H1 : p 1) (Hmul : ∀ (x ∈ k) y, p y → p (x * y))
-  (Hinv : ∀ x (y ∈ k), p y → p (x * y⁻¹)) : p x :=
+lemma closure_induction_left {G : Type*} [group G] {S : set G} {p : G → Prop} {x : G}
+  (h : x ∈ closure S) (H1 : p 1) (Hmul : ∀ (x ∈ S) y, p y → p (x * y))
+  (Hinv : ∀ (x ∈ S) y, p y → p (x⁻¹ * y)) : p x :=
 begin
-  sorry,
+  have key := le_of_eq (closure_to_submonoid S),
+  obtain ⟨l, hl, rfl⟩ := submonoid.exists_list_of_mem_closure (key h),
+  induction l with g l ih generalizing hl,
+  { exact H1 },
+  { rw list.prod_cons,
+    rw list.forall_mem_cons at hl,
+    specialize ih ((closure S).list_prod_mem (λ g hg, (hl.2 g hg).elim (λ hg, subset_closure hg)
+      (λ hg, (closure S).inv_mem_iff.mp (subset_closure hg)))) hl.2,
+    exact hl.1.elim (λ hg, Hmul g hg _ ih) (λ hg, (congr_arg _ (inv_inv g)).mp (Hinv _ hg _ ih)) },
 end
 
-lemma closure_induction_right {G : Type*} [group G] {k : set G} {p : G → Prop} {x : G}
-  (h : x ∈ closure k) (H1 : p 1) (Hmul : ∀ x (y ∈ k), p x → p (x * y))
-  (Hinv : ∀ x (y ∈ k), p x → p (x * y⁻¹)) : p x :=
+lemma closure_induction_right {G : Type*} [group G] {S : set G} {p : G → Prop} {x : G}
+  (h : x ∈ closure S) (H1 : p 1) (Hmul : ∀ x (y ∈ S), p x → p (x * y))
+  (Hinv : ∀ x (y ∈ S), p x → p (x * y⁻¹)) : p x :=
 begin
-  sorry,
+  rw ← inv_inv x,
+  let q : G → Prop := λ g, p g⁻¹,
+  have q_def : ∀ g, q g = p g⁻¹ := λ g, rfl,
+  change q x⁻¹,
+  apply closure_induction_left ((closure S).inv_mem h),
+  { rwa [q_def, one_inv] },
+  { intros x hx y hy,
+    rw [q_def, mul_inv_rev],
+    exact Hinv y⁻¹ x hx hy },
+  { intros x hx y hy,
+    rw [q_def, mul_inv_rev, inv_inv],
+      exact Hmul y⁻¹ x hx hy },
 end
 
 lemma schreier' {G : Type*} [group G] {H : subgroup G} {R S : set G}

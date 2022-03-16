@@ -163,10 +163,7 @@ have tendsto (λb, (f b, g b)) b (𝓝 (a₁, a₂)),
 show (a₁, a₂) ∈ {p:α×α | p.1 ≤ p.2},
   from t.is_closed_le'.mem_of_tendsto this h
 
-/-- Alias of `le_of_tendsto_of_tendsto` for ease of discovery when focusing on `eventually_le` -/
-lemma tendsto_le_of_eventually_le {f g : β → α} {b : filter β} {a₁ a₂ : α} [ne_bot b]
-  (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) (h : f ≤ᶠ[b] g) :
-  a₁ ≤ a₂ := le_of_tendsto_of_tendsto hf hg h
+alias le_of_tendsto_of_tendsto ← tendsto_le_of_eventually_le
 
 lemma le_of_tendsto_of_tendsto' {f g : β → α} {b : filter β} {a₁ a₂ : α} [ne_bot b]
   (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) (h : ∀ x, f x ≤ g x) :

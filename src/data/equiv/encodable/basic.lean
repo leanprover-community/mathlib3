@@ -6,6 +6,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 import data.equiv.nat
 import order.rel_iso
 import order.directed
+import combinatorics.countable
 
 /-!
 # Encodable types
@@ -418,6 +419,8 @@ There is a total ordering on the elements of an encodable type, induced by the m
 /-- The `encode` function, viewed as an embedding. -/
 def encode' (α) [encodable α] : α ↪ ℕ :=
 ⟨encodable.encode, encodable.encode_injective⟩
+
+@[priority 200] instance {α} [encodable α] : countable α := ⟨⟨encode' α⟩⟩
 
 instance {α} [encodable α] : is_trans _ (encode' α ⁻¹'o (≤)) :=
 (rel_embedding.preimage _ _).is_trans

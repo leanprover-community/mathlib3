@@ -107,6 +107,10 @@ def trunc_encodable_of_fintype (α : Type*) [decidable_eq α] [fintype α] : tru
 noncomputable def _root_.fintype.encodable (α : Type*) [fintype α] : encodable α :=
 by { classical, exact (encodable.trunc_encodable_of_fintype α).out }
 
+@[priority 100]
+instance _root_.fintype.countable [fintype α] : countable α :=
+by { haveI := fintype.encodable α, exact encodable.countable }
+
 /-- If `α` is encodable, then so is `vector α n`. -/
 instance vector [encodable α] {n} : encodable (vector α n) :=
 encodable.subtype

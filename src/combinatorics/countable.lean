@@ -26,6 +26,7 @@ variables {α : Sort u} {β : Sort v}
 ### Definition and basic properties
 -/
 
+/-- A type `α` is countable if there exists an injective map `α → ℕ`. -/
 class countable (α : Sort u) : Prop :=
 (out' : nonempty (α ↪ ℕ))
 
@@ -110,12 +111,6 @@ begin
   exacts [h ▸ rfl, h.elim, h.elim, h ▸ rfl]
 end
 
-instance {α β} [countable α] [countable β] : countable (α ⊕ β) :=
-(equiv.psum_equiv_sum α β).symm.countable
-
-instance {α} [countable α] : countable (option α) :=
-(equiv.option_equiv_sum_punit α).countable
-
 end sort
 
 /-!
@@ -123,6 +118,12 @@ end sort
 -/
 
 variables {α : Type u} {β : Type v}
+
+instance [countable α] [countable β] : countable (α ⊕ β) :=
+(equiv.psum_equiv_sum α β).symm.countable
+
+instance [countable α] : countable (option α) :=
+(equiv.option_equiv_sum_punit α).countable
 
 instance [countable β] : countable (ulift.{u} β) :=
 equiv.ulift.injective.countable

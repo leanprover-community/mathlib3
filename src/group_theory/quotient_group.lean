@@ -448,7 +448,7 @@ fintype_of_ker_le_range _ _ h.le
 /-- If `ker(G →* H)` and `H` are finite, then `G` is finite. -/
 @[to_additive "If `ker(G →+ H)` and `H` are finite, then `G` is finite."]
 noncomputable def fintype_of_ker_of_codom [fintype g.ker] : fintype G :=
-fintype_of_ker_le_range ((top_equiv : G ≃* _).to_monoid_hom.comp $ inclusion le_top) g $
+fintype_of_ker_le_range ((top_equiv : _ ≃* G).to_monoid_hom.comp $ inclusion le_top) g $
   λ x hx, ⟨⟨x, hx⟩, rfl⟩
 
 /-- If `F` and `coker(F →* G)` are finite, then `G` is finite. -/

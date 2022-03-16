@@ -1033,7 +1033,7 @@ rfl
 
 /-- The supremum of a family of ordinals -/
 def sup {ι : Type u} (f : ι → ordinal.{max u v}) : ordinal.{max u v} :=
-Sup (set.range f)
+supr f
 
 @[simp] theorem Sup_eq_sup {ι : Type u} (f : ι → ordinal.{max u v}) : Sup (set.range f) = sup f :=
 rfl
@@ -1122,12 +1122,12 @@ theorem sup_eq_Sup {s : set ordinal.{u}} (hs : small.{u} s) :
   sup.{u u} (λ x, (@equiv_shrink s hs).symm x) = Sup s :=
 let hs' := bdd_above_iff_small.2 hs in
   ((cSup_le_iff' hs').2 (le_sup_shrink_equiv hs)).antisymm'
-  (sup_le.2 (λ x, le_cSup hs' (subtype.mem _)))
+  (sup_le (λ x, le_cSup hs' (subtype.mem _)))
 
 private theorem sup_le_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
   [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)
   (f : Π a < o, ordinal) : sup (family_of_bfamily' r ho f) ≤ sup (family_of_bfamily' r' ho' f) :=
-sup_le.2 $ λ i, begin
+sup_le $ λ i, begin
   cases typein_surj r' (by { rw [ho', ←ho], exact typein_lt_type r i }) with j hj,
   simp_rw [family_of_bfamily', ←hj],
   apply le_sup

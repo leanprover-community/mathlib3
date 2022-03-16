@@ -84,7 +84,7 @@ begin
   { simpa [fin.lt_iff_coe_lt_coe] using h₁.lt_iff_lt.mp hb },
 end
 
-lemma prime_dvd_eq_second_of_chain {p q r : associates M} {n : ℕ} (hn : n ≠ 0)
+lemma eq_second_of_chain_of_prime_dvd {p q r : associates M} {n : ℕ} (hn : n ≠ 0)
   {c : fin (n + 1) → associates M} (h₁ : strict_mono c)
   (h₂ : ∀ {r : associates M}, r ≤ q ↔ ∃ i, r = c i) (hp : prime p) (hr : r ∣ q) (hp' : p ∣ r) :
   p = c 1 :=

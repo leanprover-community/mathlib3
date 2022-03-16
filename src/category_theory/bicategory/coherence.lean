@@ -175,8 +175,8 @@ begin
   case right_unitor
   { erw [comp_id, whisker_left_right_unitor, assoc, ←right_unitor_naturality], refl },
   case right_unitor_inv
-  { erw [comp_id, whisker_left_right_unitor_inv, assoc, iso.hom_inv_id_assoc,
-      right_unitor_conjugation] }
+  { dsimp,
+    erw [comp_id, ←right_unitor_comp_inv_assoc, right_unitor_naturality, iso.inv_hom_id_assoc] }
 end
 
 @[simp]

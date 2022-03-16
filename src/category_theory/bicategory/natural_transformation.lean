@@ -68,13 +68,10 @@ variables (F : oplax_functor B C)
 def id : oplax_nat_trans F F :=
 { app := λ a, 𝟙 (F.obj a),
   naturality := λ a b f, (ρ_ (F.map f)).hom ≫ (λ_ (F.map f)).inv,
-  naturality_naturality' := by tidy,
   naturality_comp' := λ a b c f g, by
   { simp only [right_unitor_conjugation, left_unitor_conjugation, iso.inv_hom_id_assoc, assoc],
     congr' 2,
-    coherence },
-  naturality_id' := λ a, by
-  { simp [unitors_equal, unitors_inv_equal] } }
+    coherence } }
 
 instance : inhabited (oplax_nat_trans F F) := ⟨id F⟩
 
@@ -94,7 +91,10 @@ lemma whisker_right_naturality_naturality {f g : a ⟶ b} (β : f ⟶ g) (h : G.
   (F.map₂ β ▷ η.app b ≫ h) ≫ (α_ _ _ _).inv ≫ (η.naturality g ▷ h) =
     (α_ _ _ _).inv ≫ (η.naturality f ▷ h) ≫ (α_ _ _ _).hom ≫
       (η.app a ◁ G.map₂ β ▷ h) ≫ (α_ _ _ _).inv :=
-by sorry
+begin
+  rw [associator_inv_naturality_left_assoc, ←bicategory.whisker_right_comp, naturality_naturality],
+  simp only [bicategory.whisker_right_comp, associator_conjugation_middle]
+end
 
 @[simp, reassoc]
 lemma whisker_left_naturality_comp (f : a' ⟶ G.obj a) (g : a ⟶ b) (h : b ⟶ c) :
@@ -110,7 +110,12 @@ lemma whisker_right_naturality_comp (f : a ⟶ b) (g : b ⟶ c) (h : G.obj c ⟶
     (α_ _ _ _).hom ≫ (F.map_comp f g ▷ η.app c ≫ h) ≫ (α_ _ _ _).hom ≫ (_ ◁ (α_ _ _ _).inv) ≫
       (F.map f ◁ η.naturality g ▷ h) ≫ (_ ◁ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv ≫
         (η.naturality f ▷ G.map g ≫ h) ≫ (α_ _ _ _).hom ≫ (_ ◁ (α_ _ _ _).inv) :=
-by sorry
+begin
+  rw [←associator_naturality_middle, ←bicategory.whisker_right_comp_assoc, naturality_comp],
+  simp only [bicategory.whisker_right_comp, associator_conjugation_left,
+    associator_conjugation_middle, assoc, pentagon_inv_inv_hom_hom_inv_assoc,
+    pentagon_inv_hom_hom_hom_inv_assoc, pentagon_inv_hom_hom_hom_inv]
+end
 
 @[simp, reassoc]
 lemma whisker_left_naturality_id (f : a' ⟶ G.obj a) :
@@ -123,7 +128,10 @@ lemma whisker_right_naturality_id (f : G.obj a ⟶ a') :
   (η.naturality (𝟙 a) ▷ f) ≫ (α_ _ _ _).hom ≫ (η.app a ◁ G.map_id a ▷ f) =
     (α_ _ _ _).hom ≫ (F.map_id a ▷ η.app a ≫ f) ≫ (α_ _ _ _).inv ≫
       ((λ_ (η.app a)).hom ▷ f) ≫ ((ρ_ (η.app a)).inv ▷ f) ≫ (α_ _ _ _).hom :=
-by sorry
+begin
+  rw [←associator_naturality_middle, ←bicategory.whisker_right_comp_assoc, naturality_id],
+  simp only [bicategory.whisker_right_comp, associator_conjugation_left, assoc]
+end
 
 end
 
@@ -134,20 +142,17 @@ def vcomp (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tran
   naturality := λ a b f,
     (α_ _ _ _).inv ≫ (η.naturality f ▷ θ.app b) ≫ (α_ _ _ _).hom ≫
       (η.app a ◁ θ.naturality f) ≫ (α_ _ _ _).inv,
-  naturality_naturality' := λ a b f g ι, by
-  { simp only [whisker_right_naturality_naturality_assoc, iso.inv_hom_id_assoc, whisker_left_naturality_naturality_assoc,
-  associator_conjugation_right, assoc] },
   naturality_comp' := λ a b c f g, by
-  { simp only [associator_conjugation_right, assoc, iso.inv_hom_id_assoc, whisker_left_naturality_comp_assoc,
-  whisker_right_naturality_comp_assoc, inv_hom_whisker_left_assoc, bicategory.whisker_left_comp,
-  bicategory.whisker_right_comp, associator_conjugation_left, associator_conjugation_middle,
-  pentagon_inv_hom_hom_hom_inv_assoc, pentagon_inv_inv_hom_hom_inv, pentagon_inv_inv_hom_hom_inv_assoc],
-    slice_lhs 6 6 { }, slice_rhs 6 6 { }, congr' 9, simp_rw assoc,
-    rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc, associator_naturality_right] },
-  naturality_id' := λ a, by
-  { simp only [associator_conjugation_right, assoc, iso.inv_hom_id_assoc, whisker_left_naturality_id_assoc,
-  whisker_right_naturality_id_assoc, triangle_assoc, inv_hom_whisker_right_assoc, left_unitor_comp,
-  right_unitor_comp_inv] } }
+  { simp only [associator_conjugation_right, assoc, iso.inv_hom_id_assoc,
+      whisker_left_naturality_comp_assoc, whisker_right_naturality_comp_assoc,
+      inv_hom_whisker_left_assoc, bicategory.whisker_left_comp,
+      bicategory.whisker_right_comp, associator_conjugation_left, associator_conjugation_middle,
+      pentagon_inv_hom_hom_hom_inv_assoc, pentagon_inv_inv_hom_hom_inv,
+      pentagon_inv_inv_hom_hom_inv_assoc],
+    congr' 5, simp_rw ←assoc, congr' 4, simp_rw assoc,
+    extract_goal,
+    rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc,
+      associator_naturality_right] } }
 
 variables (B C)
 

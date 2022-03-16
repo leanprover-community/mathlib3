@@ -437,10 +437,12 @@ begin
   simp only [triangle_assoc_comp_right, inv_hom_whisker_left, inv_hom_whisker_right, assoc]
 end
 
+@[simp]
 lemma unitors_equal : (λ_ (𝟙 a)).hom = (ρ_ (𝟙 a)).hom :=
 by rw [←whisker_left_iff, ←cancel_epi (α_ (𝟙 a) (𝟙 _) (𝟙 _)).hom,
        ←cancel_mono (ρ_ (𝟙 a)).hom, triangle, ←right_unitor_comp, right_unitor_naturality]
 
+@[simp]
 lemma unitors_inv_equal : (λ_ (𝟙 a)).inv = (ρ_ (𝟙 a)).inv :=
 by { ext, rw [←unitors_equal], simp only [hom_inv_id] }
 

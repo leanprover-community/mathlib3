@@ -213,8 +213,8 @@ def lift_homotopy_zero {Y Z : C} {P : ProjectiveResolution Y} {Q : ProjectiveRes
   (comm : f ≫ Q.π = 0) :
   homotopy f 0 :=
 homotopy.mk_inductive _ (lift_homotopy_zero_zero f comm) (by simp [lift_homotopy_zero_zero])
-    (lift_homotopy_zero_one f comm) (by simp [lift_homotopy_zero_one])
-    (λ n ⟨g, g', w⟩, ⟨lift_homotopy_zero_succ f n g g' w, by simp [lift_homotopy_zero_succ, w]⟩)
+  (lift_homotopy_zero_one f comm) (by simp [lift_homotopy_zero_one])
+  (λ n ⟨g, g', w⟩, ⟨lift_homotopy_zero_succ f n g g' w, by simp [lift_homotopy_zero_succ, w]⟩)
 
 /-- Two lifts of the same morphism are homotopic. -/
 def lift_homotopy {Y Z : C} (f : Y ⟶ Z) {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}

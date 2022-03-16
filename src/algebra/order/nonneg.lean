@@ -266,7 +266,7 @@ instance canonically_linear_ordered_add_monoid [linear_ordered_ring α] :
   canonically_linear_ordered_add_monoid {x : α // 0 ≤ x} :=
 { ..subtype.linear_order _, ..nonneg.canonically_ordered_add_monoid }
 
-instance floor_semiring [ordered_semiring α] [floor_semiring α] : floor_semiring {r : α // 0 ≤ r} :=
+instance floor_semiring [linear_ordered_semiring α] [floor_semiring α] : floor_semiring {r : α // 0 ≤ r} :=
 { floor := λ a, ⌊(a : α)⌋₊,
   ceil := λ a, ⌈(a : α)⌉₊,
   floor_of_neg := λ a ha, floor_semiring.floor_of_neg ha,
@@ -279,10 +279,10 @@ instance floor_semiring [ordered_semiring α] [floor_semiring α] : floor_semiri
     rw [←subtype.coe_le_coe, nonneg.coe_nat_cast]
   end}
 
-@[norm_cast] lemma nat_floor_coe [ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
+@[norm_cast] lemma nat_floor_coe [linear_ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
   ⌊(a : α)⌋₊ = ⌊a⌋₊ := rfl
 
-@[norm_cast] lemma nat_ceil_coe [ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
+@[norm_cast] lemma nat_ceil_coe [linear_ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
   ⌈(a : α)⌉₊ = ⌈a⌉₊  := rfl
 
 section linear_order

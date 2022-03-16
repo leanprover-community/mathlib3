@@ -53,7 +53,7 @@ variables {α : Type*}
 
 /-- A `floor_semiring` is a linear ordered semiring over `α` with a function
 `floor : α → ℕ` satisfying `∀ (n : ℕ) (x : α), n ≤ ⌊x⌋ ↔ (n : α) ≤ x)`. -/
-class floor_semiring (α) [ordered_semiring α] :=
+class floor_semiring (α) [linear_ordered_semiring α] :=
 (floor : α → ℕ)
 (ceil : α → ℕ)
 (floor_of_neg {a : α} (ha : a < 0) : floor a = 0)
@@ -70,7 +70,7 @@ instance : floor_semiring ℕ :=
 namespace nat
 
 section ordered_semiring
-variables [ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
+variables [linear_ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
 
 /-- `⌊a⌋₊` is the greatest natural `n` such that `n ≤ a`. If `a` is negative, then `⌊a⌋₊ = 0`. -/
 def floor : α → ℕ := floor_semiring.floor

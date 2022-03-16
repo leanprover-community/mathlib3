@@ -167,8 +167,8 @@ theorem dvd_prime_two_le {p m : ℕ} (pp : prime p) (H : 2 ≤ m) : m ∣ p ↔ 
 theorem prime_dvd_prime_iff_eq {p q : ℕ} (pp : p.prime) (qp : q.prime) : p ∣ q ↔ p = q :=
 dvd_prime_two_le qp (prime.two_le pp)
 
-theorem prime.not_dvd_one {p : ℕ} (pp : prime p) : ¬ p ∣ 1
-| d := (not_le_of_gt pp.one_lt) $ le_of_dvd dec_trivial d
+theorem prime.not_dvd_one {p : ℕ} (pp : prime p) : ¬ p ∣ 1 :=
+pp.not_dvd_one
 
 theorem not_prime_mul {a b : ℕ} (a1 : 1 < a) (b1 : 1 < b) : ¬ prime (a * b) :=
 λ h, ne_of_lt (nat.mul_lt_mul_of_pos_left b1 (lt_of_succ_lt a1)) $
@@ -1196,13 +1196,11 @@ end int
 section
 open finset
 /-- Exactly `n / p` naturals in `[1, n]` are multiples of `p`. -/
-lemma card_multiples (n p : ℕ) : card {e ∈ range n | p ∣ e + 1} = n / p :=
+lemma card_multiples (n p : ℕ) : card ((range n).filter (λ e, p ∣ e + 1)) = n / p :=
 begin
   induction n with n hn,
-  { rw [nat.zero_div, sep_def, range_zero, filter_empty, card_empty] },
-  { rw [nat.succ_div, add_ite, add_zero, range_succ, sep_def, filter_insert, apply_ite card,
-      card_insert_of_not_mem, ←sep_def, hn],
-    { congr },
-    { simp_rw [mem_filter, not_mem_range_self, false_and, not_false_iff] } },
+  { rw [nat.zero_div, range_zero, filter_empty, card_empty] },
+  { rw [nat.succ_div, add_ite, add_zero, range_succ, filter_insert, apply_ite card,
+      card_insert_of_not_mem (mem_filter.not.mpr (not_and_of_not_left _ not_mem_range_self)), hn] }
 end
 end

@@ -436,6 +436,14 @@ by { ext, simp }
 instance : has_top (subgroup G) :=
 ⟨{ inv_mem' := λ _ _, set.mem_univ _ , .. (⊤ : submonoid G) }⟩
 
+/-- The top subgroup is isomorphic to the group.
+
+This is the group version of `submonoid.top_equiv`. -/
+@[to_additive "The top additive subgroup is isomorphic to the additive group.
+
+This is the additive group version of `add_submonoid.top_equiv`.", simps]
+def top_equiv : (⊤ : subgroup G) ≃* G := submonoid.top_equiv
+
 /-- The trivial subgroup `{1}` of an group `G`. -/
 @[to_additive "The trivial `add_subgroup` `{0}` of an `add_group` `G`."]
 instance : has_bot (subgroup G) :=
@@ -2762,6 +2770,39 @@ disjoint_def'.trans ⟨λ h x y hx hy hxy,
   let hx1 : x = 1 := h hx (H₂.inv_mem hy) (eq_inv_iff_mul_eq_one.mpr hxy) in
   ⟨hx1, by simpa [hx1] using hxy⟩,
   λ h x y hx hy hxy, (h hx (H₂.inv_mem hy) (mul_inv_eq_one.mpr hxy)).1 ⟩
+
+/-- `finset.noncomm_prod` is “injective” in `f` if `f` maps into independent subgroups.  This
+generalizes (one direction of) `subgroup.disjoint_iff_mul_eq_one`. -/
+@[to_additive "`finset.noncomm_sum` is “injective” in `f` if `f` maps into independent subgroups.
+This generalizes (one direction of) `add_subgroup.disjoint_iff_add_eq_zero`. "]
+lemma eq_one_of_noncomm_prod_eq_one_of_independent {β : Type*} [group β]
+  (s : finset G) (f : G → β) (comm : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
+  (K : G → subgroup β) (hind : complete_lattice.independent K) (hmem : ∀ (x ∈ s), f x ∈ K x)
+  (heq1 : s.noncomm_prod f comm = 1) : ∀ (i ∈ s), f i = 1 :=
+begin
+  classical,
+  revert heq1,
+  induction s using finset.induction_on with i s hnmem ih,
+  { simp, },
+  { simp only [finset.forall_mem_insert] at comm hmem,
+    specialize ih (λ x hx, (comm.2 x hx).2) hmem.2,
+    have hmem_bsupr: s.noncomm_prod f (λ x hx, (comm.2 x hx).2) ∈ ⨆ (i ∈ (s : set G)), K i,
+    { refine subgroup.noncomm_prod_mem _ _ _,
+      intros x hx,
+      have : K x ≤ ⨆ (i ∈ (s : set G)), K i := le_bsupr x hx,
+      exact this (hmem.2 x hx), },
+    intro heq1,
+    rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem at heq1,
+    have hnmem' : i ∉ (s : set G), by simpa,
+    obtain ⟨heq1i : f i = 1, heq1S : s.noncomm_prod f _ = 1⟩ :=
+      subgroup.disjoint_iff_mul_eq_one.mp (hind.disjoint_bsupr hnmem') hmem.1 hmem_bsupr heq1,
+    specialize ih heq1S,
+    intros i h,
+    simp only [finset.mem_insert] at h,
+    rcases h with ⟨rfl | _⟩,
+    { exact heq1i },
+    { exact (ih _ h), } }
+end
 
 end subgroup
 

@@ -594,22 +594,10 @@ def direct_product_of_normal [fintype G]
 begin
   set ps := (fintype.card G).factorization.support,
 
-  let P := λ (p : ℕ), (default : sylow p G),
+  -- “The” sylow group for p
+  let P : Π p, sylow p G := λ _, default,
 
-  have : (Π p : ps, Π P : sylow p G, (↑P : subgroup G)) ≃* (Π p : ps, (↑(P p) : subgroup G)),
-  begin
-    -- this part is hairy and needs lots of explicit instantiations
-    apply @mul_equiv.Pi_congr_right ps
-      (λ p, (Π P : sylow p G, (↑P : subgroup G))) (λ p, ((↑(P p) : subgroup G) : Type u)) _ _ ,
-    rintro ⟨p, hp⟩,
-    haveI hp' := fact.mk (nat.prime_of_mem_factorization hp),
-    haveI := subsingleton_of_normal _ (hn (P p)),
-    change (Π (P : sylow p G), ↥P) ≃* (↑(P p) : subgroup G),
-    exact (mul_equiv.Pi_subsingleton _ _),
-  end,
-
-  have hcomm : ∀ (p₁ p₂ : ps), p₁ ≠ p₂ →
-    ∀ (x y : G), x ∈ (↑(P p₁) : subgroup G) → y ∈ (↑(P p₂) : subgroup G) → commute x y,
+  have hcomm : pairwise (λ (p₁ p₂ : ps), ∀ (x y : G), x ∈ P p₁ → y ∈ P p₂ → commute x y),
   { rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
     haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
     haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
@@ -617,8 +605,18 @@ begin
     apply subgroup.commute_of_normal_of_disjoint _ _ (hn (P p₁)) (hn (P p₂)),
     apply is_p_group.disjoint_of_ne p₁ p₂ hne' _ _ (P p₁).is_p_group' (P p₂).is_p_group', },
 
+  refine mul_equiv.trans _ _,
+  -- There is only one sylow group for each p, so the inner product is trivial
+  show (Π p : ps, Π P : sylow p G, P) ≃* (Π p : ps, P p),
+  { -- here we need to help the elaborator with an explicit instantiation
+    apply @mul_equiv.Pi_congr_right ps (λ p, (Π P : sylow p G, P)) (λ p, P p) _ _ ,
+    rintro ⟨p, hp⟩,
+    haveI hp' := fact.mk (nat.prime_of_mem_factorization hp),
+    haveI := subsingleton_of_normal _ (hn (P p)),
+    change (Π (P : sylow p G), P) ≃* P p,
+    exact mul_equiv.Pi_subsingleton _ _, },
 
-  apply mul_equiv.trans this,
+  show (Π p : ps, P p) ≃* G,
   apply mul_equiv.of_bijective (subgroup.noncomm_pi_coprod hcomm),
   apply (bijective_iff_injective_and_card _).mpr,
   split,
@@ -636,11 +634,10 @@ begin
   { calc card (Π (p : ps), P p)
         = ∏ (p : ps), card ↥(P p) : fintype.card_pi
     ... = ∏ (p : ps), p.1 ^ (card G).factorization p.1 :
-    begin
-      congr' 1, ext p, rcases p with ⟨p,hp⟩,
-      let hp' := fact.mk (nat.prime_of_mem_factorization hp),
-      exact (@card_eq_multiplicity _ _ _ p  hp' (P p))
-    end
+      begin
+        congr' 1 with ⟨p, hp⟩,
+        exact @card_eq_multiplicity _ _ _ p ⟨nat.prime_of_mem_factorization hp⟩ (P p)
+      end
     ... = ∏ p in ps, p ^ (card G).factorization p :
       finset.prod_finset_coe (λ p, p ^ (card G).factorization p) _
     ... = (card G).factorization.prod pow : rfl

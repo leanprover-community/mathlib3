@@ -833,20 +833,14 @@ end
 @[to_additive] lemma closure_induction_left {p : G → Prop} {x : G}
   (h : x ∈ closure k) (H1 : p 1) (Hmul : ∀ (x ∈ k) y, p y → p (x * y))
   (Hinv : ∀ (x ∈ k) y, p y → p (x⁻¹ * y)) : p x :=
-begin
-  have := le_of_eq (closure_to_submonoid k),
-  exact submonoid.closure_induction_left (this h) H1 (λ x hx, hx.elim (Hmul x)
-    (λ hx y hy, (congr_arg _ (inv_inv x)).mp (Hinv x⁻¹ hx y hy))),
-end
+let key := le_of_eq (closure_to_submonoid k) in submonoid.closure_induction_left (key h) H1
+  (λ x hx, hx.elim (Hmul x) (λ hx y hy, (congr_arg _ (inv_inv x)).mp (Hinv x⁻¹ hx y hy)))
 
 @[to_additive] lemma closure_induction_right {p : G → Prop} {x : G}
   (h : x ∈ closure k) (H1 : p 1) (Hmul : ∀ x (y ∈ k), p x → p (x * y))
   (Hinv : ∀ x (y ∈ k), p x → p (x * y⁻¹)) : p x :=
-begin
-  have := le_of_eq (closure_to_submonoid k),
-  exact submonoid.closure_induction_right (this h) H1 (λ x y hy, hy.elim (Hmul x y)
-    (λ hy hx, (congr_arg _ (inv_inv y)).mp (Hinv x y⁻¹ hy hx))),
-end
+let key := le_of_eq (closure_to_submonoid k) in submonoid.closure_induction_right (key h) H1
+  (λ x y hy, hy.elim (Hmul x y) (λ hy hx, (congr_arg _ (inv_inv y)).mp (Hinv x y⁻¹ hy hx)))
 
 /-- An induction principle for closure membership. If `p` holds for `1` and all elements of
 `k` and their inverse, and is preserved under multiplication, then `p` holds for all elements of

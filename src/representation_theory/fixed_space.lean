@@ -84,8 +84,14 @@ lemma fixed_space_inter :
   (fixed_space k G V).carrier = ⋂ g : G, function.fixed_points (has_scalar.smul g) :=
 by { ext, simp [function.is_fixed_pt] }
 
-noncomputable def fixed_space' : submodule (monoid_algebra k G) V :=
+/--
+The subspace of vectors fixed by all elements of `G`, as a submodule over `monoid_algebra k G`
+-/
+noncomputable def fixed_submodule : submodule (monoid_algebra k G) V :=
   submodule_of_smul_mem (fixed_space k G V) (λ g v hv, by {rw [of_smul, hv g], exact hv})
+
+@[simp] lemma fixed_submodule_carrier :
+  (fixed_submodule k G V).carrier = (fixed_space k G V).carrier := rfl
 
 variables [fintype G] [invertible (fintype.card G : k)]
 

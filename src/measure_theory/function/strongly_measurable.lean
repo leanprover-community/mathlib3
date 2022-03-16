@@ -289,14 +289,13 @@ protected lemma inf [has_inf β] [has_continuous_inf β] (hf : strongly_measurab
 
 end order
 
-
 /-- The range of a strongly measurable function is second-countable. -/
 lemma second_countable_range {m : measurable_space α} [topological_space β] [metrizable_space β]
   (hf : strongly_measurable f) :
   second_countable_topology (range f) :=
 begin
   letI := metrizable_space_metric β,
-  apply secound_countable_subtype_of_subset_closure_countable (⋃ n, range (hf.approx n)),
+  apply metric.secound_countable_subtype_of_subset_closure_countable (⋃ n, range (hf.approx n)),
   { exact countable_Union (λ n, (simple_func.finite_range _).countable) },
   { rintros - ⟨x, rfl⟩,
     apply mem_closure_of_tendsto (hf.tendsto_approx x),
@@ -363,18 +362,40 @@ begin
   have g_meas : measurable g,
   { rw fg at H, exact T.measurable_comp_iff.1 H },
   haveI : second_countable_topology (closure (range f)) :=
-    secound_countable_subtype_of_subset_closure subset.rfl,
+    metric.secound_countable_subtype_of_subset_closure subset.rfl,
   have g_smeas : strongly_measurable g := measurable.strongly_measurable g_meas,
   rw fg,
   exact continuous_subtype_coe.comp_strongly_measurable g_smeas,
 end
 
-lemma _root_.embedding.comp_strongly_measurable_iff
-  {m : measurable_space α} [topological_space β] [topological_space γ] {g : β → γ} {f : α → β}
-  (hg : embedding g) :
+lemma _root_.closed_embedding.comp_strongly_measurable_iff {m : measurable_space α}
+  [topological_space β] [metrizable_space β] [topological_space γ] [metrizable_space γ]
+  {g : β → γ} {f : α → β} (hg : closed_embedding g) :
   strongly_measurable (λ x, g (f x)) ↔ strongly_measurable f :=
 begin
+  letI : measurable_space β := borel β,
+  letI : borel_space β := ⟨rfl⟩,
+  letI : measurable_space γ := borel γ,
+  letI : borel_space γ := ⟨rfl⟩,
   refine ⟨λ H, _, λ H, hg.continuous.comp_strongly_measurable H⟩,
+  refine strongly_measurable_iff_measurable_second_countable.2 ⟨_, _⟩,
+  { exact hg.measurable_embedding.measurable_comp_iff.1 H.measurable },
+  { have Z := H.second_countable_range,
+    have A : embedding (g ∘ (coe : range f → β)) := hg.to_embedding.comp embedding_subtype_coe,
+    let G : range f → range (λ x, g (f x)),
+    { apply cod_restrict  (g ∘ (coe : range f → β)),
+      rintros ⟨-, ⟨y, rfl⟩⟩,
+      apply mem_range_self },
+    have : embedding G,
+    { have B : (g ∘ (coe : range f → β)) = coe ∘ G, by { ext x, refl },
+      rw B at A,
+      apply embedding_of_embedding_compose _ continuous_subtype_coe A,
+      apply continuous.cod_restrict,
+      exact A.continuous,
+
+    },
+    resetI,
+    exact embedding.second_countable_topology this }
 end
 
 #exit

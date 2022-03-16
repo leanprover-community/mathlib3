@@ -2110,7 +2110,7 @@ lemma map_le_map_iff_of_injective {f : G →* N} (hf : function.injective f) {H 
 ⟨(congr_arg2 (≤) (H.comap_map_eq_self_of_injective hf)
   (K.comap_map_eq_self_of_injective hf)).mp ∘ comap_mono, map_mono⟩
 
-@[to_additive]
+@[simp, to_additive]
 lemma map_subtype_le_map_subtype {G' : subgroup G} {H K : subgroup G'} :
   H.map G'.subtype ≤ K.map G'.subtype ↔ H ≤ K :=
 map_le_map_iff_of_injective subtype.coe_injective

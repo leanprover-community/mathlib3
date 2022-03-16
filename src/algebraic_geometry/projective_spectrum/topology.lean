@@ -351,7 +351,7 @@ by { rw basic_open_mul 𝒜 f g, exact inf_le_right }
   basic_open 𝒜 (f ^ n) = basic_open 𝒜 f :=
 topological_space.opens.ext $ by simpa using zero_locus_singleton_pow 𝒜 f n hn
 
-lemma basic_open_as_union_of_projection (f : A) :
+lemma basic_open_eq_union_of_projection (f : A) :
   basic_open 𝒜 f = ⨆ (i : ℕ), basic_open 𝒜 (graded_algebra.proj 𝒜 i f) :=
 topological_space.opens.ext $ set.ext $ λ z, begin
   erw [mem_coe_basic_open, topological_space.opens.mem_Sup],

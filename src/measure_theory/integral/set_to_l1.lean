@@ -3,7 +3,7 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
-import measure_theory.function.simple_func_dense
+import measure_theory.function.simple_func_dense_lp
 
 /-!
 # Extension of a linear function from indicators to L1
@@ -1753,7 +1753,7 @@ theorem tendsto_set_to_fun_of_dominated_convergence (hT : dominated_fin_meas_add
   tendsto (λ n, set_to_fun μ T hT (fs n)) at_top (𝓝 $ set_to_fun μ T hT f) :=
 begin
   /- `f` is a.e.-measurable, since it is the a.e.-pointwise limit of a.e.-measurable functions. -/
-  have f_measurable : ae_measurable f μ := ae_measurable_of_tendsto_metric_ae fs_measurable h_lim,
+  have f_measurable : ae_measurable f μ := ae_measurable_of_tendsto_metric_ae' fs_measurable h_lim,
   /- all functions we consider are integrable -/
   have fs_int : ∀ n, integrable (fs n) μ :=
     λ n, bound_integrable.mono' (fs_measurable n) (h_bound _),

@@ -30,7 +30,7 @@ Add instances for `prod`, `filter`
 
 ## References
 
-* [Wikipedia, *Complete Heyting algebra*][https://en.wikipedia.org/wiki/Complete_Heyting_algebra]
+* [Wikipedia, *Complete Heyting algebra*](https://en.wikipedia.org/wiki/Complete_Heyting_algebra)
 * [Francis Borceux, *Handbook of Categorical Algebra III*][borceux-vol3]
 -/
 
@@ -198,11 +198,10 @@ le_antisymm
 theorem compl_supr : (supr f)ᶜ = (⨅ i, (f i)ᶜ) :=
 compl_injective (by simp [compl_infi])
 
-theorem compl_Inf : (Inf s)ᶜ = (⨆ i ∈ s, iᶜ) :=
-by simp only [Inf_eq_infi, compl_infi]
-
-theorem compl_Sup : (Sup s)ᶜ = (⨅ i ∈ s, iᶜ) :=
-by simp only [Sup_eq_supr, compl_supr]
+lemma compl_Inf : (Inf s)ᶜ = (⨆ i ∈ s, iᶜ) := by simp only [Inf_eq_infi, compl_infi]
+lemma compl_Sup : (Sup s)ᶜ = (⨅ i ∈ s, iᶜ) := by simp only [Sup_eq_supr, compl_supr]
+lemma compl_Inf' : (Inf s)ᶜ = Sup (compl '' s) := compl_Inf.trans Sup_image.symm
+lemma compl_Sup' : (Sup s)ᶜ = Inf (compl '' s) := compl_Sup.trans Inf_image.symm
 
 end complete_boolean_algebra
 

@@ -23,8 +23,6 @@ variables {α β γ : Type*}
 
 section option_congr
 
-variables
-
 /-- A universe-polymorphic version of `equiv_functor.map_equiv option e`. -/
 @[simps apply]
 def option_congr (e : α ≃ β) : option α ≃ option β :=

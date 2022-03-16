@@ -257,12 +257,11 @@ end
 lemma closure_induction_left {s : set M} {p : M → Prop} {x : M} (h : x ∈ closure s) (H1 : p 1)
   (Hmul : ∀ (x ∈ s) y, p y → p (x * y)) : p x :=
 begin
-  obtain ⟨l, hl, rfl⟩ := exists_list_of_mem_closure h,
-  induction l with m l ih generalizing hl,
+  rw closure_eq_mrange at h,
+  obtain ⟨l, rfl⟩ := h,
+  induction l using free_monoid.rec_on with x y ih,
   { exact H1 },
-  { rw list.prod_cons,
-    rw list.forall_mem_cons at hl,
-    exact Hmul m hl.1 l.prod (ih (list_prod_mem _ (λ m hm, subset_closure (hl.2 m hm))) hl.2) },
+  { simpa only [map_mul, free_monoid.lift_eval_of] using Hmul _ x.prop _ ih }
 end
 
 @[to_additive]

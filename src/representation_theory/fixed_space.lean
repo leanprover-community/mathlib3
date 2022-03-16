@@ -71,14 +71,11 @@ variables [module k V] [distrib_mul_action G V] [smul_comm_class G k V]
 /--
 The subspace of vectors fixed by all elements of `G`
 -/
-noncomputable def fixed_space : submodule (monoid_algebra k G) V :=
+noncomputable def fixed_space : submodule k V :=
 { carrier := set_of (λ v, ∀ (g : G), g • v = v),
   zero_mem' := by simp,
   add_mem' := λ v w hv hw g, by simp [hv g, hw g],
-  smul_mem' := begin
-    
-    --simp [smul_comm, hv g]
-  end  }
+  smul_mem' := λ r v hv g, by simp [smul_comm, hv g] }
 
 @[simp]
 lemma mem_fixed_space (v : V) : v ∈ (fixed_space k G V) ↔ ∀ (g: G), g • v = v := by refl

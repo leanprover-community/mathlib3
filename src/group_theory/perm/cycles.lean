@@ -1084,7 +1084,7 @@ begin
       (disjoint_prod_right _ (list.pairwise_cons.mp h2).1)
       (h1 _ (list.mem_cons_self _ _))
       (base_cycles σ (h1 σ (l.mem_cons_self σ)))
-      (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },
+      (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) h2.of_cons) }
 end
 
 lemma cycle_factors_finset_mul_inv_mem_eq_sdiff [fintype α] {f g : perm α}

@@ -993,7 +993,7 @@ lemma inter_subset_ite (s s' : finset α) (P : Prop) [decidable P] :
 
 /-- `erase s a` is the set `s - {a}`, that is, the elements of `s` which are
   not equal to `a`. -/
-def erase (s : finset α) (a : α) : finset α := ⟨_, nodup_erase_of_nodup a s.2⟩
+def erase (s : finset α) (a : α) : finset α := ⟨_, s.2.erase a⟩
 
 @[simp] theorem erase_val (s : finset α) (a : α) : (erase s a).1 = s.1.erase a := rfl
 
@@ -1813,8 +1813,7 @@ open function
 
 /-- When `f` is an embedding of `α` in `β` and `s` is a finset in `α`, then `s.map f` is the image
 finset in `β`. The embedding condition guarantees that there are no duplicates in the image. -/
-def map (f : α ↪ β) (s : finset α) : finset β :=
-⟨s.1.map f, nodup_map f.2 s.2⟩
+def map (f : α ↪ β) (s : finset α) : finset β := ⟨s.1.map f, s.2.map f.2⟩
 
 @[simp] theorem map_val (f : α ↪ β) (s : finset α) : (map f s).1 = s.1.map f := rfl
 
@@ -1973,8 +1972,7 @@ instance [can_lift β α] : can_lift (finset β) (finset α) :=
     begin
       rintro ⟨⟨l⟩, hd : l.nodup⟩ hl,
       lift l to list α using hl,
-      refine ⟨⟨l, list.nodup_of_nodup_map _ hd⟩, ext $ λ a, _⟩,
-      simp
+      exact ⟨⟨l, hd.of_map _⟩, ext $ λ a, by simp⟩,
     end }
 
 lemma image_congr (h : (s : set α).eq_on f g) : finset.image f s = finset.image g s :=
@@ -2010,8 +2008,7 @@ theorem image_to_finset [decidable_eq α] {s : multiset α} :
   s.to_finset.image f = (s.map f).to_finset :=
 ext $ λ _, by simp only [mem_image, multiset.mem_to_finset, exists_prop, multiset.mem_map]
 
-theorem image_val_of_inj_on (H : set.inj_on f s) : (image f s).1 = s.1.map f :=
-(nodup_map_on H s.2).dedup
+lemma image_val_of_inj_on (H : set.inj_on f s) : (image f s).1 = s.1.map f := (s.2.map_on H).dedup
 
 @[simp] lemma image_id [decidable_eq α] : s.image id = s :=
 ext $ λ _, by simp only [mem_image, exists_prop, id, exists_eq_right]

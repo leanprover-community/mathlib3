@@ -1569,12 +1569,12 @@ lemma mem_perms_of_list_iff {l : list α} {f : perm α} :
 lemma nodup_perms_of_list : ∀ {l : list α} (hl : l.nodup), (perms_of_list l).nodup
 | []       hl := by simp [perms_of_list]
 | (a :: l) hl :=
-have hl' : l.nodup, from nodup_of_nodup_cons hl,
+have hl' : l.nodup, from hl.of_cons,
 have hln' : (perms_of_list l).nodup, from nodup_perms_of_list hl',
 have hmeml : ∀ {f : perm α}, f ∈ perms_of_list l → f a = a,
   from λ f hf, not_not.1 (mt (mem_of_mem_perms_of_list hf) (nodup_cons.1 hl).1),
 by rw [perms_of_list, list.nodup_append, list.nodup_bind, pairwise_iff_nth_le]; exact
-⟨hln', ⟨λ _ _, nodup_map (λ _ _, mul_left_cancel) hln',
+⟨hln', ⟨λ _ _, hln'.map $ λ _ _, mul_left_cancel,
   λ i j hj hij x hx₁ hx₂,
     let ⟨f, hf⟩ := list.mem_map.1 hx₁ in
     let ⟨g, hg⟩ := list.mem_map.1 hx₂ in

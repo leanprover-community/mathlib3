@@ -64,7 +64,7 @@ theorem dedup_cons {a : α} {s : multiset α} :
 by by_cases a ∈ s; simp [h]
 
 theorem nodup_ndinsert (a : α) {s : multiset α} : nodup s → nodup (ndinsert a s) :=
-quot.induction_on s $ λ l, nodup_insert
+quot.induction_on s $ λ l, nodup.insert
 
 theorem ndinsert_le {a : α} {s t : multiset α} : ndinsert a s ≤ t ↔ s ≤ t ∧ a ∈ t :=
 ⟨λ h, ⟨le_trans (le_ndinsert_self _ _) h, mem_of_le h (mem_ndinsert_self _ _)⟩,
@@ -145,7 +145,7 @@ theorem ndunion_le_union (s t : multiset α) : ndunion s t ≤ s ∪ t :=
 ndunion_le.2 ⟨subset_of_le (le_union_left _ _), le_union_right _ _⟩
 
 theorem nodup_ndunion (s : multiset α) {t : multiset α} : nodup t → nodup (ndunion s t) :=
-quotient.induction_on₂ s t $ λ l₁ l₂, list.nodup_union _
+quotient.induction_on₂ s t $ λ l₁ l₂, list.nodup.union _
 
 @[simp, priority 980]
 theorem ndunion_eq_union {s t : multiset α} (d : nodup s) : ndunion s t = s ∪ t :=

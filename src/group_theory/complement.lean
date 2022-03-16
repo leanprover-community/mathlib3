@@ -200,6 +200,7 @@ mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
 
 namespace mem_left_transversals
 
+/-- A left transversal is in bijection with left cosets. -/
 noncomputable def to_equiv (hS : S ∈ subgroup.left_transversals (H : set G)) : G ⧸ H ≃ S :=
 (equiv.of_bijective _ (subgroup.mem_left_transversals_iff_bijective.mp hS)).symm
 
@@ -207,6 +208,8 @@ lemma mk'_to_equiv (hS : S ∈ subgroup.left_transversals (H : set G)) (q : G �
   quotient.mk' (to_equiv hS q : G) = q :=
 (to_equiv hS).symm_apply_apply q
 
+/-- A left transversal can be viewed as a function mapping each element of the group to the
+  chosen representative from that left coset. -/
 noncomputable def to_fun (hS : S ∈ subgroup.left_transversals (H : set G)) : G → S :=
 to_equiv hS ∘ quotient.mk'
 
@@ -222,6 +225,7 @@ end mem_left_transversals
 
 namespace mem_right_transversals
 
+/-- A right transversal is in bijection with right cosets. -/
 noncomputable def to_equiv (hS : S ∈ subgroup.right_transversals (H : set G)) :
   quotient (quotient_group.right_rel H) ≃ S :=
 (equiv.of_bijective _ (subgroup.mem_right_transversals_iff_bijective.mp hS)).symm
@@ -230,6 +234,8 @@ lemma mk'_to_equiv (hS : S ∈ subgroup.right_transversals (H : set G))
   (q : quotient (quotient_group.right_rel H)) : quotient.mk' (to_equiv hS q : G) = q :=
 (to_equiv hS).symm_apply_apply q
 
+/-- A right transversal can be viewed as a function mapping each element of the group to the
+  chosen representative from that right coset. -/
 noncomputable def to_fun (hS : S ∈ subgroup.right_transversals (H : set G)) : G → S :=
 to_equiv hS ∘ quotient.mk'
 
@@ -300,3 +306,5 @@ lemma is_complement'_of_coprime [fintype G] [fintype H] [fintype K]
 is_complement'_of_card_mul_and_disjoint h1 (disjoint_iff.mpr (inf_eq_bot_of_coprime h2))
 
 end subgroup
+
+#lint

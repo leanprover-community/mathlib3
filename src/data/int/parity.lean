@@ -80,13 +80,8 @@ instance : decidable_pred (even : ℤ → Prop) :=
 instance decidable_pred_odd : decidable_pred (odd : ℤ → Prop) :=
 λ n, decidable_of_decidable_of_iff (by apply_instance) odd_iff_not_even.symm
 
-@[simp] theorem even_zero : even (0 : ℤ) := ⟨0, dec_trivial⟩
-
 @[simp] theorem not_even_one : ¬ even (1 : ℤ) :=
 by rw even_iff; norm_num
-
-@[simp] theorem even_bit0 (n : ℤ) : even (bit0 n) :=
-⟨n, by rw [bit0, two_mul]⟩
 
 @[parity_simps] theorem even_add : even (m + n) ↔ (even m ↔ even n) :=
 by cases mod_two_eq_zero_or_one m with h₁ h₁;
@@ -126,15 +121,6 @@ by cases mod_two_eq_zero_or_one m with h₁ h₁;
 
 theorem odd_mul : odd (m * n) ↔ odd m ∧ odd n :=
 by simp [not_or_distrib] with parity_simps
-
-theorem even.mul_left (hm : even m) (n : ℤ) : even (m * n) :=
-even_mul.mpr $ or.inl hm
-
-theorem even.mul_right (m : ℤ) (hn : even n) : even (m * n) :=
-even_mul.mpr $ or.inr hn
-
-theorem odd.mul (hm : odd m) (hn : odd n) : odd (m * n) :=
-odd_mul.mpr ⟨hm, hn⟩
 
 theorem odd.of_mul_left (h : odd (m * n)) : odd m :=
 (odd_mul.mp h).1
@@ -198,14 +184,14 @@ begin
     obtain ⟨k, hk⟩ := h,
     convert dvd_mul_right 4 k,
     rw [eq_add_of_sub_eq hk, mul_add, add_assoc, add_sub_cancel, ←mul_assoc],
-    norm_num },
+    refl },
   { left,
     obtain ⟨k, hk⟩ := h,
     convert dvd_mul_right 4 (k + 1),
     rw [eq_sub_of_add_eq hk, add_right_comm, ←add_sub, mul_add, mul_sub, add_assoc, add_assoc,
       sub_add, add_assoc, ←sub_sub (2 * n), sub_self, zero_sub, sub_neg_eq_add, ←mul_assoc,
       mul_add],
-    norm_num },
+    refl },
 end
 
 lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n := int.mul_div_cancel'

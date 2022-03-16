@@ -342,9 +342,9 @@ begin
   push_neg at H,
 
   by_cases h_sep : ∃ x, v < x ∧ x < u,
-  { cases h_sep with x hx,
+  { rcases h_sep with ⟨x, hxl, hxr⟩,
     cases filter.nonempty_of_mem (
-      l.inter_sets (hf $ Ioi_mem_nhds hx.right) (l.inter_sets (hg $ Iio_mem_nhds hx.left) hfg)) with c hc,
+      l.inter_sets (hf $ Ioi_mem_nhds hxr) (l.inter_sets (hg $ Iio_mem_nhds hxl) hfg)) with c hc,
     simp at hc,
     exact ne_of_lt (
       calc f c ≤ g c : hc.right.right
@@ -352,7 +352,7 @@ begin
         ... < f c : hc.left
     ) rfl, },
   { cases filter.nonempty_of_mem (
-      l.inter_sets (hf (Ioi_mem_nhds H)) (l.inter_sets (hg (Iio_mem_nhds H)) hfg)) with c hc,
+      l.inter_sets (hf $ Ioi_mem_nhds H) (l.inter_sets (hg $ Iio_mem_nhds H) hfg)) with c hc,
     simp at hc,
 
     push_neg at h_sep,

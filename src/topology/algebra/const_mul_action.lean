@@ -238,6 +238,9 @@ normed field) is `is_closed_map_smul_left` in `analysis.normed_space.finite_dime
 lemma is_closed_map_smul_of_ne_zero {c : G₀} (hc : c ≠ 0) : is_closed_map (λ x : α, c • x) :=
 (homeomorph.smul_of_ne_zero c hc).is_closed_map
 
+lemma is_closed.smul₀ {c : G₀} {s : set α} (hs : is_closed s) (hc : c ≠ 0) : is_closed (c • s) :=
+is_closed_map_smul_of_ne_zero hc s hs
+
 /-- `smul` is a closed map in the second argument.
 
 The lemma that `smul` is a closed map in the first argument (for a normed space over a complete

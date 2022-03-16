@@ -427,7 +427,7 @@ span_eq_bot.trans $ by simp
 
 @[simp] lemma span_zero : span R (0 : set M) = ⊥ := by rw [←singleton_zero, span_singleton_eq_bot]
 
-lemma span_eq_span {R M : Type*} [ring R] [add_comm_group M] [module R M]
+lemma span_singleton_eq_span_singleton {R M : Type*} [ring R] [add_comm_group M] [module R M]
   [no_zero_smul_divisors R M] {x y : M} : (R ∙ x) = (R ∙ y) ↔ ∃ z : Rˣ, z • x = y :=
 begin
   by_cases hx : x = 0,

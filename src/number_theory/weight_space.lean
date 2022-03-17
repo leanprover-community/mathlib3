@@ -3774,6 +3774,8 @@ noncomputable def bernoulli_measure' (hc : c.gcd p = 1) (hc' : c.gcd d = 1)
    end⟩
 
 open padic_int
+open_locale pointwise -- needed for has_add (set ℤ_[p])
+
 lemma preimage_to_zmod (x : zmod (p)) : (to_zmod) ⁻¹' {x} =
  {(x : ℤ_[p])} + (((to_zmod).ker : ideal ℤ_[p]) : set ℤ_[p]) :=
 begin
@@ -3934,7 +3936,7 @@ noncomputable def f (hd : d.gcd p = 1) [fact (0 < m)] (hc : c.gcd p = 1) (hc' : 
 noncomputable def p_adic_L_function (hd : d.gcd p = 1) [fact (0 < m)] (h : function.injective inj)
   (cont : continuous inj) (hc : c.gcd p = 1) (hc' : c.gcd d = 1) (na : ∀ (n : ℕ) (f : ℕ → R),
      ∥∑ (i : ℕ) in finset.range n, f i∥ ≤ ⨆ (i : zmod n), ∥f i.val∥) (hu : is_unit (f' p d R m hd hc hc' χ w)) :=
- (f p d R m χ w hd hc hc' hu) * (measures.integral (bernoulli_measure' p d R hc hc' hd na)
+ (f p d R m χ w hd hc hc' hu) * (measure.integral (bernoulli_measure' p d R hc hc' hd na)
 ⟨(λ (a : (units (zmod d) × units ℤ_[p])), ((pri_dir_char_extend p d R m hd χ) a) *
   (inj (teichmuller_character p a.snd))^(p - 2) * (w.to_fun a : R)), cont_paLf p d R inj m χ w hd cont⟩)
 --independent of c, remove that!

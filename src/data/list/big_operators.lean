@@ -12,13 +12,12 @@ This file provides basic results about `list.prod` and `list.sum`, which calcula
 sum of elements of a list. These are defined in [`data.list.defs`](./data/list/defs).
 -/
 
-variables {α M N R G M₀ : Type*}
+variables {ι M N R G M₀ : Type*}
 
 namespace list
 
 section monoid
-
-variables [monoid M] [monoid N] [monoid_with_zero M₀] {l l₁ l₂ : list M} {a : M}
+variables [monoid M] [monoid N] [monoid P] {l l₁ l₂ : list M} {a : M}
 
 @[simp, to_additive]
 lemma prod_nil : ([] : list M).prod = 1 := rfl
@@ -48,8 +47,8 @@ lemma prod_eq_foldr : l.prod = foldr (*) 1 l :=
 list.rec_on l rfl $ λ a l ihl, by rw [prod_cons, foldr_cons, ihl]
 
 @[to_additive]
-lemma prod_hom_rel (l : list α) {r : M → N → Prop} {f : α → M} {g : α → N} (h₁ : r 1 1)
-  (h₂ : ∀ ⦃a b c⦄, r b c → r (f a * b) (g a * c)) :
+lemma prod_hom_rel (l : list ι) {r : M → N → Prop} {f : ι → M} {g : ι → N} (h₁ : r 1 1)
+  (h₂ : ∀ ⦃i a b⦄, r a b → r (f i * a) (g i * b)) :
   r (l.map f).prod (l.map g).prod :=
 list.rec_on l h₁ (λ a l hl, by simp only [map_cons, prod_cons, h₂ hl])
 
@@ -65,7 +64,7 @@ begin
   exact l.foldl_hom _ _ _ 1 (map_mul f)
 end
 
-@[to_additive] lemma prod_map_hom (L : list α) (f : α → M) (g : F) :
+@[to_additive] lemma prod_map_hom (L : list ι) (f : ι → M) (g : F) :
   (L.map (g ∘ f)).prod = g ((L.map f).prod) :=
 by rw [← prod_hom, map_map]
 

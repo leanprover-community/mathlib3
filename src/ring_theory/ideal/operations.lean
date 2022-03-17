@@ -239,6 +239,47 @@ le_antisymm (map_le_iff_le_comap.2 $ smul_le.2 $ λ r hr n hn, show f (r • n) 
 smul_le.2 $ λ r hr n hn, let ⟨p, hp, hfp⟩ := mem_map.1 hn in
 hfp ▸ f.map_smul r p ▸ mem_map_of_mem (smul_mem_smul hr hp)
 
+variables {I}
+
+lemma mem_smul_span {s : set M} {x : M} :
+  x ∈ I • submodule.span R s ↔ x ∈ submodule.span R (⋃ (a ∈ I) (b ∈ s), ({a • b} : set M)) :=
+by rw [← I.span_eq, submodule.span_smul_span, I.span_eq]; refl
+
+variables (I)
+
+/-- If `x` is an `I`-multiple of the submodule spanned by `f '' s`,
+then we can write `x` as an `I`-linear combination of the elements of `f '' s`. -/
+lemma exists_sum_of_mem_ideal_smul_span {ι : Type*} (s : set ι) (f : ι → M) (x : M)
+  (hx : x ∈ I • span R (f '' s)) :
+  ∃ (a : s →₀ R) (ha : ∀ i, a i ∈ I), a.sum (λ i c, c • f i) = x :=
+begin
+  refine span_induction (mem_smul_span.mp hx) _ _ _ _,
+  { simp only [set.mem_Union, set.mem_range, set.mem_singleton_iff],
+    rintros x ⟨y, hy, x, ⟨i, hi, rfl⟩, rfl⟩,
+    refine ⟨finsupp.single ⟨i, hi⟩ y, λ j, _, _⟩,
+    { letI := classical.dec_eq s,
+      rw finsupp.single_apply, split_ifs, { assumption }, { exact I.zero_mem } },
+    refine @finsupp.sum_single_index s R M _ _ ⟨i, hi⟩ _ (λ i y, y • f i) _,
+    simp },
+  { exact ⟨0, λ i, I.zero_mem, finsupp.sum_zero_index⟩ },
+  { rintros x y ⟨ax, hax, rfl⟩ ⟨ay, hay, rfl⟩,
+    refine ⟨ax + ay, λ i, I.add_mem (hax i) (hay i), finsupp.sum_add_index _ _⟩;
+      intros; simp only [zero_smul, add_smul] },
+  { rintros c x ⟨a, ha, rfl⟩,
+    refine ⟨c • a, λ i, I.mul_mem_left c (ha i), _⟩,
+    rw [finsupp.sum_smul_index, finsupp.smul_sum];
+      intros; simp only [zero_smul, mul_smul] },
+end
+
+@[simp] lemma smul_comap_le_comap_smul (f : M →ₗ[R] M') (S : submodule R M') (I : ideal R) :
+  I • S.comap f ≤ (I • S).comap f :=
+begin
+  refine (submodule.smul_le.mpr (λ r hr x hx, _)),
+  rw [submodule.mem_comap] at ⊢ hx,
+  rw f.map_smul,
+  exact submodule.smul_mem_smul hr hx
+end
+
 end comm_semiring
 
 section comm_ring
@@ -1261,7 +1302,7 @@ variables {R : Type u} [comm_semiring R]
 def is_primary (I : ideal R) : Prop :=
 I ≠ ⊤ ∧ ∀ {x y : R}, x * y ∈ I → x ∈ I ∨ y ∈ radical I
 
-theorem is_primary.to_is_prime (I : ideal R) (hi : is_prime I) : is_primary I :=
+theorem is_prime.is_primary {I : ideal R} (hi : is_prime I) : is_primary I :=
 ⟨hi.1, λ x y hxy, (hi.mem_or_mem hxy).imp id $ λ hyi, le_radical hyi⟩
 
 theorem mem_radical_of_pow_mem {I : ideal R} {x : R} {m : ℕ} (hx : x ^ m ∈ radical I) :

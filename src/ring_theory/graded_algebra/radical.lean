@@ -25,8 +25,9 @@ This file contains a proof that the radical of any homogeneous ideal is a homoge
 ## Implementation details
 
 Throughout this file, the indexing type `ι` of grading is assumed to be a
-`linear_ordered_cancel_add_comm_monoid`. This might be stronger than necessary and `linarith`
-does not work on `linear_ordered_cancel_add_comm_monoid`.
+`linear_ordered_cancel_add_comm_monoid`. This might be stronger than necessary but cancelling
+property is strictly necessary; for a counterexample of how `ideal.is_homogeneous.is_prime_iff`
+fails for a non-cancellative set see `counterexample/homogeneous_prime_not_prime.lean`.
 
 ## Tags
 
@@ -144,12 +145,12 @@ lemma ideal.is_homogeneous.is_prime_iff {I : ideal A} (h : I.is_homogeneous 𝒜
     h.is_prime_of_homogeneous_mem_or_mem I_ne_top @homogeneous_mem_or_mem⟩
 
 lemma ideal.is_prime.homogeneous_core {I : ideal A} (h : I.is_prime) :
-  (I.homogeneous_core 𝒜 : ideal A).is_prime :=
+  (I.homogeneous_core 𝒜).to_ideal.is_prime :=
 begin
-  apply (ideal.homogeneous_core 𝒜 I).prop.is_prime_of_homogeneous_mem_or_mem,
-  { exact ne_top_of_le_ne_top h.ne_top (ideal.coe_homogeneous_core_le 𝒜 I) },
+  apply (ideal.homogeneous_core 𝒜 I).is_homogeneous.is_prime_of_homogeneous_mem_or_mem,
+  { exact ne_top_of_le_ne_top h.ne_top (ideal.to_ideal_homogeneous_core_le 𝒜 I) },
   rintros x y hx hy hxy,
-  have H := h.mem_or_mem (ideal.coe_homogeneous_core_le 𝒜 I hxy),
+  have H := h.mem_or_mem (ideal.to_ideal_homogeneous_core_le 𝒜 I hxy),
   refine H.imp _ _,
   { exact ideal.mem_homogeneous_core_of_is_homogeneous_of_mem hx, },
   { exact ideal.mem_homogeneous_core_of_is_homogeneous_of_mem hy, },
@@ -163,23 +164,27 @@ begin
   { exact Inf_le_Inf (λ J, and.right), },
   { refine Inf_le_Inf_of_forall_exists_le _,
     rintros J ⟨HJ₁, HJ₂⟩,
-    refine ⟨J.homogeneous_core 𝒜, _, J.coe_homogeneous_core_le _⟩,
-    refine ⟨subtype.prop _, _, HJ₂.homogeneous_core⟩,
-    refine hI.coe_homogeneous_core_eq_self.symm.trans_le (ideal.homogeneous_core_mono _ HJ₁), }
+    refine ⟨(J.homogeneous_core 𝒜).to_ideal, _, J.to_ideal_homogeneous_core_le _⟩,
+    refine ⟨homogeneous_ideal.is_homogeneous _, _, HJ₂.homogeneous_core⟩,
+    refine hI.to_ideal_homogeneous_core_eq_self.symm.trans_le (ideal.homogeneous_core_mono _ HJ₁), }
 end
 
 lemma ideal.is_homogeneous.radical {I : ideal A} (h : I.is_homogeneous 𝒜)  :
   I.radical.is_homogeneous 𝒜 :=
 begin
-  convert (Inf {J : homogeneous_ideal 𝒜 | I ≤ J.val ∧ J.val.is_prime}).prop using 2,
-  simp_rw [h.radical_eq, homogeneous_ideal.coe_Inf, subtype.coe_image, set.mem_set_of_eq,
-    exists_prop]
+  convert (Inf {J : homogeneous_ideal 𝒜 | I ≤ J.to_ideal ∧ J.to_ideal.is_prime}).is_homogeneous
+    using 2,
+  rw [h.radical_eq, homogeneous_ideal.to_ideal_Inf],
+  congr' 1,
+  ext1,
+  rw [set.mem_image, set.mem_set_of_eq],
+  exact ⟨λ h, ⟨⟨x, h.1⟩, h.2, rfl⟩, by rintro ⟨x, ⟨h1, h2⟩, rfl⟩; exact ⟨x.2, h1, h2⟩⟩
 end
 
 /-- The radical of a homogenous ideal, as another homogenous ideal. -/
 def homogeneous_ideal.radical (I : homogeneous_ideal 𝒜) : homogeneous_ideal 𝒜 :=
-⟨(I : ideal A).radical, I.prop.radical⟩
+⟨I.to_ideal.radical, I.is_homogeneous.radical⟩
 
 @[simp]
 lemma homogeneous_ideal.coe_radical (I : homogeneous_ideal 𝒜) :
-  (I.radical : ideal A) = (I : ideal A).radical := rfl
+  I.radical.to_ideal = I.to_ideal.radical := rfl

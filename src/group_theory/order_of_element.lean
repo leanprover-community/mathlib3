@@ -345,7 +345,7 @@ end
 /-- Inverses of elements of finite order have finite order. -/
 @[simp, to_additive "Inverses of elements of finite additive order have finite additive order."]
 lemma is_of_fin_order_inv_iff {x : G} : is_of_fin_order x⁻¹ ↔ is_of_fin_order x :=
-⟨λ h, by rw [←inv_inv x]; exact h.inv x⁻¹, is_of_fin_order.inv x⟩
+⟨λ h, inv_inv x ▸ h.inv, is_of_fin_order.inv⟩
 
 @[to_additive add_order_of_dvd_iff_zsmul_eq_zero]
 lemma order_of_dvd_iff_zpow_eq_one : (order_of x : ℤ) ∣ i ↔ x ^ i = 1 :=

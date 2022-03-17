@@ -1524,6 +1524,9 @@ begin
     exact ⟨f z, metric.mem_ball'.1 hz, mem_range_self _⟩ }
 end
 
+/-- If a set `s` is separable, then the corresponding subtype is separable in a metric space.
+This is not obvious, as the countable set whose closure covers `s` does not need in general to
+be contained in `s`. -/
 lemma _root_.topological_space.is_separable.separable_space {s : set α} (hs : is_separable s) :
   separable_space s :=
 begin
@@ -1532,7 +1535,6 @@ begin
   { haveI : encodable (∅ : set α) := fintype.encodable ↥∅, exact encodable.separable_space },
   rcases hs with ⟨c, hc, h'c⟩,
   haveI : encodable c := hc.to_encodable,
-  have Z := exists_seq_strict_anti_tendsto (0 : ℝ),
   obtain ⟨u, -, u_pos, u_lim⟩ : ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧
     tendsto u at_top (𝓝 0) := exists_seq_strict_anti_tendsto (0 : ℝ),
   let f : c × ℕ → α := λ p, if h : (metric.ball (p.1 : α) (u p.2) ∩ s).nonempty then h.some else x₀,
@@ -1559,6 +1561,7 @@ begin
   ... = r : add_halves _
 end
 
+/-- The preimage of a separable set by an inducing map is separable. -/
 protected lemma _root_.inducing.is_separable_preimage {f : β → α} [topological_space β]
   (hf : inducing f) {s : set α} (hs : is_separable s) :
   is_separable (f ⁻¹' s) :=

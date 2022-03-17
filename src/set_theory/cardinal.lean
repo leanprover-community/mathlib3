@@ -1023,6 +1023,10 @@ lemma cast_to_nat_of_omega_le {c : cardinal} (h : ω ≤ c) :
   ↑c.to_nat = (0 : cardinal) :=
 by rw [to_nat_apply_of_omega_le h, nat.cast_zero]
 
+lemma to_nat_mono_of_lt_omega {c d : cardinal} (hd : d < ω) (hcd : c ≤ d) :
+  c.to_nat ≤ d.to_nat :=
+by rwa [←nat_cast_le, cast_to_nat_of_lt_omega (lt_of_le_of_lt hcd hd), cast_to_nat_of_lt_omega hd]
+
 @[simp]
 lemma to_nat_cast (n : ℕ) : cardinal.to_nat n = n :=
 begin

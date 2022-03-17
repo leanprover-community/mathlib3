@@ -1001,6 +1001,10 @@ cofork.is_colimit.mk' _ $ λ s,
   ⟨l.1, l.2,
     λ m hm,by apply cofork.is_colimit.hom_ext i; rw cofork.π_of_π at hm; rw hm; exact l.2.symm⟩
 
+lemma has_coequalizer_epi_comp [has_coequalizer f g] {W : C} (h : W ⟶ X) [hm : epi h] :
+  has_coequalizer (h ≫ f) (h ≫ g) :=
+⟨⟨{ cocone := _, is_colimit := is_coequalizer_epi_comp (colimit.is_colimit _) h }⟩⟩
+
 variables (C f g)
 
 /-- A coequalizer of an idempotent morphism and the identity is split epi. -/

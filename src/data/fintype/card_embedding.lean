@@ -21,7 +21,7 @@ open_locale nat
 namespace fintype
 
 lemma card_embedding_eq_of_unique
-  {α β : Type*} [unique α] [fintype α] [fintype β] [fintype (α ↪ β)]:
+  {α β : Type*} [unique α] [fintype β] [fintype (α ↪ β)]:
 ‖α ↪ β‖ = ‖β‖ := card_congr equiv.unique_embedding_equiv_result
 
 local attribute [semireducible] function.embedding.fintype

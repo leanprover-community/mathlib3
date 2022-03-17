@@ -6,7 +6,6 @@ Authors: Aaron Anderson
 
 import model_theory.finitely_generated
 import model_theory.direct_limit
-import category_theory.concrete_category.bundled
 
 /-!
 # Fraïssé Classes and Fraïssé Limits
@@ -19,12 +18,6 @@ ultrahomogeneous structures. To each is associated a unique (up to nonunique iso
 Fraïssé limit - the countable structure with that age.
 
 ## Main Definitions
-* `first_order.language.equiv_setoid` is the equivalence relation on bundled `L.Structure`s
-indicating that they are isomorphic. Its quotients represent isomorphism classes of structures.
-* `first_order.language.is_equiv_invariant` indicates that a class of structures is invariant
-under isomorphism.
-* `first_order.language.is_equiv_invariant.to_set_quotient` allows us to view an
-isomorphism-invariant class as a set of isomorphism classes.
 * `first_order.language.age` is the class of finitely-generated structures that embed into a
 particular structure.
 * A class `K` has the `first_order.language.hereditary` when all finitely-generated
@@ -77,68 +70,13 @@ open Structure substructure
 
 variables (L : language.{u v})
 
-/-! ### Isomorphism-Invariant Classes and Essential Countability -/
-
-@[protected] instance category_theory.bundled.Structure (M : bundled L.Structure) :
-  L.Structure M :=
-M.str
-
-/-- The equivalence relation on bundled `L.Structure`s indicating that they are isomorphic. -/
-instance equiv_setoid : setoid (bundled L.Structure) :=
-{ r := λ M N, nonempty (M ≃[L] N),
-  iseqv := ⟨λ M, ⟨equiv.refl L M⟩, λ M N, nonempty.map equiv.symm,
-    λ M N P, nonempty.map2 (λ MN NP, NP.comp MN)⟩ }
-
-variables {L} (K : Π (M : Type w) [L.Structure M], Prop)
-
-/-- A class `K` is isomorphism-invariant when structure isomorphic to a structure in `K` is also in
-  `K`. -/
-def is_equiv_invariant : Prop :=
-∀ (M N : Type w) [strM : L.Structure M] [strN : L.Structure N],
-  nonempty (@equiv L M N strM strN) → (@K M strM = @K N strN)
-
-variables {K}
-
-/-- An isomorphism-invariant class can also be thought of as a set of isomorphism classes. -/
-def is_equiv_invariant.to_set_quotient (h : is_equiv_invariant K) :
-  set (quotient L.equiv_setoid) :=
-{ M | quotient.lift (λ (M : bundled L.Structure), K M) (λ M N MN, h M N MN) M }
-
-@[simp]
-lemma is_equiv_invariant.mk_mem_to_set_quotient (h : is_equiv_invariant K)
-  (M : bundled L.Structure) :
-  (⟦M⟧ : quotient L.equiv_setoid) ∈ h.to_set_quotient ↔ K M :=
-by rw [is_equiv_invariant.to_set_quotient, set.mem_set_of_eq, quotient.lift_mk]
-
-/-- If `K` is a nonempty but essentially countable class of structures, there is a family of
-  structures in `K`, indexed by `ℕ`, that covers every isomorphism class. -/
-lemma exists_nat_transversal_of_countable_quotient (hn : K ≠ λ _ _, false)
-  (h : is_equiv_invariant K) (hc : h.to_set_quotient.countable) :
-  ∃ (f : ℕ → bundled.{w} L.Structure), ∀ (M : Type w) [strM : L.Structure M],
-    @K M strM ↔ ∃ (n : ℕ), nonempty (@equiv L M (f n) strM _) :=
-begin
-  have hne : h.to_set_quotient.nonempty,
-  { simp_rw [ne.def, function.funext_iff, not_forall, eq_iff_iff, iff_false, not_not] at hn,
-    obtain ⟨M, strM, hM⟩ := hn,
-    exact ⟨⟦⟨M, strM⟩⟧, hM⟩ },
-  obtain ⟨f, hf⟩ := hc.exists_surjective hne,
-  refine ⟨quotient.out ∘ f, λ M strM, _⟩,
-  rw [is_equiv_invariant.to_set_quotient, set.ext_iff] at hf,
-  have hfM := hf ⟦⟨M, strM⟩⟧,
-  rw [mem_range, mem_set_of_eq, quotient.lift_mk] at hfM,
-  simp_rw [quotient.eq_mk_iff_out] at hfM,
-  exact hfM.trans (exists_congr (λ n, ⟨setoid.symm, λ h, setoid.symm h⟩)),
-end
-
 /-! ### The Age of a Structure and Fraïssé Classes-/
-
-variables (L)
 
 /-- The age of a structure `M` is the class of finitely-generated structures that embed into it. -/
 def age (M : Type w) [L.Structure M] (N : Type w) [L.Structure N] : Prop :=
 Structure.fg L N ∧ nonempty (N ↪[L] M)
 
-variables {L} (K)
+variables {L} (K : Π (M : Type w) [L.Structure M], Prop)
 
 /-- A class `K` has the hereditary property when all finitely-generated structures that embed into
   structures in `K` are also in `K`.  -/
@@ -175,16 +113,7 @@ class is_fraisse : Prop :=
 (joint_embedding : joint_embedding K)
 (amalgamation : amalgamation K)
 
-variables {K}
-
-lemma Structure.fg.is_equiv_invariant : is_equiv_invariant (Structure.fg L) :=
-begin
-  rintro N P strN strP ⟨NP⟩,
-  resetI,
-  exact iff_iff_eq.1 NP.fg_iff,
-end
-
-variables (L) (M : Type w) [L.Structure M]
+variables {K} (L) (M : Type w) [L.Structure M]
 
 lemma age.is_equiv_invariant : is_equiv_invariant (L.age M) :=
 begin

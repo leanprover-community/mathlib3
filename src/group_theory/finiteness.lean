@@ -271,7 +271,7 @@ group.fg_of_surjective f.range_restrict_surjective
 variables (G)
 
 /-- The minimum number of generators of a group. -/
-@[to_additive] def group.min_generators [h : group.fg G]
+@[to_additive] def group.rank [h : group.fg G]
   [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)] :=
 nat.find (group.fg_iff'.mp h)
 

@@ -45,9 +45,6 @@ counterparts in [Chou1994].
   on simple graphs for whether every vertex can be reached from every other,
   and in the latter case, whether the vertex type is nonempty.
 
-* `simple_graph.connected_component` is the type of connected components of
-  a given graph.
-
 * `simple_graph.subgraph.connected` gives subgraphs the connectivity
   predicate via `simple_graph.subgraph.coe`.
 
@@ -853,43 +850,6 @@ structure connected : Prop :=
 
 instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
 ⟨λ h, h.preconnected⟩
-
-/-- The quotient of `V` by the `simple_graph.reachable` relation gives the connected
-components of a graph. -/
-def connected_component := quot G.reachable
-
-/-- Gives the connected component containing a particular vertex. -/
-def connected_component_of (v : V) : G.connected_component := quot.mk G.reachable v
-
-section connected_component
-variables {G}
-
-@[elab_as_eliminator]
-protected lemma connected_component.ind {β : G.connected_component → Prop}
-  (h : ∀ (v : V), β (G.connected_component_of v)) (c : G.connected_component) : β c :=
-quot.ind h c
-
-protected lemma connected_component.sound {v w : V} :
-  G.reachable v w → G.connected_component_of v = G.connected_component_of w := quot.sound
-
-/-- The `connected_component` specialization of `quot.lift`. Provides the stronger
-assumption that the vertices are connected by a path. -/
-protected def connected_component.lift {β : Sort*} (f : V → β)
-  (h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w) : G.connected_component → β :=
-quot.lift f (λ v w (h' : G.reachable v w), h'.elim_path (λ hp, h v w hp hp.2))
-
-@[simp] protected lemma connected_component.lift_of {β : Sort*} {f : V → β}
-  {h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w} {v : V} :
-  connected_component.lift f h (G.connected_component_of v) = f v := rfl
-
-end connected_component
-
-instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
-⟨G.connected_component_of default⟩
-
-lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
-  subsingleton G.connected_component :=
-⟨λ c d, connected_component.ind (λ v, d.ind (λ w, connected_component.sound (h v w))) c⟩
 
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := H.coe.connected

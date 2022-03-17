@@ -268,6 +268,8 @@ group.fg_iff_monoid.fg.mpr $ @monoid.fg_of_surjective G _ G' _ (group.fg_iff_mon
 instance group.fg_range {G' : Type*} [group G'] [group.fg G] (f : G →* G') : group.fg f.range :=
 group.fg_of_surjective f.range_restrict_surjective
 
+variables (G)
+
 /-- The minimum number of generators of a group. -/
 @[to_additive] def group.min_generators [h : group.fg G]
   [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)] :=

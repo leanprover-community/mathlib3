@@ -525,9 +525,6 @@ apply_nolint is_of_fin_order_iff_coe to_additive_doc
 apply_nolint order_of_eq_of_pow_and_pow_div_prime to_additive_doc
 apply_nolint pow_gcd_card_eq_one_iff to_additive_doc
 
--- group_theory/quotient_group.lean
-apply_nolint quotient_group.subgroup_eq_top_of_subsingleton to_additive_doc
-
 -- group_theory/specific_groups/cyclic.lean
 apply_nolint is_cyclic_of_prime_card to_additive_doc
 apply_nolint is_simple_group_of_prime_card to_additive_doc
@@ -542,10 +539,6 @@ apply_nolint subgroup.map_injective_of_ker_le to_additive_doc
 
 -- group_theory/submonoid/basic.lean
 apply_nolint monoid_hom.eq_on_mclosure to_additive_doc
-
--- group_theory/submonoid/operations.lean
-apply_nolint submonoid.bot_or_exists_ne_one to_additive_doc
-apply_nolint submonoid.bot_or_nontrivial to_additive_doc
 
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame

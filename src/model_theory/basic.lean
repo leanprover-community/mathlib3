@@ -133,7 +133,7 @@ localized "notation A ` →[`:25 L `] ` B := L.hom A B" in first_order
 
 /-- An embedding of first-order structures is an embedding that commutes with the
   interpretations of functions and relations. -/
-structure embedding extends M ↪ N :=
+@[ancestor function.embedding] structure embedding extends M ↪ N :=
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x . obviously)
 
@@ -160,30 +160,72 @@ lemma fun_map_eq_coe_constants {c : L.constants} {x : fin 0 → M} :
 lemma nonempty_of_nonempty_constants [h : nonempty L.constants] : nonempty M :=
 h.map coe
 
+/-- `hom_class L F M N` states that `F` is a type of `L`-homomorphisms. You should extend this
+  typeclass when you extend `first_order.language.hom`. -/
+class hom_class (L : out_param language) (F : Type*)
+  (M N : out_param $ Type*) [fun_like F M (λ _, N)] [L.Structure M] [L.Structure N] :=
+(map_fun : ∀ (φ : F) {n} (f : L.functions n) x, φ (fun_map f x) = fun_map f (φ ∘ x))
+(map_rel : ∀ (φ : F) {n} (r : L.relations n) x, rel_map r x → rel_map r (φ ∘ x))
+
+/-- `strong_hom_class L F M N` states that `F` is a type of `L`-homomorphisms which preserve
+  relations in both directions. -/
+class strong_hom_class (L : out_param language) (F : Type*) (M N : out_param $ Type*)
+  [fun_like F M (λ _, N)] [L.Structure M] [L.Structure N] :=
+(map_fun : ∀ (φ : F) {n} (f : L.functions n) x, φ (fun_map f x) = fun_map f (φ ∘ x))
+(map_rel : ∀ (φ : F) {n} (r : L.relations n) x, rel_map r (φ ∘ x) ↔ rel_map r x)
+
+@[priority 100] instance strong_hom_class.hom_class
+  {F M N} [L.Structure M] [L.Structure N] [fun_like F M (λ _, N)] [strong_hom_class L F M N] :
+  hom_class L F M N :=
+{ map_fun := strong_hom_class.map_fun,
+  map_rel := λ φ n R x, (strong_hom_class.map_rel φ R x).2 }
+
+/-- Not an instance to avoid a loop. -/
+def hom_class.strong_hom_class_of_is_algebraic [L.is_algebraic]
+  {F M N} [L.Structure M] [L.Structure N] [fun_like F M (λ _, N)] [hom_class L F M N] :
+  strong_hom_class L F M N :=
+{ map_fun := hom_class.map_fun,
+  map_rel := λ φ n R x, (is_algebraic.empty_relations n).elim R }
+
+lemma hom_class.map_constants {F M N} [L.Structure M] [L.Structure N] [fun_like F M (λ _, N)]
+  [hom_class L F M N]
+  (φ : F) (c : L.constants) : φ (c) = c :=
+(hom_class.map_fun φ c default).trans (congr rfl (funext default))
+
 namespace hom
 
-instance has_coe_to_fun : has_coe_to_fun (M →[L] N) (λ _, M → N) := ⟨to_fun⟩
+instance fun_like : fun_like (M →[L] N) M (λ _, N) :=
+{ coe := hom.to_fun,
+  coe_injective' := λ f g h, by {cases f, cases g, cases h, refl} }
+
+instance hom_class : hom_class L (M →[L] N) M N :=
+{ map_fun := map_fun',
+  map_rel := map_rel' }
+
+instance [L.is_algebraic] : strong_hom_class L (M →[L] N) M N :=
+hom_class.strong_hom_class_of_is_algebraic
+
+instance has_coe_to_fun : has_coe_to_fun (M →[L] N) (λ _, M → N) := fun_like.has_coe_to_fun
 
 @[simp] lemma to_fun_eq_coe {f : M →[L] N} : f.to_fun = (f : M → N) := rfl
 
-lemma coe_injective : @function.injective (M →[L] N) (M → N) coe_fn
-| f g h := by {cases f, cases g, cases h, refl}
-
 @[ext]
 lemma ext ⦃f g : M →[L] N⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_injective (funext h)
+fun_like.ext f g h
 
 lemma ext_iff {f g : M →[L] N} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, λ h, ext h⟩
+fun_like.ext_iff
 
 @[simp] lemma map_fun (φ : M →[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
-  φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
+  φ (fun_map f x) = fun_map f (φ ∘ x) :=
+hom_class.map_fun φ f x
 
 @[simp] lemma map_constants (φ : M →[L] N) (c : L.constants) : φ c = c :=
-(φ.map_fun c default).trans (congr rfl (funext default))
+hom_class.map_constants φ c
 
 @[simp] lemma map_rel (φ : M →[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
-  rel_map r x → rel_map r (φ ∘ x) := φ.map_rel' r x
+  rel_map r x → rel_map r (φ ∘ x) :=
+hom_class.map_rel φ r x
 
 variables (L) (M)
 /-- The identity map from a structure to itself -/
@@ -213,16 +255,33 @@ end hom
 
 namespace embedding
 
-instance has_coe_to_fun : has_coe_to_fun (M ↪[L] N) (λ _, M → N) := ⟨λ f, f.to_fun⟩
+instance embedding_like : embedding_like (M ↪[L] N) M N :=
+{ coe := λ f, f.to_fun,
+  injective' := λ f, f.to_embedding.injective,
+  coe_injective' := λ f g h, begin
+    cases f,
+    cases g,
+    simp only,
+    ext x,
+    exact function.funext_iff.1 h x end }
+
+instance strong_hom_class : strong_hom_class L (M ↪[L] N) M N :=
+{ map_fun := map_fun',
+  map_rel := map_rel' }
+
+instance has_coe_to_fun : has_coe_to_fun (M ↪[L] N) (λ _, M → N) :=
+fun_like.has_coe_to_fun
 
 @[simp] lemma map_fun (φ : M ↪[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
-  φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
+  φ (fun_map f x) = fun_map f (φ ∘ x) :=
+hom_class.map_fun φ f x
 
 @[simp] lemma map_constants (φ : M ↪[L] N) (c : L.constants) : φ c = c :=
-(φ.map_fun c default).trans (congr rfl (funext default))
+hom_class.map_constants φ c
 
 @[simp] lemma map_rel (φ : M ↪[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
-  rel_map r (φ ∘ x) ↔ rel_map r x := φ.map_rel' r x
+  rel_map r (φ ∘ x) ↔ rel_map r x :=
+strong_hom_class.map_rel φ r x
 
 /-- A first-order embedding is also a first-order homomorphism. -/
 def to_hom (f : M ↪[L] N) : M →[L] N :=
@@ -253,7 +312,7 @@ lemma injective (f : M ↪[L] N) : function.injective f := f.to_embedding.inject
 /-- In an algebraic language, any injective homomorphism is an embedding. -/
 @[simps] def of_injective [L.is_algebraic] {f : M →[L] N} (hf : function.injective f) : M ↪[L] N :=
 { inj' := hf,
-  map_rel' := λ n, (is_algebraic.empty_relations n).elim,
+  map_rel' := λ n r x, strong_hom_class.map_rel f r x,
   .. f }
 
 @[simp] lemma coe_fn_of_injective [L.is_algebraic] {f : M →[L] N} (hf : function.injective f) :
@@ -295,6 +354,23 @@ end embedding
 
 namespace equiv
 
+instance : equiv_like (M ≃[L] N) M N :=
+{ coe := λ f, f.to_fun,
+  inv := λ f, f.inv_fun,
+  left_inv := λ f, f.left_inv,
+  right_inv := λ f, f.right_inv,
+  coe_injective' := λ f g h₁ h₂, begin
+    cases f,
+    cases g,
+    simp only,
+    ext x,
+    exact function.funext_iff.1 h₁ x,
+  end, }
+
+instance : strong_hom_class L (M ≃[L] N) M N :=
+{ map_fun := map_fun',
+  map_rel := map_rel', }
+
 /-- The inverse of a first-order equivalence is a first-order equivalence. -/
 @[symm] def symm (f : M ≃[L] N) : N ≃[L] M :=
 { map_fun' := λ n f' x, begin
@@ -310,7 +386,8 @@ namespace equiv
   end,
   .. f.to_equiv.symm }
 
-instance has_coe_to_fun : has_coe_to_fun (M ≃[L] N) (λ _, M → N) := ⟨λ f, f.to_fun⟩
+instance has_coe_to_fun : has_coe_to_fun (M ≃[L] N) (λ _, M → N) :=
+fun_like.has_coe_to_fun
 
 @[simp]
 lemma apply_symm_apply (f : M ≃[L] N) (a : N) : f (f.symm a) = a := f.to_equiv.apply_symm_apply a
@@ -319,13 +396,15 @@ lemma apply_symm_apply (f : M ≃[L] N) (a : N) : f (f.symm a) = a := f.to_equiv
 lemma symm_apply_apply (f : M ≃[L] N) (a : M) : f.symm (f a) = a := f.to_equiv.symm_apply_apply a
 
 @[simp] lemma map_fun (φ : M ≃[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
-  φ (fun_map f x) = fun_map f (φ ∘ x) := φ.map_fun' f x
+  φ (fun_map f x) = fun_map f (φ ∘ x) :=
+hom_class.map_fun φ f x
 
 @[simp] lemma map_constants (φ : M ≃[L] N) (c : L.constants) : φ c = c :=
-(φ.map_fun c default).trans (congr rfl (funext default))
+hom_class.map_constants φ c
 
 @[simp] lemma map_rel (φ : M ≃[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
-  rel_map r (φ ∘ x) ↔ rel_map r x := φ.map_rel' r x
+  rel_map r (φ ∘ x) ↔ rel_map r x :=
+strong_hom_class.map_rel φ r x
 
 /-- A first-order equivalence is also a first-order embedding. -/
 def to_embedding (f : M ≃[L] N) : M ↪[L] N :=
@@ -343,15 +422,8 @@ lemma coe_to_hom {f : M ≃[L] N} : (f.to_hom : M → N) = (f : M → N) := rfl
 
 @[simp] lemma coe_to_embedding (f : M ≃[L] N) : (f.to_embedding : M → N) = (f : M → N) := rfl
 
-lemma coe_injective : @function.injective (M ≃[L] N) (M → N) coe_fn
-| f g h :=
-begin
-  cases f,
-  cases g,
-  simp only,
-  ext x,
-  exact function.funext_iff.1 h x,
-end
+lemma coe_injective : @function.injective (M ≃[L] N) (M → N) coe_fn :=
+fun_like.coe_injective
 
 @[ext]
 lemma ext ⦃f g : M ≃[L] N⦄ (h : ∀ x, f x = g x) : f = g :=
@@ -360,7 +432,11 @@ coe_injective (funext h)
 lemma ext_iff {f g : M ≃[L] N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-lemma injective (f : M ≃[L] N) : function.injective f := f.to_embedding.injective
+lemma bijective (f : M ≃[L] N) : function.bijective f := equiv_like.bijective f
+
+lemma injective (f : M ≃[L] N) : function.injective f := equiv_like.injective f
+
+lemma surjective (f : M ≃[L] N) : function.surjective f := equiv_like.surjective f
 
 variables (L) (M)
 /-- The identity equivalence from a structure to itself -/
@@ -570,7 +646,12 @@ localized "notation L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
 /-- The language map adding constants.  -/
 def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
 
-variable {L}
+variables {α}
+
+/-- The constant symbol indexed by a particular element. -/
+protected def con (a : α) : L[[α]].constants := sum.inr a
+
+variables {L} (α)
 
 /-- Adds constants to a language map.  -/
 def Lhom.add_constants {L' : language} (φ : L →ᴸ L') :
@@ -613,6 +694,8 @@ instance add_constants_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ
   [φ.is_expansion_on M] :
   (φ.add_constants A).is_expansion_on M :=
 Lhom.sum_map_is_expansion_on _ _ M
+
+@[simp] lemma coe_con {a : A} : ((L.con a) : M) = a := rfl
 
 variables {A} {B : set M} (h : A ⊆ B)
 

@@ -336,8 +336,8 @@ variables [group G] [add_group A] {x a} {i : ℤ}
 
 /-- Inverses of elements of finite order have finite order. -/
 @[to_additive "Inverses of elements of finite additive order have finite additive order."]
-lemma is_of_fin_order.inv (x : G) : is_of_fin_order x → is_of_fin_order x⁻¹ :=
-λ hx, (is_of_fin_order_iff_pow_eq_one _).mpr $ begin
+lemma is_of_fin_order.inv {x : G} (hx : is_of_fin_order x) : is_of_fin_order x⁻¹ :=
+(is_of_fin_order_iff_pow_eq_one _).mpr $ begin
   rcases (is_of_fin_order_iff_pow_eq_one x).mp hx with ⟨n, npos, hn⟩,
   refine ⟨n, npos, by simp_rw [inv_pow, hn, one_inv]⟩,
 end

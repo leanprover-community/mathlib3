@@ -8,7 +8,7 @@ import analysis.mean_inequalities
 /-!
 # IMO 1984 Q1
 
-For nonnegative real numbers `x, y, z` such that `x + y + 1 = 1` prove that
+For nonnegative real numbers `x, y, z` such that `x + y + z = 1` prove that
 `0 ≤ xy + yz + xz - 2xyz ≤ 7/27`
 
 `0 ≤ xy + yz + xz - 2xyz`:
@@ -25,9 +25,28 @@ So we split into two cases according to whether `0 ≤ 1 - 2z` or `1 - 2z < 0`:
 
 namespace imo1984_q1
 
+section
+
 open real
-variables (x y z : ℝ) (add_eq : x + y + z = 1) (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 ≤ z)
-variables (hxy : x ≤ y) (hyz : y ≤ z)
+variables (x y z : ℝ)
+
+lemma possible_orders :
+  (x ≤ y ∧ y ≤ z) ∨
+  (x ≤ z ∧ z ≤ y) ∨
+  (y ≤ x ∧ x ≤ z) ∨
+  (y ≤ z ∧ z ≤ x) ∨
+  (z ≤ x ∧ x ≤ y) ∨
+  (z ≤ y ∧ y ≤ x) :=
+begin
+  by_contra rid,
+  simp only [not_or_distrib] at rid,
+  rcases rid with ⟨r1,r2,r3,r4,r5,r6⟩,
+  simp only [not_and_distrib] at *,
+  cases r1; cases r2; cases r3; cases r4; cases r5; cases r6;
+  linarith,
+end
+
+variables (add_eq : x + y + z = 1) (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 ≤ z)
 include add_eq hx hy hz
 
 lemma zero_le : 0 ≤ x * y + y * z + x * z - 2 * x * y * z :=
@@ -45,10 +64,7 @@ begin
   linarith,
 end
 
-include hxy hyz
-omit hy hz
-
-lemma le_7_div_27 :  x * y + y * z + x * z - 2 * x * y * z ≤ 7/27 :=
+lemma le_7_div_27 (hxy : x ≤ y) (hyz : y ≤ z) : x * y + y * z + x * z - 2 * x * y * z ≤ 7/27 :=
 have eq1 : (1 - 2 * x) * (1 - 2 * y) * (1 - 2 * z) =
   -1 + 4 * (y * z + x * z + x * y) - 8 * x * y * z, from
 calc (1 - 2 * x) * (1 - 2 * y) * (1 - 2 * z)
@@ -57,14 +73,15 @@ calc (1 - 2 * x) * (1 - 2 * y) * (1 - 2 * z)
 ... = -1 + 4 * (y * z + x * z + x * y) - 8 * x * y * z : by norm_num,
 have EQ : x * y + y * z + x * z - 2 * x * y * z =
   1/4 * (1 - 2 * x) * (1 - 2 * y) * (1 - 2 * z) + 1/4, by linarith,
-have x_ineq : 0 ≤ 1 - 2 * x, by linarith,
-have y_ineq : 0 ≤ 1 - 2 * y, by linarith,
-have xy_ineq : _, from mul_nonneg x_ineq y_ineq,
-have ineq' : (0 : ℝ) ≤ 1/3, by linarith,
-have ineq'' : (0 : ℝ) ≤ 1/4, by linarith,
-have ineq''' : (0 : ℝ) < 3, by linarith,
-have eq' : (1 : ℝ) / 3 + 1 / 3 + 1 / 3 = 1, by norm_num,
 begin
+  have x_ineq : 0 ≤ 1 - 2 * x, by linarith,
+  have y_ineq : 0 ≤ 1 - 2 * y, by linarith,
+  have xy_ineq : _, from mul_nonneg x_ineq y_ineq,
+  have ineq' : (0 : ℝ) ≤ 1/3, by linarith,
+  have ineq'' : (0 : ℝ) ≤ 1/4, by linarith,
+  have ineq''' : (0 : ℝ) < 3, by linarith,
+  have eq' : (1 : ℝ) / 3 + 1 / 3 + 1 / 3 = 1, by norm_num,
+
   by_cases z_ineq : 0 ≤ 1 - 2*z,
   { have xyz_ineq := mul_nonneg xy_ineq z_ineq,
     have ineq1 := geom_mean_le_arith_mean3_weighted ineq' ineq' ineq' x_ineq y_ineq z_ineq eq',
@@ -84,5 +101,18 @@ begin
     rw ← EQ at ineq1,
     linarith, },
 end
+
+end
+
+theorem imo1984_q1 (x y z : ℝ) (add_eq : x + y + z = 1) (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 ≤ z) :
+  0 ≤ x * y + y * z + x * z - 2 * x * y * z ∧ x * y + y * z + x * z - 2 * x * y * z ≤ 7/27 :=
+and.intro
+  (zero_le x y z add_eq hx hy hz)
+  begin
+    rcases (possible_orders x y z) with h|h|h|h|h|h;
+    convert le_7_div_27 _ _ _ _ _ _ _ h.1 h.2 using 1,
+    assumption',
+    all_goals { ring1 <|> { convert add_eq using 1, ring } },
+  end
 
 end imo1984_q1

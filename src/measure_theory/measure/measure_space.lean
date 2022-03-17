@@ -89,7 +89,7 @@ measure, almost everywhere, measure space, completion, null set, null measurable
 noncomputable theory
 
 open set filter (hiding map) function measurable_space topological_space (second_countable_topology)
-open_locale classical topological_space big_operators filter ennreal nnreal
+open_locale classical topological_space big_operators filter ennreal nnreal interval
 
 variables {α β γ δ ι R R' : Type*}
 
@@ -102,6 +102,11 @@ variables {m : measurable_space α} {μ μ₁ μ₂ : measure α} {s s₁ s₂ t
 instance ae_is_measurably_generated : is_measurably_generated μ.ae :=
 ⟨λ s hs, let ⟨t, hst, htm, htμ⟩ := exists_measurable_superset_of_null hs in
   ⟨tᶜ, compl_mem_ae_iff.2 htμ, htm.compl, compl_subset_comm.1 hst⟩⟩
+
+/-- See also `measure_theory.ae_restrict_interval_oc_iff`. -/
+lemma ae_interval_oc_iff [linear_order α] {a b : α} {P : α → Prop} :
+  (∀ᵐ x ∂μ, x ∈ Ι a b → P x) ↔ (∀ᵐ x ∂μ, x ∈ Ioc a b → P x) ∧ (∀ᵐ x ∂μ, x ∈ Ioc b a → P x) :=
+by simp only [interval_oc_eq_union, mem_union_eq, or_imp_distrib, eventually_and]
 
 lemma measure_union (hd : disjoint s₁ s₂) (h : measurable_set s₂) :
   μ (s₁ ∪ s₂) = μ s₁ + μ s₂ :=
@@ -666,12 +671,9 @@ instance [monoid R] [mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ�
   mul_action R (measure α) :=
 injective.mul_action _ to_outer_measure_injective smul_to_outer_measure
 
--- there is no `function.injective.add_comm_monoid_smul` so we do this in two steps
 instance add_comm_monoid [measurable_space α] : add_comm_monoid (measure α) :=
-{ ..(to_outer_measure_injective.add_monoid_smul to_outer_measure zero_to_outer_measure
-      add_to_outer_measure (λ _ _, smul_to_outer_measure _ _) : add_monoid (measure α)),
-  ..(to_outer_measure_injective.add_comm_semigroup to_outer_measure add_to_outer_measure :
-      add_comm_semigroup (measure α)) }
+to_outer_measure_injective.add_comm_monoid to_outer_measure zero_to_outer_measure
+      add_to_outer_measure (λ _ _, smul_to_outer_measure _ _)
 
 /-- Coercion to function as an additive monoid homomorphism. -/
 def coe_add_hom {m : measurable_space α} : measure α →+ (set α → ℝ≥0∞) :=
@@ -1775,6 +1777,25 @@ begin
     exact mem_range_self },
   { simp [map_of_not_measurable h] }
 end
+
+@[simp] lemma ae_restrict_Union_eq [encodable ι] (s : ι → set α) :
+  (μ.restrict (⋃ i, s i)).ae = ⨆ i, (μ.restrict (s i)).ae :=
+le_antisymm (ae_sum_eq (λ i, μ.restrict (s i)) ▸ ae_mono restrict_Union_le) $
+  supr_le $ λ i, ae_mono $ restrict_mono (subset_Union s i) le_rfl
+
+@[simp] lemma ae_restrict_union_eq (s t : set α) :
+  (μ.restrict (s ∪ t)).ae = (μ.restrict s).ae ⊔ (μ.restrict t).ae :=
+by simp [union_eq_Union, supr_bool_eq]
+
+lemma ae_restrict_interval_oc_eq [linear_order α] (a b : α) :
+  (μ.restrict (Ι a b)).ae = (μ.restrict (Ioc a b)).ae ⊔ (μ.restrict (Ioc b a)).ae :=
+by simp only [interval_oc_eq_union, ae_restrict_union_eq]
+
+/-- See also `measure_theory.ae_interval_oc_iff`. -/
+lemma ae_restrict_interval_oc_iff [linear_order α] {a b : α} {P : α → Prop} :
+  (∀ᵐ x ∂μ.restrict (Ι a b), P x) ↔
+    (∀ᵐ x ∂μ.restrict (Ioc a b), P x) ∧ (∀ᵐ x ∂μ.restrict (Ioc b a), P x) :=
+by rw [ae_restrict_interval_oc_eq, eventually_sup]
 
 lemma ae_restrict_iff {p : α → Prop} (hp : measurable_set {x | p x}) :
   (∀ᵐ x ∂(μ.restrict s), p x) ↔ ∀ᵐ x ∂μ, x ∈ s → p x :=
@@ -3227,6 +3248,11 @@ protected lemma Union [encodable ι] {s : ι → set α} (h : ∀ i, ae_measurab
   ae_measurable f (μ.restrict (⋃ i, s i)) ↔ ∀ i, ae_measurable f (μ.restrict (s i)) :=
 ⟨λ h i, h.mono_measure $ restrict_mono (subset_Union _ _) le_rfl, ae_measurable.Union⟩
 
+@[simp] lemma _root_.ae_measurable_union_iff {s t : set α} :
+  ae_measurable f (μ.restrict (s ∪ t)) ↔
+    ae_measurable f (μ.restrict s) ∧ ae_measurable f (μ.restrict t) :=
+by simp only [union_eq_Union, ae_measurable_Union_iff, bool.forall_bool, cond, and.comm]
+
 @[measurability]
 lemma smul_measure [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
   (h : ae_measurable f μ) (c : R) :
@@ -3261,6 +3287,11 @@ protected lemma null_measurable (h : ae_measurable f μ) : null_measurable f μ 
 let ⟨g, hgm, hg⟩ := h in hgm.null_measurable.congr hg.symm
 
 end ae_measurable
+
+lemma ae_measurable_interval_oc_iff [linear_order α] {f : α → β} {a b : α} :
+  (ae_measurable f $ μ.restrict $ Ι a b) ↔
+    (ae_measurable f $ μ.restrict $ Ioc a b) ∧ (ae_measurable f $ μ.restrict $ Ioc b a) :=
+by rw [interval_oc_eq_union, ae_measurable_union_iff]
 
 lemma ae_measurable_iff_measurable [μ.is_complete] :
   ae_measurable f μ ↔ measurable f :=

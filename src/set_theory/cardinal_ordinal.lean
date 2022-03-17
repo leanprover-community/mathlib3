@@ -213,6 +213,12 @@ by rwa [←aleph'_zero, aleph'_lt]
 theorem aleph_pos (o : ordinal) : 0 < aleph o :=
 omega_pos.trans_le (omega_le_aleph o)
 
+instance (o : ordinal) : nonempty (aleph o).ord.out.α :=
+begin
+  rw [out_nonempty_iff_ne_zero, ←ord_zero],
+  exact λ h, (ord_injective h).not_gt (aleph_pos o)
+end
+
 theorem ord_aleph_is_limit (o : ordinal) : is_limit (aleph o).ord :=
 ord_is_limit $ omega_le_aleph _
 
@@ -525,11 +531,11 @@ protected lemma eq_of_add_eq_add_right {a b c : cardinal} (h : a + b = c + b) (h
   a = c :=
 by { rw [add_comm a b, add_comm c b] at h, exact cardinal.eq_of_add_eq_add_left h hb }
 
-theorem ord_is_principal_add {c : cardinal} (hc : ω ≤ c) : ordinal.principal (+) c.ord :=
+theorem principal_add_ord {c : cardinal} (hc : ω ≤ c) : ordinal.principal (+) c.ord :=
 λ a b ha hb, by { rw [lt_ord, ordinal.card_add] at *, exact add_lt_of_lt hc ha hb }
 
-theorem aleph_is_principal_add (o : ordinal) : ordinal.principal (+) (aleph o).ord :=
-ord_is_principal_add $ omega_le_aleph o
+theorem principal_add_aleph (o : ordinal) : ordinal.principal (+) (aleph o).ord :=
+principal_add_ord $ omega_le_aleph o
 
 /-! ### Properties about power -/
 
@@ -609,6 +615,18 @@ calc  #(list α)
     = sum (λ n : ℕ, #α ^ (n : cardinal.{u})) : mk_list_eq_sum_pow α
 ... ≤ sum (λ n : ℕ, #α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_omega n
 ... = #α : by simp [H1]
+
+theorem mk_list_eq_omega (α : Type u) [encodable α] [nonempty α] : #(list α) = ω :=
+mk_le_omega.antisymm (omega_le_mk _)
+
+theorem mk_list_le_max (α : Type u) : #(list α) ≤ max ω (#α) :=
+begin
+  casesI fintype_or_infinite α,
+  { haveI := fintype.encodable α,
+    exact mk_le_omega.trans (le_max_left _ _) },
+  { rw mk_list_eq_mk,
+    apply le_max_right }
+end
 
 theorem mk_finset_eq_mk (α : Type u) [infinite α] : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $

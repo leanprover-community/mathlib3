@@ -265,9 +265,10 @@ attribute [nolint doc_blame] monoid_hom.to_one_hom
 infixr ` →* `:25 := monoid_hom
 
 /-- `monoid_hom_class F M N` states that `F` is a type of `monoid`-preserving homomorphisms.
-You should also extend this typeclass when you extend `monoid_hom`.
--/
-@[ancestor mul_hom_class one_hom_class, to_additive]
+You should also extend this typeclass when you extend `monoid_hom`. -/
+@[ancestor mul_hom_class one_hom_class, to_additive
+"`add_monoid_hom_class F M N` states that `F` is a type of `add_monoid`-preserving homomorphisms.
+You should also extend this typeclass when you extend `add_monoid_hom`."]
 class monoid_hom_class (F : Type*) (M N : out_param $ Type*)
   [mul_one_class M] [mul_one_class N]
   extends mul_hom_class F M N, one_hom_class F M N
@@ -289,19 +290,20 @@ lemma map_mul_eq_one [monoid_hom_class F M N] (f : F) {a b : M} (h : a * b = 1) 
 by rw [← map_mul, h, map_one]
 
 /-- Group homomorphisms preserve inverse. -/
-@[simp, to_additive]
+@[simp, to_additive "Additive group homomorphisms preserve negation."]
 theorem map_inv [group G] [group H] [monoid_hom_class F G H]
   (f : F) (g : G) : f g⁻¹ = (f g)⁻¹ :=
 eq_inv_of_mul_eq_one $ map_mul_eq_one f $ inv_mul_self g
 
 /-- Group homomorphisms preserve division. -/
-@[simp, to_additive]
+@[simp, to_additive "Additive group homomorphisms preserve subtraction."]
 theorem map_mul_inv [group G] [group H] [monoid_hom_class F G H]
   (f : F) (g h : G) : f (g * h⁻¹) = f g * (f h)⁻¹ :=
 by rw [map_mul, map_inv]
 
 /-- Group homomorphisms preserve division. -/
-@[simp, to_additive] lemma map_div [group G] [group H] [monoid_hom_class F G H]
+@[simp, to_additive "Additive group homomorphisms preserve subtraction."]
+lemma map_div [group G] [group H] [monoid_hom_class F G H]
   (f : F) (x y : G) : f (x / y) = f x / f y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul_inv]
 
@@ -319,7 +321,7 @@ theorem map_zpow' [div_inv_monoid G] [div_inv_monoid H] [monoid_hom_class F G H]
 | -[1+n]  := by rw [zpow_neg_succ_of_nat, hf, map_pow, ← zpow_neg_succ_of_nat]
 
 /-- Group homomorphisms preserve integer power. -/
-@[simp, to_additive /-" Additive group homomorphisms preserve integer scaling. "-/]
+@[simp, to_additive "Additive group homomorphisms preserve integer scaling."]
 theorem map_zpow [group G] [group H] [monoid_hom_class F G H] (f : F) (g : G) (n : ℤ) :
   f (g ^ n) = (f g) ^ n :=
 map_zpow' f (map_inv f) g n
@@ -335,7 +337,7 @@ the `monoid_with_zero` structure.
 
 `monoid_with_zero_hom` is also used for group homomorphisms.
 
-When possible, instead of parametrizing results over `(f : M →+ N)`,
+When possible, instead of parametrizing results over `(f : M →*₀ N)`,
 you should parametrize over `(F : Type*) [monoid_with_zero_hom_class F M N] (f : F)`.
 
 When you extend this structure, make sure to extend `monoid_with_zero_hom_class`.
@@ -487,17 +489,17 @@ fun_like.ext _ _ h
 section deprecated
 
 /-- Deprecated: use `fun_like.congr_fun` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.congr_fun` instead."]
 theorem one_hom.congr_fun [has_one M] [has_one N]
   {f g : one_hom M N} (h : f = g) (x : M) : f x = g x :=
 fun_like.congr_fun h x
 /-- Deprecated: use `fun_like.congr_fun` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.congr_fun` instead."]
 theorem mul_hom.congr_fun [has_mul M] [has_mul N]
   {f g : mul_hom M N} (h : f = g) (x : M) : f x = g x :=
 fun_like.congr_fun h x
 /-- Deprecated: use `fun_like.congr_fun` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.congr_fun` instead."]
 theorem monoid_hom.congr_fun [mul_one_class M] [mul_one_class N]
   {f g : M →* N} (h : f = g) (x : M) : f x = g x :=
 fun_like.congr_fun h x
@@ -507,17 +509,17 @@ theorem monoid_with_zero_hom.congr_fun [mul_zero_one_class M] [mul_zero_one_clas
 fun_like.congr_fun h x
 
 /-- Deprecated: use `fun_like.congr_arg` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.congr_arg` instead."]
 theorem one_hom.congr_arg [has_one M] [has_one N]
   (f : one_hom M N) {x y : M} (h : x = y) : f x = f y :=
 fun_like.congr_arg f h
 /-- Deprecated: use `fun_like.congr_arg` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.congr_arg` instead."]
 theorem mul_hom.congr_arg [has_mul M] [has_mul N]
   (f : mul_hom M N) {x y : M} (h : x = y) : f x = f y :=
 fun_like.congr_arg f h
 /-- Deprecated: use `fun_like.congr_arg` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.congr_arg` instead."]
 theorem monoid_hom.congr_arg [mul_one_class M] [mul_one_class N]
   (f : M →* N) {x y : M} (h : x = y) : f x = f y :=
 fun_like.congr_arg f h
@@ -527,15 +529,15 @@ theorem monoid_with_zero_hom.congr_arg [mul_zero_one_class M] [mul_zero_one_clas
 fun_like.congr_arg f h
 
 /-- Deprecated: use `fun_like.coe_injective` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.coe_injective` instead."]
 lemma one_hom.coe_inj [has_one M] [has_one N] ⦃f g : one_hom M N⦄ (h : (f : M → N) = g) : f = g :=
 fun_like.coe_injective h
 /-- Deprecated: use `fun_like.coe_injective` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.coe_injective` instead."]
 lemma mul_hom.coe_inj [has_mul M] [has_mul N] ⦃f g : mul_hom M N⦄ (h : (f : M → N) = g) : f = g :=
 fun_like.coe_injective h
 /-- Deprecated: use `fun_like.coe_injective` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.coe_injective` instead."]
 lemma monoid_hom.coe_inj [mul_one_class M] [mul_one_class N]
   ⦃f g : M →* N⦄ (h : (f : M → N) = g) : f = g :=
 fun_like.coe_injective h
@@ -545,7 +547,7 @@ lemma monoid_with_zero_hom.coe_inj [mul_zero_one_class M] [mul_zero_one_class N]
 fun_like.coe_injective h
 
 /-- Deprecated: use `fun_like.ext_iff` instead. -/
-@[to_additive]
+@[to_additive "Deprecated: use `fun_like.ext_iff` instead."]
 lemma one_hom.ext_iff [has_one M] [has_one N] {f g : one_hom M N} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
 /-- Deprecated: use `fun_like.ext_iff` instead. -/
@@ -1047,13 +1049,13 @@ protected theorem map_inv {G H} [group G] [group H] (f : G →* H) (g : G) : f g
 map_inv f g
 
 /-- Group homomorphisms preserve integer power. -/
-@[to_additive /-" Additive group homomorphisms preserve integer scaling. "-/]
+@[to_additive "Additive group homomorphisms preserve integer scaling."]
 protected theorem map_zpow {G H} [group G] [group H] (f : G →* H) (g : G) (n : ℤ) :
   f (g ^ n) = (f g) ^ n :=
 map_zpow f g n
 
 /-- Group homomorphisms preserve division. -/
-@[to_additive /-" Additive group homomorphisms preserve subtraction. "-/]
+@[to_additive "Additive group homomorphisms preserve subtraction."]
 protected theorem map_div {G H} [group G] [group H] (f : G →* H) (g h : G) :
   f (g / h) = f g / f h :=
 map_div f g h
@@ -1066,9 +1068,9 @@ map_mul_inv f g h
 
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial.
 For the iff statement on the triviality of the kernel, see `monoid_hom.injective_iff'`.  -/
-@[to_additive /-" A homomorphism from an additive group to an additive monoid is injective iff
+@[to_additive "A homomorphism from an additive group to an additive monoid is injective iff
 its kernel is trivial. For the iff statement on the triviality of the kernel,
-see `add_monoid_hom.injective_iff'`. "-/]
+see `add_monoid_hom.injective_iff'`."]
 lemma injective_iff {G H} [group G] [mul_one_class H] (f : G →* H) :
   function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
 ⟨λ h x, (map_eq_one_iff f h).mp,
@@ -1077,9 +1079,9 @@ lemma injective_iff {G H} [group G] [mul_one_class H] (f : G →* H) :
 /-- A homomorphism from a group to a monoid is injective iff its kernel is trivial,
 stated as an iff on the triviality of the kernel.
 For the implication, see `monoid_hom.injective_iff`. -/
-@[to_additive /-" A homomorphism from an additive group to an additive monoid is injective iff
-its kernel is trivial, stated as an iff on the triviality of the kernel. For the implication, see
-`add_monoid_hom.injective_iff`. "-/]
+@[to_additive "A homomorphism from an additive group to an additive monoid is injective iff its
+kernel is trivial, stated as an iff on the triviality of the kernel. For the implication, see
+`add_monoid_hom.injective_iff`."]
 lemma injective_iff' {G H} [group G] [mul_one_class H] (f : G →* H) :
   function.injective f ↔ (∀ a, f a = 1 ↔ a = 1) :=
 f.injective_iff.trans $ forall_congr $ λ a, ⟨λ h, ⟨h, λ H, H.symm ▸ f.map_one⟩, iff.mp⟩

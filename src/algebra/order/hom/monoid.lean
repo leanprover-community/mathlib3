@@ -176,7 +176,9 @@ instance : order_monoid_hom_class (α →*o β) α β :=
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/
-@[to_additive] instance : has_coe_to_fun (α →*o β) (λ _, α → β) := fun_like.has_coe_to_fun
+@[to_additive "Helper instance for when there's too many metavariables to apply
+`fun_like.has_coe_to_fun` directly."]
+instance : has_coe_to_fun (α →*o β) (λ _, α → β) := fun_like.has_coe_to_fun
 
 -- Other lemmas should be accessed through the `fun_like` API
 @[ext, to_additive] lemma ext (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h

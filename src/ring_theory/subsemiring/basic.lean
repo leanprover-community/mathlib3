@@ -220,17 +220,20 @@ def subtype : s →+* R :=
 
 /-- A subsemiring of an `ordered_semiring` is an `ordered_semiring`. -/
 instance to_ordered_semiring {R} [ordered_semiring R] (s : subsemiring R) : ordered_semiring s :=
-subtype.coe_injective.ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
 instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] (s : subsemiring R) :
   ordered_comm_semiring s :=
-subtype.coe_injective.ordered_comm_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
 instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] (s : subsemiring R) :
   linear_ordered_semiring s :=
-subtype.coe_injective.linear_ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
 
@@ -522,7 +525,7 @@ of the closure of `s`. -/
 lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H0 : p 0) (H1 : p 1)
   (Hadd : ∀ x y, p x → p y → p (x + y)) (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd⟩).2 Hs h
+(@closure_le _ _ _ ⟨p, Hmul, H1, Hadd, H0⟩).2 Hs h
 
 /-- An induction principle for closure membership for predicates with two arguments. -/
 @[elab_as_eliminator]

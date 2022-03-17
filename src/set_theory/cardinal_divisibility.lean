@@ -130,10 +130,7 @@ begin
   lift a to ℕ using not_le.mp h,
   simp only [h, nat.cast_inj, exists_eq_left', false_or, is_prime_pow_nat_iff],
   rw is_prime_pow_def,
-  split,
-  swap,
-  { rintro ⟨p, k, hp, hk, rfl⟩,
-    exact ⟨p, k, nat_is_prime_iff.mpr hp, by exact_mod_cast hk, by norm_cast⟩ },
+  refine ⟨_, λ ⟨p, k, hp, hk, h⟩, ⟨p, k, nat_is_prime_iff.2 hp, by exact_mod_cast and.intro hk h⟩⟩,
   rintro ⟨p, k, hp, hk, hpk⟩,
   have key : _ ≤ p ^ k :=
     power_le_power_left hp.ne_zero (show (1 : cardinal) ≤ k, by exact_mod_cast hk),

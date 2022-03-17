@@ -43,34 +43,6 @@ by rw [concat_eq_append, prod_append, prod_singleton]
 @[simp, to_additive]
 lemma prod_join {l : list (list M)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; [refl, simp only [*, list.join, map, prod_append, prod_cons]]
-
-/-- If zero is an element of a list `L`, then `list.prod L = 0`. If the domain is a nontrivial
-monoid with zero with no divisors, then this implication becomes an `iff`, see
-`list.prod_eq_zero_iff`. -/
-lemma prod_eq_zero {L : list M₀} (h : (0 : M₀) ∈ L) :
-  L.prod = 0 :=
-begin
-  induction L with a L ihL,
-  { exact absurd h (not_mem_nil _) },
-  { rw prod_cons,
-    cases (mem_cons_iff _ _ _).1 h with ha hL,
-    exacts [mul_eq_zero_of_left ha.symm _, mul_eq_zero_of_right _ (ihL hL)] }
-end
-
-/-- Product of elements of a list `L` equals zero if and only if `0 ∈ L`. See also
-`list.prod_eq_zero` for an implication that needs weaker typeclass assumptions. -/
-@[simp] lemma prod_eq_zero_iff [nontrivial M₀] [no_zero_divisors M₀] {L : list M₀} :
-  L.prod = 0 ↔ (0 : M₀) ∈ L :=
-begin
-  induction L with a L ihL,
-  { simp },
-  { rw [prod_cons, mul_eq_zero, ihL, mem_cons_iff, eq_comm] }
-end
-
-lemma prod_ne_zero [nontrivial M₀] [no_zero_divisors M₀] {L : list M₀} (hL : (0 : M₀) ∉ L) :
-  L.prod ≠ 0 :=
-mt prod_eq_zero_iff.1 hL
-
 @[to_additive]
 lemma prod_eq_foldr : l.prod = foldr (*) 1 l :=
 list.rec_on l rfl $ λ a l ihl, by rw [prod_cons, foldr_cons, ihl]
@@ -361,7 +333,7 @@ by { rw [h, prod_append, prod_cons, mul_left_comm], exact dvd_mul_right _ _ }
 @[simp] lemma sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
 by induction n; [refl, simp only [*, repeat_succ, sum_cons, nat.mul_succ, add_comm]]
 
-lemma dvd_sum [comm_semiring R] {a} {l : list R} (h : ∀ x ∈ l, a ∣ x) : a ∣ l.sum :=
+lemma dvd_sum [semiring R] {a} {l : list R} (h : ∀ x ∈ l, a ∣ x) : a ∣ l.sum :=
 begin
   induction l with x l ih,
   { exact dvd_zero _ },
@@ -369,7 +341,7 @@ begin
     exact dvd_add (h _ (mem_cons_self _ _)) (ih (λ x hx, h x (mem_cons_of_mem _ hx))) }
 end
 
-lemma exists_lt_of_sum_lt [linear_ordered_cancel_add_comm_monoid M] {l : list α} (f g : α → M)
+lemma exists_lt_of_sum_lt [linear_ordered_cancel_add_comm_monoid M] {l : list ι} (f g : ι → M)
   (h : (l.map f).sum < (l.map g).sum) :
   ∃ x ∈ l, f x < g x :=
 begin
@@ -382,8 +354,8 @@ begin
   exact ⟨y, mem_cons_of_mem x h1y, h2y⟩,
 end
 
-lemma exists_le_of_sum_le [linear_ordered_cancel_add_comm_monoid M] {l : list α} (hl : l ≠ [])
-  (f g : α → M) (h : (l.map f).sum ≤ (l.map g).sum) :
+lemma exists_le_of_sum_le [linear_ordered_cancel_add_comm_monoid M] {l : list ι} (hl : l ≠ [])
+  (f g : ι → M) (h : (l.map f).sum ≤ (l.map g).sum) :
   ∃ x ∈ l, f x ≤ g x :=
 begin
   cases l with x l,
@@ -455,11 +427,11 @@ by rw [sub_eq_add_neg, alternating_sum]
 
 end alternating
 
-lemma sum_map_mul_left [non_unital_non_assoc_semiring R] (L : list α) (f : α → R) (r : R) :
+lemma sum_map_mul_left [non_unital_non_assoc_semiring R] (L : list ι) (f : ι → R) (r : R) :
   (L.map (λ b, r * f b)).sum = r * (L.map f).sum :=
 sum_map_hom L f $ add_monoid_hom.mul_left r
 
-lemma sum_map_mul_right [non_unital_non_assoc_semiring R] (L : list α) (f : α → R) (r : R) :
+lemma sum_map_mul_right [non_unital_non_assoc_semiring R] (L : list ι) (f : ι → R) (r : R) :
   (L.map (λ b, f b * r)).sum = (L.map f).sum * r :=
 sum_map_hom L f $ add_monoid_hom.mul_right r
 

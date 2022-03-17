@@ -218,6 +218,24 @@ end
 
 variables [topological_space E] [has_continuous_smul 𝕜 E]
 
+/-- Scalar multiplication preserves neighborhoods of zero. -/
+lemma set_smul_mem_nhds_zero {c : 𝕜} {s : set E} (hs : s ∈ 𝓝 (0 : E)) (hc : c ≠ 0) :
+  c • s ∈ 𝓝 (0 : E) :=
+begin
+  rcases mem_nhds_iff.mp hs with ⟨U, hs', hU, hU'⟩,
+  refine mem_nhds_iff.mpr ⟨c • U, set.smul_set_mono hs', is_open.smul₀ hU hc, _⟩,
+  convert set.smul_mem_smul_set hU',
+  exact (smul_zero c).symm,
+end
+
+lemma set_smul_mem_nhds_zero_iff (s : set E) {c : 𝕜} (hc : c ≠ 0) :
+  c • s ∈ 𝓝 (0 : E) ↔ s ∈ 𝓝 (0 : E) :=
+begin
+  refine ⟨λ h, _, λ h, set_smul_mem_nhds_zero h hc⟩,
+  convert set_smul_mem_nhds_zero h (inv_ne_zero hc),
+  rw [smul_smul, inv_mul_cancel hc, one_smul],
+end
+
 /-- Every neighbourhood of the origin is absorbent. -/
 lemma absorbent_nhds_zero (hA : A ∈ 𝓝 (0 : E)) : absorbent 𝕜 A :=
 begin

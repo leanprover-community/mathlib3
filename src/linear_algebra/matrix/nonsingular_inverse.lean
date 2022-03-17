@@ -51,13 +51,13 @@ matrix inverse, cramer, cramer's rule, adjugate
 namespace matrix
 universes u u' v
 variables {m : Type u} {n : Type u'} {α : Type v}
-variables [fintype n] [decidable_eq n] [comm_ring α]
 open_locale matrix big_operators
 open equiv equiv.perm finset
 
 /-! ### Matrices are `invertible` iff their determinants are -/
 
 section invertible
+variables [fintype n] [decidable_eq n] [comm_ring α]
 
 /-- A copy of `inv_of_mul_self` using `⬝` not `*`. -/
 protected lemma inv_of_mul_self (A : matrix n n α) [invertible A] : ⅟A ⬝ A = 1 := inv_of_mul_self A
@@ -184,7 +184,7 @@ lemma det_ne_zero_of_right_inverse [nontrivial α] (h : A ⬝ B = 1) : A.det ≠
 
 end invertible
 
-open_locale classical
+variables [fintype m] [fintype n] [decidable_eq m] [decidable_eq n] [comm_ring α]
 variables (A : matrix n n α) (B : matrix n n α)
 
 lemma is_unit_det_transpose (h : is_unit A.det) : is_unit Aᵀ.det :=
@@ -410,8 +410,7 @@ by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_in
 
 /-- Determinant of a 2×2 block matrix, expanded around an invertible top left element in terms of
 the Schur complement. -/
-lemma det_from_blocks₁₁ {m n} [fintype m] [fintype n]
-  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+lemma det_from_blocks₁₁ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible A] : (matrix.from_blocks A B C D).det = det A * det (D - C ⬝ (⅟A) ⬝ B) :=
 begin
   have : from_blocks A B C D =
@@ -425,8 +424,7 @@ end
 
 /-- Determinant of a 2×2 block matrix, expanded around an invertible bottom right element in terms
 of the Schur complement. -/
-lemma det_from_blocks₂₂ {m n} [fintype m] [fintype n]
-  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+lemma det_from_blocks₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible D] : (matrix.from_blocks A B C D).det = det D * det (A - B ⬝ (⅟D) ⬝ C) :=
 begin
   have : from_blocks A B C D = (from_blocks D C B A).minor (sum_comm _ _) (sum_comm _ _),
@@ -437,7 +435,7 @@ end
 
 /-- The **Weinstein–Aronszajn identity**. Note the `1` on the LHS is of shape m×m, while the `1` on
 the RHS is of shape n×n. -/
-lemma det_one_add_mul_comm {m n} [fintype m] [fintype n] (A : matrix m n α) (B : matrix n m α) :
+lemma det_one_add_mul_comm (A : matrix m n α) (B : matrix n m α) :
   det (1 + A ⬝ B) = det (1 + B ⬝ A) :=
 begin
   haveI : invertible (1 : matrix n n α) := invertible_one,
@@ -451,18 +449,18 @@ begin
 end
 
 /-- Alternate statement of the **Weinstein–Aronszajn identity** -/
-lemma det_mul_add_one_comm {m n} [fintype m] [fintype n] (A : matrix m n α) (B : matrix n m α) :
+lemma det_mul_add_one_comm (A : matrix m n α) (B : matrix n m α) :
   det (A ⬝ B + 1) = det (B ⬝ A + 1) :=
 by rw [add_comm, det_one_add_mul_comm, add_comm]
 
-lemma det_one_sub_mul_comm {m n} [fintype m] [fintype n] (A : matrix m n α) (B : matrix n m α) :
+lemma det_one_sub_mul_comm (A : matrix m n α) (B : matrix n m α) :
   det (1 - A ⬝ B) = det (1 - B ⬝ A) :=
 by rw [sub_eq_add_neg, ←matrix.neg_mul, det_one_add_mul_comm, matrix.mul_neg, ←sub_eq_add_neg]
 
 /-- A special case of the **Matrix determinant lemma** for when `A = I`.
 
 TODO: show this more generally. -/
-lemma det_one_add_col_mul_row [fintype m] (u v : m → α) : det (1 + col u ⬝ row v) = 1 + v ⬝ᵥ u :=
+lemma det_one_add_col_mul_row (u v : m → α) : det (1 + col u ⬝ row v) = 1 + v ⬝ᵥ u :=
 by rw [det_one_add_mul_comm, det_unique, pi.add_apply, pi.add_apply, matrix.one_apply_eq,
        matrix.row_mul_col_apply]
 

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jean Lo
+Authors: Jean Lo, Yury Kudryashov
 -/
 import analysis.normed_space.basic
 import topology.metric_space.hausdorff_distance
@@ -97,7 +97,7 @@ begin
   ... = ∥d • x - y∥ : by simp [yy', ← smul_sub, norm_smul],
 end
 
-lemma closed_ball_inf_dist_compl_subset_closure' {E : Type*} [semi_normed_group E]
+lemma metric.closed_ball_inf_dist_compl_subset_closure' {E : Type*} [semi_normed_group E]
   [normed_space ℝ E] {x : E} {s : set E} (hx : s ∈ 𝓝 x) (hs : s ≠ univ) :
   closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
 begin
@@ -111,7 +111,7 @@ begin
   exact disjoint_ball_inf_dist
 end
 
-lemma closed_ball_inf_dist_compl_subset_closure {E : Type*} [normed_group E] [normed_space ℝ E]
+lemma metric.closed_ball_inf_dist_compl_subset_closure [normed_space ℝ E]
   {x : E} {s : set E} (hx : x ∈ s) (hs : s ≠ univ) :
   closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
 begin
@@ -119,5 +119,5 @@ begin
   { rw [mem_closure_iff_inf_dist_zero (nonempty_compl.2 hs)] at hx',
     simpa [hx'] using subset_closure hx },
   { rw [closure_compl, mem_compl_iff, not_not, mem_interior_iff_mem_nhds] at hx',
-    exact closed_ball_inf_dist_compl_subset_closure' hx' hs }
+    exact metric.closed_ball_inf_dist_compl_subset_closure' hx' hs }
 end

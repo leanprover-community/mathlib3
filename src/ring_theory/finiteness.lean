@@ -382,7 +382,7 @@ begin
     (mv_polynomial.map_surjective f.to_ring_hom hf_surj).comp (alg_equiv.surjective _),
     ideal.fg_ker_comp _ _ _ _ (alg_equiv.surjective _)⟩,
   { convert submodule.fg_bot,
-    exact ring_hom.ker_coe_equiv _, },
+    exact ring_hom.ker_coe_equiv (mv_polynomial.sum_alg_equiv R ι ι').to_ring_equiv },
   { rw [alg_hom.to_ring_hom_eq_coe, mv_polynomial.map_alg_hom_coe_ring_hom, mv_polynomial.ker_map],
     exact hf_ker.map mv_polynomial.C, }
 end

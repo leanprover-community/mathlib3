@@ -388,13 +388,12 @@ def sphere (x : α) (ε : ℝ) := {y | dist y x = ε}
 
 @[simp] theorem mem_sphere : y ∈ sphere x ε ↔ dist y x = ε := iff.rfl
 
+theorem ne_of_mem_sphere (h : y ∈ sphere x ε) (hε : ε ≠ 0) : y ≠ x :=
+by { contrapose! hε, symmetry, simpa [hε] using h  }
+
 theorem sphere_eq_empty_of_subsingleton [subsingleton α] (hε : ε ≠ 0) :
   sphere x ε = ∅ :=
-begin
-  refine set.eq_empty_iff_forall_not_mem.mpr (λ y hy, _),
-  rw [mem_sphere, ←subsingleton.elim x y, dist_self x] at hy,
-  exact hε.symm hy,
-end
+set.eq_empty_iff_forall_not_mem.mpr $ λ y hy, ne_of_mem_sphere hy hε (subsingleton.elim _ _)
 
 theorem sphere_is_empty_of_subsingleton [subsingleton α] (hε : ε ≠ 0) :
   is_empty (sphere x ε) :=
@@ -1304,11 +1303,23 @@ def uniform_inducing.comap_pseudo_metric_space {α β} [uniform_space α] [pseud
   (f : α → β) (h : uniform_inducing f) : pseudo_metric_space α :=
 (pseudo_metric_space.induced f ‹_›).replace_uniformity h.comap_uniformity.symm
 
-instance subtype.psudo_metric_space {α : Type*} {p : α → Prop} [t : pseudo_metric_space α] :
-  pseudo_metric_space (subtype p) :=
-pseudo_metric_space.induced coe t
+instance subtype.pseudo_metric_space {p : α → Prop} : pseudo_metric_space (subtype p) :=
+pseudo_metric_space.induced coe ‹_›
 
-theorem subtype.pseudo_dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
+theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
+theorem subtype.nndist_eq {p : α → Prop} (x y : subtype p) : nndist x y = nndist (x : α) y := rfl
+
+namespace mul_opposite
+
+@[to_additive]
+instance : pseudo_metric_space (αᵐᵒᵖ) := pseudo_metric_space.induced mul_opposite.unop ‹_›
+
+@[simp, to_additive] theorem dist_unop (x y : αᵐᵒᵖ) : dist (unop x) (unop y) = dist x y := rfl
+@[simp, to_additive] theorem dist_op (x y : α) : dist (op x) (op y) = dist x y := rfl
+@[simp, to_additive] theorem nndist_unop (x y : αᵐᵒᵖ) : nndist (unop x) (unop y) = nndist x y := rfl
+@[simp, to_additive] theorem nndist_op (x y : α) : nndist (op x) (op y) = nndist x y := rfl
+
+end mul_opposite
 
 section nnreal
 
@@ -2272,6 +2283,16 @@ set.ext $ λ y, dist_le_zero
 @[simp] lemma sphere_zero : sphere x 0 = {x} :=
 set.ext $ λ y, dist_eq_zero
 
+lemma subsingleton_closed_ball (x : γ) {r : ℝ} (hr : r ≤ 0) : (closed_ball x r).subsingleton :=
+begin
+  rcases hr.lt_or_eq with hr|rfl,
+  { rw closed_ball_eq_empty.2 hr, exact subsingleton_empty },
+  { rw closed_ball_zero, exact subsingleton_singleton }
+end
+
+lemma subsingleton_sphere (x : γ) {r : ℝ} (hr : r ≤ 0) : (sphere x r).subsingleton :=
+(subsingleton_closed_ball x hr).mono sphere_subset_closed_ball
+
 /-- A map between metric spaces is a uniform embedding if and only if the distance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
 theorem uniform_embedding_iff' [metric_space β] {f : γ → β} :
@@ -2413,11 +2434,12 @@ begin
   exact uniform_embedding.comap_metric_space f (h.to_uniform_embedding f),
 end
 
-instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
+instance subtype.metric_space {α : Type*} {p : α → Prop} [metric_space α] :
   metric_space (subtype p) :=
-metric_space.induced coe (λ x y, subtype.ext) t
+metric_space.induced coe subtype.coe_injective ‹_›
 
-theorem subtype.dist_eq {p : α → Prop} (x y : subtype p) : dist x y = dist (x : α) y := rfl
+@[to_additive] instance {α : Type*} [metric_space α] : metric_space (αᵐᵒᵖ) :=
+metric_space.induced mul_opposite.unop mul_opposite.unop_injective ‹_›
 
 local attribute [instance] filter.unique
 

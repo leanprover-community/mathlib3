@@ -3,7 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johan Commelin, Andrew Yang
 -/
-import category_theory.limits.shapes.zero
+import category_theory.limits.preserves.shapes.zero
 import category_theory.monoidal.End
 import category_theory.monoidal.discrete
 
@@ -309,9 +309,8 @@ open category_theory.limits
 
 variables [has_zero_morphisms C]
 
-@[simp]
 lemma shift_zero_eq_zero (X Y : C) (n : A) : (0 : X ⟶ Y)⟦n⟧' = (0 : X⟦n⟧ ⟶ Y⟦n⟧) :=
-by apply is_equivalence_preserves_zero_morphisms _ (shift_functor C n)
+category_theory.functor.map_zero _ _ _
 
 end add_group
 

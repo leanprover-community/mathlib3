@@ -89,7 +89,7 @@ lemma continuous_on.const_smul (hg : continuous_on g s) (c : M) :
   continuous_on (λ x, c • g x) s :=
 λ x hx, (hg x hx).const_smul c
 
-@[to_additive]
+@[continuity, to_additive]
 lemma continuous.const_smul (hg : continuous g) (c : M) :
   continuous (λ x, c • g x) :=
 (continuous_const_smul _).comp hg
@@ -238,6 +238,10 @@ normed field) is `is_closed_map_smul_left` in `analysis.normed_space.finite_dime
 lemma is_closed_map_smul_of_ne_zero {c : G₀} (hc : c ≠ 0) : is_closed_map (λ x : α, c • x) :=
 (homeomorph.smul_of_ne_zero c hc).is_closed_map
 
+lemma is_closed.smul_of_ne_zero {c : G₀} {s : set α} (hs : is_closed s) (hc : c ≠ 0) :
+  is_closed (c • s) :=
+is_closed_map_smul_of_ne_zero hc s hs
+
 /-- `smul` is a closed map in the second argument.
 
 The lemma that `smul` is a closed map in the first argument (for a normed space over a complete
@@ -250,6 +254,11 @@ begin
   { simp only [zero_smul], exact is_closed_map_const },
   { exact (homeomorph.smul_of_ne_zero c hne).is_closed_map },
 end
+
+lemma is_closed.smul₀ {𝕜 M : Type*} [division_ring 𝕜] [add_comm_monoid M] [topological_space M]
+  [t1_space M] [module 𝕜 M] [has_continuous_const_smul 𝕜 M] (c : 𝕜) {s : set M} (hs : is_closed s) :
+  is_closed (c • s) :=
+is_closed_map_smul₀ c s hs
 
 end group_with_zero
 

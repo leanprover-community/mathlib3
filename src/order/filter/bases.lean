@@ -338,6 +338,13 @@ begin
   exact forall_congr (λ s, ⟨λ h, h.1, λ h, ⟨h, λ ⟨t, hl, hP, hts⟩, mem_of_superset hl hts⟩⟩)
 end
 
+lemma has_basis.comp_of_surjective (h : l.has_basis p s) {g : ι' → ι} (hg : function.surjective g) :
+  l.has_basis (p ∘ g) (s ∘ g) :=
+⟨λ t, h.mem_iff.trans hg.exists⟩
+
+lemma has_basis.comp_equiv (h : l.has_basis p s) (e : ι' ≃ ι) : l.has_basis (p ∘ e) (s ∘ e) :=
+h.comp_of_surjective e.surjective
+
 /-- If `{s i | p i}` is a basis of a filter `l` and each `s i` includes `s j` such that
 `p j ∧ q j`, then `{s j | p j ∧ q j}` is a basis of `l`. -/
 lemma has_basis.restrict (h : l.has_basis p s) {q : ι → Prop}
@@ -688,6 +695,16 @@ end
 
 end two_types
 
+open equiv
+
+lemma prod_assoc (f : filter α) (g : filter β) (h : filter γ) :
+  map (prod_assoc α β γ) ((f ×ᶠ g) ×ᶠ h) = f ×ᶠ (g ×ᶠ h) :=
+begin
+  apply ((((basis_sets f).prod $ basis_sets g).prod $ basis_sets h).map _).eq_of_same_basis,
+  simpa only [prod_assoc_image, function.comp, and_assoc] using
+    ((basis_sets f).prod $ (basis_sets g).prod $ basis_sets h).comp_equiv (prod_assoc _ _ _)
+end
+
 end filter
 
 end sort
@@ -861,6 +878,9 @@ end
 
 @[instance] lemma is_countably_generated_principal (s : set α) : is_countably_generated (𝓟 s) :=
 is_countably_generated_of_seq ⟨λ _, s, infi_const.symm⟩
+
+@[instance] lemma is_countably_generated_pure (a : α) : is_countably_generated (pure a) :=
+by { rw ← principal_singleton, exact is_countably_generated_principal _, }
 
 @[instance] lemma is_countably_generated_bot : is_countably_generated (⊥ : filter α) :=
 @principal_empty α ▸ is_countably_generated_principal _

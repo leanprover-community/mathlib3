@@ -197,9 +197,7 @@ instance : is_Hausdorff I (adic_completion I M) :=
 ⟨λ x hx, ext $ λ n, smul_induction_on (smodeq.zero.1 $ hx n)
   (λ r hr x _, ((eval I M n).map_smul r x).symm ▸ quotient.induction_on' (eval I M n x)
     (λ x, smodeq.zero.2 $ smul_mem_smul hr mem_top))
-  rfl
-  (λ _ _ ih1 ih2, by rw [linear_map.map_add, ih1, ih2, linear_map.map_zero, add_zero])
-  (λ c _ ih, by rw [linear_map.map_smul, ih, linear_map.map_zero, smul_zero])⟩
+  (λ _ _ ih1 ih2, by rw [linear_map.map_add, ih1, ih2, linear_map.map_zero, add_zero])⟩
 
 end adic_completion
 

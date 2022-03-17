@@ -89,17 +89,35 @@ namespace lipschitz_with
 
 section emetric
 
+open emetric
+
 variables [pseudo_emetric_space α] [pseudo_emetric_space β] [pseudo_emetric_space γ]
-variables {K : ℝ≥0} {f : α → β}
+variables {K : ℝ≥0} {f : α → β} {x y : α} {r : ℝ≥0∞}
 
 protected lemma lipschitz_on_with (h : lipschitz_with K f) (s : set α) : lipschitz_on_with K f s :=
 λ x _ y _, h x y
 
 lemma edist_le_mul (h : lipschitz_with K f) (x y : α) : edist (f x) (f y) ≤ K * edist x y := h x y
 
+lemma edist_le_mul_of_le (h : lipschitz_with K f) (hr : edist x y ≤ r) :
+  edist (f x) (f y) ≤ K * r :=
+(h x y).trans $ ennreal.mul_left_mono hr
+
+lemma edist_lt_mul_of_lt (h : lipschitz_with K f) (hK : K ≠ 0) (hr : edist x y < r) :
+  edist (f x) (f y) < K * r :=
+(h x y).trans_lt $ (ennreal.mul_lt_mul_left (ennreal.coe_ne_zero.2 hK) ennreal.coe_ne_top).2 hr
+
+lemma maps_to_emetric_closed_ball (h : lipschitz_with K f) (x : α) (r : ℝ≥0∞) :
+  maps_to f (closed_ball x r) (closed_ball (f x) (K * r)) :=
+λ y hy, h.edist_le_mul_of_le hy
+
+lemma maps_to_emetric_ball (h : lipschitz_with K f) (hK : K ≠ 0) (x : α) (r : ℝ≥0∞) :
+  maps_to f (ball x r) (ball (f x) (K * r)) :=
+λ y hy, h.edist_lt_mul_of_lt hK hy
+
 lemma edist_lt_top (hf : lipschitz_with K f) {x y : α} (h : edist x y ≠ ⊤) :
   edist (f x) (f y) < ⊤ :=
-lt_of_le_of_lt (hf x y) $ ennreal.mul_lt_top ennreal.coe_ne_top h
+(hf x y).trans_lt $ ennreal.mul_lt_top ennreal.coe_ne_top h
 
 lemma mul_edist_le (h : lipschitz_with K f) (x y : α) :
   (K⁻¹ : ℝ≥0∞) * edist (f x) (f y) ≤ edist x y :=
@@ -121,9 +139,7 @@ lemma ediam_image_le (hf : lipschitz_with K f) (s : set α) :
 begin
   apply emetric.diam_le,
   rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
-  calc edist (f x) (f y) ≤ ↑K * edist x y : hf.edist_le_mul x y
-                     ... ≤ ↑K * emetric.diam s :
-    ennreal.mul_left_mono (emetric.edist_le_diam_of_mem hx hy)
+  exact hf.edist_le_mul_of_le (emetric.edist_le_diam_of_mem hx hy)
 end
 
 lemma edist_lt_of_edist_lt_div (hf : lipschitz_with K f) {x y : α} {d : ℝ≥0∞}
@@ -244,14 +260,15 @@ end emetric
 
 section metric
 
-variables [pseudo_metric_space α] [pseudo_metric_space β] [pseudo_metric_space γ] {K : ℝ≥0}
+variables [pseudo_metric_space α] [pseudo_metric_space β] [pseudo_metric_space γ]
+  {K : ℝ≥0} {f : α → β} {x y : α} {r : ℝ}
 
-protected lemma of_dist_le' {f : α → β} {K : ℝ} (h : ∀ x y, dist (f x) (f y) ≤ K * dist x y) :
+protected lemma of_dist_le' {K : ℝ} (h : ∀ x y, dist (f x) (f y) ≤ K * dist x y) :
   lipschitz_with (real.to_nnreal K) f :=
 of_dist_le_mul $ λ x y, le_trans (h x y) $
   mul_le_mul_of_nonneg_right (real.le_coe_to_nnreal K) dist_nonneg
 
-protected lemma mk_one {f : α → β} (h : ∀ x y, dist (f x) (f y) ≤ dist x y) :
+protected lemma mk_one (h : ∀ x y, dist (f x) (f y) ≤ dist x y) :
   lipschitz_with 1 f :=
 of_dist_le_mul $ by simpa only [nnreal.coe_one, one_mul] using h
 
@@ -283,20 +300,36 @@ protected lemma iff_le_add_mul {f : α → ℝ} {K : ℝ≥0} :
   lipschitz_with K f ↔ ∀ x y, f x ≤ f y + K * dist x y :=
 ⟨lipschitz_with.le_add_mul, lipschitz_with.of_le_add_mul K⟩
 
-lemma nndist_le {f : α → β} (hf : lipschitz_with K f) (x y : α) :
+lemma nndist_le (hf : lipschitz_with K f) (x y : α) :
   nndist (f x) (f y) ≤ K * nndist x y :=
 hf.dist_le_mul x y
 
-lemma bounded_image {f : α → β} (hf : lipschitz_with K f) {s : set α} (hs : metric.bounded s) :
+lemma dist_le_mul_of_le (hf : lipschitz_with K f) (hr : dist x y ≤ r) :
+  dist (f x) (f y) ≤ K * r :=
+(hf.dist_le_mul x y).trans $ mul_le_mul_of_nonneg_left hr K.coe_nonneg
+
+lemma maps_to_closed_ball (hf : lipschitz_with K f) (x : α) (r : ℝ) :
+  maps_to f (metric.closed_ball x r) (metric.closed_ball (f x) (K * r)) :=
+λ y hy, hf.dist_le_mul_of_le hy
+
+lemma dist_lt_mul_of_lt (hf : lipschitz_with K f) (hK : K ≠ 0) (hr : dist x y < r) :
+  dist (f x) (f y) < K * r :=
+(hf.dist_le_mul x y).trans_lt $ (mul_lt_mul_left $ nnreal.coe_pos.2 hK.bot_lt).2 hr
+
+lemma maps_to_ball (hf : lipschitz_with K f) (hK : K ≠ 0) (x : α) (r : ℝ) :
+  maps_to f (metric.ball x r) (metric.ball (f x) (K * r)) :=
+λ y hy, hf.dist_lt_mul_of_lt hK hy
+
+lemma bounded_image (hf : lipschitz_with K f) {s : set α} (hs : metric.bounded s) :
   metric.bounded (f '' s) :=
 metric.bounded_iff_ediam_ne_top.2 $ ne_top_of_le_ne_top
   (ennreal.mul_ne_top ennreal.coe_ne_top hs.ediam_ne_top) (hf.ediam_image_le s)
 
-lemma diam_image_le {f : α → β} (hf : lipschitz_with K f) (s : set α) (hs : metric.bounded s) :
+lemma diam_image_le (hf : lipschitz_with K f) (s : set α) (hs : metric.bounded s) :
   metric.diam (f '' s) ≤ K * metric.diam s :=
-by simpa only [ennreal.to_real_mul, ennreal.coe_to_real]
-  using (ennreal.to_real_le_to_real (hf.bounded_image hs).ediam_ne_top
-    (ennreal.mul_ne_top ennreal.coe_ne_top hs.ediam_ne_top)).2 (hf.ediam_image_le s)
+metric.diam_le_of_forall_dist_le (mul_nonneg K.coe_nonneg metric.diam_nonneg) $
+  ball_image_iff.2 $ λ x hx, ball_image_iff.2 $ λ y hy, hf.dist_le_mul_of_le $
+    metric.dist_le_diam_of_mem hs hx hy
 
 protected lemma dist_left (y : α) : lipschitz_with 1 (λ x, dist x y) :=
 lipschitz_with.of_le_add $ assume x z, by { rw [add_comm], apply dist_triangle }

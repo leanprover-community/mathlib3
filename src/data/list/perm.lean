@@ -3,7 +3,7 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 -/
-import data.list.erase_dup
+import data.list.dedup
 import data.list.lattice
 import data.list.permutation
 import data.list.zip
@@ -763,11 +763,11 @@ instance decidable_perm : ∀ (l₁ l₂ : list α), decidable (l₁ ~ l₂)
                         exact decidable_of_iff' _ cons_perm_iff_perm_erase
 
 -- @[congr]
-theorem perm.erase_dup {l₁ l₂ : list α} (p : l₁ ~ l₂) :
-  erase_dup l₁ ~ erase_dup l₂ :=
+theorem perm.dedup {l₁ l₂ : list α} (p : l₁ ~ l₂) :
+  dedup l₁ ~ dedup l₂ :=
 perm_iff_count.2 $ λ a,
 if h : a ∈ l₁
-then by simp [nodup_erase_dup, h, p.subset h]
+then by simp [nodup_dedup, h, p.subset h]
 else by simp [h, mt p.mem_iff.2 h]
 
 -- attribute [congr]

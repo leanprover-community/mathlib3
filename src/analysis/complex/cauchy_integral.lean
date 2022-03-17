@@ -188,7 +188,7 @@ begin
     ← interval_integral.integral_neg, ← hF'],
   refine (integral2_divergence_prod_of_has_fderiv_within_at_off_countable
       (λ p, -(I • F p)) F (λ p, - (I • F' p)) F' z.re w.im w.re z.im t (hs.preimage e.injective)
-      (continuous_on_const.smul htc).neg htc (λ p hp, ((htd p hp).const_smul I).neg) htd _).symm,
+      (htc.const_smul _).neg htc (λ p hp, ((htd p hp).const_smul I).neg) htd _).symm,
   rw [← volume_preserving_equiv_real_prod.symm.integrable_on_comp_preimage
     (measurable_equiv.measurable_embedding _)] at Hi,
   simpa only [hF'] using Hi.neg
@@ -375,7 +375,7 @@ begin
       refine circle_integral.norm_integral_le_of_norm_le_const hr0.le (λ z hz, _),
       specialize hzne z hz,
       rw [mem_sphere, dist_eq_norm] at hz,
-      rw [norm_smul, normed_field.norm_inv, hz, ← dist_eq_norm],
+      rw [norm_smul, norm_inv, hz, ← dist_eq_norm],
       refine mul_le_mul_of_nonneg_left (hδ _ ⟨_, hzne⟩).le (inv_nonneg.2 hr0.le),
       rwa [mem_closed_ball_iff_norm, hz]
     end

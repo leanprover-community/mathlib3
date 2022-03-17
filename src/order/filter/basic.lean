@@ -1295,6 +1295,26 @@ lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (
   ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
 by simpa only [sub_eq_add_neg] using h.add h'.neg
 
+@[to_additive] lemma eventually_eq.const_smul {𝕜} [has_scalar 𝕜 β] {l : filter α} {f g : α → β}
+  (h : f =ᶠ[l] g) (c : 𝕜) :
+  (λ x, c • f x) =ᶠ[l] (λ x, c • g x) :=
+h.fun_comp (λ x, c • x)
+
+@[to_additive] lemma eventually_eq.smul {𝕜} [has_scalar 𝕜 β] {l : filter α} {f f' : α → 𝕜}
+  {g g' : α → β} (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
+  (λ x, f x • g x) =ᶠ[l] λ x, f' x • g' x :=
+hf.comp₂ (•) hg
+
+lemma eventually_eq.sup [has_sup β] {l : filter α} {f f' g g' : α → β}
+  (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
+  (λ x, f x ⊔ g x) =ᶠ[l] λ x, f' x ⊔ g' x :=
+hf.comp₂ (⊔) hg
+
+lemma eventually_eq.inf [has_inf β] {l : filter α} {f f' g g' : α → β}
+  (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
+  (λ x, f x ⊓ g x) =ᶠ[l] λ x, f' x ⊓ g' x :=
+hf.comp₂ (⊓) hg
+
 lemma eventually_eq.inter {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
   (s ∩ s' : set α) =ᶠ[l] (t ∩ t' : set α) :=
 h.comp₂ (∧) h'
@@ -1980,6 +2000,14 @@ le_antisymm
   (λ b (hb : preimage m b ∈ f),
     ⟨preimage m b, hb, show preimage (m ∘ n) b ⊆ b, by simp only [h₁]; apply subset.refl⟩)
 
+lemma map_equiv_symm (e : α ≃ β) (f : filter β) :
+  map e.symm f = comap e f :=
+map_eq_comap_of_inverse e.symm_comp_self e.self_comp_symm
+
+lemma comap_equiv_symm (e : α ≃ β) (f : filter α) :
+  comap e.symm f = map e f :=
+(map_eq_comap_of_inverse e.self_comp_symm e.symm_comp_self).symm
+
 lemma map_swap_eq_comap_swap {f : filter (α × β)} : prod.swap <$> f = comap prod.swap f :=
 map_eq_comap_of_inverse prod.swap_swap_eq prod.swap_swap_eq
 
@@ -2611,7 +2639,7 @@ begin
   exact filter.prod_mono hf hg,
 end
 
-lemma map_prod (m : α × β → γ) (f : filter α) (g : filter β) :
+protected lemma map_prod (m : α × β → γ) (f : filter α) (g : filter β) :
   map m (f ×ᶠ g) = (f.map (λ a b, m (a, b))).seq g :=
 begin
   simp [filter.ext_iff, mem_prod_iff, mem_map_seq_iff],
@@ -2622,7 +2650,7 @@ begin
 end
 
 lemma prod_eq {f : filter α} {g : filter β} : f ×ᶠ g = (f.map prod.mk).seq g  :=
-have h : _ := map_prod id f g, by rwa [map_id] at h
+have h : _ := f.map_prod id g, by rwa [map_id] at h
 
 lemma prod_inf_prod {f₁ f₂ : filter α} {g₁ g₂ : filter β} :
   (f₁ ×ᶠ g₁) ⊓ (f₂ ×ᶠ g₂) = (f₁ ⊓ f₂) ×ᶠ (g₁ ⊓ g₂) :=

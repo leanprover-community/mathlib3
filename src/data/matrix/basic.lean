@@ -151,6 +151,20 @@ lemma map_smul [has_scalar R α] [has_scalar R β] (f : α → β) (r : R)
   (hf : ∀ a, f (r • a) = r • f a) (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
 ext $ λ _ _, hf _
 
+/-- The scalar action via `has_mul.to_has_scalar` is transformed by the same map as the elements
+of the matrix, when `f` preserves multiplication. -/
+lemma map_smul' [has_mul α] [has_mul β] (f : α → β) (r : α) (A : matrix n n α)
+  (hf : ∀ a₁ a₂, f (a₁ * a₂) = f a₁ * f a₂) :
+  (r • A).map f = f r • A.map f :=
+ext $ λ _ _, hf _ _
+
+/-- The scalar action via `has_mul.to_has_opposite_scalar` is transformed by the same map as the
+elements of the matrix, when `f` preserves multiplication. -/
+lemma map_op_smul' [has_mul α] [has_mul β] (f : α → β) (r : α) (A : matrix n n α)
+  (hf : ∀ a₁ a₂, f (a₁ * a₂) = f a₁ * f a₂) :
+  (mul_opposite.op r • A).map f = mul_opposite.op (f r) • A.map f :=
+ext $ λ _ _, hf _ _
+
 lemma _root_.is_smul_regular.matrix [has_scalar R S] {k : R} (hk : is_smul_regular S k) :
   is_smul_regular (matrix m n S) k :=
 is_smul_regular.pi $ λ _, is_smul_regular.pi $ λ _, hk
@@ -1220,7 +1234,7 @@ by simp [conj_transpose]
 @[simp] lemma conj_transpose_sub [add_group α] [star_add_monoid α] (M N : matrix m n α) :
   (M - N)ᴴ = Mᴴ - Nᴴ  := by ext i j; simp
 
-@[simp] lemma conj_transpose_smul [comm_monoid α] [star_monoid α] (c : α) (M : matrix m n α) :
+@[simp] lemma conj_transpose_smul [comm_monoid α] [star_semigroup α] (c : α) (M : matrix m n α) :
   (c • M)ᴴ = (star c) • Mᴴ :=
 by ext i j; simp [mul_comm]
 
@@ -1292,7 +1306,7 @@ instance [add_monoid α] [star_add_monoid α] : star_add_monoid (matrix n n α) 
 { star_add := conj_transpose_add }
 
 /-- When `α` is a `*`-(semi)ring, `matrix.has_star` is also a `*`-(semi)ring. -/
-instance [fintype n] [decidable_eq n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
+instance [fintype n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
 { star_add := conj_transpose_add,
   star_mul := conj_transpose_mul, }
 

@@ -42,9 +42,9 @@ namespace same_ray
 
 variables {x y z : M}
 
-lemma zero_left (y : M) : same_ray R 0 y := or.inl rfl
+@[simp] lemma zero_left (y : M) : same_ray R 0 y := or.inl rfl
 
-lemma zero_right (x : M) : same_ray R x 0 := or.inr $ or.inl rfl
+@[simp] lemma zero_right (x : M) : same_ray R x 0 := or.inr $ or.inl rfl
 
 @[nontriviality] lemma of_subsingleton [subsingleton M] (x y : M) : same_ray R x y :=
 by { rw [subsingleton.elim x 0], exact zero_left _ }

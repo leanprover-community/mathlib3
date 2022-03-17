@@ -104,7 +104,7 @@ section torsion_by
 variables [comm_semiring R] [add_comm_monoid M] [module R M] (a : R)
 
 @[simp] lemma smul_torsion_by (x : torsion_by R M a) : a • x = 0 := subtype.ext x.prop
-@[simp] lemma smul'_torsion_by (x : torsion_by R M a) : a • (x:M) = 0 := x.prop
+@[simp] lemma smul_coe_torsion_by (x : torsion_by R M a) : a • (x : M) = 0 := x.prop
 @[simp] lemma mem_torsion_by_iff (x : M) : x ∈ torsion_by R M a ↔ a • x = 0 := iff.rfl
 
 /-- A `a`-torsion module is a module whose `a`-torsion submodule is the full space. -/

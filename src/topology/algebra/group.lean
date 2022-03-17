@@ -334,13 +334,23 @@ continuous. -/
 class topological_group (G : Type*) [topological_space G] [group G]
   extends has_continuous_mul G, has_continuous_inv G : Prop
 
-variables [topological_space G] [group G] [topological_group G]
-[topological_space α] {f : α → G} {s : set α} {x : α}
+section conj
 
-/-- Conjugation in a topological group is continuous.-/
-@[to_additive "Conjugation in a topological additive group is continuous."]
+/-- we slightly weaken the type class assumptions here so that it will also apply to `ennreal`, but
+we nevertheless leave it in the `topological_group` namespace. -/
+
+variables [topological_space G] [has_inv G] [has_continuous_inv G] [has_mul G]
+[has_continuous_mul G]
+
+/-- Conjugation is continuous when `mul` and `inv` are.-/
+@[to_additive "Conjugation is continuous when `add` and `neg` are."]
 lemma topological_group.continuous_conj (g : G) : continuous (λ (h : G), g * h * g⁻¹) :=
 (continuous_mul_right g⁻¹).comp (continuous_mul_left g)
+
+end conj
+
+variables [topological_space G] [group G] [topological_group G]
+[topological_space α] {f : α → G} {s : set α} {x : α}
 
 section zpow
 

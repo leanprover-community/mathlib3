@@ -91,15 +91,12 @@ lemma to_fun_mul_inv_mem {G : Type*} [group G] {H : subgroup G} {S : set G}
 
 end mem_right_transversals
 
-lemma group.fg_iff' {G : Type*} [group G] : group.fg G ↔ ∃ S : finset G, subgroup.closure (S : set G) = ⊤ :=
-group.fg_def
-
-lemma group.fg_iff'' {G : Type*} [group G] :
+@[to_additive] lemma group.fg_iff' {G : Type*} [group G] :
   group.fg G ↔ ∃ n (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤ :=
-group.fg_iff'.trans ⟨λ ⟨S, hS⟩, ⟨S.card, S, rfl, hS⟩, λ ⟨n, S, hn, hS⟩, ⟨S, hS⟩⟩
+group.fg_def.trans ⟨λ ⟨S, hS⟩, ⟨S.card, S, rfl, hS⟩, λ ⟨n, S, hn, hS⟩, ⟨S, hS⟩⟩
 
 def group.min_generators (G : Type*) [group G] [h : group.fg G] :=
-nat.find (group.fg_iff''.mp h)
+nat.find (group.fg_iff'.mp h)
 
 class subgroup.finite_index {G : Type*} [group G] (H : subgroup G) : Prop :=
 (finite_index : H.index ≠ 0)
@@ -238,8 +235,8 @@ begin
   exact ⟨⟨_, schreier_aux4 hR hR1 hS⟩⟩,
 end
 
-lemma schreier_aux3 {G : Type*} [group G] [hG : finitely_generated G] {H : subgroup G}
-  [hH : finite_index H] : min_generators H ≤ H.index * min_generators G :=
+lemma schreier_aux3 {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
+  [hH : finite_index H] : group.min_generators H ≤ H.index * group.min_generators G :=
 begin
   sorry
 end

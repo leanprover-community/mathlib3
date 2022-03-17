@@ -218,6 +218,12 @@ begin
   exact relindex_ne_zero_trans hH hK,
 end
 
+lemma index_inf_ne_zero (hH : H.index ≠ 0) (hK : K.index ≠ 0) : (H ⊓ K).index ≠ 0 :=
+begin
+  rw ← relindex_top_right at hH hK ⊢,
+  exact relindex_inf_ne_zero hH hK,
+end
+
 @[simp] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,
   λ h, (congr_arg index h).trans index_top⟩

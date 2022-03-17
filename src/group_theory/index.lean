@@ -221,6 +221,7 @@ nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_fintype, mt index_eq_o
 
 variables (H K)
 
+/-- Typeclass for finite index subgroups. -/
 class finite_index : Prop :=
 (finite_index : H.index ≠ 0)
 

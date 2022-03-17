@@ -219,4 +219,22 @@ by { rw index_eq_card, exact fintype.card_ne_zero }
 lemma one_lt_index_of_ne_top [fintype (G ⧸ H)] (hH : H ≠ ⊤) : 1 < H.index :=
 nat.one_lt_iff_ne_zero_and_ne_one.mpr ⟨index_ne_zero_of_fintype, mt index_eq_one.mp hH⟩
 
+variables (H K)
+
+class finite_index : Prop :=
+(finite_index : H.index ≠ 0)
+
+instance : finite_index (⊤ : subgroup G) :=
+⟨by rw index_top; exact one_ne_zero⟩
+
+instance [hH : finite_index H] [hK : finite_index K] : finite_index (H ⊓ K) :=
+⟨begin
+  replace hH : H.relindex ⊤ ≠ 0 := by rw relindex_top_right; exact hH.1,
+  replace hK : K.relindex ⊤ ≠ 0 := by rw relindex_top_right; exact hK.1,
+  have hHK : H.relindex K ≠ 0 := mt (relindex_eq_zero_of_le_right le_top) hH,
+  rw ← inf_relindex_right at hHK,
+  rw ← relindex_top_right,
+  exact relindex_ne_zero_trans hHK hK,
+end⟩
+
 end subgroup

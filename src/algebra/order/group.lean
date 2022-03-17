@@ -1049,7 +1049,7 @@ end
 
 lemma abs_sub_comm (a b : α) : |a - b| = |b - a| :=
 calc  |a - b| = | - (b - a)| : congr_arg _ (neg_sub b a).symm
-              ... = |b - a|     : abs_neg (b - a)
+          ... = |b - a|      : abs_neg (b - a)
 
 variables [covariant_class α α (+) (≤)] {a b c : α}
 

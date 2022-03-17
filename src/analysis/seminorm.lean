@@ -514,6 +514,13 @@ begin
   exact mul_lt_mul'' (mem_ball_zero_iff.mp ha) (p.mem_ball_zero.mp hy) (norm_nonneg a) (p.nonneg y),
 end
 
+@[simp] lemma ball_eq_emptyset (p : seminorm 𝕜 E) {x : E} {r : ℝ} (hr : r ≤ 0) : p.ball x r = ∅ :=
+begin
+  ext,
+  rw [seminorm.mem_ball, set.mem_empty_eq, iff_false, not_lt],
+  exact hr.trans (p.nonneg _),
+end
+
 end norm_one_class
 end module
 end add_comm_group
@@ -522,6 +529,40 @@ end semi_normed_ring
 section normed_field
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) {A B : set E}
   {a : 𝕜} {r : ℝ} {x : E}
+
+lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ∥k∥) :
+  k • p.ball 0 r = p.ball 0 (∥k∥ * r) :=
+begin
+  ext,
+  rw [set.mem_smul_set, seminorm.mem_ball_zero],
+  split; intro h,
+  { rcases h with ⟨y, hy, h⟩,
+    rw [←h, seminorm.smul],
+    rw seminorm.mem_ball_zero at hy,
+    exact (mul_lt_mul_left hk).mpr hy },
+  refine ⟨k⁻¹ • x, _, _⟩,
+  { rw [seminorm.mem_ball_zero, seminorm.smul, norm_inv, ←(mul_lt_mul_left hk),
+      ←mul_assoc, ←(div_eq_mul_inv ∥k∥ ∥k∥), div_self (ne_of_gt hk), one_mul],
+    exact h},
+  rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self (norm_pos_iff.mp hk), one_smul],
+end
+
+lemma ball_zero_absorbs_ball_zero (p : seminorm 𝕜 E) {r₁ r₂ : ℝ} (hr₁ : 0 < r₁) :
+  absorbs 𝕜 (p.ball 0 r₁) (p.ball 0 r₂) :=
+begin
+  by_cases hr₂ : r₂ ≤ 0,
+  { rw ball_eq_emptyset p hr₂, exact absorbs_empty },
+  rw [not_le] at hr₂,
+  rcases exists_between hr₁ with ⟨r, hr, hr'⟩,
+  refine ⟨r₂/r, div_pos hr₂ hr, _⟩,
+  simp_rw set.subset_def,
+  intros a ha x hx,
+  have ha' : 0 < ∥a∥ := lt_of_lt_of_le (div_pos hr₂ hr) ha,
+  rw [smul_ball_zero ha', p.mem_ball_zero],
+  rw p.mem_ball_zero at hx,
+  rw div_le_iff hr at ha,
+  exact hx.trans (lt_of_le_of_lt ha ((mul_lt_mul_left ha').mpr hr')),
+end
 
 /-- Seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=

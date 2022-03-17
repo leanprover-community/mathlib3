@@ -637,22 +637,6 @@ the determinants of the diagonal blocks. For the generalization to any number of
 by rw [←det_transpose, from_blocks_transpose, transpose_zero, det_from_blocks_zero₂₁,
   det_transpose, det_transpose]
 
-/-- A special case of the **Matrix determinant lemma** for when `A = I`.
-
-TODO: show this more generally. -/
-lemma det_one_add_col_mul_row (u v : m → R) : det (1 + col u ⬝ row v) = 1 + v ⬝ᵥ u :=
-calc  det (1 + col u ⬝ row v)
-    = det (from_blocks 1 0 (row v) 1
-         ⬝ from_blocks (1 + col u ⬝ row v) (col u) 0 (1 : matrix unit unit R)
-         ⬝ from_blocks 1 0 (-row v) 1) :
-  by simp only [matrix.det_mul, det_from_blocks_zero₂₁, det_from_blocks_zero₁₂,
-                det_one, one_mul, mul_one]
-... = det (from_blocks 1 (col u) 0 (1 + row v ⬝ col u)) :
-  congr_arg _ $ by simp [from_blocks_multiply, matrix.mul_add, matrix.add_mul, ←matrix.mul_assoc,
-                         ←neg_add_rev, add_comm]
-... = det (1 + row v ⬝ col u) : by rw [det_from_blocks_zero₂₁, det_one, one_mul]
-... = 1 + v ⬝ᵥ u : by simp
-
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along column 0. -/
 lemma det_succ_column_zero {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :
   det A = ∑ i : fin n.succ, (-1) ^ (i : ℕ) * A i 0 *

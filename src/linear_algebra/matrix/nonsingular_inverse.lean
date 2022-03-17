@@ -455,4 +455,15 @@ lemma det_mul_add_one_comm {m n} [fintype m] [fintype n] (A : matrix m n α) (B 
   det (A ⬝ B + 1) = det (B ⬝ A + 1) :=
 by rw [add_comm, det_one_add_mul_comm, add_comm]
 
+lemma det_one_sub_mul_comm {m n} [fintype m] [fintype n] (A : matrix m n α) (B : matrix n m α) :
+  det (1 - A ⬝ B) = det (1 - B ⬝ A) :=
+by rw [sub_eq_add_neg, ←matrix.neg_mul, det_one_add_mul_comm, matrix.mul_neg, ←sub_eq_add_neg]
+
+/-- A special case of the **Matrix determinant lemma** for when `A = I`.
+
+TODO: show this more generally. -/
+lemma det_one_add_col_mul_row [fintype m] (u v : m → α) : det (1 + col u ⬝ row v) = 1 + v ⬝ᵥ u :=
+by rw [det_one_add_mul_comm, det_unique, pi.add_apply, pi.add_apply, matrix.one_apply_eq,
+       matrix.row_mul_col_apply]
+
 end matrix

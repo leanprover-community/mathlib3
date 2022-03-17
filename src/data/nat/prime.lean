@@ -182,6 +182,18 @@ lemma nat.prime_mul_iff {a b : ℕ} :
 by cases a; cases b;  try { cases a; cases b };
   simp [nat.not_prime_zero, nat.not_prime_one, nat.not_prime_mul]
 
+lemma nat.prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : 1 < a) : a ∣ p ↔ p = a :=
+begin
+  refine ⟨_, _⟩,
+  { rintro ⟨j, hj⟩,
+    rw hj at hp ⊢,
+    rcases nat.prime_mul_iff.mp hp with ⟨h, rfl⟩ | ⟨h, rfl⟩,
+    { exact mul_one _ },
+    { rcases a1 with _ | ⟨_, ⟨⟩⟩ } },
+  { rintro rfl,
+    refl }
+end
+
 section min_fac
 
 lemma min_fac_lemma (n k : ℕ) (h : ¬ n < k * k) :

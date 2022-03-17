@@ -113,6 +113,18 @@ class subgroup.finite_index {G : Type*} [group G] (H : subgroup G) : Prop :=
 
 namespace subgroup
 
+lemma exists_left_transversal {G : Type*} [group G] {H : subgroup G} {h : G} (hh : h ∈ H) :
+  ∃ S ∈ left_transversals (H : set G), h ∈ S :=
+begin
+  sorry
+end
+
+lemma exists_right_transversal {G : Type*} [group G] {H : subgroup G} {h : G} (hh : h ∈ H) :
+  ∃ S ∈ right_transversals (H : set G), h ∈ S :=
+begin
+  sorry
+end
+
 lemma closure_induction_left {G : Type*} [group G] {S : set G} {p : G → Prop} {x : G}
   (h : x ∈ closure S) (H1 : p 1) (Hmul : ∀ (x ∈ S) y, p y → p (x * y))
   (Hinv : ∀ (x ∈ S) y, p y → p (x⁻¹ * y)) : p x :=
@@ -208,23 +220,38 @@ begin
   exact schreier hR hR1 hS,
 end
 
+/-- **Schreier's Lemma** -/
+lemma schreier_aux4 {G : Type*} [group G] {H : subgroup G} {R S : finset G}
+  (hR : (R : set G) ∈ right_transversals (H : set G)) (hR1 : (1 : G) ∈ R)
+  (hS : closure (S : set G) = ⊤) :
+  closure ((((R * S).image (λ g, ⟨g * (mem_right_transversals.to_fun hR g)⁻¹,
+    mem_right_transversals.mul_inv_to_fun_mem hR g⟩)) : finset H) : set H) = ⊤ :=
+begin
+  rw [finset.coe_image, finset.coe_mul, eq_top_iff, ←map_subtype_le_map_subtype,
+      ←monoid_hom.range_eq_map, subtype_range, monoid_hom.map_closure, set.image_image],
+  exact ge_of_eq (schreier hR hR1 hS),
+end
+
 instance schreier_aux2 {G : Type*} [group G] [hG : finitely_generated G] {H : subgroup G}
   [hH : finite_index H] : finitely_generated H :=
 begin
-
+  obtain ⟨S, hS⟩ := hG.1,
+  obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal H.one_mem,
+  haveI : fintype (quotient (quotient_group.right_rel H)) := sorry,
+  haveI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
+  let R : finset G := set.to_finset R₀,
+  replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
+  replace hR1 : (1 : G) ∈ R := by rwa set.mem_to_finset,
+  exact ⟨⟨_, schreier_aux4 hR hR1 hS⟩⟩,
 end
 
 lemma schreier_aux3 {G : Type*} [group G] [hG : finitely_generated G] {H : subgroup G}
   [hH : finite_index H] : min_generators H ≤ H.index * min_generators G :=
 begin
+  sorry
 end
 
 end subgroup
-
-def generated_by (G : Type*) [group G] (n : ℕ) :=
-∃ S : set G, subgroup.closure S = ⊤ ∧ ∃ hS, @fintype.card S hS ≤ n
-
-def schreier_bound : ℕ → ℕ → ℕ := (*)
 
 lemma fintype.card_image_le {α β : Type*} (f : α → β) (s : set α) [fintype s] :
   fintype.card (f '' s) ≤ fintype.card s :=
@@ -237,27 +264,6 @@ sorry
 def card_mul_le {α : Type*} [has_mul α] [decidable_eq α] (s t : set α) [hs : fintype s] [ht : fintype t] :
   card (s * t : set α) ≤ card s * card t :=
 by convert fintype.card_image2_le _ s t
-
-lemma schreier'' {m n : ℕ} {G : Type*} [group G] {H : subgroup G}
-  (h1 : H.index ≤ m) (h2 : generated_by G n) : generated_by H (schreier_bound m n) :=
-begin
-  obtain ⟨R, hR⟩ := @subgroup.right_transversals.inhabited G _ H,
-  obtain ⟨S, hS, hS_fintype, hS_card⟩ := h2,
-  haveI : fintype (quotient (quotient_group.right_rel H)) := sorry,
-  haveI : fintype R := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
-  haveI : fintype S := hS_fintype,
-  let T : set G := R * S,
-  let f : G → H := λ g, (⟨g * (mem_right_transversals.to_fun hR g)⁻¹,
-    mem_right_transversals.to_fun_mul_inv_mem hR g⟩ : H),
-
-  refine ⟨_, schreier' hR hS, by apply_instance, _⟩,
-  change card (f '' T) ≤ schreier_bound m n,
-  have key := fintype.card_image_le f T,
-  convert key.trans _,
-  convert (card_mul_le R S).trans _,
-  convert mul_le_mul' _ hS_card,
-  sorry,
-end
 
 end technical
 

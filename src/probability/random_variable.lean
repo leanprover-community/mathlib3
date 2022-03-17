@@ -75,6 +75,20 @@ def marginalize (μ : measure (Π i : ι, β i)) (mv : set ι) :
 
 end definitions
 
+instance joint_is_probability_measure
+  (hm : ∀ i : ι, measurable (f i)) [hp : is_probability_measure μ] :
+  is_probability_measure (joint μ f) :=
+begin
+  constructor,
+  rw [joint, measure.map_apply (measurable_pi_iff.mpr hm) measurable_set.univ, set.preimage_univ],
+  exact hp.measure_univ,
+end
+
+instance marginal_is_probability_measure
+  (hm : ∀ i : ι, measurable (f i)) [is_probability_measure μ] (mv : set ι) :
+  is_probability_measure (marginal μ f mv) :=
+by { rw marginal, exact probability_theory.joint_is_probability_measure _ _ (λ i, hm i) }
+
 section marginal
 
 /-- The marginal distribution is the marginalized joint distribution. -/

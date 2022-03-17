@@ -523,6 +523,10 @@ begin
   rw [pow_succ, succ_nsmul, normalized_factors_mul h0 (pow_ne_zero _ h0), ih],
 end
 
+theorem _root_.irreducible.normalized_factors_pow {p : α} (hp : irreducible p) (k : ℕ) :
+  normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
+by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
+
 lemma dvd_iff_normalized_factors_le_normalized_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
   x ∣ y ↔ normalized_factors x ≤ normalized_factors y :=
 begin
@@ -531,7 +535,7 @@ begin
     simp [hx, right_ne_zero_of_mul hy] },
   { rw [← (normalized_factors_prod hx).dvd_iff_dvd_left,
       ← (normalized_factors_prod hy).dvd_iff_dvd_right],
-    apply multiset.prod_dvd_prod }
+    apply multiset.prod_dvd_prod_of_le }
 end
 
 lemma zero_not_mem_normalized_factors (x : α) : (0 : α) ∉ normalized_factors x :=
@@ -749,7 +753,7 @@ rfl
     by rw [← factor_set.coe_add, prod_coe, prod_coe, prod_coe, multiset.map_add, multiset.prod_add]
 
 theorem prod_mono : ∀{a b : factor_set α}, a ≤ b → a.prod ≤ b.prod
-| none b h := have b = ⊤, from top_unique h, by rw [this, prod_top]; exact le_refl _
+| none b h := have b = ⊤, from top_unique h, by rw [this, prod_top]; exact le_rfl
 | a none h := show a.prod ≤ (⊤ : factor_set α).prod, by simp; exact le_top
 | (some a) (some b) h := prod_le_prod $ multiset.map_le_map $ with_top.coe_le_coe.1 $ h
 
@@ -1151,6 +1155,11 @@ end
 
 omit dec_irr
 
+theorem factors_self [nontrivial α] {p : associates α}  (hp : irreducible p) :
+  p.factors = some ({⟨p, hp⟩}) :=
+eq_of_prod_eq_prod (by rw [factors_prod, factor_set.prod, map_singleton, prod_singleton,
+                            subtype.coe_mk])
+
 theorem factors_prime_pow [nontrivial α] {p : associates α} (hp : irreducible p)
   (k : ℕ) : factors (p ^ k) = some (multiset.repeat ⟨p, hp⟩ k) :=
 eq_of_prod_eq_prod (by rw [associates.factors_prod, factor_set.prod, multiset.map_repeat,
@@ -1188,6 +1197,10 @@ begin
       (associates.mk_ne_zero.mpr ha0) ((associates.irreducible_mk p).mpr hp)] at h,
     exact (zero_lt_one.trans_le h).ne' }
 end
+
+theorem count_self [nontrivial α] {p : associates α} (hp : irreducible p) :
+  p.count p.factors = 1 :=
+by simp [factors_self hp, associates.count_some hp]
 
 theorem count_mul [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) :
@@ -1411,7 +1424,7 @@ begin
     show (s.snd : M) * s.fst.prod ∣ y,
     rw [(unit_associated_one.mul_right s.fst.prod).dvd_iff_dvd_left, one_mul,
         ← (normalized_factors_prod hy).dvd_iff_dvd_right],
-    exact multiset.prod_dvd_prod hs },
+    exact multiset.prod_dvd_prod_of_le hs },
   { rintro (h : x ∣ y),
     have hx : x ≠ 0, { refine mt (λ hx, _) hy, rwa [hx, zero_dvd_iff] at h },
     obtain ⟨u, hu⟩ := normalized_factors_prod hx,

@@ -571,21 +571,21 @@ end semiring
 section ring
 variables [ring α] [fintype n]
 
-@[simp] theorem neg_mul (M : matrix m n α) (N : matrix n o α) :
+@[simp] protected theorem neg_mul (M : matrix m n α) (N : matrix n o α) :
   (-M) ⬝ N = -(M ⬝ N) :=
 by { ext, apply neg_dot_product }
 
-@[simp] theorem mul_neg (M : matrix m n α) (N : matrix n o α) :
+@[simp] protected theorem mul_neg (M : matrix m n α) (N : matrix n o α) :
   M ⬝ (-N) = -(M ⬝ N) :=
 by { ext, apply dot_product_neg }
 
 protected theorem sub_mul (M M' : matrix m n α) (N : matrix n o α) :
   (M - M') ⬝ N = M ⬝ N - M' ⬝ N :=
-by rw [sub_eq_add_neg, matrix.add_mul, neg_mul, sub_eq_add_neg]
+by rw [sub_eq_add_neg, matrix.add_mul, matrix.neg_mul, sub_eq_add_neg]
 
 protected theorem mul_sub (M : matrix m n α) (N N' : matrix n o α) :
   M ⬝ (N - N') = M ⬝ N - M ⬝ N' :=
-by rw [sub_eq_add_neg, matrix.mul_add, mul_neg, sub_eq_add_neg]
+by rw [sub_eq_add_neg, matrix.mul_add, matrix.mul_neg, sub_eq_add_neg]
 
 end ring
 
@@ -1220,7 +1220,7 @@ by simp [conj_transpose]
 @[simp] lemma conj_transpose_sub [add_group α] [star_add_monoid α] (M N : matrix m n α) :
   (M - N)ᴴ = Mᴴ - Nᴴ  := by ext i j; simp
 
-@[simp] lemma conj_transpose_smul [comm_monoid α] [star_monoid α] (c : α) (M : matrix m n α) :
+@[simp] lemma conj_transpose_smul [comm_monoid α] [star_semigroup α] (c : α) (M : matrix m n α) :
   (c • M)ᴴ = (star c) • Mᴴ :=
 by ext i j; simp [mul_comm]
 
@@ -1292,7 +1292,7 @@ instance [add_monoid α] [star_add_monoid α] : star_add_monoid (matrix n n α) 
 { star_add := conj_transpose_add }
 
 /-- When `α` is a `*`-(semi)ring, `matrix.has_star` is also a `*`-(semi)ring. -/
-instance [fintype n] [decidable_eq n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
+instance [fintype n] [semiring α] [star_ring α] : star_ring (matrix n n α) :=
 { star_add := conj_transpose_add,
   star_mul := conj_transpose_mul, }
 

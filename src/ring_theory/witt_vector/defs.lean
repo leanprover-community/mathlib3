@@ -112,6 +112,14 @@ witt_structure_int p 1
 def witt_add : ℕ → mv_polynomial (fin 2 × ℕ) ℤ :=
 witt_structure_int p (X 0 + X 1)
 
+/-- The polynomials used for defining repeated addition of the ring of Witt vectors. -/
+def witt_nsmul (n : ℕ) : ℕ → mv_polynomial (fin 1 × ℕ) ℤ :=
+witt_structure_int p (n • X 0)
+
+/-- The polynomials used for defining repeated addition of the ring of Witt vectors. -/
+def witt_zsmul (n : ℤ) : ℕ → mv_polynomial (fin 1 × ℕ) ℤ :=
+witt_structure_int p (n • X 0)
+
 /-- The polynomials used for describing the subtraction of the ring of Witt vectors. -/
 def witt_sub : ℕ → mv_polynomial (fin 2 × ℕ) ℤ :=
 witt_structure_int p (X 0 - X 1)
@@ -123,6 +131,10 @@ witt_structure_int p (X 0 * X 1)
 /-- The polynomials used for defining the negation of the ring of Witt vectors. -/
 def witt_neg : ℕ → mv_polynomial (fin 1 × ℕ) ℤ :=
 witt_structure_int p (-X 0)
+
+/-- The polynomials used for defining repeated addition of the ring of Witt vectors. -/
+def witt_pow (n : ℕ) : ℕ → mv_polynomial (fin 1 × ℕ) ℤ :=
+witt_structure_int p (X 0 ^ n)
 
 variable {p}
 omit hp
@@ -163,11 +175,20 @@ instance : has_add (𝕎 R) :=
 instance : has_sub (𝕎 R) :=
 ⟨λ x y, eval (witt_sub p) ![x, y]⟩
 
+instance has_nat_scalar : has_scalar ℕ (𝕎 R) :=
+⟨λ n x, eval (witt_nsmul p n) ![x]⟩
+
+instance has_int_scalar : has_scalar ℤ (𝕎 R) :=
+⟨λ n x, eval (witt_zsmul p n) ![x]⟩
+
 instance : has_mul (𝕎 R) :=
 ⟨λ x y, eval (witt_mul p) ![x, y]⟩
 
 instance : has_neg (𝕎 R) :=
 ⟨λ x, eval (witt_neg p) ![x]⟩
+
+instance has_nat_pow : has_pow (𝕎 R) ℕ :=
+⟨λ x n, eval (witt_pow p n) ![x]⟩
 
 end ring_operations
 
@@ -268,6 +289,20 @@ begin
   simp only [neg_zero, ring_hom.map_neg, constant_coeff_X],
 end
 
+@[simp] lemma constant_coeff_witt_nsmul (m : ℕ) (n : ℕ):
+  constant_coeff (witt_nsmul p m n) = 0 :=
+begin
+  apply constant_coeff_witt_structure_int p _ _ n,
+  simp only [smul_zero, map_nsmul, constant_coeff_X],
+end
+
+@[simp] lemma constant_coeff_witt_zsmul (z : ℤ) (n : ℕ):
+  constant_coeff (witt_zsmul p z n) = 0 :=
+begin
+  apply constant_coeff_witt_structure_int p _ _ n,
+  simp only [smul_zero, map_zsmul, constant_coeff_X],
+end
+
 end witt_structure_simplifications
 
 section coeff
@@ -311,6 +346,18 @@ lemma neg_coeff (x : 𝕎 R) (n : ℕ) :
   (-x).coeff n = peval (witt_neg p n) ![x.coeff] :=
 by simp [has_neg.neg, eval, matrix.cons_fin_one]
 
+lemma nsmul_coeff (m : ℕ) (x : 𝕎 R) (n : ℕ) :
+  (m • x).coeff n = peval (witt_nsmul p m n) ![x.coeff] :=
+by simp [has_scalar.smul, eval, matrix.cons_fin_one]
+
+lemma zsmul_coeff (m : ℤ) (x : 𝕎 R) (n : ℕ) :
+  (m • x).coeff n = peval (witt_zsmul p m n) ![x.coeff] :=
+by simp [has_scalar.smul, eval, matrix.cons_fin_one]
+
+lemma pow_coeff (m : ℕ) (x : 𝕎 R) (n : ℕ) :
+  (x ^ m).coeff n = peval (witt_pow p m n) ![x.coeff] :=
+by simp [has_pow.pow, eval, matrix.cons_fin_one]
+
 lemma add_coeff_zero (x y : 𝕎 R) : (x + y).coeff 0 = x.coeff 0 + y.coeff 0 :=
 by simp [add_coeff, peval]
 
@@ -333,6 +380,18 @@ witt_structure_int_vars _ _ _
 
 lemma witt_neg_vars (n : ℕ) :
   (witt_neg p n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+witt_structure_int_vars _ _ _
+
+lemma witt_nsmul_vars (m : ℕ) (n : ℕ) :
+  (witt_nsmul p m n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+witt_structure_int_vars _ _ _
+
+lemma witt_zsmul_vars (m : ℤ) (n : ℕ) :
+  (witt_zsmul p m n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
+witt_structure_int_vars _ _ _
+
+lemma witt_pow_vars (m : ℕ) (n : ℕ) :
+  (witt_pow p m n).vars ⊆ finset.univ.product (finset.range (n + 1)) :=
 witt_structure_int_vars _ _ _
 
 end witt_vector

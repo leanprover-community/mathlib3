@@ -192,7 +192,7 @@ end
 
 lemma commute.mul_geom_sum₂ [ring α] {x y : α} (h : commute x y) (n : ℕ) :
   (x - y) * (geom_sum₂ x y n) = x ^ n - y ^ n :=
-by rw [← neg_sub (y ^ n), ← h.mul_neg_geom_sum₂, ← neg_mul_eq_neg_mul_symm, neg_sub]
+by rw [← neg_sub (y ^ n), ← h.mul_neg_geom_sum₂, ← neg_mul, neg_sub]
 
 theorem geom_sum₂_mul [comm_ring α] (x y : α) (n : ℕ) :
   (geom_sum₂ x y n) * (x - y) = x ^ n - y ^ n :=
@@ -214,7 +214,7 @@ theorem geom_sum_mul_neg [ring α] (x : α) (n : ℕ) :
   (geom_sum x n) * (1 - x) = 1 - x ^ n :=
 begin
   have := congr_arg has_neg.neg (geom_sum_mul x n),
-  rw [neg_sub, ← mul_neg_eq_neg_mul_symm, neg_sub] at this,
+  rw [neg_sub, ← mul_neg, neg_sub] at this,
   exact this
 end
 

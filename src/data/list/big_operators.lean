@@ -482,18 +482,35 @@ by rw [← op_inj, op_unop, mul_opposite.op_list_prod, map_reverse, map_map, rev
 
 end mul_opposite
 
-namespace monoid_hom
+section monoid_hom
 
 variables [monoid M] [monoid N]
 
 @[to_additive]
-lemma map_list_prod (f : M →* N) (l : list M) :
-  f l.prod = (l.map f).prod :=
+lemma map_list_prod {F : Type*} [monoid_hom_class F M N] (f : F)
+  (l : list M) : f l.prod = (l.map f).prod :=
 (l.prod_hom f).symm
 
-/-- A morphism into the opposite monoid acts on the product by acting on the reversed elements -/
-lemma unop_map_list_prod (f : M →* Nᵐᵒᵖ) (l : list M) :
+/-- A morphism into the opposite monoid acts on the product by acting on the reversed elements. -/
+lemma unop_map_list_prod {F : Type*} [monoid_hom_class F M Nᵐᵒᵖ] (f : F) (l : list M) :
   (f l.prod).unop = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
-by rw [f.map_list_prod l, mul_opposite.unop_list_prod, list.map_map]
+by rw [map_list_prod f l, mul_opposite.unop_list_prod, list.map_map]
+
+namespace monoid_hom
+
+/-- Deprecated, use `_root_.map_list_prod` instead. -/
+@[to_additive "Deprecated, use `_root_.map_list_sum` instead."]
+protected lemma map_list_prod (f : M →* N) (l : list M) :
+  f l.prod = (l.map f).prod :=
+map_list_prod f l
+
+/-- A morphism into the opposite monoid acts on the product by acting on the reversed elements.
+
+Deprecated, use `_root_.unop_map_list_prod` instead. -/
+protected lemma unop_map_list_prod (f : M →* Nᵐᵒᵖ) (l : list M) :
+  (f l.prod).unop = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
+unop_map_list_prod f l
+
+end monoid_hom
 
 end monoid_hom

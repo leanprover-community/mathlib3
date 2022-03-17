@@ -43,11 +43,11 @@ def of_nodup_list [decidable_eq α] (xs : list α) (h : ∀ x : α, x ∈ xs) (h
            λ ⟨i,h⟩, xs.nth_le _ h,
            λ x, by simp [of_nodup_list._match_1],
            λ ⟨i,h⟩, by simp [of_nodup_list._match_1,*]; rw list.nth_le_index_of;
-             apply list.nodup_erase_dup ⟩ }
+             apply list.nodup_dedup ⟩ }
 
 /-- create a `fin_enum` instance from an exhaustive list; duplicates are removed -/
 def of_list [decidable_eq α] (xs : list α) (h : ∀ x : α, x ∈ xs) : fin_enum α :=
-of_nodup_list xs.erase_dup (by simp *) (list.nodup_erase_dup _)
+of_nodup_list xs.dedup (by simp *) (list.nodup_dedup _)
 
 /-- create an exhaustive list of the values of a given type -/
 def to_list (α) [fin_enum α] : list α :=

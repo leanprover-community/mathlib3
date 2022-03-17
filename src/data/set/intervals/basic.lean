@@ -5,7 +5,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy
 -/
 import algebra.order.group
 import order.rel_iso
-import order.order_dual
 
 /-!
 # Intervals
@@ -373,12 +372,8 @@ by rw [←not_nonempty_iff_eq_empty, not_iff_not, nonempty_Ioo]
 
 lemma _root_.is_top.Iic_eq (h : is_top a) : Iic a = univ := eq_univ_of_forall h
 lemma _root_.is_bot.Ici_eq (h : is_bot a) : Ici a = univ := eq_univ_of_forall h
-
-lemma _root_.is_top.Ioi_eq (h : is_top a) : Ioi a = ∅ :=
-eq_empty_of_subset_empty $ λ b hb, (h b).not_lt hb
-
-lemma _root_.is_bot.Iio_eq (h : is_bot a) : Iio a = ∅ :=
-eq_empty_of_subset_empty $ λ b hb, (h b).not_lt hb
+lemma _root_.is_max.Ioi_eq (h : is_max a) : Ioi a = ∅ := eq_empty_of_subset_empty $ λ b, h.not_lt
+lemma _root_.is_min.Iio_eq (h : is_min a) : Iio a = ∅ := eq_empty_of_subset_empty $ λ b, h.not_lt
 
 end preorder
 
@@ -516,10 +511,10 @@ begin
   exact this hmem
 end
 
-lemma _root_.is_top.Ici_eq (h : is_top a) : Ici a = {a} :=
-eq_singleton_iff_unique_mem.2 ⟨left_mem_Ici, λ x, (h x).antisymm⟩
+lemma _root_.is_max.Ici_eq (h : is_max a) : Ici a = {a} :=
+eq_singleton_iff_unique_mem.2 ⟨left_mem_Ici, λ b, h.eq_of_ge⟩
 
-lemma _root_.is_bot.Iic_eq (h : is_bot a) : Iic a = {a} := h.to_dual.Ici_eq
+lemma _root_.is_min.Iic_eq (h : is_min a) : Iic a = {a} := h.to_dual.Ici_eq
 
 lemma Iic_inter_Ioc_of_le (h : a ≤ c) : Iic a ∩ Ioc b c = Ioc b a :=
 ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
@@ -528,12 +523,12 @@ end partial_order
 
 section order_top
 
-@[simp] lemma Ici_top {α : Type u} [partial_order α] [order_top α] :
-  Ici (⊤ : α) = {⊤} := is_top_top.Ici_eq
+@[simp] lemma Ici_top {α : Type u} [partial_order α] [order_top α] : Ici (⊤ : α) = {⊤} :=
+is_max_top.Ici_eq
 
 variables {α : Type u} [preorder α] [order_top α] {a : α}
 
-@[simp] lemma Ioi_top : Ioi (⊤ : α) = ∅ := is_top_top.Ioi_eq
+@[simp] lemma Ioi_top : Ioi (⊤ : α) = ∅ := is_max_top.Ioi_eq
 @[simp] lemma Iic_top : Iic (⊤ : α) = univ := is_top_top.Iic_eq
 @[simp] lemma Icc_top : Icc a ⊤ = Ici a := by simp [← Ici_inter_Iic]
 @[simp] lemma Ioc_top : Ioc a ⊤ = Ioi a := by simp [← Ioi_inter_Iic]
@@ -542,12 +537,12 @@ end order_top
 
 section order_bot
 
-@[simp] lemma Iic_bot {α : Type u} [partial_order α] [order_bot α] :
-  Iic (⊥ : α) = {⊥} := is_bot_bot.Iic_eq
+@[simp] lemma Iic_bot {α : Type u} [partial_order α] [order_bot α] : Iic (⊥ : α) = {⊥} :=
+is_min_bot.Iic_eq
 
 variables {α : Type u} [preorder α] [order_bot α] {a : α}
 
-@[simp] lemma Iio_bot : Iio (⊥ : α) = ∅ := is_bot_bot.Iio_eq
+@[simp] lemma Iio_bot : Iio (⊥ : α) = ∅ := is_min_bot.Iio_eq
 @[simp] lemma Ici_bot : Ici (⊥ : α) = univ := is_bot_bot.Ici_eq
 @[simp] lemma Icc_bot : Icc ⊥ a = Iic a := by simp [← Ici_inter_Iic]
 @[simp] lemma Ico_bot : Ico ⊥ a = Iio a := by simp [← Ici_inter_Iio]

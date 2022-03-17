@@ -196,6 +196,8 @@ instance {n : ℕ} : linear_order (fin n) :=
   decidable_eq := fin.decidable_eq _,
  ..linear_order.lift (coe : fin n → ℕ) (@fin.eq_of_veq _) }
 
+instance {n : ℕ}  : partial_order (fin n) := linear_order.to_partial_order (fin n)
+
 /-- The inclusion map `fin n → ℕ` is a relation embedding. -/
 def coe_embedding (n) : (fin n) ↪o ℕ :=
 ⟨⟨coe, @fin.eq_of_veq _⟩, λ a b, iff.rfl⟩
@@ -671,6 +673,11 @@ lt_iff_coe_lt_coe.2 $ by simp only [coe_cast_succ, coe_succ, nat.lt_succ_self]
 lemma le_cast_succ_iff {i : fin (n + 1)} {j : fin n} : i ≤ j.cast_succ ↔ i < j.succ :=
 by simpa [lt_iff_coe_lt_coe, le_iff_coe_le_coe] using nat.succ_le_succ_iff.symm
 
+lemma cast_succ_lt_iff_succ_le {n : ℕ} {i : fin n} {j : fin (n+1)} :
+  i.cast_succ < j ↔ i.succ ≤ j :=
+by simpa only [fin.lt_iff_coe_lt_coe, fin.le_iff_coe_le_coe, fin.coe_succ, fin.coe_cast_succ]
+  using nat.lt_iff_add_one_le
+
 @[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
 
 @[simp] lemma succ_eq_last_succ {n : ℕ} (i : fin n.succ) :
@@ -1012,7 +1019,7 @@ lemma forall_fin_two {p : fin 2 → Prop} : (∀ i, p i) ↔ p 0 ∧ p 1 :=
 forall_fin_succ.trans $ and_congr_right $ λ _, forall_fin_one
 
 lemma exists_fin_two {p : fin 2 → Prop} : (∃ i, p i) ↔ p 0 ∨ p 1 :=
-exists_fin_succ.trans $ or_congr_right exists_fin_one
+exists_fin_succ.trans $ or_congr_right' exists_fin_one
 
 lemma fin_two_eq_of_eq_zero_iff {a b : fin 2} (h : a = 0 ↔ b = 0) : a = b :=
 by { revert a b, simp [forall_fin_two] }

@@ -85,8 +85,8 @@ def exp_comparison (A : C) :
 transfer_nat_trans (exp.adjunction A) (exp.adjunction (F.obj A)) (prod_comparison_nat_iso F A).inv
 
 lemma exp_comparison_ev (A B : C) :
-  limits.prod.map (𝟙 (F.obj A)) ((exp_comparison F A).app B) ≫ (ev (F.obj A)).app (F.obj B) =
-    inv (prod_comparison F _ _) ≫ F.map ((ev _).app _) :=
+  limits.prod.map (𝟙 (F.obj A)) ((exp_comparison F A).app B) ≫ (exp.ev (F.obj A)).app (F.obj B) =
+    inv (prod_comparison F _ _) ≫ F.map ((exp.ev _).app _) :=
 begin
   convert transfer_nat_trans_counit _ _ (prod_comparison_nat_iso F A).inv B,
   ext,
@@ -94,8 +94,8 @@ begin
 end
 
 lemma coev_exp_comparison (A B : C) :
-  F.map ((coev A).app B) ≫ (exp_comparison F A).app (A ⨯ B) =
-      (coev _).app (F.obj B) ≫ (exp (F.obj A)).map (inv (prod_comparison F A B)) :=
+  F.map ((exp.coev A).app B) ≫ (exp_comparison F A).app (A ⨯ B) =
+      (exp.coev _).app (F.obj B) ≫ (exp (F.obj A)).map (inv (prod_comparison F A B)) :=
 begin
   convert unit_transfer_nat_trans _ _ (prod_comparison_nat_iso F A).inv B,
   ext,
@@ -105,7 +105,7 @@ end
 
 lemma uncurry_exp_comparison (A B : C) :
   cartesian_closed.uncurry ((exp_comparison F A).app B) =
-    inv (prod_comparison F _ _) ≫ F.map ((ev _).app _) :=
+    inv (prod_comparison F _ _) ≫ F.map ((exp.ev _).app _) :=
 by rw [uncurry_eq, exp_comparison_ev]
 
 /-- The exponential comparison map is natural in `A`. -/
@@ -142,7 +142,7 @@ lemma frobenius_morphism_mate (h : L ⊣ F) (A : C) :
     dsimp [frobenius_morphism, transfer_nat_trans_self, transfer_nat_trans, adjunction.comp],
     simp only [id_comp, comp_id],
     rw [←L.map_comp_assoc, prod.map_id_comp, assoc, exp_comparison_ev, prod.map_id_comp, assoc,
-      ← F.map_id, ← prod_comparison_inv_natural_assoc, ← F.map_comp, ev_coev,
+      ← F.map_id, ← prod_comparison_inv_natural_assoc, ← F.map_comp, exp.ev_coev,
       F.map_id (A ⨯ L.obj B), comp_id],
     apply prod.hom_ext,
     { rw [assoc, assoc, ←h.counit_naturality, ←L.map_comp_assoc, assoc,

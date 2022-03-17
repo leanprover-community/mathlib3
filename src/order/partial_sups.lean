@@ -50,7 +50,7 @@ lemma le_partial_sups_of_le (f : ℕ → α) {m n : ℕ} (h : m ≤ n) :
   f m ≤ partial_sups f n :=
 begin
   induction n with n ih,
-  { cases h, apply le_refl, },
+  { cases h, exact le_rfl, },
   { cases h with h h,
     { exact le_sup_right, },
     { exact (ih h).trans le_sup_left, } },

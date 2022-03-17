@@ -45,7 +45,7 @@ cramer, cramer's rule, adjugate
 namespace matrix
 universes u v
 variables {n : Type u} [decidable_eq n] [fintype n] {α : Type v} [comm_ring α]
-open_locale matrix big_operators
+open_locale matrix big_operators polynomial
 open equiv equiv.perm finset
 
 section cramer
@@ -382,9 +382,9 @@ Proof follows from "The trace Cayley-Hamilton theorem" by Darij Grinberg, Sectio
 -/
 lemma adjugate_mul_distrib (A B : matrix n n α) : adjugate (A ⬝ B) = adjugate B ⬝ adjugate A :=
 begin
-  let g : matrix n n α → matrix n n (polynomial α) :=
-    λ M, M.map polynomial.C + (polynomial.X : polynomial α) • 1,
-  let f' : matrix n n (polynomial α) →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
+  let g : matrix n n α → matrix n n α[X] :=
+    λ M, M.map polynomial.C + (polynomial.X : α[X]) • 1,
+  let f' : matrix n n α[X] →+* matrix n n α := (polynomial.eval_ring_hom 0).map_matrix,
   have f'_inv : ∀ M, f' (g M) = M,
   { intro,
     ext,

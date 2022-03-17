@@ -367,11 +367,72 @@ instance : has_sub (normed_group_hom V₁ V₂) :=
 @[simp] lemma sub_apply (f g : normed_group_hom V₁ V₂) (v : V₁) :
   (f - g : normed_group_hom V₁ V₂) v = f v - g v := rfl
 
+/-! ### Scalar actions on normed group homs -/
+
+section has_scalar
+
+variables {R R' : Type*}
+  [monoid_with_zero R] [distrib_mul_action R V₂] [pseudo_metric_space R] [has_bounded_smul R V₂]
+  [monoid_with_zero R'] [distrib_mul_action R' V₂] [pseudo_metric_space R'] [has_bounded_smul R' V₂]
+
+instance : has_scalar R (normed_group_hom V₁ V₂) :=
+{ smul := λ r f,
+  { to_fun := r • f,
+    map_add' := (r • f.to_add_monoid_hom).map_add',
+    bound' := let ⟨b, hb⟩ := f.bound' in  ⟨dist r 0 * b, λ x, begin
+      have := dist_smul_pair r (f x) (f 0),
+      rw [f.map_zero, smul_zero, dist_zero_right, dist_zero_right] at this,
+      rw mul_assoc,
+      refine this.trans _,
+      refine mul_le_mul_of_nonneg_left _ dist_nonneg,
+      exact hb x
+    end⟩ } }
+
+@[simp] lemma coe_smul (r : R) (f : normed_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
+@[simp] lemma smul_apply (r : R) (f : normed_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
+
+instance [smul_comm_class R R' V₂] : smul_comm_class R R' (normed_group_hom V₁ V₂) :=
+{ smul_comm := λ r r' f, ext $ λ v, smul_comm _ _ _ }
+
+instance [has_scalar R R'] [is_scalar_tower R R' V₂] :
+  is_scalar_tower R R' (normed_group_hom V₁ V₂) :=
+{ smul_assoc := λ r r' f, ext $ λ v, smul_assoc _ _ _ }
+
+instance [distrib_mul_action Rᵐᵒᵖ V₂] [is_central_scalar R V₂] :
+  is_central_scalar R (normed_group_hom V₁ V₂) :=
+{ op_smul_eq_smul := λ r f, ext $ λ v, op_smul_eq_smul _ _ }
+
+end has_scalar
+
+instance has_nat_scalar : has_scalar ℕ (normed_group_hom V₁ V₂) :=
+{ smul := λ n f,
+  { to_fun := n • f,
+    map_add' := (n • f.to_add_monoid_hom).map_add',
+    bound' := let ⟨b, hb⟩ := f.bound' in ⟨n • b, λ v, begin
+      rw [pi.smul_apply, nsmul_eq_mul, mul_assoc],
+      exact (norm_nsmul_le _ _).trans (mul_le_mul_of_nonneg_left (hb _) (nat.cast_nonneg _)),
+    end⟩ } }
+
+@[simp] lemma coe_nsmul (r : ℕ) (f : normed_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
+@[simp] lemma nsmul_apply (r : ℕ) (f : normed_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
+
+instance has_int_scalar : has_scalar ℤ (normed_group_hom V₁ V₂) :=
+{ smul := λ z f,
+  { to_fun := z • f,
+    map_add' := (z • f.to_add_monoid_hom).map_add',
+    bound' := let ⟨b, hb⟩ := f.bound' in ⟨∥z∥ • b, λ v, begin
+      rw [pi.smul_apply, smul_eq_mul, mul_assoc],
+      exact (norm_zsmul_le _ _).trans  (mul_le_mul_of_nonneg_left (hb _) $ norm_nonneg _),
+    end⟩ } }
+
+@[simp] lemma coe_zsmul (r : ℤ) (f : normed_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
+@[simp] lemma zsmul_apply (r : ℤ) (f : normed_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
+
 /-! ### Normed group structure on normed group homs -/
 
 /-- Homs between two given normed groups form a commutative additive group. -/
 instance : add_comm_group (normed_group_hom V₁ V₂) :=
-coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- Normed group homomorphisms themselves form a seminormed group with respect to
     the operator norm. -/
@@ -396,6 +457,18 @@ def coe_fn_add_hom : normed_group_hom V₁ V₂ →+ (V₁ → V₂) :=
 lemma sum_apply {ι : Type*} (s : finset ι) (f : ι → normed_group_hom V₁ V₂) (v : V₁) :
   (∑ i in s, f i) v = ∑ i in s, (f i v) :=
 by simp only [coe_sum, finset.sum_apply]
+
+/-! ### Module structure on normed group homs -/
+
+instance {R : Type*} [monoid_with_zero R] [distrib_mul_action R V₂]
+  [pseudo_metric_space R] [has_bounded_smul R V₂] :
+  distrib_mul_action R (normed_group_hom V₁ V₂) :=
+function.injective.distrib_mul_action coe_fn_add_hom coe_injective coe_smul
+
+instance {R : Type*} [semiring R] [module R V₂]
+  [pseudo_metric_space R] [has_bounded_smul R V₂] :
+  module R (normed_group_hom V₁ V₂) :=
+function.injective.module _ coe_fn_add_hom coe_injective coe_smul
 
 /-! ### Composition of normed group homs -/
 

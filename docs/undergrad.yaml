@@ -301,7 +301,7 @@ Single Variable Real Analysis:
     error estimation: 'https://en.wikipedia.org/wiki/Series_(mathematics)#Evaluation_of_truncation_errors'
     absolute convergence: 'https://en.wikipedia.org/wiki/Absolute_convergence'
     products of series: 'https://en.wikipedia.org/wiki/Cauchy_product'
-    alternating series: 'https://en.wikipedia.org/wiki/Alternating_series_test'
+    alternating series: 'antitone.tendsto_alternating_series_of_tendsto_zero'
   Real-valued functions defined on a subset of $\R$:
     continuity: 'continuous'
     limits: 'filter.tendsto'
@@ -317,7 +317,7 @@ Single Variable Real Analysis:
     Rolle's theorem: 'exists_deriv_eq_zero'
     mean value theorem: 'exists_ratio_deriv_eq_ratio_slope'
     higher order derivatives of functions: 'iterated_deriv'
-    $C^k$ functions: 'times_cont_diff'
+    $C^k$ functions: 'cont_diff'
     piecewise $C^k$ functions: 'https://en.wikipedia.org/wiki/Piecewise#Continuity_and_differentiability_of_piecewise_functions'
     Leibniz formula: 'deriv_mul'
   Taylor-like theorems:
@@ -427,17 +427,17 @@ Topology:
     Arzela-Ascoli theorem: 'bounded_continuous_function.arzela_ascoli'
   Hilbert spaces:
     Hilbert projection theorem: 'exists_norm_eq_infi_of_complete_convex'
-    orthogonal projection onto closed vector subspaces: 'orthogonal_projection_fn'
+    orthogonal projection onto closed vector subspaces: 'orthogonal_projection'
     dual space: 'normed_space.dual.normed_space'
     Riesz representation theorem: 'inner_product_space.to_dual'
-    inner product spaces $l^2$ and $L^2$: 'measure_theory.L2.inner_product_space'
-    their completeness: 'measure_theory.Lp.complete_space'
-    Hilbert bases, i.e. complete orthonormal sets (in the separable case): 'exists_is_orthonormal_dense_span'
-    example, the Hilbert basis of trigonometric polynomials: 'fourier_Lp'
-    its orthonormality: 'orthonormal_fourier'
-    its completeness: 'span_fourier_Lp_closure_eq_top'
-    example, classical Hilbert bases of orthogonal polynomials, their orthonormality and completeness: ''
-    Lax-Milgram theorem: ''
+    inner product space $l^2$: 'lp.inner_product_space'
+    its completeness: 'lp.complete_space'
+    inner product space $L^2$: 'measure_theory.L2.inner_product_space'
+    its completeness: 'measure_theory.Lp.complete_space'
+    Hilbert bases: 'hilbert_basis' # the document specifies "in the separable case" but we don't require this
+    example, the Hilbert basis of trigonometric polynomials: 'fourier_series'
+    example, classical Hilbert bases of orthogonal polynomials: ''
+    Lax-Milgram theorem: 'is_coercive.continuous_linear_equiv_of_bilin'
     $H^1_0([0,1])$ and its application to the one-dimensional Dirichlet problem: ''
 
 # 9.
@@ -453,7 +453,7 @@ Multivariable calculus:
     chain rule: 'fderiv.comp'
     mean value theorem: 'exists_ratio_deriv_eq_ratio_slope'
     differentiable functions: 'differentiable'
-    $k$-times continuously differentiable functions: 'times_cont_diff'
+    $k$-times continuously differentiable functions: 'cont_diff'
     $k$-th order partial derivatives: ''
     partial derivatives commute: 'second_derivative_symmetric'
     Taylor's theorem with little-o remainder: ''
@@ -488,7 +488,7 @@ Multivariable calculus:
     Lagrange multipliers: ''
 
 # 10.
-Measures and integral Calculus:
+Measures and integral calculus:
   Measure theory:
     measurable spaces: 'measurable_space'
     sigma-algebras: 'measurable_space'
@@ -518,13 +518,13 @@ Measures and integral Calculus:
     change of variables to spherical co-ordinates: ''
     convolution: ''
     regularization and approximation by convolution: ''
-  Fourier Analysis:
+  Fourier analysis:
     Fourier series of locally integrable periodic real-valued functions: ''
     Riemann-Lebesgue lemma: ''
     convolution product of periodic functions: ''
     Dirichlet theorem: ''
     Fejer theorem: ''
-    Parseval theorem: ''
+    Parseval theorem: 'tsum_sq_fourier_series_repr'
     Fourier transforms on $\mathrm{L}^1(\R^d)$ and $\mathrm{L}^2(\R^d)$: ''
     Plancherel’s theorem: ''
 
@@ -561,10 +561,10 @@ Probability Theory:
     probability generating functions: ''
     applications of probability generating functions to sums of independent random variables: ''
   Convergence of series of random variables:
-    convergence in probability: ''
+    convergence in probability: 'measure_theory.tendsto_in_measure'
     $\mathrm{L}^p$ convergence: ''
     almost surely convergence: 'measure_theory.measure.ae'
-    Markov inequality: ''
+    Markov inequality: 'measure_theory.mul_meas_ge_le_lintegral'
     Tchebychev inequality: ''
     Levy's theorem: ''
     weak law of large numbers: ''
@@ -648,8 +648,8 @@ Numerical Analysis:
     rate of convergence: ''
     application to the calculation of multiple integrals: ''
   Approximation of numerical functions:
-    Lagrange interpolation: ''
-    Lagrange polynomial of a function at (n + 1) points: ''
+    Lagrange interpolation: 'lagrange.interpolate'
+    Lagrange polynomial of a function at (n + 1) points: 'lagrange.interpolate'
     estimation of the error: ''
   Ordinary differential equations:
     numerical aspects of Cauchy's problem: ''

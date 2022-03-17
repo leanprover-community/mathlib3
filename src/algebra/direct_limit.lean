@@ -198,7 +198,7 @@ theorem of.zero_exact [is_directed ι (≤)] {i x} (H : of R ι G f i x = 0) :
   ∃ j hij, f i j hij x = (0 : G j) :=
 by haveI : nonempty ι := ⟨i⟩; exact
 let ⟨j, hj, hxj⟩ := of.zero_exact_aux H in
-if hx0 : x = 0 then ⟨i, le_refl _, by simp [hx0]⟩
+if hx0 : x = 0 then ⟨i, le_rfl, by simp [hx0]⟩
 else
   have hij : i ≤ j, from hj _ $
     by simp [direct_sum.apply_eq_component, hx0],

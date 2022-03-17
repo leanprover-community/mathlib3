@@ -9,6 +9,7 @@ import algebra.iterate_hom
 import data.nat.choose.sum
 import group_theory.order_of_element
 import data.nat.choose.dvd
+import ring_theory.nilpotent
 /-!
 # Characteristic of semirings
 -/
@@ -309,10 +310,10 @@ end comm_ring
 
 end frobenius
 
-theorem frobenius_inj [comm_ring R] [no_zero_divisors R]
+theorem frobenius_inj [comm_ring R] [is_reduced R]
   (p : ℕ) [fact p.prime] [char_p R p] :
   function.injective (frobenius R p) :=
-λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact pow_eq_zero H }
+λ x h H, by { rw ← sub_eq_zero at H ⊢, rw ← frobenius_sub at H, exact is_reduced.eq_zero _ ⟨_,H⟩ }
 
 namespace char_p
 
@@ -420,6 +421,10 @@ by { intros h, apply @zero_ne_one R, symmetry, rw [←nat.cast_one, ring_char.sp
 lemma nontrivial_of_char_ne_one {v : ℕ} (hv : v ≠ 1) [hr : char_p R v] :
   nontrivial R :=
 ⟨⟨(1 : ℕ), 0, λ h, hv $ by rwa [char_p.cast_eq_zero_iff _ v, nat.dvd_one] at h; assumption ⟩⟩
+
+lemma ring_char_of_prime_eq_zero [nontrivial R] {p : ℕ}
+  (hprime : nat.prime p) (hp0 : (p : R) = 0) : ring_char R = p :=
+or.resolve_left ((nat.dvd_prime hprime).1 (ring_char.dvd hp0)) ring_char_ne_one
 
 end char_one
 

@@ -319,7 +319,7 @@ lemma conj_act_eq_conj {G : Type*} [group G] (x y : conj G) :
 lemma conj_swap {G : Type*} [group G] (x y : conj G) :
   x ◃ y = y ↔ y ◃ x = x :=
 begin
-  dsimp, split,
+  dsimp [conj] at *, split,
   repeat { intro h, conv_rhs { rw eq_mul_inv_of_mul_eq (eq_mul_inv_of_mul_eq h) }, simp, },
 end
 
@@ -354,13 +354,13 @@ by { intro b, dsimp [dihedral_act], ring }
 instance (n : ℕ) : quandle (dihedral n) :=
 { act := dihedral_act n,
   self_distrib := λ x y z, begin
-    dsimp [function.involutive.to_equiv, dihedral_act], ring,
+    dsimp [dihedral_act], ring,
   end,
   inv_act := dihedral_act n,
   left_inv := λ x, (dihedral_act.inv n x).left_inverse,
   right_inv := λ x, (dihedral_act.inv n x).right_inverse,
   fix := λ x, begin
-    dsimp [function.involutive.to_equiv, dihedral_act], ring,
+    dsimp [dihedral_act], ring,
   end }
 
 end quandle

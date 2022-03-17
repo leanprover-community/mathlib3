@@ -231,7 +231,7 @@ lemma exists_subset_Union_closed_subset (hs : is_closed s) (uo : ∀ i, is_open 
   (uf : ∀ x ∈ s, finite {i | x ∈ u i}) (us : s ⊆ ⋃ i, u i) :
   ∃ v : ι → set X, s ⊆ Union v ∧ (∀ i, is_closed (v i)) ∧ ∀ i, v i ⊆ u i :=
 let ⟨v, hsv, hvo, hv⟩ := exists_subset_Union_closure_subset hs uo uf us
-in ⟨λ i, closure (v i), subset.trans hsv (Union_subset_Union $ λ i, subset_closure),
+in ⟨λ i, closure (v i), subset.trans hsv (Union_mono $ λ i, subset_closure),
   λ i, is_closed_closure, hv⟩
 
 /-- Shrinking lemma. A point-finite open cover of a closed subset of a normal space can be "shrunk"

@@ -46,6 +46,7 @@ namespace module
 namespace End
 
 open module principal_ideal_ring polynomial finite_dimensional
+open_locale polynomial
 
 variables {K R : Type v} {V M : Type w}
   [comm_ring R] [add_comm_group M] [module R M] [field K] [add_comm_group V] [module K V]
@@ -114,7 +115,7 @@ calc
   ... = (b • f - algebra_map K (End K V) a).ker : by rw [smul_sub, smul_inv_smul₀ hb]
 
 lemma eigenspace_aeval_polynomial_degree_1
-  (f : End K V) (q : polynomial K) (hq : degree q = 1) :
+  (f : End K V) (q : K[X]) (hq : degree q = 1) :
   eigenspace f (- q.coeff 0 / q.leading_coeff) = (aeval f q).ker :=
 calc
   eigenspace f (- q.coeff 0 / q.leading_coeff)
@@ -126,8 +127,8 @@ calc
      : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
 
 lemma ker_aeval_ring_hom'_unit_polynomial
-  (f : End K V) (c : (polynomial K)ˣ) :
-  (aeval f (c : polynomial K)).ker = ⊥ :=
+  (f : End K V) (c : (K[X])ˣ) :
+  (aeval f (c : K[X])).ker = ⊥ :=
 begin
   rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
   simp only [aeval_def, eval₂_C],
@@ -136,7 +137,7 @@ begin
 end
 
 theorem aeval_apply_of_has_eigenvector {f : End K V}
-  {p : polynomial K} {μ : K} {x : V} (h : f.has_eigenvector μ x) :
+  {p : K[X]} {μ : K} {x : V} (h : f.has_eigenvector μ x) :
   aeval f p x = (p.eval μ) • x :=
 begin
   apply p.induction_on,
@@ -532,9 +533,9 @@ calc submodule.map f (f.generalized_eigenrange μ n)
 lemma supr_generalized_eigenspace_eq_top [is_alg_closed K] [finite_dimensional K V] (f : End K V) :
   (⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k) = ⊤ :=
 begin
-  tactic.unfreeze_local_instances,
   -- We prove the claim by strong induction on the dimension of the vector space.
-  induction h_dim : finrank K V using nat.strong_induction_on with n ih generalizing V,
+  unfreezingI { induction h_dim : finrank K V using nat.strong_induction_on
+  with n ih generalizing V },
   cases n,
   -- If the vector space is 0-dimensional, the result is trivial.
   { rw ←top_le_iff,

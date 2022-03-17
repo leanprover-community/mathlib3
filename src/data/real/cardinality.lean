@@ -127,7 +127,7 @@ begin
       { intros n hn, cases n, contradiction, refl } } },
   rw [cantor_function_succ f (le_of_lt h1) h3, cantor_function_succ g (le_of_lt h1) h3],
   rw [hn 0 $ zero_lt_succ n],
-  apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ succ_lt_succ hk) fn gn
+  apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ nat.succ_lt_succ hk) fn gn
 end
 
 /-- `cantor_function c` is injective if `0 < c < 1/2`. -/

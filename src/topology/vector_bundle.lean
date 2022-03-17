@@ -695,9 +695,26 @@ open topological_space topological_vector_bundle
 
 variables {R F E} {B' : Type*} [topological_space B'] [topological_space (total_space E)]
 
-@[priority 90, nolint unused_arguments fails_quickly]
+section
+
+local attribute [reducible] pullback
+
+variables {A : Type*} {A' : Type*} {f : A' → A} {x : A'} {E' : A → Type*}
+
+instance [topological_space (E' (f x))] : topological_space ((f *ᵖ E') x) :=
+by apply_instance
+
+instance [add_comm_monoid (E' (f x))] : add_comm_monoid ((f *ᵖ E') x) :=
+by apply_instance
+
+instance [add_comm_monoid (E' (f x))] [module R (E' (f x))] : module R ((f *ᵖ E') x) :=
+by apply_instance
+
+end
+
+@[priority 90, nolint unused_arguments]
 instance pullback.total_space.topological_space {f : B' → B} :
-  topological_space (total_space (E ∘ f)) :=
+  topological_space (total_space (f *ᵖ E)) :=
 induced (pullback_total_space_embedding E f) prod.topological_space
 
 lemma inducing_pullback_total_space_embedding {f : B' → B} :
@@ -711,7 +728,7 @@ variables (R F)
 
 lemma pullback.continuous_total_space_mk {f : B' → B} {x : B'}
   [∀ x, topological_space (E x)] [topological_vector_bundle R F E] :
-  continuous (total_space_mk (λ y, E (f y)) x) :=
+  continuous (total_space_mk (f *ᵖ E) x) :=
 begin
   simp only [continuous_iff_le_induced, pullback.total_space.topological_space, induced_compose,
     pullback_total_space_embedding, prod.topological_space, le_inf_iff, induced_inf, function.comp],
@@ -723,7 +740,7 @@ end
 variables {R F}
 
 lemma pullback.continuous_proj {f : B' → B} :
-  continuous (bundle.proj (E ∘ f)) :=
+  continuous (bundle.proj (f *ᵖ E)) :=
 begin
   rw [continuous_iff_le_induced, pullback.total_space.topological_space,
     pullback_total_space_embedding, prod.topological_space, induced_inf, induced_compose],
@@ -740,11 +757,11 @@ end
 
 /-- A vector bundle trivialization can be pulled back to a trivialization on the pullback bundle. -/
 def topological_vector_bundle.trivialization.pullback (e : trivialization R F E) (f : C(B', B)) :
-  trivialization R F (λ y, E (f y)) := --WEEIIRD... composition?
+  trivialization R F (f *ᵖ E) :=
 { to_fun := λ z, (z.1, (e (total_space_mk E (f z.1) z.2)).2),
   inv_fun := λ y, total_space_mk _ y.1 $
     if h : f y.1 ∈ e.base_set then
-      (cast (congr_arg E (e.symm_coe_fst' h)) (e.to_local_homeomorph.symm (f y.1, y.2)).2)
+      (cast (congr_arg E (e.symm_coe_fst' h) : E _ = _) (e.to_local_homeomorph.symm (f y.1, y.2)).2)
     else 0,
   source := (λ z, (z.1, (total_space_mk E (f z.1) z.2)).2) ⁻¹' e.source,
   base_set := f ⁻¹' e.base_set,
@@ -842,7 +859,7 @@ def topological_vector_bundle.trivialization.pullback (e : trivialization R F E)
 
 @[priority 90]
 instance pullback [∀ x, topological_space (E x)] [topological_vector_bundle R F E] {f : C(B', B)} :
-  topological_vector_bundle R F (E ∘ f) :=
+  topological_vector_bundle R F (f *ᵖ E) :=
 { total_space_mk_inducing := λ x, inducing_of_inducing_compose
     (pullback.continuous_total_space_mk R F) pullback.continuous_lift
     (topological_vector_bundle.total_space_mk_inducing R F E (f x)),
@@ -861,7 +878,6 @@ variables [topological_space (total_space E₁)] [topological_space (total_space
 
 /-- Equip the total space of the fibrewise product of two topological vector bundles `E₁`, `E₂` with
 the induced topology from the diagonal embedding into `(total_space E₁) × (total_space E₂)`. -/
-@[nolint fails_quickly] -- what is going on here?
 instance prod.topological_space :
   topological_space (total_space (E₁ ×ᵇ E₂)) :=
 topological_space.induced

@@ -89,7 +89,7 @@ theorem epsilon_mul_omega : ε * ω = 1 := @inv_mul_cancel _ _ ω omega_ne_zero
 lemma lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
   ∀ {r : ℝ}, 0 < r → of_seq f < (r : ℝ*) :=
 begin
-  simp only [metric.tendsto_at_top, dist_zero_right, norm, lt_def] at hf ⊢,
+  simp only [metric.tendsto_at_top, real.dist_eq, sub_zero, lt_def] at hf ⊢,
   intros r hr, cases hf r hr with N hf',
   have hs : {i : ℕ | f i < r}ᶜ ⊆ {i : ℕ | i ≤ N} :=
     λ i hi1, le_of_lt (by simp only [lt_iff_not_ge];

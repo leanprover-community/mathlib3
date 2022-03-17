@@ -210,9 +210,9 @@ instance {α : Type*} {β : Type*} [topological_space α]
 ⟨begin
   refine continuous_of_continuous_uncurry _ _,
   have h1 : continuous (λ x : (C(α, β) × C(α, β)) × α, x.fst.fst x.snd) :=
-    continuous_eval'.comp ((continuous_fst.comp continuous_fst).prod_mk continuous_snd),
+    continuous_eval'.comp (continuous_fst.prod_map continuous_id),
   have h2 : continuous (λ x : (C(α, β) × C(α, β)) × α, x.fst.snd x.snd) :=
-    continuous_eval'.comp ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
+    continuous_eval'.comp (continuous_snd.prod_map continuous_id),
   exact h1.mul h2,
 end⟩
 
@@ -408,7 +408,7 @@ instance [locally_compact_space α] [topological_space R] [has_scalar R M]
 ⟨begin
   refine continuous_of_continuous_uncurry _ _,
   have h : continuous (λ x : (R × C(α, M)) × α, x.fst.snd x.snd) :=
-    continuous_eval'.comp ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
+    continuous_eval'.comp (continuous_snd.prod_map continuous_id),
   exact (continuous_fst.comp continuous_fst).smul h,
 end⟩
 

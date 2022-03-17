@@ -74,6 +74,14 @@ begin
     intros c x, convert (this (e.symm c) x).symm, simp only [e.apply_symm_apply] },
 end
 
+lemma algebra_map_injective [algebra Fq[X] F] [algebra (ratfunc Fq) F]
+  [is_scalar_tower Fq[X] (ratfunc Fq) F] : function.injective ⇑(algebra_map Fq[X] F) :=
+begin
+  rw is_scalar_tower.algebra_map_eq Fq[X] (ratfunc Fq) F,
+  exact function.injective.comp ((algebra_map (ratfunc Fq) F).injective)
+    (is_fraction_ring.injective Fq[X] (ratfunc Fq)),
+end
+
 namespace function_field
 
 /-- The function field analogue of `number_field.ring_of_integers`:
@@ -94,8 +102,27 @@ instance : is_domain (ring_of_integers Fq F) :=
 instance : is_integral_closure (ring_of_integers Fq F) Fq[X] F :=
 integral_closure.is_integral_closure _ _
 
-variables [algebra (ratfunc Fq) F] [function_field Fq F]
-variables [is_scalar_tower Fq[X] (ratfunc Fq) F]
+variables [algebra (ratfunc Fq) F] [is_scalar_tower Fq[X] (ratfunc Fq) F]
+
+lemma algebra_map_injective :
+  function.injective ⇑(algebra_map Fq[X] (ring_of_integers Fq F)) :=
+begin
+  have hinj : function.injective ⇑(algebra_map Fq[X] F),
+  { rw is_scalar_tower.algebra_map_eq Fq[X] (ratfunc Fq) F,
+    exact function.injective.comp ((algebra_map (ratfunc Fq) F).injective)
+      (is_fraction_ring.injective Fq[X] (ratfunc Fq)), },
+  rw (algebra_map Fq[X] ↥(ring_of_integers Fq F)).injective_iff,
+  intros p hp,
+  rw [← subtype.coe_inj, subalgebra.coe_zero] at hp,
+  rw (algebra_map Fq[X] F).injective_iff at hinj,
+  exact hinj p hp,
+end
+
+lemma not_is_field : ¬ is_field (ring_of_integers Fq F) :=
+by simpa [← (is_integral.is_field_iff_is_field (is_integral_closure.is_integral_algebra Fq[X] F)
+  (algebra_map_injective Fq F))] using (polynomial.not_is_field Fq)
+
+variables [function_field Fq F]
 
 instance : is_fraction_ring (ring_of_integers Fq F) F :=
 integral_closure.is_fraction_ring_of_finite_extension (ratfunc Fq) F

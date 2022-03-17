@@ -652,9 +652,9 @@ lemma measurable_pi_apply (a : δ) : measurable (λ f : Π a, π a, f a) :=
 measurable.of_comap_le $ le_supr _ a
 
 @[measurability]
-lemma measurable_pi_restrict {δ : Type*} {π : δ → Type*}
+lemma measurable_set_restrict {δ : Type*} {π : δ → Type*}
   [hmp : Π a, measurable_space (π a)] (s : set δ) :
-  measurable (λ x, @subtype.restrict δ π x s) :=
+  measurable (λ x, @subtype.restrict δ π s x) :=
 measurable_pi_iff.mpr $ λ _, measurable_pi_apply _
 
 @[measurability]

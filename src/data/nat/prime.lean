@@ -182,14 +182,14 @@ lemma prime_mul_iff {a b : ℕ} :
 by cases a; cases b; try { cases a; cases b };
   simp [not_prime_zero, not_prime_one, not_prime_mul]
 
-lemma prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : 1 < a) : a ∣ p ↔ p = a :=
+lemma prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : a ≠ 1) : a ∣ p ↔ p = a :=
 begin
   refine ⟨_, _⟩,
   { rintro ⟨j, hj⟩,
     rw hj at hp ⊢,
     rcases prime_mul_iff.mp hp with ⟨h, rfl⟩ | ⟨h, rfl⟩,
     { exact mul_one _ },
-    { rcases a1 with _ | ⟨_, ⟨⟩⟩ } },
+    { exact (a1 rfl).elim } },
   { rintro rfl,
     refl }
 end

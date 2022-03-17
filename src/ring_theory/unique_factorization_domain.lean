@@ -1001,6 +1001,16 @@ theorem eq_of_eq_counts {a b : associates α} (ha : a ≠ 0) (hb  : b ≠ 0)
   (h : ∀ (p : associates α), irreducible p → p.count a.factors = p.count b.factors) : a = b :=
 eq_of_factors_eq_factors (eq_factors_of_eq_counts ha hb h)
 
+lemma count_le_count_of_factors_le {a b p : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+  (hp : irreducible p) (h : a.factors ≤ b.factors) : p.count a.factors ≤ p.count b.factors :=
+begin
+  obtain ⟨sa, h_sa⟩ := factors_eq_some_iff_ne_zero.mpr ha,
+  obtain ⟨sb, h_sb⟩ := factors_eq_some_iff_ne_zero.mpr hb,
+  rw [h_sa, h_sb] at h ⊢,
+  rw [count_some hp, count_some hp], rw with_top.some_le_some at h,
+  exact multiset.count_le_of_le _ h
+end
+
 omit dec_irr
 
 @[simp] theorem factors_mul [nontrivial α] (a b : associates α) :
@@ -1017,7 +1027,13 @@ iff.intro
     by rwa [factors_prod, factors_prod] at this)
   factors_mono
 
-omit dec dec'
+include dec_irr
+
+lemma count_le_count_of_le [nontrivial α] {a b p : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+  (hp : irreducible p) (h : a ≤ b) : p.count a.factors ≤ p.count b.factors :=
+count_le_count_of_factors_le ha hb hp $ factors_mono h
+
+omit dec dec' dec_irr
 
 theorem prod_le [nontrivial α] {a b : factor_set α} : a.prod ≤ b.prod ↔ a ≤ b :=
 begin
@@ -1203,6 +1219,11 @@ theorem count_self [nontrivial α] {p : associates α} (hp : irreducible p) :
   p.count p.factors = 1 :=
 by simp [factors_self hp, associates.count_some hp]
 
+lemma count_eq_zero_of_ne {p q : associates α} (hp : irreducible p) (hq : irreducible q)
+  (h : p ≠ q) : p.count q.factors = 0 :=
+not_ne_iff.mp $ λ h', h $ associated_iff_eq.mp $ hp.associated_of_dvd hq $
+by { nontriviality α, exact le_of_count_ne_zero hq.ne_zero hp h' }
+
 theorem count_mul [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) :
   count p (factors (a * b)) = count p a.factors + count p b.factors :=
@@ -1331,6 +1352,42 @@ begin
     rintros rfl,
     rw zero_pow' _ hk0 at h,
     cases mul_eq_zero.mp h; contradiction }
+end
+
+/-- The only divisors of prime powers are prime powers. -/
+theorem eq_pow_find_of_dvd_irreducible_pow {a p : associates α} (hp : irreducible p)
+  [∀ n : ℕ, decidable (a ∣ p ^ n)] (h : ∃ n : ℕ, a ∣ p ^ n) : a = p ^ nat.find h :=
+begin
+  have := nat.find_spec h,
+  have b_ne_zero := pow_ne_zero _ hp.ne_zero,
+  have a_ne_zero := ne_zero_of_dvd_ne_zero b_ne_zero (nat.find_spec h),
+  haveI : decidable_eq α := by { classical, apply_instance },
+  haveI : decidable_eq (associates α) := by { classical, apply_instance },
+  haveI : ∀ p : associates α, decidable (irreducible p) := by { classical, apply_instance },
+  apply eq_of_eq_counts a_ne_zero b_ne_zero,
+  nontriviality α,
+  have count_le := λ q hq, count_le_count_of_le a_ne_zero b_ne_zero hq this,
+  have eq_zero_of_ne : ∀ (q : associates α), irreducible q → q ≠ p → _ = 0 :=
+  λ q hq h, nat.eq_zero_of_le_zero $ by
+  { convert count_le q hq, symmetry,
+    rw [count_pow hp.ne_zero hq, count_eq_zero_of_ne hq hp h, mul_zero] },
+  intros q hq,
+  apply le_antisymm (count_le q hq),
+  rw count_pow hp.ne_zero hq,
+  by_cases h : q = p,
+  { rw [h, count_self hp, mul_one],
+    refine nat.find_le ⟨1, _⟩, rw mul_one,
+    nth_rewrite 1 ← factors_prod a,
+    obtain ⟨s, hs⟩ := factors_eq_some_iff_ne_zero.mpr a_ne_zero, rw hs at eq_zero_of_ne ⊢,
+    rw [count_some hp, ← s.count_map_eq_count' _ subtype.coe_injective],
+    change _  = (s.map coe).prod,
+    convert multiset.pow_count p,
+    refine (multiset.filter_eq_self.mpr $ λ q hq, _).symm,
+    rw multiset.mem_map at hq, obtain ⟨⟨q, hq⟩, hqs, rfl⟩ := hq,
+    symmetry, rw ← not_ne_iff, intro h,
+    have := eq_zero_of_ne q hq h, rw count_some hq at this,
+    exact multiset.count_ne_zero.mpr hqs this },
+  { rw [count_eq_zero_of_ne hq hp h, mul_zero], exact zero_le _ }
 end
 
 end associates

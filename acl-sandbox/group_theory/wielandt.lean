@@ -1273,17 +1273,6 @@ lemma is_multiply_pretransitive_of_higher (M α : Type*) [has_scalar M α] {n : 
   (hn : is_multiply_pretransitive M α n) {m : ℕ} (hmn : m ≤ n) (hα : card_ge α n) :
   is_multiply_pretransitive M α m :=
 begin
-  -- Useless with multiply_pretransitive
-  /-
-    obtain ⟨z, hzn, hznd⟩ := id hα,
-    { use (list.take m z),
-    split,
-    { simp only [list.length, list.take, list.length_take, min_eq_left_iff],
-      rw hzn, exact hmn, },
-    { refine (list.nodup_append.mp _).left,
-      exact list.drop m z,
-      rw list.take_append_drop m z,
-      exact hznd } }, -/
   intros x hx hxn y hy hyn,
   obtain ⟨x', hx', hx'n, hx'e⟩ := list.extend_nodup n hα x hxn _,
   swap, { rw hx, exact hmn },
@@ -1334,8 +1323,12 @@ begin
     exact (list.nodup_map_iff (subtype.coe_injective)).mpr hln },
 end
 
-lemma stabilizer.is_multiply_pretransitive (M α : Type*) [group M] [mul_action M α] (a : α)
-  (n : ℕ) (hα : card_ge α n.succ) (hα' : is_pretransitive M α) :
+/-- Multiple transitivity of a pretransitive action
+  is equivalent to one less transitivity of stabilizer of a point
+  (Wielandt, th. 9.1, 1st part)-/
+theorem stabilizer.is_multiply_pretransitive (M α : Type*) [group M] [mul_action M α]
+  (hα' : is_pretransitive M α)
+  (n : ℕ) (hα : card_ge α n.succ) (a : α) :
   is_multiply_pretransitive M α n.succ ↔
   is_multiply_pretransitive (stabilizer M a) (sub_mul_action_of_stabilizer M α a) n :=
 begin
@@ -1413,6 +1406,81 @@ begin
       apply list.map_congr,
       intros b hb,
       refl } }
+end
+
+example : ∀ (α : Type*), (card_ge α 2) ↔ nontrivial α :=
+begin
+  intro α,
+  split,
+  { rintro ⟨x, hxl, hxn⟩,
+    apply nontrivial.mk,
+    let a := list.nth_le x 0 _ , let b := list.nth_le x 1 _,
+    use a, use b, intro hab,
+    rw list.nodup_iff_nth_le_inj at hxn,
+    have : ¬(0 = 1), exact zero_ne_one, apply this,
+    apply hxn 0 1 _ _ _,
+    any_goals { rw hxl, norm_num },
+    exact hab },
+  { rintro ⟨a, b, hab⟩,
+    unfold card_ge, use ([a, b]),
+    simp [hab] }
+end
+
+open_locale classical
+
+/-- A 2-transitive action is primitive -/
+theorem is_preprimitive_of_two_pretransitive (M α : Type*) [group M] [mul_action M α]
+  (h2 : is_multiply_pretransitive M α 2) : is_preprimitive M α :=
+begin
+  cases subsingleton_or_nontrivial α with hα hα,
+  -- Trivial case where subsingleton α
+  { apply is_preprimitive.mk,
+    { apply is_pretransitive.mk,
+      intros x y, use 1, exact subsingleton_iff.mp hα _ _ },
+    { intros B hB,
+      cases B.eq_empty_or_nonempty with h h',
+      { exact or.intro_left _ h, },
+      { apply or.intro_right, apply or.intro_right,
+        rw @subsingleton.eq_univ_of_nonempty _ hα B h',
+        exact set.top_eq_univ } } },
+  -- Important case :
+  have hα : card_ge α 2,
+  { obtain ⟨a, b, hab⟩ := hα, use ([a,b]), simp [hab],  },
+  apply is_preprimitive.mk,
+  rw is_pretransitive_iff_is_one_pretransitive,
+  refine @is_multiply_pretransitive_of_higher M α _ 2 _ _ _ hα,
+  { intro x, apply h2 },
+  { norm_num, },
+  intros B hB,
+  cases subsingleton_or_nontrivial B with h h,
+  -- Cas qui devra être trivial avec la changement de définition
+  sorry,
+  -- Cas top
+  apply or.intro_right,
+  apply or.intro_right,
+  obtain ⟨a, b, hab⟩ := h,
+  rw set.top_eq_univ,
+  apply set.eq_univ_of_forall,
+  intro c,
+  cases em (c = a) with hca hca',
+  rw hca, exact subtype.mem a,
+  cases em (c = b) with hcb hcb',
+  rw hcb, exact subtype.mem b,
+  unfold is_multiply_pretransitive at h2,
+  obtain ⟨g : M, hg : g • ([↑a,↑b] : list α) = ([↑a,c])⟩ := h2 _ _ _ _,
+  any_goals { simp [subtype.coe_injective, hab, hca', hcb'] },
+  simp at hg,
+  cases hB g,
+  { rw ← h, use ↑b,
+    exact ⟨subtype.mem b, hg.right⟩ },
+  { exfalso,
+    suffices : ¬ (disjoint (g • B) B), exact this h,
+    rw set.not_disjoint_iff, use ↑a,
+    split,
+    { rw ← hg.left, use ↑a, exact ⟨subtype.mem a, rfl⟩ },
+    exact (subtype.mem a) },
+  { intro hab', apply hab, exact subtype.coe_inj.mp hab' },
+  exact ne_comm.mp hca'
 end
 
 example {α : Type*} (s : finset α) (x : ↥s) : ↑x ∈ s :=

@@ -426,6 +426,10 @@ monoid_hom.mk' (λ x, ⟨x, h x.prop⟩) (λ ⟨a, ha⟩  ⟨b, hb⟩, rfl)
 lemma coe_inclusion {H K : subgroup G} {h : H ≤ K} (a : H) : (inclusion h a : G) = a :=
 by { cases a, simp only [inclusion, coe_mk, monoid_hom.mk'_apply] }
 
+@[to_additive] lemma inclusion_injective {H K : subgroup G} (h : H ≤ K) :
+  function.injective $ inclusion h :=
+set.inclusion_injective h
+
 @[simp, to_additive]
 lemma subtype_comp_inclusion {H K : subgroup G} (hH : H ≤ K) :
   K.subtype.comp (inclusion hH) = H.subtype :=
@@ -672,7 +676,7 @@ lemma closure_induction {p : G → Prop} {x} (h : x ∈ closure k)
   (Hk : ∀ x ∈ k, p x) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y))
   (Hinv : ∀ x, p x → p x⁻¹) : p x :=
-(@closure_le _ _ ⟨p, H1, Hmul, Hinv⟩ _).2 Hk h
+(@closure_le _ _ ⟨p, Hmul, H1, Hinv⟩ _).2 Hk h
 
 /-- A dependent version of `subgroup.closure_induction`.  -/
 @[elab_as_eliminator, to_additive "A dependent version of `add_subgroup.closure_induction`. "]
@@ -2118,6 +2122,11 @@ lemma map_le_map_iff_of_injective {f : G →* N} (hf : function.injective f) {H 
 ⟨(congr_arg2 (≤) (H.comap_map_eq_self_of_injective hf)
   (K.comap_map_eq_self_of_injective hf)).mp ∘ comap_mono, map_mono⟩
 
+@[simp, to_additive]
+lemma map_subtype_le_map_subtype {G' : subgroup G} {H K : subgroup G'} :
+  H.map G'.subtype ≤ K.map G'.subtype ↔ H ≤ K :=
+map_le_map_iff_of_injective subtype.coe_injective
+
 @[to_additive]
 lemma map_injective {f : G →* N} (h : function.injective f) : function.injective (map f) :=
 λ K L hKL, by { apply_fun comap f at hKL, simpa [comap_map_eq_self_of_injective h] using hKL }
@@ -2775,9 +2784,9 @@ disjoint_def'.trans ⟨λ h x y hx hy hxy,
 generalizes (one direction of) `subgroup.disjoint_iff_mul_eq_one`. -/
 @[to_additive "`finset.noncomm_sum` is “injective” in `f` if `f` maps into independent subgroups.
 This generalizes (one direction of) `add_subgroup.disjoint_iff_add_eq_zero`. "]
-lemma eq_one_of_noncomm_prod_eq_one_of_independent {β : Type*} [group β]
-  (s : finset G) (f : G → β) (comm : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
-  (K : G → subgroup β) (hind : complete_lattice.independent K) (hmem : ∀ (x ∈ s), f x ∈ K x)
+lemma eq_one_of_noncomm_prod_eq_one_of_independent {ι : Type*}
+  (s : finset ι) (f : ι → G) (comm : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
+  (K : ι → subgroup G) (hind : complete_lattice.independent K) (hmem : ∀ (x ∈ s), f x ∈ K x)
   (heq1 : s.noncomm_prod f comm = 1) : ∀ (i ∈ s), f i = 1 :=
 begin
   classical,
@@ -2786,14 +2795,14 @@ begin
   { simp, },
   { simp only [finset.forall_mem_insert] at comm hmem,
     specialize ih (λ x hx, (comm.2 x hx).2) hmem.2,
-    have hmem_bsupr: s.noncomm_prod f (λ x hx, (comm.2 x hx).2) ∈ ⨆ (i ∈ (s : set G)), K i,
+    have hmem_bsupr: s.noncomm_prod f (λ x hx, (comm.2 x hx).2) ∈ ⨆ (i ∈ (s : set ι)), K i,
     { refine subgroup.noncomm_prod_mem _ _ _,
       intros x hx,
-      have : K x ≤ ⨆ (i ∈ (s : set G)), K i := le_bsupr x hx,
+      have : K x ≤ ⨆ (i ∈ (s : set ι)), K i := le_bsupr x hx,
       exact this (hmem.2 x hx), },
     intro heq1,
     rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem at heq1,
-    have hnmem' : i ∉ (s : set G), by simpa,
+    have hnmem' : i ∉ (s : set ι), by simpa,
     obtain ⟨heq1i : f i = 1, heq1S : s.noncomm_prod f _ = 1⟩ :=
       subgroup.disjoint_iff_mul_eq_one.mp (hind.disjoint_bsupr hnmem') hmem.1 hmem_bsupr heq1,
     specialize ih heq1S,

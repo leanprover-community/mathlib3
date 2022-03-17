@@ -1741,6 +1741,11 @@ def fin_two_arrow : (fin 2 → M) ≃L[R] M × M :=
 
 end
 
+@[simp] lemma det_coe_symm {R : Type*} [field R]
+  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M ≃L[R] M) :
+  (A.symm : M →L[R] M).det = (A : M →L[R] M).det ⁻¹ :=
+linear_equiv.det_coe_symm A.to_linear_equiv
+
 end continuous_linear_equiv
 
 namespace continuous_linear_map

@@ -1,8 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Anatole Dedecker, Sébastien Gouëzel, Johannes Hölzl, Yury G. Kudryashov,
-         Dylan MacKenzie, Patrick Massot
+Authors: Sébastien Gouëzel, Johannes Hölzl, Yury G. Kudryashov, Patrick Massot
 -/
 import algebra.geom_sum
 import order.filter.archimedean

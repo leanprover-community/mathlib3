@@ -133,7 +133,7 @@ lemma has_deriv_at_circle_map (c : ℂ) (R : ℝ) (θ : ℝ) :
 by simpa only [mul_assoc, one_mul, of_real_clm_apply, circle_map, of_real_one, zero_add]
  using ((of_real_clm.has_deriv_at.mul_const I).cexp_real.const_mul (R : ℂ)).const_add c
 
-/- TODO: prove `times_cont_diff ℝ (circle_map c R)`. This needs a version of `times_cont_diff.mul`
+/- TODO: prove `cont_diff ℝ (circle_map c R)`. This needs a version of `cont_diff.mul`
 for multiplication in a normed algebra over the base field. -/
 
 lemma differentiable_circle_map (c : ℂ) (R : ℝ) :
@@ -265,7 +265,7 @@ begin
     refine (zpow_strict_anti this.1 this.2).le_iff_le.2 (int.lt_add_one_iff.1 _), exact hn },
   { rintro (rfl|H),
     exacts [circle_integrable_zero_radius,
-      ((continuous_on_id.sub continuous_on_const).zpow _ $ λ z hz, H.symm.imp_left $
+      ((continuous_on_id.sub continuous_on_const).zpow₀ _ $ λ z hz, H.symm.imp_left $
         λ hw, sub_ne_zero.2 $ ne_of_mem_of_not_mem hz hw).circle_integrable'] },
 end
 

@@ -201,14 +201,6 @@ end
 
 end int
 
-lemma nat.prime_iff_prime_int {p : ℕ} : p.prime ↔ _root_.prime (p : ℤ) :=
-⟨λ hp, ⟨int.coe_nat_ne_zero_iff_pos.2 hp.pos, mt int.is_unit_iff_nat_abs_eq.1 hp.ne_one,
-  λ a b h, by rw [← int.dvd_nat_abs, int.coe_nat_dvd, int.nat_abs_mul, hp.dvd_mul] at h;
-    rwa [← int.dvd_nat_abs, int.coe_nat_dvd, ← int.dvd_nat_abs, int.coe_nat_dvd]⟩,
-  λ hp, nat.prime_iff.2 ⟨int.coe_nat_ne_zero.1 hp.1,
-      mt nat.is_unit_iff.1 $ λ h, by simpa [h, not_prime_one] using hp,
-    λ a b, by simpa only [int.coe_nat_dvd, (int.coe_nat_mul _ _).symm] using hp.2.2 a b⟩⟩
-
 /-- Maps an associate class of integers consisting of `-n, n` to `n : ℕ` -/
 def associates_int_equiv_nat : associates ℤ ≃ ℕ :=
 begin
@@ -263,9 +255,9 @@ begin
     exact (or_self _).mp ((nat.prime.dvd_mul hp).mp hpp)}
 end
 
-lemma int.exists_prime_and_dvd {n : ℤ} (n2 : 2 ≤ n.nat_abs) : ∃ p, prime p ∧ p ∣ n :=
+lemma int.exists_prime_and_dvd {n : ℤ} (hn : n.nat_abs ≠ 1) : ∃ p, prime p ∧ p ∣ n :=
 begin
-  obtain ⟨p, pp, pd⟩ := nat.exists_prime_and_dvd n2,
+  obtain ⟨p, pp, pd⟩ := nat.exists_prime_and_dvd hn,
   exact ⟨p, nat.prime_iff_prime_int.mp pp, int.coe_nat_dvd_left.mpr pd⟩,
 end
 

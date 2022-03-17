@@ -34,7 +34,7 @@ by taking `[fact (prime p)]` as a type class argument.
 
 ## References
 
-* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [F. Q. Gouvêa, *p-adic numbers*][gouvea1997]
 * [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
 * <https://en.wikipedia.org/wiki/P-adic_number>
 
@@ -442,12 +442,12 @@ end
 lemma pow_succ_padic_val_nat_not_dvd {p n : ℕ} [hp : fact (nat.prime p)] (hn : 0 < n) :
   ¬ p ^ (padic_val_nat p n + 1) ∣ n :=
 begin
-  { rw multiplicity.pow_dvd_iff_le_multiplicity,
-    rw padic_val_nat_def (ne_of_gt hn),
-    { rw [nat.cast_add, enat.coe_get],
-      simp only [nat.cast_one, not_le],
-      apply enat.lt_add_one (ne_top_iff_finite.2 (finite_nat_iff.2 ⟨hp.elim.ne_one, hn⟩)) },
-    { apply_instance } }
+  rw multiplicity.pow_dvd_iff_le_multiplicity,
+  rw padic_val_nat_def (ne_of_gt hn),
+  { rw [nat.cast_add, enat.coe_get],
+    simp only [nat.cast_one, not_le],
+    apply enat.lt_add_one (ne_top_iff_finite.2 (finite_nat_iff.2 ⟨hp.elim.ne_one, hn⟩)) },
+  { apply_instance }
 end
 
 lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime]
@@ -473,26 +473,12 @@ protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
       { exact hc } },
   end
 
-lemma padic_val_nat_eq_factorization (p : ℕ) [hp : fact p.prime] :
-  ∀ (n : ℕ), padic_val_nat p n = n.factorization p
-| 0 := by simp
-| 1 := by simp
-| (m + 2) :=
-let n := m + 2 in
-let q := min_fac n in
-have hq : fact q.prime := ⟨min_fac_prime (show m + 2 ≠ 1, by linarith)⟩,
-have wf : n / q < n := nat.div_lt_self (nat.succ_pos _) hq.1.one_lt,
+lemma padic_val_nat_eq_factorization (p n : ℕ) [hp : fact p.prime] :
+  padic_val_nat p n = n.factorization p :=
 begin
-  rw [←factors_count_eq, factors_add_two],
-  show padic_val_nat p n = list.count p (q :: (factors (n / q))),
-  rw [list.count_cons', factors_count_eq, ← padic_val_nat_eq_factorization],
-  split_ifs with h,
-  { have hp : p ∣ n := h.symm ▸ nat.min_fac_dvd n,
-    rw [←h, padic_val_nat.div hp],
-    exact (tsub_eq_iff_eq_add_of_le $ one_le_padic_val_nat_of_dvd (by linarith) hp).mp rfl, },
-  { suffices : p.coprime q,
-    { rw [padic_val_nat.div' this (min_fac_dvd n), add_zero] },
-    rwa nat.coprime_primes hp.1 hq.1, },
+  by_cases hn : n = 0, { subst hn, simp },
+  rw @padic_val_nat_def p _ n hn,
+  simp [@multiplicity_eq_factorization n p hp.elim hn],
 end
 
 open_locale big_operators

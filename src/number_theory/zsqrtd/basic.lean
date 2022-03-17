@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.associated
+import ring_theory.int.basic
 import tactic.ring
 
 /-! # ℤ[√d]
@@ -182,6 +183,9 @@ by simp [ext, of_int_re, of_int_im]
 @[simp] theorem smul_val (n x y : ℤ) : (n : ℤ√d) * ⟨x, y⟩ = ⟨n * x, n * y⟩ :=
 by simp [ext]
 
+theorem smul_re (a : ℤ) (b : ℤ√d) : (↑a * b).re = a * b.re := by simp
+theorem smul_im (a : ℤ) (b : ℤ√d) : (↑a * b).im = a * b.im := by simp
+
 @[simp] theorem muld_val (x y : ℤ) : sqrtd * ⟨x, y⟩ = ⟨d * y, x⟩ :=
 by simp [ext]
 
@@ -209,7 +213,7 @@ protected lemma coe_int_mul (m n : ℤ) : (↑(m * n) : ℤ√d) = ↑m * ↑n :
 protected lemma coe_int_inj {m n : ℤ} (h : (↑m : ℤ√d) = ↑n) : m = n :=
 by simpa using congr_arg re h
 
-lemma coe_int_dvd_iff {d : ℤ} (z : ℤ) (a : ℤ√d) : ↑z ∣ a ↔ z ∣ a.re ∧ z ∣ a.im :=
+lemma coe_int_dvd_iff (z : ℤ) (a : ℤ√d) : ↑z ∣ a ↔ z ∣ a.re ∧ z ∣ a.im :=
 begin
   split,
   { rintro ⟨x, rfl⟩,
@@ -220,6 +224,65 @@ begin
     rw [smul_val, ext],
     exact ⟨hr, hi⟩ },
 end
+
+@[simp, norm_cast]
+lemma coe_int_dvd_coe_int (a b : ℤ) : (a : ℤ√d) ∣ b ↔ a ∣ b :=
+begin
+  rw coe_int_dvd_iff,
+  split,
+  { rintro ⟨hre, -⟩,
+    rwa [coe_int_re] at hre },
+  { rw [coe_int_re, coe_int_im],
+    exact λ hc, ⟨hc, dvd_zero a⟩ },
+end
+
+protected lemma eq_of_smul_eq_smul_left {a : ℤ} {b c : ℤ√d}
+  (ha : a ≠ 0) (h : ↑a * b = a * c) : b = c :=
+begin
+  rw ext at h ⊢,
+  apply and.imp _ _ h;
+  { simp only [smul_re, smul_im],
+    exact int.eq_of_mul_eq_mul_left ha },
+end
+
+section gcd
+
+lemma gcd_eq_zero_iff (a : ℤ√d) : int.gcd a.re a.im = 0 ↔ a = 0 :=
+by simp only [int.gcd_eq_zero_iff, ext, eq_self_iff_true, zero_im, zero_re]
+
+lemma gcd_pos_iff (a : ℤ√d) : 0 < int.gcd a.re a.im ↔ a ≠ 0 :=
+pos_iff_ne_zero.trans $ not_congr a.gcd_eq_zero_iff
+
+lemma coprime_of_dvd_coprime {a b : ℤ√d} (hcoprime : is_coprime a.re a.im) (hdvd : b ∣ a) :
+  is_coprime b.re b.im :=
+begin
+  apply is_coprime_of_dvd,
+  { rintro ⟨hre, him⟩,
+    obtain rfl : b = 0,
+    { simp only [ext, hre, eq_self_iff_true, zero_im, him, and_self, zero_re] },
+    rw zero_dvd_iff at hdvd,
+    simpa only [hdvd, zero_im, zero_re, not_coprime_zero_zero] using hcoprime },
+  { intros z hz hznezero hzdvdu hzdvdv,
+    apply hz,
+    obtain ⟨ha, hb⟩ : z ∣ a.re ∧ z ∣ a.im,
+    { rw ←coe_int_dvd_iff,
+      apply dvd_trans _ hdvd,
+      rw coe_int_dvd_iff,
+      exact ⟨hzdvdu, hzdvdv⟩ },
+    exact hcoprime.is_unit_of_dvd' ha hb },
+end
+
+lemma exists_coprime_of_gcd_pos {a : ℤ√d} (hgcd : 0 < int.gcd a.re a.im) :
+  ∃ b : ℤ√d, a = ((int.gcd a.re a.im : ℤ) : ℤ√d) * b ∧ is_coprime b.re b.im :=
+begin
+  obtain ⟨re, im, H1, Hre, Him⟩ := int.exists_gcd_one hgcd,
+  rw [mul_comm] at Hre Him,
+  refine ⟨⟨re, im⟩, _, _⟩,
+  { rw [smul_val, ext, ←Hre, ←Him], split; refl },
+  { rw [←int.gcd_eq_one_iff_coprime, H1] }
+end
+
+end gcd
 
 /-- Read `sq_le a c b d` as `a √c ≤ b √d` -/
 def sq_le (a c b d : ℕ) : Prop := c*a*a ≤ d*b*b

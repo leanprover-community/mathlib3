@@ -46,7 +46,7 @@ lemma interval_integrable_pow : interval_integrable (λ x, x^n) μ a b :=
 
 lemma interval_integrable_zpow {n : ℤ} (h : 0 ≤ n ∨ (0 : ℝ) ∉ [a, b]) :
   interval_integrable (λ x, x ^ n) μ a b :=
-(continuous_on_id.zpow n $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
+(continuous_on_id.zpow₀ n $ λ x hx, h.symm.imp (ne_of_mem_of_not_mem hx) id).interval_integrable
 
 lemma interval_integrable_rpow {r : ℝ} (h : 0 ≤ r ∨ (0 : ℝ) ∉ [a, b]) :
   interval_integrable (λ x, x ^ r) μ a b :=

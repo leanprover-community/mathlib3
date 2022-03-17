@@ -64,13 +64,17 @@ if h : exponent_exists G then nat.find h else 0
 variable {G}
 
 @[to_additive]
-lemma exponent_eq_zero_iff : exponent G = 0 ↔ ¬ exponent_exists G :=
+lemma exponent_exists_iff_ne_zero : exponent_exists G ↔ exponent G ≠ 0 :=
 begin
   rw [exponent],
   split_ifs,
   { simp [h, @not_lt_zero' ℕ] }, --if this isn't done this way, `to_additive` freaks
-  { tauto }
+  { tauto },
 end
+
+@[to_additive]
+lemma exponent_eq_zero_iff : exponent G = 0 ↔ ¬ exponent_exists G :=
+by simp only [exponent_exists_iff_ne_zero, not_not]
 
 @[to_additive]
 lemma exponent_eq_zero_of_order_zero {g : G} (hg : order_of g = 0) : exponent G = 0 :=
@@ -85,7 +89,7 @@ begin
   { simp_rw [exponent, dif_neg h, pow_zero] }
 end
 
-@[to_additive nsmul_eq_mod_exponent]
+@[to_additive]
 lemma pow_eq_mod_exponent {n : ℕ} (g : G): g ^ n = g ^ (n % exponent G) :=
 calc g ^ n = g ^ (n % exponent G + exponent G * (n / exponent G)) : by rw [nat.mod_add_div]
   ... = g ^ (n % exponent G) : by simp [pow_add, pow_mul, pow_exponent_eq_one]
@@ -134,7 +138,7 @@ order_of_dvd_of_pow_eq_one $ pow_exponent_eq_one g
 
 variable (G)
 
-@[to_additive exponent_dvd_of_forall_nsmul_eq_zero]
+@[to_additive]
 lemma exponent_dvd_of_forall_pow_eq_one (G) [monoid G] (n : ℕ) (hG : ∀ g : G, g ^ n = 1) :
   exponent G ∣ n :=
 begin
@@ -171,7 +175,7 @@ begin
   rw ← finsupp.mem_support_iff at h,
   obtain ⟨g, hg⟩ : ∃ (g : G), g ^ (exponent G / p) ≠ 1,
   { suffices key : ¬ exponent G ∣ exponent G / p,
-    { by simpa using mt (exponent_dvd_of_forall_pow_eq_one G (exponent G / p)) key },
+    { simpa using mt (exponent_dvd_of_forall_pow_eq_one G (exponent G / p)) key },
     exact λ hd, hp.one_lt.not_le ((mul_le_iff_le_one_left he).mp $
                 nat.le_of_dvd he $ nat.mul_dvd_of_dvd_div (nat.dvd_of_mem_factorization h) hd) },
   obtain ⟨k, hk : exponent G = p ^ _ * k⟩ := nat.pow_factorization_dvd _ _,

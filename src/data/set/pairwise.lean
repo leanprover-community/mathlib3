@@ -19,7 +19,7 @@ This file defines pairwise relations and pairwise disjoint indexed sets.
   of `s` are either equal or `disjoint`.
 -/
 
-open set
+open set function
 
 variables {α ι ι' : Type*} {r p q : α → α → Prop}
 
@@ -54,6 +54,11 @@ symmetric.pairwise_on disjoint.symm f
 lemma pairwise_disjoint.mono [semilattice_inf α] [order_bot α]
   (hs : pairwise (disjoint on f)) (h : g ≤ f) : pairwise (disjoint on g) :=
 hs.mono (λ i j hij, disjoint.mono (h i) (h j) hij)
+
+lemma function.injective_iff_pairwise_ne : injective f ↔ pairwise ((≠) on f) :=
+forall₂_congr $ λ i j, not_imp_not.symm
+
+alias function.injective_iff_pairwise_ne ↔ function.injective.pairwise_ne _
 
 namespace set
 

@@ -36,7 +36,7 @@ instance smooth_ring.to_has_smooth_mul (I : model_with_corners 𝕜 E H)
 instance smooth_ring.to_lie_add_group (I : model_with_corners 𝕜 E H)
   (R : Type*) [ring R] [topological_space R] [charted_space H R] [smooth_ring I R] :
   lie_add_group I R :=
-{ compatible := λ e e', has_groupoid.compatible (times_cont_diff_groupoid ⊤ I),
+{ compatible := λ e e', has_groupoid.compatible (cont_diff_groupoid ⊤ I),
   smooth_add := smooth_add I,
   smooth_neg := by simpa only [neg_one_mul] using @smooth_mul_left 𝕜 _ H _ E _ _ I R _ _ _ _ (-1) }
 
@@ -49,8 +49,8 @@ instance field_smooth_ring {𝕜 : Type*} [nondiscrete_normed_field 𝕜] :
     rw smooth_iff,
     refine ⟨continuous_mul, λ x y, _⟩,
     simp only [prod.mk.eta] with mfld_simps,
-    rw times_cont_diff_on_univ,
-    exact times_cont_diff_mul,
+    rw cont_diff_on_univ,
+    exact cont_diff_mul,
   end,
   ..normed_space_lie_add_group }
 

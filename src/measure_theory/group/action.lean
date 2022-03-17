@@ -131,8 +131,8 @@ variables {G} [smul_invariant_measure G α μ]
 
 section is_minimal
 
-variables (G) {μ} [topological_space G] [topological_space α] [has_continuous_smul G α]
-  [mul_action.is_minimal G α] {K U : set α}
+variables (G) {μ} [topological_space α] [has_continuous_const_smul G α] [mul_action.is_minimal G α]
+  {K U : set α}
 
 /-- If measure `μ` is invariant under a group action and is nonzero on a compact set `K`, then it is
 positive on any nonempty open set. In case of a regular measure, one can assume `μ ≠ 0` instead of

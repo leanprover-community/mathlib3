@@ -95,18 +95,23 @@ lemma null_measurable_set_smul {ν : measure α} (h : is_fundamental_domain G s 
 variables [smul_invariant_measure G α μ]
 
 @[to_additive] lemma pairwise_ae_disjoint (h : is_fundamental_domain G s μ) :
-  pairwise (λ g₁ g₂ : G, μ (g₁ • s ∩ g₂ • s) = 0) :=
+  pairwise (λ g₁ g₂ : G, ae_disjoint μ (g₁ • s) (g₂ • s)) :=
 λ g₁ g₂ hne,
 calc μ (g₁ • s ∩ g₂ • s) = μ (g₂ • ((g₂⁻¹ * g₁) • s ∩ s)) :
-  by rw [smul_set_inter, ← mul_smul, mul_inv_cancel_left]
+  by rw [smul_set_inter, smul_smul, mul_inv_cancel_left]
 ... = μ ((g₂⁻¹ * g₁) • s ∩ s) : measure_smul_set _ _ _
 ... = 0 : h.ae_disjoint _ $ mt inv_mul_eq_one.1 hne.symm
+
+@[to_additive] lemma pairwise_ae_disjoint_of_ac {ν : measure α} (h : is_fundamental_domain G s μ)
+  (hle : ν ≪ μ) :
+  pairwise (λ g₁ g₂ : G, ae_disjoint ν (g₁ • s) (g₂ • s)) :=
+h.pairwise_ae_disjoint.mono $ λ g₁ g₂ h, hle h
 
 variables [encodable G] {ν : measure α}
 
 @[to_additive] lemma sum_restrict_of_ac (h : is_fundamental_domain G s μ) (hν : ν ≪ μ) :
   sum (λ g : G, ν.restrict (g • s)) = ν :=
-by rw [← restrict_Union_ae (h.pairwise_ae_disjoint.mono $ λ i j h, hν h) h.null_measurable_set_smul,
+by rw [← restrict_Union_ae (h.pairwise_ae_disjoint_of_ac hν) h.null_measurable_set_smul,
   restrict_congr_set (hν h.Union_smul_ae_eq), restrict_univ]
 
 @[to_additive] lemma lintegral_eq_tsum_of_ac (h : is_fundamental_domain G s μ) (hν : ν ≪ μ)
@@ -147,6 +152,11 @@ h.measure_eq_tsum_of_ac absolutely_continuous.rfl t
   μ t = ∑' g : G, μ (g • t ∩ s) :=
 by simpa only [set_lintegral_one] using h.set_lintegral_eq_tsum (λ _, 1) t
 
+@[to_additive] lemma measure_zero_of_invariant (h : is_fundamental_domain G s μ) (t : set α)
+  (ht : ∀ g : G, g • t = t) (hts : μ (t ∩ s) = 0) :
+  μ t = 0 :=
+by simp [measure_eq_tsum h, ht, hts]
+
 @[to_additive] protected lemma set_lintegral_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) (f : α → ℝ≥0∞) (hf : ∀ (g : G) x, f (g • x) = f x) :
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
@@ -171,7 +181,9 @@ begin
 end
 
 /-- If `s` and `t` are two fundamental domains of the same action, then their measures are equal. -/
-@[to_additive] protected lemma measure_eq (hs : is_fundamental_domain G s μ)
+@[to_additive "If `s` and `t` are two fundamental domains of the same action, then their measures
+are equal."]
+protected lemma measure_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) : μ s = μ t :=
 by simpa only [set_lintegral_one] using hs.set_lintegral_eq ht (λ _, 1) (λ _ _, rfl)
 
@@ -227,8 +239,8 @@ begin
     calc ∫ x in s, f x ∂μ = ∫ x in ⋃ g : G, g • t, f x ∂(μ.restrict s) :
       by rw [restrict_congr_set (hac ht.Union_smul_ae_eq), restrict_univ]
     ... = ∑' g : G, ∫ x in g • t, f x ∂(μ.restrict s) :
-      integral_Union_of_null_inter (λ g, (ht.measurable_set_smul g).null_measurable_set)
-        (ht.pairwise_ae_disjoint.mono $ λ i j h, hac h) hfs.integrable.integrable_on
+      integral_Union_ae ht.null_measurable_set_smul (ht.pairwise_ae_disjoint_of_ac hac)
+        hfs.integrable.integrable_on
     ... = ∑' g : G, ∫ x in s ∩ g • t, f x ∂μ :
       by simp only [restrict_restrict (ht.measurable_set_smul _), inter_comm]
     ... = ∑' g : G, ∫ x in s ∩ g⁻¹ • t, f x ∂μ : ((equiv.inv G).tsum_eq _).symm
@@ -240,12 +252,34 @@ begin
     ... = ∑' g : G, ∫ x in g • s, f x ∂(μ.restrict t) :
       by simp only [hf, restrict_restrict (hs.measurable_set_smul _)]
     ... = ∫ x in ⋃ g : G, g • s, f x ∂(μ.restrict t) :
-      (integral_Union_of_null_inter (λ g, (hs.measurable_set_smul g).null_measurable_set)
-        (hs.pairwise_ae_disjoint.mono $ λ i j h, hac h) hft.integrable.integrable_on).symm
+      (integral_Union_ae hs.null_measurable_set_smul (hs.pairwise_ae_disjoint_of_ac hac)
+        hft.integrable.integrable_on).symm
     ... = ∫ x in t, f x ∂μ :
       by rw [restrict_congr_set (hac hs.Union_smul_ae_eq), restrict_univ] },
   { rw [integral_undef hfs, integral_undef],
     rwa [hs.integrable_on_iff ht hf] at hfs }
+end
+
+/-- If `f` is invariant under the action of a countable group `G`, and `μ` is a `G`-invariant
+  measure with a fundamental domain `s`, then the `ess_sup` of `f` restricted to `s` is the same as
+  that of `f` on all of its domain. -/
+@[to_additive "If `f` is invariant under the action of a countable additive group `G`, and `μ` is a
+`G`-invariant measure with a fundamental domain `s`, then the `ess_sup` of `f` restricted to `s` is
+the same as that of `f` on all of its domain."]
+lemma ess_sup_measure_restrict (hs : is_fundamental_domain G s μ)
+  {f : α → ℝ≥0∞} (hf : ∀ γ : G, ∀ x: α, f (γ • x) =  f x) :
+  ess_sup f (μ.restrict s) = ess_sup f μ :=
+begin
+  refine le_antisymm (ess_sup_mono_measure' measure.restrict_le_self) _,
+  rw [ess_sup_eq_Inf (μ.restrict s) f, ess_sup_eq_Inf μ f],
+  refine Inf_le_Inf _,
+  rintro a (ha : (μ.restrict s) {x : α | a < f x} = 0),
+  rw measure.restrict_apply' hs.measurable_set at ha,
+  refine measure_zero_of_invariant hs _ _ ha,
+  intros γ,
+  ext x,
+  rw mem_smul_set_iff_inv_smul_mem,
+  simp only [mem_set_of_eq, hf (γ⁻¹) x],
 end
 
 end is_fundamental_domain

@@ -150,7 +150,8 @@ lemma superpolynomial_decay_iff_abs_tendsto_zero :
 
 lemma superpolynomial_decay_iff_superpolynomial_decay_abs :
   superpolynomial_decay l k f ↔ superpolynomial_decay l (λ a, |k a|) (λ a, |f a|) :=
-(superpolynomial_decay_iff_abs_tendsto_zero l k f).trans (by simp [superpolynomial_decay, abs_mul])
+(superpolynomial_decay_iff_abs_tendsto_zero l k f).trans
+  (by simp_rw [superpolynomial_decay, abs_mul, abs_pow])
 
 variables {l k f}
 

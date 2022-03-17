@@ -363,6 +363,12 @@ begin
     ring.mul_inverse_rev],
 end
 
+/-- A version of `list.prod_inv_reverse` for `matrix.has_inv`. -/
+lemma list_prod_inv_reverse : ∀ l : list (matrix n n α), l.prod⁻¹ = (l.reverse.map has_inv.inv).prod
+| [] := by rw [list.reverse_nil, list.map_nil, list.prod_nil, inv_one]
+| (A :: Xs) := by rw [list.reverse_cons', list.map_concat, list.prod_concat, list.prod_cons,
+                      matrix.mul_eq_mul, matrix.mul_eq_mul, mul_inv_rev, list_prod_inv_reverse]
+
 /-- One form of **Cramer's rule**. See `matrix.mul_vec_cramer` for a stronger form. -/
 @[simp] lemma det_smul_inv_mul_vec_eq_cramer (A : matrix n n α) (b : n → α) (h : is_unit A.det) :
   A.det • A⁻¹.mul_vec b = cramer A b :=

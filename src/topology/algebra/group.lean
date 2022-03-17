@@ -182,12 +182,12 @@ is obtained by requiring the instances `group M` and `has_continuous_mul M` and
 class has_continuous_inv (G : Type u) [topological_space G] [has_inv G] : Prop :=
 (continuous_inv : continuous (λ a : G, a⁻¹))
 
+export has_continuous_inv (continuous_inv)
+export has_continuous_neg (continuous_neg)
+
 section continuous_inv
 
 variables [topological_space G] [has_inv G] [has_continuous_inv G]
-
-export has_continuous_inv (continuous_inv)
-export has_continuous_neg (continuous_neg)
 
 @[to_additive]
 lemma continuous_on_inv {s : set G} : continuous_on has_inv.inv s :=
@@ -278,6 +278,11 @@ instance multiplicative.has_continuous_inv [h : topological_space H] [has_neg H]
 
 end continuous_inv
 
+@[to_additive]
+lemma is_compact.inv [topological_space G] [has_involutive_inv G] [has_continuous_inv G]
+  {s : set G} (hs : is_compact s) : is_compact (s⁻¹) :=
+by { rw [← image_inv], exact hs.image continuous_inv }
+
 section lattice_ops
 
 variables {ι' : Sort*} [has_inv G] [has_inv H] {ts : set (topological_space G)}
@@ -332,17 +337,10 @@ class topological_group (G : Type*) [topological_space G] [group G]
 variables [topological_space G] [group G] [topological_group G]
 [topological_space α] {f : α → G} {s : set α} {x : α}
 
-export has_continuous_inv (continuous_inv)
-export has_continuous_neg (continuous_neg)
-
 /-- Conjugation in a topological group is continuous.-/
 @[to_additive "Conjugation in a topological additive group is continuous."]
 lemma topological_group.continuous_conj (g : G) : continuous (λ (h : G), g * h * g⁻¹) :=
 (continuous_mul_right g⁻¹).comp (continuous_mul_left g)
-
-@[to_additive]
-lemma is_compact.inv {s : set G} (hs : is_compact s) : is_compact (s⁻¹) :=
-by { rw [← image_inv], exact hs.image continuous_inv }
 
 section zpow
 

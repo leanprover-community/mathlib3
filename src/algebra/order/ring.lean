@@ -210,6 +210,10 @@ by rwa [zero_mul] at h
 
 lemma mul_nonneg : 0 ≤ a → 0 ≤ b → 0 ≤ a * b := by classical; exact decidable.mul_nonneg
 
+@[simp] theorem pow_nonneg (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
+| 0     := by { rw pow_zero, exact zero_le_one}
+| (n+1) := by { rw pow_succ, exact mul_nonneg H (pow_nonneg _) }
+
 -- See Note [decidable namespace]
 protected lemma decidable.mul_nonpos_of_nonneg_of_nonpos [@decidable_rel α (≤)]
   (ha : 0 ≤ a) (hb : b ≤ 0) : a * b ≤ 0 :=
@@ -251,6 +255,10 @@ by classical; exact decidable.mul_lt_mul'
 lemma mul_pos (ha : 0 < a) (hb : 0 < b) : 0 < a * b :=
 have h : 0 * b < a * b, from mul_lt_mul_of_pos_right ha hb,
 by rwa zero_mul at h
+
+@[simp] theorem pow_pos (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
+| 0     := by { nontriviality, rw pow_zero, exact zero_lt_one }
+| (n+1) := by { rw pow_succ, exact mul_pos H (pow_pos _) }
 
 lemma mul_neg_of_pos_of_neg (ha : 0 < a) (hb : b < 0) : a * b < 0 :=
 have h : a * b < a * 0, from mul_lt_mul_of_pos_left hb ha,

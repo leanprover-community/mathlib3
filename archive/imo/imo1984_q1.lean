@@ -122,8 +122,7 @@ and.intro
   begin
     rcases (possible_orders x y z) with h|h|h|h|h|h;
     convert le_7_div_27 _ _ _ _ _ _ _ h.1 h.2 using 1,
-    assumption',
-    all_goals { ring1 <|> { convert add_eq using 1, ring } },
+    all_goals { assumption <|> ring1 <|> { convert add_eq using 1, ring } },
   end
 
 end imo1984_q1

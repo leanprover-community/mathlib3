@@ -418,7 +418,7 @@ end spectrum
 
 namespace alg_hom
 
-variables {R : Type*} {A : Type*} [comm_ring R] [ring A] [algebra R A]
+variables {R : Type*} {A B : Type*} [comm_ring R] [ring A] [algebra R A] [ring B] [algebra R B]
 local notation `σ` := spectrum R
 local notation `↑ₐ` := algebra_map R A
 
@@ -430,5 +430,12 @@ begin
   simp only [spectrum.mem_iff, ←mem_nonunits_iff,
              coe_subset_nonunits (φ.to_ring_hom.ker_ne_top) h],
 end
+
+lemma mem_resolvent_set_apply (φ : A →ₐ[R] B) {a : A} {r : R} (h : r ∈ resolvent_set R a) :
+  r ∈ resolvent_set R (φ a) :=
+by simpa only [map_sub, commutes] using h.map φ
+
+lemma spectrum_apply_subset (φ : A →ₐ[R] B) (a : A) : σ (φ a) ⊆ σ a :=
+λ _, mt (mem_resolvent_set_apply φ)
 
 end alg_hom

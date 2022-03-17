@@ -19,7 +19,7 @@ def two_power_part (n : ℕ) := 2 ^ (padic_val_nat 2 n)
 
 def odd_part (n : ℕ) := n / two_power_part n
 
-lemma mul_two_power_part_odd_part (n : ℕ) : (two_power_part n) * (odd_part n) = n :=
+lemma two_power_part_mul_odd_part (n : ℕ) : (two_power_part n) * (odd_part n) = n :=
 begin
   have : two_power_part n ∣ n,
   { rw two_power_part,
@@ -83,7 +83,7 @@ lemma repeated_halving_of_exponent (p : ℕ) [fact (p.prime)] (a : zmod p)
   (e : ℕ) (h : a ^ e = 1) :
   a^(odd_part e) = 1 ∨ (∃ r : ℕ, r < padic_val_nat 2 e ∧ a^(2^r * odd_part e) = -1) :=
 begin
-  rw <-mul_two_power_part_odd_part e at h,
+  rw <-two_power_part_mul_odd_part e at h,
   rw two_power_part at h,
   revert h,
   induction padic_val_nat 2 e with i hi,
@@ -128,7 +128,7 @@ begin
   unfold fermat_pseudoprime,
   cases h,
   {
-  rw [← mul_two_power_part_odd_part (n - 1), mul_comm, pow_mul, h, one_pow],
+  rw [← two_power_part_mul_odd_part (n - 1), mul_comm, pow_mul, h, one_pow],
   },
   {
     rcases h with ⟨r, hrlt, hpow⟩,
@@ -153,23 +153,12 @@ end
 lemma strong_probable_prime_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : nat.prime p)
   (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
 begin
-  have one_lt_n : 1 < p^α,
+  have two_le_p : 2 ≤ p,
+  exact nat.prime.two_le hp,
+  have one_lt_n : 1 < p ^ α,
   {
   clear a,
-    -- if p is prime and α ≥ 1, then p^α should always be greater than 1, because p will be at
-    -- least two. See if library search finds facts to tell you that p is at least two or that if
-    -- you raise a ℕ to a power at least one, it gives a number at least as big.
-  have pgeq2 : 2 ≤ p,
-  exact nat.prime.two_le hp,
-  --have thing1 : p ≤ p ^ 1,
-  --have thing2 : 2 ≤ p ^ α,
-  have waa : 1 ≤ p,
-  exact nat.le_of_succ_le pgeq2,
-  have thing3 : p ^ 1 ≤ p ^ α,
-  exact pow_mono waa hα,
-  -- wait for le_pow to be approved
-
-  sorry,
+  exact nat.succ_le_iff.mp (le_trans two_le_p (le_self_pow (nat.le_of_succ_le two_le_p) hα)),
   },
   have zero_lt_n : 0 < p^α,
   exact pos_of_gt one_lt_n,
@@ -197,11 +186,8 @@ begin
     have h2 : a ^ (p^α - 1) = 1,
     { -- since a is a nonwitness, we have either ...
       cases hspp,
-      { -- ... a^k = 1
-        -- TODO(Sean) the only lemma you should need from this file is mul_two_power_part_odd_part
-        -- and the only hypothesis you should need is hspp. The only other lemmas you should need
-        -- will be manipulating multiplications and/or exponentials
-        sorry,
+      { rw ← two_power_part_mul_odd_part (p ^ α - 1),
+        rw [mul_comm, pow_mul, hspp, one_pow],
       },
       { -- ... or a^(2^i k) = -1
           rcases hspp with ⟨r, hrlt, hrpow⟩,
@@ -210,25 +196,22 @@ begin
           replace hrpow := congr_arg (^(2^c)) hrpow,
           simp only [] at hrpow,
           convert hrpow using 1,
-          { rw [mul_comm (2^r), ← pow_mul, mul_assoc, ← pow_add 2, mul_comm, ← hc, ← two_power_part, mul_two_power_part_odd_part],
+          { rw [mul_comm (2^r), ← pow_mul, mul_assoc, ← pow_add 2, mul_comm, ← hc, ← two_power_part, two_power_part_mul_odd_part],
           },
           { simp at Hc,
             rw nat.lt_iff_add_one_le at Hc,
             simp at Hc,
             rw le_iff_exists_add at Hc,
             rcases Hc with ⟨d, hd⟩,
-            -- TODO(Sean):
-            -- You should be able to solve this sorry using hd and no other hypotheses.
-            -- you will have to do some manipluation to get a RHS of the form (-1)^2 ^ something
-            -- then try to do library search to prove (-1)^2 = 1 and simplify.
-            sorry, },
+            rw [hd, pow_add 2, pow_one, pow_mul, nat.neg_one_sq, one_pow],
+          },
         }, }
 
   },
   {
     intro h,
     have foo : (a ^ (odd_part (p - 1)))^(two_power_part (p - 1)) = 1,
-    { rw [← pow_mul, mul_comm, mul_two_power_part_odd_part (p - 1), h],},
+    { rw [← pow_mul, mul_comm, two_power_part_mul_odd_part (p - 1), h],},
     have goo : ∃ (j : ℕ) (H : j ≤ padic_val_nat 2 (p-1)), order_of (a ^ (odd_part (p - 1))) = 2^j,
     { have := order_of_dvd_of_pow_eq_one foo,
       rw two_power_part at this,
@@ -265,11 +248,8 @@ def pow_alt_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
     simp,
     intros a ha,
     cases ha with ha1 ha2,
-    left,
-    rw ha1,
-    right,
-    rw ha2,
-    simp,
+    simp_rw [ha1, eq_self_iff_true, true_or],
+    simp_rw [ha2, inv_neg', one_inv, eq_self_iff_true, or_true],
   end,
 }
 
@@ -303,7 +283,7 @@ begin
         },
         apply hn',
         clear hn hn',
-        rw ← mul_two_power_part_odd_part (n - 1),
+        rw ← two_power_part_mul_odd_part (n - 1),
         rw [h, mul_zero],
       }
     ),

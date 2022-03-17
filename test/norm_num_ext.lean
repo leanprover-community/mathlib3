@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.int.gcd
 import data.nat.prime
+import data.nat.fib
 import algebra.squarefree
 
 /-!
@@ -227,3 +228,18 @@ example : squarefree 10 := by norm_num
 example : squarefree (2*3*5*17) := by norm_num
 example : ¬ squarefree (2*3*5*5*17) := by norm_num
 example : squarefree 251 := by norm_num
+
+example : nat.fib 0 = 0 := by norm_num
+example : nat.fib 1 = 1 := by norm_num
+example : nat.fib 2 = 1 := by norm_num
+example : nat.fib 3 = 2 := by norm_num
+example : nat.fib 4 = 3 := by norm_num
+example : nat.fib 5 = 5 := by norm_num
+example : nat.fib 6 = 8 := by norm_num
+example : nat.fib 7 = 13 := by norm_num
+example : nat.fib 8 = 21 := by norm_num
+example : nat.fib 9 = 34 := by norm_num
+example : nat.fib 10 = 55 := by norm_num
+example : nat.fib 37 = 24157817 := by norm_num
+example : nat.fib 64 = 10610209857723 := by norm_num
+example : nat.fib 100 + nat.fib 101 = nat.fib 102 := by norm_num

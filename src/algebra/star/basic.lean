@@ -77,7 +77,7 @@ star_involutive.injective
 
 /-- `star` as an equivalence when it is involutive. -/
 protected def equiv.star [has_involutive_star R] : equiv.perm R :=
-star_involutive.to_equiv _
+star_involutive.to_perm _
 
 lemma eq_star_of_eq_star [has_involutive_star R] {r s : R} (h : r = star s) : s = star r :=
 by simp [h]
@@ -117,14 +117,14 @@ attribute [simp] star_mul
 def star_mul_equiv [semigroup R] [star_semigroup R] : R ≃* Rᵐᵒᵖ :=
 { to_fun := λ x, mul_opposite.op (star x),
   map_mul' := λ x y, (star_mul x y).symm ▸ (mul_opposite.op_mul _ _),
-  ..(has_involutive_star.star_involutive.to_equiv star).trans op_equiv}
+  ..(has_involutive_star.star_involutive.to_perm star).trans op_equiv}
 
 /-- `star` as a `mul_aut` for commutative `R`. -/
 @[simps apply]
 def star_mul_aut [comm_semigroup R] [star_semigroup R] : mul_aut R :=
 { to_fun := star,
   map_mul' := star_mul',
-  ..(has_involutive_star.star_involutive.to_equiv star) }
+  ..(has_involutive_star.star_involutive.to_perm star) }
 
 variables (R)
 
@@ -146,7 +146,7 @@ op_injective $
   ((star_mul_equiv : R ≃* Rᵐᵒᵖ).to_monoid_hom.map_zpow x z).trans (op_zpow (star x) z).symm
 
 /-- When multiplication is commutative, `star` preserves division. -/
-@[simp] lemma star_div [comm_group R] [star_semigroup R] (x y : R) : 
+@[simp] lemma star_div [comm_group R] [star_semigroup R] (x y : R) :
   star (x / y) = star x / star y :=
 (star_mul_aut : R ≃* R).to_monoid_hom.map_div _ _
 
@@ -194,7 +194,7 @@ attribute [simp] star_add
 def star_add_equiv [add_monoid R] [star_add_monoid R] : R ≃+ R :=
 { to_fun := star,
   map_add' := star_add,
-  ..(has_involutive_star.star_involutive.to_equiv star)}
+  ..(has_involutive_star.star_involutive.to_perm star)}
 
 variables (R)
 
@@ -202,6 +202,13 @@ variables (R)
 (star_add_equiv : R ≃+ R).map_zero
 
 variables {R}
+
+@[simp]
+lemma star_eq_zero [add_monoid R] [star_add_monoid R] {x : R} : star x = 0 ↔ x = 0 :=
+star_add_equiv.map_eq_zero_iff
+
+lemma star_ne_zero [add_monoid R] [star_add_monoid R] {x : R} : star x ≠ 0 ↔ x ≠ 0 :=
+star_eq_zero.not
 
 @[simp] lemma star_neg [add_group R] [star_add_monoid R] (r : R) : star (-r) = - star r :=
 (star_add_equiv : R ≃+ R).map_neg _
@@ -246,6 +253,18 @@ def star_ring_equiv [non_unital_semiring R] [star_ring R] : R ≃+* Rᵐᵒᵖ :
 { to_fun := λ x, mul_opposite.op (star x),
   ..star_add_equiv.trans (mul_opposite.op_add_equiv : R ≃+ Rᵐᵒᵖ),
   ..star_mul_equiv }
+
+@[simp, norm_cast] lemma star_nat_cast [semiring R] [star_ring R] (n : ℕ) :
+  star (n : R) = n :=
+(congr_arg unop (map_nat_cast (star_ring_equiv : R ≃+* Rᵐᵒᵖ) n)).trans (unop_nat_cast _)
+
+@[simp, norm_cast] lemma star_int_cast [ring R] [star_ring R] (z : ℤ) :
+  star (z : R) = z :=
+(congr_arg unop ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_int_cast z)).trans (unop_int_cast _)
+
+@[simp, norm_cast] lemma star_rat_cast [division_ring R] [char_zero R] [star_ring R] (r : ℚ) :
+  star (r : R) = r :=
+(congr_arg unop ((star_ring_equiv : R ≃+* Rᵐᵒᵖ).to_ring_hom.map_rat_cast r)).trans (unop_rat_cast _)
 
 /-- `star` as a ring automorphism, for commutative `R`. -/
 @[simps apply]

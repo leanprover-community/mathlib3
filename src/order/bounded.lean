@@ -96,6 +96,20 @@ lemma unbounded_gt_iff_unbounded_ge [preorder α] [no_min_order α] :
   unbounded (>) s ↔ unbounded (≥) s :=
 @unbounded_lt_iff_unbounded_le (order_dual α) _ _ _
 
+/-! ### The universal set -/
+
+theorem unbounded_le_univ [has_le α] [no_top_order α] : unbounded (≤) (@set.univ α) :=
+λ a, let ⟨b, hb⟩ := exists_not_le a in ⟨b, ⟨⟩, hb⟩
+
+theorem unbounded_lt_univ [preorder α] [no_top_order α] : unbounded (<) (@set.univ α) :=
+unbounded_lt_of_unbounded_le unbounded_le_univ
+
+theorem unbounded_ge_univ [has_le α] [no_bot_order α] : unbounded (≥) (@set.univ α) :=
+λ a, let ⟨b, hb⟩ := exists_not_ge a in ⟨b, ⟨⟩, hb⟩
+
+theorem unbounded_gt_univ [preorder α] [no_bot_order α] : unbounded (>) (@set.univ α) :=
+unbounded_gt_of_unbounded_ge unbounded_ge_univ
+
 /-! ### Bounded and unbounded intervals -/
 
 theorem bounded_self (a : α) : bounded r {b | r b a} :=

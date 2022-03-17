@@ -146,6 +146,16 @@ lemma nth_mem_of_infinite (hp : (set_of p).infinite) (n : ℕ) : p (nth p n) :=
 lemma nth_strict_mono (hp : (set_of p).infinite) : strict_mono (nth p) :=
 λ a b, (nth_mem_of_infinite_aux p hp b).2 _
 
+lemma nth_injective_of_infinite (hp : (set_of p).infinite) : function.injective (nth p) :=
+begin
+  intros m n h,
+  wlog h' : m ≤ n,
+  rw le_iff_lt_or_eq at h',
+  obtain (h' | rfl) := h',
+  { simpa [h] using nth_strict_mono p hp h' },
+  { refl },
+end
+
 lemma nth_monotone (hp : (set_of p).infinite) : monotone (nth p) :=
 (nth_strict_mono p hp).monotone
 

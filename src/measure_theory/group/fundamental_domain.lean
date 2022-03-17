@@ -152,6 +152,11 @@ h.measure_eq_tsum_of_ac absolutely_continuous.rfl t
   μ t = ∑' g : G, μ (g • t ∩ s) :=
 by simpa only [set_lintegral_one] using h.set_lintegral_eq_tsum (λ _, 1) t
 
+@[to_additive] lemma measure_zero_of_invariant (h : is_fundamental_domain G s μ) (t : set α)
+  (ht : ∀ g : G, g • t = t) (hts : μ (t ∩ s) = 0) :
+  μ t = 0 :=
+by simp [measure_eq_tsum h, ht, hts]
+
 @[to_additive] protected lemma set_lintegral_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) (f : α → ℝ≥0∞) (hf : ∀ (g : G) x, f (g • x) = f x) :
   ∫⁻ x in s, f x ∂μ = ∫⁻ x in t, f x ∂μ :=
@@ -176,7 +181,9 @@ begin
 end
 
 /-- If `s` and `t` are two fundamental domains of the same action, then their measures are equal. -/
-@[to_additive] protected lemma measure_eq (hs : is_fundamental_domain G s μ)
+@[to_additive "If `s` and `t` are two fundamental domains of the same action, then their measures
+are equal."]
+protected lemma measure_eq (hs : is_fundamental_domain G s μ)
   (ht : is_fundamental_domain G t μ) : μ s = μ t :=
 by simpa only [set_lintegral_one] using hs.set_lintegral_eq ht (λ _, 1) (λ _ _, rfl)
 
@@ -251,6 +258,28 @@ begin
       by rw [restrict_congr_set (hac hs.Union_smul_ae_eq), restrict_univ] },
   { rw [integral_undef hfs, integral_undef],
     rwa [hs.integrable_on_iff ht hf] at hfs }
+end
+
+/-- If `f` is invariant under the action of a countable group `G`, and `μ` is a `G`-invariant
+  measure with a fundamental domain `s`, then the `ess_sup` of `f` restricted to `s` is the same as
+  that of `f` on all of its domain. -/
+@[to_additive "If `f` is invariant under the action of a countable additive group `G`, and `μ` is a
+`G`-invariant measure with a fundamental domain `s`, then the `ess_sup` of `f` restricted to `s` is
+the same as that of `f` on all of its domain."]
+lemma ess_sup_measure_restrict (hs : is_fundamental_domain G s μ)
+  {f : α → ℝ≥0∞} (hf : ∀ γ : G, ∀ x: α, f (γ • x) =  f x) :
+  ess_sup f (μ.restrict s) = ess_sup f μ :=
+begin
+  refine le_antisymm (ess_sup_mono_measure' measure.restrict_le_self) _,
+  rw [ess_sup_eq_Inf (μ.restrict s) f, ess_sup_eq_Inf μ f],
+  refine Inf_le_Inf _,
+  rintro a (ha : (μ.restrict s) {x : α | a < f x} = 0),
+  rw measure.restrict_apply' hs.measurable_set at ha,
+  refine measure_zero_of_invariant hs _ _ ha,
+  intros γ,
+  ext x,
+  rw mem_smul_set_iff_inv_smul_mem,
+  simp only [mem_set_of_eq, hf (γ⁻¹) x],
 end
 
 end is_fundamental_domain

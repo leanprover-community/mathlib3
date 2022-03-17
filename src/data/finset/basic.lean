@@ -1112,6 +1112,8 @@ instance : generalized_boolean_algebra (finset α) :=
 lemma not_mem_sdiff_of_mem_right (h : a ∈ t) : a ∉ s \ t :=
 by simp only [mem_sdiff, h, not_true, not_false_iff, and_false]
 
+lemma not_mem_sdiff_of_not_mem_left (h : a ∉ s) : a ∉ s \ t := by simpa
+
 lemma union_sdiff_of_subset (h : s ⊆ t) : s ∪ (t \ s) = t := sup_sdiff_cancel_right h
 
 theorem sdiff_union_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
@@ -1425,15 +1427,19 @@ ext $ assume a, by simp only [mem_filter, and_false]; refl
 
 variables {p q}
 
+lemma filter_eq_self (s : finset α) :
+  s.filter p = s ↔ ∀ x ∈ s, p x :=
+by simp [finset.ext_iff]
+
 /-- If all elements of a `finset` satisfy the predicate `p`, `s.filter p` is `s`. -/
 @[simp] lemma filter_true_of_mem {s : finset α} (h : ∀ x ∈ s, p x) : s.filter p = s :=
-ext $ λ x, ⟨λ h, (mem_filter.1 h).1, λ hx, mem_filter.2 ⟨hx, h x hx⟩⟩
+(filter_eq_self s).mpr h
 
 /-- If all elements of a `finset` fail to satisfy the predicate `p`, `s.filter p` is `∅`. -/
 lemma filter_false_of_mem {s : finset α} (h : ∀ x ∈ s, ¬ p x) : s.filter p = ∅ :=
 eq_empty_of_forall_not_mem (by simpa)
 
-lemma filter_eq_empty_iff (s : finset α) (p : α → Prop) [decidable_pred p] :
+lemma filter_eq_empty_iff (s : finset α) :
   (s.filter p = ∅) ↔ ∀ x ∈ s, ¬ p x :=
 begin
   refine ⟨_, filter_false_of_mem⟩,
@@ -1455,7 +1461,7 @@ lemma filter_empty : filter p ∅ = ∅ := subset_empty.1 $ filter_subset _ _
 lemma filter_subset_filter {s t : finset α} (h : s ⊆ t) : s.filter p ⊆ t.filter p :=
 assume a ha, mem_filter.2 ⟨h (mem_filter.1 ha).1, (mem_filter.1 ha).2⟩
 
-lemma monotone_filter_left (p : α → Prop) [decidable_pred p] : monotone (filter p) :=
+lemma monotone_filter_left : monotone (filter p) :=
 λ _ _, filter_subset_filter p
 
 lemma monotone_filter_right (s : finset α) ⦃p q : α → Prop⦄
@@ -1912,6 +1918,26 @@ alias map_nonempty ↔ _ finset.nonempty.map
 
 lemma attach_map_val {s : finset α} : s.attach.map (embedding.subtype _) = s :=
 eq_of_veq $ by rw [map_val, attach_val]; exact attach_map_val _
+
+lemma disjoint_range_add_left_embedding (a b : ℕ) :
+  disjoint (range a) (map (add_left_embedding a) (range b)) :=
+begin
+  intros k hk,
+  simp only [exists_prop, mem_range, inf_eq_inter, mem_map, add_left_embedding_apply,
+    mem_inter] at hk,
+  obtain ⟨a, haQ, ha⟩ := hk.2,
+  simpa [← ha] using hk.1,
+end
+
+lemma disjoint_range_add_right_embedding (a b : ℕ) :
+  disjoint (range a) (map (add_right_embedding a) (range b)) :=
+begin
+  intros k hk,
+  simp only [exists_prop, mem_range, inf_eq_inter, mem_map, add_left_embedding_apply,
+    mem_inter] at hk,
+  obtain ⟨a, haQ, ha⟩ := hk.2,
+  simpa [← ha] using hk.1,
+end
 
 end map
 

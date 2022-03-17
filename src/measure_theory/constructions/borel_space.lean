@@ -1844,12 +1844,16 @@ lemma measurable_of_tendsto_metrizable {β : Type*} [topological_space β] [metr
   measurable g :=
 measurable_of_tendsto_metrizable' at_top hf lim
 
-lemma ae_measurable_of_tendsto_metric_ae {ι : Type*} [hι : nonempty ι] [encodable ι]
+lemma ae_measurable_of_tendsto_metric_ae {ι : Type*} [encodable ι]
   {μ : measure α} {f : ι → α → β} {g : α → β}
-  (u : filter ι) [ne_bot u] [is_countably_generated u]
+  (u : filter ι) [hu : ne_bot u] [is_countably_generated u]
   (hf : ∀ n, ae_measurable (f n) μ) (h_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) u (𝓝 (g x))) :
   ae_measurable g μ :=
 begin
+  have hι : nonempty ι,
+  { rcases is_empty_or_nonempty ι with h|h,
+    { exactI (ne_bot_iff.1 hu (filter_eq_bot_of_is_empty u)).elim },
+    { exact h } },
   set p : α → (ι → β) → Prop := λ x f', tendsto (λ n, f' n) u (𝓝 (g x)),
   have hp : ∀ᵐ x ∂μ, p x (λ n, f n x) := h_tendsto,
   set ae_seq_lim := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨f hι.some x⟩ : nonempty β).some with hs,

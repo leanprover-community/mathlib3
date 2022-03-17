@@ -1840,7 +1840,7 @@ begin
 end
 
 lemma measure_theory.mem_ℒp.of_comp_antilipschitz_with {α E F} {K'}
-  [measurable_space α] {μ : measure α} [normed_group E] [normed_group F] [complete_space E]
+  [measurable_space α] {μ : measure α} [normed_group E] [normed_group F]
   {f : α → E} {g : E → F} (hL : mem_ℒp (g ∘ f) p μ)
   (hg : uniform_continuous g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) : mem_ℒp f p μ :=
 begin
@@ -1848,15 +1848,15 @@ begin
   { apply filter.eventually_of_forall (λ x, _),
     rw [← dist_zero_right, ← dist_zero_right, ← g0],
     apply hg'.le_mul_dist },
-  have B : ae_strongly_measurable f μ := sorry,
-  -- ((hg'.closed_embedding hg).measurable_embedding.ae_measurable_comp_iff.1 hL.1)
+  have B : ae_strongly_measurable f μ :=
+    ((hg'.uniform_embedding hg).embedding.ae_strongly_measurable_comp_iff.1 hL.1),
   exact hL.of_le_mul B A,
 end
 
 namespace lipschitz_with
 
 lemma mem_ℒp_comp_iff_of_antilipschitz {α E F} {K K'} [measurable_space α] {μ : measure α}
-  [normed_group E] [normed_group F] [complete_space E]
+  [normed_group E] [normed_group F]
   {f : α → E} {g : E → F} (hg : lipschitz_with K g) (hg' : antilipschitz_with K' g) (g0 : g 0 = 0) :
   mem_ℒp (g ∘ f) p μ ↔ mem_ℒp f p μ :=
 ⟨λ h, h.of_comp_antilipschitz_with hg.uniform_continuous hg' g0, λ h, hg.comp_mem_ℒp g0 h⟩
@@ -2489,12 +2489,12 @@ lemma cauchy_complete_ℒp [complete_space E] (hp : 1 ≤ p)
 begin
   obtain ⟨f_lim, h_f_lim_meas, h_lim⟩ : ∃ (f_lim : α → E) (hf_lim_meas : strongly_measurable f_lim),
       ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (nhds (f_lim x)),
-    from measurable_limit_of_tendsto_metric_ae (λ n, (hf n).1)
+    from exists_strongly_measurable_limit_of_tendsto_ae (λ n, (hf n).1)
       (ae_tendsto_of_cauchy_snorm (λ n, (hf n).1) hp hB h_cau),
   have h_tendsto' : at_top.tendsto (λ n, snorm (f n - f_lim) p μ) (𝓝 0),
     from cauchy_tendsto_of_tendsto (λ m, (hf m).1) f_lim hB h_cau h_lim,
   have h_ℒp_lim : mem_ℒp f_lim p μ,
-    from mem_ℒp_of_cauchy_tendsto hp hf f_lim h_f_lim_meas.ae_measurable h_tendsto',
+    from mem_ℒp_of_cauchy_tendsto hp hf f_lim h_f_lim_meas.ae_strongly_measurable h_tendsto',
   exact ⟨f_lim, h_ℒp_lim, h_tendsto'⟩,
 end
 

@@ -289,19 +289,20 @@ protected lemma inf [has_inf β] [has_continuous_inf β] (hf : strongly_measurab
 
 end order
 
-/-- The range of a strongly measurable function is second-countable. -/
-lemma second_countable_range {m : measurable_space α} [topological_space β] [metrizable_space β]
+/-- The range of a strongly measurable function is separable. -/
+lemma is_separable_range {m : measurable_space α} [topological_space β] [metrizable_space β]
   (hf : strongly_measurable f) :
-  second_countable_topology (range f) :=
+  topological_space.is_separable (range f) :=
 begin
   letI := metrizable_space_metric β,
-  apply metric.secound_countable_subtype_of_subset_closure_countable (⋃ n, range (hf.approx n)),
-  { exact countable_Union (λ n, (simple_func.finite_range _).countable) },
-  { rintros - ⟨x, rfl⟩,
-    apply mem_closure_of_tendsto (hf.tendsto_approx x),
-    apply eventually_of_forall (λ n, _),
-    apply mem_Union_of_mem n,
-    exact mem_range_self _ }
+  have : is_separable (closure (⋃ n, range (hf.approx n))) :=
+    (is_separable_Union (λ n, (simple_func.finite_range (hf.approx n)).is_separable)).closure,
+  apply this.mono,
+  rintros - ⟨x, rfl⟩,
+  apply mem_closure_of_tendsto (hf.tendsto_approx x),
+  apply eventually_of_forall (λ n, _),
+  apply mem_Union_of_mem n,
+  exact mem_range_self _
 end
 
 section second_countable_strongly_measurable
@@ -345,13 +346,13 @@ lemma _root_.strongly_measurable_iff_measurable
 
 end second_countable_strongly_measurable
 
-/-- A function is strongly measurable if and only if it is measurable and has second countable
+/-- A function is strongly measurable if and only if it is measurable and has separable
 range. -/
-theorem _root_.strongly_measurable_iff_measurable_second_countable {m : measurable_space α}
+theorem _root_.strongly_measurable_iff_measurable_separable {m : measurable_space α}
   [topological_space β] [metrizable_space β] [measurable_space β] [borel_space β] :
-  strongly_measurable f ↔ (measurable f ∧ second_countable_topology (range f)) :=
+  strongly_measurable f ↔ (measurable f ∧ is_separable (range f)) :=
 begin
-  refine ⟨λ H, ⟨H.measurable, H.second_countable_range⟩, _⟩,
+  refine ⟨λ H, ⟨H.measurable, H.is_separable_range⟩, _⟩,
   rintros ⟨H, H'⟩,
   letI := metrizable_space_metric β,
   let g := cod_restrict f (closure (range f)) (λ x, subset_closure (mem_range_self x)),
@@ -361,32 +362,67 @@ begin
     exact closed_embedding_subtype_coe is_closed_closure },
   have g_meas : measurable g,
   { rw fg at H, exact T.measurable_comp_iff.1 H },
-  haveI : second_countable_topology (closure (range f)) :=
-    metric.secound_countable_subtype_of_subset_closure subset.rfl,
+  haveI : second_countable_topology (closure (range f)),
+  { suffices : separable_space (closure (range f)),
+      by exactI uniform_space.second_countable_of_separable _,
+    exact (is_separable.closure H').separable_space },
   have g_smeas : strongly_measurable g := measurable.strongly_measurable g_meas,
   rw fg,
   exact continuous_subtype_coe.comp_strongly_measurable g_smeas,
 end
 
-lemma _root_.closed_embedding.comp_strongly_measurable_iff {m : measurable_space α}
+/-- If `g` is a topological embedding, then `f` is strongly measurable iff `g ∘ f` is. -/
+lemma _root_.embedding.comp_strongly_measurable_iff {m : measurable_space α}
   [topological_space β] [metrizable_space β] [topological_space γ] [metrizable_space γ]
-  {g : β → γ} {f : α → β} (hg : closed_embedding g) :
+  {g : β → γ} {f : α → β} (hg : embedding g) :
   strongly_measurable (λ x, g (f x)) ↔ strongly_measurable f :=
 begin
+  letI := metrizable_space_metric γ,
   letI : measurable_space β := borel β,
-  letI : borel_space β := ⟨rfl⟩,
+  haveI : borel_space β := ⟨rfl⟩,
   letI : measurable_space γ := borel γ,
-  letI : borel_space γ := ⟨rfl⟩,
-  refine ⟨λ H, _, λ H, hg.continuous.comp_strongly_measurable H⟩,
-  refine strongly_measurable_iff_measurable_second_countable.2 ⟨_, _⟩,
-  { exact hg.measurable_embedding.measurable_comp_iff.1 H.measurable },
-  { haveI := H.second_countable_range,
-    let G : range f → range (λ x, g (f x)),
-    { apply cod_restrict  (g ∘ (coe : range f → β)),
-      rintros ⟨-, ⟨y, rfl⟩⟩,
-      apply mem_range_self },
-    have : embedding G := (hg.to_embedding.comp embedding_subtype_coe).cod_restrict _ _,
-    exact embedding.second_countable_topology this }
+  haveI : borel_space γ := ⟨rfl⟩,
+  refine ⟨λ H, strongly_measurable_iff_measurable_separable.2 ⟨_, _⟩,
+    λ H, hg.continuous.comp_strongly_measurable H⟩,
+  { let G : β → range g := cod_restrict g (range g) mem_range_self,
+    have hG : closed_embedding G :=
+    { closed_range :=
+      begin
+        convert is_closed_univ,
+        apply eq_univ_of_forall,
+        rintros ⟨-, ⟨x, rfl⟩⟩,
+        exact mem_range_self x
+      end,
+      .. hg.cod_restrict _ _ },
+    have : measurable (G ∘ f) := measurable.subtype_mk H.measurable,
+    exact hG.measurable_embedding.measurable_comp_iff.1 this },
+  { have : is_separable (g ⁻¹' (range (g ∘ f))) := hg.is_separable_preimage H.is_separable_range,
+    convert this,
+    ext x,
+    simp [hg.inj.eq_iff] }
+end
+
+/-- A sequential limit of strongly measurable functions is strongly measurable. -/
+lemma strongly_measurable_of_tendsto {ι : Type*} [encodable ι] {m : measurable_space α}
+  [topological_space β] [metrizable_space β] (u : filter ι) [ne_bot u] [is_countably_generated u]
+  {f : ι → α → β} {g : α → β} (hf : ∀ i, strongly_measurable (f i)) (lim : tendsto f u (𝓝 g)) :
+  strongly_measurable g :=
+begin
+  letI := metrizable_space_metric β,
+  letI : measurable_space β := borel β,
+  haveI : borel_space β := ⟨rfl⟩,
+  refine strongly_measurable_iff_measurable_separable.2 ⟨_, _⟩,
+  { apply measurable_of_tendsto_metrizable' u (λ i, _) lim,
+    exact (hf i).measurable },
+  { have : is_separable (closure (⋃ i, range (f i))) :=
+      (is_separable_Union (λ i, (hf i).is_separable_range)).closure,
+    apply this.mono,
+    rintros - ⟨x, rfl⟩,
+    rw [tendsto_pi_nhds] at lim,
+    apply mem_closure_of_tendsto (lim x),
+    apply eventually_of_forall (λ n, _),
+    apply mem_Union_of_mem n,
+    exact mem_range_self _ }
 end
 
 protected lemma piecewise [measurable_space α] [topological_space β]
@@ -843,57 +879,34 @@ lemma comp_measurable {γ : Type*} {mγ : measurable_space γ} {mα : measurable
   ae_strongly_measurable (g ∘ f) μ :=
 ⟨(hg.mk g) ∘ f, hg.strongly_measurable_mk.comp_measurable hf, ae_eq_comp hf hg.ae_eq_mk⟩
 
-
 /-- A function is almost everywhere strongly measurable if and only if it is almost everywhere
-measurable, and its range is almost everywhere contained in a second countable set. -/
-theorem _root_.ae_strongly_measurable_iff_ae_measurable_second_countable
+measurable, and up to a zero measure set its range is contained in a separable set. -/
+theorem _root_.ae_strongly_measurable_iff_ae_measurable_separable
   [topological_space β] [metrizable_space β] [measurable_space β] [borel_space β] :
   ae_strongly_measurable f μ ↔
-    (ae_measurable f μ ∧ ∃ (t : set β), second_countable_topology t ∧ f ⁻¹' t ∈ μ.ae) :=
+    (ae_measurable f μ ∧ ∃ (t : set β), is_separable t ∧ f ⁻¹' t ∈ μ.ae) :=
 begin
   letI : metric_space β := metrizable_space_metric β,
   classical,
   split,
   { assume H,
     refine ⟨H.ae_measurable, _⟩,
-    refine ⟨range (H.mk f), H.strongly_measurable_mk.second_countable_range, _⟩,
+    refine ⟨range (H.mk f), H.strongly_measurable_mk.is_separable_range, _⟩,
     filter_upwards [H.ae_eq_mk] with x hx,
     simp [hx] },
-  { rintros ⟨H, ⟨t, t_sec, ht⟩⟩,
-    rcases eq_empty_or_nonempty t with rfl|⟨⟨y₀, y₀t⟩⟩,
+  { rintros ⟨H, ⟨t, t_sep, ht⟩⟩,
+    rcases eq_empty_or_nonempty t with rfl|⟨⟨y₀, h₀⟩⟩,
     { simp only [preimage_empty] at ht,
       rcases is_empty_or_nonempty α with hα|⟨⟨x₀⟩⟩,
       { exactI (strongly_measurable_of_is_empty _).ae_strongly_measurable },
       { refine ⟨λ x, f x₀, strongly_measurable_const, _⟩,
         filter_upwards [ht],
         simp only [mem_empty_eq, forall_false_left, implies_true_iff] } },
-    { let s : set α := to_measurable μ {x | f x = H.mk f x ∧ f x ∈ t}ᶜ,
-      let g : α → β := piecewise s (λ x, y₀) (H.mk f),
-      refine ⟨g, strongly_measurable_iff_measurable_second_countable.2 ⟨_, _⟩, _⟩,
-      { exact measurable.piecewise (measurable_set_to_measurable _ _) measurable_const
-          H.measurable_mk },
-      { have : range g ⊆ t,
-        { rintros - ⟨x, rfl⟩,
-          by_cases hx : x ∈ s,
-          { simpa [g, hx] using y₀t },
-          { simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
-            contrapose! hx,
-            apply subset_to_measurable,
-            simp only [hx, mem_compl_eq, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
-              {contextual := tt} } },
-        exactI metric.secound_countable_subtype_of_subset this },
-      { have A : μ (to_measurable μ {x | f x = H.mk f x ∧ f x ∈ t}ᶜ) = 0,
-        { rw [measure_to_measurable, ← compl_mem_ae_iff, compl_compl],
-          exact H.ae_eq_mk.and ht },
-        filter_upwards [compl_mem_ae_iff.2 A] with x hx,
-        rw mem_compl_iff at hx,
-        simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
-        contrapose! hx,
-        apply subset_to_measurable,
-        simp only [hx, mem_compl_eq, mem_set_of_eq, false_and, not_false_iff] } } }
+    { obtain ⟨g, g_meas, gt, fg⟩ : ∃ (g : α → β), measurable g ∧ range g ⊆ t ∧ f =ᵐ[μ] g :=
+        H.exists_ae_eq_range_subset ht h₀,
+      refine ⟨g, _, fg⟩,
+      exact strongly_measurable_iff_measurable_separable.2 ⟨g_meas, t_sep.mono gt⟩ } }
 end
-
-#exit
 
 lemma _root_.measurable_embedding.ae_strongly_measurable_map_iff
   {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α}
@@ -906,25 +919,77 @@ begin
   exact ⟨g₂, hgm₂, hf.ae_map_iff.2 heq⟩
 end
 
-lemma _root_.closed_embedding.ae_strongly_measurable_comp_iff
+lemma _root_.embedding.ae_strongly_measurable_comp_iff
   [metrizable_space β] [metrizable_space γ]
-  {g : β → γ} {f : α → β} (hg : closed_embedding g) :
+  {g : β → γ} {f : α → β} (hg : embedding g) :
   ae_strongly_measurable (λ x, g (f x)) μ ↔ ae_strongly_measurable f μ :=
 begin
-  refine ⟨λ H, _, λ H, hg.continuous.comp_ae_strongly_measurable H⟩,
-  suffices : ae_strongly_measurable ((range_splitting g ∘ range_factorization g) ∘ f) μ,
-    by rwa [(right_inverse_range_splitting hg.inj).comp_eq_id] at this,
-
-  let F := H.mk _,
-  have Z := measurable_embedding.ae_measurable_comp_iff,
-  sorry,
+  letI := metrizable_space_metric γ,
+  letI : measurable_space β := borel β,
+  haveI : borel_space β := ⟨rfl⟩,
+  letI : measurable_space γ := borel γ,
+  haveI : borel_space γ := ⟨rfl⟩,
+  refine ⟨λ H, ae_strongly_measurable_iff_ae_measurable_separable.2 ⟨_, _⟩,
+    λ H, hg.continuous.comp_ae_strongly_measurable H⟩,
+  { let G : β → range g := cod_restrict g (range g) mem_range_self,
+    have hG : closed_embedding G :=
+    { closed_range :=
+      begin
+        convert is_closed_univ,
+        apply eq_univ_of_forall,
+        rintros ⟨-, ⟨x, rfl⟩⟩,
+        exact mem_range_self x
+      end,
+      .. hg.cod_restrict _ _ },
+    have : ae_measurable (G ∘ f) μ := ae_measurable.subtype_mk H.ae_measurable,
+    exact hG.measurable_embedding.ae_measurable_comp_iff.1 this },
+  { rcases (ae_strongly_measurable_iff_ae_measurable_separable.1 H).2 with ⟨t, ht, h't⟩,
+    exact ⟨g⁻¹' t, hg.is_separable_preimage ht, h't⟩ }
 end
 
-#exit
+/-- An almost everywhere sequential limit of almost everywhere strongly measurable functions is
+almost everywhere strongly measurable. -/
+lemma _root_.ae_strongly_measurable_of_tendsto_ae {ι : Type*} [encodable ι]
+  [topological_space β] [metrizable_space β] (u : filter ι) [ne_bot u] [is_countably_generated u]
+  {f : ι → α → β} {g : α → β} (hf : ∀ i, ae_strongly_measurable (f i) μ)
+  (lim : ∀ᵐ x ∂μ, tendsto (λ n, f n x) u (𝓝 (g x))) :
+  ae_strongly_measurable g μ :=
+begin
+  letI := metrizable_space_metric β,
+  letI : measurable_space β := borel β,
+  haveI : borel_space β := ⟨rfl⟩,
+  refine ae_strongly_measurable_iff_ae_measurable_separable.2 ⟨_, _⟩,
+  { exact ae_measurable_of_tendsto_metric_ae _ (λ n, (hf n).ae_measurable) lim },
+  { have : ∀ (n : ι), ∃ (t : set β), is_separable t ∧ f n ⁻¹' t ∈ μ.ae :=
+      λ n, (ae_strongly_measurable_iff_ae_measurable_separable.1 (hf n)).2,
+    choose t t_sep ht using this,
+    refine ⟨closure (⋃ i, (t i)), (is_separable_Union (λ i, (t_sep i))).closure, _⟩,
+    filter_upwards [ae_all_iff.2 ht, lim] with x hx h'x,
+    apply mem_closure_of_tendsto (h'x),
+    apply eventually_of_forall (λ n, _),
+    apply mem_Union_of_mem n,
+    exact hx n }
+end
 
-suffices : ae_measurable ((range_splitting g ∘ range_factorization g) ∘ f) μ,
-    by rwa [(right_inverse_range_splitting hg.injective).comp_eq_id] at this,
-  exact hg.measurable_range_splitting.comp_ae_measurable (H.subtype_mk hg.measurable_set_range)
+/-- If a sequence of almost everywhere strongly measurable functions converges almost everywhere,
+one can select a strongly measurable function as the almost everywhere limit. -/
+lemma _root_.exists_strongly_measurable_limit_of_tendsto_ae [metrizable_space β] {f : ℕ → α → β}
+  (hf : ∀ n, ae_strongly_measurable (f n) μ)
+  (h_ae_tendsto : ∀ᵐ x ∂μ, ∃ l : β, tendsto (λ n, f n x) at_top (𝓝 l)) :
+  ∃ (f_lim : α → β) (hf_lim_meas : strongly_measurable f_lim),
+    ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x)) :=
+begin
+  letI : measurable_space β := borel β,
+  haveI : borel_space β := ⟨rfl⟩,
+  letI := metrizable_space_metric β,
+  obtain ⟨g, g_meas, hg⟩ : ∃ (g : α → β) (g_meas : measurable g),
+      ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)) :=
+    measurable_limit_of_tendsto_metric_ae (λ n, (hf n).ae_measurable) h_ae_tendsto,
+  have Hg : ae_strongly_measurable g μ := ae_strongly_measurable_of_tendsto_ae _ hf hg,
+  refine ⟨Hg.mk g, Hg.strongly_measurable_mk, _⟩,
+  filter_upwards [hg, Hg.ae_eq_mk] with x hx h'x,
+  rwa h'x at hx,
+end
 
 end ae_strongly_measurable
 

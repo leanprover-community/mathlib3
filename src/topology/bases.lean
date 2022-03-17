@@ -23,6 +23,7 @@ conditions are equivalent in this case).
 
 * `is_topological_basis s`: The topological space `t` has basis `s`.
 * `separable_space α`: The topological space `t` has a countable, dense subset.
+* `is_separable s`: The set `s` is contained in the closure of a countable set.
 * `first_countable_topology α`: A topology in which `𝓝 x` is countably generated for every `x`.
 * `second_countable_topology α`: A topology which has a topological basis which is countable.
 
@@ -320,6 +321,62 @@ lemma _root_.set.pairwise_disjoint.countable_of_nonempty_interior [separable_spa
   (ha : ∀ i ∈ a, (interior (s i)).nonempty) :
   countable a :=
 (h.mono $ λ i, interior_subset).countable_of_is_open (λ i hi, is_open_interior) ha
+
+/-- A set in a topological space is separable if it is contained in the closure of a
+countable set.-/
+def is_separable (s : set α) :=
+∃ c : set α, countable c ∧ s ⊆ closure c
+
+lemma is_separable.mono {s u : set α} (hs : is_separable s) (hu : u ⊆ s) :
+  is_separable u :=
+begin
+  rcases hs with ⟨c, c_count, hs⟩,
+  exact ⟨c, c_count, hu.trans hs⟩
+end
+
+lemma is_separable.closure {s : set α} (hs : is_separable s) : is_separable (closure s) :=
+begin
+  rcases hs with ⟨c, c_count, hs⟩,
+  exact ⟨c, c_count, by simpa using closure_mono hs⟩,
+end
+
+lemma is_separable_Union {ι : Type*} [encodable ι] {s : ι → set α} (hs : ∀ i, is_separable (s i)) :
+  is_separable (⋃ i, s i) :=
+begin
+  choose c hc h'c using hs,
+  refine ⟨⋃ i, c i, countable_Union hc, Union_subset_iff.2 (λ i, _)⟩,
+  exact (h'c i).trans (closure_mono (subset_Union _ i))
+end
+
+lemma _root_.set.countable.is_separable {s : set α} (hs : countable s) : is_separable s :=
+⟨s, hs, subset_closure⟩
+
+lemma _root_.set.finite.is_separable {s : set α} (hs : finite s) : is_separable s :=
+hs.countable.is_separable
+
+lemma is_separable_univ_iff :
+  is_separable (univ : set α) ↔ separable_space α :=
+begin
+  split,
+  { rintros ⟨c, c_count, hc⟩,
+    refine ⟨⟨c, c_count, by rwa [dense_iff_closure_eq, ← univ_subset_iff]⟩⟩ },
+  { introsI h,
+    rcases exists_countable_dense α with ⟨c, c_count, hc⟩,
+    exact ⟨c, c_count, by rwa [univ_subset_iff, ← dense_iff_closure_eq]⟩ }
+end
+
+lemma is_separable_of_separable_space [h : separable_space α] (s : set α) : is_separable s :=
+is_separable.mono (is_separable_univ_iff.2 h) (subset_univ _)
+
+lemma is_separable.image {β : Type*} [topological_space β]
+  {s : set α} (hs : is_separable s) {f : α → β} (hf : continuous f) :
+  is_separable (f '' s) :=
+begin
+  rcases hs with ⟨c, c_count, hc⟩,
+  refine ⟨f '' c, c_count.image _, _⟩,
+  rw image_subset_iff,
+  exact hc.trans (closure_subset_preimage_closure_image hf)
+end
 
 end topological_space
 

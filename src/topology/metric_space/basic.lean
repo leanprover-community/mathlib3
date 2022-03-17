@@ -1524,14 +1524,13 @@ begin
     exact ⟨f z, metric.mem_ball'.1 hz, mem_range_self _⟩ }
 end
 
-lemma secound_countable_subtype_of_subset_closure_countable
-  {s : set α} (c : set α) (hc : countable c) (h'c : s ⊆ closure c) :
-  second_countable_topology s :=
+lemma _root_.topological_space.is_separable.separable_space {s : set α} (hs : is_separable s) :
+  separable_space s :=
 begin
   classical,
-  suffices : separable_space s, by exactI uniform_space.second_countable_of_separable s,
   rcases eq_empty_or_nonempty s with rfl|⟨⟨x₀, x₀s⟩⟩,
   { haveI : encodable (∅ : set α) := fintype.encodable ↥∅, exact encodable.separable_space },
+  rcases hs with ⟨c, hc, h'c⟩,
   haveI : encodable c := hc.to_encodable,
   have Z := exists_seq_strict_anti_tendsto (0 : ℝ),
   obtain ⟨u, -, u_pos, u_lim⟩ : ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧
@@ -1560,26 +1559,27 @@ begin
   ... = r : add_halves _
 end
 
-lemma secound_countable_subtype_of_subset_closure
-  {s t : set α} [ht : second_countable_topology t] (hs : s ⊆ closure t) :
-  second_countable_topology s :=
+protected lemma _root_.inducing.is_separable_preimage {f : β → α} [topological_space β]
+  (hf : inducing f) {s : set α} (hs : is_separable s) :
+  is_separable (f ⁻¹' s) :=
 begin
-  have : separable_space t := by apply_instance,
-  rcases this with ⟨c, c_count, c_dense⟩,
-  refine secound_countable_subtype_of_subset_closure_countable (coe '' c) (c_count.image _) _,
-  refine hs.trans _,
-  suffices : t ⊆ closure (coe '' c), by simpa only [closure_closure] using closure_mono this,
-  assume x hx,
-  apply metric.mem_closure_iff.2 (λ r rpos, _),
-  have : (⟨x, hx⟩ : t) ∈ closure c, by { rw c_dense.closure_eq, exact mem_univ _ },
-  rcases metric.mem_closure_iff.1 this r rpos with ⟨⟨y, hy⟩, yc, xy⟩,
-  exact ⟨y, mem_image_of_mem (coe : t → α) yc, xy⟩,
+  haveI : second_countable_topology s,
+  { haveI : separable_space s := hs.separable_space,
+    exact uniform_space.second_countable_of_separable _ },
+  let g : f ⁻¹' s → s := cod_restrict (f ∘ coe) s (λ x, x.2),
+  have : inducing g := (hf.comp inducing_coe).cod_restrict _,
+  haveI : second_countable_topology (f ⁻¹' s) := this.second_countable_topology,
+  have : is_separable ((coe : f ⁻¹' s → β) '' univ) :=
+    is_separable.image (is_separable_of_separable_space _) continuous_subtype_coe,
+  convert this,
+  simp only [image_univ, subtype.range_coe_subtype, mem_preimage],
+  refl,
 end
 
-lemma secound_countable_subtype_of_subset
-  {s t : set α} [ht : second_countable_topology t] (hs : s ⊆ t) :
-  second_countable_topology s :=
-secound_countable_subtype_of_subset_closure (hs.trans subset_closure)
+protected lemma _root_.embedding.is_separable_preimage {f : β → α} [topological_space β]
+  (hf : embedding f) {s : set α} (hs : is_separable s) :
+  is_separable (f ⁻¹' s) :=
+hf.to_inducing.is_separable_preimage hs
 
 end metric
 

@@ -46,19 +46,22 @@ section normed_ring
 
 variables [normed_ring β] [complete_space β]
 
+lemma _root_.normed_ring.is_unit_unit_continuous {f : C(α, β)} (h : ∀ x, is_unit (f x)) :
+  continuous (λ x, (h x).unit) :=
+begin
+  refine continuous_induced_rng (continuous.prod_mk f.continuous
+    (mul_opposite.continuous_op.comp (continuous_iff_continuous_at.mpr (λ x, _)))),
+  have := normed_ring.inverse_continuous_at (h x).unit,
+  simp only [←ring.inverse_unit, is_unit.unit_spec, ←function.comp_apply] at this ⊢,
+  exact this.comp (f.continuous_at x),
+end
+
 /-- Construct a continuous map into the group of units of a normed ring from a function into the
 normed ring and a proof that every element of the range is a unit. -/
 @[simps]
 noncomputable def units_of_forall_is_unit {f : C(α, β)} (h : ∀ x, is_unit (f x)) : C(α, βˣ) :=
 { to_fun := λ x, (h x).unit,
-  continuous_to_fun :=
-  begin
-    refine continuous_induced_rng (continuous.prod_mk f.continuous
-      (mul_opposite.continuous_op.comp (continuous_iff_continuous_at.mpr (λ x, _)))),
-    have := normed_ring.inverse_continuous_at (h x).unit,
-    simp only [←ring.inverse_unit, is_unit.unit_spec, ←function.comp_apply] at this ⊢,
-    exact this.comp (f.continuous_at x),
-  end }
+  continuous_to_fun :=  normed_ring.is_unit_unit_continuous h }
 
 instance : can_lift C(α, β) C(α, βˣ) :=
 { coe := λ f, ⟨λ x, f x, units.continuous_coe.comp f.continuous⟩,

@@ -422,6 +422,13 @@ begin
     det_from_blocks_zero₁₂, det_one, det_one, one_mul, one_mul, mul_one],
 end
 
+@[simp] lemma det_from_blocks_one₁₁ (B : matrix m n α) (C : matrix n m α) (D : matrix n n α) :
+  (matrix.from_blocks 1 B C D).det = det (D - C ⬝ B) :=
+begin
+  haveI : invertible (1 : matrix m m α) := invertible_one,
+  rw [det_from_blocks₁₁, inv_of_one, matrix.mul_one, det_one, one_mul],
+end
+
 /-- Determinant of a 2×2 block matrix, expanded around an invertible bottom right element in terms
 of the Schur complement. -/
 lemma det_from_blocks₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
@@ -433,20 +440,20 @@ begin
   rw [this, det_minor_equiv_self, det_from_blocks₁₁],
 end
 
+@[simp] lemma det_from_blocks_one₂₂ (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) :
+  (matrix.from_blocks A B C 1).det = det (A - B ⬝ C) :=
+begin
+  haveI : invertible (1 : matrix n n α) := invertible_one,
+  rw [det_from_blocks₂₂, inv_of_one, matrix.mul_one, det_one, one_mul],
+end
+
 /-- The **Weinstein–Aronszajn identity**. Note the `1` on the LHS is of shape m×m, while the `1` on
 the RHS is of shape n×n. -/
 lemma det_one_add_mul_comm (A : matrix m n α) (B : matrix n m α) :
   det (1 + A ⬝ B) = det (1 + B ⬝ A) :=
-begin
-  haveI : invertible (1 : matrix n n α) := invertible_one,
-  haveI : invertible (1 : matrix m m α) := invertible_one,
-  let M := from_blocks 1 (-A) B 1,
-  calc  det (1 + A ⬝ B)
-      = det M           : by rw [det_from_blocks₂₂, det_one, one_mul, matrix.neg_mul,
-                                 matrix.neg_mul, sub_neg_eq_add, inv_of_one, matrix.mul_one]
-  ... = det (1 + B ⬝ A) : by rw [det_from_blocks₁₁, det_one, one_mul, matrix.mul_neg,
-                                 sub_neg_eq_add, inv_of_one, matrix.mul_one]
-end
+calc  det (1 + A ⬝ B)
+    = det (from_blocks 1 (-A) B 1) : by rw [det_from_blocks_one₂₂, matrix.neg_mul, sub_neg_eq_add]
+... = det (1 + B ⬝ A)              : by rw [det_from_blocks_one₁₁, matrix.mul_neg, sub_neg_eq_add]
 
 /-- Alternate statement of the **Weinstein–Aronszajn identity** -/
 lemma det_mul_add_one_comm (A : matrix m n α) (B : matrix n m α) :

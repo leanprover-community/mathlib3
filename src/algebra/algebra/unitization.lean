@@ -201,7 +201,7 @@ end
 section
 variables (R)
 
-@[simp] lemma coe_zero [has_zero R] [has_zero A] : (0 : unitization R A) = 0 := rfl
+@[simp] lemma coe_zero [has_zero R] [has_zero A] : ↑(0 : A) = (0 : unitization R A) := rfl
 
 @[simp] lemma coe_add [add_zero_class R] [add_zero_class A] (m₁ m₂ : A) :
   (↑(m₁ + m₂) : unitization R A)  = m₁ + m₂ :=

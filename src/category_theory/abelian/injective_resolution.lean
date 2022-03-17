@@ -131,16 +131,10 @@ def desc_homotopy_zero {Y Z : C} {I : InjectiveResolution Y} {J : InjectiveResol
   (f : I.cocomplex ⟶ J.cocomplex)
   (comm : I.ι ≫ f = 0) :
   homotopy f 0 :=
-begin
-  fapply homotopy.mk_coinductive,
-  { exact desc_homotopy_zero_zero f comm, },
-  { simp [desc_homotopy_zero_zero], },
-  { exact desc_homotopy_zero_one f comm, },
-  { simp [desc_homotopy_zero_one], },
-  { rintro n ⟨g, g', w⟩,
-    refine ⟨desc_homotopy_zero_succ f n g g' (by simp only [w, add_comm]), _⟩,
-    simp [desc_homotopy_zero_succ, w], }
-end
+homotopy.mk_coinductive _ (desc_homotopy_zero_zero f comm) (by simp [desc_homotopy_zero_zero])
+  (desc_homotopy_zero_one f comm) (by simp [desc_homotopy_zero_one])
+  (λ n ⟨g, g', w⟩, ⟨desc_homotopy_zero_succ f n g g' (by simp only [w, add_comm]),
+    by simp [desc_homotopy_zero_succ, w]⟩)
 
 /-- Two descents of the same morphism are homotopic. -/
 def desc_homotopy {Y Z : C} (f : Y ⟶ Z) {I : InjectiveResolution Y} {J : InjectiveResolution Z}
@@ -148,22 +142,18 @@ def desc_homotopy {Y Z : C} (f : Y ⟶ Z) {I : InjectiveResolution Y} {J : Injec
   (g_comm : I.ι ≫ g = (cochain_complex.single₀ C).map f ≫ J.ι)
   (h_comm : I.ι ≫ h = (cochain_complex.single₀ C).map f ≫ J.ι) :
   homotopy g h :=
-begin
-  apply homotopy.equiv_sub_zero.inv_fun,
-  apply desc_homotopy_zero,
-  simp [g_comm, h_comm],
-end
+homotopy.equiv_sub_zero.inv_fun (desc_homotopy_zero _ (by simp [g_comm, h_comm]))
 
 /-- The descent of the identity morphism is homotopic to the identity cochain map. -/
 def desc_id_homotopy (X : C) (I : InjectiveResolution X) :
   homotopy (desc (𝟙 X) I I) (𝟙 I.cocomplex) :=
-by { apply desc_homotopy (𝟙 X); simp, }
+by apply desc_homotopy (𝟙 X); simp
 
 /-- The descent of a composition is homotopic to the composition of the descents. -/
 def desc_comp_homotopy {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
   (I : InjectiveResolution X) (J : InjectiveResolution Y) (K : InjectiveResolution Z) :
   homotopy (desc (f ≫ g) K I) (desc f J I ≫ desc g K J)  :=
-by { apply desc_homotopy (f ≫ g); simp }
+by apply desc_homotopy (f ≫ g); simp
 
 -- We don't care about the actual definitions of these homotopies.
 attribute [irreducible] desc_homotopy_zero desc_homotopy desc_id_homotopy desc_comp_homotopy
@@ -173,16 +163,10 @@ def homotopy_equiv {X : C} (I J : InjectiveResolution X) :
   homotopy_equiv I.cocomplex J.cocomplex :=
 { hom := desc (𝟙 X) J I,
   inv := desc (𝟙 X) I J,
-  homotopy_hom_inv_id := begin
-    refine (desc_comp_homotopy (𝟙 X) (𝟙 X) I J I).symm.trans _,
-    simp [category.id_comp],
-    apply desc_id_homotopy,
-  end,
-  homotopy_inv_hom_id := begin
-    refine (desc_comp_homotopy (𝟙 X) (𝟙 X) J I J).symm.trans _,
-    simp [category.id_comp],
-    apply desc_id_homotopy,
-  end }
+  homotopy_hom_inv_id := (desc_comp_homotopy (𝟙 X) (𝟙 X) I J I).symm.trans $
+    by simpa [category.id_comp] using desc_id_homotopy _ _,
+  homotopy_inv_hom_id := (desc_comp_homotopy (𝟙 X) (𝟙 X) J I J).symm.trans $
+    by simpa [category.id_comp] using desc_id_homotopy _ _ }
 
 @[simp, reassoc] lemma homotopy_equiv_hom_ι {X : C} (I J : InjectiveResolution X) :
   I.ι ≫ (homotopy_equiv I J).hom = J.ι :=

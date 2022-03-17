@@ -177,6 +177,11 @@ by simpa using (dvd_prime_two_le h a1).1 (dvd_mul_right _ _)
 lemma not_prime_mul' {a b n : ℕ} (h : a * b = n) (h₁ : 1 < a) (h₂ : 1 < b) : ¬ prime n :=
 by { rw ← h, exact not_prime_mul h₁ h₂ }
 
+lemma nat.prime_mul_iff {a b : ℕ} :
+  nat.prime (a * b) ↔ (a.prime ∧ b = 1) ∨ (b.prime ∧ a = 1) :=
+by cases a; cases b;  try { cases a; cases b };
+  simp [nat.not_prime_zero, nat.not_prime_one, nat.not_prime_mul]
+
 section min_fac
 
 lemma min_fac_lemma (n k : ℕ) (h : ¬ n < k * k) :

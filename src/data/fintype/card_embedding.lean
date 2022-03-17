@@ -18,15 +18,13 @@ local notation `‖` x `‖` := fintype.card x
 
 open_locale nat
 
-local attribute [semireducible] function.embedding.fintype
-
 namespace fintype
 
--- We need the separate `fintype α` instance as it contains data,
--- and may not match definitionally with the instance coming from `unique.fintype`.
 lemma card_embedding_eq_of_unique
-  {α β : Type*} [unique α] [fintype α] [fintype β] [decidable_eq α] [decidable_eq β]:
+  {α β : Type*} [unique α] [fintype α] [fintype β] [fintype (α ↪ β)]:
 ‖α ↪ β‖ = ‖β‖ := card_congr equiv.unique_embedding_equiv_result
+
+local attribute [semireducible] function.embedding.fintype
 
 private lemma card_embedding_aux {n : ℕ} {β} [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
   ‖fin n ↪ β‖ = ‖β‖.desc_factorial n :=
@@ -50,29 +48,29 @@ begin
     { rw [finset.card_compl, finset.card_map, finset.card_fin] },
     { simp } },
 
-  -- putting `card_sigma` in `simp` causes it to not fully simplify
-  rw card_sigma,
-  simp only [this, finset.sum_const, finset.card_univ, nsmul_eq_mul, nat.cast_id],
-
-  replace h := (nat.lt_of_succ_le h).le,
-  rw [nat.desc_factorial_succ, hn h, mul_comm]
+  simp only [this, card_sigma, finset.sum_const, finset.card_univ, nsmul_eq_mul, nat.cast_id],
+  rw [nat.desc_factorial_succ, hn (nat.lt_of_succ_le h).le, mul_comm]
 end
 
+local attribute [irreducible] function.embedding.fintype
+
 /- Establishes the cardinality of the type of all injections between two finite types. -/
-@[simp] theorem card_embedding_eq {α β} [fintype α] [fintype β] [decidable_eq α] [decidable_eq β] :
-‖α ↪ β‖ = (‖β‖.desc_factorial ‖α‖) :=
+@[simp] theorem card_embedding_eq {α β} [fintype α] [fintype β] [fintype (α ↪ β)] :
+  ‖α ↪ β‖ = (‖β‖.desc_factorial ‖α‖) :=
 begin
+  classical,
   obtain h | h := lt_or_ge (‖β‖) (‖α‖),
   { rw [card_eq_zero_iff.mpr (function.embedding.is_empty_of_card_lt h),
         nat.desc_factorial_eq_zero_iff_lt.mpr h] },
   { trunc_cases fintype.trunc_equiv_fin α with eq,
     rw fintype.card_congr (equiv.embedding_congr eq (equiv.refl β)),
-    exact card_embedding_aux h }
+    convert card_embedding_aux h }
 end
 
 /- The cardinality of embeddings from an infinite type to a finite type is zero.
 This is a re-statement of the pigeonhole principle. -/
-@[simp] lemma card_embedding_eq_of_infinite {α β} [infinite α] [fintype β] : ‖α ↪ β‖ = 0 :=
+@[simp] lemma card_embedding_eq_of_infinite {α β} [infinite α] [fintype β] [fintype (α ↪ β)] :
+  ‖α ↪ β‖ = 0 :=
 card_eq_zero_iff.mpr function.embedding.is_empty
 
 end fintype

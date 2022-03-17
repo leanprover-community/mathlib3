@@ -177,17 +177,17 @@ by simpa using (dvd_prime_two_le h a1).1 (dvd_mul_right _ _)
 lemma not_prime_mul' {a b n : ℕ} (h : a * b = n) (h₁ : 1 < a) (h₂ : 1 < b) : ¬ prime n :=
 by { rw ← h, exact not_prime_mul h₁ h₂ }
 
-lemma nat.prime_mul_iff {a b : ℕ} :
+lemma prime_mul_iff {a b : ℕ} :
   nat.prime (a * b) ↔ (a.prime ∧ b = 1) ∨ (b.prime ∧ a = 1) :=
-by cases a; cases b;  try { cases a; cases b };
-  simp [nat.not_prime_zero, nat.not_prime_one, nat.not_prime_mul]
+by cases a; cases b; try { cases a; cases b };
+  simp [not_prime_zero, not_prime_one, not_prime_mul]
 
-lemma nat.prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : 1 < a) : a ∣ p ↔ p = a :=
+lemma prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : 1 < a) : a ∣ p ↔ p = a :=
 begin
   refine ⟨_, _⟩,
   { rintro ⟨j, hj⟩,
     rw hj at hp ⊢,
-    rcases nat.prime_mul_iff.mp hp with ⟨h, rfl⟩ | ⟨h, rfl⟩,
+    rcases prime_mul_iff.mp hp with ⟨h, rfl⟩ | ⟨h, rfl⟩,
     { exact mul_one _ },
     { rcases a1 with _ | ⟨_, ⟨⟩⟩ } },
   { rintro rfl,

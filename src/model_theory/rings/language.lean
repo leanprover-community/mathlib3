@@ -51,12 +51,9 @@ instance : inhabited (functions 0) := ⟨ consts.zero ⟩
 
 variable {α : Type u}
 
-/-- I don't want this extra definition -/
-@[simp] def zero : L.constants := consts.zero
+@[simp] instance : has_zero (L.term α) := ⟨ constants.term consts.zero ⟩
 
-@[simp] instance : has_zero (L.term α) := ⟨ zero ⟩
-
-@[simp] instance : has_one (L.term α) := ⟨ @func L _ 0 consts.one fin_zero_elim ⟩
+@[simp] instance : has_one (L.term α) := ⟨ constants.term consts.zero ⟩
 
 @[simp] instance : has_neg (L.term α) := ⟨ λ x, @func L _ 1 unaries.neg ![x] ⟩
 

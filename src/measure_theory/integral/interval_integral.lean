@@ -7,6 +7,7 @@ import analysis.normed_space.dual
 import data.set.intervals.disjoint
 import measure_theory.measure.haar_lebesgue
 import analysis.calculus.extend_deriv
+import measure_theory.function.locally_integrable
 import measure_theory.integral.set_integral
 import measure_theory.integral.vitali_caratheodory
 
@@ -169,34 +170,6 @@ open_locale classical topological_space filter ennreal big_operators interval
 
 variables {α β 𝕜 E F : Type*} [linear_order α] [measurable_space α]
   [measurable_space E] [normed_group E]
-
-/-!
-### Almost everywhere on an interval
--/
-
-section
-variables {μ : measure α} {a b : α} {P : α → Prop}
-
-lemma ae_interval_oc_iff :
-  (∀ᵐ x ∂μ, x ∈ Ι a b → P x) ↔ (∀ᵐ x ∂μ, x ∈ Ioc a b → P x) ∧ (∀ᵐ x ∂μ, x ∈ Ioc b a → P x) :=
-by { dsimp [interval_oc], cases le_total a b with hab hab ; simp [hab] }
-
-lemma ae_measurable_interval_oc_iff {μ : measure α} {β : Type*} [measurable_space β] {f : α → β} :
-  (ae_measurable f $ μ.restrict $ Ι a b) ↔
-  (ae_measurable f $ μ.restrict $ Ioc a b) ∧ (ae_measurable f $ μ.restrict $ Ioc b a) :=
-by { dsimp [interval_oc], cases le_total a b with hab hab ; simp [hab] }
-
-variables [topological_space α] [opens_measurable_space α] [order_closed_topology α]
-
-lemma ae_interval_oc_iff' : (∀ᵐ x ∂μ, x ∈ Ι a b → P x) ↔
-  (∀ᵐ x ∂ (μ.restrict $ Ioc a b), P x) ∧ (∀ᵐ x ∂ (μ.restrict $ Ioc b a), P x) :=
-begin
-  simp_rw ae_interval_oc_iff,
-  rw [ae_restrict_eq, eventually_inf_principal, ae_restrict_eq, eventually_inf_principal] ;
-  exact measurable_set_Ioc
-end
-
-end
 
 /-!
 ### Integrability at an interval
@@ -1171,6 +1144,18 @@ measure of `function.support f ∩ set.Ioc a b` is positive. -/
 lemma integral_pos_iff_support_of_nonneg_ae (hf : 0 ≤ᵐ[μ] f) (hfi : interval_integrable f μ a b) :
   0 < ∫ x in a..b, f x ∂μ ↔ a < b ∧ 0 < μ (support f ∩ Ioc a b) :=
 integral_pos_iff_support_of_nonneg_ae' (ae_mono measure.restrict_le_self hf) hfi
+
+/-- If `f : ℝ → ℝ` is strictly positive and integrable on `(a, b]` for real numbers `a < b`, then
+its integral over `a..b` is strictly positive. -/
+lemma interval_integral_pos_of_pos {f : ℝ → ℝ} {a b : ℝ}
+  (hfi : interval_integrable f measure_space.volume a b) (h : ∀ x, 0 < f x) (hab : a < b) :
+  0 < ∫ x in a..b, f x :=
+begin
+  have hsupp : support f = univ := eq_univ_iff_forall.mpr (λ t, (h t).ne.symm),
+  replace h₀ : 0 ≤ᵐ[volume] f := eventually_of_forall (λ x, (h x).le),
+  rw integral_pos_iff_support_of_nonneg_ae h₀ hfi,
+  exact ⟨hab, by simp [hsupp, hab]⟩,
+end
 
 /-- If `f` and `g` are two functions that are interval integrable on `a..b`, `a ≤ b`,
 `f x ≤ g x` for a.e. `x ∈ set.Ioc a b`, and `f x < g x` on a subset of `set.Ioc a b`
@@ -2357,8 +2342,8 @@ begin
   have h_cont : continuous_on (λ u, ∫ t in f a..f u, g t) [a, b],
   { rw [hf.image_interval] at hg,
     refine (continuous_on_primitive_interval' hg.interval_integrable _).comp hf _,
-    { rw [← hf.image_interval], exact mem_image_of_mem f left_mem_interval },
-    { rw [← image_subset_iff], exact hf.image_interval.subset } },
+    { rw ← hf.image_interval, exact mem_image_of_mem f left_mem_interval },
+    { rw ← hf.image_interval, exact maps_to_image _ _ } },
   have h_der : ∀ x ∈ Ioo (min a b) (max a b), has_deriv_within_at
     (λ u, ∫ t in f a..f u, g t) (f' x • ((g ∘ f) x)) (Ioi x) x,
   { intros x hx,

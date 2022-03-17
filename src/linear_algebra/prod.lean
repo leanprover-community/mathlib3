@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric Wieser
 -/
-import linear_algebra.basic
+import linear_algebra.span
 import order.partial_sups
 
 /-! ### Products of modules
@@ -195,7 +195,7 @@ See note [bundled maps over different rings] for why separate `R` and `S` semiri
   left_inv := λ f, by simp only [prod.mk.eta, coprod_inl, coprod_inr],
   right_inv := λ f, by simp only [←comp_coprod, comp_id, coprod_inl_inr],
   map_add' := λ a b,
-    by { ext, simp only [prod.snd_add, add_apply, coprod_apply, prod.fst_add], ac_refl },
+    by { ext, simp only [prod.snd_add, add_apply, coprod_apply, prod.fst_add, add_add_add_comm] },
   map_smul' := λ r a,
     by { dsimp, ext, simp only [smul_add, smul_apply, prod.smul_snd, prod.smul_fst,
                                 coprod_apply] } }

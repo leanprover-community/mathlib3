@@ -39,7 +39,7 @@ open topological_space set filter metric
 open_locale ennreal pointwise topological_space
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
-noncomputable def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
+def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
 { carrier := Icc 0 1,
   compact' := is_compact_Icc,
   interior_nonempty' := by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one] }
@@ -47,7 +47,7 @@ noncomputable def topological_space.positive_compacts.Icc01 : positive_compacts 
 universe u
 
 /-- The set `[0,1]^ι` as a compact set with non-empty interior. -/
-noncomputable def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
+def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
 { carrier := pi univ (λ i, Icc 0 1),
   compact' := is_compact_univ_pi (λ i, is_compact_Icc),
@@ -68,10 +68,6 @@ by { convert (add_haar_measure_unique volume Icc01).symm, simp [Icc01] }
 
 instance : is_add_haar_measure (volume : measure ℝ) :=
 by { rw ← add_haar_measure_eq_volume, apply_instance }
-
-instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
-  is_add_left_invariant (volume : measure (ι → ℝ)) :=
-⟨by simp [map_add_left_eq_self]⟩
 
 /-- The Haar measure equals the Lebesgue measure on `ℝ^ι`. -/
 lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :
@@ -218,7 +214,7 @@ begin
   haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
-  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), linear_map.map_smul,
+  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), map_smul,
     map_map Cesymm.measurable Ce.measurable, ecomp, measure.map_id]
 end
 

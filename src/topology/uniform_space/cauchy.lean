@@ -470,7 +470,7 @@ let ⟨t', ht', hct', htt'⟩ := mem_uniformity_is_closed ht, ⟨c, hcf, hc⟩ :
     ... ⊆ _ : Union₂_subset $ assume i hi, subset.trans (assume x, @htt' (x, i))
       (subset_bUnion_of_mem hi)⟩
 
-/-- The image of a totally bounded set under a unifromly continuous map is totally bounded. -/
+/-- The image of a totally bounded set under a uniformly continuous map is totally bounded. -/
 lemma totally_bounded.image [uniform_space β] {f : α → β} {s : set α}
   (hs : totally_bounded s) (hf : uniform_continuous f) : totally_bounded (f '' s) :=
 assume t ht,

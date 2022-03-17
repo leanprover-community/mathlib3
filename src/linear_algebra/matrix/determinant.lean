@@ -571,10 +571,10 @@ begin
     exact hkx }
 end
 
-/-- The determinant of a 2x2 block matrix with the lower-left block equal to zero is the product of
+/-- The determinant of a 2×2 block matrix with the lower-left block equal to zero is the product of
 the determinants of the diagonal blocks. For the generalization to any number of blocks, see
 `matrix.det_of_upper_triangular`. -/
-@[simp] lemma upper_two_block_triangular_det
+@[simp] lemma det_from_blocks_zero₂₁
   (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
   (matrix.from_blocks A B 0 D).det = A.det * D.det :=
 begin
@@ -628,30 +628,14 @@ begin
       rw [hx, from_blocks_apply₂₁], refl }}
 end
 
-/-- The determinant of a 2x2 block matrix with the upper-right block equal to zero is the product of
+/-- The determinant of a 2×2 block matrix with the upper-right block equal to zero is the product of
 the determinants of the diagonal blocks. For the generalization to any number of blocks, see
 `matrix.det_of_lower_triangular`. -/
-@[simp] lemma lower_two_block_triangular_det
+@[simp] lemma det_from_blocks_zero₁₂
   (A : matrix m m R) (C : matrix n m R) (D : matrix n n R) :
   (matrix.from_blocks A 0 C D).det = A.det * D.det :=
-by rw [←det_transpose, from_blocks_transpose, transpose_zero, upper_two_block_triangular_det,
+by rw [←det_transpose, from_blocks_transpose, transpose_zero, det_from_blocks_zero₂₁,
   det_transpose, det_transpose]
-
-/-- A special case of the **Matrix determinant lemma** for when `A = I`.
-
-TODO: show this more generally. -/
-lemma det_one_add_col_mul_row (u v : m → R) : det (1 + col u ⬝ row v) = 1 + v ⬝ᵥ u :=
-calc  det (1 + col u ⬝ row v)
-    = det (from_blocks 1 0 (row v) 1
-         ⬝ from_blocks (1 + col u ⬝ row v) (col u) 0 (1 : matrix unit unit R)
-         ⬝ from_blocks 1 0 (-row v) 1) :
-  by simp only [matrix.det_mul, upper_two_block_triangular_det, lower_two_block_triangular_det,
-                det_one, one_mul, mul_one]
-... = det (from_blocks 1 (col u) 0 (1 + row v ⬝ col u)) :
-  congr_arg _ $ by simp [from_blocks_multiply, matrix.mul_add, matrix.add_mul, ←matrix.mul_assoc,
-                         ←neg_add_rev, add_comm]
-... = det (1 + row v ⬝ col u) : by rw [upper_two_block_triangular_det, det_one, one_mul]
-... = 1 + v ⬝ᵥ u : by simp
 
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along column 0. -/
 lemma det_succ_column_zero {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :

@@ -49,22 +49,43 @@ matrix inverse, cramer, cramer's rule, adjugate
 -/
 
 namespace matrix
-universes u v
-variables {n : Type u} [decidable_eq n] [fintype n] {α : Type v} [comm_ring α]
+universes u u' v
+variables {m : Type u} {n : Type u'} {α : Type v}
+variables [fintype n] [decidable_eq n] [comm_ring α]
 open_locale matrix big_operators
 open equiv equiv.perm finset
-
-variables (A : matrix n n α) (B : matrix n n α)
 
 /-! ### Matrices are `invertible` iff their determinants are -/
 
 section invertible
 
 /-- A copy of `inv_of_mul_self` using `⬝` not `*`. -/
-protected lemma inv_of_mul_self [invertible A] : ⅟A ⬝ A = 1 := inv_of_mul_self A
+protected lemma inv_of_mul_self (A : matrix n n α) [invertible A] : ⅟A ⬝ A = 1 := inv_of_mul_self A
 
 /-- A copy of `mul_inv_of_self` using `⬝` not `*`. -/
-protected lemma mul_inv_of_self [invertible A] : A ⬝ ⅟A = 1 := mul_inv_of_self A
+protected lemma mul_inv_of_self (A : matrix n n α) [invertible A] : A ⬝ ⅟A = 1 := mul_inv_of_self A
+
+/-- A copy of `inv_of_mul_self_assoc` using `⬝` not `*`. -/
+protected lemma inv_of_mul_self_assoc (A : matrix n n α) (B : matrix n m α) [invertible A] :
+  ⅟A ⬝ (A ⬝ B) = B :=
+by rw [←matrix.mul_assoc, matrix.inv_of_mul_self, matrix.one_mul]
+
+/-- A copy of `mul_inv_of_self_assoc` using `⬝` not `*`. -/
+protected lemma mul_inv_of_self_assoc (A : matrix n n α) (B : matrix n m α) [invertible A] :
+  A ⬝ (⅟A ⬝ B) = B :=
+by rw [←matrix.mul_assoc, matrix.mul_inv_of_self, matrix.one_mul]
+
+/-- A copy of `mul_inv_of_mul_self_cancel` using `⬝` not `*`. -/
+protected lemma mul_inv_of_mul_self_cancel (A : matrix m n α) (B : matrix n n α)
+  [invertible B] : A ⬝ ⅟B ⬝ B = A :=
+by rw [matrix.mul_assoc, matrix.inv_of_mul_self, matrix.mul_one]
+
+/-- A copy of `mul_mul_inv_of_self_cancel` using `⬝` not `*`. -/
+protected lemma mul_mul_inv_of_self_cancel (A : matrix m n α) (B : matrix n n α)
+  [invertible B] : A ⬝ B ⬝ ⅟B = A :=
+by rw [matrix.mul_assoc, matrix.mul_inv_of_self, matrix.mul_one]
+
+variables (A : matrix n n α) (B : matrix n n α)
 
 /-- If `A.det` has a constructive inverse, produce one for `A`. -/
 def invertible_of_det_invertible [invertible A.det] : invertible A :=
@@ -164,6 +185,7 @@ lemma det_ne_zero_of_right_inverse [nontrivial α] (h : A ⬝ B = 1) : A.det ≠
 end invertible
 
 open_locale classical
+variables (A : matrix n n α) (B : matrix n n α)
 
 lemma is_unit_det_transpose (h : is_unit A.det) : is_unit Aᵀ.det :=
 by { rw det_transpose, exact h, }
@@ -383,5 +405,52 @@ end
   A.det • A⁻¹.vec_mul b = cramer Aᵀ b :=
 by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_inv, ← det_transpose,
     Aᵀ.det_smul_inv_mul_vec_eq_cramer _ (is_unit_det_transpose A h)]
+
+/-! ### More results about determinants -/
+
+/-- Determinant of a 2×2 block matrix, expanded around an invertible top left element. -/
+lemma det_from_blocks₁₁ {m n} [fintype m] [fintype n]
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible A] : (matrix.from_blocks A B C D).det = det A * det (D - C ⬝ (⅟A) ⬝ B) :=
+begin
+  have : from_blocks A B C D =
+    from_blocks 1 0 (C ⬝ ⅟A) 1 ⬝ from_blocks A 0 0 (D - C ⬝ (⅟A) ⬝ B) ⬝ from_blocks 1 (⅟A ⬝ B) 0 1,
+  { simp only [from_blocks_multiply, matrix.mul_zero, matrix.zero_mul, add_zero, zero_add,
+      matrix.one_mul, matrix.mul_one, matrix.inv_of_mul_self, matrix.mul_inv_of_self_assoc,
+        matrix.mul_inv_of_mul_self_cancel, matrix.mul_assoc, add_sub_cancel'_right] },
+  rw [this, det_mul, det_mul, det_from_blocks_zero₂₁, det_from_blocks_zero₂₁,
+    det_from_blocks_zero₁₂, det_one, det_one, one_mul, one_mul, mul_one],
+end
+
+/-- Determinant of a 2×2 block matrix, expanded around an invertible bottom right element. -/
+lemma det_from_blocks₂₂ {m n} [fintype m] [fintype n]
+  (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
+  [invertible D] : (matrix.from_blocks A B C D).det = det D * det (A - B ⬝ (⅟D) ⬝ C) :=
+begin
+  have : from_blocks A B C D = (from_blocks D C B A).minor (sum_comm _ _) (sum_comm _ _),
+  { ext i j,
+    cases i; cases j; refl },
+  rw [this, det_minor_equiv_self, det_from_blocks₁₁],
+end
+
+/-- The **Weinstein–Aronszajn identity**. Note the `1` on the LHS is of shape m×m, while the one
+on the right is of shape n×n. -/
+lemma det_one_add_mul_comm {m n} [fintype m] [fintype n] (A : matrix m n α) (B : matrix n m α) :
+  det (1 + A ⬝ B) = det (1 + B ⬝ A) :=
+begin
+  haveI : invertible (1 : matrix n n α) := invertible_one,
+  haveI : invertible (1 : matrix m m α) := invertible_one,
+  let M := from_blocks 1 (-A) B 1,
+  calc  det (1 + A ⬝ B)
+      = det M           : by rw [det_from_blocks₂₂, det_one, one_mul, matrix.neg_mul,
+                                 matrix.neg_mul, sub_neg_eq_add, inv_of_one, matrix.mul_one]
+  ... = det (1 + B ⬝ A) : by rw [det_from_blocks₁₁, det_one, one_mul, matrix.mul_neg,
+                                 sub_neg_eq_add, inv_of_one, matrix.mul_one]
+end
+
+/-- Alternate statement of the **Weinstein–Aronszajn identity** -/
+lemma det_mul_add_one_comm {m n} [fintype m] [fintype n] (A : matrix m n α) (B : matrix n m α) :
+  det (A ⬝ B + 1) = det (B ⬝ A + 1) :=
+by rw [add_comm, det_one_add_mul_comm, add_comm]
 
 end matrix

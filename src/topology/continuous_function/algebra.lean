@@ -7,7 +7,7 @@ import topology.algebra.module.basic
 import topology.continuous_function.ordered
 import topology.algebra.uniform_group
 import topology.uniform_space.compact_convergence
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
 import tactic.field_simp
 
 /-!
@@ -206,13 +206,13 @@ coe_injective.comm_monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
   [locally_compact_space α] [topological_space β]
-  [has_mul β]  [has_continuous_mul β] : has_continuous_mul C(α, β) :=
+  [has_mul β] [has_continuous_mul β] : has_continuous_mul C(α, β) :=
 ⟨begin
   refine continuous_of_continuous_uncurry _ _,
   have h1 : continuous (λ x : (C(α, β) × C(α, β)) × α, x.fst.fst x.snd) :=
-    continuous_ev.comp ((continuous_fst.comp continuous_fst).prod_mk continuous_snd),
+    continuous_eval'.comp ((continuous_fst.comp continuous_fst).prod_mk continuous_snd),
   have h2 : continuous (λ x : (C(α, β) × C(α, β)) × α, x.fst.snd x.snd) :=
-   continuous_ev.comp ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
+    continuous_eval'.comp ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
   exact (continuous_fst.comp (h1.prod_mk h2)).mul (continuous_snd.comp (h1.prod_mk h2)),
 end⟩
 
@@ -400,7 +400,7 @@ instance [has_scalar R M] [has_continuous_const_smul R M] : has_scalar R C(α, M
 instance {α : Type*} [topological_space α] [locally_compact_space α]
   {R : Type*} {M : Type*} [topological_space M] [has_scalar R M] [has_continuous_const_smul R M] :
   has_continuous_const_smul R C(α, M) :=
-⟨λ γ, continuous_of_continuous_uncurry _ (continuous.const_smul continuous_ev γ)⟩
+⟨λ γ, continuous_of_continuous_uncurry _ (continuous.const_smul continuous_eval' γ)⟩
 
 @[simp, to_additive, norm_cast]
 lemma coe_smul [has_scalar R M] [has_continuous_const_smul R M]
@@ -664,7 +664,7 @@ instance {α : Type*} [topological_space α] [locally_compact_space α]
 ⟨begin
   refine continuous_of_continuous_uncurry _ _,
   have h : continuous (λ x : (R × C(α, M)) × α, x.fst.snd x.snd) :=
-    continuous_ev.comp ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
+    continuous_eval'.comp ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
   exact (continuous_fst.comp ((continuous_fst.comp continuous_fst).prod_mk h)).smul
     (continuous_snd.comp ((continuous_fst.comp continuous_fst).prod_mk h)),
 end⟩

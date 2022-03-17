@@ -256,11 +256,7 @@ end
 theorem nat_degree_div_by_monic {R : Type u} [comm_ring R] (f : R[X]) {g : R[X]}
   (hg : g.monic) : nat_degree (f /ₘ g) = nat_degree f - nat_degree g :=
 begin
-  by_cases h01 : (0 : R) = 1,
-  { haveI := subsingleton_of_zero_eq_one h01,
-    rw [subsingleton.elim (f /ₘ g) 0, subsingleton.elim f 0, subsingleton.elim g 0,
-        nat_degree_zero] },
-  haveI : nontrivial R := ⟨⟨0, 1, h01⟩⟩,
+  nontriviality R,
   by_cases hfg : f /ₘ g = 0,
   { rw [hfg, nat_degree_zero], rw div_by_monic_eq_zero_iff hg at hfg,
     rw tsub_eq_zero_iff_le.mpr (nat_degree_le_nat_degree $ le_of_lt hfg) },
@@ -415,6 +411,22 @@ lemma sum_mod_by_monic_coeff [nontrivial R] (hq : q.monic)
 (sum_fin (λ i c, monomial i c) (by simp)
   ((degree_mod_by_monic_lt _ hq).trans_le hn)).trans
   (sum_monomial_eq _)
+
+variable (R)
+
+lemma not_is_field [nontrivial R] : ¬ is_field R[X] :=
+begin
+  rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
+  use ideal.span {polynomial.X},
+  split,
+  { rw [bot_lt_iff_ne_bot, ne.def, ideal.span_singleton_eq_bot],
+    exact polynomial.X_ne_zero, },
+  { rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ideal.mem_span_singleton,
+      polynomial.X_dvd_iff, polynomial.coeff_one_zero],
+    exact one_ne_zero, }
+end
+
+variable {R}
 
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.

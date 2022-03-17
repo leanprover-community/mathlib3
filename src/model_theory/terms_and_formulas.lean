@@ -146,11 +146,16 @@ encodable.of_left_injection list_encode (λ l, (list_decode l).head')
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 
-instance inhabited_of_constant [inhabited L.constants] : inhabited (L.term α) :=
-⟨func (default : L.constants) default⟩
+end term
 
-instance : has_coe L.constants (L.term α) :=
-⟨λ c, func c default⟩
+/-- The representation of a constant symbol as a term. -/
+def constants.term (c : L.constants) : (L.term α) :=
+func c default
+
+namespace term
+
+instance inhabited_of_constant [inhabited L.constants] : inhabited (L.term α) :=
+⟨(default : L.constants).term⟩
 
 /-- A term `t` with variables indexed by `α` can be evaluated by giving a value to each variable. -/
 @[simp] def realize (v : α → M) :
@@ -166,7 +171,16 @@ begin
   { simp [ih] }
 end
 
+@[simp] lemma realize_constants {c : L.constants} {v : α → M} :
+  c.term.realize v = c :=
+fun_map_eq_coe_constants
+
+lemma realize_con {A : set M} {a : A} {v : α → M} :
+  (L.con a).term.realize v = a := rfl
+
 end term
+
+localized "prefix `&`:max := first_order.language.term.var ∘ sum.inr" in first_order
 
 @[simp] lemma hom.realize_term (g : M →[L] N) {t : L.term α} {v : α → M} :
   t.realize (g ∘ v) = g (t.realize v) :=
@@ -366,6 +380,16 @@ end bounded_formula
 
 attribute [protected] bounded_formula.falsum bounded_formula.equal bounded_formula.rel
 attribute [protected] bounded_formula.imp bounded_formula.all
+
+localized "infix ` =' `:88 := first_order.language.term.bd_equal" in first_order
+  -- input \~- or \simeq
+localized "infixr ` ⟹ `:62 := first_order.language.bounded_formula.imp" in first_order
+  -- input \==>
+localized "prefix `∀'`:110 := first_order.language.bounded_formula.all" in first_order
+localized "prefix `∼`:max := first_order.language.bounded_formula.not" in first_order
+  -- input \~, the ASCII character ~ has too low precedence
+localized "infix ` ⇔ `:61 := first_order.language.bounded_formula.iff" in first_order -- input \<=>
+localized "prefix `∃'`:110 := first_order.language.bounded_formula.ex" in first_order -- input \ex
 
 namespace formula
 

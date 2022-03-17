@@ -67,7 +67,7 @@ begin
       (λ _ _ _, by rwa mul_le_mul_left ha_zero ha_top) hg_bij.1,
   let g_iso := strict_mono.order_iso_of_surjective g hg_mono hg_bij.2,
   refine (order_iso.limsup_apply g_iso _ _ _ _).symm,
-  all_goals { by is_bounded_default },
+  all_goals { is_bounded_default },
 end
 
 lemma limsup_const_mul [countable_Inter_filter f] {u : α → ℝ≥0∞} {a : ℝ≥0∞} :

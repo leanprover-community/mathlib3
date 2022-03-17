@@ -93,7 +93,6 @@ theorem generate_measurable_subset_rec (s : set (set α)) ⦃t : set α⦄
   (ht : generate_measurable s t) :
   t ∈ ⋃ i, generate_measurable_rec s i :=
 begin
-  haveI : nonempty ω₁, by simp [← mk_ne_zero_iff, ne_of_gt, (aleph 1).mk_ord_out, aleph_pos 1],
   inhabit ω₁,
   induction ht with u hu u hu IH f hf IH,
   { refine mem_Union.2 ⟨default, _⟩,
@@ -103,8 +102,8 @@ begin
     rw generate_measurable_rec,
     simp only [union_singleton, mem_union_eq, mem_insert_iff, eq_self_iff_true, true_or] },
   { rcases mem_Union.1 IH with ⟨i, hi⟩,
-    obtain ⟨j, hj⟩ : ∃ j, i < j := ordinal.has_succ_of_is_limit
-      (by { rw ordinal.type_lt, exact ord_aleph_is_limit 1 }) _,
+    obtain ⟨j, hj⟩ : ∃ j, i < j := ordinal.has_succ_of_type_succ_lt
+      (by { rw ordinal.type_lt, exact (ord_aleph_is_limit 1).2 }) _,
     apply mem_Union.2 ⟨j, _⟩,
     rw generate_measurable_rec,
     have : ∃ a, (a < j) ∧ u ∈ generate_measurable_rec s a := ⟨i, hj, hi⟩,

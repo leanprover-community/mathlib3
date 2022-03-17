@@ -375,3 +375,28 @@ begin
     simp only [image_smul, not_not, mem_set_of_eq, ne.def] at H,
     exact eq_empty_iff_forall_not_mem.mp H (γ • x) ⟨mem_image_of_mem _ x_in_K₀, h'⟩ },
 end
+
+section nhds
+
+variables {G₀ : Type*} [add_comm_group α] [topological_space α] [group_with_zero G₀]
+  [distrib_mul_action G₀ α] [has_continuous_const_smul G₀ α]
+
+/-- Scalar multiplication preserves neighborhoods of zero. -/
+lemma set_smul_mem_nhds_zero {c : G₀} {s : set α} (hs : s ∈ 𝓝 (0 : α)) (hc : c ≠ 0) :
+  c • s ∈ 𝓝 (0 : α) :=
+begin
+  rcases mem_nhds_iff.mp hs with ⟨U, hs', hU, hU'⟩,
+  refine mem_nhds_iff.mpr ⟨c • U, set.smul_set_mono hs', is_open.smul₀ hU hc, _⟩,
+  convert set.smul_mem_smul_set hU',
+  exact (smul_zero c).symm,
+end
+
+lemma set_smul_mem_nhds_zero_iff (s : set α) {c : G₀} (hc : c ≠ 0) :
+  c • s ∈ 𝓝 (0 : α) ↔ s ∈ 𝓝 (0 : α) :=
+begin
+  refine ⟨λ h, _, λ h, set_smul_mem_nhds_zero h hc⟩,
+  convert set_smul_mem_nhds_zero h (inv_ne_zero hc),
+  rw [smul_smul, inv_mul_cancel hc, one_smul],
+end
+
+end nhds

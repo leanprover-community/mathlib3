@@ -109,7 +109,7 @@ rfl
 rfl
 
 /-- Typecheck a `linear_map` as a morphism in `Module R`. -/
-def of_hom {R : Type u} [ring R] {X Y : Type u} [add_comm_group X] [module R X] [add_comm_group Y]
+def of_hom {R : Type u} [ring R] {X Y : Type v} [add_comm_group X] [module R X] [add_comm_group Y]
   [module R Y] (f : X →ₗ[R] Y) : of R X ⟶ of R Y := f
 
 instance : has_zero (Module R) := ⟨of R punit⟩

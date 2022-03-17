@@ -112,14 +112,15 @@ end
 /-- Conditioning first on `s` and then on `t` results in the same measure as conditioning
 on `s ∩ t`. -/
 @[simp] lemma cond_cond_eq_cond_inter
-  (hms : measurable_set s) (hmt : measurable_set t) (hcs : μ s ≠ 0) (hci : μ (s ∩ t) ≠ 0) :
+  (hms : measurable_set s) (hmt : measurable_set t) (hci : μ (s ∩ t) ≠ 0) :
   μ[|s][|t] = μ[|s ∩ t] :=
 begin
   have := hms.inter hmt,
   have := measure_ne_top μ s,
+  have hcs : μ s ≠ 0 := (μ.to_outer_measure.pos_of_subset_ne_zero
+    (set.inter_subset_left _ _) hci).ne',
   ext1,
-  haveI := cond_is_probability_measure μ
-    (μ.to_outer_measure.pos_of_subset_ne_zero (set.inter_subset_left _ _) hci).ne',
+  haveI := cond_is_probability_measure μ hcs,
   simp only [*, cond_apply, ←mul_assoc, ←set.inter_assoc],
   congr,
   simp [*, ennreal.mul_inv, mul_comm, ←mul_assoc, ennreal.inv_mul_cancel]

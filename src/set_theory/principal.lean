@@ -80,12 +80,12 @@ nfp_le.2 $ λ n, (ho.iterate_lt hao n).le
 /-- The least strict upper bound of `op` applied to all pairs of ordinals less than `o`. This is
 essentially a two-argument version of `ordinal.blsub`. -/
 def blsub₂ (op : ordinal → ordinal → ordinal) (o : ordinal) : ordinal :=
-lsub (λ x : o.out.α × o.out.α, op (typein o.out.r x.1) (typein o.out.r x.2))
+lsub (λ x : o.out.α × o.out.α, op (typein (<) x.1) (typein (<) x.2))
 
 theorem lt_blsub₂ (op : ordinal → ordinal → ordinal) {o : ordinal} {a b : ordinal} (ha : a < o)
   (hb : b < o) : op a b < blsub₂ op o :=
 begin
-  convert lt_lsub _ (prod.mk (enum o.out.r a (by rwa type_out)) (enum o.out.r b (by rwa type_out))),
+  convert lt_lsub _ (prod.mk (enum (<) a (by rwa type_lt)) (enum (<) b (by rwa type_lt))),
   simp only [typein_enum]
 end
 
@@ -147,6 +147,26 @@ begin
   { rw ←h a hao,
     exact (add_is_normal a).strict_mono hbo }
 end
+
+theorem exists_lt_add_of_not_principal_add {a} (ha : ¬ principal (+) a) :
+  ∃ (b c) (hb : b < a) (hc : c < a), b + c = a :=
+begin
+  unfold principal at ha,
+  push_neg at ha,
+  rcases ha with ⟨b, c, hb, hc, H⟩,
+  refine ⟨b, _, hb, lt_of_le_of_ne (sub_le_self a b) (λ hab, _),
+    ordinal.add_sub_cancel_of_le hb.le⟩,
+  rw [←sub_le, hab] at H,
+  exact H.not_lt hc
+end
+
+theorem principal_add_iff_add_lt_ne_self {a} :
+  principal (+) a ↔ ∀ ⦃b c⦄, b < a → c < a → b + c ≠ a :=
+⟨λ ha b c hb hc, (ha hb hc).ne, λ H, begin
+  by_contra' ha,
+  rcases exists_lt_add_of_not_principal_add ha with ⟨b, c, hb, hc, rfl⟩,
+  exact (H hb hc).irrefl
+end⟩
 
 theorem add_omega {a : ordinal} (h : a < omega) : a + omega = omega :=
 begin

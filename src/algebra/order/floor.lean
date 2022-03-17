@@ -54,7 +54,7 @@ variables {α : Type*}
 /-- A `floor_semiring` is an ordered semiring over `α` with a function
 `floor : α → ℕ` satisfying `∀ (n : ℕ) (x : α), n ≤ ⌊x⌋ ↔ (n : α) ≤ x)`.
 Note that many lemmas require a `linear_order`. Please see the above `TODO`. -/
-class floor_semiring (α) [linear_ordered_semiring α] :=
+class floor_semiring (α) [ordered_semiring α] :=
 (floor : α → ℕ)
 (ceil : α → ℕ)
 (floor_of_neg {a : α} (ha : a < 0) : floor a = 0)

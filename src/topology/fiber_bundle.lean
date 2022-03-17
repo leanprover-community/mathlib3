@@ -749,6 +749,7 @@ attribute [mfld_simps] proj total_space_mk coe_fst coe_snd coe_snd_map_apply coe
 
 instance [I : topological_space F] : ∀ x : B, topological_space (trivial B F x) := λ x, I
 
+@[nolint fails_quickly]
 instance [t₁ : topological_space B] [t₂ : topological_space F] :
   topological_space (total_space (trivial B F)) :=
 topological_space.induced (proj (trivial B F)) t₁ ⊓

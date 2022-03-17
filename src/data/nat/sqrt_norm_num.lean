@@ -18,7 +18,7 @@ lemma is_sqrt {n a a2 b : ℕ}
   (ha2 : a * a = a2) (hb : a2 + b = n) (hle : b ≤ bit0 a) : sqrt n = a :=
 by { rw [← hb, ← ha2, ← pow_two], exact sqrt_add_eq' _ hle }
 
-/-- Given `n` proves `(a, ⊢ nat.sqrt n = a)`. -/
+/-- Given `n` provides `(a, ⊢ nat.sqrt n = a)`. -/
 meta def prove_sqrt (ic : instance_cache) (n : expr) : tactic (instance_cache × expr × expr) := do
   nn ← n.to_nat,
   let na := nn.sqrt,
@@ -26,7 +26,6 @@ meta def prove_sqrt (ic : instance_cache) (n : expr) : tactic (instance_cache ×
   (ic, a2, ha2) ← prove_mul_nat ic a a,
   (ic, b) ← ic.of_nat (nn - na*na),
   (ic, hb) ← prove_add_nat ic a2 b n,
-  (ic, b2, hb2) ← prove_mul_nat ic b b,
   (ic, hle) ← prove_le_nat ic b (`(bit0:ℕ→ℕ).mk_app [a]),
   pure (ic, a, `(@is_sqrt).mk_app [n, a, a2, b, ha2, hb, hle])
 

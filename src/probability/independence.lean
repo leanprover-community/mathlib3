@@ -447,8 +447,7 @@ theorem cond_indep_set_iff_cond_inter_irrel (hms : measurable_set s)
 begin
   have : μ (c ∩ t) ≠ 0 → (μ[s|c ∩ t] = μ[s|c] ↔ μ[|c][|t] s = μ[s|c]),
   { intro h,
-    rw ←cond_cond_eq_cond_inter μ hmc hmt _ h,
-    exact (outer_measure.pos_of_subset_ne_zero _ (set.inter_subset_left _ _) h).ne' },
+    rw ←cond_cond_eq_cond_inter μ hmc hmt h },
   rw [cond_indep_set_def, forall_congr this],
   by_cases h : μ c = 0,
   { simp [*, indep_set_of_cond_null_measure, measure_inter_null_of_null_left] },

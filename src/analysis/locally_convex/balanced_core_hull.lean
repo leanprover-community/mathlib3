@@ -140,8 +140,12 @@ lemma balanced_core_zero {s : set E} (hs: (0 : E) ∈ s) : (0 : E) ∈ balanced_
 balanced_core_mem_iff.mpr
   ⟨{0}, zero_singleton_balanced, singleton_subset_iff.mpr hs, mem_singleton 0⟩
 
-lemma subset_balanced_hull [norm_one_class 𝕜] (s : set E) : s ⊆ balanced_hull 𝕜 s :=
+variables (𝕜)
+
+lemma subset_balanced_hull [norm_one_class 𝕜] {s : set E} : s ⊆ balanced_hull 𝕜 s :=
 λ _ hx, (balanced_hull_mem_iff _ _).mpr ⟨1, norm_one.le, mem_smul_set.mp ⟨_, hx, one_smul _ _⟩⟩
+
+variables {𝕜}
 
 lemma balanced_hull.balanced (s : set E) : balanced 𝕜 (balanced_hull 𝕜 s) :=
 begin

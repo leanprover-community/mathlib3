@@ -28,10 +28,6 @@ section for_mathlib
 instance subgroup.commutator.characteristic (G : Type*) [group G] :
   (commutator G).characteristic := sorry
 
-lemma subgroup.map_subtype_le_map_subtype {G' : Type*} [group G'] {G : subgroup G'}
-  {H K : subgroup G} : H.map G.subtype ≤ K.map G.subtype ↔ H ≤ K :=
-subgroup.map_le_map_iff_of_injective subtype.coe_injective
-
 end for_mathlib
 
 noncomputable theory
@@ -94,19 +90,26 @@ lemma to_fun_mul_inv_mem {G : Type*} [group G] {H : subgroup G} {S : set G}
 
 end mem_right_transversals
 
-def finitely_generated (G : Type*) [group G] :=
-∃ S : finset G, subgroup.closure (S : set G) = ⊤
+class finitely_generated (G : Type*) [group G] : Prop :=
+(exists_generators : ∃ S : finset G, subgroup.closure (S : set G) = ⊤)
 
 lemma finite_generated_def (G : Type*) [group G] :
-finitely_generated G ↔ ∃ S : finset G, subgroup.closure (S : set G) = ⊤ :=
-iff.rfl
+  finitely_generated G ↔ ∃ S : finset G, subgroup.closure (S : set G) = ⊤ :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
 
-lemma finite_generated_def' (G : Type*) [group G] :
-finitely_generated G ↔ ∃ n : ℕ, ∃ S : finset G, S.card = n ∧ subgroup.closure (S : set G) = ⊤ :=
-sorry
+lemma finitely_generated_def' (G : Type*) [group G] :
+  finitely_generated G ↔ ∃ S : set G, S.finite ∧ subgroup.closure S = ⊤ :=
+⟨λ ⟨⟨S, hS⟩⟩, ⟨S, S.finite_to_set, hS⟩, λ ⟨S, hS1, hS2⟩,⟨⟨hS1.to_finset, by rwa hS1.coe_to_finset⟩⟩⟩
+
+lemma finite_generated_def'' (G : Type*) [group G] :
+  finitely_generated G ↔ ∃ n (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤ :=
+⟨λ ⟨⟨S, hS⟩⟩, ⟨S.card, S, rfl, hS⟩, λ ⟨n, S, hn, hS⟩, ⟨⟨S, hS⟩⟩⟩
 
 def min_generators (G : Type*) [group G] [h : finitely_generated G] :=
-nat.find ((finite_generated_def' G).mp h)
+nat.find ((finite_generated_def'' G).mp h)
+
+class subgroup.finite_index {G : Type*} [group G] (H : subgroup G) : Prop :=
+(finite_index : H.index ≠ 0)
 
 namespace subgroup
 
@@ -195,6 +198,27 @@ begin
   rwa [h_eq, mul_one],
 end
 
+/-- **Schreier's Lemma** -/
+lemma schreier_aux1 {G : Type*} [group G] {H : subgroup G} {R S : finset G}
+  (hR : (R : set G) ∈ right_transversals (H : set G)) (hR1 : (1 : G) ∈ R)
+  (hS : closure (S : set G) = ⊤) :
+  closure ((((R * S).image (λ g, g * (mem_right_transversals.to_fun hR g)⁻¹)) : finset G) : set G) = H :=
+begin
+  rw [finset.coe_image, finset.coe_mul],
+  exact schreier hR hR1 hS,
+end
+
+instance schreier_aux2 {G : Type*} [group G] [hG : finitely_generated G] {H : subgroup G}
+  [hH : finite_index H] : finitely_generated H :=
+begin
+
+end
+
+lemma schreier_aux3 {G : Type*} [group G] [hG : finitely_generated G] {H : subgroup G}
+  [hH : finite_index H] : min_generators H ≤ H.index * min_generators G :=
+begin
+end
+
 end subgroup
 
 def generated_by (G : Type*) [group G] (n : ℕ) :=
@@ -224,7 +248,7 @@ begin
   haveI : fintype S := hS_fintype,
   let T : set G := R * S,
   let f : G → H := λ g, (⟨g * (mem_right_transversals.to_fun hR g)⁻¹,
-    mem_right_transversals.to_fun_mul_inv hR g⟩ : H),
+    mem_right_transversals.to_fun_mul_inv_mem hR g⟩ : H),
 
   refine ⟨_, schreier' hR hS, by apply_instance, _⟩,
   change card (f '' T) ≤ schreier_bound m n,

@@ -30,6 +30,9 @@ section
 open real
 variables (x y z : ℝ)
 
+/--There are 6 possible orders among `x, y, z`; the proof of this question for each case will be
+almost the same, as all operations involved are commutative.
+-/
 lemma possible_orders :
   (x ≤ y ∧ y ≤ z) ∨
   (x ≤ z ∧ z ≤ y) ∨
@@ -49,6 +52,8 @@ end
 variables (add_eq : x + y + z = 1) (hx : 0 ≤ x) (hy : 0 ≤ y) (hz : 0 ≤ z)
 include add_eq hx hy hz
 
+/--Proof of non-negativity doesn't require any specific order among `x, y, z`.
+-/
 lemma zero_le : 0 ≤ x * y + y * z + x * z - 2 * x * y * z :=
 have ineq1 : x ≤ 1/2 ∨ y ≤ 1/2 ∨ z ≤ 1/2, begin
   by_contra rid,
@@ -64,6 +69,13 @@ begin
   linarith,
 end
 
+/-- To prove `xy + yz + xz - 2xyz ≤ 7/27`, we assume `x ≤ y ≤ z`; the other 5 cases can be proved
+using this lemma, for example if `hyz : y ≤ z` and `hzx : z ≤ x`, then the following:
+```
+convert le_7_div_27 _ _ _ _ _ _ _ hyz hzx,
+```
+will turn the goal into something provable by `ring` tactic.
+-/
 lemma le_7_div_27 (hxy : x ≤ y) (hyz : y ≤ z) : x * y + y * z + x * z - 2 * x * y * z ≤ 7/27 :=
 have eq1 : (1 - 2 * x) * (1 - 2 * y) * (1 - 2 * z) =
   -1 + 4 * (y * z + x * z + x * y) - 8 * x * y * z, from

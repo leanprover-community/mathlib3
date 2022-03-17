@@ -36,8 +36,15 @@ elements of the *same grading*, i.e. `∀ y ∈ U, ∃ (V ⊆ U) (i : ℕ) (a b 
 * `algebraic_geometry.projective_spectrum.structure_sheaf.sections_subring`: the dependent functions
   satisfying the above local property forms a subring of all dependent functions
   `Π x : U, homogeneous_localization x`.
-* `algebraic_geometry.projective_spectrum.structure_sheaf.structure_sheaf`: the sheaf with
-  `U ↦ sections_subring U` and natural restriction map.
+* `algebraic_geometry.Proj.structure_sheaf`: the sheaf with `U ↦ sections_subring U` and natural
+  restriction map.
+
+Then we establish that `Proj 𝒜` is a `LocallyRingedSpace`:
+* `algebraic_geometry.homogeneous_localization.is_local`: for any `x : projective_spectrum 𝒜`,
+  `homogeneous_localization x` is a local ring.
+* `algebraic_geometry.Proj.stalk_iso'`: for any `x : projective_spectrum 𝒜`, the stalk of
+  `Proj.structure_sheaf` at `x` is isomorphic to `homogeneous_localization x`.
+* `algebraic_geometry.Proj.to_LocallyRingedSpace`: `Proj` as a locally ringed space.
 
 ## References
 
@@ -482,7 +489,7 @@ def homogeneous_localization_to_stalk (x : projective_spectrum.Top 𝒜) :
   (⟨x, homogeneous_localization.mem_basic_open _ x f⟩ : projective_spectrum.basic_open _ f.denom)
   (section_in_basic_open _ x f)
 
-def stalk_iso' (x : projective_spectrum.Top 𝒜) :
+def Proj.stalk_iso' (x : projective_spectrum.Top 𝒜) :
   (Proj.structure_sheaf 𝒜).1.stalk x ≃+* CommRing.of (homogeneous_localization x)  :=
 ring_equiv.of_bijective (stalk_to_fiber_ring_hom _ x)
 ⟨λ z1 z2 eq1, begin
@@ -587,7 +594,7 @@ end}
 def Proj.to_LocallyRingedSpace : LocallyRingedSpace :=
 { local_ring := λ x, @@ring_equiv.local_ring _
     (show local_ring (homogeneous_localization x), from homogeneous_localization.is_local 𝒜 x) _
-    (stalk_iso' 𝒜 x).symm,
+    (Proj.stalk_iso' 𝒜 x).symm,
   ..(Proj.to_SheafedSpace 𝒜) }
 
 end

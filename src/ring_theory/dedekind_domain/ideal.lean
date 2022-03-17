@@ -209,9 +209,9 @@ lemma is_dedekind_domain_inv_iff [algebra A K] [is_fraction_ring A K] :
     (∀ I ≠ (⊥ : fractional_ideal A⁰ K), I * I⁻¹ = 1) :=
 begin
   let h := fractional_ideal.map_equiv (fraction_ring.alg_equiv A K),
-  refine h.to_equiv.forall_congr _,
-  simp only [← h.to_equiv.apply_eq_iff_eq],
-  simp [is_dedekind_domain_inv, show ⇑h.to_equiv = h, from rfl],
+  refine h.to_equiv.forall_congr (λ I, _),
+  rw ← h.to_equiv.apply_eq_iff_eq,
+  simp
 end
 
 lemma fractional_ideal.adjoin_integral_eq_one_of_is_unit [algebra A K] [is_fraction_ring A K]

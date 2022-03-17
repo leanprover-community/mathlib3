@@ -231,7 +231,7 @@ lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ�
         conv {congr, skip, skip, rw ← (one_mul (1 : hat K))},
         refine tendsto.mul continuous_fst.continuous_at
                            (tendsto.comp _ continuous_snd.continuous_at),
-        convert @continuous_at_inv₀ (hat K) _ _ _ _ _ zero_ne_one.symm,
+        convert continuous_at_inv₀ (zero_ne_one.symm : 1 ≠ (0 : hat K)),
         exact inv_one.symm },
       rcases tendsto_prod_self_iff.mp this V V_in with ⟨U, U_in, hU⟩,
       let hatKstar := ({0}ᶜ : set $ hat K),

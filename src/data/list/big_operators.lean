@@ -310,14 +310,8 @@ lemma sum_le_foldr_max [add_monoid M] [add_monoid N] [linear_order N] (f : M →
 begin
   induction l with hd tl IH,
   { simpa using h0 },
-  simp only [list.sum_cons, list.foldr_map, le_max_iff, list.foldr] at IH ⊢,
-  cases le_or_lt (f tl.sum) (f hd),
-  { left,
-    refine (hadd _ _).trans _,
-    simpa using h },
-  { right,
-    refine (hadd _ _).trans _,
-    simp only [IH, max_le_iff, and_true, h.le.trans IH] }
+  simp only [list.sum_cons, list.foldr_map, list.foldr] at IH ⊢,
+  exact (hadd _ _).trans (max_le_max le_rfl IH)
 end
 
 @[simp, to_additive]
@@ -416,11 +410,11 @@ by rw [sub_eq_add_neg, alternating_sum]
 
 end alternating
 
-lemma sum_map_mul_left [semiring R] (L : list ι) (f : ι → R) (r : R) :
+lemma sum_map_mul_left [non_unital_non_assoc_semiring R] (L : list ι) (f : ι → R) (r : R) :
   (L.map (λ b, r * f b)).sum = r * (L.map f).sum :=
 sum_map_hom L f $ add_monoid_hom.mul_left r
 
-lemma sum_map_mul_right [semiring R] (L : list ι) (f : ι → R) (r : R) :
+lemma sum_map_mul_right [non_unital_non_assoc_semiring R] (L : list ι) (f : ι → R) (r : R) :
   (L.map (λ b, f b * r)).sum = (L.map f).sum * r :=
 sum_map_hom L f $ add_monoid_hom.mul_right r
 

@@ -140,6 +140,27 @@ def module.to_add_monoid_End : R →+* add_monoid.End M :=
   map_add' := λ x y, add_monoid_hom.ext $ λ r, by simp [add_smul],
   ..distrib_mul_action.to_add_monoid_End R M }
 
+/-- The associated `R`-module structure on `M` given a map `R →+* add_monoid.End M`. -/
+@[simps]
+def ring_hom.module_of_to_End {R M : Type*} [semiring R] [add_comm_monoid M]
+  (f : R →+* add_monoid.End M) : module R M :=
+{ smul := λ r m, f r m,
+  one_smul := λ m, by { change f 1 m = m, rw map_one, refl },
+  mul_smul := λ x y m, by { change f (x * y) m = f x (f y m), rw map_mul, refl },
+  smul_add := λ r, (f r).map_add,
+  smul_zero := λ r, (f r).map_zero,
+  add_smul := λ r s m, by { change f (r + s) m = f r m + f s m, rw map_add, refl },
+  zero_smul := λ m, by { change f 0 m = 0, rw map_zero, refl } }
+
+/-- Giving a `R`-module structure on a `add_comm_monoid` is equivalent to giving a
+`R →+* add_monoid.End M`. -/
+def module_equiv_to_End {R M : Type*} [semiring R] [add_comm_monoid M] :
+  (R →+* add_monoid.End M) ≃ module R M :=
+{ to_fun := ring_hom.module_of_to_End,
+  inv_fun := λ _, by exactI module.to_add_monoid_End R M,
+  left_inv := λ f, ring_hom.ext $ λ r, add_monoid_hom.ext $ λ m, rfl,
+  right_inv := λ _, by { ext, refl } }
+
 /-- A convenience alias for `module.to_add_monoid_End` as an `add_monoid_hom`, usually to allow the
 use of `add_monoid_hom.flip`. -/
 def smul_add_hom : R →+ M →+ M :=

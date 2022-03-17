@@ -295,6 +295,16 @@ lemma restrict_scalars_inj (fₗ gₗ : M →ₗ[S] M₂) :
   fₗ.restrict_scalars R = gₗ.restrict_scalars R ↔ fₗ = gₗ :=
 (restrict_scalars_injective R).eq_iff
 
+/-- `linear_map.restrict_scalars_map` as a `ring_hom`. --/
+@[simps]
+def _root_.module.End.restrict_scalars (S : Type*) [comm_ring S] [algebra R S] [module S M]
+  [is_scalar_tower R S M] :
+  module.End S M →+* module.End R M :=
+{ map_one' := rfl,
+  map_mul' := λ f g, rfl,
+  map_zero' := rfl,
+  ..(linear_map.restrict_scalars_map R S M) }
+
 end restrict_scalars
 
 variable {R}
@@ -830,5 +840,15 @@ def to_module_End : S →+* module.End R M :=
   map_zero' := linear_map.ext $ zero_smul _,
   map_add' := λ f g, linear_map.ext $ add_smul _ _,
   ..distrib_mul_action.to_module_End R M }
+
+/-- A `ring_hom` version of `linear_map.to_add_monoid_hom`.s -/
+@[simps]
+def End.to_add_monoid_End :
+  module.End R M →+* add_monoid.End M :=
+{ to_fun := linear_map.to_add_monoid_hom,
+  map_one' := rfl,
+  map_mul' := λ _ _, rfl,
+  map_zero' := rfl,
+  map_add' := λ _ _, rfl }
 
 end module

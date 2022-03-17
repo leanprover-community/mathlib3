@@ -128,7 +128,7 @@ variable {B}
 integral coordinates in the base `B.basis`. Then `is_integral R ((B.basis.repr (x * y) i)` for all
 `i` if `minpoly S B.gen = (minpoly R B.gen).map (algebra_map R S)`. This is the case if `R` is a GCD
 domain and `S` is its fraction ring. -/
-lemma repr_prod_is_integral [is_domain S] {x y : A} (hx : ∀ i, is_integral R (B.basis.repr x i))
+lemma repr_mul_is_integral [is_domain S] {x y : A} (hx : ∀ i, is_integral R (B.basis.repr x i))
   (hy : ∀ i, is_integral R (B.basis.repr y i))
   (hmin : minpoly S B.gen = (minpoly R B.gen).map (algebra_map R S)) :
   ∀ i, is_integral R ((B.basis.repr (x * y) i)) :=

@@ -167,7 +167,7 @@ begin
     { simp [hi, is_integral_zero] } },
   { intros hx i,
     rw [pow_succ],
-    refine repr_prod_is_integral hB hx (λ _, hn _ le_rfl (λ _, hx _) _) hmin _ }
+    refine repr_mul_is_integral hB hx (λ _, hn _ le_rfl (λ _, hx _) _) hmin _ }
 end
 
 /-- Let `B B' : power_basis K S` be such that `is_integral R B.gen`, and let `P : R[X]` be such that

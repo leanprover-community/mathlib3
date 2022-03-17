@@ -6,7 +6,6 @@ Authors: Shing Tak Lam
 import data.fintype.card
 import data.zmod.basic
 import group_theory.exponent
-import data.int.parity
 
 /-!
 # Dihedral Groups

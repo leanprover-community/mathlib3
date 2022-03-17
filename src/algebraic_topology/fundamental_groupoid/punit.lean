@@ -15,6 +15,7 @@ The fundamental groupoid of punit is naturally isomorphic to `category_theory.di
 noncomputable theory
 
 open category_theory
+universes u v
 
 namespace path
 
@@ -32,7 +33,7 @@ begin
 end
 
 /-- Equivalence of groupoids between fundamental groupoid of punit and punit -/
-def fundamental_groupoid_punit_iso_punit : fundamental_groupoid punit ≌ discrete punit :=
+def punit_iso_discrete_punit : fundamental_groupoid punit.{u+1} ≌ discrete punit.{v+1} :=
 equivalence.mk (functor.star _) ((category_theory.functor.const _).obj punit.star)
   (nat_iso.of_components (λ _, eq_to_iso dec_trivial) (λ _ _ _, dec_trivial))
   (functor.punit_ext _ _)

@@ -28,8 +28,7 @@ class strict_convex_space (𝕜 E : Type*) [normed_linear_ordered_field 𝕜] [n
 (strict_convex_closed_ball : ∀ r : ℝ, 0 < r → strict_convex 𝕜 (closed_ball (0 : E) r))
 
 variables (𝕜 : Type*) {E : Type*} [normed_linear_ordered_field 𝕜]
-
-variables [normed_group E] [normed_space 𝕜 E]
+  [normed_group E] [normed_space 𝕜 E]
 
 /-- A closed ball in a strictly convex space is strictly convex. -/
 lemma strict_convex_closed_ball [strict_convex_space 𝕜 E] (x : E) (r : ℝ) :
@@ -49,6 +48,8 @@ lemma strict_convex_space.of_strict_convex_closed_unit_ball
   strict_convex_space 𝕜 E :=
 ⟨λ r hr, by simpa only [smul_closed_unit_ball_of_nonneg hr.le] using h.smul r⟩
 
+/-- If `∥x + y∥ = ∥x∥ + ∥y∥` implies that `x y : E` are in the same ray, then `E` is a strictly
+convex space. -/
 lemma strict_convex_space.of_norm_add (h : ∀ x y : E, ∥x + y∥ = ∥x∥ + ∥y∥ → same_ray ℝ x y) :
   strict_convex_space ℝ E :=
 begin
@@ -72,6 +73,8 @@ end
 
 variables [strict_convex_space ℝ E] {x y z : E} {a b r : ℝ}
 
+/-- If `x ≠ y` belong to the same closed ball, then a convex combination of `x` and `y` with
+positive coefficients belongs to the corresponding open ball. -/
 lemma combo_mem_ball_of_ne (hx : x ∈ closed_ball z r) (hy : y ∈ closed_ball z r) (hne : x ≠ y)
   (ha : 0 < a) (hb : 0 < b) (hab : a + b = 1) : a • x + b • y ∈ ball z r :=
 begin
@@ -82,10 +85,14 @@ begin
     exact strict_convex_closed_ball ℝ z r hx hy hne ha hb hab }
 end
 
+/-- If `x ≠ y` belong to the same closed ball, then the open segment with endpoints `x` and `y` is
+included in the corresponding open ball. -/
 lemma open_segment_subset_ball_of_ne (hx : x ∈ closed_ball z r) (hy : y ∈ closed_ball z r)
   (hne : x ≠ y) : open_segment ℝ x y ⊆ ball z r :=
 (open_segment_subset_iff _).2 $ λ a b, combo_mem_ball_of_ne hx hy hne
 
+/-- If `x` and `y` are two distinct vectors of norm at most `r`, then a convex combination of `x`
+and `y` with positive coefficients has norm strictly less than `r`. -/
 lemma norm_combo_lt_of_ne (hx : ∥x∥ ≤ r) (hy : ∥y∥ ≤ r) (hne : x ≠ y) (ha : 0 < a) (hb : 0 < b)
   (hab : a + b = 1) : ∥a • x + b • y∥ < r :=
 begin

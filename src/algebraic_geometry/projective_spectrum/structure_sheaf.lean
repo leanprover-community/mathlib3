@@ -161,7 +161,7 @@ open homogeneous_localization
 (`A` localized at prime `x`) where the numerator and denominator have same grading. -/
 @[derive [comm_ring], nolint has_inhabited_instance]
 def homogeneous_localization (x : projective_spectrum.Top 𝒜) : Type* :=
-subring.mk (carrier x) one_mem' (λ _ _, mul_mem') zero_mem' (λ _ _, add_mem') (λ _, neg_mem')
+subring.mk (carrier x) (λ _ _, mul_mem') one_mem' (λ _ _, add_mem') zero_mem'  (λ _, neg_mem')
 
 end
 

@@ -83,6 +83,7 @@ instance colimit_has_scalar : has_scalar R M :=
 @[simp]
 lemma colimit_smul_mk_eq (r : R) (x : Σ j, F.obj j) : r • M.mk x = M.mk ⟨x.1, r • x.2⟩ := rfl
 
+-- we provide this separately to the `module` instance below to avoid a timeout
 instance colimit_distrib_mul_action_with_zero : distrib_mul_action_with_zero R M :=
 { one_smul := λ x, begin
     apply quot.induction_on x, clear x, intro x, cases x with j x,

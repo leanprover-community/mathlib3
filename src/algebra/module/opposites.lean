@@ -13,16 +13,27 @@ This file contains definitions that build on top of the group action definitions
 `group_theory.group_action.opposite`.
 -/
 
+variables (R M : Type*}
+
 namespace mul_opposite
-universes u v
 
-variables (R : Type u) {M : Type v} [semiring R] [add_comm_monoid M] [module R M]
+instance [has_zero R] [has_zero M] [smul_with_zero R M] : smul_with_zero R Mᵐᵒᵖ :=
+{ smul_zero := λ r, unop_injective $ smul_zero r,
+  zero_smul := λ r, unop_injective $ zero_smul' r }
 
-/-- `mul_opposite.distrib_mul_action` extends to a `module` -/
+instance [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M] :
+  mul_action_with_zero R Mᵐᵒᵖ :=
+{ ..mul_opposite.smul_with_zero M R }
+
+instance [monoid_with_zero R] [add_monoid M] [distrib_mul_action_with_zero R M] :
+  distrib_mul_action_with_zero R Mᵐᵒᵖ :=
+{ ..mul_opposite.smul_with_zero M R }
+
+variables {M} [semiring R] [add_comm_monoid M] [module R M]
+
+/-- `mul_opposite.distrib_mul_action_with_zero` extends to a `module`. -/
 instance : module R (mul_opposite M) :=
-{ add_smul := λ r₁ r₂ x, unop_injective $ add_smul r₁ r₂ (unop x),
-  zero_smul := λ x, unop_injective $ zero_smul _ (unop x),
-  ..mul_opposite.distrib_mul_action M R }
+{ add_smul := λ r₁ r₂ x, unop_injective $ add_smul r₁ r₂ (unop x) }
 
 /-- The function `op` is a linear equivalence. -/
 def op_linear_equiv : M ≃ₗ[R] Mᵐᵒᵖ :=

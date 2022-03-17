@@ -816,6 +816,19 @@ def to_module_End : S →* module.End R M :=
 
 end distrib_mul_action
 
+namespace distrib_mul_action_with_zero
+variables (R M) [semiring R] [add_comm_monoid M] [module R M] [semiring S]
+  [distrib_mul_action_with_zero S M] [smul_comm_class S R M]
+
+/-- Each element of the monoid defines a module endomorphism.
+
+This is a stronger version of `distrib_mul_action.to_module_End`. -/
+@[simps] def to_module_End : S →*₀ module.End R M :=
+{ map_zero' := linear_map.ext zero_smul,
+  ..distrib_mul_action.to_module_End R M }
+
+end distrib_mul_action_with_zero
+
 namespace module
 
 variables (R M) [semiring R] [add_comm_monoid M] [module R M]
@@ -823,12 +836,10 @@ variables [semiring S] [module S M] [smul_comm_class S R M]
 
 /-- Each element of the monoid defines a module endomorphism.
 
-This is a stronger version of `distrib_mul_action.to_module_End`. -/
+This is a stronger version of `distrib_mul_action_with_zero.to_module_End`. -/
 @[simps]
 def to_module_End : S →+* module.End R M :=
-{ to_fun := distrib_mul_action.to_linear_map R M,
-  map_zero' := linear_map.ext $ zero_smul _,
-  map_add' := λ f g, linear_map.ext $ add_smul _ _,
-  ..distrib_mul_action.to_module_End R M }
+{ map_add' := λ f g, linear_map.ext $ add_smul _ _,
+  ..distrib_mul_action_with_zero.to_module_End R M }
 
 end module

@@ -32,8 +32,7 @@ variables {k M N : Type*}
 namespace order_dual
 
 instance [semiring k] [ordered_add_comm_monoid M] [module k M] : module k (order_dual M) :=
-{ add_smul := λ r s x, order_dual.rec (add_smul _ _) x,
-  zero_smul := λ m, order_dual.rec (zero_smul _) m }
+{ add_smul := λ r s x, order_dual.rec (add_smul _ _) x }
 
 end order_dual
 

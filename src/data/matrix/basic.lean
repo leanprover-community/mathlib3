@@ -132,6 +132,12 @@ instance [monoid R] [mul_action R α] :
   mul_action R (matrix m n α) := pi.mul_action _
 instance [monoid R] [add_monoid α] [distrib_mul_action R α] :
   distrib_mul_action R (matrix m n α) := pi.distrib_mul_action _
+instance [has_zero R] [has_zero α] [smul_with_zero R α] :
+  smul_with_zero R (matrix m n α) := pi.smul_with_zero _
+instance [monoid_with_zero R] [has_zero α] [mul_action_with_zero R α] :
+  mul_action_with_zero R (matrix m n α) := pi.mul_action_with_zero _
+instance [monoid_with_zero R] [add_monoid α] [distrib_mul_action_with_zero R α] :
+  distrib_mul_action_with_zero R (matrix m n α) := pi.distrib_mul_action_with_zero _
 instance [semiring R] [add_comm_monoid α] [module R α] :
   module R (matrix m n α) := pi.module _ _ _
 

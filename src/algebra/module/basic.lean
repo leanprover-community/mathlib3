@@ -12,6 +12,7 @@ import tactic.norm_num
 # Modules over a ring
 
 In this file we define
+
 * `module R M` : an additive commutative monoid `M` is a `module` over a
   `semiring R` if for `r : R` and `x : M` their "scalar multiplication `r • x : M` is defined, and
   the operation `•` satisfies some natural associativity and distributivity axioms similar to those

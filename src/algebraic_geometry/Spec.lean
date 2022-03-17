@@ -74,8 +74,8 @@ The spectrum of a commutative ring, as a `SheafedSpace`.
 -/
 @[simps] def Spec.SheafedSpace_obj (R : CommRing) : SheafedSpace CommRing :=
 { carrier := Spec.Top_obj R,
-  presheaf := (structure_sheaf R).1,
-  is_sheaf := (structure_sheaf R).2 }
+  presheaf := (Spec.structure_sheaf R).1,
+  is_sheaf := (Spec.structure_sheaf R).2 }
 
 /--
 The induced map of a ring homomorphism on the ring spectra, as a morphism of sheafed spaces.

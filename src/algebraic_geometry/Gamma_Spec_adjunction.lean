@@ -110,14 +110,14 @@ end
 
 /-- Define the sheaf hom on individual basic opens for the unit. -/
 def to_Γ_Spec_c_app :
-  (structure_sheaf $ Γ.obj $ op X).val.obj (op $ basic_open r) ⟶
+  (Spec.structure_sheaf $ Γ.obj $ op X).val.obj (op $ basic_open r) ⟶
     X.presheaf.obj (op $ X.to_Γ_Spec_map_basic_open r) :=
 is_localization.away.lift r (is_unit_res_to_Γ_Spec_map_basic_open _ r)
 
 /-- Characterization of the sheaf hom on basic opens,
     direction ← (next lemma) is used at various places, but → is not used in this file. -/
 lemma to_Γ_Spec_c_app_iff
-  (f : (structure_sheaf $ Γ.obj $ op X).val.obj (op $ basic_open r) ⟶
+  (f : (Spec.structure_sheaf $ Γ.obj $ op X).val.obj (op $ basic_open r) ⟶
     X.presheaf.obj (op $ X.to_Γ_Spec_map_basic_open r)) :
   to_open _ (basic_open r) ≫ f = X.to_to_Γ_Spec_map_basic_open r ↔ f = X.to_Γ_Spec_c_app r :=
 begin
@@ -136,7 +136,7 @@ lemma to_Γ_Spec_c_app_spec :
 
 /-- The sheaf hom on all basic opens, commuting with restrictions. -/
 def to_Γ_Spec_c_basic_opens :
-  (induced_functor basic_open).op ⋙ (structure_sheaf (Γ.obj (op X))).1 ⟶
+  (induced_functor basic_open).op ⋙ (Spec.structure_sheaf (Γ.obj (op X))).1 ⟶
   (induced_functor basic_open).op ⋙ ((Top.sheaf.pushforward X.to_Γ_Spec_base).obj X.𝒪).1 :=
 { app := λ r, X.to_Γ_Spec_c_app r.unop,
   naturality' := λ r s f, begin
@@ -152,7 +152,7 @@ def to_Γ_Spec_c_basic_opens :
 @[simps]
 def to_Γ_Spec_SheafedSpace : X.to_SheafedSpace ⟶ Spec.to_SheafedSpace.obj (op (Γ.obj (op X))) :=
 { base := X.to_Γ_Spec_base,
-  c := Top.sheaf.restrict_hom_equiv_hom (structure_sheaf (Γ.obj (op X))).1 _
+  c := Top.sheaf.restrict_hom_equiv_hom (Spec.structure_sheaf (Γ.obj (op X))).1 _
     is_basis_basic_opens X.to_Γ_Spec_c_basic_opens }
 
 lemma to_Γ_Spec_SheafedSpace_app_eq :
@@ -191,7 +191,7 @@ def to_Γ_Spec : X ⟶ Spec.LocallyRingedSpace_obj (Γ.obj (op X)) :=
     intro x,
     let p : prime_spectrum (Γ.obj (op X)) := X.to_Γ_Spec_fun x,
     constructor, /- show stalk map is local hom ↓ -/
-    let S := (structure_sheaf _).val.stalk p,
+    let S := (Spec.structure_sheaf _).val.stalk p,
     rintros (t : S) ht,
     obtain ⟨⟨r, s⟩, he⟩ := is_localization.surj p.as_ideal.prime_compl t,
     dsimp at he,
@@ -272,7 +272,7 @@ begin
   apply LocallyRingedSpace.comp_ring_hom_ext,
   { ext (p : prime_spectrum R) x,
     erw ← is_localization.at_prime.to_map_mem_maximal_iff
-      ((structure_sheaf R).val.stalk p) p.as_ideal x,
+      ((Spec.structure_sheaf R).val.stalk p) p.as_ideal x,
     refl },
   { intro r, apply to_open_res },
 end

@@ -64,7 +64,6 @@ begin
   rw set.image_pair,
 end
 
-
 /-- If G acts on X, then G acts on lists of X -/
 instance : has_scalar G (list X) := { smul := λ g s, list.map (λ x, g • x) s }
 
@@ -73,6 +72,35 @@ lemma smul_take (l : list X) (n : ℕ) (g : G) :
 begin
   change (list.map (λ x, g • x) l).take n = list.map (λ x, g • x) (l.take n),
   rw list.map_take
+end
+
+lemma smul_drop (l : list X) (n : ℕ) (g : G) :
+  (g • l).drop n = g • l.drop n :=
+begin
+  change (list.map (λ x, g • x) l).drop n = list.map (λ x, g • x) (l.drop n),
+  rw list.map_drop
+end
+
+lemma smul_append (l1 l2 : list X)  (g : G) :
+  g • (l1 ++ l2) = g • l1 ++ g • l2 :=
+begin
+  change list.map (λ x, g • x) (l1 ++ l2) =
+    (list.map (λ x, g • x) l1) ++ (list.map (λ x, g • x) l2),
+  rw list.map_append,
+end
+
+lemma smul_cons (a : X) (l : list X) (g : G) :
+  g • (a :: l) = (g • a) :: (g • l) :=
+begin
+  change list.map (λ x, g • x) (a :: l) =
+    (g • a) :: (list.map (λ x, g • x) l),
+  rw list.map_cons
+end
+
+lemma smul_nil (g : G) : g • (list.nil : list X) = list.nil :=
+begin
+  change list.map (λ x, g • x) (list.nil : list X) = list.nil,
+  rw list.map_nil,
 end
 
 /-- If G acts on X, then G acts on finite subsets of X -/
@@ -211,6 +239,7 @@ def action_on_pairs_of : sub_mul_action G (set X) :=
     apply pair.map  (mul_action.injective g),
   end }
 
+/-- If a *group* G acts on X, it acts on nodup_list of X -/
 def mul_action.nodup_list_of : sub_mul_action G (list X) :=
 { carrier := { l : list X | l.nodup },
   smul_mem' := λ g b hb,
@@ -223,6 +252,32 @@ end
 def mul_action.nodup_list_of.has_coe :
   has_coe (mul_action.nodup_list_of G X) (list X) :=
   { coe := begin rintro ⟨l, hl⟩, exact l, end }
+
+/-- Action on the complement of an invariant subset -/
+def sub_mul_action_of_compl (Y : sub_mul_action G X) : sub_mul_action G X := {
+carrier := Yᶜ,
+smul_mem' := λ g x,
+  by simp only [set_like.mem_coe, set.mem_compl_eq, sub_mul_action.smul_mem_iff', imp_self] }
+
+lemma sub_mul_action_of_compl_def (Y : sub_mul_action G X) :
+  (sub_mul_action_of_compl G X Y).carrier = Yᶜ := rfl
+
+/-- Action of stabilizer of a point on the complement -/
+def sub_mul_action_of_stabilizer (a : X) : sub_mul_action (stabilizer G a) X := {
+carrier := { a }ᶜ,
+smul_mem' := λ g x,
+begin
+  simp only [set.mem_compl_eq, set.mem_singleton_iff],
+  rw not_imp_not,
+  rw smul_eq_iff_eq_inv_smul,
+  intro hgx, rw hgx,
+  apply symm, rw ← smul_eq_iff_eq_inv_smul,
+  conv_rhs { rw ← mem_stabilizer_iff.mp (set_like.coe_mem g) },
+  refl,
+end }
+
+lemma sub_mul_action_of_stabilizer_def (a : X) :
+  (sub_mul_action_of_stabilizer G X a).carrier = { a }ᶜ := rfl
 
 end group
 

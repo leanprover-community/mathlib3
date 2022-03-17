@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Chambert-Loir
 -/
 
+import tactic.lift
+
 import group_theory.subgroup.pointwise
 import group_theory.coset
 import group_theory.quotient_group
@@ -1268,7 +1270,116 @@ begin
   rw [← hx'e, ← hy'e, ← smul_take, hg, hx, hy],
 end
 
+lemma stabilizer.is_multiply_pretransitive (M α : Type*) [group M] [mul_action M α] (a : α) (n : ℕ)
+  (hn : is_multiply_transitive M α n.succ) :
+  /- let α' : sub_mul_action M α :=
+{ carrier := sorry, --
+  smul_mem' := sorry } in -/
+  is_multiply_transitive (stabilizer M a)
+    (sub_mul_action_of_stabilizer M α a) n :=
+begin
+  split,
+  { obtain ⟨l', hl', hl'n, hl'e⟩ := list.extend_nodup n.succ hn.left [a] (list.nodup_singleton a) _,
+    rw list.length_singleton at hl'e,
+    swap,
+    { simp only [list.length_singleton], exact nat.succ_le_succ (zero_le n) },
+    unfold card_ge,
 
+    lift l'.drop 1 to list ↥(sub_mul_action_of_stabilizer M α a) with l hl_coe,
+    swap,
+    { intros x hx,
+      change x ∈ (sub_mul_action_of_stabilizer M α a).carrier,
+      rw sub_mul_action_of_stabilizer_def,
+      simp only [set.mem_compl_eq, set.mem_singleton_iff],
+      suffices : a ∉ list.drop 1 l',
+      { intro h, apply this, rw ← h, exact hx, },
+      rw ← list.singleton_disjoint,
+      apply list.disjoint_of_nodup_append,
+      rw [← hl'e,  list.take_append_drop],
+      exact hl'n },
+    use l,
+    split,
+    { rw [← list.length_map, hl_coe, list.length_drop, hl',
+        ← nat.pred_eq_sub_one, nat.pred_succ] },
+    { rw ← list.nodup_map_iff (subtype.coe_injective),
+      rw hl_coe,
+      rw ← list.take_append_drop 1 l' at hl'n,
+      exact (list.nodup_append.mp hl'n).2.1 } },
+
+    intros x hxl hxn y hyl hyn,
+    let x' := a :: x.map coe,
+    let y' := a :: y.map coe,
+    have hx'l : x'.length = n.succ,
+    { rw list.length_cons, rw list.length_map, rw hxl },
+    have hy'l : y'.length = n.succ,
+    { rw list.length_cons, rw list.length_map, rw hyl },
+    have hx'n : x'.nodup,
+    { rw list.nodup_cons, split,
+      { intro h, obtain ⟨b, hbx, hba⟩ := list.mem_map.mp h,
+        let hb' : ↑b ∈ (sub_mul_action_of_stabilizer M α a).carrier := set_like.coe_mem b,
+        rw sub_mul_action_of_stabilizer_def at hb',
+        rw hba at hb',
+        simpa only [set.mem_compl_eq, set.mem_singleton, not_true] using hb' },
+      exact (list.nodup_map_iff (subtype.coe_injective)).mpr hxn },
+    have hy'n : y'.nodup,
+    { rw list.nodup_cons, split,
+      { intro h, obtain ⟨b, hbx, hba⟩ := list.mem_map.mp h,
+        let hb' : ↑b ∈ (sub_mul_action_of_stabilizer M α a).carrier := set_like.coe_mem b,
+        rw sub_mul_action_of_stabilizer_def at hb',
+        rw hba at hb',
+        simpa only [set.mem_compl_eq, set.mem_singleton, not_true] using hb' },
+      exact (list.nodup_map_iff (subtype.coe_injective)).mpr hyn },
+    obtain ⟨g,hgxy⟩ := hn.right hx'l hx'n hy'l hy'n,
+    change g • (a :: list.map coe x) = (a :: list.map coe y) at hgxy,
+    rw smul_cons at hgxy,
+    have hg : g ∈ stabilizer M a,
+    { rw mem_stabilizer_iff, exact list.head_eq_of_cons_eq hgxy },
+    use ⟨g, hg⟩,
+    change list.map (λ x, (⟨g, hg⟩ : ↥(stabilizer M a)) • x) x = y,
+    apply (list.map_injective_iff.mpr (subtype.coe_injective)) ,
+    rw ← list.tail_eq_of_cons_eq hgxy,
+    change _ = list.map (λ x, g • x) (list.map coe x),
+    simp [list.map_map],
+    apply list.map_congr,
+    intros b hb,
+      simp only [function.comp_app, sub_mul_action.coe_smul_of_tower], refl
+end
+
+example {α : Type*} (s : finset α) (x : ↥s) : ↑x ∈ s :=
+finset.coe_mem x
+
+example {α : Type*} (l : list α) (x : ↥l.to_finset) : ↑x ∈ l :=
+list.mem_to_finset.mp (finset.coe_mem x)
+
+lemma list.nodup_take_of_nodup {α: Type*} {l : list α} {n : ℕ} (h : l.nodup) :
+  (l.take n).nodup :=
+begin
+  rw ← list.take_append_drop n l at h,
+  exact (list.nodup_append.mp h).1,
+end
+
+lemma list.nodup_drop_of_nodup {α: Type*} {l : list α} {n : ℕ} (h : l.nodup) :
+  (l.drop n).nodup :=
+begin
+  rw ← list.take_append_drop n l at h,
+  exact (list.nodup_append.mp h).2.1,
+end
+
+lemma list.take_disjoint_drop_of_nodup {α: Type*} {l : list α} {n : ℕ} (h : l.nodup) :
+  list.disjoint (l.take n) (l.drop n) :=
+begin
+  rw ← list.take_append_drop n l at h,
+  exact (list.nodup_append.mp h).2.2,
+end
+
+
+example {α : Type*} (s : set α) (x y : list ↥s) :
+   x = y ↔ (list.map coe x : list α) = (list.map coe y) :=
+begin
+  split,
+  intro h, rw h,
+  intro h, exact  (list.map_injective_iff.mpr (subtype.coe_injective)) h,
+end
 
 
 

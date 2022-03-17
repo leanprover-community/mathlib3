@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Abhimanyu Pallavi Sudhir
 -/
 import order.filter.filter_product
-import analysis.specific_limits
+import analysis.specific_limits.basic
 
 /-!
 # Construction of the hyperreal numbers as an ultraproduct of real sequences.

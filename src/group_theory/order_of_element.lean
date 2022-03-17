@@ -84,6 +84,11 @@ lemma is_of_fin_order.quotient {G : Type u} [group G] (N : subgroup G) [N.normal
   exact ⟨n, ⟨npos, (quotient_group.con N).eq.mpr $ hn ▸ (quotient_group.con N).eq.mp rfl⟩⟩,
 end
 
+/-- 1 is of finite order in any group. -/
+@[to_additive "0 is of finite order in any additive group."]
+lemma is_of_fin_order_one : is_of_fin_order (1 : G) :=
+(is_of_fin_order_iff_pow_eq_one 1).mpr ⟨1, _root_.one_pos, one_pow 1⟩
+
 end is_of_fin_order
 
 /-- `order_of x` is the order of the element `x`, i.e. the `n ≥ 1`, s.t. `x ^ n = 1` if it exists.
@@ -328,6 +333,19 @@ end cancel_monoid
 
 section group
 variables [group G] [add_group A] {x a} {i : ℤ}
+
+/-- Inverses of elements of finite order have finite order. -/
+@[to_additive "Inverses of elements of finite additive order have finite additive order."]
+lemma is_of_fin_order_inv (x : G) : is_of_fin_order x → is_of_fin_order x⁻¹ :=
+λ hx, (is_of_fin_order_iff_pow_eq_one _).mpr $ begin
+  rcases (is_of_fin_order_iff_pow_eq_one x).mp hx with ⟨n, npos, hn⟩,
+  refine ⟨n, npos, by simp_rw [inv_pow, hn, one_inv]⟩,
+end
+
+/-- Inverses of elements of finite order have finite order. -/
+@[simp, to_additive "Inverses of elements of finite additive order have finite additive order."]
+lemma is_of_fin_order_inv_iff {x : G} : is_of_fin_order x⁻¹ ↔ is_of_fin_order x :=
+⟨λ h, by rw [←inv_inv x]; exact (is_of_fin_order_inv x⁻¹) h, is_of_fin_order_inv x⟩
 
 @[to_additive add_order_of_dvd_iff_zsmul_eq_zero]
 lemma order_of_dvd_iff_zpow_eq_one : (order_of x : ℤ) ∣ i ↔ x ^ i = 1 :=

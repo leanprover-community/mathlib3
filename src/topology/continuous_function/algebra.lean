@@ -213,7 +213,7 @@ instance {α : Type*} {β : Type*} [topological_space α]
     continuous_eval'.comp ((continuous_fst.comp continuous_fst).prod_mk continuous_snd),
   have h2 : continuous (λ x : (C(α, β) × C(α, β)) × α, x.fst.snd x.snd) :=
     continuous_eval'.comp ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
-  exact (continuous_fst.comp (h1.prod_mk h2)).mul (continuous_snd.comp (h1.prod_mk h2)),
+  exact h1.mul h2,
 end⟩
 
 /-- Coercion to a function as an `monoid_hom`. Similar to `monoid_hom.coe_fn`. -/
@@ -397,10 +397,9 @@ variables {α β : Type*} [topological_space α] [topological_space β]
 instance [has_scalar R M] [has_continuous_const_smul R M] : has_scalar R C(α, M) :=
 ⟨λ r f, ⟨r • f, f.continuous.const_smul r⟩⟩
 
-instance {α : Type*} [topological_space α] [locally_compact_space α]
-  {R : Type*} {M : Type*} [topological_space M] [has_scalar R M] [has_continuous_const_smul R M] :
+instance [locally_compact_space α] [has_scalar R M] [has_continuous_const_smul R M] :
   has_continuous_const_smul R C(α, M) :=
-⟨λ γ, continuous_of_continuous_uncurry _ (continuous.const_smul continuous_eval' γ)⟩
+⟨λ γ, continuous_of_continuous_uncurry _ (continuous_eval'.const_smul γ)⟩
 
 @[simp, to_additive, norm_cast]
 lemma coe_smul [has_scalar R M] [has_continuous_const_smul R M]
@@ -665,8 +664,7 @@ instance {α : Type*} [topological_space α] [locally_compact_space α]
   refine continuous_of_continuous_uncurry _ _,
   have h : continuous (λ x : (R × C(α, M)) × α, x.fst.snd x.snd) :=
     continuous_eval'.comp ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
-  exact (continuous_fst.comp ((continuous_fst.comp continuous_fst).prod_mk h)).smul
-    (continuous_snd.comp ((continuous_fst.comp continuous_fst).prod_mk h)),
+  exact (continuous_fst.comp continuous_fst).smul h,
 end⟩
 
 instance module' {α : Type*} [topological_space α]

@@ -1141,41 +1141,53 @@ end
 
 end primitivity
 
-section multiple_transitivity
+end mul_action
 
+section nodup
+/- Lemmas about nodup lists and some constructions -/
+
+/-- Ad hoc definition for α : Type* to have at least n members -/
 def card_ge (α : Type*) (n : ℕ) :=
   ∃ (x : list α), x.length = n ∧ x.nodup
 
-def is_multiply_transitive (M α : Type*) [has_scalar M α] (n : ℕ) :=
-card_ge α n ∧
-∀ {x : list α} (hx : x.length = n) (ndx : x.nodup)
-  {y : list α} (hy : y.length = n) (ndy : y.nodup),
-∃ (g : M), g • x = y
-
-lemma list.nodup_take (α : Type*) (l : list α) (n : ℕ) (hl : l.nodup) :
-  list.nodup (list.take n l) :=
+/-- A take of a nodup_list has nodup -/
+lemma list.nodup_take_of_nodup {α: Type*} {l : list α} {n : ℕ} (h : l.nodup) :
+  (l.take n).nodup :=
 begin
-  refine (list.nodup_append.mp _).left,
-  exact list.drop n l,
-  rw list.take_append_drop n l,
-  exact hl,
+  rw ← list.take_append_drop n l at h,
+  exact (list.nodup_append.mp h).1,
 end
 
-lemma aux1 {α: Type*} (l1 l2 : list α) (h1 : l1.nodup) :
+/-- A drop of a nodup_list has nodup -/
+lemma list.nodup_drop_of_nodup {α: Type*} {l : list α} {n : ℕ} (h : l.nodup) :
+  (l.drop n).nodup :=
+begin
+  rw ← list.take_append_drop n l at h,
+  exact (list.nodup_append.mp h).2.1,
+end
+
+/-- The take and drop of a nodup list are disjoint -/
+lemma list.take_disjoint_drop_of_nodup {α: Type*} {l : list α} {n : ℕ} (h : l.nodup) :
+  list.disjoint (l.take n) (l.drop n) :=
+begin
+  rw ← list.take_append_drop n l at h,
+  exact (list.nodup_append.mp h).2.2,
+end
+
+/- Auxiliary lemma for deduping a concatenation of lists -/
+lemma nodup_aux1 {α: Type*} (l1 l2 : list α) (h1 : l1.nodup) :
   (list.reverse (l2 ++ l1.reverse).dedup).take l1.length = l1 :=
 begin
     have : l1.reverse.dedup = l1.reverse,
-    rw [list.dedup_eq_self, list.nodup_reverse], exact h1,
-
-    rw list.dedup_append,
-    rw this,
+    { rw [list.dedup_eq_self, list.nodup_reverse], exact h1 },
+    rw [list.dedup_append, this],
     obtain ⟨t, ht, ht'⟩ := list.sublist_suffix_of_union l2 l1.reverse,
-    rw ← ht',
-    rw list.reverse_append,
+    rw [← ht', list.reverse_append],
     simp only [list.reverse_reverse, list.take_left]
 end
 
-lemma aux1' {α: Type*} (l1 l2 : list α) (h1 : l1.nodup) :
+/-
+lemma nodup_aux1' {α: Type*} (l1 l2 : list α) (h1 : l1.nodup) :
   (list.reverse (l2 ++ l1.reverse).dedup).take l1.length = l1 :=
 begin
   induction l2 with a l2' hrec,
@@ -1198,13 +1210,16 @@ begin
       conv_lhs { rw ← hrec },
       simp only [list.length_take, list.length_reverse, min_le_iff, le_refl, or_true] } }
 end
+-/
 
+/-- Union to nil of a list l is l.dedup -/
 lemma list.union_nil {α : Type*} (l : list α) : l ∪ list.nil = l.dedup :=
 begin
   rw [← list.dedup_nil, ← list.dedup_append, list.append_nil],
 end
 
-lemma aux2 {α: Type*} (l1 l2 : list α) (h2 : l2.nodup):
+/- Auxiliary lemma -/
+lemma nodup_aux2 {α: Type*} (l1 l2 : list α) (h2 : l2.nodup):
   ((l2 ++ l1).dedup).length ≥ l2.length :=
 begin
   rw ← list.to_finset_card_of_nodup (list.nodup_dedup _),
@@ -1215,12 +1230,8 @@ begin
   exact (list.to_finset l2).subset_union_left (list.dedup l1).to_finset,
 end
 
-example {α : Type*} (n : ℕ) (l : list α) :
-  (list.take n l).length = min n l.length :=
-begin
-refine list.length_take n l,
-end
-
+/-- If the type α has ≥ n elements, every nodup_list of length ≤ n
+can be extended to a nodup_list of length n -/
 lemma list.extend_nodup {α : Type*} (n : ℕ) (hα : card_ge α n)
   (l : list α) (hln : l.nodup) (hl : l.length ≤ n) :
   ∃ (l' : list α), l'.length = n ∧ l'.nodup ∧ l'.take l.length = l :=
@@ -1237,112 +1248,197 @@ begin
     split,
     { rw ← hzn, rw list.length_take,
       simp only [list.length_reverse, min_eq_left_iff],
-      refine aux2 _ _ hznd },
+      refine nodup_aux2 _ _ hznd },
     split,
-    { apply list.nodup_take,
+    { apply list.nodup_take_of_nodup,
       rw list.nodup_reverse,
       apply list.nodup_dedup },
     { rw list.take_take ,
       rw ← hzn at hl,
-      rw [min_eq_left hl, aux1 l z hln] } }
+      rw [min_eq_left hl, nodup_aux1 l z hln] } }
 end
 
-lemma is_multiply_pretransitive_of_higher (M α : Type*) [has_scalar M α] (m n : ℕ) (hmn : m ≤ n)
-  (hn : is_multiply_transitive M α n) : is_multiply_transitive M α m :=
+end nodup
+
+namespace mul_action
+
+section multiple_transitivity
+
+def is_multiply_pretransitive (M α : Type*) [has_scalar M α] (n : ℕ) :=
+∀ {x : list α} (hx : x.length = n) (ndx : x.nodup)
+  {y : list α} (hy : y.length = n) (ndy : y.nodup),
+∃ (g : M), g • x = y
+
+lemma is_multiply_pretransitive_of_higher (M α : Type*) [has_scalar M α] {n : ℕ}
+  (hn : is_multiply_pretransitive M α n) {m : ℕ} (hmn : m ≤ n) (hα : card_ge α n) :
+  is_multiply_pretransitive M α m :=
 begin
-  obtain ⟨z, hzn, hznd⟩ := id hn.left,
-  split,
-  { use (list.take m z),
+  -- Useless with multiply_pretransitive
+  /-
+    obtain ⟨z, hzn, hznd⟩ := id hα,
+    { use (list.take m z),
     split,
     { simp only [list.length, list.take, list.length_take, min_eq_left_iff],
       rw hzn, exact hmn, },
     { refine (list.nodup_append.mp _).left,
       exact list.drop m z,
       rw list.take_append_drop m z,
-      exact hznd } },
+      exact hznd } }, -/
   intros x hx hxn y hy hyn,
-  obtain ⟨x', hx', hx'n, hx'e⟩ := list.extend_nodup n hn.left x hxn _,
+  obtain ⟨x', hx', hx'n, hx'e⟩ := list.extend_nodup n hα x hxn _,
   swap, { rw hx, exact hmn },
-  obtain ⟨y', hy', hy'n, hy'e⟩ := list.extend_nodup n hn.left y hyn _,
+  obtain ⟨y', hy', hy'n, hy'e⟩ := list.extend_nodup n hα y hyn _,
   swap, { rw hy, exact hmn },
-  obtain ⟨g, hg⟩ := hn.right hx' hx'n hy' hy'n,
+  obtain ⟨g, hg⟩ := hn hx' hx'n hy' hy'n,
   use g,
   rw [← hx'e, ← hy'e, ← smul_take, hg, hx, hy],
 end
 
-lemma stabilizer.is_multiply_pretransitive (M α : Type*) [group M] [mul_action M α] (a : α) (n : ℕ)
-  (hn : is_multiply_transitive M α n.succ) :
-  /- let α' : sub_mul_action M α :=
-{ carrier := sorry, --
-  smul_mem' := sorry } in -/
-  is_multiply_transitive (stabilizer M a)
-    (sub_mul_action_of_stabilizer M α a) n :=
+lemma is_pretransitive_iff_is_one_pretransitive (M α : Type*) [has_scalar M α] :
+  is_pretransitive M α ↔ is_multiply_pretransitive M α 1 :=
 begin
   split,
-  { obtain ⟨l', hl', hl'n, hl'e⟩ := list.extend_nodup n.succ hn.left [a] (list.nodup_singleton a) _,
-    rw list.length_singleton at hl'e,
-    swap,
-    { simp only [list.length_singleton], exact nat.succ_le_succ (zero_le n) },
-    unfold card_ge,
+  { intros h,  let heq := h.exists_smul_eq,
+    intros x hx hxn y hy hyn,
+    obtain ⟨a, rfl⟩ := list.length_eq_one.mp hx,
+    obtain ⟨b, rfl⟩ := list.length_eq_one.mp hy,
+    simp only [smul_cons, smul_nil, eq_self_iff_true, and_true],
+    obtain ⟨g, hg⟩ := heq a b,
+    exact ⟨g, hg⟩ },
+  { intros heq,
+    apply is_pretransitive.mk,
+    intros a b,
+    obtain ⟨g, hg⟩ := heq _ (_ : [a].nodup)  _ (_ : [b].nodup),
+    simp only [smul_cons, smul_nil, eq_self_iff_true, and_true] at hg,
+    exact ⟨g, hg⟩,
+    any_goals
+    { simp only [list.nodup_cons, list.not_mem_nil, not_false_iff, list.nodup_nil, and_self] },
+    any_goals
+    { simp only [list.length_singleton] } }
+end
 
-    lift l'.drop 1 to list ↥(sub_mul_action_of_stabilizer M α a) with l hl_coe,
-    swap,
-    { intros x hx,
-      change x ∈ (sub_mul_action_of_stabilizer M α a).carrier,
-      rw sub_mul_action_of_stabilizer_def,
-      simp only [set.mem_compl_eq, set.mem_singleton_iff],
-      suffices : a ∉ list.drop 1 l',
-      { intro h, apply this, rw ← h, exact hx, },
-      rw ← list.singleton_disjoint,
-      apply list.disjoint_of_nodup_append,
-      rw [← hl'e,  list.take_append_drop],
-      exact hl'n },
-    use l,
-    split,
-    { rw [← list.length_map, hl_coe, list.length_drop, hl',
-        ← nat.pred_eq_sub_one, nat.pred_succ] },
-    { rw ← list.nodup_map_iff (subtype.coe_injective),
-      rw hl_coe,
-      rw ← list.take_append_drop 1 l' at hl'n,
-      exact (list.nodup_append.mp hl'n).2.1 } },
+lemma nodup_aux3 {M α : Type*} [group M] [mul_action M α] {a : α}
+  {l : list ↥(sub_mul_action_of_stabilizer M α a)} (hln : l.nodup) :
+  let l' := a :: l.map coe  in
+  l'.length = l.length.succ ∧ l'.nodup :=
+--   (a :: l.map coe : list α).length = l.length.succ ∧ (a :: l.map coe).nodup :=
+begin
+  split,
+  { rw list.length_cons, rw list.length_map },
+  { rw list.nodup_cons, split,
+    { intro h, obtain ⟨b, hbx, hba⟩ := list.mem_map.mp h,
+      let hb' : ↑b ∈ (sub_mul_action_of_stabilizer M α a).carrier := set_like.coe_mem b,
+      rw sub_mul_action_of_stabilizer_def at hb',
+      rw hba at hb',
+      simpa only [set.mem_compl_eq, set.mem_singleton, not_true] using hb' },
+    exact (list.nodup_map_iff (subtype.coe_injective)).mpr hln },
+end
 
-    intros x hxl hxn y hyl hyn,
-    let x' := a :: x.map coe,
-    let y' := a :: y.map coe,
-    have hx'l : x'.length = n.succ,
-    { rw list.length_cons, rw list.length_map, rw hxl },
-    have hy'l : y'.length = n.succ,
-    { rw list.length_cons, rw list.length_map, rw hyl },
-    have hx'n : x'.nodup,
-    { rw list.nodup_cons, split,
-      { intro h, obtain ⟨b, hbx, hba⟩ := list.mem_map.mp h,
-        let hb' : ↑b ∈ (sub_mul_action_of_stabilizer M α a).carrier := set_like.coe_mem b,
-        rw sub_mul_action_of_stabilizer_def at hb',
-        rw hba at hb',
-        simpa only [set.mem_compl_eq, set.mem_singleton, not_true] using hb' },
-      exact (list.nodup_map_iff (subtype.coe_injective)).mpr hxn },
-    have hy'n : y'.nodup,
-    { rw list.nodup_cons, split,
-      { intro h, obtain ⟨b, hbx, hba⟩ := list.mem_map.mp h,
-        let hb' : ↑b ∈ (sub_mul_action_of_stabilizer M α a).carrier := set_like.coe_mem b,
-        rw sub_mul_action_of_stabilizer_def at hb',
-        rw hba at hb',
-        simpa only [set.mem_compl_eq, set.mem_singleton, not_true] using hb' },
-      exact (list.nodup_map_iff (subtype.coe_injective)).mpr hyn },
-    obtain ⟨g,hgxy⟩ := hn.right hx'l hx'n hy'l hy'n,
-    change g • (a :: list.map coe x) = (a :: list.map coe y) at hgxy,
-    rw smul_cons at hgxy,
-    have hg : g ∈ stabilizer M a,
-    { rw mem_stabilizer_iff, exact list.head_eq_of_cons_eq hgxy },
-    use ⟨g, hg⟩,
-    change list.map (λ x, (⟨g, hg⟩ : ↥(stabilizer M a)) • x) x = y,
-    apply (list.map_injective_iff.mpr (subtype.coe_injective)) ,
-    rw ← list.tail_eq_of_cons_eq hgxy,
-    change _ = list.map (λ x, g • x) (list.map coe x),
-    simp [list.map_map],
-    apply list.map_congr,
-    intros b hb,
-      simp only [function.comp_app, sub_mul_action.coe_smul_of_tower], refl
+lemma stabilizer.is_multiply_pretransitive (M α : Type*) [group M] [mul_action M α] (a : α)
+  (n : ℕ) (hα : card_ge α n.succ) (hα' : is_pretransitive M α) :
+  is_multiply_pretransitive M α n.succ ↔
+  is_multiply_pretransitive (stabilizer M a) (sub_mul_action_of_stabilizer M α a) n :=
+begin
+  let hα'eq := hα'.exists_smul_eq,
+  split,
+  { intro hn,
+    /- -- Now useless
+    { obtain ⟨l', hl', hl'n, hl'e⟩ := list.extend_nodup n.succ hn.left [a] (list.nodup_singleton a) _,
+      rw list.length_singleton at hl'e,
+      swap,
+      { simp only [list.length_singleton], exact nat.succ_le_succ (zero_le n) },
+      unfold card_ge,
+      lift l'.drop 1 to list ↥(sub_mul_action_of_stabilizer M α a) with l hl_coe,
+      swap,
+      { intros x hx,
+        change x ∈ (sub_mul_action_of_stabilizer M α a).carrier,
+        rw sub_mul_action_of_stabilizer_def,
+        simp only [set.mem_compl_eq, set.mem_singleton_iff],
+        suffices : a ∉ list.drop 1 l',
+        { intro h, apply this, rw ← h, exact hx, },
+        rw ← list.singleton_disjoint,
+        apply list.disjoint_of_nodup_append,
+        rw [← hl'e,  list.take_append_drop],
+        exact hl'n },
+      use l,
+      split,
+      { rw [← list.length_map, hl_coe, list.length_drop, hl',
+          ← nat.pred_eq_sub_one, nat.pred_succ] },
+      { rw ← list.nodup_map_iff (subtype.coe_injective),
+        rw hl_coe,
+        rw ← list.take_append_drop 1 l' at hl'n,
+        exact (list.nodup_append.mp hl'n).2.1 } },
+-/
+      intros x hxl hxn y hyl hyn,
+      let hx' := nodup_aux3 hxn, rw hxl at hx',
+      let hy' := nodup_aux3 hyn, rw hyl at hy',
+      obtain ⟨g,hgxy⟩ := hn hx'.left hx'.right hy'.left hy'.right,
+      change g • (a :: list.map coe x) = (a :: list.map coe y) at hgxy,
+      rw smul_cons at hgxy,
+      have hg : g ∈ stabilizer M a,
+      { rw mem_stabilizer_iff, exact list.head_eq_of_cons_eq hgxy },
+      use ⟨g, hg⟩,
+      change list.map (λ x, (⟨g, hg⟩ : ↥(stabilizer M a)) • x) x = y,
+      apply (list.map_injective_iff.mpr (subtype.coe_injective)) ,
+      rw ← list.tail_eq_of_cons_eq hgxy,
+      change _ = list.map (λ x, g • x) (list.map coe x),
+      simp only [list.map_map],
+      apply list.map_congr,
+      intros b hb,
+      simp only [function.comp_app, sub_mul_action.coe_smul_of_tower], refl },
+  { intro hn,
+  /- -- Now useless
+    { obtain ⟨z,hz⟩ := hn.left,
+      let hz' := aux3 hz.right, rw hz.left at hz',
+      exact ⟨a :: z.map coe, hz'⟩ }, -/
+    { intros x hxl hxn y hyl hyn,
+      have hxl0 : 0 < x.length, { rw hxl, exact nat.succ_pos n },
+      have hyl0 : 0 < y.length, { rw hyl, exact nat.succ_pos n },
+
+      obtain ⟨gx : M, hgx : gx • (x.nth_le 0 hxl0) = a⟩ := hα'eq _ _,
+      obtain ⟨gy : M, hgy : gy • (y.nth_le 0 hyl0) = a⟩ := hα'eq _ _,
+
+      lift (gx • x).tail to list ↥(sub_mul_action_of_stabilizer M α a)
+          with x1 hx1,
+      swap,
+      { intros b hb,
+        simp only [← sub_mul_action.mem_carrier, sub_mul_action_of_stabilizer_def],
+        simp only [set.mem_compl_eq, set.mem_singleton_iff],
+
+        intro hba,
+--         have ha : a ∈ list.take 1 (gx • x),
+        rw ← hgx,
+        sorry },
+      have hx1n : x1.nodup,
+      { apply list.nodup_of_nodup_map ,
+        rw hx1,
+        apply list.nodup_drop_of_nodup,
+        change (x.map _).nodup,
+        refine list.nodup_map (mul_action.injective gx) hxn },
+      lift (gy • y).drop 1 to list ↥(sub_mul_action_of_stabilizer M α a)
+          with y1 hy1,
+      have hy1n : y1.nodup,
+      { apply list.nodup_of_nodup_map ,
+        rw hy1,
+        apply list.nodup_drop_of_nodup,
+        change (y.map _).nodup,
+        refine list.nodup_map (mul_action.injective gy) hyn },
+
+
+        lift y.drop 1 to list ↥(sub_mul_action_of_stabilizer M α a)
+          with y1 hy1,
+        have hy1n : y1.nodup,
+        { apply list.nodup_of_nodup_map ,
+          rw hy1,
+          exact list.nodup_drop_of_nodup hyn },
+        obtain ⟨g2, hg2⟩ := hn _ hx1n _ hy1n,
+
+        let x' := (g1 • x).drop 1,
+
+
+        sorry },
+      swap, { rw hxl, exact nat.succ_pos n },
+      refine hα'eq _ _ } }
 end
 
 example {α : Type*} (s : finset α) (x : ↥s) : ↑x ∈ s :=
@@ -1351,25 +1447,12 @@ finset.coe_mem x
 example {α : Type*} (l : list α) (x : ↥l.to_finset) : ↑x ∈ l :=
 list.mem_to_finset.mp (finset.coe_mem x)
 
-lemma list.nodup_take_of_nodup {α: Type*} {l : list α} {n : ℕ} (h : l.nodup) :
-  (l.take n).nodup :=
-begin
-  rw ← list.take_append_drop n l at h,
-  exact (list.nodup_append.mp h).1,
-end
 
-lemma list.nodup_drop_of_nodup {α: Type*} {l : list α} {n : ℕ} (h : l.nodup) :
-  (l.drop n).nodup :=
-begin
-  rw ← list.take_append_drop n l at h,
-  exact (list.nodup_append.mp h).2.1,
-end
 
-lemma list.take_disjoint_drop_of_nodup {α: Type*} {l : list α} {n : ℕ} (h : l.nodup) :
-  list.disjoint (l.take n) (l.drop n) :=
+example {α : Type*} (n : ℕ) (l : list α) :
+  (list.take n l).length = min n l.length :=
 begin
-  rw ← list.take_append_drop n l at h,
-  exact (list.nodup_append.mp h).2.2,
+refine list.length_take n l,
 end
 
 

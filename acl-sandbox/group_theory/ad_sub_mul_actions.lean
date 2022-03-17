@@ -89,6 +89,7 @@ begin
   rw list.map_append,
 end
 
+@[simp]
 lemma smul_cons (a : X) (l : list X) (g : G) :
   g • (a :: l) = (g • a) :: (g • l) :=
 begin
@@ -97,6 +98,7 @@ begin
   rw list.map_cons
 end
 
+@[simp]
 lemma smul_nil (g : G) : g • (list.nil : list X) = list.nil :=
 begin
   change list.map (λ x, g • x) (list.nil : list X) = list.nil,

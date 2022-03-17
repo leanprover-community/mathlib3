@@ -40,7 +40,9 @@ perform operations on topological vector bundles.  For instance, assume that `E�
 `E₂ : B → Type*` define two topological vector bundles over `R` with fiber models `F₁` and `F₂`
 which are normed spaces. Then we construct the vector bundle `E₁ ×ᵇ E₂` of direct sums, with fiber
 `E x := (E₁ x × E₂ x)`. Then one can endow `bundle.total_space (E₁ ×ᵇ E₂)` with a topological vector
-bundle structure, `bundle.prod.topological_vector_bundle`.
+bundle structure, `bundle.prod.topological_vector_bundle`.  Similarly we construct the pullback
+bundle for a map `f : B' → B` whose fiber map is given simply by `f *ᵖ E = E ∘ f` (the type synonym
+is there for typeclass instance problems).
 
 A similar construction (which is yet to be formalized) can be done for the vector bundle of
 continuous linear maps from `E₁ x` to `E₂ x` with fiber a type synonym

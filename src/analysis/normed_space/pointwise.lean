@@ -7,7 +7,6 @@ import analysis.normed.group.pointwise
 import analysis.normed.group.add_torsor
 import analysis.normed_space.basic
 import topology.metric_space.hausdorff_distance
-import analysis.locally_convex.basic
 
 /-!
 # Properties of pointwise scalar multiplication of sets in normed spaces.

@@ -695,9 +695,7 @@ open topological_space topological_vector_bundle
 
 variables {R F E} {B' : Type*} [topological_space B'] [topological_space (total_space E)]
 
-#lint
-
-@[priority 90, nolint unused_arguments]
+@[priority 90, nolint unused_arguments fails_quickly]
 instance pullback.total_space.topological_space {f : B' → B} :
   topological_space (total_space (E ∘ f)) :=
 induced (pullback_total_space_embedding E f) prod.topological_space
@@ -863,6 +861,7 @@ variables [topological_space (total_space E₁)] [topological_space (total_space
 
 /-- Equip the total space of the fibrewise product of two topological vector bundles `E₁`, `E₂` with
 the induced topology from the diagonal embedding into `(total_space E₁) × (total_space E₂)`. -/
+@[nolint fails_quickly] -- what is going on here?
 instance prod.topological_space :
   topological_space (total_space (E₁ ×ᵇ E₂)) :=
 topological_space.induced

@@ -408,7 +408,8 @@ by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_in
 
 /-! ### More results about determinants -/
 
-/-- Determinant of a 2×2 block matrix, expanded around an invertible top left element. -/
+/-- Determinant of a 2×2 block matrix, expanded around an invertible top left element in terms of
+the Schur complement. -/
 lemma det_from_blocks₁₁ {m n} [fintype m] [fintype n]
   (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible A] : (matrix.from_blocks A B C D).det = det A * det (D - C ⬝ (⅟A) ⬝ B) :=
@@ -422,7 +423,8 @@ begin
     det_from_blocks_zero₁₂, det_one, det_one, one_mul, one_mul, mul_one],
 end
 
-/-- Determinant of a 2×2 block matrix, expanded around an invertible bottom right element. -/
+/-- Determinant of a 2×2 block matrix, expanded around an invertible bottom right element in terms
+of the Schur complement. -/
 lemma det_from_blocks₂₂ {m n} [fintype m] [fintype n]
   (A : matrix m m α) (B : matrix m n α) (C : matrix n m α) (D : matrix n n α)
   [invertible D] : (matrix.from_blocks A B C D).det = det D * det (A - B ⬝ (⅟D) ⬝ C) :=
@@ -433,8 +435,8 @@ begin
   rw [this, det_minor_equiv_self, det_from_blocks₁₁],
 end
 
-/-- The **Weinstein–Aronszajn identity**. Note the `1` on the LHS is of shape m×m, while the one
-on the right is of shape n×n. -/
+/-- The **Weinstein–Aronszajn identity**. Note the `1` on the LHS is of shape m×m, while the `1` on
+the RHS is of shape n×n. -/
 lemma det_one_add_mul_comm {m n} [fintype m] [fintype n] (A : matrix m n α) (B : matrix n m α) :
   det (1 + A ⬝ B) = det (1 + B ⬝ A) :=
 begin

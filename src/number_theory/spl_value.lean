@@ -117,8 +117,10 @@ general_bernoulli_number (1 : dir_char S) 1 (conductor_one_dvd_nat 1) =
 end general_bernoulli_number
 end general_bernoulli_number
 
---local attribute [instance] zmod.topological_space
-/-noncomputable def p_adic_L_function' (p : ℕ) [fact (nat.prime p)] (d : ℕ) (R : Type*) [normed_comm_ring R]
+--example {α β : Type*}
+
+/-local attribute [instance] zmod.topological_space
+noncomputable def p_adic_L_function' (p : ℕ) [fact (nat.prime p)] (d : ℕ) (R : Type*) [normed_comm_ring R]
 [complete_space R] [char_zero R] (inj : ℤ_[p] → R) (m : ℕ)
 {χ : mul_hom (zmod (d * p ^ m)) R} (hcond : conductor (zmod_to_dir_char χ) = d * p^m)
 --(χ : mul_hom (units (zmod (d * p ^ m))) R)

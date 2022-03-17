@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 import group_theory.complement
+import group_theory.finiteness
 import group_theory.group_action.conj_act
 import group_theory.index
 import group_theory.solvable
@@ -90,23 +91,15 @@ lemma to_fun_mul_inv_mem {G : Type*} [group G] {H : subgroup G} {S : set G}
 
 end mem_right_transversals
 
-class finitely_generated (G : Type*) [group G] : Prop :=
-(exists_generators : ∃ S : finset G, subgroup.closure (S : set G) = ⊤)
+lemma group.fg_iff' {G : Type*} [group G] : group.fg G ↔ ∃ S : finset G, subgroup.closure (S : set G) = ⊤ :=
+group.fg_def
 
-lemma finite_generated_def (G : Type*) [group G] :
-  finitely_generated G ↔ ∃ S : finset G, subgroup.closure (S : set G) = ⊤ :=
-⟨λ h, h.1, λ h, ⟨h⟩⟩
+lemma group.fg_iff'' {G : Type*} [group G] :
+  group.fg G ↔ ∃ n (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤ :=
+group.fg_iff'.trans ⟨λ ⟨S, hS⟩, ⟨S.card, S, rfl, hS⟩, λ ⟨n, S, hn, hS⟩, ⟨S, hS⟩⟩
 
-lemma finitely_generated_def' (G : Type*) [group G] :
-  finitely_generated G ↔ ∃ S : set G, S.finite ∧ subgroup.closure S = ⊤ :=
-⟨λ ⟨⟨S, hS⟩⟩, ⟨S, S.finite_to_set, hS⟩, λ ⟨S, hS1, hS2⟩,⟨⟨hS1.to_finset, by rwa hS1.coe_to_finset⟩⟩⟩
-
-lemma finite_generated_def'' (G : Type*) [group G] :
-  finitely_generated G ↔ ∃ n (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤ :=
-⟨λ ⟨⟨S, hS⟩⟩, ⟨S.card, S, rfl, hS⟩, λ ⟨n, S, hn, hS⟩, ⟨⟨S, hS⟩⟩⟩
-
-def min_generators (G : Type*) [group G] [h : finitely_generated G] :=
-nat.find ((finite_generated_def'' G).mp h)
+def group.min_generators (G : Type*) [group G] [h : group.fg G] :=
+nat.find (group.fg_iff''.mp h)
 
 class subgroup.finite_index {G : Type*} [group G] (H : subgroup G) : Prop :=
 (finite_index : H.index ≠ 0)
@@ -232,8 +225,8 @@ begin
   exact ge_of_eq (schreier hR hR1 hS),
 end
 
-instance schreier_aux2 {G : Type*} [group G] [hG : finitely_generated G] {H : subgroup G}
-  [hH : finite_index H] : finitely_generated H :=
+instance schreier_aux2 {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
+  [hH : finite_index H] : group.fg H :=
 begin
   obtain ⟨S, hS⟩ := hG.1,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal H.one_mem,

@@ -65,14 +65,19 @@ section pullback
 
 variable {B' : Type*}
 
-/-- Natural embedding of the total space of `E ∘ f` into `B' × (total_space E)`. -/
+/-- Type synonym to avoid type class loops. -/
+@[simp, nolint has_inhabited_instance] def pullback (f : B' → B) (E : B → Type*) := λ x, E (f x)
+
+notation f `*ᵖ` E := pullback f E
+
+/-- Natural embedding of the total space of `f *ᵖ E` into `B' × (total_space E)`. -/
 @[reducible, simp] def pullback_total_space_embedding (f : B' → B) :
-  total_space (E ∘ f) → B' × (total_space E) :=
-λ z : total_space (E ∘ f), (z.1, total_space_mk E (f z.1) z.2)
+  total_space (f *ᵖ E) → B' × (total_space E) :=
+λ z : total_space (f *ᵖ E), (z.1, total_space_mk E (f z.1) z.2)
 
 /-- The base map `f : B' → B` lifts to a canonical map on the total spaces. -/
 @[reducible, simp] def pullback.lift (f : B' → B) :=
-λ z : total_space (E ∘ f), total_space_mk E (f z.fst) z.snd
+λ z : total_space (f *ᵖ E), total_space_mk E (f z.fst) z.snd
 
 end pullback
 

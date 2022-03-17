@@ -397,9 +397,20 @@ variables {α β : Type*} [topological_space α] [topological_space β]
 instance [has_scalar R M] [has_continuous_const_smul R M] : has_scalar R C(α, M) :=
 ⟨λ r f, ⟨r • f, f.continuous.const_smul r⟩⟩
 
+@[to_additive]
 instance [locally_compact_space α] [has_scalar R M] [has_continuous_const_smul R M] :
   has_continuous_const_smul R C(α, M) :=
 ⟨λ γ, continuous_of_continuous_uncurry _ (continuous_eval'.const_smul γ)⟩
+
+@[to_additive]
+instance [locally_compact_space α] [topological_space R] [has_scalar R M]
+  [has_continuous_smul R M] : has_continuous_smul R C(α, M) :=
+⟨begin
+  refine continuous_of_continuous_uncurry _ _,
+  have h : continuous (λ x : (R × C(α, M)) × α, x.fst.snd x.snd) :=
+    continuous_eval'.comp ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
+  exact (continuous_fst.comp continuous_fst).smul h,
+end⟩
 
 @[simp, to_additive, norm_cast]
 lemma coe_smul [has_scalar R M] [has_continuous_const_smul R M]
@@ -655,17 +666,6 @@ instance has_scalar' {α : Type*} [topological_space α]
   [module R M] [has_continuous_smul R M] :
   has_scalar C(α, R) C(α, M) :=
 ⟨λ f g, ⟨λ x, (f x) • (g x), (continuous.smul f.2 g.2)⟩⟩
-
-instance {α : Type*} [topological_space α] [locally_compact_space α]
-  {R : Type*} [topological_space R] {M : Type*} [topological_space M]
-  [has_scalar R M] [has_continuous_smul R M] :
-  has_continuous_smul R C(α, M) :=
-⟨begin
-  refine continuous_of_continuous_uncurry _ _,
-  have h : continuous (λ x : (R × C(α, M)) × α, x.fst.snd x.snd) :=
-    continuous_eval'.comp ((continuous_snd.comp continuous_fst).prod_mk continuous_snd),
-  exact (continuous_fst.comp continuous_fst).smul h,
-end⟩
 
 instance module' {α : Type*} [topological_space α]
   (R : Type*) [ring R] [topological_space R] [topological_ring R]

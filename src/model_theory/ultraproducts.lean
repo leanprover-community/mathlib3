@@ -7,17 +7,20 @@ import model_theory.quotients
 import order.filter.germ
 import order.filter.ultrafilter
 
-/-! # Ultraproducts, Łoś 's Theorem, and Compactness
+/-! # Ultraproducts, Łoś's Theorem, and Compactness
 
 ## Main Definitions
 * `first_order.language.ultraproduct.Structure` is a structure on `filter.product`.
 
 ## Main Results
-* Łoś 's Theorem: `first_order.language.ultraproduct.sentence_realize`. An ultraproduct models a
+* Łoś's Theorem: `first_order.language.ultraproduct.sentence_realize`. An ultraproduct models a
 sentence `φ` if and only if the set of structures in the product that model `φ` is in the
 ultrafilter.
 * The Compactness Theorem: `first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable`.
 A theory is satisfiable if and only if it is finitely satisfiable.
+
+## Tags
+ultraproduct, Los's theorem, compactness
 
 -/
 
@@ -39,12 +42,11 @@ namespace ultraproduct
 
 instance setoid_prestructure : L.prestructure ((u : filter α).product_setoid M) :=
 { to_structure := { fun_map := λ n f x a, fun_map f (λ i, x i a),
-             rel_map := λ n r x, ∀ᶠ (a : α) in ↑u, rel_map r (λ i, x i a) },
+             rel_map := λ n r x, ∀ᶠ (a : α) in u, rel_map r (λ i, x i a) },
   fun_equiv := λ n f x y xy, begin
     refine mem_of_superset (Inter_mem.2 xy) (λ a ha, _),
-    rw set.mem_Inter at ha,
-    simp only [set.mem_set_of_eq],
-    exact congr rfl (funext ha),
+    simp only [set.mem_Inter, set.mem_set_of_eq] at ha,
+    simp only [set.mem_set_of_eq, ha],
   end,
   rel_equiv := λ n r x y xy, begin
     rw ← iff_eq_eq,
@@ -87,7 +89,7 @@ variables [Π a : α, nonempty (M a)]
 theorem bounded_formula_realize_cast {β : Type*} {n : ℕ} (φ : L.bounded_formula β n)
   (x : β → (Π a, M a)) (v : fin n → (Π a, M a)) :
   φ.realize (λ (i : β), ((x i) : (u : filter α).product M)) (λ i, (v i)) ↔
-    ∀ᶠ (a : α) in ↑u, φ.realize (λ (i : β), x i a) (λ i, v i a) :=
+    ∀ᶠ (a : α) in u, φ.realize (λ (i : β), x i a) (λ i, v i a) :=
 begin
   letI := ((u : filter α).product_setoid M),
   induction φ with _ _ _ _ _ _ _ _ m _ _ ih ih' k φ ih,
@@ -153,27 +155,20 @@ theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
   set M : Π (T0 : finset T), Type (max u v) :=
     λ T0, (h (T0.map (function.embedding.subtype (λ x, x ∈ T)))
       T0.map_subtype_subset).some_model with hM,
-  cases fintype_or_infinite T; resetI,
-  { refine (congr rfl _).mp (h (finset.univ.map (function.embedding.subtype (λ x, x ∈ T)))
-      finset.univ.map_subtype_subset),
-    rw [finset.coe_map, function.embedding.coe_subtype, finset.coe_univ, set.image_univ,
-      subtype.range_coe_subtype, set.set_of_mem_eq], },
-  { letI : Π (T0 : finset T), L.Structure (M T0) := λ T0, is_satisfiable.some_model_structure _,
-    haveI : (filter.at_top : filter (finset T)).ne_bot := at_top_ne_bot,
-    refine ⟨(↑(ultrafilter.of filter.at_top) : filter _).product M, _, ultraproduct.Structure, _⟩,
-    { haveI : Π (T0 : finset T), inhabited (M T0),
-      { exact λ T0, classical.inhabited_of_nonempty (is_satisfiable.nonempty_some_model _) },
-      exact nonempty_of_inhabited },
-    intros φ hφ,
-    rw ultraproduct.sentence_realize,
-    refine filter.eventually.filter_mono (ultrafilter.of_le _) (filter.eventually_at_top.2
-      ⟨{⟨φ, hφ⟩}, _⟩),
-    rintro ⟨s, hs⟩ h',
-    simp only [ge_iff_le, finset.le_eq_subset, finset.singleton_subset_iff, finset.mem_mk] at h',
-    refine is_satisfiable.some_model_models _ _ _,
-    simp only [finset.coe_map, function.embedding.coe_subtype, set.mem_image, finset.mem_coe,
-      finset.mem_mk, set_coe.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right],
-    exact ⟨hφ, h'⟩, },
+  letI : Π (T0 : finset T), L.Structure (M T0) := λ T0, is_satisfiable.some_model_structure _,
+  haveI : (filter.at_top : filter (finset T)).ne_bot := at_top_ne_bot,
+  refine ⟨(↑(ultrafilter.of filter.at_top) : filter _).product M, infer_instance,
+    ultraproduct.Structure, _⟩,
+  intros φ hφ,
+  rw ultraproduct.sentence_realize,
+  refine filter.eventually.filter_mono (ultrafilter.of_le _) (filter.eventually_at_top.2
+    ⟨{⟨φ, hφ⟩}, _⟩),
+  rintro ⟨s, hs⟩ h',
+  simp only [ge_iff_le, finset.le_eq_subset, finset.singleton_subset_iff, finset.mem_mk] at h',
+  refine is_satisfiable.some_model_models _ _ _,
+  simp only [finset.coe_map, function.embedding.coe_subtype, set.mem_image, finset.mem_coe,
+    finset.mem_mk, set_coe.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right],
+  exact ⟨hφ, h'⟩,
 end⟩
 
 end Theory

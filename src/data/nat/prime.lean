@@ -6,9 +6,8 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 import data.list.prime
 import data.list.sort
 import data.nat.gcd
-import data.nat.sqrt
+import data.nat.sqrt_norm_num
 import data.set.finite
-import tactic.norm_num
 import tactic.wlog
 
 /-!
@@ -176,6 +175,22 @@ by simpa using (dvd_prime_two_le h a1).1 (dvd_mul_right _ _)
 
 lemma not_prime_mul' {a b n : ℕ} (h : a * b = n) (h₁ : 1 < a) (h₂ : 1 < b) : ¬ prime n :=
 by { rw ← h, exact not_prime_mul h₁ h₂ }
+
+lemma prime_mul_iff {a b : ℕ} :
+  nat.prime (a * b) ↔ (a.prime ∧ b = 1) ∨ (b.prime ∧ a = 1) :=
+by cases a; cases b; try { cases a; cases b };
+  simp [not_prime_zero, not_prime_one, not_prime_mul]
+
+lemma prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : a ≠ 1) : a ∣ p ↔ p = a :=
+begin
+  refine ⟨_, by { rintro rfl, refl }⟩,
+  -- rintro ⟨j, rfl⟩ does not work, due to `nat.prime` depending on the class `irreducible`
+  rintro ⟨j, hj⟩,
+  rw hj at hp ⊢,
+  rcases prime_mul_iff.mp hp with ⟨h, rfl⟩ | ⟨h, rfl⟩,
+  { exact mul_one _ },
+  { exact (a1 rfl).elim }
+end
 
 section min_fac
 

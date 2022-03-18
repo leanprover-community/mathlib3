@@ -151,16 +151,64 @@ instance : comm_monoid (num_denom_same_deg x) :=
   mul_one := λ c, ext _ (add_zero _) (mul_one _) (mul_one _),
   mul_comm := λ c1 c2, ext _ (add_comm _ _) (mul_comm _ _) (mul_comm _ _) }
 
-instance : add_comm_monoid (num_denom_same_deg x) := sorry
+-- instance : add_comm_monoid (num_denom_same_deg x) := sorry
 
-def embedding : num_denom_same_deg x →+ at x :=
-{ to_fun := λ p, localization.mk p.num ⟨p.denom, p.denom_not_mem⟩,
-  map_zero' := sorry,
-  map_add' := sorry }
+-- def embedding : num_denom_same_deg x →+ at x :=
+-- { to_fun := λ p, localization.mk p.num ⟨p.denom, p.denom_not_mem⟩,
+--   map_zero' := sorry,
+--   map_add' := sorry }
 
-def homogeneous_localization := set.range (embedding x)
+def num_denom_same_deg.embedding (p : num_denom_same_deg x) : at x :=
+localization.mk p.num ⟨p.denom, p.denom_not_mem⟩
 
-instance : comm_ring (homogeneous_localization x) := sorry
+def homogeneous_localization : Type* := quotient (setoid.ker $ num_denom_same_deg.embedding x)
+
+def homogeneous_localization.val (y : homogeneous_localization x) : at x :=
+quotient.lift_on' y (num_denom_same_deg.embedding x) $ λ _ _, id
+
+lemma homogeneous_localization.val_injective :
+  function.injective (homogeneous_localization.val x) :=
+λ a b, quotient.rec_on_subsingleton₂' a b $ λ a b h, quotient.sound' h
+
+instance : has_pow (homogeneous_localization x) ℕ :=
+{ pow := λ z n, quotient.lift_on' z
+    (λ c, @@quotient.mk (setoid.ker $ num_denom_same_deg.embedding x)
+      { deg := n • c.deg,
+        num := ⟨c.num.1 ^ n, pow_mem n c.num.2⟩,
+        denom := ⟨c.denom.1 ^ n, pow_mem n c.denom.2⟩,
+        denom_not_mem := λ r, begin
+          dsimp only at r,
+          cases n,
+          { erw [pow_zero, ← ideal.eq_top_iff_one] at r,
+            exact x.is_prime.ne_top r, },
+          { apply c.denom_not_mem ((x.is_prime.pow_mem_iff_mem n.succ (nat.zero_lt_succ _)).mp r) }
+        end }) $ λ y1 y2 (h : localization.mk _ _ = localization.mk _ _), begin
+          rw quotient.eq,
+          change localization.mk _ _ = localization.mk _ _,
+          simp only [← subtype.val_eq_coe],
+          erw [← localization.mk_pow n y1.num.1 (⟨y1.denom, y1.denom_not_mem⟩ :
+            x.as_homogeneous_ideal.to_ideal.prime_compl),
+            ← localization.mk_pow n y2.num.1 (⟨y2.denom, y2.denom_not_mem⟩ :
+            x.as_homogeneous_ideal.to_ideal.prime_compl), h],
+          refl,
+        end }
+
+instance : has_scalar ℤ (homogeneous_localization x) := sorry
+instance t : has_scalar ℕ (homogeneous_localization x) := sorry
+instance : has_neg (homogeneous_localization x) := sorry
+instance : has_sub (homogeneous_localization x) := sorry
+instance : has_mul (homogeneous_localization x) := sorry
+instance : has_add (homogeneous_localization x) := sorry
+instance : has_one (homogeneous_localization x) := sorry
+instance : has_zero (homogeneous_localization x) := sorry
+
+
+instance : comm_ring (homogeneous_localization x) :=
+(homogeneous_localization.val_injective x).comm_ring _ _ _ _ _ _ _ _ _ _
+
+-- def homogeneous_localization := set.range (embedding x)
+
+-- instance : comm_ring (homogeneous_localization x) := sorry
 
 #exit
 attribute [simp] num_denom_same_deg.eq

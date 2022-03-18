@@ -124,10 +124,8 @@ protected lemma disjoint {s t : set α} (h : separated s t) : disjoint s t :=
 let ⟨U, V, hU, hV, hsU, htV, hd⟩ := h in hd.mono hsU htV
 
 lemma disjoint_closure_left {s t : set α} (h : separated s t) : disjoint (closure s) t :=
-begin
-  rcases h with ⟨U, V, hU, hV, hsU, htV, hd⟩,
-  exact (hd.closure_left hV).mono (closure_mono hsU) htV
-end
+let ⟨U, V, hU, hV, hsU, htV, hd⟩ := h
+in (hd.closure_left hV).mono (closure_mono hsU) htV
 
 lemma disjoint_closure_right {s t : set α} (h : separated s t) : disjoint s (closure t) :=
 h.symm.disjoint_closure_left.symm

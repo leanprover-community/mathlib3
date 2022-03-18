@@ -19,7 +19,7 @@ import tactic.abel
 -/
 
 noncomputable theory
-open_locale classical uniformity topological_space filter
+open_locale classical uniformity topological_space filter pointwise
 
 section uniform_group
 open filter set
@@ -116,6 +116,16 @@ begin
     refine ⟨_, ht, _⟩,
     rintros ⟨a, b⟩, simpa [subset_def] using hts 1 (b / a) a }
 end
+
+@[to_additive]
+lemma uniformity_eq_comap_swapped_nhds_one : 𝓤 α = filter.comap (λ x, x.1 / x.2) (𝓝 1) :=
+begin
+  rw [uniformity_eq_symm, filter.map_swap_eq_comap_swap, uniformity_eq_comap_nhds_one α,
+    filter.comap_comap],
+  refine congr_fun (congr_arg filter.comap _) (𝓝 1),
+  simpa,
+end
+
 end
 
 @[to_additive] lemma group_separation_rel (x y : α) :
@@ -179,6 +189,28 @@ uniform_continuous_mul.comp_cauchy_seq (hu.prod hv)
 @[to_additive] lemma cauchy_seq.inv {ι : Type*} [semilattice_sup ι]
   {u : ι → α} (h : cauchy_seq u) : cauchy_seq (u⁻¹) :=
 uniform_continuous_inv.comp_cauchy_seq h
+
+@[to_additive] lemma totally_bounded_iff_subset_finite_Union_nhds_one
+  [uniform_space β] [comm_group β] [uniform_group β] (A : set β) : totally_bounded A ↔
+  ∀ (U : set β) (hU : U ∈ 𝓝 (1 : β)), ∃ (t : set β), t.finite ∧ A ⊆ ⋃ (y : β) (h : y ∈ t), y • U :=
+begin
+  split; intros h U hU,
+  { let m := (λ (x : β × β), x.fst / x.snd),
+    have hU' : m ⁻¹' U ∈ filter.comap m (𝓝 1) := filter.preimage_mem_comap hU,
+    rw ←uniformity_eq_comap_swapped_nhds_one β at hU',
+    rcases h (m ⁻¹' U) hU' with ⟨s, hs, h⟩,
+    refine ⟨s, hs, h.trans (set.Union₂_mono (λ a ha b hb, _))⟩,
+    refine set.mem_smul_set.mpr ⟨m(b,a), hb, _⟩,
+    simp },
+  rw [uniformity_eq_comap_swapped_nhds_one β, filter.mem_comap] at hU,
+  rcases hU with ⟨V, hV, hU⟩,
+  rcases h V hV with ⟨s, hs, h⟩,
+  refine ⟨s, hs, h.trans (set.Union₂_mono (λ a ha b hb, hU _))⟩,
+  rw [set.mem_preimage],
+  rcases hb with ⟨y, hy, hb⟩,
+  convert hy,
+  simp[←hb],
+end
 
 end uniform_group
 

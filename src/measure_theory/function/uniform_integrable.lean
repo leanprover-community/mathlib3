@@ -659,7 +659,7 @@ lemma uniform_integrable_zero_meas [measurable_space α] (hf : ∀ i, measurable
   uniform_integrable f p (0 : measure α) :=
 ⟨hf, unif_integrable_zero_meas, 0, λ i, snorm_measure_zero.le⟩
 
-lemma uniform_integrable_of_ae_eq {g : ι → α → β}
+lemma uniform_integrable.ae_eq {g : ι → α → β}
   (hf : uniform_integrable f p μ) (hg : ∀ i, measurable (g i)) (hfg : ∀ n, f n =ᵐ[μ] g n) :
   uniform_integrable g p μ :=
 begin
@@ -672,8 +672,7 @@ end
 lemma uniform_integrable_congr_ae {g : ι → α → β}
   (hf : ∀ i, measurable (f i)) (hg : ∀ i, measurable (g i)) (hfg : ∀ n, f n =ᵐ[μ] g n) :
   uniform_integrable f p μ ↔ uniform_integrable g p μ :=
-⟨λ h, uniform_integrable_of_ae_eq h hg hfg,
- λ h, uniform_integrable_of_ae_eq h hf (λ i, (hfg i).symm)⟩
+⟨λ h, h.ae_eq hg hfg, λ h, h.ae_eq hf (λ i, (hfg i).symm)⟩
 
 variables [borel_space β]
 

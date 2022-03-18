@@ -834,6 +834,18 @@ begin
   { simp only [true_and, coe_to_submonoid, union_subset_iff, subset_closure, inv_subset_closure] }
 end
 
+@[to_additive] lemma closure_induction_left {p : G → Prop} {x : G}
+  (h : x ∈ closure k) (H1 : p 1) (Hmul : ∀ (x ∈ k) y, p y → p (x * y))
+  (Hinv : ∀ (x ∈ k) y, p y → p (x⁻¹ * y)) : p x :=
+let key := le_of_eq (closure_to_submonoid k) in submonoid.closure_induction_left (key h) H1
+  (λ x hx, hx.elim (Hmul x) (λ hx y hy, (congr_arg _ (inv_inv x)).mp (Hinv x⁻¹ hx y hy)))
+
+@[to_additive] lemma closure_induction_right {p : G → Prop} {x : G}
+  (h : x ∈ closure k) (H1 : p 1) (Hmul : ∀ x (y ∈ k), p x → p (x * y))
+  (Hinv : ∀ x (y ∈ k), p x → p (x * y⁻¹)) : p x :=
+let key := le_of_eq (closure_to_submonoid k) in submonoid.closure_induction_right (key h) H1
+  (λ x y hy, hy.elim (Hmul x y) (λ hy hx, (congr_arg _ (inv_inv y)).mp (Hinv x y⁻¹ hy hx)))
+
 /-- An induction principle for closure membership. If `p` holds for `1` and all elements of
 `k` and their inverse, and is preserved under multiplication, then `p` holds for all elements of
 the closure of `k`. -/
@@ -843,15 +855,8 @@ elements of the additive closure of `k`."]
 lemma closure_induction'' {p : G → Prop} {x} (h : x ∈ closure k)
   (Hk : ∀ x ∈ k, p x) (Hk_inv : ∀ x ∈ k, p x⁻¹) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-begin
-  rw [← mem_to_submonoid, closure_to_submonoid k] at h,
-  refine submonoid.closure_induction h (λ x hx, _) H1 (λ x y hx hy, Hmul x y hx hy),
-  { rw [mem_union, mem_inv] at hx,
-    cases hx with mem invmem,
-    { exact Hk x mem },
-    { rw [← inv_inv x],
-      exact Hk_inv _ invmem } },
-end
+closure_induction_left h H1 (λ x hx y hy, Hmul x y (Hk x hx) hy)
+  (λ x hx y hy, Hmul x⁻¹ y (Hk_inv x hx) hy)
 
 /-- An induction principle for elements of `⨆ i, S i`.
 If `C` holds for `1` and all elements of `S i` for all `i`, and is preserved under multiplication,

@@ -67,8 +67,7 @@ variables (K : Type*) [division_ring K] [topological_space K]
 
 /-- A topological division ring is a division ring with a topology where all operations are
     continuous, including inversion. -/
-class topological_division_ring extends topological_ring K : Prop :=
-(continuous_inv : ∀ x : K, x ≠ 0 → continuous_at (λ x : K, x⁻¹ : K → K) x)
+class topological_division_ring extends topological_ring K, has_continuous_inv₀ K : Prop
 
 namespace topological_division_ring
 open filter set
@@ -98,7 +97,7 @@ lemma units_top_group : topological_group Kˣ :=
      rw [continuous_at, nhds_induced, nhds_induced, tendsto_iff_comap, comap_comm this],
      apply comap_mono,
      rw [← tendsto_iff_comap, units.coe_inv'],
-     exact topological_division_ring.continuous_inv (x : K) x.ne_zero
+     exact continuous_at_inv₀ x.ne_zero
    end ,
   ..topological_ring.top_monoid_units K}
 

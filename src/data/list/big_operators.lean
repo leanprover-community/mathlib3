@@ -137,6 +137,24 @@ lemma prod_update_nth : ∀ (L : list M) (n : ℕ) (a : M),
 
 open mul_opposite
 
+/-- We'd like to state this as `L.head * L.tail.prod = L.prod`, but because `L.head` relies on an
+inhabited instance to return a garbage value on the empty list, this is not possible.
+Instead, we write the statement in terms of `(L.nth 0).get_or_else 1`.
+-/
+@[to_additive "We'd like to state this as `L.head + L.tail.sum = L.sum`, but because `L.head`
+relies on an inhabited instance to return a garbage value on the empty list, this is not possible.
+Instead, we write the statement in terms of `(L.nth 0).get_or_else 0`."]
+lemma nth_zero_mul_tail_prod (l : list M) : (l.nth 0).get_or_else 1 * l.tail.prod = l.prod :=
+by cases l; simp
+
+/-- Same as `nth_zero_mul_tail_prod`, but avoiding the `list.head` garbage complication by requiring
+the list to be nonempty. -/
+@[to_additive "Same as `nth_zero_add_tail_sum`, but avoiding the `list.head` garbage complication
+by requiring the list to be nonempty."]
+lemma head_mul_tail_prod_of_ne_nil [inhabited M] (l : list M) (h : l ≠ []) :
+  l.head * l.tail.prod = l.prod :=
+by cases l; [contradiction, simp]
+
 lemma _root_.mul_opposite.op_list_prod : ∀ (l : list M), op (l.prod) = (l.map op).reverse.prod
 | [] := rfl
 | (x :: xs) := by rw [list.prod_cons, list.map_cons, list.reverse_cons', list.prod_concat, op_mul,

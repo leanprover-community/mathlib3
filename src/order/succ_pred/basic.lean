@@ -979,7 +979,9 @@ end order_top
 
 namespace fin
 
-def succ_order' (n : ℕ) : succ_order (fin n.succ) :=
+instance : ∀ {n : ℕ}, succ_order (fin n)
+| 0 := by constructor; exact elim0
+| (n+1) :=
 { succ := λ i, if i < fin.last n then i + 1 else i,
   le_succ := λ a,
   begin
@@ -1009,12 +1011,33 @@ def succ_order' (n : ℕ) : succ_order (fin n.succ) :=
     exact nat.le_of_lt_succ h
   end }
 
-instance : ∀ {n : ℕ}, succ_order (fin n)
-| 0 := by constructor; exact elim0
-| (n+1) := succ_order' n
-
 @[simp] lemma succ_eq {n : ℕ} :
 succ_order.succ = λ a, if a < fin.last n then a + 1 else a := rfl
+
+lemma succ_apply {n : ℕ} (a : fin (n + 1)) :
+succ_order.succ a = if a < fin.last n then a + 1 else a := rfl
+
+/-- By sending `x` to `last n - x`, `fin n` is order-equivalent to its `order_dual`. -/
+def equiv_order_dual : ∀ {n}, fin n ≃o order_dual (fin n)
+| 0 := ⟨⟨elim0, elim0, elim0, elim0⟩, elim0⟩
+| (n+1) :=
+{ to_fun    := λ x, last n - x,
+  inv_fun   := λ x, last n - x,
+  left_inv  := λ x, by simp,
+  right_inv := λ x, by simp,
+  map_rel_iff' := λ a b,
+  begin
+    rw [order_dual.has_le],
+    simp only [equiv.coe_fn_mk],
+    rw [le_iff_coe_le_coe, fin.coe_sub, fin.coe_sub, coe_last],
+    have : (n - ↑b) % (n + 1) ≤ (n - ↑a) % (n + 1) ↔ a ≤ b,
+    { rw [nat.mod_eq_of_lt, nat.mod_eq_of_lt, tsub_le_tsub_iff_left a.is_le,
+          le_iff_coe_le_coe]; exact tsub_le_self.trans_lt n.lt_succ_self },
+    suffices key : ∀ {x : fin (n + 1)}, (n + (n + 1 - x)) % (n + 1) = (n - x) % (n + 1),
+    { convert this using 2; exact key },
+    intro x,
+    rw [add_comm, tsub_add_eq_add_tsub x.is_lt.le, add_tsub_assoc_of_le x.is_le, nat.add_mod_left]
+  end }
 
 instance : ∀ {n : ℕ}, is_succ_archimedean (fin n)
 | 0 := ⟨elim0⟩

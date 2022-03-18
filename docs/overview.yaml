@@ -244,7 +244,7 @@ Analysis:
     local convexity: 'locally_convex_space'
     Bornology: 'bornology'
     weak-* topology for dualities: 'weak_bilin.topological_space'
-    
+
   Normed vector spaces/Banach spaces:
     normed vector space over a normed field: 'normed_space'
     topology on a normed vector space: 'normed_space.has_bounded_smul'
@@ -420,5 +420,5 @@ Logic and computation:
     first-order formula: 'first_order.language.formula'
     satisfiability: 'first_order.language.Theory.is_satisfiable'
     substructure: 'first_order.language.substructure'
-    definable set: 'first_order.language.definable_set'
+    definable set: 'set.definable'
     elementary embedding: 'first_order.language.elementary_embedding'

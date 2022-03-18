@@ -10,56 +10,85 @@ open set function real
 
 namespace automata_group
 
-variables {S T : Type} {X : Type} [decidable_eq X] [fintype X]
+--!! put later the decidable_eq, fintype restrictions
+variables {S T : Type} {X Y Z : Type} [decidable_eq X] [decidable_eq Y] [fintype X]
 
---!! does the following structuring sound reasonable to you?
--- notation machine := S×X → X×S
--- structure transducer := ⟨machine : S×X→X×S,s : S⟩
-structure machine (S X : Type*) :=
-(out : S → X → X)
-(next_state : S → X → S)
+structure machine (S X Y : Type*) :=
+(out : S → X → Y)
+(step : S → X → S)
 
 structure invertible_machine (S X : Type*) :=
 (out : S → equiv.perm X)
-(next_state : S → X → S)
+(step : S → X → S)
+
+structure transducer (S X Y : Type*) extends machine S X Y :=
+(init : S)
+
+--!! notation self_transducer S X := transducer S X X
+
+structure invertible_transducer (S X : Type*) extends invertible_machine S X :=
+(init : S)
+
+def reachable (t : transducer S X Y) : set S := "minimal set R such that init ∈ R and step(R,X)⊆R"
+
+def is_trivial (t : transducer S X X) : Prop :=
+    ∀ s : S, s ∈ reachable t → t.out s = id
+
+--!!later: example is_trivial ⟨grigorchuk_machine,4⟩ := dec_trivial
 
 namespace machine
 
-variables (m : machine S X)
+variables (m : machine S X Y)
 
 def is_invertible : Prop := ∀ s, bijective (m.out s)
 
-end machine
-
--- we could implement in lean the composition of transducers -- it's again given by a transducer, with stateset S the product of the states of the factors.
--- more precisely, ⟨machine1,s1⟩∘⟨machine2,s2⟩ := ⟨machine1∘machine2,(s1,s2)⟩, as below
---!! also, let dec_trivial decide if two transducers are equal by testing if their quotient is 1, and test if a transducer is 1 by testing if all states reachable from the initial state induce trivial permutation X→X.
-
-def isinvertible_machine (machine : S×X → X×S) := ∀ s, bijective (λ x, (machine (s,x)).1)
-
--- then ⟨machine,s⟩⁻¹ := ⟨invmachine machine,s⟩
-
--- transducer action: written in action notation?
-def transducer_action (machine : S×X → X×S) : S → (list X) → (list X)
-| _ [] := []
-| state (head :: tail) := (machine (state,head)).1 :: transducer_action (machine (state,head)).2 tail
-
-def machine_inverse {machine : S×X → X×S} (inv : isinvertible_machine machine) : S×X → X×S := λ p, let σ := fintype.bij_inv (inv p.1) in (σ p.2,(machine (p.1,σ p.2)).2)
-
---!! could (inv :...) be automatically deduced (in [])?
-def transducer_perm (machine : S×X → X×S) (inv : isinvertible_machine machine) (state : S) : equiv.perm (list X) := {
-  to_fun := transducer_action machine state,
-  inv_fun := transducer_action (machine_inverse inv) state,
-  left_inv := sorry,
-  right_inv := sorry
+def machine_inverse (inv : is_invertible m) : machine S Y X := {
+    out := λ s, fintype.bij_inv (inv s),
+    step := λ s y, m.step s ((fintype.bij_inv (inv s)) y)
 }
 
---!! notation ∘ ?
-def machine_composition (machine₁ : S×X → X×S) (machine₂ : T×X → X×T) : ((S×T)×X→X×(S×T)) := λ p, let q := machine₂ (p.1.2,p.2) in let r := machine₁ (p.1.1,q.1) in (r.1,(r.2,q.2))
+--!! how to convert automatically a machine with is_invertible to an invertible_machine?
 
---!! set syntax when going over a type ?
-def automata_group (machine : S×X → X×S) (inv : isinvertible_machine machine) : subgroup (equiv.perm (list X)) :=
-  subgroup.closure {transducer_perm machine s | s : S}
+--!! notation ⬝?
+def machine_action : S → (list X) → (list Y)
+| _ [] := []
+| state (head :: tail) := m.out state head :: machine_action (m.step state head) tail
+
+--!! notation ∘ ? and... which order do we do composition?
+def machine_composition (m₁ : machine S X Y) (m₂ : machine T Y Z) : machine (S×T) X Z := {
+    out := λ st x, m₂.out st.2 (m₁.out st.1 x),
+    step := λ st x, ((m₁.step st.1 x),(m₂.step st.2 (m₁.out st.1 x)))
+}
+
+--!! semigroups?
+def automata_semigroup (m : machine S X X) : subsemigroup ((list X) → (list X)) :=
+  semigroup.closure (set.range (machine_action m))
+
+--!! do we need this?
+def invertible_machine_action (m : invertible_machine S X) : S → equiv.perm (list X) := sorry
+
+def automata_group (m : invertible_machine S X) : subgroup (equiv.perm (list X)) :=
+  subgroup.closure (set.range (machine_permaction m))
+
+end machine
+
+namespace transducer
+
+open machine
+
+variables (t : transducer S X Y)
+
+--!! how do I tell lean that t is also a machine?
+def transducer_action : (list X) → (list Y) := machine_action t t.init
+
+def transducer_composition (t₁ : transducer S X Y) (t₂ : transducer T Y Z) : transducer (S×T) X Z := {
+    init := (t₁.init,t₂.init),
+    .. machine_composition t₁ t₂
+}
+
+def transducer_mk (m : machine S X Y) (i : S) := { init := i, ..m }
+
+end transducer
 
 end automata_group
 
@@ -67,22 +96,16 @@ namespace grigorchuk_example
 
 open automata_group
 
-
 notation `X` := fin 2
 notation `S` := fin 5
 
 def grigorchuk_machine : S → X → X × S :=
-![![_, _], _, _, _, _]
--- -- perhaps would be nicer with a notation like | (0,0) := (1,4) etc.
---   if p=(0,0) then (1,4) else if p=(1,0) then (0,4) else
---   if p=(0,1) then (0,0) else if p=(1,1) then (1,2) else
---   if p=(0,2) then (0,0) else if p=(1,2) then (1,3) else
---   if p=(0,3) then (0,4) else if p=(1,3) then (1,1) else
---   if p=(0,4) then (0,4) else                 (1,4)
+![![(1,4), (0,4)], ![(0,0),(1,2)], ![(0,0),(1,3)], ![(0,4),(1,1)], ![(0,4),(1,4)]]
 
-#check isinvertible_machine grigorchuk_machine
 -- this fails, though it should be easily decidable
-def inv : isinvertible_machine grigorchuk_machine := dec_trivial
+def inv : isinvertible_machine grigorchuk_machine := begin
+  rw isinvertible_machine, dec_trivial,
+end
 
 def _root_.grigorchuk_group : subgroup (equiv.perm (list X)) := automata_group grigorchuk_machine inv
 

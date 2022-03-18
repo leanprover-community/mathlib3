@@ -525,8 +525,8 @@ h.induction_on (λ _ _, is_atomic.equal _ _) (λ _ _ _, is_atomic.rel _ _)
 lemma is_atomic.lift_at {k m : ℕ} (h : is_atomic φ) : (φ.lift_at k m).is_atomic :=
 h.induction_on (λ _ _, is_atomic.equal _ _) (λ _ _ _, is_atomic.rel _ _)
 
-lemma is_atomic.cast {h : l = n} (hφ : is_atomic φ) :
-  (φ.cast h).is_atomic :=
+lemma is_atomic.cast_le {h : l ≤ n} (hφ : is_atomic φ) :
+  (φ.cast_le h).is_atomic :=
 hφ.induction_on (λ _ _, is_atomic.equal _ _) (λ _ _ _, is_atomic.rel _ _)
 
 /-- A quantifier-free formula is a formula defined without quantifiers. These are all equivalent
@@ -563,9 +563,9 @@ h.induction_on is_qf_bot (λ _ h, (h.relabel f).is_qf) (λ _ _ h1 h2, h1.imp h2)
 lemma is_qf.lift_at {k m : ℕ} (h : is_qf φ) : (φ.lift_at k m).is_qf :=
 h.induction_on is_qf_bot (λ _ ih, ih.lift_at.is_qf) (λ _ _ ih1 ih2, ih1.imp ih2)
 
-lemma is_qf.cast {h : l = n} (hφ : is_qf φ) :
-  (φ.cast h).is_qf :=
-hφ.induction_on is_qf_bot (λ _ ih, ih.cast.is_qf) (λ _ _ ih1 ih2, ih1.imp ih2)
+lemma is_qf.cast_le {h : l ≤ n} (hφ : is_qf φ) :
+  (φ.cast_le h).is_qf :=
+hφ.induction_on is_qf_bot (λ _ ih, ih.cast_le.is_qf) (λ _ _ ih1 ih2, ih1.imp ih2)
 
 /-- Indicates that a bounded formula is in prenex normal form - that is, it consists of quantifiers
   applied to a quantifier-free formula. -/
@@ -604,12 +604,12 @@ lemma is_prenex.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_prene
   (φ.relabel f).is_prenex :=
 h.induction_on (λ _ _ h, (h.relabel f).is_prenex) (λ _ _ h, h.all) (λ _ _ h, h.ex)
 
-lemma is_prenex.cast (hφ : is_prenex φ) :
-  ∀ {n} {h : l = n}, (φ.cast h).is_prenex :=
-hφ.induction_on (λ _ _ ih _ _, ih.cast.is_prenex) (λ _ _ ih _ _, ih.all) (λ _ _ ih _ _, ih.ex)
+lemma is_prenex.cast_le (hφ : is_prenex φ) :
+  ∀ {n} {h : l ≤ n}, (φ.cast_le h).is_prenex :=
+hφ.induction_on (λ _ _ ih _ _, ih.cast_le.is_prenex) (λ _ _ ih _ _, ih.all) (λ _ _ ih _ _, ih.ex)
 
 lemma is_prenex.lift_at {k m : ℕ} (h : is_prenex φ) : (φ.lift_at k m).is_prenex :=
-h.induction_on (λ _ _ ih, ih.lift_at.is_prenex) (λ _ _ ih, ih.cast.all) (λ _ _ ih, ih.cast.ex)
+h.induction_on (λ _ _ ih, ih.lift_at.is_prenex) (λ _ _ ih, ih.cast_le.all) (λ _ _ ih, ih.cast_le.ex)
 
 /-- An auxiliary operation to `first_order.language.bounded_formula.to_prenex`.
   If `φ` is quantifier-free and `ψ` is in prenex normal form, then `φ.to_prenex_imp_right ψ`

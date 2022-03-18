@@ -337,7 +337,7 @@ the `monoid_with_zero` structure.
 
 `monoid_with_zero_hom` is also used for group homomorphisms.
 
-When possible, instead of parametrizing results over `(f : M →+ N)`,
+When possible, instead of parametrizing results over `(f : M →*₀ N)`,
 you should parametrize over `(F : Type*) [monoid_with_zero_hom_class F M N] (f : F)`.
 
 When you extend this structure, make sure to extend `monoid_with_zero_hom_class`.

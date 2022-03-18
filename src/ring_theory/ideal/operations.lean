@@ -1180,6 +1180,10 @@ begin
   exact le_trans (comap_mono bot_le) (le_of_lt hJ)
 end
 
+theorem comap_le_comap_iff_of_surjective (I J : ideal S) : comap f I ≤ comap f J ↔ I ≤ J :=
+⟨λ h, (map_comap_of_surjective f hf I).symm.le.trans (map_le_of_le_comap h),
+  λ h, le_comap_of_map_le ((map_comap_of_surjective f hf I).le.trans h)⟩
+
 end surjective
 
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : ideal R`, then `map f (map f.symm) = I`. -/

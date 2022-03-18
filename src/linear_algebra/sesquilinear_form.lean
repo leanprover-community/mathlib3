@@ -6,6 +6,8 @@ Authors: Andreas Swerdlow
 import algebra.module.linear_map
 import linear_algebra.bilinear_map
 import linear_algebra.matrix.basis
+import linear_algebra.dual
+import linear_algebra.linear_pmap
 
 /-!
 # Sesquilinear form
@@ -52,23 +54,37 @@ variables [comm_semiring R] [comm_semiring R₁] [add_comm_monoid M₁] [module 
 /-- The proposition that two elements of a sesquilinear form space are orthogonal -/
 def is_ortho (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) (x y) : Prop := B x y = 0
 
-lemma is_ortho_def {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} {x y} :
-  B.is_ortho x y ↔ B x y = 0 := iff.rfl
+lemma is_ortho_def {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} {x y} : B.is_ortho x y ↔ B x y = 0 := iff.rfl
 
 lemma is_ortho_zero_left (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) (x) : is_ortho B (0 : M₁) x :=
-  by { dunfold is_ortho, rw [ map_zero B, zero_apply] }
+by { dunfold is_ortho, rw [ map_zero B, zero_apply] }
 
 lemma is_ortho_zero_right (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) (x) : is_ortho B x (0 : M₂) :=
-  map_zero (B x)
+map_zero (B x)
+
+lemma is_ortho_flip {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₁'] R} {x y} :
+  B.is_ortho x y ↔ B.flip.is_ortho y x :=
+by simp_rw [is_ortho_def, flip_apply]
 
 /-- A set of vectors `v` is orthogonal with respect to some bilinear form `B` if and only
 if for all `i ≠ j`, `B (v i) (v j) = 0`. For orthogonality between two elements, use
 `bilin_form.is_ortho` -/
-def is_Ortho {n : Type*} (B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₁'] R) (v : n → M₁) : Prop :=
+def is_Ortho (B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₁'] R) (v : n → M₁) : Prop :=
 pairwise (B.is_ortho on v)
 
-lemma is_Ortho_def {n : Type*} {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₁'] R} {v : n → M₁} :
+lemma is_Ortho_def {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₁'] R} {v : n → M₁} :
   B.is_Ortho v ↔ ∀ i j : n, i ≠ j → B (v i) (v j) = 0 := iff.rfl
+
+lemma is_Ortho_flip (B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₁'] R) {v : n → M₁} :
+  B.is_Ortho v ↔ B.flip.is_Ortho v :=
+begin
+  simp_rw is_Ortho_def,
+  split; intros h i j hij,
+  { rw flip_apply,
+    exact h j i (ne.symm hij) },
+  simp_rw flip_apply at h,
+  exact h j i (ne.symm hij),
+end
 
 end comm_ring
 section field
@@ -127,13 +143,14 @@ end
 
 end field
 
-variables [comm_ring R] [add_comm_group M] [module R M]
-  [comm_ring R₁] [add_comm_group M₁] [module R₁ M₁]
-  {I : R →+* R} {I₁ : R₁ →+* R} {I₂ : R₁ →+* R}
-  {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R}
-  {B' : M →ₗ[R] M →ₛₗ[I] R}
 
 /-! ### Reflexive bilinear forms -/
+
+section reflexive
+
+variables [comm_semiring R] [comm_semiring R₁] [add_comm_monoid M₁] [module R₁ M₁]
+  {I₁ : R₁ →+* R} {I₂ : R₁ →+* R}
+  {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R}
 
 /-- The proposition that a sesquilinear form is reflexive -/
 def is_refl (B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R) : Prop :=
@@ -148,27 +165,55 @@ lemma eq_zero : ∀ {x y}, B x y = 0 → B y x = 0 := λ x y, H x y
 lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
 
 end is_refl
+end reflexive
 
 /-! ### Symmetric bilinear forms -/
 
+section symmetric
+
+variables [comm_semiring R] [add_comm_monoid M] [module R M]
+  {I : R →+* R} {B : M →ₛₗ[I] M →ₗ[R] R}
+
 /-- The proposition that a sesquilinear form is symmetric -/
-def is_symm (B : M →ₗ[R] M →ₛₗ[I] R) : Prop :=
+def is_symm (B : M →ₛₗ[I] M →ₗ[R] R) : Prop :=
   ∀ (x y), I (B x y) = B y x
 
 namespace is_symm
 
-variable (H : B'.is_symm)
-include H
+protected lemma eq (H : B.is_symm) (x y) : I (B x y) = B y x := H x y
 
-protected lemma eq (x y) : (I (B' x y)) = B' y x := H x y
+lemma is_refl (H : B.is_symm) : B.is_refl := λ x y H1, by { rw ←H.eq, simp [H1] }
 
-lemma is_refl : B'.is_refl := λ x y H1, by { rw [←H], simp [H1] }
+lemma ortho_comm (H : B.is_symm) {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
-lemma ortho_comm {x y} : is_ortho B' x y ↔ is_ortho B' y x := H.is_refl.ortho_comm
+lemma dom_restrict_symm (H : B.is_symm) (p : submodule R M) : (B.dom_restrict₁₂ p p).is_symm :=
+begin
+  intros x y,
+  simp_rw dom_restrict₁₂_apply,
+  exact H x y,
+end
 
 end is_symm
 
+lemma is_symm_iff_eq_flip {B : M →ₗ[R] M →ₗ[R] R} : B.is_symm ↔ B = B.flip :=
+begin
+  split; intro h,
+  { ext,
+    rw [←h, flip_apply, ring_hom.id_apply] },
+  intros x y,
+  conv_lhs { rw h },
+  rw [flip_apply, ring_hom.id_apply],
+end
+
+end symmetric
+
+
 /-! ### Alternating bilinear forms -/
+
+section alternating
+
+variables [comm_ring R] [comm_semiring R₁] [add_comm_monoid M₁] [module R₁ M₁]
+  {I₁ : R₁ →+* R} {I₂ : R₁ →+* R} {I : R₁ →+* R} {B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R}
 
 /-- The proposition that a sesquilinear form is alternating -/
 def is_alt (B : M₁ →ₛₗ[I₁] M₁ →ₛₗ[I₂] R) : Prop := ∀ x, B x x = 0
@@ -198,6 +243,21 @@ end
 lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
 end is_alt
+
+lemma is_alt_iff_eq_neg_flip  [no_zero_divisors R] [char_zero R] {B : M₁ →ₛₗ[I] M₁ →ₛₗ[I] R} :
+  B.is_alt ↔ B = -B.flip :=
+begin
+  split; intro h,
+  { ext,
+    simp_rw [neg_apply, flip_apply],
+    exact (h.neg _ _).symm },
+  intros x,
+  let h' := congr_fun₂ h x x,
+  simp only [neg_apply, flip_apply, ←add_eq_zero_iff_eq_neg] at h',
+  exact add_self_eq_zero.mp h',
+end
+
+end alternating
 
 end linear_map
 

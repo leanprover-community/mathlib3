@@ -94,12 +94,12 @@ class bicategory (B : Type u) extends category_struct.{v} B :=
 (left_unitor {a b : B} (f : a ⟶ b) : 𝟙 a ≫ f ≅ f)
 (notation `λ_` := left_unitor)
 (left_unitor_naturality' : ∀ {a b} {f f' : a ⟶ b} (η : f ⟶ f'),
-  (𝟙 a ◁ η) ≫ (λ_ f').hom = (λ_ f ).hom ≫ η . obviously)
+  (𝟙 a ◁ η) ≫ (λ_ f').hom = (λ_ f).hom ≫ η . obviously)
 -- right unitor:
 (right_unitor {a b : B} (f : a ⟶ b) : f ≫ 𝟙 b ≅ f)
 (notation `ρ_` := right_unitor)
 (right_unitor_naturality' : ∀ {a b} {f f' : a ⟶ b} (η : f ⟶ f'),
-  (η ▷ 𝟙 b) ≫ (ρ_ f').hom = (ρ_ f ).hom ≫ η . obviously)
+  (η ▷ 𝟙 b) ≫ (ρ_ f').hom = (ρ_ f).hom ≫ η . obviously)
 -- pentagon identity:
 (pentagon' : ∀ {a b c d e} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e),
   ((α_ f g h).hom ▷ i) ≫ (α_ f (g ≫ h) i).hom ≫ (f ◁ (α_ g h i).hom) =

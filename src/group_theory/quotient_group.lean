@@ -338,8 +338,8 @@ monoid_hom_ext _ $ monoid_hom.ext $ λ g, congr_arg coe $ h g
 isomorphism."]
 def equiv_quotient_zpow_of_equiv (χ : G' ≃* H') (n : ℤ) :
   G' ⧸ (zpow_group_hom n : G' →* G').range ≃* H' ⧸ (zpow_group_hom n : H' →* H').range :=
-monoid_hom.to_mul_equiv _ _ (hom_quotient_zpow_of_hom_inverse χ.symm χ χ.left_inv n)
-  (hom_quotient_zpow_of_hom_inverse χ χ.symm χ.right_inv n)
+monoid_hom.to_mul_equiv _ _ (hom_quotient_zpow_of_hom_right_inverse χ.symm χ χ.left_inv n)
+  (hom_quotient_zpow_of_hom_right_inverse χ χ.symm χ.right_inv n)
 
 end zpow
 

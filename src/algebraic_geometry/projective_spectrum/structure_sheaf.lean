@@ -79,19 +79,114 @@ namespace homogeneous_localization
 
 open set_like.graded_monoid submodule
 
-variables {𝒜} {x : projective_spectrum.Top 𝒜}
+variables {𝒜} (x : projective_spectrum.Top 𝒜)
 
 /--
 If `x` is a point in `Proj 𝒜`, then `y ∈ Aₓ` is said to satisfy `num_denom_same_deg` if and only if
 `y = a / b` where `a` and `b` are both in `𝒜 i` for some `i`.
 -/
 @[nolint has_inhabited_instance]
-structure num_denom_same_deg (y : at x) :=
+structure num_denom_same_deg :=
 (deg : ℕ)
 (num denom : 𝒜 deg)
-(denom_not_mem : denom ∉ x.as_homogeneous_ideal)
-(eq : (localization.mk num ⟨denom, denom_not_mem⟩ : at x) = y)
+(denom_not_mem : denom.1 ∉ x.as_homogeneous_ideal)
 
+@[ext] lemma ext {c1 c2 : num_denom_same_deg x} (hdeg : c1.deg = c2.deg)
+  (hnum : c1.num.1 = c2.num.1) (hdenom : c1.denom.1 = c2.denom.1) :
+  c1 = c2 :=
+begin
+  rcases c1 with ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩,
+  rcases c2 with ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩,
+  dsimp only at *,
+  simp only,
+  exact ⟨hdeg, by subst hdeg; subst hnum, by subst hdeg; subst hdenom⟩,
+end
+
+instance : has_one (num_denom_same_deg x) :=
+{ one :=
+  { deg := 0,
+    num := ⟨1, one_mem⟩,
+    denom := ⟨1, one_mem⟩,
+    denom_not_mem := λ rid, x.is_prime.ne_top $ (ideal.eq_top_iff_one _).mpr rid } }
+
+@[simp] lemma deg_one : (1 : num_denom_same_deg x).deg = 0 := rfl
+@[simp] lemma num_one : (1 : num_denom_same_deg x).num.1 = 1 := rfl
+@[simp] lemma denom_one : (1 : num_denom_same_deg x).denom.1 = 1 := rfl
+
+instance : has_zero (num_denom_same_deg x) :=
+{ zero :=
+  { deg := 0,
+    num := 0,
+    denom := ⟨1, one_mem⟩,
+    denom_not_mem := λ r, x.is_prime.ne_top $ (ideal.eq_top_iff_one _).mpr r } }
+
+instance : has_mul (num_denom_same_deg x) :=
+{ mul := λ ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩ ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩,
+    { deg := i1 + i2,
+      num := ⟨n1 * n2, mul_mem hn1 hn2⟩,
+      denom := ⟨d1 * d2, mul_mem hd1 hd2⟩,
+      denom_not_mem := λ r, or.elim (x.is_prime.mem_or_mem r) h1 h2 } }
+
+lemma deg_mul (c1 c2 : num_denom_same_deg x) : (c1 * c2).deg = c1.deg + c2.deg :=
+match c1, c2 with
+| ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩, ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩ := rfl
+end
+
+lemma num_mul (c1 c2 : num_denom_same_deg x) : (c1 * c2).num.1 = c1.num.1 * c2.num.1 :=
+match c1, c2 with
+| ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩, ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩ := rfl
+end
+
+lemma denom_mul (c1 c2 : num_denom_same_deg x) :
+  (c1 * c2).denom.1 = c1.denom.1 * c2.denom.1 :=
+match c1, c2 with
+| ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩, ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩ := rfl
+end
+
+instance : has_add (num_denom_same_deg x) :=
+{ add := λ ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩ ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩,
+  { deg := i1 + i2,
+    num := ⟨d1 * n2 + d2 * n1, add_mem _ (mul_mem hd1 hn2) (add_comm i2 i1 ▸ mul_mem hd2 hn1)⟩,
+    denom := ⟨d1 * d2, mul_mem hd1 hd2⟩,
+    denom_not_mem := λ r, or.elim (x.is_prime.mem_or_mem r) h1 h2 } }
+
+lemma deg_add (c1 c2 : num_denom_same_deg x) : (c1 + c2).deg = c1.deg + c2.deg :=
+match c1, c2 with
+| ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩, ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩ := rfl
+end
+
+instance : comm_monoid (num_denom_same_deg x) :=
+{ mul_assoc := λ c1 c2 c3, ext _
+    (by rw [deg_mul, deg_mul, deg_mul, deg_mul, add_assoc])
+    (by rw [num_mul, num_mul, num_mul, num_mul, mul_assoc])
+    (by rw [denom_mul, denom_mul, denom_mul, denom_mul, mul_assoc]),
+  one_mul := λ c, ext _
+    (by rw [deg_mul, deg_one, zero_add])
+    (by rw [num_mul, num_one, one_mul])
+    (by rw [denom_mul, denom_one, one_mul]),
+  mul_one := λ c, ext _
+    (by rw [deg_mul, deg_one, add_zero])
+    (by rw [num_mul, num_one, mul_one])
+    (by rw [denom_mul, denom_one, mul_one]),
+  mul_comm := λ c1 c2, ext _
+    (by rw [deg_mul, deg_mul, add_comm])
+    (by rw [num_mul, num_mul, mul_comm])
+    (by rw [denom_mul, denom_mul, mul_comm]),
+  ..(_ : has_one (num_denom_same_deg x)),
+  ..(_ : has_mul (num_denom_same_deg x))}
+
+instance : comm_ring (num_denom_same_deg x) := sorry
+
+def some_ring_hom : num_denom_same_deg x →+* at x :=
+{ to_fun := λ p, localization.mk p.num ⟨p.denom, p.denom_not_mem⟩,
+  map_one' := sorry,
+  map_mul' := sorry,
+  map_zero' := sorry,
+  map_add' := sorry }
+
+def homogeneous_localization := (num_denom_same_deg x) ⧸ ((some_ring_hom x).ker)
+
+#exit
 attribute [simp] num_denom_same_deg.eq
 
 variable (x)

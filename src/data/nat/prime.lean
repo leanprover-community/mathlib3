@@ -185,7 +185,9 @@ by cases a; cases b; try { cases a; cases b };
 lemma prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : a ≠ 1) : a ∣ p ↔ p = a :=
 begin
   refine ⟨_, by { rintro rfl, refl }⟩,
-  rintro ⟨j, rfl⟩,
+  -- rintro ⟨j, rfl⟩ does not work, due to `nat.prime` depending on the class `irreducible`
+  rintro ⟨j, hj⟩,
+  rw hj at hp ⊢,
   rcases prime_mul_iff.mp hp with ⟨h, rfl⟩ | ⟨h, rfl⟩,
   { exact mul_one _ },
   { exact (a1 rfl).elim }

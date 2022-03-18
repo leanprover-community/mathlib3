@@ -30,13 +30,13 @@ by rw [←two_smul R x, two_eq_zero, zero_smul]
 @[simp] lemma bit0_eq_zero : (bit0 : R → R) = 0 :=
 by { funext, exact add_self_eq_zero _ }
 
-lemma bit0_eq_zero_apply (x : R) : (bit0 x : R) = 0 :=
+lemma bit0_apply_eq_zero (x : R) : (bit0 x : R) = 0 :=
 by simp
 
 @[simp] lemma bit1_eq_one : (bit1 : R → R) = 1 :=
 by { funext, simp [bit1] }
 
-lemma bit1_eq_one_apply (x : R) : (bit1 x : R) = 1 :=
+lemma bit1_apply_eq_one (x : R) : (bit1 x : R) = 1 :=
 by simp
 
 end semiring

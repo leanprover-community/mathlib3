@@ -184,14 +184,12 @@ by cases a; cases b; try { cases a; cases b };
 
 lemma prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : a ≠ 1) : a ∣ p ↔ p = a :=
 begin
-  refine ⟨_, _⟩,
-  { rintro ⟨j, hj⟩,
-    rw hj at hp ⊢,
-    rcases prime_mul_iff.mp hp with ⟨h, rfl⟩ | ⟨h, rfl⟩,
-    { exact mul_one _ },
-    { exact (a1 rfl).elim } },
-  { rintro rfl,
-    refl }
+  refine ⟨_, by { rintro rfl, refl }⟩,
+  rintro ⟨j, hj⟩,
+  rw hj at hp ⊢,
+  rcases prime_mul_iff.mp hp with ⟨h, rfl⟩ | ⟨h, rfl⟩,
+  { exact mul_one _ },
+  { exact (a1 rfl).elim }
 end
 
 section min_fac

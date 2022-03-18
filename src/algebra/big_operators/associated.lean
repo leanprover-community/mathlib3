@@ -96,10 +96,11 @@ lemma finset.prod_primes_dvd
   (∏ p in s, p) ∣ n :=
 begin
   classical,
-  refine multiset.prod_primes_dvd _ (by simpa using h) (by simpa using div) (λ a, _),
-  rw [multiset.map_id', associated_eq_eq, multiset.countp_eq_card_filter,
-      ←multiset.count_eq_card_filter_eq],
-  exact multiset.nodup_iff_count_le_one.mp s.nodup a
+  exact multiset.prod_primes_dvd n
+    (by simpa only [multiset.map_id', finset.mem_def] using h)
+    (by simpa only [multiset.map_id', finset.mem_def] using div)
+    (by simp only [multiset.map_id', associated_eq_eq, multiset.countp_eq_card_filter,
+        ←multiset.count_eq_card_filter_eq, ←multiset.nodup_iff_count_le_one, s.nodup]),
 end
 
 namespace associates

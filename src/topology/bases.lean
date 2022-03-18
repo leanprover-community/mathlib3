@@ -334,6 +334,16 @@ begin
   exact ⟨c, c_count, hu.trans hs⟩
 end
 
+lemma is_separable.union {s u : set α} (hs : is_separable s) (hu : is_separable u) :
+  is_separable (s ∪ u) :=
+begin
+  rcases hs with ⟨cs, cs_count, hcs⟩,
+  rcases hu with ⟨cu, cu_count, hcu⟩,
+  refine ⟨cs ∪ cu, cs_count.union cu_count, _⟩,
+  exact union_subset (hcs.trans (closure_mono (subset_union_left _ _)))
+    (hcu.trans (closure_mono (subset_union_right _ _)))
+end
+
 lemma is_separable.closure {s : set α} (hs : is_separable s) : is_separable (closure s) :=
 begin
   rcases hs with ⟨c, c_count, hs⟩,

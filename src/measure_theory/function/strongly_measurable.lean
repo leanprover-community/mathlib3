@@ -709,6 +709,11 @@ begin
   exact ⟨λ x, f default, strongly_measurable_const, rfl⟩
 end
 
+lemma simple_func.ae_strongly_measurable {m : measurable_space α} {μ : measure α}
+  [topological_space β] (f : α →ₛ β) :
+  ae_strongly_measurable f μ :=
+f.strongly_measurable.ae_strongly_measurable
+
 namespace ae_strongly_measurable
 
 variables {m : measurable_space α} {μ : measure α} [topological_space β] [topological_space γ]

@@ -342,7 +342,7 @@ begin
   obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
   rw ideal.span_mul_span',
   refine ⟨s₁ * s₂, congr_arg _ _⟩,
-  exact (set.image_mul (submonoid.subtype _).to_mul_hom).symm,
+  exact (set.image_mul $ submonoid.subtype _).symm,
 end
 
 variables {𝒜}

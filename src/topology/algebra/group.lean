@@ -339,13 +339,28 @@ section conj
 /-- we slightly weaken the type class assumptions here so that it will also apply to `ennreal`, but
 we nevertheless leave it in the `topological_group` namespace. -/
 
-variables [topological_space G] [has_inv G] [has_continuous_inv G] [has_mul G]
+variables [topological_space G] [has_inv G] [has_mul G]
 [has_continuous_mul G]
 
-/-- Conjugation is continuous when `mul` and `inv` are.-/
-@[to_additive "Conjugation is continuous when `add` and `neg` are."]
+/-- Conjugation is jointly continuous on `G × G` when both `mul` and `inv` are continuous. -/
+@[to_additive "Conjugation is jointly continuous on `G × G` when both `mul` and `inv` are
+continuous."]
+lemma topological_group.continuous_conj_prod [has_continuous_inv G] :
+  continuous (λ g : G × G, g.fst * g.snd * g.fst⁻¹) :=
+continuous_mul.mul (continuous_inv.comp continuous_fst)
+
+/-- Conjugation by a fixed element is continuous when `mul` is continuous. -/
+@[to_additive "Conjugation by a fixed element is continuous when `add` is continuous."]
 lemma topological_group.continuous_conj (g : G) : continuous (λ (h : G), g * h * g⁻¹) :=
 (continuous_mul_right g⁻¹).comp (continuous_mul_left g)
+
+/-- Conjugation acting on fixed element of the group is continuous when both `mul` and
+`inv` are continuous. -/
+@[to_additive "Conjugation acting on fixed element of the additive group is continuous when both
+  `add` and `neg` are continuous."]
+lemma topological_group.continuous_conj' [has_continuous_inv G]
+  (h : G) : continuous (λ (g : G), g * h * g⁻¹) :=
+(continuous_mul_right h).mul continuous_inv
 
 end conj
 

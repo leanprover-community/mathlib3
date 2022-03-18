@@ -892,8 +892,9 @@ begin
   exact nilpotent_of_mul_equiv e,
 end
 
-/-- A finite group is nilpotent iff the normalizer condition holds, and iff all sylow groups are
-normal and iff its the direct product of its sylow groups.  -/
+/-- A finite group is nilpotent iff the normalizer condition holds, and iff all maximal groups are
+normal and iff all sylow groups are normal and iff the group is the direct product of its sylow
+groups. -/
 theorem is_nilpotent_of_finite_tfae : tfae
   [ is_nilpotent G,
     normalizer_condition G,

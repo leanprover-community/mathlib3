@@ -56,12 +56,12 @@ lemma is_vonN_bounded_iff (s : set E) : is_vonN_bounded 𝕜 s ↔ ∀ V ∈ �
 iff.rfl
 
 /-- Subsets of bounded sets are bounded. -/
-lemma is_vonN_bounded_subset {s₁ s₂ : set E} (hs₁ : is_vonN_bounded 𝕜 s₂) (hs₂ : s₁ ⊆ s₂) :
+lemma is_vonN_bounded.subset {s₁ s₂ : set E} (hs₁ : is_vonN_bounded 𝕜 s₂) (hs₂ : s₁ ⊆ s₂) :
   is_vonN_bounded 𝕜 s₁ :=
 λ V hV, absorbs.mono_right (hs₁ V hV) hs₂
 
 /-- The union of two bounded sets is bounded. -/
-lemma is_vonN_bounded_union {s₁ s₂ : set E} (hs₁ : is_vonN_bounded 𝕜 s₁)
+lemma is_vonN_bounded.union {s₁ s₂ : set E} (hs₁ : is_vonN_bounded 𝕜 s₁)
   (hs₂ : is_vonN_bounded 𝕜 s₂) :
   is_vonN_bounded 𝕜 (s₁ ∪ s₂) :=
 λ V hV, absorbs.union (hs₁ V hV) (hs₂ V hV)
@@ -91,10 +91,12 @@ variables [topological_space E] [has_continuous_smul 𝕜 E]
 lemma is_vonN_bounded_singleton (x : E) : is_vonN_bounded 𝕜 ({x} : set E) :=
 λ V hV, absorbent.absorbs (absorbent_nhds_zero hV)
 
-/-- The union of all bounded set is the universal set. -/
+/-- The union of all bounded set is the whole space. -/
 lemma is_vonN_bounded_covers : ⋃₀ (set_of (is_vonN_bounded 𝕜)) = (set.univ : set E) :=
 set.eq_univ_iff_forall.mpr (λ x, set.mem_sUnion.mpr
   ⟨{x}, is_vonN_bounded_singleton _, set.mem_singleton _⟩)
+
+variables (𝕜 E)
 
 /-- The von Neumann bornology defined by the von Neumann bounded sets.
 
@@ -102,7 +104,13 @@ Note that this is not registered as an instance, in order to avoid diamonds with
 metric bornology.-/
 def vonN_bornology : bornology E :=
 bornology.of_bounded (set_of (is_vonN_bounded 𝕜)) (is_vonN_bounded.empty 𝕜 E)
-  (λ _ hs _, is_vonN_bounded_subset hs) (λ _ hs _, is_vonN_bounded_union hs) is_vonN_bounded_covers
+  (λ _ hs _, hs.subset) (λ _ hs _, hs.union) is_vonN_bounded_covers
+
+variables {E}
+
+lemma is_vonN_bounded_iff_is_bounded {s : set E} : is_vonN_bounded 𝕜 s ↔
+  @is_bounded _ (vonN_bornology 𝕜 E) s :=
+by rw [←is_bounded_of_bounded_iff, set.mem_set_of_eq]
 
 end normed_field
 

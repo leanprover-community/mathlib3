@@ -118,6 +118,13 @@ lemma ext_iff_is_bounded {t t' : bornology α} :
   t = t' ↔ ∀ s, @is_bounded α t s ↔ @is_bounded α t' s :=
 ⟨λ h s, h ▸ iff.rfl, λ h, by { ext, simpa only [is_bounded_def, compl_compl] using h sᶜ, }⟩
 
+lemma is_bounded_of_bounded_iff {s : set α} (B : set (set α))
+  (empty_mem : ∅ ∈ B) (subset_mem : ∀ s₁ ∈ B, ∀ s₂ : set α, s₂ ⊆ s₁ → s₂ ∈ B)
+  (union_mem : ∀ s₁ s₂ ∈ B, s₁ ∪ s₂ ∈ B) (sUnion_univ : ⋃₀ B = univ) :
+  s ∈ B ↔
+  @bornology.is_bounded _ (bornology.of_bounded B empty_mem subset_mem union_mem sUnion_univ) s :=
+by rw [is_bounded_def, ←filter.mem_sets, of_bounded_cobounded_sets, set.mem_set_of_eq, compl_compl]
+
 variables [bornology α]
 
 lemma is_bounded_sUnion {s : set (set α)} (hs : finite s) :

@@ -16,7 +16,8 @@ This file establishes the cardinality of `α ↪ β` in full generality.
 local notation `|` x `|` := finset.card x
 local notation `‖` x `‖` := fintype.card x
 
-open_locale nat
+open function
+open_locale nat big_operators
 
 namespace fintype
 
@@ -24,47 +25,21 @@ lemma card_embedding_eq_of_unique
   {α β : Type*} [unique α] [fintype β] [fintype (α ↪ β)]:
 ‖α ↪ β‖ = ‖β‖ := card_congr equiv.unique_embedding_equiv_result
 
-local attribute [semireducible] function.embedding.fintype
-
-private lemma card_embedding_aux {n : ℕ} {β} [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
-  ‖fin n ↪ β‖ = ‖β‖.desc_factorial n :=
-begin
-  induction n with n hn,
-  { nontriviality (fin 0 ↪ β),
-    rw [nat.desc_factorial_zero, fintype.card_eq_one_iff],
-    refine ⟨nonempty.some nontrivial.to_nonempty, λ x, function.embedding.ext fin.elim0⟩ },
-
-  rw [nat.succ_eq_add_one, ←card_congr (equiv.embedding_congr fin_sum_fin_equiv (equiv.refl β)),
-    card_congr equiv.sum_embedding_equiv_sigma_embedding_restricted],
-  -- these `rw`s create goals for instances, which it doesn't infer for some reason
-  all_goals { try { apply_instance } },
-  -- however, this needs to be done here instead of at the end
-  -- else, a later `simp`, which depends on the `fintype` instance, won't work.
-
-  have : ∀ (f : fin n ↪ β), ‖fin 1 ↪ ((set.range f)ᶜ : set β)‖ = ‖β‖ - n,
-  { intro f,
-    rw card_embedding_eq_of_unique,
-    rw card_of_finset' (finset.map f finset.univ)ᶜ,
-    { rw [finset.card_compl, finset.card_map, finset.card_fin] },
-    { simp } },
-
-  simp only [this, card_sigma, finset.sum_const, finset.card_univ, nsmul_eq_mul, nat.cast_id],
-  rw [nat.desc_factorial_succ, hn (nat.lt_of_succ_le h).le, mul_comm]
-end
-
-local attribute [irreducible] function.embedding.fintype
-
 /- Establishes the cardinality of the type of all injections between two finite types. -/
 @[simp] theorem card_embedding_eq {α β} [fintype α] [fintype β] [fintype (α ↪ β)] :
   ‖α ↪ β‖ = (‖β‖.desc_factorial ‖α‖) :=
 begin
   classical,
-  obtain h | h := lt_or_ge (‖β‖) (‖α‖),
-  { rw [card_eq_zero_iff.mpr (function.embedding.is_empty_of_card_lt h),
-        nat.desc_factorial_eq_zero_iff_lt.mpr h] },
-  { trunc_cases fintype.trunc_equiv_fin α with eq,
-    rw fintype.card_congr (equiv.embedding_congr eq (equiv.refl β)),
-    convert card_embedding_aux h }
+  unfreezingI { induction ‹fintype α› using fintype.induction_empty_option'
+    with α₁ α₂ h₂ e ih α h ih },
+  { letI := fintype.of_equiv _ e.symm,
+    rw [← card_congr (equiv.embedding_congr e (equiv.refl β)), ih, card_congr e] },
+  { rw [card_pempty, nat.desc_factorial_zero, card_eq_one_iff],
+    exact ⟨embedding.of_is_empty, λ x, fun_like.ext _ _ is_empty_elim⟩ },
+  { rw [card_option, nat.desc_factorial_succ, card_congr (embedding.option_embedding_equiv α β),
+      card_sigma, ← ih],
+    simp only [fintype.card_compl_set, fintype.card_range, finset.sum_const, finset.card_univ,
+      smul_eq_mul, mul_comm] },
 end
 
 /- The cardinality of embeddings from an infinite type to a finite type is zero.

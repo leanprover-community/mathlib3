@@ -965,7 +965,7 @@ section is_well_order
 variables [linear_order α] [h : is_well_order α (<)] [succ_order α] [pred_order α]
 include h
 
-def of_well_order : is_succ_archimedean α :=
+instance of_well_order : is_succ_archimedean α :=
 ⟨λ a, begin
   refine well_founded.fix h.wf (λ b ih hab, _),
   replace hab := hab.eq_or_lt,

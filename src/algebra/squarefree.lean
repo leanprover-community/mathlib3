@@ -50,7 +50,7 @@ begin
 end
 
 lemma ne_zero_of_squarefree [monoid_with_zero R] [nontrivial R] {m : R}
-(h : ¬ squarefree (m : R)) : m ≠ 0 :=
+(hm : ¬ squarefree (m : R)) : m ≠ 0 :=
 begin
   by_contradiction H,
   rw H at hm,

@@ -118,7 +118,7 @@ lemma power_basis.norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
 begin
   rw [power_basis.norm_gen_eq_coeff_zero_minpoly, ← pb.nat_degree_minpoly, ring_hom.map_mul,
     ← coeff_map, prod_roots_eq_coeff_zero_of_monic_of_split
-      (monic_map _ (minpoly.monic (power_basis.is_integral_gen _)))
+      ((minpoly.monic (power_basis.is_integral_gen _)).map _)
       ((splits_id_iff_splits _).2 hf), nat_degree_map, map_pow, ← mul_assoc, ← mul_pow],
   simp
 end

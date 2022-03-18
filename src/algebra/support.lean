@@ -161,6 +161,15 @@ end has_one
   mul_support (λ x, f x * g x) ⊆ mul_support f ∪ mul_support g :=
 mul_support_binop_subset (*) (one_mul _) f g
 
+@[to_additive] lemma mul_support_pow [monoid M] (f : α → M) (n : ℕ) :
+  mul_support (λ x, f x ^ n) ⊆ mul_support f :=
+begin
+  induction n with n hfn,
+  { simpa only [pow_zero, mul_support_one] using empty_subset _ },
+  { simpa only [pow_succ]
+      using subset_trans (mul_support_mul f _) (union_subset (subset.refl _) hfn) }
+end
+
 @[simp, to_additive] lemma mul_support_inv [group G] (f : α → G) :
   mul_support (λ x, (f x)⁻¹) = mul_support f :=
 set.ext $ λ x, not_congr inv_eq_one
@@ -188,6 +197,14 @@ mul_support_binop_subset (/) (by simp only [div_one]) f g
 @[simp] lemma support_mul [mul_zero_class R] [no_zero_divisors R] (f g : α → R) :
   support (λ x, f x * g x) = support f ∩ support g :=
 set.ext $ λ x, by simp only [mem_support, mul_ne_zero_iff, mem_inter_eq, not_or_distrib]
+
+@[simp] lemma support_mul_subset_left [mul_zero_class R] (f g : α → R) :
+  support (λ x, f x * g x) ⊆ support f :=
+λ x hfg hf, hfg $ by simp only [hf, zero_mul]
+
+@[simp] lemma support_mul_subset_right [mul_zero_class R] (f g : α → R) :
+  support (λ x, f x * g x) ⊆ support g :=
+λ x hfg hg, hfg $ by simp only [hg, mul_zero]
 
 lemma support_smul_subset_right [add_monoid A] [monoid B] [distrib_mul_action B A]
   (b : B) (f : α → A) :

@@ -119,11 +119,19 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
 lemma continuous_ev₁ [locally_compact_space α] (a : α) : continuous (λ f : C(α, β), f a) :=
 continuous_ev.comp (continuous_id.prod_mk continuous_const)
 
-instance [t2_space β] [locally_compact_space α] : t2_space C(α, β) :=
+instance [t2_space β] : t2_space C(α, β) :=
 ⟨ begin
     intros f₁ f₂ h,
-    obtain ⟨p, hp⟩ := not_forall.mp (mt continuous_map.ext h),
-    exact separated_by_continuous (continuous_ev₁ p) hp,
+    obtain ⟨x, hx⟩ := not_forall.mp (mt (fun_like.ext f₁ f₂) h),
+    obtain ⟨u, v, hu, hv, hxu, hxv, huv⟩ := t2_separation hx,
+    refine ⟨compact_open.gen {x} u, compact_open.gen {x} v, continuous_map.is_open_gen
+      is_compact_singleton hu, continuous_map.is_open_gen is_compact_singleton hv, _, _, _⟩,
+    { rwa [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff] },
+    { rwa [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff] },
+    { rw [←continuous_map.gen_inter, huv],
+      refine subset_empty_iff.mp (λ f, _),
+      rw [compact_open.gen, mem_set_of_eq, image_singleton, singleton_subset_iff],
+      exact id },
   end ⟩
 
 end ev

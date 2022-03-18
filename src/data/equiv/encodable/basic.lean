@@ -401,11 +401,13 @@ lemma choose_spec (h : ∃ x, p x) : p (choose h) := (choose_x h).2
 
 end find_a
 
+/-- A constructive version of `classical.axiom_of_choice` for `encodable` types. -/
 theorem axiom_of_choice {α : Type*} {β : α → Type*} {R : Π x, β x → Prop}
   [Π a, encodable (β a)] [∀ x y, decidable (R x y)]
   (H : ∀ x, ∃ y, R x y) : ∃ f : Π a, β a, ∀ x, R x (f x) :=
 ⟨λ x, choose (H x), λ x, choose_spec (H x)⟩
 
+/-- A constructive version of `classical.skolem` for `encodable` types. -/
 theorem skolem {α : Type*} {β : α → Type*} {P : Π x, β x → Prop}
   [c : Π a, encodable (β a)] [d : ∀ x y, decidable (P x y)] :
   (∀ x, ∃ y, P x y) ↔ ∃ f : Π a, β a, (∀ x, P x (f x)) :=

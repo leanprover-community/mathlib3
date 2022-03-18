@@ -92,7 +92,7 @@ variables {ε : α → Type*}
 
 instance : has_coe_t (Π a, ε a) (l.product ε) := ⟨quotient.mk'⟩
 
-instance [Π a, inhabited (ε  a)] : inhabited (l.product ε) :=
+instance [Π a, inhabited (ε a)] : inhabited (l.product ε) :=
 ⟨(↑(λ a, (default : ε a)) : l.product ε)⟩
 
 end product

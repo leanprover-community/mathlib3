@@ -115,39 +115,6 @@ begin
   sorry
 end
 
-lemma closure_induction_left {G : Type*} [group G] {S : set G} {p : G → Prop} {x : G}
-  (h : x ∈ closure S) (H1 : p 1) (Hmul : ∀ (x ∈ S) y, p y → p (x * y))
-  (Hinv : ∀ (x ∈ S) y, p y → p (x⁻¹ * y)) : p x :=
-begin
-  have := le_of_eq (closure_to_submonoid S),
-  obtain ⟨l, hl, rfl⟩ := submonoid.exists_list_of_mem_closure (this h),
-  induction l with g l ih generalizing hl,
-  { exact H1 },
-  { rw list.prod_cons,
-    rw list.forall_mem_cons at hl,
-    specialize ih ((closure S).list_prod_mem (λ g hg, (hl.2 g hg).elim (λ hg, subset_closure hg)
-      (λ hg, (closure S).inv_mem_iff.mp (subset_closure hg)))) hl.2,
-    exact hl.1.elim (λ hg, Hmul g hg _ ih) (λ hg, (congr_arg _ (inv_inv g)).mp (Hinv _ hg _ ih)) },
-end
-
-lemma closure_induction_right {G : Type*} [group G] {S : set G} {p : G → Prop} {x : G}
-  (h : x ∈ closure S) (H1 : p 1) (Hmul : ∀ x (y ∈ S), p x → p (x * y))
-  (Hinv : ∀ x (y ∈ S), p x → p (x * y⁻¹)) : p x :=
-begin
-  let q : G → Prop := λ g, p g⁻¹,
-  have q_def : ∀ g, q g = p g⁻¹ := λ g, rfl,
-  rw ← inv_inv x,
-  change q x⁻¹,
-  apply closure_induction_left ((closure S).inv_mem h),
-  { rwa [q_def, one_inv] },
-  { intros x hx y hy,
-    rw [q_def, mul_inv_rev],
-    exact Hinv y⁻¹ x hx hy },
-  { intros x hx y hy,
-    rw [q_def, mul_inv_rev, inv_inv],
-    exact Hmul y⁻¹ x hx hy },
-end
-
 lemma schreier' {G : Type*} [group G] {H : subgroup G} {R S : set G}
   (hR : R ∈ right_transversals (H : set G)) (hR1 : (1 : G) ∈ R) (hS : closure S = ⊤) :
   (closure ((R * S).image (λ g, g * (mem_right_transversals.to_fun hR g)⁻¹)) : set G) * R = ⊤ :=

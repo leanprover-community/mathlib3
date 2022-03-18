@@ -677,8 +677,6 @@ instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
   exact is_unit_of_mul_eq_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc.symm)
 end⟩
 
-variables [local_ring R] [local_ring S]
-
 end local_ring
 
 section field

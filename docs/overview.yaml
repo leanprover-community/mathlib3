@@ -420,5 +420,5 @@ Logic and computation:
     first-order formula: 'first_order.language.formula'
     satisfiability: 'first_order.language.Theory.is_satisfiable'
     substructure: 'first_order.language.substructure'
-    definable set: 'set.definable_set'
+    definable set: 'set.definable'
     elementary embedding: 'first_order.language.elementary_embedding'

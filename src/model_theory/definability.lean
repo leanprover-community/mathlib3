@@ -18,11 +18,11 @@ set `s` of a finite cartesian power of `M` is definable with parameters in `A`.
 `(s : set M)` is definable with parameters in `A`.
 * `set.definable₂` is defined so that `A.definable₂ L s` indicates that
 `(s : set (M × M))` is definable with parameters in `A`.
-* A `set.definable_set` is defined so that `A.definable_set L α` is the boolean
+* A `first_order.language.definable_set` is defined so that `L.definable_set A α` is the boolean
   algebra of subsets of `α → M` defined by formulas with parameters in `A`.
 
 ## Main Results
-* `A.definable_set L α` forms a `boolean_algebra`.
+* `L.definable_set A α` forms a `boolean_algebra`.
 
 -/
 
@@ -34,7 +34,7 @@ variables {M : Type w} (A : set M) (L : first_order.language.{u v}) [L.Structure
 open_locale first_order
 open first_order.language first_order.language.Structure
 
-variables {α : Type} {β : Type}
+variables {α : Type*} {β : Type*}
 
 /-- A subset of a finite Cartesian product of a structure is definable over a set `A` when
   membership in the set is given by a first-order formula with parameters from `A`. -/
@@ -158,63 +158,69 @@ def definable₁ (s : set M) : Prop := A.definable L { x : fin 1 → M | x 0 ∈
 /-- A 2-dimensional version of `definable`, for `set (M × M)`. -/
 def definable₂ (s : set (M × M)) : Prop := A.definable L { x : fin 2 → M | (x 0, x 1) ∈ s }
 
-variable (α)
+end set
+
+namespace first_order
+namespace language
+open set
+
+variables (L : first_order.language.{u v}) {M : Type w} [L.Structure M] (A : set M) (α : Type*)
 
 /-- Definable sets are subsets of finite Cartesian products of a structure such that membership is
   given by a first-order formula. -/
-def definable_set := subtype (λ s : set (α → M), A.definable L s)
+def definable_set := { s : set (α → M) // A.definable L s}
 
 namespace definable_set
 variables {L} {A} {α}
 
-instance : has_top (A.definable_set L α) := ⟨⟨⊤, definable_univ⟩⟩
+instance : has_top (L.definable_set A α) := ⟨⟨⊤, definable_univ⟩⟩
 
-instance : has_bot (A.definable_set L α) := ⟨⟨⊥, definable_empty⟩⟩
+instance : has_bot (L.definable_set A α) := ⟨⟨⊥, definable_empty⟩⟩
 
-instance : inhabited (A.definable_set L α) := ⟨⊥⟩
+instance : inhabited (L.definable_set A α) := ⟨⊥⟩
 
-instance : set_like (A.definable_set L α) (α → M) :=
+instance : set_like (L.definable_set A α) (α → M) :=
 { coe := subtype.val,
   coe_injective' := subtype.val_injective }
 
 @[simp]
-lemma mem_top {x : α → M} : x ∈ (⊤ : A.definable_set L α) := mem_univ x
+lemma mem_top {x : α → M} : x ∈ (⊤ : L.definable_set A α) := mem_univ x
 
 @[simp]
-lemma coe_top : ((⊤ : A.definable_set L α) : set (α → M)) = ⊤ := rfl
+lemma coe_top : ((⊤ : L.definable_set A α) : set (α → M)) = ⊤ := rfl
 
 @[simp]
-lemma not_mem_bot {x : α → M} : ¬ x ∈ (⊥ : A.definable_set L α) := not_mem_empty x
+lemma not_mem_bot {x : α → M} : ¬ x ∈ (⊥ : L.definable_set A α) := not_mem_empty x
 
 @[simp]
-lemma coe_bot : ((⊥ : A.definable_set L α) : set (α → M)) = ⊥ := rfl
+lemma coe_bot : ((⊥ : L.definable_set A α) : set (α → M)) = ⊥ := rfl
 
-instance : lattice (A.definable_set L α) :=
+instance : lattice (L.definable_set A α) :=
 subtype.lattice (λ _ _, definable.union) (λ _ _, definable.inter)
 
-lemma le_iff {s t : A.definable_set L α} : s ≤ t ↔ (s : set (α → M)) ≤ (t : set (α → M)) := iff.rfl
+lemma le_iff {s t : L.definable_set A α} : s ≤ t ↔ (s : set (α → M)) ≤ (t : set (α → M)) := iff.rfl
 
 @[simp]
-lemma coe_sup {s t : A.definable_set L α} : ((s ⊔ t : A.definable_set L α) : set (α → M)) = s ∪ t :=
+lemma coe_sup {s t : L.definable_set A α} : ((s ⊔ t : L.definable_set A α) : set (α → M)) = s ∪ t :=
 rfl
 
 @[simp]
-lemma mem_sup {s t : A.definable_set L α} {x : α → M} : x ∈ s ⊔ t ↔ x ∈ s ∨ x ∈ t := iff.rfl
+lemma mem_sup {s t : L.definable_set A α} {x : α → M} : x ∈ s ⊔ t ↔ x ∈ s ∨ x ∈ t := iff.rfl
 
 @[simp]
-lemma coe_inf {s t : A.definable_set L α} : ((s ⊓ t : A.definable_set L α) : set (α → M)) = s ∩ t :=
+lemma coe_inf {s t : L.definable_set A α} : ((s ⊓ t : L.definable_set A α) : set (α → M)) = s ∩ t :=
 rfl
 
 @[simp]
-lemma mem_inf {s t : A.definable_set L α} {x : α → M} : x ∈ s ⊓ t ↔ x ∈ s ∧ x ∈ t := iff.rfl
+lemma mem_inf {s t : L.definable_set A α} {x : α → M} : x ∈ s ⊓ t ↔ x ∈ s ∧ x ∈ t := iff.rfl
 
-instance : bounded_order (A.definable_set L α) :=
+instance : bounded_order (L.definable_set A α) :=
 { bot_le := λ s x hx, false.elim hx,
   le_top := λ s x hx, mem_univ x,
   .. definable_set.has_top,
   .. definable_set.has_bot }
 
-instance : distrib_lattice (A.definable_set L α) :=
+instance : distrib_lattice (L.definable_set A α) :=
 { le_sup_inf := begin
     intros s t u x,
     simp only [and_imp, mem_inter_eq, set_like.mem_coe, coe_sup, coe_inf, mem_union_eq,
@@ -224,24 +230,24 @@ instance : distrib_lattice (A.definable_set L α) :=
   .. definable_set.lattice }
 
 /-- The complement of a definable set is also definable. -/
-@[reducible] instance : has_compl (A.definable_set L α) :=
+@[reducible] instance : has_compl (L.definable_set A α) :=
 ⟨λ ⟨s, hs⟩, ⟨sᶜ, hs.compl⟩⟩
 
 @[simp]
-lemma mem_compl {s : A.definable_set L α} {x : α → M} : x ∈ sᶜ ↔ ¬ x ∈ s :=
+lemma mem_compl {s : L.definable_set A α} {x : α → M} : x ∈ sᶜ ↔ ¬ x ∈ s :=
 begin
   cases s with s hs,
   refl,
 end
 
 @[simp]
-lemma coe_compl {s : A.definable_set L α} : ((sᶜ : A.definable_set L α) : set (α → M)) = sᶜ :=
+lemma coe_compl {s : L.definable_set A α} : ((sᶜ : L.definable_set A α) : set (α → M)) = sᶜ :=
 begin
   ext,
   simp,
 end
 
-instance : boolean_algebra (A.definable_set L α) :=
+instance : boolean_algebra (L.definable_set A α) :=
 { sdiff := λ s t, s ⊓ tᶜ,
   sdiff_eq := λ s t, rfl,
   sup_inf_sdiff := λ ⟨s, hs⟩ ⟨t, ht⟩,
@@ -264,5 +270,5 @@ instance : boolean_algebra (A.definable_set L α) :=
   .. definable_set.distrib_lattice }
 
 end definable_set
-
-end set
+end language
+end first_order

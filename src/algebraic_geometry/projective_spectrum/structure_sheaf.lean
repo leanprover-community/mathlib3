@@ -432,30 +432,42 @@ variables {𝒜} {x : projective_spectrum.Top 𝒜}
 
 /-- numerator of an element in `homogeneous_localization x`-/
 def homogeneous_localization.num (f : homogeneous_localization x) : A :=
-(@@quotient.exists_rep (setoid.ker $ num_denom_same_deg.embedding x) f).some.num.1
+(@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f).num.1
 
 /-- denominator of an element in `homogeneous_localization x`-/
 def homogeneous_localization.denom (f : homogeneous_localization x) : A :=
-(@@quotient.exists_rep (setoid.ker $ num_denom_same_deg.embedding x) f).some.denom.1
+(@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f).denom.1
 
 /-- For an element in `homogeneous_localization x`, degree is the natural number `i` such that
   `𝒜 i` contains both numerator and denominator. -/
 def homogeneous_localization.deg (f : homogeneous_localization x) : ℕ :=
-(@@quotient.exists_rep (setoid.ker $ num_denom_same_deg.embedding x) f).some.deg
+(@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f).deg
 
 lemma homogeneous_localization.denom_not_mem (f : homogeneous_localization x) :
   f.denom ∉ x.as_homogeneous_ideal :=
-(@@quotient.exists_rep (setoid.ker $ num_denom_same_deg.embedding x) f).some.denom_not_mem
+(@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f).denom_not_mem
 
 lemma homogeneous_localization.num_mem (f : homogeneous_localization x) : f.num ∈ 𝒜 f.deg :=
-(@@quotient.exists_rep (setoid.ker $ num_denom_same_deg.embedding x) f).some.num.2
+(@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f).num.2
 
 lemma homogeneous_localization.denom_mem (f : homogeneous_localization x) : f.denom ∈ 𝒜 f.deg :=
-(@@quotient.exists_rep (setoid.ker $ num_denom_same_deg.embedding x) f).some.denom.2
+(@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f).denom.2
+
+lemma homogeneous_localization.eq' (f : homogeneous_localization x) :
+  f = @@quotient.mk (setoid.ker $ num_denom_same_deg.embedding x)
+    (@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f) :=
+(@@quotient.out_eq (setoid.ker $ num_denom_same_deg.embedding x) f).symm
 
 lemma homogeneous_localization.eq_num_div_denom (f : homogeneous_localization x) :
   f.val = localization.mk f.num ⟨f.denom, f.denom_not_mem⟩ :=
-sorry
+begin
+  have := (@@quotient.out_eq (setoid.ker $ num_denom_same_deg.embedding x) f).symm,
+  apply_fun homogeneous_localization.val at this,
+  rw this,
+  unfold homogeneous_localization.val,
+  simp only [quotient.lift_on'_mk],
+  refl,
+end
 
 lemma ext_iff_val (f g : homogeneous_localization x) : f = g ↔ f.val = g.val :=
 { mp := λ h, h ▸ rfl,

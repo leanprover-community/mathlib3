@@ -18,6 +18,8 @@ This file defines a function field and the ring of integers corresponding to it.
    i.e. it is a finite extension of the field of rational functions in one variable over `Fq`.
  - `function_field.ring_of_integers` defines the ring of integers corresponding to a function field
     as the integral closure of `polynomial Fq` in the function field.
+ - `infty_valuation` : The place at infinity on `Fq(t)` is the nonarchimedean valuation on `Fq(t)`
+    with uniformizer `1/t`.
 
 ## Implementation notes
 The definitions that involve a field of fractions choose a canonical field of fractions,
@@ -72,6 +74,14 @@ begin
     intros c x, convert (this (e.symm c) x).symm, simp only [e.apply_symm_apply] },
 end
 
+lemma algebra_map_injective [algebra Fq[X] F] [algebra (ratfunc Fq) F]
+  [is_scalar_tower Fq[X] (ratfunc Fq) F] : function.injective ⇑(algebra_map Fq[X] F) :=
+begin
+  rw is_scalar_tower.algebra_map_eq Fq[X] (ratfunc Fq) F,
+  exact function.injective.comp ((algebra_map (ratfunc Fq) F).injective)
+    (is_fraction_ring.injective Fq[X] (ratfunc Fq)),
+end
+
 namespace function_field
 
 /-- The function field analogue of `number_field.ring_of_integers`:
@@ -92,8 +102,27 @@ instance : is_domain (ring_of_integers Fq F) :=
 instance : is_integral_closure (ring_of_integers Fq F) Fq[X] F :=
 integral_closure.is_integral_closure _ _
 
-variables [algebra (ratfunc Fq) F] [function_field Fq F]
-variables [is_scalar_tower Fq[X] (ratfunc Fq) F]
+variables [algebra (ratfunc Fq) F] [is_scalar_tower Fq[X] (ratfunc Fq) F]
+
+lemma algebra_map_injective :
+  function.injective ⇑(algebra_map Fq[X] (ring_of_integers Fq F)) :=
+begin
+  have hinj : function.injective ⇑(algebra_map Fq[X] F),
+  { rw is_scalar_tower.algebra_map_eq Fq[X] (ratfunc Fq) F,
+    exact function.injective.comp ((algebra_map (ratfunc Fq) F).injective)
+      (is_fraction_ring.injective Fq[X] (ratfunc Fq)), },
+  rw (algebra_map Fq[X] ↥(ring_of_integers Fq F)).injective_iff,
+  intros p hp,
+  rw [← subtype.coe_inj, subalgebra.coe_zero] at hp,
+  rw (algebra_map Fq[X] F).injective_iff at hinj,
+  exact hinj p hp,
+end
+
+lemma not_is_field : ¬ is_field (ring_of_integers Fq F) :=
+by simpa [← (is_integral.is_field_iff_is_field (is_integral_closure.is_integral_algebra Fq[X] F)
+  (algebra_map_injective Fq F))] using (polynomial.not_is_field Fq)
+
+variables [function_field Fq F]
 
 instance : is_fraction_ring (ring_of_integers Fq F) F :=
 integral_closure.is_fraction_ring_of_finite_extension (ratfunc Fq) F
@@ -106,5 +135,95 @@ instance [is_separable (ratfunc Fq) F] :
 is_integral_closure.is_dedekind_domain Fq[X] (ratfunc Fq) F _
 
 end ring_of_integers
+
+/-! ### The place at infinity on Fq(t) -/
+
+section infty_valuation
+
+variable [decidable_eq (ratfunc Fq)]
+
+/-- The valuation at infinity is the nonarchimedean valuation on `Fq(t)` with uniformizer `1/t`.
+Explicitly, if `f/g ∈ Fq(t)` is a nonzero quotient of polynomials, its valuation at infinity is
+`multiplicative.of_add(degree(f) - degree(g))`. -/
+def infty_valuation_def (r : ratfunc Fq) : with_zero (multiplicative ℤ) :=
+if r = 0 then 0 else (multiplicative.of_add r.int_degree)
+
+lemma infty_valuation.map_zero' : infty_valuation_def Fq 0 = 0 := if_pos rfl
+
+lemma infty_valuation.map_one' : infty_valuation_def Fq 1 = 1 :=
+(if_neg one_ne_zero).trans $
+  by rw [ratfunc.int_degree_one, of_add_zero, with_zero.coe_one]
+
+lemma infty_valuation.map_mul' (x y : ratfunc Fq) :
+  infty_valuation_def Fq (x * y) = infty_valuation_def Fq x * infty_valuation_def Fq y :=
+begin
+  rw [infty_valuation_def, infty_valuation_def, infty_valuation_def],
+  by_cases hx : x = 0,
+  { rw [hx, zero_mul, if_pos (eq.refl _), zero_mul] },
+  { by_cases hy : y = 0,
+    { rw [hy, mul_zero, if_pos (eq.refl _), mul_zero] },
+    { rw [if_neg hx, if_neg hy, if_neg (mul_ne_zero hx hy), ← with_zero.coe_mul,
+        with_zero.coe_inj, ← of_add_add, ratfunc.int_degree_mul hx hy], }}
+end
+
+lemma infty_valuation.map_add_le_max' (x y : ratfunc Fq) :
+  infty_valuation_def Fq (x + y) ≤ max (infty_valuation_def Fq x) (infty_valuation_def Fq y) :=
+begin
+  by_cases hx : x = 0,
+  { rw [hx, zero_add],
+    conv_rhs { rw [infty_valuation_def, if_pos (eq.refl _)] },
+    rw max_eq_right (with_zero.zero_le (infty_valuation_def Fq y)),
+    exact le_refl _ },
+  { by_cases hy : y = 0,
+    { rw [hy, add_zero],
+      conv_rhs { rw [max_comm, infty_valuation_def, if_pos (eq.refl _)] },
+      rw max_eq_right (with_zero.zero_le (infty_valuation_def Fq x)),
+      exact le_refl _ },
+    { by_cases hxy : x + y = 0,
+      { rw [infty_valuation_def, if_pos hxy], exact zero_le',},
+      { rw [infty_valuation_def, infty_valuation_def, infty_valuation_def, if_neg hx, if_neg hy,
+        if_neg hxy],
+        rw [le_max_iff,
+        with_zero.coe_le_coe, multiplicative.of_add_le, with_zero.coe_le_coe,
+        multiplicative.of_add_le, ← le_max_iff],
+        exact ratfunc.int_degree_add_le hx hy hxy }}}
+end
+
+@[simp] lemma infty_valuation_of_nonzero {x : ratfunc Fq} (hx : x ≠ 0) :
+  infty_valuation_def Fq x = (multiplicative.of_add x.int_degree) :=
+by rw [infty_valuation_def, if_neg hx]
+
+/-- The valuation at infinity on `Fq(t)`. -/
+def infty_valuation  : valuation (ratfunc Fq) (with_zero (multiplicative ℤ)) :=
+{ to_fun          := infty_valuation_def Fq,
+  map_zero'       := infty_valuation.map_zero' Fq,
+  map_one'        := infty_valuation.map_one' Fq,
+  map_mul'        := infty_valuation.map_mul' Fq,
+  map_add_le_max' := infty_valuation.map_add_le_max' Fq }
+
+@[simp] lemma infty_valuation_apply {x : ratfunc Fq} :
+  infty_valuation Fq x = infty_valuation_def Fq x := rfl
+
+@[simp] lemma infty_valuation.C {k : Fq} (hk : k ≠ 0) :
+  infty_valuation_def Fq (ratfunc.C k) = (multiplicative.of_add (0 : ℤ)) :=
+begin
+  have hCk : ratfunc.C k ≠ 0 := (ring_hom.map_ne_zero _).mpr hk,
+  rw [infty_valuation_def, if_neg hCk, ratfunc.int_degree_C],
+end
+
+@[simp] lemma infty_valuation.X :
+  infty_valuation_def Fq (ratfunc.X) = (multiplicative.of_add (1 : ℤ)) :=
+by rw [infty_valuation_def, if_neg ratfunc.X_ne_zero, ratfunc.int_degree_X]
+
+@[simp] lemma infty_valuation.polynomial {p : polynomial Fq} (hp : p ≠ 0) :
+  infty_valuation_def Fq (algebra_map (polynomial Fq) (ratfunc Fq) p) =
+    (multiplicative.of_add (p.nat_degree : ℤ)) :=
+begin
+  have hp' : algebra_map (polynomial Fq) (ratfunc Fq) p ≠ 0,
+  { rw [ne.def, ratfunc.algebra_map_eq_zero_iff], exact hp },
+  rw [infty_valuation_def, if_neg hp', ratfunc.int_degree_polynomial]
+end
+
+end infty_valuation
 
 end function_field

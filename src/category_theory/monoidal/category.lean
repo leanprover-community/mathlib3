@@ -176,6 +176,16 @@ variables {U V W X Y Z : C}
 -- left_unitor_inv_naturality
 -- right_unitor_inv_naturality
 
+lemma tensor_dite {P : Prop} [decidable P]
+  {W X Y Z : C} (f : W ⟶ X) (g : P → (Y ⟶ Z)) (g' : ¬P → (Y ⟶ Z)) :
+  f ⊗ (if h : P then g h else g' h) = if h : P then f ⊗ g h else f ⊗ g' h :=
+by { split_ifs; refl }
+
+lemma dite_tensor {P : Prop} [decidable P]
+  {W X Y Z : C} (f : W ⟶ X) (g : P → (Y ⟶ Z)) (g' : ¬P → (Y ⟶ Z)) :
+  (if h : P then g h else g' h) ⊗ f  = if h : P then g h ⊗ f else g' h ⊗ f :=
+by { split_ifs; refl }
+
 @[reassoc, simp] lemma comp_tensor_id (f : W ⟶ X) (g : X ⟶ Y) :
   (f ≫ g) ⊗ (𝟙 Z) = (f ⊗ (𝟙 Z)) ≫ (g ⊗ (𝟙 Z)) :=
 by { rw ←tensor_comp, simp }

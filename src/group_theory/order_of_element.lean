@@ -84,6 +84,11 @@ lemma is_of_fin_order.quotient {G : Type u} [group G] (N : subgroup G) [N.normal
   exact ⟨n, ⟨npos, (quotient_group.con N).eq.mpr $ hn ▸ (quotient_group.con N).eq.mp rfl⟩⟩,
 end
 
+/-- 1 is of finite order in any group. -/
+@[to_additive "0 is of finite order in any additive group."]
+lemma is_of_fin_order_one : is_of_fin_order (1 : G) :=
+(is_of_fin_order_iff_pow_eq_one 1).mpr ⟨1, _root_.one_pos, one_pow 1⟩
+
 end is_of_fin_order
 
 /-- `order_of x` is the order of the element `x`, i.e. the `n ≥ 1`, s.t. `x ^ n = 1` if it exists.
@@ -151,6 +156,11 @@ is_periodic_pt.minimal_period_dvd ((is_periodic_pt_mul_iff_pow_eq_one _).mpr h)
 @[to_additive add_order_of_dvd_iff_nsmul_eq_zero]
 lemma order_of_dvd_iff_pow_eq_one {n : ℕ} : order_of x ∣ n ↔ x ^ n = 1 :=
 ⟨λ h, by rw [pow_eq_mod_order_of, nat.mod_eq_zero_of_dvd h, pow_zero], order_of_dvd_of_pow_eq_one⟩
+
+@[to_additive add_order_of_map_dvd]
+lemma order_of_map_dvd {H : Type*} [monoid H] (ψ : G →* H) (x : G) :
+  order_of (ψ x) ∣ order_of x :=
+by { apply order_of_dvd_of_pow_eq_one, rw [←map_pow, pow_order_of_eq_one], apply map_one }
 
 @[to_additive]
 lemma exists_pow_eq_self_of_coprime (h : n.coprime (order_of x)) :
@@ -324,6 +334,19 @@ end cancel_monoid
 section group
 variables [group G] [add_group A] {x a} {i : ℤ}
 
+/-- Inverses of elements of finite order have finite order. -/
+@[to_additive "Inverses of elements of finite additive order have finite additive order."]
+lemma is_of_fin_order_inv (x : G) : is_of_fin_order x → is_of_fin_order x⁻¹ :=
+λ hx, (is_of_fin_order_iff_pow_eq_one _).mpr $ begin
+  rcases (is_of_fin_order_iff_pow_eq_one x).mp hx with ⟨n, npos, hn⟩,
+  refine ⟨n, npos, by simp_rw [inv_pow, hn, one_inv]⟩,
+end
+
+/-- Inverses of elements of finite order have finite order. -/
+@[simp, to_additive "Inverses of elements of finite additive order have finite additive order."]
+lemma is_of_fin_order_inv_iff {x : G} : is_of_fin_order x⁻¹ ↔ is_of_fin_order x :=
+⟨λ h, by rw [←inv_inv x]; exact (is_of_fin_order_inv x⁻¹) h, is_of_fin_order_inv x⟩
+
 @[to_additive add_order_of_dvd_iff_zsmul_eq_zero]
 lemma order_of_dvd_iff_zpow_eq_one : (order_of x : ℤ) ∣ i ↔ x ^ i = 1 :=
 begin
@@ -332,6 +355,10 @@ begin
   { rw [dvd_neg, int.coe_nat_dvd, zpow_neg, inv_eq_one, zpow_coe_nat,
       order_of_dvd_iff_pow_eq_one] }
 end
+
+@[simp, to_additive]
+lemma order_of_inv (x : G) : order_of x⁻¹ = order_of x :=
+by simp [order_of_eq_order_of_iff]
 
 @[simp, norm_cast, to_additive] lemma order_of_subgroup {H : subgroup G}
   (y: H) : order_of (y : G) = order_of y :=

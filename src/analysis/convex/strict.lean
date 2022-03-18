@@ -21,7 +21,7 @@ Define strictly convex spaces.
 open set
 open_locale convex pointwise
 
-variables {𝕜 E F β : Type*}
+variables {𝕜 𝕝 E F β : Type*}
 
 open function set
 open_locale convex
@@ -107,13 +107,14 @@ lemma strict_convex_singleton (c : E) : strict_convex 𝕜 ({c} : set E) := pair
 
 lemma set.subsingleton.strict_convex (hs : s.subsingleton) : strict_convex 𝕜 s := hs.pairwise _
 
-lemma strict_convex.linear_image (hs : strict_convex 𝕜 s) (f : E →ₗ[𝕜] F) (hf : is_open_map f) :
+lemma strict_convex.linear_image [semiring 𝕝] [module 𝕝 E] [module 𝕝 F]
+  [linear_map.compatible_smul E F 𝕜 𝕝] (hs : strict_convex 𝕜 s) (f : E →ₗ[𝕝] F)
+  (hf : is_open_map f) :
   strict_convex 𝕜 (f '' s) :=
 begin
   rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy a b ha hb hab,
-  exact hf.image_interior_subset _
-    ⟨a • x + b • y, hs hx hy (ne_of_apply_ne _ hxy) ha hb hab,
-    by rw [f.map_add, f.map_smul, f.map_smul]⟩,
+  refine hf.image_interior_subset _ ⟨a • x + b • y, hs hx hy (ne_of_apply_ne _ hxy) ha hb hab, _⟩,
+  rw [map_add, f.map_smul_of_tower a, f.map_smul_of_tower b]
 end
 
 lemma strict_convex.is_linear_image (hs : strict_convex 𝕜 s) {f : E → F} (h : is_linear_map 𝕜 f)
@@ -183,7 +184,7 @@ end add_comm_monoid
 section add_cancel_comm_monoid
 variables [add_cancel_comm_monoid E] [has_continuous_add E] [module 𝕜 E] {s : set E}
 
-/-- The translation of a strict_convex set is also strict_convex. -/
+/-- The translation of a strictly convex set is also strictly convex. -/
 lemma strict_convex.preimage_add_right (hs : strict_convex 𝕜 s) (z : E) :
   strict_convex 𝕜 ((λ x, z + x) ⁻¹' s) :=
 begin
@@ -193,7 +194,7 @@ begin
   rwa [smul_add, smul_add, add_add_add_comm, ←add_smul, hab, one_smul] at h,
 end
 
-/-- The translation of a strict_convex set is also strict_convex. -/
+/-- The translation of a strictly convex set is also strictly convex. -/
 lemma strict_convex.preimage_add_left (hs : strict_convex 𝕜 s) (z : E) :
   strict_convex 𝕜 ((λ x, x + z) ⁻¹' s) :=
 by simpa only [add_comm] using hs.preimage_add_right z
@@ -201,44 +202,55 @@ by simpa only [add_comm] using hs.preimage_add_right z
 end add_cancel_comm_monoid
 
 section add_comm_group
-variables [add_comm_group E] [module 𝕜 E] {s t : set E}
+variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
 
-lemma strict_convex.add_left [has_continuous_add E] (hs : strict_convex 𝕜 s) (z : E) :
-  strict_convex 𝕜 ((λ x, z + x) '' s) :=
-begin
-  rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ hxy a b ha hb hab,
-  refine (is_open_map_add_left _).image_interior_subset _ _,
-  refine ⟨a • x + b • y, hs hx hy (ne_of_apply_ne _ hxy) ha hb hab, _⟩,
-  rw [smul_add, smul_add, add_add_add_comm, ←add_smul, hab, one_smul],
-end
+section continuous_add
+variables [has_continuous_add E] {s t : set E}
 
-lemma strict_convex.add_right [has_continuous_add E] (hs : strict_convex 𝕜 s) (z : E) :
-  strict_convex 𝕜 ((λ x, x + z) '' s) :=
-by simpa only [add_comm] using hs.add_left z
-
-lemma strict_convex.add [has_continuous_add E] {t : set E} (hs : strict_convex 𝕜 s)
-  (ht : strict_convex 𝕜 t) :
+lemma strict_convex.add (hs : strict_convex 𝕜 s) (ht : strict_convex 𝕜 t) :
   strict_convex 𝕜 (s + t) :=
 begin
   rintro _ ⟨v, w, hv, hw, rfl⟩ _ ⟨x, y, hx, hy, rfl⟩ h a b ha hb hab,
   rw [smul_add, smul_add, add_add_add_comm],
   obtain rfl | hvx := eq_or_ne v x,
-  { rw convex.combo_self hab,
-    suffices : v + (a • w + b • y) ∈ interior ({v} + t),
-    { exact interior_mono (add_subset_add (singleton_subset_iff.2 hv) (subset.refl _)) this },
-    rw singleton_add,
+  { refine interior_mono (add_subset_add (singleton_subset_iff.2 hv) subset.rfl) _,
+    rw [convex.combo_self hab, singleton_add],
     exact (is_open_map_add_left _).image_interior_subset _
       (mem_image_of_mem _ $ ht hw hy (ne_of_apply_ne _ h) ha hb hab) },
-  obtain rfl | hwy := eq_or_ne w y,
-  { rw convex.combo_self hab,
-    suffices : a • v + b • x + w ∈ interior (s + {w}),
-    { exact interior_mono (add_subset_add (subset.refl _) (singleton_subset_iff.2 hw)) this },
-    rw add_singleton,
-    exact (is_open_map_add_right _).image_interior_subset _
-      (mem_image_of_mem _ $ hs hv hx hvx ha hb hab) },
-  exact subset_interior_add (add_mem_add (hs hv hx hvx ha hb hab) $ ht hw hy hwy ha hb hab),
+  exact subset_interior_add_left (add_mem_add (hs hv hx hvx ha hb hab) $
+    ht.convex hw hy ha.le hb.le hab)
 end
 
+lemma strict_convex.add_left (hs : strict_convex 𝕜 s) (z : E) :
+  strict_convex 𝕜 ((λ x, z + x) '' s) :=
+by simpa only [singleton_add] using (strict_convex_singleton z).add hs
+
+lemma strict_convex.add_right (hs : strict_convex 𝕜 s) (z : E) :
+  strict_convex 𝕜 ((λ x, x + z) '' s) :=
+by simpa only [add_comm] using hs.add_left z
+
+/-- The translation of a strictly convex set is also strictly convex. -/
+lemma strict_convex.vadd (hs : strict_convex 𝕜 s) (x : E) : strict_convex 𝕜 (x +ᵥ s) :=
+hs.add_left x
+
+end continuous_add
+
+section continuous_smul
+variables [linear_ordered_field 𝕝] [module 𝕝 E] [has_continuous_const_smul 𝕝 E]
+  [linear_map.compatible_smul E E 𝕜 𝕝] {s : set E} {x : E}
+
+lemma strict_convex.smul (hs : strict_convex 𝕜 s) (c : 𝕝) : strict_convex 𝕜 (c • s) :=
+begin
+  obtain rfl | hc := eq_or_ne c 0,
+  { exact (subsingleton_zero_smul_set _).strict_convex },
+  { exact hs.linear_image (linear_map.lsmul _ _ c) (is_open_map_smul₀ hc) }
+end
+
+lemma strict_convex.affinity [has_continuous_add E] (hs : strict_convex 𝕜 s) (z : E) (c : 𝕝) :
+  strict_convex 𝕜 (z +ᵥ c • s) :=
+(hs.smul c).vadd z
+
+end continuous_smul
 end add_comm_group
 end ordered_semiring
 
@@ -308,7 +320,7 @@ begin
   exact mem_image_of_mem _ ⟨ht₀, ht₁⟩,
 end
 
-/-- The preimage of a strict_convex set under an affine map is strict_convex. -/
+/-- The preimage of a strictly convex set under an affine map is strictly convex. -/
 lemma strict_convex.affine_preimage {s : set F} (hs : strict_convex 𝕜 s) {f : E →ᵃ[𝕜] F}
   (hf : continuous f) (hfinj : injective f) :
   strict_convex 𝕜 (f ⁻¹' s) :=
@@ -319,7 +331,7 @@ begin
   exact hs hx hy (hfinj.ne hxy) ha hb hab,
 end
 
-/-- The image of a strict_convex set under an affine map is strict_convex. -/
+/-- The image of a strictly convex set under an affine map is strictly convex. -/
 lemma strict_convex.affine_image (hs : strict_convex 𝕜 s) {f : E →ᵃ[𝕜] F} (hf : is_open_map f) :
   strict_convex 𝕜 (f '' s) :=
 begin
@@ -345,24 +357,7 @@ variables [linear_ordered_field 𝕜] [topological_space E]
 section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E} {x : E}
 
-lemma strict_convex.smul [has_continuous_const_smul 𝕜 E] (hs : strict_convex 𝕜 s)
-  (c : 𝕜) :
-  strict_convex 𝕜 (c • s) :=
-begin
-  obtain rfl | hc := eq_or_ne c 0,
-  { exact (subsingleton_zero_smul_set _).strict_convex },
-  { exact hs.linear_image (linear_map.lsmul _ _ c) (is_open_map_smul₀ hc) }
-end
-
-lemma strict_convex.affinity [has_continuous_add E] [has_continuous_const_smul 𝕜 E]
-  (hs : strict_convex 𝕜 s) (z : E) (c : 𝕜) :
-  strict_convex 𝕜 ((λ x, z + c • x) '' s) :=
-begin
-  have h := (hs.smul c).add_left z,
-  rwa [←image_smul, image_image] at h,
-end
-
-/-- Alternative definition of set strict_convexity, using division. -/
+/-- Alternative definition of set strict convexity, using division. -/
 lemma strict_convex_iff_div :
   strict_convex 𝕜 s ↔ s.pairwise
     (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → (a / (a + b)) • x + (b / (a + b)) • y ∈ interior s) :=

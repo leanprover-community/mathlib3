@@ -97,6 +97,32 @@ def get_vert : Π {u v : V} (p : G.walk u v) (n : ℕ), V
 | u v (cons _ _) 0 := u
 | u v (cons _ q) (n+1) := q.get_vert n
 
+@[simp] lemma get_vert_zero {u v} (w : G.walk u v) : w.get_vert 0 = u :=
+by { cases w; refl }
+
+lemma get_vert_of_length_le {u v} (w : G.walk u v) {i : ℕ} (hi : w.length ≤ i) :
+  w.get_vert i = v :=
+begin
+  induction w with _ x y z hxy wyz IH generalizing i,
+  { refl },
+  { cases i,
+    { cases hi, },
+    { exact IH (nat.succ_le_succ_iff.1 hi) } }
+end
+
+@[simp] lemma get_vert_length {u v} (w : G.walk u v) : w.get_vert w.length = v :=
+w.get_vert_of_length_le rfl.le
+
+lemma adj_get_vert_succ {u v} (w : G.walk u v) {i : ℕ} (hi : i < w.length) :
+  G.adj (w.get_vert i) (w.get_vert (i+1)) :=
+begin
+  induction w with _ x y z hxy wyz IH generalizing i,
+  { cases hi, },
+  { cases i,
+    { simp [get_vert, hxy] },
+    { exact IH (nat.succ_lt_succ_iff.1 hi) } },
+end
+
 @[simp] lemma cons_append {u v w x : V} (h : G.adj u v) (p : G.walk v w) (q : G.walk w x) :
   (cons h p).append q = cons h (p.append q) := rfl
 

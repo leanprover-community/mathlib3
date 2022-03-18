@@ -618,6 +618,10 @@ ext (by rw [coe_cast, coe_last, coe_last, nat.succ_injective h])
 @[simp] lemma cast_refl (h : n = n := rfl) : cast h = order_iso.refl (fin n) :=
 by { ext, refl }
 
+lemma cast_le_of_eq {m n : ℕ} (h : m = n) {h' : m ≤ n} :
+  (cast_le h' : fin m → fin n) = fin.cast h :=
+funext (λ _, rfl)
+
 /-- While in many cases `fin.cast` is better than `equiv.cast`/`cast`, sometimes we want to apply
 a generic theorem about `cast`. -/
 lemma cast_to_equiv (h : n = m) : (cast h).to_equiv = equiv.cast (h ▸ rfl) :=

@@ -212,11 +212,11 @@ lemma cyclotomic_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] :
 { leading :=
   begin
     rw [show (X + 1 : ℤ[X]) = X + C 1, by simp],
-    refine ((cyclotomic.monic p ℤ).comp (monic_X_add_C 1) (λ h₁, _)).leading_coeff_not_mem
+    refine ((cyclotomic.monic p ℤ).comp (monic_X_add_C 1) (λ h, _)).leading_coeff_not_mem
       (ideal.is_prime.ne_top $ (ideal.span_singleton_prime (by exact_mod_cast hp.out.ne_zero)).2
       $ nat.prime_iff_prime_int.1 hp.out),
-    rw [nat_degree_X_add_C] at h₁,
-    exact zero_ne_one h₁.symm
+    rw [nat_degree_X_add_C] at h,
+    exact zero_ne_one h.symm
   end,
   mem := λ i hi,
   begin
@@ -249,11 +249,11 @@ lemma cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] (
 { leading :=
   begin
     rw [show (X + 1 : ℤ[X]) = X + C 1, by simp],
-    refine ((cyclotomic.monic _ ℤ).comp (monic_X_add_C 1) (λ h₁, _)).leading_coeff_not_mem
+    refine ((cyclotomic.monic _ ℤ).comp (monic_X_add_C 1) (λ h, _)).leading_coeff_not_mem
       (ideal.is_prime.ne_top $ (ideal.span_singleton_prime (by exact_mod_cast hp.out.ne_zero)).2
       $ nat.prime_iff_prime_int.1 hp.out),
-    rw [nat_degree_X_add_C] at h₁,
-    exact zero_ne_one h₁.symm
+    rw [nat_degree_X_add_C] at h,
+    exact zero_ne_one h.symm
   end,
   mem :=
   begin

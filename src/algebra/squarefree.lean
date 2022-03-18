@@ -49,8 +49,8 @@ begin
   exact ⟨0, by simp⟩,
 end
 
-lemma ne_zero_of_squarefree [monoid_with_zero R] [nontrivial R] {m : R}
-(hm : squarefree (m : R)) : m ≠ 0 :=
+lemma squarefree.ne_zero [monoid_with_zero R] [nontrivial R] {m : R}
+  (hm : squarefree (m : R)) : m ≠ 0 :=
 begin
   rintro rfl,
   exact not_squarefree_zero hm,

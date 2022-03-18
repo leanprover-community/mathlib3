@@ -95,8 +95,8 @@ lemma filter.tendsto.mul_const (b : M) {c : M} {f : α → M} {l : filter α}
 h.mul tendsto_const_nhds
 
 /-- Construct a unit from limits of units and their inverses. -/
-@[to_additive tendsto.add_units "Construct an additive unit from limits of additive units and their
-negatives.", simps]
+@[to_additive filter.tendsto.add_units "Construct an additive unit from limits of additive units
+and their negatives.", simps]
 def filter.tendsto.units [topological_space N] [monoid N] [has_continuous_mul N] [t2_space N]
   {f : ι → Nˣ} {r₁ r₂ : N} {l : filter ι} [l.ne_bot]
   (h₁ : tendsto (λ x, ↑(f x)) l (𝓝 r₁)) (h₂ : tendsto (λ x, ↑(f x)⁻¹) l (𝓝 r₂)) : Nˣ :=

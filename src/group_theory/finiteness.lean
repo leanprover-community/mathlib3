@@ -276,6 +276,16 @@ def group.rank [h : group.fg G]
   [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)] :=
 nat.find (group.fg_iff'.mp h)
 
+@[to_additive] lemma group.rank_spec [h : group.fg G]
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)] :
+  ∃ S : finset G, S.card = group.rank G ∧ subgroup.closure (S : set G) = ⊤ :=
+nat.find_spec (group.fg_iff'.mp h)
+
+@[to_additive] lemma group.rank_le [group.fg G]
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)]
+  {S : finset G} (hS : subgroup.closure (S : set G) = ⊤) : group.rank G ≤ S.card :=
+nat.find_le ⟨S, rfl, hS⟩
+
 end group
 
 section quotient_group

@@ -503,10 +503,6 @@ begin
     simp }
 end
 
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/master
 /-- An atomic formula is either equality or a relation symbol applied to terms.
   Note that `⊥` and `⊤` are not considered atomic in this convention. -/
 inductive is_atomic : L.bounded_formula α n → Prop

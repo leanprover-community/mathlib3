@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Stevens
 -/
 import tactic.ring_exp
+import data.nat.prime
 import data.nat.parity
 import data.nat.choose.sum
 
@@ -30,15 +31,9 @@ local notation x`#` := primorial x
 
 lemma primorial_succ {n : ℕ} (n_big : 1 < n) (r : n % 2 = 1) : (n + 1)# = n# :=
 begin
-  have not_prime : ¬nat.prime (n + 1),
-  { intros is_prime,
-    cases (prime.eq_two_or_odd is_prime) with _ n_even,
-    { linarith, },
-    { apply nat.zero_ne_one,
-      rwa [add_mod, r, nat.one_mod, ←two_mul, mul_one, nat.mod_self] at n_even, }, },
-  apply finset.prod_congr,
-  { rw [@range_succ (n + 1), filter_insert, if_neg not_prime], },
-  { exact λ _ _, rfl, },
+  refine prod_congr _ (λ _ _, rfl),
+  rw [range_succ, filter_insert, if_neg (λ h, _)],
+  linarith [h.eq_two_of_even ((nat.odd_iff.mpr r).add_odd odd_one)],
 end
 
 lemma dvd_choose_of_middling_prime (p : ℕ) (is_prime : nat.prime p) (m : ℕ)

@@ -27,11 +27,17 @@ by rw [← nat.cast_two, char_p.cast_eq_zero]
 @[simp] lemma add_self_eq_zero (x : R) : x + x = 0 :=
 by rw [←two_smul R x, two_eq_zero, zero_smul]
 
-@[simp] lemma bit0_eq_zero (x : R) : (bit0 x : R) = 0 :=
-add_self_eq_zero x
+@[simp] lemma bit0_eq_zero : (bit0 : R → R) = 0 :=
+by { funext, exact add_self_eq_zero _ }
 
-@[simp] lemma bit1_eq_one (x : R) : (bit1 x : R) = 1 :=
-by rw [bit1, bit0_eq_zero, zero_add]
+lemma bit0_eq_zero_apply (x : R) : (bit0 x : R) = 0 :=
+by simp
+
+@[simp] lemma bit1_eq_one : (bit1 : R → R) = 1 :=
+by { funext, simp [bit1] }
+
+lemma bit1_eq_one_apply (x : R) : (bit1 x : R) = 1 :=
+by simp
 
 end semiring
 

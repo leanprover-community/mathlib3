@@ -14,7 +14,7 @@ In this file we construct the transfer homomorphism.
 
 ## Main definitions
 
-- `transver ϕ : G →* A` for `ϕ : H →* A` from `H : subgroup G` to a commutative group `A`.
+- `transfer ϕ : G →* A` for `ϕ : H →* A` from `H : subgroup G` to a commutative group `A`.
 -/
 
 open_locale big_operators
@@ -85,7 +85,7 @@ let α : left_transversals (H : set G) :=
   map_one' := by rw [one_smul, diff_self],
   map_mul' := λ g h, by rw [mul_smul, ←diff_mul_diff, smul_diff_smul] }
 
-lemma transfer_def (g : G) : transfer ϕ g = diff ϕ α (g • α) :=
+@[to_additive] lemma transfer_def (g : G) : transfer ϕ g = diff ϕ α (g • α) :=
 by rw [transfer, ←diff_mul_diff, ←smul_diff_smul, mul_comm, diff_mul_diff]; refl
 
 end subgroup

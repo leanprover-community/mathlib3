@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel
+Authors: Johannes Hölzl, Floris van Doorn, Sébastien Gouëzel, Alex J. Best
 -/
 import data.list.basic
 
@@ -42,9 +42,23 @@ by rw [concat_eq_append, prod_append, prod_singleton]
 @[simp, to_additive]
 lemma prod_join {l : list (list M)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; [refl, simp only [*, list.join, map, prod_append, prod_cons]]
+
 @[to_additive]
 lemma prod_eq_foldr : l.prod = foldr (*) 1 l :=
 list.rec_on l rfl $ λ a l ihl, by rw [prod_cons, foldr_cons, ihl]
+
+@[simp, priority 500, to_additive]
+theorem prod_repeat (a : M) (n : ℕ) : (repeat a n).prod = a ^ n :=
+begin
+  induction n with n ih,
+  { rw pow_zero, refl },
+  { rw [list.repeat_succ, list.prod_cons, ih, pow_succ] }
+end
+
+@[to_additive sum_eq_card_nsmul]
+lemma prod_eq_pow_card (l : list M) (m : M) (h : ∀ (x ∈ l), x = m) :
+  l.prod = m ^ l.length :=
+by rw [← prod_repeat, ← list.eq_repeat.mpr ⟨rfl, h⟩]
 
 @[to_additive]
 lemma prod_hom_rel (l : list ι) {r : M → N → Prop} {f : ι → M} {g : ι → N} (h₁ : r 1 1)
@@ -97,7 +111,7 @@ lemma prod_take_succ :
 | (h :: t) (n+1) _ := by { dsimp, rw [prod_cons, prod_cons, prod_take_succ, mul_assoc] }
 
 /-- A list with product not one must have positive length. -/
-@[to_additive "A list with nonzero sum must have positive length."]
+@[to_additive "A list with sum not zero must have positive length."]
 lemma length_pos_of_prod_ne_one (L : list M) (h : L.prod ≠ 1) : 0 < L.length :=
 by { cases L, { contrapose h, simp }, { simp } }
 
@@ -137,6 +151,86 @@ by rw [← op_inj, op_unop, mul_opposite.op_list_prod, map_reverse, map_map, rev
 lemma unop_map_prod {F : Type*} [monoid_hom_class F M Nᵐᵒᵖ] (f : F) (l : list M) :
   unop (f l.prod) = (l.map (unop ∘ f)).reverse.prod :=
 by rw [l.map_prod f, mul_opposite.unop_list_prod, map_map]
+
+@[to_additive]
+lemma prod_commute (l : list M) (y : M) (h : ∀ (x ∈ l), commute y x) : commute y l.prod :=
+begin
+  induction l with z l IH,
+  { simp },
+  { rw list.ball_cons at h,
+    rw list.prod_cons,
+    exact commute.mul_right h.1 (IH h.2), }
+end
+
+@[to_additive sum_le_sum] lemma prod_le_prod' [preorder M]
+  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
+  {l : list ι} {f g : ι → M} (h : ∀ i ∈ l, f i ≤ g i) :
+  (l.map f).prod ≤ (l.map g).prod :=
+begin
+  induction l with i l ihl, { refl },
+  rw forall_mem_cons at h,
+  simpa using mul_le_mul' h.1 (ihl h.2)
+end
+
+@[to_additive sum_lt_sum] lemma prod_lt_prod'
+  [preorder M] [covariant_class M M (*) (<)] [covariant_class M M (*) (≤)]
+  [covariant_class M M (function.swap (*)) (<)] [covariant_class M M (function.swap (*)) (≤)]
+  {l : list ι} (f g : ι → M) (h₁ : ∀ i ∈ l, f i ≤ g i) (h₂ : ∃ i ∈ l, f i < g i) :
+  (l.map f).prod < (l.map g).prod :=
+begin
+  induction l with i l ihl, { rcases h₂ with ⟨_, ⟨⟩, _⟩ },
+  simp only [ball_cons, bex_cons, map_cons, prod_cons] at h₁ h₂ ⊢,
+  cases h₂,
+  exacts [mul_lt_mul_of_lt_of_le h₂ (prod_le_prod' h₁.2),
+    mul_lt_mul_of_le_of_lt h₁.1 $ ihl h₁.2 h₂]
+end
+
+@[to_additive] lemma prod_lt_prod_of_ne_nil
+  [preorder M] [covariant_class M M (*) (<)] [covariant_class M M (*) (≤)]
+  [covariant_class M M (function.swap (*)) (<)] [covariant_class M M (function.swap (*)) (≤)]
+  {l : list ι} (hl : l ≠ []) (f g : ι → M) (hlt : ∀ i ∈ l, f i < g i) :
+  (l.map f).prod < (l.map g).prod :=
+prod_lt_prod' f g (λ i hi, (hlt i hi).le) $ (exists_mem_of_ne_nil l hl).imp $ λ i hi, ⟨hi, hlt i hi⟩
+
+@[to_additive sum_le_card_nsmul]
+lemma prod_le_pow_card [preorder M]
+  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
+  (l : list M) (n : M) (h : ∀ (x ∈ l), x ≤ n) :
+  l.prod ≤ n ^ l.length :=
+by simpa only [map_id'', map_const, prod_repeat] using prod_le_prod' h
+
+@[to_additive card_nsmul_le_sum]
+lemma pow_card_le_prod [preorder M]
+  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
+  (l : list M) (n : M) (h : ∀ (x ∈ l), n ≤ x) :
+  n ^ l.length ≤ l.prod :=
+@prod_le_pow_card (order_dual M) _ _ _ _ l n h
+
+@[to_additive exists_lt_of_sum_lt] lemma exists_lt_of_prod_lt' [linear_order M]
+  [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)] {l : list ι}
+  (f g : ι → M) (h : (l.map f).prod < (l.map g).prod) :
+  ∃ i ∈ l, f i < g i :=
+by { contrapose! h, exact prod_le_prod' h }
+
+@[to_additive exists_le_of_sum_le]
+lemma exists_le_of_prod_le' [linear_order M] [covariant_class M M (*) (<)]
+  [covariant_class M M (*) (≤)] [covariant_class M M (function.swap (*)) (<)]
+  [covariant_class M M (function.swap (*)) (≤)] {l : list ι} (hl : l ≠ [])
+  (f g : ι → M) (h : (l.map f).prod ≤ (l.map g).prod) :
+  ∃ x ∈ l, f x ≤ g x :=
+by { contrapose! h, exact prod_lt_prod_of_ne_nil hl _ _ h }
+
+@[to_additive sum_nonneg]
+lemma one_le_prod_of_one_le [preorder M] [covariant_class M M (*) (≤)] {l : list M}
+  (hl₁ : ∀ x ∈ l, (1 : M) ≤ x) :
+  1 ≤ l.prod :=
+begin
+  -- We don't use `pow_card_le_prod` to avoid assumption
+  -- [covariant_class M M (function.swap (*)) (≤)]
+  induction l with hd tl ih, { refl },
+  rw prod_cons,
+  exact one_le_mul (hl₁ hd (mem_cons_self hd tl)) (ih (λ x h, hl₁ x (mem_cons_of_mem hd h)))
+end
 
 end monoid
 
@@ -242,16 +336,6 @@ begin
   { simp [take_all_of_le h, take_all_of_le (le_trans h (nat.le_succ _))] }
 end
 
-@[to_additive sum_nonneg]
-lemma one_le_prod_of_one_le [ordered_comm_monoid M] {l : list M} (hl₁ : ∀ x ∈ l, (1 : M) ≤ x) :
-  1 ≤ l.prod :=
-begin
-  induction l with hd tl ih,
-  { simp },
-  rw prod_cons,
-  exact one_le_mul (hl₁ hd (mem_cons_self hd tl)) (ih (λ x h, hl₁ x (mem_cons_of_mem hd h))),
-end
-
 @[to_additive sum_pos]
 lemma one_lt_prod_of_one_lt [ordered_comm_monoid M] :
   ∀ (l : list M) (hl : ∀ x ∈ l, (1 : M) < x) (hl₂ : l ≠ []), 1 < l.prod
@@ -339,47 +423,6 @@ begin
   { rw [list.sum_cons],
     exact dvd_add (h _ (mem_cons_self _ _)) (ih (λ x hx, h x (mem_cons_of_mem _ hx))) }
 end
-
-lemma exists_lt_of_sum_lt [linear_ordered_cancel_add_comm_monoid M] {l : list ι} (f g : ι → M)
-  (h : (l.map f).sum < (l.map g).sum) :
-  ∃ x ∈ l, f x < g x :=
-begin
-  induction l with x l,
-  { exact (lt_irrefl _ h).elim },
-  obtain h' | h' := lt_or_le (f x) (g x),
-  { exact ⟨x, mem_cons_self _ _, h'⟩ },
-  simp at h,
-  obtain ⟨y, h1y, h2y⟩ := l_ih (lt_of_add_lt_add_left (h.trans_le $ add_le_add_right h' _)),
-  exact ⟨y, mem_cons_of_mem x h1y, h2y⟩,
-end
-
-lemma exists_le_of_sum_le [linear_ordered_cancel_add_comm_monoid M] {l : list ι} (hl : l ≠ [])
-  (f g : ι → M) (h : (l.map f).sum ≤ (l.map g).sum) :
-  ∃ x ∈ l, f x ≤ g x :=
-begin
-  cases l with x l,
-  { contradiction },
-  obtain h' | h' := le_or_lt (f x) (g x),
-  { exact ⟨x, mem_cons_self _ _, h'⟩ },
-  obtain ⟨y, h1y, h2y⟩ := exists_lt_of_sum_lt f g _,
-  exact ⟨y, mem_cons_of_mem x h1y, le_of_lt h2y⟩, simp at h,
-  exact lt_of_add_lt_add_left (h.trans_lt $ add_lt_add_right h' _),
-end
-
-/-- We'd like to state this as `L.head * L.tail.prod = L.prod`, but because `L.head` relies on an
-inhabited instance to return a garbage value on the empty list, this is not possible.
-Instead, we write the statement in terms of `(L.nth 0).get_or_else 1`. -/
-@[to_additive]
-lemma nth_zero_mul_tail_prod [monoid M] (l : list M) :
-  (l.nth 0).get_or_else 1 * l.tail.prod = l.prod :=
-by cases l; simp
-
-/-- Same as `nth_zero_mul_tail_prod`, but avoiding the `list.head` garbage complication by requiring
-the list to be nonempty. -/
-@[to_additive]
-lemma head_mul_tail_prod_of_ne_nil [monoid M] [inhabited M] (l : list M) (h : l ≠ []) :
-  l.head * l.tail.prod = l.prod :=
-by cases l; [contradiction, simp]
 
 /-- The product of a list of positive natural numbers is positive,
 and likewise for any nontrivial ordered semiring. -/

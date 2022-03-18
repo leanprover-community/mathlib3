@@ -151,6 +151,20 @@ lemma map_smul [has_scalar R α] [has_scalar R β] (f : α → β) (r : R)
   (hf : ∀ a, f (r • a) = r • f a) (M : matrix m n α) : (r • M).map f = r • (M.map f) :=
 ext $ λ _ _, hf _
 
+/-- The scalar action via `has_mul.to_has_scalar` is transformed by the same map as the elements
+of the matrix, when `f` preserves multiplication. -/
+lemma map_smul' [has_mul α] [has_mul β] (f : α → β) (r : α) (A : matrix n n α)
+  (hf : ∀ a₁ a₂, f (a₁ * a₂) = f a₁ * f a₂) :
+  (r • A).map f = f r • A.map f :=
+ext $ λ _ _, hf _ _
+
+/-- The scalar action via `has_mul.to_has_opposite_scalar` is transformed by the same map as the
+elements of the matrix, when `f` preserves multiplication. -/
+lemma map_op_smul' [has_mul α] [has_mul β] (f : α → β) (r : α) (A : matrix n n α)
+  (hf : ∀ a₁ a₂, f (a₁ * a₂) = f a₁ * f a₂) :
+  (mul_opposite.op r • A).map f = mul_opposite.op (f r) • A.map f :=
+ext $ λ _ _, hf _ _
+
 lemma _root_.is_smul_regular.matrix [has_scalar R S] {k : R} (hk : is_smul_regular S k) :
   is_smul_regular (matrix m n S) k :=
 is_smul_regular.pi $ λ _, is_smul_regular.pi $ λ _, hk

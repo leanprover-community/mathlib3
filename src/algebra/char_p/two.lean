@@ -21,7 +21,7 @@ namespace char_two
 section semiring
 variables [semiring R] [char_p R 2]
 
-@[simp] lemma two_eq_zero : (2 : R) = 0 :=
+lemma two_eq_zero : (2 : R) = 0 :=
 by rw [← nat.cast_two, char_p.cast_eq_zero]
 
 @[simp] lemma add_self_eq_zero (x : R) : x + x = 0 :=

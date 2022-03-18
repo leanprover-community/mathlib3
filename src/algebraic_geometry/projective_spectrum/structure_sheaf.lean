@@ -89,15 +89,15 @@ If `x` is a point in `Proj 𝒜`, then `y ∈ Aₓ` is said to satisfy `num_deno
 structure num_denom_same_deg :=
 (deg : ℕ)
 (num denom : 𝒜 deg)
-(denom_not_mem : denom.1 ∉ x.as_homogeneous_ideal)
+(denom_not_mem : (denom : A) ∉ x.as_homogeneous_ideal)
 
 @[ext] lemma ext {c1 c2 : num_denom_same_deg x} (hdeg : c1.deg = c2.deg)
-  (hnum : c1.num.1 = c2.num.1) (hdenom : c1.denom.1 = c2.denom.1) :
+  (hnum : (c1.num : A) = c2.num) (hdenom : (c1.denom : A) = c2.denom) :
   c1 = c2 :=
 begin
   rcases c1 with ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩,
   rcases c2 with ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩,
-  dsimp only at *,
+  dsimp only [subtype.coe_mk] at *,
   simp only,
   exact ⟨hdeg, by subst hdeg; subst hnum, by subst hdeg; subst hdenom⟩,
 end
@@ -138,10 +138,10 @@ lemma denom_mul (c1 c2 : num_denom_same_deg x) : ((c1 * c2).denom : A) = c1.deno
 instance : has_add (num_denom_same_deg x) :=
 { add := λ c1 c2,
   { deg := c1.deg + c2.deg,
-    num := ⟨c1.denom.1 * c2.num.1 + c2.denom.1 * c1.num.1,
+    num := ⟨c1.denom * c2.num + c2.denom * c1.num,
       add_mem _ (mul_mem c1.denom.2 c2.num.2)
         (add_comm c2.deg c1.deg ▸ mul_mem c2.denom.2 c1.num.2)⟩,
-    denom := ⟨c1.denom.1 * c2.denom.1, mul_mem c1.denom.2 c2.denom.2⟩,
+    denom := ⟨c1.denom * c2.denom, mul_mem c1.denom.2 c2.denom.2⟩,
     denom_not_mem := λ r, or.elim (x.is_prime.mem_or_mem r) c1.denom_not_mem c2.denom_not_mem } }
 
 lemma deg_add (c1 c2 : num_denom_same_deg x) : (c1 + c2).deg = c1.deg + c2.deg := rfl
@@ -151,11 +151,11 @@ lemma denom_add (c1 c2 : num_denom_same_deg x) :
   ((c1 + c2).denom : A) = c1.denom * c2.denom := rfl
 
 instance : has_neg (num_denom_same_deg x) :=
-{ neg := λ c, ⟨c.deg, ⟨-c.num.1, neg_mem _ c.num.2⟩, c.denom, c.denom_not_mem⟩ }
+{ neg := λ c, ⟨c.deg, ⟨-c.num, neg_mem _ c.num.2⟩, c.denom, c.denom_not_mem⟩ }
 
 lemma deg_neg (c : num_denom_same_deg x) : (-c).deg = c.deg := rfl
 lemma num_neg (c : num_denom_same_deg x) : ((-c).num : A) = -c.num := rfl
-lemma denom_neg (c : num_denom_same_deg x) : ((-c).denom : A) = c.denom.1 := rfl
+lemma denom_neg (c : num_denom_same_deg x) : ((-c).denom : A) = c.denom := rfl
 
 instance : comm_monoid (num_denom_same_deg x) :=
 { one := 1,
@@ -166,7 +166,7 @@ instance : comm_monoid (num_denom_same_deg x) :=
   mul_comm := λ c1 c2, ext _ (add_comm _ _) (mul_comm _ _) (mul_comm _ _) }
 
 instance : has_pow (num_denom_same_deg x) ℕ :=
-{ pow := λ c n, ⟨n • c.deg, ⟨c.num.1 ^ n, pow_mem n c.num.2⟩, ⟨c.denom.1 ^ n, pow_mem n c.denom.2⟩,
+{ pow := λ c n, ⟨n • c.deg, ⟨c.num ^ n, pow_mem n c.num.2⟩, ⟨c.denom ^ n, pow_mem n c.denom.2⟩,
     begin
       cases n,
       { simp only [pow_zero],
@@ -179,7 +179,7 @@ lemma num_pow (c : num_denom_same_deg x) (n : ℕ) : ((c ^ n).num : A) = c.num ^
 lemma denom_pow (c : num_denom_same_deg x) (n : ℕ) : ((c ^ n).denom : A) = c.denom ^ n := rfl
 
 instance : has_scalar ℤ (num_denom_same_deg x) :=
-{ smul := λ m c, ⟨c.deg, ⟨m • c.num.1, begin
+{ smul := λ m c, ⟨c.deg, ⟨m • c.num, begin
   rw [zsmul_eq_mul],
     suffices : (m : A) ∈ 𝒜 0,
     { convert mul_mem this c.num.2,
@@ -213,15 +213,14 @@ lemma homogeneous_localization.val_injective :
 λ a b, quotient.rec_on_subsingleton₂' a b $ λ a b h, quotient.sound' h
 
 instance homogeneous_localization.has_pow : has_pow (homogeneous_localization x) ℕ :=
-{ pow := λ z n, @@quotient.map (setoid.ker $ num_denom_same_deg.embedding x)
-    (setoid.ker $ num_denom_same_deg.embedding x) (λ y, y^n)
+{ pow := λ z n, (quotient.map' (^ n)
     (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _), begin
       change localization.mk _ _ = localization.mk _ _,
       simp only [num_pow, denom_pow],
       convert congr_arg (λ z, z ^ n) h;
       erw localization.mk_pow;
       refl,
-    end) z }
+    end) : homogeneous_localization x → homogeneous_localization x) z }
 
 instance : has_scalar ℤ (homogeneous_localization x) :=
 { smul := λ m, quotient.map' ((•) m)
@@ -249,17 +248,15 @@ instance : has_neg (homogeneous_localization x) :=
 { neg := quotient.map' has_neg.neg
     (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _), begin
       change localization.mk _ _ = localization.mk _ _,
-      simp only [num_neg, denom_neg],
-      convert congr_arg (λ c, -c) h;
-      erw [localization.neg_mk];
-      refl,
+      simp only [num_neg, denom_neg, ←localization.neg_mk],
+      exact congr_arg (λ c, -c) h
     end) }
 
 instance : has_add (homogeneous_localization x) :=
 { add := quotient.map₂' (+) (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _)
     c3 c4 (h' : localization.mk _ _ = localization.mk _ _), begin
     change localization.mk _ _ = localization.mk _ _,
-    simp only [num_add, denom_add],
+    simp only [num_add, denom_add, ←localization.add_mk],
     convert congr_arg2 (+) h h';
     erw [localization.add_mk];
     refl,
@@ -426,11 +423,11 @@ variables {𝒜} {x : projective_spectrum.Top 𝒜}
 
 /-- numerator of an element in `homogeneous_localization x`-/
 def homogeneous_localization.num (f : homogeneous_localization x) : A :=
-(quotient.out' f).num.1
+(quotient.out' f).num
 
 /-- denominator of an element in `homogeneous_localization x`-/
 def homogeneous_localization.denom (f : homogeneous_localization x) : A :=
-(quotient.out' f).denom.1
+(quotient.out' f).denom
 
 /-- For an element in `homogeneous_localization x`, degree is the natural number `i` such that
   `𝒜 i` contains both numerator and denominator. -/

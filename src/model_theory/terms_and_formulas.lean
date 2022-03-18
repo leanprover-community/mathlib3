@@ -280,19 +280,6 @@ instance : has_sup (L.bounded_formula α n) := ⟨λ f g, f.not.imp g⟩
 /-- The biimplication between two bounded formulas. -/
 protected def iff (φ ψ : L.bounded_formula α n) := φ.imp ψ ⊓ ψ.imp φ
 
-/-- A slightly better-behaved version of the automatic
-  `first_order.language.bounded_formula.rec_on`, which
-  uses `⊥`, `term.bd_equal`, and `relations.bounded_formula`. -/
-protected def induction_on {P : ∀ {n}, L.bounded_formula α n → Sort*}
-  (φ : L.bounded_formula α n)
-  (hf : ∀ {n}, P (⊥ : L.bounded_formula α n))
-  (he : ∀ {n} (t₁ t₂ : L.term (α ⊕ fin n)), P (t₁.bd_equal t₂))
-  (hr : ∀ {m n} (R : L.relations n) (ts : fin n → L.term (α ⊕ fin m)), P (R.bounded_formula ts))
-  (hi : ∀ {n} {φ ψ : L.bounded_formula α n}, P φ → P ψ → P (φ.imp ψ))
-  (ha : ∀ {n} {φ : L.bounded_formula α (n + 1)}, P φ → P (φ.all)) :
-  P φ :=
-bounded_formula.rec_on φ (λ _, hf) (λ _, he) (λ _ _, hr) (λ _ _ _ hφ hψ, hi hφ hψ) (λ _ _, ha)
-
 /-- Casts `L.bounded_formula α m` as `L.bounded_formula α n`, where `m ≤ n`. -/
 def cast_le : ∀ {m n : ℕ} (h : m ≤ n), L.bounded_formula α m → L.bounded_formula α n
 | m n h falsum := falsum
@@ -509,25 +496,17 @@ inductive is_atomic : L.bounded_formula α n → Prop
 | rel {l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)) :
     is_atomic (R.bounded_formula ts)
 
-/-- A slightly better-behaved version of `is_atomic.rec_on`.  -/
-lemma is_atomic.induction_on {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
-  (h : is_atomic φ)
-  (he : ∀ (t₁ t₂ : L.term (α ⊕ fin n)), P (bd_equal t₁ t₂))
-  (hr : ∀ {l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)), P (R.bounded_formula ts)) :
-  P φ :=
-h.rec_on he (λ _, hr)
-
 lemma is_atomic.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_atomic)
   (f : α → β ⊕ (fin n)) :
   (φ.relabel f).is_atomic :=
-h.induction_on (λ _ _, is_atomic.equal _ _) (λ _ _ _, is_atomic.rel _ _)
+is_atomic.rec_on h (λ _ _, is_atomic.equal _ _) (λ _ _ _, is_atomic.rel _ _)
 
 lemma is_atomic.lift_at {k m : ℕ} (h : is_atomic φ) : (φ.lift_at k m).is_atomic :=
-h.induction_on (λ _ _, is_atomic.equal _ _) (λ _ _ _, is_atomic.rel _ _)
+is_atomic.rec_on h (λ _ _, is_atomic.equal _ _) (λ _ _ _, is_atomic.rel _ _)
 
 lemma is_atomic.cast_le {h : l ≤ n} (hφ : is_atomic φ) :
   (φ.cast_le h).is_atomic :=
-hφ.induction_on (λ _ _, is_atomic.equal _ _) (λ _ _ _, is_atomic.rel _ _)
+is_atomic.rec_on hφ (λ _ _, is_atomic.equal _ _) (λ _ _ _, is_atomic.rel _ _)
 
 /-- A quantifier-free formula is a formula defined without quantifiers. These are all equivalent
 to boolean combinations of atomic formulas. -/
@@ -535,15 +514,6 @@ inductive is_qf : L.bounded_formula α n → Prop
 | falsum : is_qf falsum
 | of_is_atomic {φ} (h : is_atomic φ) : is_qf φ
 | imp {φ₁ φ₂} (h₁ : is_qf φ₁) (h₂ : is_qf φ₂) : is_qf (φ₁.imp φ₂)
-
-/-- A slightly better-behaved version of `is_qf.rec_on`, using `⊥` for `falsum`.  -/
-lemma is_qf.induction_on {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
-  (h : is_qf φ)
-  (hf : P (⊥ : L.bounded_formula α n))
-  (ha : ∀ {ψ : L.bounded_formula α n}, is_atomic ψ → P ψ)
-  (himp : ∀ {φ₁ φ₂} (h₁ : P φ₁) (h₂ : P φ₂), P (φ₁.imp φ₂)) :
-  P φ :=
-h.rec_on hf (λ _, ha) (λ _ _ _ _, himp)
 
 lemma is_atomic.is_qf {φ : L.bounded_formula α n} : is_atomic φ → is_qf φ :=
 is_qf.of_is_atomic
@@ -558,14 +528,14 @@ h.imp is_qf_bot
 lemma is_qf.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_qf)
   (f : α → β ⊕ (fin n)) :
   (φ.relabel f).is_qf :=
-h.induction_on is_qf_bot (λ _ h, (h.relabel f).is_qf) (λ _ _ h1 h2, h1.imp h2)
+is_qf.rec_on h is_qf_bot (λ _ h, (h.relabel f).is_qf) (λ _ _ _ _ h1 h2, h1.imp h2)
 
 lemma is_qf.lift_at {k m : ℕ} (h : is_qf φ) : (φ.lift_at k m).is_qf :=
-h.induction_on is_qf_bot (λ _ ih, ih.lift_at.is_qf) (λ _ _ ih1 ih2, ih1.imp ih2)
+is_qf.rec_on h is_qf_bot (λ _ ih, ih.lift_at.is_qf) (λ _ _ _ _ ih1 ih2, ih1.imp ih2)
 
 lemma is_qf.cast_le {h : l ≤ n} (hφ : is_qf φ) :
   (φ.cast_le h).is_qf :=
-hφ.induction_on is_qf_bot (λ _ ih, ih.cast_le.is_qf) (λ _ _ ih1 ih2, ih1.imp ih2)
+is_qf.rec_on hφ is_qf_bot (λ _ ih, ih.cast_le.is_qf) (λ _ _ _ _ ih1 ih2, ih1.imp ih2)
 
 /-- Indicates that a bounded formula is in prenex normal form - that is, it consists of quantifiers
   applied to a quantifier-free formula. -/
@@ -580,36 +550,32 @@ is_prenex.of_is_qf
 lemma is_atomic.is_prenex {φ : L.bounded_formula α n} (h : is_atomic φ) : is_prenex φ :=
 h.is_qf.is_prenex
 
-/-- A slightly better-behaved version of `is_prenex.induction_on`.  -/
-lemma is_prenex.induction_on {P : ∀ {n}, L.bounded_formula α n → Prop}
-  {φ : L.bounded_formula α n}
-  (h : is_prenex φ)
-  (hq : ∀ {m} {ψ : L.bounded_formula α m}, ψ.is_qf → P ψ)
-  (ha : ∀ {m} {ψ : L.bounded_formula α (m + 1)}, P ψ → P ψ.all)
-  (he : ∀ {m} {ψ : L.bounded_formula α (m + 1)}, P ψ → P ψ.ex) :
-  P φ :=
-h.rec_on (λ _ _, hq) (λ _ _ _, ha) (λ _ _ _, he)
-
-lemma is_prenex.induction_all_not {P : ∀ {n}, L.bounded_formula α n → Prop}
+lemma is_prenex.induction_on_all_not {P : ∀ {n}, L.bounded_formula α n → Prop}
   {φ : L.bounded_formula α n}
   (h : is_prenex φ)
   (hq : ∀ {m} {ψ : L.bounded_formula α m}, ψ.is_qf → P ψ)
   (ha : ∀ {m} {ψ : L.bounded_formula α (m + 1)}, P ψ → P ψ.all)
   (hn : ∀ {m} {ψ : L.bounded_formula α m}, P ψ → P ψ.not) :
   P φ :=
-h.induction_on (λ _ _, hq) (λ _ _, ha) (λ _ _ ih, hn (ha (hn ih)))
+is_prenex.rec_on h (λ _ _, hq) (λ _ _ _, ha) (λ _ _ _ ih, hn (ha (hn ih)))
 
 lemma is_prenex.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_prenex)
   (f : α → β ⊕ (fin n)) :
   (φ.relabel f).is_prenex :=
-h.induction_on (λ _ _ h, (h.relabel f).is_prenex) (λ _ _ h, h.all) (λ _ _ h, h.ex)
+is_prenex.rec_on h (λ _ _ h, (h.relabel f).is_prenex) (λ _ _ _ h, h.all) (λ _ _ _ h, h.ex)
 
 lemma is_prenex.cast_le (hφ : is_prenex φ) :
   ∀ {n} {h : l ≤ n}, (φ.cast_le h).is_prenex :=
-hφ.induction_on (λ _ _ ih _ _, ih.cast_le.is_prenex) (λ _ _ ih _ _, ih.all) (λ _ _ ih _ _, ih.ex)
+is_prenex.rec_on hφ
+  (λ _ _ ih _ _, ih.cast_le.is_prenex)
+  (λ _ _ _ ih _ _, ih.all)
+  (λ _ _ _ ih _ _, ih.ex)
 
 lemma is_prenex.lift_at {k m : ℕ} (h : is_prenex φ) : (φ.lift_at k m).is_prenex :=
-h.induction_on (λ _ _ ih, ih.lift_at.is_prenex) (λ _ _ ih, ih.cast_le.all) (λ _ _ ih, ih.cast_le.ex)
+is_prenex.rec_on h
+  (λ _ _ ih, ih.lift_at.is_prenex)
+  (λ _ _ _ ih, ih.cast_le.all)
+  (λ _ _ _ ih, ih.cast_le.ex)
 
 /-- An auxiliary operation to `first_order.language.bounded_formula.to_prenex`.
   If `φ` is quantifier-free and `ψ` is in prenex normal form, then `φ.to_prenex_imp_right ψ`
@@ -686,7 +652,7 @@ def to_prenex : ∀ {n}, L.bounded_formula α n → L.bounded_formula α n
 
 lemma to_prenex_is_prenex (φ : L.bounded_formula α n) :
   φ.to_prenex.is_prenex :=
-φ.induction_on
+bounded_formula.rec_on φ
   (λ _, is_qf_bot.is_prenex)
   (λ _ _ _, (is_atomic.equal _ _).is_prenex)
   (λ _ _ _ _, (is_atomic.rel _ _).is_prenex)
@@ -1091,7 +1057,7 @@ lemma is_qf.induction_on_sup_not {P : L.bounded_formula α n → Prop} {φ : L.b
   (hse : ∀ {φ₁ φ₂ : L.bounded_formula α n}
     (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
   P φ :=
-h.induction_on hf ha (λ φ₁ φ₂ h1 h2,
+is_qf.rec_on h hf ha (λ φ₁ φ₂ _ _ h1 h2,
   (hse (φ₁.imp_semantically_equivalent_not_sup φ₂)).2 (hsup (hnot h1) h2))
 
 lemma is_qf.induction_on_inf_not {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
@@ -1161,7 +1127,7 @@ end
 
 lemma semantically_equivalent_to_prenex (φ : L.bounded_formula α n) :
   (∅ : L.Theory).semantically_equivalent φ φ.to_prenex :=
-φ.induction_on
+bounded_formula.rec_on φ
   (λ _, refl _)
   (λ _ _ _, refl _)
   (λ _ _ _ _, refl _)

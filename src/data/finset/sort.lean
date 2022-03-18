@@ -44,7 +44,7 @@ multiset.mem_sort _
 multiset.length_sort _
 
 @[simp] theorem sort_empty : sort r ∅ = [] :=
-multiset.sort_empty r
+multiset.sort_zero r
 
 @[simp] theorem sort_singleton (a : α) : sort r {a} = [a] :=
 multiset.sort_singleton r a

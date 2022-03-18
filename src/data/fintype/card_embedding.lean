@@ -23,6 +23,7 @@ namespace fintype
 lemma card_embedding_eq_of_unique {α β : Type*} [unique α] [fintype β] [fintype (α ↪ β)] :
   ‖α ↪ β‖ = ‖β‖ := card_congr equiv.unique_embedding_equiv_result
 
+-- needed for the below proof to work
 local attribute [semireducible] function.embedding.fintype
 
 private lemma card_embedding_aux {n : ℕ} {β} [fintype β] [decidable_eq β] (h : n ≤ ‖β‖) :
@@ -51,6 +52,7 @@ begin
   rw [nat.desc_factorial_succ, hn (nat.lt_of_succ_le h).le, mul_comm]
 end
 
+-- Lean tries to dig into this instance in the `convert` below, which isn't desired
 local attribute [irreducible] function.embedding.fintype
 
 /- Establishes the cardinality of the type of all injections between two finite types. -/

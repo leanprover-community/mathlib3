@@ -146,25 +146,21 @@ open_locale classical
   inf_le_right := min_le_right,
   le_inf := λ a b c, le_min,
   Inf := λ s, if hs : s.nonempty then h.min s hs else c,
-  cInf_le := begin
-    assume s a hs has,
+  cInf_le := λ s a hs has, begin
     have s_ne : s.nonempty := ⟨a, has⟩,
     simpa [s_ne] using not_lt.1 (h.not_lt_min s s_ne has),
   end,
-  le_cInf := begin
-    assume s a hs has,
+  le_cInf := λ s a hs has, begin
     simp only [hs, dif_pos],
     exact has (h.min_mem s hs),
   end,
   Sup := λ s, if hs : (upper_bounds s).nonempty then h.min _ hs else c,
-  le_cSup := begin
-    assume s a hs has,
+  le_cSup := λ s a hs has, begin
     have h's : (upper_bounds s).nonempty := hs,
     simp only [h's, dif_pos],
     exact h.min_mem _ h's has,
   end,
-  cSup_le := begin
-    assume s a hs has,
+  cSup_le := λ s a hs has, begin
     have h's : (upper_bounds s).nonempty := ⟨a, has⟩,
     simp only [h's, dif_pos],
     simpa using h.not_lt_min _ h's has,
@@ -612,11 +608,8 @@ lemma set.finite.lt_cInf_iff (hs : finite s) (h : s.nonempty) : a < Inf s ↔ �
 
 /-- When b < Sup s, there is an element a in s with b < a, if s is nonempty and the order is
 a linear order. -/
-lemma exists_lt_of_lt_cSup (hs : s.nonempty) (hb : b < Sup s) : ∃a∈s, b < a :=
-begin
-  classical, contrapose! hb,
-  exact cSup_le hs hb
-end
+lemma exists_lt_of_lt_cSup (hs : s.nonempty) (hb : b < Sup s) : ∃ a ∈ s, b < a :=
+by { contrapose! hb, exact cSup_le hs hb }
 
 /--
 Indexed version of the above lemma `exists_lt_of_lt_cSup`.

@@ -66,9 +66,8 @@ begin
   have hb' : ∥b∥ = b, from real.norm_of_nonneg hb.le,
   calc ∥a • x + b • y∥ < ∥a • x∥ + ∥b • y∥ : (norm_add_le _ _).lt_of_ne (λ H, hne _)
   ... = 1 : by simpa only [norm_smul, hx₁, hy₁, mul_one, ha', hb'],
-  have H : ∥b • y∥ • a • x = ∥a • x∥ • b • y := (h _ _ H).norm_smul_eq.symm,
   simpa only [norm_smul, hx₁, hy₁, ha', hb', mul_one, smul_comm a, smul_right_inj ha.ne',
-    smul_right_inj hb.ne'] using H
+    smul_right_inj hb.ne'] using (h _ _ H).norm_smul_eq.symm
 end
 
 variables [strict_convex_space ℝ E] {x y z : E} {a b r : ℝ}

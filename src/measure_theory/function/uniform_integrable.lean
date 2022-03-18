@@ -653,15 +653,13 @@ In this section, we will develope some API for `uniform_integrable` and prove th
 (Currently we only have the forward direction.)
 -/
 
-variables [measurable_space β] [hβ : second_countable_topology β]
-  {p : ℝ≥0∞} {f : ι → α → β}
+variables [measurable_space β] [hβ : second_countable_topology β] {p : ℝ≥0∞} {f : ι → α → β}
 
-lemma uniform_integrable_zero_meas [measurable_space α] {p : ℝ≥0∞}
-  {f : ι → α → β} (hf : ∀ i, measurable (f i)) :
+lemma uniform_integrable_zero_meas [measurable_space α] (hf : ∀ i, measurable (f i)) :
   uniform_integrable f p (0 : measure α) :=
 ⟨hf, unif_integrable_zero_meas, 0, λ i, snorm_measure_zero.le⟩
 
-lemma uniform_integrable_of_ae_eq {p : ℝ≥0∞} {f g : ι → α → β}
+lemma uniform_integrable_of_ae_eq {g : ι → α → β}
   (hf : uniform_integrable f p μ) (hg : ∀ i, measurable (g i)) (hfg : ∀ n, f n =ᵐ[μ] g n) :
   uniform_integrable g p μ :=
 begin
@@ -671,7 +669,7 @@ begin
   exact hC i
 end
 
-lemma uniform_integrable_congr_ae {p : ℝ≥0∞} {f g : ι → α → β}
+lemma uniform_integrable_congr_ae {g : ι → α → β}
   (hf : ∀ i, measurable (f i)) (hg : ∀ i, measurable (g i)) (hfg : ∀ n, f n =ᵐ[μ] g n) :
   uniform_integrable f p μ ↔ uniform_integrable g p μ :=
 ⟨λ h, uniform_integrable_of_ae_eq h hg hfg,
@@ -681,7 +679,7 @@ variables [borel_space β]
 
 /-- A finite sequence of Lp functions is uniformly integrable in the probability sense. -/
 lemma uniform_integrable_fintype [fintype ι] (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
-  {f : ι → α → β} (hf : ∀ i, measurable (f i)) (hf' : ∀ i, mem_ℒp (f i) p μ) :
+  (hf : ∀ i, measurable (f i)) (hf' : ∀ i, mem_ℒp (f i) p μ) :
   uniform_integrable f p μ :=
 begin
   refine ⟨hf, unif_integrable_fintype μ hp_one hp_top hf', _⟩,
@@ -701,7 +699,7 @@ end
 
 /-- A single function is uniformly integrable in the probability sense. -/
 lemma uniform_integrable_subsingleton [subsingleton ι] (hp_one : 1 ≤ p) (hp_top : p ≠ ∞)
-  {f : ι → α → β} (hf : ∀ i, measurable (f i)) (hf' : ∀ i, mem_ℒp (f i) p μ) :
+  (hf : ∀ i, measurable (f i)) (hf' : ∀ i, mem_ℒp (f i) p μ) :
   uniform_integrable f p μ :=
 uniform_integrable_fintype hp_one hp_top hf hf'
 

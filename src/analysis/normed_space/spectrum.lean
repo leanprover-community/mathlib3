@@ -363,7 +363,7 @@ by rwa [mem_iff, is_unit_iff_ne_zero, not_not, sub_eq_zero] at h
 
 /-- **Gelfand-Mazur theorem**: For a complex Banach division algebra, the natural `algebra_map ℂ A`
 is an algebra isomorphism whose inverse is given by selecting the (unique) element of
-`spectrum ℂ a`.-/
+`spectrum ℂ a`. In addition, `algebra_map_isometry` guarantees this map is an isometry. -/
 @[simps]
 noncomputable def _root_.normed_division_ring.alg_equiv_complex_of_complete
   [complete_space A] [topological_space.second_countable_topology A] : ℂ ≃ₐ[ℂ] A :=
@@ -372,9 +372,7 @@ noncomputable def _root_.normed_division_ring.alg_equiv_complex_of_complete
   left_inv := λ z, by simpa only [scalar_eq] using set.nonempty.some_mem
     (spectrum.nonempty $ algebra_map ℂ A z),
   right_inv := λ a, algebra_map_eq_of_mem (set.nonempty.some_mem (spectrum.nonempty a)),
-  map_mul' := (algebra_map ℂ A).map_mul,
-  map_add' := (algebra_map ℂ A).map_add,
-  commutes' := λ _, rfl }
+  ..algebra.of_id ℂ A }
 
 end gelfand_mazur_isomorphism
 

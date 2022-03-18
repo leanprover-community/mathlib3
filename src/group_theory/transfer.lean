@@ -1,5 +1,21 @@
+/-
+Copyright (c) 2022 Thomas Browning. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Thomas Browning
+-/
+
 import group_theory.complement
 import group_theory.group_action.basic
+
+/-!
+# The Transfer Homomorphism
+
+In this file we construct the transfer homomorphism.
+
+## Main definitions
+
+- `transver ϕ : G →* A` for `ϕ : H →* A` from `H : subgroup G` to a commutative group `A`.
+-/
 
 open_locale big_operators
 
@@ -17,7 +33,7 @@ variables {G : Type*} [group G] {H : subgroup G}
   one_smul := λ T, subtype.ext (one_left_coset T),
   mul_smul := λ g g' T, subtype.ext (left_coset_assoc ↑T g g').symm }
 
-lemma smul_symm_apply_eq_mul_symm_apply_inv_smul
+@[to_additive] lemma smul_symm_apply_eq_mul_symm_apply_inv_smul
   (g : G) (α : left_transversals (H : set G)) (q : G ⧸ H) :
   ↑((equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp (g • α).2)).symm q) =
     g * ((equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)).symm
@@ -52,29 +68,24 @@ mul_right_eq_self.mp (diff_mul_diff ϕ α α α)
 @[to_additive] lemma diff_inv : (diff ϕ α β)⁻¹ = diff ϕ β α :=
 inv_eq_of_mul_eq_one ((diff_mul_diff ϕ α β α).trans (diff_self ϕ α))
 
-lemma smul_diff_smul (g : G) :
-  diff ϕ (g • α) (g • β) = diff ϕ α β :=
-finset.prod_bij' (λ q hq, g⁻¹ • q) (λ q hq, finset.mem_univ (g⁻¹ • q))
-    (λ q hq, congr_arg ϕ (subtype.ext
-      (by simp_rw [coe_mk, smul_symm_apply_eq_mul_symm_apply_inv_smul, mul_inv_rev, mul_assoc, inv_mul_cancel_left])))
-    (λ q hq, g • q) (λ q hq, finset.mem_univ (g • q)) (λ q hq, smul_inv_smul g q)
-      (λ q hq, inv_smul_smul g q)
+@[to_additive] lemma smul_diff_smul (g : G) : diff ϕ (g • α) (g • β) = diff ϕ α β :=
+finset.prod_bij' (λ q _, g⁻¹ • q) (λ _ _, finset.mem_univ _)
+  (λ _ _, congr_arg ϕ (subtype.ext (by simp_rw [coe_mk, smul_symm_apply_eq_mul_symm_apply_inv_smul,
+    mul_inv_rev, mul_assoc, inv_mul_cancel_left])))
+  (λ q _, g • q) (λ _ _, finset.mem_univ _) (λ q _, smul_inv_smul g q) (λ q _, inv_smul_smul g q)
 
-lemma smul_diff_self_eq_smul_diff_self (g : G) : diff ϕ (g • α) α = diff ϕ (g • β) β :=
-by rw [←diff_mul_diff, smul_diff_smul, mul_comm, diff_mul_diff]
+/-- Given `ϕ : H →* A` from `H : subgroup G` to a commutative group `A`,
+the transfer homomorphism is `transfer ϕ : H →* A`. -/
+@[to_additive "Given `ϕ : H →+ A` from `H : add_subgroup G` to an additive commutative group `A`,
+the transfer homomorphism is `transfer ϕ : H →+ A`."]
+noncomputable def transfer (ϕ : H →* A) : G →* A :=
+let α : left_transversals (H : set G) :=
+    left_transversals.inhabited.default in
+{ to_fun := λ g, diff ϕ α (g • α),
+  map_one' := by rw [one_smul, diff_self],
+  map_mul' := λ g h, by rw [mul_smul, ←diff_mul_diff, smul_diff_smul] }
 
-lemma mul_smul_diff_self_eq_smul_diff_self_mul_smul_diff_self (g h : G) :
-  diff ϕ ((g * h) • α) α = diff ϕ (g • α) α * diff ϕ (h • α) α :=
-by rw [mul_smul, ←diff_mul_diff, smul_diff_smul, mul_comm]
-
--- hence, the transfer `g ↦ diff ϕ (g • α) α` is a well-defined homomorphism.
-
--- `https://web.ma.utexas.edu/users/vandyke/notes/257_notes/notes.pdf` (alternate Schur-Zassenhaus?)
-
-lemma transfer (ϕ : H →* A) : G →* A :=
-let key : inhabited (left_transversals (H : set G)) := left_transversals.inhabited in
-{ to_fun := λ g, begin
-  sorry
-end }
+lemma transfer_def (g : G) : transfer ϕ g = diff ϕ α (g • α) :=
+by rw [transfer, ←diff_mul_diff, ←smul_diff_smul, mul_comm, diff_mul_diff]; refl
 
 end subgroup

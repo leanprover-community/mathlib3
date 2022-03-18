@@ -464,6 +464,10 @@ begin
     simp only [hxy, card_insert_of_not_mem, not_false_iff, mem_singleton, card_singleton] }
 end
 
+@[simp]
+lemma card_doubleton [decidable_eq α] {x y : α} (h : x ≠ y) : ({x, y} : finset α).card = 2 :=
+card_eq_two.mpr ⟨_, _, h, rfl⟩
+
 lemma card_eq_three [decidable_eq α] :
   s.card = 3 ↔ ∃ x y z, x ≠ y ∧ x ≠ z ∧ y ≠ z ∧ s = {x, y, z} :=
 begin

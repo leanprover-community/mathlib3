@@ -671,6 +671,11 @@ end
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 ⟨λ h x hx, h (by simpa using hx), λ h x hx, h (by simpa using hx)⟩
 
+@[simp]
+theorem filter_mem_univ_eq_to_finset [fintype α] (s : set α) [fintype s] [decidable_pred (∈ s)] :
+  finset.univ.filter (∈ s) = s.to_finset :=
+by { ext, simp only [mem_filter, finset.mem_univ, true_and, mem_to_finset] }
+
 end set
 
 lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=

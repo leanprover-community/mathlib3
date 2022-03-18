@@ -224,8 +224,7 @@ instance homogeneous_localization.has_pow : has_pow (homogeneous_localization x)
     end) z }
 
 instance : has_scalar ℤ (homogeneous_localization x) :=
-{ smul := λ m z, @@quotient.map (setoid.ker $ num_denom_same_deg.embedding x)
-    (setoid.ker $ num_denom_same_deg.embedding x) (λ y, m • y)
+{ smul := λ m, quotient.map' ((•) m)
     (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _), begin
       change localization.mk _ _ = localization.mk _ _,
       simp only [num_zsmul, denom_zsmul],
@@ -241,74 +240,69 @@ instance : has_scalar ℤ (homogeneous_localization x) :=
             mul_one, one_mul, one_mul, add_comm, ← sub_eq_add_neg], },
       end, localization.mk_mul, one_mul];
       refl,
-    end) z }
+    end) }
 
 instance homogeneous_localization.nat_scalar : has_scalar ℕ (homogeneous_localization x) :=
 { smul := λ n z, (n : ℤ) • z }
 
 instance : has_neg (homogeneous_localization x) :=
-{ neg := λ z, @@quotient.map (setoid.ker $ num_denom_same_deg.embedding x)
-    (setoid.ker $ num_denom_same_deg.embedding x) (λ y, -y)
+{ neg := quotient.map' has_neg.neg
     (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _), begin
       change localization.mk _ _ = localization.mk _ _,
       simp only [num_neg, denom_neg],
       convert congr_arg (λ c, -c) h;
       erw [localization.neg_mk];
       refl,
-    end) z }
+    end) }
 
 instance : has_add (homogeneous_localization x) :=
-{ add := λ z1 z2, @@quotient.map₂ (setoid.ker $ num_denom_same_deg.embedding x)
-    (setoid.ker $ num_denom_same_deg.embedding x) (setoid.ker $ num_denom_same_deg.embedding x)
-    (+) (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _)
-      c3 c4 (h' : localization.mk _ _ = localization.mk _ _), begin
-      change localization.mk _ _ = localization.mk _ _,
-      simp only [num_add, denom_add],
-      convert congr_arg2 (+) h h';
-      erw [localization.add_mk];
-      refl,
-    end) z1 z2}
+{ add := quotient.map₂' (+) (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _)
+    c3 c4 (h' : localization.mk _ _ = localization.mk _ _), begin
+    change localization.mk _ _ = localization.mk _ _,
+    simp only [num_add, denom_add],
+    convert congr_arg2 (+) h h';
+    erw [localization.add_mk];
+    refl,
+  end) }
 
 instance : has_sub (homogeneous_localization x) :=
 { sub := λ z1 z2, z1 + (-z2) }
 
 instance : has_mul (homogeneous_localization x) :=
-{ mul := λ z1 z2, @@quotient.map₂ (setoid.ker $ num_denom_same_deg.embedding x)
-    (setoid.ker $ num_denom_same_deg.embedding x) (setoid.ker $ num_denom_same_deg.embedding x)
-    (*) (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _)
-      c3 c4 (h' : localization.mk _ _ = localization.mk _ _), begin
-      change localization.mk _ _ = localization.mk _ _,
-      simp only [num_mul, denom_mul],
-      convert congr_arg2 (*) h h';
-      erw [localization.mk_mul];
-      refl,
-    end) z1 z2 }
+{ mul := quotient.map₂' (*) (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _)
+    c3 c4 (h' : localization.mk _ _ = localization.mk _ _), begin
+    change localization.mk _ _ = localization.mk _ _,
+    simp only [num_mul, denom_mul],
+    convert congr_arg2 (*) h h';
+    erw [localization.mk_mul];
+    refl,
+  end) }
 
 instance : has_one (homogeneous_localization x) :=
-{ one := @@quotient.mk (setoid.ker $ num_denom_same_deg.embedding x) 1 }
+{ one := quotient.mk' 1 }
 
 instance : has_zero (homogeneous_localization x) :=
-{ zero := @@quotient.mk (setoid.ker $ num_denom_same_deg.embedding x) 0 }
+{ zero := quotient.mk' 0 }
 
 lemma homogeneous_localization.zero_eq :
-  (0 : homogeneous_localization x) =@@quotient.mk (setoid.ker $ num_denom_same_deg.embedding x) 0 :=
+  (0 : homogeneous_localization x) = quotient.mk' 0 :=
 rfl
 
 lemma homogeneous_localization.one_eq :
-  (1 : homogeneous_localization x) =@@quotient.mk (setoid.ker $ num_denom_same_deg.embedding x) 1 :=
+  (1 : homogeneous_localization x) = quotient.mk' 1 :=
 rfl
 
 variable {x}
 lemma zero_val : (0 : homogeneous_localization x).val= 0 :=
 begin
-  rw [homogeneous_localization.zero_eq, homogeneous_localization.val, quotient.lift_on'_mk],
+  rw [homogeneous_localization.zero_eq, homogeneous_localization.val, quotient.lift_on'_mk'],
   change localization.mk _ _ = _,
   convert localization.mk_zero _,
 end
 
 lemma one_val : (1 : homogeneous_localization x).val= 1 :=
 begin
-  rw [homogeneous_localization.one_eq, homogeneous_localization.val, quotient.lift_on'_mk],
+  rw [homogeneous_localization.one_eq, homogeneous_localization.val, quotient.lift_on'_mk'],
   change localization.mk _ _ = _,
   simp only [num_one, denom_one],
   convert localization.mk_self _,
@@ -432,40 +426,39 @@ variables {𝒜} {x : projective_spectrum.Top 𝒜}
 
 /-- numerator of an element in `homogeneous_localization x`-/
 def homogeneous_localization.num (f : homogeneous_localization x) : A :=
-(@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f).num.1
+(quotient.out' f).num.1
 
 /-- denominator of an element in `homogeneous_localization x`-/
 def homogeneous_localization.denom (f : homogeneous_localization x) : A :=
-(@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f).denom.1
+(quotient.out' f).denom.1
 
 /-- For an element in `homogeneous_localization x`, degree is the natural number `i` such that
   `𝒜 i` contains both numerator and denominator. -/
 def homogeneous_localization.deg (f : homogeneous_localization x) : ℕ :=
-(@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f).deg
+(quotient.out' f).deg
 
 lemma homogeneous_localization.denom_not_mem (f : homogeneous_localization x) :
   f.denom ∉ x.as_homogeneous_ideal :=
-(@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f).denom_not_mem
+(quotient.out' f).denom_not_mem
 
 lemma homogeneous_localization.num_mem (f : homogeneous_localization x) : f.num ∈ 𝒜 f.deg :=
-(@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f).num.2
+(quotient.out' f).num.2
 
 lemma homogeneous_localization.denom_mem (f : homogeneous_localization x) : f.denom ∈ 𝒜 f.deg :=
-(@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f).denom.2
+(quotient.out' f).denom.2
 
 lemma homogeneous_localization.eq' (f : homogeneous_localization x) :
-  f = @@quotient.mk (setoid.ker $ num_denom_same_deg.embedding x)
-    (@@quotient.out (setoid.ker $ num_denom_same_deg.embedding x) f) :=
-(@@quotient.out_eq (setoid.ker $ num_denom_same_deg.embedding x) f).symm
+  f = quotient.mk' (quotient.out' f) :=
+(quotient.out_eq' f).symm
 
 lemma homogeneous_localization.eq_num_div_denom (f : homogeneous_localization x) :
   f.val = localization.mk f.num ⟨f.denom, f.denom_not_mem⟩ :=
 begin
-  have := (@@quotient.out_eq (setoid.ker $ num_denom_same_deg.embedding x) f).symm,
+  have := (quotient.out_eq' f).symm,
   apply_fun homogeneous_localization.val at this,
   rw this,
   unfold homogeneous_localization.val,
-  simp only [quotient.lift_on'_mk],
+  simp only [quotient.lift_on'_mk'],
   refl,
 end
 

@@ -121,27 +121,15 @@ instance : has_zero (num_denom_same_deg x) :=
     denom_not_mem := λ r, x.is_prime.ne_top $ (ideal.eq_top_iff_one _).mpr r } }
 
 instance : has_mul (num_denom_same_deg x) :=
-{ mul := λ ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩ ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩,
-    { deg := i1 + i2,
-      num := ⟨n1 * n2, mul_mem hn1 hn2⟩,
-      denom := ⟨d1 * d2, mul_mem hd1 hd2⟩,
-      denom_not_mem := λ r, or.elim (x.is_prime.mem_or_mem r) h1 h2 } }
+{ mul := λ p q,
+  { deg := p.deg + q.deg,
+    num := ⟨p.num * q.num, mul_mem p.num.prop q.num.prop⟩,
+    denom := ⟨p.denom * q.denom, mul_mem p.denom.prop q.denom.prop⟩,
+    denom_not_mem := λ r, or.elim (x.is_prime.mem_or_mem r) p.denom_not_mem q.denom_not_mem } }
 
-lemma deg_mul (c1 c2 : num_denom_same_deg x) : (c1 * c2).deg = c1.deg + c2.deg :=
-match c1, c2 with
-| ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩, ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩ := rfl
-end
-
-lemma num_mul (c1 c2 : num_denom_same_deg x) : (c1 * c2).num.1 = c1.num.1 * c2.num.1 :=
-match c1, c2 with
-| ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩, ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩ := rfl
-end
-
-lemma denom_mul (c1 c2 : num_denom_same_deg x) :
-  (c1 * c2).denom.1 = c1.denom.1 * c2.denom.1 :=
-match c1, c2 with
-| ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩, ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩ := rfl
-end
+lemma deg_mul (c1 c2 : num_denom_same_deg x) : (c1 * c2).deg = c1.deg + c2.deg := rfl
+lemma num_mul (c1 c2 : num_denom_same_deg x) : ((c1 * c2).num : A) = c1.num * c2.num := rfl
+lemma denom_mul (c1 c2 : num_denom_same_deg x) : ((c1 * c2).denom : A) = c1.denom * c2.denom := rfl
 
 instance : has_add (num_denom_same_deg x) :=
 { add := λ ⟨i1, ⟨n1, hn1⟩, ⟨d1, hd1⟩, h1⟩ ⟨i2, ⟨n2, hn2⟩, ⟨d2, hd2⟩, h2⟩,

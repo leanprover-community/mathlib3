@@ -149,6 +149,27 @@ begin
   exact nat.lt_iff_add_one_le,
 end
 
+example (a b : ℕ) (h : b ≤ a) : a - b + b = a :=
+begin
+  exact nat.sub_add_cancel h, -- TODO should be a simp lemma in lean
+end
+
+lemma nat.gcd_mul_of_dvd_coprime (a b c : ℕ) (b_dvd_c : b ∣ c) (hac : nat.coprime a c) :
+  nat.gcd (a * b) c = b :=
+begin
+  -- rw nat.has_dvd at b_dvd_c,
+  -- rw has_dvd at b_dvd_c,
+  have : ∃ d, c = d * b, exact exists_eq_mul_left_of_dvd b_dvd_c,
+  rcases this with ⟨d, hd⟩,
+  rw hd at hac ⊢,
+  rw [nat.gcd_mul_right],
+  have foo : nat.gcd a d = 1,
+  { rw ← nat.coprime_iff_gcd_eq_one,
+    exact nat.coprime.coprime_mul_right_right hac, },
+  simp [foo],
+end
+
+
 /-- Theorem 3.4 of Conrad -/
 lemma strong_probable_prime_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : nat.prime p)
   (a : zmod (p^α)) : strong_probable_prime (p^α) a ↔ a^(p-1) = 1 :=
@@ -186,7 +207,8 @@ begin
     have h2 : a ^ (p^α - 1) = 1,
     { -- since a is a nonwitness, we have either ...
       cases hspp,
-      { rw ← two_power_part_mul_odd_part (p ^ α - 1),
+      { -- ... a^k = 1
+        rw ← two_power_part_mul_odd_part (p ^ α - 1),
         rw [mul_comm, pow_mul, hspp, one_pow],
       },
       { -- ... or a^(2^i k) = -1
@@ -196,19 +218,41 @@ begin
           replace hrpow := congr_arg (^(2^c)) hrpow,
           simp only [] at hrpow,
           convert hrpow using 1,
-          { rw [mul_comm (2^r), ← pow_mul, mul_assoc, ← pow_add 2, mul_comm, ← hc, ← two_power_part, two_power_part_mul_odd_part],
-          },
+          { rw [mul_comm (2^r), ← pow_mul, mul_assoc, ← pow_add 2, mul_comm, ← hc, ← two_power_part,
+              two_power_part_mul_odd_part], },
           { simp at Hc,
             rw nat.lt_iff_add_one_le at Hc,
             simp at Hc,
             rw le_iff_exists_add at Hc,
             rcases Hc with ⟨d, hd⟩,
-            rw [hd, pow_add 2, pow_one, pow_mul, nat.neg_one_sq, one_pow],
-          },
-        }, }
-
+            rw [hd, pow_add 2, pow_one, pow_mul, nat.neg_one_sq, one_pow], }, }, },
+    -- Thus the order of a mod n divides (φ(n), n-1)
+    rw ← order_of_dvd_iff_pow_eq_one at euler h2 ⊢,
+    have order_gcd := nat.dvd_gcd euler h2,
+    have gcd_eq : (p ^ (α - 1) * (p - 1)).gcd (p ^ α - 1) = p - 1,
+    { apply nat.gcd_mul_of_dvd_coprime,
+      { -- p - 1 divides p^α - 1
+        clear _inst h2 euler order_gcd hspp zero_lt_n one_lt_n a,
+        induction hα with α hα ih,
+        { simp, },
+        { rw dvd_iff_exists_eq_mul_left at *,
+          rcases ih with ⟨d, hd⟩,
+          use p^α + d,
+          -- TODO(Sean): I don't expect you to solve
+          -- this, but you might try to rewrite things and do rw ← hd, because those are the first
+          -- few steps of what's necessary.
+          sorry, },
+      },
+      { -- p is relatively prime to p^α - 1
+        apply nat.coprime.pow_left,
+        rw ←nat.coprime_pow_left_iff (hα),
+        -- TODO(Bolton): mathlib needs a coprime_add_one lemma
+        sorry,
+      },
+    },
+    rwa gcd_eq at order_gcd,
   },
-  {
+  { -- a ^ (p-1) = 1
     intro h,
     have foo : (a ^ (odd_part (p - 1)))^(two_power_part (p - 1)) = 1,
     { rw [← pow_mul, mul_comm, two_power_part_mul_odd_part (p - 1), h],},
@@ -258,9 +302,9 @@ lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)] (not_
 begin
   -- TODO(Bolton): This will be a harder proof. Find some sublemmas that will be needed and
   -- extract them. subgroup.card_subgroup_dvd_card is lagrange's thm
-  by_cases h : ∃ (p q : ℕ), p.prime ∧ q.prime ∧ p ∣ n ∧ q ∣ n,
-  {
-    rcases h with ⟨p, q, p_prime, q_prime, p_dvd, q_dvd⟩,
+  by_cases h : ∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1,
+  { -- n
+    rcases h with ⟨n0, n1, h_coprime, h_mul, hn0, hn1⟩,
     let i0 := ((finset.range (odd_part (n-1))).filter (λ i, ∃ a_0 : zmod n, a_0^(2^i) = -1)).max' (
       by {
         rw finset.filter_nonempty_iff,
@@ -275,11 +319,10 @@ begin
         have hn' : n - 1 ≠ 0,
         {
           simp,
-          have one_lt_p : 1 < p,
-          exact nat.prime.one_lt p_prime,
-          have p_lt_n : p ≤ n,
-          exact nat.le_of_dvd hn p_dvd,
-          exact gt_of_ge_of_gt p_lt_n one_lt_p,
+          -- TODO(Sean): Sorry to undo your work here, but I've reformulated things above in a way
+          -- that will make things easier later. the only hypotheses you should need here are
+          -- h_mul hn0 and hn1, and you shouldn't need any lemmas from this file.
+          sorry,
         },
         apply hn',
         clear hn hn',
@@ -287,7 +330,13 @@ begin
         rw [h, mul_zero],
       }
     ),
-    --let G : subgroup ((zmod n)ˣ) :=
+    have h_proper : ∃ x, x ∉ (pow_alt_subgroup n (i0 * odd_part(n - 1))),
+    {
+      -- TODO(Sean): Not a theorem proving exercise, but a documentation search exercise:
+      -- See if you can find the "Chinese remainder theorem" in the library somewhere. If you can,
+      -- post the mathlib name of the lemma here - it's going to be necessary for this step.
+      sorry,
+    },
   },
   {
     sorry,

@@ -108,9 +108,9 @@ bornology.of_bounded (set_of (is_vonN_bounded 𝕜)) (is_vonN_bounded.empty 𝕜
 
 variables {E}
 
-lemma is_vonN_bounded_iff_is_bounded {s : set E} : is_vonN_bounded 𝕜 s ↔
-  @is_bounded _ (vonN_bornology 𝕜 E) s :=
-by rw [←is_bounded_of_bounded_iff, set.mem_set_of_eq]
+@[simp] lemma is_bounded_iff_is_vonN_bounded {s : set E} :
+  @is_bounded _ (vonN_bornology 𝕜 E) s ↔ is_vonN_bounded 𝕜 s :=
+by rw [is_bounded_of_bounded_iff, set.mem_set_of_eq]
 
 end normed_field
 

@@ -87,11 +87,9 @@ If `x` is a point in `Proj 𝒜`, then `y ∈ Aₓ` is said to satisfy `num_deno
 -/
 @[nolint has_inhabited_instance]
 structure num_denom_same_deg (y : at x) :=
-(num denom : A)
-(denom_not_mem : denom ∉ x.as_homogeneous_ideal)
 (deg : ℕ)
-(num_mem : num ∈ 𝒜 deg)
-(denom_mem : denom ∈ 𝒜 deg)
+(num denom : 𝒜 deg)
+(denom_not_mem : denom ∉ x.as_homogeneous_ideal)
 (eq : (localization.mk num ⟨denom, denom_not_mem⟩ : at x) = y)
 
 attribute [simp] num_denom_same_deg.eq

@@ -21,33 +21,30 @@ namespace char_two
 section semiring
 variables [semiring R] [char_p R 2]
 
-lemma two_eq_zero : (2 : R) = 0 :=
+@[simp] lemma two_eq_zero : (2 : R) = 0 :=
 by rw [← nat.cast_two, char_p.cast_eq_zero]
 
-lemma add_self_eq_zero (x : R) : x + x = 0 :=
+@[simp] lemma add_self_eq_zero (x : R) : x + x = 0 :=
 by rw [←two_smul R x, two_eq_zero, zero_smul]
 
-lemma bit0_eq_zero (x : R) : (bit0 x : R) = 0 :=
+@[simp] lemma bit0_eq_zero (x : R) : (bit0 x : R) = 0 :=
 add_self_eq_zero x
 
-lemma bit1_eq_one (x : R) : (bit1 x : R) = 1 :=
+@[simp] lemma bit1_eq_one (x : R) : (bit1 x : R) = 1 :=
 by rw [bit1, bit0_eq_zero, zero_add]
-
-lemma two_mul_eq_zero (x : R) : 2 * x = 0 :=
-(two_mul _).trans (char_two.add_self_eq_zero _)
 
 end semiring
 
 section ring
 variables [ring R] [char_p R 2]
 
-lemma neg_eq (x : R) : -x = x :=
+@[simp] lemma neg_eq (x : R) : -x = x :=
 by rw [neg_eq_iff_add_eq_zero, ←two_smul R x, two_eq_zero, zero_smul]
 
 lemma neg_eq' : has_neg.neg = (id : R → R) :=
 funext neg_eq
 
-lemma sub_eq_add (x y : R) : x - y = x + y :=
+@[simp] lemma sub_eq_add (x y : R) : x - y = x + y :=
 by rw [sub_eq_add_neg, neg_eq]
 
 lemma sub_eq_add' : has_sub.sub = ((+) : R → R → R) :=

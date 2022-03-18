@@ -164,6 +164,10 @@ section comm_semiring
 
 variables [comm_semiring R] {𝓟 : ideal R} {f : R[X]} (hf : f.is_eisenstein_at 𝓟)
 
+lemma _root_.polynomial.monic.leading_coeff_not_mem (hf : f.monic) (h : 𝓟 ≠ ⊤) :
+  ¬f.leading_coeff ∈ 𝓟 :=
+hf.leading_coeff.symm ▸ (ideal.ne_top_iff_one _).1 h
+
 include hf
 
 lemma is_weakly_eisenstein_at : is_weakly_eisenstein_at f 𝓟 := ⟨hf.mem⟩
@@ -207,14 +211,13 @@ lemma cyclotomic_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] :
   ((cyclotomic p ℤ).comp (X + 1)).is_eisenstein_at 𝓟 :=
 { leading :=
   begin
-    intro h,
-    rw [show (X + 1 : ℤ[X]) = X + C 1, by simp] at h,
-    suffices : ((cyclotomic p ℤ).comp (X + C 1)).monic,
-    { rw [monic.def.1 this, ideal.submodule_span_eq, ideal.mem_span_singleton] at h,
-      exact nat.prime.not_dvd_one hp.out (by exact_mod_cast h) },
+    rw [show (X + 1 : ℤ[X]) = X + C 1, by simp],
+    refine monic.leading_coeff_not_mem _ (ideal.is_prime.ne_top
+      $ (ideal.span_singleton_prime (by exact_mod_cast hp.out.ne_zero)).2
+      $ nat.prime_iff_prime_int.1 hp.out),
     refine monic.comp (cyclotomic.monic p ℤ) (monic_X_add_C 1) (λ h₁, _),
     rw [nat_degree_X_add_C] at h₁,
-    exact zero_ne_one h₁.symm,
+    exact zero_ne_one h₁.symm
   end,
   mem := λ i hi,
   begin
@@ -246,11 +249,10 @@ lemma cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] (
   ((cyclotomic (p ^ (n + 1)) ℤ).comp (X + 1)).is_eisenstein_at 𝓟 :=
 { leading :=
   begin
-    intro h,
-    rw [show (X + 1 : ℤ[X]) = X + C 1, by simp] at h,
-    suffices : ((cyclotomic (p ^ (n + 1)) ℤ).comp (X + C 1)).monic,
-    { rw [monic.def.1 this, ideal.submodule_span_eq, ideal.mem_span_singleton] at h,
-      exact nat.prime.not_dvd_one hp.out (by exact_mod_cast h) },
+    rw [show (X + 1 : ℤ[X]) = X + C 1, by simp],
+    refine monic.leading_coeff_not_mem _ (ideal.is_prime.ne_top
+      $ (ideal.span_singleton_prime (by exact_mod_cast hp.out.ne_zero)).2
+      $ nat.prime_iff_prime_int.1 hp.out),
     refine monic.comp (cyclotomic.monic _ ℤ) (monic_X_add_C 1) (λ h₁, _),
     rw [nat_degree_X_add_C] at h₁,
     exact zero_ne_one h₁.symm

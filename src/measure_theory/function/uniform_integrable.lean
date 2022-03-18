@@ -709,6 +709,13 @@ lemma uniform_integrable_const {g : α → β} (hp : 1 ≤ p) (hp_ne_top : p ≠
 ⟨λ i, hgm, unif_integrable_const μ hp hp_ne_top hg,
   ⟨(snorm g p μ).to_nnreal, λ i, le_of_eq (ennreal.coe_to_nnreal hg.2.ne).symm⟩⟩
 
+end uniform_integrable
+
+section unif_integrable
+
+variables [measurable_space β] [hβ : second_countable_topology β] [borel_space β]
+  {p : ℝ≥0∞} {f : ι → α → β}
+
 /-- This lemma is superceded by `unif_integrable_of` which do not require `C` to be positive. -/
 lemma unif_integrable_of' (hp : 1 ≤ p) (hp' : p ≠ ∞) (hf : ∀ i, measurable (f i))
   (h : ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0, 0 < C ∧
@@ -791,6 +798,13 @@ begin
   exact indicator_le_indicator_of_subset
     (λ x hx, le_trans (le_max_left _ _) hx) (λ _, norm_nonneg _) _,
 end
+
+end unif_integrable
+
+section uniform_integrable
+
+variables [measurable_space β] [hβ : second_countable_topology β] [borel_space β]
+  {p : ℝ≥0∞} {f : ι → α → β}
 
 /-- A sequene of functions `(fₙ)` is uniformly integrable in the probability sense if for all
 `ε > 0`, there exists some `C` such that `∫ x in {|fₙ| ≥ C}, fₙ x ∂μ ≤ ε` for all `n`. -/

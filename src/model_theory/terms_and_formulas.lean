@@ -503,6 +503,68 @@ begin
     simp }
 end
 
+
+/-- An atomic formula is either equality or a relation symbol applied to terms.
+  Note that `⊥` and `⊤` are not considered atomic in this convention. -/
+inductive is_atomic : L.bounded_formula α n → Prop
+| equal (t₁ t₂ : L.term (α ⊕ fin n)) : is_atomic (bd_equal t₁ t₂)
+| rel {l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)) :
+    is_atomic (R.bounded_formula ts)
+
+lemma is_atomic.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_atomic)
+  (f : α → β ⊕ (fin n)) :
+  (φ.relabel f).is_atomic :=
+is_atomic.rec_on h (λ _ _, is_atomic.equal _ _) (λ _ _ _, is_atomic.rel _ _)
+
+/-- A quantifier-free formula is a formula defined without quantifiers. These are all equivalent
+to boolean combinations of atomic formulas. -/
+inductive is_qf : L.bounded_formula α n → Prop
+| falsum : is_qf falsum
+| of_is_atomic {φ} (h : is_atomic φ) : is_qf φ
+| imp {φ₁ φ₂} (h₁ : is_qf φ₁) (h₂ : is_qf φ₂) : is_qf (φ₁.imp φ₂)
+
+lemma is_atomic.is_qf {φ : L.bounded_formula α n} : is_atomic φ → is_qf φ :=
+is_qf.of_is_atomic
+
+lemma is_qf_bot : is_qf (⊥ : L.bounded_formula α n) :=
+is_qf.falsum
+
+lemma is_qf.not {φ : L.bounded_formula α n} (h : is_qf φ) :
+  is_qf φ.not :=
+h.imp is_qf_bot
+
+lemma is_qf.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_qf)
+  (f : α → β ⊕ (fin n)) :
+  (φ.relabel f).is_qf :=
+is_qf.rec_on h is_qf_bot (λ _ h, (h.relabel f).is_qf) (λ _ _ _ _, is_qf.imp)
+
+/-- Indicates that a bounded formula is in prenex normal form - that is, it consists of quantifiers
+  applied to a quantifier-free formula. -/
+inductive is_prenex : ∀ {n}, L.bounded_formula α n → Prop
+| of_is_qf {n} {φ : L.bounded_formula α n} (h : is_qf φ) : is_prenex φ
+| all {n} {φ : L.bounded_formula α (n + 1)} (h : is_prenex φ) : is_prenex φ.all
+| ex {n} {φ : L.bounded_formula α (n + 1)} (h : is_prenex φ) : is_prenex φ.ex
+
+lemma is_qf.is_prenex {φ : L.bounded_formula α n} : is_qf φ → is_prenex φ :=
+is_prenex.of_is_qf
+
+lemma is_atomic.is_prenex {φ : L.bounded_formula α n} (h : is_atomic φ) : is_prenex φ :=
+h.is_qf.is_prenex
+
+lemma is_prenex.induction_on_all_not {P : ∀ {n}, L.bounded_formula α n → Prop}
+  {φ : L.bounded_formula α n}
+  (h : is_prenex φ)
+  (hq : ∀ {m} {ψ : L.bounded_formula α m}, ψ.is_qf → P ψ)
+  (ha : ∀ {m} {ψ : L.bounded_formula α (m + 1)}, P ψ → P ψ.all)
+  (hn : ∀ {m} {ψ : L.bounded_formula α m}, P ψ → P ψ.not) :
+  P φ :=
+is_prenex.rec_on h (λ _ _, hq) (λ _ _ _, ha) (λ _ _ _ ih, hn (ha (hn ih)))
+
+lemma is_prenex.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_prenex)
+  (f : α → β ⊕ (fin n)) :
+  (φ.relabel f).is_prenex :=
+is_prenex.rec_on h (λ _ _ h, (h.relabel f).is_prenex) (λ _ _ _ h, h.all) (λ _ _ _ h, h.ex)
+
 end bounded_formula
 
 namespace Lhom
@@ -892,6 +954,35 @@ lemma inf_semantically_equivalent_not_sup_not :
   T.semantically_equivalent (φ ⊓ ψ) (φ.not ⊔ ψ.not).not :=
 φ.inf_semantically_equivalent_not_sup_not ψ
 end formula
+
+namespace bounded_formula
+
+lemma is_qf.induction_on_sup_not {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
+  (h : is_qf φ)
+  (hf : P (⊥ : L.bounded_formula α n))
+  (ha : ∀ (ψ : L.bounded_formula α n), is_atomic ψ → P ψ)
+  (hsup : ∀ {φ₁ φ₂} (h₁ : P φ₁) (h₂ : P φ₂), P (φ₁ ⊔ φ₂))
+  (hnot : ∀ {φ} (h : P φ), P φ.not)
+  (hse : ∀ {φ₁ φ₂ : L.bounded_formula α n}
+    (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
+  P φ :=
+is_qf.rec_on h hf ha (λ φ₁ φ₂ _ _ h1 h2,
+  (hse (φ₁.imp_semantically_equivalent_not_sup φ₂)).2 (hsup (hnot h1) h2))
+
+lemma is_qf.induction_on_inf_not {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
+  (h : is_qf φ)
+  (hf : P (⊥ : L.bounded_formula α n))
+  (ha : ∀ (ψ : L.bounded_formula α n), is_atomic ψ → P ψ)
+  (hinf : ∀ {φ₁ φ₂} (h₁ : P φ₁) (h₂ : P φ₂), P (φ₁ ⊓ φ₂))
+  (hnot : ∀ {φ} (h : P φ), P φ.not)
+  (hse : ∀ {φ₁ φ₂ : L.bounded_formula α n}
+    (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
+  P φ :=
+h.induction_on_sup_not hf ha (λ φ₁ φ₂ h1 h2,
+  ((hse (φ₁.sup_semantically_equivalent_not_inf_not φ₂)).2 (hnot (hinf (hnot h1) (hnot h2)))))
+  (λ _, hnot) (λ _ _, hse)
+
+end bounded_formula
 
 end language
 end first_order

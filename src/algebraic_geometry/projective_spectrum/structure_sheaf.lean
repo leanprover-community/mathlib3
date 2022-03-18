@@ -144,24 +144,12 @@ match c1, c2 with
 end
 
 instance : comm_monoid (num_denom_same_deg x) :=
-{ mul_assoc := λ c1 c2 c3, ext _
-    (by rw [deg_mul, deg_mul, deg_mul, deg_mul, add_assoc])
-    (by rw [num_mul, num_mul, num_mul, num_mul, mul_assoc])
-    (by rw [denom_mul, denom_mul, denom_mul, denom_mul, mul_assoc]),
-  one_mul := λ c, ext _
-    (by rw [deg_mul, deg_one, zero_add])
-    (by rw [num_mul, num_one, one_mul])
-    (by rw [denom_mul, denom_one, one_mul]),
-  mul_one := λ c, ext _
-    (by rw [deg_mul, deg_one, add_zero])
-    (by rw [num_mul, num_one, mul_one])
-    (by rw [denom_mul, denom_one, mul_one]),
-  mul_comm := λ c1 c2, ext _
-    (by rw [deg_mul, deg_mul, add_comm])
-    (by rw [num_mul, num_mul, mul_comm])
-    (by rw [denom_mul, denom_mul, mul_comm]),
-  ..(_ : has_one (num_denom_same_deg x)),
-  ..(_ : has_mul (num_denom_same_deg x))}
+{ one := 1,
+  mul := (*),
+  mul_assoc := λ c1 c2 c3, ext _ (add_assoc _ _ _) (mul_assoc _ _ _) (mul_assoc _ _ _),
+  one_mul := λ c, ext _ (zero_add _) (one_mul _) (one_mul _),
+  mul_one := λ c, ext _ (add_zero _) (mul_one _) (mul_one _),
+  mul_comm := λ c1 c2, ext _ (add_comm _ _) (mul_comm _ _) (mul_comm _ _) }
 
 instance : add_comm_monoid (num_denom_same_deg x) := sorry
 

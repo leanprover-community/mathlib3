@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov
 -/
-import linear_algebra.basic
+import linear_algebra.span
 
 /-!
 # Quotients by submodules
@@ -113,13 +113,17 @@ quotient.has_scalar' P
 
 @[simp] theorem mk_smul (r : S) (x : M) : (mk (r • x) : M ⧸ p) = r • mk x := rfl
 
-instance (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M]
+instance smul_comm_class (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M]
   [smul_comm_class S T M] : smul_comm_class S T (M ⧸ P) :=
 { smul_comm := λ x y, quotient.ind' $ by exact λ z, congr_arg mk (smul_comm _ _ _) }
 
-instance (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M] [has_scalar S T]
-  [is_scalar_tower S T M] : is_scalar_tower S T (M ⧸ P) :=
+instance is_scalar_tower (T : Type*) [has_scalar T R] [has_scalar T M] [is_scalar_tower T R M]
+  [has_scalar S T] [is_scalar_tower S T M] : is_scalar_tower S T (M ⧸ P) :=
 { smul_assoc := λ x y, quotient.ind' $ by exact λ z, congr_arg mk (smul_assoc _ _ _) }
+
+instance is_central_scalar [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M] [is_scalar_tower Sᵐᵒᵖ R M]
+  [is_central_scalar S M] : is_central_scalar S (M ⧸ P) :=
+{ op_smul_eq_smul := λ x, quotient.ind' $ by exact λ z, congr_arg mk $ op_smul_eq_smul _ _ }
 
 end has_scalar
 
@@ -238,7 +242,7 @@ lemma le_comap_mkq (p' : submodule R (M ⧸ p)) : p ≤ comap p.mkq p' :=
 by simpa using (comap_mono bot_le : p.mkq.ker ≤ comap p.mkq p')
 
 @[simp] theorem mkq_map_self : map p.mkq p = ⊥ :=
-by rw [eq_bot_iff, map_le_iff_le_comap, comap_bot, ker_mkq]; exact le_refl _
+by rw [eq_bot_iff, map_le_iff_le_comap, comap_bot, ker_mkq]; exact le_rfl
 
 @[simp] theorem comap_map_mkq : comap p.mkq (map p.mkq p') = p ⊔ p' :=
 by simp [comap_map_eq, sup_comm]
@@ -260,11 +264,40 @@ p.liftq (q.mkq.comp f) $ by simpa [ker_comp] using h
 theorem mapq_mkq (f : M →ₛₗ[τ₁₂] M₂) {h} : (mapq p q f h).comp p.mkq = q.mkq.comp f :=
 by ext x; refl
 
+@[simp] lemma mapq_zero (h : p ≤ q.comap (0 : M →ₛₗ[τ₁₂] M₂) := by simp) :
+  p.mapq q (0 : M →ₛₗ[τ₁₂] M₂) h = 0 :=
+by { ext, simp, }
+
+/-- Given submodules `p ⊆ M`, `p₂ ⊆ M₂`, `p₃ ⊆ M₃` and maps `f : M → M₂`, `g : M₂ → M₃` inducing
+`mapq f : M ⧸ p → M₂ ⧸ p₂` and `mapq g : M₂ ⧸ p₂ → M₃ ⧸ p₃` then
+`mapq (g ∘ f) = (mapq g) ∘ (mapq f)`. -/
+lemma mapq_comp {R₃ M₃ : Type*} [ring R₃] [add_comm_group M₃] [module R₃ M₃]
+  (p₂ : submodule R₂ M₂) (p₃ : submodule R₃ M₃)
+  {τ₂₃ : R₂ →+* R₃} {τ₁₃ : R →+* R₃} [ring_hom_comp_triple τ₁₂ τ₂₃ τ₁₃]
+  (f : M →ₛₗ[τ₁₂] M₂) (g : M₂ →ₛₗ[τ₂₃] M₃) (hf : p ≤ p₂.comap f) (hg : p₂ ≤ p₃.comap g)
+  (h := (hf.trans (comap_mono hg))) :
+  p.mapq p₃ (g.comp f) h = (p₂.mapq p₃ g hg).comp (p.mapq p₂ f hf) :=
+by { ext, simp, }
+
+@[simp] lemma mapq_id (h : p ≤ p.comap linear_map.id := by simp) :
+  p.mapq p linear_map.id h = linear_map.id :=
+by { ext, simp, }
+
+lemma mapq_pow {f : M →ₗ[R] M} (h : p ≤ p.comap f) (k : ℕ)
+  (h' : p ≤ p.comap (f^k) := p.le_comap_pow_of_le_comap h k) :
+  p.mapq p (f^k) h' = (p.mapq p f h)^k :=
+begin
+  induction k with k ih,
+  { simp [linear_map.one_eq_id], },
+  { simp only [linear_map.iterate_succ, ← ih],
+    apply p.mapq_comp, },
+end
+
 theorem comap_liftq (f : M →ₛₗ[τ₁₂] M₂) (h) :
   q.comap (p.liftq f h) = (q.comap f).map (mkq p) :=
 le_antisymm
   (by rintro ⟨x⟩ hx; exact ⟨_, hx, rfl⟩)
-  (by rw [map_le_iff_le_comap, ← comap_comp, liftq_mkq]; exact le_refl _)
+  (by rw [map_le_iff_le_comap, ← comap_comp, liftq_mkq]; exact le_rfl)
 
 theorem map_liftq [ring_hom_surjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) (h) (q : submodule R (M ⧸ p)) :
   q.map (p.liftq f h) = (q.comap p.mkq).map f :=
@@ -312,7 +345,7 @@ begin
     rw ker_le_iff, use [y, h₁ hy], rw ← set.singleton_subset_iff at hy,
     exact set.subset.trans subset_span (span_mono (set.preimage_mono hy)), },
   rw ← left_eq_sup at hk, rw f.range_coe at h₁,
-  rw [hk, ← map_le_map_iff, map_span, map_comap_eq, set.image_preimage_eq_of_subset h₁],
+  rw [hk, ←linear_map.map_le_map_iff, map_span, map_comap_eq, set.image_preimage_eq_of_subset h₁],
   exact inf_le_right,
 end
 

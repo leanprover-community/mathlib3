@@ -119,7 +119,7 @@ lemma local_of_nonunits_ideal [comm_ring R] (hnze : (0:R) ≠ 1)
   is_local := λ x, or_iff_not_imp_left.mpr $ λ hx,
   begin
     by_contra H,
-    apply h _ _ hx H,
+    apply h _ hx _ H,
     simp [-sub_eq_add_neg, add_sub_cancel'_right]
   end }
 
@@ -127,7 +127,7 @@ lemma local_of_unique_max_ideal [comm_ring R] (h : ∃! I : ideal R, I.is_maxima
   local_ring R :=
 local_of_nonunits_ideal
 (let ⟨I, Imax, _⟩ := h in (λ (H : 0 = 1), Imax.1.1 $ I.eq_top_iff_one.2 $ H ▸ I.zero_mem))
-$ λ x y hx hy H,
+$ λ x hx y hy H,
 let ⟨I, Imax, Iuniq⟩ := h in
 let ⟨Ix, Ixmax, Hx⟩ := exists_max_ideal_of_mem_nonunits hx in
 let ⟨Iy, Iymax, Hy⟩ := exists_max_ideal_of_mem_nonunits hy in
@@ -182,6 +182,22 @@ instance _root_.CommRing.is_local_ring_hom_comp {R S T : CommRing} (f : R ⟶ S)
   [is_local_ring_hom g] [is_local_ring_hom f] :
   is_local_ring_hom (f ≫ g) := is_local_ring_hom_comp _ _
 
+/-- If `f : R →+* S` is a local ring hom, then `R` is a local ring if `S` is. -/
+lemma _root_.ring_hom.domain_local_ring {R S : Type*} [comm_ring R] [comm_ring S]
+  [H : _root_.local_ring S] (f : R →+* S)
+  [is_local_ring_hom f] : _root_.local_ring R :=
+begin
+  haveI : nontrivial R := pullback_nonzero f f.map_zero f.map_one,
+  constructor,
+  intro x,
+  rw [← is_unit_map_iff f, ← is_unit_map_iff f, f.map_sub, f.map_one],
+  exact _root_.local_ring.is_local (f x)
+end
+
+lemma is_local_ring_hom_of_comp {R S T: Type*} [comm_ring R] [comm_ring S] [comm_ring T]
+  (f : R →+* S) (g : S →+* T) [is_local_ring_hom (g.comp f)] : is_local_ring_hom f :=
+⟨λ a ha, (is_unit_map_iff (g.comp f) _).mp (g.is_unit_map ha)⟩
+
 instance is_local_ring_hom_equiv [semiring R] [semiring S] (f : R ≃+* S) :
   is_local_ring_hom f.to_ring_hom :=
 { map_nonunit := λ a ha,
@@ -196,7 +212,7 @@ is_local_ring_hom.map_nonunit a h
 
 theorem of_irreducible_map [semiring R] [semiring S] (f : R →+* S) [h : is_local_ring_hom f] {x : R}
   (hfx : irreducible (f x)) : irreducible x :=
-⟨λ h, hfx.not_unit $ is_unit.map f.to_monoid_hom h, λ p q hx, let ⟨H⟩ := h in
+⟨λ h, hfx.not_unit $ is_unit.map f h, λ p q hx, let ⟨H⟩ := h in
 or.imp (H p) (H q) $ hfx.is_unit_or_is_unit $ f.map_mul p q ▸ congr_arg f hx⟩
 
 section

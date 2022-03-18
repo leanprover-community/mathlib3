@@ -326,7 +326,7 @@ begin
 end
 
 lemma convex_hull_prod (s : set E) (t : set F) :
-  convex_hull R (s.prod t) = (convex_hull R s).prod (convex_hull R t) :=
+  convex_hull R (s ×ˢ t) = convex_hull R s ×ˢ convex_hull R t :=
 begin
   refine set.subset.antisymm _ _,
   { exact convex_hull_min (set.prod_mono (subset_convex_hull _ _) $ subset_convex_hull _ _)

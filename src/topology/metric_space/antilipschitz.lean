@@ -194,7 +194,7 @@ variables [pseudo_metric_space α] [pseudo_metric_space β] {K : ℝ≥0} {f : �
 lemma bounded_preimage (hf : antilipschitz_with K f)
   {s : set β} (hs : bounded s) :
   bounded (f ⁻¹' s) :=
-exists.intro (K * diam s) $ λ x y hx hy,
+exists.intro (K * diam s) $ λ x hx y hy,
 calc dist x y ≤ K * dist (f x) (f y) : hf.le_mul_dist x y
 ... ≤ K * diam s : mul_le_mul_of_nonneg_left (dist_le_diam_of_mem hs hx hy) K.2
 

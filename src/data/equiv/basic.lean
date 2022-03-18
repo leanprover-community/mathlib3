@@ -3,17 +3,17 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
+import data.fun_like.equiv
 import data.option.basic
-import data.sum
-import logic.unique
-import logic.function.basic
-import data.quot
-import tactic.simps
-import logic.function.conjugate
 import data.prod
-import tactic.norm_cast
+import data.quot
 import data.sigma.basic
+import data.sum.basic
 import data.subtype
+import logic.function.conjugate
+import logic.unique
+import tactic.norm_cast
+import tactic.simps
 
 /-!
 # Equivalence between types
@@ -78,14 +78,18 @@ structure equiv (α : Sort*) (β : Sort*) :=
 
 infix ` ≃ `:25 := equiv
 
-/-- Convert an involutive function `f` to an equivalence with `to_fun = inv_fun = f`. -/
-def function.involutive.to_equiv (f : α → α) (h : involutive f) : α ≃ α :=
-⟨f, f, h.left_inverse, h.right_inverse⟩
+instance {F} [equiv_like F α β] : has_coe_t F (α ≃ β) :=
+⟨λ f, { to_fun := f, inv_fun := equiv_like.inv f, left_inv := equiv_like.left_inv f,
+  right_inv := equiv_like.right_inv f }⟩
+
+/-- `perm α` is the type of bijections from `α` to itself. -/
+@[reducible] def equiv.perm (α : Sort*) := equiv α α
 
 namespace equiv
 
-/-- `perm α` is the type of bijections from `α` to itself. -/
-@[reducible] def perm (α : Sort*) := equiv α α
+instance : equiv_like (α ≃ β) α β :=
+{ coe := to_fun, inv := inv_fun, left_inv := left_inv, right_inv := right_inv,
+  coe_injective' := λ e₁ e₂ h₁ h₂, by { cases e₁, cases e₂, congr' } }
 
 instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨to_fun⟩
 
@@ -93,25 +97,13 @@ instance : has_coe_to_fun (α ≃ β) (λ _, α → β) := ⟨to_fun⟩
 rfl
 
 /-- The map `coe_fn : (r ≃ s) → (r → s)` is injective. -/
-theorem coe_fn_injective : @function.injective (α ≃ β) (α → β) coe_fn
-| ⟨f₁, g₁, l₁, r₁⟩ ⟨f₂, g₂, l₂, r₂⟩ h :=
-  have f₁ = f₂, from h,
-  have g₁ = g₂, from l₁.eq_right_inverse (this.symm ▸ r₂),
-  by simp *
-
-@[simp, norm_cast] protected lemma coe_inj {e₁ e₂ : α ≃ β} : (e₁ : α → β) = e₂ ↔ e₁ = e₂ :=
-coe_fn_injective.eq_iff
-
-@[ext] lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g :=
-coe_fn_injective (funext H)
-
-protected lemma congr_arg {f : equiv α β} : Π {x x' : α}, x = x' → f x = f x'
-| _ _ rfl := rfl
-
-protected lemma congr_fun {f g : equiv α β} (h : f = g) (x : α) : f x = g x := h ▸ rfl
-
-lemma ext_iff {f g : equiv α β} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, ext⟩
+theorem coe_fn_injective : @function.injective (α ≃ β) (α → β) coe_fn := fun_like.coe_injective
+protected lemma coe_inj {e₁ e₂ : α ≃ β} : (e₁ : α → β) = e₂ ↔ e₁ = e₂ := fun_like.coe_fn_eq
+@[ext] lemma ext {f g : equiv α β} (H : ∀ x, f x = g x) : f = g := fun_like.ext f g H
+protected lemma congr_arg {f : equiv α β} {x x' : α} : x = x' → f x = f x' := fun_like.congr_arg f
+protected lemma congr_fun {f g : equiv α β} (h : f = g) (x : α) : f x = g x :=
+fun_like.congr_fun h x
+lemma ext_iff {f g : equiv α β} : f = g ↔ ∀ x, f x = g x := fun_like.ext_iff
 
 @[ext] lemma perm.ext {σ τ : equiv.perm α} (H : ∀ x, σ x = τ x) : σ = τ :=
 equiv.ext H
@@ -138,9 +130,6 @@ def simps.symm_apply (e : α ≃ β) : β → α := e.symm
 
 initialize_simps_projections equiv (to_fun → apply, inv_fun → symm_apply)
 
--- Generate the `simps` projections for previously defined equivs.
-attribute [simps] function.involutive.to_equiv
-
 /-- Composition of equivalences `e₁ : α ≃ β` and `e₂ : β ≃ γ`. -/
 @[trans] protected def trans (e₁ : α ≃ β) (e₂ : β ≃ γ) : α ≃ γ :=
 ⟨e₂ ∘ e₁, e₁.symm ∘ e₂.symm,
@@ -152,14 +141,9 @@ lemma to_fun_as_coe (e : α ≃ β) : e.to_fun = e := rfl
 @[simp]
 lemma inv_fun_as_coe (e : α ≃ β) : e.inv_fun = e.symm := rfl
 
-protected theorem injective (e : α ≃ β) : injective e :=
-e.left_inv.injective
-
-protected theorem surjective (e : α ≃ β) : surjective e :=
-e.right_inv.surjective
-
-protected theorem bijective (f : α ≃ β) : bijective f :=
-⟨f.injective, f.surjective⟩
+protected theorem injective (e : α ≃ β) : injective e := equiv_like.injective e
+protected theorem surjective (e : α ≃ β) : surjective e := equiv_like.surjective e
+protected theorem bijective (e : α ≃ β) : bijective e := equiv_like.bijective e
 
 protected theorem subsingleton (e : α ≃ β) [subsingleton β] : subsingleton α :=
 e.injective.subsingleton
@@ -196,7 +180,7 @@ e.nonempty_congr.mpr ‹_›
 
 /-- If `α ≃ β` and `β` is inhabited, then so is `α`. -/
 protected def inhabited [inhabited β] (e : α ≃ β) : inhabited α :=
-⟨e.symm (default _)⟩
+⟨e.symm default⟩
 
 /-- If `α ≃ β` and `β` is a singleton type, then so is `α`. -/
 protected def unique [unique β] (e : α ≃ β) : unique α :=
@@ -237,8 +221,7 @@ e.left_inv x
 -- `simp` will always rewrite with `equiv.symm_symm` before this has a chance to fire.
 @[simp, nolint simp_nf] theorem symm_symm_apply (f : α ≃ β) (b : α) : f.symm.symm b = f b := rfl
 
-@[simp] theorem apply_eq_iff_eq (f : α ≃ β) {x y : α} : f x = f y ↔ x = y :=
-f.injective.eq_iff
+theorem apply_eq_iff_eq (f : α ≃ β) {x y : α} : f x = f y ↔ x = y := equiv_like.apply_eq_iff_eq f
 
 theorem apply_eq_iff_eq_symm_apply {α β : Sort*} (f : α ≃ β) {x : α} {y : β} :
   f x = y ↔ x = f.symm y :=
@@ -286,23 +269,23 @@ theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_in
 
 theorem right_inverse_symm (f : equiv α β) : function.right_inverse f.symm f := f.right_inv
 
-@[simp] lemma injective_comp (e : α ≃ β) (f : β → γ) : injective (f ∘ e) ↔ injective f :=
-injective.of_comp_iff' f e.bijective
+lemma injective_comp (e : α ≃ β) (f : β → γ) : injective (f ∘ e) ↔ injective f :=
+equiv_like.injective_comp e f
 
-@[simp] lemma comp_injective (f : α → β) (e : β ≃ γ) : injective (e ∘ f) ↔ injective f :=
-e.injective.of_comp_iff f
+lemma comp_injective (f : α → β) (e : β ≃ γ) : injective (e ∘ f) ↔ injective f :=
+equiv_like.comp_injective f e
 
-@[simp] lemma surjective_comp (e : α ≃ β) (f : β → γ) : surjective (f ∘ e) ↔ surjective f :=
-e.surjective.of_comp_iff f
+lemma surjective_comp (e : α ≃ β) (f : β → γ) : surjective (f ∘ e) ↔ surjective f :=
+equiv_like.surjective_comp e f
 
-@[simp] lemma comp_surjective (f : α → β) (e : β ≃ γ) : surjective (e ∘ f) ↔ surjective f :=
-surjective.of_comp_iff' e.bijective f
+lemma comp_surjective (f : α → β) (e : β ≃ γ) : surjective (e ∘ f) ↔ surjective f :=
+equiv_like.comp_surjective f e
 
-@[simp] lemma bijective_comp (e : α ≃ β) (f : β → γ) : bijective (f ∘ e) ↔ bijective f :=
-e.bijective.of_comp_iff f
+lemma bijective_comp (e : α ≃ β) (f : β → γ) : bijective (f ∘ e) ↔ bijective f :=
+equiv_like.bijective_comp e f
 
-@[simp] lemma comp_bijective (f : α → β) (e : β ≃ γ) : bijective (e ∘ f) ↔ bijective f :=
-bijective.of_comp_iff' e.bijective f
+lemma comp_bijective (f : α → β) (e : β ≃ γ) : bijective (e ∘ f) ↔ bijective f :=
+equiv_like.comp_bijective f e
 
 /-- If `α` is equivalent to `β` and `γ` is equivalent to `δ`, then the type of equivalences `α ≃ γ`
 is equivalent to the type of equivalences `β ≃ δ`. -/
@@ -490,6 +473,22 @@ lemma conj_comp (e : α ≃ β) (f₁ f₂ : α → α) :
   e.conj (f₁ ∘ f₂) = (e.conj f₁) ∘ (e.conj f₂) :=
 by apply arrow_congr_comp
 
+lemma eq_comp_symm {α β γ} (e : α ≃ β) (f : β → γ) (g : α → γ) :
+  f = g ∘ e.symm ↔ f ∘ e = g :=
+(e.arrow_congr (equiv.refl γ)).symm_apply_eq.symm
+
+lemma comp_symm_eq {α β γ} (e : α ≃ β) (f : β → γ) (g : α → γ) :
+  g ∘ e.symm = f ↔ g = f ∘ e :=
+(e.arrow_congr (equiv.refl γ)).eq_symm_apply.symm
+
+lemma eq_symm_comp {α β γ} (e : α ≃ β) (f : γ → α) (g : γ → β) :
+  f = e.symm ∘ g ↔ e ∘ f = g :=
+((equiv.refl γ).arrow_congr e).eq_symm_apply
+
+lemma symm_comp_eq {α β γ} (e : α ≃ β) (f : γ → α) (g : γ → β) :
+  e.symm ∘ g = f ↔ g = e ∘ f :=
+((equiv.refl γ).arrow_congr e).symm_apply_eq
+
 section binary_op
 
 variables {α₁ β₁ : Type*} (e : α₁ ≃ β₁) (f : α₁ → α₁ → α₁)
@@ -526,13 +525,18 @@ def arrow_punit_equiv_punit (α : Sort*) : (α → punit.{v}) ≃ punit.{w} :=
 ⟨λ f, punit.star, λ u f, punit.star,
   λ f, by { funext x, cases f x, refl }, λ u, by { cases u, reflexivity }⟩
 
+/-- If `α` is `subsingleton` and `a : α`, then the type of dependent functions `Π (i : α), β
+i` is equivalent to `β i`. -/
+@[simps]
+def Pi_subsingleton {α} (β : α → Sort*) [subsingleton α] (a : α) : (Π a', β a') ≃ β a :=
+{ to_fun := eval a,
+  inv_fun := λ x b, cast (congr_arg β $ subsingleton.elim a b) x,
+  left_inv := λ f, funext $ λ b, by { rw subsingleton.elim b a, reflexivity },
+  right_inv := λ b, rfl }
 
 /-- If `α` has a unique term, then the type of function `α → β` is equivalent to `β`. -/
 @[simps { fully_applied := ff }] def fun_unique (α β) [unique α] : (α → β) ≃ β :=
-{ to_fun := eval (default α),
-  inv_fun := const α,
-  left_inv := λ f, funext $ λ a, congr_arg f $ subsingleton.elim _ _,
-  right_inv := λ b, rfl }
+Pi_subsingleton _ default
 
 /-- The sort of maps from `punit` is equivalent to the codomain. -/
 def punit_arrow_equiv (α : Sort*) : (punit.{u} → α) ≃ α :=
@@ -680,21 +684,34 @@ noncomputable def Prop_equiv_bool : Prop ≃ bool :=
 
 /-- Sum of types is commutative up to an equivalence. -/
 @[simps apply]
-def sum_comm (α β : Sort*) : α ⊕ β ≃ β ⊕ α :=
+def sum_comm (α β : Type*) : α ⊕ β ≃ β ⊕ α :=
 ⟨sum.swap, sum.swap, sum.swap_swap, sum.swap_swap⟩
 
 @[simp] lemma sum_comm_symm (α β) : (sum_comm α β).symm = sum_comm β α := rfl
 
 /-- Sum of types is associative up to an equivalence. -/
-def sum_assoc (α β γ : Sort*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
+def sum_assoc (α β γ : Type*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
 ⟨sum.elim (sum.elim sum.inl (sum.inr ∘ sum.inl)) (sum.inr ∘ sum.inr),
   sum.elim (sum.inl ∘ sum.inl) $ sum.elim (sum.inl ∘ sum.inr) sum.inr,
   by rintros (⟨_ | _⟩ | _); refl,
   by rintros (_ | ⟨_ | _⟩); refl⟩
 
-@[simp] theorem sum_assoc_apply_in1 {α β γ} (a) : sum_assoc α β γ (inl (inl a)) = inl a := rfl
-@[simp] theorem sum_assoc_apply_in2 {α β γ} (b) : sum_assoc α β γ (inl (inr b)) = inr (inl b) := rfl
-@[simp] theorem sum_assoc_apply_in3 {α β γ} (c) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
+@[simp] lemma sum_assoc_apply_inl_inl {α β γ} (a) : sum_assoc α β γ (inl (inl a)) = inl a := rfl
+
+@[simp] lemma sum_assoc_apply_inl_inr {α β γ} (b) : sum_assoc α β γ (inl (inr b)) = inr (inl b) :=
+rfl
+
+@[simp] lemma sum_assoc_apply_inr {α β γ} (c) : sum_assoc α β γ (inr c) = inr (inr c) := rfl
+
+@[simp] lemma sum_assoc_symm_apply_inl {α β γ} (a) : (sum_assoc α β γ).symm (inl a) = inl (inl a) :=
+rfl
+
+@[simp] lemma sum_assoc_symm_apply_inr_inl {α β γ} (b) :
+  (sum_assoc α β γ).symm (inr (inl b)) = inl (inr b) := rfl
+
+@[simp] lemma sum_assoc_symm_apply_inr_inr {α β γ} (c) :
+  (sum_assoc α β γ).symm (inr (inr c)) = inr c := rfl
+
 
 /-- Sum with `empty` is equivalent to the original type. -/
 @[simps symm_apply] def sum_empty (α β : Type*) [is_empty β] : α ⊕ β ≃ α :=
@@ -715,8 +732,8 @@ def sum_assoc (α β γ : Sort*) : (α ⊕ β) ⊕ γ ≃ α ⊕ (β ⊕ γ) :=
 
 /-- `option α` is equivalent to `α ⊕ punit` -/
 def option_equiv_sum_punit (α : Type*) : option α ≃ α ⊕ punit.{u+1} :=
-⟨λ o, match o with none := inr punit.star | some a := inl a end,
- λ s, match s with inr _ := none | inl a := some a end,
+⟨λ o, o.elim (inr punit.star) inl,
+ λ s, s.elim some (λ _, none),
  λ o, by cases o; refl,
  λ s, by rcases s with _ | ⟨⟨⟩⟩; refl⟩
 
@@ -1124,8 +1141,8 @@ variables {α₁ β₁ β₂ : Type*} [decidable_eq α₁] (a : α₁) (e : perm
 def prod_extend_right : perm (α₁ × β₁) :=
 { to_fun := λ ab, if ab.fst = a then (a, e ab.snd) else ab,
   inv_fun := λ ab, if ab.fst = a then (a, e.symm ab.snd) else ab,
-  left_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] },
-  right_inv := by { rintros ⟨k', x⟩, simp only, split_ifs with h; simp [h] } }
+  left_inv := by { rintros ⟨k', x⟩, dsimp only, split_ifs with h; simp [h] },
+  right_inv := by { rintros ⟨k', x⟩, dsimp only, split_ifs with h; simp [h] } }
 
 @[simp] lemma prod_extend_right_apply_eq (b : β₁) :
   prod_extend_right a e (a, b) = (a, e b) := if_pos rfl
@@ -1522,19 +1539,24 @@ end subtype_equiv_codomain
 
 /-- If `f` is a bijective function, then its domain is equivalent to its codomain. -/
 @[simps apply]
-noncomputable def of_bijective {α β} (f : α → β) (hf : bijective f) : α ≃ β :=
+noncomputable def of_bijective (f : α → β) (hf : bijective f) : α ≃ β :=
 { to_fun := f,
   inv_fun := function.surj_inv hf.surjective,
   left_inv := function.left_inverse_surj_inv hf,
   right_inv := function.right_inverse_surj_inv _}
 
-lemma of_bijective_apply_symm_apply {α β} (f : α → β) (hf : bijective f) (x : β) :
+lemma of_bijective_apply_symm_apply (f : α → β) (hf : bijective f) (x : β) :
   f ((of_bijective f hf).symm x) = x :=
 (of_bijective f hf).apply_symm_apply x
 
-@[simp] lemma of_bijective_symm_apply_apply {α β} (f : α → β) (hf : bijective f) (x : α) :
+@[simp] lemma of_bijective_symm_apply_apply (f : α → β) (hf : bijective f) (x : α) :
   (of_bijective f hf).symm (f x) = x :=
 (of_bijective f hf).symm_apply_apply x
+
+instance : can_lift (α → β) (α ≃ β) :=
+{ coe := coe_fn,
+  cond := bijective,
+  prf := λ f hf, ⟨of_bijective f hf, rfl⟩ }
 
 section
 
@@ -1581,7 +1603,7 @@ equivalence relation `~`. Let `p₂` be a predicate on the quotient type `α/~`,
 of this predicate to `α`: `p₁ a ↔ p₂ ⟦a⟧`. Let `~₂` be the restriction of `~` to `{x // p₁ x}`.
 Then `{x // p₂ x}` is equivalent to the quotient of `{x // p₁ x}` by `~₂`. -/
 def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
-  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ : ∀ a, p₁ a ↔ p₂ ⟦a⟧)
   (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :
   {x // p₂ x} ≃ quotient s₂ :=
 { to_fun := λ a, quotient.hrec_on a.1 (λ a h, ⟦⟨a, (hp₂ _).2 h⟩⟧)
@@ -1591,6 +1613,16 @@ def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid 
     (λ a b hab, subtype.ext_val (quotient.sound ((h _ _).1 hab))),
   left_inv := λ ⟨a, ha⟩, quotient.induction_on a (λ a ha, rfl) ha,
   right_inv := λ a, quotient.induction_on a (λ ⟨a, ha⟩, rfl) }
+
+@[simp] lemma subtype_quotient_equiv_quotient_subtype_mk (p₁ : α → Prop) [s₁ : setoid α]
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ : ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) (x hx) :
+  subtype_quotient_equiv_quotient_subtype p₁ p₂ hp₂ h ⟨⟦x⟧, hx⟩ = ⟦⟨x, (hp₂ _).2 hx⟩⟧ := rfl
+
+@[simp] lemma subtype_quotient_equiv_quotient_subtype_symm_mk (p₁ : α → Prop) [s₁ : setoid α]
+  [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ : ∀ a, p₁ a ↔ p₂ ⟦a⟧)
+  (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) (x) :
+  (subtype_quotient_equiv_quotient_subtype p₁ p₂ hp₂ h).symm ⟦x⟧ = ⟨⟦x⟧, (hp₂ _).1 x.prop⟩ := rfl
 
 section swap
 variable [decidable_eq α]
@@ -1730,6 +1762,20 @@ by { dsimp [set_value], simp [swap_apply_left] }
 end swap
 
 end equiv
+
+namespace function.involutive
+
+/-- Convert an involutive function `f` to a permutation with `to_fun = inv_fun = f`. -/
+def to_perm (f : α → α) (h : involutive f) : equiv.perm α :=
+⟨f, f, h.left_inverse, h.right_inverse⟩
+
+@[simp] lemma coe_to_perm {f : α → α} (h : involutive f) : (h.to_perm f : α → α) = f := rfl
+
+@[simp] lemma to_perm_symm {f : α → α} (h : involutive f) : (h.to_perm f).symm = h.to_perm f := rfl
+
+lemma to_perm_involutive {f : α → α} (h : involutive f) : involutive (h.to_perm f) := h
+
+end function.involutive
 
 lemma plift.eq_up_iff_down_eq {x : plift α} {y : α} : x = plift.up y ↔ x.down = y :=
 equiv.plift.eq_symm_apply
@@ -1941,8 +1987,8 @@ funext $ λ z, hf.swap_apply _ _ _
 
 /-- If both `α` and `β` are singletons, then `α ≃ β`. -/
 def equiv_of_unique_of_unique [unique α] [unique β] : α ≃ β :=
-{ to_fun := λ _, default β,
-  inv_fun := λ _, default α,
+{ to_fun := λ _, default,
+  inv_fun := λ _, default,
   left_inv := λ _, subsingleton.elim _ _,
   right_inv := λ _, subsingleton.elim _ _ }
 
@@ -2044,5 +2090,20 @@ lemma update_apply_equiv_apply {α β α' : Sort*} [decidable_eq α'] [decidable
   (f : α → β) (g : α' ≃ α) (a : α) (v : β) (a' : α') :
   update f a v (g a') = update (f ∘ g) (g.symm a) v a' :=
 congr_fun (update_comp_equiv f g a v) a'
+
+lemma Pi_congr_left'_update [decidable_eq α] [decidable_eq β]
+  (P : α → Sort*) (e : α ≃ β) (f : Π a, P a) (b : β) (x : P (e.symm b)) :
+  e.Pi_congr_left' P (update f (e.symm b) x) = update (e.Pi_congr_left' P f) b x :=
+begin
+  ext b',
+  rcases eq_or_ne b' b with rfl | h,
+  { simp, },
+  { simp [h], },
+end
+
+lemma Pi_congr_left'_symm_update [decidable_eq α] [decidable_eq β]
+  (P : α → Sort*) (e : α ≃ β) (f : Π b, P (e.symm b)) (b : β) (x : P (e.symm b)) :
+  (e.Pi_congr_left' P).symm (update f b x) = update ((e.Pi_congr_left' P).symm f) (e.symm b) x :=
+by simp [(e.Pi_congr_left' P).symm_apply_eq, Pi_congr_left'_update]
 
 end function

@@ -85,7 +85,7 @@ function. This is similar to `ae_measurable`, but the `measurable_space` structu
 measurability statement and for the measure are different. -/
 def ae_measurable' {α β} [measurable_space β] (m : measurable_space α) {m0 : measurable_space α}
   (f : α → β) (μ : measure α) : Prop :=
-∃ g : α → β, @measurable α β m _ g ∧ f =ᵐ[μ] g
+∃ g : α → β, measurable[m] g ∧ f =ᵐ[μ] g
 
 namespace ae_measurable'
 
@@ -101,14 +101,14 @@ lemma add [has_add β] [has_measurable_add₂ β] (hf : ae_measurable' m f μ)
 begin
   rcases hf with ⟨f', h_f'_meas, hff'⟩,
   rcases hg with ⟨g', h_g'_meas, hgg'⟩,
-  exact ⟨f' + g', @measurable.add _ _ _ _ m _ f' g' h_f'_meas h_g'_meas, hff'.add hgg'⟩,
+  exact ⟨f' + g', h_f'_meas.add h_g'_meas, hff'.add hgg'⟩,
 end
 
 lemma neg [has_neg β] [has_measurable_neg β] {f : α → β} (hfm : ae_measurable' m f μ) :
   ae_measurable' m (-f) μ :=
 begin
   rcases hfm with ⟨f', hf'_meas, hf_ae⟩,
-  refine ⟨-f', @measurable.neg _ _ _ _ _ m _ hf'_meas, hf_ae.mono (λ x hx, _)⟩,
+  refine ⟨-f', hf'_meas.neg, hf_ae.mono (λ x hx, _)⟩,
   simp_rw pi.neg_apply,
   rw hx,
 end
@@ -119,8 +119,7 @@ lemma sub [has_sub β] [has_measurable_sub₂ β] {f g : α → β}
 begin
   rcases hfm with ⟨f', hf'_meas, hf_ae⟩,
   rcases hgm with ⟨g', hg'_meas, hg_ae⟩,
-  refine ⟨f'-g', @measurable.sub _ _ _ _ m _ _ _ hf'_meas hg'_meas,
-    hf_ae.mp (hg_ae.mono (λ x hx1 hx2, _))⟩,
+  refine ⟨f'-g', hf'_meas.sub hg'_meas, hf_ae.mp (hg_ae.mono (λ x hx1 hx2, _))⟩,
   simp_rw pi.sub_apply,
   rw [hx1, hx2],
 end
@@ -129,7 +128,7 @@ lemma const_smul [has_scalar 𝕜 β] [has_measurable_smul 𝕜 β] (c : 𝕜) (
   ae_measurable' m (c • f) μ :=
 begin
   rcases hf with ⟨f', h_f'_meas, hff'⟩,
-  refine ⟨c • f', @measurable.const_smul _ _ _ _ _ _ m _ f' h_f'_meas c, _⟩,
+  refine ⟨c • f', h_f'_meas.const_smul c, _⟩,
   exact eventually_eq.fun_comp hff' (λ x, c • x),
 end
 
@@ -139,8 +138,7 @@ lemma const_inner {𝕜} [is_R_or_C 𝕜] [inner_product_space 𝕜 β]
   ae_measurable' m (λ x, (inner c (f x) : 𝕜)) μ :=
 begin
   rcases hfm with ⟨f', hf'_meas, hf_ae⟩,
-  refine ⟨λ x, (inner c (f' x) : 𝕜),
-    @measurable.inner _ _ _ _ _ m _ _ _ _ _ (@measurable_const _ _ _ m _) hf'_meas,
+  refine ⟨λ x, (inner c (f' x) : 𝕜), (@measurable_const _ _ _ m _).inner hf'_meas,
     hf_ae.mono (λ x hx, _)⟩,
   dsimp only,
   rw hx,
@@ -264,9 +262,7 @@ coe_fn_coe_base f
 lemma mem_Lp_meas_indicator_const_Lp {m m0 : measurable_space α} (hm : m ≤ m0)
   {μ : measure α} {s : set α} (hs : measurable_set[m] s) (hμs : μ s ≠ ∞) {c : F} :
   indicator_const_Lp p (hm s hs) hμs c ∈ Lp_meas F 𝕜 m p μ :=
-⟨s.indicator (λ x : α, c),
-  @measurable.indicator α _ m _ _ s (λ x, c) (@measurable_const _ α _ m _) hs,
-  indicator_const_Lp_coe_fn⟩
+⟨s.indicator (λ x : α, c), (@measurable_const _ α _ m _).indicator hs, indicator_const_Lp_coe_fn⟩
 
 section complete_subspace
 
@@ -380,7 +376,7 @@ begin
   ext1,
   refine eventually_eq.trans _ (Lp.coe_fn_add _ _).symm,
   refine ae_eq_trim_of_measurable hm (Lp.measurable _) _ _,
-  { exact @measurable.add _ _ _ _ m _ _ _ (Lp.measurable _) (Lp.measurable _), },
+  { exact (Lp.measurable _).add (Lp.measurable _), },
   refine (Lp_meas_subgroup_to_Lp_trim_ae_eq hm _).trans _,
   refine eventually_eq.trans _
     (eventually_eq.add (Lp_meas_subgroup_to_Lp_trim_ae_eq hm f).symm
@@ -418,7 +414,7 @@ begin
   ext1,
   refine eventually_eq.trans _ (Lp.coe_fn_smul _ _).symm,
   refine ae_eq_trim_of_measurable hm (Lp.measurable _) _ _,
-  { exact @measurable.const_smul _ _ α _ _ _ m _ _ (Lp.measurable _) c, },
+  { exact (Lp.measurable _).const_smul c, },
   refine (Lp_meas_to_Lp_trim_ae_eq hm _).trans _,
   refine (Lp.coe_fn_smul _ _).trans _,
   refine (Lp_meas_to_Lp_trim_ae_eq hm f).mono (λ x hx, _),
@@ -691,8 +687,6 @@ We define a conditional expectation in `L2`: it is the orthogonal projection on 
 `Lp_meas`. -/
 
 section condexp_L2
-
-local attribute [instance] fact_one_le_two_ennreal
 
 variables [complete_space E] {m m0 : measurable_space α} {μ : measure α}
   {s t : set α}
@@ -967,7 +961,7 @@ end
 variables {𝕜}
 
 lemma set_lintegral_nnnorm_condexp_L2_indicator_le (hm : m ≤ m0) (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (x : E') {t : set α} (ht : @measurable_set _ m t) (hμt : μ t ≠ ∞) :
+  (hμs : μ s ≠ ∞) (x : E') {t : set α} (ht : measurable_set[m] t) (hμt : μ t ≠ ∞) :
   ∫⁻ a in t, ∥condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) a∥₊ ∂μ ≤ μ (s ∩ t) * ∥x∥₊ :=
 calc ∫⁻ a in t, ∥condexp_L2 𝕜 hm (indicator_const_Lp 2 hs hμs x) a∥₊ ∂μ
     = ∫⁻ a in t, ∥(condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) a) • x∥₊ ∂μ :
@@ -1054,7 +1048,7 @@ lemma condexp_ind_smul_ae_eq_smul (hm : m ≤ m0) (hs : measurable_set s) (hμs 
 (to_span_singleton ℝ x).coe_fn_comp_LpL _
 
 lemma set_lintegral_nnnorm_condexp_ind_smul_le (hm : m ≤ m0) (hs : measurable_set s)
-  (hμs : μ s ≠ ∞) (x : G) {t : set α} (ht : @measurable_set _ m t) (hμt : μ t ≠ ∞) :
+  (hμs : μ s ≠ ∞) (x : G) {t : set α} (ht : measurable_set[m] t) (hμt : μ t ≠ ∞) :
   ∫⁻ a in t, ∥condexp_ind_smul hm hs hμs x a∥₊ ∂μ ≤ μ (s ∩ t) * ∥x∥₊ :=
 calc ∫⁻ a in t, ∥condexp_ind_smul hm hs hμs x a∥₊ ∂μ
     = ∫⁻ a in t, ∥condexp_L2 ℝ hm (indicator_const_Lp 2 hs hμs (1 : ℝ)) a • x∥₊ ∂μ :
@@ -1121,15 +1115,13 @@ end condexp_L2
 
 section condexp_ind
 
-/-! ## Conditional expectation of an indicator as a condinuous linear map.
+/-! ## Conditional expectation of an indicator as a continuous linear map.
 
 The goal of this section is to build
 `condexp_ind (hm : m ≤ m0) (μ : measure α) (s : set s) : G →L[ℝ] α →₁[μ] G`, which
 takes `x : G` to the conditional expectation of the indicator of the set `s` with value `x`,
 seen as an element of `α →₁[μ] G`.
 -/
-
-local attribute [instance] fact_one_le_two_ennreal
 
 variables {m m0 : measurable_space α} {μ : measure α} {s t : set α} [normed_space ℝ G]
 
@@ -1413,8 +1405,6 @@ end condexp_ind
 
 section condexp_L1
 
-local attribute [instance] fact_one_le_one_ennreal
-
 variables {m m0 : measurable_space α} {μ : measure α}
   {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}
 
@@ -1632,8 +1622,6 @@ section condexp
 /-! ### Conditional expectation of a function -/
 
 open_locale classical
-
-local attribute [instance] fact_one_le_one_ennreal
 
 variables {𝕜} {m m0 : measurable_space α} {μ : measure α}
   {hm : m ≤ m0} [sigma_finite (μ.trim hm)] {f g : α → F'} {s : set α}

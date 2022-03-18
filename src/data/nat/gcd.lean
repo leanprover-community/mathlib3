@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 import algebra.group_power.order
+import algebra.big_operators.basic
 
 /-!
 # Definitions and properties of `gcd`, `lcm`, and `coprime`
@@ -97,6 +98,10 @@ or.elim (nat.eq_zero_or_pos k)
   (λH3, nat.eq_of_mul_eq_mul_right H3 $ by rw [
     nat.div_mul_cancel (dvd_gcd H1 H2), ←gcd_mul_right,
     nat.div_mul_cancel H1, nat.div_mul_cancel H2])
+
+theorem gcd_greatest {a b d : ℕ} (hda : d ∣ a) (hdb : d ∣ b)
+  (hd : ∀ e : ℕ, e ∣ a → e ∣ b → e ∣ d) : d = a.gcd b :=
+(dvd_antisymm (hd _ (gcd_dvd_left a b) (gcd_dvd_right a b)) (dvd_gcd hda hdb)).symm
 
 theorem gcd_dvd_gcd_of_dvd_left {m k : ℕ} (n : ℕ) (H : m ∣ k) : gcd m n ∣ gcd k n :=
 dvd_gcd ((gcd_dvd_left m n).trans H) (gcd_dvd_right m n)
@@ -461,6 +466,24 @@ by simp [coprime]
 
 @[simp] theorem coprime_self (n : ℕ) : coprime n n ↔ n = 1 :=
 by simp [coprime]
+
+section big_operators
+
+open_locale big_operators
+
+/-- See `is_coprime.prod_left` for the corresponding lemma about `is_coprime` -/
+lemma coprime_prod_left
+  {ι : Type*} {x : ℕ} {s : ι → ℕ} {t : finset ι} :
+  (∀ (i : ι), i ∈ t → coprime (s i) x) → coprime (∏ (i : ι) in t, s i) x :=
+finset.prod_induction s (λ y, y.coprime x) (λ a b, coprime.mul) (by simp)
+
+/-- See `is_coprime.prod_right` for the corresponding lemma about `is_coprime` -/
+lemma coprime_prod_right
+  {ι : Type*} {x : ℕ} {s : ι → ℕ} {t : finset ι} :
+  (∀ (i : ι), i ∈ t → coprime x (s i)) → coprime x (∏ (i : ι) in t, s i) :=
+finset.prod_induction s (λ y, x.coprime y) (λ a b, coprime.mul_right) (by simp)
+
+end big_operators
 
 lemma coprime.eq_of_mul_eq_zero {m n : ℕ} (h : m.coprime n) (hmn : m * n = 0) :
   m = 0 ∧ n = 1 ∨ m = 1 ∧ n = 0 :=

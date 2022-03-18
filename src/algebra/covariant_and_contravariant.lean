@@ -6,6 +6,7 @@ Authors: Damiano Testa
 
 import algebra.group.defs
 import order.basic
+import order.monotone
 
 /-!
 
@@ -79,13 +80,13 @@ See the `contravariant_class` doc-string for its meaning. -/
 def contravariant : Prop := ∀ (m) {n₁ n₂}, r (μ m n₁) (μ m n₂) → r n₁ n₂
 
 /--  Given an action `μ` of a Type `M` on a Type `N` and a relation `r` on `N`, informally, the
-`covariant_class` says that "the action `μ` preserves the relation `r`.
+`covariant_class` says that "the action `μ` preserves the relation `r`."
 
 More precisely, the `covariant_class` is a class taking two Types `M N`, together with an "action"
 `μ : M → N → N` and a relation `r : N → N → Prop`.  Its unique field `elim` is the assertion that
 for all `m ∈ M` and all elements `n₁, n₂ ∈ N`, if the relation `r` holds for the pair
 `(n₁, n₂)`, then, the relation `r` also holds for the pair `(μ m n₁, μ m n₂)`,
-obtained from `(n₁, n₂)` by "acting upon it by `m`".
+obtained from `(n₁, n₂)` by acting upon it by `m`.
 
 If `m : M` and `h : r n₁ n₂`, then `covariant_class.elim m h : r (μ m n₁) (μ m n₂)`.
 -/
@@ -94,12 +95,12 @@ If `m : M` and `h : r n₁ n₂`, then `covariant_class.elim m h : r (μ m n₁)
 
 /--  Given an action `μ` of a Type `M` on a Type `N` and a relation `r` on `N`, informally, the
 `contravariant_class` says that "if the result of the action `μ` on a pair satisfies the
-relation `r`, then the initial pair satisfied the relation `r`.
+relation `r`, then the initial pair satisfied the relation `r`."
 
 More precisely, the `contravariant_class` is a class taking two Types `M N`, together with an
 "action" `μ : M → N → N` and a relation `r : N → N → Prop`.  Its unique field `elim` is the
 assertion that for all `m ∈ M` and all elements `n₁, n₂ ∈ N`, if the relation `r` holds for the
-pair `(μ m n₁, μ m n₂)` obtained from `(n₁, n₂)` by "acting upon it by `m`"", then, the relation
+pair `(μ m n₁, μ m n₂)` obtained from `(n₁, n₂)` by acting upon it by `m`, then, the relation
 `r` also holds for the pair `(n₁, n₂)`.
 
 If `m : M` and `h : r (μ m n₁) (μ m n₂)`, then `contravariant_class.elim m h : r n₁ n₂`.
@@ -195,6 +196,41 @@ trans (rel_of_act_rel_act m ab) rr
 end is_trans
 
 end contravariant
+
+section monotone
+
+variables {α : Type*} {M N μ} [preorder α] [preorder N]
+variable {f : N → α}
+
+/-- The partial application of a constant to a covariant operator is monotone. -/
+lemma covariant.monotone_of_const [covariant_class M N μ (≤)] (m : M) : monotone (μ m) :=
+λ a b ha, covariant_class.elim m ha
+
+/-- A monotone function remains monotone when composed with the partial application
+of a covariant operator. E.g., `∀ (m : ℕ), monotone f → monotone (λ n, f (m + n))`. -/
+lemma monotone.covariant_of_const [covariant_class M N μ (≤)] (hf : monotone f) (m : M) :
+  monotone (λ n, f (μ m n)) :=
+hf.comp $ covariant.monotone_of_const m
+
+/-- Same as `monotone.covariant_of_const`, but with the constant on the other side of
+the operator.  E.g., `∀ (m : ℕ), monotone f → monotone (λ n, f (n + m))`. -/
+lemma monotone.covariant_of_const' {μ : N → N → N} [covariant_class N N (swap μ) (≤)]
+  (hf : monotone f) (m : N) :
+  monotone (λ n, f (μ n m)) :=
+hf.comp $ covariant.monotone_of_const m
+
+/-- Dual of `monotone.covariant_of_const` -/
+lemma antitone.covariant_of_const [covariant_class M N μ (≤)] (hf : antitone f) (m : M) :
+  antitone (λ n, f (μ m n)) :=
+hf.comp_monotone $ covariant.monotone_of_const m
+
+/-- Dual of `monotone.covariant_of_const'` -/
+lemma antitone.covariant_of_const' {μ : N → N → N} [covariant_class N N (swap μ) (≤)]
+  (hf : antitone f) (m : N) :
+  antitone (λ n, f (μ n m)) :=
+hf.comp_monotone $ covariant.monotone_of_const m
+
+end monotone
 
 lemma covariant_le_of_covariant_lt [partial_order N] :
   covariant M N μ (<) → covariant M N μ (≤) :=

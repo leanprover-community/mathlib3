@@ -44,6 +44,7 @@ by simp
 private lemma cyclotomic_neg_one_pos {n : ℕ} (hn : 2 < n) {R} [linear_ordered_comm_ring R] :
   0 < eval (-1 : R) (cyclotomic n R) :=
 begin
+  haveI := ne_zero.of_gt hn,
   rw [←map_cyclotomic_int, ←int.cast_one, ←int.cast_neg, eval_int_cast_map,
       int.coe_cast_ring_hom, int.cast_pos],
   suffices : 0 < eval ↑(-1 : ℤ) (cyclotomic n ℝ),
@@ -55,7 +56,7 @@ begin
   by_contra' hx,
   have := intermediate_value_univ (-1) 0 (cyclotomic n ℝ).continuous,
   obtain ⟨y, hy : is_root _ y⟩ := this (show (0 : ℝ) ∈ set.Icc _ _, by simpa [h0] using hx),
-  rw [is_root_cyclotomic_iff $ show (n : ℝ) ≠ 0, by exact_mod_cast (pos_of_gt hn).ne'] at hy,
+  rw is_root_cyclotomic_iff at hy,
   rw hy.eq_order_of at hn,
   exact hn.not_le linear_ordered_ring.order_of_le_two,
 end

@@ -112,12 +112,21 @@ calc ∏ a in s, (f a + g a)
     refine congr_arg2 _
       (prod_bij (λ (a : α) (ha : a ∈ t), ⟨a, mem_powerset.1 ht ha⟩)
          _ _ _
-        (λ b hb, ⟨b, by cases b; finish⟩))
+        (λ b hb, ⟨b, by cases b;
+          simpa only [true_and, exists_prop, mem_filter, and_true, mem_attach, eq_self_iff_true,
+            subtype.coe_mk] using hb⟩))
       (prod_bij (λ (a : α) (ha : a ∈ s \ t), ⟨a, by simp * at *⟩)
         _ _ _
-        (λ b hb, ⟨b, by cases b; finish⟩));
+        (λ b hb, ⟨b, by cases b; begin
+          simp only [true_and, mem_filter, mem_attach, subtype.coe_mk] at hb,
+          simpa only [true_and, exists_prop, and_true, mem_sdiff, eq_self_iff_true, subtype.coe_mk,
+            b_property],
+        end⟩));
     intros; simp * at *; simp * at * },
-  { finish [function.funext_iff, finset.ext_iff, subset_iff] },
+  { assume a₁ a₂ h₁ h₂ H,
+    ext x,
+    simp only [function.funext_iff, subset_iff, mem_powerset, eq_iff_iff] at h₁ h₂ H,
+    exact ⟨λ hx, (H x (h₁ hx)).1 hx, λ hx, (H x (h₂ hx)).2 hx⟩ },
   { assume f hf,
     exact ⟨s.filter (λ a : α, ∃ h : a ∈ s, f a h),
       by simp, by funext; intros; simp *⟩ }
@@ -209,7 +218,8 @@ end comm_ring
 
 /-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
 of `s`, and over all subsets of `s` to which one adds `x`. -/
-@[to_additive]
+@[to_additive "A sum over all subsets of `s ∪ {x}` is obtained by summing the sum over all subsets
+of `s`, and over all subsets of `s` to which one adds `x`."]
 lemma prod_powerset_insert [decidable_eq α] [comm_monoid β] {s : finset α} {x : α} (h : x ∉ s)
   (f : finset α → β) :
   (∏ a in (insert x s).powerset, f a) =
@@ -226,9 +236,10 @@ begin
     exact ne_insert_of_not_mem _ _ (not_mem_of_mem_powerset_of_not_mem h₁ h) }
 end
 
-/-- A product over `powerset s` is equal to the double product over
-sets of subsets of `s` with `card s = k`, for `k = 1, ... , card s`. -/
-@[to_additive]
+/-- A product over `powerset s` is equal to the double product over sets of subsets of `s` with
+`card s = k`, for `k = 1, ..., card s`. -/
+@[to_additive "A sum over `powerset s` is equal to the double sum over sets of subsets of `s` with
+`card s = k`, for `k = 1, ..., card s`"]
 lemma prod_powerset [comm_monoid β] (s : finset α) (f : finset α → β) :
   ∏ t in powerset s, f t = ∏ j in range (card s + 1), ∏ t in powerset_len j s, f t :=
 begin
@@ -240,5 +251,13 @@ begin
   apply hij,
   rwa ← hc,
 end
+
+lemma sum_range_succ_mul_sum_range_succ [non_unital_non_assoc_semiring β] (n k : ℕ) (f g : ℕ → β) :
+  (∑ i in range (n+1), f i) * (∑ i in range (k+1), g i) =
+    (∑ i in range n, f i) * (∑ i in range k, g i) +
+    f n * (∑ i in range k, g i) +
+    (∑ i in range n, f i) * g k +
+    f n * g k :=
+by simp only [add_mul, mul_add, add_assoc, sum_range_succ]
 
 end finset

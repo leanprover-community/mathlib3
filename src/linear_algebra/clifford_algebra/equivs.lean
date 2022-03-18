@@ -6,6 +6,8 @@ Authors: Eric Wieser
 import algebra.quaternion_basis
 import data.complex.module
 import linear_algebra.clifford_algebra.conjugation
+import algebra.dual_number
+import linear_algebra.quadratic_form.prod
 
 /-!
 # Other constructions isomorphic to Clifford Algebras
@@ -46,6 +48,11 @@ and vice-versa:
 
 * `clifford_algebra_quaternion.to_quaternion_involute_reverse`
 * `clifford_algebra_quaternion.of_quaternion_conj`
+
+## Dual numbers
+
+* `clifford_algebra_dual_number.equiv`: `R[ε]` is is equivalent as an `R`-algebra to a clifford
+  algebra over `R` where `Q = 0`.
 
 -/
 
@@ -105,7 +112,7 @@ namespace clifford_algebra_complex
 open_locale complex_conjugate
 
 /-- The quadratic form sending elements to the negation of their square. -/
-def Q : quadratic_form ℝ ℝ := -quadratic_form.lin_mul_lin linear_map.id linear_map.id
+def Q : quadratic_form ℝ ℝ := -quadratic_form.sq
 
 @[simp]
 lemma Q_apply (r : ℝ) : Q r = - (r * r) := rfl
@@ -218,8 +225,7 @@ variables {R : Type*} [comm_ring R] (c₁ c₂ : R)
 /-- `Q c₁ c₂` is a quadratic form over `R × R` such that `clifford_algebra (Q c₁ c₂)` is isomorphic
 as an `R`-algebra to `ℍ[R,c₁,c₂]`. -/
 def Q : quadratic_form R (R × R) :=
-c₁ • quadratic_form.lin_mul_lin (linear_map.fst _ _ _) (linear_map.fst _ _ _) +
-c₂ • quadratic_form.lin_mul_lin (linear_map.snd _ _ _) (linear_map.snd _ _ _)
+(c₁ • quadratic_form.sq).prod (c₂ • quadratic_form.sq)
 
 @[simp]
 lemma Q_apply (v : R × R) : Q c₁ c₂ v = c₁ * (v.1 * v.1) + c₂ * (v.2 * v.2) := rfl
@@ -343,3 +349,34 @@ clifford_algebra_quaternion.equiv.injective $
 attribute [protected] Q
 
 end clifford_algebra_quaternion
+
+/-! ### The clifford algebra isomorphic to the dual numbers -/
+namespace clifford_algebra_dual_number
+
+open_locale dual_number
+open dual_number triv_sq_zero_ext
+
+variables {R M : Type*} [comm_ring R] [add_comm_group M] [module R M]
+
+lemma ι_mul_ι (r₁ r₂) : ι (0 : quadratic_form R R) r₁ * ι (0 : quadratic_form R R) r₂ = 0 :=
+by rw [←mul_one r₁, ←mul_one r₂, ←smul_eq_mul R, ←smul_eq_mul R, linear_map.map_smul,
+       linear_map.map_smul, smul_mul_smul, ι_sq_scalar, quadratic_form.zero_apply,
+       ring_hom.map_zero, smul_zero]
+
+/-- The clifford algebra over a 1-dimensional vector space with 0 quadratic form is isomorphic to
+the dual numbers. -/
+protected def equiv : clifford_algebra (0 : quadratic_form R R) ≃ₐ[R] R[ε] :=
+alg_equiv.of_alg_hom
+  (clifford_algebra.lift (0 : quadratic_form R R) ⟨inr_hom R _, λ m, inr_mul_inr _ m m⟩)
+  (dual_number.lift ⟨ι _ (1 : R), ι_mul_ι (1 : R) 1⟩)
+  (by { ext x : 1, dsimp, rw [lift_apply_eps, subtype.coe_mk, lift_ι_apply, inr_hom_apply, eps] })
+  (by { ext : 2, dsimp, rw [lift_ι_apply, inr_hom_apply, ←eps, lift_apply_eps, subtype.coe_mk] })
+
+@[simp] lemma equiv_ι (r : R) : clifford_algebra_dual_number.equiv (ι _ r) = r • ε :=
+(lift_ι_apply _ _ r).trans (inr_eq_smul_eps _)
+
+@[simp] lemma equiv_symm_eps :
+  clifford_algebra_dual_number.equiv.symm (eps : R[ε]) = ι (0 : quadratic_form R R) 1 :=
+dual_number.lift_apply_eps _
+
+end clifford_algebra_dual_number

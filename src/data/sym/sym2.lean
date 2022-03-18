@@ -100,6 +100,9 @@ protected lemma «forall» {α : Sort*} {f : sym2 α → Prop} :
 lemma eq_swap {a b : α} : ⟦(a, b)⟧ = ⟦(b, a)⟧ :=
 by { rw quotient.eq, apply rel.swap }
 
+@[simp] lemma mk_prod_swap_eq {p : α × α} : ⟦p.swap⟧ = ⟦p⟧ :=
+by { cases p, exact eq_swap }
+
 lemma congr_right {a b c : α} : ⟦(a, b)⟧ = ⟦(a, c)⟧ ↔ b = c :=
 by { split; intro h, { rw quotient.eq at h, cases h; refl }, rw h }
 
@@ -113,6 +116,10 @@ begin
   { rw quotient.eq at h, cases h; tidy },
   { cases h; rw [h.1, h.2], rw eq_swap }
 end
+
+lemma mk_eq_mk_iff {p q : α × α} :
+  ⟦p⟧ = ⟦q⟧ ↔ p = q ∨ p = q.swap :=
+by { cases p, cases q, simp only [eq_iff, prod.mk.inj_iff, prod.swap_prod_mk] }
 
 /-- The universal property of `sym2`; symmetric functions of two arguments are equivalent to
 functions from `sym2`. Note that when `β` is `Prop`, it can sometimes be more convenient to use
@@ -176,6 +183,21 @@ instance : has_mem α (sym2 α) := ⟨mem⟩
 lemma mem_mk_left (x y : α) : x ∈ ⟦(x, y)⟧ := ⟨y, rfl⟩
 lemma mem_mk_right (x y : α) : y ∈ ⟦(x, y)⟧ := eq_swap.subst $ mem_mk_left y x
 
+@[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
+{ mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
+  mpr := by { rintro ⟨_⟩; subst a, { apply mem_mk_left }, apply mem_mk_right } }
+
+lemma out_fst_mem (e : sym2 α) : e.out.1 ∈ e := ⟨e.out.2, by rw [prod.mk.eta, e.out_eq]⟩
+lemma out_snd_mem (e : sym2 α) : e.out.2 ∈ e := ⟨e.out.1, by rw [eq_swap, prod.mk.eta, e.out_eq]⟩
+
+lemma ball {p : α → Prop} {a b : α} : (∀ c ∈ ⟦(a, b)⟧, p c) ↔ p a ∧ p b :=
+begin
+  refine ⟨λ h, ⟨h _ $ mem_mk_left _ _, h _ $ mem_mk_right _ _⟩, λ h c hc, _⟩,
+  obtain rfl | rfl := sym2.mem_iff.1 hc,
+  { exact h.1 },
+  { exact h.2 }
+end
+
 /--
 Given an element of the unordered pair, give the other element using `classical.some`.
 See also `mem.other'` for the computable version.
@@ -186,10 +208,6 @@ classical.some h
 @[simp]
 lemma other_spec {a : α} {z : sym2 α} (h : a ∈ z) : ⟦(a, h.other)⟧ = z :=
 by erw ← classical.some_spec h
-
-@[simp] lemma mem_iff {a b c : α} : a ∈ ⟦(b, c)⟧ ↔ a = b ∨ a = c :=
-{ mp  := by { rintro ⟨_, h⟩, rw eq_iff at h, tidy },
-  mpr := by { rintro ⟨_⟩; subst a, { apply mem_mk_left }, apply mem_mk_right } }
 
 lemma other_mem {a : α} {z : sym2 α} (h : a ∈ z) : h.other ∈ z :=
 by { convert mem_mk_right a h.other, rw other_spec h }
@@ -204,6 +222,10 @@ begin
     simp only [true_or, eq_self_iff_true, and_self, or_true] },
   { rintro rfl, simp },
 end
+
+lemma eq_of_ne_mem {x y : α} {z z' : sym2 α} (h : x ≠ y)
+  (h1 : x ∈ z) (h2 : y ∈ z) (h3 : x ∈ z') (h4 : y ∈ z') : z = z' :=
+((mem_and_mem_iff h).mp ⟨h1, h2⟩).trans ((mem_and_mem_iff h).mp ⟨h3, h4⟩).symm
 
 @[ext]
 protected lemma ext (z z' : sym2 α) (h : ∀ x, x ∈ z ↔ x ∈ z') : z = z' :=
@@ -303,6 +325,19 @@ other_ne (from_rel_irreflexive.mp irrefl hz) h
 instance from_rel.decidable_pred (sym : symmetric r) [h : decidable_rel r] :
   decidable_pred (∈ sym2.from_rel sym) :=
 λ z, quotient.rec_on_subsingleton z (λ x, h _ _)
+
+/-- The inverse to `sym2.from_rel`. Given a set on `sym2 α`, give a symmetric relation on `α`
+(see `sym2.to_rel_symmetric`). -/
+def to_rel (s : set (sym2 α)) (x y : α) : Prop := ⟦(x, y)⟧ ∈ s
+
+@[simp] lemma to_rel_prop (s : set (sym2 α)) (x y : α) : to_rel s x y ↔ ⟦(x, y)⟧ ∈ s := iff.rfl
+
+lemma to_rel_symmetric (s : set (sym2 α)) : symmetric (to_rel s) := λ x y, by simp [eq_swap]
+
+lemma to_rel_from_rel (sym : symmetric r) : to_rel (from_rel sym) = r := rfl
+
+lemma from_rel_to_rel (s : set (sym2 α)) : from_rel (to_rel_symmetric s) = s :=
+set.ext (λ z, sym2.ind (λ x y, iff.rfl) z)
 
 end relations
 
@@ -495,5 +530,14 @@ begin
 end
 
 end decidable
+
+instance [subsingleton α] : subsingleton (sym2 α) :=
+(equiv_sym α).injective.subsingleton
+
+instance [unique α] : unique (sym2 α) := unique.mk' _
+
+instance [is_empty α] : is_empty (sym2 α) := (equiv_sym α).is_empty
+
+instance [nontrivial α] : nontrivial (sym2 α) := diag_injective.nontrivial
 
 end sym2

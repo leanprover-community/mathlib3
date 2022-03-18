@@ -28,7 +28,7 @@ meta def noncomm_ring :=
              -- Pull `zsmul n` out the front so `abel` can see them.
              ←mul_zsmul_assoc, ←mul_zsmul_left,
              -- Pull out negations.
-             neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm] {fail_if_unchanged := ff};
+             neg_mul, mul_neg] {fail_if_unchanged := ff};
   abel]
 
 add_tactic_doc

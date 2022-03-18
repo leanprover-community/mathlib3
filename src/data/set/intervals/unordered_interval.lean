@@ -46,7 +46,7 @@ by rw [interval, min_eq_left h, max_eq_right h]
 by { rw [interval, min_eq_right h, max_eq_left h] }
 
 lemma interval_swap (a b : α) : [a, b] = [b, a] :=
-or.elim (le_total a b) (by simp {contextual := tt}) (by simp {contextual := tt})
+by rw [interval, interval, min_comm, max_comm]
 
 lemma interval_of_lt (h : a < b) : [a, b] = Icc a b :=
 interval_of_le (le_of_lt h)
@@ -145,9 +145,19 @@ by simp [interval_oc, h]
 lemma interval_oc_of_lt (h : b < a) : Ι a b = Ioc b a :=
 by simp [interval_oc, le_of_lt h]
 
+lemma interval_oc_eq_union : Ι a b = Ioc a b ∪ Ioc b a :=
+by cases le_total a b; simp [interval_oc, *]
+
 lemma forall_interval_oc_iff  {P : α → Prop} :
   (∀ x ∈ Ι a b, P x) ↔ (∀ x ∈ Ioc a b, P x) ∧ (∀ x ∈ Ioc b a, P x) :=
-by { dsimp [interval_oc], cases le_total a b with hab hab ; simp [hab] }
+by simp only [interval_oc_eq_union, mem_union_eq, or_imp_distrib, forall_and_distrib]
+
+lemma interval_oc_subset_interval_oc_of_interval_subset_interval {a b c d : α}
+  (h : [a, b] ⊆ [c, d]) : Ι a b ⊆ Ι c d :=
+Ioc_subset_Ioc (interval_subset_interval_iff_le.1 h).1 (interval_subset_interval_iff_le.1 h).2
+
+lemma interval_oc_swap (a b : α) : Ι a b = Ι b a :=
+by simp only [interval_oc, min_comm a b, max_comm a b]
 
 end linear_order
 
@@ -226,7 +236,7 @@ by simp only [← preimage_mul_const_interval ha, mul_comm]
 
 @[simp] lemma preimage_div_const_interval (ha : a ≠ 0) (b c : k) :
   (λ x, x / a) ⁻¹' [b, c] = [b * a, c * a] :=
-by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv₀]
+by simp only [div_eq_mul_inv, preimage_mul_const_interval (inv_ne_zero ha), inv_inv]
 
 @[simp] lemma image_mul_const_interval (a b c : k) : (λ x, x * a) '' [b, c] = [b * a, c * a] :=
 if ha : a = 0 then by simp [ha] else

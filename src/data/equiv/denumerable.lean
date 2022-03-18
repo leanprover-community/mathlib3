@@ -228,6 +228,11 @@ using_well_founded {dec_tac := `[tauto]}
 lemma of_nat_surjective : surjective (of_nat s) :=
 λ ⟨x, hx⟩, of_nat_surjective_aux hx
 
+@[simp] lemma of_nat_range : set.range (of_nat s) = set.univ := of_nat_surjective.range_eq
+
+@[simp] lemma coe_comp_of_nat_range : set.range (coe ∘ of_nat s : ℕ → ℕ) = s :=
+by rw [set.range_comp coe, of_nat_range, set.image_univ, subtype.range_coe]
+
 private def to_fun_aux (x : s) : ℕ :=
 (list.range x).countp (∈ s)
 

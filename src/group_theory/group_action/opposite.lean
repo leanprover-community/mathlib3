@@ -25,7 +25,7 @@ Actions on the opposite type just act on the underlying type.
 
 namespace mul_opposite
 
-instance (R : Type*) [monoid R] [mul_action R α] : mul_action R αᵐᵒᵖ :=
+@[to_additive] instance (R : Type*) [monoid R] [mul_action R α] : mul_action R αᵐᵒᵖ :=
 { one_smul := λ x, unop_injective $ one_smul R (unop x),
   mul_smul := λ r₁ r₂ x, unop_injective $ mul_smul r₁ r₂ (unop x),
   .. mul_opposite.has_scalar α R }
@@ -46,7 +46,7 @@ instance {M N} [has_scalar M N] [has_scalar M α] [has_scalar N α] [is_scalar_t
   is_scalar_tower M N αᵐᵒᵖ :=
 ⟨λ x y z, unop_injective $ smul_assoc _ _ _⟩
 
-instance {M N} [has_scalar M α] [has_scalar N α] [smul_comm_class M N α] :
+@[to_additive] instance {M N} [has_scalar M α] [has_scalar N α] [smul_comm_class M N α] :
   smul_comm_class M N αᵐᵒᵖ :=
 ⟨λ x y z, unop_injective $ smul_comm _ _ _⟩
 
@@ -76,30 +76,29 @@ open mul_opposite
 /-- Like `has_mul.to_has_scalar`, but multiplies on the right.
 
 See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_action_with_zero`. -/
-instance has_mul.to_has_opposite_scalar [has_mul α] : has_scalar αᵐᵒᵖ α :=
+@[to_additive] instance has_mul.to_has_opposite_scalar [has_mul α] : has_scalar αᵐᵒᵖ α :=
 { smul := λ c x, x * c.unop }
 
-@[simp] lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
+@[simp, to_additive] lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
 
--- TODO: add an additive version once we have additive opposites
 /-- The right regular action of a group on itself is transitive. -/
-instance mul_action.opposite_regular.is_pretransitive {G : Type*} [group G] :
+@[to_additive] instance mul_action.opposite_regular.is_pretransitive {G : Type*} [group G] :
   mul_action.is_pretransitive Gᵐᵒᵖ G :=
 ⟨λ x y, ⟨op (x⁻¹ * y), mul_inv_cancel_left _ _⟩⟩
 
-instance semigroup.opposite_smul_comm_class [semigroup α] :
+@[to_additive] instance semigroup.opposite_smul_comm_class [semigroup α] :
   smul_comm_class αᵐᵒᵖ α α :=
 { smul_comm := λ x y z, (mul_assoc _ _ _) }
 
-instance semigroup.opposite_smul_comm_class' [semigroup α] :
+@[to_additive] instance semigroup.opposite_smul_comm_class' [semigroup α] :
   smul_comm_class α αᵐᵒᵖ α :=
-{ smul_comm := λ x y z, (mul_assoc _ _ _).symm }
+smul_comm_class.symm _ _ _
 
 instance comm_semigroup.is_central_scalar [comm_semigroup α] : is_central_scalar α α :=
 ⟨λ r m, mul_comm _ _⟩
 
 /-- Like `monoid.to_mul_action`, but multiplies on the right. -/
-instance monoid.to_opposite_mul_action [monoid α] : mul_action αᵐᵒᵖ α :=
+@[to_additive] instance monoid.to_opposite_mul_action [monoid α] : mul_action αᵐᵒᵖ α :=
 { smul := (•),
   one_smul := mul_one,
   mul_smul := λ x y r, (mul_assoc _ _ _).symm }
@@ -119,7 +118,7 @@ instance smul_comm_class.opposite_mid {M N} [monoid N] [has_scalar M N]
 example [monoid α] : monoid.to_mul_action αᵐᵒᵖ = mul_opposite.mul_action α αᵐᵒᵖ := rfl
 
 /-- `monoid.to_opposite_mul_action` is faithful on cancellative monoids. -/
-instance left_cancel_monoid.to_has_faithful_opposite_scalar [left_cancel_monoid α] :
+@[to_additive] instance left_cancel_monoid.to_has_faithful_opposite_scalar [left_cancel_monoid α] :
   has_faithful_scalar αᵐᵒᵖ α :=
 ⟨λ x y h, unop_injective $ mul_left_cancel (h 1)⟩
 

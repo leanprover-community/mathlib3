@@ -26,7 +26,7 @@ open category_theory
 
 namespace category_theory.limits
 
-universes v u u₂
+universes v₁ v₂ v u u₂
 
 local attribute [tidy] tactic.case_bash
 
@@ -87,6 +87,66 @@ abbreviation hom : walking_span → walking_span → Type v := wide_pushout_shap
 instance (X Y : walking_span) : subsingleton (X ⟶ Y) := by tidy
 
 end walking_span
+
+section
+open walking_cospan
+
+/-- The functor between two `walking_cospan`s in different universes. -/
+def walking_cospan_functor : walking_cospan.{v₁} ⥤ walking_cospan.{v₂} :=
+{ obj := by { rintro (_|_|_), exacts [one, left, right] },
+  map := by { rintro _ _ (_|_|_), exacts [hom.id _, hom.inl, hom.inr] },
+  map_id' := λ X, rfl,
+  map_comp' := λ _ _ _ _ _, subsingleton.elim _ _ }
+
+@[simp] lemma walking_cospan_functor_one : walking_cospan_functor.obj one = one := rfl
+@[simp] lemma walking_cospan_functor_left : walking_cospan_functor.obj left = left := rfl
+@[simp] lemma walking_cospan_functor_right : walking_cospan_functor.obj right = right := rfl
+@[simp] lemma walking_cospan_functor_id (X) : walking_cospan_functor.map (𝟙 X) = 𝟙 _ := rfl
+@[simp] lemma walking_cospan_functor_inl : walking_cospan_functor.map hom.inl = hom.inl := rfl
+@[simp] lemma walking_cospan_functor_inr : walking_cospan_functor.map hom.inr = hom.inr := rfl
+
+/-- The equivalence between two `walking_cospan`s in different universes. -/
+def walking_cospan_equiv : walking_cospan.{v₁} ≌ walking_cospan.{v₂} :=
+{ functor := walking_cospan_functor,
+  inverse := walking_cospan_functor,
+  unit_iso := nat_iso.of_components
+    (λ x, eq_to_iso (by { rcases x with (_|_|_); refl }))
+    (by { rintros _ _ (_|_|_); simp }),
+  counit_iso := nat_iso.of_components
+    (λ x, eq_to_iso (by { rcases x with (_|_|_); refl }))
+    (by { rintros _ _ (_|_|_); simp }) }
+
+end
+
+section
+open walking_span
+
+/-- The functor between two `walking_span`s in different universes. -/
+def walking_span_functor : walking_span.{v₁} ⥤ walking_span.{v₂} :=
+{ obj := by { rintro (_|_|_), exacts [zero, left, right] },
+  map := by { rintro _ _ (_|_|_), exacts [hom.id _, hom.fst, hom.snd] },
+  map_id' := λ X, rfl,
+  map_comp' := λ _ _ _ _ _, subsingleton.elim _ _ }
+
+@[simp] lemma walking_span_functor_zero : walking_span_functor.obj zero = zero := rfl
+@[simp] lemma walking_span_functor_left : walking_span_functor.obj left = left := rfl
+@[simp] lemma walking_span_functor_right : walking_span_functor.obj right = right := rfl
+@[simp] lemma walking_span_functor_id (X) : walking_span_functor.map (𝟙 X) = 𝟙 _ := rfl
+@[simp] lemma walking_span_functor_fst : walking_span_functor.map hom.fst = hom.fst := rfl
+@[simp] lemma walking_span_functor_snd : walking_span_functor.map hom.snd = hom.snd := rfl
+
+/-- The equivalence between two `walking_span`s in different universes. -/
+def walking_span_equiv : walking_span.{v₁} ≌ walking_span.{v₂} :=
+{ functor := walking_span_functor,
+  inverse := walking_span_functor,
+  unit_iso := nat_iso.of_components
+    (λ x, eq_to_iso (by { rcases x with (_|_|_); refl }))
+    (by { rintros _ _ (_|_|_); simp }),
+  counit_iso := nat_iso.of_components
+    (λ x, eq_to_iso (by { rcases x with (_|_|_); refl }))
+    (by { rintros _ _ (_|_|_); simp }) }
+
+end
 
 open walking_span.hom walking_cospan.hom wide_pullback_shape.hom wide_pushout_shape.hom
 
@@ -1892,7 +1952,7 @@ variables (C)
 /--
 `has_pullbacks` represents a choice of pullback for every pair of morphisms
 
-See https://stacks.math.columbia.edu/tag/001W.
+See https://stacks.math.columbia.edu/tag/001W
 -/
 abbreviation has_pullbacks := has_limits_of_shape walking_cospan.{v} C
 

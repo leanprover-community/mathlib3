@@ -83,5 +83,7 @@ iff.rfl
 
 end order_dual
 
-alias order_dual.to_dual_lt_to_dual ↔ _ has_lt.lt.dual
 alias order_dual.to_dual_le_to_dual ↔ _ has_le.le.dual
+alias order_dual.to_dual_lt_to_dual ↔ _ has_lt.lt.dual
+alias order_dual.of_dual_le_of_dual ↔ _ has_le.le.of_dual
+alias order_dual.of_dual_lt_of_dual ↔ _ has_lt.lt.of_dual

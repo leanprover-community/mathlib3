@@ -141,7 +141,7 @@ with explode.args : expr → list expr → nat → entries → thm → list nat 
 
 meta def explode_expr (e : expr) (hide_non_prop := tt) : tactic entries :=
 let filter := if hide_non_prop then λ e, may_be_proof e >>= guardb else λ _, skip in
-tactic.explode.core filter e tt 0 (default _)
+tactic.explode.core filter e tt 0 default
 
 meta def explode (n : name) : tactic unit :=
 do const n _ ← resolve_name n | fail "cannot resolve name",

@@ -205,8 +205,8 @@ end group
 
 variables [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M]
 
-/-- Any element in `units R` is `M`-regular. -/
-lemma units.is_smul_regular (a : units R) : is_smul_regular M (a : R) :=
+/-- Any element in `Rˣ` is `M`-regular. -/
+lemma units.is_smul_regular (a : Rˣ) : is_smul_regular M (a : R) :=
 is_smul_regular.of_mul_eq_one a.inv_val
 
 /-- A unit is `M`-regular. -/

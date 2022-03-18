@@ -170,7 +170,7 @@ meta instance : inhabited norm_cast_cache := ⟨empty_cache⟩
 /-- `add_elim cache e` adds `e` as an `elim` lemma to `cache`. -/
 meta def add_elim (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache :=
 do
-  new_up ← simp_lemmas.add cache.up e,
+  new_up ← cache.up.add e,
   return
   { up     := new_up,
     down   := cache.down,
@@ -179,9 +179,8 @@ do
 /-- `add_move cache e` adds `e` as a `move` lemma to `cache`. -/
 meta def add_move (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache :=
 do
-  ty ← infer_type e,
   new_up ← cache.up.add e tt,
-  new_down ← simp_lemmas.add cache.down e,
+  new_down ← cache.down.add e,
   return
   { up     := new_up,
     down   := new_down,
@@ -190,8 +189,8 @@ do
 /-- `add_squash cache e` adds `e` as an `squash` lemma to `cache`. -/
 meta def add_squash (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache :=
 do
-  new_squash ← simp_lemmas.add cache.squash e,
-  new_down ← simp_lemmas.add cache.down e,
+  new_squash ← cache.squash.add e,
+  new_down ← cache.down.add e,
   return
   { up     := cache.up,
     down   := new_down,

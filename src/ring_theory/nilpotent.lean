@@ -32,6 +32,9 @@ Note that we require only the bare minimum assumptions for the definition to mak
 power-associative. -/
 def is_nilpotent [has_zero R] [has_pow R ℕ] (x : R) : Prop := ∃ (n : ℕ), x^n = 0
 
+lemma is_nilpotent.mk [has_zero R] [has_pow R ℕ] (x : R) (n : ℕ)
+  (e : x ^ n = 0) : is_nilpotent x := ⟨n, e⟩
+
 lemma is_nilpotent.zero [monoid_with_zero R] : is_nilpotent (0 : R) := ⟨1, pow_one 0⟩
 
 lemma is_nilpotent.neg [ring R] (h : is_nilpotent x) : is_nilpotent (-x) :=
@@ -68,6 +71,17 @@ is_reduced.eq_zero x h
 @[simp] lemma is_nilpotent_iff_eq_zero [monoid_with_zero R] [is_reduced R] :
   is_nilpotent x ↔ x = 0 :=
 ⟨λ h, h.eq_zero, λ h, h.symm ▸ is_nilpotent.zero⟩
+
+lemma is_reduced_of_injective [monoid_with_zero R] [monoid_with_zero S]
+  {F : Type*} [monoid_with_zero_hom_class F R S] (f : F)
+  (hf : function.injective f) [_root_.is_reduced S] : _root_.is_reduced R :=
+begin
+  constructor,
+  intros x hx,
+  apply hf,
+  rw map_zero,
+  exact (hx.map f).eq_zero,
+end
 
 namespace commute
 
@@ -166,3 +180,17 @@ begin
 end
 
 end algebra
+
+namespace module.End
+
+variables {M : Type v} [ring R] [add_comm_group M] [module R M]
+variables {f : module.End R M} {p : submodule R M} (hp : p ≤ p.comap f)
+
+lemma is_nilpotent.mapq (hnp : is_nilpotent f) : is_nilpotent (p.mapq p f hp) :=
+begin
+  obtain ⟨k, hk⟩ := hnp,
+  use k,
+  simp [← p.mapq_pow, hk],
+end
+
+end module.End

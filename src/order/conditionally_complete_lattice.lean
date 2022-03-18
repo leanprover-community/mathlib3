@@ -540,8 +540,7 @@ theorem cinfi_eq_of_forall_ge_of_forall_gt_exists_lt [nonempty ι] {f : ι → �
 lemma monotone.csupr_mem_Inter_Icc_of_antitone [semilattice_sup β]
   {f g : β → α} (hf : monotone f) (hg : antitone g) (h : f ≤ g) :
   (⨆ n, f n) ∈ ⋂ n, Icc (f n) (g n) :=
-begin
-  refine mem_Inter.2 (λ n, _),
+mem_Inter.2 $ λ n, begin
   haveI : nonempty β := ⟨n⟩,
   have : ∀ m, f m ≤ g n := λ m, hf.forall_le_of_antitone hg h m n,
   exact ⟨le_csupr ⟨g $ n, forall_range_iff.2 this⟩ _, csupr_le this⟩
@@ -615,13 +614,12 @@ by { contrapose! hb, exact cSup_le hs hb }
 Indexed version of the above lemma `exists_lt_of_lt_cSup`.
 When `b < supr f`, there is an element `i` such that `b < f i`.
 -/
-lemma exists_lt_of_lt_csupr [nonempty ι] {f : ι → α} (h : b < supr f) :
-  ∃i, b < f i :=
+lemma exists_lt_of_lt_csupr [nonempty ι] {f : ι → α} (h : b < supr f) : ∃ i, b < f i :=
 let ⟨_, ⟨i, rfl⟩, h⟩ := exists_lt_of_lt_cSup (range_nonempty f) h in ⟨i, h⟩
 
 /--When Inf s < b, there is an element a in s with a < b, if s is nonempty and the order is
 a linear order.-/
-lemma exists_lt_of_cInf_lt (hs : s.nonempty) (hb : Inf s < b) : ∃a∈s, a < b :=
+lemma exists_lt_of_cInf_lt (hs : s.nonempty) (hb : Inf s < b) : ∃ a ∈ s, a < b :=
 @exists_lt_of_lt_cSup (order_dual α) _ _ _ hs hb
 
 /--
@@ -629,14 +627,14 @@ Indexed version of the above lemma `exists_lt_of_cInf_lt`
 When `infi f < a`, there is an element `i` such that `f i < a`.
 -/
 lemma exists_lt_of_cinfi_lt [nonempty ι] {f : ι → α} (h : infi f < a) :
-  (∃i, f i < a) :=
+  (∃ i, f i < a) :=
 @exists_lt_of_lt_csupr (order_dual α) _ _ _ _ _ h
 
 /--Introduction rule to prove that b is the supremum of s: it suffices to check that
 1) b is an upper bound
 2) every other upper bound b' satisfies b ≤ b'.-/
 theorem cSup_eq_of_is_forall_le_of_forall_le_imp_ge (_ : s.nonempty)
-  (h_is_ub : ∀ a ∈ s, a ≤ b) (h_b_le_ub : ∀ub, (∀ a ∈ s, a ≤ ub) → (b ≤ ub)) : Sup s = b :=
+  (h_is_ub : ∀ a ∈ s, a ≤ b) (h_b_le_ub : ∀ ub, (∀ a ∈ s, a ≤ ub) → (b ≤ ub)) : Sup s = b :=
 le_antisymm
   (show Sup s ≤ b, from cSup_le ‹s.nonempty› h_is_ub)
   (show b ≤ Sup s, from h_b_le_ub _ $ assume a, le_cSup ⟨b, h_is_ub⟩)
@@ -698,8 +696,7 @@ cInf_le ⟨⊥, λ a _, bot_le⟩ h
 lemma exists_lt_of_lt_cSup' {s : set α} {a : α} (h : a < Sup s) : ∃ b ∈ s, a < b :=
 by { contrapose! h, exact cSup_le' h }
 
-lemma csupr_le_iff' {f : ι → α} (h : bdd_above (range f)) {a : α} :
-  (⨆ i, f i) ≤ a ↔ ∀ i, f i ≤ a :=
+lemma csupr_le_iff' {f : ι → α} (h : bdd_above (range f)) {a : α} : (⨆ i, f i) ≤ a ↔ ∀ i, f i ≤ a :=
 (cSup_le_iff' h).trans forall_range_iff
 
 lemma csupr_le' {f : ι → α} {a : α} (h : ∀ i, f i ≤ a) : (⨆ i, f i) ≤ a :=
@@ -766,7 +763,7 @@ begin
   split,
   { show ite _ _ _ ∈ _,
     split_ifs,
-    { intros a ha, exact top_le_iff.2 (set.mem_singleton_iff.1 (h ha)) },
+    { exact λ a ha, top_le_iff.2 (set.mem_singleton_iff.1 (h ha)) },
     { rintro (⟨⟩|a) ha,
       { exact le_top },
       refine some_le_some.2 (cInf_le _ ha),

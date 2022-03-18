@@ -466,7 +466,7 @@ theorem left_inverse_inv_mul_mul_right (c : G) :
   function.left_inverse (λ x, c⁻¹ * x) (λ x, c * x) :=
 assume x, inv_mul_cancel_left c x
 
-@[to_additive exists_nsmul_eq_zero_of_zsmul_eq_zero]
+@[to_additive]
 lemma exists_pow_eq_one_of_zpow_eq_one {n : ℤ} (hn : n ≠ 0) {x : G} (h : x ^ n = 1) :
   ∃ n : ℕ, 0 < n ∧ x ^ n = 1 :=
 begin

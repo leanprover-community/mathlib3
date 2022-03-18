@@ -961,6 +961,27 @@ lemma pred.rec_linear {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) (a b
 end pred_order
 end linear_order
 
+section is_well_order
+variables [linear_order α] [h : is_well_order α (<)] [succ_order α] [pred_order α]
+include h
+
+def of_well_order : is_succ_archimedean α :=
+⟨λ a, begin
+  refine well_founded.fix h.wf (λ b ih hab, _),
+  replace hab := hab.eq_or_lt,
+  rcases hab with rfl | hab,
+  { exact ⟨0, rfl⟩ },
+  cases le_or_lt b (pred b) with hb hb,
+  { have : ∀ {a : α}, ¬ a < b := minimal_of_le_pred hb,
+    exact (this hab).elim },
+  obtain ⟨k, hk⟩ := ih (pred b) hb (le_pred_of_lt hab),
+  refine ⟨k + 1, _⟩,
+  rw [add_comm, iterate_add_apply, hk, iterate_one],
+  exact hab.succ_pred
+end⟩
+
+end is_well_order
+
 section order_bot
 variables [preorder α] [order_bot α] [succ_order α] [is_succ_archimedean α]
 

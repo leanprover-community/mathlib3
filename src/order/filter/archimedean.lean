@@ -63,7 +63,8 @@ int.cast_mono.tendsto_at_top_at_top $ λ b,
 
 @[simp] lemma rat.comap_coe_at_top [linear_ordered_field R] [floor_semiring R] :
   comap (coe : ℚ → R) at_top = at_top :=
-comap_embedding_at_top (λ _ _, rat.cast_le) $ λ r, let ⟨n, hn⟩ := nat.exists_nat_ge r in ⟨n, by simpa⟩
+comap_embedding_at_top (λ _ _, rat.cast_le) $ λ r, let ⟨n, hn⟩ :=
+  nat.exists_nat_ge r in ⟨n, by simpa⟩
 
 @[simp] lemma rat.comap_coe_at_bot [linear_ordered_field R] [floor_semiring R] :
   comap (coe : ℚ → R) at_bot = at_bot :=
@@ -95,7 +96,8 @@ lemma at_bot_countable_basis_of_floor_semiring [linear_ordered_ring R] [floor_se
     (λ m hm, ⟨m, trivial, subset.rfl⟩) }
 
 @[priority 100]
-instance at_top_countably_generated_of_floor_semiring [linear_ordered_semiring R] [floor_semiring R] :
+instance at_top_countably_generated_of_floor_semiring
+  [linear_ordered_semiring R] [floor_semiring R] :
   (at_top : filter R).is_countably_generated :=
 at_top_countable_basis_of_floor_semiring.is_countably_generated
 

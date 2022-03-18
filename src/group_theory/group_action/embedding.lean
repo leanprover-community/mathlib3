@@ -30,7 +30,7 @@ lemma smul_def [group G] [mul_action G β] (g : G) (f : α ↪ β) :
 @[simp, to_additive]
 lemma smul_apply [group G] [mul_action G β] (g : G) (f : α ↪ β) (a : α) : (g • f) a = g • f a :=
 rfl
-@[simp, to_additive]
+@[to_additive]
 lemma coe_smul [group G] [mul_action G β] (g : G) (f : α ↪ β) : ⇑(g • f) = g • f := rfl
 
 instance [group G] [group G'] [has_scalar G G'] [mul_action G β] [mul_action G' β]

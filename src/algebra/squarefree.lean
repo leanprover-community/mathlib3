@@ -49,6 +49,14 @@ begin
   exact ⟨0, by simp⟩,
 end
 
+lemma ne_zero_of_squarefree [monoid_with_zero R] [nontrivial R] {m : R}
+(h : ¬ squarefree (m : R)) : m ≠ 0 :=
+begin
+  by_contradiction H,
+  rw H at hm,
+  exact not_squarefree_zero hm,
+end
+
 @[simp]
 lemma irreducible.squarefree [comm_monoid R] {x : R} (h : irreducible x) :
   squarefree x :=
@@ -421,6 +429,60 @@ lemma squarefree_iff_prime_sq_not_dvd (n : ℕ) :
   squarefree n ↔ ∀ x : ℕ, x.prime → ¬ x * x ∣ n :=
 squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
   ⟨2, (irreducible_iff_nat_prime _).2 prime_two⟩
+
+lemma squarefree_mul {m n : ℕ} (hmn : m.coprime n) :
+squarefree m ∧ squarefree n ↔ squarefree (m * n) :=
+begin
+  split,
+  rintros ⟨hm, hn⟩,
+  obtain ⟨hm_zero, hn_zero⟩ := ⟨ne_zero_of_squarefree hm, ne_zero_of_squarefree hn⟩,
+  rw squarefree_iff_nodup_factors,
+  rw list.nodup_iff_count_le_one,
+  intros a,
+  have hdisjoint : list.disjoint m.factors n.factors, exact coprime_factors_disjoint hmn,
+  rw count_factors_mul_of_coprime hmn,
+  rw [squarefree_iff_nodup_factors hm_zero, list.nodup_iff_count_le_one] at hm,
+  rw [squarefree_iff_nodup_factors hn_zero, list.nodup_iff_count_le_one] at hn,
+  specialize hm a,
+  specialize hn a,
+  by_cases ham : a ∈ m.factors,
+  { by_cases han : a ∈ n.factors,
+    { exfalso,
+      rw list.disjoint_iff_ne at hdisjoint,
+      exact hdisjoint a ham a han rfl,
+    },
+    { simp [list.count_eq_zero_of_not_mem han, hm], },
+  },
+  { simp [list.count_eq_zero_of_not_mem ham, hn], },
+  by_contradiction H,
+  obtain h | h := mul_eq_zero.mp H,
+  exact hm_zero h, exact hn_zero h,
+
+  intros hmn_sq,
+  split,
+
+  by_contradiction H,
+  unfold squarefree at H,
+  push_neg at H,
+  rcases H with ⟨x, hx, hxx⟩,
+  unfold squarefree at hmn_sq,
+  specialize hmn_sq x,
+  have : x * x ∣ m * n,
+    calc x * x ∣ m : hx
+      ... ∣ m * n : dvd_mul_right m n,
+  exact hxx (hmn_sq this),
+
+  by_contradiction H,
+  unfold squarefree at H,
+  push_neg at H,
+  rcases H with ⟨x, hx, hxx⟩,
+  unfold squarefree at hmn_sq,
+  specialize hmn_sq x,
+  have : x * x ∣ m * n,
+    calc x * x ∣ n : hx
+      ... ∣ m * n : dvd_mul_left n m,
+  exact hxx (hmn_sq this),
+end
 
 end nat
 

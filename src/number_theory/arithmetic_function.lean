@@ -732,6 +732,27 @@ begin
   { rcases h with h | h; simp [h] }
 end
 
+lemma is_multiplicative_moebius : is_multiplicative μ :=
+⟨by simp, begin
+  intros m n hmn,
+  by_cases hm_sq : squarefree m,
+  { by_cases hn_sq : squarefree n,
+    { simp [hm_sq, hn_sq, (squarefree_mul hmn).mp ⟨hm_sq, hn_sq⟩],
+      rw arithmetic_function.card_factors_mul (ne_zero_of_squarefree hm_sq)
+        (ne_zero_of_squarefree hn_sq),
+      rw pow_add, },
+    { have : ¬ squarefree (m * n),
+        by_contradiction H,
+        exact hn_sq ((squarefree_mul hmn).mpr H).right,
+      simp [this, hn_sq],
+    },
+  },
+  have : ¬ squarefree (m * n),
+    by_contradiction H,
+    exact hm_sq ((squarefree_mul hmn).mpr H).left,
+  simp [this, hm_sq],
+end⟩
+
 open unique_factorization_monoid
 
 @[simp] lemma coe_moebius_mul_coe_zeta [comm_ring R] : (μ * ζ : arithmetic_function R) = 1 :=

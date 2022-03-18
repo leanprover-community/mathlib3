@@ -356,8 +356,6 @@ variables [normed_division_ring A] [normed_algebra ℂ A]
 
 local notation `σ` := spectrum ℂ
 
-open spectrum set
-
 lemma algebra_map_eq_of_mem {a : A} {z : ℂ} (h : z ∈ σ a) : algebra_map ℂ A z = a :=
 by rwa [mem_iff, is_unit_iff_ne_zero, not_not, sub_eq_zero] at h
 

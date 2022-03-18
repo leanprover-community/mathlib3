@@ -1928,10 +1928,6 @@ lemma ne_bot.map (hf : ne_bot f) (m : α → β) : ne_bot (map m f) :=
 
 instance map_ne_bot [hf : ne_bot f] : ne_bot (f.map m) := hf.map m
 
-lemma disjoint_map (hm : injective m) {f₁ f₂ : filter α} :
-  disjoint (map m f₁) (map m f₂) ↔ disjoint f₁ f₂ :=
-by simp only [disjoint_iff, ← map_inf hm, map_eq_bot_iff]
-
 lemma sInter_comap_sets (f : α → β) (F : filter β) :
   ⋂₀ (comap f F).sets = ⋂ U ∈ F, f ⁻¹' U :=
 begin

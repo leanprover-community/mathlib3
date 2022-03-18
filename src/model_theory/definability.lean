@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import data.set_like.basic
-import data.fintype.basic
+import data.equiv.fintype
 import model_theory.terms_and_formulas
 
 /-!
@@ -45,18 +45,18 @@ def definable (s : set (α → M)) : Prop :=
 
 variables {L} {A} {B : set M} {s : set (α → M)}
 
-lemma definable.map_expansion {L' : language} [L'.Structure M] (h : L.definable A s)
+lemma definable.map_expansion {L' : first_order.language} [L'.Structure M] (h : A.definable L s)
   (φ : L →ᴸ L') [φ.is_expansion_on M] :
-  L'.definable A s :=
+  A.definable L' s :=
 begin
   obtain ⟨ψ, rfl⟩ := h,
-  refine ⟨⟨(φ.add_constants A).on_formula ψ, _⟩⟩,
+  refine ⟨(φ.add_constants A).on_formula ψ, _⟩,
   ext x,
   simp only [mem_set_of_eq, Lhom.realize_on_formula],
 end
 
 lemma empty_definable_iff :
-  L.definable ∅ s ↔ ∃ (φ : L.formula α), s = set_of φ.realize :=
+  (∅ : set M).definable L s ↔ ∃ (φ : L.formula α), s = set_of φ.realize :=
 begin
   split,
   { rintro ⟨φ, rfl⟩,
@@ -64,24 +64,17 @@ begin
     ext x,
     simp only [mem_set_of_eq, Lhom.realize_on_formula], },
   { rintro ⟨φ, rfl⟩,
-    refine ⟨⟨(L.Lhom_with_constants (∅ : set M)).on_formula φ, _⟩⟩,
+    refine ⟨(L.Lhom_with_constants (∅ : set M)).on_formula φ, _⟩,
     ext x,
     simp only [mem_set_of_eq, Lhom.realize_on_formula], }
 end
 
 lemma definable_iff_empty_definable_with_params :
-  L.definable A s ↔ L[[A]].definable ∅ s :=
-begin
-  rw empty_definable_iff,
-  split,
-  { rintro ⟨φ, rfl⟩,
-    refine ⟨φ, rfl⟩ },
-  { rintro ⟨φ, rfl⟩,
-    refine ⟨⟨φ, rfl⟩⟩ },
-end
+  A.definable L s ↔ (∅ : set M).definable (L[[A]]) s :=
+empty_definable_iff.symm
 
-lemma definable.mono (hAs : L.definable A s) (hAB : A ⊆ B) :
-  L.definable B s :=
+lemma definable.mono (hAs : A.definable L s) (hAB : A ⊆ B) :
+  B.definable L s :=
 begin
   rw [definable_iff_empty_definable_with_params] at *,
   exact hAs.map_expansion (L.Lhom_with_constants_map (set.inclusion hAB)),
@@ -188,60 +181,61 @@ begin
   rw image_eq_preimage_of_inverse,
   { intro i,
     ext b,
-    simp },
+    simp only [function.comp_app, equiv.apply_symm_apply], },
   { intro i,
     ext a,
     simp }
 end
 
+lemma fin.coe_cast_add_zero {m : ℕ} : (fin.cast_add 0 : fin m → fin (m + 0)) = id :=
+funext (λ _, fin.ext rfl)
+
 /-- This lemma is only intended as a helper for `definable.image_comp. -/
-lemma definable.image_comp_sum_inl_fin (m : ℕ) {s : set ((α ⊕ (fin m)) → M)}
-  (h : L.definable A s) :
-  L.definable A ((λ g : (α ⊕ (fin m)) → M, g ∘ sum.inl) '' s) :=
+lemma definable.image_comp_sum_inl_fin (m : ℕ) {s : set ((α ⊕ fin m) → M)}
+  (h : A.definable L s) :
+  A.definable L ((λ g : (α ⊕ fin m) → M, g ∘ sum.inl) '' s) :=
 begin
-  obtain ⟨φ, rfl⟩ := h.exists_formula,
-  refine ⟨⟨(bounded_formula.relabel id φ).exs, _⟩⟩,
+  obtain ⟨φ, rfl⟩ := h,
+  refine ⟨(bounded_formula.relabel id φ).exs, _⟩,
   ext x,
-  simp only [set.mem_image, mem_set_of_eq, bounded_formula.realize_exs],
+  simp only [set.mem_image, mem_set_of_eq, bounded_formula.realize_exs,
+    bounded_formula.realize_relabel, function.comp.right_id, fin.coe_cast_add_zero],
   split,
   { rintro ⟨y, hy, rfl⟩,
-    refine ⟨y ∘ sum.inr, _⟩,
-    rw bounded_formula.realize_relabel,
-    refine (congr (congr rfl _) (funext fin_zero_elim)).mp hy,
-    ext x,
-    cases x,
-    { simp },
-    { rw [function.comp.right_id, sum.elim_inr, function.comp_apply,
-        ← function.comp_apply y sum.inr],
-      refine congr rfl _,
-      ext,
-      rw fin.coe_cast_add, } },
+    exact ⟨y ∘ sum.inr,
+      (congr (congr rfl (sum.elim_comp_inl_inr y).symm) (funext fin_zero_elim)).mp hy⟩ },
   { rintro ⟨y, hy⟩,
-    refine ⟨sum.elim x y, _, sum.elim_comp_inl _ _⟩,
-    rw bounded_formula.realize_relabel at hy,
-    rw formula.realize,
-    refine (congr (congr rfl (congr rfl _)) (funext fin_zero_elim)).mp hy,
-    ext x,
-    rw function.comp_apply,
-    refine congr rfl _,
-    ext,
-    rw fin.coe_cast_add },
+    exact ⟨sum.elim x y, (congr rfl (funext fin_zero_elim)).mp hy, sum.elim_comp_inl _ _⟩, },
 end
 
-/-- Shows that definability is closed under general projections. -/
-lemma definable.image_comp {s : set (β → M)} (h : L.definable A s)
-  (f : α → β) :
-  L.definable A ((λ g : β → M, g ∘ f) '' s) :=
+/-- Shows that definability is closed under finite projections. -/
+lemma definable.image_comp_embedding {s : set (β → M)} (h : A.definable L s)
+  (f : α ↪ β) [fintype β] :
+  A.definable L ((λ g : β → M, g ∘ f) '' s) :=
 begin
   classical,
-  have h := h.image_comp_equiv (equiv.trans (equiv.sum_congr (_root_.equiv.refl _)
-    (fintype.equiv_fin _).symm) (equiv.set.sum_compl (range f))),
-  have h := (h.image_comp_sum_inl_fin _).preimage_comp (range_splitting f),
-  have h' : L.definable A ({ x : α → M |
+  refine (congr rfl (ext (λ x, _))).mp (((h.image_comp_equiv
+    (equiv.set.sum_compl (range f))).image_comp_equiv (equiv.sum_congr
+    (equiv.of_injective f f.injective) (fintype.equiv_fin _).symm)).image_comp_sum_inl_fin _),
+  simp only [mem_preimage, mem_image, exists_exists_and_eq_and],
+  refine exists_congr (λ y, and_congr_right (λ ys, eq.congr_left (funext (λ a, _)))),
+  simp,
+end
+
+/-- Shows that definability is closed under finite projections. -/
+lemma definable.image_comp {s : set (β → M)} (h : A.definable L s)
+  (f : α → β) [fintype α] [fintype β] :
+  A.definable L ((λ g : β → M, g ∘ f) '' s) :=
+begin
+  classical,
+  have h := (((h.image_comp_equiv (equiv.set.sum_compl (range f))).image_comp_equiv
+    (equiv.sum_congr (_root_.equiv.refl _)
+    (fintype.equiv_fin _).symm)).image_comp_sum_inl_fin _).preimage_comp (range_splitting f),
+  have h' : A.definable L ({ x : α → M |
     ∀ a, x a = x (range_splitting f (range_factorization f a))}),
-  { have h' : ∀ a, L.definable A {x : α → M | x a =
+  { have h' : ∀ a, A.definable L {x : α → M | x a =
       x (range_splitting f (range_factorization f a))},
-    { refine λ a, ⟨⟨(var a).equal (var (range_splitting f (range_factorization f a))), ext _⟩⟩,
+    { refine λ a, ⟨(var a).equal (var (range_splitting f (range_factorization f a))), ext _⟩,
       simp, },
     refine (congr rfl (ext _)).mp (definable_finset_bInter h' finset.univ),
     simp },

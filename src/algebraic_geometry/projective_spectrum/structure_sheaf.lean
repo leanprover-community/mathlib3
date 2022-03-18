@@ -154,8 +154,8 @@ instance : has_neg (num_denom_same_deg x) :=
 { neg := λ c, ⟨c.deg, ⟨-c.num.1, neg_mem _ c.num.2⟩, c.denom, c.denom_not_mem⟩ }
 
 lemma deg_neg (c : num_denom_same_deg x) : (-c).deg = c.deg := rfl
-lemma num_neg (c : num_denom_same_deg x) : (-c).num.1 = -c.num.1 := rfl
-lemma denom_neg (c : num_denom_same_deg x) : (-c).denom.1 = c.denom.1 := rfl
+lemma num_neg (c : num_denom_same_deg x) : ((-c).num : A) = -c.num := rfl
+lemma denom_neg (c : num_denom_same_deg x) : ((-c).denom : A) = c.denom.1 := rfl
 
 instance : comm_monoid (num_denom_same_deg x) :=
 { one := 1,
@@ -164,6 +164,39 @@ instance : comm_monoid (num_denom_same_deg x) :=
   one_mul := λ c, ext _ (zero_add _) (one_mul _) (one_mul _),
   mul_one := λ c, ext _ (add_zero _) (mul_one _) (mul_one _),
   mul_comm := λ c1 c2, ext _ (add_comm _ _) (mul_comm _ _) (mul_comm _ _) }
+
+instance : has_pow (num_denom_same_deg x) ℕ :=
+{ pow := λ c n, ⟨n • c.deg, ⟨c.num.1 ^ n, pow_mem n c.num.2⟩, ⟨c.denom.1 ^ n, pow_mem n c.denom.2⟩,
+    begin
+      cases n,
+      { simp only [pow_zero],
+        exact λ r, x.is_prime.ne_top $ (ideal.eq_top_iff_one _).mpr r, },
+      { exact λ r, c.denom_not_mem $ (x.is_prime.pow_mem_iff_mem n.succ (nat.zero_lt_succ _)).mp r }
+    end⟩ }
+
+lemma deg_pow (c : num_denom_same_deg x) (n : ℕ) : (c ^ n).deg = n • c.deg := rfl
+lemma num_pow (c : num_denom_same_deg x) (n : ℕ) : ((c ^ n).num : A) = c.num ^ n := rfl
+lemma denom_pow (c : num_denom_same_deg x) (n : ℕ) : ((c ^ n).denom : A) = c.denom ^ n := rfl
+
+instance : has_scalar ℤ (num_denom_same_deg x) :=
+{ smul := λ m c, ⟨c.deg, ⟨m • c.num.1, begin
+  rw [zsmul_eq_mul],
+    suffices : (m : A) ∈ 𝒜 0,
+    { convert mul_mem this c.num.2,
+      rw zero_add, },
+    { induction m using int.induction_on with m ih m ih,
+      { exact zero_mem _ },
+      { exact add_mem _ ih one_mem, },
+      { push_cast at ih ⊢,
+        exact sub_mem _ ih one_mem, } },
+  end⟩, c.denom, c.denom_not_mem⟩ }
+
+lemma deg_zsmul (c : num_denom_same_deg x) (m : ℤ) : (m • c).deg = c.deg := rfl
+lemma num_zsmul (c : num_denom_same_deg x) (m : ℤ) : ((m • c).num : A) = m • c.num := rfl
+lemma denom_zsmul (c : num_denom_same_deg x) (m : ℤ) : ((m • c).denom : A) = c.denom := rfl
+
+instance nat_scalar : has_scalar ℕ (num_denom_same_deg x) :=
+{ smul := λ m c, (m : ℤ) • c }
 
 def num_denom_same_deg.embedding (p : num_denom_same_deg x) : at x :=
 localization.mk p.num ⟨p.denom, p.denom_not_mem⟩
@@ -179,100 +212,77 @@ lemma homogeneous_localization.val_injective :
   function.injective (@homogeneous_localization.val _ _ _ _ _ 𝒜 _ x) :=
 λ a b, quotient.rec_on_subsingleton₂' a b $ λ a b h, quotient.sound' h
 
-instance : has_pow (homogeneous_localization x) ℕ :=
-{ pow := λ z n, quotient.lift_on' z
-    (λ c, @@quotient.mk (setoid.ker $ num_denom_same_deg.embedding x)
-      { deg := n • c.deg,
-        num := ⟨c.num.1 ^ n, pow_mem n c.num.2⟩,
-        denom := ⟨c.denom.1 ^ n, pow_mem n c.denom.2⟩,
-        denom_not_mem := λ r, begin
-          dsimp only at r,
-          cases n,
-          { erw [pow_zero, ← ideal.eq_top_iff_one] at r,
-            exact x.is_prime.ne_top r, },
-          { apply c.denom_not_mem ((x.is_prime.pow_mem_iff_mem n.succ (nat.zero_lt_succ _)).mp r) }
-        end }) $ λ y1 y2 (h : localization.mk _ _ = localization.mk _ _), begin
-          rw quotient.eq,
-          change localization.mk _ _ = localization.mk _ _,
-          simp only [← subtype.val_eq_coe] at h ⊢,
-          erw [← localization.mk_pow n y1.num.1 (⟨y1.denom, y1.denom_not_mem⟩ :
-            x.as_homogeneous_ideal.to_ideal.prime_compl),
-            ← localization.mk_pow n y2.num.1 (⟨y2.denom, y2.denom_not_mem⟩ :
-            x.as_homogeneous_ideal.to_ideal.prime_compl), h],
-          refl,
-        end }
+instance homogeneous_localization.has_pow : has_pow (homogeneous_localization x) ℕ :=
+{ pow := λ z n, @@quotient.map (setoid.ker $ num_denom_same_deg.embedding x)
+    (setoid.ker $ num_denom_same_deg.embedding x) (λ y, y^n)
+    (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _), begin
+      change localization.mk _ _ = localization.mk _ _,
+      simp only [num_pow, denom_pow],
+      convert congr_arg (λ z, z ^ n) h;
+      erw localization.mk_pow;
+      refl,
+    end) z }
 
 instance : has_scalar ℤ (homogeneous_localization x) :=
-{ smul := λ m z, quotient.lift_on' z
-    (λ c, @@quotient.mk (setoid.ker $ num_denom_same_deg.embedding x)
-      { deg := c.deg,
-        num := ⟨m • c.num.1, begin
-          rw zsmul_eq_mul,
-          suffices : (m : A) ∈ 𝒜 0,
-          { simpa only [zero_add] using mul_mem this c.num.2 },
-          { induction m using int.induction_on with m ih m ih,
-            { exact zero_mem _ },
-            { exact add_mem _ ih one_mem, },
-            { push_cast at ih ⊢,
-              exact sub_mem _ ih one_mem, } },
-        end⟩,
-        denom := c.denom,
-        denom_not_mem := c.denom_not_mem }) $
-    λ y1 y2 (h : localization.mk _ _ = localization.mk _ _), begin
-      rw quotient.eq,
+{ smul := λ m z, @@quotient.map (setoid.ker $ num_denom_same_deg.embedding x)
+    (setoid.ker $ num_denom_same_deg.embedding x) (λ y, m • y)
+    (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _), begin
       change localization.mk _ _ = localization.mk _ _,
-      simp only [← subtype.val_eq_coe] at h ⊢,
-      erw [show (localization.mk (m • y1.num.val) ⟨y1.denom.1, y1.denom_not_mem⟩ : at x) =
-        localization.mk m 1 * localization.mk y1.num.1 ⟨y1.denom.1, y1.denom_not_mem⟩,
-          by rw [localization.mk_mul _ _, one_mul, zsmul_eq_mul],
-        show (localization.mk (m • y2.num.val) ⟨y2.denom.1, y2.denom_not_mem⟩ : at x) =
-        localization.mk m 1 * localization.mk y2.num.1 ⟨y2.denom.1, y2.denom_not_mem⟩,
-          by rw [localization.mk_mul _ _, one_mul, zsmul_eq_mul], h],
+      simp only [num_zsmul, denom_zsmul],
+      convert congr_arg (λ z, m • z) h;
+      rw [zsmul_eq_mul, zsmul_eq_mul, show (m : at x) = localization.mk m 1, begin
+        induction m using int.induction_on with n ih n ih,
+        { erw localization.mk_zero _, refl, },
+        { push_cast,
+          erw [ih, ← localization.mk_one, localization.add_mk, one_mul, one_mul, add_comm, one_mul],
+          refl, },
+        { push_cast at ih ⊢,
+          erw [ih, ← localization.mk_one, sub_eq_add_neg, localization.neg_mk, localization.add_mk,
+            mul_one, one_mul, one_mul, add_comm, ← sub_eq_add_neg], },
+      end, localization.mk_mul, one_mul];
       refl,
-    end }
+    end) z }
 
-instance nat_scalar : has_scalar ℕ (homogeneous_localization x) :=
+instance homogeneous_localization.nat_scalar : has_scalar ℕ (homogeneous_localization x) :=
 { smul := λ n z, (n : ℤ) • z }
 
 instance : has_neg (homogeneous_localization x) :=
-{ neg := λ z, quotient.lift_on' z
-    (λ c, @@quotient.mk (setoid.ker $ num_denom_same_deg.embedding x) (-c)) $
-    λ y1 y2 (h : localization.mk _ _ = localization.mk _ _), begin
-      rw quotient.eq,
+{ neg := λ z, @@quotient.map (setoid.ker $ num_denom_same_deg.embedding x)
+    (setoid.ker $ num_denom_same_deg.embedding x) (λ y, -y)
+    (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _), begin
       change localization.mk _ _ = localization.mk _ _,
-      simp only [← subtype.val_eq_coe] at h ⊢,
-      erw [← localization.neg_mk, ← localization.neg_mk],
-      congr' 1,
-    end }
+      simp only [num_neg, denom_neg],
+      convert congr_arg (λ c, -c) h;
+      erw [localization.neg_mk];
+      refl,
+    end) z }
 
 instance : has_add (homogeneous_localization x) :=
-{ add := λ z1 z2, quotient.lift_on₂' z1 z2
-    (λ c1 c2, @@quotient.mk (setoid.ker $ num_denom_same_deg.embedding x) (c1 + c2)) $
-    λ c1 c2 c1' c2' (h1 : localization.mk _ _ = localization.mk _ _)
-      (h2 : localization.mk _ _ = localization.mk _ _), begin
-        rw quotient.eq,
-        change localization.mk _ _ = localization.mk _ _,
-        simp only [num_add, denom_add],
-        have h3 := congr_arg2 (+) h1 h2,
-        erw [localization.add_mk, localization.add_mk] at h3,
-        convert h3,
-      end }
+{ add := λ z1 z2, @@quotient.map₂ (setoid.ker $ num_denom_same_deg.embedding x)
+    (setoid.ker $ num_denom_same_deg.embedding x) (setoid.ker $ num_denom_same_deg.embedding x)
+    (+) (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _)
+      c3 c4 (h' : localization.mk _ _ = localization.mk _ _), begin
+      change localization.mk _ _ = localization.mk _ _,
+      simp only [num_add, denom_add],
+      convert congr_arg2 (+) h h';
+      erw [localization.add_mk];
+      refl,
+    end) z1 z2}
 
 instance : has_sub (homogeneous_localization x) :=
 { sub := λ z1 z2, z1 + (-z2) }
 
 instance : has_mul (homogeneous_localization x) :=
-{ mul := λ z1 z2, quotient.lift_on₂' z1 z2
-    (λ c1 c2, @@quotient.mk (setoid.ker $ num_denom_same_deg.embedding x) (c1 * c2)) $
-    λ c1 c2 c1' c2' (h1 : localization.mk _ _ = localization.mk _ _)
-      (h2 : localization.mk _ _ = localization.mk _ _), begin
-        rw quotient.eq,
-        change localization.mk _ _ = localization.mk _ _,
-        simp only [num_mul, denom_mul],
-        have h3 := congr_arg2 (*) h1 h2,
-        erw [localization.mk_mul, localization.mk_mul] at h3,
-        convert h3,
-      end  }
+{ mul := λ z1 z2, @@quotient.map₂ (setoid.ker $ num_denom_same_deg.embedding x)
+    (setoid.ker $ num_denom_same_deg.embedding x) (setoid.ker $ num_denom_same_deg.embedding x)
+    (*) (λ c1 c2 (h : localization.mk _ _ = localization.mk _ _)
+      c3 c4 (h' : localization.mk _ _ = localization.mk _ _), begin
+      change localization.mk _ _ = localization.mk _ _,
+      simp only [num_mul, denom_mul],
+      convert congr_arg2 (*) h h';
+      erw [localization.mk_mul];
+      refl,
+    end) z1 z2 }
 
 instance : has_one (homogeneous_localization x) :=
 { one := @@quotient.mk (setoid.ker $ num_denom_same_deg.embedding x) 1 }
@@ -400,7 +410,7 @@ begin
   refl,
 end
 
-lemma pow_val (n : ℕ) (y : homogeneous_localization x) :
+lemma pow_val (y : homogeneous_localization x) (n : ℕ) :
   (y ^ n).val = y.val ^ n :=
 begin
   induction y using quotient.induction_on,

@@ -1,5 +1,32 @@
+/-
+Copyright (c) 2022 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang, Scott Morrison
+-/
 import category_theory.abelian.injective_resolution
 import algebra.homology.additive
+
+/-!
+# Right-derived functors
+
+We define the right-derived functors `F.left_derived n : C ⥤ D` for any additive functor `F`
+out of a category with injective resolutions.
+
+The definition is
+```
+injective_resolutions C ⋙ F.map_homotopy_category _ ⋙ homotopy_category.homology_functor D _ n
+```
+that is, we pick an injective resolution (thought of as an object of the homotopy category),
+we apply `F` objectwise, and compute `n`-th homology.
+
+We show that these right-derived functors can be calculated
+on objects using any choice of injective resolution,
+and on morphisms by any choice of lift to a cochain map between chosen injective resolutions.
+
+Similarly we define natural transformations between right-derived functors coming from
+natural transformations between the original additive functors,
+and show how to compute the components.
+-/
 
 noncomputable theory
 
@@ -12,9 +39,11 @@ namespace category_theory
 variables {C : Type u} [category.{v} C] {D : Type*} [category D]
 variables [abelian C] [has_injective_resolutions C] [abelian D]
 
+/-- The right derived functors of an additive functor. -/
 def functor.right_derived (F : C ⥤ D) [F.additive] (n : ℕ) : C ⥤ D :=
 injective_resolutions C ⋙ F.map_homotopy_category _ ⋙ homotopy_category.homology_functor D _ n
 
+/-- We can compute a right derived functor using a chosen injective resolution. -/
 @[simps]
 def functor.right_derived_obj_iso (F : C ⥤ D) [F.additive] (n : ℕ)
   {X : C} (P : InjectiveResolution X) :
@@ -25,8 +54,9 @@ def functor.right_derived_obj_iso (F : C ⥤ D) [F.additive] (n : ℕ)
     (F.map_homotopy_equiv (InjectiveResolution.homotopy_equiv _ P)))
   ≪≫ (homotopy_category.homology_factors D _ n).app _
 
+/-- The 0-th derived functor of `F` on an injective object `X` is just `F.obj X`. -/
 @[simps]
-def functor.right_derived_obj_projective_zero (F : C ⥤ D) [F.additive]
+def functor.right_derived_obj_injective_zero (F : C ⥤ D) [F.additive]
   (X : C) [injective X] :
   (F.right_derived 0).obj X ≅ F.obj X :=
 F.right_derived_obj_iso 0 (InjectiveResolution.self X) ≪≫
@@ -35,7 +65,7 @@ F.right_derived_obj_iso 0 (InjectiveResolution.self X) ≪≫
 
 open_locale zero_object
 
-/-- The higher derived functors vanish on projective objects. -/
+/-- The higher derived functors vanish on injective objects. -/
 @[simps]
 def functor.right_derived_obj_injective_succ (F : C ⥤ D) [F.additive] (n : ℕ)
   (X : C) [injective X] :
@@ -44,6 +74,10 @@ F.right_derived_obj_iso (n+1) (InjectiveResolution.self X) ≪≫
   (homology_functor _ _ _).map_iso ((cochain_complex.single₀_map_homological_complex F).app X) ≪≫
   (cochain_complex.homology_functor_succ_single₀ D n).app (F.obj X)
 
+/--
+We can compute a right derived functor on a morphism using a descent of that morphism
+to a cochain map between chosen injective resolutions.
+-/
 lemma functor.right_derived_map_eq (F : C ⥤ D) [F.additive] (n : ℕ) {X Y : C} (f : Y ⟶ X)
   {P : InjectiveResolution X} {Q : InjectiveResolution Y} (g : Q.cocomplex ⟶ P.cocomplex)
   (w : Q.ι ≫ g = (cochain_complex.single₀ C).map f ≫ P.ι) :
@@ -63,11 +97,12 @@ begin
   exact homotopy_category.homotopy_out_map _,
   apply InjectiveResolution.desc_homotopy f,
   { simp, },
-  { simp only [InjectiveResolution.homotopy_equiv_hom_π_assoc],
+  { simp only [InjectiveResolution.homotopy_equiv_hom_ι_assoc],
     rw [←category.assoc, w, category.assoc],
-    simp only [InjectiveResolution.homotopy_equiv_inv_π], },
+    simp only [InjectiveResolution.homotopy_equiv_inv_ι], },
 end
 
+/-- The natural transformation between right-derived functors induced by a natural transformation.-/
 @[simps]
 def nat_trans.right_derived {F G : C ⥤ D} [F.additive] [G.additive] (α : F ⟶ G) (n : ℕ) :
   F.right_derived n ⟶ G.right_derived n :=
@@ -85,7 +120,11 @@ by { simp [nat_trans.right_derived], refl, }
   nat_trans.right_derived (α ≫ β) n = nat_trans.right_derived α n ≫ nat_trans.right_derived β n :=
 by simp [nat_trans.right_derived]
 
-lemma nat_trans.left_derived_eq {F G : C ⥤ D} [F.additive] [G.additive] (α : F ⟶ G) (n : ℕ)
+/--
+A component of the natural transformation between right-derived functors can be computed
+using a chosen injective resolution.
+-/
+lemma nat_trans.right_derived_eq {F G : C ⥤ D} [F.additive] [G.additive] (α : F ⟶ G) (n : ℕ)
   {X : C} (P : InjectiveResolution X) :
   (nat_trans.right_derived α n).app X =
     (F.right_derived_obj_iso n P).hom ≫

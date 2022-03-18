@@ -176,7 +176,7 @@ begin
 end
 
 /-- The direct limit of countably many countably generated structures is countably generated. -/
-theorem cg_direct_limit {ι : Type*} [encodable ι] [preorder ι] [is_directed ι (≤)] [nonempty ι]
+instance direct_limit.cg {ι : Type*} [encodable ι] [preorder ι] [is_directed ι (≤)] [nonempty ι]
   {G : ι → Type w} [Π i, L.Structure (G i)]
   (f : Π i j, i ≤ j → G i ↪[L] G j) (h : ∀ i, Structure.cg L (G i))
   [directed_system G (λ i j h, f i j h)] :

@@ -366,10 +366,9 @@ is an algebra isomorphism whose inverse is given by selecting the (unique) eleme
 noncomputable def _root_.normed_division_ring.alg_equiv_complex_of_complete
   [complete_space A] [topological_space.second_countable_topology A] : ℂ ≃ₐ[ℂ] A :=
 { to_fun := algebra_map ℂ A,
-  inv_fun := λ a, set.nonempty.some (spectrum.nonempty a),
-  left_inv := λ z, by simpa only [scalar_eq] using set.nonempty.some_mem
-    (spectrum.nonempty $ algebra_map ℂ A z),
-  right_inv := λ a, algebra_map_eq_of_mem (set.nonempty.some_mem (spectrum.nonempty a)),
+  inv_fun := λ a, (spectrum.nonempty a).some,
+  left_inv := λ z, by simpa only [scalar_eq] using (spectrum.nonempty $ algebra_map ℂ A z).some_mem,
+  right_inv := λ a, algebra_map_eq_of_mem (spectrum.nonempty a).some_mem,
   ..algebra.of_id ℂ A }
 
 end gelfand_mazur_isomorphism

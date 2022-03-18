@@ -121,7 +121,7 @@ restate_axiom bicategory.right_unitor_naturality'
 restate_axiom bicategory.pentagon'
 restate_axiom bicategory.triangle'
 attribute [simp]
-  bicategory.whisker_left_id bicategory.whisker_right_id bicategory.whisker_exchange
+  bicategory.whisker_left_id bicategory.whisker_right_id
   bicategory.pentagon bicategory.triangle
 attribute [reassoc]
   bicategory.whisker_left_comp bicategory.whisker_right_comp
@@ -446,10 +446,19 @@ by rw [←whisker_left_iff, ←cancel_epi (α_ (𝟙 a) (𝟙 _) (𝟙 _)).hom,
 lemma unitors_inv_equal : (λ_ (𝟙 a)).inv = (ρ_ (𝟙 a)).inv :=
 by { ext, rw [←unitors_equal], simp only [hom_inv_id] }
 
+@[reassoc]
+lemma whisker_exchange_whisker_left {f g : a ⟶ b} {h : b ⟶ c} {i j : c ⟶ d}
+  (η : f ≫ h ⟶ g ≫ h) (θ : i ⟶ j) :
+    (f ◁ _ ◁ θ) ≫ (α_ _ _ _).inv ≫ (η ▷ j) =
+      (α_ _ _ _).inv ≫ (η ▷ i) ≫ (α_ _ _ _).hom ≫ (_ ◁ _ ◁ θ) ≫ (α_ _ _ _).inv :=
+begin
+  rw associator_inv_naturality_right_assoc,
+  rw whisker_exchange,
+  rw associator_conjugation_right,
+end
+
 end
 
 end bicategory
 
 end category_theory
-
-#lint

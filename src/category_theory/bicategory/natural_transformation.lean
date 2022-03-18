@@ -63,15 +63,17 @@ namespace oplax_nat_trans
 section
 variables (F : oplax_functor B C)
 
+set_option trace.simplify.rewrite true
+
+local attribute [-simp] whisker_exchange_assoc
+
 /-- The identity oplax natural transformation. -/
 @[simps]
 def id : oplax_nat_trans F F :=
 { app := λ a, 𝟙 (F.obj a),
-  naturality := λ a b f, (ρ_ (F.map f)).hom ≫ (λ_ (F.map f)).inv,
-  naturality_comp' := λ a b c f g, by
-  { simp only [right_unitor_conjugation, left_unitor_conjugation, iso.inv_hom_id_assoc, assoc],
-    congr' 2,
-    coherence } }
+  naturality := λ a b f, (ρ_ (F.map f)).hom ≫ (λ_ (F.map f)).inv }
+
+set_option trace.simplify.rewrite false
 
 instance : inhabited (oplax_nat_trans F F) := ⟨id F⟩
 
@@ -149,9 +151,8 @@ def vcomp (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tran
       bicategory.whisker_right_comp, associator_conjugation_left, associator_conjugation_middle,
       pentagon_inv_hom_hom_hom_inv_assoc, pentagon_inv_inv_hom_hom_inv,
       pentagon_inv_inv_hom_hom_inv_assoc],
-    congr' 5, simp_rw ←assoc, congr' 4, simp_rw assoc,
     rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc,
-      associator_naturality_right] } }
+      associator_naturality_right_assoc] } }
 
 variables (B C)
 
@@ -198,17 +199,21 @@ variables {η}
 section
 variables (Γ : modification η θ) {a b c : B} {a' : C}
 
-@[reassoc]
+@[reassoc, simp]
 lemma whisker_left_naturality (f : a' ⟶ F.obj b) (g : b ⟶ c) :
-  (f ◁ (F.map g ◁ Γ.app c)) ≫ (f ◁ θ.naturality g) =
-    (f ◁ η.naturality g) ≫ (f ◁ (Γ.app b ▷ G.map g)) :=
+  (f ◁ F.map g ◁ Γ.app c) ≫ (f ◁ θ.naturality g) =
+    (f ◁ η.naturality g) ≫ (f ◁ Γ.app b ▷ G.map g) :=
 by simp only [←bicategory.whisker_left_comp, naturality]
 
-@[reassoc]
+@[reassoc, simp]
 lemma whisker_right_naturality (f : a ⟶ b) (g : G.obj b ⟶ a') :
-  ((F.map f ◁ Γ.app b) ▷ g) ≫ (θ.naturality f ▷ g) =
-    (η.naturality f ▷ g) ≫ ((Γ.app a ▷ G.map f) ▷ g) :=
-by simp only [←bicategory.whisker_right_comp, naturality]
+  (F.map f ◁ Γ.app b ▷ g) ≫ (α_ _ _ _).inv ≫ (θ.naturality f ▷ g) =
+    (α_ _ _ _).inv ≫ (η.naturality f ▷ g) ≫ (α_ _ _ _).hom ≫
+      (Γ.app a ▷ G.map f ≫ g) ≫ (α_ _ _ _).inv :=
+begin
+  rw [associator_inv_naturality_middle_assoc, ←bicategory.whisker_right_comp, naturality],
+  simp only [bicategory.whisker_right_comp, associator_conjugation_left]
+end
 
 end
 

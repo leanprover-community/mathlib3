@@ -100,12 +100,9 @@ variables [module k V] [distrib_mul_action G V] [smul_comm_class G k V]
 The character associated to a representation of `G`, which as a map `G → k`
 sends each element to the trace of the corresponding linear map
 -/
+@[simp]
 noncomputable def character (g : G) : k :=
 linear_map.trace k V (as_group_hom k G V g)
-
-@[simp]
-lemma char_apply (g : G) :
-  (character k G V) g = linear_map.trace k V (as_group_hom k G V g) := rfl
 
 /-- The evaluation of the character at the identity is the dimension of the representation -/
 theorem char_one : character k G V 1 = finite_dimensional.finrank k V := by simp

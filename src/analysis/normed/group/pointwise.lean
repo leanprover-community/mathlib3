@@ -3,11 +3,11 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.normed.group.basic
+import analysis.normed.group.add_torsor
 import topology.metric_space.hausdorff_distance
 
 /-!
-# Properties of pointwise addition of sets in normed groups.
+# Properties of pointwise addition of sets in normed groups
 
 We explore the relationships between pointwise addition of sets in normed groups, and the norm.
 Notably, we show that the sum of bounded sets remain bounded.
@@ -57,44 +57,35 @@ lemma thickening_of_nonpos (hδ : δ ≤ 0) (s : set E) : thickening δ s = ∅ 
 eq_empty_iff_forall_not_mem.2 $ λ x hx,
   (ennreal.of_real_of_nonpos hδ).not_gt $ bot_le.trans_lt hx
 
-@[simp] lemma thickening_thickening (hε : 0 < ε) (hδ : 0 < δ) (s : set E) :
-  thickening ε (thickening δ s) = thickening (ε + δ) s := sorry
+@[simp] lemma thickening_thickening_subset (ε δ : ℝ) (s : set E) :
+  thickening ε (thickening δ s) ⊆ thickening (ε + δ) s :=
+begin
+  intro x,
+  simp_rw mem_thickening_iff,
+  rintro ⟨y, ⟨z, hz, hyz⟩, hxy⟩,
+  exact ⟨z, hz, (dist_triangle _ _ _).trans_lt $ add_lt_add hxy hyz⟩,
+end
 
-@[simp] lemma thickening_cthickening (hε : 0 < ε) (hδ : 0 ≤ δ) (s : set E) :
-  thickening ε (cthickening δ s) = thickening (ε + δ) s := sorry
+@[simp] lemma thickening_cthickening_subset (hε : 0 < ε) (hδ : 0 ≤ δ) (s : set E) :
+  thickening ε (cthickening δ s) ⊆ thickening (ε + δ) s :=
+begin
+  intro x,
+  simp_rw mem_thickening_iff,
+  rintro ⟨y, ⟨z, hz, hyz⟩, hxy⟩,
+  exact ⟨z, hz, (dist_triangle _ _ _).trans_lt $ add_lt_add hxy hyz⟩,
+end
 
-@[simp] lemma cthickening_thickening (hε : 0 ≤ ε) (hδ : 0 < δ) (s : set E) :
-  cthickening ε (thickening δ s) = cthickening (ε + δ) s := sorry
+@[simp] lemma cthickening_thickening_subset (hε : 0 ≤ ε) (hδ : 0 < δ) (s : set E) :
+  cthickening ε (thickening δ s) ⊆ cthickening (ε + δ) s := sorry
 
-@[simp] lemma cthickening_cthickening (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (s : set E) :
-  cthickening ε (cthickening δ s) = cthickening (ε + δ) s := sorry
-
-@[simp] lemma thickening_ball (hε : 0 < ε) (hδ : 0 < δ) (x : E) :
-  thickening ε (ball x δ) = ball x (ε + δ) :=
-by rw [←thickening_singleton, thickening_thickening hε hδ, thickening_singleton]
-
-@[simp] lemma thickening_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (x : E) :
-  thickening ε (closed_ball x δ) = ball x (ε + δ) :=
-by rw [←cthickening_singleton _ hδ, thickening_cthickening hε hδ, thickening_singleton]
-
-@[simp] lemma cthickening_ball (hε : 0 ≤ ε) (hδ : 0 < δ) (x : E) :
-  cthickening ε (ball x δ) = closed_ball x (ε + δ) :=
-by rw [←thickening_singleton, cthickening_thickening hε hδ,
-  cthickening_singleton _ (add_nonneg hε hδ.le)]
-
-@[simp] lemma cthickening_closed_ball (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (x : E) :
-  cthickening ε (closed_ball x δ) = closed_ball x (ε + δ) :=
-by rw [←cthickening_singleton _ hδ, cthickening_cthickening hε hδ,
-  cthickening_singleton _ (add_nonneg hε hδ)]
+@[simp] lemma cthickening_cthickening_subset (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (s : set E) :
+  cthickening ε (cthickening δ s) ⊆ cthickening (ε + δ) s := sorry
 
 @[simp] lemma singleton_add_ball (x y : E) (δ : ℝ) : {x} + ball y δ = ball (x + y) δ :=
 by simp only [preimage_add_ball, image_add_left, singleton_add, sub_neg_eq_add, add_comm y x]
 
 @[simp] lemma ball_add_singleton (x y : E) (δ : ℝ) : ball x δ + {y} = ball (x + y) δ :=
-by simp [add_comm _ {y}, add_comm y]
-
-@[simp] lemma vadd_ball (x y : E) (δ : ℝ) : x +ᵥ ball y δ = ball (x + y) δ :=
-by { rw ←singleton_vadd, exact singleton_add_ball _ _ _ }
+by rw [add_comm _ {y}, singleton_add_ball, add_comm y]
 
 @[simp] lemma singleton_add_ball_zero (x : E) (δ : ℝ) : {x} + ball 0 δ = ball x δ := by simp
 @[simp] lemma ball_zero_add_singleton (x : E) (δ : ℝ) : ball 0 δ + {x} = ball x δ := by simp
@@ -107,9 +98,6 @@ by simp only [add_comm y x, preimage_add_closed_ball, image_add_left, singleton_
 @[simp] lemma closed_ball_add_singleton (x y : E) (δ : ℝ) :
   closed_ball x δ + {y} = closed_ball (x + y) δ :=
 by simp [add_comm _ {y}, add_comm y]
-
-@[simp] lemma vadd_closed_ball (x y : E) (δ : ℝ) : x +ᵥ closed_ball y δ = closed_ball (x + y) δ :=
-by { rw ←singleton_vadd, exact singleton_add_closed_ball _ _ _ }
 
 lemma singleton_add_closed_ball_zero (x : E) (δ : ℝ) : {x} + closed_ball 0 δ = closed_ball x δ :=
 by simp
@@ -159,13 +147,56 @@ lemma is_compact.closed_ball_add (hs : is_compact s) (hδ : 0 ≤ δ) (x : E) :
   closed_ball x δ + s = x +ᵥ cthickening δ s :=
 by rw [add_comm, hs.add_closed_ball hδ]
 
+variables [normed_space ℝ E]
+
+@[simp] lemma thickening_thickening (hε : 0 < ε) (hδ : 0 < δ) (s : set E) :
+  thickening ε (thickening δ s) = thickening (ε + δ) s :=
+(thickening_thickening_subset _ _ _).antisymm $ λ x, begin
+  simp_rw mem_thickening_iff,
+  rintro ⟨y, hy, hxy⟩,
+  refine ⟨(δ / (ε + δ)) • x + (ε / (ε + δ)) • y, ⟨_, hy, _⟩, _⟩,
+  sorry, sorry
+
+end
+
+@[simp] lemma thickening_cthickening (hε : 0 < ε) (hδ : 0 ≤ δ) (s : set E) :
+  thickening ε (cthickening δ s) = thickening (ε + δ) s := sorry
+
+@[simp] lemma cthickening_thickening (hε : 0 ≤ ε) (hδ : 0 < δ) (s : set E) :
+  cthickening ε (thickening δ s) = cthickening (ε + δ) s := sorry
+
+@[simp] lemma cthickening_cthickening (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (s : set E) :
+  cthickening ε (cthickening δ s) = cthickening (ε + δ) s := sorry
+
+@[simp] lemma thickening_ball (hε : 0 < ε) (hδ : 0 < δ) (x : E) :
+  thickening ε (ball x δ) = ball x (ε + δ) :=
+by rw [←thickening_singleton, thickening_thickening hε hδ, thickening_singleton]
+
+@[simp] lemma thickening_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (x : E) :
+  thickening ε (closed_ball x δ) = ball x (ε + δ) :=
+by rw [←cthickening_singleton _ hδ, thickening_cthickening hε hδ, thickening_singleton]
+
+@[simp] lemma cthickening_ball (hε : 0 ≤ ε) (hδ : 0 < δ) (x : E) :
+  cthickening ε (ball x δ) = closed_ball x (ε + δ) :=
+by rw [←thickening_singleton, cthickening_thickening hε hδ,
+  cthickening_singleton _ (add_nonneg hε hδ.le)]
+
+@[simp] lemma cthickening_closed_ball (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (x : E) :
+  cthickening ε (closed_ball x δ) = closed_ball x (ε + δ) :=
+by rw [←cthickening_singleton _ hδ, cthickening_cthickening hε hδ,
+  cthickening_singleton _ (add_nonneg hε hδ)]
+
 @[simp] lemma ball_add_ball (hε : 0 < ε) (hδ : 0 < δ) (a b : E) :
   ball a ε + ball b δ = ball (a + b) (ε + δ) :=
-by rw [ball_add, thickening_ball hε hδ, vadd_ball]
+by rw [ball_add, thickening_ball hε hδ, vadd_ball, vadd_eq_add]
 
 @[simp] lemma ball_add_closed_ball (hε : 0 < ε) (hδ : 0 ≤ δ) (a b : E) :
   ball a ε + closed_ball b δ = ball (a + b) (ε + δ) :=
-by rw [ball_add, thickening_closed_ball hε hδ, vadd_ball]
+by rw [ball_add, thickening_closed_ball hε hδ, vadd_ball, vadd_eq_add]
+
+@[simp] lemma closed_ball_add_ball (hε : 0 ≤ ε) (hδ : 0 < δ) (a b : E) :
+  closed_ball a ε + ball b δ = ball (a + b) (ε + δ) :=
+by rw [add_comm, ball_add_closed_ball hδ hε, add_comm, add_comm δ]
 
 @[simp] lemma closed_ball_add_closed_ball (a b : E) (ε δ : ℝ) :
   closed_ball a ε + closed_ball b δ = closed_ball (a + b) (ε + δ) := sorry

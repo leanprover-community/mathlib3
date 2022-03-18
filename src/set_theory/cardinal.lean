@@ -1023,9 +1023,21 @@ lemma cast_to_nat_of_omega_le {c : cardinal} (h : ω ≤ c) :
   ↑c.to_nat = (0 : cardinal) :=
 by rw [to_nat_apply_of_omega_le h, nat.cast_zero]
 
-lemma to_nat_mono_of_lt_omega {c d : cardinal} (hd : d < ω) (hcd : c ≤ d) :
+lemma to_nat_le_to_nat_iff_of_lt_omega {c d : cardinal} (hc : c < ω) (hd : d < ω) :
+  c.to_nat ≤ d.to_nat ↔ c ≤ d :=
+by rw [←nat_cast_le, cast_to_nat_of_lt_omega hc, cast_to_nat_of_lt_omega hd]
+
+lemma to_nat_lt_to_nat_iff_of_lt_omega {c d : cardinal} (hc : c < ω) (hd : d < ω) :
+  c.to_nat < d.to_nat ↔ c < d :=
+by rw [←nat_cast_lt, cast_to_nat_of_lt_omega hc, cast_to_nat_of_lt_omega hd]
+
+lemma to_nat_le_to_nat_of_lt_omega {c d : cardinal} (hd : d < ω) (hcd : c ≤ d) :
   c.to_nat ≤ d.to_nat :=
-by rwa [←nat_cast_le, cast_to_nat_of_lt_omega (lt_of_le_of_lt hcd hd), cast_to_nat_of_lt_omega hd]
+(to_nat_le_to_nat_iff_of_lt_omega (lt_of_le_of_lt hcd hd) hd).mpr hcd
+
+lemma to_nat_lt_to_nat_of_lt_omega {c d : cardinal} (hd : d < ω) (hcd : c < d) :
+  c.to_nat < d.to_nat :=
+(to_nat_lt_to_nat_iff_of_lt_omega (hcd.trans hd) hd).mpr hcd
 
 @[simp]
 lemma to_nat_cast (n : ℕ) : cardinal.to_nat n = n :=

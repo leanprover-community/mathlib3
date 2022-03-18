@@ -87,6 +87,14 @@ lemma is_integral_iff {x : K} : is_integral R x ↔ ∃ y, algebra_map R K y = x
 is_integral_closure.is_integral_iff
 
 omit iic
+
+lemma exists_algebra_map_eq_of_pow_mem {R K : Type*} [comm_ring R] [field K] [algebra R K]
+  {S : subalgebra R K} [is_integrally_closed S] [is_fraction_ring S K] {x : K} {n : ℕ} (hn : 0 < n)
+  (hx : x ^ n ∈ S) : ∃ y : S, algebra_map S K y = x :=
+is_integral_iff.mp ⟨_,
+  ⟨polynomial.monic_X_pow_sub_C ⟨x ^ n, hx⟩ $ ne_zero_of_lt hn,
+   by simpa only [polynomial.eval₂_sub, polynomial.eval₂_X_pow, polynomial.eval₂_C, sub_eq_zero]⟩⟩
+
 variables {R} (K)
 lemma integral_closure_eq_bot_iff :
   integral_closure R K = ⊥ ↔ is_integrally_closed R :=

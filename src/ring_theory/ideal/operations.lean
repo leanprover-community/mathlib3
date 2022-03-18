@@ -1707,6 +1707,10 @@ def quotient_equiv (I : ideal R) (J : ideal S) (f : R ≃+* S) (hIJ : J = I.map 
   right_inv := by {rintro ⟨s⟩, simp },
   ..quotient_map J ↑f (by {rw hIJ, exact @le_comap_map _ S _ _ _ _}) }
 
+@[simp]
+lemma quotient_equiv_mk (I : ideal R) (J : ideal S) (f : R ≃+* S) (hIJ : J = I.map (f : R →+* S))
+  (x : R) : quotient_equiv I J f hIJ (ideal.quotient.mk I x) = ideal.quotient.mk J (f x) := rfl
+
 /-- `H` and `h` are kept as separate hypothesis since H is used in constructing the quotient map. -/
 lemma quotient_map_injective' {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}
   (h : I.comap f ≤ J) : function.injective (quotient_map I f H) :=

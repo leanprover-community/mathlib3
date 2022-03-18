@@ -493,11 +493,11 @@ begin
   split,
   { intro hJ,
     refine ⟨⟨{x : R | algebra_map R P x ∈ J}, _, _, _⟩, _⟩,
-    { rw [mem_set_of_eq, ring_hom.map_zero],
-      exact J.val.zero_mem },
     { intros a b ha hb,
       rw [mem_set_of_eq, ring_hom.map_add],
       exact J.val.add_mem ha hb },
+    { rw [mem_set_of_eq, ring_hom.map_zero],
+      exact J.val.zero_mem },
     { intros c x hx,
       rw [smul_eq_mul, mem_set_of_eq, ring_hom.map_mul, ← algebra.smul_def],
       exact J.val.smul_mem c hx },
@@ -1050,6 +1050,10 @@ lemma mem_span_singleton_self (x : P) :
 
 variables {S}
 
+lemma span_singleton_eq_span_singleton [no_zero_smul_divisors R P] {x y : P} :
+  span_singleton S x = span_singleton S y ↔ ∃ z : Rˣ, z • x = y :=
+by { rw [← submodule.span_singleton_eq_span_singleton], exact subtype.mk_eq_mk }
+
 lemma eq_span_singleton_of_principal (I : fractional_ideal S P)
   [is_principal (I : submodule R P)] :
   I = span_singleton S (generator (I : submodule R P)) :=
@@ -1084,6 +1088,14 @@ lemma span_singleton_mul_span_singleton (x y : P) :
 begin
   apply coe_to_submodule_injective,
   simp only [coe_mul, coe_span_singleton, span_mul_span, singleton_mul_singleton],
+end
+
+@[simp]
+lemma span_singleton_pow (x : P) (n : ℕ) : span_singleton S x ^ n = span_singleton S (x ^ n) :=
+begin
+  induction n with n hn,
+  { rw [pow_zero, pow_zero, span_singleton_one] },
+  { rw [pow_succ, hn, span_singleton_mul_span_singleton, pow_succ] }
 end
 
 @[simp]

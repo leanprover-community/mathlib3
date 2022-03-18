@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
-import data.set.lattice
-import data.set_like.basic
+import group_theory.subsemigroup.basic
 
 /-!
 # Submonoids: definition and `complete_lattice` structure
@@ -45,7 +44,7 @@ Note that `submonoid M` does not actually require `monoid M`, instead requiring 
 `mul_one_class M`.
 
 This file is designed to have very few dependencies. In particular, it should not use natural
-numbers.
+numbers. `submonoid` is implemented by extending `subsemigroup` requiring `one_mem'`.
 
 ## Tags
 submonoid, submonoids
@@ -58,18 +57,23 @@ section non_assoc
 variables [mul_one_class M] {s : set M}
 variables [add_zero_class A] {t : set A}
 
+set_option old_structure_cmd true
+
 /-- A submonoid of a monoid `M` is a subset containing 1 and closed under multiplication. -/
-structure submonoid (M : Type*) [mul_one_class M] :=
-(carrier : set M)
+structure submonoid (M : Type*) [mul_one_class M] extends subsemigroup M :=
 (one_mem' : (1 : M) ∈ carrier)
-(mul_mem' {a b} : a ∈ carrier → b ∈ carrier → a * b ∈ carrier)
+
+/-- A submonoid of a monoid `M` can be considered as a subsemigroup of that monoid. -/
+add_decl_doc submonoid.to_subsemigroup
 
 /-- An additive submonoid of an additive monoid `M` is a subset containing 0 and
   closed under addition. -/
-structure add_submonoid (M : Type*) [add_zero_class M] :=
-(carrier : set M)
+structure add_submonoid (M : Type*) [add_zero_class M] extends add_subsemigroup M :=
 (zero_mem' : (0 : M) ∈ carrier)
-(add_mem' {a b} : a ∈ carrier → b ∈ carrier → a + b ∈ carrier)
+
+/-- An additive submonoid of an additive monoid `M` can be considered as an
+additive subsemigroup of that additive monoid. -/
+add_decl_doc add_submonoid.to_add_subsemigroup
 
 attribute [to_additive] submonoid
 
@@ -273,7 +277,7 @@ elements of the additive closure of `s`."]
 lemma closure_induction {p : M → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@closure_le _ _ _ ⟨p, H1, Hmul⟩).2 Hs h
+(@closure_le _ _ _ ⟨p, Hmul, H1⟩).2 Hs h
 
 /-- A dependent version of `submonoid.closure_induction`.  -/
 @[elab_as_eliminator, to_additive "A dependent version of `add_submonoid.closure_induction`. "]

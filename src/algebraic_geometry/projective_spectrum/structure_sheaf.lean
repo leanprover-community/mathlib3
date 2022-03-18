@@ -425,128 +425,48 @@ end
 instance : comm_ring (homogeneous_localization x) :=
 (homogeneous_localization.val_injective x).comm_ring _ zero_val one_val add_val mul_val neg_val
   sub_val nsmul_val zsmul_val pow_val
-
--- def homogeneous_localization := set.range (embedding x)
-
--- instance : comm_ring (homogeneous_localization x) := sorry
-
-#exit
-attribute [simp] num_denom_same_deg.eq
-
-variable (x)
-/--
-Auxiliary definition of `homogeneous_localization`: its underlying set.
--/
-def carrier : set (at x) :=
-{y | nonempty (num_denom_same_deg y)}
-
-variable {x}
-lemma one_mem' : (1 : at x) ∈ carrier x := nonempty.intro
-{ num := 1,
-  denom := 1,
-  denom_not_mem := (ideal.ne_top_iff_one _).mp x.is_prime.ne_top,
-  deg := 0,
-  num_mem := one_mem,
-  denom_mem := one_mem,
-  eq := by simp }
-
-lemma zero_mem' : (0 : at x) ∈ carrier x := nonempty.intro
-{ num := 0,
-  denom := 1,
-  denom_not_mem := (ideal.ne_top_iff_one _).mp x.is_prime.ne_top,
-  deg := 0,
-  num_mem := zero_mem _,
-  denom_mem := one_mem,
-  eq := by simp }
-
-lemma mul_mem' {y1 y2} (hy1 : y1 ∈ carrier x) (hy2 : y2 ∈ carrier x) : y1 * y2 ∈ carrier x :=
-match hy1, hy2 with
-| ⟨c1⟩, ⟨c2⟩ := nonempty.intro
-  { num := c1.num * c2.num,
-    denom := c1.denom * c2.denom,
-    denom_not_mem := λ r, or.elim (x.is_prime.mem_or_mem r) c1.denom_not_mem c2.denom_not_mem,
-    deg := c1.deg + c2.deg,
-    num_mem := mul_mem c1.num_mem c2.num_mem,
-    denom_mem := mul_mem c1.denom_mem c2.denom_mem,
-    eq := by simpa only [← c1.eq, ← c2.eq, localization.mk_mul] }
-end
-
-lemma add_mem' {y1 y2} (hy1 : y1 ∈ carrier x) (hy2 : y2 ∈ carrier x) : y1 + y2 ∈ carrier x :=
-match hy1, hy2 with
-| ⟨c1⟩, ⟨c2⟩ := nonempty.intro
-  { num := c1.denom * c2.num + c2.denom * c1.num,
-    denom := c1.denom * c2.denom,
-    denom_not_mem := λ r, or.elim (x.is_prime.mem_or_mem r) c1.denom_not_mem c2.denom_not_mem,
-    deg := c1.deg + c2.deg,
-    num_mem := add_mem _ (mul_mem c1.denom_mem c2.num_mem)
-      (add_comm c2.deg c1.deg ▸ mul_mem c2.denom_mem c1.num_mem),
-    denom_mem := mul_mem c1.denom_mem c2.denom_mem,
-    eq := by simpa only [← c1.eq, ← c2.eq, localization.add_mk] }
-end
-
-lemma neg_mem' {y} (hy : y ∈ carrier x) : -y ∈ carrier x :=
-match hy with
-| ⟨c⟩ := nonempty.intro
-  { num := -c.num,
-    denom := c.denom,
-    denom_not_mem := c.denom_not_mem,
-    deg := c.deg,
-    num_mem := neg_mem _ c.num_mem,
-    denom_mem := c.denom_mem,
-    eq := by simp only [← c.eq, localization.neg_mk] }
-end
-
 end homogeneous_localization
-
-section
-variable {𝒜}
-open homogeneous_localization
-
-/-- given `x` in `projective_spectrum.Top 𝒜`, homogeneous localization at `x` is the subring of `Aₓ`
-(`A` localized at prime `x`) where the numerator and denominator have same grading. -/
-@[derive [comm_ring], nolint has_inhabited_instance]
-def homogeneous_localization (x : projective_spectrum.Top 𝒜) : Type* :=
-subring.mk (carrier x) (λ _ _, mul_mem') one_mem' (λ _ _, add_mem') zero_mem'  (λ _, neg_mem')
-
-end
 
 namespace homogeneous_localization
 variables {𝒜} {x : projective_spectrum.Top 𝒜}
 
 /-- numerator of an element in `homogeneous_localization x`-/
-def num (f : homogeneous_localization x) : A := (nonempty.some f.2).num
+def homogeneous_localization.num (f : homogeneous_localization x) : A :=
+(@@quotient.exists_rep (setoid.ker $ num_denom_same_deg.embedding x) f).some.num.1
+
 /-- denominator of an element in `homogeneous_localization x`-/
-def denom (f : homogeneous_localization x) : A := (nonempty.some f.2).denom
+def homogeneous_localization.denom (f : homogeneous_localization x) : A :=
+(@@quotient.exists_rep (setoid.ker $ num_denom_same_deg.embedding x) f).some.denom.1
+
 /-- For an element in `homogeneous_localization x`, degree is the natural number `i` such that
   `𝒜 i` contains both numerator and denominator. -/
-def deg (f : homogeneous_localization x) : ℕ := (nonempty.some f.2).deg
+def homogeneous_localization.deg (f : homogeneous_localization x) : ℕ :=
+(@@quotient.exists_rep (setoid.ker $ num_denom_same_deg.embedding x) f).some.deg
 
-lemma denom_not_mem (f : homogeneous_localization x) : f.denom ∉ x.as_homogeneous_ideal :=
-(nonempty.some f.2).denom_not_mem
+lemma homogeneous_localization.denom_not_mem (f : homogeneous_localization x) :
+  f.denom ∉ x.as_homogeneous_ideal :=
+(@@quotient.exists_rep (setoid.ker $ num_denom_same_deg.embedding x) f).some.denom_not_mem
 
-lemma num_mem (f : homogeneous_localization x) : f.num ∈ 𝒜 f.deg := (nonempty.some f.2).num_mem
-lemma denom_mem (f : homogeneous_localization x) : f.denom ∈ 𝒜 f.deg :=
-(nonempty.some f.2).denom_mem
+lemma homogeneous_localization.num_mem (f : homogeneous_localization x) : f.num ∈ 𝒜 f.deg :=
+(@@quotient.exists_rep (setoid.ker $ num_denom_same_deg.embedding x) f).some.num.2
 
-lemma eq_num_div_denom (f : homogeneous_localization x) :
-  f.1 = localization.mk f.num ⟨f.denom, f.denom_not_mem⟩ :=
-(nonempty.some f.2).eq.symm
+lemma homogeneous_localization.denom_mem (f : homogeneous_localization x) : f.denom ∈ 𝒜 f.deg :=
+(@@quotient.exists_rep (setoid.ker $ num_denom_same_deg.embedding x) f).some.denom.2
 
-lemma val_add (f g : homogeneous_localization x) : (f + g).1 = f.val + g.val := rfl
+lemma homogeneous_localization.eq_num_div_denom (f : homogeneous_localization x) :
+  f.val = localization.mk f.num ⟨f.denom, f.denom_not_mem⟩ :=
+sorry
 
-lemma val_neg (f : homogeneous_localization x) : (-f).val = -f.val := rfl
-
-lemma val_mul (f g : homogeneous_localization x) : (f * g).val = f.val * g.val := rfl
-
-lemma val_sub (f g : homogeneous_localization x) : (f - g).val = f.val - g.val := rfl
-
-lemma val_zero : (0 : homogeneous_localization x).val = localization.mk 0 1 :=
-by rw localization.mk_zero; refl
-
-lemma val_one : (1 : homogeneous_localization x).val = localization.mk 1 1 :=
-by rw localization.mk_one; refl
-
-lemma ext_iff_val (f g : homogeneous_localization x) : f = g ↔ f.1 = g.1:= subtype.ext_iff_val
+lemma ext_iff_val (f g : homogeneous_localization x) : f = g ↔ f.val = g.val :=
+{ mp := λ h, h ▸ rfl,
+  mpr := λ h, begin
+    induction f using quotient.induction_on,
+    induction g using quotient.induction_on,
+    rw quotient.eq,
+    unfold homogeneous_localization.val at h,
+    simp only [quotient.lift_on'_mk] at h,
+    exact h,
+  end }
 
 end homogeneous_localization
 

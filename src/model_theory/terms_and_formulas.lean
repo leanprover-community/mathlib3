@@ -51,7 +51,7 @@ universes u v w u' v'
 namespace first_order
 namespace language
 
-variables (L : language.{u v})
+variables (L : language.{u v}) {L' : language}
 variables {M : Type w} {N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
 variables {α : Type u'} {β : Type v'}
 open_locale first_order cardinal
@@ -198,6 +198,20 @@ lemma realize_con {A : set M} {a : A} {v : α → M} :
 end term
 
 localized "prefix `&`:max := first_order.language.term.var ∘ sum.inr" in first_order
+
+/-- Maps a term's symbols along a language map. -/
+@[simp] def Lhom.on_term {α : Type} (φ : L →ᴸ L') : L.term α → L'.term α
+| (var i) := var i
+| (func f ts) := func (φ.on_function f) (λ i, Lhom.on_term (ts i))
+
+@[simp] lemma Lhom.realize_on_term [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  {α : Type} (t : L.term α) (v : α → M) :
+  (φ.on_term t).realize v = t.realize v :=
+begin
+  induction t with _ n f ts ih,
+  { refl },
+  { simp only [term.realize, Lhom.on_term, Lhom.is_expansion_on.map_on_function, ih] }
+end
 
 @[simp] lemma hom.realize_term (g : M →[L] N) {t : L.term α} {v : α → M} :
   t.realize (g ∘ v) = g (t.realize v) :=
@@ -489,6 +503,10 @@ begin
     simp }
 end
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/master
 /-- An atomic formula is either equality or a relation symbol applied to terms.
   Note that `⊥` and `⊤` are not considered atomic in this convention. -/
 inductive is_atomic : L.bounded_formula α n → Prop
@@ -661,6 +679,50 @@ bounded_formula.rec_on φ
 
 end bounded_formula
 
+namespace Lhom
+open bounded_formula
+
+/-- Maps a bounded formula's symbols along a language map. -/
+def on_bounded_formula {α : Type} (g : L →ᴸ L') :
+  ∀ {k : ℕ}, L.bounded_formula α k → L'.bounded_formula α k
+| k falsum := falsum
+| k (equal t₁ t₂) := (g.on_term t₁).bd_equal (g.on_term t₂)
+| k (rel R ts) := (g.on_relation R).bounded_formula (g.on_term ∘ ts)
+| k (imp f₁ f₂) := (on_bounded_formula f₁).imp (on_bounded_formula f₂)
+| k (all f) := (on_bounded_formula f).all
+
+/-- Maps a formula's symbols along a language map. -/
+def on_formula {α : Type} (g : L →ᴸ L') : L.formula α → L'.formula α :=
+g.on_bounded_formula
+
+/-- Maps a sentence's symbols along a language map. -/
+def on_sentence (g : L →ᴸ L') : L.sentence → L'.sentence :=
+g.on_formula
+
+/-- Maps a theory's symbols along a language map. -/
+def on_Theory (g : L →ᴸ L') (T : L.Theory) : L'.Theory :=
+g.on_sentence '' T
+
+@[simp] lemma mem_on_Theory {g : L →ᴸ L'} {T : L.Theory} {φ : L'.sentence} :
+  φ ∈ g.on_Theory T ↔ ∃ φ₀, φ₀ ∈ T ∧ g.on_sentence φ₀ = φ :=
+set.mem_image _ _ _
+
+@[simp] lemma realize_on_bounded_formula [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  {α : Type} {n : ℕ} (ψ : L.bounded_formula α n) {v : α → M} {xs : fin n → M} :
+  (φ.on_bounded_formula ψ).realize v xs ↔ ψ.realize v xs :=
+begin
+  induction ψ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp only [on_bounded_formula, realize_bd_equal, realize_on_term],
+    refl, },
+  { simp only [on_bounded_formula, realize_rel, realize_on_term, is_expansion_on.map_on_relation],
+    refl, },
+  { simp only [on_bounded_formula, ih1, ih2, realize_imp], },
+  { simp only [on_bounded_formula, ih3, realize_all], },
+end
+
+end Lhom
+
 attribute [protected] bounded_formula.falsum bounded_formula.equal bounded_formula.rel
 attribute [protected] bounded_formula.imp bounded_formula.all
 
@@ -755,6 +817,11 @@ bounded_formula.is_atomic.equal _ _
 
 end formula
 
+@[simp] lemma Lhom.realize_on_formula [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  {α : Type} (ψ : L.formula α) {v : α → M} :
+  (φ.on_formula ψ).realize v ↔ ψ.realize v :=
+φ.realize_on_bounded_formula ψ
+
 variable (M)
 
 /-- A sentence can be evaluated as true or false in a structure. -/
@@ -763,11 +830,25 @@ variable (M)
 
 infix ` ⊨ `:51 := realize_sentence -- input using \|= or \vDash, but not using \models
 
+@[simp] lemma Lhom.realize_on_sentence [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  (ψ : L.sentence) :
+  M ⊨ φ.on_sentence ψ ↔ M ⊨ ψ :=
+φ.realize_on_formula ψ
+
 /-- A model of a theory is a structure in which every sentence is realized as true. -/
 @[reducible] def Theory.model (T : L.Theory) : Prop :=
 ∀ φ ∈ T, realize_sentence M φ
 
 infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \models
+
+@[simp] lemma Lhom.on_Theory_model [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  (T : L.Theory) :
+  M ⊨ φ.on_Theory T ↔ M ⊨ T :=
+begin
+  refine ⟨λ h ψ hψ, (φ.realize_on_sentence M _).1 (h _ (set.mem_image_of_mem _ hψ)), λ h ψ hψ, _⟩,
+  obtain ⟨ψ₀, hψ₀, rfl⟩ := Lhom.mem_on_Theory.1 hψ,
+  exact (φ.realize_on_sentence M _).2 (h _ hψ₀),
+end
 
 variable {M}
 

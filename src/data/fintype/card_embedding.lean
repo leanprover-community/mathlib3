@@ -21,9 +21,8 @@ open_locale nat big_operators
 
 namespace fintype
 
-lemma card_embedding_eq_of_unique
-  {α β : Type*} [unique α] [fintype β] [fintype (α ↪ β)]:
-‖α ↪ β‖ = ‖β‖ := card_congr equiv.unique_embedding_equiv_result
+lemma card_embedding_eq_of_unique {α β : Type*} [unique α] [fintype β] [fintype (α ↪ β)] :
+  ‖α ↪ β‖ = ‖β‖ := card_congr equiv.unique_embedding_equiv_result
 
 /- Establishes the cardinality of the type of all injections between two finite types. -/
 @[simp] theorem card_embedding_eq {α β} [fintype α] [fintype β] [fintype (α ↪ β)] :

@@ -702,6 +702,13 @@ lemma uniform_integrable_subsingleton [subsingleton ι] (hp_one : 1 ≤ p) (hp_t
   uniform_integrable f p μ :=
 uniform_integrable_fintype hp_one hp_top hf hf'
 
+/-- A constant sequence of functions is uniformly integrable in the probability sense. -/
+lemma uniform_integrable_const {g : α → β} (hp : 1 ≤ p) (hp_ne_top : p ≠ ∞)
+  (hgm : measurable g) (hg : mem_ℒp g p μ) :
+  uniform_integrable (λ n : ι, g) p μ :=
+⟨λ i, hgm, unif_integrable_const μ hp hp_ne_top hg,
+  ⟨(snorm g p μ).to_nnreal, λ i, le_of_eq (ennreal.coe_to_nnreal hg.2.ne).symm⟩⟩
+
 /-- This lemma is superceded by `unif_integrable_of` which do not require `C` to be positive. -/
 lemma unif_integrable_of' (hp : 1 ≤ p) (hp' : p ≠ ∞) (hf : ∀ i, measurable (f i))
   (h : ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0, 0 < C ∧

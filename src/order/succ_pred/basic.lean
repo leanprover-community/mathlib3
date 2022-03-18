@@ -976,3 +976,63 @@ lemma pred.rec_top (p : α → Prop) (htop : p ⊤) (hpred : ∀ a, p a → p (p
 pred.rec htop (λ x _ h, hpred x h) (le_top : a ≤ ⊤)
 
 end order_top
+
+namespace fin
+
+def succ_order' (n : ℕ) : succ_order (fin n.succ) :=
+{ succ := λ i, if i < fin.last n then i + 1 else i,
+  le_succ := λ a,
+  begin
+    cases n,
+    { exact (subsingleton.elim _ _).le },
+    split_ifs,
+    { rw [le_iff_coe_le_coe, coe_add_one_of_lt h],
+      exact (a : ℕ).le_succ },
+    { exact le_rfl }
+   end,
+  maximal_of_succ_le := λ a,
+  begin
+    split_ifs,
+    { rw [le_iff_coe_le_coe, coe_add_one_of_lt h],
+      intro h,
+      have := antisymm (a : ℕ).le_succ h,
+      exact absurd this (lt_add_one _).ne },
+    { simp [eq_last_of_not_lt h, le_last] }
+  end,
+  succ_le_of_lt := λ a b h, let h := h.trans_le (le_last _) in
+                            by rwa [if_pos h, le_iff_coe_le_coe, coe_add_one_of_lt h],
+  le_of_lt_succ := λ a b h,
+  begin
+    split_ifs at h with hab,
+    swap, { exact h.le },
+    rw [lt_iff_coe_lt_coe, coe_add_one_of_lt hab] at h,
+    exact nat.le_of_lt_succ h
+  end }
+
+instance : ∀ {n : ℕ}, succ_order (fin n)
+| 0 := by constructor; exact elim0
+| (n+1) := succ_order' n
+
+@[simp] lemma succ_eq {n : ℕ} :
+succ_order.succ = λ a, if a < fin.last n then a + 1 else a := rfl
+
+instance : ∀ {n : ℕ}, is_succ_archimedean (fin n)
+| 0 := ⟨elim0⟩
+| (n+1) := ⟨begin
+    rintro a b h,
+    use b - a,
+    rw succ_eq,
+    induction hba : (b - a : ℕ) with k hk generalizing a b,
+    { rw [nat.sub_eq_zero_iff_le, ←le_iff_coe_le_coe] at hba,
+      rw function.iterate_zero,
+      exact antisymm h hba },
+    replace h : a < b := nat.lt_of_sub_eq_succ hba,
+    have ha := h.trans_le (le_last b),
+    rw [function.iterate_succ_apply, if_pos ha],
+    apply hk,
+    { rwa [le_iff_coe_le_coe, coe_add_one, if_neg ha.ne, nat.succ_le_iff] },
+    { rwa [coe_add_one, if_neg ha.ne, tsub_add_eq_tsub_tsub, tsub_eq_iff_eq_add_of_le],
+      rwa [nat.one_le_iff_ne_zero, ne.def, nat.sub_eq_zero_iff_le, not_le] }
+  end⟩
+
+end fin

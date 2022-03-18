@@ -289,7 +289,7 @@ end
 end totally_disconnected
 
 
-section finite_stuff
+section finite
 
 variables {K E L : Type*} [field K] [field E] [algebra K E] [field L] [algebra K L]
 

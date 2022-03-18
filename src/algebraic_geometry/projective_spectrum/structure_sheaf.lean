@@ -175,16 +175,16 @@ instance : comm_monoid (num_denom_same_deg x) :=
   ..(_ : has_one (num_denom_same_deg x)),
   ..(_ : has_mul (num_denom_same_deg x))}
 
-instance : comm_ring (num_denom_same_deg x) := sorry
+instance : add_comm_monoid (num_denom_same_deg x) := sorry
 
-def some_ring_hom : num_denom_same_deg x →+* at x :=
+def embedding : num_denom_same_deg x →+ at x :=
 { to_fun := λ p, localization.mk p.num ⟨p.denom, p.denom_not_mem⟩,
-  map_one' := sorry,
-  map_mul' := sorry,
   map_zero' := sorry,
   map_add' := sorry }
 
-def homogeneous_localization := (num_denom_same_deg x) ⧸ ((some_ring_hom x).ker)
+def homogeneous_localization := set.range (embedding x)
+
+instance : comm_ring (homogeneous_localization x) := sorry
 
 #exit
 attribute [simp] num_denom_same_deg.eq

@@ -376,7 +376,7 @@ begin
   assume H y hy hyx,
   obtain ⟨c, rfl⟩ := mem_span_singleton.1 hyx,
   by_cases hc : c = 0,
-  { simp only [hc, zero_smul] },
+  { rw [hc, zero_smul] },
   { rw [s.smul_mem_iff hc] at hy,
     rw [H hy, smul_zero] }
 end

@@ -1669,7 +1669,7 @@ begin
   { obtain ⟨z, hz⟩ : ∃ z, y = -z := ⟨-y, (neg_neg _).symm⟩,
     have z_pos : 0 < z, by simpa [hz] using hy,
     simp_rw [hz, rpow_neg],
-    exact ennreal.continuous_inv.continuous_at.comp (continuous_at_rpow_const_of_pos z_pos) }
+    exact continuous_inv.continuous_at.comp (continuous_at_rpow_const_of_pos z_pos) }
 end
 
 lemma tendsto_const_mul_rpow_nhds_zero_of_pos {c : ℝ≥0∞} (hc : c ≠ ∞) {y : ℝ} (hy : 0 < y) :

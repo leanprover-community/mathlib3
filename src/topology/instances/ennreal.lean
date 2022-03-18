@@ -446,24 +446,25 @@ lemma inv_liminf {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
   (l.liminf x)⁻¹ = l.limsup (λ i, (x i)⁻¹) :=
 by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
 
-protected lemma continuous_inv : continuous (has_inv.inv : ℝ≥0∞ → ℝ≥0∞) :=
-continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
-⟨begin
-  assume b hb,
-  simp only [@ennreal.lt_inv_iff_lt_inv b],
-  exact gt_mem_nhds (ennreal.lt_inv_iff_lt_inv.1 hb),
-end,
-begin
-  assume b hb,
-  simp only [gt_iff_lt, @ennreal.inv_lt_iff_inv_lt _ b],
-  exact lt_mem_nhds (ennreal.inv_lt_iff_inv_lt.1 hb)
-end⟩
+instance : has_continuous_inv ℝ≥0∞ :=
+{ continuous_inv :=
+  continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
+  ⟨begin
+    assume b hb,
+    simp only [@ennreal.lt_inv_iff_lt_inv b],
+    exact gt_mem_nhds (ennreal.lt_inv_iff_lt_inv.1 hb),
+  end,
+  begin
+    assume b hb,
+    simp only [gt_iff_lt, @ennreal.inv_lt_iff_inv_lt _ b],
+    exact lt_mem_nhds (ennreal.inv_lt_iff_inv_lt.1 hb)
+  end⟩ }
 
 @[simp] protected lemma tendsto_inv_iff {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} :
   tendsto (λ x, (m x)⁻¹) f (𝓝 a⁻¹) ↔ tendsto m f (𝓝 a) :=
 ⟨λ h, by simpa only [function.comp, inv_inv]
-  using (ennreal.continuous_inv.tendsto a⁻¹).comp h,
-  (ennreal.continuous_inv.tendsto a).comp⟩
+  using (continuous_inv.tendsto a⁻¹).comp h,
+  (continuous_inv.tendsto a).comp⟩
 
 protected lemma tendsto.div {f : filter α} {ma : α → ℝ≥0∞} {mb : α → ℝ≥0∞} {a b : ℝ≥0∞}
   (hma : tendsto ma f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ 0) (hmb : tendsto mb f (𝓝 b)) (hb : b ≠ ⊤ ∨ a ≠ ⊤) :

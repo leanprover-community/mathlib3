@@ -3,7 +3,6 @@ Copyright (c) 2022 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import model_theory.bundled
 import model_theory.substructures
 
 /-!
@@ -257,24 +256,6 @@ begin
     rw [← hom.range_eq_map, range_subtype] at h,
     exact h }
 end
-
-namespace Structure
-
-lemma fg.is_equiv_invariant : is_equiv_invariant (Structure.fg L) :=
-begin
-  rintro N P strN strP ⟨NP⟩,
-  resetI,
-  exact iff_iff_eq.1 NP.fg_iff,
-end
-
-lemma cg.is_equiv_invariant : is_equiv_invariant (Structure.cg L) :=
-begin
-  rintro N P strN strP ⟨NP⟩,
-  resetI,
-  exact iff_iff_eq.1 NP.cg_iff,
-end
-
-end Structure
 
 end language
 end first_order

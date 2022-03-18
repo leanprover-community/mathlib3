@@ -530,7 +530,7 @@ infix ` ⊨ `:51 := realize_sentence -- input using \|= or \vDash, but not using
 
 @[simp] lemma Lhom.realize_on_sentence [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
   (ψ : L.sentence) :
-  M ⊨ (φ.on_sentence ψ) ↔ M ⊨ ψ :=
+  M ⊨ φ.on_sentence ψ ↔ M ⊨ ψ :=
 φ.realize_on_formula ψ
 
 /-- A model of a theory is a structure in which every sentence is realized as true. -/
@@ -541,7 +541,7 @@ infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \mo
 
 @[simp] lemma Lhom.on_Theory_model [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
   (T : L.Theory) :
-  M ⊨ (φ.on_Theory T) ↔ M ⊨ T :=
+  M ⊨ φ.on_Theory T ↔ M ⊨ T :=
 begin
   refine ⟨λ h ψ hψ, (φ.realize_on_sentence M _).1 (h _ (set.mem_image_of_mem _ hψ)), λ h ψ hψ, _⟩,
   obtain ⟨ψ₀, hψ₀, rfl⟩ := Lhom.mem_on_Theory.1 hψ,

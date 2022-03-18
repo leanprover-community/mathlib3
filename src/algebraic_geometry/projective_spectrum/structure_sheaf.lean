@@ -120,6 +120,10 @@ instance : has_zero (num_denom_same_deg x) :=
     denom := ⟨1, one_mem⟩,
     denom_not_mem := λ r, x.is_prime.ne_top $ (ideal.eq_top_iff_one _).mpr r } }
 
+@[simp] lemma deg_zero : (0 : num_denom_same_deg x).deg = 0 := rfl
+@[simp] lemma num_zero : (0 : num_denom_same_deg x).num = 0 := rfl
+@[simp] lemma denom_zero : ((0 : num_denom_same_deg x).denom : A) = 1 := rfl
+
 instance : has_mul (num_denom_same_deg x) :=
 { mul := λ p q,
   { deg := p.deg + q.deg,

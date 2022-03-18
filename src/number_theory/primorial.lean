@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Stevens
 -/
 import tactic.ring_exp
-import data.nat.prime
 import data.nat.parity
 import data.nat.choose.sum
 

@@ -33,7 +33,7 @@ add_self_eq_zero x
 lemma bit1_eq_one (x : R) : (bit1 x : R) = 1 :=
 by rw [bit1, bit0_eq_zero, zero_add]
 
-lemma two_mul_eq_zero (x : R) : (2 : R) * x = 0 :=
+lemma two_mul_eq_zero (x : R) : 2 * x = 0 :=
 (two_mul _).trans (char_two.add_self_eq_zero _)
 
 end semiring

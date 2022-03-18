@@ -715,9 +715,6 @@ begin
   { simp only [neg_eq_self_mod_two, nat.cast_succ, int.nat_abs, int.cast_neg_succ_of_nat] }
 end
 
-@[simp]
-lemma add_self_mod_two : ∀ (m : zmod 2), m + m = 0 := dec_trivial
-
 @[simp] lemma val_eq_zero : ∀ {n : ℕ} (a : zmod n), a.val = 0 ↔ a = 0
 | 0     a := int.nat_abs_eq_zero
 | (n+1) a := by { rw fin.ext_iff, exact iff.rfl }

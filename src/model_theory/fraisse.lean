@@ -216,7 +216,7 @@ begin
     (classical.some_spec (hj N n)).1⟩),
   let f : Π (i j), i ≤ j → G i ↪[L] G j :=
     directed_system.nat_le_rec (λ n, (classical.some_spec (hj _ n)).2.1.some),
-  refine ⟨bundled.of (direct_limit (λ n, G n) f), cg_direct_limit _ (λ n, (fg _ (G n).2).cg),
+  refine ⟨bundled.of (direct_limit (λ n, G n) f), direct_limit.cg _ (λ n, (fg _ (G n).2).cg),
     (age_direct_limit _ _).trans (set.ext (λ N, _))⟩,
   simp only [mem_Union],
   split,

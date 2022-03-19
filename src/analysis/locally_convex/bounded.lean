@@ -47,7 +47,7 @@ def is_vonN_bounded (s : set E) : Prop := ∀ V ∈ 𝓝 (0 : E), absorbs 𝕜 V
 
 variables (E)
 
-@[simp] lemma is_vonN_bounded.empty : is_vonN_bounded 𝕜 (∅ : set E) :=
+@[simp] lemma is_vonN_bounded_empty : is_vonN_bounded 𝕜 (∅ : set E) :=
 λ _ _, absorbs_empty
 
 variables {𝕜 E}

@@ -1202,6 +1202,9 @@ def order_iso.fin_equiv : ∀ {n}, order_dual (fin n) ≃o fin n
     rw [add_comm, tsub_add_eq_add_tsub x.is_lt.le, add_tsub_assoc_of_le x.is_le, nat.add_mod_left]
   end }
 
+lemma order_iso.fin_equiv_apply {n} (a) : order_iso.fin_equiv a = last n - a := rfl
+lemma order_iso.fin_equiv_symm_apply {n} (a) : order_iso.fin_equiv.symm a = last n - a := rfl
+
 end add_group
 
 section succ_above

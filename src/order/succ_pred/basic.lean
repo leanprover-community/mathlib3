@@ -1092,7 +1092,4 @@ instance : ∀ {n : ℕ}, pred_order (fin n)
 @[simp] lemma pred_eq {n} : pred_order.pred = λ a : fin (n + 1), if a = 0 then 0 else a - 1 := rfl
 lemma pred_apply {n : ℕ} (a : fin (n + 1)) : pred_order.pred a = if a = 0 then 0 else a - 1 := rfl
 
-lemma order_iso.fin_equiv_apply {n} (a) : order_iso.fin_equiv a = last n - a := rfl
-lemma order_iso.fin_equiv_symm_apply {n} (a) : order_iso.fin_equiv.symm a = last n - a := rfl
-
 end fin

@@ -52,7 +52,7 @@ begin
   dsimp,
   simp only [bicategory.whisker_right_comp, bicategory.whisker_left_comp, assoc,
     pentagon_hom_hom_inv_hom_hom_assoc, pentagon_hom_inv_inv_inv_inv_assoc, comp_whisker_right,
-    whisker_left_whisker_right, comp_whisker_left, pentagon_inv_hom_hom_hom_hom_assoc,
+    whisker_assoc, comp_whisker_left, pentagon_inv_hom_hom_hom_hom_assoc,
     iso.inv_hom_id_assoc, pentagon_inv_inv_hom_inv_inv]
 end
 

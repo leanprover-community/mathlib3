@@ -159,12 +159,15 @@ begin
     rw [associator_inv_naturality_middle_assoc, ←comp_whisker_right_assoc, ih, comp_whisker_right],
     have := dcongr_arg (λ x, (normalize_iso x h).hom) (normalize_aux_congr p (quot.mk _ η)),
     dsimp at this, simp [this] },
-  case associator       { dsimp, dsimp [id_def, comp_def], simp [pentagon_inv_inv_hom_hom_inv_assoc] },
-  case associator_inv   { dsimp, dsimp [id_def, comp_def], simp [pentagon_inv_inv_hom_hom_inv_assoc] },
-  case left_unitor      { dsimp, dsimp [id_def, comp_def], simp [triangle_assoc_comp_right_assoc] },
-  case left_unitor_inv  { dsimp, dsimp [id_def, comp_def], simp [triangle_assoc_comp_right_assoc] },
-  case right_unitor     { dsimp, dsimp [id_def, comp_def], simp [right_unitor_comp] },
-  case right_unitor_inv { dsimp, dsimp [id_def, comp_def], simp [right_unitor_comp] }
+  --pentagon_inv_inv_hom_hom_inv_assoc
+  case associator       { dsimp, dsimp [id_def, comp_def], simp },
+  case associator_inv   { dsimp, dsimp [id_def, comp_def], simp },
+  --triangle_assoc_comp_right_assoc
+  case left_unitor      { dsimp, dsimp [id_def, comp_def], simp },
+  case left_unitor_inv  { dsimp, dsimp [id_def, comp_def], simp },
+  --right_unitor_comp
+  case right_unitor     { dsimp, dsimp [id_def, comp_def], simp },
+  case right_unitor_inv { dsimp, dsimp [id_def, comp_def], simp }
 end
 
 @[simp]

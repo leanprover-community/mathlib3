@@ -20,7 +20,7 @@ and the actions
 
 which matches the action of `mul_action_set`.
 
-It also provides `submonoid.pointwise_has_pow`.
+It also provides `submonoid.pointwise_has_pow` and `submonoid.pointwise_has_zpow`.
 
 These are all available in the `pointwise` locale.
 
@@ -149,7 +149,14 @@ This is available as an instance in the `pointwise` locale. -/
 protected def pointwise_has_pow {M : Type*} [comm_monoid M] : has_pow (submonoid M) ℕ :=
 ⟨λ S n, S.map $ pow_monoid_hom n⟩
 
-localized "attribute [instance] submonoid.pointwise_has_pow" in pointwise
+/-- The submonoid of powers of an integer of a commutative subgroup.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_has_zpow {G : Type*} [comm_group G] : has_pow (submonoid G) ℤ :=
+⟨λ S n, S.map $ zpow_group_hom n⟩
+
+localized "attribute [instance] submonoid.pointwise_has_pow submonoid.pointwise_has_zpow"
+  in pointwise
 
 end monoid
 

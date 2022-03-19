@@ -15,7 +15,7 @@ This file provides the actions
 
 which matches the action of `mul_action_set`.
 
-It also provides `subgroup.pointwise_has_pow`.
+It also provides `subgroup.pointwise_has_pow` and `subgroup.pointwise_has_zpow`.
 
 These are all available in the `pointwise` locale.
 
@@ -113,13 +113,19 @@ begin
   exact H.mul_mem hh hh',
 end
 
+/-- The subgroup of powers of a natural number of a commutative subgroup.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_has_pow {G : Type*} [comm_group G] : has_pow (subgroup G) ℕ :=
+⟨λ S n, S.map $ pow_monoid_hom n⟩
+
 /-- The subgroup of powers of an integer of a commutative subgroup.
 
 This is available as an instance in the `pointwise` locale. -/
-protected def pointwise_has_pow {G : Type*} [comm_group G] : has_pow (subgroup G) ℤ :=
+protected def pointwise_has_zpow {G : Type*} [comm_group G] : has_pow (subgroup G) ℤ :=
 ⟨λ S n, S.map $ zpow_group_hom n⟩
 
-localized "attribute [instance] subgroup.pointwise_has_pow" in pointwise
+localized "attribute [instance] subgroup.pointwise_has_pow subgroup.pointwise_has_zpow" in pointwise
 
 end group
 

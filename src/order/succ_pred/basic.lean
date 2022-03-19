@@ -966,7 +966,7 @@ variables [linear_order α] [h : is_well_order α (<)] [succ_order α] [pred_ord
 include h
 
 @[priority 100]
-instance of_well_order : is_succ_archimedean α :=
+instance is_well_order.to_is_succ_archimedean : is_succ_archimedean α :=
 ⟨λ a, begin
   refine well_founded.fix h.wf (λ b ih hab, _),
   replace hab := hab.eq_or_lt,
@@ -1045,8 +1045,8 @@ def equiv_order_dual : ∀ {n}, fin n ≃o order_dual (fin n)
 | (n+1) :=
 { to_fun    := λ x, last n - x,
   inv_fun   := λ x, last n - x,
-  left_inv  := λ x, by simp,
-  right_inv := λ x, by simp,
+  left_inv  := λ x, tsub_tsub_cancel_of_le x.le_last,
+  right_inv := λ x, tsub_tsub_cancel_of_le x.le_last,
   map_rel_iff' := λ a b,
   begin
     rw [order_dual.has_le],

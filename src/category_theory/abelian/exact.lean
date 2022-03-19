@@ -167,6 +167,9 @@ suffices h : cokernel.desc f g (by simp) =
 instance [ex : exact f g] [epi g] : is_iso (cokernel.desc f g ex.w) :=
 is_iso_of_mono_of_epi (limits.cokernel.desc f g exact.w)
 
+instance [ex : exact f g] [mono f] : is_iso (kernel.lift g f ex.w) :=
+is_iso_of_mono_of_epi (limits.kernel.lift g f exact.w)
+
 @[simp, reassoc]
 lemma cokernel.desc.inv [epi g] (ex : exact f g) :
   g ≫ inv (cokernel.desc _ _ ex.w) = cokernel.π _ :=

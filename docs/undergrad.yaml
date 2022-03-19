@@ -104,7 +104,7 @@ Group Theory:
   Classical automorphism groups:
     general linear group: 'linear_map.general_linear_group'
     special linear group: 'matrix.special_linear_group'
-    orthogonal group: ''
+    orthogonal group: 'matrix.orthogonal_group '
     special orthogonal group: 'https://en.wikipedia.org/wiki/Orthogonal_group#SO(n)'
     unitary group: 'matrix.unitary_group'
     special unitary group: 'https://en.wikipedia.org/wiki/Special_unitary_group'
@@ -219,7 +219,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     norm: 'inner_product_space.of_core.to_has_norm'
     orthonormal bases: 'maximal_orthonormal_iff_basis_of_finite_dimensional'
   Endomorphisms:
-    orthogonal group: 'linear_isometry_equiv.group'
+    orthogonal group: ''
     unitary group: ''
     special orthogonal group: ''
     special unitary group: ''

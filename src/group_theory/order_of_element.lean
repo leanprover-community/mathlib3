@@ -3,11 +3,10 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Julian Kuelshammer
 -/
-import data.nat.modeq
 import algebra.iterate_hom
+import data.nat.modeq
 import data.set.pointwise
 import dynamics.periodic_pts
-import group_theory.coset
 import group_theory.quotient_group
 
 /-!
@@ -20,7 +19,7 @@ This file defines the order of an element of a finite group. For a finite group 
 
 * `is_of_fin_order` is a predicate on an element `x` of a monoid `G` saying that `x` is of finite
   order.
-* `is_of_fin_add_order` is the additive analogue of `is_of_find_order`.
+* `is_of_fin_add_order` is the additive analogue of `is_of_fin_order`.
 * `order_of x` defines the order of an element `x` of a monoid `G`, by convention its value is `0`
   if `x` has infinite order.
 * `add_order_of` is the additive analogue of `order_of`.

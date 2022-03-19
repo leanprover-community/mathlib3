@@ -70,7 +70,7 @@ localized "attribute [instance] finset.has_one finset.has_zero" in pointwise
 @[to_additive] lemma singleton_one : ({1} : finset α) = 1 := rfl
 @[to_additive] lemma one_mem_one : (1 : α) ∈ (1 : finset α) := mem_singleton_self _
 @[to_additive] lemma one_nonempty : (1 : finset α).nonempty := ⟨1, one_mem_one⟩
-@[simp, to_additive] lemma map_one {f : α ↪ β} : map f 1 = {f 1} := map_singleton f 1
+@[simp, to_additive] protected lemma map_one {f : α ↪ β} : map f 1 = {f 1} := map_singleton f 1
 
 @[simp, to_additive]
 lemma image_one [decidable_eq β] {f : α → β} : image f 1 = {f 1} := image_singleton f 1

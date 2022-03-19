@@ -108,7 +108,7 @@ variables [fintype α] [non_assoc_semiring R] {a b : α} {e : sym2 α}
 
 lemma sum_inc_matrix_apply [decidable_eq α] [decidable_rel G.adj] :
   ∑ e, G.inc_matrix R a e = G.degree a :=
-by simp [inc_matrix_apply', sum_boole]
+by simp [inc_matrix_apply', sum_boole, set.filter_mem_univ_eq_to_finset]
 
 lemma inc_matrix_mul_transpose_diag [decidable_eq α] [decidable_rel G.adj] :
   (G.inc_matrix R ⬝ (G.inc_matrix R)ᵀ) a a = G.degree a :=

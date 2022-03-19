@@ -168,7 +168,7 @@ open category_theory.preadditive
 
 variables [abelian C] [abelian D] [additive F]
 
-/-- If `preserves_finite_colimits F` and `epi g`, then `exact (F.map f) (F.map g)` if
+/-- If `preserves_finite_limits F` and `mono f`, then `exact (F.map f) (F.map g)` if
 `exact f g`. -/
 lemma preserves_exact_of_preserves_finite_colimits_of_mono [preserves_finite_limits F] [mono f]
   (ex : exact f g) : exact (F.map f) (F.map g) :=
@@ -187,7 +187,8 @@ begin
   congr',
 end
 
-/-- Given `P : ProjectiveResolution X`, a morphism `(F.left_derived 0).obj X ⟶ F.obj X`. -/
+/-- Given `P : InjectiveResolution X`, a morphism `(F.right_derived 0).obj X ⟶ F.obj X` given
+`preserves_finite_colimits F`. -/
 @[nolint unused_arguments]
 def right_derived_zero_to_self_app [enough_injectives C] [preserves_finite_limits F] {X : C}
   (P : InjectiveResolution X) :
@@ -199,8 +200,7 @@ begin
   exact kernel.map _ _ (cokernel.desc _ (𝟙 _) (by simp)) (𝟙 _) (by { ext, simp }),
 end
 
-/-- Given `P : ProjectiveResolution X`, a morphism `F.obj X ⟶ (F.left_derived 0).obj X` given
-`preserves_finite_colimits F`. -/
+/-- Given `P : InjectiveResolution X`, a morphism `F.obj X ⟶ (F.right_derived 0).obj X`. -/
 @[nolint unused_arguments]
 def right_derived_zero_to_self_app_inv [enough_injectives C] {X : C}
   (P : InjectiveResolution X) :
@@ -217,8 +217,6 @@ lemma right_derived_zero_to_self_app_comp_inv [enough_injectives C] [preserves_f
   right_derived_zero_to_self_app_inv F P = 𝟙 _ := -- sorry
 begin
   dsimp [right_derived_zero_to_self_app, right_derived_zero_to_self_app_inv],
-  -- type_check cokernel.desc,
-  -- simp only [right_derived_obj_iso_hom, map_id, right_derived_obj_iso_inv, category.id_comp, category.assoc],
   rw [map_id, category.id_comp, category.assoc],
   refine (iso.eq_inv_comp _).1 _,
   rw [← category.assoc, ← category.assoc],
@@ -235,7 +233,6 @@ begin
   ext,
   simp [limits.equalizer_as_kernel, category.assoc, limits.kernel.lift_ι_assoc,
     limits.kernel.lift_ι, category.comp_id],
-  -- rw [← category.assoc],
   nth_rewrite 1 [← category.comp_id (kernel.ι _)],
   congr' 1,
   ext,
@@ -257,8 +254,8 @@ begin
   simp,
 end
 
-/-- Given `P : ProjectiveResolution X`, the isomorphism `(F.left_derived 0).obj X ≅ F.obj X` if
-`preserves_finite_colimits F`. -/
+/-- Given `P : InjectiveResolution X`, the isomorphism `(F.right_derived 0).obj X ≅ F.obj X` if
+`preserves_finite_§limits F`. -/
 def right_derived_zero_to_self_app_iso [enough_injectives C] [preserves_finite_limits F]
   {X : C} (P : InjectiveResolution X) : (F.right_derived 0).obj X ≅ F.obj X :=
 { hom := right_derived_zero_to_self_app _ P,
@@ -266,9 +263,10 @@ def right_derived_zero_to_self_app_iso [enough_injectives C] [preserves_finite_l
   hom_inv_id' := right_derived_zero_to_self_app_comp_inv _ P,
   inv_hom_id' := right_derived_zero_to_self_app_inv_comp _ P }
 
-/-- Given `P : ProjectiveResolution X` and `Q : ProjectiveResolution Y` and a morphism `f : X ⟶ Y`,
-naturality of the square given by `left_derived_zero_to_self_obj_hom. -/
-lemma right_derived_zero_to_self_natural [enough_injectives C] [preserves_finite_limits F] {X : C} {Y : C} (f : X ⟶ Y)
+/-- Given `P : InjectiveResolution X` and `Q : InjectiveResolution Y` and a morphism `f : X ⟶ Y`,
+naturality of the square given by `right_derived_zero_to_self_natural`. -/
+lemma right_derived_zero_to_self_natural [enough_injectives C] [preserves_finite_limits F]
+  {X : C} {Y : C} (f : X ⟶ Y)
   (P : InjectiveResolution X) (Q : InjectiveResolution Y) :
   (F.right_derived 0).map f ≫ right_derived_zero_to_self_app F Q =
   right_derived_zero_to_self_app F P ≫ F.map f :=
@@ -276,7 +274,7 @@ begin
   sorry
 end
 
-/-- Given `preserves_finite_colimits F`, the natural isomorphism `(F.left_derived 0) ≅ F`. -/
+/-- Given `preserves_finite_limits F`, the natural isomorphism `(F.right_derived 0) ≅ F`. -/
 def left_derived_zero_iso_self [enough_injectives C] [preserves_finite_limits F] :
   (F.right_derived 0) ≅ F :=
 nat_iso.of_components (λ X, right_derived_zero_to_self_app_iso _ (InjectiveResolution.of X))

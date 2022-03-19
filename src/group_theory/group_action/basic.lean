@@ -296,7 +296,7 @@ open quotient_group
 
 @[to_additive] instance quotient (H : subgroup α) : mul_action α (α ⧸ H) :=
 { smul := λ g, quotient.map' (λ h, g * h)
-    (λ a b, (congr_arg (∈ H) (by rw [mul_inv_rev, mul_assoc, inv_mul_cancel_left])).mpr),
+    (λ a b, (congr_arg (∈ H) (by rw [mul_inv_rev, mul_assoc, inv_mul_cancel_left])).mp),
   one_smul := λ a, quotient.induction_on' a (λ a, congr_arg quotient.mk' (one_mul a)),
   mul_smul := λ x y a, quotient.induction_on' a (λ a, congr_arg quotient.mk' (mul_assoc x y a)) }
 
@@ -311,10 +311,8 @@ open quotient_group
 mul_action.comp_hom (α ⧸ H) (subgroup.subtype I)
 
 @[to_additive] instance quotient' (H : subgroup α) : mul_action H.normalizerᵐᵒᵖ (α ⧸ H) :=
-{ smul := λ g, quotient.map' (* g.unop) (λ a b h, by
-  { have := (g.unop⁻¹.2 (a⁻¹ * b)).mp h,
-    rwa [subtype.val_eq_coe, ←mul_assoc, subgroup.coe_inv, ←mul_inv_rev, mul_assoc,
-      inv_inv] at this }),
+{ smul := λ g, quotient.map' (* g.unop) (λ a b, (congr_arg (∈ H) (by rw [subtype.val_eq_coe,
+    subgroup.coe_inv, inv_inv, ←mul_assoc, ←mul_inv_rev, mul_assoc])).mp ∘ (g.unop⁻¹.2 _).mp),
   one_smul := λ a, quotient.induction_on' a (λ a, congr_arg quotient.mk' (mul_one a)),
   mul_smul := λ x y a, quotient.induction_on' a
     (λ a, congr_arg quotient.mk' (mul_assoc a y.unop x.unop).symm) }

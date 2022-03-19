@@ -232,9 +232,9 @@ variables {s t}
 by rw [← mul_indicator_union_mul_inter_apply f s t, mul_indicator_of_not_mem h, mul_one]
 
 @[to_additive] lemma mul_indicator_union_of_disjoint [decidable_pred (∈ s ∪ t)] (h : disjoint s t)
-  (f : α → M) :
-  mul_indicator (s ∪ t) f = λa, mul_indicator s f a * mul_indicator t f a :=
-funext $ λa, mul_indicator_union_of_not_mem_inter (λ ha, h ha) _
+  (f : α → M) (a : α) :
+  (s ∪ t).mul_indicator f a = s.mul_indicator f a * t.mul_indicator f a :=
+mul_indicator_union_of_not_mem_inter (λ ha, h ha) _
 
 variables (s)
 

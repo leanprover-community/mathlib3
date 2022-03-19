@@ -666,7 +666,7 @@ by simp only [finset.ssubset_def, to_finset_mono, ssubset_def]
 by simp only [disjoint_iff_disjoint_coe, coe_to_finset]
 
 theorem to_finset_compl [decidable_eq α] [fintype α] (s : set α) [fintype s] [fintype ↥sᶜ] :
-  s.to_finsetᶜ = (sᶜ).to_finset :=
+  (sᶜ).to_finset = s.to_finsetᶜ :=
 by { ext a, simp }
 
 end set

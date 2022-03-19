@@ -14,7 +14,8 @@ import set_theory.cardinal_ordinal
 ### Cardinality of algebraic numbers
 
 In this file, we prove that the set of the real algebraic numbers over `ℚ` has cardinality `ω`. We
-do this by constructing a surjection from `polynomial ℚ × ℚ × ℚ` into this set.
+do this by constructing a surjection from `polynomial ℚ × ℚ × ℚ` into this set. We deduce the
+existence of a trascendental number.
 -/
 
 open cardinal polynomial

@@ -962,11 +962,26 @@ end pred_order
 end linear_order
 
 section is_well_order
-variables [linear_order α] [h : is_well_order α (<)] [succ_order α] [pred_order α]
+variables [linear_order α] [h : is_well_order α (<)] [pred_order α]
 include h
 
 @[priority 100]
-instance is_well_order.to_is_succ_archimedean : is_succ_archimedean α :=
+instance is_well_order.to_is_pred_archimedean : is_pred_archimedean α :=
+⟨λ a, begin
+  refine well_founded.fix h.wf (λ b ih hab, _),
+  replace hab := hab.eq_or_lt,
+  rcases hab with rfl | hab,
+  { exact ⟨0, rfl⟩ },
+  cases le_or_lt b (pred b) with hb hb,
+  { have : ∀ {a : α}, ¬ a < b := minimal_of_le_pred hb,
+    exact (this hab).elim },
+  obtain ⟨k, hk⟩ := ih (pred b) hb (le_pred_of_lt hab),
+  refine ⟨k + 1, _⟩,
+  rw [iterate_add_apply, iterate_one, hk],
+end⟩
+
+@[priority 100]
+instance is_well_order.to_is_succ_archimedean [succ_order α] : is_succ_archimedean α :=
 ⟨λ a, begin
   refine well_founded.fix h.wf (λ b ih hab, _),
   replace hab := hab.eq_or_lt,
@@ -1023,8 +1038,8 @@ instance : ∀ {n : ℕ}, succ_order (fin n)
       exact absurd this (lt_add_one _).ne },
     { simp [eq_last_of_not_lt h, le_last] }
   end,
-  succ_le_of_lt := λ a b h, let h := h.trans_le (le_last _) in
-                            by rwa [if_pos h, le_iff_coe_le_coe, coe_add_one_of_lt h],
+  succ_le_of_lt := λ a b h', let h := h'.trans_le (le_last _) in
+                             by rwa [if_pos h, le_iff_coe_le_coe, coe_add_one_of_lt h],
   le_of_lt_succ := λ a b h,
   begin
     split_ifs at h with hab,
@@ -1033,20 +1048,80 @@ instance : ∀ {n : ℕ}, succ_order (fin n)
     exact nat.le_of_lt_succ h
   end }
 
-@[simp] lemma succ_eq {n : ℕ} :
-succ_order.succ = λ a, if a < fin.last n then a + 1 else a := rfl
+@[simp] lemma succ_eq {n : ℕ} : succ_order.succ = λ a, if a < fin.last n then a + 1 else a := rfl
+lemma succ_apply {n : ℕ} (a) : succ_order.succ a = if a < fin.last n then a + 1 else a := rfl
 
-lemma succ_apply {n : ℕ} (a : fin (n + 1)) :
-succ_order.succ a = if a < fin.last n then a + 1 else a := rfl
+@[simp] lemma coe_fin_one (a : fin 1) : ↑a = 0 :=
+by rw [subsingleton.elim a 0, fin.coe_zero]
+
+@[simp] lemma coe_neg_one {n : ℕ} : ↑(-1 : fin (n + 1)) = n :=
+begin
+  cases n,
+  { simp },
+  rw [fin.coe_neg, fin.coe_one, nat.succ_sub_one, nat.mod_eq_of_lt],
+  constructor
+end
+
+lemma coe_sub_one {n} (a : fin (n + 1)) : ↑(a - 1) = if a = 0 then n else a - 1 :=
+begin
+  cases n,
+  { simp },
+  split_ifs,
+  { simp [h] },
+  rw [sub_eq_add_neg, coe_add_eq_ite, coe_neg_one, if_pos, add_comm, add_tsub_add_eq_tsub_left],
+  rw [add_comm ↑a, add_le_add_iff_left, nat.one_le_iff_ne_zero],
+  rwa subtype.ext_iff at h
+end
+
+instance : ∀ {n : ℕ}, pred_order (fin n)
+| 0 := by constructor; exact elim0
+| (n+1) :=
+{ pred := λ x, if x = 0 then 0 else x - 1,
+  pred_le := λ a,
+  begin
+    split_ifs,
+    { exact zero_le _ },
+    rw [le_iff_coe_le_coe, coe_sub_one, if_neg h],
+    exact tsub_le_self
+  end,
+  minimal_of_le_pred := λ a,
+  begin
+    split_ifs,
+    { rintro - b,
+      simp [h, zero_le] },
+    contrapose!,
+    rintro -,
+    rw [lt_iff_coe_lt_coe, coe_sub_one, if_neg h],
+    refine nat.sub_lt_of_pos_le _ _ nat.zero_lt_one (nat.one_le_iff_ne_zero.mpr _),
+    rwa subtype.ext_iff at h,
+  end,
+  le_pred_of_lt := λ a b h',
+  begin
+    have h := (zero_le a).trans_lt h',
+    rwa [if_neg h.ne', le_iff_coe_le_coe, coe_sub_one, if_neg h.ne', le_tsub_iff_left, add_comm],
+    exact h,
+  end,
+  le_of_pred_lt := λ a b h',
+  begin
+    split_ifs at h' with h,
+    { simp [h, zero_le] },
+    rw [lt_iff_coe_lt_coe, coe_sub_one, if_neg h, tsub_lt_iff_left, add_comm 1] at h',
+    { exact nat.le_of_lt_succ h' },
+    apply nat.one_le_iff_ne_zero.mpr,
+    rwa subtype.ext_iff at h
+  end }
+
+@[simp] lemma pred_eq {n} : pred_order.pred = λ a : fin (n + 1), if a = 0 then 0 else a - 1 := rfl
+lemma pred_apply {n : ℕ} (a : fin (n + 1)) : pred_order.pred a = if a = 0 then 0 else a - 1 := rfl
 
 /-- By sending `x` to `last n - x`, `fin n` is order-equivalent to its `order_dual`. -/
-def equiv_order_dual : ∀ {n}, fin n ≃o order_dual (fin n)
+def order_iso.fin_equiv : ∀ {n}, order_dual (fin n) ≃o fin n
 | 0 := ⟨⟨elim0, elim0, elim0, elim0⟩, elim0⟩
-| (n+1) :=
+| (n+1) := order_iso.symm $
 { to_fun    := λ x, last n - x,
   inv_fun   := λ x, last n - x,
-  left_inv  := λ x, tsub_tsub_cancel_of_le x.le_last,
-  right_inv := λ x, tsub_tsub_cancel_of_le x.le_last,
+  left_inv  := sub_sub_cancel _,
+  right_inv := sub_sub_cancel _,
   map_rel_iff' := λ a b,
   begin
     rw [order_dual.has_le],
@@ -1061,23 +1136,7 @@ def equiv_order_dual : ∀ {n}, fin n ≃o order_dual (fin n)
     rw [add_comm, tsub_add_eq_add_tsub x.is_lt.le, add_tsub_assoc_of_le x.is_le, nat.add_mod_left]
   end }
 
-instance : ∀ {n : ℕ}, is_succ_archimedean (fin n)
-| 0 := ⟨elim0⟩
-| (n+1) := ⟨begin
-    rintro a b h,
-    use b - a,
-    rw succ_eq,
-    induction hba : (b - a : ℕ) with k hk generalizing a b,
-    { rw [nat.sub_eq_zero_iff_le, ←le_iff_coe_le_coe] at hba,
-      rw function.iterate_zero,
-      exact antisymm h hba },
-    replace h : a < b := nat.lt_of_sub_eq_succ hba,
-    have ha := h.trans_le (le_last b),
-    rw [function.iterate_succ_apply, if_pos ha],
-    apply hk,
-    { rwa [le_iff_coe_le_coe, coe_add_one, if_neg ha.ne, nat.succ_le_iff] },
-    { rwa [coe_add_one, if_neg ha.ne, tsub_add_eq_tsub_tsub, tsub_eq_iff_eq_add_of_le],
-      rwa [nat.one_le_iff_ne_zero, ne.def, nat.sub_eq_zero_iff_le, not_le] }
-  end⟩
+lemma order_iso.fin_equiv_apply {n} (a) : order_iso.fin_equiv a = last n - a := rfl
+lemma order_iso.fin_equiv_symm_apply {n} (a) : order_iso.fin_equiv.symm a = last n - a := rfl
 
 end fin

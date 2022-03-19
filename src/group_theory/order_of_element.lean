@@ -397,6 +397,18 @@ begin
   exact ⟨pow_injective_of_lt_order_of _ (nat.mod_lt _ hx) (nat.mod_lt _ hx), λ h, congr_arg _ h⟩
 end
 
+/-- Commuting elements of finite order are closed under multiplication. -/
+@[to_additive "Commuting elements of finite additive order are closed under addition."]
+lemma is_of_fin_order.mul_of_commute
+  (hcomm : commute x y) (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
+  is_of_fin_order (x * y) :=
+begin
+  rw is_of_fin_order_iff_pow_eq_one at *,
+  rcases hx with ⟨na, napos, hna⟩,
+  rcases hy with ⟨nb, nbpos, hnb⟩,
+  exact ⟨na * nb, mul_pos napos nbpos, by
+    rw [commute.mul_pow hcomm, pow_mul, hna, mul_comm na, pow_mul, hnb, one_pow, one_pow, mul_one]⟩,
+end
 
 end group
 
@@ -405,16 +417,10 @@ section comm_group
 variables [comm_group G]
 
 /-- Elements of finite order are closed under multiplication. -/
-@[to_additive "Elements of finite order are closed under addition."]
+@[to_additive "Elements of finite additive order are closed under addition."]
 lemma is_of_fin_order.mul (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
   is_of_fin_order (x * y) :=
-begin
-  rw is_of_fin_order_iff_pow_eq_one at *,
-  rcases hx with ⟨na, napos, hna⟩,
-  rcases hy with ⟨nb, nbpos, hnb⟩,
-  exact ⟨na * nb, mul_pos napos nbpos, by
-    rw [mul_pow x y, pow_mul, hna, mul_comm na, pow_mul, hnb, one_pow, one_pow, mul_one]⟩,
-end
+is_of_fin_order.mul_of_commute (commute.all _ _) hx hy
 
 end comm_group
 

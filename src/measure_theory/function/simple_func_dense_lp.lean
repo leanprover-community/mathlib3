@@ -54,7 +54,7 @@ namespace simple_func
 
 section Lp
 variables [measurable_space β]
-variables [measurable_space E] [normed_group E] {q : ℝ} {p : ℝ≥0∞}
+variables [measurable_space E] [normed_group E] [normed_group F] {q : ℝ} {p : ℝ≥0∞}
 
 lemma nnnorm_approx_on_le [opens_measurable_space E] {f : β → E} (hf : measurable f)
   {s : set E} {y₀ : E} (h₀ : y₀ ∈ s) [separable_space s] (x : β) (n : ℕ) :
@@ -157,45 +157,34 @@ begin
   ... < ⊤ : snorm_add_lt_top hf' hf',
 end
 
-def strongly_measurable.approx [borel_space E]
-  {f : β → E} (hf : measure_theory.strongly_measurable f) (n : ℕ) :
-  β →ₛ E :=
-begin
-  haveI : separable_space (range f ∪ {0} : set E),
-  { apply is_separable.separable_space,
-    apply topological_space.is_separable.union,
-
-  },
-  exact approx_on f hf.measurable (range f ∪ {0} : set E) 0 (by simp) n,
-end
-
-lemma zoug {f : β → E} (hf : measure_theory.strongly_measurable f) :
-  separable_space (set.range f ∪ {0} : set E) := sorry
-
-lemma tendsto_approx_on_univ_Lp_snorm [borel_space E]
-  {f : β → E} (hp_ne_top : p ≠ ∞) {μ : measure β} (fmeas : measure_theory.strongly_measurable f)
+lemma tendsto_approx_on_range_Lp_snorm [borel_space E]
+  {f : β → E} (hp_ne_top : p ≠ ∞) {μ : measure β} (fmeas : measurable f)
+  [separable_space (range f ∪ {0} : set E)]
   (hf : snorm f p μ < ∞) :
-  by { have := zoug fmeas,
-  exactI tendsto (λ n, snorm (approx_on f fmeas.measurable (range f ∪ {0} : set E) 0 sorry n - f) p μ) at_top (𝓝 0) } :=
+  tendsto (λ n, snorm (approx_on f fmeas (range f ∪ {0}) 0 (by simp) n - f) p μ) at_top (𝓝 0) :=
 begin
-
+  refine tendsto_approx_on_Lp_snorm fmeas _ hp_ne_top _ _,
+  { apply eventually_of_forall,
+    assume x,
+    apply subset_closure,
+    simp },
+  { simpa using hf }
 end
 
-#exit
+lemma mem_ℒp_approx_on_range [borel_space E]
+  {f : β → E} {μ : measure β} (fmeas : measurable f) [separable_space (range f ∪ {0} : set E)]
+  (hf : mem_ℒp f p μ) (n : ℕ) :
+  mem_ℒp (approx_on f fmeas (range f ∪ {0}) 0 (by simp) n) p μ :=
+mem_ℒp_approx_on fmeas hf (by simp) zero_mem_ℒp n
 
-tendsto_approx_on_Lp_snorm fmeas trivial hp_ne_top (by simp) (by simpa using hf)
-
-lemma mem_ℒp_approx_on_univ [borel_space E] [second_countable_topology E]
-  {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : mem_ℒp f p μ) (n : ℕ) :
-  mem_ℒp (approx_on f fmeas univ 0 trivial n) p μ :=
-mem_ℒp_approx_on fmeas hf (mem_univ _) zero_mem_ℒp n
-
-lemma tendsto_approx_on_univ_Lp [borel_space E] [second_countable_topology E]
+lemma tendsto_approx_on_range_Lp [borel_space E]
   {f : β → E} [hp : fact (1 ≤ p)] (hp_ne_top : p ≠ ∞) {μ : measure β} (fmeas : measurable f)
-  (hf : mem_ℒp f p μ) :
-  tendsto (λ n, (mem_ℒp_approx_on_univ fmeas hf n).to_Lp (approx_on f fmeas univ 0 trivial n))
-    at_top (𝓝 (hf.to_Lp f)) :=
-by simp [Lp.tendsto_Lp_iff_tendsto_ℒp'', tendsto_approx_on_univ_Lp_snorm hp_ne_top fmeas hf.2]
+  [separable_space (range f ∪ {0} : set E)] (hf : mem_ℒp f p μ) :
+  tendsto (λ n, (mem_ℒp_approx_on_range fmeas hf n).to_Lp
+    (approx_on f fmeas (range f ∪ {0}) 0 (by simp) n))
+      at_top (𝓝 (hf.to_Lp f)) :=
+by simpa only [Lp.tendsto_Lp_iff_tendsto_ℒp'']
+  using tendsto_approx_on_range_Lp_snorm hp_ne_top fmeas hf.2
 
 end Lp
 
@@ -222,14 +211,24 @@ begin
   exact mem_ℒp_approx_on fmeas hf h₀ hi₀ n,
 end
 
-lemma tendsto_approx_on_univ_L1_nnnorm [opens_measurable_space E] [second_countable_topology E]
-  {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) :
-  tendsto (λ n, ∫⁻ x, ∥approx_on f fmeas univ 0 trivial n x - f x∥₊ ∂μ) at_top (𝓝 0) :=
-tendsto_approx_on_L1_nnnorm fmeas trivial (by simp) (by simpa using hf.2)
+lemma tendsto_approx_on_range_L1_nnnorm [opens_measurable_space E]
+  {f : β → E} {μ : measure β} [separable_space (range f ∪ {0} : set E)]
+  (fmeas : measurable f) (hf : integrable f μ) :
+  tendsto (λ n, ∫⁻ x, ∥approx_on f fmeas (range f ∪ {0}) 0 (by simp) n x - f x∥₊ ∂μ)
+    at_top (𝓝 0) :=
+begin
+  apply tendsto_approx_on_L1_nnnorm fmeas,
+  { apply eventually_of_forall,
+    assume x,
+    apply subset_closure,
+    simp },
+  { simpa using hf.2 }
+end
 
-lemma integrable_approx_on_univ [borel_space E] [second_countable_topology E]
-  {f : β → E} {μ : measure β} (fmeas : measurable f) (hf : integrable f μ) (n : ℕ) :
-  integrable (approx_on f fmeas univ 0 trivial n) μ :=
+lemma integrable_approx_on_range [borel_space E]
+  {f : β → E} {μ : measure β} (fmeas : measurable f)
+  [separable_space (range f ∪ {0} : set E)] (hf : integrable f μ) (n : ℕ) :
+  integrable (approx_on f fmeas (range f ∪ {0}) 0 (by simp) n) μ :=
 integrable_approx_on fmeas hf _ (integrable_zero _ _ _) n
 
 end integrable
@@ -237,7 +236,7 @@ end integrable
 section simple_func_properties
 
 variables [measurable_space α]
-variables [normed_group E] [measurable_space E] [normed_group F]
+variables [normed_group E] [normed_group F]
 variables {μ : measure α} {p : ℝ≥0∞}
 
 /-!
@@ -331,7 +330,7 @@ integrable_iff.trans fin_meas_supp_iff.symm
 lemma fin_meas_supp.integrable {f : α →ₛ E} (h : f.fin_meas_supp μ) : integrable f μ :=
 integrable_iff_fin_meas_supp.2 h
 
-lemma integrable_pair [measurable_space F] {f : α →ₛ E} {g : α →ₛ F} :
+lemma integrable_pair {f : α →ₛ E} {g : α →ₛ F} :
   integrable f μ → integrable g μ → integrable (pair f g) μ :=
 by simpa only [integrable_iff_fin_meas_supp] using fin_meas_supp.pair
 
@@ -385,11 +384,7 @@ namespace Lp
 
 open ae_eq_fun
 
-variables
-  [measurable_space α]
-  [normed_group E] [second_countable_topology E] [measurable_space E] [borel_space E]
-  [normed_group F] [second_countable_topology F] [measurable_space F] [borel_space F]
-  (p : ℝ≥0∞) (μ : measure α)
+variables [measurable_space α] [normed_group E] [normed_group F] (p : ℝ≥0∞) (μ : measure α)
 
 variables (E)
 
@@ -422,11 +417,11 @@ unnecessary.  But instead, `Lp.simple_func E p μ` is defined as an `add_subgrou
 which does not permit this (but has the advantage of working when `E` itself is a normed group,
 i.e. has no scalar action). -/
 
-variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+variables [normed_field 𝕜] [normed_space 𝕜 E]
 
 /-- If `E` is a normed space, `Lp.simple_func E p μ` is a `has_scalar`. Not declared as an
 instance as it is (as of writing) used only in the construction of the Bochner integral. -/
-protected def has_scalar : has_scalar 𝕜 (Lp.simple_func E p μ) := ⟨λk f, ⟨k • f,
+protected def has_scalar : has_scalar 𝕜 (Lp.simple_func E p μ) := ⟨λ k f, ⟨k • f,
 begin
   rcases f with ⟨f, ⟨s, hs⟩⟩,
   use k • s,
@@ -485,7 +480,7 @@ lemma to_Lp_sub (f g : α →ₛ E) (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ
   to_Lp (f - g) (hf.sub hg) = to_Lp f hf - to_Lp g hg :=
 by { simp only [sub_eq_add_neg, ← to_Lp_neg, ← to_Lp_add], refl }
 
-variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+variables [normed_field 𝕜] [normed_space 𝕜 E]
 
 lemma to_Lp_smul (f : α →ₛ E) (hf : mem_ℒp f p μ) (c : 𝕜) :
   to_Lp (c • f) (hf.const_smul c) = c • to_Lp f hf := rfl
@@ -503,12 +498,22 @@ def to_simple_func (f : Lp.simple_func E p μ) : α →ₛ E := classical.some f
 
 /-- `(to_simple_func f)` is measurable. -/
 @[measurability]
-protected lemma measurable (f : Lp.simple_func E p μ) : measurable (to_simple_func f) :=
+protected lemma measurable [measurable_space E] (f : Lp.simple_func E p μ) :
+  measurable (to_simple_func f) :=
 (to_simple_func f).measurable
 
+protected lemma strongly_measurable (f : Lp.simple_func E p μ) :
+  strongly_measurable (to_simple_func f) :=
+(to_simple_func f).strongly_measurable
+
 @[measurability]
-protected lemma ae_measurable (f : Lp.simple_func E p μ) : ae_measurable (to_simple_func f) μ :=
+protected lemma ae_measurable [measurable_space E] (f : Lp.simple_func E p μ) :
+  ae_measurable (to_simple_func f) μ :=
 (simple_func.measurable f).ae_measurable
+
+protected lemma ae_strongly_measurable (f : Lp.simple_func E p μ) :
+  ae_strongly_measurable (to_simple_func f) μ :=
+(simple_func.strongly_measurable f).ae_strongly_measurable
 
 lemma to_simple_func_eq_to_fun (f : Lp.simple_func E p μ) : to_simple_func f =ᵐ[μ] f :=
 show ⇑(to_simple_func f) =ᵐ[μ] ⇑(f : α →ₘ[μ] E),
@@ -568,7 +573,7 @@ begin
   repeat { assume h, rw h, },
 end
 
-variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
+variables [normed_field 𝕜] [normed_space 𝕜 E]
 
 lemma smul_to_simple_func (k : 𝕜) (f : Lp.simple_func E p μ) :
   to_simple_func (k • f) =ᵐ[μ] k • to_simple_func f :=
@@ -655,16 +660,23 @@ simple_func.uniform_embedding.to_uniform_inducing
 protected lemma dense_embedding (hp_ne_top : p ≠ ∞) :
   dense_embedding (coe : (Lp.simple_func E p μ) → (Lp E p μ)) :=
 begin
+  letI : measurable_space E := borel E,
+  haveI : borel_space E := ⟨rfl⟩,
   apply simple_func.uniform_embedding.dense_embedding,
   assume f,
   rw mem_closure_iff_seq_limit,
   have hfi' : mem_ℒp f p μ := Lp.mem_ℒp f,
-  refine ⟨λ n, ↑(to_Lp (simple_func.approx_on f (Lp.strongly_measurable f).measurable univ 0 trivial n)
-    (simple_func.mem_ℒp_approx_on_univ (Lp.strongly_measurable f).measurable hfi' n)), λ n, mem_range_self _, _⟩,
-  convert simple_func.tendsto_approx_on_univ_Lp hp_ne_top (Lp.strongly_measurable f).measurable hfi',
+  haveI : separable_space (range f ∪ {0} : set E) :=
+    ((Lp.strongly_measurable f).is_separable_range.union (finite_singleton _).is_separable)
+      .separable_space,
+  refine ⟨λ n, ↑(to_Lp (simple_func.approx_on f (Lp.strongly_measurable f).measurable
+    (range f ∪ {0}) 0 (by simp) n)
+    (simple_func.mem_ℒp_approx_on_range (Lp.strongly_measurable f).measurable hfi' n)),
+    λ n, mem_range_self _, _⟩,
+  convert simple_func.tendsto_approx_on_range_Lp hp_ne_top (Lp.strongly_measurable f).measurable
+    hfi',
   rw to_Lp_coe_fn f (Lp.mem_ℒp f)
 end
-
 
 protected lemma dense_inducing (hp_ne_top : p ≠ ∞) :
   dense_inducing (coe : (Lp.simple_func E p μ) → (Lp E p μ)) :=
@@ -674,8 +686,7 @@ protected lemma dense_range (hp_ne_top : p ≠ ∞) :
   dense_range (coe : (Lp.simple_func E p μ) → (Lp E p μ)) :=
 (simple_func.dense_inducing hp_ne_top).dense
 
-variables [normed_field 𝕜] [normed_space 𝕜 E] [measurable_space 𝕜] [opens_measurable_space 𝕜]
-
+variables [normed_field 𝕜] [normed_space 𝕜 E]
 variables (α E 𝕜)
 
 /-- The embedding of Lp simple functions into Lp functions, as a continuous linear map. -/
@@ -690,8 +701,7 @@ end coe_to_Lp
 
 section order
 
-variables {G : Type*} [normed_lattice_add_comm_group G] [measurable_space G]
-  [borel_space G] [second_countable_topology G]
+variables {G : Type*} [normed_lattice_add_comm_group G]
 
 lemma coe_fn_le (f g : Lp.simple_func G p μ) : f ≤ᵐ[μ] g ↔ f ≤ g :=
 by rw [← subtype.coe_le_coe, ← Lp.coe_fn_le, coe_fn_coe_base', coe_fn_coe_base' g]
@@ -762,13 +772,28 @@ def coe_simple_func_nonneg_to_Lp_nonneg :
 lemma dense_range_coe_simple_func_nonneg_to_Lp_nonneg [hp : fact (1 ≤ p)] (hp_ne_top : p ≠ ∞) :
   dense_range (coe_simple_func_nonneg_to_Lp_nonneg p μ G) :=
 begin
+  letI : measurable_space G := borel G,
+  haveI : borel_space G := ⟨rfl⟩,
   assume g,
   rw mem_closure_iff_seq_limit,
   have hg_mem_ℒp : mem_ℒp g p μ := Lp.mem_ℒp g,
-  let x := λ n, simple_func.approx_on g (Lp.measurable g) {y | 0 ≤ y} 0 le_rfl n,
-  have hx_nonneg : ∀ n, 0 ≤ x n, from λ n a, simple_func.approx_on_mem (Lp.measurable g) _ n a,
+  have zero_mem : (0 : G) ∈ (range g ∪ {0} : set G) ∩ {y | 0 ≤ y}, by simp only [union_singleton,
+    mem_inter_eq, mem_insert_iff, eq_self_iff_true, true_or, mem_set_of_eq, le_refl, and_self],
+  haveI : separable_space (((range g ∪ {0}) ∩ {y | 0 ≤ y}) : set G),
+  { apply is_separable.separable_space,
+    apply is_separable.mono _ (set.inter_subset_left _ _),
+    exact (Lp.strongly_measurable (g : Lp G p μ)).is_separable_range.union
+      (finite_singleton _).is_separable },
+  have g_meas : measurable g := (Lp.strongly_measurable (g : Lp G p μ)).measurable,
+  let x := λ n, simple_func.approx_on g g_meas ((range g ∪ {0}) ∩ {y | 0 ≤ y}) 0 zero_mem n,
+  have hx_nonneg : ∀ n, 0 ≤ x n,
+  { assume n a,
+    change x n a ∈ {y : G | 0 ≤ y},
+    have A : (range g ∪ {0} : set G) ∩ {y | 0 ≤ y} ⊆ {y | 0 ≤ y} := inter_subset_right _ _,
+    apply A,
+    exact simple_func.approx_on_mem g_meas _ n a },
   have hx_mem_ℒp : ∀ n, mem_ℒp (x n) p μ,
-    from simple_func.mem_ℒp_approx_on _ hg_mem_ℒp _ ⟨ae_measurable_const, by simp⟩,
+    from simple_func.mem_ℒp_approx_on _ hg_mem_ℒp _ ⟨ae_strongly_measurable_const, by simp⟩,
   have h_to_Lp := λ n, mem_ℒp.coe_fn_to_Lp (hx_mem_ℒp n),
   have hx_nonneg_Lp : ∀ n, 0 ≤ to_Lp (x n) (hx_mem_ℒp n),
   { intro n,
@@ -779,8 +804,7 @@ begin
     rw [ha0, ha_to_Lp],
     exact hx_nonneg n a, },
   have hx_tendsto : tendsto (λ (n : ℕ), snorm (x n - g) p μ) at_top (𝓝 0),
-  { refine @simple_func.tendsto_approx_on_Lp_snorm α G _ _ _ p _ g (Lp.measurable g)
-      {y | 0 ≤ y} 0 le_rfl _ hp_ne_top μ _ _,
+  { apply simple_func.tendsto_approx_on_Lp_snorm g_meas zero_mem hp_ne_top,
     { have hg_nonneg : 0 ≤ᵐ[μ] g, from (Lp.coe_fn_nonneg _).mpr g.2,
       refine hg_nonneg.mono (λ a ha, subset_closure _),
       simpa using ha, },
@@ -807,8 +831,7 @@ end simple_func
 
 end Lp
 
-variables [measurable_space α] [normed_group E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] {f : α → E} {p : ℝ≥0∞} {μ : measure α}
+variables [measurable_space α] [normed_group E] {f : α → E} {p : ℝ≥0∞} {μ : measure α}
 
 /-- To prove something for an arbitrary `Lp` function in a second countable Borel normed group, it
 suffices to show that
@@ -874,7 +897,7 @@ end
 
 section integrable
 
-notation α ` →₁ₛ[`:25 μ `] ` E := @measure_theory.Lp.simple_func α E _ _ _ _ _ 1 μ
+notation α ` →₁ₛ[`:25 μ `] ` E := @measure_theory.Lp.simple_func α E _ _ 1 μ
 
 lemma L1.simple_func.to_Lp_one_eq_to_L1 (f : α →ₛ E) (hf : integrable f μ) :
   (Lp.simple_func.to_Lp f (mem_ℒp_one_iff_integrable.2 hf) : α →₁[μ] E) = hf.to_L1 f :=

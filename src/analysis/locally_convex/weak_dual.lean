@@ -101,7 +101,6 @@ begin
     cases hU with hU₁ hU₂,
     simp only [id.def],
     let U' := hU₁.to_finset,
-    simp only at hU₂,
     by_cases hU₃ : U.fst.nonempty,
     { have hU₃' : U'.nonempty := (set.finite.to_finset.nonempty hU₁).mpr hU₃,
       let r := U'.inf' hU₃' U.snd,
@@ -144,9 +143,6 @@ variables [nonempty ι] [normed_space ℝ 𝕜] [module ℝ E] [is_scalar_tower 
 
 lemma weak_bilin.to_locally_convex_space' {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} :
   locally_convex_space ℝ (weak_bilin B) :=
-begin
-  refine seminorm.with_seminorms.to_locally_convex_space
-    (B.to_seminorm_family : F → seminorm 𝕜 (weak_bilin B)),
-end
+seminorm.with_seminorms.to_locally_convex_space B.to_seminorm_family
 
 end locally_convex

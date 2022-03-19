@@ -397,8 +397,7 @@ def nondegenerate (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop := se
   B.flip.nondegenerate ↔ B.nondegenerate :=
 iff.trans and.comm (and_congr flip_separating_right flip_separating_left)
 
--- Todo: find better name
-lemma separating_left_iff_neq_zero {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
+lemma separating_left_iff_linear_nontrivial {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
   B.separating_left ↔ ∀ x : M₁, B x = 0 → x = 0 :=
 begin
   split; intros h x hB,
@@ -409,22 +408,14 @@ begin
   exact h x h',
 end
 
--- Todo: find better name
-lemma separating_right_iff_neq_zero_flip {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
+lemma separating_right_iff_linear_flip_nontrivial {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
   B.separating_right ↔ ∀ y : M₂, B.flip y = 0 → y = 0 :=
-by rw [←flip_separating_left, separating_left_iff_neq_zero]
+by rw [←flip_separating_left, separating_left_iff_linear_nontrivial]
 
 /-- A bilinear form is left-separating if and only if it has a trivial kernel. -/
 theorem separating_left_iff_ker_eq_bot {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
   B.separating_left ↔ B.ker = ⊥ :=
-begin
-  rw linear_map.ker_eq_bot',
-  split; intro h,
-  { refine λ m hm, h _ (λ x, _),
-    rw hm, refl },
-  { intros m hm, apply h,
-    ext x, exact hm x }
-end
+iff.trans separating_left_iff_linear_nontrivial linear_map.ker_eq_bot'.symm
 
 /-- A bilinear form is right-separating if and only if its flip has a trivial kernel. -/
 theorem separating_right_iff_flip_ker_eq_bot {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :

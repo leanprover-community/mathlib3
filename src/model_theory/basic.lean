@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
 import data.fin.tuple.basic
+import data.equiv.encodable.basic
 
 /-!
 # Basics on First-Order Structures
@@ -104,6 +105,10 @@ instance is_relational_sum [L.is_relational] [L'.is_relational] : is_relational 
 
 instance is_algebraic_sum [L.is_algebraic] [L'.is_algebraic] : is_algebraic (L.sum L') :=
 ⟨λ n, sum.is_empty⟩
+
+instance is_relational.countable_functions [L.is_relational] :
+  nonempty (encodable (Σl, L.functions l)) :=
+⟨infer_instance⟩
 
 variables (L) (M : Type w)
 

@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 import data.fintype.order
 import algebra.direct_limit
 import model_theory.quotients
+import model_theory.finitely_generated
 
 /-!
 # Direct Limits of First-Order Structures
@@ -340,6 +341,26 @@ theorem lift_unique (F : direct_limit G f ↪[L] P) (x) :
   F x = lift L ι G f (λ i, F.comp $ of L ι G f i)
     (λ i j hij x, by rw [F.comp_apply, F.comp_apply, of_f]) x :=
 direct_limit.induction_on x $ λ i x, by rw lift_of; refl
+
+/-- The direct limit of countably many countably generated structures is countably generated. -/
+instance cg {ι : Type*} [encodable ι] [preorder ι] [is_directed ι (≤)] [nonempty ι]
+  {G : ι → Type w} [Π i, L.Structure (G i)]
+  (f : Π i j, i ≤ j → G i ↪[L] G j) (h : ∀ i, Structure.cg L (G i))
+  [directed_system G (λ i j h, f i j h)] :
+  Structure.cg L (direct_limit G f) :=
+begin
+  refine ⟨⟨⋃ i, direct_limit.of L ι G f i '' (classical.some (h i).out), _, _⟩⟩,
+  { exact set.countable_Union (λ i, set.countable.image (classical.some_spec (h i).out).1 _) },
+  { rw [eq_top_iff, substructure.closure_Union],
+    simp_rw [← embedding.coe_to_hom, substructure.closure_image],
+    rw le_supr_iff,
+    intros S hS x hx,
+    let out := @quotient.out _ (direct_limit.setoid G f),
+    refine hS (out x).1 ⟨(out x).2, _, _⟩,
+    { rw [(classical.some_spec (h (out x).1).out).2],
+      simp only [substructure.coe_top] },
+    { simp only [embedding.coe_to_hom, direct_limit.of_apply, sigma.eta, quotient.out_eq] } }
+end
 
 end direct_limit
 

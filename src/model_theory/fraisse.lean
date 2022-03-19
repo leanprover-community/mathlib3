@@ -175,26 +175,6 @@ begin
     exact ⟨Mfg, ⟨embedding.comp (direct_limit.of L ι G f i) e⟩⟩ }
 end
 
-/-- The direct limit of countably many countably generated structures is countably generated. -/
-instance direct_limit.cg {ι : Type*} [encodable ι] [preorder ι] [is_directed ι (≤)] [nonempty ι]
-  {G : ι → Type w} [Π i, L.Structure (G i)]
-  (f : Π i j, i ≤ j → G i ↪[L] G j) (h : ∀ i, Structure.cg L (G i))
-  [directed_system G (λ i j h, f i j h)] :
-  Structure.cg L (direct_limit G f) :=
-begin
-  refine ⟨⟨⋃ i, direct_limit.of L ι G f i '' (classical.some (h i).out), _, _⟩⟩,
-  { exact set.countable_Union (λ i, set.countable.image (classical.some_spec (h i).out).1 _) },
-  { rw [eq_top_iff, closure_Union],
-    simp_rw [← embedding.coe_to_hom, closure_image],
-    rw le_supr_iff,
-    intros S hS x hx,
-    let out := @quotient.out _ (direct_limit.setoid G f),
-    refine hS (out x).1 ⟨(out x).2, _, _⟩,
-    { rw [(classical.some_spec (h (out x).1).out).2],
-      simp only [coe_top] },
-    { simp only [embedding.coe_to_hom, direct_limit.of_apply, sigma.eta, quotient.out_eq] } }
-end
-
 /-- Sufficient conditions for a class to be the age of a countably-generated structure. -/
 theorem exists_cg_is_age_of (hn : K.nonempty)
   (h : ∀ (M N : bundled.{w} L.Structure), nonempty (M ≃[L] N) → (M ∈ K ↔ N ∈ K))

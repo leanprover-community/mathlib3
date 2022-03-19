@@ -438,43 +438,6 @@ by rw [←whisker_left_iff, ←cancel_epi (α_ (𝟙 a) (𝟙 _) (𝟙 _)).hom,
 lemma unitors_inv_equal : (λ_ (𝟙 a)).inv = (ρ_ (𝟙 a)).inv :=
 by { ext, rw [←unitors_equal], simp only [hom_inv_id] }
 
-@[reassoc]
-lemma whisker_left_whisker_left_associator_inv_whisker_right {a b b' c d : B}
-  {f : a ⟶ b} {f' : a ⟶ b'} {g : b ⟶ c} {g' : b' ⟶ c} {h h' : c ⟶ d}
-  (η : f ≫ g ⟶ f' ≫ g') (θ : h ⟶ h') :
-  (f ◁ g ◁ θ) ≫ (α_ _ _ _).inv ≫ (η ▷ h') =
-    (α_ _ _ _).inv ≫ (η ▷ h) ≫ (α_ _ _ _).hom ≫ (f' ◁ g' ◁ θ) ≫ (α_ _ _ _).inv :=
-begin
-  rw [associator_inv_naturality_right_assoc, whisker_exchange, whisker_assoc_right]
-end
-
-@[reassoc]
-example {a b₁ b₂ b₁' b₂' b₃' c d : B}
-  {f₁ : a ⟶ b₁} {f₂ : b₁ ⟶ b₂} {f₃ : b₂ ⟶ c} {f₁' : a ⟶ b₁'} {f₂' : b₁' ⟶ b₂'} {f₃' : b₂' ⟶ b₃'}
-  {f₄' : b₃' ⟶ c} {h h' : c ⟶ d}
-  (η : f₁ ≫ f₂ ≫ f₃ ⟶ f₁' ≫ f₂' ≫ f₃' ≫ f₄') (θ : h ⟶ h') :
-  (f₁ ◁ f₂ ◁ f₃ ◁ θ) ≫
-      (f₁ ◁ (α_ f₂ f₃ h').inv) ≫
-        (α_ f₁ (f₂ ≫ f₃) h').inv ≫ (η ▷ h') =
-    (f₁ ◁ (α_ f₂ f₃ h).inv) ≫
-      (α_ f₁ (f₂ ≫ f₃) h).inv ≫
-        (η ▷ h) ≫
-          (α_ f₁' (f₂' ≫ f₃' ≫ f₄') h).hom ≫
-            (f₁' ◁ (α_ f₂' (f₃' ≫ f₄') h).hom) ≫
-              (f₁' ◁ f₂' ◁ (α_ f₃' f₄' h).hom) ≫
-                (f₁' ◁ f₂' ◁ f₃' ◁ f₄' ◁ θ) ≫
-                  (f₁' ◁ f₂' ◁ (α_ f₃' f₄' h').inv) ≫
-                    (f₁' ◁ (α_ f₂' (f₃' ≫ f₄') h').inv) ≫
-                      (α_ f₁' (f₂' ≫ f₃' ≫ f₄') h').inv :=
-begin
-  simp_rw [←whisker_left_comp_assoc f₁', ←whisker_left_comp_assoc f₂'],
-  rw [associator_inv_naturality_right, iso.hom_inv_id_assoc],
-  rw [associator_inv_naturality_right, iso.hom_inv_id_assoc],
-  rw [associator_inv_naturality_right, iso.hom_inv_id_assoc],
-  rw ←whisker_exchange,
-  simp
-end
-
 end
 
 end bicategory

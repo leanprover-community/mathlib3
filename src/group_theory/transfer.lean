@@ -53,6 +53,7 @@ begin
   rw [equiv.symm_apply_apply, ←mul_smul, mul_inv_self, one_smul],
 end
 
+-- for mathlib:
 @[to_additive] lemma mem_normalizer_iff' {g : G} : g ∈ normalizer H ↔ ∀ n, n * g ∈ H ↔ g * n ∈ H :=
 begin
   refine ⟨λ h n, _, λ h n, _⟩,
@@ -77,6 +78,7 @@ instance right_action : mul_action H.normalizerᵐᵒᵖ (left_transversals (H :
   one_smul := λ T, subtype.ext (right_coset_one T),
   mul_smul := λ g g' T, subtype.ext (right_coset_assoc ↑T ↑g'.unop ↑g.unop).symm }
 
+-- for mathlib:
 @[to_additive] instance : mul_action H.normalizerᵐᵒᵖ (G ⧸ H) :=
 { smul := λ g, quotient.map' (* g.unop) (λ a b h, by
   { have := (g.unop⁻¹.2 (a⁻¹ * b)).mp h,
@@ -85,8 +87,8 @@ instance right_action : mul_action H.normalizerᵐᵒᵖ (left_transversals (H :
   mul_smul := λ a b q, q.induction_on'
     (by exact λ g, congr_arg quotient.mk' (mul_assoc g b.unop a.unop).symm) }
 
-@[to_additive] lemma smul_symm_apply_eq_mul_symm_apply_inv_smul'
-  (g : H.normalizerᵐᵒᵖ) (q : G ⧸ H) : (mem_left_transversals.to_equiv (g • T).2 q : G) =
+@[to_additive] lemma smul_apply_eq_apply_inv_smul_mul (g : H.normalizerᵐᵒᵖ) (q : G ⧸ H) :
+  (mem_left_transversals.to_equiv (g • T).2 q : G) =
     mem_left_transversals.to_equiv T.2 (g⁻¹ • q) * g.unop :=
 begin
   let w := (mem_left_transversals.to_equiv T.2).symm,
@@ -162,7 +164,7 @@ begin
     (λ q _, subtype.ext _) (λ q _, g • q) (λ _ _, finset.mem_univ _)
     (λ q _, smul_inv_smul _ q) (λ q _, inv_smul_smul _ q)) (ϕ.map_prod _ _).symm,
   change _ * _ = (g.unop : G)⁻¹ * (_ * _) * (g.unop : G),
-  simp_rw [smul_symm_apply_eq_mul_symm_apply_inv_smul', mul_inv_rev, mul_assoc],
+  simp_rw [smul_apply_eq_apply_inv_smul_mul, mul_inv_rev, mul_assoc],
 end
 
 end left_transversals

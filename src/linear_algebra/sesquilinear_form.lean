@@ -547,45 +547,4 @@ end comm_ring
 
 end nondegenerate
 
-/-! ### Algebraic dual pairing -/
-
-section dual_pairing
-
-/-- The canonical pairing of a vector space and its algebraic dual. -/
-def dual_pairing (R M) [comm_semiring R] [add_comm_monoid M] [module R M] :
-  module.dual R M →ₗ[R] M →ₗ[R] R := linear_map.id
-
-section comm_semiring
-
-variables [comm_semiring R] [add_comm_monoid M] [module R M]
-
-@[simp] lemma dual_pairing_apply (v x) : dual_pairing R M v x = v x := rfl
-
-end comm_semiring
-
-section field
-
-variables [field R] [add_comm_group M] [module R M]
-
-lemma dual_pairing_nondegenerate : (dual_pairing R M).nondegenerate :=
-begin
-  refine ⟨separating_left_iff_ker_eq_bot.mpr ker_id, _⟩,
-  intros x,
-  contrapose,
-  rintros hx : x ≠ 0,
-  rw [not_forall],
-  let f : M →ₗ[R] R := classical.some (linear_pmap.mk_span_singleton x 1 hx).to_fun.exists_extend,
-  use [f],
-  refine ne_zero_of_eq_one _,
-  have h : f.comp (R ∙ x).subtype = (linear_pmap.mk_span_singleton x 1 hx).to_fun :=
-    classical.some_spec (linear_pmap.mk_span_singleton x (1 : R) hx).to_fun.exists_extend,
-  rw linear_map.ext_iff at h,
-  convert h ⟨x, submodule.mem_span_singleton_self x⟩,
-  exact (linear_pmap.mk_span_singleton_apply' R hx 1).symm,
-end
-
-end field
-
-end dual_pairing
-
 end linear_map

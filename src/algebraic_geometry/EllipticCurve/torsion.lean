@@ -39,24 +39,18 @@ def mul_by' : E⟮L⟯ →+[L ≃ₐ[K] L] E⟮L⟯ :=
 { to_fun    := (•) n,
   map_smul' := λ _ _,
   begin
-    induction n with n h,
+    induction n with n hn,
     { refl },
-    { simp only [nat.succ_eq_add_one, add_smul, smul_add, one_smul, h] }
+    { simp only [nat.succ_eq_add_one, add_smul, smul_add, one_smul, hn] }
   end,
   map_zero' := smul_zero n,
   map_add'  := smul_add n }
 
-/-- The multiplication by `n` isogeny. -/
-def mul_by : E⟮K⟯ →+ E⟮K⟯ := (mul_by' n : E⟮K⟯ →+[K ≃ₐ[K] K] E⟮K⟯)
-
 lemma mul_by.map_smul (σ : L ≃ₐ[K] L) (P : E⟮L⟯) : n • σ • P = σ • n • P :=
 (mul_by' n).map_smul' σ P
 
-lemma mul_by.map_zero : n • 0 = (0 : E⟮L⟯) :=
-(mul_by' n : E⟮L⟯ →+[L ≃ₐ[K] L] E⟮L⟯).map_zero'
-
-lemma mul_by.map_add (P Q : E⟮L⟯) : n • (P + Q) = n • P + n • Q :=
-(mul_by' n : E⟮L⟯ →+[L ≃ₐ[K] L] E⟮L⟯).map_add' P Q
+/-- The multiplication by `n` isogeny. -/
+def mul_by : E⟮K⟯ →+ E⟮K⟯ := (mul_by' n : E⟮K⟯ →+[K ≃ₐ[K] K] E⟮K⟯)
 
 notation E⟮K⟯[n] := (mul_by n : E⟮K⟯ →+ E⟮K⟯).ker
 notation E⟮K⟯`⬝`n := (mul_by n : E⟮K⟯ →+ E⟮K⟯).range
@@ -76,14 +70,7 @@ def ker_hom : E⟮K⟯[n] →+ E⟮L⟯[n] :=
 { to_fun    := λ ⟨P, hP⟩, ⟨point_hom φ P,
   by { change n • P = 0 at hP, change n • _ = (0 : E⟮L⟯), simpa only [← map_nsmul, hP] }⟩,
   map_zero' := rfl,
-  map_add'  := λ ⟨_, _⟩ ⟨_, _⟩,
-  by { change (⟨_, _⟩ : E⟮L⟯[n]) = ⟨_, _⟩, simp only, apply map_add } }
-
-@[simp] lemma ker_hom.map_zero : ker_hom n φ 0 = (0 : E⟮L⟯[n]) := (ker_hom n φ).map_zero'
-
-@[simp] lemma ker_hom.map_add (P Q : E⟮K⟯[n]) :
-  ker_hom n φ (P + Q) = ker_hom n φ P + ker_hom n φ Q :=
-(ker_hom n φ).map_add P Q
+  map_add'  := λ ⟨P, _⟩ ⟨Q, _⟩, subtype.mk_eq_mk.mpr $ map_add (point_hom φ) P Q }
 
 @[simp] lemma ker_hom.id (P : E⟮K⟯[n]) : ker_hom n (K⟶[F]K) P = P := by rcases P with _ | _; refl
 
@@ -93,13 +80,7 @@ def ker_hom : E⟮K⟯[n] →+ E⟮L⟯[n] :=
 by rcases P with _ | _; refl
 
 lemma ker_hom.injective : function.injective $ @ker_hom n _ _ E _ _ _ _ _ _ _ _ φ :=
-begin
-  intros P Q hPQ,
-  rcases ⟨P, Q⟩ with ⟨⟨P, _⟩, ⟨Q, _⟩⟩,
-  change (⟨point_hom φ P, _⟩ : E⟮L⟯[n]) = ⟨point_hom φ Q, _⟩ at hPQ,
-  simp only at hPQ,
-  simpa only [subtype.mk_eq_mk] using point_hom.injective φ hPQ
-end
+λ ⟨_, _⟩ ⟨_, _⟩ hPQ, subtype.mk_eq_mk.mpr $ point_hom.injective φ $ subtype.mk_eq_mk.mp hPQ
 
 /-- The canonical inclusion `E(K)[n] ↪ E(L)[n]`. -/
 def ιₙ : E⟮K⟯[n] →+ E⟮L⟯[n] := ker_hom n $ K⟶[F]L
@@ -114,8 +95,8 @@ section galois
 variables (σ τ : L ≃ₐ[K] L)
 
 /-- The Galois action `Gal(L/K) ↷ E(L)[n]`. -/
-def ker_gal : E⟮L⟯[n] → E⟮L⟯[n] := λ ⟨P, hP⟩, ⟨σ • P,
-by { change n • P = 0 at hP, change n • σ • P = 0, simpa only [mul_by.map_smul, hP] }⟩
+def ker_gal : E⟮L⟯[n] → E⟮L⟯[n] := λ ⟨P, hP⟩,
+⟨σ • P, by { change n • P = 0 at hP, change n • σ • P = 0, simpa only [mul_by.map_smul, hP] }⟩
 
 /-- `Gal(L/K) ↷ E(L)[n]` is a scalar action. -/
 instance : has_scalar (L ≃ₐ[K] L) E⟮L⟯[n] := ⟨ker_gal n⟩
@@ -123,65 +104,35 @@ instance : has_scalar (L ≃ₐ[K] L) E⟮L⟯[n] := ⟨ker_gal n⟩
 /-- `Gal(L/K) ↷ E(L)[n]` is a multiplicative action. -/
 instance : mul_action (L ≃ₐ[K] L) E⟮L⟯[n] :=
 { smul     := ker_gal n,
-  one_smul := λ ⟨_, _⟩,
-  by { simp only [ker_gal, subtype.mk_eq_mk], apply point.distrib_mul_action.one_smul },
-  mul_smul := λ σ τ ⟨_, _⟩,
-  by { simp only [ker_gal, subtype.mk_eq_mk], apply point.distrib_mul_action.mul_smul } }
+  one_smul := λ ⟨P, _⟩, subtype.mk_eq_mk.mpr $ one_smul (L ≃ₐ[K] L) P,
+  mul_smul := λ σ τ ⟨P, _⟩, subtype.mk_eq_mk.mpr $ mul_smul σ τ P }
 
 /-- The Galois invariant subgroup `E(L)[n]ᴷ` of `E(L)[n]` fixed by `Gal(L/K)`. -/
 def ker_gal.fixed : add_subgroup E⟮L⟯[n] :=
 { carrier   := mul_action.fixed_points (L ≃ₐ[K] L) E⟮L⟯[n],
   zero_mem' := λ _, rfl,
-  add_mem'  :=
-  begin
-    rintro ⟨P, _⟩ ⟨Q, _⟩ (hP : ∀ σ : L ≃ₐ[K] L, (⟨σ • P, _⟩ : E⟮L⟯[n]) = ⟨P, _⟩)
-      (hQ : ∀ σ : L ≃ₐ[K] L, (⟨σ • Q, _⟩ : E⟮L⟯[n]) = ⟨Q, _⟩),
-    simp only at hP hQ,
-    change ∀ σ : L ≃ₐ[K] L, (⟨σ • (P + Q), _⟩ : E⟮L⟯[n]) = ⟨P + Q, _⟩,
-    simp only,
-    exact point_gal.fixed.add_mem hP hQ
-  end,
-  neg_mem'  :=
-  begin
-    rintro ⟨P, _⟩ (hP : ∀ σ : L ≃ₐ[K] L, (⟨σ • P, _⟩ : E⟮L⟯[n]) = ⟨P, _⟩),
-    simp only at hP,
-    change ∀ σ : L ≃ₐ[K] L, (⟨σ • -P, _⟩ : E⟮L⟯[n]) = ⟨-P, _⟩,
-    simp only,
-    exact point_gal.fixed.neg_mem hP
-  end }
+  add_mem'  := λ P Q hP hQ σ,
+  by { rcases ⟨P, Q⟩ with ⟨⟨_, _⟩, ⟨_, _⟩⟩,
+       exact subtype.mk_eq_mk.mpr (point_gal.fixed.add_mem (λ τ, subtype.mk_eq_mk.mp $ hP τ)
+                                                           (λ τ, subtype.mk_eq_mk.mp $ hQ τ) σ) },
+  neg_mem'  := λ ⟨_, _⟩ hP σ,
+  subtype.mk_eq_mk.mpr $ point_gal.fixed.neg_mem (λ τ, subtype.mk_eq_mk.mp $ hP τ) σ }
 
 notation E⟮L⟯[n`]^`K := @ker_gal.fixed n _ _ E K _ _ L _ _ _ _
-
-lemma ker_gal.fixed.zero_mem : (0 : E⟮L⟯[n]) ∈ E⟮L⟯[n]^K := (ker_gal.fixed n).zero_mem'
-
-lemma ker_gal.fixed.add_mem {P Q : E⟮L⟯[n]} (hP : P ∈ E⟮L⟯[n]^K) (hQ : Q ∈ E⟮L⟯[n]^K) :
-  P + Q ∈ E⟮L⟯[n]^K :=
-(ker_gal.fixed n).add_mem' hP hQ
-
-lemma ker_gal.fixed.neg_mem {P : E⟮L⟯[n]} (hP : P ∈ E⟮L⟯[n]^K) : -P ∈ E⟮L⟯[n]^K :=
-(ker_gal.fixed n).neg_mem' hP
 
 variables [finite_dimensional K L] [is_galois K L]
 
 lemma ker_gal.fixed.eq : (E⟮L⟯[n]^K) = (ιₙ n : E⟮K⟯[n] →+ E⟮L⟯[n]).range :=
 begin
-  ext ⟨P, hP⟩,
-  change n • P = 0 at hP,
+  ext ⟨P, hP : n • P = 0⟩,
   change (∀ σ : L ≃ₐ[K] L, (⟨σ • P, _⟩ : E⟮L⟯[n]) = ⟨P, hP⟩) ↔ _,
   simp only,
   change P ∈ (E⟮L⟯^K) ↔ _,
   rw [point_gal.fixed.eq],
   split,
-  { rintro ⟨Q, hQ⟩,
-    existsi [(⟨Q, _⟩ : E⟮K⟯[n])],
-    { change (⟨ιₚ Q, _⟩ : E⟮L⟯[n]) = _,
-      simp only [hQ] },
-    { rw [← hQ, ← map_nsmul] at hP,
-      change n • Q = 0,
-      apply_fun (ιₚ : E⟮K⟯ →+ E⟮L⟯) using point_hom.injective,
-      simpa only [hP] } },
-  { rintro ⟨⟨Q⟩, hQ⟩,
-    exact ⟨Q, by injection hQ⟩ }
+  { rintro ⟨Q, rfl⟩,
+    exact ⟨⟨Q, by { rw [← map_nsmul] at hP, exact point_hom.injective (K⟶[F]L) hP }⟩, rfl⟩ },
+  { exact λ ⟨⟨Q, _⟩, hQ⟩, ⟨Q, by injection hQ⟩ }
 end
 
 end galois

@@ -302,9 +302,8 @@ begin
   by { intros, ring1 },
   subst x_eq,
   rw [← w₂, ← sub_eq_zero, y_rw, mul_eq_zero, sub_eq_zero] at w₁,
-  cases w₁,
-  { subst w₁,
-    simpa only [two_mul] },
+  rcases w₁ with (rfl | _),
+  { rwa [two_mul] },
   { contradiction }
 end
 
@@ -424,12 +423,6 @@ def point_hom : E⟮K⟯ →+ E⟮L⟯ :=
     sorry
   end }
 
-@[simp] lemma point_hom.map_zero : point_hom φ 0 = (0 : E⟮L⟯) := (point_hom φ).map_zero'
-
-@[simp] lemma point_hom.map_add (P Q : E⟮K⟯) :
-  point_hom φ (P + Q) = point_hom φ P + point_hom φ Q :=
-(point_hom φ).map_add P Q
-
 @[simp] lemma point_hom.id (P : E⟮K⟯) : point_hom (K⟶[F]K) P = P := by cases P; refl
 
 @[simp] lemma point_hom.comp {M : Type u} [field M] [algebra F M] [algebra K M] [algebra L M]
@@ -463,18 +456,15 @@ def point_gal (σ : L ≃ₐ[K] L) : E⟮L⟯ → E⟮L⟯
 | (some x y w) := some (σ • x) (σ • y)
 begin
   apply_fun ((•) $ σ.restrict_scalars F) at w,
-  simp only [smul_add, smul_mul', smul_pow'] at w,
-  simp only [alg_equiv.smul_def, alg_equiv.commutes] at w,
+  simp_rw [smul_add, smul_mul', smul_pow', alg_equiv.smul_def, alg_equiv.commutes] at w,
   exact w
 end
 
 /-- `Gal(L/K) ↷ E(L)` is a distributive multiplicative action. -/
 instance : distrib_mul_action (L ≃ₐ[K] L) E⟮L⟯ :=
 { smul      := point_gal,
-  one_smul  :=
-  by { rintro (_ | _), { refl }, { simp only [has_scalar.smul, point_gal], exact ⟨rfl, rfl⟩ } },
-  mul_smul  := λ _ _,
-  by { rintro (_ | _), { refl }, { simp only [has_scalar.smul, point_gal], exact ⟨rfl, rfl⟩ } },
+  one_smul  := by rintro (_ | _); refl,
+  mul_smul  := λ _ _, by rintro (_ | _); refl,
   smul_add  := λ σ,
   begin
     rintro (_ | _) (_ | _),
@@ -488,17 +478,9 @@ def point_gal.fixed : add_subgroup E⟮L⟯ :=
 { carrier   := mul_action.fixed_points (L ≃ₐ[K] L) E⟮L⟯,
   zero_mem' := λ _, rfl,
   add_mem'  := λ _ _ hP hQ _, by rw [smul_add, hP, hQ],
-  neg_mem'  := λ _ hP σ, by simpa only [neg_inj, smul_neg] using hP σ }
+  neg_mem'  := λ _ hP σ, by simpa only [smul_neg, neg_inj] using hP σ }
 
 notation E⟮L`⟯^`K := @point_gal.fixed _ _ E K _ _ L _ _ _ _
-
-lemma point_gal.fixed.zero_mem : (0 : E⟮L⟯) ∈ E⟮L⟯^K := point_gal.fixed.zero_mem'
-
-lemma point_gal.fixed.add_mem {P Q : E⟮L⟯} (hP : P ∈ E⟮L⟯^K) (hQ : Q ∈ E⟮L⟯^K) : P + Q ∈ E⟮L⟯^K :=
-point_gal.fixed.add_mem' hP hQ
-
-lemma point_gal.fixed.neg_mem {P : E⟮L⟯} (hP : P ∈ E⟮L⟯^K) : -P ∈ E⟮L⟯^K :=
-point_gal.fixed.neg_mem' hP
 
 variables [finite_dimensional K L] [is_galois K L]
 
@@ -513,9 +495,7 @@ begin
       simp only [has_scalar.smul, point_gal, forall_and_distrib] at hP,
       have hx : x ∈ intermediate_field.fixed_field (⊤ : subgroup $ L ≃ₐ[K] L) := λ σ, hP.left σ,
       have hy : y ∈ intermediate_field.fixed_field (⊤ : subgroup $ L ≃ₐ[K] L) := λ σ, hP.right σ,
-      have hgal : intermediate_field.fixed_field (⊤ : subgroup $ L ≃ₐ[K] L) = ⊥ :=
-      ((@is_galois.tfae K _ L _ _ _).out 0 1).mp _inst_9,
-      rw [hgal, intermediate_field.mem_bot] at hx hy,
+      rw [((@is_galois.tfae K _ L _ _ _).out 0 1).mp _inst_9, intermediate_field.mem_bot] at hx hy,
       change ∃ x' : K, (K⟶[F]L)x' = x at hx,
       change ∃ y' : K, (K⟶[F]L)y' = y at hy,
       rw [add_monoid_hom.mem_range],
@@ -531,15 +511,13 @@ begin
     { refl },
     { rcases hP with ⟨_ | ⟨x', y', w'⟩, hQ⟩,
       { contradiction },
-      { change some ((K↑L)x') ((K↑L) y') _ = some x y w at hQ,
-        simp only at hQ,
-        have hx : x ∈ set.range (K↑L) := exists.intro x' hQ.left,
-        have hy : y ∈ set.range (K↑L) := exists.intro y' hQ.right,
-        have hgal : intermediate_field.fixed_field (⊤ : subgroup $ L ≃ₐ[K] L) = ⊥ :=
-        ((@is_galois.tfae K _ L _ _ _).out 0 1).mp _inst_9,
-        rw [← intermediate_field.mem_bot, ← hgal] at hx hy,
+      { injection hQ with hx hy,
+        have hx' : x ∈ set.range (K↑L) := exists.intro x' hx,
+        have hy' : y ∈ set.range (K↑L) := exists.intro y' hy,
+        rw [← intermediate_field.mem_bot, ← ((@is_galois.tfae K _ L _ _ _).out 0 1).mp _inst_9]
+          at hx' hy',
         simp only [has_scalar.smul, point_gal],
-        exact ⟨hx ⟨σ, subgroup.mem_top σ⟩, hy ⟨σ, subgroup.mem_top σ⟩⟩ } } }
+        exact ⟨hx' ⟨σ, subgroup.mem_top σ⟩, hy' ⟨σ, subgroup.mem_top σ⟩⟩ } } }
 end
 
 end galois

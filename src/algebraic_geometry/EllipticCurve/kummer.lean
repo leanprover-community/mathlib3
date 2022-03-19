@@ -17,6 +17,8 @@ import algebraic_geometry.EllipticCurve.group
 noncomputable theory
 open_locale big_operators classical non_zero_divisors number_field
 
+open is_dedekind_domain
+
 universe u
 
 variables {K : Type u} [field K]
@@ -27,7 +29,7 @@ variables {K : Type u} [field K]
 private lemma is_localization.mk'_num_ne_zero_of_ne_zero {R : Type u} [comm_ring R] [algebra R K]
   {S : submonoid R} [is_localization S K] {z : K} {x : R} {y : S}
   (hxyz : z = is_localization.mk' K x y) (hz : z ≠ 0) : x ≠ 0 :=
-by { intro hx, rw [hx, is_localization.mk'_zero] at hxyz, exact hz hxyz }
+by { rintro rfl, rw [is_localization.mk'_zero] at hxyz, exact hz hxyz }
 
 private lemma is_integrally_closed.exists_algebra_map_eq_of_pow_mem {R : Type*} [comm_ring R]
   [algebra R K] {S : subalgebra R K} [is_integrally_closed S] [is_fraction_ring S K] {x : K} {n : ℕ}
@@ -41,11 +43,9 @@ is_integrally_closed.is_integral_iff.mp ⟨polynomial.X ^ n - polynomial.C (⟨x
   {n : ℕ} (hn : 0 < n) (hI : (I : fractional_ideal R⁰ K) ^ (z * n) = 1) :
   (I : fractional_ideal R⁰ K) ^ z = 1 :=
 begin
-  cases nat.exists_eq_succ_of_ne_zero (ne_zero_of_lt hn) with m hm,
-  rw [hm] at hI,
+  rcases nat.exists_eq_succ_of_ne_zero (ne_zero_of_lt hn) with ⟨m, rfl⟩,
   induction z using int.induction_on with w _ w _,
-  { rw [zero_mul] at hI,
-    exact hI },
+  { rwa [← zero_mul] },
   all_goals { rw [zpow_mul₀'] at hI },
   any_goals { rw [← neg_add', zpow_neg₀, inv_eq_one₀] at hI ⊢ },
   all_goals { rw [zpow_coe_nat, ← fractional_ideal.coe_ideal_pow] at hI,
@@ -55,14 +55,14 @@ begin
 end
 
 private def fractional_ideal.units_of_factorization {R : Type u} [comm_ring R] [is_domain R]
-  [is_dedekind_domain R] [algebra R K] [is_fraction_ring R K] (f : maximal_spectrum R → ℤ) :
+  [is_dedekind_domain R] [algebra R K] [is_fraction_ring R K] (f : height_one_spectrum R → ℤ) :
   (fractional_ideal R⁰ K)ˣ :=
-units.mk0 (∏ᶠ p : maximal_spectrum R, ↑p.val.val ^ f p)
+units.mk0 (∏ᶠ p : height_one_spectrum R, ↑p.as_ideal ^ f p)
 begin
   rw [finprod_def],
   split_ifs,
   { exact finset.prod_ne_zero_iff.mpr
-      (λ p _, zpow_ne_zero _ $ fractional_ideal.coe_ideal_ne_zero p.property) },
+      (λ p _, zpow_ne_zero _ $ fractional_ideal.coe_ideal_ne_zero p.ne_bot) },
   { exact one_ne_zero }
 end
 
@@ -78,13 +78,14 @@ section valuation
 variables [number_field K] {n : ℕ}
 
 /-- The multiplicative valuation of a non-zero element. -/
-def val_of_ne_zero (p : maximal_spectrum $ 𝓞 K) : Kˣ →* multiplicative ℤ :=
-group.with_zero_units.to_monoid_hom.comp $ units.map $ @maximal_spectrum.valuation _ _ _ _ K _ _ _ p
+def val_of_ne_zero (p : height_one_spectrum $ 𝓞 K) : Kˣ →* multiplicative ℤ :=
+group.with_zero_units.to_monoid_hom.comp $ units.map $
+  @height_one_spectrum.valuation _ _ _ _ K _ _ _ p
 
-lemma associates.eq_val_of_ne_zero (p : maximal_spectrum $ 𝓞 K) (x : Kˣ) :
-  ((associates.mk p.val.val).count $ associates.factors $ associates.mk $ ideal.span
+lemma associates.eq_val_of_ne_zero (p : height_one_spectrum $ 𝓞 K) (x : Kˣ) :
+  ((associates.mk p.as_ideal).count $ associates.factors $ associates.mk $ ideal.span
     {(is_localization.mk'_surjective (𝓞 K)⁰ (x : K)).some} : ℤ)
-    - ((associates.mk p.val.val).count $ associates.factors $ associates.mk $ ideal.span
+    - ((associates.mk p.as_ideal).count $ associates.factors $ associates.mk $ ideal.span
         {((is_localization.mk'_surjective (𝓞 K)⁰ (x : K)).some_spec.some : 𝓞 K)} : ℤ)
   = -(val_of_ne_zero p x).to_add :=
 begin
@@ -98,21 +99,21 @@ begin
 end
 
 lemma fractional_ideal.factorization_of_ne_zero (x : Kˣ) :
-  ∏ᶠ p : maximal_spectrum $ 𝓞 K,
-    (p.val.val : fractional_ideal (𝓞 K)⁰ K) ^ -(val_of_ne_zero p x).to_add
+  ∏ᶠ p : height_one_spectrum $ 𝓞 K,
+    (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ -(val_of_ne_zero p x).to_add
       = fractional_ideal.span_singleton (𝓞 K)⁰ x :=
 begin
-  simp_rw [← λ p : maximal_spectrum $ 𝓞 K, associates.eq_val_of_ne_zero p x],
+  simp_rw [← λ p : height_one_spectrum $ 𝓞 K, associates.eq_val_of_ne_zero p x],
   exact fractional_ideal.factorization_principal (fractional_ideal.span_singleton (𝓞 K)⁰ x)
     (fractional_ideal.span_singleton_ne_zero_iff.mpr x.ne_zero) x rfl
 end
 
 lemma val_of_ne_zero_support_finite (x : Kˣ) :
-  (function.mul_support $ λ p : maximal_spectrum $ 𝓞 K,
-    (p.val.val : fractional_ideal (𝓞 K)⁰ K) ^ -(val_of_ne_zero p x).to_add).finite :=
+  (function.mul_support $ λ p : height_one_spectrum $ 𝓞 K,
+    (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ -(val_of_ne_zero p x).to_add).finite :=
 begin
-  simp_rw [← associates.eq_val_of_ne_zero, λ p : maximal_spectrum $ 𝓞 K, zpow_sub₀
-             (fractional_ideal.coe_ideal_ne_zero p.property : _ ≠ (0 : fractional_ideal (𝓞 K)⁰ K))],
+  simp_rw [← associates.eq_val_of_ne_zero, λ p : height_one_spectrum $ 𝓞 K, zpow_sub₀
+             (fractional_ideal.coe_ideal_ne_zero p.ne_bot : _ ≠ (0 : fractional_ideal (𝓞 K)⁰ K))],
   apply set.finite.subset (set.finite.union _ _) (function.mul_support_div _ _),
   all_goals { apply ideal.finite_mul_support_coe
                 ((not_iff_not.mpr ideal.span_singleton_eq_bot).mpr _) },
@@ -122,13 +123,12 @@ begin
 end
 
 /-- The multiplicative valuation of a non-zero element modulo `n`-th powers. -/
-def val_of_ne_zero_mod (p : maximal_spectrum $ 𝓞 K) : Kˣ ⧸ (n⬝Kˣ) →* multiplicative (zmod n) :=
+def val_of_ne_zero_mod (p : height_one_spectrum $ 𝓞 K) : Kˣ ⧸ (n⬝Kˣ) →* multiplicative (zmod n) :=
 (int.quotient_zmultiples_nat_equiv_zmod n).to_multiplicative.to_monoid_hom.comp $
   quotient_group.map (n⬝Kˣ) (add_subgroup.zmultiples (n : ℤ)).to_subgroup (val_of_ne_zero p) $
 begin
-  rintro x ⟨y, hy⟩,
-  rw [← hy],
-  exact ⟨val_of_ne_zero p y, by simpa only [pow_monoid_hom_apply, map_pow, int.to_add_pow] ⟩
+  rintro _ ⟨y, rfl⟩,
+  exact ⟨val_of_ne_zero p y, by simpa only [pow_monoid_hom_apply, map_pow, int.to_add_pow]⟩
 end
 
 end valuation
@@ -140,19 +140,13 @@ section unit
 
 /-- The canonical inclusion `𝓞ˣ →* Kˣ`. -/
 def ne_zero_of_unit : (𝓞 K)ˣ →* Kˣ :=
-{ to_fun   := λ ⟨⟨v, _⟩, ⟨i, _⟩, vi, iv⟩, ⟨v, i, subtype.mk_eq_mk.mp vi, subtype.mk_eq_mk.mp iv⟩,
+{ to_fun   := λ ⟨⟨v, _⟩, ⟨i, _⟩, vi, iv⟩, ⟨v, i, by injection vi, by injection iv⟩,
   map_one' := rfl,
   map_mul' := λ ⟨⟨_, _⟩, ⟨_, _⟩, _, _⟩ ⟨⟨_, _⟩, ⟨_, _⟩, _, _⟩, rfl }
 
-@[simp] lemma ne_zero_of_unit.map_one : ne_zero_of_unit 1 = (1 : Kˣ) := ne_zero_of_unit.map_one'
-
-@[simp] lemma ne_zero_of_unit.map_mul (x y : (𝓞 K)ˣ) :
-  ne_zero_of_unit (x * y) = ne_zero_of_unit x * ne_zero_of_unit y :=
-ne_zero_of_unit.map_mul' x y
-
 variables [number_field K] {n : ℕ}
 
-@[simp] lemma val_of_unit (p : maximal_spectrum $ 𝓞 K) (x : (𝓞 K)ˣ) :
+@[simp] lemma val_of_unit (p : height_one_spectrum $ 𝓞 K) (x : (𝓞 K)ˣ) :
   val_of_ne_zero p (ne_zero_of_unit x) = 1 :=
 begin
   rcases x with ⟨⟨v, hv⟩, ⟨i, hi⟩, vi, _⟩,
@@ -171,7 +165,7 @@ begin
       (p.valuation_le_one ⟨i, hi⟩) _ }
 end
 
-@[simp] lemma val_of_unit_mod (p : maximal_spectrum $ 𝓞 K) (x : (𝓞 K)ˣ) :
+@[simp] lemma val_of_unit_mod (p : height_one_spectrum $ 𝓞 K) (x : (𝓞 K)ˣ) :
   val_of_ne_zero_mod p (ne_zero_of_unit x) = (0 : zmod n) :=
 by simpa only [val_of_ne_zero_mod, monoid_hom.comp_apply, quotient_group.map_coe, val_of_unit]
 
@@ -190,7 +184,7 @@ end unit
 
 section K_S_n
 
-variables [number_field K] {S S' : finset $ maximal_spectrum $ 𝓞 K} {n : ℕ}
+variables [number_field K] {S S' : finset $ height_one_spectrum $ 𝓞 K} {n : ℕ}
 
 /-- The subgroup `K(S, n) = {b(Kˣ)ⁿ ∈ Kˣ/(Kˣ)ⁿ | ∀ p ∉ S, ord_p(b) ≡ 0 mod n}`. -/
 def K_S_n : subgroup (Kˣ ⧸ (n⬝Kˣ)) :=
@@ -201,29 +195,17 @@ def K_S_n : subgroup (Kˣ ⧸ (n⬝Kˣ)) :=
 
 notation K⟮S, n⟯ := @K_S_n K _ _ S n
 
-lemma K_S_n.one_mem : (1 : Kˣ ⧸ (n⬝Kˣ)) ∈ K⟮S, n⟯ := K_S_n.one_mem'
-
-lemma K_S_n.mul_mem {x y : Kˣ ⧸ (n⬝Kˣ)} (hx : x ∈ K⟮S, n⟯) (hy : y ∈ K⟮S, n⟯) : x * y ∈ K⟮S, n⟯ :=
-K_S_n.mul_mem' hx hy
-
-lemma K_S_n.inv_mem {x : Kˣ ⧸ (n⬝Kˣ)} (hx : x ∈ K⟮S, n⟯) : x⁻¹ ∈ K⟮S, n⟯ := K_S_n.inv_mem' hx
-
 lemma K_S_n.monotone (hS : S' ≤ S) : K⟮S', n⟯ ≤ K⟮S, n⟯ := λ _ hb p hp, hb p $ mt (@hS p) hp
 
 /-- The multiplicative valuation on K_S_n. -/
 def K_S_n.val : K⟮S, n⟯ →* S → multiplicative (zmod n) :=
-{ to_fun   := λ b p, val_of_ne_zero_mod (p : maximal_spectrum $ 𝓞 K) (b : Kˣ ⧸ (n⬝Kˣ)),
+{ to_fun   := λ b p, val_of_ne_zero_mod (p : height_one_spectrum $ 𝓞 K) (b : Kˣ ⧸ (n⬝Kˣ)),
   map_one' := funext $ λ p, map_one $ val_of_ne_zero_mod p,
   map_mul' := λ x y, funext $ λ p, map_mul (val_of_ne_zero_mod p) x y }
 
-@[simp] lemma K_S_n.val.map_one : K_S_n.val (1 : K⟮S, n⟯) = 1 := K_S_n.val.map_one'
-
-@[simp] lemma K_S_n.val.map_mul (x y : K⟮S, n⟯) : K_S_n.val (x * y) = K_S_n.val x * K_S_n.val y :=
-K_S_n.val.map_mul' x y
-
 lemma K_S_n.val_ker : K_S_n.val.ker = K⟮∅, n⟯.subgroup_of K⟮S, n⟯ :=
 begin
-  ext ⟨x, hx⟩,
+  ext ⟨_, hx⟩,
   split,
   { intros hx' p _,
     by_cases hp : p ∈ S,
@@ -237,13 +219,6 @@ def K_0_n.from_unit : (𝓞 K)ˣ →* K⟮∅, n⟯ :=
 { to_fun   := λ x, ⟨quotient_group.mk $ ne_zero_of_unit x, λ p _, val_of_unit_mod p x⟩,
   map_one' := rfl,
   map_mul' := λ ⟨⟨_, _⟩, ⟨_, _⟩, _, _⟩ ⟨⟨_, _⟩, ⟨_, _⟩, _, _⟩, rfl }
-
-@[simp] lemma K_0_n.from_unit.map_one : K_0_n.from_unit 1 = (1 : K⟮∅, n⟯) :=
-K_0_n.from_unit.map_one'
-
-@[simp] lemma K_0_n.from_unit.map_mul (x y : (𝓞 K)ˣ) :
-  (K_0_n.from_unit (x * y) : K⟮∅, n⟯) = K_0_n.from_unit x * K_0_n.from_unit y :=
-K_0_n.from_unit.map_mul' x y
 
 lemma K_0_n.from_unit_ker [fact $ 0 < n] : (@K_0_n.from_unit K _ _ n).ker = (n⬝(𝓞 K)ˣ) :=
 begin
@@ -272,31 +247,31 @@ begin
       at hx,
     exact subtype.mk_eq_mk.mpr ((quotient_group.eq_one_iff _).mpr
       ⟨⟨v', i', by injection vi', by injection iv'⟩,
-       by simpa only [units.ext_iff, pow_monoid_hom_apply, zpow_coe_nat, units.coe_pow] using hx⟩) }
+       by rwa [units.ext_iff, pow_monoid_hom_apply, units.coe_pow]⟩) }
 end
 
-lemma K_0_n.val_exists_of_mk (p : maximal_spectrum $ 𝓞 K) {x : Kˣ}
+lemma K_0_n.val_exists_of_mk (p : height_one_spectrum $ 𝓞 K) {x : Kˣ}
   (hx : quotient_group.mk x ∈ K⟮∅, n⟯) : ∃ z : ℤ, z * n = -(val_of_ne_zero p x).to_add :=
 begin
   have hp : val_of_ne_zero_mod p x = 1 := hx p (finset.not_mem_empty p),
   rw [val_of_ne_zero_mod, monoid_hom.comp_apply, mul_equiv.coe_to_monoid_hom,
       mul_equiv.map_eq_one_iff, quotient_group.map_coe, quotient_group.eq_one_iff] at hp,
   cases hp with z hz,
-  exact ⟨-z, by simpa only [neg_mul, neg_inj] using hz⟩
+  exact ⟨-z, by rwa [neg_mul, neg_inj]⟩
 end
 
 lemma K_0_n.val_support_finite [fact $ 0 < n] {x : Kˣ} (hx : quotient_group.mk x ∈ K⟮∅, n⟯) :
-  (function.mul_support $ λ p : maximal_spectrum $ 𝓞 K,
-    (p.val.val : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists_of_mk p hx).some).finite :=
+  (function.mul_support $ λ p : height_one_spectrum $ 𝓞 K,
+    (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists_of_mk p hx).some).finite :=
 begin
   apply set.finite.subset (val_of_ne_zero_support_finite x),
   intros p hp,
-  change (p.val.val : fractional_ideal (𝓞 K)⁰ K) ^ -(val_of_ne_zero p x).to_add ≠ 1,
+  change (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ -(val_of_ne_zero p x).to_add ≠ 1,
   rw [← (K_0_n.val_exists_of_mk p hx).some_spec],
   exact not_imp_not.mpr (fractional_ideal.pow_eq_one_of_pow_mul_eq_one _inst_3.elim) hp
 end
 
-lemma K_0_n.val_exists (p : maximal_spectrum $ 𝓞 K) (x : K⟮∅, n⟯) :
+lemma K_0_n.val_exists (p : height_one_spectrum $ 𝓞 K) (x : K⟮∅, n⟯) :
   ∃ z : ℤ, z * n = -(val_of_ne_zero p x.val.out').to_add :=
 K_0_n.val_exists_of_mk p $ by simpa only [quotient_group.out_eq'] using x.property
 
@@ -313,13 +288,14 @@ variables [fact $ 0 < n]
       (fractional_ideal.units_of_factorization $ λ p, (K_0_n.val_exists_of_mk p hx).some) :=
 begin
   rcases quotient_group.mk_out'_eq_mul (n⬝Kˣ) x with ⟨⟨_, ⟨z, hz⟩⟩, hy⟩,
-  have val : ∀ p : maximal_spectrum $ 𝓞 K,
-    (p.val.val : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists p ⟨quotient_group.mk x, hx⟩).some
-      = p.val.val ^ (K_0_n.val_exists_of_mk p hx).some * p.val.val ^ -(val_of_ne_zero p z).to_add :=
+  have val : ∀ p : height_one_spectrum $ 𝓞 K,
+    (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists p ⟨quotient_group.mk x, hx⟩).some
+      = p.as_ideal ^ (K_0_n.val_exists_of_mk p hx).some
+        * p.as_ideal ^ -(val_of_ne_zero p z).to_add :=
   begin
     intro p,
     rw [← zpow_add₀
-          (fractional_ideal.coe_ideal_ne_zero p.property : _ ≠ (0 : fractional_ideal (𝓞 K)⁰ K))],
+          (fractional_ideal.coe_ideal_ne_zero p.ne_bot : _ ≠ (0 : fractional_ideal (𝓞 K)⁰ K))],
     congr' 1,
     rw [← mul_left_inj' $ int.coe_nat_ne_zero_iff_pos.mpr _inst_3.elim,
         (K_0_n.val_exists p ⟨_, hx⟩).some_spec, subtype.val_eq_coe, subtype.coe_mk, hy, map_mul,
@@ -342,12 +318,12 @@ def K_0_n.to_class : K⟮∅, n⟯ →* class_group (𝓞 K) K :=
 { to_fun   := K_0_n.to_class.to_fun,
   map_one' :=
   begin
-    have val_one : ∀ p : maximal_spectrum $ 𝓞 K,
-      (p.val.val : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists_of_mk p K⟮∅, n⟯.one_mem).some
+    have val_one : ∀ p : height_one_spectrum $ 𝓞 K,
+      (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists_of_mk p K⟮∅, n⟯.one_mem).some
         = 1 :=
     begin
       intro p,
-      simp_rw [← zpow_zero (p.val.val : fractional_ideal (𝓞 K)⁰ K)],
+      simp_rw [← zpow_zero (p.as_ideal : fractional_ideal (𝓞 K)⁰ K)],
       congr' 1,
       rw [← mul_left_inj' $ int.coe_nat_ne_zero_iff_pos.mpr _inst_3.elim,
           (K_0_n.val_exists_of_mk p K⟮∅, n⟯.one_mem).some_spec, map_one, zero_mul],
@@ -361,8 +337,8 @@ def K_0_n.to_class : K⟮∅, n⟯ →* class_group (𝓞 K) K :=
   end,
   map_mul' := λ ⟨x, hx⟩ ⟨y, hy⟩,
   begin
-    have hx' : quotient_group.mk x.out' ∈ K⟮∅, n⟯ := by simpa only [quotient_group.out_eq'],
-    have hy' : quotient_group.mk y.out' ∈ K⟮∅, n⟯ := by simpa only [quotient_group.out_eq'],
+    have hx' : quotient_group.mk x.out' ∈ K⟮∅, n⟯ := by rwa [quotient_group.out_eq'],
+    have hy' : quotient_group.mk y.out' ∈ K⟮∅, n⟯ := by rwa [quotient_group.out_eq'],
     have hxy : quotient_group.mk (x.out' * y.out') ∈ K⟮∅, n⟯ :=
     by { change quotient_group.mk x.out' * quotient_group.mk y.out' ∈ K⟮∅, n⟯,
          simpa only [quotient_group.out_eq'] using (⟨x, hx⟩ * ⟨y, hy⟩ : K⟮∅, n⟯).property },
@@ -372,14 +348,14 @@ def K_0_n.to_class : K⟮∅, n⟯ →* class_group (𝓞 K) K :=
     by simp_rw [quotient_group.out_eq'],
     have xy_rw : (⟨x, hx⟩ * ⟨y, hy⟩ : K⟮∅, n⟯) = ⟨quotient_group.mk (x.out' * y.out'), hxy⟩ :=
     by { nth_rewrite_lhs 0 [x_rw], nth_rewrite_lhs 0 [y_rw], refl },
-    have val_mul : ∀ p : maximal_spectrum $ 𝓞 K,
-      (p.val.val : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists_of_mk p hxy).some
-        = p.val.val ^ (K_0_n.val_exists_of_mk p hx').some
-          * p.val.val ^ (K_0_n.val_exists_of_mk p hy').some :=
+    have val_mul : ∀ p : height_one_spectrum $ 𝓞 K,
+      (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists_of_mk p hxy).some
+        = p.as_ideal ^ (K_0_n.val_exists_of_mk p hx').some
+          * p.as_ideal ^ (K_0_n.val_exists_of_mk p hy').some :=
     begin
       intro p,
       rw [← zpow_add₀
-            (fractional_ideal.coe_ideal_ne_zero p.property : _ ≠ (0 : fractional_ideal (𝓞 K)⁰ K))],
+            (fractional_ideal.coe_ideal_ne_zero p.ne_bot : _ ≠ (0 : fractional_ideal (𝓞 K)⁰ K))],
       congr' 1,
       rw [← mul_left_inj' $ int.coe_nat_ne_zero_iff_pos.mpr _inst_3.elim,
           (K_0_n.val_exists_of_mk p hxy).some_spec, map_mul, to_add_mul, neg_add, add_mul,
@@ -393,12 +369,6 @@ def K_0_n.to_class : K⟮∅, n⟯ →* class_group (𝓞 K) K :=
              finprod_mul_distrib (K_0_n.val_support_finite hx') (K_0_n.val_support_finite hy')],
     rw [units.mk0_mul, quotient_group.coe_mul]
   end }
-
-@[simp] lemma K_0_n.to_class.map_one : K_0_n.to_class (1 : K⟮∅, n⟯) = 1 := K_0_n.to_class.map_one'
-
-@[simp] lemma K_0_n.to_class.map_mul (x y : K⟮∅, n⟯) :
-  K_0_n.to_class (x * y) = K_0_n.to_class x * K_0_n.to_class y :=
-K_0_n.to_class.map_mul' x y
 
 lemma K_0_n.to_class_ker : (@K_0_n.to_class K _ _ n _).ker = K_0_n.from_unit.range :=
 begin
@@ -421,17 +391,17 @@ begin
     simp only,
     rw [← quotient_group.out_eq' x],
     exact quotient_group.mk'_eq_mk'.mpr
-      ⟨y ^ (n : ℤ), ⟨y, rfl⟩, by simpa only [units.ext_iff, units.coe_mul, units.coe_zpow₀]⟩ },
+      ⟨y ^ (n : ℤ), ⟨y, rfl⟩, by rwa [units.ext_iff, units.coe_mul, units.coe_zpow₀]⟩ },
   { rintro ⟨y, hy⟩,
     injection hy with hy,
-    have hx' : quotient_group.mk (ne_zero_of_unit y) ∈ K⟮∅, n⟯ := by simpa only [hy],
+    have hx' : quotient_group.mk (ne_zero_of_unit y) ∈ K⟮∅, n⟯ := by rwa [hy],
     have x_rw : (⟨x, hx⟩ : K⟮∅, n⟯) = ⟨quotient_group.mk $ ne_zero_of_unit y, hx'⟩ :=
     by simp_rw [hy],
-    have val_unit : ∀ p : maximal_spectrum $ 𝓞 K,
-      (p.val.val : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists_of_mk p hx').some = 1 :=
+    have val_unit : ∀ p : height_one_spectrum $ 𝓞 K,
+      (p.as_ideal : fractional_ideal (𝓞 K)⁰ K) ^ (K_0_n.val_exists_of_mk p hx').some = 1 :=
     begin
       intro p,
-      simp_rw [← zpow_zero (p.val.val : fractional_ideal (𝓞 K)⁰ K)],
+      simp_rw [← zpow_zero (p.as_ideal : fractional_ideal (𝓞 K)⁰ K)],
       congr' 1,
       rw [← mul_left_inj' $ int.coe_nat_ne_zero_iff_pos.mpr _inst_3.elim,
           (K_0_n.val_exists_of_mk p hx').some_spec, val_of_unit, zero_mul],

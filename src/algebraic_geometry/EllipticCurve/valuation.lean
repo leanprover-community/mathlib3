@@ -5,7 +5,6 @@ Authors: María Inés de Frutos-Fernández
 -/
 import algebraic_geometry.prime_spectrum.basic
 import ring_theory.dedekind_domain.ideal
-import topology.algebra.valued_field
 
 /-!
 # Adic valuations on Dedekind domains
@@ -14,10 +13,8 @@ Given a Dedekind domain `R` of Krull dimension 1 and a maximal ideal `v` of `R`,
 We prove several properties of this valuation, including the existence of uniformizers.
 
 ## Main definitions
- - `maximal_spectrum` defines the set of nonzero prime ideals of `R`. When `R` is a Dedekind domain
-   of Krull dimension 1, this is the set of maximal ideals of `R`.
- - `maximal_spectrum.int_valuation v` is the `v`-adic valuation on `R`.
- - `maximal_spectrum.valuation v` is the `v`-adic valuation on `K`.
+ - `height_one_spectrum.int_valuation v` is the `v`-adic valuation on `R`.
+ - `height_one_spectrum.valuation v` is the `v`-adic valuation on `K`.
 
 ## Main results
 - `int_valuation_le_one` : The `v`-adic valuation on `R` is bounded above by 1.
@@ -36,9 +33,7 @@ We prove several properties of this valuation, including the existence of unifor
   `multiplicative.of_add (-1)`.
 
 ## Implementation notes
-We are only interested in Dedekind domains with Krull dimension 1. Dedekind domains of Krull
-dimension 0 are fields, and for them `maximal_spectrum` is the empty set, which does not agree with
-the set of maximal ideals (which is {(0)}).
+We are only interested in Dedekind domains with Krull dimension 1.
 
 ## References
 * [G. J. Janusz, *Algebraic Number Fields*][janusz1996]
@@ -52,78 +47,10 @@ dedekind domain, dedekind ring, adic valuation
 noncomputable theory
 open_locale classical
 
-variables (R : Type*) [comm_ring R] [is_domain R] [is_dedekind_domain R] {K : Type*} [field K]
-  [algebra R K] [is_fraction_ring R K]
+open multiplicative is_dedekind_domain
 
-/-!
-### Maximal spectrum of a Dedekind domain
-If `R` is a Dedekind domain of Krull dimension 1, the maximal ideals of `R` are exactly its nonzero
-prime ideals.
-
-We define `maximal_spectrum` and provide lemmas to recover the facts that maximal ideals are prime
-and irreducible. -/
-
-/-- The maximal spectrum of a Dedekind domain `R` of Krull dimension 1 is its set of nonzero prime
-ideals. Note that this is not the maximal spectrum if `R` has Krull dimension 0. -/
-def maximal_spectrum := {v : prime_spectrum R // v.val ≠ 0 }
-variable (v : maximal_spectrum R)
-
-variable {R}
---Maximal spectrum lemmas
-lemma ideal.prime_of_maximal (v : maximal_spectrum R) :
-  prime v.val.val :=
-by apply ideal.prime_of_is_prime v.property v.val.property
-
-lemma ideal.irreducible_of_maximal (v : maximal_spectrum R) :
-  irreducible v.val.val :=
-begin
-  rw [unique_factorization_monoid.irreducible_iff_prime],
-  apply ideal.prime_of_maximal v,
-end
-
-lemma associates.irreducible_of_maximal (v : maximal_spectrum R) :
-  irreducible (associates.mk v.val.val) :=
-begin
-  rw [associates.irreducible_mk _],
-  apply ideal.irreducible_of_maximal v,
-end
-
-/-!
-### Auxiliary lemmas
-We provide auxiliary lemmas about `multiplicative.of_add`, `is_localization`, `associates` and
-`ideal`. They will be moved to the appropriate files when the code is integrated in `mathlib`. -/
-
--- of_add lemmas
-lemma of_add_le (α : Type*) [partial_order α] (x y : α) :
-  multiplicative.of_add x ≤ multiplicative.of_add y ↔ x ≤ y := by refl
-
-lemma of_add_lt (α : Type*) [partial_order α] (x y : α) :
-  multiplicative.of_add x < multiplicative.of_add y ↔ x < y := by refl
-
-lemma of_add_inj (α : Type*) (x y : α)
-  (hxy : multiplicative.of_add x = multiplicative.of_add y) : x = y :=
-by rw [← to_add_of_add x, ← to_add_of_add y, hxy]
-
-variables {A : Type*} [comm_ring A] [is_domain A] {S : Type*} [field S] [algebra A S]
-  [is_fraction_ring A S]
-
-lemma is_localization.mk'_eq_zero {r : A} {s : non_zero_divisors A}
-  (h : is_localization.mk' S r s = 0) : r = 0 :=
-begin
-  rw [is_fraction_ring.mk'_eq_div, div_eq_zero_iff] at h,
-  apply is_fraction_ring.injective A S,
-  rw (algebra_map A S).map_zero,
-  exact or.resolve_right h (is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors s.property)
-end
-
-variable (S)
-lemma is_localization.mk'_eq_one {r : A} {s : non_zero_divisors A}
-  (h : is_localization.mk' S r s = 1) : r = s :=
-begin
-  rw [is_fraction_ring.mk'_eq_div, div_eq_one_iff_eq] at h,
-  { exact is_fraction_ring.injective A S h },
-  { exact is_fraction_ring.to_map_ne_zero_of_mem_non_zero_divisors s.property }
-end
+variables {R : Type*} [comm_ring R] [is_domain R] [is_dedekind_domain R] {K : Type*} [field K]
+  [algebra R K] [is_fraction_ring R K] (v : height_one_spectrum R)
 
 -- Ideal associates lemmas
 lemma associates.mk_ne_zero' {α : Type*} [comm_ring α] {x : α} :
@@ -136,21 +63,7 @@ begin
   rw [← associates.dvd_eq_le, ← associates.mk_pow, associates.mk_dvd_mk, ideal.dvd_span_singleton],
 end
 
--- Ideal lemmas
-lemma ideal.mem_pow_count {x : R} (hx : x ≠ 0) {I : ideal R} (hI : irreducible I) :
-  x ∈ I^((associates.mk I).count (associates.mk (ideal.span {x})).factors) :=
-begin
-  have hx' := associates.mk_ne_zero'.mpr hx,
-  rw [← associates.le_singleton_iff,
-    associates.prime_pow_dvd_iff_le hx' ((associates.irreducible_mk I).mpr hI)],
-end
-
-lemma ideal.mem_le_pow {x : R} {I : ideal R} {n : ℕ} (hxI : x ∈ I^n) (m : ℕ) (hm : m ≤ n) :
-  x ∈ I^m := ideal.pow_le_pow hm hxI
-
-lemma ideal.is_nonunit_iff {I : ideal R} : ¬ is_unit I ↔ I ≠ ⊤ := not_congr ideal.is_unit_iff
-
-namespace maximal_spectrum
+namespace is_dedekind_domain.height_one_spectrum
 /-! ### Adic valuations on the Dedekind domain R -/
 
 /-- The additive `v`-adic valuation of `r ∈ R` is the exponent of `v` in the factorization of the
@@ -158,15 +71,13 @@ ideal `(r)`, if `r` is nonzero, or infinity, if `r = 0`. `int_valuation_def` is 
 multiplicative valuation. -/
 def int_valuation_def (r : R) : with_zero (multiplicative ℤ) :=
 ite (r = 0) 0 (multiplicative.of_add
-  (-(associates.mk v.val.val).count (associates.mk (ideal.span{r} : ideal R)).factors : ℤ))
+  (-(associates.mk v.as_ideal).count (associates.mk (ideal.span{r} : ideal R)).factors : ℤ))
 
-lemma int_valuation_def_if_pos {r : R} (hr : r = 0) :
-  v.int_valuation_def r = 0 :=
-if_pos hr
+lemma int_valuation_def_if_pos {r : R} (hr : r = 0) : v.int_valuation_def r = 0 := if_pos hr
 
 lemma int_valuation_def_if_neg {r : R} (hr : r ≠ 0) :
   v.int_valuation_def r = (multiplicative.of_add
-  (-(associates.mk v.val.val).count (associates.mk (ideal.span{r} : ideal R)).factors : ℤ)) :=
+  (-(associates.mk v.as_ideal).count (associates.mk (ideal.span{r} : ideal R)).factors : ℤ)) :=
 if_neg hr
 
 /-- Nonzero elements have nonzero adic valuation. -/
@@ -192,7 +103,7 @@ lemma int_valuation_le_one (x : R) : v.int_valuation_def x ≤ 1 :=
 begin
   rw int_valuation_def,
   by_cases hx : x = 0,
-  { rw if_pos hx, exact with_zero.zero_le 1,},
+  { rw if_pos hx, exact with_zero.zero_le 1, },
   { rw [if_neg hx, ← with_zero.coe_one, ← of_add_zero, with_zero.coe_le_coe, of_add_le,
       right.neg_nonpos_iff],
     exact int.coe_nat_nonneg _, }
@@ -200,7 +111,7 @@ end
 
 /-- The `v`-adic valuation of `r ∈ R` is less than 1 if and only if `v` divides the ideal `(r)`. -/
 lemma int_valuation_lt_one_iff_dvd (r : R) :
-  v.int_valuation_def r < 1 ↔ v.val.val ∣ ideal.span {r} :=
+  v.int_valuation_def r < 1 ↔ v.as_ideal ∣ ideal.span {r} :=
 begin
   rw int_valuation_def,
   split_ifs with hr,
@@ -209,13 +120,13 @@ begin
       ← int.coe_nat_zero, int.coe_nat_lt, zero_lt_iff],
     apply associates.count_ne_zero_iff_dvd,
     { rw [ne.def, ideal.zero_eq_bot, ideal.span_singleton_eq_bot], exact hr },
-    { apply ideal.irreducible_of_maximal v }}
+    {  apply v.irreducible }}
 end
 
 /-- The `v`-adic valuation of `r ∈ R` is less than `multiplicative.of_add (-n)` if and only if
 `vⁿ` divides the ideal `(r)`. -/
 lemma int_valuation_le_pow_iff_dvd (r : R) (n : ℕ) :
-  v.int_valuation_def r ≤ multiplicative.of_add (-(n : ℤ)) ↔ v.val.val^n ∣ ideal.span {r} :=
+  v.int_valuation_def r ≤ multiplicative.of_add (-(n : ℤ)) ↔ v.as_ideal^n ∣ ideal.span {r} :=
 begin
   rw int_valuation_def,
   split_ifs with hr,
@@ -224,7 +135,7 @@ begin
     rw [of_add_le, neg_le_neg_iff, int.coe_nat_le, ideal.dvd_span_singleton,
     ← associates.le_singleton_iff,
     associates.prime_pow_dvd_iff_le (associates.mk_ne_zero'.mpr hr) _],
-    { apply (associates.irreducible_of_maximal v) }}
+    { apply associates.irreducible v }}
 end
 
 /-- The `v`-adic valuation of `0 : R` equals 0. -/
@@ -236,7 +147,7 @@ lemma int_valuation.map_one' : v.int_valuation_def 1 = 1 :=
 begin
   rw [int_valuation_def, if_neg (zero_ne_one.symm : (1 : R) ≠ 0)],
   simp [← ideal.one_eq_top, -subtype.val_eq_coe,
-    associates.count_zero (associates.irreducible_of_maximal v)],
+    associates.count_zero (associates.irreducible v)],
 end
 
 /-- The `v`-adic valuation of a product equals the product of the valuations. -/
@@ -255,7 +166,7 @@ begin
       rw [← ideal.span_singleton_mul_span_singleton, ← associates.mk_mul_mk, ← neg_add,
         associates.count_mul hx' hy' _],
       { refl },
-      { apply (associates.irreducible_of_maximal v), }}}
+      { apply associates.irreducible v, }}}
 end
 
 lemma int_valuation.le_max_iff_min_le {a b c : ℕ} :  multiplicative.of_add(-c : ℤ) ≤
@@ -268,7 +179,7 @@ by rw [le_max_iff, of_add_le, of_add_le, neg_le_neg_iff, neg_le_neg_iff, int.coe
 by simp only [with_zero.coe_le_coe, le_max_iff]
 
 /-- The `v`-adic valuation of a sum is bounded above by the maximum of the valuations. -/
-lemma int_valuation.map_add' (x y : R) : v.int_valuation_def (x + y) ≤
+lemma int_valuation.map_add_le_max' (x y : R) : v.int_valuation_def (x + y) ≤
   max (v.int_valuation_def x) (v.int_valuation_def y) :=
 begin
   by_cases hx : x = 0,
@@ -286,55 +197,55 @@ begin
       { rw [v.int_valuation_def_if_neg hxy, v.int_valuation_def_if_neg hx,
           v.int_valuation_def_if_neg hy, with_zero.le_max_iff, int_valuation.le_max_iff_min_le],
       set nmin := min
-        ((associates.mk v.val.val).count (associates.mk (ideal.span {x})).factors)
-        ((associates.mk v.val.val).count (associates.mk (ideal.span {y})).factors),
-      have h_dvd_x : x ∈ v.val.val ^ (nmin),
+        ((associates.mk v.as_ideal).count (associates.mk (ideal.span {x})).factors)
+        ((associates.mk v.as_ideal).count (associates.mk (ideal.span {y})).factors),
+      have h_dvd_x : x ∈ v.as_ideal ^ (nmin),
       { rw [← associates.le_singleton_iff x nmin _,
           associates.prime_pow_dvd_iff_le (associates.mk_ne_zero'.mpr hx) _],
         exact min_le_left _ _,
-        apply associates.irreducible_of_maximal v, },
-      have h_dvd_y : y ∈ v.val.val ^ nmin,
+        apply associates.irreducible v },
+      have h_dvd_y : y ∈ v.as_ideal ^ nmin,
       { rw [← associates.le_singleton_iff y nmin _,
           associates.prime_pow_dvd_iff_le (associates.mk_ne_zero'.mpr hy) _],
         exact min_le_right _ _,
-        apply associates.irreducible_of_maximal v, },
-      have h_dvd_xy : associates.mk v.val.val^nmin ≤ associates.mk (ideal.span {x + y}),
+        apply associates.irreducible v },
+      have h_dvd_xy : associates.mk v.as_ideal^nmin ≤ associates.mk (ideal.span {x + y}),
       { rw associates.le_singleton_iff,
-        exact ideal.add_mem (v.val.val^nmin) h_dvd_x h_dvd_y, },
+        exact ideal.add_mem (v.as_ideal^nmin) h_dvd_x h_dvd_y, },
       rw (associates.prime_pow_dvd_iff_le (associates.mk_ne_zero'.mpr hxy) _) at h_dvd_xy,
       exact h_dvd_xy,
-      apply associates.irreducible_of_maximal v, }}}
+      apply associates.irreducible v, }}}
 end
 
 /-- The `v`-adic valuation on `R`. -/
-def int_valuation (v : maximal_spectrum R) : valuation R (with_zero (multiplicative ℤ)) :=
-{ to_fun          := v.int_valuation_def,
-  map_zero'       := int_valuation.map_zero' v,
-  map_one'        := int_valuation.map_one' v,
-  map_mul'        := int_valuation.map_mul' v,
-  map_add_le_max' := int_valuation.map_add' v }
+def int_valuation : valuation R (with_zero (multiplicative ℤ)) :=
+{ to_fun           := v.int_valuation_def,
+  map_zero'        := int_valuation.map_zero' v,
+  map_one'         := int_valuation.map_one' v,
+  map_mul'         := int_valuation.map_mul' v,
+  map_add_le_max'  := int_valuation.map_add_le_max' v }
 
 /-- There exists `π ∈ R` with `v`-adic valuation `multiplicative.of_add (-1)`. -/
 lemma int_valuation_exists_uniformizer :
   ∃ (π : R), v.int_valuation_def π = multiplicative.of_add (-1 : ℤ) :=
 begin
-  have hv : irreducible (associates.mk v.val.val) := associates.irreducible_of_maximal v,
-  have hlt : v.val.val^2 < v.val.val,
+  have hv : _root_.irreducible (associates.mk v.as_ideal) := associates.irreducible v,
+  have hlt : v.as_ideal^2 < v.as_ideal,
   { rw ← ideal.dvd_not_unit_iff_lt,
-    exact ⟨v.property, v.val.val,
-     ideal.is_nonunit_iff.mpr (ideal.is_prime.ne_top v.val.property), sq v.val.val⟩ } ,
+    exact ⟨v.ne_bot, v.as_ideal,
+     (not_congr ideal.is_unit_iff).mpr (ideal.is_prime.ne_top v.is_prime), sq v.as_ideal⟩ } ,
   obtain ⟨π, mem, nmem⟩ := set_like.exists_of_lt hlt,
   have hπ : associates.mk (ideal.span {π}) ≠ 0,
   { rw associates.mk_ne_zero',
     intro h,
     rw h at nmem,
-    exact nmem (submodule.zero_mem (v.val.val^2)), },
+    exact nmem (submodule.zero_mem (v.as_ideal^2)), },
   use π,
   rw [int_valuation_def, if_neg (associates.mk_ne_zero'.mp hπ), with_zero.coe_inj],
   apply congr_arg,
   rw [neg_inj, ← int.coe_nat_one, int.coe_nat_inj'],
   rw [← ideal.dvd_span_singleton, ← associates.mk_le_mk_iff_dvd_iff] at mem nmem,
-  rw [← pow_one ( associates.mk v.val.val),
+  rw [← pow_one ( associates.mk v.as_ideal),
     associates.prime_pow_dvd_iff_le hπ hv]  at mem,
   rw [associates.mk_pow, associates.prime_pow_dvd_iff_le hπ hv, not_le] at nmem,
   exact nat.eq_of_le_of_lt_succ mem nmem,
@@ -384,31 +295,29 @@ by { rw valuation_of_algebra_map, exact v.int_valuation_le_one r }
 
 /-- The `v`-adic valuation of `r ∈ R` is less than 1 if and only if `v` divides the ideal `(r)`. -/
 lemma valuation_lt_one_iff_dvd (r : R) :
-  v.valuation_def (algebra_map R K r) < 1 ↔ v.val.val ∣ ideal.span {r} :=
+  v.valuation_def (algebra_map R K r) < 1 ↔ v.as_ideal ∣ ideal.span {r} :=
 by { rw valuation_of_algebra_map, exact v.int_valuation_lt_one_iff_dvd r }
 
 /-- The `v`-adic valuation of `0 : R` equals 0. -/
-lemma valuation.map_zero' (v : maximal_spectrum R) :
-  v.valuation_def (0 : K) = 0 :=
+lemma valuation.map_zero' : v.valuation_def (0 : K) = 0 :=
 begin
   rw [← (algebra_map R K).map_zero, valuation_of_algebra_map v],
   exact v.int_valuation.map_zero',
 end
 
 /-- The `v`-adic valuation of `1 : R` equals 1. -/
-lemma valuation.map_one' (v : maximal_spectrum R) :
-  v.valuation_def (1 : K) = 1 :=
+lemma valuation.map_one' : v.valuation_def (1 : K) = 1 :=
 begin
   rw [← (algebra_map R K).map_one, valuation_of_algebra_map v],
   exact v.int_valuation.map_one',
 end
 
 /-- The `v`-adic valuation of a product is the product of the valuations. -/
-lemma valuation.map_mul' (v : maximal_spectrum R) (x y : K) :
+lemma valuation.map_mul' (x y : K) :
   v.valuation_def (x * y) = v.valuation_def x * v.valuation_def y :=
 begin
-  rw [valuation_def, valuation_def, valuation_def, div_mul_div_comm₀,
-    ← int_valuation.map_mul', ← int_valuation.map_mul', ← submonoid.coe_mul],
+  rw [valuation_def, valuation_def, valuation_def, div_mul_div_comm₀, ← int_valuation.map_mul',
+    ← int_valuation.map_mul', ← submonoid.coe_mul],
   apply valuation_well_defined K v,
   rw [(classical.some_spec (valuation_def._proof_2 (x * y))), is_fraction_ring.mk'_eq_div,
     (algebra_map R K).map_mul, submonoid.coe_mul, (algebra_map R K).map_mul, ← div_mul_div_comm₀,
@@ -418,7 +327,7 @@ begin
 end
 
 /-- The `v`-adic valuation of a sum is bounded above by the maximum of the valuations. -/
-lemma valuation.map_add' (v : maximal_spectrum R) (x y : K) :
+lemma valuation.map_add_le_max' (x y : K) :
   v.valuation_def (x + y) ≤ max (v.valuation_def x) (v.valuation_def y) :=
 begin
   obtain ⟨rx, sx, hx⟩ := is_localization.mk'_surjective (non_zero_divisors R) x,
@@ -444,12 +353,12 @@ begin
 end
 
 /-- The `v`-adic valuation on `K`. -/
-def valuation (v : maximal_spectrum R) : valuation K (with_zero (multiplicative ℤ)) :=
-{ to_fun          := v.valuation_def,
-  map_zero'       := valuation.map_zero' v,
-  map_one'        := valuation.map_one' v,
-  map_mul'        := valuation.map_mul' v,
-  map_add_le_max' := valuation.map_add' v }
+def valuation  : valuation K (with_zero (multiplicative ℤ)) := {
+  to_fun    := v.valuation_def,
+  map_zero' := valuation.map_zero' v,
+  map_one'  := valuation.map_one' v,
+  map_mul'  := valuation.map_mul' v,
+  map_add_le_max'  := valuation.map_add_le_max' v }
 
 variable (K)
 /-- There exists `π ∈ K` with `v`-adic valuation `multiplicative.of_add (-1)`. -/
@@ -472,4 +381,4 @@ begin
   exact (valuation.ne_zero_iff _).mp (ne_of_eq_of_ne hu with_zero.coe_ne_zero),
 end
 
-end maximal_spectrum
+end is_dedekind_domain.height_one_spectrum

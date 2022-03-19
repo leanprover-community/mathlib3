@@ -38,7 +38,7 @@ variables (n : ℕ)
 
 /-- `nE(F)` is a subgroup of `ιₚ⁻¹(nE(K))`. -/
 lemma range_le_comap_range : (E⟮F⟯⬝n) ≤ add_subgroup.comap ιₚ E⟮K⟯⬝n :=
-by { rintro _ ⟨Q, hQ⟩, rw [← hQ], exact ⟨ιₚ Q, (map_nsmul ιₚ Q n).symm⟩ }
+by { rintro _ ⟨Q, rfl⟩, exact ⟨ιₚ Q, (map_nsmul ιₚ Q n).symm⟩ }
 
 /-- The kernel `Φ` of the cokernel map `E(F)/nE(F) → E(K)/nE(K)` induced by `ιₚ : E(F) ↪ E(K)`. -/
 def Φ (E : EllipticCurve F) (K : Type u) [field K] [algebra F K] : add_subgroup E⟮F⟯/n :=
@@ -107,11 +107,13 @@ end reduction
 
 section complete_2_descent
 
+open is_dedekind_domain
+
 -- Note: requires minimality of Weierstrass equation
 /-- The primes of a number field dividing `n` or at which `E` has bad reduction. -/
-lemma bad_primes [number_field K] (n : ℕ) : finset $ maximal_spectrum $ 𝓞 K :=
-@set.to_finset _ {p : maximal_spectrum $ 𝓞 K | (p.valuation ((F↑K)E.disc_unit) ≠ 1)
-                                             ∨ (p.valuation ((ℤ↑K)n) < 1)}
+lemma bad_primes [number_field K] (n : ℕ) : finset $ height_one_spectrum $ 𝓞 K :=
+@set.to_finset _ {p : height_one_spectrum $ 𝓞 K | (p.valuation ((F↑K)E.disc_unit) ≠ 1)
+                                                ∨ (p.valuation ((ℤ↑K)n) < 1)}
 begin
   sorry
 end
@@ -152,11 +154,6 @@ def δ : E⟮K⟯ →+ additive ((Kˣ ⧸ (2⬝Kˣ)) × (Kˣ ⧸ (2⬝Kˣ))) :=
   map_zero' := rfl,
   map_add'  := sorry }
 
-@[simp] lemma δ.map_zero : δ ha₁ ha₃ h3 (0 : E⟮K⟯) = 0 := (δ ha₁ ha₃ h3).map_zero'
-
-@[simp] lemma δ.map_add (P Q : E⟮K⟯) : δ ha₁ ha₃ h3 (P + Q) = δ ha₁ ha₃ h3 P + δ ha₁ ha₃ h3 Q :=
-(δ ha₁ ha₃ h3).map_add' P Q
-
 -- Input: constructive proof for `ker δ = 2E(K)`
 lemma δ.ker : (δ ha₁ ha₃ h3).ker = E⟮K⟯⬝2 :=
 begin
@@ -171,8 +168,7 @@ begin
       { sorry },
       { sorry },
       { sorry } } },
-  { rintro ⟨Q, hQ⟩,
-    rw [← hQ],
+  { rintro ⟨Q, rfl⟩,
     change δ ha₁ ha₃ h3 (2 • Q) = 0,
     rw [map_nsmul],
     change ((δ ha₁ ha₃ h3 Q).1 ^ 2, (δ ha₁ ha₃ h3 Q).2 ^ 2) = 1,
@@ -204,10 +200,7 @@ begin
   simp only,
   apply function.injective.comp,
   { exact quotient_add_group.range_ker_lift_injective (δ ha₁ ha₃ h3) },
-  simp only,
-  { intros x y hxy,
-    rw [add_equiv.coe_to_add_monoid_hom, add_equiv.apply_eq_iff_eq] at hxy,
-    exact hxy }
+  { exact λ _ _, (add_equiv.apply_eq_iff_eq _).mp }
 end
 
 end complete_2_descent
@@ -241,7 +234,7 @@ instance : fintype E⟮F⟯/2 :=
 begin
   apply @coker_2_of_fg_extension.fintype _ _ E F⟮E[2]⟯,
   apply @fintype.of_equiv _ _ (@coker_2_of_rat_E₂.fintype _ _ E.covₘ _ (covₘ.a₁ E) (covₘ.a₃ E)),
-  apply (quotient_add_group.quotient_equiv_of_equiv _ 2).to_equiv,
+  apply (quotient_add_group.equiv_quotient_zsmul_of_equiv _ 2).to_equiv,
   rw [← ψ₂_x.eq_covₘ],
   apply covₘ.equiv_add
 end

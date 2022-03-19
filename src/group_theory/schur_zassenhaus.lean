@@ -54,20 +54,19 @@ def key_map [h : H.normal] : G → H.normalizerᵐᵒᵖ :=
 
 variables {H}
 
-instance [h : H.normal] : mul_action G H.quotient_diff :=
+instance [hH : H.normal] : mul_action G H.quotient_diff :=
 { smul := λ g, quotient.map (λ α, (key_map H g⁻¹) • α) -- eventually, decide whether to have ⁻¹ inside or outside
     begin
       intros S T h,
       change diff _ _ _ = (1 : H) at h,
       change diff _ _ _ = (1 : H),
-      rw [smul_diff_smul', h_1, coe_one, mul_one, inv_mul_self],
-      refl,
+      rw [smul_diff_smul', h, subtype.ext_iff, coe_mk, coe_one, mul_one, inv_mul_self],
     end,
   mul_smul := λ g₁ g₂ q, quotient.induction_on q
     (λ T, begin
       refine congr_arg quotient.mk _,
       simp only,
-      rw [←coe_inv, mul_inv_rev],
+      rw [mul_inv_rev],
       sorry,
     end),
   one_smul := λ q, quotient.induction_on q (λ T, congr_arg quotient.mk begin sorry end) }

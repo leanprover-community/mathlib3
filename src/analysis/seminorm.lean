@@ -29,13 +29,6 @@ For a module over a normed ring:
 
 * [H. H. Schaefer, *Topological Vector Spaces*][schaefer1966]
 
-## TODO
-
-Define and show equivalence of two notions of local convexity for a
-topological vector space over ℝ or ℂ: that it has a local base of
-balanced convex absorbent sets, and that it carries the initial
-topology induced by a family of seminorms.
-
 ## Tags
 
 seminorm, locally convex, LCTVS
@@ -44,7 +37,7 @@ seminorm, locally convex, LCTVS
 open normed_field set
 open_locale big_operators nnreal pointwise topological_space
 
-variables {R R' 𝕜 E F G ι ι' : Type*}
+variables {R R' 𝕜 E F G ι : Type*}
 
 /-- A seminorm on a module over a normed ring is a function to the reals that is positive
 semidefinite, positive homogeneous, and subadditive. -/

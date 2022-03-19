@@ -15,7 +15,9 @@ This file provides the actions
 
 which matches the action of `mul_action_set`.
 
-These actions are available in the `pointwise` locale.
+It also provides `subgroup.pointwise_has_pow`.
+
+These are all available in the `pointwise` locale.
 
 ## Implementation notes
 
@@ -110,6 +112,14 @@ begin
   rintros _ ⟨h, h', rfl : _ = _, hh', rfl⟩,
   exact H.mul_mem hh hh',
 end
+
+/-- The subgroup of powers of an integer of a commutative subgroup.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_has_pow {G : Type*} [comm_group G] : has_pow (subgroup G) ℤ :=
+⟨λ S n, S.map $ zpow_group_hom n⟩
+
+localized "attribute [instance] subgroup.pointwise_has_pow" in pointwise
 
 end group
 

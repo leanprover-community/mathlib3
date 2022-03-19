@@ -20,6 +20,8 @@ and the actions
 
 which matches the action of `mul_action_set`.
 
+It also provides `submonoid.pointwise_has_pow`.
+
 These are all available in the `pointwise` locale.
 
 Additionally, it provides `add_submonoid.has_mul`, which is available globally to match
@@ -140,6 +142,14 @@ lemma mem_smul_pointwise_iff_exists (m : M) (a : α) (S : submonoid M) :
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ M] [is_central_scalar α M] :
   is_central_scalar α (submonoid M) :=
 ⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
+
+/-- The submonoid of powers of a natural number of a commutative submonoid.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_has_pow {M : Type*} [comm_monoid M] : has_pow (submonoid M) ℕ :=
+⟨λ S n, S.map $ pow_monoid_hom n⟩
+
+localized "attribute [instance] submonoid.pointwise_has_pow" in pointwise
 
 end monoid
 

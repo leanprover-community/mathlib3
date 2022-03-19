@@ -7,15 +7,48 @@ import ring_theory.localization.at_prime
 import ring_theory.graded_algebra.basic
 
 /-!
-# Homogeneous Localization.
+# Homogeneous Localization
 
 ## Notation
 - `ι` is a commutative monoid;
 - `R` is a commutative semiring;
 - `A` is a commutative ring and an `R`-algebra;
 - `𝒜 : ι → submodule R A` is the grading of `A`;
+- `x : ideal A` is a prime ideal.
 
 ## Main definitions and results
+
+This file constructs the subring of `Aₓ` where the numerator and denominator have the same grading,
+i.e. `{a/b ∈ Aₓ | ∃ (i : ι), a ∈ 𝒜ᵢ ∧ b ∈ 𝒜ᵢ}`.
+
+* `homogeneous_localization.num_denom_same_deg`: a structure with a numerator and denominator field
+  where they are required to have the same grading.
+
+However `num_denom_same_deg 𝒜 x` cannot have a ring structure for many reasons, for example if `c`
+is a `num_denom_same_deg`, then generally, `c + (-c)` is not necessarily `0` for degree reasons ---
+`0` is considered to have grade zero (see `deg_zero`) but `c + (-c)` has the same degree as `c`. To
+circumvent this, we quotient `num_denom_same_deg 𝒜 x` by the kernel of `c ↦ c.num / c.denom`.
+
+* `homogeneous_localization.num_denom_same_deg.embedding` : for `x : prime ideal of A` and any
+  `c : num_denom_same_deg 𝒜 x`, or equivalent a numerator and a denominator of the same degree,
+  we get an element `c.num / c.denom` of `Aₓ`.
+* `homogeneous_localization`: `num_denom_same_deg 𝒜 x` quotiented by kernel of `embedding 𝒜 x`.
+* `homogeneous_localization.val`: if `f : homogeneous_localization 𝒜 x`, then `f.val` is an element
+  of `Aₓ`. In another word, one can view `homogeneous_localization 𝒜 x` as a subring of `Aₓ` through
+  `homogeneous_localization.val`.
+* `homogeneous_localization.num`: if `f : homogeneous_localization 𝒜 x`, then `f.num : A` is the
+  numerator of `f`.
+* `homogeneous_localization.num`: if `f : homogeneous_localization 𝒜 x`, then `f.denom : A` is the
+  denominator of `f`.
+* `homogeneous_localization.deg`: if `f : homogeneous_localization 𝒜 x`, then `f.deg : ι` is the
+  degree of `f` such that `f.num ∈ 𝒜 f.deg` and `f.denom ∈ 𝒜 f.deg`
+  (see `homogeneous_localization.num_mem` and `homogeneous_localization.denom_mem`).
+* `homogeneous_localization.num_mem`: if `f : homogeneous_localization 𝒜 x`, then `f.num_mem` is a
+  proof that `f.num ∈ f.deg`.
+* `homogeneous_localization.denom_mem`: if `f : homogeneous_localization 𝒜 x`, then `f.denom_mem` is
+  a proof that `f.denom ∈ f.deg`.
+* `homogeneous_localization.eq_num_div_denom`: if `f : homogeneous_localization 𝒜 x`, then
+  `f.val : Aₓ` is equal to `f.num / f.denom`.
 
 ## References
 

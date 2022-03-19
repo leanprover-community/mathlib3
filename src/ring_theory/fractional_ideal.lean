@@ -783,7 +783,7 @@ lemma coe_ideal_ne_zero {I : ideal R} (hI : I ≠ ⊥) : (I : fractional_ideal R
 coe_ideal_ne_zero_iff.mpr hI
 
 @[simp] lemma coe_ideal_eq_one_iff {I : ideal R} : (I : fractional_ideal R⁰ K) = 1 ↔ I = 1 :=
-by simpa only [ideal.one_eq_top] using fractional_ideal.coe_ideal_injective.eq_iff
+by simpa only [ideal.one_eq_top] using coe_ideal_injective.eq_iff
 
 end is_fraction_ring
 

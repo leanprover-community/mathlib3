@@ -58,7 +58,7 @@ Linear algebra:
   Structure theory of endomorphisms:
     eigenvalue: 'module.End.has_eigenvalue'
     eigenvector: 'module.End.has_eigenvector'
-    diagonalization: 'is_self_adjoint.diagonalization'
+    diagonalization: 'https://en.wikipedia.org/wiki/Diagonalizable_matrix'
     triangularization: 'https://en.wikipedia.org/wiki/Triangular_matrix#Triangularisability'
     invariant subspaces of an endomorphism: 'https://en.wikipedia.org/wiki/Invariant_subspace'
     generalized eigenspaces: 'module.End.generalized_eigenspace'
@@ -67,7 +67,7 @@ Linear algebra:
     Jordan normal form: 'https://en.wikipedia.org/wiki/Jordan_normal_form'
   Linear representations:
     irreducible representation: 'https://en.wikipedia.org/wiki/Irreducible_representation'
-    Schur's lemma: `linear_map.bijective_or_eq_zero`, 'category_theory.finrank_endomorphism_simple_eq_one'
+    Schur's lemma: 'https://en.wikipedia.org/wiki/Schur%27s_lemma'
     examples: ''
   Exponential:
     endomorphism exponential: ''
@@ -104,7 +104,7 @@ Group Theory:
   Classical automorphism groups:
     general linear group: 'linear_map.general_linear_group'
     special linear group: 'matrix.special_linear_group'
-    orthogonal group: 'matrix.orthogonal_group'
+    orthogonal group: ''
     special orthogonal group: 'https://en.wikipedia.org/wiki/Orthogonal_group#SO(n)'
     unitary group: 'matrix.unitary_group'
     special unitary group: 'https://en.wikipedia.org/wiki/Special_unitary_group'
@@ -207,7 +207,7 @@ Bilinear and Quadratic Forms Over a Vector Space:
     orthogonal elements: 'bilin_form.is_ortho'
     adjoint endomorphism: 'bilin_form.left_adjoint_of_nondegenerate'
     Sylvester's law of inertia: 'https://en.wikipedia.org/wiki/Sylvester%27s_law_of_inertia'
-    real classification: 'quadratic_form.equivalent_one_zero_neg_one_weighted_sum_squared'
+    real classification: 'https://en.wikipedia.org/wiki/Sylvester%27s_law_of_inertia'
     complex classification: ''
     Gram-Schmidt orthogonalisation: 'https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process'
   Euclidean and Hermitian spaces:
@@ -340,7 +340,7 @@ Single Variable Real Analysis:
     antiderivatives: 'https://en.wikipedia.org/wiki/Antiderivative'
     Riemann sums: 'box_integral.integral'
     antiderivative of a continuous function: 'interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right'
-    change of variable: `lintegral_image_eq_lintegral_abs_det_fderiv_mul`, `integral_image_eq_integral_abs_det_fderiv_smul`
+    change of variable: `interval_integral.integral_comp_smul_deriv`
     integration by parts: 'interval_integral.integral_mul_deriv_eq_deriv_mul'
     improper integrals: 'https://en.wikipedia.org/wiki/Improper_integral'
     absolute vs conditional convergence of improper integrals: 'https://en.wikipedia.org/wiki/Conditional_convergence'
@@ -513,7 +513,7 @@ Measures and integral calculus:
     Completeness of $\mathrm{L}^p$ spaces: 'measure_theory.Lp.complete_space'
     Holder's inequality: 'nnreal.lintegral_mul_le_Lp_mul_Lq'
     Fubini's theorem: 'measure_theory.integral_prod'
-    change of variables for multiple integrals: ''
+    change of variables for multiple integrals: 'measure_theory.integral_image_eq_integral_abs_det_fderiv_smul'
     change of variables to polar co-ordinates: ''
     change of variables to spherical co-ordinates: ''
     convolution: ''
@@ -532,7 +532,7 @@ Measures and integral calculus:
 Probability Theory:
   Definitions of a probability space:
     probability measure: 'measure_theory.is_probability_measure'
-    events: 'set'
+    events: 'measurable_set'
     independent events: 'probability_theory.Indep_set'
     sigma-algebra: 'measurable_space'
     independent sigma-algebra: 'probability_theory.Indep'
@@ -562,7 +562,7 @@ Probability Theory:
     applications of probability generating functions to sums of independent random variables: ''
   Convergence of series of random variables:
     convergence in probability: 'measure_theory.tendsto_in_measure'
-    $\mathrm{L}^p$ convergence: ''
+    $\mathrm{L}^p$ convergence: 'measure_theory.Lp'
     almost surely convergence: 'measure_theory.measure.ae'
     Markov inequality: 'measure_theory.mul_meas_ge_le_lintegral'
     Tchebychev inequality: ''

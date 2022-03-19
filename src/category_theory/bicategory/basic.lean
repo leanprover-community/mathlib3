@@ -132,8 +132,8 @@ attribute [reassoc]
 attribute [simp] bicategory.whisker_left_comp bicategory.comp_whisker_right
 attribute [instance] bicategory.hom_category
 
-localized "infixr ` ◁ `:70 := bicategory.whisker_left" in bicategory
-localized "infixr ` ▷ `:70 := bicategory.whisker_right" in bicategory
+localized "infixr ` ◁ `:81 := bicategory.whisker_left" in bicategory
+localized "infixl ` ▷ `:81 := bicategory.whisker_right" in bicategory
 localized "notation `α_` := bicategory.associator" in bicategory
 localized "notation `λ_` := bicategory.left_unitor" in bicategory
 localized "notation `ρ_` := bicategory.right_unitor" in bicategory
@@ -302,17 +302,17 @@ lemma left_unitor_whisker_right (f : a ⟶ b) (g : b ⟶ c) :
 by simp only [left_unitor_comp, hom_inv_id_assoc]
 
 @[reassoc, simp]
-lemma whisker_assoc_left {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
-  (η ▷ g) ▷ h = (α_ f g h).hom ≫ (η ▷ (g ≫ h)) ≫ (α_ f' g h).inv :=
-by rw [←associator_naturality_left_assoc, hom_inv_id, comp_id]
+lemma whisker_right_comp {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
+  η ▷ (g ≫ h) = (α_ f g h).inv ≫ ((η ▷ g) ▷ h) ≫ (α_ f' g h).hom :=
+by { rw associator_naturality_left, simp }
 
 @[reassoc, simp]
-lemma whisker_assoc_middle (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
+lemma whisker_left_whisker_right (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
   (f ◁ η) ▷ h = (α_ f g h).hom ≫ (f ◁ (η ▷ h)) ≫ (α_ f g' h).inv :=
 by rw [←associator_naturality_middle_assoc, hom_inv_id, comp_id]
 
 @[reassoc, simp]
-lemma whisker_assoc_right (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
+lemma comp_whisker_left (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
   (f ≫ g) ◁ η = (α_ f g h).hom ≫ (f ◁ (g ◁ η)) ≫ (α_ f g h').inv :=
 by rw [←associator_naturality_right_assoc, hom_inv_id, comp_id]
 

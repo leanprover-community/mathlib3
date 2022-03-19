@@ -155,7 +155,10 @@ assume ⟨h⟩, h.elim
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
 | a _ rfl := heq.rfl
 
-lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a = b
+lemma ulift.down_inj {α : Sort*} : ∀ {a b : ulift α}, a.down = b.down → a = b
+| ⟨a⟩ ⟨b⟩ rfl := rfl
+
+lemma plift.down_inj {α : Sort*} : ∀ {a b : plift α}, a.down = b.down → a = b
 | ⟨a⟩ ⟨b⟩ rfl := rfl
 
 -- missing [symm] attribute for ne in core.

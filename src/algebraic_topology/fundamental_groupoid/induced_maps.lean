@@ -3,9 +3,9 @@ Copyright (c) 2022 Praneeth Kolichala. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Praneeth Kolichala
 -/
-import topology.homotopy.product
 import topology.homotopy.equiv
 import category_theory.equivalence
+import algebraic_topology.fundamental_groupoid.product
 
 /-!
 # Homotopic maps induce naturally isomorphic functors
@@ -92,13 +92,13 @@ variables {X Y : Top.{u}} {f g : C(X, Y)} (H : continuous_map.homotopy f g)
 /-!
 These definitions set up the following diagram, for each path `p`:
 
-          f(p)
-      *--------*
-      | \      |
-  H₀  |   \ d  |  H₁
-      |     \  |
-      *--------*
-          g(p)
+            f(p)
+        *--------*
+        | \      |
+    H₀  |   \ d  |  H₁
+        |     \  |
+        *--------*
+            g(p)
 
 Here, `H₀ = H.eval_at x₀` is the path from `f(x₀)` to `g(x₀)`,
 and similarly for `H₁`. Similarly, `f(p)` denotes the

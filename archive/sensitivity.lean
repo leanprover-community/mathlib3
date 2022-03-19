@@ -366,7 +366,7 @@ begin
     rw ← dim_eq_of_injective (g m) g_injective,
     apply dim_V },
   have dimW : dim W = card H,
-  { have li : linear_independent ℝ (set.restrict e H),
+  { have li : linear_independent ℝ (H.restrict e),
     { convert (dual_pair_e_ε _).basis.linear_independent.comp _ subtype.val_injective,
       rw (dual_pair_e_ε _).coe_basis },
     have hdW := dim_span li,

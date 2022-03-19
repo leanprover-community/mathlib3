@@ -225,11 +225,11 @@ def comp (F : oplax_functor B C) (G : oplax_functor C D) : oplax_functor B D :=
     simp only [map₂_associator, ←map₂_comp_assoc, ←map_comp_naturality_right_assoc,
       whisker_left_comp, assoc],
     simp only [map₂_associator, map₂_comp, map_comp_naturality_left_assoc,
-      whisker_right_comp, assoc] },
+      comp_whisker_right, assoc] },
   map₂_left_unitor' := λ a b f, by
   { dsimp,
     simp only [map₂_left_unitor, map₂_comp, map_comp_naturality_left_assoc,
-      whisker_right_comp, assoc] },
+      comp_whisker_right, assoc] },
   map₂_right_unitor' := λ a b f, by
   { dsimp,
     simp only [map₂_right_unitor, map₂_comp, map_comp_naturality_right_assoc,

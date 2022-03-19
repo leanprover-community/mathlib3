@@ -75,7 +75,7 @@ by { cases η, simp only [whisker_left_id, eq_to_hom_refl] }
 @[simp]
 lemma eq_to_hom_whisker_right {a b c : B} {f g : a ⟶ b} (η : f = g) (h : b ⟶ c) :
   eq_to_hom η ▷ h = eq_to_hom (congr_arg2 (≫) η rfl) :=
-by { cases η, simp only [whisker_right_id, eq_to_hom_refl] }
+by { cases η, simp only [id_whisker_right, eq_to_hom_refl] }
 
 end bicategory
 

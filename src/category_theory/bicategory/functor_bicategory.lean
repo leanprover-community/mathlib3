@@ -30,7 +30,8 @@ namespace oplax_nat_trans
 @[simps]
 def whisker_left (η : F ⟶ G) {θ ι : G ⟶ H} (Γ : θ ⟶ ι) : η ≫ θ ⟶ η ≫ ι :=
 { app := λ a, η.app a ◁ Γ.app a,
-  naturality' := λ a b f, by { dsimp, rw whisker_exchange₃_assoc, simp } }
+  naturality' := λ a b f, by
+  { dsimp, rw whisker_left_whisker_left_associator_inv_whisker_right_assoc, simp } }
 
 /-- Right whiskering of an oplax natural transformation and a modification. -/
 @[simps]
@@ -39,7 +40,7 @@ def whisker_right {η θ : F ⟶ G} (Γ : η ⟶ θ) (ι : G ⟶ H) : η ≫ ι 
   naturality' := λ a b f, by
   { dsimp,
     simp only [modification.whisker_right_naturality_assoc, iso.inv_hom_id_assoc,
-      associator_conjugation_left, assoc, iso.cancel_iso_inv_left],
+      whisker_assoc_left, assoc, iso.cancel_iso_inv_left],
     rw whisker_exchange_assoc } }
 
 /-- Associator for the vertical composition of oplax natural transformations. -/
@@ -49,9 +50,9 @@ modification_iso.of_components (λ a, α_ (η.app a) (θ.app a) (ι.app a))
 begin
   intros a b f,
   dsimp,
-  simp only [bicategory.whisker_left_comp, assoc, bicategory.whisker_right_comp,
-    associator_conjugation_left, associator_conjugation_middle,
-    pentagon_inv_hom_hom_hom_inv_assoc, associator_conjugation_right, iso.inv_hom_id_assoc,
+  simp only [bicategory.whisker_left_comp, assoc, bicategory.comp_whisker_right,
+    whisker_assoc_left, whisker_assoc_middle,
+    pentagon_inv_hom_hom_hom_inv_assoc, whisker_assoc_right, iso.inv_hom_id_assoc,
     pentagon_inv_inv_hom_hom_inv_assoc, pentagon_inv_inv_hom_inv_inv]
 end
 

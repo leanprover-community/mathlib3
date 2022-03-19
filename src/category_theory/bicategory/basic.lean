@@ -70,8 +70,8 @@ class bicategory (B : Type u) extends category_struct.{v} B :=
 (whisker_right {a b c : B} {f g : a ⟶ b} (η : f ⟶ g) (h : b ⟶ c) : f ≫ h ⟶ g ≫ h)
 (infixr ` ▷ `:70 := whisker_right)
 -- functoriality of right whiskering:
-(whisker_right_id' : ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c), 𝟙 f ▷ g = 𝟙 (f ≫ g) . obviously)
-(whisker_right_comp' :
+(id_whisker_right' : ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c), 𝟙 f ▷ g = 𝟙 (f ≫ g) . obviously)
+(comp_whisker_right' :
   ∀ {a b c} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h) (i : b ⟶ c),
   (η ≫ θ) ▷ i = (η ▷ i) ≫ (θ ▷ i) . obviously)
 -- exchange law of left and right whiskerings:
@@ -110,8 +110,8 @@ class bicategory (B : Type u) extends category_struct.{v} B :=
 
 restate_axiom bicategory.whisker_left_id'
 restate_axiom bicategory.whisker_left_comp'
-restate_axiom bicategory.whisker_right_id'
-restate_axiom bicategory.whisker_right_comp'
+restate_axiom bicategory.id_whisker_right'
+restate_axiom bicategory.comp_whisker_right'
 restate_axiom bicategory.whisker_exchange'
 restate_axiom bicategory.associator_naturality_left'
 restate_axiom bicategory.associator_naturality_middle'
@@ -121,15 +121,15 @@ restate_axiom bicategory.right_unitor_naturality'
 restate_axiom bicategory.pentagon'
 restate_axiom bicategory.triangle'
 attribute [simp]
-  bicategory.whisker_left_id bicategory.whisker_right_id
+  bicategory.whisker_left_id bicategory.id_whisker_right
   bicategory.pentagon bicategory.triangle
 attribute [reassoc]
-  bicategory.whisker_left_comp bicategory.whisker_right_comp
+  bicategory.whisker_left_comp bicategory.comp_whisker_right
   bicategory.whisker_exchange bicategory.associator_naturality_left
   bicategory.associator_naturality_middle bicategory.associator_naturality_right
   bicategory.left_unitor_naturality bicategory.right_unitor_naturality
   bicategory.pentagon bicategory.triangle
-attribute [simp] bicategory.whisker_left_comp bicategory.whisker_right_comp
+attribute [simp] bicategory.whisker_left_comp bicategory.comp_whisker_right
 attribute [instance] bicategory.hom_category
 
 localized "infixr ` ◁ `:70 := bicategory.whisker_left" in bicategory
@@ -152,7 +152,7 @@ by rw [←whisker_left_comp, hom_inv_id, whisker_left_id]
 @[simp, reassoc]
 lemma hom_inv_whisker_right {f g : a ⟶ b} (η : f ≅ g) (h : b ⟶ c) :
   (η.hom ▷ h) ≫ (η.inv ▷ h) = 𝟙 (f ≫ h) :=
-by rw [←whisker_right_comp, hom_inv_id, whisker_right_id]
+by rw [←comp_whisker_right, hom_inv_id, id_whisker_right]
 
 @[simp, reassoc]
 lemma inv_hom_whisker_left (f : a ⟶ b) {g h : b ⟶ c} (η : g ≅ h) :
@@ -162,7 +162,7 @@ by rw [←whisker_left_comp, inv_hom_id, whisker_left_id]
 @[simp, reassoc]
 lemma inv_hom_whisker_right {f g : a ⟶ b} (η : f ≅ g) (h : b ⟶ c) :
   (η.inv ▷ h) ≫ (η.hom ▷ h) = 𝟙 (g ≫ h) :=
-by rw [←whisker_right_comp, inv_hom_id, whisker_right_id]
+by rw [←comp_whisker_right, inv_hom_id, id_whisker_right]
 
 /-- The left whiskering of a 2-isomorphism is a 2-isomorphism. -/
 @[simps]
@@ -198,10 +198,10 @@ is_iso.of_iso (whisker_right_iso (as_iso η) h)
 @[simp]
 lemma inv_whisker_right {f g : a ⟶ b} (η : f ⟶ g) (h : b ⟶ c) [is_iso η] :
   inv (η ▷ h) = (inv η) ▷ h :=
-by { ext, simp only [←whisker_right_comp, whisker_right_id, is_iso.hom_inv_id] }
+by { ext, simp only [←comp_whisker_right, id_whisker_right, is_iso.hom_inv_id] }
 
 @[reassoc, simp]
-lemma left_unitor_conjugation {f g : a ⟶ b} (η : f ⟶ g) :
+lemma id_whisker_left {f g : a ⟶ b} (η : f ⟶ g) :
   𝟙 a ◁ η = (λ_ f).hom ≫ η ≫ (λ_ g).inv :=
 begin
   apply (cancel_mono (λ_ g).hom).1,
@@ -214,7 +214,7 @@ lemma left_unitor_inv_naturality {f f' : a ⟶ b} (η : f ⟶ f') :
 by simp
 
 @[reassoc, simp]
-lemma right_unitor_conjugation {f g : a ⟶ b} (η : f ⟶ g) :
+lemma whisker_right_id {f g : a ⟶ b} (η : f ⟶ g) :
   η ▷ 𝟙 b = (ρ_ f).hom ≫ η ≫ (ρ_ g).inv :=
 begin
   apply (cancel_mono (ρ_ g).hom).1,
@@ -239,7 +239,7 @@ lemma left_unitor_comp' (f : a ⟶ b) (g : b ⟶ c) :
   (α_ (𝟙 a) f g).hom ≫ (λ_ (f ≫ g)).hom = (λ_ f).hom ▷ g :=
 by rw [←whisker_left_iff, whisker_left_comp, ←cancel_epi (α_ (𝟙 a) (𝟙 a ≫ f) g).hom,
     ←cancel_epi ((α_ (𝟙 a) (𝟙 a) f).hom ▷ g), pentagon_assoc, triangle,
-    ←associator_naturality_middle, ←whisker_right_comp_assoc, triangle,
+    ←associator_naturality_middle, ←comp_whisker_right_assoc, triangle,
     associator_naturality_left]
 
 -- We state it as a `@[simp]` lemma. Generally, we think the component index of a natural
@@ -262,7 +262,7 @@ by { rw [←left_unitor_comp_inv'], simp only [inv_hom_id, assoc, comp_id] }
 @[reassoc, simp]
 lemma right_unitor_comp (f : a ⟶ b) (g : b ⟶ c) :
   (ρ_ (f ≫ g)).hom = (α_ f g (𝟙 c)).hom ≫ (f ◁ (ρ_ g).hom) :=
-by rw [←whisker_right_iff, whisker_right_comp, ←cancel_mono (α_ f g (𝟙 c)).hom,
+by rw [←whisker_right_iff, comp_whisker_right, ←cancel_mono (α_ f g (𝟙 c)).hom,
     assoc, associator_naturality_middle, ←triangle_assoc, ←triangle,
     whisker_left_comp, pentagon_assoc, ←associator_naturality_right]
 
@@ -292,7 +292,7 @@ lemma left_unitor_whisker_right (f : a ⟶ b) (g : b ⟶ c) :
 by simp only [left_unitor_comp, hom_inv_id_assoc]
 
 @[reassoc, simp]
-lemma associator_conjugation_left {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
+lemma whisker_assoc_left {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
   (η ▷ g) ▷ h = (α_ f g h).hom ≫ (η ▷ (g ≫ h)) ≫ (α_ f' g h).inv :=
 by rw [←associator_naturality_left_assoc, hom_inv_id, comp_id]
 
@@ -307,7 +307,7 @@ lemma associator_inv_conjugation_left {f f' : a ⟶ b} (η : f ⟶ f') (g : b �
 by simp
 
 @[reassoc, simp]
-lemma associator_conjugation_middle (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
+lemma whisker_assoc_middle (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
   (f ◁ η) ▷ h = (α_ f g h).hom ≫ (f ◁ (η ▷ h)) ≫ (α_ f g' h).inv :=
 by rw [←associator_naturality_middle_assoc, hom_inv_id, comp_id]
 
@@ -322,7 +322,7 @@ lemma associator_inv_conjugation_middle (f : a ⟶ b) {g g' : b ⟶ c} (η : g �
 by simp
 
 @[reassoc, simp]
-lemma associator_conjugation_right (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
+lemma whisker_assoc_right (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
   (f ≫ g) ◁ η = (α_ f g h).hom ≫ (f ◁ (g ◁ η)) ≫ (α_ f g h').inv :=
 by rw [←associator_naturality_right_assoc, hom_inv_id, comp_id]
 
@@ -356,25 +356,22 @@ end
 lemma pentagon_inv_hom_hom_hom_inv (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) :
   (α_ (f ≫ g) h i).inv ≫ ((α_ f g h).hom ▷ i) ≫ (α_ f (g ≫ h) i).hom =
     (α_ f g (h ≫ i)).hom ≫ (f ◁ (α_ g h i).inv) :=
-eq_of_inv_eq_inv (by simp only [pentagon_inv_inv_hom_hom_inv, inv_whisker_left,
-  is_iso.iso.inv_hom, inv_whisker_right, is_iso.iso.inv_inv, is_iso.inv_comp, assoc])
+eq_of_inv_eq_inv (by simp)
 
 @[simp, reassoc]
 lemma pentagon_hom_inv_inv_inv_inv (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) :
   (f ◁ (α_ g h i).hom) ≫ (α_ f g (h ≫ i)).inv ≫ (α_ (f ≫ g) h i).inv =
     (α_ f (g ≫ h) i).inv ≫ ((α_ f g h).inv ▷ i) :=
 begin
-  rw ←((eq_comp_inv _).mp (pentagon_inv f g h i)),
-  slice_lhs 1 2 { rw [←whisker_left_comp, hom_inv_id] },
-  simp only [assoc, id_comp, whisker_left_id, comp_id, hom_inv_id]
+  apply (cancel_epi (f ◁ (α_ g h i).inv)).1,
+  simp
 end
 
 @[simp, reassoc]
 lemma pentagon_hom_hom_inv_hom_hom (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) :
   (α_ (f ≫ g) h i).hom ≫ (α_ f g (h ≫ i)).hom ≫ (f ◁ (α_ g h i).inv) =
     ((α_ f g h).hom ▷ i) ≫ (α_ f (g ≫ h) i).hom :=
-eq_of_inv_eq_inv (by simp only [pentagon_hom_inv_inv_inv_inv, inv_whisker_left,
-  is_iso.iso.inv_hom, inv_whisker_right, is_iso.iso.inv_inv, is_iso.inv_comp, assoc])
+eq_of_inv_eq_inv (by simp)
 
 @[simp, reassoc]
 lemma pentagon_hom_inv_inv_inv_hom (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) :
@@ -442,13 +439,14 @@ lemma unitors_inv_equal : (λ_ (𝟙 a)).inv = (ρ_ (𝟙 a)).inv :=
 by { ext, rw [←unitors_equal], simp only [hom_inv_id] }
 
 @[reassoc]
-lemma whisker_exchange₃ {a b b' c d : B}
+lemma whisker_left_whisker_left_associator_inv_whisker_right {a b b' c d : B}
   {f : a ⟶ b} {f' : a ⟶ b'} {g : b ⟶ c} {g' : b' ⟶ c} {h h' : c ⟶ d}
   (η : f ≫ g ⟶ f' ≫ g') (θ : h ⟶ h') :
   (f ◁ g ◁ θ) ≫ (α_ _ _ _).inv ≫ (η ▷ h') =
     (α_ _ _ _).inv ≫ (η ▷ h) ≫ (α_ _ _ _).hom ≫ (f' ◁ g' ◁ θ) ≫ (α_ _ _ _).inv :=
 begin
-  rw [associator_inv_naturality_right_assoc, whisker_exchange, associator_conjugation_right]
+  rw [associator_inv_naturality_right_assoc, whisker_exchange, whisker_assoc_right]
+end
 end
 
 end

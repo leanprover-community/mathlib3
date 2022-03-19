@@ -88,8 +88,8 @@ lemma whisker_right_naturality_naturality {f g : a ⟶ b} (β : f ⟶ g) (h : G.
     (α_ _ _ _).inv ≫ (η.naturality f ▷ h) ≫ (α_ _ _ _).hom ≫
       (η.app a ◁ G.map₂ β ▷ h) ≫ (α_ _ _ _).inv :=
 begin
-  rw [associator_inv_naturality_left_assoc, ←bicategory.whisker_right_comp, naturality_naturality],
-  simp only [bicategory.whisker_right_comp, associator_conjugation_middle]
+  rw [associator_inv_naturality_left_assoc, ←bicategory.comp_whisker_right, naturality_naturality],
+  simp only [bicategory.comp_whisker_right, whisker_assoc_middle]
 end
 
 @[simp, reassoc]
@@ -107,9 +107,9 @@ lemma whisker_right_naturality_comp (f : a ⟶ b) (g : b ⟶ c) (h : G.obj c ⟶
       (F.map f ◁ η.naturality g ▷ h) ≫ (_ ◁ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv ≫
         (η.naturality f ▷ G.map g ≫ h) ≫ (α_ _ _ _).hom ≫ (_ ◁ (α_ _ _ _).inv) :=
 begin
-  rw [←associator_naturality_middle, ←bicategory.whisker_right_comp_assoc, naturality_comp],
-  simp only [bicategory.whisker_right_comp, associator_conjugation_left,
-    associator_conjugation_middle, assoc, pentagon_inv_inv_hom_hom_inv_assoc,
+  rw [←associator_naturality_middle, ←bicategory.comp_whisker_right_assoc, naturality_comp],
+  simp only [bicategory.comp_whisker_right, whisker_assoc_left,
+    whisker_assoc_middle, assoc, pentagon_inv_inv_hom_hom_inv_assoc,
     pentagon_inv_hom_hom_hom_inv_assoc, pentagon_inv_hom_hom_hom_inv]
 end
 
@@ -125,8 +125,8 @@ lemma whisker_right_naturality_id (f : G.obj a ⟶ a') :
     (α_ _ _ _).hom ≫ (F.map_id a ▷ η.app a ≫ f) ≫ (α_ _ _ _).inv ≫
       ((λ_ (η.app a)).hom ▷ f) ≫ ((ρ_ (η.app a)).inv ▷ f) ≫ (α_ _ _ _).hom :=
 begin
-  rw [←associator_naturality_middle, ←bicategory.whisker_right_comp_assoc, naturality_id],
-  simp only [bicategory.whisker_right_comp, associator_conjugation_left, assoc]
+  rw [←associator_naturality_middle, ←bicategory.comp_whisker_right_assoc, naturality_id],
+  simp only [bicategory.comp_whisker_right, whisker_assoc_left, assoc]
 end
 
 end
@@ -139,13 +139,13 @@ def vcomp (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tran
     (α_ _ _ _).inv ≫ (η.naturality f ▷ θ.app b) ≫ (α_ _ _ _).hom ≫
       (η.app a ◁ θ.naturality f) ≫ (α_ _ _ _).inv,
   naturality_comp' := λ a b c f g, by
-  { simp only [associator_conjugation_right, assoc, iso.inv_hom_id_assoc,
+  { simp only [whisker_assoc_right, assoc, iso.inv_hom_id_assoc,
       whisker_left_naturality_comp_assoc, whisker_right_naturality_comp_assoc,
       inv_hom_whisker_left_assoc, bicategory.whisker_left_comp,
-      bicategory.whisker_right_comp, associator_conjugation_left, associator_conjugation_middle,
+      bicategory.comp_whisker_right, whisker_assoc_left, whisker_assoc_middle,
       pentagon_inv_hom_hom_hom_inv_assoc, pentagon_inv_inv_hom_hom_inv,
       pentagon_inv_inv_hom_hom_inv_assoc],
-    rw [whisker_exchange₃_assoc, iso.inv_hom_id_assoc] } }
+    rw [whisker_left_whisker_left_associator_inv_whisker_right_assoc, iso.inv_hom_id_assoc] } }
 
 variables (B C)
 
@@ -204,8 +204,8 @@ lemma whisker_right_naturality (f : a ⟶ b) (g : G.obj b ⟶ a') :
     (α_ _ _ _).inv ≫ (η.naturality f ▷ g) ≫ (α_ _ _ _).hom ≫
       (Γ.app a ▷ G.map f ≫ g) ≫ (α_ _ _ _).inv :=
 begin
-  rw [associator_inv_naturality_middle_assoc, ←bicategory.whisker_right_comp, naturality],
-  simp only [bicategory.whisker_right_comp, associator_conjugation_left]
+  rw [associator_inv_naturality_middle_assoc, ←bicategory.comp_whisker_right, naturality],
+  simp only [bicategory.comp_whisker_right, whisker_assoc_left]
 end
 
 end

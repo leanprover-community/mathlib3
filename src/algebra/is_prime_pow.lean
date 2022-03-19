@@ -132,7 +132,7 @@ begin
   simpa using hm₁,
 end
 
-lemma is_prime_pow_iff_factorization_single {n : ℕ} :
+lemma is_prime_pow_iff_factorization_eq_single {n : ℕ} :
   is_prime_pow n ↔ ∃ p k : ℕ, 0 < k ∧ n.factorization = finsupp.single p k :=
 begin
   rw is_prime_pow_nat_iff,
@@ -144,14 +144,14 @@ begin
     have hn0 : n ≠ 0,
     { rintro rfl,
       simpa only [finsupp.single_eq_zero, eq_comm, nat.factorization_zero, hk.ne'] using hn },
-    rw nat.pow_of_factorization_single hn0 hn,
+    rw nat.eq_pow_of_factorization_eq_single hn0 hn,
     exact ⟨nat.prime_of_mem_factorization
       (by simp [hn, hk.ne'] : p ∈ n.factorization.support), hk, rfl⟩ }
 end
 
 lemma is_prime_pow_iff_card_support_factorization_eq_one {n : ℕ} :
   is_prime_pow n ↔ n.factorization.support.card = 1 :=
-by simp_rw [is_prime_pow_iff_factorization_single, finsupp.card_support_eq_one', exists_prop,
+by simp_rw [is_prime_pow_iff_factorization_eq_single, finsupp.card_support_eq_one', exists_prop,
   pos_iff_ne_zero]
 
 /-- An equivalent definition for prime powers: `n` is a prime power iff there is a unique prime

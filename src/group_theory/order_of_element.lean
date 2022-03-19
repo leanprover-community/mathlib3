@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Julian Kuelshammer
 -/
 import data.nat.modeq
 import algebra.iterate_hom
-import algebra.pointwise
+import data.set.pointwise
 import dynamics.periodic_pts
 import group_theory.coset
 import group_theory.quotient_group

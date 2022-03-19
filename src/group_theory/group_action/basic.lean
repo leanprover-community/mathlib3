@@ -295,7 +295,7 @@ variables [group α] [mul_action α β]
 open quotient_group
 
 @[to_additive] instance quotient (H : subgroup α) : mul_action α (α ⧸ H) :=
-{ smul := λ g, quotient.map' (λ h, g * h)
+{ smul := λ g, quotient.map' ((*) g)
     (λ a b, (congr_arg (∈ H) (by rw [mul_inv_rev, mul_assoc, inv_mul_cancel_left])).mp),
   one_smul := λ a, quotient.induction_on' a (λ a, congr_arg quotient.mk' (one_mul a)),
   mul_smul := λ x y a, quotient.induction_on' a (λ a, congr_arg quotient.mk' (mul_assoc x y a)) }

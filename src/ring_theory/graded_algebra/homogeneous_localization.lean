@@ -113,11 +113,7 @@ instance : has_one (num_denom_same_deg 𝒜 x) :=
 @[simp] lemma denom_one : ((1 : num_denom_same_deg 𝒜 x).denom : A) = 1 := rfl
 
 instance : has_zero (num_denom_same_deg 𝒜 x) :=
-{ zero :=
-  { deg := 0,
-    num := 0,
-    denom := ⟨1, one_mem⟩,
-    denom_not_mem := λ r, (infer_instance : x.is_prime).ne_top $ x.eq_top_iff_one.mpr r } }
+{ zero := ⟨0, 0, ⟨1, one_mem⟩, λ r, (infer_instance : x.is_prime).ne_top $ x.eq_top_iff_one.mpr r⟩ }
 
 @[simp] lemma deg_zero : (0 : num_denom_same_deg 𝒜 x).deg = 0 := rfl
 @[simp] lemma num_zero : (0 : num_denom_same_deg 𝒜 x).num = 0 := rfl
@@ -133,7 +129,8 @@ instance : has_mul (num_denom_same_deg 𝒜 x) :=
 
 lemma deg_mul (c1 c2 : num_denom_same_deg 𝒜 x) : (c1 * c2).deg = c1.deg + c2.deg := rfl
 lemma num_mul (c1 c2 : num_denom_same_deg 𝒜 x) : ((c1 * c2).num : A) = c1.num * c2.num := rfl
-lemma denom_mul (c1 c2 : num_denom_same_deg 𝒜 x) : ((c1 * c2).denom : A) = c1.denom * c2.denom := rfl
+lemma denom_mul (c1 c2 : num_denom_same_deg 𝒜 x) :
+  ((c1 * c2).denom : A) = c1.denom * c2.denom := rfl
 
 instance : has_add (num_denom_same_deg 𝒜 x) :=
 { add := λ c1 c2,
@@ -182,7 +179,7 @@ lemma denom_pow (c : num_denom_same_deg 𝒜 x) (n : ℕ) : ((c ^ n).denom : A) 
 
 instance : has_scalar ℤ (num_denom_same_deg 𝒜 x) :=
 { smul := λ m c, ⟨c.deg, ⟨m • c.num, begin
-  rw [zsmul_eq_mul],
+    rw [zsmul_eq_mul],
     suffices : (m : A) ∈ 𝒜 0,
     { convert mul_mem this c.num.2,
       rw zero_add, },
@@ -286,7 +283,7 @@ instance : has_add (homogeneous_localization 𝒜 x) :=
     simp only [num_add, denom_add, ←localization.add_mk],
     convert congr_arg2 (+) h h';
     erw [localization.add_mk];
-    refl,
+    refl
   end) }
 
 instance : has_sub (homogeneous_localization 𝒜 x) :=
@@ -309,12 +306,10 @@ instance : has_zero (homogeneous_localization 𝒜 x) :=
 { zero := quotient.mk' 0 }
 
 lemma zero_eq :
-  (0 : homogeneous_localization 𝒜 x) = quotient.mk' 0 :=
-rfl
+  (0 : homogeneous_localization 𝒜 x) = quotient.mk' 0 := rfl
 
 lemma one_eq :
-  (1 : homogeneous_localization 𝒜 x) = quotient.mk' 1 :=
-rfl
+  (1 : homogeneous_localization 𝒜 x) = quotient.mk' 1 := rfl
 
 variable {x}
 lemma zero_val : (0 : homogeneous_localization 𝒜 x).val = 0 :=
@@ -333,7 +328,7 @@ begin
   change localization.mk _ _ = localization.mk _ _ + localization.mk _ _,
   dsimp only,
   rw [localization.add_mk],
-  refl,
+  refl
 end
 
 lemma mul_val (y1 y2 : homogeneous_localization 𝒜 x) :
@@ -363,10 +358,7 @@ end
 
 lemma sub_val (y1 y2 : homogeneous_localization 𝒜 x) :
   (y1 - y2).val = y1.val - y2.val :=
-begin
-  rw [show y1 - y2 = y1 + (-y2), from rfl, add_val, neg_val],
-  refl,
-end
+by rw [show y1 - y2 = y1 + (-y2), from rfl, add_val, neg_val]; refl
 
 lemma nsmul_val (y : homogeneous_localization 𝒜 x) (n : ℕ) :
   (n • y).val = n • y.val :=
@@ -482,8 +474,7 @@ lemma ext_iff_val (f g : homogeneous_localization 𝒜 x) : f = g ↔ f.val = g.
     induction g using quotient.induction_on,
     rw quotient.eq,
     unfold homogeneous_localization.val at h,
-    simp only [quotient.lift_on'_mk] at h,
-    exact h,
+    simpa only [quotient.lift_on'_mk] using h,
   end }
 
 end homogeneous_localization

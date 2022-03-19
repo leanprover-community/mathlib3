@@ -114,13 +114,11 @@ begin
   simp_rw multiplicity.int.nat_abs p z,
   refl,
   simp [hp, hz],
-  exact int.nat_abs_pos_of_ne_zero hz, -- TODO make simp lemma
-  -- see nat_abs_ne_zero (and make that a simp lemma too)
+  exact int.nat_abs_pos_of_ne_zero hz,
 end
 
 /-- `padic_val_int p 0` is 0 for any `p`. -/
-@[simp]
-protected lemma zero : padic_val_int p 0 = 0 :=
+@[simp] protected lemma zero : padic_val_int p 0 = 0 :=
 by simp [padic_val_int]
 
 /-- `padic_val_int p 1` is 0 for any `p`. -/
@@ -128,7 +126,7 @@ by simp [padic_val_int]
 by simp [padic_val_int]
 
 /-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
-lemma self (hp : 1 < p) : padic_val_int p p = 1 :=
+@[simp] lemma self (hp : 1 < p) : padic_val_int p p = 1 :=
 by simp [padic_val_int, padic_val_nat.self hp]
 
 /-- The p-adic value of an natural is its p-adic_value as an integer -/

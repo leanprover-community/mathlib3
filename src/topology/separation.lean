@@ -667,11 +667,39 @@ end
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
 @[mk_iff] class t2_space (α : Type u) [topological_space α] : Prop :=
-(t2 : ∀x y, x ≠ y → ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
+(t2 : ∀ x y, x ≠ y → ∃ u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
 lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :
-  ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
+  ∃ u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
 t2_space.t2 x y h
+
+lemma t2_separation_finset [t2_space α] : ∀ {s : finset α},
+  ∃ f : s → set α, set.pairwise_disjoint univ f ∧ ∀ x : s, x.1 ∈ f x ∧ is_open (f x) :=
+begin
+  classical,
+  apply @finset.induction _ (λ s : finset α, ∃ f : s → set α, _) _,
+  { refine ⟨λ _, default, _, _⟩; exact λ x, x.2.elim },
+  {
+    rintros x s hx ⟨f, hf, hf'⟩,
+    let g : insert x s → set α := λ t, begin
+      have := finset.mem_insert.1 t.2,
+    end
+  }
+end
+
+lemma t2_separation_fintype [t2_space α] {β : Type*} [fintype β] {f : β → α} {x : α}
+  (hx : x ∉ set.range f) : ∃ u : set α, is_open u ∧ u ∩ set.range f = ∅ :=
+begin
+  have H : ∀ i, ∃ u v, _ ∧ _ ∧ _ ∧ f i ∈ v ∧ _ := λ i, t2_separation (λ hi, hx ⟨i, hi.symm⟩),
+  refine ⟨⋂ i : β, classical.some (H i), is_open_Inter (λ i, _), _⟩,
+  { rcases classical.some_spec (H i) with ⟨_, h, _⟩,
+    exact h },
+  { rw eq_empty_iff_forall_not_mem,
+    rintros y ⟨hy, i, rfl⟩,
+    rw mem_Inter at hy,
+    rcases classical.some_spec (H i) with ⟨_, _, _, _, hi, h⟩,
+    exact (eq_empty_iff_forall_not_mem.1 h) (f i) ⟨hy i, hi⟩ }
+end
 
 @[priority 100] -- see Note [lower instance priority]
 instance t2_space.t1_space [t2_space α] : t1_space α :=

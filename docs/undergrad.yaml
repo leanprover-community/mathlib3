@@ -340,7 +340,7 @@ Single Variable Real Analysis:
     antiderivatives: 'https://en.wikipedia.org/wiki/Antiderivative'
     Riemann sums: 'box_integral.integral'
     antiderivative of a continuous function: 'interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right'
-    change of variable: `interval_integral.integral_comp_smul_deriv`
+    change of variable: 'interval_integral.integral_comp_smul_deriv'
     integration by parts: 'interval_integral.integral_mul_deriv_eq_deriv_mul'
     improper integrals: 'https://en.wikipedia.org/wiki/Improper_integral'
     absolute vs conditional convergence of improper integrals: 'https://en.wikipedia.org/wiki/Conditional_convergence'

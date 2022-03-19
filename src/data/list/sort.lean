@@ -364,6 +364,13 @@ eq_of_perm_of_sorted ((perm_merge_sort r l).trans (perm_insertion_sort r l).symm
 
 end total_and_transitive
 end correctness
+
+@[simp] theorem merge_sort_nil : [].merge_sort r = [] :=
+by rw list.merge_sort
+
+@[simp] theorem merge_sort_singleton (a : α) : [a].merge_sort r = [a] :=
+by rw list.merge_sort
+
 end merge_sort
 end sort
 

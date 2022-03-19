@@ -29,18 +29,6 @@ variables (R : Type u) {A : Type v} [comm_ring R] [ring A] [algebra R A]
 def is_algebraic (x : A) : Prop :=
 ∃ p : R[X], p ≠ 0 ∧ aeval x p = 0
 
-theorem zero_is_algebraic [nontrivial R] : is_algebraic R (0 : A) :=
-⟨_, X_ne_zero, aeval_X 0⟩
-
-theorem algebra_map_is_algebraic [nontrivial R] (x : R) : is_algebraic R (algebra_map R A x) :=
-⟨_, X_sub_C_ne_zero x, by rw [_root_.map_sub, aeval_X, aeval_C, sub_self]⟩
-
-theorem one_is_algebraic [nontrivial R] : is_algebraic R (1 : A) :=
-by { rw ←_root_.map_one _, exact algebra_map_is_algebraic R 1 }
-
-theorem nat_is_algebraic [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
-by { rw ←map_nat_cast _ n, exact algebra_map_is_algebraic R n }
-
 /-- An element of an R-algebra is transcendental over R if it is not algebraic over R. -/
 def transcendental (x : A) : Prop := ¬ is_algebraic R x
 
@@ -98,9 +86,18 @@ by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
 
 variables {R}
 
+theorem is_algebraic_zero [nontrivial R] : is_algebraic R (0 : A) :=
+⟨_, X_ne_zero, aeval_X 0⟩
+
 /-- An element of `R` is algebraic, when viewed as an element of the `R`-algebra `A`. -/
-lemma is_algebraic_algebra_map [nontrivial R] (a : R) : is_algebraic R (algebra_map R A a) :=
-⟨X - C a, X_sub_C_ne_zero a, by simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self]⟩
+theorem is_algebraic_algebra_map [nontrivial R] (x : R) : is_algebraic R (algebra_map R A x) :=
+⟨_, X_sub_C_ne_zero x, by rw [_root_.map_sub, aeval_X, aeval_C, sub_self]⟩
+
+theorem is_algebraic_one [nontrivial R] : is_algebraic R (1 : A) :=
+by { rw ←_root_.map_one _, exact is_algebraic_algebra_map 1 }
+
+theorem is_algebraic_nat [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
+by { rw ←map_nat_cast _ n, exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_algebra_map_of_is_algebraic {a : S} (h : is_algebraic R a) :
   is_algebraic R (algebra_map S A a) :=

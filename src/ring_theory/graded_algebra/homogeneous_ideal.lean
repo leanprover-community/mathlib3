@@ -341,8 +341,7 @@ begin
   rw ideal.is_homogeneous.iff_exists at HI HJ ⊢,
   obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
   rw ideal.span_mul_span',
-  refine ⟨s₁ * s₂, congr_arg _ _⟩,
-  exact (set.image_mul $ submonoid.subtype _).symm,
+  exact ⟨s₁ * s₂, congr_arg _ $ (set.image_mul (homogeneous_submonoid 𝒜).subtype).symm⟩,
 end
 
 variables {𝒜}

@@ -15,6 +15,7 @@ proves some basic theorems about it.
 
 variables {α : Type*} [has_zero α]
 
+/-- The sign of an element - 1 if it's positive, -1 if negative, 0 otherwise. -/
 def sign [has_lt α] [decidable_rel ((<) : α → α → Prop)] (a : α) :=
 if 0 < a then (1 : ℤ) else if a < 0 then -1 else 0
 

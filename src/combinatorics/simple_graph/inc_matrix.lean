@@ -99,8 +99,7 @@ begin
 end
 
 lemma inc_matrix_apply_eq_one_iff : G.inc_matrix R a e = 1 ↔ e ∈ G.incidence_set a :=
-by simp only [inc_matrix_apply, pi.one_apply, set.indicator_apply, ite_eq_left_iff,
-              zero_ne_one, imp_false, not_not]
+by { convert one_ne_zero.ite_eq_left_iff, assumption }
 
 end mul_zero_one_class
 

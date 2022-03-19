@@ -43,8 +43,6 @@ namespace submonoid
 
 variables [group G]
 
-open_locale pointwise
-
 /-- The submonoid with every element inverted. -/
 @[to_additive /-" The additive submonoid with every element negated. "-/]
 protected def has_inv : has_inv (submonoid G):=
@@ -55,7 +53,6 @@ protected def has_inv : has_inv (submonoid G):=
       by { rw mul_inv_rev, exact S.mul_mem hb ha } } }
 
 localized "attribute [instance] submonoid.has_inv" in pointwise
-open_locale pointwise
 
 @[simp, to_additive] lemma coe_inv (S : submonoid G) : ↑(S⁻¹) = (S : set G)⁻¹ := rfl
 
@@ -115,6 +112,25 @@ end submonoid
 
 namespace submonoid
 
+variables [comm_group G] {N : Type*} [comm_monoid N]
+
+/-- The submonoid of powers of a natural number of a commutative submonoid.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_has_pow : has_pow (submonoid N) ℕ := ⟨λ S n, S.map $ pow_monoid_hom n⟩
+
+/-- The submonoid of powers of an integer of a commutative subgroup.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_has_zpow : has_pow (submonoid G) ℤ := ⟨λ S n, S.map $ zpow_group_hom n⟩
+
+localized "attribute [instance] submonoid.pointwise_has_pow submonoid.pointwise_has_zpow"
+  in pointwise
+
+end submonoid
+
+namespace submonoid
+
 section monoid
 variables [monoid α] [mul_distrib_mul_action α M]
 
@@ -142,21 +158,6 @@ lemma mem_smul_pointwise_iff_exists (m : M) (a : α) (S : submonoid M) :
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ M] [is_central_scalar α M] :
   is_central_scalar α (submonoid M) :=
 ⟨λ a S, congr_arg (λ f, S.map f) $ monoid_hom.ext $ by exact op_smul_eq_smul _⟩
-
-/-- The submonoid of powers of a natural number of a commutative submonoid.
-
-This is available as an instance in the `pointwise` locale. -/
-protected def pointwise_has_pow {M : Type*} [comm_monoid M] : has_pow (submonoid M) ℕ :=
-⟨λ S n, S.map $ pow_monoid_hom n⟩
-
-/-- The submonoid of powers of an integer of a commutative subgroup.
-
-This is available as an instance in the `pointwise` locale. -/
-protected def pointwise_has_zpow {G : Type*} [comm_group G] : has_pow (submonoid G) ℤ :=
-⟨λ S n, S.map $ zpow_group_hom n⟩
-
-localized "attribute [instance] submonoid.pointwise_has_pow submonoid.pointwise_has_zpow"
-  in pointwise
 
 end monoid
 
@@ -216,8 +217,6 @@ lemma le_pointwise_smul_iff₀ {a : α} (ha : a ≠ 0) {S T : submonoid M} : S �
 subset_set_smul_iff₀ ha
 
 end group_with_zero
-
-open_locale pointwise
 
 @[to_additive]
 lemma mem_closure_inv {G : Type*} [group G] (S : set G) (x : G) :
@@ -316,8 +315,6 @@ lemma le_pointwise_smul_iff₀ {a : α} (ha : a ≠ 0) {S T : add_submonoid A} :
 subset_set_smul_iff₀ ha
 
 end group_with_zero
-
-open_locale pointwise
 
 end add_submonoid
 

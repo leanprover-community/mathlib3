@@ -25,6 +25,24 @@ This file is almost identical to `group_theory/submonoid/pointwise.lean`. Where 
 keep them in sync.
 -/
 
+namespace subgroup
+
+variables {G : Type*} [comm_group G]
+
+/-- The subgroup of powers of a natural number of a commutative subgroup.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_has_pow : has_pow (subgroup G) ℕ := ⟨λ S n, S.map $ pow_monoid_hom n⟩
+
+/-- The subgroup of powers of an integer of a commutative subgroup.
+
+This is available as an instance in the `pointwise` locale. -/
+protected def pointwise_has_zpow : has_pow (subgroup G) ℤ := ⟨λ S n, S.map $ zpow_group_hom n⟩
+
+localized "attribute [instance] subgroup.pointwise_has_pow subgroup.pointwise_has_zpow" in pointwise
+
+end subgroup
+
 variables {α : Type*} {G : Type*} {A : Type*} [group G] [add_group A]
 
 namespace subgroup
@@ -112,20 +130,6 @@ begin
   rintros _ ⟨h, h', rfl : _ = _, hh', rfl⟩,
   exact H.mul_mem hh hh',
 end
-
-/-- The subgroup of powers of a natural number of a commutative subgroup.
-
-This is available as an instance in the `pointwise` locale. -/
-protected def pointwise_has_pow {G : Type*} [comm_group G] : has_pow (subgroup G) ℕ :=
-⟨λ S n, S.map $ pow_monoid_hom n⟩
-
-/-- The subgroup of powers of an integer of a commutative subgroup.
-
-This is available as an instance in the `pointwise` locale. -/
-protected def pointwise_has_zpow {G : Type*} [comm_group G] : has_pow (subgroup G) ℤ :=
-⟨λ S n, S.map $ zpow_group_hom n⟩
-
-localized "attribute [instance] subgroup.pointwise_has_pow subgroup.pointwise_has_zpow" in pointwise
 
 end group
 

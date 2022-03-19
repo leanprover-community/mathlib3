@@ -157,6 +157,14 @@ begin
   exact hom.map_le_range h'
 end
 
+theorem cg_iff_countable [nonempty (encodable ((Σ i, L.functions i)))] {s : L.substructure M} :
+  s.cg ↔ nonempty (encodable s) :=
+begin
+  refine ⟨_, λ h, ⟨s, h, s.closure_eq⟩⟩,
+  rintro ⟨s, h, rfl⟩,
+  exact h.substructure_closure L
+end
+
 end substructure
 
 open substructure
@@ -216,6 +224,11 @@ begin
   rw [cg_def, ← hs],
   exact h.range f,
 end
+
+lemma cg_iff_countable [nonempty (encodable ((Σ i, L.functions i)))] :
+  cg L M ↔ nonempty (encodable M) :=
+by rw [cg_def, cg_iff_countable, cardinal.encodable_iff, cardinal.encodable_iff,
+  top_equiv.to_equiv.cardinal_eq]
 
 @[priority 100] instance cg_of_fg [h : fg L M] : cg L M :=
 cg_def.2 (fg_def.1 h).cg

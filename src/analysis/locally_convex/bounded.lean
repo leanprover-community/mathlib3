@@ -103,7 +103,7 @@ variables (𝕜 E)
 Note that this is not registered as an instance, in order to avoid diamonds with the
 metric bornology.-/
 def vonN_bornology : bornology E :=
-bornology.of_bounded (set_of (is_vonN_bounded 𝕜)) (is_vonN_bounded.empty 𝕜 E)
+bornology.of_bounded (set_of (is_vonN_bounded 𝕜)) (is_vonN_bounded_empty 𝕜 E)
   (λ _ hs _, hs.subset) (λ _ hs _, hs.union) is_vonN_bounded_covers
 
 variables {E}

@@ -39,7 +39,7 @@ def strongly_measurable_at_filter (f : α → β) (l : filter α) (μ : measure 
 
 protected lemma strongly_measurable_at_filter.eventually (h : strongly_measurable_at_filter f l μ) :
   ∀ᶠ s in l.lift' powerset, ae_strongly_measurable f (μ.restrict s) :=
-(eventually_lift'_powerset' $ λ s t, ae_measurable.mono_set).2 h
+(eventually_lift'_powerset' $ λ s t, ae_strongly_measurable.mono_set).2 h
 
 protected lemma strongly_measurable_at_filter.filter_mono
   (h : strongly_measurable_at_filter f l μ) (h' : l' ≤ l) :
@@ -285,7 +285,7 @@ alias integrable_at_filter.inf_ae_iff ↔ measure_theory.integrable_at_filter.of
 /-- If `μ` is a measure finite at filter `l` and `f` is a function such that its norm is bounded
 above at `l`, then `f` is integrable at `l`. -/
 lemma measure.finite_at_filter.integrable_at_filter {l : filter α} [is_measurably_generated l]
-  (hfm : measurable_at_filter f l μ) (hμ : μ.finite_at_filter l)
+  (hfm : strongly_measurable_at_filter f l μ) (hμ : μ.finite_at_filter l)
   (hf : l.is_bounded_under (≤) (norm ∘ f)) :
   integrable_at_filter f l μ :=
 begin
@@ -300,7 +300,7 @@ begin
 end
 
 lemma measure.finite_at_filter.integrable_at_filter_of_tendsto_ae
-  {l : filter α} [is_measurably_generated l] (hfm : measurable_at_filter f l μ)
+  {l : filter α} [is_measurably_generated l] (hfm : strongly_measurable_at_filter f l μ)
   (hμ : μ.finite_at_filter l) {b} (hf : tendsto f (l ⊓ μ.ae) (𝓝 b)) :
   integrable_at_filter f l μ :=
 (hμ.inf_of_left.integrable_at_filter (hfm.filter_mono inf_le_left)
@@ -310,22 +310,20 @@ alias measure.finite_at_filter.integrable_at_filter_of_tendsto_ae ←
   filter.tendsto.integrable_at_filter_ae
 
 lemma measure.finite_at_filter.integrable_at_filter_of_tendsto {l : filter α}
-  [is_measurably_generated l] (hfm : measurable_at_filter f l μ) (hμ : μ.finite_at_filter l)
-  {b} (hf : tendsto f l (𝓝 b)) :
+  [is_measurably_generated l] (hfm : strongly_measurable_at_filter f l μ)
+  (hμ : μ.finite_at_filter l) {b} (hf : tendsto f l (𝓝 b)) :
   integrable_at_filter f l μ :=
 hμ.integrable_at_filter hfm hf.norm.is_bounded_under_le
 
 alias measure.finite_at_filter.integrable_at_filter_of_tendsto ← filter.tendsto.integrable_at_filter
 
-variables [borel_space E] [second_countable_topology E]
-
 lemma integrable_add_of_disjoint {f g : α → E}
-  (h : disjoint (support f) (support g)) (hf : measurable f) (hg : measurable g) :
+  (h : disjoint (support f) (support g)) (hf : strongly_measurable f) (hg : strongly_measurable g) :
   integrable (f + g) μ ↔ integrable f μ ∧ integrable g μ :=
 begin
   refine ⟨λ hfg, ⟨_, _⟩, λ h, h.1.add h.2⟩,
-  { rw ← indicator_add_eq_left h, exact hfg.indicator (measurable_set_support hf) },
-  { rw ← indicator_add_eq_right h, exact hfg.indicator (measurable_set_support hg) }
+  { rw ← indicator_add_eq_left h, exact hfg.indicator hf.measurable_set_support },
+  { rw ← indicator_add_eq_right h, exact hfg.indicator hg.measurable_set_support }
 end
 
 end normed_group
@@ -355,10 +353,10 @@ begin
 end
 
 lemma continuous_on.integrable_at_nhds_within
-  [topological_space α] [opens_measurable_space α] [borel_space E]
+  [topological_space α] [opens_measurable_space α]
   {μ : measure α} [is_locally_finite_measure μ] {a : α} {t : set α} {f : α → E}
   (hft : continuous_on f t) (ht : measurable_set t) (ha : a ∈ t) :
   integrable_at_filter f (𝓝[t] a) μ :=
 by haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _;
-exact (hft a ha).integrable_at_filter ⟨_, self_mem_nhds_within, hft.ae_measurable ht⟩
+exact (hft a ha).integrable_at_filter ⟨_, self_mem_nhds_within, hft.ae_strongly_measurable ht⟩
   (μ.finite_at_nhds_within _ _)

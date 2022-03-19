@@ -213,7 +213,7 @@ hf.fin_strongly_measurable_of_set_sigma_finite measurable_set.univ (by simp)
   (by rwa measure.restrict_univ)
 
 /-- A strongly measurable function is measurable. -/
-protected lemma measurable [measurable_space α] [topological_space β] [metrizable_space β]
+protected lemma measurable {m : measurable_space α} [topological_space β] [metrizable_space β]
   [measurable_space β] [borel_space β] (hf : strongly_measurable f) :
   measurable f :=
 measurable_of_tendsto_metrizable (λ n, (hf.approx n).measurable)
@@ -223,6 +223,16 @@ lemma _root_.continuous.comp_strongly_measurable
   {m : measurable_space α} [topological_space β] [topological_space γ] {g : β → γ} {f : α → β}
   (hg : continuous g) (hf : strongly_measurable f) : strongly_measurable (λ x, g (f x)) :=
 ⟨λ n, simple_func.map g (hf.approx n), λ x, (hg.tendsto _).comp (hf.tendsto_approx x)⟩
+
+@[to_additive]
+lemma measurable_set_mul_support {m : measurable_space α}
+  [has_one β] [topological_space β] [metrizable_space β] (hf : strongly_measurable f) :
+  measurable_set (mul_support f) :=
+begin
+  letI : measurable_space β := borel β,
+  haveI : borel_space β := ⟨rfl⟩,
+  exact measurable_set_mul_support hf.measurable,
+end
 
 section arithmetic
 variables [measurable_space α] [topological_space β]

@@ -253,9 +253,7 @@ def lift_hom₂ : ∀ {a b : B} {f g : hom a b}, hom₂ f g → (lift_hom F f �
 | _ _ _ _ (hom₂.whisker_left f η)       := lift_hom F f ◁ lift_hom₂ η
 | _ _ _ _ (hom₂.whisker_right h η)      := lift_hom₂ η ▷ lift_hom F h
 
-local attribute [simp]
-  associator_naturality_left associator_naturality_middle associator_naturality_right
-  left_unitor_naturality right_unitor_naturality pentagon
+local attribute [simp] whisker_exchange
 
 lemma lift_hom₂_congr {a b : B} {f g : hom a b} {η θ : hom₂ f g} (H : rel η θ) :
   lift_hom₂ F η = lift_hom₂ F θ :=

@@ -291,45 +291,45 @@ lemma left_unitor_whisker_right (f : a ⟶ b) (g : b ⟶ c) :
   (λ_ f).hom ▷ g = (α_ (𝟙 a) f g).hom ≫ (λ_ (f ≫ g)).hom :=
 by simp only [left_unitor_comp, hom_inv_id_assoc]
 
-@[reassoc]
-lemma associator_inv_naturality_left {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
-  (η ▷ (g ≫ h)) ≫ (α_ f' g h).inv = (α_ f g h).inv ≫ ((η ▷ g) ▷ h) :=
-by rw [comp_inv_eq, assoc, associator_naturality_left, inv_hom_id_assoc]
-
 @[reassoc, simp]
 lemma associator_conjugation_left {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
   (η ▷ g) ▷ h = (α_ f g h).hom ≫ (η ▷ (g ≫ h)) ≫ (α_ f' g h).inv :=
-by rw [associator_inv_naturality_left, hom_inv_id_assoc]
+by rw [←associator_naturality_left_assoc, hom_inv_id, comp_id]
+
+@[reassoc]
+lemma associator_inv_naturality_left {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
+  (η ▷ (g ≫ h)) ≫ (α_ f' g h).inv = (α_ f g h).inv ≫ ((η ▷ g) ▷ h) :=
+by simp
 
 @[reassoc]
 lemma associator_inv_conjugation_left {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
   (α_ f g h).inv ≫ ((η ▷ g) ▷ h) ≫ (α_ f' g h).hom = η ▷ (g ≫ h) :=
 by simp
 
-@[reassoc]
-lemma associator_inv_naturality_middle (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
-  (f ◁ (η ▷ h)) ≫ (α_ f g' h).inv = (α_ f g h).inv ≫ ((f ◁ η) ▷ h) :=
-by rw [comp_inv_eq, assoc, associator_naturality_middle, inv_hom_id_assoc]
-
 @[reassoc, simp]
 lemma associator_conjugation_middle (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
   (f ◁ η) ▷ h = (α_ f g h).hom ≫ (f ◁ (η ▷ h)) ≫ (α_ f g' h).inv :=
-by rw [associator_inv_naturality_middle, hom_inv_id_assoc]
+by rw [←associator_naturality_middle_assoc, hom_inv_id, comp_id]
+
+@[reassoc]
+lemma associator_inv_naturality_middle (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
+  (f ◁ (η ▷ h)) ≫ (α_ f g' h).inv = (α_ f g h).inv ≫ ((f ◁ η) ▷ h) :=
+by simp
 
 @[reassoc]
 lemma associator_inv_conjugation_middle (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
   (α_ f g h).inv ≫ ((f ◁ η) ▷ h) ≫ (α_ f g' h).hom = f ◁ (η ▷ h) :=
 by simp
 
-@[reassoc]
-lemma associator_inv_naturality_right (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
-  (f ◁ (g ◁ η)) ≫ (α_ f g h').inv = (α_ f g h).inv ≫ ((f ≫ g) ◁ η) :=
-by rw [comp_inv_eq, assoc, associator_naturality_right, inv_hom_id_assoc]
-
 @[reassoc, simp]
 lemma associator_conjugation_right (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
   (f ≫ g) ◁ η = (α_ f g h).hom ≫ (f ◁ (g ◁ η)) ≫ (α_ f g h').inv :=
-by rw [associator_inv_naturality_right, hom_inv_id_assoc]
+by rw [←associator_naturality_right_assoc, hom_inv_id, comp_id]
+
+@[reassoc]
+lemma associator_inv_naturality_right (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
+  (f ◁ (g ◁ η)) ≫ (α_ f g h').inv = (α_ f g h).inv ≫ ((f ≫ g) ◁ η) :=
+by simp
 
 @[reassoc]
 lemma associator_inv_conjugation_right (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
@@ -340,8 +340,7 @@ by simp
 lemma pentagon_inv (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) :
   (f ◁ (α_ g h i).inv) ≫ (α_ f (g ≫ h) i).inv ≫ ((α_ f g h).inv ▷ i) =
     (α_ f g (h ≫ i)).inv ≫ (α_ (f ≫ g) h i).inv :=
-eq_of_inv_eq_inv (by simp only [pentagon, inv_whisker_left, inv_whisker_right,
-  is_iso.iso.inv_inv, is_iso.inv_comp, assoc])
+eq_of_inv_eq_inv (by simp)
 
 @[simp, reassoc]
 lemma pentagon_inv_inv_hom_hom_inv (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) :
@@ -442,7 +441,7 @@ by rw [←whisker_left_iff, ←cancel_epi (α_ (𝟙 a) (𝟙 _) (𝟙 _)).hom,
 lemma unitors_inv_equal : (λ_ (𝟙 a)).inv = (ρ_ (𝟙 a)).inv :=
 by { ext, rw [←unitors_equal], simp only [hom_inv_id] }
 
-@[simp, reassoc]
+@[reassoc]
 lemma whisker_exchange₃ {a b b' c d : B}
   {f : a ⟶ b} {f' : a ⟶ b'} {g : b ⟶ c} {g' : b' ⟶ c} {h h' : c ⟶ d}
   (η : f ≫ g ⟶ f' ≫ g') (θ : h ⟶ h') :

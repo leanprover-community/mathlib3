@@ -145,8 +145,7 @@ def vcomp (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tran
       bicategory.whisker_right_comp, associator_conjugation_left, associator_conjugation_middle,
       pentagon_inv_hom_hom_hom_inv_assoc, pentagon_inv_inv_hom_hom_inv,
       pentagon_inv_inv_hom_hom_inv_assoc],
-    rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc,
-      associator_naturality_right_assoc] } }
+    rw [whisker_exchange₃_assoc, iso.inv_hom_id_assoc] } }
 
 variables (B C)
 
@@ -246,5 +245,3 @@ end
 end oplax_nat_trans
 
 end category_theory
-
-#lint

@@ -27,35 +27,38 @@ variables {α β E F : Type*} [measurable_space α]
 
 section
 
-variables [measurable_space β] {l l' : filter α} {f g : α → β} {μ ν : measure α}
+variables [topological_space β] {l l' : filter α} {f g : α → β} {μ ν : measure α}
 
-/-- A function `f` is measurable at filter `l` w.r.t. a measure `μ` if it is ae-measurable
+/-- A function `f` is measurable at a filter `l` w.r.t. a measure `μ` if it is ae-measurable
 w.r.t. `μ.restrict s` for some `s ∈ l`. -/
-def measurable_at_filter (f : α → β) (l : filter α) (μ : measure α . volume_tac) :=
-∃ s ∈ l, ae_measurable f (μ.restrict s)
+def strongly_measurable_at_filter (f : α → β) (l : filter α) (μ : measure α . volume_tac) :=
+∃ s ∈ l, ae_strongly_measurable f (μ.restrict s)
 
-@[simp] lemma measurable_at_bot {f : α → β} : measurable_at_filter f ⊥ μ :=
+@[simp] lemma strongly_measurable_at_bot {f : α → β} : strongly_measurable_at_filter f ⊥ μ :=
 ⟨∅, mem_bot, by simp⟩
 
-protected lemma measurable_at_filter.eventually (h : measurable_at_filter f l μ) :
-  ∀ᶠ s in l.lift' powerset, ae_measurable f (μ.restrict s) :=
+protected lemma strongly_measurable_at_filter.eventually (h : strongly_measurable_at_filter f l μ) :
+  ∀ᶠ s in l.lift' powerset, ae_strongly_measurable f (μ.restrict s) :=
 (eventually_lift'_powerset' $ λ s t, ae_measurable.mono_set).2 h
 
-protected lemma measurable_at_filter.filter_mono (h : measurable_at_filter f l μ) (h' : l' ≤ l) :
-  measurable_at_filter f l' μ :=
+protected lemma strongly_measurable_at_filter.filter_mono
+  (h : strongly_measurable_at_filter f l μ) (h' : l' ≤ l) :
+  strongly_measurable_at_filter f l' μ :=
 let ⟨s, hsl, hs⟩ := h in ⟨s, h' hsl, hs⟩
 
-protected lemma ae_measurable.measurable_at_filter (h : ae_measurable f μ) :
-  measurable_at_filter f l μ :=
+protected lemma measure_theory.ae_strongly_measurable.strongly_measurable_at_filter
+  (h : ae_strongly_measurable f μ) :
+  strongly_measurable_at_filter f l μ :=
 ⟨univ, univ_mem, by rwa measure.restrict_univ⟩
 
-lemma ae_measurable.measurable_at_filter_of_mem {s} (h : ae_measurable f (μ.restrict s))
-  (hl : s ∈ l) : measurable_at_filter f l μ :=
+lemma ae_strongly_measurable.strongly_measurable_at_filter_of_mem
+  {s} (h : ae_strongly_measurable f (μ.restrict s)) (hl : s ∈ l) :
+  strongly_measurable_at_filter f l μ :=
 ⟨s, hl, h⟩
 
-protected lemma measurable.measurable_at_filter (h : measurable f) :
-  measurable_at_filter f l μ :=
-h.ae_measurable.measurable_at_filter
+protected lemma measure_theory.strongly_measurable.measurable_at_filter (h : strongly_measurable f) :
+  strongly_measurable_at_filter f l μ :=
+h.ae_strongly_measurable.strongly_measurable_at_filter
 
 end
 
@@ -69,7 +72,7 @@ lemma has_finite_integral_restrict_of_bounded [normed_group E] {f : α → E} {s
 by haveI : is_finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_apply_univ]⟩;
   exact has_finite_integral_of_bounded hf
 
-variables [normed_group E] [measurable_space E] {f g : α → E} {s t : set α} {μ ν : measure α}
+variables [normed_group E] {f g : α → E} {s t : set α} {μ ν : measure α}
 
 /-- A function is `integrable_on` a set `s` if it is almost everywhere measurable on `s` and if the
 integral of its pointwise norm over `s` is less than infinity. -/
@@ -143,7 +146,7 @@ lemma integrable_on.union (hs : integrable_on f s μ) (ht : integrable_on f t μ
   integrable_on f (s ∪ t) μ ↔ integrable_on f s μ ∧ integrable_on f t μ :=
 ⟨λ h, ⟨h.left_of_union, h.right_of_union⟩, λ h, h.1.union h.2⟩
 
-@[simp] lemma integrable_on_singleton_iff {x : α} [measurable_singleton_class α]:
+@[simp] lemma integrable_on_singleton_iff {x : α} [measurable_singleton_class α] :
   integrable_on f {x} μ ↔ f x = 0 ∨ μ {x} < ∞ :=
 begin
   have : f =ᵐ[μ.restrict {x}] (λ y, f x),
@@ -167,7 +170,7 @@ integrable_on_finite_Union s.finite_to_set
 
 @[simp] lemma integrable_on_fintype_Union [fintype β] {t : β → set α} :
   integrable_on f (⋃ i, t i) μ ↔ ∀ i, integrable_on f (t i) μ :=
-by simpa using @integrable_on_finset_Union _ _ _ _ _ _ f μ finset.univ t
+by simpa using @integrable_on_finset_Union _ _ _ _ _ f μ finset.univ t
 
 lemma integrable_on.add_measure (hμ : integrable_on f s μ) (hν : integrable_on f s ν) :
   integrable_on f s (μ + ν) :=
@@ -231,8 +234,8 @@ begin
   rwa [← indicator_eq_self.2 h1s, integrable_indicator_iff h2s]
 end
 
-lemma integrable_on_Lp_of_measure_ne_top {E} [normed_group E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] {p : ℝ≥0∞} {s : set α} (f : Lp E p μ) (hp : 1 ≤ p) (hμs : μ s ≠ ∞) :
+lemma integrable_on_Lp_of_measure_ne_top {E} [normed_group E]
+  {p : ℝ≥0∞} {s : set α} (f : Lp E p μ) (hp : 1 ≤ p) (hμs : μ s ≠ ∞) :
   integrable_on f s μ :=
 begin
   refine mem_ℒp_one_iff_integrable.mp _,
@@ -331,7 +334,7 @@ end measure_theory
 
 open measure_theory
 
-variables [measurable_space E] [normed_group E]
+variables [normed_group E]
 
 /-- A function which is continuous on a set `s` is almost everywhere measurable with respect to
 `μ.restrict s`. -/

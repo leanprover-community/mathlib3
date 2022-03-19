@@ -759,6 +759,10 @@ protected lemma mono' {ν : measure α} (h : ae_strongly_measurable f μ) (h' : 
   ae_strongly_measurable f ν :=
 ⟨h.mk f, h.strongly_measurable_mk, h' h.ae_eq_mk⟩
 
+lemma mono_set {s t} (h : s ⊆ t) (ht : ae_strongly_measurable f (μ.restrict t)) :
+  ae_strongly_measurable f (μ.restrict s) :=
+ht.mono_measure (restrict_mono h le_rfl)
+
 protected lemma restrict (hfm : ae_strongly_measurable f μ) {s} :
   ae_strongly_measurable f (μ.restrict s) :=
 hfm.mono_measure measure.restrict_le_self

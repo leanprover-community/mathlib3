@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
 
-import group_theory.complement
-import group_theory.group_action.basic
 import group_theory.sylow
+import group_theory.transfer
 
 /-!
 # The Schur-Zassenhaus Theorem
@@ -31,119 +30,99 @@ section schur_zassenhaus_abelian
 
 variables {G : Type*} [group G] {H : subgroup G}
 
-@[to_additive] instance : mul_action G (left_transversals (H : set G)) :=
-{ smul := λ g T, ⟨left_coset g T, mem_left_transversals_iff_exists_unique_inv_mul_mem.mpr (λ g', by
-  { obtain ⟨t, ht1, ht2⟩ := mem_left_transversals_iff_exists_unique_inv_mul_mem.mp T.2 (g⁻¹ * g'),
-    simp_rw [←mul_assoc, ←mul_inv_rev] at ht1 ht2,
-    refine ⟨⟨g * t, mem_left_coset g t.2⟩, ht1, _⟩,
-    rintros ⟨_, t', ht', rfl⟩ h,
-    exact subtype.ext ((mul_right_inj g).mpr (subtype.ext_iff.mp (ht2 ⟨t', ht'⟩ h))) })⟩,
-  one_smul := λ T, subtype.ext (one_left_coset T),
-  mul_smul := λ g g' T, subtype.ext (left_coset_assoc ↑T g g').symm }
-
-lemma smul_symm_apply_eq_mul_symm_apply_inv_smul
-  (g : G) (α : left_transversals (H : set G)) (q : G ⧸ H) :
-  ↑((equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp (g • α).2)).symm q) =
-    g * ((equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)).symm
-      (g⁻¹ • q : G ⧸ H)) :=
-begin
-  let w := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)),
-  let y := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp (g • α).2)),
-  change ↑(y.symm q) = ↑(⟨_, mem_left_coset g (subtype.mem _)⟩ : (g • α).1),
-  refine subtype.ext_iff.mp (y.symm_apply_eq.mpr _),
-  change q = g • (w (w.symm (g⁻¹ • q : G ⧸ H))),
-  rw [equiv.apply_symm_apply, ←mul_smul, mul_inv_self, one_smul],
-end
-
 variables [is_commutative H] [fintype (G ⧸ H)]
 
 variables (α β γ : left_transversals (H : set G))
 
-/-- The difference of two left transversals -/
-@[to_additive "The difference of two left transversals"]
-noncomputable def diff [hH : normal H] : H :=
-let α' := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)).symm,
-    β' := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp β.2)).symm in
-∏ (q : G ⧸ H), ⟨(α' q) * (β' q)⁻¹,
-  hH.mem_comm (quotient.exact' ((β'.symm_apply_apply q).trans (α'.symm_apply_apply q).symm))⟩
-
-@[to_additive] lemma diff_mul_diff [normal H] : diff α β * diff β γ = diff α γ :=
-finset.prod_mul_distrib.symm.trans (finset.prod_congr rfl (λ x hx, subtype.ext
-  (by rw [coe_mul, coe_mk, coe_mk, coe_mk, mul_assoc, inv_mul_cancel_left])))
-
-@[to_additive] lemma diff_self [normal H] : diff α α = 1 :=
-mul_right_eq_self.mp (diff_mul_diff α α α)
-
-@[to_additive] lemma diff_inv [normal H]: (diff α β)⁻¹ = diff β α :=
-inv_eq_of_mul_eq_one ((diff_mul_diff α β α).trans (diff_self α))
-
-lemma smul_diff_smul [hH : normal H] (g : G) :
-  diff (g • α) (g • β) = ⟨g * diff α β * g⁻¹, hH.conj_mem (diff α β).1 (diff α β).2 g⟩ :=
-begin
-  let ϕ : H →* H :=
-  { to_fun := λ h, ⟨g * h * g⁻¹, hH.conj_mem h.1 h.2 g⟩,
-    map_one' := subtype.ext (by rw [coe_mk, coe_one, mul_one, mul_inv_self]),
-    map_mul' := λ h₁ h₂, subtype.ext (by rw [coe_mk, coe_mul, coe_mul, coe_mk, coe_mk, mul_assoc,
-      mul_assoc, mul_assoc, mul_assoc, mul_assoc, inv_mul_cancel_left]) },
-  refine eq.trans (finset.prod_bij' (λ q _, (↑g)⁻¹ * q) (λ _ _, finset.mem_univ _)
-    (λ q _, subtype.ext _) (λ q _, ↑g * q) (λ _ _, finset.mem_univ _)
-    (λ q _, mul_inv_cancel_left g q) (λ q _, inv_mul_cancel_left g q)) (ϕ.map_prod _ _).symm,
-  change _ * _ = g * (_ * _) * g⁻¹,
-  simp_rw [smul_symm_apply_eq_mul_symm_apply_inv_smul, mul_inv_rev, mul_assoc],
-  refl,
-end
-
-lemma smul_diff [H.normal] (h : H) :
-  diff (h • α) β = h ^ H.index * diff α β :=
-begin
-  rw [diff, diff, index_eq_card, ←finset.card_univ, ←finset.prod_const, ←finset.prod_mul_distrib],
-  refine finset.prod_congr rfl (λ q _, _),
-  rw [subtype.ext_iff, coe_mul, coe_mk, coe_mk, ←mul_assoc, mul_right_cancel_iff],
-  rw [show h • α = (h : G) • α, from rfl, smul_symm_apply_eq_mul_symm_apply_inv_smul],
-  rw [mul_left_cancel_iff, ←subtype.ext_iff, equiv.apply_eq_iff_eq, inv_smul_eq_iff],
-  exact self_eq_mul_left.mpr ((quotient_group.eq_one_iff _).mpr h.2),
-end
-
 variables (H)
 
-instance setoid_diff [H.normal] : setoid (left_transversals (H : set G)) :=
-setoid.mk (λ α β, diff α β = 1) ⟨λ α, diff_self α, λ α β h₁,
+open subgroup.left_transversals
+
+instance setoid_diff : setoid (left_transversals (H : set G)) :=
+setoid.mk (λ α β, diff (monoid_hom.id H) α β = 1)
+  ⟨λ α, diff_self (monoid_hom.id H) α, λ α β h₁,
   by rw [←diff_inv, h₁, one_inv], λ α β γ h₁ h₂, by rw [←diff_mul_diff, h₁, h₂, one_mul]⟩
 
 /-- The quotient of the transversals of an abelian normal `N` by the `diff` relation -/
-def quotient_diff [H.normal] :=
+def quotient_diff :=
 quotient H.setoid_diff
 
-instance [H.normal] : inhabited H.quotient_diff := quotient.inhabited _
+instance : inhabited H.quotient_diff := quotient.inhabited _
+
+def key_map [h : H.normal] : G → H.normalizerᵐᵒᵖ :=
+λ g, mul_opposite.op ⟨g, eq_top_iff.mp (normalizer_eq_top.mpr h) (mem_top g)⟩
 
 variables {H}
 
-instance [H.normal] : mul_action G H.quotient_diff :=
-{ smul := λ g, quotient.map (λ α, g • α) (λ α β h, (smul_diff_smul α β g).trans
-    (subtype.ext (mul_inv_eq_one.mpr (mul_right_eq_self.mpr (subtype.ext_iff.mp h))))),
-  mul_smul := λ g₁ g₂ q, quotient.induction_on q (λ α, congr_arg quotient.mk (mul_smul g₁ g₂ α)),
-  one_smul := λ q, quotient.induction_on q (λ α, congr_arg quotient.mk (one_smul G α)) }
+instance [h : H.normal] : mul_action G H.quotient_diff :=
+{ smul := λ g, quotient.map (λ α, (key_map H g⁻¹) • α) -- eventually, decide whether to have ⁻¹ inside or outside
+    begin
+      intros S T h,
+      change diff _ _ _ = (1 : H) at h,
+      change diff _ _ _ = (1 : H),
+      rw [smul_diff_smul', h_1, coe_one, mul_one, inv_mul_self],
+      refl,
+    end,
+  mul_smul := λ g₁ g₂ q, quotient.induction_on q
+    (λ T, begin
+      refine congr_arg quotient.mk _,
+      simp only,
+      rw [←coe_inv, mul_inv_rev],
+      sorry,
+    end),
+  one_smul := λ q, quotient.induction_on q (λ T, congr_arg quotient.mk begin sorry end) }
+
+lemma smul_diff' [H.normal] [is_commutative H] (h : H) :
+  diff (monoid_hom.id H) α ((key_map H h) • β) = diff (monoid_hom.id H) α β * h ^ H.index :=
+begin
+  rw [diff, diff, index_eq_card, ←finset.card_univ, ←finset.prod_const, ←finset.prod_mul_distrib],
+  refine finset.prod_congr rfl (λ q _, _),
+  rw [subtype.ext_iff, coe_mul, monoid_hom.id_apply, monoid_hom.id_apply, coe_mk, coe_mk, mul_assoc, mul_left_cancel_iff],
+  rw [smul_symm_apply_eq_mul_symm_apply_inv_smul'],
+  change _ * (h : G) = _ * (h : G),
+  rw [mul_right_cancel_iff, ←subtype.ext_iff, equiv.apply_eq_iff_eq, inv_smul_eq_iff],
+  exact self_eq_mul_right.mpr ((quotient_group.eq_one_iff _).mpr h.2),
+end
 
 variables [fintype H]
+
+lemma exists_eq_smul [H.normal] (α β : H.quotient_diff)
+  (hH : nat.coprime (fintype.card H) H.index) :
+  ∃ h : H, α = h • β :=
+quotient.induction_on α (quotient.induction_on β
+  (λ β α, exists_imp_exists (λ n, quotient.sound)
+    ⟨(pow_coprime hH).symm (diff (monoid_hom.id H) α β), by
+    { change diff _ _ _ = (1 : H),
+      simp only,
+      change diff _ _ ((H.key_map (((pow_coprime hH).symm (diff (monoid_hom.id H) α β))⁻¹)) • β) = (1 : H),
+      have key := smul_diff' α β ((pow_coprime hH).symm (diff (monoid_hom.id H) α β))⁻¹,
+      refine key.trans _,
+      simp only [submonoid.coe_subtype, coe_zpow, mul_opposite.unop_op, coe_mk, inv_pow],
+      change (diff _ α β) * (pow_coprime hH ((pow_coprime hH).symm (diff _ α β)))⁻¹ = 1,
+      rw [equiv.apply_symm_apply, mul_inv_self], }⟩))
 
 lemma exists_smul_eq [H.normal] (α β : H.quotient_diff)
   (hH : nat.coprime (fintype.card H) H.index) :
   ∃ h : H, h • α = β :=
-quotient.induction_on α (quotient.induction_on β
-  (λ β α, exists_imp_exists (λ n, quotient.sound)
-    ⟨(pow_coprime hH).symm (diff α β)⁻¹, by
-    { change diff ((_ : H) • _) _ = 1,
-      rw smul_diff,
-      change pow_coprime hH ((pow_coprime hH).symm (diff α β)⁻¹) * (diff α β) = 1,
-      rw [equiv.apply_symm_apply, inv_mul_self] }⟩))
+begin
+  simp_rw [eq_comm],
+  exact exists_eq_smul β α hH,
+end
+
+lemma _root_.submonoid.subtype_apply {G : Type*} [monoid G] (H : submonoid G) (h : H) :
+  H.subtype h = h := rfl
 
 lemma smul_left_injective [H.normal] (α : H.quotient_diff)
   (hH : nat.coprime (fintype.card H) H.index) :
   function.injective (λ h : H, h • α) :=
 λ h₁ h₂, begin
   refine quotient.induction_on α (λ α hα, _),
-  replace hα : diff (h₁ • α) (h₂ • α) = 1 := quotient.exact hα,
-  rw [smul_diff, ←diff_inv, smul_diff, diff_self, mul_one, mul_inv_eq_one] at hα,
+  replace hα : diff (monoid_hom.id H) _ _ = 1 := quotient.exact hα,
+  simp only at hα,
+  rw [_root_.submonoid.subtype_apply, _root_.submonoid.subtype_apply] at hα,
+  simp only [←coe_inv] at hα,
+  rw [smul_diff', ←diff_inv, smul_diff', diff_self, one_mul, inv_mul_eq_one] at hα,
+  rw [inv_pow, inv_pow, inv_inj] at hα,
   exact (pow_coprime hH).injective hα,
 end
 

@@ -290,21 +290,11 @@ lemma homogeneous_localization.one_eq :
 rfl
 
 variable {x}
-lemma zero_val : (0 : homogeneous_localization x).val= 0 :=
-begin
-  rw [homogeneous_localization.zero_eq, homogeneous_localization.val, quotient.lift_on'_mk'],
-  change localization.mk _ _ = _,
-  convert localization.mk_zero _,
-end
+lemma zero_val : (0 : homogeneous_localization x).val = 0 :=
+localization.mk_zero _
 
-lemma one_val : (1 : homogeneous_localization x).val= 1 :=
-begin
-  rw [homogeneous_localization.one_eq, homogeneous_localization.val, quotient.lift_on'_mk'],
-  change localization.mk _ _ = _,
-  simp only [num_one, denom_one],
-  convert localization.mk_self _,
-  refl,
-end
+lemma one_val : (1 : homogeneous_localization x).val = 1 :=
+localization.mk_one
 
 lemma add_val (y1 y2 : homogeneous_localization x) :
   (y1 + y2).val = y1.val + y2.val :=

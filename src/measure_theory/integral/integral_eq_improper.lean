@@ -163,6 +163,17 @@ lemma ae_cover_restrict_of_ae_imp {s : set α} {φ : ι → set α}
 { ae_eventually_mem := by rwa ae_restrict_iff' hs,
   measurable := measurable }
 
+lemma ae_cover_Ioo_restrict_Ioo [linear_order α] [topological_space α] [order_closed_topology α]
+  [opens_measurable_space α] {a b : ι → α} {a' b' : α}
+  (ha : tendsto a l $ 𝓝 a') (hb : tendsto b l $ 𝓝 b') :
+  ae_cover (μ.restrict $ Ioo a' b') l (λ i, Ioo (a i) (b i)) :=
+begin
+  refine ae_cover_restrict_of_ae_imp measurable_set_Ioo (ae_of_all _ $ λ x hx, _)
+    (λ i, measurable_set_Ioo),
+  filter_upwards [eventually_lt_of_tendsto_lt hx.1 ha, eventually_gt_of_tendsto_gt hx.2 hb],
+  exact λ i hai hbi, ⟨hai, hbi⟩
+end
+
 lemma ae_cover.inter_restrict {φ : ι → set α} (hφ : ae_cover μ l φ)
   {s : set α} (hs : measurable_set s) :
   ae_cover (μ.restrict s) l (λ i, φ i ∩ s) :=
@@ -472,6 +483,33 @@ lemma integrable_on_Ioi_of_interval_integral_norm_tendsto (I : ℝ) (a : α)
   integrable_on f (Ioi a) μ :=
 let ⟨I', hI'⟩ := h.is_bounded_under_le in
   integrable_on_Ioi_of_interval_integral_norm_bounded I' a hfi hb hI'
+
+lemma integrable_on_Ioo_of_interval_integral_norm_bounded (I : ℝ) (a' b' : α)
+  (hfi : ∀ i, integrable_on f (Ioo (a i) (b i)) μ) (ha : tendsto a l $ 𝓝 a')
+  (hb : tendsto b l $ 𝓝 b')
+  (h : ∀ᶠ i in l, (∫ x in Ioo (a i) (b i), ∥f x∥ ∂μ) ≤ I) :
+  integrable_on f (Ioo a' b') μ :=
+begin
+  have hφ : ae_cover (μ.restrict $ Ioo a' b') l _ := ae_cover_Ioo_restrict_Ioo ha hb,
+  --have hfi : ∀ i, integrable_on f (Iic (b i)) (μ.restrict $ Ioo a' b'),
+  --{ intro i,
+  --  rw [integrable_on, measure.restrict_restrict (hφ.measurable i), inter_comm],
+  --  exact hfi i },
+  --rw integrable_on,
+  refine hφ.integrable_of_integral_norm_bounded I (λ i, (hfi i).restrict $ measurable_set_Ioo)
+    (h.mono $ λ x, _),
+  sorry
+  --filter_upwards [hb.eventually (eventually_ge_at_top a)] with i hbi,
+  --rw [interval_integral.integral_of_le hbi, measure.restrict_restrict (hφ.measurable i),
+  --    inter_comm],
+  --exact id
+end
+
+lemma foo (t : ℝ) (ht : t ∈ (Ioo (-1) 0 : set ℝ)) :
+  integrable_on (λ x : ℝ, x ^ t) (Ioo 0 1) :=
+begin
+  refine integrable_on_Ioo_of_integral_norm_bounded
+end
 
 end integrable_of_interval_integral
 

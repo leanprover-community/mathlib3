@@ -126,8 +126,8 @@ def oplax_functor.map₂_associator_aux
   (map₂ : Π {a b : B} {f g : a ⟶ b}, (f ⟶ g) → (map f ⟶ map g))
   (map_comp : Π {a b c : B} (f : a ⟶ b) (g : b ⟶ c), map (f ≫ g) ⟶ map f ≫ map g)
   {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) : Prop :=
-map₂ (α_ f g h).hom ≫ map_comp f (g ≫ h) ≫ (map f ◁ map_comp g h) =
-  map_comp (f ≫ g) h ≫ (map_comp f g ▷ map h) ≫ (α_ (map f) (map g) (map h)).hom
+map₂ (α_ f g h).hom ≫ map_comp f (g ≫ h) ≫ map f ◁ map_comp g h =
+  map_comp (f ≫ g) h ≫ map_comp f g ▷ map h ≫ (α_ (map f) (map g) (map h)).hom
 
 /--
 An oplax functor `F` between bicategories `B` and `C` consists of a function between objects
@@ -146,9 +146,9 @@ structure oplax_functor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u�
 (map_id (a : B) : map (𝟙 a) ⟶ 𝟙 (obj a))
 (map_comp {a b c : B} (f : a ⟶ b) (g : b ⟶ c) : map (f ≫ g) ⟶ map f ≫ map g)
 (map_comp_naturality_left' : ∀ {a b c : B} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c),
-  map₂ (η ▷ g) ≫ map_comp f' g = map_comp f g ≫ (map₂ η ▷ map g) . obviously)
+  map₂ (η ▷ g) ≫ map_comp f' g = map_comp f g ≫ map₂ η ▷ map g . obviously)
 (map_comp_naturality_right' : ∀ {a b c : B} (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g'),
-  map₂ (f ◁ η) ≫ map_comp f g' = map_comp f g ≫ (map f ◁ map₂ η) . obviously)
+  map₂ (f ◁ η) ≫ map_comp f g' = map_comp f g ≫ map f ◁ map₂ η . obviously)
 (map₂_id' : ∀ {a b : B} (f : a ⟶ b), map₂ (𝟙 f) = 𝟙 (map f) . obviously)
 (map₂_comp' : ∀ {a b : B} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h),
   map₂ (η ≫ θ) = map₂ η ≫ map₂ θ . obviously)
@@ -156,9 +156,9 @@ structure oplax_functor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u�
   oplax_functor.map₂_associator_aux obj (λ a b, map) (λ a b f g, map₂) (λ a b c, map_comp) f g h
     . obviously)
 (map₂_left_unitor' : ∀ {a b : B} (f : a ⟶ b),
-  map₂ (λ_ f).hom = map_comp (𝟙 a) f ≫ (map_id a ▷ map f) ≫ (λ_ (map f)).hom . obviously)
+  map₂ (λ_ f).hom = map_comp (𝟙 a) f ≫ map_id a ▷ map f ≫ (λ_ (map f)).hom . obviously)
 (map₂_right_unitor' : ∀ {a b : B} (f : a ⟶ b),
-  map₂ (ρ_ f).hom = map_comp f (𝟙 b) ≫ (map f ◁ map_id b) ≫ (ρ_ (map f)).hom . obviously)
+  map₂ (ρ_ f).hom = map_comp f (𝟙 b) ≫ map f ◁ map_id b ≫ (ρ_ (map f)).hom . obviously)
 
 namespace oplax_functor
 
@@ -225,11 +225,11 @@ def comp (F : oplax_functor B C) (G : oplax_functor C D) : oplax_functor B D :=
     simp only [map₂_associator, ←map₂_comp_assoc, ←map_comp_naturality_right_assoc,
       whisker_left_comp, assoc],
     simp only [map₂_associator, map₂_comp, map_comp_naturality_left_assoc,
-      whisker_right_comp, assoc] },
+      comp_whisker_right, assoc] },
   map₂_left_unitor' := λ a b f, by
   { dsimp,
     simp only [map₂_left_unitor, map₂_comp, map_comp_naturality_left_assoc,
-      whisker_right_comp, assoc] },
+      comp_whisker_right, assoc] },
   map₂_right_unitor' := λ a b f, by
   { dsimp,
     simp only [map₂_right_unitor, map₂_comp, map_comp_naturality_right_assoc,
@@ -270,8 +270,8 @@ def pseudofunctor.map₂_associator_aux
   (map₂ : Π {a b : B} {f g : a ⟶ b}, (f ⟶ g) → (map f ⟶ map g))
   (map_comp : Π {a b c : B} (f : a ⟶ b) (g : b ⟶ c), map (f ≫ g) ≅ map f ≫ map g)
   {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) : Prop :=
-map₂ (α_ f g h).hom = (map_comp (f ≫ g) h).hom ≫ ((map_comp f g).hom ▷ map h) ≫
-  (α_ (map f) (map g) (map h)).hom ≫ (map f ◁ (map_comp g h).inv) ≫ (map_comp f (g ≫ h)).inv
+map₂ (α_ f g h).hom = (map_comp (f ≫ g) h).hom ≫ (map_comp f g).hom ▷ map h ≫
+  (α_ (map f) (map g) (map h)).hom ≫ map f ◁ (map_comp g h).inv ≫ (map_comp f (g ≫ h)).inv
 
 /--
 A pseudofunctor `F` between bicategories `B` and `C` consists of a function between objects
@@ -293,17 +293,17 @@ structure pseudofunctor (B : Type u₁) [bicategory.{w₁ v₁} B] (C : Type u�
 (map₂_comp' : ∀ {a b : B} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h),
   map₂ (η ≫ θ) = map₂ η ≫ map₂ θ . obviously)
 (map₂_whisker_left' : ∀ {a b c : B} (f : a ⟶ b) {g h : b ⟶ c} (η : g ⟶ h),
-  map₂ (f ◁ η) = (map_comp f g).hom ≫ (map f ◁ map₂ η) ≫ (map_comp f h).inv . obviously)
+  map₂ (f ◁ η) = (map_comp f g).hom ≫ map f ◁ map₂ η ≫ (map_comp f h).inv . obviously)
 (map₂_whisker_right' : ∀ {a b c : B} {f g : a ⟶ b} (η : f ⟶ g) (h : b ⟶ c),
-  map₂ (η ▷ h) = (map_comp f h).hom ≫ (map₂ η ▷ map h) ≫ (map_comp g h).inv . obviously)
+  map₂ (η ▷ h) = (map_comp f h).hom ≫ map₂ η ▷ map h ≫ (map_comp g h).inv . obviously)
 (map₂_associator' : ∀ {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d),
   pseudofunctor.map₂_associator_aux obj (λ a b, map) (λ a b f g, map₂) (λ a b c, map_comp) f g h
     . obviously)
 (map₂_left_unitor' : ∀ {a b : B} (f : a ⟶ b),
-  map₂ (λ_ f).hom = (map_comp (𝟙 a) f).hom ≫ ((map_id a).hom ▷ map f) ≫ (λ_ (map f)).hom
+  map₂ (λ_ f).hom = (map_comp (𝟙 a) f).hom ≫ (map_id a).hom ▷ map f ≫ (λ_ (map f)).hom
     . obviously)
 (map₂_right_unitor' : ∀ {a b : B} (f : a ⟶ b),
-  map₂ (ρ_ f).hom = (map_comp f (𝟙 b)).hom ≫ (map f ◁ (map_id b).hom) ≫ (ρ_ (map f)).hom
+  map₂ (ρ_ f).hom = (map_comp f (𝟙 b)).hom ≫ map f ◁ (map_id b).hom ≫ (ρ_ (map f)).hom
     . obviously)
 
 namespace pseudofunctor

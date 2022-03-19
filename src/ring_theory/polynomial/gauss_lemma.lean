@@ -51,7 +51,7 @@ end
 lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreducible (map φ f)) :
   irreducible f :=
 begin
-  refine ⟨λ h, h_irr.not_unit (is_unit.map ((map_ring_hom φ).to_monoid_hom) h), _⟩,
+  refine ⟨λ h, h_irr.not_unit (is_unit.map (map_ring_hom φ) h), _⟩,
   intros a b h,
   rcases h_irr.is_unit_or_is_unit (by rw [h, map_mul]) with hu | hu,
   { left,

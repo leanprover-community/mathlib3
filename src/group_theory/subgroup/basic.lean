@@ -292,6 +292,12 @@ is in the `add_subgroup`."]
 lemma multiset_prod_mem {G} [comm_group G] (K : subgroup G) (g : multiset G) :
   (∀ a ∈ g, a ∈ K) → g.prod ∈ K := K.to_submonoid.multiset_prod_mem g
 
+@[to_additive]
+lemma multiset_noncomm_prod_mem (K : subgroup G) (g : multiset G)
+  (comm : ∀ (x ∈ g) (y ∈ g), commute x y) :
+  (∀ a ∈ g, a ∈ K) → g.noncomm_prod comm ∈ K :=
+K.to_submonoid.multiset_noncomm_prod_mem g comm
+
 /-- Product of elements of a subgroup of a `comm_group` indexed by a `finset` is in the
     subgroup. -/
 @[to_additive "Sum of elements in an `add_subgroup` of an `add_comm_group` indexed by a `finset`
@@ -300,6 +306,13 @@ lemma prod_mem {G : Type*} [comm_group G] (K : subgroup G)
   {ι : Type*} {t : finset ι} {f : ι → G} (h : ∀ c ∈ t, f c ∈ K) :
   ∏ c in t, f c ∈ K :=
 K.to_submonoid.prod_mem h
+
+@[to_additive]
+lemma noncomm_prod_mem (K : subgroup G)
+  {ι : Type*} {t : finset ι} {f : ι → G} (comm : ∀ (x ∈ t) (y ∈ t), commute (f x) (f y)) :
+  (∀ c ∈ t, f c ∈ K) → t.noncomm_prod f comm ∈ K :=
+K.to_submonoid.noncomm_prod_mem t f comm
+
 
 @[to_additive add_subgroup.nsmul_mem]
 lemma pow_mem {x : G} (hx : x ∈ K) : ∀ n : ℕ, x ^ n ∈ K := K.to_submonoid.pow_mem hx
@@ -335,46 +348,61 @@ instance has_inv : has_inv H := ⟨λ a, ⟨a⁻¹, H.inv_mem a.2⟩⟩
 @[to_additive "An `add_subgroup` of an `add_group` inherits a subtraction."]
 instance has_div : has_div H := ⟨λ a b, ⟨a / b, H.div_mem a.2 b.2⟩⟩
 
+/-- An `add_subgroup` of an `add_group` inherits a natural scaling. -/
+instance _root_.add_subgroup.has_nsmul {G} [add_group G] {H : add_subgroup G} : has_scalar ℕ H :=
+⟨λ n a, ⟨n • a, H.nsmul_mem a.2 n⟩⟩
+
+/-- A subgroup of a group inherits a natural power -/
+@[to_additive]
+instance has_npow : has_pow H ℕ := ⟨λ a n, ⟨a ^ n, H.pow_mem a.2 n⟩⟩
+
+/-- An `add_subgroup` of an `add_group` inherits an integer scaling. -/
+instance _root_.add_subgroup.has_zsmul {G} [add_group G] {H : add_subgroup G} : has_scalar ℤ H :=
+⟨λ n a, ⟨n • a, H.zsmul_mem a.2 n⟩⟩
+
+/-- A subgroup of a group inherits an integer power -/
+@[to_additive]
+instance has_zpow : has_pow H ℤ := ⟨λ a n, ⟨a ^ n, H.zpow_mem a.2 n⟩⟩
+
 @[simp, norm_cast, to_additive] lemma coe_mul (x y : H) : (↑(x * y) : G) = ↑x * ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_one : ((1 : H) : G) = 1 := rfl
 @[simp, norm_cast, to_additive] lemma coe_inv (x : H) : ↑(x⁻¹ : H) = (x⁻¹ : G) := rfl
 @[simp, norm_cast, to_additive] lemma coe_div (x y : H) : (↑(x / y) : G) = ↑x / ↑y := rfl
 @[simp, norm_cast, to_additive] lemma coe_mk (x : G) (hx : x ∈ H) : ((⟨x, hx⟩ : H) : G) = x := rfl
+@[simp, norm_cast, to_additive] lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n := rfl
+@[simp, norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n := rfl
 
 /-- A subgroup of a group inherits a group structure. -/
 @[to_additive "An `add_subgroup` of an `add_group` inherits an `add_group` structure."]
 instance to_group {G : Type*} [group G] (H : subgroup G) : group H :=
-subtype.coe_injective.group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subgroup of a `comm_group` is a `comm_group`. -/
 @[to_additive "An `add_subgroup` of an `add_comm_group` is an `add_comm_group`."]
 instance to_comm_group {G : Type*} [comm_group G] (H : subgroup G) : comm_group H :=
-subtype.coe_injective.comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.comm_group _
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subgroup of an `ordered_comm_group` is an `ordered_comm_group`. -/
 @[to_additive "An `add_subgroup` of an `add_ordered_comm_group` is an `add_ordered_comm_group`."]
 instance to_ordered_comm_group {G : Type*} [ordered_comm_group G] (H : subgroup G) :
   ordered_comm_group H :=
-subtype.coe_injective.ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_comm_group _
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subgroup of a `linear_ordered_comm_group` is a `linear_ordered_comm_group`. -/
 @[to_additive "An `add_subgroup` of a `linear_ordered_add_comm_group` is a
   `linear_ordered_add_comm_group`."]
 instance to_linear_ordered_comm_group {G : Type*} [linear_ordered_comm_group G]
   (H : subgroup G) : linear_ordered_comm_group H :=
-subtype.coe_injective.linear_ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_comm_group _
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- The natural group hom from a subgroup of group `G` to `G`. -/
 @[to_additive "The natural group hom from an `add_subgroup` of `add_group` `G` to `G`."]
 def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑H.subtype = coe := rfl
-
-@[simp, norm_cast, to_additive coe_smul]
-lemma coe_pow (x : H) (n : ℕ) : ((x ^ n : H) : G) = x ^ n :=
-coe_subtype H ▸ monoid_hom.map_pow _ _ _
-@[simp, norm_cast, to_additive] lemma coe_zpow (x : H) (n : ℤ) : ((x ^ n : H) : G) = x ^ n :=
-coe_subtype H ▸ monoid_hom.map_zpow _ _ _
 
 @[simp, norm_cast, to_additive] theorem coe_list_prod (l : list H) :
   (l.prod : G) = (l.map coe).prod :=
@@ -407,6 +435,14 @@ by { ext, simp }
 @[to_additive "The `add_subgroup G` of the `add_group G`."]
 instance : has_top (subgroup G) :=
 ⟨{ inv_mem' := λ _ _, set.mem_univ _ , .. (⊤ : submonoid G) }⟩
+
+/-- The top subgroup is isomorphic to the group.
+
+This is the group version of `submonoid.top_equiv`. -/
+@[to_additive "The top additive subgroup is isomorphic to the additive group.
+
+This is the additive group version of `add_submonoid.top_equiv`.", simps]
+def top_equiv : (⊤ : subgroup G) ≃* G := submonoid.top_equiv
 
 /-- The trivial subgroup `{1}` of an group `G`. -/
 @[to_additive "The trivial `add_subgroup` `{0}` of an `add_group` `G`."]
@@ -2715,6 +2751,58 @@ begin
 end
 
 end subgroup_normal
+
+@[to_additive]
+lemma disjoint_def {H₁ H₂ : subgroup G} :
+  disjoint H₁ H₂ ↔ ∀ {x : G}, x ∈ H₁ → x ∈ H₂ → x = 1 :=
+show (∀ x, x ∈ H₁ ∧ x ∈ H₂ → x ∈ ({1} : set G)) ↔ _, by simp
+
+@[to_additive]
+lemma disjoint_def' {H₁ H₂ : subgroup G} :
+  disjoint H₁ H₂ ↔ ∀ {x y : G}, x ∈ H₁ → y ∈ H₂ → x = y → x = 1 :=
+disjoint_def.trans ⟨λ h x y hx hy hxy, h hx $ hxy.symm ▸ hy,
+  λ h x hx hx', h hx hx' rfl⟩
+
+@[to_additive]
+lemma disjoint_iff_mul_eq_one {H₁ H₂ : subgroup G} :
+  disjoint H₁ H₂ ↔ ∀ {x y : G}, x ∈ H₁ → y ∈ H₂ → x * y = 1 → x = 1 ∧ y = 1 :=
+disjoint_def'.trans ⟨λ h x y hx hy hxy,
+  let hx1 : x = 1 := h hx (H₂.inv_mem hy) (eq_inv_iff_mul_eq_one.mpr hxy) in
+  ⟨hx1, by simpa [hx1] using hxy⟩,
+  λ h x y hx hy hxy, (h hx (H₂.inv_mem hy) (mul_inv_eq_one.mpr hxy)).1 ⟩
+
+/-- `finset.noncomm_prod` is “injective” in `f` if `f` maps into independent subgroups.  This
+generalizes (one direction of) `subgroup.disjoint_iff_mul_eq_one`. -/
+@[to_additive "`finset.noncomm_sum` is “injective” in `f` if `f` maps into independent subgroups.
+This generalizes (one direction of) `add_subgroup.disjoint_iff_add_eq_zero`. "]
+lemma eq_one_of_noncomm_prod_eq_one_of_independent {β : Type*} [group β]
+  (s : finset G) (f : G → β) (comm : ∀ (x ∈ s) (y ∈ s), commute (f x) (f y))
+  (K : G → subgroup β) (hind : complete_lattice.independent K) (hmem : ∀ (x ∈ s), f x ∈ K x)
+  (heq1 : s.noncomm_prod f comm = 1) : ∀ (i ∈ s), f i = 1 :=
+begin
+  classical,
+  revert heq1,
+  induction s using finset.induction_on with i s hnmem ih,
+  { simp, },
+  { simp only [finset.forall_mem_insert] at comm hmem,
+    specialize ih (λ x hx, (comm.2 x hx).2) hmem.2,
+    have hmem_bsupr: s.noncomm_prod f (λ x hx, (comm.2 x hx).2) ∈ ⨆ (i ∈ (s : set G)), K i,
+    { refine subgroup.noncomm_prod_mem _ _ _,
+      intros x hx,
+      have : K x ≤ ⨆ (i ∈ (s : set G)), K i := le_bsupr x hx,
+      exact this (hmem.2 x hx), },
+    intro heq1,
+    rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem at heq1,
+    have hnmem' : i ∉ (s : set G), by simpa,
+    obtain ⟨heq1i : f i = 1, heq1S : s.noncomm_prod f _ = 1⟩ :=
+      subgroup.disjoint_iff_mul_eq_one.mp (hind.disjoint_bsupr hnmem') hmem.1 hmem_bsupr heq1,
+    specialize ih heq1S,
+    intros i h,
+    simp only [finset.mem_insert] at h,
+    rcases h with ⟨rfl | _⟩,
+    { exact heq1i },
+    { exact (ih _ h), } }
+end
 
 end subgroup
 

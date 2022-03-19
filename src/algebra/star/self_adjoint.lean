@@ -126,17 +126,9 @@ instance : has_mul (self_adjoint R) :=
 @[simp, norm_cast] lemma coe_mul (x y : self_adjoint R) : ↑(x * y) = (x : R) * y := rfl
 
 instance : comm_ring (self_adjoint R) :=
-{ npow := λ n x, x ^ n,
-  nsmul := (•),
-  zsmul := (•),
-  -- note: we have to do this in four pieces because there is no `injective.comm_ring_pow`.
-  ..(function.injective.monoid_pow _ subtype.coe_injective coe_one coe_mul coe_pow :
-      monoid (self_adjoint R)),
-  ..(function.injective.distrib _ subtype.coe_injective (self_adjoint R).coe_add coe_mul :
-      distrib (self_adjoint R)),
-  ..(function.injective.comm_semigroup _ subtype.coe_injective coe_mul :
-      comm_semigroup (self_adjoint R)),
-  ..(self_adjoint R).to_add_comm_group }
+function.injective.comm_ring _ subtype.coe_injective
+  (self_adjoint R).coe_zero coe_one (self_adjoint R).coe_add coe_mul (self_adjoint R).coe_neg
+  (self_adjoint R).coe_sub (self_adjoint R).coe_nsmul (self_adjoint R).coe_zsmul coe_pow
 
 end comm_ring
 
@@ -160,16 +152,10 @@ instance : has_pow (self_adjoint R) ℤ :=
 @[simp, norm_cast] lemma coe_zpow (x : self_adjoint R) (z : ℤ) : ↑(x ^ z) = (x : R) ^ z := rfl
 
 instance : field (self_adjoint R) :=
-{ npow := λ n x, x ^ n,
-  zpow := λ z x, x ^ z,
-  nsmul := (•),
-  zsmul := (•),
-  -- note: we have to do this in three pieces because there is no `injective.field_pow`.
-  ..(function.injective.div_inv_monoid_pow _ subtype.coe_injective _ _ coe_inv coe_div _ coe_zpow :
-      div_inv_monoid (self_adjoint R)),
-  ..(function.injective.group_with_zero _ subtype.coe_injective (self_adjoint R).coe_zero _ _ _ _ :
-      group_with_zero (self_adjoint R)),
-  ..self_adjoint.comm_ring }
+function.injective.field _ subtype.coe_injective
+  (self_adjoint R).coe_zero coe_one (self_adjoint R).coe_add coe_mul (self_adjoint R).coe_neg
+  (self_adjoint R).coe_sub coe_inv coe_div (self_adjoint R).coe_nsmul (self_adjoint R).coe_zsmul
+  coe_pow coe_zpow
 
 end field
 

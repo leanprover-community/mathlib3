@@ -399,7 +399,7 @@ end
 
 /-- Commuting elements of finite order are closed under multiplication. -/
 @[to_additive "Commuting elements of finite additive order are closed under addition."]
-lemma is_of_fin_order.mul_of_commute
+lemma commute.is_of_fin_order_mul
   (hcomm : commute x y) (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
   is_of_fin_order (x * y) :=
 begin
@@ -420,7 +420,7 @@ variables [comm_group G]
 @[to_additive "Elements of finite additive order are closed under addition."]
 lemma is_of_fin_order.mul (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
   is_of_fin_order (x * y) :=
-is_of_fin_order.mul_of_commute (commute.all _ _) hx hy
+(commute.all x y).is_of_fin_order_mul hx hy
 
 end comm_group
 

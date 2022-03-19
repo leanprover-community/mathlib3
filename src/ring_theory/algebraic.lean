@@ -32,12 +32,14 @@ def is_algebraic (x : A) : Prop :=
 theorem zero_is_algebraic [nontrivial R] : is_algebraic R (0 : A) :=
 ⟨_, X_ne_zero, aeval_X 0⟩
 
-theorem one_is_algebraic [nontrivial R] : is_algebraic R (1 : A) :=
-⟨X - C 1, X_sub_C_ne_zero 1,
-  by rw [_root_.map_one, _root_.map_sub, _root_.map_one, aeval_X, sub_self]⟩
-
 theorem algebra_map_is_algebraic [nontrivial R] (x : R) : is_algebraic R (algebra_map R A x) :=
-⟨X - C x, X_sub_C_ne_zero _, by rw [_root_.map_sub, aeval_X, aeval_C, sub_self]⟩
+⟨_, X_sub_C_ne_zero x, by rw [_root_.map_sub, aeval_X, aeval_C, sub_self]⟩
+
+theorem one_is_algebraic [nontrivial R] : is_algebraic R (1 : A) :=
+by { rw ←_root_.map_one _, exact algebra_map_is_algebraic R 1 }
+
+theorem nat_is_algebraic [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
+by { rw ←map_nat_cast _ n, exact algebra_map_is_algebraic R n }
 
 /-- An element of an R-algebra is transcendental over R if it is not algebraic over R. -/
 def transcendental (x : A) : Prop := ¬ is_algebraic R x

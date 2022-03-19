@@ -139,7 +139,7 @@ end
 
 /-- The 2-isomorphism `normalize_iso p f` is natural in `f`. -/
 lemma normalize_naturality {a b c : B} (p : path a b) {f g : hom b c} (η : f ⟶ g) :
-  ((preinclusion B).map p ◁ η) ≫ (normalize_iso p g).hom =
+  (preinclusion B).map p ◁ η ≫ (normalize_iso p g).hom =
     (normalize_iso p f).hom ≫ eq_to_hom (congr_arg _ (normalize_aux_congr p η)) :=
 begin
   rcases η, induction η,

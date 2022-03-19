@@ -102,11 +102,11 @@ class bicategory (B : Type u) extends category_struct.{v} B :=
   η ▷ 𝟙 b ≫ (ρ_ g).hom = (ρ_ f).hom ≫ η . obviously)
 -- pentagon identity:
 (pentagon' : ∀ {a b c d e} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e),
-  ((α_ f g h).hom ▷ i) ≫ (α_ f (g ≫ h) i).hom ≫ (f ◁ (α_ g h i).hom) =
+  (α_ f g h).hom ▷ i ≫ (α_ f (g ≫ h) i).hom ≫ f ◁ (α_ g h i).hom =
     (α_ (f ≫ g) h i).hom ≫ (α_ f g (h ≫ i)).hom . obviously)
 -- triangle identity:
 (triangle' : ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c),
-  (α_ f (𝟙 b) g).hom ≫ (f ◁ (λ_ g).hom) = (ρ_ f).hom ▷ g . obviously)
+  (α_ f (𝟙 b) g).hom ≫ f ◁ (λ_ g).hom = (ρ_ f).hom ▷ g . obviously)
 
 restate_axiom bicategory.whisker_left_id'
 restate_axiom bicategory.whisker_left_comp'

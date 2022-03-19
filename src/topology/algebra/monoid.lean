@@ -417,7 +417,6 @@ end has_continuous_mul
 
 namespace mul_opposite
 
-#check mul_opposite.topological_space
 /-- If multiplication is continuous in `α`, then it also is in `αᵐᵒᵖ`. -/
 @[to_additive] instance [topological_space α] [has_mul α] [has_continuous_mul α] :
   has_continuous_mul αᵐᵒᵖ :=

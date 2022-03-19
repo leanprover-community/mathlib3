@@ -39,7 +39,7 @@ def whisker_right {η θ : F ⟶ G} (Γ : η ⟶ θ) (ι : G ⟶ H) : η ≫ ι 
 { app := λ a, Γ.app a ▷ ι.app a,
   naturality' := λ a b f, by
   { dsimp,
-    simp only [modification.whisker_right_naturality_assoc, assoc, iso.cancel_iso_inv_left],
+    simp only [modification.whisker_right_naturality_assoc, assoc],
     rw [←associator_inv_naturality_left, whisker_exchange_assoc],
     simp } }
 

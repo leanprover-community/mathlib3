@@ -131,8 +131,8 @@ def vcomp (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tran
   { simp only [assoc, comp_whisker_right, bicategory.whisker_left_comp, comp_whisker_left,
       iso.inv_hom_id_assoc, whisker_left_naturality_comp_assoc,
       whisker_right_naturality_comp_assoc, pentagon_assoc, bicategory.whisker_right_comp,
-      whisker_assoc, pentagon_inv_inv_hom_hom_inv,
-      pentagon_inv_assoc, pentagon_hom_hom_inv_hom_hom_assoc, iso.cancel_iso_inv_left],
+      whisker_assoc, pentagon_inv_inv_hom_hom_inv, pentagon_inv_assoc,
+      pentagon_hom_hom_inv_hom_hom_assoc, iso.cancel_iso_inv_left],
     rw [associator_inv_naturality_right_assoc, ←associator_inv_naturality_left_assoc,
       whisker_exchange_assoc],
     simp } }

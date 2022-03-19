@@ -29,21 +29,16 @@ of a structure `M` in `K` into other structures in `K`, those two structures can
 fourth structure in `K` such that the resulting square of embeddings commutes.
 * `first_order.language.is_fraisse` indicates that a class is nonempty, isomorphism-invariant,
 essentially countable, and satisfies the hereditary, joint embedding, and amalgamation properties.
-* `first_order.language.fraisse_limit` noncomputably constructs a Fraïssé limit for any Fraïssé
-class.
 
 ## Main Results
 * We show that the age of any structure is isomorphism-invariant and satisfies the hereditary and
 joint-embedding properties.
 * `first_order.language.age.countable_quotient` shows that the age of any countable structure is
 essentially countable.
-* `first_order.language.exists_cg_is_age_of` constructs a countably-generated structure with a
-particular age.
 
 
 ## Implementation Notes
-* Classes of structures are formalized with the type `Π (M : Type w) [L.Structure M], Prop`, as this
-is the form that predicates such as `Structure.fg L` take in the rest of the library.
+* Classes of structures are formalized with `set (bundled L.Structure)`.
 * Some results pertain to countable limit structures, others to countably-generated limit
 structures. In the case of a language with countably many function symbols, these are equivalent.
 
@@ -52,6 +47,7 @@ structures. In the case of a language with countably many function symbols, thes
 - [K. Tent, M. Ziegler, *A Course in Model Theory*][Tent_Ziegler]
 
 ## TODO
+* Define Fraïssé classes and limits
 * Define ultrahomogeneous structures
 * Show that any two Fraïssé limits of a Fraïssé class are isomorphic
 * Show that any Fraïssé limit is ultrahomogeneous

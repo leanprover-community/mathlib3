@@ -176,6 +176,7 @@ def coe_with_top {α} : α ↪ with_top α := { to_fun := coe, ..embedding.some}
 ⟨λ o, o.elim x f, option.injective_iff.2 ⟨f.2, h⟩⟩
 
 /-- Equivalence between embeddings of `option α` and a sigma type over the embeddings of `α`. -/
+@[simps]
 def option_embedding_equiv (α β) : (option α ↪ β) ≃ Σ f : α ↪ β, ↥(set.range f)ᶜ :=
 { to_fun := λ f, ⟨coe_option.trans f, f none, λ ⟨x, hx⟩, option.some_ne_none x $ f.injective hx⟩,
   inv_fun := λ f, f.1.option_elim f.2 f.2.2,

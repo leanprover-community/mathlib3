@@ -6,9 +6,8 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 import data.list.prime
 import data.list.sort
 import data.nat.gcd
-import data.nat.sqrt
+import data.nat.sqrt_norm_num
 import data.set.finite
-import tactic.norm_num
 import tactic.wlog
 
 /-!
@@ -167,8 +166,8 @@ theorem dvd_prime_two_le {p m : ℕ} (pp : prime p) (H : 2 ≤ m) : m ∣ p ↔ 
 theorem prime_dvd_prime_iff_eq {p q : ℕ} (pp : p.prime) (qp : q.prime) : p ∣ q ↔ p = q :=
 dvd_prime_two_le qp (prime.two_le pp)
 
-theorem prime.not_dvd_one {p : ℕ} (pp : prime p) : ¬ p ∣ 1
-| d := (not_le_of_gt pp.one_lt) $ le_of_dvd dec_trivial d
+theorem prime.not_dvd_one {p : ℕ} (pp : prime p) : ¬ p ∣ 1 :=
+pp.not_dvd_one
 
 theorem not_prime_mul {a b : ℕ} (a1 : 1 < a) (b1 : 1 < b) : ¬ prime (a * b) :=
 λ h, ne_of_lt (nat.mul_lt_mul_of_pos_left b1 (lt_of_succ_lt a1)) $
@@ -176,6 +175,22 @@ by simpa using (dvd_prime_two_le h a1).1 (dvd_mul_right _ _)
 
 lemma not_prime_mul' {a b n : ℕ} (h : a * b = n) (h₁ : 1 < a) (h₂ : 1 < b) : ¬ prime n :=
 by { rw ← h, exact not_prime_mul h₁ h₂ }
+
+lemma prime_mul_iff {a b : ℕ} :
+  nat.prime (a * b) ↔ (a.prime ∧ b = 1) ∨ (b.prime ∧ a = 1) :=
+by cases a; cases b; try { cases a; cases b };
+  simp [not_prime_zero, not_prime_one, not_prime_mul]
+
+lemma prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : a ≠ 1) : a ∣ p ↔ p = a :=
+begin
+  refine ⟨_, by { rintro rfl, refl }⟩,
+  -- rintro ⟨j, rfl⟩ does not work, due to `nat.prime` depending on the class `irreducible`
+  rintro ⟨j, hj⟩,
+  rw hj at hp ⊢,
+  rcases prime_mul_iff.mp hp with ⟨h, rfl⟩ | ⟨h, rfl⟩,
+  { exact mul_one _ },
+  { exact (a1 rfl).elim }
+end
 
 section min_fac
 
@@ -1192,3 +1207,15 @@ namespace int
 lemma prime_two : prime (2 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_two
 lemma prime_three : prime (3 : ℤ) := nat.prime_iff_prime_int.mp nat.prime_three
 end int
+
+section
+open finset
+/-- Exactly `n / p` naturals in `[1, n]` are multiples of `p`. -/
+lemma card_multiples (n p : ℕ) : card ((range n).filter (λ e, p ∣ e + 1)) = n / p :=
+begin
+  induction n with n hn,
+  { rw [nat.zero_div, range_zero, filter_empty, card_empty] },
+  { rw [nat.succ_div, add_ite, add_zero, range_succ, filter_insert, apply_ite card,
+      card_insert_of_not_mem (mem_filter.not.mpr (not_and_of_not_left _ not_mem_range_self)), hn] }
+end
+end

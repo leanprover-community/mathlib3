@@ -115,7 +115,7 @@ lemma is_equivalence.exact_iff {D : Type u₁} [category.{v₁} D] [abelian D]
   exact (F.map f) (F.map g) ↔ exact f g :=
 begin
   simp only [exact_iff, ← F.map_eq_zero_iff, F.map_comp, category.assoc,
-    ← kernel_comparison_comp_π g F, ← ι_comp_cokernel_comparison f F],
+    ← kernel_comparison_comp_ι g F, ← π_comp_cokernel_comparison f F],
   rw [is_iso.comp_left_eq_zero (kernel_comparison g F), ← category.assoc,
     is_iso.comp_right_eq_zero _ (cokernel_comparison f F)],
 end
@@ -162,6 +162,23 @@ suffices h : cokernel.desc f g (by simp) =
   (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _) (is_colimit_image f g)).hom
     ≫ image.ι g, by { rw h, apply mono_comp },
 (cancel_epi (cokernel.π f)).1 $ by simp
+
+/-- If `ex : exact f g` and `epi g`, then `cokernel.desc _ _ ex.w` is an isomorphism. -/
+instance [ex : exact f g] [epi g] : is_iso (cokernel.desc f g ex.w) :=
+is_iso_of_mono_of_epi (limits.cokernel.desc f g exact.w)
+
+@[simp, reassoc]
+lemma cokernel.desc.inv [epi g] (ex : exact f g) :
+  g ≫ inv (cokernel.desc _ _ ex.w) = cokernel.π _ :=
+by simp
+
+instance [ex : exact f g] [mono f] : is_iso (kernel.lift g f ex.w) :=
+  is_iso_of_mono_of_epi (limits.kernel.lift g f exact.w)
+
+@[simp, reassoc]
+lemma kernel.lift.inv [mono f] (ex : exact f g) :
+  inv (kernel.lift _ _ ex.w) ≫ f = kernel.ι g :=
+by simp
 
 /-- If `X ⟶ Y ⟶ Z ⟶ 0` is exact, then the second map is a cokernel of the first. -/
 def is_colimit_of_exact_of_epi [epi g] (h : exact f g) :

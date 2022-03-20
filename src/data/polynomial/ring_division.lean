@@ -116,6 +116,16 @@ begin
   rw [nat_degree_mul h2.1 h2.2], exact nat.le_add_right _ _
 end
 
+/-- This lemma is useful for working with the `int_degree` of a rational function. -/
+lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : polynomial R} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
+  (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁ * q₂ = p₂ * q₁) :
+  (p₁.nat_degree : ℤ) - q₁.nat_degree = (p₂.nat_degree : ℤ) - q₂.nat_degree :=
+begin
+  rw sub_eq_sub_iff_add_eq_add,
+  norm_cast,
+  rw [← nat_degree_mul hp₁ hq₂, ← nat_degree_mul hp₂ hq₁, h_eq]
+end
+
 end no_zero_divisors
 
 section no_zero_divisors
@@ -739,13 +749,13 @@ begin
   have dz := degree_eq_zero_of_is_unit H,
   rw degree_map_eq_of_leading_coeff_ne_zero at dz,
   { rw eq_C_of_degree_eq_zero dz,
-    refine is_unit.map (C.to_monoid_hom : R →* R[X]) _,
+    refine is_unit.map (C : R →+* R[X]) _,
     convert hf,
     rw (degree_eq_iff_nat_degree_eq _).1 dz,
     rintro rfl,
     simpa using H, },
   { intro h,
-    have u : is_unit (φ f.leading_coeff) := is_unit.map φ.to_monoid_hom hf,
+    have u : is_unit (φ f.leading_coeff) := is_unit.map φ hf,
     rw h at u,
     simpa using u, }
 end
@@ -767,7 +777,7 @@ lemma monic.irreducible_of_irreducible_map (f : R[X])
 begin
   fsplit,
   { intro h,
-    exact h_irr.not_unit (is_unit.map (map_ring_hom φ).to_monoid_hom h), },
+    exact h_irr.not_unit (is_unit.map (map_ring_hom φ) h), },
   { intros a b h,
 
     have q := (leading_coeff_mul a b).symm,

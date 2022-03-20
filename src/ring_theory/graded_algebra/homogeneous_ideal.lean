@@ -3,12 +3,10 @@ Copyright (c) 2021 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Eric Wieser
 -/
-
 import ring_theory.ideal.basic
 import ring_theory.ideal.operations
 import linear_algebra.finsupp
 import ring_theory.graded_algebra.basic
-
 /-!
 # Homogeneous ideals of a graded algebra
 
@@ -19,7 +17,7 @@ operations on them.
 
 For any `I : ideal A`:
 * `ideal.is_homogeneous 𝒜 I`: The property that an ideal is closed under `graded_algebra.proj`.
-* `homogeneous_ideal 𝒜`: The subtype of ideals which satisfy `ideal.is_homogeneous`
+* `homogeneous_ideal 𝒜`: The structure extending ideals which satisfy `ideal.is_homogeneous`
 * `ideal.homogeneous_core I 𝒜`: The largest homogeneous ideal smaller than `I`.
 * `ideal.homogeneous_hull I 𝒜`: The smallest homogeneous ideal larger than `I`.
 
@@ -58,10 +56,29 @@ def ideal.is_homogeneous : Prop :=
 ∀ (i : ι) ⦃r : A⦄, r ∈ I → (graded_algebra.decompose 𝒜 r i : A) ∈ I
 
 /-- For any `semiring A`, we collect the homogeneous ideals of `A` into a type. -/
-abbreviation homogeneous_ideal : Type* := { I : ideal A // I.is_homogeneous 𝒜 }
+structure homogeneous_ideal extends submodule A A :=
+(is_homogeneous' : ideal.is_homogeneous 𝒜 to_submodule)
 
-instance : has_mem A (homogeneous_ideal 𝒜) :=
-{ mem := λ r I, r ∈ (I : ideal A) }
+variable {𝒜}
+/--Converting a homogeneous ideal to an ideal-/
+def homogeneous_ideal.to_ideal (I : homogeneous_ideal 𝒜) : ideal A := I.to_submodule
+
+lemma homogeneous_ideal.is_homogeneous (I : homogeneous_ideal 𝒜) :
+  I.to_ideal.is_homogeneous 𝒜 := I.is_homogeneous'
+
+lemma homogeneous_ideal.to_ideal_injective :
+  function.injective (homogeneous_ideal.to_ideal : homogeneous_ideal 𝒜 → ideal A) :=
+λ ⟨x, hx⟩ ⟨y, hy⟩ (h : x = y), by simp [h]
+
+instance homogeneous_ideal.set_like : set_like (homogeneous_ideal 𝒜) A :=
+{ coe := λ I, I.to_ideal,
+  coe_injective' := λ I J h, homogeneous_ideal.to_ideal_injective $ set_like.coe_injective h }
+
+@[ext] lemma homogeneous_ideal.ext {I J : homogeneous_ideal 𝒜}
+  (h : I.to_ideal = J.to_ideal) : I = J := homogeneous_ideal.to_ideal_injective h
+
+@[simp] lemma homogeneous_ideal.mem_iff {I : homogeneous_ideal 𝒜} {x : A} :
+  x ∈ I.to_ideal ↔ x ∈ I := iff.rfl
 
 end homogeneous_def
 
@@ -143,7 +160,7 @@ def ideal.homogeneous_core : homogeneous_ideal 𝒜 :=
 lemma ideal.homogeneous_core_mono : monotone (ideal.homogeneous_core 𝒜) :=
 ideal.homogeneous_core'_mono 𝒜
 
-lemma ideal.coe_homogeneous_core_le : ↑(I.homogeneous_core 𝒜) ≤ I :=
+lemma ideal.to_ideal_homogeneous_core_le : (I.homogeneous_core 𝒜).to_ideal ≤ I :=
 ideal.homogeneous_core'_le 𝒜 I
 
 variables {𝒜 I}
@@ -152,8 +169,8 @@ lemma ideal.mem_homogeneous_core_of_is_homogeneous_of_mem {x : A}
   (h : set_like.is_homogeneous 𝒜 x) (hmem : x ∈ I) : x ∈ I.homogeneous_core 𝒜 :=
 ideal.subset_span ⟨⟨x, h⟩, hmem, rfl⟩
 
-lemma ideal.is_homogeneous.coe_homogeneous_core_eq_self (h : I.is_homogeneous 𝒜) :
-  ↑(I.homogeneous_core 𝒜) = I :=
+lemma ideal.is_homogeneous.to_ideal_homogeneous_core_eq_self (h : I.is_homogeneous 𝒜) :
+  (I.homogeneous_core 𝒜).to_ideal = I :=
 begin
   apply le_antisymm (I.homogeneous_core'_le 𝒜) _,
   intros x hx,
@@ -162,14 +179,14 @@ begin
   exact ideal.sum_mem _ (λ j hj, ideal.subset_span ⟨⟨_, is_homogeneous_coe _⟩, h _ hx, rfl⟩)
 end
 
-@[simp] lemma homogeneous_ideal.homogeneous_core_coe_eq_self (I : homogeneous_ideal 𝒜) :
-  (I : ideal A).homogeneous_core 𝒜 = I :=
-subtype.coe_injective $ ideal.is_homogeneous.coe_homogeneous_core_eq_self I.prop
+@[simp] lemma homogeneous_ideal.to_ideal_homogeneous_core_eq_self (I : homogeneous_ideal 𝒜) :
+  I.to_ideal.homogeneous_core 𝒜 = I :=
+by ext1; convert ideal.is_homogeneous.to_ideal_homogeneous_core_eq_self I.is_homogeneous
 
 variables (𝒜 I)
 
-lemma ideal.is_homogeneous.iff_eq : I.is_homogeneous 𝒜 ↔ ↑(I.homogeneous_core 𝒜) = I :=
-⟨ λ hI, hI.coe_homogeneous_core_eq_self,
+lemma ideal.is_homogeneous.iff_eq : I.is_homogeneous 𝒜 ↔ (I.homogeneous_core 𝒜).to_ideal = I :=
+⟨ λ hI, hI.to_ideal_homogeneous_core_eq_self,
   λ hI, hI ▸ (ideal.homogeneous_core 𝒜 I).2 ⟩
 
 lemma ideal.is_homogeneous.iff_exists :
@@ -247,61 +264,64 @@ variables {𝒜}
 
 namespace homogeneous_ideal
 
-instance : partial_order (homogeneous_ideal 𝒜) :=
-partial_order.lift _ subtype.coe_injective
+instance : partial_order (homogeneous_ideal 𝒜) := set_like.partial_order
 
 instance : has_bot (homogeneous_ideal 𝒜) :=
 ⟨⟨⊥, ideal.is_homogeneous.bot 𝒜⟩⟩
 
-@[simp] lemma coe_bot : ↑(⊥ : homogeneous_ideal 𝒜) = (⊥ : ideal A) := rfl
+@[simp] lemma to_ideal_bot : (⊥ : homogeneous_ideal 𝒜).to_ideal = (⊥ : ideal A) := rfl
 
-@[simp] lemma eq_bot_iff (I : homogeneous_ideal 𝒜) : I = ⊥ ↔ (I : ideal A) = ⊥ :=
-subtype.ext_iff
+@[simp] lemma eq_bot_iff (I : homogeneous_ideal 𝒜) : I = ⊥ ↔ I.to_ideal = ⊥ :=
+to_ideal_injective.eq_iff.symm
 
 instance : has_top (homogeneous_ideal 𝒜) :=
 ⟨⟨⊤, ideal.is_homogeneous.top 𝒜⟩⟩
 
-@[simp] lemma coe_top : ↑(⊤ : homogeneous_ideal 𝒜) = (⊤ : ideal A) := rfl
+@[simp] lemma to_ideal_top : (⊤ : homogeneous_ideal 𝒜).to_ideal = (⊤ : ideal A) := rfl
 
-@[simp] lemma eq_top_iff (I : homogeneous_ideal 𝒜) : I = ⊤ ↔ (I : ideal A) = ⊤ :=
-subtype.ext_iff
+@[simp] lemma eq_top_iff (I : homogeneous_ideal 𝒜) : I = ⊤ ↔ I.to_ideal = ⊤ :=
+to_ideal_injective.eq_iff.symm
 
 instance : has_inf (homogeneous_ideal 𝒜) :=
-{ inf := λ I J, ⟨I ⊓ J, I.prop.inf J.prop⟩ }
+{ inf := λ I J, ⟨I.to_ideal ⊓ J.to_ideal, I.is_homogeneous.inf J.is_homogeneous⟩ }
 
-@[simp] lemma coe_inf (I J : homogeneous_ideal 𝒜) : ↑(I ⊓ J) = (I ⊓ J : ideal A) := rfl
+@[simp] lemma to_ideal_inf (I J : homogeneous_ideal 𝒜) :
+  (I ⊓ J).to_ideal = I.to_ideal ⊓ J.to_ideal := rfl
 
 instance : has_Inf (homogeneous_ideal 𝒜) :=
-{ Inf := λ ℐ, ⟨Inf (coe '' ℐ), ideal.is_homogeneous.Inf $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
+⟨λ ℐ, ⟨Inf (to_ideal '' ℐ), ideal.is_homogeneous.Inf $ λ _ ⟨I, _, hI⟩, hI ▸ I.is_homogeneous⟩⟩
 
-@[simp] lemma coe_Inf (ℐ : set (homogeneous_ideal 𝒜)) : ↑(Inf ℐ) = (Inf (coe '' ℐ) : ideal A) :=
-rfl
+@[simp] lemma to_ideal_Inf (ℐ : set (homogeneous_ideal 𝒜)) :
+  (Inf ℐ).to_ideal = Inf (to_ideal '' ℐ) := rfl
 
-@[simp] lemma coe_infi {ι' : Sort*} (s : ι' → homogeneous_ideal 𝒜) :
-  ↑(⨅ i, s i) = ⨅ i, (s i : ideal A) :=
-by rw [infi, infi, coe_Inf, ←set.range_comp]
+@[simp] lemma to_ideal_infi {ι' : Sort*} (s : ι' → homogeneous_ideal 𝒜) :
+  (⨅ i, s i).to_ideal = ⨅ i, (s i).to_ideal :=
+by rw [infi, infi, to_ideal_Inf, ←set.range_comp]
 
 instance : has_sup (homogeneous_ideal 𝒜) :=
-{ sup := λ I J, ⟨I ⊔ J, I.prop.sup J.prop⟩ }
+{ sup := λ I J, ⟨I.to_ideal ⊔ J.to_ideal, I.is_homogeneous.sup J.is_homogeneous⟩ }
 
-@[simp] lemma coe_sup (I J : homogeneous_ideal 𝒜) : ↑(I ⊔ J) = (I ⊔ J : ideal A) := rfl
+@[simp] lemma to_ideal_sup (I J : homogeneous_ideal 𝒜) :
+  (I ⊔ J).to_ideal = I.to_ideal ⊔ J.to_ideal := rfl
 
 instance : has_Sup (homogeneous_ideal 𝒜) :=
-{ Sup := λ ℐ, ⟨Sup (coe '' ℐ), ideal.is_homogeneous.Sup $ λ _ ⟨I, _, hI⟩, hI ▸ I.prop⟩ }
+⟨λ ℐ, ⟨Sup (to_ideal '' ℐ), ideal.is_homogeneous.Sup $ λ _ ⟨I, _, hI⟩, hI ▸ I.is_homogeneous⟩⟩
 
-@[simp] lemma coe_Sup (ℐ : set (homogeneous_ideal 𝒜)) : ↑(Sup ℐ) = (Sup (coe '' ℐ) : ideal A) :=
-rfl
+@[simp] lemma to_ideal_Sup (ℐ : set (homogeneous_ideal 𝒜)) :
+  (Sup ℐ).to_ideal = (Sup (to_ideal '' ℐ) : ideal A) := rfl
 
 @[simp] lemma coe_supr {ι' : Sort*} (s : ι' → homogeneous_ideal 𝒜) :
-  ↑(⨆ i, s i) = ⨆ i, (s i : ideal A) :=
-by rw [supr, supr, coe_Sup, ←set.range_comp]
+  (⨆ i, s i).to_ideal = ⨆ i, (s i).to_ideal :=
+by rw [supr, supr, to_ideal_Sup, ←set.range_comp]
 
 instance : complete_lattice (homogeneous_ideal 𝒜) :=
-subtype.coe_injective.complete_lattice _ coe_sup coe_inf coe_Sup coe_Inf coe_top coe_bot
+to_ideal_injective.complete_lattice _ to_ideal_sup to_ideal_inf to_ideal_Sup to_ideal_Inf
+  to_ideal_top to_ideal_bot
 
 instance : has_add (homogeneous_ideal 𝒜) := ⟨(⊔)⟩
 
-@[simp] lemma coe_add (I J : homogeneous_ideal 𝒜) : ↑(I + J) = (I + J : ideal A) := rfl
+@[simp] lemma to_ideal_add (I J : homogeneous_ideal 𝒜) :
+  (I + J).to_ideal = I.to_ideal + J.to_ideal := rfl
 
 instance : inhabited (homogeneous_ideal 𝒜) := { default := ⊥ }
 
@@ -321,17 +341,16 @@ begin
   rw ideal.is_homogeneous.iff_exists at HI HJ ⊢,
   obtain ⟨⟨s₁, rfl⟩, ⟨s₂, rfl⟩⟩ := ⟨HI, HJ⟩,
   rw ideal.span_mul_span',
-  refine ⟨s₁ * s₂, congr_arg _ _⟩,
-  exact (set.image_mul (submonoid.subtype _).to_mul_hom).symm,
+  exact ⟨s₁ * s₂, congr_arg _ $ (set.image_mul (homogeneous_submonoid 𝒜).subtype).symm⟩,
 end
 
 variables {𝒜}
 
 instance : has_mul (homogeneous_ideal 𝒜) :=
-{ mul := λ I J, ⟨I * J, I.prop.mul J.prop⟩ }
+{ mul := λ I J, ⟨I.to_ideal * J.to_ideal, I.is_homogeneous.mul J.is_homogeneous⟩ }
 
-@[simp] lemma homogeneous_ideal.coe_mul (I J : homogeneous_ideal 𝒜) :
-  ↑(I * J) = (I * J : ideal A) := rfl
+@[simp] lemma homogeneous_ideal.to_ideal_mul (I J : homogeneous_ideal 𝒜) :
+  (I * J).to_ideal = I.to_ideal * J.to_ideal := rfl
 
 end comm_semiring
 
@@ -344,26 +363,29 @@ for building the lattice structure. -/
 
 section homogeneous_core
 
+open homogeneous_ideal
+
 variables [comm_semiring R] [semiring A]
 variables [algebra R A] [decidable_eq ι] [add_monoid ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 variable (I : ideal A)
 
-lemma ideal.homogeneous_core.gc : galois_connection coe (ideal.homogeneous_core 𝒜) :=
+lemma ideal.homogeneous_core.gc : galois_connection to_ideal (ideal.homogeneous_core 𝒜) :=
 λ I J, ⟨
-  λ H, I.homogeneous_core_coe_eq_self ▸ ideal.homogeneous_core_mono 𝒜 H,
+  λ H, I.to_ideal_homogeneous_core_eq_self ▸ ideal.homogeneous_core_mono 𝒜 H,
   λ H, le_trans H (ideal.homogeneous_core'_le _ _)⟩
 
-/--`coe : homogeneous_ideal 𝒜 → ideal A` and `ideal.homogeneous_core 𝒜` forms a galois
+/--`to_ideal : homogeneous_ideal 𝒜 → ideal A` and `ideal.homogeneous_core 𝒜` forms a galois
 coinsertion-/
-def ideal.homogeneous_core.gi : galois_coinsertion coe (ideal.homogeneous_core 𝒜) :=
-{ choice := λ I HI, ⟨I, le_antisymm (I.coe_homogeneous_core_le 𝒜) HI ▸ subtype.prop _⟩,
+def ideal.homogeneous_core.gi : galois_coinsertion to_ideal (ideal.homogeneous_core 𝒜) :=
+{ choice := λ I HI,
+    ⟨I, le_antisymm (I.to_ideal_homogeneous_core_le 𝒜) HI ▸ homogeneous_ideal.is_homogeneous _⟩,
   gc := ideal.homogeneous_core.gc 𝒜,
   u_l_le := λ I, ideal.homogeneous_core'_le _ _,
-  choice_eq := λ I H, le_antisymm H (I.coe_homogeneous_core_le _) }
+  choice_eq := λ I H, le_antisymm H (I.to_ideal_homogeneous_core_le _) }
 
 lemma ideal.homogeneous_core_eq_Sup :
-  I.homogeneous_core 𝒜 = Sup {J : homogeneous_ideal 𝒜 | ↑J ≤ I} :=
+  I.homogeneous_core 𝒜 = Sup {J : homogeneous_ideal 𝒜 | J.to_ideal ≤ I} :=
 eq.symm $ is_lub.Sup_eq $ (ideal.homogeneous_core.gc 𝒜).is_greatest_u.is_lub
 
 lemma ideal.homogeneous_core'_eq_Sup :
@@ -371,9 +393,11 @@ lemma ideal.homogeneous_core'_eq_Sup :
 begin
   refine (is_lub.Sup_eq _).symm,
   apply is_greatest.is_lub,
-  have coe_mono : monotone (coe : {I : ideal A // I.is_homogeneous 𝒜} → ideal A) := λ _ _, id,
+  have coe_mono : monotone (to_ideal : homogeneous_ideal 𝒜 → ideal A) := λ x y, id,
   convert coe_mono.map_is_greatest (ideal.homogeneous_core.gc 𝒜).is_greatest_u using 1,
-  simp only [subtype.coe_image, exists_prop, mem_set_of_eq, subtype.coe_mk],
+  ext,
+  rw [mem_image, mem_set_of_eq],
+  refine ⟨λ hI, ⟨⟨x, hI.1⟩, ⟨hI.2, rfl⟩⟩, by rintro ⟨x, ⟨hx, rfl⟩⟩; exact ⟨x.is_homogeneous, hx⟩⟩,
 end
 
 end homogeneous_core
@@ -381,6 +405,8 @@ end homogeneous_core
 /-! ### Homogeneous hulls -/
 
 section homogeneous_hull
+
+open homogeneous_ideal
 
 variables [comm_semiring R] [semiring A]
 variables [algebra R A] [decidable_eq ι] [add_monoid ι]
@@ -396,8 +422,8 @@ def ideal.homogeneous_hull : homogeneous_ideal 𝒜 :=
   apply set_like.is_homogeneous_coe
 end⟩
 
-lemma ideal.le_coe_homogeneous_hull :
-  I ≤ ideal.homogeneous_hull 𝒜 I :=
+lemma ideal.le_to_ideal_homogeneous_hull :
+  I ≤ (ideal.homogeneous_hull 𝒜 I).to_ideal :=
 begin
   intros r hr,
   letI : Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0) := λ _ _, classical.dec _,
@@ -415,23 +441,23 @@ end
 
 variables {I 𝒜}
 
-lemma ideal.is_homogeneous.homogeneous_hull_eq_self (h : I.is_homogeneous 𝒜) :
-  ↑(ideal.homogeneous_hull 𝒜 I) = I :=
+lemma ideal.is_homogeneous.to_ideal_homogeneous_hull_eq_self (h : I.is_homogeneous 𝒜) :
+  (ideal.homogeneous_hull 𝒜 I).to_ideal = I :=
 begin
-  apply le_antisymm _ (ideal.le_coe_homogeneous_hull _ _),
+  apply le_antisymm _ (ideal.le_to_ideal_homogeneous_hull _ _),
   apply (ideal.span_le).2,
   rintros _ ⟨i, x, rfl⟩,
   exact h _ x.prop,
 end
 
-@[simp] lemma homogeneous_ideal.homogeneous_hull_coe_eq_self (I : homogeneous_ideal 𝒜) :
-  (I : ideal A).homogeneous_hull 𝒜 = I :=
-subtype.coe_injective $ ideal.is_homogeneous.homogeneous_hull_eq_self I.prop
+@[simp] lemma homogeneous_ideal.homogeneous_hull_to_ideal_eq_self (I : homogeneous_ideal 𝒜) :
+  I.to_ideal.homogeneous_hull 𝒜 = I :=
+homogeneous_ideal.to_ideal_injective $ I.is_homogeneous.to_ideal_homogeneous_hull_eq_self
 
 variables (I 𝒜)
 
-lemma ideal.coe_homogeneous_hull_eq_supr :
-  ↑(I.homogeneous_hull 𝒜) = ⨆ i, ideal.span (graded_algebra.proj 𝒜 i '' I) :=
+lemma ideal.to_ideal_homogeneous_hull_eq_supr :
+  (I.homogeneous_hull 𝒜).to_ideal = ⨆ i, ideal.span (graded_algebra.proj 𝒜 i '' I) :=
 begin
   rw ←ideal.span_Union,
   apply congr_arg ideal.span _,
@@ -444,30 +470,69 @@ lemma ideal.homogeneous_hull_eq_supr :
   (I.homogeneous_hull 𝒜) =
   ⨆ i, ⟨ideal.span (graded_algebra.proj 𝒜 i '' I), ideal.is_homogeneous_span 𝒜 _
     (by {rintros _ ⟨x, -, rfl⟩, apply set_like.is_homogeneous_coe})⟩ :=
-by { ext1, rw [ideal.coe_homogeneous_hull_eq_supr, homogeneous_ideal.coe_supr], refl, }
+by ext1; rw [ideal.to_ideal_homogeneous_hull_eq_supr, coe_supr]; refl
 
 end homogeneous_hull
 
 section galois_connection
 
+open homogeneous_ideal
+
 variables [comm_semiring R] [semiring A]
 variables [algebra R A] [decidable_eq ι] [add_monoid ι]
 variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 
-lemma ideal.homogeneous_hull.gc : galois_connection (ideal.homogeneous_hull 𝒜) coe :=
+lemma ideal.homogeneous_hull.gc : galois_connection (ideal.homogeneous_hull 𝒜) to_ideal :=
 λ I J, ⟨
-  le_trans (ideal.le_coe_homogeneous_hull _ _),
-  λ H, J.homogeneous_hull_coe_eq_self ▸ ideal.homogeneous_hull_mono 𝒜 H⟩
+  le_trans (ideal.le_to_ideal_homogeneous_hull _ _),
+  λ H, J.homogeneous_hull_to_ideal_eq_self ▸ ideal.homogeneous_hull_mono 𝒜 H⟩
 
-/-- `ideal.homogeneous_hull 𝒜` and `coe : homogeneous_ideal 𝒜 → ideal A` forms a galois insertion-/
-def ideal.homogeneous_hull.gi : galois_insertion (ideal.homogeneous_hull 𝒜) coe :=
-{ choice := λ I H, ⟨I, le_antisymm H (I.le_coe_homogeneous_hull 𝒜) ▸ subtype.prop _⟩,
+/-- `ideal.homogeneous_hull 𝒜` and `to_ideal : homogeneous_ideal 𝒜 → ideal A` form a galois
+insertion-/
+def ideal.homogeneous_hull.gi : galois_insertion (ideal.homogeneous_hull 𝒜) to_ideal :=
+{ choice := λ I H, ⟨I, le_antisymm H (I.le_to_ideal_homogeneous_hull 𝒜) ▸ is_homogeneous _⟩,
   gc := ideal.homogeneous_hull.gc 𝒜,
-  le_l_u := λ I, ideal.le_coe_homogeneous_hull _ _,
-  choice_eq := λ I H, le_antisymm (I.le_coe_homogeneous_hull 𝒜) H}
+  le_l_u := λ I, ideal.le_to_ideal_homogeneous_hull _ _,
+  choice_eq := λ I H, le_antisymm (I.le_to_ideal_homogeneous_hull 𝒜) H}
 
 lemma ideal.homogeneous_hull_eq_Inf (I : ideal A) :
-  ideal.homogeneous_hull 𝒜 I = Inf { J : homogeneous_ideal 𝒜 | I ≤ J } :=
+  ideal.homogeneous_hull 𝒜 I = Inf { J : homogeneous_ideal 𝒜 | I ≤ J.to_ideal } :=
 eq.symm $ is_glb.Inf_eq $ (ideal.homogeneous_hull.gc 𝒜).is_least_l.is_glb
 
 end galois_connection
+
+section irrelevant_ideal
+
+variables [comm_semiring R] [semiring A]
+variables [algebra R A] [decidable_eq ι]
+variables [canonically_ordered_add_monoid ι]
+variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
+
+open graded_algebra set_like.graded_monoid direct_sum
+
+/--
+For a graded ring `⨁ᵢ 𝒜ᵢ` graded by a `canonically_ordered_add_monoid ι`, the irrelevant ideal
+refers to `⨁_{i>0} 𝒜ᵢ`, or equivalently `{a | a₀ = 0}`. This definition is used in `Proj`
+construction where `ι` is always `ℕ` so the irrelevant ideal is simply elements with `0` as
+0-th coordinate.
+
+# Future work
+Here in the definition, `ι` is assumed to be `canonically_ordered_add_monoid`. However, the notion
+of irrelevant ideal makes sense in a more general setting by defining it as the ideal of elements
+with `0` as i-th coordinate for all `i ≤ 0`, i.e. `{a | ∀ (i : ι), i ≤ 0 → aᵢ = 0}`.
+-/
+def homogeneous_ideal.irrelevant : homogeneous_ideal 𝒜 :=
+⟨(graded_algebra.proj_zero_ring_hom 𝒜).ker, λ i r (hr : (decompose 𝒜 r 0 : A) = 0), begin
+  change (decompose 𝒜 (decompose 𝒜 r _) 0 : A) = 0,
+  by_cases h : i = 0,
+  { rw [h, hr, map_zero, zero_apply, submodule.coe_zero] },
+  { rw [decompose_of_mem_ne 𝒜 (submodule.coe_mem _) h] }
+end⟩
+
+@[simp] lemma homogeneous_ideal.mem_irrelevant_iff (a : A) :
+  a ∈ homogeneous_ideal.irrelevant 𝒜 ↔ proj 𝒜 0 a = 0 := iff.rfl
+
+@[simp] lemma homogeneous_ideal.to_ideal_irrelevant :
+  (homogeneous_ideal.irrelevant 𝒜).to_ideal = (graded_algebra.proj_zero_ring_hom 𝒜).ker := rfl
+
+end irrelevant_ideal

@@ -296,9 +296,11 @@ open subgroup
 
 variables (α) [monoid α] [mul_action α β] [group β] (H : subgroup β)
 
+/-- A typeclass for when a `mul_action α β` descends to the quotient `β ⧸ H`. -/
 class quotient_action : Prop :=
 (inv_mul_mem : ∀ (a : α) {b c : β}, b⁻¹ * c ∈ H → (a • b)⁻¹ * (a • c) ∈ H)
 
+/-- A typeclass for when an `add_action α β` descends to the quotient `β ⧸ H`. -/
 class _root_.add_action.quotient_action (α : Type*) {β : Type*} [add_monoid α] [add_action α β]
   [add_group β] (H : add_subgroup β) : Prop :=
 (inv_mul_mem : ∀ (a : α) {b c : β}, -b + c ∈ H → -(a +ᵥ b) + (a +ᵥ c) ∈ H)

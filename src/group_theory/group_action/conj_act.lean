@@ -200,9 +200,9 @@ lemma card_carrier (g : G) :
   fintype.card (conj_classes.mk g).carrier =
     fintype.card (conj_act G) / fintype.card (stabilizer (conj_act G) g) :=
 begin
-  rw [← card_orbit_mul_card_stabilizer_eq_card_group (conj_act G) g,
-    nat.mul_div_cancel, carrier_eq_orbit],
-  rw fintype.card_pos_iff, apply_instance
+  rw [← card_orbit_mul_card_stabilizer_eq_card_group (conj_act G) g, nat.mul_div_cancel],
+  simp_rw [carrier_eq_orbit],
+  exact fintype.card_pos_iff.mpr infer_instance
 end
 
 end
@@ -222,10 +222,9 @@ begin
     nat.mul_div_cancel, fintype.card_of_finset],
   swap, { rw fintype.card_pos_iff, apply_instance },
   intro h,
-  simp only [true_and, finset.mem_univ, finset.mem_filter, mem_orbit_conj_act_iff,
-    ← conj_classes.mk_eq_mk_iff_is_conj],
-  refine eq_iff_eq_cancel_left.2 (conj_classes.mk_eq_mk_iff_is_conj.2 _),
-  show is_conj g _,
+  simp only [mem_orbit_conj_act_iff, ←conj_classes.mk_eq_mk_iff_is_conj, set.mem_to_finset,
+             conj_classes.mem_carrier_iff_mk_eq],
+  refine eq_iff_eq_cancel_left.2 (conj_classes.mk_eq_mk_iff_is_conj.2 (_ : is_conj g _)),
   rw [← mem_orbit_conj_act_iff, ← orbit_rel_r_apply],
   apply quotient.exact',
   rw [quotient.out_eq'],
@@ -260,34 +259,27 @@ lemma class_equation :
   nat.card (subgroup.center G) + ∑ᶠ x ∈ noncenter G, nat.card (carrier x) = nat.card G :=
 begin
   classical,
-  have aux : ∀ x : conj_classes G, nat.card x.carrier = x.carrier.to_finset.card,
-  { intro x,
-    simp only [nat.card_eq_fintype_card, finset.filter_congr_decidable, fintype.card_of_finset,
-      carrier_eq_preimage_mk],
-    refl, },
   rw [@nat.card_eq_fintype_card G, ← class_equation',
-    ← finset.sum_sdiff (conj_classes.noncenter G).to_finset.subset_univ],
-  simp only [aux], clear aux,
+      ←finset.sum_sdiff (conj_classes.noncenter G).to_finset.subset_univ],
+  simp only [nat.card_eq_fintype_card, set.to_finset_card],
   congr' 1, swap,
-  { convert finsum_cond_eq_sum_of_cond_iff _ _, { funext, congr, },
-    intros, simp only [set.mem_to_finset], },
-  calc nat.card (subgroup.center G)
-      = fintype.card (subgroup.center G) : nat.card_eq_fintype_card
-  ... = fintype.card ((noncenter G)ᶜ : set _) : fintype.card_congr ((mk_bij_on G).equiv _)
+  { convert finsum_cond_eq_sum_of_cond_iff _ _,
+    intros, simp only [set.mem_to_finset] },
+  calc fintype.card (subgroup.center G)
+      = fintype.card ((noncenter G)ᶜ : set _) : fintype.card_congr ((mk_bij_on G).equiv _)
   ... = finset.card (finset.univ \ (noncenter G).to_finset) : _
   ... = _ : _,
-  { rw fintype.card_of_finset, congr' 1, ext x,
-    simp only [set.mem_to_finset, finset.mem_sdiff, finset.mem_filter, set.mem_compl_eq], },
-  { rw [finset.card_eq_sum_ones],
-    convert finset.sum_congr rfl _,
-    rintro ⟨g⟩ hg,
-    simp only [true_and, finset.mem_univ, set.mem_to_finset, finset.mem_sdiff,
-      noncenter, not_not, set.mem_set_of_eq] at hg,
-    rw [eq_comm, finset.card_eq_one],
-    refine ⟨g, _⟩,
-    simp only [finset.eq_singleton_iff_unique_mem, true_and, finset.mem_univ, finset.mem_filter],
-    refine ⟨rfl, λ h hh, hg _ mem_carrier_mk⟩,
-    rwa mem_carrier_iff_mk_eq, }
+  { rw fintype.card_of_finset,
+    congr' 1,
+    ext x,
+    simp only [set.mem_to_finset, finset.mem_sdiff, finset.mem_filter, set.mem_compl_eq] },
+  rw [finset.card_eq_sum_ones],
+  convert finset.sum_congr rfl _,
+  rintro ⟨g⟩ hg,
+  simp only [true_and, finset.mem_univ, set.mem_to_finset, finset.mem_sdiff,
+             noncenter, not_not, set.mem_set_of_eq] at hg,
+  rw [eq_comm, ←set.to_finset_card, finset.card_eq_one],
+  exact ⟨g, finset.coe_injective $ by simpa using hg.eq_singleton_of_mem mem_carrier_mk⟩
 end
 
 end fintype

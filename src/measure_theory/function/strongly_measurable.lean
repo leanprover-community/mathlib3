@@ -50,7 +50,7 @@ results for those functions as if the measure was sigma-finite.
 -/
 
 open measure_theory filter topological_space function set measure_theory.measure
-open_locale ennreal topological_space measure_theory nnreal
+open_locale ennreal topological_space measure_theory nnreal big_operators
 
 variables {α β γ ι : Type*} [encodable ι]
 namespace measure_theory
@@ -118,9 +118,10 @@ lemma strongly_measurable_const {α β} {m : measurable_space α} [topological_s
   strongly_measurable (λ a : α, b) :=
 ⟨λ n, simple_func.const α b, λ a, tendsto_const_nhds⟩
 
-lemma strongly_measurable_zero {α β} {m : measurable_space α} [topological_space β] [has_zero β] :
-  strongly_measurable (0 : α → β) :=
-@strongly_measurable_const _ _ _ _ 0
+@[to_additive]
+lemma strongly_measurable_one {α β} {m : measurable_space α} [topological_space β] [has_one β] :
+  strongly_measurable (1 : α → β) :=
+@strongly_measurable_const _ _ _ _ 1
 
 /-- A version of `strongly_measurable_const` that assumes `f x = f y` for all `x, y`.
 This version works for functions between empty types. -/
@@ -308,6 +309,67 @@ protected lemma inf [has_inf β] [has_continuous_inf β] (hf : strongly_measurab
 ⟨λ n, hf.approx n ⊓ hg.approx n, λ x, (hf.tendsto_approx x).inf_right_nhds (hg.tendsto_approx x)⟩
 
 end order
+
+/-!
+### Big operators: `∏` and `∑`
+-/
+
+section monoid
+variables {M : Type*} [monoid M] [topological_space M] [has_continuous_mul M]
+  {m : measurable_space α}
+
+include m
+
+@[to_additive]
+lemma _root_.list.strongly_measurable_prod'
+  (l : list (α → M)) (hl : ∀ f ∈ l, strongly_measurable f) :
+  strongly_measurable l.prod :=
+begin
+  induction l with f l ihl, { exact strongly_measurable_one },
+  rw [list.forall_mem_cons] at hl,
+  rw [list.prod_cons],
+  exact hl.1.mul (ihl hl.2)
+end
+
+@[to_additive]
+lemma _root_.list.strongly_measurable_prod
+  (l : list (α → M)) (hl : ∀ f ∈ l, strongly_measurable f) :
+  strongly_measurable (λ x, (l.map (λ f : α → M, f x)).prod) :=
+by simpa only [← pi.list_prod_apply] using l.strongly_measurable_prod' hl
+
+end monoid
+
+section comm_monoid
+variables {M : Type*} [comm_monoid M] [topological_space M] [has_continuous_mul M]
+  {m : measurable_space α}
+
+include m
+
+@[to_additive]
+lemma _root_.multiset.strongly_measurable_prod'
+  (l : multiset (α → M)) (hl : ∀ f ∈ l, strongly_measurable f) :
+  strongly_measurable l.prod :=
+by { rcases l with ⟨l⟩, simpa using l.strongly_measurable_prod' (by simpa using hl) }
+
+@[to_additive]
+lemma _root_.multiset.strongly_measurable_prod
+  (s : multiset (α → M)) (hs : ∀ f ∈ s, strongly_measurable f) :
+  strongly_measurable (λ x, (s.map (λ f : α → M, f x)).prod) :=
+by simpa only [← pi.multiset_prod_apply] using s.strongly_measurable_prod' hs
+
+@[to_additive]
+lemma _root_.finset.strongly_measurable_prod'
+  {ι : Type*} {f : ι → α → M} (s : finset ι) (hf : ∀i ∈ s, strongly_measurable (f i)) :
+  strongly_measurable (∏ i in s, f i) :=
+finset.prod_induction _ _ (λ a b ha hb, ha.mul hb) (@strongly_measurable_one α M _ _ _) hf
+
+@[to_additive]
+lemma _root_.finset.strongly_measurable_prod
+  {ι : Type*} {f : ι → α → M} (s : finset ι) (hf : ∀i ∈ s, strongly_measurable (f i)) :
+  strongly_measurable (λ a, ∏ i in s, f i a) :=
+by simpa only [← finset.prod_apply] using s.strongly_measurable_prod' hf
+
+end comm_monoid
 
 /-- The range of a strongly measurable function is separable. -/
 lemma is_separable_range {m : measurable_space α} [topological_space β] [metrizable_space β]
@@ -696,10 +758,10 @@ lemma ae_strongly_measurable_const {α β} {m : measurable_space α} {μ : measu
   ae_strongly_measurable (λ a : α, b) μ :=
 strongly_measurable_const.ae_strongly_measurable
 
-lemma ae_strongly_measurable_zero {α β} {m : measurable_space α} {μ : measure α}
-  [topological_space β] [has_zero β] :
-  ae_strongly_measurable (0 : α → β) μ :=
-strongly_measurable_zero.ae_strongly_measurable
+@[to_additive] lemma ae_strongly_measurable_one {α β} {m : measurable_space α} {μ : measure α}
+  [topological_space β] [has_one β] :
+  ae_strongly_measurable (1 : α → β) μ :=
+strongly_measurable_one.ae_strongly_measurable
 
 @[simp] lemma subsingleton.ae_strongly_measurable {m : measurable_space α} [topological_space β]
   [subsingleton β] {μ : measure α} (f : α → β) :
@@ -838,6 +900,60 @@ protected lemma inf [semilattice_inf β] [has_continuous_inf β]
   hf.ae_eq_mk.inf hg.ae_eq_mk⟩
 
 end order
+
+/-!
+### Big operators: `∏` and `∑`
+-/
+
+section monoid
+variables {M : Type*} [monoid M] [topological_space M] [has_continuous_mul M]
+
+@[to_additive]
+lemma _root_.list.ae_strongly_measurable_prod' (l : list (α → M))
+  (hl : ∀ f ∈ l, ae_strongly_measurable f μ) : ae_strongly_measurable l.prod μ :=
+begin
+  induction l with f l ihl, { exact ae_strongly_measurable_one },
+  rw [list.forall_mem_cons] at hl,
+  rw [list.prod_cons],
+  exact hl.1.mul (ihl hl.2)
+end
+
+@[to_additive]
+lemma _root_.list.ae_strongly_measurable_prod
+  (l : list (α → M)) (hl : ∀ f ∈ l, ae_strongly_measurable f μ) :
+  ae_strongly_measurable (λ x, (l.map (λ f : α → M, f x)).prod) μ :=
+by simpa only [← pi.list_prod_apply] using l.ae_strongly_measurable_prod' hl
+
+end monoid
+
+section comm_monoid
+variables {M : Type*} [comm_monoid M] [topological_space M] [has_continuous_mul M]
+
+@[to_additive]
+lemma _root_.multiset.ae_strongly_measurable_prod' (l : multiset (α → M))
+  (hl : ∀ f ∈ l, ae_strongly_measurable f μ) : ae_strongly_measurable l.prod μ :=
+by { rcases l with ⟨l⟩, simpa using l.ae_strongly_measurable_prod' (by simpa using hl) }
+
+@[to_additive]
+lemma _root_.multiset.ae_strongly_measurable_prod (s : multiset (α → M))
+  (hs : ∀ f ∈ s, ae_strongly_measurable f μ) :
+  ae_strongly_measurable (λ x, (s.map (λ f : α → M, f x)).prod) μ :=
+by simpa only [← pi.multiset_prod_apply] using s.ae_strongly_measurable_prod' hs
+
+@[to_additive]
+lemma _root_.finset.ae_strongly_measurable_prod' {ι : Type*}  {f : ι → α → M}
+  (s : finset ι) (hf : ∀i ∈ s, ae_strongly_measurable (f i) μ) :
+  ae_strongly_measurable (∏ i in s, f i) μ :=
+multiset.ae_strongly_measurable_prod' _ $
+  λ g hg, let ⟨i, hi, hg⟩ := multiset.mem_map.1 hg in (hg ▸ hf _ hi)
+
+@[to_additive]
+lemma _root_.finset.ae_strongly_measurable_prod {ι : Type*}  {f : ι → α → M}
+  (s : finset ι) (hf : ∀i ∈ s, ae_strongly_measurable (f i) μ) :
+  ae_strongly_measurable (λ a, ∏ i in s, f i a) μ :=
+by simpa only [← finset.prod_apply] using s.ae_strongly_measurable_prod' hf
+
+end comm_monoid
 
 protected lemma prod_mk {f : α → β} {g : α → γ}
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :

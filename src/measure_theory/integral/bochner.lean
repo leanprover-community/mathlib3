@@ -278,7 +278,7 @@ and prove basic property of this integral.
 -/
 open finset
 
-variables [normed_group E] [measurable_space E] [normed_group F] [normed_space ℝ F] {p : ℝ≥0∞}
+variables [normed_group E] [normed_group F] [normed_space ℝ F] {p : ℝ≥0∞}
   {G F' : Type*} [normed_group G] [normed_group F'] [normed_space ℝ F']
   {m : measurable_space α} {μ : measure α}
 
@@ -421,10 +421,7 @@ namespace L1
 
 open ae_eq_fun Lp.simple_func Lp
 
-variables
-  [normed_group E] [second_countable_topology E] [measurable_space E] [borel_space E]
-  [normed_group F] [second_countable_topology F] [measurable_space F] [borel_space F]
-  {m : measurable_space α} {μ : measure α}
+variables [normed_group E] [normed_group F] {m : measurable_space α} {μ : measure α}
 
 variables {α E μ}
 
@@ -444,7 +441,7 @@ begin
   rcases f with ⟨f, s, hsf⟩,
   use s.pos_part,
   simp only [subtype.coe_mk, Lp.coe_pos_part, ← hsf, ae_eq_fun.pos_part_mk, simple_func.pos_part,
-    simple_func.coe_map]
+    simple_func.coe_map, mk_eq_mk],
 end ⟩
 
 /-- Negative part of a simple function in L1 space. -/
@@ -488,7 +485,7 @@ simple_func.integral_congr (simple_func.integrable f) h
 lemma integral_add (f g : α →₁ₛ[μ] E) : integral (f + g) = integral f + integral g :=
 set_to_L1s_add _ (λ _ _, weighted_smul_null) weighted_smul_union _ _
 
-lemma integral_smul [measurable_space 𝕜] [opens_measurable_space 𝕜] (c : 𝕜) (f : α →₁ₛ[μ] E) :
+lemma integral_smul (c : 𝕜) (f : α →₁ₛ[μ] E) :
   integral (c • f) = c • integral f :=
 set_to_L1s_smul _ (λ _ _, weighted_smul_null) weighted_smul_union weighted_smul_smul c f
 
@@ -498,9 +495,8 @@ begin
   exact (to_simple_func f).norm_integral_le_integral_norm (simple_func.integrable f)
 end
 
-variables {E' : Type*} [normed_group E'] [second_countable_topology E'] [measurable_space E']
-  [borel_space E'] [normed_space ℝ E'] [normed_space 𝕜 E']
-  [measurable_space 𝕜] [opens_measurable_space 𝕜]
+variables {E' : Type*} [normed_group E'] [normed_space ℝ E'] [normed_space 𝕜 E']
+
 
 variables (α E μ 𝕜)
 /-- The Bochner integral over simple functions in L1 space as a continuous linear map. -/
@@ -597,7 +593,7 @@ local attribute [instance] simple_func.normed_space
 
 open continuous_linear_map
 
-variables (𝕜) [measurable_space 𝕜] [opens_measurable_space 𝕜]
+variables (𝕜)
 
 /-- The Bochner integral in L1 space as a continuous linear map. -/
 def integral_clm' : (α →₁[μ] E) →L[𝕜] E :=
@@ -639,8 +635,8 @@ integral_clm.map_sub f g
 lemma integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f :=
 map_smul (integral_clm' 𝕜) c f
 
-local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _ _
-local notation `sIntegral` := @simple_func.integral_clm α E _ _ _ _ _ μ _
+local notation `Integral` := @integral_clm α E _ _ μ _ _
+local notation `sIntegral` := @simple_func.integral_clm α E _ _ μ _
 
 lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
 norm_set_to_L1_le (dominated_fin_meas_additive_weighted_smul μ) zero_le_one
@@ -687,11 +683,9 @@ functions, and 0 otherwise; prove its basic properties.
 
 -/
 
-variables [normed_group E] [second_countable_topology E] [normed_space ℝ E] [complete_space E]
-  [measurable_space E] [borel_space E]
+variables [normed_group E] [normed_space ℝ E] [complete_space E]
           [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
-          [normed_group F] [second_countable_topology F] [normed_space ℝ F] [complete_space F]
-  [measurable_space F] [borel_space F]
+          [normed_group F] [normed_space ℝ F] [complete_space F]
 
 /-- The Bochner integral -/
 def integral {m : measurable_space α} (μ : measure α) (f : α → E) : E :=
@@ -725,7 +719,7 @@ lemma L1.integral_eq_integral (f : α →₁[μ] E) : L1.integral f = ∫ a, f a
 lemma integral_undef (h : ¬ integrable f μ) : ∫ a, f a ∂μ = 0 :=
 dif_neg h
 
-lemma integral_non_ae_measurable (h : ¬ ae_measurable f μ) : ∫ a, f a ∂μ = 0 :=
+lemma integral_non_ae_measurable (h : ¬ ae_strongly_measurable f μ) : ∫ a, f a ∂μ = 0 :=
 integral_undef $ not_and_of_not_left _ h
 
 variables (α E)
@@ -764,7 +758,7 @@ lemma integral_sub' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f - g) a ∂μ = ∫ a, f a ∂μ - ∫ a, g a ∂μ :=
 integral_sub hf hg
 
-lemma integral_smul [measurable_space 𝕜] [opens_measurable_space 𝕜] (c : 𝕜) (f : α → E) :
+lemma integral_smul (c : 𝕜) (f : α → E) :
   ∫ a, c • (f a) ∂μ = c • ∫ a, f a ∂μ :=
 set_to_fun_smul (dominated_fin_meas_additive_weighted_smul μ) weighted_smul_smul c f
 
@@ -848,7 +842,7 @@ end
   (i.e. not requiring that `bound` is measurable), but in all applications proving integrability
   is easier. -/
 theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → E} {f : α → E} (bound : α → ℝ)
-  (F_measurable : ∀ n, ae_measurable (F n) μ)
+  (F_measurable : ∀ n, ae_strongly_measurable (F n) μ)
   (bound_integrable : integrable bound μ)
   (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
@@ -860,7 +854,7 @@ tendsto_set_to_fun_of_dominated_convergence (dominated_fin_meas_additive_weighte
 lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
   [l.is_countably_generated]
   {F : ι → α → E} {f : α → E} (bound : α → ℝ)
-  (hF_meas : ∀ᶠ n in l, ae_measurable (F n) μ)
+  (hF_meas : ∀ᶠ n in l, ae_strongly_measurable (F n) μ)
   (h_bound : ∀ᶠ n in l, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound a)
   (bound_integrable : integrable bound μ)
   (h_lim : ∀ᵐ a ∂μ, tendsto (λ n, F n a) l (𝓝 (f a))) :
@@ -871,7 +865,7 @@ tendsto_set_to_fun_filter_of_dominated_convergence (dominated_fin_meas_additive_
 /-- Lebesgue dominated convergence theorem for series. -/
 lemma has_sum_integral_of_dominated_convergence {ι} [encodable ι]
   {F : ι → α → E} {f : α → E} (bound : ι → α → ℝ)
-  (hF_meas : ∀ n, ae_measurable (F n) μ)
+  (hF_meas : ∀ n, ae_strongly_measurable (F n) μ)
   (h_bound : ∀ n, ∀ᵐ a ∂μ, ∥F n a∥ ≤ bound n a)
   (bound_summable : ∀ᵐ a ∂μ, summable (λ n, bound n a))
   (bound_integrable : integrable (λ a, ∑' n, bound n a) μ)
@@ -890,7 +884,7 @@ begin
   simp only [has_sum, ← integral_finset_sum _ (λ n _, hF_integrable n)],
   refine tendsto_integral_filter_of_dominated_convergence (λ a, ∑' n, bound n a) _ _
     bound_integrable h_lim,
-  { exact eventually_of_forall (λ s, s.ae_measurable_sum $ λ n hn, hF_meas n) },
+  { exact eventually_of_forall (λ s, s.ae_strongly_measurable_sum $ λ n hn, hF_meas n) },
   { refine eventually_of_forall (λ s, _),
     filter_upwards [eventually_countable_forall.2 h_bound, hb_nonneg, bound_summable]
       with a hFa ha0 has,
@@ -975,8 +969,7 @@ begin
     rw [this, hfi], refl }
 end
 
-lemma integral_norm_eq_lintegral_nnnorm {G} [normed_group G] [measurable_space G]
-  [opens_measurable_space G] {f : α → G} (hf : ae_measurable f μ) :
+lemma integral_norm_eq_lintegral_nnnorm {G} [normed_group G] {f : α → G} (hf : ae_measurable f μ) :
   ∫ x, ∥f x∥ ∂μ = ennreal.to_real ∫⁻ x, ∥f x∥₊ ∂μ :=
 begin
   rw integral_eq_lintegral_of_nonneg_ae _ hf.norm,
@@ -984,8 +977,8 @@ begin
   { refine ae_of_all _ _, simp_rw [pi.zero_apply, norm_nonneg, imp_true_iff] },
 end
 
-lemma of_real_integral_norm_eq_lintegral_nnnorm {G} [normed_group G] [measurable_space G]
-  [opens_measurable_space G] {f : α → G} (hf : integrable f μ) :
+lemma of_real_integral_norm_eq_lintegral_nnnorm {G} [normed_group G] {f : α → G}
+  (hf : integrable f μ) :
   ennreal.of_real ∫ x, ∥f x∥ ∂μ = ∫⁻ x, ∥f x∥₊ ∂μ :=
 by rw [integral_norm_eq_lintegral_nnnorm hf.ae_measurable,
     ennreal.of_real_to_real (lt_top_iff_ne_top.mp hf.2)]
@@ -1069,8 +1062,7 @@ lemma integral_pos_iff_support_of_nonneg {f : α → ℝ} (hf : 0 ≤ f) (hfi : 
 integral_pos_iff_support_of_nonneg_ae (eventually_of_forall hf) hfi
 
 section normed_group
-variables {H : Type*} [normed_group H] [second_countable_topology H] [measurable_space H]
-          [borel_space H]
+variables {H : Type*} [normed_group H]
 
 lemma L1.norm_eq_integral_norm (f : α →₁[μ] H) : ∥f∥ = ∫ a, ∥f a∥ ∂μ :=
 begin
@@ -1362,7 +1354,7 @@ attribute [irreducible] integral L1.integral
 
 section integral_trim
 
-variables {H β γ : Type*} [normed_group H] [measurable_space H]
+variables {H β γ : Type*} [normed_group H]
   {m m0 : measurable_space β} {μ : measure β}
 
 /-- Simple function seen as simple function of a larger `measurable_space`. -/

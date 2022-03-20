@@ -25,7 +25,7 @@ open_locale topological_space interval
 
 variables {X Y E : Type*} [measurable_space X] [topological_space X]
 variables [measurable_space Y] [topological_space Y]
-variables [normed_group E] [measurable_space E] {f : X → E} {μ : measure X}
+variables [normed_group E] {f : X → E} {μ : measure X}
 
 namespace measure_theory
 
@@ -38,10 +38,10 @@ lemma integrable.locally_integrable (hf : integrable f μ) : locally_integrable 
 λ K hK, hf.integrable_on
 
 lemma locally_integrable.ae_measurable [sigma_compact_space X] (hf : locally_integrable f μ) :
-  ae_measurable f μ :=
+  ae_strongly_measurable f μ :=
 begin
-  rw [← @restrict_univ _ _ μ, ← Union_compact_covering, ae_measurable_Union_iff],
-  exact λ i, (hf $ is_compact_compact_covering X i).ae_measurable
+  rw [← @restrict_univ _ _ μ, ← Union_compact_covering, ae_strongly_measurable_Union_iff],
+  exact λ i, (hf $ is_compact_compact_covering X i).ae_strongly_measurable
 end
 
 lemma locally_integrable_iff [locally_compact_space X] :
@@ -69,7 +69,8 @@ begin
   { filter_upwards [ae_restrict_mem hA] with x hx,
     rw [real.norm_eq_abs, abs_mul, mul_comm, real.norm_eq_abs],
     apply mul_le_mul_of_nonneg_right (hC x (hAK hx)) (abs_nonneg _), },
-  exact mem_ℒp.of_le_mul hg (hg.ae_measurable.mul ((hg'.mono hAK).ae_measurable hA)) this,
+  exact mem_ℒp.of_le_mul hg (hg.ae_strongly_measurable.ae_measurable.mul
+    ((hg'.mono hAK).ae_measurable hA)).ae_strongly_measurable this,
 end
 
 lemma integrable_on.mul_continuous_on [t2_space X]
@@ -102,10 +103,10 @@ is_compact.induction_on hK integrable_on_empty (λ s t hst ht, ht.mono_set hst)
 
 section borel
 
-variables [opens_measurable_space X] [t2_space X] [borel_space E] [is_locally_finite_measure μ]
+variables [opens_measurable_space X] [metrizable_space X] [is_locally_finite_measure μ]
 variables {K : set X} {a b : X}
 
-/-- A function `f` continuous on a compact set `s` is integrable on this set with respect to any
+/-- A function `f` continuous on a compact set `K` is integrable on this set with respect to any
 locally finite measure. -/
 lemma continuous_on.integrable_on_compact (hK : is_compact K) (hf : continuous_on f K) :
   integrable_on f K μ :=
@@ -149,9 +150,9 @@ end borel
 
 section monotone
 
-variables [borel_space X] [borel_space E]
+variables [borel_space X]
   [conditionally_complete_linear_order X] [conditionally_complete_linear_order E]
-  [order_topology X] [order_topology E] [second_countable_topology E]
+  [order_topology X] [order_topology E]
   [is_locally_finite_measure μ] {s : set X}
 
 lemma monotone_on.integrable_on_compact (hs : is_compact s) (hmono : monotone_on f s) :

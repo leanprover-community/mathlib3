@@ -1848,6 +1848,13 @@ end
 
 end proper_space
 
+lemma is_compact.is_separable {s : set α} (hs : is_compact s) :
+  is_separable s :=
+begin
+  haveI : compact_space s := is_compact_iff_compact_space.mp hs,
+  exact is_separable_of_separable_space_subtype s,
+end
+
 namespace metric
 section second_countable
 open topological_space

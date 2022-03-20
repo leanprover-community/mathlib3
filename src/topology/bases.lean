@@ -388,6 +388,13 @@ begin
   exact hc.trans (closure_subset_preimage_closure_image hf)
 end
 
+lemma is_separable_of_separable_space_subtype (s : set α) [separable_space s] : is_separable s :=
+begin
+  have : is_separable ((coe : s → α) '' (univ : set s)) :=
+    (is_separable_of_separable_space _).image continuous_subtype_coe,
+  simpa only [image_univ, subtype.range_coe_subtype],
+end
+
 end topological_space
 
 open topological_space

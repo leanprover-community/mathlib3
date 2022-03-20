@@ -41,7 +41,7 @@ and show how to compute the components.
 Now, we assume `preserves_finite_limits F`, then
 * `category_theory.abelian.functor.preserves_exact_of_preserves_finite_limits_of_mono`: if `f` is
   mono and `exact f g`, then `exact (F.map f) (F.map g)`.
-* `cateogry_theory.abelian.functor.right_derived_zero_iso_self`: if there are enough injectives,
+* `category_theory.abelian.functor.right_derived_zero_iso_self`: if there are enough injectives,
   then there is a natural isomorphism `(F.right_derived 0) ≅ F`.
 -/
 

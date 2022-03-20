@@ -58,7 +58,7 @@ variables (G : Type*) [group G] [fintype G] [fintype (conj_classes G)]
 
 lemma card_comm_eq_card_conj_classes_mul_card :
   card {p : G × G // p.1 * p.2 = p.2 * p.1} = card (conj_classes G) * card G :=
-calc card {p : G × G // p.1 * p.2 = p.2 * p.1} = card (Σ g, {h // g * h = h * g}) :
+by convert calc card {p : G × G // p.1 * p.2 = p.2 * p.1} = card (Σ g, {h // g * h = h * g}) :
   card_congr (equiv.subtype_prod_equiv_sigma_subtype (λ g h : G, g * h = h * g))
 ... = ∑ g, card {h // g * h = h * g} : card_sigma _
 ... = ∑ g, card (mul_action.fixed_by (conj_act G) G g) : sum_equiv conj_act.to_conj_act.to_equiv

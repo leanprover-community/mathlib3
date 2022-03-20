@@ -31,7 +31,7 @@ namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
 local notation `⟦`:max a `⟧` := quot.mk _ a
 
-instance [inhabited α] : inhabited (quot ra) := ⟨⟦default⟧⟩
+instance (r : α → α → Prop) [inhabited α] : inhabited (quot r) := ⟨⟦default⟧⟩
 
 instance [subsingleton α] : subsingleton (quot ra) :=
 ⟨λ x, quot.induction_on x (λ y, quot.ind (λ b, congr_arg _ (subsingleton.elim _ _)))⟩
@@ -188,6 +188,10 @@ theorem forall_quotient_iff {α : Type*} [r : setoid α] {p : quotient r → Pro
 @[simp] lemma quotient.lift_mk [s : setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b)
   (x : α) :
   quotient.lift f h (quotient.mk x) = f x := rfl
+
+@[simp] lemma quotient.lift_comp_mk [setoid α] (f : α → β) (h : ∀ (a b : α), a ≈ b → f a = f b) :
+  quotient.lift f h ∘ quotient.mk = f :=
+rfl
 
 @[simp] lemma quotient.lift₂_mk {α : Sort*} {β : Sort*} {γ : Sort*} [setoid α] [setoid β]
   (f : α → β → γ)
@@ -531,5 +535,20 @@ noncomputable def out' (a : quotient s₁) : α := quotient.out a
 
 theorem mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a : quotient s₁).out' a :=
 quotient.exact (quotient.out_eq _)
+
+section
+
+variables [setoid α]
+
+protected lemma mk'_eq_mk (x : α) : quotient.mk' x = ⟦x⟧ := rfl
+
+@[simp] protected lemma lift_on'_mk (x : α) (f : α → β) (h) : ⟦x⟧.lift_on' f h = f x := rfl
+
+@[simp] protected lemma lift_on₂'_mk [setoid β] (f : α → β → γ) (h) (a : α) (b : β) :
+  quotient.lift_on₂' ⟦a⟧ ⟦b⟧ f h = f a b := quotient.lift_on₂'_mk' _ _ _ _
+
+@[simp] lemma map'_mk [setoid β] (f : α → β) (h) (x : α) : ⟦x⟧.map' f h = ⟦f x⟧ := rfl
+
+end
 
 end quotient

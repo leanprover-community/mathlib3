@@ -364,10 +364,6 @@ instance covariant_add [linear_order R] : covariant_class (tropical R) (tropical
     { rwa [add_eq_right hx] } }
 end⟩
 
-instance covariant_swap_add [linear_order R] :
-  covariant_class (tropical R) (tropical R) (function.swap (+)) (≤) :=
-⟨λ x y z h, by { convert add_le_add_left h x using 1; rw [add_comm] }⟩
-
 instance covariant_mul_lt [has_lt R] [has_add R] [covariant_class R R (+) (<)] :
   covariant_class (tropical R) (tropical R) (*) (<) :=
 ⟨λ x y z h, add_lt_add_left h _⟩
@@ -376,20 +372,6 @@ instance covariant_swap_mul_lt [preorder R] [has_add R]
   [covariant_class R R (function.swap (+)) (<)] :
   covariant_class (tropical R) (tropical R) (function.swap (*)) (<) :=
 ⟨λ x y z h, add_lt_add_right h _⟩
-
-instance covariant_add_lt [linear_order R] : covariant_class (tropical R) (tropical R) (+) (≤) :=
-⟨λ x y z h, begin
-  cases le_total x y with hx hy,
-  { rw [add_eq_left hx, add_eq_left (hx.trans h)] },
-  { rw [add_eq_right hy],
-    cases le_total x z with hx hx,
-    { rwa [add_eq_left hx] },
-    { rwa [add_eq_right hx] } }
-end⟩
-
-instance covariant_swap_add_lt [linear_order R] :
-  covariant_class (tropical R) (tropical R) (function.swap (+)) (≤) :=
-⟨λ x y z h, by { convert add_le_add_left h x using 1; rw [add_comm] }⟩
 
 instance [linear_order R] [has_add R]
   [covariant_class R R (+) (≤)] [covariant_class R R (function.swap (+)) (≤)] :

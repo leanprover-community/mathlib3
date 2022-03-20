@@ -11,42 +11,31 @@ import data.equiv.option
 -/
 open equiv
 
-lemma equiv_functor.map_equiv_option_injective {α β : Type*} :
-  function.injective (equiv_functor.map_equiv option : α ≃ β → option α ≃ option β) :=
-equiv_functor.map_equiv.injective option option.some_injective
+@[simp] lemma equiv.option_congr_one {α : Type*} : (1 : perm α).option_congr = 1 :=
+equiv.option_congr_refl
 
-@[simp] lemma equiv_functor.option.map_none {α β : Type*} (e : α ≃ β) :
-  equiv_functor.map e none = none :=
-by simp [equiv_functor.map]
-
-@[simp] lemma map_equiv_option_one {α : Type*} : equiv_functor.map_equiv option (1 : perm α) = 1 :=
-by {ext, simp [equiv_functor.map_equiv, equiv_functor.map] }
-
-@[simp] lemma map_equiv_option_refl {α : Type*} :
-  equiv_functor.map_equiv option (equiv.refl α) = 1 := map_equiv_option_one
-
-@[simp] lemma map_equiv_option_swap {α : Type*} [decidable_eq α] (x y : α) :
-  equiv_functor.map_equiv option (swap x y) = swap (some x) (some y) :=
+@[simp] lemma equiv.option_congr_swap {α : Type*} [decidable_eq α] (x y : α) :
+  option_congr (swap x y) = swap (some x) (some y) :=
 begin
   ext (_ | i),
   { simp [swap_apply_of_ne_of_ne] },
   { by_cases hx : i = x,
-    simp [hx, swap_apply_of_ne_of_ne, equiv_functor.map],
+    simp [hx, swap_apply_of_ne_of_ne],
     by_cases hy : i = y;
-    simp [hx, hy, swap_apply_of_ne_of_ne, equiv_functor.map], }
+    simp [hx, hy, swap_apply_of_ne_of_ne], }
 end
 
-@[simp] lemma equiv_functor.option.sign {α : Type*} [decidable_eq α] [fintype α] (e : perm α) :
-  perm.sign (equiv_functor.map_equiv option e) = perm.sign e :=
+@[simp] lemma equiv.option_congr_sign {α : Type*} [decidable_eq α] [fintype α] (e : perm α) :
+  perm.sign e.option_congr = perm.sign e :=
 begin
   apply perm.swap_induction_on e,
   { simp [perm.one_def] },
   { intros f x y hne h,
-    simp [h, hne, perm.mul_def, ←equiv_functor.map_equiv_trans] }
+    simp [h, hne, perm.mul_def, ←equiv.option_congr_trans] }
 end
 
 @[simp] lemma map_equiv_remove_none {α : Type*} [decidable_eq α] (σ : perm (option α)) :
-  equiv_functor.map_equiv option (remove_none σ) = swap none (σ none) * σ :=
+  (remove_none σ).option_congr = swap none (σ none) * σ :=
 begin
   ext1 x,
   have : option.map ⇑(remove_none σ) x = (swap none (σ none)) (σ x),
@@ -66,18 +55,18 @@ The fixed `option α` is swapped with `none`. -/
 @[simps] def equiv.perm.decompose_option {α : Type*} [decidable_eq α] :
   perm (option α) ≃ option α × perm α :=
 { to_fun := λ σ, (σ none, remove_none σ),
-  inv_fun := λ i, swap none i.1 * (equiv_functor.map_equiv option i.2),
+  inv_fun := λ i, swap none i.1 * i.2.option_congr,
   left_inv := λ σ, by simp,
   right_inv := λ ⟨x, σ⟩, begin
-    have : remove_none (swap none x * equiv_functor.map_equiv option σ) = σ :=
-      equiv_functor.map_equiv_option_injective (by simp [←mul_assoc, equiv_functor.map]),
-    simp [←perm.eq_inv_iff_eq, equiv_functor.map, this],
+    have : remove_none (swap none x * σ.option_congr) = σ :=
+      equiv.option_congr_injective (by simp [←mul_assoc]),
+    simp [←perm.eq_inv_iff_eq, this],
   end }
 
 lemma equiv.perm.decompose_option_symm_of_none_apply {α : Type*} [decidable_eq α]
   (e : perm α) (i : option α) :
   equiv.perm.decompose_option.symm (none, e) i = i.map e :=
-by simp [equiv_functor.map]
+by simp
 
 lemma equiv.perm.decompose_option_symm_sign {α : Type*} [decidable_eq α] [fintype α] (e : perm α) :
   perm.sign (equiv.perm.decompose_option.symm (none, e)) = perm.sign e :=

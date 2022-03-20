@@ -10,7 +10,7 @@ import data.polynomial.eval
 # The Pochhammer polynomials
 
 We define and prove some basic relations about
-`pochhammer S n : polynomial S := X * (X + 1) * ... * (X + n - 1)`
+`pochhammer S n : S[X] := X * (X + 1) * ... * (X + n - 1)`
 which is also known as the rising factorial. A version of this definition
 that is focused on `nat` can be found in `data.nat.factorial` as `nat.asc_factorial`.
 
@@ -28,6 +28,7 @@ There is lots more in this direction:
 universes u v
 
 open polynomial
+open_locale polynomial
 
 section semiring
 variables (S : Type u) [semiring S]
@@ -36,7 +37,7 @@ variables (S : Type u) [semiring S]
 `pochhammer S n` is the polynomial `X * (X+1) * ... * (X + n - 1)`,
 with coefficients in the semiring `S`.
 -/
-noncomputable def pochhammer : ℕ → polynomial S
+noncomputable def pochhammer : ℕ → S[X]
 | 0 := 1
 | (n+1) := X * (pochhammer n).comp (X + 1)
 
@@ -87,11 +88,11 @@ begin
   { simp, },
   { conv_lhs
   { rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
-      nat_cast_comp, add_assoc, add_comm (1 : polynomial ℕ)], },
+      nat_cast_comp, add_assoc, add_comm (1 : ℕ[X])], },
     refl, },
 end
 
-lemma polynomial.mul_X_add_nat_cast_comp {p q : polynomial S} {n : ℕ} :
+lemma polynomial.mul_X_add_nat_cast_comp {p q : S[X]} {n : ℕ} :
   (p * (X + n)).comp q = (p.comp q) * (q + n) :=
 by rw [mul_add, add_comp, mul_X_comp, ←nat.cast_comm, nat_cast_mul_comp, nat.cast_comm, mul_add]
 

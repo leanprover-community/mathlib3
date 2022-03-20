@@ -3,9 +3,7 @@ Copyright (c) 2021 Luke Kershaw. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Luke Kershaw
 -/
-import category_theory.natural_isomorphism
 import category_theory.preadditive.additive_functor
-import category_theory.shift
 import category_theory.triangulated.basic
 
 /-!
@@ -110,7 +108,7 @@ def rotate (f : triangle_morphism T₁ T₂) :
   comm₃' := begin
     dsimp,
     simp only [rotate_mor₃, comp_neg, neg_comp, ← functor.map_comp, f.comm₁]
-  end}
+  end }
 
 /--
 Given a triangle morphism of the form:
@@ -147,15 +145,15 @@ def inv_rotate (f : triangle_morphism T₁ T₂) :
     dsimp [inv_rotate_mor₁],
     simp only [discrete.functor_map_id, id_comp, preadditive.comp_neg, assoc,
       neg_inj, nat_trans.id_app, preadditive.neg_comp],
-    rw [← functor.map_comp_assoc, ← f.comm₃, functor.map_comp_assoc],
-    simp
+    rw [← functor.map_comp_assoc, ← f.comm₃, functor.map_comp_assoc, μ_naturality_assoc,
+      nat_trans.naturality, functor.id_map],
   end,
   comm₃' := begin
     dsimp,
     simp only [discrete.functor_map_id, id_comp, opaque_eq_to_iso_inv, μ_inv_naturality,
       category.assoc, nat_trans.id_app, unit_of_tensor_iso_unit_inv_app],
     erw ε_naturality_assoc,
-    simp
+    rw comm₂_assoc
   end }
 
 end triangle_morphism
@@ -167,7 +165,6 @@ Rotating triangles gives an endofunctor on the category of triangles in `C`.
 def rotate : (triangle C) ⥤ (triangle C) :=
 { obj := triangle.rotate,
   map := λ _ _ f, f.rotate }
-
 
 /--
 The inverse rotation of triangles gives an endofunctor on the category of triangles in `C`.
@@ -208,8 +205,8 @@ def rot_comp_inv_rot_hom : 𝟭 (triangle C) ⟶ rotate ⋙ inv_rotate :=
         opaque_eq_to_iso_inv, μ_inv_naturality, assoc, nat_trans.id_app,
         unit_of_tensor_iso_unit_inv_app],
       erw ε_naturality },
-    { dsimp, simp },
-    { dsimp, simp }
+    { dsimp, rw [comp_id, id_comp] },
+    { dsimp, rw [comp_id, id_comp] },
   end }
 
 /-- There is a natural map from the `inv_rotate` of the `rotate` of a triangle to itself. -/
@@ -218,7 +215,13 @@ def from_inv_rotate_rotate (T : triangle C) : inv_rotate.obj (rotate.obj T) ⟶ 
 { hom₁ := (shift_equiv C 1).unit_inv.app T.obj₁,
     hom₂ := 𝟙 T.obj₂,
     hom₃ := 𝟙 T.obj₃,
-    comm₃' := by { dsimp, simp, erw [μ_inv_hom_app, μ_inv_hom_app_assoc, category.comp_id] } }
+    comm₃' := begin
+      dsimp,
+      rw [unit_of_tensor_iso_unit_inv_app, ε_app_obj],
+      simp only [discrete.functor_map_id, nat_trans.id_app, id_comp, assoc, functor.map_comp,
+        obj_μ_app, obj_ε_inv_app, comp_id, μ_inv_hom_app_assoc],
+      erw [μ_inv_hom_app, μ_inv_hom_app_assoc, category.comp_id]
+    end }
 
 /--
 There is a natural transformation between the composition of a rotation with an inverse rotation
@@ -244,8 +247,23 @@ def from_rotate_inv_rotate (T : triangle C) : rotate.obj (inv_rotate.obj T) ⟶ 
 { hom₁ := 𝟙 T.obj₁,
     hom₂ := 𝟙 T.obj₂,
     hom₃ := (shift_equiv C 1).counit.app T.obj₃,
-    comm₂' := by { dsimp, simp, exact category.comp_id _ },
-    comm₃' := by { dsimp, simp, erw [μ_inv_hom_app, category.comp_id, obj_zero_map_μ_app], simp } }
+    comm₂' := begin
+      dsimp,
+      rw unit_of_tensor_iso_unit_inv_app,
+      simp only [discrete.functor_map_id, nat_trans.id_app,
+        id_comp, add_neg_equiv_counit_iso_hom, eq_to_hom_refl, nat_trans.comp_app, assoc,
+        μ_inv_hom_app_assoc, ε_hom_inv_app],
+      exact category.comp_id _,
+    end,
+    comm₃' := begin
+      dsimp,
+      simp only [discrete.functor_map_id, nat_trans.id_app, id_comp, functor.map_neg,
+        functor.map_comp, obj_μ_app, obj_ε_inv_app, comp_id, assoc, μ_naturality_assoc, neg_neg,
+        category_theory.functor.map_id, add_neg_equiv_counit_iso_hom, eq_to_hom_refl,
+        nat_trans.comp_app],
+      erw [μ_inv_hom_app, category.comp_id, obj_zero_map_μ_app],
+      rw [discrete.functor_map_id, nat_trans.id_app, comp_id],
+    end }
 
 /--
 There is a natural transformation between the composition of an inverse rotation with a rotation
@@ -261,7 +279,15 @@ def to_rotate_inv_rotate (T : triangle C) : T ⟶ rotate.obj (inv_rotate.obj T) 
 { hom₁ := 𝟙 T.obj₁,
     hom₂ := 𝟙 T.obj₂,
     hom₃ := (shift_equiv C 1).counit_inv.app T.obj₃,
-    comm₃' := by { dsimp, simp, erw [μ_inv_hom_app, category.comp_id, obj_zero_map_μ_app], simp } }
+    comm₃' := begin
+      dsimp,
+      rw category_theory.functor.map_id,
+      simp only [comp_id, add_neg_equiv_counit_iso_inv, eq_to_hom_refl, id_comp, nat_trans.comp_app,
+        discrete.functor_map_id, nat_trans.id_app, functor.map_neg, functor.map_comp, obj_μ_app,
+        obj_ε_inv_app, assoc, μ_naturality_assoc, neg_neg, μ_inv_hom_app_assoc],
+      erw [μ_inv_hom_app, category.comp_id, obj_zero_map_μ_app],
+      simp only [discrete.functor_map_id, nat_trans.id_app, comp_id, ε_hom_inv_app_assoc],
+    end }
 
 /--
 There is a natural transformation between the identity functor on triangles in `C`,
@@ -270,8 +296,15 @@ and the composition of an inverse rotation with a rotation.
 @[simps]
 def inv_rot_comp_rot_inv : 𝟭 (triangle C) ⟶ inv_rotate ⋙ rotate :=
 { app := to_rotate_inv_rotate,
-  naturality' := by { introv, ext, { dsimp, simp }, { dsimp, simp },
-    { dsimp, simp, erw [μ_inv_naturality, ε_naturality_assoc] }, } }
+  naturality' := begin
+    introv, ext,
+    { dsimp, rw [comp_id, id_comp] },
+    { dsimp, rw [comp_id, id_comp] },
+    { dsimp,
+      rw [add_neg_equiv_counit_iso_inv, eq_to_hom_refl, id_comp],
+      simp only [nat_trans.comp_app, assoc],
+      erw [μ_inv_naturality, ε_naturality_assoc] },
+  end }
 
 /--
 The natural transformations between the composition of a rotation with an inverse rotation
@@ -292,7 +325,17 @@ def triangle_rotation : equivalence (triangle C) (triangle C) :=
   inverse := inv_rotate,
   unit_iso := rot_comp_inv_rot,
   counit_iso := inv_rot_comp_rot,
-  functor_unit_iso_comp' := by { introv, ext, { dsimp, simp }, { dsimp, simp },
-    { dsimp, simp, erw [μ_inv_hom_app_assoc, μ_inv_hom_app], refl } } }
+  functor_unit_iso_comp' := begin
+    introv, ext,
+    { dsimp, rw comp_id },
+    { dsimp, rw comp_id },
+    { dsimp,
+      rw unit_of_tensor_iso_unit_inv_app,
+      simp only [discrete.functor_map_id, nat_trans.id_app, id_comp, functor.map_comp, obj_ε_app,
+        obj_μ_inv_app, assoc, add_neg_equiv_counit_iso_hom, eq_to_hom_refl, nat_trans.comp_app,
+        ε_inv_app_obj, comp_id, μ_inv_hom_app_assoc],
+      erw [μ_inv_hom_app_assoc, μ_inv_hom_app],
+      refl }
+  end }
 
 end category_theory.triangulated

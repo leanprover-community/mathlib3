@@ -310,6 +310,11 @@ by classical; exact lattice.to_linear_order Prop
 @[simp] lemma inf_Prop_eq : (⊓) = (∧) := rfl
 
 section logic
+/-!
+#### In this section we prove some properties about monotone and antitone operations on `Prop`
+-/
+section preorder
+
 variable [preorder α]
 
 theorem monotone_and {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
@@ -320,6 +325,54 @@ theorem monotone_and {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
 theorem monotone_or {p q : α → Prop} (m_p : monotone p) (m_q : monotone q) :
   monotone (λ x, p x ∨ q x) :=
 λ a b h, or.imp (m_p h) (m_q h)
+
+lemma monotone_le {x : α}: monotone ((≤) x) :=
+λ y z h' h, h.trans h'
+
+lemma monotone_lt {x : α}: monotone ((<) x) :=
+λ y z h' h, h.trans_le h'
+
+lemma antitone_le {x : α}: antitone (≤ x) :=
+λ y z h' h, h'.trans h
+
+lemma antitone_lt {x : α}: antitone (< x) :=
+λ y z h' h, h'.trans_lt h
+
+lemma monotone.forall {P : β → α → Prop} (hP : ∀ x, monotone (P x)) :
+  monotone (λ y, ∀ x, P x y) :=
+λ y y' hy h x, hP x hy $ h x
+
+lemma antitone.forall {P : β → α → Prop} (hP : ∀ x, antitone (P x)) :
+  antitone (λ y, ∀ x, P x y) :=
+λ y y' hy h x, hP x hy (h x)
+
+lemma monotone.ball {P : β → α → Prop} {s : set β} (hP : ∀ x ∈ s, monotone (P x)) :
+  monotone (λ y, ∀ x ∈ s, P x y) :=
+λ y y' hy h x hx, hP x hx hy (h x hx)
+
+lemma antitone.ball {P : β → α → Prop} {s : set β} (hP : ∀ x ∈ s, antitone (P x)) :
+  antitone (λ y, ∀ x ∈ s, P x y) :=
+λ y y' hy h x hx, hP x hx hy (h x hx)
+
+end preorder
+
+section semilattice_sup
+variables [semilattice_sup α]
+
+lemma exists_ge_and_iff_exists {P : α → Prop} {x₀ : α} (hP : monotone P) :
+  (∃ x, x₀ ≤ x ∧ P x) ↔ ∃ x, P x :=
+⟨λ h, h.imp $ λ x h, h.2, λ ⟨x, hx⟩, ⟨x ⊔ x₀, le_sup_right, hP le_sup_left hx⟩⟩
+
+end semilattice_sup
+
+section semilattice_inf
+variables [semilattice_inf α]
+
+lemma exists_le_and_iff_exists {P : α → Prop} {x₀ : α} (hP : antitone P) :
+  (∃ x, x ≤ x₀ ∧ P x) ↔ ∃ x, P x :=
+exists_ge_and_iff_exists hP.dual_left
+
+end semilattice_inf
 end logic
 
 /-! ### Function lattices -/
@@ -377,6 +430,31 @@ lemma subsingleton_iff_bot_eq_top :
 
 end subsingleton
 
+section lift
+
+/-- Pullback an `order_top`. -/
+@[reducible] -- See note [reducible non-instances]
+def order_top.lift [has_le α] [has_top α] [has_le β] [order_top β] (f : α → β)
+  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_top : f ⊤ = ⊤) :
+  order_top α :=
+⟨⊤, λ a, map_le _ _ $ by { rw map_top, exact le_top }⟩
+
+/-- Pullback an `order_bot`. -/
+@[reducible] -- See note [reducible non-instances]
+def order_bot.lift [has_le α] [has_bot α] [has_le β] [order_bot β] (f : α → β)
+  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_bot : f ⊥ = ⊥) :
+  order_bot α :=
+⟨⊥, λ a, map_le _ _ $ by { rw map_bot, exact bot_le }⟩
+
+/-- Pullback a `bounded_order`. -/
+@[reducible] -- See note [reducible non-instances]
+def bounded_order.lift [has_le α] [has_top α] [has_bot α] [has_le β] [bounded_order β] (f : α → β)
+  (map_le : ∀ a b, f a ≤ f b → a ≤ b) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  bounded_order α :=
+{ ..order_top.lift f map_le map_top, ..order_bot.lift f map_le map_bot }
+
+end lift
+
 /-! ### `with_bot`, `with_top` -/
 
 /-- Attach `⊥` to a type. -/
@@ -411,6 +489,12 @@ option.rec h₁ h₂
 @[norm_cast]
 theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
+
+-- the `by exact` here forces the type of the equality to be `@eq (with_bot α)`
+@[simp] lemma map_bot (f : α → β) :
+  (by exact option.map f (⊥ : with_bot α)) = (⊥ : with_bot β) := rfl
+lemma map_coe (f : α → β) (a : α) :
+  (by exact option.map f (a : with_bot α)) = (f a : with_bot β) := rfl
 
 lemma ne_bot_iff_exists {x : with_bot α} : x ≠ ⊥ ↔ ∃ (a : α), ↑a = x :=
 option.ne_none_iff_exists
@@ -658,6 +742,12 @@ option.rec h₁ h₂
 @[norm_cast]
 theorem coe_eq_coe {a b : α} : (a : with_top α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
+
+-- the `by exact` here forces the type of the equality to be `@eq (with_top α)`
+@[simp] lemma map_top (f : α → β) :
+  (by exact option.map f (⊤ : with_top α)) = (⊤ : with_top β) := rfl
+lemma map_coe (f : α → β) (a : α) :
+  (by exact option.map f (a : with_top α)) = (f a : with_top β) := rfl
 
 @[simp] theorem top_ne_coe {a : α} : ⊤ ≠ (a : with_top α) .
 @[simp] theorem coe_ne_top {a : α} : (a : with_top α) ≠ ⊤ .

@@ -5,7 +5,8 @@ Authors: Aaron Anderson
 -/
 
 import order.closure
-import model_theory.basic
+import model_theory.terms_and_formulas
+import set_theory.cardinal_ordinal
 
 /-!
 # First-Order Substructures
@@ -21,18 +22,28 @@ the least substructure of `M` containing `s`.
 substructure `s` under the homomorphism `f`, as a substructure.
 * `first_order.language.substructure.map` is defined so that `s.map f` is the image of the
 substructure `s` under the homomorphism `f`, as a substructure.
+* `first_order.language.hom.range` is defined so that `f.map` is the range of the
+the homomorphism `f`, as a substructure.
+* `first_order.language.hom.dom_restrict` and `first_order.language.hom.cod_restrict` restrict
+the domain and codomain respectively of first-order homomorphisms to substructures.
+* `first_order.language.embedding.dom_restrict` and `first_order.language.embedding.cod_restrict`
+restrict the domain and codomain respectively of first-order embeddings to substructures.
+* `first_order.language.substructure.inclusion` is the inclusion embedding between substructures.
 
 ## Main Results
 * `L.substructure M` forms a `complete_lattice`.
 
 -/
 
+universes u v w
+
 namespace first_order
 namespace language
 
-variables {L : language} {M N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
-open_locale first_order
-open Structure
+variables {L : language.{u v}} {M : Type w} {N P : Type*}
+variables [L.Structure M] [L.Structure N] [L.Structure P]
+open_locale first_order cardinal
+open Structure cardinal
 
 section closed_under
 
@@ -100,7 +111,19 @@ protected def copy (S : L.substructure M) (s : set M) (hs : s = S) : L.substruct
 { carrier := s,
   fun_mem := λ n f, hs.symm ▸ (S.fun_mem f) }
 
+end substructure
+
 variable {S : L.substructure M}
+
+lemma term.realize_mem {α : Type*} (t : L.term α) (xs : α → M) (h : ∀ a, xs a ∈ S) :
+  t.realize xs ∈ S :=
+begin
+  induction t with a n f ts ih,
+  { exact h a },
+  { exact substructure.fun_mem _ _ _ ih }
+end
+
+namespace substructure
 
 @[simp] lemma coe_copy {s : set M} (hs : s = S) :
   (S.copy s hs : set M) = s := rfl
@@ -108,7 +131,7 @@ variable {S : L.substructure M}
 lemma copy_eq {s : set M} (hs : s = S) : S.copy s hs = S :=
 set_like.coe_injective hs
 
-lemma const_mem {c : L.const} : ↑c ∈ S :=
+lemma constants_mem (c : L.constants) : ↑c ∈ S :=
 mem_carrier.2 (S.fun_mem c _ fin.elim0)
 
 /-- The substructure `M` of the structure `M`. -/
@@ -206,6 +229,38 @@ lemma closure_mono ⦃s t : set M⦄ (h : s ⊆ t) : closure L s ≤ closure L t
 
 lemma closure_eq_of_le (h₁ : s ⊆ S) (h₂ : S ≤ closure L s) : closure L s = S :=
 (closure L).eq_of_le h₁ h₂
+
+lemma coe_closure_eq_range_term_realize :
+  (closure L s : set M) = range (@term.realize L _ _ _ (coe : s → M)) :=
+begin
+  let S : L.substructure M := ⟨range (term.realize coe), λ n f x hx, _⟩,
+  { change _ = (S : set M),
+    rw ← set_like.ext'_iff,
+    refine closure_eq_of_le (λ x hx, ⟨var ⟨x, hx⟩, rfl⟩) (le_Inf (λ S' hS', _)),
+    { rintro _ ⟨t, rfl⟩,
+      exact t.realize_mem _ (λ i, hS' i.2) } },
+  { simp only [mem_range] at *,
+    refine ⟨func f (λ i, (classical.some (hx i))), _⟩,
+    simp only [term.realize, λ i, classical.some_spec (hx i)] }
+end
+
+lemma mem_closure_iff_exists_term {x : M} :
+  x ∈ closure L s ↔ ∃ (t : L.term s), t.realize (coe : s → M) = x :=
+by rw [← set_like.mem_coe, coe_closure_eq_range_term_realize, mem_range]
+
+lemma lift_card_closure_le_card_term : cardinal.lift.{max u w} (# (closure L s)) ≤ # (L.term s) :=
+begin
+  rw [← set_like.coe_sort_coe, coe_closure_eq_range_term_realize],
+  rw [← cardinal.lift_id'.{w (max u w)} (# (L.term s))],
+  exact cardinal.mk_range_le_lift,
+end
+
+theorem lift_card_closure_le : cardinal.lift.{(max u w) w} (# (closure L s)) ≤
+  cardinal.lift.{(max u w) w} (#s) + cardinal.lift.{(max u w) u} (#(Σ i, L.functions i)) + ω :=
+begin
+  refine lift_card_closure_le_card_term.trans (term.card_le.trans _),
+  rw [mk_sum, lift_umax', lift_umax],
+end
 
 variable (S)
 
@@ -356,6 +411,15 @@ lemma comap_infi {ι : Sort*} (f : M →[L] N) (s : ι → L.substructure N) :
 @[simp] lemma map_id (S : L.substructure M) : S.map (hom.id L M) = S :=
 ext (λ x, ⟨λ ⟨_, h, rfl⟩, h, λ h, ⟨_, h, rfl⟩⟩)
 
+lemma map_closure (f : M →[L] N) (s : set M) :
+  (closure L s).map f = closure L (f '' s) :=
+eq.symm $ closure_eq_of_le (set.image_subset f subset_closure) $ map_le_iff_le_comap.2 $
+  closure_le.2 $ λ x hx, subset_closure ⟨x, hx, rfl⟩
+
+@[simp] lemma closure_image (f : M →[L] N) :
+  closure L (f '' s) = map f (closure L s) :=
+(map_closure f s).symm
+
 section galois_coinsertion
 
 variables {ι : Type*} {f : M →[L] N} (hf : function.injective f)
@@ -476,9 +540,143 @@ end
 
 end substructure
 
+namespace Lhom
+open substructure
+
+variables {L' : language} [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+include φ
+
+/-- Reduces the language of a substructure along a language hom. -/
+def substructure_reduct : L'.substructure M ↪o L.substructure M :=
+{ to_fun := λ S, { carrier := S,
+    fun_mem := λ n f x hx, begin
+      have h := S.fun_mem (φ.on_function f) x hx,
+      simp only [is_expansion_on.map_on_function, substructure.mem_carrier] at h,
+      exact h,
+    end },
+  inj' := λ S T h, begin
+    simp only [set_like.coe_set_eq] at h,
+    exact h,
+  end,
+  map_rel_iff' := λ S T, iff.rfl }
+
+@[simp] lemma mem_substructure_reduct {x : M} {S : L'.substructure M} :
+  x ∈ φ.substructure_reduct S ↔ x ∈ S := iff.rfl
+
+@[simp] lemma coe_substructure_reduct {S : L'.substructure M} :
+  (φ.substructure_reduct S : set M) = ↑S := rfl
+
+end Lhom
+
+namespace substructure
+
+/-- Turns any substructure containing a constant set `A` into a `L[[A]]`-substructure. -/
+def with_constants (S : L.substructure M) {A : set M} (h : A ⊆ S) : L[[A]].substructure M :=
+{ carrier := S,
+  fun_mem := λ n f, begin
+    cases f,
+    { exact S.fun_mem f },
+    { cases n,
+      { exact λ _ _, h f.2 },
+      { exact pempty.elim f } }
+  end }
+
+variables {A : set M} {s : set M} (h : A ⊆ S)
+
+@[simp] lemma mem_with_constants {x : M} : x ∈ S.with_constants h ↔ x ∈ S := iff.rfl
+
+@[simp] lemma coe_with_constants : (S.with_constants h : set M) = ↑S := rfl
+
+@[simp] lemma reduct_with_constants :
+  (L.Lhom_with_constants A).substructure_reduct (S.with_constants h) = S :=
+by { ext, simp }
+
+lemma subset_closure_with_constants : A ⊆ (closure (L[[A]]) s) :=
+begin
+  intros a ha,
+  simp only [set_like.mem_coe],
+  let a' : (L[[A]]).constants := sum.inr ⟨a, ha⟩,
+  exact constants_mem a',
+end
+
+lemma closure_with_constants_eq : (closure (L[[A]]) s) = (closure L (A ∪ s)).with_constants
+  ((A.subset_union_left s).trans subset_closure) :=
+begin
+  refine closure_eq_of_le ((A.subset_union_right s).trans subset_closure) _,
+  rw ← ((L.Lhom_with_constants A).substructure_reduct).le_iff_le,
+  simp only [subset_closure, reduct_with_constants, closure_le, Lhom.coe_substructure_reduct,
+    set.union_subset_iff, and_true],
+  { exact subset_closure_with_constants },
+  { apply_instance },
+  { apply_instance },
+end
+
+end substructure
+
 namespace hom
 
 open substructure
+
+/-- The restriction of a first-order hom to a substructure `s ⊆ M` gives a hom `s → N`. -/
+@[simps] def dom_restrict (f : M →[L] N) (p : L.substructure M) : p →[L] N :=
+f.comp p.subtype.to_hom
+
+/-- A first-order hom `f : M → N` whose values lie in a substructure `p ⊆ N` can be restricted to a
+hom `M → p`. -/
+@[simps] def cod_restrict (p : L.substructure N) (f : M →[L] N) (h : ∀c, f c ∈ p) : M →[L] p :=
+{ to_fun := λc, ⟨f c, h c⟩,
+  map_rel' := λ n R x h, f.map_rel R x h }
+
+@[simp] lemma comp_cod_restrict (f : M →[L] N) (g : N →[L] P) (p : L.substructure P)
+  (h : ∀b, g b ∈ p) :
+  ((cod_restrict p g h).comp f : M →[L] p) = cod_restrict p (g.comp f) (assume b, h _) :=
+ext $ assume b, rfl
+
+@[simp] lemma subtype_comp_cod_restrict (f : M →[L] N) (p : L.substructure N) (h : ∀b, f b ∈ p) :
+  p.subtype.to_hom.comp (cod_restrict p f h) = f :=
+ext $ assume b, rfl
+
+/-- The range of a first-order hom `f : M → N` is a submodule of `N`.
+See Note [range copy pattern]. -/
+def range (f : M →[L] N) : L.substructure N :=
+(map f ⊤).copy (set.range f) set.image_univ.symm
+
+theorem range_coe (f : M →[L] N) :
+  (range f : set N) = set.range f := rfl
+
+@[simp] theorem mem_range
+  {f : M →[L] N} {x} : x ∈ range f ↔ ∃ y, f y = x :=
+iff.rfl
+
+lemma range_eq_map
+  (f : M →[L] N) : f.range = map f ⊤ :=
+by { ext, simp }
+
+theorem mem_range_self
+  (f : M →[L] N) (x : M) : f x ∈ f.range := ⟨x, rfl⟩
+
+@[simp] theorem range_id : range (id L M) = ⊤ :=
+set_like.coe_injective set.range_id
+
+theorem range_comp (f : M →[L] N) (g : N →[L] P) :
+  range (g.comp f : M →[L] P) = map g (range f) :=
+set_like.coe_injective (set.range_comp g f)
+
+theorem range_comp_le_range (f : M →[L] N) (g : N →[L] P) :
+  range (g.comp f : M →[L] P) ≤ range g :=
+set_like.coe_mono (set.range_comp_subset_range f g)
+
+theorem range_eq_top {f : M →[L] N} :
+  range f = ⊤ ↔ function.surjective f :=
+by rw [set_like.ext'_iff, range_coe, coe_top, set.range_iff_surjective]
+
+lemma range_le_iff_comap {f : M →[L] N} {p : L.substructure N} :
+  range f ≤ p ↔ comap f p = ⊤ :=
+by rw [range_eq_map, map_le_iff_le_comap, eq_top_iff]
+
+lemma map_le_range {f : M →[L] N} {p : L.substructure M} :
+  map f p ≤ range f :=
+set_like.coe_mono (set.image_subset_range f p)
 
 /-- The substructure of elements `x : M` such that `f x = g x` -/
 def eq_locus (f g : M →[L] N) : substructure L M :=
@@ -503,6 +701,102 @@ lemma eq_of_eq_on_dense (hs : closure L s = ⊤) {f g : M →[L] N} (h : s.eq_on
 eq_of_eq_on_top $ hs ▸ eq_on_closure h
 
 end hom
+
+namespace embedding
+open substructure
+
+/-- The restriction of a first-order embedding to a substructure `s ⊆ M` gives an embedding `s → N`.
+-/
+def dom_restrict (f : M ↪[L] N) (p : L.substructure M) : p ↪[L] N :=
+  f.comp p.subtype
+
+@[simp] lemma dom_restrict_apply (f : M ↪[L] N) (p : L.substructure M) (x : p) :
+  f.dom_restrict p x = f x := rfl
+
+/-- A first-order embedding `f : M → N` whose values lie in a substructure `p ⊆ N` can be restricted
+to an embedding `M → p`. -/
+def cod_restrict (p : L.substructure N) (f : M ↪[L] N) (h : ∀c, f c ∈ p) : M ↪[L] p :=
+{ to_fun := f.to_hom.cod_restrict p h,
+  inj' := λ a b ab, f.injective (subtype.mk_eq_mk.1 ab),
+  map_fun' := λ n F x, (f.to_hom.cod_restrict p h).map_fun' F x,
+  map_rel' := λ n r x, begin
+    simp only,
+    rw [← p.subtype.map_rel, function.comp.assoc],
+    change rel_map r ((hom.comp p.subtype.to_hom (f.to_hom.cod_restrict p h)) ∘ x) ↔ _,
+    rw [hom.subtype_comp_cod_restrict, ← f.map_rel],
+    refl,
+  end }
+
+@[simp] theorem cod_restrict_apply (p : L.substructure N) (f : M ↪[L] N) {h} (x : M) :
+  (cod_restrict p f h x : N) = f x := rfl
+
+@[simp] lemma comp_cod_restrict (f : M ↪[L] N) (g : N ↪[L] P) (p : L.substructure P)
+  (h : ∀b, g b ∈ p) :
+  ((cod_restrict p g h).comp f : M ↪[L] p) = cod_restrict p (g.comp f) (assume b, h _) :=
+ext $ assume b, rfl
+
+@[simp] lemma subtype_comp_cod_restrict (f : M ↪[L] N) (p : L.substructure N) (h : ∀b, f b ∈ p) :
+  p.subtype.comp (cod_restrict p f h) = f :=
+ext $ assume b, rfl
+
+/-- The equivalence between a substructure `s` and its image `s.map f.to_hom`, where `f` is an
+  embedding. -/
+noncomputable def substructure_equiv_map (f : M ↪[L] N) (s : L.substructure M) :
+  s ≃[L] s.map f.to_hom :=
+{ to_fun := cod_restrict (s.map f.to_hom) (f.dom_restrict s) (λ ⟨m, hm⟩, ⟨m, hm, rfl⟩),
+  inv_fun := λ n, ⟨classical.some n.2, (classical.some_spec n.2).1⟩,
+  left_inv := λ ⟨m, hm⟩, subtype.mk_eq_mk.2 (f.injective ((classical.some_spec (cod_restrict
+    (s.map f.to_hom) (f.dom_restrict s) (λ ⟨m, hm⟩, ⟨m, hm, rfl⟩) ⟨m, hm⟩).2).2)),
+  right_inv := λ ⟨n, hn⟩, subtype.mk_eq_mk.2 (classical.some_spec hn).2 }
+
+@[simp] lemma substructure_equiv_map_apply (f : M ↪[L] N) (p : L.substructure M) (x : p) :
+  (f.substructure_equiv_map p x : N) = f x := rfl
+
+/-- The equivalence between the domain and the range of an embedding `f`. -/
+noncomputable def equiv_range (f : M ↪[L] N) :
+  M ≃[L] f.to_hom.range :=
+{ to_fun := cod_restrict f.to_hom.range f f.to_hom.mem_range_self,
+  inv_fun := λ n, classical.some n.2,
+  left_inv := λ m, f.injective (classical.some_spec (cod_restrict f.to_hom.range f
+    f.to_hom.mem_range_self m).2),
+  right_inv := λ ⟨n, hn⟩, subtype.mk_eq_mk.2 (classical.some_spec hn) }
+
+@[simp] lemma equiv_range_apply (f : M ↪[L] N) (x : M) :
+  (f.equiv_range x : N) = f x := rfl
+
+end embedding
+
+namespace equiv
+
+lemma to_hom_range (f : M ≃[L] N) :
+  f.to_hom.range = ⊤ :=
+begin
+  ext n,
+  simp only [hom.mem_range, coe_to_hom, substructure.mem_top, iff_true],
+  exact ⟨f.symm n, apply_symm_apply _ _⟩
+end
+
+end equiv
+
+namespace substructure
+
+/-- The embedding associated to an inclusion of substructures. -/
+def inclusion {S T : L.substructure M} (h : S ≤ T) : S ↪[L] T :=
+S.subtype.cod_restrict _ (λ x, h x.2)
+
+@[simp] lemma coe_inclusion {S T : L.substructure M} (h : S ≤ T) :
+  (inclusion h : S → T) = set.inclusion h := rfl
+
+lemma range_subtype (S : L.substructure M) : S.subtype.to_hom.range = S :=
+begin
+  ext x,
+  simp only [hom.mem_range, embedding.coe_to_hom, coe_subtype],
+  refine ⟨_, λ h, ⟨⟨x, h⟩, rfl⟩⟩,
+  rintros ⟨⟨y, hy⟩, rfl⟩,
+  exact hy,
+end
+
+end substructure
 
 end language
 end first_order

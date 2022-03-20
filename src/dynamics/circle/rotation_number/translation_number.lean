@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import algebra.iterate_hom
-import analysis.specific_limits
-import topology.algebra.ordered.monotone_continuity
+import analysis.specific_limits.basic
 import order.iterate
 import order.semiconj_Sup
+import topology.algebra.order.monotone_continuity
 
 /-!
 # Translation number of a monotone real map that commutes with `x ↦ x + 1`

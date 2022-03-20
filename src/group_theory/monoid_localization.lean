@@ -999,7 +999,7 @@ begin
   rw ← hn,
   dsimp,
   rw [g.map_nsmul],
-  exact is_add_unit.map (nsmul_add_monoid_hom n) hg,
+  exact is_add_unit.map (nsmul_add_monoid_hom n : C →+ C) hg,
 end
 
 @[simp] lemma away_map.lift_eq (hg : is_add_unit (g x)) (a : A) :

@@ -16,6 +16,7 @@ This structure itself is provided elsewhere as `polynomial.is_scalar_tower`
 -/
 
 universes u v w u₁
+open_locale polynomial
 
 variables (R : Type u) (S : Type v) (A : Type w) (B : Type u₁)
 
@@ -27,7 +28,7 @@ variables [algebra R S] [algebra S A] [algebra S B] [algebra R A] [algebra R B]
 variables [is_scalar_tower R S A] [is_scalar_tower R S B]
 
 variables (R S A) {B}
-theorem aeval_apply (x : A) (p : polynomial R) : polynomial.aeval x p =
+theorem aeval_apply (x : A) (p : R[X]) : polynomial.aeval x p =
   polynomial.aeval x (polynomial.map (algebra_map R S) p) :=
 by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.eval₂_map, algebra_map_eq R S A]
 
@@ -37,12 +38,12 @@ section comm_semiring
 variables [comm_semiring R] [comm_semiring A] [semiring B]
 variables [algebra R A] [algebra A B] [algebra R B] [is_scalar_tower R A B]
 
-lemma algebra_map_aeval (x : A) (p : polynomial R) :
+lemma algebra_map_aeval (x : A) (p : R[X]) :
   algebra_map A B (polynomial.aeval x p) = polynomial.aeval (algebra_map A B x) p :=
 by rw [polynomial.aeval_def, polynomial.aeval_def, polynomial.hom_eval₂,
   ←is_scalar_tower.algebra_map_eq]
 
-lemma aeval_eq_zero_of_aeval_algebra_map_eq_zero {x : A} {p : polynomial R}
+lemma aeval_eq_zero_of_aeval_algebra_map_eq_zero {x : A} {p : R[X]}
   (h : function.injective (algebra_map A B)) (hp : polynomial.aeval (algebra_map A B x) p = 0) :
   polynomial.aeval x p = 0 :=
 begin
@@ -52,7 +53,7 @@ end
 
 lemma aeval_eq_zero_of_aeval_algebra_map_eq_zero_field {R A B : Type*} [comm_semiring R] [field A]
   [comm_semiring B] [nontrivial B] [algebra R A] [algebra R B] [algebra A B] [is_scalar_tower R A B]
-  {x : A} {p : polynomial R} (h : polynomial.aeval (algebra_map A B x) p = 0) :
+  {x : A} {p : R[X]} (h : polynomial.aeval (algebra_map A B x) p = 0) :
   polynomial.aeval x p = 0 :=
 aeval_eq_zero_of_aeval_algebra_map_eq_zero R A B (algebra_map A B).injective h
 
@@ -69,7 +70,7 @@ section comm_semiring
 variables (R) {S A} [comm_semiring R] [comm_semiring S] [comm_semiring A]
 variables [algebra R S] [algebra S A] [algebra R A] [is_scalar_tower R S A]
 
-@[simp] lemma aeval_coe {S : subalgebra R A} {x : S} {p : polynomial R} :
+@[simp] lemma aeval_coe {S : subalgebra R A} {x : S} {p : R[X]} :
   polynomial.aeval (x : A) p = polynomial.aeval x p :=
 (algebra_map_aeval R S A x p).symm
 

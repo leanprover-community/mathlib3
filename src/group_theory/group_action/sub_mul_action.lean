@@ -100,7 +100,7 @@ lemma subtype_eq_val : ((sub_mul_action.subtype p) : p → M) = subtype.val := r
 
 end has_scalar
 
-section mul_action
+section mul_action_monoid
 
 variables [monoid R] [mul_action R M]
 
@@ -131,6 +131,7 @@ instance [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M] [is_scalar_tower S�
 end
 
 section
+
 variables [monoid S] [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
 variables (p : sub_mul_action R M)
 
@@ -144,7 +145,41 @@ instance : mul_action R p := p.mul_action'
 
 end
 
-end mul_action
+
+/-- Orbits in a `sub_mul_action` coincide with orbits in the ambient space. -/
+lemma coe_image_orbit {p : sub_mul_action R M} (m : p) :
+  coe '' mul_action.orbit R m = mul_action.orbit R (m : M) := (set.range_comp _ _).symm
+
+/- -- Previously, the relatively useless :
+lemma orbit_of_sub_mul {p : sub_mul_action R M} (m : p) :
+  (mul_action.orbit R m : set M) = mul_action.orbit R (m : M) := rfl
+-/
+
+/-- Stabilizers in monoid sub_mul_action coincide with stabilizers in the ambient space -/
+lemma stabilizer_of_sub_mul.submonoid {p : sub_mul_action R M} (m : p) :
+  mul_action.stabilizer.submonoid R m = mul_action.stabilizer.submonoid R (m : M) :=
+begin
+  ext,
+  simp only [mul_action.mem_stabilizer_submonoid_iff,
+      ← sub_mul_action.coe_smul, set_like.coe_eq_coe]
+end
+
+end mul_action_monoid
+
+section mul_action_group
+
+variables [group R] [mul_action R M]
+
+/-- Stabilizers in group sub_mul_action coincide with stabilizers in the ambient space -/
+lemma stabilizer_of_sub_mul {p : sub_mul_action R M} (m : p) :
+  mul_action.stabilizer R m = mul_action.stabilizer R (m : M) :=
+begin
+  rw ← subgroup.to_submonoid_eq,
+  exact stabilizer_of_sub_mul.submonoid m,
+end
+
+end mul_action_group
+
 
 section module
 

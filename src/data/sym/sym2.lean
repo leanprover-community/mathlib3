@@ -100,6 +100,9 @@ protected lemma «forall» {α : Sort*} {f : sym2 α → Prop} :
 lemma eq_swap {a b : α} : ⟦(a, b)⟧ = ⟦(b, a)⟧ :=
 by { rw quotient.eq, apply rel.swap }
 
+@[simp] lemma mk_prod_swap_eq {p : α × α} : ⟦p.swap⟧ = ⟦p⟧ :=
+by { cases p, exact eq_swap }
+
 lemma congr_right {a b c : α} : ⟦(a, b)⟧ = ⟦(a, c)⟧ ↔ b = c :=
 by { split; intro h, { rw quotient.eq at h, cases h; refl }, rw h }
 
@@ -113,6 +116,10 @@ begin
   { rw quotient.eq at h, cases h; tidy },
   { cases h; rw [h.1, h.2], rw eq_swap }
 end
+
+lemma mk_eq_mk_iff {p q : α × α} :
+  ⟦p⟧ = ⟦q⟧ ↔ p = q ∨ p = q.swap :=
+by { cases p, cases q, simp only [eq_iff, prod.mk.inj_iff, prod.swap_prod_mk] }
 
 /-- The universal property of `sym2`; symmetric functions of two arguments are equivalent to
 functions from `sym2`. Note that when `β` is `Prop`, it can sometimes be more convenient to use

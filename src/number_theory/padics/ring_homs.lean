@@ -378,7 +378,7 @@ begin
   { rw zero_pow hc0,
     simp only [sub_zero, zmod.cast_zero, mul_zero],
     rw unit_coeff_spec hc',
-    exact (dvd_pow_self _ hc0.ne').mul_left _ }
+    exact (dvd_pow_self (p : ℤ_[p]) hc0.ne').mul_left _, },
 end
 
 attribute [irreducible] appr

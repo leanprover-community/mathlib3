@@ -78,6 +78,9 @@ by simp [←coe_nat_mul_eq_nsmul]
 @[simp] lemma two_zsmul_coe_pi : (2 : ℤ) • (π : angle) = 0 :=
 by simp [←coe_int_mul_eq_zsmul]
 
+@[simp] lemma coe_pi_add_coe_pi : (π : real.angle) + π = 0 :=
+by rw [←two_nsmul, two_nsmul_coe_pi]
+
 theorem cos_eq_iff_eq_or_eq_neg {θ ψ : ℝ} : cos θ = cos ψ ↔ (θ : angle) = ψ ∨ (θ : angle) = -ψ :=
 begin
   split,

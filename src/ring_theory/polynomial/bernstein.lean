@@ -15,7 +15,7 @@ import data.mv_polynomial.pderiv
 
 The definition of the Bernstein polynomials
 ```
-bernstein_polynomial (R : Type*) [comm_ring R] (n ν : ℕ) : polynomial R :=
+bernstein_polynomial (R : Type*) [comm_ring R] (n ν : ℕ) : R[X] :=
 (choose n ν) * X^ν * (1 - X)^(n - ν)
 ```
 and the fact that for `ν : fin (n+1)` these are linearly independent over `ℚ`.
@@ -36,7 +36,7 @@ noncomputable theory
 
 open nat (choose)
 open polynomial (X)
-open_locale big_operators
+open_locale big_operators polynomial
 
 variables (R : Type*) [comm_ring R]
 
@@ -45,7 +45,7 @@ variables (R : Type*) [comm_ring R]
 
 Although the coefficients are integers, it is convenient to work over an arbitrary commutative ring.
 -/
-def bernstein_polynomial (n ν : ℕ) : polynomial R := choose n ν * X^ν * (1 - X)^(n - ν)
+def bernstein_polynomial (n ν : ℕ) : R[X] := choose n ν * X^ν * (1 - X)^(n - ν)
 
 example : bernstein_polynomial ℤ 3 2 = 3 * X^2 - 3 * X^3 :=
 begin
@@ -116,7 +116,7 @@ begin
   { simp only [←mul_assoc],
     refine congr (congr_arg (*) (congr (congr_arg (*) _) rfl)) rfl,
     -- Now it's just about binomial coefficients
-    exact_mod_cast congr_arg (λ m : ℕ, (m : polynomial R)) (nat.succ_mul_choose_eq n ν).symm, },
+    exact_mod_cast congr_arg (λ m : ℕ, (m : R[X])) (nat.succ_mul_choose_eq n ν).symm, },
   { rw [← tsub_add_eq_tsub_tsub, ← mul_assoc, ← mul_assoc], congr' 1,
     rw mul_comm , rw [←mul_assoc,←mul_assoc],  congr' 1,
     norm_cast,
@@ -313,7 +313,7 @@ begin
   have pderiv_tt_x : pderiv tt x = 1, { simp [x], },
   have pderiv_tt_y : pderiv tt y = 0, { simp [pderiv_X, y], },
 
-  let e : bool → polynomial R := λ i, cond i X (1-X),
+  let e : bool → R[X] := λ i, cond i X (1-X),
 
   -- Start with `(x+y)^n = (x+y)^n`,
   -- take the `x`-derivative, evaluate at `x=X, y=1-X`, and multiply by `X`:
@@ -362,7 +362,7 @@ begin
   have pderiv_tt_x : pderiv tt x = 1, { simp [x], },
   have pderiv_tt_y : pderiv tt y = 0, { simp [pderiv_X, y], },
 
-  let e : bool → polynomial R := λ i, cond i X (1-X),
+  let e : bool → R[X] := λ i, cond i X (1-X),
 
   -- Start with `(x+y)^n = (x+y)^n`,
   -- take the second `x`-derivative, evaluate at `x=X, y=1-X`, and multiply by `X`:

@@ -57,6 +57,14 @@ instance [non_unital_non_assoc_ring R] [non_unital_non_assoc_ring S] :
   non_unital_non_assoc_ring (R × S) :=
 { .. prod.add_comm_group, .. prod.non_unital_non_assoc_semiring }
 
+instance [non_unital_ring R] [non_unital_ring S] :
+  non_unital_ring (R × S) :=
+{ .. prod.add_comm_group, .. prod.non_unital_semiring }
+
+instance [non_assoc_ring R] [non_assoc_ring S] :
+  non_assoc_ring (R × S) :=
+{ .. prod.add_comm_group, .. prod.non_assoc_semiring }
+
 /-- Product of two rings is a ring. -/
 instance [ring R] [ring S] : ring (R × S) :=
 { .. prod.add_comm_group, .. prod.semiring }

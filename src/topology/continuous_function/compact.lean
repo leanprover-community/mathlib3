@@ -414,7 +414,6 @@ open topological_space
 variables {X : Type*} [topological_space X] [t2_space X] [locally_compact_space X]
 variables {E : Type*} [normed_group E] [complete_space E]
 
-/-- **Weierstrass M-test** -/
 lemma summable_of_locally_summable_norm {ι : Type*} {F : ι → C(X, E)}
   (hF : ∀ K : compacts X, summable (λ i, ∥(F i).restrict K∥)) :
   summable F :=

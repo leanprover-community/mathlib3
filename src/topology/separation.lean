@@ -673,7 +673,7 @@ lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :
   ∃ u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
 t2_space.t2 x y h
 
-lemma t2_separation_finset [t2_space α] : ∀ {s : finset α},
+lemma t2_separation_finset [t2_space α] : ∀ s : finset α,
   ∃ f : α → set α, set.pairwise_disjoint ↑s f ∧ ∀ x : s, x.1 ∈ f x ∧ is_open (f x) :=
 begin
   classical,
@@ -716,17 +716,14 @@ begin
 end
 
 lemma t2_separation_fintype [t2_space α] {β : Type*} [fintype β] {f : β → α} {x : α}
-  (hx : x ∉ set.range f) : ∃ u : set α, is_open u ∧ u ∩ set.range f = ∅ :=
+  (hx : x ∉ set.range f) : ∃ u : set α, is_open u ∧ disjoint u (set.range f) :=
 begin
-  have H : ∀ i, ∃ u v, _ ∧ _ ∧ _ ∧ f i ∈ v ∧ _ := λ i, t2_separation (λ hi, hx ⟨i, hi.symm⟩),
-  refine ⟨⋂ i : β, classical.some (H i), is_open_Inter (λ i, _), _⟩,
-  { rcases classical.some_spec (H i) with ⟨_, h, _⟩,
-    exact h },
-  { rw eq_empty_iff_forall_not_mem,
-    rintros y ⟨hy, i, rfl⟩,
-    rw mem_Inter at hy,
-    rcases classical.some_spec (H i) with ⟨_, _, _, _, hi, h⟩,
-    exact (eq_empty_iff_forall_not_mem.1 h) (f i) ⟨hy i, hi⟩ }
+  rcases t2_separation_finset (insert x (finset.image f finset.univ)) with ⟨g, hg, hg'⟩,
+  have hx' := finset.mem_insert_self x _,
+  refine ⟨g x, (hg' ⟨x, hx'⟩).2, _⟩,
+  rintros y ⟨hy, a, rfl⟩,
+  have hfa: f a ∈ _ := finset.mem_insert_of_mem (finset.mem_image_of_mem f (finset.mem_univ a)),
+  exact hg hx' hfa (λ h, hx ⟨a, h.symm⟩) ⟨hy, (hg' ⟨_, hfa⟩).1⟩
 end
 
 @[priority 100] -- see Note [lower instance priority]

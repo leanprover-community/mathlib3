@@ -91,16 +91,6 @@ lemma to_fun_mul_inv_mem {G : Type*} [group G] {H : subgroup G} {S : set G}
 
 end mem_right_transversals
 
-@[to_additive] lemma group.fg_iff' {G : Type*} [group G] :
-  group.fg G ↔ ∃ n (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤ :=
-group.fg_def.trans ⟨λ ⟨S, hS⟩, ⟨S.card, S, rfl, hS⟩, λ ⟨n, S, hn, hS⟩, ⟨S, hS⟩⟩
-
-def group.min_generators (G : Type*) [group G] [h : group.fg G] :=
-nat.find (group.fg_iff'.mp h)
-
-class subgroup.finite_index {G : Type*} [group G] (H : subgroup G) : Prop :=
-(finite_index : H.index ≠ 0)
-
 namespace subgroup
 
 lemma exists_left_transversal {G : Type*} [group G] {H : subgroup G} {h : G} (hh : h ∈ H) :
@@ -189,8 +179,8 @@ begin
   exact ge_of_eq (schreier hR hR1 hS),
 end
 
-instance schreier_aux2 {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
-  [hH : finite_index H] : group.fg H :=
+lemma schreier_aux2 {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
+  (hH : H.index ≠ 0) : group.fg H :=
 begin
   obtain ⟨S, hS⟩ := hG.1,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal H.one_mem,
@@ -203,7 +193,7 @@ begin
 end
 
 lemma schreier_aux3 {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
-  [hH : finite_index H] : group.min_generators H ≤ H.index * group.min_generators G :=
+  (hH : H.index ≠ 0) : @group.rank H _ (schreier_aux2 hH) ≤ H.index * group.rank G :=
 begin
   sorry
 end

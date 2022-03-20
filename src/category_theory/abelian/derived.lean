@@ -127,8 +127,7 @@ lemma left_derived_zero_to_self_natural [enough_projectives C] {X : C} {Y : C} (
   left_derived_zero_to_self_app F P ≫ F.map f :=
 begin
   dsimp only [left_derived_zero_to_self_app],
-  let f₁ := ProjectiveResolution.lift f P Q,
-  rw [functor.left_derived_map_eq F 0 f f₁ (by simp),
+  rw [functor.left_derived_map_eq F 0 f (ProjectiveResolution.lift f P Q) (by simp),
     category.assoc, category.assoc, ← category.assoc _ (F.left_derived_obj_iso 0 Q).hom,
     iso.inv_hom_id, category.id_comp, category.assoc, whisker_eq],
   dsimp only [homology_functor_map],
@@ -136,8 +135,7 @@ begin
   simp only [homological_complex.hom.sq_to_right, map_homological_complex_map_f,
     homology.π'_map_assoc, homology.π'_desc', kernel.lift_ι_assoc, category.assoc,
     homology.π'_desc'_assoc],
-  rw [← functor.map_comp, ← functor.map_comp,
-    show f₁.f 0 ≫ Q.π.f 0 = P.π.f 0 ≫ f,
+  rw [← map_comp, ← map_comp, show (ProjectiveResolution.lift f P Q).f 0 ≫ _ = P.π.f 0 ≫ f,
     from homological_complex.congr_hom (ProjectiveResolution.lift_commutes f P Q) 0],
 end
 

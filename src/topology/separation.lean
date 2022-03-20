@@ -716,11 +716,11 @@ begin
 end
 
 lemma t2_separation_finset' [t2_space α] {s : finset α} {x : α} (hx : x ∉ s) :
-  ∃ u : set α, is_open u ∧ disjoint u s :=
+  ∃ u : set α, disjoint u s ∧ x ∈ u ∧ is_open u :=
 begin
   rcases t2_separation_finset (insert x s) with ⟨g, hg, hg'⟩,
   have hx' := finset.mem_insert_self x _,
-  refine ⟨g x, (hg' ⟨x, hx'⟩).2, _⟩,
+  refine ⟨g x, _, hg' ⟨x, hx'⟩⟩,
   rintros y ⟨hyx, hy⟩,
   have hy' := finset.mem_insert_of_mem hy,
   apply hg hx' hy' _ ⟨hyx, (hg' ⟨y, hy'⟩).1⟩,

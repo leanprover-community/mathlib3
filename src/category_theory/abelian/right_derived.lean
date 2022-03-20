@@ -29,6 +29,20 @@ and on morphisms by any choice of lift to a cochain map between chosen injective
 Similarly we define natural transformations between right-derived functors coming from
 natural transformations between the original additive functors,
 and show how to compute the components.
+
+## Main results
+* `category_theory.functor.right_derived_obj_injective_zero`: the `0`-th derived functor of `F` on
+  an injective object `X` is isomorphic to `F.obj X`.
+* `category_theory.functor.right_derived_obj_injective_succ`: injective objects have no higher
+  right derived functor.
+* `category_theory.nat_trans.right_derived`: the natural isomorphism between right derived functors
+  induced by natural transformation.
+
+Now, we assume `preserves_finite_limits F`, then
+* `category_theory.abelian.functor.preserves_exact_of_preserves_finite_limits_of_mono`: if `f` is
+  mono and `exact f g`, then `exact (F.map f) (F.map g)`.
+* `cateogry_theory.abelian.functor.right_derived_zero_iso_self`: if there are enough injectives,
+  then there is a natural isomorphism `(F.right_derived 0) ≅ F`.
 -/
 
 noncomputable theory
@@ -76,7 +90,6 @@ def functor.right_derived_obj_injective_succ (F : C ⥤ D) [F.additive] (n : ℕ
 F.right_derived_obj_iso (n+1) (InjectiveResolution.self X) ≪≫
   (homology_functor _ _ _).map_iso ((cochain_complex.single₀_map_homological_complex F).app X) ≪≫
   (cochain_complex.homology_functor_succ_single₀ D n).app (F.obj X)
-
 /--
 We can compute a right derived functor on a morphism using a descent of that morphism
 to a cochain map between chosen injective resolutions.
@@ -170,7 +183,7 @@ variables [abelian C] [abelian D] [additive F]
 
 /-- If `preserves_finite_limits F` and `mono f`, then `exact (F.map f) (F.map g)` if
 `exact f g`. -/
-lemma preserves_exact_of_preserves_finite_colimits_of_mono [preserves_finite_limits F] [mono f]
+lemma preserves_exact_of_preserves_finite_limits_of_mono [preserves_finite_limits F] [mono f]
   (ex : exact f g) : exact (F.map f) (F.map g) :=
 abelian.exact_of_is_kernel _ _ (by simp [← functor.map_comp, ex.w]) $
   limits.is_limit_fork_map_of_is_limit' _ ex.w (abelian.is_limit_of_exact_of_mono _ _ ex)
@@ -183,7 +196,7 @@ begin
   let f := (homological_complex.X_next_iso ((F.map_homological_complex _).obj P.cocomplex) this),
   refine preadditive.exact_of_iso_of_exact' (F.map (P.ι.f 0)) (F.map (P.cocomplex.d 0 1)) _ _
     (iso.refl _) (iso.refl _) f.symm (by simp) _
-    (preserves_exact_of_preserves_finite_colimits_of_mono _ (P.exact₀)),
+    (preserves_exact_of_preserves_finite_limits_of_mono _ (P.exact₀)),
   rw [iso.refl_hom, category.id_comp, iso.symm_hom, homological_complex.d_from_eq _ this],
   congr',
 end

@@ -100,7 +100,7 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
   (Hs : ∀ x ∈ s, p x) (H0 : p 0)
   (H1 : ∀ x y, p x → p y → p (x + y))
   (H2 : ∀ (a:R) x, p x → p (a • x)) : p x :=
-(@span_le _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hs h
+(@span_le _ _ _ _ _ _ ⟨p, H1, H0, H2⟩).2 Hs h
 
 /-- A dependent version of `submodule.span_induction`. -/
 lemma span_induction' {p : Π x, x ∈ span R s → Prop}
@@ -426,6 +426,31 @@ eq_bot_iff.trans ⟨
 span_eq_bot.trans $ by simp
 
 @[simp] lemma span_zero : span R (0 : set M) = ⊥ := by rw [←singleton_zero, span_singleton_eq_bot]
+
+lemma span_singleton_eq_span_singleton {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  [no_zero_smul_divisors R M] {x y : M} : (R ∙ x) = (R ∙ y) ↔ ∃ z : Rˣ, z • x = y :=
+begin
+  by_cases hx : x = 0,
+  { rw [hx, span_zero_singleton, eq_comm, span_singleton_eq_bot],
+    exact ⟨λ hy, ⟨1, by rw [hy, smul_zero]⟩, λ ⟨_, hz⟩, by rw [← hz, smul_zero]⟩ },
+  by_cases hy : y = 0,
+  { rw [hy, span_zero_singleton, span_singleton_eq_bot],
+    exact ⟨λ hx, ⟨1, by rw [hx, smul_zero]⟩, λ ⟨z, hz⟩, (smul_eq_zero_iff_eq z).mp hz⟩ },
+  split,
+  { intro hxy,
+    cases mem_span_singleton.mp (by { rw [hxy], apply mem_span_singleton_self }) with v hv,
+    cases mem_span_singleton.mp (by { rw [← hxy], apply mem_span_singleton_self }) with i hi,
+    have vi : v * i = 1 :=
+    by { rw [← one_smul R y, ← hi, smul_smul] at hv, exact smul_left_injective R hy hv },
+    have iv : i * v = 1 :=
+    by { rw [← one_smul R x, ← hv, smul_smul] at hi, exact smul_left_injective R hx hi },
+    exact ⟨⟨v, i, vi, iv⟩, hv⟩ },
+  { rintro ⟨⟨v, i, _, iv⟩, hxy : v • x = y⟩,
+    ext,
+    rw [mem_span_singleton, mem_span_singleton],
+    exact ⟨λ ⟨z, hz⟩, ⟨z * i, by rw [← smul_smul, ← hxy, smul_smul i v, iv, one_smul, ← hz]⟩,
+           λ ⟨z, hz⟩, ⟨z * v, by rw [← smul_smul, ← hz, ← hxy]⟩⟩ }
+end
 
 @[simp] lemma span_image [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) :
   span R₂ (f '' s) = map f (span R s) :=

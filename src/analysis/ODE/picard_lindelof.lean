@@ -184,7 +184,7 @@ begin
   refine (complete_space_iff_is_complete_range
     uniform_inducing_to_continuous_map).2 (is_closed.is_complete _),
   rw [range_to_continuous_map, set_of_and],
-  refine (is_closed_eq (continuous_map.continuous_evalx _) continuous_const).inter _,
+  refine (is_closed_eq (continuous_map.continuous_eval_const _) continuous_const).inter _,
   have : is_closed {f : Icc v.t_min v.t_max → E | lipschitz_with v.C f} :=
     is_closed_set_of_lipschitz_with v.C,
   exact this.preimage continuous_map.continuous_coe

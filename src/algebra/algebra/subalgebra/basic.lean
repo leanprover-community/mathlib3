@@ -414,8 +414,8 @@ def to_subalgebra (p : submodule R A) (h_one : (1 : A) ∈ p)
   (p.to_subalgebra h_one h_mul : set A) = p := rfl
 
 @[simp] lemma to_subalgebra_mk (s : set A) (h0 hadd hsmul h1 hmul) :
-  (submodule.mk s h0 hadd hsmul : submodule R A).to_subalgebra h1 hmul =
-    subalgebra.mk s h1 @hmul h0 @hadd
+  (submodule.mk s hadd h0 hsmul : submodule R A).to_subalgebra h1 hmul =
+    subalgebra.mk s @hmul h1 @hadd h0
       (λ r, by { rw algebra.algebra_map_eq_smul_one, exact hsmul r h1 }) := rfl
 
 @[simp] lemma to_subalgebra_to_submodule (p : submodule R A) (h_one h_mul) :

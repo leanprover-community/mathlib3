@@ -28,7 +28,7 @@ to form the Dirichlet ring.
  * `id` is the identity arithmetic function on `ℕ`.
  * `ω n` is the number of distinct prime factors of `n`.
  * `Ω n` is the number of prime factors of `n` counted with multiplicity.
- * `μ` is the Möbius function.
+ * `μ` is the Möbius function (spelled `moebius` in code).
 
 ## Main Results
  * Several forms of Möbius inversion:
@@ -564,6 +564,19 @@ lemma multiplicative_factorization [comm_monoid_with_zero R] (f : arithmetic_fun
   ∀ {n : ℕ}, n ≠ 0 → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
 λ n hn, multiplicative_factorization f hf.2 hf.1 hn
 
+/-- A recapitulation of the definition of multiplicative that is simpler for proofs -/
+lemma iff_ne_zero [monoid_with_zero R] {f : arithmetic_function R} :
+  is_multiplicative f ↔
+    f 1 = 1 ∧ (∀ {m n : ℕ}, m ≠ 0 → n ≠ 0 → m.coprime n → f (m * n) = f m * f n) :=
+begin
+  refine and_congr_right' (forall₂_congr (λ m n, ⟨λ h _ _, h, λ h hmn, _⟩)),
+  rcases eq_or_ne m 0 with rfl | hm,
+  { simp },
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  exact h hm hn hmn,
+end
+
 end is_multiplicative
 
 section special_functions
@@ -733,23 +746,12 @@ begin
 end
 
 lemma is_multiplicative_moebius : is_multiplicative μ :=
-⟨by simp, begin
-  intros m n hmn,
-  by_cases hm_sq : squarefree m,
-  { by_cases hn_sq : squarefree n,
-    { simp [hm_sq, hn_sq, (squarefree_mul hmn).mp ⟨hm_sq, hn_sq⟩],
-      rw arithmetic_function.card_factors_mul (ne_zero_of_squarefree hm_sq)
-        (ne_zero_of_squarefree hn_sq),
-      rw pow_add, },
-    { have : ¬ squarefree (m * n),
-        by_contradiction H,
-        exact hn_sq ((squarefree_mul hmn).mpr H).right,
-      simp [this, hn_sq], }, },
-  have : ¬ squarefree (m * n),
-    by_contradiction H,
-    exact hm_sq ((squarefree_mul hmn).mpr H).left,
-  simp [this, hm_sq],
-end⟩
+begin
+  rw is_multiplicative.iff_ne_zero,
+  refine ⟨by simp, λ n m hn hm hnm, _⟩,
+  simp only [moebius, zero_hom.coe_mk, ←squarefree_mul hnm, ite_and, card_factors_mul hn hm],
+  rw [pow_add, ite_mul_zero_right, ite_mul_zero_left],
+end
 
 open unique_factorization_monoid
 

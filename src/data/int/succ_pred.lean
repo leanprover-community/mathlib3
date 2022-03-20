@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import data.int.basic
-import order.succ_pred
+import order.succ_pred.basic
 
 /-!
 # Successors and predecessors of integers

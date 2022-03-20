@@ -100,7 +100,7 @@ end
 
 @[to_additive] lemma is_complement_top_left : is_complement ⊤ S ↔ ∃ g : G, S = {g} :=
 begin
-  refine ⟨λ h, set.exists_eq_singleton_iff_nonempty_unique_mem.mpr ⟨_, λ a ha b hb, _⟩, _⟩,
+  refine ⟨λ h, set.exists_eq_singleton_iff_nonempty_subsingleton.mpr ⟨_, λ a ha b hb, _⟩, _⟩,
   { obtain ⟨a, ha⟩ := h.2 1,
     exact ⟨a.2.1, a.2.2⟩ },
   { have : (⟨⟨_, mem_top a⁻¹⟩, ⟨a, ha⟩⟩ : (⊤ : set G) × S) = ⟨⟨_, mem_top b⁻¹⟩, ⟨b, hb⟩⟩ :=
@@ -112,7 +112,7 @@ end
 
 @[to_additive] lemma is_complement_top_right : is_complement S ⊤ ↔ ∃ g : G, S = {g} :=
 begin
-  refine ⟨λ h, set.exists_eq_singleton_iff_nonempty_unique_mem.mpr ⟨_, λ a ha b hb, _⟩, _⟩,
+  refine ⟨λ h, set.exists_eq_singleton_iff_nonempty_subsingleton.mpr ⟨_, λ a ha b hb, _⟩, _⟩,
   { obtain ⟨a, ha⟩ := h.2 1,
     exact ⟨a.1.1, a.1.2⟩ },
   { have : (⟨⟨a, ha⟩, ⟨_, mem_top a⁻¹⟩⟩ : S × (⊤ : set G)) = ⟨⟨b, hb⟩, ⟨_, mem_top b⁻¹⟩⟩ :=
@@ -194,7 +194,7 @@ mem_left_transversals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 
 @[to_additive] lemma mem_right_transversals_iff_bijective : S ∈ right_transversals (H : set G) ↔
-  function.bijective (set.restrict (quotient.mk' : G → quotient (quotient_group.right_rel H)) S) :=
+  function.bijective (S.restrict (quotient.mk' : G → quotient (quotient_group.right_rel H))) :=
 mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 

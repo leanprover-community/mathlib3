@@ -48,6 +48,10 @@ variables (R)
 @[simp] lemma mem_bot {x : M} : x ∈ (⊥ : submodule R M) ↔ x = 0 := set.mem_singleton_iff
 end
 
+@[simp] lemma restrict_scalars_eq_bot_iff {p : submodule R M} :
+  restrict_scalars S p = ⊥ ↔ p = ⊥ :=
+by simp [set_like.ext_iff]
+
 instance unique_bot : unique (⊥ : submodule R M) :=
 ⟨infer_instance, λ x, subtype.ext $ (mem_bot R).1 x.mem⟩
 
@@ -106,6 +110,10 @@ variables (R)
 @[simp] lemma restrict_scalars_top : restrict_scalars S (⊤ : submodule R M) = ⊤ := rfl
 end
 
+@[simp] lemma restrict_scalars_eq_top_iff {p : submodule R M} :
+  restrict_scalars S p = ⊤ ↔ p = ⊤ :=
+by simp [set_like.ext_iff]
+
 instance : order_top (submodule R M) :=
 { top := ⊤,
   le_top := λ p x _, trivial }
@@ -113,8 +121,10 @@ instance : order_top (submodule R M) :=
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, h trivial, λ h x _, h x⟩
 
-/-- The top submodule is linearly equivalent to the module. -/
-@[simps] def top_equiv_self : (⊤ : submodule R M) ≃ₗ[R] M :=
+/-- The top submodule is linearly equivalent to the module.
+
+This is the module version of `add_submonoid.top_equiv`. -/
+@[simps] def top_equiv : (⊤ : submodule R M) ≃ₗ[R] M :=
 { to_fun := λ x, x,
   inv_fun := λ x, ⟨x, by simp⟩,
   map_add' := by { intros, refl, },
@@ -133,7 +143,7 @@ private lemma Inf_le' {S : set (submodule R M)} {p} : p ∈ S → Inf S ≤ p :=
 set.bInter_subset_of_mem
 
 private lemma le_Inf' {S : set (submodule R M)} {p} : (∀q ∈ S, p ≤ q) → p ≤ Inf S :=
-set.subset_bInter
+set.subset_Inter₂
 
 instance : has_inf (submodule R M) :=
 ⟨λ p q,
@@ -184,7 +194,7 @@ by rw [infi, Inf_coe]; ext a; simp; exact
 ⟨λ h i, h _ i rfl, λ h i x e, e ▸ h _⟩
 
 @[simp] lemma mem_Inf {S : set (submodule R M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p :=
-set.mem_bInter_iff
+set.mem_Inter₂
 
 @[simp] theorem mem_infi {ι} (p : ι → submodule R M) {x} :
   x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=

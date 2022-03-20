@@ -386,6 +386,11 @@ def linear_equiv.of_is_unit_det {f : M →ₗ[R] M'} {v : basis ι R M} {v' : ba
       by { rw [to_lin_mul v' v v', linear_map.comp_apply, to_lin_to_matrix v v'] }
     ... = x : by simp [h] }
 
+@[simp] lemma linear_equiv.coe_of_is_unit_det {f : M →ₗ[R] M'} {v : basis ι R M} {v' : basis ι R M'}
+  (h : is_unit (linear_map.to_matrix v v' f).det) :
+  (linear_equiv.of_is_unit_det h : M →ₗ[R] M') = f :=
+by { ext x, refl }
+
 /-- Builds a linear equivalence from a linear map on a finite-dimensional vector space whose
 determinant is nonzero. -/
 @[reducible] def linear_map.equiv_of_det_ne_zero

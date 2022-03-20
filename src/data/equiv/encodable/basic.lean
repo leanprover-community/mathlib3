@@ -50,6 +50,9 @@ universe u
 theorem encode_injective [encodable α] : function.injective (@encode α _)
 | x y e := option.some.inj $ by rw [← encodek, e, encodek]
 
+@[simp] lemma encode_inj [encodable α] {a b : α} : encode a = encode b ↔ a = b :=
+encode_injective.eq_iff
+
 lemma surjective_decode_iget (α : Type*) [encodable α] [inhabited α] :
   surjective (λ n, (encodable.decode α n).iget) :=
 λ x, ⟨encodable.encode x, by simp_rw [encodable.encodek]⟩
@@ -57,7 +60,7 @@ lemma surjective_decode_iget (α : Type*) [encodable α] [inhabited α] :
 /-- An encodable type has decidable equality. Not set as an instance because this is usually not the
 best way to infer decidability. -/
 def decidable_eq_of_encodable (α) [encodable α] : decidable_eq α
-| a b := decidable_of_iff _ encode_injective.eq_iff
+| a b := decidable_of_iff _ encode_inj
 
 /-- If `α` is encodable and there is an injection `f : β → α`, then `β` is encodable as well. -/
 def of_left_injection [encodable α]
@@ -91,7 +94,7 @@ instance empty : encodable empty :=
 ⟨λ a, a.rec _, λ n, none, λ a, a.rec _⟩
 
 instance unit : encodable punit :=
-⟨λ_, zero, λ n, nat.cases_on n (some punit.star) (λ _, none), λ _, by simp⟩
+⟨λ_, 0, λ n, nat.cases_on n (some punit.star) (λ _, none), λ _, by simp⟩
 
 @[simp] theorem encode_star : encode punit.star = 0 := rfl
 
@@ -127,6 +130,14 @@ theorem mem_decode₂ [encodable α] {n : ℕ} {a : α} :
   a ∈ decode₂ α n ↔ encode a = n :=
 mem_decode₂'.trans (and_iff_right_of_imp $ λ e, e ▸ encodek _)
 
+theorem decode₂_eq_some [encodable α] {n : ℕ} {a : α} :
+  decode₂ α n = some a ↔ encode a = n :=
+mem_decode₂
+
+@[simp] lemma decode₂_encode [encodable α] (a : α) :
+  decode₂ α (encode a) = some a :=
+by { ext, simp [mem_decode₂, eq_comm] }
+
 theorem decode₂_ne_none_iff [encodable α] {n : ℕ} :
   decode₂ α n ≠ none ↔ n ∈ set.range (encode : α → ℕ) :=
 by simp_rw [set.range, set.mem_set_of_eq, ne.def, option.eq_none_iff_forall_not_mem,
@@ -134,6 +145,7 @@ by simp_rw [set.range, set.mem_set_of_eq, ne.def, option.eq_none_iff_forall_not_
 
 theorem decode₂_is_partial_inv [encodable α] : is_partial_inv encode (decode₂ α) :=
 λ a n, mem_decode₂
+
 theorem decode₂_inj [encodable α] {n : ℕ} {a₁ a₂ : α}
   (h₁ : a₁ ∈ decode₂ α n) (h₂ : a₂ ∈ decode₂ α n) : a₁ = a₂ :=
 encode_injective $ (mem_decode₂.1 h₁).trans (mem_decode₂.1 h₂).symm
@@ -389,11 +401,13 @@ lemma choose_spec (h : ∃ x, p x) : p (choose h) := (choose_x h).2
 
 end find_a
 
+/-- A constructive version of `classical.axiom_of_choice` for `encodable` types. -/
 theorem axiom_of_choice {α : Type*} {β : α → Type*} {R : Π x, β x → Prop}
   [Π a, encodable (β a)] [∀ x y, decidable (R x y)]
   (H : ∀ x, ∃ y, R x y) : ∃ f : Π a, β a, ∀ x, R x (f x) :=
 ⟨λ x, choose (H x), λ x, choose_spec (H x)⟩
 
+/-- A constructive version of `classical.skolem` for `encodable` types. -/
 theorem skolem {α : Type*} {β : α → Type*} {P : Π x, β x → Prop}
   [c : Π a, encodable (β a)] [d : ∀ x y, decidable (P x y)] :
   (∀ x, ∃ y, P x y) ↔ ∃ f : Π a, β a, (∀ x, P x (f x)) :=

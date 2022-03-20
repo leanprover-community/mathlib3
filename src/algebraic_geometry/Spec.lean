@@ -6,6 +6,7 @@ Authors: Scott Morrison, Justus Springer
 import algebraic_geometry.locally_ringed_space
 import algebraic_geometry.structure_sheaf
 import data.equiv.transfer_instance
+import ring_theory.localization.localization_localization
 import topology.sheaves.sheaf_condition.sites
 import topology.sheaves.functors
 
@@ -227,12 +228,13 @@ structure_sheaf.to_open R ⊤
 instance is_iso_to_Spec_Γ (R : CommRing) : is_iso (to_Spec_Γ R) :=
 by { cases R, apply structure_sheaf.is_iso_to_global }
 
+@[reassoc]
 lemma Spec_Γ_naturality {R S : CommRing} (f : R ⟶ S) :
   f ≫ to_Spec_Γ S = to_Spec_Γ R ≫ Γ.map (Spec.to_LocallyRingedSpace.map f.op).op :=
 by { ext, symmetry, apply localization.local_ring_hom_to_map }
 
 /-- The counit (`Spec_Γ_identity.inv.op`) of the adjunction `Γ ⊣ Spec` is an isomorphism. -/
-@[simps] def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ :=
+@[simps hom_app inv_app] def Spec_Γ_identity : Spec.to_LocallyRingedSpace.right_op ⋙ Γ ≅ 𝟭 _ :=
 iso.symm $ nat_iso.of_components (λ R, as_iso (to_Spec_Γ R) : _) (λ _ _, Spec_Γ_naturality)
 
 end Spec_Γ

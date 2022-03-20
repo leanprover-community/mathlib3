@@ -171,7 +171,7 @@ lemma to_stalk_stalk_map_to_Γ_Spec (x : X) : to_stalk _ _ ≫
 begin
   rw PresheafedSpace.stalk_map,
   erw ← to_open_germ _ (basic_open (1 : Γ.obj (op X)))
-    ⟨X.to_Γ_Spec_fun x, by rw basic_open_one; triv⟩,
+    ⟨X.to_Γ_Spec_fun x, by rw basic_open_one; trivial⟩,
   rw [← category.assoc, category.assoc (to_open _ _)],
   erw stalk_functor_map_germ,
   rw [← category.assoc (to_open _ _), X.to_Γ_Spec_SheafedSpace_app_spec 1],
@@ -203,7 +203,7 @@ def to_Γ_Spec : X ⟶ Spec.LocallyRingedSpace_obj (Γ.obj (op X)) :=
     erw ← he,
     rw ring_hom.map_mul,
     exact ht.mul ((is_localization.map_units S s : _).map
-      (PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x).to_monoid_hom)
+      (PresheafedSpace.stalk_map X.to_Γ_Spec_SheafedSpace x))
   end }
 
 lemma comp_ring_hom_ext {X : LocallyRingedSpace} {R : CommRing}
@@ -338,6 +338,24 @@ begin
   intro R,
   rw adjunction_counit_app,
   apply_instance,
+end
+
+-- This is just
+-- `(Γ_Spec.adjunction.unit.app X).1.c.app (op ⊤) = Spec_Γ_identity.hom.app (X.presheaf.obj (op ⊤))`
+-- But lean times out when trying to unify the types of the two sides.
+lemma adjunction_unit_app_app_top (X : Scheme) :
+  @eq ((Scheme.Spec.obj (op $ X.presheaf.obj (op ⊤))).presheaf.obj (op ⊤) ⟶
+    ((Γ_Spec.adjunction.unit.app X).1.base _* X.presheaf).obj (op ⊤))
+  ((Γ_Spec.adjunction.unit.app X).val.c.app (op ⊤))
+    (Spec_Γ_identity.hom.app (X.presheaf.obj (op ⊤))) :=
+begin
+  have := congr_app Γ_Spec.adjunction.left_triangle X,
+  dsimp at this,
+  rw ← is_iso.eq_comp_inv at this,
+  simp only [Γ_Spec.LocallyRingedSpace_adjunction_counit, nat_trans.op_app, category.id_comp,
+    Γ_Spec.adjunction_counit_app] at this,
+  rw [← op_inv, nat_iso.inv_inv_app, quiver.hom.op_inj.eq_iff] at this,
+  exact this
 end
 
 end Γ_Spec

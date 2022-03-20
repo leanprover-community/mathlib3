@@ -107,6 +107,13 @@ not_congr zero_eq_one_iff
 protected theorem nontrivial {I : ideal R} (hI : I ≠ ⊤) : nontrivial (R ⧸ I) :=
 ⟨⟨0, 1, zero_ne_one_iff.2 hI⟩⟩
 
+lemma subsingleton_iff {I : ideal R} : subsingleton (R ⧸ I) ↔ I = ⊤ :=
+by rw [eq_top_iff_one, ← subsingleton_iff_zero_eq_one, eq_comm,
+       ← I^.quotient.mk^.map_one, quotient.eq_zero_iff_mem]
+
+instance : unique (R ⧸ (⊤ : ideal R)) :=
+⟨⟨0⟩, by rintro ⟨x⟩; exact quotient.eq_zero_iff_mem.mpr submodule.mem_top⟩
+
 lemma mk_surjective : function.surjective (mk I) :=
 λ y, quotient.induction_on' y (λ x, exists.intro x rfl)
 

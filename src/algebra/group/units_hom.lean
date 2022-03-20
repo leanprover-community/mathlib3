@@ -43,6 +43,14 @@ variable {M}
 
 @[simp, to_additive] lemma coe_hom_apply (x : Mˣ) : coe_hom M x = ↑x := rfl
 
+@[simp, norm_cast, to_additive]
+lemma coe_pow (u : Mˣ) (n : ℕ) : ((u ^ n : Mˣ) : M) = u ^ n :=
+(units.coe_hom M).map_pow u n
+
+@[simp, norm_cast, to_additive]
+lemma coe_zpow {G} [group G] (u : Gˣ) (n : ℤ) : ((u ^ n : Gˣ) : G) = u ^ n :=
+(units.coe_hom G).map_zpow u n
+
 /-- If a map `g : M → Nˣ` agrees with a homomorphism `f : M →* N`, then
 this map is a monoid homomorphism too. -/
 @[to_additive "If a map `g : M → add_units N` agrees with a homomorphism `f : M →+ N`, then this map
@@ -90,9 +98,9 @@ end monoid_hom
 section is_unit
 variables {M : Type*} {N : Type*}
 
-@[to_additive] lemma is_unit.map [monoid M] [monoid N]
-  (f : M →* N) {x : M} (h : is_unit x) : is_unit (f x) :=
-by rcases h with ⟨y, rfl⟩; exact (units.map f y).is_unit
+@[to_additive] lemma is_unit.map {F : Type*} [monoid M] [monoid N] [monoid_hom_class F M N]
+  (f : F) {x : M} (h : is_unit x) : is_unit (f x) :=
+by rcases h with ⟨y, rfl⟩; exact (units.map (f : M →* N) y).is_unit
 
 /-- If a homomorphism `f : M →* N` sends each element to an `is_unit`, then it can be lifted
 to `f : M →* Nˣ`. See also `units.lift_right` for a computable version. -/

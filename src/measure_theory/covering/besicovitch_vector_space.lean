@@ -153,7 +153,7 @@ begin
     convert h c hc d hd hcd,
     norm_num },
   have A_subset : A ⊆ ball (0 : E) ρ,
-  { refine bUnion_subset (λ x hx, _),
+  { refine Union₂_subset (λ x hx, _),
     apply ball_subset_ball',
     calc δ + dist x 0 ≤ δ + 2 : by { rw dist_zero_right, exact add_le_add le_rfl (hs x hx) }
     ... = 5 / 2 : by norm_num [δ] },
@@ -171,7 +171,7 @@ begin
     by simp only [μ.add_haar_ball_of_pos _ ρpos],
   have J : (s.card : ℝ≥0∞) * ennreal.of_real (δ ^ (finrank ℝ E))
     ≤ ennreal.of_real (ρ ^ (finrank ℝ E)) :=
-      (ennreal.mul_le_mul_right (μ.add_haar_ball_pos _ zero_lt_one).ne'
+      (ennreal.mul_le_mul_right (measure_ball_pos _ _ zero_lt_one).ne'
         measure_ball_lt_top.ne).1 I,
   have K : (s.card : ℝ) ≤ (5 : ℝ) ^ finrank ℝ E,
     by simpa [ennreal.to_real_mul, div_eq_mul_inv] using
@@ -211,8 +211,7 @@ begin
   `N = multiplicity E + 1`. To formalize this, we work with functions `fin N → E`.
    -/
   classical,
-  by_contradiction h,
-  push_neg at h,
+  by_contra' h,
   set N := multiplicity E + 1 with hN,
   have : ∀ (δ : ℝ), 0 < δ → ∃ f : fin N → E, (∀ (i : fin N), ∥f i∥ ≤ 2)
     ∧ (∀ i j, i ≠ j → 1 - δ ≤ ∥f i - f j∥),

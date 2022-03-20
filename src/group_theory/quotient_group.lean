@@ -30,7 +30,7 @@ proves Noether's first and second isomorphism theorems.
   isomorphism between `H/(H ∩ N)` and `(HN)/N` given a subgroup `H` and a normal subgroup `N` of a
   group `G`.
 * `quotient_group.quotient_quotient_equiv_quotient`: Noether's third isomorphism theorem,
-  the canonical isomorphism between `(G / M) / (M / N)` and `G / N`, where `N ≤ M`.
+  the canonical isomorphism between `(G / N) / (M / N)` and `G / M`, where `N ≤ M`.
 
 ## Tags
 
@@ -66,6 +66,9 @@ lemma coe_mk' : (mk' N : G → G ⧸ N) = coe := rfl
 
 @[simp, to_additive]
 lemma mk'_apply (x : G) : mk' N x = x := rfl
+
+@[to_additive]
+lemma mk'_surjective : function.surjective $ mk' N := @mk_surjective _ _ N
 
 /-- Two `monoid_hom`s from a quotient group are equal if their compositions with
 `quotient_group.mk'` are equal.
@@ -397,12 +400,27 @@ section trivial
 trunc.subsingleton
 
 /-- If the quotient by a subgroup gives a singleton then the subgroup is the whole group. -/
-@[to_additive] lemma subgroup_eq_top_of_subsingleton (H : subgroup G)
+@[to_additive "If the quotient by an additive subgroup gives a singleton then the additive subgroup
+is the whole additive group."] lemma subgroup_eq_top_of_subsingleton (H : subgroup G)
   (h : subsingleton (G ⧸ H)) : H = ⊤ :=
 top_unique $ λ x _,
   have this : 1⁻¹ * x ∈ H := quotient_group.eq.1 (subsingleton.elim _ _),
   by rwa [one_inv, one_mul] at this
 
 end trivial
+
+@[to_additive quotient_add_grup.comap_comap_center]
+lemma comap_comap_center {H₁ : subgroup G} [H₁.normal] {H₂ : subgroup (G ⧸ H₁)} [H₂.normal] :
+  (((subgroup.center ((G ⧸ H₁) ⧸ H₂))).comap (mk' H₂)).comap (mk' H₁) =
+  (subgroup.center (G ⧸ H₂.comap (mk' H₁))).comap (mk' (H₂.comap (mk' H₁))) :=
+begin
+  ext x,
+  simp only [mk'_apply, subgroup.mem_comap, subgroup.mem_center_iff, forall_coe],
+  apply forall_congr,
+  change ∀ (y : G), (↑↑(y * x) = ↑↑(x * y) ↔ ↑(y * x) = ↑(x * y)),
+  intro y,
+  repeat { rw [eq_iff_div_mem] },
+  simp,
+end
 
 end quotient_group

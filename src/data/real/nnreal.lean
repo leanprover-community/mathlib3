@@ -52,6 +52,7 @@ open_locale classical big_operators
 /-- Nonnegative real numbers. -/
 @[derive [
   ordered_semiring, comm_monoid_with_zero, -- to ensure these instance are computable
+  floor_semiring,
   semilattice_inf, densely_ordered, order_bot,
   canonically_linear_ordered_add_monoid, linear_ordered_comm_group_with_zero, archimedean,
   linear_ordered_semiring, ordered_comm_semiring, canonically_ordered_comm_semiring,
@@ -626,7 +627,7 @@ lemma le_of_forall_lt_one_mul_le {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x �
 le_of_forall_ge_of_dense $ assume a ha,
   have hx : x ≠ 0 := pos_iff_ne_zero.1 (lt_of_le_of_lt (zero_le _) ha),
   have hx' : x⁻¹ ≠ 0, by rwa [(≠), inv_eq_zero],
-  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv₀],
+  have a * x⁻¹ < 1, by rwa [← lt_inv_iff_mul_lt hx', inv_inv],
   have (a * x⁻¹) * x ≤ y, from h _ this,
   by rwa [mul_assoc, inv_mul_cancel hx, mul_one] at this
 
@@ -693,9 +694,16 @@ lemma inv_lt_one {x : ℝ≥0} (hx : 1 < x) : x⁻¹ < 1 :=
 lemma zpow_pos {x : ℝ≥0} (hx : x ≠ 0) (n : ℤ) : 0 < x ^ n :=
 begin
   cases n,
-  { exact pow_pos hx.bot_lt _ },
+  { simp [pow_pos hx.bot_lt _] },
   { simp [pow_pos hx.bot_lt _] }
 end
+
+lemma inv_lt_inv_iff {x y : ℝ≥0} (hx : x ≠ 0) (hy : y ≠ 0) :
+  y⁻¹ < x⁻¹ ↔ x < y :=
+by rw [← one_div, div_lt_iff hy, ← div_eq_inv_mul, lt_div_iff hx, one_mul]
+
+lemma inv_lt_inv {x y : ℝ≥0} (hx : x ≠ 0) (h : x < y) : y⁻¹ < x⁻¹ :=
+(inv_lt_inv_iff hx ((bot_le.trans_lt h).ne')).2 h
 
 end inv
 
@@ -707,7 +715,7 @@ end nnreal
 namespace real
 
 /-- The absolute value on `ℝ` as a map to `ℝ≥0`. -/
-@[pp_nodot] noncomputable def nnabs : monoid_with_zero_hom ℝ ℝ≥0 :=
+@[pp_nodot] noncomputable def nnabs : ℝ →*₀ ℝ≥0 :=
 { to_fun := λ x, ⟨|x|, abs_nonneg x⟩,
   map_zero' := by { ext, simp },
   map_one' := by { ext, simp },

@@ -139,8 +139,7 @@ lemma not_interval_integrable_of_sub_inv_is_O_punctured {f : ℝ → F} {a b c :
   ¬interval_integrable f volume a b :=
 begin
   have A : ∀ᶠ x in 𝓝[≠] c, has_deriv_at (λ x, real.log (x - c)) (x - c)⁻¹ x,
-  { filter_upwards [self_mem_nhds_within],
-    intros x hx,
+  { filter_upwards [self_mem_nhds_within] with x hx,
     simpa using ((has_deriv_at_id x).sub_const c).log (sub_ne_zero.2 hx) },
   have B : tendsto (λ x, ∥real.log (x - c)∥) (𝓝[≠] c) at_top,
   { refine tendsto_abs_at_bot_at_top.comp (real.tendsto_log_nhds_within_zero.comp _),

@@ -100,6 +100,10 @@ jobs:
         if: always() && steps.build.outputs.started == 'true' && ${{ IS_SELF_HOSTED }}
         run: rm /tmp/tmp-* || true
 
+      - name: clean up working directory and elan
+        if: always() && ${{ IS_SELF_HOSTED }}
+        run: rm -rf * $HOME/.elan
+
   lint:
     name: Lint mathlibJOB_NAME
     runs-on: RUNS_ON
@@ -131,7 +135,11 @@ jobs:
       - name: lint
         run: |
           ./scripts/mk_all.sh
-          lean --run scripts/lint_mathlib.lean
+          lean --run scripts/lint_mathlib.lean --github
+
+      - name: clean up working directory and elan
+        if: always() && ${{ IS_SELF_HOSTED }}
+        run: rm -rf * $HOME/.elan
 
   tests:
     name: Run testsJOB_NAME
@@ -184,7 +192,7 @@ jobs:
 
       - name: install trepplein
         run: |
-          trepplein_version=1.0
+          trepplein_version=1.1
           wget https://github.com/gebner/trepplein/releases/download/v$trepplein_version/trepplein-$trepplein_version.zip
           unzip trepplein-$trepplein_version.zip
           echo $PWD/trepplein-$trepplein_version/bin >>$GITHUB_PATH
@@ -200,6 +208,10 @@ jobs:
           python3 scripts/yaml_check.py docs/100.yaml docs/overview.yaml docs/undergrad.yaml
           bash scripts/mk_all.sh
           lean --run scripts/yaml_check.lean
+
+      - name: clean up working directory and elan
+        if: always() && ${{ IS_SELF_HOSTED }}
+        run: rm -rf * $HOME/.elan
 
   final:
     name: Post-CI jobJOB_NAME

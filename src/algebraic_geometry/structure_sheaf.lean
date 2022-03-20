@@ -7,7 +7,7 @@ import algebraic_geometry.prime_spectrum.basic
 import algebra.category.CommRing.colimits
 import algebra.category.CommRing.limits
 import topology.sheaves.local_predicate
-import ring_theory.localization
+import ring_theory.localization.at_prime
 import ring_theory.subring.basic
 
 /-!
@@ -190,7 +190,7 @@ def sections_subring (U : (opens (prime_spectrum.Top R))ᵒᵖ) :
     { exact nm, },
     { simp only [ring_hom.map_neg, pi.neg_apply],
       erw [←w],
-      simp only [neg_mul_eq_neg_mul_symm], }
+      simp only [neg_mul], }
   end,
   mul_mem' :=
   begin
@@ -776,7 +776,7 @@ begin
     intros x hx,
     erw topological_space.opens.mem_supr,
     have := ht_cover hx,
-    rw [← finset.set_bUnion_coe, set.mem_bUnion_iff] at this,
+    rw [← finset.set_bUnion_coe, set.mem_Union₂] at this,
     rcases this with ⟨i, i_mem, x_mem⟩,
     use [i, i_mem] },
 

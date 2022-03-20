@@ -176,51 +176,55 @@ by simpa using (dvd_prime_two_le h a1).1 (dvd_mul_right _ _)
 lemma not_prime_mul' {a b n : ℕ} (h : a * b = n) (h₁ : 1 < a) (h₂ : 1 < b) : ¬ prime n :=
 by { rw ← h, exact not_prime_mul h₁ h₂ }
 
-lemma irreducible_mul_unit
-  {α : Type*} [monoid α]
-  {a b : α} (h : is_unit a) :
-  irreducible (a * b) ↔ irreducible b :=
-begin
-  cases h,
-  subst a,
-  rw [irreducible_iff, irreducible_iff],
-  simp only [units.is_unit_units_mul, and.congr_right_iff],
-  intro hu,
-  split, rintros h A B rfl,
-  rw ←mul_assoc at h,
-  specialize h _ _ rfl,
-  apply or.imp_left (λ H, _) h,
-  rwa units.is_unit_units_mul at H,
+section
+variables {α : Type*} [monoid α]
 
-  rintros h A B HAB,
-  have : b = ↑h_w⁻¹ * A * B,
-  { rw [mul_assoc, ←HAB, ←mul_assoc, units.inv_mul, one_mul] },
-  specialize h _ _ this,
-  apply or.imp_left (λ H, _) h,
-  rwa units.is_unit_units_mul at H,
+lemma irreducible_units_mul (a : αˣ) (b : α) : irreducible (↑a * b) ↔ irreducible b :=
+begin
+  simp only [irreducible_iff, units.is_unit_units_mul, and.congr_right_iff],
+  refine λ hu, ⟨λ h A B HAB, _, λ h A B HAB, _⟩,
+  { rw [←a.is_unit_units_mul],
+    apply h,
+    rw [mul_assoc, ←HAB] },
+  { rw [←(a⁻¹).is_unit_units_mul],
+    apply h,
+    rw [mul_assoc, ←HAB, units.inv_mul_cancel_left] },
 end
 
-lemma irreducible_mul_iff
-  {α : Type*} [comm_monoid α]
-  {a b : α} :
+lemma irreducible_is_unit_mul {a b : α} (h : is_unit a) : irreducible (a * b) ↔ irreducible b :=
+let ⟨a, ha⟩ := h in ha ▸ irreducible_units_mul a b
+
+lemma irreducible_mul_units (a : αˣ) (b : α) : irreducible (b * ↑a) ↔ irreducible b :=
+begin
+  simp only [irreducible_iff, units.is_unit_mul_units, and.congr_right_iff],
+  refine λ hu, ⟨λ h A B HAB, _, λ h A B HAB, _⟩,
+  { rw [←units.is_unit_mul_units B a],
+    apply h,
+    rw [←mul_assoc, ←HAB] },
+  { rw [←units.is_unit_mul_units B a⁻¹],
+    apply h,
+    rw [←mul_assoc, ←HAB, units.mul_inv_cancel_right] },
+end
+
+lemma irreducible_mul_is_unit {a b : α} (h : is_unit a) : irreducible (b * a) ↔ irreducible b :=
+let ⟨a, ha⟩ := h in ha ▸ irreducible_mul_units a b
+
+lemma irreducible_mul_iff {a b : α} :
   irreducible (a * b) ↔ (irreducible a ∧ is_unit b) ∨ (irreducible b ∧ is_unit a) :=
-by {
+begin
   split,
-  intro h,
-  have := h.is_unit_or_is_unit rfl,
-  refine or.imp (λ h', ⟨_, h'⟩) (λ h', ⟨_, h'⟩) this.symm,
-  { rwa [mul_comm, irreducible_mul_unit h'] at h, },
-  { rwa [irreducible_mul_unit h'] at h, },
-  rintros (⟨ha, hb⟩|⟨hb, ha⟩),
-  { rwa [mul_comm, irreducible_mul_unit hb], },
-  { rwa [irreducible_mul_unit ha], }
-}
+  { refine λ h, or.imp (λ h', ⟨_, h'⟩) (λ h', ⟨_, h'⟩) (h.is_unit_or_is_unit rfl).symm,
+    { rwa [irreducible_mul_is_unit h'] at h },
+    { rwa [irreducible_is_unit_mul h'] at h } },
+  { rintros (⟨ha, hb⟩|⟨hb, ha⟩),
+    { rwa [irreducible_mul_is_unit hb] },
+    { rwa [irreducible_is_unit_mul ha] } },
+end
+end
 
 lemma prime_mul_iff {a b : ℕ} :
   nat.prime (a * b) ↔ (a.prime ∧ b = 1) ∨ (b.prime ∧ a = 1) :=
-by {
-  simp only [iff_self, nat.irreducible_mul_iff, ←irreducible_iff_nat_prime, nat.is_unit_iff],
-}
+by simp only [iff_self, nat.irreducible_mul_iff, ←irreducible_iff_nat_prime, nat.is_unit_iff]
 
 lemma prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : a ≠ 1) : a ∣ p ↔ p = a :=
 begin

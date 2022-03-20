@@ -193,8 +193,7 @@ lemma exact_of_map_injective_resolution (P: InjectiveResolution X) [preserves_fi
     (((F.map_homological_complex (complex_shape.up ℕ)).obj P.cocomplex).d_from 0) :=
 preadditive.exact_of_iso_of_exact' (F.map (P.ι.f 0)) (F.map (P.cocomplex.d 0 1)) _ _
   (iso.refl _) (iso.refl _)
-  (homological_complex.X_next_iso ((F.map_homological_complex _).obj P.cocomplex)
-    (rfl : (complex_shape.up ℕ).rel 0 1)).symm
+  (homological_complex.X_next_iso ((F.map_homological_complex _).obj P.cocomplex) rfl).symm
   (by simp)
   (by rw [iso.refl_hom, category.id_comp, iso.symm_hom, homological_complex.d_from_eq]; congr')
   (preserves_exact_of_preserves_finite_limits_of_mono _ (P.exact₀))

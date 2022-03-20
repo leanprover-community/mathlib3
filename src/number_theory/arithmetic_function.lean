@@ -577,6 +577,26 @@ begin
   exact h hm hn hmn,
 end
 
+/-- Two multiplicative functions `f` and `g` are equal if and only if
+they agree on prime powers -/
+lemma eq_iff_eq_on_prime_powers [comm_monoid_with_zero R]
+  (f : arithmetic_function R) (hf : f.is_multiplicative)
+  (g : arithmetic_function R) (hg : g.is_multiplicative) :
+  f = g ↔ ∀ (p i : ℕ), nat.prime p → f (p ^ i) = g (p ^ i) :=
+begin
+  split,
+  { intros h p i _, rw [h] },
+  intros h,
+  ext n,
+  by_cases hn : n = 0,
+  { rw [hn, arithmetic_function.map_zero, arithmetic_function.map_zero] },
+  rw [multiplicative_factorization f hf hn, multiplicative_factorization g hg hn],
+  refine finset.prod_congr rfl _,
+  simp only [support_factorization, list.mem_to_finset],
+  intros p hp,
+  exact h p _ (nat.prime_of_mem_factors hp),
+end
+
 end is_multiplicative
 
 section special_functions

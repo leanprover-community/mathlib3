@@ -286,11 +286,6 @@ apply_nolint holor_index.assoc_right doc_blame
 apply_nolint holor_index.drop doc_blame
 apply_nolint holor_index.take doc_blame
 
--- data/list/big_operators.lean
-apply_nolint list.head_mul_tail_prod_of_ne_nil to_additive_doc
-apply_nolint list.length_pos_of_prod_ne_one to_additive_doc
-apply_nolint list.nth_zero_mul_tail_prod to_additive_doc
-
 -- data/list/defs.lean
 apply_nolint list.sublists'_aux doc_blame
 apply_nolint list.sublists_aux doc_blame

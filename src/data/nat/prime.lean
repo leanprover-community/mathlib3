@@ -176,52 +176,6 @@ by simpa using (dvd_prime_two_le h a1).1 (dvd_mul_right _ _)
 lemma not_prime_mul' {a b n : ℕ} (h : a * b = n) (h₁ : 1 < a) (h₂ : 1 < b) : ¬ prime n :=
 by { rw ← h, exact not_prime_mul h₁ h₂ }
 
-section
-variables {α : Type*} [monoid α]
-
-lemma irreducible_units_mul (a : αˣ) (b : α) : irreducible (↑a * b) ↔ irreducible b :=
-begin
-  simp only [irreducible_iff, units.is_unit_units_mul, and.congr_right_iff],
-  refine λ hu, ⟨λ h A B HAB, _, λ h A B HAB, _⟩,
-  { rw [←a.is_unit_units_mul],
-    apply h,
-    rw [mul_assoc, ←HAB] },
-  { rw [←(a⁻¹).is_unit_units_mul],
-    apply h,
-    rw [mul_assoc, ←HAB, units.inv_mul_cancel_left] },
-end
-
-lemma irreducible_is_unit_mul {a b : α} (h : is_unit a) : irreducible (a * b) ↔ irreducible b :=
-let ⟨a, ha⟩ := h in ha ▸ irreducible_units_mul a b
-
-lemma irreducible_mul_units (a : αˣ) (b : α) : irreducible (b * ↑a) ↔ irreducible b :=
-begin
-  simp only [irreducible_iff, units.is_unit_mul_units, and.congr_right_iff],
-  refine λ hu, ⟨λ h A B HAB, _, λ h A B HAB, _⟩,
-  { rw [←units.is_unit_mul_units B a],
-    apply h,
-    rw [←mul_assoc, ←HAB] },
-  { rw [←units.is_unit_mul_units B a⁻¹],
-    apply h,
-    rw [←mul_assoc, ←HAB, units.mul_inv_cancel_right] },
-end
-
-lemma irreducible_mul_is_unit {a b : α} (h : is_unit a) : irreducible (b * a) ↔ irreducible b :=
-let ⟨a, ha⟩ := h in ha ▸ irreducible_mul_units a b
-
-lemma irreducible_mul_iff {a b : α} :
-  irreducible (a * b) ↔ (irreducible a ∧ is_unit b) ∨ (irreducible b ∧ is_unit a) :=
-begin
-  split,
-  { refine λ h, or.imp (λ h', ⟨_, h'⟩) (λ h', ⟨_, h'⟩) (h.is_unit_or_is_unit rfl).symm,
-    { rwa [irreducible_mul_is_unit h'] at h },
-    { rwa [irreducible_is_unit_mul h'] at h } },
-  { rintros (⟨ha, hb⟩|⟨hb, ha⟩),
-    { rwa [irreducible_mul_is_unit hb] },
-    { rwa [irreducible_is_unit_mul ha] } },
-end
-end
-
 lemma prime_mul_iff {a b : ℕ} :
   nat.prime (a * b) ↔ (a.prime ∧ b = 1) ∨ (b.prime ∧ a = 1) :=
 by simp only [iff_self, nat.irreducible_mul_iff, ←irreducible_iff_nat_prime, nat.is_unit_iff]

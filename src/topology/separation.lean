@@ -715,15 +715,17 @@ begin
         exact ⟨⟨hx.1, H.2.2.2.1⟩, is_open.inter hx.2 H.2.1⟩ } } }
 end
 
-lemma t2_separation_fintype [t2_space α] {β : Type*} [fintype β] {f : β → α} {x : α}
-  (hx : x ∉ set.range f) : ∃ u : set α, is_open u ∧ disjoint u (set.range f) :=
+lemma t2_separation_finset' [t2_space α] {s : finset α} {x : α} (hx : x ∉ s) :
+  ∃ u : set α, is_open u ∧ disjoint u s :=
 begin
-  rcases t2_separation_finset (insert x (finset.image f finset.univ)) with ⟨g, hg, hg'⟩,
+  rcases t2_separation_finset (insert x s) with ⟨g, hg, hg'⟩,
   have hx' := finset.mem_insert_self x _,
   refine ⟨g x, (hg' ⟨x, hx'⟩).2, _⟩,
-  rintros y ⟨hy, a, rfl⟩,
-  have hfa: f a ∈ _ := finset.mem_insert_of_mem (finset.mem_image_of_mem f (finset.mem_univ a)),
-  exact hg hx' hfa (λ h, hx ⟨a, h.symm⟩) ⟨hy, (hg' ⟨_, hfa⟩).1⟩
+  rintros y ⟨hyx, hy⟩,
+  have hy' := finset.mem_insert_of_mem hy,
+  apply hg hx' hy' _ ⟨hyx, (hg' ⟨y, hy'⟩).1⟩,
+  rintro rfl,
+  exact hx hy
 end
 
 @[priority 100] -- see Note [lower instance priority]

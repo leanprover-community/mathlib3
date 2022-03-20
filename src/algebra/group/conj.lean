@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2018  Patrick Massot. All rights reserved.
+Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
@@ -30,6 +30,9 @@ def is_conj (a b : α) := ∃ c : αˣ, semiconj_by ↑c a b
 
 @[symm] lemma is_conj.symm {a b : α} : is_conj a b → is_conj b a
 | ⟨c, hc⟩ := ⟨c⁻¹, hc.units_inv_symm_left⟩
+
+lemma is_conj.comm (g h : α) : is_conj g h ↔ is_conj h g :=
+⟨is_conj.symm, is_conj.symm⟩
 
 @[trans] lemma is_conj.trans {a b c : α} : is_conj a b → is_conj b c → is_conj a c
 | ⟨c₁, hc₁⟩ ⟨c₂, hc₂⟩ := ⟨c₂ * c₁, hc₂.mul_left hc₁⟩
@@ -168,9 +171,7 @@ quotient.fintype (is_conj.setoid α)
 instance [decidable_rel (is_conj : α → α → Prop)] : decidable_eq (conj_classes α) :=
 quotient.decidable_eq
 
--- can this be an instance?
-lemma decidable_rel_is_conj [decidable_eq α] [fintype α] :
-  decidable_rel (is_conj : α → α → Prop) :=
+instance [decidable_eq α] [fintype α] : decidable_rel (is_conj : α → α → Prop) :=
 λ a b, by { delta is_conj semiconj_by, apply_instance }
 
 end monoid
@@ -216,6 +217,10 @@ lemma is_conj_iff_conjugates_of_eq {a b : α} :
   rwa ← h at ha,
 end⟩
 
+instance [fintype α] [h : decidable_rel (is_conj : α → α → Prop)] {a : α} :
+  fintype (conjugates_of a) :=
+@subtype.fintype _ _ (h a) _
+
 end monoid
 
 namespace conj_classes
@@ -246,21 +251,10 @@ set.ext (λ x, mem_carrier_iff_mk_eq)
 
 section fintype
 
-variables [fintype α]
+variables [fintype α] [decidable_rel (is_conj : α → α → Prop)]
 
-variables [decidable_eq (conj_classes α)]
-
-/-- Given a conjugacy class `x`, `fincarrier x` is the finset it represents. -/
-def fincarrier (x : conj_classes α) : finset α :=
-finset.univ.filter $ λ a, conj_classes.mk a = x
-
-lemma coe_fincarrier (x : conj_classes α) : (x.fincarrier : set α) = x.carrier :=
-begin
-  rw [fincarrier, carrier_eq_preimage_mk],
-  ext a,
-  simp only [set.sep_univ, set.mem_preimage, set.mem_singleton_iff, finset.coe_univ,
-    set.mem_set_of_eq, finset.coe_filter],
-end
+instance {x : conj_classes α} : fintype (carrier x) :=
+quotient.rec_on_subsingleton x $ @conjugates_of.fintype _ _ _ _
 
 end fintype
 

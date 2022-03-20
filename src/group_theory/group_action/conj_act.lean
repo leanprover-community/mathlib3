@@ -165,10 +165,6 @@ open mul_action
 variables (G) [group G] [fintype G] {M : Type*} [monoid M]
 
 -- move this
-lemma is_conj_comm (g h : M) : is_conj g h ↔ is_conj h g :=
-⟨is_conj.symm, is_conj.symm⟩
-
--- move this
 lemma is_conj.eq_of_mem_center_left {g h : M} (H : is_conj g h) (Hg : g ∈ set.center M) :
   g = h :=
 by { rcases H with ⟨u, hu⟩, rwa [← u.mul_left_inj, ← Hg u], }
@@ -181,7 +177,7 @@ lemma is_conj.eq_of_mem_center_right {g h : M} (H : is_conj g h) (Hh : h ∈ set
 -- move this
 lemma mem_orbit_conj_act_iff {G : Type*} [group G] (g h : G) :
   g ∈ orbit (conj_act G) h ↔ is_conj g h :=
-by { rw [is_conj_comm, is_conj_iff, mem_orbit_iff], exact iff.rfl }
+by { rw [is_conj.comm, is_conj_iff, mem_orbit_iff], exact iff.rfl }
 
 -- move this
 lemma orbit_rel_r (X : Type*) [mul_action G X] :
@@ -212,7 +208,7 @@ end
 end
 
 lemma class_equation' [decidable_rel (is_conj : G → G → Prop)] :
-  ∑ x : conj_classes G, x.fincarrier.card = fintype.card G :=
+  ∑ x : conj_classes G, x.carrier.to_finset.card = fintype.card G :=
 begin
   let e : quotient (orbit_rel (conj_act G) G) ≃ conj_classes G :=
   quotient.congr_right (λ g h, mem_orbit_conj_act_iff g h),
@@ -223,7 +219,7 @@ begin
   refine finset.sum_congr rfl _,
   rintro ⟨g⟩ -,
   rw [← card_orbit_mul_card_stabilizer_eq_card_group (conj_act G) (quotient.out' (quot.mk _ g)),
-    nat.mul_div_cancel, fintype.card_of_finset, conj_classes.fincarrier],
+    nat.mul_div_cancel, fintype.card_of_finset],
   swap, { rw fintype.card_pos_iff, apply_instance },
   intro h,
   simp only [true_and, finset.mem_univ, finset.mem_filter, mem_orbit_conj_act_iff,
@@ -253,7 +249,7 @@ begin
   { rintros ⟨g⟩ hg, refine ⟨g, _, rfl⟩,
     dsimp [noncenter] at hg, rw not_not at hg,
     intro h, rw ← mul_inv_eq_iff_eq_mul, refine hg _ mem_carrier_mk, rw mem_carrier_iff_mk_eq,
-    apply mk_eq_mk_iff_is_conj.2, rw [is_conj_comm, is_conj_iff], exact ⟨h, rfl⟩, }
+    apply mk_eq_mk_iff_is_conj.2, rw [is_conj.comm, is_conj_iff], exact ⟨h, rfl⟩, }
 end
 
 end conj_classes
@@ -264,7 +260,7 @@ lemma class_equation :
   nat.card (subgroup.center G) + ∑ᶠ x ∈ noncenter G, nat.card (carrier x) = nat.card G :=
 begin
   classical,
-  have aux : ∀ x : conj_classes G, nat.card x.carrier = x.fincarrier.card,
+  have aux : ∀ x : conj_classes G, nat.card x.carrier = x.carrier.to_finset.card,
   { intro x,
     simp only [nat.card_eq_fintype_card, finset.filter_congr_decidable, fintype.card_of_finset,
       carrier_eq_preimage_mk],
@@ -289,9 +285,9 @@ begin
       noncenter, not_not, set.mem_set_of_eq] at hg,
     rw [eq_comm, finset.card_eq_one],
     refine ⟨g, _⟩,
-    simp only [finset.eq_singleton_iff_unique_mem, fincarrier, true_and, finset.mem_univ,
-      finset.mem_filter],
-    refine ⟨rfl, _⟩, intros h hh, refine hg _ mem_carrier_mk, rwa mem_carrier_iff_mk_eq, }
+    simp only [finset.eq_singleton_iff_unique_mem, true_and, finset.mem_univ, finset.mem_filter],
+    refine ⟨rfl, λ h hh, hg _ mem_carrier_mk⟩,
+    rwa mem_carrier_iff_mk_eq, }
 end
 
 end fintype

@@ -595,13 +595,48 @@ infix ` ≃ᴸ `:10 := Lequiv -- \^L
 
 namespace Lequiv
 
+variable (L)
+
+/-- The identity equivalence from a first-order language to itself. -/
 @[simps] protected def refl : L ≃ᴸ L :=
 ⟨Lhom.id L, Lhom.id L, Lhom.id_comp, Lhom.id_comp⟩
 
-variables (e : L ≃ᴸ L')
+variable {L}
 
+instance : inhabited (L ≃ᴸ L) := ⟨Lequiv.refl L⟩
+
+variables {L'' : language} (e' : L' ≃ᴸ L'') (e : L ≃ᴸ L')
+
+/-- The inverse of an equivalence of first-order languages. -/
 @[simps] protected def symm : L' ≃ᴸ L :=
 ⟨e.inv_Lhom, e.to_Lhom, e.right_inv, e.left_inv⟩
+
+/-- The inverse of an equivalence of first-order languages. -/
+@[simps, trans] protected def comp : L ≃ᴸ L'' :=
+⟨e'.to_Lhom.comp e.to_Lhom, e.inv_Lhom.comp e'.inv_Lhom,
+  begin
+    ext n f,
+    { have h := Lhom.id_on_function L' n (e.to_Lhom.on_function f),
+      rw [← e'.left_inv, Lhom.comp_on_function, id.def] at h,
+      simp only [Lhom.comp_on_function, Lhom.id_on_function, id.def],
+      rw [h, ← Lhom.comp_on_function, e.left_inv, Lhom.id_on_function, id.def] },
+    { ext n r,
+      have h := Lhom.id_on_relation L' n (e.to_Lhom.on_relation r),
+      rw [← e'.left_inv, Lhom.comp_on_relation, id.def] at h,
+      simp only [Lhom.comp_on_relation, Lhom.id_on_function, id.def],
+      rw [h, ← Lhom.comp_on_relation, e.left_inv, Lhom.id_on_relation, id.def] },
+  end, begin
+    ext n f,
+    { have h := Lhom.id_on_function L' n (e'.inv_Lhom.on_function f),
+      rw [← e.right_inv, Lhom.comp_on_function, id.def] at h,
+      simp only [Lhom.comp_on_function, Lhom.id_on_function, id.def],
+      rw [h, ← Lhom.comp_on_function, e'.right_inv, Lhom.id_on_function, id.def] },
+    { ext n r,
+      have h := Lhom.id_on_relation L' n (e'.inv_Lhom.on_relation r),
+      rw [← e.right_inv, Lhom.comp_on_relation, id.def] at h,
+      simp only [Lhom.comp_on_relation, Lhom.id_on_relation, id.def],
+      rw [h, ← Lhom.comp_on_relation, e'.right_inv, Lhom.id_on_relation, id.def]  },
+  end⟩
 
 end Lequiv
 
@@ -709,8 +744,8 @@ variables {α} {β : Type*}
 def Lhom_with_constants_map (f : α → β) : L[[α]] →ᴸ L[[β]] :=
 Lhom.sum_map (Lhom.id L) (Lhom.constants_on_map f)
 
-@[simp] lemma Lhom.map_constants_comp_with_constants {f : α → β} :
-  (L.Lhom_with_constants_map f).comp (L.Lhom_with_constants α) = L.Lhom_with_constants β :=
+@[simp] lemma Lhom.map_constants_comp_sum_inl {f : α → β} :
+  (L.Lhom_with_constants_map f).comp (Lhom.sum_inl) = L.Lhom_with_constants β :=
 by ext n f R; refl
 
 end

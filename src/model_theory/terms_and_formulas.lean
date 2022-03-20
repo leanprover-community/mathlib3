@@ -684,7 +684,7 @@ namespace Lequiv
   right_inv := by rw [function.right_inverse_iff_comp, ← Lhom.comp_on_bounded_formula, φ.right_inv,
     Lhom.id_on_bounded_formula] }
 
-@[simp] lemma on_bounded_formula_symm {α : Type*} (φ : L ≃ᴸ L') :
+lemma on_bounded_formula_symm {α : Type*} (φ : L ≃ᴸ L') :
   (φ.on_bounded_formula.symm : L'.bounded_formula α n ≃ L.bounded_formula α n) =
     φ.symm.on_bounded_formula :=
 rfl

@@ -99,13 +99,9 @@ by { rw ←_root_.map_one _, exact is_algebraic_algebra_map 1 }
 theorem is_algebraic_nat [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
 by { rw ←map_nat_cast _ n, exact is_algebraic_algebra_map n }
 
-lemma is_algebraic_algebra_map_of_is_algebraic {a : S} (h : is_algebraic R a) :
-  is_algebraic R (algebra_map S A a) :=
-begin
-  obtain ⟨f, hf₁, hf₂⟩ := h,
-  use [f, hf₁],
-  rw [← is_scalar_tower.algebra_map_aeval R S A, hf₂, ring_hom.map_zero]
-end
+lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
+  is_algebraic R a → is_algebraic R (algebra_map S A a) :=
+λ ⟨f, hf₁, hf₂⟩, ⟨f, hf₁, by rw [← is_scalar_tower.algebra_map_aeval R S A, hf₂, ring_hom.map_zero]⟩
 
 end zero_ne_one
 

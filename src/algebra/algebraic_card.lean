@@ -9,6 +9,7 @@ import data.polynomial.cardinal
 import data.rat.denumerable
 import ring_theory.algebraic
 import set_theory.cardinal_ordinal
+import topology.separation
 
 /-!
 ### Cardinality of algebraic numbers
@@ -20,6 +21,8 @@ existence of a trascendental number.
 
 open cardinal polynomial
 open_locale cardinal
+
+namespace real
 
 theorem rat_is_algebraic : ∀ n : ℚ, is_algebraic ℚ (n : ℝ) :=
 is_algebraic_algebra_map
@@ -74,3 +77,5 @@ theorem exists_transcendental : ∃ x : ℝ, transcendental ℚ x := begin
   rw [set.eq_univ_of_forall H, mk_univ, mk_real] at this,
   exact omega_lt_continuum.ne' this
 end
+
+end real

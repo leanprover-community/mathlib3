@@ -3,9 +3,7 @@ Copyright (c) 2022 Moritz Doll. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Moritz Doll
 -/
-import analysis.normed.normed_field
 import analysis.locally_convex.basic
-import topology.algebra.module.basic
 import topology.bornology.basic
 
 /-!
@@ -15,12 +13,13 @@ This file defines natural or von Neumann bounded sets and proves elementary prop
 
 ## Main declarations
 
-* `is_bounded`: A set `s` is bounded if every neighborhood of zero absorbs `s`.
-* `natural_bornology`: The set of bounded sets forms a bornology.
+* `is_vonN_bounded`: A set `s` is von Neumann-bounded if every neighborhood of zero absorbs `s`.
+* `vonN_bornology`: The bornology made of the von Neumann-bounded sets.
 
 ## Main results
 
-* `is_bounded_of_topological_space_le`: A coarser topology admits more bounded sets.
+* `is_vonN_bounded_of_topological_space_le`: A coarser topology admits more Von Neumann-bounded
+  sets.
 
 ## References
 
@@ -43,7 +42,7 @@ variables [semi_normed_ring 𝕜] [has_scalar 𝕜 E] [has_zero E]
 variables [topological_space E]
 
 /-- A set `s` is von Neumann bounded if every neighborhood of 0 absorbs `s`. -/
-def is_vonN_bounded (s : set E) : Prop := ∀ V ∈ 𝓝 (0 : E), absorbs 𝕜 V s
+def is_vonN_bounded (s : set E) : Prop := ∀ ⦃V⦄, V ∈ 𝓝 (0 : E) → absorbs 𝕜 V s
 
 variables (E)
 
@@ -56,7 +55,7 @@ lemma is_vonN_bounded_iff (s : set E) : is_vonN_bounded 𝕜 s ↔ ∀ V ∈ �
 iff.rfl
 
 /-- Subsets of bounded sets are bounded. -/
-lemma is_vonN_bounded.subset {s₁ s₂ : set E} (hs₁ : is_vonN_bounded 𝕜 s₂) (hs₂ : s₁ ⊆ s₂) :
+lemma is_vonN_bounded.subset {s₁ s₂ : set E} (h : s₁ ⊆ s₂) (hs₂ : is_vonN_bounded 𝕜 s₂) :
   is_vonN_bounded 𝕜 s₁ :=
 λ V hV, absorbs.mono_right (hs₁ V hV) hs₂
 
@@ -89,7 +88,7 @@ variables [topological_space E] [has_continuous_smul 𝕜 E]
 
 /-- Singletons are bounded. -/
 lemma is_vonN_bounded_singleton (x : E) : is_vonN_bounded 𝕜 ({x} : set E) :=
-λ V hV, absorbent.absorbs (absorbent_nhds_zero hV)
+λ V hV, (absorbent_nhds_zero hV).absorbs
 
 /-- The union of all bounded set is the whole space. -/
 lemma is_vonN_bounded_covers : ⋃₀ (set_of (is_vonN_bounded 𝕜)) = (set.univ : set E) :=
@@ -102,6 +101,7 @@ variables (𝕜 E)
 
 Note that this is not registered as an instance, in order to avoid diamonds with the
 metric bornology.-/
+@[reducible] -- See note [reducible non-instances]
 def vonN_bornology : bornology E :=
 bornology.of_bounded (set_of (is_vonN_bounded 𝕜)) (is_vonN_bounded_empty 𝕜 E)
   (λ _ hs _, hs.subset) (λ _ hs _, hs.union) is_vonN_bounded_covers
@@ -110,7 +110,7 @@ variables {E}
 
 @[simp] lemma is_bounded_iff_is_vonN_bounded {s : set E} :
   @is_bounded _ (vonN_bornology 𝕜 E) s ↔ is_vonN_bounded 𝕜 s :=
-by rw [is_bounded_of_bounded_iff, set.mem_set_of_eq]
+is_bounded_of_bounded_iff _
 
 end normed_field
 

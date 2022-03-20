@@ -700,7 +700,7 @@ def with_constants : language.{(max u w) v} := L.sum (constants_on α)
 localized "notation L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
 
 /-- The language map adding constants.  -/
-@[simp] def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
+@[simps] def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
 
 variables {α}
 

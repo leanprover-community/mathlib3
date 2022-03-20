@@ -43,6 +43,13 @@ def definable (s : set (α → M)) : Prop :=
 
 variables {L} {A} {B : set M} {s : set (α → M)}
 
+lemma empty_definable_iff :
+  (∅ : set M).definable L s ↔ ∃ (φ : L.formula α), s = set_of φ.realize :=
+begin
+  rw [definable, equiv.exists_congr_left (Lequiv.add_empty_constants L (∅ : set M)).on_formula],
+  simp,
+end
+
 @[simp]
 lemma definable_empty : A.definable L (∅ : set (α → M)) :=
 ⟨⊥, by {ext, simp} ⟩

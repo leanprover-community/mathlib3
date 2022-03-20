@@ -500,29 +500,29 @@ namespace Lhom
 variables (ϕ : L →ᴸ L')
 
 /-- The identity language homomorphism. -/
-protected def id (L : language) : L →ᴸ L :=
+@[simps] protected def id (L : language) : L →ᴸ L :=
 ⟨λn, id, λ n, id⟩
 
 instance : inhabited (L →ᴸ L) := ⟨Lhom.id L⟩
 
 /-- The inclusion of the left factor into the sum of two languages. -/
-protected def sum_inl : L →ᴸ L.sum L' :=
+@[simps] protected def sum_inl : L →ᴸ L.sum L' :=
 ⟨λn, sum.inl, λ n, sum.inl⟩
 
 /-- The inclusion of the right factor into the sum of two languages. -/
-protected def sum_inr : L' →ᴸ L.sum L' :=
+@[simps] protected def sum_inr : L' →ᴸ L.sum L' :=
 ⟨λn, sum.inr, λ n, sum.inr⟩
 
 variables (L L')
 
 /-- The inclusion of an empty language into any other language. -/
-protected def of_is_empty [L.is_algebraic] [L.is_relational] : L →ᴸ L' :=
+@[simps] protected def of_is_empty [L.is_algebraic] [L.is_relational] : L →ᴸ L' :=
 ⟨λ n, (is_relational.empty_functions n).elim, λ n, (is_algebraic.empty_relations n).elim⟩
 
-variables {L L'}
+variables {L L'} {L'' : language}
 
 /-- The composition of two language homomorphisms. -/
-@[reducible] def comp {L1} {L2} {L3} (g : L2 →ᴸ L3) (f : L1 →ᴸ L2) : L1 →ᴸ L3 :=
+@[simps] def comp (g : L' →ᴸ L'') (f : L →ᴸ L') : L →ᴸ L'' :=
 ⟨λ n F, g.1 (f.1 F), λ _ R, g.2 (f.2 R)⟩
 
 @[ext] protected lemma funext {L1} {L2} {F G : L1 →ᴸ L2} (h_fun : F.on_function = G.on_function )
@@ -584,6 +584,27 @@ instance sum_map_is_expansion_on {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) 
 
 end Lhom
 
+/-- A language equivalence maps the symbols of one language to symbols of another bijectively. -/
+structure Lequiv (L L' : language) :=
+(to_Lhom : L →ᴸ L')
+(inv_Lhom : L' →ᴸ L)
+(left_inv : inv_Lhom.comp to_Lhom = Lhom.id L)
+(right_inv : to_Lhom.comp inv_Lhom = Lhom.id L')
+
+infix ` ≃ᴸ `:10 := Lequiv -- \^L
+
+namespace Lequiv
+
+@[simps] protected def refl : L ≃ᴸ L :=
+⟨Lhom.id L, Lhom.id L, Lhom.id_comp, Lhom.id_comp⟩
+
+variables (e : L ≃ᴸ L')
+
+@[simps] protected def symm : L' ≃ᴸ L :=
+⟨e.inv_Lhom, e.to_Lhom, e.right_inv, e.left_inv⟩
+
+end Lequiv
+
 section constants_on
 variables (α : Type u')
 
@@ -644,7 +665,7 @@ def with_constants : language.{(max u w) v} := L.sum (constants_on α)
 localized "notation L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
 
 /-- The language map adding constants.  -/
-def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
+@[simp] def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
 
 variables {α}
 
@@ -662,8 +683,25 @@ instance params_Structure (A : set α) : (constants_on A).Structure α := consta
 variables (L) (α)
 
 /-- The language map removing an empty constant set.  -/
-def Lhom_trim_empty_constants [is_empty α] : L[[α]] →ᴸ L :=
-Lhom.sum_elim (Lhom.id L) (Lhom.of_is_empty (constants_on α) L)
+@[simps] def Lequiv.add_empty_constants [ie : is_empty α] : L ≃ᴸ L[[α]] :=
+{ to_Lhom := Lhom_with_constants L α,
+  inv_Lhom := Lhom.sum_elim (Lhom.id L) (Lhom.of_is_empty (constants_on α) L),
+  left_inv := by { ext; simp },
+  right_inv := by { ext n f,
+    { cases f,
+      { simp only [Lhom.comp, Lhom_with_constants, Lhom.id, Lhom.of_is_empty, Lhom.sum_inl,
+          Lhom.sum_elim_on_function, id.def],
+        rw [sum.elim_inl] },
+      { refine false.elim (is_empty.elim _ f),
+        cases n,
+        { exact ie },
+        { apply_instance } } },
+    { ext n r,
+      cases r,
+      { simp only [Lhom.comp, Lhom_with_constants, Lhom.id, Lhom.of_is_empty, Lhom.sum_inl, id.def,
+          Lhom.sum_elim_on_relation],
+        rw sum.elim_inl, },
+      { exact false.elim (is_empty.elim (is_algebraic.empty_relations n) r), } } } }
 
 variables {α} {β : Type*}
 
@@ -683,12 +721,16 @@ variables (A : set M)
 instance with_constants_Structure : L[[A]].Structure M :=
 language.sum_Structure _ _ _
 
-instance trim_empty_constants_is_expansion_on :
-  (L.Lhom_trim_empty_constants (∅ : set M)).is_expansion_on M :=
-Lhom.sum_elim_is_expansion_on _ _ _
-
 instance with_constants_expansion : (L.Lhom_with_constants A).is_expansion_on M :=
 ⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
+
+instance add_empty_constants_is_expansion_on' :
+  (Lequiv.add_empty_constants L (∅ : set M)).to_Lhom.is_expansion_on M :=
+L.with_constants_expansion _
+
+instance add_empty_constants_symm_is_expansion_on :
+  (Lequiv.add_empty_constants L (∅ : set M)).symm.to_Lhom.is_expansion_on M :=
+Lhom.sum_elim_is_expansion_on _ _ _
 
 instance add_constants_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ L')
   [φ.is_expansion_on M] :

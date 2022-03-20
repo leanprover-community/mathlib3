@@ -38,9 +38,6 @@ for `nnnorm`.
 
 Some `nat.floor` and `nat.ceil` lemmas require `linear_ordered_ring α`. Is `has_ordered_sub` enough?
 
-`linear_ordered_ring`/`linear_ordered_semiring` can be relaxed to `order_ring`/`order_semiring` in
-many lemmas.
-
 ## Tags
 
 rounding, floor, ceil
@@ -48,6 +45,8 @@ rounding, floor, ceil
 
 open set
 variables {α : Type*}
+
+def nonpos_or_nonneg [preorder α] [has_zero α] (a : α) := a ≤ 0 ∨ 0 ≤ a
 
 /-! ### Floor semiring -/
 
@@ -82,61 +81,145 @@ def ceil : α → ℕ := floor_semiring.ceil
 notation `⌊` a `⌋₊` := nat.floor a
 notation `⌈` a `⌉₊` := nat.ceil a
 
-end ordered_semiring
+/-! ### Lemmas requiring only `ordered_semiring`
 
-section linear_ordered_semiring
-variables [linear_ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
+The following lemmas only require the `ordered_semiring` assumption. These mostly are the lemmas
+involving `≤` as the comparator. Many lemmas also require a `nontrivial` assumption, essentially
+to assure that `∀ (n : ℕ), ⌊(n : α)⌋₊ = n` (see `floor_coe`).
+
+Most lemmas will then apply to any nonpositive or nonnegative element, even without a linear order.
+These lemmas all end with `_on` have versions without this assumption repeated for linearly
+ordered rings below. Note that this assumption is stronger than being bounded above and bounded
+below by naturals. Indeed, every element of a floor semiring is bounded above (see `exists_nat_ge`).
+-/
+
+/-! #### Floor -/
 
 lemma le_floor_iff (ha : 0 ≤ a) : n ≤ ⌊a⌋₊ ↔ (n : α) ≤ a := floor_semiring.gc_floor ha
 
 lemma le_floor (h : (n : α) ≤ a) : n ≤ ⌊a⌋₊ := (le_floor_iff $ n.cast_nonneg.trans h).2 h
 
-lemma floor_lt (ha : 0 ≤ a) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff ha
-
-lemma lt_of_floor_lt (h : ⌊a⌋₊ < n) : a < n := lt_of_not_ge' $ λ h', (le_floor h').not_lt h
-
 lemma floor_le (ha : 0 ≤ a) : (⌊a⌋₊ : α) ≤ a := (le_floor_iff ha).1 le_rfl
 
-lemma lt_succ_floor (a : α) : a < ⌊a⌋₊.succ := lt_of_floor_lt $ nat.lt_succ_self _
-
-lemma lt_floor_add_one (a : α) : a < ⌊a⌋₊ + 1 := lt_succ_floor a
-
-@[simp] lemma floor_coe (n : ℕ) : ⌊(n : α)⌋₊ = n :=
+@[simp] lemma floor_coe [nontrivial α] (n : ℕ) : ⌊(n : α)⌋₊ = n :=
 eq_of_forall_le_iff $ λ a, by { rw [le_floor_iff, nat.cast_le], exact n.cast_nonneg }
 
-@[simp] lemma floor_zero : ⌊(0 : α)⌋₊ = 0 := floor_coe 0
+@[simp] lemma floor_zero [nontrivial α] : ⌊(0 : α)⌋₊ = 0 := floor_coe 0
 
-@[simp] lemma floor_one : ⌊(1 : α)⌋₊ = 1 := by rw [←nat.cast_one, floor_coe]
+@[simp] lemma floor_one [nontrivial α] : ⌊(1 : α)⌋₊ = 1 := by rw [←nat.cast_one, floor_coe]
 
-lemma floor_of_nonpos (ha : a ≤ 0) : ⌊a⌋₊ = 0 :=
+lemma floor_of_nonpos [nontrivial α] (ha : a ≤ 0) : ⌊a⌋₊ = 0 :=
 ha.lt_or_eq.elim floor_semiring.floor_of_neg $ by { rintro rfl, exact floor_zero }
 
-lemma floor_mono : monotone (floor : α → ℕ) := λ a b h, begin
-  obtain ha | ha := le_total a 0,
-  { rw floor_of_nonpos ha,
-    exact nat.zero_le _ },
-  { exact le_floor ((floor_le ha).trans h) }
+lemma floor_mono_on [nontrivial α] : monotone_on (floor : α → ℕ) (set.Iic (0 : α) ∪ set.Ici (0 : α))
+:= λ a ha b hb hab, begin
+  simp at ha, simp at hb,
+  cases ha,
+  { cases hb,
+    { rw [floor_of_nonpos ha, floor_of_nonpos hb], },
+    { simp [floor_of_nonpos ha], }, },
+  { cases hb,
+    { simp [le_antisymm (le_trans hab hb) ha, floor_of_nonpos hb], },
+    { exact le_floor ((floor_le ha).trans hab) }, },
 end
 
-lemma le_floor_iff' (hn : n ≠ 0) : n ≤ ⌊a⌋₊ ↔ (n : α) ≤ a :=
+lemma le_floor_iff'_on [nontrivial α] (ha : nonpos_or_nonneg a) (hn : n ≠ 0) :
+  n ≤ ⌊a⌋₊ ↔ (n : α) ≤ a :=
 begin
-  obtain ha | ha := le_total a 0,
+  cases ha with ha,
   { rw floor_of_nonpos ha,
     exact iff_of_false (nat.pos_of_ne_zero hn).not_le
       (not_le_of_lt $ ha.trans_lt $ cast_pos.2 $ nat.pos_of_ne_zero hn) },
   { exact le_floor_iff ha }
 end
 
+lemma floor_pos_on [nontrivial α] (ha : nonpos_or_nonneg a) : 0 < ⌊a⌋₊ ↔ 1 ≤ a :=
+by { convert le_floor_iff'_on ha nat.one_ne_zero, exact cast_one.symm }
+
+lemma pos_of_floor_pos_on [nontrivial α] (ha : nonpos_or_nonneg a) (h : 0 < ⌊a⌋₊) : 0 < a :=
+begin
+  have : a ≤ 0 ∨ 0 < a,
+  { cases ha,
+    { left, exact ha, },
+    { cases eq_or_lt_of_le ha,
+      { simp [h_1], },
+      { right, exact h_1, }, }, },
+  exact this.resolve_left (λ ha, lt_irrefl 0 $ by rwa floor_of_nonpos ha at h),
+end
+
+lemma lt_of_lt_floor_on [nontrivial α] (ha : nonpos_or_nonneg a) (h : n < ⌊a⌋₊) : ↑n < a :=
+(nat.cast_lt.2 h).trans_le $ floor_le (pos_of_floor_pos_on ha $ (nat.zero_le n).trans_lt h).le
+
+/-! #### Ceil -/
+lemma gc_ceil_coe : galois_connection (ceil : α → ℕ) coe := floor_semiring.gc_ceil
+
+@[simp] lemma ceil_le : ⌈a⌉₊ ≤ n ↔ a ≤ n := gc_ceil_coe _ _
+
+lemma le_ceil (a : α) : a ≤ ⌈a⌉₊ := ceil_le.1 le_rfl
+
+lemma floor_le_ceil_on [nontrivial α] (ha : nonpos_or_nonneg a) : ⌊a⌋₊ ≤ ⌈a⌉₊ :=
+begin
+  cases ha with ha,
+  { rw floor_of_nonpos ha,
+    exact nat.zero_le _, },
+  { exact cast_le.1 ((floor_le ha).trans $ le_ceil _) }
+end
+
+lemma exists_nat_ge (x : α) : ∃ (n : ℕ), x ≤ ↑n := ⟨⌈x⌉₊, le_ceil x⟩
+
+lemma exists_nat_gt [nontrivial α] (x : α) : ∃ (n : ℕ), x < ↑n :=
+⟨⌈x⌉₊ + 1, (le_ceil x).trans_lt $ strict_mono_cast $ lt_succ_self _⟩
+
+lemma ceil_mono : monotone (ceil : α → ℕ) := gc_ceil_coe.monotone_l
+
+@[simp] lemma ceil_coe [nontrivial α] (n : ℕ) : ⌈(n : α)⌉₊ = n :=
+eq_of_forall_ge_iff $ λ a, ceil_le.trans nat.cast_le
+
+@[simp] lemma ceil_zero [nontrivial α] : ⌈(0 : α)⌉₊ = 0 := ceil_coe 0
+
+@[simp] lemma ceil_eq_zero : ⌈a⌉₊ = 0 ↔ a ≤ 0 := le_zero_iff.symm.trans ceil_le
+
+lemma lt_of_ceil_lt [nontrivial α] (h : ⌈a⌉₊ < n) : a < n := (le_ceil a).trans_lt (nat.cast_lt.2 h)
+
+lemma le_of_ceil_le [nontrivial α] (h : ⌈a⌉₊ ≤ n) : a ≤ n := (le_ceil a).trans (nat.cast_le.2 h)
+
+@[simp] lemma preimage_ceil_zero : (nat.ceil : α → ℕ) ⁻¹' {0} = Iic 0 :=
+ext $ λ x, ceil_eq_zero
+
+end ordered_semiring
+
+section linear_ordered_semiring
+variables [linear_ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
+
+/-! ### Lemmas requiring a linear ordering
+
+This collection of lemmas builds on the above lemmas by requiring a _linear_ ordering.
+These lemmas generally begin with lemmas showing a `<` proposition. As an example, consider that
+`⌊a⌋₊ ≤ a ≤ ⌈a⌉₊` for all nonpositive or nonnegative elements of a floor semiring (see
+`floor_le_ceil_on` above). What the additional assumption of a linear ordering buys us is that
+`a < ⌊a⌋₊ + 1` (see `lt_succ_floor`) and thus `⌊a⌋₊ ≤ ⌈a⌉₊ ≤ ⌊a⌋₊ + 1` (see `ceil_le_floor_succ`).
+
+`TODO`: Provide a counterexample showing a floor semiring that does _not_ have this property,
+even for nonpositive and nonnegative elements.
+-/
+
+lemma floor_lt (ha : 0 ≤ a) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff ha
+
+lemma lt_of_floor_lt (h : ⌊a⌋₊ < n) : a < n := lt_of_not_ge' $ λ h', (le_floor h').not_lt h
+
+lemma lt_succ_floor (a : α) : a < ⌊a⌋₊.succ := lt_of_floor_lt $ nat.lt_succ_self _
+
+lemma lt_floor_add_one (a : α) : a < ⌊a⌋₊ + 1 := lt_succ_floor a
+
+lemma floor_mono : monotone (floor : α → ℕ) := λ a b h, floor_mono_on (by simp) (by simp) h
+
+lemma le_floor_iff' (hn : n ≠ 0) : n ≤ ⌊a⌋₊ ↔ (n : α) ≤ a := le_floor_iff'_on (le_total a 0) hn
+
 lemma floor_lt' (hn : n ≠ 0) : ⌊a⌋₊ < n ↔ a < n := lt_iff_lt_of_le_iff_le $ le_floor_iff' hn
 
-lemma floor_pos : 0 < ⌊a⌋₊ ↔ 1 ≤ a :=
-by { convert le_floor_iff' nat.one_ne_zero, exact cast_one.symm }
+lemma pos_of_floor_pos (h : 0 < ⌊a⌋₊) : 0 < a := pos_of_floor_pos_on (le_total a 0) h
 
-lemma pos_of_floor_pos (h : 0 < ⌊a⌋₊) : 0 < a :=
-(le_or_lt a 0).resolve_left (λ ha, lt_irrefl 0 $ by rwa floor_of_nonpos ha at h)
-
-lemma lt_of_lt_floor (h : n < ⌊a⌋₊) : ↑n < a :=
-(nat.cast_lt.2 h).trans_le $ floor_le (pos_of_floor_pos $ (nat.zero_le n).trans_lt h).le
+lemma lt_of_lt_floor (h : n < ⌊a⌋₊) : ↑n < a := lt_of_lt_floor_on (le_total a 0) h
 
 lemma floor_le_of_le (h : a ≤ n) : ⌊a⌋₊ ≤ n := le_imp_le_iff_lt_imp_lt.2 lt_of_lt_floor h
 
@@ -165,34 +248,13 @@ ext $ λ a, floor_eq_iff' hn
 
 /-! #### Ceil -/
 
-lemma gc_ceil_coe : galois_connection (ceil : α → ℕ) coe := floor_semiring.gc_ceil
-
-@[simp] lemma ceil_le : ⌈a⌉₊ ≤ n ↔ a ≤ n := gc_ceil_coe _ _
-
 lemma lt_ceil : n < ⌈a⌉₊ ↔ (n : α) < a := lt_iff_lt_of_le_iff_le ceil_le
 
-lemma le_ceil (a : α) : a ≤ ⌈a⌉₊ := ceil_le.1 le_rfl
+lemma floor_le_ceil (a : α) : ⌊a⌋₊ ≤ ⌈a⌉₊ := floor_le_ceil_on $ le_total a 0
 
-lemma ceil_mono : monotone (ceil : α → ℕ) := gc_ceil_coe.monotone_l
+lemma ceil_le_floor_succ (a : α) : ⌈a⌉₊ ≤ ⌊a⌋₊.succ := ceil_le.mpr $ le_of_lt (lt_succ_floor a)
 
-@[simp] lemma ceil_coe (n : ℕ) : ⌈(n : α)⌉₊ = n :=
-eq_of_forall_ge_iff $ λ a, ceil_le.trans nat.cast_le
-
-@[simp] lemma ceil_zero : ⌈(0 : α)⌉₊ = 0 := ceil_coe 0
-
-@[simp] lemma ceil_eq_zero : ⌈a⌉₊ = 0 ↔ a ≤ 0 := le_zero_iff.symm.trans ceil_le
-
-lemma lt_of_ceil_lt (h : ⌈a⌉₊ < n) : a < n := (le_ceil a).trans_lt (nat.cast_lt.2 h)
-
-lemma le_of_ceil_le (h : ⌈a⌉₊ ≤ n) : a ≤ n := (le_ceil a).trans (nat.cast_le.2 h)
-
-lemma floor_le_ceil (a : α) : ⌊a⌋₊ ≤ ⌈a⌉₊ :=
-begin
-  obtain ha | ha := le_total a 0,
-  { rw floor_of_nonpos ha,
-    exact nat.zero_le _ },
-  { exact cast_le.1 ((floor_le ha).trans $ le_ceil _) }
-end
+lemma ceil_le_floor_add_one (a : α) : ⌈a⌉₊ ≤ ⌊a⌋₊ + 1 := ceil_le_floor_succ a
 
 lemma floor_lt_ceil_of_lt_of_pos {a b : α} (h : a < b) (h' : 0 < b) : ⌊a⌋₊ < ⌈b⌉₊ :=
 begin
@@ -205,9 +267,6 @@ lemma ceil_eq_iff (hn : n ≠ 0) : ⌈a⌉₊ = n ↔ ↑(n - 1) < a ∧ a ≤ n
 by rw [← ceil_le, ← not_le, ← ceil_le, not_le,
   tsub_lt_iff_right (nat.add_one_le_iff.2 (pos_iff_ne_zero.2 hn)), nat.lt_add_one_iff,
   le_antisymm_iff, and.comm]
-
-@[simp] lemma preimage_ceil_zero : (nat.ceil : α → ℕ) ⁻¹' {0} = Iic 0 :=
-ext $ λ x, ceil_eq_zero
 
 lemma preimage_ceil_of_ne_zero (hn : n ≠ 0) : (nat.ceil : α → ℕ) ⁻¹' {n} = Ioc ↑(n - 1) n :=
 ext $ λ x, ceil_eq_iff hn
@@ -312,7 +371,11 @@ end
 
 /-- Natural division is the floor of field division. -/
 lemma floor_div_eq_div (m n : ℕ) : ⌊(m : α) / n⌋₊ = m / n :=
-by { convert floor_div_nat (m : α) n, rw m.floor_coe }
+begin
+  rw [floor_div_nat, m.floor_coe],
+  -- Not sure why it's not picking up the nontrivial structure of the field
+  use [0, 1], simp,
+end
 
 end linear_ordered_field
 

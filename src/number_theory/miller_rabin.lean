@@ -309,13 +309,32 @@ def pow_alt_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
   end,
 }
 
+/-- Every positive natural is of the form of one of the rec_on_prime_coprime recursors. -/
+lemma coprime_factorization_or_prime_power (n : ℕ) (h : 0 < n) :
+  (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1) ∨
+  (∃ (p k : ℕ), p.prime ∧ p^k = n) :=
+begin
+  revert h,
+  refine nat.rec_on_prime_coprime _ _ _ n,
+  { simp, },
+  { intros p k hp hn,
+    --TODO(Sean): should be able to finish this with the lean cheatsheet
+    sorry, },
+  {
+    intros n0 n1 hn0 hn1 hn0n1 hn0' hn1' hmul,
+    clear hn0' hn1',
+    --TODO(Sean): should be able to finish this with the lean cheatsheet
+    sorry,
+  }
+end
+
 lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)] (not_prime : ¬ n.prime) :
   ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
 begin
   -- TODO(Bolton): This will be a harder proof. Find some sublemmas that will be needed and
   -- extract them. subgroup.card_subgroup_dvd_card is lagrange's thm
   by_cases h : ∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1,
-  { -- n
+  { -- n is not a prime power - it can be factored into two coprime numbers.
     rcases h with ⟨n0, n1, h_coprime, h_mul, hn0, hn1⟩,
     let i0 := ((finset.range (odd_part (n-1))).filter (λ i, ∃ a_0 : zmod n, a_0^(2^i) = -1)).max' (
       by {
@@ -349,7 +368,7 @@ begin
       sorry,
     },
   },
-  {
+  { --
     sorry,
   },
 end

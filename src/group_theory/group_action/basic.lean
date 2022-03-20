@@ -290,6 +290,8 @@ end add_action
 
 namespace mul_action
 
+section quotient_action
+
 open subgroup
 
 variables (α) [monoid α] [mul_action α β] [group β] (H : subgroup β)
@@ -330,9 +332,7 @@ variables {α}
 @[simp, to_additive] lemma quotient.smul_coe [quotient_action α H] (a : α) (b : β) :
   (a • b : β ⧸ H) = ↑(a • b) := rfl
 
-end mul_action
-
-namespace mul_action
+end quotient_action
 
 variables (α) {β} [group α] [mul_action α β] (x : β)
 

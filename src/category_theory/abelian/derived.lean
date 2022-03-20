@@ -92,7 +92,7 @@ begin
     category.assoc, iso.inv_hom_id, category.comp_id, ← category.assoc],
   convert category.id_comp _ using 2,
   ext,
-  rw [category.id_comp, category.assoc, limits.equalizer_as_kernel, kernel.lift_ι, category.comp_id],
+  rw [category.id_comp, category.assoc, equalizer_as_kernel, kernel.lift_ι, category.comp_id],
 end
 
 lemma left_derived_zero_to_self_app_inv_comp [enough_projectives C] [preserves_finite_colimits F]

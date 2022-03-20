@@ -107,7 +107,7 @@ begin
       have hr : 0 < r :=
       (finset.lt_inf'_iff hU₃' _).mpr (λ y hy, hU₂ y ((set.finite.mem_to_finset hU₁).mp hy)),
       use [seminorm.ball (U'.sup p) (0 : E) r],
-      refine ⟨seminorm.seminorm_basis_zero_mem _ _ hr, λ x hx y hy, _⟩,
+      refine ⟨seminorm_basis_zero_mem _ _ hr, λ x hx y hy, _⟩,
       simp only [set.mem_preimage, set.mem_pi, mem_ball_zero_iff],
       rw seminorm.mem_ball_zero at hx,
       rw ←linear_map.to_seminorm_family_apply,

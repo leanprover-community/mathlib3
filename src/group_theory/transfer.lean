@@ -18,6 +18,16 @@ In this file we construct the transfer homomorphism.
 - `transfer ϕ : G →* A` for `ϕ : H →* A` from `H : subgroup G` to a commutative group `A`.
 -/
 
+class subgroup.coset_action
+  {G : Type*} [group G] (H : subgroup G) (F : Type*) [monoid F] [mul_action F G] : Prop :=
+(inv_mul_mem : ∀ (f : F) {g₁ g₂ : G}, g₁⁻¹ * g₂ ∈ H → (f • g₁)⁻¹ * (f • g₂) ∈ H)
+
+class add_subgroup.coset_action
+  {G : Type*} [add_group G] (H : add_subgroup G) (F : Type*) [add_monoid F] [add_action F G] : Prop :=
+(inv_mul_mem : ∀ (f : F) {g₁ g₂ : G}, -g₁ + g₂ ∈ H → -(f +ᵥ g₁) + (f +ᵥ g₂) ∈ H)
+
+attribute [to_additive add_subgroup.coset_action] subgroup.coset_action
+
 open_locale big_operators
 
 open subgroup
@@ -27,81 +37,74 @@ variables {A : Type*} [comm_group A] (ϕ : H →* A) (R S T : left_transversals 
 
 namespace subgroup
 
-@[to_additive] instance inst1 :
-  fact (∀ (g : G) {g₁ g₂ : G} (h : g₁⁻¹ * g₂ ∈ H), (g * g₁)⁻¹ * (g * g₂) ∈ H) :=
-⟨λ g g₁ g₂ h, by rwa [mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
-
-@[to_additive] instance inst2 :
-  fact (∀ (g : H.normalizerᵐᵒᵖ) {g₁ g₂ : G} (h : g₁⁻¹ * g₂ ∈ H), (g₁ * g.unop)⁻¹ * (g₂ * g.unop) ∈ H) :=
-⟨λ g g₁ g₂ h, by rwa [mul_inv_rev, ←mul_assoc, mem_normalizer_iff'.mp
-  (show ↑g.unop ∈ H.normalizer, from g.unop.2), mul_assoc, mul_inv_cancel_left]⟩
+@[to_additive] instance inst1 : H.coset_action G :=
+⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
 
 @[to_additive] instance inst3 : mul_action Hᵐᵒᵖ G :=
 { smul := λ h, (* h.unop),
   one_smul := mul_one,
   mul_smul := λ h₁ h₂ g, (mul_assoc g h₂.unop h₁.unop).symm }
 
-@[to_additive] instance general_action {F : Type*} [group F] [mul_action F G]
-  [hF : fact (∀ (f : F) {g₁ g₂ : G} (h : g₁⁻¹ * g₂ ∈ H), (f • g₁)⁻¹ * (f • g₂) ∈ H)] :
+@[to_additive] lemma smul_eq_mul_unop (h : Hᵐᵒᵖ) (g : G) : h • g = g * h.unop := rfl
+
+@[to_additive] instance inst2 : H.coset_action H.normalizerᵐᵒᵖ :=
+⟨λ g g' _ _, by rwa [smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, ←mul_assoc, mul_assoc _ g'⁻¹,
+  mem_normalizer_iff'.mp (show ↑g.unop ∈ H.normalizer, from g.unop.2), mul_inv_cancel_left]⟩
+
+@[to_additive] instance mk_coset_action {F : Type*} [group F] [mul_action F G] [H.coset_action F] :
   mul_action F (G ⧸ H) :=
-{ smul := λ f, quotient.map' ((•) f) (λ g g' h, let hF := hF.out in hF f h),
+{ smul := λ f, quotient.map' ((•) f) (λ g g' h, coset_action.inv_mul_mem f h),
   one_smul := λ q, quotient.induction_on' q (λ g, congr_arg quotient.mk' (one_smul F g)),
   mul_smul := λ f f' q, quotient.induction_on' q (λ g, congr_arg quotient.mk' (mul_smul f f' g)) }
 
-@[to_additive] instance action1 : mul_action G (G ⧸ H) := subgroup.general_action
+@[to_additive] instance action1 : mul_action G (G ⧸ H) := subgroup.mk_coset_action
 
-@[to_additive] instance action2 : mul_action H.normalizerᵐᵒᵖ (G ⧸ H) := subgroup.general_action
+@[to_additive] instance action2 : mul_action H.normalizerᵐᵒᵖ (G ⧸ H) := subgroup.mk_coset_action
 
 namespace left_transversals
 
 open_locale pointwise
 
-@[to_additive] instance general_action {F : Type*} [group F] [mul_action F G]
-  [hF : fact (∀ (f : F) {g₁ g₂ : G} (h : g₁⁻¹ * g₂ ∈ H), (f • g₁)⁻¹ * (f • g₂) ∈ H)] :
+@[to_additive] instance {F : Type*} [group F] [mul_action F G] [H.coset_action F] :
   mul_action F (left_transversals (H : set G)) :=
-{ smul := let hF := hF.out in λ f T, ⟨f • T, by
+{ smul := λ f T, ⟨f • T, by
   { refine mem_left_transversals_iff_exists_unique_inv_mul_mem.mpr (λ g, _),
     obtain ⟨t, ht1, ht2⟩ := mem_left_transversals_iff_exists_unique_inv_mul_mem.mp T.2 (f⁻¹ • g),
     refine ⟨⟨f • t, set.smul_mem_smul_set t.2⟩, _, _⟩,
-    { exact (congr_arg (λ g', (f • (t : G))⁻¹ * g' ∈ H) (smul_inv_smul f g)).mp (hF f ht1) },
+    { exact (congr_arg (λ g', (f • (t : G))⁻¹ * g' ∈ H) (smul_inv_smul f g)).mp
+        (coset_action.inv_mul_mem f ht1) },
     { rintros ⟨-, t', ht', rfl⟩ h,
       simp_rw [subtype.ext_iff, subtype.coe_mk, smul_left_cancel_iff],
       refine subtype.ext_iff.mp (ht2 ⟨t', ht'⟩ _),
-      exact (congr_arg (λ g', g'⁻¹ * f⁻¹ • g ∈ H) (inv_smul_smul f t')).mp (hF f⁻¹ h) } }⟩,
+      exact (congr_arg (λ g', g'⁻¹ * f⁻¹ • g ∈ H) (inv_smul_smul f t')).mp
+        (coset_action.inv_mul_mem f⁻¹ h) } }⟩,
   one_smul := λ T, subtype.ext (one_smul F T),
   mul_smul := λ f₁ f₂ T, subtype.ext (mul_smul f₁ f₂ T) }
 
-@[to_additive] lemma general_action_apply'' {F : Type*} [group F] [mul_action F G]
-  [hF : fact (∀ (f : F) {g₁ g₂ : G} (h : g₁⁻¹ * g₂ ∈ H), (f • g₁)⁻¹ * (f • g₂) ∈ H)]
+@[to_additive] lemma smul_to_fun {F : Type*} [group F] [mul_action F G] [H.coset_action F]
   (f : F) (T : left_transversals (H : set G)) (g : G) :
   (f • mem_left_transversals.to_fun T.2 g : G) = mem_left_transversals.to_fun (f • T).2 (f • g) :=
 begin
-  have hF' := hF.out,
   change ↑(⟨_, set.smul_mem_smul_set (subtype.coe_prop _)⟩ : f • T) = _,
   exact subtype.ext_iff.mp (unique_of_exists_unique
     (mem_left_transversals_iff_exists_unique_inv_mul_mem.mp (f • T).2 (f • g))
-      (hF' f (mem_left_transversals.inv_to_fun_mul_mem T.2 g))
+      (coset_action.inv_mul_mem f (mem_left_transversals.inv_to_fun_mul_mem T.2 g))
       (mem_left_transversals.inv_to_fun_mul_mem (f • T).2 (f • g))),
 end
 
-@[to_additive] lemma general_action_apply' {F : Type*} [group F] [mul_action F G]
-  [hF : fact (∀ (f : F) {g₁ g₂ : G} (h : g₁⁻¹ * g₂ ∈ H), (f • g₁)⁻¹ * (f • g₂) ∈ H)]
+@[to_additive] lemma smul_to_equiv {F : Type*} [group F] [mul_action F G] [H.coset_action F]
   (f : F) (T : left_transversals (H : set G)) (q : G ⧸ H) :
-  (mem_left_transversals.to_equiv (f • T).2 (f • q) : G) =
-    f • (mem_left_transversals.to_equiv T.2 q : G) :=
-begin
-  refine quotient.induction_on' q (λ g, _),
-  have key := general_action_apply'' f T g,
-  exact key.symm,
-end
+  f • (mem_left_transversals.to_equiv T.2 q : G) =
+    mem_left_transversals.to_equiv (f • T).2 (f • q) :=
+quotient.induction_on' q (λ g, smul_to_fun f T g)
 
 @[to_additive] lemma general_action_apply {F : Type*} [group F] [mul_action F G]
-  [hF : fact (∀ (f : F) {g₁ g₂ : G} (h : g₁⁻¹ * g₂ ∈ H), (f • g₁)⁻¹ * (f • g₂) ∈ H)]
+  [H.coset_action F]
   (f : F) (T : left_transversals (H : set G)) (q : G ⧸ H) :
   (mem_left_transversals.to_equiv (f • T).2 q : G) =
     f • (mem_left_transversals.to_equiv T.2 (f⁻¹ • q) : G) :=
 begin
-  rw ← general_action_apply',
+  rw smul_to_equiv,
   rw smul_inv_smul,
 end
 

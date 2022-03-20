@@ -67,9 +67,14 @@ instance [hH : H.normal] : mul_action G H.quotient_diff :=
       refine congr_arg quotient.mk _,
       simp only,
       rw [mul_inv_rev],
-      sorry,
+      rw ← mul_smul,
+      refl,
     end),
-  one_smul := λ q, quotient.induction_on q (λ T, congr_arg quotient.mk begin sorry end) }
+  one_smul := λ q, quotient.induction_on q (λ T, congr_arg quotient.mk begin
+    simp only,
+    rw one_inv,
+    apply one_smul,
+   end) }
 
 lemma smul_diff' [H.normal] [is_commutative H] (h : H) :
   diff (monoid_hom.id H) α ((key_map H h) • β) = diff (monoid_hom.id H) α β * h ^ H.index :=

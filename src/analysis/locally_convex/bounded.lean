@@ -76,7 +76,7 @@ variables [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
 
 /-- If a topology `t'` is coarser than `t`, then any set `s` that is bounded with respect to
 `t` is bounded with respect to `t'`. -/
-lemma is_vonN_bounded_of_topological_space_le {t t' : topological_space E} (h : t ≤ t') {s : set E}
+lemma is_vonN_bounded.of_topological_space_le {t t' : topological_space E} (h : t ≤ t') {s : set E}
   (hs : @is_vonN_bounded 𝕜 E _ _ _ t s) : @is_vonN_bounded 𝕜 E _ _ _ t' s :=
 λ V hV, hs $ (le_iff_nhds t t').mp h 0 hV
 

@@ -86,7 +86,7 @@ variables {ι X Y : Type*} [emetric_space X] [emetric_space Y]
 
 /-- Hausdorff dimension of a set in an (e)metric space. -/
 @[irreducible] noncomputable def dimH (s : set X) : ℝ≥0∞ :=
-by letI := borel X; exact ⨆ (d : ℝ≥0) (hd : @hausdorff_measure X _ _ ⟨rfl⟩ d s = ∞), d
+by { borel X, exact ⨆ (d : ℝ≥0) (hd : @hausdorff_measure X _ _ ⟨rfl⟩ d s = ∞), d }
 
 /-!
 ### Basic properties
@@ -98,10 +98,7 @@ variables [measurable_space X] [borel_space X]
 /-- Unfold the definition of `dimH` using `[measurable_space X] [borel_space X]` from the
 environment. -/
 lemma dimH_def (s : set X) : dimH s = ⨆ (d : ℝ≥0) (hd : μH[d] s = ∞), d :=
-begin
-  unfreezingI { obtain rfl : ‹measurable_space X› = borel X := borel_space.measurable_eq },
-  rw dimH
-end
+by { borel X, rw dimH }
 
 lemma hausdorff_measure_of_lt_dimH {s : set X} {d : ℝ≥0} (h : ↑d < dimH s) : μH[d] s = ∞ :=
 begin

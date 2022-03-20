@@ -178,18 +178,32 @@ setup_tactic_parser
 /--
 Turn a topological space into a measurable space with the `borel` `σ`-algebra.
 (Almost) equivalent to `letI := borel α, haveI : borel_space α := ⟨rfl⟩`.
+
+If `α` already has a `measurable_space` instance which is equal (but possibly not definitionally
+equal) to `borel α`, then `borel α` turns this equality into defeq by code (almost) equivalent to
+`have h : ‹measurable_space α› = borel α := borel_space.measurable_eq, subst h, letI := borel α`.
 -/
 meta def borel (t : parse texpr) : tactic unit :=
 do
   α ← to_expr t,
-  n1 ← get_unused_name "_inst",
-  to_expr ``(_root_.borel %%α) >>= pose n1,
-  reset_instance_cache,
-  n2 ← get_unused_name "_inst",
-  t ← to_expr ``(borel_space %%α),
-  v ← to_expr ``(borel_space.mk rfl),
-  note n2 t v,
-  reset_instance_cache
+  i' ← optional (to_expr ``(measurable_space %%α) >>= find_assumption),
+  i'.elim
+    (do n1 ← get_unused_name "_inst",
+        to_expr ``(_root_.borel %%α) >>= pose n1,
+        reset_instance_cache,
+        n2 ← get_unused_name "_inst",
+        t ← to_expr ``(borel_space %%α),
+        v ← to_expr ``(borel_space.mk rfl),
+        note n2 t v,
+        reset_instance_cache)
+    (λ i, do
+      n ← get_unused_name "h",
+      to_expr ``(%%i = _root_.borel %%α) >>= assert n,
+      applyc `borel_space.measurable_eq,
+      unfreezing (to_expr ``(%%i) >>= tactic.subst),
+      n1 ← get_unused_name "_inst",
+      to_expr ``(_root_.borel %%α) >>= pose n1,
+      reset_instance_cache)
 
 end tactic.interactive
 

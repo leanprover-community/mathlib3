@@ -269,17 +269,37 @@ naturality of the square given by `right_derived_zero_to_self_natural`. -/
 lemma right_derived_zero_to_self_natural [enough_injectives C] [preserves_finite_limits F]
   {X : C} {Y : C} (f : X ⟶ Y)
   (P : InjectiveResolution X) (Q : InjectiveResolution Y) :
-  (F.right_derived 0).map f ≫ right_derived_zero_to_self_app F Q =
-  right_derived_zero_to_self_app F P ≫ F.map f :=
+  F.map f ≫ right_derived_zero_to_self_app_inv F Q =
+  right_derived_zero_to_self_app_inv F P ≫ (F.right_derived 0).map f :=
 begin
-  sorry
+  dsimp [right_derived_zero_to_self_app_inv],
+  simp only [category_theory.functor.map_id, category.id_comp, ← category.assoc],
+  rw iso.comp_inv_eq,
+  let f₁ := InjectiveResolution.desc f Q P,
+  rw [functor.right_derived_map_eq F 0 f f₁ (by simp)],
+  simp only [category.assoc],
+  rw [iso.inv_hom_id, category.comp_id, ← category.assoc (F.right_derived_obj_iso 0 P).inv,
+    iso.inv_hom_id, category.id_comp],
+  dsimp only [homology_functor_map],
+  ext,
+  rw [category.assoc, homology.lift_ι],
+  simp only [category.assoc],
+  conv_rhs { rw [homology.map_ι, ← category.assoc, homology.lift_ι, category.assoc] },
+  dsimp only,
+  rw [cokernel.π_desc, ← category.assoc, ← category_theory.functor.map_comp,
+    ← category.assoc, homological_complex.hom.sq_to_right, map_homological_complex_map_f,
+    ← category_theory.functor.map_comp],
+  congr' 2,
+  exact homological_complex.congr_hom (InjectiveResolution.desc_commutes f Q P).symm 0,
 end
+
 
 /-- Given `preserves_finite_limits F`, the natural isomorphism `(F.right_derived 0) ≅ F`. -/
 def right_derived_zero_iso_self [enough_injectives C] [preserves_finite_limits F] :
-  (F.right_derived 0) ≅ F :=
-nat_iso.of_components (λ X, right_derived_zero_to_self_app_iso _ (InjectiveResolution.of X))
+  (F.right_derived 0) ≅ F := iso.symm $
+nat_iso.of_components (λ X, (right_derived_zero_to_self_app_iso _ (InjectiveResolution.of X)).symm)
   (λ X Y f, right_derived_zero_to_self_natural _ _ _ _)
+
 
 end category_theory.abelian.functor
 

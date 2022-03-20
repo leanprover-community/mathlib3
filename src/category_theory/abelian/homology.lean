@@ -222,6 +222,14 @@ begin
     simp }
 end
 
+@[simp, reassoc]
+lemma map_ι (α β h) :
+  map w w' α β h ≫ ι f' g' w' = ι f g w ≫ cokernel.map f f' α.left α.right (by simp [α.w]) :=
+begin
+  sorry
+end
+
+
 lemma map_eq_desc'_lift_left (α β h) : map w w' α β h =
   homology.desc' _ _ _ (homology.lift _ _ _ (kernel.ι _ ≫ β.left ≫ cokernel.π _) (by simp))
   (by { ext, simp only [←h, category.assoc, zero_comp, lift_ι, kernel.lift_ι_assoc],

@@ -176,4 +176,5 @@ variables [comm_ring M] [is_domain M] [is_dedekind_domain M]
 
 
 
+
 end factorisations_same_shape

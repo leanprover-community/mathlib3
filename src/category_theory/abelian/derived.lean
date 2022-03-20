@@ -134,8 +134,7 @@ begin
   ext,
   simp only [homological_complex.hom.sq_to_right, map_homological_complex_map_f,
     homology.π'_map_assoc, homology.π'_desc', kernel.lift_ι_assoc, category.assoc,
-    homology.π'_desc'_assoc],
-  rw [← map_comp, ← map_comp, show (ProjectiveResolution.lift f P Q).f 0 ≫ _ = P.π.f 0 ≫ f,
+    homology.π'_desc'_assoc, ← map_comp, show (ProjectiveResolution.lift f P Q).f 0 ≫ _ = _ ≫ f,
     from homological_complex.congr_hom (ProjectiveResolution.lift_commutes f P Q) 0],
 end
 

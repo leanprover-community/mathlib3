@@ -5,7 +5,6 @@ Authors: Kevin Kappelmann
 -/
 import algebra.continued_fractions.computation.approximations
 import algebra.continued_fractions.convergents_equiv
-import algebra.order.archimedean
 import topology.algebra.order.basic
 
 /-!
@@ -73,7 +72,7 @@ section convergence
 We next show that `(generalized_continued_fraction.of v).convergents v` converges to `v`.
 -/
 
-variable [archimedean K]
+variable [floor_semiring K]
 open nat
 
 theorem of_convergence_epsilon :

@@ -57,13 +57,13 @@ iff.rfl
 /-- Subsets of bounded sets are bounded. -/
 lemma is_vonN_bounded.subset {s₁ s₂ : set E} (h : s₁ ⊆ s₂) (hs₂ : is_vonN_bounded 𝕜 s₂) :
   is_vonN_bounded 𝕜 s₁ :=
-λ V hV, absorbs.mono_right (hs₁ V hV) hs₂
+λ V hV, (hs₂ hV).mono_right h
 
 /-- The union of two bounded sets is bounded. -/
 lemma is_vonN_bounded.union {s₁ s₂ : set E} (hs₁ : is_vonN_bounded 𝕜 s₁)
   (hs₂ : is_vonN_bounded 𝕜 s₂) :
   is_vonN_bounded 𝕜 (s₁ ∪ s₂) :=
-λ V hV, absorbs.union (hs₁ V hV) (hs₂ V hV)
+λ V hV, (hs₁ hV).union (hs₂ hV)
 
 end has_zero
 
@@ -77,7 +77,7 @@ variables [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
 `t` is bounded with respect to `t'`. -/
 lemma is_vonN_bounded_of_topological_space_le {t t' : topological_space E} (h : t ≤ t') {s : set E}
   (hs : @is_vonN_bounded 𝕜 E _ _ _ t s) : @is_vonN_bounded 𝕜 E _ _ _ t' s :=
-λ V hV, hs V $ (le_iff_nhds t t').mp h 0 hV
+λ V hV, hs $ (le_iff_nhds t t').mp h 0 hV
 
 end multiple_topologies
 
@@ -104,7 +104,7 @@ metric bornology.-/
 @[reducible] -- See note [reducible non-instances]
 def vonN_bornology : bornology E :=
 bornology.of_bounded (set_of (is_vonN_bounded 𝕜)) (is_vonN_bounded_empty 𝕜 E)
-  (λ _ hs _, hs.subset) (λ _ hs _, hs.union) is_vonN_bounded_covers
+  (λ _ hs _ ht, hs.subset ht) (λ _ hs _, hs.union) is_vonN_bounded_covers
 
 variables {E}
 

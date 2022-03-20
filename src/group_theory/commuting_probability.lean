@@ -54,7 +54,7 @@ begin
   { exact pow_ne_zero 2 (nat.cast_ne_zero.mpr card_ne_zero) },
 end
 
-variables (G : Type*) [group G] [fintype G]
+variables (G : Type*) [group G] [fintype G] [fintype (conj_classes G)]
 
 lemma card_comm_eq_card_conj_classes_mul_card :
   card {p : G × G // p.1 * p.2 = p.2 * p.1} = card (conj_classes G) * card G :=

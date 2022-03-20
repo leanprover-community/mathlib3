@@ -176,6 +176,8 @@ lemma strong_probable_prime_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : 
 begin
   have two_le_p : 2 ≤ p,
   exact nat.prime.two_le hp,
+  have one_le_p : 1 ≤ p,
+  exact nat.le_of_succ_le two_le_p,
   have one_lt_n : 1 < p ^ α,
   {
   clear a,
@@ -233,15 +235,25 @@ begin
     { apply nat.gcd_mul_of_dvd_coprime,
       { -- p - 1 divides p^α - 1
         clear _inst h2 euler order_gcd hspp zero_lt_n one_lt_n a,
-        induction hα with α hα ih,
+        induction hα with a hle ih,
         { simp, },
         { rw dvd_iff_exists_eq_mul_left at *,
-          rcases ih with ⟨d, hd⟩,
-          use p^α + d,
-          -- TODO(Sean): I don't expect you to solve
-          -- this, but you might try to rewrite things and do rw ← hd, because those are the first
-          -- few steps of what's necessary.
-          sorry, },
+          rcases ih with ⟨c, hc⟩,
+          use p^a + c,
+          rw add_mul,
+          rw ← hc,
+          rw mul_tsub,
+          rw mul_one,
+          zify,
+          rw int.coe_nat_sub (one_le_pow_of_one_le one_le_p a),
+          rw int.coe_nat_sub (le_mul_of_one_le_right' one_le_p),
+          rw int.coe_nat_sub (one_le_pow_of_one_le one_le_p (nat.succ a)),
+          rw pow_succ',
+          abel,
+          exact one_le_pow_of_one_le one_le_p a,
+          exact le_mul_of_one_le_right' one_le_p,
+          exact one_le_pow_of_one_le one_le_p (nat.succ α),
+          },
       },
       { -- p is relatively prime to p^α - 1
         apply nat.coprime.pow_left,
@@ -318,11 +330,8 @@ begin
         },
         have hn' : n - 1 ≠ 0,
         {
-          simp,
-          -- TODO(Sean): Sorry to undo your work here, but I've reformulated things above in a way
-          -- that will make things easier later. the only hypotheses you should need here are
-          -- h_mul hn0 and hn1, and you shouldn't need any lemmas from this file.
-          sorry,
+          rw [ne.def, tsub_eq_zero_iff_le, not_le, ← h_mul],
+          exact one_lt_mul' hn0 hn1,
         },
         apply hn',
         clear hn hn',
@@ -335,6 +344,8 @@ begin
       -- TODO(Sean): Not a theorem proving exercise, but a documentation search exercise:
       -- See if you can find the "Chinese remainder theorem" in the library somewhere. If you can,
       -- post the mathlib name of the lemma here - it's going to be necessary for this step.
+      -- nat.chinese_remainder'_lt_lcm
+      -- nat.chinese_remainder_lt_mul
       sorry,
     },
   },

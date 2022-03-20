@@ -80,9 +80,8 @@ variables [comm_ring S] [ring A] [algebra R A] [algebra R S] [algebra S A]
 variables [is_scalar_tower R S A]
 
 /-- An integral element of an algebra is algebraic.-/
-lemma is_integral.is_algebraic [nontrivial R] {x : A} (h : is_integral R x) :
-  is_algebraic R x :=
-by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
+lemma is_integral.is_algebraic [nontrivial R] {x : A} : is_integral R x → is_algebraic R x :=
+λ ⟨p, hp, hpx⟩, ⟨p, hp.ne_zero, hpx⟩
 
 variables {R}
 

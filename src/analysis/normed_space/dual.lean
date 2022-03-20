@@ -5,6 +5,7 @@ Authors: Heather Macbeth
 -/
 import analysis.normed_space.hahn_banach
 import analysis.normed_space.is_R_or_C
+import analysis.locally_convex.polar
 
 /-!
 # The topological dual of a normed space
@@ -59,6 +60,8 @@ continuous_linear_map.finite_dimensional
    as a bounded linear map. -/
 def inclusion_in_double_dual : E →L[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
 continuous_linear_map.apply 𝕜 𝕜
+
+def top_dual_pairing : (dual 𝕜 E) →ₗ[𝕜] E →ₗ[𝕜] 𝕜 := continuous_linear_map.coe_lm 𝕜
 
 @[simp] lemma dual_def (x : E) (f : dual 𝕜 E) : inclusion_in_double_dual 𝕜 E x f = f x := rfl
 
@@ -122,8 +125,6 @@ def inclusion_in_double_dual_li : E →ₗᵢ[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
 
 end bidual_isometry
 
-end normed_space
-
 section polar_sets
 
 open metric set normed_space
@@ -131,20 +132,16 @@ open metric set normed_space
 /-- Given a subset `s` in a normed space `E` (over a field `𝕜`), the polar
 `polar 𝕜 s` is the subset of `dual 𝕜 E` consisting of those functionals which
 evaluate to something of norm at most one at all points `z ∈ s`. -/
+/-def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) : set (dual 𝕜 E) :=
+{x' : dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1}-/
 def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) : set (dual 𝕜 E) :=
-{x' : dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1}
+_root_.polar (top_dual_pairing 𝕜 E).flip s
+
 
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
-
-@[simp] lemma zero_mem_polar (s : set E) :
-  (0 : dual 𝕜 E) ∈ polar 𝕜 s :=
-λ _ _, by simp only [zero_le_one, continuous_linear_map.zero_apply, norm_zero]
-
-lemma polar_eq_Inter (s : set E) :
-  polar 𝕜 s = ⋂ z ∈ s, {x' : dual 𝕜 E | ∥x' z∥ ≤ 1} :=
-by simp only [polar, set_of_forall]
 
 @[simp] lemma polar_univ : polar 𝕜 (univ : set E) = {(0 : dual 𝕜 E)} :=
 begin
@@ -161,7 +158,8 @@ end
 
 lemma is_closed_polar (s : set E) : is_closed (polar 𝕜 s) :=
 begin
-  simp only [polar_eq_Inter, ← continuous_linear_map.apply_apply _ (_ : dual 𝕜 E)],
+  dunfold normed_space.polar,
+  simp only [polar_eq_Inter, linear_map.flip_apply],
   refine is_closed_bInter (λ z hz, _),
   exact is_closed_Iic.preimage (continuous_linear_map.apply 𝕜 𝕜 z).continuous.norm
 end
@@ -266,3 +264,5 @@ begin
 end
 
 end polar_sets
+
+end normed_space

@@ -6,6 +6,7 @@ Authors: Kalle Kytölä
 import topology.algebra.module.weak_dual
 import analysis.normed_space.dual
 import analysis.normed_space.operator_norm
+import analysis.locally_convex.polar
 
 /-!
 # Weak dual of normed space
@@ -170,7 +171,7 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 is used, i.e., when `polar 𝕜 s` is interpreted as a subset of `weak_dual 𝕜 E`. -/
 lemma weak_dual.is_closed_polar (s : set E) : is_closed (weak_dual.polar 𝕜 s) :=
 begin
-  rw [weak_dual.polar, polar_eq_Inter, preimage_Inter₂],
+  rw [weak_dual.polar, normed_space.polar_eq_Inter, preimage_Inter₂],
   apply is_closed_bInter,
   intros z hz,
   rw set.preimage_set_of_eq,

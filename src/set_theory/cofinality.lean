@@ -187,7 +187,7 @@ begin
     { rwa [←typein_le_typein, typein_enum] } },
   { rcases cof_eq (<) with ⟨S, hS, hS'⟩,
     let f : S → ordinal := λ s, typein (<) s.val,
-    refine ⟨S, f, le_antisymm (lsub_le.2 (λ i, typein_lt_self i)) (le_of_forall_lt (λ a ha, _)),
+    refine ⟨S, f, le_antisymm (lsub_le (λ i, typein_lt_self i)) (le_of_forall_lt (λ a ha, _)),
       by rwa type_lt o at hS'⟩,
     rw ←type_lt o at ha,
     rcases hS (enum (<) a ha) with ⟨b, hb, hb'⟩,
@@ -350,7 +350,7 @@ begin
     ⟨embedding.of_surjective _ _⟩,
   { intro a, by_contra h,
     apply not_le_of_lt (typein_lt_type r a),
-    rw [← e', sup_le],
+    rw [← e', sup_le_iff],
     intro i,
     have h : ∀ (x : ι), r (enum r (f x) _) a, { simpa using h },
     simpa only [typein_enum] using le_of_lt ((typein_lt_typein r).2 (h i)) },
@@ -367,9 +367,9 @@ theorem cof_bsup_le_lift {o : ordinal} : ∀ (f : Π a < o, ordinal), (∀ i h, 
 induction_on o $ λ α r _ f H,
 begin
   resetI,
-  rw bsup_eq_sup' r rfl,
+  rw ←sup_eq_bsup' r rfl,
   refine cof_sup_le_lift _ _,
-  rw ← bsup_eq_sup',
+  rw sup_eq_bsup',
   exact λ a, H _ _
 end
 
@@ -401,7 +401,7 @@ theorem sup_lt_ord {ι} (f : ι → ordinal) {c : ordinal} (H1 : #ι < c.cof)
   (H2 : ∀ i, f i < c) : sup.{u u} f < c :=
 begin
   apply lt_of_le_of_ne,
-  { rw [sup_le], exact λ i, le_of_lt (H2 i) },
+  { rw sup_le_iff, exact λ i, (H2 i).le },
   rintro h, apply not_le_of_lt H1,
   simpa [sup_ord, H2, h] using cof_sup_le.{u} f
 end

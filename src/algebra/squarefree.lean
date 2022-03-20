@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 import ring_theory.unique_factorization_domain
 import ring_theory.int.basic
 import number_theory.divisors
+import algebra.is_prime_pow
 
 /-!
 # Squarefree elements of monoids

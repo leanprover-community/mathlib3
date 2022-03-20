@@ -176,10 +176,51 @@ by simpa using (dvd_prime_two_le h a1).1 (dvd_mul_right _ _)
 lemma not_prime_mul' {a b n : ℕ} (h : a * b = n) (h₁ : 1 < a) (h₂ : 1 < b) : ¬ prime n :=
 by { rw ← h, exact not_prime_mul h₁ h₂ }
 
+lemma irreducible_mul_unit
+  {α : Type*} [monoid α]
+  {a b : α} (h : is_unit a) :
+  irreducible (a * b) ↔ irreducible b :=
+begin
+  cases h,
+  subst a,
+  rw [irreducible_iff, irreducible_iff],
+  simp only [units.is_unit_units_mul, and.congr_right_iff],
+  intro hu,
+  split, rintros h A B rfl,
+  rw ←mul_assoc at h,
+  specialize h _ _ rfl,
+  apply or.imp_left (λ H, _) h,
+  rwa units.is_unit_units_mul at H,
+
+  rintros h A B HAB,
+  have : b = ↑h_w⁻¹ * A * B,
+  { rw [mul_assoc, ←HAB, ←mul_assoc, units.inv_mul, one_mul] },
+  specialize h _ _ this,
+  apply or.imp_left (λ H, _) h,
+  rwa units.is_unit_units_mul at H,
+end
+
+lemma irreducible_mul_iff
+  {α : Type*} [comm_monoid α]
+  {a b : α} :
+  irreducible (a * b) ↔ (irreducible a ∧ is_unit b) ∨ (irreducible b ∧ is_unit a) :=
+by {
+  split,
+  intro h,
+  have := h.is_unit_or_is_unit rfl,
+  refine or.imp (λ h', ⟨_, h'⟩) (λ h', ⟨_, h'⟩) this.symm,
+  { rwa [mul_comm, irreducible_mul_unit h'] at h, },
+  { rwa [irreducible_mul_unit h'] at h, },
+  rintros (⟨ha, hb⟩|⟨hb, ha⟩),
+  { rwa [mul_comm, irreducible_mul_unit hb], },
+  { rwa [irreducible_mul_unit ha], }
+}
+
 lemma prime_mul_iff {a b : ℕ} :
   nat.prime (a * b) ↔ (a.prime ∧ b = 1) ∨ (b.prime ∧ a = 1) :=
-by cases a; cases b; try { cases a; cases b };
-  simp [not_prime_zero, not_prime_one, not_prime_mul]
+by {
+  simp only [iff_self, nat.irreducible_mul_iff, ←irreducible_iff_nat_prime, nat.is_unit_iff],
+}
 
 lemma prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : a ≠ 1) : a ∣ p ↔ p = a :=
 begin

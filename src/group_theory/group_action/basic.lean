@@ -290,40 +290,51 @@ end add_action
 
 namespace mul_action
 
-variables [group α] [mul_action α β]
+open subgroup
 
-open quotient_group
+variables (α) [monoid α] [mul_action α β] [group β] (H : subgroup β)
 
-@[to_additive] instance quotient (H : subgroup α) : mul_action α (α ⧸ H) :=
-{ smul := λ g, quotient.map' ((*) g)
-    (λ a b, (congr_arg (∈ H) (by rw [mul_inv_rev, mul_assoc, inv_mul_cancel_left])).mp),
-  one_smul := λ a, quotient.induction_on' a (λ a, congr_arg quotient.mk' (one_mul a)),
-  mul_smul := λ x y a, quotient.induction_on' a (λ a, congr_arg quotient.mk' (mul_assoc x y a)) }
+class quotient_action : Prop :=
+(inv_mul_mem : ∀ (a : α) {b c : β}, b⁻¹ * c ∈ H → (a • b)⁻¹ * (a • c) ∈ H)
 
-@[simp, to_additive] lemma quotient.smul_mk (H : subgroup α) (a x : α) :
-  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (a * x) := rfl
+class _root_.add_action.quotient_action (α : Type*) {β : Type*} [add_monoid α] [add_action α β]
+  [add_group β] (H : add_subgroup β) : Prop :=
+(inv_mul_mem : ∀ (a : α) {b c : β}, -b + c ∈ H → -(a +ᵥ b) + (a +ᵥ c) ∈ H)
 
-@[simp, to_additive] lemma quotient.smul_coe (H : subgroup α) (a x : α) :
-  (a • x : α ⧸ H) = ↑(a * x) := rfl
+attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 
-@[to_additive] instance mul_left_cosets_comp_subtype_val (H I : subgroup α) :
-  mul_action I (α ⧸ H) :=
-mul_action.comp_hom (α ⧸ H) (subgroup.subtype I)
+@[to_additive] instance left_quotient_action : quotient_action β H :=
+⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
 
-@[to_additive] instance quotient' (H : subgroup α) : mul_action H.normalizerᵐᵒᵖ (α ⧸ H) :=
-{ smul := λ g, quotient.map' (* g.unop) (λ a b, (congr_arg (∈ H) (by rw [subtype.val_eq_coe,
-    subgroup.coe_inv, inv_inv, ←mul_assoc, ←mul_inv_rev, mul_assoc])).mp ∘ (g.unop⁻¹.2 _).mp),
-  one_smul := λ a, quotient.induction_on' a (λ a, congr_arg quotient.mk' (mul_one a)),
-  mul_smul := λ x y a, quotient.induction_on' a
-    (λ a, congr_arg quotient.mk' (mul_assoc a y.unop x.unop).symm) }
+@[to_additive] instance right_action : mul_action Hᵐᵒᵖ β :=
+{ smul := λ h, (* h.unop),
+  one_smul := mul_one,
+  mul_smul := λ h₁ h₂ g, (mul_assoc g h₂.unop h₁.unop).symm }
 
-@[simp, to_additive] lemma quotient'.smul_mk (H : subgroup α) (a : H.normalizerᵐᵒᵖ) (x : α) :
-  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (x * a.unop) := rfl
+@[to_additive] lemma smul_eq_mul_unop (h : Hᵐᵒᵖ) (b : β) : h • b = b * h.unop := rfl
 
-@[simp, to_additive] lemma quotient'.smul_coe (H : subgroup α) (a : H.normalizerᵐᵒᵖ) (x : α) :
-  (a • x : α ⧸ H) = ↑(x * a.unop) := rfl
+@[to_additive] instance right_quotient_action : quotient_action H.normalizerᵐᵒᵖ H :=
+⟨λ b c _ _, by rwa [smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, ←mul_assoc, mul_assoc _ c⁻¹,
+  mem_normalizer_iff'.mp (show ↑b.unop ∈ H.normalizer, from b.unop.2), mul_inv_cancel_left]⟩
 
-variables (α) {β} (x : β)
+@[to_additive] instance quotient [quotient_action α H] : mul_action α (β ⧸ H) :=
+{ smul := λ a, quotient.map' ((•) a) (λ b c h, quotient_action.inv_mul_mem a h),
+  one_smul := λ q, quotient.induction_on' q (λ b, congr_arg quotient.mk' (one_smul α b)),
+  mul_smul := λ a a' q, quotient.induction_on' q (λ b, congr_arg quotient.mk' (mul_smul a a' b)) }
+
+variables {α}
+
+@[simp, to_additive] lemma quotient.smul_mk [quotient_action α H] (a : α) (b : β) :
+  (a • quotient_group.mk b : β ⧸ H) = quotient_group.mk (a • b) := rfl
+
+@[simp, to_additive] lemma quotient.smul_coe [quotient_action α H] (a : α) (b : β) :
+  (a • b : β ⧸ H) = ↑(a • b) := rfl
+
+end mul_action
+
+namespace mul_action
+
+variables (α) {β} [group α] [mul_action α β] (x : β)
 
 /-- The canonical map from the quotient of the stabilizer to the set. -/
 @[to_additive "The canonical map from the quotient of the stabilizer to the set. "]
@@ -484,7 +495,7 @@ by rw [← fintype.card_prod, ← fintype.card_sigma,
 { exists_smul_eq := begin
     rintros ⟨x⟩ ⟨y⟩,
     refine ⟨y * x⁻¹, quotient_group.eq.mpr _⟩,
-    simp only [H.one_mem, mul_left_inv, inv_mul_cancel_right],
+    simp only [smul_eq_mul, H.one_mem, mul_left_inv, inv_mul_cancel_right],
   end }
 
 end mul_action
@@ -555,7 +566,7 @@ begin
   refine le_antisymm (λ g hg, equiv.perm.ext (λ q, quotient_group.induction_on q
     (λ g', (mul_action.quotient.smul_mk H g g').trans (quotient_group.eq.mpr _))))
     (subgroup.normal_le_normal_core.mpr (λ g hg, _)),
-  { rw [mul_inv_rev, ←inv_inv g', inv_inv],
+  { rw [smul_eq_mul, mul_inv_rev, ←inv_inv g', inv_inv],
     exact H.normal_core.inv_mem hg g'⁻¹ },
   { rw [←H.inv_mem_iff, ←mul_one g⁻¹, ←quotient_group.eq, ←mul_one g],
     exact (mul_action.quotient.smul_mk H g 1).symm.trans (equiv.perm.ext_iff.mp hg (1 : G)) },

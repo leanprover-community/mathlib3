@@ -103,24 +103,13 @@ quotient.induction_on' q (λ g, smul_to_fun f T g)
     f • (mem_left_transversals.to_equiv T.2 (f⁻¹ • q) : G) :=
 by rw [smul_to_equiv, smul_inv_smul]
 
-@[to_additive] lemma smul_apply_eq_mul_apply_inv_smul (g : G) (q : G ⧸ H) :
-  ↑(mem_left_transversals.to_equiv (g • T).2 q) =
-    g * mem_left_transversals.to_equiv T.2 (g⁻¹ • q) :=
-smul_apply_eq_smul_apply_inv_smul g T q
-
-@[to_additive] lemma smul_apply_eq_apply_inv_smul_mul (g : H.normalizerᵐᵒᵖ) (q : G ⧸ H) :
-  (mem_left_transversals.to_equiv (g • T).2 q : G) =
-    mem_left_transversals.to_equiv T.2 (g⁻¹ • q) * g.unop :=
-smul_apply_eq_smul_apply_inv_smul g T q
-
 variables [fintype (G ⧸ H)]
 
 /-- The difference of two left transversals -/
 @[to_additive "The difference of two left transversals"]
 noncomputable def diff : A :=
-let α' := mem_left_transversals.to_equiv S.2, β' := mem_left_transversals.to_equiv T.2 in
-∏ q, ϕ ⟨(α' q)⁻¹ * (β' q),
-  quotient.exact' ((α'.symm_apply_apply q).trans (β'.symm_apply_apply q).symm)⟩
+let α := mem_left_transversals.to_equiv S.2, β := mem_left_transversals.to_equiv T.2 in
+∏ q, ϕ ⟨(α q)⁻¹ * β q, quotient.exact' ((α.symm_apply_apply q).trans (β.symm_apply_apply q).symm)⟩
 
 @[to_additive] lemma diff_mul_diff : diff ϕ R S * diff ϕ S T = diff ϕ R T :=
 finset.prod_mul_distrib.symm.trans (finset.prod_congr rfl (λ q hq, (ϕ.map_mul _ _).symm.trans
@@ -134,7 +123,7 @@ inv_eq_of_mul_eq_one ((diff_mul_diff ϕ S T S).trans (diff_self ϕ S))
 
 @[to_additive] lemma smul_diff_smul (g : G) : diff ϕ (g • S) (g • T) = diff ϕ S T :=
 finset.prod_bij' (λ q _, g⁻¹ • q) (λ _ _, finset.mem_univ _) (λ _ _, congr_arg ϕ $ subtype.ext $ by
-  simp_rw [coe_mk, smul_apply_eq_mul_apply_inv_smul, mul_inv_rev, mul_assoc, inv_mul_cancel_left])
+  simp_rw [coe_mk, smul_apply_eq_smul_apply_inv_smul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left])
   (λ q _, g • q) (λ _ _, finset.mem_univ _) (λ q _, smul_inv_smul g q) (λ q _, inv_smul_smul g q)
 
 lemma mem_normalizer_iff'' {G : Type*} [group G] {H : subgroup G} {g : G} :
@@ -162,8 +151,8 @@ begin
     (λ q _, subtype.ext _) (λ q _, g • q) (λ _ _, finset.mem_univ _)
     (λ q _, smul_inv_smul _ q) (λ q _, inv_smul_smul _ q)) (ϕ.map_prod _ _).symm,
   rw [monoid_hom.id_apply, monoid_hom.id_apply, monoid_hom.coe_mk, coe_mk, coe_mk, coe_mk,
-      smul_apply_eq_apply_inv_smul_mul, smul_apply_eq_apply_inv_smul_mul,
-      mul_inv_rev, mul_assoc, mul_assoc, mul_assoc],
+      smul_apply_eq_smul_apply_inv_smul, smul_apply_eq_smul_apply_inv_smul, smul_eq_mul_unop,
+      smul_eq_mul_unop, mul_inv_rev, mul_assoc, mul_assoc, mul_assoc],
 end
 
 end left_transversals
@@ -180,7 +169,7 @@ open subgroup.left_transversals
 the transfer homomorphism is `transfer ϕ : H →* A`. -/
 @[to_additive "Given `ϕ : H →+ A` from `H : add_subgroup G` to an additive commutative group `A`,
 the transfer homomorphism is `transfer ϕ : H →+ A`."]
-noncomputable def transfer (ϕ : H →* A) : G →* A :=
+noncomputable def transfer : G →* A :=
 let T : left_transversals (H : set G) := left_transversals.inhabited.default in
 { to_fun := λ g, diff ϕ T (g • T),
   map_one' := by rw [one_smul, diff_self],
@@ -188,5 +177,23 @@ let T : left_transversals (H : set G) := left_transversals.inhabited.default in
 
 @[to_additive] lemma transfer_def (g : G) : transfer ϕ g = diff ϕ T (g • T) :=
 by rw [transfer, ←diff_mul_diff, ←smul_diff_smul, mul_comm, diff_mul_diff]; refl
+
+@[to_additive] lemma _root_.subgroup.pow_index_mem
+  {G : Type*} [group G] (H : subgroup G) [H.normal] [fintype (G ⧸ H)] (g : G) :
+  g ^ H.index ∈ H :=
+begin
+  rw [←quotient_group.eq_one_iff, quotient_group.coe_pow, index_eq_card, pow_card_eq_one],
+end
+
+@[to_additive] noncomputable def transfer_pow (hH : H ≤ center G) : G →* H :=
+{ to_fun := λ g, ⟨g ^ H.index, H.pow_index_mem g⟩,
+  map_one' := subtype.ext (one_pow H.index),
+  map_mul' := sorry }
+
+@[to_additive] lemma transfer_eq_pow (hH : H ≤ center G) [H.is_commutative] (g : G) :
+  ↑(transfer (monoid_hom.id H) g) = g ^ H.index :=
+begin
+  sorry
+end
 
 end monoid_hom

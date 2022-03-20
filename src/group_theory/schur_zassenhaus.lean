@@ -66,7 +66,7 @@ begin
   rw [diff, diff, index_eq_card, ←finset.card_univ, ←finset.prod_const, ←finset.prod_mul_distrib],
   refine finset.prod_congr rfl (λ q _, _),
   rw [subtype.ext_iff, coe_mul, monoid_hom.id_apply, monoid_hom.id_apply, coe_mk, coe_mk,
-      mul_assoc, mul_left_cancel_iff, smul_apply_eq_apply_inv_smul_mul],
+      mul_assoc, mul_left_cancel_iff, smul_apply_eq_smul_apply_inv_smul, smul_eq_mul_unop],
   congr,
   exact inv_smul_eq_iff.mpr (self_eq_mul_right.mpr ((quotient_group.eq_one_iff _).mpr h.2)),
 end

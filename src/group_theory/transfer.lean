@@ -65,8 +65,9 @@ namespace left_transversals
 
 open_locale pointwise
 
-@[to_additive] instance {F : Type*} [group F] [mul_action F G] [H.coset_action F] :
-  mul_action F (left_transversals (H : set G)) :=
+variables {F : Type*} [group F] [mul_action F G] [H.coset_action F]
+
+@[to_additive] instance : mul_action F (left_transversals (H : set G)) :=
 { smul := λ f T, ⟨f • T, by
   { refine mem_left_transversals_iff_exists_unique_inv_mul_mem.mpr (λ g, _),
     obtain ⟨t, ht1, ht2⟩ := mem_left_transversals_iff_exists_unique_inv_mul_mem.mp T.2 (f⁻¹ • g),
@@ -81,8 +82,7 @@ open_locale pointwise
   one_smul := λ T, subtype.ext (one_smul F T),
   mul_smul := λ f₁ f₂ T, subtype.ext (mul_smul f₁ f₂ T) }
 
-@[to_additive] lemma smul_to_fun {F : Type*} [group F] [mul_action F G] [H.coset_action F]
-  (f : F) (T : left_transversals (H : set G)) (g : G) :
+@[to_additive] lemma smul_to_fun (f : F) (T : left_transversals (H : set G)) (g : G) :
   (f • mem_left_transversals.to_fun T.2 g : G) = mem_left_transversals.to_fun (f • T).2 (f • g) :=
 begin
   change ↑(⟨_, set.smul_mem_smul_set (subtype.coe_prop _)⟩ : f • T) = _,
@@ -92,31 +92,26 @@ begin
       (mem_left_transversals.inv_to_fun_mul_mem (f • T).2 (f • g))),
 end
 
-@[to_additive] lemma smul_to_equiv {F : Type*} [group F] [mul_action F G] [H.coset_action F]
-  (f : F) (T : left_transversals (H : set G)) (q : G ⧸ H) :
+@[to_additive] lemma smul_to_equiv (f : F) (T : left_transversals (H : set G)) (q : G ⧸ H) :
   f • (mem_left_transversals.to_equiv T.2 q : G) =
     mem_left_transversals.to_equiv (f • T).2 (f • q) :=
 quotient.induction_on' q (λ g, smul_to_fun f T g)
 
-@[to_additive] lemma general_action_apply {F : Type*} [group F] [mul_action F G]
-  [H.coset_action F]
+@[to_additive] lemma smul_apply_eq_smul_apply_inv_smul
   (f : F) (T : left_transversals (H : set G)) (q : G ⧸ H) :
   (mem_left_transversals.to_equiv (f • T).2 q : G) =
     f • (mem_left_transversals.to_equiv T.2 (f⁻¹ • q) : G) :=
-begin
-  rw smul_to_equiv,
-  rw smul_inv_smul,
-end
+by rw [smul_to_equiv, smul_inv_smul]
 
 @[to_additive] lemma smul_apply_eq_mul_apply_inv_smul (g : G) (q : G ⧸ H) :
   ↑(mem_left_transversals.to_equiv (g • T).2 q) =
     g * mem_left_transversals.to_equiv T.2 (g⁻¹ • q) :=
-general_action_apply g T q
+smul_apply_eq_smul_apply_inv_smul g T q
 
 @[to_additive] lemma smul_apply_eq_apply_inv_smul_mul (g : H.normalizerᵐᵒᵖ) (q : G ⧸ H) :
   (mem_left_transversals.to_equiv (g • T).2 q : G) =
     mem_left_transversals.to_equiv T.2 (g⁻¹ • q) * g.unop :=
-general_action_apply g T q
+smul_apply_eq_smul_apply_inv_smul g T q
 
 variables [fintype (G ⧸ H)]
 
@@ -142,25 +137,33 @@ finset.prod_bij' (λ q _, g⁻¹ • q) (λ _ _, finset.mem_univ _) (λ _ _, con
   simp_rw [coe_mk, smul_apply_eq_mul_apply_inv_smul, mul_inv_rev, mul_assoc, inv_mul_cancel_left])
   (λ q _, g • q) (λ _ _, finset.mem_univ _) (λ q _, smul_inv_smul g q) (λ q _, inv_smul_smul g q)
 
+lemma mem_normalizer_iff'' {G : Type*} [group G] {H : subgroup G} {g : G} :
+  g ∈ H.normalizer ↔ ∀ h : G, h ∈ H ↔ g⁻¹ * h * g ∈ H :=
+begin
+  refine mem_normalizer_iff'.trans ⟨λ h n, _, λ h n, _⟩,
+  { specialize h (g⁻¹ * n),
+    rwa [mul_inv_cancel_left, iff.comm] at h },
+  { specialize h (g * n),
+    rwa [inv_mul_cancel_left, iff.comm] at h },
+end
+
 lemma smul_diff_smul' [is_commutative H] (g : H.normalizerᵐᵒᵖ) :
-  diff (monoid_hom.id H) (g • S) (g • T) = ⟨g.unop⁻¹ * (diff (monoid_hom.id H) S T : H) * g.unop,
-    begin
-      have := (g.unop⁻¹.2 (diff (monoid_hom.id H) S T : H)).mp (diff (monoid_hom.id H) S T : H).2,
-      rwa [subtype.val_eq_coe, coe_inv, inv_inv] at this,
-    end⟩ :=
+  diff (monoid_hom.id H) (g • S) (g • T) =
+    ⟨g.unop⁻¹ * (diff (monoid_hom.id H) S T : H) * g.unop,
+      (mem_normalizer_iff''.mp g.unop.2 _).mp (set_like.coe_mem _)⟩ :=
 begin
   let ϕ : H →* H :=
-  { to_fun := λ h, ⟨g.unop⁻¹ * h * g.unop, by
-    { have := (g.unop⁻¹.2 h).mp h.2,
-      rwa [subtype.val_eq_coe, coe_inv, inv_inv] at this }⟩,
+  { to_fun := λ h, ⟨g.unop⁻¹ * h * g.unop,
+      (mem_normalizer_iff''.mp g.unop.2 _).mp (set_like.coe_mem _)⟩,
     map_one' := by rw [subtype.ext_iff, coe_mk, coe_one, mul_one, inv_mul_self],
     map_mul' := λ h₁ h₂, by rw [subtype.ext_iff, coe_mk, coe_mul, coe_mul, coe_mk, coe_mk,
       mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_inv_cancel_left] },
   refine eq.trans (finset.prod_bij' (λ q _, g⁻¹ • q) (λ _ _, finset.mem_univ _)
     (λ q _, subtype.ext _) (λ q _, g • q) (λ _ _, finset.mem_univ _)
     (λ q _, smul_inv_smul _ q) (λ q _, inv_smul_smul _ q)) (ϕ.map_prod _ _).symm,
-  change _ * _ = (g.unop : G)⁻¹ * (_ * _) * (g.unop : G),
-  simp_rw [smul_apply_eq_apply_inv_smul_mul, mul_inv_rev, mul_assoc],
+  rw [monoid_hom.id_apply, monoid_hom.id_apply, monoid_hom.coe_mk, coe_mk, coe_mk, coe_mk,
+      smul_apply_eq_apply_inv_smul_mul, smul_apply_eq_apply_inv_smul_mul,
+      mul_inv_rev, mul_assoc, mul_assoc, mul_assoc],
 end
 
 end left_transversals

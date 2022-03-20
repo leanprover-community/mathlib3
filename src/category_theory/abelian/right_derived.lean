@@ -287,7 +287,7 @@ begin
   conv_rhs { rw [homology.map_ι, ← category.assoc, homology.lift_ι, category.assoc] },
   dsimp only,
   rw [cokernel.π_desc, ← category.assoc, ← category_theory.functor.map_comp,
-    ← category.assoc, homological_complex.hom.sq_to_right, map_homological_complex_map_f,
+    ← category.assoc, homological_complex.hom.sq_from_left, map_homological_complex_map_f,
     ← category_theory.functor.map_comp],
   congr' 2,
   exact homological_complex.congr_hom (InjectiveResolution.desc_commutes f Q P).symm 0,

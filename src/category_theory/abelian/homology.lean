@@ -224,7 +224,7 @@ end
 
 @[simp, reassoc]
 lemma map_ι (α β h) :
-  map w w' α β h ≫ ι f' g' w' = ι f g w ≫ cokernel.map f f' α.left α.right (by simp [α.w]) :=
+  map w w' α β h ≫ ι f' g' w' = ι f g w ≫ cokernel.map f f' α.left β.left (by simp [h, β.w.symm]) :=
 begin
   sorry
 end

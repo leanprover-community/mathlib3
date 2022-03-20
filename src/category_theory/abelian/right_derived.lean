@@ -228,7 +228,7 @@ end ≫ (right_derived_obj_iso F 0 P).inv
 
 lemma right_derived_zero_to_self_app_comp_inv [enough_injectives C] [preserves_finite_limits F]
   {X : C} (P : InjectiveResolution X) : right_derived_zero_to_self_app F P ≫
-  right_derived_zero_to_self_app_inv F P = 𝟙 _ := -- sorry
+  right_derived_zero_to_self_app_inv F P = 𝟙 _ :=
 begin
   dsimp [right_derived_zero_to_self_app, right_derived_zero_to_self_app_inv],
   rw [map_id, category.id_comp, category.assoc],
@@ -279,7 +279,7 @@ def right_derived_zero_to_self_app_iso [enough_injectives C] [preserves_finite_l
 
 /-- Given `P : InjectiveResolution X` and `Q : InjectiveResolution Y` and a morphism `f : X ⟶ Y`,
 naturality of the square given by `right_derived_zero_to_self_natural`. -/
-lemma right_derived_zero_to_self_natural [enough_injectives C] [preserves_finite_limits F]
+lemma right_derived_zero_to_self_natural [enough_injectives C]
   {X : C} {Y : C} (f : X ⟶ Y)
   (P : InjectiveResolution X) (Q : InjectiveResolution Y) :
   F.map f ≫ right_derived_zero_to_self_app_inv F Q =
@@ -313,8 +313,6 @@ def right_derived_zero_iso_self [enough_injectives C] [preserves_finite_limits F
 nat_iso.of_components (λ X, (right_derived_zero_to_self_app_iso _ (InjectiveResolution.of X)).symm)
   (λ X Y f, right_derived_zero_to_self_natural _ _ _ _)
 
-
 end category_theory.abelian.functor
-
 
 end

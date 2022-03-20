@@ -205,7 +205,7 @@ lemma measure_preserving.integrable_on_image [measurable_space β] {e : α → �
 lemma integrable_indicator_iff (hs : measurable_set s) :
   integrable (indicator s f) μ ↔ integrable_on f s μ :=
 by simp [integrable_on, integrable, has_finite_integral, nnnorm_indicator_eq_indicator_nnnorm,
-  ennreal.coe_indicator, lintegral_indicator _ hs, ae_measurable_indicator_iff hs]
+  ennreal.coe_indicator, lintegral_indicator _ hs, ae_strongly_measurable_indicator_iff hs]
 
 lemma integrable_on.indicator (h : integrable_on f s μ) (hs : measurable_set s) :
   integrable (indicator s f) μ :=
@@ -350,6 +350,23 @@ begin
     _root_.continuous_on_iff'.1 hf t ht,
   rw [piecewise_preimage, set.ite, hu],
   exact (u_open.measurable_set.inter hs).union ((measurable_const ht.measurable_set).diff hs)
+end
+
+/-- A function which is continuous on a separable set `s` is almost everywhere strongly measurable
+with respect to `μ.restrict s`. -/
+lemma continuous_on.ae_strongly_measurable_of_is_separable
+  [topological_space α] [opens_measurable_space α]
+  [topological_space β] [metrizable_space β]
+  {f : α → β} {s : set α} {μ : measure α} (hf : continuous_on f s) (hs : measurable_set s)
+  (h's : topological_space.is_separable s) :
+  ae_strongly_measurable f (μ.restrict s) :=
+begin
+  letI : measurable_space β := borel β,
+  haveI : borel_space β := ⟨rfl⟩,
+  rw ae_strongly_measurable_iff_ae_measurable_separable,
+  refine ⟨hf.ae_measurable hs, f '' s, _, _⟩,
+  have Z := is_separable.image,
+  sorry,
 end
 
 lemma continuous_on.integrable_at_nhds_within

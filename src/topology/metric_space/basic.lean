@@ -1513,7 +1513,7 @@ begin
     exact ⟨y, hy.2, metric.mem_ball'.1 hy.1⟩ }
 end
 
-lemma metric.dense_range_iff {f : β → α} :
+lemma dense_range_iff {f : β → α} :
   dense_range f ↔ ∀ x, ∀ r > 0, ∃ y, dist x (f y) < r :=
 begin
   rw [dense_range, metric.dense_iff],
@@ -1583,6 +1583,17 @@ protected lemma _root_.embedding.is_separable_preimage {f : β → α} [topologi
   (hf : embedding f) {s : set α} (hs : is_separable s) :
   is_separable (f ⁻¹' s) :=
 hf.to_inducing.is_separable_preimage hs
+
+/-- If a map is continuous on a separable set `s`, then the image of `s` is also separable. -/
+lemma _root_.continuous_on.is_separable_image [topological_space β] {f : α → β} {s : set α}
+  (hf : continuous_on f s) (hs : is_separable s) :
+  is_separable (f '' s) :=
+begin
+  convert is_separable.image (is_separable_univ_iff.2 hs.separable_space)
+    (continuous_on_iff_continuous_restrict.1 hf) using 1,
+  ext x,
+  simp,
+end
 
 end metric
 

@@ -596,11 +596,9 @@ begin
   { exact (snorm_indicator_le _).trans (hN n (not_lt.1 hn)) },
 end
 
-variables [second_countable_topology β]
-
 /-- Convergence in Lp implies uniform integrability. -/
-lemma unif_integrable_of_tendsto_Lp (hp : 1 ≤ p) (hp' : p ≠ ∞)
-  (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ)
+lemma unif_integrable_of_tendsto_Lp [second_countable_topology β]
+  (hp : 1 ≤ p) (hp' : p ≠ ∞) (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ)
   (hfg : tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0)) :
   unif_integrable f p μ :=
 begin
@@ -614,8 +612,8 @@ end
 /-- Forward direction of Vitali's convergence theorem: if `f` is a sequence of uniformly integrable
 functions that converge in measure to some function `g` in a finite measure space, then `f`
 converge in Lp to `g`. -/
-lemma tendsto_Lp_of_tendsto_in_measure [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞)
-  (hf : ∀ n, ae_measurable (f n) μ)
+lemma tendsto_Lp_of_tendsto_in_measure [second_countable_topology β] [is_finite_measure μ]
+  (hp : 1 ≤ p) (hp' : p ≠ ∞) (hf : ∀ n, ae_measurable (f n) μ)
   (hg : mem_ℒp g p μ) (hui : unif_integrable f p μ)
   (hfg : tendsto_in_measure μ f at_top g) :
   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
@@ -628,8 +626,8 @@ end
 
 /-- **Vitali's convergence theorem**: A sequence of functions `f` converges to `g` in Lp if and
 only if it is uniformly integrable and converges to `g` in measure. -/
-lemma tendsto_in_measure_iff_tendsto_Lp [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞)
-  (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ) :
+lemma tendsto_in_measure_iff_tendsto_Lp [second_countable_topology β] [is_finite_measure μ]
+  (hp : 1 ≤ p) (hp' : p ≠ ∞) (hf : ∀ n, mem_ℒp (f n) p μ) (hg : mem_ℒp g p μ) :
   tendsto_in_measure μ f at_top g ∧ unif_integrable f p μ ↔
   tendsto (λ n, snorm (f n - g) p μ) at_top (𝓝 0) :=
 ⟨λ h, tendsto_Lp_of_tendsto_in_measure μ hp hp' (λ n, (hf n).1) hg h.2 h.1,
@@ -637,6 +635,89 @@ lemma tendsto_in_measure_iff_tendsto_Lp [is_finite_measure μ] (hp : 1 ≤ p) (h
     (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm
     (λ n, (hf n).ae_measurable)
     hg.ae_measurable h, unif_integrable_of_tendsto_Lp μ hp hp' hf hg h⟩⟩
+
+/-- This lemma is superceded by `unif_integrable_of` which do not require `C` to be positive. -/
+lemma unif_integrable_of' (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ι → α → β} (hf : ∀ i, measurable (f i))
+  (h : ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0, 0 < C ∧
+    ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
+  unif_integrable f p μ :=
+begin
+  have hpzero := (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm,
+  by_cases hμ : μ set.univ = 0,
+  { rw measure.measure_univ_eq_zero at hμ,
+    exact hμ.symm ▸ unif_integrable_zero_meas },
+  intros ε hε,
+  obtain ⟨C, hCpos, hC⟩ := h (ε / 2) (half_pos hε),
+  refine ⟨(ε / (2 * C)) ^ ennreal.to_real p, real.rpow_pos_of_pos
+    (div_pos hε (mul_pos two_pos (nnreal.coe_pos.2 hCpos))) _, λ i s hs hμs, _⟩,
+  by_cases hμs' : μ s = 0,
+  { rw (snorm_eq_zero_iff ((hf i).indicator hs).ae_measurable hpzero).2 (indicator_meas_zero hμs'),
+    norm_num },
+  calc snorm (indicator s (f i)) p μ ≤ snorm (indicator (s ∩ {x | C ≤ ∥f i x∥₊}) (f i)) p μ +
+    snorm (indicator (s ∩ {x | ∥f i x∥₊ < C}) (f i)) p μ :
+    begin
+      refine le_trans (eq.le _) (snorm_add_le (measurable.ae_measurable
+        ((hf i).indicator (hs.inter (measurable_set_le measurable_const (hf i).nnnorm))))
+        (measurable.ae_measurable ((hf i).indicator (hs.inter
+        (measurable_set_lt (hf i).nnnorm measurable_const)))) hp),
+      congr,
+      change _ = λ x, (s ∩ {x : α | C ≤ ∥f i x∥₊}).indicator (f i) x +
+        (s ∩ {x : α | ∥f i x∥₊ < C}).indicator (f i) x,
+      rw ← set.indicator_union_of_disjoint,
+      { congr,
+        rw [← inter_union_distrib_left, (by { ext, simp [le_or_lt] } :
+          {x : α | C ≤ ∥f i x∥₊} ∪ {x : α | ∥f i x∥₊ < C} = set.univ), inter_univ] },
+      { refine (disjoint.inf_right' _ _).inf_left' _,
+        rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
+        exact false.elim (hx₂.ne (eq_of_le_of_not_lt hx₁ (not_lt.2 hx₂.le)).symm) }
+    end
+    ... ≤ snorm (indicator ({x | C ≤ ∥f i x∥₊}) (f i)) p μ + C * μ s ^ (1 / ennreal.to_real p) :
+    begin
+      refine add_le_add (snorm_mono $ λ x, norm_indicator_le_of_subset
+        (inter_subset_right _ _) _ _) _,
+      rw ← indicator_indicator,
+      rw snorm_indicator_eq_snorm_restrict,
+      have : ∀ᵐ x ∂(μ.restrict s), ∥({x : α | ∥f i x∥₊ < C}).indicator (f i) x∥ ≤ C,
+      { refine ae_of_all _ _,
+        simp_rw norm_indicator_eq_indicator_norm,
+        exact indicator_le' (λ x (hx : _ < _), hx.le) (λ _ _, nnreal.coe_nonneg _) },
+      refine le_trans (snorm_le_of_ae_bound this) _,
+      rw [mul_comm, measure.restrict_apply' hs, univ_inter,
+        ennreal.of_real_coe_nnreal, one_div],
+      exacts [le_rfl, hs],
+    end
+    ... ≤ ennreal.of_real (ε / 2) + C * ennreal.of_real (ε / (2 * C)) :
+    begin
+      refine add_le_add (hC i) (mul_le_mul_left' _ _),
+      rwa [ennreal.rpow_one_div_le_iff (ennreal.to_real_pos hpzero hp'),
+        ennreal.of_real_rpow_of_pos (div_pos hε (mul_pos two_pos (nnreal.coe_pos.2 hCpos)))]
+    end
+    ... ≤ ennreal.of_real (ε / 2) + ennreal.of_real (ε / 2) :
+    begin
+      refine add_le_add_left _ _,
+      rw [← ennreal.of_real_coe_nnreal, ← ennreal.of_real_mul (nnreal.coe_nonneg _),
+        ← div_div_eq_div_mul, mul_div_cancel' _ (nnreal.coe_pos.2 hCpos).ne.symm],
+      exact le_rfl,
+    end
+    ... ≤ ennreal.of_real ε :
+    begin
+      rw [← ennreal.of_real_add (half_pos hε).le (half_pos hε).le, add_halves],
+      exact le_rfl,
+    end
+end
+
+lemma unif_integrable_of (hp : 1 ≤ p) (hp' : p ≠ ∞) {f : ι → α → β} (hf : ∀ i, measurable (f i))
+  (h : ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
+    ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
+  unif_integrable f p μ :=
+begin
+  refine unif_integrable_of' μ hp hp' hf (λ ε hε, _),
+  obtain ⟨C, hC⟩ := h ε hε,
+  refine ⟨max C 1, lt_max_of_lt_right one_pos, λ i, le_trans (snorm_mono (λ x, _)) (hC i)⟩,
+  rw [norm_indicator_eq_indicator_norm, norm_indicator_eq_indicator_norm],
+  exact indicator_le_indicator_of_subset
+    (λ x hx, le_trans (le_max_left _ _) hx) (λ _, norm_nonneg _) _,
+end
 
 end unif_integrable
 
@@ -709,103 +790,6 @@ lemma uniform_integrable_const {g : α → β} (hp : 1 ≤ p) (hp_ne_top : p ≠
 ⟨λ i, hgm, unif_integrable_const μ hp hp_ne_top hg,
   ⟨(snorm g p μ).to_nnreal, λ i, le_of_eq (ennreal.coe_to_nnreal hg.2.ne).symm⟩⟩
 
-end uniform_integrable
-
-section unif_integrable
-
-variables [measurable_space β] [hβ : second_countable_topology β] [borel_space β]
-  {p : ℝ≥0∞} {f : ι → α → β}
-
-/-- This lemma is superceded by `unif_integrable_of` which do not require `C` to be positive. -/
-lemma unif_integrable_of' (hp : 1 ≤ p) (hp' : p ≠ ∞) (hf : ∀ i, measurable (f i))
-  (h : ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0, 0 < C ∧
-    ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
-  unif_integrable f p μ :=
-begin
-  have hpzero := (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm,
-  by_cases hμ : μ set.univ = 0,
-  { rw measure.measure_univ_eq_zero at hμ,
-    exact hμ.symm ▸ unif_integrable_zero_meas },
-  intros ε hε,
-  obtain ⟨C, hCpos, hC⟩ := h (ε / 2) (half_pos hε),
-  refine ⟨(ε / (2 * C)) ^ ennreal.to_real p, real.rpow_pos_of_pos
-    (div_pos hε (mul_pos two_pos (nnreal.coe_pos.2 hCpos))) _, λ i s hs hμs, _⟩,
-  by_cases hμs' : μ s = 0,
-  { rw (snorm_eq_zero_iff ((hf i).indicator hs).ae_measurable hpzero).2 (indicator_meas_zero hμs'),
-    norm_num },
-  calc snorm (indicator s (f i)) p μ ≤ snorm (indicator (s ∩ {x | C ≤ ∥f i x∥₊}) (f i)) p μ +
-    snorm (indicator (s ∩ {x | ∥f i x∥₊ < C}) (f i)) p μ :
-    begin
-      refine le_trans (eq.le _) (snorm_add_le (measurable.ae_measurable
-        ((hf i).indicator (hs.inter (measurable_set_le measurable_const (hf i).nnnorm))))
-        (measurable.ae_measurable ((hf i).indicator (hs.inter
-        (measurable_set_lt (hf i).nnnorm measurable_const)))) hp),
-      congr,
-      change _ = λ x, (s ∩ {x : α | C ≤ ∥f i x∥₊}).indicator (f i) x +
-        (s ∩ {x : α | ∥f i x∥₊ < C}).indicator (f i) x,
-      rw ← set.indicator_union_of_disjoint,
-      { congr,
-        rw [← inter_union_distrib_left, (by { ext, simp [le_or_lt] } :
-          {x : α | C ≤ ∥f i x∥₊} ∪ {x : α | ∥f i x∥₊ < C} = set.univ), inter_univ] },
-      { refine (disjoint.inf_right' _ _).inf_left' _,
-        rintro x ⟨hx₁ : _ ≤ _, hx₂ : _ < _⟩,
-        exact false.elim (hx₂.ne (eq_of_le_of_not_lt hx₁ (not_lt.2 hx₂.le)).symm) }
-    end
-    ... ≤ snorm (indicator ({x | C ≤ ∥f i x∥₊}) (f i)) p μ + C * μ s ^ (1 / ennreal.to_real p) :
-    begin
-      refine add_le_add (snorm_mono $ λ x, norm_indicator_le_of_subset
-        (inter_subset_right _ _) _ _) _,
-      rw ← indicator_indicator,
-      rw snorm_indicator_eq_snorm_restrict,
-      have : ∀ᵐ x ∂(μ.restrict s), ∥({x : α | ∥f i x∥₊ < C}).indicator (f i) x∥ ≤ C,
-      { refine ae_of_all _ _,
-        simp_rw norm_indicator_eq_indicator_norm,
-        exact indicator_le' (λ x (hx : _ < _), hx.le) (λ _ _, nnreal.coe_nonneg _) },
-      refine le_trans (snorm_le_of_ae_bound this) _,
-      rw [mul_comm, measure.restrict_apply' hs, univ_inter,
-        ennreal.of_real_coe_nnreal, one_div],
-      exacts [le_rfl, hs],
-    end
-    ... ≤ ennreal.of_real (ε / 2) + C * ennreal.of_real (ε / (2 * C)) :
-    begin
-      refine add_le_add (hC i) (mul_le_mul_left' _ _),
-      rwa [ennreal.rpow_one_div_le_iff (ennreal.to_real_pos hpzero hp'),
-        ennreal.of_real_rpow_of_pos (div_pos hε (mul_pos two_pos (nnreal.coe_pos.2 hCpos)))]
-    end
-    ... ≤ ennreal.of_real (ε / 2) + ennreal.of_real (ε / 2) :
-    begin
-      refine add_le_add_left _ _,
-      rw [← ennreal.of_real_coe_nnreal, ← ennreal.of_real_mul (nnreal.coe_nonneg _),
-        ← div_div_eq_div_mul, mul_div_cancel' _ (nnreal.coe_pos.2 hCpos).ne.symm],
-      exact le_rfl,
-    end
-    ... ≤ ennreal.of_real ε :
-    begin
-      rw [← ennreal.of_real_add (half_pos hε).le (half_pos hε).le, add_halves],
-      exact le_rfl,
-    end
-end
-
-lemma unif_integrable_of (hp : 1 ≤ p) (hp' : p ≠ ∞) (hf : ∀ i, measurable (f i))
-  (h : ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
-    ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
-  unif_integrable f p μ :=
-begin
-  refine unif_integrable_of' hp hp' hf (λ ε hε, _),
-  obtain ⟨C, hC⟩ := h ε hε,
-  refine ⟨max C 1, lt_max_of_lt_right one_pos, λ i, le_trans (snorm_mono (λ x, _)) (hC i)⟩,
-  rw [norm_indicator_eq_indicator_norm, norm_indicator_eq_indicator_norm],
-  exact indicator_le_indicator_of_subset
-    (λ x hx, le_trans (le_max_left _ _) hx) (λ _, norm_nonneg _) _,
-end
-
-end unif_integrable
-
-section uniform_integrable
-
-variables [measurable_space β] [hβ : second_countable_topology β] [borel_space β]
-  {p : ℝ≥0∞} {f : ι → α → β}
-
 /-- A sequene of functions `(fₙ)` is uniformly integrable in the probability sense if for all
 `ε > 0`, there exists some `C` such that `∫ x in {|fₙ| ≥ C}, fₙ x ∂μ ≤ ε` for all `n`. -/
 lemma uniform_integrable_of [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞)
@@ -814,7 +798,7 @@ lemma uniform_integrable_of [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ �
     ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε) :
   uniform_integrable f p μ :=
 begin
-  refine ⟨hf, unif_integrable_of hp hp' hf h, _⟩,
+  refine ⟨hf, unif_integrable_of μ hp hp' hf h, _⟩,
   obtain ⟨C, hC⟩ := h 1 one_pos,
   refine ⟨(C * (μ univ ^ (p.to_real⁻¹)) + 1 : ℝ≥0∞).to_nnreal, λ i, _⟩,
   calc snorm (f i) p μ ≤ snorm ({x : α | ∥f i x∥₊ < C}.indicator (f i)) p μ +

@@ -116,22 +116,20 @@ variables [∀ x, topological_space (E x)]
 space) has a topological vector space structure with fiber `F` (denoted with
 `topological_vector_bundle R F E`) if around every point there is a fiber bundle trivialization
 which is linear in the fibers. -/
-class topological_vector_bundle : Prop :=
+-- /-- `trivialization_at R F E b` is some choice of trivialization of a vector bundle whose base set
+-- contains a given point `b`. -/
+class topological_vector_bundle :=
 (total_space_mk_inducing [] : ∀ (b : B), inducing (total_space_mk E b))
-(locally_trivial [] : ∀ b : B, ∃ e : topological_vector_bundle.trivialization R F E, b ∈ e.base_set)
+(atlas []            : set (trivialization R F E))
+(trivialization_at []         : B → trivialization R F E)
+(mem_base_set_trivialization_at [] : ∀ b : B, b ∈ (trivialization_at b).base_set)
+(trivialization_mem_atlas []  : ∀ b : B, trivialization_at b ∈ atlas)
+
+export topological_vector_bundle (trivialization_at mem_base_set_trivialization_at)
 
 variable [topological_vector_bundle R F E]
 
 namespace topological_vector_bundle
-
-/-- `trivialization_at R F E b` is some choice of trivialization of a vector bundle whose base set
-contains a given point `b`. -/
-def trivialization_at : Π b : B, trivialization R F E :=
-λ b, classical.some (locally_trivial R F E b)
-
-@[simp, mfld_simps] lemma mem_base_set_trivialization_at (b : B) :
-  b ∈ (trivialization_at R F E b).base_set :=
-classical.some_spec (locally_trivial R F E b)
 
 @[simp, mfld_simps] lemma mem_source_trivialization_at (z : total_space E) :
   z ∈ (trivialization_at R F E z.1).source :=
@@ -278,7 +276,10 @@ def trivial_topological_vector_bundle.trivialization : trivialization R F (bundl
 
 instance trivial_bundle.topological_vector_bundle :
   topological_vector_bundle R F (bundle.trivial B F) :=
-{ locally_trivial := λ x, ⟨trivial_topological_vector_bundle.trivialization R B F, mem_univ x⟩,
+{ atlas := {trivial_topological_vector_bundle.trivialization R B F},
+  trivialization_at := λ x, trivial_topological_vector_bundle.trivialization R B F,
+  mem_base_set_trivialization_at := mem_univ,
+  trivialization_mem_atlas := λ x, mem_singleton _,
   total_space_mk_inducing := λ b, ⟨begin
     have : (λ (x : trivial B F b), x) = @id F, by { ext x, refl },
     simp only [total_space.topological_space, induced_inf, induced_compose, function.comp, proj,
@@ -471,7 +472,10 @@ instance : topological_vector_bundle R F Z.fiber :=
         exact ha.2.2, },
       { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply],
         exact ⟨Z.mem_base_set_at b, ha⟩, } } end⟩,
-  locally_trivial := λ b, ⟨Z.local_triv_at b, Z.mem_base_set_at b⟩, }
+  atlas := set.range Z.local_triv_at,
+  trivialization_at := Z.local_triv_at,
+  mem_base_set_trivialization_at := Z.mem_base_set_at,
+  trivialization_mem_atlas := mem_range_self }
 
 /-- The projection on the base of a topological vector bundle created from core is continuous -/
 @[continuity] lemma continuous_proj : continuous Z.proj :=
@@ -574,7 +578,10 @@ lemma to_topological_vector_bundle :
   @topological_vector_bundle R _ F E _ _ _ _ _ _ _ a.total_space_topology _ :=
 { total_space_mk_inducing := λ b, a.inducing_total_space_mk_of_inducing_comp b
     (a.total_space_mk_inducing b),
-  locally_trivial := λ b, ⟨a.trivialization_at b, a.mem_base_pretrivialization_at b⟩ }
+  atlas := set.range a.trivialization_at,
+  trivialization_at := a.trivialization_at,
+  mem_base_set_trivialization_at := a.mem_base_pretrivialization_at,
+  trivialization_mem_atlas := mem_range_self }
 
 end topological_vector_prebundle
 
@@ -778,12 +785,13 @@ instance _root_.bundle.prod.topological_vector_bundle :
     rw (prod.inducing_diag E₁ E₂).inducing_iff,
     exact (total_space_mk_inducing R F₁ E₁ b).prod_mk (total_space_mk_inducing R F₂ E₂ b),
   end,
-  locally_trivial := λ b,
-  begin
-    obtain ⟨e₁, he₁⟩ := locally_trivial R F₁ E₁ b,
-    obtain ⟨e₂, he₂⟩ := locally_trivial R F₂ E₂ b,
-    exact ⟨e₁.prod e₂, he₁, he₂⟩
-  end }
+  atlas := (λ (p : trivialization R F₁ E₁ × trivialization R F₂ E₂), p.1.prod p.2) ''
+    (atlas R F₁ E₁ ×ˢ atlas R F₂ E₂),
+  trivialization_at := λ b, (trivialization_at R F₁ E₁ b).prod (trivialization_at R F₂ E₂ b),
+  mem_base_set_trivialization_at :=
+    λ b, ⟨mem_base_set_trivialization_at R F₁ E₁ b, mem_base_set_trivialization_at R F₂ E₂ b⟩,
+  trivialization_mem_atlas := λ b,
+    ⟨(_, _), ⟨trivialization_mem_atlas R F₁ E₁ b, trivialization_mem_atlas R F₂ E₂ b⟩, rfl⟩ }
 
 variables {R F₁ E₁ F₂ E₂}
 

@@ -715,19 +715,6 @@ begin
         exact ⟨⟨hx.1, H.2.2.2.1⟩, is_open.inter hx.2 H.2.1⟩ } } }
 end
 
-lemma t2_separation_finset' [t2_space α] {s : finset α} {x : α} (hx : x ∉ s) :
-  ∃ u : set α, disjoint u s ∧ x ∈ u ∧ is_open u :=
-begin
-  rcases t2_separation_finset (insert x s) with ⟨g, hg, hg'⟩,
-  have hx' := finset.mem_insert_self x _,
-  refine ⟨g x, _, hg' ⟨x, hx'⟩⟩,
-  rintros y ⟨hyx, hy⟩,
-  have hy' := finset.mem_insert_of_mem hy,
-  apply hg hx' hy' _ ⟨hyx, (hg' ⟨y, hy'⟩).1⟩,
-  rintro rfl,
-  exact hx hy
-end
-
 @[priority 100] -- see Note [lower instance priority]
 instance t2_space.t1_space [t2_space α] : t1_space α :=
 ⟨λ x, is_open_compl_iff.1 $ is_open_iff_forall_mem_open.2 $ λ y hxy,

@@ -13,6 +13,42 @@ import analysis.normed_space.pointwise
 
 This file defines strictly convex spaces. A normed space is strictly convex if all closed balls are
 strictly convex. This does **not** mean that the norm is strictly convex (in fact, it never is).
+
+## Main definitions
+
+`strict_convex_space`: a typeclass saying that a given normed space over a normed linear ordered
+field (e.g., `ℝ` or `ℚ`) is strictly convex. The definition requires strict convexity of a closed
+ball of positive radius with center at the origin; strict convexity of any other closed ball follows
+from this assumption.
+
+## Main results
+
+In a strictly convex space, we prove
+
+- `strict_convex_closed_ball`: a closed ball is strictly convex.
+- `combo_mem_ball_of_ne`, `open_segment_subset_ball_of_ne`, `norm_combo_lt_of_ne`:
+  a nontrivial convex combination of two points in a closed ball belong to the corresponding open
+  ball;
+- `norm_add_lt_of_not_same_ray`, `same_ray_iff_norm_add`, `dist_add_dist_eq_iff`:
+  the triangle inequality `dist x y + dist y z ≤ dist x z` is a strict inequality unless `y` belongs
+  to the segment `[x -[ℝ] z]`.
+
+We also provide several lemmas that can be used as alternative constructors for `strict_convex ℝ E`:
+
+- `strict_convex_space.of_strict_convex_closed_unit_ball`: if `closed_ball (0 : E) 1` is strictly
+  convex, then `E` is a strictly convex space;
+
+- `strict_convex_space.of_norm_add`: if `∥x + y∥ = ∥x∥ + ∥y∥` implies `same_ray ℝ x y` for all
+  `x y : E`, then `E` is a strictly convex space.
+
+## Implementation notes
+
+While the definition is formulated for any normed linear ordered field, most of the lemmas are
+formulated only for the case `𝕜 = ℝ`.
+
+## Tags
+
+convex, strictly convex
 -/
 
 open set metric

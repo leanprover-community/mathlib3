@@ -7,19 +7,20 @@ import analysis.locally_convex.basic
 import topology.bornology.basic
 
 /-!
-# Natural Boundedness
+# Von Neumann Boundedness
 
 This file defines natural or von Neumann bounded sets and proves elementary properties.
 
 ## Main declarations
 
-* `is_vonN_bounded`: A set `s` is von Neumann-bounded if every neighborhood of zero absorbs `s`.
-* `vonN_bornology`: The bornology made of the von Neumann-bounded sets.
+* `bornology.is_vonN_bounded`: A set `s` is von Neumann-bounded if every neighborhood of zero
+absorbs `s`.
+* `bornology.vonN_bornology`: The bornology made of the von Neumann-bounded sets.
 
 ## Main results
 
-* `is_vonN_bounded_of_topological_space_le`: A coarser topology admits more Von Neumann-bounded
-  sets.
+* `bornology.is_vonN_bounded_of_topological_space_le`: A coarser topology admits more
+von Neumann-bounded sets.
 
 ## References
 

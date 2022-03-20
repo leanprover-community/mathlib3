@@ -100,7 +100,7 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
   (Hs : ∀ x ∈ s, p x) (H0 : p 0)
   (H1 : ∀ x y, p x → p y → p (x + y))
   (H2 : ∀ (a:R) x, p x → p (a • x)) : p x :=
-(@span_le _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hs h
+(@span_le _ _ _ _ _ _ ⟨p, H1, H0, H2⟩).2 Hs h
 
 /-- A dependent version of `submodule.span_induction`. -/
 lemma span_induction' {p : Π x, x ∈ span R s → Prop}

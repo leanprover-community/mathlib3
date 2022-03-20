@@ -864,18 +864,15 @@ lemma dvd_prime_pow [cancel_comm_monoid_with_zero α] {p q : α} (hp : prime p) 
 begin
   induction n with n ih generalizing q,
   { simp [← is_unit_iff_dvd_one, associated_one_iff_is_unit] },
-  split,
-  { intro h,
-    rw pow_succ at h,
-    rcases hp.left_dvd_or_dvd_right_of_dvd_mul h with (⟨q, rfl⟩ | hno),
-    { rw [mul_dvd_mul_iff_left hp.ne_zero, ih] at h,
-      rcases h with ⟨i, hi, hq⟩,
-      { refine ⟨i + 1, nat.succ_le_succ hi, (hq.mul_left p).trans _⟩,
-        rw pow_succ } },
-    { obtain ⟨i, hi, hq⟩ := ih.mp hno,
-      exact ⟨i, hi.trans n.le_succ, hq⟩ } },
-  { rintro ⟨i, hi, hq⟩,
-    exact hq.dvd.trans (pow_dvd_pow p hi) },
+  refine ⟨λ h, _, λ ⟨i, hi, hq⟩, hq.dvd.trans (pow_dvd_pow p hi)⟩,
+  rw pow_succ at h,
+  rcases hp.left_dvd_or_dvd_right_of_dvd_mul h with (⟨q, rfl⟩ | hno),
+  { rw [mul_dvd_mul_iff_left hp.ne_zero, ih] at h,
+    rcases h with ⟨i, hi, hq⟩,
+    refine ⟨i + 1, nat.succ_le_succ hi, (hq.mul_left p).trans _⟩,
+    rw pow_succ },
+  { obtain ⟨i, hi, hq⟩ := ih.mp hno,
+    exact ⟨i, hi.trans n.le_succ, hq⟩ }
 end
 
 end cancel_comm_monoid_with_zero

@@ -36,6 +36,8 @@ character space, Gelfand transform, functional calculus
 
 -/
 
+namespace weak_dual
+
 /-- The character space of a topological algebra is the subset of elements of the weak dual that
 are also algebra homomorphisms. -/
 def character_space (𝕜 : Type*) (A : Type*) [comm_semiring 𝕜] [topological_space 𝕜]
@@ -64,8 +66,8 @@ lemma to_clm_apply (φ : character_space 𝕜 A) (x : A) : φ x = to_clm φ x :=
   map_mul' := φ.prop.2,
   map_zero' := continuous_linear_map.map_zero _,
   map_add' := continuous_linear_map.map_add _,
-  commutes' := λ r, by {
-    rw [algebra.algebra_map_eq_smul_one, algebra.id.map_eq_id, ring_hom.id_apply],
+  commutes' := λ r, by
+  { rw [algebra.algebra_map_eq_smul_one, algebra.id.map_eq_id, ring_hom.id_apply],
     change ((φ : weak_dual 𝕜 A) : A →L[𝕜] 𝕜) (r • 1) = r,
     rw [continuous_linear_map.map_smul, algebra.id.smul_eq_mul, φ.prop.1, mul_one] } }
 
@@ -92,3 +94,5 @@ lemma apply_mem_spectrum [nontrivial 𝕜] (φ : character_space 𝕜 A) (a : A)
 end ring
 
 end character_space
+
+end weak_dual

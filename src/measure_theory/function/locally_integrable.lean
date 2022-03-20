@@ -110,7 +110,11 @@ variables {K : set X} {a b : X}
 locally finite measure. -/
 lemma continuous_on.integrable_on_compact (hK : is_compact K) (hf : continuous_on f K) :
   integrable_on f K μ :=
-hK.integrable_on_of_nhds_within $ λ x hx, hf.integrable_at_nhds_within hK.measurable_set hx
+begin
+  letI := metrizable_space_metric X,
+  apply hK.integrable_on_of_nhds_within (λ x hx, _),
+  exact hf.integrable_at_nhds_within_of_is_separable hK.measurable_set hK.is_separable hx,
+end
 
 /-- A continuous function `f` is locally integrable with respect to any locally finite measure. -/
 lemma continuous.locally_integrable (hf : continuous f) : locally_integrable f μ :=
@@ -150,14 +154,16 @@ end borel
 
 section monotone
 
-variables [borel_space X]
+variables [borel_space X] [metrizable_space X]
   [conditionally_complete_linear_order X] [conditionally_complete_linear_order E]
-  [order_topology X] [order_topology E]
+  [order_topology X] [order_topology E] [second_countable_topology E]
   [is_locally_finite_measure μ] {s : set X}
 
 lemma monotone_on.integrable_on_compact (hs : is_compact s) (hmono : monotone_on f s) :
   integrable_on f s μ :=
 begin
+  letI : measurable_space E := borel E,
+  haveI : borel_space E := ⟨rfl⟩,
   obtain rfl | h := s.eq_empty_or_nonempty,
   { exact integrable_on_empty },
   have hbelow : bdd_below (f '' s) :=
@@ -166,20 +172,20 @@ begin
     ⟨f (Sup s), λ x ⟨y, hy, hyx⟩, hyx ▸ hmono hy (hs.Sup_mem h) (le_cSup hs.bdd_above hy)⟩,
   have : metric.bounded (f '' s) := metric.bounded_of_bdd_above_of_bdd_below habove hbelow,
   rcases bounded_iff_forall_norm_le.mp this with ⟨C, hC⟩,
-  exact integrable.mono' (continuous_const.locally_integrable hs)
-    (ae_measurable_restrict_of_monotone_on hs.measurable_set hmono)
+  refine integrable.mono' (continuous_const.locally_integrable hs)
+    (ae_measurable_restrict_of_monotone_on hs.measurable_set hmono).ae_strongly_measurable
     ((ae_restrict_iff' hs.measurable_set).mpr $ ae_of_all _ $
       λ y hy, hC (f y) (mem_image_of_mem f hy)),
 end
 
 lemma antitone_on.integrable_on_compact (hs : is_compact s) (hanti : antitone_on f s) :
   integrable_on f s μ :=
-@monotone_on.integrable_on_compact X (order_dual E) _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ hs hanti
+@monotone_on.integrable_on_compact X (order_dual E) _ _ _ _ _ _ _ _ _ _ _ _ _ _ hs hanti
 
 lemma monotone.locally_integrable (hmono : monotone f) : locally_integrable f μ :=
 λ s hs, monotone_on.integrable_on_compact hs (λ x y _ _ hxy, hmono hxy)
 
 lemma antitone.locally_integrable (hanti : antitone f) : locally_integrable f μ :=
-@monotone.locally_integrable X (order_dual E) _ _ _ _ _ _ _ _ _ _ _ _ _ _ hanti
+@monotone.locally_integrable X (order_dual E) _ _ _ _ _ _ _ _ _ _ _ _ _ hanti
 
 end monotone

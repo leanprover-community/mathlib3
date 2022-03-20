@@ -85,17 +85,17 @@ lemma is_integral.is_algebraic [nontrivial R] {x : A} : is_integral R x → is_a
 
 variables {R}
 
-theorem is_algebraic_zero [nontrivial R] : is_algebraic R (0 : A) :=
+lemma is_algebraic_zero [nontrivial R] : is_algebraic R (0 : A) :=
 ⟨_, X_ne_zero, aeval_X 0⟩
 
 /-- An element of `R` is algebraic, when viewed as an element of the `R`-algebra `A`. -/
-theorem is_algebraic_algebra_map [nontrivial R] (x : R) : is_algebraic R (algebra_map R A x) :=
+lemma is_algebraic_algebra_map [nontrivial R] (x : R) : is_algebraic R (algebra_map R A x) :=
 ⟨_, X_sub_C_ne_zero x, by rw [_root_.map_sub, aeval_X, aeval_C, sub_self]⟩
 
-theorem is_algebraic_one [nontrivial R] : is_algebraic R (1 : A) :=
+lemma is_algebraic_one [nontrivial R] : is_algebraic R (1 : A) :=
 by { rw ←_root_.map_one _, exact is_algebraic_algebra_map 1 }
 
-theorem is_algebraic_nat [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
+lemma is_algebraic_nat [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
 by { rw ←map_nat_cast _ n, exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :

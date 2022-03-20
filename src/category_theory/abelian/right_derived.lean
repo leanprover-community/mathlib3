@@ -182,7 +182,8 @@ begin
   have : (complex_shape.up ℕ).rel 0 1 := rfl,
   let f := (homological_complex.X_next_iso ((F.map_homological_complex _).obj P.cocomplex) this),
   refine preadditive.exact_of_iso_of_exact' (F.map (P.ι.f 0)) (F.map (P.cocomplex.d 0 1)) _ _
-    (iso.refl _) (iso.refl _) f.symm (by simp) _ (preserves_exact_of_preserves_finite_colimits_of_mono _ (P.exact₀)),
+    (iso.refl _) (iso.refl _) f.symm (by simp) _
+    (preserves_exact_of_preserves_finite_colimits_of_mono _ (P.exact₀)),
   rw [iso.refl_hom, category.id_comp, iso.symm_hom, homological_complex.d_from_eq _ this],
   congr',
 end
@@ -192,7 +193,7 @@ end
 @[nolint unused_arguments]
 def right_derived_zero_to_self_app [enough_injectives C] [preserves_finite_limits F] {X : C}
   (P : InjectiveResolution X) :
-  (F.right_derived 0).obj X ⟶ F.obj X := -- sorry
+  (F.right_derived 0).obj X ⟶ F.obj X :=
 begin
   haveI ex := (exact_of_map_injective_resolution F P),
   refine (right_derived_obj_iso F 0 P).hom ≫ (homology_iso_kernel_desc _ _ _).hom ≫ _ ≫

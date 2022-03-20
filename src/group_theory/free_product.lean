@@ -136,7 +136,7 @@ lemma induction_on {C : free_product M → Prop}
   (h_mul : ∀ (x y), C x → C y → C (x * y)) :
   C m :=
 begin
-  let S : submonoid (free_product M) := ⟨set_of C, h_one, h_mul⟩,
+  let S : submonoid (free_product M) := submonoid.mk (set_of C) h_mul h_one,
   convert subtype.prop (lift (λ i, of.cod_mrestrict S (h_of i)) m),
   change monoid_hom.id _ m = S.subtype.comp _ m,
   congr,

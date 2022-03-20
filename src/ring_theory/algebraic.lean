@@ -44,17 +44,15 @@ def algebra.is_algebraic : Prop := ∀ x : A, is_algebraic R x
 
 variables {R A}
 
-/-- A subalgebra is algebraic if and only if it is algebraic an algebra. -/
+/-- A subalgebra is algebraic if and only if it is algebraic as an algebra. -/
 lemma subalgebra.is_algebraic_iff (S : subalgebra R A) :
-  S.is_algebraic ↔ @algebra.is_algebraic R S _ _ (S.algebra) :=
+  S.is_algebraic ↔ @algebra.is_algebraic R S _ _ S.algebra :=
 begin
   delta algebra.is_algebraic subalgebra.is_algebraic,
-  rw [subtype.forall'],
-  apply forall_congr, rintro ⟨x, hx⟩,
-  apply exists_congr, intro p,
-  apply and_congr iff.rfl,
-  have h : function.injective (S.val) := subtype.val_injective,
-  conv_rhs { rw [← h.eq_iff, alg_hom.map_zero], },
+  rw subtype.forall',
+  refine forall_congr (λ x, exists_congr (λ p, and_congr iff.rfl _)),
+  have h : function.injective S.val := subtype.val_injective,
+  conv_rhs { rw [← h.eq_iff, alg_hom.map_zero] },
   rw [← aeval_alg_hom_apply, S.val_apply]
 end
 

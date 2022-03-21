@@ -6,6 +6,7 @@ Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 import data.fin.tuple.basic
 import data.equiv.encodable.basic
 import set_theory.cardinal
+import category_theory.concrete_category.bundled
 
 /-!
 # Basics on First-Order Structures
@@ -744,6 +745,25 @@ instance map_constants_inclusion_is_expansion_on :
 Lhom.sum_map_is_expansion_on _ _ _
 
 end with_constants
+end language
+end first_order
+
+variables {L : first_order.language.{u v}}
+
+@[protected] instance category_theory.bundled.Structure
+  {L : first_order.language.{u v}} (M : category_theory.bundled.{w} L.Structure) :
+  L.Structure M :=
+M.str
+
+namespace first_order
+namespace language
+open_locale first_order
+
+/-- The equivalence relation on bundled `L.Structure`s indicating that they are isomorphic. -/
+instance equiv_setoid : setoid (category_theory.bundled L.Structure) :=
+{ r := λ M N, nonempty (M ≃[L] N),
+  iseqv := ⟨λ M, ⟨equiv.refl L M⟩, λ M N, nonempty.map equiv.symm,
+    λ M N P, nonempty.map2 (λ MN NP, NP.comp MN)⟩ }
 
 end language
 end first_order

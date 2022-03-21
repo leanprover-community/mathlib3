@@ -56,7 +56,7 @@ structure complete_lattice_hom (α β : Type*) [complete_lattice α] [complete_l
 /-- `Sup_hom_class F α β` states that `F` is a type of `⨆`-preserving morphisms.
 
 You should extend this class when you extend `Sup_hom`. -/
-@[ext] class Sup_hom_class (F : Type*) (α β : out_param $ Type*) [has_Sup α] [has_Sup β]
+class Sup_hom_class (F : Type*) (α β : out_param $ Type*) [has_Sup α] [has_Sup β]
   extends fun_like F α (λ _, β) :=
 (map_Sup (f : F) (s : set α) : f (Sup s) = Sup (f '' s))
 
@@ -420,6 +420,9 @@ instance : complete_lattice_hom_class (complete_lattice_hom α β) α β :=
 
 /-- Reinterpret a `complete_lattice_hom` as a `Sup_hom`. -/
 def to_Sup_hom (f : complete_lattice_hom α β) : Sup_hom α β := f
+
+/-- Reinterpret a `complete_lattice_hom` as a `bounded_lattice_hom`. -/
+def to_bounded_lattice_hom (f : complete_lattice_hom α β) : bounded_lattice_hom α β := f
 
 /-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
 directly. -/

@@ -339,7 +339,7 @@ theorem adapted.prog_measurable_of_continuous
   [second_countable_topology ι] [opens_measurable_space ι] [metric_space β] [borel_space β]
   (h : adapted f u) (hu_cont : ∀ x, continuous (λ i, u i x)) :
   prog_measurable f u :=
-λ i, @measurable_uncurry_of_continuous_of_measurable _ _ (set.Iic i) _ _ _ _ _ _ _ _ _
+λ i, @measurable_uncurry_of_continuous_of_measurable _ _ (set.Iic i) _ _ _ _ _ _ _ _ _ _
   (λ x, (hu_cont x).comp continuous_induced_dom) (λ j, (h j).mono (f.mono j.prop) le_rfl)
 
 end adapted_process
@@ -846,7 +846,7 @@ end add_comm_monoid
 
 section normed_group
 
-variables [measurable_space β] [normed_group β] [has_measurable_add₂ β] [borel_space β] {p : ℝ≥0∞}
+variables [normed_group β] {p : ℝ≥0∞}
   {μ : measure α}
 
 lemma mem_ℒp_stopped_process (hτ : is_stopping_time f τ) (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :

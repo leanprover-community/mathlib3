@@ -175,7 +175,6 @@ by simp
 instance [ex : exact f g] [mono f] : is_iso (kernel.lift g f ex.w) :=
   is_iso_of_mono_of_epi (limits.kernel.lift g f exact.w)
 
-
 @[simp, reassoc]
 lemma kernel.lift.inv [mono f] (ex : exact f g) :
   inv (kernel.lift _ _ ex.w) ≫ f = kernel.ι g :=

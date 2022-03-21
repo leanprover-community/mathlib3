@@ -5,6 +5,7 @@ Authors: Johan Commelin
 -/
 
 import data.polynomial.hasse_deriv
+import data.polynomial.algebra_map
 
 /-!
 # Taylor expansions of polynomials
@@ -22,9 +23,12 @@ import data.polynomial.hasse_deriv
 noncomputable theory
 
 namespace polynomial
-open_locale polynomial
+open_locale big_operators polynomial
 
-variables {R : Type*} [semiring R] (r : R) (f : R[X])
+variables {R : Type*}
+
+section semiring
+variables [semiring R] {a : R} (r : R) (f : R[X])
 
 /-- The Taylor expansion of a polynomial `f` at `r`. -/
 def taylor (r : R) : R[X] →ₗ[R] R[X] :=
@@ -85,23 +89,80 @@ begin
   simp [taylor_monomial, nat_degree_C_mul_eq_of_mul_ne_zero, nat_degree_pow_X_add_C, c0]
 end
 
-@[simp] lemma taylor_mul {R} [comm_semiring R] (r : R) (p q : R[X]) :
+@[simp] lemma taylor_add {p q : R[X]} :
+  taylor r (p + q) = taylor r p + taylor r q :=
+by simp only [taylor_apply, add_comp]
+
+@[simp] lemma taylor_mul_X {p : R[X]} : taylor r (p * X) = taylor r p * (X + C r) :=
+by simp only [taylor_apply, mul_X_comp]
+
+@[simp] lemma taylor_X_pow {k : ℕ} : taylor r (X^k) = (X + C r)^k :=
+by simp only [taylor_apply, X_pow_comp]
+
+@[simp] lemma taylor_mul_X_pow {p : R[X]} {k : ℕ} : taylor r (p * X^k) = taylor r p * (X + C r)^k :=
+by simp only [taylor_apply, mul_X_pow_comp]
+
+@[simp] lemma taylor_C_mul {p : R[X]} : taylor r (C a * p) = C a * taylor r p :=
+by simp only [taylor_apply, C_mul_comp]
+
+@[simp] lemma taylor_nat_cast_mul {p : R[X]} {n : ℕ} : taylor r ((n : R[X]) * p) = n * taylor r p :=
+by simp only [taylor_apply, nat_cast_mul_comp]
+
+end semiring
+
+section comm_semiring
+variables [comm_semiring R]
+
+@[simp] lemma taylor_mul (r : R) (p q : R[X]) :
   taylor r (p * q) = taylor r p * taylor r q :=
 by simp only [taylor_apply, mul_comp]
 
-lemma taylor_taylor {R} [comm_semiring R] (f : R[X]) (r s : R) :
+@[simp] lemma taylor_pow (r : R) (p : R[X]) (n : ℕ) :
+  taylor r (p^n) = (taylor r p)^n :=
+by simp only [taylor_apply, pow_comp]
+
+lemma taylor_taylor (f : R[X]) (r s : R) :
   taylor r (taylor s f) = taylor (r + s) f :=
 by simp only [taylor_apply, comp_assoc, map_add, add_comp, X_comp, C_comp, C_add, add_assoc]
 
-lemma taylor_eval {R} [comm_semiring R] (r : R) (f : R[X]) (s : R) :
+lemma taylor_eval (r : R) (f : R[X]) (s : R) :
   (taylor r f).eval s = f.eval (s + r) :=
 by simp only [taylor_apply, eval_comp, eval_C, eval_X, eval_add]
 
-lemma taylor_eval_sub {R} [comm_ring R] (r : R) (f : R[X]) (s : R) :
+/-- `taylor r`, regarded as a ring homomorphism from `polynomial R` to itself. -/
+def taylor_ring_hom (r : R) : R[X] →+* R[X] := comp_ring_hom (X + C r)
+
+lemma taylor_list_prod (r : R) (l : list R[X]) :
+  taylor r l.prod = (l.map (λ q : R[X], taylor r q)).prod :=
+(taylor_ring_hom r).map_list_prod l
+
+lemma taylor_multiset_prod (r : R) (s : multiset R[X]) :
+  taylor r s.prod = (s.map (λ q : R[X], taylor r q)).prod :=
+(taylor_ring_hom r).map_multiset_prod s
+
+lemma taylor_prod (r : R) {ι : Type*} (s : finset ι) (q : ι → R[X]) :
+  taylor r (∏ j in s, q j) = ∏ j in s, taylor r (q j) :=
+(taylor_ring_hom r).map_prod _ _
+
+end comm_semiring
+
+section ring
+variables [ring R]
+
+@[simp] lemma taylor_int_cast_mul (r : R) {p : R[X]} {n : ℤ} :
+  taylor r ((n : R[X]) * p) = n * taylor r p :=
+by simp only [taylor_apply, int_cast_mul_comp]
+
+end ring
+
+section comm_ring
+variables [comm_ring R]
+
+lemma taylor_eval_sub (r : R) (f : R[X]) (s : R) :
   (taylor r f).eval (s - r) = f.eval s :=
 by rw [taylor_eval, sub_add_cancel]
 
-lemma taylor_injective {R} [comm_ring R] (r : R) : function.injective (taylor r) :=
+lemma taylor_injective (r : R) : function.injective (taylor r) :=
 begin
   intros f g h,
   apply_fun taylor (-r) at h,
@@ -109,7 +170,7 @@ begin
     neg_add_cancel_right, comp_X] using h,
 end
 
-lemma eq_zero_of_hasse_deriv_eq_zero {R} [comm_ring R] (f : R[X]) (r : R)
+lemma eq_zero_of_hasse_deriv_eq_zero (f : R[X]) (r : R)
   (h : ∀ k, (hasse_deriv k f).eval r = 0) :
   f = 0 :=
 begin
@@ -120,9 +181,11 @@ begin
 end
 
 /-- Taylor's formula. -/
-lemma sum_taylor_eq {R} [comm_ring R] (f : R[X]) (r : R) :
+lemma sum_taylor_eq (f : R[X]) (r : R) :
   (taylor r f).sum (λ i a, C a * (X - C r) ^ i) = f :=
 by rw [←comp_eq_sum_left, sub_eq_add_neg, ←C_neg, ←taylor_apply, taylor_taylor, neg_add_self,
        taylor_zero]
+
+end comm_ring
 
 end polynomial

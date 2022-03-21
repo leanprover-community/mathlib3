@@ -264,7 +264,7 @@ lemma aeval_eq_sum_range [algebra R S] {p : R[X]} (x : S) :
 by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range (algebra_map R S) x }
 
 lemma aeval_eq_sum_range' [algebra R S] {p : R[X]} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
-aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
+  aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
 by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
 
 lemma aeval_sum {ι : Type*} [algebra R S] (s : finset ι) (f : ι → R[X])
@@ -275,6 +275,10 @@ lemma aeval_sum {ι : Type*} [algebra R S] (s : finset ι) (f : ι → R[X])
 lemma aeval_prod {ι : Type*} [algebra R S] (s : finset ι)
   (f : ι → R[X]) (g : S) : aeval g (∏ i in s, f i) = ∏ i in s, aeval g (f i) :=
 (polynomial.aeval g : R[X] →ₐ[_] _).map_prod f s
+
+lemma eval_map_eq_aeval [algebra R S] (x : S) : eval x (p.map (algebra_map R S)) = aeval x p := by
+{ simp only [eval_eq_sum_range' (nat.lt_add_one_iff.mpr (p.nat_degree_map_le _))],
+  simp only [aeval_eq_sum_range, coeff_map], rcongr, rw [algebra.smul_def], }
 
 lemma is_root_of_eval₂_map_eq_zero
   (hf : function.injective f) {r : R} : eval₂ f (f r) p = 0 → p.is_root r :=
@@ -401,7 +405,7 @@ lemma aeval_endomorphism {M : Type*}
   aeval f p v = p.sum (λ n b, b • (f ^ n) v) :=
 begin
   rw [aeval_def, eval₂],
-  exact (linear_map.applyₗ v).map_sum ,
+  exact (linear_map.applyₗ v).map_sum,
 end
 
 end polynomial

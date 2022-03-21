@@ -242,16 +242,13 @@ def eval : R → R[X] → R := eval₂ (ring_hom.id _)
 lemma eval_eq_sum : p.eval x = p.sum (λ e a, a * x ^ e) :=
 rfl
 
-lemma eval_eq_finset_sum (p : R[X]) (x : R) :
-  p.eval x = ∑ i in range (p.nat_degree + 1), p.coeff i * x ^ i :=
-by { rw [eval_eq_sum, sum_over_range], simp }
+lemma eval_eq_sum_range {p : R[X]} (x : R) :
+  p.eval x = ∑ i in finset.range (p.nat_degree + 1), p.coeff i * x ^ i :=
+by rw [eval_eq_sum, sum_over_range]; simp
 
-lemma eval_eq_finset_sum' (P : R[X]) :
-  (λ x, eval x P) = (λ x, ∑ i in range (P.nat_degree + 1), P.coeff i * x ^ i) :=
-begin
-  ext,
-  exact P.eval_eq_finset_sum x
-end
+lemma eval_eq_sum_range' {p : R[X]} {n : ℕ} (hn : p.nat_degree < n) (x : R) :
+  p.eval x = ∑ i in finset.range n, p.coeff i * x ^ i :=
+by rw [eval_eq_sum, p.sum_over_range' _ _ hn]; simp
 
 @[simp] lemma eval₂_at_apply {S : Type*} [semiring S] (f : R →+* S) (r : R) :
   p.eval₂ f (f r) = f (p.eval r) :=
@@ -441,10 +438,6 @@ by rw [←C_eq_nat_cast, C_mul_comp, C_eq_nat_cast]
 
 @[simp] lemma mul_comp {R : Type*} [comm_semiring R] (p q r : R[X]) :
   (p * q).comp r = p.comp r * q.comp r := eval₂_mul _ _
-
-lemma prod_comp {R : Type*} [comm_semiring R] (s : multiset R[X]) (p : R[X]) :
-  s.prod.comp p = (s.map (λ q : R[X], q.comp p)).prod :=
-(s.prod_hom (monoid_hom.mk (λ q : R[X], q.comp p) one_comp (λ q r, mul_comp q r p))).symm
 
 @[simp] lemma pow_comp {R : Type*} [comm_semiring R] (p q : R[X]) (n : ℕ) :
   (p^n).comp q = (p.comp q)^n :=
@@ -773,6 +766,18 @@ lemma eval_prod {ι : Type*} (s : finset ι) (p : ι → R[X]) (x : R) :
   eval x (∏ j in s, p j) = ∏ j in s, eval x (p j) :=
 (eval_ring_hom x).map_prod _ _
 
+lemma list_prod_comp (l : list R[X]) (p : R[X]) :
+  l.prod.comp p = (l.map (λ q : R[X], q.comp p)).prod :=
+(comp_ring_hom p).map_list_prod l
+
+lemma multiset_prod_comp (s : multiset R[X]) (p : R[X]) :
+  s.prod.comp p = (s.map (λ q : R[X], q.comp p)).prod :=
+(comp_ring_hom p).map_multiset_prod s
+
+lemma prod_comp {ι : Type*} (s : finset ι) (q : ι → R[X]) (p : R[X]) :
+  (∏ j in s, q j).comp p = ∏ j in s, (q j).comp p :=
+(comp_ring_hom p).map_prod _ _
+
 lemma is_root_prod {R} [comm_ring R] [is_domain R] {ι : Type*}
   (s : finset ι) (p : ι → R[X]) (x : R) :
   is_root (∏ j in s, p j) x ↔ ∃ i ∈ s, is_root (p i) x :=
@@ -877,6 +882,9 @@ by rw [is_root.def, eval_sub, eval_X, eval_C, sub_eq_zero, eq_comm]
 
 @[simp] lemma cast_int_comp (i : ℤ) : comp (i : R[X]) p = i :=
 by cases i; simp
+
+@[simp] lemma int_cast_mul_comp {n : ℤ} : ((n : R[X]) * p).comp r = n * p.comp r :=
+by rw [←C_eq_int_cast, C_mul_comp, C_eq_int_cast]
 
 end ring
 

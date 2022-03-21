@@ -309,8 +309,7 @@ theorem neg_sqrt_lt_of_sq_lt (h : x^2 < y) : -sqrt y < x := (sq_lt.mp h).1
 theorem lt_sqrt_of_sq_lt (h : x^2 < y) : x < sqrt y := (sq_lt.mp h).2
 
 /- The natural square root is at most the real square root -/
-lemma nat_sqrt_le_real_sqrt
-{a : ℕ} : ↑(nat.sqrt a) ≤ real.sqrt ↑a :=
+lemma nat_sqrt_le_real_sqrt {a : ℕ} : ↑(nat.sqrt a) ≤ real.sqrt ↑a :=
 begin
   rw real.le_sqrt,
   norm_cast,
@@ -319,8 +318,7 @@ begin
 end
 
 /- The real square root is at most the natural square root plus one -/
-lemma real_sqrt_le_nat_sqrt_succ {a : ℕ} : real.sqrt ↑a ≤ nat.sqrt a + 1
-:=
+lemma real_sqrt_le_nat_sqrt_succ {a : ℕ} : real.sqrt ↑a ≤ nat.sqrt a + 1 :=
 begin
   rw real.sqrt_le_iff,
   split,

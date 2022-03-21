@@ -464,9 +464,9 @@ lemma squarefree_iff_prime_sq_not_dvd (n : ℕ) :
 squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
   ⟨2, (irreducible_iff_nat_prime _).2 prime_two⟩
 
-/-- `squarefree` is multiplicative. Note that the → direction does not require `hmn` and generalizes to
-arbitrary commutative monoids.
-See `squarefree.of_mul_left` and `squarefree.of_mul_right` above for auxiliary lemmas. -/
+/-- `squarefree` is multiplicative. Note that the → direction does not require `hmn`
+and generalizes to arbitrary commutative monoids. See `squarefree.of_mul_left` and
+`squarefree.of_mul_right` above for auxiliary lemmas. -/
 lemma squarefree_mul {m n : ℕ} (hmn : m.coprime n) :
   squarefree (m * n) ↔ squarefree m ∧ squarefree n :=
 begin

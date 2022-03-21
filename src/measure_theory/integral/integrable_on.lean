@@ -56,7 +56,7 @@ lemma ae_strongly_measurable.strongly_measurable_at_filter_of_mem
   strongly_measurable_at_filter f l μ :=
 ⟨s, hl, h⟩
 
-protected lemma measure_theory.strongly_measurable.measurable_at_filter
+protected lemma measure_theory.strongly_measurable.strongly_measurable_at_filter
   (h : strongly_measurable f) :
   strongly_measurable_at_filter f l μ :=
 h.ae_strongly_measurable.strongly_measurable_at_filter
@@ -369,31 +369,65 @@ begin
   exact mem_of_superset (self_mem_ae_restrict hs) (subset_preimage_image _ _),
 end
 
-/-- A function which is continuous on a set `s` in a second-countable space is almost everywhere
-strongly measurable with respect to `μ.restrict s`. -/
+/-- A function which is continuous on a set `s` is almost everywhere strongly measurable with
+respect to `μ.restrict s` when either the source space or the target space is second-countable. -/
 lemma continuous_on.ae_strongly_measurable
-  [topological_space α] [metrizable_space α] [second_countable_topology α]
-  [opens_measurable_space α] [topological_space β] [metrizable_space β]
+  [topological_space α] [topological_space β] [h : second_countable_topology_either α β]
+  [opens_measurable_space α] [metrizable_space β]
   {f : α → β} {s : set α} {μ : measure α} (hf : continuous_on f s) (hs : measurable_set s) :
   ae_strongly_measurable f (μ.restrict s) :=
-hf.ae_strongly_measurable_of_is_separable hs (is_separable_of_separable_space s)
-
-lemma continuous_on.integrable_at_nhds_within_of_is_separable
-  [topological_space α] [metrizable_space α]
-  [opens_measurable_space α] {μ : measure α} [is_locally_finite_measure μ]
-  {a : α} {t : set α} {f : α → E} (hft : continuous_on f t) (ht : measurable_set t)
-  (h't : topological_space.is_separable t) (ha : a ∈ t) :
-  integrable_at_filter f (𝓝[t] a) μ :=
 begin
-  haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _,
-  exact (hft a ha).integrable_at_filter
-    ⟨_, self_mem_nhds_within, hft.ae_strongly_measurable_of_is_separable ht h't⟩
-    (μ.finite_at_nhds_within _ _)
+  letI : measurable_space β := borel β,
+  haveI : borel_space β := ⟨rfl⟩,
+  refine ae_strongly_measurable_iff_ae_measurable_separable.2 ⟨hf.ae_measurable hs, f '' s, _,
+    mem_of_superset (self_mem_ae_restrict hs) (subset_preimage_image _ _)⟩,
+  casesI h.out,
+  { let f' : s → β := s.restrict f,
+    have A : continuous f' := continuous_on_iff_continuous_restrict.1 hf,
+    have B : is_separable (univ : set s) := is_separable_of_separable_space _,
+    convert is_separable.image B A using 1,
+    ext x,
+    simp },
+  { exact is_separable_of_separable_space _ }
 end
 
 lemma continuous_on.integrable_at_nhds_within
-  [topological_space α] [metrizable_space α] [second_countable_topology α]
+  [topological_space α] [second_countable_topology_either α E]
   [opens_measurable_space α] {μ : measure α} [is_locally_finite_measure μ]
   {a : α} {t : set α} {f : α → E} (hft : continuous_on f t) (ht : measurable_set t) (ha : a ∈ t) :
   integrable_at_filter f (𝓝[t] a) μ :=
-hft.integrable_at_nhds_within_of_is_separable ht (is_separable_of_separable_space t) ha
+begin
+  haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _,
+  exact (hft a ha).integrable_at_filter ⟨_, self_mem_nhds_within, hft.ae_strongly_measurable ht⟩
+    (μ.finite_at_nhds_within _ _),
+end
+
+/-- If a function is continuous on an open set `s`, then it is strongly measurable at the filter
+`𝓝 x` for all `x ∈ s` if either the source space or the target space is second-countable. -/
+lemma continuous_on.strongly_measurable_at_filter [topological_space α]
+  [opens_measurable_space α] [topological_space β] [metrizable_space β]
+  [second_countable_topology_either α β] {f : α → β} {s : set α} {μ : measure α}
+  (hs : is_open s) (hf : continuous_on f s) :
+  ∀ x ∈ s, strongly_measurable_at_filter f (𝓝 x) μ :=
+λ x hx, ⟨s, is_open.mem_nhds hs hx, hf.ae_strongly_measurable hs.measurable_set⟩
+
+lemma continuous_at.strongly_measurable_at_filter
+  [topological_space α] [opens_measurable_space α] [second_countable_topology_either α E]
+  {f : α → E} {s : set α} {μ : measure α} (hs : is_open s) (hf : ∀ x ∈ s, continuous_at f x) :
+  ∀ x ∈ s, strongly_measurable_at_filter f (𝓝 x) μ :=
+continuous_on.strongly_measurable_at_filter hs $ continuous_at.continuous_on hf
+
+lemma continuous.strongly_measurable_at_filter [topological_space α] [opens_measurable_space α]
+  [topological_space β] [metrizable_space β] [second_countable_topology_either α β]
+  {f : α → β} (hf : continuous f) (μ : measure α) (l : filter α) :
+  strongly_measurable_at_filter f l μ :=
+hf.strongly_measurable.strongly_measurable_at_filter
+
+/-- If a function is continuous on a measurable set `s`, then it is measurable at the filter
+  `𝓝[s] x` for all `x`. -/
+lemma continuous_on.strongly_measurable_at_filter_nhds_within {α β : Type*} [measurable_space α]
+  [topological_space α] [opens_measurable_space α] [topological_space β] [metrizable_space β]
+  [second_countable_topology_either α β] {f : α → β} {s : set α} {μ : measure α}
+  (hf : continuous_on f s) (hs : measurable_set s) (x : α) :
+  strongly_measurable_at_filter f (𝓝[s] x) μ :=
+⟨s, self_mem_nhds_within, hf.ae_strongly_measurable hs⟩

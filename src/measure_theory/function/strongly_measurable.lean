@@ -52,6 +52,23 @@ results for those functions as if the measure was sigma-finite.
 open measure_theory filter topological_space function set measure_theory.measure
 open_locale ennreal topological_space measure_theory nnreal big_operators
 
+/-- The typeclass `second_countable_topology_either α β` registers the fact that at least one of
+the two spaces has second countable topology. This is the right assumption to ensure that continuous
+maps from `α` to `β` are strongly measurable. -/
+class second_countable_topology_either
+  (α β : Type*) [topological_space α] [topological_space β] : Prop :=
+(out : second_countable_topology α ∨ second_countable_topology β)
+
+@[priority 100] instance second_countable_topology_either_of_left
+  (α β : Type*) [topological_space α] [topological_space β] [second_countable_topology α] :
+  second_countable_topology_either α β :=
+{ out := or.inl (by apply_instance) }
+
+@[priority 100] instance second_countable_topology_either_of_right
+  (α β : Type*) [topological_space α] [topological_space β] [second_countable_topology β] :
+  second_countable_topology_either α β :=
+{ out := or.inr (by apply_instance) }
+
 variables {α β γ ι : Type*} [encodable ι]
 namespace measure_theory
 
@@ -387,8 +404,8 @@ begin
   exact mem_range_self _
 end
 
-lemma separable_space_range_union {m : measurable_space α} [topological_space β] [metrizable_space β]
-  (hf : strongly_measurable f) {b : β} :
+lemma separable_space_range_union {m : measurable_space α} [topological_space β]
+  [metrizable_space β] (hf : strongly_measurable f) {b : β} :
   separable_space (range f ∪ {b} : set β) :=
 begin
   letI := metrizable_space_metric β,
@@ -410,17 +427,6 @@ begin
   { inhabit β,
     exact ⟨simple_func.approx_on f hf set.univ default (set.mem_univ _),
       λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simp)⟩, },
-end
-
-/-- A continuous function to a second countable space is strongly measurable. -/
-lemma _root_.continuous.strongly_measurable [topological_space α] [opens_measurable_space α]
-  {β : Type*} [topological_space β] [metrizable_space β] [second_countable_topology β]
-  {f : α → β} (hf : continuous f) :
-  strongly_measurable f :=
-begin
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
-  exact hf.measurable.strongly_measurable,
 end
 
 lemma _root_.strongly_measurable_id [topological_space α] [metrizable_space α]
@@ -459,6 +465,24 @@ begin
   have g_smeas : strongly_measurable g := measurable.strongly_measurable g_meas,
   rw fg,
   exact continuous_subtype_coe.comp_strongly_measurable g_smeas,
+end
+
+/-- A continuous function is strongly measurable when either the source space or the target space
+is second-countable. -/
+lemma _root_.continuous.strongly_measurable [measurable_space α]
+  [topological_space α] [opens_measurable_space α]
+  {β : Type*} [topological_space β] [metrizable_space β] [h : second_countable_topology_either α β]
+  {f : α → β} (hf : continuous f) :
+  strongly_measurable f :=
+begin
+  letI : measurable_space β := borel β,
+  haveI : borel_space β := ⟨rfl⟩,
+  casesI h.out,
+  { rw strongly_measurable_iff_measurable_separable,
+    refine ⟨hf.measurable, _⟩,
+    rw ← image_univ,
+    exact (is_separable_of_separable_space univ).image hf },
+  { exact hf.measurable.strongly_measurable }
 end
 
 /-- If `g` is a topological embedding, then `f` is strongly measurable iff `g ∘ f` is. -/
@@ -599,6 +623,55 @@ protected lemma smul {M : Type*} {m : measurable_space α}
   {f : α → β} {g : α → M} (hf : strongly_measurable f) (hg : strongly_measurable g) :
   strongly_measurable (λ x, f x • g x) :=
 continuous_smul.comp_strongly_measurable (hf.prod_mk hg)
+
+lemma measurable_set_eq_fun {m : measurable_space α} {E} [topological_space E] [metrizable_space E]
+  {f g : α → E} (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  measurable_set {x | f x = g x} :=
+begin
+  letI := metrizable_space_metric E,
+  have : {x | f x = g x} = {x | dist (f x) (g x) = 0}, by { ext x, simp },
+  rw this,
+  exact (continuous_dist.comp_strongly_measurable (hf.prod_mk hg)).measurable
+    (measurable_set_singleton (0 : ℝ)),
+end
+
+lemma measurable_set_lt {m : measurable_space α} [topological_space β]
+  [linear_order β] [order_closed_topology β] [metrizable_space β]
+  {f g : α → β} (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  measurable_set {a | f a < g a} :=
+begin
+  letI := metrizable_space_metric β,
+  let β' : Type* := (range f ∪ range g : set β),
+  haveI : second_countable_topology β',
+  { suffices : separable_space (range f ∪ range g : set β),
+      by exactI uniform_space.second_countable_of_separable _,
+    apply (hf.is_separable_range.union hg.is_separable_range).separable_space },
+  let f' : α → β' := cod_restrict f _ (by simp),
+  let g' : α → β' := cod_restrict g _ (by simp),
+  change measurable_set {a | f' a < g' a},
+  letI : measurable_space β := borel β,
+  haveI : borel_space β := ⟨rfl⟩,
+  exact measurable_set_lt hf.measurable.subtype_mk hg.measurable.subtype_mk,
+end
+
+lemma measurable_set_le {m : measurable_space α} [topological_space β]
+  [linear_order β] [order_closed_topology β] [metrizable_space β]
+  {f g : α → β} (hf : strongly_measurable f)
+  (hg : strongly_measurable g) : measurable_set {a | f a ≤ g a} :=
+begin
+  letI := metrizable_space_metric β,
+  let β' : Type* := (range f ∪ range g : set β),
+  haveI : second_countable_topology β',
+  { suffices : separable_space (range f ∪ range g : set β),
+      by exactI uniform_space.second_countable_of_separable _,
+    apply (hf.is_separable_range.union hg.is_separable_range).separable_space },
+  let f' : α → β' := cod_restrict f _ (by simp),
+  let g' : α → β' := cod_restrict g _ (by simp),
+  change measurable_set {a | f' a ≤ g' a},
+  letI : measurable_space β := borel β,
+  haveI : borel_space β := ⟨rfl⟩,
+  exact measurable_set_le hf.measurable.subtype_mk hg.measurable.subtype_mk,
+end
 
 end strongly_measurable
 
@@ -847,6 +920,10 @@ protected lemma restrict (hfm : ae_strongly_measurable f μ) {s} :
   ae_strongly_measurable f (μ.restrict s) :=
 hfm.mono_measure measure.restrict_le_self
 
+lemma ae_mem_imp_eq_mk {s} (h : ae_strongly_measurable f (μ.restrict s)) :
+  ∀ᵐ x ∂μ, x ∈ s → f x = h.mk f x :=
+ae_imp_of_ae_restrict h.ae_eq_mk
+
 /-- The composition of a continuous function and an ae strongly measurable function is ae strongly
 measurable. -/
 lemma _root_.continuous.comp_ae_strongly_measurable {g : β → γ} {f : α → β}
@@ -854,9 +931,10 @@ lemma _root_.continuous.comp_ae_strongly_measurable {g : β → γ} {f : α → 
   ae_strongly_measurable (λ x, g (f x)) μ :=
 ⟨_, hg.comp_strongly_measurable hf.strongly_measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk g⟩
 
-/-- A continuous function to a second countable space is strongly measurable. -/
+/-- A continuous function from `α` to `β` is strongly measurable when one of the two spaces is
+second countable. -/
 lemma _root_.continuous.ae_strongly_measurable [topological_space α] [opens_measurable_space α]
-  [metrizable_space β] [second_countable_topology β]  (hf : continuous f) :
+  [metrizable_space β] [second_countable_topology_either α β]  (hf : continuous f) :
   ae_strongly_measurable f μ :=
 hf.strongly_measurable.ae_strongly_measurable
 

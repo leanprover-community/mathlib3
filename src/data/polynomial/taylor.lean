@@ -108,6 +108,21 @@ by simp only [taylor_apply, C_mul_comp]
 @[simp] lemma taylor_nat_cast_mul {p : R[X]} {n : ℕ} : taylor r ((n : R[X]) * p) = n * taylor r p :=
 by simp only [taylor_apply, nat_cast_mul_comp]
 
+/-- `taylor r`, regarded as an additive monoid homomorphism from `polynomial R` to itself. -/
+def taylor_add_monoid_hom (r : R) : R[X] →+ R[X] := comp_add_monoid_hom (X + C r)
+
+lemma taylor_list_sum (r : R) (l : list R[X]) :
+  taylor r l.sum = (l.map (λ q : R[X], taylor r q)).sum :=
+eval₂_list_sum _ _ _
+
+lemma taylor_multiset_sum (r : R) (s : multiset R[X]) :
+  taylor r s.sum = (s.map (λ q : R[X], taylor r q)).sum :=
+eval₂_multiset_sum _ _ _
+
+lemma taylor_sum (r : R) {ι : Type*} (s : finset ι) (q : ι → R[X]) :
+  taylor r (∑ j in s, q j) = ∑ j in s, taylor r (q j) :=
+eval₂_finset_sum _ _ _ _
+
 end semiring
 
 section comm_semiring
@@ -134,15 +149,15 @@ def taylor_ring_hom (r : R) : R[X] →+* R[X] := comp_ring_hom (X + C r)
 
 lemma taylor_list_prod (r : R) (l : list R[X]) :
   taylor r l.prod = (l.map (λ q : R[X], taylor r q)).prod :=
-(taylor_ring_hom r).map_list_prod l
+eval₂_list_prod _ _ _
 
 lemma taylor_multiset_prod (r : R) (s : multiset R[X]) :
   taylor r s.prod = (s.map (λ q : R[X], taylor r q)).prod :=
-(taylor_ring_hom r).map_multiset_prod s
+eval₂_multiset_prod _ _ _
 
 lemma taylor_prod (r : R) {ι : Type*} (s : finset ι) (q : ι → R[X]) :
   taylor r (∏ j in s, q j) = ∏ j in s, taylor r (q j) :=
-(taylor_ring_hom r).map_prod _ _
+eval₂_finset_prod _ _ _ _
 
 end comm_semiring
 

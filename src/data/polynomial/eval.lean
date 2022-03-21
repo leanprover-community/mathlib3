@@ -115,13 +115,17 @@ begin
   rw [sum, T.map_sum, sum]
 end
 
+lemma eval₂_list_sum (l : list R[X]) (x : S) :
+  eval₂ f x l.sum = (l.map (eval₂ f x)).sum :=
+map_list_sum (eval₂_add_monoid_hom f x) l
+
+lemma eval₂_multiset_sum (s : multiset R[X]) (x : S) :
+  eval₂ f x s.sum = (s.map (eval₂ f x)).sum :=
+map_multiset_sum (eval₂_add_monoid_hom f x) s
+
 lemma eval₂_finset_sum (s : finset ι) (g : ι → R[X]) (x : S) :
   (∑ i in s, g i).eval₂ f x = ∑ i in s, (g i).eval₂ f x :=
-begin
-  classical,
-  induction s using finset.induction with p hp s hs, simp,
-  rw [sum_insert, eval₂_add, hs, sum_insert]; assumption,
-end
+map_sum (eval₂_add_monoid_hom f x) _ _
 
 lemma eval₂_to_finsupp_eq_lift_nc {f : R →+* S} {x : S} {p : add_monoid_algebra R ℕ} :
   eval₂ f x (⟨p⟩ : R[X]) = lift_nc ↑f (powers_hom S x) p :=
@@ -231,6 +235,10 @@ lemma eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (h : p ∣ q) (h0 : eval₂ f x 
   eval₂ f x q = 0 :=
 zero_dvd_iff.mp (h0 ▸ eval₂_dvd f x h)
 
+lemma eval₂_list_prod (l : list R[X]) (x : S) :
+  eval₂ f x l.prod = (l.map (eval₂ f x)).prod :=
+_root_.map_list_prod (eval₂_ring_hom f x) l
+
 end eval₂
 
 section eval
@@ -333,8 +341,29 @@ lemma eval_sum (p : R[X]) (f : ℕ → R → R[X]) (x : R) :
   (p.sum f).eval x = p.sum (λ n a, (f n a).eval x) :=
 eval₂_sum _ _ _ _
 
+/-- `eval r`, regarded as an additive monoid homomorphism from `polynomial R` to `R`. -/
+def eval_add_monoid_hom : R → R[X] →+ R := eval₂_add_monoid_hom (ring_hom.id _)
+
+/--
+Polynomial evaluation commutes with `list.sum`
+-/
+lemma eval_list_sum (l : list R[X]) (x : R) :
+  eval x l.sum = (l.map (eval x)).sum :=
+eval₂_list_sum _ _ _
+
+/--
+Polynomial evaluation commutes with `multiset.sum`
+-/
+lemma eval_multiset_sum (s : multiset R[X]) (x : R) :
+  eval x s.sum = (s.map (eval x)).sum :=
+eval₂_multiset_sum _ _ _
+
+/--
+Polynomial evaluation commutes with `finset.sum`
+-/
 lemma eval_finset_sum (s : finset ι) (g : ι → R[X]) (x : R) :
-  (∑ i in s, g i).eval x = ∑ i in s, (g i).eval x := eval₂_finset_sum _ _ _ _
+  (∑ i in s, g i).eval x = ∑ i in s, (g i).eval x :=
+eval₂_finset_sum _ _ _ _
 
 /-- `is_root p x` implies `x` is a root of `p`. The evaluation of `p` at `x` is zero -/
 def is_root (p : R[X]) (a : R) : Prop := p.eval a = 0
@@ -435,6 +464,22 @@ end
 
 @[simp] lemma nat_cast_mul_comp {n : ℕ} : ((n : R[X]) * p).comp r = n * p.comp r :=
 by rw [←C_eq_nat_cast, C_mul_comp, C_eq_nat_cast]
+
+/-- `comp p`, regarded as an additive monoid homomorphism from `polynomial R` to itself. -/
+def comp_add_monoid_hom : R[X] → R[X] →+ R[X] :=
+eval₂_add_monoid_hom C
+
+lemma list_sum_comp (l : list R[X]) (p : R[X]) :
+  l.sum.comp p = (l.map (λ q : R[X], q.comp p)).sum :=
+eval₂_list_sum _ _ _
+
+lemma multiset_sum_comp (s : multiset R[X]) (p : R[X]) :
+  s.sum.comp p = (s.map (λ q : R[X], q.comp p)).sum :=
+eval₂_multiset_sum _ _ _
+
+lemma sum_comp {ι : Type*} (s : finset ι) (q : ι → R[X]) (p : R[X]) :
+  (∑ j in s, q j).comp p = ∑ j in s, (q j).comp p :=
+eval₂_finset_sum _ _ _ _
 
 @[simp] lemma mul_comp {R : Type*} [comm_semiring R] (p q r : R[X]) :
   (p * q).comp r = p.comp r * q.comp r := eval₂_mul _ _
@@ -597,8 +642,8 @@ ring_hom.ext $ λ x, map_id
   (map_ring_hom f).comp (map_ring_hom g) = map_ring_hom (f.comp g) :=
 ring_hom.ext $ polynomial.map_map g f
 
-lemma map_list_prod (L : list R[X]) : L.prod.map f = (L.map $ map f).prod :=
-eq.symm $ list.prod_hom _ (map_ring_hom f).to_monoid_hom
+lemma map_list_prod (l : list R[X]) : l.prod.map f = (l.map $ map f).prod :=
+_root_.map_list_prod (map_ring_hom f) l
 
 @[simp] protected lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n :=
 (map_ring_hom f).map_pow _ _
@@ -637,7 +682,7 @@ eval₂_map f (ring_hom.id _) x
 
 protected lemma map_sum {ι : Type*} (g : ι → R[X]) (s : finset ι) :
   (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
-(map_ring_hom f).map_sum _ _
+eval₂_finset_sum _ _ _ _
 
 lemma map_comp (p q : R[X]) : map f (p.comp q) = (map f p).comp (map f q) :=
 polynomial.induction_on p
@@ -706,9 +751,9 @@ section comm_semiring
 
 section eval
 
-variables [comm_semiring R] {p q : R[X]} {x : R}
+variables [comm_semiring R] {p q : R[X]} {x : R} [comm_semiring S] (f : R →+* S)
 
-lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
+lemma eval₂_comp {x : S} :
   eval₂ f x (p.comp q) = eval₂ f (eval₂ f x q) p :=
 by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
 
@@ -733,7 +778,7 @@ end
 def comp_ring_hom : R[X] → R[X] →+* R[X] :=
 eval₂_ring_hom C
 
-lemma eval₂_hom [comm_semiring S] (f : R →+* S) (x : R) :
+lemma eval₂_hom (x : R) :
   p.eval₂ f (f x) = f (p.eval x) :=
 (ring_hom.comp_id f) ▸ (hom_eval₂ p (ring_hom.id R) f x).symm
 
@@ -745,38 +790,46 @@ lemma root_mul_right_of_is_root {p : R[X]} (q : R[X]) :
   is_root p a → is_root (p * q) a :=
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
 
+lemma eval₂_multiset_prod (s : multiset R[X]) (x : S) :
+  eval₂ f x s.prod = (s.map (eval₂ f x)).prod :=
+_root_.map_multiset_prod (eval₂_ring_hom f x) s
+
+lemma eval₂_finset_prod (s : finset ι) (g : ι → R[X]) (x : S) :
+  (∏ i in s, g i).eval₂ f x = ∏ i in s, (g i).eval₂ f x :=
+_root_.map_prod (eval₂_ring_hom f x) _ _
+
 /--
 Polynomial evaluation commutes with `list.prod`
 -/
 lemma eval_list_prod (l : list R[X]) (x : R) :
   eval x l.prod = (l.map (eval x)).prod :=
-(eval_ring_hom x).map_list_prod l
+eval₂_list_prod _ _ _
 
 /--
 Polynomial evaluation commutes with `multiset.prod`
 -/
 lemma eval_multiset_prod (s : multiset R[X]) (x : R) :
   eval x s.prod = (s.map (eval x)).prod :=
-(eval_ring_hom x).map_multiset_prod s
+eval₂_multiset_prod _ _ _
 
 /--
 Polynomial evaluation commutes with `finset.prod`
 -/
 lemma eval_prod {ι : Type*} (s : finset ι) (p : ι → R[X]) (x : R) :
   eval x (∏ j in s, p j) = ∏ j in s, eval x (p j) :=
-(eval_ring_hom x).map_prod _ _
+eval₂_finset_prod _ _ _ _
 
 lemma list_prod_comp (l : list R[X]) (p : R[X]) :
   l.prod.comp p = (l.map (λ q : R[X], q.comp p)).prod :=
-(comp_ring_hom p).map_list_prod l
+eval₂_list_prod _ _ _
 
 lemma multiset_prod_comp (s : multiset R[X]) (p : R[X]) :
   s.prod.comp p = (s.map (λ q : R[X], q.comp p)).prod :=
-(comp_ring_hom p).map_multiset_prod s
+eval₂_multiset_prod _ _ _
 
 lemma prod_comp {ι : Type*} (s : finset ι) (q : ι → R[X]) (p : R[X]) :
   (∏ j in s, q j).comp p = ∏ j in s, (q j).comp p :=
-(comp_ring_hom p).map_prod _ _
+eval₂_finset_prod _ _ _ _
 
 lemma is_root_prod {R} [comm_ring R] [is_domain R] {ι : Type*}
   (s : finset ι) (p : ι → R[X]) (x : R) :
@@ -803,12 +856,12 @@ lemma map_dvd {R S} [semiring R] [comm_semiring S] (f : R →+* S) {x y : R[X]} 
 
 variables [comm_semiring R] [comm_semiring S] (f : R →+* S)
 
-protected lemma map_multiset_prod (m : multiset R[X]) : m.prod.map f = (m.map $ map f).prod :=
-eq.symm $ multiset.prod_hom _ (map_ring_hom f).to_monoid_hom
+protected lemma map_multiset_prod (s : multiset R[X]) : s.prod.map f = (s.map $ map f).prod :=
+eval₂_multiset_prod _ _ _
 
-protected lemma map_prod {ι : Type*} (g : ι → R[X]) (s : finset ι) :
-  (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
-(map_ring_hom f).map_prod _ _
+protected lemma map_prod {ι : Type*} (s : finset ι) (p : ι → R[X]) :
+  (∏ j in s, p j).map f = ∏ j in s, (p j).map f :=
+eval₂_finset_prod _ _ _ _
 
 lemma support_map_subset (p : R[X]) : (map f p).support ⊆ p.support :=
 begin

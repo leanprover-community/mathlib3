@@ -877,7 +877,7 @@ mk_eq_monoid_of_mk'
 
 lemma mk_algebra_map {A : Type*} [comm_semiring A] [algebra A R] (m : A) :
   (mk (algebra_map A R m) 1 : localization M) = algebra_map _ _ m :=
-by { rw [mk_eq_mk', mk'_eq_iff_eq_mul, submonoid.coe_one, map_one, mul_one], refl, }
+by rw [mk_eq_mk', mk'_eq_iff_eq_mul, submonoid.coe_one, map_one, mul_one]; refl
 
 lemma mk_int_cast (m : ℤ) : (mk m 1 : localization M) = m :=
 by simpa using @mk_algebra_map R _ M ℤ _ _ m

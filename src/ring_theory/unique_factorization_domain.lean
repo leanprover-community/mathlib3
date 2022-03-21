@@ -1331,6 +1331,26 @@ begin
   exact with_bot.coe_nsmul u k
 end
 
+/-- The only divisors of prime powers are prime powers. See `eq_pow_find_of_dvd_irreducible_pow`
+for an explicit expression as a p-power (without using `count`). -/
+theorem eq_pow_count_factors_of_dvd_pow {p a : associates α} (hp : irreducible p)
+  (h : ∃ n : ℕ, a ∣ p ^ n) : a = p ^ p.count a.factors :=
+begin
+  nontriviality α,
+  have hph := pow_ne_zero (classical.some h) hp.ne_zero,
+  have ha := ne_zero_of_dvd_ne_zero hph (classical.some_spec h),
+  apply eq_of_eq_counts ha (pow_ne_zero _ hp.ne_zero),
+  have eq_zero_of_ne : ∀ (q : associates α), irreducible q → q ≠ p → _ = 0 :=
+  λ q hq h', nat.eq_zero_of_le_zero $ by
+  { convert count_le_count_of_le ha hph hq (classical.some_spec h), symmetry,
+    rw [count_pow hp.ne_zero hq, count_eq_zero_of_ne hq hp h', mul_zero] },
+  intros q hq,
+  rw count_pow hp.ne_zero hq,
+  by_cases h : q = p,
+  { rw [h, count_self hp, mul_one] },
+  { rw [count_eq_zero_of_ne hq hp h, mul_zero, eq_zero_of_ne q hq h] }
+end
+
 omit dec
 omit dec_irr
 omit dec'
@@ -1358,36 +1378,17 @@ end
 theorem eq_pow_find_of_dvd_irreducible_pow {a p : associates α} (hp : irreducible p)
   [∀ n : ℕ, decidable (a ∣ p ^ n)] (h : ∃ n : ℕ, a ∣ p ^ n) : a = p ^ nat.find h :=
 begin
-  have := nat.find_spec h,
-  have b_ne_zero := pow_ne_zero _ hp.ne_zero,
-  have a_ne_zero := ne_zero_of_dvd_ne_zero b_ne_zero (nat.find_spec h),
+  nontriviality α,
   letI := classical.dec_eq α,
   letI := classical.dec_eq (associates α),
   letI := λ p : associates α, classical.dec (irreducible p),
-  apply eq_of_eq_counts a_ne_zero b_ne_zero,
-  nontriviality α,
-  have count_le := λ q hq, count_le_count_of_le a_ne_zero b_ne_zero hq this,
-  have eq_zero_of_ne : ∀ (q : associates α), irreducible q → q ≠ p → _ = 0 :=
-  λ q hq h, nat.eq_zero_of_le_zero $ by
-  { convert count_le q hq, symmetry,
-    rw [count_pow hp.ne_zero hq, count_eq_zero_of_ne hq hp h, mul_zero] },
-  intros q hq,
-  apply le_antisymm (count_le q hq),
-  rw count_pow hp.ne_zero hq,
-  by_cases h : q = p,
-  { rw [h, count_self hp, mul_one],
-    refine nat.find_le ⟨1, _⟩, rw mul_one,
-    nth_rewrite 1 ← factors_prod a,
-    obtain ⟨s, hs⟩ := factors_eq_some_iff_ne_zero.mpr a_ne_zero, rw hs at eq_zero_of_ne ⊢,
-    rw [count_some hp, ← s.count_map_eq_count' _ subtype.coe_injective],
-    change _  = (s.map coe).prod,
-    convert multiset.pow_count p,
-    refine (multiset.filter_eq_self.mpr $ λ q hq, _).symm,
-    rw multiset.mem_map at hq, obtain ⟨⟨q, hq⟩, hqs, rfl⟩ := hq,
-    symmetry, rw ← not_ne_iff, intro h,
-    have := eq_zero_of_ne q hq h, rw count_some hq at this,
-    exact multiset.count_ne_zero.mpr hqs this },
-  { rw [count_eq_zero_of_ne hq hp h, mul_zero], exact zero_le _ }
+  convert eq_pow_count_factors_of_dvd_pow hp h,
+  apply le_antisymm,
+  { refine nat.find_le ⟨1, _⟩, rw mul_one, symmetry, exact eq_pow_count_factors_of_dvd_pow hp h },
+  { have hph := pow_ne_zero (nat.find h) hp.ne_zero,
+    have ha := ne_zero_of_dvd_ne_zero hph (nat.find_spec h),
+    convert count_le_count_of_le ha hph hp (nat.find_spec h),
+    rw [count_pow hp.ne_zero hp, count_self hp, mul_one] }
 end
 
 end associates

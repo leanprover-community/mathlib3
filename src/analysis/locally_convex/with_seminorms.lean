@@ -51,7 +51,7 @@ variables {𝕜 E ι}
 namespace seminorm_family
 
 /-- The sets of a filter basis for the neighborhood filter of 0. -/
-def basis_sets (p : ι → seminorm 𝕜 E) : set (set E) :=
+def basis_sets (p : seminorm 𝕜 E ι) : set (set E) :=
 ⋃ (s : finset ι) r (hr : 0 < r), singleton $ ball (s.sup p) (0 : E) r
 
 variables (p : seminorm_family 𝕜 E ι)

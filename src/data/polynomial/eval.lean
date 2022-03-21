@@ -401,6 +401,14 @@ def comp (p q : R[X]) : R[X] := p.eval₂ C q
 lemma comp_eq_sum_left : p.comp q = p.sum (λ e a, C a * q ^ e) :=
 rfl
 
+lemma comp_eq_sum_range :
+  p.comp q = ∑ i in finset.range (p.nat_degree + 1), C (p.coeff i) * q ^ i :=
+by rw [comp_eq_sum_left, sum_over_range]; simp
+
+lemma comp_eq_sum_range' (hn : p.nat_degree < n) (x : R) :
+  p.comp q = ∑ i in finset.range n, C (p.coeff i) * q ^ i :=
+by rw [comp_eq_sum_left, p.sum_over_range' _ _ hn]; simp
+
 @[simp] lemma comp_X : p.comp X = p :=
 begin
   simp only [comp, eval₂, ← monomial_eq_C_mul_X],

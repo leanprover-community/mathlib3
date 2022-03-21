@@ -73,6 +73,12 @@ lemma prime.squarefree [cancel_comm_monoid_with_zero R] {x : R} (h : prime x) :
   squarefree x :=
 h.irreducible.squarefree
 
+lemma squarefree.of_mul_left [comm_monoid R] {m n : R} (hmn : squarefree (m * n)) : squarefree m :=
+(λ p hp, hmn p (dvd_mul_of_dvd_left hp n))
+
+lemma squarefree.of_mul_right [comm_monoid R] {m n : R} (hmn : squarefree (m * n)) : squarefree n :=
+(λ p hp, hmn p (dvd_mul_of_dvd_right hp m))
+
 lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
   {x y : R} (hdvd : x ∣ y) (hsq : squarefree y) :
   squarefree x :=
@@ -458,6 +464,8 @@ lemma squarefree_iff_prime_sq_not_dvd (n : ℕ) :
 squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
   ⟨2, (irreducible_iff_nat_prime _).2 prime_two⟩
 
+/- `squarefree` is multiplicative. Note that the ← direction does not require `hmn`.
+See `squarefree.of_mul_left` and `squarefree.of_mul_right` above for auxiliary lemmas. -/
 lemma squarefree_mul {m n : ℕ} (hmn : m.coprime n) :
   squarefree m ∧ squarefree n ↔ squarefree (m * n) :=
 begin

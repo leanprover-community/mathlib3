@@ -316,8 +316,8 @@ variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [no
 variables (p : seminorm_family 𝕜 E ι)
 variables [topological_space E] [with_seminorms p]
 
-lemma is_bounded_iff_finset_seminorm_bounded {s : set E} :
-  bornology.is_vonN_bounded 𝕜 s ↔ ∀ (I : finset ι), ∃ r (hr : 0 < r), ∀ (x ∈ s), I.sup p x < r :=
+lemma bornology.is_vonN_bounded_iff_finset_seminorm_bounded {s : set E} :
+  bornology.is_vonN_bounded 𝕜 s ↔ ∀ I : finset ι, ∃ r (hr : 0 < r), ∀ (x ∈ s), I.sup p x < r :=
 begin
   rw (p.has_basis).is_vonN_bounded_basis_iff,
   split,
@@ -339,6 +339,28 @@ begin
   simp_rw ←(I.sup p).mem_ball_zero at h',
   refine absorbs.mono_right _ h',
   exact (finset.sup I p).ball_zero_absorbs_ball_zero hr,
+end
+
+lemma bornology.is_vonN_bounded_iff_seminorm_bounded {s : set E} :
+  bornology.is_vonN_bounded 𝕜 s ↔ ∀ i : ι, ∃ r (hr : 0 < r), ∀ (x ∈ s), p i x < r :=
+begin
+  rw bornology.is_vonN_bounded_iff_finset_seminorm_bounded p,
+  split,
+  { intros hI i,
+    convert hI {i},
+    rw [finset.sup_singleton] },
+  intros hi I,
+  by_cases hI : I.nonempty,
+  { choose r hr h using hi,
+    have h' : 0 < I.sup' hI r :=
+    by { rcases hI.bex with ⟨i, hi⟩, exact lt_of_lt_of_le (hr i) (finset.le_sup' r hi) },
+    refine ⟨I.sup' hI r, h', λ x hx, finset_sup_apply_lt h' (λ i hi, _)⟩,
+    refine lt_of_lt_of_le (h i x hx) _,
+    simp only [finset.le_sup'_iff, exists_prop],
+    exact ⟨i, hi, (eq.refl _).le⟩ },
+  simp only [finset.not_nonempty_iff_eq_empty.mp hI, finset.sup_empty, coe_bot, pi.zero_apply,
+    exists_prop],
+  exact ⟨1, zero_lt_one, λ _ _, zero_lt_one⟩,
 end
 
 end nondiscrete_normed_field

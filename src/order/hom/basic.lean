@@ -703,6 +703,11 @@ lemma order_iso.map_bot [has_le α] [partial_order β] [order_bot α] [order_bot
   f ⊥ = ⊥ :=
 f.map_bot' (λ _, bot_le) (λ _, bot_le)
 
+lemma order_iso.map_eq_bot_iff [partial_order α] [partial_order β] [order_bot α] [order_bot β]
+  {a : α} (f : α ≃o β) : f a = ⊥ ↔ a = ⊥ :=
+⟨(λ h, by rw [(show a = f.symm ⊥, by simp only [← h, order_iso.symm_apply_apply]),
+  order_iso.map_bot f.symm]), λ h, by rw [h, f.map_bot]⟩
+
 lemma order_iso.map_top' [has_le α] [partial_order β] (f : α ≃o β) {x : α} {y : β}
   (hx : ∀ x', x' ≤ x) (hy : ∀ y', y' ≤ y) : f x = y :=
 f.dual.map_bot' hx hy

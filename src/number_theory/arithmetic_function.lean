@@ -771,7 +771,6 @@ begin
   refine ⟨by simp, λ n m hn hm hnm, _⟩,
   simp only [moebius, zero_hom.coe_mk, squarefree_mul hnm, ite_and, card_factors_mul hn hm],
   rw [pow_add, mul_comm, ite_mul_zero_left, ite_mul_zero_right, mul_comm],
-
 end
 
 open unique_factorization_monoid

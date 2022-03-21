@@ -26,7 +26,7 @@ distributive lattice.
 
 ## TODO
 
-Add instances for `prod`, `filter`
+Add instances for `prod`
 
 ## References
 

@@ -79,7 +79,7 @@ we do *not* require. This gives `filter X` better formal properties, in particul
 `[ne_bot f]` in a number of lemmas and definitions.
 -/
 
-open set function
+open function set order
 
 universes u v w x y
 
@@ -745,32 +745,28 @@ instance : distrib_lattice (filter α) :=
   end,
   ..filter.complete_lattice }
 
-/- the complementary version with ⨆ i, f ⊓ g i does not hold! -/
-lemma infi_sup_left {f : filter α} {g : ι → filter α} : (⨅ x, f ⊔ g x) = f ⊔ infi g :=
-begin
-  refine le_antisymm _ (le_infi $ λ i, sup_le_sup_left (infi_le _ _) _),
+-- The dual version does not hold! `filter α` is not a `complete_distrib_lattice`. -/
+instance : coframe (filter α) :=
+{ Inf := Inf,infi_sup_le_sup_Inf := λ f s, begin
   rintro t ⟨h₁, h₂⟩,
-  rw [infi_sets_eq_finite'] at h₂,
+  rw [Inf_eq_infi, filter.mem_sets, mem_infi_finite'] at h₂,
   simp only [mem_Union, (finset.inf_eq_infi _ _).symm] at h₂,
-  rcases h₂ with ⟨s, hs⟩,
-  suffices : (⨅ i, f ⊔ g i) ≤ f ⊔ s.inf (λ i, g i.down), { exact this ⟨h₁, hs⟩ },
-  refine finset.induction_on s _ _,
-  { exact le_sup_of_le_right le_top },
-  { rintro ⟨i⟩ s his ih,
-    rw [finset.inf_insert, sup_inf_left],
-    exact le_inf (infi_le _ _) ih }
-end
-
-lemma infi_sup_right {f : filter α} {g : ι → filter α} : (⨅ x, g x ⊔ f) = infi g ⊔ f :=
-by simp [sup_comm, ← infi_sup_left]
-
-lemma binfi_sup_right (p : ι → Prop) (f : ι → filter α) (g : filter α) :
-  (⨅ i (h : p i), (f i ⊔ g)) = (⨅ i (h : p i), f i) ⊔ g :=
-by rw [infi_subtype', infi_sup_right, infi_subtype']
-
-lemma binfi_sup_left (p : ι → Prop) (f : ι → filter α) (g : filter α) :
-  (⨅ i (h : p i), (g ⊔ f i)) = g ⊔ (⨅ i (h : p i), f i) :=
-by rw [infi_subtype', infi_sup_left, infi_subtype']
+  obtain ⟨u, hu⟩ := h₂,
+  suffices : (⨅ g ∈ s, f ⊔ g) ≤ f ⊔ u.inf (λ g, ⨅ (H : g.down ∈ s), g.down),
+  { exact this ⟨h₁, hu⟩ },
+  refine finset.induction_on u (le_sup_of_le_right le_top) _,
+  rintro ⟨g⟩ u hg ih,
+  rw [finset.inf_insert, sup_inf_left],
+  refine le_inf (infi_le_of_le g _) ih,
+  by_cases g ∈ s,
+  { haveI : nonempty (g ∈ s) := ⟨h⟩,
+    simp_rw infi_const,
+    exact le_rfl },
+  { haveI : is_empty (g ∈ s) := ⟨h⟩,
+    simp_rw [infi_of_empty, sup_top_eq],
+    exact le_rfl }
+  end,
+  ..filter.complete_lattice }
 
 lemma mem_infi_finset {s : finset α} {f : α → filter β} {t : set β} :
   t ∈ (⨅ a ∈ s, f a) ↔ (∃ p : α → set β, (∀ a ∈ s, p a ∈ f a) ∧ t = ⋂ a ∈ s, p a) :=

@@ -7,6 +7,7 @@ import algebra.free_monoid
 import group_theory.congruence
 import group_theory.is_free_group
 import group_theory.subgroup.pointwise
+import group_theory.order_of_element
 import data.list.chain
 import set_theory.cardinal
 /-!
@@ -675,5 +676,88 @@ instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_fr
     { simp, },
     { intros g hfg, ext i x, simpa using hfg ⟨i, x⟩, }
   end, }
+
+section ping_pong_lemma
+
+open_locale pointwise
+open_locale cardinal
+
+variables [inhabited ι]
+variables [nontrivial ι]
+variables {G : Type u_1} [group G]
+variables (a : ι → G)
+
+-- We need many groups or one group with many elements
+-- variables (hcard : 3 ≤ # ι ∨ ∃ i, 3 ≤ # (H i))
+
+-- A group action on α, and the ping-pong sets
+variables {α : Type u_1} [mul_action G α]
+variables (X : ι → set α)
+variables (Y : ι → set α)
+variables (hXnonempty : ∀ i, (X i).nonempty)
+variables (hYnonempty : ∀ i, (Y i).nonempty)
+variables (hXdisj : pairwise (λ i j, disjoint (X i) (X j)))
+variables (hYdisj : pairwise (λ i j, disjoint (Y i) (Y j)))
+variables (hXYdisj : ∀ i j, disjoint (X i) (Y j))
+variables (hX : ∀ i, a i • set.compl (Y i) ⊆ X i)
+variables (hY : ∀ i, a⁻¹ i • set.compl (X i) ⊆ Y i)
+
+include hXnonempty hYnonempty hXdisj hYdisj hXYdisj hX hY
+
+noncomputable
+definition is_free_group_span_of_ping_pong:
+  is_free_group (subgroup.closure (set.range a)) :=
+begin
+  -- Prepare to instantiate lift_injective_of_ping_pong
+  let H : ι → subgroup G := λ i, subgroup.closure {a i},
+  let f : Π i, H i →* G := λ i, (H i).subtype,
+  let X' : ι → set α := λ i, X i ∪ Y i,
+
+  -- The elements a have infinite order, and thus the H are isomorphic to ℤ
+  have horder : ∀ i, order_of (a i) = 0, sorry,
+  have hisoZ : ∀ i, (subgroup.closure {a i} : subgroup G) ≃* multiplicative ℤ,
+  { sorry,
+  },
+  have hHcard : ∀ i, # (H i) = ω, sorry,
+
+  -- in lieu of calc for ≃*, we use simple have commands
+  have h1 : free_group ι ≃* free_product (λ i, H i),
+  {
+  sorry,
+  },
+
+  have h2 : free_product (λ i, H i) ≃* (lift f).range,
+  {
+    refine (monoid_hom.of_injective _),
+    apply lift_injective_of_ping_pong f _ X',
+    show _ ∨ ∃ i, 3 ≤ # (H i),
+    { right, use (arbitrary ι), simpa [hHcard] using (cardinal.nat_lt_omega 3).le,},
+    show ∀ i, (X' i).nonempty,
+    {
+      sorry,
+    },
+    show pairwise (λ i j, disjoint (X' i) (X' j)),
+    {
+      sorry,
+    },
+    show pairwise (λ i j, ∀ h : H i, h ≠ 1 → f i h • X' j ⊆ X' i),
+    {
+      sorry,
+    },
+
+  },
+
+  have h3 : (lift f).range ≃* subgroup.closure (set.range a),
+  sorry,
+
+  show _,
+  { exact is_free_group.of_mul_equiv ((h1.trans h2).trans h3), },
+
+end
+
+
+
+
+end ping_pong_lemma
 
 end free_product

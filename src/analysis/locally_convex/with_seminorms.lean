@@ -36,7 +36,6 @@ open_locale big_operators nnreal pointwise topological_space
 
 variables {𝕜 E F G ι ι' : Type*}
 
-
 section filter_basis
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]

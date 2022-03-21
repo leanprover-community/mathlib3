@@ -158,7 +158,7 @@ lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ 
 lemma ulift.down_injective {α : Sort*} : function.injective (@ulift.down α)
 | ⟨a⟩ ⟨b⟩ rfl := rfl
 
-@[simp] lemma ulift.down_inj {α : Sort*} (a b : ulift α) : a.down = b.down ↔ a = b :=
+@[simp] lemma ulift.down_inj {α : Sort*} {a b : ulift α} : a.down = b.down ↔ a = b :=
 ⟨λ h, ulift.down_injective h, λ h, by rw h⟩
 
 lemma plift.down_injective {α : Sort*} : function.injective (@plift.down α)

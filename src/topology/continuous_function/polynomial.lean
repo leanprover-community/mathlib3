@@ -105,7 +105,8 @@ section
 variables [comm_semiring R] [topological_space R] [topological_semiring R]
 
 /--
-The subalgebra of polynomial functions in `C(X, R)`, for `X` a subset of some topological semiring `R`.
+The subalgebra of polynomial functions in `C(X, R)`, for `X` a subset of some topological semiring
+`R`.
 -/
 def polynomial_functions (X : set R) : subalgebra R C(X, R) :=
 (⊤ : subalgebra R R[X]).map (polynomial.to_continuous_map_on_alg_hom X)

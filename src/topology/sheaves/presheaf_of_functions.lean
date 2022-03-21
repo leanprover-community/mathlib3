@@ -94,7 +94,8 @@ CommRing.of (unop X ⟶ (forget₂ TopCommRing Top).obj R)
 
 namespace continuous_functions
 
-/-- Pulling back functions into a topological semiring along a continuous map is a ring homomorphism. -/
+/-- Pulling back functions into a topological semiring along a continuous map is a ring
+homomorphism. -/
 def pullback {X Y : Topᵒᵖ} (f : X ⟶ Y) (R : TopCommRing) :
   continuous_functions X R ⟶ continuous_functions Y R :=
 { to_fun := λ g, f.unop ≫ g,
@@ -103,8 +104,8 @@ def pullback {X Y : Topᵒᵖ} (f : X ⟶ Y) (R : TopCommRing) :
   map_add' := by tidy,
   map_mul' := by tidy }
 
-/-- A homomorphism of topological semirings can be postcomposed with functions from a source space `X`;
-this is a ring homomorphism (with respect to the pointwise ring operations on functions). -/
+/-- A homomorphism of topological semirings can be postcomposed with functions from a source space
+`X`; this is a ring homomorphism (with respect to the pointwise ring operations on functions). -/
 def map (X : Top.{u}ᵒᵖ) {R S : TopCommRing.{u}} (φ : R ⟶ S) :
   continuous_functions X R ⟶ continuous_functions X S :=
 { to_fun := λ g, g ≫ ((forget₂ TopCommRing Top).map φ),

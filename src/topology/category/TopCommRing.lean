@@ -47,7 +47,8 @@ instance : concrete_category TopCommRing.{u} :=
   forget_faithful := { } }
 
 /-- Construct a bundled `TopCommRing` from the underlying type and the appropriate typeclasses. -/
-def of (X : Type u) [comm_ring X] [topological_space X] [topological_semiring X] : TopCommRing := ⟨X⟩
+def of (X : Type u) [comm_ring X] [topological_space X] [topological_semiring X] : TopCommRing :=
+⟨X⟩
 
 @[simp] lemma coe_of (X : Type u) [comm_ring X] [topological_space X] [topological_semiring X] :
   (of X : Type u) = X := rfl

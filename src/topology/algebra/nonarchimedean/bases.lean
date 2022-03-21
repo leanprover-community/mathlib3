@@ -18,8 +18,8 @@ The main definition is `ring_subgroups_basis` which is a predicate on a family o
 additive subgroups of a ring. The predicate ensures there is a topology
 `ring_subgroups_basis.topology` which is compatible with a ring structure and admits the given
 family as a basis of neighborhoods of zero. In particular the given subgroups become open subgroups
-(bundled in `ring_subgroups_basis.open_add_subgroup`) and we get a non-archimedean topological semiring
-(`ring_subgroups_basis.nonarchimedean`).
+(bundled in `ring_subgroups_basis.open_add_subgroup`) and we get a non-archimedean topological
+semiring (`ring_subgroups_basis.nonarchimedean`).
 
 A special case of this construction is given by `submodules_basis` where the subgroups are
 sub-modules in a commutative algebra. This important example gives rises to the adic topology

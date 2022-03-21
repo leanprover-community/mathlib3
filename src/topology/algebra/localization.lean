@@ -16,8 +16,8 @@ to the equivalence class of `(x, 1)` in the localization of `R` at a `M`.
 
 ## Main Results
 
-- `localization.topological_semiring`: The localization of a topological commutative ring at a submonoid
-  is a topological semiring.
+- `localization.topological_semiring`: The localization of a topological commutative ring at a
+  submonoid is a topological semiring.
 
 -/
 

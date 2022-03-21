@@ -9,8 +9,8 @@ import topology.algebra.group_with_zero
 /-!
 # Topological fields
 
-A topological division ring is a topological semiring whose inversion function is continuous at every
-non-zero element.
+A topological division ring is a topological semiring whose inversion function is continuous at
+every non-zero element.
 
 -/
 

@@ -327,8 +327,8 @@ instance {α : Type*} {β : Type*} [topological_space α]
 { ..continuous_map.comm_semiring,
   ..continuous_map.ring, }
 
-/-- Composition on the left by a (continuous) homomorphism of topological semirings, as a `ring_hom`.
-Similar to `ring_hom.comp_left`. -/
+/-- Composition on the left by a (continuous) homomorphism of topological semirings, as a
+`ring_hom`.  Similar to `ring_hom.comp_left`. -/
 @[simps] protected def _root_.ring_hom.comp_left_continuous (α : Type*) {β : Type*} {γ : Type*}
   [topological_space α] [topological_space β] [semiring β] [topological_semiring β]
   [topological_space γ] [semiring γ] [topological_semiring γ] (g : β →+* γ) (hg : continuous g) :

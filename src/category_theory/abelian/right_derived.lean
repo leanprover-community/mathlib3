@@ -268,9 +268,10 @@ lemma right_derived_zero_to_self_natural [enough_injectives C]
 begin
   dsimp [right_derived_zero_to_self_app_inv],
   simp only [category_theory.functor.map_id, category.id_comp, ← category.assoc],
-  rw [iso.comp_inv_eq, functor.right_derived_map_eq F 0 f (InjectiveResolution.desc f Q P) (by simp),
-    category.assoc, category.assoc, category.assoc, category.assoc, iso.inv_hom_id, category.comp_id,
-    ← category.assoc (F.right_derived_obj_iso 0 P).inv, iso.inv_hom_id, category.id_comp],
+  rw [iso.comp_inv_eq, right_derived_map_eq F 0 f (InjectiveResolution.desc f Q P) (by simp),
+    category.assoc, category.assoc, category.assoc, category.assoc, iso.inv_hom_id,
+    category.comp_id, ← category.assoc (F.right_derived_obj_iso 0 P).inv, iso.inv_hom_id,
+    category.id_comp],
   dsimp only [homology_functor_map],
   ext,
   rw [category.assoc, homology.lift_ι, category.assoc, homology.map_ι,

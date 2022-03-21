@@ -180,15 +180,19 @@ end Maximal_Subgroups
 /- Chapter 1 -/
 section FundamentalConcepts
 
-variables (G X : Type*) [group G] [mul_action G X]
 
 -- Section 6 : Blocks
 
 namespace mul_action
 
+section has_scalar
+
+variables (G X : Type*) [has_scalar G X]
+
 /-- A fixed block is an invariant subset -/
 def is_fixed_block -- (G X : Type*) [group G] [hGX : mul_action G X]
   (B : set X) := ∀ (g : G), g • B = B
+
 
 def is_invariant_block (B : set X) := ∀ (g : G), g • B ≤ B
 
@@ -196,71 +200,130 @@ def is_invariant_block (B : set X) := ∀ (g : G), g • B ≤ B
 -- (range (λ g : G, g • B)).pairwise_disjoint id
 /-- A block is a set which is either fixed or moved to a disjoint subset -/
 def is_block -- (G X : Type*) [group G] [hGX : mul_action G X]
-  (B : set X) := ∀ (g : G), g • B = B ∨ disjoint (g • B) B
+  (B : set X) := (set.range $ λ g : G, g • B).pairwise_disjoint id
+  -- ∀ (g : G), g • B = B ∨ disjoint (g • B) B
 
-lemma is_block' {B : set X} (hB : is_block G X B) :
-  ∀ (g g' : G), g • B = g' • B ∨ disjoint (g • B) (g' • B) :=
+lemma is_block.def {B : set X} (hB : is_block G X B) (g g' : G) :
+  g • B = g' • B ∨ disjoint (g • B) (g' • B) :=
 begin
-  intros g g',
-  let k := g⁻¹ * g',
-  have hk : g * k = g' := by { rw mul_inv_cancel_left},
-  rw [← hk, ← smul_smul],
-  cases hB k with heq hdis,
-  { apply or.intro_left, rw heq },
+  cases em (g • B = g' • B),
+  refine or.intro_left _ h,
   apply or.intro_right,
+  exact hB (set.mem_range_self g) (set.mem_range_self g') h,
+end
+
+end has_scalar
+
+section group
+
+variables (G X : Type*) [group G] [mul_action G X]
+
+
+lemma is_block.def_one {B : set X} (hB : is_block G X B) (g : G) :
+  g • B = B ∨ disjoint (g • B) B :=
+begin
+  let h := is_block.def G X hB g (1 : G),
+  rw one_smul at h, exact h,
+end
+
+
+
+lemma is_block.mk {B : set X} :
+  is_block G X B ↔ (∀ (g : G), g • B = B ∨ disjoint (g • B) B) :=
+begin
+  split,
+  { intros hB g,
+    suffices : g • B = (1 : G) • B ∨ disjoint (g • B) ((1 : G) • B),
+    { rw one_smul at this, exact this },
+    cases em (g • B = (1 : G) • B),
+    exact or.intro_left _ h,
+    exact or.intro_right _ (hB (set.mem_range_self g) (set.mem_range_self 1) h) },
+  { intros hB,
+    intros u hu v hv,
+    obtain ⟨g, rfl⟩ := hu, obtain ⟨g', rfl⟩ := hv,
+    simp only [ne.def],
+    intro hgg',
+    let k := g⁻¹ * g',
+    have hk : g * k = g' := by { rw mul_inv_cancel_left},
+    rw [← hk, ← smul_smul, function.on_fun],
+    simp only [id.def],
+    cases (hB k) with heq hdis,
+    { exfalso, apply hgg', rw [← hk, ← smul_smul, heq] },
     refine disjoint.image hdis.symm _ _ _,
     exact set.univ,
     apply function.injective.inj_on ,
     apply mul_action.injective,
-    repeat { simp only [set.subset_univ] }
+    repeat { simp only [set.subset_univ] } }
 end
 
-lemma is_block_def' {B : set X} (hB : is_block G X B) (a : X) (g : G):
-  a ∈ B → g • a ∈ B → g • B = B :=
+lemma is_block.mk_notempty {B : set X}  :
+  is_block G X B ↔ ∀ (g : G), (g • B) ∩ B ≠ ∅ → g • B = B :=
 begin
-  intros ha hga,
-  cases hB g⁻¹ with h h',
-  { rw [smul_eq_iff_eq_inv_smul, h] },
-  exfalso, rw ← set.mem_empty_eq a,
-  rw [disjoint_iff, set.inf_eq_inter, set.bot_eq_empty] at h',
-  rw [← h', set.mem_inter_eq],
   split,
-  rw mem_smul_set_iff_inv_smul_mem, rw inv_inv, exact hga,
-  exact ha,
+  { intros hB g hg,
+    rw is_block.mk at hB,
+    cases hB g,
+    exact h,
+    { exfalso, apply hg,
+      simpa only [disjoint_iff] using h } },
+  { intro hB,
+    rw is_block.mk,
+    intro g,
+    cases em (g • B ∩ B = ∅) with h h',
+    apply or.intro_right, rw set.disjoint_iff_inter_eq_empty, exact h,
+    apply or.intro_left, exact hB g h', },
 end
 
-lemma is_block_mk {B : set X} (hB : ∀ (g : G), (g • B) ∩ B ≠ ∅ → g • B = B) :
-  is_block G X B :=
+lemma is_block.mk_mem {B : set X} :
+  is_block G X B ↔ ∀ (a : X) (g : G) (ha : a ∈ B) (hga : g • a ∈ B), g • B = B :=
 begin
-  intro g,
-  cases em (g • B ∩ B = ∅) with h h',
-  apply or.intro_right, rw set.disjoint_iff_inter_eq_empty, exact h,
-  apply or.intro_left, exact hB g h',
+  split,
+  { intros hB a g ha hga,
+    cases is_block.def_one G X hB g⁻¹ with h h',
+    { rw [smul_eq_iff_eq_inv_smul, h] },
+    exfalso, rw ← set.mem_empty_eq a,
+    rw [disjoint_iff, set.inf_eq_inter, set.bot_eq_empty] at h',
+    rw [← h', set.mem_inter_eq],
+    apply and.intro _ ha,
+    rw [mem_smul_set_iff_inv_smul_mem, inv_inv],
+    exact hga },
+  { intro H,  rw is_block.mk, intro g,
+    cases set.eq_empty_or_nonempty (g • B ∩ B),
+    { apply or.intro_right, rw disjoint_iff, simpa using h },
+    { apply or.intro_left,
+      obtain ⟨a, hga, ha⟩ := h,
+      rw smul_eq_iff_eq_inv_smul, apply symm,
+      rw mem_smul_set_iff_inv_smul_mem at hga,
+      exact H a g⁻¹ ha hga  } }
 end
 
+-- was : is_block_def'
+lemma is_block.def_mem {B : set X} (hB : is_block G X B) (a : X) (g : G) :
+  a ∈ B → g • a ∈ B → g • B = B := (is_block.mk_mem G X).mp hB a g
 
-lemma is_block_mk' {B : set X} (hB : ∀ (g : G) (b : X) (hb : b ∈ B) (hb' : b ∈ g • B), g • B ≤ B) :
-    is_block G X B :=
+lemma is_block.mk_subset {B : set X} :
+    is_block G X B ↔ ∀ (g : G) (b : X) (hb : b ∈ B) (hb' : b ∈ g • B), g • B ≤ B :=
 begin
-  apply is_block_mk,
-  intros g hg,
-  rw set.ne_empty_iff_nonempty at hg,
-  obtain ⟨b : X, hb' : b ∈ g • B, hb : b ∈ B⟩ := set.nonempty_def.mp hg,
-
-  apply le_antisymm,
-  exact hB g b hb hb',
-
-  suffices : g⁻¹ • B ≤ B,
-  { rw set.le_eq_subset at this ⊢,
-    rw [← inv_inv g, ← set_smul_subset_iff], exact this },
-  refine hB g⁻¹ (g⁻¹ • b) _ _,
-  rw ← mem_smul_set_iff_inv_smul_mem, exact hb',
-  rw smul_mem_smul_set_iff, exact hb,
+  split,
+  { intros hB g b hb hgb,
+    rw [set.le_eq_subset, set_smul_subset_iff,
+      is_block.def_mem G X hB b g⁻¹ hb (mem_smul_set_iff_inv_smul_mem.mp hgb)] },
+  { rw is_block.mk_notempty,
+    intros hB g hg,
+    rw set.ne_empty_iff_nonempty at hg,
+    obtain ⟨b : X, hb' : b ∈ g • B, hb : b ∈ B⟩ := set.nonempty_def.mp hg,
+    apply le_antisymm,
+    { exact hB g b hb hb' },
+    suffices : g⁻¹ • B ≤ B,
+    { rw set.le_eq_subset at this ⊢,
+      rw [← inv_inv g, ← set_smul_subset_iff], exact this },
+    exact hB g⁻¹ (g⁻¹ • b) (mem_smul_set_iff_inv_smul_mem.mp hb') (smul_mem_smul_set_iff.mpr hb) }
 end
 
 /-- The empty set is a block -/
 lemma bot_is_block : is_block G X (⊥ : set X) :=
 begin
+  rw is_block.mk,
   intro g, apply or.intro_left,
   simp only [set.bot_eq_empty, set.smul_set_empty],
 end
@@ -268,6 +331,7 @@ end
 /-- Singletons are blocks -/
 lemma singleton_is_block (x : X) : is_block G X ({x} : set X) :=
 begin
+  rw is_block.mk,
   intro g,
   cases em (g • x = x) with h h',
   { apply or.intro_left,
@@ -283,6 +347,7 @@ lemma is_block_of_invariant (B : set X) (hfB : is_invariant_block G X B) :
   is_block G X B :=
 begin
  --  unfold is_fixed_block at hfB,
+  rw is_block.mk,
   intro g, apply or.intro_left,
   apply le_antisymm,
   exact hfB g,
@@ -296,6 +361,7 @@ end
 lemma is_block_of_fixed (B : set X) (hfB : is_fixed_block G X B) :
   is_block G X B :=
 begin
+  rw is_block.mk,
   unfold is_fixed_block at hfB,
   intro g, apply or.intro_left, exact hfB g,
 end
@@ -319,14 +385,16 @@ end
 lemma subgroup.is_block {H : subgroup G} {B : set X} (hfB : is_block G X B) :
   is_block H X B :=
 begin
-  intro h, exact hfB h,
+  rw is_block.mk, intro h,
+  simpa only using is_block.def_one G X hfB h
 end
 
 lemma sub_mul_action.is_block {C : sub_mul_action G X} {B : set X}
   (hB : is_block G X B) : is_block G ↥C (coe ⁻¹' B) :=
 begin
+  rw is_block.mk,
   intro g,
-  cases hB g with heq hdis,
+  cases is_block.def_one G X hB g with heq hdis,
   { apply or.intro_left,  ext,
     rw mem_smul_set_iff_inv_smul_mem,
     simp only [set.mem_preimage, sub_mul_action.coe_smul_of_tower],
@@ -363,6 +431,7 @@ end
 lemma sub_mul_action.is_block_coe {C : sub_mul_action G X} {B : set C} :
   is_block G C B ↔ is_block G X (coe '' B) :=
 begin
+  simp only [is_block.mk],
   apply forall_congr,
   intro g,
   rw sub_mul_action.smul_coe_eq_coe_smul,
@@ -376,6 +445,7 @@ end
 lemma is_block.of_top_iff (B : set X) :
   is_block G X B ↔ is_block (⊤ : subgroup G) X B :=
 begin
+  simp only [is_block.mk],
   split,
   intros h g, exact h g,
   intros h g, exact h ⟨g, subgroup.mem_top g⟩
@@ -397,10 +467,11 @@ end
 lemma is_block.inter {B₁ B₂ : set X} (h₁ : is_block G X B₁) (h₂ : is_block G X B₂) :
   is_block G X (B₁ ∩ B₂) :=
 begin
+  rw is_block.mk,
   intro g,
   rw set.smul_set_inter,
-  cases h₁ g with h₁ h₁, -- em (disjoint (g • B₁) B₁) with h h,
-  { cases h₂ g with h₂ h₂,
+  cases is_block.def_one G X h₁ g with h₁ h₁, -- em (disjoint (g • B₁) B₁) with h h,
+  { cases is_block.def_one G X h₂ g with h₂ h₂,
     { apply or.intro_left, rw [h₁, h₂] },
     apply or.intro_right,
     apply disjoint.inter_left', apply disjoint.inter_right',
@@ -414,10 +485,11 @@ end
 lemma is_block.Inter {ι : Type*} {B : ι → set X} (hB : ∀ i : ι,
   is_block G X (B i)) : is_block G X (⋂ i, B i) :=
 begin
+  rw is_block.mk,
   cases em (is_empty ι) with hι hι,
   { -- ι = ∅, block = ⊤
     suffices : (⋂ (i : ι), B i) = set.univ,
-    { rw this, exact top_is_block G X },
+    { rw this, exact is_block.def_one G X (top_is_block G X) },
     simp only [set.top_eq_univ, set.Inter_eq_univ],
     intro i, exfalso, apply hι.false, exact i },
 
@@ -433,7 +505,7 @@ begin
     exact hj },
   simp only [not_exists] at h,
   apply or.intro_left,
-  have : ∀ (i : ι) , g • (B i) = B i := λ i, or.resolve_right (hB i g) (h i),
+  have : ∀ (i : ι) , g • (B i) = B i := λ i, or.resolve_right (is_block.def_one G X (hB i) g) (h i),
   rw set.Inter_congr this
 end
 
@@ -441,12 +513,13 @@ lemma is_block.of_subgroup_of_conjugate {B : set X} (H : subgroup G)
   (hB : is_block H X B) (g : G) :
   is_block (subgroup.map (mul_equiv.to_monoid_hom (mul_aut.conj g)) H) X (g • B) :=
 begin
+  rw is_block.mk,
   intro h',
   obtain ⟨h, hH, hh⟩ := subgroup.mem_map.mp (set_like.coe_mem h'),
   simp only [mul_equiv.coe_to_monoid_hom, mul_aut.conj_apply] at hh,
   suffices : h' • g • B = g • h • B,
   simp only [this],
-  cases hB ⟨h, hH⟩ with heq hdis,
+  cases is_block.def_one H X hB ⟨h, hH⟩ with heq hdis,
   { apply or.intro_left,
     apply congr_arg,
     exact heq },
@@ -506,7 +579,7 @@ begin
     simp only [set.mem_range, exists_unique_iff_exists, exists_prop, and_imp, forall_exists_index, forall_apply_eq_imp_iff'],
     intros g' hg',
     apply symm,
-    apply or.resolve_right (is_block' G X hB g g'),
+    apply or.resolve_right (is_block.def G X hB g g'),
     rw set.not_disjoint_iff,
     use a, exact ⟨hg, hg'⟩ },
   intro b, rintros ⟨g, hg : g • B = b⟩,
@@ -589,6 +662,7 @@ end
 theorem orbit.is_block_of_normal (N : subgroup G) [nN : subgroup.normal N] (a : X) :
   is_block G X (orbit N a) :=
 begin
+  rw is_block.mk,
   intro g,
   suffices : g • (orbit N a) = orbit N (g • a),
   { rw this, exact orbit.equal_or_disjoint N X },
@@ -687,32 +761,32 @@ begin
     apply set.card_image_of_injective ,
     apply mul_action.injective },
 
-  apply is_block_mk,
+  rw is_block.mk_notempty,
   intros g hg,
   rw set.ne_empty_iff_nonempty at hg,
   obtain ⟨b : X, hb' : b ∈ g • B', hb : b ∈ B'⟩ := set.nonempty_def.mp hg,
-
   obtain ⟨k : G, hk : k • a = b⟩ := hGX_exists a b,
-
   have hak : a ∈ k⁻¹ • B',
   { use b, apply and.intro hb, rw [← hk, inv_smul_smul] },
-
   have hagk : a ∈ (k⁻¹ * g) • B',
   { rw [mul_smul, mem_smul_set_iff_inv_smul_mem, inv_inv, hk],
     exact hb' },
-
   have hkB' : B' = k⁻¹ • B' := hag' k⁻¹ hak,
   have hgkB' : B' = (k⁻¹ * g) • B' := hag' (k⁻¹ * g) hagk,
   rw mul_smul at hgkB',
-  rw ← smul_eq_iff_eq_inv_smul    at hkB' hgkB',
-  rw ← hgkB', rw hkB',
+  rw ← smul_eq_iff_eq_inv_smul at hkB' hgkB',
+  rw [← hgkB', hkB']
 end
 
+end group
 
 section primitivity
 
 /-- An action is preprimitive if it is pretransitive and
 the only blocks are the trivial ones -/
+
+variables (G X : Type*) [group G] [mul_action G X]
+
 structure is_preprimitive
 extends is_pretransitive G X : Prop :=
 (has_trivial_blocks : ∀ {B : set X}, (is_block G X B) →
@@ -808,7 +882,7 @@ lemma is_block_of_suborbit [htGX : is_pretransitive G X] {H : subgroup G} {a : X
   is_block G X (mul_action.orbit H a) :=
 begin
   let hGX_exists := htGX.exists_smul_eq,
-  apply is_block_mk', intros g b,
+  rw is_block.mk_subset, intros g b,
   rintro ⟨h,rfl⟩,
   simp,
   intro hb',
@@ -834,7 +908,7 @@ lemma stabilizer_of_block {B : set X} (hB : is_block G X B) {a : X} (ha : a ∈ 
 begin
   intros g hg,
   rw mem_stabilizer_iff at hg ⊢,
-  cases hB g with h h',
+  cases is_block.def_one G X hB g with h h',
   exact h,
   exfalso, rw ← set.mem_empty_eq a,
   rw [disjoint_iff, set.inf_eq_inter, set.bot_eq_empty] at h',
@@ -860,7 +934,7 @@ begin
   obtain ⟨k, rfl⟩ := htGX_exists a x,
   use k,
   { rw mem_stabilizer_iff,
-    exact is_block_def' G X hB a k ha hx },
+    exact is_block.def_mem G X hB a k ha hx },
   refl,
 end
 
@@ -907,7 +981,7 @@ split,
 { intro hBB',
   intro g, simp only [mem_stabilizer_iff],
   intro hgB,
-  apply is_block_def' G X hB' a g ha', apply hBB', rw ← hgB,
+  apply is_block.def_mem G X hB' a g ha', apply hBB', rw ← hgB,
   simp only [smul_mem_smul_set_iff], exact ha }, end,
 }
 
@@ -1470,7 +1544,7 @@ begin
   obtain ⟨g : M, hg : g • ([↑a,↑b] : list α) = ([↑a,c])⟩ := h2 _ _ _ _,
   any_goals { simp [subtype.coe_injective, hab, hca', hcb'] },
   simp at hg,
-  cases hB g,
+  cases is_block.def_one _ _ hB g,
   { rw ← h, use ↑b,
     exact ⟨subtype.mem b, hg.right⟩ },
   { exfalso,

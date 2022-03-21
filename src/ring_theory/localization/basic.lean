@@ -806,6 +806,24 @@ instance : comm_ring (localization M) :=
   right_distrib  := λ m n k, localization.induction_on₃ m n k (by tac),
    ..localization.comm_monoid M }
 
+lemma sub_mk (a c) (b d) : (mk a b : localization M) - mk c d = mk (d * a - b * c) (b * d) :=
+calc  mk a b - mk c d
+    = mk a b + (- mk c d) : rfl
+... = mk a b + (mk (-c) d) : by rw neg_mk
+... = mk (b * (-c) + d * a) (b * d) : add_mk _ _ _ _
+... = mk (d * a - b * c) (b * d) : by congr'; ring
+
+lemma coe_int (m : ℤ) : (m : localization M) = mk m 1 :=
+int.induction_on m (mk_zero _).symm (λ n ih, begin
+  push_cast at ⊢ ih,
+  erw [ih, ← mk_one, add_mk, one_mul, one_mul, one_mul, add_comm],
+end) $ λ n ih, begin
+  push_cast at ⊢ ih,
+  erw [ih, ← mk_one, sub_mk, one_mul, one_mul, one_mul]
+end
+
+lemma coe_nat (m : ℕ) : (m : localization M) = mk m 1 := coe_int m
+
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
   distrib_mul_action S (localization M) :=
 { smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],

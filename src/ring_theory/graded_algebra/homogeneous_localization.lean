@@ -252,16 +252,7 @@ instance : has_scalar ℤ (homogeneous_localization 𝒜 x) :=
       change localization.mk _ _ = localization.mk _ _,
       simp only [num_zsmul, denom_zsmul],
       convert congr_arg (λ z, m • z) h;
-      rw [zsmul_eq_mul, zsmul_eq_mul, show (m : at x) = localization.mk m 1, begin
-        induction m using int.induction_on with n ih n ih,
-        { erw localization.mk_zero _, refl, },
-        { push_cast,
-          erw [ih, ← localization.mk_one, localization.add_mk, one_mul, one_mul, add_comm, one_mul],
-          refl, },
-        { push_cast at ih ⊢,
-          erw [ih, ← localization.mk_one, sub_eq_add_neg, localization.neg_mk, localization.add_mk,
-            mul_one, one_mul, one_mul, add_comm, ← sub_eq_add_neg], },
-      end, localization.mk_mul, one_mul];
+      rw [zsmul_eq_mul, zsmul_eq_mul, localization.coe_int, localization.mk_mul, one_mul];
       refl,
     end) }
 
@@ -368,16 +359,7 @@ begin
   simp only [quotient.lift_on₂'_mk, quotient.lift_on'_mk],
   change localization.mk _ _ = n • localization.mk _ _,
   dsimp only,
-  rw [nsmul_eq_mul, show (n : at x) = localization.mk n 1, begin
-    induction n with n ih,
-    { erw localization.mk_zero, refl, },
-    { rw [nat.succ_eq_add_one],
-      push_cast,
-      rw [ih, ← localization.mk_one, localization.add_mk, mul_one, one_mul, add_comm],
-      congr' 1,
-      erw one_mul,
-      refl, },
-  end, localization.mk_mul, one_mul],
+  rw [nsmul_eq_mul, localization.coe_nat, localization.mk_mul, one_mul],
   congr' 1,
   simp only [← subtype.val_eq_coe],
   rw [show ↑n * y.num.val = ↑(n : ℤ) * y.num.val, by norm_cast, ← zsmul_eq_mul],

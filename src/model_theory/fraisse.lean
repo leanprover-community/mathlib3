@@ -47,7 +47,7 @@ structures. In the case of a language with countably many function symbols, thes
 - [K. Tent, M. Ziegler, *A Course in Model Theory*][Tent_Ziegler]
 
 ## TODO
-* Define Fraïssé classes and limits
+* Define Fraïssé limits
 * Define ultrahomogeneous structures
 * Show that any two Fraïssé limits of a Fraïssé class are isomorphic
 * Show that any Fraïssé limit is ultrahomogeneous
@@ -82,8 +82,7 @@ def hereditary : Prop :=
 /-- A class `K` has the joint embedding property when for every `M`, `N` in `K`, there is another
   structure in `K` into which both `M` and `N` embed. -/
 def joint_embedding : Prop :=
-∀ (M N : bundled.{w} L.Structure), M ∈ K → N ∈ K → ∃ (P : bundled.{w} L.Structure),
-  P ∈ K ∧ nonempty (M ↪[L] P) ∧ nonempty (N ↪[L] P)
+directed_on (λ M N : bundled.{w} L.Structure, nonempty (M ↪[L] N)) K
 
 /-- A class `K` has the amalgamation property when for any pair of embeddings of a structure `M` in
   `K` into other structures in `K`, those two structures can be embedded into a fourth structure in
@@ -117,11 +116,11 @@ lemma age.hereditary : hereditary (L.age M) :=
 λ N P NP Nfg h, ⟨Nfg, nonempty.map (λ x, embedding.comp x NP.some) h.2⟩
 
 lemma age.joint_embedding : joint_embedding (L.age M) :=
-λ N P hN hP, ⟨bundled.of ↥(hN.2.some.to_hom.range ⊔ hP.2.some.to_hom.range),
+λ N hN P hP, ⟨bundled.of ↥(hN.2.some.to_hom.range ⊔ hP.2.some.to_hom.range),
   ⟨(fg_iff_Structure_fg _).1 ((hN.1.range hN.2.some.to_hom).sup (hP.1.range hP.2.some.to_hom)),
-    ⟨subtype _⟩⟩,
-    ⟨embedding.comp (inclusion le_sup_left) hN.2.some.equiv_range.to_embedding⟩,
-    ⟨embedding.comp (inclusion le_sup_right) hP.2.some.equiv_range.to_embedding⟩⟩
+  ⟨subtype _⟩⟩,
+  ⟨embedding.comp (inclusion le_sup_left) hN.2.some.equiv_range.to_embedding⟩,
+  ⟨embedding.comp (inclusion le_sup_right) hP.2.some.equiv_range.to_embedding⟩⟩
 
 /-- The age of a countable structure is essentially countable (has countably many isomorphism
 classes). -/

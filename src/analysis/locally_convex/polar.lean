@@ -1,7 +1,44 @@
+/-
+Copyright (c) 2022 Moritz Doll. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Moritz Doll, Kalle Kytölä
+-/
+
 import analysis.normed.normed_field
 import analysis.convex.basic
 
+/-!
+# Polar set
+
+## Main definitions
+
+* `polar`
+
+## Main statements
+
+* `foo_bar_unique`
+
+## Notation
+
+
+
+## Implementation details
+
+
+
+## References
+
+* [F. Bar, *Quuxes*][bibkey]
+
+## Tags
+
+Foobars, barfoos
+-/
+
+
 variables {𝕜 E F : Type*}
+
+namespace linear_map
 
 section normed_ring
 
@@ -43,7 +80,19 @@ lemma polar_antitone : antitone (polar B : set E → set F) := (polar_gc B).mono
 
 @[simp] lemma polar_zero : polar B ({0} : set E) = set.univ :=
 begin
-  sorry,
+  refine set.eq_univ_iff_forall.mpr (λ y x hx, _),
+  rw [set.mem_singleton_iff.mp hx, map_zero, linear_map.zero_apply, norm_zero],
+  exact zero_le_one,
+end
+
+lemma subset_bipolar (s : set E) : s ⊆ polar B.flip (polar B s) :=
+λ x hx y hy, by { rw B.flip_apply, exact hy x hx }
+
+@[simp] lemma tripolar_eq_polar (s : set E) : polar B (polar B.flip (polar B s)) = polar B s :=
+begin
+  refine (polar_antitone B (subset_bipolar B s)).antisymm _,
+  convert subset_bipolar B.flip (polar B s),
+  exact B.flip_flip.symm,
 end
 
 end normed_ring
@@ -72,3 +121,5 @@ begin
 end
 
 end nondiscrete_normed_field
+
+end linear_map

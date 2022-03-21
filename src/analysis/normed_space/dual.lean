@@ -61,7 +61,7 @@ continuous_linear_map.finite_dimensional
 def inclusion_in_double_dual : E →L[𝕜] (dual 𝕜 (dual 𝕜 E)) :=
 continuous_linear_map.apply 𝕜 𝕜
 
-def top_dual_pairing : (dual 𝕜 E) →ₗ[𝕜] E →ₗ[𝕜] 𝕜 := continuous_linear_map.coe_lm 𝕜
+def dual_pairing : (dual 𝕜 E) →ₗ[𝕜] E →ₗ[𝕜] 𝕜 := continuous_linear_map.coe_lm 𝕜
 
 @[simp] lemma dual_def (x : E) (f : dual 𝕜 E) : inclusion_in_double_dual 𝕜 E x f = f x := rfl
 
@@ -136,16 +136,17 @@ evaluate to something of norm at most one at all points `z ∈ s`. -/
   {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) : set (dual 𝕜 E) :=
 {x' : dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1}-/
 def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) : set (dual 𝕜 E) :=
-_root_.polar (top_dual_pairing 𝕜 E).flip s
-
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] : set E → set (dual 𝕜 E) :=
+(dual_pairing 𝕜 E).flip.polar
 
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
+lemma mem_polar_iff {x' : dual 𝕜 E} (s : set E) : x' ∈ polar 𝕜 s ↔ ∀ z ∈ s, ∥x' z∥ ≤ 1 := iff.rfl
+
 @[simp] lemma polar_univ : polar 𝕜 (univ : set E) = {(0 : dual 𝕜 E)} :=
 begin
-  refine eq_singleton_iff_unique_mem.2 ⟨zero_mem_polar _ _, λ x' hx', _⟩,
+  refine eq_singleton_iff_unique_mem.2 ⟨linear_map.zero_mem_polar _ _, λ x' hx', _⟩,
   ext x,
   refine norm_le_zero_iff.1 (le_of_forall_le_of_dense $ λ ε hε, _),
   rcases normed_field.exists_norm_lt 𝕜 hε with ⟨c, hc, hcε⟩,
@@ -159,7 +160,7 @@ end
 lemma is_closed_polar (s : set E) : is_closed (polar 𝕜 s) :=
 begin
   dunfold normed_space.polar,
-  simp only [polar_eq_Inter, linear_map.flip_apply],
+  simp only [linear_map.polar_eq_Inter, linear_map.flip_apply],
   refine is_closed_bInter (λ z hz, _),
   exact is_closed_Iic.preimage (continuous_linear_map.apply 𝕜 𝕜 z).continuous.norm
 end
@@ -178,21 +179,8 @@ lemma polar_gc :
 
 variable {E}
 
-@[simp] lemma polar_Union {ι} (s : ι → set E) : polar 𝕜 (⋃ i, s i) = ⋂ i, polar 𝕜 (s i) :=
-(polar_gc 𝕜 E).l_supr
-
-@[simp] lemma polar_union (s t : set E) : polar 𝕜 (s ∪ t) = polar 𝕜 s ∩ polar 𝕜 t :=
-(polar_gc 𝕜 E).l_sup
-
-lemma polar_antitone : antitone (polar 𝕜 : set E → set (dual 𝕜 E)) := (polar_gc 𝕜 E).monotone_l
-
-@[simp] lemma polar_empty : polar 𝕜 (∅ : set E) = univ := (polar_gc 𝕜 E).l_bot
-
-@[simp] lemma polar_zero : polar 𝕜 ({0} : set E) = univ :=
-eq_univ_of_forall $ λ x', forall_eq.2 $ by { rw [map_zero, norm_zero], exact zero_le_one }
-
 @[simp] lemma polar_closure (s : set E) : polar 𝕜 (closure s) = polar 𝕜 s :=
-(polar_antitone 𝕜 subset_closure).antisymm $ (polar_gc 𝕜 E).l_le $
+((dual_pairing 𝕜 E).flip.polar_antitone subset_closure).antisymm $ (polar_gc 𝕜 E).l_le $
   closure_minimal ((polar_gc 𝕜 E).le_u_l s) $
   (is_closed_polar _ _).preimage (inclusion_in_double_dual 𝕜 E).continuous
 
@@ -203,7 +191,8 @@ small scalar multiple of `x'` is in `polar 𝕜 s`. -/
 lemma smul_mem_polar {s : set E} {x' : dual 𝕜 E} {c : 𝕜}
   (hc : ∀ z, z ∈ s → ∥ x' z ∥ ≤ ∥c∥) : c⁻¹ • x' ∈ polar 𝕜 s :=
 begin
-  by_cases c_zero : c = 0, { simp [c_zero] },
+  by_cases c_zero : c = 0, { simp only [c_zero, inv_zero, zero_smul],
+    exact (dual_pairing 𝕜 E).flip.zero_mem_polar _ },
   have eq : ∀ z, ∥ c⁻¹ • (x' z) ∥ = ∥ c⁻¹ ∥ * ∥ x' z ∥ := λ z, norm_smul c⁻¹ _,
   have le : ∀ z, z ∈ s → ∥ c⁻¹ • (x' z) ∥ ≤ ∥ c⁻¹ ∥ * ∥ c ∥,
   { intros z hzs,
@@ -219,6 +208,7 @@ lemma polar_ball_subset_closed_ball_div {c : 𝕜} (hc : 1 < ∥c∥) {r : ℝ} 
   polar 𝕜 (ball (0 : E) r) ⊆ closed_ball (0 : dual 𝕜 E) (∥c∥ / r) :=
 begin
   intros x' hx',
+  rw mem_polar_iff at hx',
   simp only [polar, mem_set_of_eq, mem_closed_ball_zero_iff, mem_ball_zero_iff] at *,
   have hcr : 0 < ∥c∥ / r, from div_pos (zero_lt_one.trans hc) hr,
   refine continuous_linear_map.op_norm_le_of_shell hr hcr.le hc (λ x h₁ h₂, _),
@@ -259,7 +249,7 @@ begin
   obtain ⟨a, ha⟩ : ∃ a : 𝕜, 1 < ∥a∥ := normed_field.exists_one_lt_norm 𝕜,
   obtain ⟨r, r_pos, r_ball⟩ : ∃ (r : ℝ) (hr : 0 < r), ball 0 r ⊆ s :=
     metric.mem_nhds_iff.1 s_nhd,
-  exact bounded_closed_ball.mono ((polar_antitone 𝕜 r_ball).trans $
+  exact bounded_closed_ball.mono (((dual_pairing 𝕜 E).flip.polar_antitone r_ball).trans $
     polar_ball_subset_closed_ball_div ha r_pos)
 end
 

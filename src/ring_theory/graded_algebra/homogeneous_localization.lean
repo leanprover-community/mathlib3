@@ -34,8 +34,8 @@ circumvent this, we quotient `num_denom_same_deg 𝒜 x` by the kernel of `c ↦
   we get an element `c.num / c.denom` of `Aₓ`.
 * `homogeneous_localization`: `num_denom_same_deg 𝒜 x` quotiented by kernel of `embedding 𝒜 x`.
 * `homogeneous_localization.val`: if `f : homogeneous_localization 𝒜 x`, then `f.val` is an element
-  of `Aₓ`. In another word, one can view `homogeneous_localization 𝒜 x` as a subring of `Aₓ` through
-  `homogeneous_localization.val`.
+  of `Aₓ`. In another word, one can view `homogeneous_localization 𝒜 x` as a subring of `Aₓ`
+  through `homogeneous_localization.val`.
 * `homogeneous_localization.num`: if `f : homogeneous_localization 𝒜 x`, then `f.num : A` is the
   numerator of `f`.
 * `homogeneous_localization.num`: if `f : homogeneous_localization 𝒜 x`, then `f.denom : A` is the
@@ -45,8 +45,8 @@ circumvent this, we quotient `num_denom_same_deg 𝒜 x` by the kernel of `c ↦
   (see `homogeneous_localization.num_mem` and `homogeneous_localization.denom_mem`).
 * `homogeneous_localization.num_mem`: if `f : homogeneous_localization 𝒜 x`, then `f.num_mem` is a
   proof that `f.num ∈ f.deg`.
-* `homogeneous_localization.denom_mem`: if `f : homogeneous_localization 𝒜 x`, then `f.denom_mem` is
-  a proof that `f.denom ∈ f.deg`.
+* `homogeneous_localization.denom_mem`: if `f : homogeneous_localization 𝒜 x`, then `f.denom_mem`
+  is a proof that `f.denom ∈ f.deg`.
 * `homogeneous_localization.eq_num_div_denom`: if `f : homogeneous_localization 𝒜 x`, then
   `f.val : Aₓ` is equal to `f.num / f.denom`.
 
@@ -127,9 +127,10 @@ instance : has_mul (num_denom_same_deg 𝒜 x) :=
     denom_not_mem := λ r, or.elim
       ((infer_instance : x.is_prime).mem_or_mem r) p.denom_not_mem q.denom_not_mem } }
 
-lemma deg_mul (c1 c2 : num_denom_same_deg 𝒜 x) : (c1 * c2).deg = c1.deg + c2.deg := rfl
-lemma num_mul (c1 c2 : num_denom_same_deg 𝒜 x) : ((c1 * c2).num : A) = c1.num * c2.num := rfl
-lemma denom_mul (c1 c2 : num_denom_same_deg 𝒜 x) :
+@[simp] lemma deg_mul (c1 c2 : num_denom_same_deg 𝒜 x) : (c1 * c2).deg = c1.deg + c2.deg := rfl
+@[simp] lemma num_mul (c1 c2 : num_denom_same_deg 𝒜 x) :
+  ((c1 * c2).num : A) = c1.num * c2.num := rfl
+@[simp] lemma denom_mul (c1 c2 : num_denom_same_deg 𝒜 x) :
   ((c1 * c2).denom : A) = c1.denom * c2.denom := rfl
 
 instance : has_add (num_denom_same_deg 𝒜 x) :=
@@ -142,18 +143,18 @@ instance : has_add (num_denom_same_deg 𝒜 x) :=
     denom_not_mem := λ r, or.elim
       ((infer_instance : x.is_prime).mem_or_mem r) c1.denom_not_mem c2.denom_not_mem } }
 
-lemma deg_add (c1 c2 : num_denom_same_deg 𝒜 x) : (c1 + c2).deg = c1.deg + c2.deg := rfl
-lemma num_add (c1 c2 : num_denom_same_deg 𝒜 x) :
+@[simp] lemma deg_add (c1 c2 : num_denom_same_deg 𝒜 x) : (c1 + c2).deg = c1.deg + c2.deg := rfl
+@[simp] lemma num_add (c1 c2 : num_denom_same_deg 𝒜 x) :
   ((c1 + c2).num : A) = c1.denom * c2.num + c2.denom * c1.num := rfl
-lemma denom_add (c1 c2 : num_denom_same_deg 𝒜 x) :
+@[simp] lemma denom_add (c1 c2 : num_denom_same_deg 𝒜 x) :
   ((c1 + c2).denom : A) = c1.denom * c2.denom := rfl
 
 instance : has_neg (num_denom_same_deg 𝒜 x) :=
 { neg := λ c, ⟨c.deg, ⟨-c.num, neg_mem _ c.num.2⟩, c.denom, c.denom_not_mem⟩ }
 
-lemma deg_neg (c : num_denom_same_deg 𝒜 x) : (-c).deg = c.deg := rfl
-lemma num_neg (c : num_denom_same_deg 𝒜 x) : ((-c).num : A) = -c.num := rfl
-lemma denom_neg (c : num_denom_same_deg 𝒜 x) : ((-c).denom : A) = c.denom := rfl
+@[simp] lemma deg_neg (c : num_denom_same_deg 𝒜 x) : (-c).deg = c.deg := rfl
+@[simp] lemma num_neg (c : num_denom_same_deg 𝒜 x) : ((-c).num : A) = -c.num := rfl
+@[simp] lemma denom_neg (c : num_denom_same_deg 𝒜 x) : ((-c).denom : A) = c.denom := rfl
 
 instance : comm_monoid (num_denom_same_deg 𝒜 x) :=
 { one := 1,
@@ -173,9 +174,10 @@ instance : has_pow (num_denom_same_deg 𝒜 x) ℕ :=
           ((infer_instance : x.is_prime).pow_mem_iff_mem n.succ (nat.zero_lt_succ _)).mp r }
     end⟩ }
 
-lemma deg_pow (c : num_denom_same_deg 𝒜 x) (n : ℕ) : (c ^ n).deg = n • c.deg := rfl
-lemma num_pow (c : num_denom_same_deg 𝒜 x) (n : ℕ) : ((c ^ n).num : A) = c.num ^ n := rfl
-lemma denom_pow (c : num_denom_same_deg 𝒜 x) (n : ℕ) : ((c ^ n).denom : A) = c.denom ^ n := rfl
+@[simp] lemma deg_pow (c : num_denom_same_deg 𝒜 x) (n : ℕ) : (c ^ n).deg = n • c.deg := rfl
+@[simp] lemma num_pow (c : num_denom_same_deg 𝒜 x) (n : ℕ) : ((c ^ n).num : A) = c.num ^ n := rfl
+@[simp] lemma denom_pow (c : num_denom_same_deg 𝒜 x) (n : ℕ) :
+  ((c ^ n).denom : A) = c.denom ^ n := rfl
 
 section has_scalar
 variables {α : Type*} [has_scalar α R] [has_scalar α A] [is_scalar_tower α R A]
@@ -183,11 +185,10 @@ variables {α : Type*} [has_scalar α R] [has_scalar α A] [is_scalar_tower α R
 instance : has_scalar α (num_denom_same_deg 𝒜 x) :=
 { smul := λ m c, ⟨c.deg, m • c.num, c.denom, c.denom_not_mem⟩ }
 
-lemma deg_smul (c : num_denom_same_deg 𝒜 x) (m : α) : (m • c).deg = c.deg := rfl
-
-lemma num_smul (c : num_denom_same_deg 𝒜 x) (m : α) : ((m • c).num : A) = m • c.num := rfl
-
-lemma denom_smul (c : num_denom_same_deg 𝒜 x) (m : α) : ((m • c).denom : A) = c.denom := rfl
+@[simp] lemma deg_smul (c : num_denom_same_deg 𝒜 x) (m : α) : (m • c).deg = c.deg := rfl
+@[simp] lemma num_smul (c : num_denom_same_deg 𝒜 x) (m : α) : ((m • c).num : A) = m • c.num := rfl
+@[simp] lemma denom_smul (c : num_denom_same_deg 𝒜 x) (m : α) :
+  ((m • c).denom : A) = c.denom := rfl
 
 end has_scalar
 
@@ -254,7 +255,7 @@ instance : has_scalar α (homogeneous_localization 𝒜 x) :=
       refl,
     end) }
 
-lemma smul_val (y : homogeneous_localization 𝒜 x) (n : α) :
+@[simp] lemma smul_val (y : homogeneous_localization 𝒜 x) (n : α) :
   (n • y).val = n • y.val :=
 begin
   induction y using quotient.induction_on,
@@ -318,7 +319,7 @@ localization.mk_zero _
 lemma one_val : (1 : homogeneous_localization 𝒜 x).val = 1 :=
 localization.mk_one
 
-lemma add_val (y1 y2 : homogeneous_localization 𝒜 x) :
+@[simp] lemma add_val (y1 y2 : homogeneous_localization 𝒜 x) :
   (y1 + y2).val = y1.val + y2.val :=
 begin
   induction y1 using quotient.induction_on,
@@ -331,7 +332,7 @@ begin
   refl
 end
 
-lemma mul_val (y1 y2 : homogeneous_localization 𝒜 x) :
+@[simp] lemma mul_val (y1 y2 : homogeneous_localization 𝒜 x) :
   (y1 * y2).val = y1.val * y2.val :=
 begin
   induction y1 using quotient.induction_on,
@@ -344,7 +345,7 @@ begin
   refl,
 end
 
-lemma neg_val (y : homogeneous_localization 𝒜 x) :
+@[simp] lemma neg_val (y : homogeneous_localization 𝒜 x) :
   (-y).val = -y.val :=
 begin
   induction y using quotient.induction_on,
@@ -356,11 +357,11 @@ begin
   refl,
 end
 
-lemma sub_val (y1 y2 : homogeneous_localization 𝒜 x) :
+@[simp] lemma sub_val (y1 y2 : homogeneous_localization 𝒜 x) :
   (y1 - y2).val = y1.val - y2.val :=
 by rw [show y1 - y2 = y1 + (-y2), from rfl, add_val, neg_val]; refl
 
-lemma pow_val (y : homogeneous_localization 𝒜 x) (n : ℕ) :
+@[simp] lemma pow_val (y : homogeneous_localization 𝒜 x) (n : ℕ) :
   (y ^ n).val = y.val ^ n :=
 begin
   induction y using quotient.induction_on,

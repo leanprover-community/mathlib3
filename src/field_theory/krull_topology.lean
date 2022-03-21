@@ -312,13 +312,13 @@ minpoly.ne_zero $ is_integral_of_noetherian (is_noetherian.iff_fg.2 infer_instan
 variable (E)
 
 /-- The set of basis elements of `E` as a `K`-vector space -/
-def basis_set: set E :=
+def basis_set_of_fin_dim_field_extension: set E :=
 set.range (finite_dimensional.fin_basis K E : _ → E)
 
 variable (L)
 
 /-- Function from Hom_K(E,L) to pi type Π (x : basis), roots of min poly of x -/
-def roots_of_min_poly_pi_type (φ : E →ₐ[K] L) (x : basis_set K E) :
+def roots_of_min_poly_pi_type (φ : E →ₐ[K] L) (x : basis_set_of_fin_dim_field_extension K E) :
   {l : L // l ∈ (roots_of_min_poly_multiset K x.1 : multiset L)} :=
 ⟨φ x, begin
   unfold roots_of_min_poly_multiset,
@@ -327,7 +327,7 @@ def roots_of_min_poly_pi_type (φ : E →ₐ[K] L) (x : basis_set K E) :
   exact congr_arg φ (minpoly.aeval K (x : E)),
 end⟩
 
-lemma aux_inj : function.injective (roots_of_min_poly_pi_type K E L) :=
+lemma aux_inj_roots_of_min_poly : function.injective (roots_of_min_poly_pi_type K E L) :=
 begin
   intros f g h,
   suffices : (f : E →ₗ[K] L) = g,
@@ -343,14 +343,15 @@ end
 
 /-- Given field extensions `E/K` and `L/K`, with `E/K` finite, there are finitely many `K`-algebra
   homomorphisms `E →ₐ[K] L`. -/
-noncomputable def alg_homs_finite : fintype (E →ₐ[K] L) :=
+noncomputable instance alg_homs_finite : fintype (E →ₐ[K] L) :=
 let n := finite_dimensional.finrank K E in
 begin
   let B : basis (fin n) K E := finite_dimensional.fin_basis K E,
   let X := set.range (B : fin n → E),
   have hX : X.finite := set.finite_range ⇑B,
   refine @fintype.of_injective _ _
-    (fintype.subtype_prod hX (λ e, ((minpoly K e).map (algebra_map K L)).roots)) _ (aux_inj K E L),
+    (fintype.subtype_prod hX (λ e, ((minpoly K e).map (algebra_map K L)).roots)) _
+    (aux_inj_roots_of_min_poly K E L),
 end
 
-end finite_stuff
+end finite

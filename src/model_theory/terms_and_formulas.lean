@@ -200,12 +200,12 @@ end term
 localized "prefix `&`:max := first_order.language.term.var ∘ sum.inr" in first_order
 
 /-- Maps a term's symbols along a language map. -/
-@[simp] def Lhom.on_term {α : Type} (φ : L →ᴸ L') : L.term α → L'.term α
+@[simp] def Lhom.on_term {α : Type*} (φ : L →ᴸ L') : L.term α → L'.term α
 | (var i) := var i
 | (func f ts) := func (φ.on_function f) (λ i, Lhom.on_term (ts i))
 
 @[simp] lemma Lhom.realize_on_term [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
-  {α : Type} (t : L.term α) (v : α → M) :
+  {α : Type*} (t : L.term α) (v : α → M) :
   (φ.on_term t).realize v = t.realize v :=
 begin
   induction t with _ n f ts ih,
@@ -571,7 +571,7 @@ namespace Lhom
 open bounded_formula
 
 /-- Maps a bounded formula's symbols along a language map. -/
-def on_bounded_formula {α : Type} (g : L →ᴸ L') :
+def on_bounded_formula {α : Type*} (g : L →ᴸ L') :
   ∀ {k : ℕ}, L.bounded_formula α k → L'.bounded_formula α k
 | k falsum := falsum
 | k (equal t₁ t₂) := (g.on_term t₁).bd_equal (g.on_term t₂)
@@ -580,7 +580,7 @@ def on_bounded_formula {α : Type} (g : L →ᴸ L') :
 | k (all f) := (on_bounded_formula f).all
 
 /-- Maps a formula's symbols along a language map. -/
-def on_formula {α : Type} (g : L →ᴸ L') : L.formula α → L'.formula α :=
+def on_formula {α : Type*} (g : L →ᴸ L') : L.formula α → L'.formula α :=
 g.on_bounded_formula
 
 /-- Maps a sentence's symbols along a language map. -/
@@ -596,7 +596,7 @@ g.on_sentence '' T
 set.mem_image _ _ _
 
 @[simp] lemma realize_on_bounded_formula [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
-  {α : Type} {n : ℕ} (ψ : L.bounded_formula α n) {v : α → M} {xs : fin n → M} :
+  {α : Type*} {n : ℕ} (ψ : L.bounded_formula α n) {v : α → M} {xs : fin n → M} :
   (φ.on_bounded_formula ψ).realize v xs ↔ ψ.realize v xs :=
 begin
   induction ψ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
@@ -703,7 +703,7 @@ end
 end formula
 
 @[simp] lemma Lhom.realize_on_formula [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
-  {α : Type} (ψ : L.formula α) {v : α → M} :
+  {α : Type*} (ψ : L.formula α) {v : α → M} :
   (φ.on_formula ψ).realize v ↔ ψ.realize v :=
 φ.realize_on_bounded_formula ψ
 

@@ -75,7 +75,7 @@ namespace homogeneous_localization
 section
 /--
 Let `x` be a prime ideal, then `num_denom_same_deg 𝒜 x` is a structure with a numerator and a
-denominator with same grading.
+denominator with same grading such that the denominator is not contained in `x`.
 -/
 @[nolint has_inhabited_instance]
 structure num_denom_same_deg :=

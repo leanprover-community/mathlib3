@@ -12,13 +12,18 @@ import data.set.finite
 In this file, we define supremum independence of indexed sets. An indexed family `f : ι → α` is
 sup-independent if, for all `a`, `f a` and the supremum of the rest are disjoint.
 
-In distributive lattices or frames, this is equivalent to being pairwise disjoint.
-
 ## Main definitions
 
 * `finset.sup_indep s f`: a family of elements `f` are supremum independent on the finite set `s`.
 * `complete_lattice.set_independent s`: a set of elements are supremum independent.
 * `complete_lattice.independent f`: a family of elements are supremum independent.
+
+## Main statements
+
+* In a distributive lattice, supremeum independence is equivalent to pairwise disjointness:
+  * `finset.sup_indep_iff_pairwise_disjoint`
+  * `complete_lattice.set_independent_iff_pairwise_disjoint`
+  * `complete_lattice.independent_iff_pairwise_disjoint`
 
 ## Implementation notes
 

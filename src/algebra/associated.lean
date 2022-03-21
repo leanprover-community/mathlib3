@@ -554,6 +554,9 @@ iff.intro
   (assume ⟨u, h⟩, h ▸ coe_unit_eq_one _)
   (assume h, h.symm ▸ is_unit_one)
 
+lemma is_unit_iff_eq_bot {a : associates α}: is_unit a ↔ a = ⊥ :=
+by rw [associates.is_unit_iff_eq_one, bot_eq_one]
+
 theorem is_unit_mk {a : α} : is_unit (associates.mk a) ↔ is_unit a :=
 calc is_unit (associates.mk a) ↔ a ~ᵤ 1 :
     by rw [is_unit_iff_eq_one, one_eq_mk_one, mk_eq_mk_iff_associated]
@@ -719,6 +722,12 @@ instance : partial_order (associates α) :=
   quot.sound $ associated_of_dvd_dvd (dvd_of_mk_le_mk hab) (dvd_of_mk_le_mk hba))
   .. associates.preorder }
 
+instance : ordered_comm_monoid (associates α) :=
+{ mul_le_mul_left := λ a b h c, by {obtain ⟨d, rfl⟩ := h, rw ← mul_assoc,
+  exact associates.le_mul_right},
+  ..associates.comm_monoid,
+  ..associates.partial_order}
+
 instance : no_zero_divisors (associates α) :=
 ⟨λ x y,
   (quotient.induction_on₂ x y $ assume a b h,
@@ -770,6 +779,12 @@ instance : cancel_comm_monoid_with_zero (associates α) :=
 { mul_left_cancel_of_ne_zero := eq_of_mul_eq_mul_left,
   mul_right_cancel_of_ne_zero := eq_of_mul_eq_mul_right,
   .. (infer_instance : comm_monoid_with_zero (associates α)) }
+
+instance : canonically_ordered_monoid (associates α) :=
+{ le_iff_exists_mul := λ a b, ⟨λ h, h, λ h, h⟩,
+  ..associates.cancel_comm_monoid_with_zero,
+  ..associates.bounded_order,
+  ..associates.ordered_comm_monoid}
 
 theorem dvd_not_unit_iff_lt {a b : associates α} :
   dvd_not_unit a b ↔ a < b :=

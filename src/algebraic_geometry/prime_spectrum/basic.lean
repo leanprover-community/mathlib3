@@ -718,8 +718,6 @@ section order
 
 We endow `prime_spectrum R` with a partial order,
 where `x ≤ y` if and only if `y ∈ closure {x}`.
-
-TODO: maybe define sober topological spaces, and generalise this instance to those
 -/
 
 instance : partial_order (prime_spectrum R) :=

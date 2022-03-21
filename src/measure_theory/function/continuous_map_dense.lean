@@ -46,7 +46,7 @@ open_locale ennreal nnreal topological_space bounded_continuous_function
 open measure_theory topological_space continuous_map
 
 variables {α : Type*} [measurable_space α] [topological_space α] [normal_space α] [borel_space α]
-variables (E : Type*) [measurable_space E] [normed_group E] [borel_space E]
+variables (E : Type*) [normed_group E]
   [second_countable_topology E]
 variables {p : ℝ≥0∞} [_i : fact (1 ≤ p)] (hp : p ≠ ∞) (μ : measure α)
 
@@ -60,6 +60,8 @@ variables [normed_space ℝ E]
 lemma bounded_continuous_function_dense [μ.weakly_regular] :
   (bounded_continuous_function E p μ).topological_closure = ⊤ :=
 begin
+  letI : measurable_space E := borel E,
+  haveI : borel_space E := ⟨rfl⟩,
   have hp₀ : 0 < p := lt_of_lt_of_le ennreal.zero_lt_one _i.elim,
   have hp₀' : 0 ≤ 1 / p.to_real := div_nonneg zero_le_one ennreal.to_real_nonneg,
   have hp₀'' : 0 < p.to_real,
@@ -146,7 +148,8 @@ begin
   have gc_cont : continuous (λ x, g x • c) := g.continuous.smul continuous_const,
   have gc_mem_ℒp : mem_ℒp (λ x, g x • c) p μ,
   { have : mem_ℒp ((λ x, g x • c) - s.indicator (λ x, c)) p μ :=
-    ⟨(gc_cont.ae_measurable μ).sub (measurable_const.indicator hs).ae_measurable,
+    ⟨((gc_cont.ae_measurable μ).sub (measurable_const.indicator hs).ae_measurable)
+        .ae_strongly_measurable,
       gc_snorm.trans_lt ennreal.coe_lt_top⟩,
     simpa using this.add (mem_ℒp_indicator_const p hs c (or.inr hsμ.ne)) },
   refine ⟨gc_mem_ℒp.to_Lp _, _, _⟩,
@@ -164,8 +167,7 @@ end
 
 end measure_theory.Lp
 
-variables (𝕜 : Type*) [measurable_space 𝕜] [normed_field 𝕜] [opens_measurable_space 𝕜]
-  [normed_algebra ℝ 𝕜] [normed_space 𝕜 E]
+variables (𝕜 : Type*) [normed_field 𝕜] [normed_algebra ℝ 𝕜] [normed_space 𝕜 E]
 
 namespace bounded_continuous_function
 

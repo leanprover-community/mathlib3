@@ -3,11 +3,10 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Julian Kuelshammer
 -/
-import data.nat.modeq
 import algebra.iterate_hom
-import algebra.pointwise
+import data.nat.modeq
+import data.set.pointwise
 import dynamics.periodic_pts
-import group_theory.coset
 import group_theory.quotient_group
 
 /-!
@@ -20,7 +19,7 @@ This file defines the order of an element of a finite group. For a finite group 
 
 * `is_of_fin_order` is a predicate on an element `x` of a monoid `G` saying that `x` is of finite
   order.
-* `is_of_fin_add_order` is the additive analogue of `is_of_find_order`.
+* `is_of_fin_add_order` is the additive analogue of `is_of_fin_order`.
 * `order_of x` defines the order of an element `x` of a monoid `G`, by convention its value is `0`
   if `x` has infinite order.
 * `add_order_of` is the additive analogue of `order_of`.
@@ -83,6 +82,11 @@ lemma is_of_fin_order.quotient {G : Type u} [group G] (N : subgroup G) [N.normal
   rintros ⟨n, ⟨npos, hn⟩⟩,
   exact ⟨n, ⟨npos, (quotient_group.con N).eq.mpr $ hn ▸ (quotient_group.con N).eq.mp rfl⟩⟩,
 end
+
+/-- 1 is of finite order in any group. -/
+@[to_additive "0 is of finite order in any additive group."]
+lemma is_of_fin_order_one : is_of_fin_order (1 : G) :=
+(is_of_fin_order_iff_pow_eq_one 1).mpr ⟨1, _root_.one_pos, one_pow 1⟩
 
 end is_of_fin_order
 
@@ -328,6 +332,19 @@ end cancel_monoid
 
 section group
 variables [group G] [add_group A] {x a} {i : ℤ}
+
+/-- Inverses of elements of finite order have finite order. -/
+@[to_additive "Inverses of elements of finite additive order have finite additive order."]
+lemma is_of_fin_order_inv (x : G) : is_of_fin_order x → is_of_fin_order x⁻¹ :=
+λ hx, (is_of_fin_order_iff_pow_eq_one _).mpr $ begin
+  rcases (is_of_fin_order_iff_pow_eq_one x).mp hx with ⟨n, npos, hn⟩,
+  refine ⟨n, npos, by simp_rw [inv_pow, hn, one_inv]⟩,
+end
+
+/-- Inverses of elements of finite order have finite order. -/
+@[simp, to_additive "Inverses of elements of finite additive order have finite additive order."]
+lemma is_of_fin_order_inv_iff {x : G} : is_of_fin_order x⁻¹ ↔ is_of_fin_order x :=
+⟨λ h, by rw [←inv_inv x]; exact (is_of_fin_order_inv x⁻¹) h, is_of_fin_order_inv x⟩
 
 @[to_additive add_order_of_dvd_iff_zsmul_eq_zero]
 lemma order_of_dvd_iff_zpow_eq_one : (order_of x : ℤ) ∣ i ↔ x ^ i = 1 :=

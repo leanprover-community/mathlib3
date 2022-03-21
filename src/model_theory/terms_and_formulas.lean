@@ -10,7 +10,7 @@ import set_theory.cardinal_ordinal
 
 /-!
 # Basics on First-Order Structures
-This file defines first-order languages and structures in the style of the
+This file defines first-order languages and structures in a style inspired by the
 [Flypitch project](https://flypitch.github.io/).
 
 ## Main Definitions
@@ -30,6 +30,13 @@ equivalence once it is known that this is equivalent to the proof-theoretic defi
 * `first_order.language.term.card_le` shows that the number of terms in `L.term α` is at most
 `# (α ⊕ Σ i, L.functions i) + ω`.
 
+## Implementation Notes
+* Formulas use a modified version of de Bruijn variables. Specifically, a `L.bounded_formula α n`
+is a formula with some variables indexed by a type `α`, which cannot be quantified over, and some
+indexed by `fin n`, which can. For any `φ : L.bounded_formula α (n + 1)`, we define the formula
+`∀' φ : L.bounded_formula α n` by universally quantifying over the variable indexed by
+`n : fin (n + 1)`.
+
 ## References
 For the Flypitch project:
 - [J. Han, F. van Doorn, *A formal proof of the independence of the continuum hypothesis*]
@@ -44,11 +51,11 @@ universes u v w u' v'
 namespace first_order
 namespace language
 
-variables (L : language.{u v})
+variables (L : language.{u v}) {L' : language}
 variables {M : Type w} {N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
 variables {α : Type u'} {β : Type v'}
 open_locale first_order cardinal
-open Structure cardinal
+open Structure cardinal fin
 
 /-- A term on `α` is either a variable indexed by an element of `α`
   or a function symbol applied to simpler terms. -/
@@ -146,11 +153,16 @@ encodable.of_left_injection list_encode (λ l, (list_decode l).head')
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 
-instance inhabited_of_constant [inhabited L.constants] : inhabited (L.term α) :=
-⟨func (default : L.constants) default⟩
+end term
 
-instance : has_coe L.constants (L.term α) :=
-⟨λ c, func c default⟩
+/-- The representation of a constant symbol as a term. -/
+def constants.term (c : L.constants) : (L.term α) :=
+func c default
+
+namespace term
+
+instance inhabited_of_constant [inhabited L.constants] : inhabited (L.term α) :=
+⟨(default : L.constants).term⟩
 
 /-- A term `t` with variables indexed by `α` can be evaluated by giving a value to each variable. -/
 @[simp] def realize (v : α → M) :
@@ -166,9 +178,40 @@ begin
   { simp [ih] }
 end
 
+/-- Raises all of the `fin`-indexed variables of a term greater than or equal to `m` by `n'`. -/
+def lift_at {n : ℕ} (n' m : ℕ) : L.term (α ⊕ fin n) → L.term (α ⊕ fin (n + n')) :=
+relabel (sum.map id (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i))
+
+@[simp] lemma realize_lift_at {n n' m : ℕ} {t : L.term (α ⊕ fin n)}
+  {v : (α ⊕ fin (n + n')) → M} :
+  (t.lift_at n' m).realize v = t.realize (v ∘
+    (sum.map id (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i))) :=
+realize_relabel
+
+@[simp] lemma realize_constants {c : L.constants} {v : α → M} :
+  c.term.realize v = c :=
+fun_map_eq_coe_constants
+
+lemma realize_con {A : set M} {a : A} {v : α → M} :
+  (L.con a).term.realize v = a := rfl
+
 end term
 
 localized "prefix `&`:max := first_order.language.term.var ∘ sum.inr" in first_order
+
+/-- Maps a term's symbols along a language map. -/
+@[simp] def Lhom.on_term {α : Type*} (φ : L →ᴸ L') : L.term α → L'.term α
+| (var i) := var i
+| (func f ts) := func (φ.on_function f) (λ i, Lhom.on_term (ts i))
+
+@[simp] lemma Lhom.realize_on_term [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  {α : Type*} (t : L.term α) (v : α → M) :
+  (φ.on_term t).realize v = t.realize v :=
+begin
+  induction t with _ n f ts ih,
+  { refl },
+  { simp only [term.realize, Lhom.on_term, Lhom.is_expansion_on.map_on_function, ih] }
+end
 
 @[simp] lemma hom.realize_term (g : M →[L] N) {t : L.term α} {v : α → M} :
   t.realize (g ∘ v) = g (t.realize v) :=
@@ -251,6 +294,15 @@ instance : has_sup (L.bounded_formula α n) := ⟨λ f g, f.not.imp g⟩
 /-- The biimplication between two bounded formulas. -/
 protected def iff (φ ψ : L.bounded_formula α n) := φ.imp ψ ⊓ ψ.imp φ
 
+/-- Casts `L.bounded_formula α m` as `L.bounded_formula α n`, where `m ≤ n`. -/
+def cast_le : ∀ {m n : ℕ} (h : m ≤ n), L.bounded_formula α m → L.bounded_formula α n
+| m n h falsum := falsum
+| m n h (equal t₁ t₂) := (t₁.relabel (sum.map id (fin.cast_le h))).bd_equal
+    (t₂.relabel (sum.map id (fin.cast_le h)))
+| m n h (rel R ts) := R.bounded_formula (term.relabel (sum.map id (fin.cast_le h)) ∘ ts)
+| m n h (imp f₁ f₂) := (f₁.cast_le h).imp (f₂.cast_le h)
+| m n h (all f) := (f.cast_le (add_le_add_right h 1)).all
+
 /-- A function to help relabel the variables in bounded formulas. -/
 def relabel_aux (g : α → (β ⊕ fin n)) (k : ℕ) :
   α ⊕ fin k → β ⊕ fin (n + k) :=
@@ -259,7 +311,7 @@ def relabel_aux (g : α → (β ⊕ fin n)) (k : ℕ) :
 @[simp] lemma sum_elim_comp_relabel_aux {m : ℕ} {g : α → (β ⊕ fin n)}
   {v : β → M} {xs : fin (n + m) → M} :
   sum.elim v xs ∘ relabel_aux g m =
-    sum.elim (sum.elim v (xs ∘ (fin.cast_add m)) ∘ g) (xs ∘ (fin.nat_add n)) :=
+    sum.elim (sum.elim v (xs ∘ cast_add m) ∘ g) (xs ∘ nat_add n) :=
 begin
   ext x,
   cases x,
@@ -288,6 +340,14 @@ def exs : ∀ {n}, L.bounded_formula α n → L.formula α
 | 0 φ := φ
 | (n + 1) φ := φ.ex.exs
 
+/-- Raises all of the `fin`-indexed variables of a formula greater than or equal to `m` by `n'`. -/
+def lift_at : ∀ {n : ℕ} (n' m : ℕ), L.bounded_formula α n → L.bounded_formula α (n + n')
+| n n' m falsum := falsum
+| n n' m (equal t₁ t₂) := (t₁.lift_at n' m).bd_equal (t₂.lift_at n' m)
+| n n' m (rel R ts) := R.bounded_formula (term.lift_at n' m ∘ ts)
+| n n' m (imp f₁ f₂) := (f₁.lift_at n' m).imp (f₂.lift_at n' m)
+| n n' m (all f) := ((f.lift_at n' m).cast_le (by rw [add_assoc, add_comm 1, ← add_assoc])).all
+
 /-- A bounded formula can be evaluated as true or false by giving values to each free variable. -/
 def realize :
   ∀ {l} (f : L.bounded_formula α l) (v : α → M) (xs : fin l → M), Prop
@@ -295,7 +355,7 @@ def realize :
 | _ (equal t₁ t₂) v xs := t₁.realize (sum.elim v xs) = t₂.realize (sum.elim v xs)
 | _ (rel R ts)    v xs := rel_map R (λ i, (ts i).realize (sum.elim v xs))
 | _ (imp f₁ f₂)   v xs := realize f₁ v xs → realize f₂ v xs
-| _ (all f)       v xs := ∀(x : M), realize f v (fin.snoc xs x)
+| _ (all f)       v xs := ∀(x : M), realize f v (snoc xs x)
 
 variables {l : ℕ} {φ ψ : L.bounded_formula α l} {θ : L.bounded_formula α l.succ}
 variables {v : α → M} {xs : fin l → M}
@@ -345,6 +405,23 @@ end
 @[simp] lemma realize_iff : (φ.iff ψ).realize v xs ↔ (φ.realize v xs ↔ ψ.realize v xs) :=
 by simp only [bounded_formula.iff, realize_inf, realize_imp, and_imp, ← iff_def]
 
+lemma realize_cast_le_of_eq {m n : ℕ} (h : m = n) {h' : m ≤ n} {φ : L.bounded_formula α m}
+  {v : α → M} {xs : fin n → M} :
+  (φ.cast_le h').realize v xs ↔ φ.realize v (xs ∘ fin.cast h) :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 k _ ih3 generalizing n xs h h',
+  { simp [cast_le, realize] },
+  { simp only [cast_le, realize, realize_bd_equal, term.realize_relabel, sum.elim_comp_map,
+      function.comp.right_id, cast_le_of_eq h], },
+  { simp only [cast_le, realize, realize_rel, term.realize_relabel, sum.elim_comp_map,
+      function.comp.right_id, cast_le_of_eq h] },
+  { simp only [cast_le, realize, ih1 h, ih2 h], },
+  { simp only [cast_le, realize, ih3 (nat.succ_inj'.2 h)],
+    refine forall_congr (λ x, iff_eq_eq.mpr (congr rfl (funext (last_cases _ (λ i, _))))),
+    { rw [function.comp_app, snoc_last, cast_last, snoc_last] },
+    { rw [function.comp_app, snoc_cast_succ, cast_cast_succ, snoc_cast_succ] } }
+end
+
 lemma realize_relabel {m n : ℕ}
   {φ : L.bounded_formula α n} {g : α → (β ⊕ fin m)} {v : β → M} {xs : fin (m + n) → M} :
   (φ.relabel g).realize v xs ↔
@@ -364,7 +441,175 @@ begin
       { exact (dif_neg (λ h', h (nat.lt_of_add_lt_add_left h'))).trans (dif_neg h).symm } } }
 end
 
+lemma realize_lift_at {n n' m : ℕ} {φ : L.bounded_formula α n}
+  {v : α → M} {xs : fin (n + n') → M} (hmn : m + n' ≤ n + 1) :
+  (φ.lift_at n' m).realize v xs ↔ φ.realize v (xs ∘
+    (λ i, if ↑i < m then fin.cast_add n' i else fin.add_nat n' i)) :=
+begin
+  induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 k _ ih3,
+  { simp [lift_at, realize] },
+  { simp only [lift_at, realize, realize_bd_equal, realize_lift_at, sum.elim_comp_map,
+      function.comp.right_id] },
+  { simp only [lift_at, realize, realize_rel, realize_lift_at, sum.elim_comp_map,
+      function.comp.right_id] },
+  { simp only [lift_at, realize, ih1 hmn, ih2 hmn], },
+  { have h : k + 1 + n' = k + n'+ 1,
+    { rw [add_assoc, add_comm 1 n', ← add_assoc], },
+    simp only [lift_at, realize, realize_cast_le_of_eq h, ih3 (hmn.trans k.succ.le_succ)],
+    refine forall_congr (λ x, iff_eq_eq.mpr (congr rfl (funext (fin.last_cases _ (λ i, _))))),
+    { simp only [function.comp_app, coe_last, snoc_last],
+      by_cases (k < m),
+      { rw if_pos h,
+        refine (congr rfl (ext _)).trans (snoc_last _ _),
+        simp only [coe_cast, coe_cast_add, coe_last, self_eq_add_right],
+        refine le_antisymm (le_of_add_le_add_left ((hmn.trans (nat.succ_le_of_lt h)).trans _))
+          n'.zero_le,
+        rw add_zero },
+      { rw if_neg h,
+        refine (congr rfl (ext _)).trans (snoc_last _ _),
+        simp } },
+    { simp only [function.comp_app, fin.snoc_cast_succ],
+      refine (congr rfl (ext _)).trans (snoc_cast_succ _ _ _),
+      simp only [cast_refl, coe_cast_succ, order_iso.coe_refl, id.def],
+      split_ifs;
+      simp } }
+end
+
+lemma realize_lift_at_one {n m : ℕ} {φ : L.bounded_formula α n}
+  {v : α → M} {xs : fin (n + 1) → M} (hmn : m ≤ n) :
+  (φ.lift_at 1 m).realize v xs ↔ φ.realize v (xs ∘
+    (λ i, if ↑i < m then cast_succ i else i.succ)) :=
+by simp_rw [realize_lift_at (add_le_add_right hmn 1), cast_succ, add_nat_one]
+
+@[simp] lemma realize_lift_at_one_self {n : ℕ} {φ : L.bounded_formula α n}
+  {v : α → M} {xs : fin (n + 1) → M} :
+  (φ.lift_at 1 n).realize v xs ↔ φ.realize v (xs ∘ cast_succ) :=
+begin
+  rw [realize_lift_at_one (refl n), iff_eq_eq],
+  refine congr rfl (congr rfl (funext (λ i, _))),
+  rw [if_pos i.is_lt],
+end
+
+lemma realize_all_lift_at_one_self [nonempty M] {n : ℕ} {φ : L.bounded_formula α n}
+  {v : α → M} {xs : fin n → M} :
+  (φ.lift_at 1 n).all.realize v xs ↔ φ.realize v xs :=
+begin
+  inhabit M,
+  simp only [realize_all, realize_lift_at_one_self],
+  refine ⟨λ h, _, λ h a, _⟩,
+  { refine (congr rfl (funext (λ i, _))).mp (h default),
+    simp, },
+  { refine (congr rfl (funext (λ i, _))).mp h,
+    simp }
+end
+
+
+/-- An atomic formula is either equality or a relation symbol applied to terms.
+  Note that `⊥` and `⊤` are not considered atomic in this convention. -/
+inductive is_atomic : L.bounded_formula α n → Prop
+| equal (t₁ t₂ : L.term (α ⊕ fin n)) : is_atomic (bd_equal t₁ t₂)
+| rel {l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)) :
+    is_atomic (R.bounded_formula ts)
+
+lemma is_atomic.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_atomic)
+  (f : α → β ⊕ (fin n)) :
+  (φ.relabel f).is_atomic :=
+is_atomic.rec_on h (λ _ _, is_atomic.equal _ _) (λ _ _ _, is_atomic.rel _ _)
+
+/-- A quantifier-free formula is a formula defined without quantifiers. These are all equivalent
+to boolean combinations of atomic formulas. -/
+inductive is_qf : L.bounded_formula α n → Prop
+| falsum : is_qf falsum
+| of_is_atomic {φ} (h : is_atomic φ) : is_qf φ
+| imp {φ₁ φ₂} (h₁ : is_qf φ₁) (h₂ : is_qf φ₂) : is_qf (φ₁.imp φ₂)
+
+lemma is_atomic.is_qf {φ : L.bounded_formula α n} : is_atomic φ → is_qf φ :=
+is_qf.of_is_atomic
+
+lemma is_qf_bot : is_qf (⊥ : L.bounded_formula α n) :=
+is_qf.falsum
+
+lemma is_qf.not {φ : L.bounded_formula α n} (h : is_qf φ) :
+  is_qf φ.not :=
+h.imp is_qf_bot
+
+lemma is_qf.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_qf)
+  (f : α → β ⊕ (fin n)) :
+  (φ.relabel f).is_qf :=
+is_qf.rec_on h is_qf_bot (λ _ h, (h.relabel f).is_qf) (λ _ _ _ _, is_qf.imp)
+
+/-- Indicates that a bounded formula is in prenex normal form - that is, it consists of quantifiers
+  applied to a quantifier-free formula. -/
+inductive is_prenex : ∀ {n}, L.bounded_formula α n → Prop
+| of_is_qf {n} {φ : L.bounded_formula α n} (h : is_qf φ) : is_prenex φ
+| all {n} {φ : L.bounded_formula α (n + 1)} (h : is_prenex φ) : is_prenex φ.all
+| ex {n} {φ : L.bounded_formula α (n + 1)} (h : is_prenex φ) : is_prenex φ.ex
+
+lemma is_qf.is_prenex {φ : L.bounded_formula α n} : is_qf φ → is_prenex φ :=
+is_prenex.of_is_qf
+
+lemma is_atomic.is_prenex {φ : L.bounded_formula α n} (h : is_atomic φ) : is_prenex φ :=
+h.is_qf.is_prenex
+
+lemma is_prenex.induction_on_all_not {P : ∀ {n}, L.bounded_formula α n → Prop}
+  {φ : L.bounded_formula α n}
+  (h : is_prenex φ)
+  (hq : ∀ {m} {ψ : L.bounded_formula α m}, ψ.is_qf → P ψ)
+  (ha : ∀ {m} {ψ : L.bounded_formula α (m + 1)}, P ψ → P ψ.all)
+  (hn : ∀ {m} {ψ : L.bounded_formula α m}, P ψ → P ψ.not) :
+  P φ :=
+is_prenex.rec_on h (λ _ _, hq) (λ _ _ _, ha) (λ _ _ _ ih, hn (ha (hn ih)))
+
+lemma is_prenex.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_prenex)
+  (f : α → β ⊕ (fin n)) :
+  (φ.relabel f).is_prenex :=
+is_prenex.rec_on h (λ _ _ h, (h.relabel f).is_prenex) (λ _ _ _ h, h.all) (λ _ _ _ h, h.ex)
+
 end bounded_formula
+
+namespace Lhom
+open bounded_formula
+
+/-- Maps a bounded formula's symbols along a language map. -/
+def on_bounded_formula {α : Type*} (g : L →ᴸ L') :
+  ∀ {k : ℕ}, L.bounded_formula α k → L'.bounded_formula α k
+| k falsum := falsum
+| k (equal t₁ t₂) := (g.on_term t₁).bd_equal (g.on_term t₂)
+| k (rel R ts) := (g.on_relation R).bounded_formula (g.on_term ∘ ts)
+| k (imp f₁ f₂) := (on_bounded_formula f₁).imp (on_bounded_formula f₂)
+| k (all f) := (on_bounded_formula f).all
+
+/-- Maps a formula's symbols along a language map. -/
+def on_formula {α : Type*} (g : L →ᴸ L') : L.formula α → L'.formula α :=
+g.on_bounded_formula
+
+/-- Maps a sentence's symbols along a language map. -/
+def on_sentence (g : L →ᴸ L') : L.sentence → L'.sentence :=
+g.on_formula
+
+/-- Maps a theory's symbols along a language map. -/
+def on_Theory (g : L →ᴸ L') (T : L.Theory) : L'.Theory :=
+g.on_sentence '' T
+
+@[simp] lemma mem_on_Theory {g : L →ᴸ L'} {T : L.Theory} {φ : L'.sentence} :
+  φ ∈ g.on_Theory T ↔ ∃ φ₀, φ₀ ∈ T ∧ g.on_sentence φ₀ = φ :=
+set.mem_image _ _ _
+
+@[simp] lemma realize_on_bounded_formula [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  {α : Type*} {n : ℕ} (ψ : L.bounded_formula α n) {v : α → M} {xs : fin n → M} :
+  (φ.on_bounded_formula ψ).realize v xs ↔ ψ.realize v xs :=
+begin
+  induction ψ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp only [on_bounded_formula, realize_bd_equal, realize_on_term],
+    refl, },
+  { simp only [on_bounded_formula, realize_rel, realize_on_term, is_expansion_on.map_on_relation],
+    refl, },
+  { simp only [on_bounded_formula, ih1, ih2, realize_imp], },
+  { simp only [on_bounded_formula, ih3, realize_all], },
+end
+
+end Lhom
 
 attribute [protected] bounded_formula.falsum bounded_formula.equal bounded_formula.rel
 attribute [protected] bounded_formula.imp bounded_formula.all
@@ -383,7 +628,7 @@ namespace formula
 
 /-- Relabels a formula's variables along a particular function. -/
 def relabel (g : α → β) : L.formula α → L.formula β :=
-bounded_formula.relabel (sum.inl ∘ g)
+@bounded_formula.relabel _ _ _ 0 (sum.inl ∘ g) 0
 
 /-- The graph of a function as a first-order formula. -/
 def graph (f : L.functions n) : L.formula (fin (n + 1)) :=
@@ -457,19 +702,38 @@ end
 
 end formula
 
+@[simp] lemma Lhom.realize_on_formula [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  {α : Type*} (ψ : L.formula α) {v : α → M} :
+  (φ.on_formula ψ).realize v ↔ ψ.realize v :=
+φ.realize_on_bounded_formula ψ
+
 variable (M)
 
 /-- A sentence can be evaluated as true or false in a structure. -/
-@[reducible] def realize_sentence (φ : L.sentence) : Prop :=
+def sentence.realize (φ : L.sentence) : Prop :=
 φ.realize (default : _ → M)
 
-infix ` ⊨ `:51 := realize_sentence -- input using \|= or \vDash, but not using \models
+infix ` ⊨ `:51 := sentence.realize -- input using \|= or \vDash, but not using \models
+
+@[simp] lemma Lhom.realize_on_sentence [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  (ψ : L.sentence) :
+  M ⊨ φ.on_sentence ψ ↔ M ⊨ ψ :=
+φ.realize_on_formula ψ
 
 /-- A model of a theory is a structure in which every sentence is realized as true. -/
 @[reducible] def Theory.model (T : L.Theory) : Prop :=
-∀ φ ∈ T, realize_sentence M φ
+∀ φ ∈ T, M ⊨ φ
 
 infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \models
+
+@[simp] lemma Lhom.on_Theory_model [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  (T : L.Theory) :
+  M ⊨ φ.on_Theory T ↔ M ⊨ T :=
+begin
+  refine ⟨λ h ψ hψ, (φ.realize_on_sentence M _).1 (h _ (set.mem_image_of_mem _ hψ)), λ h ψ hψ, _⟩,
+  obtain ⟨ψ₀, hψ₀, rfl⟩ := Lhom.mem_on_Theory.1 hψ,
+  exact (φ.realize_on_sentence M _).2 (h _ hψ₀),
+end
 
 variable {M}
 
@@ -593,7 +857,7 @@ forall_congr (λ M, forall_congr (λ ne, forall_congr (λ str, forall_congr (λ 
 
 lemma models_sentence_iff {T : L.Theory} {φ : L.sentence} :
   T ⊨ φ ↔ ∀ (M : Type (max u v)) [nonempty M] [str : L.Structure M],
-    @Theory.model L M str T → @realize_sentence L M str φ :=
+    @Theory.model L M str T → @sentence.realize L M str φ :=
 begin
   rw [models_formula_iff],
   exact forall_congr (λ M, forall_congr (λ ne, forall_congr (λ str, unique.forall_iff)))
@@ -665,6 +929,10 @@ lemma inf_semantically_equivalent_not_sup_not :
   T.semantically_equivalent (φ ⊓ ψ) (φ.not ⊔ ψ.not).not :=
 λ M ne str v xs hM, by simp [and_iff_not_or_not]
 
+lemma semantically_equivalent_all_lift_at :
+  T.semantically_equivalent φ (φ.lift_at 1 n).all :=
+λ M ne str v xs hM, by { resetI, rw [realize_iff, realize_all_lift_at_one_self] }
+
 end bounded_formula
 
 namespace formula
@@ -686,6 +954,35 @@ lemma inf_semantically_equivalent_not_sup_not :
   T.semantically_equivalent (φ ⊓ ψ) (φ.not ⊔ ψ.not).not :=
 φ.inf_semantically_equivalent_not_sup_not ψ
 end formula
+
+namespace bounded_formula
+
+lemma is_qf.induction_on_sup_not {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
+  (h : is_qf φ)
+  (hf : P (⊥ : L.bounded_formula α n))
+  (ha : ∀ (ψ : L.bounded_formula α n), is_atomic ψ → P ψ)
+  (hsup : ∀ {φ₁ φ₂} (h₁ : P φ₁) (h₂ : P φ₂), P (φ₁ ⊔ φ₂))
+  (hnot : ∀ {φ} (h : P φ), P φ.not)
+  (hse : ∀ {φ₁ φ₂ : L.bounded_formula α n}
+    (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
+  P φ :=
+is_qf.rec_on h hf ha (λ φ₁ φ₂ _ _ h1 h2,
+  (hse (φ₁.imp_semantically_equivalent_not_sup φ₂)).2 (hsup (hnot h1) h2))
+
+lemma is_qf.induction_on_inf_not {P : L.bounded_formula α n → Prop} {φ : L.bounded_formula α n}
+  (h : is_qf φ)
+  (hf : P (⊥ : L.bounded_formula α n))
+  (ha : ∀ (ψ : L.bounded_formula α n), is_atomic ψ → P ψ)
+  (hinf : ∀ {φ₁ φ₂} (h₁ : P φ₁) (h₂ : P φ₂), P (φ₁ ⊓ φ₂))
+  (hnot : ∀ {φ} (h : P φ), P φ.not)
+  (hse : ∀ {φ₁ φ₂ : L.bounded_formula α n}
+    (h : Theory.semantically_equivalent ∅ φ₁ φ₂), P φ₁ ↔ P φ₂) :
+  P φ :=
+h.induction_on_sup_not hf ha (λ φ₁ φ₂ h1 h2,
+  ((hse (φ₁.sup_semantically_equivalent_not_inf_not φ₂)).2 (hnot (hinf (hnot h1) (hnot h2)))))
+  (λ _, hnot) (λ _ _, hse)
+
+end bounded_formula
 
 end language
 end first_order

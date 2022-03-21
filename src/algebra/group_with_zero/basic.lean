@@ -268,8 +268,7 @@ section monoid_with_zero
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.monoid_with_zero [has_zero M₀'] [has_mul M₀'] [has_one M₀']
-  [has_pow M₀' ℕ]
-  [monoid_with_zero M₀]
+  [has_pow M₀' ℕ] [monoid_with_zero M₀]
   (f : M₀' → M₀) (hf : injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   monoid_with_zero M₀' :=

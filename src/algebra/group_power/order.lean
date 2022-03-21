@@ -126,14 +126,6 @@ end canonically_ordered_comm_semiring
 section ordered_semiring
 variables [ordered_semiring R] {a x y : R} {n m : ℕ}
 
-@[simp] theorem pow_pos (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
-| 0     := by { nontriviality, rw pow_zero, exact zero_lt_one }
-| (n+1) := by { rw pow_succ, exact mul_pos H (pow_pos _) }
-
-@[simp] theorem pow_nonneg (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
-| 0     := by { rw pow_zero, exact zero_le_one}
-| (n+1) := by { rw pow_succ, exact mul_nonneg H (pow_nonneg _) }
-
 theorem pow_add_pow_le (hx : 0 ≤ x) (hy : 0 ≤ y) (hn : n ≠ 0) : x ^ n + y ^ n ≤ (x + y) ^ n :=
 begin
   rcases nat.exists_eq_succ_of_ne_zero hn with ⟨k, rfl⟩,

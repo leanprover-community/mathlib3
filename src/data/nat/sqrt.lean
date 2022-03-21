@@ -187,18 +187,6 @@ theorem eq_sqrt {n q} : q = sqrt n ↔ q*q ≤ n ∧ n < (q+1)*(q+1) :=
 theorem eq_sqrt' {n q} : q = sqrt n ↔ q ^ 2 ≤ n ∧ n < (q+1) ^ 2 :=
 by simpa only [pow_two] using eq_sqrt
 
-@[simp] lemma sqrt_one : sqrt 1 = 1 :=
-begin
-  symmetry,
-  rw eq_sqrt,
-  simp,
-  have : (1 + 1) * (1 + 1) = 4,
-  { calc (1 + 1) * (1 + 1) = 2 * 2 : by simp
-    ... = 4 : rfl, },
-  rw this,
-  simp,
-end
-
 theorem le_three_of_sqrt_eq_one {n : ℕ} (h : sqrt n = 1) : n ≤ 3 :=
 le_of_lt_succ $ (@sqrt_lt n 2).1 $
 by rw [h]; exact dec_trivial
@@ -224,6 +212,9 @@ sqrt_add_eq n (zero_le _)
 
 theorem sqrt_eq' (n : ℕ) : sqrt (n ^ 2) = n :=
 sqrt_add_eq' n (zero_le _)
+
+@[simp] lemma sqrt_one : sqrt 1 = 1 :=
+sqrt_eq 1
 
 theorem sqrt_succ_le_succ_sqrt (n : ℕ) : sqrt n.succ ≤ n.sqrt.succ :=
 le_of_lt_succ $ sqrt_lt.2 $ lt_succ_of_le $ succ_le_succ $

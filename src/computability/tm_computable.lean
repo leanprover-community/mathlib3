@@ -113,8 +113,8 @@ structure evals_to_in_time {σ : Type*} (f : σ → option σ) (a : σ) (b : opt
 ⟨evals_to.refl f a, le_refl 0⟩
 
 /-- Transitivity of `evals_to_in_time` in the sum of the numbers of steps. -/
-@[trans] def evals_to_in_time.trans {σ : Type*} (f : σ → option σ) (a : σ) (b : σ) (c : option σ)
-  (m₁ : ℕ) (m₂ : ℕ) (h₁ : evals_to_in_time f a b m₁) (h₂ : evals_to_in_time f b c m₂) :
+@[trans] def evals_to_in_time.trans {σ : Type*} (f : σ → option σ) (m₁ : ℕ) (m₂ : ℕ)
+  (a : σ) (b : σ) (c : option σ) (h₁ : evals_to_in_time f a b m₁) (h₂ : evals_to_in_time f b c m₂) :
   evals_to_in_time f a c (m₂ + m₁) :=
 ⟨evals_to.trans f a b c h₁.to_evals_to h₂.to_evals_to, add_le_add h₂.steps_le_m h₁.steps_le_m⟩
 

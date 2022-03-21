@@ -71,8 +71,7 @@ is_extreme.refl 𝕜 A
 @[trans] protected lemma is_extreme.trans (hAB : is_extreme 𝕜 A B) (hBC : is_extreme 𝕜 B C) :
   is_extreme 𝕜 A C :=
 begin
-  use subset.trans hBC.1 hAB.1,
-  rintro x₁ hx₁A x₂ hx₂A x hxC hx,
+  refine ⟨subset.trans hBC.1 hAB.1, λ x₁ hx₁A x₂ hx₂A x hxC hx, _⟩,
   obtain ⟨hx₁B, hx₂B⟩ := hAB.2 x₁ hx₁A x₂ hx₂A x (hBC.1 hxC) hx,
   exact hBC.2 x₁ hx₁B x₂ hx₂B x hxC hx,
 end

@@ -87,7 +87,8 @@ end
 @[symm] lemma is_equivalent.symm (h : u ~[l] v) : v ~[l] u :=
 (h.is_o.trans_is_O h.is_O_symm).symm
 
-@[trans] lemma is_equivalent.trans (huv : u ~[l] v) (hvw : v ~[l] w) : u ~[l] w :=
+@[trans] lemma is_equivalent.trans {l : filter α} {u v w : α → β}
+  (huv : u ~[l] v) (hvw : v ~[l] w) : u ~[l] w :=
 (huv.is_o.trans_is_O hvw.is_O).triangle hvw.is_o
 
 lemma is_equivalent.congr_left {u v w : α → β} {l : filter α} (huv : u ~[l] v)

@@ -255,7 +255,8 @@ rel_embedding.trans_apply _ _ _
 @[simp] theorem lt_le_top (f : r ≺i s) (g : s ≼i t) : (f.lt_le g).top = g f.top := rfl
 
 /-- Composition of two principal segments as a principal segment -/
-@[trans] protected def trans [is_trans γ t] (f : r ≺i s) (g : s ≺i t) : r ≺i t :=
+@[trans] protected def trans [is_trans γ t] {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
+  (f : r ≺i s) (g : s ≺i t) : r ≺i t :=
 lt_le f g
 
 @[simp] theorem trans_apply [is_trans γ t] (f : r ≺i s) (g : s ≺i t) (a : α) :

@@ -109,7 +109,7 @@ protected lemma is_ideal (I : ideal P) : is_ideal (I : set P) := ⟨I.2, I.3, I.
 /-- The partial ordering by subset inclusion, inherited from `set P`. -/
 instance : partial_order (ideal P) := partial_order.lift coe coe_injective
 
-@[trans] lemma mem_of_mem_of_le : x ∈ I → I ≤ J → x ∈ J :=
+@[trans] lemma mem_of_mem_of_le {x : P} {I J : ideal P} : x ∈ I → I ≤ J → x ∈ J :=
 @set.mem_of_mem_of_subset P x I J
 
 /-- A proper ideal is one that is not the whole set.

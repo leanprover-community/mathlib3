@@ -178,17 +178,7 @@ lemma num_pow (c : num_denom_same_deg 𝒜 x) (n : ℕ) : ((c ^ n).num : A) = c.
 lemma denom_pow (c : num_denom_same_deg 𝒜 x) (n : ℕ) : ((c ^ n).denom : A) = c.denom ^ n := rfl
 
 instance : has_scalar ℤ (num_denom_same_deg 𝒜 x) :=
-{ smul := λ m c, ⟨c.deg, ⟨m • c.num, begin
-    rw [zsmul_eq_mul],
-    suffices : (m : A) ∈ 𝒜 0,
-    { convert mul_mem this c.num.2,
-      rw zero_add, },
-    { induction m using int.induction_on with m ih m ih,
-      { exact zero_mem _ },
-      { exact add_mem _ ih one_mem, },
-      { push_cast at ih ⊢,
-        exact sub_mem _ ih one_mem, } },
-  end⟩, c.denom, c.denom_not_mem⟩ }
+{ smul := λ m c, ⟨c.deg, m • c.num, c.denom, c.denom_not_mem⟩ }
 
 lemma deg_zsmul (c : num_denom_same_deg 𝒜 x) (m : ℤ) : (m • c).deg = c.deg := rfl
 lemma num_zsmul (c : num_denom_same_deg 𝒜 x) (m : ℤ) : ((m • c).num : A) = m • c.num := rfl

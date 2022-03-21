@@ -37,7 +37,7 @@ variables (R : Type*) [ring R] (C : Type*) [category C] [abelian C] [linear R C]
   [enough_projectives C]
 
 /--
-`Ext R C n` is defined by deriving in the frst argument of `(X, Y) ↦ Module.of R (unop X ⟶ Y)`
+`Ext R C n` is defined by deriving in the first argument of `(X, Y) ↦ Module.of R (unop X ⟶ Y)`
 (which is the second argument of `linear_yoneda`).
 -/
 @[simps]

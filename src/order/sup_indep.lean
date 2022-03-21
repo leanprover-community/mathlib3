@@ -26,8 +26,8 @@ sup-independent if, for all `a`, `f a` and the supremum of the rest are disjoint
   * `complete_lattice.independent_iff_pairwise_disjoint`
 * Otherwise, supremum independence is stronger than pairwise disjointness:
   * `finset.sup_indep.pairwise_disjoint`
-  * `complete_lattice.pairwise_disjoint`
-  * `complete_lattice.pairwise_disjoint`
+  * `complete_lattice.set_independent.pairwise_disjoint`
+  * `complete_lattice.independent.pairwise_disjoint`
 
 ## Implementation notes
 
@@ -340,6 +340,8 @@ variables [order.frame α]
 lemma set_independent_iff_pairwise_disjoint {s : set α} : set_independent s ↔ s.pairwise disjoint :=
 ⟨set_independent.pairwise_disjoint, λ hs i hi, disjoint_Sup_iff.2 $ λ j hj,
   hs hi hj.1 $ ne.symm hj.2⟩
+
+alias set_independent_iff_pairwise_disjoint ↔ _ set.pairwise_disjoint.set_independent
 
 lemma independent_iff_pairwise_disjoint {f : ι → α} : independent f ↔ pairwise (disjoint on f) :=
 ⟨independent.pairwise_disjoint, λ hs i, disjoint_supr_iff.2 $ λ j, disjoint_supr_iff.2 $ λ hij,

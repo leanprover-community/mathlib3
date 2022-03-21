@@ -360,6 +360,9 @@ instance : frame_hom_class (frame_hom α β) α β :=
 directly. -/
 instance : has_coe_to_fun (frame_hom α β) (λ _, α → β) := fun_like.has_coe_to_fun
 
+/-- Reinterpret a `frame_hom` as a `lattice_hom`. -/
+def to_lattice_hom (f : frame_hom α β) : lattice_hom α β := f
+
 @[simp] lemma to_fun_eq_coe {f : frame_hom α β} : f.to_fun = (f : α → β) := rfl
 
 @[ext] lemma ext {f g : frame_hom α β} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h

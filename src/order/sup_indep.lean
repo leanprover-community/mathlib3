@@ -169,15 +169,15 @@ theorem set_independent.mono {t : set α} (hst : t ⊆ s) :
 λ a ha, (hs (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
 
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
-lemma set_independent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
-disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, by simp [h.symm]⟩)
+lemma set_independent.pairwise_disjoint : s.pairwise disjoint :=
+λ x hx y hy h, disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, h.symm⟩)
 
 lemma set_independent_pair {a b : α} (hab : a ≠ b) :
   set_independent ({a, b} : set α) ↔ disjoint a b :=
 begin
   split,
   { intro h,
-    exact h.disjoint (mem_insert _ _) (mem_insert_of_mem _ (mem_singleton _)) hab, },
+    exact h.pairwise_disjoint (mem_insert _ _) (mem_insert_of_mem _ (mem_singleton _)) hab, },
   { rintros h c ((rfl : c = a) | (rfl : c = b)),
     { convert h using 1,
       simp [hab, Sup_singleton] },
@@ -241,8 +241,8 @@ lemma independent_empty (t : empty → α) : independent t.
 lemma independent_pempty (t : pempty → α) : independent t.
 
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
-lemma independent.disjoint {x y : ι} (h : x ≠ y) : disjoint (t x) (t y) :=
-disjoint_Sup_right (ht x) ⟨y, by simp [h.symm]⟩
+lemma independent.pairwise_disjoint : pairwise (disjoint on t) :=
+λ x y h, disjoint_Sup_right (ht x) ⟨y, supr_pos h.symm⟩
 
 lemma independent.mono {ι : Type*} {α : Type*} [complete_lattice α]
   {s t : ι → α} (hs : independent s) (hst : t ≤ s) :
@@ -264,7 +264,7 @@ lemma independent_pair {i j : ι} (hij : i ≠ j) (huniv : ∀ k, k = i ∨ k = 
 begin
   split,
   { intro h,
-    exact h.disjoint hij, },
+    exact h.pairwise_disjoint _ _ hij, },
   { rintros h k,
     obtain rfl | rfl := huniv k,
     { refine h.mono_right (supr_le $ λ i, supr_le $ λ hi, eq.le _),

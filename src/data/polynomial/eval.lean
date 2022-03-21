@@ -823,12 +823,8 @@ protected lemma map_prod {ι : Type*} (g : ι → R[X]) (s : finset ι) :
 lemma support_map_subset (p : R[X]) : (map f p).support ⊆ p.support :=
 begin
   intros x,
-  simp only [mem_support_iff],
   contrapose!,
-  rw coeff_map,
-  intro hx,
-  rw hx,
-  exact ring_hom.map_zero f,
+  simp { contextual := tt },
 end
 
 lemma is_root.map {f : R →+* S} {x : R} {p : R[X]} (h : is_root p x) :

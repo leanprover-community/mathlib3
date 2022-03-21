@@ -1057,8 +1057,6 @@ by rw [←nat.mod_add_div a c, ←nat.mod_add_div b c, ←h, tsub_add_eq_tsub_ts
 lemma dvd_sub_mod (k : ℕ) : n ∣ (k - (k % n)) :=
 ⟨k / n, tsub_eq_of_eq_add_rev (nat.mod_add_div k n).symm⟩
 
-lemma dvd_sub_of_mod_eq {a b c : ℕ} (h : a % b = c) : b ∣ a - c := h ▸ dvd_sub_mod a
-
 @[simp] theorem mod_add_mod (m n k : ℕ) : (m % n + k) % n = (m + k) % n :=
 by have := (add_mul_mod_self_left (m % n + k) n (m / n)).symm;
    rwa [add_right_comm, mod_add_div] at this

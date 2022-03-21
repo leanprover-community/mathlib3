@@ -7,17 +7,17 @@ import data.finset.preimage
 import data.set.pointwise
 
 /-!
-# Pointwise operations of sets
+# Pointwise operations of finsets
 
-This file defines pointwise algebraic operations on sets.
+This file defines pointwise algebraic operations on finsets.
 
 ## Main declarations
 
 For finsets `s` and `t`:
 * `0` (`finset.has_zero`): The singleton `{0}`.
 * `1` (`finset.has_one`): The singleton `{1}`.
-* `s + t` (`finset.has_add`): Addition, set of all `x + y` where `x ∈ s` and `y ∈ t`.
-* `s * t` (`finset.has_mul`): Multiplication, set of all `x * y` where `x ∈ s` and `y ∈ t`.
+* `s + t` (`finset.has_add`): Addition, finset of all `x + y` where `x ∈ s` and `y ∈ t`.
+* `s * t` (`finset.has_mul`): Multiplication, finset of all `x * y` where `x ∈ s` and `y ∈ t`.
 
 For `α` a semigroup/monoid, `finset α` is a semigroup/monoid.
 As an unfortunate side effect, this means that `n • s`, where `n : ℕ`, is ambiguous between
@@ -46,17 +46,12 @@ open_locale pointwise
 
 variables {F α β : Type*}
 
-/-
-variables {s s₁ s₂ t t₁ t₂ : finset α} {a b : α}
--/
 namespace finset
 
 /-! ### `0`/`1` as sets -/
 
 section has_one
 variables [has_one α] {s : finset α} {a : α}
-
-/-! ###-/
 
 /-- The finset `(1 : finset α)` is defined as `{1}` in locale `pointwise`. -/
 @[to_additive "The finset `(0 : finset α)` is defined as `{0}` in locale `pointwise`."]
@@ -79,10 +74,10 @@ end has_one
 
 open_locale pointwise
 
-/-! ### Set addition/multiplication -/
+/-! ### Finset addition/multiplication -/
 
 section has_mul
-variables [decidable_eq α] [has_mul α] {s s₁ s₂ t t₁ t₂ : finset α} {a b : α}
+variables [decidable_eq α] [has_mul α] {s s₁ s₂ t t₁ t₂ u : finset α} {a b : α}
 
 /-- The pointwise product of two finsets `s` and `t`: `s * t = {x * y | x ∈ s, y ∈ t}`. -/
 @[to_additive "The pointwise sum of two finsets `s` and `t`: `s + t = {x + y | x ∈ s, y ∈ t}`."]
@@ -137,6 +132,23 @@ by { rw [mul_def, singleton_product, map_eq_image, image_image], refl }
 @[simp, to_additive]
 lemma singleton_mul_singleton (a b : α) : ({a} : finset α) * {b} = {a * b} :=
 by rw [mul_def, singleton_product_singleton, image_singleton]
+
+/-- If a finset `u` is contained in the product of two sets `s * t`, we can find two finsets `s'`,
+`t'` such that `s' ⊆ s`, `t' ⊆ t` and `u ⊆ s' * t'`. -/
+@[to_additive "If a finset `u` is contained in the sum of two sets `s + t`, we can find two finsets
+`s'`, `t'` such that `s' ⊆ s`, `t' ⊆ t` and `u ⊆ s' + t'`."]
+lemma subset_mul {s t : set α} (f : ↑u ⊆ s * t) :
+  ∃ s' t' : finset α, ↑s' ⊆ s ∧ ↑t' ⊆ t ∧ u ⊆ s' * t' :=
+begin
+  apply finset.induction_on' u,
+  { exact ⟨∅, ∅, set.empty_subset _, set.empty_subset _, empty_subset _⟩ },
+  rintro a u ha _ _ ⟨s', t', hs, hs', h⟩,
+  obtain ⟨x, y, hx, hy, ha⟩ := f ha,
+  use [insert x s', insert y t'],
+  simp_rw [coe_insert, set.insert_subset],
+  exact ⟨⟨hx, hs⟩, ⟨hy, hs'⟩, insert_subset.2 ⟨mem_mul.2 ⟨x, y, mem_insert_self _ _,
+    mem_insert_self _ _, ha⟩, h.trans $ mul_subset_mul (subset_insert _ _) $ subset_insert _ _⟩⟩,
+end
 
 end has_mul
 
@@ -262,24 +274,5 @@ coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 localized "attribute [instance] finset.mul_one_class finset.add_zero_class finset.semigroup
   finset.add_semigroup finset.monoid finset.add_monoid finset.comm_monoid finset.add_comm_monoid"
   in pointwise
-
-open_locale classical
-
-/-- If a finset `U` contained in the product of two sets `S * S'`, we can find two finsets `T`, `T'`
-such that `U ⊆ T * T'` and `T * T' ⊆ S * S'`. -/
-@[to_additive "If a finset `U` contained in the product of two sets `S * S'`, we can find two
-finsets `T`, `T'` such that `U ⊆ T * T'` and `T * T' ⊆ S * S'`."]
-lemma subset_mul {M : Type*} [monoid M] {S : set M} {S' : set M} {U : finset M} (f : ↑U ⊆ S * S') :
-  ∃ T T' : finset M, ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ U ⊆ T * T' :=
-begin
-  apply finset.induction_on' U,
-  { exact ⟨∅, ∅, set.empty_subset _, set.empty_subset _, empty_subset _⟩ },
-  rintro a s haU hs has ⟨T, T', hS, hS', h⟩,
-  obtain ⟨x, y, hx, hy, ha⟩ := f haU,
-  use [insert x T, insert y T'],
-  simp_rw [coe_insert, set.insert_subset],
-  exact ⟨⟨hx, hS⟩, ⟨hy, hS'⟩, insert_subset.2 ⟨mem_mul.2 ⟨x, y, mem_insert_self _ _,
-    mem_insert_self _ _, ha⟩, h.trans $ mul_subset_mul (subset_insert _ _) $ subset_insert _ _⟩⟩,
-end
 
 end finset

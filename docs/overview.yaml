@@ -221,8 +221,8 @@ Topology:
     topological group: 'topological_group'
     completion of an abelian topological group: 'uniform_space.completion.add_comm_group '
     infinite sum: 'has_sum'
-    topological ring: 'topological_ring'
-    completion of a topological ring: 'uniform_space.completion.ring'
+    topological (semi)ring: 'topological_semiring'
+    completion of a topological semiring: 'uniform_space.completion.ring'
     topological module: 'has_continuous_smul'
     continuous linear map: 'continuous_linear_map'
     Haar measure on a locally compact Hausdorff group: 'measure_theory.measure.haar_measure'
@@ -244,7 +244,7 @@ Analysis:
     local convexity: 'locally_convex_space'
     Bornology: 'bornology'
     weak-* topology for dualities: 'weak_bilin.topological_space'
-    
+
   Normed vector spaces/Banach spaces:
     normed vector space over a normed field: 'normed_space'
     topology on a normed vector space: 'normed_space.has_bounded_smul'

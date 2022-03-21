@@ -267,7 +267,7 @@ end submodule
 
 namespace ideal
 variables {R : Type*} [comm_ring R]
-variables [topological_space R] [topological_ring R]
+variables [topological_space R] [topological_semiring R]
 
 lemma is_open_of_open_subideal {U I : ideal R} (h : U ≤ I) (hU : is_open (U : set R)) :
   is_open (I : set R) :=

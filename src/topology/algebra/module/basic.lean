@@ -37,7 +37,7 @@ variables {R : Type*} {M : Type*}
 [topological_space M] [add_comm_group M]
 [module R M]
 
-lemma has_continuous_smul.of_nhds_zero [topological_ring R] [topological_add_group M]
+lemma has_continuous_smul.of_nhds_zero [topological_semiring R] [topological_add_group M]
   (hmul : tendsto (λ p : R × M, p.1 • p.2) (𝓝 0 ×ᶠ (𝓝 0)) (𝓝 0))
   (hmulleft : ∀ m : M, tendsto (λ a : R, a • m) (𝓝 0) (𝓝 0))
   (hmulright : ∀ a : R, tendsto (λ m : M, a • m) (𝓝 0) (𝓝 0)) : has_continuous_smul R M :=
@@ -103,7 +103,7 @@ end
 
 variables (R M)
 
-/-- Let `R` be a topological ring such that zero is not an isolated point (e.g., a nondiscrete
+/-- Let `R` be a topological semiring such that zero is not an isolated point (e.g., a nondiscrete
 normed field, see `normed_field.punctured_nhds_ne_bot`). Let `M` be a nontrivial module over `R`
 such that `c • x = 0` implies `c = 0 ∨ x = 0`. Then `M` has no isolated points. We formulate this
 using `ne_bot (𝓝[≠] x)`.
@@ -254,7 +254,7 @@ notation M ` →L⋆[`:25 R `] ` M₂ := continuous_linear_map (star_ring_end R)
 
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
-topological ring `R`. -/
+topological semiring `R`. -/
 @[nolint has_inhabited_instance]
 structure continuous_linear_equiv
   {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
@@ -975,7 +975,7 @@ instance [topological_add_group M] : ring (M →L[R] M) :=
   right_distrib := λ _ _ _, ext $ λ _, linear_map.add_apply _ _ _,
   ..continuous_linear_map.add_comm_group }
 
-lemma smul_right_one_pow [topological_space R] [topological_ring R] (c : R) (n : ℕ) :
+lemma smul_right_one_pow [topological_space R] [topological_semiring R] (c : R) (n : ℕ) :
   (smul_right (1 : R →L[R] R) c)^n = smul_right (1 : R →L[R] R) (c^n) :=
 begin
   induction n with n ihn,

@@ -7,9 +7,9 @@ import topology.algebra.group_completion
 import topology.algebra.ring
 
 /-!
-# Completion of topological rings:
+# Completion of topological semirings:
 
-This files endows the completion of a topological ring with a ring structure.
+This files endows the completion of a topological semiring with a ring structure.
 More precisely the instance `uniform_space.completion.ring` builds a ring structure
 on the completion of a ring endowed with a compatible uniform structure in the sense of
 `uniform_add_group`. There is also a commutative version when the original ring is commutative.
@@ -42,7 +42,7 @@ instance : has_mul (completion α) :=
 
 @[norm_cast] lemma coe_one : ((1 : α) : completion α) = 1 := rfl
 
-variables {α} [topological_ring α]
+variables {α} [topological_semiring α]
 
 @[norm_cast]
 lemma coe_mul (a b : α) : ((a * b : α) : completion α) = a * b :=
@@ -107,7 +107,7 @@ def coe_ring_hom : α →+* completion α :=
 lemma continuous_coe_ring_hom : continuous (coe_ring_hom : α → completion α) :=
 continuous_coe α
 
-variables {β : Type u} [uniform_space β] [ring β] [uniform_add_group β] [topological_ring β]
+variables {β : Type u} [uniform_space β] [ring β] [uniform_add_group β] [topological_semiring β]
           (f : α →+* β) (hf : continuous f)
 
 /-- The completion extension as a ring morphism. -/
@@ -133,7 +133,7 @@ have hf : uniform_continuous f, from uniform_continuous_add_monoid_hom_of_contin
     (assume a b,
       by rw [← coe_mul, extension_coe hf, extension_coe hf, extension_coe hf, f.map_mul]) }
 
-instance top_ring_compl : topological_ring (completion α) :=
+instance top_ring_compl : topological_semiring (completion α) :=
 { continuous_add := continuous_add,
   continuous_mul := continuous_mul }
 
@@ -141,7 +141,7 @@ instance top_ring_compl : topological_ring (completion α) :=
 def map_ring_hom (hf : continuous f) : completion α →+* completion β :=
 extension_hom (coe_ring_hom.comp f) (continuous_coe_ring_hom.comp  hf)
 
-variables (R : Type*) [comm_ring R] [uniform_space R] [uniform_add_group R] [topological_ring R]
+variables (R : Type*) [comm_ring R] [uniform_space R] [uniform_add_group R] [topological_semiring R]
 
 instance : comm_ring (completion R) :=
 { mul_comm := assume a b, completion.induction_on₂ a b
@@ -155,33 +155,33 @@ end uniform_space.completion
 
 namespace uniform_space
 variables {α : Type*}
-lemma ring_sep_rel (α) [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
+lemma ring_sep_rel (α) [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_semiring α] :
   separation_setoid α = submodule.quotient_rel (ideal.closure ⊥) :=
 setoid.ext $ assume x y, add_group_separation_rel x y
 
 lemma ring_sep_quot
-  (α : Type u) [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
+  (α : Type u) [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_semiring α] :
   quotient (separation_setoid α) = (α ⧸ (⊥ : ideal α).closure) :=
 by rw [@ring_sep_rel α r]; refl
 
-/-- Given a topological ring `α` equipped with a uniform structure that makes subtraction uniformly
+/-- Given a topological semiring `α` equipped with a uniform structure that makes subtraction uniformly
 continuous, get an equivalence between the separated quotient of `α` and the quotient ring
 corresponding to the closure of zero. -/
 def sep_quot_equiv_ring_quot (α)
-  [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
+  [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_semiring α] :
   quotient (separation_setoid α) ≃ (α ⧸ (⊥ : ideal α).closure) :=
 quotient.congr_right $ assume x y, add_group_separation_rel x y
 
 /- TODO: use a form of transport a.k.a. lift definition a.k.a. transfer -/
-instance comm_ring [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
+instance comm_ring [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_semiring α] :
   comm_ring (quotient (separation_setoid α)) :=
 by rw ring_sep_quot α; apply_instance
 
-instance topological_ring
-  [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
-  topological_ring (quotient (separation_setoid α)) :=
+instance topological_semiring
+  [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_semiring α] :
+  topological_semiring (quotient (separation_setoid α)) :=
 begin
-  convert topological_ring_quotient (⊥ : ideal α).closure; try {apply ring_sep_rel},
+  convert topological_semiring_quotient (⊥ : ideal α).closure; try {apply ring_sep_rel},
   simp [uniform_space.comm_ring]
 end
 

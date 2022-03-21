@@ -16,7 +16,7 @@ to adic spaces, `K` will be the valuation field associated to some valuation on 
 valuation.basic).
 
 We already know from valuation.topology that one can build a topology on `K` which
-makes it a topological ring.
+makes it a topological semiring.
 
 The first goal is to show `K` is a topological *field*, ie inversion is continuous
 at every non-zero element.
@@ -98,7 +98,7 @@ instance valued.topological_division_ring [valued K Γ₀] : topological_divisio
       rw [units.min_coe, units.coe_mul, units.coe_mul] at y_in,
       exact valuation.inversion_estimate _ x_ne y_in
     end,
-  ..(by apply_instance : topological_ring K) }
+  ..(by apply_instance : topological_semiring K) }
 
 /-- A valued division ring is separated. -/
 @[priority 100]

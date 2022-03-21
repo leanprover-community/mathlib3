@@ -9,19 +9,19 @@ import topology.algebra.group_with_zero
 /-!
 # Topological fields
 
-A topological division ring is a topological ring whose inversion function is continuous at every
+A topological division ring is a topological semiring whose inversion function is continuous at every
 non-zero element.
 
 -/
 
 
-namespace topological_ring
+namespace topological_semiring
 open topological_space function
 variables (R : Type*) [ring R]
 
 variables  [topological_space R]
 
-/-- The induced topology on units of a topological ring.
+/-- The induced topology on units of a topological semiring.
 This is not a global instance since other topologies could be relevant. Instead there is a class
 `induced_units` asserting that something equivalent to this construction holds. -/
 def topological_space_units : topological_space Rˣ := induced (coe : Rˣ → R) ‹_›
@@ -49,7 +49,7 @@ lemma units_embedding [induced_units R] :
 { induced := units_topology_eq R,
   inj := λ x y h, units.ext h }
 
-instance top_monoid_units [topological_ring R] [induced_units R] :
+instance top_monoid_units [topological_semiring R] [induced_units R] :
   has_continuous_mul Rˣ :=
 ⟨begin
   let mulR := (λ (p : R × R), p.1*p.2),
@@ -61,13 +61,13 @@ instance top_monoid_units [topological_ring R] [induced_units R] :
   rw ← continuous_iff_le_induced,
   exact continuous_mul,
 end⟩
-end topological_ring
+end topological_semiring
 
 variables (K : Type*) [division_ring K] [topological_space K]
 
 /-- A topological division ring is a division ring with a topology where all operations are
     continuous, including inversion. -/
-class topological_division_ring extends topological_ring K, has_continuous_inv₀ K : Prop
+class topological_division_ring extends topological_semiring K, has_continuous_inv₀ K : Prop
 
 namespace topological_division_ring
 open filter set
@@ -78,13 +78,13 @@ one could want another topology on units. To turn on this feature, use:
 
 ```lean
 local attribute [instance]
-topological_ring.topological_space_units topological_division_ring.units_top_group
+topological_semiring.topological_space_units topological_division_ring.units_top_group
 ```
 -/
 
-local attribute [instance] topological_ring.topological_space_units
+local attribute [instance] topological_semiring.topological_space_units
 
-@[priority 100] instance induced_units : topological_ring.induced_units K := ⟨rfl⟩
+@[priority 100] instance induced_units : topological_semiring.induced_units K := ⟨rfl⟩
 
 variables [topological_division_ring K]
 
@@ -99,12 +99,12 @@ lemma units_top_group : topological_group Kˣ :=
      rw [← tendsto_iff_comap, units.coe_inv'],
      exact continuous_at_inv₀ x.ne_zero
    end ,
-  ..topological_ring.top_monoid_units K}
+  ..topological_semiring.top_monoid_units K}
 
 local attribute [instance] units_top_group
 
 lemma continuous_units_inv : continuous (λ x : Kˣ, (↑(x⁻¹) : K)) :=
-(topological_ring.induced_units.continuous_coe K).comp continuous_inv
+(topological_semiring.induced_units.continuous_coe K).comp continuous_inv
 
 end topological_division_ring
 
@@ -112,10 +112,10 @@ end topological_division_ring
 section affine_homeomorph
 /-!
 This section is about affine homeomorphisms from a topological field `𝕜` to itself.
-Technically it does not require `𝕜` to be a topological field, a topological ring that
+Technically it does not require `𝕜` to be a topological field, a topological semiring that
 happens to be a field is enough.
 -/
-variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
+variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_semiring 𝕜]
 
 /--
 The map `λ x, a * x + b`, as a homeomorphism from `𝕜` (a topological field) to itself, when `a ≠ 0`.

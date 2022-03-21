@@ -340,7 +340,7 @@ as a morphism `C(Y, T) → C(X, T)`, respecting various types of structure.
 In particular:
 * `comp_right_continuous_map`, the bundled continuous map (for this we need `X Y` compact).
 * `comp_right_homeomorph`, when we precompose by a homeomorphism.
-* `comp_right_alg_hom`, when `T = R` is a topological ring.
+* `comp_right_alg_hom`, when `T = R` is a topological semiring.
 -/
 section comp_right
 

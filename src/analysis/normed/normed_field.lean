@@ -316,9 +316,9 @@ instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul 
       simp
     end ⟩
 
-/-- A seminormed ring is a topological ring. -/
+/-- A seminormed ring is a topological semiring. -/
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_top_ring [semi_normed_ring α] : topological_ring α := { }
+instance semi_normed_top_ring [semi_normed_ring α] : topological_semiring α := { }
 
 section normed_division_ring
 

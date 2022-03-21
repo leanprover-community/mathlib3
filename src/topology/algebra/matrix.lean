@@ -13,7 +13,7 @@ This file is a place to collect topological results about matrices.
 
 ## Main definitions:
 
- * `continuous_det`: the determinant is continuous over a topological ring.
+ * `continuous_det`: the determinant is continuous over a topological semiring.
 -/
 
 open matrix
@@ -22,7 +22,7 @@ variables {ι k : Type*} [topological_space k]
 
 instance : topological_space (matrix ι ι k) := Pi.topological_space
 
-variables [fintype ι] [decidable_eq ι] [comm_ring k] [topological_ring k]
+variables [fintype ι] [decidable_eq ι] [comm_ring k] [topological_semiring k]
 
 lemma continuous_det : continuous (det : matrix ι ι k → k) :=
 begin

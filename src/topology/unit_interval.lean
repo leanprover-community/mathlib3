@@ -143,7 +143,7 @@ meta def unit_interval : tactic unit :=
 end tactic.interactive
 
 section
-variables {𝕜 : Type*} [linear_ordered_field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
+variables {𝕜 : Type*} [linear_ordered_field 𝕜] [topological_space 𝕜] [topological_semiring 𝕜]
 
 /--
 The image of `[0,1]` under the homeomorphism `λ x, a * x + b` is `[b, a+b]`.

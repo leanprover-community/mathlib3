@@ -15,7 +15,7 @@ topology on `R` which is compatible with the ring structure and such that a set 
 of zero if and only if it contains a power of `I`. This topology is non-archimedean: every
 neighborhood of zero contains an open subgroup, namely a power of `I`.
 
-It also studies the predicate `is_adic` which states that a given topological ring structure is
+It also studies the predicate `is_adic` which states that a given topological semiring structure is
 adic, proving a characterization and showing that raising an ideal to a positive power does not
 change the associated topology.
 
@@ -29,7 +29,7 @@ corresponding adic topology to the type class inference system.
 * `ideal.adic_topology`: the adic topology associated to an ideal. It has the above basis
   for neighborhoods of zero.
 * `ideal.nonarchimedean`: the adic topology is non-archimedean
-* `is_ideal_adic_iff`: A topological ring is `J`-adic if and only if it admits the powers of `J` as
+* `is_ideal_adic_iff`: A topological semiring is `J`-adic if and only if it admits the powers of `J` as
   a basis of open neighborhoods of zero.
 * `with_ideal`: a class registering an ideal in a ring.
 
@@ -136,9 +136,9 @@ section is_adic
 def is_adic [H : topological_space R] (J : ideal R) : Prop :=
 H = J.adic_topology
 
-/-- A topological ring is `J`-adic if and only if it admits the powers of `J` as a basis of
+/-- A topological semiring is `J`-adic if and only if it admits the powers of `J` as a basis of
 open neighborhoods of zero. -/
-lemma is_adic_iff [top : topological_space R] [topological_ring R] {J : ideal R} :
+lemma is_adic_iff [top : topological_space R] [topological_semiring R] {J : ideal R} :
   is_adic J ↔ (∀ n : ℕ, is_open ((J^n : ideal R) : set R)) ∧
               (∀ s ∈ 𝓝 (0 : R), ∃ n : ℕ, ((J^n : ideal R) : set R) ⊆ s) :=
 begin
@@ -154,7 +154,7 @@ begin
       simpa using J.has_basis_nhds_zero_adic.mem_iff.mp hs } },
   { rintro ⟨H₁, H₂⟩,
     apply topological_add_group.ext,
-    { apply @topological_ring.to_topological_add_group },
+    { apply @topological_semiring.to_topological_add_group },
     { apply (ring_subgroups_basis.to_ring_filter_basis _).to_add_group_filter_basis
              .is_topological_add_group },
     { ext s,
@@ -168,7 +168,7 @@ begin
         refine ⟨_, hn, H₁ n, (J^n).zero_mem⟩ } } }
 end
 
-variables [topological_space R] [topological_ring R]
+variables [topological_space R] [topological_semiring R]
 
 lemma is_ideal_adic_pow {J : ideal R} (h : is_adic J) {n : ℕ} (hn : 0 < n) :
   is_adic (J^n) :=
@@ -186,7 +186,7 @@ begin
     apply nat.le_add_left }
 end
 
-lemma is_bot_adic_iff {A : Type*} [comm_ring A] [topological_space A] [topological_ring A] :
+lemma is_bot_adic_iff {A : Type*} [comm_ring A] [topological_space A] [topological_semiring A] :
 is_adic (⊥ : ideal A) ↔ discrete_topology A :=
 begin
   rw is_adic_iff,
@@ -234,7 +234,7 @@ chaining.
 example : nonarchimedean_ring R :=
 by apply_instance
 
-example : topological_ring (uniform_space.completion R) :=
+example : topological_semiring (uniform_space.completion R) :=
 by apply_instance
 
 example (M : Type*) [add_comm_group M] [module R M] :

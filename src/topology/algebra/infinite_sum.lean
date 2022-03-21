@@ -736,8 +736,8 @@ end subtype
 
 end topological_group
 
-section topological_ring
-variables [semiring α] [topological_space α] [topological_ring α]
+section topological_semiring
+variables [semiring α] [topological_space α] [topological_semiring α]
 variables {f g : β → α} {a a₁ a₂ : α}
 lemma has_sum.mul_left (a₂) (h : has_sum f a₁) : has_sum (λb, a₂ * f b) (a₂ * a₁) :=
 by simpa only using h.map (add_monoid_hom.mul_left a₂) (continuous_const.mul continuous_id)
@@ -762,7 +762,7 @@ lemma summable.tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b,
 
 end tsum
 
-end topological_ring
+end topological_semiring
 
 section const_smul
 variables {R : Type*}
@@ -802,7 +802,7 @@ end smul_const
 
 section division_ring
 
-variables [division_ring α] [topological_space α] [topological_ring α]
+variables [division_ring α] [topological_space α] [topological_semiring α]
 {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum.div_const (h : has_sum f a) (b : α) : has_sum (λ x, f x / b) (a / b) :=
@@ -1345,7 +1345,7 @@ We first establish results about arbitrary index types, `β` and `γ`, and then 
 
 section tsum_mul_tsum
 
-variables [topological_space α] [regular_space α] [semiring α] [topological_ring α]
+variables [topological_space α] [regular_space α] [semiring α] [topological_semiring α]
   {f : β → α} {g : γ → α} {s t u : α}
 
 lemma has_sum.mul_eq (hf : has_sum f s) (hg : has_sum g t)
@@ -1398,7 +1398,7 @@ lemma summable_mul_prod_iff_summable_mul_sigma_antidiagonal {f g : ℕ → α} :
   summable (λ x : (Σ (n : ℕ), nat.antidiagonal n), f (x.2 : ℕ × ℕ).1 * g (x.2 : ℕ × ℕ).2) :=
 nat.sigma_antidiagonal_equiv_prod.summable_iff.symm
 
-variables [regular_space α] [topological_ring α]
+variables [regular_space α] [topological_semiring α]
 
 lemma summable_sum_mul_antidiagonal_of_summable_mul {f g : ℕ → α}
   (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :

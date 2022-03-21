@@ -90,7 +90,7 @@ lemma rat.continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
 rat.embedding_coe_real.continuous_iff.2 $ by simp [(∘)]; exact
 real.continuous_mul.comp ((rat.continuous_coe_real.prod_map rat.continuous_coe_real))
 
-instance : topological_ring ℚ :=
+instance : topological_semiring ℚ :=
 { continuous_mul := rat.continuous_mul, ..rat.topological_add_group }
 
 lemma rat.totally_bounded_Icc (a b : ℚ) : totally_bounded (Icc a b) :=

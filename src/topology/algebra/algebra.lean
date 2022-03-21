@@ -9,7 +9,7 @@ import topology.algebra.module.basic
 /-!
 # Topological (sub)algebras
 
-A topological algebra over a topological semiring `R` is a topological ring with a compatible
+A topological algebra over a topological semiring `R` is a topological semiring with a compatible
 continuous scalar multiplication by elements of `R`. We reuse typeclass `has_continuous_smul` for
 topological algebras.
 
@@ -31,7 +31,7 @@ variables (R : Type*) [topological_space R] [comm_semiring R]
 variables (A : Type u) [topological_space A]
 variables [semiring A]
 
-lemma continuous_algebra_map_iff_smul [algebra R A] [topological_ring A] :
+lemma continuous_algebra_map_iff_smul [algebra R A] [topological_semiring A] :
   continuous (algebra_map R A) ↔ continuous (λ p : R × A, p.1 • p.2) :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
@@ -40,11 +40,11 @@ begin
 end
 
 @[continuity]
-lemma continuous_algebra_map [algebra R A] [topological_ring A] [has_continuous_smul R A] :
+lemma continuous_algebra_map [algebra R A] [topological_semiring A] [has_continuous_smul R A] :
   continuous (algebra_map R A) :=
 (continuous_algebra_map_iff_smul R A).2 continuous_smul
 
-lemma has_continuous_smul_of_algebra_map [algebra R A] [topological_ring A]
+lemma has_continuous_smul_of_algebra_map [algebra R A] [topological_semiring A]
   (h : continuous (algebra_map R A)) :
   has_continuous_smul R A :=
 ⟨(continuous_algebra_map_iff_smul R A).1 h⟩
@@ -55,7 +55,7 @@ section topological_algebra
 variables {R : Type*} [comm_semiring R]
 variables {A : Type u} [topological_space A]
 variables [semiring A]
-variables [algebra R A] [topological_ring A]
+variables [algebra R A] [topological_semiring A]
 
 /-- The closure of a subalgebra in a topological algebra as a subalgebra. -/
 def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
@@ -67,9 +67,9 @@ def subalgebra.topological_closure (s : subalgebra R A) : subalgebra R A :=
   (s.topological_closure : set A) = closure (s : set A) :=
 rfl
 
-instance subalgebra.topological_closure_topological_ring (s : subalgebra R A) :
-  topological_ring (s.topological_closure) :=
-s.to_subsemiring.topological_closure_topological_ring
+instance subalgebra.topological_closure_topological_semiring (s : subalgebra R A) :
+  topological_semiring (s.topological_closure) :=
+s.to_subsemiring.topological_closure_topological_semiring
 
 instance subalgebra.topological_closure_topological_algebra
   [topological_space R] [has_continuous_smul R A] (s : subalgebra R A) :
@@ -103,7 +103,7 @@ along with a witness that as functions they are the same.
 -/
 lemma subalgebra.topological_closure_comap'_homeomorph
   (s : subalgebra R A)
-  {B : Type*} [topological_space B] [ring B] [topological_ring B] [algebra R B]
+  {B : Type*} [topological_space B] [ring B] [topological_semiring B] [algebra R B]
   (f : B →ₐ[R] A) (f' : B ≃ₜ A) (w : (f : B → A) = f') :
   s.topological_closure.comap' f = (s.comap' f).topological_closure :=
 begin
@@ -120,7 +120,7 @@ section ring
 variables {R : Type*} [comm_ring R]
 variables {A : Type u} [topological_space A]
 variables [ring A]
-variables [algebra R A] [topological_ring A]
+variables [algebra R A] [topological_semiring A]
 
 /-- If a subalgebra of a topological algebra is commutative, then so is its topological closure. -/
 def subalgebra.comm_ring_topological_closure [t2_space A] (s : subalgebra R A)

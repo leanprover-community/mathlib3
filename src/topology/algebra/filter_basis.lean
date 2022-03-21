@@ -26,7 +26,7 @@ Given a group `G` and a ring `R`:
 * `ring_filter_basis R`: the type of filter bases that will become neighborhood of `0`
   for a topology on `R` compatible with the ring structure
 * `ring_filter_basis.topology`: the associated topology
-* `ring_filter_basis.is_topological_ring`: the compatibility between the above topology
+* `ring_filter_basis.is_topological_semiring`: the compatibility between the above topology
   and the ring structure
 
 ## References
@@ -227,7 +227,7 @@ end
 end group_filter_basis
 
 /-- A `ring_filter_basis` on a ring is a `filter_basis` satisfying some additional axioms.
-  Example : if `R` is a topological ring then the neighbourhoods of the identity are a
+  Example : if `R` is a topological semiring then the neighbourhoods of the identity are a
   `ring_filter_basis`. Conversely given a `ring_filter_basis` on a ring `R`, one can define a
   topology on `R` which is compatible with the ring structure.  -/
 class ring_filter_basis (R : Type u) [ring R] extends add_group_filter_basis R :=
@@ -258,17 +258,17 @@ It has the given basis as a basis of neighborhoods of zero. -/
 def topology : topological_space R := B.to_add_group_filter_basis.topology
 
 /-- If a ring is endowed with a topological structure coming from
-a ring filter basis then it's a topological ring. -/
+a ring filter basis then it's a topological semiring. -/
 @[priority 100]
-instance is_topological_ring {R : Type u} [ring R] (B : ring_filter_basis R) :
-  @topological_ring R B.topology _ :=
+instance is_topological_semiring {R : Type u} [ring R] (B : ring_filter_basis R) :
+  @topological_semiring R B.topology _ :=
 begin
   let B' := B.to_add_group_filter_basis,
   letI := B'.topology,
   have basis := B'.nhds_zero_has_basis,
   have basis' := basis.prod basis,
   haveI := B'.is_topological_add_group,
-  apply topological_ring.of_add_group_of_nhds_zero,
+  apply topological_semiring.of_add_group_of_nhds_zero,
   { rw basis'.tendsto_iff basis,
     suffices : ∀ U ∈ B', ∃ V W, (V ∈ B' ∧ W ∈ B') ∧ ∀ a b, a ∈ V → b ∈ W → a * b ∈ U, by simpa,
     intros U U_in,
@@ -337,11 +337,11 @@ instance [discrete_topology R] : inhabited (module_filter_basis R M) :=
    end,
    ..show add_group_filter_basis M, from default }⟩
 
-/-- The topology associated to a module filter basis on a module over a topological ring.
+/-- The topology associated to a module filter basis on a module over a topological semiring.
 It has the given basis as a basis of neighborhoods of zero. -/
 def topology : topological_space M := B.to_add_group_filter_basis.topology
 
-/-- The topology associated to a module filter basis on a module over a topological ring.
+/-- The topology associated to a module filter basis on a module over a topological semiring.
 It has the given basis as a basis of neighborhoods of zero. This version gets the ring
 topology by unification instead of type class inference. -/
 def topology' {R M : Type*} [comm_ring R] {tR : topological_space R}
@@ -351,7 +351,7 @@ def topology' {R M : Type*} [comm_ring R] {tR : topological_space R}
 /-- If a module is endowed with a topological structure coming from
 a module filter basis then it's a topological module. -/
 @[priority 100]
-instance has_continuous_smul [topological_ring R] :
+instance has_continuous_smul [topological_semiring R] :
   @has_continuous_smul R M _ _ B.topology  :=
 begin
   let B' := B.to_add_group_filter_basis,

@@ -19,7 +19,7 @@ We construct some simple examples of presheaves of functions on a topological sp
 * `presheaf_to_Top X T`, where `T : Top`,
   is the presheaf of continuous functions into a topological space `T`
 * `presheaf_To_TopCommRing X R`, where `R : TopCommRing`
-  is the presheaf valued in `CommRing` of functions functions into a topological ring `R`
+  is the presheaf valued in `CommRing` of functions functions into a topological semiring `R`
 * as an example of the previous construction,
   `presheaf_to_TopCommRing X (TopCommRing.of ℂ)`
   is the presheaf of rings of continuous complex-valued functions on `X`.
@@ -94,7 +94,7 @@ CommRing.of (unop X ⟶ (forget₂ TopCommRing Top).obj R)
 
 namespace continuous_functions
 
-/-- Pulling back functions into a topological ring along a continuous map is a ring homomorphism. -/
+/-- Pulling back functions into a topological semiring along a continuous map is a ring homomorphism. -/
 def pullback {X Y : Topᵒᵖ} (f : X ⟶ Y) (R : TopCommRing) :
   continuous_functions X R ⟶ continuous_functions Y R :=
 { to_fun := λ g, f.unop ≫ g,
@@ -103,7 +103,7 @@ def pullback {X Y : Topᵒᵖ} (f : X ⟶ Y) (R : TopCommRing) :
   map_add' := by tidy,
   map_mul' := by tidy }
 
-/-- A homomorphism of topological rings can be postcomposed with functions from a source space `X`;
+/-- A homomorphism of topological semirings can be postcomposed with functions from a source space `X`;
 this is a ring homomorphism (with respect to the pointwise ring operations on functions). -/
 def map (X : Top.{u}ᵒᵖ) {R S : TopCommRing.{u}} (φ : R ⟶ S) :
   continuous_functions X R ⟶ continuous_functions X S :=

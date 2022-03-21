@@ -40,6 +40,7 @@ mem_powerset.2 (subset.refl _)
 ⟨λ h, (mem_powerset.1 $ h $ mem_powerset_self _),
  λ st u h, mem_powerset.2 $ subset.trans (mem_powerset.1 h) st⟩
 
+/-- **Number of Subsets of a Set** -/
 @[simp] theorem card_powerset (s : finset α) :
   card (powerset s) = 2 ^ card s :=
 (card_pmap _ _ _).trans (card_powerset s.1)
@@ -142,6 +143,7 @@ def powerset_len (n : ℕ) (s : finset α) : finset (finset α) :=
  nodup_pmap (λ a ha b hb, congr_arg finset.val)
    (nodup_powerset_len s.2)⟩
 
+/-- **Formula for the Number of Combinations** -/
 theorem mem_powerset_len {n} {s t : finset α} :
   s ∈ powerset_len n t ↔ s ⊆ t ∧ card s = n :=
 by cases s; simp [powerset_len, val_le_iff.symm]; refl
@@ -151,6 +153,7 @@ by cases s; simp [powerset_len, val_le_iff.symm]; refl
 λ u h', mem_powerset_len.2 $
   and.imp (λ h₂, subset.trans h₂ h) id (mem_powerset_len.1 h')
 
+/-- **Formula for the Number of Combinations** -/
 @[simp] theorem card_powerset_len (n : ℕ) (s : finset α) :
   card (powerset_len n s) = nat.choose (card s) n :=
 (card_pmap _ _ _).trans (card_powerset_len n s.1)
@@ -235,8 +238,17 @@ begin
       { refine ⟨insert x t, _, mem_insert_self _ _⟩,
         rw [←insert_erase hx, powerset_len_succ_insert (not_mem_erase _ _)],
         exact mem_union_right _ (mem_image_of_mem _ ht) },
-      { rwa [card_erase_of_mem hx, nat.lt_pred_iff] } } }
+      { rwa [card_erase_of_mem hx, lt_tsub_iff_right] } } }
 end
+
+@[simp]
+lemma powerset_len_card_add (s : finset α) {i : ℕ} (hi : 0 < i) :
+  s.powerset_len (s.card + i) = ∅ :=
+finset.powerset_len_empty _ (lt_add_of_pos_right (finset.card s) hi)
+
+@[simp] theorem map_val_val_powerset_len (s : finset α) (i : ℕ) :
+  (s.powerset_len i).val.map finset.val = s.1.powerset_len i :=
+by simp [finset.powerset_len, map_pmap, pmap_eq_map, map_id']
 
 end powerset_len
 end finset

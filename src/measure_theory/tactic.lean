@@ -3,11 +3,10 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
+import measure_theory.measure.measure_space_def
 import tactic.auto_cases
 import tactic.tidy
 import tactic.with_local_reducibility
-import tactic.show_term
-import measure_theory.measure_space_def
 /-!
 # Tactics for measure theory
 
@@ -53,7 +52,9 @@ attribute [measurability]
   measurable_set.union
   measurable_set.inter
   measurable_set.diff
+  measurable_set.symm_diff
   measurable_set.ite
+  measurable_set.cond
   measurable_set.disjointed
   measurable_set.const
   measurable_set.insert
@@ -171,8 +172,7 @@ add_tactic_doc
 { name := "measurability / measurability'",
   category := doc_category.tactic,
   decl_names := [`tactic.interactive.measurability, `tactic.interactive.measurability'],
-  tags := ["lemma application"]
-}
+  tags := ["lemma application"] }
 
 end interactive
 

@@ -71,14 +71,14 @@ instance category_lax_monoidal_functor : category (lax_monoidal_functor C D) :=
   id := id,
   comp := λ F G H α β, vcomp α β, }
 
-@[simp] lemma comp_to_nat_trans' {F G H : lax_monoidal_functor C D} {α : F ⟶ G} {β : G ⟶ H} :
+@[simp] lemma comp_to_nat_trans_lax {F G H : lax_monoidal_functor C D} {α : F ⟶ G} {β : G ⟶ H} :
   (α ≫ β).to_nat_trans =
     @category_struct.comp (C ⥤ D) _ _ _ _ (α.to_nat_trans) (β.to_nat_trans) := rfl
 
 instance category_monoidal_functor : category (monoidal_functor C D) :=
 induced_category.category monoidal_functor.to_lax_monoidal_functor
 
-@[simp] lemma comp_to_nat_trans'' {F G H : monoidal_functor C D} {α : F ⟶ G} {β : G ⟶ H} :
+@[simp] lemma comp_to_nat_trans {F G H : monoidal_functor C D} {α : F ⟶ G} {β : G ⟶ H} :
   (α ≫ β).to_nat_trans =
     @category_struct.comp (C ⥤ D) _ _ _ _ (α.to_nat_trans) (β.to_nat_trans) := rfl
 

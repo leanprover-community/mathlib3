@@ -37,7 +37,7 @@ variables {C : Type u₂} [category.{u₁} C]
 /-- This type indexes the connected components of the category `J`. -/
 def connected_components (J : Type u₁) [category.{v₁} J] : Type u₁ := quotient (zigzag.setoid J)
 
-instance [inhabited J] : inhabited (connected_components J) := ⟨quotient.mk' (default J)⟩
+instance [inhabited J] : inhabited (connected_components J) := ⟨quotient.mk' default⟩
 
 /-- Given an index for a connected component, produce the actual component as a full subcategory. -/
 @[derive category]
@@ -144,7 +144,7 @@ instance : ess_surj (decomposed_to J) :=
 { mem_ess_image := λ j, ⟨⟨_, j, rfl⟩, ⟨iso.refl _⟩⟩ }
 
 instance : is_equivalence (decomposed_to J) :=
-equivalence.equivalence_of_fully_faithfully_ess_surj _
+equivalence.of_fully_faithfully_ess_surj _
 
 /-- This gives that any category is equivalent to a disjoint union of connected categories. -/
 @[simps functor {rhs_md := semireducible}]

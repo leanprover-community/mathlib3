@@ -3,7 +3,7 @@ Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import category_theory.category
+import category_theory.category.basic
 
 /-!
 # Tools to reformulate category-theoretic axioms in a more associativity-friendly way
@@ -49,7 +49,7 @@ attribute [simp, reassoc] some_class.bar
 
 namespace tactic
 
-open interactive lean.parser category_theory
+open category_theory
 
 /-- From an expression `f ≫ g`, extract the expression representing the category instance. -/
 meta def get_cat_inst : expr → tactic expr
@@ -96,6 +96,8 @@ do d ← get_decl n,
    (t'',pr') ← prove_reassoc c,
    add_decl $ declaration.thm n' d.univ_params t'' (pure pr'),
    copy_attribute `simp n n'
+
+setup_tactic_parser
 
 /--
 The `reassoc` attribute can be applied to a lemma

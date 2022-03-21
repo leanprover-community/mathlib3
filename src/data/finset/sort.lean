@@ -43,6 +43,15 @@ multiset.mem_sort _
 @[simp] theorem length_sort {s : finset α} : (sort r s).length = s.card :=
 multiset.length_sort _
 
+@[simp] theorem sort_empty : sort r ∅ = [] :=
+multiset.sort_zero r
+
+@[simp] theorem sort_singleton (a : α) : sort r {a} = [a] :=
+multiset.sort_singleton r a
+
+lemma sort_perm_to_list (s : finset α) : sort r s ~ s.to_list :=
+by { rw ←multiset.coe_eq_coe, simp only [coe_to_list, sort_eq] }
+
 end sort
 
 section sort_linear_order
@@ -97,7 +106,7 @@ sorted_last_eq_max'_aux _ _ _
 
 lemma max'_eq_sorted_last {s : finset α} {h : s.nonempty} :
   s.max' h = (s.sort (≤)).nth_le ((s.sort (≤)).length - 1)
-    (by simpa using sub_lt (card_pos.mpr h) zero_lt_one) :=
+    (by simpa using nat.sub_lt (card_pos.mpr h) zero_lt_one) :=
 (sorted_last_eq_max'_aux _ _ _).symm
 
 /-- Given a finset `s` of cardinality `k` in a linear order `α`, the map `order_iso_of_fin s h`
@@ -180,18 +189,28 @@ begin
   exact (s.order_emb_of_fin rfl).eq_iff_eq.trans (fin.ext_iff _ _)
 end
 
+/-- Given a finset `s` of size at least `k` in a linear order `α`, the map `order_emb_of_card_le`
+is an order embedding from `fin k` to `α` whose image is contained in `s`. Specifically, it maps
+`fin k` to an initial segment of `s`. -/
+def order_emb_of_card_le (s : finset α) {k : ℕ} (h : k ≤ s.card) : fin k ↪o α :=
+(fin.cast_le h).trans (s.order_emb_of_fin rfl)
+
+lemma order_emb_of_card_le_mem (s : finset α) {k : ℕ} (h : k ≤ s.card) (a) :
+  order_emb_of_card_le s h a ∈ s :=
+by simp only [order_emb_of_card_le, rel_embedding.coe_trans, finset.order_emb_of_fin_mem]
+
 lemma card_le_of_interleaved {s t : finset α} (h : ∀ x y ∈ s, x < y → ∃ z ∈ t, x < z ∧ z < y) :
   s.card ≤ t.card + 1 :=
 begin
   have h1 : ∀ i : fin (s.card - 1), ↑i + 1 < (s.sort (≤)).length,
   { intro i,
-    rw [finset.length_sort, ←nat.lt_sub_right_iff_add_lt],
+    rw [finset.length_sort, ←lt_tsub_iff_right],
     exact i.2 },
   have h0 : ∀ i : fin (s.card - 1), ↑i < (s.sort (≤)).length :=
   λ i, lt_of_le_of_lt (nat.le_succ i) (h1 i),
   have p := λ i : fin (s.card - 1), h ((s.sort (≤)).nth_le i (h0 i))
-    ((s.sort (≤)).nth_le (i + 1) (h1 i))
     ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h0 i)))
+    ((s.sort (≤)).nth_le (i + 1) (h1 i))
     ((finset.mem_sort (≤)).mp (list.nth_le_mem _ _ (h1 i)))
     (s.sort_sorted_lt.rel_nth_le_of_lt (h0 i) (h1 i) (nat.lt_succ_self i)),
   let f : fin (s.card - 1) → t :=
@@ -203,7 +222,7 @@ begin
   have key := fintype.card_le_of_embedding (function.embedding.mk f (λ i j hij, le_antisymm
     (not_lt.mp (mt (hf j i) (not_lt.mpr (le_of_eq hij))))
     (not_lt.mp (mt (hf i j) (not_lt.mpr (ge_of_eq hij)))))),
-  rwa [fintype.card_fin, fintype.card_coe, nat.sub_le_right_iff_le_add] at key,
+  rwa [fintype.card_fin, fintype.card_coe, tsub_le_iff_right] at key,
 end
 
 end sort_linear_order

@@ -5,8 +5,6 @@ Authors: Scott Morrison
 -/
 import ring_theory.polynomial.bernstein
 import topology.continuous_function.polynomial
-import algebra.floor
-import analysis.specific_limits
 
 /-!
 # Bernstein approximations and Weierstrass' theorem
@@ -131,7 +129,6 @@ end bernstein
 open bernstein
 
 local postfix `/ₙ`:2000 := z
-local notation `|`x`|` := abs x
 
 /--
 The `n`-th approximation of a continuous function on `[0,1]` by Bernstein polynomials,
@@ -224,8 +221,8 @@ begin
   intros ε h,
   let δ := δ f ε h,
   have nhds_zero := tendsto_const_div_at_top_nhds_0_nat (2 * ∥f∥ * δ ^ (-2 : ℤ)),
-  filter_upwards [nhds_zero.eventually (gt_mem_nhds (half_pos h)), eventually_gt_at_top 0],
-  intros n nh npos',
+  filter_upwards [nhds_zero.eventually (gt_mem_nhds (half_pos h)), eventually_gt_at_top 0]
+    with n nh npos',
   have npos : 0 < (n:ℝ) := by exact_mod_cast npos',
   -- Two easy inequalities we'll need later:
   have w₁ : 0 ≤ 2 * ∥f∥ := mul_nonneg (by norm_num) (norm_nonneg f),
@@ -297,8 +294,8 @@ begin
                                           (mul_nonneg pow_minus_two_nonneg (sq_nonneg _))
                                           bernstein_nonneg)) w₁
         ... = (2 * ∥f∥) * δ^(-2 : ℤ) * ∑ k : fin (n+1), (x - k/ₙ)^2 * bernstein n k x
-                                  : by conv_rhs {
-                                      rw [mul_assoc, finset.mul_sum], simp only [←mul_assoc], }
+                                  : by conv_rhs
+                                    { rw [mul_assoc, finset.mul_sum], simp only [←mul_assoc], }
         -- `bernstein.variance` and `x ∈ [0,1]` gives the uniform bound
         ... = (2 * ∥f∥) * δ^(-2 : ℤ) * x * (1-x) / n
                                   : by { rw variance npos, ring, }
@@ -306,7 +303,7 @@ begin
                                   : (div_le_div_right npos).mpr
                                     begin
                                       apply mul_nonneg_le_one_le w₂,
-                                      apply mul_nonneg_le_one_le w₂ (le_refl _),
+                                      apply mul_nonneg_le_one_le w₂ le_rfl,
                                       all_goals { unit_interval, },
                                     end
         ... < ε/2 : nh, }

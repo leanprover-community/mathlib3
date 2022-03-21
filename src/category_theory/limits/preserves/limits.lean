@@ -17,7 +17,7 @@ The duals of these are also given. For functors which preserve (co)limits of spe
 `preserves/shapes.lean`.
 -/
 
-universes v u₁ u₂
+universes w' w v₁ v₂ u₁ u₂
 
 noncomputable theory
 
@@ -25,10 +25,10 @@ namespace category_theory
 
 open category limits
 
-variables {C : Type u₁} [category.{v} C]
-variables {D : Type u₂} [category.{v} D]
+variables {C : Type u₁} [category.{v₁} C]
+variables {D : Type u₂} [category.{v₂} D]
 variables (G : C ⥤ D)
-variables {J : Type v} [small_category J]
+variables {J : Type w} [category.{w'} J]
 variables (F : J ⥤ C)
 
 section
@@ -61,6 +61,21 @@ is_limit.cone_point_unique_up_to_iso_inv_comp _ _ j
 lemma lift_comp_preserves_limits_iso_hom (t : cone F) :
   G.map (limit.lift _ t) ≫ (preserves_limit_iso G F).hom = limit.lift (F ⋙ G) (G.map_cone _) :=
 by { ext, simp [← G.map_comp] }
+
+variables [preserves_limits_of_shape J G] [has_limits_of_shape J D] [has_limits_of_shape J C]
+
+/-- If `C, D` has all limits of shape `J`, and `G` preserves them, then `preserves_limit_iso` is
+functorial wrt `F`. -/
+@[simps] def preserves_limit_nat_iso : lim ⋙ G ≅ (whiskering_right J C D).obj G ⋙ lim :=
+nat_iso.of_components (λ F, preserves_limit_iso G F)
+begin
+  intros _ _ f,
+  ext,
+  dsimp,
+  simp only [preserves_limits_iso_hom_π, whisker_right_app, lim_map_π, category.assoc,
+    preserves_limits_iso_hom_π_assoc, ← G.map_comp]
+end
+
 end
 
 section
@@ -95,6 +110,24 @@ lemma ι_preserves_colimits_iso_hom (j : J) :
 lemma preserves_colimits_iso_inv_comp_desc (t : cocone F) :
   (preserves_colimit_iso G F).inv ≫ G.map (colimit.desc _ t) = colimit.desc _ (G.map_cocone t) :=
 by { ext, simp [← G.map_comp] }
+
+variables [preserves_colimits_of_shape J G] [has_colimits_of_shape J D] [has_colimits_of_shape J C]
+
+/-- If `C, D` has all colimits of shape `J`, and `G` preserves them, then `preserves_colimit_iso`
+is functorial wrt `F`. -/
+@[simps] def preserves_colimit_nat_iso : colim ⋙ G ≅ (whiskering_right J C D).obj G ⋙ colim :=
+nat_iso.of_components (λ F, preserves_colimit_iso G F)
+begin
+  intros _ _ f,
+  rw [← iso.inv_comp_eq, ← category.assoc, ← iso.eq_comp_inv],
+  ext,
+  dsimp,
+  erw ι_colim_map_assoc,
+  simp only [ι_preserves_colimits_iso_inv, whisker_right_app, category.assoc,
+    ι_preserves_colimits_iso_inv_assoc, ← G.map_comp],
+  erw ι_colim_map
+end
+
 end
 
 end category_theory

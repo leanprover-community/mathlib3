@@ -12,10 +12,9 @@ namespace hint
 
 /-- An attribute marking a `tactic unit` or `tactic string` which should be used by the `hint`
 tactic. -/
-@[user_attribute] meta def hint_tactic_attribute : user_attribute := {
-  name := `hint_tactic,
-  descr := "A tactic that should be tried by `hint`."
-}
+@[user_attribute] meta def hint_tactic_attribute : user_attribute :=
+{ name := `hint_tactic,
+  descr := "A tactic that should be tried by `hint`." }
 
 add_tactic_doc
 { name                     := "hint_tactic",
@@ -23,7 +22,7 @@ add_tactic_doc
   decl_names               := [`tactic.hint.hint_tactic_attribute],
   tags                     := ["rewrite", "search"] }
 
-open lean lean.parser interactive
+setup_tactic_parser
 
 private meta def add_tactic_hint (n : name) (t : expr) : tactic unit :=
 do

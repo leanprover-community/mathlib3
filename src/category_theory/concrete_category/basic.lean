@@ -70,8 +70,8 @@ instance : has_coe_to_sort X := concrete_category.has_coe_to_sort X
 ```
 -/
 def concrete_category.has_coe_to_sort (C : Type v) [category C] [concrete_category C] :
-  has_coe_to_sort C :=
-{ S := Type u, coe := (concrete_category.forget C).obj }
+  has_coe_to_sort C (Type u) :=
+⟨(concrete_category.forget C).obj⟩
 
 section
 local attribute [instance] concrete_category.has_coe_to_sort
@@ -82,9 +82,8 @@ variables {C : Type v} [category C] [concrete_category C]
 
 /-- Usually a bundled hom structure already has a coercion to function
 that works with different universes. So we don't use this as a global instance. -/
-def concrete_category.has_coe_to_fun {X Y : C} : has_coe_to_fun (X ⟶ Y) :=
-{ F   := λ f, X → Y,
-  coe := λ f, (forget _).map f }
+def concrete_category.has_coe_to_fun {X Y : C} : has_coe_to_fun (X ⟶ Y) (λ f, X → Y) :=
+⟨λ f, (forget _).map f⟩
 
 local attribute [instance] concrete_category.has_coe_to_fun
 

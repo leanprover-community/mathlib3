@@ -65,7 +65,7 @@ variables [non_unital_non_assoc_semiring B] [distrib_mul_action R B]
 variables [non_unital_non_assoc_semiring C] [distrib_mul_action R C]
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (non_unital_alg_hom R A B) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (non_unital_alg_hom R A B) (λ _, A → B) := ⟨to_fun⟩
 
 @[simp] lemma to_fun_eq_coe (f : non_unital_alg_hom R A B) : f.to_fun = ⇑f := rfl
 
@@ -80,6 +80,8 @@ coe_injective $ funext h
 
 lemma ext_iff {f g : non_unital_alg_hom R A B} : f = g ↔ ∀ x, f x = g x :=
 ⟨by { rintro rfl x, refl }, ext⟩
+
+lemma congr_fun {f g : non_unital_alg_hom R A B} (h : f = g) (x : A) : f x = g x := h ▸ rfl
 
 @[simp] lemma coe_mk (f : A → B) (h₁ h₂ h₃ h₄) :
   ((⟨f, h₁, h₂, h₃, h₄⟩ : non_unital_alg_hom R A B) : A → B) = f :=

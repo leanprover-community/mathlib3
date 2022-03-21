@@ -3,8 +3,6 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.shapes.terminal
-import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.images
 import category_theory.isomorphism_classes
@@ -131,24 +129,6 @@ instance : has_zero_morphisms (C ⥤ D) :=
 
 @[simp] lemma zero_app (F G : C ⥤ D) (j : C) : (0 : F ⟶ G).app j = 0 := rfl
 
-variables [has_zero_morphisms C]
-
-lemma equivalence_preserves_zero_morphisms (F : C ≌ D) (X Y : C) :
-  F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=
-begin
-  have t : F.functor.map (0 : X ⟶ Y) =
-    F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
-  { apply faithful.map_injective (F.inverse),
-    rw [functor.map_comp, equivalence.inv_fun_map],
-    dsimp,
-    rw [zero_comp, comp_zero, zero_comp], },
-  exact t.trans (by simp)
-end
-
-@[simp] lemma is_equivalence_preserves_zero_morphisms (F : C ⥤ D) [is_equivalence F] (X Y : C) :
-  F.map (0 : X ⟶ Y) = 0 :=
-by rw [←functor.as_equivalence_functor F, equivalence_preserves_zero_morphisms]
-
 end
 
 variables (C)
@@ -207,16 +187,78 @@ instance {X : C} (f : X ⟶ 0) : epi f :=
     asks for an instance of `has_zero_objects`. -/
 def zero_morphisms_of_zero_object : has_zero_morphisms C :=
 { has_zero := λ X Y,
-  { zero := inhabited.default (X ⟶ 0) ≫ inhabited.default (0 ⟶ Y) },
+  { zero := (default : X ⟶ 0) ≫ default },
   zero_comp' := λ X Y Z f, by { dunfold has_zero.zero, rw category.assoc, congr, },
   comp_zero' := λ X Y Z f, by { dunfold has_zero.zero, rw ←category.assoc, congr, }}
 
 /-- A zero object is in particular initial. -/
-lemma has_initial : has_initial C :=
+def zero_is_initial : is_initial (0 : C) :=
+is_initial.of_unique 0
+/-- A zero object is in particular terminal. -/
+def zero_is_terminal : is_terminal (0 : C) :=
+is_terminal.of_unique 0
+
+/-- A zero object is in particular initial. -/
+@[priority 10]
+instance has_initial : has_initial C :=
 has_initial_of_unique 0
 /-- A zero object is in particular terminal. -/
-lemma has_terminal : has_terminal C :=
+@[priority 10]
+instance has_terminal : has_terminal C :=
 has_terminal_of_unique 0
+
+/-- The (unique) isomorphism between any initial object and the zero object. -/
+def zero_iso_is_initial {X : C} (t : is_initial X) : 0 ≅ X :=
+zero_is_initial.unique_up_to_iso t
+
+/-- The (unique) isomorphism between any terminal object and the zero object. -/
+def zero_iso_is_terminal {X : C} (t : is_terminal X) : 0 ≅ X :=
+zero_is_terminal.unique_up_to_iso t
+
+/-- The (unique) isomorphism between the chosen initial object and the chosen zero object. -/
+def zero_iso_initial [has_initial C] : 0 ≅ ⊥_ C :=
+zero_is_initial.unique_up_to_iso initial_is_initial
+
+/-- The (unique) isomorphism between the chosen terminal object and the chosen zero object. -/
+def zero_iso_terminal [has_terminal C] : 0 ≅ ⊤_ C :=
+zero_is_terminal.unique_up_to_iso terminal_is_terminal
+
+section has_zero_morphisms
+variables [has_zero_morphisms C]
+
+@[simp] lemma zero_iso_is_initial_hom {X : C} (t : is_initial X) :
+  (zero_iso_is_initial t).hom = 0 :=
+by ext
+
+@[simp] lemma zero_iso_is_initial_inv {X : C} (t : is_initial X) :
+  (zero_iso_is_initial t).inv = 0 :=
+by ext
+
+@[simp] lemma zero_iso_is_terminal_hom {X : C} (t : is_terminal X) :
+  (zero_iso_is_terminal t).hom = 0 :=
+by ext
+
+@[simp] lemma zero_iso_is_terminal_inv {X : C} (t : is_terminal X) :
+  (zero_iso_is_terminal t).inv = 0 :=
+by ext
+
+@[simp] lemma zero_iso_initial_hom [has_initial C] : zero_iso_initial.hom = (0 : 0 ⟶ ⊥_ C) :=
+by ext
+
+@[simp] lemma zero_iso_initial_inv [has_initial C] : zero_iso_initial.inv = (0 : ⊥_ C ⟶ 0) :=
+by ext
+
+@[simp] lemma zero_iso_terminal_hom [has_terminal C] : zero_iso_terminal.hom = (0 : 0 ⟶ ⊤_ C) :=
+by ext
+
+@[simp] lemma zero_iso_terminal_inv [has_terminal C] : zero_iso_terminal.inv = (0 : ⊤_ C ⟶ 0) :=
+by ext
+
+end has_zero_morphisms
+
+@[priority 100]
+instance has_strict_initial : initial_mono_class C :=
+initial_mono_class.of_is_initial zero_is_initial (λ X, category_theory.mono _)
 
 open_locale zero_object
 
@@ -382,8 +424,7 @@ def is_iso_zero_self_equiv_iso_zero (X : C) : is_iso (0 : X ⟶ X) ≃ (X ≅ 0)
 end is_iso
 
 /-- If there are zero morphisms, any initial object is a zero object. -/
-@[priority 50]
-instance has_zero_object_of_has_initial_object
+def has_zero_object_of_has_initial_object
   [has_zero_morphisms C] [has_initial C] : has_zero_object C :=
 { zero := ⊥_ C,
   unique_to := λ X, ⟨⟨0⟩, by tidy⟩,
@@ -395,8 +436,7 @@ instance has_zero_object_of_has_initial_object
   ⟩ }
 
 /-- If there are zero morphisms, any terminal object is a zero object. -/
-@[priority 50]
-instance has_zero_object_of_has_terminal_object
+def has_zero_object_of_has_terminal_object
   [has_zero_morphisms C] [has_terminal C] : has_zero_object C :=
 { zero := ⊤_ C,
   unique_from := λ X, ⟨⟨0⟩, by tidy⟩,
@@ -414,6 +454,10 @@ variable [has_zero_morphisms C]
 lemma image_ι_comp_eq_zero {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [has_image f]
   [epi (factor_thru_image f)] (h : f ≫ g = 0) : image.ι f ≫ g = 0 :=
 zero_of_epi_comp (factor_thru_image f) $ by simp [h]
+
+lemma comp_factor_thru_image_eq_zero {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [has_image g]
+  (h : f ≫ g = 0) : f ≫ factor_thru_image g = 0 :=
+zero_of_comp_mono (image.ι g) $ by simp [h]
 
 variables [has_zero_object C]
 open_locale zero_object

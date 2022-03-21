@@ -443,13 +443,16 @@ begin
   exact ⟨i, hi, λ h, hsub h rfl⟩
 end
 
-@[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
+@[simp] lemma pure_le_nhds_iff [t1_space α] {a b : α} : pure a ≤ 𝓝 b ↔ a = b :=
 begin
-  refine ⟨λ h, _, λ h, h ▸ le_rfl⟩,
+  refine ⟨λ h, _, λ h, h ▸ pure_le_nhds a⟩,
   by_contra hab,
-  have := h (compl_singleton_mem_nhds $ ne.symm hab),
-  refine mem_of_mem_nhds this (mem_singleton a)
+  simpa only [mem_pure, mem_compl_iff, mem_singleton, not_true] using
+    h (compl_singleton_mem_nhds $ ne.symm hab)
 end
+
+@[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
+⟨λ h, pure_le_nhds_iff.mp $ (pure_le_nhds a).trans h, λ h, h ▸ le_rfl⟩
 
 @[simp] lemma nhds_eq_nhds_iff [t1_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
 ⟨λ h, nhds_le_nhds_iff.mp h.le, λ h, h ▸ rfl⟩
@@ -521,6 +524,10 @@ fact₂ fact₁ (eq.refl $ f a)
 lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
   (h : tendsto f (𝓝 a) (𝓝 b)) : continuous_at f a :=
 show tendsto f (𝓝 a) (𝓝 $ f a), by rwa eq_of_tendsto_nhds h
+
+lemma tendsto_const_nhds_iff [t1_space α] {l : filter α} [ne_bot l] {c d : α} :
+  tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
+by simp_rw [tendsto, filter.map_const, pure_le_nhds_iff]
 
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
 infinite. -/
@@ -786,10 +793,6 @@ lemma tendsto_nhds_unique_of_frequently_eq [t2_space α] {f g : β → α} {l : 
   a = b :=
 have ∃ᶠ z : α × α in 𝓝 (a, b), z.1 = z.2 := (ha.prod_mk_nhds hb).frequently hfg,
 not_not.1 $ λ hne, this (is_closed_diagonal.is_open_compl.mem_nhds hne)
-
-lemma tendsto_const_nhds_iff [t2_space α] {l : filter α} [ne_bot l] {c d : α} :
-  tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
-⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
 
 /-- A T₂.₅ space, also known as a Urysohn space, is a topological space
   where for every pair `x ≠ y`, there are two open sets, with the intersection of closures

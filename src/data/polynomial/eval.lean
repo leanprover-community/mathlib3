@@ -463,7 +463,7 @@ begin
   { intros, simp only [add_comp, mul_comp, C_comp, X_comp, pow_succ', ← mul_assoc, *] at * }
 end
 
-lemma coeff_comp_degree_mul_degree {p q : R[X]} (hqd0 : nat_degree q ≠ 0) :
+lemma coeff_comp_degree_mul_degree (hqd0 : nat_degree q ≠ 0) :
   coeff (p.comp q) (nat_degree p * nat_degree q) =
   leading_coeff p * leading_coeff q ^ nat_degree p :=
 begin

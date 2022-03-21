@@ -467,6 +467,8 @@ variables {K L L' M : set V}
 
 private def finsubsets := {K : set V | K.finite}
 
+
+
 def ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :=
 { f : Π (K : ℱ), inf_components G K.val | ∀ K L : ℱ, ∀ h : K.val ⊆ L.val, bwd_map G h (f L) = (f K) }
 
@@ -517,7 +519,6 @@ def of_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : �
   in
     ⟨f,f_comm⟩
 
-
 -- Thanks Kyle Miller
 def equiv_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
   ends G ≃ ends_for G ℱ H ℱ_cofin :=
@@ -542,9 +543,35 @@ begin
   rintros ⟨no_V⟩,
   apply is_empty.mk,
   rintros ⟨f,f_comm⟩,
-  rcases f ⟨∅,set.finite_empty⟩ with ⟨a,⟨b,_⟩,is_inf⟩,
+  rcases f ⟨∅,set.finite_empty⟩ with ⟨_,⟨b,_⟩,_⟩,
   exact no_V b,
 end
+
+lemma ends_finite_graph  (Vfinite : (@set.univ V).finite) : is_empty (ends G) :=
+begin
+  apply is_empty.mk,
+  rintros ⟨f,f_comm⟩,
+  rcases f ⟨@set.univ V,Vfinite⟩ with ⟨C,⟨_,_⟩,C_inf⟩,
+  exact C_inf (set.finite.subset Vfinite (set.subset_univ C)),
+end
+
+
+lemma of_component
+  (V_ctble : set.countable (@univ V))
+  (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) :
+  ∃ e : (ends G), (e.val (⟨K,Kfinite⟩ : finsubsets)).val = C.val :=
+begin
+
+end
+
+
+lemma inf_components_embeds_ends (Knempty : K.nonempty) (Kfinite : K.finite) :
+  inf_components G K ↪ ends G :=
+begin
+  sorry
+end
+
+
 
 --lemma ends_eq_disjoints_ends_of (Knempty : K.nonempty) (Kfinite : K.finite) : ends G = disjoint union of the ends of G-K
 

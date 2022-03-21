@@ -466,20 +466,17 @@ end
 lemma coeff_comp_degree_mul_degree (hqd0 : nat_degree q ≠ 0) :
   coeff (p.comp q) (nat_degree p * nat_degree q) =
   leading_coeff p * leading_coeff q ^ nat_degree p :=
-calc coeff (p.comp q) (nat_degree p * nat_degree q)
-    = p.sum (λ n a, coeff (C a * q ^ n) (nat_degree p * nat_degree q)) :
-      by rw [comp, eval₂, coeff_sum]
-... = coeff (C (leading_coeff p) * q ^ nat_degree p) (nat_degree p * nat_degree q) :
-      finset.sum_eq_single _
-        begin
-          assume b hbs hbp,
-          refine coeff_eq_zero_of_nat_degree_lt ((nat_degree_mul_le).trans_lt _),
-          rw [nat_degree_C, zero_add],
-          refine (nat_degree_pow_le).trans_lt ((mul_lt_mul_right (pos_iff_ne_zero.mpr hqd0)).mpr _),
-          exact lt_of_le_of_ne (le_nat_degree_of_mem_supp _ hbs) hbp,
-        end
-        (λ h, by simp [leading_coeff_eq_zero.mp (not_mem_support_iff.mp h)])
-... = _ : (coeff_C_mul _).trans $ congr_arg _ $ coeff_pow_mul_nat_degree _ _
+begin
+  rw [comp, eval₂, coeff_sum],
+  convert finset.sum_eq_single p.nat_degree _ _,
+  { simp only [coeff_nat_degree, coeff_C_mul, coeff_pow_mul_nat_degree] },
+  { assume b hbs hbp,
+    refine coeff_eq_zero_of_nat_degree_lt ((nat_degree_mul_le).trans_lt _),
+    rw [nat_degree_C, zero_add],
+    refine (nat_degree_pow_le).trans_lt ((mul_lt_mul_right (pos_iff_ne_zero.mpr hqd0)).mpr _),
+    exact lt_of_le_of_ne (le_nat_degree_of_mem_supp _ hbs) hbp },
+  { simp {contextual := tt} }
+end
 
 end comp
 

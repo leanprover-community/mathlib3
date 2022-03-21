@@ -781,32 +781,6 @@ begin
     { exact this } },
 end
 
-variable {I}
-
-lemma irreducible_pow_sup (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) (n : ℕ) :
-  p^n ⊔ I = p^(min ((normalized_factors I).count p) n) :=
-by rw [sup_eq_prod_inf_factors (p^n) I (pow_ne_zero n hp.ne_zero) hI, ← inf_eq_inter,
-       normalized_factors_irreducible_pow hp, normalize_eq p, repeat_inf, prod_repeat]
-
-lemma irreducible_pow_sup_of_ge (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) (n : ℕ)
-  (hn : ↑n ≤ multiplicity p I) : p^n ⊔ I = p^n :=
-begin
-  rw [irreducible_pow_sup hI hp, min_eq_right],
-  rwa [multiplicity_eq_count_normalized_factors hp hI, enat.coe_le_coe, normalize_eq p]
-    at hn
-end
-
-lemma irreducible_pow_sup_of_le (hI : I ≠ ⊥) {p : ideal T} (hp : irreducible p) (n : ℕ)
-  (hn : multiplicity p I ≤ n) : p^n ⊔ I = p ^ (multiplicity p I).get (enat.dom_of_le_coe hn) :=
-begin
-  rw [irreducible_pow_sup hI hp, min_eq_left],
-  congr,
-  { rw [← enat.coe_inj, enat.coe_get, multiplicity_eq_count_normalized_factors hp hI,
-    normalize_eq p] },
-  { rwa [multiplicity_eq_count_normalized_factors hp hI, enat.coe_le_coe, normalize_eq p]
-      at hn }
-end
-
 end is_dedekind_domain
 
 section height_one_spectrum

@@ -6,7 +6,7 @@ Authors: Anne Baanen, Paul Lezeau
 
 import algebra.squarefree
 import ring_theory.unique_factorization_domain
-import ring_theory.dedekind_domain
+import ring_theory.dedekind_domain.ideal
 
 /-!
 
@@ -147,13 +147,11 @@ lemma map_prime_of_monotone_equiv {m p : associates M} {n : associates N}
   (hd' : monotone d.symm) {s : ℕ} (hs : s ≠ 0) (hs' : p^s ≤ m) :
   irreducible (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N) :=
 begin
-  rw ← associates.is_atom_iff,
-  split,
+  refine (associates.is_atom_iff (ne_zero_of_dvd_ne_zero hn (d ⟨p, _⟩).prop)).mp ⟨_, λ b hb, _⟩,
   { rw [ne.def, ← associates.is_unit_iff_eq_bot, ← map_is_unit_iff_is_unit
     (dvd_of_mem_normalized_factors hp) d],
     exact prime.not_unit (prime_of_normalized_factor p hp) },
-  { intros b hb,
-    obtain ⟨x, hx⟩ := d.surjective ⟨b, le_trans (le_of_lt hb)
+  { obtain ⟨x, hx⟩ := d.surjective ⟨b, le_trans (le_of_lt hb)
       (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop⟩,
     rw [← subtype.coe_mk b _ , subtype.coe_lt_coe, ← hx] at hb,
     suffices : x = ⊥,
@@ -163,14 +161,12 @@ begin
     rw [divisors_bot', ← mem_divisors_eq_bot_iff],
     exact ((associates.is_atom_iff (prime.ne_zero (prime_of_normalized_factor p hp))).mpr
       (irreducible_of_normalized_factor p hp) ).right a (subtype.mk_lt_mk.mp (d.lt_iff_lt.mp hb)) },
-  { exact ne_zero_of_dvd_ne_zero hn (d ⟨p, _⟩).prop },
 end
 
 variable [unique (units M)]
 
-def associates.mk_monoid_equiv : M ≃* associates M :=
-mul_equiv.of_bijective (@associates.mk_monoid_hom M _)
-⟨associates.mk_injective, associates.mk_surjective⟩
+def associates.mk_monoid_equiv : M ≃* associates M := mul_equiv.of_bijective
+  (@associates.mk_monoid_hom M _) ⟨associates.mk_injective, associates.mk_surjective⟩
 
 variables [comm_ring M] [is_domain M] [is_dedekind_domain M]
 

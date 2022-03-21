@@ -86,8 +86,7 @@ def hereditary : Prop :=
 /-- A class `K` has the joint embedding property when for every `M`, `N` in `K`, there is another
   structure in `K` into which both `M` and `N` embed. -/
 def joint_embedding : Prop :=
-∀ (M N : bundled.{w} L.Structure), M ∈ K → N ∈ K → ∃ (P : bundled.{w} L.Structure),
-  P ∈ K ∧ nonempty (M ↪[L] P) ∧ nonempty (N ↪[L] P)
+directed_on (λ M N : bundled.{w} L.Structure, nonempty (M ↪[L] N)) K
 
 /-- A class `K` has the amalgamation property when for any pair of embeddings of a structure `M` in
   `K` into other structures in `K`, those two structures can be embedded into a fourth structure in
@@ -121,11 +120,11 @@ lemma age.hereditary : hereditary (L.age M) :=
 λ N P NP Nfg h, ⟨Nfg, nonempty.map (λ x, embedding.comp x NP.some) h.2⟩
 
 lemma age.joint_embedding : joint_embedding (L.age M) :=
-λ N P hN hP, ⟨bundled.of ↥(hN.2.some.to_hom.range ⊔ hP.2.some.to_hom.range),
+λ N hN P hP, ⟨bundled.of ↥(hN.2.some.to_hom.range ⊔ hP.2.some.to_hom.range),
   ⟨(fg_iff_Structure_fg _).1 ((hN.1.range hN.2.some.to_hom).sup (hP.1.range hP.2.some.to_hom)),
-    ⟨subtype _⟩⟩,
-    ⟨embedding.comp (inclusion le_sup_left) hN.2.some.equiv_range.to_embedding⟩,
-    ⟨embedding.comp (inclusion le_sup_right) hP.2.some.equiv_range.to_embedding⟩⟩
+  ⟨subtype _⟩⟩,
+  ⟨embedding.comp (inclusion le_sup_left) hN.2.some.equiv_range.to_embedding⟩,
+  ⟨embedding.comp (inclusion le_sup_right) hP.2.some.equiv_range.to_embedding⟩⟩
 
 /-- The age of a countable structure is essentially countable (has countably many isomorphism
 classes). -/
@@ -191,11 +190,11 @@ begin
   { intro n,
     obtain ⟨P, hP1, hP2⟩ := (hF (F n).out).2 ⟨n, setoid.refl _⟩,
     exact (h _ _ hP2).1 hP1 },
-  have hj := λ (N : K) (n : ℕ), joint_embedding N (F (n + 1)).out N.2 (hF' _),
+  have hj := λ (N : K) (n : ℕ), joint_embedding N N.2 (F (n + 1)).out (hF' _),
   let G : ℕ → K := @nat.rec (λ _, K) (⟨(F 0).out, hF' 0⟩) (λ n N, ⟨classical.some (hj N n),
-    (classical.some_spec (hj N n)).1⟩),
+    classical.some (classical.some_spec (hj N n))⟩),
   let f : Π (i j), i ≤ j → G i ↪[L] G j :=
-    directed_system.nat_le_rec (λ n, (classical.some_spec (hj _ n)).2.1.some),
+    directed_system.nat_le_rec (λ n, (classical.some_spec (classical.some_spec (hj _ n))).1.some),
   refine ⟨bundled.of (direct_limit (λ n, G n) f), direct_limit.cg _ (λ n, (fg _ (G n).2).cg),
     (age_direct_limit _ _).trans (set.ext (λ N, _))⟩,
   simp only [mem_Union],
@@ -207,7 +206,7 @@ begin
     refine ⟨n, fg _ KN, ⟨embedding.comp _ e.symm.to_embedding⟩⟩,
     cases n,
     { exact embedding.refl _ _ },
-    { exact (classical.some_spec (hj _ n)).2.2.some } }
+    { exact (classical.some_spec (classical.some_spec (hj _ n))).2.some } }
 end
 
 variable (K)

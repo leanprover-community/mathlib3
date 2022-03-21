@@ -162,7 +162,7 @@ begin
   apply homotopy_equiv.homotopy_hom_inv_id,
 end
 
-end category_theory
+end category_theory<<<<<<< jjaassoonn/injectives/right_derived
 
 section
 
@@ -289,3 +289,4 @@ nat_iso.of_components (λ X, (right_derived_zero_to_self_app_iso _ (InjectiveRes
 end category_theory.abelian.functor
 
 end
+

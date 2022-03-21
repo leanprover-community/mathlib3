@@ -261,6 +261,8 @@ begin
   { intro i, exact subtype.coe_injective }
 end
 
+variable (hcomm)
+
 @[to_additive]
 lemma independent_of_coprime_order [∀ i, fintype (H i)]
   (hcoprime : ∀ i j, i ≠ j → nat.coprime (fintype.card (H i)) (fintype.card (H j))) :

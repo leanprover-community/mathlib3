@@ -467,7 +467,7 @@ squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
 /- `squarefree` is multiplicative. Note that the ← direction does not require `hmn`.
 See `squarefree.of_mul_left` and `squarefree.of_mul_right` above for auxiliary lemmas. -/
 lemma squarefree_mul {m n : ℕ} (hmn : m.coprime n) :
-  squarefree m ∧ squarefree n ↔ squarefree (m * n) :=
+  squarefree (m * n) ↔ squarefree m ∧ squarefree n :=
 begin
   simp only [squarefree_iff_prime_squarefree, ←sq, ←forall_and_distrib],
   refine ball_congr (λ p hp, _),

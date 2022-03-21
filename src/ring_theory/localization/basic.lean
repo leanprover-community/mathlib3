@@ -813,17 +813,6 @@ calc  mk a b - mk c d
 ... = mk (b * (-c) + d * a) (b * d) : add_mk _ _ _ _
 ... = mk (d * a - b * c) (b * d) : by congr'; ring
 
-lemma coe_int (m : ℤ) : (m : localization M) = mk m 1 :=
-int.induction_on m (mk_zero _).symm (λ n ih, begin
-  push_cast at ⊢ ih,
-  erw [ih, ← mk_one, add_mk, one_mul, one_mul, one_mul, add_comm],
-end) $ λ n ih, begin
-  push_cast at ⊢ ih,
-  erw [ih, ← mk_one, sub_mk, one_mul, one_mul, one_mul]
-end
-
-lemma coe_nat (m : ℕ) : (m : localization M) = mk m 1 := coe_int m
-
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
   distrib_mul_action S (localization M) :=
 { smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],
@@ -885,6 +874,13 @@ by rw [mk_eq_monoid_of_mk'_apply, mk', to_localization_map_eq_monoid_of]
 
 @[simp] lemma mk_eq_mk' : (mk : R → M → localization M) = is_localization.mk' (localization M) :=
 mk_eq_monoid_of_mk'
+
+
+lemma mk_int_cast (m : ℤ) : (mk m 1 : localization M) = m :=
+by rw [← (algebra_map R (localization M)).map_int_cast m, mk_eq_mk', mk'_eq_iff_eq_mul,
+  submonoid.coe_one, map_one, mul_one]
+
+lemma mk_nat_cast (m : ℕ) :  (mk m 1 : localization M) = m := mk_int_cast m
 
 variables [is_localization M S]
 

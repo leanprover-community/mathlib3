@@ -716,6 +716,11 @@ lemma order_iso.map_top [has_le α] [partial_order β] [order_top α] [order_top
   f ⊤ = ⊤ :=
 f.dual.map_bot
 
+lemma order_iso.map_eq_top_iff [partial_order α] [partial_order β] [order_top α] [order_top β]
+  {a : α} (f : α ≃o β) : f a = ⊤ ↔ a = ⊤ :=
+⟨(λ h, by rw [(show a = f.symm ⊤, by simp only [← h, order_iso.symm_apply_apply]),
+  order_iso.map_top f.symm]), λ h, by rw [h, f.map_top]⟩
+
 lemma order_embedding.map_inf_le [semilattice_inf α] [semilattice_inf β]
   (f : α ↪o β) (x y : α) :
   f (x ⊓ y) ≤ f x ⊓ f y :=

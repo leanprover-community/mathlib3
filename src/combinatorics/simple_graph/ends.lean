@@ -481,6 +481,7 @@ by rw [bwd_map_comp',bwd_map_comp']
 
 end dunno
 
+
 private def finsubsets := {K : set V | K.finite}
 
 def ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :=
@@ -504,17 +505,17 @@ def ends := ends_for finsubsets (λ K Kfin, Kfin) (λ K, ⟨K,set.subset.refl K.
 
 namespace ends
 
+-- #print prefix simple_graph.connected_outside.ends.to_ends_for
+
+
+
+
+
 def to_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
-  ends → ends_for ℱ H ℱ_cofin :=
-λ ⟨f,f_comm⟩,
-  let
-    g : Π (K : ℱ), inf_components K := (λ K, f  ⟨K.val,H K.prop⟩)
-  , g_comm : (∀ K L : ℱ, ∀ h : ↑K ⊆ ↑L, bwd_map h (g L) = (g K)) := (λ K L hKL, by
-    { have := f_comm (set.inclusion H K) (set.inclusion H L) hKL,
-      rw subtype.ext_iff at *,
-      apply this,})
-  in
-    ⟨g,g_comm⟩
+  ends → ends_for ℱ H ℱ_cofin
+| ⟨f,f_comm⟩ := ⟨ λ K, f ⟨K, H K.property⟩
+                , λ K L hKL, f_comm (set.inclusion H K) (set.inclusion H L) hKL⟩
+
 
 def of_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
   ends_for ℱ H ℱ_cofin → ends :=
@@ -539,45 +540,27 @@ def of_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : �
   in
     ⟨f,f_comm⟩
 
-lemma to_of_ends_for_is_id  (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
-  (to_ends_for ℱ H ℱ_cofin) ∘ (of_ends_for ℱ H ℱ_cofin) = id :=
-begin
-  apply funext,
-  rintros g,
-  unfold to_ends_for,
-  unfold of_ends_for,
-  simp, dsimp,
-  apply subtype.ext,
-  apply funext,
-  rintros F,
-  let FF := some (ℱ_cofin ⟨F.val,H F.prop⟩),
-  let F_FF := some_spec (ℱ_cofin ⟨F.val,H F.prop⟩),
-  rcases ends_for_directed ℱ H ℱ_cofin g F FF with ⟨M,F_M,FF_M,backF,backFF⟩,
-  simp at backF,
-  rw backF,
 
-end
+-- Kyle Miller
+def to_ends_for' (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
+  ends ≃ ends_for ℱ H ℱ_cofin :=
+{ to_fun := to_ends_for ℱ H ℱ_cofin,
+  inv_fun := of_ends_for ℱ H ℱ_cofin,
+  left_inv := begin
+    rintro ⟨g, g_comm⟩,
+    simp only [of_ends_for, to_ends_for, comp_app, id.def, subtype.mk_eq_mk],
+    ext1 F,
+    apply g_comm,
+  end,
+  right_inv := begin
+    rintro ⟨g, g_comm⟩,
+    simp only [of_ends_for, to_ends_for, comp_app, id.def, subtype.mk_eq_mk],
+    ext1 F,
+    apply g_comm,
+  end }
 
-lemma of_to_ends_for_is_id  (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
-  (of_ends_for ℱ H ℱ_cofin) ∘ (to_ends_for ℱ H ℱ_cofin) = id :=
-begin
-  apply funext,
-  rintros f,
-  unfold to_ends_for,
-  unfold of_ends_for,
-  simp, dsimp,
-  apply subtype.ext,
-  apply funext,
 
-  rintros K,
-  simpa
-  --let FF := some (ℱ_cofin ⟨F.val,H F.prop⟩),
-  --let F_FF := some_spec (ℱ_cofin ⟨F.val,H F.prop⟩),
-  --rcases ends_for_directed ℱ H ℱ_cofin g F FF with ⟨M,F_M,FF_M,backF,backFF⟩,
-  --simp at backF,
-  --rw backF,
 
-end
 
 end ends
 
@@ -589,6 +572,7 @@ end ends
 
 end ends
 
+end connected_outside
 
 
 end simple_graph

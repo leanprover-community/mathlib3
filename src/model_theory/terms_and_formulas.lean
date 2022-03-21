@@ -279,10 +279,10 @@ instance : inhabited (L.bounded_formula α n) :=
 instance : has_bot (L.bounded_formula α n) := ⟨falsum⟩
 
 /-- The negation of a bounded formula is also a bounded formula. -/
-protected def not (φ : L.bounded_formula α n) : L.bounded_formula α n := φ.imp ⊥
+@[pattern] protected def not (φ : L.bounded_formula α n) : L.bounded_formula α n := φ.imp ⊥
 
 /-- Puts an `∃` quantifier on a bounded formula. -/
-protected def ex (φ : L.bounded_formula α (n + 1)) : L.bounded_formula α n :=
+@[pattern] protected def ex (φ : L.bounded_formula α (n + 1)) : L.bounded_formula α n :=
   φ.not.all.not
 
 instance : has_top (L.bounded_formula α n) := ⟨bounded_formula.not ⊥⟩
@@ -596,21 +596,19 @@ is_prenex.rec_on h
   is a prenex normal form for `φ.imp ψ`. -/
 def to_prenex_imp_right :
   ∀ {n}, L.bounded_formula α n → L.bounded_formula α n → L.bounded_formula α n
-| n φ (imp (all (imp ψ falsum)) falsum) := ((φ.lift_at 1 n).to_prenex_imp_right ψ).ex
+| n φ (bounded_formula.ex ψ) := ((φ.lift_at 1 n).to_prenex_imp_right ψ).ex
 | n φ (all ψ) := ((φ.lift_at 1 n).to_prenex_imp_right ψ).all
 | n φ ψ := φ.imp ψ
 
-lemma is_qf.to_prenex_imp_right {φ ψ : L.bounded_formula α n} (hψ : is_qf ψ) :
-  φ.to_prenex_imp_right ψ = φ.imp ψ :=
-begin
-  cases hψ with _ ha _ _ hq,
-  { refl },
-  { cases ha; refl },
-  { cases hq with _ ha,
-    { refl },
-    { cases ha; refl },
-    { refl } }
-end
+lemma is_qf.to_prenex_imp_right {φ : L.bounded_formula α n} :
+  Π {ψ : L.bounded_formula α n}, is_qf ψ → (φ.to_prenex_imp_right ψ = φ.imp ψ)
+| _ is_qf.falsum := rfl
+| _ (is_qf.of_is_atomic (is_atomic.equal _ _)) := rfl
+| _ (is_qf.of_is_atomic (is_atomic.rel _ _)) := rfl
+| _ (is_qf.imp is_qf.falsum _) := rfl
+| _ (is_qf.imp (is_qf.of_is_atomic (is_atomic.equal _ _)) _) := rfl
+| _ (is_qf.imp (is_qf.of_is_atomic (is_atomic.rel _ _)) _) := rfl
+| _ (is_qf.imp (is_qf.imp _ _) _) := rfl
 
 lemma is_prenex_to_prenex_imp_right {φ ψ : L.bounded_formula α n}
   (hφ : is_qf φ) (hψ : is_prenex ψ) :
@@ -632,17 +630,15 @@ def to_prenex_imp :
 | n (all φ) ψ := (φ.to_prenex_imp (ψ.lift_at 1 n)).ex
 | _ φ ψ := φ.to_prenex_imp_right ψ
 
-lemma is_qf.to_prenex_imp {φ ψ : L.bounded_formula α n} (h : φ.is_qf) :
-  φ.to_prenex_imp ψ = φ.to_prenex_imp_right ψ :=
-begin
-  cases h with _ ha _ _ hq,
-  { refl },
-  { cases ha; refl },
-  { cases hq with _ ha,
-    { refl },
-    { cases ha; refl },
-    { refl } }
-end
+lemma is_qf.to_prenex_imp : Π {φ ψ : L.bounded_formula α n}, φ.is_qf →
+  φ.to_prenex_imp ψ = φ.to_prenex_imp_right ψ
+| _ _ is_qf.falsum := rfl
+| _ _ (is_qf.of_is_atomic (is_atomic.equal _ _)) := rfl
+| _ _ (is_qf.of_is_atomic (is_atomic.rel _ _)) := rfl
+| _ _ (is_qf.imp is_qf.falsum _) := rfl
+| _ _ (is_qf.imp (is_qf.of_is_atomic (is_atomic.equal _ _)) _) := rfl
+| _ _ (is_qf.imp (is_qf.of_is_atomic (is_atomic.rel _ _)) _) := rfl
+| _ _ (is_qf.imp (is_qf.imp _ _) _) := rfl
 
 lemma is_prenex_to_prenex_imp {φ ψ : L.bounded_formula α n}
   (hφ : is_prenex φ) (hψ : is_prenex ψ) :

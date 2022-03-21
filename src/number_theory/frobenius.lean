@@ -8,36 +8,39 @@ import group_theory.submonoid.basic
 import group_theory.submonoid.membership
 
 /-!
-# Chicken McNugget Theorem
+# Frobenius Number in Two Variables
 
-In this file we prove the Chicken McNugget Theorem, first using natural multiplication,
-then using additive submonoid closures. This theorem solves the 2-variable variant of the
-general Frobenius coin problem
+In this file we first define a predicate for Frobenius numbers, then solve the 2-variable variant
+of this problem.
 
 ## Theorem Statement
-The Chicken McNugget Theorem states, for two relatively prime integers `m` and `n`, both larger
-than 1, the greatest integer not expressible as a sum of nonnegative multiples of these two
-is `m * n - m - n`. The general problem of finding this greatest integer for any number of
-(not pairwise) relatively prime integers is called the Frobenius coin problem.
+
+Given a finite set of relatively prime integers all greater than 1, their Frobenius number is the
+largest positive integer that cannot be expressed as a sum of nonnegative multiples of these
+integers. Here we show the Frobenius number of two relatively prime integers `m` and `n` greater
+than 1 is `m * n - m - n`. This result is also known as the Chicken McNugget Theorem.
 
 ## Implementation Notes
+
+First we define Frobenius numbers in general using `is_greatest` and `add_submonoid.closure`. Then
+we proceed to compute the Frobenius number of `m` and `n`.
 
 For the upper bound, we begin with an auxiliary lemma showing `m * n` is not attainable, then show
 `m * n - m - n` is not attainable. Then for the construction, we create a `k_1` which is `k mod n`
 and `0 mod m`, then show it is at most `k`. Then `k_1` is a multiple of `m`, so `(k-k_1)`
 is a multiple of n, and we're done.
 
-Afterwards, we rewrite this with add_submonoid.closure and is_greatest,
-using `add_submonoid.mem_closure_pair`.
-
 ## Tags
 
-chicken mcnugget, frobenius coin, chinese remainder theorem, submonoid.closure
+frobenius number, chicken mcnugget, chinese remainder theorem, add_submonoid.closure
 -/
 
 namespace nat
 
 variables {m n : ℕ}
+
+def is_frobenius (n : ℕ) (s : set ℕ) : Prop :=
+  is_greatest {k | k ∉ add_submonoid.closure (s)} n
 
 /- No solution for the product over the natural numbers. -/
 lemma mul_add_mul_ne_mul_of_coprime {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0)
@@ -86,10 +89,11 @@ theorem max_not_sum_mult (cop: coprime m n) (hm : 1 < m) (hn : 1 < n) :
 ⟨mul_add_mul_ne_max_val cop hm hn,
   λ k hk, not_lt.mp (mt (not_in_clos_nat_pair cop hm hn k) (λ ⟨a, b, H⟩, hk a b H))⟩
 
-/-- The **Chicken Mcnugget theorem** stated using `add_monoid.closure. -/
+/-- The **Chicken Mcnugget theorem** stated using `is_frobenius`. -/
 theorem max_not_in_clos_nat_pair_eq (cop : coprime m n) (hm : 1 < m) (hn : 1 < n) :
-  is_greatest {k | k ∉ add_submonoid.closure ({m, n} : set ℕ)} (m * n - m - n) :=
+  is_frobenius (m * n - m - n) {m, n} :=
 begin
+  rw is_frobenius,
   simp_rw add_submonoid.mem_closure_pair,
   push_neg,
   exact max_not_sum_mult cop hm hn,

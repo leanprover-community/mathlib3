@@ -731,12 +731,11 @@ end is_dedekind_domain
 
 section is_dedekind_domain
 
-variables {T : Type*} [comm_ring T] [is_domain T] [is_dedekind_domain T] (I J : ideal T)
+variables {T : Type*} [comm_ring T] [is_domain T] [is_dedekind_domain T] {I J : ideal T}
 open_locale classical
 open multiset unique_factorization_monoid ideal
 
-lemma prod_normalized_factors_eq_self {I : ideal T} (hI : I ≠ ⊥) :
-  (normalized_factors I).prod = I :=
+lemma prod_normalized_factors_eq_self (hI : I ≠ ⊥) : (normalized_factors I).prod = I :=
 associated_iff_eq.1 (normalized_factors_prod hI)
 
 lemma normalized_factors_prod {α : multiset (ideal T)}
@@ -779,6 +778,30 @@ begin
       exact prime_of_normalized_factor p hp.left },
     { exact ne_bot_of_le_ne_bot hI le_sup_left },
     { exact this } },
+end
+
+lemma irreducible_pow_sup (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ) :
+  J^n ⊔ I = J^(min ((normalized_factors I).count J) n) :=
+by rw [sup_eq_prod_inf_factors (pow_ne_zero n hJ.ne_zero) hI, ← inf_eq_inter,
+       normalized_factors_of_irreducible_pow hJ, normalize_eq J, repeat_inf, prod_repeat]
+
+lemma irreducible_pow_sup_of_ge (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ)
+  (hn : ↑n ≤ multiplicity J I) : J^n ⊔ I = J^n :=
+begin
+  rw [irreducible_pow_sup hI hJ, min_eq_right],
+  rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J]
+    at hn
+end
+
+lemma irreducible_pow_sup_of_le (hI : I ≠ ⊥) (hp : irreducible J) (n : ℕ)
+  (hn : multiplicity J I ≤ n) : J^n ⊔ I = J ^ (multiplicity J I).get (enat.dom_of_le_coe hn) :=
+begin
+  rw [irreducible_pow_sup hI hp, min_eq_left],
+  congr,
+  { rw [← enat.coe_inj, enat.coe_get, multiplicity_eq_count_normalized_factors hp hI,
+    normalize_eq J] },
+  { rwa [multiplicity_eq_count_normalized_factors hp hI, enat.coe_le_coe, normalize_eq J]
+      at hn }
 end
 
 end is_dedekind_domain

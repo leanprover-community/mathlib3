@@ -166,8 +166,6 @@ end category_theory
 
 section
 
-noncomputable theory
-
 universes w v u
 
 open category_theory.limits category_theory category_theory.functor

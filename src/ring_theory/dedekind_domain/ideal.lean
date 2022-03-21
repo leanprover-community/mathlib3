@@ -793,14 +793,14 @@ begin
     at hn
 end
 
-lemma irreducible_pow_sup_of_le (hI : I ≠ ⊥) (hp : irreducible J) (n : ℕ)
+lemma irreducible_pow_sup_of_le (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ)
   (hn : multiplicity J I ≤ n) : J^n ⊔ I = J ^ (multiplicity J I).get (enat.dom_of_le_coe hn) :=
 begin
-  rw [irreducible_pow_sup hI hp, min_eq_left],
+  rw [irreducible_pow_sup hI hJ, min_eq_left],
   congr,
-  { rw [← enat.coe_inj, enat.coe_get, multiplicity_eq_count_normalized_factors hp hI,
+  { rw [← enat.coe_inj, enat.coe_get, multiplicity_eq_count_normalized_factors hJ hI,
     normalize_eq J] },
-  { rwa [multiplicity_eq_count_normalized_factors hp hI, enat.coe_le_coe, normalize_eq J]
+  { rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J]
       at hn }
 end
 

@@ -451,6 +451,8 @@ begin
   simp only [map_add, ←algebra_map_eq_inl, h, h'],
 end
 
+/-- See note [partially-applied ext lemmas] -/
+@[ext]
 lemma alg_hom_ext' {φ ψ : unitization R A →ₐ[R] C}
   (h : φ.to_non_unital_alg_hom.comp (coe_non_unital_alg_hom R A) =
     ψ.to_non_unital_alg_hom.comp (coe_non_unital_alg_hom R A)) :

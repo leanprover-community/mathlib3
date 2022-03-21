@@ -196,7 +196,7 @@ begin
   rw [conj_classes.mem_carrier_iff_mk_eq, conj_classes.mk_eq_mk_iff_is_conj, mem_orbit_conj_act_iff]
 end
 
-lemma card_carrier (g : G) :
+lemma card_carrier (g : G) [fintype ((conj_classes.mk g).carrier)] :
   fintype.card (conj_classes.mk g).carrier =
     fintype.card (conj_act G) / fintype.card (stabilizer (conj_act G) g) :=
 begin
@@ -207,7 +207,7 @@ end
 
 end
 
-lemma class_equation' [decidable_rel (is_conj : G → G → Prop)] :
+lemma class_equation' [fintype (conj_classes G)] [∀ x : conj_classes G, fintype (x.carrier)] :
   ∑ x : conj_classes G, x.carrier.to_finset.card = fintype.card G :=
 begin
   let e : quotient (orbit_rel (conj_act G) G) ≃ conj_classes G :=

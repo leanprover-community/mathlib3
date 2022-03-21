@@ -20,7 +20,7 @@ S.subtype.cod_restrict' _ (λ x, h x.2)
 
 namespace little_wedderburn
 
-variables (D : Type*) [division_ring D] [fintype D]
+variables (D : Type*) [division_ring D]
 variables {R : Type*} [ring R]
 variables {D}
 
@@ -98,7 +98,7 @@ def induction_hyp : Prop :=
 namespace induction_hyp
 open finite_dimensional polynomial
 
-variables {D}
+variables {D} [fintype D]
 
 open_locale classical
 
@@ -189,7 +189,7 @@ end
 
 end induction_hyp
 
-lemma center_eq_top : subring.center D = ⊤ :=
+lemma center_eq_top [fintype D] : subring.center D = ⊤ :=
 begin
   classical,
   suffices : ∀ (n : ℕ) (D : Type*) [division_ring D] [fintype D],

@@ -510,6 +510,14 @@ inductive is_atomic : L.bounded_formula α n → Prop
 | rel {l : ℕ} (R : L.relations l) (ts : fin l → L.term (α ⊕ fin n)) :
     is_atomic (R.bounded_formula ts)
 
+lemma not_all_is_atomic (φ : L.bounded_formula α (n + 1)) :
+  ¬ φ.all.is_atomic :=
+λ con, by cases con
+
+lemma not_ex_is_atomic (φ : L.bounded_formula α (n + 1)) :
+  ¬ φ.ex.is_atomic :=
+λ con, by cases con
+
 lemma is_atomic.relabel {m : ℕ} {φ : L.bounded_formula α m} (h : φ.is_atomic)
   (f : α → β ⊕ (fin n)) :
   (φ.relabel f).is_atomic :=
@@ -550,6 +558,21 @@ is_qf.rec_on h is_qf_bot (λ _ ih, ih.lift_at.is_qf) (λ _ _ _ _ ih1 ih2, ih1.im
 lemma is_qf.cast_le {h : l ≤ n} (hφ : is_qf φ) :
   (φ.cast_le h).is_qf :=
 is_qf.rec_on hφ is_qf_bot (λ _ ih, ih.cast_le.is_qf) (λ _ _ _ _ ih1 ih2, ih1.imp ih2)
+
+lemma not_all_is_qf (φ : L.bounded_formula α (n + 1)) :
+  ¬ φ.all.is_qf :=
+λ con, begin
+  cases con with _ con,
+  exact (φ.not_all_is_atomic con),
+end
+
+lemma not_ex_is_qf (φ : L.bounded_formula α (n + 1)) :
+  ¬ φ.ex.is_qf :=
+λ con, begin
+  cases con with _ con _ _ con,
+  { exact (φ.not_ex_is_atomic con) },
+  { exact not_all_is_qf _ con }
+end
 
 /-- Indicates that a bounded formula is in prenex normal form - that is, it consists of quantifiers
   applied to a quantifier-free formula. -/
@@ -626,7 +649,7 @@ end
   is a prenex normal form for `φ.imp ψ`. -/
 def to_prenex_imp :
   ∀ {n}, L.bounded_formula α n → L.bounded_formula α n → L.bounded_formula α n
-| n (imp (all (imp φ falsum)) falsum) ψ := (φ.to_prenex_imp (ψ.lift_at 1 n)).all
+| n (bounded_formula.ex φ) ψ := (φ.to_prenex_imp (ψ.lift_at 1 n)).all
 | n (all φ) ψ := (φ.to_prenex_imp (ψ.lift_at 1 n)).ex
 | _ φ ψ := φ.to_prenex_imp_right ψ
 

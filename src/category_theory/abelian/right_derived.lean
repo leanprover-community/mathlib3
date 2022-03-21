@@ -162,7 +162,7 @@ begin
   apply homotopy_equiv.homotopy_hom_inv_id,
 end
 
-end category_theory<<<<<<< jjaassoonn/injectives/right_derived
+end category_theory
 
 section
 

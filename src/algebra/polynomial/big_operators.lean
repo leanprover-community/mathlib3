@@ -275,7 +275,18 @@ by simpa using multiset_prod_X_sub_C_coeff_card_pred (s.1.map f) (by simpa using
 end comm_ring
 
 section no_zero_divisors
-variables [comm_ring R] [no_zero_divisors R] (f : ι → R[X]) (t : multiset R[X])
+
+section semiring
+variables [semiring R] [no_zero_divisors R]
+
+lemma degree_list_prod [nontrivial R] (l : list R[X]) :
+  l.prod.degree = (l.map degree).sum :=
+_root_.map_list_prod (degree_monoid_hom : R[X] →* _) l
+
+end semiring
+
+section comm_semiring
+variables [comm_semiring R] [no_zero_divisors R] (f : ι → R[X]) (t : multiset R[X])
 
 /--
 The degree of a product of polynomials is equal to
@@ -308,17 +319,14 @@ the sum of the degrees, where the degree of the zero polynomial is ⊥.
 -/
 lemma degree_multiset_prod [nontrivial R] :
   t.prod.degree = (t.map (λ f, degree f)).sum :=
-begin
-  refine multiset.induction_on t _ (λ a t ht, _), { simp },
-  { rw [multiset.prod_cons, degree_mul, ht, map_cons, multiset.sum_cons] }
-end
+map_multiset_prod (degree_monoid_hom : R[X] →* _) _
 
 /--
 The degree of a product of polynomials is equal to
 the sum of the degrees, where the degree of the zero polynomial is ⊥.
 -/
 lemma degree_prod [nontrivial R] : (∏ i in s, f i).degree = ∑ i in s, (f i).degree :=
-by simpa using degree_multiset_prod (s.1.map f)
+map_prod (degree_monoid_hom : R[X] →* _) _ _
 
 /--
 The leading coefficient of a product of polynomials is equal to
@@ -341,6 +349,8 @@ where additionally, the product of the leading coefficients must be nonzero.
 lemma leading_coeff_prod :
   (∏ i in s, f i).leading_coeff = ∏ i in s, (f i).leading_coeff :=
 by simpa using leading_coeff_multiset_prod (s.1.map f)
+
+end comm_semiring
 
 end no_zero_divisors
 end polynomial

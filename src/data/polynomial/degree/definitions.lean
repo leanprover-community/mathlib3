@@ -582,19 +582,6 @@ lemma degree_pow_le (p : R[X]) : ∀ (n : ℕ), degree (p ^ n) ≤ n • (degree
     by rw pow_succ; exact degree_mul_le _ _
   ... ≤ _ : by rw succ_nsmul; exact add_le_add le_rfl (degree_pow_le _)
 
-lemma degree_list_prod_le (l : list R[X]) : l.prod.degree ≤ (l.map degree).sum :=
-by induction l; [simp [degree_one_le], simp [(degree_mul_le _ _).trans (add_le_add le_rfl l_ih)]]
-
-lemma degree_multiset_prod_le {R} [comm_semiring R] (s : multiset R[X]) :
-  s.prod.degree ≤ (s.map degree).sum := by
-{ refine s.induction_on _ _, { simp [degree_one_le], },
-  { intros a m h, simp [(degree_mul_le _ _).trans (add_le_add le_rfl h)], }, }
-
-lemma degree_prod_le {R} [comm_semiring R] {ι : Type*} (s : finset ι) (p : ι → R[X]) :
-  (∏ j in s, p j).degree ≤ ∑ j in s, (p j).degree :=
-by simp only [prod_eq_multiset_prod, sum_eq_multiset_sum, ← multiset.map_map _ p,
-              degree_multiset_prod_le]
-
 @[simp] lemma leading_coeff_monomial (a : R) (n : ℕ) : leading_coeff (monomial n a) = a :=
 begin
   by_cases ha : a = 0,
@@ -1158,8 +1145,6 @@ leading_coeff_X_pow_sub_C hn
 end nonzero_ring
 
 section no_zero_divisors
-
-section semiring
 variables [semiring R] [no_zero_divisors R] {p q : R[X]}
 
 @[simp] lemma degree_mul : degree (p * q) = degree p + degree q :=
@@ -1177,10 +1162,6 @@ def degree_monoid_hom [nontrivial R] : R[X] →* multiplicative (with_bot ℕ) :
 { to_fun := degree,
   map_one' := degree_one,
   map_mul' := λ _ _, degree_mul }
-
-@[simp] lemma degree_list_prod [nontrivial R] (l : list R[X]) :
-  l.prod.degree = (l.map degree).sum :=
-map_list_prod (degree_monoid_hom : R[X] →* _) l
 
 @[simp] lemma leading_coeff_mul (p q : R[X]) : leading_coeff (p * q) =
   leading_coeff p * leading_coeff q :=
@@ -1206,21 +1187,6 @@ def leading_coeff_hom : R[X] →* R :=
 @[simp] lemma leading_coeff_pow (p : R[X]) (n : ℕ) :
   leading_coeff (p ^ n) = leading_coeff p ^ n :=
 (leading_coeff_hom : R[X] →* R).map_pow p n
-
-end semiring
-
-section comm_semiring
-variables [comm_semiring R] [no_zero_divisors R]
-
-@[simp] lemma degree_multiset_prod [nontrivial R] (s : multiset R[X]) :
-  s.prod.degree = (s.map degree).sum :=
-map_multiset_prod (degree_monoid_hom : R[X] →* _) s
-
-@[simp] lemma degree_prod [nontrivial R] {ι : Type*} (s : finset ι) (p : ι → R[X]) :
-  (∏ j in s, p j).degree = ∑ j in s, (p j).degree :=
-map_prod (degree_monoid_hom : R[X] →* _) _ _
-
-end comm_semiring
 
 end no_zero_divisors
 

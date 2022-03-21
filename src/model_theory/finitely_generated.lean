@@ -128,7 +128,7 @@ end
 
 theorem cg_bot : (⊥ : L.substructure M).cg := fg_bot.cg
 
-theorem cg_closure {s : set M} (hs : countable s) : cg (closure L s) :=
+theorem cg_closure {s : set M} (hs : s.countable) : cg (closure L s) :=
 ⟨s, hs, rfl⟩
 
 theorem cg_closure_singleton (x : M) : cg (closure L ({x} : set M)) := (fg_closure_singleton x).cg
@@ -157,7 +157,7 @@ begin
   exact hom.map_le_range h'
 end
 
-theorem cg_iff_countable [nonempty (encodable ((Σ i, L.functions i)))] {s : L.substructure M} :
+theorem cg_iff_countable [L.countable_functions] {s : L.substructure M} :
   s.cg ↔ nonempty (encodable s) :=
 begin
   refine ⟨_, λ h, ⟨s, h, s.closure_eq⟩⟩,
@@ -225,7 +225,7 @@ begin
   exact h.range f,
 end
 
-lemma cg_iff_countable [nonempty (encodable ((Σ i, L.functions i)))] :
+lemma cg_iff_countable [L.countable_functions] :
   cg L M ↔ nonempty (encodable M) :=
 by rw [cg_def, cg_iff_countable, cardinal.encodable_iff, cardinal.encodable_iff,
   top_equiv.to_equiv.cardinal_eq]

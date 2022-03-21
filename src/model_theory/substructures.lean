@@ -265,12 +265,12 @@ end
 variable (L)
 
 lemma _root_.set.countable.substructure_closure
-  [nonempty (encodable ((Σ i, L.functions i)))] (h : s.countable) :
+  [L.countable_functions] (h : s.countable) :
   nonempty (encodable (closure L s)) :=
 begin
   haveI : nonempty (encodable s) := h,
   rw [encodable_iff, ← lift_le_omega],
-  exact lift_card_closure_le_card_term.trans (encodable_iff.1 term.countable),
+  exact lift_card_closure_le_card_term.trans term.card_le_omega,
 end
 
 variables {L} (S)

@@ -150,14 +150,12 @@ instance [encodable α] [encodable ((Σ i, L.functions i))] [inhabited (L.term �
 encodable.of_left_injection list_encode (λ l, (list_decode l).head')
   (λ t, by rw [← bind_singleton list_encode, list_decode_encode_list, head'])
 
-instance countable [h1 : nonempty (encodable α)]
-  [h2 : nonempty (encodable ((Σ i, L.functions i)))] :
-  nonempty (encodable (L.term α)) :=
+lemma card_le_omega [h1 : nonempty (encodable α)] [h2 : L.countable_functions] :
+  # (L.term α) ≤ ω :=
 begin
-  refine encodable_iff.2 (card_le.trans _),
-  rw [add_le_omega, mk_sum, add_le_omega, lift_le_omega, lift_le_omega,
-    ← encodable_iff, ← encodable_iff],
-  exact ⟨⟨h1, h2⟩, refl _⟩,
+  refine (card_le.trans _),
+  rw [add_le_omega, mk_sum, add_le_omega, lift_le_omega, lift_le_omega, ← encodable_iff],
+  exact ⟨⟨h1, L.card_functions_le_omega⟩, refl _⟩,
 end
 
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=

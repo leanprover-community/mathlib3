@@ -478,11 +478,7 @@ calc coeff (p.comp q) (nat_degree p * nat_degree q)
           refine (nat_degree_pow_le).trans_lt ((mul_lt_mul_right (pos_iff_ne_zero.mpr hqd0)).mpr _),
           exact lt_of_le_of_ne (le_nat_degree_of_mem_supp _ hbs) hbp,
         end
-        begin
-          intro h,
-          rw [mem_support_iff, not_not, coeff_nat_degree, leading_coeff_eq_zero] at h,
-          simp [h],
-        end
+        (λ h, by simp [leading_coeff_eq_zero.mp (not_mem_support_iff.mp h)])
 ... = _ : (coeff_C_mul _).trans $ congr_arg _ $ coeff_pow_mul_nat_degree _ _
 
 end comp

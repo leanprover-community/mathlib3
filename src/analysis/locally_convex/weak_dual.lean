@@ -63,7 +63,8 @@ lemma to_seminorm_comp (f : F →ₗ[𝕜] 𝕜) (g : E →ₗ[𝕜] F) :
 by { ext, simp only [seminorm.comp_apply, to_seminorm_apply, coe_comp] }
 
 /-- Construct a family of seminorms from a bilinear form. -/
-def to_seminorm_family (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) (y : F) : seminorm 𝕜 E := (B.flip y).to_seminorm
+def to_seminorm_family (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : seminorm_family 𝕜 E F :=
+λ y, (B.flip y).to_seminorm
 
 @[simp] lemma to_seminorm_family_apply {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} {x y} :
   (B.to_seminorm_family y) x = ∥B x y∥ := rfl
@@ -88,7 +89,7 @@ variables [nonempty ι]
 variables {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜}
 
 lemma has_basis_weak_bilin (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
-  (𝓝 (0 : weak_bilin B)).has_basis (seminorm_basis_zero B.to_seminorm_family) id :=
+  (𝓝 (0 : weak_bilin B)).has_basis B.to_seminorm_family.basis_sets id :=
 begin
   let p := B.to_seminorm_family,
   rw [nhds_induced, nhds_pi],
@@ -107,7 +108,7 @@ begin
       have hr : 0 < r :=
       (finset.lt_inf'_iff hU₃' _).mpr (λ y hy, hU₂ y ((set.finite.mem_to_finset hU₁).mp hy)),
       use [seminorm.ball (U'.sup p) (0 : E) r],
-      refine ⟨seminorm_basis_zero_mem _ _ hr, λ x hx y hy, _⟩,
+      refine ⟨p.basis_sets_mem _ hr, λ x hx y hy, _⟩,
       simp only [set.mem_preimage, set.mem_pi, mem_ball_zero_iff],
       rw seminorm.mem_ball_zero at hx,
       rw ←linear_map.to_seminorm_family_apply,
@@ -117,9 +118,9 @@ begin
       exact finset.inf'_le _ hyU' },
     rw set.not_nonempty_iff_eq_empty.mp hU₃,
     simp only [set.empty_pi, set.preimage_univ, set.subset_univ, and_true],
-    exact Exists.intro ((p 0).ball 0 1) (seminorm_basis_zero_singleton_mem p 0 one_pos) },
-  rintros U (hU : U ∈ seminorm_basis_zero p),
-  rw seminorm_basis_zero_iff at hU,
+    exact Exists.intro ((p 0).ball 0 1) (p.basis_sets_singleton_mem 0 one_pos) },
+  rintros U (hU : U ∈ p.basis_sets),
+  rw seminorm_family.basis_sets_iff at hU,
   rcases hU with ⟨s, r, hr, hU⟩,
   rw hU,
   refine ⟨(s, λ _, r), ⟨by simp only [s.finite_to_set], λ y hy, hr⟩, λ x hx, _⟩,
@@ -132,7 +133,7 @@ end
 
 instance : with_seminorms
   (linear_map.to_seminorm_family B : F → seminorm 𝕜 (weak_bilin B)) :=
-with_seminorms_of_has_basis _ (has_basis_weak_bilin _)
+seminorm_family.with_seminorms_of_has_basis _ (has_basis_weak_bilin _)
 
 end topology
 
@@ -143,6 +144,6 @@ variables [nonempty ι] [normed_space ℝ 𝕜] [module ℝ E] [is_scalar_tower 
 
 lemma weak_bilin.to_locally_convex_space' {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} :
   locally_convex_space ℝ (weak_bilin B) :=
-with_seminorms.to_locally_convex_space B.to_seminorm_family
+seminorm_family.to_locally_convex_space B.to_seminorm_family
 
 end locally_convex

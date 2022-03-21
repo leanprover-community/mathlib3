@@ -42,50 +42,76 @@ namespace weak_dual
 are also algebra homomorphisms. -/
 def character_space (𝕜 : Type*) (A : Type*) [comm_semiring 𝕜] [topological_space 𝕜]
   [has_continuous_add 𝕜] [has_continuous_const_smul 𝕜 𝕜]
-  [semiring A] [topological_space A] [module 𝕜 A] :=
-  {φ : weak_dual 𝕜 A | (φ 1 = 1) ∧ (∀ (x y : A), φ (x * y) = (φ x) * (φ y))}
+  [non_unital_non_assoc_semiring A] [topological_space A] [module 𝕜 A] :=
+  {φ : weak_dual 𝕜 A | (φ ≠ 0) ∧ (∀ (x y : A), φ (x * y) = (φ x) * (φ y))}
 
 variables {𝕜 : Type*} {A : Type*}
 
 namespace character_space
 
-section semiring
+section non_unital_non_assoc_semiring
 
 variables [comm_semiring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
-  [has_continuous_const_smul 𝕜 𝕜] [topological_space A] [semiring A] [algebra 𝕜 A]
+  [has_continuous_const_smul 𝕜 𝕜] [non_unital_non_assoc_semiring A] [topological_space A]
+  [module 𝕜 A]
+
+lemma coe_apply (φ : character_space 𝕜 A) (x : A) : (φ : weak_dual 𝕜 A) x = φ x := rfl
 
 /-- An element of the character space, as a continuous linear map. -/
 def to_clm (φ : character_space 𝕜 A) : A →L[𝕜] 𝕜 := (φ : weak_dual 𝕜 A)
 
 lemma to_clm_apply (φ : character_space 𝕜 A) (x : A) : φ x = to_clm φ x := rfl
 
+/-- An element of the character space, as an non-unital algebra homomorphism. -/
+@[simps] def to_non_unital_alg_hom (φ : character_space 𝕜 A) : non_unital_alg_hom 𝕜 A 𝕜 :=
+{ to_fun := (φ : A → 𝕜),
+  map_mul' := φ.prop.2,
+  map_smul' := (to_clm φ).map_smul,
+  map_zero' := continuous_linear_map.map_zero _,
+  map_add' := continuous_linear_map.map_add _ }
+
+lemma map_zero (φ : character_space 𝕜 A) : φ 0 = 0 := (to_non_unital_alg_hom φ).map_zero
+lemma map_add (φ : character_space 𝕜 A) (x y : A) : φ (x + y) = φ x + φ y :=
+  (to_non_unital_alg_hom φ).map_add _ _
+lemma map_smul (φ : character_space 𝕜 A) (r : 𝕜) (x : A) : φ (r • x) = r • (φ x) :=
+  (to_clm φ).map_smul _ _
+lemma map_mul (φ : character_space 𝕜 A) (x y : A) : φ (x * y) = φ x * φ y :=
+  (to_non_unital_alg_hom φ).map_mul _ _
+lemma continuous (φ : character_space 𝕜 A) : continuous φ := (to_clm φ).continuous
+
+end non_unital_non_assoc_semiring
+
+section unital
+
+variables [comm_ring 𝕜] [no_zero_divisors 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
+  [has_continuous_const_smul 𝕜 𝕜] [topological_space A] [semiring A] [algebra 𝕜 A]
+
+lemma map_one (φ : character_space 𝕜 A) : φ 1 = 1 :=
+begin
+  have h₁ : (φ 1) * (1 - φ 1) = 0 := by rw [mul_sub, sub_eq_zero, mul_one, ←map_mul φ, one_mul],
+  rcases mul_eq_zero.mp h₁ with h₂|h₂,
+  { exfalso,
+    apply φ.prop.1,
+    ext,
+    rw [continuous_linear_map.zero_apply, ←one_mul x, coe_apply, map_mul φ, h₂, zero_mul] },
+  { rw [sub_eq_zero] at h₂,
+    exact h₂.symm },
+end
+
 /-- An element of the character space, as an algebra homomorphism. -/
 @[simps] def to_alg_hom (φ : character_space 𝕜 A) : A →ₐ[𝕜] 𝕜 :=
-{ to_fun := (φ : A → 𝕜),
-  map_one' := φ.prop.1,
-  map_mul' := φ.prop.2,
-  map_zero' := continuous_linear_map.map_zero _,
-  map_add' := continuous_linear_map.map_add _,
+{ map_one' := map_one φ,
   commutes' := λ r, by
   { rw [algebra.algebra_map_eq_smul_one, algebra.id.map_eq_id, ring_hom.id_apply],
     change ((φ : weak_dual 𝕜 A) : A →L[𝕜] 𝕜) (r • 1) = r,
-    rw [continuous_linear_map.map_smul, algebra.id.smul_eq_mul, φ.prop.1, mul_one] } }
+    rw [continuous_linear_map.map_smul, algebra.id.smul_eq_mul, coe_apply, map_one φ, mul_one] },
+  ..to_non_unital_alg_hom φ }
 
-lemma map_one (φ : character_space 𝕜 A) : φ 1 = 1 := (to_alg_hom φ).map_one
-lemma map_mul (φ : character_space 𝕜 A) (x y : A) : φ (x * y) = φ x * φ y :=
-  (to_alg_hom φ).map_mul _ _
-lemma map_zero (φ : character_space 𝕜 A) : φ 0 = 0 := (to_alg_hom φ).map_zero
-lemma map_add (φ : character_space 𝕜 A) (x y : A) : φ (x + y) = φ x + φ y :=
-  (to_alg_hom φ).map_add _ _
-lemma map_smul (φ : character_space 𝕜 A) (r : 𝕜) (x : A) : φ (r • x) = r • (φ x) :=
-  (to_clm φ).map_smul _ _
-lemma continuous (φ : character_space 𝕜 A) : continuous φ := (to_clm φ).continuous
-
-end semiring
+end unital
 
 section ring
 
-variables [comm_ring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
+variables [comm_ring 𝕜] [no_zero_divisors 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
   [has_continuous_const_smul 𝕜 𝕜] [topological_space A] [ring A] [algebra 𝕜 A]
 
 lemma apply_mem_spectrum [nontrivial 𝕜] (φ : character_space 𝕜 A) (a : A) : φ a ∈ spectrum 𝕜 a :=

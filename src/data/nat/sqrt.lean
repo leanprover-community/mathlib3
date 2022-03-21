@@ -174,6 +174,7 @@ le_sqrt.2 (le_trans (sqrt_le _) h)
 @[simp] lemma sqrt_zero : sqrt 0 = 0 :=
 by rw [sqrt, size_zero, sqrt._match_1]
 
+
 theorem sqrt_eq_zero {n : ℕ} : sqrt n = 0 ↔ n = 0 :=
 ⟨λ h, nat.eq_zero_of_le_zero $ le_of_lt_succ $ (@sqrt_lt n 1).1 $
   by rw [h]; exact dec_trivial,
@@ -185,6 +186,18 @@ theorem eq_sqrt {n q} : q = sqrt n ↔ q*q ≤ n ∧ n < (q+1)*(q+1) :=
 
 theorem eq_sqrt' {n q} : q = sqrt n ↔ q ^ 2 ≤ n ∧ n < (q+1) ^ 2 :=
 by simpa only [pow_two] using eq_sqrt
+
+@[simp] lemma sqrt_one : sqrt 1 = 1 :=
+begin
+  symmetry,
+  rw eq_sqrt,
+  simp,
+  have : (1 + 1) * (1 + 1) = 4,
+  { calc (1 + 1) * (1 + 1) = 2 * 2 : by simp
+    ... = 4 : rfl, },
+  rw this,
+  simp,
+end
 
 theorem le_three_of_sqrt_eq_one {n : ℕ} (h : sqrt n = 1) : n ≤ 3 :=
 le_of_lt_succ $ (@sqrt_lt n 2).1 $

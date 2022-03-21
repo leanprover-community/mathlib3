@@ -40,10 +40,8 @@ essentially countable.
 * `first_order.language.exists_cg_is_age_of` constructs a countably-generated structure with a
 particular age.
 
-
 ## Implementation Notes
-* Classes of structures are formalized with the type `Π (M : Type w) [L.Structure M], Prop`, as this
-is the form that predicates such as `Structure.fg L` take in the rest of the library.
+* Classes of structures are formalized with `set (bundled L.Structure)`.
 * Some results pertain to countable limit structures, others to countably-generated limit
 structures. In the case of a language with countably many function symbols, these are equivalent.
 

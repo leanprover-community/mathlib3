@@ -125,6 +125,10 @@ instance is_relational_sum [L.is_relational] [L'.is_relational] : is_relational 
 instance is_algebraic_sum [L.is_algebraic] [L'.is_algebraic] : is_algebraic (L.sum L') :=
 ⟨λ n, sum.is_empty⟩
 
+@[priority 100] instance encodable.countable [h : encodable L.symbols] :
+  L.countable :=
+⟨cardinal.encodable_iff.1 ⟨h⟩⟩
+
 @[priority 100] instance countable.countable_functions [L.countable] :
   L.countable_functions :=
 ⟨begin

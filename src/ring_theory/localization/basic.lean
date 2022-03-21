@@ -882,7 +882,7 @@ by rw [mk_eq_mk', mk'_eq_iff_eq_mul, submonoid.coe_one, map_one, mul_one]; refl
 lemma mk_int_cast (m : ℤ) : (mk m 1 : localization M) = m :=
 by simpa using @mk_algebra_map R _ M ℤ _ _ m
 
-lemma mk_nat_cast (m : ℕ) :  (mk m 1 : localization M) = m := mk_int_cast m
+lemma mk_nat_cast (m : ℕ) : (mk m 1 : localization M) = m := mk_int_cast m
 
 variables [is_localization M S]
 

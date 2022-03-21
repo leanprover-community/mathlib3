@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiale Miao, Kevin Buzzard
 -/
 
-import tactic
+import tactic.basic
 import algebra.big_operators.basic
 import analysis.inner_product_space.basic
 import analysis.normed_space.is_R_or_C

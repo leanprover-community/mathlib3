@@ -81,7 +81,7 @@ variables {L} (K : set (bundled.{w} L.Structure))
 /-- A class `K` has the hereditary property when all finitely-generated structures that embed into
   structures in `K` are also in `K`.  -/
 def hereditary : Prop :=
-∀ (M N : bundled.{w} L.Structure), nonempty (M ↪[L] N) → Structure.fg L M → N ∈ K → M ∈ K
+∀ (M : bundled.{w} L.Structure), M ∈ K → L.age M ⊆ K
 
 /-- A class `K` has the joint embedding property when for every `M`, `N` in `K`, there is another
   structure in `K` into which both `M` and `N` embed. -/
@@ -114,10 +114,28 @@ and_congr h.some.fg_iff
   ⟨nonempty.map (λ x, embedding.comp x h.some.symm.to_embedding),
   nonempty.map (λ x, embedding.comp x h.some.to_embedding)⟩
 
-variable {L}
+variables {L} {M} {N : Type w} [L.Structure N]
+
+lemma embedding.age_subset_age (MN : M ↪[L] N) : L.age M ⊆ L.age N :=
+λ _, and.imp_right (nonempty.map MN.comp)
+
+lemma equiv.age_eq_age (MN : M ≃[L] N) : L.age M = L.age N :=
+le_antisymm MN.to_embedding.age_subset_age MN.symm.to_embedding.age_subset_age
+
+lemma Structure.fg.mem_age_of_equiv {M N : bundled L.Structure} (h : Structure.fg L M)
+  (MN : nonempty (M ≃[L] N)) : N ∈ L.age M :=
+⟨MN.some.fg_iff.1 h, ⟨MN.some.symm.to_embedding⟩⟩
+
+lemma hereditary.is_equiv_invariant_of_fg (h : hereditary K)
+  (fg : ∀ (M : bundled.{w} L.Structure), M ∈ K → Structure.fg L M)
+  (M N : bundled.{w} L.Structure) (hn : nonempty (M ≃[L] N)) : (M ∈ K ↔ N ∈ K) :=
+⟨λ MK, h M MK ((fg M MK).mem_age_of_equiv hn),
+  λ NK, h N NK ((fg N NK).mem_age_of_equiv ⟨hn.some.symm⟩)⟩
+
+variable (M)
 
 lemma age.hereditary : hereditary (L.age M) :=
-λ N P NP Nfg h, ⟨Nfg, nonempty.map (λ x, embedding.comp x NP.some) h.2⟩
+λ N hN P hP, hN.2.some.age_subset_age hP
 
 lemma age.joint_embedding : joint_embedding (L.age M) :=
 λ N hN P hP, ⟨bundled.of ↥(hN.2.some.to_hom.range ⊔ hP.2.some.to_hom.range),
@@ -196,17 +214,13 @@ begin
   let f : Π (i j), i ≤ j → G i ↪[L] G j :=
     directed_system.nat_le_rec (λ n, (classical.some_spec (classical.some_spec (hj _ n))).1.some),
   refine ⟨bundled.of (direct_limit (λ n, G n) f), direct_limit.cg _ (λ n, (fg _ (G n).2).cg),
-    (age_direct_limit _ _).trans (set.ext (λ N, _))⟩,
-  simp only [mem_Union],
-  split,
-  { rintro ⟨i, h1, h2⟩,
-    exact hereditary N (G i) h2 h1 (G i).2, },
-  { intro KN,
-    obtain ⟨n, ⟨e⟩⟩ := (hF N).1 ⟨N, KN, setoid.refl _⟩,
-    refine ⟨n, fg _ KN, ⟨embedding.comp _ e.symm.to_embedding⟩⟩,
-    cases n,
-    { exact embedding.refl _ _ },
-    { exact (classical.some_spec (classical.some_spec (hj _ n))).2.some } }
+    (age_direct_limit _ _).trans (subset_antisymm
+      (Union_subset (λ n N hN, hereditary (G n) (G n).2 hN)) (λ N KN, _))⟩,
+  obtain ⟨n, ⟨e⟩⟩ := (hF N).1 ⟨N, KN, setoid.refl _⟩,
+  refine mem_Union_of_mem n ⟨fg _ KN, ⟨embedding.comp _ e.symm.to_embedding⟩⟩,
+  cases n,
+  { exact embedding.refl _ _ },
+  { exact (classical.some_spec (classical.some_spec (hj _ n))).2.some }
 end
 
 variable (K)

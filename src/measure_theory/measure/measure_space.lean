@@ -3389,6 +3389,9 @@ piecewise_ae_eq_restrict_compl hs
 lemma indicator_ae_eq_of_ae_eq_set (hst : s =ᵐ[μ] t) : s.indicator f =ᵐ[μ] t.indicator f :=
 piecewise_ae_eq_of_ae_eq_set hst
 
+lemma indicator_meas_zero (hs : μ s = 0) : indicator s f =ᵐ[μ] 0 :=
+(indicator_empty' f) ▸ indicator_ae_eq_of_ae_eq_set (ae_eq_empty.2 hs)
+
 variables [measurable_space β]
 
 lemma ae_measurable_indicator_iff {s} (hs : measurable_set s) :

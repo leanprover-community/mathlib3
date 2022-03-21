@@ -518,8 +518,8 @@ def of_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : �
     ⟨f,f_comm⟩
 
 
--- Kyle Miller
-def to_ends_for' (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
+-- Thanks Kyle Miller
+def equiv_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
   ends G ≃ ends_for G ℱ H ℱ_cofin :=
 { to_fun := to_ends_for G ℱ H ℱ_cofin,
   inv_fun := of_ends_for G ℱ H ℱ_cofin,
@@ -535,6 +535,19 @@ def to_ends_for' (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : �
     ext1 F,
     apply g_comm,
   end }
+
+
+lemma ends_empty_graph : is_empty V → is_empty (ends G) :=
+begin
+  rintros ⟨no_V⟩,
+  apply is_empty.mk,
+  rintros ⟨f,f_comm⟩,
+  rcases f ⟨∅,set.finite_empty⟩ with ⟨a,⟨b,_⟩,is_inf⟩,
+  exact no_V b,
+end
+
+--lemma ends_eq_disjoints_ends_of (Knempty : K.nonempty) (Kfinite : K.finite) : ends G = disjoint union of the ends of G-K
+
 
 
 end ends

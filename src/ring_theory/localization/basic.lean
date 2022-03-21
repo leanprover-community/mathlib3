@@ -875,13 +875,6 @@ by rw [mk_eq_monoid_of_mk'_apply, mk', to_localization_map_eq_monoid_of]
 @[simp] lemma mk_eq_mk' : (mk : R → M → localization M) = is_localization.mk' (localization M) :=
 mk_eq_monoid_of_mk'
 
-
-lemma mk_int_cast (m : ℤ) : (mk m 1 : localization M) = m :=
-by rw [← (algebra_map R (localization M)).map_int_cast m, mk_eq_mk', mk'_eq_iff_eq_mul,
-  submonoid.coe_one, map_one, mul_one]
-
-lemma mk_nat_cast (m : ℕ) :  (mk m 1 : localization M) = m := mk_int_cast m
-
 variables [is_localization M S]
 
 section

@@ -723,8 +723,8 @@ instance : partial_order (associates α) :=
   .. associates.preorder }
 
 instance : ordered_comm_monoid (associates α) :=
-{ mul_le_mul_left := λ a b h c, by {obtain ⟨d, rfl⟩ := h, rw ← mul_assoc,
-  exact associates.le_mul_right},
+{ mul_le_mul_left := λ a b h c, by {obtain ⟨d, rfl⟩ := h,
+  exact (mul_assoc c a d) ▸ associates.le_mul_right},
   ..associates.comm_monoid,
   ..associates.partial_order}
 

@@ -164,7 +164,7 @@ lemma ulift.down_injective {α : Sort*} : function.injective (@ulift.down α)
 lemma plift.down_injective {α : Sort*} : function.injective (@plift.down α)
 | ⟨a⟩ ⟨b⟩ rfl := rfl
 
-@[simp] lemma plift.down_inj {α : Sort*} (a b : plift α) : a.down = b.down ↔ a = b :=
+@[simp] lemma plift.down_inj {α : Sort*} {a b : plift α} : a.down = b.down ↔ a = b :=
 ⟨λ h, plift.down_injective h, λ h, by rw h⟩
 
 -- missing [symm] attribute for ne in core.

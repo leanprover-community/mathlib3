@@ -451,9 +451,11 @@ begin
   simp only [map_add, ←algebra_map_eq_inl, h, h'],
 end
 
-lemma alg_hom_ext' {φ ψ : unitization R A →ₐ[R] C} (h : ∀ a : A, φ a = ψ a) :
+lemma alg_hom_ext' {φ ψ : unitization R A →ₐ[R] C}
+  (h : φ.to_non_unital_alg_hom.comp (coe_non_unital_alg_hom R A) =
+    ψ.to_non_unital_alg_hom.comp (coe_non_unital_alg_hom R A)) :
   φ = ψ :=
-alg_hom_ext h (by simp [alg_hom.commutes])
+alg_hom_ext (non_unital_alg_hom.congr_fun h) (by simp [alg_hom.commutes])
 
 /-- Non-unital algebra homomorphisms from `A` into a unital `R`-algebra `C` lift uniquely to
 `unitization R A →ₐ[R] C`. This is the universal property of the unitization. -/
@@ -484,7 +486,7 @@ def lift : non_unital_alg_hom R A C ≃ (unitization R A →ₐ[R] C) :=
     commutes' := λ r, by simp only [algebra_map_eq_inl, fst_inl, snd_inl, φ.map_zero, add_zero] },
   inv_fun := λ φ, φ.to_non_unital_alg_hom.comp (coe_non_unital_alg_hom R A),
   left_inv := λ φ, by { ext, simp, },
-  right_inv := λ φ, unitization.alg_hom_ext' (by simp), }
+  right_inv := λ φ, unitization.alg_hom_ext' (by { ext, simp }), }
 
 lemma lift_symm_apply (φ : unitization R A →ₐ[R] C) (a : A) :
   unitization.lift.symm φ a = φ a := rfl

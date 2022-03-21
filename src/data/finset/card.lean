@@ -308,6 +308,9 @@ lemma card_sdiff (h : s ⊆ t) : card (t \ s) = t.card - s.card :=
 suffices card (t \ s) = card ((t \ s) ∪ s) - s.card, by rwa sdiff_union_of_subset h at this,
 by rw [card_disjoint_union sdiff_disjoint, add_tsub_cancel_right]
 
+lemma card_sdiff_add_card_eq_card {s t : finset α} (h : s ⊆ t) : card (t \ s) + card s = card t :=
+((nat.sub_eq_iff_eq_add (card_le_of_subset h)).mp (card_sdiff h).symm).symm
+
 lemma le_card_sdiff (s t : finset α) : t.card - s.card ≤ card (t \ s) :=
 calc card t - card s
       ≤ card t - card (s ∩ t) : tsub_le_tsub_left (card_le_of_subset (inter_subset_left s t)) _

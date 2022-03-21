@@ -504,9 +504,20 @@ protected def rel_embedding (r : α → α → Prop) (p : set α) :
 @[simp] theorem rel_embedding_apply (r : α → α → Prop) (p a) :
   subrel.rel_embedding r p a = a.1 := rfl
 
-instance (r : α → α → Prop) [is_well_order α r]
-  (p : set α) : is_well_order p (subrel r p) :=
+instance (r : α → α → Prop) [is_well_order α r] (p : set α) : is_well_order p (subrel r p) :=
 rel_embedding.is_well_order (subrel.rel_embedding r p)
+
+instance (r : α → α → Prop) [is_refl α r] (p : set α) : is_refl p (subrel r p) :=
+⟨λ x, @is_refl.refl α r _ x⟩
+
+instance (r : α → α → Prop) [is_symm α r] (p : set α) : is_symm p (subrel r p) :=
+⟨λ x y, @is_symm.symm α r _ x y⟩
+
+instance (r : α → α → Prop) [is_trans α r] (p : set α) : is_trans p (subrel r p) :=
+⟨λ x y z, @is_trans.trans α r _ x y z⟩
+
+instance (r : α → α → Prop) [is_irrefl α r] (p : set α) : is_irrefl p (subrel r p) :=
+⟨λ x, @is_irrefl.irrefl α r _ x⟩
 
 end subrel
 

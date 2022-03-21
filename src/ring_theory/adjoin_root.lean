@@ -422,6 +422,8 @@ open ideal double_quot polynomial
 
 variables [comm_ring R] (I : ideal R) (f : polynomial R)
 
+/-- The natural isomorphism `R[α]/(I[α]) ≅ R[α]/((I[x] ⊔ (f)) / (f))` for `α` a root of
+  `f : polynomial R` and `I : ideal R`-/
 def quot_map_of_equiv_quot_map_C_map_span_mk : (adjoin_root f) ⧸ (I.map (of f)) ≃+*
   (adjoin_root f) ⧸ (((I.map (C : R →+* polynomial R))).map
   (span ({f} : set (polynomial R)))^.quotient.mk) :=
@@ -432,6 +434,8 @@ lemma quot_map_of_equiv_quot_map_C_map_span_mk_mk (x : adjoin_root f) :
   ideal.quotient.mk (((I.map (C : R →+* polynomial R))).map
   (span ({f} : set (polynomial R)))^.quotient.mk) x := rfl
 
+/-- The natural isomorphism `R[α]/((I[x] ⊔ (f)) / (f)) ≅ (R[x]/I[x])/((f) ⊔ I[x] / I[x])`
+  for `α` a root of `f : polynomial R` and `I : ideal R`-/
 def quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk : (adjoin_root f) ⧸
   (((I.map (C : R →+* polynomial R))).map (span ({f} : set (polynomial R)))^.quotient.mk) ≃+*
   (polynomial R ⧸ map C I) ⧸ ((span ({f} : set (polynomial R))).map
@@ -442,6 +446,8 @@ lemma quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk_mk (p : polynomia
   quot_map_C_map_span_mk_equiv_quot_map_C_quot_map_span_mk I f (ideal.quotient.mk _ (mk f p)) =
   quot_quot_mk (I.map (C : R →+* polynomial R)) (span ({f} : set (polynomial R))) p := rfl
 
+/-- The natural isomorphism `(R[x]/I[x])/((f) ⊔ I[x] / I[x]) ≅ (R[x]/I*R[x])/(f mod I[x])` where
+  `f : polynomial R` and `I : ideal R`-/
 def quot_map_C_quot_map_span_mk_equiv_quot_map_C_quot_mk_span : (polynomial R ⧸ map C I) ⧸
   ((span ({f} : set (polynomial R))).map (I.map (C : R →+* polynomial R))^.quotient.mk) ≃+*
   (polynomial R ⧸ map C I) ⧸
@@ -452,6 +458,8 @@ lemma quot_map_C_quot_map_span_mk_equiv_quot_map_C_quot_mk_span_quot_quot_mk (p 
   quot_map_C_quot_map_span_mk_equiv_quot_map_C_quot_mk_span I f (quot_quot_mk _ _ p) =
   ideal.quotient.mk _ (ideal.quotient.mk _ p) := rfl
 
+/-- the natural isomorphism `(R/I)[x]/(f mod I) ≅ (R[x]/I*R[x])/(f mod I[x])` where
+  `f : polynomial R` and `I : ideal R`-/
 def polynomial_over_quot_quot_mk_span_equiv_quot_map_C_quot_mk_span : polynomial (R ⧸ I) ⧸
   (span ({f.map (I^.quotient.mk)} : set (polynomial (R ⧸ I)))) ≃+*
   (polynomial R ⧸ map C I) ⧸
@@ -469,7 +477,8 @@ lemma polynomial_over_quot_quot_mk_span_equiv_quot_map_C_quot_mk_span_symm_mk_mk
 by simp only [polynomial_over_quot_quot_mk_span_equiv_quot_map_C_quot_mk_span,
   quotient_equiv_symm_mk, polynomial_quotient_equiv_quotient_polynomial_symm_mk]
 
-/- The isomorphism `R[α]/pR[α] ≅ (R/I)[X]/(f mod I)` for `α` a root of `f` -/
+/- The natural isomorphism `R[α]/I[α] ≅ (R/I)[X]/(f mod I)` for `α` a root of `f : polynomial R`
+  and `I : ideal R`-/
 def quot_adjoin_root_equiv_quot_polynomial_quot : (adjoin_root f) ⧸ (I.map (of f)) ≃+*
 polynomial (R ⧸ I) ⧸ (span ({f.map (I^.quotient.mk)} : set (polynomial (R ⧸ I)))) :=
 (quot_map_of_equiv_quot_map_C_map_span_mk I f).trans

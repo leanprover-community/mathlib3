@@ -769,8 +769,9 @@ lemma is_multiplicative_moebius : is_multiplicative μ :=
 begin
   rw is_multiplicative.iff_ne_zero,
   refine ⟨by simp, λ n m hn hm hnm, _⟩,
-  simp only [moebius, zero_hom.coe_mk, ←squarefree_mul hnm, ite_and, card_factors_mul hn hm],
-  rw [pow_add, ite_mul_zero_right, ite_mul_zero_left],
+  simp only [moebius, zero_hom.coe_mk, squarefree_mul hnm, ite_and, card_factors_mul hn hm],
+  rw [pow_add, mul_comm, ite_mul_zero_left, ite_mul_zero_right, mul_comm],
+
 end
 
 open unique_factorization_monoid

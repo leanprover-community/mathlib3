@@ -24,11 +24,10 @@ noncomputable theory
 
 namespace simple_graph
 
-section ends
 
-parameters {V : Type u}
-           {G : simple_graph V}
-           {G_is_conn : ∀ x y : V, nonempty (G.walk x y)}
+variables  {V : Type u}
+           (G : simple_graph V)
+           [∀ x y : V, nonempty (G.walk x y)]
            [has_inter (finset V)]
            [decidable_eq  V]
            [has_compl V]
@@ -40,36 +39,33 @@ def connected_outside (K : set V) (x y : V) : Prop :=
 
 namespace connected_outside
 
-def c_o := connected_outside
+def c_o := connected_outside G
 
 lemma monotone {K K' : set V} (hK : K ⊆ K') (x y : V) :
-  connected_outside K' x y → connected_outside K x y :=
+  c_o G K' x y → c_o G K x y :=
 λ ⟨w,dis⟩, ⟨w,disjoint_of_subset_left hK dis⟩
 
-lemma not_in  {K : set V} {x y : V} (conn : connected_outside K x y) : x ∉ K ∧ y ∉ K  :=
+lemma not_in  {K : set V} {x y : V} (conn : c_o G K x y) : x ∉ K ∧ y ∉ K  :=
 begin
   rcases conn with ⟨xy, dis⟩,
   have x_in : x ∈ ↑(xy.support.to_finset),
     by {rw [mem_coe, list.mem_to_finset], apply walk.start_mem_support},
   have y_in : y ∈ ↑(xy.support.to_finset),
     by {rw [mem_coe, list.mem_to_finset], apply walk.end_mem_support},
-  split,
-  { exact set.disjoint_right.mp dis x_in,},
-  { exact set.disjoint_right.mp dis y_in,}
+  exact ⟨set.disjoint_right.mp dis x_in,set.disjoint_right.mp dis y_in⟩,
 end
 
 @[protected]
-lemma refl {K : set V} (x : V) (hx : x ∉ K) : connected_outside K x x :=
-⟨walk.nil, by { rw [walk.support_nil,list.to_finset_cons,list.to_finset_nil],simpa}⟩
+lemma refl {K : set V} (x : V) (hx : x ∉ K) : c_o G K x x :=
+⟨walk.nil, by { rw [walk.support_nil,list.to_finset_cons,list.to_finset_nil],simpa only [insert_emptyc_eq, coe_singleton, set.disjoint_singleton_right],}⟩
 
 lemma of_adj_outside (K : set V) (x y : V) (hx : x ∉ K) (hy : y ∉ K) :
-  G.adj x y → connected_outside K x y :=
+  G.adj x y → c_o G K x y :=
 begin
   intro a,
-  unfold connected_outside,
   use (walk.cons a walk.nil),
   rw [walk.support_cons,walk.support_nil,list.to_finset_cons,list.to_finset_cons,list.to_finset_nil],
-  simp,
+  simp only [insert_emptyc_eq, coe_insert, coe_singleton],
   rw [set.disjoint_iff_inter_eq_empty,
       set.inter_comm,
       set.insert_inter_of_not_mem hx,
@@ -77,306 +73,298 @@ begin
 end
 
 @[protected]
-lemma symm  {K : set V} : symmetric (connected_outside K) :=
+lemma symm  {K : set V} : symmetric (c_o G K) :=
 λ x y, λ ⟨w,dis⟩, ⟨w.reverse, by {rw [walk.support_reverse,list.to_finset_reverse],exact dis}⟩
 
 @[protected]
-lemma trans {K : set V} : transitive (connected_outside K) :=
-λ x y z,
+lemma trans {K : set V} : transitive (c_o G K)
+| x y z ⟨xy,disxy⟩ ⟨yz,disyz⟩ :=
 begin
-  rintros ⟨xy,disxy⟩ ⟨yz,disyz⟩,
   use xy.append yz,
   rw walk.support_append,
   rw list.to_finset_append,
-  simp,
-  split,
-  { exact disxy },
+  simp only [coe_union, set.disjoint_union_right],
+  refine ⟨disxy,_⟩,
   { have : ↑(yz.support.tail.to_finset) ⊆ ↑(yz.support.to_finset), by
     { rw walk.support_eq_cons, simp, rw finset.coe_insert, exact set.subset_insert y (↑(yz.support.tail.to_finset)),},
     apply @set.disjoint_of_subset_right V K ↑(yz.support.tail.to_finset) ↑(yz.support.to_finset) this,
     exact disyz,}
 end
 
-section K_fixed
 
-parameter (K : set V)
+end connected_outside
 
-def components: set (set V) := {C : set V | ∃ x ∈ C, C = {y : V | c_o K x y}}
+
+
+
+
+
+
+
+
+open simple_graph.connected_outside
+
+
+def components (K : set V) : set (set V) := {C : set V | ∃ x ∈ C, C = {y : V | c_o G K x y}}
 
 namespace component
 
-def of (x : V) : (set V) := {y : V | c_o K x y}
 
-lemma of_in_components (x : V) (hx : x ∉ K) : of x ∈ components :=
+variable (K : set V)
+
+def of (x : V) : (set V) := {y : V | c_o G K x y}
+
+lemma of_in_components (x : V) (hx : x ∉ K) : of G K x ∈ components G K :=
+⟨x,connected_outside.refl G x hx,rfl⟩
+
+lemma mem_of (x : V) (hx : x ∉ K) : x ∈ (of G K x) := connected_outside.refl G x hx
+
+lemma nempty (C : set V) : C ∈ components G K → set.nonempty C
+| ⟨x,x_in_C,sat⟩ := ⟨x,x_in_C⟩
+
+lemma is_c_o (C : set V) : C ∈ components G K →  ∀ x y ∈ C, c_o G K x y
+| ⟨z,z_in,eq⟩ x x_in y y_in :=
 begin
-  have : c_o K x x, from @connected_outside.refl V G _ _ _ _ K x hx,
-  use x,
-  split,
-  exact this,
-  simpa,
+  rw eq at x_in y_in,
+  exact connected_outside.trans G (connected_outside.symm G x_in) y_in,
 end
 
-lemma mem_of (x : V) (hx : x ∉ K) : x ∈ (of x) :=
-begin
-  have : c_o K x x, from @connected_outside.refl V G _ _ _ _ K x hx,
-  exact this,
-end
-
-
-lemma nempty (C : set V) (hC : C ∈ components) : set.nonempty C :=
-begin
-  rcases hC with ⟨x,x_in_C,sat⟩,
-  exact ⟨x,x_in_C⟩,
-end
-
-lemma is_conn (C : set V) (hC : C ∈ components) : ∀ x y ∈ C, c_o K x y :=
-begin
-  rintros x x_in y y_in,
-  rcases hC with ⟨z,z_in_C,rfl⟩,
-  exact connected_outside.trans (x_in.symm) y_in,
-end
-
-lemma not_in_of_in_comp (C : set V) (hC : C ∈ components) (x : V) (hx : x ∈ C) : x ∉ K :=
-(not_in (is_conn C hC x hx x hx)).1
+lemma not_in_of_in_comp (C : set V) (hC : C ∈ components G K) (x : V) (hx : x ∈ C) : x ∉ K :=
+(not_in G (is_c_o G K C hC x hx x hx)).1
 
 lemma conn_sub (P : set V)
-  (Pnempty : set.nonempty P) (Pconn : ∀ x y ∈ P, c_o K x y) : ∃ C : set V, C ∈ components ∧ P ⊆ C :=
+  (Pnempty : set.nonempty P) (P_c_o : ∀ x y ∈ P, c_o G K x y) :
+  ∃ C : set V, C ∈ components G K ∧ P ⊆ C :=
 begin
   rcases Pnempty with ⟨p,p_in_P⟩,
-  have p_notin_K : p ∉ K := (not_in (Pconn p p_in_P p p_in_P)).1,
-  let Cp := @of V G _ _ _ _ K p, -- why do I need to provide K here???
-  let p_in_Cp := @mem_of V G _ _ _ _ K p p_notin_K,
-  let Cp_comp := @of_in_components V G _ _ _ _ K p p_notin_K,
-  use Cp,
-  use Cp_comp,
-  simp *,
+  have p_notin_K : p ∉ K := (not_in G (P_c_o p p_in_P p p_in_P)).1,
+  let p_in_Cp := mem_of G K p p_notin_K,
+  use [of G K p, of_in_components G K p p_notin_K],
   rw set.subset_def,
-  exact λ x x_in_P, Pconn p p_in_P x x_in_P,
+  exact λ x x_in_P, P_c_o p p_in_P x x_in_P,
 end
 
 
 
 -- This one could probably use `conn_sub` but I'm too lazy/stupid to figure the neatest way to do things
-lemma eq_of_common_mem (C D : set V) (hC : C ∈ components) (hD : D ∈ components)
+lemma eq_of_common_mem (C D : set V) (hC : C ∈ components G K) (hD : D ∈ components G K)
   (x : V) (x_in_C : x ∈ C) (x_in_D : x ∈ D) : C = D :=
 begin
   rcases hC with ⟨y,y_in_C,rfl⟩,
   rcases hD with ⟨z,z_in_D,rfl⟩,
   apply set.ext,
   intro w,
-  have y_c_o_z : c_o K y z, from connected_outside.trans x_in_C x_in_D.symm,
+  have y_c_o_z : c_o G K y z, from connected_outside.trans G x_in_C (connected_outside.symm G x_in_D),
   split,
-  from λ w_in_C, connected_outside.trans y_c_o_z.symm w_in_C,
-  from λ w_in_D, connected_outside.trans y_c_o_z w_in_D,
+  from λ w_in_C, connected_outside.trans G (connected_outside.symm G y_c_o_z) w_in_C,
+  from λ w_in_D, connected_outside.trans G y_c_o_z w_in_D,
 end
 
-lemma mem_of_mem_of_conn (C : set V) (hC : C ∈ components)
-  (x y : V) (x_in_C : x ∈ C) (x_conn_y : c_o K x y) : y ∈ C :=
+lemma mem_of_mem_of_conn (C : set V) (hC : C ∈ components G K)
+  (x y : V) (x_in_C : x ∈ C) (x_conn_y : c_o G K x y) : y ∈ C :=
 begin
   rcases hC with ⟨c,c_in_C,rfl⟩,
-  exact connected_outside.trans x_in_C x_conn_y,
+  exact connected_outside.trans G x_in_C x_conn_y,
 end
 
-lemma mem_of_mem_of_adj (C : set V) (hC : C ∈ components)
+lemma mem_of_mem_of_adj (C : set V) (hC : C ∈ components G K)
   (x y : V) (x_in_C : x ∈ C) (y_notin_K : y ∉ K) (adj : G.adj x y) : y ∈ C :=
-mem_of_mem_of_conn C hC x y x_in_C $ of_adj_outside K x y (not_in_of_in_comp C hC x x_in_C) y_notin_K adj
+mem_of_mem_of_conn G K C hC x y x_in_C $ of_adj_outside G K x y (not_in_of_in_comp G K C hC x x_in_C) y_notin_K adj
 
 
 lemma conn_sub_unique (P : set V)
-  (Pnempty : set.nonempty P) (Pconn : ∀ x y ∈ P, c_o K x y) : ∃! C : set V, C ∈ components ∧ P ⊆ C :=
+  (Pnempty : set.nonempty P) (P_c_o : ∀ x y ∈ P, c_o G K x y) : ∃! C : set V, C ∈ components G K ∧ P ⊆ C :=
 begin
-  rcases conn_sub K P Pnempty Pconn with ⟨C,⟨C_comp,P_sub_C⟩⟩,
+  rcases conn_sub G K P Pnempty P_c_o with ⟨C,⟨C_comp,P_sub_C⟩⟩,
   use C,
-  split,split,
-  exact C_comp,
-  exact P_sub_C,
+  split,
+  exact ⟨C_comp,P_sub_C⟩,
   rintros D ⟨D_comp,P_sub_D⟩,
   rcases Pnempty with ⟨p,p_in_P⟩,
-  exact (eq_of_common_mem K C D C_comp D_comp p (P_sub_C p_in_P) (P_sub_D p_in_P)).symm,
+  exact (eq_of_common_mem G K C D C_comp D_comp p (P_sub_C p_in_P) (P_sub_D p_in_P)).symm,
 end
 
 lemma sub_of_conn_intersects
-  (P : set V) (Pnempty : set.nonempty P) (Pconn : ∀ x y ∈ P, c_o K x y)
-  (C ∈ components) (inter : (P ∩ C).nonempty) : P ⊆ C :=
+  (P : set V) (Pnempty : set.nonempty P) (P_c_o : ∀ x y ∈ P, c_o G K x y)
+  (C ∈ components G K) (inter : (P ∩ C).nonempty) : P ⊆ C :=
 begin
   sorry -- todo
 end
 
-lemma walk_outside_is_contained (C : set V) (hC : C ∈ components) :
+lemma walk_outside_is_contained (C : set V) (hC : C ∈ components G K) :
   Π (x y : V), Π (w : G.walk x y), x ∈ C → y ∈ C → disjoint K w.support.to_finset → (w.support.to_finset : set V) ⊆ C
-| x _ nil             hx hy _  := by {simp,exact hx}
+| x _ nil             hx hy _  := by {simp only [support_nil, list.to_finset_cons, list.to_finset_nil, insert_emptyc_eq, coe_singleton, set.singleton_subset_iff],exact hx}
 | x y (@cons V G _ z _ adj tail) hx hy hw := by {
-  rw walk.support,
-  rw list.to_finset_cons,
-  simp,
+  rw [walk.support,list.to_finset_cons],
+  simp only [coe_insert],
   rw set.insert_subset,
   split,
   exact hx,
-  have : z ∈ (cons adj tail).support.to_finset, by simp,
+  have : z ∈ (cons adj tail).support.to_finset, by simp only [support_cons, list.to_finset_cons, finset.mem_insert, list.mem_to_finset, start_mem_support, or_true],
   have : z ∉ K, from set.disjoint_right.mp hw this,
-  have : z ∈ C, from mem_of_mem_of_adj K C hC x z hx ‹z∉K› adj,
+  have : z ∈ C, from mem_of_mem_of_adj G K C hC x z hx ‹z∉K› adj,
   have : disjoint K tail.support.to_finset, {
     apply set.disjoint_of_subset_right _ hw,
-    simp,
+    simp only [support_cons, list.to_finset_cons, coe_insert, set.subset_insert],
   },
   exact walk_outside_is_contained z y tail ‹z∈C› hy this,
 }
 
 
-lemma is_connected (C : set V) (hC : C ∈ components) (x y : V) (hx : x ∈ C) (hy : y ∈ C) :
+lemma is_connected (C : set V) (hC : C ∈ components G K) (x y : V) (hx : x ∈ C) (hy : y ∈ C) :
   ∃ w : G.walk x y, (w.support.to_finset : set V) ⊆ C :=
 begin
-  rcases is_conn K C hC x hx y hy with ⟨w,dis_K⟩,
-  use w,
-  exact walk_outside_is_contained K C hC x y w hx hy dis_K,
+  rcases is_c_o G K C hC x hx y hy with ⟨w,dis_K⟩,
+  exact ⟨w,walk_outside_is_contained G K C hC x y w hx hy dis_K⟩,
 end
 
 
 
 --only used in next lemma
 private def walks (C : set V) (k : V) := Σ (x : C), G.walk x k
-private def w_len  (C : set V) (k : V) :  walks C k → ℕ := λ w, w.2.length
-private def w_min (C : set V) (k : V) := @function.argmin _ _ (w_len C k) _ nat.lt_wf
-private def w_min_spec (C : set V) (k : V) := @function.argmin_le _ _ (w_len C k) _ nat.lt_wf
+private def w_len  (C : set V) (k : V) :  walks G C k → ℕ := λ w, w.2.length
+private def w_min (C : set V) (k : V) := @function.argmin _ _ (w_len G C k) _ nat.lt_wf
+private def w_min_spec (C : set V) (k : V) := @function.argmin_le _ _ (w_len G C k) _ nat.lt_wf
 
-lemma adjacent_to (Knempty: K.nonempty) (C : set V) (hC : C ∈ components) :
+lemma adjacent_to (Knempty: K.nonempty) (C : set V) (hC : C ∈ components G K) :
 ∃ (v k : V), k ∈ K ∧ v ∈ C ∧ G.adj k v :=
 begin
   rcases Knempty with ⟨k,k_in_K⟩,
-  have nemptywalks : nonempty (@walks V G _ _ _ _ C k), by {
-    rcases nempty K C hC with ⟨x,x_in_C⟩,
-    let w : G.walk x k := sorry, -- G_is_conn x k,
+  have nemptywalks : nonempty (walks G C k), by {
+    rcases nempty G K C hC with ⟨x,x_in_C⟩,
+    have w : G.walk x k := sorry, -- it's in the hypotheses!!
     exact nonempty.intro ⟨⟨x,x_in_C⟩,w⟩,},
-  rcases hhh : @w_min V G _ _ _ _ C k nemptywalks with ⟨x, min_walk⟩,
-  have x_notin_K : x.val ∉ K, from (not_in (is_conn K C hC x.val x.prop x.val x.prop)).1,
+  rcases hhh : @w_min V G _ _ _ _ _ C k nemptywalks with ⟨x, min_walk⟩,
+  have x_notin_K : x.val ∉ K, from (not_in G (is_c_o G K C hC x.val x.prop x.val x.prop)).1,
   rcases min_walk with nil|⟨_,y,_,x_adj_y,y_walk_k⟩,
   { exfalso,
-    have : c_o K x x, from is_conn K C hC x.val x.prop x.val x.prop,
+    have : c_o G K x x, from is_c_o G K C hC x.val x.prop x.val x.prop,
     exact x_notin_K k_in_K,},
   { by_cases h : y ∈ K,
     { use x, use y, use h, use x.prop, exact (x_adj_y).symm,},
-    { have : c_o K x y, from connected_outside.of_adj_outside K x y x_notin_K h x_adj_y,
-      have : y ∈ C, from mem_of_mem_of_conn K C hC x.val y x.prop this,
-      let subwalk : @walks V G _ _ _ _ C k := ⟨⟨y,this⟩,y_walk_k⟩,
-      have min_is_min := @w_min_spec V G _ _ _ _ C k subwalk (nemptywalks),
-      have len_subwalk : (w_len C k subwalk) + 1 = w_len C k (w_min C k), by {
+    { have : c_o G K x y, from connected_outside.of_adj_outside G K x y x_notin_K h x_adj_y,
+      have : y ∈ C, from mem_of_mem_of_conn G K C hC x.val y x.prop this,
+      let subwalk : walks G C k := ⟨⟨y,this⟩,y_walk_k⟩,
+      have min_is_min := @w_min_spec V G _ _ _ _ _ C k subwalk (nemptywalks),
+      have len_subwalk : (w_len G C k subwalk) + 1 = w_len G C k (@w_min V G _ _ _ _ _ C k nemptywalks), by {
         unfold w_len at *,
         rw [hhh,←simple_graph.walk.length_cons],
       },
-      have : (w_len C k subwalk) < (w_len C k subwalk) + 1, from lt_add_one (w_len C k subwalk),
+      have : (w_len G C k subwalk) < (w_len G C k subwalk) + 1, from lt_add_one (w_len G C k subwalk),
       rw len_subwalk at this,
       exfalso,
-      have ok : argmin (w_len C k) nat.lt_wf = w_min C k, by simpa, -- can I do this without simpa?
+      haveI : nonempty (walks G C k), by sorry,
+      have ok : argmin (w_len G C k) nat.lt_wf = w_min G C k, by simpa, -- can I do this without simpa?
       rw ok at min_is_min,
       exact (lt_iff_not_ge _ _).mp this min_is_min,},}
 end
 
 def bdry : set V := {x : V | x ∉ K ∧ ∃ k ∈ K, G.adj x k}
-lemma bdry_subset_union_neighbors : bdry ⊆ set.Union (λ x : K, G.neighbor_set x) :=
+lemma bdry_subset_union_neighbors : (bdry G K: set V) ⊆ set.Union (λ x : K, G.neighbor_set x) :=
 begin
   unfold bdry,
   rw set.subset_def,
-
-  rintros x,
-  rintros ⟨not_in_K,k,k_in_K,adj⟩,
+  rintros x ⟨not_in_K,k,k_in_K,adj⟩,
   rw set.mem_Union,
-  use [k,k_in_K],
-  exact adj.symm,
+  exact ⟨⟨k,k_in_K⟩,adj.symm⟩,
 end
 
-lemma bdry_finite (Kfin : K.finite) : finite bdry :=
+lemma bdry_finite (Kfin : K.finite) : (bdry G K).finite :=
 begin
-  apply set.finite.subset _ (bdry_subset_union_neighbors K),
+  apply set.finite.subset _ (bdry_subset_union_neighbors G K),
   apply set.finite.sUnion,
   haveI : fintype ↥K, from finite.fintype Kfin,
   apply set.finite_range,
   rintros nbd ⟨k,k_to_nbd⟩,
-  simp at k_to_nbd,
+  simp only at k_to_nbd,
   rw k_to_nbd.symm,
-  exact finite.intro (_inst_4 ↑k), -- lol thanks library_search
+  exact finite.intro (_inst_5 ↑k), -- lol thanks library_search
 end
 
-def to_bdry_point (Knempty: K.nonempty) (Kfinite: K.finite) : components → V :=
-λ C, some $ adjacent_to Knempty C.val C.prop
+def to_bdry_point (Knempty: K.nonempty) (Kfinite: K.finite) : components G K → V :=
+λ C, some $ adjacent_to G K Knempty C.val C.prop
 
-def to_bdry_point_spec (Knempty: K.nonempty) (Kfinite: K.finite) (C : components) :
-  let v := (to_bdry_point Knempty Kfinite C) in ∃ k : V, k ∈ K ∧ v ∈ C.val ∧ G.adj k v :=
-begin
-  exact some_spec (@adjacent_to V G _ _ _ _ K Knempty C.val C.prop),
-end
+def to_bdry_point_spec (Knempty: K.nonempty) (Kfinite: K.finite) (C : components G K) :
+  let v := (to_bdry_point G K Knempty Kfinite C) in ∃ k : V, k ∈ K ∧ v ∈ C.val ∧ G.adj k v :=
+some_spec (adjacent_to G K Knempty C.val C.prop)
 
 lemma to_bdry_point_inj (Knempty: K.nonempty) (Kfinite: K.finite) :
-  function.injective $ to_bdry_point Knempty Kfinite :=
+  function.injective $ to_bdry_point G K Knempty Kfinite :=
 begin
   rintros C D c_eq_d,
-  rcases to_bdry_point_spec K Knempty Kfinite C with ⟨k,kK,cC,k_adj_c⟩,
-  rcases to_bdry_point_spec K Knempty Kfinite D with ⟨l,lK,dD,l_adj_d⟩,
-  exact subtype.eq ( eq_of_common_mem K C.val D.val C.prop D.prop _ cC (c_eq_d.symm ▸ dD)),
+  rcases to_bdry_point_spec G K Knempty Kfinite C with ⟨k,kK,cC,k_adj_c⟩,
+  rcases to_bdry_point_spec G K Knempty Kfinite D with ⟨l,lK,dD,l_adj_d⟩,
+  exact subtype.eq ( eq_of_common_mem G K C.val D.val C.prop D.prop _ cC (c_eq_d.symm ▸ dD)),
 end
 
 lemma to_bdry_point_in_bdry  (Knempty: K.nonempty) (Kfinite: K.finite) :
-  range (to_bdry_point Knempty Kfinite) ⊆ bdry :=
+  range (to_bdry_point G K Knempty Kfinite) ⊆ bdry G K :=
 begin
   rw set.subset_def,
   rintros _ ⟨C,rfl⟩,
-  rcases to_bdry_point_spec K Knempty Kfinite C with ⟨k,kK,cC,k_adj_c⟩,
-  unfold bdry,
-  have := not_in_of_in_comp K C.val C.prop _ cC,
+  rcases to_bdry_point_spec G K Knempty Kfinite C with ⟨k,kK,cC,k_adj_c⟩,
+  have := not_in_of_in_comp G K C.val C.prop _ cC,
   exact ⟨this,⟨k,⟨kK,k_adj_c.symm⟩⟩⟩,
 end
 
-lemma finite (Knempty: K.nonempty) (Kfinite: K.finite) : components.finite :=
+lemma finite (Knempty: K.nonempty) (Kfinite: K.finite) : (components G K).finite :=
 begin
   by_contra comps_inf,
-  haveI : infinite (subtype (components K)), from infinite_coe_iff.mpr comps_inf,
-  have := @set.infinite_range_of_injective (subtype (components K)) V (_inst) (to_bdry_point K Knempty Kfinite) (to_bdry_point_inj K Knempty Kfinite),
-  have : (bdry K).infinite, from set.infinite.mono (to_bdry_point_in_bdry K Knempty Kfinite) this,
-  exact this (bdry_finite K Kfinite),
+  haveI : infinite (subtype (components G K)), from infinite_coe_iff.mpr comps_inf,
+  have := @set.infinite_range_of_injective (subtype (components G K)) V (_inst) (to_bdry_point G K Knempty Kfinite) (to_bdry_point_inj G K Knempty Kfinite),
+  have : (bdry G K).infinite, from set.infinite.mono (to_bdry_point_in_bdry G K Knempty Kfinite) this,
+  exact this (bdry_finite G K Kfinite),
 end
 
 end component
 
-end K_fixed
-
-def inf_components (K : set V) := {C : set V | C ∈ components K ∧ C.infinite}
-
-section KL_fixed
-
-parameters {K L M : set V} (K_sub_L : K ⊆ L) (L_sub_M : L ⊆ M)
-
-def component_is_still_conn (D : set V) (D_comp : D ∈ components L) :
-  ∀ x y ∈ D, connected_outside K x y :=
-λ x xD y yD, monotone K_sub_L x y (component.is_conn L D D_comp x xD y yD)
 
 
-def bwd_map : inf_components L → inf_components K :=
+
+
+
+
+def inf_components (K : set V) := {C : set V | C ∈ components G K ∧ C.infinite}
+
+section inf_components
+
+variables {K L L' M : set V}
+          (K_sub_L : K ⊆ L) (L_sub_M : L ⊆ M)
+          (K_sub_L' : K ⊆ L') (L'_sub_M : L' ⊆ M)
+
+def component_is_still_conn (D : set V) (D_comp : D ∈ components G L) :
+  ∀ x y ∈ D, c_o G K x y :=
+λ x xD y yD, connected_outside.monotone G K_sub_L x y (component.is_c_o G L D D_comp x xD y yD)
+
+
+def bwd_map : inf_components G L → inf_components G K :=
 λ D,
 let
-  itexists := component.conn_sub
+  itexists := component.conn_sub G
               K D.val
-              (component.nempty L D.val D.prop.1)
-              (component_is_still_conn D.val D.prop.1)
+              (component.nempty G L D.val D.prop.1)
+              (component_is_still_conn G K_sub_L D.val D.prop.1)
 , C := some itexists
 , C_prop := some_spec itexists
 in
   ⟨C,C_prop.1, λ fin, D.prop.2 (set.finite.subset fin C_prop.2)⟩
 
 
-def bwd_map_def (D : inf_components L) (C : inf_components K) :
-  bwd_map D = C ↔ D.val ⊆ C.val :=
+def bwd_map_def (D : inf_components G L) (C : inf_components G K) :
+  bwd_map G K_sub_L D = C ↔ D.val ⊆ C.val :=
 let
-  itexists := component.conn_sub K D (component.nempty L D.val D.prop.1) (component_is_still_conn D.val D.prop.1),
+  itexists := component.conn_sub G K D (component.nempty G L D.val D.prop.1) (component_is_still_conn G K_sub_L D.val D.prop.1),
   C' := some itexists,
   C_prop' := some_spec itexists
 in
   begin
-    have eqdef : bwd_map K_sub_L D =
+    have eqdef : bwd_map G K_sub_L D =
            ⟨C',C_prop'.1, λ fin, D.prop.2 (set.finite.subset fin C_prop'.2)⟩, by
     { unfold bwd_map, dsimp,simpa,},
     split,
     { intro eq, cases eq, exact C_prop'.2,},
     { intro sub,
-      have lol := component.conn_sub_unique K D (component.nempty L D.val D.prop.1) (component_is_still_conn K_sub_L D.val D.prop.1), -- the fact that D is still connected wrt K … should be easy
+      have lol := component.conn_sub_unique G K D (component.nempty G L D.val D.prop.1) (component_is_still_conn G K_sub_L D.val D.prop.1), -- the fact that D is still connected wrt K … should be easy
       rcases lol with ⟨uniqueC,uniqueC_is_good,unicity⟩,
       rw eqdef,
       apply subtype.ext_val, simp,
@@ -385,49 +373,49 @@ in
     }
   end
 
-def bwd_map_sub (D : inf_components L) : D.val ⊆ (bwd_map D).val :=
+def bwd_map_sub (D : inf_components G L) : D.val ⊆ (bwd_map G K_sub_L D).val :=
 begin
-  apply (bwd_map_def K_sub_L D (bwd_map K_sub_L D)).mp,
+  apply (bwd_map_def G K_sub_L D (bwd_map G K_sub_L D)).mp,
   reflexivity,
 end
 
-lemma subcomponents_cover (K_sub_L : K ⊆ L) (C : set V) (hC : C ∈ components K) :
-  C ⊆ L ∪ (⋃₀ { D : set V | D ∈ components L ∧ D ⊆ C}) :=
+lemma subcomponents_cover (K_sub_L : K ⊆ L) (C : set V) (hC : C ∈ components G K) :
+  C ⊆ L ∪ (⋃₀ { D : set V | D ∈ components G L ∧ D ⊆ C}) :=
 begin
   rintro x x_in_C,
   by_cases h: x∈L,
   { left,exact h},
   { right,
-    let D := @component.of V G _ _ _ _ L x,
-    have : x ∈ D, from @component.mem_of V G _ _ _ _ L x h,
+    let D := component.of G L x,
+    have : x ∈ D, from component.mem_of G L x h,
     rw set.mem_sUnion,
     use D,
     split,
     { split,
-      exact @component.of_in_components V G _ _ _ _ L x h,
-      let D_comp := @component.of_in_components V G _ _ _ _ L x h,
-      exact component.sub_of_conn_intersects K D
-        (component.nempty L D D_comp)
-        (component_is_still_conn K_sub_L D D_comp)
+      exact component.of_in_components G L x h,
+      let D_comp := component.of_in_components G L x h,
+      exact component.sub_of_conn_intersects G K D
+        (component.nempty G L D D_comp)
+        (component_is_still_conn G K_sub_L D D_comp)
         C hC ( set.nonempty_inter_iff_exists_left.mpr ⟨⟨x,‹x∈D›⟩,x_in_C⟩  : (D ∩ C).nonempty),
     },
-    from @component.mem_of V G _ _ _ _ L x h,
+    from component.mem_of G L x h,
   }
 end
 
 lemma bwd_map_surjective
   (Knempty : K.nonempty) (Kfinite : K.finite)
   (Lnempty : L.nonempty) (Lfinite : L.finite)
-  : surjective (bwd_map) :=
+  : surjective (bwd_map G K_sub_L) :=
 begin
   unfold surjective,
   rintros ⟨C,C_comp,C_inf⟩,
-  let L_comps := @components V G _ _ _ _ L,
-  let L_comps_in_C := { D : set V | D ∈ @components V G _ _ _ _ L ∧ D ⊆ C},
+  let L_comps := components G L,
+  let L_comps_in_C := { D : set V | D ∈ components G L ∧ D ⊆ C},
   have sub : L_comps_in_C ⊆ L_comps, from (λ D ⟨a,b⟩,  a),
-  have : L_comps_in_C.finite, from set.finite.subset (component.finite L Lnempty Lfinite) sub,
+  have : L_comps_in_C.finite, from set.finite.subset (component.finite G L Lnempty Lfinite) sub,
   have : (⋃₀ L_comps_in_C).infinite, from
-    λ fin, C_inf ((Lfinite.union fin).subset (subcomponents_cover K_sub_L C C_comp)),
+    λ fin, C_inf ((Lfinite.union fin).subset (subcomponents_cover G K_sub_L C C_comp)),
 
   have : ∃ D : set V, D ∈ L_comps_in_C ∧ D.infinite, by {
     by_contra' all_fin,
@@ -437,60 +425,55 @@ begin
                  ( λ D ⟨D_comp,D_sub_C⟩, all_fin D D_comp D_sub_C) ),},
   rcases this with ⟨D,⟨D_comp_L,D_sub_C⟩,D_inf⟩,
   use ⟨D,D_comp_L,D_inf⟩,
-  rw (bwd_map_def K_sub_L ⟨D,D_comp_L,D_inf⟩ ⟨C,C_comp,C_inf⟩),
+  rw (bwd_map_def G K_sub_L ⟨D,D_comp_L,D_inf⟩ ⟨C,C_comp,C_inf⟩),
   exact D_sub_C,
 end
 
 
+def bwd_map_comp :
+  (bwd_map G K_sub_L) ∘ (bwd_map G L_sub_M) = (bwd_map G (K_sub_L.trans L_sub_M)) :=
+begin
+  apply funext,
+  rintro E,
+  let D := bwd_map G L_sub_M E,
+  let C := bwd_map G K_sub_L D,
+  apply eq.symm,
+  unfold function.comp,
+  apply (bwd_map_def G (K_sub_L.trans L_sub_M) E C).mpr,
+  exact (bwd_map_sub G L_sub_M E).trans (bwd_map_sub G K_sub_L D),
+end
 
-end KL_fixed
+def bwd_map_comp' (E : inf_components G M) :
+  bwd_map G K_sub_L (bwd_map G L_sub_M E) = bwd_map G (K_sub_L.trans L_sub_M) E :=
+begin
+  let D := bwd_map G L_sub_M E,
+  let C := bwd_map G K_sub_L D,
+  apply eq.symm,
+  apply (bwd_map_def G (K_sub_L.trans L_sub_M) E C).mpr,
+  exact (bwd_map_sub G L_sub_M E).trans (bwd_map_sub G K_sub_L D),
+end
 
-section dunno
+def bwd_map_diamond (E : inf_components G M) :
+  bwd_map G K_sub_L (bwd_map G L_sub_M E) = bwd_map G K_sub_L' (bwd_map G L'_sub_M E) :=
+by rw [bwd_map_comp',bwd_map_comp']
+
+end inf_components
+
+section ends
 
 variables {K L L' M : set V}
           (K_sub_L : K ⊆ L) (L_sub_M : L ⊆ M)
           (K_sub_L' : K ⊆ L') (L'_sub_M : L' ⊆ M)
 
-def bwd_map_comp :
-  (bwd_map K_sub_L ) ∘ (bwd_map L_sub_M) = (bwd_map (K_sub_L.trans L_sub_M)) :=
-begin
-  apply funext,
-  rintro E,
-  let D := bwd_map L_sub_M E,
-  let C := bwd_map K_sub_L D,
-  apply eq.symm,
-  unfold function.comp,
-  apply (bwd_map_def (K_sub_L.trans L_sub_M) E C).mpr,
-  exact (bwd_map_sub L_sub_M E).trans (bwd_map_sub K_sub_L D),
-end
-
-def bwd_map_comp' (E : inf_components M) :
-  bwd_map K_sub_L (bwd_map L_sub_M E) = bwd_map (K_sub_L.trans L_sub_M) E :=
-begin
-  let D := bwd_map L_sub_M E,
-  let C := bwd_map K_sub_L D,
-  apply eq.symm,
-  apply (bwd_map_def (K_sub_L.trans L_sub_M) E C).mpr,
-  exact (bwd_map_sub L_sub_M E).trans (bwd_map_sub K_sub_L D),
-end
-
-def bwd_map_diamond (E : inf_components M) :
-  bwd_map K_sub_L (bwd_map L_sub_M E) = bwd_map K_sub_L' (bwd_map L'_sub_M E) :=
-by rw [bwd_map_comp',bwd_map_comp']
-
-
-end dunno
-
-
 private def finsubsets := {K : set V | K.finite}
 
 def ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :=
-{ f : Π (K : ℱ), inf_components K | ∀ K L : ℱ, ∀ h : ↑K ⊆ ↑L, bwd_map h (f L) = (f K) }
+{ f : Π (K : ℱ), inf_components G K.val | ∀ K L : ℱ, ∀ h : K.val ⊆ L.val, bwd_map G h (f L) = (f K) }
 
 lemma ends_for_directed (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val)
-  (g : ends_for ℱ H ℱ_cofin) (K L : ℱ) :
+  (g : ends_for G ℱ H ℱ_cofin) (K L : ℱ) :
   ∃ (F : ℱ) (hK : K.val ⊆ F.val) (hL : L.val ⊆ F.val),
-    g.1 K = bwd_map hK (g.1 F) ∧ g.1 L = bwd_map hL (g.1 F) :=
+    g.1 K = bwd_map G hK (g.1 F) ∧ g.1 L = bwd_map G hL (g.1 F) :=
 begin
   rcases (ℱ_cofin ⟨K.val∪L.val,set.finite_union.mpr ⟨(H K.prop),(H L.prop)⟩⟩) with ⟨F,F_good⟩,
   use F,
@@ -501,41 +484,35 @@ begin
     apply g.2,}
  end
 
-def ends := ends_for finsubsets (λ K Kfin, Kfin) (λ K, ⟨K,set.subset.refl K.val⟩)
-
-namespace ends
-
--- #print prefix simple_graph.connected_outside.ends.to_ends_for
-
-
+def ends := ends_for G finsubsets (λ K Kfin, Kfin) (λ K, ⟨K,set.subset.refl K.val⟩)
 
 
 
 def to_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
-  ends → ends_for ℱ H ℱ_cofin
+  ends G → ends_for G ℱ H ℱ_cofin
 | ⟨f,f_comm⟩ := ⟨ λ K, f ⟨K, H K.property⟩
                 , λ K L hKL, f_comm (set.inclusion H K) (set.inclusion H L) hKL⟩
 
 
 def of_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
-  ends_for ℱ H ℱ_cofin → ends :=
+  ends_for G ℱ H ℱ_cofin → ends G :=
 λ g,
   let
-    f : Π (K : finsubsets), inf_components K := λ K,
+    f : Π (K : finsubsets), inf_components G K.val := λ K,
       let
         F := classical.some (ℱ_cofin K)
       , K_sub_F := classical.some_spec (ℱ_cofin K)
       in
-        bwd_map K_sub_F (g.1 F)
-  , f_comm : ∀ K L : finsubsets, ∀ h : ↑K ⊆ ↑L, bwd_map h (f L) = (f K) := λ K L hKL, by
+        bwd_map G K_sub_F (g.1 F)
+  , f_comm : ∀ K L : finsubsets, ∀ h : K.val ⊆ L.val, bwd_map G h (f L) = (f K) := λ K L hKL, by
     { --simp *,
       let FK := some (ℱ_cofin K),
       let K_FK := some_spec (ℱ_cofin K),
       let FL := some (ℱ_cofin L),
       let L_FL := some_spec (ℱ_cofin L),
-      rcases ends_for_directed ℱ H ℱ_cofin g FK FL with ⟨M,FK_M,FL_M,backK,backL⟩,
-      have hey : f K = bwd_map K_FK (g.1 FK), by simpa,
-      have hoo : f L = bwd_map L_FL (g.1 FL), by simpa,
+      rcases ends_for_directed G ℱ H ℱ_cofin g FK FL with ⟨M,FK_M,FL_M,backK,backL⟩,
+      have hey : f K = bwd_map G K_FK (g.1 FK), by simpa,
+      have hoo : f L = bwd_map G L_FL (g.1 FL), by simpa,
       rw [hey,hoo,backK,backL,bwd_map_comp',bwd_map_comp',bwd_map_comp'],}
   in
     ⟨f,f_comm⟩
@@ -543,9 +520,9 @@ def of_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : �
 
 -- Kyle Miller
 def to_ends_for' (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
-  ends ≃ ends_for ℱ H ℱ_cofin :=
-{ to_fun := to_ends_for ℱ H ℱ_cofin,
-  inv_fun := of_ends_for ℱ H ℱ_cofin,
+  ends G ≃ ends_for G ℱ H ℱ_cofin :=
+{ to_fun := to_ends_for G ℱ H ℱ_cofin,
+  inv_fun := of_ends_for G ℱ H ℱ_cofin,
   left_inv := begin
     rintro ⟨g, g_comm⟩,
     simp only [of_ends_for, to_ends_for, comp_app, id.def, subtype.mk_eq_mk],
@@ -560,19 +537,13 @@ def to_ends_for' (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : �
   end }
 
 
-
-
 end ends
 
--- theorem `card_components_mon` saying htat `λ K, card (inf_components K)` is monotone
--- theorem `finite_ends_iff` saying that `ends` is finite iff the supremum `λ K, card (inf_components K)` is finite
+-- theorem `card_components_mon` saying htat `λ K, card (inf_components G K)` is monotone
+-- theorem `finite_ends_iff` saying that `ends` is finite iff the supremum `λ K, card (inf_components G K)` is finite
 -- theorem `finite_ends_card_eq` saying that if `ends` is finite, the cardinality is the sup
 -- theorem `zero_ends_iff` saying that `ends = ∅` iff `V` is finite
 
-
-end ends
-
-end connected_outside
 
 
 end simple_graph

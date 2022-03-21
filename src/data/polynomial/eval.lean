@@ -463,6 +463,44 @@ begin
   { intros, simp only [add_comp, mul_comp, C_comp, X_comp, pow_succ', ← mul_assoc, *] at * }
 end
 
+lemma coeff_comp_degree_mul_degree {p q : R[X]} (hqd0 : nat_degree q ≠ 0) :
+  coeff (p.comp q) (nat_degree p * nat_degree q) =
+  leading_coeff p * leading_coeff q ^ nat_degree p :=
+begin
+  classical,
+  by_cases hp0 : p = 0, { simp [hp0] },
+  calc coeff (p.comp q) (nat_degree p * nat_degree q)
+      = p.sum (λ n a, coeff (C a * q ^ n) (nat_degree p * nat_degree q)) :
+        by rw [comp, eval₂, coeff_sum]
+  ... = coeff (C (leading_coeff p) * q ^ nat_degree p) (nat_degree p * nat_degree q) :
+        finset.sum_eq_single _
+          begin
+            assume b hbs hbp,
+            have hq0 : q ≠ 0 := λ hq0, hqd0 (by rw [hq0, nat_degree_zero]),
+            have : coeff p b ≠ 0, rwa mem_support_iff at hbs,
+            refine coeff_eq_zero_of_degree_lt ((degree_mul_le _ _).trans_lt _),
+            rw [degree_C this, zero_add],
+            refine (degree_pow_le _ _).trans_lt _,
+            rw [degree_eq_nat_degree hq0, ← with_bot.coe_nsmul, nsmul_eq_mul, with_bot.coe_lt_coe,
+              nat.cast_id, mul_lt_mul_right (pos_iff_ne_zero.mpr hqd0)],
+            exact lt_of_le_of_ne (le_nat_degree_of_ne_zero this) hbp,
+          end
+          begin
+            intro h, contrapose! hp0,
+            rw mem_support_iff at h, push_neg at h,
+            rwa ← leading_coeff_eq_zero,
+          end
+  ... = _ : begin
+    rw [coeff_C_mul],
+    by_cases q0 : q.leading_coeff ^ p.nat_degree = 0,
+    { simp [q0] },
+    have : (q ^ p.nat_degree).nat_degree = p.nat_degree * q.nat_degree,
+    { refine le_antisymm ((nat_degree_pow_le).trans rfl.le) (le_nat_degree_of_ne_zero _),
+      rwa coeff_pow_mul_nat_degree },
+    exact congr_arg _ (coeff_pow_mul_nat_degree _ _),
+  end
+end
+
 end comp
 
 section map

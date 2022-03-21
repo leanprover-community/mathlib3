@@ -667,8 +667,7 @@ begin
   rw mem_closure_iff_seq_limit,
   have hfi' : mem_ℒp f p μ := Lp.mem_ℒp f,
   haveI : separable_space (range f ∪ {0} : set E) :=
-    ((Lp.strongly_measurable f).is_separable_range.union (finite_singleton _).is_separable)
-      .separable_space,
+    (Lp.strongly_measurable f).separable_space_range_union,
   refine ⟨λ n, ↑(to_Lp (simple_func.approx_on f (Lp.strongly_measurable f).measurable
     (range f ∪ {0}) 0 (by simp) n)
     (simple_func.mem_ℒp_approx_on_range (Lp.strongly_measurable f).measurable hfi' n)),

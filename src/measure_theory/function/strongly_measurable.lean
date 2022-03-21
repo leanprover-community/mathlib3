@@ -387,6 +387,14 @@ begin
   exact mem_range_self _
 end
 
+lemma separable_space_range_union {m : measurable_space α} [topological_space β] [metrizable_space β]
+  (hf : strongly_measurable f) {b : β} :
+  separable_space (range f ∪ {b} : set β) :=
+begin
+  letI := metrizable_space_metric β,
+  exact (is_separable.union hf.is_separable_range (finite_singleton _).is_separable).separable_space
+end
+
 section second_countable_strongly_measurable
 
 variables [measurable_space α] [measurable_space β]

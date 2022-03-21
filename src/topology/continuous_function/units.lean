@@ -10,23 +10,23 @@ import algebra.algebra.spectrum
 /-!
 # Units of continuous functions
 
-This file concerns itself with `C(α, β)ˣ` and `C(α, βˣ)` when `α` is a topological space
-and `β` has an appropriate algebraic and topological structure.
+This file concerns itself with `C(X, M)ˣ` and `C(X, Mˣ)` when `X` is a topological space
+and `M` has some monoid structure compatible with its topology.
 -/
 
-variables {α β : Type*} [topological_space α]
+variables {X M R 𝕜 : Type*} [topological_space X]
 
 namespace continuous_map
 
 section monoid
 
-variables [monoid β] [topological_space β] [has_continuous_mul β]
+variables [monoid M] [topological_space M] [has_continuous_mul M]
 
 /-- Equivalence between continuous maps into the units of a monoid with continuous multiplication
 and the units of the monoid of continuous maps. -/
 @[to_additive "Equivalence between continuous maps into the additive units of an additive monoid
 with continuous addition and the additive units of the additive monoid of continuous maps.", simps]
-def units_lift : C(α, βˣ) ≃ C(α, β)ˣ :=
+def units_lift : C(X, Mˣ) ≃ C(X, M)ˣ :=
 { to_fun := λ f,
   { val := ⟨λ x, f x, units.continuous_coe.comp f.continuous⟩,
     inv := ⟨λ x, ↑(f x)⁻¹, units.continuous_coe.comp (continuous_inv.comp f.continuous)⟩,
@@ -35,8 +35,8 @@ def units_lift : C(α, βˣ) ≃ C(α, β)ˣ :=
   inv_fun := λ f,
   { to_fun := λ x, ⟨f x, f⁻¹ x, continuous_map.congr_fun f.mul_inv x,
                                 continuous_map.congr_fun f.inv_mul x⟩,
-    continuous_to_fun := continuous_induced_rng $ continuous.prod_mk (f : C(α, β)).continuous
-      $ mul_opposite.continuous_op.comp (↑f⁻¹ : C(α, β)).continuous },
+    continuous_to_fun := continuous_induced_rng $ continuous.prod_mk (f : C(X, M)).continuous
+      $ mul_opposite.continuous_op.comp (↑f⁻¹ : C(X, M)).continuous },
   left_inv := λ f, by { ext, refl },
   right_inv := λ f, by { ext, refl } }
 
@@ -44,9 +44,9 @@ end monoid
 
 section normed_ring
 
-variables [normed_ring β] [complete_space β]
+variables [normed_ring R] [complete_space R]
 
-lemma _root_.normed_ring.is_unit_unit_continuous {f : C(α, β)} (h : ∀ x, is_unit (f x)) :
+lemma _root_.normed_ring.is_unit_unit_continuous {f : C(X, R)} (h : ∀ x, is_unit (f x)) :
   continuous (λ x, (h x).unit) :=
 begin
   refine continuous_induced_rng (continuous.prod_mk f.continuous
@@ -59,16 +59,16 @@ end
 /-- Construct a continuous map into the group of units of a normed ring from a function into the
 normed ring and a proof that every element of the range is a unit. -/
 @[simps]
-noncomputable def units_of_forall_is_unit {f : C(α, β)} (h : ∀ x, is_unit (f x)) : C(α, βˣ) :=
+noncomputable def units_of_forall_is_unit {f : C(X, R)} (h : ∀ x, is_unit (f x)) : C(X, Rˣ) :=
 { to_fun := λ x, (h x).unit,
   continuous_to_fun :=  normed_ring.is_unit_unit_continuous h }
 
-instance : can_lift C(α, β) C(α, βˣ) :=
+instance : can_lift C(X, R) C(X, Rˣ) :=
 { coe := λ f, ⟨λ x, f x, units.continuous_coe.comp f.continuous⟩,
   cond := λ f, ∀ x, is_unit (f x),
   prf := λ f h, ⟨units_of_forall_is_unit h, by { ext, refl }⟩ }
 
-lemma is_unit_iff_forall_is_unit (f : C(α, β)) :
+lemma is_unit_iff_forall_is_unit (f : C(X, R)) :
   is_unit f ↔ ∀ x, is_unit (f x) :=
 iff.intro (λ h, λ x, ⟨units_lift.symm h.unit x, rfl⟩)
   (λ h, ⟨(units_of_forall_is_unit h).units_lift, by { ext, refl }⟩)
@@ -77,13 +77,13 @@ end normed_ring
 
 section normed_field
 
-variables {𝕜 : Type*} [normed_field 𝕜] [complete_space 𝕜]
+variables [normed_field 𝕜] [complete_space 𝕜]
 
-lemma is_unit_iff_forall_ne_zero (f : C(α, 𝕜)) :
+lemma is_unit_iff_forall_ne_zero (f : C(X, 𝕜)) :
   is_unit f ↔ ∀ x, f x ≠ 0 :=
 by simp_rw [f.is_unit_iff_forall_is_unit, is_unit_iff_ne_zero]
 
-lemma spectrum_eq_range (f : C(α, 𝕜)) :
+lemma spectrum_eq_range (f : C(X, 𝕜)) :
   spectrum 𝕜 f = set.range f :=
 begin
   ext,

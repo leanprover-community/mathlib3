@@ -217,7 +217,7 @@ denominator share the same grading.
 -/
 @[nolint has_inhabited_instance]
 def homogeneous_localization : Type* :=
-  quotient (setoid.ker $ homogeneous_localization.num_denom_same_deg.embedding 𝒜 x)
+ quotient (setoid.ker $ homogeneous_localization.num_denom_same_deg.embedding 𝒜 x)
 
 namespace homogeneous_localization
 

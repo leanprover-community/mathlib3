@@ -20,10 +20,14 @@ sup-independent if, for all `a`, `f a` and the supremum of the rest are disjoint
 
 ## Main statements
 
-* In a distributive lattice, supremeum independence is equivalent to pairwise disjointness:
+* In a distributive lattice, supremum independence is equivalent to pairwise disjointness:
   * `finset.sup_indep_iff_pairwise_disjoint`
   * `complete_lattice.set_independent_iff_pairwise_disjoint`
   * `complete_lattice.independent_iff_pairwise_disjoint`
+* Otherwise, supremum independence is stronger than pairwise disjointness:
+  * `finset.sup_indep.pairwise_disjoint`
+  * `complete_lattice.pairwise_disjoint`
+  * `complete_lattice.pairwise_disjoint`
 
 ## Implementation notes
 

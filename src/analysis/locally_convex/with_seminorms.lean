@@ -51,7 +51,7 @@ variables {𝕜 E ι}
 namespace seminorm_family
 
 /-- The sets of a filter basis for the neighborhood filter of 0. -/
-def basis_sets (p : seminorm 𝕜 E ι) : set (set E) :=
+def basis_sets (p : seminorm_family 𝕜 E ι) : set (set E) :=
 ⋃ (s : finset ι) r (hr : 0 < r), singleton $ ball (s.sup p) (0 : E) r
 
 variables (p : seminorm_family 𝕜 E ι)
@@ -71,8 +71,8 @@ lemma basis_sets_singleton_mem (i : ι) {r : ℝ} (hr : 0 < r) :
 lemma basis_sets_nonempty [nonempty ι] : p.basis_sets.nonempty :=
 begin
   let i := classical.arbitrary ι,
-  refine set.nonempty_def.mpr ⟨ball (p i) 0 1, _⟩,
-  exact basis_sets_singleton_mem _ i zero_lt_one,
+  refine set.nonempty_def.mpr ⟨(p i).ball 0 1, _⟩,
+  exact p.basis_sets_singleton_mem i zero_lt_one,
 end
 
 lemma basis_sets_intersect
@@ -83,7 +83,7 @@ begin
   rcases (p.basis_sets_iff U).mp hU with ⟨s, r₁, hr₁, hU⟩,
   rcases (p.basis_sets_iff V).mp hV with ⟨t, r₂, hr₂, hV⟩,
   use ((s ∪ t).sup p).ball 0 (min r₁ r₂),
-  refine ⟨basis_sets_mem p (s ∪ t) (lt_min_iff.mpr ⟨hr₁, hr₂⟩), _⟩,
+  refine ⟨p.basis_sets_mem (s ∪ t) (lt_min_iff.mpr ⟨hr₁, hr₂⟩), _⟩,
   rw [hU, hV, ball_finset_sup_eq_Inter _ _ _ (lt_min_iff.mpr ⟨hr₁, hr₂⟩),
     ball_finset_sup_eq_Inter _ _ _ hr₁, ball_finset_sup_eq_Inter _ _ _ hr₂],
   exact set.subset_inter
@@ -105,7 +105,7 @@ lemma basis_sets_add (U) (hU : U ∈ p.basis_sets) :
 begin
   rcases (p.basis_sets_iff U).mp hU with ⟨s, r, hr, hU⟩,
   use (s.sup p).ball 0 (r/2),
-  refine ⟨basis_sets_mem p s (div_pos hr zero_lt_two), _⟩,
+  refine ⟨p.basis_sets_mem s (div_pos hr zero_lt_two), _⟩,
   refine set.subset.trans (ball_add_ball_subset (s.sup p) (r/2) (r/2) 0 0) _,
   rw [hU, add_zero, add_halves'],
 end

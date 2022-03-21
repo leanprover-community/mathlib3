@@ -272,7 +272,7 @@ end
 /-- Commuting elements of finite order are closed under multiplication. -/
 @[to_additive "Commuting elements of finite additive order are closed under addition."]
 lemma commute.is_of_fin_order_mul
-  (h : commute x y) (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
+  {x} (h : commute x y) (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
   is_of_fin_order (x * y) :=
 order_of_pos_iff.mp $
   pos_of_dvd_of_pos h.order_of_mul_dvd_mul_order_of $ mul_pos (order_of_pos' hx) (order_of_pos' hy)
@@ -413,9 +413,9 @@ end
 
 end group
 
-section comm_group
+section comm_monoid
 
-variables [comm_group G]
+variables [comm_monoid G]
 
 /-- Elements of finite order are closed under multiplication. -/
 @[to_additive "Elements of finite additive order are closed under addition."]
@@ -423,7 +423,7 @@ lemma is_of_fin_order.mul (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
   is_of_fin_order (x * y) :=
 (commute.all x y).is_of_fin_order_mul hx hy
 
-end comm_group
+end comm_monoid
 
 section fintype
 variables [fintype G] [fintype A]

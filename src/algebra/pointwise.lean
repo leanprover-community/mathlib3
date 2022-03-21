@@ -62,7 +62,7 @@ pointwise subtraction
 
 open function
 
-variables {α β γ : Type*}
+variables {F α β γ : Type*}
 
 /-! ### Sets -/
 
@@ -239,10 +239,6 @@ lemma preimage_mul_left_one' [group α] : (λ b, a⁻¹ * b) ⁻¹' 1 = {a} := b
 @[to_additive]
 lemma preimage_mul_right_one' [group α] : (* b⁻¹) ⁻¹' 1 = {b} := by simp
 
-@[to_additive]
-protected lemma mul_comm [comm_semigroup α] : s * t = t * s :=
-by simp only [← image2_mul, image2_swap _ s, mul_comm]
-
 /-- `set α` is a `mul_one_class` under pointwise operations if `α` is. -/
 @[to_additive /-"`set α` is an `add_zero_class` under pointwise operations if `α` is."-/]
 protected def mul_one_class [mul_one_class α] : mul_one_class (set α) :=
@@ -256,6 +252,12 @@ protected def semigroup [semigroup α] : semigroup (set α) :=
 { mul_assoc := λ _ _ _, image2_assoc mul_assoc,
   ..set.has_mul }
 
+/-- `set α` is a `comm_semigroup` under pointwise operations if `α` is. -/
+@[to_additive "`set α` is an `add_comm_semigroup` under pointwise operations if `α` is."]
+protected def comm_semigroup [comm_semigroup α] : comm_semigroup (set α) :=
+{ mul_comm := λ s t, by simp only [← image2_mul, image2_swap _ s, mul_comm]
+  ..set.semigroup }
+
 /-- `set α` is a `monoid` under pointwise operations if `α` is. -/
 @[to_additive /-"`set α` is an `add_monoid` under pointwise operations if `α` is. "-/]
 protected def monoid [monoid α] : monoid (set α) :=
@@ -265,10 +267,11 @@ protected def monoid [monoid α] : monoid (set α) :=
 /-- `set α` is a `comm_monoid` under pointwise operations if `α` is. -/
 @[to_additive /-"`set α` is an `add_comm_monoid` under pointwise operations if `α` is. "-/]
 protected def comm_monoid [comm_monoid α] : comm_monoid (set α) :=
-{ mul_comm := λ _ _, set.mul_comm, ..set.monoid }
+{ ..set.monoid, ..set.comm_semigroup }
 
 localized "attribute [instance] set.mul_one_class set.add_zero_class set.semigroup set.add_semigroup
-  set.monoid set.add_monoid set.comm_monoid set.add_comm_monoid" in pointwise
+  set.comm_semigroup set.add_comm_semigroup set.monoid set.add_monoid set.comm_monoid
+  set.add_comm_monoid" in pointwise
 
 @[to_additive]
 lemma pow_mem_pow [monoid α] (ha : a ∈ s) (n : ℕ) :
@@ -1016,15 +1019,15 @@ localized "attribute [instance] set.mul_action_set set.add_action_set" in pointw
 
 section mul_hom
 
-variables [has_mul α] [has_mul β] (m : mul_hom α β) {s t : set α}
+variables [has_mul α] [has_mul β] [mul_hom_class F α β] (m : F) {s t : set α}
 
 @[to_additive]
-lemma image_mul : m '' (s * t) = m '' s * m '' t :=
-by { simp only [← image2_mul, image_image2, image2_image_left, image2_image_right, m.map_mul] }
+lemma image_mul : (m : α → β) '' (s * t) = m '' s * m '' t :=
+by simp only [← image2_mul, image_image2, image2_image_left, image2_image_right, map_mul m]
 
 @[to_additive]
-lemma preimage_mul_preimage_subset {s t : set β} : m ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
-by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (m.map_mul _ _).symm ⟩ }
+lemma preimage_mul_preimage_subset {s t : set β} : (m : α → β) ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
+by { rintros _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul m _ _).symm ⟩ }
 
 instance set_semiring.no_zero_divisors : no_zero_divisors (set_semiring α) :=
 ⟨λ a b ab, a.eq_empty_or_nonempty.imp_right $ λ ha, b.eq_empty_or_nonempty.resolve_right $
@@ -1053,7 +1056,7 @@ def image_hom [monoid α] [monoid β] (f : α →* β) : set_semiring α →+* s
   map_zero' := image_empty _,
   map_one' := by simp only [← singleton_one, image_singleton, f.map_one],
   map_add' := image_union _,
-  map_mul' := λ _ _, image_mul f.to_mul_hom }
+  map_mul' := λ _ _, image_mul f }
 
 end monoid
 
@@ -1377,7 +1380,7 @@ lemma preimage_mul_right_one' [group α] :
 
 @[to_additive]
 protected lemma mul_comm [decidable_eq α] [comm_semigroup α] : s * t = t * s :=
-by exact_mod_cast @set.mul_comm _ (s : set α) t _
+by exact_mod_cast mul_comm (s : set α) t
 
 /-- `finset α` is a `mul_one_class` under pointwise operations if `α` is. -/
 @[to_additive /-"`finset α` is an `add_zero_class` under pointwise operations if `α` is."-/]

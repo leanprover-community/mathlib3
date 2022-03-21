@@ -185,3 +185,8 @@ by rw [←cmp_eq_lt_iff, ←cmp_eq_lt_iff, h]
 lemma le_iff_le_of_cmp_eq_cmp (h : cmp x y = cmp x' y') : x ≤ y ↔ x' ≤ y' :=
 by { rw [←not_lt, ←not_lt], apply not_congr,
   apply lt_iff_lt_of_cmp_eq_cmp, rwa cmp_eq_cmp_symm }
+
+lemma has_lt.lt.cmp_eq_lt (h : x < y) : cmp x y = ordering.lt := (cmp_eq_lt_iff _ _).2 h
+lemma has_lt.lt.cmp_eq_gt (h : x < y) : cmp y x = ordering.gt := (cmp_eq_gt_iff _ _).2 h
+lemma eq.cmp_eq_eq (h : x = y) : cmp x y = ordering.eq := (cmp_eq_eq_iff _ _).2 h
+lemma eq.cmp_eq_eq' (h : x = y) : cmp y x = ordering.eq := h.symm.cmp_eq_eq

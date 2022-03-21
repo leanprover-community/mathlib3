@@ -710,10 +710,10 @@ end formula
 variable (M)
 
 /-- A sentence can be evaluated as true or false in a structure. -/
-@[reducible] def realize_sentence (φ : L.sentence) : Prop :=
+def sentence.realize (φ : L.sentence) : Prop :=
 φ.realize (default : _ → M)
 
-infix ` ⊨ `:51 := realize_sentence -- input using \|= or \vDash, but not using \models
+infix ` ⊨ `:51 := sentence.realize -- input using \|= or \vDash, but not using \models
 
 @[simp] lemma Lhom.realize_on_sentence [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
   (ψ : L.sentence) :
@@ -722,7 +722,7 @@ infix ` ⊨ `:51 := realize_sentence -- input using \|= or \vDash, but not using
 
 /-- A model of a theory is a structure in which every sentence is realized as true. -/
 @[reducible] def Theory.model (T : L.Theory) : Prop :=
-∀ φ ∈ T, realize_sentence M φ
+∀ φ ∈ T, M ⊨ φ
 
 infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \models
 
@@ -857,7 +857,7 @@ forall_congr (λ M, forall_congr (λ ne, forall_congr (λ str, forall_congr (λ 
 
 lemma models_sentence_iff {T : L.Theory} {φ : L.sentence} :
   T ⊨ φ ↔ ∀ (M : Type (max u v)) [nonempty M] [str : L.Structure M],
-    @Theory.model L M str T → @realize_sentence L M str φ :=
+    @Theory.model L M str T → @sentence.realize L M str φ :=
 begin
   rw [models_formula_iff],
   exact forall_congr (λ M, forall_congr (λ ne, forall_congr (λ str, unique.forall_iff)))

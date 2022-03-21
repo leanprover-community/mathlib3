@@ -174,7 +174,6 @@ le_sqrt.2 (le_trans (sqrt_le _) h)
 @[simp] lemma sqrt_zero : sqrt 0 = 0 :=
 by rw [sqrt, size_zero, sqrt._match_1]
 
-
 theorem sqrt_eq_zero {n : ℕ} : sqrt n = 0 ↔ n = 0 :=
 ⟨λ h, nat.eq_zero_of_le_zero $ le_of_lt_succ $ (@sqrt_lt n 1).1 $
   by rw [h]; exact dec_trivial,

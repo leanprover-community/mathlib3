@@ -334,7 +334,8 @@ lemma prog_measurable_of_tendsto [measurable_space ι] [metric_space β] [borel_
 prog_measurable_of_tendsto' at_top h h_tendsto
 
 /-- A continuous and adapted process is progressively measurable. -/
-theorem adapted.prog_measurable_of_continuous [emetric_space ι] [measurable_space ι]
+theorem adapted.prog_measurable_of_continuous
+  [topological_space ι] [metrizable_space ι] [measurable_space ι]
   [second_countable_topology ι] [opens_measurable_space ι] [metric_space β] [borel_space β]
   (h : adapted f u) (hu_cont : ∀ x, continuous (λ i, u i x)) :
   prog_measurable f u :=

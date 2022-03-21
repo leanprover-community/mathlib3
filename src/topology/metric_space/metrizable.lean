@@ -54,6 +54,10 @@ begin
   apply_instance
 end
 
+instance metrizable_space.subtype {α : Type*} [topological_space α] [metrizable_space α]
+  (s : set α) : metrizable_space s :=
+by { letI := metrizable_space_metric α, apply_instance }
+
 /-- Given an embedding of a topological space into a metrizable space, the source space is also
 metrizable. -/
 lemma _root_.embedding.metrizable_space {α β : Type*} [topological_space α] [topological_space β]

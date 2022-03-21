@@ -35,7 +35,7 @@ def GS (f : ℕ → E) : ℕ → E
 | n := f n - ∑ i in finset.range(n),
   if h1 : i < n then proj 𝕜 E (GS i) (f n) else f 37
 
-/-- This helps us to get rid of 'ite' in the definition of GS -/
+/-- 'GS_n_1' helps us to get rid of 'ite' in the definition of GS -/
 @[simp] lemma GS_n_1 (f : ℕ → E) (n : ℕ) :
 GS 𝕜 E f (n + 1) = f (n + 1) - ∑ i in finset.range(n + 1), proj 𝕜 E (GS 𝕜 E f i) (f (n + 1)) :=
 begin
@@ -46,16 +46,6 @@ begin
   rw if_pos hx,
 end
 
-/-- inner product defined as add_monoid_hom -/
-def inner_product_hom (v : E) [inner_product_space 𝕜 E] : E →+ 𝕜 :=
-{ to_fun := inner v,
-  map_zero' := inner_zero_right,
-  map_add' := λ x y, inner_add_right }
-
-lemma inner_eq_inner_hom (v x : E) : inner v x = inner_product_hom 𝕜 E v x := rfl
-
-lemma inner_hom_eq_inner (v x : E) : inner_product_hom 𝕜 E v x = inner v x := rfl
-
 /-- # Gram-Schmidt Orthogonalisation -/
 theorem GS_Orthogonal (f : ℕ → E) (c : ℕ) :
 ∀ (a b : ℕ), a < b → b ≤ c → (inner (GS 𝕜 E f a) (GS 𝕜 E f b) : 𝕜) = 0 :=
@@ -64,13 +54,10 @@ begin
   { intros a b ha hb, simp at hb, simp [hb] at ha, contradiction },
   { intros a b ha hb, rw nat.le_add_one_iff at hb, cases hb with hb₁ hb₂,
     { specialize hc a b, simp [ha, hb₁] at hc, exact hc },
-    { simp [GS_n_1, hb₂, inner_sub_right],
-      rw [inner_eq_inner_hom, inner_eq_inner_hom],
-      rw map_sum (inner_product_hom 𝕜 E (GS 𝕜 E f a))
-      (λi, proj 𝕜 E (GS 𝕜 E f i) (f (c + 1))) (finset.range(c + 1)),
+    { simp only [GS_n_1, hb₂, inner_sub_right, inner_sum],
       have h₀ : ∀ x ∈ finset.range(c + 1), x ≠ a
-      → (inner_product_hom 𝕜 E (GS 𝕜 E f a)) (proj 𝕜 E (GS 𝕜 E f x) (f (c + 1))) = 0,
-      { intros x hx₁ hx₂, simp [proj, inner_hom_eq_inner], rw inner_smul_right,
+      → (inner (GS 𝕜 E f a) (proj 𝕜 E (GS 𝕜 E f x) (f (c + 1))) : 𝕜) = 0,
+      { intros x hx₁ hx₂, simp [proj], rw inner_smul_right,
         have hxa : x < a ∨ a < x := ne.lt_or_lt hx₂, cases hxa with hxa₁ hxa₂,
         { have ha₂ : a ≤ c,
           { rw hb₂ at ha, exact nat.lt_succ_iff.mp ha },
@@ -84,7 +71,7 @@ begin
       rw hb₂ at ha,
       have ha₂ : a ∈ finset.range(c+1) := finset.mem_range.mpr ha,
       rw finset.sum_eq_single_of_mem a ha₂ h₀, clear h₀,
-      simp [inner_hom_eq_inner, proj], rw inner_smul_right,
+      simp [proj], rw inner_smul_right,
       by_cases inner (GS 𝕜 E f a) (GS 𝕜 E f a) = (0 : 𝕜),
       { simp [inner_self_eq_zero] at h,
         repeat {rw h}, simp only [inner_zero_left, mul_zero, sub_zero] },

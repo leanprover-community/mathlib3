@@ -477,7 +477,7 @@ lemma polynomial_over_quot_quot_mk_span_equiv_quot_map_C_quot_mk_span_symm_mk_mk
 by simp only [polynomial_over_quot_quot_mk_span_equiv_quot_map_C_quot_mk_span,
   quotient_equiv_symm_mk, polynomial_quotient_equiv_quotient_polynomial_symm_mk]
 
-/- The natural isomorphism `R[α]/I[α] ≅ (R/I)[X]/(f mod I)` for `α` a root of `f : polynomial R`
+/-- The natural isomorphism `R[α]/I[α] ≅ (R/I)[X]/(f mod I)` for `α` a root of `f : polynomial R`
   and `I : ideal R`-/
 def quot_adjoin_root_equiv_quot_polynomial_quot : (adjoin_root f) ⧸ (I.map (of f)) ≃+*
 polynomial (R ⧸ I) ⧸ (span ({f.map (I^.quotient.mk)} : set (polynomial (R ⧸ I)))) :=

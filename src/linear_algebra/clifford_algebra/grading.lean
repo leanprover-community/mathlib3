@@ -129,6 +129,7 @@ lemma even_odd_is_compl : is_compl (even_odd Q 0) (even_odd Q 1) :=
 (graded_algebra.is_internal (even_odd Q)).is_compl zero_ne_one $ begin
   have : (finset.univ : finset (zmod 2)) = {0, 1} := rfl,
   simpa using congr_arg (coe : finset (zmod 2) → set (zmod 2)) this,
+end
 
 /-- To show a property is true on the even or odd part, it suffices to show it is true on the
 scalars or vectors (respectively), closed under addition, and under left-multiplication by a pair

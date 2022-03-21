@@ -103,7 +103,13 @@ lemma supr_disjoint_iff {f : ι → α} : disjoint (⨆ i, f i) a ↔ ∀ i, dis
 by simp only [disjoint_iff, supr_inf_eq, supr_eq_bot]
 
 lemma disjoint_supr_iff {f : ι → α} : disjoint a (⨆ i, f i) ↔ ∀ i, disjoint a (f i) :=
-by simpa only [disjoint.comm] using @supr_disjoint_iff _ _ _ a f
+by simpa only [disjoint.comm] using supr_disjoint_iff
+
+lemma Sup_disjoint_iff {s : set α} : disjoint (Sup s) a ↔ ∀ b ∈ s, disjoint b a :=
+by simp only [disjoint_iff, Sup_inf_eq, supr_eq_bot]
+
+lemma disjoint_Sup_iff {s : set α} : disjoint a (Sup s) ↔ ∀ b ∈ s, disjoint a b :=
+by simpa only [disjoint.comm] using Sup_disjoint_iff
 
 instance pi.frame {ι : Type*} {π : ι → Type*} [Π i, frame (π i)] : frame (Π i, π i) :=
 { inf_Sup_le_supr_inf := λ a s i,

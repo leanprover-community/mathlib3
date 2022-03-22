@@ -467,7 +467,7 @@ theorem left_inverse_inv_mul_mul_right (c : G) :
 assume x, inv_mul_cancel_left c x
 
 @[to_additive]
-lemma exists_pow_eq_one_of_zpow_eq_one {n : ℤ} (hn : n ≠ 0) {x : G} (h : x ^ n = 1) :
+lemma exists_npow_eq_one_of_zpow_eq_one {n : ℤ} (hn : n ≠ 0) {x : G} (h : x ^ n = 1) :
   ∃ n : ℕ, 0 < n ∧ x ^ n = 1 :=
 begin
   cases n with n n,

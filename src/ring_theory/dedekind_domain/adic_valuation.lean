@@ -63,15 +63,15 @@ lemma int_valuation_def_if_neg {r : R} (hr : r ≠ 0) : v.int_valuation_def r = 
 if_neg hr
 
 /-- Nonzero elements have nonzero adic valuation. -/
-lemma int_valuation_ne_zero' (x : R) (hx : x ≠ 0) : v.int_valuation_def x ≠ 0 :=
+lemma int_valuation_ne_zero (x : R) (hx : x ≠ 0) : v.int_valuation_def x ≠ 0 :=
 begin
   rw [int_valuation_def, if_neg hx],
   exact with_zero.coe_ne_zero,
 end
 
 /-- Nonzero divisors have nonzero valuation. -/
-lemma int_valuation_ne_zero (x : non_zero_divisors R) : v.int_valuation_def x ≠ 0 :=
-v.int_valuation_ne_zero' x (non_zero_divisors.coe_ne_zero x)
+lemma int_valuation_ne_zero' (x : non_zero_divisors R) : v.int_valuation_def x ≠ 0 :=
+v.int_valuation_ne_zero x (non_zero_divisors.coe_ne_zero x)
 
 /-- Nonzero divisors have valuation greater than zero. -/
 lemma int_valuation_zero_le (x : non_zero_divisors R) : 0 < v.int_valuation_def x :=

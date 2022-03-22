@@ -63,7 +63,7 @@ theorem dedup_cons {a : α} {s : multiset α} :
   dedup (a ::ₘ s) = ndinsert a (dedup s) :=
 by by_cases a ∈ s; simp [h]
 
-theorem nodup_ndinsert (a : α) {s : multiset α} : nodup s → nodup (ndinsert a s) :=
+lemma nodup.ndinsert (a : α) : nodup s → nodup (ndinsert a s) :=
 quot.induction_on s $ λ l, nodup.insert
 
 theorem ndinsert_le {a : α} {s t : multiset α} : ndinsert a s ≤ t ↔ s ≤ t ∧ a ∈ t :=

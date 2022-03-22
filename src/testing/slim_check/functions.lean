@@ -381,7 +381,7 @@ def perm.slice [decidable_eq α] (n m : ℕ) :
   let xs' := list.slice n m xs in
   have h₀ : xs' ~ ys.inter xs',
     from perm.slice_inter _ _ h h',
-  ⟨xs', ys.inter xs', h₀, nodup_inter_of_nodup _ h'⟩
+  ⟨xs', ys.inter xs', h₀, h'.inter _⟩
 
 /--
 A lazy list, in decreasing order, of sizes that should be

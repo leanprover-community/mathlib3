@@ -548,9 +548,9 @@ section decidable_eq
 variables [decidable_eq α] {s t u v : finset α} {a b : α}
 
 /-- `insert a s` is the set `{a} ∪ s` containing `a` and the elements of `s`. -/
-instance : has_insert α (finset α) := ⟨λ a s, ⟨_, nodup_ndinsert a s.2⟩⟩
+instance : has_insert α (finset α) := ⟨λ a s, ⟨_, s.2.ndinsert a⟩⟩
 
-theorem insert_def (a : α) (s : finset α) : insert a s = ⟨_, nodup_ndinsert a s.2⟩ := rfl
+lemma insert_def (a : α) (s : finset α) : insert a s = ⟨_, s.2.ndinsert a⟩ := rfl
 
 @[simp] theorem insert_val (a : α) (s : finset α) : (insert a s).1 = ndinsert a s.1 := rfl
 

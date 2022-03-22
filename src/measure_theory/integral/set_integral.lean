@@ -929,5 +929,3 @@ lemma set_integral_with_density_eq_set_integral_smul₀ {f : α → ℝ≥0} {s 
 by rw [restrict_with_density hs, integral_with_density_eq_integral_smul₀ hf]
 
 end
-
-#lint

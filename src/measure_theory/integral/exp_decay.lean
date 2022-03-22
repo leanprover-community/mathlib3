@@ -29,8 +29,8 @@ namespace exp_decay
 
 /-- `exp(-b x)` is integrable on `(a, X]` for any finite `a`, `X`. -/
 lemma exp_neg_integrable_on_Ioc (b : ℝ) (a : ℝ) (X : ℝ):
-  integrable_on (λ x : ℝ, exp(-b * x) ) (Ioc a X) :=
-  (continuous_const.mul continuous_id).exp.integrable_on_Ioc
+  integrable_on (λ x : ℝ, exp (-b * x) ) (Ioc a X) :=
+(continuous_const.mul continuous_id).exp.integrable_on_Ioc
 
 /-- The antiderivative of `exp(-b x)` is what it should be. -/
 lemma has_deriv_at_exp_neg (b : ℝ) (x : ℝ) (h : 0 < b) :
@@ -53,16 +53,16 @@ begin
     rw [(neg_div b (exp (-b * a))), (neg_div b (exp (-b * X))), add_neg_self, neg_le, neg_zero],
     exact (div_pos (exp_pos _) h2).le, },
   -- goal 2/4: the derivative of F is exp(-b x)
-  { ext1, exact (has_deriv_at_exp_neg b x h2).deriv, },
-  -- goal 3/4: F is differentiable (why isn't this implicit?)
-  { intros x hx, exact (has_deriv_at_exp_neg b x h2).differentiable_at, },
+  { ext1, simp [h2.ne'] },
+  -- goal 3/4: F is differentiable 
+  { intros x hx, simp [h2.ne'], },
   -- goal 4/4: exp(-b x) is continuous
   { apply continuous.continuous_on, continuity }
 end
 
 /-- `exp(-b x)` is integrable on `(a, ∞)`. -/
 lemma exp_neg_integrable_on_Ioi (a : ℝ) {b : ℝ} (h : 0 < b):
-  integrable_on (λ x : ℝ, exp(-b * x)) (Ioi a) :=
+  integrable_on (λ x : ℝ, exp (-b * x)) (Ioi a) :=
 begin
   apply (integrable_on_Ioi_of_interval_integral_norm_bounded
     (exp (-b*a) / b) a (exp_neg_integrable_on_Ioc b a) tendsto_id),
@@ -91,21 +91,16 @@ begin
   split,
   { exact (h1.mono $ Ioi_subset_Ici $ le_max_left a r).ae_measurable measurable_set_Ioi, },
   -- Now we have to show "has_finite_integral f"
-  have : has_finite_integral (λ x : ℝ, c * exp (-b * x)) (volume.restrict(Ioi v)),
+  have : has_finite_integral (λ x : ℝ, c * exp (-b * x)) (volume.restrict (Ioi v)),
   { exact (exp_neg_integrable_on_Ioi v h0).has_finite_integral.const_mul c },
   apply this.mono,
   -- Check "everywhere bounded" implies "almost everywhere bounded"
   refine (ae_restrict_iff' measurable_set_Ioi).mpr _,
-  apply ae_of_all,
-
-  intros x h1x,
-  rw norm_mul,
+  refine ae_of_all _ (λ x h1x, _),
+  rw [norm_mul, norm_eq_abs],
   rw [mem_Ioi] at h1x,
   specialize bdr x ((le_max_right a r).trans h1x.le),
-  refine bdr.trans _,
-  apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
-  rw norm_eq_abs,
-  exact le_abs_self c,
+  exact bdr.trans (mul_le_mul_of_nonneg_right (le_abs_self c) (norm_nonneg _))
 end
 
 end exp_decay

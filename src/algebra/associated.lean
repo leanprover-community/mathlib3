@@ -554,7 +554,7 @@ iff.intro
   (assume ⟨u, h⟩, h ▸ coe_unit_eq_one _)
   (assume h, h.symm ▸ is_unit_one)
 
-lemma is_unit_iff_eq_bot {a : associates α}: is_unit a ↔ a = ⊥ :=
+lemma is_unit_iff_eq_bot {a : associates α} : is_unit a ↔ a = ⊥ :=
 by rw [associates.is_unit_iff_eq_one, bot_eq_one]
 
 theorem is_unit_mk {a : α} : is_unit (associates.mk a) ↔ is_unit a :=
@@ -723,8 +723,7 @@ instance : partial_order (associates α) :=
   .. associates.preorder }
 
 instance : ordered_comm_monoid (associates α) :=
-{ mul_le_mul_left := λ a b h c, by {obtain ⟨d, rfl⟩ := h,
-  exact (mul_assoc c a d) ▸ associates.le_mul_right},
+{ mul_le_mul_left := λ a b ⟨d, hd⟩ c, hd.symm ▸ mul_assoc c a d ▸ le_mul_right,
   ..associates.comm_monoid,
   ..associates.partial_order}
 
@@ -781,7 +780,7 @@ instance : cancel_comm_monoid_with_zero (associates α) :=
   .. (infer_instance : comm_monoid_with_zero (associates α)) }
 
 instance : canonically_ordered_monoid (associates α) :=
-{ le_iff_exists_mul := λ a b, ⟨λ h, h, λ h, h⟩,
+{ le_iff_exists_mul := λ a b, iff.rfl,
   ..associates.cancel_comm_monoid_with_zero,
   ..associates.bounded_order,
   ..associates.ordered_comm_monoid}

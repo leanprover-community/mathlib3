@@ -4,10 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
-import algebra.group.inj_surj
-import algebra.group.prod
-import algebra.smul_with_zero
-import data.equiv.mul_add
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
 

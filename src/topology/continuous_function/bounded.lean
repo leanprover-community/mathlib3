@@ -214,7 +214,7 @@ lemma continuous_coe : continuous (λ (f : α →ᵇ β) x, f x) :=
 uniform_continuous.continuous uniform_continuous_coe
 
 /-- When `x` is fixed, `(f : α →ᵇ β) ↦ f x` is continuous -/
-@[continuity] theorem continuous_evalx {x : α} : continuous (λ f : α →ᵇ β, f x) :=
+@[continuity] theorem continuous_eval_const {x : α} : continuous (λ f : α →ᵇ β, f x) :=
 (continuous_apply x).comp continuous_coe
 
 /-- The evaluation map is continuous, as a joint function of `u` and `x` -/

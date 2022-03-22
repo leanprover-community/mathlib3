@@ -102,26 +102,6 @@ derivative.map_add f g
   derivative^[k] (f + g) = (derivative^[k] f) + (derivative^[k] g) :=
 derivative.to_add_monoid_hom.iterate_map_add _ _ _
 
-@[simp] lemma derivative_neg {R : Type*} [ring R] (f : R[X]) :
-  derivative (-f) = - derivative f :=
-linear_map.map_neg derivative f
-
-@[simp] lemma iterate_derivative_neg {R : Type*} [ring R] {f : R[X]} {k : ℕ} :
-  derivative^[k] (-f) = - (derivative^[k] f) :=
-(@derivative R _).to_add_monoid_hom.iterate_map_neg _ _
-
-@[simp] lemma derivative_sub {R : Type*} [ring R] {f g : R[X]} :
-  derivative (f - g) = derivative f - derivative g :=
-linear_map.map_sub derivative f g
-
-@[simp] lemma iterate_derivative_sub {R : Type*} [ring R] {k : ℕ} {f g : R[X]} :
-  derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
-begin
-  induction k with k ih generalizing f g,
-  { simp [nat.iterate], },
-  { simp [nat.iterate, ih], }
-end
-
 @[simp] lemma derivative_sum {s : finset ι} {f : ι → R[X]} :
   derivative (∑ b in s, f b) = ∑ b in s, derivative (f b) :=
 derivative.map_sum
@@ -137,7 +117,7 @@ begin
   { simp [ih], },
 end
 
-/-- We can't use `derivative_mul` here because
+/- We can't use `derivative_mul` here because
 we want to prove this statement also for noncommutative rings.-/
 @[simp]
 lemma derivative_C_mul (a : R) (p : R[X]) : derivative (C a * p) = C a * derivative p :=
@@ -147,6 +127,69 @@ by convert derivative_smul a p; apply C_mul'
 lemma iterate_derivative_C_mul (a : R) (p : R[X]) (k : ℕ) :
   derivative^[k] (C a * p) = C a * (derivative^[k] p) :=
 by convert iterate_derivative_smul a p k; apply C_mul'
+
+theorem of_mem_support_derivative {p : R[X]} {n : ℕ} (h : n ∈ p.derivative.support) :
+  n + 1 ∈ p.support :=
+mem_support_iff.2 $ λ (h1 : p.coeff (n+1) = 0), mem_support_iff.1 h $
+show p.derivative.coeff n = 0, by rw [coeff_derivative, h1, zero_mul]
+
+theorem degree_derivative_lt {p : R[X]} (hp : p ≠ 0) : p.derivative.degree < p.degree :=
+(finset.sup_lt_iff $ bot_lt_iff_ne_bot.2 $ mt degree_eq_bot.1 hp).2 $ λ n hp, lt_of_lt_of_le
+(with_bot.some_lt_some.2 n.lt_succ_self) $ finset.le_sup $ of_mem_support_derivative hp
+
+theorem degree_derivative_le {p : R[X]} : p.derivative.degree ≤ p.degree :=
+if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else (degree_derivative_lt H).le
+
+theorem nat_degree_derivative_lt {p : R[X]} (hp : p.derivative ≠ 0) :
+  p.derivative.nat_degree < p.nat_degree :=
+have hp1 : p ≠ 0, from λ h, hp $ by rw [h, derivative_zero],
+with_bot.some_lt_some.1 $
+begin
+  rw [nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp, nat_degree,
+    option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp1],
+  exact degree_derivative_lt hp1
+end
+
+theorem nat_degree_derivative_le (p : R[X]) : p.derivative.nat_degree ≤ p.nat_degree :=
+let _ := classical.prop_decidable in by exactI
+if h : p.derivative = 0 then h.symm ▸ zero_le _ else (nat_degree_derivative_lt h).le
+
+@[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : R[X]) = 0 :=
+begin
+  rw ← map_nat_cast C n,
+  exact derivative_C,
+end
+
+lemma iterate_derivative_eq_zero {p : R[X]} {x : ℕ} (hx : p.nat_degree < x) :
+  polynomial.derivative^[x] p = 0 :=
+begin
+  induction h : p.nat_degree using nat.strong_induction_on with _ ih generalizing p x,
+  subst h,
+  obtain ⟨t, rfl⟩ := nat.exists_eq_succ_of_ne_zero (pos_of_gt hx).ne',
+  rw [function.iterate_succ_apply],
+  by_cases hp : p.derivative = 0,
+  { rw [hp, iterate_derivative_zero] },
+  have := nat_degree_derivative_lt hp,
+  exact ih _ this (this.trans_le $ nat.le_of_lt_succ hx) rfl
+end
+
+theorem nat_degree_eq_zero_of_derivative_eq_zero [no_zero_divisors R] [char_zero R] {f : R[X]}
+  (h : f.derivative = 0) : f.nat_degree = 0 :=
+begin
+  rcases eq_or_ne f 0 with rfl | hf,
+  { exact nat_degree_zero },
+  rw nat_degree_eq_zero_iff_degree_le_zero,
+  by_contra' f_nat_degree_pos,
+  rw [←nat_degree_pos_iff_degree_pos] at f_nat_degree_pos,
+  let m := f.nat_degree - 1,
+  have hm : m + 1 = f.nat_degree := tsub_add_cancel_of_le f_nat_degree_pos,
+  have h2 := coeff_derivative f m,
+  rw polynomial.ext_iff at h,
+  rw [h m, coeff_zero, zero_eq_mul] at h2,
+  replace h2 := h2.resolve_right (λ h2, by norm_cast at h2),
+  rw [hm, ←leading_coeff, leading_coeff_eq_zero] at h2,
+  exact hf h2
+end
 
 end semiring
 
@@ -257,53 +300,32 @@ begin
   { simp [hij] }
 end
 
-theorem of_mem_support_derivative {p : R[X]} {n : ℕ} (h : n ∈ p.derivative.support) :
-  n + 1 ∈ p.support :=
-mem_support_iff.2 $ λ (h1 : p.coeff (n+1) = 0), mem_support_iff.1 h $
-show p.derivative.coeff n = 0, by rw [coeff_derivative, h1, zero_mul]
-
-theorem degree_derivative_lt {p : R[X]} (hp : p ≠ 0) : p.derivative.degree < p.degree :=
-(finset.sup_lt_iff $ bot_lt_iff_ne_bot.2 $ mt degree_eq_bot.1 hp).2 $ λ n hp, lt_of_lt_of_le
-(with_bot.some_lt_some.2 n.lt_succ_self) $ finset.le_sup $ of_mem_support_derivative hp
-
-theorem nat_degree_derivative_lt {p : R[X]} (hp : p.derivative ≠ 0) :
-  p.derivative.nat_degree < p.nat_degree :=
-have hp1 : p ≠ 0, from λ h, hp $ by rw [h, derivative_zero],
-with_bot.some_lt_some.1 $
-begin
-  rw [nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp, nat_degree,
-    option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp1],
-  exact degree_derivative_lt hp1
-end
-
-theorem degree_derivative_le {p : R[X]} : p.derivative.degree ≤ p.degree :=
-if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else le_of_lt $ degree_derivative_lt H
-
-/-- The formal derivative of polynomials, as linear homomorphism. -/
-def derivative_lhom (R : Type*) [comm_ring R] : R[X] →ₗ[R] R[X] :=
-{ to_fun    := derivative,
-  map_add'  := λ p q, derivative_add,
-  map_smul' := λ r p, derivative_smul r p }
-
-@[simp] lemma derivative_lhom_coe {R : Type*} [comm_ring R] :
-  (polynomial.derivative_lhom R : R[X] → R[X]) = polynomial.derivative :=
-rfl
-
-@[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : R[X]) = 0 :=
-begin
-  rw ← map_nat_cast C n,
-  exact derivative_C,
-end
-
 @[simp] lemma iterate_derivative_cast_nat_mul {n k : ℕ} {f : R[X]} :
   derivative^[k] (n * f) = n * (derivative^[k] f) :=
-begin
-  induction k with k ih generalizing f,
-  { simp [nat.iterate], },
-  { simp [nat.iterate, ih], }
-end
+by induction k with k ih generalizing f; simp*
 
 end comm_semiring
+
+section ring
+
+variables [ring R]
+
+@[simp] lemma derivative_neg (f : R[X]) : derivative (-f) = - derivative f :=
+linear_map.map_neg derivative f
+
+@[simp] lemma iterate_derivative_neg {f : R[X]} {k : ℕ} :
+  derivative^[k] (-f) = - (derivative^[k] f) :=
+(@derivative R _).to_add_monoid_hom.iterate_map_neg _ _
+
+@[simp] lemma derivative_sub {f g : R[X]} :
+  derivative (f - g) = derivative f - derivative g :=
+linear_map.map_sub derivative f g
+
+@[simp] lemma iterate_derivative_sub {k : ℕ} {f g : R[X]} :
+  derivative^[k] (f - g) = (derivative^[k] f) - (derivative^[k] g) :=
+by induction k with k ih generalizing f g; simp*
+
+end ring
 
 section comm_ring
 variables [comm_ring R]
@@ -358,27 +380,6 @@ begin
       assume h, rw [h, nat_degree_zero] at hp,
       exact lt_irrefl 0 (lt_of_le_of_lt (zero_le _) hp), },
     exact hp }
-end
-
-theorem nat_degree_eq_zero_of_derivative_eq_zero
-  [char_zero R] {f : R[X]} (h : f.derivative = 0) :
-  f.nat_degree = 0 :=
-begin
-  by_cases hf : f = 0,
-  { exact (congr_arg polynomial.nat_degree hf).trans rfl },
-  { rw nat_degree_eq_zero_iff_degree_le_zero,
-    by_contra absurd,
-    have f_nat_degree_pos : 0 < f.nat_degree,
-    { rwa [not_le, ←nat_degree_pos_iff_degree_pos] at absurd },
-    let m := f.nat_degree - 1,
-    have hm : m + 1 = f.nat_degree := tsub_add_cancel_of_le f_nat_degree_pos,
-    have h2 := coeff_derivative f m,
-    rw polynomial.ext_iff at h,
-    rw [h m, coeff_zero, zero_eq_mul] at h2,
-    cases h2,
-    { rw [hm, ←leading_coeff, leading_coeff_eq_zero] at h2,
-      exact hf h2, },
-    { norm_cast at h2 } }
 end
 
 end is_domain

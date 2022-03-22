@@ -677,7 +677,35 @@ instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_fr
     { intros g hfg, ext i x, simpa using hfg ⟨i, x⟩, }
   end, }
 
+
 section ping_pong_lemma
+
+lemma int.le_induction {P : ℤ → Prop} {m : ℤ} (h0 : P m)
+  (h1 : ∀ (n : ℤ), m ≤ n → P n → P (n + 1)) (n : ℤ) :
+  m ≤ n → P n :=
+begin
+  apply int.induction_on' n m,
+  { intro _, exact h0, },
+  { intros k hle hi _, exact h1 k hle (hi hle), },
+  { intros _ hle _ hle',
+    exfalso,
+    exact int.lt_irrefl k (int.le_sub_one_iff.mp (hle.trans hle')), },
+end
+
+lemma int.le_induction_down {P : ℤ → Prop} {m : ℤ} (h0 : P m)
+  (h1 : ∀ (n : ℤ), n ≤ m → P n → P (n - 1)) (n : ℤ) :
+  n ≤ m → P n :=
+begin
+  apply int.induction_on' n m,
+  { intro _, exact h0, },
+  { intros _ hle _ hle',
+    exfalso,
+    exact int.lt_irrefl k (int.add_one_le_iff.mp (hle'.trans hle)),
+  },
+  { intros k hle hi _,
+    exact h1 k hle (hi hle), },
+end
+
 
 open_locale pointwise
 open_locale cardinal
@@ -687,11 +715,8 @@ variables [nontrivial ι]
 variables {G : Type u_1} [group G]
 variables (a : ι → G)
 
--- We need many groups or one group with many elements
--- variables (hcard : 3 ≤ # ι ∨ ∃ i, 3 ≤ # (H i))
-
 -- A group action on α, and the ping-pong sets
-variables {α : Type u_1} [mul_action G α]
+variables {α : Type*} [mul_action G α]
 variables (X : ι → set α)
 variables (Y : ι → set α)
 variables (hXnonempty : ∀ i, (X i).nonempty)
@@ -715,43 +740,109 @@ begin
 
   -- The elements a have infinite order, and thus the H are isomorphic to ℤ
   have horder : ∀ i, order_of (a i) = 0, sorry,
-  have hisoZ : ∀ i, (subgroup.closure {a i} : subgroup G) ≃* multiplicative ℤ,
+  have hisoZ : ∀ i, H i ≃* multiplicative ℤ,
   { sorry,
   },
   have hHcard : ∀ i, # (H i) = ω, sorry,
 
-  -- in lieu of calc for ≃*, we use simple have commands
-  have h1 : free_group ι ≃* free_product (λ i, H i),
-  {
-  sorry,
-  },
+  haveI : is_free_group (multiplicative ℤ), sorry,
+  haveI : ∀ i, is_free_group (H i) := λ i,
+    --@is_free_group.of_mul_equiv (multiplicative ℤ) (H i) _ _ _ (hisoZ i).symm,
+    by sorry,
 
-  have h2 : free_product (λ i, H i) ≃* (lift f).range,
+  have hgen : ∀ i, is_free_group.generators (H i) = ({a i} : set G), sorry,
+
+  -- in lieu of calc for ≃*, we use simple have commands and chain them at the end
+
+  have h1 : free_group ι ≃* free_group (is_free_group.generators (free_product (λ i, H i))),
+  { apply free_group.free_group_congr,
+    simp [hgen],
+    calc ι ≃ ι × punit : (equiv.prod_punit ι).symm
+     ... ≃ Σ (_ : ι), punit : (equiv.sigma_equiv_prod _ _).symm
+     ... ≃ Σ (i : ι), (({a i} : set G) : Type _) : equiv.sigma_congr_right
+      (λ i, equiv_punit_of_unique.symm), },
+
+  have h2 : free_group (is_free_group.generators (free_product (λ i, H i))) ≃*
+    free_product (λ i, H i) := (is_free_group.to_free_group _).symm,
+
+  have h3 : free_product (λ i, H i) ≃* (lift f).range,
   {
     refine (monoid_hom.of_injective _),
     apply lift_injective_of_ping_pong f _ X',
+
     show _ ∨ ∃ i, 3 ≤ # (H i),
     { right, use (arbitrary ι), simpa [hHcard] using (cardinal.nat_lt_omega 3).le,},
-    show ∀ i, (X' i).nonempty,
-    {
-      sorry,
-    },
-    show pairwise (λ i j, disjoint (X' i) (X' j)),
-    {
-      sorry,
-    },
-    show pairwise (λ i j, ∀ h : H i, h ≠ 1 → f i h • X' j ⊆ X' i),
-    {
-      sorry,
-    },
 
+    show ∀ i, (X' i).nonempty,
+    { exact (λ i, set.nonempty.inl (hXnonempty i)), },
+
+    show pairwise (λ i j, disjoint (X' i) (X' j)),
+    { intros i j hij,
+      simp only [X'],
+      apply disjoint.union_left; apply disjoint.union_right,
+      { exact hXdisj i j hij, },
+      { exact hXYdisj i j, },
+      { exact (hXYdisj j i).symm, },
+      { exact hYdisj i j hij, }, },
+
+    show pairwise (λ i j, ∀ h : H i, h ≠ 1 → f i h • X' j ⊆ X' i),
+    { rintros i j hij ⟨ap, hap⟩ hne1,
+      obtain ⟨n, rfl⟩ := subgroup.mem_closure_singleton.mp hap,
+      change a i ^ n • X' j ⊆ X' i,
+      have hnne0 : n ≠ 0, { rintro rfl, apply hne1, simpa, }, clear hne1 hap,
+      simp only [X'],
+
+      by_cases hn0 : 0 ≤ n,
+      { have h1n : 1 ≤ n, sorry,
+        calc a i ^ n • X' j ⊆ a i ^ n • (Y i).compl : set_smul_subset_set_smul_iff.mpr $
+          set.disjoint_iff_subset_compl_right.mp $
+            disjoint.union_left (hXYdisj j i) (hYdisj j i hij.symm)
+        ... ⊆ X i :
+        begin
+          refine int.le_induction _ _ _ h1n,
+          { rw zpow_one, exact hX i, },
+          { intros n hle hi,
+            calc (a i ^ (n + 1)) • (Y i).compl
+                  = (a i ^ n * a i) • (Y i).compl : by rw [zpow_add, zpow_one]
+              ... = a i ^ n • (a i • (Y i).compl) : mul_action.mul_smul _ _ _
+              ... ⊆ a i ^ n • X i : set_smul_subset_set_smul_iff.mpr $ hX i
+              ... ⊆ a i ^ n • (Y i).compl : set_smul_subset_set_smul_iff.mpr $
+                set.disjoint_iff_subset_compl_right.mp (hXYdisj i i)
+              ... ⊆ X i : hi,
+          },
+        end
+        ... ⊆ X' i : set.subset_union_left _ _, },
+      { have h1n : n ≤ -1, sorry,
+        calc a i ^ n • X' j ⊆ a i ^ n • (X i).compl : set_smul_subset_set_smul_iff.mpr $
+          set.disjoint_iff_subset_compl_right.mp $
+            disjoint.union_left (hXdisj j i hij.symm) (hXYdisj i j).symm
+        ... ⊆ Y i :
+        begin
+          refine int.le_induction_down _ _ _ h1n,
+          { rw [zpow_neg, zpow_one], exact hY i, },
+          { intros n hle hi,
+            calc (a i ^ (n - 1)) • (X i).compl
+                  = (a i ^ n * (a i)⁻¹) • (X i).compl : by rw [zpow_sub, zpow_one]
+              ... = a i ^ n • ((a i)⁻¹ • (X i).compl) : mul_action.mul_smul _ _ _
+              ... ⊆ a i ^ n • Y i : set_smul_subset_set_smul_iff.mpr $ hY i
+              ... ⊆ a i ^ n • (X i).compl : set_smul_subset_set_smul_iff.mpr $
+                set.disjoint_iff_subset_compl_right.mp (hXYdisj i i).symm
+              ... ⊆ Y i : hi,
+          },
+        end
+        ... ⊆ X' i : set.subset_union_right _ _, },
+    },
   },
 
-  have h3 : (lift f).range ≃* subgroup.closure (set.range a),
+  have h4 : (lift f).range ≃* subgroup.closure (⋃ i, set.range (f i)),
   sorry,
 
+  have h5 : subgroup.closure (⋃ i, set.range (f i)) ≃* subgroup.closure (set.range a),
+  sorry,
+
+
   show _,
-  { exact is_free_group.of_mul_equiv ((h1.trans h2).trans h3), },
+  { exact is_free_group.of_mul_equiv ((((h1.trans h2).trans h3).trans h4).trans h5), },
 
 end
 

@@ -252,6 +252,41 @@ begin
   exact measurable_set_mul_support hf.measurable,
 end
 
+protected lemma mono {m m' : measurable_space α} [topological_space β]
+  (hf : @strongly_measurable α β _ m' f) (h_mono : m' ≤ m) :
+  @strongly_measurable α β _ m f :=
+begin
+  let f_approx : ℕ → @simple_func α m β := λ n,
+  { to_fun := hf.approx n,
+    measurable_set_fiber' := λ x, h_mono _ (simple_func.measurable_set_fiber' _ x),
+    finite_range' := simple_func.finite_range (hf.approx n) },
+  exact ⟨f_approx, hf.tendsto_approx⟩,
+end
+
+protected lemma prod_mk {m : measurable_space α} [topological_space β] [topological_space γ]
+  {f : α → β} {g : α → γ} (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  strongly_measurable (λ x, (f x, g x)) :=
+begin
+  refine ⟨λ n, simple_func.pair (hf.approx n) (hg.approx n), λ x, _⟩,
+  rw nhds_prod_eq,
+  exact tendsto.prod_mk (hf.tendsto_approx x) (hg.tendsto_approx x),
+end
+
+lemma comp_measurable [topological_space β] {m : measurable_space α} {m' : measurable_space γ}
+  {f : α → β} {g : γ → α} (hf : strongly_measurable f) (hg : measurable g) :
+  strongly_measurable (f ∘ g) :=
+⟨λ n, simple_func.comp (hf.approx n) g hg, λ x, hf.tendsto_approx (g x)⟩
+
+lemma of_uncurry_left [topological_space β] {mα : measurable_space α} {mγ : measurable_space γ}
+  {f : α → γ → β} (hf : strongly_measurable (uncurry f)) {x : α} :
+  strongly_measurable (f x) :=
+hf.comp_measurable measurable_prod_mk_left
+
+lemma of_uncurry_right [topological_space β] {mα : measurable_space α} {mγ : measurable_space γ}
+  {f : α → γ → β} (hf : strongly_measurable (uncurry f)) {y : γ} :
+  strongly_measurable (λ x, f x y) :=
+hf.comp_measurable measurable_prod_mk_right
+
 section arithmetic
 variables [measurable_space α] [topological_space β]
 
@@ -282,32 +317,12 @@ protected lemma const_smul' {𝕜} [has_scalar 𝕜 β] [has_continuous_const_sm
   strongly_measurable (λ x, c • (f x)) :=
 hf.const_smul c
 
+protected lemma smul_const {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
+  {f : α → 𝕜} (hf : strongly_measurable f) (c : β) :
+  strongly_measurable (λ x, f x • c) :=
+continuous_smul.comp_strongly_measurable (hf.prod_mk strongly_measurable_const)
+
 end arithmetic
-
-protected lemma mono {m m' : measurable_space α} [topological_space β]
-  (hf : @strongly_measurable α β _ m' f) (h_mono : m' ≤ m) :
-  @strongly_measurable α β _ m f :=
-begin
-  let f_approx : ℕ → @simple_func α m β := λ n,
-  { to_fun := hf.approx n,
-    measurable_set_fiber' := λ x, h_mono _ (simple_func.measurable_set_fiber' _ x),
-    finite_range' := simple_func.finite_range (hf.approx n) },
-  exact ⟨f_approx, hf.tendsto_approx⟩,
-end
-
-protected lemma prod_mk {m : measurable_space α} [topological_space β] [topological_space γ]
-  {f : α → β} {g : α → γ} (hf : strongly_measurable f) (hg : strongly_measurable g) :
-  strongly_measurable (λ x, (f x, g x)) :=
-begin
-  refine ⟨λ n, simple_func.pair (hf.approx n) (hg.approx n), λ x, _⟩,
-  rw nhds_prod_eq,
-  exact tendsto.prod_mk (hf.tendsto_approx x) (hg.tendsto_approx x),
-end
-
-lemma comp_measurable [topological_space β] {m : measurable_space α} {m' : measurable_space γ}
-  {f : α → β} {g : γ → α} (hf : strongly_measurable f) (hg : measurable g) :
-  strongly_measurable (f ∘ g) :=
-⟨λ n, simple_func.comp (hf.approx n) g hg, λ x, hf.tendsto_approx (g x)⟩
 
 section order
 variables [measurable_space α] [topological_space β]
@@ -943,6 +958,12 @@ lemma _root_.continuous.ae_strongly_measurable [topological_space α] [opens_mea
   ae_strongly_measurable f μ :=
 hf.strongly_measurable.ae_strongly_measurable
 
+protected lemma prod_mk {f : α → β} {g : α → γ}
+  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+  ae_strongly_measurable (λ x, (f x, g x)) μ :=
+⟨λ x, (hf.mk f x, hg.mk g x), hf.strongly_measurable_mk.prod_mk hg.strongly_measurable_mk,
+  hf.ae_eq_mk.prod_mk hg.ae_eq_mk⟩
+
 section arithmetic
 
 @[to_additive]
@@ -973,6 +994,11 @@ protected lemma const_smul' {𝕜} [has_scalar 𝕜 β] [has_continuous_const_sm
   (hf : ae_strongly_measurable f μ) (c : 𝕜) :
   ae_strongly_measurable (λ x, c • (f x)) μ :=
 hf.const_smul c
+
+protected lemma smul_const {𝕜} [topological_space 𝕜] [has_scalar 𝕜 β] [has_continuous_smul 𝕜 β]
+  {f : α → 𝕜} (hf : ae_strongly_measurable f μ) (c : β) :
+  ae_strongly_measurable (λ x, f x • c) μ :=
+continuous_smul.comp_ae_strongly_measurable (hf.prod_mk ae_strongly_measurable_const)
 
 end arithmetic
 
@@ -1045,12 +1071,6 @@ lemma _root_.finset.ae_strongly_measurable_prod {ι : Type*}  {f : ι → α →
 by simpa only [← finset.prod_apply] using s.ae_strongly_measurable_prod' hf
 
 end comm_monoid
-
-protected lemma prod_mk {f : α → β} {g : α → γ}
-  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
-  ae_strongly_measurable (λ x, (f x, g x)) μ :=
-⟨λ x, (hf.mk f x, hg.mk g x), hf.strongly_measurable_mk.prod_mk hg.strongly_measurable_mk,
-  hf.ae_eq_mk.prod_mk hg.ae_eq_mk⟩
 
 section second_countable_ae_strongly_measurable
 
@@ -1329,7 +1349,6 @@ lemma _root_.ae_strongly_measurable_smul_const_iff {f : α → 𝕜} {c : E} (hc
 (closed_embedding_smul_left hc).to_embedding.ae_strongly_measurable_comp_iff
 
 end normed_space
-
 
 section mul_action
 

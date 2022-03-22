@@ -258,7 +258,7 @@ begin
     { replace h := alg_hom.congr_fun (equiv.injective _ h) pb.gen,
       rw [power_basis.lift_gen] at h,
       rw [← h] at hσ,
-      refine multiset.mem_erase_of_nodup hnodup hσ, },
+      exact hnodup.not_mem_erase hσ },
     all_goals { simp } }
 end
 

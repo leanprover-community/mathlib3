@@ -134,7 +134,7 @@ begin
       refine l₀_ih nd₀.2 ((nd₁.2.erase _).cons $ λ h, nd₁.1 $ mem_of_mem_erase h) (λ a, _),
       { specialize h a, simp at h,
         obtain rfl | h' := eq_or_ne a x,
-        { exact iff_of_false nd₀.1 (λ h, h.elim h' $ nd₁.2.not_mem_erase _) },
+        { exact iff_of_false nd₀.1 (λ h, h.elim h' nd₁.2.not_mem_erase) },
         { rw or_iff_right h' at h,
           rw [h, mem_cons_iff],
           exact or_congr_right' (mem_erase_of_ne h').symm } } },
@@ -558,7 +558,7 @@ begin
   induction l with x xs,
   { apply this },
   { cases x, simp [dedupkeys], split,
-    { simp [keys_kerase], apply mem_erase_of_nodup l_ih },
+    { simp [keys_kerase], apply l_ih.not_mem_erase },
     { exact l_ih.kerase _ } }
 end
 

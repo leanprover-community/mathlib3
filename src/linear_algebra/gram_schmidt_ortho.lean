@@ -7,6 +7,7 @@ Authors: Jiale Miao, Kevin Buzzard
 import tactic.basic
 import algebra.big_operators.basic
 import analysis.inner_product_space.basic
+import analysis.inner_product_space.projection
 import analysis.normed_space.is_R_or_C
 
 /-!
@@ -16,30 +17,27 @@ In this file we introduce Gram-Schmidt Orthogonalization and Orthonormalization
 
 ## Main results
 
-- `proj` : projection between two vectors in the inner product space
-- `GS`   : Gram-Schmidt Process
-- `GS_Orthogonal` : the proof that "GS" produces an orthogonal system of vectors
-- `GS_unit` : Normalized "Gram-Schmidt" (i.e each vector in this system has unit length)
-- `GS_Orthornormal` : the proof that "GS_unit" produces an orthornormal system of vectors
+- `gram_schmidt_process`              : Gram-Schmidt Process
+- `gram_schmidt_process_orthogonal`   : the proof that "gram_schmidt_process" produces an orthogonal system of vectors
+- `gram_schmidt_process_normed`       : Normalized "Gram-Schmidt" (i.e each vector in this system has unit length)
+- `gram_schmidt_process_orthornormal` : the proof that "gram_schmidt_process_normed" produces an orthornormal system of vectors
 -/
 
 open_locale big_operators
 
 variables (𝕜 : Type*) (E : Type*) [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 
-/-- projection in the inner product space -/
-def proj (u v : E) : E := ((inner u v) / (inner u u) : 𝕜) • u
-
 /-- Definition of Gram-Schmidt Process -/
-def GS (f : ℕ → E) : ℕ → E
-| n := f n - ∑ i in finset.range(n),
-  if h1 : i < n then proj 𝕜 E (GS i) (f n) else f 37
+noncomputable def gram_schmidt_process (f : ℕ → E) : ℕ → E
+| n := f n - ∑ i in finset.range n,
+  if h1 : i < n then (orthogonal_projection (𝕜 ∙ (gram_schmidt_process i)) (f n) : E) else f 37
 
-/-- 'GS_n_1' helps us to get rid of 'ite' in the definition of GS -/
-@[simp] lemma GS_n_1 (f : ℕ → E) (n : ℕ) :
-GS 𝕜 E f (n + 1) = f (n + 1) - ∑ i in finset.range(n + 1), proj 𝕜 E (GS 𝕜 E f i) (f (n + 1)) :=
+/-- 'gram_schmidt_process_def' helps us to get rid of 'ite' in the definition of gram_schmidt_process -/
+lemma gram_schmidt_process_def (f : ℕ → E) (n : ℕ) :
+gram_schmidt_process 𝕜 E f n = f n - ∑ i in finset.range n,
+(orthogonal_projection (𝕜 ∙ (gram_schmidt_process 𝕜 E f i)) (f n) : E) :=
 begin
-  rw [GS, sub_right_inj],
+  rw [gram_schmidt_process, sub_right_inj],
   apply finset.sum_congr rfl,
   intros x hx,
   rw finset.mem_range at hx,
@@ -47,8 +45,8 @@ begin
 end
 
 /-- # Gram-Schmidt Orthogonalisation -/
-theorem GS_orthogonal (f : ℕ → E) (a b : ℕ) (h₀ : a < b) :
-(inner (GS 𝕜 E f a) (GS 𝕜 E f b) : 𝕜) = 0 :=
+theorem gram_schmidt_process_orthogonal (f : ℕ → E) (a b : ℕ) (h₀ : a < b) :
+(inner (gram_schmidt_process 𝕜 E f a) (gram_schmidt_process 𝕜 E f b) : 𝕜) = 0 :=
 begin
   have hc : ∃ c, b ≤ c := by refine ⟨b+1, by linarith⟩,
   cases hc with c h₁,
@@ -59,11 +57,12 @@ begin
   { rw nat.le_add_one_iff at h₁,
     cases h₁ with hb₁ hb₂,
     { exact hc _ _ h₀ hb₁ },
-    { simp only [GS_n_1, hb₂, inner_sub_right, inner_sum],
+    { simp only [gram_schmidt_process_def 𝕜 E f (c + 1), hb₂, inner_sub_right, inner_sum],
       have h₂ : ∀ x ∈ finset.range(c + 1), x ≠ a →
-      (inner (GS 𝕜 E f a) (proj 𝕜 E (GS 𝕜 E f x) (f (c + 1))) : 𝕜) = 0,
+      (inner (gram_schmidt_process 𝕜 E f a)
+      (orthogonal_projection (𝕜 ∙ (gram_schmidt_process 𝕜 E f x)) (f (c + 1)) : E) : 𝕜) = 0,
       { intros x hx₁ hx₂,
-        simp [proj],
+        simp only [orthogonal_projection_singleton],
         rw inner_smul_right,
         cases hx₂.lt_or_lt with hxa₁ hxa₂,
         { have ha₂ : a ≤ c,
@@ -81,43 +80,44 @@ begin
           right,
           exact hc }},
       rw hb₂ at h₀,
-      have ha₂ : a ∈ finset.range(c+1) := finset.mem_range.mpr h₀,
+      have ha₂ : a ∈ finset.range(c + 1) := finset.mem_range.mpr h₀,
       rw finset.sum_eq_single_of_mem a ha₂ h₂,
-      simp [proj],
+      simp only [orthogonal_projection_singleton],
       rw inner_smul_right,
-      by_cases inner (GS 𝕜 E f a) (GS 𝕜 E f a) = (0 : 𝕜),
-      { simp [inner_self_eq_zero] at h,
+      by_cases (inner (gram_schmidt_process 𝕜 E f a) (gram_schmidt_process 𝕜 E f a) : 𝕜) = 0,
+      { simp only [inner_self_eq_zero] at h,
         repeat {rw h},
         simp only [inner_zero_left, mul_zero, sub_zero] },
-      { simp [h] }}}
+      { rw ← inner_self_eq_norm_sq_to_K,
+        simp [h] }}}
 end
 
 /-- Generalised Gram-Schmidt Orthorgonalization -/
-theorem GS_orthogonal' (f : ℕ → E) (a b : ℕ) (h₀ : a ≠ b) :
-(inner (GS 𝕜 E f a) (GS 𝕜 E f b) : 𝕜) = 0 :=
+theorem gram_schmidt_process_orthogonal' (f : ℕ → E) (a b : ℕ) (h₀ : a ≠ b) :
+(inner (gram_schmidt_process 𝕜 E f a) (gram_schmidt_process 𝕜 E f b) : 𝕜) = 0 :=
 begin
   cases h₀.lt_or_lt with ha hb,
-  { exact GS_orthogonal 𝕜 E f a b ha },
+  { exact gram_schmidt_process_orthogonal 𝕜 E f a b ha },
   { rw inner_eq_zero_sym,
-    exact GS_orthogonal 𝕜 E f b a hb }
+    exact gram_schmidt_process_orthogonal 𝕜 E f b a hb }
 end
 
 /-- Normalized Gram-Schmidt Process -/
-noncomputable def GS_unit (f : ℕ → E) (n : ℕ) : E :=
-(∥ GS 𝕜 E f n ∥ : 𝕜)⁻¹ • (GS 𝕜 E f n)
+noncomputable def gram_schmidt_process_normed (f : ℕ → E) (n : ℕ) : E :=
+(∥ gram_schmidt_process 𝕜 E f n ∥ : 𝕜)⁻¹ • (gram_schmidt_process 𝕜 E f n)
 
-lemma GS_unit_length (f : ℕ → E) (n : ℕ) (hf : GS 𝕜 E f n ≠ 0) :
-∥ GS_unit 𝕜 E f n ∥ = 1 := by simp only [GS_unit, norm_smul_inv_norm hf]
+lemma gram_schmidt_process_unit_length (f : ℕ → E) (n : ℕ) (hf : gram_schmidt_process 𝕜 E f n ≠ 0) :
+∥ gram_schmidt_process_normed 𝕜 E f n ∥ = 1 := by simp only [gram_schmidt_process_normed, norm_smul_inv_norm hf]
 
 /-- # Gram-Schmidt Orthonormalization -/
-theorem GS_Orthonormal (f : ℕ → E) (h : ∀ n, GS 𝕜 E f n ≠ 0) :
-orthonormal 𝕜 (GS_unit 𝕜 E f) :=
+theorem gram_schmidt_process_orthonormal (f : ℕ → E) (h : ∀ n, gram_schmidt_process 𝕜 E f n ≠ 0) :
+orthonormal 𝕜 (gram_schmidt_process_normed 𝕜 E f) :=
 begin
-  simp [orthonormal],
+  simp only [orthonormal],
   split,
-  { simp [GS_unit_length, h] },
+  { simp [gram_schmidt_process_unit_length, h] },
   { intros i j hij,
-    simp [GS_unit, inner_smul_left, inner_smul_right],
+    simp [gram_schmidt_process_normed, inner_smul_left, inner_smul_right],
     repeat {right},
-    exact GS_orthogonal' 𝕜 E f i j hij }
+    exact gram_schmidt_process_orthogonal' 𝕜 E f i j hij }
 end

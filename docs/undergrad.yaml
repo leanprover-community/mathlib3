@@ -282,7 +282,7 @@ Single Variable Real Analysis:
   Sequences of real numbers:
     convergence: 'filter.tendsto'
     limit point: 'map_cluster_pt'
-    recurrent sequences: ''
+    recurrent sequences: 'nat'
     limit infimum and supremum: 'order/liminf_limsup.html'
     Cauchy sequences: 'cauchy_seq'
   Topology of R:
@@ -336,9 +336,9 @@ Single Variable Real Analysis:
     inverse trigonometric functions: 'real.arcsin'
     inverse hyperbolic trigonometric functions: 'real.arsinh'
   Integration:
-    integral over a segment of piecewise continuous functions: 'interval_integral'
+    integral over a segment of piecewise continuous functions: ''
     antiderivatives: 'https://en.wikipedia.org/wiki/Antiderivative'
-    Riemann sums: 'box_integral.integral'
+    Riemann sums: 'box_integral.integral_sum'
     antiderivative of a continuous function: 'interval_integral.integral_has_strict_deriv_at_of_tendsto_ae_right'
     change of variable: 'interval_integral.integral_comp_smul_deriv'
     integration by parts: 'interval_integral.integral_mul_deriv_eq_deriv_mul'

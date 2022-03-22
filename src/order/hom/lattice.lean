@@ -168,24 +168,39 @@ instance bounded_lattice_hom_class.to_bounded_order_hom_class [lattice α] [latt
 { .. ‹bounded_lattice_hom_class F α β› }
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso.sup_hom_class [semilattice_sup α] [semilattice_sup β] :
-  sup_hom_class (α ≃o β) α β :=
-{ map_sup := λ f, f.map_sup, ..rel_iso.rel_hom_class }
+instance order_iso_class.to_sup_hom_class [semilattice_sup α] [semilattice_sup β]
+  [order_iso_class F α β] :
+  sup_hom_class F α β :=
+⟨λ f a b, eq_of_forall_ge_iff $ λ c, by simp only [←le_map_inv_iff, sup_le_iff]⟩
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso.inf_hom_class [semilattice_inf α] [semilattice_inf β] :
-  inf_hom_class (α ≃o β) α β :=
-{ map_inf := λ f, f.map_inf, ..rel_iso.rel_hom_class }
+instance order_iso_class.to_inf_hom_class [semilattice_inf α] [semilattice_inf β]
+  [order_iso_class F α β] :
+  inf_hom_class F α β :=
+⟨λ f a b, eq_of_forall_le_iff $ λ c, by simp only [←map_inv_le_iff, le_inf_iff]⟩
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso.lattice_hom_class [lattice α] [lattice β] : lattice_hom_class (α ≃o β) α β :=
-{ ..order_iso.sup_hom_class, ..order_iso.inf_hom_class }
+instance order_iso_class.to_sup_bot_hom_class [semilattice_sup α] [order_bot α] [semilattice_sup β]
+  [order_bot β] [order_iso_class F α β] :
+  sup_bot_hom_class F α β :=
+{ ..order_iso_class.to_sup_hom_class, ..order_iso_class.to_bot_hom_class }
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso.bounded_lattice_hom_class [lattice α] [lattice β] [bounded_order α]
-  [bounded_order β] :
+instance order_iso_class.to_inf_top_hom_class [semilattice_inf α] [order_top α] [semilattice_inf β]
+  [order_top β] [order_iso_class F α β] :
+  inf_top_hom_class F α β :=
+{ ..order_iso_class.to_inf_hom_class, ..order_iso_class.to_top_hom_class }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso_class.to_lattice_hom_class [lattice α] [lattice β] [order_iso_class F α β] :
+  lattice_hom_class F α β :=
+{ ..order_iso_class.to_sup_hom_class, ..order_iso_class.to_inf_hom_class }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso_class.to_bounded_lattice_hom_class [lattice α] [lattice β] [bounded_order α]
+  [bounded_order β] [order_iso_class F α β] :
   bounded_lattice_hom_class (α ≃o β) α β :=
-{ ..order_iso.lattice_hom_class, ..order_iso.bounded_order_hom_class }
+{ ..order_iso_class.to_lattice_hom_class, ..order_iso_class.to_bounded_order_hom_class }
 
 @[simp] lemma map_finset_sup [semilattice_sup α] [order_bot α] [semilattice_sup β] [order_bot β]
   [sup_bot_hom_class F α β] (f : F) (s : finset ι) (g : ι → α) :

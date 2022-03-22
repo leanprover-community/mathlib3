@@ -15,7 +15,7 @@ and preparatory for defining the corresponding operations on `finset`.
 namespace multiset
 open list
 
-variables {α : Type*} [decidable_eq α]
+variables {α : Type*} [decidable_eq α] {s : multiset α}
 /-! ### finset insert -/
 
 /-- `ndinsert a s` is the lift of the list `insert` operation. This operation

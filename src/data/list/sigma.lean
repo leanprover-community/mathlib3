@@ -29,7 +29,7 @@ If `α : Type*` and `β : α → Type*`, then we regard `s : sigma β` as having
 universes u v
 
 namespace list
-variables {α : Type u} {β : α → Type v} {l : list (sigma β)}
+variables {α : Type u} {β : α → Type v} {l l₁ l₂ : list (sigma β)}
 
 /-! ### `keys` -/
 
@@ -616,7 +616,7 @@ end
 | (s :: _) l := by by_cases h : a = s.1;
                    simp [h, kerase_comm a s.1 l, kunion_kerase]
 
-theorem kunion_nodupkeys {l₁ l₂ : list (sigma β)}
+lemma nodupkeys.kunion
   (nd₁ : l₁.nodupkeys) (nd₂ : l₂.nodupkeys) : (kunion l₁ l₂).nodupkeys :=
 begin
   induction l₁ generalizing l₂,

@@ -279,7 +279,7 @@ alias nodup_sublists' ↔ list.nodup.of_sublists' list.nodup.sublists'
 
 attribute [protected] nodup.sublists nodup.sublists'
 
-lemma nodup_sublists_le (n : ℕ) (h : nodup l) : (sublists_len n l).nodup :=
+lemma nodup_sublists_len (n : ℕ) (h : nodup l) : (sublists_len n l).nodup :=
 h.sublists'.sublist $ sublists_len_sublist_sublists' _ _
 
 lemma nodup.diff_eq_filter [decidable_eq α] :

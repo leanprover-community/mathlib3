@@ -749,21 +749,17 @@ instance : distrib_lattice (filter α) :=
 instance : coframe (filter α) :=
 { Inf := Inf,
   infi_sup_le_sup_Inf := λ f s, begin
+    rw [Inf_eq_infi', infi_subtype'],
     rintro t ⟨h₁, h₂⟩,
-    rw [Inf_eq_infi, filter.mem_sets, mem_infi_finite'] at h₂,
+    rw infi_sets_eq_finite' at h₂,
     simp only [mem_Union, (finset.inf_eq_infi _ _).symm] at h₂,
-    obtain ⟨u, hu⟩ := h₂,
-    suffices : (⨅ g ∈ s, f ⊔ g) ≤ f ⊔ u.inf (λ g, ⨅ (H : g.down ∈ s), g.down),
-    { exact this ⟨h₁, hu⟩ },
-    refine finset.induction_on u (le_sup_of_le_right le_top) _,
-    rintro ⟨g⟩ u hg ih,
+    obtain ⟨s, hs⟩ := h₂,
+    suffices : (⨅ i, f ⊔ ↑i) ≤ f ⊔ s.inf (λ i, ↑i.down),
+    { exact this ⟨h₁, hs⟩ },
+    refine finset.induction_on s (le_sup_of_le_right le_top) _,
+    rintro ⟨i⟩ s _ ih,
     rw [finset.inf_insert, sup_inf_left],
-    refine le_inf (infi_le_of_le g _) ih,
-    by_cases g ∈ s,
-    { simp_rw infi_pos h,
-      exact le_rfl },
-    { simp_rw infi_neg h,
-      exact sup_top_eq.ge }
+    exact le_inf (infi_le _ _) ih,
   end,
   ..filter.complete_lattice }
 

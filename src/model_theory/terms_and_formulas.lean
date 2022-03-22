@@ -692,6 +692,70 @@ bounded_formula.rec_on φ
   (λ _ _ _ h1 h2, is_prenex_to_prenex_imp h1 h2)
   (λ _ _, is_prenex.all)
 
+variables [nonempty M]
+
+lemma realize_to_prenex_imp_right {φ ψ : L.bounded_formula α n}
+  (hφ : is_qf φ) (hψ : is_prenex ψ) {v : α → M} {xs : fin n → M} :
+  (φ.to_prenex_imp_right ψ).realize v xs ↔ (φ.imp ψ).realize v xs :=
+begin
+  revert φ,
+  induction hψ with _ _ hψ _ _ hψ ih _ _ hψ ih; intros φ hφ,
+  { rw hψ.to_prenex_imp_right },
+  { refine trans (forall_congr (λ _, ih hφ.lift_at)) _,
+    simp only [realize_imp, realize_lift_at_one_self, snoc_comp_cast_succ, realize_all],
+    exact ⟨λ h1 a h2, h1 h2 a, λ h1 h2 a, h1 a h2⟩, },
+  { rw [to_prenex_imp_right, realize_ex],
+    refine trans (exists_congr (λ _, ih hφ.lift_at)) _,
+    simp only [realize_imp, realize_lift_at_one_self, snoc_comp_cast_succ, realize_ex],
+    refine ⟨_, λ h', _⟩,
+    { rintro ⟨a, ha⟩ h,
+      exact ⟨a, ha h⟩ },
+    { by_cases φ.realize v xs,
+      { obtain ⟨a, ha⟩ := h' h,
+        exact ⟨a, λ _, ha⟩ },
+      { inhabit M,
+        exact ⟨default, λ h'', (h h'').elim⟩ } } }
+end
+
+lemma realize_to_prenex_imp {φ ψ : L.bounded_formula α n}
+  (hφ : is_prenex φ) (hψ : is_prenex ψ) {v : α → M} {xs : fin n → M} :
+  (φ.to_prenex_imp ψ).realize v xs ↔ (φ.imp ψ).realize v xs :=
+begin
+  revert ψ,
+  induction hφ with _ _ hφ _ _ hφ ih _ _ hφ ih; intros ψ hψ,
+  { rw [hφ.to_prenex_imp],
+    exact realize_to_prenex_imp_right hφ hψ, },
+  { rw [to_prenex_imp, realize_ex],
+    refine trans (exists_congr (λ _, ih hψ.lift_at)) _,
+    simp only [realize_imp, realize_lift_at_one_self, snoc_comp_cast_succ, realize_all],
+    refine ⟨_, λ h', _⟩,
+    { rintro ⟨a, ha⟩ h,
+      exact ha (h a) },
+    { by_cases ψ.realize v xs,
+      { inhabit M,
+        exact ⟨default, λ h'', h⟩ },
+      { obtain ⟨a, ha⟩ := not_forall.1 (h ∘ h'),
+        exact ⟨a, λ h, (ha h).elim⟩ } } },
+  { refine trans (forall_congr (λ _, ih hψ.lift_at)) _,
+    simp, },
+end
+
+@[simp] lemma realize_to_prenex (φ : L.bounded_formula α n) {v : α → M} :
+  ∀ {xs : fin n → M}, φ.to_prenex.realize v xs ↔ φ.realize v xs :=
+begin
+  refine bounded_formula.rec_on φ
+    (λ _ _, iff.rfl)
+    (λ _ _ _ _, iff.rfl)
+    (λ _ _ _ _ _, iff.rfl)
+    (λ _ f1 f2 h1 h2 _, _)
+    (λ _ f h xs, _),
+  { rw [to_prenex, realize_to_prenex_imp f1.to_prenex_is_prenex f2.to_prenex_is_prenex,
+      realize_imp, realize_imp, h1, h2],
+    apply_instance },
+  { rw [realize_all, to_prenex, realize_all],
+    exact forall_congr (λ a, h) },
+end
+
 end bounded_formula
 
 namespace Lhom
@@ -1169,67 +1233,12 @@ h.induction_on_sup_not hf ha (λ φ₁ φ₂ h1 h2,
   ((hse (φ₁.sup_semantically_equivalent_not_inf_not φ₂)).2 (hnot (hinf (hnot h1) (hnot h2)))))
   (λ _, hnot) (λ _ _, hse)
 
-lemma imp_semantically_equivalent_to_prenex_imp_right {φ ψ : L.bounded_formula α n}
-  (hφ : is_qf φ) (hψ : is_prenex ψ) :
-  (∅ : L.Theory).semantically_equivalent (φ.imp ψ) (φ.to_prenex_imp_right ψ) :=
-begin
-  revert φ,
-  induction hψ with _ _ hψ _ _ hψ ih _ _ hψ ih; intros φ hφ,
-  { rw hψ.to_prenex_imp_right },
-  { refine Theory.semantically_equivalent.trans _ (ih hφ.lift_at).all,
-    introsI M ne str v xs hM,
-    simp only [realize_iff, realize_imp, realize_all, realize_lift_at_one_self,
-      snoc_comp_cast_succ],
-    exact ⟨λ h1 a h2, h1 h2 a, λ h1 h2 a, h1 a h2⟩, },
-  { refine Theory.semantically_equivalent.trans _ (ih hφ.lift_at).ex,
-    introsI M ne str v xs hM,
-    simp only [realize_iff, realize_imp, realize_ex, realize_lift_at_one_self,
-      snoc_comp_cast_succ],
-    refine ⟨λ h', _, _⟩,
-    { by_cases φ.realize v xs,
-      { obtain ⟨a, ha⟩ := h' h,
-        exact ⟨a, λ _, ha⟩ },
-      { inhabit M,
-        exact ⟨default, λ h'', (h h'').elim⟩ } },
-    { rintro ⟨a, ha⟩ h,
-      exact ⟨a, ha h⟩ } }
-end
-
-lemma imp_semantically_equivalent_to_prenex_imp {φ ψ : L.bounded_formula α n}
-  (hφ : is_prenex φ) (hψ : is_prenex ψ) :
-  (∅ : L.Theory).semantically_equivalent (φ.imp ψ) (φ.to_prenex_imp ψ) :=
-begin
-  revert ψ,
-  induction hφ with _ _ hφ _ _ hφ ih _ _ hφ ih; intros ψ hψ,
-  { rw hφ.to_prenex_imp,
-    exact imp_semantically_equivalent_to_prenex_imp_right hφ hψ },
-  { refine Theory.semantically_equivalent.trans _ (ih hψ.lift_at).ex,
-    introsI M ne str v xs hM,
-    simp only [realize_iff, realize_imp, realize_all, realize_ex, realize_lift_at_one_self,
-      snoc_comp_cast_succ],
-    refine ⟨λ h', _, _⟩,
-    { by_cases ψ.realize v xs,
-      { inhabit M,
-        exact ⟨default, λ h'', h⟩ },
-      { obtain ⟨a, ha⟩ := not_forall.1 (h ∘ h'),
-        exact ⟨a, λ h, (ha h).elim⟩ }, },
-    { rintro ⟨a, ha⟩ h,
-      exact ha (h a) } },
-  { refine Theory.semantically_equivalent.trans _ (ih hψ.lift_at).all,
-    introsI M ne str v xs hM,
-    simp only [realize_iff, realize_imp, realize_ex, forall_exists_index, realize_all,
-      realize_lift_at_one_self, snoc_comp_cast_succ] },
-end
-
 lemma semantically_equivalent_to_prenex (φ : L.bounded_formula α n) :
   (∅ : L.Theory).semantically_equivalent φ φ.to_prenex :=
-bounded_formula.rec_on φ
-  (λ _, refl _)
-  (λ _ _ _, refl _)
-  (λ _ _ _ _, refl _)
-  (λ _ φ ψ hφ hψ, (hφ.imp hψ).trans
-      (imp_semantically_equivalent_to_prenex_imp φ.to_prenex_is_prenex ψ.to_prenex_is_prenex))
-  (λ _ _ h, h.all)
+λ M nM str v xs hM, begin
+  resetI,
+  simp,
+end
 
 lemma induction_on_all_ex {P : Π {m}, L.bounded_formula α m → Prop} (φ : L.bounded_formula α n)
   (hqf : ∀ {m} {ψ : L.bounded_formula α m}, is_qf ψ → P ψ)

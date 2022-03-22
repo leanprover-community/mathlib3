@@ -1,15 +1,14 @@
-import tactic data.real.basic linear_algebra order data.rat.basic data.int.basic topology.basic
-import measure_theory.measurable_space_def measure_theory.constructions.borel_space
-import topology.instances.real algebra.module.basic measure_theory.group.measure topology.metric_space.baire
-import algebra.order.floor
+import measure_theory.group.measure
+
+/-!
+# Cauchy's Functional Equation
+-/
 
 
-open add_monoid_hom metric
+open add_monoid_hom measure_theory measure_theory.measure metric
 
 theorem cauchy_rational (f : ℝ →+ ℝ) :
   is_linear_map ℚ f := by exact ⟨map_add f, λ c x, add_monoid_hom.map_rat_cast_smul f ℝ ℝ c x⟩
-
-open measure_theory measure_theory.measure
 
 lemma prereq (μ : measure ℝ) [is_add_haar_measure μ] (f : ℝ →+ ℝ) (h : @measurable ℝ ℝ (borel ℝ) (borel ℝ) f) :
   ∃ (C δ : ℝ), 0 < C ∧ 0 < δ ∧ ∀ (x : ℝ), x ∈ closed_ball (0 : ℝ) δ → ∥f x∥ ≤ C :=

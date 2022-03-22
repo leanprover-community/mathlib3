@@ -151,17 +151,27 @@ lemma comp_assoc (f : M ↪ₑ[L] N) (g : N ↪ₑ[L] P) (h : P ↪ₑ[L] Q) :
 
 end elementary_embedding
 
-namespace equiv
+namespace embedding
 
-/-- A first-order equivalence is also an elementary embedding. -/
-def to_elementary_embedding (f : M ≃[L] N) : M ↪ₑ[L] N :=
+/-- An embedding is elementary when it commutes with the realization of every formula. -/
+def is_elementary (f : M ↪[L] N) : Prop :=
+∀{n} (φ : L.formula (fin n)) (x : fin n → M), φ.realize (f ∘ x) ↔ φ.realize x
+
+/-- Bundles an elementary embedding. -/
+@[simps] def to_elementary_embedding (f : M ↪[L] N) (hf : f.is_elementary) :
+  M ↪ₑ[L] N :=
 { to_fun := f }
 
-@[simp] lemma to_elementary_embedding_to_embedding (f : M ≃[L] N) :
-  f.to_elementary_embedding.to_embedding = f.to_embedding := rfl
+end embedding
 
-@[simp] lemma coe_to_elementary_embedding (f : M ≃[L] N) :
-  (f.to_elementary_embedding : M → N) = (f : M → N) := rfl
+namespace equiv
+
+lemma is_elementary (f : M ≃[L] N) : f.to_embedding.is_elementary :=
+λ n φ x, by simp
+
+/-- A first-order equivalence is also an elementary embedding. -/
+@[simps] def to_elementary_embedding (f : M ≃[L] N) : M ↪ₑ[L] N :=
+{ to_fun := f }
 
 end equiv
 
@@ -189,8 +199,7 @@ end
 
 /-- A substructure is elementary when every formula applied to a tuple in the subtructure
   agrees with its value in the overall structure. -/
-def is_elementary (S : L.substructure M) : Prop :=
-∀{n} (φ : L.formula (fin n)) (x : fin n → S), φ.realize ((coe : _ → M) ∘ x) ↔ φ.realize x
+def is_elementary (S : L.substructure M) : Prop := S.subtype.is_elementary
 
 end substructure
 
@@ -217,7 +226,7 @@ end⟩
 @[simp] lemma is_elementary (S : L.elementary_substructure M) :
   (S : L.substructure M).is_elementary := S.is_elementary'
 
-/-- The natural embedding of an `L.substructure` of `M` into `M`. -/
+/-- The natural embedding of an `L.elementary_substructure` of `M` into `M`. -/
 def subtype (S : L.elementary_substructure M) : S ↪ₑ[L] M :=
 { to_fun := coe,
   map_formula' := λ n, S.is_elementary }

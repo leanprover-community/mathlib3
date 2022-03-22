@@ -19,6 +19,16 @@ variables [semiring α] [semiring β] {m n : α}
 /-- An element `a` of a semiring is even if there exists `k` such `a = 2*k`. -/
 def even (a : α) : Prop := ∃ k, a = 2*k
 
+@[simp] lemma even_zero : even (0 : α) := ⟨0, (mul_zero _).symm⟩
+
+lemma even_two_mul (m : α) : even (2 * m) := ⟨m, rfl⟩
+
+lemma add_monoid_hom.even (f : α →+ β) (hm : even m) : even (f m) :=
+begin
+  rcases hm with ⟨m, rfl⟩,
+  exact ⟨f m, by simp [two_mul]⟩
+end
+
 lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
 
 @[simp] lemma range_two_mul (α : Type*) [semiring α] :
@@ -35,17 +45,7 @@ begin
   exact ⟨m + n, (mul_add _ _ _).symm⟩
 end
 
-@[simp] lemma even_zero : even (0 : α) := ⟨0, (mul_zero _).symm⟩
-
 @[simp] lemma even_two : even (2 : α) := ⟨1, (mul_one _).symm⟩
-
-lemma even_two_mul (m : α) : even (2 * m) := ⟨m, rfl⟩
-
-lemma add_monoid_hom.even (f : α →+ β) (hm : even m) : even (f m) :=
-begin
-  rcases hm with ⟨m, rfl⟩,
-  exact ⟨f m, by simp [two_mul]⟩
-end
 
 @[simp] lemma even.mul_right (hm : even m) (n) : even (m * n) :=
 (add_monoid_hom.mul_right n).even hm

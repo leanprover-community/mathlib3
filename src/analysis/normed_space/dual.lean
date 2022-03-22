@@ -132,9 +132,6 @@ open metric set normed_space
 /-- Given a subset `s` in a normed space `E` (over a field `𝕜`), the polar
 `polar 𝕜 s` is the subset of `dual 𝕜 E` consisting of those functionals which
 evaluate to something of norm at most one at all points `z ∈ s`. -/
-/-def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : set E) : set (dual 𝕜 E) :=
-{x' : dual 𝕜 E | ∀ z ∈ s, ∥ x' z ∥ ≤ 1}-/
 def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] : set E → set (dual 𝕜 E) :=
 (dual_pairing 𝕜 E).flip.polar
@@ -165,23 +162,10 @@ begin
   exact is_closed_Iic.preimage (continuous_linear_map.apply 𝕜 𝕜 z).continuous.norm
 end
 
-variable (E)
-
-/-- `polar 𝕜 : set E → set (normed_space.dual 𝕜 E)` forms an order-reversing Galois connection with
-a similarly defined map `set (normed_space.dual 𝕜 E) → set E`. We use `order_dual.to_dual` and
-`order_dual.of_dual` to express that `polar` is order-reversing. Instead of defining the dual
-operation `unpolar s := {x : E | ∀ x' ∈ s, ∥x' x∥ ≤ 1}` we apply `polar 𝕜` again, then pull the set
-from the double dual space to the original space using `normed_space.inclusion_in_double_dual`. -/
-lemma polar_gc :
-  galois_connection (order_dual.to_dual ∘ polar 𝕜)
-    (λ s, inclusion_in_double_dual 𝕜 E ⁻¹' (polar 𝕜 $ order_dual.of_dual s)) :=
-λ s t, ⟨λ H x hx x' hx', H hx' x hx, λ H x' hx' x hx, H hx x' hx'⟩
-
-variable {E}
-
 @[simp] lemma polar_closure (s : set E) : polar 𝕜 (closure s) = polar 𝕜 s :=
-((dual_pairing 𝕜 E).flip.polar_antitone subset_closure).antisymm $ (polar_gc 𝕜 E).l_le $
-  closure_minimal ((polar_gc 𝕜 E).le_u_l s) $
+((dual_pairing 𝕜 E).flip.polar_antitone subset_closure).antisymm $
+  (dual_pairing 𝕜 E).flip.polar_gc.l_le $
+  closure_minimal ((dual_pairing 𝕜 E).flip.polar_gc.le_u_l s) $
   (is_closed_polar _ _).preimage (inclusion_in_double_dual 𝕜 E).continuous
 
 variables {𝕜}

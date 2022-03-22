@@ -732,8 +732,8 @@ rfl
 
 /-- `option α` is equivalent to `α ⊕ punit` -/
 def option_equiv_sum_punit (α : Type*) : option α ≃ α ⊕ punit.{u+1} :=
-⟨λ o, match o with none := inr punit.star | some a := inl a end,
- λ s, match s with inr _ := none | inl a := some a end,
+⟨λ o, o.elim (inr punit.star) inl,
+ λ s, s.elim some (λ _, none),
  λ o, by cases o; refl,
  λ s, by rcases s with _ | ⟨⟨⟩⟩; refl⟩
 

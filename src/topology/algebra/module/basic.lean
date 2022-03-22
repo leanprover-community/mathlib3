@@ -1146,7 +1146,7 @@ section comm_ring
 
 /-- The determinant of a continuous linear map, mainly as a convenience device to be able to
 write `A.det` instead of `(A : M →ₗ[R] M).det`. -/
-@[reducible] noncomputable def det {R : Type*} [comm_ring R] [is_domain R]
+@[reducible] noncomputable def det {R : Type*} [comm_ring R]
   {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M →L[R] M) : R :=
 linear_map.det (A : M →ₗ[R] M)
 
@@ -1740,6 +1740,11 @@ def fin_two_arrow : (fin 2 → M) ≃L[R] M × M :=
 { to_linear_equiv := linear_equiv.fin_two_arrow R M, .. pi_fin_two R (λ _, M) }
 
 end
+
+@[simp] lemma det_coe_symm {R : Type*} [field R]
+  {M : Type*} [topological_space M] [add_comm_group M] [module R M] (A : M ≃L[R] M) :
+  (A.symm : M →L[R] M).det = (A : M →L[R] M).det ⁻¹ :=
+linear_equiv.det_coe_symm A.to_linear_equiv
 
 end continuous_linear_equiv
 

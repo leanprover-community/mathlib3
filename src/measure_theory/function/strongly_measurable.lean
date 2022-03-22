@@ -1155,33 +1155,33 @@ lemma comp_measurable {γ : Type*} {mγ : measurable_space γ} {mα : measurable
   ae_strongly_measurable (g ∘ f) μ :=
 ⟨(hg.mk g) ∘ f, hg.strongly_measurable_mk.comp_measurable hf, ae_eq_comp hf hg.ae_eq_mk⟩
 
+lemma is_separable_ae_range [metrizable_space β] (hf : ae_strongly_measurable f μ) :
+  ∃ (t : set β), is_separable t ∧ ∀ᵐ x ∂μ, f x ∈ t :=
+begin
+  refine ⟨range (hf.mk f), hf.strongly_measurable_mk.is_separable_range, _⟩,
+  filter_upwards [hf.ae_eq_mk] with x hx,
+  simp [hx]
+end
+
 /-- A function is almost everywhere strongly measurable if and only if it is almost everywhere
 measurable, and up to a zero measure set its range is contained in a separable set. -/
 theorem _root_.ae_strongly_measurable_iff_ae_measurable_separable
   [metrizable_space β] [measurable_space β] [borel_space β] :
   ae_strongly_measurable f μ ↔
-    (ae_measurable f μ ∧ ∃ (t : set β), is_separable t ∧ f ⁻¹' t ∈ μ.ae) :=
+    (ae_measurable f μ ∧ ∃ (t : set β), is_separable t ∧ ∀ᵐ x ∂μ, f x ∈ t) :=
 begin
   letI : metric_space β := metrizable_space_metric β,
   classical,
-  split,
-  { assume H,
-    refine ⟨H.ae_measurable, _⟩,
-    refine ⟨range (H.mk f), H.strongly_measurable_mk.is_separable_range, _⟩,
-    filter_upwards [H.ae_eq_mk] with x hx,
-    simp [hx] },
-  { rintros ⟨H, ⟨t, t_sep, ht⟩⟩,
-    rcases eq_empty_or_nonempty t with rfl|⟨⟨y₀, h₀⟩⟩,
-    { simp only [preimage_empty] at ht,
-      rcases is_empty_or_nonempty α with hα|⟨⟨x₀⟩⟩,
-      { exactI (strongly_measurable_of_is_empty _).ae_strongly_measurable },
-      { refine ⟨λ x, f x₀, strongly_measurable_const, _⟩,
-        filter_upwards [ht],
-        simp only [mem_empty_eq, forall_false_left, implies_true_iff] } },
-    { obtain ⟨g, g_meas, gt, fg⟩ : ∃ (g : α → β), measurable g ∧ range g ⊆ t ∧ f =ᵐ[μ] g :=
-        H.exists_ae_eq_range_subset ht h₀,
-      refine ⟨g, _, fg⟩,
-      exact strongly_measurable_iff_measurable_separable.2 ⟨g_meas, t_sep.mono gt⟩ } }
+  refine ⟨λ H, ⟨H.ae_measurable, H.is_separable_ae_range⟩, _⟩,
+  rintros ⟨H, ⟨t, t_sep, ht⟩⟩,
+  rcases eq_empty_or_nonempty t with rfl|⟨⟨y₀, h₀⟩⟩,
+  { simp only [mem_empty_eq, eventually_false_iff_eq_bot, ae_eq_bot] at ht,
+    rw ht,
+    exact ae_measurable_zero_measure f },
+  { obtain ⟨g, g_meas, gt, fg⟩ : ∃ (g : α → β), measurable g ∧ range g ⊆ t ∧ f =ᵐ[μ] g :=
+      H.exists_ae_eq_range_subset ht h₀,
+    refine ⟨g, _, fg⟩,
+    exact strongly_measurable_iff_measurable_separable.2 ⟨g_meas, t_sep.mono gt⟩ }
 end
 
 lemma _root_.measurable_embedding.ae_strongly_measurable_map_iff
@@ -1279,10 +1279,10 @@ begin
     λ i, (ae_strongly_measurable_iff_ae_measurable_separable.1 (h i)).2,
   choose t t_sep ht using A,
   refine ⟨(⋃ i, t i), is_separable_Union t_sep, _⟩,
-  simp only [preimage_Union, measure.ae_sum_eq, mem_supr],
+  simp only [measure.ae_sum_eq, mem_Union, eventually_supr],
   assume i,
   filter_upwards [ht i] with x hx,
-  exact mem_Union_of_mem i hx,
+  exact ⟨i, hx⟩
 end
 
 @[simp] lemma _root_.ae_strongly_measurable_sum_measure_iff

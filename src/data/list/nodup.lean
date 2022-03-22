@@ -18,7 +18,7 @@ universes u v
 
 open nat function
 
-variables {α : Type u} {β : Type v} {l l₁ l₂ : list α} {a : α}
+variables {α : Type u} {β : Type v} {l l₁ l₂ : list α} {a b : α}
 
 namespace list
 
@@ -133,7 +133,7 @@ by simp only [nodup, pairwise_append, disjoint_iff_ne]
 theorem disjoint_of_nodup_append {l₁ l₂ : list α} (d : nodup (l₁++l₂)) : disjoint l₁ l₂ :=
 (nodup_append.1 d).2.2
 
-lemma nodup.append (d₁ : nodup l₁) (d₂ : nodup l₂) (dj : disjoint l₁ l₂) : nodup (l₁++l₂) :=
+lemma nodup.append (d₁ : nodup l₁) (d₂ : nodup l₂) (dj : disjoint l₁ l₂) : nodup (l₁ ++ l₂) :=
 nodup_append.2 ⟨d₁, d₂, dj⟩
 
 theorem nodup_append_comm {l₁ l₂ : list α} : nodup (l₁++l₂) ↔ nodup (l₂++l₁) :=
@@ -212,7 +212,7 @@ lemma nodup.mem_erase_iff [decidable_eq α] (d : nodup l) : a ∈ l.erase b ↔ 
 by rw nodup_erase_eq_filter b d; simp only [mem_filter, and_comm]
 
 lemma nodup.not_mem_erase [decidable_eq α] (h : nodup l) : a ∉ l.erase a :=
-λ H, (h.not_mem_erase.1 H).1 rfl
+λ H, (h.mem_erase_iff.1 H).1 rfl
 
 theorem nodup_join {L : list (list α)} :
   nodup (join L) ↔ (∀ l ∈ L, nodup l) ∧ pairwise disjoint L :=
@@ -226,7 +226,8 @@ by simp only [list.bind, nodup_join, pairwise_map, and_comm, and.left_comm, mem_
             (∀ (x : α), x ∈ l₁ → nodup (f x)),
        from forall_swap.trans $ forall_congr $ λ_, forall_eq']
 
-lemma nodup.product {l₂ : list β} (d₁ : l₁.nodup) (d₂ : l₂.nodup) : (l₁.product l₂).nodup :=
+protected lemma nodup.product {l₂ : list β} (d₁ : l₁.nodup) (d₂ : l₂.nodup) :
+  (l₁.product l₂).nodup :=
 nodup_bind.2
   ⟨λ a ma, d₂.map $ left_inverse.injective $ λ b, (rfl : (a,b).2 = b),
   d₁.imp $ λ a₁ a₂ n x h₁ h₂, begin
@@ -235,8 +236,8 @@ nodup_bind.2
     exact n rfl
   end⟩
 
-lemma nodup.sigma {σ : α → Type*} {l₁ : list α} {l₂ : Π a, list (σ a)} (d₁ : nodup l₁)
-  (d₂ : ∀ a, nodup (l₂ a)) : nodup (l₁.sigma l₂) :=
+lemma nodup.sigma {σ : α → Type*} {l₂ : Π a, list (σ a)} (d₁ : nodup l₁) (d₂ : ∀ a, nodup (l₂ a)) :
+  (l₁.sigma l₂).nodup :=
 nodup_bind.2
   ⟨λ a ma, (d₂ a).map (λ b b' h, by injection h with _ h; exact eq_of_heq h),
   d₁.imp $ λ a₁ a₂ n x h₁ h₂, begin
@@ -245,11 +246,11 @@ nodup_bind.2
     exact n rfl
   end⟩
 
-lemma nodup.filter_map {f : α → option β} (h : ∀ a a' b, b ∈ f a → b ∈ f a' → a = a') :
+protected lemma nodup.filter_map {f : α → option β} (h : ∀ a a' b, b ∈ f a → b ∈ f a' → a = a') :
   nodup l → nodup (filter_map f l) :=
 pairwise.filter_map f $ λ a a' n b bm b' bm' e, n $ h a a' b' (e ▸ bm) bm'
 
-lemma nodup.concat (h : a ∉ l) (h' : l.nodup) : (concat l a).nodup :=
+protected lemma nodup.concat (h : a ∉ l) (h' : l.nodup) : (l.concat a).nodup :=
 by rw concat_eq_append; exact h'.append (nodup_singleton _) (disjoint_singleton.2 h)
 
 lemma nodup.insert [decidable_eq α] (h : l.nodup) : (insert a l).nodup :=
@@ -293,7 +294,7 @@ end
 lemma nodup.mem_diff_iff [decidable_eq α] (hl₁ : l₁.nodup) : a ∈ l₁.diff l₂ ↔ a ∈ l₁ ∧ a ∉ l₂ :=
 by rw [hl₁.diff_eq_filter, mem_filter]
 
-lemma nodup.update_nth : ∀ {l : list α} {n : ℕ} {a : α} (hl : l.nodup) (ha : a ∉ l),
+protected lemma nodup.update_nth : ∀ {l : list α} {n : ℕ} {a : α} (hl : l.nodup) (ha : a ∉ l),
   (l.update_nth n a).nodup
 | []     n     a hl ha := nodup_nil
 | (b::l) 0     a hl ha := nodup_cons.2 ⟨mt (mem_cons_of_mem _) ha, (nodup_cons.1 hl).2⟩

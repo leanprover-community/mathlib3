@@ -282,112 +282,22 @@ instance : bounded_continuous_map_class F α β :=
 def to_bounded_continuous_function (f : α →C₀ β) : α →ᵇ β :=
 ⟨f, map_bounded f⟩
 
+section
+variables (α) (β)
 lemma _root_.function.injective.to_bounded_continuous_function :
   function.injective (to_bounded_continuous_function : (α →C₀ β) → α →ᵇ β) :=
 λ f g h, by { ext, simpa only using fun_like.congr_fun h x, }
+end
 
 -- how can we get the dist from this injective?
 
 variables {C : ℝ} {f g : α →C₀ β}
 
-/-- The uniform distance between two bounded continuous functions -/
-noncomputable instance : has_dist (α →C₀ β) :=
-⟨λ f g, Inf {C | 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C}⟩
-
-lemma dist_eq : dist f g = Inf {C | 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C} := rfl
-
-lemma dist_set_exists : ∃ C, 0 ≤ C ∧ ∀ x : α, dist (f x) (g x) ≤ C :=
-begin
-  rcases f.bounded_range.union g.bounded_range with ⟨C, hC⟩,
-  refine ⟨max 0 C, le_max_left _ _, λ x, (hC _ _ _ _).trans (le_max_right _ _)⟩;
-    [left, right]; apply mem_range_self
-end
-
-/-- The pointwise distance is controlled by the distance between functions, by definition. -/
-lemma dist_coe_le_dist (x : α) : dist (f x) (g x) ≤ dist f g :=
-le_cInf dist_set_exists $ λ b hb, hb.2 x
-
-/- This lemma will be needed in the proof of the metric space instance, but it will become
-useless afterwards as it will be superseded by the general result that the distance is nonnegative
-in metric spaces. -/
-private lemma dist_nonneg' : 0 ≤ dist f g :=
-le_cInf dist_set_exists (λ C, and.left)
-
-/-- The distance between two functions is controlled by the supremum of the pointwise distances -/
-lemma dist_le (C0 : (0 : ℝ) ≤ C) : dist f g ≤ C ↔ ∀x:α, dist (f x) (g x) ≤ C :=
-⟨λ h x, le_trans (dist_coe_le_dist x) h, λ H, cInf_le ⟨0, λ C, and.left⟩ ⟨C0, H⟩⟩
-
-lemma dist_le_iff_of_nonempty [nonempty α] :
-  dist f g ≤ C ↔ ∀ x, dist (f x) (g x) ≤ C :=
-⟨λ h x, le_trans (dist_coe_le_dist x) h,
- λ w, (dist_le (le_trans dist_nonneg (w (nonempty.some ‹_›)))).mpr w⟩
-
-lemma dist_lt_of_nonempty_compact [nonempty α] [compact_space α]
-  (w : ∀ x : α, dist (f x) (g x) < C) : dist f g < C :=
-begin
-  have c : continuous (λ x, dist (f x) (g x)), { continuity, },
-  obtain ⟨x, -, le⟩ :=
-    is_compact.exists_forall_ge compact_univ set.univ_nonempty (continuous.continuous_on c),
-  exact lt_of_le_of_lt (dist_le_iff_of_nonempty.mpr (λ y, le y trivial)) (w x),
-end
-
-lemma dist_lt_iff_of_compact [compact_space α] (C0 : (0 : ℝ) < C) :
-  dist f g < C ↔ ∀ x : α, dist (f x) (g x) < C :=
-begin
-  fsplit,
-  { intros w x,
-    exact lt_of_le_of_lt (dist_coe_le_dist x) w, },
-  { by_cases h : nonempty α,
-    { resetI,
-      exact dist_lt_of_nonempty_compact, },
-    { rintro -,
-      convert C0,
-      apply le_antisymm _ dist_nonneg',
-      rw [dist_eq],
-      exact cInf_le ⟨0, λ C, and.left⟩ ⟨le_rfl, λ x, false.elim (h (nonempty.intro x))⟩, }, },
-end
-
-lemma dist_lt_iff_of_nonempty_compact [nonempty α] [compact_space α] :
-  dist f g < C ↔ ∀ x : α, dist (f x) (g x) < C :=
-⟨λ w x, lt_of_le_of_lt (dist_coe_le_dist x) w, dist_lt_of_nonempty_compact⟩
-
 /-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
 noncomputable instance : metric_space (α →C₀ β) :=
-{ dist_self := λ f, le_antisymm ((dist_le le_rfl).2 $ λ x, by simp) dist_nonneg',
-  eq_of_dist_eq_zero := λ f g hfg, by ext x; exact
-    eq_of_dist_eq_zero (le_antisymm (hfg ▸ dist_coe_le_dist _) dist_nonneg),
-  dist_comm := λ f g, by simp [dist_eq, dist_comm],
-  dist_triangle := λ f g h,
-    (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
-      le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
+metric_space.induced _ (function.injective.to_bounded_continuous_function α β) (by apply_instance)
 
-/-- On an empty space, bounded continuous functions are at distance 0 -/
-lemma dist_zero_of_empty [is_empty α] : dist f g = 0 :=
-dist_eq_zero.2 (eq_of_empty f g)
-
-lemma dist_eq_supr : dist f g = ⨆ x : α, dist (f x) (g x) :=
-begin
-  casesI is_empty_or_nonempty α, { rw [supr_of_empty', real.Sup_empty, dist_zero_of_empty] },
-  refine (dist_le_iff_of_nonempty.mpr $ le_csupr _).antisymm (csupr_le dist_coe_le_dist),
-  exact dist_set_exists.imp (λ C hC, forall_range_iff.2 hC.2)
-end
-
-lemma lipschitz_evalx (x : α) : lipschitz_with 1 (λ f : α →C₀ β, f x) :=
-lipschitz_with.mk_one $ λ f g, dist_coe_le_dist x
-
-theorem uniform_continuous_coe : @uniform_continuous (α →C₀ β) (α → β) _ _ coe_fn :=
-uniform_continuous_pi.2 $ λ x, (lipschitz_evalx x).uniform_continuous
-
-lemma continuous_coe : continuous (λ (f : α →C₀ β) x, f x) :=
-uniform_continuous.continuous uniform_continuous_coe
-
-/-- When `x` is fixed, `(f : α →C₀ β) ↦ f x` is continuous -/
-@[continuity] theorem continuous_evalx {x : α} : continuous (λ f : α →C₀ β, f x) :=
-(continuous_apply x).comp continuous_coe
-
-/-- The evaluation map is continuous, as a joint function of `u` and `x` -/
-@[continuity] theorem continuous_eval : continuous (λ p : (α →C₀ β) × α, p.1 p.2) :=
-continuous_prod_of_continuous_lipschitz _ 1 (λ f, map_continuous f) $ lipschitz_evalx
+open bounded_continuous_function
 
 /-- Continuous functions vanishing at infinity taking values in a complete space form a
 complete space. -/

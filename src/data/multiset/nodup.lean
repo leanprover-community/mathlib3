@@ -98,28 +98,28 @@ theorem nodup_map_iff_inj_on {f : α → β} {s : multiset α} (d : nodup s) :
   nodup (map f s) ↔ (∀ (x ∈ s) (y ∈ s), f x = f y → x = y) :=
 ⟨inj_on_of_nodup_map, λ h, d.map_on h⟩
 
-theorem nodup_filter (p : α → Prop) [decidable_pred p] {s} : nodup s → nodup (filter p s) :=
+lemma nodup.filter (p : α → Prop) [decidable_pred p] {s} : nodup s → nodup (filter p s) :=
 quot.induction_on s $ λ l, nodup_filter p
 
 @[simp] theorem nodup_attach {s : multiset α} : nodup (attach s) ↔ nodup s :=
 quot.induction_on s $ λ l, nodup_attach
 
-theorem nodup_pmap {p : α → Prop} {f : Π a, p a → β} {s : multiset α} {H}
+lemma nodup.pmap {p : α → Prop} {f : Π a, p a → β} {s : multiset α} {H}
   (hf : ∀ a ha b hb, f a ha = f b hb → a = b) : nodup s → nodup (pmap f s H) :=
-quot.induction_on s (λ l H, nodup_pmap hf) H
+quot.induction_on s (λ l H, nodup.pmap hf) H
 
 instance nodup_decidable [decidable_eq α] (s : multiset α) : decidable (nodup s) :=
 quotient.rec_on_subsingleton s $ λ l, l.nodup_decidable
 
-theorem nodup_erase_eq_filter [decidable_eq α] (a : α) {s} : nodup s → s.erase a = filter (≠ a) s :=
-quot.induction_on s $ λ l d, congr_arg coe $ nodup_erase_eq_filter a d
+lemma nodup.erase_eq_filter [decidable_eq α] (a : α) {s} : nodup s → s.erase a = filter (≠ a) s :=
+quot.induction_on s $ λ l d, congr_arg coe $ d.erase_eq_filter a
 
 lemma nodup.erase [decidable_eq α] (a : α) {l} : nodup l → nodup (l.erase a) :=
 nodup_of_le (erase_le _ _)
 
-theorem nodup.mem_erase_iff [decidable_eq α] {a b : α} {l} (d : nodup l) :
+lemma nodup.mem_erase_iff [decidable_eq α] {a b : α} {l} (d : nodup l) :
   a ∈ l.erase b ↔ a ≠ b ∧ a ∈ l :=
-by rw nodup_erase_eq_filter b d; simp [and_comm]
+by rw [d.erase_eq_filter b, mem_erase, and_comm]
 
 lemma nodup.not_mem_erase [decidable_eq α] {a : α} {s} (h : nodup s) : a ∉ s.erase a :=
 λ ha, (h.mem_erase_iff.1 ha).1 rfl
@@ -161,6 +161,8 @@ nodup_of_le $ inter_le_right _ _
   λ x sx y sy e,
     (h.sublist_ext (mem_sublists'.1 sx) (mem_sublists'.1 sy)).1
       (quotient.exact e)⟩
+
+alias nodup_powerset ↔ multiset.nodup.of_powerset multiset.nodup.powerset
 
 protected lemma nodup.powerset_len {n : ℕ} (h : nodup s) : nodup (powerset_len n s) :=
 nodup_of_le (powerset_len_le_powerset _ _) (nodup_powerset.2 h)

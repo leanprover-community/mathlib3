@@ -384,8 +384,8 @@ instance (α : Type*) : subsingleton (fintype α) :=
 associated to the predicate is a fintype. -/
 protected def subtype {p : α → Prop} (s : finset α) (H : ∀ x : α, x ∈ s ↔ p x) :
   fintype {x // p x} :=
-⟨⟨multiset.pmap subtype.mk s.1 (λ x, (H x).1),
-  multiset.nodup_pmap (λ a _ b _, congr_arg subtype.val) s.2⟩,
+⟨⟨s.1.pmap subtype.mk (λ x, (H x).1),
+  s.2.pmap $ λ a _ b _, congr_arg subtype.val⟩,
 λ ⟨x, px⟩, multiset.mem_pmap.2 ⟨x, (H x).2 px, rfl⟩⟩
 
 theorem subtype_card {p : α → Prop} (s : finset α) (H : ∀ x : α, x ∈ s ↔ p x) :

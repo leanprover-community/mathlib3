@@ -181,18 +181,18 @@ alias nodup_attach ↔ list.nodup.of_attach list.nodup.attach
 
 attribute [protected] nodup.attach
 
-theorem nodup_pmap {p : α → Prop} {f : Π a, p a → β} {l : list α} {H}
+lemma nodup.pmap {p : α → Prop} {f : Π a, p a → β} {l : list α} {H}
   (hf : ∀ a ha b hb, f a ha = f b hb → a = b) (h : nodup l) : nodup (pmap f l H) :=
 by rw [pmap_eq_map_attach]; exact h.attach.map
   (λ ⟨a, ha⟩ ⟨b, hb⟩ h, by congr; exact hf a (H _ ha) b (H _ hb) h)
 
-theorem nodup_filter (p : α → Prop) [decidable_pred p] {l} : nodup l → nodup (filter p l) :=
+lemma nodup.filter (p : α → Prop) [decidable_pred p] {l} : nodup l → nodup (filter p l) :=
 pairwise.filter p
 
 @[simp] theorem nodup_reverse {l : list α} : nodup (reverse l) ↔ nodup l :=
 pairwise_reverse.trans $ by simp only [nodup, ne.def, eq_comm]
 
-theorem nodup_erase_eq_filter [decidable_eq α] (a : α) {l} (d : nodup l) :
+lemma nodup.erase_eq_filter [decidable_eq α] {l} (d : nodup l) (a : α) :
   l.erase a = filter (≠ a) l :=
 begin
   induction d with b l m d IH, {refl},
@@ -209,7 +209,7 @@ lemma nodup.diff [decidable_eq α] : l₁.nodup → (l₁.diff l₂).nodup :=
 nodup.sublist $ diff_sublist _ _
 
 lemma nodup.mem_erase_iff [decidable_eq α] (d : nodup l) : a ∈ l.erase b ↔ a ≠ b ∧ a ∈ l :=
-by rw nodup_erase_eq_filter b d; simp only [mem_filter, and_comm]
+by rw [d.erase_eq_filter, mem_filter, and_comm]
 
 lemma nodup.not_mem_erase [decidable_eq α] (h : nodup l) : a ∉ l.erase a :=
 λ H, (h.mem_erase_iff.1 H).1 rfl
@@ -264,7 +264,7 @@ begin
   { exact (ih h).insert }
 end
 
-lemma nodup.inter [decidable_eq α] (l₂ : list α) : nodup l₁ → nodup (l₁ ∩ l₂) := nodup_filter _
+lemma nodup.inter [decidable_eq α] (l₂ : list α) : nodup l₁ → nodup (l₁ ∩ l₂) := nodup.filter _
 
 @[simp] theorem nodup_sublists {l : list α} : nodup (sublists l) ↔ nodup l :=
 ⟨λ h, (h.sublist (map_ret_sublist_sublists _)).of_map _,
@@ -287,7 +287,7 @@ lemma nodup.diff_eq_filter [decidable_eq α] :
 | l₁ []      hl₁ := by simp
 | l₁ (a::l₂) hl₁ :=
 begin
-  rw [diff_cons, (hl₁.erase _).diff_eq_filter, nodup_erase_eq_filter _ hl₁, filter_filter],
+  rw [diff_cons, (hl₁.erase _).diff_eq_filter, hl₁.erase_eq_filter, filter_filter],
   simp only [mem_cons_iff, not_or_distrib, and.comm]
 end
 

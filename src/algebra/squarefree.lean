@@ -321,7 +321,7 @@ lemma divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0) :
     (unique_factorization_monoid.normalized_factors n).to_finset.powerset.val.map
       (λ x, x.val.prod) :=
 begin
-  rw multiset.nodup_ext (finset.nodup _) ((finset.nodup _).map_on _),
+  rw (finset.nodup _).ext ((finset.nodup _).map_on _),
   { intro a,
     simp only [multiset.mem_filter, id.def, multiset.mem_map, finset.filter_val, ← finset.mem_def,
       mem_divisors],

@@ -99,7 +99,7 @@ theorem nodup_map_iff_inj_on {f : α → β} {s : multiset α} (d : nodup s) :
 ⟨inj_on_of_nodup_map, λ h, d.map_on h⟩
 
 lemma nodup.filter (p : α → Prop) [decidable_pred p] {s} : nodup s → nodup (filter p s) :=
-quot.induction_on s $ λ l, nodup_filter p
+quot.induction_on s $ λ l, nodup.filter p
 
 @[simp] theorem nodup_attach {s : multiset α} : nodup (attach s) ↔ nodup s :=
 quot.induction_on s $ λ l, nodup_attach
@@ -119,7 +119,7 @@ nodup_of_le (erase_le _ _)
 
 lemma nodup.mem_erase_iff [decidable_eq α] {a b : α} {l} (d : nodup l) :
   a ∈ l.erase b ↔ a ≠ b ∧ a ∈ l :=
-by rw [d.erase_eq_filter b, mem_erase, and_comm]
+by rw [d.erase_eq_filter b, mem_filter, and_comm]
 
 lemma nodup.not_mem_erase [decidable_eq α] {a : α} {s} (h : nodup s) : a ∉ s.erase a :=
 λ ha, (h.mem_erase_iff.1 ha).1 rfl
@@ -176,7 +176,7 @@ have t = λa, t' a, from funext h',
 have hd : symmetric (λa b, list.disjoint (t' a) (t' b)), from assume a b h, h.symm,
 quot.induction_on s $ by simp [this, list.nodup_bind, pairwise_coe_iff_pairwise hd]
 
-theorem nodup_ext {s t : multiset α} : nodup s → nodup t → (s = t ↔ ∀ a, a ∈ s ↔ a ∈ t) :=
+lemma nodup.ext {s t : multiset α} : nodup s → nodup t → (s = t ↔ ∀ a, a ∈ s ↔ a ∈ t) :=
 quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, quotient.eq.trans $ perm_ext d₁ d₂
 
 theorem le_iff_subset {s t : multiset α} : nodup s → (s ≤ t ↔ s ⊆ t) :=
@@ -199,7 +199,7 @@ lemma map_eq_map_of_bij_of_nodup (f : α → γ) (g : β → γ) {s : multiset �
   (i_surj : ∀b∈t, ∃a ha, b = i a ha) :
   s.map f = t.map g :=
 have t = s.attach.map (λ x, i x.1 x.2),
-  from (nodup_ext ht $ (nodup_attach.2 hs).map $
+  from (ht.ext $ (nodup_attach.2 hs).map $
       show injective (λ x : {x // x ∈ s}, i x.1 x.2), from λ x y hxy,
         subtype.eq $ i_inj x.1 y.1 x.2 y.2 hxy).2
     (λ x, by simp only [mem_map, true_and, subtype.exists, eq_comm, mem_attach];

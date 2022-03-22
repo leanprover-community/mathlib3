@@ -186,7 +186,7 @@ instance decidable_mem' [decidable_eq α] (a : α) (s : finset α) :
 
 /-! ### extensionality -/
 theorem ext_iff {s₁ s₂ : finset α} : s₁ = s₂ ↔ ∀ a, a ∈ s₁ ↔ a ∈ s₂ :=
-val_inj.symm.trans $ nodup_ext s₁.2 s₂.2
+val_inj.symm.trans $ s₁.2.ext s₂.2
 
 @[ext]
 theorem ext {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s₁ = s₂ :=
@@ -715,10 +715,10 @@ end
 /-! ### Lattice structure -/
 
 /-- `s ∪ t` is the set such that `a ∈ s ∪ t` iff `a ∈ s` or `a ∈ t`. -/
-instance : has_union (finset α) := ⟨λ s t, ⟨_, nodup_ndunion s.1 t.2⟩⟩
+instance : has_union (finset α) := ⟨λ s t, ⟨_, t.2.ndunion s.1⟩⟩
 
 /-- `s ∩ t` is the set such that `a ∈ s ∩ t` iff `a ∈ s` and `a ∈ t`. -/
-instance : has_inter (finset α) := ⟨λ s t, ⟨_, nodup_ndinter t.1 s.2⟩⟩
+instance : has_inter (finset α) := ⟨λ s t, ⟨_, s.2.ndinter t.1⟩⟩
 
 instance : lattice (finset α) :=
 { sup          := (∪),
@@ -1395,8 +1395,7 @@ section filter
 variables (p q : α → Prop) [decidable_pred p] [decidable_pred q]
 
 /-- `filter p s` is the set of elements of `s` that satisfy `p`. -/
-def filter (s : finset α) : finset α :=
-⟨_, nodup_filter p s.2⟩
+def filter (s : finset α) : finset α := ⟨_, s.2.filter p⟩
 
 @[simp] theorem filter_val (s : finset α) : (filter p s).1 = s.1.filter p := rfl
 

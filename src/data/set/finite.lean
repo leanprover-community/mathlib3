@@ -378,8 +378,7 @@ theorem finite.map {α β} {s : set α} :
 then `s` has a `fintype` structure as well. -/
 def fintype_of_fintype_image (s : set α)
   {f : α → β} {g} (I : is_partial_inv f g) [fintype (f '' s)] : fintype s :=
-fintype.of_finset ⟨_, @multiset.nodup_filter_map β α g _
-  (@injective_of_partial_inv_right _ _ f g I) (f '' s).to_finset.2⟩ $ λ a,
+fintype.of_finset ⟨_, (f '' s).to_finset.2.filter_map g $ injective_of_partial_inv_right I⟩ $ λ a,
 begin
   suffices : (∃ b x, f x = b ∧ g b = some a ∧ x ∈ s) ↔ a ∈ s,
   by simpa [exists_and_distrib_left.symm, and.comm, and.left_comm, and.assoc],

@@ -538,6 +538,10 @@ begin
     apply multiset.prod_dvd_prod_of_le }
 end
 
+theorem normalized_factors_of_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
+  normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
+by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
+
 lemma zero_not_mem_normalized_factors (x : α) : (0 : α) ∉ normalized_factors x :=
 λ h, prime.ne_zero (prime_of_normalized_factor _ h) rfl
 
@@ -547,6 +551,14 @@ begin
   { rw hcases,
     exact dvd_zero p },
   { exact dvd_trans (multiset.dvd_prod H) (associated.dvd (normalized_factors_prod hcases)) },
+end
+
+lemma exists_associated_prime_pow_of_unique_normalized_factor {p r : α}
+  (h : ∀ {m}, m ∈ normalized_factors r → m = p) (hr : r ≠ 0) : ∃ (i : ℕ), associated (p ^ i) r :=
+begin
+  use (normalized_factors r).card,
+  have := unique_factorization_monoid.normalized_factors_prod hr,
+  rwa [multiset.eq_repeat_of_mem (λ b, h), multiset.prod_repeat] at this
 end
 
 end unique_factorization_monoid

@@ -157,12 +157,12 @@ variables (M R)
 def supported (s : set α) : submodule R (α →₀ M) :=
 begin
   refine ⟨ {p | ↑p.support ⊆ s }, _, _, _ ⟩,
-  { simp only [subset_def, finset.mem_coe, set.mem_set_of_eq, mem_support_iff, zero_apply],
-    assume h ha, exact (ha rfl).elim },
   { assume p q hp hq,
     refine subset.trans
       (subset.trans (finset.coe_subset.2 support_add) _) (union_subset hp hq),
     rw [finset.coe_union] },
+  { simp only [subset_def, finset.mem_coe, set.mem_set_of_eq, mem_support_iff, zero_apply],
+    assume h ha, exact (ha rfl).elim },
   { assume a p hp,
     refine subset.trans (finset.coe_subset.2 support_smul) hp }
 end

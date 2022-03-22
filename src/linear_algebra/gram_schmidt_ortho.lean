@@ -30,21 +30,20 @@ open_locale big_operators
 
 variables (𝕜 : Type*) (E : Type*) [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 
-/-- Definition of Gram-Schmidt Process -/
+/-- Gram-Schmidt Process-/
 noncomputable def gram_schmidt_process (f : ℕ → E) : ℕ → E
-| n := f n - ∑ i in finset.range n,
-  if h1 : i < n then (orthogonal_projection (𝕜 ∙ (gram_schmidt_process i)) (f n) : E) else f 37
+| n := f n - ∑ i : fin n, have ↑i < n := i.prop,
+  orthogonal_projection (𝕜 ∙ gram_schmidt_process i) (f n)
 
-/-- 'gram_schmidt_process_def' gets rid of 'ite' in the definition of gram_schmidt_process -/
+/-- 'gram_schmidt_process_def' turns the sum over `fin n` into a sum over `ℕ`. -/
 lemma gram_schmidt_process_def (f : ℕ → E) (n : ℕ) :
 gram_schmidt_process 𝕜 E f n = f n - ∑ i in finset.range n,
-(orthogonal_projection (𝕜 ∙ (gram_schmidt_process 𝕜 E f i)) (f n) : E) :=
+  orthogonal_projection (𝕜 ∙ gram_schmidt_process 𝕜 E f i) (f n) :=
 begin
-  rw [gram_schmidt_process, sub_right_inj],
-  apply finset.sum_congr rfl,
-  intros x hx,
-  rw finset.mem_range at hx,
-  rw if_pos hx,
+  rw gram_schmidt_process,
+  congr' 1,
+  exact fin.sum_univ_eq_sum_range (λ i,
+    (orthogonal_projection (𝕜 ∙ gram_schmidt_process 𝕜 E f i) (f n) : E)) n,
 end
 
 /-- # Gram-Schmidt Orthogonalisation -/
@@ -63,7 +62,7 @@ begin
     { simp only [gram_schmidt_process_def 𝕜 E f (c + 1), hb₂, inner_sub_right, inner_sum],
       have h₂ : ∀ x ∈ finset.range(c + 1), x ≠ a →
       (inner (gram_schmidt_process 𝕜 E f a)
-      (orthogonal_projection (𝕜 ∙ (gram_schmidt_process 𝕜 E f x)) (f (c + 1)) : E) : 𝕜) = 0,
+        (orthogonal_projection (𝕜 ∙ (gram_schmidt_process 𝕜 E f x)) (f (c + 1)) : E) : 𝕜) = 0,
       { intros x hx₁ hx₂,
         simp only [orthogonal_projection_singleton],
         rw inner_smul_right,

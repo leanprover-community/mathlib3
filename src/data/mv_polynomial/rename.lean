@@ -109,9 +109,12 @@ section
 variable (s : set σ)
 open_locale classical
 
+/-- Given a subset `s` of the set of variables `σ`, `kill_compl s` is the `alg_hom`
+  from `R[σ]` to `R[s]` that sends the variables in the complement of `s` to `0`. -/
 def kill_compl : mv_polynomial σ R →ₐ[R] mv_polynomial s R :=
 aeval (λ i, if h : i ∈ s then X ⟨i,h⟩ else 0)
 
+/-- `kill_compl s` is a left inverse of the inclusion of `R[s]` into `R[σ]`. -/
 lemma kill_compl_comp_rename : (kill_compl s).comp (rename coe) = alg_hom.id R _ :=
 alg_hom_ext (λ ⟨i,h⟩, by { dsimp, rw [rename, kill_compl, aeval_X, aeval_X], apply dif_pos h })
 

@@ -281,7 +281,7 @@ inductive generate_sets (g : set (set α)) : set α → Prop
 | superset {s t : set α} : generate_sets s → s ⊆ t → generate_sets t
 | inter {s t : set α}    : generate_sets s → generate_sets t → generate_sets (s ∩ t)
 
-/-- `generate g` is the smallest filter containing the sets `g`. -/
+/-- `generate g` is the largest filter containing the sets `g`. -/
 def generate (g : set (set α)) : filter α :=
 { sets             := generate_sets g,
   univ_sets        := generate_sets.univ,

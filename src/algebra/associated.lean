@@ -63,6 +63,24 @@ end prime
 @[simp] lemma not_prime_one : ¬ prime (1 : α) :=
 λ h, h.not_unit is_unit_one
 
+section mul_equiv
+variables [comm_monoid_with_zero β] (e : α ≃* β) {p : α}
+
+lemma mul_equiv.prime (hp : prime p) : prime (e p) :=
+⟨ λ h, hp.1 $ by { convert map_zero e.symm, simp [← h] },
+  λ h, hp.2.1 $ by { convert h.map e.symm, simp },
+  λ a b h, begin
+    have : p ∣ e.symm a * e.symm b,
+    { convert e.symm.to_monoid_hom.map_dvd h; simp },
+    refine (hp.2.2 _ _ this).imp _ _;
+    { intro h, convert e.to_monoid_hom.map_dvd h, simp },
+  end⟩
+
+lemma mul_equiv.prime_iff : prime p ↔ prime (e p) :=
+⟨ λ h, e.prime h,  λ h, by { convert e.symm.prime h, simp } ⟩
+
+end mul_equiv
+
 end prime
 
 lemma prime.left_dvd_or_dvd_right_of_dvd_mul [cancel_comm_monoid_with_zero α] {p : α}

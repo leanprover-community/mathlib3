@@ -106,6 +106,22 @@ begin
 end
 
 section
+variable (s : set σ)
+open_locale classical
+
+def kill_compl : mv_polynomial σ R →ₐ[R] mv_polynomial s R :=
+aeval (λ i, if h : i ∈ s then X ⟨i,h⟩ else 0)
+
+lemma kill_compl_comp_rename : (kill_compl s).comp (rename coe) = alg_hom.id R _ :=
+alg_hom_ext (λ ⟨i,h⟩, by { dsimp, rw [rename, kill_compl, aeval_X, aeval_X], apply dif_pos h })
+
+variables {s}
+@[simp] lemma kill_compl_rename_app (a : mv_polynomial s R) : kill_compl s (rename coe a) = a :=
+alg_hom.congr_fun (kill_compl_comp_rename s) a
+
+end
+
+section
 variables (R)
 
 /-- `mv_polynomial.rename e` is an equivalence when `e` is. -/
@@ -176,6 +192,17 @@ begin
     { refine rename (subtype.map id _) p * X ⟨n, s.mem_insert_self n⟩,
       simp only [id.def, or_true, finset.mem_insert, forall_true_iff] {contextual := tt}, },
     { simp only [rename_rename, rename_X, subtype.coe_mk, alg_hom.map_mul], refl, }, },
+end
+
+lemma exists_finset_rename₂ (p₁ p₂ : mv_polynomial σ R) :
+  ∃ (s : finset σ) (q₁ q₂ : mv_polynomial s R), p₁ = rename coe q₁ ∧ p₂ = rename coe q₂ :=
+begin
+  obtain ⟨s₁,q₁,rfl⟩ := exists_finset_rename p₁,
+  obtain ⟨s₂,q₂,rfl⟩ := exists_finset_rename p₂,
+  classical, use s₁ ∪ s₂,
+  use rename (set.inclusion $ s₁.subset_union_left s₂) q₁,
+  use rename (set.inclusion $ s₁.subset_union_right s₂) q₂,
+  split; simpa,
 end
 
 /-- Every polynomial is a polynomial in finitely many variables. -/

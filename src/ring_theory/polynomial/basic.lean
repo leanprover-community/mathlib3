@@ -651,7 +651,70 @@ is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
 
 end ideal
 
+section prime
+variables (σ) {r : R}
+
 namespace polynomial
+lemma prime_C_iff : prime r ↔ prime (polynomial.C r) :=
+begin
+  split,
+  { intro hr, have := hr.1, rw ← ideal.span_singleton_prime at hr ⊢,
+    { convert ideal.is_prime_map_C_of_is_prime hr using 1,
+      rw [ideal.map_span, set.image_singleton] },
+      exacts [λ h, this (polynomial.C_eq_zero.1 h), this] },
+  { exact λ hC, ⟨ λ h, hC.1 $ by rw [h, C_0], λ h, hC.2.1 $ h.map C,
+      λ a b h, by { apply (hC.2.2 (C a) (C b) (by { convert C.map_dvd h, simp })).imp _ _;
+        { rw C_dvd_iff_dvd_coeff, intro h, convert h 0, simp } } ⟩ },
+end
+end polynomial
+
+namespace mv_polynomial
+
+private lemma prime_C_iff_of_fintype [fintype σ] : prime r ↔ prime (C r : mv_polynomial σ R) :=
+begin
+  rw (rename_equiv R (fintype.equiv_fin σ)).to_mul_equiv.prime_iff,
+  convert_to _ ↔ prime (C r), { congr, apply rename_C },
+  { induction fintype.card σ with d hd,
+    { exact (is_empty_alg_equiv R (fin 0)).to_mul_equiv.symm.prime_iff },
+    { rw [hd, polynomial.prime_C_iff],
+      convert (fin_succ_equiv R d).to_mul_equiv.symm.prime_iff,
+      rw ← fin_succ_equiv_comp_C_eq_C, refl } },
+end
+
+lemma prime_C_iff : prime r ↔ prime (C r : mv_polynomial σ R) :=
+⟨ λ hr, ⟨ λ h, hr.1 $ by { rw [← C_inj, h], simp },
+    λ h, hr.2.1 $ by { rw ← constant_coeff_C r, exact h.map _ },
+    λ a b hd, begin
+      obtain ⟨s,a',b',rfl,rfl⟩ := exists_finset_rename₂ a b,
+      rw ← algebra_map_eq at hd, have : algebra_map R _ r ∣ a' * b',
+      { convert (kill_compl ↑s).to_ring_hom.map_dvd hd, simpa, simp },
+      rw ← rename_C (coe : s → σ), let f := (rename (coe : s → σ)).to_ring_hom,
+      exact (((prime_C_iff_of_fintype s).1 hr).2.2 a' b' this).imp f.map_dvd f.map_dvd,
+    end ⟩,
+  λ hC, ⟨ λ h, hC.1 $ by rw [h, C_0], λ h, hC.2.1 $ h.map C,
+    λ a b h, by { apply (hC.2.2 (C a) (C b) (by { convert C.map_dvd h, simp })).imp _ _;
+      { intro h, convert constant_coeff.map_dvd h; simp } } ⟩ ⟩
+
+variable {σ}
+lemma prime_rename_iff (s : set σ) {p : mv_polynomial s R} :
+  prime p ↔ prime (rename (coe : s → σ) p) :=
+begin
+  classical, let eqv := ((sum_alg_equiv R _ _).symm.trans $
+    rename_equiv R $ (equiv.sum_comm ↥sᶜ s).trans $ equiv.set.sum_compl s),
+  rw [prime_C_iff ↥sᶜ, eqv.to_mul_equiv.prime_iff], convert iff.rfl,
+  suffices : (rename coe).to_ring_hom = eqv.to_alg_hom.to_ring_hom.comp C,
+  { apply ring_hom.congr_fun this },
+  { apply ring_hom_ext,
+    { intro, dsimp [eqv], erw [iter_to_sum_C_C, rename_C, rename_C] },
+    { intro, dsimp [eqv], erw [iter_to_sum_C_X, rename_X, rename_X], refl } },
+end
+
+end mv_polynomial
+
+end prime
+
+namespace polynomial
+
 @[priority 100]
 instance {R : Type*} [comm_ring R] [is_domain R] [wf_dvd_monoid R] :
   wf_dvd_monoid R[X] :=
@@ -1062,10 +1125,11 @@ def quotient_equiv_quotient_mv_polynomial (I : ideal R) :
 
 end mv_polynomial
 
-namespace polynomial
+section unique_factorization_domain
+variables {D : Type u} [comm_ring D] [is_domain D] [unique_factorization_monoid D] (σ)
 open unique_factorization_monoid
 
-variables {D : Type u} [comm_ring D] [is_domain D] [unique_factorization_monoid D]
+namespace polynomial
 
 @[priority 100]
 instance unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=
@@ -1076,3 +1140,33 @@ begin
 end
 
 end polynomial
+
+namespace mv_polynomial
+
+private lemma unique_factorization_monoid_of_fintype [fintype σ] :
+  unique_factorization_monoid (mv_polynomial σ D) :=
+(rename_equiv D (fintype.equiv_fin σ)).to_mul_equiv.symm.unique_factorization_monoid $
+begin
+  induction fintype.card σ with d hd,
+  { apply (is_empty_alg_equiv D (fin 0)).to_mul_equiv.symm.unique_factorization_monoid,
+    apply_instance },
+  { apply (fin_succ_equiv D d).to_mul_equiv.symm.unique_factorization_monoid,
+    exactI polynomial.unique_factorization_monoid },
+end
+
+@[priority 100]
+instance : unique_factorization_monoid (mv_polynomial σ D) :=
+begin
+  rw iff_exists_prime_factors,
+  intros a ha, obtain ⟨s,a',rfl⟩ := exists_finset_rename a,
+  obtain ⟨w,h,u,hw⟩ := iff_exists_prime_factors.1
+    (unique_factorization_monoid_of_fintype s) a' (λ h, ha $ by simp [h]),
+  { use w.map (rename coe), split,
+    { intros b hb, rw multiset.mem_map at hb, obtain ⟨b',hb',rfl⟩ := hb,
+      exact (prime_rename_iff ↑s).1 (h b' hb') },
+    { use units.map (@rename s σ D _ coe).to_ring_hom.to_monoid_hom u,
+      erw [multiset.prod_hom, ← map_mul, hw] } },
+end
+
+end mv_polynomial
+end unique_factorization_domain

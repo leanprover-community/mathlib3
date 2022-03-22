@@ -5,13 +5,9 @@ Authors: Violeta Hernández Palacios
 -/
 
 import analysis.complex.basic
-import data.complex.basic
 import data.real.cardinality
 import data.polynomial.cardinal
-import data.rat.denumerable
 import ring_theory.algebraic
-import set_theory.cardinal_ordinal
-import topology.separation
 import topology.bases
 
 /-!

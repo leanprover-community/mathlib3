@@ -26,7 +26,7 @@ noncomputable theory
 open real interval_integral measure_theory set filter
 
 /-- Integral of `exp (-b * x)` over `(a, X)` is bounded as `X → ∞`. -/
-lemma exp_neg_integral_bound {b : ℝ} (a X : ℝ) (h2 : 0 < b) :
+lemma integral_exp_neg_le {b : ℝ} (a X : ℝ) (h2 : 0 < b) :
   (∫ x in a .. X, exp (-b * x)) ≤ exp (-b * a) / b :=
 begin
   rw integral_deriv_eq_sub' (λ x, -exp (-b * x) / b),
@@ -50,7 +50,7 @@ begin
   { intro X, exact (continuous_const.mul continuous_id).exp.integrable_on_Ioc },
   apply (integrable_on_Ioi_of_interval_integral_norm_bounded (exp (-b * a) / b) a this tendsto_id),
   simp only [eventually_at_top, norm_of_nonneg (exp_pos _).le],
-  exact ⟨a, λ b2 hb2, exp_neg_integral_bound a b2 h⟩,
+  exact ⟨a, λ b2 hb2, integral_exp_neg_le a b2 h⟩,
 end
 
 /-- If `f` is continuous on `[a, ∞)`, and is `O( exp (-b * x) )` at `∞` for some `b > 0`, then
@@ -69,7 +69,7 @@ begin
     have u : Icc a v ⊆ Ici a := Icc_subset_Ici_self,
     exact (h1.mono u).interval_integrable_of_Icc (le_max_left a r), },
   suffices : integrable_on f (Ioi v),
-  { have t : integrable_on f (Ioc a v ∪ Ioi v) volume := integrable_on_union.mpr ⟨int_left, this⟩,
+  { have t : integrable_on f (Ioc a v ∪ Ioi v) := integrable_on_union.mpr ⟨int_left, this⟩,
     simpa only [Ioc_union_Ioi_eq_Ioi, le_max_iff, le_refl, true_or] using t },
   -- now show integrable on (v, ∞) from asymptotic
   split,

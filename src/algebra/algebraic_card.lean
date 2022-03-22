@@ -75,7 +75,7 @@ begin
 end
 
 theorem omega_le_algebraic_card_of_char_zero (R A : Type*) [comm_ring R] [is_domain R] [ring A]
-  [algebra R A] [char_zero R] : ω ≤ #{x : A | is_algebraic R x} :=
+  [algebra R A] [char_zero A] : ω ≤ #{x : A | is_algebraic R x} :=
 @mk_le_of_injective (ulift ℕ) {x : A | is_algebraic R x} (λ n, ⟨_, is_algebraic_nat n.down⟩)
   (λ m n hmn, by simpa using hmn)
 

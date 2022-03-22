@@ -422,3 +422,4 @@ Logic and computation:
     substructure: 'first_order.language.substructure'
     definable set: 'set.definable'
     elementary embedding: 'first_order.language.elementary_embedding'
+    Compactness theorem: 'first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable'

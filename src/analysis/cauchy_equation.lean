@@ -1,81 +1,68 @@
 import tactic data.real.basic linear_algebra order data.rat.basic data.int.basic topology.basic
-import topology.instances.real
+import measure_theory.measurable_space_def measure_theory.constructions.borel_space
+import topology.instances.real algebra.module.basic measure_theory.group.measure topology.metric_space.baire
+import algebra.order.floor
 
-theorem cauchy_rational (f : ℚ → ℝ) (h : ∀ (x y : ℚ), f (x + y) = f x + f y) :
-  is_linear_map ℚ f := 
-begin
-  refine ⟨h, λ c x, _⟩,
-  have h0 : f 0 = 0,
-  { simpa using h 0 0 },
-  have hodd : ∀ (x : ℚ), f (- x) = - f x,
-  { intro x,
-    specialize h x (-x),
-    simp only [h0, add_right_neg] at h,
-    linarith },
-  have : ∀ (n : ℕ) (x : ℚ), f (n * x) = n * f x,
-  { intros n x,
-    induction n with d hd,
-    { simpa using h0 },
-    { simp only [nat.cast_succ, add_mul, one_mul, h (d * x) x, hd] }},
-  obtain rfl | hc := eq_or_ne c 0,
-  { simpa using h0 },
-  suffices : (c.denom : ℝ) * f (c • x) = (c.denom * c : ℝ) • f x,
-    { simp only [smul_eq_mul, mul_assoc] at this,
-      apply mul_left_cancel₀ _ this,
-      simp only [ne.def, nat.cast_eq_zero, rat.denom_ne_zero c, not_false_iff] },
-  simp only [smul_eq_mul, ← mul_assoc, mul_comm _ c, rat.mul_denom_eq_num,
-    ← this c.denom],
-  obtain hc | hc := lt_or_gt_of_ne hc,
-  { have h1 : 0 ≤ - c := by simp only [right.nonneg_neg_iff, le_of_lt hc],
-    suffices h2 : f (((-c).num) * x) = ((- c).num) * f x,
-    { simp only [rat.num_neg_eq_neg_num, int.cast_neg, neg_mul, hodd, neg_inj] at h2,
-      have h3 : (c.num : ℝ) = c * c.denom,
-      { norm_cast,
-        rw ← rat.mul_denom_eq_num },
-      rw [h2, h3, mul_comm (c : ℝ) _] },
-    rw [← abs_eq_self.mpr (rat.num_nonneg_iff_zero_le.mpr h1), int.abs_eq_nat_abs],
-    norm_cast,
-    rw ← this },
-  { rw [← abs_eq_self.mpr (rat.num_nonneg_iff_zero_le.mpr (le_of_lt hc)), int.abs_eq_nat_abs],
-    norm_cast,
-    rw [mul_comm _ c, rat.mul_denom_eq_num, this],
-    rw [← abs_eq_self.mpr (rat.num_nonneg_iff_zero_le.mpr (le_of_lt hc)), int.abs_eq_nat_abs],
-    norm_cast }
-end
 
-theorem additive_continuous_at_imp_continuous (f : ℝ → ℝ) {a : ℝ} 
-  (h₁  : ∀ (x y : ℝ), f (x + y) = f x + f y) (h₂ : continuous_at f a) : 
-  continuous f :=
-begin
-  rw continuous_iff_continuous_at,
-  intro b,
-  set g : ℝ → ℝ := λ x, x + (a - b) with hg,
-  set k : ℝ → ℝ := λ x, ((f ∘ g) x - f (a - b)) with hk,
-  have hfk : f = k,
-  { ext x,
-    simp only [hk, function.comp_app, h₁, add_tsub_cancel_right] },
-  rw hfk,
-  rw hk,
-  apply continuous_at.sub,
-  { simp only [function.comp_app],
-    apply continuous_at.comp,
-    { simp only [hg, add_sub_cancel'_right, h₂],},
-    { apply continuous.continuous_at,
-      continuity }},
-  { apply continuous.continuous_at,
-    continuity }
-end
+open add_monoid_hom metric
 
-theorem cauchy_real (f : ℝ → ℝ) {a : ℝ} (h₁ : ∀ (x y : ℝ), f (x + y) = f x + f y)
-  (h₂ : continuous_at f a) :
-  is_linear_map ℝ f := 
+theorem cauchy_rational (f : ℝ →+ ℝ) :
+  is_linear_map ℚ f := by exact ⟨map_add f, λ c x, add_monoid_hom.map_rat_cast_smul f ℝ ℝ c x⟩
+
+open measure_theory measure_theory.measure
+
+lemma prereq (μ : measure ℝ) [is_add_haar_measure μ] (f : ℝ →+ ℝ) (h : @measurable ℝ ℝ (borel ℝ) (borel ℝ) f) :
+  ∃ (C δ : ℝ), 0 < C ∧ 0 < δ ∧ ∀ (x : ℝ), x ∈ closed_ball (0 : ℝ) δ → ∥f x∥ ≤ C :=
 begin
-  refine ⟨h₁, λ c x, _⟩,
-  by_contra h,
-  set g : ℚ → ℝ := λ x, f x with hg,
-  have : ∀ (x : ℚ), g x = g 1 * x,
-  { have hgzero : g 0 = 0,
-    { sorry },
+  have h1 : ∃ (r : ℝ), 0 < r ∧ μ (f⁻¹' (closed_ball 0 r)) ≠ 0,
+  { by_contra hr,
+    push_neg at hr,
     sorry },
-  sorry
+  cases h1 with r hr,
+  set E : set ℝ := f⁻¹' (closed_ball 0 r) with hE,
+  have h2 : ∃ (δ : ℝ), 0 < δ ∧ closed_ball (0 : ℝ) δ ⊆ E -ᵥ E,
+  { sorry },
+  cases h2 with δ hδ,
+  refine ⟨(2 * r), δ, _, hδ.1, λ x hx, _⟩,
+  { linarith [hr.1] },
+  { replace hx := set.mem_of_subset_of_mem hδ.2 hx,
+    rw set.mem_vsub at hx,
+    rcases hx with ⟨a, b, ha, hb, hab⟩,
+    rw ← hab,
+    simp only [vsub_eq_sub, map_sub],
+    calc ∥f a - f b∥ ≤ ∥ f a ∥ + ∥ f b ∥ : norm_sub_le (f a) (f b)
+      ... ≤ 2 * r : by linarith [(mem_closed_ball_zero_iff).mp (set.mem_preimage.mp ha),
+      (mem_closed_ball_zero_iff).mp (set.mem_preimage.mp hb)]}
 end
+
+lemma prereq2 (μ : measure ℝ) [is_add_haar_measure μ] (f : ℝ →+ ℝ)
+  (h : @measurable ℝ ℝ (borel ℝ) (borel ℝ) f) : continuous_at f 0 :=
+begin
+  rw continuous_at_iff,
+  intros ε hε,
+  simp only [gt_iff_lt, dist_zero_right, _root_.map_zero, exists_prop],
+  have h1 := prereq μ f h,
+  rcases h1 with ⟨C, δ, h1⟩,
+  cases (exists_nat_gt (C / ε)) with n hn,
+  use δ/n,
+  split,
+  { apply div_pos h1.2.1 (lt_trans (div_pos h1.1 hε) hn) },
+  { intros x hxδ,
+    have h2 : f (n • x) = n • f x, { exact map_nsmul f x n },
+    have hnpos : 0 < (n : ℝ) := (lt_trans (div_pos h1.1 hε) hn),
+    simp only [nsmul_eq_mul] at h2,
+    simp only [mul_comm, ← div_eq_iff (ne.symm (ne_of_lt hnpos))] at h2,
+    rw ← h2,
+    replace hxδ : ∥ x * n ∥ ≤ δ,
+    { simp only [norm_mul, real.norm_coe_nat, ← le_div_iff hnpos, le_of_lt hxδ], },
+    norm_num,
+    simp only [mem_closed_ball_zero_iff] at h1,
+    apply lt_of_le_of_lt (div_le_div (le_of_lt h1.1) (h1.2.2 (x * n) hxδ) hnpos (le_of_eq rfl)) _,
+    simp only [div_lt_iff hnpos, mul_comm ε _, ← div_lt_iff hε, hn] }
+end
+
+
+lemma continuous_of_measurable (μ : measure ℝ) [is_add_haar_measure μ] (f : ℝ →+ ℝ)
+  (h : @measurable ℝ ℝ (borel ℝ) (borel ℝ) f) : continuous f :=
+  by exact uniform_continuous.continuous
+    (uniform_continuous_of_continuous_at_zero f (prereq2 μ f h))

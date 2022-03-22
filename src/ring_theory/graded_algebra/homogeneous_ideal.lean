@@ -282,43 +282,59 @@ variables {𝒜}
 
 namespace homogeneous_ideal
 
-instance : partial_order (homogeneous_ideal 𝒜) :=
-partial_order.lift _ subtype.coe_injective
+instance : partial_order (homogeneous_ideal 𝒜) := set_like.partial_order
 
 instance : has_top (homogeneous_ideal 𝒜) := ⟨⟨⊤, ideal.is_homogeneous.top 𝒜⟩⟩
 instance : has_bot (homogeneous_ideal 𝒜) := ⟨⟨⊥, ideal.is_homogeneous.bot 𝒜⟩⟩
-instance : has_sup (homogeneous_ideal 𝒜) := ⟨λ I J, ⟨I ⊔ J, I.prop.sup J.prop⟩⟩
-instance : has_inf (homogeneous_ideal 𝒜) := ⟨λ I J, ⟨I ⊓ J, I.prop.inf J.prop⟩⟩
+instance : has_sup (homogeneous_ideal 𝒜) := ⟨λ I J, ⟨_, I.is_homogeneous.sup J.is_homogeneous⟩⟩
+instance : has_inf (homogeneous_ideal 𝒜) := ⟨λ I J, ⟨_, I.is_homogeneous.inf J.is_homogeneous⟩⟩
 instance : has_Sup (homogeneous_ideal 𝒜) :=
-⟨λ S, ⟨⨆ s ∈ S, ↑s, ideal.is_homogeneous.supr₂ $ λ s _, s.prop⟩⟩
+⟨λ S, ⟨⨆ s ∈ S, to_ideal s, ideal.is_homogeneous.supr₂ $ λ s _, s.is_homogeneous⟩⟩
 instance : has_Inf (homogeneous_ideal 𝒜) :=
-⟨λ S, ⟨⨅ s ∈ S, ↑s, ideal.is_homogeneous.infi₂ $ λ s _, s.prop⟩⟩
+⟨λ S, ⟨⨅ s ∈ S, to_ideal s, ideal.is_homogeneous.infi₂ $ λ s _, s.is_homogeneous⟩⟩
 
-@[simp] lemma coe_top : ((⊤ : homogeneous_ideal 𝒜) : ideal A) = ⊤ := rfl
-@[simp] lemma coe_bot : ((⊥ : homogeneous_ideal 𝒜) : ideal A) = ⊥ := rfl
-@[simp] lemma coe_sup (I J : homogeneous_ideal 𝒜) : ↑(I ⊔ J) = (I ⊔ J : ideal A) := rfl
-@[simp] lemma coe_inf (I J : homogeneous_ideal 𝒜) : (↑(I ⊓ J) : ideal A) = I ⊓ J  := rfl
-@[simp] lemma coe_Sup (ℐ : set (homogeneous_ideal 𝒜)) : ↑(Sup ℐ) = ⨆ s ∈ ℐ, (s : ideal A) := rfl
-@[simp] lemma coe_Inf (ℐ : set (homogeneous_ideal 𝒜)) : ↑(Inf ℐ) = ⨅ s ∈ ℐ, (s : ideal A) := rfl
+@[simp] lemma coe_top : ((⊤ : homogeneous_ideal 𝒜) : set A) = univ := rfl
+@[simp] lemma coe_bot : ((⊥ : homogeneous_ideal 𝒜) : set A) = 0 := rfl
+@[simp] lemma coe_sup (I J : homogeneous_ideal 𝒜) : ↑(I ⊔ J) = (I + J : set A) :=
+submodule.coe_sup _ _
+@[simp] lemma coe_inf (I J : homogeneous_ideal 𝒜) : (↑(I ⊓ J) : set A) = I ∩ J := rfl
 
-@[simp] lemma coe_supr {κ : Sort*} (s : κ → homogeneous_ideal 𝒜) :
-  ↑(⨆ i, s i) = ⨆ i, (s i : ideal A) :=
-by rw [supr, coe_Sup, supr_range]
+@[simp] lemma to_ideal_top : (⊤ : homogeneous_ideal 𝒜).to_ideal = (⊤ : ideal A) := rfl
+@[simp] lemma to_ideal_bot : (⊥ : homogeneous_ideal 𝒜).to_ideal = (⊥ : ideal A) := rfl
 
-@[simp] lemma coe_infi {κ : Sort*} (s : κ → homogeneous_ideal 𝒜) :
-  ↑(⨅ i, s i) = ⨅ i, (s i : ideal A) :=
-by rw [infi, coe_Inf, infi_range]
+@[simp] lemma to_ideal_sup (I J : homogeneous_ideal 𝒜) :
+  (I ⊔ J).to_ideal = I.to_ideal ⊔ J.to_ideal := rfl
 
-@[simp] lemma coe_supr₂ {κ : Sort*} {κ' : κ → Sort*} (s : Π i, κ' i → homogeneous_ideal 𝒜) :
-  ↑(⨆ i j, s i j) = ⨆ i j, (s i j : ideal A) :=
-by simp_rw coe_supr
+@[simp] lemma to_ideal_inf (I J : homogeneous_ideal 𝒜) :
+  (I ⊓ J).to_ideal = I.to_ideal ⊓ J.to_ideal := rfl
 
-@[simp] lemma coe_infi₂ {κ : Sort*} {κ' : κ → Sort*} (s : Π i, κ' i → homogeneous_ideal 𝒜) :
-  ↑(⨅ i j, s i j) = ⨅ i j, (s i j : ideal A) :=
-by simp_rw coe_infi
+@[simp] lemma to_ideal_Sup (ℐ : set (homogeneous_ideal 𝒜)) :
+  (Sup ℐ).to_ideal = ⨆ s ∈ ℐ, to_ideal s := rfl
 
-@[simp] lemma eq_top_iff (I : homogeneous_ideal 𝒜) : I = ⊤ ↔ (I : ideal A) = ⊤ := subtype.ext_iff
-@[simp] lemma eq_bot_iff (I : homogeneous_ideal 𝒜) : I = ⊥ ↔ (I : ideal A) = ⊥ := subtype.ext_iff
+@[simp] lemma to_ideal_Inf (ℐ : set (homogeneous_ideal 𝒜)) :
+  (Inf ℐ).to_ideal = ⨅ s ∈ ℐ, to_ideal s := rfl
+
+@[simp] lemma to_ideal_supr {κ : Sort*} (s : κ → homogeneous_ideal 𝒜) :
+  (⨆ i, s i).to_ideal = ⨆ i, (s i).to_ideal :=
+by rw [supr, to_ideal_Sup, supr_range]
+
+@[simp] lemma to_ideal_infi {κ : Sort*} (s : κ → homogeneous_ideal 𝒜) :
+  (⨅ i, s i).to_ideal = ⨅ i, (s i).to_ideal :=
+by rw [infi, to_ideal_Inf, infi_range]
+
+@[simp] lemma to_ideal_supr₂ {κ : Sort*} {κ' : κ → Sort*} (s : Π i, κ' i → homogeneous_ideal 𝒜) :
+  (⨆ i j, s i j).to_ideal = ⨆ i j, (s i j).to_ideal :=
+by simp_rw to_ideal_supr
+
+@[simp] lemma to_ideal_infi₂ {κ : Sort*} {κ' : κ → Sort*} (s : Π i, κ' i → homogeneous_ideal 𝒜) :
+  (⨅ i j, s i j).to_ideal = ⨅ i j, (s i j).to_ideal :=
+by simp_rw to_ideal_infi
+
+@[simp] lemma eq_top_iff (I : homogeneous_ideal 𝒜) : I = ⊤ ↔ I.to_ideal = ⊤ :=
+to_ideal_injective.eq_iff.symm
+
+@[simp] lemma eq_bot_iff (I : homogeneous_ideal 𝒜) : I = ⊥ ↔ I.to_ideal = ⊥ :=
+to_ideal_injective.eq_iff.symm
 
 instance : complete_lattice (homogeneous_ideal 𝒜) :=
 to_ideal_injective.complete_lattice _ to_ideal_sup to_ideal_inf to_ideal_Sup to_ideal_Inf
@@ -476,7 +492,7 @@ lemma ideal.homogeneous_hull_eq_supr :
   (I.homogeneous_hull 𝒜) =
   ⨆ i, ⟨ideal.span (graded_algebra.proj 𝒜 i '' I), ideal.is_homogeneous_span 𝒜 _
     (by {rintros _ ⟨x, -, rfl⟩, apply set_like.is_homogeneous_coe})⟩ :=
-by ext1; rw [ideal.to_ideal_homogeneous_hull_eq_supr, coe_supr]; refl
+by { ext1, rw [ideal.to_ideal_homogeneous_hull_eq_supr, to_ideal_supr], refl }
 
 end homogeneous_hull
 

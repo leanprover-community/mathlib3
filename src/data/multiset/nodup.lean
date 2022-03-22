@@ -14,7 +14,7 @@ import data.multiset.range
 namespace multiset
 open function list
 
-variables {α β γ : Type*} {s t : multiset α} {a : α}
+variables {α β γ : Type*} {r : α → α → Prop} {s t : multiset α} {a : α}
 
 /- nodup -/
 
@@ -63,12 +63,11 @@ le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
 lemma nodup_iff_pairwise {α} {s : multiset α} : nodup s ↔ pairwise (≠) s :=
 quotient.induction_on s $ λ l, (pairwise_coe_iff_pairwise (by exact λ a b, ne.symm)).symm
 
-protected lemma nodup.pairwise {r : α → α → Prop} {s : multiset α} :
-  (∀a∈s, ∀b∈s, a ≠ b → r a b) → nodup s → pairwise r s :=
+protected lemma nodup.pairwise : (∀ a ∈ s, ∀ b ∈ s, a ≠ b → r a b) → nodup s → pairwise r s :=
 quotient.induction_on s $ assume l h hl, ⟨l, rfl, hl.imp_of_mem $ assume a b ha hb, h a ha b hb⟩
 
-lemma forall_of_pairwise {r : α → α → Prop} (H : symmetric r) {s : multiset α}
-   (hs : pairwise r s) : (∀a∈s, ∀b∈s, a ≠ b → r a b) :=
+lemma pairwise.forall (H : symmetric r) (hs : pairwise r s) :
+  ∀ ⦃a⦄, a ∈ s → ∀ ⦃b⦄, b ∈ s → a ≠ b → r a b :=
 let ⟨l, hl₁, hl₂⟩ := hs in hl₁.symm ▸ hl₂.forall H
 
 theorem nodup_add {s t : multiset α} : nodup (s + t) ↔ nodup s ∧ nodup t ∧ disjoint s t :=

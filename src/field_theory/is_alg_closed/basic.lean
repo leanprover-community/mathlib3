@@ -215,7 +215,7 @@ instance : preorder (subfield_with_hom K L M hL) :=
 open lattice
 
 lemma maximal_subfield_with_hom_chain_bounded (c : set (subfield_with_hom K L M hL))
-  (hc : chain (≤) c) :
+  (hc : is_chain (≤) c) :
   ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
 if hcn : c.nonempty then
 let ub : subfield_with_hom K L M hL :=

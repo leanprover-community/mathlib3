@@ -197,7 +197,7 @@ preadditive.exact_of_iso_of_exact' (F.map (P.ι.f 0)) (F.map (P.cocomplex.d 0 1)
   (preserves_exact_of_preserves_finite_limits_of_mono _ (P.exact₀))
 
 /-- Given `P : InjectiveResolution X`, a morphism `(F.right_derived 0).obj X ⟶ F.obj X` given
-`preserves_finite_colimits F`. -/
+`preserves_finite_limits F`. -/
 def right_derived_zero_to_self_app [enough_injectives C] [preserves_finite_limits F] {X : C}
   (P : InjectiveResolution X) :
   (F.right_derived 0).obj X ⟶ F.obj X :=

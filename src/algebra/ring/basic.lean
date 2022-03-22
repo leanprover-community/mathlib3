@@ -269,28 +269,6 @@ lemma ite_mul_zero_right {α : Type*} [mul_zero_class α] (P : Prop) [decidable 
   ite P (a * b) 0 = a * ite P b 0 :=
 by { by_cases h : P; simp [h], }
 
-/-- An element `a` of a semiring is even if there exists `k` such `a = 2*k`. -/
-def even (a : α) : Prop := ∃ k, a = 2*k
-
-lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
-
-@[simp] lemma range_two_mul (α : Type*) [semiring α] :
-  set.range (λ x : α, 2 * x) = {a | even a} :=
-by { ext x, simp [even, eq_comm] }
-
-@[simp] lemma even_bit0 (a : α) : even (bit0 a) :=
-⟨a, by rw [bit0, two_mul]⟩
-
-/-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
-def odd (a : α) : Prop := ∃ k, a = 2*k + 1
-
-@[simp] lemma odd_bit1 (a : α) : odd (bit1 a) :=
-⟨a, by rw [bit1, bit0, two_mul]⟩
-
-@[simp] lemma range_two_mul_add_one (α : Type*) [semiring α] :
-  set.range (λ x : α, 2 * x + 1) = {a | odd a} :=
-by { ext x, simp [odd, eq_comm] }
-
 theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
 dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
 
@@ -1059,20 +1037,6 @@ begin
     convert dvd_add h h',
     exact eq_add_of_sub_eq rfl }
 end
-
-@[simp] theorem even_neg (a : α) : even (-a) ↔ even a :=
-dvd_neg _ _
-
-lemma odd.neg {a : α} (hp : odd a) : odd (-a) :=
-begin
-  obtain ⟨k, hk⟩ := hp,
-  use -(k + 1),
-  rw [mul_neg, mul_add, neg_add, add_assoc, two_mul (1 : α), neg_add,
-    neg_add_cancel_right, ←neg_add, hk],
-end
-
-@[simp] lemma odd_neg (a : α) : odd (-a) ↔ odd a :=
-⟨λ h, neg_neg a ▸ h.neg, odd.neg⟩
 
 end ring
 

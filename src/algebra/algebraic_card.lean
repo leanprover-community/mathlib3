@@ -5,7 +5,7 @@ Authors: Violeta Hernández Palacios
 -/
 
 import analysis.complex.basic
-import data.real.cardinality
+import data.complex.cardinality
 import data.polynomial.cardinal
 import ring_theory.algebraic
 import topology.bases
@@ -26,9 +26,6 @@ open_locale cardinal
 theorem roots_finite {R} (A) [comm_ring R] [is_domain R] [ring A] [algebra R A] {p : polynomial R}
   (hp : p ≠ 0) : {y : A | aeval y p = 0}.finite :=
 sorry
-
--- This needs to be proved, and goes elsewhere.
-theorem mk_complex : #ℂ = 𝔠 := sorry
 
 theorem algebraic_card (R) {A} [comm_ring R] [is_domain R] [ring A] [algebra R A]
   [topological_space A] [t1_space A] {s : set (set A)} (hs : is_topological_basis s) :

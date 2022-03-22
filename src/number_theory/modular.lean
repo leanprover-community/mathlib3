@@ -418,8 +418,8 @@ begin
   /- The next argument is simply that `c^2 y^2 ≤ |c z + d|^2`. -/
   have czPdGecy : (↑ₘg 1 0 : ℝ)^2 * (z.im)^2 ≤ norm_sq (denom g z) :=
     calc
-    (↑ₘg 1 0 : ℝ)^2 * (z.im)^2 ≤ (↑ₘg 1 0 : ℝ)^2 * (z.im)^2 + (↑ₘg 1 0 * z.re + ↑ₘg 1 1)^2 : by nlinarith
-    ... = norm_sq (denom g z) : by simp [norm_sq]; ring,
+    (↑ₘg 1 0 : ℝ)^2 * (z.im)^2 ≤ (↑ₘg 1 0 : ℝ)^2 * (z.im)^2 + (↑ₘg 1 0 * z.re + ↑ₘg 1 1)^2 :
+    by nlinarith ... = norm_sq (denom g z) : by simp [norm_sq]; ring,
   have zIm : (3 : ℝ) / 4 < (z.im)^2 := ImGeInD _ hz,
   /- This is the main calculation:
   `sqrt 3 / 2 < Im(g•z) = Im(z)/|cz+d|^2 ≤ y/(c^2 y^2) < 2/(c^2 sqrt 3)`

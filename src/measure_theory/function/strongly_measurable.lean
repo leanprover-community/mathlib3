@@ -584,12 +584,7 @@ protected lemma ennnorm {m : measurable_space α} {β : Type*} [normed_group β]
 protected lemma real_to_nnreal {m : measurable_space α} {f : α → ℝ}
   (hf : strongly_measurable f) :
   strongly_measurable (λ x, (f x).to_nnreal) :=
-begin
-  have : continuous (λ (x : ℝ), x.to_nnreal) := continuous_real_to_nnreal,
-end
-
-
-#check measurable.real_to_nnreal
+continuous_real_to_nnreal.comp_strongly_measurable hf
 
 lemma _root_.measurable_embedding.strongly_measurable_extend {f : α → β} {g : α → γ} {g' : γ → β}
   {mα : measurable_space α} {mγ : measurable_space γ} [topological_space β]
@@ -1097,6 +1092,11 @@ protected lemma edist {β : Type*} [normed_group β] {f g : α → β}
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   ae_measurable (λ a, edist (f a) (g a)) μ :=
 (continuous_edist.comp_ae_strongly_measurable (hf.prod_mk hg)).ae_measurable
+
+protected lemma real_to_nnreal {f : α → ℝ}
+  (hf : ae_strongly_measurable f μ) :
+  ae_strongly_measurable (λ x, (f x).to_nnreal) μ :=
+continuous_real_to_nnreal.comp_ae_strongly_measurable hf
 
 section
 variables {𝕜 : Type*} {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]

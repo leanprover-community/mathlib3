@@ -26,8 +26,6 @@ notation `ℂ` := complex
 
 namespace complex
 
-open_locale complex_conjugate
-
 noncomputable instance : decidable_eq ℂ := classical.dec_eq _
 
 /-- The equivalence between the complex numbers and `ℝ × ℝ`. -/
@@ -47,6 +45,8 @@ by rw [mk_congr complex.equiv_real_prod, mk_prod, lift_id, mk_real, continuum_mu
 end cardinal
 
 namespace complex
+
+open_locale complex_conjugate
 
 @[simp] theorem eta : ∀ z : ℂ, complex.mk z.re z.im = z
 | ⟨a, b⟩ := rfl

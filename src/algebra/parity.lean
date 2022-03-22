@@ -127,11 +127,6 @@ dvd_neg _ _
 lemma even.sub_even (hm : even m) (hn : even n) : even (m - n) :=
 by { rw sub_eq_add_neg, exact hm.add_even ((even_neg n).mpr hn) }
 
--- from src/algebra/order/ring.lean
-variables [linear_order α]
-lemma even_abs {a : α} : even (|a|) ↔ even a :=
-dvd_abs _ _
-
 lemma odd.neg {a : α} (hp : odd a) : odd (-a) :=
 begin
   obtain ⟨k, hk⟩ := hp,
@@ -153,6 +148,11 @@ by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
 
 lemma odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
+
+-- from src/algebra/order/ring.lean
+variables [linear_order α]
+lemma even_abs {a : α} : even (|a|) ↔ even a :=
+dvd_abs _ _
 
 -- from src/algebra/order/ring.lean
 lemma odd_abs {a : α} : odd (abs a) ↔ odd a :=

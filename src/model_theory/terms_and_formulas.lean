@@ -199,19 +199,52 @@ end term
 
 localized "prefix `&`:max := first_order.language.term.var ∘ sum.inr" in first_order
 
-/-- Maps a term's symbols along a language map. -/
-@[simp] def Lhom.on_term {α : Type*} (φ : L →ᴸ L') : L.term α → L'.term α
-| (var i) := var i
-| (func f ts) := func (φ.on_function f) (λ i, Lhom.on_term (ts i))
+namespace Lhom
 
-@[simp] lemma Lhom.realize_on_term [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
-  {α : Type*} (t : L.term α) (v : α → M) :
+/-- Maps a term's symbols along a language map. -/
+@[simp] def on_term (φ : L →ᴸ L') : L.term α → L'.term α
+| (var i) := var i
+| (func f ts) := func (φ.on_function f) (λ i, on_term (ts i))
+
+@[simp] lemma id_on_term :
+  ((Lhom.id L).on_term : L.term α → L.term α) = id :=
+begin
+  ext t,
+  induction t with _ _ _ _ ih,
+  { refl },
+  { simp_rw [on_term, ih],
+    refl, },
+end
+
+@[simp] lemma comp_on_term {L'' : language} (φ : L' →ᴸ L'') (ψ : L →ᴸ L') :
+  ((φ.comp ψ).on_term : L.term α → L''.term α) = φ.on_term ∘ ψ.on_term :=
+begin
+  ext t,
+  induction t with _ _ _ _ ih,
+  { refl },
+  { simp_rw [on_term, ih],
+    refl, },
+end
+
+@[simp] lemma realize_on_term [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  (t : L.term α) (v : α → M) :
   (φ.on_term t).realize v = t.realize v :=
 begin
   induction t with _ n f ts ih,
   { refl },
   { simp only [term.realize, Lhom.on_term, Lhom.is_expansion_on.map_on_function, ih] }
 end
+
+end Lhom
+
+/-- Maps a term's symbols along a language equivalence. -/
+@[simps] def Lequiv.on_term (φ : L ≃ᴸ L') : L.term α ≃ L'.term α :=
+{ to_fun := φ.to_Lhom.on_term,
+  inv_fun := φ.inv_Lhom.on_term,
+  left_inv := by rw [function.left_inverse_iff_comp, ← Lhom.comp_on_term, φ.left_inv,
+    Lhom.id_on_term],
+  right_inv := by rw [function.right_inverse_iff_comp, ← Lhom.comp_on_term, φ.right_inv,
+    Lhom.id_on_term] }
 
 @[simp] lemma hom.realize_term (g : M →[L] N) {t : L.term α} {v : α → M} :
   t.realize (g ∘ v) = g (t.realize v) :=
@@ -698,7 +731,7 @@ namespace Lhom
 open bounded_formula
 
 /-- Maps a bounded formula's symbols along a language map. -/
-def on_bounded_formula {α : Type*} (g : L →ᴸ L') :
+@[simp] def on_bounded_formula (g : L →ᴸ L') :
   ∀ {k : ℕ}, L.bounded_formula α k → L'.bounded_formula α k
 | k falsum := falsum
 | k (equal t₁ t₂) := (g.on_term t₁).bd_equal (g.on_term t₂)
@@ -706,8 +739,36 @@ def on_bounded_formula {α : Type*} (g : L →ᴸ L') :
 | k (imp f₁ f₂) := (on_bounded_formula f₁).imp (on_bounded_formula f₂)
 | k (all f) := (on_bounded_formula f).all
 
+@[simp] lemma id_on_bounded_formula :
+  ((Lhom.id L).on_bounded_formula : L.bounded_formula α n → L.bounded_formula α n) = id :=
+begin
+  ext f,
+  induction f with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { rw [on_bounded_formula, Lhom.id_on_term, id.def, id.def, id.def, bd_equal] },
+  { rw [on_bounded_formula, Lhom.id_on_term],
+    refl, },
+  { rw [on_bounded_formula, ih1, ih2, id.def, id.def, id.def] },
+  { rw [on_bounded_formula, ih3, id.def, id.def] }
+end
+
+@[simp] lemma comp_on_bounded_formula {L'' : language} (φ : L' →ᴸ L'') (ψ : L →ᴸ L') :
+  ((φ.comp ψ).on_bounded_formula : L.bounded_formula α n → L''.bounded_formula α n) =
+    φ.on_bounded_formula ∘ ψ.on_bounded_formula :=
+begin
+  ext f,
+  induction f with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
+  { refl },
+  { simp only [on_bounded_formula, comp_on_term, function.comp_app],
+    refl, },
+  { simp only [on_bounded_formula, comp_on_relation, comp_on_term, function.comp_app],
+    refl },
+  { simp only [on_bounded_formula, function.comp_app, ih1, ih2, eq_self_iff_true, and_self], },
+  { simp only [ih3, on_bounded_formula, function.comp_app] }
+end
+
 /-- Maps a formula's symbols along a language map. -/
-def on_formula {α : Type*} (g : L →ᴸ L') : L.formula α → L'.formula α :=
+def on_formula (g : L →ᴸ L') : L.formula α → L'.formula α :=
 g.on_bounded_formula
 
 /-- Maps a sentence's symbols along a language map. -/
@@ -723,7 +784,7 @@ g.on_sentence '' T
 set.mem_image _ _ _
 
 @[simp] lemma realize_on_bounded_formula [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
-  {α : Type*} {n : ℕ} (ψ : L.bounded_formula α n) {v : α → M} {xs : fin n → M} :
+  {n : ℕ} (ψ : L.bounded_formula α n) {v : α → M} {xs : fin n → M} :
   (φ.on_bounded_formula ψ).realize v xs ↔ ψ.realize v xs :=
 begin
   induction ψ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih3,
@@ -737,6 +798,43 @@ begin
 end
 
 end Lhom
+
+namespace Lequiv
+
+/-- Maps a bounded formula's symbols along a language equivalence. -/
+@[simps] def on_bounded_formula (φ : L ≃ᴸ L') :
+  L.bounded_formula α n ≃ L'.bounded_formula α n :=
+{ to_fun := φ.to_Lhom.on_bounded_formula,
+  inv_fun := φ.inv_Lhom.on_bounded_formula,
+  left_inv := by rw [function.left_inverse_iff_comp, ← Lhom.comp_on_bounded_formula, φ.left_inv,
+    Lhom.id_on_bounded_formula],
+  right_inv := by rw [function.right_inverse_iff_comp, ← Lhom.comp_on_bounded_formula, φ.right_inv,
+    Lhom.id_on_bounded_formula] }
+
+lemma on_bounded_formula_symm (φ : L ≃ᴸ L') :
+  (φ.on_bounded_formula.symm : L'.bounded_formula α n ≃ L.bounded_formula α n) =
+    φ.symm.on_bounded_formula :=
+rfl
+
+/-- Maps a formula's symbols along a language equivalence. -/
+def on_formula (φ : L ≃ᴸ L') :
+  L.formula α ≃ L'.formula α :=
+φ.on_bounded_formula
+
+@[simp] lemma on_formula_apply (φ : L ≃ᴸ L') :
+  (φ.on_formula : L.formula α → L'.formula α) = φ.to_Lhom.on_formula :=
+rfl
+
+@[simp] lemma on_formula_symm (φ : L ≃ᴸ L') :
+  (φ.on_formula.symm : L'.formula α ≃ L.formula α) = φ.symm.on_formula :=
+rfl
+
+/-- Maps a sentence's symbols along a language equivalence. -/
+@[simps] def on_sentence (φ : L ≃ᴸ L') :
+  L.sentence ≃ L'.sentence :=
+φ.on_formula
+
+end Lequiv
 
 attribute [protected] bounded_formula.falsum bounded_formula.equal bounded_formula.rel
 attribute [protected] bounded_formula.imp bounded_formula.all
@@ -833,9 +931,14 @@ bounded_formula.is_atomic.equal _ _
 end formula
 
 @[simp] lemma Lhom.realize_on_formula [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
-  {α : Type*} (ψ : L.formula α) {v : α → M} :
+  (ψ : L.formula α) {v : α → M} :
   (φ.on_formula ψ).realize v ↔ ψ.realize v :=
 φ.realize_on_bounded_formula ψ
+
+@[simp] lemma Lhom.set_of_realize_on_formula [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
+  (ψ : L.formula α) :
+  (set_of (φ.on_formula ψ).realize : set (α → M)) = set_of ψ.realize :=
+by { ext, simp }
 
 variable (M)
 

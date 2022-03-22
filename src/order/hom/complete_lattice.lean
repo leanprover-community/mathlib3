@@ -327,10 +327,8 @@ end Inf_hom
 /-- Reinterpret a `⨆`-homomorphism as an `⨅`-homomorphism between the dual orders. -/
 @[simps] protected def Sup_hom.dual [has_Sup α] [has_Sup β] :
   Sup_hom α β ≃ Inf_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, { to_fun := to_dual ∘ f ∘ of_dual,
-                   map_Inf' := λ _, congr_arg to_dual (map_Sup f _) },
-  inv_fun := λ f, { to_fun := of_dual ∘ f ∘ to_dual,
-                   map_Sup' := λ _, congr_arg of_dual (map_Inf f _) },
+{ to_fun := λ f, ⟨to_dual ∘ f ∘ of_dual, f.map_Sup'⟩,
+  inv_fun := λ f, ⟨of_dual ∘ f ∘ to_dual, f.map_Inf'⟩,
   left_inv := λ f, Sup_hom.ext $ λ a, rfl,
   right_inv := λ f, Inf_hom.ext $ λ a, rfl }
 
@@ -485,10 +483,8 @@ lemma cancel_left {g : complete_lattice_hom β γ} {f₁ f₂ : complete_lattice
 lattices. -/
 @[simps] protected def dual :
    complete_lattice_hom α β ≃ complete_lattice_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, { to_Inf_hom := f.to_Sup_hom.dual,
-                   map_Sup' := λ _, congr_arg to_dual (map_Inf f _) },
-  inv_fun := λ f, { to_Inf_hom := f.to_Sup_hom.dual,
-                    map_Sup' := λ _, congr_arg of_dual (map_Inf f _) },
+{ to_fun := λ f, ⟨f.to_Sup_hom.dual, f.map_Inf'⟩,
+  inv_fun := λ f, ⟨f.to_Sup_hom.dual, f.map_Inf'⟩,
   left_inv := λ f, ext $ λ a, rfl,
   right_inv := λ f, ext $ λ a, rfl }
 

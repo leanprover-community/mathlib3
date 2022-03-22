@@ -289,6 +289,13 @@ lemma cancel_left {g : bot_hom β γ} {f₁ f₂ : bot_hom α β} (hg : injectiv
 ⟨λ h, bot_hom.ext $ λ a, hg $
   by rw [←bot_hom.comp_apply, h, bot_hom.comp_apply], congr_arg _⟩
 
+/-- Reinterpret a bot homomorphism as a top homomorphism between the dual lattices. -/
+@[simps] protected def dual : bot_hom α β ≃ top_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, ⟨f, f.map_bot'⟩,
+  inv_fun := λ f, ⟨f, f.map_top'⟩,
+  left_inv := λ f, bot_hom.ext $ λ _, rfl,
+  right_inv := λ f, top_hom.ext $ λ _, rfl }
+
 end has_bot
 
 instance [preorder β] [has_bot β] : preorder (bot_hom α β) :=
@@ -340,6 +347,14 @@ instance [distrib_lattice β] [order_bot β] : distrib_lattice (bot_hom α β) :
 fun_like.coe_injective.distrib_lattice _ (λ _ _, rfl) (λ _ _, rfl)
 
 end bot_hom
+
+/-- Reinterpret a top homomorphism as a bot homomorphism between the dual lattices. -/
+@[simps] protected def top_hom.dual [has_top α] [has_top β] :
+  top_hom α β ≃ bot_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, ⟨f, f.map_top'⟩,
+  inv_fun := λ f, ⟨f, f.map_bot'⟩,
+  left_inv := λ f, top_hom.ext $ λ _, rfl,
+  right_inv := λ f, bot_hom.ext $ λ _, rfl }
 
 /-! ### Bounded order homomorphisms -/
 

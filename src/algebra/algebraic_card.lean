@@ -87,7 +87,7 @@ is_algebraic_algebra_map
 theorem is_algebraic_nat (n : ℕ) : is_algebraic ℚ (n : ℝ) :=
 by { rw ←rat.cast_coe_nat n, exact is_algebraic_rat n }
 
-theorem algebraic_card : #{x : ℝ | is_algebraic ℚ x} = ω :=
+@[simp] theorem algebraic_card : #{x : ℝ | is_algebraic ℚ x} = ω :=
 ((algebraic_card_of_second_countable ℚ ℝ).trans (by rw [mk_rat, max_self])).antisymm
   (omega_le_algebraic_card_of_char_zero ℚ ℝ)
 
@@ -110,7 +110,7 @@ by { rw ←complex.of_real_rat_cast, exact is_algebraic_algebra_map n }
 theorem is_algebraic_nat (n : ℕ) : is_algebraic ℚ (n : ℂ) :=
 by { rw ←rat.cast_coe_nat n, exact is_algebraic_rat n }
 
-theorem algebraic_card : #{x : ℂ | is_algebraic ℚ x} = ω :=
+@[simp] theorem algebraic_card : #{x : ℂ | is_algebraic ℚ x} = ω :=
 ((algebraic_card_of_second_countable ℚ ℂ).trans (by rw [mk_rat, max_self])).antisymm
   (omega_le_algebraic_card_of_char_zero ℚ ℂ)
 

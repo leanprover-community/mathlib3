@@ -230,13 +230,19 @@ fun_like.coe_injective.add_comm_group _
   coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
-coordinate. -/
+coordinate.
+
+Note that we have both this and `dfinsupp.has_scalar'` as there is no typeclass unifying
+`smul_with_zero` and `distrib_mul_action`. -/
 instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
   has_scalar γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
-coordinate. -/
+coordinate.
+
+Note that we have both this and `dfinsupp.has_scalar` as there is no typeclass unifying
+`smul_with_zero` and `distrib_mul_action`. -/
 instance has_scalar' [has_zero γ] [Π i, has_zero (β i)] [Π i, smul_with_zero γ (β i)] :
   has_scalar γ (Π₀ i, β i) :=
 ⟨λ c v, v.map_range (λ _, (•) c) (λ _, smul_zero' _ _)⟩
@@ -279,10 +285,7 @@ instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β 
 { op_smul_eq_smul := λ r m, ext $ λ i, by simp only [smul_apply, op_smul_eq_smul r (m i)] }
 
 /-- Dependent functions with finite support inherit a `distrib_mul_action` structure from such a
-structure on each coordinate.
-
-Note that we have both this and `dfinsupp.has_scalar'` as there is no typeclass unifying
-`smul_with_zero` and `distrib_mul_action`. -/
+structure on each coordinate. -/
 instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
   distrib_mul_action γ (Π₀ i, β i) :=
 function.injective.distrib_mul_action coe_fn_add_monoid_hom fun_like.coe_injective coe_smul
@@ -299,10 +302,7 @@ instance [monoid_with_zero γ] [Π i, add_monoid (β i)] [Π i, mul_action_with_
   ..dfinsupp.smul_with_zero }
 
 /-- Dependent functions with finite support inherit a module structure from such a structure on
-each coordinate.
-
-Note that we have both this and `dfinsupp.has_scalar` as there is no typeclass unifying
-`smul_with_zero` and `distrib_mul_action`. -/
+each coordinate. -/
 instance [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, module γ (β i)] : module γ (Π₀ i, β i) :=
 { zero_smul := λ c, ext $ λ i, by simp only [smul_apply, zero_smul, zero_apply],
   add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul] }

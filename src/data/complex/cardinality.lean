@@ -13,7 +13,7 @@ import data.real.cardinality
 This file shows that the complex numbers have cardinality continuum, i.e. `#ℂ = 𝔠`.
 -/
 
-open cardinal
+open cardinal set
 
 open_locale cardinal
 

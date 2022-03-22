@@ -555,31 +555,41 @@ end
 `exact strongly_measurable.ite (measurable_set_singleton 0) strongly_measurable_const
 strongly_measurable_const`, but replacing `strongly_measurable.ite` by
 `strongly_measurable.piecewise` in that example proof does not work. -/
-protected lemma ite [measurable_space α] [topological_space β]
+protected lemma ite {m : measurable_space α} [topological_space β]
   {p : α → Prop} {_ : decidable_pred p}
   (hp : measurable_set {a : α | p a}) (hf : strongly_measurable f) (hg : strongly_measurable g) :
   strongly_measurable (λ x, ite (p x) (f x) (g x)) :=
 strongly_measurable.piecewise hp hf hg
 
-protected lemma indicator [measurable_space α] [topological_space β] [has_zero β]
+protected lemma indicator {m : measurable_space α} [topological_space β] [has_zero β]
   (hf : strongly_measurable f) {s : set α} (hs : measurable_set s) :
   strongly_measurable (s.indicator f) :=
 hf.piecewise hs strongly_measurable_const
 
-protected lemma norm [measurable_space α] {β : Type*} [normed_group β] {f : α → β}
+protected lemma norm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
   (hf : strongly_measurable f) :
   strongly_measurable (λ x, ∥f x∥) :=
 continuous_norm.comp_strongly_measurable hf
 
-protected lemma nnnorm [measurable_space α] {β : Type*} [normed_group β] {f : α → β}
+protected lemma nnnorm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
   (hf : strongly_measurable f) :
   strongly_measurable (λ x, nnnorm (f x)) :=
 continuous_nnnorm.comp_strongly_measurable hf
 
-protected lemma ennnorm [measurable_space α] {β : Type*} [normed_group β] {f : α → β}
+protected lemma ennnorm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
   (hf : strongly_measurable f) :
   measurable (λ a, (nnnorm (f a) : ℝ≥0∞)) :=
 (ennreal.continuous_coe.comp_strongly_measurable hf.nnnorm).measurable
+
+protected lemma real_to_nnreal {m : measurable_space α} {f : α → ℝ}
+  (hf : strongly_measurable f) :
+  strongly_measurable (λ x, (f x).to_nnreal) :=
+begin
+  have : continuous (λ (x : ℝ), x.to_nnreal) := continuous_real_to_nnreal,
+end
+
+
+#check measurable.real_to_nnreal
 
 lemma _root_.measurable_embedding.strongly_measurable_extend {f : α → β} {g : α → γ} {g' : γ → β}
   {mα : measurable_space α} {mγ : measurable_space γ} [topological_space β]

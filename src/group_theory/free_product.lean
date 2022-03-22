@@ -745,22 +745,22 @@ begin
   },
   have hHcard : ∀ i, # (H i) = ω, sorry,
 
-  haveI : is_free_group (multiplicative ℤ), sorry,
-  haveI : ∀ i, is_free_group (H i) := λ i,
-    --@is_free_group.of_mul_equiv (multiplicative ℤ) (H i) _ _ _ (hisoZ i).symm,
-    by sorry,
-
-  have hgen : ∀ i, is_free_group.generators (H i) = ({a i} : set G), sorry,
+  -- haveI : is_free_group (multiplicative ℤ), sorry,
+  letI hifgH : ∀ i, is_free_group (H i) := λ i,
+    { generators := punit,
+      of := λ _, ⟨a i, subgroup.subset_closure (set.mem_singleton _)⟩,
+      unique_lift' := sorry,
+    },
+    -- @is_free_group.of_mul_equiv (multiplicative ℤ) (H i) _ _ _ (hisoZ i).symm,
+    -- by sorry,
 
   -- in lieu of calc for ≃*, we use simple have commands and chain them at the end
 
   have h1 : free_group ι ≃* free_group (is_free_group.generators (free_product (λ i, H i))),
   { apply free_group.free_group_congr,
-    simp [hgen],
     calc ι ≃ ι × punit : (equiv.prod_punit ι).symm
-     ... ≃ Σ (_ : ι), punit : (equiv.sigma_equiv_prod _ _).symm
-     ... ≃ Σ (i : ι), (({a i} : set G) : Type _) : equiv.sigma_congr_right
-      (λ i, equiv_punit_of_unique.symm), },
+     ... ≃ Σ (_ : ι), punit : (equiv.sigma_equiv_prod _ _).symm,
+   },
 
   have h2 : free_group (is_free_group.generators (free_product (λ i, H i))) ≃*
     free_product (λ i, H i) := (is_free_group.to_free_group _).symm,
@@ -834,15 +834,17 @@ begin
     },
   },
 
-  have h4 : (lift f).range ≃* subgroup.closure (⋃ i, set.range (f i)),
-  sorry,
-
-  have h5 : subgroup.closure (⋃ i, set.range (f i)) ≃* subgroup.closure (set.range a),
-  sorry,
-
+  have h4 : (lift f).range ≃* (subgroup.closure (set.range a) : subgroup G),
+  begin
+    suffices : (lift f).range = subgroup.closure (set.range a), by rw this,
+    calc (lift f).range = supr (λ i, (f i).range) : sorry
+    ... = supr (λ i, H i) : by simp only [subgroup.subtype_range]
+    ... = supr (λ i, subgroup.closure {a i}) : rfl
+    ... = subgroup.closure (set.range a) : sorry
+  end,
 
   show _,
-  { exact is_free_group.of_mul_equiv ((((h1.trans h2).trans h3).trans h4).trans h5), },
+  { exact is_free_group.of_mul_equiv (((h1.trans h2).trans h3).trans h4), },
 
 end
 

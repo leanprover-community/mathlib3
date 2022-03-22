@@ -727,11 +727,6 @@ theorem fin.cast_eq_cast' {n m : ℕ} (h : fin n = fin m) :
   cast h = ⇑(fin.cast $ fin_injective h) :=
 (fin.cast_eq_cast _).symm
 
-/-- The cardinality of `fin (bit0 k)` is even, `fact` version.
-This `fact` is needed as an instance by `matrix.special_linear_group.has_neg`. -/
-lemma fintype.card_fin_even {k : ℕ} : fact (even (fintype.card (fin (bit0 k)))) :=
-⟨by { rw [fintype.card_fin], exact even_bit0 k }⟩
-
 lemma card_finset_fin_le {n : ℕ} (s : finset (fin n)) : s.card ≤ n :=
 by simpa only [fintype.card_fin] using s.card_le_univ
 

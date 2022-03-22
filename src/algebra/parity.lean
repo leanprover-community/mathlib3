@@ -7,6 +7,7 @@ Authors: Damiano Testa
 import algebra.ring.basic
 import algebra.algebra.basic
 import algebra.group_power.basic
+import algebra.field_power
 
 /-!  This file proves some general facts about even and odd elements of semirings. -/
 
@@ -144,4 +145,123 @@ by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
 lemma odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
 
+-- from src/algebra/order/ring.lean
+variables [linear_order α]
+lemma even_abs {a : α} : even (|a|) ↔ even a :=
+dvd_abs _ _
+
+-- from src/algebra/order/ring.lean
+lemma odd_abs {a : α} : odd (abs a) ↔ odd a :=
+by { cases abs_choice a with h h; simp only [h, odd_neg] }
+
 end ring
+
+
+-- from src/algebra/group_power/lemmas.lean
+section powers
+--open nat int
+variables --{M : Type u} {N : Type v} {G : Type w} {H : Type x} {A : Type y} {B : Type z}
+ {R : Type*} --{S : Type u₂}
+  {a : R} {n : ℕ} [linear_ordered_ring R]
+
+lemma even.pow_nonneg (hn : even n) (a : R) : 0 ≤ a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_nonneg a k
+
+lemma even.pow_pos (hn : even n) (ha : a ≠ 0) : 0 < a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_pos ha k
+
+lemma odd.pow_nonpos (hn : odd n) (ha : a ≤ 0) : a ^ n ≤ 0:=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonpos_iff.mpr ha
+
+lemma odd.pow_neg (hn : odd n) (ha : a < 0) : a ^ n < 0:=
+by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_neg_iff.mpr ha
+
+lemma odd.pow_nonneg_iff (hn : odd n) : 0 ≤ a ^ n ↔ 0 ≤ a :=
+⟨λ h, le_of_not_lt (λ ha, h.not_lt $ hn.pow_neg ha), λ ha, pow_nonneg ha n⟩
+
+lemma odd.pow_nonpos_iff (hn : odd n) : a ^ n ≤ 0 ↔ a ≤ 0 :=
+⟨λ h, le_of_not_lt (λ ha, h.not_lt $ pow_pos ha _), hn.pow_nonpos⟩
+
+lemma odd.pow_pos_iff (hn : odd n) : 0 < a ^ n ↔ 0 < a :=
+⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ hn.pow_nonpos ha), λ ha, pow_pos ha n⟩
+
+lemma odd.pow_neg_iff (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
+⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ pow_nonneg ha _), hn.pow_neg⟩
+
+lemma even.pow_pos_iff (hn : even n) (h₀ : 0 < n) : 0 < a ^ n ↔ a ≠ 0 :=
+⟨λ h ha, by { rw [ha, zero_pow h₀] at h, exact lt_irrefl 0 h }, hn.pow_pos⟩
+
+lemma even.pow_abs {p : ℕ} (hp : even p) (a : R) : |a| ^ p = a ^ p :=
+begin
+  rw [←abs_pow, abs_eq_self],
+  exact hp.pow_nonneg _
+end
+
+@[simp] lemma pow_bit0_abs (a : R) (p : ℕ) : |a| ^ bit0 p = a ^ bit0 p := (even_bit0 _).pow_abs _
+
+lemma odd.strict_mono_pow (hn : odd n) : strict_mono (λ a : R, a ^ n) :=
+by cases hn with k hk; simpa only [hk, two_mul] using strict_mono_pow_bit1 _
+
+end powers
+
+-- from src/data/fintype/basic.lean
+/-- The cardinality of `fin (bit0 k)` is even, `fact` version.
+This `fact` is needed as an instance by `matrix.special_linear_group.has_neg`. -/
+lemma fintype.card_fin_even {k : ℕ} : fact (even (fintype.card (fin (bit0 k)))) :=
+⟨by { rw [fintype.card_fin], exact even_bit0 k }⟩
+
+-- from src/algebra/field_power.lean
+section field_power
+
+lemma even.zpow_neg {K : Type*} [division_ring K] {n : ℤ} (h : even n) (a : K) :
+  (-a) ^ n = a ^ n :=
+begin
+  obtain ⟨k, rfl⟩ := h,
+  rw [←bit0_eq_two_mul, zpow_bit0_neg],
+end
+
+variables {K : Type*} [linear_ordered_field K] {n : ℤ} {a : K}
+
+lemma even.zpow_nonneg (hn : even n) (a : K) :
+  0 ≤ a ^ n :=
+begin
+  cases le_or_lt 0 a with h h,
+  { exact zpow_nonneg h _ },
+  { exact (hn.zpow_neg a).subst (zpow_nonneg (neg_nonneg_of_nonpos h.le) _) }
+end
+
+theorem even.zpow_pos (hn : even n) (ha : a ≠ 0) : 0 < a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit0_pos ha k
+
+theorem odd.zpow_nonneg (hn : odd n) (ha : 0 ≤ a) : 0 ≤ a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonneg_iff.mpr ha
+
+theorem odd.zpow_pos (hn : odd n) (ha : 0 < a) : 0 < a ^ n :=
+by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_pos_iff.mpr ha
+
+theorem odd.zpow_nonpos (hn : odd n) (ha : a ≤ 0) : a ^ n ≤ 0:=
+by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonpos_iff.mpr ha
+
+theorem odd.zpow_neg (hn : odd n) (ha : a < 0) : a ^ n < 0:=
+by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_neg_iff.mpr ha
+
+lemma even.zpow_abs {p : ℤ} (hp : even p) (a : K) : |a| ^ p = a ^ p :=
+begin
+  cases abs_choice a with h h;
+  simp only [h, hp.zpow_neg _],
+end
+
+@[simp] lemma zpow_bit0_abs (a : K) (p : ℤ) : |a| ^ bit0 p = a ^ bit0 p :=
+(even_bit0 _).zpow_abs _
+
+lemma even.abs_zpow {p : ℤ} (hp : even p) (a : K) : |a ^ p| = a ^ p :=
+begin
+  rw [abs_eq_self],
+  exact hp.zpow_nonneg _
+end
+
+@[simp] lemma abs_zpow_bit0 (a : K) (p : ℤ) :
+  |a ^ bit0 p| = a ^ bit0 p :=
+(even_bit0 _).abs_zpow _
+
+end field_power

@@ -21,7 +21,7 @@ open_locale cardinal
 @[simp] theorem mk_complex : #ℂ = 𝔠 :=
 by rw [mk_congr complex.equiv_real_prod, mk_prod, lift_id, mk_real, continuum_mul_self]
 
-/-- The cardinality of the reals, as a set. -/
+/-- The cardinality of the complex numbers, as a set. -/
 @[simp] lemma mk_univ_complex : #(set.univ : set ℂ) = 𝔠 :=
 by rw [mk_univ, mk_complex]
 

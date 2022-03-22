@@ -69,12 +69,17 @@ variables (R M : Type*) [semiring R] [add_comm_monoid M] [module R M]
 variables {R M}
 @[simp] lemma mem_torsion_of_iff (x : M) (a : R) : a ∈ torsion_of R M x ↔ a • x = 0 := iff.rfl
 end
+
 section
-variables {R M : Type*} [ring R] [add_comm_group M] [module R M]
+variables (R M : Type*) [ring R] [add_comm_group M] [module R M]
 noncomputable def quot_torsion_of_equiv_span_singleton (x : M) :
 (R ⧸ torsion_of R M x) ≃ₗ[R] (R ∙ x) :=
-by { convert (linear_map.to_span_singleton R M x).quot_ker_equiv_range,
-     repeat { exact linear_map.span_singleton_eq_range R M x } }
+(linear_map.to_span_singleton R M x).quot_ker_equiv_range.trans $
+linear_equiv.of_eq _ _ (linear_map.span_singleton_eq_range R M x).symm
+
+@[simp] lemma quot_torsion_of_equiv_span_singleton_apply_mk (x : M) (a : R) :
+  quot_torsion_of_equiv_span_singleton R M x (submodule.quotient.mk a) =
+    a • ⟨x, submodule.mem_span_singleton_self x⟩ := rfl
 end
 
 open_locale non_zero_divisors
@@ -311,3 +316,21 @@ begin
     refine ⟨n, nat.pos_of_ne_zero (non_zero_divisors.coe_ne_zero _), hn⟩ }
 end
 end ℕ_torsion
+
+namespace ideal.quotient
+open submodule
+variables {R : Type*} [comm_ring R]
+def torsion_by_eq_span_singleton (a b : R) (ha : a ∈ R⁰) :
+  torsion_by R (R ⧸ R ∙ a * b) a = R ∙ (mk _ b) :=
+begin
+  ext x, rw [mem_torsion_by_iff, mem_span_singleton],
+  obtain ⟨x, rfl⟩ := mk_surjective x, split; intro h,
+  { rw [← mk_eq_mk, ← quotient.mk_smul, quotient.mk_eq_zero, mem_span_singleton] at h,
+    obtain ⟨c, h⟩ := h, rw [smul_eq_mul, smul_eq_mul, mul_comm, mul_assoc,
+      mul_cancel_left_mem_non_zero_divisor ha, mul_comm] at h,
+    use c, rw [← h, ← mk_eq_mk, ← quotient.mk_smul, smul_eq_mul, mk_eq_mk] },
+  { obtain ⟨c, h⟩ := h,
+    rw [← h, smul_comm, ← mk_eq_mk, ← quotient.mk_smul,
+      (quotient.mk_eq_zero _).mpr $ mem_span_singleton_self _, smul_zero] }
+end
+end ideal.quotient

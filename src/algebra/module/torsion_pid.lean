@@ -94,21 +94,37 @@ instance {ι : Type*} [is_empty ι] {β : ι → Type*} [Π i, add_comm_monoid (
   subsingleton (⨁ i, β i) := dfinsupp.subsingleton
 end direct_sum
 
-namespace linear_equiv
-variables {R M N : Type*} [semiring R] [add_comm_monoid M] [add_comm_monoid N]
-  [module R M] [module R N]
-def of_subsingleton_of_subsingleton [subsingleton M] [subsingleton N] : M ≃ₗ[R] N :=
-{ .. equiv_of_subsingleton_of_subsingleton 0 0,
-  .. (0 : M →ₗ[R] N)}
-end linear_equiv
+namespace set
+lemma insert_image_compl_eq_range {A B : Type*} (f : A → B) (x : A) :
+  insert (f x) (f '' {x}ᶜ) = range f :=
+begin
+  ext y, rw [mem_range, mem_insert_iff, mem_image],
+  split,
+  { rintro (h | ⟨x', hx', h⟩),
+    { exact ⟨x, h.symm⟩ },
+    { exact ⟨x', h⟩ } },
+  { rintro ⟨x', h⟩,
+    by_cases hx : x' = x,
+    { left, rw [← h, hx] },
+    { right, refine ⟨_, _, h⟩, rw mem_compl_singleton_iff, exact hx } }
+end
+end set
+
+namespace submodule
+variables {R M R₂ M₂ : Type*} [ring R] [add_comm_group M] [module R M]
+  [ring R₂] [add_comm_group M₂] [module R₂ M₂] {τ₁₂ : R →+* R₂}
+def liftq_span_singleton (x : M) (f : M →ₛₗ[τ₁₂] M₂) (h : f x = 0) : (M ⧸ R ∙ x) →ₛₗ[τ₁₂] M₂ :=
+(R ∙ x).liftq f $ by rw [span_singleton_le_iff_mem, linear_map.mem_ker, h]
+end submodule
 
 section pid
 open_locale direct_sum
-open submodule dfinsupp
+open submodule
 
 variables {R : Type u} [comm_ring R] [is_domain R] [is_principal_ideal_ring R]
   {M : Type v} [add_comm_group M] [module R M]
 section
+open dfinsupp
 variables [decidable_eq R] [decidable_eq (associates R)]
 
 noncomputable instance inst : gcd_monoid R := unique_factorization_monoid.to_gcd_monoid _
@@ -157,61 +173,96 @@ end
 
 section p_torsion
 variables {p : R} [hp : irreducible p] (hM : ∀ x : M, ∃ N : ℕ, p ^ N • x = 0) [decidable_eq M]
-def p_order (x : M) := nat.find $ hM x
 
-open associates ideal submodule.is_principal
+open ideal submodule.is_principal
 include hp hM
-variables {p}
 lemma torsion_of_eq_span_pow_find (x : M) : torsion_of R M x = span {p ^ nat.find (hM x)} :=
 begin
   rw [← (torsion_of R M x).span_singleton_generator, span_singleton_eq_span_singleton,
-    ← mk_eq_mk_iff_associated, mk_pow],
+    ← associates.mk_eq_mk_iff_associated, associates.mk_pow],
   have : (λ n : ℕ, p ^ n • x = 0) =
     λ n : ℕ, (associates.mk $ generator $ torsion_of R M x) ∣ associates.mk p ^ n,
-  { ext n, rw [← mk_pow, mk_dvd_mk, ← mem_iff_generator_dvd], refl },
-  convert eq_pow_find_of_dvd_irreducible_pow ((irreducible_mk p).mpr hp) _,
+  { ext n, rw [← associates.mk_pow, associates.mk_dvd_mk, ← mem_iff_generator_dvd], refl },
+  convert associates.eq_pow_find_of_dvd_irreducible_pow ((associates.irreducible_mk p).mpr hp) _,
   { classical, apply_instance },
   rw ← this, exact hM x
 end
 
-open finset multiset list submodule.quotient
+lemma p_pow_smul_lift {x y : M} {k : ℕ} (hM' : ∀ x : M, p ^ nat.find (hM y) • x = 0)
+  (h : p ^ k • x ∈ R ∙ y) : ∃ a : R, p ^ k • x = p ^ k • a • y :=
+begin
+  by_cases hk : k ≤ nat.find (hM y),
+  { let f := ((R ∙ p ^ (nat.find (hM y) - k) * p ^ k).quot_equiv_of_eq _ _).trans
+      (quot_torsion_of_equiv_span_singleton R M y),
+    have : f.symm ⟨p ^ k • x, h⟩ ∈
+      R ∙ ideal.quotient.mk (R ∙ p ^ (nat.find (hM y) - k) * p ^ k) (p ^ k),
+    { rw [← quotient.torsion_by_eq_span_singleton, mem_torsion_by_iff, ← f.symm.map_smul],
+      convert f.symm.map_zero, ext,
+      rw [coe_smul_of_tower, coe_mk, coe_zero, smul_smul, ← pow_add, nat.sub_add_cancel hk, hM' x],
+      { exact mem_non_zero_divisors_of_ne_zero (pow_ne_zero _ hp.ne_zero) } },
+    rw submodule.mem_span_singleton at this, obtain ⟨a, ha⟩ := this, use a,
+    rw [f.eq_symm_apply, ← ideal.quotient.mk_eq_mk, ← quotient.mk_smul] at ha,
+    dsimp only [smul_eq_mul, f, linear_equiv.trans_apply, submodule.quot_equiv_of_eq_mk,
+      quot_torsion_of_equiv_span_singleton_apply_mk] at ha,
+    rw [smul_smul, mul_comm], exact congr_arg coe ha.symm,
+    { symmetry, convert torsion_of_eq_span_pow_find hM y,
+      rw [← pow_add, nat.sub_add_cancel hk] } },
+  { use 0, rw [zero_smul, smul_zero, ← nat.sub_add_cancel (le_of_not_le hk),
+      pow_add, mul_smul, hM', smul_zero] }
+end
 
-noncomputable lemma torsion_by_prime_power_decomposition' (d : ℕ) (s : fin d → M)
-  (hs : span R ((map s univ.val).to_finset : set M) = ⊤) :
-  Σ (k : fin d → ℕ), (⨁ (i : fin d), R ⧸ R ∙ (p ^ (k i : ℕ))) ≃ₗ[R] M :=
+open finset multiset submodule.quotient
+
+theorem torsion_by_prime_power_decomposition' (d : ℕ) (s : fin d → M)
+  (hs : span R (set.range s) = ⊤) :
+  ∃ (k : fin d → ℕ), nonempty $ (⨁ (i : fin d), R ⧸ R ∙ (p ^ (k i : ℕ))) ≃ₗ[R] M :=
 begin
   unfreezingI { induction d with d IH generalizing M },
   { use λ i, fin_zero_elim i,
-    rw [univ_eq_empty, empty_val, multiset.map_zero, to_finset_zero, coe_empty,
-      submodule.span_empty] at hs,
+    rw [set.range_eq_empty, submodule.span_empty] at hs,
     haveI : unique M := ⟨⟨0⟩, λ x, by { rw [← mem_bot _, hs], trivial }⟩,
-    exact linear_equiv.of_subsingleton_of_subsingleton },
-  { let oj := argmax (λ i, nat.find $ hM $ s i) (fin_range d.succ),
+    exact ⟨0⟩ },
+  { let oj := list.argmax (λ i, nat.find $ hM $ s i) (list.fin_range d.succ),
     have hoj : oj.is_some := (option.ne_none_iff_is_some.mp $ λ eq_none, d.succ_ne_zero $
-      fin_range_eq_nil.mp $ argmax_eq_none.mp eq_none),
+      list.fin_range_eq_nil.mp $ list.argmax_eq_none.mp eq_none),
     let j := option.get hoj,
-    let s' : fin d → M ⧸ R ∙ s j := λ i, mk $ s $ j.succ_above i,
+    let s' : fin d → M ⧸ R ∙ s j := mk ∘ s ∘ j.succ_above,
     haveI : decidable_eq (M ⧸ R ∙ s j) := by { classical, apply_instance },
-    obtain ⟨k, f⟩ := IH _ s' _,
-    { use fin.cons (nat.find $ hM $ s j) k,
-      apply linear_equiv.of_bijective
-        (direct_sum.to_module R (fin d.succ) M $ @fin.cons d
-          (λ i, (R ⧸ R ∙ p ^ @fin.cons d (λ i, ℕ) (nat.find $ hM $ s j) k i) →ₗ[R] M)
-          begin convert (R ∙ s j).subtype.comp
-            (quot_torsion_of_equiv_span_singleton $ s j).to_linear_map,
-            repeat { symmetry, exact torsion_of_eq_span_pow_find hM (s j) } end
-          $ λ i, begin
-            let fi := f.to_linear_map.comp (direct_sum.lof R _ _ i),
-            have fi1 := mk_surjective (R ∙ s j) (fi 1),
-            have : p ^ k i • classical.some fi1 ∈ R ∙ s j := by {
-            rw [← submodule.quotient.mk_eq_zero,
-              submodule.quotient.mk_smul, classical.some_spec fi1], sorry },
-            sorry end),
+    obtain ⟨k, ⟨f⟩⟩ := IH _ s' _,
+    /-{ have : ∀ i : fin d, ∃ x : M, p ^ k i • x = 0 ∧ mk x = f (direct_sum.lof R _ _ i 1),
+      { intro i,
+        let fi := f.to_linear_map.comp (direct_sum.lof _ _ _ i),
+        have fi1 := mk_surjective (R ∙ s j) (fi 1),
+        have : p ^ k i • classical.some fi1 ∈ R ∙ s j,
+        { rw [← quotient.mk_eq_zero, mk_smul, classical.some_spec fi1, ← fi.map_smul],
+          convert fi.map_zero, change _ • submodule.quotient.mk _ = _,
+          rw [← mk_smul, quotient.mk_eq_zero, algebra.id.smul_eq_mul, mul_one],
+          exact mem_span_singleton_self _ },
+        obtain ⟨a, ha⟩ := p_pow_smul_lift hM sorry this,
+        refine ⟨classical.some fi1 - a • s j, by rw [smul_sub, sub_eq_zero, ha], _⟩,
+        rw [mk_sub, mk_smul, (quotient.mk_eq_zero _).mpr $ mem_span_singleton_self _,
+          smul_zero, sub_zero],
+        exact classical.some_spec fi1 },
+      use fin.cons (nat.find $ hM $ s j) k,
+      refine ⟨linear_equiv.of_linear
+        (direct_sum.to_module R (fin d.succ) M $ fin.cons
+          ((R ∙ s j).subtype.comp
+            ((quot_equiv_of_eq _ _ (torsion_of_eq_span_pow_find hM _).symm).trans
+            $ quot_torsion_of_equiv_span_singleton R M $ s j).to_linear_map)
+          $ λ i, liftq_span_singleton _
+            (linear_map.to_span_singleton R M $ classical.some $ this i) _)
+        sorry
+        _ _⟩,
+      { rw fin.cons_succ, exact (classical.some_spec $ this i).left },
       { sorry },
-      { sorry } },
+      { sorry } }-/sorry,
     { rintro ⟨x⟩, obtain ⟨N, hN⟩ := hM x, use N,
       rw [quotient.quot_mk_eq_mk, ← quotient.mk_smul, hN, quotient.mk_zero] },
-    { sorry } }
+    { have hs' := congr_arg (submodule.map $ mkq $ R ∙ s j) hs,
+      rw [submodule.map_span, submodule.map_top, range_mkq] at hs', simp only [mkq_apply] at hs',
+      simp only [s'], rw [set.range_comp (mk ∘ s), fin.range_succ_above],
+      simp only at hs', rw [← set.range_comp, ← set.insert_image_compl_eq_range _ j] at hs',
+      sorry } }
 end
 end p_torsion
 

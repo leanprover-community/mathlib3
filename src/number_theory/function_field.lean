@@ -207,31 +207,39 @@ def infty_valued_Fqt : valued (ratfunc Fq) (with_zero (multiplicative ℤ)) :=
 lemma infty_valued_Fqt.def {x : ratfunc Fq} :
   @valued.v (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq) (x) = infty_valuation_def Fq x := rfl
 
+namespace infty_valued_Fqt
+
 /-- The topology structure on `Fq(t)` induced by the valuation at infinity. -/
-def tsq' : topological_space (ratfunc Fq) :=
+def topological_space : topological_space (ratfunc Fq) :=
 @valued.topological_space (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq)
 
-lemma tdrq' : @topological_division_ring (ratfunc Fq) _ (tsq' Fq) :=
+lemma topological_division_ring :
+  @topological_division_ring (ratfunc Fq) _ (topological_space Fq) :=
 @valued.topological_division_ring (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq)
 
 /-- The uniform structure on `k(t)` induced by the valuation at infinity. -/
-def usq' : uniform_space (ratfunc Fq) :=
-@topological_add_group.to_uniform_space (ratfunc Fq) _ (tsq' Fq) _
+def uniform_space : uniform_space (ratfunc Fq) :=
+@topological_add_group.to_uniform_space (ratfunc Fq) _ (topological_space Fq) _
 
-lemma ugq' : @uniform_add_group (ratfunc Fq) (usq' Fq) _ :=
-@topological_add_group_is_uniform (ratfunc Fq) _ (tsq' Fq) _
+lemma uniform_add_group : @uniform_add_group (ratfunc Fq) (uniform_space Fq) _ :=
+@topological_add_group_is_uniform (ratfunc Fq) _ (topological_space Fq) _
 
-lemma cfq' : @completable_top_field (ratfunc Fq) _ (usq' Fq) :=
+lemma completable_top_field : @completable_top_field (ratfunc Fq) _ (uniform_space Fq) :=
 @valued.completable (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq)
 
-lemma ssq' : @separated_space (ratfunc Fq) (usq' Fq) :=
+lemma separated_space : @separated_space (ratfunc Fq) (uniform_space Fq) :=
 @valued_ring.separated (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq)
 
+end infty_valued_Fqt
+
+open infty_valued_Fqt
+
 /-- The completion `Fq((t⁻¹))`  of `Fq(t)` with respect to the valuation at infinity. -/
-def Fqt_infty := @uniform_space.completion (ratfunc Fq) (usq' Fq)
+def Fqt_infty := @uniform_space.completion (ratfunc Fq) (uniform_space  Fq)
 
 instance : field (Fqt_infty Fq) :=
-@field_completion (ratfunc Fq) _ (usq' Fq) (tdrq' Fq) _ (ugq' Fq)
+@field_completion (ratfunc Fq) _ (uniform_space Fq) (topological_division_ring Fq) _
+  (uniform_add_group Fq)
 
 instance : inhabited (Fqt_infty Fq) := ⟨(0 : Fqt_infty Fq)⟩
 
@@ -242,19 +250,22 @@ instance valued_Fqt_infty : valued (Fqt_infty Fq) (with_zero (multiplicative ℤ
 lemma valued_Fqt_infty.def {x : Fqt_infty Fq} :
   valued.v (x) = @valued.extension (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq) x := rfl
 
-instance : topological_space (Fqt_infty Fq) :=
+instance Fqt_infty.topologal_space : topological_space (Fqt_infty Fq) :=
 valued.topological_space (with_zero (multiplicative ℤ))
 
-instance : topological_division_ring (Fqt_infty Fq) := valued.topological_division_ring
+instance Fqt_infty.topological_division_ring : topological_division_ring (Fqt_infty Fq) :=
+valued.topological_division_ring
 
 instance : topological_ring (Fqt_infty Fq) :=
 (Fqt_infty.topological_division_ring Fq).to_topological_ring
 
 instance : topological_add_group (Fqt_infty Fq) := topological_ring.to_topological_add_group
 
-instance : uniform_space (Fqt_infty Fq) := topological_add_group.to_uniform_space (Fqt_infty Fq)
+instance Fqt_infty.uniform_space : uniform_space (Fqt_infty Fq) :=
+topological_add_group.to_uniform_space (Fqt_infty Fq)
 
-instance : uniform_add_group (Fqt_infty Fq) := topological_add_group_is_uniform
+instance Fqt_infty.uniform_add_group : uniform_add_group (Fqt_infty Fq) :=
+topological_add_group_is_uniform
 
 end infty_valuation
 

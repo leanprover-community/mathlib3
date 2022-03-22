@@ -379,10 +379,9 @@ begin
   erw [← X.presheaf.map_comp, Spec_Γ_naturality_assoc],
   congr' 1,
   simp only [← category.assoc],
-  transitivity _ ≫ (Spec.structure_sheaf (X.presheaf.obj $ op U)).1.germ ⟨_, _⟩,
+  transitivity _ ≫ (structure_sheaf (X.presheaf.obj $ op U)).1.germ ⟨_, _⟩,
   { refl },
-  convert ((Spec.structure_sheaf (X.presheaf.obj $ op U)).1.germ_res (hom_of_le le_top) ⟨_, _⟩)
-    using 2,
+  convert ((structure_sheaf (X.presheaf.obj $ op U)).1.germ_res (hom_of_le le_top) ⟨_, _⟩) using 2,
   rw category.assoc,
   erw nat_trans.naturality,
   rw [← LocallyRingedSpace.Γ_map_op, ← LocallyRingedSpace.Γ.map_comp_assoc, ← op_comp],

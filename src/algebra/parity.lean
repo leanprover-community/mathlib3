@@ -13,11 +13,15 @@ import algebra.field_power
 
 variables {α β : Type*}
 
+/--  An element `a` of a type `α` with multiplication satisfies `square a` if `a = r * r`,
+for some `r : α`. -/
+@[to_additive
+"An element `a` of a type `α` with addition satisfies `even a` if `a = r + r`,
+for some `r : α`."]
+def square [has_mul α] (a : α) : Prop := ∃ r, a = r * r
+
 section semiring
 variables [semiring α] [semiring β] {m n : α}
-
-/-- An element `a` of a semiring is even if there exists `k` such `a = 2*k`. -/
-def even (a : α) : Prop := ∃ k, a = 2*k
 
 lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
 

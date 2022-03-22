@@ -18,7 +18,7 @@ be satisfied by itself and all stricter types.
 
 * `Sup_hom`: Maps which preserve `⨆`.
 * `Inf_hom`: Maps which preserve `⨅`.
-* `frame_hom`: Frame homomorphisms. Maps which preserve `⨆` and `⊓`.
+* `frame_hom`: Frame homomorphisms. Maps which preserve `⨆`, `⊓` and `⊤`.
 * `complete_lattice_hom`: Complete lattice homomorphisms. Maps which preserve `⨆` and `⨅`.
 
 ## Typeclasses
@@ -43,7 +43,8 @@ structure Inf_hom (α β : Type*) [has_Inf α] [has_Inf β] :=
 (to_fun   : α → β)
 (map_Inf' (s : set α) : to_fun (Inf s) = Inf (to_fun '' s))
 
-/-- The type of frame homomorphisms from `α` to `β`. They preserve `⊓` and `⨆`. -/
+/-- The type of frame homomorphisms from `α` to `β`. They preserve finite meets and arbitrary joins.
+-/
 structure frame_hom (α β : Type*) [complete_lattice α] [complete_lattice β]
   extends inf_top_hom α β :=
 (map_Sup' (s : set α) : to_fun (Sup s) = Sup (to_fun '' s))

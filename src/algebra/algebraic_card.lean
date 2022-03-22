@@ -24,7 +24,7 @@ open_locale cardinal
 
 -- This needs to be proved, and goes elsewhere.
 theorem roots_finite {R} (A) [comm_ring R] [is_domain R] [ring A] [algebra R A] {p : polynomial R}
-  (hp : p ≠ 0) : {y : A | ⇑(aeval y) p = 0}.finite :=
+  (hp : p ≠ 0) : {y : A | aeval y p = 0}.finite :=
 sorry
 
 -- This needs to be proved, and goes elsewhere.
@@ -77,25 +77,22 @@ begin
   rw mul_omega_eq (le_max_right _ _)
 end
 
+theorem omega_le_algebraic_card_of_char_zero (R A : Type*) [comm_ring R] [is_domain R] [ring A]
+  [algebra R A] [char_zero R] : ω ≤ #{x : A | is_algebraic R x} :=
+@mk_le_of_injective (ulift ℕ) {x : A | is_algebraic R x} (λ n, ⟨_, is_algebraic_nat n.down⟩)
+  (λ m n hmn, by simpa using hmn)
+
 namespace real
 
-theorem rat_is_algebraic : ∀ n : ℚ, is_algebraic ℚ (n : ℝ) :=
+theorem is_algebraic_rat : ∀ n : ℚ, is_algebraic ℚ (n : ℝ) :=
 is_algebraic_algebra_map
 
-theorem nat_is_algebraic (n : ℕ) : is_algebraic ℚ (n : ℝ) :=
-by { rw ←rat.cast_coe_nat n, exact rat_is_algebraic n }
+theorem is_algebraic_nat (n : ℕ) : is_algebraic ℚ (n : ℝ) :=
+by { rw ←rat.cast_coe_nat n, exact is_algebraic_rat n }
 
 theorem algebraic_card : #{x : ℝ | is_algebraic ℚ x} = ω :=
-begin
-  apply le_antisymm,
-  { apply (algebraic_card_of_second_countable ℚ ℝ).trans,
-    rw [mk_rat, max_self] },
-  { let g : ulift ℕ → {x : ℝ | is_algebraic ℚ x} := λ n, ⟨_, nat_is_algebraic n.down⟩,
-    apply @mk_le_of_injective _ _ g (λ m n hmn, _),
-    have := nat.cast_inj.1 (subtype.mk.inj hmn),
-    apply_fun @ulift.up ℕ at this,
-    rwa [ulift.up_down, ulift.up_down] at this }
-end
+((algebraic_card_of_second_countable ℚ ℝ).trans (by rw [mk_rat, max_self])).antisymm
+  (omega_le_algebraic_card_of_char_zero ℚ ℝ)
 
 /-- There exists a transcendental number. -/
 theorem exists_transcendental : ∃ x : ℝ, transcendental ℚ x := begin
@@ -110,23 +107,15 @@ end real
 
 namespace complex
 
-theorem rat_is_algebraic (n : ℚ) : is_algebraic ℚ (n : ℂ) :=
+theorem is_algebraic_rat (n : ℚ) : is_algebraic ℚ (n : ℂ) :=
 by { rw ←complex.of_real_rat_cast, exact is_algebraic_algebra_map n }
 
-theorem nat_is_algebraic (n : ℕ) : is_algebraic ℚ (n : ℂ) :=
-by { rw ←rat.cast_coe_nat n, exact rat_is_algebraic n }
+theorem is_algebraic_nat (n : ℕ) : is_algebraic ℚ (n : ℂ) :=
+by { rw ←rat.cast_coe_nat n, exact is_algebraic_rat n }
 
 theorem algebraic_card : #{x : ℂ | is_algebraic ℚ x} = ω :=
-begin
-  apply le_antisymm,
-  { apply (algebraic_card_of_second_countable ℚ ℂ).trans,
-    rw [mk_rat, max_self] },
-  { let g : ulift ℕ → {x : ℂ | is_algebraic ℚ x} := λ n, ⟨_, nat_is_algebraic n.down⟩,
-    apply @mk_le_of_injective _ _ g (λ m n hmn, _),
-    have := nat.cast_inj.1 (subtype.mk.inj hmn),
-    apply_fun @ulift.up ℕ at this,
-    rwa [ulift.up_down, ulift.up_down] at this }
-end
+((algebraic_card_of_second_countable ℚ ℂ).trans (by rw [mk_rat, max_self])).antisymm
+  (omega_le_algebraic_card_of_char_zero ℚ ℂ)
 
 /-- There exists a transcendental number. -/
 theorem exists_transcendental : ∃ x : ℂ, transcendental ℚ x := begin

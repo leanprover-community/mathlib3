@@ -521,31 +521,74 @@ variables (L L')
 
 variables {L L'} {L'' : language}
 
+@[ext] protected lemma funext {F G : L →ᴸ L'} (h_fun : F.on_function = G.on_function )
+  (h_rel : F.on_relation = G.on_relation ) : F = G :=
+by {cases F with Ff Fr, cases G with Gf Gr, simp only *, exact and.intro h_fun h_rel}
+
+instance [L.is_algebraic] [L.is_relational] : unique (L →ᴸ L') :=
+⟨⟨Lhom.of_is_empty L L'⟩, λ _, Lhom.funext (subsingleton.elim _ _) (subsingleton.elim _ _)⟩
+
 /-- The composition of two language homomorphisms. -/
 @[simps] def comp (g : L' →ᴸ L'') (f : L →ᴸ L') : L →ᴸ L'' :=
 ⟨λ n F, g.1 (f.1 F), λ _ R, g.2 (f.2 R)⟩
 
-@[ext] protected lemma funext {L1} {L2} {F G : L1 →ᴸ L2} (h_fun : F.on_function = G.on_function )
-  (h_rel : F.on_relation = G.on_relation ) : F = G :=
-by {cases F with Ff Fr, cases G with Gf Gr, simp only *, exact and.intro h_fun h_rel}
-
 local infix ` ∘ `:60 := Lhom.comp
 
-@[simp] lemma id_comp {L1 L2} {F : L1 →ᴸ L2} : (Lhom.id L2) ∘ F = F :=
+@[simp] lemma id_comp (F : L →ᴸ L') : (Lhom.id L') ∘ F = F :=
 by {cases F, refl}
 
-@[simp] lemma comp_id {L1 L2} {F : L1 →ᴸ L2} : F ∘ (Lhom.id L1) = F :=
+@[simp] lemma comp_id (F : L →ᴸ L') : F ∘ (Lhom.id L) = F :=
 by {cases F, refl}
+
+lemma comp_assoc {L3 : language} (F: L'' →ᴸ L3) (G : L' →ᴸ L'') (H : L →ᴸ L') :
+  (F ∘ G) ∘ H = F ∘ (G ∘ H) :=
+rfl
+
+section sum_elim
+
+variables (ψ : L'' →ᴸ L')
 
 /-- A language map defined on two factors of a sum. -/
-@[simps] def sum_elim {L'' : language} (ψ : L'' →ᴸ L') : L.sum L'' →ᴸ L' :=
+@[simps] protected def sum_elim : L.sum L'' →ᴸ L' :=
 { on_function := λ n, sum.elim (λ f, ϕ.on_function f) (λ f, ψ.on_function f),
   on_relation := λ n, sum.elim (λ f, ϕ.on_relation f) (λ f, ψ.on_relation f) }
 
+lemma sum_elim_comp_inl (ψ : L'' →ᴸ L') :
+  (ϕ.sum_elim ψ) ∘ Lhom.sum_inl = ϕ :=
+Lhom.funext (funext (λ _, rfl)) (funext (λ _, rfl))
+
+lemma sum_elim_comp_inr (ψ : L'' →ᴸ L') :
+  (ϕ.sum_elim ψ) ∘ Lhom.sum_inr = ψ :=
+Lhom.funext (funext (λ _, rfl)) (funext (λ _, rfl))
+
+theorem sum_elim_inl_inr :
+  (Lhom.sum_inl).sum_elim (Lhom.sum_inr) = Lhom.id (L.sum L') :=
+Lhom.funext (funext (λ _, sum.elim_inl_inr)) (funext (λ _, sum.elim_inl_inr))
+
+theorem comp_sum_elim {L3 : language} (θ : L' →ᴸ L3) :
+  θ ∘ (ϕ.sum_elim ψ) = (θ ∘ ϕ).sum_elim (θ ∘ ψ) :=
+Lhom.funext (funext (λ n, sum.comp_elim _ _ _)) (funext (λ n, sum.comp_elim _ _ _))
+
+end sum_elim
+
+section sum_map
+
+variables {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂)
+
 /-- The map between two sum-languages induced by maps on the two factors. -/
-@[simps] def sum_map {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) : L.sum L₁ →ᴸ L'.sum L₂ :=
+@[simps] def sum_map : L.sum L₁ →ᴸ L'.sum L₂ :=
 { on_function := λ n, sum.map (λ f, ϕ.on_function f) (λ f, ψ.on_function f),
   on_relation := λ n, sum.map (λ f, ϕ.on_relation f) (λ f, ψ.on_relation f) }
+
+@[simp] lemma sum_map_comp_inl :
+  (ϕ.sum_map ψ) ∘ Lhom.sum_inl = Lhom.sum_inl ∘ ϕ :=
+Lhom.funext (funext (λ _, rfl)) (funext (λ _, rfl))
+
+@[simp] lemma sum_map_comp_inr :
+  (ϕ.sum_map ψ) ∘ Lhom.sum_inr = Lhom.sum_inr ∘ ψ :=
+Lhom.funext (funext (λ _, rfl)) (funext (λ _, rfl))
+
+end sum_map
 
 /-- A language homomorphism is injective when all the maps between symbol types are. -/
 protected structure injective : Prop :=
@@ -599,7 +642,7 @@ variable (L)
 
 /-- The identity equivalence from a first-order language to itself. -/
 @[simps] protected def refl : L ≃ᴸ L :=
-⟨Lhom.id L, Lhom.id L, Lhom.id_comp, Lhom.id_comp⟩
+⟨Lhom.id L, Lhom.id L, Lhom.id_comp _, Lhom.id_comp _⟩
 
 variable {L}
 
@@ -611,32 +654,11 @@ variables {L'' : language} (e' : L' ≃ᴸ L'') (e : L ≃ᴸ L')
 @[simps] protected def symm : L' ≃ᴸ L :=
 ⟨e.inv_Lhom, e.to_Lhom, e.right_inv, e.left_inv⟩
 
-/-- The inverse of an equivalence of first-order languages. -/
-@[simps, trans] protected def comp : L ≃ᴸ L'' :=
+/-- The composition of equivalences of first-order languages. -/
+@[simps, trans] protected def trans (e : L ≃ᴸ L') (e' : L' ≃ᴸ L'') : L ≃ᴸ L'' :=
 ⟨e'.to_Lhom.comp e.to_Lhom, e.inv_Lhom.comp e'.inv_Lhom,
-  begin
-    ext n f,
-    { have h := Lhom.id_on_function L' n (e.to_Lhom.on_function f),
-      rw [← e'.left_inv, Lhom.comp_on_function, id.def] at h,
-      simp only [Lhom.comp_on_function, Lhom.id_on_function, id.def],
-      rw [h, ← Lhom.comp_on_function, e.left_inv, Lhom.id_on_function, id.def] },
-    { ext n r,
-      have h := Lhom.id_on_relation L' n (e.to_Lhom.on_relation r),
-      rw [← e'.left_inv, Lhom.comp_on_relation, id.def] at h,
-      simp only [Lhom.comp_on_relation, Lhom.id_on_function, id.def],
-      rw [h, ← Lhom.comp_on_relation, e.left_inv, Lhom.id_on_relation, id.def] },
-  end, begin
-    ext n f,
-    { have h := Lhom.id_on_function L' n (e'.inv_Lhom.on_function f),
-      rw [← e.right_inv, Lhom.comp_on_function, id.def] at h,
-      simp only [Lhom.comp_on_function, Lhom.id_on_function, id.def],
-      rw [h, ← Lhom.comp_on_function, e'.right_inv, Lhom.id_on_function, id.def] },
-    { ext n r,
-      have h := Lhom.id_on_relation L' n (e'.inv_Lhom.on_relation r),
-      rw [← e.right_inv, Lhom.comp_on_relation, id.def] at h,
-      simp only [Lhom.comp_on_relation, Lhom.id_on_relation, id.def],
-      rw [h, ← Lhom.comp_on_relation, e'.right_inv, Lhom.id_on_relation, id.def]  },
-  end⟩
+  by rw [Lhom.comp_assoc, ← Lhom.comp_assoc e'.inv_Lhom, e'.left_inv, Lhom.id_comp, e.left_inv],
+  by rw [Lhom.comp_assoc, ← Lhom.comp_assoc e.to_Lhom, e.right_inv, Lhom.id_comp, e'.right_inv]⟩
 
 end Lequiv
 
@@ -721,22 +743,9 @@ variables (L) (α)
 @[simps] def Lequiv.add_empty_constants [ie : is_empty α] : L ≃ᴸ L[[α]] :=
 { to_Lhom := Lhom_with_constants L α,
   inv_Lhom := Lhom.sum_elim (Lhom.id L) (Lhom.of_is_empty (constants_on α) L),
-  left_inv := by { ext; simp },
-  right_inv := by { ext n f,
-    { cases f,
-      { simp only [Lhom.comp, Lhom_with_constants, Lhom.id, Lhom.of_is_empty, Lhom.sum_inl,
-          Lhom.sum_elim_on_function, id.def],
-        rw [sum.elim_inl] },
-      { refine false.elim (is_empty.elim _ f),
-        cases n,
-        { exact ie },
-        { apply_instance } } },
-    { ext n r,
-      cases r,
-      { simp only [Lhom.comp, Lhom_with_constants, Lhom.id, Lhom.of_is_empty, Lhom.sum_inl, id.def,
-          Lhom.sum_elim_on_relation],
-        rw sum.elim_inl, },
-      { exact false.elim (is_empty.elim (is_algebraic.empty_relations n) r), } } } }
+  left_inv := by rw [Lhom_with_constants, Lhom.sum_elim_comp_inl],
+  right_inv := by { simp only [Lhom.comp_sum_elim, Lhom_with_constants, Lhom.comp_id],
+    exact trans (congr rfl (subsingleton.elim _ _)) Lhom.sum_elim_inl_inr } }
 
 variables {α} {β : Type*}
 

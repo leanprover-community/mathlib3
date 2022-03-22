@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Mario Carneiro
 -/
 import data.real.sqrt
+import data.real.cardinality
 
 /-!
 # The complex numbers
@@ -35,6 +36,17 @@ noncomputable instance : decidable_eq ℂ := classical.dec_eq _
   inv_fun := λ p, ⟨p.1, p.2⟩,
   left_inv := λ ⟨x, y⟩, rfl,
   right_inv := λ ⟨x, y⟩, rfl }
+
+end complex
+
+namespace cardinal
+
+@[simp] theorem mk_complex : mk ℂ = continuum :=
+by rw [mk_congr complex.equiv_real_prod, mk_prod, lift_id, mk_real, continuum_mul_self]
+
+end cardinal
+
+namespace complex
 
 @[simp] theorem eta : ∀ z : ℂ, complex.mk z.re z.im = z
 | ⟨a, b⟩ := rfl

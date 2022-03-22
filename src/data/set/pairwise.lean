@@ -21,7 +21,7 @@ This file defines pairwise relations and pairwise disjoint indexed sets.
 ## Notes
 
 The spelling `s.pairwise_disjoint id` is preferred over `s.pairwise disjoint` to permit dot notation
-on `set.pairwise_disjoint` even though the latter unfolds to something nicer.
+on `set.pairwise_disjoint`, even though the latter unfolds to something nicer.
 -/
 
 open set function
@@ -223,7 +223,7 @@ variables [semilattice_inf α] [order_bot α] {s t : set ι} {f g : ι → α}
 are disjoint.
 
 `s.pairwise disjoint` is (definitionally) the same as `s.pairwise_disjoint id`. We prefer the latter
-in order to allow dot notation on `set.pairwise_disjoint` even though the former unfolds more
+in order to allow dot notation on `set.pairwise_disjoint`, even though the former unfolds more
 nicely. -/
 def pairwise_disjoint (s : set ι) (f : ι → α) : Prop := s.pairwise (disjoint on f)
 

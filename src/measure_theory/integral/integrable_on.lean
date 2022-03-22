@@ -391,6 +391,19 @@ begin
   { exact is_separable_of_separable_space _ }
 end
 
+
+lemma continuous_on.integrable_at_nhds_within_of_is_separable
+  [topological_space α] [metrizable_space α]
+  [opens_measurable_space α] {μ : measure α} [is_locally_finite_measure μ]
+  {a : α} {t : set α} {f : α → E} (hft : continuous_on f t) (ht : measurable_set t)
+  (h't : topological_space.is_separable t) (ha : a ∈ t) :
+  integrable_at_filter f (𝓝[t] a) μ :=
+begin
+  haveI : (𝓝[t] a).is_measurably_generated := ht.nhds_within_is_measurably_generated _,
+  exact (hft a ha).integrable_at_filter ⟨_, self_mem_nhds_within,
+    hft.ae_strongly_measurable_of_is_separable ht h't⟩ (μ.finite_at_nhds_within _ _),
+end
+
 lemma continuous_on.integrable_at_nhds_within
   [topological_space α] [second_countable_topology_either α E]
   [opens_measurable_space α] {μ : measure α} [is_locally_finite_measure μ]

@@ -213,7 +213,6 @@ begin
 end
 
 lemma set_integral_neg_eq_set_integral_nonpos [linear_order E] [order_closed_topology E]
-  [second_countable_topology E]
   {f : α → E} (hf : strongly_measurable f) (hfi : integrable f μ) :
   ∫ x in {x | f x < 0}, f x ∂μ = ∫ x in {x | f x ≤ 0}, f x ∂μ :=
 begin
@@ -676,14 +675,15 @@ argument `m` with this formula and a proof `of `(λ i, (μ (s i)).to_real) =ᶠ[
 arguments, `m i = (μ (s i)).to_real` is used in the output. -/
 lemma continuous_on.integral_sub_linear_is_o_ae
   [topological_space α] [opens_measurable_space α]
-  [normed_space ℝ E] [complete_space E]
+  [normed_space ℝ E] [complete_space E] [second_countable_topology_either α E]
   {μ : measure α} [is_locally_finite_measure μ] {a : α} {t : set α}
   {f : α → E} (hft : continuous_on f t) (ha : a ∈ t) (ht : measurable_set t)
   {s : ι → set α} {li : filter ι} (hs : tendsto s li ((𝓝[t] a).lift' powerset))
   (m : ι → ℝ := λ i, (μ (s i)).to_real)
   (hsμ : (λ i, (μ (s i)).to_real) =ᶠ[li] m . tactic.interactive.refl) :
   is_o (λ i, ∫ x in s i, f x ∂μ - m i • f a) m li :=
-(hft a ha).integral_sub_linear_is_o_ae ht ⟨t, self_mem_nhds_within, hft.ae_strongly_measurable ht⟩ hs m hsμ
+(hft a ha).integral_sub_linear_is_o_ae ht
+  ⟨t, self_mem_nhds_within, hft.ae_strongly_measurable ht⟩ hs m hsμ
 
 section
 /-! ### Continuous linear maps composed with integration
@@ -929,3 +929,5 @@ lemma set_integral_with_density_eq_set_integral_smul₀ {f : α → ℝ≥0} {s 
 by rw [restrict_with_density hs, integral_with_density_eq_integral_smul₀ hf]
 
 end
+
+#lint

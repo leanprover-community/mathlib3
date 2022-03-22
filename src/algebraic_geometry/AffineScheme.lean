@@ -32,11 +32,12 @@ We also define predicates about affine schemes and affine open sets.
 noncomputable theory
 
 open category_theory category_theory.limits opposite topological_space
-open Spec (structure_sheaf)
 
 universe u
 
 namespace algebraic_geometry
+
+open Spec (structure_sheaf)
 
 /-- The category of affine schemes -/
 def AffineScheme := Scheme.Spec.ess_image

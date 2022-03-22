@@ -17,10 +17,13 @@ In this file we introduce Gram-Schmidt Orthogonalization and Orthonormalization
 
 ## Main results
 
-- `gram_schmidt_process`              : Gram-Schmidt Process
-- `gram_schmidt_process_orthogonal`   : the proof that "gram_schmidt_process" produces an orthogonal system of vectors
-- `gram_schmidt_process_normed`       : Normalized "Gram-Schmidt" (i.e each vector in this system has unit length)
-- `gram_schmidt_process_orthornormal` : the proof that "gram_schmidt_process_normed" produces an orthornormal system of vectors
+- `gram_schmidt_process` : Gram-Schmidt Process
+- `gram_schmidt_process_orthogonal` :
+  the proof that "gram_schmidt_process" produces an orthogonal system of vectors
+- `gram_schmidt_process_normed` :
+  Normalized "Gram-Schmidt" (i.e each vector in this system has unit length)
+- `gram_schmidt_process_orthornormal` :
+  the proof that "gram_schmidt_process_normed" produces an orthornormal system of vectors
 -/
 
 open_locale big_operators
@@ -32,7 +35,7 @@ noncomputable def gram_schmidt_process (f : ℕ → E) : ℕ → E
 | n := f n - ∑ i in finset.range n,
   if h1 : i < n then (orthogonal_projection (𝕜 ∙ (gram_schmidt_process i)) (f n) : E) else f 37
 
-/-- 'gram_schmidt_process_def' helps us to get rid of 'ite' in the definition of gram_schmidt_process -/
+/-- 'gram_schmidt_process_def' gets rid of 'ite' in the definition of gram_schmidt_process -/
 lemma gram_schmidt_process_def (f : ℕ → E) (n : ℕ) :
 gram_schmidt_process 𝕜 E f n = f n - ∑ i in finset.range n,
 (orthogonal_projection (𝕜 ∙ (gram_schmidt_process 𝕜 E f i)) (f n) : E) :=
@@ -106,8 +109,9 @@ end
 noncomputable def gram_schmidt_process_normed (f : ℕ → E) (n : ℕ) : E :=
 (∥ gram_schmidt_process 𝕜 E f n ∥ : 𝕜)⁻¹ • (gram_schmidt_process 𝕜 E f n)
 
-lemma gram_schmidt_process_unit_length (f : ℕ → E) (n : ℕ) (hf : gram_schmidt_process 𝕜 E f n ≠ 0) :
-∥ gram_schmidt_process_normed 𝕜 E f n ∥ = 1 := by simp only [gram_schmidt_process_normed, norm_smul_inv_norm hf]
+lemma gram_schmidt_process_unit_length (f : ℕ → E) (n : ℕ) (h : gram_schmidt_process 𝕜 E f n ≠ 0) :
+∥ gram_schmidt_process_normed 𝕜 E f n ∥ = 1 :=
+by simp only [gram_schmidt_process_normed, norm_smul_inv_norm h]
 
 /-- # Gram-Schmidt Orthonormalization -/
 theorem gram_schmidt_process_orthonormal (f : ℕ → E) (h : ∀ n, gram_schmidt_process 𝕜 E f n ≠ 0) :

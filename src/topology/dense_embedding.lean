@@ -98,9 +98,11 @@ di.dense.separable_space di.continuous
 
 variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 /--
+```
  γ -f→ α
 g↓     ↓e
  δ -h→ β
+```
 -/
 lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (di : dense_inducing i)
   (H : tendsto h (𝓝 d) (𝓝 (i a))) (comm : h ∘ g = i ∘ f) : tendsto f (comap g (𝓝 d)) (𝓝 a) :=

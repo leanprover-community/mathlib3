@@ -536,4 +536,19 @@ noncomputable def out' (a : quotient s₁) : α := quotient.out a
 theorem mk_out' (a : α) : @setoid.r α s₁ (quotient.mk' a : quotient s₁).out' a :=
 quotient.exact (quotient.out_eq _)
 
+section
+
+variables [setoid α]
+
+protected lemma mk'_eq_mk (x : α) : quotient.mk' x = ⟦x⟧ := rfl
+
+@[simp] protected lemma lift_on'_mk (x : α) (f : α → β) (h) : ⟦x⟧.lift_on' f h = f x := rfl
+
+@[simp] protected lemma lift_on₂'_mk [setoid β] (f : α → β → γ) (h) (a : α) (b : β) :
+  quotient.lift_on₂' ⟦a⟧ ⟦b⟧ f h = f a b := quotient.lift_on₂'_mk' _ _ _ _
+
+@[simp] lemma map'_mk [setoid β] (f : α → β) (h) (x : α) : ⟦x⟧.map' f h = ⟦f x⟧ := rfl
+
+end
+
 end quotient

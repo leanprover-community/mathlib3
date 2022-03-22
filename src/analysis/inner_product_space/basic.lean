@@ -1070,12 +1070,25 @@ section complex
 
 variables {V : Type*}
 [inner_product_space ℂ V]
+
 /--
 A complex polarization identity, with a linear map
 -/
 lemma inner_map_polarization (T : V →ₗ[ℂ] V) (x y : V):
   ⟪ T y, x ⟫_ℂ = (⟪T (x + y) , x + y⟫_ℂ - ⟪T (x - y) , x - y⟫_ℂ +
     complex.I * ⟪T (x + complex.I • y) , x + complex.I • y⟫_ℂ -
+    complex.I * ⟪T (x - complex.I • y), x - complex.I • y ⟫_ℂ) / 4 :=
+begin
+  simp only [map_add, map_sub, inner_add_left, inner_add_right, linear_map.map_smul,
+             inner_smul_left, inner_smul_right, complex.conj_I, ←pow_two, complex.I_sq,
+             inner_sub_left, inner_sub_right, mul_add, ←mul_assoc, mul_neg, neg_neg,
+             sub_neg_eq_add, one_mul, neg_one_mul, mul_sub, sub_sub],
+  ring,
+end
+
+lemma inner_map_polarization' (T : V →ₗ[ℂ] V) (x y : V):
+  ⟪ T x, y ⟫_ℂ = (⟪T (x + y) , x + y⟫_ℂ - ⟪T (x - y) , x - y⟫_ℂ -
+    complex.I * ⟪T (x + complex.I • y) , x + complex.I • y⟫_ℂ +
     complex.I * ⟪T (x - complex.I • y), x - complex.I • y ⟫_ℂ) / 4 :=
 begin
   simp only [map_add, map_sub, inner_add_left, inner_add_right, linear_map.map_smul,
@@ -2272,5 +2285,32 @@ lemma is_self_adjoint.restrict_invariant {T : E →ₗ[𝕜] E} (hT : is_self_ad
   {V : submodule 𝕜 E} (hV : ∀ v ∈ V, T v ∈ V) :
   is_self_adjoint (T.restrict hV) :=
 λ v w, hT v w
+
+section complex
+
+variables {V : Type*}
+  [inner_product_space ℂ V]
+
+/-- A linear operator on a complex inner product space is self-adjoint precisely when
+`⟪T v, v⟫_ℂ` is real for all v.-/
+lemma is_self_adjoint_iff_inner_map_self_real (T : V →ₗ[ℂ] V):
+  is_self_adjoint T ↔ ∀ (v : V), conj ⟪T v, v⟫_ℂ = ⟪T v, v⟫_ℂ :=
+begin
+  split,
+  { intros hT v,
+    apply is_self_adjoint.conj_inner_sym hT },
+  { intros h x y,
+    nth_rewrite 1 ← inner_conj_sym,
+    nth_rewrite 1 inner_map_polarization,
+    simp only [star_ring_end_apply, star_div', star_sub, star_add, star_mul],
+    simp only [← star_ring_end_apply],
+    rw [h (x + y), h (x - y), h (x + complex.I • y), h (x - complex.I • y)],
+    simp only [complex.conj_I],
+    rw inner_map_polarization',
+    norm_num,
+    ring },
+end
+
+end complex
 
 end inner_product_space

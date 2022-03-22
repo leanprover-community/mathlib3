@@ -523,6 +523,10 @@ begin
   rw [pow_succ, succ_nsmul, normalized_factors_mul h0 (pow_ne_zero _ h0), ih],
 end
 
+theorem _root_.irreducible.normalized_factors_pow {p : α} (hp : irreducible p) (k : ℕ) :
+  normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
+by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
+
 lemma dvd_iff_normalized_factors_le_normalized_factors {x y : α} (hx : x ≠ 0) (hy : y ≠ 0) :
   x ∣ y ↔ normalized_factors x ≤ normalized_factors y :=
 begin
@@ -534,6 +538,10 @@ begin
     apply multiset.prod_dvd_prod_of_le }
 end
 
+theorem normalized_factors_of_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
+  normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
+by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
+
 lemma zero_not_mem_normalized_factors (x : α) : (0 : α) ∉ normalized_factors x :=
 λ h, prime.ne_zero (prime_of_normalized_factor _ h) rfl
 
@@ -543,6 +551,14 @@ begin
   { rw hcases,
     exact dvd_zero p },
   { exact dvd_trans (multiset.dvd_prod H) (associated.dvd (normalized_factors_prod hcases)) },
+end
+
+lemma exists_associated_prime_pow_of_unique_normalized_factor {p r : α}
+  (h : ∀ {m}, m ∈ normalized_factors r → m = p) (hr : r ≠ 0) : ∃ (i : ℕ), associated (p ^ i) r :=
+begin
+  use (normalized_factors r).card,
+  have := unique_factorization_monoid.normalized_factors_prod hr,
+  rwa [multiset.eq_repeat_of_mem (λ b, h), multiset.prod_repeat] at this
 end
 
 end unique_factorization_monoid
@@ -1152,6 +1168,11 @@ end
 
 omit dec_irr
 
+theorem factors_self [nontrivial α] {p : associates α}  (hp : irreducible p) :
+  p.factors = some ({⟨p, hp⟩}) :=
+eq_of_prod_eq_prod (by rw [factors_prod, factor_set.prod, map_singleton, prod_singleton,
+                            subtype.coe_mk])
+
 theorem factors_prime_pow [nontrivial α] {p : associates α} (hp : irreducible p)
   (k : ℕ) : factors (p ^ k) = some (multiset.repeat ⟨p, hp⟩ k) :=
 eq_of_prod_eq_prod (by rw [associates.factors_prod, factor_set.prod, multiset.map_repeat,
@@ -1189,6 +1210,10 @@ begin
       (associates.mk_ne_zero.mpr ha0) ((associates.irreducible_mk p).mpr hp)] at h,
     exact (zero_lt_one.trans_le h).ne' }
 end
+
+theorem count_self [nontrivial α] {p : associates α} (hp : irreducible p) :
+  p.count p.factors = 1 :=
+by simp [factors_self hp, associates.count_some hp]
 
 theorem count_mul [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) :

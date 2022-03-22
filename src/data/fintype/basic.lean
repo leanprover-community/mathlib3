@@ -169,6 +169,9 @@ by simp [eq_univ_iff_forall, finset.nonempty]
 lemma compl_singleton (a : α) : ({a} : finset α)ᶜ = univ.erase a :=
 by rw [compl_eq_univ_sdiff, sdiff_singleton_eq_erase]
 
+lemma insert_inj_on' (s : finset α) : set.inj_on (λ a, insert a s) (sᶜ : finset α) :=
+by { rw coe_compl, exact s.insert_inj_on }
+
 end boolean_algebra
 
 @[simp] lemma univ_inter [decidable_eq α] (s : finset α) :
@@ -205,6 +208,9 @@ lemma univ_filter_mem_range (f : α → β) [fintype β]
   [decidable_pred (λ y, y ∈ set.range f)] [decidable_eq β] :
   finset.univ.filter (λ y, y ∈ set.range f) = finset.univ.image f :=
 univ_filter_exists f
+
+lemma coe_filter_univ (p : α → Prop) [decidable_pred p] : (univ.filter p : set α) = {x | p x} :=
+by rw [coe_filter, coe_univ, set.sep_univ]
 
 /-- A special case of `finset.sup_eq_supr` that omits the useless `x ∈ univ` binder. -/
 lemma sup_univ_eq_supr [complete_lattice β] (f : α → β) : finset.univ.sup f = supr f :=
@@ -664,6 +670,10 @@ end
 @[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 ⟨λ h x hx, h (by simpa using hx), λ h x hx, h (by simpa using hx)⟩
+
+lemma filter_mem_univ_eq_to_finset [fintype α] (s : set α) [fintype s] [decidable_pred (∈ s)] :
+  finset.univ.filter (∈ s) = s.to_finset :=
+by { ext, simp only [mem_filter, finset.mem_univ, true_and, mem_to_finset] }
 
 end set
 
@@ -1557,7 +1567,7 @@ lemma mem_of_mem_perms_of_list :
     else mem_cons_of_mem _ $
     mem_of_mem_perms_of_list hg₁ $
       by rw [eq_inv_mul_iff_mul_eq.2 hg₂, mul_apply, swap_inv, swap_apply_def];
-        split_ifs; cc)
+        split_ifs; [exact ne.symm hxy, exact ne.symm hxa, exact hx])
 
 lemma mem_perms_of_list_iff {l : list α} {f : perm α} :
   f ∈ perms_of_list l ↔ ∀ {x}, f x ≠ x → x ∈ l :=

@@ -463,6 +463,21 @@ begin
   { intros, simp only [add_comp, mul_comp, C_comp, X_comp, pow_succ', ← mul_assoc, *] at * }
 end
 
+lemma coeff_comp_degree_mul_degree (hqd0 : nat_degree q ≠ 0) :
+  coeff (p.comp q) (nat_degree p * nat_degree q) =
+  leading_coeff p * leading_coeff q ^ nat_degree p :=
+begin
+  rw [comp, eval₂, coeff_sum],
+  convert finset.sum_eq_single p.nat_degree _ _,
+  { simp only [coeff_nat_degree, coeff_C_mul, coeff_pow_mul_nat_degree] },
+  { assume b hbs hbp,
+    refine coeff_eq_zero_of_nat_degree_lt ((nat_degree_mul_le).trans_lt _),
+    rw [nat_degree_C, zero_add],
+    refine (nat_degree_pow_le).trans_lt ((mul_lt_mul_right (pos_iff_ne_zero.mpr hqd0)).mpr _),
+    exact lt_of_le_of_ne (le_nat_degree_of_mem_supp _ hbs) hbp },
+  { simp {contextual := tt} }
+end
+
 end comp
 
 section map
@@ -642,7 +657,7 @@ end
 lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x :=
 eval₂_map f (ring_hom.id _) x
 
-lemma map_sum {ι : Type*} (g : ι → R[X]) (s : finset ι) :
+protected lemma map_sum {ι : Type*} (g : ι → R[X]) (s : finset ι) :
   (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
 (map_ring_hom f).map_sum _ _
 
@@ -792,12 +807,16 @@ end eval
 
 section map
 
+--TODO rename to `map_dvd_map`
+lemma map_dvd {R S} [semiring R] [comm_semiring S] (f : R →+* S) {x y : R[X]} :
+  x ∣ y → x.map f ∣ y.map f := eval₂_dvd _ _
+
 variables [comm_semiring R] [comm_semiring S] (f : R →+* S)
 
-lemma map_multiset_prod (m : multiset R[X]) : m.prod.map f = (m.map $ map f).prod :=
+protected lemma map_multiset_prod (m : multiset R[X]) : m.prod.map f = (m.map $ map f).prod :=
 eq.symm $ multiset.prod_hom _ (map_ring_hom f).to_monoid_hom
 
-lemma map_prod {ι : Type*} (g : ι → R[X]) (s : finset ι) :
+protected lemma map_prod {ι : Type*} (g : ι → R[X]) (s : finset ι) :
   (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
 (map_ring_hom f).map_prod _ _
 

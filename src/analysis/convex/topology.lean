@@ -206,8 +206,12 @@ begin
     (line_map_apply_one _ _) H
 end
 
-@[priority 100]
-instance topological_add_group.path_connected : path_connected_space E :=
+/--
+Every topological vector space over ℝ is path connected.
+
+Not an instance, because it creates enormous TC subproblems (turn on `pp.all`).
+-/
+lemma topological_add_group.path_connected : path_connected_space E :=
 path_connected_space_iff_univ.mpr $ convex_univ.is_path_connected ⟨(0 : E), trivial⟩
 
 end has_continuous_smul
@@ -277,6 +281,10 @@ by simp only [metric.diam, convex_hull_ediam]
 @[simp] lemma bounded_convex_hull {s : set E} :
   metric.bounded (convex_hull ℝ s) ↔ metric.bounded s :=
 by simp only [metric.bounded_iff_ediam_ne_top, convex_hull_ediam]
+
+@[priority 100]
+instance normed_space.path_connected : path_connected_space E :=
+topological_add_group.path_connected
 
 @[priority 100]
 instance normed_space.loc_path_connected : loc_path_connected_space E :=

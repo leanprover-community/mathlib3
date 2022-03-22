@@ -71,6 +71,9 @@ lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
 λ a h, hsq _ (h.trans hdvd)
 
 namespace multiplicity
+
+section comm_monoid
+
 variables [comm_monoid R] [decidable_rel (has_dvd.dvd : R → R → Prop)]
 
 lemma squarefree_iff_multiplicity_le_one (r : R) :
@@ -82,6 +85,31 @@ begin
   convert enat.add_one_le_iff_lt (enat.coe_ne_top 1),
   norm_cast,
 end
+
+end comm_monoid
+
+section cancel_comm_monoid_with_zero
+
+variables [cancel_comm_monoid_with_zero R] [wf_dvd_monoid R]
+
+lemma finite_prime_left {a b : R} (ha : prime a) (hb : b ≠ 0) :
+  multiplicity.finite a b :=
+begin
+  classical,
+  revert hb,
+  refine wf_dvd_monoid.induction_on_irreducible b (by contradiction) (λ u hu hu', _)
+    (λ b p hb hp ih hpb, _),
+  { rw [multiplicity.finite_iff_dom, multiplicity.is_unit_right ha.not_unit hu],
+    exact enat.dom_coe 0, },
+  { refine multiplicity.finite_mul ha
+      (multiplicity.finite_iff_dom.mpr (enat.dom_of_le_coe (show multiplicity a p ≤ ↑1, from _)))
+      (ih hb),
+    norm_cast,
+    exact (((multiplicity.squarefree_iff_multiplicity_le_one p).mp hp.squarefree a)
+      .resolve_right ha.not_unit) }
+end
+
+end cancel_comm_monoid_with_zero
 
 end multiplicity
 
@@ -332,7 +360,7 @@ begin
       rcases an with ⟨b, rfl⟩,
       rw mul_ne_zero_iff at h0,
       rw unique_factorization_monoid.squarefree_iff_nodup_normalized_factors h0.1 at hsq,
-      rw [multiset.to_finset_subset, multiset.to_finset_val, hsq.erase_dup, ← associated_iff_eq,
+      rw [multiset.to_finset_subset, multiset.to_finset_val, hsq.dedup, ← associated_iff_eq,
         normalized_factors_mul h0.1 h0.2],
       exact ⟨multiset.subset_of_le (multiset.le_add_right _ _), normalized_factors_prod h0.1⟩ },
     { rintro ⟨s, hs, rfl⟩,
@@ -342,12 +370,12 @@ begin
         simp only [exists_prop, id.def, exists_eq_right],
         intro con,
         apply not_irreducible_zero (irreducible_of_normalized_factor 0
-            (multiset.mem_erase_dup.1 (multiset.mem_of_le hs con))) },
+            (multiset.mem_dedup.1 (multiset.mem_of_le hs con))) },
       rw (normalized_factors_prod h0).symm.dvd_iff_dvd_right,
-      refine ⟨⟨multiset.prod_dvd_prod_of_le (le_trans hs (multiset.erase_dup_le _)), h0⟩, _⟩,
+      refine ⟨⟨multiset.prod_dvd_prod_of_le (le_trans hs (multiset.dedup_le _)), h0⟩, _⟩,
       have h := unique_factorization_monoid.factors_unique irreducible_of_normalized_factor
         (λ x hx, irreducible_of_normalized_factor x (multiset.mem_of_le
-          (le_trans hs (multiset.erase_dup_le _)) hx)) (normalized_factors_prod hs0),
+          (le_trans hs (multiset.dedup_le _)) hx)) (normalized_factors_prod hs0),
       rw [associated_eq_eq, multiset.rel_eq] at h,
       rw [unique_factorization_monoid.squarefree_iff_nodup_normalized_factors hs0, h],
       apply s.nodup } },

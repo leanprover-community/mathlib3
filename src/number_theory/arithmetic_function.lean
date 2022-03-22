@@ -564,6 +564,26 @@ lemma multiplicative_factorization [comm_monoid_with_zero R] (f : arithmetic_fun
   ∀ {n : ℕ}, n ≠ 0 → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
 λ n hn, multiplicative_factorization f hf.2 hf.1 hn
 
+/-- Two multiplicative functions `f` and `g` are equal if and only if
+they agree on prime powers -/
+lemma eq_iff_eq_on_prime_powers [comm_monoid_with_zero R]
+  (f : arithmetic_function R) (hf : f.is_multiplicative)
+  (g : arithmetic_function R) (hg : g.is_multiplicative) :
+  f = g ↔ ∀ (p i : ℕ), nat.prime p → f (p ^ i) = g (p ^ i) :=
+begin
+  split,
+  { intros h p i _, rw [h] },
+  intros h,
+  ext n,
+  by_cases hn : n = 0,
+  { rw [hn, arithmetic_function.map_zero, arithmetic_function.map_zero] },
+  rw [multiplicative_factorization f hf hn, multiplicative_factorization g hg hn],
+  refine finset.prod_congr rfl _,
+  simp only [support_factorization, list.mem_to_finset],
+  intros p hp,
+  exact h p _ (nat.prime_of_mem_factors hp),
+end
+
 end is_multiplicative
 
 section special_functions
@@ -680,23 +700,23 @@ end
 
 /-- `ω n` is the number of distinct prime factors of `n`. -/
 def card_distinct_factors : arithmetic_function ℕ :=
-⟨λ n, n.factors.erase_dup.length, by simp⟩
+⟨λ n, n.factors.dedup.length, by simp⟩
 
 localized "notation `ω` := nat.arithmetic_function.card_distinct_factors" in arithmetic_function
 
 lemma card_distinct_factors_zero : ω 0 = 0 := by simp
 
 lemma card_distinct_factors_apply {n : ℕ} :
-  ω n = n.factors.erase_dup.length := rfl
+  ω n = n.factors.dedup.length := rfl
 
 lemma card_distinct_factors_eq_card_factors_iff_squarefree {n : ℕ} (h0 : n ≠ 0) :
   ω n = Ω n ↔ squarefree n :=
 begin
   rw [squarefree_iff_nodup_factors h0, card_distinct_factors_apply],
   split; intro h,
-  { rw ← list.eq_of_sublist_of_length_eq n.factors.erase_dup_sublist h,
-    apply list.nodup_erase_dup },
-  { rw h.erase_dup,
+  { rw ← list.eq_of_sublist_of_length_eq n.factors.dedup_sublist h,
+    apply list.nodup_dedup },
+  { rw h.dedup,
     refl }
 end
 
@@ -762,7 +782,7 @@ begin
     { apply factors_multiset_prod_of_irreducible,
       intros z hz,
       apply irreducible_of_normalized_factor _ (multiset.subset_of_le
-        (le_trans hy (multiset.erase_dup_le _)) hz) },
+        (le_trans hy (multiset.dedup_le _)) hz) },
     rw [if_pos],
     { rw [card_factors_apply, ← multiset.coe_card, ← factors_eq, h, finset.card] },
     rw [unique_factorization_monoid.squarefree_iff_nodup_normalized_factors, h],

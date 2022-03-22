@@ -5,7 +5,8 @@ Authors: Jireh Loreaux
 -/
 import algebra.algebra.spectrum
 import analysis.special_functions.pow
-import analysis.complex.cauchy_integral
+import analysis.special_functions.exponential
+import analysis.complex.liouville
 import analysis.analytic.radius_liminf
 /-!
 # The spectrum of elements in a complete normed algebra
@@ -27,6 +28,10 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 * `spectrum.has_deriv_at_resolvent`: the resolvent function is differentiable on the resolvent set.
 * `spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius`: Gelfand's formula for the
   spectral radius in Banach algebras over `ℂ`.
+* `spectrum.nonempty`: the spectrum of any element in a complex Banach algebra is nonempty.
+* `normed_division_ring.alg_equiv_complex_of_complete`: **Gelfand-Mazur theorem** For a complex
+  Banach division algebra, the natural `algebra_map ℂ A` is an algebra isomorphism whose inverse
+  is given by selecting the (unique) element of `spectrum ℂ a`
 
 
 ## TODO
@@ -113,7 +118,7 @@ begin
       eval_monomial] using subset_polynomial_aeval a (monomial (n + 1) (1 : 𝕜)) ⟨k, hk, rfl⟩,
   /- power of the norm is bounded by norm of the power -/
   have nnnorm_pow_le : (↑(∥k∥₊ ^ (n + 1)) : ℝ≥0∞) ≤ ↑∥a ^ (n + 1)∥₊,
-    by simpa only [norm_to_nnreal, normed_field.nnnorm_pow k (n+1)]
+    by simpa only [norm_to_nnreal, nnnorm_pow k (n+1)]
       using coe_mono (real.to_nnreal_mono (norm_le_norm_of_mem pow_mem)),
   /- take (n + 1)ᵗʰ roots and clean up the left-hand side -/
   have hn : 0 < ((n + 1) : ℝ), by exact_mod_cast nat.succ_pos',
@@ -123,7 +128,9 @@ end
 
 end spectrum_compact
 
-section resolvent_deriv
+section resolvent
+
+open filter asymptotics
 
 variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 
@@ -139,7 +146,40 @@ begin
   simpa [resolvent, sq, hk.unit_spec, ← ring.inverse_unit hk.unit] using H₁.comp_has_deriv_at k H₂,
 end
 
-end resolvent_deriv
+/- TODO: Once there is sufficient API for bornology, we should get a nice filter / asymptotics
+version of this, for example: `tendsto (resolvent a) (cobounded 𝕜) (𝓝 0)` or more specifically
+`is_O (resolvent a) (λ z, z⁻¹) (cobounded 𝕜)`. -/
+lemma norm_resolvent_le_forall (a : A) :
+  ∀ ε > 0, ∃ R > 0, ∀ z : 𝕜, R ≤ ∥z∥ → ∥resolvent a z∥ ≤ ε :=
+begin
+  obtain ⟨c, c_pos, hc⟩ := (@normed_ring.inverse_one_sub_norm A _ _).exists_pos,
+  rw [is_O_with_iff, eventually_iff, metric.mem_nhds_iff] at hc,
+  rcases hc with ⟨δ, δ_pos, hδ⟩,
+  simp only [cstar_ring.norm_one, mul_one] at hδ,
+  intros ε hε,
+  have ha₁ : 0 < ∥a∥ + 1 := lt_of_le_of_lt (norm_nonneg a) (lt_add_one _),
+  have min_pos : 0 < min (δ * (∥a∥ + 1)⁻¹) (ε * c⁻¹),
+    from lt_min (mul_pos δ_pos (inv_pos.mpr ha₁)) (mul_pos hε (inv_pos.mpr c_pos)),
+  refine ⟨(min (δ * (∥a∥ + 1)⁻¹) (ε * c⁻¹))⁻¹, inv_pos.mpr min_pos, (λ z hz, _)⟩,
+  have hnz : z ≠ 0 := norm_pos_iff.mp (lt_of_lt_of_le (inv_pos.mpr min_pos) hz),
+  replace hz := inv_le_of_inv_le min_pos hz,
+  rcases (⟨units.mk0 z hnz, units.coe_mk0 hnz⟩ : is_unit z) with ⟨z, rfl⟩,
+  have lt_δ : ∥z⁻¹ • a∥ < δ,
+  { rw [units.smul_def, norm_smul, units.coe_inv', norm_inv],
+    calc ∥(z : 𝕜)∥⁻¹ * ∥a∥ ≤ δ * (∥a∥ + 1)⁻¹ * ∥a∥
+        : mul_le_mul_of_nonneg_right (hz.trans (min_le_left _ _)) (norm_nonneg _)
+    ...                   < δ
+        : by { conv { rw mul_assoc, to_rhs, rw (mul_one δ).symm },
+               exact mul_lt_mul_of_pos_left
+                 ((inv_mul_lt_iff ha₁).mpr ((mul_one (∥a∥ + 1)).symm ▸ (lt_add_one _))) δ_pos } },
+  rw [←inv_smul_smul z (resolvent a (z : 𝕜)), units_smul_resolvent_self, resolvent,
+    algebra.algebra_map_eq_smul_one, one_smul, units.smul_def, norm_smul, units.coe_inv', norm_inv],
+  calc _ ≤ ε * c⁻¹ * c : mul_le_mul (hz.trans (min_le_right _ _)) (hδ (mem_ball_zero_iff.mpr lt_δ))
+                           (norm_nonneg _) (mul_pos hε (inv_pos.mpr c_pos)).le
+  ...    = _           : inv_mul_cancel_right₀ c_pos.ne.symm ε,
+end
+
+end resolvent
 
 section one_sub_smul
 
@@ -194,7 +234,7 @@ begin
     { rwa [is_unit.smul_sub_iff_sub_inv_smul, inv_inv u] at hu },
     { rw [units.smul_def, ←algebra.algebra_map_eq_smul_one, ←mem_resolvent_set_iff],
       refine mem_resolvent_set_of_spectral_radius_lt _,
-      rwa [units.coe_inv', normed_field.nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
+      rwa [units.coe_inv', nnnorm_inv, coe_inv (nnnorm_ne_zero_iff.mpr
         (units.coe_mk0 hz ▸ hz : (u : 𝕜) ≠ 0)), lt_inv_iff_lt_inv] } }
 end
 
@@ -272,6 +312,103 @@ begin
 end
 
 end gelfand_formula
+
+/-- In a (nontrivial) complex Banach algebra, every element has nonempty spectrum. -/
+theorem nonempty {A : Type*} [normed_ring A] [normed_algebra ℂ A] [complete_space A]
+  [nontrivial A] [topological_space.second_countable_topology A]
+  (a : A) : (spectrum ℂ a).nonempty :=
+begin
+  /- Suppose `σ a = ∅`, then resolvent set is `ℂ`, any `(z • 1 - a)` is a unit, and `resolvent`
+  is differentiable on `ℂ`. -/
+  rw ←set.ne_empty_iff_nonempty,
+  by_contra h,
+  have H₀ : resolvent_set ℂ a = set.univ, by rwa [spectrum, set.compl_empty_iff] at h,
+  have H₁ : differentiable ℂ (λ z : ℂ, resolvent a z), from λ z,
+    (has_deriv_at_resolvent (H₀.symm ▸ set.mem_univ z : z ∈ resolvent_set ℂ a)).differentiable_at,
+  /- The norm of the resolvent is small for all sufficently large `z`, and by compactness and
+  continuity it is bounded on the complement of a large ball, thus uniformly bounded on `ℂ`.
+  By Liouville's theorem `λ z, resolvent a z` is constant -/
+  have H₂ := norm_resolvent_le_forall a,
+  have H₃ : ∀ z : ℂ, resolvent a z = resolvent a (0 : ℂ),
+  { refine λ z, H₁.apply_eq_apply_of_bounded (bounded_iff_exists_norm_le.mpr _) z 0,
+    rcases H₂ 1 zero_lt_one with ⟨R, R_pos, hR⟩,
+    rcases (proper_space.is_compact_closed_ball (0 : ℂ) R).exists_bound_of_continuous_on
+      H₁.continuous.continuous_on with ⟨C, hC⟩,
+    use max C 1,
+    rintros _ ⟨w, rfl⟩,
+    refine or.elim (em (∥w∥ ≤ R)) (λ hw, _) (λ hw, _),
+      { exact (hC w (mem_closed_ball_zero_iff.mpr hw)).trans (le_max_left _ _) },
+      { exact (hR w (not_le.mp hw).le).trans (le_max_right _ _), }, },
+  /- `resolvent a 0 = 0`, which is a contradition because it isn't a unit. -/
+  have H₅ : resolvent a (0 : ℂ) = 0,
+  { refine norm_eq_zero.mp (le_antisymm (le_of_forall_pos_le_add (λ ε hε, _)) (norm_nonneg _)),
+    rcases H₂ ε hε with ⟨R, R_pos, hR⟩,
+    simpa only [H₃ R] using (zero_add ε).symm.subst
+      (hR R (by exact_mod_cast (real.norm_of_nonneg R_pos.lt.le).symm.le)), },
+  /- `not_is_unit_zero` is where we need `nontrivial A`, it is unavoidable. -/
+  exact not_is_unit_zero (H₅.subst (is_unit_resolvent.mp
+    (mem_resolvent_set_iff.mp (H₀.symm ▸ set.mem_univ 0)))),
+end
+
+section gelfand_mazur_isomorphism
+
+variables [normed_division_ring A] [normed_algebra ℂ A]
+
+local notation `σ` := spectrum ℂ
+
+lemma algebra_map_eq_of_mem {a : A} {z : ℂ} (h : z ∈ σ a) : algebra_map ℂ A z = a :=
+by rwa [mem_iff, is_unit_iff_ne_zero, not_not, sub_eq_zero] at h
+
+/-- **Gelfand-Mazur theorem**: For a complex Banach division algebra, the natural `algebra_map ℂ A`
+is an algebra isomorphism whose inverse is given by selecting the (unique) element of
+`spectrum ℂ a`. In addition, `algebra_map_isometry` guarantees this map is an isometry. -/
+@[simps]
+noncomputable def _root_.normed_division_ring.alg_equiv_complex_of_complete
+  [complete_space A] [topological_space.second_countable_topology A] : ℂ ≃ₐ[ℂ] A :=
+{ to_fun := algebra_map ℂ A,
+  inv_fun := λ a, (spectrum.nonempty a).some,
+  left_inv := λ z, by simpa only [scalar_eq] using (spectrum.nonempty $ algebra_map ℂ A z).some_mem,
+  right_inv := λ a, algebra_map_eq_of_mem (spectrum.nonempty a).some_mem,
+  ..algebra.of_id ℂ A }
+
+end gelfand_mazur_isomorphism
+
+section exp_mapping
+
+local notation `↑ₐ` := algebra_map 𝕜 A
+
+/-- For `𝕜 = ℝ` or `𝕜 = ℂ`, `exp 𝕜 𝕜` maps the spectrum of `a` into the spectrum of `exp 𝕜 A a`. -/
+theorem exp_mem_exp [is_R_or_C 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+  (a : A) {z : 𝕜} (hz : z ∈ spectrum 𝕜 a) : exp 𝕜 𝕜 z ∈ spectrum 𝕜 (exp 𝕜 A a) :=
+begin
+  have hexpmul : exp 𝕜 A a = exp 𝕜 A (a - ↑ₐ z) * ↑ₐ (exp 𝕜 𝕜 z),
+  { rw [algebra_map_exp_comm z, ←exp_add_of_commute (algebra.commutes z (a - ↑ₐz)).symm,
+      sub_add_cancel] },
+  let b := ∑' n : ℕ, ((1 / (n + 1).factorial) : 𝕜) • (a - ↑ₐz) ^ n,
+  have hb : summable (λ n : ℕ, ((1 / (n + 1).factorial) : 𝕜) • (a - ↑ₐz) ^ n),
+  { refine summable_of_norm_bounded_eventually _ (real.summable_pow_div_factorial ∥a - ↑ₐz∥) _,
+    filter_upwards [filter.eventually_cofinite_ne 0] with n hn,
+    rw [norm_smul, mul_comm, norm_div, norm_one, is_R_or_C.norm_eq_abs, is_R_or_C.abs_cast_nat,
+      ←div_eq_mul_one_div],
+    exact div_le_div (pow_nonneg (norm_nonneg _) n) (norm_pow_le' (a - ↑ₐz) (zero_lt_iff.mpr hn))
+      (by exact_mod_cast nat.factorial_pos n)
+      (by exact_mod_cast nat.factorial_le (lt_add_one n).le) },
+  have h₀ : ∑' n : ℕ, ((1 / (n + 1).factorial) : 𝕜) • (a - ↑ₐz) ^ (n + 1) = (a - ↑ₐz) * b,
+    { simpa only [mul_smul_comm, pow_succ] using hb.tsum_mul_left (a - ↑ₐz) },
+  have h₁ : ∑' n : ℕ, ((1 / (n + 1).factorial) : 𝕜) • (a - ↑ₐz) ^ (n + 1) = b * (a - ↑ₐz),
+    { simpa only [pow_succ', algebra.smul_mul_assoc] using hb.tsum_mul_right (a - ↑ₐz) },
+  have h₃ : exp 𝕜 A (a - ↑ₐz) = 1 + (a - ↑ₐz) * b,
+  { rw exp_eq_tsum,
+    convert tsum_eq_zero_add (exp_series_summable' (a - ↑ₐz)),
+    simp only [nat.factorial_zero, nat.cast_one, _root_.div_one, pow_zero, one_smul],
+    exact h₀.symm },
+  rw [spectrum.mem_iff, is_unit.sub_iff, ←one_mul (↑ₐ(exp 𝕜 𝕜 z)), hexpmul, ←_root_.sub_mul,
+    commute.is_unit_mul_iff (algebra.commutes (exp 𝕜 𝕜 z) (exp 𝕜 A (a - ↑ₐz) - 1)).symm,
+    sub_eq_iff_eq_add'.mpr h₃, commute.is_unit_mul_iff (h₀ ▸ h₁ : (a - ↑ₐz) * b = b * (a - ↑ₐz))],
+  exact not_and_of_not_left _ (not_and_of_not_left _ ((not_iff_not.mpr is_unit.sub_iff).mp hz)),
+end
+
+end exp_mapping
 
 end spectrum
 

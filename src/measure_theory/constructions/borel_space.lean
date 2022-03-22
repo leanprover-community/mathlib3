@@ -44,7 +44,7 @@ import topology.semicontinuous
 noncomputable theory
 
 open classical set filter measure_theory
-open_locale classical big_operators topological_space nnreal ennreal interval
+open_locale classical big_operators topological_space nnreal ennreal interval measure_theory
 
 universes u v w x y
 variables {α β γ γ₂ δ : Type*} {ι : Sort y} {s t u : set α}
@@ -691,6 +691,24 @@ begin
   refine ⟨λ U hUo hUne, _⟩,
   rw [measure.map_apply hf.measurable hUo.measurable_set],
   exact (hUo.preimage hf).measure_ne_zero μ (hf_surj.nonempty_preimage.mpr hUne)
+end
+
+/-- If a function is defined piecewise in terms of functions which are continuous on their
+respective pieces, then it is measurable. -/
+lemma continuous_on.measurable_piecewise
+  {f g : α → γ} {s : set α} [Π (j : α), decidable (j ∈ s)]
+  (hf : continuous_on f s) (hg : continuous_on g sᶜ) (hs : measurable_set s) :
+  measurable (s.piecewise f g) :=
+begin
+  refine measurable_of_is_open (λ t ht, _),
+  rw [piecewise_preimage, set.ite],
+  apply measurable_set.union,
+  { rcases _root_.continuous_on_iff'.1 hf t ht with ⟨u, u_open, hu⟩,
+    rw hu,
+    exact u_open.measurable_set.inter hs },
+  { rcases _root_.continuous_on_iff'.1 hg t ht with ⟨u, u_open, hu⟩,
+    rw [diff_eq_compl_inter, inter_comm, hu],
+    exact u_open.measurable_set.inter hs.compl }
 end
 
 @[priority 100, to_additive]
@@ -1746,18 +1764,34 @@ variables [measurable_space β] [metric_space β] [borel_space β]
 
 open metric
 
+/-- A limit (over a general filter) of measurable `ℝ≥0∞` valued functions is measurable. -/
+lemma measurable_of_tendsto_ennreal' {ι} {f : ι → α → ℝ≥0∞} {g : α → ℝ≥0∞} (u : filter ι)
+  [ne_bot u] [is_countably_generated u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
+  measurable g :=
+begin
+  rcases u.exists_seq_tendsto with ⟨x, hx⟩,
+  rw [tendsto_pi_nhds] at lim,
+  have : (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))) = g :=
+    by { ext1 y, exact ((lim y).comp hx).liminf_eq, },
+  rw ← this,
+  show measurable (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))),
+  exact measurable_liminf (λ n, hf (x n)),
+end
+
+/-- A sequential limit of measurable `ℝ≥0∞` valued functions is measurable. -/
+lemma measurable_of_tendsto_ennreal {f : ℕ → α → ℝ≥0∞} {g : α → ℝ≥0∞}
+  (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) : measurable g :=
+measurable_of_tendsto_ennreal' at_top hf lim
+
 /-- A limit (over a general filter) of measurable `ℝ≥0` valued functions is measurable. -/
 lemma measurable_of_tendsto_nnreal' {ι} {f : ι → α → ℝ≥0} {g : α → ℝ≥0} (u : filter ι)
   [ne_bot u] [is_countably_generated u] (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
   measurable g :=
 begin
-  rcases u.exists_seq_tendsto with ⟨x, hx⟩,
-  rw [tendsto_pi_nhds] at lim, rw [← measurable_coe_nnreal_ennreal_iff],
-  have : ∀ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞)) = (g y : ℝ≥0∞) :=
-    λ y, ((ennreal.continuous_coe.tendsto (g y)).comp $ (lim y).comp hx).liminf_eq,
-  simp only [← this],
-  show measurable (λ y, liminf at_top (λ n, (f (x n) y : ℝ≥0∞))),
-  exact measurable_liminf (λ n, (hf (x n)).coe_nnreal_ennreal),
+  simp_rw [← measurable_coe_nnreal_ennreal_iff] at hf ⊢,
+  refine measurable_of_tendsto_ennreal' u hf _,
+  rw tendsto_pi_nhds at lim ⊢,
+  exact λ x, (ennreal.continuous_coe.tendsto (g x)).comp (lim x),
 end
 
 /-- A sequential limit of measurable `ℝ≥0` valued functions is measurable. -/
@@ -1790,24 +1824,31 @@ lemma measurable_of_tendsto_metric {f : ℕ → α → β} {g : α → β}
   measurable g :=
 measurable_of_tendsto_metric' at_top hf lim
 
-lemma ae_measurable_of_tendsto_metric_ae {μ : measure α} {f : ℕ → α → β} {g : α → β}
+lemma ae_measurable_of_tendsto_metric_ae {ι : Type*} [hι : nonempty ι] [encodable ι]
+  {μ : measure α} {f : ι → α → β} {g : α → β}
+  (u : filter ι) [ne_bot u] [is_countably_generated u]
+  (hf : ∀ n, ae_measurable (f n) μ) (h_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) u (𝓝 (g x))) :
+  ae_measurable g μ :=
+begin
+  set p : α → (ι → β) → Prop := λ x f', tendsto (λ n, f' n) u (𝓝 (g x)),
+  have hp : ∀ᵐ x ∂μ, p x (λ n, f n x) := h_tendsto,
+  set ae_seq_lim := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨f hι.some x⟩ : nonempty β).some with hs,
+  refine ⟨ae_seq_lim, measurable_of_tendsto_metric' u (@ae_seq.measurable α β _ _ _ f μ hf p)
+    (tendsto_pi_nhds.mpr (λ x, _)), _⟩,
+  { simp_rw [ae_seq, ae_seq_lim],
+    split_ifs with hx,
+    { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
+      exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hf x hx, },
+    { exact tendsto_const_nhds } },
+  { exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f hι.some x⟩ : nonempty β).some)
+      (ae_seq_set hf p) (ae_seq.measure_compl_ae_seq_set_eq_zero hf hp)).symm },
+end
+
+lemma ae_measurable_of_tendsto_metric_ae' {μ : measure α} {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, ae_measurable (f n) μ)
   (h_ae_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   ae_measurable g μ :=
-begin
-  let p : α → (ℕ → β) → Prop := λ x f', filter.at_top.tendsto (λ n, f' n) (𝓝 (g x)),
-  let hp : ∀ᵐ x ∂μ, p x (λ n, f n x), from h_ae_tendsto,
-  let ae_seq_lim := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨f 0 x⟩ : nonempty β).some,
-  refine ⟨ae_seq_lim, _, (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f 0 x⟩ : nonempty β).some)
-    (ae_seq_set hf p) (ae_seq.measure_compl_ae_seq_set_eq_zero hf hp)).symm⟩,
-  refine measurable_of_tendsto_metric (@ae_seq.measurable α β _ _ _ f μ hf p) _,
-  refine tendsto_pi_nhds.mpr (λ x, _),
-  simp_rw [ae_seq, ae_seq_lim],
-  split_ifs with hx,
-  { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
-    exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hf x hx, },
-  { exact tendsto_const_nhds, },
-end
+ae_measurable_of_tendsto_metric_ae at_top hf h_ae_tendsto
 
 lemma ae_measurable_of_unif_approx {μ : measure α} {g : α → β}
   (hf : ∀ ε > (0 : ℝ), ∃ (f : α → β), ae_measurable f μ ∧ ∀ᵐ x ∂μ, dist (f x) (g x) ≤ ε) :
@@ -1823,45 +1864,45 @@ begin
     assume x hx,
     rw tendsto_iff_dist_tendsto_zero,
     exact squeeze_zero (λ n, dist_nonneg) hx u_lim },
-  exact ae_measurable_of_tendsto_metric_ae (λ n, (Hf n).1) this,
+  exact ae_measurable_of_tendsto_metric_ae' (λ n, (Hf n).1) this,
 end
 
 lemma measurable_of_tendsto_metric_ae {μ : measure α} [μ.is_complete] {f : ℕ → α → β} {g : α → β}
   (hf : ∀ n, measurable (f n))
-  (h_ae_tendsto : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (g x))) :
+  (h_ae_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x))) :
   measurable g :=
 ae_measurable_iff_measurable.mp
-  (ae_measurable_of_tendsto_metric_ae (λ i, (hf i).ae_measurable) h_ae_tendsto)
+  (ae_measurable_of_tendsto_metric_ae' (λ i, (hf i).ae_measurable) h_ae_tendsto)
 
-lemma measurable_limit_of_tendsto_metric_ae {μ : measure α} {f : ℕ → α → β}
-  (hf : ∀ n, ae_measurable (f n) μ)
-  (h_ae_tendsto : ∀ᵐ x ∂μ, ∃ l : β, filter.at_top.tendsto (λ n, f n x) (𝓝 l)) :
+lemma measurable_limit_of_tendsto_metric_ae {ι} [encodable ι] [nonempty ι] {μ : measure α}
+  {f : ι → α → β} {L : filter ι} [L.is_countably_generated] (hf : ∀ n, ae_measurable (f n) μ)
+  (h_ae_tendsto : ∀ᵐ x ∂μ, ∃ l : β, tendsto (λ n, f n x) L (𝓝 l)) :
   ∃ (f_lim : α → β) (hf_lim_meas : measurable f_lim),
-    ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (f_lim x)) :=
+    ∀ᵐ x ∂μ, tendsto (λ n, f n x) L (𝓝 (f_lim x)) :=
 begin
-  let p : α → (ℕ → β) → Prop := λ x f', ∃ l : β, filter.at_top.tendsto (λ n, f' n) (𝓝 l),
-  have hp_mem : ∀ x, x ∈ ae_seq_set hf p → p x (λ n, f n x),
+  inhabit ι,
+  unfreezingI { rcases eq_or_ne L ⊥ with rfl | hL },
+  { exact ⟨(hf default).mk _, (hf default).measurable_mk,
+      eventually_of_forall $ λ x, tendsto_bot⟩ },
+  haveI : ne_bot L := ⟨hL⟩,
+  let p : α → (ι → β) → Prop := λ x f', ∃ l : β, tendsto (λ n, f' n) L (𝓝 l),
+  have hp_mem : ∀ x ∈ ae_seq_set hf p, p x (λ n, f n x),
     from λ x hx, ae_seq.fun_prop_of_mem_ae_seq_set hf hx,
-  have hμ_compl : μ (ae_seq_set hf p)ᶜ = 0,
-    from ae_seq.measure_compl_ae_seq_set_eq_zero hf h_ae_tendsto,
+  have h_ae_eq : ∀ᵐ x ∂μ, ∀ n, ae_seq hf p n x = f n x,
+    from ae_seq.ae_seq_eq_fun_ae hf h_ae_tendsto,
   let f_lim : α → β := λ x, dite (x ∈ ae_seq_set hf p) (λ h, (hp_mem x h).some)
-    (λ h, (⟨f 0 x⟩ : nonempty β).some),
-  have hf_lim_conv : ∀ x, x ∈ ae_seq_set hf p → filter.at_top.tendsto (λ n, f n x) (𝓝 (f_lim x)),
-  { intros x hx_conv,
-    simp only [f_lim, hx_conv, dif_pos],
-    exact (hp_mem x hx_conv).some_spec, },
-  have hf_lim : ∀ x, filter.at_top.tendsto (λ n, ae_seq hf p n x) (𝓝 (f_lim x)),
+    (λ h, (⟨f default x⟩ : nonempty β).some),
+  have hf_lim : ∀ x, tendsto (λ n, ae_seq hf p n x) L (𝓝 (f_lim x)),
   { intros x,
     simp only [f_lim, ae_seq],
     split_ifs,
-    { rw funext (λ n, ae_seq.mk_eq_fun_of_mem_ae_seq_set hf h n),
-      exact (hp_mem x h).some_spec, },
+    { refine (hp_mem x h).some_spec.congr (λ n, _),
+      exact (ae_seq.mk_eq_fun_of_mem_ae_seq_set hf h n).symm },
     { exact tendsto_const_nhds, }, },
-  have h_ae_tendsto_f_lim : ∀ᵐ x ∂μ, filter.at_top.tendsto (λ n, f n x) (𝓝 (f_lim x)),
-  { refine le_antisymm (le_of_eq (measure_mono_null _ hμ_compl)) (zero_le _),
-    exact set.compl_subset_compl.mpr (λ x hx, hf_lim_conv x hx), },
+  have h_ae_tendsto_f_lim : ∀ᵐ x ∂μ, tendsto (λ n, f n x) L (𝓝 (f_lim x)),
+    from h_ae_eq.mono (λ x hx, (hf_lim x).congr hx),
   have h_f_lim_meas : measurable f_lim,
-    from measurable_of_tendsto_metric (ae_seq.measurable hf p)
+    from measurable_of_tendsto_metric' L (ae_seq.measurable hf p)
       (tendsto_pi_nhds.mpr (λ x, hf_lim x)),
   exact ⟨f_lim, h_f_lim_meas, h_ae_tendsto_f_lim⟩,
 end

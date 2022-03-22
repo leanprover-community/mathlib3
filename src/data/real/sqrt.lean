@@ -317,8 +317,7 @@ begin
 end
 
 /-- The real square root is at most the natural square root plus one -/
-lemma real_sqrt_le_nat_sqrt_succ {a : ℕ} : real.sqrt ↑a ≤ nat.sqrt a + 1
-:=
+lemma real_sqrt_le_nat_sqrt_succ {a : ℕ} : real.sqrt ↑a ≤ nat.sqrt a + 1 :=
 begin
   rw real.sqrt_le_iff,
   split,

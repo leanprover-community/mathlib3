@@ -12,8 +12,9 @@ This file defines concept lattices. A concept of a relation `r : α → β → P
 `s : set α` and `t : set β` such that `s` is the set of all `a : α` that are related to all elements
 of `t`, and `t` is the set of all `b : β` that are related to all elements of `s`.
 
-The type of concepts is called a concept lattice. Every concept lattice is complete and in fact
-every complete lattice arises as the concept lattice of its `≤`.
+Ordering the concepts of a relation `r` by inclusion on the first component gives rise to a
+*concept lattice*. Every concept lattice is complete and in fact every complete lattice arises as
+the concept lattice of its `≤`.
 
 ## Implementation notes
 
@@ -183,6 +184,12 @@ end
 @[simp] lemma snd_ssubset_snd_iff : c.snd ⊂ d.snd ↔ d < c :=
 by rw [ssubset_iff_subset_not_subset, lt_iff_le_not_le, snd_subset_snd_iff, snd_subset_snd_iff]
 
+lemma strict_mono_fst : strict_mono (prod.fst ∘ to_prod : concept α β r → set α) :=
+λ c d, fst_ssubset_fst_iff.2
+
+lemma strict_anti_snd : strict_anti (prod.snd ∘ to_prod : concept α β r → set β) :=
+λ c d, snd_ssubset_snd_iff.2
+
 instance : lattice (concept α β r) :=
 { sup := (⊔),
   le_sup_left := λ c d, snd_subset_snd_iff.1 $ inter_subset_left _ _,
@@ -198,17 +205,17 @@ instance : bounded_order (concept α β r) :=
 
 instance : has_Sup (concept α β r) :=
 ⟨λ S, { fst := extent_closure r (⋂ c ∈ S, (c : concept _ _ _).snd),
-  snd := ⋂ c ∈ S, (c : concept _ _ _).snd,
-  closure_fst := by simp_rw [←closure_fst, ←intent_closure_Union₂,
-    intent_closure_extent_closure_intent_closure],
-  closure_snd := rfl }⟩
+        snd := ⋂ c ∈ S, (c : concept _ _ _).snd,
+        closure_fst := by simp_rw [←closure_fst, ←intent_closure_Union₂,
+          intent_closure_extent_closure_intent_closure],
+        closure_snd := rfl }⟩
 
 instance : has_Inf (concept α β r) :=
 ⟨λ S, { fst := ⋂ c ∈ S, (c : concept _ _ _).fst,
-  snd := intent_closure r (⋂ c ∈ S, (c : concept _ _ _).fst),
-  closure_fst := rfl,
-  closure_snd := by simp_rw [←closure_snd, ←extent_closure_Union₂,
-    extent_closure_intent_closure_extent_closure] }⟩
+        snd := intent_closure r (⋂ c ∈ S, (c : concept _ _ _).fst),
+        closure_fst := rfl,
+        closure_snd := by simp_rw [←closure_snd, ←extent_closure_Union₂,
+          extent_closure_intent_closure_extent_closure] }⟩
 
 instance : complete_lattice (concept α β r) :=
 { Sup := Sup,

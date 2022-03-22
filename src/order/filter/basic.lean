@@ -747,7 +747,8 @@ instance : distrib_lattice (filter α) :=
 
 -- The dual version does not hold! `filter α` is not a `complete_distrib_lattice`. -/
 instance : coframe (filter α) :=
-{ Inf := Inf,infi_sup_le_sup_Inf := λ f s, begin
+{ Inf := Inf,
+  infi_sup_le_sup_Inf := λ f s, begin
   rintro t ⟨h₁, h₂⟩,
   rw [Inf_eq_infi, filter.mem_sets, mem_infi_finite'] at h₂,
   simp only [mem_Union, (finset.inf_eq_infi _ _).symm] at h₂,

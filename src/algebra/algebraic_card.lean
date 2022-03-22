@@ -22,6 +22,14 @@ trascendental number exists.
 open cardinal polynomial topological_space
 open_locale cardinal
 
+-- This needs to be proved, and goes elsewhere.
+theorem roots_finite {R} (A) [comm_ring R] [is_domain R] [ring A] [algebra R A] {p : polynomial R}
+  (hp : p ≠ 0) : {y : A | ⇑(aeval y) p = 0}.finite :=
+sorry
+
+-- This needs to be proved, and goes elsewhere.
+theorem mk_complex : #ℂ = 𝔠 := sorry
+
 theorem algebraic_card (R) {A} [comm_ring R] [is_domain R] [ring A] [algebra R A]
   [topological_space A] [t1_space A] {s : set (set A)} (hs : is_topological_basis s) :
   #{x : A | is_algebraic R x} ≤ #(polynomial R) * #s :=
@@ -42,7 +50,7 @@ begin
   { have H : is_open ({y : A | aeval y p = 0} \ {x})ᶜ := begin
       rw is_open_compl_iff,
       refine set.finite.is_closed (set.finite.inter_of_left _ _),
-      sorry -- THIS SHOULD BE A THEOREM!
+      exact roots_finite A hp
     end,
     rw [compl_sdiff, hs.is_open_iff] at H,
     rcases H x (set.mem_union_right _ (set.mem_singleton x)) with ⟨t, ht, hts, hxt⟩,
@@ -125,7 +133,6 @@ theorem exists_transcendental : ∃ x : ℂ, transcendental ℚ x := begin
   show ∃ x : ℂ, ¬ is_algebraic ℚ x,
   by_contra' H : ∀ x : ℂ, x ∈ {x : ℂ | is_algebraic ℚ x},
   have := algebraic_card,
-  have mk_complex : #ℂ = 𝔠 := sorry, -- THIS SHOULD BE A THEOREM!
   rw [set.eq_univ_of_forall H, mk_univ, mk_complex] at this,
   exact omega_lt_continuum.ne' this
 end

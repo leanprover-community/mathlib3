@@ -61,7 +61,7 @@ begin
   { have : a ∈ l₂ := p.subset (mem_cons_self _ _),
     rcases mem_split this with ⟨u₂, v₂, rfl⟩,
     have p' := (perm_cons a).1 (p.trans perm_middle),
-    have := IH p' (pairwise_of_sublist (by simp) s₂), subst l₁,
+    have := IH p' (s₂.sublist $ by simp), subst l₁,
     change a::u₂ ++ v₂ = u₂ ++ ([a] ++ v₂), rw ← append_assoc, congr,
     have : ∀ (x : α) (h : x ∈ u₂), x = a := λ x m,
       antisymm ((pairwise_append.1 s₂).2.2 _ m a (mem_cons_self _ _))
@@ -73,7 +73,7 @@ end
 
 theorem sublist_of_subperm_of_sorted [is_antisymm α r]
   {l₁ l₂ : list α} (p : l₁ <+~ l₂) (s₁ : l₁.sorted r) (s₂ : l₂.sorted r) : l₁ <+ l₂ :=
-let ⟨_, h, h'⟩ := p in by rwa ←list.eq_of_perm_of_sorted h (list.pairwise_of_sublist h' s₂) s₁
+let ⟨_, h, h'⟩ := p in by rwa ←eq_of_perm_of_sorted h (s₂.sublist h') s₁
 
 @[simp] theorem sorted_singleton (a : α) : sorted r [a] := pairwise_singleton _ _
 

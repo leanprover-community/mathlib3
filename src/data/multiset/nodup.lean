@@ -63,7 +63,7 @@ le_antisymm (nodup_iff_count_le_one.1 d a) (count_pos.2 h)
 lemma nodup_iff_pairwise {α} {s : multiset α} : nodup s ↔ pairwise (≠) s :=
 quotient.induction_on s $ λ l, (pairwise_coe_iff_pairwise (by exact λ a b, ne.symm)).symm
 
-lemma pairwise_of_nodup {r : α → α → Prop} {s : multiset α} :
+protected lemma nodup.pairwise {r : α → α → Prop} {s : multiset α} :
   (∀a∈s, ∀b∈s, a ≠ b → r a b) → nodup s → pairwise r s :=
 quotient.induction_on s $ assume l h hl, ⟨l, rfl, hl.imp_of_mem $ assume a b ha hb, h a ha b hb⟩
 
@@ -77,8 +77,7 @@ quotient.induction_on₂ s t $ λ l₁ l₂, nodup_append
 theorem disjoint_of_nodup_add {s t : multiset α} (d : nodup (s + t)) : disjoint s t :=
 (nodup_add.1 d).2.2
 
-theorem nodup_add_of_nodup {s t : multiset α} (d₁ : nodup s) (d₂ : nodup t) :
-  nodup (s + t) ↔ disjoint s t :=
+lemma nodup.add_iff (d₁ : nodup s) (d₂ : nodup t) : nodup (s + t) ↔ disjoint s t :=
 by simp [nodup_add, d₁, d₂]
 
 lemma nodup.of_map (f : α → β) : nodup (map f s) → nodup s :=
@@ -122,13 +121,13 @@ theorem nodup.mem_erase_iff [decidable_eq α] {a b : α} {l} (d : nodup l) :
   a ∈ l.erase b ↔ a ≠ b ∧ a ∈ l :=
 by rw nodup_erase_eq_filter b d; simp [and_comm]
 
-lemma nodup.mem_erase [decidable_eq α] {a : α} {l} (h : nodup l) : a ∉ l.erase a :=
-by rw mem_erase_iff_of_nodup h; simp
+lemma nodup.not_mem_erase [decidable_eq α] {a : α} {s} (h : nodup s) : a ∉ s.erase a :=
+λ ha, (h.mem_erase_iff.1 ha).1 rfl
 
-lemma nodup.product {s : multiset α} {t : multiset β} : nodup s → nodup t → nodup (product s t) :=
+protected lemma nodup.product {t : multiset β} : nodup s → nodup t → nodup (product s t) :=
 quotient.induction_on₂ s t $ λ l₁ l₂ d₁ d₂, by simp [d₁.product d₂]
 
-lemma nodup.sigma {σ : α → Type*} {t : Π a, multiset (σ a)} :
+protected lemma nodup.sigma {σ : α → Type*} {t : Π a, multiset (σ a)} :
   nodup s → (∀ a, nodup (t a)) → nodup (s.sigma t) :=
 quot.induction_on s $ assume l₁,
 begin
@@ -137,7 +136,7 @@ begin
   simpa using nodup.sigma
 end
 
-lemma nodup.filter_map (f : α → option β) (H : ∀ (a a' : α) (b : β), b ∈ f a → b ∈ f a' → a = a') :
+protected lemma nodup.filter_map (f : α → option β) (H : ∀ a a' b, b ∈ f a → b ∈ f a' → a = a') :
   nodup s → nodup (filter_map f s) :=
 quot.induction_on s $ λ l, nodup.filter_map H
 
@@ -163,7 +162,7 @@ nodup_of_le $ inter_le_right _ _
     (h.sublist_ext (mem_sublists'.1 sx) (mem_sublists'.1 sy)).1
       (quotient.exact e)⟩
 
-lemma nodup.powerset_len {n : ℕ} (h : nodup s) : nodup (powerset_len n s) :=
+protected lemma nodup.powerset_len {n : ℕ} (h : nodup s) : nodup (powerset_len n s) :=
 nodup_of_le (powerset_len_le_powerset _ _) (nodup_powerset.2 h)
 
 @[simp] lemma nodup_bind {s : multiset α} {t : α → multiset β} :

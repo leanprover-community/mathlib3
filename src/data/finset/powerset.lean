@@ -140,8 +140,7 @@ of cardinality `n`. -/
 def powerset_len (n : ℕ) (s : finset α) : finset (finset α) :=
 ⟨(s.1.powerset_len n).pmap finset.mk
   (λ t h, nodup_of_le (mem_powerset_len.1 h).1 s.2),
- nodup_pmap (λ a ha b hb, congr_arg finset.val)
-   (nodup_powerset_len s.2)⟩
+ nodup_pmap (λ a ha b hb, congr_arg finset.val) s.2.powerset_len⟩
 
 /-- **Formula for the Number of Combinations** -/
 theorem mem_powerset_len {n} {s t : finset α} :

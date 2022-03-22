@@ -256,7 +256,8 @@ lemma exists_lt_lower_semicontinuous_integral_gt_nnreal [sigma_finite μ] (f : �
   ∧ (integrable (λ x, (g x).to_real) μ) ∧ (∫ x, (g x).to_real ∂μ < ∫ x, f x ∂μ + ε) :=
 begin
   have fmeas : ae_measurable f μ,
-  by { convert fint.ae_strongly_measurable.real_to_nnreal.ae_measurable, ext1 x, simp only [real.to_nnreal_coe] },
+  by { convert fint.ae_strongly_measurable.real_to_nnreal.ae_measurable, ext1 x,
+       simp only [real.to_nnreal_coe] },
   lift ε to ℝ≥0 using εpos.le,
   obtain ⟨δ, δpos, hδε⟩ : ∃ δ : ℝ≥0, 0 < δ ∧ δ < ε, from exists_between εpos,
   have int_f_ne_top : ∫⁻ (a : α), (f a) ∂μ ≠ ∞ :=

@@ -209,6 +209,9 @@ lemma univ_filter_mem_range (f : α → β) [fintype β]
   finset.univ.filter (λ y, y ∈ set.range f) = finset.univ.image f :=
 univ_filter_exists f
 
+lemma coe_filter_univ (p : α → Prop) [decidable_pred p] : (univ.filter p : set α) = {x | p x} :=
+by rw [coe_filter, coe_univ, set.sep_univ]
+
 /-- A special case of `finset.sup_eq_supr` that omits the useless `x ∈ univ` binder. -/
 lemma sup_univ_eq_supr [complete_lattice β] (f : α → β) : finset.univ.sup f = supr f :=
 (sup_eq_supr _ f).trans $ congr_arg _ $ funext $ λ a, supr_pos (mem_univ _)
@@ -667,6 +670,10 @@ end
 @[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 ⟨λ h x hx, h (by simpa using hx), λ h x hx, h (by simpa using hx)⟩
+
+lemma filter_mem_univ_eq_to_finset [fintype α] (s : set α) [fintype s] [decidable_pred (∈ s)] :
+  finset.univ.filter (∈ s) = s.to_finset :=
+by { ext, simp only [mem_filter, finset.mem_univ, true_and, mem_to_finset] }
 
 end set
 

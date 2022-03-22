@@ -516,7 +516,7 @@ end inv
 
 open_locale pointwise
 
-/-! ### Set addition/division -/
+/-! ### Set multiplication/division -/
 
 section div
 variables {s s₁ s₂ t t₁ t₂ u : set α} {a b : α}
@@ -609,6 +609,23 @@ image2_Inter₂_subset_right _ _ _
 
 end has_div
 
+/-- Repeated pointwise addition (not the same as pointwise repeated addition!) of a `finset`. -/
+protected def has_nsmul [has_zero α] [has_add α] : has_scalar ℕ (set α) := ⟨nsmul_rec⟩
+
+/-- Repeated pointwise multiplication (not the same as pointwise repeated multiplication!) of a
+`set`. -/
+@[to_additive]
+protected def has_npow [has_one α] [has_mul α] : has_pow (set α) ℕ := ⟨λ s n, npow_rec n s⟩
+
+/-- Repeated pointwise addition/subtraction (not the same as pointwise repeated
+addition/subtraction!) of a `set`. -/
+protected def has_zsmul [has_zero α] [has_add α] [has_neg α] : has_scalar ℤ (set α) := ⟨zsmul_rec⟩
+
+/-- Repeated pointwise multiplication/division (not the same as pointwise repeated
+multiplication/division!) of a `set`. -/
+@[to_additive] protected def has_zpow [has_one α] [has_mul α] [has_inv α] : has_pow (set α) ℤ :=
+⟨λ s n, zpow_rec n s⟩
+
 /-TODO: The below instances are duplicate because there is no typeclass greater than
 `div_inv_monoid` and `has_involutive_inv` but smaller than `group` and `group_with_zero`. -/
 
@@ -635,12 +652,12 @@ protected def div_inv_monoid' [group_with_zero α] : div_inv_monoid (set α) :=
   end,
   ..set.monoid, ..set.has_inv, ..set.has_div }
 
-localized "attribute [instance] set.div_inv_monoid set.div_inv_monoid' set.sub_neg_add_monoid"
-  in pointwise
+localized "attribute [instance] set.has_nsmul set.has_npow set.has_zsmul set.has_zpow
+  set.div_inv_monoid set.div_inv_monoid' set.sub_neg_add_monoid" in pointwise
 
 end div
 
-/-! ### Scalar addition/multiplication of sets -/
+/-! ### Translation/scaling of sets -/
 
 section smul
 

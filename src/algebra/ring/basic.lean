@@ -269,6 +269,11 @@ lemma ite_mul_zero_right {α : Type*} [mul_zero_class α] (P : Prop) [decidable 
   ite P (a * b) 0 = a * ite P b 0 :=
 by { by_cases h : P; simp [h], }
 
+lemma ite_and_mul_zero {α : Type*} [mul_zero_class α]
+  (P Q : Prop) [decidable P] [decidable Q] (a b : α) :
+  ite (P ∧ Q) (a * b) 0 = ite P a 0 * ite Q b 0 :=
+by simp only [←ite_and, ite_mul, mul_ite, mul_zero, zero_mul, and_comm]
+
 theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
 dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
 

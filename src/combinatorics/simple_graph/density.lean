@@ -26,7 +26,7 @@ variables {ι κ α β : Type*}
 
 /-! ### Density of a relation -/
 
-namespace relation
+namespace rel
 section asymmetric
 variables (r : α → β → Prop) [Π a, decidable_pred (r a)] {s s₁ s₂ : finset α} {t t₁ t₂ : finset β}
   {a : α} {b : β}
@@ -145,9 +145,9 @@ lemma edge_density_comm (s t : finset α) : edge_density r s t = edge_density r 
 by rw [edge_density, mul_comm, card_interedges_comm hr, edge_density]
 
 end symmetric
-end relation
+end rel
 
-open relation
+open rel
 
 /-! ### Density of a graph -/
 

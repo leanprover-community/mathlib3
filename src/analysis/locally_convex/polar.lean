@@ -10,29 +10,27 @@ import analysis.convex.basic
 /-!
 # Polar set
 
+In this file we define the polar set. There are different notions of the polar, we will define the
+*absolute polar*. The advantage over the real polar is that we can define the absolute polar for
+any bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜`, where `𝕜` is a normed commutative ring and
+`E` and `F` are modules over `𝕜`.
+
 ## Main definitions
 
-* `polar`
+* `linear_map.polar`: The polar of a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜`.
 
 ## Main statements
 
-* `foo_bar_unique`
-
-## Notation
-
-
-
-## Implementation details
-
-
+* `linear_map.polar_eq_Inter`: The polar as an intersection.
+* `linear_map.subset_bipolar`: The polar is a subset of the bipolar.
 
 ## References
 
-* [F. Bar, *Quuxes*][bibkey]
+* [H. H. Schaefer, *Topological Vector Spaces*][schaefer1966]
 
 ## Tags
 
-Foobars, barfoos
+polar
 -/
 
 
@@ -46,8 +44,10 @@ variables [normed_comm_ring 𝕜] [add_comm_monoid E] [add_comm_monoid F]
 variables [module 𝕜 E] [module 𝕜 F]
 variables (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜)
 
-def polar (M : set E) : set F :=
-  {y : F | ∀ (x ∈ M), ∥B x y∥ ≤ 1 }
+/-- The (absolute) polar of `s : set E` is given by the set of all `y : F` such that `∥B x y∥ ≤ 1`
+for all `x ∈ s`.-/
+def polar (s : set E) : set F :=
+  {y : F | ∀ x ∈ s, ∥B x y∥ ≤ 1 }
 
 lemma polar_mem_iff (s : set E) (y : F) :
   y ∈ B.polar s ↔ ∀ x ∈ s, ∥B x y∥ ≤ 1 := iff.rfl

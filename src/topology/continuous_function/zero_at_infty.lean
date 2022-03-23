@@ -282,10 +282,12 @@ instance : bounded_continuous_map_class F α β :=
 def to_bounded_continuous_function (f : α →C₀ β) : α →ᵇ β :=
 ⟨f, map_bounded f⟩
 
+local notation `to_bcf` := to_bounded_continuous_function
+
 section
 variables (α) (β)
 lemma to_bounded_continuous_function_injective :
-  function.injective (to_bounded_continuous_function : (α →C₀ β) → α →ᵇ β) :=
+  function.injective (to_bcf : (α →C₀ β) → α →ᵇ β) :=
 λ f g h, by { ext, simpa only using fun_like.congr_fun h x, }
 end
 
@@ -295,7 +297,27 @@ variables {C : ℝ} {f g : α →C₀ β}
 noncomputable instance : metric_space (α →C₀ β) :=
 metric_space.induced _ (to_bounded_continuous_function_injective α β) (by apply_instance)
 
+@[simp]
+lemma dist_to_bcf_eq_dist {f g : α →C₀ β} : dist (to_bcf f) (to_bcf g) = dist f g := rfl
+
 open bounded_continuous_function
+
+lemma _root_.bounded_continuous_function.tendsto_iff_tendsto_uniformly {ι : Type*}
+  {F : ι → (α →ᵇ β)} {f : α →ᵇ β} {l : filter ι} :
+  tendsto F l (𝓝 f) ↔ tendsto_uniformly (λ i, F i) f l :=
+iff.intro
+  (λ h, tendsto_uniformly_iff.2
+    (λ ε ε0, (metric.tendsto_nhds.mp h ε ε0).mp (eventually_of_forall $
+    λ n hn x, lt_of_le_of_lt (dist_coe_le_dist x) (dist_comm (F n) f ▸ hn))))
+  (λ h, metric.tendsto_nhds.mpr $ λ ε ε_pos,
+    (h _ (dist_mem_uniformity $ half_pos ε_pos)).mp (eventually_of_forall $
+    λ n hn, lt_of_le_of_lt ((dist_le (half_pos ε_pos).le).mpr $
+    λ x, dist_comm (f x) (F n x) ▸ le_of_lt (hn x)) (half_lt_self ε_pos)))
+
+lemma tendsto_iff_tendsto_uniformly {ι : Type*} {F : ι → (α →C₀ β)} {f : α →C₀ β} {l : filter ι} :
+  tendsto F l (𝓝 f) ↔ tendsto_uniformly (λ i, F i) f l :=
+by simpa only [metric.tendsto_nhds] using @bounded_continuous_function.tendsto_iff_tendsto_uniformly
+  _ _ _ _ _ _ (λ i, to_bcf (F i)) (to_bcf f) l
 
 /-- Continuous functions vanishing at infinity taking values in a complete space form a
 complete space. -/

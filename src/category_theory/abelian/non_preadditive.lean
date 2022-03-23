@@ -82,11 +82,11 @@ end category_theory
 
 open category_theory
 
-namespace category_theory.non_preadditive_abelian
-
 universes v u
 
 variables {C : Type u} [category.{v} C] [non_preadditive_abelian C]
+
+namespace category_theory.non_preadditive_abelian
 
 section factor
 

@@ -1,4 +1,20 @@
+/-
+Copyright (c) 2020 Markus Himmel. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Markus Himmel, Scott Morrison
+-/
 import category_theory.limits.shapes.kernels
+
+/-!
+# The abelian image and coimage.
+
+In an abelian category we usually want the image of a morphism `f` to be defined as
+`kernel (cokernel.π f)`, and the coimage to be defined as `cokernel (kernel.ι f)`.
+
+We make these definitions here, as `abelian.image f` and `abelian.coimage f`
+(without assuming the category is actually abelian),
+and later relate these to the usual categorical notions when in an abelian category.
+-/
 
 noncomputable theory
 

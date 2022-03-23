@@ -176,21 +176,16 @@ end
 
 end
 
-namespace images
-
 section
 variables {f}
 
 lemma image_ι_comp_eq_zero {R : C} {g : Q ⟶ R} (h : f ≫ g = 0) : abelian.image.ι f ≫ g = 0 :=
 zero_of_epi_comp (abelian.factor_thru_image f) $ by simp [h]
 
+lemma comp_coimage_π_eq_zero {R : C} {g : Q ⟶ R} (h : f ≫ g = 0) : f ≫ abelian.coimage.π g = 0 :=
+zero_of_comp_mono (abelian.factor_thru_coimage g) $ by simp [h]
+
 end
-
-instance mono_factor_thru_image [mono f] : mono (abelian.factor_thru_image f) :=
-mono_of_mono_fac $ image.fac f
-
-instance is_iso_factor_thru_image [mono f] : is_iso (abelian.factor_thru_image f) :=
-is_iso_of_mono_of_epi _
 
 /-- Factoring through the image is a strong epi-mono factorisation. -/
 @[simps] def image_strong_epi_mono_factorisation : strong_epi_mono_factorisation f :=
@@ -200,24 +195,6 @@ is_iso_of_mono_of_epi _
   e := abelian.factor_thru_image f,
   e_strong_epi := strong_epi_of_epi _ }
 
-end images
-
-namespace coimages
-
-section
-variables {f}
-
-lemma comp_coimage_π_eq_zero {R : C} {g : Q ⟶ R} (h : f ≫ g = 0) : f ≫ abelian.coimage.π g = 0 :=
-zero_of_comp_mono (abelian.factor_thru_coimage g) $ by simp [h]
-
-end
-
-instance epi_factor_thru_coimage [epi f] : epi (abelian.factor_thru_coimage f) :=
-epi_of_epi_fac $ coimage.fac f
-
-instance is_iso_factor_thru_coimage [epi f] : is_iso (abelian.factor_thru_coimage f) :=
-is_iso_of_mono_of_epi _
-
 /-- Factoring through the coimage is a strong epi-mono factorisation. -/
 @[simps] def coimage_strong_epi_mono_factorisation : strong_epi_mono_factorisation f :=
 { I := abelian.coimage f,
@@ -226,15 +203,13 @@ is_iso_of_mono_of_epi _
   e := coimage.π f,
   e_strong_epi := strong_epi_of_epi _ }
 
-end coimages
-
 end factor
 
 section has_strong_epi_mono_factorisations
 
 /-- An abelian category has strong epi-mono factorisations. -/
 @[priority 100] instance : has_strong_epi_mono_factorisations C :=
-has_strong_epi_mono_factorisations.mk $ λ X Y f, images.image_strong_epi_mono_factorisation f
+has_strong_epi_mono_factorisations.mk $ λ X Y f, image_strong_epi_mono_factorisation f
 
 /- In particular, this means that it has well-behaved images. -/
 example : has_images C := by apply_instance
@@ -247,25 +222,25 @@ variables {X Y : C} (f : X ⟶ Y)
 
 /-- There is a canonical isomorphism between the coimage and the image of a morphism. -/
 abbreviation coimage_iso_image : abelian.coimage f ≅ abelian.image f :=
-is_image.iso_ext (coimages.coimage_strong_epi_mono_factorisation f).to_mono_is_image
-  (images.image_strong_epi_mono_factorisation f).to_mono_is_image
+is_image.iso_ext (coimage_strong_epi_mono_factorisation f).to_mono_is_image
+  (image_strong_epi_mono_factorisation f).to_mono_is_image
 
 /-- There is a canonical isomorphism between the abelian image and the categorical image of a
     morphism. -/
 abbreviation image_iso_image : abelian.image f ≅ image f :=
-is_image.iso_ext (images.image_strong_epi_mono_factorisation f).to_mono_is_image (image.is_image f)
+is_image.iso_ext (image_strong_epi_mono_factorisation f).to_mono_is_image (image.is_image f)
 
 /-- There is a canonical isomorphism between the abelian coimage and the categorical image of a
     morphism. -/
 abbreviation coimage_iso_image' : abelian.coimage f ≅ image f :=
-is_image.iso_ext (coimages.coimage_strong_epi_mono_factorisation f).to_mono_is_image
+is_image.iso_ext (coimage_strong_epi_mono_factorisation f).to_mono_is_image
   (image.is_image f)
 
 lemma full_image_factorisation : abelian.coimage.π f ≫ (coimage_iso_image f).hom ≫
   abelian.image.ι f = f :=
 by rw [limits.is_image.iso_ext_hom,
-  ←images.image_strong_epi_mono_factorisation_to_mono_factorisation_m, is_image.lift_fac,
-  coimages.coimage_strong_epi_mono_factorisation_to_mono_factorisation_m, abelian.coimage.fac]
+  ←image_strong_epi_mono_factorisation_to_mono_factorisation_m, is_image.lift_fac,
+  coimage_strong_epi_mono_factorisation_to_mono_factorisation_m, abelian.coimage.fac]
 
 end images
 

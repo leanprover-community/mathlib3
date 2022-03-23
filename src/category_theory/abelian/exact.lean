@@ -123,7 +123,7 @@ end
 /-- If `(f, g)` is exact, then `images.image.ι f` is a kernel of `g`. -/
 def is_limit_image [h : exact f g] :
   is_limit
-    (kernel_fork.of_ι (abelian.image.ι f) (images.image_ι_comp_eq_zero h.1) : kernel_fork g) :=
+    (kernel_fork.of_ι (abelian.image.ι f) (image_ι_comp_eq_zero h.1) : kernel_fork g) :=
 begin
   rw exact_iff at h,
   refine is_limit.of_ι _ _ _ _ _,
@@ -134,12 +134,12 @@ end
 
 /-- If `(f, g)` is exact, then `image.ι f` is a kernel of `g`. -/
 def is_limit_image' [h : exact f g] :
-  is_limit (kernel_fork.of_ι (limits.image.ι f) (image_ι_comp_eq_zero h.1)) :=
+  is_limit (kernel_fork.of_ι (limits.image.ι f) (limits.image_ι_comp_eq_zero h.1)) :=
 is_kernel.iso_kernel _ _ (is_limit_image f g) (image_iso_image f).symm $ is_image.lift_fac _ _
 
 /-- If `(f, g)` is exact, then `coimages.coimage.π g` is a cokernel of `f`. -/
 def is_colimit_coimage [h : exact f g] : is_colimit (cokernel_cofork.of_π (abelian.coimage.π g)
-  (coimages.comp_coimage_π_eq_zero h.1) : cokernel_cofork f) :=
+  (abelian.comp_coimage_π_eq_zero h.1) : cokernel_cofork f) :=
 begin
   rw exact_iff at h,
   refine is_colimit.of_π _ _ _ _ _,

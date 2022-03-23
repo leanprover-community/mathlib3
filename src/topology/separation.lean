@@ -262,9 +262,17 @@ begin
   exact ⟨x, hx⟩
 end
 
+lemma t0_space_of_injective_of_continuous [topological_space β] {f : α → β}
+  (hf : function.injective f) (hf' : continuous f) [t0_space β] : t0_space α :=
+⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (f x) (f y) (hf.ne hxy) in
+  ⟨f ⁻¹' U, hU.preimage hf', hxyU⟩⟩
+
+protected lemma embedding.t0_space [topological_space β] [t0_space β] {f : α → β}
+  (hf : embedding f) : t0_space α :=
+t0_space_of_injective_of_continuous hf.inj hf.continuous
+
 instance subtype.t0_space [t0_space α] {p : α → Prop} : t0_space (subtype p) :=
-⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (x:α) y ((not_congr subtype.ext_iff_val).1 hxy) in
-  ⟨(coe : subtype p → α) ⁻¹' U, is_open_induced hU, hxyU⟩⟩
+embedding_subtype_coe.t0_space
 
 theorem t0_space_iff_or_not_mem_closure (α : Type u) [topological_space α] :
   t0_space α ↔ (∀ a b : α, (a ≠ b) → (a ∉ closure ({b} : set α) ∨ b ∉ closure ({a} : set α))) :=
@@ -279,15 +287,6 @@ begin
         or.inr ⟨h h', not_not.mpr (subset_closure (set.mem_singleton a))⟩⟩ },
     { exact ⟨(closure {b})ᶜ, is_closed_closure.1,
         or.inl ⟨h', not_not.mpr (subset_closure (set.mem_singleton b))⟩⟩ } }
-end
-
-lemma t0_space_of_injective_of_continuous {α β : Type u} [topological_space α] [topological_space β]
-  {f : α → β} (hf : function.injective f) (hf' : continuous f) [t0_space β] : t0_space α :=
-begin
-  constructor,
-  intros x y h,
-  obtain ⟨U, hU, e⟩ := t0_space.t0 _ _ (hf.ne h),
-  exact ⟨f ⁻¹' U, hf'.1 U hU, e⟩
 end
 
 /-- A T₁ space, also known as a Fréchet space, is a topological space

@@ -269,6 +269,11 @@ lemma ite_mul_zero_right {α : Type*} [mul_zero_class α] (P : Prop) [decidable 
   ite P (a * b) 0 = a * ite P b 0 :=
 by { by_cases h : P; simp [h], }
 
+lemma ite_and_mul_zero {α : Type*} [mul_zero_class α]
+  (P Q : Prop) [decidable P] [decidable Q] (a b : α) :
+  ite (P ∧ Q) (a * b) 0 = ite P a 0 * ite Q b 0 :=
+by simp only [←ite_and, ite_mul, mul_ite, mul_zero, zero_mul, and_comm]
+
 /-- An element `a` of a semiring is even if there exists `k` such `a = 2*k`. -/
 def even (a : α) : Prop := ∃ k, a = 2*k
 
@@ -520,7 +525,7 @@ lemma domain_nontrivial [nontrivial β] : nontrivial α :=
 end
 
 lemma is_unit_map [semiring α] [semiring β] (f : α →+* β) {a : α} (h : is_unit a) : is_unit (f a) :=
-h.map f.to_monoid_hom
+h.map f
 
 /-- The identity ring homomorphism from a semiring to itself. -/
 def id (α : Type*) [non_assoc_semiring α] : α →+* α :=

@@ -3,7 +3,7 @@ Copyright (c) 2021 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import analysis.analytic.basic
 import analysis.complex.basic
 import data.nat.choose.cast
@@ -210,6 +210,17 @@ end
 
 end complete_algebra
 
+lemma algebra_map_exp_comm_of_mem_ball [complete_space 𝕂] (x : 𝕂)
+  (hx : x ∈ emetric.ball (0 : 𝕂) (exp_series 𝕂 𝕂).radius) :
+  algebra_map 𝕂 𝔸 (exp 𝕂 𝕂 x) = exp 𝕂 𝔸 (algebra_map 𝕂 𝔸 x) :=
+begin
+  convert (algebra_map_clm 𝕂 𝔸).map_tsum (exp_series_field_summable_of_mem_ball x hx),
+  { exact congr_fun exp_eq_tsum_field x },
+  { convert congr_fun (exp_eq_tsum : exp 𝕂 𝔸 = _) (algebra_map 𝕂 𝔸 x),
+    simp_rw [←map_pow, ←algebra_map_clm_coe, ←(algebra_map_clm 𝕂 𝔸).map_smul, smul_eq_mul,
+      mul_comm, ←div_eq_mul_one_div], }
+end
+
 end any_field_any_algebra
 
 section any_field_comm_algebra
@@ -318,6 +329,10 @@ lemma exp_add_of_commute [complete_space 𝔸]
 exp_add_of_commute_of_mem_ball hxy ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
+lemma algebra_map_exp_comm (x : 𝕂) :
+  algebra_map 𝕂 𝔸 (exp 𝕂 𝕂 x) = exp 𝕂 𝔸 (algebra_map 𝕂 𝔸 x) :=
+algebra_map_exp_comm_of_mem_ball x (by simp [exp_series_radius_eq_top])
+
 end any_algebra
 
 section comm_algebra
@@ -362,3 +377,17 @@ lemma exp_ℝ_ℂ_eq_exp_ℂ_ℂ : exp ℝ ℂ = exp ℂ ℂ :=
 exp_eq_exp ℝ ℂ ℂ
 
 end scalar_tower
+
+lemma star_exp {𝕜 A : Type*} [is_R_or_C 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
+  [star_ring A] [normed_star_group A] [complete_space A]
+  [star_module 𝕜 A] (a : A) : star (exp 𝕜 A a) = exp 𝕜 A (star a) :=
+begin
+  rw exp_eq_tsum,
+  have := continuous_linear_map.map_tsum
+    (starₗᵢ 𝕜 : A ≃ₗᵢ⋆[𝕜] A).to_linear_isometry.to_continuous_linear_map
+    (exp_series_summable' a),
+  dsimp at this,
+  convert this,
+  funext,
+  simp only [star_smul, star_pow, one_div, star_inv', star_nat_cast],
+end

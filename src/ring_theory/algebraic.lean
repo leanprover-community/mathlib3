@@ -32,6 +32,9 @@ def is_algebraic (x : A) : Prop :=
 /-- An element of an R-algebra is transcendental over R if it is not algebraic over R. -/
 def transcendental (x : A) : Prop := ¬ is_algebraic R x
 
+lemma is_transcendental_of_subsingleton [subsingleton R] (x : R) : transcendental R x :=
+λ ⟨p, h, _⟩, h $ subsingleton.elim p 0
+
 variables {R}
 
 /-- A subalgebra is algebraic if all its elements are algebraic. -/
@@ -44,17 +47,15 @@ def algebra.is_algebraic : Prop := ∀ x : A, is_algebraic R x
 
 variables {R A}
 
-/-- A subalgebra is algebraic if and only if it is algebraic an algebra. -/
+/-- A subalgebra is algebraic if and only if it is algebraic as an algebra. -/
 lemma subalgebra.is_algebraic_iff (S : subalgebra R A) :
-  S.is_algebraic ↔ @algebra.is_algebraic R S _ _ (S.algebra) :=
+  S.is_algebraic ↔ @algebra.is_algebraic R S _ _ S.algebra :=
 begin
   delta algebra.is_algebraic subalgebra.is_algebraic,
-  rw [subtype.forall'],
-  apply forall_congr, rintro ⟨x, hx⟩,
-  apply exists_congr, intro p,
-  apply and_congr iff.rfl,
-  have h : function.injective (S.val) := subtype.val_injective,
-  conv_rhs { rw [← h.eq_iff, alg_hom.map_zero], },
+  rw subtype.forall',
+  refine forall_congr (λ x, exists_congr (λ p, and_congr iff.rfl _)),
+  have h : function.injective S.val := subtype.val_injective,
+  conv_rhs { rw [← h.eq_iff, alg_hom.map_zero] },
   rw [← aeval_alg_hom_apply, S.val_apply]
 end
 
@@ -77,23 +78,27 @@ variables [comm_ring S] [ring A] [algebra R A] [algebra R S] [algebra S A]
 variables [is_scalar_tower R S A]
 
 /-- An integral element of an algebra is algebraic.-/
-lemma is_integral.is_algebraic [nontrivial R] {x : A} (h : is_integral R x) :
-  is_algebraic R x :=
-by { rcases h with ⟨p, hp, hpx⟩, exact ⟨p, hp.ne_zero, hpx⟩ }
+lemma is_integral.is_algebraic [nontrivial R] {x : A} : is_integral R x → is_algebraic R x :=
+λ ⟨p, hp, hpx⟩, ⟨p, hp.ne_zero, hpx⟩
 
 variables {R}
 
-/-- An element of `R` is algebraic, when viewed as an element of the `R`-algebra `A`. -/
-lemma is_algebraic_algebra_map [nontrivial R] (a : R) : is_algebraic R (algebra_map R A a) :=
-⟨X - C a, X_sub_C_ne_zero a, by simp only [aeval_C, aeval_X, alg_hom.map_sub, sub_self]⟩
+lemma is_algebraic_zero [nontrivial R] : is_algebraic R (0 : A) :=
+⟨_, X_ne_zero, aeval_X 0⟩
 
-lemma is_algebraic_algebra_map_of_is_algebraic {a : S} (h : is_algebraic R a) :
-  is_algebraic R (algebra_map S A a) :=
-begin
-  obtain ⟨f, hf₁, hf₂⟩ := h,
-  use [f, hf₁],
-  rw [← is_scalar_tower.algebra_map_aeval R S A, hf₂, ring_hom.map_zero]
-end
+/-- An element of `R` is algebraic, when viewed as an element of the `R`-algebra `A`. -/
+lemma is_algebraic_algebra_map [nontrivial R] (x : R) : is_algebraic R (algebra_map R A x) :=
+⟨_, X_sub_C_ne_zero x, by rw [_root_.map_sub, aeval_X, aeval_C, sub_self]⟩
+
+lemma is_algebraic_one [nontrivial R] : is_algebraic R (1 : A) :=
+by { rw ←_root_.map_one _, exact is_algebraic_algebra_map 1 }
+
+lemma is_algebraic_nat [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
+by { rw ←map_nat_cast _ n, exact is_algebraic_algebra_map n }
+
+lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
+  is_algebraic R a → is_algebraic R (algebra_map S A a) :=
+λ ⟨f, hf₁, hf₂⟩, ⟨f, hf₁, by rw [← is_scalar_tower.algebra_map_aeval R S A, hf₂, ring_hom.map_zero]⟩
 
 end zero_ne_one
 

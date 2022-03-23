@@ -142,11 +142,22 @@ instance complete_lattice_hom_class.to_bounded_lattice_hom_class [complete_latti
 { ..Sup_hom_class.to_sup_bot_hom_class, ..Inf_hom_class.to_inf_top_hom_class }
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso.complete_lattice_hom_class [complete_lattice α] [complete_lattice β] :
-  complete_lattice_hom_class (α ≃o β) α β :=
-{ map_Sup := λ f s, (f.map_Sup s).trans Sup_image.symm,
-  map_Inf := λ f s, (f.map_Inf s).trans Inf_image.symm,
-  ..rel_iso.rel_hom_class }
+instance order_iso_class.to_Sup_hom_class [complete_lattice α] [complete_lattice β]
+  [order_iso_class F α β] :
+  Sup_hom_class F α β :=
+⟨λ f s, eq_of_forall_ge_iff $ λ c, by simp only [←le_map_inv_iff, Sup_le_iff, set.ball_image_iff]⟩
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso_class.to_Inf_hom_class [complete_lattice α] [complete_lattice β]
+  [order_iso_class F α β] :
+  Inf_hom_class F α β :=
+⟨λ f s, eq_of_forall_le_iff $ λ c, by simp only [←map_inv_le_iff, le_Inf_iff, set.ball_image_iff]⟩
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso_class.to_complete_lattice_hom_class [complete_lattice α] [complete_lattice β]
+  [order_iso_class F α β] :
+  complete_lattice_hom_class F α β :=
+{ ..order_iso_class.to_Sup_hom_class, ..order_iso_class.to_lattice_hom_class }
 
 instance [has_Sup α] [has_Sup β] [Sup_hom_class F α β] : has_coe_t F (Sup_hom α β) :=
 ⟨λ f, ⟨f, map_Sup f⟩⟩

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Benjamin Davidson
 -/
 import data.nat.modeq
+import algebra.parity
 
 /-!
 # Parity of natural numbers
@@ -84,13 +85,8 @@ instance decidable_pred_odd : decidable_pred (odd : ℕ → Prop) :=
 
 mk_simp_attribute parity_simps "Simp attribute for lemmas about `even`"
 
-@[simp] theorem even_zero : even 0 := ⟨0, dec_trivial⟩
-
 @[simp] theorem not_even_one : ¬ even 1 :=
 by rw even_iff; norm_num
-
-@[simp] theorem even_bit0 (n : ℕ) : even (bit0 n) :=
-⟨n, by rw [bit0, two_mul]⟩
 
 @[parity_simps] theorem even_add : even (m + n) ↔ (even m ↔ even n) :=
 by cases mod_two_eq_zero_or_one m with h₁ h₁;
@@ -140,15 +136,6 @@ by cases mod_two_eq_zero_or_one m with h₁ h₁;
 
 theorem odd_mul : odd (m * n) ↔ odd m ∧ odd n :=
 by simp [not_or_distrib] with parity_simps
-
-theorem even.mul_left (hm : even m) (n) : even (m * n) :=
-even_mul.mpr $ or.inl hm
-
-theorem even.mul_right (m) (hn : even n) : even (m * n) :=
-even_mul.mpr $ or.inr hn
-
-theorem odd.mul (hm : odd m) (hn : odd n) : odd (m * n) :=
-odd_mul.mpr ⟨hm, hn⟩
 
 theorem odd.of_mul_left (h : odd (m * n)) : odd m :=
 (odd_mul.mp h).1

@@ -463,6 +463,21 @@ begin
   { intros, simp only [add_comp, mul_comp, C_comp, X_comp, pow_succ', ← mul_assoc, *] at * }
 end
 
+lemma coeff_comp_degree_mul_degree (hqd0 : nat_degree q ≠ 0) :
+  coeff (p.comp q) (nat_degree p * nat_degree q) =
+  leading_coeff p * leading_coeff q ^ nat_degree p :=
+begin
+  rw [comp, eval₂, coeff_sum],
+  convert finset.sum_eq_single p.nat_degree _ _,
+  { simp only [coeff_nat_degree, coeff_C_mul, coeff_pow_mul_nat_degree] },
+  { assume b hbs hbp,
+    refine coeff_eq_zero_of_nat_degree_lt ((nat_degree_mul_le).trans_lt _),
+    rw [nat_degree_C, zero_add],
+    refine (nat_degree_pow_le).trans_lt ((mul_lt_mul_right (pos_iff_ne_zero.mpr hqd0)).mpr _),
+    exact lt_of_le_of_ne (le_nat_degree_of_mem_supp _ hbs) hbp },
+  { simp {contextual := tt} }
+end
+
 end comp
 
 section map

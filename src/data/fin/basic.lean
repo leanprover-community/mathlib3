@@ -601,6 +601,14 @@ as it is eligible for `dsimp`. -/
 @[simp]
 lemma coe_cast (h : n = m) (i : fin n) : (cast h i : ℕ) = i := rfl
 
+@[simp] lemma cast_zero {n' : ℕ} {h : n + 1 = n' + 1} :
+  cast h (0 : fin (n + 1)) = 0 :=
+ext rfl
+
+@[simp] lemma cast_last {n' : ℕ} {h : n + 1 = n' + 1} :
+  cast h (last n) = last n' :=
+ext (by rw [coe_cast, coe_last, coe_last, nat.succ_injective h])
+
 @[simp] lemma cast_mk (h : n = m) (i : ℕ) (hn : i < n) :
   cast h ⟨i, hn⟩ = ⟨i, lt_of_lt_of_le hn h.le⟩ := rfl
 
@@ -609,6 +617,10 @@ lemma coe_cast (h : n = m) (i : fin n) : (cast h i : ℕ) = i := rfl
 
 @[simp] lemma cast_refl (h : n = n := rfl) : cast h = order_iso.refl (fin n) :=
 by { ext, refl }
+
+lemma cast_le_of_eq {m n : ℕ} (h : m = n) {h' : m ≤ n} :
+  (cast_le h' : fin m → fin n) = fin.cast h :=
+funext (λ _, rfl)
 
 /-- While in many cases `fin.cast` is better than `equiv.cast`/`cast`, sometimes we want to apply
 a generic theorem about `cast`. -/
@@ -666,6 +678,10 @@ def cast_succ : fin n ↪o fin (n + 1) := cast_add 1
 @[simp] lemma coe_cast_succ (i : fin n) : (i.cast_succ : ℕ) = i := rfl
 
 @[simp] lemma cast_succ_mk (n i : ℕ) (h : i < n) : cast_succ ⟨i, h⟩ = ⟨i, nat.lt.step h⟩ := rfl
+
+@[simp] lemma cast_cast_succ {n' : ℕ} {h : n + 1 = n' + 1} {i : fin n} :
+  cast h (cast_succ i) = cast_succ (cast (nat.succ_injective h) i) :=
+by { ext, simp only [coe_cast, coe_cast_succ] }
 
 lemma cast_succ_lt_succ (i : fin n) : i.cast_succ < i.succ :=
 lt_iff_coe_lt_coe.2 $ by simp only [coe_cast_succ, coe_succ, nat.lt_succ_self]
@@ -757,6 +773,9 @@ order_embedding.of_strict_mono (λ i, ⟨(i : ℕ) + m, add_lt_add_right i.2 _�
   λ i j h, lt_iff_coe_lt_coe.2 $ add_lt_add_right h _
 
 @[simp] lemma coe_add_nat (m : ℕ) (i : fin n) : (add_nat m i : ℕ) = i + m := rfl
+
+@[simp] lemma add_nat_one {i : fin n} : add_nat 1 i = i.succ :=
+by { ext, rw [coe_add_nat, coe_succ] }
 
 lemma le_coe_add_nat (m : ℕ) (i : fin n) : m ≤ add_nat m i := nat.le_add_left _ _
 

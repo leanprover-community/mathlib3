@@ -71,6 +71,9 @@ lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
 λ a h, hsq _ (h.trans hdvd)
 
 namespace multiplicity
+
+section comm_monoid
+
 variables [comm_monoid R] [decidable_rel (has_dvd.dvd : R → R → Prop)]
 
 lemma squarefree_iff_multiplicity_le_one (r : R) :
@@ -82,6 +85,31 @@ begin
   convert enat.add_one_le_iff_lt (enat.coe_ne_top 1),
   norm_cast,
 end
+
+end comm_monoid
+
+section cancel_comm_monoid_with_zero
+
+variables [cancel_comm_monoid_with_zero R] [wf_dvd_monoid R]
+
+lemma finite_prime_left {a b : R} (ha : prime a) (hb : b ≠ 0) :
+  multiplicity.finite a b :=
+begin
+  classical,
+  revert hb,
+  refine wf_dvd_monoid.induction_on_irreducible b (by contradiction) (λ u hu hu', _)
+    (λ b p hb hp ih hpb, _),
+  { rw [multiplicity.finite_iff_dom, multiplicity.is_unit_right ha.not_unit hu],
+    exact enat.dom_coe 0, },
+  { refine multiplicity.finite_mul ha
+      (multiplicity.finite_iff_dom.mpr (enat.dom_of_le_coe (show multiplicity a p ≤ ↑1, from _)))
+      (ih hb),
+    norm_cast,
+    exact (((multiplicity.squarefree_iff_multiplicity_le_one p).mp hp.squarefree a)
+      .resolve_right ha.not_unit) }
+end
+
+end cancel_comm_monoid_with_zero
 
 end multiplicity
 

@@ -162,7 +162,7 @@ section fintype
 
 open mul_action
 
-variables (G) [group G] [fintype G] {M : Type*} [monoid M]
+variables (G) [group G] {M : Type*} [monoid M]
 
 -- move this
 lemma is_conj.eq_of_mem_center_left {g h : M} (H : is_conj g h) (Hg : g ∈ set.center M) :
@@ -196,7 +196,8 @@ begin
   rw [conj_classes.mem_carrier_iff_mk_eq, conj_classes.mk_eq_mk_iff_is_conj, mem_orbit_conj_act_iff]
 end
 
-lemma card_carrier (g : G) [fintype ((conj_classes.mk g).carrier)] :
+
+lemma card_carrier (g : G) [fintype G] [fintype ((conj_classes.mk g).carrier)] :
   fintype.card (conj_classes.mk g).carrier =
     fintype.card (conj_act G) / fintype.card (stabilizer (conj_act G) g) :=
 begin
@@ -207,8 +208,8 @@ end
 
 end
 
-lemma class_equation' [fintype (conj_classes G)] [∀ x : conj_classes G, fintype (x.carrier)] :
-  ∑ x : conj_classes G, x.carrier.to_finset.card = fintype.card G :=
+lemma class_equation' [fintype (conj_classes G)] [∀ x : conj_classes G, fintype (x.carrier)]
+  [fintype G] : ∑ x : conj_classes G, x.carrier.to_finset.card = fintype.card G :=
 begin
   let e : quotient (orbit_rel (conj_act G) G) ≃ conj_classes G :=
   quotient.congr_right (λ g h, mem_orbit_conj_act_iff g h),

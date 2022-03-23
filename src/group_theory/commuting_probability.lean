@@ -54,10 +54,10 @@ begin
   { exact pow_ne_zero 2 (nat.cast_ne_zero.mpr card_ne_zero) },
 end
 
-variables (G : Type*) [group G] [fintype G] [fintype (conj_classes G)]
+variables (G : Type*) [group G] [fintype G]
 
-lemma card_comm_eq_card_conj_classes_mul_card :
-  card {p : G × G // p.1 * p.2 = p.2 * p.1} = card (conj_classes G) * card G :=
+lemma card_comm_eq_card_conj_classes_mul_card [h : fintype (conj_classes G)] :
+  card {p : G × G // p.1 * p.2 = p.2 * p.1} = @card (conj_classes G) h * card G :=
 by convert calc card {p : G × G // p.1 * p.2 = p.2 * p.1} = card (Σ g, {h // g * h = h * g}) :
   card_congr (equiv.subtype_prod_equiv_sigma_subtype (λ g h : G, g * h = h * g))
 ... = ∑ g, card {h // g * h = h * g} : card_sigma _
@@ -97,8 +97,9 @@ begin
     conjugacy classes as `G ⧸ H`. -/
   rw [comm_prob_def', comm_prob_def', div_le_iff, mul_assoc, ←nat.cast_mul, mul_comm (card H),
       ←subgroup.card_eq_card_quotient_mul_card_subgroup, div_mul_cancel, nat.cast_le],
-  { exact card_le_of_surjective (conj_classes.map (quotient_group.mk' H))
-      (conj_classes.map_surjective quotient.surjective_quotient_mk') },
+  { apply card_le_of_surjective,
+    show function.surjective (conj_classes.map (quotient_group.mk' H)),
+    exact (conj_classes.map_surjective quotient.surjective_quotient_mk') },
   { exact nat.cast_ne_zero.mpr card_ne_zero },
   { exact nat.cast_pos.mpr card_pos },
 end

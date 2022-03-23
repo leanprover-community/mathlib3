@@ -112,7 +112,7 @@ instance : epi (non_preadditive_abelian.factor_thru_image f) :=
 let I := non_preadditive_abelian.image f, p := non_preadditive_abelian.factor_thru_image f,
     i := kernel.ι (cokernel.π f) in
 -- It will suffice to consider some g : I ⟶ R such that p ≫ g = 0 and show that g = 0.
-epi_of_zero_cancel _ $ λ R (g : I ⟶ R) (hpg : p ≫ g = 0),
+normal_mono_category.epi_of_zero_cancel _ $ λ R (g : I ⟶ R) (hpg : p ≫ g = 0),
 begin
   -- Since C is abelian, u := ker g ≫ i is the kernel of some morphism h.
   let u := kernel.ι g ≫ i,
@@ -166,7 +166,7 @@ cokernel.π_desc _ _ _
 instance : mono (non_preadditive_abelian.factor_thru_coimage f) :=
 let I := non_preadditive_abelian.coimage f, i := non_preadditive_abelian.factor_thru_coimage f,
     p := cokernel.π (kernel.ι f) in
-mono_of_cancel_zero _ $ λ R (g : R ⟶ I) (hgi : g ≫ i = 0),
+normal_epi_category.mono_of_cancel_zero _ $ λ R (g : R ⟶ I) (hgi : g ≫ i = 0),
 begin
   -- Since C is abelian, u := p ≫ coker g is the cokernel of some morphism h.
   let u := p ≫ cokernel.π g,
@@ -242,7 +242,7 @@ instance mono_r {A : C} : mono (r A) :=
 begin
   let hl : is_limit (kernel_fork.of_ι (diag A) (cokernel.condition (diag A))),
   { exact mono_is_kernel_of_cokernel _ (colimit.is_colimit _) },
-  apply mono_of_cancel_zero,
+  apply normal_epi_category.mono_of_cancel_zero,
   intros Z x hx,
   have hxx : (x ≫ prod.lift (𝟙 A) (0 : A ⟶ A)) ≫ cokernel.π (diag A) = 0,
   { rw [category.assoc, hx] },
@@ -270,7 +270,7 @@ begin
       ext; simp } },
   let hp2 : is_colimit (cokernel_cofork.of_π (limits.prod.snd : A ⨯ A ⟶ A) hlp),
   { exact epi_is_cokernel_of_kernel _ hp1 },
-  apply epi_of_zero_cancel,
+  apply normal_mono_category.epi_of_zero_cancel,
   intros Z z hz,
   have h : prod.lift (𝟙 A) (0 : A ⟶ A) ≫ cokernel.π (diag A) ≫ z = 0,
   { rw [←category.assoc, hz] },

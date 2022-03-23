@@ -19,9 +19,8 @@ open category_theory.limits
 
 variables {C : Type*} [category C] [has_zero_morphisms C]
 
-namespace category_theory
+namespace category_theory.normal_mono_category
 
-section
 variables [has_finite_products C] [has_kernels C] [normal_mono_category C]
 
 /-- The pullback of two monomorphisms exists. -/
@@ -104,7 +103,7 @@ section
 local attribute [instance] has_limit_parallel_pair
 
 /-- A `normal_mono_category` category with finite products and kernels has all equalizers. -/
-@[priority 100] instance normal_mono_category.has_equalizers : has_equalizers C :=
+@[priority 100] instance has_equalizers : has_equalizers C :=
 has_equalizers_of_has_limit_parallel_pair _
 
 end
@@ -137,9 +136,9 @@ epi_of_zero_cokernel f 0 $ zero_cokernel_of_zero_cancel f hf
 
 end
 
-end
+end category_theory.normal_mono_category
 
-section
+namespace category_theory.normal_epi_category
 
 variables [has_finite_coproducts C] [has_cokernels C] [normal_epi_category C]
 
@@ -226,7 +225,7 @@ section
 local attribute [instance] has_colimit_parallel_pair
 
 /-- A `normal_epi_category` category with finite coproducts and cokernels has all coequalizers. -/
-@[priority 100] instance normal_epi_category.has_coequalizers : has_coequalizers C :=
+@[priority 100] instance has_coequalizers : has_coequalizers C :=
 has_coequalizers_of_has_colimit_parallel_pair _
 
 end
@@ -259,6 +258,4 @@ mono_of_zero_kernel f 0 $ zero_kernel_of_cancel_zero f hf
 
 end
 
-end
-
-end category_theory
+end category_theory.normal_epi_category

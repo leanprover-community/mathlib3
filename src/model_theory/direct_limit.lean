@@ -47,34 +47,22 @@ variables {G' : ℕ → Type w} [Π i, L.Structure (G' i)] (f' : Π (n : ℕ), G
 /-- Given a chain of embeddings of structures indexed by `ℕ`, defines a `directed_system` by
 composing them. -/
 def nat_le_rec (m n : ℕ) (h : m ≤ n) : G' m ↪[L] G' n :=
-{ to_fun := nat.le_rec_on h (λ n, f' n),
-  inj' := nat.le_rec_on_injective h _ (λ n, (f' _).injective),
-  map_fun' := λ n f x, begin
-    simp only,
-    induction h with n h ih,
-    { rw [nat.le_rec_on_self],
-      refine congr rfl (funext (λ i, _)),
-      rw [function.comp_app, nat.le_rec_on_self] },
-    { rw [nat.le_rec_on_succ h, ih, embedding.map_fun],
-      refine congr rfl (funext (λ i, _)),
-      simp only [function.comp_app, nat.le_rec_on_succ h] }
-  end,
-  map_rel' := λ n r x, begin
-    simp only [iff_eq_eq],
-    induction h with n h ih,
-    { refine congr rfl (funext (λ i, _)),
-      rw [function.comp_app, nat.le_rec_on_self] },
-    { rw [← ih, ← (f' n).map_rel],
-      refine congr rfl (funext (λ i, _)),
-      simp only [function.comp_app, nat.le_rec_on_succ h] }
-  end }
+nat.le_rec_on h (λ k g, (f' k).comp g) (embedding.refl L _)
 
 @[simp] lemma coe_nat_le_rec (m n : ℕ) (h : m ≤ n) :
   (nat_le_rec f' m n h : G' m → G' n) = nat.le_rec_on h (λ n, f' n) :=
-rfl
+begin
+  obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_le h,
+  ext x,
+  induction k with k ih,
+  { rw [nat_le_rec, nat.le_rec_on_self, embedding.refl_apply, nat.le_rec_on_self] },
+  { rw [nat.le_rec_on_succ le_self_add, nat_le_rec, nat.le_rec_on_succ le_self_add, ← nat_le_rec,
+      embedding.comp_apply, ih] }
+end
 
 instance nat_le_rec.directed_system : directed_system G' (λ i j h, nat_le_rec f' i j h) :=
-⟨λ i x h, nat.le_rec_on_self x, λ i j k ij jk x, (nat.le_rec_on_trans ij jk x).symm⟩
+⟨λ i x h, by rw [coe_nat_le_rec, nat.le_rec_on_self],
+  λ i j k ij jk x, by simp [nat.le_rec_on_trans ij jk]⟩
 
 end directed_system
 

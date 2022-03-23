@@ -126,7 +126,7 @@ lemma Structure.fg.mem_age_of_equiv {M N : bundled L.Structure} (h : Structure.f
 
 lemma hereditary.is_equiv_invariant_of_fg (h : hereditary K)
   (fg : ∀ (M : bundled.{w} L.Structure), M ∈ K → Structure.fg L M)
-  (M N : bundled.{w} L.Structure) (hn : nonempty (M ≃[L] N)) : (M ∈ K ↔ N ∈ K) :=
+  (M N : bundled.{w} L.Structure) (hn : nonempty (M ≃[L] N)) : M ∈ K ↔ N ∈ K :=
 ⟨λ MK, h M MK ((fg M MK).mem_age_of_equiv hn),
   λ NK, h N NK ((fg N NK).mem_age_of_equiv ⟨hn.some.symm⟩)⟩
 
@@ -181,10 +181,9 @@ begin
     rw [← hs, closure_le],
     intros x hx,
     refine ⟨f (out x).1 i (hi (out x).1 (finset.mem_image_of_mem _ hx)) (out x).2, _⟩,
-    simp only [directed_system.coe_nat_le_rec, eq_mpr_eq_cast, cast_cast,
-      embedding.coe_to_hom, direct_limit.of_apply],
-    rw [quotient.mk_eq_iff_out, direct_limit.equiv_iff G f _
-      (hi (out x).1 (finset.mem_image_of_mem _ hx)), directed_system.map_self];
+    rw [embedding.coe_to_hom, direct_limit.of_apply, quotient.mk_eq_iff_out,
+      direct_limit.equiv_iff G f _
+      (hi (out x).1 (finset.mem_image_of_mem _ hx)), directed_system.map_self],
     refl },
   { rintro ⟨i, Mfg, ⟨e⟩⟩,
     exact ⟨Mfg, ⟨embedding.comp (direct_limit.of L ι G f i) e⟩⟩ }
@@ -195,8 +194,8 @@ theorem exists_cg_is_age_of (hn : K.nonempty)
   (h : ∀ (M N : bundled.{w} L.Structure), nonempty (M ≃[L] N) → (M ∈ K ↔ N ∈ K))
   (hc : (quotient.mk '' K).countable)
   (fg : ∀ (M : bundled.{w} L.Structure), M ∈ K → Structure.fg L M)
-  (hereditary : hereditary K)
-  (joint_embedding : joint_embedding K) :
+  (hp : hereditary K)
+  (jep : joint_embedding K) :
   ∃ (M : bundled.{w} L.Structure), Structure.cg L M ∧ L.age M = K :=
 begin
   obtain ⟨F, hF⟩ := hc.exists_surjective (hn.image _),
@@ -206,19 +205,18 @@ begin
   { intro n,
     obtain ⟨P, hP1, hP2⟩ := (hF (F n).out).2 ⟨n, setoid.refl _⟩,
     exact (h _ _ hP2).1 hP1 },
-  have hj := λ (N : K) (n : ℕ), joint_embedding N N.2 (F (n + 1)).out (hF' _),
-  let G : ℕ → K := @nat.rec (λ _, K) (⟨(F 0).out, hF' 0⟩) (λ n N, ⟨classical.some (hj N n),
-    classical.some (classical.some_spec (hj N n))⟩),
+  choose P hPK hP hFP using (λ (N : K) (n : ℕ), jep N N.2 (F (n + 1)).out (hF' _)),
+  let G : ℕ → K := @nat.rec (λ _, K) (⟨(F 0).out, hF' 0⟩) (λ n N, ⟨P N n, hPK N n⟩),
   let f : Π (i j), i ≤ j → G i ↪[L] G j :=
-    directed_system.nat_le_rec (λ n, (classical.some_spec (classical.some_spec (hj _ n))).1.some),
+    directed_system.nat_le_rec (λ n, (hP _ n).some),
   refine ⟨bundled.of (direct_limit (λ n, G n) f), direct_limit.cg _ (λ n, (fg _ (G n).2).cg),
     (age_direct_limit _ _).trans (subset_antisymm
-      (Union_subset (λ n N hN, hereditary (G n) (G n).2 hN)) (λ N KN, _))⟩,
+      (Union_subset (λ n N hN, hp (G n) (G n).2 hN)) (λ N KN, _))⟩,
   obtain ⟨n, ⟨e⟩⟩ := (hF N).1 ⟨N, KN, setoid.refl _⟩,
   refine mem_Union_of_mem n ⟨fg _ KN, ⟨embedding.comp _ e.symm.to_embedding⟩⟩,
   cases n,
   { exact embedding.refl _ _ },
-  { exact (classical.some_spec (classical.some_spec (hj _ n))).2.some }
+  { exact (hFP _ n).some }
 end
 
 variable (K)

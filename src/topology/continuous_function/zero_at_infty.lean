@@ -279,10 +279,8 @@ instance : bounded_continuous_map_class F α β :=
 
 /-- Construct a bounded continuous function from a continuous function vanshing at infinity. -/
 @[simps]
-def to_bounded_continuous_function (f : α →C₀ β) : α →ᵇ β :=
+def to_bcf (f : α →C₀ β) : α →ᵇ β :=
 ⟨f, map_bounded f⟩
-
-local notation `to_bcf` := to_bounded_continuous_function
 
 section
 variables (α) (β)
@@ -298,7 +296,7 @@ noncomputable instance : metric_space (α →C₀ β) :=
 metric_space.induced _ (to_bounded_continuous_function_injective α β) (by apply_instance)
 
 @[simp]
-lemma dist_to_bcf_eq_dist {f g : α →C₀ β} : dist (to_bcf f) (to_bcf g) = dist f g := rfl
+lemma dist_to_bcf_eq_dist {f g : α →C₀ β} : dist f.to_bcf g.to_bcf = dist f g := rfl
 
 open bounded_continuous_function
 
@@ -317,50 +315,30 @@ iff.intro
 lemma tendsto_iff_tendsto_uniformly {ι : Type*} {F : ι → (α →C₀ β)} {f : α →C₀ β} {l : filter ι} :
   tendsto F l (𝓝 f) ↔ tendsto_uniformly (λ i, F i) f l :=
 by simpa only [metric.tendsto_nhds] using @bounded_continuous_function.tendsto_iff_tendsto_uniformly
-  _ _ _ _ _ _ (λ i, to_bcf (F i)) (to_bcf f) l
+  _ _ _ _ _ _ (λ i, (F i).to_bcf) f.to_bcf l
+
+lemma isometry_to_bcf : isometry (to_bcf : (α →C₀ β) → α →ᵇ β) := by tauto
+
+lemma closed_range_to_bcf : is_closed (range (to_bcf : (α →C₀ β) → α →ᵇ β)) :=
+begin
+  refine is_closed_iff_cluster_pt.mpr (λ f hf, _),
+  rw cluster_pt_principal_iff at hf,
+  have : tendsto f (cocompact α) (𝓝 0),
+  { refine metric.tendsto_nhds.mpr (λ ε hε, _),
+    obtain ⟨_, hg, g, rfl⟩ := hf (ball f (ε / 2)) (ball_mem_nhds f $ half_pos hε),
+    refine (metric.tendsto_nhds.mp (zero_at_infty g : tendsto g (cocompact α) (𝓝 0)) (ε / 2)
+      (half_pos hε)).mp (eventually_of_forall $ λ x hx, _),
+    calc dist (f x) 0 ≤ dist (g.to_bcf x) (f x) + dist (g x) 0 : dist_triangle_left _ _ _
+    ...               < dist g.to_bcf f + ε / 2 : add_lt_add_of_le_of_lt (dist_coe_le_dist x) hx
+    ...               < ε : by simpa [add_halves ε] using add_lt_add_right hg (ε / 2) },
+  exact ⟨⟨f.to_continuous_map, this⟩, by {ext, refl}⟩,
+end
 
 /-- Continuous functions vanishing at infinity taking values in a complete space form a
 complete space. -/
 instance [complete_space β] : complete_space (α →C₀ β) :=
-complete_of_cauchy_seq_tendsto $ λ (f : ℕ → (α →C₀ β)) (hf : cauchy_seq f),
-begin
-  /- We have to show that `f n` converges to a continuous function vanishing at infinity
-  For this, we prove pointwise convergence to define the limit, then check it is a
-  continuous function vanishing at infinity, and then check the metric convergence. -/
-  rcases cauchy_seq_iff_le_tendsto_0.1 hf with ⟨b, b0, b_bound, b_lim⟩,
-  have f_bdd := λ x n m N hn hm, le_trans (dist_coe_le_dist x) (b_bound n m N hn hm),
-  have fx_cau : ∀ x, cauchy_seq (λn, f n x) :=
-    λ x, cauchy_seq_iff_le_tendsto_0.2 ⟨b, b0, f_bdd x, b_lim⟩,
-  choose F hF using λ x, cauchy_seq_tendsto_of_complete (fx_cau x),
-  /- F : α → β,  hF : ∀ (x : α), tendsto (λ (n : ℕ), f n x) at_top (𝓝 (F x))
-  `F` is the desired limit function. Check that it is uniformly approximated by `f N` -/
-  have fF_bdd : ∀ x N, dist (f N x) (F x) ≤ b N :=
-    λ x N, le_of_tendsto (tendsto_const_nhds.dist (hF x))
-      (filter.eventually_at_top.2 ⟨N, λ n hn, f_bdd x N n N (le_refl N) hn⟩),
-  refine ⟨⟨⟨F, _⟩, _⟩, _⟩,
-  { /- Check that `F` is continuous, as a uniform limit of continuous functions -/
-    have : tendsto_uniformly (λ n x, f n x) F at_top,
-    { refine metric.tendsto_uniformly_iff.2 (λ ε ε0, _),
-      refine ((tendsto_order.1 b_lim).2 ε ε0).mono (λ n hn x, _),
-      rw dist_comm,
-      exact lt_of_le_of_lt (fF_bdd x n) hn },
-    exact this.continuous (eventually_of_forall $ λ N, map_continuous (f N)) },
-  { /- Check that `F` vanishes at infinity. -/
-    refine metric.tendsto_nhds.mpr (λ ε hε, eventually_iff.mpr $ mem_cocompact.mpr _),
-    rcases metric.tendsto_at_top.1 b_lim (ε / 2) (half_pos hε) with ⟨N, hN⟩,
-    obtain ⟨t : set α, ht, htε⟩ := (mem_cocompact.mp $ eventually_iff.1 $
-      metric.tendsto_nhds.mp (f N).zero_at_infty' (ε / 2) (half_pos hε)),
-    refine ⟨t, ht, λ x hx, _⟩,
-    calc dist (F x) 0 ≤ dist (f N x) (F x) + dist (f N x) 0 : dist_triangle_left _ _ _
-    ...               < |b N| + ε / 2
-                      : add_lt_add_of_le_of_lt ((fF_bdd x N).trans (le_abs_self (b N))) (htε hx)
-    ...               < ε / 2 + ε / 2
-                      : add_lt_add_right (real.dist_0_eq_abs (b N) ▸ (hN N (le_refl N))) _
-    ...               = ε : add_halves ε },
-  { /- Check that `F` is close to `f N` in distance terms -/
-    refine tendsto_iff_dist_tendsto_zero.2 (squeeze_zero (λ _, dist_nonneg) _ b_lim),
-    exact λ N, (dist_le (b0 _)).2 (λx, fF_bdd x N) }
-end
+(complete_space_iff_is_complete_range isometry_to_bcf.uniform_inducing).mpr
+  closed_range_to_bcf.is_complete
 
 end metric
 

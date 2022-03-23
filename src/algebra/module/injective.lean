@@ -13,7 +13,7 @@ import ring_theory.ideal.basic
 ## Main definitions
 
 * `module.injective`: an `R`-module `Q` is injective if and only if for every injective `R`-linear
-  map descents to a linear map to `Q`, i.e. in the following diagram, if `f` is injective then there
+  map descends to a linear map to `Q`; i.e. in the following diagram, if `f` is injective then there
   is an `R`-linear map `h : Y ⟶ Q` such that `g = h ∘ f`
   ```
   X --- f ---> Y

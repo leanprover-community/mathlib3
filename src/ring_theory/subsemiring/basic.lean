@@ -525,7 +525,7 @@ of the closure of `s`. -/
 lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H0 : p 0) (H1 : p 1)
   (Hadd : ∀ x y, p x → p y → p (x + y)) (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd⟩).2 Hs h
+(@closure_le _ _ _ ⟨p, Hmul, H1, Hadd, H0⟩).2 Hs h
 
 /-- An induction principle for closure membership for predicates with two arguments. -/
 @[elab_as_eliminator]
@@ -830,34 +830,47 @@ section actions
 
 namespace subsemiring
 
-variables {R' α β : Type*} [semiring R']
+variables {R' α β : Type*}
+
+section non_assoc_semiring
+variables [non_assoc_semiring R']
 
 /-- The action by a subsemiring is the action by the underlying semiring. -/
-instance [mul_action R' α] (S : subsemiring R') : mul_action S α :=
-S.to_submonoid.mul_action
+instance [has_scalar R' α] (S : subsemiring R') : has_scalar S α := S.to_submonoid.has_scalar
 
-lemma smul_def [mul_action R' α] {S : subsemiring R'} (g : S) (m : α) : g • m = (g : R') • m := rfl
+lemma smul_def [has_scalar R' α] {S : subsemiring R'} (g : S) (m : α) : g • m = (g : R') • m := rfl
 
 instance smul_comm_class_left
-  [mul_action R' β] [has_scalar α β] [smul_comm_class R' α β] (S : subsemiring R') :
+  [has_scalar R' β] [has_scalar α β] [smul_comm_class R' α β] (S : subsemiring R') :
   smul_comm_class S α β :=
 S.to_submonoid.smul_comm_class_left
 
 instance smul_comm_class_right
-  [has_scalar α β] [mul_action R' β] [smul_comm_class α R' β] (S : subsemiring R') :
+  [has_scalar α β] [has_scalar R' β] [smul_comm_class α R' β] (S : subsemiring R') :
   smul_comm_class α S β :=
 S.to_submonoid.smul_comm_class_right
 
 /-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
-instance
-  [has_scalar α β] [mul_action R' α] [mul_action R' β] [is_scalar_tower R' α β]
+instance [has_scalar α β] [has_scalar R' α] [has_scalar R' β] [is_scalar_tower R' α β]
   (S : subsemiring R') :
   is_scalar_tower S α β :=
 S.to_submonoid.is_scalar_tower
 
-instance [mul_action R' α] [has_faithful_scalar R' α] (S : subsemiring R') :
+instance [has_scalar R' α] [has_faithful_scalar R' α] (S : subsemiring R') :
   has_faithful_scalar S α :=
 S.to_submonoid.has_faithful_scalar
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [has_zero α] [smul_with_zero R' α] (S : subsemiring R') : smul_with_zero S α :=
+smul_with_zero.comp_hom _ S.subtype.to_monoid_with_zero_hom.to_zero_hom
+
+end non_assoc_semiring
+
+variables [semiring R']
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [mul_action R' α] (S : subsemiring R') : mul_action S α :=
+S.to_submonoid.mul_action
 
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_monoid α] [distrib_mul_action R' α] (S : subsemiring R') : distrib_mul_action S α :=
@@ -867,6 +880,10 @@ S.to_submonoid.distrib_mul_action
 instance [monoid α] [mul_distrib_mul_action R' α] (S : subsemiring R') :
   mul_distrib_mul_action S α :=
 S.to_submonoid.mul_distrib_mul_action
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [has_zero α] [mul_action_with_zero R' α] (S : subsemiring R') : mul_action_with_zero S α :=
+mul_action_with_zero.comp_hom _ S.subtype.to_monoid_with_zero_hom
 
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=

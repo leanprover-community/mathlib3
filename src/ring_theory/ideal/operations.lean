@@ -1099,7 +1099,8 @@ theorem mem_image_of_mem_map_of_surjective {I : ideal R} {y}
 submodule.span_induction H (λ _, id) ⟨0, I.zero_mem, f.map_zero⟩
 (λ y1 y2 ⟨x1, hx1i, hxy1⟩ ⟨x2, hx2i, hxy2⟩,
   ⟨x1 + x2, I.add_mem hx1i hx2i, hxy1 ▸ hxy2 ▸ f.map_add _ _⟩)
-(λ c y ⟨x, hxi, hxy⟩, let ⟨d, hdc⟩ := hf c in ⟨d • x, I.smul_mem _ hxi, hdc ▸ hxy ▸ f.map_mul _ _⟩)
+(λ c y ⟨x, hxi, hxy⟩,
+  let ⟨d, hdc⟩ := hf c in ⟨d * x, I.mul_mem_left _ hxi, hdc ▸ hxy ▸ f.map_mul _ _⟩)
 
 lemma mem_map_iff_of_surjective {I : ideal R} {y} :
   y ∈ map f I ↔ ∃ x, x ∈ I ∧ f x = y :=
@@ -1179,6 +1180,10 @@ begin
   rw [comap_map_of_surjective _ hf, sup_eq_left],
   exact le_trans (comap_mono bot_le) (le_of_lt hJ)
 end
+
+theorem comap_le_comap_iff_of_surjective (I J : ideal S) : comap f I ≤ comap f J ↔ I ≤ J :=
+⟨λ h, (map_comap_of_surjective f hf I).symm.le.trans (map_le_of_le_comap h),
+  λ h, le_comap_of_map_le ((map_comap_of_surjective f hf I).le.trans h)⟩
 
 end surjective
 
@@ -1706,6 +1711,15 @@ def quotient_equiv (I : ideal R) (J : ideal S) (f : R ≃+* S) (hIJ : J = I.map 
   left_inv := by {rintro ⟨r⟩, simp },
   right_inv := by {rintro ⟨s⟩, simp },
   ..quotient_map J ↑f (by {rw hIJ, exact @le_comap_map _ S _ _ _ _}) }
+
+@[simp]
+lemma quotient_equiv_mk (I : ideal R) (J : ideal S) (f : R ≃+* S) (hIJ : J = I.map (f : R →+* S))
+  (x : R) : quotient_equiv I J f hIJ (ideal.quotient.mk I x) = ideal.quotient.mk J (f x) := rfl
+
+@[simp]
+lemma quotient_equiv_symm_mk (I : ideal R) (J : ideal S) (f : R ≃+* S)
+  (hIJ : J = I.map (f : R →+* S)) (x : S) :
+  (quotient_equiv I J f hIJ).symm (ideal.quotient.mk J x) = ideal.quotient.mk I (f.symm x) := rfl
 
 /-- `H` and `h` are kept as separate hypothesis since H is used in constructing the quotient map. -/
 lemma quotient_map_injective' {J : ideal R} {I : ideal S} {f : R →+* S} {H : J ≤ I.comap f}

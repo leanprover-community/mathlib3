@@ -29,6 +29,13 @@ def with_one (α) := option α
 
 namespace with_one
 
+instance [has_repr α] : has_repr (with_zero α) :=
+⟨λ o, match o with | none := "0" | (some a) := "↑" ++ repr a end⟩
+
+@[to_additive]
+instance [has_repr α] : has_repr (with_one α) :=
+⟨λ o, match o with | none := "1" | (some a) := "↑" ++ repr a end⟩
+
 @[to_additive]
 instance : monad with_one := option.monad
 

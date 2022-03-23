@@ -238,6 +238,8 @@ begin
     λ h, by cases h; simp *⟩
 end
 
+alias dvd_iff_multiplicity_pos ↔ _ has_dvd.dvd.multiplicity_pos
+
 end comm_monoid
 
 section comm_monoid_with_zero

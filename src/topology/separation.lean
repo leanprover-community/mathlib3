@@ -114,11 +114,31 @@ open separated
 lemma comm (s t : set α) : separated s t ↔ separated t s :=
 ⟨symm, symm⟩
 
+lemma preimage [topological_space β] {f : α → β} {s t : set β} (h : separated s t)
+  (hf : continuous f) : separated (f ⁻¹' s) (f ⁻¹' t) :=
+let ⟨U, V, oU, oV, sU, tV, UV⟩ := h in
+⟨f ⁻¹' U, f ⁻¹' V, oU.preimage hf, oV.preimage hf, preimage_mono sU, preimage_mono tV,
+  UV.preimage f⟩
+
+protected lemma disjoint {s t : set α} (h : separated s t) : disjoint s t :=
+let ⟨U, V, hU, hV, hsU, htV, hd⟩ := h in hd.mono hsU htV
+
+lemma disjoint_closure_left {s t : set α} (h : separated s t) : disjoint (closure s) t :=
+let ⟨U, V, hU, hV, hsU, htV, hd⟩ := h
+in (hd.closure_left hV).mono (closure_mono hsU) htV
+
+lemma disjoint_closure_right {s t : set α} (h : separated s t) : disjoint s (closure t) :=
+h.symm.disjoint_closure_left.symm
+
 lemma empty_right (a : set α) : separated a ∅ :=
 ⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
 
 lemma empty_left (a : set α) : separated ∅ a :=
 (empty_right _).symm
+
+lemma mono {s₁ s₂ t₁ t₂ : set α} (h : separated s₂ t₂) (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) :
+  separated s₁ t₁ :=
+let ⟨U, V, hU, hV, hsU, htV, hd⟩ := h in ⟨U, V, hU, hV, hs.trans hsU, ht.trans htV, hd⟩
 
 lemma union_left {a b c : set α} : separated a c → separated b c → separated (a ∪ b) c :=
 λ ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
@@ -646,7 +666,7 @@ end
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
-class t2_space (α : Type u) [topological_space α] : Prop :=
+@[mk_iff] class t2_space (α : Type u) [topological_space α] : Prop :=
 (t2 : ∀x y, x ≠ y → ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
 lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :

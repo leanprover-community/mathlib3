@@ -58,6 +58,7 @@ localized "notation `ℍ[` R`,` a`,` b `]` := quaternion_algebra R a b" in quate
 
 namespace quaternion_algebra
 
+/-- The equivalence between a quaternion algebra over R and R × R × R × R. -/
 def equiv_prod {R : Type*} (c₁ c₂ : R) : ℍ[R, c₁, c₂] ≃ R × R × R × R :=
 { to_fun := λ ⟨a₁, a₂, a₃, a₄⟩, ⟨a₁, a₂, a₃, a₄⟩,
   inv_fun := λ ⟨a₁, a₂, a₃, a₄⟩, ⟨a₁, a₂, a₃, a₄⟩,
@@ -325,6 +326,7 @@ def quaternion (R : Type*) [has_one R] [has_neg R] := quaternion_algebra R (-1) 
 
 localized "notation `ℍ[` R `]` := quaternion R" in quaternion
 
+/-- The equivalence between the quaternions over R and R × R × R × R. -/
 def quaternion.equiv_prod (R : Type*) [has_one R] [has_neg R] : ℍ[R] ≃ R × R × R × R :=
 quaternion_algebra.equiv_prod _ _
 

@@ -104,6 +104,11 @@ countable_functions.card_functions_le_omega'
 
 variables {L} {L' : language.{u' v'}}
 
+lemma card_eq_card_functions_add_card_relations :
+  L.card = cardinal.lift.{v} (# (Σl, L.functions l)) +
+    cardinal.lift.{u} (# (Σl, L.relations l)) :=
+by rw [card, symbols, mk_sum]
+
 instance [L.is_relational] {n : ℕ} : is_empty (L.functions n) := is_relational.empty_functions n
 
 instance [L.is_algebraic] {n : ℕ} : is_empty (L.relations n) := is_algebraic.empty_relations n
@@ -126,9 +131,14 @@ instance is_relational_sum [L.is_relational] [L'.is_relational] : is_relational 
 instance is_algebraic_sum [L.is_algebraic] [L'.is_algebraic] : is_algebraic (L.sum L') :=
 ⟨λ n, sum.is_empty⟩
 
-@[priority 100] instance encodable.countable [h : encodable L.symbols] :
+lemma encodable.countable [h : encodable L.symbols] :
   L.countable :=
 ⟨cardinal.encodable_iff.1 ⟨h⟩⟩
+
+instance countable_empty : language.empty.countable :=
+⟨begin
+  rw [card, symbols],
+end⟩
 
 @[priority 100] instance countable.countable_functions [L.countable] :
   L.countable_functions :=
@@ -138,9 +148,13 @@ instance is_algebraic_sum [L.is_algebraic] [L'.is_algebraic] : is_algebraic (L.s
   exact le_self_add,
 end⟩
 
-@[priority 100] instance encodable.countable_functions [h : encodable (Σl, L.functions l)] :
+lemma encodable.countable_functions [h : encodable (Σl, L.functions l)] :
   L.countable_functions :=
 ⟨cardinal.encodable_iff.1 ⟨h⟩⟩
+
+instance is_relational.countable_functions [L.is_relational] :
+  L.countable_functions :=
+encodable.countable_functions
 
 variables (L) (M : Type w)
 

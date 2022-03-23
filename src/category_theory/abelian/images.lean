@@ -73,4 +73,31 @@ epi_of_epi_fac $ coimage.fac f
 
 end coimage
 
+/--
+The canonical map from the abelian coimage to the abelian image.
+In any abelian category this is an isomorphism.
+
+Conversely, any additive category with kernels and cokernels and
+in which this is always an isomorphism, is abelian.
+
+See https://stacks.math.columbia.edu/tag/0107
+-/
+def coimage_image_comparison : abelian.coimage f ⟶ abelian.image f :=
+cokernel.desc (kernel.ι f) (kernel.lift (cokernel.π f) f (by simp)) $ (by { ext, simp, })
+
+/--
+An alternative formulation of the canonical map from the abelian coimage to the abelian image.
+-/
+def coimage_image_comparison' : abelian.coimage f ⟶ abelian.image f :=
+kernel.lift (cokernel.π f) (cokernel.desc (kernel.ι f) f (by simp)) (by { ext, simp, })
+
+lemma coimage_image_comparison_eq_coimage_image_comparison' :
+  coimage_image_comparison f = coimage_image_comparison' f :=
+by { ext, simp [coimage_image_comparison, coimage_image_comparison'], }
+
+@[simp, reassoc]
+lemma coimage_image_factorisation :
+  coimage.π f ≫ coimage_image_comparison f ≫ image.ι f = f :=
+by simp [coimage_image_comparison]
+
 end category_theory.abelian

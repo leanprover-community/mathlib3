@@ -83,7 +83,10 @@ begin
         kernel.lift (cokernel.π f) u _ ≫ (image_iso_image f).hom ≫ (image_subobject_iso _).inv,
       rw [←kernel.lift_ι g u hu, category.assoc, h.2, has_zero_morphisms.comp_zero] },
     { tidy },
-    { intros, rw [←cancel_mono (image_subobject f).arrow, w], simp, } }
+    { intros, rw [←cancel_mono (image_subobject f).arrow, w],
+      -- TODO: I'd prefer to not have to remove this @[simp] lemma.
+      -- Perhaps adding another lemma could resolve this?
+      simp [-strong_epi_mono_factorisation.to_mono_is_image_lift], } }
 end
 
 theorem exact_iff' {cg : kernel_fork g} (hg : is_limit cg)

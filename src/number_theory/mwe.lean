@@ -1,19 +1,14 @@
+
 import data.fintype.basic
 import group_theory.order_of_element
 import tactic.zify
-import data.nat.totient
-import data.zmod.basic
-import number_theory.padics.padic_norm
-import field_theory.finite.basic
-import data.fintype.basic
 
-example (a b c x y : ℕ) (a_le_x : a ≤ x) (x_le_b : x ≤ b) (b_le_y : b ≤ y) (y_le_c : y ≤ c) : (c - a) = (c - b) + (b - a) :=
+-- set_option pp.all true
+
+example (p a : ℕ) : (((p ^ a * p) : ℕ) : ℤ) - ((1 : ℕ) : ℤ) = (((p ^ a * p) : ℕ) : ℤ) - (((p ^ a) : ℕ) : ℤ) + ((((p ^ a) : ℕ) : ℤ) - ((1 : ℕ) : ℤ)) :=
 begin
-  zify,
-  rw int.coe_nat_sub (le_trans a_le_x x_le_b),
-  rw int.coe_nat_sub (le_trans b_le_y y_le_c),
-  rw int.coe_nat_sub (le_trans (le_trans a_le_x x_le_b) (le_trans b_le_y y_le_c)),
   abel,
+  -- goals accomplished
 end
 
 lemma sub_one_dvd_pow_sub_one (p α : ℕ) (one_le_p : 1 ≤ p) : (p - 1) ∣ (p^α - 1) :=
@@ -32,9 +27,9 @@ begin
     rw int.coe_nat_sub (le_mul_of_one_le_right' one_le_p),
     rw int.coe_nat_sub (one_le_pow_of_one_le one_le_p (nat.succ a)),
     rw pow_succ',
+    clear hc c one_le_p,
+    norm_cast,
     abel,
-    exact one_le_pow_of_one_le one_le_p a,
-    exact le_mul_of_one_le_right' one_le_p,
-    exact one_le_pow_of_one_le one_le_p (nat.succ α),
-    },
+    -- (-1) • ↑1 + ↑(p ^ a * p) = (-1) • ↑(p ^ a) + ((-1) • ↑1 + (↑(p ^ a) + ↑(p ^ a * p)))
+  },
 end

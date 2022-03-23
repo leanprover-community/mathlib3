@@ -78,7 +78,8 @@ hf.2.1
 lemma uniform_integrable.mem_ℒp {f : ι → α → β} {p : ℝ≥0∞}
   (hf : uniform_integrable f p μ) (i : ι) :
   mem_ℒp (f i) p μ :=
-⟨(hf.1 i).ae_strongly_measurable, let ⟨_, _, hC⟩ := hf.2 in lt_of_le_of_lt (hC i) ennreal.coe_lt_top⟩
+⟨(hf.1 i).ae_strongly_measurable,
+let ⟨_, _, hC⟩ := hf.2 in lt_of_le_of_lt (hC i) ennreal.coe_lt_top⟩
 
 section unif_integrable
 

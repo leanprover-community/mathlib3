@@ -436,12 +436,14 @@ lemma set_integral_nonneg_ae (hs : measurable_set s) (hf : ∀ᵐ a ∂μ, a ∈
   0 ≤ ∫ a in s, f a ∂μ :=
 set_integral_nonneg_of_ae_restrict $ by rwa [eventually_le, ae_restrict_iff' hs]
 
-lemma set_integral_le_nonneg {s : set α} (hs : measurable_set s) (hf : measurable f)
+lemma set_integral_le_nonneg {s : set α} (hs : measurable_set s) (hf : strongly_measurable f)
   (hfi : integrable f μ) :
   ∫ x in s, f x ∂μ ≤ ∫ x in {y | 0 ≤ f y}, f x ∂μ :=
 begin
-  rw [← integral_indicator hs, ← integral_indicator (measurable_set_le measurable_const hf)],
-  exact integral_mono (hfi.indicator hs) (hfi.indicator (measurable_set_le measurable_const hf))
+  rw [← integral_indicator hs,
+      ← integral_indicator (strongly_measurable_const.measurable_set_le hf)],
+  exact integral_mono (hfi.indicator hs)
+    (hfi.indicator (strongly_measurable_const.measurable_set_le hf))
     (indicator_le_indicator_nonneg s f),
 end
 
@@ -460,13 +462,14 @@ lemma set_integral_nonpos_ae (hs : measurable_set s) (hf : ∀ᵐ a ∂μ, a ∈
   ∫ a in s, f a ∂μ ≤ 0 :=
 set_integral_nonpos_of_ae_restrict $ by rwa [eventually_le, ae_restrict_iff' hs]
 
-lemma set_integral_nonpos_le {s : set α} (hs : measurable_set s) {f : α → ℝ} (hf : measurable f)
+lemma set_integral_nonpos_le {s : set α} (hs : measurable_set s) (hf : strongly_measurable f)
   (hfi : integrable f μ) :
   ∫ x in {y | f y ≤ 0}, f x ∂μ ≤ ∫ x in s, f x ∂μ :=
 begin
-  rw [← integral_indicator hs, ← integral_indicator (measurable_set_le hf measurable_const)],
-  exact integral_mono (hfi.indicator (measurable_set_le hf measurable_const)) (hfi.indicator hs)
-    (indicator_nonpos_le_indicator s f),
+  rw [← integral_indicator hs,
+      ← integral_indicator (hf.measurable_set_le strongly_measurable_const)],
+  exact integral_mono (hfi.indicator (hf.measurable_set_le strongly_measurable_const))
+    (hfi.indicator hs) (indicator_nonpos_le_indicator s f),
 end
 
 end nonneg

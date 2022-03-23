@@ -26,15 +26,6 @@ variables {F : Type*} {α : Type u} {β : Type v} {γ : Type w} [topological_spa
 open_locale bounded_continuous_function topological_space
 open filter metric
 
-section preliminaries
---- these results need to be moved to appropriate places
-
-@[simp]
-lemma filter.cocompact_eq_bot [compact_space α] : cocompact α = ⊥ :=
-has_basis_cocompact.eq_bot_iff.mpr ⟨set.univ, compact_univ, set.compl_univ⟩
-
-end preliminaries
-
 /-- `α →C₀ β)` is the type of continuous functions `α → β` which vanish at infinity from a
 topological space to a metric space with a zero element.
 

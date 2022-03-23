@@ -671,6 +671,10 @@ begin
   rw hs, exact noncompact_univ α
 end
 
+@[simp]
+lemma filter.cocompact_eq_bot [compact_space α] : filter.cocompact α = ⊥ :=
+filter.has_basis_cocompact.eq_bot_iff.mpr ⟨set.univ, compact_univ, set.compl_univ⟩
+
 instance [noncompact_space α] : ne_bot (filter.coclosed_compact α) :=
 ne_bot_of_le filter.cocompact_le_coclosed_compact
 

@@ -1,5 +1,36 @@
+/-
+Copyright (c) 2022 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
+
 import algebra.category.Module.basic
 import ring_theory.ideal.basic
+
+/-!
+# Injective modules
+
+## Main definitions
+
+* `module.injective`: an `R`-module `Q` is injective if and only if for every injective `R`-linear
+  map descents to a linear map to `Q`, i.e. in the following diagram, if `f` is injective then there
+  is an `R`-linear map `h : Y ⟶ Q` such that `g = h ∘ f`
+  ```
+  X --- f ---> Y
+  |
+  | g
+  v
+  Q
+  ```
+* `module.Baer`: an `R`-module `Q` satisfies Baer's criterion if any `R`-linear map from an `ideal R`
+  extends to an `R`-linear map `R ⟶ Q`
+
+## Main statements
+
+* `module.Baer.criterion`: an `R`-module is injective if it is Baer.
+
+-/
+
 
 noncomputable theory
 
@@ -552,7 +583,7 @@ begin
   exact ⟨0, submodule.zero_mem _, y, submodule.mem_span_singleton_self _, zero_add _⟩,
 end
 
-theorem Baer (h : module.Baer R Q) :
+theorem criterion (h : module.Baer R Q) :
   module.injective R Q :=
 { out := λ X Y ins1 ins2 ins3 ins4 i hi f, begin
   resetI,

@@ -27,9 +27,13 @@ be satisfied by itself and all stricter types.
 * `Inf_hom_class`
 * `frame_hom_class`
 * `complete_lattice_hom_class`
+
+## Concrete homs
+
+* `complete_lattice.set_preimage`: `set.preimage` as a complete lattice homomorphism.
 -/
 
-open function order_dual
+open function order_dual set
 
 variables {F α β γ δ : Type*} {ι : Sort*} {κ : ι → Sort*}
 
@@ -491,5 +495,28 @@ lattices. -/
                     map_Sup' := λ _, congr_arg of_dual (map_Inf f _) },
   left_inv := λ f, ext $ λ a, rfl,
   right_inv := λ f, ext $ λ a, rfl }
+
+end complete_lattice_hom
+
+/-! ### Concrete homs -/
+
+@[simp] lemma preimage_sInter {α β : Type*} {f : α → β} {s : set (set β)} :
+  f ⁻¹' (⋂₀ s) = ⋂ t ∈ s, f ⁻¹' t :=
+set.ext $ by simp only [set.preimage, set.mem_sInter, set.mem_set_of_eq, set.mem_Inter, iff_self,
+  implies_true_iff]
+
+namespace complete_lattice_hom
+
+/-- `set.preimage` as a complete lattice homomorphism. -/
+def set_preimage (f : α → β) : complete_lattice_hom (set β) (set α) :=
+{ to_fun := preimage f,
+  map_Sup' := λ s, preimage_sUnion.trans $ by simp only [set.Sup_eq_sUnion, set.sUnion_image],
+  map_Inf' := λ s, preimage_sInter.trans $ by simp only [set.Inf_eq_sInter, set.sInter_image] }
+
+@[simp] lemma coe_set_preimage (f : α → β) : ⇑(set_preimage f) = preimage f := rfl
+@[simp] lemma set_preimage_apply (f : α → β) (s : set β) : set_preimage f s = s.preimage f := rfl
+@[simp] lemma set_preimage_id : set_preimage (id : α → α) = complete_lattice_hom.id _ := rfl
+@[simp] lemma set_preimage_comp (g : β → γ) (f : α → β) :
+  set_preimage (g ∘ f) = (set_preimage f).comp (set_preimage g) := rfl
 
 end complete_lattice_hom

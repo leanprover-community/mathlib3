@@ -29,6 +29,9 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 * `spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius`: Gelfand's formula for the
   spectral radius in Banach algebras over `ℂ`.
 * `spectrum.nonempty`: the spectrum of any element in a complex Banach algebra is nonempty.
+* `normed_division_ring.alg_equiv_complex_of_complete`: **Gelfand-Mazur theorem** For a complex
+  Banach division algebra, the natural `algebra_map ℂ A` is an algebra isomorphism whose inverse
+  is given by selecting the (unique) element of `spectrum ℂ a`
 
 
 ## TODO
@@ -346,6 +349,29 @@ begin
   exact not_is_unit_zero (H₅.subst (is_unit_resolvent.mp
     (mem_resolvent_set_iff.mp (H₀.symm ▸ set.mem_univ 0)))),
 end
+
+section gelfand_mazur_isomorphism
+
+variables [normed_division_ring A] [normed_algebra ℂ A]
+
+local notation `σ` := spectrum ℂ
+
+lemma algebra_map_eq_of_mem {a : A} {z : ℂ} (h : z ∈ σ a) : algebra_map ℂ A z = a :=
+by rwa [mem_iff, is_unit_iff_ne_zero, not_not, sub_eq_zero] at h
+
+/-- **Gelfand-Mazur theorem**: For a complex Banach division algebra, the natural `algebra_map ℂ A`
+is an algebra isomorphism whose inverse is given by selecting the (unique) element of
+`spectrum ℂ a`. In addition, `algebra_map_isometry` guarantees this map is an isometry. -/
+@[simps]
+noncomputable def _root_.normed_division_ring.alg_equiv_complex_of_complete
+  [complete_space A] [topological_space.second_countable_topology A] : ℂ ≃ₐ[ℂ] A :=
+{ to_fun := algebra_map ℂ A,
+  inv_fun := λ a, (spectrum.nonempty a).some,
+  left_inv := λ z, by simpa only [scalar_eq] using (spectrum.nonempty $ algebra_map ℂ A z).some_mem,
+  right_inv := λ a, algebra_map_eq_of_mem (spectrum.nonempty a).some_mem,
+  ..algebra.of_id ℂ A }
+
+end gelfand_mazur_isomorphism
 
 section exp_mapping
 

@@ -18,8 +18,7 @@ topological spaces.
 ## Main definitions
 
 * `compact_open` is the compact-open topology on `C(α, β)`. It is declared as an instance.
-* `ev` is the evaluation map `C(α, β) × α → β`. It is continuous as long as `α` is locally compact.
-* `coev` is the coevaluation map `β → C(α, β × α)`. It is always continuous.
+* `continuous_map.coev` is the coevaluation map `β → C(α, β × α)`. It is always continuous.
 * `continuous_map.curry` is the currying map `C(α × β, γ) → C(α, C(β, γ))`. This map always exists
   and it is continuous as long as `α × β` is locally compact.
 * `continuous_map.uncurry` is the uncurrying map `C(α, C(β, γ)) → C(α × β, γ)`. For this map to
@@ -90,15 +89,12 @@ end functorial
 
 section ev
 
-variables (α β)
-
-/-- The evaluation map `map C(α, β) × α → β` -/
-def ev (p : C(α, β) × α) : β := p.1 p.2
-
 variables {α β}
 
-/-- The evaluation map `C(α, β) × α → β` is continuous if `α` is locally compact. -/
-lemma continuous_ev [locally_compact_space α] : continuous (ev α β) :=
+/-- The evaluation map `C(α, β) × α → β` is continuous if `α` is locally compact.
+
+See also `continuous_map.continuous_eval` -/
+lemma continuous_eval' [locally_compact_space α] : continuous (λ p : C(α, β) × α, p.1 p.2) :=
 continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
   let ⟨v, vn, vo, fxv⟩ := mem_nhds_iff.mp hn in
   have v ∈ 𝓝 (f x), from is_open.mem_nhds vo fxv,
@@ -106,9 +102,9 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
     locally_compact_space.local_compact_nhds x (f ⁻¹' v)
       (f.continuous.tendsto x this) in
   let ⟨u, us, uo, xu⟩ := mem_nhds_iff.mp hs in
-  show (ev α β) ⁻¹' n ∈ 𝓝 (f, x), from
+  show (λ p : C(α, β) × α, p.1 p.2) ⁻¹' n ∈ 𝓝 (f, x), from
   let w := compact_open.gen s v ×ˢ u in
-  have w ⊆ ev α β ⁻¹' n, from assume ⟨f', x'⟩ ⟨hf', hx'⟩, calc
+  have w ⊆ (λ p : C(α, β) × α, p.1 p.2) ⁻¹' n, from assume ⟨f', x'⟩ ⟨hf', hx'⟩, calc
     f' x' ∈ f' '' s  : mem_image_of_mem f' (us hx')
     ...       ⊆ v            : hf'
     ...       ⊆ n            : vn,
@@ -116,8 +112,13 @@ continuous_iff_continuous_at.mpr $ assume ⟨f, x⟩ n hn,
   have (f, x) ∈ w, from ⟨image_subset_iff.mpr sv, xu⟩,
   mem_nhds_iff.mpr ⟨w, by assumption, by assumption, by assumption⟩
 
-lemma continuous_ev₁ [locally_compact_space α] (a : α) : continuous (λ f : C(α, β), f a) :=
-continuous_ev.comp (continuous_id.prod_mk continuous_const)
+/-- See also `continuous_map.continuous_eval_const` -/
+lemma continuous_eval_const' [locally_compact_space α] (a : α) : continuous (λ f : C(α, β), f a) :=
+continuous_eval'.comp (continuous_id.prod_mk continuous_const)
+
+/-- See also `continuous_map.continuous_coe` -/
+lemma continuous_coe' [locally_compact_space α] : @continuous (C(α, β)) (α → β) _ _ coe_fn :=
+continuous_pi continuous_eval_const'
 
 instance [t2_space β] : t2_space C(α, β) :=
 ⟨ begin
@@ -211,8 +212,8 @@ begin
     { rintros s₁ hs₁ s₂ hs₂ x hxs₁ hxs₂,
       haveI := is_compact_iff_compact_space.mp hs₁,
       haveI := is_compact_iff_compact_space.mp hs₂,
-      have h₁ := (continuous_ev₁ (⟨x, hxs₁⟩ : s₁)).continuous_at.tendsto.comp (hf s₁ hs₁),
-      have h₂ := (continuous_ev₁ (⟨x, hxs₂⟩ : s₂)).continuous_at.tendsto.comp (hf s₂ hs₂),
+      have h₁ := (continuous_eval_const' (⟨x, hxs₁⟩ : s₁)).continuous_at.tendsto.comp (hf s₁ hs₁),
+      have h₂ := (continuous_eval_const' (⟨x, hxs₂⟩ : s₂)).continuous_at.tendsto.comp (hf s₂ hs₂),
       exact tendsto_nhds_unique h₁ h₂ },
     -- So glue the `f s hs` together and prove that this glued function `f₀` is a limit on each
     -- compact set `s`
@@ -235,7 +236,7 @@ variables (α β)
 
 /-- The coevaluation map `β → C(α, β × α)` sending a point `x : β` to the continuous function
 on `α` sending `y` to `(x, y)`. -/
-def coev (b : β) : C(α, β × α) := ⟨λ a, (b, a), continuous.prod_mk continuous_const continuous_id⟩
+def coev (b : β) : C(α, β × α) := ⟨prod.mk b, continuous_const.prod_mk continuous_id⟩
 
 variables {α β}
 lemma image_coev {y : β} (s : set α) : (coev α β y) '' s = ({y} : set β) ×ˢ s := by tidy
@@ -288,7 +289,7 @@ begin
   apply continuous_of_continuous_uncurry,
   apply continuous_of_continuous_uncurry,
   rw ←homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _).symm,
-  convert continuous_ev;
+  convert continuous_eval';
   tidy
 end
 
@@ -298,8 +299,7 @@ lemma curry_apply (f : C(α × β, γ)) (a : α) (b : β) : f.curry a b = f (a, 
 /-- The uncurried form of a continuous map `α → C(β, γ)` is a continuous map `α × β → γ`. -/
 lemma continuous_uncurry_of_continuous [locally_compact_space β] (f : C(α, C(β, γ))) :
   continuous (function.uncurry (λ x y, f x y)) :=
-have hf : function.uncurry (λ x y, f x y) = ev β γ ∘ prod.map f id, by { ext, refl },
-hf ▸ continuous.comp continuous_ev $ continuous.prod_map f.2 continuous_id
+continuous_eval'.comp $ f.continuous.prod_map continuous_id
 
 /-- The uncurried form of a continuous map `α → C(β, γ)` as a continuous map `α × β → γ` (if `β` is
     locally compact). If `α` is also locally compact, then this is a homeomorphism between the two
@@ -313,7 +313,7 @@ lemma continuous_uncurry [locally_compact_space α] [locally_compact_space β] :
 begin
   apply continuous_of_continuous_uncurry,
   rw ←homeomorph.comp_continuous_iff' (homeomorph.prod_assoc _ _ _),
-  apply continuous.comp continuous_ev (continuous.prod_map continuous_ev continuous_id);
+  apply continuous.comp continuous_eval' (continuous.prod_map continuous_eval' continuous_id);
   apply_instance
 end
 
@@ -342,13 +342,12 @@ def curry [locally_compact_space α] [locally_compact_space β] : C(α × β, γ
 
 /-- If `α` has a single element, then `β` is homeomorphic to `C(α, β)`. -/
 def continuous_map_of_unique [unique α] : β ≃ₜ C(α, β) :=
-{ to_fun := continuous_map.comp ⟨_, continuous_fst⟩ ∘ coev α β,
-  inv_fun := ev α β ∘ (λ f, (f, default)),
+{ to_fun := const α,
+  inv_fun := λ f, f default,
   left_inv := λ a, rfl,
   right_inv := λ f, by { ext, rw unique.eq_default a, refl },
-  continuous_to_fun := continuous.comp (continuous_comp _) continuous_coev,
-  continuous_inv_fun :=
-    continuous.comp continuous_ev (continuous.prod_mk continuous_id continuous_const) }
+  continuous_to_fun := continuous_const',
+  continuous_inv_fun := continuous_eval'.comp (continuous_id.prod_mk continuous_const) }
 
 @[simp] lemma continuous_map_of_unique_apply [unique α] (b : β) (a : α) :
   continuous_map_of_unique b a = b :=

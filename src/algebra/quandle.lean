@@ -595,7 +595,7 @@ def to_envel_group.map {R : Type*} [rack R] {G : Type*} [group G] :
   { to_fun := λ x, quotient.lift_on x (to_envel_group.map_aux f)
                     (λ a b ⟨hab⟩, to_envel_group.map_aux.well_def f hab),
     map_one' := begin
-      change quotient.lift_on ⟦unit⟧ (to_envel_group.map_aux f) _ = 1,
+      change quotient.lift_on ⟦rack.pre_envel_group.unit⟧ (to_envel_group.map_aux f) _ = 1,
       simp [to_envel_group.map_aux],
     end,
     map_mul' := λ x y, quotient.induction_on₂ x y (λ x y, begin

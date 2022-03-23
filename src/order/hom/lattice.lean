@@ -199,7 +199,7 @@ instance order_iso_class.to_lattice_hom_class [lattice α] [lattice β] [order_i
 @[priority 100] -- See note [lower instance priority]
 instance order_iso_class.to_bounded_lattice_hom_class [lattice α] [lattice β] [bounded_order α]
   [bounded_order β] [order_iso_class F α β] :
-  bounded_lattice_hom_class (α ≃o β) α β :=
+  bounded_lattice_hom_class F α β :=
 { ..order_iso_class.to_lattice_hom_class, ..order_iso_class.to_bounded_order_hom_class }
 
 @[simp] lemma map_finset_sup [semilattice_sup α] [order_bot α] [semilattice_sup β] [order_bot β]

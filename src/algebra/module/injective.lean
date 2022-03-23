@@ -1,8 +1,5 @@
 import algebra.category.Module.basic
 import ring_theory.ideal.basic
--- import category_theory.preadditive.injective
--- import algebra.module.scratch
--- import linear_algebra.projection
 
 noncomputable theory
 
@@ -24,10 +21,6 @@ open zorn
 
 variables {R} {M N : Type (max u v)} [add_comm_group M] [add_comm_group N]
 variables [module R M] [module R N] {i : M →ₗ[R] N} (hi : function.injective i) (f : M →ₗ[R] Q)
--- view `M` as a `R`-submodule of `N` via `i`
--- `f : M ⟶ Q`
-
--- we want to study extensions of `f' : N' ⟶ Q` such that `M ≤ N' ≤ N` and `f' = f` on `M`
 variable {Q}
 include hi
 
@@ -339,7 +332,7 @@ def submodule_between_max_is_max :=
 
 variables {hi f}
 def submodule_between_max_adjoin.aux1
-  {y : N} -- (hy1 : y ∉ (submodule_between_max hi f).to_submodule)
+  {y : N}
   (x : (submodule_between_max hi f).to_submodule ⊔ submodule.span R {y}) :
   ∃ (a : (submodule_between_max hi f).to_submodule) (b : R), x.1 = a.1 + b • y :=
 begin
@@ -353,19 +346,19 @@ begin
 end
 
 def submodule_between_max_adjoin.fst
-  {y : N} -- (hy1 : y ∉ (submodule_between_max hi f).to_submodule)
+  {y : N}
   (x : (submodule_between_max hi f).to_submodule ⊔ submodule.span R {y}) :
   (submodule_between_max hi f).to_submodule :=
 (submodule_between_max_adjoin.aux1 x).some
 
 def submodule_between_max_adjoin.snd
-  {y : N} -- (hy1 : y ∉ (submodule_between_max hi f).to_submodule)
+  {y : N}
   (x : (submodule_between_max hi f).to_submodule ⊔ submodule.span R {y}) :
   R :=
 (submodule_between_max_adjoin.aux1 x).some_spec.some
 
 lemma submodule_between_max_adjoin.eqn
-  {y : N} -- (hy1 : y ∉ (submodule_between_max hi f).to_submodule)
+  {y : N}
   (x : (submodule_between_max hi f).to_submodule ⊔ submodule.span R {y}) :
   x.1 = (submodule_between_max_adjoin.fst x).1 + (submodule_between_max_adjoin.snd x) • y :=
 (submodule_between_max_adjoin.aux1 x).some_spec.some_spec
@@ -493,7 +486,10 @@ def submodule_between_max_adjoin (h : module.Baer R Q) {y : N}
         have eq1 : (a + b).val =
           ((submodule_between_max_adjoin.fst a) + (submodule_between_max_adjoin.fst b)).1 +
           (submodule_between_max_adjoin.snd a + submodule_between_max_adjoin.snd b) • y,
-        { sorry },
+        { change a.1 + b.1 = _ + _,
+          rw [submodule_between_max_adjoin.eqn, submodule_between_max_adjoin.eqn, add_smul],
+          change _ = _ + _ + _,
+          abel, },
         rw [submodule_between_max_adjoin.extension_to_fun_wd hi f h (a + b) _ _ eq1, map_add,
           map_add],
         unfold submodule_between_max_adjoin.extension_to_fun,
@@ -503,7 +499,9 @@ def submodule_between_max_adjoin (h : module.Baer R Q) {y : N}
         rw [ring_hom.id_apply],
         have eq1 : (r • a).1 = (r • submodule_between_max_adjoin.fst a).1 +
           (r • submodule_between_max_adjoin.snd a) • y,
-        { rw submodule_between_max_adjoin.eqn, sorry },
+        { change r • a.1 = _,
+          rw [submodule_between_max_adjoin.eqn, smul_add, smul_eq_mul, mul_smul],
+          refl, },
         rw [submodule_between_max_adjoin.extension_to_fun_wd hi f h (r • a) _ _ eq1,
           linear_map.map_smul, linear_map.map_smul, ← smul_add],
         congr',

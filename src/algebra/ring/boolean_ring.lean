@@ -102,10 +102,8 @@ namespace boolean_ring
 variables [boolean_ring α]
 
 /-- The join operation in a Boolean ring is `x + y + x * y`. -/
-@[reducible] -- See note [reducible non instances]
 def has_sup : has_sup α := ⟨λ x y, x + y + x * y⟩
 /-- The meet operation in a Boolean ring is `x * y`. -/
-@[reducible] -- See note [reducible non instances]
 def has_inf : has_inf α := ⟨(*)⟩
 
 -- Note [lower instance priority]
@@ -136,16 +134,6 @@ calc (a + b + a * b) * (a + c + a * c) =
 lemma le_sup_inf (a b c : α) : (a ⊔ b) ⊓ (a ⊔ c) ⊔ (a ⊔ b ⊓ c) = a ⊔ b ⊓ c :=
 by { dsimp only [(⊔), (⊓)], rw [le_sup_inf_aux, add_self, mul_self, zero_add] }
 
-/-- The "set difference" operation in a Boolean ring is `x * (1 + y)`. -/
-def has_sdiff : has_sdiff α := ⟨λ a b, a * (1 + b)⟩
-/-- The bottom element of a Boolean ring is `0`. -/
-def has_bot : has_bot α := ⟨0⟩
-
-localized "attribute [instance, priority 100] boolean_ring.has_sdiff" in
-  boolean_algebra_of_boolean_ring
-localized "attribute [instance, priority 100] boolean_ring.has_bot" in
-  boolean_algebra_of_boolean_ring
-
 /--
 The Boolean algebra structure on a Boolean ring.
 
@@ -163,6 +151,7 @@ boolean_algebra.of_core
 { le_sup_inf := le_sup_inf,
   top := 1,
   le_top := λ a, show a + 1 + a * 1 = 1, by assoc_rw [mul_one, add_comm, add_self, add_zero],
+  bot := 0,
   bot_le := λ a, show 0 + a + 0 * a = a, by rw [zero_mul, zero_add, add_zero],
   compl := λ a, 1 + a,
   inf_compl_le_bot := λ a,
@@ -174,9 +163,7 @@ boolean_algebra.of_core
       norm_num [mul_add, mul_self],
       rw [←add_assoc, add_self],
     end,
-  .. lattice.mk' sup_comm sup_assoc inf_comm inf_assoc sup_inf_self inf_sup_self,
-  .. has_sdiff,
-  .. has_bot }
+  .. lattice.mk' sup_comm sup_assoc inf_comm inf_assoc sup_inf_self inf_sup_self }
 
 localized "attribute [instance, priority 100] boolean_ring.to_boolean_algebra" in
   boolean_algebra_of_boolean_ring

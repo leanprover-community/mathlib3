@@ -322,10 +322,10 @@ lemma mul_equiv.unique_factorization_monoid (e : α ≃* β)
 begin
   rw unique_factorization_monoid.iff_exists_prime_factors at hα ⊢, intros a ha,
   obtain ⟨w,hp,u,h⟩ := hα (e.symm a) (λ h, ha $ by { convert ← map_zero e, simp [← h] }),
-  use w.map e, split,
-  { intros b hb, rw multiset.mem_map at hb,
-    obtain ⟨c,hc,he⟩ := hb, rw ← he, exact e.prime (hp c hc) },
-  { use units.map e.to_monoid_hom u, erw [multiset.prod_hom, ← e.map_mul, h], simp },
+  exact ⟨ w.map e,
+    λ b hb, let ⟨c,hc,he⟩ := multiset.mem_map.1 hb in he ▸ e.prime (hp c hc),
+    units.map e.to_monoid_hom u,
+    by { erw [multiset.prod_hom, ← e.map_mul, h], simp } ⟩,
 end
 
 lemma mul_equiv.unique_factorization_monoid_iff (e : α ≃* β) :

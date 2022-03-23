@@ -1160,11 +1160,10 @@ begin
   intros a ha, obtain ⟨s,a',rfl⟩ := exists_finset_rename a,
   obtain ⟨w,h,u,hw⟩ := iff_exists_prime_factors.1
     (unique_factorization_monoid_of_fintype s) a' (λ h, ha $ by simp [h]),
-  { use w.map (rename coe), split,
-    { intros b hb, rw multiset.mem_map at hb, obtain ⟨b',hb',rfl⟩ := hb,
-      exact (prime_rename_iff ↑s).2 (h b' hb') },
-    { use units.map (@rename s σ D _ coe).to_ring_hom.to_monoid_hom u,
-      erw [multiset.prod_hom, ← map_mul, hw] } },
+  exact ⟨ w.map (rename coe),
+    λ b hb, let ⟨b',hb',he⟩ := multiset.mem_map.1 hb in he ▸ (prime_rename_iff ↑s).2 (h b' hb'),
+    units.map (@rename s σ D _ coe).to_ring_hom.to_monoid_hom u,
+    by erw [multiset.prod_hom, ← map_mul, hw] ⟩,
 end
 
 end mv_polynomial

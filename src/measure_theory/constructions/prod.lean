@@ -89,7 +89,7 @@ end
 variables [measurable_space α] [measurable_space α'] [measurable_space β] [measurable_space β']
 variables [measurable_space γ]
 variables {μ : measure α} {ν : measure β} {τ : measure γ}
-variables [normed_group E] [measurable_space E]
+variables [normed_group E]
 
 /-! ### Measurability
 
@@ -235,7 +235,7 @@ lemma measurable.lintegral_prod_left [sigma_finite μ] {f : α → β → ℝ≥
   (hf : measurable (uncurry f)) : measurable (λ y, ∫⁻ x, f x y ∂μ) :=
 hf.lintegral_prod_left'
 
-lemma measurable_set_integrable [sigma_finite ν] [opens_measurable_space E] ⦃f : α → β → E⦄
+lemma measurable_set_integrable [sigma_finite ν] ⦃f : α → β → E⦄
   (hf : strongly_measurable (uncurry f)) : measurable_set {x | integrable (f x) ν} :=
 begin
   simp_rw [integrable, hf.of_uncurry_left.ae_strongly_measurable, true_and],
@@ -243,15 +243,16 @@ begin
 end
 
 section
-variables [normed_space ℝ E]
-  [complete_space E] [borel_space E]
+variables [normed_space ℝ E] [complete_space E]
 
 /-- The Bochner integral is measurable. This shows that the integrand of (the right-hand-side of)
   Fubini's theorem is measurable.
   This version has `f` in curried form. -/
-lemma measurable.integral_prod_right [sigma_finite ν] ⦃f : α → β → E⦄
+lemma measure_theory.strongly_measurable.integral_prod_right [sigma_finite ν] ⦃f : α → β → E⦄
   (hf : strongly_measurable (uncurry f)) : strongly_measurable (λ x, ∫ y, f x y ∂ν) :=
 begin
+  letI : measurable_space E := borel E,
+  haveI : borel_space E := ⟨rfl⟩,
   haveI : separable_space (range (uncurry f) ∪ {0} : set E) := hf.separable_space_range_union,
   let s : ℕ → simple_func (α × β) E := simple_func.approx_on _ hf.measurable
     (range (uncurry f) ∪ {0}) 0 (by simp),
@@ -259,12 +260,12 @@ begin
   let f' : ℕ → α → E := λ n, {x | integrable (f x) ν}.indicator
     (λ x, (s' n x).integral ν),
   have hf' : ∀ n, strongly_measurable (f' n),
-  { intro n, refine measurable.indicator _ (measurable_set_integrable hf),
+  { intro n, refine strongly_measurable.indicator _ (measurable_set_integrable hf),
     have : ∀ x, (s' n x).range.filter (λ x, x ≠ 0) ⊆ (s n).range,
     { intros x, refine finset.subset.trans (finset.filter_subset _ _) _, intro y,
       simp_rw [simple_func.mem_range], rintro ⟨z, rfl⟩, exact ⟨(x, z), rfl⟩ },
     simp only [simple_func.integral_eq_sum_of_subset (this _)],
-    refine (finset.strongly_measurable_sum _ (λ x _, _)).measurable,
+    refine finset.strongly_measurable_sum _ (λ x _, _),
     refine (measurable.ennreal_to_real _).strongly_measurable.smul_const _,
     simp only [simple_func.coe_comp, preimage_comp] {single_pass := tt},
     apply measurable_measure_prod_mk_left,
@@ -290,22 +291,22 @@ end
 
 /-- The Bochner integral is measurable. This shows that the integrand of (the right-hand-side of)
   Fubini's theorem is measurable. -/
-lemma measurable.integral_prod_right' [sigma_finite ν] ⦃f : α × β → E⦄
-  (hf : measurable f) : measurable (λ x, ∫ y, f (x, y) ∂ν) :=
+lemma measure_theory.strongly_measurable.integral_prod_right' [sigma_finite ν] ⦃f : α × β → E⦄
+  (hf : strongly_measurable f) : strongly_measurable (λ x, ∫ y, f (x, y) ∂ν) :=
 by { rw [← uncurry_curry f] at hf, exact hf.integral_prod_right }
 
 /-- The Bochner integral is measurable. This shows that the integrand of (the right-hand-side of)
   the symmetric version of Fubini's theorem is measurable.
   This version has `f` in curried form. -/
-lemma measurable.integral_prod_left [sigma_finite μ] ⦃f : α → β → E⦄
-  (hf : measurable (uncurry f)) : measurable (λ y, ∫ x, f x y ∂μ) :=
-(hf.comp measurable_swap).integral_prod_right'
+lemma measure_theory.strongly_measurable.integral_prod_left [sigma_finite μ] ⦃f : α → β → E⦄
+  (hf : strongly_measurable (uncurry f)) : strongly_measurable (λ y, ∫ x, f x y ∂μ) :=
+(hf.comp_measurable measurable_swap).integral_prod_right'
 
 /-- The Bochner integral is measurable. This shows that the integrand of (the right-hand-side of)
   the symmetric version of Fubini's theorem is measurable. -/
-lemma measurable.integral_prod_left' [sigma_finite μ] ⦃f : α × β → E⦄
-  (hf : measurable f) : measurable (λ y, ∫ x, f (x, y) ∂μ) :=
-(hf.comp measurable_swap).integral_prod_right'
+lemma measure_theory.strongly_measurable.integral_prod_left' [sigma_finite μ] ⦃f : α × β → E⦄
+  (hf : strongly_measurable f) : strongly_measurable (λ y, ∫ x, f (x, y) ∂μ) :=
+(hf.comp_measurable measurable_swap).integral_prod_right'
 
 end
 
@@ -373,7 +374,8 @@ lemma integrable_measure_prod_mk_left {s : set (α × β)}
   (hs : measurable_set s) (h2s : (μ.prod ν) s ≠ ∞) :
   integrable (λ x, (ν (prod.mk x ⁻¹' s)).to_real) μ :=
 begin
-  refine ⟨(measurable_measure_prod_mk_left hs).ennreal_to_real.ae_measurable, _⟩,
+  refine ⟨(measurable_measure_prod_mk_left hs).ennreal_to_real.ae_measurable.ae_strongly_measurable,
+    _⟩,
   simp_rw [has_finite_integral, ennnorm_eq_of_real to_real_nonneg],
   convert h2s.lt_top using 1, simp_rw [prod_apply hs], apply lintegral_congr_ae,
   refine (ae_measure_lt_top hs h2s).mp _, apply eventually_of_forall, intros x hx,
@@ -627,16 +629,20 @@ hf.comp_measurable' measurable_snd prod_snd_absolutely_continuous
 
 /-- The Bochner integral is a.e.-measurable.
   This shows that the integrand of (the right-hand-side of) Fubini's theorem is a.e.-measurable. -/
-lemma ae_measurable.integral_prod_right' [sigma_finite ν]
-  [second_countable_topology E] [normed_space ℝ E] [borel_space E] [complete_space E]
-  ⦃f : α × β → E⦄ (hf : ae_measurable f (μ.prod ν)) : ae_measurable (λ x, ∫ y, f (x, y) ∂ν) μ :=
-⟨λ x, ∫ y, hf.mk f (x, y) ∂ν, hf.measurable_mk.integral_prod_right',
+lemma measure_theory.ae_strongly_measurable.integral_prod_right' [sigma_finite ν]
+  [normed_space ℝ E] [complete_space E]
+  ⦃f : α × β → E⦄ (hf : ae_strongly_measurable f (μ.prod ν)) :
+  ae_strongly_measurable (λ x, ∫ y, f (x, y) ∂ν) μ :=
+⟨λ x, ∫ y, hf.mk f (x, y) ∂ν, hf.strongly_measurable_mk.integral_prod_right',
   by { filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk] with _ hx using integral_congr_ae hx }⟩
 
-lemma ae_measurable.prod_mk_left [sigma_finite ν] {f : α × β → γ}
-  (hf : ae_measurable f (μ.prod ν)) : ∀ᵐ x ∂μ, ae_measurable (λ y, f (x, y)) ν := by
-{ filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk] with x hx
-    using ⟨λ y, hf.mk f (x, y), hf.measurable_mk.comp measurable_prod_mk_left, hx⟩ }
+lemma measure_theory.ae_strongly_measurable.prod_mk_left
+  {γ : Type*} [sigma_finite ν] [topological_space γ] {f : α × β → γ}
+  (hf : ae_strongly_measurable f (μ.prod ν)) : ∀ᵐ x ∂μ, ae_strongly_measurable (λ y, f (x, y)) ν :=
+begin
+  filter_upwards [ae_ae_of_ae_prod hf.ae_eq_mk] with x hx,
+  exact ⟨λ y, hf.mk f (x, y), hf.strongly_measurable_mk.comp_measurable measurable_prod_mk_left, hx⟩
+end
 
 end
 
@@ -770,7 +776,6 @@ begin
   { apply_instance, },
 end
 
-
 /-- A binary function is integrable if the function `y ↦ f (x, y)` is integrable for almost every
   `x` and the function `x ↦ ∫ ∥f (x, y)∥ dy` is integrable. -/
 lemma integrable_prod_iff ⦃f : α × β → E⦄ (h1f : ae_strongly_measurable f (μ.prod ν)) :
@@ -805,8 +810,7 @@ hf.swap.integral_norm_prod_left
 
 end
 
-variables [second_countable_topology E] [normed_space ℝ E]
-  [complete_space E] [borel_space E]
+variables [normed_space ℝ E] [complete_space E]
 
 lemma integrable.integral_prod_left ⦃f : α × β → E⦄
   (hf : integrable f (μ.prod ν)) : integrable (λ x, ∫ y, f (x, y) ∂ν) μ :=
@@ -830,8 +834,7 @@ begin
   rw [← integral_map measurable_swap hf, prod_swap]
 end
 
-variables {E' : Type*} [measurable_space E'] [normed_group E'] [borel_space E'] [complete_space E']
-  [normed_space ℝ E'] [second_countable_topology E']
+variables {E' : Type*} [normed_group E'] [complete_space E'] [normed_space ℝ E']
 
 /-! Some rules about the sum/difference of double integrals. They follow from `integral_add`, but
   we separate them out as separate lemmas, because they involve quite some steps. -/

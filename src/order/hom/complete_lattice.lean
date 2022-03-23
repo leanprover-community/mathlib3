@@ -500,11 +500,6 @@ end complete_lattice_hom
 
 /-! ### Concrete homs -/
 
-@[simp] lemma preimage_sInter {α β : Type*} {f : α → β} {s : set (set β)} :
-  f ⁻¹' (⋂₀ s) = ⋂ t ∈ s, f ⁻¹' t :=
-set.ext $ by simp only [set.preimage, set.mem_sInter, set.mem_set_of_eq, set.mem_Inter, iff_self,
-  implies_true_iff]
-
 namespace complete_lattice_hom
 
 /-- `set.preimage` as a complete lattice homomorphism. -/

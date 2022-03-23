@@ -19,8 +19,8 @@ section powerset
 
 /-- When `s` is a finset, `s.powerset` is the finset of all subsets of `s` (seen as finsets). -/
 def powerset (s : finset α) : finset (finset α) :=
-⟨s.1.powerset.pmap finset.mk $ λ t h, nodup_of_le (mem_powerset.1 h) s.2,
- s.2.powerset.pmap $ λ a ha b hb, congr_arg finset.val⟩
+⟨s.1.powerset.pmap finset.mk $ λ t h, nodup_of_le (mem_powerset.1 h) s.nodup,
+ s.nodup.powerset.pmap $ λ a ha b hb, congr_arg finset.val⟩
 
 @[simp] theorem mem_powerset {s t : finset α} : s ∈ powerset t ↔ s ⊆ t :=
 by cases s; simp only [powerset, mem_mk, mem_pmap, mem_powerset, exists_prop, exists_eq_right];

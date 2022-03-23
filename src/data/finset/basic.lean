@@ -186,7 +186,7 @@ instance decidable_mem' [decidable_eq α] (a : α) (s : finset α) :
 
 /-! ### extensionality -/
 theorem ext_iff {s₁ s₂ : finset α} : s₁ = s₂ ↔ ∀ a, a ∈ s₁ ↔ a ∈ s₂ :=
-val_inj.symm.trans $ s₁.2.ext s₂.2
+val_inj.symm.trans $ s₁.nodup.ext s₂.nodup
 
 @[ext]
 theorem ext {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s₁ = s₂ :=

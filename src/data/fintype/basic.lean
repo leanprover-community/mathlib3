@@ -385,7 +385,7 @@ associated to the predicate is a fintype. -/
 protected def subtype {p : α → Prop} (s : finset α) (H : ∀ x : α, x ∈ s ↔ p x) :
   fintype {x // p x} :=
 ⟨⟨s.1.pmap subtype.mk (λ x, (H x).1),
-  s.2.pmap $ λ a _ b _, congr_arg subtype.val⟩,
+  s.nodup.pmap $ λ a _ b _, congr_arg subtype.val⟩,
 λ ⟨x, px⟩, multiset.mem_pmap.2 ⟨x, (H x).2 px, rfl⟩⟩
 
 theorem subtype_card {p : α → Prop} (s : finset α) (H : ∀ x : α, x ∈ s ↔ p x) :
@@ -625,7 +625,7 @@ namespace set
 
 /-- Construct a finset enumerating a set `s`, given a `fintype` instance.  -/
 def to_finset (s : set α) [fintype s] : finset α :=
-⟨(@finset.univ s _).1.map subtype.val, finset.univ.2.map $ λ a b, subtype.eq⟩
+⟨(@finset.univ s _).1.map subtype.val, finset.univ.nodup.map $ λ a b, subtype.eq⟩
 
 @[congr]
 lemma to_finset_congr {s t : set α} [fintype s] [fintype t] (h : s = t) :

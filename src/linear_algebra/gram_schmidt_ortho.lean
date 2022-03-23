@@ -13,11 +13,11 @@ import analysis.normed_space.is_R_or_C
 /-!
 # Gram-Schmidt Orthogonalization and Orthonormalization
 
-In this file we introduce Gram-Schmidt Orthogonalization and Orthonormalization
+In this file we introduce Gram-Schmidt Orthogonalization and Orthonormalization.
 
 ## Main results
 
-- `gram_schmidt_process` : Gram-Schmidt Process
+- `gram_schmidt_process` : Gram-Schmidt process
 - `gram_schmidt_process_orthogonal` :
   the proof that "gram_schmidt_process" produces an orthogonal system of vectors
 - `gram_schmidt_process_normed` :
@@ -30,7 +30,7 @@ open_locale big_operators
 
 variables (𝕜 : Type*) (E : Type*) [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
 
-/-- Gram-Schmidt Process-/
+/-- Gram-Schmidt process -/
 noncomputable def gram_schmidt_process (f : ℕ → E) : ℕ → E
 | n := f n - ∑ i : fin n, have ↑i < n := i.prop,
   orthogonal_projection (𝕜 ∙ gram_schmidt_process i) (f n)
@@ -46,7 +46,8 @@ begin
     (orthogonal_projection (𝕜 ∙ gram_schmidt_process 𝕜 E f i) (f n) : E)) n,
 end
 
-/-- # Gram-Schmidt Orthogonalisation -/
+/-- **Gram-Schmidt Orthogonalisation**
+Gram-Schmidt process produces an orthogonal system of vectors. -/
 theorem gram_schmidt_process_orthogonal (f : ℕ → E) (a b : ℕ) (h₀ : a < b) :
   (inner (gram_schmidt_process 𝕜 E f a) (gram_schmidt_process 𝕜 E f b) : 𝕜) = 0 :=
 begin
@@ -104,18 +105,18 @@ begin
     exact gram_schmidt_process_orthogonal 𝕜 E f b a hb }
 end
 
-/-- Normalized Gram-Schmidt Process -/
+/-- Normalized Gram-Schmidt process
+(i.e each vector in 'gram_schmidt_process_normed` has unit length) -/
 noncomputable def gram_schmidt_process_normed (f : ℕ → E) (n : ℕ) : E :=
 (∥ gram_schmidt_process 𝕜 E f n ∥ : 𝕜)⁻¹ • (gram_schmidt_process 𝕜 E f n)
 
-/-- 'gram_schmidt_process_unit_length' proves that
-each vector in 'gram_schmidt_process_normed' has unit length. -/
 lemma gram_schmidt_process_normed_unit_length (f : ℕ → E) (n : ℕ)
   (h : gram_schmidt_process 𝕜 E f n ≠ 0) :
     ∥ gram_schmidt_process_normed 𝕜 E f n ∥ = 1 :=
 by simp only [gram_schmidt_process_normed, norm_smul_inv_norm h]
 
-/-- # Gram-Schmidt Orthonormalization -/
+/-- **Gram-Schmidt Orthonormalization**
+Normalized Gram-Schmidt process produces an orthornormal system of vectors. -/
 theorem gram_schmidt_process_orthonormal (f : ℕ → E) (h₀ : ∀ n, gram_schmidt_process 𝕜 E f n ≠ 0) :
   orthonormal 𝕜 (gram_schmidt_process_normed 𝕜 E f) :=
 begin

@@ -154,19 +154,18 @@ begin
   exact nat.sub_add_cancel h, -- TODO should be a simp lemma in lean
 end
 
+-- TODO(Sean): A git task for you: This lemma should probably go in the src/data/nat/gcd.lean file
+-- probably around line 469 (after the coprime_self theorem).
+-- Go to the master branch and pull it, then make a new branch, and put this lemma in that
+-- location in that branch, then commit and publish the new branch. Then go to github and make a PR.
 lemma nat.gcd_mul_of_dvd_coprime (a b c : ℕ) (b_dvd_c : b ∣ c) (hac : nat.coprime a c) :
   nat.gcd (a * b) c = b :=
 begin
-  -- rw nat.has_dvd at b_dvd_c,
-  -- rw has_dvd at b_dvd_c,
-  have : ∃ d, c = d * b, exact exists_eq_mul_left_of_dvd b_dvd_c,
-  rcases this with ⟨d, hd⟩,
+  rcases exists_eq_mul_left_of_dvd b_dvd_c with ⟨d, hd⟩,
   rw hd at hac ⊢,
   rw [nat.gcd_mul_right],
-  have foo : nat.gcd a d = 1,
-  { rw ← nat.coprime_iff_gcd_eq_one,
-    exact nat.coprime.coprime_mul_right_right hac, },
-  simp [foo],
+  convert one_mul b,
+  exact nat.coprime.coprime_mul_right_right hac,
 end
 
 lemma sub_one_dvd_pow_sub_one (p α : ℕ) (one_le_p : 1 ≤ p) : (p - 1) ∣ (p^α - 1) :=
@@ -185,11 +184,7 @@ begin
     rw int.coe_nat_sub (le_mul_of_one_le_right' one_le_p),
     rw int.coe_nat_sub (one_le_pow_of_one_le one_le_p (nat.succ a)),
     rw pow_succ',
-    abel,
-    exact one_le_pow_of_one_le one_le_p a,
-    exact le_mul_of_one_le_right' one_le_p,
-    exact one_le_pow_of_one_le one_le_p (nat.succ α),
-    },
+    ring, },
 end
 
 /-- Theorem 3.4 of Conrad -/
@@ -340,52 +335,47 @@ begin
     split,
     -- I'm thinking there's a possible mistake? I don't see how the hypotheses lead to the
     -- conclusion here
-    --TODO(Sean): should be able to finish this with the lean cheatsheet
+    -- ... yes, you're right, let me change things ...
     sorry,
   }
 end
 
-lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [fact (0 < n)] (not_prime : ¬ n.prime) :
+lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [hn_pos : fact (0 < n)] (not_prime : ¬ n.prime) :
   ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
 begin
-  -- TODO(Bolton): This will be a harder proof. Find some sublemmas that will be needed and
-  -- extract them. subgroup.card_subgroup_dvd_card is lagrange's thm
-  by_cases h : ∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1,
+  cases coprime_factorization_or_prime_power n (hn_pos.out),
   { -- n is not a prime power - it can be factored into two coprime numbers.
     rcases h with ⟨n0, n1, h_coprime, h_mul, hn0, hn1⟩,
     let i0 := ((finset.range (odd_part (n-1))).filter (λ i, ∃ a_0 : zmod n, a_0^(2^i) = -1)).max' (
       by {
         rw finset.filter_nonempty_iff,
         use 0,
+        -- TODO(Sean): Mathlib has a rule that says that simps in the middle of blocks have to be simp onlys
+        -- use squeeze_simp to find out what these simps are doing and changes them to simp only,
+        -- or to rewrites if possible.
         simp,
         by_contra,
-        simp * at *,
-        have hn : 0 < n,
-        {
-          exact _inst_1.out,
-        },
+        simp at h,
         have hn' : n - 1 ≠ 0,
         {
           rw [ne.def, tsub_eq_zero_iff_le, not_le, ← h_mul],
           exact one_lt_mul' hn0 hn1,
         },
         apply hn',
-        clear hn hn',
+        clear hn',
         rw ← two_power_part_mul_odd_part (n - 1),
         rw [h, mul_zero],
       }
     ),
     have h_proper : ∃ x, x ∉ (pow_alt_subgroup n (i0 * odd_part(n - 1))),
     {
-      -- TODO(Sean): Not a theorem proving exercise, but a documentation search exercise:
-      -- See if you can find the "Chinese remainder theorem" in the library somewhere. If you can,
-      -- post the mathlib name of the lemma here - it's going to be necessary for this step.
       -- nat.chinese_remainder'_lt_lcm
       -- nat.chinese_remainder_lt_mul
       sorry,
     },
+    sorry,
   },
-  { --
+  { -- n is a prime power
     sorry,
   },
 end

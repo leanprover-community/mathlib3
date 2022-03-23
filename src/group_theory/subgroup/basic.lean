@@ -126,7 +126,7 @@ variables {S M} {H K : S}
 open mul_mem_class inv_mem_class submonoid_class
 
 /-- A subgroup is closed under division. -/
-@[to_additive "An `add_subgroup` is closed under subtraction."]
+@[to_additive "An additive subgroup is closed under subtraction."]
 theorem div_mem {x y : M} (hx : x ∈ H) (hy : y ∈ H) : x / y ∈ H :=
 by simpa only [div_eq_mul_inv] using mul_mem hx (inv_mem hy)
 
@@ -166,13 +166,23 @@ omit hSG
 include hSM
 
 /-- A subgroup of a group inherits an inverse. -/
-@[to_additive "A `add_subgroup` of a `add_group` inherits an inverse."]
+@[to_additive "An additive subgroup of a `add_group` inherits an inverse."]
 instance has_inv : has_inv H := ⟨λ a, ⟨a⁻¹, inv_mem a.2⟩⟩
 
 /-- A subgroup of a group inherits a division -/
-@[to_additive "An `add_subgroup` of an `add_group` inherits a subtraction."]
+@[to_additive "An additive subgroup of an `add_group` inherits a subtraction."]
 instance has_div : has_div H := ⟨λ a b, ⟨a / b, div_mem a.2 b.2⟩⟩
 
+omit hSM
+/-- An additive subgroup of an `add_group` inherits an integer scaling. -/
+instance _root_.add_subgroup_class.has_zsmul {M S} [sub_neg_monoid M] [set_like S M]
+  [add_subgroup_class S M] {H : S} : has_scalar ℤ H :=
+⟨λ n a, ⟨n • a, add_subgroup_class.zsmul_mem a.2 n⟩⟩
+include hSM
+
+/-- A subgroup of a group inherits an integer power. -/
+@[to_additive]
+instance has_zpow : has_pow H ℤ := ⟨λ a n, ⟨a ^ n, zpow_mem a.2 n⟩⟩
 @[simp, norm_cast, to_additive] lemma coe_inv (x : H) : ↑(x⁻¹ : H) = (x⁻¹ : M) := rfl
 @[simp, norm_cast, to_additive] lemma coe_div (x y : H) : (↑(x / y) : M) = ↑x / ↑y := rfl
 
@@ -181,7 +191,7 @@ variables (H)
 include hSG
 
 /-- A subgroup of a group inherits a group structure. -/
-@[to_additive "An `add_subgroup` of an `add_group` inherits an `add_group` structure.",
+@[to_additive "An additive subgroup of an `add_group` inherits an `add_group` structure.",
 priority 75] -- Prefer subclasses of `group` over subclasses of `subgroup_class`.
 instance to_group : group H :=
 subtype.coe_injective.group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
@@ -189,21 +199,21 @@ subtype.coe_injective.group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
 omit hSG
 
 /-- A subgroup of a `comm_group` is a `comm_group`. -/
-@[to_additive "An `add_subgroup` of an `add_comm_group` is an `add_comm_group`.",
+@[to_additive "An additive subgroup of an `add_comm_group` is an `add_comm_group`.",
 priority 75] -- Prefer subclasses of `comm_group` over subclasses of `subgroup_class`.
 instance to_comm_group {G : Type*} [comm_group G] [set_like S G] [subgroup_class S G] :
   comm_group H :=
 subtype.coe_injective.comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
 
 /-- A subgroup of an `ordered_comm_group` is an `ordered_comm_group`. -/
-@[to_additive "An `add_subgroup` of an `add_ordered_comm_group` is an `add_ordered_comm_group`.",
+@[to_additive "An additive subgroup of an `add_ordered_comm_group` is an `add_ordered_comm_group`.",
 priority 75] -- Prefer subclasses of `group` over subclasses of `subgroup_class`.
 instance to_ordered_comm_group {G : Type*} [ordered_comm_group G] [set_like S G]
   [subgroup_class S G] : ordered_comm_group H :=
 subtype.coe_injective.ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
 
 /-- A subgroup of a `linear_ordered_comm_group` is a `linear_ordered_comm_group`. -/
-@[to_additive "An `add_subgroup` of a `linear_ordered_add_comm_group` is a
+@[to_additive "An additive subgroup of a `linear_ordered_add_comm_group` is a
   `linear_ordered_add_comm_group`.",
   priority 75] -- Prefer subclasses of `group` over subclasses of `subgroup_class`.
 instance to_linear_ordered_comm_group {G : Type*} [linear_ordered_comm_group G] [set_like S G]
@@ -213,7 +223,7 @@ subtype.coe_injective.linear_ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) 
 include hSG
 
 /-- The natural group hom from a subgroup of group `G` to `G`. -/
-@[to_additive "The natural group hom from an `add_subgroup` of `add_group` `G` to `G`."]
+@[to_additive "The natural group hom from an additive subgroup of `add_group` `G` to `G`."]
 def subtype : H →* G := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : (subtype H : H → G) = coe := rfl

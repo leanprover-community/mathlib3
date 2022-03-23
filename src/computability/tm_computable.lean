@@ -92,6 +92,9 @@ structure evals_to {σ : Type*} (f : σ → option σ) (a : σ) (b : option σ) 
 (steps : ℕ)
 (evals_in_steps : ((flip bind f)^[steps] a) = b)
 
+-- note: this cannot currently be used in `calc`, as the last two arguments must be `a` and `b`.
+-- If this is desired, this argument order can be changed, but this spelling is I think the most
+-- natural, so there is a trade-off that needs to be made here. A notation can get around this.
 /-- A "proof" of the fact that `f` eventually reaches `b` in at most `m` steps when repeatedly
 evaluated on `a`, remembering the number of steps it takes. -/
 structure evals_to_in_time {σ : Type*} (f : σ → option σ) (a : σ) (b : option σ) (m : ℕ)

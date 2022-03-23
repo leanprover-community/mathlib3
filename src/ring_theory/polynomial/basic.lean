@@ -689,7 +689,7 @@ lemma prime_C_iff : prime (C r : mv_polynomial σ R) ↔ prime r :=
     λ a b hd, begin
       obtain ⟨s,a',b',rfl,rfl⟩ := exists_finset_rename₂ a b,
       rw ← algebra_map_eq at hd, have : algebra_map R _ r ∣ a' * b',
-      { convert (kill_compl ↑s).to_ring_hom.map_dvd hd, simpa, simp },
+      { convert (kill_compl subtype.coe_injective).to_ring_hom.map_dvd hd, simpa, simp },
       rw ← rename_C (coe : s → σ), let f := (rename (coe : s → σ)).to_ring_hom,
       exact (((prime_C_iff_of_fintype s).2 hr).2.2 a' b' this).imp f.map_dvd f.map_dvd,
     end ⟩ ⟩

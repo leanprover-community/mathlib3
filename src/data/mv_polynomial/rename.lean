@@ -106,21 +106,20 @@ begin
 end
 
 section
-variable (s : set σ)
+variables {f : σ → τ} (hf : function.injective f)
 open_locale classical
 
-/-- Given a subset `s` of the set of variables `σ`, `kill_compl s` is the `alg_hom`
-  from `R[σ]` to `R[s]` that sends the variables in the complement of `s` to `0`. -/
-def kill_compl : mv_polynomial σ R →ₐ[R] mv_polynomial s R :=
-aeval (λ i, if h : i ∈ s then X ⟨i,h⟩ else 0)
+/-- Given a function between sets of variables `f : σ → τ` that is injective with proof `hf`,
+  `kill_compl hf` is the `alg_hom` from `R[τ]` to `R[σ]` that is left inverse to
+  `rename f : R[σ] → R[τ]` and sends the variables in the complement of the range of `f` to `0`. -/
+def kill_compl : mv_polynomial τ R →ₐ[R] mv_polynomial σ R :=
+aeval (λ i, if h : i ∈ set.range f then X $ (equiv.of_injective f hf).symm ⟨i,h⟩ else 0)
 
-/-- `kill_compl s` is a left inverse of the inclusion of `R[s]` into `R[σ]`. -/
-lemma kill_compl_comp_rename : (kill_compl s).comp (rename coe) = alg_hom.id R _ :=
-alg_hom_ext (λ ⟨i,h⟩, by { dsimp, rw [rename, kill_compl, aeval_X, aeval_X], apply dif_pos h })
+lemma kill_compl_comp_rename : (kill_compl hf).comp (rename f) = alg_hom.id R _ := alg_hom_ext $
+λ i, by { dsimp, rw [rename, kill_compl, aeval_X, aeval_X, dif_pos, equiv.of_injective_symm_apply] }
 
-variables {s}
-@[simp] lemma kill_compl_rename_app (a : mv_polynomial s R) : kill_compl s (rename coe a) = a :=
-alg_hom.congr_fun (kill_compl_comp_rename s) a
+@[simp] lemma kill_compl_rename_app (p : mv_polynomial σ R) : kill_compl hf (rename f p) = p :=
+alg_hom.congr_fun (kill_compl_comp_rename hf) p
 
 end
 

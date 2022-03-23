@@ -116,12 +116,12 @@ lemma gram_schmidt_process_normed_unit_length (f : ℕ → E) (n : ℕ)
 by simp only [gram_schmidt_process_normed, norm_smul_inv_norm h]
 
 /-- # Gram-Schmidt Orthonormalization -/
-theorem gram_schmidt_process_orthonormal (f : ℕ → E) (h : ∀ n, gram_schmidt_process 𝕜 E f n ≠ 0) :
+theorem gram_schmidt_process_orthonormal (f : ℕ → E) (h₀ : ∀ n, gram_schmidt_process 𝕜 E f n ≠ 0) :
   orthonormal 𝕜 (gram_schmidt_process_normed 𝕜 E f) :=
 begin
   simp only [orthonormal],
   split,
-  { simp [gram_schmidt_process_normed_unit_length, h] },
+  { simp [gram_schmidt_process_normed_unit_length, h₀] },
   { intros i j hij,
     simp [gram_schmidt_process_normed, inner_smul_left, inner_smul_right],
     repeat {right},

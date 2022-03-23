@@ -284,18 +284,16 @@ def to_bounded_continuous_function (f : α →C₀ β) : α →ᵇ β :=
 
 section
 variables (α) (β)
-lemma _root_.function.injective.to_bounded_continuous_function :
+lemma to_bounded_continuous_function_injective :
   function.injective (to_bounded_continuous_function : (α →C₀ β) → α →ᵇ β) :=
 λ f g h, by { ext, simpa only using fun_like.congr_fun h x, }
 end
-
--- how can we get the dist from this injective?
 
 variables {C : ℝ} {f g : α →C₀ β}
 
 /-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
 noncomputable instance : metric_space (α →C₀ β) :=
-metric_space.induced _ (function.injective.to_bounded_continuous_function α β) (by apply_instance)
+metric_space.induced _ (to_bounded_continuous_function_injective α β) (by apply_instance)
 
 open bounded_continuous_function
 

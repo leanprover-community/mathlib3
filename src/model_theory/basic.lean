@@ -154,7 +154,7 @@ lemma encodable.countable_functions [h : encodable (Σl, L.functions l)] :
   L.countable_functions :=
 ⟨cardinal.encodable_iff.1 ⟨h⟩⟩
 
-instance is_relational.countable_functions [L.is_relational] :
+@[priority 100] instance is_relational.countable_functions [L.is_relational] :
   L.countable_functions :=
 encodable.countable_functions
 

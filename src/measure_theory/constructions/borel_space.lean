@@ -183,13 +183,13 @@ If `α` already has a `measurable_space` instance which is equal (but possibly n
 equal) to `borel α`, then `borel α` turns this equality into defeq by code (almost) equivalent to
 `have h : ‹measurable_space α› = borel α := borel_space.measurable_eq, subst h, letI := borel α`.
 -/
-meta def borel (t : parse texpr) : tactic unit :=
+meta def borelize (t : parse texpr) : tactic unit :=
 do
   α ← to_expr t,
   i' ← optional (to_expr ``(measurable_space %%α) >>= find_assumption),
   i'.elim
     (do n1 ← get_unused_name "_inst",
-        to_expr ``(_root_.borel %%α) >>= pose n1,
+        to_expr ``(borel %%α) >>= pose n1,
         reset_instance_cache,
         n2 ← get_unused_name "_inst",
         t ← to_expr ``(borel_space %%α),
@@ -198,11 +198,11 @@ do
         reset_instance_cache)
     (λ i, do
       n ← get_unused_name "h",
-      to_expr ``(%%i = _root_.borel %%α) >>= assert n,
+      to_expr ``(%%i = borel %%α) >>= assert n,
       applyc `borel_space.measurable_eq,
       unfreezing (to_expr ``(%%i) >>= tactic.subst),
       n1 ← get_unused_name "_inst",
-      to_expr ``(_root_.borel %%α) >>= pose n1,
+      to_expr ``(borel %%α) >>= pose n1,
       reset_instance_cache)
 
 end tactic.interactive
@@ -475,7 +475,7 @@ lemma generate_from_Ico_mem_le_borel {α : Type*} [topological_space α] [linear
   measurable_space.generate_from {S | ∃ (l ∈ s) (u ∈ t) (h : l < u), Ico l u = S} ≤ borel α :=
 begin
   apply generate_from_le,
-  borel α,
+  borelize α,
   rintro _ ⟨a, -, b, -, -, rfl⟩,
   exact measurable_set_Ico
 end

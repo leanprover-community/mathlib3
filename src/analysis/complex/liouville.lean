@@ -54,7 +54,7 @@ lemma norm_deriv_le_aux [complete_space F] {c : ℂ} {R C : ℝ} {f : ℂ → F}
   (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
   ∥deriv f c∥ ≤ C / R :=
 begin
-  borel F,
+  borelize F,
   have : ∀ z ∈ sphere c R, ∥(z - c) ^ (-2 : ℤ) • f z∥ ≤ C / (R * R),
     from λ z (hz : abs (z - c) = R), by simpa [norm_smul, hz, zpow_two, ← div_eq_inv_mul]
       using (div_le_div_right (mul_pos hR hR)).2 (hC z hz),

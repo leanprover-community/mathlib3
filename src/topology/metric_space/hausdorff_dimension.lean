@@ -86,7 +86,7 @@ variables {ι X Y : Type*} [emetric_space X] [emetric_space Y]
 
 /-- Hausdorff dimension of a set in an (e)metric space. -/
 @[irreducible] noncomputable def dimH (s : set X) : ℝ≥0∞ :=
-by { borel X, exact ⨆ (d : ℝ≥0) (hd : @hausdorff_measure X _ _ ⟨rfl⟩ d s = ∞), d }
+by { borelize X, exact ⨆ (d : ℝ≥0) (hd : @hausdorff_measure X _ _ ⟨rfl⟩ d s = ∞), d }
 
 /-!
 ### Basic properties
@@ -98,7 +98,7 @@ variables [measurable_space X] [borel_space X]
 /-- Unfold the definition of `dimH` using `[measurable_space X] [borel_space X]` from the
 environment. -/
 lemma dimH_def (s : set X) : dimH s = ⨆ (d : ℝ≥0) (hd : μH[d] s = ∞), d :=
-by { borel X, rw dimH }
+by { borelize X, rw dimH }
 
 lemma hausdorff_measure_of_lt_dimH {s : set X} {d : ℝ≥0} (h : ↑d < dimH s) : μH[d] s = ∞ :=
 begin
@@ -146,14 +146,14 @@ end measurable
 
 @[mono] lemma dimH_mono {s t : set X} (h : s ⊆ t) : dimH s ≤ dimH t :=
 begin
-  borel X,
+  borelize X,
   exact dimH_le (λ d hd, le_dimH_of_hausdorff_measure_eq_top $
     top_unique $ hd ▸ measure_mono h)
 end
 
 lemma dimH_subsingleton {s : set X} (h : s.subsingleton) : dimH s = 0 :=
 begin
-  borel X,
+  borelize X,
   apply le_antisymm _ (zero_le _),
   refine dimH_le_of_hausdorff_measure_ne_top _,
   exact ((hausdorff_measure_le_one_of_subsingleton h le_rfl).trans_lt ennreal.one_lt_top).ne,
@@ -168,7 +168,7 @@ alias dimH_subsingleton ← set.subsingleton.dimH_zero
 @[simp] lemma dimH_Union [encodable ι] (s : ι → set X) :
   dimH (⋃ i, s i) = ⨆ i, dimH (s i) :=
 begin
-  borel X,
+  borelize X,
   refine le_antisymm (dimH_le $ λ d hd, _) (supr_le $ λ i, dimH_mono $ subset_Union _ _),
   contrapose! hd,
   have : ∀ i, μH[d] (s i) = 0,
@@ -262,8 +262,8 @@ variables {C K r : ℝ≥0} {f : X → Y} {s t : set X}
 lemma holder_on_with.dimH_image_le (h : holder_on_with C r f s) (hr : 0 < r) :
   dimH (f '' s) ≤ dimH s / r :=
 begin
-  borel X,
-  borel Y,
+  borelize X,
+  borelize Y,
   refine dimH_le (λ d hd, _),
   have := h.hausdorff_measure_image_le hr d.coe_nonneg,
   rw [hd, ennreal.coe_rpow_of_nonneg _ d.coe_nonneg, top_le_iff] at this,
@@ -367,8 +367,8 @@ namespace antilipschitz_with
 lemma dimH_preimage_le (hf : antilipschitz_with K f) (s : set Y) :
   dimH (f ⁻¹' s) ≤ dimH s :=
 begin
-  borel X,
-  borel Y,
+  borelize X,
+  borelize Y,
   refine dimH_le (λ d hd, le_dimH_of_hausdorff_measure_eq_top _),
   have := hf.hausdorff_measure_preimage_le d.coe_nonneg s,
   rw [hd, top_le_iff] at this,

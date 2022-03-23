@@ -3,6 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
+import algebra.category.CommRing.basic
 import algebra.ring.boolean_ring
 import order.category.BoolAlg
 
@@ -31,19 +32,15 @@ instance (X : BoolRing) : boolean_ring X := X.str
 /-- Construct a bundled `BoolRing` from a `boolean_ring`. -/
 def of (α : Type*) [boolean_ring α] : BoolRing := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [boolean_ring α] : ↥(of α) = α := rfl
+
 instance : inhabited BoolRing := ⟨of punit⟩
 
-instance : large_category.{u} BoolRing :=
-{ hom := λ X Y, ring_hom X Y,
-  id := λ X, ring_hom.id X,
-  comp := λ X Y Z f g, g.comp f,
-  id_comp' := λ X Y, ring_hom.comp_id,
-  comp_id' := λ X Y, ring_hom.id_comp,
-  assoc' := λ W X Y Z _ _ _, ring_hom.comp_assoc _ _ _ }
+instance : bundled_hom.parent_projection @boolean_ring.to_comm_ring := ⟨⟩
 
-instance : concrete_category BoolRing :=
-{ forget := ⟨coe_sort, λ X Y, coe_fn, λ X, rfl, λ X Y Z f g, rfl⟩,
-  forget_faithful := ⟨λ X Y f g h, fun_like.coe_injective h⟩ }
+attribute [derive [large_category, concrete_category]] BoolRing
+
+@[simps] instance has_forget_to_CommRing : has_forget₂ BoolRing CommRing := bundled_hom.forget₂ _ _
 
 /-- Constructs an isomorphism of Boolean rings from a ring isomorphism between them. -/
 @[simps] def iso.mk {α β : BoolRing.{u}} (e : α ≃+* β) : α ≅ β :=
@@ -56,5 +53,5 @@ end BoolRing
 
 /-! ### Equivalence between `BoolAlg` and `BoolRing` -/
 
-instance BoolRing.has_forget_to_BoolAlg : has_forget₂ BoolRing BoolAlg :=
+@[simps] instance BoolRing.has_forget_to_BoolAlg : has_forget₂ BoolRing BoolAlg :=
 { forget₂ := { obj := λ X, BoolAlg.of (as_boolalg X), map := λ X Y, ring_hom.as_boolalg } }

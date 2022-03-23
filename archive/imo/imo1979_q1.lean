@@ -62,57 +62,42 @@ namespace imo1979q1
 
 /-- The injection ℕ ↪ ℕ sending any n ∈ ℕ to 2 * n
 -/
-def double : ℕ ↪ ℕ := ⟨λ n, 2 * n, mul_right_injective dec_trivial⟩
+abbreviation double : ℕ ↪ ℕ := ⟨λ n, 2 * n, mul_right_injective dec_trivial⟩
 
 lemma lemma1 : ∑ n in Icc (1 : ℕ) 1319, (1 : ℚ) / n - ∑ n in Icc (1 : ℕ) 1319, (-1) ^ (n + 1) / n =
   ∑ n in Icc (1 : ℕ) 659, 1 / n :=
-begin
-  let a : ℚ := ∑ n in Icc (1 : ℕ) 1319, (-1) ^ (n + 1) / n,
-  let b : ℚ := ∑ n in Icc (1 : ℕ) 1319, 1 / n,
-  calc b - a = ∑ n in Icc (1 : ℕ) 1319, (1 / n - (-1) ^ (n+1) / n) : by rw sum_sub_distrib
-    ... = ∑ n in Icc (1 : ℕ) 1319, ite (even n) (2 / n) 0 : by {
+calc  ∑ n in Icc (1 : ℕ) 1319, (1 : ℚ) / n - ∑ n in Icc (1 : ℕ) 1319, (-1) ^ (n + 1) / n
+    = ∑ n in Icc (1 : ℕ) 1319, (1 / n - (-1) ^ (n+1) / n) : by rw sum_sub_distrib
+... = ∑ n in Icc (1 : ℕ) 1319, ite (even n) (2 / n) 0 : begin
       apply sum_congr rfl,
       rintro x -,
       rw [pow_succ, neg_one_mul, neg_div, sub_neg_eq_add, div_add_div_same],
       split_ifs,
       { rw [neg_one_pow_of_even h], norm_num },
-      { rw [neg_one_pow_of_odd (odd_iff_not_even.2 h)],
-          simp only [zero_div, add_right_neg] } }
-    ... = ∑ (x : ℕ) in filter even (Icc (1 : ℕ) 1319), 2 / x : by rw sum_filter
-    ... = ∑ (x : ℕ) in map double (Icc (1 : ℕ) 659), 2 / x : by {
-      apply sum_congr _ (λ _ _, rfl),
-      ext x,
-      rw [mem_filter, mem_map],
+      { rw [neg_one_pow_of_odd (odd_iff_not_even.2 h), add_neg_self, zero_div] }
+    end
+... = ∑ (x : ℕ) in filter even (Icc (1 : ℕ) 1319), 2 / x : by rw sum_filter
+... = ∑ (x : ℕ) in map double (Icc (1 : ℕ) 659), 2 / x : begin
+      apply sum_congr (finset.ext $ λ x, _) (λ _ _, rfl),
+      simp only [mem_filter, mem_map, mem_Icc, exists_prop],
       split,
-      { rintro ⟨ha, a, rfl⟩,
-        refine ⟨a, _, rfl⟩,
-        rw mem_Icc at ha ⊢,
-        split;
-        linarith },
-      { rintro ⟨a, ha, rfl⟩,
-        refine ⟨_, a, rfl⟩,
-        rw mem_Icc at ha ⊢,
-        unfold double,
-        norm_num,
-        split;
-        linarith }}
-    ... = ∑ n in Icc (1 : ℕ) 659, 1 / n : by {
+      { rintros ⟨⟨h1, h2⟩, ⟨a, rfl⟩⟩,
+        exact ⟨a, ⟨by linarith, by linarith⟩, rfl⟩ },
+      { rintro ⟨a, ⟨ha1, ha2⟩, rfl⟩,
+        refine ⟨⟨by dsimp; linarith, by dsimp; linarith⟩, a, rfl⟩, }
+    end
+... = ∑ n in Icc (1 : ℕ) 659, 1 / n : begin
       rw sum_map (Icc (1 : ℕ) 659) double (λ n, (2 : ℚ) / n),
       apply sum_congr rfl,
       rintro x -,
-      unfold double,
-      norm_num,
-      rw div_mul_right,
-      exact two_ne_zero }
-end
+      convert show 2/ ((2 : ℚ) * x) = 1 / x, from div_mul_right _ two_ne_zero,
+      field_simp,
+    end
 
 lemma lemma2 : ∑ n in Icc (1 : ℕ) 659, (1 : ℚ) / n + ∑ n in Icc (660 : ℕ) 1319, 1 / n =
   ∑ n in Icc (1 : ℕ) 1319, 1 / n :=
-begin
-  simp only [← Ico_succ_right],
-  rw sum_Ico_consecutive;
-  norm_num
-end
+by rw [← Ico_succ_right, ← Ico_succ_right, sum_Ico_consecutive, Ico_succ_right]; dec_trivial
+
 
 lemma corollary3 : ∑ n in Icc (1 : ℕ) 1319, (-1 : ℚ) ^ (n + 1) / n =
   ∑ n in Icc (660 : ℕ) 1319, 1 / n :=
@@ -123,37 +108,30 @@ end
 
 lemma lemma4 : ∑ n in range 330, (1 : ℚ) / (n + 660) + ∑ n in range 330, 1 / (1319 - n) =
   ∑ n in Icc (660 : ℕ) 1319, 1 / n :=
-begin
-  rw [← Ico_succ_right, sum_Ico_eq_sum_range],
-  have h : ∑ (n : ℕ) in range 330, (1 : ℚ) / (n + 660) =
-    ∑ (m : ℕ) in Ico 660 990, (1 : ℚ) / m,
-  { rw sum_Ico_eq_sum_range,
-    apply sum_congr rfl,
-    intros i hi,
-    norm_num,
-    rw add_comm },
-  rw h, clear h,
-  have h : ∑ (n : ℕ) in range 330, (1 : ℚ) / (1319 - n) =
-    ∑ (m : ℕ) in Icc 990 1319, (1 : ℚ) / m,
-  { rw range_eq_Ico,
-    have h : ∑ (m : ℕ) in Icc 990 1319, (1 : ℚ) / m =
-      ∑ (m : ℕ) in Icc 990 1319, (λ (n : ℕ), (1 : ℚ) / (1319 - n)) (1319 - m),
-    { apply sum_congr rfl,
-      intros i hi,
-      rw mem_Icc at hi,
-      push_cast [hi.2],
-      norm_num },
-    rw h, clear h,
-    rw ← Ico_succ_right,
-    rw sum_Ico_reflect,
-    norm_num },
-  rw h, clear h,
-  rw ← Ico_succ_right,
-  rw sum_Ico_consecutive,
-  { rw sum_Ico_eq_sum_range },
-  { linarith },
-  { norm_num }
-end
+calc ∑ (n : ℕ) in range 330, 1 / (n + 660 : ℚ) + ∑ (n : ℕ) in range 330, 1 / (1319 - ↑n)
+    = ∑ (m : ℕ) in Ico 660 990, 1 / m + ∑ (n : ℕ) in range 330, 1 / (1319 - ↑n) : begin
+      rw sum_Ico_eq_sum_range,
+      simp_rw [show ∀ (n : ℚ), n + 660 = 660 + n, from λ _, add_comm _ _],
+      norm_num,
+    end
+... = ∑ (m : ℕ) in Ico 660 990, 1 / m + ∑ (n : ℕ) in range 330, 1 / ((1319 - n : ℕ) : ℚ) : begin
+      refine congr_arg ((+) _) (sum_congr rfl (λ n hn, _)),
+      rw mem_range at hn,
+      rw [one_div, one_div, inv_inj₀, sub_eq_iff_eq_add],
+      norm_cast,
+      rw nat.sub_add_cancel,
+      linarith,
+    end
+... = ∑ (m : ℕ) in Ico 660 990, 1 / m + ∑ (m : ℕ) in Icc 990 1319, 1 / m : begin
+      rw [range_eq_Ico, ← Ico_succ_right],
+      have := congr_arg ((+) (∑ (m : ℕ) in Ico 660 990, 1 /(m : ℚ)))
+        (sum_Ico_reflect (λ x, 1 / x : ℕ → ℚ) 0 (show 330 ≤ 1319 + 1, by norm_num)),
+      exact this,
+    end
+... = ∑ n in Icc (660 : ℕ) 1319, 1 / (n : ℚ) : begin
+      rw [← Ico_succ_right, sum_Ico_consecutive, Ico_succ_right]; norm_num
+    end
+... = _ : by rw [←Ico_succ_right, sum_Ico_eq_sum_range]
 
 lemma easy1 {n : ℕ} (hn : n < 330) : padic_val_rat 1979 (n + 660) = 0 :=
 begin

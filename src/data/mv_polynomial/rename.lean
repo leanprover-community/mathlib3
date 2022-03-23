@@ -197,6 +197,10 @@ begin
     { simp only [rename_rename, rename_X, subtype.coe_mk, alg_hom.map_mul], refl, }, },
 end
 
+/-- `exists_finset_rename` for two polyonomials at once: for any two polynomials `p₁`, `p₂` in a
+  polynomial semiring `R[σ]` of possibly infinitely many variables, `exists_finset_rename₂` yields
+  a finite subset `s` of `σ` such that both `p₁` and `p₂` are contained in the polynomial semiring
+  `R[s]` of finitely many variables. -/
 lemma exists_finset_rename₂ (p₁ p₂ : mv_polynomial σ R) :
   ∃ (s : finset σ) (q₁ q₂ : mv_polynomial s R), p₁ = rename coe q₁ ∧ p₂ = rename coe q₂ :=
 begin

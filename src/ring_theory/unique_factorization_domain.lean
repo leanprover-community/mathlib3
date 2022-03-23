@@ -314,9 +314,11 @@ theorem unique_factorization_monoid.iff_exists_prime_factors [cancel_comm_monoid
 ⟨λ h, @unique_factorization_monoid.exists_prime_factors _ _ h,
   unique_factorization_monoid.of_exists_prime_factors⟩
 
-lemma mul_equiv.unique_factorization_monoid {β : Type*}
-  [cancel_comm_monoid_with_zero α] [cancel_comm_monoid_with_zero β]
-  (e : α ≃* β) (hα : unique_factorization_monoid α) : unique_factorization_monoid β :=
+section
+variables {β : Type*} [cancel_comm_monoid_with_zero α] [cancel_comm_monoid_with_zero β]
+
+lemma mul_equiv.unique_factorization_monoid (e : α ≃* β)
+  (hα : unique_factorization_monoid α) : unique_factorization_monoid β :=
 begin
   rw unique_factorization_monoid.iff_exists_prime_factors at hα ⊢, intros a ha,
   obtain ⟨w,hp,u,h⟩ := hα (e.symm a) (λ h, ha $ by { convert ← map_zero e, simp [← h] }),
@@ -324,6 +326,12 @@ begin
   { intros b hb, rw multiset.mem_map at hb,
     obtain ⟨c,hc,he⟩ := hb, rw ← he, exact e.prime (hp c hc) },
   { use units.map e.to_monoid_hom u, erw [multiset.prod_hom, ← e.map_mul, h], simp },
+end
+
+lemma mul_equiv.unique_factorization_monoid_iff (e : α ≃* β) :
+  unique_factorization_monoid α ↔ unique_factorization_monoid β :=
+⟨ e.unique_factorization_monoid, e.symm.unique_factorization_monoid ⟩
+
 end
 
 theorem irreducible_iff_prime_of_exists_unique_irreducible_factors [cancel_comm_monoid_with_zero α]

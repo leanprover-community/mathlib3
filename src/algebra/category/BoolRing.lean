@@ -10,6 +10,10 @@ import order.category.BoolAlg
 # The category of Boolean rings
 
 This file defines `BoolRing`, the category of Boolean rings.
+
+## TODO
+
+Finish the equivalence with `BoolAlg`.
 -/
 
 universes u
@@ -41,7 +45,7 @@ instance : concrete_category BoolRing :=
 { forget := ⟨coe_sort, λ X Y, coe_fn, λ X, rfl, λ X Y Z f g, rfl⟩,
   forget_faithful := ⟨λ X Y f g h, fun_like.coe_injective h⟩ }
 
-/-- Constructs an isomorphism of Boolean rings from a group isomorphism between them. -/
+/-- Constructs an isomorphism of Boolean rings from a ring isomorphism between them. -/
 @[simps] def iso.mk {α β : BoolRing.{u}} (e : α ≃+* β) : α ≅ β :=
 { hom := e,
   inv := e.symm,

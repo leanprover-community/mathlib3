@@ -296,7 +296,7 @@ open bounded_continuous_function
 lemma tendsto_iff_tendsto_uniformly {ι : Type*} {F : ι → (α →C₀ β)} {f : α →C₀ β} {l : filter ι} :
   tendsto F l (𝓝 f) ↔ tendsto_uniformly (λ i, F i) f l :=
 by simpa only [metric.tendsto_nhds] using @bounded_continuous_function.tendsto_iff_tendsto_uniformly
-  _ _ _ _ _ _ (λ i, (F i).to_bcf) f.to_bcf l
+  _ _ _ _ _ (λ i, (F i).to_bcf) f.to_bcf l
 
 lemma isometry_to_bcf : isometry (to_bcf : (α →C₀ β) → α →ᵇ β) := by tauto
 

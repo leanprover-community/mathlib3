@@ -157,7 +157,7 @@ instance order_iso_class.to_Inf_hom_class [complete_lattice α] [complete_lattic
 instance order_iso_class.to_complete_lattice_hom_class [complete_lattice α] [complete_lattice β]
   [order_iso_class F α β] :
   complete_lattice_hom_class F α β :=
-{ ..order_iso_class.to_Sup_hom_class, ..order_iso_class.to_complete_lattice_hom_class }
+{ ..order_iso_class.to_Sup_hom_class, ..order_iso_class.to_lattice_hom_class }
 
 instance [has_Sup α] [has_Sup β] [Sup_hom_class F α β] : has_coe_t F (Sup_hom α β) :=
 ⟨λ f, ⟨f, map_Sup f⟩⟩

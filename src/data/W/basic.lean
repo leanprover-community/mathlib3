@@ -60,7 +60,7 @@ def of_sigma : (Σ a : α, β a → W_type β) → W_type β
 variable (β)
 
 /-- The canonical bijection with the sigma type, showing that `W_type` is a fixed point of
-  the polynomial `Σ a : α, β a → W_type β`.  -/
+  the polynomial functor `X ↦ Σ a : α, β a → X`. -/
 @[simps] def equiv_sigma : W_type β ≃ Σ a : α, β a → W_type β :=
 { to_fun := to_sigma,
   inv_fun := of_sigma,

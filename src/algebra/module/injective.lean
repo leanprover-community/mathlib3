@@ -429,8 +429,6 @@ def submodule_between_max_adjoin.extend_ideal_to (h : module.Baer R Q) (y : N) :
   R →ₗ[R] Q :=
 (submodule_between_max_adjoin.aux2 hi f h y).some
 
--- (submodule_between_max_adjoin.aux2 hi f h y).some
-
 lemma submodule_between_max_adjoin.extend_ideal_to_is_extension (h : module.Baer R Q) (y : N) :
   ∀ (x : R) (mem : x ∈ submodule_between_max_adjoin.ideal hi f y),
   submodule_between_max_adjoin.extend_ideal_to hi f h y x =
@@ -471,7 +469,7 @@ begin
 end
 
 def submodule_between_max_adjoin.extension_to_fun (h : module.Baer R Q)
-  {y : N} : -- (hy : y ∉ (submodule_between_max hi f).to_submodule) :
+  {y : N} :
   (submodule_between_max hi f).to_submodule ⊔ submodule.span R {y} →  Q :=
 λ x, (submodule_between_max hi f).extension (submodule_between_max_adjoin.fst x) +
   submodule_between_max_adjoin.extend_ideal_to hi f h y (submodule_between_max_adjoin.snd x)
@@ -479,7 +477,7 @@ def submodule_between_max_adjoin.extension_to_fun (h : module.Baer R Q)
 lemma submodule_between_max_adjoin.extension_to_fun_wd (h : module.Baer R Q)
   {y : N} (x : (submodule_between_max hi f).to_submodule ⊔ submodule.span R {y})
   (a : (submodule_between_max hi f).to_submodule) (r : R)
-  (eq1 : x.1 = a.1 + r • y) : -- (hy : y ∉ (submodule_between_max hi f).to_submodule) :
+  (eq1 : x.1 = a.1 + r • y) :
   submodule_between_max_adjoin.extension_to_fun hi f h x =
   (submodule_between_max hi f).extension a +
   submodule_between_max_adjoin.extend_ideal_to hi f h y r :=

@@ -121,8 +121,10 @@ instance : order_top (submodule R M) :=
 lemma eq_top_iff' {p : submodule R M} : p = ⊤ ↔ ∀ x, x ∈ p :=
 eq_top_iff.trans ⟨λ h x, h trivial, λ h x _, h x⟩
 
-/-- The top submodule is linearly equivalent to the module. -/
-@[simps] def top_equiv_self : (⊤ : submodule R M) ≃ₗ[R] M :=
+/-- The top submodule is linearly equivalent to the module.
+
+This is the module version of `add_submonoid.top_equiv`. -/
+@[simps] def top_equiv : (⊤ : submodule R M) ≃ₗ[R] M :=
 { to_fun := λ x, x,
   inv_fun := λ x, ⟨x, by simp⟩,
   map_add' := by { intros, refl, },

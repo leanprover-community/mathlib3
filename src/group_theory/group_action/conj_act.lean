@@ -256,7 +256,7 @@ end conj_classes
 
 open conj_classes
 
-lemma class_equation :
+lemma class_equation [fintype G] :
   nat.card (subgroup.center G) + ∑ᶠ x ∈ noncenter G, nat.card (carrier x) = nat.card G :=
 begin
   classical,

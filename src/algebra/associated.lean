@@ -4,52 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
 import algebra.divisibility
-import algebra.group_power.basic
+import algebra.group_power.lemmas
 import algebra.invertible
+import order.atoms
 
 /-!
 # Associated, prime, and irreducible elements.
 -/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
-
-theorem is_unit_iff_dvd_one [comm_monoid α] {x : α} : is_unit x ↔ x ∣ 1 :=
-⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,
- λ ⟨y, h⟩, ⟨⟨x, y, h.symm, by rw [h, mul_comm]⟩, rfl⟩⟩
-
-theorem is_unit_iff_forall_dvd [comm_monoid α] {x : α} :
-  is_unit x ↔ ∀ y, x ∣ y :=
-is_unit_iff_dvd_one.trans ⟨λ h y, h.trans (one_dvd _), λ h, h _⟩
-
-theorem is_unit_of_dvd_unit {α} [comm_monoid α] {x y : α}
-  (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
-is_unit_iff_dvd_one.2 $ xy.trans $ is_unit_iff_dvd_one.1 hu
-
-lemma is_unit_of_dvd_one [comm_monoid α] : ∀a ∣ 1, is_unit (a:α)
-| a ⟨b, eq⟩ := ⟨units.mk_of_mul_eq_one a b eq.symm, rfl⟩
-
-lemma not_is_unit_of_not_is_unit_dvd [comm_monoid α] {a b : α} (ha : ¬is_unit a) (hb : a ∣ b) :
-  ¬ is_unit b :=
-mt (is_unit_of_dvd_unit hb) ha
-
-lemma dvd_and_not_dvd_iff [cancel_comm_monoid_with_zero α] {x y : α} :
-  x ∣ y ∧ ¬y ∣ x ↔ dvd_not_unit x y :=
-⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,
-    mt is_unit_iff_dvd_one.1 (λ ⟨e, he⟩, hyx ⟨e, by rw [hd, mul_assoc, ← he, mul_one]⟩), hd⟩⟩,
-  λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
-    ⟨e, mul_left_cancel₀ hx0 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
-
-lemma pow_dvd_pow_iff [cancel_comm_monoid_with_zero α]
-  {x : α} {n m : ℕ} (h0 : x ≠ 0) (h1 : ¬ is_unit x) :
-  x ^ n ∣ x ^ m ↔ n ≤ m :=
-begin
-  split,
-  { intro h, rw [← not_lt], intro hmn, apply h1,
-    have : x ^ m * x ∣ x ^ m * 1,
-    { rw [← pow_succ', mul_one], exact (pow_dvd_pow _ (nat.succ_le_of_lt hmn)).trans h },
-    rwa [mul_dvd_mul_iff_left, ← is_unit_iff_dvd_one] at this, apply pow_ne_zero m h0 },
-  { apply pow_dvd_pow }
-end
 
 section prime
 variables [comm_monoid_with_zero α]
@@ -164,6 +127,9 @@ namespace irreducible
 lemma not_unit [monoid α] {p : α} (hp : irreducible p) : ¬ is_unit p :=
 hp.1
 
+lemma not_dvd_one [comm_monoid α] {p : α} (hp : irreducible p) : ¬ p ∣ 1 :=
+mt (is_unit_of_dvd_one _) hp.not_unit
+
 lemma is_unit_or_is_unit [monoid α] {p : α} (hp : irreducible p) {a b : α} (h : p = a * b) :
   is_unit a ∨ is_unit b :=
 irreducible.is_unit_or_is_unit' a b h
@@ -190,6 +156,17 @@ theorem irreducible.ne_zero [monoid_with_zero α] : ∀ {p:α}, irreducible p �
 theorem of_irreducible_mul {α} [monoid α] {x y : α} :
   irreducible (x * y) → is_unit x ∨ is_unit y
 | ⟨_, h⟩ := h _ _ rfl
+
+theorem of_irreducible_pow {α} [monoid α] {x : α} {n : ℕ} (hn : n ≠ 1) :
+  irreducible (x ^ n) → is_unit x :=
+begin
+  obtain hn|hn := hn.lt_or_lt,
+  { simp only [nat.lt_one_iff.mp hn, forall_false_left, not_irreducible_one, pow_zero] },
+  intro h,
+  obtain ⟨k, rfl⟩ := nat.exists_eq_add_of_lt hn,
+  rw [pow_succ, add_comm] at h,
+  exact (or_iff_left_of_imp ((is_unit_pos_pow_iff (nat.succ_pos _)).mp)).mp (of_irreducible_mul h)
+end
 
 theorem irreducible_or_factor {α} [monoid α] (x : α) (h : ¬ is_unit x) :
   irreducible x ∨ ∃ a b, ¬ is_unit a ∧ ¬ is_unit b ∧ a * b = x :=
@@ -236,6 +213,10 @@ end
 lemma irreducible.dvd_comm [monoid α] {p q : α}
   (hp : irreducible p) (hq : irreducible q) : p ∣ q ↔ q ∣ p :=
 ⟨hp.dvd_symm hq, hq.dvd_symm hp⟩
+
+lemma pow_not_prime [cancel_comm_monoid_with_zero α] {x : α} {n : ℕ} (hn : n ≠ 1) :
+  ¬ prime (x ^ n) :=
+λ hp, hp.not_unit $ is_unit.pow _ $ of_irreducible_pow hn $ hp.irreducible
 
 /-- Two elements of a `monoid` are `associated` if one of them is another one
 multiplied by a unit on the right. -/
@@ -451,6 +432,11 @@ end
 
 theorem associated_eq_eq : (associated : α → α → Prop) = eq :=
 by { ext, rw associated_iff_eq }
+
+lemma prime_dvd_prime_iff_eq
+  {M : Type*} [cancel_comm_monoid_with_zero M] [unique Mˣ] {p q : M} (pp : prime p) (qp : prime q) :
+  p ∣ q ↔ p = q :=
+by rw [pp.dvd_prime_iff_associated qp, ←associated_eq_eq]
 
 end unique_units
 
@@ -824,6 +810,19 @@ begin
   rwa [← mul_assoc, mul_one],
 end
 
+lemma associates.is_atom_iff [cancel_comm_monoid_with_zero α] {p : associates α} (h₁ : p ≠ 0) :
+  is_atom p ↔ irreducible p :=
+⟨λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one] using hp.1,
+        λ a b h, (eq_bot_or_eq_of_le_atom hp ⟨_, h⟩).cases_on
+          (λ ha, or.inl (a.is_unit_iff_eq_one.mpr ha))
+          (λ ha, or.inr (show is_unit b, by {rw ha at h, apply is_unit_of_associated_mul
+          (show associated (p * b) p, by conv_rhs {rw h}) h₁ }))⟩,
+ λ hp, ⟨by simpa only [associates.is_unit_iff_eq_one, associates.bot_eq_one] using hp.1,
+        λ b ⟨⟨a, hab⟩, hb⟩, (hp.is_unit_or_is_unit hab).cases_on
+          (λ hb, show b = ⊥, by rwa [associates.is_unit_iff_eq_one, ← associates.bot_eq_one] at hb)
+          (λ ha, absurd (show p ∣ b, from ⟨(ha.unit⁻¹ : units _), by simp [hab]; rw mul_assoc;
+            rw is_unit.mul_coe_inv ha; rw mul_one⟩) hb)⟩⟩
+
 lemma dvd_not_unit.not_associated [cancel_comm_monoid_with_zero α] {p q : α}
   (h : dvd_not_unit p q) : ¬ associated p q :=
 begin
@@ -858,6 +857,22 @@ begin
   refine injective_of_lt_imp_ne (λ n m h, dvd_not_unit.ne ⟨pow_ne_zero n hq', q^(m - n), _, _⟩),
   { exact not_is_unit_of_not_is_unit_dvd hq (dvd_pow (dvd_refl _) (nat.sub_pos_of_lt h).ne') },
   { exact (pow_mul_pow_sub q h.le).symm  }
+end
+
+lemma dvd_prime_pow [cancel_comm_monoid_with_zero α] {p q : α} (hp : prime p) (n : ℕ) :
+  q ∣ p^n ↔ ∃ i ≤ n, associated q (p ^ i) :=
+begin
+  induction n with n ih generalizing q,
+  { simp [← is_unit_iff_dvd_one, associated_one_iff_is_unit] },
+  refine ⟨λ h, _, λ ⟨i, hi, hq⟩, hq.dvd.trans (pow_dvd_pow p hi)⟩,
+  rw pow_succ at h,
+  rcases hp.left_dvd_or_dvd_right_of_dvd_mul h with (⟨q, rfl⟩ | hno),
+  { rw [mul_dvd_mul_iff_left hp.ne_zero, ih] at h,
+    rcases h with ⟨i, hi, hq⟩,
+    refine ⟨i + 1, nat.succ_le_succ hi, (hq.mul_left p).trans _⟩,
+    rw pow_succ },
+  { obtain ⟨i, hi, hq⟩ := ih.mp hno,
+    exact ⟨i, hi.trans n.le_succ, hq⟩ }
 end
 
 end cancel_comm_monoid_with_zero

@@ -54,12 +54,7 @@ prove all objects are exponential uniformly.
 -/
 def binary_product_exponentiable {C : Type u} [category.{v} C] [has_finite_products C] {X Y : C}
   (hX : exponentiable X) (hY : exponentiable Y) : exponentiable (X ⨯ Y) :=
-{ is_adj :=
-  begin
-    haveI := hX.is_adj,
-    haveI := hY.is_adj,
-    exact adjunction.left_adjoint_of_nat_iso (monoidal_category.tensor_left_tensor _ _).symm
-  end }
+tensor_closed hX hY
 
 /--
 The terminal object is always exponentiable.
@@ -79,59 +74,45 @@ monoidal_closed C
 
 variables {C : Type u} [category.{v} C] (A B : C) {X X' Y Y' Z : C}
 
-section exp
 variables [has_finite_products C] [exponentiable A]
 
 /-- This is (-)^A. -/
-def exp : C ⥤ C :=
-(@closed.is_adj _ _ _ A _).right
+abbreviation exp : C ⥤ C :=
+ihom A
+
+namespace exp
 
 /-- The adjunction between A ⨯ - and (-)^A. -/
-def exp.adjunction : prod.functor.obj A ⊣ exp A :=
-closed.is_adj.adj
+abbreviation adjunction : prod.functor.obj A ⊣ exp A :=
+ihom.adjunction A
 
 /-- The evaluation natural transformation. -/
-def ev : exp A ⋙ prod.functor.obj A ⟶ 𝟭 C :=
-(exp.adjunction A).counit
+abbreviation ev : exp A ⋙ prod.functor.obj A ⟶ 𝟭 C :=
+ihom.ev A
 
 /-- The coevaluation natural transformation. -/
-def coev : 𝟭 C ⟶ prod.functor.obj A ⋙ exp A :=
-(exp.adjunction A).unit
-
-@[simp] lemma exp_adjunction_counit : (exp.adjunction A).counit = ev A := rfl
-@[simp] lemma exp_adjunction_unit : (exp.adjunction A).unit = coev A := rfl
-
-@[simp, reassoc]
-lemma ev_naturality {X Y : C} (f : X ⟶ Y) :
-  limits.prod.map (𝟙 A) ((exp A).map f) ≫ (ev A).app Y = (ev A).app X ≫ f :=
-(ev A).naturality f
-
-@[simp, reassoc]
-lemma coev_naturality {X Y : C} (f : X ⟶ Y) :
-  f ≫ (coev A).app Y = (coev A).app X ≫ (exp A).map (limits.prod.map (𝟙 A) f) :=
-(coev A).naturality f
+abbreviation coev : 𝟭 C ⟶ prod.functor.obj A ⋙ exp A :=
+ihom.coev A
 
 notation A ` ⟹ `:20 B:19 := (exp A).obj B
 notation B ` ^^ `:30 A:30 := (exp A).obj B
 
 @[simp, reassoc] lemma ev_coev :
   limits.prod.map (𝟙 A) ((coev A).app B) ≫ (ev A).app (A ⨯ B) = 𝟙 (A ⨯ B) :=
-adjunction.left_triangle_components (exp.adjunction A)
+ihom.ev_coev A B
 
-@[simp, reassoc] lemma coev_ev : (coev A).app (A⟹B) ≫ (exp A).map ((ev A).app B) = 𝟙 (A⟹B) :=
-adjunction.right_triangle_components (exp.adjunction A)
-
-instance : preserves_colimits (prod.functor.obj A) :=
-(exp.adjunction A).left_adjoint_preserves_colimits
+@[simp, reassoc] lemma coev_ev : (coev A).app (A ⟹ B) ≫ (exp A).map ((ev A).app B) = 𝟙 (A ⟹ B) :=
+ihom.coev_ev A B
 
 end exp
+
+instance : preserves_colimits (prod.functor.obj A) :=
+(ihom.adjunction A).left_adjoint_preserves_colimits
 
 variables {A}
 
 -- Wrap these in a namespace so we don't clash with the core versions.
 namespace cartesian_closed
-
-variables [has_finite_products C] [exponentiable A]
 
 /-- Currying in a cartesian closed category. -/
 def curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X) :=
@@ -182,16 +163,16 @@ lemma eq_curry_iff (f : A ⨯ Y ⟶ X) (g : Y ⟶ A ⟹ X) :
 adjunction.eq_hom_equiv_apply _ f g
 
 -- I don't think these two should be simp.
-lemma uncurry_eq (g : Y ⟶ A ⟹ X) : uncurry g = limits.prod.map (𝟙 A) g ≫ (ev A).app X :=
+lemma uncurry_eq (g : Y ⟶ A ⟹ X) : uncurry g = limits.prod.map (𝟙 A) g ≫ (exp.ev A).app X :=
 adjunction.hom_equiv_counit _
 
-lemma curry_eq (g : A ⨯ Y ⟶ X) : curry g = (coev A).app Y ≫ (exp A).map g :=
+lemma curry_eq (g : A ⨯ Y ⟶ X) : curry g = (exp.coev A).app Y ≫ (exp A).map g :=
 adjunction.hom_equiv_unit _
 
-lemma uncurry_id_eq_ev (A X : C) [exponentiable A] : uncurry (𝟙 (A ⟹ X)) = (ev A).app X :=
+lemma uncurry_id_eq_ev (A X : C) [exponentiable A] : uncurry (𝟙 (A ⟹ X)) = (exp.ev A).app X :=
 by rw [uncurry_eq, prod.map_id_id, id_comp]
 
-lemma curry_id_eq_coev (A X : C) [exponentiable A] : curry (𝟙 _) = (coev A).app X :=
+lemma curry_id_eq_coev (A X : C) [exponentiable A] : curry (𝟙 _) = (exp.coev A).app X :=
 by { rw [curry_eq, (exp A).map_id (A ⨯ _)], apply comp_id }
 
 lemma curry_injective : function.injective (curry : (A ⨯ Y ⟶ X) → (Y ⟶ A ⟹ X)) :=
@@ -203,7 +184,6 @@ lemma uncurry_injective : function.injective (uncurry : (Y ⟶ A ⟹ X) → (A �
 end cartesian_closed
 
 open cartesian_closed
-variables [has_finite_products C] [exponentiable A]
 
 /--
 Show that the exponential of the terminal object is isomorphic to itself, i.e. `X^1 ≅ X`.
@@ -231,18 +211,19 @@ def pre (f : B ⟶ A) [exponentiable B] : exp A ⟶ exp B :=
 transfer_nat_trans_self (exp.adjunction _) (exp.adjunction _) (prod.functor.map f)
 
 lemma prod_map_pre_app_comp_ev (f : B ⟶ A) [exponentiable B] (X : C) :
-  limits.prod.map (𝟙 B) ((pre f).app X) ≫ (ev B).app X =
-    limits.prod.map f (𝟙 (A ⟹ X)) ≫ (ev A).app X :=
+  limits.prod.map (𝟙 B) ((pre f).app X) ≫ (exp.ev B).app X =
+    limits.prod.map f (𝟙 (A ⟹ X)) ≫ (exp.ev A).app X :=
 transfer_nat_trans_self_counit _ _ (prod.functor.map f) X
 
 lemma uncurry_pre (f : B ⟶ A) [exponentiable B] (X : C) :
-  cartesian_closed.uncurry ((pre f).app X) = limits.prod.map f (𝟙 _) ≫ (ev A).app X :=
+  cartesian_closed.uncurry ((pre f).app X) = limits.prod.map f (𝟙 _) ≫ (exp.ev A).app X :=
 begin
   rw [uncurry_eq, prod_map_pre_app_comp_ev]
 end
 
 lemma coev_app_comp_pre_app (f : B ⟶ A) [exponentiable B] :
-  (coev A).app X ≫ (pre f).app (A ⨯ X) = (coev B).app X ≫ (exp B).map (limits.prod.map f (𝟙 _)) :=
+  (exp.coev A).app X ≫ (pre f).app (A ⨯ X) =
+    (exp.coev B).app X ≫ (exp B).map (limits.prod.map f (𝟙 _)) :=
 unit_transfer_nat_trans_self _ _ (prod.functor.map f) X
 
 @[simp]
@@ -290,7 +271,7 @@ def pow_zero {I : C} (t : is_initial I) [cartesian_closed C] : I ⟹ B ≅ ⊤_ 
     rw [← curry_natural_left, curry_eq_iff, ← cancel_epi (mul_zero t).inv],
     { apply t.hom_ext },
     { apply_instance },
-    { apply_instance }
+    { apply_instance },
   end }
 
 -- TODO: Generalise the below to its commutated variants.
@@ -356,7 +337,7 @@ Note we didn't require any coherence between the choice of finite products here,
 along the `prod_comparison` isomorphism.
 -/
 def cartesian_closed_of_equiv (e : C ≌ D) [h : cartesian_closed C] : cartesian_closed D :=
-{ closed := λ X,
+{ closed' := λ X,
   { is_adj :=
     begin
       haveI q : exponentiable (e.inverse.obj X) := infer_instance,

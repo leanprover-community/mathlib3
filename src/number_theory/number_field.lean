@@ -44,17 +44,8 @@ open function
 open_locale classical big_operators
 
 /-- `ℤ` with its usual ring structure is not a field. -/
-lemma int.not_is_field : ¬ is_field ℤ :=
-begin
-  intro hf,
-  cases hf.mul_inv_cancel two_ne_zero with inv2 hinv2,
-  have not_even_2 : ¬ even (2 : ℤ),
-  { rw ← int.odd_iff_not_even,
-    apply int.odd.of_mul_left,
-    rw [hinv2, int.odd_iff_not_even],
-    exact int.not_even_one, },
-  exact not_even_2 (even_bit0 1),
-end
+lemma int.not_is_field : ¬ is_field ℤ := 
+λ h, int.not_even_one $ (h.mul_inv_cancel two_ne_zero).imp $ λ a, eq.symm
 
 namespace number_field
 
@@ -77,7 +68,12 @@ localized "notation `𝓞` := number_field.ring_of_integers" in number_field
 
 lemma mem_ring_of_integers (x : K) : x ∈ 𝓞 K ↔ is_integral ℤ x := iff.rfl
 
-instance ring_of_integers_algebra [algebra K L] : algebra (𝓞 K) (𝓞 L) := ring_hom.to_algebra
+/-- Given an algebra between two fields, create an algebra between their two rings of integers.
+
+For now, this is not an instance by default as it creates an equal-but-not-defeq diamond with
+`algebra.id` when `K = L`. This is caused by `x = ⟨x, x.prop⟩` not being defeq on subtypes. This
+will likely change in Lean 4. -/
+def ring_of_integers_algebra [algebra K L] : algebra (𝓞 K) (𝓞 L) := ring_hom.to_algebra
 { to_fun := λ k, ⟨algebra_map K L k, is_integral.algebra_map k.2⟩,
   map_zero' := subtype.ext $ by simp only [subtype.coe_mk, subalgebra.coe_zero, map_zero],
   map_one'  := subtype.ext $ by simp only [subtype.coe_mk, subalgebra.coe_one, map_one],

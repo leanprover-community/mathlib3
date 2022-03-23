@@ -68,7 +68,7 @@ begin
   { simp [list.dedup_eq_self.mpr hl] },
   { simpa using h1 },
   { simpa [hl] using h0 },
-  { simpa [list.dedup_eq_self.mpr hl] using list.forall_of_pairwise disjoint.symmetric h2 }
+  { simpa [list.dedup_eq_self.mpr hl] using h2.forall disjoint.symmetric }
 end
 
 lemma cycle_type_one : (1 : perm α).cycle_type = 0 :=

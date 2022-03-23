@@ -130,8 +130,7 @@ instance finite.inhabited : inhabited {s : set α // finite s} := ⟨⟨∅, fin
 
 /-- A `fintype` structure on `insert a s`. -/
 def fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) : fintype (insert a s : set α) :=
-fintype.of_finset ⟨a ::ₘ s.to_finset.1,
-  multiset.nodup_cons_of_nodup (by simp [h]) s.to_finset.2⟩ $ by simp
+fintype.of_finset ⟨a ::ₘ s.to_finset.1, s.to_finset.nodup.cons (by simp [h]) ⟩ $ by simp
 
 theorem card_fintype_insert' {a : α} (s : set α) [fintype s] (h : a ∉ s) :
   @fintype.card _ (fintype_insert' s h) = fintype.card s + 1 :=
@@ -379,8 +378,7 @@ theorem finite.map {α β} {s : set α} :
 then `s` has a `fintype` structure as well. -/
 def fintype_of_fintype_image (s : set α)
   {f : α → β} {g} (I : is_partial_inv f g) [fintype (f '' s)] : fintype s :=
-fintype.of_finset ⟨_, @multiset.nodup_filter_map β α g _
-  (@injective_of_partial_inv_right _ _ f g I) (f '' s).to_finset.2⟩ $ λ a,
+fintype.of_finset ⟨_, (f '' s).to_finset.2.filter_map g $ injective_of_partial_inv_right I⟩ $ λ a,
 begin
   suffices : (∃ b x, f x = b ∧ g b = some a ∧ x ∈ s) ↔ a ∈ s,
   by simpa [exists_and_distrib_left.symm, and.comm, and.left_comm, and.assoc],

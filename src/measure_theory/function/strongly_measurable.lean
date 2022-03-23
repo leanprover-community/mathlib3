@@ -581,6 +581,11 @@ protected lemma indicator {m : measurable_space α} [topological_space β] [has_
   strongly_measurable (s.indicator f) :=
 hf.piecewise hs strongly_measurable_const
 
+protected lemma dist {m : measurable_space α} {β : Type*} [pseudo_metric_space β] {f g : α → β}
+  (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  strongly_measurable (λ x, dist (f x) (g x)) :=
+continuous_dist.comp_strongly_measurable (hf.prod_mk hg)
+
 protected lemma norm {m : measurable_space α} {β : Type*} [normed_group β] {f : α → β}
   (hf : strongly_measurable f) :
   strongly_measurable (λ x, ∥f x∥) :=
@@ -1095,6 +1100,11 @@ lemma ae_strongly_measurable_iff_ae_measurable [metrizable_space β] [borel_spac
 ⟨λ h, h.ae_measurable, λ h, h.ae_strongly_measurable⟩
 
 end second_countable_ae_strongly_measurable
+
+protected lemma dist {β : Type*} [pseudo_metric_space β] {f g : α → β}
+  (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
+  ae_strongly_measurable (λ x, dist (f x) (g x)) μ :=
+continuous_dist.comp_ae_strongly_measurable (hf.prod_mk hg)
 
 protected lemma norm {β : Type*} [normed_group β] {f : α → β} (hf : ae_strongly_measurable f μ) :
   ae_strongly_measurable (λ x, ∥f x∥) μ :=

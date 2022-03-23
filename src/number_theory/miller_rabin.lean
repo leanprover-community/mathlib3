@@ -169,6 +169,28 @@ begin
   simp [foo],
 end
 
+lemma sub_one_dvd_pow_sub_one (p α : ℕ) (one_le_p : 1 ≤ p) : (p - 1) ∣ (p^α - 1) :=
+begin
+  induction α with a ih,
+  { simp, },
+  { rw dvd_iff_exists_eq_mul_left at *,
+    rcases ih with ⟨c, hc⟩,
+    use p^a + c,
+    rw add_mul,
+    rw ← hc,
+    rw mul_tsub,
+    rw mul_one,
+    zify,
+    rw int.coe_nat_sub (one_le_pow_of_one_le one_le_p a),
+    rw int.coe_nat_sub (le_mul_of_one_le_right' one_le_p),
+    rw int.coe_nat_sub (one_le_pow_of_one_le one_le_p (nat.succ a)),
+    rw pow_succ',
+    abel,
+    exact one_le_pow_of_one_le one_le_p a,
+    exact le_mul_of_one_le_right' one_le_p,
+    exact one_le_pow_of_one_le one_le_p (nat.succ α),
+    },
+end
 
 /-- Theorem 3.4 of Conrad -/
 lemma strong_probable_prime_prime_power_iff (p α : ℕ) (hα : 1 ≤ α) (hp : nat.prime p)
@@ -233,28 +255,7 @@ begin
     have order_gcd := nat.dvd_gcd euler h2,
     have gcd_eq : (p ^ (α - 1) * (p - 1)).gcd (p ^ α - 1) = p - 1,
     { apply nat.gcd_mul_of_dvd_coprime,
-      { -- p - 1 divides p^α - 1
-        clear _inst h2 euler order_gcd hspp zero_lt_n one_lt_n a,
-        induction hα with a hle ih,
-        { simp, },
-        { rw dvd_iff_exists_eq_mul_left at *,
-          rcases ih with ⟨c, hc⟩,
-          use p^a + c,
-          rw add_mul,
-          rw ← hc,
-          rw mul_tsub,
-          rw mul_one,
-          zify,
-          rw int.coe_nat_sub (one_le_pow_of_one_le one_le_p a),
-          rw int.coe_nat_sub (le_mul_of_one_le_right' one_le_p),
-          rw int.coe_nat_sub (one_le_pow_of_one_le one_le_p (nat.succ a)),
-          rw pow_succ',
-          abel,
-          exact one_le_pow_of_one_le one_le_p a,
-          exact le_mul_of_one_le_right' one_le_p,
-          exact one_le_pow_of_one_le one_le_p (nat.succ α),
-          },
-      },
+      {exact sub_one_dvd_pow_sub_one p α one_le_p,},
       { -- p is relatively prime to p^α - 1
         apply nat.coprime.pow_left,
         rw ←nat.coprime_pow_left_iff (hα),
@@ -318,11 +319,27 @@ begin
   refine nat.rec_on_prime_coprime _ _ _ n,
   { simp, },
   { intros p k hp hn,
-    --TODO(Sean): should be able to finish this with the lean cheatsheet
-    sorry, },
+    right,
+    use p,
+    use k,
+    split,
+    exact hp,
+    refl,
+   },
   {
     intros n0 n1 hn0 hn1 hn0n1 hn0' hn1' hmul,
     clear hn0' hn1',
+    left,
+    use n0,
+    use n1,
+    split,
+    exact hn0n1,
+    split,
+    rw eq_self_iff_true,
+    trivial,
+    split,
+    -- I'm thinking there's a possible mistake? I don't see how the hypotheses lead to the
+    -- conclusion here
     --TODO(Sean): should be able to finish this with the lean cheatsheet
     sorry,
   }

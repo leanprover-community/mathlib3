@@ -437,6 +437,15 @@ begin
   rw [sub_smul, sub_eq_zero, eq1],
 end
 
+lemma submodule_between_max_adjoin.extend_ideal_to_eq (h : module.Baer R Q) {y : N} (r : R)
+  (hr : r • y ∈ (submodule_between_max hi f).to_submodule) :
+  submodule_between_max_adjoin.extend_ideal_to hi f h y r =
+  (submodule_between_max hi f).extension ⟨r • y, hr⟩ :=
+begin
+  rw submodule_between_max_adjoin.extend_ideal_to_is_extension hi f h _ _ hr,
+  refl,
+end
+
 def submodule_between_max_adjoin.extension_to_fun (h : module.Baer R Q)
   {y : N} : -- (hy : y ∉ (submodule_between_max hi f).to_submodule) :
   (submodule_between_max hi f).to_submodule ⊔ submodule.span R {y} →  Q :=
@@ -451,13 +460,26 @@ lemma submodule_between_max_adjoin.extension_to_fun_wd (h : module.Baer R Q)
   (submodule_between_max hi f).extension a +
   submodule_between_max_adjoin.extend_ideal_to hi f h y r :=
 begin
-  transitivity submodule_between_max_adjoin.extension_to_fun hi f h
-    (⟨a.1 + r • y,
-      submodule.mem_sup.mpr ⟨a.1, a.2, _, submodule.mem_span_singleton.mpr ⟨_, rfl⟩, rfl⟩⟩ :
-        (submodule_between_max hi f).to_submodule ⊔ submodule.span R {y}),
-  { congr'; rw [subtype.ext_iff_val, eq1] },
+  have eq2 := eq1,
+  rw [submodule_between_max_adjoin.eqn, ← sub_eq_zero,
+    show ∀ (a b c d : N), (a + b) - (c + d) = (a - c) - (d - b), from λ _ _ _ _, by abel,
+    sub_eq_zero, ← sub_smul] at eq2,
+  have eq3 := submodule_between_max_adjoin.extend_ideal_to_eq hi f h
+    (r - submodule_between_max_adjoin.snd x) begin
+      rw ← eq2,
+      exact submodule.sub_mem _ (submodule_between_max_adjoin.fst x).2 a.2,
+    end,
+  simp only [map_sub, sub_smul, sub_eq_iff_eq_add] at eq3,
   unfold submodule_between_max_adjoin.extension_to_fun,
-  sorry
+  rw [eq3, ← add_assoc],
+  congr' 1,
+  rw [← map_add, show ∀ (a b : (submodule_between_max hi f).to_submodule), a + b = ⟨a.1 + b.1, _⟩,
+    from λ _ _, rfl],
+  have eq4 := submodule_between_max_adjoin.eqn x,
+  rw eq1 at eq4,
+  simp only [eq4, add_sub, add_sub_cancel],
+  congr' 1,
+  rw subtype.ext_iff_val,
 end
 
 def submodule_between_max_adjoin (h : module.Baer R Q) {y : N}

@@ -214,7 +214,8 @@ end
 
 /-- Coercing the result of `units.has_inv` is the same as coercing first and applying the
 nonsingular inverse. -/
-@[simp] lemma coe_units_nonsing_inv (A : (matrix n n α)ˣ) : ↑(A⁻¹) = (A⁻¹ : matrix n n α) :=
+@[simp, norm_cast] lemma coe_units_inv (A : (matrix n n α)ˣ) :
+  ↑(A⁻¹) = (A⁻¹ : matrix n n α) :=
 begin
   letI := A.invertible,
   rw [←inv_of_eq_nonsing_inv, inv_of_units],
@@ -419,12 +420,12 @@ by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_in
 /-- A variant of `matrix.det_units_conj`. -/
 lemma det_conj {M : matrix m m α} (h : is_unit M) (N : matrix m m α) :
   det (M ⬝ N ⬝ M⁻¹) = det N :=
-by rw [←h.unit_spec, ←coe_units_nonsing_inv, det_units_conj]
+by rw [←h.unit_spec, ←coe_units_inv, det_units_conj]
 
 /-- A variant of `matrix.det_units_conj'`. -/
 lemma det_conj' {M : matrix m m α} (h : is_unit M) (N : matrix m m α) :
   det (M⁻¹ ⬝ N ⬝ M) = det N :=
-by rw [←h.unit_spec, ←coe_units_nonsing_inv, det_units_conj']
+by rw [←h.unit_spec, ←coe_units_inv, det_units_conj']
 
 /-- Determinant of a 2×2 block matrix, expanded around an invertible top left element in terms of
 the Schur complement. -/

@@ -149,8 +149,8 @@ begin
 end
 
 /-- If `(f, g)` is exact, then `factor_thru_image g` is a cokernel of `f`. -/
-def is_colimit_image [h : exact f g] :
-  is_colimit (cokernel_cofork.of_π (limits.factor_thru_image g) (comp_factor_thru_image_eq_zero h.1)) :=
+def is_colimit_image [h : exact f g] : is_colimit
+  (cokernel_cofork.of_π (limits.factor_thru_image g) (comp_factor_thru_image_eq_zero h.1)) :=
 is_cokernel.cokernel_iso _ _ (is_colimit_coimage f g) (coimage_iso_image' g) $
   (cancel_mono (limits.image.ι g)).1 $ by simp
 

@@ -38,7 +38,7 @@ lemma surj_on_Ico_of_monotone_surjective
 begin
   obtain hab | hab := lt_or_le a b,
   { intros p hp,
-    rcases mem_Ioo_or_eq_left_of_mem_Ico hp with hp'|hp',
+    rcases eq_left_or_mem_Ioo_of_mem_Ico hp with hp'|hp',
     { rw hp',
       exact ⟨a, left_mem_Ico.mpr hab, rfl⟩ },
     { have := surj_on_Ioo_of_monotone_surjective h_mono h_surj a b hp',
@@ -60,7 +60,7 @@ lemma surj_on_Icc_of_monotone_surjective
 begin
   rcases lt_or_eq_of_le hab with hab|hab,
   { intros p hp,
-    rcases mem_Ioo_or_eq_endpoints_of_mem_Icc hp with hp'|⟨hp'|hp'⟩,
+    rcases eq_endpoints_or_mem_Ioo_of_mem_Icc hp with (hp'|hp'|hp'⟩,
     { rw hp',
       refine ⟨a, left_mem_Icc.mpr (le_of_lt hab), rfl⟩ },
     { rw hp',

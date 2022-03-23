@@ -12,6 +12,12 @@ The type of continuous functions vanishing at infinity. When the domain is compa
 `C(α, β) ≃ (α →C₀ β)` via the identity map. When the codomain is a metric space, every continuous
 map which vanishes at infinity is a bounded continuous function. When the domain is a locally
 compact space, this type has nice properties.
+
+## TODO
+
+* Create more intances of algebraic structures (e.g., `non_unital_semiring`) once the necessary
+  type classes (e.g., `topological_ring`) are sufficiently generalized.
+* Relate the unitization of `α →C₀ β` to the Alexandroff compactification.
 -/
 universes u v w
 
@@ -231,15 +237,9 @@ instance [add_comm_monoid β] [has_continuous_add β] {R : Type*} [comm_semiring
   [has_continuous_const_smul R β] : module R (α →C₀ β) :=
 function.injective.module R ⟨_, coe_zero, coe_add⟩ fun_like.coe_injective coe_smul
 
--- this needs to be switched to `topological_semiring β`
 instance [non_unital_semiring β] [has_continuous_add β] [has_continuous_mul β] :
   non_unital_semiring (α →C₀ β) :=
 fun_like.coe_injective.non_unital_semiring _ coe_zero coe_add coe_mul (λ _ _, coe_nsmul _ _)
-
--- This has to wait for the `topological_ring` refactor.
-instance [non_unital_ring β] : -- [topological_ring β] :
-  non_unital_ring (α →C₀ β) :=
-sorry
 
 end algebraic_structure
 
@@ -291,7 +291,8 @@ end
 
 variables {C : ℝ} {f g : α →C₀ β}
 
-/-- The type of bounded continuous functions, with the uniform distance, is a metric space. -/
+/-- The type of continuous functions vanishing at infinity, with the uniform distance induced by the
+inclusion `zero_at_infinity_continuous_map.to_bcf`, is a metric space. -/
 noncomputable instance : metric_space (α →C₀ β) :=
 metric_space.induced _ (to_bounded_continuous_function_injective α β) (by apply_instance)
 
@@ -312,6 +313,7 @@ iff.intro
     λ n hn, lt_of_le_of_lt ((dist_le (half_pos ε_pos).le).mpr $
     λ x, dist_comm (f x) (F n x) ▸ le_of_lt (hn x)) (half_lt_self ε_pos)))
 
+/-- Convergence in the metric on `α →C₀ β` is uniform convegence. -/
 lemma tendsto_iff_tendsto_uniformly {ι : Type*} {F : ι → (α →C₀ β)} {f : α →C₀ β} {l : filter ι} :
   tendsto F l (𝓝 f) ↔ tendsto_uniformly (λ i, F i) f l :=
 by simpa only [metric.tendsto_nhds] using @bounded_continuous_function.tendsto_iff_tendsto_uniformly

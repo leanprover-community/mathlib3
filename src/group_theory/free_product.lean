@@ -627,7 +627,7 @@ lemma empty_of_word_prod_eq_one {w : word H} (h : lift f w.prod = 1) :
   w = word.empty :=
 begin
   by_contradiction hnotempty,
-  obtain ⟨i, j, w, rfl⟩ := neword.of_word _ hnotempty,
+  obtain ⟨i, j, w, rfl⟩ := neword.of_word w hnotempty,
   exact lift_word_prod_nontrivial_of_not_empty f hcard X hXnonempty hXdisj hpp w h,
 end
 

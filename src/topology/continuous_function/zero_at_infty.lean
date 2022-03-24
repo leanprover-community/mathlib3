@@ -153,16 +153,13 @@ variables [add_monoid β] [has_continuous_add β] (f g : α →C₀ β)
 instance has_nat_scalar : has_scalar ℕ (α →C₀ β) :=
 ⟨λ n f, ⟨n • f, by simpa [coe_nsmul_rec] using (nsmul_rec n f).zero_at_infty'⟩⟩
 
-@[simp] lemma coe_nsmul (r : ℕ) (f : α →C₀ β) : ⇑(r • f) = r • f := rfl
-@[simp] lemma nsmul_apply (r : ℕ) (f : α →C₀ β) (v : α) : (r • f) v = r • f v := rfl
-
 instance : add_monoid (α →C₀ β) :=
-fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
+fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, rfl)
 
 end add_monoid
 
 instance [add_comm_monoid β] [has_continuous_add β] : add_comm_monoid (α →C₀ β) :=
-fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
+fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, rfl)
 
 section add_group
 
@@ -192,18 +189,13 @@ lemma sub_apply : (f - g) x = f x - g x := rfl
 instance has_int_scalar : has_scalar ℤ (α →C₀ β) :=
 ⟨λ n f, ⟨n • f, by simpa using (zsmul_rec n f).zero_at_infty'⟩⟩
 
-@[simp] lemma coe_zsmul (r : ℤ) (f : α →C₀ β) : ⇑(r • f) = r • f := rfl
-@[simp] lemma zsmul_apply (r : ℤ) (f : α →C₀ β) (v : α) : (r • f) v = r • f v := rfl
-
 instance : add_group (α →C₀ β) :=
-fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _)
-  (λ _ _, coe_zsmul _ _)
+fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 end add_group
 
 instance [add_comm_group β] [topological_add_group β] : add_comm_group (α →C₀ β) :=
-fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _)
-  (λ _ _, coe_zsmul _ _)
+fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
   [has_continuous_const_smul R β] : has_scalar R (α →C₀ β) :=
@@ -230,7 +222,7 @@ function.injective.module R ⟨_, coe_zero, coe_add⟩ fun_like.coe_injective co
 
 instance [non_unital_semiring β] [has_continuous_add β] [has_continuous_mul β] :
   non_unital_semiring (α →C₀ β) :=
-fun_like.coe_injective.non_unital_semiring _ coe_zero coe_add coe_mul (λ _ _, coe_nsmul _ _)
+fun_like.coe_injective.non_unital_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
 
 end algebraic_structure
 

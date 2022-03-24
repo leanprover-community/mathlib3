@@ -16,7 +16,7 @@ universes u v w
 
 open filter set
 
-/-! ### Cocompact continuous maps-/
+/-! ### Cocompact continuous maps -/
 
 /-- A *cocompact continuous map* is a continuous function between topological spaces which
 tends to the cocompact filter along the cocompact filter. Functions for which preimgaes of compact
@@ -82,8 +82,6 @@ variable (α)
 protected def id : cocompact_map α α := ⟨continuous_map.id _, tendsto_id⟩
 @[simp] lemma coe_id : ⇑(cocompact_map.id α) = id := rfl
 end
-
-@[simp] lemma id_apply (a : α) : continuous_map.id α a = a := rfl
 
 instance : inhabited (cocompact_map α α) := ⟨cocompact_map.id α⟩
 

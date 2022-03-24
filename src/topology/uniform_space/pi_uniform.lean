@@ -5,6 +5,7 @@ Authors: Anatole Dedecker
 -/
 import topology.uniform_space.uniform_convergence
 
+/-! TODO -/
 noncomputable theory
 open_locale topological_space classical uniformity filter
 

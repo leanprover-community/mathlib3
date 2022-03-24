@@ -316,6 +316,7 @@ begin
   exact this (bdry_finite G K Kfinite),
 end
 
+
 end component
 
 
@@ -331,6 +332,12 @@ section inf_components
 variables {K L L' M : set V}
           (K_sub_L : K ⊆ L) (L_sub_M : L ⊆ M)
           (K_sub_L' : K ⊆ L') (L'_sub_M : L' ⊆ M)
+
+
+lemma inf_components_subset (K : set V) : inf_components G K ⊆ components G K := λ C h, h.1
+
+instance inf_components_finite (Knempty: K.nonempty) (Kfinite: K.finite) :
+  fintype (inf_components G K) := (set.finite.subset (component.finite G K Knempty Kfinite) (inf_components_subset G K)).fintype
 
 def component_is_still_conn (D : set V) (D_comp : D ∈ components G L) :
   ∀ x y ∈ D, c_o G K x y :=
@@ -378,6 +385,9 @@ begin
   apply (bwd_map_def G K_sub_L D (bwd_map G K_sub_L D)).mp,
   reflexivity,
 end
+
+lemma bwd_map_refl (C : inf_components G K) : bwd_map G (set.subset.refl K) C = C :=
+by {rw bwd_map_def}
 
 lemma subcomponents_cover (K_sub_L : K ⊆ L) (C : set V) (hC : C ∈ components G K) :
   C ⊆ L ∪ (⋃₀ { D : set V | D ∈ components G L ∧ D ⊆ C}) :=
@@ -495,6 +505,14 @@ def to_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : �
 | ⟨f,f_comm⟩ := ⟨ λ K, f ⟨K, H K.property⟩
                 , λ K L hKL, f_comm (set.inclusion H K) (set.inclusion H L) hKL⟩
 
+def to_ends_for_def (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val)
+  (e : ends G) (K : ℱ) :
+  e.val (⟨K.val,mem_of_subset_of_mem H K.prop⟩ : finsubsets) = (to_ends_for G ℱ H ℱ_cofin e).val K :=
+begin
+  dsimp only [to_ends_for],
+  sorry,
+end
+
 
 def of_ends_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) :
   ends_for G ℱ H ℱ_cofin → ends G :=
@@ -556,22 +574,108 @@ begin
 end
 
 
-lemma of_component
-  (V_ctble : set.countable (@univ V))
-  (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) :
-  ∃ e : (ends G), (e.val (⟨K,Kfinite⟩ : finsubsets)).val = C.val :=
-begin
+def eval_for (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) (K : ℱ):
+  ends_for G ℱ H ℱ_cofin → inf_components G K := λ e, e.val K
 
+
+def eval (K : @finsubsets V _ _ _): ends G → inf_components G K :=
+eval_for G finsubsets (λ K Kfin, Kfin) (λ K, ⟨K,set.subset.refl K.val⟩) K
+
+
+def eval_comm  (ℱ ⊆ finsubsets) (ℱ_cofin : ∀ K : finsubsets, ∃ F : ℱ, K.val ⊆ F.val) (K : ℱ) (e : ends G) :
+  eval_for G ℱ H ℱ_cofin K (equiv_ends_for G ℱ H ℱ_cofin e) = @eval V G _ _ _ _ _ ⟨K.val,H K.prop⟩ e :=
+begin
+  simp only [eval, eval_for, equiv_ends_for, equiv.coe_fn_mk],
+  rw [←to_ends_for_def],
+  simpa only,
 end
 
+private def up (K : @finsubsets V _ _ _) := {L ∈ @finsubsets V _ _ _ | K.val ⊆ L}
+private lemma up_sub  (K : finsubsets)  : up K ⊆ @finsubsets V _ _ _ := λ K H, H.1
+private lemma in_up  (K : @finsubsets V _ _ _) : K.val ∈ (up K) := ⟨K.prop,set.subset.refl K.val⟩
+private lemma up_cofin  (K : finsubsets) :
+  ∀ M : @finsubsets V _ _ _, ∃ L : up K, M.val ⊆ L.val := λ M,
+begin
+  use ⟨M.val ∪ K.val, set.finite.union M.prop K.prop, set.subset_union_right M.val K.val⟩,
+  exact set.subset_union_left M.val K.val,
+end
 
-lemma inf_components_embeds_ends (Knempty : K.nonempty) (Kfinite : K.finite) :
-  inf_components G K ↪ ends G :=
+lemma eval_injective_for_up (K : finsubsets)
+  (inj_from_K : ∀ L : set V, L.finite → K.val ⊆ L → injective (bwd_map G ‹K.val⊆L›)) :
+  injective (eval_for G (up K) (up_sub K) (up_cofin K) ⟨K,in_up K⟩) :=
+begin
+  rintros e₁ e₂,
+  simp only [eval_for, subtype.val_eq_coe],
+  rintro same,
+  apply subtype.eq,
+  ext1 L,
+  simp only [subtype.val_eq_coe],
+  apply inj_from_K L.val L.prop.1 L.prop.2,
+  rw [e₁.prop ⟨K.val,in_up K⟩ L L.prop.2,e₂.prop ⟨K.val,in_up K⟩ L L.prop.2],
+  assumption,
+end
+
+lemma eval_injective (K : finsubsets)
+  (inj_from_K : ∀ L : set V, L.finite → K.val ⊆ L → injective (bwd_map G ‹K.val⊆L›)) :
+  injective (eval G K) :=
+begin
+  rintros e₁ e₂ same,
+  let f₁ := (equiv_ends_for G (up K) (up_sub K) (up_cofin K)) e₁,
+  let f₂ := (equiv_ends_for G (up K) (up_sub K) (up_cofin K)) e₂,
+  have : f₁ = f₂, by {
+    apply eval_injective_for_up G K inj_from_K,
+    rw [ eval_comm G (up K) (up_sub K) (up_cofin K) ⟨K,in_up K⟩ e₁,
+         eval_comm G (up K) (up_sub K) (up_cofin K) ⟨K,in_up K⟩ e₂],
+    dsimp only,
+    sorry, -- It's stupid but I don't know how to get from `K` to `⟨↑K,_⟩` efficiently
+  },
+  simpa only [embedding_like.apply_eq_iff_eq],
+end
+
+lemma extend_along (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
+  (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
+  Π i : ℕ, inf_components G (f i)
+| 0     := C
+| (k+1) := some $ bwd_map_surjective G (fmon k (k+1) (nat.le_succ k))
+                                       (set.nonempty.mono (fmon 0 k $ nat.zero_le k) Knempty)
+                                       (f k).prop
+                                       (set.nonempty.mono (fmon 0 (k+1) $ nat.zero_le $ k+1) Knempty)
+                                       (f $ k + 1).prop
+                                       (extend_along k)
+lemma extend_along_comm (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
+  (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
+let
+  e := extend_along G f fmon Knempty Kfinite C
+in
+  ∀ i j, i ≤ j →  (bwd_map G $ fmon i j ‹i≤j›) (e j) = e i :=
 begin
   sorry
 end
 
+lemma extend_along_spec (f : ℕ → @finsubsets V _ _ _) (fmon: ∀ m  n, m ≤ n → (f m).val ⊆ (f n).val)
+  (Knempty : (f 0).val.nonempty) (Kfinite : (f 0).val.finite) (C : inf_components G (f 0)) :
+extend_along G f fmon Knempty Kfinite C 0 = C := by {sorry} -- should be by def ??
 
+lemma of_component
+  (enum : ℕ ≃ V) -- this assumption is consequence of connected + locally finite anyway
+  (Knempty : K.nonempty) (Kfinite : K.finite) (C : inf_components G K) :
+  ∃ e : (ends G), (e.val (⟨K,Kfinite⟩ : finsubsets)).val = C.val :=
+begin
+  sorry
+  /-
+  Construct the function ℕ → finsubsets defined as sending i to K ∪ enum '' { j | j ≤ i}.
+  Show that this is monotone, and cofinal
+  use extend_along on this function
+  get an element of ends_for and an element of ends
+  -/
+end
+
+/-
+example (K : set V) (Knempty : K.nonempty) (Kfinite : K.finite)
+        (maxcard : ∀ L : finsubsets, K ⊆ L.val →
+                   fintype (inf_components G L) ≤ fintype.card (inf_components G K) ) :
+
+-/
 
 --lemma ends_eq_disjoints_ends_of (Knempty : K.nonempty) (Kfinite : K.finite) : ends G = disjoint union of the ends of G-K
 

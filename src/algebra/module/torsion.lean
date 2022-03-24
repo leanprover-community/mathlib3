@@ -135,7 +135,8 @@ instance : has_scalar (R ⧸ R ∙ a) (torsion_by R M a) :=
 
 /-- The `a`-torsion submodule as a `(R ⧸ R∙a)`-module. -/
 instance : module (R ⧸ R ∙ a) (torsion_by R M a) :=
-ideal.quotient.mk_surjective.module_left _ (torsion_by.mk_smul _)
+@function.surjective.module_left _ _ (torsion_by R M a) _ _ _ _ _ (ideal.quotient.mk $ R ∙ a)
+  ideal.quotient.mk_surjective (torsion_by.mk_smul _)
 
 instance {S : Type*} [has_scalar S R] [has_scalar S M]
   [is_scalar_tower S R M] [is_scalar_tower S R R] :

@@ -358,13 +358,6 @@ begin
   exact is_integral_mul is_integral_algebra_map hx,
 end
 
-lemma is_integral_pow {x : A} (n : ℕ) (hx : is_integral R x) : is_integral R $ x ^ n :=
-begin
-  induction n with n hxn,
-  { simpa only [pow_zero] using is_integral_one },
-  { simpa only [pow_succ] using is_integral_mul hx hxn }
-end
-
 variables (R A)
 
 /-- The integral closure of R in an R-algebra A. -/

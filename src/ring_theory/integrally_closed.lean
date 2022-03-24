@@ -92,7 +92,7 @@ let h := is_integral_iff.mp hx in ⟨_, ⟨polynomial.monic_X_pow_sub_C h.some $
 
 @[simp] lemma is_integral_pow_iff {x : K} {n : ℕ} (hn : 0 < n) :
   is_integral R (x ^ n) ↔ is_integral R x :=
-⟨is_integral_of_pow hn, λ hx, is_integral_pow n hx⟩
+⟨is_integral_of_pow hn, flip is_integral.pow n⟩
 
 omit iic ifr
 

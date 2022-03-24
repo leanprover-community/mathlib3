@@ -235,7 +235,7 @@ end infty_valued_Fqt
 open infty_valued_Fqt
 
 /-- The completion `Fq((t⁻¹))`  of `Fq(t)` with respect to the valuation at infinity. -/
-def Fqt_infty := @uniform_space.completion (ratfunc Fq) (uniform_space  Fq)
+def Fqt_infty := @uniform_space.completion (ratfunc Fq) (uniform_space Fq)
 
 instance : field (Fqt_infty Fq) :=
 @field_completion (ratfunc Fq) _ (uniform_space Fq) (topological_division_ring Fq) _

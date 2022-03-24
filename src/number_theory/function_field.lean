@@ -283,10 +283,10 @@ valued.topological_space (with_zero (multiplicative ℤ))
 instance Fqt_infty.topological_division_ring : topological_division_ring (Fqt_infty Fq) :=
 valued.topological_division_ring
 
-instance : topological_ring (Fqt_infty Fq) :=
-(Fqt_infty.topological_division_ring Fq).to_topological_ring
+instance : topological_semiring (Fqt_infty Fq) :=
+(Fqt_infty.topological_division_ring Fq).to_topological_semiring
 
-instance : topological_add_group (Fqt_infty Fq) := topological_ring.to_topological_add_group
+instance : topological_add_group (Fqt_infty Fq) := topological_semiring.to_topological_add_group
 
 instance Fqt_infty.uniform_space : uniform_space (Fqt_infty Fq) :=
 topological_add_group.to_uniform_space (Fqt_infty Fq)

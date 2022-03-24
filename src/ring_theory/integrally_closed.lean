@@ -129,7 +129,7 @@ namespace integral_closure
 
 open is_integrally_closed
 
-variables {R : Type*} [comm_ring R] [is_domain R] [is_integrally_closed R]
+variables {R : Type*} [comm_ring R] [is_domain R]
 variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
 variables {L : Type*} [field L] [algebra K L] [algebra R L] [is_scalar_tower R K L]
 

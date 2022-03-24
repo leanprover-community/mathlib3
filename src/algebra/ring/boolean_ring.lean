@@ -192,7 +192,7 @@ instance : boolean_algebra (as_boolalg α) := @boolean_ring.to_boolean_algebra �
 @[simp] lemma to_boolalg_add_add_mul (a b : α) :
   to_boolalg (a + b + a * b) = to_boolalg a ⊔ to_boolalg b := rfl
 
-/-- Turn a ring homomorphisms from Boolean rings `α` to `β` into a bounded lattice homomorphism
+/-- Turn a ring homomorphism from Boolean rings `α` to `β` into a bounded lattice homomorphism
 from `α` to `β` considered as Boolean algebras. -/
 @[simps] protected def ring_hom.as_boolalg (f : α →+* β) :
   bounded_lattice_hom (as_boolalg α) (as_boolalg β) :=

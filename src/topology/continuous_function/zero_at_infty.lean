@@ -195,7 +195,7 @@ instance has_int_scalar : has_scalar ℤ (α →C₀ β) :=
 @[simp] lemma coe_zsmul (r : ℤ) (f : α →C₀ β) : ⇑(r • f) = r • f := rfl
 @[simp] lemma zsmul_apply (r : ℤ) (f : α →C₀ β) (v : α) : (r • f) v = r • f v := rfl
 
-instance [add_group β] [topological_add_group β] : add_group (α →C₀ β) :=
+instance : add_group (α →C₀ β) :=
 fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _)
   (λ _ _, coe_zsmul _ _)
 

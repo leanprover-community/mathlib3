@@ -35,8 +35,8 @@ attribute [simp, reassoc] left_triangle right_triangle
 local attribute [-simp] id_whisker_left whisker_right_id
 
 lemma right_adjoint_uniq_aux {f : a ⟶ b} {g₁ g₂ : b ⟶ a} (adj₁ : f ⊣ g₁) (adj₂ : f ⊣ g₂) :
-  ((ρ_ g₁).inv ≫ (g₁ ◁ adj₂.unit) ≫ (α_ g₁ f g₂).inv ≫ (adj₁.counit ▷ g₂) ≫ (λ_ g₂).hom) ≫
-    (ρ_ g₂).inv ≫ (g₂ ◁ adj₁.unit) ≫ (α_ g₂ f g₁).inv ≫ (adj₂.counit ▷ g₁) ≫ (λ_ g₁).hom =
+  ((ρ_ g₁).inv ≫ g₁ ◁ adj₂.unit ≫ (α_ g₁ f g₂).inv ≫ adj₁.counit ▷ g₂ ≫ (λ_ g₂).hom) ≫
+    (ρ_ g₂).inv ≫ g₂ ◁ adj₁.unit ≫ (α_ g₂ f g₁).inv ≫ adj₂.counit ▷ g₁ ≫ (λ_ g₁).hom =
       𝟙 g₁ :=
 begin
   rw [←cancel_mono (λ_ g₁).inv, ←cancel_mono $ (λ_ (𝟙 b)).inv ▷ g₁],
@@ -51,6 +51,23 @@ begin
   congr' 2, simp_rw [comp_whisker_right, ←assoc], congr' 1, coherence
 end
 
+lemma left_adjoint_uniq_aux {f₁ f₂ : a ⟶ b} {g : b ⟶ a} (adj₁ : f₁ ⊣ g) (adj₂ : f₂ ⊣ g) :
+  ((λ_ f₁).inv ≫ adj₂.unit ▷ f₁ ≫ (α_ f₂ g f₁).hom ≫ f₂ ◁ adj₁.counit ≫ (ρ_ f₂).hom) ≫
+    (λ_ f₂).inv ≫ adj₁.unit ▷ f₂ ≫ (α_ f₁ g f₂).hom ≫ f₁ ◁ adj₂.counit ≫ (ρ_ f₁).hom =
+      𝟙 f₁ :=
+begin
+  rw [←cancel_mono (ρ_ f₁).inv, ←cancel_mono $ f₁ ◁ (ρ_ (𝟙 b)).inv],
+  calc _  = (λ_ f₁).inv ≫ (λ_ f₁).hom ≫ (ρ_ f₁).inv ≫ (ρ_ f₁).inv ▷ _ ≫ (α_ _ _ _).hom : _
+  ...     = _ : by coherence,
+  simp_rw [assoc, iso.hom_inv_id_assoc, left_unitor_inv_naturality_assoc, whisker_exchange_assoc,
+    associator_naturality_right_assoc, ←whisker_left_comp f₁, right_unitor_inv_naturality,
+    right_unitor_comp_inv_assoc, hom_inv_whisker_left_assoc, associator_inv_naturality_right_assoc,
+    whisker_exchange, whisker_right_comp_assoc, pentagon_hom_inv_inv_inv_inv_assoc,
+    associator_inv_naturality_middle_assoc, ←comp_whisker_right_assoc _ _ f₁, right_triangle,
+    ←left_triangle_assoc adj₁, whisker_exchange_assoc, associator_naturality_right],
+  congr' 2, simp_rw [whisker_left_comp, ←assoc], congr' 1, coherence
+end
+
 /-- If `g₁` and `g₂` are both right adjoint to `f`, then they are isomorphic. -/
 def right_adjoint_uniq {f : a ⟶ b} {g₁ g₂ : b ⟶ a}
   (adj₁ : f ⊣ g₁) (adj₂ : f ⊣ g₂) : g₁ ≅ g₂ :=
@@ -58,6 +75,14 @@ def right_adjoint_uniq {f : a ⟶ b} {g₁ g₂ : b ⟶ a}
   inv := (ρ_ g₂).inv ≫ g₂ ◁ adj₁.unit ≫ (α_ g₂ f g₁).inv ≫ adj₂.counit ▷ g₁ ≫ (λ_ g₁).hom,
   hom_inv_id' := right_adjoint_uniq_aux adj₁ adj₂,
   inv_hom_id' := right_adjoint_uniq_aux adj₂ adj₁ }
+
+/-- If `f₁` and `f₂` are both left adjoint to `g`, then they are isomorphic. -/
+def left_adjoint_uniq {f₁ f₂ : a ⟶ b} {g : b ⟶ a}
+  (adj₁ : f₁ ⊣ g) (adj₂ : f₂ ⊣ g) : f₁ ≅ f₂ :=
+{ hom := (λ_ f₁).inv ≫ adj₂.unit ▷ f₁ ≫ (α_ f₂ g f₁).hom ≫ f₂ ◁ adj₁.counit ≫ (ρ_ f₂).hom,
+  inv := (λ_ f₂).inv ≫ adj₁.unit ▷ f₂ ≫ (α_ f₁ g f₂).hom ≫ f₁ ◁ adj₂.counit ≫ (ρ_ f₁).hom,
+  hom_inv_id' := left_adjoint_uniq_aux adj₁ adj₂,
+  inv_hom_id' := left_adjoint_uniq_aux adj₂ adj₁ }
 
 /-- Adjunction between identities. -/
 def id (a : B) : 𝟙 a ⊣ 𝟙 a :=

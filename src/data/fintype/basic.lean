@@ -661,14 +661,15 @@ by simp [finset.subset_iff, set.subset_def]
 
 @[simp, mono] theorem to_finset_strict_mono {s t : set α} [fintype s] [fintype t] :
   s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
-begin
-  rw [←lt_eq_ssubset, ←finset.lt_iff_ssubset, lt_iff_le_and_ne, lt_iff_le_and_ne],
-  simp
-end
+by simp only [finset.ssubset_def, to_finset_mono, ssubset_def]
 
 @[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
-⟨λ h x hx, h (by simpa using hx), λ h x hx, h (by simpa using hx)⟩
+by simp only [disjoint_iff_disjoint_coe, coe_to_finset]
+
+theorem to_finset_compl [decidable_eq α] [fintype α] (s : set α) [fintype s] [fintype ↥sᶜ] :
+  (sᶜ).to_finset = s.to_finsetᶜ :=
+by { ext a, simp }
 
 lemma filter_mem_univ_eq_to_finset [fintype α] (s : set α) [fintype s] [decidable_pred (∈ s)] :
   finset.univ.filter (∈ s) = s.to_finset :=
@@ -710,6 +711,13 @@ finset.card_sdiff (subset_univ s)
 lemma finset.card_compl [decidable_eq α] [fintype α] (s : finset α) :
   sᶜ.card = fintype.card α - s.card :=
 finset.card_univ_diff s
+
+lemma fintype.card_compl_set [fintype α] (s : set α) [fintype s] [fintype ↥sᶜ] :
+  fintype.card ↥sᶜ = fintype.card α - fintype.card s :=
+begin
+  classical,
+  rw [← set.to_finset_card, ← set.to_finset_card, ← finset.card_compl, set.to_finset_compl]
+end
 
 instance (n : ℕ) : fintype (fin n) :=
 ⟨finset.fin_range n, finset.mem_fin_range⟩
@@ -968,6 +976,11 @@ card_le_of_injective _ (function.injective_surj_inv h)
 lemma card_range_le {α β : Type*} (f : α → β) [fintype α] [fintype (set.range f)] :
   fintype.card (set.range f) ≤ fintype.card α :=
 fintype.card_le_of_surjective (λ a, ⟨f a, by simp⟩) (λ ⟨_, a, ha⟩, ⟨a, by simpa using ha⟩)
+
+lemma card_range {α β F : Type*} [embedding_like F α β] (f : F) [fintype α]
+  [fintype (set.range f)] :
+  fintype.card (set.range f) = fintype.card α :=
+eq.symm $ fintype.card_congr $ equiv.of_injective _ $ embedding_like.injective f
 
 /--
 The pigeonhole principle for finitely many pigeons and pigeonholes.

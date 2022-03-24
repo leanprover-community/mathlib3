@@ -5,6 +5,7 @@ Authors: Michael Jendrusch, Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monoidal.category
 import category_theory.adjunction.basic
+import category_theory.products.basic
 
 /-!
 # (Lax) monoidal functors
@@ -288,6 +289,36 @@ infixr ` ⊗⋙ `:80 := comp
 
 end lax_monoidal_functor
 
+namespace lax_monoidal_functor
+variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{v₁ v₃} C E)
+
+def prod' : lax_monoidal_functor C (D × E) :=
+{ ε := (ε F, ε G),
+  μ := λ X Y, (μ F X Y, μ G X Y),
+  μ_natural' :=
+    λ X Y X' Y' f g,
+      congr_arg2 prod.mk
+        (μ_natural F f g)
+        (μ_natural G f g),
+  associativity' :=
+    λ X Y Z,
+      congr_arg2 prod.mk
+        (associativity F X Y Z)
+        (associativity G X Y Z),
+  left_unitality' :=
+    λ X,
+      congr_arg2 prod.mk
+        (left_unitality F X)
+        (left_unitality G X),
+  right_unitality' :=
+    λ X,
+      congr_arg2 prod.mk
+        (right_unitality F X)
+        (right_unitality G X),
+  .. (F.to_functor).prod' (G.to_functor) }
+
+end lax_monoidal_functor
+
 namespace monoidal_functor
 
 variables (F : monoidal_functor.{v₁ v₂} C D) (G : monoidal_functor.{v₂ v₃} D E)
@@ -300,6 +331,16 @@ def comp : monoidal_functor.{v₁ v₃} C E :=
   .. (F.to_lax_monoidal_functor).comp (G.to_lax_monoidal_functor) }.
 
 infixr ` ⊗⋙ `:80 := comp -- We overload notation; potentially dangerous, but it seems to work.
+
+end monoidal_functor
+
+namespace monoidal_functor
+variables (F : monoidal_functor.{v₁ v₂} C D) (G : monoidal_functor.{v₁ v₃} C E)
+
+def prod' : monoidal_functor C (D × E) :=
+{ ε_is_iso := (is_iso_prod_iff D E).mpr ⟨ε_is_iso F, ε_is_iso G⟩,
+  μ_is_iso := λ X Y, (is_iso_prod_iff D E).mpr ⟨μ_is_iso F X Y, μ_is_iso G X Y⟩,
+  .. (F.to_lax_monoidal_functor).prod' (G.to_lax_monoidal_functor) }
 
 end monoidal_functor
 

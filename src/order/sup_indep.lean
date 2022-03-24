@@ -178,7 +178,7 @@ theorem set_independent.mono {t : set α} (hst : t ⊆ s) :
 λ a ha, (hs (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
 
 /-- If the elements of a set are independent, then any pair within that set is disjoint. -/
-lemma set_independent.pairwise_disjoint : s.pairwise disjoint :=
+lemma set_independent.pairwise_disjoint : s.pairwise_disjoint id :=
 λ x hx y hy h, disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, h.symm⟩)
 
 lemma set_independent_pair {a b : α} (hab : a ≠ b) :
@@ -337,7 +337,8 @@ section frame
 namespace complete_lattice
 variables [order.frame α]
 
-lemma set_independent_iff_pairwise_disjoint {s : set α} : set_independent s ↔ s.pairwise disjoint :=
+lemma set_independent_iff_pairwise_disjoint {s : set α} :
+  set_independent s ↔ s.pairwise_disjoint id :=
 ⟨set_independent.pairwise_disjoint, λ hs i hi, disjoint_Sup_iff.2 $ λ j hj,
   hs hi hj.1 $ ne.symm hj.2⟩
 

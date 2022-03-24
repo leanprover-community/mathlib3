@@ -10,6 +10,9 @@ variables {B : Type u} [bicategory.{w v} B] {a b c d e : B}
 
 example : (λ_ (𝟙 a)).hom = (ρ_ (𝟙 a)).hom := by coherence
 example : (λ_ (𝟙 a)).inv = (ρ_ (𝟙 a)).inv := by coherence
+example (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) :
+  (α_ f g h).inv ≫ (α_ f g h).hom = 𝟙 (f ≫ g ≫ h) :=
+by coherence
 example (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) :
   f ◁ (α_ g h i).hom ≫ (α_ f g (h ≫ i)).inv ≫ (α_ (f ≫ g) h i).inv =
     (α_ f (g ≫ h) i).inv ≫ (α_ f g h).inv ▷ i :=
@@ -41,6 +44,9 @@ variables {C : Type u} [category.{v} C] [monoidal_category C]
 
 example : (λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ C)).hom := by coherence
 example : (λ_ (𝟙_ C)).inv = (ρ_ (𝟙_ C)).inv := by coherence
+example (X Y Z : C) :
+  (α_ X Y Z).inv ≫ (α_ X Y Z).hom = 𝟙 (X ⊗ Y ⊗ Z) :=
+by coherence
 example (X Y Z W : C) :
   (𝟙 X ⊗ (α_ Y Z W).hom) ≫ (α_ X Y (Z ⊗ W)).inv ≫ (α_ (X ⊗ Y) Z W).inv =
     (α_ X (Y ⊗ Z) W).inv ≫ ((α_ X Y Z).inv ⊗ 𝟙 W) :=

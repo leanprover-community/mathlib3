@@ -169,6 +169,21 @@ lemma whisker_assoc (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d)
   (f ◁ η) ▷ h = (α_ f g h).hom ≫ f ◁ (η ▷ h) ≫ (α_ f g' h).inv :=
 by simp [←associator_naturality_middle_assoc]
 
+@[reassoc]
+lemma comp_whisker_left_conj (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
+  (α_ f g h).inv ≫ (f ≫ g) ◁ η ≫ (α_ f g h').hom = f ◁ g ◁ η :=
+by simp
+
+@[reassoc]
+lemma whisker_right_comp_conj {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
+  (α_ f g h).hom ≫ η ▷ (g ≫ h) ≫ (α_ f' g h).inv = η ▷ g ▷ h  :=
+by simp
+
+@[reassoc]
+lemma whisker_assoc_conj (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
+  (α_ f g h).inv ≫ (f ◁ η) ▷ h ≫ (α_ f g' h).hom = f ◁ (η ▷ h) :=
+by simp
+
 @[simp, reassoc]
 lemma hom_inv_whisker_left (f : a ⟶ b) {g h : b ⟶ c} (η : g ≅ h) :
   f ◁ η.hom ≫ f ◁ η.inv = 𝟙 (f ≫ g) :=

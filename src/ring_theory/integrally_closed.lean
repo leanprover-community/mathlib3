@@ -36,7 +36,7 @@ class is_integrally_closed (R : Type*) [comm_ring R] [is_domain R] : Prop :=
 section iff
 
 variables {R : Type*} [comm_ring R] [is_domain R]
-variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
+variables (K : Type*) [comm_ring K] [algebra R K] [is_fraction_ring R K]
 
 /-- `R` is integrally closed iff all integral elements of its fraction field `K`
 are also elements of `R`. -/
@@ -75,25 +75,33 @@ end iff
 
 namespace is_integrally_closed
 
-variables {R : Type*} [comm_ring R] [is_domain R] [iic : is_integrally_closed R]
-variables {K : Type*} [field K] [algebra R K] [is_fraction_ring R K]
+variables {R : Type*} [comm_ring R] [id : is_domain R] [iic : is_integrally_closed R]
+variables {K : Type*} [comm_ring K] [algebra R K] [ifr : is_fraction_ring R K]
 
-instance : is_integral_closure R R K :=
-(is_integrally_closed_iff_is_integral_closure K).mp iic
+include iic ifr
 
-include iic
+instance : is_integral_closure R R K := (is_integrally_closed_iff_is_integral_closure K).mp iic
 
 lemma is_integral_iff {x : K} : is_integral R x ↔ ∃ y, algebra_map R K y = x :=
 is_integral_closure.is_integral_iff
 
-omit iic
+lemma is_integral_of_pow {x : K} {n : ℕ} (hn : 0 < n) (hx : is_integral R $ x ^ n) :
+  is_integral R x :=
+let h := is_integral_iff.mp hx in ⟨_, ⟨polynomial.monic_X_pow_sub_C h.some $ ne_zero_of_lt hn,
+  by rw [polynomial.eval₂_sub, polynomial.eval₂_X_pow, polynomial.eval₂_C, h.some_spec, sub_self]⟩⟩
 
-lemma exists_algebra_map_eq_of_pow_mem {R K : Type*} [comm_ring R] [field K] [algebra R K]
-  {S : subalgebra R K} [is_integrally_closed S] [is_fraction_ring S K] {x : K} {n : ℕ} (hn : 0 < n)
-  (hx : x ^ n ∈ S) : ∃ y : S, algebra_map S K y = x :=
-is_integral_iff.mp ⟨_,
-  ⟨polynomial.monic_X_pow_sub_C ⟨x ^ n, hx⟩ $ ne_zero_of_lt hn,
-   by simpa only [polynomial.eval₂_sub, polynomial.eval₂_X_pow, polynomial.eval₂_C, sub_eq_zero]⟩⟩
+@[simp] lemma is_integral_pow_iff {x : K} {n : ℕ} (hn : 0 < n) :
+  is_integral R (x ^ n) ↔ is_integral R x :=
+⟨is_integral_of_pow hn, λ hx, is_integral_pow n hx⟩
+
+omit iic ifr
+
+lemma exists_algebra_map_eq_of_pow_mem {S : subalgebra R K} [is_domain S] [is_integrally_closed S]
+  [is_fraction_ring S K] {x : K} {n : ℕ} (hn : 0 < n) (hx : x ^ n ∈ S) :
+  ∃ y : S, algebra_map S K y = x :=
+is_integral_iff.mp $ is_integral_of_pow hn $ is_integral_iff.mpr ⟨⟨x ^ n, hx⟩, rfl⟩
+
+include id ifr
 
 variables {R} (K)
 lemma integral_closure_eq_bot_iff :
@@ -121,7 +129,7 @@ namespace integral_closure
 
 open is_integrally_closed
 
-variables {R : Type*} [comm_ring R] [is_domain R] [iic : is_integrally_closed R]
+variables {R : Type*} [comm_ring R] [is_domain R] [is_integrally_closed R]
 variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
 variables {L : Type*} [field L] [algebra K L] [algebra R L] [is_scalar_tower R K L]
 

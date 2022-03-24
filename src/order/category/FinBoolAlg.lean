@@ -14,7 +14,7 @@ This file defines `FinBoolAlg`, the category of finite boolean algebras.
 
 ## TODO
 
-Finite Birkhoff's representation.
+Birkhoff's representation for finite Boolean algebras.
 
 `Fintype_to_FinBoolAlg_op.left_op ⋙ FinBoolAlg.dual ≅ Fintype_to_FinBoolAlg_op.left_op`
 -/

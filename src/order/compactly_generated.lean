@@ -6,6 +6,7 @@ Authors: Oliver Nash
 import tactic.tfae
 import order.atoms
 import order.order_iso_nat
+import order.sup_indep
 import order.zorn
 import data.finset.order
 

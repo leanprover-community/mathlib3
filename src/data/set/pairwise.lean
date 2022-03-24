@@ -17,6 +17,11 @@ This file defines pairwise relations and pairwise disjoint indexed sets.
 * `set.pairwise`: `s.pairwise r` states that `r i j` for all `i ≠ j` with `i, j ∈ s`.
 * `set.pairwise_disjoint`: `s.pairwise_disjoint f` states that images under `f` of distinct elements
   of `s` are either equal or `disjoint`.
+
+## Notes
+
+The spelling `s.pairwise_disjoint id` is preferred over `s.pairwise disjoint` to permit dot notation
+on `set.pairwise_disjoint`, even though the latter unfolds to something nicer.
 -/
 
 open set function
@@ -215,7 +220,11 @@ section semilattice_inf_bot
 variables [semilattice_inf α] [order_bot α] {s t : set ι} {f g : ι → α}
 
 /-- A set is `pairwise_disjoint` under `f`, if the images of any distinct two elements under `f`
-are disjoint. -/
+are disjoint.
+
+`s.pairwise disjoint` is (definitionally) the same as `s.pairwise_disjoint id`. We prefer the latter
+in order to allow dot notation on `set.pairwise_disjoint`, even though the former unfolds more
+nicely. -/
 def pairwise_disjoint (s : set ι) (f : ι → α) : Prop := s.pairwise (disjoint on f)
 
 lemma pairwise_disjoint.subset (ht : t.pairwise_disjoint f) (h : s ⊆ t) : s.pairwise_disjoint f :=

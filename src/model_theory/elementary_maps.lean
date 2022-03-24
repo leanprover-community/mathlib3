@@ -14,9 +14,7 @@ import model_theory.terms_and_formulas
 * A `first_order.language.elementary_embedding` is an embedding that commutes with the
   realizations of formulas.
 * A `first_order.language.elementary_substructure` is a substructure where the realization of each
-  formula agrees with the realization in the larger model.
-
-  -/
+  formula agrees with the realization in the larger model. -/
 
 open_locale first_order
 namespace first_order
@@ -39,8 +37,14 @@ variables {L} {M} {N}
 
 namespace elementary_embedding
 
-instance has_coe_to_fun : has_coe_to_fun (M ↪ₑ[L] N) (λ _, M → N) :=
-⟨λ f, f.to_fun⟩
+instance fun_like : fun_like (M ↪ₑ[L] N) M (λ _, N) :=
+{ coe := λ f, f.to_fun,
+  coe_injective' := λ f g h, begin
+    cases f,
+    cases g,
+    simp only,
+    ext x,
+    exact function.funext_iff.1 h x end }
 
 @[simp] lemma map_formula (f : M ↪ₑ[L] N) {α : Type} [fintype α] (φ : L.formula α) (x : α → M) :
   φ.realize (f ∘ x) ↔ φ.realize x :=
@@ -55,24 +59,6 @@ begin
   simp,
 end
 
-@[simp] lemma map_fun (φ : M ↪ₑ[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
-  φ (fun_map f x) = fun_map f (φ ∘ x) :=
-begin
-  have h := φ.map_formula (formula.graph f) (fin.cons (fun_map f x) x),
-  rw [formula.realize_graph, fin.comp_cons, formula.realize_graph] at h,
-  rw [eq_comm, h]
-end
-
-@[simp] lemma map_constants (φ : M ↪ₑ[L] N) (c : L.constants) : φ c = c :=
-(φ.map_fun c default).trans fun_map_eq_coe_constants
-
-@[simp] lemma map_rel (φ : M ↪ₑ[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
-  rel_map r (φ ∘ x) ↔ rel_map r x :=
-begin
-  have h := φ.map_formula (r.formula var) x,
-  exact h
-end
-
 @[simp] lemma injective (φ : M ↪ₑ[L] N) :
   function.injective φ :=
 begin
@@ -83,6 +69,34 @@ begin
     function.comp_app, if_false] at h,
   exact h.1,
 end
+
+instance embedding_like : embedding_like (M ↪ₑ[L] N) M N :=
+{ injective' := injective }
+
+instance has_coe_to_fun : has_coe_to_fun (M ↪ₑ[L] N) (λ _, M → N) :=
+⟨λ f, f.to_fun⟩
+
+@[simp] lemma map_fun (φ : M ↪ₑ[L] N) {n : ℕ} (f : L.functions n) (x : fin n → M) :
+  φ (fun_map f x) = fun_map f (φ ∘ x) :=
+begin
+  have h := φ.map_formula (formula.graph f) (fin.cons (fun_map f x) x),
+  rw [formula.realize_graph, fin.comp_cons, formula.realize_graph] at h,
+  rw [eq_comm, h]
+end
+
+@[simp] lemma map_rel (φ : M ↪ₑ[L] N) {n : ℕ} (r : L.relations n) (x : fin n → M) :
+  rel_map r (φ ∘ x) ↔ rel_map r x :=
+begin
+  have h := φ.map_formula (r.formula var) x,
+  exact h
+end
+
+instance strong_hom_class : strong_hom_class L (M ↪ₑ[L] N) M N :=
+{ map_fun := map_fun,
+  map_rel := map_rel }
+
+@[simp] lemma map_constants (φ : M ↪ₑ[L] N) (c : L.constants) : φ c = c :=
+hom_class.map_constants φ c
 
 /-- An elementary embedding is also a first-order embedding. -/
 def to_embedding (f : M ↪ₑ[L] N) : M ↪[L] N :=
@@ -100,22 +114,15 @@ lemma coe_to_hom {f : M ↪ₑ[L] N} : (f.to_hom : M → N) = (f : M → N) := r
 
 @[simp] lemma coe_to_embedding (f : M ↪ₑ[L] N) : (f.to_embedding : M → N) = (f : M → N) := rfl
 
-lemma coe_injective : @function.injective (M ↪ₑ[L] N) (M → N) coe_fn
-| f g h :=
-begin
-  cases f,
-  cases g,
-  simp only,
-  ext x,
-  exact function.funext_iff.1 h x,
-end
+lemma coe_injective : @function.injective (M ↪ₑ[L] N) (M → N) coe_fn :=
+fun_like.coe_injective
 
 @[ext]
 lemma ext ⦃f g : M ↪ₑ[L] N⦄ (h : ∀ x, f x = g x) : f = g :=
-coe_injective (funext h)
+fun_like.ext f g h
 
 lemma ext_iff {f g : M ↪ₑ[L] N} : f = g ↔ ∀ x, f x = g x :=
-⟨λ h x, h ▸ rfl, λ h, ext h⟩
+fun_like.ext_iff
 
 variables (L) (M)
 /-- The identity elementary embedding from a structure to itself -/

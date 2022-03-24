@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang
 -/
 
-import algebra.category.Module.basic
 import ring_theory.ideal.basic
+import category_theory.preadditive.injective
+import algebra.category.Module.abelian
 
 /-!
 # Injective modules
@@ -53,6 +54,22 @@ class module.injective : Prop :=
 (out : ∀ (X Y : Type (max u v)) [add_comm_group X] [add_comm_group Y] [module R X] [module R Y]
   (f : X →ₗ[R] Y) (hf : function.injective f) (g : X →ₗ[R] Q),
   ∃ (h : Y →ₗ[R] Q), ∀ x, h (f x) = g x)
+
+instance i1 [module.injective R Q] : category_theory.injective (⟨Q⟩ : Module R) :=
+{ factors := λ X Y g f mn, begin
+  rcases module.injective.out X Y f ((Module.mono_iff_injective f).mp mn) g with ⟨h, eq1⟩,
+  refine ⟨h, linear_map.ext eq1⟩,
+end }
+
+instance i2 [category_theory.injective (⟨Q⟩ : Module R)] : module.injective R Q :=
+{ out := λ X Y ins1 ins2 ins3 ins4 f hf g, begin
+    resetI,
+    rcases @category_theory.injective.factors (Module R) _ ⟨Q⟩ _ ⟨X⟩ ⟨Y⟩ g f
+      ((Module.mono_iff_injective _).mpr hf) with ⟨h, eq1⟩,
+    refine ⟨h, _⟩,
+    elementwise eq1,
+    assumption,
+end }
 
 /--An `R`-module `Q` satisfies Baer's criterion if any `R`-linear map from an `ideal R` extends to
 an `R`-linear map `R ⟶ Q`-/
@@ -595,5 +612,7 @@ theorem criterion (h : module.Baer R Q) :
   simp only [linear_map.coe_mk],
   rw is_extension,
 end }
+
+
 
 end Baer

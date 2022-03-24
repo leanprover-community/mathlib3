@@ -1476,7 +1476,8 @@ as `ua` and `va` tend to `la` while `ub` and `vb` tend to `lb`.
 -/
 lemma measure_integral_sub_integral_sub_linear_is_o_of_tendsto_ae
   (hab : interval_integrable f μ a b)
-  (hmeas_a : strongly_measurable_at_filter f la' μ) (hmeas_b : strongly_measurable_at_filter f lb' μ)
+  (hmeas_a : strongly_measurable_at_filter f la' μ)
+  (hmeas_b : strongly_measurable_at_filter f lb' μ)
   (ha_lim : tendsto f (la' ⊓ μ.ae) (𝓝 ca)) (hb_lim : tendsto f (lb' ⊓ μ.ae) (𝓝 cb))
   (hua : tendsto ua lt la) (hva : tendsto va lt la)
   (hub : tendsto ub lt lb) (hvb : tendsto vb lt lb) :
@@ -1675,7 +1676,8 @@ at `a` and `b`, then `(u, v) ↦ ∫ x in u..v, f x` has derivative `(u, v) ↦ 
 at `(a, b)` in the sense of strict differentiability. -/
 lemma integral_has_strict_fderiv_at
   (hf : interval_integrable f volume a b)
-  (hmeas_a : strongly_measurable_at_filter f (𝓝 a)) (hmeas_b : strongly_measurable_at_filter f (𝓝 b))
+  (hmeas_a : strongly_measurable_at_filter f (𝓝 a))
+  (hmeas_b : strongly_measurable_at_filter f (𝓝 b))
   (ha : continuous_at f a) (hb : continuous_at f b) :
   has_strict_fderiv_at (λ p : ℝ × ℝ, ∫ x in p.1..p.2, f x)
     ((snd ℝ ℝ ℝ).smul_right (f b) - (fst ℝ ℝ ℝ).smul_right (f a)) (a, b) :=

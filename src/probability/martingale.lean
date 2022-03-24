@@ -42,8 +42,7 @@ namespace measure_theory
 
 variables {α E ι : Type*} [preorder ι] [measurable_space E]
   {m0 : measurable_space α} {μ : measure α}
-  [normed_group E] [normed_space ℝ E] [complete_space E] [borel_space E]
-  [second_countable_topology E]
+  [normed_group E] [normed_space ℝ E] [complete_space E]
   {f g : ι → α → E} {ℱ : filtration ι m0} [sigma_finite_filtration μ ℱ]
 
 /-- A family of functions `f : ι → α → E` is a martingale with respect to a filtration `ℱ` if `f`
@@ -92,7 +91,7 @@ lemma set_integral_eq (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j) {s :
   (hs : measurable_set[ℱ i] s) :
   ∫ x in s, f i x ∂μ = ∫ x in s, f j x ∂μ :=
 begin
-  rw ← @set_integral_condexp _ _ _ _ _ _ _ _ (ℱ i) m0 _ (ℱ.le i) _ _ _ (hf.integrable j) hs,
+  rw ← @set_integral_condexp _ _ _ _ _ (ℱ i) m0 _ (ℱ.le i) _ _ _ (hf.integrable j) hs,
   refine set_integral_congr_ae (ℱ.le i s hs) _,
   filter_upwards [hf.2 i j hij] with _ heq _ using heq.symm,
 end

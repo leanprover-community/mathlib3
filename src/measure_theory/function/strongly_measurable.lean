@@ -564,7 +564,7 @@ begin
 end
 
 /-- A sequential limit of strongly measurable functions is strongly measurable. -/
-lemma strongly_measurable_of_tendsto {m : measurable_space α}
+lemma _root_.strongly_measurable_of_tendsto {ι : Type*} {m : measurable_space α}
   [topological_space β] [metrizable_space β] (u : filter ι) [ne_bot u] [is_countably_generated u]
   {f : ι → α → β} {g : α → β} (hf : ∀ i, strongly_measurable (f i)) (lim : tendsto f u (𝓝 g)) :
   strongly_measurable g :=
@@ -575,12 +575,13 @@ begin
   refine strongly_measurable_iff_measurable_separable.2 ⟨_, _⟩,
   { apply measurable_of_tendsto_metrizable' u (λ i, _) lim,
     exact (hf i).measurable },
-  { have : is_separable (closure (⋃ i, range (f i))) :=
-      (is_separable_Union (λ i, (hf i).is_separable_range)).closure,
+  { rcases u.exists_seq_tendsto with ⟨v, hv⟩,
+    have : is_separable (closure (⋃ i, range (f (v i)))) :=
+      (is_separable_Union (λ i, (hf (v i)).is_separable_range)).closure,
     apply this.mono,
     rintros - ⟨x, rfl⟩,
     rw [tendsto_pi_nhds] at lim,
-    apply mem_closure_of_tendsto (lim x),
+    apply mem_closure_of_tendsto ((lim x).comp hv),
     apply eventually_of_forall (λ n, _),
     apply mem_Union_of_mem n,
     exact mem_range_self _ }
@@ -722,6 +723,17 @@ begin
   haveI : borel_space β := ⟨rfl⟩,
   exact measurable_set_le hf.measurable.subtype_mk hg.measurable.subtype_mk,
 end
+
+
+open_locale measure_theory
+
+protected lemma le {α} {m m0 : measurable_space α} [topological_space β] (hm : m ≤ m0) {f : α → β}
+  (hf : strongly_measurable[m] f) : strongly_measurable[m0] f :=
+begin
+  refine ⟨λ n, (hf.approx n), _⟩,
+end
+
+#exit
 
 end strongly_measurable
 
@@ -1305,7 +1317,7 @@ by rw [← hf.map_eq, h₂.ae_strongly_measurable_map_iff]
 
 /-- An almost everywhere sequential limit of almost everywhere strongly measurable functions is
 almost everywhere strongly measurable. -/
-lemma _root_.ae_strongly_measurable_of_tendsto_ae
+lemma _root_.ae_strongly_measurable_of_tendsto_ae {ι : Type*}
   [metrizable_space β] (u : filter ι) [ne_bot u] [is_countably_generated u]
   {f : ι → α → β} {g : α → β} (hf : ∀ i, ae_strongly_measurable (f i) μ)
   (lim : ∀ᵐ x ∂μ, tendsto (λ n, f n x) u (𝓝 (g x))) :
@@ -1316,12 +1328,13 @@ begin
   haveI : borel_space β := ⟨rfl⟩,
   refine ae_strongly_measurable_iff_ae_measurable_separable.2 ⟨_, _⟩,
   { exact ae_measurable_of_tendsto_metric_ae _ (λ n, (hf n).ae_measurable) lim },
-  { have : ∀ (n : ι), ∃ (t : set β), is_separable t ∧ f n ⁻¹' t ∈ μ.ae :=
-      λ n, (ae_strongly_measurable_iff_ae_measurable_separable.1 (hf n)).2,
+  { rcases u.exists_seq_tendsto with ⟨v, hv⟩,
+    have : ∀ (n : ℕ), ∃ (t : set β), is_separable t ∧ f (v n) ⁻¹' t ∈ μ.ae :=
+      λ n, (ae_strongly_measurable_iff_ae_measurable_separable.1 (hf (v n))).2,
     choose t t_sep ht using this,
     refine ⟨closure (⋃ i, (t i)), (is_separable_Union (λ i, (t_sep i))).closure, _⟩,
     filter_upwards [ae_all_iff.2 ht, lim] with x hx h'x,
-    apply mem_closure_of_tendsto (h'x),
+    apply mem_closure_of_tendsto ((h'x).comp hv),
     apply eventually_of_forall (λ n, _),
     apply mem_Union_of_mem n,
     exact hx n }
@@ -1604,11 +1617,12 @@ end ae_fin_strongly_measurable
 
 lemma measurable_uncurry_of_continuous_of_measurable {α β ι : Type*} [topological_space ι]
   [metrizable_space ι] [measurable_space ι] [second_countable_topology ι] [opens_measurable_space ι]
-  {mβ : measurable_space β} [metric_space β] [borel_space β]
+  {mβ : measurable_space β} [topological_space β] [metrizable_space β] [borel_space β]
   {m : measurable_space α} {u : ι → α → β}
   (hu_cont : ∀ x, continuous (λ i, u i x)) (h : ∀ i, measurable (u i)) :
   measurable (function.uncurry u) :=
 begin
+  letI := metrizable_space_metric β,
   obtain ⟨t_sf, ht_sf⟩ : ∃ t : ℕ → simple_func ι ι, ∀ j x,
     tendsto (λ n, u (t n j) x) at_top (𝓝 $ u j x),
   { have h_str_meas : strongly_measurable (id : ι → ι), from strongly_measurable_id,
@@ -1619,19 +1633,57 @@ begin
   { rw tendsto_pi_nhds,
     exact λ p, ht_sf p.fst p.snd, },
   refine measurable_of_tendsto_metric (λ n, _) h_tendsto,
+  haveI : encodable (t_sf n).range, from fintype.encodable ↥(t_sf n).range,
   have h_meas : measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
   { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)
-        = (λ (p : α × ((t_sf n).range)), u ↑(p.snd) p.fst) ∘ prod.swap,
-      by refl,
+        = (λ (p : α × ((t_sf n).range)), u ↑(p.snd) p.fst) ∘ prod.swap := rfl,
     rw [this, @measurable_swap_iff α ↥((t_sf n).range) β m],
-    haveI : encodable (t_sf n).range, from fintype.encodable ↥(t_sf n).range,
     exact measurable_from_prod_encodable (λ j, h j), },
   have : (λ p : ι × α, u (t_sf n p.fst) p.snd)
     = (λ p : ↥(t_sf n).range × α, u p.fst p.snd)
-      ∘ (λ p : ι × α, (⟨t_sf n p.fst, simple_func.mem_range_self _ _⟩, p.snd)),
-  { refl, },
+      ∘ (λ p : ι × α, (⟨t_sf n p.fst, simple_func.mem_range_self _ _⟩, p.snd)) := rfl,
   simp_rw [U, this],
   refine h_meas.comp (measurable.prod_mk _ measurable_snd),
+  exact ((t_sf n).measurable.comp measurable_fst).subtype_mk,
+end
+
+lemma strongly_measurable_uncurry_of_continuous_of_strongly_measurable {α β ι : Type*}
+  [topological_space ι] [metrizable_space ι] [measurable_space ι] [second_countable_topology ι]
+  [opens_measurable_space ι] [topological_space β] [metrizable_space β]
+  [measurable_space α] {u : ι → α → β}
+  (hu_cont : ∀ x, continuous (λ i, u i x)) (h : ∀ i, strongly_measurable (u i)) :
+  strongly_measurable (function.uncurry u) :=
+begin
+  letI : measurable_space β := borel β,
+  haveI : borel_space β := ⟨rfl⟩,
+  obtain ⟨t_sf, ht_sf⟩ : ∃ t : ℕ → simple_func ι ι, ∀ j x,
+    tendsto (λ n, u (t n j) x) at_top (𝓝 $ u j x),
+  { have h_str_meas : strongly_measurable (id : ι → ι), from strongly_measurable_id,
+    refine ⟨h_str_meas.approx, λ j x, _⟩,
+    exact ((hu_cont x).tendsto j).comp (h_str_meas.tendsto_approx j), },
+  let U := λ (n : ℕ) (p : ι × α), u (t_sf n p.fst) p.snd,
+  have h_tendsto : tendsto U at_top (𝓝 (λ p, u p.fst p.snd)),
+  { rw tendsto_pi_nhds,
+    exact λ p, ht_sf p.fst p.snd, },
+  refine strongly_measurable_of_tendsto _ (λ n, _) h_tendsto,
+  haveI : encodable (t_sf n).range, from fintype.encodable ↥(t_sf n).range,
+  have h_str_meas : strongly_measurable (λ (p : (t_sf n).range × α), u ↑p.fst p.snd),
+  { refine strongly_measurable_iff_measurable_separable.2 ⟨_, _⟩,
+    { have : (λ (p : ↥((t_sf n).range) × α), u ↑(p.fst) p.snd)
+          = (λ (p : α × ((t_sf n).range)), u ↑(p.snd) p.fst) ∘ prod.swap := rfl,
+      rw [this, measurable_swap_iff],
+      exact measurable_from_prod_encodable (λ j, (h j).measurable), },
+    { have : is_separable (⋃ (i : (t_sf n).range), range (u i)) :=
+        is_separable_Union (λ i, (h i).is_separable_range),
+      apply this.mono,
+      rintros - ⟨⟨i, x⟩, rfl⟩,
+      simp only [mem_Union, mem_range],
+      exact ⟨i, x, rfl⟩ } },
+  have : (λ p : ι × α, u (t_sf n p.fst) p.snd)
+    = (λ p : ↥(t_sf n).range × α, u p.fst p.snd)
+      ∘ (λ p : ι × α, (⟨t_sf n p.fst, simple_func.mem_range_self _ _⟩, p.snd)) := rfl,
+  simp_rw [U, this],
+  refine h_str_meas.comp_measurable (measurable.prod_mk _ measurable_snd),
   exact ((t_sf n).measurable.comp measurable_fst).subtype_mk,
 end
 

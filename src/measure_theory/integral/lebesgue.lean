@@ -2546,8 +2546,7 @@ begin
     lintegral_encodable, measurable_spanning_sets_index, mul_comm] using δsum,
 end
 
-lemma lintegral_trim {μ : measure α} (hm : m ≤ m0)
-  {f : α → ℝ≥0∞} (hf : @measurable _ _ m _ f) :
+lemma lintegral_trim {μ : measure α} (hm : m ≤ m0) {f : α → ℝ≥0∞} (hf : measurable[m] f) :
   ∫⁻ a, f a ∂(μ.trim hm) = ∫⁻ a, f a ∂μ :=
 begin
   refine @measurable.ennreal_induction α m (λ f, ∫⁻ a, f a ∂(μ.trim hm) = ∫⁻ a, f a ∂μ) _ _ _ f hf,
@@ -2578,7 +2577,7 @@ section sigma_finite
 variables {E : Type*} [normed_group E] [measurable_space E]
   [opens_measurable_space E]
 
-lemma univ_le_of_forall_fin_meas_le {μ : measure α} (hm : m ≤ m0) [@sigma_finite _ m (μ.trim hm)]
+lemma univ_le_of_forall_fin_meas_le {μ : measure α} (hm : m ≤ m0) [sigma_finite (μ.trim hm)]
   (C : ℝ≥0∞) {f : set α → ℝ≥0∞} (hf : ∀ s, measurable_set[m] s → μ s ≠ ∞ → f s ≤ C)
   (h_F_lim : ∀ S : ℕ → set α,
     (∀ n, measurable_set[m] (S n)) → monotone S → f (⋃ n, S n) ≤ ⨆ n, f (S n)) :
@@ -2598,7 +2597,7 @@ measure in a sub-σ-algebra and the measure is σ-finite on that sub-σ-algebra,
 over the whole space is bounded by that same constant. Version for a measurable function.
 See `lintegral_le_of_forall_fin_meas_le'` for the more general `ae_measurable` version. -/
 lemma lintegral_le_of_forall_fin_meas_le_of_measurable {μ : measure α} (hm : m ≤ m0)
-  [@sigma_finite _ m (μ.trim hm)] (C : ℝ≥0∞) {f : α → ℝ≥0∞} (hf_meas : measurable f)
+  [sigma_finite (μ.trim hm)] (C : ℝ≥0∞) {f : α → ℝ≥0∞} (hf_meas : measurable f)
   (hf : ∀ s, measurable_set[m] s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
   ∫⁻ x, f x ∂μ ≤ C :=
 begin
@@ -2639,7 +2638,7 @@ end
 measure in a sub-σ-algebra and the measure is σ-finite on that sub-σ-algebra, then the integral
 over the whole space is bounded by that same constant. -/
 lemma lintegral_le_of_forall_fin_meas_le' {μ : measure α} (hm : m ≤ m0)
-  [@sigma_finite _ m (μ.trim hm)] (C : ℝ≥0∞) {f : _ → ℝ≥0∞} (hf_meas : ae_measurable f μ)
+  [sigma_finite (μ.trim hm)] (C : ℝ≥0∞) {f : _ → ℝ≥0∞} (hf_meas : ae_measurable f μ)
   (hf : ∀ s, measurable_set[m] s → μ s ≠ ∞ → ∫⁻ x in s, f x ∂μ ≤ C) :
   ∫⁻ x, f x ∂μ ≤ C :=
 begin

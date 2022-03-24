@@ -1844,28 +1844,28 @@ lemma measurable_of_tendsto_metrizable {β : Type*} [topological_space β] [metr
   measurable g :=
 measurable_of_tendsto_metrizable' at_top hf lim
 
-lemma ae_measurable_of_tendsto_metric_ae {ι : Type*} [encodable ι]
+lemma ae_measurable_of_tendsto_metric_ae {ι : Type*}
   {μ : measure α} {f : ι → α → β} {g : α → β}
   (u : filter ι) [hu : ne_bot u] [is_countably_generated u]
   (hf : ∀ n, ae_measurable (f n) μ) (h_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) u (𝓝 (g x))) :
   ae_measurable g μ :=
 begin
-  have hι : nonempty ι,
-  { rcases is_empty_or_nonempty ι with h|h,
-    { exactI (ne_bot_iff.1 hu (filter_eq_bot_of_is_empty u)).elim },
-    { exact h } },
-  set p : α → (ι → β) → Prop := λ x f', tendsto (λ n, f' n) u (𝓝 (g x)),
-  have hp : ∀ᵐ x ∂μ, p x (λ n, f n x) := h_tendsto,
-  set ae_seq_lim := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨f hι.some x⟩ : nonempty β).some with hs,
-  refine ⟨ae_seq_lim, measurable_of_tendsto_metric' u (@ae_seq.measurable α β _ _ _ f μ hf p)
+  rcases u.exists_seq_tendsto with ⟨v, hv⟩,
+  have h'f : ∀ n, ae_measurable (f (v n)) μ := λ n, hf (v n),
+  set p : α → (ℕ → β) → Prop := λ x f', tendsto (λ n, f' n) at_top (𝓝 (g x)),
+  have hp : ∀ᵐ x ∂μ, p x (λ n, f (v n) x),
+    by filter_upwards [h_tendsto] with x hx using hx.comp hv,
+  set ae_seq_lim := λ x, ite (x ∈ ae_seq_set h'f p) (g x) (⟨f (v 0) x⟩ : nonempty β).some with hs,
+  refine ⟨ae_seq_lim,
+    measurable_of_tendsto_metric' at_top (@ae_seq.measurable α β _ _ _ (λ n x, f (v n) x) μ h'f p)
     (tendsto_pi_nhds.mpr (λ x, _)), _⟩,
   { simp_rw [ae_seq, ae_seq_lim],
     split_ifs with hx,
-    { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
-      exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hf x hx, },
+    { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set h'f hx,
+      exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ h'f x hx, },
     { exact tendsto_const_nhds } },
-  { exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f hι.some x⟩ : nonempty β).some)
-      (ae_seq_set hf p) (ae_seq.measure_compl_ae_seq_set_eq_zero hf hp)).symm },
+  { exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f (v 0) x⟩ : nonempty β).some)
+      (ae_seq_set h'f p) (ae_seq.measure_compl_ae_seq_set_eq_zero h'f hp)).symm },
 end
 
 lemma ae_measurable_of_tendsto_metric_ae' {μ : measure α} {f : ℕ → α → β} {g : α → β}

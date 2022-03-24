@@ -657,9 +657,7 @@ variables (σ) {r : R}
 
 namespace polynomial
 lemma prime_C_iff : prime (C r) ↔ prime r :=
-⟨ λ hC, ⟨ λ h, hC.1 $ by rw [h, C_0], λ h, hC.2.1 $ h.map C,
-    λ a b h, by { apply (hC.2.2 (C a) (C b) $ by { convert C.map_dvd h, simp }).imp _ _;
-      { rw C_dvd_iff_dvd_coeff, intro h, convert h 0, simp } } ⟩,
+⟨ comap_prime C (eval_ring_hom (0 : R)) (λ r, eval_C),
   λ hr, by { have := hr.1,
     rw ← ideal.span_singleton_prime at hr ⊢,
     { convert ideal.is_prime_map_C_of_is_prime hr using 1,
@@ -681,9 +679,7 @@ begin
 end
 
 lemma prime_C_iff : prime (C r : mv_polynomial σ R) ↔ prime r :=
-⟨ λ hC, ⟨ λ h, hC.1 $ by rw [h, C_0], λ h, hC.2.1 $ h.map C,
-    λ a b h, by { apply (hC.2.2 (C a) (C b) (by { convert C.map_dvd h, simp })).imp _ _;
-      { intro h, convert constant_coeff.map_dvd h; simp } } ⟩,
+⟨ comap_prime C constant_coeff constant_coeff_C,
   λ hr, ⟨ λ h, hr.1 $ by { rw [← C_inj, h], simp },
     λ h, hr.2.1 $ by { rw ← constant_coeff_C r, exact h.map _ },
     λ a b hd, begin
@@ -698,8 +694,8 @@ variable {σ}
 lemma prime_rename_iff (s : set σ) {p : mv_polynomial s R} :
   prime (rename (coe : s → σ) p) ↔ prime p :=
 begin
-  classical, symmetry, let eqv := ((sum_alg_equiv R _ _).symm.trans $
-    rename_equiv R $ (equiv.sum_comm ↥sᶜ s).trans $ equiv.set.sum_compl s),
+  classical, symmetry, let eqv := (sum_alg_equiv R _ _).symm.trans
+    (rename_equiv R $ (equiv.sum_comm ↥sᶜ s).trans $ equiv.set.sum_compl s),
   rw [← prime_C_iff ↥sᶜ, eqv.to_mul_equiv.prime_iff], convert iff.rfl,
   suffices : (rename coe).to_ring_hom = eqv.to_alg_hom.to_ring_hom.comp C,
   { apply ring_hom.congr_fun this },

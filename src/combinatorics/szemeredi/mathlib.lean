@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.special_functions.log
+import combinatorics.simple_graph.density
 import combinatorics.simple_graph.degree_sum
 import combinatorics.pigeonhole
 import order.partition.equipartition
@@ -31,6 +32,7 @@ begin
   exact nat.pow_le_pow_of_le_left (add_le_add_right (nat.mul_div_le i j) _) _,
 end
 
+/-- The map that appears in Behrend's bound on Roth numbers. -/
 def from_digits {n : ℕ} (d : ℕ) (a : fin n → ℕ) : ℕ := ∑ i, a i * d^(i : ℕ)
 
 @[simp] lemma from_digits_zero (d : ℕ) (a : fin 0 → ℕ) : from_digits d a = 0 :=
@@ -199,6 +201,16 @@ begin
   apply nonneg_of_mul_nonneg_right h h',
 end
 
+@[simp, norm_cast]
+lemma rat.cast_sum {ι α : Type*} [division_ring α] [char_zero α] (s : finset ι) (f : ι → ℚ) :
+  (↑(∑ i in s, f i) : α) = ∑ i in s, f i :=
+map_sum (rat.cast_hom α) f s
+
+@[simp, norm_cast]
+lemma rat.cast_prod {ι α : Type*} [field α] [char_zero α] (s : finset ι) (f : ι → ℚ) :
+  (↑(∏ i in s, f i) : α) = ∏ i in s, f i :=
+map_prod (rat.cast_hom α) f s
+
 lemma chebyshev' (s : finset α) (f : α → ℝ) :
   (∑ (i : α) in s, f i) ^ 2 ≤ (∑ (i : α) in s, f i ^ 2) * s.card :=
 by simpa using sum_mul_sq_le_sq_mul_sq s f (λ _, 1)
@@ -220,20 +232,15 @@ variables {G G' : simple_graph α} {s : finset α}
 instance {r : α → α → Prop} [h : decidable_rel r] : decidable_pred (uncurry r) := λ x, h x.1 x.2
 
 @[mono] lemma edge_set_mono (h : G ≤ G') : G.edge_set ⊆ G'.edge_set :=
-begin
-  refine sym2.ind _,
-  intros x y h',
-  exact h h',
-end
-variables [decidable_eq α] [fintype α] [decidable_rel G.adj] [decidable_rel G'.adj]
+λ s, sym2.induction_on s $ λ x y h', h h'
 
-@[mono] lemma edge_finset_mono (h : G ≤ G') : G.edge_finset ⊆ G'.edge_finset :=
-set.to_finset_mono.2 (edge_set_mono h)
+@[simp] lemma dart.adj (d : G.dart) : G.adj d.fst d.snd := d.is_adj
 
-variables (G G')
+variables (G G') [decidable_eq α] [decidable_rel G.adj] [decidable_rel G'.adj]
 
-def edge_finset_on [decidable_eq α] [decidable_rel G.adj] (s : finset α) : finset (sym2 α) :=
-((s.product s).filter $ function.uncurry G.adj).image quotient.mk
+/-- The edges of a graph over a finset as a finset. -/
+def edge_finset_on (s : finset α) : finset (sym2 α) :=
+((s.product s).filter $ uncurry G.adj).image quotient.mk
 
 variables {G G'}
 
@@ -248,11 +255,9 @@ begin
     exact ⟨⟨a, b⟩, ⟨⟨hsa, hsb⟩, hGab⟩, h.symm⟩ }
 end
 
-@[simp] lemma dart.adj (d : G.dart) : G.adj d.fst d.snd := d.is_adj
-
 variables [fintype α]
 
-lemma double_edge_finset_card_eq [decidable_eq α] [decidable_rel G.adj] :
+lemma double_edge_finset_card_eq :
   2 * G.edge_finset.card = (univ.filter (λ (xy : α × α), G.adj xy.1 xy.2)).card :=
 begin
   rw [←dart_card_eq_twice_card_edges, ←card_univ],
@@ -260,281 +265,68 @@ begin
   exact λ xy h, ⟨⟨xy, (mem_filter.1 h).2⟩, mem_univ _, prod.mk.eta⟩,
 end
 
+@[mono] lemma edge_finset_mono (h : G ≤ G') : G.edge_finset ⊆ G'.edge_finset :=
+set.to_finset_mono.2 (edge_set_mono h)
+
 end simple_graph
 
 open finset
 
-/-! ## pairs_finset and pairs_density -/
+/-! ## interedges and pairs_density -/
 
 namespace relation
 variables (r : α → α → Prop) [decidable_rel r]
 
-/-- Finset of edges between two finsets of vertices -/
-def pairs_finset (U V : finset α) : finset (α × α) :=
-(U.product V).filter (λ e, r e.1 e.2)
-
-lemma mem_pairs_finset (U V : finset α) (x : α × α) :
-  x ∈ pairs_finset r U V ↔ x.1 ∈ U ∧ x.2 ∈ V ∧ r x.1 x.2 :=
-by simp only [pairs_finset, and_assoc, mem_filter, finset.mem_product]
-
-lemma mem_pairs_finset' (U V : finset α) (x y : α) :
-  (x, y) ∈ pairs_finset r U V ↔ x ∈ U ∧ y ∈ V ∧ r x y :=
-mem_pairs_finset _ _ _ _
-
-@[simp] lemma pairs_finset_empty_left (V : finset α) :
-  pairs_finset r ∅ V = ∅ :=
-by rw [pairs_finset, finset.empty_product, filter_empty]
-
-lemma pairs_finset_mono {A B A' B' : finset α} (hA : A' ⊆ A) (hB : B' ⊆ B) :
-  pairs_finset r A' B' ⊆ pairs_finset r A B :=
-begin
-  intro x,
-  rw [mem_pairs_finset, mem_pairs_finset],
-  exact λ h, ⟨hA h.1, hB h.2.1, h.2.2⟩,
-end
-
-lemma card_pairs_finset_compl (U V : finset α) :
-  (pairs_finset r U V).card + (pairs_finset (λ x y, ¬r x y) U V).card = U.card * V.card :=
-begin
-  classical,
-  rw [←card_product, pairs_finset, pairs_finset, ←card_union_eq, filter_union_filter_neg_eq],
-  rw disjoint_filter,
-  exact λ x _, not_not.2,
-end
-
-section decidable_eq
-variable [decidable_eq α]
-
-lemma pairs_finset_disjoint_left {U U' : finset α} (hU : disjoint U U') (V : finset α) :
-  disjoint (pairs_finset r U V) (pairs_finset r U' V) :=
-begin
-  rw [disjoint_iff_inter_eq_empty, ←subset_empty] at ⊢ hU,
-  rintro x hx,
-  rw [mem_inter, mem_pairs_finset, mem_pairs_finset] at hx,
-  exact hU (mem_inter.2 ⟨hx.1.1, hx.2.1⟩),
-end
-
-lemma pairs_finset_disjoint_right (U : finset α) {V V' : finset α} (hV : disjoint V V') :
-  disjoint (pairs_finset r U V) (pairs_finset r U V') :=
-begin
-  rw [disjoint_iff_inter_eq_empty, ←subset_empty] at ⊢ hV,
-  rintro x hx,
-  rw [mem_inter, mem_pairs_finset, mem_pairs_finset] at hx,
-  exact hV (mem_inter.2 ⟨hx.1.2.1, hx.2.2.1⟩),
-end
-
-lemma pairs_finset_bUnion_left (A : finset β) (V : finset α) (f : β → finset α) :
-  pairs_finset r (A.bUnion f) V = A.bUnion (λ a, pairs_finset r (f a) V) :=
-by { ext x, simp only [mem_pairs_finset, mem_bUnion, exists_and_distrib_right] }
-
-lemma pairs_finset_bUnion_right (U : finset α) (B : finset β) (f : β → finset α) :
-  pairs_finset r U (B.bUnion f) = B.bUnion (λ b, pairs_finset r U (f b)) :=
-by { ext x, simp only [mem_pairs_finset, mem_bUnion], tauto }
-
-lemma pairs_finset_bUnion (A B : finset β) (f g : β → finset α) :
-  pairs_finset r (A.bUnion f) (B.bUnion g) =
-    (A.product B).bUnion (λ ab, pairs_finset r (f ab.1) (g ab.2)) :=
-by simp_rw [product_bUnion, pairs_finset_bUnion_left, pairs_finset_bUnion_right]
-
-end decidable_eq
-
-/-- Number of edges between two finsets of vertices -/
-def pairs_count (U V : finset α) : ℕ := (pairs_finset r U V).card
-
-lemma pairs_count_le_mul (U V : finset α) : pairs_count r U V ≤ U.card * V.card :=
-begin
-  rw [pairs_count, pairs_finset, ←finset.card_product],
-  exact finset.card_filter_le _ _,
-end
-
--- lemma pairs_count_bUnion_left [decidable_eq α] (A : finset β) (f : β → finset α) (B : finset α) :
---   pairs_count r (A.bUnion f) B = ∑ a in A, pairs_count r (f a) B :=
+-- lemma interedges_bUnion_left [decidable_eq α] (A : finset β) (f : β → finset α) (B : finset α) :
+--   interedges r (A.bUnion f) B = ∑ a in A, interedges r (f a) B :=
 -- begin
---   rw [pairs_count, pairs_finset_bUnion_left, card_bUnion],
+--   rw [interedges, interedges_bUnion_left, card_bUnion],
 --   { refl },
 --   intros x hx y hy h,
---   apply pairs_finset_disjoint_left,
---   -- simp only [pairs_count, pairs_finset_bUnion],
+--   apply interedges_disjoint_left,
+--   -- simp only [interedges, interedges_bUnion],
 --   -- rw card_bUnion,
 
 -- end
 
--- lemma pairs_count_bUnion [decidable_eq α] (A B : finset β) (f g : β → finset α) :
---   pairs_count r (A.bUnion f) (B.bUnion g) =
---     ∑ ab in A.product B, pairs_count r (f ab.1) (g ab.2) :=
+-- lemma interedges_bUnion [decidable_eq α] (A B : finset β) (f g : β → finset α) :
+--   interedges r (A.bUnion f) (B.bUnion g) =
+--     ∑ ab in A.product B, interedges r (f ab.1) (g ab.2) :=
 -- begin
---   simp only [pairs_count, pairs_finset_bUnion],
+--   simp only [interedges, interedges_bUnion],
 --   rw card_bUnion,
 
 -- end
 
-/-- Edge density between two finsets of vertices -/
-noncomputable def pairs_density (U V : finset α) : ℝ :=
-pairs_count r U V / (U.card * V.card)
-
-lemma pairs_density_nonneg (U V : finset α) : 0 ≤ pairs_density r U V :=
-by { apply div_nonneg; exact_mod_cast nat.zero_le _ }
-
-lemma pairs_density_le_one (U V : finset α) : pairs_density r U V ≤ 1 :=
-div_le_one_of_le (by exact_mod_cast (pairs_count_le_mul _ _ _)) (by exact_mod_cast (nat.zero_le _))
-
-lemma pairs_density_compl {U V : finset α} (hU : U.nonempty) (hV : V.nonempty) :
-  pairs_density r U V + pairs_density (λ x y, ¬r x y) U V = 1 :=
-begin
-  rw [pairs_density, pairs_density, div_add_div_same, div_eq_one_iff_eq],
-  { exact_mod_cast card_pairs_finset_compl r U V },
-  { exact_mod_cast (mul_pos hU.card_pos hV.card_pos).ne' },
-end
-
-@[simp] lemma pairs_density_empty_left (V : finset α) : pairs_density r ∅ V = 0 :=
-by rw [pairs_density, finset.card_empty, nat.cast_zero, zero_mul, div_zero]
-
-@[simp] lemma pairs_density_empty_right (U : finset α) : pairs_density r U ∅ = 0 :=
-by rw [pairs_density, finset.card_empty, nat.cast_zero, mul_zero, div_zero]
-
-section symmetric
-variables {r} (hr : symmetric r)
-include hr
-
-lemma mem_pairs_finset_comm (U V : finset α) (x y : α) :
-  (x, y) ∈ pairs_finset r U V ↔ (y, x) ∈ pairs_finset r V U :=
-begin
-  rw [mem_pairs_finset', mem_pairs_finset'],
-  split; exact λ h, ⟨h.2.1, h.1, hr h.2.2⟩,
-end
-
-lemma pairs_count_comm (U V : finset α) : pairs_count r U V = pairs_count r V U :=
-begin
-  apply finset.card_congr (λ (i : α × α) hi, (i.2, i.1)) _ _ _,
-  { rintro ⟨i, j⟩ h,
-    rwa mem_pairs_finset_comm hr },
-  { rintro ⟨i₁, j₁⟩ ⟨i₂, j₂⟩ h₁ h₂ ⟨⟩,
-    refl },
-  rintro ⟨i, j⟩ h,
-  refine ⟨⟨j, i⟩, _, rfl⟩,
-  rwa mem_pairs_finset_comm hr,
-end
-
-lemma pairs_density_comm (U V : finset α) : pairs_density r U V = pairs_density r V U :=
-by rw [pairs_density, mul_comm, pairs_count_comm hr, pairs_density]
-
-end symmetric
-
 end relation
 
-/-! ## Specialization to `simple_graph` -/
+/-! ## `interedges` with `finpartition` -/
 
-namespace simple_graph
-variables (G : simple_graph α) [decidable_rel G.adj]
-
-open relation
-
-def edge_count (U V : finset α) : ℝ := (pairs_finset G.adj U V).card
-
-/- Remnants of what's now under `relation`. The only point for keeping it is to sometimes avoid
-writing `G.adj` and `G.symm` sometimes. -/
-/-- Edge density between two finsets of vertices -/
-noncomputable def edge_density : finset α → finset α → ℝ := pairs_density G.adj
-
-lemma edge_density_eq_edge_count_div_card (U V : finset α) :
-  G.edge_density U V = G.edge_count U V/(U.card * V.card) :=
-rfl
-
-lemma edge_density_comm (U V : finset α) : G.edge_density U V = G.edge_density V U :=
-pairs_density_comm G.symm U V
-
-lemma edge_density_nonneg (U V : finset α) : 0 ≤ G.edge_density U V := pairs_density_nonneg _ U V
-
-lemma edge_density_le_one (U V : finset α) : G.edge_density U V ≤ 1 := pairs_density_le_one _ U V
-
-end simple_graph
-
-/-! ## is_uniform for simple_graph -/
-
-namespace simple_graph
-variables (G : simple_graph α) (ε : ℝ) [decidable_rel G.adj]
-
-/-- A pair of finsets of vertices is ε-uniform iff their edge density is close to the density of any
-big enough pair of subsets. Intuitively, the edges between them are random-like. -/
-def is_uniform (U V : finset α) : Prop :=
-∀ U', U' ⊆ U → ∀ V', V' ⊆ V → (U.card : ℝ) * ε ≤ U'.card → (V.card : ℝ) * ε ≤ V'.card →
-  |edge_density G U' V' - edge_density G U V| < ε
-
-/-- If the pair `(U, V)` is `ε`-uniform and `ε ≤ ε'`, then it is `ε'`-uniform. -/
-lemma is_uniform.mono {ε ε' : ℝ} {U V : finset α} (hε : is_uniform G ε U V) (h : ε ≤ ε') :
-  is_uniform G ε' U V :=
-λ U' hU' V' hV' hU hV,
-begin
-  refine (hε _ hU' _ hV' (le_trans _ hU) (le_trans _ hV)).trans_le h;
-  exact mul_le_mul_of_nonneg_left h (nat.cast_nonneg _),
-end
-
-lemma is_uniform.symm {G : simple_graph α} [decidable_rel G.adj] {ε : ℝ} :
-  symmetric (is_uniform G ε) :=
-begin
-  intros U V h V' hV' U' hU' hV hU,
-  rw [edge_density_comm _ V', edge_density_comm _ V],
-  apply h _ hU' _ hV' hU hV,
-end
-
-lemma is_uniform_comm {U V : finset α} : is_uniform G ε U V ↔ is_uniform G ε V U :=
-⟨λ h, h.symm, λ h, h.symm⟩
-
-lemma is_uniform_singleton {ε : ℝ} {x y : α} (hε : 0 < ε) : G.is_uniform ε {x} {y} :=
-begin
-  rintro U' hU' V' hV' hU hV,
-  rw [card_singleton, nat.cast_one, one_mul] at hU hV,
-  obtain rfl | rfl := finset.subset_singleton_iff.1 hU',
-  { rw finset.card_empty at hU,
-    exact (hε.not_le hU).elim },
-  obtain rfl | rfl := finset.subset_singleton_iff.1 hV',
-  { rw finset.card_empty at hV,
-    exact (hε.not_le hV).elim },
-  { rwa [sub_self, abs_zero] }
-end
-
-lemma not_is_uniform_zero {U V : finset α} : ¬ G.is_uniform 0 U V :=
-λ h, not_le_of_lt (h ∅ (by simp) ∅ (by simp) (by simp) (by simp)) (abs_nonneg _)
-
-variables {ε}
-
-lemma is_uniform_of_one_le (hε : 1 ≤ ε) {U V : finset α} : G.is_uniform ε U V :=
-begin
-  intros U' hU' V' hV' hU hV,
-  have hU'' := nat.cast_le.1 ((le_mul_of_one_le_right (nat.cast_nonneg _) hε).trans hU),
-  have hV'' := nat.cast_le.1 ((le_mul_of_one_le_right (nat.cast_nonneg _) hε).trans hV),
-  rw [eq_of_subset_of_card_le hU' hU'', eq_of_subset_of_card_le hV' hV'', sub_self, abs_zero],
-  linarith
-end
-
-end simple_graph
-
-/-! ## pairs_count with finpartition -/
-
-namespace relation
+namespace rel
 variables [decidable_eq α] {r : α → α → Prop} [decidable_rel r]
 
-lemma pairs_count_finpartition_left {U : finset α} (P : finpartition U) (V : finset α) :
-  pairs_count r U V = ∑ a in P.parts, pairs_count r a V :=
+lemma card_interedges_finpartition_left {U : finset α} (P : finpartition U) (V : finset α) :
+  (interedges r U V).card = ∑ a in P.parts, (interedges r a V).card :=
 begin
-  simp_rw [pairs_count, ←P.bUnion_parts, pairs_finset_bUnion_left, id.def],
+  simp_rw [←P.bUnion_parts, interedges_bUnion_left, id.def],
   rw card_bUnion,
-  exact λ x hx y hy h, pairs_finset_disjoint_left r (P.disjoint hx hy h) _,
+  exact λ x hx y hy h, interedges_disjoint_left r (P.disjoint hx hy h) _,
 end
 
-lemma pairs_count_finpartition_right (U : finset α) {V : finset α} (P : finpartition V) :
-  pairs_count r U V = ∑ b in P.parts, pairs_count r U b :=
+lemma card_interedges_finpartition_right (U : finset α) {V : finset α} (P : finpartition V) :
+  (interedges r U V).card = ∑ b in P.parts, (interedges r U b).card :=
 begin
-  simp_rw [pairs_count, ←P.bUnion_parts, pairs_finset_bUnion_right, id],
+  simp_rw [←P.bUnion_parts, interedges_bUnion_right, id],
   rw card_bUnion,
-  exact λ x hx y hy h, pairs_finset_disjoint_right r _ (P.disjoint hx hy h),
+  exact λ x hx y hy h, interedges_disjoint_right r _ (P.disjoint hx hy h),
 end
 
-lemma pairs_count_finpartition {U V : finset α} (P : finpartition U) (Q : finpartition V) :
-  pairs_count r U V = ∑ ab in P.parts.product Q.parts, pairs_count r ab.1 ab.2 :=
-by simp_rw [pairs_count_finpartition_left P, pairs_count_finpartition_right _ Q, sum_product]
+lemma card_interedges_finpartition {U V : finset α} (P : finpartition U) (Q : finpartition V) :
+  (interedges r U V).card = ∑ ab in P.parts.product Q.parts, (interedges r ab.1 ab.2).card :=
+by simp_rw [card_interedges_finpartition_left P, card_interedges_finpartition_right _ Q,
+  sum_product]
 
-end relation
+end rel
 
 namespace finpartition
 variables [decidable_eq α] {s t : finset α} {P : finpartition s}

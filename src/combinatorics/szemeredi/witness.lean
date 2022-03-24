@@ -3,12 +3,20 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import .mathlib
+import .uniform
 
 /-!
 # Witnesses of non uniformity
+
+This file defines witnesses of non-uniformity of a graph and of a partition.
+
+## Main declarations
+
+* `simple_graph.witness`
+* `finpartition.witnesses`
 -/
 
+open finset
 open_locale classical
 
 variables {α : Type*}
@@ -84,3 +92,8 @@ begin
 end
 
 end simple_graph
+
+/-- The witnesses of non uniformity among the parts of a finpartition. -/
+noncomputable def finpartition.witnesses {s : finset α} (P : finpartition s) (G : simple_graph α)
+  (ε : ℝ) (U : finset α) :=
+(P.parts.filter (λ V, U ≠ V ∧ ¬G.is_uniform ε U V)).image (G.witness ε U)

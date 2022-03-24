@@ -85,13 +85,13 @@ begin
           : by { rw [mul_comm, div_mul_div_cancel 4 (pow_pos hε 5).ne'], norm_num }
       ... < ε ^ 5 / 4 * (⌊4 / ε ^ 5⌋₊ + 1)
           : (mul_lt_mul_left (div_pos (pow_pos hε 5) (by norm_num))).2 (nat.lt_floor_add_one _)
-      ... ≤ P.energy G : hPenergy
-      ... ≤ 1 : P.energy_le_one G },
+      ... ≤ (P.energy G : ℝ) : hPenergy
+      ... ≤ 1 : by exact_mod_cast P.energy_le_one G },
   intro i,
   induction i with i ih,
   { refine ⟨dum, hdum₁, hdum₂.ge, hdum₂.le, or.inr _⟩,
     rw [nat.cast_zero, mul_zero],
-    exact dum.energy_nonneg G },
+    exact_mod_cast dum.energy_nonneg G },
   obtain ⟨P, hP₁, hP₂, hP₃, hP₄⟩ := ih,
   by_cases huniform : P.is_uniform G ε,
   { refine ⟨P, hP₁, hP₂, _, or.inl huniform⟩,
@@ -103,7 +103,7 @@ begin
     rw mul_le_mul_right (pow_pos hε 5),
     refine pow_le_pow (by norm_num) hP₂ },
   have hi : (i : ℝ) ≤ 4 / ε^5,
-  { have hi := hP₄.trans (P.energy_le_one G),
+  { have hi : ε ^ 5 / 4 * ↑i ≤ 1 := hP₄.trans (by exact_mod_cast P.energy_le_one G),
     rw [div_mul_eq_mul_div, div_le_iff (show (0:ℝ) < 4, by norm_num)] at hi,
     norm_num at hi,
     rwa le_div_iff' (pow_pos hε _) },

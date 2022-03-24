@@ -181,7 +181,7 @@ begin
   { intro i,
     apply nat.pow_le_pow_of_le_left,
     apply nat.le_pred_of_lt (hx i) },
-  apply (finset.sum_le_of_forall_le univ _ _ (λ i _, this i)).trans,
+  refine (finset.sum_le_card_nsmul univ _ _ $ λ i _, this i).trans _,
   simp,
 end
 

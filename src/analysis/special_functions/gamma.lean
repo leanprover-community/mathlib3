@@ -125,7 +125,7 @@ See `gamma_complex_integral_convergent` for a proof of the convergence of the in
 `1 ≤ re s`. -/
 def gamma_complex_integral (s : ℂ) : ℂ := ∫ x in Ioi (0:ℝ), ↑(exp (-x)) * ↑x ^ (s - 1)
 
-lemma gamma_complex_integral_of_real {s : ℝ} (hs : 1 ≤ s):
+lemma gamma_complex_integral_of_real (s : ℝ) :
   gamma_complex_integral ↑s = ↑(gamma_real_integral s) :=
 begin
   rw [gamma_real_integral, ←integral_of_real],
@@ -137,7 +137,7 @@ end
 
 lemma gamma_complex_integral_one : gamma_complex_integral 1 = 1 :=
 begin
-  rw [←of_real_one, gamma_complex_integral_of_real (le_refl 1), of_real_inj],
+  rw [←of_real_one, gamma_complex_integral_of_real 1, of_real_inj],
   exact gamma_real_integral_one,
 end
 

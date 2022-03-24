@@ -104,6 +104,8 @@ def ae_fin_strongly_measurable [has_zero β] {m0 : measurable_space α} (f : α 
 
 end definitions
 
+open_locale measure_theory
+
 /-! ## Strongly measurable functions -/
 
 lemma strongly_measurable.ae_strongly_measurable {α β} {m0 : measurable_space α}
@@ -259,8 +261,8 @@ begin
 end
 
 protected lemma mono {m m' : measurable_space α} [topological_space β]
-  (hf : @strongly_measurable α β _ m' f) (h_mono : m' ≤ m) :
-  @strongly_measurable α β _ m f :=
+  (hf : strongly_measurable[m'] f) (h_mono : m' ≤ m) :
+  strongly_measurable[m] f :=
 begin
   let f_approx : ℕ → @simple_func α m β := λ n,
   { to_fun := hf.approx n,
@@ -587,7 +589,7 @@ begin
     exact mem_range_self _ }
 end
 
-protected lemma piecewise [measurable_space α] [topological_space β]
+protected lemma piecewise {m : measurable_space α} [topological_space β]
   {s : set α} {_ : decidable_pred (∈ s)} (hs : measurable_set s)
   (hf : strongly_measurable f) (hg : strongly_measurable g) :
   strongly_measurable (set.piecewise s f g) :=
@@ -608,6 +610,64 @@ protected lemma ite {m : measurable_space α} [topological_space β]
   (hp : measurable_set {a : α | p a}) (hf : strongly_measurable f) (hg : strongly_measurable g) :
   strongly_measurable (λ x, ite (p x) (f x) (g x)) :=
 strongly_measurable.piecewise hp hf hg
+
+lemma _root_.strongly_measurable_of_strongly_measurable_union_cover
+  {m : measurable_space α} [topological_space β]
+  {f : α → β} (s t : set α) (hs : measurable_set s) (ht : measurable_set t) (h : univ ⊆ s ∪ t)
+  (hc : strongly_measurable (λ a : s, f a)) (hd : strongly_measurable (λ a : t, f a)) :
+  strongly_measurable f :=
+begin
+  classical,
+  let f : ℕ → α →ₛ β := λ n,
+  { to_fun := λ x, if hx : x ∈ s then hc.approx n ⟨x, hx⟩
+                   else hd.approx n ⟨x, by simpa [hx] using h (mem_univ x)⟩,
+    measurable_set_fiber' :=
+    begin
+      assume x,
+      convert (hs.subtype_image
+        ((hc.approx n).measurable_set_fiber x)).union
+        ((ht.subtype_image
+        ((hd.approx n).measurable_set_fiber x)).diff hs),
+      ext1 y,
+      simp only [mem_union_eq, mem_preimage, mem_singleton_iff, mem_image, set_coe.exists,
+        subtype.coe_mk, exists_and_distrib_right, exists_eq_right, mem_diff],
+      by_cases hy : y ∈ s,
+      { rw dif_pos hy,
+        simp only [hy, exists_true_left, not_true, and_false, or_false]},
+      { rw dif_neg hy,
+        have A : y ∈ t, by simpa [hy] using h (mem_univ y),
+        simp only [A, hy, false_or, exists_false_left, not_false_iff, and_true, exists_true_left] }
+    end,
+    finite_range' :=
+    begin
+      apply ((hc.approx n).finite_range.union (hd.approx n).finite_range).subset,
+      rintros - ⟨y, rfl⟩,
+      dsimp,
+      by_cases hy : y ∈ s,
+      { left,
+        rw dif_pos hy,
+        exact mem_range_self _ },
+      { right,
+        rw dif_neg hy,
+        exact mem_range_self _ }
+    end },
+  refine ⟨f, λ y, _⟩,
+  by_cases hy : y ∈ s,
+  { convert hc.tendsto_approx ⟨y, hy⟩ using 1,
+    ext1 n,
+    simp only [dif_pos hy, simple_func.apply_mk] },
+  { have A : y ∈ t, by simpa [hy] using h (mem_univ y),
+    convert hd.tendsto_approx ⟨y, A⟩ using 1,
+    ext1 n,
+    simp only [dif_neg hy, simple_func.apply_mk] }
+end
+
+lemma _root_.strongly_measurable_of_restrict_of_restrict_compl
+  {m : measurable_space α} [topological_space β] {f : α → β} {s : set α} (hs : measurable_set s)
+  (h₁ : strongly_measurable (s.restrict f)) (h₂ : strongly_measurable (sᶜ.restrict f)) :
+  strongly_measurable f :=
+strongly_measurable_of_strongly_measurable_union_cover s sᶜ hs hs.compl
+  (union_compl_self s).ge h₁ h₂
 
 protected lemma indicator {m : measurable_space α} [topological_space β] [has_zero β]
   (hf : strongly_measurable f) {s : set α} (hs : measurable_set s) :
@@ -663,17 +723,10 @@ lemma _root_.measurable_embedding.exists_strongly_measurable_extend
   hg.strongly_measurable_extend hf (strongly_measurable_const' $ λ _ _, rfl),
   funext $ λ x, extend_apply hg.injective _ _ _⟩
 
-
-section
-variables {𝕜 : Type*} {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
-local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
-
-protected lemma inner {m : measurable_space α}
-  {f g : α → E} (hf : strongly_measurable f) (hg : strongly_measurable g) :
-  strongly_measurable (λ t, ⟪f t, g t⟫) :=
+protected lemma inner {𝕜 : Type*} {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 E]
+  {m : measurable_space α} {f g : α → E} (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  strongly_measurable (λ t, @inner 𝕜 _ _(f t) (g t)) :=
 continuous.comp_strongly_measurable continuous_inner (hf.prod_mk hg)
-
-end
 
 lemma measurable_set_eq_fun {m : measurable_space α} {E} [topological_space E] [metrizable_space E]
   {f g : α → E} (hf : strongly_measurable f) (hg : strongly_measurable g) :
@@ -723,17 +776,6 @@ begin
   haveI : borel_space β := ⟨rfl⟩,
   exact measurable_set_le hf.measurable.subtype_mk hg.measurable.subtype_mk,
 end
-
-
-open_locale measure_theory
-
-protected lemma le {α} {m m0 : measurable_space α} [topological_space β] (hm : m ≤ m0) {f : α → β}
-  (hf : strongly_measurable[m] f) : strongly_measurable[m0] f :=
-begin
-  refine ⟨λ n, (hf.approx n), _⟩,
-end
-
-#exit
 
 end strongly_measurable
 

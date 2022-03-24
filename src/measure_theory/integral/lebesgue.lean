@@ -69,6 +69,8 @@ lemma finite_range (f : α →ₛ β) : (set.range f).finite := f.finite_range'
 lemma measurable_set_fiber (f : α →ₛ β) (x : β) : measurable_set (f ⁻¹' {x}) :=
 f.measurable_set_fiber' x
 
+@[simp] lemma apply_mk (f : α → β) (h h') (x : α) : simple_func.mk f h h' x = f x := rfl
+
 /-- Simple function defined on the empty type. -/
 def of_is_empty [is_empty α] : α →ₛ β :=
 { to_fun := is_empty_elim,

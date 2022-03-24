@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jakob von Raumer
+Authors: Jakob von Raumer, Yuma Mizuno
 -/
 
 import tactic.coherence
@@ -281,7 +281,7 @@ variables {X₁ Y₁ X₂ Y₂ : C}
 
 open category
 
-/-- Auxiliary definition for `adjunction.comp`. -/
+/-- Auxiliary definition for `exact_pairing_tensor`. -/
 def tensor_evaluation (p₁ : exact_pairing X₁ Y₁) (p₂ : exact_pairing X₂ Y₂) :
   (Y₂ ⊗ Y₁) ⊗ X₁ ⊗ X₂ ⟶ 𝟙_ C :=
 (α_ Y₂ Y₁ (X₁ ⊗ X₂)).hom ≫ (𝟙 Y₂ ⊗ (α_ Y₁ X₁ X₂).inv) ≫ (𝟙 Y₂ ⊗ p₁.evaluation ⊗ 𝟙 X₂) ≫
@@ -295,13 +295,12 @@ tensor_evaluation p₁ p₂ =
       (α_ Y₂ X₂ (𝟙_ C)).inv) ≫ (p₂.evaluation ⊗ 𝟙 (𝟙_ C)) ≫ (ρ_ (𝟙_ C)).hom :=
 rfl
 
-/-- Another expression for `comp_counit`. -/
+/-- Another expression for `tensor_evaluation`. -/
 lemma tensor_evaluation_eq' (p₁ : exact_pairing X₁ Y₁) (p₂ : exact_pairing X₂ Y₂) :
   tensor_evaluation p₁ p₂ = (α_ Y₂ Y₁ (X₁ ⊗ X₂)).hom ≫ (𝟙 Y₂ ⊗ (α_ Y₁ X₁ X₂).inv) ≫
     (𝟙 Y₂ ⊗ p₁.evaluation ⊗ 𝟙 X₂) ≫ (α_ Y₂ (𝟙_ C) X₂).inv ≫
       (((𝟙 Y₂ ⊗ p₂.coevaluation) ≫ (α_ Y₂ X₂ Y₂).inv ≫ (p₂.evaluation ⊗ 𝟙 Y₂)) ⊗ 𝟙 X₂) ≫
-        (α_ (𝟙_ C) Y₂ X₂).hom ≫
-        (𝟙 (𝟙_ C) ⊗ p₂.evaluation) ≫ (λ_ (𝟙_ C)).hom :=
+        (α_ (𝟙_ C) Y₂ X₂).hom ≫ (𝟙 (𝟙_ C) ⊗ p₂.evaluation) ≫ (λ_ (𝟙_ C)).hom :=
 begin
   rw [tensor_evaluation_eq, left_unitor_naturality, right_unitor_naturality,
     coevaluation_evaluation, evaluation_coevaluation],
@@ -309,23 +308,23 @@ begin
   coherence
 end
 
-/-- Auxiliary definition for `punction.comp`. -/
+/-- Auxiliary definition for `tensor_coevaluation`. -/
 def tensor_coevaluation (p₁ : exact_pairing X₁ Y₁) (p₂ : exact_pairing X₂ Y₂) :
   𝟙_ C ⟶ (X₁ ⊗ X₂) ⊗ Y₂ ⊗ Y₁ :=
 (λ_ (𝟙_ C)).inv ≫ (𝟙 (𝟙_ C) ⊗ p₁.coevaluation) ≫ (α_ (𝟙_ C) X₁ Y₁).inv ≫
   (((p₁.coevaluation ⊗ 𝟙 X₁) ≫ (α_ X₁ Y₁ X₁).hom ≫ (𝟙 X₁ ⊗ p₁.evaluation)) ⊗ 𝟙 Y₁) ≫
-    (α_ X₁ (𝟙_ C) Y₁).hom ≫
-        (𝟙 X₁ ⊗ p₂.coevaluation ⊗ 𝟙 Y₁) ≫ (𝟙 X₁ ⊗ (α_ X₂ Y₂ Y₁).hom) ≫ (α_ X₁ X₂ (Y₂ ⊗ Y₁)).inv
+    (α_ X₁ (𝟙_ C) Y₁).hom ≫ (𝟙 X₁ ⊗ p₂.coevaluation ⊗ 𝟙 Y₁) ≫
+      (𝟙 X₁ ⊗ (α_ X₂ Y₂ Y₁).hom) ≫ (α_ X₁ X₂ (Y₂ ⊗ Y₁)).inv
 
 lemma tensor_coevaluation_eq (p₁ : exact_pairing X₁ Y₁) (p₂ : exact_pairing X₂ Y₂) :
   tensor_coevaluation p₁ p₂ =
-  (λ_ (𝟙_ C)).inv ≫ (𝟙 (𝟙_ C) ⊗ p₁.coevaluation) ≫ (α_ (𝟙_ C) X₁ Y₁).inv ≫
-  (((p₁.coevaluation ⊗ 𝟙 X₁) ≫ (α_ X₁ Y₁ X₁).hom ≫ (𝟙 X₁ ⊗ p₁.evaluation)) ⊗ 𝟙 Y₁) ≫
-    (α_ X₁ (𝟙_ C) Y₁).hom ≫
-        (𝟙 X₁ ⊗ p₂.coevaluation ⊗ 𝟙 Y₁) ≫ (𝟙 X₁ ⊗ (α_ X₂ Y₂ Y₁).hom) ≫ (α_ X₁ X₂ (Y₂ ⊗ Y₁)).inv :=
+    (λ_ (𝟙_ C)).inv ≫ (𝟙 (𝟙_ C) ⊗ p₁.coevaluation) ≫ (α_ (𝟙_ C) X₁ Y₁).inv ≫
+      (((p₁.coevaluation ⊗ 𝟙 X₁) ≫ (α_ X₁ Y₁ X₁).hom ≫ (𝟙 X₁ ⊗ p₁.evaluation)) ⊗ 𝟙 Y₁) ≫
+        (α_ X₁ (𝟙_ C) Y₁).hom ≫ (𝟙 X₁ ⊗ p₂.coevaluation ⊗ 𝟙 Y₁) ≫
+          (𝟙 X₁ ⊗ (α_ X₂ Y₂ Y₁).hom) ≫ (α_ X₁ X₂ (Y₂ ⊗ Y₁)).inv :=
 rfl
 
-/-- Another expression for `comp_coevaluation`. -/
+/-- Another expression for `tensor_coevaluation`. -/
 lemma tensor_coevaluation_eq' (p₁ : exact_pairing X₁ Y₁) (p₂ : exact_pairing X₂ Y₂) :
   tensor_coevaluation p₁ p₂ = (ρ_ (𝟙_ C)).inv ≫
     (p₁.coevaluation ⊗ 𝟙 (𝟙_ C)) ≫ (α_ X₁ Y₁ (𝟙_ C)).hom ≫
@@ -338,60 +337,65 @@ begin
   coherence
 end
 
-@[simp, reassoc] lemma tensor_exchange {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z) :
-  ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) = (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) :=
-by { simp }
-
-@[reassoc]
-lemma id_tensor_tensor (X Y : C) {Z Z' : C} (h : Z ⟶ Z') :
-  (𝟙 (X ⊗ Y) ⊗ h) = (α_ X Y Z).hom ≫ (𝟙 X ⊗ (𝟙 Y ⊗ h)) ≫ (α_ X Y Z').inv :=
-by simp [←id_tensor_associator_naturality_assoc]
-
-@[simp, reassoc]
-lemma pentagon_inv_inv_hom_inv_inv (W X Y Z : C) :
-  (α_ W X (Y ⊗ Z)).inv ≫ (α_ _ _ _).inv ≫ ((α_ _ _ _).hom ⊗ 𝟙 _) =
-    (𝟙 _ ⊗ (α_ _ _ _).inv) ≫ (α_ _ _ _).inv :=
-by coherence
-
-@[simp, reassoc]
-lemma pentagon_hom_inv_inv_inv_inv (W X Y Z : C) :
-  (𝟙 W ⊗ (α_ X Y Z).hom) ≫ (α_ _ _ _).inv ≫ (α_ _ _ _).inv =
-    (α_ _ _ _).inv ≫ ((α_ _ _ _).inv ⊗ 𝟙 _) :=
-by coherence
-
 lemma tensor_coevaluation_evaluation_aux (p₁ : exact_pairing X₁ Y₁) (p₂ : exact_pairing X₂ Y₂) :
-  (𝟙 (Y₂ ⊗ Y₁) ⊗ tensor_coevaluation p₁ p₂) ≫
-      (α_ (Y₂ ⊗ Y₁) (X₁ ⊗ X₂) (Y₂ ⊗ Y₁)).inv ≫
-        (tensor_evaluation p₁ p₂ ⊗ 𝟙 (Y₂ ⊗ Y₁)) =
-    (ρ_ (Y₂ ⊗ Y₁)).hom ≫ (λ_ (Y₂ ⊗ Y₁)).inv :=
+  (𝟙 (Y₂ ⊗ Y₁) ⊗ tensor_coevaluation p₁ p₂) ≫ (α_ (Y₂ ⊗ Y₁) (X₁ ⊗ X₂) (Y₂ ⊗ Y₁)).inv ≫
+    (tensor_evaluation p₁ p₂ ⊗ 𝟙 (Y₂ ⊗ Y₁)) = (ρ_ (Y₂ ⊗ Y₁)).hom ≫ (λ_ (Y₂ ⊗ Y₁)).inv :=
 begin
   calc _ =
   (𝟙 _ ⊗ (ρ_ _).inv) ≫ (𝟙 _ ⊗ p₁.coevaluation ⊗ 𝟙 _) ≫ (𝟙 _ ⊗ (α_ _ _ _).hom) ≫
     (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (α_ _ _ _).inv) ≫ (α_ _ _ _).inv ≫
-      (𝟙 (Y₂ ⊗ Y₁ ⊗ X₁) ⊗ ((ρ_ Y₁).hom ≫ (λ_ Y₁).inv ≫ (p₂.coevaluation ⊗ 𝟙 Y₁) ≫ (α_ _ _ _).hom)) ≫
-        (((𝟙 Y₂ ⊗ p₁.evaluation) ≫ (ρ_ Y₂).hom ≫ (λ_ Y₂).inv) ⊗ 𝟙 (X₂ ⊗ Y₂ ⊗ Y₁)) ≫ (α_ _ _ _).inv ≫
+      (𝟙 _ ⊗ ((ρ_ Y₁).hom ≫ (λ_ Y₁).inv ≫ (p₂.coevaluation ⊗ 𝟙 Y₁) ≫ (α_ _ _ _).hom)) ≫
+        (((𝟙 Y₂ ⊗ p₁.evaluation) ≫ (ρ_ Y₂).hom ≫ (λ_ Y₂).inv) ⊗ 𝟙 _) ≫ (α_ _ _ _).inv ≫
           ((α_ _ _ _).hom ⊗ 𝟙 _) ≫ ((𝟙 _ ⊗ p₂.evaluation) ⊗ 𝟙 _) ≫ ((λ_ _).hom ⊗ 𝟙 _) : _
   ... = _ : _,
   { simp_rw [tensor_coevaluation_eq', tensor_evaluation_eq', coevaluation_evaluation,
-      associator_inv_naturality_assoc, comp_tensor_id, id_tensor_comp, assoc],
-    simp_rw[
-      ←associator_conjugation_assoc _ (𝟙 X₂),
-      pentagon_inv_hom_assoc,
-      id_tensor_tensor_assoc Y₂,
-      iso.inv_hom_id_assoc,
-      ←@id_tensor_comp_assoc _ _ _ _ _ _ Y₂,
-      ←associator_inv_conjugation_assoc (𝟙 Y₁), iso.hom_inv_id_assoc, id_tensor_comp,
-      ←associator_inv_conjugation_assoc (𝟙 Y₂), tensor_id, assoc, iso.hom_inv_id_assoc],
-    congr' 15, simp_rw ←assoc, congr' 8, simp_rw assoc, coherence },
+      associator_inv_naturality_assoc, comp_tensor_id, id_tensor_comp, assoc,
+      ←associator_conjugation_assoc _ (𝟙 X₂), pentagon_inv_hom_assoc,
+      ←tensor_id Y₂, ←associator_conjugation_assoc (𝟙 Y₂), iso.inv_hom_id_assoc,
+      ←id_tensor_comp_assoc Y₂, ←associator_inv_conjugation_assoc (𝟙 Y₁), iso.hom_inv_id_assoc,
+      id_tensor_comp_assoc, ←associator_inv_conjugation_assoc (𝟙 Y₂), iso.hom_inv_id_assoc,
+      tensor_id],
+    congr' 15, simp_rw ←assoc, congr' 8, coherence },
   { simp_rw [tensor_exchange_assoc, comp_tensor_id, id_tensor_comp, assoc,
-      id_tensor_tensor_assoc (𝟙_ C), iso.inv_hom_id_assoc, pentagon_inv_inv_hom_inv_inv_assoc,
-      ←associator_inv_naturality_assoc, ←@id_tensor_comp_assoc _ _ _ _ _ _ (𝟙_ C), ←tensor_id,
-      ←associator_inv_conjugation p₂.evaluation, pentagon_hom_inv_inv_inv_inv_assoc,
-      associator_inv_naturality_assoc _ p₂.coevaluation, ←@comp_tensor_id_assoc _ _ _ _ _ _ Y₁,
-      coevaluation_evaluation, tensor_id, id_tensor_tensor_assoc Y₂, iso.inv_hom_id_assoc,
-      ←@id_tensor_comp_assoc _ _ _ _ _ _ Y₂, ←tensor_id, ←associator_inv_conjugation p₁.evaluation,
-      pentagon_hom_inv_inv_inv_inv_assoc, associator_inv_naturality_assoc,
-      ←@comp_tensor_id_assoc _ _ _ _ _ _ (𝟙_ C), coevaluation_evaluation],
+      ←tensor_id (𝟙_ C), ←associator_conjugation_assoc (𝟙 (𝟙_ C)), iso.inv_hom_id_assoc,
+      pentagon_inv_inv_hom_inv_inv_assoc, iso.inv_hom_id_assoc,
+      ←id_tensor_comp_assoc (𝟙_ C), ←tensor_id, ←associator_inv_conjugation p₂.evaluation,
+      pentagon_hom_inv_inv_inv_inv_assoc, associator_inv_naturality_assoc _ p₂.coevaluation,
+      ←comp_tensor_id_assoc _ _ Y₁, coevaluation_evaluation, ←associator_conjugation_assoc (𝟙 Y₂),
+      iso.inv_hom_id_assoc, ←id_tensor_comp_assoc Y₂,
+      ←associator_inv_conjugation p₁.evaluation, pentagon_hom_inv_inv_inv_inv_assoc,
+      associator_inv_naturality_assoc, ←comp_tensor_id_assoc _ _ (𝟙_ C), coevaluation_evaluation],
+    coherence }
+end
+
+lemma tensor_evaluation_coevaluation_aux (p₁ : exact_pairing X₁ Y₁) (p₂ : exact_pairing X₂ Y₂) :
+  (tensor_coevaluation p₁ p₂ ⊗ 𝟙 (X₁ ⊗ X₂)) ≫ (α_ (X₁ ⊗ X₂) (Y₂ ⊗ Y₁) (X₁ ⊗ X₂)).hom ≫
+    (𝟙 (X₁ ⊗ X₂) ⊗ tensor_evaluation p₁ p₂) = (λ_ (X₁ ⊗ X₂)).hom ≫ (ρ_ (X₁ ⊗ X₂)).inv :=
+begin
+  calc _ =
+  ((λ_ _).inv ⊗ 𝟙 _) ≫ ((𝟙 _ ⊗ p₁.coevaluation) ⊗ 𝟙 _) ≫ ((α_ _ _ _).inv ⊗ 𝟙 _) ≫
+    (α_ _ _ _).hom ≫ (((λ_ X₁).hom ≫ (ρ_ X₁).inv ≫ (𝟙 X₁ ⊗ p₂.coevaluation)) ⊗ 𝟙 _) ≫
+      (𝟙 _ ⊗ ((α_ _ _ _).inv ≫ (p₁.evaluation ⊗ 𝟙 X₂) ≫ (λ_ X₂).hom ≫ (ρ_ X₂).inv)) ≫
+        (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv ≫ (𝟙 _ ⊗ (α_ _ _ _).inv) ≫
+  (𝟙 _ ⊗ p₂.evaluation ⊗ 𝟙 _) ≫ (𝟙 _ ⊗ (ρ_ _).hom) : _
+  ... = _ : _,
+  { simp_rw [tensor_coevaluation_eq, tensor_evaluation_eq, evaluation_coevaluation,
+      ←associator_naturality_assoc, comp_tensor_id, id_tensor_comp, assoc,
+      ←associator_conjugation_assoc _ (𝟙 Y₁), pentagon_inv_hom_assoc,
+      ←tensor_id X₁, ←associator_conjugation_assoc (𝟙 X₁), iso.inv_hom_id_assoc,
+      ←id_tensor_comp_assoc X₁, ←associator_inv_conjugation_assoc (𝟙 X₂), iso.hom_inv_id_assoc,
+      id_tensor_comp_assoc, ←associator_inv_conjugation_assoc (𝟙 X₁), iso.hom_inv_id_assoc,
+      tensor_id],
+    congr' 7, simp_rw ←assoc, congr' 9, simp_rw assoc, coherence },
+  { simp_rw [←tensor_exchange_assoc, comp_tensor_id, id_tensor_comp, assoc,
+      ←tensor_id (𝟙_ C), ←associator_conjugation_assoc (𝟙 (𝟙_ C)), iso.inv_hom_id_assoc,
+      ←pentagon_comp_id_tensor_assoc, iso.inv_hom_id_assoc,
+      ←id_tensor_comp_assoc (𝟙_ C), ←tensor_id, ←associator_inv_conjugation_assoc p₁.coevaluation,
+      pentagon_hom_hom_inv_hom_hom_assoc, ←associator_naturality_assoc _ p₁.evaluation,
+      ←comp_tensor_id_assoc _ _ X₂, evaluation_coevaluation, ←associator_conjugation_assoc (𝟙 X₁),
+      iso.inv_hom_id_assoc, ←id_tensor_comp_assoc X₁,
+      ←associator_inv_conjugation_assoc p₂.coevaluation, pentagon_hom_hom_inv_hom_hom_assoc,
+      ←associator_naturality, ←comp_tensor_id_assoc _ _ (𝟙_ C), evaluation_coevaluation],
     coherence }
 end
 
@@ -400,7 +404,7 @@ instance exact_pairing_tensor [p₁ : exact_pairing X₁ Y₁] [p₂ : exact_pai
 { coevaluation  := tensor_coevaluation p₁ p₂,
   evaluation    := tensor_evaluation p₁ p₂,
   coevaluation_evaluation' := by apply tensor_coevaluation_evaluation_aux,
-  evaluation_coevaluation' := sorry, }
+  evaluation_coevaluation' := by apply tensor_evaluation_coevaluation_aux }
 
 instance has_right_dual_tensor (X Y : C) [has_right_dual X] [has_right_dual Y] :
   has_right_dual (X ⊗ Y) := ⟨Yᘁ ⊗ Xᘁ⟩

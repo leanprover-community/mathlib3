@@ -186,11 +186,11 @@ lemma dite_tensor {P : Prop} [decidable P]
   (if h : P then g h else g' h) ⊗ f  = if h : P then g h ⊗ f else g' h ⊗ f :=
 by { split_ifs; refl }
 
-@[reassoc, simp] lemma comp_tensor_id (f : W ⟶ X) (g : X ⟶ Y) :
+@[reassoc, simp] lemma comp_tensor_id (f : W ⟶ X) (g : X ⟶ Y) (Z : C) :
   (f ≫ g) ⊗ (𝟙 Z) = (f ⊗ (𝟙 Z)) ≫ (g ⊗ (𝟙 Z)) :=
 by { rw ←tensor_comp, simp }
 
-@[reassoc, simp] lemma id_tensor_comp (f : W ⟶ X) (g : X ⟶ Y) :
+@[reassoc, simp] lemma id_tensor_comp (Z : C) (f : W ⟶ X) (g : X ⟶ Y) :
   (𝟙 Z) ⊗ (f ≫ g) = (𝟙 Z ⊗ f) ≫ (𝟙 Z ⊗ g) :=
 by { rw ←tensor_comp, simp }
 
@@ -201,6 +201,11 @@ by { rw [←tensor_comp], simp }
 @[simp, reassoc] lemma tensor_id_comp_id_tensor (f : W ⟶ X) (g : Y ⟶ Z) :
   (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = g ⊗ f :=
 by { rw [←tensor_comp], simp }
+
+@[reassoc]
+lemma tensor_exchange {W X Y Z : C} (f : W ⟶ X) (g : Y ⟶ Z) :
+  ((𝟙 Y) ⊗ f) ≫ (g ⊗ (𝟙 X)) = (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) :=
+by simp
 
 @[reassoc]
 lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
@@ -413,6 +418,24 @@ lemma pentagon_comp_id_tensor {W X Y Z : C} :
   (α_ W (X ⊗ Y) Z).hom ≫ ((𝟙 W) ⊗ (α_ X Y Z).hom)
   = ((α_ W X Y).inv ⊗ (𝟙 Z)) ≫ (α_ (W ⊗ X) Y Z).hom ≫ (α_ W X (Y ⊗ Z)).hom :=
 by { rw ←pentagon W X Y Z, simp }
+
+@[reassoc]
+lemma pentagon_inv_inv_hom_inv_inv (W X Y Z : C) :
+  (α_ W X (Y ⊗ Z)).inv ≫ (α_ _ _ _).inv ≫ ((α_ _ _ _).hom ⊗ 𝟙 _) =
+    (𝟙 _ ⊗ (α_ _ _ _).inv) ≫ (α_ _ _ _).inv :=
+by { rw ←cancel_mono ((α_ W X Y).inv ⊗ 𝟙 Z), simp [pentagon_inv] }
+
+@[reassoc]
+lemma pentagon_hom_inv_inv_inv_inv (W X Y Z : C) :
+  (𝟙 W ⊗ (α_ X Y Z).hom) ≫ (α_ _ _ _).inv ≫ (α_ _ _ _).inv =
+    (α_ _ _ _).inv ≫ ((α_ _ _ _).inv ⊗ 𝟙 _) :=
+by { rw ←cancel_epi (𝟙 W ⊗ (α_ X Y Z).inv), simp [pentagon_inv] }
+
+@[reassoc]
+lemma pentagon_hom_hom_inv_hom_hom (W X Y Z : C) :
+  (α_ (W ⊗ X) Y Z).hom ≫ (α_ W X (Y ⊗ Z)).hom ≫ (𝟙 W ⊗ (α_ X Y Z).inv) =
+    ((α_ W X Y).hom ⊗ 𝟙 Z) ≫ (α_ W (X ⊗ Y) Z).hom :=
+by { rw ←cancel_mono (𝟙 W ⊗ (α_ X Y Z).hom), simp [pentagon] }
 
 end
 

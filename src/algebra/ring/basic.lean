@@ -597,8 +597,7 @@ variables [semiring α] {a : α}
 
 @[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
 
-lemma ring_hom.map_dvd [semiring β] (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
-f.to_monoid_hom.map_dvd
+lemma ring_hom.map_dvd [semiring β] (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b := map_dvd f
 
 end semiring
 

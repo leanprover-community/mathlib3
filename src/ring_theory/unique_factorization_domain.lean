@@ -323,7 +323,7 @@ begin
   rw unique_factorization_monoid.iff_exists_prime_factors at hα ⊢, intros a ha,
   obtain ⟨w,hp,u,h⟩ := hα (e.symm a) (λ h, ha $ by { convert ← map_zero e, simp [← h] }),
   exact ⟨ w.map e,
-    λ b hb, let ⟨c,hc,he⟩ := multiset.mem_map.1 hb in he ▸ e.prime (hp c hc),
+    λ b hb, let ⟨c,hc,he⟩ := multiset.mem_map.1 hb in he ▸ e.prime_iff.1 (hp c hc),
     units.map e.to_monoid_hom u,
     by { erw [multiset.prod_hom, ← e.map_mul, h], simp } ⟩,
 end

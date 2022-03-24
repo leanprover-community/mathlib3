@@ -63,23 +63,20 @@ end prime
 @[simp] lemma not_prime_one : ¬ prime (1 : α) :=
 λ h, h.not_unit is_unit_one
 
-section mul_equiv
-variables [comm_monoid_with_zero β] (e : α ≃* β) {p : α}
+section map
+variables [comm_monoid_with_zero β] {F : Type*} {G : Type*}
+  [monoid_with_zero_hom_class F α β] [mul_hom_class G β α] (f : F) (g : G) {p : α}
 
-lemma mul_equiv.prime (hp : prime p) : prime (e p) :=
-⟨ λ h, hp.1 $ by { convert map_zero e.symm, simp [← h] },
-  λ h, hp.2.1 $ by { convert h.map e.symm, simp },
-  λ a b h, begin
-    have : p ∣ e.symm a * e.symm b,
-    { convert e.symm.to_monoid_hom.map_dvd h; simp },
-    refine (hp.2.2 _ _ this).imp _ _;
-    { intro h, convert e.to_monoid_hom.map_dvd h, simp },
-  end⟩
+lemma comap_prime (hinv : ∀ a, g (f a : β) = a) (hp : prime (f p)) : prime p :=
+⟨ λ h, hp.1 $ by simp [h],  λ h, hp.2.1 $ h.map f,  λ a b h, by
+  { refine (hp.2.2 (f a) (f b) $ by { convert map_dvd f h, simp }).imp _ _;
+    { intro h, convert ← map_dvd g h; apply hinv } } ⟩
 
-lemma mul_equiv.prime_iff : prime p ↔ prime (e p) :=
-⟨ λ h, e.prime h,  λ h, by { convert e.symm.prime h, simp } ⟩
+lemma mul_equiv.prime_iff (e : α ≃* β) : prime p ↔ prime (e p) :=
+⟨ λ h, comap_prime e.symm e (λ a, by simp) $ (e.symm_apply_apply p).substr h,
+  comap_prime e e.symm (λ a, by simp) ⟩
 
-end mul_equiv
+end map
 
 end prime
 

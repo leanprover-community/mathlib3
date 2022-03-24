@@ -274,7 +274,7 @@ begin
         subst this, exact ⟨_, ⟨h, hm⟩, rfl⟩ },
       { simp only [list.head, exists_eq_left, part.mem_some_iff,
           list.tail_cons, false_or] at this,
-        refine IH _ this (by simp * at *) _ rfl (λ m h', _),
+        refine IH (n.succ :: v.val) (by simp * at *) _ rfl (λ m h', _),
         obtain h|rfl := nat.lt_succ_iff_lt_or_eq.1 h', exacts [hm _ h, h] } },
     { rintro ⟨n, ⟨hn, hm⟩, rfl⟩, refine ⟨n.succ :: v.1, _, rfl⟩,
       have : (n.succ :: v.1 : list ℕ) ∈ pfun.fix
@@ -535,17 +535,15 @@ begin
         have e₁ := step_normal_then f cont.halt (cont.fix f k) v'.tail,
         rw [e₀, cont.then, cfg.then] at e₁,
         obtain ⟨v₁, hv₁, v₂, hv₂, h₃⟩ :=
-          IH (step_ret (k₀.then (cont.fix f k)) v₀) _ _ v'.tail _ step_ret_then _,
+          IH (step_ret (k₀.then (cont.fix f k)) v₀) _ v'.tail _ step_ret_then _,
         { refine ⟨_, pfun.mem_fix_iff.2 _, h₃⟩,
           simp only [part.eq_some_iff.2 hv₁, part.map_some, part.mem_some_iff],
           split_ifs at hv₂ ⊢; [exact or.inl (part.mem_some_iff.1 hv₂),
             exact or.inr ⟨_, rfl, hv₂⟩] },
-        { rwa [← @reaches_eval _ _ (cfg.ret (k₀.then (cont.fix f k)) v₀), ← e₁],
-          exact refl_trans_gen.single rfl },
         { rw [step_ret, if_neg he, e₁], refl },
         { apply refl_trans_gen.single, rw e₀, exact rfl } } },
     { rw reaches_eval at h, swap, exact refl_trans_gen.single rfl,
-      exact IH _ h rfl _ _ step_ret_then (refl_trans_gen.tail hr rfl) } },
+      exact IH _ rfl _ _ step_ret_then (refl_trans_gen.tail hr rfl) } },
   { rintro ⟨v', he, hr⟩,
     rw reaches_eval at hr, swap, exact refl_trans_gen.single rfl,
     refine pfun.fix_induction he (λ v (he : v' ∈ f.fix.eval v) IH, _),
@@ -560,7 +558,7 @@ begin
       refine ⟨_, he₁, _⟩,
       rw reaches_eval, swap, exact refl_trans_gen.single rfl,
       rwa [step_ret, if_neg h],
-      exact IH v₁.tail he₂' ((part.mem_map_iff _).2 ⟨_, he₁, if_neg h⟩) } }
+      exact IH v₁.tail ((part.mem_map_iff _).2 ⟨_, he₁, if_neg h⟩) } }
 end
 
 theorem code_is_ok (c) : code.ok c :=

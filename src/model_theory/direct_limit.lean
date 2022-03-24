@@ -61,8 +61,8 @@ begin
 end
 
 instance nat_le_rec.directed_system : directed_system G' (λ i j h, nat_le_rec f' i j h) :=
-⟨λ i x h, by rw [coe_nat_le_rec, nat.le_rec_on_self],
-  λ i j k ij jk x, by simp [nat.le_rec_on_trans ij jk]⟩
+⟨λ i x h, congr (congr rfl (nat.le_rec_on_self _)) rfl,
+  λ i j k ij jk, by simp [nat.le_rec_on_trans ij jk]⟩
 
 end directed_system
 

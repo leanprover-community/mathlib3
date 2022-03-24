@@ -189,14 +189,14 @@ instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
             finset.sup_mul_le_mul_sup (λ i, nnreal.coe_nonneg _) (λ i, nnreal.coe_nonneg _) _,
   ..pi.semi_normed_group }
 
-/-- Seminormed ring instance (using sup norm of sup norm) for matrices over a seminormed ring. Not
+/-- Seminormed group instance (using sup norm of sup norm) for matrices over a seminormed ring. Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
-def matrix.non_unital_semi_normed_ring {n m : Type*} [fintype n] [fintype m] :
-  non_unital_semi_normed_ring (matrix n m α) :=
-pi.non_unital_semi_normed_ring
+def matrix.semi_normed_group {n m : Type*} [fintype n] [fintype m] :
+  semi_normed_group (matrix n m α) :=
+pi.semi_normed_group
 
-local attribute [instance] matrix.non_unital_semi_normed_ring
+local attribute [instance] matrix.semi_normed_group
 
 lemma norm_matrix_le_iff {n m : Type*} [fintype n] [fintype m] {r : ℝ} (hr : 0 ≤ r)
   {A : matrix n m α} :
@@ -315,12 +315,11 @@ instance pi.non_unital_normed_ring {π : ι → Type*} [fintype ι] [Π i, non_u
 { norm_mul := norm_mul_le,
   ..pi.normed_group }
 
-/-- Non-unital normed ring instance (using sup norm of sup norm) for matrices over a normed ring.
-Not declared as an instance because there are several natural choices for defining the norm of a
+/-- Normed group instance (using sup norm of sup norm) for matrices over a normed ring.  Not
+declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/
-def matrix.non_unital_normed_ring {n m : Type*} [fintype n] [fintype m] :
-  non_unital_normed_ring (matrix n m α) :=
-pi.non_unital_normed_ring
+def matrix.normed_group {n m : Type*} [fintype n] [fintype m] : normed_group (matrix n m α) :=
+pi.normed_group
 
 end non_unital_normed_ring
 

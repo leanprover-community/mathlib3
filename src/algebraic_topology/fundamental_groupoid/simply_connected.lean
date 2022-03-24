@@ -27,7 +27,7 @@ open_locale continuous_map
 
 /-- A simply connected space is one whose fundamental groupoid is equivalent to `discrete unit` -/
 class simply_connected_space (X : Type*) [topological_space X] : Prop :=
-(equiv_unit : nonempty (fundamental_groupoid X ≌ discrete unit))
+(equiv_unit [] : nonempty (fundamental_groupoid X ≌ discrete unit))
 
 lemma simply_connected_def (X : Type*) [topological_space X] :
   simply_connected_space X ↔ nonempty (fundamental_groupoid X ≌ discrete unit) :=
@@ -68,7 +68,7 @@ instance of_contractible (Y : Type*) [topological_space Y] [contractible_space Y
 { equiv_unit :=
   let H : Top.of Y ≃ₕ Top.of unit :=
     (homotopy_equiv.refl _ : Top.of Y ≃ₕ Y).trans (
-    (contractible_space.hequiv_unit.some : Y ≃ₕ unit).trans
+    (contractible_space.hequiv_unit Y).some.trans
     (homotopy_equiv.refl _ : unit ≃ₕ Top.of unit)) in
   ⟨(fundamental_groupoid_functor.equiv_of_homotopy_equiv H).trans
     fundamental_groupoid.punit_equiv_discrete_punit⟩, }

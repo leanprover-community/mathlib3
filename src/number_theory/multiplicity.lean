@@ -201,15 +201,20 @@ begin
   exact int.pow_sub_pow hp hp1 hxy hx n,
 end
 
-lemma nat.pow_sub_pow {x y : ℕ} (hyx : y ≤ x) (hxy : p ∣ x - y) (hx : ¬p ∣ x) (n : ℕ) :
+lemma nat.pow_sub_pow {x y : ℕ} (hxy : p ∣ x - y) (hx : ¬p ∣ x) (n : ℕ) :
   multiplicity p (x ^ n - y ^ n) = multiplicity p (x - y) + multiplicity p n :=
 begin
-  iterate 2 { rw ←int.coe_nat_multiplicity },
-  rw [int.coe_nat_sub (nat.pow_le_pow_of_le_left hyx n),
+  by_cases hyx : y ≤ x,
+  { iterate 2 { rw ←int.coe_nat_multiplicity },
+    rw [int.coe_nat_sub (nat.pow_le_pow_of_le_left hyx n),
     int.coe_nat_pow, int.coe_nat_pow],
-  rw ←int.coe_nat_dvd at hxy hx,
-  rw int.coe_nat_sub hyx at hxy ⊢,
-  exact int.pow_sub_pow hp hp1 hxy hx n,
+    rw ←int.coe_nat_dvd at hxy hx,
+    rw int.coe_nat_sub hyx at hxy ⊢,
+    exact int.pow_sub_pow hp hp1 hxy hx n },
+  { replace hyx : x ≤ y := le_of_not_ge hyx,
+    simp only [nat.sub_eq_zero_iff_le.mpr hyx,
+      nat.sub_eq_zero_iff_le.mpr (nat.pow_le_pow_of_le_left hyx n), multiplicity.zero,
+        enat.top_add] },
 end
 
 lemma nat.pow_add_pow {x y : ℕ} (hxy : p ∣ x + y) (hx : ¬p ∣ x) {n : ℕ} (hn : odd n) :
@@ -235,7 +240,7 @@ lemma pow_sub_pow (hyx : y < x) (hxy : p ∣ x - y) (hx : ¬p ∣ x) {n : ℕ} (
 begin
   rw [←enat.coe_inj, nat.cast_add],
   iterate 3 { rw [padic_val_nat_def, enat.coe_get] },
-  { exact multiplicity.nat.pow_sub_pow hp.out hp1 hyx.le hxy hx n },
+  { exact multiplicity.nat.pow_sub_pow hp.out hp1 hxy hx n },
   all_goals { apply ne_of_gt },
   { exact hn },
   { exact nat.sub_pos_of_lt hyx },

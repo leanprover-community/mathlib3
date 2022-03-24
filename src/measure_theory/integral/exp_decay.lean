@@ -43,8 +43,8 @@ begin
 end
 
 /-- `exp (-b * x)` is integrable on `(a, ∞)`. -/
-lemma exp_neg_integrable_on_Ioi (a : ℝ) {b : ℝ} (h : 0 < b) : integrable_on (λ x : ℝ, exp (-b * x))
-  (Ioi a) :=
+lemma exp_neg_integrable_on_Ioi (a : ℝ) {b : ℝ} (h : 0 < b) : 
+  integrable_on (λ x : ℝ, exp (-b * x)) (Ioi a) :=
 begin
   have : ∀ (X : ℝ), integrable_on (λ x : ℝ, exp (-b * x) ) (Ioc a X),
   { intro X, exact (continuous_const.mul continuous_id).exp.integrable_on_Ioc },
@@ -53,7 +53,7 @@ begin
   exact ⟨a, λ b2 hb2, integral_exp_neg_le a b2 h⟩,
 end
 
-/-- If `f` is continuous on `[a, ∞)`, and is `O( exp (-b * x) )` at `∞` for some `b > 0`, then
+/-- If `f` is continuous on `[a, ∞)`, and is `O (exp (-b * x))` at `∞` for some `b > 0`, then
 `f` is integrable on `(a, ∞)`. -/
 lemma integrable_of_is_O_exp_neg {f : ℝ → ℝ} {a b : ℝ} (h0 : 0 < b)
   (h1 : continuous_on f (Ici a)) (h2 : asymptotics.is_O f (λ x, exp (-b * x)) at_top) :
@@ -63,7 +63,7 @@ begin
   rw [asymptotics.is_O_with_iff, eventually_at_top] at h3,
   cases h3 with r bdr,
   let v := max a r,
-  -- show integrable on (a, v] from continuity
+  -- show integrable on `(a, v]` from continuity
   have int_left : integrable_on f (Ioc a v),
   { rw ←(interval_integrable_iff_integrable_Ioc_of_le (le_max_left a r)),
     have u : Icc a v ⊆ Ici a := Icc_subset_Ici_self,
@@ -71,7 +71,7 @@ begin
   suffices : integrable_on f (Ioi v),
   { have t : integrable_on f (Ioc a v ∪ Ioi v) := integrable_on_union.mpr ⟨int_left, this⟩,
     simpa only [Ioc_union_Ioi_eq_Ioi, le_max_iff, le_refl, true_or] using t },
-  -- now show integrable on (v, ∞) from asymptotic
+  -- now show integrable on `(v, ∞)` from asymptotic
   split,
   { exact (h1.mono $ Ioi_subset_Ici $ le_max_left a r).ae_measurable measurable_set_Ioi, },
   have : has_finite_integral (λ x : ℝ, c * exp (-b * x)) (volume.restrict (Ioi v)),

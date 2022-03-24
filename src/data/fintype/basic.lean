@@ -209,6 +209,9 @@ lemma univ_filter_mem_range (f : α → β) [fintype β]
   finset.univ.filter (λ y, y ∈ set.range f) = finset.univ.image f :=
 univ_filter_exists f
 
+lemma coe_filter_univ (p : α → Prop) [decidable_pred p] : (univ.filter p : set α) = {x | p x} :=
+by rw [coe_filter, coe_univ, set.sep_univ]
+
 /-- A special case of `finset.sup_eq_supr` that omits the useless `x ∈ univ` binder. -/
 lemma sup_univ_eq_supr [complete_lattice β] (f : α → β) : finset.univ.sup f = supr f :=
 (sup_eq_supr _ f).trans $ congr_arg _ $ funext $ λ a, supr_pos (mem_univ _)
@@ -384,8 +387,8 @@ instance (α : Type*) : subsingleton (fintype α) :=
 associated to the predicate is a fintype. -/
 protected def subtype {p : α → Prop} (s : finset α) (H : ∀ x : α, x ∈ s ↔ p x) :
   fintype {x // p x} :=
-⟨⟨multiset.pmap subtype.mk s.1 (λ x, (H x).1),
-  multiset.nodup_pmap (λ a _ b _, congr_arg subtype.val) s.2⟩,
+⟨⟨s.1.pmap subtype.mk (λ x, (H x).1),
+  s.nodup.pmap $ λ a _ b _, congr_arg subtype.val⟩,
 λ ⟨x, px⟩, multiset.mem_pmap.2 ⟨x, (H x).2 px, rfl⟩⟩
 
 theorem subtype_card {p : α → Prop} (s : finset α) (H : ∀ x : α, x ∈ s ↔ p x) :
@@ -625,8 +628,7 @@ namespace set
 
 /-- Construct a finset enumerating a set `s`, given a `fintype` instance.  -/
 def to_finset (s : set α) [fintype s] : finset α :=
-⟨(@finset.univ s _).1.map subtype.val,
- multiset.nodup_map (λ a b, subtype.eq) finset.univ.2⟩
+⟨(@finset.univ s _).1.map subtype.val, finset.univ.nodup.map $ λ a b, subtype.eq⟩
 
 @[congr]
 lemma to_finset_congr {s t : set α} [fintype s] [fintype t] (h : s = t) :
@@ -667,6 +669,10 @@ end
 @[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
 ⟨λ h x hx, h (by simpa using hx), λ h x hx, h (by simpa using hx)⟩
+
+lemma filter_mem_univ_eq_to_finset [fintype α] (s : set α) [fintype s] [decidable_pred (∈ s)] :
+  finset.univ.filter (∈ s) = s.to_finset :=
+by { ext, simp only [mem_filter, finset.mem_univ, true_and, mem_to_finset] }
 
 end set
 
@@ -1569,12 +1575,12 @@ lemma mem_perms_of_list_iff {l : list α} {f : perm α} :
 lemma nodup_perms_of_list : ∀ {l : list α} (hl : l.nodup), (perms_of_list l).nodup
 | []       hl := by simp [perms_of_list]
 | (a :: l) hl :=
-have hl' : l.nodup, from nodup_of_nodup_cons hl,
+have hl' : l.nodup, from hl.of_cons,
 have hln' : (perms_of_list l).nodup, from nodup_perms_of_list hl',
 have hmeml : ∀ {f : perm α}, f ∈ perms_of_list l → f a = a,
   from λ f hf, not_not.1 (mt (mem_of_mem_perms_of_list hf) (nodup_cons.1 hl).1),
 by rw [perms_of_list, list.nodup_append, list.nodup_bind, pairwise_iff_nth_le]; exact
-⟨hln', ⟨λ _ _, nodup_map (λ _ _, mul_left_cancel) hln',
+⟨hln', ⟨λ _ _, hln'.map $ λ _ _, mul_left_cancel,
   λ i j hj hij x hx₁ hx₂,
     let ⟨f, hf⟩ := list.mem_map.1 hx₁ in
     let ⟨g, hg⟩ := list.mem_map.1 hx₂ in

@@ -7,6 +7,7 @@ import algebra.order.invertible
 import algebra.order.module
 import linear_algebra.affine_space.midpoint
 import linear_algebra.affine_space.affine_subspace
+import linear_algebra.ray
 
 /-!
 # Convex sets and functions in vector spaces
@@ -58,6 +59,15 @@ def open_segment (x y : E) : set E :=
 
 localized "notation `[` x ` -[` 𝕜 `] ` y `]` := segment 𝕜 x y" in convex
 
+lemma segment_eq_image₂ (x y : E) :
+  [x -[𝕜] y] = (λ p : 𝕜 × 𝕜, p.1 • x + p.2 • y) '' {p | 0 ≤ p.1 ∧ 0 ≤ p.2 ∧ p.1 + p.2 = 1} :=
+by simp only [segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
+
+lemma open_segment_eq_image₂ (x y : E) :
+  open_segment 𝕜 x y =
+    (λ p : 𝕜 × 𝕜, p.1 • x + p.2 • y) '' {p | 0 < p.1 ∧ 0 < p.2 ∧ p.1 + p.2 = 1} :=
+by simp only [open_segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
+
 lemma segment_symm (x y : E) : [x -[𝕜] y] = [y -[𝕜] x] :=
 set.ext $ λ z,
 ⟨λ ⟨a, b, ha, hb, hab, H⟩, ⟨b, a, hb, ha, (add_comm _ _).trans hab, (add_comm _ _).trans H⟩,
@@ -101,7 +111,7 @@ end mul_action_with_zero
 section module
 variables (𝕜) [module 𝕜 E]
 
-lemma segment_same (x : E) : [x -[𝕜] x] = {x} :=
+@[simp] lemma segment_same (x : E) : [x -[𝕜] x] = {x} :=
 set.ext $ λ z, ⟨λ ⟨a, b, ha, hb, hab, hz⟩,
   by simpa only [(add_smul _ _ _).symm, mem_singleton_iff, hab, one_smul, eq_comm] using hz,
   λ h, mem_singleton_iff.1 h ▸ left_mem_segment 𝕜 z z⟩
@@ -177,15 +187,6 @@ set.ext $ λ z,
     ⟨b, ⟨hb, hab ▸ lt_add_of_pos_left _ ha⟩, hab ▸ hz ▸ by simp only [add_sub_cancel]⟩,
     λ ⟨θ, ⟨hθ₀, hθ₁⟩, hz⟩, ⟨1 - θ, θ, sub_pos.2 hθ₁, hθ₀, sub_add_cancel _ _, hz⟩⟩
 
-lemma segment_eq_image₂ (x y : E) :
-  [x -[𝕜] y] = (λ p : 𝕜 × 𝕜, p.1 • x + p.2 • y) '' {p | 0 ≤ p.1 ∧ 0 ≤ p.2 ∧ p.1 + p.2 = 1} :=
-by simp only [segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
-
-lemma open_segment_eq_image₂ (x y : E) :
-  open_segment 𝕜 x y =
-    (λ p : 𝕜 × 𝕜, p.1 • x + p.2 • y) '' {p | 0 < p.1 ∧ 0 < p.2 ∧ p.1 + p.2 = 1} :=
-by simp only [open_segment, image, prod.exists, mem_set_of_eq, exists_prop, and_assoc]
-
 lemma segment_eq_image' (x y : E) :
   [x -[𝕜] y] = (λ (θ : 𝕜), x + θ • (y - x)) '' Icc (0 : 𝕜) 1 :=
 by { convert segment_eq_image 𝕜 x y, ext θ, simp only [smul_sub, sub_smul, one_smul], abel }
@@ -242,6 +243,15 @@ open_segment_translate_preimage 𝕜 a b c ▸ image_preimage_eq _ $ add_left_su
 end add_comm_group
 end ordered_ring
 
+lemma same_ray_of_mem_segment [ordered_comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+  {x y z : E} (h : x ∈ [y -[𝕜] z]) : same_ray 𝕜 (x - y) (z - x) :=
+begin
+  rw segment_eq_image' at h,
+  rcases h with ⟨θ, ⟨hθ₀, hθ₁⟩, rfl⟩,
+  simpa only [add_sub_cancel', ← sub_sub, sub_smul, one_smul]
+    using (same_ray_nonneg_smul_left (z - y) hθ₀).nonneg_smul_right (sub_nonneg.2 hθ₁)
+end
+
 section linear_ordered_ring
 variables [linear_ordered_ring 𝕜]
 
@@ -277,6 +287,17 @@ variables [linear_ordered_field 𝕜]
 
 section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
+
+lemma mem_segment_iff_same_ray {x y z : E} :
+  x ∈ [y -[𝕜] z] ↔ same_ray 𝕜 (x - y) (z - x) :=
+begin
+  refine ⟨same_ray_of_mem_segment, λ h, _⟩,
+  rcases h.exists_eq_smul_add with ⟨a, b, ha, hb, hab, hxy, hzx⟩,
+  rw [add_comm, sub_add_sub_cancel] at hxy hzx,
+  rw [← mem_segment_translate _ (-x), neg_add_self],
+  refine ⟨b, a, hb, ha, add_comm a b ▸ hab, _⟩,
+  rw [← sub_eq_neg_add, ← neg_sub, hxy, ← sub_eq_neg_add, hzx, smul_neg, smul_comm, neg_add_self]
+end
 
 lemma mem_segment_iff_div {x y z : E} : x ∈ [y -[𝕜] z] ↔
   ∃ a b : 𝕜, 0 ≤ a ∧ 0 ≤ b ∧ 0 < a + b ∧ (a / (a + b)) • y + (b / (a + b)) • z = x :=

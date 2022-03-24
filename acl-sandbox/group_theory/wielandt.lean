@@ -218,15 +218,12 @@ section group
 
 variables (G X : Type*) [group G] [mul_action G X]
 
-
 lemma is_block.def_one {B : set X} (hB : is_block G X B) (g : G) :
   g • B = B ∨ disjoint (g • B) B :=
 begin
   let h := is_block.def G X hB g (1 : G),
   rw one_smul at h, exact h,
 end
-
-
 
 lemma is_block.mk {B : set X} :
   is_block G X B ↔ (∀ (g : G), g • B = B ∨ disjoint (g • B) B) :=
@@ -792,10 +789,24 @@ extends is_pretransitive G X : Prop :=
 (has_trivial_blocks : ∀ {B : set X}, (is_block G X B) →
   B = ∅ ∨ (∃ (x : X), B = {x}) ∨ B = ⊤)
 
+lemma is_preprimitive.mk'  [hGX : is_pretransitive G X]
+  (hGX' : ∀ (B : set X),  (is_block G X B) → subsingleton B ∨ B = ⊤) :
+  is_preprimitive G X :=
+begin
+  apply is_preprimitive.mk,
+  exact hGX,
+  intros B hB,
+  cases hGX' B hB,
+  { rw set.subsingleton_coe at h,
+    cases set.subsingleton.eq_empty_or_singleton h with h' h',
+    apply or.intro_left, exact h',
+    apply or.intro_right, apply or.intro_left, exact h'},
+  apply or.intro_right, apply or.intro_right, exact h,
+end
+
 /-- In a preprimitive action,
   any normal subgroup that acts nontrivially is pretransitive
   (Wielandt, th. 7.1)-/
-
 theorem transitive_of_normal_of_preprimitive (N : subgroup G) [nN : subgroup.normal N]
   (hGX : mul_action.is_preprimitive G X) (hNX : mul_action.fixed_points N X ≠ ⊤) :
   mul_action.is_pretransitive N X :=
@@ -998,8 +1009,8 @@ let htop : is_block G X ⊤ := top_is_block G X in
 
 /-- An pretransitive action is preprimitive
   iff the stabilizer of any point is a maximal subgroup (Wielandt, th. 7.5) -/
-theorem maximal_stabilizer_iff_primitive [hnX : nontrivial X] [htGX : is_pretransitive G X] (a : X) :
-  (stabilizer G a).is_maximal ↔ is_preprimitive G X :=
+theorem maximal_stabilizer_iff_primitive [hnX : nontrivial X] [htGX : is_pretransitive G X]
+  (a : X) : (stabilizer G a).is_maximal ↔ is_preprimitive G X :=
 begin
   let htGX_exists := htGX.exists_smul_eq,
   split,
@@ -1333,285 +1344,3 @@ begin
 end
 
 end nodup
-
-namespace mul_action
-
-section multiple_transitivity
-
-def is_multiply_pretransitive (M α : Type*) [has_scalar M α] (n : ℕ) :=
-∀ {x : list α} (hx : x.length = n) (ndx : x.nodup)
-  {y : list α} (hy : y.length = n) (ndy : y.nodup),
-∃ (g : M), g • x = y
-
-lemma is_multiply_pretransitive_of_higher (M α : Type*) [has_scalar M α] {n : ℕ}
-  (hn : is_multiply_pretransitive M α n) {m : ℕ} (hmn : m ≤ n) (hα : card_ge α n) :
-  is_multiply_pretransitive M α m :=
-begin
-  intros x hx hxn y hy hyn,
-  obtain ⟨x', hx', hx'n, hx'e⟩ := list.extend_nodup n hα x hxn _,
-  swap, { rw hx, exact hmn },
-  obtain ⟨y', hy', hy'n, hy'e⟩ := list.extend_nodup n hα y hyn _,
-  swap, { rw hy, exact hmn },
-  obtain ⟨g, hg⟩ := hn hx' hx'n hy' hy'n,
-  use g,
-  rw [← hx'e, ← hy'e, ← smul_take, hg, hx, hy],
-end
-
-lemma is_pretransitive_iff_is_one_pretransitive (M α : Type*) [has_scalar M α] :
-  is_pretransitive M α ↔ is_multiply_pretransitive M α 1 :=
-begin
-  split,
-  { intros h,  let heq := h.exists_smul_eq,
-    intros x hx hxn y hy hyn,
-    obtain ⟨a, rfl⟩ := list.length_eq_one.mp hx,
-    obtain ⟨b, rfl⟩ := list.length_eq_one.mp hy,
-    simp only [smul_cons, smul_nil, eq_self_iff_true, and_true],
-    obtain ⟨g, hg⟩ := heq a b,
-    exact ⟨g, hg⟩ },
-  { intros heq,
-    apply is_pretransitive.mk,
-    intros a b,
-    obtain ⟨g, hg⟩ := heq _ (_ : [a].nodup)  _ (_ : [b].nodup),
-    simp only [smul_cons, smul_nil, eq_self_iff_true, and_true] at hg,
-    exact ⟨g, hg⟩,
-    any_goals
-    { simp only [list.nodup_cons, list.not_mem_nil, not_false_iff, list.nodup_nil, and_self] },
-    any_goals
-    { simp only [list.length_singleton] } }
-end
-
-lemma nodup_aux3 {M α : Type*} [group M] [mul_action M α] {a : α}
-  {l : list ↥(sub_mul_action_of_stabilizer M α a)} (hln : l.nodup) :
-  let l' := a :: l.map coe  in
-  l'.length = l.length.succ ∧ l'.nodup :=
---   (a :: l.map coe : list α).length = l.length.succ ∧ (a :: l.map coe).nodup :=
-begin
-  split,
-  { rw list.length_cons, rw list.length_map },
-  { rw list.nodup_cons, split,
-    { intro h, obtain ⟨b, hbx, hba⟩ := list.mem_map.mp h,
-      let hb' : ↑b ∈ (sub_mul_action_of_stabilizer M α a).carrier := set_like.coe_mem b,
-      rw sub_mul_action_of_stabilizer_def at hb',
-      rw hba at hb',
-      simpa only [set.mem_compl_eq, set.mem_singleton, not_true] using hb' },
-    exact (list.nodup_map_iff (subtype.coe_injective)).mpr hln },
-end
-
-/-- Multiple transitivity of a pretransitive action
-  is equivalent to one less transitivity of stabilizer of a point
-  (Wielandt, th. 9.1, 1st part)-/
-theorem stabilizer.is_multiply_pretransitive (M α : Type*) [group M] [mul_action M α]
-  (hα' : is_pretransitive M α)
-  (n : ℕ) (hα : card_ge α n.succ) (a : α) :
-  is_multiply_pretransitive M α n.succ ↔
-  is_multiply_pretransitive (stabilizer M a) (sub_mul_action_of_stabilizer M α a) n :=
-begin
-  let hα'eq := hα'.exists_smul_eq,
-  split,
-  { intro hn,
-    intros x hxl hxn y hyl hyn,
-    let hx' := nodup_aux3 hxn, rw hxl at hx',
-    let hy' := nodup_aux3 hyn, rw hyl at hy',
-    obtain ⟨g,hgxy⟩ := hn hx'.left hx'.right hy'.left hy'.right,
-    change g • (a :: list.map coe x) = (a :: list.map coe y) at hgxy,
-    rw smul_cons at hgxy,
-    have hg : g ∈ stabilizer M a,
-    { rw mem_stabilizer_iff, exact list.head_eq_of_cons_eq hgxy },
-    use ⟨g, hg⟩,
-    change list.map (λ x, (⟨g, hg⟩ : ↥(stabilizer M a)) • x) x = y,
-    apply (list.map_injective_iff.mpr (subtype.coe_injective)) ,
-    rw ← list.tail_eq_of_cons_eq hgxy,
-    change _ = list.map (λ x, g • x) (list.map coe x),
-    simp only [list.map_map],
-    apply list.map_congr,
-    intros b hb,
-    simp only [function.comp_app, sub_mul_action.coe_smul_of_tower], refl },
-  { intro hn,
-    -- Lemma to rewrite and coerce the data
-    have : ∀ {x : list α} (hxl : x.length = n.succ) (hxn : x.nodup),
-        ∃ (g : M) (x' : list ↥(sub_mul_action_of_stabilizer M α a)),
-          x'.length = n ∧ x'.nodup ∧ g • x = a :: (x'.map coe),
-      { intros x hxl hxn,
-        obtain ⟨x0, x', rfl : x = x0 :: x'⟩ :=
-          list.exists_cons_of_ne_nil (list.ne_nil_of_length_eq_succ hxl),
-        obtain ⟨gx : M, hgx : gx • x0 = a⟩ := hα'eq _ _,
-        lift (gx • x') to list ↥(sub_mul_action_of_stabilizer M α a) with g1x1 hx1,
-        swap,
-        { intros b hb,
-          simp only [← sub_mul_action.mem_carrier, sub_mul_action_of_stabilizer_def],
-          simp only [set.mem_compl_eq, set.mem_singleton_iff],
-          rintro ⟨rfl⟩,
-          refine (list.nodup_cons.mp _).left hb,
-          rw ← hgx,
-          rw ← smul_cons,
-          change (list.map (λ x, gx • x) (x0 :: x')).nodup,
-          exact list.nodup_map (mul_action.injective _) hxn },
-        use gx, use g1x1,
-        split,
-        { rw ← list.length_map, rw hx1,
-          change (x'.map _).length = _,
-          rw list.length_map,
-          simpa [list.length_cons, nat.add_one] using hxl },
-        split,
-        { apply list.nodup_of_nodup_map _,
-          rw hx1,
-          apply list.nodup_map (mul_action.injective _),
-          exact (list.nodup_cons.mp hxn).right },
-        { rw smul_cons, rw hgx, rw list.cons_inj,
-          exact hx1.symm } },
-      --
-    intros x hxl hxn,
-    obtain ⟨gx, x', hx'l, hx'n, hx'⟩ := this hxl hxn,
-    -- gx • x = a : x',
-    intros y hyl hyn,
-    obtain ⟨gy, y', hy'l, hy'n, hy'⟩ := this hyl hyn,
-    -- gy • y = a : y',
-    obtain ⟨g, hg⟩ := hn hx'l hx'n hy'l hy'n,
-    -- g • x' = y',
-
-    use gy⁻¹ * g * gx,
-    rw [mul_smul, hx', mul_smul, inv_smul_eq_iff, hy', smul_cons],
-    simp only,
-    split,
-    { rw ← mem_stabilizer_iff, exact set_like.coe_mem g },
-    { rw ← hg,
-      change list.map _ _ = list.map coe (list.map _ x'),
-      simp only [list.map_map],
-      apply list.map_congr,
-      intros b hb,
-      refl } }
-end
-
-example : ∀ (α : Type*), (card_ge α 2) ↔ nontrivial α :=
-begin
-  intro α,
-  split,
-  { rintro ⟨x, hxl, hxn⟩,
-    apply nontrivial.mk,
-    let a := list.nth_le x 0 _ , let b := list.nth_le x 1 _,
-    use a, use b, intro hab,
-    rw list.nodup_iff_nth_le_inj at hxn,
-    have : ¬(0 = 1), exact zero_ne_one, apply this,
-    apply hxn 0 1 _ _ _,
-    any_goals { rw hxl, norm_num },
-    exact hab },
-  { rintro ⟨a, b, hab⟩,
-    unfold card_ge, use ([a, b]),
-    simp [hab] }
-end
-
-open_locale classical
-
-/-- A 2-transitive action is primitive -/
-theorem is_preprimitive_of_two_pretransitive (M α : Type*) [group M] [mul_action M α]
-  (h2 : is_multiply_pretransitive M α 2) : is_preprimitive M α :=
-begin
-  cases subsingleton_or_nontrivial α with hα hα,
-  -- Trivial case where subsingleton α
-  { apply is_preprimitive.mk,
-    { apply is_pretransitive.mk,
-      intros x y, use 1, exact subsingleton_iff.mp hα _ _ },
-    { intros B hB,
-      cases B.eq_empty_or_nonempty with h h',
-      { exact or.intro_left _ h, },
-      { apply or.intro_right, apply or.intro_right,
-        rw @subsingleton.eq_univ_of_nonempty _ hα B h',
-        exact set.top_eq_univ } } },
-  -- Important case :
-  have hα : card_ge α 2,
-  { obtain ⟨a, b, hab⟩ := hα, use ([a,b]), simp [hab],  },
-  apply is_preprimitive.mk,
-  rw is_pretransitive_iff_is_one_pretransitive,
-  refine @is_multiply_pretransitive_of_higher M α _ 2 _ _ _ hα,
-  { intro x, apply h2 },
-  { norm_num, },
-  intros B hB,
-  cases subsingleton_or_nontrivial B with h h,
-  -- Cas qui devra être trivial avec la changement de définition
-  sorry,
-  -- Cas top
-  apply or.intro_right,
-  apply or.intro_right,
-  obtain ⟨a, b, hab⟩ := h,
-  rw set.top_eq_univ,
-  apply set.eq_univ_of_forall,
-  intro c,
-  cases em (c = a) with hca hca',
-  rw hca, exact subtype.mem a,
-  cases em (c = b) with hcb hcb',
-  rw hcb, exact subtype.mem b,
-  unfold is_multiply_pretransitive at h2,
-  obtain ⟨g : M, hg : g • ([↑a,↑b] : list α) = ([↑a,c])⟩ := h2 _ _ _ _,
-  any_goals { simp [subtype.coe_injective, hab, hca', hcb'] },
-  simp at hg,
-  cases is_block.def_one _ _ hB g,
-  { rw ← h, use ↑b,
-    exact ⟨subtype.mem b, hg.right⟩ },
-  { exfalso,
-    suffices : ¬ (disjoint (g • B) B), exact this h,
-    rw set.not_disjoint_iff, use ↑a,
-    split,
-    { rw ← hg.left, use ↑a, exact ⟨subtype.mem a, rfl⟩ },
-    exact (subtype.mem a) },
-  { intro hab', apply hab, exact subtype.coe_inj.mp hab' },
-  exact ne_comm.mp hca'
-end
-
-example {α : Type*} (s : finset α) (x : ↥s) : ↑x ∈ s :=
-finset.coe_mem x
-
-example {α : Type*} (l : list α) (x : ↥l.to_finset) : ↑x ∈ l :=
-list.mem_to_finset.mp (finset.coe_mem x)
-
-
-
-example {α : Type*} (n : ℕ) (l : list α) :
-  (list.take n l).length = min n l.length :=
-begin
-refine list.length_take n l,
-end
-
-
-example {α : Type*} (s : set α) (x y : list ↥s) :
-   x = y ↔ (list.map coe x : list α) = (list.map coe y) :=
-begin
-  split,
-  intro h, rw h,
-  intro h, exact  (list.map_injective_iff.mpr (subtype.coe_injective)) h,
-end
-
-
-
-end multiple_transitivity
-end mul_action
-
-end FundamentalConcepts
-
-
- /- -- Now useless
-    { obtain ⟨l', hl', hl'n, hl'e⟩ := list.extend_nodup n.succ hn.left [a] (list.nodup_singleton a) _,
-      rw list.length_singleton at hl'e,
-      swap,
-      { simp only [list.length_singleton], exact nat.succ_le_succ (zero_le n) },
-      unfold card_ge,
-      lift l'.drop 1 to list ↥(sub_mul_action_of_stabilizer M α a) with l hl_coe,
-      swap,
-      { intros x hx,
-        change x ∈ (sub_mul_action_of_stabilizer M α a).carrier,
-        rw sub_mul_action_of_stabilizer_def,
-        simp only [set.mem_compl_eq, set.mem_singleton_iff],
-        suffices : a ∉ list.drop 1 l',
-        { intro h, apply this, rw ← h, exact hx, },
-        rw ← list.singleton_disjoint,
-        apply list.disjoint_of_nodup_append,
-        rw [← hl'e,  list.take_append_drop],
-        exact hl'n },
-      use l,
-      split,
-      { rw [← list.length_map, hl_coe, list.length_drop, hl',
-          ← nat.pred_eq_sub_one, nat.pred_succ] },
-      { rw ← list.nodup_map_iff (subtype.coe_injective),
-        rw hl_coe,
-        rw ← list.take_append_drop 1 l' at hl'n,
-        exact (list.nodup_append.mp hl'n).2.1 } },
--/

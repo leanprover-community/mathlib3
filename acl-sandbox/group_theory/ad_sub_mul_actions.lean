@@ -281,6 +281,17 @@ end }
 lemma sub_mul_action_of_stabilizer_def (a : X) :
   (sub_mul_action_of_stabilizer G X a).carrier = { a }ᶜ := rfl
 
+lemma sub_mul_action_of_stabilizer_neq (a : X) (x : ↥(sub_mul_action_of_stabilizer G X a)) :
+  ↑x ≠ a :=
+begin
+  let hx := sub_mul_action.mem_carrier.mpr (set_like.mem_coe.mpr (set_like.coe_mem x)),
+  rw sub_mul_action_of_stabilizer_def at hx,
+  simp at hx,
+  exact hx
+end
+
+#check sub_mul_action.mem_carrier
+
 end group
 
 end mul_action

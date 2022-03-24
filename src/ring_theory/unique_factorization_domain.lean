@@ -1351,6 +1351,19 @@ begin
   { rw [count_eq_zero_of_ne hq hp h, mul_zero, eq_zero_of_ne q hq h] }
 end
 
+lemma count_factors_eq_find_of_dvd_pow {a p : associates α} (hp : irreducible p)
+  [∀ n : ℕ, decidable (a ∣ p ^ n)] (h : ∃ n : ℕ, a ∣ p ^ n) : nat.find h = p.count a.factors :=
+begin
+  apply le_antisymm,
+  { refine nat.find_le ⟨1, _⟩, rw mul_one, symmetry, exact eq_pow_count_factors_of_dvd_pow hp h },
+  { have hph := pow_ne_zero (nat.find h) hp.ne_zero,
+    have ha := ne_zero_of_dvd_ne_zero hph (nat.find_spec h),
+    cases (subsingleton_or_nontrivial α) with hα hα; haveI := hα,
+    { exfalso, apply ha, simp only [eq_iff_true_of_subsingleton] },
+    convert count_le_count_of_le ha hph hp (nat.find_spec h),
+    rw [count_pow hp.ne_zero hp, count_self hp, mul_one] }
+end
+
 omit dec
 omit dec_irr
 omit dec'
@@ -1378,17 +1391,11 @@ end
 theorem eq_pow_find_of_dvd_irreducible_pow {a p : associates α} (hp : irreducible p)
   [∀ n : ℕ, decidable (a ∣ p ^ n)] (h : ∃ n : ℕ, a ∣ p ^ n) : a = p ^ nat.find h :=
 begin
-  nontriviality α,
   letI := classical.dec_eq α,
   letI := classical.dec_eq (associates α),
   letI := λ p : associates α, classical.dec (irreducible p),
-  convert eq_pow_count_factors_of_dvd_pow hp h,
-  apply le_antisymm,
-  { refine nat.find_le ⟨1, _⟩, rw mul_one, symmetry, exact eq_pow_count_factors_of_dvd_pow hp h },
-  { have hph := pow_ne_zero (nat.find h) hp.ne_zero,
-    have ha := ne_zero_of_dvd_ne_zero hph (nat.find_spec h),
-    convert count_le_count_of_le ha hph hp (nat.find_spec h),
-    rw [count_pow hp.ne_zero hp, count_self hp, mul_one] }
+  rw count_factors_eq_find_of_dvd_pow hp,
+  exact eq_pow_count_factors_of_dvd_pow hp h
 end
 
 end associates

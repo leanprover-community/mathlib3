@@ -54,8 +54,8 @@ class module.injective : Prop :=
   (f : X →ₗ[R] Y) (hf : function.injective f) (g : X →ₗ[R] Q),
   ∃ (h : Y →ₗ[R] Q), ∀ x, h (f x) = g x)
 
-/--An `R`-module `Q` satisfies Baer's criterion if any `R`-linear map from an `ideal R` extends to an
-`R`-linear map `R ⟶ Q`-/
+/--An `R`-module `Q` satisfies Baer's criterion if any `R`-linear map from an `ideal R` extends to
+an `R`-linear map `R ⟶ Q`-/
 def module.Baer : Prop := ∀ (I : ideal R) (g : I →ₗ[R] Q), ∃ (g' : R →ₗ[R] Q),
   ∀ (x : R) (mem : x ∈ I), g' x = g ⟨x, mem⟩
 
@@ -85,14 +85,11 @@ begin
   rcases a with ⟨a, a_le, e1, _⟩,
   rcases b with ⟨b, b_le, e2, _⟩,
   dsimp at *,
-  subst submodule_eq,
-  have le_eq : a_le = b_le := rfl,
-  subst le_eq,
+  subst' submodule_eq,
   have ext_eq : e1 = e2,
   { ext z,
     convert extension_eq z,
-    rw subtype.ext_iff_val,
-    refl, },
+    exact subtype.ext_iff_val.mpr rfl },
   subst ext_eq,
 end
 
@@ -113,31 +110,18 @@ instance : has_bot (extension_of hi f) :=
     extension :=
       { to_fun := λ x, f x.2.some,
         map_add' := λ x y, begin
-          have eq1 : i x.2.some = x.1 := x.2.some_spec,
-          have eq2 : i y.2.some = y.1 := y.2.some_spec,
-          have eq3 : i (x + y).2.some = x.1 + y.1 := (x + y).2.some_spec,
-          have eq4 := congr_arg2 (+) eq1 eq2,
-          rw [← map_add, ← eq3] at eq4,
-          clear eq1 eq2 eq3,
-          replace eq4 := hi eq4,
-          rw [← eq4, map_add],
+          have eq1  : _ + _ = (x + y).1 := congr_arg2 (+) x.2.some_spec y.2.some_spec,
+          rw [← map_add, ← (x + y).2.some_spec] at eq1,
+          rw [← hi eq1, map_add],
         end,
         map_smul' := λ r x, begin
-          rw ring_hom.id_apply,
-          have eq1 : i x.2.some = x.1 := x.2.some_spec,
-          have eq2 : i (r • x).2.some = r • x.1 := (r • x).2.some_spec,
-          have eq3 := congr_arg ((•) r) eq1,
-          rw [← linear_map.map_smul, ← eq2] at eq3,
-          replace eq3 := hi eq3,
-          clear eq1 eq2,
-          rw [← eq3, linear_map.map_smul],
+          have eq1 : r • _ = (r • x).1 := congr_arg ((•) r) x.2.some_spec,
+          rw [← linear_map.map_smul, ← (r • x).2.some_spec] at eq1,
+          rw [ring_hom.id_apply, ← hi eq1, linear_map.map_smul],
         end },
     is_extension := λ m, begin
       simp only [linear_map.coe_mk],
-      have eq1 : i (⟨i m, ⟨_, rfl⟩⟩ : i.range).2.some = i m :=
-        (⟨i m, ⟨_, rfl⟩⟩ : i.range).2.some_spec,
-      replace eq1 := hi eq1,
-      erw eq1,
+      erw hi (⟨i m, ⟨_, rfl⟩⟩ : i.range).2.some_spec,
     end } }
 
 instance : inhabited (extension_of hi f) := ⟨⊥⟩
@@ -153,17 +137,13 @@ instance : partial_order (extension_of hi f) :=
     ⟨le_refl _, λ _, by congr'; rw subtype.ext_iff_val; refl ⟩,
   le_antisymm := λ a b ⟨⟨le_ab, hab⟩⟩ ⟨⟨le_ba, hba⟩⟩,
     let m_eq : a.to_submodule = b.to_submodule := (le_antisymm le_ab le_ba) in
-    ext _ _ _ _ m_eq (λ x, by { convert hba ⟨x, m_eq ▸ x.2⟩, rw subtype.ext_iff_val, refl }),
+    ext _ _ _ _ m_eq (λ x, by convert hba ⟨x, m_eq ▸ x.2⟩; rw subtype.ext_iff_val; refl),
   le_trans := λ a b c ⟨⟨le_ab, hab⟩⟩ ⟨⟨le_bc, hbc⟩⟩, nonempty.intro
     ⟨le_trans le_ab le_bc, λ z, by rw [← hab z, ← hbc ⟨z, le_ab z.2⟩]; refl⟩ }
 
 variables {R i hi f}
 lemma directed_on' {c : set (extension_of hi f)} (hchain : chain (≤) c) :
-  directed_on (≤) c :=
-begin
-  rw directed_on_iff_directed,
-  convert directed_of_chain hchain,
-end
+  directed_on (≤) c := directed_on_iff_directed.mpr $ directed_of_chain hchain
 
 lemma exists3 {c : set (extension_of hi f)} (hchain : chain (≤) c) {α β γ}
   (mem1 : α ∈ c) (mem2 : β ∈ c) (mem3 : γ ∈ c) :
@@ -179,9 +159,7 @@ lemma chain_submodule_of_chain_extension_of
   (chain (≤) $ (λ x : extension_of hi f, x.to_submodule) '' c) :=
 begin
   rintro _ ⟨a, a_mem, rfl⟩ _ ⟨b, b_mem, rfl⟩ (neq : a.to_submodule ≠ b.to_submodule),
-  specialize hchain a_mem b_mem
-    (λ r, neq $ r ▸ rfl),
-  rcases hchain,
+  rcases hchain a_mem b_mem (λ r, neq $ r ▸ rfl) with hchain | hchain,
   work_on_goal 1 { left },
   work_on_goal 2 { right },
   all_goals { rcases hchain with ⟨⟨le1, -⟩⟩, exact le1 },
@@ -196,10 +174,8 @@ begin
   rw directed_on_iff_directed,
   rintros ⟨_, ⟨a, a_mem, rfl⟩⟩ ⟨_, ⟨b, b_mem, rfl⟩⟩,
   by_cases eq1 : a = b,
-  { refine ⟨⟨a.to_submodule, ⟨_, a_mem, rfl⟩⟩, le_refl _, _⟩,
-    simp only [eq1],
-    exact le_refl _, },
-  { refine or.elim (hchain a_mem b_mem eq1)
+  { exact ⟨⟨a.to_submodule, ⟨_, a_mem, rfl⟩⟩, le_refl _, by convert (le_refl _)⟩ },
+  { exact or.elim (hchain a_mem b_mem eq1)
       (λ h, ⟨⟨b.to_submodule, ⟨_, b_mem, rfl⟩⟩, submodule_le_of_extension_of_le h, le_refl _⟩)
       (λ h, ⟨⟨a.to_submodule, ⟨_, a_mem, rfl⟩⟩, le_refl _, submodule_le_of_extension_of_le h⟩)}
 end
@@ -245,11 +221,8 @@ lemma pick_extension_of_to_submodule_mem
 begin
   unfold pick_extension_of,
   generalize_proofs h mem1,
-  generalize_proofs at mem1,
-  generalize_proofs,
-  have eq1 : mem1.some.to_submodule = _ := mem1.some_spec.2,
-  rw eq1,
   convert h.some_spec.some_spec,
+  exact mem1.some_spec.2,
 end
 
 lemma pick_submodule_mem {c : set (extension_of hi f)} (hchain : chain (≤) c)
@@ -281,11 +254,9 @@ begin
   { rw ext_iff at eq_ineq,
     rcases eq_ineq with ⟨h1, h2⟩,
     convert h2 _, },
-  { rcases hchain (pick_extension_of_mem hchain hnonempty x) mem1 eq_ineq with
-      ⟨⟨le1, h1⟩⟩|⟨⟨le1, h1⟩⟩,
-    all_goals {
-      rw ← h1 ⟨x.1, by assumption⟩,
-      congr, } },
+  { rcases hchain (pick_extension_of_mem hchain hnonempty x) mem1 eq_ineq with ⟨⟨_, h1⟩⟩|⟨⟨_, h1⟩⟩;
+    rw ← h1 ⟨x.1, by assumption⟩;
+    congr },
 end
 
 lemma extension_of.max_extension.map_add {c : set (extension_of hi f)}
@@ -305,7 +276,7 @@ begin
     (pick_submodule_mem_image hchain hnonempty _).some_spec.1 mem_add,
   generalize_proofs hadd hy1 hy2,
   have := exists3 hchain hadd.some_spec.1 hy1.some_spec.1 hy2.some_spec.1,
-  rcases this with ⟨z, z_mem, ⟨⟨z_le1, h1⟩⟩, ⟨⟨z_le2, h2⟩⟩, ⟨⟨z_le3, h3⟩⟩⟩,
+  rcases this with ⟨_, _, ⟨⟨_, h1⟩⟩, ⟨⟨_, h2⟩⟩, ⟨⟨_, h3⟩⟩⟩,
   rw [← h1, ← h2, ← h3, ← map_add],
   congr,
 end
@@ -322,9 +293,8 @@ begin
   rw extension_of.max_extension_property hchain hnonempty (r • y)
     (pick_submodule_mem_image hchain hnonempty (r • y)).some_spec.1 mem_smul,
   generalize_proofs inst hsmul hy,
-  resetI,
   rcases directed_on' hchain _ hsmul.some_spec.1 _ hy.some_spec.1 with
-    ⟨z, z_mem, ⟨⟨z_le1, h1⟩⟩, ⟨⟨z_le2, h2⟩⟩⟩,
+    ⟨_, _, ⟨⟨_, h1⟩⟩, ⟨⟨_, h2⟩⟩⟩,
   rw [← h1, ← linear_map.map_smul, ← h2],
   congr,
 end
@@ -347,7 +317,6 @@ def extension_of.max {c : set (extension_of hi f)} (hchain : chain (≤) c)
     generalize_proofs im_mem,
     change _ = (pick_submodule_mem_image hchain hnonempty ⟨i m, im_mem⟩).some.extension _,
     generalize_proofs mem_image mem_submodule,
-    generalize_proofs at mem_submodule,
     rw (Exists.some mem_image).is_extension m,
     congr,
   end }
@@ -356,15 +325,12 @@ lemma extension_of.le_max {c : set (extension_of hi f)} (hchain : chain (≤) c)
   (hnonempty : c.nonempty) (a : extension_of hi f) (ha : a ∈ c) :
   a ≤ extension_of.max hchain hnonempty :=
 begin
-  unfold extension_of.max,
+  unfold extension_of.max extension_of.max_extension,
   refine ⟨⟨le_Sup ⟨a, ha, rfl⟩, _⟩⟩,
-  dsimp,
-  unfold extension_of.max_extension,
+  dsimp at *,
   generalize_proofs mem1 mem_image mem2,
-  dsimp only at *,
   by_cases eq_ineq : pick_extension_of hchain hnonempty ⟨↑m, mem1⟩ = a,
-  { rw ext_iff at eq_ineq,
-    rcases eq_ineq with ⟨h1, h2⟩,
+  { rcases (ext_iff hi f _ _).mp eq_ineq with ⟨h1, h2⟩,
     convert h2 _,
     rw subtype.ext_iff_val,
     refl, },
@@ -403,27 +369,23 @@ begin
   rcases mem1 with ⟨a, b, a_mem, (b_mem : b ∈ (submodule.span R _ : submodule R N)), eq1⟩,
   rw submodule.mem_span_singleton at b_mem,
   rcases b_mem with ⟨z, eq2⟩,
-  refine ⟨⟨a, a_mem⟩, z, _⟩,
-  rw [← eq1, eq2],
+  exact ⟨⟨a, a_mem⟩, z, by rw [← eq1, ← eq2]⟩,
 end
 
 /--If `x ∈ M ⊔ ⟨y⟩`, then `x = m + r • y`, `fst` pick an arbitrary such `m`.-/
 def extension_of_max_adjoin.fst
-  {y : N}
-  (x : (extension_of_max hi f).to_submodule ⊔ submodule.span R {y}) :
+  {y : N} (x : (extension_of_max hi f).to_submodule ⊔ submodule.span R {y}) :
   (extension_of_max hi f).to_submodule :=
 (extension_of_max_adjoin.aux1 x).some
 
 /--If `x ∈ M ⊔ ⟨y⟩`, then `x = m + r • y`, `snd` pick an arbitrary such `r`.-/
 def extension_of_max_adjoin.snd
-  {y : N}
-  (x : (extension_of_max hi f).to_submodule ⊔ submodule.span R {y}) :
+  {y : N} (x : (extension_of_max hi f).to_submodule ⊔ submodule.span R {y}) :
   R :=
 (extension_of_max_adjoin.aux1 x).some_spec.some
 
 lemma extension_of_max_adjoin.eqn
-  {y : N}
-  (x : (extension_of_max hi f).to_submodule ⊔ submodule.span R {y}) :
+  {y : N} (x : (extension_of_max hi f).to_submodule ⊔ submodule.span R {y}) :
   x.1 = (extension_of_max_adjoin.fst x).1 + (extension_of_max_adjoin.snd x) • y :=
 (extension_of_max_adjoin.aux1 x).some_spec.some_spec
 
@@ -460,7 +422,7 @@ def extension_of_max_adjoin.ideal_to (y : N) :
 lemma extension_of_max_adjoin.aux2 (h : module.Baer R Q) (y : N) :
   ∃ (g' : R →ₗ[R] Q), ∀ (x : R) (mem : x ∈ extension_of_max_adjoin.ideal hi f y),
     g' x = extension_of_max_adjoin.ideal_to hi f y ⟨x, mem⟩ :=
-  h (extension_of_max_adjoin.ideal hi f y) (extension_of_max_adjoin.ideal_to hi f y)
+h (extension_of_max_adjoin.ideal hi f y) (extension_of_max_adjoin.ideal_to hi f y)
 
 /-- Since we assumed `Q` being Baer, the linear map `x ↦ f' (x • y) : I ⟶ Q` extends to `R ⟶ Q`,
 call this extended map `φ`-/
@@ -478,11 +440,8 @@ lemma extension_of_max_adjoin.extend_ideal_to_wd' (h : module.Baer R Q) {y : N} 
   (eq1 : r • y = 0) :
   extension_of_max_adjoin.extend_ideal_to hi f h y r = 0 :=
 begin
-  rw extension_of_max_adjoin.extend_ideal_to_is_extension hi f h y r begin
-    change r • y ∈ _,
-    rw eq1,
-    exact submodule.zero_mem _,
-  end,
+  rw extension_of_max_adjoin.extend_ideal_to_is_extension hi f h y r
+    (by rw eq1; exact submodule.zero_mem _ : r • y ∈ _),
   unfold extension_of_max_adjoin.ideal_to,
   simp only [linear_map.coe_mk, eq1],
   convert map_zero _,
@@ -502,16 +461,13 @@ lemma extension_of_max_adjoin.extend_ideal_to_eq (h : module.Baer R Q) {y : N} (
   (hr : r • y ∈ (extension_of_max hi f).to_submodule) :
   extension_of_max_adjoin.extend_ideal_to hi f h y r =
   (extension_of_max hi f).extension ⟨r • y, hr⟩ :=
-begin
-  rw extension_of_max_adjoin.extend_ideal_to_is_extension hi f h _ _ hr,
-  refl,
-end
+by rw extension_of_max_adjoin.extend_ideal_to_is_extension hi f h _ _ hr; refl
 
 /--We can finally define a linear map `M ⊔ ⟨y⟩ ⟶ Q` by `x + r • y ↦ f x + φ r`
 -/
 def extension_of_max_adjoin.extension_to_fun (h : module.Baer R Q)
   {y : N} :
-  (extension_of_max hi f).to_submodule ⊔ submodule.span R {y} →  Q :=
+  (extension_of_max hi f).to_submodule ⊔ submodule.span R {y} → Q :=
 λ x, (extension_of_max hi f).extension (extension_of_max_adjoin.fst x) +
   extension_of_max_adjoin.extend_ideal_to hi f h y (extension_of_max_adjoin.snd x)
 
@@ -527,11 +483,8 @@ begin
   rw [extension_of_max_adjoin.eqn, ← sub_eq_zero,
     show ∀ (a b c d : N), (a + b) - (c + d) = (a - c) - (d - b), from λ _ _ _ _, by abel,
     sub_eq_zero, ← sub_smul] at eq2,
-  have eq3 := extension_of_max_adjoin.extend_ideal_to_eq hi f h
-    (r - extension_of_max_adjoin.snd x) begin
-      rw ← eq2,
-      exact submodule.sub_mem _ (extension_of_max_adjoin.fst x).2 a.2,
-    end,
+  have eq3 := extension_of_max_adjoin.extend_ideal_to_eq hi f h (r - extension_of_max_adjoin.snd x)
+    (by rw ← eq2; exact submodule.sub_mem _ (extension_of_max_adjoin.fst x).2 a.2),
   simp only [map_sub, sub_smul, sub_eq_iff_eq_add] at eq3,
   unfold extension_of_max_adjoin.extension_to_fun,
   rw [eq3, ← add_assoc],

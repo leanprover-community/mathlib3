@@ -262,8 +262,7 @@ variables {C K r : ℝ≥0} {f : X → Y} {s t : set X}
 lemma holder_on_with.dimH_image_le (h : holder_on_with C r f s) (hr : 0 < r) :
   dimH (f '' s) ≤ dimH s / r :=
 begin
-  borelize X,
-  borelize Y,
+  borelize [X, Y],
   refine dimH_le (λ d hd, _),
   have := h.hausdorff_measure_image_le hr d.coe_nonneg,
   rw [hd, ennreal.coe_rpow_of_nonneg _ d.coe_nonneg, top_le_iff] at this,
@@ -367,8 +366,7 @@ namespace antilipschitz_with
 lemma dimH_preimage_le (hf : antilipschitz_with K f) (s : set Y) :
   dimH (f ⁻¹' s) ≤ dimH s :=
 begin
-  borelize X,
-  borelize Y,
+  borelize [X, Y],
   refine dimH_le (λ d hd, le_dimH_of_hausdorff_measure_eq_top _),
   have := hf.hausdorff_measure_preimage_le d.coe_nonneg s,
   rw [hd, top_le_iff] at this,

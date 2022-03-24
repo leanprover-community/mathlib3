@@ -719,7 +719,7 @@ lemma L1.integral_eq_integral (f : α →₁[μ] E) : L1.integral f = ∫ a, f a
 lemma integral_undef (h : ¬ integrable f μ) : ∫ a, f a ∂μ = 0 :=
 dif_neg h
 
-lemma integral_non_ae_measurable (h : ¬ ae_strongly_measurable f μ) : ∫ a, f a ∂μ = 0 :=
+lemma integral_non_ae_strongly_measurable (h : ¬ ae_strongly_measurable f μ) : ∫ a, f a ∂μ = 0 :=
 integral_undef $ not_and_of_not_left _ h
 
 variables (α E)
@@ -1103,7 +1103,7 @@ begin
   { refine integral_mono_ae ⟨hfm, _⟩ hgi h,
     refine (hgi.has_finite_integral.mono $ h.mp $ hf.mono $ λ x hf hfg, _),
     simpa [real.norm_eq_abs, abs_of_nonneg hf, abs_of_nonneg (le_trans hf hfg)] },
-  { rw [integral_non_ae_measurable hfm],
+  { rw [integral_non_ae_strongly_measurable hfm],
     exact integral_nonneg_of_ae (hf.trans h) }
 end
 
@@ -1127,7 +1127,7 @@ classical.by_cases
     ... = ∫ a, ∥f a∥ ∂μ : (integral_eq_lintegral_of_nonneg_ae le_ae $ h.norm).symm )
 ( λh : ¬ae_strongly_measurable f μ,
   begin
-    rw [integral_non_ae_measurable h, norm_zero],
+    rw [integral_non_ae_strongly_measurable h, norm_zero],
     exact integral_nonneg_of_ae le_ae
   end )
 
@@ -1324,7 +1324,7 @@ lemma _root_.measurable_embedding.integral_map {β} {_ : measurable_space β} {f
 begin
   by_cases hgm : ae_strongly_measurable g (measure.map f μ),
   { exact integral_map hf.measurable hgm },
-  { rw [integral_non_ae_measurable hgm, integral_non_ae_measurable],
+  { rw [integral_non_ae_strongly_measurable hgm, integral_non_ae_strongly_measurable],
     rwa ← hf.ae_strongly_measurable_map_iff }
 end
 

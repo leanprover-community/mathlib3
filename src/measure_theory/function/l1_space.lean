@@ -401,6 +401,11 @@ lemma integrable.ae_strongly_measurable {f : α → β} (hf : integrable f μ) :
   ae_strongly_measurable f μ :=
 hf.1
 
+lemma integrable.ae_measurable [measurable_space β] [borel_space β]
+  {f : α → β} (hf : integrable f μ) :
+  ae_measurable f μ :=
+hf.ae_strongly_measurable.ae_measurable
+
 lemma integrable.has_finite_integral {f : α → β} (hf : integrable f μ) : has_finite_integral f μ :=
 hf.2
 

@@ -181,15 +181,12 @@ rings, using the sup norm. -/
 instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
   [Π i, non_unital_semi_normed_ring (π i)] :
   non_unital_semi_normed_ring (Π i, π i) :=
-{ norm_mul := assume x y,
-  calc
-    ∥x * y∥ = ↑(finset.univ.sup (λ i, ∥x i*y i∥₊)) : rfl
-        ... ≤ ↑(finset.univ.sup ((λ i, ∥x i∥₊)*(λ i, ∥y i∥₊))) :
-          nnreal.coe_mono $ finset.sup_mono_fun $ λ b hb, norm_mul_le _ _
-        ... ≤ ↑(finset.univ.sup (λ i, ∥x i∥₊) * finset.univ.sup (λ i, ∥y i∥₊)) :
-          nnreal.coe_mono $
-            finset.sup_mul_le_mul_sup (λ i, nnreal.coe_nonneg _) (λ i, nnreal.coe_nonneg _) _
-        ... = ∥x∥*∥y∥ : rfl,
+{ norm_mul := λ x y, nnreal.coe_mono $
+    calc  finset.univ.sup (λ i, ∥x i * y i∥₊)
+        ≤ finset.univ.sup ((λ i, ∥x i∥₊) * (λ i, ∥y i∥₊)) :
+            finset.sup_mono_fun $ λ b hb, norm_mul_le _ _
+    ... ≤ finset.univ.sup (λ i, ∥x i∥₊) * finset.univ.sup (λ i, ∥y i∥₊) :
+            finset.sup_mul_le_mul_sup (λ i, nnreal.coe_nonneg _) (λ i, nnreal.coe_nonneg _) _,
   ..pi.semi_normed_group }
 
 /-- Seminormed ring instance (using sup norm of sup norm) for matrices over a seminormed ring. Not

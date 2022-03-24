@@ -8,7 +8,6 @@ import field_theory.galois
 import topology.algebra.filter_basis
 import topology.algebra.open_subgroup
 import tactic.by_contra
-import topology.category.Profinite.default
 
 /-!
 # Krull topology
@@ -290,6 +289,7 @@ end totally_disconnected
 
 
 section finite
+namespace krull_topology
 
 variables {K E L : Type*} [field K] [field E] [algebra K E] [field L] [algebra K L]
 
@@ -300,28 +300,15 @@ by { classical, letI : fintype X := set.finite.fintype hX, exact pi.fintype}
 
 variable (K)
 
-/-- Function taking `e ∈ E` to the multiset of roots of its minimal polynomial in `L` -/
-noncomputable def roots_of_min_poly_multiset : E → multiset L :=
-λ e, ((minpoly K e).map (algebra_map K L)).roots
-
 variable [finite_dimensional K E]
 
-lemma minpoly.ne_zero' (e : E) : minpoly K e ≠ 0 :=
-minpoly.ne_zero $ is_integral_of_noetherian (is_noetherian.iff_fg.2 infer_instance) _
-
-variable (E)
-
-/-- The set of basis elements of `E` as a `K`-vector space -/
-def basis_set_of_fin_dim_field_extension: set E :=
-set.range (finite_dimensional.fin_basis K E : _ → E)
-
-variable (L)
+variables (E L)
 
 /-- Function from Hom_K(E,L) to pi type Π (x : basis), roots of min poly of x -/
-def roots_of_min_poly_pi_type (φ : E →ₐ[K] L) (x : basis_set_of_fin_dim_field_extension K E) :
-  {l : L // l ∈ (roots_of_min_poly_multiset K x.1 : multiset L)} :=
+def roots_of_min_poly_pi_type (φ : E →ₐ[K] L)
+(x : set.range (finite_dimensional.fin_basis K E : _ → E)) :
+  {l : L // l ∈ (((minpoly K x.1).map (algebra_map K L)).roots : multiset L)} :=
 ⟨φ x, begin
-  unfold roots_of_min_poly_multiset,
   rw [polynomial.mem_roots_map (minpoly.ne_zero' K x.val),
     ← polynomial.alg_hom_eval₂_algebra_map, ← φ.map_zero],
   exact congr_arg φ (minpoly.aeval K (x : E)),
@@ -343,7 +330,7 @@ end
 
 /-- Given field extensions `E/K` and `L/K`, with `E/K` finite, there are finitely many `K`-algebra
   homomorphisms `E →ₐ[K] L`. -/
-noncomputable instance alg_homs_finite : fintype (E →ₐ[K] L) :=
+noncomputable instance fintype_alg_hom : fintype (E →ₐ[K] L) :=
 let n := finite_dimensional.finrank K E in
 begin
   let B : basis (fin n) K E := finite_dimensional.fin_basis K E,
@@ -354,4 +341,5 @@ begin
     (aux_inj_roots_of_min_poly K E L),
 end
 
+end krull_topology
 end finite

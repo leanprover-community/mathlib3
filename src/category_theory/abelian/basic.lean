@@ -143,20 +143,12 @@ variables {P Q : C} (f : P ⟶ Q)
 
 section
 
-lemma mono_of_zero_kernel (R : C)
-  (l : is_limit (kernel_fork.of_ι (0 : R ⟶ P) (show 0 ≫ f = 0, by simp))) : mono f :=
-non_preadditive_abelian.mono_of_zero_kernel _ _ l
-
 lemma mono_of_kernel_ι_eq_zero (h : kernel.ι f = 0) : mono f :=
 mono_of_kernel_zero h
 
-lemma epi_of_zero_cokernel (R : C)
-  (l : is_colimit (cokernel_cofork.of_π (0 : Q ⟶ R) (show f ≫ 0 = 0, by simp))) : epi f :=
-non_preadditive_abelian.epi_of_zero_cokernel _ _ l
-
 lemma epi_of_cokernel_π_eq_zero (h : cokernel.π f = 0) : epi f :=
 begin
-  apply epi_of_zero_cokernel _ (cokernel f),
+  apply normal_mono_category.epi_of_zero_cokernel _ (cokernel f),
   simp_rw ←h,
   exact is_colimit.of_iso_colimit (colimit.is_colimit (parallel_pair f 0)) (iso_of_π _)
 end
@@ -313,6 +305,30 @@ non_preadditive_abelian.epi_is_cokernel_of_kernel s h
 def mono_is_kernel_of_cokernel [mono f] (s : cofork f 0) (h : is_colimit s) :
   is_limit (kernel_fork.of_ι f (cokernel_cofork.condition s)) :=
 non_preadditive_abelian.mono_is_kernel_of_cokernel s h
+
+variables (f)
+
+/-- In an abelian category, any morphism that turns to zero when precomposed with the kernel of an
+    epimorphism factors through that epimorphism. -/
+def epi_desc [epi f] {T : C} (g : X ⟶ T) (hg : kernel.ι f ≫ g = 0) : Y ⟶ T :=
+(epi_is_cokernel_of_kernel _ (limit.is_limit _)).desc (cokernel_cofork.of_π _ hg)
+
+@[simp, reassoc]
+lemma comp_epi_desc [epi f] {T : C} (g : X ⟶ T) (hg : kernel.ι f ≫ g = 0) :
+  f ≫ epi_desc f g hg = g :=
+(epi_is_cokernel_of_kernel _ (limit.is_limit _)).fac (cokernel_cofork.of_π _ hg)
+  walking_parallel_pair.one
+
+/-- In an abelian category, any morphism that turns to zero when postcomposed with the cokernel of a
+    monomorphism factors through that monomorphism. -/
+def mono_lift [mono f] {T : C} (g : T ⟶ Y) (hg : g ≫ cokernel.π f = 0) : T ⟶ X :=
+(mono_is_kernel_of_cokernel _ (colimit.is_colimit _)).lift (kernel_fork.of_ι _ hg)
+
+@[simp, reassoc]
+lemma mono_lift_comp [mono f] {T : C} (g : T ⟶ Y) (hg : g ≫ cokernel.π f = 0) :
+  mono_lift f g hg ≫ f = g :=
+(mono_is_kernel_of_cokernel _ (colimit.is_colimit _)).fac (kernel_fork.of_ι _ hg)
+  walking_parallel_pair.zero
 
 end cokernel_of_kernel
 

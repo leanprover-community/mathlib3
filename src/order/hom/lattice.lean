@@ -102,7 +102,7 @@ class inf_top_hom_class (F : Type*) (α β : out_param $ Type*) [has_inf α]
 
 /-- `lattice_hom_class F α β` states that `F` is a type of lattice morphisms.
 
-You should extend this class when you extend `sup_hom`. -/
+You should extend this class when you extend `lattice_hom`. -/
 class lattice_hom_class (F : Type*) (α β : out_param $ Type*) [lattice α] [lattice β]
   extends sup_hom_class F α β :=
 (map_inf (f : F) (a b : α) : f (a ⊓ b) = f a ⊓ f b)
@@ -168,18 +168,39 @@ instance bounded_lattice_hom_class.to_bounded_order_hom_class [lattice α] [latt
 { .. ‹bounded_lattice_hom_class F α β› }
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso.sup_hom_class [semilattice_sup α] [semilattice_sup β] :
-  sup_hom_class (α ≃o β) α β :=
-{ map_sup := λ f, f.map_sup, ..rel_iso.rel_hom_class }
+instance order_iso_class.to_sup_hom_class [semilattice_sup α] [semilattice_sup β]
+  [order_iso_class F α β] :
+  sup_hom_class F α β :=
+⟨λ f a b, eq_of_forall_ge_iff $ λ c, by simp only [←le_map_inv_iff, sup_le_iff]⟩
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso.inf_hom_class [semilattice_inf α] [semilattice_inf β] :
-  inf_hom_class (α ≃o β) α β :=
-{ map_inf := λ f, f.map_inf, ..rel_iso.rel_hom_class }
+instance order_iso_class.to_inf_hom_class [semilattice_inf α] [semilattice_inf β]
+  [order_iso_class F α β] :
+  inf_hom_class F α β :=
+⟨λ f a b, eq_of_forall_le_iff $ λ c, by simp only [←map_inv_le_iff, le_inf_iff]⟩
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso.lattice_hom_class [lattice α] [lattice β] : lattice_hom_class (α ≃o β) α β :=
-{ ..order_iso.sup_hom_class, ..order_iso.inf_hom_class }
+instance order_iso_class.to_sup_bot_hom_class [semilattice_sup α] [order_bot α] [semilattice_sup β]
+  [order_bot β] [order_iso_class F α β] :
+  sup_bot_hom_class F α β :=
+{ ..order_iso_class.to_sup_hom_class, ..order_iso_class.to_bot_hom_class }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso_class.to_inf_top_hom_class [semilattice_inf α] [order_top α] [semilattice_inf β]
+  [order_top β] [order_iso_class F α β] :
+  inf_top_hom_class F α β :=
+{ ..order_iso_class.to_inf_hom_class, ..order_iso_class.to_top_hom_class }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso_class.to_lattice_hom_class [lattice α] [lattice β] [order_iso_class F α β] :
+  lattice_hom_class F α β :=
+{ ..order_iso_class.to_sup_hom_class, ..order_iso_class.to_inf_hom_class }
+
+@[priority 100] -- See note [lower instance priority]
+instance order_iso_class.to_bounded_lattice_hom_class [lattice α] [lattice β] [bounded_order α]
+  [bounded_order β] [order_iso_class F α β] :
+  bounded_lattice_hom_class F α β :=
+{ ..order_iso_class.to_lattice_hom_class, ..order_iso_class.to_bounded_order_hom_class }
 
 @[simp] lemma map_finset_sup [semilattice_sup α] [order_bot α] [semilattice_sup β] [order_bot β]
   [sup_bot_hom_class F α β] (f : F) (s : finset ι) (g : ι → α) :
@@ -774,7 +795,19 @@ lemma cancel_right {g₁ g₂ : bounded_lattice_hom β γ} {f : bounded_lattice_
 lemma cancel_left {g : bounded_lattice_hom β γ} {f₁ f₂ : bounded_lattice_hom α β}
   (hg : injective g) :
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
-⟨λ h, bounded_lattice_hom.ext $ λ a, hg $
-  by rw [←bounded_lattice_hom.comp_apply, h, bounded_lattice_hom.comp_apply], congr_arg _⟩
+⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
+
+/-- Reinterpret a bounded lattice homomorphism as a bounded lattice homomorphism between the dual
+bounded lattices. -/
+@[simps] protected def dual :
+   bounded_lattice_hom α β ≃ bounded_lattice_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, { to_lattice_hom := f.to_lattice_hom.dual,
+                   map_top' := congr_arg to_dual f.map_bot',
+                   map_bot' := congr_arg to_dual f.map_top' },
+  inv_fun := λ f, { to_lattice_hom := lattice_hom.dual.symm f.to_lattice_hom,
+                    map_top' := congr_arg of_dual f.map_bot',
+                    map_bot' := congr_arg of_dual f.map_top' },
+  left_inv := λ f, ext $ λ a, rfl,
+  right_inv := λ f, ext $ λ a, rfl }
 
 end bounded_lattice_hom

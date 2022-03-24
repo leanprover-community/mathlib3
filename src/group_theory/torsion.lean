@@ -43,6 +43,17 @@ end monoid
 
 open monoid
 
+/-- Torsion monoids are really groups. -/
+@[to_additive "Torsion additive monoids are really additive groups"]
+noncomputable def is_torsion.group [monoid G] (tG : is_torsion G) : group G :=
+{ inv := λ g, g ^ (order_of g - 1),
+  mul_left_inv := λ g,
+  begin
+    erw [←pow_succ', tsub_add_cancel_of_le, pow_order_of_eq_one],
+    exact order_of_pos' (tG g)
+  end,
+  ..‹monoid G› }
+
 variables [group G] {N : subgroup G}
 
 /--Subgroups of torsion groups are torsion groups. -/

@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import tactic.elementwise
 import category_theory.concrete_category.bundled_hom
 import algebra.punit_instances
-import category_theory.reflects_isomorphisms
+import category_theory.functor.reflects_isomorphisms
 
 /-!
 # Category instances for monoid, add_monoid, comm_monoid, and add_comm_monoid.
@@ -63,6 +63,9 @@ add_decl_doc AddMon.of
 
 /-- Typecheck a `add_monoid_hom` as a morphism in `AddMon`. -/
 add_decl_doc AddMon.of_hom
+
+@[simp] lemma of_hom_apply {X Y : Type u} [monoid X] [monoid Y] (f : X →* Y)
+  (x : X) : of_hom f x = f x := rfl
 
 @[to_additive]
 instance : inhabited Mon :=

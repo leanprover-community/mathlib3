@@ -144,7 +144,7 @@ Ring Theory:
     unique factorisation domain (UFD): 'unique_factorization_monoid'
     greatest common divisor: 'gcd_monoid.gcd'
     least common multiple: 'gcd_monoid.lcm'
-    $A[X]$ is a UFD when $A$ is a UFD: 'polynomial.unique_factorization_monoid'
+    $A[{X_i}]$ is a UFD when $A$ is a UFD: 'mv_polynomial.unique_factorization_monoid'
     principal ideal domain: 'submodule.is_principal'
     Euclidean rings: 'euclidean_domain'
     Euclid's' algorithm: 'nat.xgcd'
@@ -561,7 +561,7 @@ Probability Theory:
     probability generating functions: ''
     applications of probability generating functions to sums of independent random variables: ''
   Convergence of series of random variables:
-    convergence in probability: ''
+    convergence in probability: 'measure_theory.tendsto_in_measure'
     $\mathrm{L}^p$ convergence: ''
     almost surely convergence: 'measure_theory.measure.ae'
     Markov inequality: 'measure_theory.mul_meas_ge_le_lintegral'

@@ -547,7 +547,7 @@ lemma sum_add_index {S : Type*} [add_comm_monoid S] (p q : R[X])
 begin
   rcases p, rcases q,
   simp only [add_to_finsupp, sum, support, coeff, pi.add_apply, coe_add],
-  exact finsupp.sum_add_index hf h_add,
+  exact finsupp.sum_add_index' hf h_add,
 end
 
 lemma sum_add' {S : Type*} [add_comm_monoid S] (p : R[X]) (f g : ℕ → R → S) :
@@ -684,6 +684,10 @@ by rw [eq_neg_iff_add_eq_zero, ←monomial_add, neg_add_self, monomial_zero_righ
 
 @[simp] lemma support_neg {p : R[X]} : (-p).support = p.support :=
 by { rcases p, simp [support, neg_to_finsupp] }
+
+@[simp]
+lemma C_eq_int_cast (n : ℤ) : C (n : R) = n :=
+(C : R →+* _).map_int_cast n
 
 end ring
 

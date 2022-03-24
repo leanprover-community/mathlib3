@@ -103,9 +103,9 @@ instance {α β : Type*} [preorder α] [topological_space α] [compact_Icc_space
   compact_Icc_space (α × β) :=
 ⟨λ a b, (Icc_prod_eq a b).symm ▸ is_compact_Icc.prod is_compact_Icc⟩
 
-/-- An unordered closed interval in a conditionally complete linear order is compact. -/
-lemma is_compact_interval {α : Type*} [conditionally_complete_linear_order α]
-  [topological_space α] [order_topology α]{a b : α} : is_compact (interval a b) :=
+/-- An unordered closed interval is compact. -/
+lemma is_compact_interval {α : Type*} [linear_order α] [topological_space α] [compact_Icc_space α]
+  {a b : α} : is_compact (interval a b) :=
 is_compact_Icc
 
 /-- A complete linear order is a compact space.
@@ -299,21 +299,22 @@ lemma is_compact.bdd_above_image {f : β → α} {K : set β}
   (hK : is_compact K) (hf : continuous_on f K) : bdd_above (f '' K) :=
 @is_compact.bdd_below_image (order_dual α) _ _ _ _ _ _ _ hK hf
 
+namespace continuous_on
 /-!
 ### Image of a closed interval
 -/
 
 variables [densely_ordered α] [conditionally_complete_linear_order β] [order_topology β]
-  {f : α → β} {a b x y : α}
+  {f : α → β} {a b c : α}
 
 open_locale interval
 
-lemma continuous_on.image_Icc (hab : a ≤ b) (h : continuous_on f $ Icc a b) :
+lemma image_Icc (hab : a ≤ b) (h : continuous_on f $ Icc a b) :
   f '' Icc a b = Icc (Inf $ f '' Icc a b) (Sup $ f '' Icc a b) :=
 eq_Icc_of_connected_compact ⟨(nonempty_Icc.2 hab).image f, is_preconnected_Icc.image f h⟩
   (is_compact_Icc.image_of_continuous_on h)
 
-lemma continuous_on.image_interval_eq_Icc (h : continuous_on f $ [a, b]) :
+lemma image_interval_eq_Icc (h : continuous_on f $ [a, b]) :
   f '' [a, b] = Icc (Inf (f '' [a, b])) (Sup (f '' [a, b])) :=
 begin
   cases le_total a b with h2 h2,
@@ -321,10 +322,28 @@ begin
   { simp_rw [interval_of_ge h2] at h ⊢, exact h.image_Icc h2 },
 end
 
-lemma continuous_on.image_interval (h : continuous_on f $ [a, b]) :
+lemma image_interval (h : continuous_on f $ [a, b]) :
   f '' [a, b] = [Inf (f '' [a, b]), Sup (f '' [a, b])] :=
 begin
   refine h.image_interval_eq_Icc.trans (interval_of_le _).symm,
   refine cInf_le_cSup _ _ (nonempty_interval.image _); rw h.image_interval_eq_Icc,
   exacts [bdd_below_Icc, bdd_above_Icc]
 end
+
+lemma Inf_image_Icc_le (h : continuous_on f $ Icc a b) (hc : c ∈ Icc a b) :
+  Inf (f '' (Icc a b)) ≤ f c :=
+begin
+  rw h.image_Icc (nonempty_Icc.mp (set.nonempty_of_mem hc)),
+  exact cInf_le bdd_below_Icc (mem_Icc.mpr ⟨cInf_le (is_compact_Icc.bdd_below_image h) ⟨c, hc, rfl⟩,
+     le_cSup (is_compact_Icc.bdd_above_image h) ⟨c, hc, rfl⟩⟩),
+end
+
+lemma le_Sup_image_Icc (h : continuous_on f $ Icc a b) (hc : c ∈ Icc a b) :
+  f c ≤ Sup (f '' (Icc a b)) :=
+begin
+  rw h.image_Icc (nonempty_Icc.mp (set.nonempty_of_mem hc)),
+  exact le_cSup bdd_above_Icc (mem_Icc.mpr ⟨cInf_le (is_compact_Icc.bdd_below_image h) ⟨c, hc, rfl⟩,
+     le_cSup (is_compact_Icc.bdd_above_image h) ⟨c, hc, rfl⟩⟩),
+end
+
+end continuous_on

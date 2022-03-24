@@ -36,7 +36,7 @@ class is_integrally_closed (R : Type*) [comm_ring R] [is_domain R] : Prop :=
 section iff
 
 variables {R : Type*} [comm_ring R] [is_domain R]
-variables (K : Type*) [comm_ring K] [algebra R K] [is_fraction_ring R K]
+variables (K : Type*) [field K] [algebra R K] [is_fraction_ring R K]
 
 /-- `R` is integrally closed iff all integral elements of its fraction field `K`
 are also elements of `R`. -/
@@ -76,7 +76,7 @@ end iff
 namespace is_integrally_closed
 
 variables {R : Type*} [comm_ring R] [id : is_domain R] [iic : is_integrally_closed R]
-variables {K : Type*} [comm_ring K] [algebra R K] [ifr : is_fraction_ring R K]
+variables {K : Type*} [field K] [algebra R K] [ifr : is_fraction_ring R K]
 
 include iic ifr
 
@@ -92,7 +92,7 @@ let h := is_integral_iff.mp hx in ⟨_, ⟨polynomial.monic_X_pow_sub_C h.some $
 
 @[simp] lemma is_integral_pow_iff {x : K} {n : ℕ} (hn : 0 < n) :
   is_integral R (x ^ n) ↔ is_integral R x :=
-⟨is_integral_of_pow hn, flip is_integral.pow n⟩
+⟨is_integral_of_pow hn, λ hx, is_integral.pow hx n⟩
 
 omit iic ifr
 

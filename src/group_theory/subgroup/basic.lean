@@ -9,6 +9,7 @@ import group_theory.submonoid.centralizer
 import algebra.group.conj
 import algebra.module.basic
 import order.atoms
+import order.sup_indep
 
 /-!
 # Subgroups
@@ -1506,6 +1507,15 @@ let ⟨y, hy⟩ := this in conj_injective hy.2 ▸ hy.1⟩
 variable {H}
 @[to_additive] lemma mem_normalizer_iff {g : G} :
   g ∈ normalizer H ↔ ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H := iff.rfl
+
+@[to_additive] lemma mem_normalizer_iff' {g : G} : g ∈ normalizer H ↔ ∀ n, n * g ∈ H ↔ g * n ∈ H :=
+begin
+  refine ⟨λ h n, _, λ h n, _⟩,
+  { specialize h (n * g),
+    rwa [mul_assoc, mul_inv_cancel_right] at h },
+  { specialize h (n * g⁻¹),
+    rwa [inv_mul_cancel_right, ←mul_assoc] at h },
+end
 
 @[to_additive] lemma le_normalizer : H ≤ normalizer H :=
 λ x xH n, by rw [H.mul_mem_cancel_right (H.inv_mem xH), H.mul_mem_cancel_left xH]

@@ -693,31 +693,6 @@ end
 
 section ping_pong_lemma
 
-lemma int.le_induction {P : ℤ → Prop} {m : ℤ} (h0 : P m)
-  (h1 : ∀ (n : ℤ), m ≤ n → P n → P (n + 1)) (n : ℤ) :
-  m ≤ n → P n :=
-begin
-  apply int.induction_on' n m,
-  { intro _, exact h0, },
-  { intros k hle hi _, exact h1 k hle (hi hle), },
-  { intros _ hle _ hle',
-    exfalso,
-    exact int.lt_irrefl k (int.le_sub_one_iff.mp (hle.trans hle')), },
-end
-
-lemma int.le_induction_down {P : ℤ → Prop} {m : ℤ} (h0 : P m)
-  (h1 : ∀ (n : ℤ), n ≤ m → P n → P (n - 1)) (n : ℤ) :
-  n ≤ m → P n :=
-begin
-  apply int.induction_on' n m,
-  { intro _, exact h0, },
-  { intros _ hle _ hle',
-    exfalso,
-    exact int.lt_irrefl k (int.add_one_le_iff.mp (hle'.trans hle)), },
-  { intros k hle hi _,
-    exact h1 k hle (hi hle), },
-end
-
 open_locale pointwise
 open_locale cardinal
 

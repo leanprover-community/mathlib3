@@ -250,6 +250,33 @@ begin
       exact Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) le_rfl)) ih } }
 end
 
+/-- See `int.induction_on'` for an induction in both directions. -/
+protected lemma le_induction {P : ℤ → Prop} {m : ℤ} (h0 : P m)
+  (h1 : ∀ (n : ℤ), m ≤ n → P n → P (n + 1)) (n : ℤ) :
+  m ≤ n → P n :=
+begin
+  apply int.induction_on' n m,
+  { intro _, exact h0, },
+  { intros k hle hi _, exact h1 k hle (hi hle), },
+  { intros _ hle _ hle',
+    exfalso,
+    exact lt_irrefl k (le_sub_one_iff.mp (hle.trans hle')), },
+end
+
+/-- See `int.induction_on'` for an induction in both directions. -/
+protected lemma le_induction_down {P : ℤ → Prop} {m : ℤ} (h0 : P m)
+  (h1 : ∀ (n : ℤ), n ≤ m → P n → P (n - 1)) (n : ℤ) :
+  n ≤ m → P n :=
+begin
+  apply int.induction_on' n m,
+  { intro _, exact h0, },
+  { intros _ hle _ hle',
+    exfalso,
+    exact lt_irrefl k (add_one_le_iff.mp (hle'.trans hle)), },
+  { intros k hle hi _,
+    exact h1 k hle (hi hle), },
+end
+
 /-! ### nat abs -/
 
 attribute [simp] nat_abs nat_abs_of_nat nat_abs_zero nat_abs_one

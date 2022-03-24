@@ -191,6 +191,17 @@ begin
   exact dist_set_exists.imp (λ C hC, forall_range_iff.2 hC.2)
 end
 
+lemma tendsto_iff_tendsto_uniformly {ι : Type*} {F : ι → (α →ᵇ β)} {f : α →ᵇ β} {l : filter ι} :
+  tendsto F l (𝓝 f) ↔ tendsto_uniformly (λ i, F i) f l :=
+iff.intro
+  (λ h, tendsto_uniformly_iff.2
+    (λ ε ε0, (metric.tendsto_nhds.mp h ε ε0).mp (eventually_of_forall $
+    λ n hn x, lt_of_le_of_lt (dist_coe_le_dist x) (dist_comm (F n) f ▸ hn))))
+  (λ h, metric.tendsto_nhds.mpr $ λ ε ε_pos,
+    (h _ (dist_mem_uniformity $ half_pos ε_pos)).mp (eventually_of_forall $
+    λ n hn, lt_of_le_of_lt ((dist_le (half_pos ε_pos).le).mpr $
+    λ x, dist_comm (f x) (F n x) ▸ le_of_lt (hn x)) (half_lt_self ε_pos)))
+
 variables (α) {β}
 
 /-- Constant as a continuous bounded function. -/

@@ -54,12 +54,8 @@ instance has_forget_to_BoolAlg : has_forget₂ FinBoolAlg BoolAlg :=
 induced_category.has_forget₂ FinBoolAlg.to_BoolAlg
 
 instance has_forget_to_FinPartialOrder : has_forget₂ FinBoolAlg FinPartialOrder :=
-{ forget₂ := { obj := λ X, FinPartialOrder.of X, map := λ X Y f, begin
-    change bounded_lattice_hom _ _ at f,
-    change order_hom _ _,
-    dsimp at *,
-    exact f,
-  end } }
+{ forget₂ := { obj := λ X, FinPartialOrder.of X, map := λ X Y f,
+    show order_hom X Y, from ↑(show bounded_lattice_hom X Y, from f) } }
 
 /-- Constructs an equivalence between finite Boolean algebras from an order isomorphism between
 them. -/
@@ -82,7 +78,7 @@ equivalence.mk dual dual
 end FinBoolAlg
 
 /-- The powerset functor. `set` as a functor. -/
-def Fintype_to_FinBoolAlg_op : Fintype ⥤ FinBoolAlgᵒᵖ :=
+@[simps] def Fintype_to_FinBoolAlg_op : Fintype ⥤ FinBoolAlgᵒᵖ :=
 { obj := λ X, op $ FinBoolAlg.of (set X),
   map := λ X Y f, quiver.hom.op $
     (complete_lattice_hom.set_preimage f : bounded_lattice_hom (set Y) (set X)) }

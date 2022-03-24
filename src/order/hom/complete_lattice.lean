@@ -511,7 +511,7 @@ def set_preimage (f : α → β) : complete_lattice_hom (set β) (set α) :=
 @[simp] lemma coe_set_preimage (f : α → β) : ⇑(set_preimage f) = preimage f := rfl
 @[simp] lemma set_preimage_apply (f : α → β) (s : set β) : set_preimage f s = s.preimage f := rfl
 @[simp] lemma set_preimage_id : set_preimage (id : α → α) = complete_lattice_hom.id _ := rfl
--- This lemma can't be `simp` because `g ∘ f` matches wildly
+-- This lemma can't be `simp` because `g ∘ f` matches anything (`id ∘ f = f` synctatically)
 lemma set_preimage_comp (g : β → γ) (f : α → β) :
   set_preimage (g ∘ f) = (set_preimage f).comp (set_preimage g) := rfl
 

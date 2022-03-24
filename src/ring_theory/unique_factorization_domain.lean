@@ -1390,13 +1390,7 @@ end
 /-- The only divisors of prime powers are prime powers. -/
 theorem eq_pow_find_of_dvd_irreducible_pow {a p : associates α} (hp : irreducible p)
   [∀ n : ℕ, decidable (a ∣ p ^ n)] (h : ∃ n : ℕ, a ∣ p ^ n) : a = p ^ nat.find h :=
-begin
-  letI := classical.dec_eq α,
-  letI := classical.dec_eq (associates α),
-  letI := λ p : associates α, classical.dec (irreducible p),
-  rw count_factors_eq_find_of_dvd_pow hp,
-  exact eq_pow_count_factors_of_dvd_pow hp h
-end
+by { classical, rw [count_factors_eq_find_of_dvd_pow hp, ← eq_pow_count_factors_of_dvd_pow hp h] }
 
 end associates
 

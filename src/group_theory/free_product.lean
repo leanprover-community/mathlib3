@@ -678,6 +678,42 @@ instance {ι : Type*} (G : ι → Type*) [∀ i, group (G i)] [hG : ∀ i, is_fr
   end, }
 
 
+-- set_option pp.universes true
+-- set_option pp.implicit true
+-- set_option pp.instance_resultion true
+
+/- def free_product_ℤ_equiv_free_group {ι : Type*} :
+  free_product (λ (_ : ι), multiplicative ℤ) ≃* free_group ι :=
+/- begin
+  refine monoid_hom.to_mul_equiv _ _ _ _,
+  exact @free_product.lift ι (λ (_ : ι), multiplicative ℤ) _ _ _ (λ (i : ι), zpowers_hom _ (free_group.of i)),
+  haveI : group (free_product (λ (_ : ι), multiplicative ℤ)), sorry,
+  exact free_group.lift (λ (_ : ι), @free_product.of ι (λ (_:ι), multiplicative ℤ) _ _ (multiplicative.of_add 1 : multiplicative ℤ)),
+
+end -/
+ --.to_mul_equiv (free_group.lift (λ (i : ι), free_product.of (multiplicative.of_add 1 : multiplicative ℤ)))
+{ to_fun :=
+  -- free_product.lift (λ (i : ι), zpowers_hom _ (free_group.of i)),
+  @free_product.lift ι (λ (_ : ι), multiplicative ℤ) _ _ _ (λ (i : ι), zpowers_hom _ (free_group.of i)),
+  inv_fun := -- free_group.lift (λ (i : ι), free_product.of (multiplicative.of_add 1)),
+  @free_group.lift ι (free_product (λ _, multiplicative ℤ))
+     (free_product.group (λ _, multiplicative ℤ))
+     (λ (_ : ι), @free_product.of ι (λ (_:ι), multiplicative ℤ) _ _ (multiplicative.of_add 1 : multiplicative ℤ)),
+  left_inv := sorry,
+  right_inv := sorry,
+  map_mul' := sorry,
+} -/
+
+def free_product_free_group_punit_equiv_free_group {ι : Type u_1} :
+  free_product (λ (_ : ι), free_group unit) ≃* free_group ι :=
+begin
+  refine monoid_hom.to_mul_equiv _ _ _ _,
+  exact free_product.lift (λ (i : ι), free_group.lift (λ pstar, free_group.of i)),
+  exact free_group.lift (λ (i : ι), @free_product.of ι _ _ i (free_group.of unit.star)),
+  { ext i a, cases a, refl, },
+  { ext i, refl, }
+end
+
 section ping_pong_lemma
 
 lemma int.le_induction {P : ℤ → Prop} {m : ℤ} (h0 : P m)
@@ -729,6 +765,98 @@ variables (hY : ∀ i, a⁻¹ i • set.compl (X i) ⊆ Y i)
 
 include hXnonempty hYnonempty hXdisj hYdisj hXYdisj hX hY
 
+noncomputable
+definition is_free_group_span_of_ping_pong:
+  function.injective (free_group.lift a) :=
+begin
+  -- Step one: express the free group lift via the free product lift
+  have : free_group.lift a =
+    (free_product.lift (λ i, free_group.lift (λ (_:unit), a i))).comp
+    (((@free_product_free_group_punit_equiv_free_group ι).symm).to_monoid_hom),
+  { ext i, simp [free_product_free_group_punit_equiv_free_group], },
+  rw this, clear this,
+  refine function.injective.comp _ (mul_equiv.injective _),
+
+  -- Step two: Invoke the ping-pong lemma for free products
+  show function.injective (lift (λ (i : ι), free_group.lift (λ (_x : unit), a i))),
+
+  -- Prepare to instantiate lift_injective_of_ping_pong
+  let H : ι → Type _ := λ i, free_group unit,
+  let f : Π i, H i →* G := λ i, free_group.lift (λ _, a i),
+  let X' : ι → set α := λ i, X i ∪ Y i,
+
+  apply lift_injective_of_ping_pong _ _ X',
+
+  show _ ∨ ∃ i, 3 ≤ # (H i),
+  { right, use (arbitrary ι),
+    sorry,
+  }, -- simpa [hHcard] using (cardinal.nat_lt_omega 3).le,},
+
+  show ∀ i, (X' i).nonempty,
+  { exact (λ i, set.nonempty.inl (hXnonempty i)), },
+
+  show pairwise (λ i j, disjoint (X' i) (X' j)),
+  { intros i j hij,
+    simp only [X'],
+    apply disjoint.union_left; apply disjoint.union_right,
+    { exact hXdisj i j hij, },
+    { exact hXYdisj i j, },
+    { exact (hXYdisj j i).symm, },
+    { exact hYdisj i j hij, }, },
+
+  show pairwise (λ i j, ∀ h : H i, h ≠ 1 → f i h • X' j ⊆ X' i),
+  { rintros i j hij w hne1,
+    -- TODO
+    obtain ⟨n, rfl⟩ : ∃ n:ℤ, w = (free_group.of unit.star) ^ n := sorry,
+    simp only [map_zpow, free_group.lift.of],
+    change a i ^ n • X' j ⊆ X' i,
+    have hnne0 : n ≠ 0, { rintro rfl, apply hne1, simp, }, clear hne1,
+    simp only [X'],
+
+    by_cases hn0 : 0 ≤ n,
+    { have h1n : 1 ≤ n, sorry,
+      calc a i ^ n • X' j ⊆ a i ^ n • (Y i).compl : set_smul_subset_set_smul_iff.mpr $
+        set.disjoint_iff_subset_compl_right.mp $
+          disjoint.union_left (hXYdisj j i) (hYdisj j i hij.symm)
+      ... ⊆ X i :
+      begin
+        refine int.le_induction _ _ _ h1n,
+        { rw zpow_one, exact hX i, },
+        { intros n hle hi,
+          calc (a i ^ (n + 1)) • (Y i).compl
+                = (a i ^ n * a i) • (Y i).compl : by rw [zpow_add, zpow_one]
+            ... = a i ^ n • (a i • (Y i).compl) : mul_action.mul_smul _ _ _
+            ... ⊆ a i ^ n • X i : set_smul_subset_set_smul_iff.mpr $ hX i
+            ... ⊆ a i ^ n • (Y i).compl : set_smul_subset_set_smul_iff.mpr $
+              set.disjoint_iff_subset_compl_right.mp (hXYdisj i i)
+            ... ⊆ X i : hi,
+        },
+      end
+      ... ⊆ X' i : set.subset_union_left _ _, },
+    { have h1n : n ≤ -1, sorry,
+      calc a i ^ n • X' j ⊆ a i ^ n • (X i).compl : set_smul_subset_set_smul_iff.mpr $
+        set.disjoint_iff_subset_compl_right.mp $
+          disjoint.union_left (hXdisj j i hij.symm) (hXYdisj i j).symm
+      ... ⊆ Y i :
+      begin
+        refine int.le_induction_down _ _ _ h1n,
+        { rw [zpow_neg, zpow_one], exact hY i, },
+        { intros n hle hi,
+          calc (a i ^ (n - 1)) • (X i).compl
+                = (a i ^ n * (a i)⁻¹) • (X i).compl : by rw [zpow_sub, zpow_one]
+            ... = a i ^ n • ((a i)⁻¹ • (X i).compl) : mul_action.mul_smul _ _ _
+            ... ⊆ a i ^ n • Y i : set_smul_subset_set_smul_iff.mpr $ hY i
+            ... ⊆ a i ^ n • (X i).compl : set_smul_subset_set_smul_iff.mpr $
+              set.disjoint_iff_subset_compl_right.mp (hXYdisj i i).symm
+            ... ⊆ Y i : hi,
+        },
+      end
+      ... ⊆ X' i : set.subset_union_right _ _, },
+  },
+
+end
+
+/-
 noncomputable
 definition is_free_group_span_of_ping_pong:
   is_free_group (subgroup.closure (set.range a)) :=
@@ -847,6 +975,7 @@ begin
   { exact is_free_group.of_mul_equiv (((h1.trans h2).trans h3).trans h4), },
 
 end
+-/
 
 
 

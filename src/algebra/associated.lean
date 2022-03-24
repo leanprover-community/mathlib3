@@ -63,6 +63,21 @@ end prime
 @[simp] lemma not_prime_one : ¬ prime (1 : α) :=
 λ h, h.not_unit is_unit_one
 
+section map
+variables [comm_monoid_with_zero β] {F : Type*} {G : Type*}
+  [monoid_with_zero_hom_class F α β] [mul_hom_class G β α] (f : F) (g : G) {p : α}
+
+lemma comap_prime (hinv : ∀ a, g (f a : β) = a) (hp : prime (f p)) : prime p :=
+⟨ λ h, hp.1 $ by simp [h],  λ h, hp.2.1 $ h.map f,  λ a b h, by
+  { refine (hp.2.2 (f a) (f b) $ by { convert map_dvd f h, simp }).imp _ _;
+    { intro h, convert ← map_dvd g h; apply hinv } } ⟩
+
+lemma mul_equiv.prime_iff (e : α ≃* β) : prime p ↔ prime (e p) :=
+⟨ λ h, comap_prime e.symm e (λ a, by simp) $ (e.symm_apply_apply p).substr h,
+  comap_prime e e.symm (λ a, by simp) ⟩
+
+end map
+
 end prime
 
 lemma prime.left_dvd_or_dvd_right_of_dvd_mul [cancel_comm_monoid_with_zero α] {p : α}

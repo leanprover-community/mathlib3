@@ -153,7 +153,7 @@ begin
     apply erase_lead_nat_degree_lt (lt_of_not_ge h) }
 end
 
-lemma erase_lead_nat_degree_le : (erase_lead f).nat_degree ≤ f.nat_degree - 1 :=
+lemma erase_lead_nat_degree_le (f : R[X]) : (erase_lead f).nat_degree ≤ f.nat_degree - 1 :=
 begin
   rcases f.erase_lead_nat_degree_lt_or_erase_lead_eq_zero with h | h,
   { exact nat.le_pred_of_lt h },

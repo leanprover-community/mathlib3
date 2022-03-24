@@ -286,6 +286,7 @@ end elementary_substructure
 
 namespace substructure
 
+/-- The Tarski-Vaught test for elementarity of a substructure. -/
 theorem is_elementary_of_exists (S : L.substructure M)
   (htv : ∀ (n : ℕ) (φ : L.bounded_formula empty (n + 1)) (x : fin n → S) (a : M),
     φ.realize default (fin.snoc (coe ∘ x) a : _ → M) →
@@ -293,6 +294,7 @@ theorem is_elementary_of_exists (S : L.substructure M)
   S.is_elementary :=
 λ n, S.subtype.is_elementary_of_exists htv
 
+/-- Bundles a substructure satisfying the Tarski-Vaught test as an elementary substructure. -/
 @[simps] def to_elementary_substructure (S : L.substructure M)
   (htv : ∀ (n : ℕ) (φ : L.bounded_formula empty (n + 1)) (x : fin n → S) (a : M),
     φ.realize default (fin.snoc (coe ∘ x) a : _ → M) →

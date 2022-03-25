@@ -132,9 +132,12 @@ by { rw ← Icc_self, exact ord_connected_Icc }
 /-- In a dense order `α`, the subtype from an `ord_connected` set is also densely ordered. -/
 instance [densely_ordered α] {s : set α} [hs : ord_connected s] :
   densely_ordered s :=
-⟨ λ a₁ a₂ ha, begin
-    obtain ⟨x, ha₁x, hxa₂⟩ := @exists_between α _ _ _ _ ha,
-    exact ⟨⟨x, (hs.out a₁.2 a₂.2) (Ioo_subset_Icc_self ⟨ha₁x, hxa₂⟩)⟩, ⟨ha₁x, hxa₂⟩⟩
+⟨ begin
+    intros a₁ a₂ ha,
+    have ha' : ↑a₁ < ↑a₂ := ha,
+    obtain ⟨x, ha₁x, hxa₂⟩ := exists_between ha',
+    refine ⟨⟨x, _⟩, ⟨ha₁x, hxa₂⟩⟩,
+    exact (hs.out a₁.2 a₂.2) (Ioo_subset_Icc_self ⟨ha₁x, hxa₂⟩),
   end ⟩
 
 end preorder

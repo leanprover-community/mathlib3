@@ -867,6 +867,18 @@ begin
     refl }
 end
 
+lemma meas_ge_lt_top_of_bdd_snorm {C M : ℝ≥0} {f : α → β} (hf : snorm f p μ ≤ M) :
+  μ {x | C ≤ ∥f x∥₊} < ∞ :=
+begin
+  by_contra hmeas,
+  rw [not_lt, top_le_iff] at hmeas,
+  rw ← not_lt at hf,
+  refine hf _, clear hf,
+  refine lt_of_lt_of_le _ (@snorm_indicator_le _ _ _ _ {x : α | C ≤ ∥f x∥₊} _ _ _),
+  sorry,
+  -- have : ≤ snorm f p μ,
+end
+
 lemma uniform_integrable.spec [is_finite_measure μ] (hp : p ≠ 0) (hp' : p ≠ ∞)
   (hfu : uniform_integrable f p μ) {ε : ℝ} (hε : 0 < ε) :
   ∃ C : ℝ≥0, ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε :=
@@ -901,9 +913,7 @@ begin
       begin
         refine snorm_indicator_ge_of_bdd_below hp hp'
           (measurable_set_le measurable_const (hf₀ _).nnnorm)
-          _ (eventually_of_forall $ λ x hx, _),
-        { sorry -- otherwise contradicts `hM`
-        },
+          (meas_ge_lt_top_of_bdd_snorm (hM _)) (eventually_of_forall $ λ x hx, _),
         rwa [nnnorm_indicator_eq_indicator_nnnorm, indicator_of_mem hx],
       end
       ... ≤ snorm (f (ℐ C)) p μ : snorm_indicator_le _ },

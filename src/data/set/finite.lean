@@ -923,8 +923,8 @@ begin
     λ s b c hb hc eq, congr_arg coe eq,
   refine ⟨λ h, ⟨λ ⟨b, hb⟩ ⟨c, hc⟩ ne, h ⟨b, subset_cons ha hb⟩ ⟨c, subset_cons ha hc⟩
     (λ eq, ne $ subtype.ext $ this eq),
-    λ b hb, ⟨h ⟨a, mem_cons_self _ _⟩ ⟨b, subset_cons ha hb⟩ (λ eq, ha $ (this eq).symm.cases_on hb),
-      h ⟨b, subset_cons ha hb⟩ ⟨a, mem_cons_self _ _⟩ (λ eq, ha $ (this eq).cases_on hb)⟩⟩,
+  λ b hb, ⟨h ⟨a, mem_cons_self _ _⟩ ⟨b, subset_cons ha hb⟩ (λ eq, ha $ (this eq).symm.cases_on hb),
+    h ⟨b, subset_cons ha hb⟩ ⟨a, mem_cons_self _ _⟩ (λ eq, ha $ (this eq).cases_on hb)⟩⟩,
   λ h b c ne, _⟩,
   obtain ⟨b, hb⟩ := b, obtain ⟨c, hc⟩ := c, change r b c, rw mem_cons at hb hc,
   cases hb with hb hb; cases hc with hc hc,

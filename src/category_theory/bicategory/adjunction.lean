@@ -371,22 +371,6 @@ lemma adjointify_unit_symm (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
   (adjointify_unit η ε).symm = adjointify_counit ε.symm η.symm :=
 iso.symm_eq_iff.mpr (adjointify_counit_symm ε.symm η.symm).symm
 
--- @[simp, reassoc] lemma hom_inv_whisker_left₂ {f : a ⟶ b} {g : b ⟶ c} {h h' : c ⟶ d} (η : h ≅ h') :
---   f ◁ g ◁ η.hom ≫ f ◁ g ◁ η.inv = 𝟙 (f ≫ g ≫ h) :=
--- by simp_rw [←whisker_left_comp, iso.hom_inv_id, whisker_left_id]
-
--- @[simp, reassoc] lemma inv_hom_whisker_left₂ {f : a ⟶ b} {g : b ⟶ c} {h h' : c ⟶ d} (η : h ≅ h') :
---   f ◁ g ◁ η.inv ≫ f ◁ g ◁ η.hom = 𝟙 (f ≫ g ≫ h') :=
--- by simp_rw [←whisker_left_comp, iso.inv_hom_id, whisker_left_id]
-
--- @[simp, reassoc] lemma hom_inv_whisker_right₂ {f f' : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} (η : f ≅ f') :
---   η.hom ▷ g ▷ h ≫ η.inv ▷ g ▷ h = 𝟙 ((f ≫ g) ≫ h) :=
--- by simp_rw [←comp_whisker_right, iso.hom_inv_id, id_whisker_right]
-
--- @[simp, reassoc] lemma inv_hom_whisker_right₂ {f f' : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} (η : f ≅ f') :
---   η.inv ▷ g ▷ h ≫ η.hom ▷ g ▷ h = 𝟙 ((f' ≫ g) ≫ h) :=
--- by simp_rw [←comp_whisker_right, iso.inv_hom_id, id_whisker_right]
-
 lemma adjointify_counit_left_triangle (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
   left_zigzag_iso η (adjointify_counit η ε) = λ_ f ≪≫ (ρ_ f).symm :=
 begin

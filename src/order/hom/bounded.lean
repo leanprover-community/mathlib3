@@ -65,7 +65,7 @@ class bot_hom_class (F : Type*) (α β : out_param $ Type*) [has_bot α] [has_bo
 /-- `bounded_order_hom_class F α β` states that `F` is a type of bounded order morphisms.
 
 You should extend this class when you extend `bounded_order_hom`. -/
-class bounded_order_hom_class (F : Type*) (α β : out_param $ Type*) [preorder α] [preorder β]
+class bounded_order_hom_class (F : Type*) (α β : out_param $ Type*) [has_le α] [has_le β]
   [bounded_order α] [bounded_order β]
   extends rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop) :=
 (map_top (f : F) : f ⊤ = ⊤)
@@ -76,32 +76,34 @@ export top_hom_class (map_top) bot_hom_class (map_bot)
 attribute [simp] map_top map_bot
 
 @[priority 100] -- See note [lower instance priority]
-instance bounded_order_hom_class.to_top_hom_class [preorder α] [preorder β]
+instance bounded_order_hom_class.to_top_hom_class [has_le α] [has_le β]
   [bounded_order α] [bounded_order β] [bounded_order_hom_class F α β] :
   top_hom_class F α β :=
 { .. ‹bounded_order_hom_class F α β› }
 
 @[priority 100] -- See note [lower instance priority]
-instance bounded_order_hom_class.to_bot_hom_class [preorder α] [preorder β]
+instance bounded_order_hom_class.to_bot_hom_class [has_le α] [has_le β]
   [bounded_order α] [bounded_order β] [bounded_order_hom_class F α β] :
   bot_hom_class F α β :=
 { .. ‹bounded_order_hom_class F α β› }
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso.top_hom_class [partial_order α] [partial_order β] [order_top α] [order_top β] :
-  top_hom_class (α ≃o β) α β :=
-{ map_top := λ f, f.map_top, ..rel_iso.rel_hom_class }
+instance order_iso_class.to_top_hom_class [has_le α] [order_top α] [partial_order β] [order_top β]
+  [order_iso_class F α β] :
+  top_hom_class F α β :=
+⟨λ f, top_le_iff.1 $ (map_inv_le_iff f).1 le_top⟩
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso.bot_hom_class [partial_order α] [partial_order β] [order_bot α] [order_bot β] :
-  bot_hom_class (α ≃o β) α β :=
-{ map_bot := λ f, f.map_bot, ..rel_iso.rel_hom_class }
+instance order_iso_class.to_bot_hom_class [has_le α] [order_bot α] [partial_order β] [order_bot β]
+  [order_iso_class F α β] :
+  bot_hom_class F α β :=
+⟨λ f, le_bot_iff.1 $ (le_map_inv_iff f).1 bot_le⟩
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso.bounded_order_hom_class [partial_order α] [partial_order β]
-  [bounded_order α] [bounded_order β] :
-  bounded_order_hom_class (α ≃o β) α β :=
-{ ..order_iso.top_hom_class, ..order_iso.bot_hom_class }
+instance order_iso_class.to_bounded_order_hom_class [has_le α] [bounded_order α] [partial_order β]
+  [bounded_order β] [order_iso_class F α β] :
+  bounded_order_hom_class F α β :=
+{ ..order_iso_class.to_top_hom_class, ..order_iso_class.to_bot_hom_class }
 
 instance [has_top α] [has_top β] [top_hom_class F α β] : has_coe_t F (top_hom α β) :=
 ⟨λ f, ⟨f, map_top f⟩⟩

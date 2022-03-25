@@ -50,11 +50,10 @@ instance [has_scalar R M] [has_scalar Rᵐᵒᵖ M] [is_central_scalar R M] :
   is_central_scalar R (ulift M) :=
 ⟨λ r m, congr_arg up $ op_smul_eq_smul r m.down⟩
 
-instance mul_action [monoid R] [mul_action R M] :
-  mul_action (ulift R) M :=
+instance mul_action [monoid R] [mul_action R M] : mul_action (ulift R) M :=
 { smul := (•),
-  mul_smul := λ r s f, by { cases r, cases s, simp [mul_smul], },
-  one_smul := λ f, by { simp [one_smul], } }
+  mul_smul := λ _ _, mul_smul _ _,
+  one_smul := one_smul _ }
 
 instance mul_action' [monoid R] [mul_action R M] :
   mul_action R (ulift M) :=
@@ -64,9 +63,8 @@ instance mul_action' [monoid R] [mul_action R M] :
 
 instance distrib_mul_action [monoid R] [add_monoid M] [distrib_mul_action R M] :
   distrib_mul_action (ulift R) M :=
-{ smul_zero := λ c, by { cases c, simp [smul_zero], },
-  smul_add := λ c f g, by { cases c, simp [smul_add], },
-  ..ulift.mul_action }
+{ smul_zero := λ _, smul_zero _,
+  smul_add := λ _, smul_add _ }
 
 instance distrib_mul_action' [monoid R] [add_monoid M] [distrib_mul_action R M] :
   distrib_mul_action R (ulift M) :=
@@ -76,26 +74,41 @@ instance distrib_mul_action' [monoid R] [add_monoid M] [distrib_mul_action R M] 
 
 instance mul_distrib_mul_action [monoid R] [monoid M] [mul_distrib_mul_action R M] :
   mul_distrib_mul_action (ulift R) M :=
-{ smul_one := λ c, by { cases c, simp [smul_one], },
-  smul_mul := λ c f g, by { cases c, simp [smul_mul'], },
-  ..ulift.mul_action }
+{ smul_one := λ _, smul_one _,
+  smul_mul := λ _, smul_mul' _ }
 
 instance mul_distrib_mul_action' [monoid R] [monoid M] [mul_distrib_mul_action R M] :
   mul_distrib_mul_action R (ulift M) :=
-{ smul_one := λ c, by { ext, simp [smul_one], },
+{ smul_one := λ _, by { ext, simp [smul_one], },
   smul_mul := λ c f g, by { ext, simp [smul_mul'], },
   ..ulift.mul_action' }
 
-instance module [semiring R] [add_comm_monoid M] [module R M] :
-  module (ulift R) M :=
-{ add_smul := λ c f g, by { cases c, simp [add_smul], },
-  zero_smul := λ f, by { simp [zero_smul], },
-  ..ulift.distrib_mul_action }
+instance smul_with_zero [has_zero R] [has_zero M] [smul_with_zero R M] :
+  smul_with_zero (ulift R) M :=
+{ smul_zero := λ _, smul_zero' _ _,
+  zero_smul := zero_smul _,
+  ..ulift.has_scalar_left }
 
-instance module' [semiring R] [add_comm_monoid M] [module R M] :
-  module R (ulift M) :=
-{ add_smul := by { intros, ext1, apply add_smul },
-  zero_smul := by { intros, ext1, apply zero_smul } }
+instance smul_with_zero' [has_zero R] [has_zero M] [smul_with_zero R M] :
+  smul_with_zero R (ulift M) :=
+{ smul_zero := λ _, ulift.ext _ _ $ smul_zero' _ _,
+  zero_smul := λ _, ulift.ext _ _ $ zero_smul _ _ }
+
+instance mul_action_with_zero [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M] :
+  mul_action_with_zero (ulift R) M :=
+{ ..ulift.smul_with_zero }
+
+instance mul_action_with_zero' [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M] :
+  mul_action_with_zero R (ulift M) :=
+{ ..ulift.smul_with_zero' }
+
+instance module [semiring R] [add_comm_monoid M] [module R M] : module (ulift R) M :=
+{ add_smul := λ _ _, add_smul _ _,
+  ..ulift.smul_with_zero }
+
+instance module' [semiring R] [add_comm_monoid M] [module R M] : module R (ulift M) :=
+{ add_smul := λ _ _ _, ulift.ext _ _ $ add_smul _ _ _,
+  ..ulift.smul_with_zero' }
 
 /--
 The `R`-linear equivalence between `ulift M` and `M`.

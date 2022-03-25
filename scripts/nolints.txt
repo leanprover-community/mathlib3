@@ -1,135 +1,31 @@
 import .all
 run_cmd tactic.skip
 
--- algebra/big_operators/basic.lean
-apply_nolint finset.prod_comp to_additive_doc
-apply_nolint finset.prod_ite_eq' to_additive_doc
-
--- algebra/big_operators/finprod.lean
-apply_nolint exists_ne_one_of_finprod_mem_ne_one to_additive_doc
-apply_nolint finprod_comp to_additive_doc
-apply_nolint finprod_div_distrib to_additive_doc
-apply_nolint finprod_eq_of_bijective to_additive_doc
-apply_nolint finprod_mem_Union to_additive_doc
-apply_nolint finprod_mem_bUnion to_additive_doc
-apply_nolint finprod_mem_comm to_additive_doc
-apply_nolint finprod_mem_div_distrib to_additive_doc
-apply_nolint finprod_mem_empty to_additive_doc
-apply_nolint finprod_mem_eq_of_bij_on to_additive_doc
-apply_nolint finprod_mem_finset_product to_additive_doc
-apply_nolint finprod_mem_finset_product' to_additive_doc
-apply_nolint finprod_mem_image to_additive_doc
-apply_nolint finprod_mem_image' to_additive_doc
-apply_nolint finprod_mem_induction to_additive_doc
-apply_nolint finprod_mem_insert to_additive_doc
-apply_nolint finprod_mem_insert' to_additive_doc
-apply_nolint finprod_mem_insert_of_eq_one_if_not_mem to_additive_doc
-apply_nolint finprod_mem_insert_one to_additive_doc
-apply_nolint finprod_mem_mul_diff to_additive_doc
-apply_nolint finprod_mem_mul_diff' to_additive_doc
-apply_nolint finprod_mem_mul_distrib to_additive_doc
-apply_nolint finprod_mem_mul_distrib' to_additive_doc
-apply_nolint finprod_mem_of_eq_on_one to_additive_doc
-apply_nolint finprod_mem_one to_additive_doc
-apply_nolint finprod_mem_pair to_additive_doc
-apply_nolint finprod_mem_range to_additive_doc
-apply_nolint finprod_mem_range' to_additive_doc
-apply_nolint finprod_mem_sUnion to_additive_doc
-apply_nolint finprod_mem_singleton to_additive_doc
-apply_nolint finprod_mem_union to_additive_doc
-apply_nolint finprod_mem_union' to_additive_doc
-apply_nolint finprod_mem_union'' to_additive_doc
-apply_nolint finprod_mem_union_inter to_additive_doc
-apply_nolint finprod_mem_union_inter' to_additive_doc
-apply_nolint finprod_mul_distrib to_additive_doc
-apply_nolint monoid_hom.map_finprod_mem to_additive_doc
-apply_nolint monoid_hom.map_finprod_mem' to_additive_doc
-apply_nolint nonempty_of_finprod_mem_ne_one to_additive_doc
-
--- algebra/big_operators/nat_antidiagonal.lean
-apply_nolint finset.nat.prod_antidiagonal_eq_prod_range_succ to_additive_doc
-
--- algebra/big_operators/ring.lean
-apply_nolint finset.prod_powerset to_additive_doc
-apply_nolint finset.prod_powerset_insert to_additive_doc
-
 -- algebra/category/Group/limits.lean
 apply_nolint CommGroup.category_theory.forget₂.category_theory.creates_limit to_additive_doc
 apply_nolint CommGroup.forget_preserves_limits to_additive_doc
 apply_nolint CommGroup.forget₂_CommMon_preserves_limits to_additive_doc
 apply_nolint CommGroup.forget₂_Group_preserves_limits to_additive_doc
 apply_nolint CommGroup.has_limits to_additive_doc
-apply_nolint Group.category_theory.forget₂.category_theory.creates_limit to_additive_doc
-apply_nolint Group.forget_preserves_limits to_additive_doc
-apply_nolint Group.forget₂_Mon_preserves_limits to_additive_doc
-apply_nolint Group.has_limits to_additive_doc
-
--- algebra/category/Mon/limits.lean
-apply_nolint CommMon.category_theory.forget₂.category_theory.creates_limit to_additive_doc
-apply_nolint CommMon.forget_preserves_limits to_additive_doc
-apply_nolint CommMon.forget₂_Mon_preserves_limits to_additive_doc
-apply_nolint CommMon.has_limits to_additive_doc
-apply_nolint Mon.forget_preserves_limits to_additive_doc
-apply_nolint Mon.has_limits to_additive_doc
 
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
 
--- algebra/group/commute.lean
-apply_nolint commute.eq to_additive_doc
-apply_nolint commute.mul_left to_additive_doc
-apply_nolint commute.mul_right to_additive_doc
-apply_nolint commute.refl to_additive_doc
-apply_nolint commute.symm to_additive_doc
-
 -- algebra/group/freiman.lean
 apply_nolint freiman_hom.has_coe_to_fun to_additive_doc
-apply_nolint freiman_hom.has_inv to_additive_doc
-apply_nolint monoid_hom.freiman_hom_class to_additive_doc
 
 -- algebra/group/hom.lean
-apply_nolint map_div to_additive_doc
-apply_nolint map_inv to_additive_doc
-apply_nolint map_mul_inv to_additive_doc
-apply_nolint monoid_hom.coe_inj to_additive_doc
-apply_nolint monoid_hom.congr_arg to_additive_doc
-apply_nolint monoid_hom.congr_fun to_additive_doc
 apply_nolint monoid_hom.ext_iff to_additive_doc
 apply_nolint monoid_hom.map_inv to_additive_doc
 apply_nolint monoid_hom.map_mul_inv to_additive_doc
-apply_nolint mul_hom.coe_inj to_additive_doc
-apply_nolint mul_hom.congr_arg to_additive_doc
-apply_nolint mul_hom.congr_fun to_additive_doc
 apply_nolint mul_hom.ext_iff to_additive_doc
-apply_nolint one_hom.coe_inj to_additive_doc
 apply_nolint one_hom.comp_assoc to_additive_doc
-apply_nolint one_hom.congr_arg to_additive_doc
-apply_nolint one_hom.congr_fun to_additive_doc
-apply_nolint one_hom.ext_iff to_additive_doc
 
 -- algebra/group/semiconj.lean
-apply_nolint semiconj_by.conj_mk to_additive_doc
-apply_nolint semiconj_by.eq to_additive_doc
-apply_nolint semiconj_by.mul_left to_additive_doc
-apply_nolint semiconj_by.mul_right to_additive_doc
 apply_nolint semiconj_by.one_left to_additive_doc
 apply_nolint semiconj_by.one_right to_additive_doc
-apply_nolint semiconj_by.units_inv_right to_additive_doc
-apply_nolint semiconj_by.units_inv_symm_left to_additive_doc
-apply_nolint units.mk_semiconj_by to_additive_doc
-
--- algebra/group/units.lean
-apply_nolint units.group to_additive_doc
-
--- algebra/group_power/basic.lean
-apply_nolint pow_two to_additive_doc
-
--- algebra/indicator_function.lean
-apply_nolint set.mem_of_mul_indicator_ne_one to_additive_doc
-apply_nolint set.prod_mul_indicator_subset to_additive_doc
 
 -- algebra/order/group.lean
-apply_nolint has_inv_lattice_has_abs to_additive_doc
 apply_nolint inv_le_of_inv_le' to_additive_doc
 apply_nolint inv_le_one' to_additive_doc
 apply_nolint inv_lt_of_inv_lt' to_additive_doc
@@ -160,38 +56,16 @@ apply_nolint ordered_comm_group.le_of_mul_le_mul_left to_additive_doc
 apply_nolint ordered_comm_group.lt_of_mul_lt_mul_left to_additive_doc
 apply_nolint ordered_comm_group.mul_lt_mul_left' to_additive_doc
 apply_nolint right.inv_le_one_iff to_additive_doc
-apply_nolint right.inv_lt_one_iff to_additive_doc
 apply_nolint right.one_le_inv_iff to_additive_doc
-apply_nolint right.one_lt_inv_iff to_additive_doc
-apply_nolint units.ordered_comm_group to_additive_doc
-
--- algebra/order/hom/monoid.lean
-apply_nolint order_monoid_hom.has_coe_to_fun to_additive_doc
 
 -- algebra/order/lattice_group.lean
-apply_nolint lattice_ordered_comm_group.m_abs_abs to_additive_doc
 apply_nolint lattice_ordered_comm_group.mabs_mul_le to_additive_doc
-apply_nolint lattice_ordered_comm_group.pos_of_one_le to_additive_doc
 
 -- algebra/order/monoid.lean
 apply_nolint with_zero.canonically_ordered_add_monoid check_reducibility
 
 -- algebra/order/monoid_lemmas.lean
-apply_nolint le_mul_of_le_of_le_one to_additive_doc
-apply_nolint left.mul_lt_one to_additive_doc
-apply_nolint left.mul_lt_one_of_lt_of_lt_one to_additive_doc
-apply_nolint lt_mul_of_lt_of_one_lt to_additive_doc
 apply_nolint mul_le_one' to_additive_doc
-apply_nolint right.mul_lt_one to_additive_doc
-apply_nolint right.mul_lt_one_of_lt_of_lt_one to_additive_doc
-apply_nolint right.one_le_mul to_additive_doc
-apply_nolint right.one_lt_mul to_additive_doc
-
--- algebra/pointwise.lean
-apply_nolint finset.subset_mul to_additive_doc
-apply_nolint set.set_semiring.comm_semiring check_reducibility
-apply_nolint set.set_semiring.non_assoc_semiring check_reducibility
-apply_nolint set.set_semiring.non_unital_non_assoc_semiring check_reducibility
 
 -- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
 apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
@@ -407,11 +281,6 @@ apply_nolint holor_index.assoc_right doc_blame
 apply_nolint holor_index.drop doc_blame
 apply_nolint holor_index.take doc_blame
 
--- data/list/big_operators.lean
-apply_nolint list.head_mul_tail_prod_of_ne_nil to_additive_doc
-apply_nolint list.length_pos_of_prod_ne_one to_additive_doc
-apply_nolint list.nth_zero_mul_tail_prod to_additive_doc
-
 -- data/list/defs.lean
 apply_nolint list.sublists'_aux doc_blame
 apply_nolint list.sublists_aux doc_blame
@@ -567,6 +436,11 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
+-- data/set/pointwise.lean
+apply_nolint set.set_semiring.comm_semiring check_reducibility
+apply_nolint set.set_semiring.non_assoc_semiring check_reducibility
+apply_nolint set.set_semiring.non_unital_non_assoc_semiring check_reducibility
+
 -- data/stream/defs.lean
 apply_nolint stream.corec doc_blame
 apply_nolint stream.corec' doc_blame
@@ -646,9 +520,6 @@ apply_nolint is_of_fin_order_iff_coe to_additive_doc
 apply_nolint order_of_eq_of_pow_and_pow_div_prime to_additive_doc
 apply_nolint pow_gcd_card_eq_one_iff to_additive_doc
 
--- group_theory/quotient_group.lean
-apply_nolint quotient_group.subgroup_eq_top_of_subsingleton to_additive_doc
-
 -- group_theory/specific_groups/cyclic.lean
 apply_nolint is_cyclic_of_prime_card to_additive_doc
 apply_nolint is_simple_group_of_prime_card to_additive_doc
@@ -663,10 +534,6 @@ apply_nolint subgroup.map_injective_of_ker_le to_additive_doc
 
 -- group_theory/submonoid/basic.lean
 apply_nolint monoid_hom.eq_on_mclosure to_additive_doc
-
--- group_theory/submonoid/operations.lean
-apply_nolint submonoid.bot_or_exists_ne_one to_additive_doc
-apply_nolint submonoid.bot_or_nontrivial to_additive_doc
 
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
@@ -696,9 +563,6 @@ apply_nolint relator.right_unique doc_blame
 -- measure_theory/constructions/pi.lean
 apply_nolint measure_theory.pi.is_inv_invariant_volume to_additive_doc
 apply_nolint measure_theory.pi.is_mul_left_invariant_volume to_additive_doc
-
--- measure_theory/group/fundamental_domain.lean
-apply_nolint measure_theory.is_fundamental_domain.measure_eq to_additive_doc
 
 -- measure_theory/group/integration.lean
 apply_nolint measure_theory.integral_eq_zero_of_mul_left_eq_neg to_additive_doc

@@ -10,9 +10,10 @@ import order.ideal
 
 ## Results
 
-Suppose `α β` are linear orders, with `α` countable and `β` dense, nonempty, without endpoints.
+Suppose `α β` are linear orders, with `α` countable and `β` dense, nontrivial.
 Then there is an order embedding `α ↪ β`. If in addition `α` is dense, nonempty, without
-endpoints and `β` is countable, then we can upgrade this to an order isomorphism `α ≃ β`.
+endpoints and `β` is countable, without endpoints, then we can upgrade this to an order isomorphism
+`α ≃ β`.
 
 The idea for both results is to consider "partial isomorphisms", which
 identify a finite subset of `α` with a finite subset of `β`, and prove that
@@ -26,7 +27,6 @@ https://en.wikipedia.org/wiki/Back-and-forth_method
 ## Tags
 
 back and forth, dense, countable, order
-
 -/
 
 noncomputable theory
@@ -182,48 +182,40 @@ open partial_iso
 
 variables (α β)
 
-/-- Any countable linear order embeds in any nonempty dense linear order without endpoints. -/
-def embedding_from_countable_to_dense
-  [encodable α] [densely_ordered β] [no_min_order β] [no_max_order β] [nonempty β] :
-  α ↪o β :=
-let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals default $ defined_at_left β in
-let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ _ a) in
-order_embedding.of_strict_mono (λ a, (F a).val) $ λ a₁ a₂,
+/-- Any countable linear order embeds in any nonempty dense linear order. -/
+theorem embedding_from_countable_to_dense [encodable α] [densely_ordered β] [nontrivial β] :
+  nonempty (α ↪o β) :=
 begin
+  rcases exists_pair_lt β with ⟨x, y, hxy⟩,
+  cases exists_between hxy with a ha,
+  haveI : nonempty (set.Ioo x y) := ⟨⟨a, ha⟩⟩,
+  let our_ideal : ideal (partial_iso α _) :=
+    ideal_of_cofinals default (defined_at_left (set.Ioo x y)),
+  let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ _ a),
+  refine ⟨rel_embedding.trans (order_embedding.of_strict_mono (λ a, (F a).val) (λ a₁ a₂, _))
+    (order_embedding.subtype _)⟩,
   rcases (F a₁).property with ⟨f, hf, ha₁⟩,
   rcases (F a₂).property with ⟨g, hg, ha₂⟩,
   rcases our_ideal.directed _ hf _ hg with ⟨m, hm, fm, gm⟩,
   exact (lt_iff_lt_of_cmp_eq_cmp $ m.property (a₁, _) (fm ha₁) (a₂, _) (gm ha₂)).mp
 end
 
-/-- Any countable linear order embeds in any nontrivial dense linear order. -/
-theorem embedding_from_countable_to_dense'
-  [encodable α] [densely_ordered β] [nontrivial β] :
-  nonempty (α ↪o β) :=
-begin
-  rcases exists_pair_lt β with ⟨x, y, hxy⟩,
-  haveI : densely_ordered (set.Ioo x y) := set.densely_ordered,
-  cases exists_between hxy' with a ha,
-  haveI : nonempty (set.Ioo x y) := ⟨⟨a, ha⟩⟩,
-  have : α ↪o (set.Ioo x y) := embedding_from_countable_to_dense _ _,
-end
-
 /-- Any two countable dense, nonempty linear orders without endpoints are order isomorphic. -/
-def iso_of_countable_dense
+theorem iso_of_countable_dense
   [encodable α] [densely_ordered α] [no_min_order α] [no_max_order α] [nonempty α]
   [encodable β] [densely_ordered β] [no_min_order β] [no_max_order β] [nonempty β] :
-  α ≃o β :=
+  nonempty (α ≃o β) :=
 let to_cofinal : α ⊕ β → cofinal (partial_iso α β) :=
   λ p, sum.rec_on p (defined_at_left β) (defined_at_right α) in
 let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals default to_cofinal in
 let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ to_cofinal (sum.inl a)) in
 let G := λ b, inv_of_ideal b our_ideal (cofinal_meets_ideal_of_cofinals _ to_cofinal (sum.inr b)) in
-order_iso.of_cmp_eq_cmp (λ a, (F a).val) (λ b, (G b).val) $ λ a b,
+⟨order_iso.of_cmp_eq_cmp (λ a, (F a).val) (λ b, (G b).val) $ λ a b,
 begin
   rcases (F a).property with ⟨f, hf, ha⟩,
   rcases (G b).property with ⟨g, hg, hb⟩,
   rcases our_ideal.directed _ hf _ hg with ⟨m, hm, fm, gm⟩,
   exact m.property (a, _) (fm ha) (_, b) (gm hb)
-end
+end⟩
 
 end order

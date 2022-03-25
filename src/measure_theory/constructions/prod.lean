@@ -286,7 +286,7 @@ begin
         apply subset_closure,
         simp [-uncurry_apply_pair], } },
     { simpa [f', hfx, integral_undef] using @tendsto_const_nhds _ _ _ (0 : E) _, } },
-  exact strongly_measurable.strongly_measurable_of_tendsto _ hf' h2f'
+  exact strongly_measurable_of_tendsto _ hf' h2f'
 end
 
 /-- The Bochner integral is measurable. This shows that the integrand of (the right-hand-side of)

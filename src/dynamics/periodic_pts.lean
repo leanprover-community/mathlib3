@@ -182,13 +182,13 @@ lemma directed_pts_of_period_pnat (f : α → α) : directed (⊆) (λ n : ℕ+,
 λ m n, ⟨m * n, λ x hx, hx.mul_const n, λ x hx, hx.const_mul m⟩
 
 /-- The set of periodic points of a map `f : α → α`. -/
-def periodic_pts (f : α → α) : set α := {x : α | ∃ n > 0, is_periodic_pt f n x}
+def periodic_pts (f : α → α) : set α := {x : α | ∃ n, 0 < n ∧ is_periodic_pt f n x}
 
 lemma mk_mem_periodic_pts (hn : 0 < n) (hx : is_periodic_pt f n x) :
   x ∈ periodic_pts f :=
 ⟨n, hn, hx⟩
 
-lemma mem_periodic_pts : x ∈ periodic_pts f ↔ ∃ n > 0, is_periodic_pt f n x := iff.rfl
+lemma mem_periodic_pts : x ∈ periodic_pts f ↔ ∃ n, 0 < n ∧ is_periodic_pt f n x := iff.rfl
 
 variable (f)
 
@@ -222,7 +222,7 @@ lemma is_periodic_pt_minimal_period (f : α → α) (x : α) :
 begin
   delta minimal_period,
   split_ifs with hx,
-  { exact (nat.find_spec hx).snd },
+  { exact (nat.find_spec hx).2 },
   { exact is_periodic_pt_zero f x }
 end
 
@@ -231,7 +231,7 @@ lemma iterate_eq_mod_minimal_period : f^[n] x = (f^[n % minimal_period f x] x) :
 
 lemma minimal_period_pos_of_mem_periodic_pts (hx : x ∈ periodic_pts f) :
   0 < minimal_period f x :=
-by simp only [minimal_period, dif_pos hx, (nat.find_spec hx).fst.lt]
+by simp only [minimal_period, dif_pos hx, (nat.find_spec hx).1]
 
 lemma is_periodic_pt.minimal_period_pos (hn : 0 < n) (hx : is_periodic_pt f n x) :
   0 < minimal_period f x :=

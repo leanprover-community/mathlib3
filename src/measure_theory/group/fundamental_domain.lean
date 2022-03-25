@@ -97,6 +97,10 @@ calc μ (g₁ • s ∩ g₂ • s) = μ (g₂ • ((g₂⁻¹ * g₁) • s ∩
 ... = μ ((g₂⁻¹ * g₁) • s ∩ s) : measure_smul_set _ _ _
 ... = 0 : h.ae_disjoint _ $ mt inv_mul_eq_one.1 hne.symm
 
+@[to_additive] lemma pairwise_ae_disjoint_of_ac {ν} (h : is_fundamental_domain G s μ) (hν : ν ≪ μ) :
+  pairwise (λ g₁ g₂ : G, ae_disjoint ν (g₁ • s) (g₂ • s)) :=
+h.pairwise_ae_disjoint.mono $ λ g₁ g₂ H, hν H
+
 @[to_additive] lemma preimage_of_equiv (h : is_fundamental_domain G s μ) {f : α → α}
   (hf : quasi_measure_preserving f μ μ) {e : G → G} (he : bijective e)
   (hef : ∀ g, semiconj f ((•) (e g)) ((•) g)) :
@@ -312,7 +316,7 @@ begin
   rw [ess_sup_eq_Inf (μ.restrict s) f, ess_sup_eq_Inf μ f],
   refine Inf_le_Inf _,
   rintro a (ha : (μ.restrict s) {x : α | a < f x} = 0),
-  rw measure.restrict_apply' hs.measurable_set at ha,
+  rw measure.restrict_apply₀' hs.null_measurable_set at ha,
   refine measure_zero_of_invariant hs _ _ ha,
   intros γ,
   ext x,

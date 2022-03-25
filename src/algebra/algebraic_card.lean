@@ -15,8 +15,10 @@ import topology.bases
 
 In this file, we prove the following result: the cardinality of algebraic numbers under an R-algebra
 that's also a T1 topological space with basis s is at most `# polynomial R * # s`. From this, we
-deduce that real and complex algebraic numbers have cardinality `ω`, and in particular that a
-trascendental number exists.
+deduce that real and complex algebraic numbers have cardinality `ω`.
+
+Although this can be used to prove transcendental numbers exist, a more direct proof is given by
+`liouville.is_transcendental`.
 -/
 
 open cardinal polynomial topological_space
@@ -91,15 +93,6 @@ by { rw ←rat.cast_coe_nat n, exact is_algebraic_rat n }
 ((algebraic_card_of_second_countable ℚ ℝ).trans (by rw [mk_rat, max_self])).antisymm
   (omega_le_algebraic_card_of_char_zero ℚ ℝ)
 
-/-- There exists a transcendental number. -/
-theorem exists_transcendental : ∃ x : ℝ, transcendental ℚ x := begin
-  show ∃ x : ℝ, ¬ is_algebraic ℚ x,
-  by_contra' H : ∀ x : ℝ, x ∈ {x : ℝ | is_algebraic ℚ x},
-  have := algebraic_card,
-  rw [set.eq_univ_of_forall H, mk_univ, mk_real] at this,
-  exact omega_lt_continuum.ne' this
-end
-
 end real
 
 namespace complex
@@ -113,14 +106,5 @@ by { rw ←rat.cast_coe_nat n, exact is_algebraic_rat n }
 @[simp] theorem algebraic_card : #{x : ℂ | is_algebraic ℚ x} = ω :=
 ((algebraic_card_of_second_countable ℚ ℂ).trans (by rw [mk_rat, max_self])).antisymm
   (omega_le_algebraic_card_of_char_zero ℚ ℂ)
-
-/-- There exists a transcendental number. -/
-theorem exists_transcendental : ∃ x : ℂ, transcendental ℚ x := begin
-  show ∃ x : ℂ, ¬ is_algebraic ℚ x,
-  by_contra' H : ∀ x : ℂ, x ∈ {x : ℂ | is_algebraic ℚ x},
-  have := algebraic_card,
-  rw [set.eq_univ_of_forall H, mk_univ, mk_complex] at this,
-  exact omega_lt_continuum.ne' this
-end
 
 end complex

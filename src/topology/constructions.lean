@@ -778,14 +778,6 @@ closure_induced
 @[continuity] lemma continuous.cod_restrict {f : α → β} {s : set β} (hf : continuous f)
   (hs : ∀ a, f a ∈ s) : continuous (s.cod_restrict f hs) := continuous_subtype_mk hs hf
 
-lemma inducing.cod_restrict {e : α → β} (he : inducing e) {s : set β} (hs : ∀ x, e x ∈ s) :
-  inducing (cod_restrict e s hs) :=
-inducing_of_inducing_compose (he.continuous.cod_restrict hs) continuous_subtype_coe he
-
-lemma embedding.cod_restrict {e : α → β} (he : embedding e) (s : set β) (hs : ∀ x, e x ∈ s) :
-  embedding (cod_restrict e s hs) :=
-embedding_of_embedding_compose (he.continuous.cod_restrict hs) continuous_subtype_coe he
-
 end subtype
 
 section quotient

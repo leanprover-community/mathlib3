@@ -306,12 +306,9 @@ multiset.mem_attach _ _
 
 @[simp] lemma attach_nil : (nil : sym α 0).attach = nil := rfl
 
-@[simp] lemma attach_cons {x : α} {s : sym α n} :
-  (cons x s).attach = cons ⟨x, by simp⟩ (s.attach.map (λ x, ⟨x.1, mem_cons_of_mem x.2⟩)) :=
-begin
-  cases s,
-  simp only [cons, map, attach, subtype.mk_eq_mk, subtype.val_eq_coe],
-  apply multiset.attach_cons,
-end
+@[simp] lemma attach_cons (x : α) (s : sym α n) :
+  (cons x s).attach = cons ⟨x, mem_cons_self _ _⟩ (s.attach.map (λ x, ⟨x, mem_cons_of_mem x.prop⟩))
+  :=
+coe_injective $ multiset.attach_cons _ _
 
 end sym

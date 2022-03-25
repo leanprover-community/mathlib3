@@ -201,14 +201,10 @@ theorem embedding_from_countable_to_dense'
   [encodable α] [densely_ordered β] [nontrivial β] :
   nonempty (α ↪o β) :=
 begin
-  rcases exists_pair_ne β with ⟨x, y, hxy⟩,
-  have hxy' : x < y := sorry,
+  rcases exists_pair_lt β with ⟨x, y, hxy⟩,
   haveI : densely_ordered (set.Ioo x y) := set.densely_ordered,
   cases exists_between hxy' with a ha,
   haveI : nonempty (set.Ioo x y) := ⟨⟨a, ha⟩⟩,
-  haveI : no_min_order (set.Ioo x y) := begin
-    library_search
-  end,
   have : α ↪o (set.Ioo x y) := embedding_from_countable_to_dense _ _,
 end
 

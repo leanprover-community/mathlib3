@@ -414,8 +414,8 @@ def to_subalgebra (p : submodule R A) (h_one : (1 : A) ∈ p)
   (p.to_subalgebra h_one h_mul : set A) = p := rfl
 
 @[simp] lemma to_subalgebra_mk (s : set A) (h0 hadd hsmul h1 hmul) :
-  (submodule.mk s h0 hadd hsmul : submodule R A).to_subalgebra h1 hmul =
-    subalgebra.mk s h1 @hmul h0 @hadd
+  (submodule.mk s hadd h0 hsmul : submodule R A).to_subalgebra h1 hmul =
+    subalgebra.mk s @hmul h1 @hadd h0
       (λ r, by { rw algebra.algebra_map_eq_smul_one, exact hsmul r h1 }) := rfl
 
 @[simp] lemma to_subalgebra_to_submodule (p : submodule R A) (h_one h_mul) :
@@ -703,10 +703,6 @@ noncomputable def bot_equiv (F R : Type*) [field F] [semiring R] [nontrivial R] 
   (⊥ : subalgebra F R) ≃ₐ[F] F :=
 bot_equiv_of_injective (ring_hom.injective _)
 
-/-- The top subalgebra is isomorphic to the field. -/
-@[simps] def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
-alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ x, subtype.ext rfl
-
 end algebra
 
 namespace subalgebra
@@ -715,6 +711,12 @@ open algebra
 variables {R : Type u} {A : Type v} {B : Type w}
 variables [comm_semiring R] [semiring A] [algebra R A] [semiring B] [algebra R B]
 variables (S : subalgebra R A)
+
+/-- The top subalgebra is isomorphic to the algebra.
+
+This is the algebra version of `submodule.top_equiv`. -/
+@[simps] def top_equiv : (⊤ : subalgebra R A) ≃ₐ[R] A :=
+alg_equiv.of_alg_hom (subalgebra.val ⊤) to_top rfl $ alg_hom.ext $ λ _, subtype.ext rfl
 
 -- TODO[gh-6025]: make this an instance once safe to do so
 lemma subsingleton_of_subsingleton [subsingleton A] : subsingleton (subalgebra R A) :=
@@ -931,35 +933,46 @@ section actions
 
 variables {α β : Type*}
 
-/-- The action by a subalgebra is the action by the underlying ring. -/
-instance [mul_action A α] (S : subalgebra R A) : mul_action S α :=
-S.to_subsemiring.mul_action
+/-- The action by a subalgebra is the action by the underlying algebra. -/
+instance [has_scalar A α] (S : subalgebra R A) : has_scalar S α := S.to_subsemiring.has_scalar
 
-lemma smul_def [mul_action A α] {S : subalgebra R A} (g : S) (m : α) : g • m = (g : A) • m := rfl
+lemma smul_def [has_scalar A α] {S : subalgebra R A} (g : S) (m : α) : g • m = (g : A) • m := rfl
 
 instance smul_comm_class_left
-  [mul_action A β] [has_scalar α β] [smul_comm_class A α β] (S : subalgebra R A) :
+  [has_scalar A β] [has_scalar α β] [smul_comm_class A α β] (S : subalgebra R A) :
   smul_comm_class S α β :=
 S.to_subsemiring.smul_comm_class_left
 
 instance smul_comm_class_right
-  [has_scalar α β] [mul_action A β] [smul_comm_class α A β] (S : subalgebra R A) :
+  [has_scalar α β] [has_scalar A β] [smul_comm_class α A β] (S : subalgebra R A) :
   smul_comm_class α S β :=
 S.to_subsemiring.smul_comm_class_right
 
 /-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
 instance is_scalar_tower_left
-  [has_scalar α β] [mul_action A α] [mul_action A β] [is_scalar_tower A α β] (S : subalgebra R A) :
+  [has_scalar α β] [has_scalar A α] [has_scalar A β] [is_scalar_tower A α β] (S : subalgebra R A) :
   is_scalar_tower S α β :=
 S.to_subsemiring.is_scalar_tower
 
-instance [mul_action A α] [has_faithful_scalar A α] (S : subalgebra R A) :
+instance [has_scalar A α] [has_faithful_scalar A α] (S : subalgebra R A) :
   has_faithful_scalar S α :=
 S.to_subsemiring.has_faithful_scalar
 
 /-- The action by a subalgebra is the action by the underlying algebra. -/
+instance [mul_action A α] (S : subalgebra R A) : mul_action S α :=
+S.to_subsemiring.mul_action
+
+/-- The action by a subalgebra is the action by the underlying algebra. -/
 instance [add_monoid α] [distrib_mul_action A α] (S : subalgebra R A) : distrib_mul_action S α :=
 S.to_subsemiring.distrib_mul_action
+
+/-- The action by a subalgebra is the action by the underlying algebra. -/
+instance [has_zero α] [smul_with_zero A α] (S : subalgebra R A) : smul_with_zero S α :=
+S.to_subsemiring.smul_with_zero
+
+/-- The action by a subalgebra is the action by the underlying algebra. -/
+instance [has_zero α] [mul_action_with_zero A α] (S : subalgebra R A) : mul_action_with_zero S α :=
+S.to_subsemiring.mul_action_with_zero
 
 /-- The action by a subalgebra is the action by the underlying algebra. -/
 instance module_left [add_comm_monoid α] [module A α] (S : subalgebra R A) : module S α :=

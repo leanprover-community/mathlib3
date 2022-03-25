@@ -262,7 +262,18 @@ begin
   rw [mk_sum, lift_umax', lift_umax],
 end
 
-variable (S)
+variable (L)
+
+lemma _root_.set.countable.substructure_closure
+  [L.countable_functions] (h : s.countable) :
+  nonempty (encodable (closure L s)) :=
+begin
+  haveI : nonempty (encodable s) := h,
+  rw [encodable_iff, ← lift_le_omega],
+  exact lift_card_closure_le_card_term.trans term.card_le_omega,
+end
+
+variables {L} (S)
 
 /-- An induction principle for closure membership. If `p` holds for all elements of `s`, and
 is preserved under function symbols, then `p` holds for all elements of the closure of `s`. -/

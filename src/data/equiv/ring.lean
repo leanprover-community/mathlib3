@@ -107,7 +107,11 @@ instance : ring_equiv_class (R ≃+* S) R S :=
 
 instance : has_coe_to_fun (R ≃+* S) (λ _, R → S) := ⟨ring_equiv.to_fun⟩
 
+@[simp] lemma to_equiv_eq_coe (f : R ≃+* S) : f.to_equiv = f := rfl
+
 @[simp] lemma to_fun_eq_coe (f : R ≃+* S) : f.to_fun = f := rfl
+
+@[simp] lemma coe_to_equiv (f : R ≃+* S) : ⇑(f : R ≃ S) = f := rfl
 
 /-- A ring isomorphism preserves multiplication. -/
 protected lemma map_mul (e : R ≃+* S) (x y : R) : e (x * y) = e x * e y := map_mul e x y

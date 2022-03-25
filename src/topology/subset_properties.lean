@@ -556,11 +556,20 @@ end filter
 
 namespace bornology
 
-variables (α)
+variable (α)
 
-protected def compact : bornology α :=
+def in_compact : bornology α :=
 { cobounded := filter.cocompact α,
   le_cofinite := filter.cocompact_le_cofinite }
+
+variable {α}
+
+lemma in_compact.is_bounded_iff : @is_bounded _ (in_compact α) s ↔ ∃ t, is_compact t ∧ s ⊆ t :=
+begin
+  change sᶜ ∈ filter.cocompact α ↔ _,
+  rw filter.mem_cocompact,
+  simp
+end
 
 end bornology
 

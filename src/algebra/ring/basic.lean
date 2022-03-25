@@ -371,6 +371,12 @@ class ring_hom_class (F : Type*) (R S : out_param Type*)
   [non_assoc_semiring R] [non_assoc_semiring S]
   extends monoid_hom_class F R S, add_monoid_hom_class F R S, monoid_with_zero_hom_class F R S
 
+instance subtype.ring_hom_class (F : Type*) (R S : out_param Type*)
+  [non_assoc_semiring R] [non_assoc_semiring S] [ring_hom_class F R S] (p : F → Prop) :
+  ring_hom_class (subtype p) R S :=
+{ ..subtype.monoid_hom_class F R S p,
+  ..subtype.add_monoid_hom_class F R S p }
+
 variables {F : Type*} [non_assoc_semiring α] [non_assoc_semiring β] [ring_hom_class F α β]
 
 /-- Ring homomorphisms preserve `bit0`. -/

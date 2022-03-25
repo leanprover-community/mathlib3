@@ -85,6 +85,11 @@ class zero_hom_class (F : Type*) (M N : out_param $ Type*)
   [has_zero M] [has_zero N] extends fun_like F M (λ _, N) :=
 (map_zero : ∀ (f : F), f 0 = 0)
 
+instance subtype.zero_hom_class (F : Type*) (M N : out_param $ Type*) [has_zero M] [has_zero N]
+  [zero_hom_class F M N] (p : F → Prop) : zero_hom_class (subtype p) M N :=
+{ map_zero := λ f, zero_hom_class.map_zero _,
+  ..subtype.fun_like F M (λ _, N) p }
+
 -- Instances and lemmas are defined below through `@[to_additive]`.
 
 end zero
@@ -109,6 +114,11 @@ You should declare an instance of this typeclass when you extend `add_hom`.
 class add_hom_class (F : Type*) (M N : out_param $ Type*)
   [has_add M] [has_add N] extends fun_like F M (λ _, N) :=
 (map_add : ∀ (f : F) (x y : M), f (x + y) = f x + f y)
+
+instance subtype.add_hom_class (F : Type*) (M N : out_param $ Type*)
+  [has_add M] [has_add N] [add_hom_class F M N] (p : F → Prop) : add_hom_class (subtype p) M N :=
+{ map_add := λ _ _ _, add_hom_class.map_add _ _ _,
+  ..subtype.fun_like F M (λ _, N) p }
 
 -- Instances and lemmas are defined below through `@[to_additive]`.
 
@@ -144,6 +154,13 @@ class add_monoid_hom_class (F : Type*) (M N : out_param $ Type*)
   [add_zero_class M] [add_zero_class N]
   extends add_hom_class F M N, zero_hom_class F M N
 
+instance subtype.add_monoid_hom_class (F : Type*) (M N : out_param $ Type*)
+  [add_zero_class M] [add_zero_class N] [add_monoid_hom_class F M N] (p : F → Prop) :
+  add_monoid_hom_class (subtype p) M N :=
+{ ..subtype.zero_hom_class F M N p,
+  ..subtype.add_hom_class F M N p }
+
+
 -- Instances and lemmas are defined below through `@[to_additive]`.
 
 end add_zero
@@ -172,6 +189,12 @@ class one_hom_class (F : Type*) (M N : out_param $ Type*)
   [has_one M] [has_one N]
   extends fun_like F M (λ _, N) :=
 (map_one : ∀ (f : F), f 1 = 1)
+
+@[to_additive]
+instance subtype.one_hom_class (F : Type*) (M N : out_param $ Type*) [has_one M] [has_one N]
+  [one_hom_class F M N] (p : F → Prop) : one_hom_class (subtype p) M N :=
+{ map_one := λ f, one_hom_class.map_one _,
+  ..subtype.fun_like F M (λ _, N) p }
 
 @[to_additive]
 instance one_hom.one_hom_class : one_hom_class (one_hom M N) M N :=
@@ -228,6 +251,12 @@ class mul_hom_class (F : Type*) (M N : out_param $ Type*)
 (map_mul : ∀ (f : F) (x y : M), f (x * y) = f x * f y)
 
 @[to_additive]
+instance subtype.mul_hom_class (F : Type*) (M N : out_param $ Type*)
+  [has_mul M] [has_mul N] [mul_hom_class F M N] (p : F → Prop) : mul_hom_class (subtype p) M N :=
+{ map_mul := λ _ _ _, mul_hom_class.map_mul _ _ _,
+  ..subtype.fun_like F M (λ _, N) p }
+
+@[to_additive]
 instance mul_hom.mul_hom_class : mul_hom_class (mul_hom M N) M N :=
 { coe := mul_hom.to_fun,
   coe_injective' := λ f g h, by cases f; cases g; congr',
@@ -272,6 +301,13 @@ You should also extend this typeclass when you extend `add_monoid_hom`."]
 class monoid_hom_class (F : Type*) (M N : out_param $ Type*)
   [mul_one_class M] [mul_one_class N]
   extends mul_hom_class F M N, one_hom_class F M N
+
+@[to_additive]
+instance subtype.monoid_hom_class (F : Type*) (M N : out_param $ Type*)
+  [mul_one_class M] [mul_one_class N] [monoid_hom_class F M N] (p : F → Prop) :
+  monoid_hom_class (subtype p) M N :=
+{ ..subtype.one_hom_class F M N p,
+  ..subtype.mul_hom_class F M N p }
 
 @[to_additive]
 instance monoid_hom.monoid_hom_class : monoid_hom_class (M →* N) M N :=
@@ -359,6 +395,12 @@ You should also extend this typeclass when you extend `monoid_with_zero_hom`.
 class monoid_with_zero_hom_class (F : Type*) (M N : out_param $ Type*)
   [mul_zero_one_class M] [mul_zero_one_class N]
   extends monoid_hom_class F M N, zero_hom_class F M N
+
+instance subtype.monoid_with_zero_hom_class (F : Type*) (M N : out_param $ Type*)
+  [mul_zero_one_class M] [mul_zero_one_class N] [monoid_with_zero_hom_class F M N] (p : F → Prop) :
+  monoid_with_zero_hom_class (subtype p) M N :=
+{ ..subtype.monoid_hom_class F M N p,
+  ..subtype.zero_hom_class F M N p }
 
 instance monoid_with_zero_hom.monoid_with_zero_hom_class :
   monoid_with_zero_hom_class (M →*₀ N) M N :=

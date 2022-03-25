@@ -59,6 +59,12 @@ class rel_hom_class (F : Type*) {α β : out_param $ Type*}
 (map_rel : ∀ (f : F) {a b}, r a b → s (f a) (f b))
 export rel_hom_class (map_rel)
 
+instance subtype.rel_hom_class (F : Type*) {α β : out_param $ Type*}
+  (r : out_param $ α → α → Prop) (s : out_param $ β → β → Prop)
+ [rel_hom_class F r s] (p : F → Prop) : rel_hom_class (subtype p) r s :=
+{ map_rel := λ f a b hab, rel_hom_class.map_rel (f : F) hab,
+  ..subtype.fun_like F α (λ _, β) p }
+
 -- The free parameters `r` and `s` are `out_param`s so this is not dangerous.
 attribute [nolint dangerous_instance] rel_hom_class.to_fun_like
 

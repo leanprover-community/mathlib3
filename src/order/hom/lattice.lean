@@ -79,12 +79,22 @@ class sup_hom_class (F : Type*) (α β : out_param $ Type*) [has_sup α] [has_su
   extends fun_like F α (λ _, β) :=
 (map_sup (f : F) (a b : α) : f (a ⊔ b) = f a ⊔ f b)
 
+instance subtype.sup_hom_class (F : Type*) (α β : out_param $ Type*) [has_sup α] [has_sup β]
+  [sup_hom_class F α β] (p : F → Prop) : sup_hom_class (subtype p) α β :=
+{ map_sup := λ f, sup_hom_class.map_sup f,
+  ..subtype.fun_like F α (λ _, β) p }
+
 /-- `inf_hom_class F α β` states that `F` is a type of `⊓`-preserving morphisms.
 
 You should extend this class when you extend `inf_hom`. -/
 class inf_hom_class (F : Type*) (α β : out_param $ Type*) [has_inf α] [has_inf β]
   extends fun_like F α (λ _, β) :=
 (map_inf (f : F) (a b : α) : f (a ⊓ b) = f a ⊓ f b)
+
+instance subtype.inf_hom_class (F : Type*) (α β : out_param $ Type*) [has_inf α] [has_inf β]
+  [inf_hom_class F α β] (p : F → Prop) : inf_hom_class (subtype p) α β :=
+{ map_inf := λ f, inf_hom_class.map_inf f,
+  ..subtype.fun_like F α (λ _, β) p }
 
 /-- `sup_bot_hom_class F α β` states that `F` is a type of finitary supremum-preserving morphisms.
 
@@ -93,6 +103,12 @@ class sup_bot_hom_class (F : Type*) (α β : out_param $ Type*) [has_sup α] [ha
   [has_bot β] extends sup_hom_class F α β :=
 (map_bot (f : F) : f ⊥ = ⊥)
 
+instance subtype.sup_bot_hom_class (F : Type*) (α β : out_param $ Type*) [has_sup α] [has_sup β]
+  [has_bot α] [has_bot β] [sup_bot_hom_class F α β] (p : F → Prop) :
+  sup_bot_hom_class (subtype p) α β :=
+{ map_bot := λ f, sup_bot_hom_class.map_bot f,
+  ..subtype.sup_hom_class F α β p }
+
 /-- `inf_top_hom_class F α β` states that `F` is a type of finitary infimum-preserving morphisms.
 
 You should extend this class when you extend `sup_bot_hom`. -/
@@ -100,12 +116,23 @@ class inf_top_hom_class (F : Type*) (α β : out_param $ Type*) [has_inf α]
   [has_inf β] [has_top α] [has_top β] extends inf_hom_class F α β :=
 (map_top (f : F) : f ⊤ = ⊤)
 
+instance subtype.inf_top_hom_class (F : Type*) (α β : out_param $ Type*) [has_inf α] [has_inf β]
+  [has_top α] [has_top β] [inf_top_hom_class F α β] (p : F → Prop) :
+  inf_top_hom_class (subtype p) α β :=
+{ map_top := λ f, inf_top_hom_class.map_top f,
+  ..subtype.inf_hom_class F α β p }
+
 /-- `lattice_hom_class F α β` states that `F` is a type of lattice morphisms.
 
 You should extend this class when you extend `lattice_hom`. -/
 class lattice_hom_class (F : Type*) (α β : out_param $ Type*) [lattice α] [lattice β]
   extends sup_hom_class F α β :=
 (map_inf (f : F) (a b : α) : f (a ⊓ b) = f a ⊓ f b)
+
+instance subtype.lattice_hom_class (F : Type*) (α β : out_param $ Type*) [lattice α] [lattice β]
+  [lattice_hom_class F α β] (p : F → Prop) : lattice_hom_class (subtype p) α β :=
+{ map_inf := λ f, lattice_hom_class.map_inf f,
+  ..subtype.sup_hom_class F α β p }
 
 /-- `bounded_lattice_hom_class F α β` states that `F` is a type of bounded lattice morphisms.
 
@@ -120,6 +147,13 @@ export sup_hom_class (map_sup)
 export inf_hom_class (map_inf)
 
 attribute [simp] map_top map_bot map_sup map_inf
+
+instance subtype.bounded_lattice_hom_class (F : Type*) (α β : out_param $ Type*)
+  [lattice α] [lattice β] [bounded_order α] [bounded_order β]
+  [bounded_lattice_hom_class F α β] (p : F → Prop) : bounded_lattice_hom_class (subtype p) α β :=
+{ map_top := λ f, bounded_lattice_hom_class.map_top f,
+  map_bot := λ f, bounded_lattice_hom_class.map_bot f,
+  ..subtype.lattice_hom_class F α β p }
 
 @[priority 100] -- See note [lower instance priority]
 instance sup_hom_class.to_order_hom_class [semilattice_sup α] [semilattice_sup β]

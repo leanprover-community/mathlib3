@@ -55,12 +55,22 @@ class top_hom_class (F : Type*) (α β : out_param $ Type*) [has_top α] [has_to
   extends fun_like F α (λ _, β) :=
 (map_top (f : F) : f ⊤ = ⊤)
 
+instance subtype.top_hom_class (F : Type*) (α β : out_param $ Type*) [has_top α] [has_top β]
+  [top_hom_class F α β] (p : F → Prop) : top_hom_class (subtype p) α β :=
+{ map_top := λ f, top_hom_class.map_top f,
+  ..subtype.fun_like F α (λ _, β) p }
+
 /-- `bot_hom_class F α β` states that `F` is a type of `⊥`-preserving morphisms.
 
 You should extend this class when you extend `bot_hom`. -/
 class bot_hom_class (F : Type*) (α β : out_param $ Type*) [has_bot α] [has_bot β]
   extends fun_like F α (λ _, β) :=
 (map_bot (f : F) : f ⊥ = ⊥)
+
+instance subtype.bot_hom_class (F : Type*) (α β : out_param $ Type*) [has_bot α] [has_bot β]
+  [bot_hom_class F α β] (p : F → Prop) : bot_hom_class (subtype p) α β :=
+{ map_bot := λ f, bot_hom_class.map_bot f,
+  ..subtype.fun_like F α (λ _, β) p }
 
 /-- `bounded_order_hom_class F α β` states that `F` is a type of bounded order morphisms.
 
@@ -72,6 +82,13 @@ class bounded_order_hom_class (F : Type*) (α β : out_param $ Type*) [has_le α
 (map_bot (f : F) : f ⊥ = ⊥)
 
 export top_hom_class (map_top) bot_hom_class (map_bot)
+
+instance subtype.bounded_order_hom_class (F : Type*) (α β : out_param $ Type*)
+  [preorder α] [preorder β] [bounded_order α] [bounded_order β]
+  [bounded_order_hom_class F α β] (p : F → Prop) : bounded_order_hom_class (subtype p) α β :=
+{ map_top := λ f, bounded_order_hom_class.map_top f,
+  map_bot := λ f, bounded_order_hom_class.map_bot f,
+  ..subtype.rel_hom_class F (≤) (≤) p }
 
 attribute [simp] map_top map_bot
 

@@ -65,6 +65,11 @@ class Sup_hom_class (F : Type*) (α β : out_param $ Type*) [has_Sup α] [has_Su
   extends fun_like F α (λ _, β) :=
 (map_Sup (f : F) (s : set α) : f (Sup s) = Sup (f '' s))
 
+instance subtype.Sup_hom_class (F : Type*) (α β : out_param $ Type*) [has_Sup α] [has_Sup β]
+  [Sup_hom_class F α β] (p : F → Prop) : Sup_hom_class (subtype p) α β :=
+{ map_Sup := λ f, Sup_hom_class.map_Sup f,
+  ..subtype.fun_like F α (λ _, β) p }
+
 /-- `Inf_hom_class F α β` states that `F` is a type of `⨅`-preserving morphisms.
 
 You should extend this class when you extend `Inf_hom`. -/
@@ -72,12 +77,22 @@ class Inf_hom_class (F : Type*) (α β : out_param $ Type*) [has_Inf α] [has_In
   extends fun_like F α (λ _, β) :=
 (map_Inf (f : F) (s : set α) : f (Inf s) = Inf (f '' s))
 
+instance subtype.Inf_hom_class (F : Type*) (α β : out_param $ Type*) [has_Inf α] [has_Inf β]
+  [Inf_hom_class F α β] (p : F → Prop) : Inf_hom_class (subtype p) α β :=
+{ map_Inf := λ f, Inf_hom_class.map_Inf f,
+  ..subtype.fun_like F α (λ _, β) p }
+
 /-- `frame_hom_class F α β` states that `F` is a type of frame morphisms. They preserve `⊓` and `⨆`.
 
 You should extend this class when you extend `frame_hom`. -/
 class frame_hom_class (F : Type*) (α β : out_param $ Type*) [complete_lattice α]
   [complete_lattice β] extends inf_top_hom_class F α β :=
 (map_Sup (f : F) (s : set α) : f (Sup s) = Sup (f '' s))
+
+instance subtype.frame_hom_class (F : Type*) (α β : out_param $ Type*) [complete_lattice α]
+  [complete_lattice β] [frame_hom_class F α β] (p : F → Prop) : frame_hom_class (subtype p) α β :=
+{ map_inf := λ f, frame_hom_class.map_inf f,
+  ..subtype.Sup_hom_class F α β p }
 
 /-- `complete_lattice_hom_class F α β` states that `F` is a type of complete lattice morphisms.
 
@@ -90,6 +105,12 @@ export Sup_hom_class (map_Sup)
 export Inf_hom_class (map_Inf)
 
 attribute [simp] map_Sup map_Inf
+
+instance subtype.complete_lattice_hom_class (F : Type*) (α β : out_param $ Type*)
+  [complete_lattice α] [complete_lattice β] [complete_lattice_hom_class F α β] (p : F → Prop) :
+  complete_lattice_hom_class (subtype p) α β :=
+{ map_Inf := λ f, complete_lattice_hom_class.map_Inf f,
+  ..subtype.Sup_hom_class F α β p }
 
 lemma map_supr [has_Sup α] [has_Sup β] [Sup_hom_class F α β] (f : F) (g : ι → α) :
   f (⨆ i, g i) = ⨆ i, f (g i) :=

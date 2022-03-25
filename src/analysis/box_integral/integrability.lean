@@ -205,7 +205,8 @@ begin
   rw integral_congr_ae hfg, have hgi : integrable_on g I μ := (integrable_congr hfg).1 hf,
   refine box_integral.has_integral.congr_ae _ hfg.symm hl,
   clear_dependent f,
-  /- Now consider the sequence of simple functions `simple_func.approx_on g hg univ 0 trivial`
+  /- Now consider the sequence of simple functions
+  `simple_func.approx_on g hg.measurable (range g ∪ {0}) 0 (by simp)`
   approximating `g`. Recall some properties of this sequence. -/
   set f : ℕ → simple_func (ι → ℝ) E :=
     simple_func.approx_on g hg.measurable (range g ∪ {0}) 0 (by simp),

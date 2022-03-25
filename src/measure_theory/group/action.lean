@@ -136,7 +136,9 @@ variable {μ}
 by simpa only [← preimage_smul_inv]
   using hs.preimage (measure_preserving_smul _ _).quasi_measure_preserving
 
-variables (G) {μ} [topological_space α] [has_continuous_const_smul G α] [mul_action.is_minimal G α]
+section is_minimal
+
+variables (G) [topological_space α] [has_continuous_const_smul G α] [mul_action.is_minimal G α]
   {K U : set α}
 
 /-- If measure `μ` is invariant under a group action and is nonzero on a compact set `K`, then it is

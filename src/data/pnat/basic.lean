@@ -124,12 +124,7 @@ theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_e
 
 instance : has_mul ℕ+ := ⟨λ m n, ⟨m.1 * n.1, mul_pos m.2 n.2⟩⟩
 instance : has_one ℕ+ := ⟨succ_pnat 0⟩
-instance : has_pow ℕ+ ℕ := ⟨λ m n, ⟨m ^ n, begin
-  induction n with n ih,
-  { simp },
-  { rw pow_succ,
-    exact mul_pos m.prop ih}
-end⟩⟩
+instance : has_pow ℕ+ ℕ := ⟨λ x n, ⟨x ^ n, pow_pos x.2 n⟩⟩
 
 instance : comm_monoid ℕ+ := coe_injective.comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 

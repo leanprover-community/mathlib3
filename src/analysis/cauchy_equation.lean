@@ -1,12 +1,14 @@
 import measure_theory.group.measure measure_theory.measure.lebesgue topology.basic
 import analysis.normed_space.pointwise measure_theory.measure.haar
+import measure_theory.measure.haar_lebesgue
 
 
 
 open add_monoid_hom measure_theory measure_theory.measure metric nnreal set
 open_locale pointwise
 
-section prereq
+-- will be deleted once merged
+section for_separate_PR
 
 
 variables {G : Type*} [topological_space G] [group G] [topological_group G]
@@ -35,23 +37,25 @@ begin
   rw [mem_preimage] at this, convert this using 1, simp only [mul_assoc, inv_mul_cancel_right]
 end
 
-end prereq
+-- PR separately
+end for_separate_PR
 
+section measure_theory
 
 variables (α : Type*) [group α] [topological_space α] [topological_group α] [t2_space α]
   [locally_compact_space α] [measurable_space α] [opens_measurable_space α] [borel_space α]
   [topological_space.second_countable_topology α] {μ : measure α} [is_haar_measure μ]
 
-
 @[to_additive]
-theorem steinhaus_theorem_mul (E : set α) (hE : measurable_set E) (hEpos : 0 < μ E)
-  (hEtop : μ E ≠ ⊤) : ∃ (U : set α) , U ∈ nhds (1 : α) ∧ U ⊆ E / E :=
+theorem steinhaus_theorem_mul (E : set α) (hE : measurable_set E) (hEpos : 0 < μ E) :
+  ∃ (U : set α) , U ∈ nhds (1 : α) ∧ U ⊆ E / E :=
 begin
-  have hK := measurable_set.exists_lt_is_compact_of_ne_top hE hEtop hEpos,
-  rcases hK with ⟨K, hKE, hK, hKpos⟩,
+  rcases (exists_subset_measure_lt_top hE hEpos) with ⟨L, hL, hLE, hLpos, hLtop⟩,
+  have hK := measurable_set.exists_lt_is_compact_of_ne_top hL (ne_of_lt hLtop) hLpos,
+  rcases hK with ⟨K, hKL, hK, hKpos⟩,
   have hKtop : μ K ≠ ⊤,
-  { apply ne_top_of_le_ne_top hEtop,
-    apply measure_mono hKE },
+  { apply ne_top_of_le_ne_top (ne_of_lt hLtop),
+    apply measure_mono hKL },
   have h2 : μ K ≠ 0,
   { exact ne_of_gt hKpos },
   have hU := set.exists_is_open_lt_add K hKtop h2,
@@ -81,31 +85,32 @@ begin
       rcases hv with ⟨x, hxK, hxvK⟩,
       rw set.mem_div,
       refine ⟨x, v⁻¹ * x, _, _, _⟩,
-      { apply hKE hxvK },
-      { apply hKE,
+      { apply hLE (hKL hxvK) },
+      { apply hLE,
+        apply hKL,
         simp only [singleton_mul, image_mul_left, mem_preimage] at hxK,
         exact hxK },
         simp only [div_eq_iff_eq_mul, ← mul_assoc, mul_right_inv, one_mul] }
 end
 
+end measure_theory
 
 /-!
 # Cauchy's Functional Equation
 -/
 
-theorem cauchy_rational (f : ℝ →+ ℝ) :
+theorem cauchy_rational_add (f : ℝ →+ ℝ) :
   is_linear_map ℚ f := by exact ⟨map_add f, λ c x, add_monoid_hom.map_rat_cast_smul f ℝ ℝ c x⟩
 
-
-lemma prereq_1 (f : ℝ → ℝ) :
-  ∃ (r : ℝ), 0 < measure_space.volume (f⁻¹' (ball 0 r)) :=
+-- should this one get generalised?
+lemma exists_real_preimage_ball_pos_volume (f : ℝ → ℝ) :
+  ∃ (r z : ℝ), 0 < volume (f⁻¹' (ball z r)) :=
 begin
   have : measure_space.volume (f⁻¹' set.univ) = ⊤,
-  simp only [set.preimage_univ, real.volume_univ],
+  { simp only [set.preimage_univ, real.volume_univ] },
   by_contra hf,
   push_neg at hf,
-  simp at hf,
-  have huniv := @measurable_set.univ ℝ (borel ℝ),
+  simp only [nonpos_iff_eq_zero] at hf,
   have hrat : (⋃ (q : ℚ), ball (0 : ℝ) q) = set.univ,
   { ext,
     split,
@@ -113,68 +118,98 @@ begin
     { intro hx,
       simp only [set.mem_Union, mem_ball_zero_iff],
       exact exists_rat_gt _}},
-  rw ← hrat at this,
-  simp at this,
+  simp only [←hrat, preimage_Union] at this,
   have htop : ⊤ ≤ ∑' (i : ℚ), measure_space.volume ((λ (q : ℚ), f ⁻¹' ball 0 ↑q) i),
-  rw ← this,
-  apply measure_Union_le (λ q : ℚ, f⁻¹' (ball (0 : ℝ) q)),
+  { rw ← this,
+    apply measure_Union_le (λ q : ℚ, f⁻¹' (ball (0 : ℝ) q)) },
   simp only [hf, tsum_zero, nonpos_iff_eq_zero, ennreal.top_ne_zero] at htop,
-  exact htop,
+  exact htop
 end
 
-lemma prereq (f : ℝ →+ ℝ) (h : @measurable ℝ ℝ (real.measurable_space) (borel ℝ) f) :
-  ∃ (C δ : ℝ), 0 < C ∧ 0 < δ ∧ ∀ (x : ℝ), x ∈ ball (0 : ℝ) δ → ∥f x∥ ≤ C :=
+lemma exists_zero_nbhd_bounded (f : ℝ →+ ℝ)
+  (h : @measurable ℝ ℝ (real.measurable_space) (borel ℝ) f) :
+  ∃ (U : set ℝ), U ∈ nhds (0 : ℝ) ∧ metric.bounded (f '' U) :=
 begin
-  cases (prereq_1 f) with r hr,
-  have hrm : measurable_set (f⁻¹' (ball 0 r)),
+  rcases (exists_real_preimage_ball_pos_volume f) with ⟨r, z, hr⟩,
+  have hrm : measurable_set (f⁻¹' (ball z r)),
   { apply h,
     exact measurable_set_ball },
-  -- error with instances
-  -- rcases (steinhaus_theorem_add ℝ (f⁻¹' (ball 0 r)) hrm hr _) with ⟨U, hU0, hUr⟩,
-  sorry,
-  -- refine ⟨(2 * r), δ, _, hδ.1, λ x hx, _⟩,
-  -- { sorry },
-  -- { replace hx := set.mem_of_subset_of_mem hδ.2 hx,
-  --   rw set.mem_vsub at hx,
-  --   rcases hx with ⟨a, b, ha, hb, hab⟩,
-  --   rw ← hab,
-  --   simp only [vsub_eq_sub, map_sub],
-  --   calc ∥f a - f b∥ ≤ ∥ f a ∥ + ∥ f b ∥ : norm_sub_le (f a) (f b)
-  --     ... ≤ 2 * r : by linarith [(mem_ball_zero_iff).mp (set.mem_preimage.mp ha),
-  --     (mem_ball_zero_iff).mp (set.mem_preimage.mp hb)]}
+  rcases (steinhaus_theorem_add ℝ (f⁻¹' (ball z r)) hrm hr) with ⟨U, hU0, hUr⟩,
+  refine ⟨U, hU0, _⟩,
+  { rw (metric.bounded_iff_subset_ball (0 : ℝ)),
+    use 2 * r,
+    simp only [image_subset_iff],
+    convert subset.trans hUr _,
+    intros x hx,
+    rw mem_sub at hx,
+    rcases hx with ⟨a, b, ha, hb, habx⟩,
+    rw [mem_preimage, mem_ball_iff_norm] at ha,
+    rw [mem_preimage, mem_ball_iff_norm'] at hb,
+    simp only [mem_preimage, mem_closed_ball_zero_iff, ← habx],
+    calc ∥f (a - b)∥ ≤ ∥ f a - f b ∥ : by simp only [map_sub]
+    ... = ∥ (f a - z) + (z - f b) ∥ : by abel
+    ... ≤ ∥ f a - z ∥ + ∥ z - f b ∥  : norm_add_le (f a - z) (z - f b)
+    ... ≤ 2 * r : by linarith }
 end
 
-lemma prereq2 (f : ℝ →+ ℝ)
-  (h : @measurable ℝ ℝ (borel ℝ) (borel ℝ) f) : continuous_at f 0 :=
+lemma additive_continuous_at_zero_of_bounded_nbhd_zero (f : ℝ →+ ℝ) {U : set ℝ}
+  (hU : U ∈ nhds (0 : ℝ)) (hbounded : metric.bounded (f '' U)) : continuous_at f 0 :=
 begin
+  rcases (metric.mem_nhds_iff.mp hU) with ⟨δ, hδ, hUε⟩,
+  rcases ((metric.bounded_iff_subset_ball (0 : ℝ)).mp
+    (metric.bounded.mono (image_subset f hUε) hbounded)) with ⟨C, hC⟩,
   rw continuous_at_iff,
   intros ε hε,
   simp only [gt_iff_lt, dist_zero_right, _root_.map_zero, exists_prop],
-  have h1 := prereq f h,
-  rcases h1 with ⟨C, δ, h1⟩,
   cases (exists_nat_gt (C / ε)) with n hn,
-  use δ/n,
-  split,
-  { apply div_pos h1.2.1 (lt_trans (div_pos h1.1 hε) hn) },
-  { intros x hxδ,
-    have h2 : f (n • x) = n • f x, { exact map_nsmul f x n },
-    have hnpos : 0 < (n : ℝ) := (lt_trans (div_pos h1.1 hε) hn),
-    simp only [nsmul_eq_mul] at h2,
-    simp only [mul_comm, ← div_eq_iff (ne.symm (ne_of_lt hnpos))] at h2,
-    rw ← h2,
-    replace hxδ : ∥ x * n ∥ < δ,
-    { simp only [norm_mul, real.norm_coe_nat, ← lt_div_iff hnpos, hxδ], },
-    norm_num,
-    simp only [mem_ball_zero_iff] at h1,
-    apply lt_of_le_of_lt (div_le_div (le_of_lt h1.1) (h1.2.2 (x * n) hxδ) hnpos (le_of_eq rfl)) _,
-    simp only [div_lt_iff hnpos, mul_comm ε _, ← div_lt_iff hε, hn] }
+  obtain hC0 | rfl | hC0 := lt_trichotomy C 0,
+  { simp only [closed_ball_eq_empty.mpr hC0, image_subset_iff, preimage_empty] at hC,
+    rw [subset_empty_iff, ball_eq_empty] at hC,
+    linarith },
+  { simp only [closed_ball_zero] at hC,
+    refine ⟨δ, hδ, λ x hxδ, _⟩,
+    replace hxδ : f x ∈ f '' (ball 0 δ),
+    { simp only [mem_image, mem_ball_zero_iff],
+        refine ⟨x, hxδ, rfl⟩},
+    replace hxδ := mem_of_subset_of_mem hC hxδ,
+    suffices : f x = 0,
+    { simp only [this, norm_zero],
+      exact hε },
+    { simp only [← mem_singleton_iff, hxδ] }},
+  { use δ/n,
+    split,
+    { apply div_pos hδ (lt_trans (div_pos hC0 hε) hn) },
+    { intros x hxδ,
+      have h2 : f (n • x) = n • f x, { exact map_nsmul f x n },
+      have hnpos : 0 < (n : ℝ) := (lt_trans (div_pos hC0 hε) hn),
+      simp only [nsmul_eq_mul] at h2,
+      simp only [mul_comm, ← div_eq_iff (ne.symm (ne_of_lt hnpos))] at h2,
+      rw ← h2,
+      replace hxδ : ∥ x * n ∥ < δ,
+      { simp only [norm_mul, real.norm_coe_nat, ← lt_div_iff hnpos, hxδ], },
+      norm_num,
+      replace hxδ : f (x * n) ∈ f '' (ball 0 δ),
+      { simp only [mem_image, mem_ball_zero_iff],
+        refine ⟨x * n, hxδ, rfl⟩ },
+      rw [div_lt_iff hnpos, ← mem_ball_zero_iff],
+      apply mem_of_subset_of_mem (subset.trans hC _) hxδ,
+      apply closed_ball_subset_ball,
+      rw (div_lt_iff hε) at hn,
+      simpa [mul_comm] using hn }}
 end
 
+lemma additive_continuous_at_zero (f : ℝ →+ ℝ)
+  (h : @measurable ℝ ℝ (real.measurable_space) (borel ℝ) f) : continuous_at f 0 :=
+begin
+  rcases (exists_zero_nbhd_bounded f h) with ⟨U, hU, hbounded⟩,
+  exact additive_continuous_at_zero_of_bounded_nbhd_zero f hU hbounded
+end
 
 lemma continuous_of_measurable (μ : measure ℝ) [is_add_haar_measure μ] (f : ℝ →+ ℝ)
   (h : @measurable ℝ ℝ (borel ℝ) (borel ℝ) f) : continuous f :=
   by exact uniform_continuous.continuous
-    (uniform_continuous_of_continuous_at_zero f (prereq2 f h))
+    (uniform_continuous_of_continuous_at_zero f (additive_continuous_at_zero f h))
+
 
 lemma real_eq_forall_pos_lt {a b : ℝ} : (∀ (ε : ℝ), 0 < ε → ∥ a - b ∥ < ε) → a = b :=
 begin
@@ -199,7 +234,17 @@ begin
   { rw map_rat_cast_smul f ℝ ℝ q 1 }
 end
 
-lemma is_linear_of_continuous (f : ℝ →+ ℝ) (h : continuous f) : ∀ (x : ℝ), f x  = f 1 * x :=
+lemma additive_is_bounded_of_bounded_on_interval (f : ℝ →+ ℝ) {a b : ℝ} (hab : a < b)
+  (h : metric.bounded (f '' set.Icc a b)) :
+  ∀ (U : set ℝ), metric.bounded U → metric.bounded (f '' U) :=
+begin
+  contrapose h,
+  simp only [not_forall, exists_prop] at h,
+  rcases h with ⟨U, hU, hUf⟩,
+  sorry
+end
+
+lemma is_linear_real_of_continuous (f : ℝ →+ ℝ) (h : continuous f) : ∀ (x : ℝ), f x  = f 1 * x :=
 begin
   have h1 := is_linear_rat f,
   intro x,
@@ -243,3 +288,56 @@ begin
     congr,
     abel }
 end
+
+lemma additive_continuous_at_iff_continuos_at_zero (f : ℝ →+ ℝ) {x : ℝ} :
+  continuous_at f x ↔ continuous_at f 0 :=
+begin
+  split,
+  { intro hx,
+    rw [← sub_self x, continuous_at_iff],
+    intros ε hε,
+    rcases ((continuous_at_iff.mp hx) ε hε) with ⟨δ, hδ, hδf⟩,
+    refine ⟨δ, hδ, λ y hyδ, _⟩,
+    replace hyδ : dist (y + x) x < δ,
+    { convert hyδ using 1,
+      simp only [dist_eq_norm],
+      abel },
+    convert hδf hyδ using 1,
+    simp only [dist_eq_norm, map_sub, _root_.map_add],
+    abel },
+  { intro h0,
+    apply continuous.continuous_at (uniform_continuous.continuous
+      ((uniform_continuous_of_continuous_at_zero f) h0)) }
+end
+
+lemma is_linear_real_of_continuous_at (f : ℝ →+ ℝ) {y : ℝ} (h : continuous_at f y) :
+  ∀ (x : ℝ), f x  = f 1 * x := by exact is_linear_real_of_continuous f
+    (uniform_continuous.continuous (uniform_continuous_of_continuous_at_zero f
+    ((additive_continuous_at_iff_continuos_at_zero f).mp h)))
+
+
+lemma is_linear_map_real_of_continuous (f : ℝ →+ ℝ) (h : continuous f) : is_linear_map ℝ f :=
+begin
+  refine ⟨map_add f,λ c x, _⟩,
+  rw [smul_eq_mul, smul_eq_mul, is_linear_real_of_continuous f h (c * x),
+    is_linear_real_of_continuous f h x],
+  ring_exp_eq
+end
+
+lemma is_linear_of_bounded_interval (f : ℝ →+ ℝ) {a b : ℝ} (hab : a < b)
+  (hf : metric.bounded (f '' (set.Icc a b))) : ∀ (x : ℝ), f x = f 1 * x :=
+begin
+  replace hf := (additive_is_bounded_of_bounded_on_interval f hab hf) (set.Icc (-1 : ℝ) 1) _,
+  { have : continuous_at f 0,
+    { apply additive_continuous_at_zero_of_bounded_nbhd_zero f _ hf,
+      rw metric.mem_nhds_iff,
+      refine ⟨1, one_pos, _⟩,
+      rw real.ball_eq_Ioo,
+      convert Ioo_subset_Icc_self;
+      norm_num },
+    exact is_linear_real_of_continuous_at f this },
+  { exact bounded_Icc (-1 : ℝ) 1 },
+end
+
+
+--todo add the monotone assumption case

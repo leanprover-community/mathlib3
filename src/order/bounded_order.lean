@@ -993,6 +993,10 @@ protected def order_bot [preorder α] [order_bot α] {P : α → Prop} (Pbot : P
   bot_le := λ _, bot_le }
 
 @[simp]
+lemma coe_bot  {α : Type*} [preorder α] [order_bot α] {P : α → Prop} (Pbot : P ⊥) :
+  ↑((by haveI := subtype.order_bot Pbot; exact ⊥) : {y : α // P y}) = (⊥ : α) := rfl
+
+@[simp]
 lemma mem_subtype_eq_bot_iff {α : Type*} [preorder α] [order_bot α] {P : α → Prop} (Pbot : P ⊥)
   {x : α} (Px : P x) :
   (⟨x, Px⟩ : {y : α // P y}) = (by haveI := subtype.order_bot Pbot; exact ⊥) ↔ x = ⊥ :=
@@ -1007,8 +1011,14 @@ protected def order_top [preorder α] [order_top α] {P : α → Prop} (Ptop : P
   le_top := λ _, le_top }
 
 @[simp]
+lemma coe_top {α : Type*} [preorder α] [order_top α] {P : α → Prop} (Ptop : P ⊤) :
+  ↑((by haveI := subtype.order_top Ptop; exact ⊤) : ({y : α // P y})) = (⊤ : α) := rfl
+
+@[simp]
 lemma mem_subtype_eq_top_iff {α : Type*} [preorder α] [order_top α] {P : α → Prop} (Ptop : P ⊤)
-  {x : α} (Px : P x) : (⟨x, Px⟩ : {y : α // P y}) = (subtype.order_top Ptop).top ↔ x = ⊤ := by simp
+  {x : α} (Px : P x) :
+  (⟨x, Px⟩ : {y : α // P y}) = (by haveI := subtype.order_top Ptop; exact ⊤) ↔ x = ⊤ :=
+subtype.ext_iff
 
 end subtype
 

@@ -238,16 +238,16 @@ end
 #check list.nodup_cons
 
 lemma list.nodup_cons_of_coe_finset_eq {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
-  (h : x ∉ xs) {xs' : list α} (nd_xs : xs'.nodup)
+  {xs' : list α} (h : x ∉ xs) (nd_xs : xs'.nodup)
   (hxs' : finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs) = xs) :
   (x :: xs').nodup :=
 list.nodup_cons.mpr ⟨by simpa [← hxs'] using h, nd_xs⟩
 
 lemma finset.coe_list_eq_insert_of_mem {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
-  (h : x ∉ xs) {xs' : list α} (nd_xs : xs'.nodup) (nd_xxs : (x :: xs').nodup)
+  {xs' : list α} (h : x ∈ xs) (nd_xs : xs'.nodup)
   (hxs' : finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs) = xs) :
-  finset.mk ↑(x :: xs') (multiset.coe_nodup.mpr nd_xxs) = insert x xs :=
-by { rw [← finset.val_inj, finset.insert_val_of_not_mem h, ← hxs'], simp only [multiset.cons_coe] }
+  finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs) = insert x xs :=
+by rw [finset.insert_eq_of_mem h, hxs']
 
 lemma finset.coe_list_cons_eq_insert {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
   (h : x ∉ xs) {xs' : list α} (nd_xs : xs'.nodup) (nd_xxs : (x :: xs').nodup)
@@ -279,7 +279,7 @@ meta def expr.finset_to_list : expr → tactic (list expr × expr × expr)
   dec_mem ← whnf is_mem transparency.semireducible,
   match dec_mem with
   | `(decidable.is_true %%mem) := do
-    pf ← i_to_expr ``(eq.trans %%xs_eq $ eq.symm $ @finset.insert_eq_of_mem _ _ %%xs %%x %%mem),
+    pf ← i_to_expr ``(finset.coe_list_eq_insert_of_mem %%x %%xs %%mem %%xs_nd %%xs_eq),
     pure (exs, pf, xs_nd)
   | `(decidable.is_false %%nmem) := do
     nd ← i_to_expr ``(list.nodup_cons_of_coe_finset_eq %%x %%xs %%nmem %%xs_nd %%xs_eq),

@@ -1,3 +1,4 @@
+import data.nat.succ_pred
 import linear_algebra.basis
 import ring_theory.adjoin_root
 import ring_theory.power_basis
@@ -181,33 +182,160 @@ noncomputable def sqrt_2_sqrt_3.times_table : times_table (fin 4) ℚ sqrt_2_sqr
   table := sqrt_2_sqrt_3.table,
   mul_def := sorry }
 
+@[simp] lemma repr_mk (a b c d : ℚ) (i : fin 4) : sqrt_2_sqrt_3.basis.repr ⟨a, b, c, d⟩ i = ![a, b, c, d] i := rfl
+
 def sqrt_2 : sqrt_2_sqrt_3 := ⟨0, 1, 0, 0⟩
 @[simp] lemma repr_sqrt_2 (i : fin 4) : sqrt_2_sqrt_3.basis.repr sqrt_2 i = ![0, 1, 0, 0] i := rfl
 def sqrt_3 : sqrt_2_sqrt_3 := ⟨0, 0, 1, 0⟩
 @[simp] lemma repr_sqrt_3 (i : fin 4) : sqrt_2_sqrt_3.basis.repr sqrt_3 i = ![0, 0, 1, 0] i := rfl
 
+@[simp] lemma sqrt_2_mul_sqrt_3 : sqrt_2 * sqrt_3 = _ := _
+
 set_option profiler true
 
+-- Top-down: easier to do with `simp`, but produces huge terms
 example : (sqrt_2 + sqrt_3)^3 - 9 * (sqrt_2 + sqrt_3) = 2 * sqrt_2 :=
 begin
   -- Work coefficient-wise.
   apply sqrt_2_sqrt_3.times_table.basis.ext_elem (λ k, _),
   -- Write the term as a product (TODO: efficient handling of exponentiation?)
-  ring_nf SOP, simp only [pow_succ, pow_zero, mul_one],
+  /- repeat { ring_nf SOP }, -/ simp only [pow_succ, pow_zero, mul_one],
   -- Use the times table for multiplications.
   simp only [_root_.map_add, finsupp.coe_add, pi.add_apply,
     _root_.map_sub, finsupp.coe_sub, pi.sub_apply,
     pi.mul_apply, times_table.unfold_mul],
   -- Determine what the values in the table refer to.
   simp only [sqrt_2_sqrt_3.times_table, sqrt_2_sqrt_3.table,
-    basis.repr_bit0, basis.repr_bit1, repr_one, repr_sqrt_2, repr_sqrt_3],
+    basis.repr_bit0, basis.repr_bit1, repr_one, repr_sqrt_2, repr_sqrt_3, repr_mk],
   -- Clean up the expression.
   -- TODO: invent a norm_num plugin for finite sums
-  simp only [fin.sum_univ_succ, fin.sum_univ_zero, matrix.cons_val_succ, matrix.cons_val_zero,
+  by { simp only [fin.sum_univ_succ, fin.sum_univ_zero, matrix.cons_val_succ, matrix.cons_val_zero,
     -- The following ensures that the term produced by `simp` isn't overwhelmingly big:
     mul_zero, zero_mul, add_zero, zero_add, one_mul, mul_one],
   -- Finish the proof coefficientwise.
-  fin_cases k; norm_num
+  fin_cases k; norm_num }
 end
 
 end sqrt_2_sqrt_3
+
+section norm_num
+
+open tactic
+
+#print expr.to_list
+#check expr.list
+
+#check (∅ : finset ℕ)
+#check ({1} : finset ℕ)
+
+#print list.range_core
+
+lemma not_mem_range_pf {n : ℕ} (x : ℕ) (hx : x < n) (ys : finset (fin n))
+  (h : ∀ y ∈ ys, x < ↑y) : (⟨x, hx⟩ : fin n) ∉ ys :=
+λ hx, (h _ hx).ne rfl
+
+lemma forall_lt_succ {n : ℕ} (x : ℕ) (hx : x < n) (ys : finset (fin n))
+  (h : ∀ y ∈ ys, x + 1 < y) :
+  ∀ y ∈ (finset.cons (⟨x + 1, hx⟩ : fin n) ys (not_mem_range_pf _ ys h)),
+    (⟨x, (succ_order.lt_succ x).trans hx⟩ : fin n) < y :=
+begin
+  simp only [finset.mem_cons],
+  rintros y (rfl | hy),
+  { exact succ_order.lt_succ x },
+  { exact (succ_order.le_succ x).trans_lt (h y hy) }
+end
+
+/-- Given `ty` `n` `xs` `h : ∀ x ∈ xs, n < x`, return `[(0, proof that 0 ∉ (1 .. n-1 ++ xs)) .. n-1] ++ xs` -/
+meta def expr.finset.fin_range (ty : expr) : nat → list (expr × expr) → expr → tactic (list (expr × expr))
+| 0 l h := pure l
+| (n + 1) l h := do
+  elem ← expr.of_nat ty n,
+  -- Prove that `n` is not in `l`
+  acc ← i_to_expr ``(forall_lt_succ %%elem _ %%h),
+  pf ← i_to_expr ``(not_mem_range_pf %%elem _ %%acc),
+  expr.finset.fin_range n ((elem, pf) :: l) acc
+
+#check (finset.forall_mem_empty_iff _).mpr trivial
+#print result
+
+meta def with_trace_errors {α : Type*} (t : tactic α) : tactic α :=
+λ s, match t s with
+| (result.success x s) := result.success x s
+| (result.exception (some msg) pos s) := (tactic.trace (msg ()) >> fail (msg ())) s
+| (result.exception none pos s) := (tactic.trace "failed!" >> failure) s
+end
+
+set_option trace.app_builder true
+
+/-- Convert an expression defining a finset to a list of its constituent elements,
+along with a proof this element has not been inserted before.
+
+We return a list since the order of insertion is relevant for the second proof.
+-/
+meta def expr.to_finset : expr → tactic (list (expr × expr))
+| `(has_emptyc.emptyc) := pure []
+| `(has_singleton.singleton %%x) := do
+  pf ← i_to_expr ``(finset.not_mem_empty %%x),
+  pure [(x, pf)]
+| `(@finset.cons %%x %%xs %%h) := list.cons (x, h) <$> xs.to_finset
+| `(@@has_insert.insert (@@finset.has_insert %%dec) %%x %%xs) := failed -- TODO
+| `(@@finset.univ %%ft) := do
+  -- Convert the fintype instance expression `ft` to a list of its elements.
+  -- We'll use `whnf` while unfolding semireducibles, which gives us either the `fintype.mk` constructor,
+  -- or give up.
+  ft ← whnf ft transparency.semireducible,
+  match ft with
+  | `(fintype.mk %%elems %%_) := expr.to_finset elems
+  | _ := failed
+  end
+| `(finset.fin_range %%en) := do
+  n ← en.to_nat,
+  with_trace_errors (do
+    pf ← i_to_expr ``((finset.forall_mem_empty_iff _).mpr trivial),
+    infer_type pf >>= trace,
+    expr.finset.fin_range `(fin %%en) n [] pf)
+| _ := failed
+
+#check has_emptyc.emptyc
+#check i_to_expr
+
+meta def expr.of_finset (α : expr) : list (expr × expr) → tactic expr
+| [] := do
+  i_to_expr ``(@has_emptyc.emptyc (finset %%α) _)
+| ((x, hx) :: xs) := do
+  exs ← expr.of_finset xs,
+  i_to_expr ``(@finset.cons %%α %%x %%exs %%hx)
+
+lemma finset.eval_sum_cons {β α : Type*} [add_comm_monoid β]
+  (f : α → β) (s : finset α) (i : α) (h : i ∉ s) (x y : β)
+  (h₁ : s.sum f = x) (h₂ : f i + x = y) : (s.cons i h).sum f = y :=
+by rw [finset.sum_cons, h₁, h₂]
+
+meta def finset.prove_sum (β α inst ef : expr) : list (expr × expr) → tactic (expr × expr)
+| [] := do
+  result ← expr.of_nat β 0,
+  proof ← i_to_expr ``(@finset.sum_empty %%β %%α %%inst %%ef),
+  pure (result, proof)
+| ((x, hx) :: xs) := do
+  result_pf ← finset.prove_sum xs,
+  result ← i_to_expr ``(%%ef %%x + %%result_pf.1),
+  res_pf ← (norm_num.derive result <|> (prod.mk result <$> mk_eq_refl result)),
+  es ← expr.of_finset α xs,
+  -- TODO: pass around `nodup (x :: xs)` instead?
+  proof ← i_to_expr ``(finset.eval_sum_cons %%ef %%es %%x %%hx %%result_pf.1 %%res_pf.1 %%result_pf.2 %%res_pf.2),
+  pure (res_pf.1, proof)
+
+/-- `norm_num` plugin for evaluating `finset.prod` and `finset.sum`, and perhaps more. -/
+@[norm_num] meta def finset.eval_fold : expr → tactic (expr × expr)
+| `(@finset.sum %%β %%α %%inst %%es %%ef) := do
+  s ← es.to_finset,
+  finset.prove_sum β α inst ef s
+| _ := failed
+
+variables {α : Type*} [comm_ring α]
+
+example (f : fin 0 → α) : ∑ i : fin 0, f i = 0 := by norm_num
+example (f : fin 3 → α) : ∑ i : fin 3, f i = f 0 + f 1 + f 2 := by norm_num; ring
+example (f : fin 4 → α) : ∑ i : fin 4, f i = f 0 + f 1 + f 2 + f 3 := by norm_num; ring
+
+end norm_num

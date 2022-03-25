@@ -222,42 +222,7 @@ section norm_num
 
 open tactic
 
-#print expr.to_list
-#check expr.list
-
-#check (∅ : finset ℕ)
-#check ({1} : finset ℕ)
-
-#print list.range_core
-
-lemma not_mem_range_pf {n : ℕ} (x : ℕ) (hx : x < n) (ys : finset (fin n))
-  (h : ∀ y ∈ ys, x < ↑y) : (⟨x, hx⟩ : fin n) ∉ ys :=
-λ hx, (h _ hx).ne rfl
-
-lemma forall_lt_succ {n : ℕ} (x : ℕ) (hx : x < n) (ys : finset (fin n))
-  (h : ∀ y ∈ ys, x + 1 < y) :
-  ∀ y ∈ (finset.cons (⟨x + 1, hx⟩ : fin n) ys (not_mem_range_pf _ ys h)),
-    (⟨x, (succ_order.lt_succ x).trans hx⟩ : fin n) < y :=
-begin
-  simp only [finset.mem_cons],
-  rintros y (rfl | hy),
-  { exact succ_order.lt_succ x },
-  { exact (succ_order.le_succ x).trans_lt (h y hy) }
-end
-
-/-- Given `ty` `n` `xs` `h : ∀ x ∈ xs, n < x`, return `[(0, proof that 0 ∉ (1 .. n-1 ++ xs)) .. n-1] ++ xs` -/
-meta def expr.finset.fin_range (ty : expr) : nat → list (expr × expr) → expr → tactic (list (expr × expr))
-| 0 l h := pure l
-| (n + 1) l h := do
-  elem ← expr.of_nat ty n,
-  -- Prove that `n` is not in `l`
-  acc ← i_to_expr ``(forall_lt_succ %%elem _ %%h),
-  pf ← i_to_expr ``(not_mem_range_pf %%elem _ %%acc),
-  expr.finset.fin_range n ((elem, pf) :: l) acc
-
-#check (finset.forall_mem_empty_iff _).mpr trivial
-#print result
-
+/-- Run `t` while tracing any errors that are raised during evaluation of `t`. -/
 meta def with_trace_errors {α : Type*} (t : tactic α) : tactic α :=
 λ s, match t s with
 | (result.success x s) := result.success x s
@@ -265,77 +230,133 @@ meta def with_trace_errors {α : Type*} (t : tactic α) : tactic α :=
 | (result.exception none pos s) := (tactic.trace "failed!" >> failure) s
 end
 
-set_option trace.app_builder true
+#print finset.has_insert
+#print decidable_rel
+#print decidable
 
-/-- Convert an expression defining a finset to a list of its constituent elements,
-along with a proof this element has not been inserted before.
+#check finset.insert_eq_of_mem
+#check list.nodup_cons
 
-We return a list since the order of insertion is relevant for the second proof.
--/
-meta def expr.to_finset : expr → tactic (list (expr × expr))
-| `(has_emptyc.emptyc) := pure []
-| `(has_singleton.singleton %%x) := do
-  pf ← i_to_expr ``(finset.not_mem_empty %%x),
-  pure [(x, pf)]
-| `(@finset.cons %%x %%xs %%h) := list.cons (x, h) <$> xs.to_finset
-| `(@@has_insert.insert (@@finset.has_insert %%dec) %%x %%xs) := failed -- TODO
+lemma list.nodup_cons_of_coe_finset_eq {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
+  (h : x ∉ xs) {xs' : list α} (nd_xs : xs'.nodup)
+  (hxs' : finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs) = xs) :
+  (x :: xs').nodup :=
+list.nodup_cons.mpr ⟨by simpa [← hxs'] using h, nd_xs⟩
+
+lemma finset.coe_list_eq_insert_of_mem {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
+  (h : x ∉ xs) {xs' : list α} (nd_xs : xs'.nodup) (nd_xxs : (x :: xs').nodup)
+  (hxs' : finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs) = xs) :
+  finset.mk ↑(x :: xs') (multiset.coe_nodup.mpr nd_xxs) = insert x xs :=
+by { rw [← finset.val_inj, finset.insert_val_of_not_mem h, ← hxs'], simp only [multiset.cons_coe] }
+
+lemma finset.coe_list_cons_eq_insert {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
+  (h : x ∉ xs) {xs' : list α} (nd_xs : xs'.nodup) (nd_xxs : (x :: xs').nodup)
+  (hxs' : finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs) = xs) :
+  finset.mk ↑(x :: xs') (multiset.coe_nodup.mpr nd_xxs) = insert x xs :=
+by { rw [← finset.val_inj, finset.insert_val_of_not_mem h, ← hxs'], simp only [multiset.cons_coe] }
+
+/-- Convert an expression denoting a finset to a list of elements,
+a proof that this list is equal to the original finset,
+and a proof that the list contains no duplicates. -/
+meta def expr.finset_to_list : expr → tactic (list expr × expr × expr)
+| e@`(has_emptyc.emptyc) := do
+  eq ← mk_eq_refl e,
+  nd ← i_to_expr ``(list.nodup_nil),
+  pure ([], eq, nd)
+| e@`(has_singleton.singleton %%x) := do
+  eq ← mk_eq_refl e,
+  nd ← i_to_expr ``(list.nodup_singleton %%x),
+  pure ([x], eq, nd)
+| e@`(@finset.cons %%x %%xs %%h) := do
+  eq ← mk_eq_refl e,
+  nd ← i_to_expr ``(list.nodup_singleton %%x),
+  pure ([x], eq, nd)
+| `(@@has_insert.insert (@@finset.has_insert %%dec) %%x %%xs) := do
+  -- Try and use `dec_trivial` to decide whether `x ∈ xs`
+  -- TODO: we should be able to use `norm_num` itself for this!
+  (exs, xs_eq, xs_nd) ← expr.finset_to_list xs,
+  is_mem ← i_to_expr ``(decidable (%%x ∈ %%xs)) >>= mk_instance,
+  dec_mem ← whnf is_mem transparency.semireducible,
+  match dec_mem with
+  | `(decidable.is_true %%mem) := do
+    pf ← i_to_expr ``(eq.trans %%xs_eq $ eq.symm $ @finset.insert_eq_of_mem _ _ %%xs %%x %%mem),
+    pure (exs, pf, xs_nd)
+  | `(decidable.is_false %%nmem) := do
+    nd ← i_to_expr ``(list.nodup_cons_of_coe_finset_eq %%x %%xs %%nmem %%xs_nd %%xs_eq),
+    pf ← i_to_expr ``(finset.coe_list_cons_eq_insert %%x %%xs %%nmem %%xs_nd %%nd %%xs_eq),
+    pure (x :: exs, pf, nd)
+  | e := fail (to_fmt "Unknown decidable expression" ++ format.line ++ to_fmt dec_mem)
+  end
 | `(@@finset.univ %%ft) := do
   -- Convert the fintype instance expression `ft` to a list of its elements.
   -- We'll use `whnf` while unfolding semireducibles, which gives us either the `fintype.mk` constructor,
   -- or give up.
   ft ← whnf ft transparency.semireducible,
   match ft with
-  | `(fintype.mk %%elems %%_) := expr.to_finset elems
-  | _ := failed
+  | `(fintype.mk %%elems %%_) := expr.finset_to_list elems
+  | _ := fail (to_fmt "Unknown fintype expression" ++ format.line ++ to_fmt ft)
   end
-| `(finset.fin_range %%en) := do
-  n ← en.to_nat,
-  with_trace_errors (do
-    pf ← i_to_expr ``((finset.forall_mem_empty_iff _).mpr trivial),
-    infer_type pf >>= trace,
-    expr.finset.fin_range `(fin %%en) n [] pf)
-| _ := failed
+| e@`(finset.fin_range %%en) := do
+  n ← expr.to_nat en,
+  eis ← (list.fin_range n).mmap (λ i, expr.of_nat `(fin %%en) i),
+  eq ← mk_eq_refl e,
+  nd ← i_to_expr ``(list.nodup_fin_range %%en),
+  pure (eis, eq, nd)
+| e := fail (to_fmt "Unknown finset expression" ++ format.line ++ to_fmt e)
 
-#check has_emptyc.emptyc
-#check i_to_expr
+/-- Convert a list of expressions to an expression denoting the list of those expressions. -/
+meta def expr.of_list (α : expr) : list expr → tactic expr
+| [] := i_to_expr ``(@list.nil %%α)
+| (x :: xs) := do
+  exs ← expr.of_list xs,
+  i_to_expr ``(@list.cons %%α %%x %%exs)
 
-meta def expr.of_finset (α : expr) : list (expr × expr) → tactic expr
-| [] := do
-  i_to_expr ``(@has_emptyc.emptyc (finset %%α) _)
-| ((x, hx) :: xs) := do
-  exs ← expr.of_finset xs,
-  i_to_expr ``(@finset.cons %%α %%x %%exs %%hx)
+@[to_additive]
+lemma list.prod_map_cons {β α : Type*} [monoid β] (f : α → β) (is : list α) (i : α)
+  (x y : β) (his : (is.map f).prod = x) (hi : f i * x = y) : ((i :: is).map f).prod = y :=
+by rw [list.map_cons, list.prod_cons, his, hi]
 
-lemma finset.eval_sum_cons {β α : Type*} [add_comm_monoid β]
-  (f : α → β) (s : finset α) (i : α) (h : i ∉ s) (x y : β)
-  (h₁ : s.sum f = x) (h₂ : f i + x = y) : (s.cons i h).sum f = y :=
-by rw [finset.sum_cons, h₁, h₂]
-
-meta def finset.prove_sum (β α inst ef : expr) : list (expr × expr) → tactic (expr × expr)
+/-- Evaluate `(%%xs.map (%%ef : %%α → %%β)).sum`,
+producing the evaluated expression and an equality proof. -/
+meta def list.prove_sum_map (β α ef : expr) : list expr → tactic (expr × expr)
 | [] := do
   result ← expr.of_nat β 0,
-  proof ← i_to_expr ``(@finset.sum_empty %%β %%α %%inst %%ef),
+  proof ← i_to_expr ``(@list.sum_nil %%β _),
   pure (result, proof)
-| ((x, hx) :: xs) := do
-  result_pf ← finset.prove_sum xs,
-  result ← i_to_expr ``(%%ef %%x + %%result_pf.1),
-  res_pf ← (norm_num.derive result <|> (prod.mk result <$> mk_eq_refl result)),
-  es ← expr.of_finset α xs,
-  -- TODO: pass around `nodup (x :: xs)` instead?
-  proof ← i_to_expr ``(finset.eval_sum_cons %%ef %%es %%x %%hx %%result_pf.1 %%res_pf.1 %%result_pf.2 %%res_pf.2),
-  pure (res_pf.1, proof)
+| (x :: xs) := do
+  eval_xs ← list.prove_sum_map xs,
+  xxs ← i_to_expr ``(%%ef %%x + %%eval_xs.1),
+  eval_xxs ← (norm_num.derive xxs <|> (prod.mk xxs <$> mk_eq_refl xxs)),
+  exs ← expr.of_list α xs,
+  proof ← i_to_expr ``(list.sum_map_cons %%ef %%exs %%x %%eval_xs.1 %%eval_xxs.1 %%eval_xs.2 %%eval_xxs.2),
+  pure (eval_xxs.1, proof)
+
+@[to_additive]
+lemma finset.eval_prod_of_list {β α : Type*} [comm_monoid β]
+  (s : finset α) (f : α → β) {is : list α} (his : is.nodup)
+  (hs : finset.mk ↑is (multiset.coe_nodup.mpr his) = s)
+  {x : β} (hx : (is.map f).prod = x) :
+  s.prod f = x :=
+by rw [← hs, finset.prod_mk, multiset.coe_map, multiset.coe_prod, hx]
 
 /-- `norm_num` plugin for evaluating `finset.prod` and `finset.sum`, and perhaps more. -/
 @[norm_num] meta def finset.eval_fold : expr → tactic (expr × expr)
-| `(@finset.sum %%β %%α %%inst %%es %%ef) := do
-  s ← es.to_finset,
-  finset.prove_sum β α inst ef s
+| `(@finset.sum %%β %%α %%inst %%es %%ef) := with_trace_errors $ do
+  (xs, list_eq, nodup) ← es.finset_to_list,
+  (result, sum_eq) ← list.prove_sum_map β α ef xs,
+  pf ← i_to_expr ``(finset.eval_sum_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),
+  pure (result, pf)
 | _ := failed
 
 variables {α : Type*} [comm_ring α]
 
+set_option profiler true
+
 example (f : fin 0 → α) : ∑ i : fin 0, f i = 0 := by norm_num
+example (f : ℕ → α) : ∑ i in (∅ : finset ℕ), f i = 0 := by norm_num
 example (f : fin 3 → α) : ∑ i : fin 3, f i = f 0 + f 1 + f 2 := by norm_num; ring
 example (f : fin 4 → α) : ∑ i : fin 4, f i = f 0 + f 1 + f 2 + f 3 := by norm_num; ring
+example (f : ℕ → α) : ∑ i in {0, 1, 2}, f i = f 0 + f 1 + f 2 := by norm_num; ring
+example (f : ℕ → α) : ∑ i in {0, 2, 2, 3, 1, 0}, f i = f 0 + f 1 + f 2 + f 3 := by norm_num; ring
 
 end norm_num

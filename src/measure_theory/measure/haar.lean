@@ -641,9 +641,9 @@ begin
 end
 
 /-- **Steinhaus Theorem** In any locally compact group `G` with a haar measure `μ`, for any
-  measurable set `E` of positive measure, the set `E/E` contains a neighborhood of `1` -/
-@[to_additive /-- **Steinhaus Theorem** In any locally compact group `G` with a haar measure `μ`,
-  for any measurable set `E` of positive measure, the set `E - E` contains a neighborhood of `0` -/]
+  measurable set `E` of positive measure, the set `E/E` contains a neighborhood of `1`. -/
+@[to_additive "**Steinhaus Theorem** In any locally compact group `G` with a haar measure `μ`,
+  for any measurable set `E` of positive measure, the set `E - E` contains a neighborhood of `0`."]
 theorem steinhaus_theorem_mul (μ : measure G) (is_haar_measure μ) (E : set G)
   (hE : measurable_set E) (hEpos : 0 < μ E) : ∃ (U : set G) , U ∈ nhds (1 : G) ∧ U ⊆ E / E :=
 begin

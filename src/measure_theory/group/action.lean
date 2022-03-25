@@ -179,4 +179,6 @@ include G
 by rw [← not_iff_not, ← ne.def, ← pos_iff_ne_zero,
   measure_pos_iff_nonempty_of_smul_invariant G hμ hU, ← ne_empty_iff_nonempty]
 
+end is_minimal
+
 end measure_theory

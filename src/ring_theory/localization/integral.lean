@@ -383,8 +383,8 @@ begin
         div_eq_mul_inv, ← mul_assoc, mul_comm, ← ring_hom.map_inv, ← algebra.smul_def,
         ← _root_.map_mul],
     exact (submodule.span K _).smul_mem _ hy },
-  rw submodule.span_algebra_map_image_of_tower,
   refine submodule.span_subset_span R K _ _,
+  rw submodule.span_algebra_map_image_of_tower,
   exact submodule.mem_map_of_mem (h (ideal.mem_span_singleton.mpr ⟨y, rfl⟩))
 end
 end is_fraction_ring

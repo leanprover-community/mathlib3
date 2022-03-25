@@ -1,19 +1,52 @@
 import measure_theory.group.measure measure_theory.measure.lebesgue topology.basic
-import analysis.normed_space.pointwise
+import analysis.normed_space.pointwise measure_theory.measure.haar
 
 
 
-open add_monoid_hom measure_theory measure_theory.measure metric nnreal
+open add_monoid_hom measure_theory measure_theory.measure metric nnreal set
 open_locale pointwise
 
+section prereq
 
-variables {α : Type*} [add_group α] [topological_space α] [topological_add_group α]
-  [locally_compact_space α] [measurable_space α] {μ : measure α} [is_add_haar_measure μ]
 
-theorem steinhaus_theorem (E : set α) (hE : measurable_set E) (hEpos : 0 < μ E)
-  (hEtop : μ E ≠ ⊤) : ∃ (U : set α) , U ∈ nhds (0 : α) ∧ U ⊆ E -ᵥ E :=
+variables {G : Type*} [topological_space G] [group G] [topological_group G]
+
+/-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`
+  such that `V * K ⊆ U`. -/
+@[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of
+`0` such that `V + K ⊆ U`."]
+lemma compact_open_separated_mul_left {K U : set G} (hK : is_compact K) (hU : is_open U)
+  (hKU : K ⊆ U) : ∃ V : set G, is_open V ∧ (1 : G) ∈ V ∧ V * K ⊆ U :=
 begin
-  haveI : μ.regular, sorry, --is this in the library or do I need to prove this?
+  let W : G → set G := λ x, (λ y, y * x) ⁻¹' U,
+  have h1W : ∀ x, is_open (W x) := λ x, hU.preimage (continuous_mul_right x),
+  have h2W : ∀ x ∈ K, (1 : G) ∈ W x := λ x hx, by simp only [mem_preimage, one_mul, hKU hx],
+  choose V hV using λ x : K, exists_open_nhds_one_mul_subset ((h1W x).mem_nhds (h2W x.1 x.2)),
+  let X : K → set G := λ x, (λ y, y * (x : G)⁻¹) ⁻¹' (V x),
+  obtain ⟨t, ht⟩ : ∃ t : finset ↥K, K ⊆ ⋃ i ∈ t, X i,
+  { refine hK.elim_finite_subcover X (λ x, (hV x).1.preimage (continuous_mul_right x⁻¹)) _,
+    intros x hx, rw [mem_Union], use ⟨x, hx⟩, rw [mem_preimage], convert (hV _).2.1,
+    simp only [mul_right_inv, subtype.coe_mk] },
+  refine ⟨⋂ x ∈ t, V x, is_open_bInter (finite_mem_finset _) (λ x hx, (hV x).1), _, _⟩,
+  { simp only [mem_Inter], intros x hx, exact (hV x).2.1 },
+  rintro _ ⟨x, y, hx, hy, rfl⟩, simp only [mem_Inter] at hx,
+  have := ht hy, simp only [mem_Union, mem_preimage] at this, rcases this with ⟨z, h1z, h2z⟩,
+  have : x * (y * (z : G)⁻¹) ∈ W z := (hV z).2.2 (mul_mem_mul (hx z h1z) h2z),
+  rw [mem_preimage] at this, convert this using 1, simp only [mul_assoc, inv_mul_cancel_right]
+end
+
+end prereq
+
+
+variables (α : Type*) [group α] [topological_space α] [topological_group α] [t2_space α]
+  [locally_compact_space α] [measurable_space α] [opens_measurable_space α] [borel_space α]
+  [topological_space.second_countable_topology α] {μ : measure α} [is_haar_measure μ]
+
+
+@[to_additive]
+theorem steinhaus_theorem_mul (E : set α) (hE : measurable_set E) (hEpos : 0 < μ E)
+  (hEtop : μ E ≠ ⊤) : ∃ (U : set α) , U ∈ nhds (1 : α) ∧ U ⊆ E / E :=
+begin
   have hK := measurable_set.exists_lt_is_compact_of_ne_top hE hEtop hEpos,
   rcases hK with ⟨K, hKE, hK, hKpos⟩,
   have hKtop : μ K ≠ ⊤,
@@ -23,27 +56,22 @@ begin
   { exact ne_of_gt hKpos },
   have hU := set.exists_is_open_lt_add K hKtop h2,
   rcases hU with ⟨U, hUK, hU, hμUK⟩,
-  have hV := compact_open_separated_add hK hU hUK,
+  have hV := compact_open_separated_mul_left hK hU hUK,
   rcases hV with ⟨V, hV, hVzero, hVKU⟩,
-  have hv : ∀ (v : α), v ∈ V → ¬ disjoint (K + {v}) K,
+  have hv : ∀ (v : α), v ∈ V → ¬ disjoint ({v}* K) K,
   { intros v hv hKv,
-    have hKvsub : K + {v} ∪ K ⊆ U,
+    have hKvsub : {v} * K ∪ K ⊆ U,
     { apply set.union_subset _ hUK,
       apply subset_trans _ hVKU,
-      apply set.add_subset_add (set.subset.refl K),
+      apply set.mul_subset_mul _ (set.subset.refl K),
       simp only [set.singleton_subset_iff, hv] },
     replace hKvsub := @measure_mono _ _ μ _ _ hKvsub,
     have hcontr := lt_of_le_of_lt hKvsub hμUK,
-    rw measure_union hKv _ at hcontr,
-    have hKtranslate : μ (K + {v}) = μ K,
-    haveI : is_add_right_invariant μ, sorry, --should I assume we're in an abelian group?
-    { simp only [set.add_singleton, set.image_add_right],
-     haveI : has_measurable_add α, sorry, -- what about this one?
-      rw measure_preimage_add_right μ (-v) K },
+    rw measure_union hKv (is_compact.measurable_set hK) at hcontr,
+    have hKtranslate : μ ({v} * K) = μ K,
+    { simp only [singleton_mul, image_mul_left, measure_preimage_mul] },
     rw [hKtranslate, lt_self_iff_false] at hcontr,
-    assumption,
-    -- goal `measurable_set K`. Does this mean that I want all compacts to be measurable?
-    sorry },
+    assumption },
     use V,
     split,
     { exact is_open.mem_nhds hV hVzero },
@@ -51,16 +79,13 @@ begin
       specialize hv v hvV,
       rw set.not_disjoint_iff at hv,
       rcases hv with ⟨x, hxK, hxvK⟩,
-      rw set.mem_vsub,
-      refine ⟨x, x-v, _, _, _⟩,
+      rw set.mem_div,
+      refine ⟨x, v⁻¹ * x, _, _, _⟩,
       { apply hKE hxvK },
       { apply hKE,
-        simp only [set.add_singleton, set.image_add_right, set.mem_preimage,
-          ← sub_eq_add_neg] at hxK,
+        simp only [singleton_mul, image_mul_left, mem_preimage] at hxK,
         exact hxK },
-        simp only [vsub_eq_sub],
-        -- goal `x - (x - v) = v`, so commutativity seems to be indeed required
-        sorry }
+        simp only [div_eq_iff_eq_mul, ← mul_assoc, mul_right_inv, one_mul] }
 end
 
 
@@ -97,74 +122,6 @@ begin
   exact htop,
 end
 
-lemma lemma1 (E : set ℝ) (h : 0 < volume E) (hE : measurable_set E) (ht : volume E ≠ ⊤) :
-  ∃ (a b : ℝ), a < b ∧ E ⊆ set.Ioo a b ∧
-  ∃ (α : nnreal), 1/2 < α ∧ α < 1 ∧ ↑α * volume (set.Ioo a b) < volume E :=
-begin
-  have hE2 : volume E / 2 ≠ 0, { simpa using (ne_of_gt h) },
-  rcases (set.exists_is_open_lt_add E ht hE2) with ⟨U, hUE, hUopen, hU⟩,
-  sorry
-end
-
-lemma lemma2 (E U : set ℝ) (hE : measurable_set E) (hvE : 0 < volume E) :
-  volume ((E +ᵥ U) ∪ E) ≤ volume E + volume U :=
-begin
-  sorry
-end
-
-lemma steinhaus_thm (E : set ℝ)
-  (hE : 0 < measure_space.volume E) (hlE : measurable_set E) (ht : volume E ≠ ⊤) :
-    ∃ (δ : ℝ), 0 < δ ∧ ball (0 : ℝ) δ ⊆ E -ᵥ E :=
-begin
-  rcases (lemma1 E hE hlE ht) with ⟨a, b, hab, hEab, α, hα1, hα2, hαE⟩,
-  use ((2 * α - 1) * (b - a)),
-  split,
-  { apply mul_pos,
-    { simp only [lt_sub, sub_zero, ← div_lt_iff' (show 0 < (2 : ℝ), by norm_num)],
-      rw ← real.to_nnreal_lt_iff_lt_coe _,
-      { convert hα1,
-        rw real.to_nnreal_div,
-        { simp only [real.to_nnreal_one, real.to_nnreal_bit0, zero_le_one] },
-        exact zero_le_one },
-      norm_num },
-    norm_num [hab] },
-  { intros x hx,
-    by_contra hxE,
-    replace hxE : disjoint (E +ᵥ {x}) E,
-    { simp only [disjoint_iff, set.image_add_right, set.inf_eq_inter, set.bot_eq_empty],
-      contrapose hxE,
-      push_neg,
-      rw set.eq_empty_iff_forall_not_mem at hxE,
-      push_neg at hxE,
-      cases hxE with y hy,
-      rw set.mem_inter_iff at hy,
-      rw set.mem_vsub,
-      refine ⟨y, (y - x), hy.2, _, _⟩,
-      { simp only [set.vadd_singleton, vadd_eq_add, set.image_add_right, set.mem_preimage,
-        ← sub_eq_add_neg] at hy,
-        exact hy.1 },
-      { norm_num }},
-    have hadd : 2 * volume E = volume ((E +ᵥ {x}) ∪ E),
-    { rw measure_union hxE hlE,
-      simp only [two_mul, set.vadd_singleton, vadd_eq_add, set.image_add_right, measure_preimage_add_right] },
-    have hbound : volume ((E +ᵥ {x}) ∪ E) ≤ 2 * α * volume (set.Ioo a b),
-    { have hEs : E +ᵥ {x} ⊆ E +ᵥ ball (0 : ℝ) ((2 * ↑α - 1) * (b - a)),
-      { intros y hy,
-        cases hy with z hz,
-        refine ⟨z, x, _⟩,
-        simp only [set.mem_singleton_iff, vadd_eq_add, exists_and_distrib_left, exists_eq_left]
-          at hz,
-        exact ⟨hz.1, hx, hz.2⟩ },
-      replace hEs := set.union_subset_union hEs (show E ⊆ E, by exact set.subset.rfl),
-      apply le_trans (measure_mono hEs) _,
-      apply le_trans (lemma2 _ (ball (0 : ℝ) ((2 * ↑α - 1) * (b - a))) hlE hE) _,
-      sorry },
-    rw [← hadd, mul_assoc] at hbound,
-    rw ennreal.mul_le_mul_left (show (2 : ennreal) ≠ 0, by simp) (show (2 : ennreal) ≠ ⊤, by simp)
-      at hbound,
-    apply not_le_of_lt hαE hbound }
-end
-
 lemma prereq (f : ℝ →+ ℝ) (h : @measurable ℝ ℝ (real.measurable_space) (borel ℝ) f) :
   ∃ (C δ : ℝ), 0 < C ∧ 0 < δ ∧ ∀ (x : ℝ), x ∈ ball (0 : ℝ) δ → ∥f x∥ ≤ C :=
 begin
@@ -172,17 +129,19 @@ begin
   have hrm : measurable_set (f⁻¹' (ball 0 r)),
   { apply h,
     exact measurable_set_ball },
-  cases (steinhaus_thm f _ h hr hrm) with δ hδ,
-  refine ⟨(2 * r), δ, _, hδ.1, λ x hx, _⟩,
-  { sorry },
-  { replace hx := set.mem_of_subset_of_mem hδ.2 hx,
-    rw set.mem_vsub at hx,
-    rcases hx with ⟨a, b, ha, hb, hab⟩,
-    rw ← hab,
-    simp only [vsub_eq_sub, map_sub],
-    calc ∥f a - f b∥ ≤ ∥ f a ∥ + ∥ f b ∥ : norm_sub_le (f a) (f b)
-      ... ≤ 2 * r : by linarith [(mem_ball_zero_iff).mp (set.mem_preimage.mp ha),
-      (mem_ball_zero_iff).mp (set.mem_preimage.mp hb)]}
+  -- error with instances
+  -- rcases (steinhaus_theorem_add ℝ (f⁻¹' (ball 0 r)) hrm hr _) with ⟨U, hU0, hUr⟩,
+  sorry,
+  -- refine ⟨(2 * r), δ, _, hδ.1, λ x hx, _⟩,
+  -- { sorry },
+  -- { replace hx := set.mem_of_subset_of_mem hδ.2 hx,
+  --   rw set.mem_vsub at hx,
+  --   rcases hx with ⟨a, b, ha, hb, hab⟩,
+  --   rw ← hab,
+  --   simp only [vsub_eq_sub, map_sub],
+  --   calc ∥f a - f b∥ ≤ ∥ f a ∥ + ∥ f b ∥ : norm_sub_le (f a) (f b)
+  --     ... ≤ 2 * r : by linarith [(mem_ball_zero_iff).mp (set.mem_preimage.mp ha),
+  --     (mem_ball_zero_iff).mp (set.mem_preimage.mp hb)]}
 end
 
 lemma prereq2 (f : ℝ →+ ℝ)
@@ -264,7 +223,7 @@ begin
     { apply lt_min hδ,
       apply mul_pos,
       { linarith },
-      { simpa [inv_pos, norm_pos_iff, ne.def] }},
+      { simp only [_root_.inv_pos, norm_pos_iff, ne.def, hf1, not_false_iff] }},
     cases hq with q hq,
     specialize h ↑q _,
     { simp only [dist_eq_norm', real.norm_eq_abs],

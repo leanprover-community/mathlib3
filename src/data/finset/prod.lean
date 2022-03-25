@@ -31,7 +31,7 @@ section prod
 variables {s s' : finset α} {t t' : finset β} {a : α} {b : β}
 
 /-- `product s t` is the set of pairs `(a, b)` such that `a ∈ s` and `b ∈ t`. -/
-protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨_, nodup_product s.2 t.2⟩
+protected def product (s : finset α) (t : finset β) : finset (α × β) := ⟨_, s.nodup.product t.nodup⟩
 
 @[simp] lemma product_val : (s.product t).1 = s.1.product t.1 := rfl
 

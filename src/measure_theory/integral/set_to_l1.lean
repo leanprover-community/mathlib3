@@ -501,7 +501,7 @@ begin
   rw integrable_iff at hg ⊢,
   intros x hx_ne,
   change μ ((has_neg.neg ∘ g) ⁻¹' {x}) < ∞,
-  rw [preimage_comp, neg_preimage, neg_singleton],
+  rw [preimage_comp, neg_preimage, set.neg_singleton],
   refine hg (-x) _,
   simp [hx_ne],
 end

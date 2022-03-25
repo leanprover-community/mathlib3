@@ -158,17 +158,14 @@ theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
   letI : Π (T0 : finset T), L.Structure (M T0) := λ T0, is_satisfiable.some_model_structure _,
   haveI : (filter.at_top : filter (finset T)).ne_bot := at_top_ne_bot,
   refine ⟨(↑(ultrafilter.of filter.at_top) : filter _).product M, infer_instance,
-    ultraproduct.Structure, _⟩,
+    ultraproduct.Structure, ⟨_⟩⟩,
   intros φ hφ,
   rw ultraproduct.sentence_realize,
-  refine filter.eventually.filter_mono (ultrafilter.of_le _) (filter.eventually_at_top.2
-    ⟨{⟨φ, hφ⟩}, _⟩),
-  rintro ⟨s, hs⟩ h',
-  simp only [ge_iff_le, finset.le_eq_subset, finset.singleton_subset_iff, finset.mem_mk] at h',
-  refine is_satisfiable.some_model_models _ _ _,
+  refine filter.eventually.filter_mono (ultrafilter.of_le _) (filter.eventually_at_top.2 ⟨{⟨φ, hφ⟩},
+    λ s h', Theory.realize_sentence_of_mem (s.map (function.embedding.subtype (λ x, x ∈ T))) _⟩),
   simp only [finset.coe_map, function.embedding.coe_subtype, set.mem_image, finset.mem_coe,
-    finset.mem_mk, set_coe.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right],
-  exact ⟨hφ, h'⟩,
+    subtype.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right],
+  exact ⟨hφ, h' (finset.mem_singleton_self _)⟩,
 end⟩
 
 end Theory

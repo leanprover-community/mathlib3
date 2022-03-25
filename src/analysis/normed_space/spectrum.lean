@@ -36,8 +36,6 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 
 ## TODO
 
-* after we have Liouville's theorem, prove that the spectrum is nonempty when the
-  scalar field is ℂ.
 * compute all derivatives of `resolvent a`.
 
 -/
@@ -261,9 +259,6 @@ section gelfand_formula
 open filter ennreal continuous_multilinear_map
 open_locale topological_space
 
-/- the assumption below that `A` be second countable is a technical limitation due to
-the current implementation of Bochner integrals in mathlib. Once this is changed, we
-will be able to remove that hypothesis. -/
 variables
 [normed_ring A] [normed_algebra ℂ A] [complete_space A]
 

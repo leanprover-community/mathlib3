@@ -293,7 +293,7 @@ an element of the symmetric power on `{x // x ∈ s}`. -/
 def attach (s : sym α n) : sym {x // x ∈ s} n := ⟨s.val.attach, by rw [multiset.card_attach, s.2]⟩
 
 @[simp] lemma attach_mk {m : multiset α} {hc : m.card = n} :
-  attach (mk m hc) = mk m.attach (by simp [hc]) := rfl
+  attach (mk m hc) = mk m.attach (multiset.card_attach.trans hc) := rfl
 
 @[simp] lemma coe_attach (s : sym α n) : (s.attach : multiset {a // a ∈ s}) = multiset.attach s :=
 rfl

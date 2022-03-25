@@ -266,7 +266,6 @@ the current implementation of Bochner integrals in mathlib. Once this is changed
 will be able to remove that hypothesis. -/
 variables
 [normed_ring A] [normed_algebra ℂ A] [complete_space A]
-[measurable_space A] [borel_space A] [topological_space.second_countable_topology A]
 
 /-- The `limsup` relationship for the spectral radius used to prove `spectrum.gelfand_formula`. -/
 lemma limsup_pow_nnnorm_pow_one_div_le_spectral_radius (a : A) :
@@ -315,7 +314,7 @@ end gelfand_formula
 
 /-- In a (nontrivial) complex Banach algebra, every element has nonempty spectrum. -/
 theorem nonempty {A : Type*} [normed_ring A] [normed_algebra ℂ A] [complete_space A]
-  [nontrivial A] [topological_space.second_countable_topology A]
+  [nontrivial A]
   (a : A) : (spectrum ℂ a).nonempty :=
 begin
   /- Suppose `σ a = ∅`, then resolvent set is `ℂ`, any `(z • 1 - a)` is a unit, and `resolvent`
@@ -364,7 +363,7 @@ is an algebra isomorphism whose inverse is given by selecting the (unique) eleme
 `spectrum ℂ a`. In addition, `algebra_map_isometry` guarantees this map is an isometry. -/
 @[simps]
 noncomputable def _root_.normed_division_ring.alg_equiv_complex_of_complete
-  [complete_space A] [topological_space.second_countable_topology A] : ℂ ≃ₐ[ℂ] A :=
+  [complete_space A] : ℂ ≃ₐ[ℂ] A :=
 { to_fun := algebra_map ℂ A,
   inv_fun := λ a, (spectrum.nonempty a).some,
   left_inv := λ z, by simpa only [scalar_eq] using (spectrum.nonempty $ algebra_map ℂ A z).some_mem,

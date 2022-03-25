@@ -267,7 +267,7 @@ by simp [sym.map]
   (a :: s).map f = (f a) :: s.map f :=
 by simp [map, cons]
 
-@[congr] lemma map_congr {β : Type*} {f g : α → β} {s : sym α n} (h: ∀ x ∈ s, f x = g x) :
+@[congr] lemma map_congr {β : Type*} {f g : α → β} {s : sym α n} (h : ∀ x ∈ s, f x = g x) :
   map f s = map g s := subtype.ext $ multiset.map_congr rfl h
 
 @[simp] lemma map_mk {β : Type*} {f : α → β} {m : multiset α} {hc : m.card = n} :

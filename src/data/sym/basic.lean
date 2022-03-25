@@ -206,8 +206,7 @@ lemma exists_eq_cons_of_succ (s : sym α n.succ) : ∃ (a : α) (s' : sym α n),
 begin
   obtain ⟨a, ha⟩ := exists_mem s,
   classical,
-  use [a, s.erase a ha],
-  rw cons_erase,
+  exact ⟨a, s.erase a ha, (cons_erase ha).symm⟩,
 end
 
 lemma eq_repeat {a : α} {n : ℕ} {s : sym α n} : s = repeat a n ↔ ∀ b ∈ s, b = a :=

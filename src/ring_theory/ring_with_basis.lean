@@ -327,6 +327,12 @@ meta def expr.finset_to_list (decide_eq : expr → expr → tactic (bool × expr
   | `(fintype.mk %%elems %%_) := expr.finset_to_list elems
   | _ := fail (to_fmt "Unknown fintype expression" ++ format.line ++ to_fmt ft)
   end
+| e@`(finset.range %%en) := do
+  n ← expr.to_nat en,
+  eis ← (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
+  eq ← mk_eq_refl e,
+  nd ← i_to_expr ``(list.nodup_range %%en),
+  pure (eis, eq, nd)
 | e@`(finset.fin_range %%en) := do
   n ← expr.to_nat en,
   eis ← (list.fin_range n).mmap (λ i, expr.of_nat `(fin %%en) i),
@@ -418,6 +424,6 @@ example (f : fin 4 → α) : ∑ i : fin 4, f i = f 0 + f 1 + f 2 + f 3 := by no
 example (f : ℕ → α) : ∑ i in {0, 1, 2}, f i = f 0 + f 1 + f 2 := by norm_num; ring
 example (f : ℕ → α) : ∑ i in {0, 2, 2, 3, 1, 0}, f i = f 0 + f 1 + f 2 + f 3 := by norm_num; ring
 example (f : ℕ → α) : ∑ i in {0, 2, 2 - 3, 3 - 1, 1, 0}, f i = f 0 + f 1 + f 2 := by norm_num; ring
-example : ∏ i in {1, 2, 3}, nat.fib i = 6 := by norm_num
+example : ∏ i in finset.range 9, nat.sqrt (i + 1) = 96 := by norm_num
 
 end norm_num

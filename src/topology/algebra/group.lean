@@ -794,23 +794,23 @@ variables [topological_space G] [group G] [topological_group G]
 @[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of
 `0` such that `K + V ⊆ U`."]
 lemma compact_open_separated_mul_right {K U : set G} (hK : is_compact K) (hU : is_open U)
-  (hKU : K ⊆ U) : ∃ V : set G, is_open V ∧ (1 : G) ∈ V ∧ K * V ⊆ U :=
+  (hKU : K ⊆ U) : ∃ V ∈ 𝓝 (1 : G), K * V ⊆ U :=
 begin
-  let W : G → set G := λ x, (λ y, x * y) ⁻¹' U,
-  have h1W : ∀ x, is_open (W x) := λ x, hU.preimage (continuous_mul_left x),
-  have h2W : ∀ x ∈ K, (1 : G) ∈ W x := λ x hx, by simp only [mem_preimage, mul_one, hKU hx],
-  choose V hV using λ x : K, exists_open_nhds_one_mul_subset ((h1W x).mem_nhds (h2W x.1 x.2)),
-  let X : K → set G := λ x, (λ y, (x : G)⁻¹ * y) ⁻¹' (V x),
-  obtain ⟨t, ht⟩ : ∃ t : finset ↥K, K ⊆ ⋃ i ∈ t, X i,
-  { refine hK.elim_finite_subcover X (λ x, (hV x).1.preimage (continuous_mul_left x⁻¹)) _,
-    intros x hx, rw [mem_Union], use ⟨x, hx⟩, rw [mem_preimage], convert (hV _).2.1,
-    simp only [mul_left_inv, subtype.coe_mk] },
-  refine ⟨⋂ x ∈ t, V x, is_open_bInter (finite_mem_finset _) (λ x hx, (hV x).1), _, _⟩,
-  { simp only [mem_Inter], intros x hx, exact (hV x).2.1 },
-  rintro _ ⟨x, y, hx, hy, rfl⟩, simp only [mem_Inter] at hy,
-  have := ht hx, simp only [mem_Union, mem_preimage] at this, rcases this with ⟨z, h1z, h2z⟩,
-  have : (z : G)⁻¹ * x * y ∈ W z := (hV z).2.2 (mul_mem_mul h2z (hy z h1z)),
-  rw [mem_preimage] at this, convert this using 1, simp only [mul_assoc, mul_inv_cancel_left]
+  apply hK.induction_on,
+  { exact ⟨univ, by simp⟩ },
+  { rintros s t hst ⟨V, hV, hV'⟩,
+    exact ⟨V, hV, (mul_subset_mul_right hst).trans hV'⟩ },
+  { rintros s t  ⟨V, V_in, hV'⟩ ⟨W, W_in, hW'⟩,
+    use [V ∩ W, inter_mem V_in W_in],
+    rw union_mul,
+    exact union_subset ((mul_subset_mul_left (V.inter_subset_left W)).trans hV')
+                       ((mul_subset_mul_left (V.inter_subset_right W)).trans hW') },
+  { intros x hx,
+    have := tendsto_mul (show U ∈ 𝓝 (x * 1), by simpa using hU.mem_nhds (hKU hx)),
+    rw [nhds_prod_eq, mem_map, mem_prod_iff] at this,
+    rcases this with ⟨t, ht, s, hs, h⟩,
+    rw [← image_subset_iff, image_mul_prod] at h,
+    exact ⟨t, mem_nhds_within_of_mem_nhds ht, s, hs, h⟩ }
 end
 
 /-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`
@@ -818,23 +818,23 @@ end
 @[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of
 `0` such that `V + K ⊆ U`."]
 lemma compact_open_separated_mul_left {K U : set G} (hK : is_compact K) (hU : is_open U)
-  (hKU : K ⊆ U) : ∃ V : set G, is_open V ∧ (1 : G) ∈ V ∧ V * K ⊆ U :=
+  (hKU : K ⊆ U) : ∃ V ∈ 𝓝 (1 : G), V * K ⊆ U :=
 begin
-  let W : G → set G := λ x, (λ y, y * x) ⁻¹' U,
-  have h1W : ∀ x, is_open (W x) := λ x, hU.preimage (continuous_mul_right x),
-  have h2W : ∀ x ∈ K, (1 : G) ∈ W x := λ x hx, by simp only [mem_preimage, one_mul, hKU hx],
-  choose V hV using λ x : K, exists_open_nhds_one_mul_subset ((h1W x).mem_nhds (h2W x.1 x.2)),
-  let X : K → set G := λ x, (λ y, y * (x : G)⁻¹) ⁻¹' (V x),
-  obtain ⟨t, ht⟩ : ∃ t : finset ↥K, K ⊆ ⋃ i ∈ t, X i,
-  { refine hK.elim_finite_subcover X (λ x, (hV x).1.preimage (continuous_mul_right x⁻¹)) _,
-    intros x hx, rw [mem_Union], use ⟨x, hx⟩, rw [mem_preimage], convert (hV _).2.1,
-    simp only [mul_right_inv, subtype.coe_mk] },
-  refine ⟨⋂ x ∈ t, V x, is_open_bInter (finite_mem_finset _) (λ x hx, (hV x).1), _, _⟩,
-  { simp only [mem_Inter], intros x hx, exact (hV x).2.1 },
-  rintro _ ⟨x, y, hx, hy, rfl⟩, simp only [mem_Inter] at hx,
-  have := ht hy, simp only [mem_Union, mem_preimage] at this, rcases this with ⟨z, h1z, h2z⟩,
-  have : x * (y * (z : G)⁻¹) ∈ W z := (hV z).2.2 (mul_mem_mul (hx z h1z) h2z),
-  rw [mem_preimage] at this, convert this using 1, simp only [mul_assoc, inv_mul_cancel_right]
+  apply hK.induction_on,
+  { exact ⟨univ, by simp⟩ },
+  { rintros s t hst ⟨V, hV, hV'⟩,
+    exact ⟨V, hV, (mul_subset_mul_left hst).trans hV'⟩ },
+  { rintros s t  ⟨V, V_in, hV'⟩ ⟨W, W_in, hW'⟩,
+    use [V ∩ W, inter_mem V_in W_in],
+    rw mul_union,
+    exact union_subset ((mul_subset_mul_right (V.inter_subset_left W)).trans hV')
+                       ((mul_subset_mul_right (V.inter_subset_right W)).trans hW') },
+  { intros x hx,
+    have := tendsto_mul (show U ∈ 𝓝 (1 * x), by simpa using hU.mem_nhds (hKU hx)),
+    simp only [nhds_prod_eq, mem_map, mem_prod_iff] at this,
+    rcases this with ⟨t, ht, s, hs, h⟩,
+    rw [← image_subset_iff, image_mul_prod] at h,
+    exact ⟨s, mem_nhds_within_of_mem_nhds hs, t, ht, h⟩ }
 end
 
 /-- A compact set is covered by finitely many left multiplicative translates of a set

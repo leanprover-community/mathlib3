@@ -309,10 +309,13 @@ def roots_of_min_poly_pi_type (φ : E →ₐ[K] L)
 (x : set.range (finite_dimensional.fin_basis K E : _ → E)) :
   {l : L // l ∈ (((minpoly K x.1).map (algebra_map K L)).roots : multiset L)} :=
 ⟨φ x, begin
-  rw [polynomial.mem_roots_map (minpoly.ne_zero' K x.val),
+  rw [polynomial.mem_roots_map (minpoly.ne_zero_of_finite_field_extension K x.val),
     ← polynomial.alg_hom_eval₂_algebra_map, ← φ.map_zero],
   exact congr_arg φ (minpoly.aeval K (x : E)),
 end⟩
+
+--minpoly.ne_zero' K x.val
+
 
 lemma aux_inj_roots_of_min_poly : function.injective (roots_of_min_poly_pi_type K E L) :=
 begin

@@ -314,9 +314,6 @@ def roots_of_min_poly_pi_type (φ : E →ₐ[K] L)
   exact congr_arg φ (minpoly.aeval K (x : E)),
 end⟩
 
---minpoly.ne_zero' K x.val
-
-
 lemma aux_inj_roots_of_min_poly : function.injective (roots_of_min_poly_pi_type K E L) :=
 begin
   intros f g h,

@@ -179,9 +179,8 @@ do
   to_expr ``(borel %%α) >>= pose n1,
   reset_instance_cache,
   n2 ← get_unused_name "_inst",
-  t ← to_expr ``(borel_space %%α),
-  v ← to_expr ``(borel_space.mk rfl),
-  note n2 t v,
+  v ← to_expr ``(borel_space.mk rfl : borel_space %%α),
+  note n2 none v
   reset_instance_cache
 
 /-- Given a type `α`, an assumption `i : measurable_space α`, and an instance `[borel_space α]`,
@@ -191,7 +190,7 @@ do
   n ← get_unused_name "h",
   to_expr ``(%%i = borel %%α) >>= assert n,
   applyc `borel_space.measurable_eq,
-  unfreezing (to_expr ``(%%i) >>= tactic.subst),
+  unfreezing (tactic.subst i),
   n1 ← get_unused_name "_inst",
   to_expr ``(borel %%α) >>= pose n1,
   reset_instance_cache

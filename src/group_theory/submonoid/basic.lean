@@ -77,11 +77,15 @@ export add_mem_class (add_mem)
 
 attribute [to_additive] one_mem_class mul_mem_class
 
+section
+
 set_option old_structure_cmd true
 
 /-- A submonoid of a monoid `M` is a subset containing 1 and closed under multiplication. -/
 structure submonoid (M : Type*) [mul_one_class M] extends subsemigroup M :=
 (one_mem' : (1 : M) ∈ carrier)
+
+end
 
 /-- A submonoid of a monoid `M` can be considered as a subsemigroup of that monoid. -/
 add_decl_doc submonoid.to_subsemigroup
@@ -92,10 +96,16 @@ class submonoid_class (S : Type*) (M : out_param $ Type*) [mul_one_class M] [set
   extends mul_mem_class S M :=
 (one_mem : ∀ (s : S), (1 : M) ∈ s)
 
+section
+
+set_option old_structure_cmd true
+
 /-- An additive submonoid of an additive monoid `M` is a subset containing 0 and
   closed under addition. -/
 structure add_submonoid (M : Type*) [add_zero_class M] extends add_subsemigroup M :=
 (zero_mem' : (0 : M) ∈ carrier)
+
+end
 
 /-- An additive submonoid of an additive monoid `M` can be considered as an
 additive subsemigroup of that additive monoid. -/

@@ -128,7 +128,7 @@ open mul_mem_class inv_mem_class submonoid_class
 /-- A subgroup is closed under division. -/
 @[to_additive "An additive subgroup is closed under subtraction."]
 theorem div_mem {x y : M} (hx : x ∈ H) (hy : y ∈ H) : x / y ∈ H :=
-by simpa only [div_eq_mul_inv] using mul_mem hx (inv_mem hy)
+by rw [div_eq_mul_inv]; exact mul_mem hx (inv_mem hy)
 
 @[to_additive]
 lemma zpow_mem {x : M} (hx : x ∈ K) : ∀ n : ℤ, x ^ n ∈ K

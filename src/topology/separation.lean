@@ -328,6 +328,9 @@ lemma filter.coclosed_compact_le_cofinite [t1_space α] :
 
 variable (α)
 
+/-- In a `t1_space`, relatively compact sets form a bornology. Its cobounded filter is
+`filter.coclosed_compact`. See also `bornology.in_compact` the bornology of sets contained
+in a compact set. -/
 def bornology.relatively_compact [t1_space α] : bornology α :=
 { cobounded := filter.coclosed_compact α,
   le_cofinite := filter.coclosed_compact_le_cofinite }

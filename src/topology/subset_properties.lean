@@ -559,6 +559,9 @@ namespace bornology
 
 variable (α)
 
+/-- Sets that are contained in a compact set form a bornology. Its `cobounded` filter is
+`filter.cocompact`. See also `bornology.relatively_compact` the bornology of sets with compact
+closure. -/
 def in_compact : bornology α :=
 { cobounded := filter.cocompact α,
   le_cofinite := filter.cocompact_le_cofinite }

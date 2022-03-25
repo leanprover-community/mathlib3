@@ -180,7 +180,7 @@ do
   reset_instance_cache,
   n2 ← get_unused_name "_inst",
   v ← to_expr ``(borel_space.mk rfl : borel_space %%α),
-  note n2 none v
+  note n2 none v,
   reset_instance_cache
 
 /-- Given a type `α`, an assumption `i : measurable_space α`, and an instance `[borel_space α]`,

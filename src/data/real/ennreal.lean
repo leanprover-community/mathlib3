@@ -132,7 +132,7 @@ by simp [ennreal.to_real, ennreal.of_real, real.coe_to_nnreal _ h]
 lemma to_real_of_real' {r : ℝ} : ennreal.to_real (ennreal.of_real r) = max r 0 := rfl
 
 lemma coe_to_nnreal_le_self : ∀{a:ℝ≥0∞}, ↑(a.to_nnreal) ≤ a
-| (some r) := by rw [some_eq_coe, to_nnreal_coe]; exact le_refl _
+| (some r) := by rw [some_eq_coe, to_nnreal_coe]; exact le_rfl
 | none     := le_top
 
 lemma coe_nnreal_eq (r : ℝ≥0) : (r : ℝ≥0∞) = ennreal.of_real r :=
@@ -229,7 +229,7 @@ lemma two_ne_zero : (2:ℝ≥0∞) ≠ 0 := (ne_of_lt zero_lt_two).symm
 lemma two_ne_top : (2:ℝ≥0∞) ≠ ∞ := coe_two ▸ coe_ne_top
 
 /-- `(1 : ℝ≥0∞) ≤ 1`, recorded as a `fact` for use with `Lp` spaces. -/
-instance _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_refl _⟩
+instance _root_.fact_one_le_one_ennreal : fact ((1 : ℝ≥0∞) ≤ 1) := ⟨le_rfl⟩
 
 /-- `(1 : ℝ≥0∞) ≤ 2`, recorded as a `fact` for use with `Lp` spaces. -/
 instance _root_.fact_one_le_two_ennreal : fact ((1 : ℝ≥0∞) ≤ 2) :=
@@ -271,7 +271,7 @@ lemma supr_ennreal {α : Type*} [complete_lattice α] {f : ℝ≥0∞ → α} :
 @[simp] lemma top_add : ∞ + a = ∞ := top_add _
 
 /-- Coercion `ℝ≥0 → ℝ≥0∞` as a `ring_hom`. -/
-noncomputable def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
+def of_nnreal_hom : ℝ≥0 →+* ℝ≥0∞ :=
 ⟨coe, coe_one, λ _ _, coe_mul, coe_zero, λ _ _, coe_add⟩
 
 @[simp] lemma coe_of_nnreal_hom : ⇑of_nnreal_hom = coe := rfl
@@ -457,7 +457,7 @@ begin
   cases a,
   { cases m,
     { rw eq_bot_iff.mpr h,
-      exact le_refl _ },
+      exact le_rfl },
     { rw [none_eq_top, top_pow (nat.succ_pos m)],
       exact le_top } },
   { rw [some_eq_coe, ← coe_pow, ← coe_pow, coe_le_coe],
@@ -968,20 +968,13 @@ begin
   rw [← coe_inv h, ← coe_pow, ← coe_inv (pow_ne_zero _ h), ← inv_pow₀, coe_pow]
 end
 
-@[simp] lemma inv_inv : (a⁻¹)⁻¹ = a :=
-by by_cases a = 0; cases a; simp [*, none_eq_top, some_eq_coe,
-  -coe_inv, (coe_inv _).symm] at *
-
-lemma inv_involutive : function.involutive (λ a:ℝ≥0∞, a⁻¹) :=
-λ a, ennreal.inv_inv
-
-lemma inv_bijective : function.bijective (λ a:ℝ≥0∞, a⁻¹) :=
-ennreal.inv_involutive.bijective
-
-@[simp] lemma inv_eq_inv : a⁻¹ = b⁻¹ ↔ a = b := inv_bijective.1.eq_iff
+instance : has_involutive_inv ℝ≥0∞ :=
+{ inv := has_inv.inv,
+  inv_inv := λ a, by
+    by_cases a = 0; cases a; simp [*, none_eq_top, some_eq_coe, -coe_inv, (coe_inv _).symm] at * }
 
 @[simp] lemma inv_eq_top : a⁻¹ = ∞ ↔ a = 0 :=
-inv_zero ▸ inv_eq_inv
+inv_zero ▸ inv_inj
 
 lemma inv_ne_top : a⁻¹ ≠ ∞ ↔ a ≠ 0 := by simp
 
@@ -992,7 +985,7 @@ lemma div_lt_top {x y : ℝ≥0∞} (h1 : x ≠ ∞) (h2 : y ≠ 0) : x / y < �
 mul_lt_top h1 (inv_ne_top.mpr h2)
 
 @[simp] lemma inv_eq_zero : a⁻¹ = 0 ↔ a = ∞ :=
-inv_top ▸ inv_eq_inv
+inv_top ▸ inv_inj
 
 lemma inv_ne_zero : a⁻¹ ≠ 0 ↔ a ≠ ∞ := by simp
 
@@ -1040,7 +1033,7 @@ by simpa only [inv_inv] using @inv_lt_inv a⁻¹ b
 
 @[simp, priority 1100] -- higher than le_inv_iff_mul_le
 lemma inv_le_inv : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
-by simp only [le_iff_lt_or_eq, inv_lt_inv, inv_eq_inv, eq_comm]
+by simp only [le_iff_lt_or_eq, inv_lt_inv, inv_inj, eq_comm]
 
 lemma inv_le_iff_inv_le : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
 by simpa only [inv_inv] using @inv_le_inv a b⁻¹
@@ -1057,9 +1050,20 @@ le_inv_iff_le_inv.trans $ by rw inv_one
 @[simp] lemma inv_lt_one : a⁻¹ < 1 ↔ 1 < a :=
 inv_lt_iff_inv_lt.trans $ by rw [inv_one]
 
+/-- The inverse map `λ x, x⁻¹` is an order isomorphism between `ℝ≥0∞` and its `order_dual` -/
+@[simps apply]
+def _root_.order_iso.inv_ennreal : ℝ≥0∞ ≃o order_dual ℝ≥0∞ :=
+{ to_fun := λ x, x⁻¹,
+  inv_fun := λ x, x⁻¹,
+  map_rel_iff' := λ a b, ennreal.inv_le_inv,
+  ..equiv.inv ℝ≥0∞ }
+
+@[simp]
+lemma _root_.order_iso.inv_ennreal_symm_apply : order_iso.inv_ennreal.symm a = a⁻¹ := rfl
+
 lemma pow_le_pow_of_le_one {n m : ℕ} (ha : a ≤ 1) (h : n ≤ m) : a ^ m ≤ a ^ n :=
 begin
-  rw [← @inv_inv a, ← ennreal.inv_pow, ← @ennreal.inv_pow a⁻¹, inv_le_inv],
+  rw [←inv_inv a, ← ennreal.inv_pow, ← @ennreal.inv_pow a⁻¹, inv_le_inv],
   exact pow_le_pow (one_le_inv.2 ha) h
 end
 
@@ -1267,7 +1271,7 @@ by simpa only [div_eq_mul_inv, one_mul] using sub_half one_ne_top
 
 lemma exists_inv_nat_lt {a : ℝ≥0∞} (h : a ≠ 0) :
   ∃n:ℕ, (n:ℝ≥0∞)⁻¹ < a :=
-@inv_inv a ▸ by simp only [inv_lt_inv, ennreal.exists_nat_gt (inv_ne_top.2 h)]
+inv_inv a ▸ by simp only [inv_lt_inv, ennreal.exists_nat_gt (inv_ne_top.2 h)]
 
 lemma exists_nat_pos_mul_gt (ha : a ≠ 0) (hb : b ≠ ∞) :
   ∃ n > 0, b < (n : ℕ) * a :=
@@ -1763,7 +1767,7 @@ variables {ι : Sort*} {f g : ι → ℝ≥0∞}
 
 lemma infi_add : infi f + a = ⨅i, f i + a :=
 le_antisymm
-  (le_infi $ assume i, add_le_add (infi_le _ _) $ le_refl _)
+  (le_infi $ assume i, add_le_add (infi_le _ _) $ le_rfl)
   (tsub_le_iff_right.1 $ le_infi $ assume i, tsub_le_iff_right.2 $ infi_le _ _)
 
 lemma supr_sub : (⨆i, f i) - a = (⨆i, f i - a) :=

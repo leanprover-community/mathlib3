@@ -379,7 +379,7 @@ Inside `conv` blocks, mathlib currently additionally provides
 * `conv` (within another `conv`).
 
 `apply_congr` applies congruence lemmas to step further inside expressions,
-and sometimes gives between results than the automatically generated
+and sometimes gives better results than the automatically generated
 congruence lemmas used by `congr`.
 
 Using `conv` inside a `conv` block allows the user to return to the previous

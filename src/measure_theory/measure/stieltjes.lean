@@ -109,7 +109,7 @@ end
 
 lemma length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) :
   f.length s₁ ≤ f.length s₂ :=
-infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h', ⟨subset.trans h h', le_refl _⟩
+infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h', ⟨subset.trans h h', le_rfl⟩
 
 open measure_theory
 
@@ -143,7 +143,7 @@ begin
   refine λ s, finset.strong_induction_on s (λ s IH b cv, _),
   cases le_total b a with ab ab,
   { rw ennreal.of_real_eq_zero.2 (sub_nonpos.2 (f.mono ab)), exact zero_le _, },
-  have := cv ⟨ab, le_refl _⟩, simp at this,
+  have := cv ⟨ab, le_rfl⟩, simp at this,
   rcases this with ⟨i, is, cb, bd⟩,
   rw [← finset.insert_erase is] at cv ⊢,
   rw [finset.coe_insert, bUnion_insert] at cv,

@@ -32,10 +32,6 @@ begin
   { simp }
 end
 
-@[simp, norm_cast, to_additive]
-lemma units.coe_pow (u : Mˣ) (n : ℕ) : ((u ^ n : Mˣ) : M) = u ^ n :=
-(units.coe_hom M).map_pow u n
-
 instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
 { inv_of := ⅟ m ^ n,
   inv_of_mul_self := by rw [← (commute_inv_of m).symm.mul_pow, inv_of_mul_self, one_pow],
@@ -170,10 +166,6 @@ theorem zpow_bit0 (a : G) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n := zpow_add _ _
 @[to_additive bit1_zsmul]
 theorem zpow_bit1 (a : G) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
 by rw [bit1, zpow_add, zpow_bit0, zpow_one]
-
-@[simp, norm_cast, to_additive]
-lemma units.coe_zpow (u : Gˣ) (n : ℤ) : ((u ^ n : Gˣ) : G) = u ^ n :=
-(units.coe_hom G).map_zpow u n
 
 end group
 

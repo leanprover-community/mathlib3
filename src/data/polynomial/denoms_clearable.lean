@@ -11,11 +11,12 @@ import data.polynomial.eval
 
 Let `i : R → K` be a homomorphism of semirings.  Assume that `K` is commutative.  If `a` and
 `b` are elements of `R` such that `i b ∈ K` is invertible, then for any polynomial
-`f ∈ polynomial R` the "mathematical" expression `b ^ f.nat_degree * f (a / b) ∈ K` is in
+`f ∈ R[X]` the "mathematical" expression `b ^ f.nat_degree * f (a / b) ∈ K` is in
 the image of the homomorphism `i`.
 -/
 
 open polynomial finset
+open_locale polynomial
 
 section denoms_clearable
 
@@ -30,7 +31,7 @@ The definition asserts the existence of an element `D` of `R` and an
 element `bi = 1 / i b` of `K` such that clearing the denominators of
 the fraction equals `i D`.
 -/
-def denoms_clearable (a b : R) (N : ℕ) (f : polynomial R) (i : R →+* K) : Prop :=
+def denoms_clearable (a b : R) (N : ℕ) (f : R[X]) (i : R →+* K) : Prop :=
   ∃ (D : R) (bi : K), bi * i b = 1 ∧ i D = i b ^ N * eval (i a * bi) (f.map i)
 
 lemma denoms_clearable_zero (N : ℕ) (a : R) (bu : bi * i b = 1) :
@@ -48,7 +49,7 @@ begin
   rw [bu, one_pow, mul_one],
 end
 
-lemma denoms_clearable.add {N : ℕ} {f g : polynomial R} :
+lemma denoms_clearable.add {N : ℕ} {f g : R[X]} :
   denoms_clearable a b N f i → denoms_clearable a b N g i → denoms_clearable a b N (f + g) i :=
 λ ⟨Df, bf, bfu, Hf⟩ ⟨Dg, bg, bgu, Hg⟩, ⟨Df + Dg, bf, bfu,
   begin
@@ -59,7 +60,7 @@ lemma denoms_clearable.add {N : ℕ} {f g : polynomial R} :
   end ⟩
 
 lemma denoms_clearable_of_nat_degree_le (N : ℕ) (a : R) (bu : bi * i b = 1) :
-  ∀ (f : polynomial R), f.nat_degree ≤ N → denoms_clearable a b N f i :=
+  ∀ (f : R[X]), f.nat_degree ≤ N → denoms_clearable a b N f i :=
 induction_with_nat_degree_le _ N
   (denoms_clearable_zero N a bu)
   (λ N_1 r r0, denoms_clearable_C_mul_X_pow a bu r)
@@ -69,7 +70,7 @@ induction_with_nat_degree_le _ N
 `a, b` are elements of `R`, with `i b` invertible, then there is a `D ∈ R` such that
 `b ^ f.nat_degree * f (a / b)` equals `i D`. -/
 theorem denoms_clearable_nat_degree
-  (i : R →+* K) (f : polynomial R) (a : R) (bu : bi * i b = 1) :
+  (i : R →+* K) (f : R[X]) (a : R) (bu : bi * i b = 1) :
   denoms_clearable a b f.nat_degree f i :=
 denoms_clearable_of_nat_degree_le f.nat_degree a bu f le_rfl
 
@@ -82,7 +83,7 @@ denominators, yields a number greater than or equal to one.  The target can be a
 `linear_ordered_field K`.
 The assumption on `K` could be weakened to `linear_ordered_comm_ring` assuming that the
 image of the denominator is invertible in `K`. -/
-lemma one_le_pow_mul_abs_eval_div {K : Type*} [linear_ordered_field K] {f : polynomial ℤ}
+lemma one_le_pow_mul_abs_eval_div {K : Type*} [linear_ordered_field K] {f : ℤ[X]}
   {a b : ℤ} (b0 : 0 < b) (fab : eval ((a : K) / b) (f.map (algebra_map ℤ K)) ≠ 0) :
   (1 : K) ≤ b ^ f.nat_degree * |eval ((a : K) / b) (f.map (algebra_map ℤ K))| :=
 begin

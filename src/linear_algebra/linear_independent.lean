@@ -712,7 +712,7 @@ apply linear_equiv.of_bijective
 { rw [← linear_map.range_eq_top, linear_map.range_eq_map, linear_map.map_cod_restrict,
     ← linear_map.range_le_iff_comap, range_subtype, map_top],
   rw finsupp.range_total,
-  apply le_refl (span R (range v)) },
+  exact le_rfl },
 { intro l,
   rw ← finsupp.range_total,
   rw linear_map.mem_range,
@@ -805,7 +805,7 @@ begin
   let indep : set ι → Prop := λ I, linear_independent R (s ∘ coe : I → M),
   let X := { I : set ι // indep I },
   let r : X → X → Prop := λ I J, I.1 ⊆ J.1,
-  have key : ∀ c : set X, zorn.chain r c → indep (⋃ (I : X) (H : I ∈ c), I),
+  have key : ∀ c : set X, is_chain r c → indep (⋃ (I : X) (H : I ∈ c), I),
   { intros c hc,
     dsimp [indep],
     rw [linear_independent_comp_subtype],
@@ -818,7 +818,7 @@ begin
     exact linear_independent_comp_subtype.mp I.2 f hI hsum },
   have trans : transitive r := λ I J K, set.subset.trans,
   obtain ⟨⟨I, hli : indep I⟩, hmax : ∀ a, r ⟨I, hli⟩ a → r a ⟨I, hli⟩⟩ :=
-    @zorn.exists_maximal_of_chains_bounded _ r
+    @exists_maximal_of_chains_bounded _ r
     (λ c hc, ⟨⟨⋃ I ∈ c, (I : set ι), key c hc⟩, λ I, set.subset_bUnion_of_mem⟩) trans,
   exact ⟨I, hli, λ J hsub hli, set.subset.antisymm hsub (hmax ⟨J, hli⟩ hsub)⟩,
 end
@@ -1171,7 +1171,7 @@ by rw [linear_independent_fin_succ, linear_independent_unique_iff, range_unique,
 lemma exists_linear_independent_extension (hs : linear_independent K (coe : s → V)) (hst : s ⊆ t) :
   ∃b⊆t, s ⊆ b ∧ t ⊆ span K b ∧ linear_independent K (coe : b → V) :=
 begin
-  rcases zorn.zorn_subset_nonempty {b | b ⊆ t ∧ linear_independent K (coe : b → V)} _ _
+  rcases zorn_subset_nonempty {b | b ⊆ t ∧ linear_independent K (coe : b → V)} _ _
     ⟨hst, hs⟩ with ⟨b, ⟨bt, bi⟩, sb, h⟩,
   { refine ⟨b, bt, sb, λ x xt, _, bi⟩,
     by_contra hn,

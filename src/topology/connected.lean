@@ -220,7 +220,7 @@ open succ_order
 
 variables [linear_order β] [succ_order β] [is_succ_archimedean β]
 
-/-- The Union of connected sets indexed by a type with an archimedian successor (like `ℕ` or `ℤ`)
+/-- The Union of connected sets indexed by a type with an archimedean successor (like `ℕ` or `ℤ`)
   such that any two neighboring sets meet is preconnected. -/
 theorem is_preconnected.Union_of_chain {s : β → set α}
   (H : ∀ n, is_preconnected (s n))
@@ -229,7 +229,7 @@ theorem is_preconnected.Union_of_chain {s : β → set α}
 is_preconnected.Union_of_refl_trans_gen H $
   λ i j, refl_trans_gen_of_succ _ (λ i _, K i) $ λ i _, by { rw inter_comm, exact K i }
 
-/-- The Union of connected sets indexed by a type with an archimedian successor (like `ℕ` or `ℤ`)
+/-- The Union of connected sets indexed by a type with an archimedean successor (like `ℕ` or `ℤ`)
   such that any two neighboring sets meet is connected. -/
 theorem is_connected.Union_of_chain [nonempty β] {s : β → set α}
   (H : ∀ n, is_connected (s n))
@@ -238,7 +238,7 @@ theorem is_connected.Union_of_chain [nonempty β] {s : β → set α}
 is_connected.Union_of_refl_trans_gen H $
   λ i j, refl_trans_gen_of_succ _ (λ i _, K i) $ λ i _, by { rw inter_comm, exact K i }
 
-/-- The Union of preconnected sets indexed by a subset of a type with an archimedian successor
+/-- The Union of preconnected sets indexed by a subset of a type with an archimedean successor
   (like `ℕ` or `ℤ`) such that any two neighboring sets meet is preconnected. -/
 theorem is_preconnected.bUnion_of_chain
   {s : β → set α} {t : set β} (ht : ord_connected t)
@@ -257,7 +257,7 @@ begin
     (λ k hk, ⟨by { rw [inter_comm], exact h3 hj hi hk }, h2 hj hi hk⟩),
 end
 
-/-- The Union of connected sets indexed by a subset of a type with an archimedian successor
+/-- The Union of connected sets indexed by a subset of a type with an archimedean successor
   (like `ℕ` or `ℤ`) such that any two neighboring sets meet is preconnected. -/
 theorem is_connected.bUnion_of_chain
   {s : β → set α} {t : set β} (hnt : t.nonempty) (ht : ord_connected t)
@@ -1099,6 +1099,22 @@ begin
   { exact subsingleton_empty },
   { obtain ⟨a, t, ht, rfl⟩ := sigma.is_connected_iff.1 ⟨h, hs⟩,
     exact ht.is_preconnected.subsingleton.image _ }
+end
+
+/-- Let `X` be a topological space, and suppose that for all distinct `x,y ∈ X`, there
+  is some clopen set `U` such that `x ∈ U` and `y ∉ U`. Then `X` is totally disconnected. -/
+lemma is_totally_disconnected_of_clopen_set {X : Type*} [topological_space X]
+  (hX : ∀ {x y : X} (h_diff : x ≠ y), ∃ (U : set X) (h_clopen : is_clopen U), x ∈ U ∧ y ∉ U) :
+  is_totally_disconnected (set.univ : set X) :=
+begin
+  rintro S - hS,
+  unfold set.subsingleton,
+  by_contra' h_contra,
+  rcases h_contra with ⟨x, hx, y, hy, hxy⟩,
+  obtain ⟨U, h_clopen, hxU, hyU⟩ := hX hxy,
+  specialize hS U Uᶜ h_clopen.1 h_clopen.compl.1 (λ a ha, em (a ∈ U)) ⟨x, hx, hxU⟩ ⟨y, hy, hyU⟩,
+  rw [inter_compl_self, set.inter_empty] at hS,
+  exact set.not_nonempty_empty hS,
 end
 
 /-- A space is totally disconnected iff its connected components are subsingletons. -/

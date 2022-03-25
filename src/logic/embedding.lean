@@ -34,6 +34,11 @@ instance {α : Sort u} {β : Sort v} : embedding_like (α ↪ β) α β :=
   injective' := embedding.inj',
   coe_injective' := λ f g h, by { cases f, cases g, congr' } }
 
+instance {α β : Sort*} : can_lift (α → β) (α ↪ β) :=
+{ coe := coe_fn,
+  cond := injective,
+  prf := λ f hf, ⟨⟨f, hf⟩, rfl⟩ }
+
 end function
 
 section equiv
@@ -169,6 +174,14 @@ def coe_with_top {α} : α ↪ with_top α := { to_fun := coe, ..embedding.some}
 @[simps] def option_elim {α β} (f : α ↪ β) (x : β) (h : x ∉ set.range f) :
   option α ↪ β :=
 ⟨λ o, o.elim x f, option.injective_iff.2 ⟨f.2, h⟩⟩
+
+/-- Equivalence between embeddings of `option α` and a sigma type over the embeddings of `α`. -/
+@[simps]
+def option_embedding_equiv (α β) : (option α ↪ β) ≃ Σ f : α ↪ β, ↥(set.range f)ᶜ :=
+{ to_fun := λ f, ⟨coe_option.trans f, f none, λ ⟨x, hx⟩, option.some_ne_none x $ f.injective hx⟩,
+  inv_fun := λ f, f.1.option_elim f.2 f.2.2,
+  left_inv := λ f, ext $ by { rintro (_|_); simp [option.coe_def] },
+  right_inv := λ ⟨f, y, hy⟩, by { ext; simp [option.coe_def] } }
 
 /-- Embedding of a `subtype`. -/
 def subtype {α} (p : α → Prop) : subtype p ↪ α :=

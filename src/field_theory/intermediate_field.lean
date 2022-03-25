@@ -38,7 +38,7 @@ intermediate field, field extension
 -/
 
 open finite_dimensional polynomial
-open_locale big_operators
+open_locale big_operators polynomial
 
 variables (K L : Type*) [field K] [field L] [algebra K L]
 
@@ -309,7 +309,7 @@ lemma range_val : S.val.range = S.to_subalgebra :=
 S.to_subalgebra.range_val
 
 lemma aeval_coe {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
-  [is_scalar_tower R K L] (x : S) (P : polynomial R) : aeval (x : L) P = aeval x P :=
+  [is_scalar_tower R K L] (x : S) (P : R[X]) : aeval (x : L) P = aeval x P :=
 begin
   refine polynomial.induction_on' P (λ f g hf hg, _) (λ n r, _),
   { rw [aeval_add, aeval_add, coe_add, hf, hg] },

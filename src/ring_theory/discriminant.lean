@@ -6,7 +6,7 @@ Authors: Riccardo Brasca
 
 import ring_theory.trace
 import ring_theory.norm
-import ring_theory.integrally_closed
+import number_theory.number_field
 
 /-!
 # Discriminant of a family of vectors
@@ -68,9 +68,16 @@ def discr (A : Type u) {B : Type v} [comm_ring A] [comm_ring B] [algebra A B] [f
 lemma discr_def [decidable_eq ι] [fintype ι] (b : ι → B) :
   discr A b = (trace_matrix A b).det := by convert rfl
 
-variable [fintype ι]
+variables {ι' : Type*} [fintype ι'] [fintype ι]
 
 section basic
+
+@[simp] lemma discr_reindex (b : basis ι A B) (f : ι ≃ ι') :
+  discr A (b ∘ ⇑(f.symm)) = discr A b :=
+begin
+  classical,
+  rw [← basis.coe_reindex, discr_def, trace_matrix_reindex, det_reindex_self, ← discr_def]
+end
 
 /-- If `b` is not linear independent, then `algebra.discr A b = 0`. -/
 lemma discr_zero_of_not_linear_independent [is_domain A] {b : ι → B}
@@ -156,7 +163,7 @@ begin
 end
 
 /-- A variation of `of_power_basis_eq_prod`. -/
-lemma of_power_basis_eq_prod' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma discr_power_basis_eq_prod' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
   ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
   -((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
@@ -169,12 +176,12 @@ end
 local notation `n` := finrank K L
 
 /-- A variation of `of_power_basis_eq_prod`. -/
-lemma of_power_basis_eq_prod'' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
+lemma discr_power_basis_eq_prod'' [is_separable K L] (e : fin pb.dim ≃ (L →ₐ[K] E)) :
   algebra_map K E (discr K pb.basis) =
   (-1) ^ (n * (n - 1) / 2) * ∏ i : fin pb.dim, ∏ j in finset.univ.filter (λ j, i < j),
   ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))) :=
 begin
-  rw [of_power_basis_eq_prod' _ _ _ e],
+  rw [discr_power_basis_eq_prod' _ _ _ e],
   simp_rw [λ i j, neg_eq_neg_one_mul ((e j pb.gen- (e i pb.gen)) * (e i pb.gen- (e j pb.gen))),
     prod_mul_distrib],
   congr,
@@ -202,7 +209,7 @@ begin
 end
 
 /-- Formula for the discriminant of a power basis using the norm of the field extension. -/
-lemma of_power_basis_eq_norm [is_separable K L] : discr K pb.basis =
+lemma discr_power_basis_eq_norm [is_separable K L] : discr K pb.basis =
   (-1) ^ (n * (n - 1) / 2) * (norm K (aeval pb.gen (minpoly K pb.gen).derivative)) :=
 begin
   let E := algebraic_closure L,
@@ -221,13 +228,13 @@ begin
 
   apply (algebra_map K E).injective,
   rw [ring_hom.map_mul, ring_hom.map_pow, ring_hom.map_neg, ring_hom.map_one,
-    of_power_basis_eq_prod'' _ _ _ e],
+    discr_power_basis_eq_prod'' _ _ _ e],
   congr,
   rw [norm_eq_prod_embeddings, fin.prod_filter_lt_mul_neg_eq_prod_off_diag],
   conv_rhs { congr, skip, funext,
     rw [← aeval_alg_hom_apply, aeval_root_derivative_of_splits (minpoly.monic
       (is_separable.is_integral K pb.gen)) (is_alg_closed.splits_codomain _) (hroots σ),
-      ← finset.prod_mk _ (multiset.nodup_erase_of_nodup _ hnodup)] },
+      ← finset.prod_mk _ (hnodup.erase _)] },
   rw [prod_sigma', prod_sigma'],
   refine prod_bij (λ i hi, ⟨e i.2, e i.1 pb.gen⟩) (λ i hi, _) (λ i hi, by simp at hi)
     (λ i j hi hj hij, _) (λ σ hσ, _),
@@ -251,7 +258,7 @@ begin
     { replace h := alg_hom.congr_fun (equiv.injective _ h) pb.gen,
       rw [power_basis.lift_gen] at h,
       rw [← h] at hσ,
-      refine multiset.mem_erase_of_nodup hnodup hσ, },
+      exact hnodup.not_mem_erase hσ },
     all_goals { simp } }
 end
 
@@ -269,6 +276,40 @@ begin
   classical,
   rw [discr_def],
   exact is_integral.det (λ i j, is_integral_trace (is_integral_mul (h i) (h j)))
+end
+
+/-- If `b` and `b'` are `ℚ`-bases of a number field `K` such that
+`∀ i j, is_integral ℤ (b.to_matrix b' i j)` and `∀ i j, is_integral ℤ (b'.to_matrix b i j)` then
+`discr ℚ b = discr ℚ b'`. -/
+lemma discr_eq_discr_of_to_matrix_coeff_is_integral [number_field K] {b : basis ι ℚ K}
+  {b' : basis ι' ℚ K} (h : ∀ i j, is_integral ℤ (b.to_matrix b' i j))
+  (h' : ∀ i j, is_integral ℤ (b'.to_matrix b i j)) :
+  discr ℚ b = discr ℚ b' :=
+begin
+  replace h' : ∀ i j, is_integral ℤ (b'.to_matrix ((b.reindex (b.index_equiv b'))) i j),
+  { intros i j,
+    convert h' i ((b.index_equiv b').symm j),
+    simpa },
+  classical,
+  rw [← (b.reindex (b.index_equiv b')).to_matrix_map_vec_mul b', discr_of_matrix_vec_mul,
+    ← one_mul (discr ℚ b), basis.coe_reindex, discr_reindex],
+  congr,
+  have hint : is_integral ℤ (((b.reindex (b.index_equiv b')).to_matrix b').det) :=
+    is_integral.det (λ i j, h _ _),
+  obtain ⟨r, hr⟩ := is_integrally_closed.is_integral_iff.1 hint,
+  have hunit : is_unit r,
+  { have : is_integral ℤ ((b'.to_matrix (b.reindex (b.index_equiv b'))).det) :=
+      is_integral.det (λ i j, h' _ _),
+    obtain ⟨r', hr'⟩ := is_integrally_closed.is_integral_iff.1 this,
+    refine is_unit_iff_exists_inv.2 ⟨r', _⟩,
+    suffices : algebra_map ℤ ℚ (r * r') = 1,
+    { rw [← ring_hom.map_one (algebra_map ℤ ℚ)] at this,
+      exact (is_fraction_ring.injective ℤ ℚ) this },
+    rw [ring_hom.map_mul, hr, hr', ← det_mul, basis.to_matrix_mul_to_matrix_flip, det_one] },
+  rw [← ring_hom.map_one (algebra_map ℤ ℚ), ← hr],
+  cases int.is_unit_iff.1 hunit with hp hm,
+  { simp [hp] },
+  { simp [hm] }
 end
 
 /-- Let `K` be the fraction field of an integrally closed domain `R` and let `L` be a finite

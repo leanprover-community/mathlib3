@@ -21,11 +21,11 @@ polynomials.
 -/
 
 open filter finset asymptotics
-open_locale asymptotics topological_space
+open_locale asymptotics polynomial topological_space
 
 namespace polynomial
 
-variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] (P Q : polynomial 𝕜)
+variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] (P Q : 𝕜[X])
 
 lemma eventually_no_roots (hP : P ≠ 0) : ∀ᶠ x in filter.at_top, ¬ P.is_root x :=
 begin
@@ -45,7 +45,7 @@ begin
   { simp [h] },
   { conv_lhs
     { funext,
-      rw [polynomial.eval_eq_finset_sum, sum_range_succ] },
+      rw [polynomial.eval_eq_sum_range, sum_range_succ] },
     exact is_equivalent.refl.add_is_o (is_o.sum $ λ i hi, is_o.const_mul_left
       (is_o.const_mul_right (λ hz, h $ leading_coeff_eq_zero.mp hz) $
         is_o_pow_pow_at_top_of_lt (mem_range.mp hi)) _) }
@@ -141,7 +141,7 @@ begin
   refine (P.is_equivalent_at_top_lead.symm.div
           Q.is_equivalent_at_top_lead.symm).symm.trans
          (eventually_eq.is_equivalent ((eventually_gt_at_top 0).mono $ λ x hx, _)),
-  simp [← div_mul_div, hP, hQ, zpow_sub₀ hx.ne.symm]
+  simp [← div_mul_div_comm₀, hP, hQ, zpow_sub₀ hx.ne.symm]
 end
 
 lemma div_tendsto_zero_of_degree_lt (hdeg : P.degree < Q.degree) :

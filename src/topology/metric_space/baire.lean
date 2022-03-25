@@ -3,7 +3,7 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import order.filter.countable_Inter
 import topology.G_delta
 
@@ -65,7 +65,7 @@ begin
     show z ∈ closed_ball x δ, from calc
       edist z x ≤ edist z y + edist y x : edist_triangle _ _ _
       ... ≤ (min (min (δ / 2) r) (B (n+1))) + (δ/2) : add_le_add hz (le_of_lt xy)
-      ... ≤ δ/2 + δ/2 : add_le_add (le_trans (min_le_left _ _) (min_le_left _ _)) (le_refl _)
+      ... ≤ δ/2 + δ/2 : add_le_add (le_trans (min_le_left _ _) (min_le_left _ _)) le_rfl
       ... = δ : ennreal.add_halves δ,
     show z ∈ f n, from hr (calc
       edist z y ≤ min (min (δ / 2) r) (B (n+1)) : hz

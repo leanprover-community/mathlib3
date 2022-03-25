@@ -178,10 +178,10 @@ theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
 sup_le (le_sup_of_le_left h₁) (le_sup_of_le_right h₂)
 
 theorem sup_le_sup_left (h₁ : a ≤ b) (c) : c ⊔ a ≤ c ⊔ b :=
-sup_le_sup (le_refl _) h₁
+sup_le_sup le_rfl h₁
 
 theorem sup_le_sup_right (h₁ : a ≤ b) (c) : a ⊔ c ≤ b ⊔ c :=
-sup_le_sup h₁ (le_refl _)
+sup_le_sup h₁ le_rfl
 
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
 by { rw ← h, simp }
@@ -367,10 +367,10 @@ theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
 le_inf (inf_le_of_left_le h₁) (inf_le_of_right_le h₂)
 
 lemma inf_le_inf_right (a : α) {b c : α} (h : b ≤ c) : b ⊓ a ≤ c ⊓ a :=
-inf_le_inf h (le_refl _)
+inf_le_inf h le_rfl
 
 lemma inf_le_inf_left (a : α) {b c : α} (h : b ≤ c) : a ⊓ b ≤ a ⊓ c :=
-inf_le_inf (le_refl _) h
+inf_le_inf le_rfl h
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
 by { rw ← h, simp }

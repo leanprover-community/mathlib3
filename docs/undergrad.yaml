@@ -144,7 +144,7 @@ Ring Theory:
     unique factorisation domain (UFD): 'unique_factorization_monoid'
     greatest common divisor: 'gcd_monoid.gcd'
     least common multiple: 'gcd_monoid.lcm'
-    $A[X]$ is a UFD when $A$ is a UFD: 'polynomial.unique_factorization_monoid'
+    $A[{X_i}]$ is a UFD when $A$ is a UFD: 'mv_polynomial.unique_factorization_monoid'
     principal ideal domain: 'submodule.is_principal'
     Euclidean rings: 'euclidean_domain'
     Euclid's' algorithm: 'nat.xgcd'
@@ -301,7 +301,7 @@ Single Variable Real Analysis:
     error estimation: 'https://en.wikipedia.org/wiki/Series_(mathematics)#Evaluation_of_truncation_errors'
     absolute convergence: 'https://en.wikipedia.org/wiki/Absolute_convergence'
     products of series: 'https://en.wikipedia.org/wiki/Cauchy_product'
-    alternating series: 'https://en.wikipedia.org/wiki/Alternating_series_test'
+    alternating series: 'antitone.tendsto_alternating_series_of_tendsto_zero'
   Real-valued functions defined on a subset of $\R$:
     continuity: 'continuous'
     limits: 'filter.tendsto'
@@ -317,7 +317,7 @@ Single Variable Real Analysis:
     Rolle's theorem: 'exists_deriv_eq_zero'
     mean value theorem: 'exists_ratio_deriv_eq_ratio_slope'
     higher order derivatives of functions: 'iterated_deriv'
-    $C^k$ functions: 'times_cont_diff'
+    $C^k$ functions: 'cont_diff'
     piecewise $C^k$ functions: 'https://en.wikipedia.org/wiki/Piecewise#Continuity_and_differentiability_of_piecewise_functions'
     Leibniz formula: 'deriv_mul'
   Taylor-like theorems:
@@ -453,7 +453,7 @@ Multivariable calculus:
     chain rule: 'fderiv.comp'
     mean value theorem: 'exists_ratio_deriv_eq_ratio_slope'
     differentiable functions: 'differentiable'
-    $k$-times continuously differentiable functions: 'times_cont_diff'
+    $k$-times continuously differentiable functions: 'cont_diff'
     $k$-th order partial derivatives: ''
     partial derivatives commute: 'second_derivative_symmetric'
     Taylor's theorem with little-o remainder: ''
@@ -561,7 +561,7 @@ Probability Theory:
     probability generating functions: ''
     applications of probability generating functions to sums of independent random variables: ''
   Convergence of series of random variables:
-    convergence in probability: ''
+    convergence in probability: 'measure_theory.tendsto_in_measure'
     $\mathrm{L}^p$ convergence: ''
     almost surely convergence: 'measure_theory.measure.ae'
     Markov inequality: 'measure_theory.mul_meas_ge_le_lintegral'
@@ -648,8 +648,8 @@ Numerical Analysis:
     rate of convergence: ''
     application to the calculation of multiple integrals: ''
   Approximation of numerical functions:
-    Lagrange interpolation: ''
-    Lagrange polynomial of a function at (n + 1) points: ''
+    Lagrange interpolation: 'lagrange.interpolate'
+    Lagrange polynomial of a function at (n + 1) points: 'lagrange.interpolate'
     estimation of the error: ''
   Ordinary differential equations:
     numerical aspects of Cauchy's problem: ''

@@ -24,7 +24,7 @@ begin
       simp [this] },
     calc (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n.succ) ≥
       (∫ x in 0..π, sin x ^ (2 * n.succ + 1)) / ∫ x in 0..π, sin x ^ (2 * n + 1) :
-      by { refine div_le_div (integral_sin_pow_pos _).le (le_refl _) (integral_sin_pow_pos _) _,
+      by { refine div_le_div (integral_sin_pow_pos _).le le_rfl (integral_sin_pow_pos _) _,
         convert integral_sin_pow_succ_le (2 * n + 1) using 1 }
     ... = 2 * ↑(n.succ) / (2 * ↑(n.succ) + 1) :
       by { rw div_eq_iff (integral_sin_pow_pos (2 * n + 1)).ne',

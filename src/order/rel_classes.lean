@@ -21,8 +21,10 @@ variables {α : Type u} {β : Type v} {r : α → α → Prop} {s : β → β �
 open function
 
 lemma comm [is_symm α r] {a b : α} : r a b ↔ r b a := ⟨symm, symm⟩
-lemma antisymm' {r : α → α → Prop} [is_antisymm α r] {a b : α} : r a b → r b a → b = a :=
-λ h h', antisymm h' h
+lemma antisymm' [is_antisymm α r] {a b : α} : r a b → r b a → b = a := λ h h', antisymm h' h
+
+lemma antisymm_iff [is_refl α r] [is_antisymm α r] {a b : α} : r a b ∧ r b a ↔ a = b :=
+⟨λ h, antisymm h.1 h.2, by { rintro rfl, exact ⟨refl _, refl _⟩ }⟩
 
 /-- A version of `antisymm` with `r` explicit.
 

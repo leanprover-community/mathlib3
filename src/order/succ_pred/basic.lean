@@ -23,7 +23,7 @@ order...
 * `pred_order`: Order equipped with a sensible predecessor function.
 * `is_succ_archimedean`: `succ_order` where `succ` iterated to an element gives all the greater
   ones.
-* `is_pred_archimedean`: `pred_order` where `pred` iterated to an element gives all the greater
+* `is_pred_archimedean`: `pred_order` where `pred` iterated to an element gives all the smaller
   ones.
 
 ## Implementation notes
@@ -50,7 +50,7 @@ Is `galois_connection pred succ` always true? If not, we should introduce
 class succ_pred_order (α : Type*) [preorder α] extends succ_order α, pred_order α :=
 (pred_succ_gc : galois_connection (pred : α → α) succ)
 ```
-`covers` should help here.
+`covby` should help here.
 -/
 
 open function
@@ -105,23 +105,32 @@ lemma lt_succ_of_not_maximal {a b : α} (h : a < b) : a < succ a :=
 
 alias lt_succ_of_not_maximal ← has_lt.lt.lt_succ
 
-protected lemma _root_.has_lt.lt.covers_succ {a b : α} (h : a < b) : a ⋖ succ a :=
+protected lemma _root_.has_lt.lt.covby_succ {a b : α} (h : a < b) : a ⋖ succ a :=
 ⟨h.lt_succ, λ c hc, (succ_le_of_lt hc).not_lt⟩
 
-@[simp] lemma covers_succ_of_nonempty_Ioi {a : α} (h : (set.Ioi a).nonempty) : a ⋖ succ a :=
-has_lt.lt.covers_succ h.some_mem
+@[simp] lemma covby_succ_of_nonempty_Ioi {a : α} (h : (set.Ioi a).nonempty) : a ⋖ succ a :=
+has_lt.lt.covby_succ h.some_mem
+
+lemma lt_succ_of_not_is_max {a : α} (ha : ¬ is_max a) : a < succ_order.succ a :=
+(le_succ a).lt_of_not_le (λ h, not_exists.2 (maximal_of_succ_le h) (not_is_max_iff.mp ha))
+
+lemma lt_succ_iff_of_not_is_max {a b : α} (ha : ¬ is_max a) : b < succ_order.succ a ↔ b ≤ a :=
+⟨le_of_lt_succ, λ h_le, h_le.trans_lt (lt_succ_of_not_is_max ha)⟩
+
+lemma succ_le_iff_of_not_is_max {a b : α} (ha : ¬ is_max a) : succ a ≤ b ↔ a < b :=
+⟨(lt_succ_of_not_is_max ha).trans_le, succ_le_of_lt⟩
 
 section no_max_order
 variables [no_max_order α] {a b : α}
 
 lemma lt_succ (a : α) : a < succ a :=
-(le_succ a).lt_of_not_le $ λ h, not_exists.2 (maximal_of_succ_le h) (exists_gt a)
+lt_succ_of_not_is_max (not_is_max a)
 
 lemma lt_succ_iff : a < succ b ↔ a ≤ b :=
-⟨le_of_lt_succ, λ h, h.trans_lt $ lt_succ b⟩
+lt_succ_iff_of_not_is_max (not_is_max b)
 
 lemma succ_le_iff : succ a ≤ b ↔ a < b :=
-⟨(lt_succ a).trans_le, succ_le_of_lt⟩
+succ_le_iff_of_not_is_max (not_is_max a)
 
 @[simp] lemma succ_le_succ_iff : succ a ≤ succ b ↔ a ≤ b :=
 ⟨λ h, le_of_lt_succ $ (lt_succ a).trans_le h, λ h, succ_le_of_lt $ h.trans_lt $ lt_succ b⟩
@@ -135,7 +144,7 @@ alias succ_lt_succ_iff ↔ lt_of_succ_lt_succ succ_lt_succ
 
 lemma succ_strict_mono : strict_mono (succ : α → α) := λ a b, succ_lt_succ
 
-lemma covers_succ (a : α) : a ⋖ succ a := ⟨lt_succ a, λ c hc, (succ_le_of_lt hc).not_lt⟩
+lemma covby_succ (a : α) : a ⋖ succ a := ⟨lt_succ a, λ c hc, (succ_le_of_lt hc).not_lt⟩
 
 end no_max_order
 
@@ -172,7 +181,7 @@ begin
   { exact ⟨le_succ a, le_rfl⟩ }
 end
 
-lemma _root_.covers.succ_eq {a b : α} (h : a ⋖ b) : succ a = b :=
+lemma _root_.covby.succ_eq {a b : α} (h : a ⋖ b) : succ a = b :=
 (succ_le_of_lt h.lt).eq_of_not_lt $ λ h', h.2 (lt_succ_of_not_maximal h.lt) h'
 
 section no_max_order
@@ -199,8 +208,8 @@ lt_succ_iff.trans le_iff_lt_or_eq
 lemma le_succ_iff_lt_or_eq : a ≤ succ b ↔ (a ≤ b ∨ a = succ b) :=
 by rw [←lt_succ_iff, ←lt_succ_iff, lt_succ_iff_lt_or_eq]
 
-lemma _root_.covers_iff_succ_eq : a ⋖ b ↔ succ a = b :=
-⟨covers.succ_eq, by { rintro rfl, exact covers_succ _ }⟩
+lemma _root_.covby_iff_succ_eq : a ⋖ b ↔ succ a = b :=
+⟨covby.succ_eq, by { rintro rfl, exact covby_succ _ }⟩
 
 end no_max_order
 
@@ -267,6 +276,28 @@ begin
 end
 
 end complete_lattice
+
+section intervals
+variables [preorder α] [succ_order α]
+
+lemma Iic_eq_Iio_succ' {a : α} (ha : ¬ is_max a) :
+  set.Iic a = set.Iio (succ_order.succ a) :=
+by { ext1 x, rw [set.mem_Iic, set.mem_Iio], exact (lt_succ_iff_of_not_is_max ha).symm, }
+
+lemma Iic_eq_Iio_succ [no_max_order α] (a : α) :
+  set.Iic a = set.Iio (succ_order.succ a) :=
+Iic_eq_Iio_succ' (not_is_max a)
+
+lemma Ioi_eq_Ici_succ' {a : α} (ha : ¬ is_max a) :
+  set.Ioi a = set.Ici (succ_order.succ a) :=
+by { ext1 x, rw [set.mem_Ioi, set.mem_Ici], exact (succ_le_iff_of_not_is_max ha).symm, }
+
+lemma Ioi_eq_Ici_succ [no_max_order α] (a : α) :
+  set.Ioi a = set.Ici (succ_order.succ a) :=
+Ioi_eq_Ici_succ' (not_is_max a)
+
+end intervals
+
 end succ_order
 
 /-! ### Predecessor order -/
@@ -317,23 +348,32 @@ lemma pred_lt_of_not_minimal {a b : α} (h : b < a) : pred a < a :=
 
 alias pred_lt_of_not_minimal ← has_lt.lt.pred_lt
 
-protected lemma _root_.has_lt.lt.pred_covers {a b : α} (h : b < a) : pred a ⋖ a :=
+protected lemma _root_.has_lt.lt.pred_covby {a b : α} (h : b < a) : pred a ⋖ a :=
 ⟨h.pred_lt, λ c hc, (le_of_pred_lt hc).not_lt⟩
 
-@[simp] lemma pred_covers_of_nonempty_Iio {a : α} (h : (set.Iio a).nonempty) : pred a ⋖ a :=
-has_lt.lt.pred_covers h.some_mem
+@[simp] lemma pred_covby_of_nonempty_Iio {a : α} (h : (set.Iio a).nonempty) : pred a ⋖ a :=
+has_lt.lt.pred_covby h.some_mem
+
+lemma pred_lt_of_not_is_min {a : α} (ha : ¬ is_min a) : pred_order.pred a < a :=
+(pred_le a).lt_of_not_le (λ h, not_exists.2 (minimal_of_le_pred h) (not_is_min_iff.mp ha))
+
+lemma pred_lt_iff_of_not_is_min {a b : α} (ha : ¬ is_min a) : pred_order.pred a < b ↔ a ≤ b :=
+⟨le_of_pred_lt, λ h_le, (pred_lt_of_not_is_min ha).trans_le h_le⟩
+
+lemma le_pred_iff_of_not_is_min {a b : α} (hb : ¬ is_min b) : a ≤ pred b ↔ a < b :=
+⟨λ h, h.trans_lt (pred_lt_of_not_is_min hb), le_pred_of_lt⟩
 
 section no_min_order
 variables [no_min_order α] {a b : α}
 
 lemma pred_lt (a : α) : pred a < a :=
-(pred_le a).lt_of_not_le $ λ h, not_exists.2 (minimal_of_le_pred h) (exists_lt a)
+pred_lt_of_not_is_min (not_is_min a)
 
 lemma pred_lt_iff : pred a < b ↔ a ≤ b :=
-⟨le_of_pred_lt, (pred_lt a).trans_le⟩
+pred_lt_iff_of_not_is_min (not_is_min a)
 
 lemma le_pred_iff : a ≤ pred b ↔ a < b :=
-⟨λ h, h.trans_lt (pred_lt b), le_pred_of_lt⟩
+le_pred_iff_of_not_is_min (not_is_min b)
 
 @[simp] lemma pred_le_pred_iff : pred a ≤ pred b ↔ a ≤ b :=
 ⟨λ h, le_of_pred_lt $ h.trans_lt (pred_lt b), λ h, le_pred_of_lt $ (pred_lt a).trans_le h⟩
@@ -347,7 +387,7 @@ alias pred_lt_pred_iff ↔ lt_of_pred_lt_pred pred_lt_pred
 
 lemma pred_strict_mono : strict_mono (pred : α → α) := λ a b, pred_lt_pred
 
-lemma pred_covers (a : α) : pred a ⋖ a := ⟨pred_lt a, λ c hc, (le_of_pred_lt hc).not_lt⟩
+lemma pred_covby (a : α) : pred a ⋖ a := ⟨pred_lt a, λ c hc, (le_of_pred_lt hc).not_lt⟩
 
 end no_min_order
 
@@ -384,7 +424,7 @@ begin
   { exact ⟨le_rfl, pred_le a⟩ }
 end
 
-lemma _root_.covers.pred_eq {a b : α} (h : a ⋖ b) : pred b = a :=
+lemma _root_.covby.pred_eq {a b : α} (h : a ⋖ b) : pred b = a :=
 (le_pred_of_lt h.lt).eq_of_not_gt $ λ h', h.2 h' $ pred_lt_of_not_minimal h.lt
 
 section no_min_order
@@ -409,8 +449,8 @@ pred_lt_iff.trans le_iff_lt_or_eq
 lemma le_pred_iff_lt_or_eq : pred a ≤ b ↔ (a ≤ b ∨ pred a = b) :=
 by rw [←pred_lt_iff, ←pred_lt_iff, pred_lt_iff_lt_or_eq]
 
-lemma _root_.covers_iff_pred_eq : a ⋖ b ↔ pred b = a :=
-⟨covers.pred_eq, by { rintro rfl, exact pred_covers _ }⟩
+lemma _root_.covby_iff_pred_eq : a ⋖ b ↔ pred b = a :=
+⟨covby.pred_eq, by { rintro rfl, exact pred_covby _ }⟩
 
 end no_min_order
 
@@ -477,6 +517,28 @@ begin
 end
 
 end complete_lattice
+
+section intervals
+variables [preorder α] [pred_order α]
+
+lemma Ici_eq_Ioi_pred' {a : α} (ha : ¬ is_min a) :
+  set.Ici a = set.Ioi (pred_order.pred a) :=
+by { ext1 x, rw [set.mem_Ici, set.mem_Ioi], exact (pred_lt_iff_of_not_is_min ha).symm, }
+
+lemma Ici_eq_Ioi_pred [no_min_order α] (a : α) :
+  set.Ici a = set.Ioi (pred_order.pred a) :=
+Ici_eq_Ioi_pred' (not_is_min a)
+
+lemma Iio_eq_Iic_pred' {a : α} (ha : ¬ is_min a) :
+  set.Iio a = set.Iic (pred_order.pred a) :=
+by { ext1 x, rw [set.mem_Iio, set.mem_Iic], exact (le_pred_iff_of_not_is_min ha).symm, }
+
+lemma Iio_eq_Iic_pred [no_min_order α] (a : α) :
+  set.Iio a = set.Iic (pred_order.pred a) :=
+Iio_eq_Iic_pred' (not_is_min a)
+
+end intervals
+
 end pred_order
 
 open succ_order pred_order
@@ -486,8 +548,8 @@ open succ_order pred_order
 section succ_pred_order
 variables [partial_order α] [succ_order α] [pred_order α] {a b : α}
 
-protected lemma _root_.has_lt.lt.succ_pred (h : b < a) : succ (pred a) = a := h.pred_covers.succ_eq
-protected lemma _root_.has_lt.lt.pred_succ (h : a < b) : pred (succ a) = a := h.covers_succ.pred_eq
+protected lemma _root_.has_lt.lt.succ_pred (h : b < a) : succ (pred a) = a := h.pred_covby.succ_eq
+protected lemma _root_.has_lt.lt.pred_succ (h : a < b) : pred (succ a) = a := h.covby_succ.pred_eq
 
 @[simp] lemma succ_pred_of_nonempty_Iio {a : α} (h : (set.Iio a).nonempty) : succ (pred a) = a :=
 has_lt.lt.succ_pred h.some_mem
@@ -495,8 +557,8 @@ has_lt.lt.succ_pred h.some_mem
 @[simp] lemma pred_succ_of_nonempty_Ioi {a : α} (h : (set.Ioi a).nonempty) : pred (succ a) = a :=
 has_lt.lt.pred_succ h.some_mem
 
-@[simp] lemma succ_pred [no_min_order α] (a : α) : succ (pred a) = a := (pred_covers _).succ_eq
-@[simp] lemma pred_succ [no_max_order α] (a : α) : pred (succ a) = a := (covers_succ _).pred_eq
+@[simp] lemma succ_pred [no_min_order α] (a : α) : succ (pred a) = a := (pred_covby _).succ_eq
+@[simp] lemma pred_succ [no_max_order α] (a : α) : pred (succ a) = a := (covby_succ _).pred_eq
 
 end succ_pred_order
 

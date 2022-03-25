@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 import algebra.associated
 import data.nat.factorization
+import number_theory.divisors
 
 /-!
 # Prime powers
@@ -79,6 +80,9 @@ lemma is_prime_pow_nat_iff (n : ℕ) :
   is_prime_pow n ↔ ∃ (p k : ℕ), nat.prime p ∧ 0 < k ∧ p ^ k = n :=
 by simp only [is_prime_pow_def, nat.prime_iff]
 
+lemma nat.prime.is_prime_pow {p : ℕ} (hp : p.prime) : is_prime_pow p :=
+(nat.prime_iff.mp hp).is_prime_pow
+
 lemma is_prime_pow_nat_iff_bounded (n : ℕ) :
   is_prime_pow n ↔ ∃ (p : ℕ), p ≤ n ∧ ∃ (k : ℕ), k ≤ n ∧ p.prime ∧ 0 < k ∧ p ^ k = n :=
 begin
@@ -104,7 +108,7 @@ lemma is_prime_pow_of_min_fac_pow_factorization_eq {n : ℕ}
   (h : n.min_fac ^ n.factorization n.min_fac = n) (hn : n ≠ 1) :
   is_prime_pow n :=
 begin
-  rcases n.eq_zero_or_pos with rfl | hn',
+  rcases eq_or_ne n 0 with rfl | hn',
   { simpa using h },
   refine ⟨_, _, nat.prime_iff.1 (nat.min_fac_prime hn), _, h⟩,
   rw [pos_iff_ne_zero, ←finsupp.mem_support_iff, nat.factor_iff_mem_factorization,
@@ -142,21 +146,19 @@ begin
     exact (nat.prime_dvd_prime_iff_eq hq hp).1 (hq.dvd_of_dvd_pow hq') },
   rintro ⟨p, ⟨hp, hn⟩, hq⟩,
   -- Take care of the n = 0 case
-  rcases n.eq_zero_or_pos with rfl | hn₀,
+  rcases eq_or_ne n 0 with rfl | hn₀,
   { obtain ⟨q, hq', hq''⟩ := nat.exists_infinite_primes (p + 1),
     cases hq q ⟨hq'', by simp⟩,
     simpa using hq' },
   -- So assume 0 < n
-  refine ⟨p, n.factors.count p, hp, _, _⟩,
-  { apply list.count_pos.2,
-    rwa nat.mem_factors_iff_dvd hn₀ hp },
+  refine ⟨p, n.factorization p, hp, hp.factorization_pos_of_dvd hn₀ hn, _⟩,
   simp only [and_imp] at hq,
-  apply nat.dvd_antisymm (nat.pow_factors_count_dvd _ _),
-  -- We need to show n ∣ p ^ n.factors.count p
-  apply nat.dvd_of_factors_subperm hn₀.ne',
+  apply nat.dvd_antisymm (nat.pow_factorization_dvd _ _),
+  -- We need to show n ∣ p ^ n.factorization p
+  apply nat.dvd_of_factors_subperm hn₀,
   rw [hp.factors_pow, list.subperm_ext_iff],
   intros q hq',
-  rw nat.mem_factors hn₀.ne' at hq',
+  rw nat.mem_factors hn₀ at hq',
   cases hq _ hq'.1 hq'.2,
   simp,
 end
@@ -182,9 +184,9 @@ begin
     simp [hab, finset.filter_singleton, not_is_prime_pow_one] },
   refine ⟨_, λ h, or.elim h (λ i, i.trans (dvd_mul_right _ _)) (λ i, i.trans (dvd_mul_left _ _))⟩,
   obtain ⟨p, k, hp, hk, rfl⟩ := (is_prime_pow_nat_iff _).1 hn,
-  simp only [nat.prime_pow_dvd_iff_le_factorization _ _ _ hp (mul_ne_zero ha hb),
-    nat.factorization_mul ha hb, nat.prime_pow_dvd_iff_le_factorization _ _ _ hp ha,
-    nat.prime_pow_dvd_iff_le_factorization _ _ _ hp hb, pi.add_apply, finsupp.coe_add],
+  simp only [hp.pow_dvd_iff_le_factorization (mul_ne_zero ha hb),
+    nat.factorization_mul ha hb, hp.pow_dvd_iff_le_factorization ha,
+    hp.pow_dvd_iff_le_factorization hb, pi.add_apply, finsupp.coe_add],
   have : a.factorization p = 0 ∨ b.factorization p = 0,
   { rw [←finsupp.not_mem_support_iff, ←finsupp.not_mem_support_iff, ←not_and_distrib,
       ←finset.mem_inter],

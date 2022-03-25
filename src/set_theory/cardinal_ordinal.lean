@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 
-import set_theory.ordinal_arithmetic
-import tactic.linarith
 import order.bounded
+import set_theory.principal
+import tactic.linarith
 
 /-!
 # Cardinals and ordinals
@@ -213,6 +213,12 @@ by rwa [←aleph'_zero, aleph'_lt]
 theorem aleph_pos (o : ordinal) : 0 < aleph o :=
 omega_pos.trans_le (omega_le_aleph o)
 
+instance (o : ordinal) : nonempty (aleph o).ord.out.α :=
+begin
+  rw [out_nonempty_iff_ne_zero, ←ord_zero],
+  exact λ h, (ord_injective h).not_gt (aleph_pos o)
+end
+
 theorem ord_aleph_is_limit (o : ordinal) : is_limit (aleph o).ord :=
 ord_is_limit $ omega_le_aleph _
 
@@ -232,6 +238,9 @@ aleph'_is_normal.trans $ add_is_normal ordinal.omega
 theorem succ_omega : succ ω = aleph 1 :=
 by rw [← aleph_zero, ← aleph_succ, ordinal.succ_zero]
 
+lemma omega_lt_aleph_one : ω < aleph 1 :=
+by { rw ← succ_omega, exact lt_succ_self _ }
+
 lemma countable_iff_lt_aleph_one {α : Type*} (s : set α) : countable s ↔ #s < aleph 1 :=
 by rw [← succ_omega, lt_succ, mk_set_le_omega]
 
@@ -243,9 +252,9 @@ theorem eq_aleph'_of_eq_card_ord {o : ordinal} (ho : o.card.ord = o) : ∃ a, (a
 ⟨cardinal.aleph_idx.rel_iso o.card, by simpa using ho⟩
 
 /-- `ord ∘ aleph'` enumerates the ordinals that are cardinals. -/
-theorem ord_aleph'_eq_enum_card : ord ∘ aleph' = enum_ord _ ord_card_unbounded :=
+theorem ord_aleph'_eq_enum_card : ord ∘ aleph' = enum_ord {b : ordinal | b.card.ord = b} :=
 begin
-  rw [←eq_enum_ord, range_eq_iff],
+  rw [←eq_enum_ord _ ord_card_unbounded, range_eq_iff],
   exact ⟨aleph'_is_normal.strict_mono, ⟨(λ a, (by { dsimp, rw card_ord })),
     λ b hb, eq_aleph'_of_eq_card_ord hb⟩⟩
 end
@@ -265,9 +274,10 @@ begin
 end
 
 /-- `ord ∘ aleph` enumerates the infinite ordinals that are cardinals. -/
-theorem ord_aleph_eq_enum_card : ord ∘ aleph = enum_ord _ ord_card_unbounded' :=
+theorem ord_aleph_eq_enum_card :
+  ord ∘ aleph = enum_ord {b : ordinal | b.card.ord = b ∧ ordinal.omega ≤ b} :=
 begin
-  rw ←eq_enum_ord,
+  rw ←eq_enum_ord _ ord_card_unbounded',
   use aleph_is_normal.strict_mono,
   rw range_eq_iff,
   refine ⟨(λ a, ⟨_, _⟩), λ b hb, eq_aleph_of_eq_card_ord hb.1 hb.2⟩,
@@ -370,6 +380,13 @@ begin
   convert mul_le_mul_left' (one_le_iff_ne_zero.mpr h') _, rw [mul_one],
 end
 
+lemma mul_eq_max' {a b : cardinal} (h : ω ≤ a * b) : a * b = max a b :=
+begin
+  rcases omega_le_mul_iff.mp h with ⟨ha, hb, h⟩,
+  wlog h : ω ≤ a := h using [a b],
+  exact mul_eq_max_of_omega_le_left h hb
+end
+
 theorem mul_le_max (a b : cardinal) : a * b ≤ max (max a b) ω :=
 begin
   by_cases ha0 : a = 0,
@@ -448,6 +465,10 @@ begin
     { exact le_max_of_le_right (le_of_lt (add_lt_omega (lt_of_not_ge ha) (lt_of_not_ge hb))) } }
 end
 
+theorem add_le_of_le {a b c : cardinal} (hc : ω ≤ c)
+  (h1 : a ≤ c) (h2 : b ≤ c) : a + b ≤ c :=
+(add_le_add h1 h2).trans $ le_of_eq $ add_eq_self hc
+
 theorem add_lt_of_lt {a b c : cardinal} (hc : ω ≤ c)
   (h1 : a < c) (h2 : b < c) : a + b < c :=
 lt_of_le_of_lt (add_le_add (le_max_left a b) (le_max_right a b)) $
@@ -509,6 +530,12 @@ end
 protected lemma eq_of_add_eq_add_right {a b c : cardinal} (h : a + b = c + b) (hb : b < ω) :
   a = c :=
 by { rw [add_comm a b, add_comm c b] at h, exact cardinal.eq_of_add_eq_add_left h hb }
+
+theorem principal_add_ord {c : cardinal} (hc : ω ≤ c) : ordinal.principal (+) c.ord :=
+λ a b ha hb, by { rw [lt_ord, ordinal.card_add] at *, exact add_lt_of_lt hc ha hb }
+
+theorem principal_add_aleph (o : ordinal) : ordinal.principal (+) (aleph o).ord :=
+principal_add_ord $ omega_le_aleph o
 
 /-! ### Properties about power -/
 
@@ -578,6 +605,9 @@ end
 
 /-! ### Computing cardinality of various types -/
 
+@[simp] theorem mk_ordinal_out (o : ordinal.{u}) : #(o.out.α) = o.card :=
+by { convert (ordinal.card_type (<)).symm, exact (ordinal.type_lt o).symm }
+
 theorem mk_list_eq_mk (α : Type u) [infinite α] : #(list α) = #α :=
 have H1 : ω ≤ #α := omega_le_mk α,
 eq.symm $ le_antisymm ⟨⟨λ x, [x], λ x y H, (list.cons.inj H).1⟩⟩ $
@@ -585,6 +615,18 @@ calc  #(list α)
     = sum (λ n : ℕ, #α ^ (n : cardinal.{u})) : mk_list_eq_sum_pow α
 ... ≤ sum (λ n : ℕ, #α) : sum_le_sum _ _ $ λ n, pow_le H1 $ nat_lt_omega n
 ... = #α : by simp [H1]
+
+theorem mk_list_eq_omega (α : Type u) [encodable α] [nonempty α] : #(list α) = ω :=
+mk_le_omega.antisymm (omega_le_mk _)
+
+theorem mk_list_le_max (α : Type u) : #(list α) ≤ max ω (#α) :=
+begin
+  casesI fintype_or_infinite α,
+  { haveI := fintype.encodable α,
+    exact mk_le_omega.trans (le_max_left _ _) },
+  { rw mk_list_eq_mk,
+    apply le_max_right }
+end
 
 theorem mk_finset_eq_mk (α : Type u) [infinite α] : #(finset α) = #α :=
 eq.symm $ le_antisymm (mk_le_of_injective (λ x y, finset.singleton_inj.1)) $
@@ -906,7 +948,7 @@ by simp [← bit1_zero]
 by simp [← bit1_zero]
 
 @[simp] lemma one_le_one : (1 : cardinal) ≤ 1 :=
-le_refl _
+le_rfl
 
 end bit
 

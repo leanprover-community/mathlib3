@@ -201,8 +201,7 @@ begin
     { obtain ⟨a, has⟩ : ∃ a, a ∈ s, from hs_nonempty,
       exact ⟨a, by simpa [has] using h.symm⟩, },
     { obtain ⟨a, has⟩ : ∃ a, a ∉ s,
-      { by_contra,
-        push_neg at h,
+      { by_contra' h,
         refine hs_ne_univ _,
         ext1 a,
         simp [h a], },
@@ -310,20 +309,31 @@ by { rw ← singleton_prod_singleton, exact pair_preimage _ _ _ _ }
 
 theorem bind_const (f : α →ₛ β) : f.bind (const α) = f := by ext; simp
 
-instance [has_zero β] : has_zero (α →ₛ β) := ⟨const α 0⟩
-instance [has_add β] : has_add (α →ₛ β) := ⟨λf g, (f.map (+)).seq g⟩
-instance [has_mul β] : has_mul (α →ₛ β) := ⟨λf g, (f.map (*)).seq g⟩
+@[to_additive] instance [has_one β] : has_one (α →ₛ β) := ⟨const α 1⟩
+@[to_additive] instance [has_mul β] : has_mul (α →ₛ β) := ⟨λf g, (f.map (*)).seq g⟩
+@[to_additive] instance [has_div β] : has_div (α →ₛ β) := ⟨λf g, (f.map (/)).seq g⟩
+@[to_additive] instance [has_inv β] : has_inv (α →ₛ β) := ⟨λf, f.map (has_inv.inv)⟩
 instance [has_sup β] : has_sup (α →ₛ β) := ⟨λf g, (f.map (⊔)).seq g⟩
 instance [has_inf β] : has_inf (α →ₛ β) := ⟨λf g, (f.map (⊓)).seq g⟩
 instance [has_le β] : has_le (α →ₛ β) := ⟨λf g, ∀a, f a ≤ g a⟩
 
-@[simp, norm_cast] lemma coe_zero [has_zero β] : ⇑(0 : α →ₛ β) = 0 := rfl
-@[simp] lemma const_zero [has_zero β] : const α (0:β) = 0 := rfl
-@[simp, norm_cast] lemma coe_add [has_add β] (f g : α →ₛ β) : ⇑(f + g) = f + g := rfl
-@[simp, norm_cast] lemma coe_mul [has_mul β] (f g : α →ₛ β) : ⇑(f * g) = f * g := rfl
-@[simp, norm_cast] lemma coe_le [preorder β] {f g : α →ₛ β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
+@[simp, to_additive] lemma const_one [has_one β] : const α (1 : β) = 1 := rfl
 
-@[simp] lemma range_zero [nonempty α] [has_zero β] : (0 : α →ₛ β).range = {0} :=
+@[simp, norm_cast, to_additive] lemma coe_one [has_one β] : ⇑(1 : α →ₛ β) = 1 := rfl
+@[simp, norm_cast, to_additive] lemma coe_mul [has_mul β] (f g : α →ₛ β) : ⇑(f * g) = f * g := rfl
+@[simp, norm_cast, to_additive] lemma coe_inv [has_inv β] (f : α →ₛ β) : ⇑(f⁻¹) = f⁻¹ := rfl
+@[simp, norm_cast, to_additive] lemma coe_div [has_div β] (f g : α →ₛ β) : ⇑(f / g) = f / g := rfl
+@[simp, norm_cast] lemma coe_le [preorder β] {f g : α →ₛ β} : (f : α → β) ≤ g ↔ f ≤ g := iff.rfl
+@[simp, norm_cast] lemma coe_sup [has_sup β] (f g : α →ₛ β) : ⇑(f ⊔ g) = f ⊔ g := rfl
+@[simp, norm_cast] lemma coe_inf [has_inf β] (f g : α →ₛ β) : ⇑(f ⊓ g) = f ⊓ g := rfl
+
+@[to_additive] lemma mul_apply [has_mul β] (f g : α →ₛ β) (a : α) : (f * g) a = f a * g a := rfl
+@[to_additive] lemma div_apply [has_div β] (f g : α →ₛ β) (x : α) : (f / g) x = f x / g x := rfl
+@[to_additive] lemma inv_apply [has_inv β] (f : α →ₛ β) (x : α) : f⁻¹ x = (f x)⁻¹ := rfl
+lemma sup_apply [has_sup β] (f g : α →ₛ β) (a : α) : (f ⊔ g) a = f a ⊔ g a := rfl
+lemma inf_apply [has_inf β] (f g : α →ₛ β) (a : α) : (f ⊓ g) a = f a ⊓ g a := rfl
+
+@[simp, to_additive] lemma range_one [nonempty α] [has_one β] : (1 : α →ₛ β).range = {1} :=
 finset.ext $ λ x, by simp [eq_comm]
 
 @[simp] lemma range_eq_empty_of_is_empty {β} [hα : is_empty α] (f : α →ₛ β) :
@@ -341,57 +351,68 @@ end
 lemma eq_zero_of_mem_range_zero [has_zero β] : ∀ {y : β}, y ∈ (0 : α →ₛ β).range → y = 0 :=
 forall_range_iff.2 $ λ x, rfl
 
-lemma sup_apply [has_sup β] (f g : α →ₛ β) (a : α) : (f ⊔ g) a = f a ⊔ g a := rfl
-lemma mul_apply [has_mul β] (f g : α →ₛ β) (a : α) : (f * g) a = f a * g a := rfl
-lemma add_apply [has_add β] (f g : α →ₛ β) (a : α) : (f + g) a = f a + g a := rfl
+@[to_additive]
+lemma mul_eq_map₂ [has_mul β] (f g : α →ₛ β) : f * g = (pair f g).map (λp:β×β, p.1 * p.2) := rfl
 
-lemma add_eq_map₂ [has_add β] (f g : α →ₛ β) : f + g = (pair f g).map (λp:β×β, p.1 + p.2) :=
-rfl
+lemma sup_eq_map₂ [has_sup β] (f g : α →ₛ β) : f ⊔ g = (pair f g).map (λp:β×β, p.1 ⊔ p.2) := rfl
 
-lemma mul_eq_map₂ [has_mul β] (f g : α →ₛ β) : f * g = (pair f g).map (λp:β×β, p.1 * p.2) :=
-rfl
-
-lemma sup_eq_map₂ [has_sup β] (f g : α →ₛ β) : f ⊔ g = (pair f g).map (λp:β×β, p.1 ⊔ p.2) :=
-rfl
-
+@[to_additive]
 lemma const_mul_eq_map [has_mul β] (f : α →ₛ β) (b : β) : const α b * f = f.map (λa, b * a) := rfl
 
-theorem map_add [has_add β] [has_add γ] {g : β → γ}
-  (hg : ∀ x y, g (x + y) = g x + g y) (f₁ f₂ : α →ₛ β) : (f₁ + f₂).map g = f₁.map g + f₂.map g :=
+@[to_additive]
+theorem map_mul [has_mul β] [has_mul γ] {g : β → γ}
+  (hg : ∀ x y, g (x * y) = g x * g y) (f₁ f₂ : α →ₛ β) : (f₁ * f₂).map g = f₁.map g * f₂.map g :=
 ext $ λ x, hg _ _
-
-instance [add_monoid β] : add_monoid (α →ₛ β) :=
-function.injective.add_monoid (λ f, show α → β, from f) coe_injective coe_zero coe_add
-
-instance add_comm_monoid [add_comm_monoid β] : add_comm_monoid (α →ₛ β) :=
-function.injective.add_comm_monoid (λ f, show α → β, from f) coe_injective coe_zero coe_add
-
-instance [has_neg β] : has_neg (α →ₛ β) := ⟨λf, f.map (has_neg.neg)⟩
-
-@[simp, norm_cast] lemma coe_neg [has_neg β] (f : α →ₛ β) : ⇑(-f) = -f := rfl
-
-instance [has_sub β] : has_sub (α →ₛ β) := ⟨λf g, (f.map (has_sub.sub)).seq g⟩
-
-@[simp, norm_cast] lemma coe_sub [has_sub β] (f g : α →ₛ β) : ⇑(f - g) = f - g :=
-rfl
-
-lemma sub_apply [has_sub β] (f g : α →ₛ β) (x : α) : (f - g) x = f x - g x := rfl
-
-instance [add_group β] : add_group (α →ₛ β) :=
-function.injective.add_group (λ f, show α → β, from f) coe_injective
-  coe_zero coe_add coe_neg coe_sub
-
-instance [add_comm_group β] : add_comm_group (α →ₛ β) :=
-function.injective.add_comm_group (λ f, show α → β, from f) coe_injective
-  coe_zero coe_add coe_neg coe_sub
 
 variables {K : Type*}
 
-instance [has_scalar K β] : has_scalar K (α →ₛ β) := ⟨λk f, f.map ((•) k)⟩
-
+instance [has_scalar K β] : has_scalar K (α →ₛ β) := ⟨λ k f, f.map ((•) k)⟩
 @[simp] lemma coe_smul [has_scalar K β] (c : K) (f : α →ₛ β) : ⇑(c • f) = c • f := rfl
-
 lemma smul_apply [has_scalar K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl
+
+instance has_nat_pow [monoid β] : has_pow (α →ₛ β) ℕ := ⟨λ f n, f.map (^ n)⟩
+@[simp] lemma coe_pow [monoid β] (f : α →ₛ β) (n : ℕ) : ⇑(f ^ n) = f ^ n := rfl
+lemma pow_apply [monoid β] (n : ℕ) (f : α →ₛ β) (a : α) : (f ^ n) a = f a ^ n := rfl
+
+instance has_int_pow [div_inv_monoid β] : has_pow (α →ₛ β) ℤ := ⟨λ f n, f.map (^ n)⟩
+@[simp] lemma coe_zpow [div_inv_monoid β] (f : α →ₛ β) (z : ℤ) : ⇑(f ^ z) = f ^ z := rfl
+lemma zpow_apply [div_inv_monoid β] (z : ℤ) (f : α →ₛ β) (a : α) : (f ^ z) a = f a ^ z := rfl
+
+-- TODO: work out how to generate these instances with `to_additive`, which gets confused by the
+-- argument order swap between `coe_smul` and `coe_pow`.
+section additive
+
+instance [add_monoid β] : add_monoid (α →ₛ β) :=
+function.injective.add_monoid (λ f, show α → β, from f) coe_injective coe_zero coe_add
+  (λ _ _, coe_smul _ _)
+
+instance [add_comm_monoid β] : add_comm_monoid (α →ₛ β) :=
+function.injective.add_comm_monoid (λ f, show α → β, from f) coe_injective coe_zero coe_add
+  (λ _ _, coe_smul _ _)
+
+instance [add_group β] : add_group (α →ₛ β) :=
+function.injective.add_group (λ f, show α → β, from f) coe_injective
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
+
+instance [add_comm_group β] : add_comm_group (α →ₛ β) :=
+function.injective.add_comm_group (λ f, show α → β, from f) coe_injective
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_smul _ _) (λ _ _, coe_smul _ _)
+
+end additive
+
+@[to_additive] instance [monoid β] : monoid (α →ₛ β) :=
+function.injective.monoid (λ f, show α → β, from f) coe_injective coe_one coe_mul coe_pow
+
+@[to_additive] instance [comm_monoid β] : comm_monoid (α →ₛ β) :=
+function.injective.comm_monoid (λ f, show α → β, from f) coe_injective coe_one coe_mul coe_pow
+
+@[to_additive] instance [group β] : group (α →ₛ β) :=
+function.injective.group (λ f, show α → β, from f) coe_injective
+  coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
+
+@[to_additive] instance [comm_group β] : comm_group (α →ₛ β) :=
+function.injective.comm_group (λ f, show α → β, from f) coe_injective
+  coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
 instance [semiring K] [add_comm_monoid β] [module K β] : module K (α →ₛ β) :=
 function.injective.module K ⟨λ f, show α → β, from f, coe_zero, coe_add⟩
@@ -400,7 +421,7 @@ function.injective.module K ⟨λ f, show α → β, from f, coe_zero, coe_add�
 lemma smul_eq_map [has_scalar K β] (k : K) (f : α →ₛ β) : k • f = f.map ((•) k) := rfl
 
 instance [preorder β] : preorder (α →ₛ β) :=
-{ le_refl := λf a, le_refl _,
+{ le_refl := λf a, le_rfl,
   le_trans := λf g h hfg hgh a, le_trans (hfg _) (hgh a),
   .. simple_func.has_le }
 
@@ -608,7 +629,7 @@ begin
   { refine le_supr_of_le (encodable.encode q) _,
     rw [ennreal_rat_embed_encode q],
     refine le_supr_of_le (le_of_lt q_lt) _,
-    exact le_refl _ },
+    exact le_rfl },
   exact lt_irrefl _ (lt_of_le_of_lt this lt_q)
 end
 
@@ -980,8 +1001,8 @@ theorem simple_func.lintegral_eq_lintegral {m : measurable_space α} (f : α →
 begin
   rw lintegral,
   exact le_antisymm
-    (bsupr_le $ λ g hg, lintegral_mono hg $ le_refl _)
-    (le_supr_of_le f $ le_supr_of_le (le_refl _) (le_refl _))
+    (bsupr_le $ λ g hg, lintegral_mono hg $ le_rfl)
+    (le_supr_of_le f $ le_supr_of_le le_rfl le_rfl)
 end
 
 @[mono] lemma lintegral_mono' {m : measurable_space α} ⦃μ ν : measure α⦄ (hμν : μ ≤ ν)
@@ -1050,7 +1071,7 @@ begin
   rw lintegral,
   refine le_antisymm
     (bsupr_le $ assume φ hφ, _)
-    (supr_le_supr2 $ λ φ, ⟨φ.map (coe : ℝ≥0 → ℝ≥0∞), le_refl _⟩),
+    (supr_le_supr2 $ λ φ, ⟨φ.map (coe : ℝ≥0 → ℝ≥0∞), le_rfl⟩),
   by_cases h : ∀ᵐ a ∂μ, φ a ≠ ∞,
   { let ψ := φ.map ennreal.to_nnreal,
     replace h : ψ.map (coe : ℝ≥0 → ℝ≥0∞) =ᵐ[μ] φ :=
@@ -1063,7 +1084,7 @@ begin
     obtain ⟨n, hn⟩ : ∃ n : ℕ, b < n * μ (φ ⁻¹' {∞}), from exists_nat_mul_gt h_meas (ne_of_lt hb),
     use (const α (n : ℝ≥0)).restrict (φ ⁻¹' {∞}),
     simp only [lt_supr_iff, exists_prop, coe_restrict, φ.measurable_set_preimage, coe_const,
-      ennreal.coe_indicator, map_coe_ennreal_restrict, map_const, ennreal.coe_nat,
+      ennreal.coe_indicator, map_coe_ennreal_restrict, simple_func.map_const, ennreal.coe_nat,
       restrict_const_lintegral],
     refine ⟨indicator_le (λ x hx, le_trans _ (hφ _)), hn⟩,
     simp only [mem_preimage, mem_singleton_iff] at hx,
@@ -1239,7 +1260,7 @@ begin
     by_cases hx : x ∈ ae_seq_set hf p,
     { exact ae_seq.prop_of_mem_ae_seq_set hf hx hnm, },
     { simp only [ae_seq, hx, if_false],
-      exact le_refl _, }, },
+      exact le_rfl, }, },
   rw lintegral_congr_ae (ae_seq.supr hf hp).symm,
   simp_rw supr_apply,
   rw @lintegral_supr _ _ μ _ (ae_seq.measurable hf p) h_ae_seq_mono,
@@ -1381,13 +1402,22 @@ begin
   refine (ennreal.supr_add_supr _).symm,
   intros φ ψ,
   exact ⟨⟨φ ⊔ ψ, λ x, sup_le (φ.2 x) (ψ.2 x)⟩,
-    add_le_add (simple_func.lintegral_mono le_sup_left (le_refl _))
-      (finset.sum_le_sum $ λ j hj, simple_func.lintegral_mono le_sup_right (le_refl _))⟩
+    add_le_add (simple_func.lintegral_mono le_sup_left le_rfl)
+      (finset.sum_le_sum $ λ j hj, simple_func.lintegral_mono le_sup_right le_rfl)⟩
 end
+
+theorem has_sum_lintegral_measure {ι} {m : measurable_space α} (f : α → ℝ≥0∞) (μ : ι → measure α) :
+  has_sum (λ i, ∫⁻ a, f a ∂(μ i)) (∫⁻ a, f a ∂(measure.sum μ)) :=
+(lintegral_sum_measure f μ).symm ▸ ennreal.summable.has_sum
 
 @[simp] lemma lintegral_add_measure {m : measurable_space α} (f : α → ℝ≥0∞) (μ ν : measure α) :
   ∫⁻ a, f a ∂ (μ + ν) = ∫⁻ a, f a ∂μ + ∫⁻ a, f a ∂ν :=
 by simpa [tsum_fintype] using lintegral_sum_measure f (λ b, cond b μ ν)
+
+@[simp] lemma lintegral_finset_sum_measure {ι} {m : measurable_space α} (s : finset ι)
+  (f : α → ℝ≥0∞) (μ : ι → measure α) :
+  ∫⁻ a, f a ∂(∑ i in s, μ i) = ∑ i in s, ∫⁻ a, f a ∂μ i :=
+by { rw [← measure.sum_coe_finset, lintegral_sum_measure, ← finset.tsum_subtype'], refl }
 
 @[simp] lemma lintegral_zero_measure {m : measurable_space α} (f : α → ℝ≥0∞) :
   ∫⁻ a, f a ∂(0 : measure α) = 0 :=
@@ -1448,7 +1478,7 @@ begin
   simp only [supr_le_iff, ge_iff_le],
   assume hs,
   rw [← simple_func.const_mul_lintegral, lintegral],
-  refine le_supr_of_le (const α r * s) (le_supr_of_le (λx, _) (le_refl _)),
+  refine le_supr_of_le (const α r * s) (le_supr_of_le (λx, _) le_rfl),
   exact mul_le_mul_left' (hs x) _
 end
 
@@ -1506,12 +1536,12 @@ begin
   simp only [lintegral, ← restrict_lintegral_eq_lintegral_restrict _ hs, supr_subtype'],
   apply le_antisymm; refine supr_le_supr2 (subtype.forall.2 $ λ φ hφ, _),
   { refine ⟨⟨φ, le_trans hφ (indicator_le_self _ _)⟩, _⟩,
-    refine simple_func.lintegral_mono (λ x, _) (le_refl _),
+    refine simple_func.lintegral_mono (λ x, _) le_rfl,
     by_cases hx : x ∈ s,
     { simp [hx, hs, le_refl] },
     { apply le_trans (hφ x),
       simp [hx, hs, le_refl] } },
-  { refine ⟨⟨φ.restrict s, λ x, _⟩, le_refl _⟩,
+  { refine ⟨⟨φ.restrict s, λ x, _⟩, le_rfl⟩,
     simp [hφ x, hs, indicator_le_indicator] }
 end
 
@@ -1669,8 +1699,8 @@ lemma lintegral_infi_ae
   (h_mono : ∀n:ℕ, f n.succ ≤ᵐ[μ] f n) (h_fin : ∫⁻ a, f 0 a ∂μ ≠ ∞) :
   ∫⁻ a, ⨅n, f n a ∂μ = ⨅n, ∫⁻ a, f n a ∂μ :=
 have fn_le_f0 : ∫⁻ a, ⨅n, f n a ∂μ ≤ ∫⁻ a, f 0 a ∂μ, from
-  lintegral_mono (assume a, infi_le_of_le 0 (le_refl _)),
-have fn_le_f0' : (⨅n, ∫⁻ a, f n a ∂μ) ≤ ∫⁻ a, f 0 a ∂μ, from infi_le_of_le 0 (le_refl _),
+  lintegral_mono (assume a, infi_le_of_le 0 le_rfl),
+have fn_le_f0' : (⨅n, ∫⁻ a, f n a ∂μ) ≤ ∫⁻ a, f 0 a ∂μ, from infi_le_of_le 0 le_rfl,
 (ennreal.sub_right_inj h_fin fn_le_f0 fn_le_f0').1 $
 show ∫⁻ a, f 0 a ∂μ - ∫⁻ a, ⨅n, f n a ∂μ = ∫⁻ a, f 0 a ∂μ - (⨅n, ∫⁻ a, f n a ∂μ), from
 calc
@@ -1682,13 +1712,13 @@ calc
   ... = ⨆n, ∫⁻ a, f 0 a - f n a ∂μ :
     lintegral_supr_ae
       (assume n, (h_meas 0).sub (h_meas n))
-      (assume n, (h_mono n).mono $ assume a ha, tsub_le_tsub (le_refl _) ha)
+      (assume n, (h_mono n).mono $ assume a ha, tsub_le_tsub le_rfl ha)
   ... = ⨆n, ∫⁻ a, f 0 a ∂μ - ∫⁻ a, f n a ∂μ :
     have h_mono : ∀ᵐ a ∂μ, ∀n:ℕ, f n.succ a ≤ f n a := ae_all_iff.2 h_mono,
     have h_mono : ∀n, ∀ᵐ a ∂μ, f n a ≤ f 0 a := assume n, h_mono.mono $ assume a h,
     begin
       induction n with n ih,
-      {exact le_refl _}, {exact le_trans (h n) ih}
+      {exact le_rfl}, {exact le_trans (h n) ih}
     end,
     congr_arg supr $ funext $ assume n, lintegral_sub (h_meas _) (h_meas _)
       (ne_top_of_le_ne_top h_fin $ lintegral_mono_ae $ h_mono n) (h_mono n)
@@ -1862,7 +1892,7 @@ lemma lintegral_Union_le [encodable β] (s : β → set α) (f : α → ℝ≥0�
   ∫⁻ a in ⋃ i, s i, f a ∂μ ≤ ∑' i, ∫⁻ a in s i, f a ∂μ :=
 begin
   rw [← lintegral_sum_measure],
-  exact lintegral_mono' restrict_Union_le (le_refl _)
+  exact lintegral_mono' restrict_Union_le le_rfl
 end
 
 lemma lintegral_union {f : α → ℝ≥0∞} {A B : set α}

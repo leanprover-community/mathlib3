@@ -166,7 +166,7 @@ begin
     { simpa using h 1 } },
   have h : B * (exp ℚ - 1) = X * exp ℚ,
   { simpa [bernoulli'_power_series] using bernoulli'_power_series_mul_exp_sub_one ℚ },
-  rw [sub_mul, h, mul_sub X, sub_right_inj, ← neg_sub, ← neg_mul_eq_mul_neg, neg_eq_iff_neg_eq],
+  rw [sub_mul, h, mul_sub X, sub_right_inj, ← neg_sub, mul_neg, neg_eq_iff_neg_eq],
   suffices : eval_neg_hom (B * (exp ℚ - 1)) * exp ℚ = eval_neg_hom (X * exp ℚ) * exp ℚ,
   { simpa [mul_assoc, sub_mul, mul_comm (eval_neg_hom (exp ℚ)), exp_mul_exp_neg_eq_one, eq_comm] },
   congr',

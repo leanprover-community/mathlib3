@@ -8,6 +8,7 @@ import computability.encoding
 import computability.turing_machine
 import data.polynomial.basic
 import data.polynomial.eval
+import data.fintype.basic
 
 /-!
 # Computable functions
@@ -176,6 +177,8 @@ def tm2_computable_in_poly_time.to_tm2_computable_in_time {α β : Type} {ea : f
   tm2_computable_in_time ea eb f :=
 ⟨h.to_tm2_computable_aux, λ n, h.time.eval n, h.outputs_fun⟩
 
+section id
+
 open turing.TM2.stmt
 
 /-- A Turing machine computing the identity on α. -/
@@ -245,5 +248,28 @@ instance inhabited_tm2_computable :
 
 instance inhabited_tm2_computable_aux : inhabited (tm2_computable_aux bool bool) :=
 ⟨(default : tm2_computable fin_encoding_bool_bool fin_encoding_bool_bool id).to_tm2_computable_aux⟩
+
+end id
+
+section compose
+
+/-- A (TM2) Turing Machine composing the operations of two other Turing Machines -/
+def compose (m1 m2 : fin_tm2) : fin_tm2 :=
+{ K := m1.K ⊕ m2.K,
+  -- K_decidable_eq := sorry,
+  -- K_fin := sorry,
+  k₀ := sum.inl m1.k₀,
+  k₁ := sum.inr m2.k₁,
+  Γ := sum.elim m1.Γ m2.Γ,
+  Λ := unit ⊕ m1.Λ ⊕ m2.Λ,
+  main := sum.inl (),
+  Λ_fin := sorry,
+  σ := m1.σ ⊕ m2.σ,
+  initial_state := sum.inl m1.initial_state,
+  σ_fin := sorry,
+  Γk₀_fin := _,
+  M := _ }
+
+end compose
 
 end turing

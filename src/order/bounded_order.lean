@@ -994,7 +994,9 @@ protected def order_bot [preorder α] [order_bot α] {P : α → Prop} (Pbot : P
 
 @[simp]
 lemma mem_subtype_eq_bot_iff {α : Type*} [preorder α] [order_bot α] {P : α → Prop} (Pbot : P ⊥)
-  {x : α} (Px : P x) : (⟨x, Px⟩ : {y : α // P y}) = (subtype.order_bot Pbot).bot ↔ x = ⊥ := by simp
+  {x : α} (Px : P x) :
+  (⟨x, Px⟩ : {y : α // P y}) = (by haveI := subtype.order_bot Pbot; exact ⊥) ↔ x = ⊥ :=
+subtype.ext_iff
 
 /-- A subtype remains a `⊤`-order if the property holds at `⊤`.
 See note [reducible non-instances]. -/

@@ -1,8 +1,14 @@
 import order.zorn
+
+namespace hypertope
+
 open zorn
 
 universes u v
 
+/-- An incidence system is a set of elements, a set of types,
+and a symmetric reflexive incidence relation
+which does not relate distinct elements of the same type -/
 structure incidence_system (X : Type u) (I : Type v) :=
 (type : X → I)
 (r : X → X → Prop)
@@ -33,8 +39,18 @@ def residue {X I} (H : incidence_system X I) (c : set X) :
 class incidence_geometry (X : Type u) (I : Type v) extends incidence_system X I :=
 (chain_subset_flag : ∀ c, chain r c → ∃ f, c ⊆ f ∧ chain r f ∧ type '' f = set.univ)
 
-def all_but_one_chain {X I} (H : incidence_geometry X I) (c : set X) : Prop :=
-chain H.r c ∧ ∃ i, (∀ j, (∃ x, x ∈ c ∧ H.type x = j) ↔ j ≠ i)
-
-def thin {X I} (H : incidence_geometry X I) (c : set X) (hc : all_but_one_chain H c) :=
+def thin {X I} (H : incidence_geometry X I) 
+(c : set X) (hc : chain H.r c) (hhc : ∃ i, (∀ j, (∃ x, x ∈ c ∧ H.type x = j) ↔ j ≠ i)) :=
 ∃ (a b : residue_type H.1 c), (a ≠ b) ∧ ∀ (z : residue_type H.1 c), (z.1 = a.1 ∨ z.1 = b.1)
+
+def connected {X I} (H : incidence_system X I) : Prop := sorry
+
+/-
+How to refer to incidence system/geometry?
+class hypertope (X : Type u) (I : Type v) extends incidence_geometry X I :=
+(thin : ∀ (c : set X) (hc : chain r c) (hhc : ∃ i, (∀ j, (∃ x, x ∈ c ∧ type x = j) ↔ j ≠ i)),
+∃ (a b : residue_type H.1 c), (a ≠ b) ∧ ∀ (z : residue_type H.1 c), (z.1 = a.1 ∨ z.1 = b.1)) 
+(residually_connected : ∀ (c : set X) (hc : chain r c), connected (residue H.1 c))
+-/
+
+end hypertope

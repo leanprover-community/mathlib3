@@ -301,8 +301,8 @@ rfl
 lemma attach_map_coe (s : sym α n) : s.attach.map coe = s :=
 coe_injective $ multiset.attach_map_val _
 
-@[simp] lemma mem_attach : Π (s : sym α n), ∀ x, x ∈ s.attach
-| (mk s _) := by simp
+@[simp] lemma mem_attach (s : sym α n) (x : {x // x ∈ s}) : x ∈ s.attach :=
+multiset.mem_attach _ _
 
 @[simp] lemma attach_nil : (nil : sym α 0).attach = nil := rfl
 

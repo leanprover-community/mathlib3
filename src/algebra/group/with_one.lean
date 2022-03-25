@@ -5,8 +5,8 @@ Authors: Mario Carneiro, Johan Commelin
 -/
 import algebra.hom.equiv
 import algebra.ring.basic
-import data.equiv.basic
-import data.equiv.option
+import logic.equiv.basic
+import logic.equiv.option
 
 /-!
 # Adjoining a zero/one to semigroups and related algebraic structures

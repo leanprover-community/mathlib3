@@ -190,7 +190,7 @@ lemma mk_mem_periodic_pts (hn : 0 < n) (hx : is_periodic_pt f n x) :
 
 lemma mem_periodic_pts : x ∈ periodic_pts f ↔ ∃ n > 0, is_periodic_pt f n x := iff.rfl
 
-theorem iterate_eq_of_periodic_pt {α : Type*} {f : α → α} {x : α} (hx : x ∈ periodic_pts f)
+lemma iterate_eq_of_periodic_pt {α : Type*} {f : α → α} {x : α} (hx : x ∈ periodic_pts f)
   {n k : ℕ} (H : f^[n+k] x = (f^[n]) x) : f^[k] x = x :=
 begin
   rcases hx with ⟨r, hr, hr'⟩,

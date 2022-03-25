@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
 import data.equiv.nat
-import order.rel_iso
 import order.directed
+import order.rel_iso
 
 /-!
 # Encodable types

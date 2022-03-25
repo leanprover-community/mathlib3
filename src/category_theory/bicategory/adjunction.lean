@@ -14,7 +14,7 @@ open_locale bicategory
 
 universes w₁ w₂ v₁ v₂ u₁ u₂
 
-variables {B : Type u₁} [bicategory.{w₁ v₁} B] {a b c d : B}
+variables {B : Type u₁} [bicategory.{w₁ v₁} B] {a b c d : B} {f : a ⟶ b} {g : b ⟶ a}
 
 /--
 The 2-morphisms defined by the folowing diagram:
@@ -247,26 +247,15 @@ end composition
 end adjunction
 
 @[simp]
-def left_zigzag_iso {f : a ⟶ b} {g : b ⟶ a} (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :=
+def left_zigzag_iso (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :=
 whisker_right_iso η f ≪≫ α_ f g f ≪≫ whisker_left_iso f ε
 
 @[simp]
-def right_zigzag_iso {f : a ⟶ b} {g : b ⟶ a} (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :=
+def right_zigzag_iso (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :=
 whisker_left_iso g η ≪≫ (α_ g f g).symm ≪≫ whisker_right_iso ε g
 
-structure equivalence (a b : B) :=
-mk' ::
-(hom : a ⟶ b)
-(inv : b ⟶ a)
-(unit : 𝟙 a ≅ hom ≫ inv)
-(counit : inv ≫ hom ≅ 𝟙 b)
---(left_triangle' : left_zigzag_iso unit counit = λ_ hom ≪≫ (ρ_ hom).symm . obviously)
-(right_triangle' : right_zigzag_iso unit counit = ρ_ inv ≪≫ (λ_ inv).symm . obviously)
-
-localized "infixr ` ≌ `:10  := equivalence" in bicategory
-
 section
-variables {f : a ⟶ b} {g : b ⟶ a} (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b)
+variables (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b)
 
 lemma left_zigzag_iso_hom  : (left_zigzag_iso  η ε).hom = left_zigzag  η.hom ε.hom := rfl
 lemma right_zigzag_iso_hom : (right_zigzag_iso η ε).hom = right_zigzag η.hom ε.hom := rfl
@@ -274,22 +263,21 @@ lemma left_zigzag_iso_inv  : (left_zigzag_iso  η ε).inv = right_zigzag ε.inv 
 by apply category.assoc
 lemma right_zigzag_iso_inv : (right_zigzag_iso η ε).inv = left_zigzag  ε.inv η.inv :=
 by apply category.assoc
+lemma left_zigzag_iso_symm  : (left_zigzag_iso  η ε).symm = right_zigzag_iso ε.symm η.symm :=
+iso.ext (left_zigzag_iso_inv η ε)
+lemma right_zigzag_iso_symm : (right_zigzag_iso η ε).symm = left_zigzag_iso  ε.symm η.symm :=
+iso.ext (right_zigzag_iso_inv η ε)
 
 end
 
-namespace equivalence
--- In this section we convert an arbitrary equivalence to a half-adjoint equivalence.
-variables {f : a ⟶ b} {g : b ⟶ a}
-
-
-def left_triangle_iff_right_triangle_aux (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
+lemma right_triangle_of_left_triangle (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
  left_zigzag_iso η ε = λ_ f ≪≫ (ρ_ f).symm → right_zigzag_iso η ε = ρ_ g ≪≫ (λ_ g).symm :=
 begin
-  intros H, apply iso.ext,
+  intros H,
+  apply iso.ext,
   replace H := congr_arg iso.hom H, dsimp at H ⊢, replace H := reassoc_of H,
   rw [←cancel_epi (ρ_ (g ≫ 𝟙 a)).hom, ←cancel_mono (ρ_ (𝟙 b ≫ g)).inv],
-  simp only [whisker_left_comp, comp_whisker_right, assoc],
-  simp_rw [←right_unitor_naturality_assoc, iso.hom_inv_id, ←id_whisker_right,
+  simp_rw [assoc, ←right_unitor_naturality_assoc, iso.hom_inv_id, ←id_whisker_right,
     ←whisker_right_comp_conj (𝟙 (𝟙 b)), id_whisker_right, ←whisker_left_id (𝟙 b)],
   conv_lhs { rw ←iso.hom_inv_id (right_zigzag_iso η ε), dsimp,
     simp only [whisker_left_comp, assoc] },
@@ -303,8 +291,7 @@ begin
     whisker_right_comp_assoc _ (g ≫ f), pentagon_hom_inv_inv_inv_inv_assoc,
     associator_inv_naturality_middle_assoc, ←comp_whisker_right_assoc _ _ g,
     associator_inv_naturality_right_assoc, whisker_exchange,
-    whisker_right_id_assoc ε.hom,
-    id_whisker_left ε.inv, unitors_equal, right_unitor_comp,
+    whisker_right_id_assoc ε.hom, id_whisker_left ε.inv, unitors_equal, right_unitor_comp,
     left_unitor_comp_inv, iso.inv_hom_id_assoc, iso.hom_inv_id_assoc, assoc,
     iso.inv_hom_id_assoc, inv_hom_whisker_left_assoc, comp_whisker_right, assoc, pentagon_assoc,
     associator_naturality_left_assoc, associator_naturality_middle_assoc, ←comp_whisker_left,
@@ -312,112 +299,93 @@ begin
     ←left_unitor_comp_assoc, left_unitor_naturality_assoc, iso.hom_inv_id],
   coherence
 end
-def left_triangle_iff_right_triangle (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
- left_zigzag_iso η ε = λ_ f ≪≫ (ρ_ f).symm ↔ right_zigzag_iso η ε = ρ_ g ≪≫ (λ_ g).symm :=
-⟨left_triangle_iff_right_triangle_aux η ε,
+
+lemma left_triangle_iff_right_triangle (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
+  left_zigzag_iso η ε = λ_ f ≪≫ (ρ_ f).symm ↔ right_zigzag_iso η ε = ρ_ g ≪≫ (λ_ g).symm :=
+iff.intro (right_triangle_of_left_triangle η ε)
 begin
-  intros H, apply iso.ext, rw ←iso.inv_eq_inv,
-  replace H := congr_arg iso.inv H,
-  rw [left_zigzag_iso_inv],
-  rw right_zigzag_iso_inv at H,
-  apply congr_arg iso.hom (left_triangle_iff_right_triangle_aux ε.symm η.symm _),
-  apply iso.ext, exact H
-end⟩
+  intros H,
+  rw ←iso.symm_eq_iff at H ⊢,
+  rw left_zigzag_iso_symm,
+  rw right_zigzag_iso_symm at H,
+  exact right_triangle_of_left_triangle ε.symm η.symm H
+end
+
+structure equivalence (a b : B) :=
+mk' ::
+(hom : a ⟶ b)
+(inv : b ⟶ a)
+(unit : 𝟙 a ≅ hom ≫ inv)
+(counit : inv ≫ hom ≅ 𝟙 b)
+(left_triangle' : left_zigzag_iso unit counit = λ_ hom ≪≫ (ρ_ hom).symm . obviously)
+
+localized "infixr ` ≌ `:10  := equivalence" in bicategory
+
+namespace equivalence
+-- In this section we convert an arbitrary equivalence to a half-adjoint equivalence.
 
 def adjointify_unit (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : 𝟙 a ≅ f ≫ g :=
-calc
-  𝟙 a ≅ f ≫ g                : η
-  ...  ≅ (f ≫ 𝟙 b) ≫ g      : whisker_right_iso (ρ_ f).symm g
-  ...  ≅ (f ≫ (g ≫ f)) ≫ g  : whisker_right_iso (whisker_left_iso f ε.symm) g
-  ...  ≅ ((f ≫ g) ≫ f) ≫ g  : whisker_right_iso (α_ f g f).symm g
-  ...  ≅ (𝟙 a ≫ f) ≫ g      : whisker_right_iso (whisker_right_iso η.symm f) g
-  ...  ≅ f ≫ g                : whisker_right_iso (λ_ f) g
+η ≪≫ whisker_right_iso ((ρ_ f).symm ≪≫ right_zigzag_iso ε.symm η.symm ≪≫ λ_ f) g
 
 def adjointify_counit (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : g ≫ f ≅ 𝟙 b :=
 whisker_left_iso g ((ρ_ f).symm ≪≫ right_zigzag_iso ε.symm η.symm ≪≫ λ_ f) ≪≫ ε
 
-section
-local attribute [simp] whisker_exchange
-/--
-Left composition of 1-morphisms as a functor.
--/
-@[simps]
-def lcomp : (a ⟶ b) ⥤ (b ⟶ c) ⥤ (a ⟶ c) :=
-{ obj := λ f,
-  { obj := λ g, f ≫ g,
-    map := λ g h η, f ◁ η },
-  map := λ f g η, { app := λ h, η ▷ h } }
+-- @[simp]
+-- lemma adjointify_counit_symm (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
+--   (adjointify_counit ε.symm η.symm).symm = adjointify_unit η ε :=
+-- begin
+--   apply iso.ext,
+--   rw [←cancel_mono (adjointify_unit η ε).inv, iso.hom_inv_id],
+--   dsimp [adjointify_unit, adjointify_counit],
+--   simp only [assoc, whisker_left_comp, comp_whisker_right, whisker_assoc,
+--     triangle_assoc_comp_right],
+--   simp_rw [whisker_exchange_assoc, comp_whisker_left_assoc, iso.inv_hom_id_assoc,
+--     ←whisker_left_comp_assoc f, whisker_exchange_assoc, id_whisker_left_assoc,
+--     iso.inv_hom_id_assoc, iso.hom_inv_id_assoc, hom_inv_whisker_right_assoc,
+--     whisker_left_comp_assoc, pentagon_assoc, associator_naturality_left_assoc,
+--     ←associator_naturality_right_assoc, ←whisker_exchange_assoc, id_whisker_left_assoc,
+--     whisker_right_id_assoc, unitors_inv_equal],
+--   simp
+-- end
 
-/--
-Right composition of 1-morphisms as a functor.
--/
-@[simps]
-def rcomp : (b ⟶ c) ⥤ (a ⟶ b) ⥤ (a ⟶ c) :=
-{ obj := λ f,
-  { obj := λ g, g ≫ f,
-    map := λ g h η, η ▷ f },
-  map := λ f g η, { app := λ h, h ◁ η } }
-
-def lcomp_equiv (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : category_theory.equivalence (b ⟶ c) (a ⟶ c) :=
-category_theory.equivalence.mk (lcomp.obj f) (lcomp.obj g)
--- unit_iso
-(nat_iso.of_components (λ h, (λ_ _).symm ≪≫ whisker_right_iso ε.symm h ≪≫ α_ _ _ _) $ by
-  { intros h h' ι,
-    dsimp,
-    simp_rw [left_unitor_inv_naturality_assoc, whisker_exchange_assoc,
-      associator_naturality_right, assoc] } )
--- counit_iso
-(nat_iso.of_components (λ h, (α_ _ _ _).symm ≪≫ whisker_right_iso η.symm h ≪≫ λ_ _) $ by
-  { intros h h' η,
-    dsimp,
-    simp_rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc,
-      left_unitor_naturality, assoc] })
-
-def rcomp_equiv (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : category_theory.equivalence (c ⟶ a) (c ⟶ b) :=
-category_theory.equivalence.mk (rcomp.obj f) (rcomp.obj g)
--- unit_iso
-(nat_iso.of_components (λ h, (ρ_ _).symm ≪≫ whisker_left_iso h η ≪≫ (α_ _ _ _).symm) $ by
-  { intros h h' ι,
-    dsimp,
-    simp_rw [right_unitor_inv_naturality_assoc, ←whisker_exchange_assoc,
-      associator_inv_naturality_left, assoc] } )
--- counit_iso
-(nat_iso.of_components (λ h, α_ _ _ _ ≪≫ whisker_left_iso h ε ≪≫ ρ_ _) $ by
-  { intros h h' η,
-    dsimp,
-    simp_rw [associator_naturality_left_assoc, ←whisker_exchange_assoc,
-      right_unitor_naturality, assoc] })
-
-def adjointify_aux (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : (g ≫ f) ≫ g ≅ 𝟙 b ≫ g :=
-calc
-  _   ≅ g ≫ f ≫ g : (α_ _ _ _)
-  ... ≅ g ≫ 𝟙 a : whisker_left_iso g η.symm
-  ... ≅ g         : ρ_ g
-  ... ≅ 𝟙 b ≫ g  : (λ_ g).symm
-
-lemma hoge (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
-  (rcomp_equiv η ε).inverse.map_iso (adjointify_counit η ε) = adjointify_aux η ε :=
+@[simp]
+lemma adjointify_counit_symm (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
+  (adjointify_counit η ε).symm = adjointify_unit ε.symm η.symm :=
 begin
-  sorry,
+  apply iso.ext,
+  rw [←cancel_mono (adjointify_unit ε.symm η.symm).inv, iso.hom_inv_id],
+  dsimp [adjointify_unit, adjointify_counit],
+  simp only [assoc, whisker_left_comp, comp_whisker_right, whisker_assoc,
+    triangle_assoc_comp_right],
+  simp_rw [whisker_exchange_assoc, comp_whisker_left_assoc, iso.inv_hom_id_assoc,
+    ←whisker_left_comp_assoc g, whisker_exchange_assoc, id_whisker_left_assoc,
+    iso.inv_hom_id_assoc, iso.hom_inv_id_assoc, inv_hom_whisker_right_assoc,
+    whisker_left_comp_assoc, pentagon_assoc, associator_naturality_left_assoc,
+    ←associator_naturality_right_assoc, ←whisker_exchange_assoc, id_whisker_left_assoc,
+    whisker_right_id_assoc, unitors_inv_equal],
+  simp
 end
 
-end
+@[simp]
+lemma adjointify_unit_symm (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
+  (adjointify_unit η ε).symm = adjointify_counit ε.symm η.symm :=
+iso.symm_eq_iff.mpr (adjointify_counit_symm ε.symm η.symm).symm
 
-@[simp, reassoc] lemma hom_inv_whisker_left₂ {f : a ⟶ b} {g : b ⟶ c} {h h' : c ⟶ d} (η : h ≅ h') :
-  f ◁ g ◁ η.hom ≫ f ◁ g ◁ η.inv = 𝟙 (f ≫ g ≫ h) :=
-by simp_rw [←whisker_left_comp, iso.hom_inv_id, whisker_left_id]
+-- @[simp, reassoc] lemma hom_inv_whisker_left₂ {f : a ⟶ b} {g : b ⟶ c} {h h' : c ⟶ d} (η : h ≅ h') :
+--   f ◁ g ◁ η.hom ≫ f ◁ g ◁ η.inv = 𝟙 (f ≫ g ≫ h) :=
+-- by simp_rw [←whisker_left_comp, iso.hom_inv_id, whisker_left_id]
 
-@[simp, reassoc] lemma inv_hom_whisker_left₂ {f : a ⟶ b} {g : b ⟶ c} {h h' : c ⟶ d} (η : h ≅ h') :
-  f ◁ g ◁ η.inv ≫ f ◁ g ◁ η.hom = 𝟙 (f ≫ g ≫ h') :=
-by simp_rw [←whisker_left_comp, iso.inv_hom_id, whisker_left_id]
+-- @[simp, reassoc] lemma inv_hom_whisker_left₂ {f : a ⟶ b} {g : b ⟶ c} {h h' : c ⟶ d} (η : h ≅ h') :
+--   f ◁ g ◁ η.inv ≫ f ◁ g ◁ η.hom = 𝟙 (f ≫ g ≫ h') :=
+-- by simp_rw [←whisker_left_comp, iso.inv_hom_id, whisker_left_id]
 
-@[simp, reassoc] lemma hom_inv_whisker_right₂ {f f' : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} (η : f ≅ f') :
-  η.hom ▷ g ▷ h ≫ η.inv ▷ g ▷ h = 𝟙 ((f ≫ g) ≫ h) :=
-by simp_rw [←comp_whisker_right, iso.hom_inv_id, id_whisker_right]
+-- @[simp, reassoc] lemma hom_inv_whisker_right₂ {f f' : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} (η : f ≅ f') :
+--   η.hom ▷ g ▷ h ≫ η.inv ▷ g ▷ h = 𝟙 ((f ≫ g) ≫ h) :=
+-- by simp_rw [←comp_whisker_right, iso.hom_inv_id, id_whisker_right]
 
-@[simp, reassoc] lemma inv_hom_whisker_right₂ {f f' : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} (η : f ≅ f') :
-  η.inv ▷ g ▷ h ≫ η.hom ▷ g ▷ h = 𝟙 ((f' ≫ g) ≫ h) :=
-by simp_rw [←comp_whisker_right, iso.inv_hom_id, id_whisker_right]
+-- @[simp, reassoc] lemma inv_hom_whisker_right₂ {f f' : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} (η : f ≅ f') :
+--   η.inv ▷ g ▷ h ≫ η.hom ▷ g ▷ h = 𝟙 ((f' ≫ g) ≫ h) :=
+-- by simp_rw [←comp_whisker_right, iso.inv_hom_id, id_whisker_right]
 
 lemma adjointify_counit_left_triangle (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
   left_zigzag_iso η (adjointify_counit η ε) = λ_ f ≪≫ (ρ_ f).symm :=
@@ -433,51 +401,28 @@ begin
     iso.inv_hom_id_assoc, iso.hom_inv_id_assoc, inv_hom_whisker_left]
 end
 
-lemma adjointify_counit_right_triangle (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
-  right_zigzag_iso η (adjointify_counit η ε) = ρ_ g ≪≫ (λ_ g).symm :=
+lemma adjointify_unit_right_triangle (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
+  right_zigzag_iso (adjointify_unit η ε) ε = ρ_ g ≪≫ (λ_ g).symm :=
 begin
-  have := congr_arg iso.hom (adjointify_counit_left_triangle η ε),
-  dsimp at this, replace := reassoc_of this,
-  apply iso.ext,
-  dsimp,
-  rw [←cancel_epi (ρ_ (g ≫ 𝟙 a)).hom, ←cancel_mono (ρ_ (𝟙 b ≫ g)).inv],
-  simp only [whisker_left_comp, comp_whisker_right, assoc],
-  simp_rw [←right_unitor_naturality_assoc, iso.hom_inv_id, ←id_whisker_right,
-    ←whisker_right_comp_conj (𝟙 (𝟙 b)), id_whisker_right, ←whisker_left_id (𝟙 b)],
-  conv_lhs { rw ←iso.hom_inv_id (right_zigzag_iso η (adjointify_counit η ε)), dsimp,
-    simp only [whisker_left_comp, assoc] },
-  simp_rw [associator_naturality_left_assoc, ←whisker_exchange_assoc,
-    ←associator_naturality_right_assoc, ←whisker_exchange_assoc,
-    comp_whisker_left_assoc g, iso.inv_hom_id_assoc, pentagon_inv_hom_hom_hom_hom_assoc,
-    whisker_assoc_conj_assoc, ←whisker_left_comp_assoc g, whisker_right_comp_assoc _ f,
-    pentagon_hom_hom_inv_hom_hom_assoc, ←associator_naturality_middle_assoc,
-    ←comp_whisker_right_assoc _ _ g, this, comp_whisker_right_assoc _ _ g,
-    whisker_left_comp_assoc g, associator_inv_naturality_right_assoc, whisker_exchange_assoc,
-    whisker_right_comp_assoc _ (g ≫ f), pentagon_hom_inv_inv_inv_inv_assoc,
-    associator_inv_naturality_middle_assoc, ←comp_whisker_right_assoc _ _ g,
-    associator_inv_naturality_right_assoc, whisker_exchange,
-    whisker_right_id_assoc (adjointify_counit η ε).hom,
-    id_whisker_left (adjointify_counit η ε).inv, unitors_equal, right_unitor_comp,
-    left_unitor_comp_inv, iso.inv_hom_id_assoc, iso.hom_inv_id_assoc, assoc, iso.inv_hom_id_assoc,
-    inv_hom_whisker_left_assoc, comp_whisker_right, assoc, pentagon_assoc,
-    associator_naturality_left_assoc, associator_naturality_middle_assoc, ←comp_whisker_left,
-    iso.inv_hom_id_assoc, whisker_exchange_assoc, ←whisker_left_comp (𝟙 b ≫ g),
-    ←left_unitor_comp_assoc, left_unitor_naturality_assoc, iso.hom_inv_id],
-  coherence
+  rw [←iso.symm_eq_iff, right_zigzag_iso_symm, adjointify_unit_symm],
+  exact adjointify_counit_left_triangle ε.symm η.symm
 end
 
-protected definition mk (f : a ⟶ b) (g : b ⟶ a)
-   (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : a ≌ b :=
-⟨f, g, η, adjointify_counit η ε, adjointify_counit_right_triangle η ε⟩
+definition mk_of_adjointify_counit (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : a ≌ b :=
+{ hom     := f,
+  inv     := g,
+  unit    := η,
+  counit  := adjointify_counit η ε,
+  left_triangle' := adjointify_counit_left_triangle η ε }
 
--- lemma adjointify_unit_left_triangle (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
---   left_zigzag_iso (adjointify_unit η ε) ε  = λ_ f ≪≫ (ρ_ f).symm :=
--- begin
---   dsimp [adjointify_unit],
--- end
+definition mk_of_adjointify_unit (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : a ≌ b :=
+{ hom     := f,
+  inv     := g,
+  unit    := adjointify_unit η ε,
+  counit  := ε,
+  left_triangle' := (left_triangle_iff_right_triangle _ _).2 (adjointify_unit_right_triangle η ε) }
 
 end equivalence
-
 
 end bicategory
 

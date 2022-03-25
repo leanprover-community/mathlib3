@@ -382,13 +382,6 @@ lemma cancel_left {g : inf_hom β γ} {f₁ f₂ : inf_hom α β} (hg : injectiv
 ⟨λ h, inf_hom.ext $ λ a, hg $
   by rw [←inf_hom.comp_apply, h, inf_hom.comp_apply], congr_arg _⟩
 
-/-- Reinterpret an infimum homomorphism as a supremum homomorphism between the dual lattices. -/
-@[simps] protected def dual : inf_hom α β ≃ sup_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, ⟨f, f.map_inf'⟩,
-  inv_fun := λ f, ⟨f, f.map_sup'⟩,
-  left_inv := λ f, inf_hom.ext $ λ _, rfl,
-  right_inv := λ f, sup_hom.ext $ λ _, rfl }
-
 end has_inf
 
 variables (α) [semilattice_inf β]
@@ -426,14 +419,6 @@ bounded_order.lift (coe_fn : _ → α → β) (λ _ _, id) rfl rfl
 @[simp] lemma top_apply [has_top β] (a : α) : (⊤ : inf_hom α β) a = ⊤ := rfl
 
 end inf_hom
-
-/-- Reinterpret a supremum homomorphism as an infimum homomorphism between the dual lattices. -/
-@[simps] protected def sup_hom.dual [has_sup α] [has_sup β] :
-  sup_hom α β ≃ inf_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, ⟨f, f.map_sup'⟩,
-  inv_fun := λ f, ⟨f, f.map_inf'⟩,
-  left_inv := λ f, sup_hom.ext $ λ _, rfl,
-  right_inv := λ f, inf_hom.ext $ λ _, rfl }
 
 /-! ### Finitary supremum homomorphisms -/
 
@@ -584,14 +569,6 @@ lemma cancel_left {g : inf_top_hom β γ} {f₁ f₂ : inf_top_hom α β} (hg : 
 ⟨λ h, inf_top_hom.ext $ λ a, hg $
   by rw [←comp_apply, h, comp_apply], congr_arg _⟩
 
-/-- Reinterpret a finitary infimum homomorphism as a finitary supremum homomorphism between the dual
-lattices. -/
-@[simps] protected def dual : inf_top_hom α β ≃ sup_bot_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, ⟨f.to_inf_hom.dual, f.map_top'⟩,
-  inv_fun := λ f, ⟨inf_hom.dual.symm f.to_sup_hom, f.map_bot'⟩,
-  left_inv := λ f, inf_top_hom.ext $ λ _, rfl,
-  right_inv := λ f, sup_bot_hom.ext $ λ _, rfl }
-
 end has_inf
 
 variables [semilattice_inf β] [order_top β]
@@ -610,15 +587,6 @@ instance : order_top (inf_top_hom α β) := { top := ⟨⊤, rfl⟩, le_top := �
 @[simp] lemma top_apply (a : α) : (⊤ : inf_top_hom α β) a = ⊤ := rfl
 
 end inf_top_hom
-
-/-- Reinterpret a finitary supremum homomorphism as a finitary infimum homomorphism between the dual
-lattices. -/
-def sup_bot_hom.dual [has_sup α] [has_bot α] [has_sup β] [has_bot β] :
-  sup_bot_hom α β ≃ inf_top_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, ⟨f.to_sup_hom.dual, f.map_bot'⟩,
-  inv_fun := λ f, ⟨sup_hom.dual.symm f.to_inf_hom, f.map_top'⟩,
-  left_inv := λ f, sup_bot_hom.ext $ λ _, rfl,
-  right_inv := λ f, inf_top_hom.ext $ λ _, rfl }
 
 /-! ### Lattice homomorphisms -/
 
@@ -690,13 +658,6 @@ lemma cancel_left {g : lattice_hom β γ} {f₁ f₂ : lattice_hom α β} (hg : 
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
 ⟨λ h, lattice_hom.ext $ λ a, hg $
   by rw [←lattice_hom.comp_apply, h, lattice_hom.comp_apply], congr_arg _⟩
-
-/-- Reinterpret a lattice homomorphism as a lattice homomorphism between the dual lattices. -/
-@[simps] protected def dual : lattice_hom α β ≃ lattice_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, ⟨f.to_inf_hom.dual, f.map_sup'⟩,
-  inv_fun := λ f, ⟨f.to_inf_hom.dual, f.map_sup'⟩,
-  left_inv := λ f, ext $ λ a, rfl,
-  right_inv := λ f, ext $ λ a, rfl }
 
 end lattice_hom
 
@@ -809,6 +770,95 @@ lemma cancel_left {g : bounded_lattice_hom β γ} {f₁ f₂ : bounded_lattice_h
   g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
 ⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
 
+end bounded_lattice_hom
+
+/-! ### Dual homs -/
+
+namespace sup_hom
+variables [has_sup α] [has_sup β] [has_sup γ]
+
+/-- Reinterpret a supremum homomorphism as an infimum homomorphism between the dual lattices. -/
+@[simps] protected def dual : sup_hom α β ≃ inf_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, ⟨f, f.map_sup'⟩,
+  inv_fun := λ f, ⟨f, f.map_inf'⟩,
+  left_inv := λ f, sup_hom.ext $ λ _, rfl,
+  right_inv := λ f, inf_hom.ext $ λ _, rfl }
+
+@[simp] lemma dual_id : (sup_hom.id α).dual = inf_hom.id _ := rfl
+@[simp] lemma dual_comp (g : sup_hom β γ) (f : sup_hom α β) :
+  (g.comp f).dual = g.dual.comp f.dual := rfl
+
+end sup_hom
+
+namespace inf_hom
+variables [has_inf α] [has_inf β] [has_inf γ]
+
+/-- Reinterpret an infimum homomorphism as a supremum homomorphism between the dual lattices. -/
+@[simps] protected def dual : inf_hom α β ≃ sup_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, ⟨f, f.map_inf'⟩,
+  inv_fun := λ f, ⟨f, f.map_sup'⟩,
+  left_inv := λ f, inf_hom.ext $ λ _, rfl,
+  right_inv := λ f, sup_hom.ext $ λ _, rfl }
+
+@[simp] lemma dual_id : (inf_hom.id α).dual = sup_hom.id _ := rfl
+@[simp] lemma dual_comp (g : inf_hom β γ) (f : inf_hom α β) :
+  (g.comp f).dual = g.dual.comp f.dual := rfl
+
+end inf_hom
+
+namespace sup_bot_hom
+variables [has_sup α] [has_bot α] [has_sup β] [has_bot β] [has_sup γ] [has_bot γ]
+
+/-- Reinterpret a finitary supremum homomorphism as a finitary infimum homomorphism between the dual
+lattices. -/
+def dual : sup_bot_hom α β ≃ inf_top_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, ⟨f.to_sup_hom.dual, f.map_bot'⟩,
+  inv_fun := λ f, ⟨sup_hom.dual.symm f.to_inf_hom, f.map_top'⟩,
+  left_inv := λ f, sup_bot_hom.ext $ λ _, rfl,
+  right_inv := λ f, inf_top_hom.ext $ λ _, rfl }
+
+@[simp] lemma dual_id : (sup_bot_hom.id α).dual = inf_top_hom.id _ := rfl
+@[simp] lemma dual_comp (g : sup_bot_hom β γ) (f : sup_bot_hom α β) :
+  (g.comp f).dual = g.dual.comp f.dual := rfl
+
+end sup_bot_hom
+
+namespace inf_top_hom
+variables [has_inf α] [has_top α] [has_inf β] [has_top β] [has_inf γ] [has_top γ]
+
+/-- Reinterpret a finitary infimum homomorphism as a finitary supremum homomorphism between the dual
+lattices. -/
+@[simps] protected def dual : inf_top_hom α β ≃ sup_bot_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, ⟨f.to_inf_hom.dual, f.map_top'⟩,
+  inv_fun := λ f, ⟨inf_hom.dual.symm f.to_sup_hom, f.map_bot'⟩,
+  left_inv := λ f, inf_top_hom.ext $ λ _, rfl,
+  right_inv := λ f, sup_bot_hom.ext $ λ _, rfl }
+
+@[simp] lemma dual_id : (inf_top_hom.id α).dual = sup_bot_hom.id _ := rfl
+@[simp] lemma dual_comp (g : inf_top_hom β γ) (f : inf_top_hom α β) :
+  (g.comp f).dual = g.dual.comp f.dual := rfl
+
+end inf_top_hom
+
+namespace lattice_hom
+variables [lattice α] [lattice β] [lattice γ]
+
+/-- Reinterpret a lattice homomorphism as a lattice homomorphism between the dual lattices. -/
+@[simps] protected def dual : lattice_hom α β ≃ lattice_hom (order_dual α) (order_dual β) :=
+{ to_fun := λ f, ⟨f.to_inf_hom.dual, f.map_sup'⟩,
+  inv_fun := λ f, ⟨f.to_inf_hom.dual, f.map_sup'⟩,
+  left_inv := λ f, ext $ λ a, rfl,
+  right_inv := λ f, ext $ λ a, rfl }
+
+@[simp] lemma dual_id : (lattice_hom.id α).dual = lattice_hom.id _ := rfl
+@[simp] lemma dual_comp (g : lattice_hom β γ) (f : lattice_hom α β) :
+  (g.comp f).dual = g.dual.comp f.dual := rfl
+
+end lattice_hom
+
+namespace bounded_lattice_hom
+variables [lattice α] [bounded_order α] [lattice β] [bounded_order β] [lattice γ] [bounded_order γ]
+
 /-- Reinterpret a bounded lattice homomorphism as a bounded lattice homomorphism between the dual
 bounded lattices. -/
 @[simps] protected def dual :
@@ -817,5 +867,9 @@ bounded lattices. -/
   inv_fun := λ f, ⟨lattice_hom.dual.symm f.to_lattice_hom, f.map_bot', f.map_top'⟩,
   left_inv := λ f, ext $ λ a, rfl,
   right_inv := λ f, ext $ λ a, rfl }
+
+@[simp] lemma dual_id : (bounded_lattice_hom.id α).dual = bounded_lattice_hom.id _ := rfl
+@[simp] lemma dual_comp (g : bounded_lattice_hom β γ) (f : bounded_lattice_hom α β) :
+  (g.comp f).dual = g.dual.comp f.dual := rfl
 
 end bounded_lattice_hom

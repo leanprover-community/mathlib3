@@ -590,10 +590,6 @@ namespace cardinal
 
 open_locale cardinal quaternion
 
-/-- A useful lemma for the following theorems. -/
-lemma pow_four {A : Type*} : #A * #A * #A * #A = #A ^ 4 :=
-by ring
-
 section quaternion_algebra
 
 variables {R : Type*} (c₁ c₂ : R)
@@ -601,6 +597,12 @@ variables {R : Type*} (c₁ c₂ : R)
 /-- The cardinality of a quaternion algebra, as a type. -/
 @[simp] lemma mk_quaternion_algebra : #ℍ[R, c₁, c₂] = #R ^ 4 :=
 by { rw mk_congr (quaternion_algebra.equiv_prod c₁ c₂), simp only [mk_prod, lift_id], ring }
+
+lemma mk_quaternion_algebra_of_infinite [infinite R] : #ℍ[R, c₁, c₂] = #R :=
+begin
+  simp,
+  rw cardinal.pow_eq_self
+end
 
 /-- The cardinality of a quaternion algebra, as a set. -/
 @[simp] lemma mk_univ_quaternion_algebra : #(set.univ : set ℍ[R, c₁, c₂]) = #R ^ 4 :=

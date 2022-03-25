@@ -188,13 +188,28 @@ def embedding_from_countable_to_dense
   α ↪o β :=
 let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals default $ defined_at_left β in
 let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ _ a) in
-order_embedding.of_strict_mono (λ a, (F a).val)
+order_embedding.of_strict_mono (λ a, (F a).val) $ λ a₁ a₂,
 begin
-  intros a₁ a₂,
   rcases (F a₁).property with ⟨f, hf, ha₁⟩,
   rcases (F a₂).property with ⟨g, hg, ha₂⟩,
   rcases our_ideal.directed _ hf _ hg with ⟨m, hm, fm, gm⟩,
   exact (lt_iff_lt_of_cmp_eq_cmp $ m.property (a₁, _) (fm ha₁) (a₂, _) (gm ha₂)).mp
+end
+
+/-- Any countable linear order embeds in any nontrivial dense linear order. -/
+theorem embedding_from_countable_to_dense'
+  [encodable α] [densely_ordered β] [nontrivial β] :
+  nonempty (α ↪o β) :=
+begin
+  rcases exists_pair_ne β with ⟨x, y, hxy⟩,
+  have hxy' : x < y := sorry,
+  haveI : densely_ordered (set.Ioo x y) := set.densely_ordered,
+  cases exists_between hxy' with a ha,
+  haveI : nonempty (set.Ioo x y) := ⟨⟨a, ha⟩⟩,
+  haveI : no_min_order (set.Ioo x y) := begin
+    library_search
+  end,
+  have : α ↪o (set.Ioo x y) := embedding_from_countable_to_dense _ _,
 end
 
 /-- Any two countable dense, nonempty linear orders without endpoints are order isomorphic. -/
@@ -207,9 +222,8 @@ let to_cofinal : α ⊕ β → cofinal (partial_iso α β) :=
 let our_ideal : ideal (partial_iso α β) := ideal_of_cofinals default to_cofinal in
 let F := λ a, fun_of_ideal a our_ideal (cofinal_meets_ideal_of_cofinals _ to_cofinal (sum.inl a)) in
 let G := λ b, inv_of_ideal b our_ideal (cofinal_meets_ideal_of_cofinals _ to_cofinal (sum.inr b)) in
-order_iso.of_cmp_eq_cmp (λ a, (F a).val) (λ b, (G b).val)
+order_iso.of_cmp_eq_cmp (λ a, (F a).val) (λ b, (G b).val) $ λ a b,
 begin
-  intros a b,
   rcases (F a).property with ⟨f, hf, ha⟩,
   rcases (G b).property with ⟨g, hg, hb⟩,
   rcases our_ideal.directed _ hf _ hg with ⟨m, hm, fm, gm⟩,

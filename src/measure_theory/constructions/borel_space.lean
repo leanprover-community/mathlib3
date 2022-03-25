@@ -1494,7 +1494,7 @@ variable [measurable_space α]
 
 @[measurability]
 lemma measurable_real_to_nnreal : measurable (real.to_nnreal) :=
-nnreal.continuous_of_real.measurable
+continuous_real_to_nnreal.measurable
 
 @[measurability]
 lemma measurable.real_to_nnreal {f : α → ℝ} (hf : measurable f) :

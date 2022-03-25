@@ -107,7 +107,7 @@ lemma nhds_coe_coe {r p : ℝ≥0} :
 ((open_embedding_coe.prod open_embedding_coe).map_nhds_eq (r, p)).symm
 
 lemma continuous_of_real : continuous ennreal.of_real :=
-(continuous_coe_iff.2 continuous_id).comp nnreal.continuous_of_real
+(continuous_coe_iff.2 continuous_id).comp continuous_real_to_nnreal
 
 lemma tendsto_of_real {f : filter α} {m : α → ℝ} {a : ℝ} (h : tendsto m f (𝓝 a)) :
   tendsto (λa, ennreal.of_real (m a)) f (𝓝 (ennreal.of_real a)) :=
@@ -1067,7 +1067,8 @@ end
 
 lemma ennreal.of_real_tsum_of_nonneg {f : α → ℝ} (hf_nonneg : ∀ n, 0 ≤ f n) (hf : summable f) :
   ennreal.of_real (∑' n, f n) = ∑' n, ennreal.of_real (f n) :=
-by simp_rw [ennreal.of_real, ennreal.tsum_coe_eq (nnreal.has_sum_of_real_of_nonneg hf_nonneg hf)]
+by simp_rw [ennreal.of_real, ennreal.tsum_coe_eq
+  (nnreal.has_sum_real_to_nnreal_of_nonneg hf_nonneg hf)]
 
 lemma not_summable_iff_tendsto_nat_at_top_of_nonneg {f : ℕ → ℝ} (hf : ∀ n, 0 ≤ f n) :
   ¬ summable f ↔ tendsto (λ n : ℕ, ∑ i in finset.range n, f i) at_top at_top :=

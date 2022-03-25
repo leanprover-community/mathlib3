@@ -18,6 +18,7 @@ and that `ℚ_p` is Cauchy complete.
 
 * `padic` : the type of p-adic numbers
 * `padic_norm_e` : the rational valued p-adic norm on `ℚ_p`
+* `padic.add_valuation` : the additive p-adic valuation on `ℚ_p`, with values in `with_top ℤ`.
 
 ## Notation
 
@@ -1036,6 +1037,85 @@ begin
   { simp },
   { exact_mod_cast (fact.out p.prime).ne_zero }
 end
+
+lemma valuation_map_add {x y : ℚ_[p]} (hxy : x + y ≠ 0) :
+  min (valuation x) (valuation y) ≤ valuation (x + y) :=
+begin
+  by_cases hx : x = 0,
+  { rw [hx, zero_add],
+    exact min_le_right _ _ },
+  { by_cases hy : y = 0,
+    { rw [hy, add_zero],
+      exact min_le_left _ _ },
+    { have h_norm : ∥x + y∥ ≤ (max ∥x∥ ∥y∥) := padic_norm_e.nonarchimedean x y,
+      have hp_one : (1 : ℝ) < p,
+      { rw [← nat.cast_one, nat.cast_lt],
+        exact nat.prime.one_lt hp_prime.elim, },
+      rw [norm_eq_pow_val hx, norm_eq_pow_val hy, norm_eq_pow_val hxy] at h_norm,
+      exact min_le_of_zpow_le_max hp_one h_norm }}
+end
+
+@[simp] lemma valuation_map_mul {x y : ℚ_[p]} (hx : x ≠ 0) (hy : y ≠ 0) :
+  valuation (x * y) = valuation x + valuation y :=
+begin
+  have h_norm : ∥x * y∥ = ∥x∥ * ∥y∥ := norm_mul x y,
+  have hp_ne_one : (p : ℝ) ≠ 1,
+  { rw [← nat.cast_one, ne.def, nat.cast_inj],
+    exact nat.prime.ne_one hp_prime.elim, },
+  have hp_pos : (0 : ℝ) < p,
+  { rw [← nat.cast_zero, nat.cast_lt],
+    exact nat.prime.pos hp_prime.elim },
+  rw [norm_eq_pow_val hx, norm_eq_pow_val hy, norm_eq_pow_val (mul_ne_zero hx hy),
+    ← zpow_add₀ (ne_of_gt hp_pos), zpow_inj hp_pos hp_ne_one, ← neg_add, neg_inj] at h_norm,
+  exact h_norm,
+end
+
+/-- The additive p-adic valuation on `ℚ_p`, with values in `with_top ℤ`. -/
+def add_valuation_def : ℚ_[p] → (with_top ℤ) :=
+λ x, if x = 0 then ⊤ else x.valuation
+
+@[simp] lemma add_valuation.map_zero : add_valuation_def (0 : ℚ_[p]) = ⊤ :=
+by simp only [add_valuation_def, if_pos (eq.refl _)]
+
+@[simp] lemma add_valuation.map_one : add_valuation_def (1 : ℚ_[p]) = 0 :=
+by simp only [add_valuation_def, if_neg (one_ne_zero), valuation_one,
+  with_top.coe_zero]
+
+lemma add_valuation.map_mul (x y : ℚ_[p]) :
+  add_valuation_def (x * y) = add_valuation_def x + add_valuation_def y :=
+begin
+  simp only [add_valuation_def],
+  by_cases hx : x = 0,
+  { rw [hx, if_pos (eq.refl _), zero_mul, if_pos (eq.refl _), with_top.top_add] },
+  { by_cases hy : y = 0,
+    { rw [hy, if_pos (eq.refl _), mul_zero, if_pos (eq.refl _), with_top.add_top] },
+    { rw [if_neg hx, if_neg hy, if_neg (mul_ne_zero hx hy), ← with_top.coe_add,
+        with_top.coe_eq_coe, valuation_map_mul hx hy] }}
+end
+
+lemma add_valuation.map_add (x y : ℚ_[p]) :
+  min (add_valuation_def x) (add_valuation_def y) ≤ add_valuation_def (x + y) :=
+begin
+  simp only [add_valuation_def],
+  by_cases hxy : x + y = 0,
+  { rw [hxy, if_pos (eq.refl _)],
+    exact le_top, },
+  { by_cases hx : x = 0,
+    { simp only [hx, if_pos (eq.refl _), min_eq_right, le_top, zero_add, le_refl] },
+    { by_cases hy : y = 0,
+      { simp only [hy, if_pos (eq.refl _), min_eq_left, le_top, add_zero, le_refl], },
+      { rw [if_neg hx, if_neg hy, if_neg hxy, ← with_top.coe_min, with_top.coe_le_coe],
+        exact valuation_map_add hxy }}}
+end
+
+/-- The additive p-adic valuation on `ℚ_p`, as an `add_valuation`. -/
+def add_valuation : add_valuation ℚ_[p] (with_top ℤ) :=
+add_valuation.of add_valuation_def add_valuation.map_zero add_valuation.map_one
+  add_valuation.map_add add_valuation.map_mul
+
+@[simp] lemma add_valuation.apply {x : ℚ_[p]} (hx : x ≠ 0) :
+  x.add_valuation = x.valuation :=
+by simp only [add_valuation, add_valuation.of_apply, add_valuation_def, if_neg hx]
 
 section norm_le_iff
 /-! ### Various characterizations of open unit balls -/

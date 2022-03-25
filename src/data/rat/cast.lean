@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.order
 import data.int.char_zero
+import algebra.field.opposite
 
 /-!
 # Casts for Rational Numbers
@@ -318,3 +319,17 @@ theorem ext_rat_on_pnat {f g : ℚ →*₀ M}
 ext_rat $ ext_int' (by simpa) ‹_›
 
 end monoid_with_zero_hom
+
+namespace mul_opposite
+
+variables {α : Type*} [division_ring α]
+
+@[simp, norm_cast] lemma op_rat_cast (r : ℚ) : op (r : α) = (↑r : αᵐᵒᵖ) :=
+by rw [cast_def, div_eq_mul_inv, op_mul, op_inv, op_nat_cast, op_int_cast,
+    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
+
+@[simp, norm_cast] lemma unop_rat_cast (r : ℚ) : unop (r : αᵐᵒᵖ) = r :=
+by rw [cast_def, div_eq_mul_inv, unop_mul, unop_inv, unop_nat_cast, unop_int_cast,
+    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
+
+end mul_opposite

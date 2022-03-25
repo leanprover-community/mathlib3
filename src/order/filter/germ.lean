@@ -251,14 +251,11 @@ lemma coe_one [has_one M] : ↑(1 : α → M) = (1 : germ l M) := rfl
 
 @[to_additive]
 instance [semigroup M] : semigroup (germ l M) :=
-{ mul := (*), mul_assoc := by { rintros ⟨f⟩ ⟨g⟩ ⟨h⟩,
-    simp only [mul_assoc, quot_mk_eq_coe, ← coe_mul] } }
+function.surjective.semigroup coe (surjective_quot_mk _) (λ a b, coe_mul a b)
 
 @[to_additive]
 instance [comm_semigroup M] : comm_semigroup (germ l M) :=
-{ mul := (*),
-  mul_comm := by { rintros ⟨f⟩ ⟨g⟩, simp only [mul_comm, quot_mk_eq_coe, ← coe_mul] },
-  .. germ.semigroup }
+function.surjective.comm_semigroup coe (surjective_quot_mk _) (λ a b, coe_mul a b)
 
 @[to_additive add_left_cancel_semigroup]
 instance [left_cancel_semigroup M] : left_cancel_semigroup (germ l M) :=
@@ -274,13 +271,28 @@ instance [right_cancel_semigroup M] : right_cancel_semigroup (germ l M) :=
     coe_eq.2 $ (coe_eq.1 H).mono $ λ x, mul_right_cancel,
   .. germ.semigroup }
 
+instance has_nat_pow [monoid G] : has_pow (germ l G) ℕ := ⟨λ f n, map (^ n) f⟩
+
+@[simp] lemma coe_pow [monoid G] (f : α → G) (n : ℕ) : ↑(f ^ n) = (f ^ n : germ l G) := rfl
+
+instance has_int_pow [div_inv_monoid G] : has_pow (germ l G) ℤ := ⟨λ f z, map (^ z) f⟩
+
+@[simp] lemma coe_zpow [div_inv_monoid G] (f : α → G) (z : ℤ) : ↑(f ^ z) = (f ^ z : germ l G) :=
+rfl
+
+instance [has_scalar M β] : has_scalar M (germ l β) :=
+⟨λ c, map ((•) c)⟩
+
+@[simp, norm_cast] lemma coe_smul [has_scalar M β] (c : M) (f : α → β) :
+  ↑(c • f) = (c • f : germ l β) :=
+rfl
+
+instance [add_monoid M] : add_monoid (germ l M) :=
+function.surjective.add_monoid coe (surjective_quot_mk _) rfl (λ a b, coe_add a b) (λ _ _, rfl)
+
 @[to_additive]
 instance [monoid M] : monoid (germ l M) :=
-{ mul := (*),
-  one := 1,
-  one_mul := λ f, induction_on f $ λ f, by { norm_cast, rw [one_mul] },
-  mul_one := λ f, induction_on f $ λ f, by { norm_cast, rw [mul_one] },
-  .. germ.semigroup }
+function.surjective.monoid coe (surjective_quot_mk _) rfl (λ a b, coe_mul a b) coe_pow
 
 /-- coercion from functions to germs as a monoid homomorphism. -/
 @[to_additive]
@@ -310,12 +322,14 @@ instance [has_div M] : has_div (germ l M) := ⟨map₂ (/)⟩
 @[simp, norm_cast, to_additive]
 lemma coe_div [has_div M] (f g : α → M) : ↑(f / g) = (f / g : germ l M) := rfl
 
-@[to_additive]
+instance [sub_neg_monoid G] : sub_neg_monoid (germ l G) :=
+function.surjective.sub_neg_monoid coe (surjective_quot_mk _) rfl (λ _ _, rfl)
+  (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+@[to_additive sub_neg_monoid]
 instance [div_inv_monoid G] : div_inv_monoid (germ l G) :=
-{ inv := has_inv.inv,
-  div := has_div.div,
-  div_eq_mul_inv := by { rintros ⟨f⟩ ⟨g⟩, exact congr_arg (quot.mk _) (div_eq_mul_inv f g) },
-  .. germ.monoid }
+function.surjective.div_inv_monoid coe (surjective_quot_mk _) rfl (λ _ _, rfl)
+  (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive]
 instance [group G] : group (germ l G) :=
@@ -376,15 +390,8 @@ section module
 
 variables {M N R : Type*}
 
-instance [has_scalar M β]  : has_scalar M (germ l β) :=
-⟨λ c, map ((•) c)⟩
-
 instance has_scalar' [has_scalar M β] : has_scalar (germ l M) (germ l β) :=
 ⟨map₂ (•)⟩
-
-@[simp, norm_cast] lemma coe_smul [has_scalar M β] (c : M) (f : α → β) :
-  ↑(c • f) = (c • f : germ l β) :=
-rfl
 
 @[simp, norm_cast] lemma coe_smul' [has_scalar M β] (c : α → M) (f : α → β) :
   ↑(c • f) = (c : germ l M) • (f : germ l β) :=

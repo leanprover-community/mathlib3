@@ -47,25 +47,25 @@ def bicone [has_finite_biproducts C] {J : Type v} [decidable_eq J] [fintype J]
 { X :=
   { X := biproduct (λ j, (F j).X),
     p := biproduct.map (λ j, (F j).p),
-    idempotence := begin
+    idem := begin
       ext j,
       simp only [biproduct.ι_map_assoc, biproduct.ι_map],
-      slice_lhs 1 2 { rw (F j).idempotence, },
+      slice_lhs 1 2 { rw (F j).idem, },
     end, },
   π := λ j,
     { f := biproduct.map (λ j, (F j).p) ≫ bicone.π _ j,
       comm := by simp only [assoc, biproduct.bicone_π, biproduct.map_π,
-        biproduct.map_π_assoc, (F j).idempotence], },
+        biproduct.map_π_assoc, (F j).idem], },
   ι := λ j,
     { f := (by exact bicone.ι _ j) ≫ biproduct.map (λ j, (F j).p),
-      comm := by rw [biproduct.ι_map, ← assoc, ← assoc, (F j).idempotence,
-        assoc, biproduct.ι_map, ← assoc, (F j).idempotence], },
+      comm := by rw [biproduct.ι_map, ← assoc, ← assoc, (F j).idem,
+        assoc, biproduct.ι_map, ← assoc, (F j).idem], },
   ι_π := λ j j', begin
     split_ifs,
     { subst h,
       simp only [biproduct.bicone_ι, biproduct.ι_map, biproduct.bicone_π,
         biproduct.ι_π_self_assoc, comp, category.assoc, eq_to_hom_refl, id_eq,
-        biproduct.map_π, (F j).idempotence], },
+        biproduct.map_π, (F j).idem], },
     { simpa only [hom_ext, biproduct.ι_π_ne_assoc _ h, assoc,
         biproduct.map_π, biproduct.map_π_assoc, zero_comp, comp], },
   end, }
@@ -95,7 +95,7 @@ lemma karoubi_has_finite_biproducts [has_finite_biproducts C] :
           biproduct.ι_map, assoc, biproducts.bicone_ι_f, biproduct.map_π],
         slice_lhs 1 2 { rw biproduct.ι_π, },
         split_ifs, swap, { exfalso, exact h rfl, },
-        simp only [eq_to_hom_refl, id_comp, (F j).idempotence], },
+        simp only [eq_to_hom_refl, id_comp, (F j).idem], },
     end, } }
 
 instance {D : Type*} [category D] [additive_category D] : additive_category (karoubi D) :=
@@ -108,7 +108,7 @@ endomorphism `𝟙 P.X - P.p` -/
 def complement (P : karoubi C) : karoubi C :=
 { X := P.X,
   p := 𝟙 _ - P.p,
-  idempotence := idempotence_of_id_sub_idempotent P.p P.idempotence, }
+  idem := idem_of_id_sub_idem P.p P.idem, }
 
 instance (P : karoubi C) : has_binary_biproduct P P.complement :=
 has_binary_biproduct_of_total
@@ -120,12 +120,12 @@ has_binary_biproduct_of_total
   inl_fst' := P.decomp_id.symm,
   inl_snd' := begin
     simp only [decomp_id_i_f, decomp_id_p_f, complement_p, comp_sub, comp,
-      hom_ext, quiver.hom.add_comm_group_zero_f, P.idempotence],
+      hom_ext, quiver.hom.add_comm_group_zero_f, P.idem],
     erw [comp_id, sub_self],
   end,
   inr_fst' := begin
     simp only [decomp_id_i_f, complement_p, decomp_id_p_f, sub_comp, comp,
-      hom_ext, quiver.hom.add_comm_group_zero_f, P.idempotence],
+      hom_ext, quiver.hom.add_comm_group_zero_f, P.idem],
     erw [id_comp, sub_self],
   end,
   inr_snd' := P.complement.decomp_id.symm, }
@@ -145,14 +145,14 @@ def decomposition (P : karoubi C) : P ⊞ P.complement ≅ (to_karoubi _).obj P.
       convert zero_comp,
       ext,
       simp only [decomp_id_i_f, decomp_id_p_f, complement_p, comp_sub, comp,
-        quiver.hom.add_comm_group_zero_f, P.idempotence],
+        quiver.hom.add_comm_group_zero_f, P.idem],
       erw [comp_id, sub_self], },
     { simp only [← assoc, biprod.inr_desc, biprod.lift_eq, comp_add,
         ← decomp_id, comp_id, id_comp, add_left_eq_self],
       convert zero_comp,
       ext,
       simp only [decomp_id_i_f, decomp_id_p_f, complement_p, sub_comp, comp,
-        quiver.hom.add_comm_group_zero_f, P.idempotence],
+        quiver.hom.add_comm_group_zero_f, P.idem],
       erw [id_comp, sub_self], }
   end,
   inv_hom_id' := begin

@@ -254,21 +254,22 @@ end id
 section compose
 
 /-- A (TM2) Turing Machine composing the operations of two other Turing Machines -/
-def compose (m1 m2 : fin_tm2) : fin_tm2 :=
+def compose {α β γ : Type} (eα : fin_encoding α) (eβ : fin_encoding β) (eγ : fin_encoding γ)
+  (m1 m2 : fin_tm2) : fin_tm2 :=
 { K := m1.K ⊕ m2.K,
   -- K_decidable_eq := sorry,
-  -- K_fin := sorry,
+  K_fin := by { haveI := m1.K_fin, haveI := m2.K_fin, exact sum.fintype m1.K m2.K },
   k₀ := sum.inl m1.k₀,
   k₁ := sum.inr m2.k₁,
   Γ := sum.elim m1.Γ m2.Γ,
   Λ := unit ⊕ m1.Λ ⊕ m2.Λ,
   main := sum.inl (),
-  Λ_fin := sorry,
+  Λ_fin := by { haveI := m1.Λ_fin, haveI := m2.Λ_fin, exact sum.fintype unit (m1.Λ ⊕ m2.Λ)},
   σ := m1.σ ⊕ m2.σ,
   initial_state := sum.inl m1.initial_state,
-  σ_fin := sorry,
-  Γk₀_fin := _,
-  M := _ }
+  σ_fin := by { haveI := m1.σ_fin, haveI := m2.σ_fin, exact sum.fintype m1.σ m2.σ},
+  Γk₀_fin := by {rw [sum.elim_inl], exact m1.Γk₀_fin },
+  M := sorry }
 
 end compose
 

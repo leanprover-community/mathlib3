@@ -68,9 +68,6 @@ Construct an element of the `n`th symmetric power from a multiset of cardinality
 @[simps, pattern]
 abbreviation mk (m : multiset α) (h : m.card = n) : sym α n := ⟨m, h⟩
 
-lemma exists_mk : Π (s : sym α n), ∃ m h, s = mk m h
-| (mk m h) := ⟨m, h, rfl⟩
-
 /--
 The unique element in `sym α 0`.
 -/

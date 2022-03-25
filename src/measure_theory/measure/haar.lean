@@ -640,6 +640,56 @@ begin
   exact regular.smul ctop,
 end
 
+/-- **Steinhaus Theorem** In any locally compact group `G` with a haar measure `μ`, for any
+  measurable set `E` of positive measure, the set `E/E` contains a neighborhood of `1` -/
+@[to_additive /-- **Steinhaus Theorem** In any locally compact group `G` with a haar measure `μ`,
+  for any measurable set `E` of positive measure, the set `E - E` contains a neighborhood of `0` -/]
+theorem steinhaus_theorem_mul (μ : measure G) (is_haar_measure μ) (E : set G)
+  (hE : measurable_set E) (hEpos : 0 < μ E) : ∃ (U : set G) , U ∈ nhds (1 : G) ∧ U ⊆ E / E :=
+begin
+  rcases (exists_subset_measure_lt_top hE hEpos) with ⟨L, hL, hLE, hLpos, hLtop⟩,
+  have hK := measurable_set.exists_lt_is_compact_of_ne_top hL (ne_of_lt hLtop) hLpos,
+  rcases hK with ⟨K, hKL, hK, hKpos⟩,
+  have hKtop : μ K ≠ ⊤,
+  { apply ne_top_of_le_ne_top (ne_of_lt hLtop),
+    apply measure_mono hKL },
+  have h2 : μ K ≠ 0,
+  { exact ne_of_gt hKpos },
+  have hU := set.exists_is_open_lt_add K hKtop h2,
+  rcases hU with ⟨U, hUK, hU, hμUK⟩,
+  have hV := compact_open_separated_mul_left hK hU hUK,
+  rcases hV with ⟨V, hV, hVzero, hVKU⟩,
+  have hv : ∀ (v : α), v ∈ V → ¬ disjoint ({v}* K) K,
+  { intros v hv hKv,
+    have hKvsub : {v} * K ∪ K ⊆ U,
+    { apply set.union_subset _ hUK,
+      apply subset_trans _ hVKU,
+      apply set.mul_subset_mul _ (set.subset.refl K),
+      simp only [set.singleton_subset_iff, hv] },
+    replace hKvsub := @measure_mono _ _ μ _ _ hKvsub,
+    have hcontr := lt_of_le_of_lt hKvsub hμUK,
+    rw measure_union hKv (is_compact.measurable_set hK) at hcontr,
+    have hKtranslate : μ ({v} * K) = μ K,
+    { simp only [singleton_mul, image_mul_left, measure_preimage_mul] },
+    rw [hKtranslate, lt_self_iff_false] at hcontr,
+    assumption },
+    use V,
+    split,
+    { exact is_open.mem_nhds hV hVzero },
+    { intros v hvV,
+      specialize hv v hvV,
+      rw set.not_disjoint_iff at hv,
+      rcases hv with ⟨x, hxK, hxvK⟩,
+      rw set.mem_div,
+      refine ⟨x, v⁻¹ * x, _, _, _⟩,
+      { apply hLE (hKL hxvK) },
+      { apply hLE,
+        apply hKL,
+        simp only [singleton_mul, image_mul_left, mem_preimage] at hxK,
+        exact hxK },
+        simp only [div_eq_iff_eq_mul, ← mul_assoc, mul_right_inv, one_mul] }
+end
+
 end second_countable
 
 /-- Any Haar measure is invariant under inversion in a commutative group. -/

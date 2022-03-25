@@ -322,6 +322,14 @@ begin
   exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
 end
 
+lemma filter.coclosed_compact_le_cofinite [t1_space α] :
+  filter.coclosed_compact α ≤ filter.cofinite :=
+λ s hs, compl_compl s ▸ hs.is_compact.compl_mem_coclosed_compact_of_is_closed hs.is_closed
+
+protected def bornology.closed_compact [t1_space α] : bornology α :=
+{ cobounded := filter.coclosed_compact α,
+  le_cofinite := filter.coclosed_compact_le_cofinite }
+
 protected lemma finset.is_closed [t1_space α] (s : finset α) : is_closed (s : set α) :=
 s.finite_to_set.is_closed
 

@@ -8,6 +8,7 @@ import topology.bases
 import data.finset.order
 import data.set.accumulate
 import tactic.tfae
+import topology.bornology.basic
 
 /-!
 # Properties of subsets of topological spaces
@@ -547,7 +548,21 @@ by simp only [mem_coclosed_compact, compl_subset_comm]
 lemma cocompact_le_coclosed_compact : cocompact α ≤ coclosed_compact α :=
 infi_le_infi $ λ s, le_infi $ λ _, le_rfl
 
+lemma _root_.is_compact.compl_mem_coclosed_compact_of_is_closed (hs : is_compact s) (hs' : is_closed s) :
+  sᶜ ∈ filter.coclosed_compact α :=
+has_basis_coclosed_compact.mem_of_mem ⟨hs', hs⟩
+
 end filter
+
+namespace bornology
+
+variables (α)
+
+protected def compact : bornology α :=
+{ cobounded := filter.cocompact α,
+  le_cofinite := filter.cocompact_le_cofinite }
+
+end bornology
 
 section tube_lemma
 

@@ -1114,7 +1114,7 @@ begin
     rw [coe_rpow, real.coe_to_nnreal _ (real.rpow_nonneg_of_nonneg p.1.2 _)],
     refl },
   rw this,
-  refine nnreal.continuous_of_real.continuous_at.comp (continuous_at.comp _ _),
+  refine continuous_real_to_nnreal.continuous_at.comp (continuous_at.comp _ _),
   { apply real.continuous_at_rpow,
     simp at h,
     rw ← (nnreal.coe_eq_zero x) at h,

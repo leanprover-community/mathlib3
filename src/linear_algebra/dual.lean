@@ -728,7 +728,7 @@ begin
   use [f],
   refine ne_zero_of_eq_one _,
   have h : f.comp (K ∙ x).subtype = (linear_pmap.mk_span_singleton x 1 hx).to_fun :=
-    classical.some_spec (linear_pmap.mk_span_singleton x (1 : R) hx).to_fun.exists_extend,
+    classical.some_spec (linear_pmap.mk_span_singleton x (1 : K) hx).to_fun.exists_extend,
   rw linear_map.ext_iff at h,
   convert h ⟨x, submodule.mem_span_singleton_self x⟩,
   exact (linear_pmap.mk_span_singleton_apply' K hx 1).symm,

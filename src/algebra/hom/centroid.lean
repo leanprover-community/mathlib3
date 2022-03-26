@@ -73,6 +73,8 @@ instance : has_coe_to_fun (centroid_hom α) (λ _, α → α) := fun_like.has_co
 
 @[simp] lemma to_fun_eq_coe {f : centroid_hom α} : f.to_fun = (f : α → α) := rfl
 
+@[simp] lemma coe_to_add_monoid_hom (f : centroid_hom α) : (f.to_add_monoid_hom : α → α) = f := rfl
+
 @[ext] lemma ext {f g : centroid_hom α} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
 
 /-- Copy of a `centroid_hom` with a new `to_fun` equal to the old one. Useful to fix

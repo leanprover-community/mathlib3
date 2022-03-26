@@ -2661,6 +2661,10 @@ by simp only [filter.prod, comap_principal, principal_eq_iff_eq, comap_principal
 @[simp] lemma pure_prod {a : α} {f : filter β} : pure a ×ᶠ f = map (prod.mk a) f :=
 by rw [prod_eq, map_pure, pure_seq_eq_map]
 
+lemma map_pure_prod (f : α → β → γ) (a : α) (B : filter β) :
+  filter.map (function.uncurry f) (pure a ×ᶠ B) = filter.map (f a) B :=
+by { rw filter.pure_prod, refl }
+
 @[simp] lemma prod_pure {f : filter α} {b : β} : f ×ᶠ pure b = map (λ a, (a, b)) f :=
 by rw [prod_eq, seq_pure, map_map]
 

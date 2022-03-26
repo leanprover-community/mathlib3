@@ -122,9 +122,9 @@ lemma norm_max_aux₃ {f : ℂ → F} {z w : ℂ} {r : ℝ} (hr : dist w z = r)
 begin
   subst r,
   rcases eq_or_ne w z with rfl|hne, { refl },
-  rw ← dist_pos at hne,
-  refine norm_max_aux₂ hd (closure_ball z hne ▸ _),
-  exact hz.closure ((closure_ball z hne).symm ▸ hd.continuous_on.norm)
+  have : closure (ball z (dist w z)) = closed_ball z (dist w z),
+    from closure_ball z (dist_ne_zero.2 hne),
+  exact norm_max_aux₂ hd (this ▸ hz.closure (this.symm ▸ hd.continuous_on.norm))
 end
 
 /-!

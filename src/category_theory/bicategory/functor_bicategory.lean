@@ -66,6 +66,7 @@ instance oplax_functor.bicategory : bicategory (oplax_functor B C) :=
   whisker_right := λ F G H _ _ Γ η, oplax_nat_trans.whisker_right Γ η,
   associator    := λ F G H I, oplax_nat_trans.associator,
   left_unitor   := λ F G, oplax_nat_trans.left_unitor,
-  right_unitor  := λ F G, oplax_nat_trans.right_unitor }
+  right_unitor  := λ F G, oplax_nat_trans.right_unitor,
+  whisker_exchange' := by { intros, ext, apply whisker_exchange } }
 
 end category_theory

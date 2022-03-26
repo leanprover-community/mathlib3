@@ -108,31 +108,6 @@ class bicategory (B : Type u) extends category_struct.{v} B :=
 (triangle' : ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c),
   (α_ f (𝟙 b) g).hom ≫ f ◁ (λ_ g).hom = (ρ_ f).hom ▷ g . obviously)
 
-restate_axiom bicategory.whisker_left_id'
-restate_axiom bicategory.whisker_left_comp'
-restate_axiom bicategory.id_whisker_right'
-restate_axiom bicategory.comp_whisker_right'
-restate_axiom bicategory.whisker_exchange'
-restate_axiom bicategory.associator_naturality_left'
-restate_axiom bicategory.associator_naturality_middle'
-restate_axiom bicategory.associator_naturality_right'
-restate_axiom bicategory.left_unitor_naturality'
-restate_axiom bicategory.right_unitor_naturality'
-restate_axiom bicategory.pentagon'
-restate_axiom bicategory.triangle'
-attribute [simp]
-  bicategory.whisker_left_id bicategory.id_whisker_right
-  bicategory.whisker_exchange
-  bicategory.pentagon bicategory.triangle
-attribute [reassoc]
-  bicategory.whisker_left_comp bicategory.comp_whisker_right
-  bicategory.whisker_exchange bicategory.associator_naturality_left
-  bicategory.associator_naturality_middle bicategory.associator_naturality_right
-  bicategory.left_unitor_naturality bicategory.right_unitor_naturality
-  bicategory.pentagon bicategory.triangle
-attribute [simp] bicategory.whisker_left_comp bicategory.comp_whisker_right
-attribute [instance] bicategory.hom_category
-
 localized "infixr ` ◁ `:81 := bicategory.whisker_left" in bicategory
 localized "infixl ` ▷ `:81 := bicategory.whisker_right" in bicategory
 localized "notation `α_` := bicategory.associator" in bicategory
@@ -141,40 +116,28 @@ localized "notation `ρ_` := bicategory.right_unitor" in bicategory
 
 namespace bicategory
 
-section
+restate_axiom whisker_left_id'
+restate_axiom whisker_left_comp'
+restate_axiom id_whisker_right'
+restate_axiom comp_whisker_right'
+restate_axiom whisker_exchange'
+restate_axiom associator_naturality_left'
+restate_axiom associator_naturality_middle'
+restate_axiom associator_naturality_right'
+restate_axiom left_unitor_naturality'
+restate_axiom right_unitor_naturality'
+restate_axiom pentagon'
+restate_axiom triangle'
+attribute [simp] whisker_left_id id_whisker_right pentagon triangle
+attribute [reassoc]
+  whisker_left_comp comp_whisker_right whisker_exchange
+  associator_naturality_left associator_naturality_middle associator_naturality_right
+  left_unitor_naturality right_unitor_naturality
+  pentagon triangle
+attribute [simp] whisker_left_comp comp_whisker_right
+attribute [instance] hom_category
 
 variables {B : Type u} [bicategory.{w v} B] {a b c d e : B}
-
-@[reassoc, simp]
-lemma id_whisker_left {f g : a ⟶ b} (η : f ⟶ g) :
-  𝟙 a ◁ η = (λ_ f).hom ≫ η ≫ (λ_ g).inv :=
-by simp [←cancel_mono (λ_ g).hom, left_unitor_naturality]
-
-@[reassoc, simp]
-lemma comp_whisker_left (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
-  (f ≫ g) ◁ η = (α_ f g h).hom ≫ f ◁ g ◁ η ≫ (α_ f g h').inv :=
-by simp [←associator_naturality_right_assoc]
-
-/-
-[id_whisker_left]: 𝟙 a ◁ (ρ_ f).hom ==> (λ_ (f ≫ 𝟙 b)).hom ≫ (ρ_ f).hom ≫ (λ_ f).inv
-[left_unitor_comp]: (λ_ (f ≫ 𝟙 b)).hom ==> (α_ (𝟙 a) f (𝟙 b)).inv ≫ (λ_ f).hom ▷ 𝟙 b
-[whisker_right_id]: (λ_ f).hom ▷ 𝟙 b ==> (ρ_ (𝟙 a ≫ f)).hom ≫ (λ_ f).hom ≫ (ρ_ f).inv
-[right_unitor_comp]: (ρ_ (𝟙 a ≫ f)).hom ==> (α_ (𝟙 a) f (𝟙 b)).hom ≫ 𝟙 a ◁ (ρ_ f).hom
--/
-@[reassoc, simp]
-lemma whisker_right_id {f g : a ⟶ b} (η : f ⟶ g) :
-  η ▷ 𝟙 b = (ρ_ f).hom ≫ η ≫ (ρ_ g).inv :=
-by simp [←cancel_mono (ρ_ g).hom, right_unitor_naturality]
-
-@[reassoc, simp]
-lemma whisker_right_comp {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
-  η ▷ (g ≫ h) = (α_ f g h).inv ≫ η ▷ g ▷ h ≫ (α_ f' g h).hom :=
-by simp [associator_naturality_left]
-
-@[reassoc, simp]
-lemma whisker_assoc (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
-  (f ◁ η) ▷ h = (α_ f g h).hom ≫ f ◁ (η ▷ h) ≫ (α_ f g' h).inv :=
-by simp [←associator_naturality_middle_assoc]
 
 @[simp, reassoc]
 lemma hom_inv_whisker_left (f : a ⟶ b) {g h : b ⟶ c} (η : g ≅ h) :
@@ -227,92 +190,6 @@ is_iso.of_iso (whisker_right_iso (as_iso η) h)
 lemma inv_whisker_right {f g : a ⟶ b} (η : f ⟶ g) (h : b ⟶ c) [is_iso η] :
   inv (η ▷ h) = (inv η) ▷ h :=
 by { ext, simp only [←comp_whisker_right, id_whisker_right, is_iso.hom_inv_id] }
-
-@[reassoc]
-lemma left_unitor_inv_naturality {f g : a ⟶ b} (η : f ⟶ g) :
-  η ≫ (λ_ g).inv = (λ_ f).inv ≫ 𝟙 a ◁ η :=
-by simp
-
-@[reassoc]
-lemma right_unitor_inv_naturality {f g : a ⟶ b} (η : f ⟶ g) :
-  η ≫ (ρ_ g).inv = (ρ_ f).inv ≫ η ▷ 𝟙 b :=
-by simp
-
-lemma whisker_left_iff {f g : a ⟶ b} (η θ : f ⟶ g) :
-  (𝟙 a ◁ η = 𝟙 a ◁ θ) ↔ (η = θ) :=
-by simp
-
-lemma whisker_right_iff {f g : a ⟶ b} (η θ : f ⟶ g) :
-  (η ▷ 𝟙 b = θ ▷ 𝟙 b) ↔ (η = θ) :=
-by simp
-
-@[reassoc]
-lemma left_unitor_comp' (f : a ⟶ b) (g : b ⟶ c) :
-  (α_ (𝟙 a) f g).hom ≫ (λ_ (f ≫ g)).hom = (λ_ f).hom ▷ g :=
-by rw [←whisker_left_iff, whisker_left_comp, ←cancel_epi (α_ (𝟙 a) (𝟙 a ≫ f) g).hom,
-    ←cancel_epi ((α_ (𝟙 a) (𝟙 a) f).hom ▷ g), pentagon_assoc, triangle,
-    ←associator_naturality_middle, ←comp_whisker_right_assoc, triangle,
-    associator_naturality_left]
-
--- We state it as a `@[simp]` lemma. Generally, we think the component index of a natural
--- transformation "weighs more" in considering the complexity of an expression than
--- does a structural isomorphism (associator, etc).
-@[reassoc]
-lemma left_unitor_comp (f : a ⟶ b) (g : b ⟶ c) :
-  (λ_ (f ≫ g)).hom = (α_ (𝟙 a) f g).inv ≫ (λ_ f).hom ▷ g :=
-by rw [←left_unitor_comp', inv_hom_id_assoc]
-
-@[reassoc]
-lemma left_unitor_comp_inv (f : a ⟶ b) (g : b ⟶ c) :
-  (λ_ (f ≫ g)).inv = (λ_ f).inv ▷ g ≫ (α_ (𝟙 a) f g).hom :=
-eq_of_inv_eq_inv (by simp [left_unitor_comp])
-
-@[reassoc]
-lemma right_unitor_comp (f : a ⟶ b) (g : b ⟶ c) :
-  (ρ_ (f ≫ g)).hom = (α_ f g (𝟙 c)).hom ≫ f ◁ (ρ_ g).hom :=
-by rw [←whisker_right_iff, comp_whisker_right, ←cancel_mono (α_ f g (𝟙 c)).hom,
-    assoc, associator_naturality_middle, ←triangle_assoc, ←triangle,
-    whisker_left_comp, pentagon_assoc, ←associator_naturality_right]
-
-@[reassoc]
-lemma right_unitor_comp_inv (f : a ⟶ b) (g : b ⟶ c) :
-  (ρ_ (f ≫ g)).inv = f ◁ (ρ_ g).inv ≫ (α_ f g (𝟙 c)).inv :=
-eq_of_inv_eq_inv (by simp [right_unitor_comp])
-
-@[reassoc, simp]
-lemma whisker_left_right_unitor_inv (f : a ⟶ b) (g : b ⟶ c) :
-  f ◁ (ρ_ g).inv = (ρ_ (f ≫ g)).inv ≫ (α_ f g (𝟙 c)).hom :=
-by simp only [right_unitor_comp_inv, comp_id, inv_hom_id, assoc]
-
-@[reassoc, simp]
-lemma whisker_left_right_unitor (f : a ⟶ b) (g : b ⟶ c) :
-  f ◁ (ρ_ g).hom = (α_ f g (𝟙 c)).inv ≫ (ρ_ (f ≫ g)).hom :=
-by simp only [right_unitor_comp, inv_hom_id_assoc]
-
-@[reassoc, simp]
-lemma left_unitor_inv_whisker_right (f : a ⟶ b) (g : b ⟶ c) :
-  (λ_ f).inv ▷ g = (λ_ (f ≫ g)).inv ≫ (α_ (𝟙 a) f g).inv :=
-by simp only [left_unitor_comp_inv, assoc, comp_id, hom_inv_id]
-
-@[reassoc, simp]
-lemma left_unitor_whisker_right (f : a ⟶ b) (g : b ⟶ c) :
-  (λ_ f).hom ▷ g = (α_ (𝟙 a) f g).hom ≫ (λ_ (f ≫ g)).hom :=
-by simp only [left_unitor_comp, hom_inv_id_assoc]
-
-@[reassoc]
-lemma associator_inv_naturality_left {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
-  η ▷ (g ≫ h) ≫ (α_ f' g h).inv = (α_ f g h).inv ≫ (η ▷ g) ▷ h :=
-by simp
-
-@[reassoc]
-lemma associator_inv_naturality_middle (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
-  f ◁ (η ▷ h) ≫ (α_ f g' h).inv = (α_ f g h).inv ≫ (f ◁ η) ▷ h :=
-by simp
-
-@[reassoc]
-lemma associator_inv_naturality_right (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
-  f ◁ (g ◁ η) ≫ (α_ f g h').inv = (α_ f g h).inv ≫ (f ≫ g) ◁ η :=
-by simp
 
 @[simp, reassoc]
 lemma pentagon_inv (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) :
@@ -387,16 +264,149 @@ lemma triangle_assoc_comp_left_inv (f : a ⟶ b) (g : b ⟶ c) :
   f ◁ (λ_ g).inv ≫ (α_ f (𝟙 b) g).inv = (ρ_ f).inv ▷ g :=
 by simp [←cancel_mono ((ρ_ f).hom ▷ g)]
 
+section simp_lemmas
+
+/-!
+### Simp lemmas for 2-morphisms
+
+Rewriting involving associators and unitors could be very complicated. We try to ease this
+complexity by putting carefully chosen simp lemmas. The general rule is that associators and
+unitors are almost treated as identities. For example we set `id_whisker_left` below to be a
+simp lemma, which we almost treat as the simplification `𝟙 a ◁ η` ==> `η`.
+-/
+
+@[reassoc, simp]
+lemma id_whisker_left {f g : a ⟶ b} (η : f ⟶ g) :
+  𝟙 a ◁ η = (λ_ f).hom ≫ η ≫ (λ_ g).inv :=
+by simp [←cancel_mono (λ_ g).hom, left_unitor_naturality]
+
+@[reassoc, simp]
+lemma comp_whisker_left (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
+  (f ≫ g) ◁ η = (α_ f g h).hom ≫ f ◁ g ◁ η ≫ (α_ f g h').inv :=
+by simp [←associator_naturality_right_assoc]
+
+@[reassoc, simp]
+lemma whisker_right_id {f g : a ⟶ b} (η : f ⟶ g) :
+  η ▷ 𝟙 b = (ρ_ f).hom ≫ η ≫ (ρ_ g).inv :=
+by simp [←cancel_mono (ρ_ g).hom, right_unitor_naturality]
+
+@[reassoc, simp]
+lemma whisker_right_comp {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
+  η ▷ (g ≫ h) = (α_ f g h).inv ≫ η ▷ g ▷ h ≫ (α_ f' g h).hom :=
+by simp [associator_naturality_left]
+
+@[reassoc, simp]
+lemma whisker_assoc (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
+  (f ◁ η) ▷ h = (α_ f g h).hom ≫ f ◁ (η ▷ h) ≫ (α_ f g' h).inv :=
+by simp [←associator_naturality_middle_assoc]
+
+end simp_lemmas
+
+@[reassoc]
+lemma associator_inv_naturality_left {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
+  η ▷ (g ≫ h) ≫ (α_ f' g h).inv = (α_ f g h).inv ≫ (η ▷ g) ▷ h :=
+by simp
+
+@[reassoc]
+lemma associator_inv_naturality_middle (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
+  f ◁ (η ▷ h) ≫ (α_ f g' h).inv = (α_ f g h).inv ≫ (f ◁ η) ▷ h :=
+by simp
+
+@[reassoc]
+lemma associator_inv_naturality_right (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
+  f ◁ (g ◁ η) ≫ (α_ f g h').inv = (α_ f g h).inv ≫ (f ≫ g) ◁ η :=
+by simp
+
+@[reassoc]
+lemma left_unitor_inv_naturality {f g : a ⟶ b} (η : f ⟶ g) :
+  η ≫ (λ_ g).inv = (λ_ f).inv ≫ 𝟙 a ◁ η :=
+by simp
+
+@[reassoc]
+lemma right_unitor_inv_naturality {f g : a ⟶ b} (η : f ⟶ g) :
+  η ≫ (ρ_ g).inv = (ρ_ f).inv ≫ η ▷ 𝟙 b :=
+by simp
+
+lemma whisker_left_iff {f g : a ⟶ b} (η θ : f ⟶ g) :
+  (𝟙 a ◁ η = 𝟙 a ◁ θ) ↔ (η = θ) :=
+by simp
+
+lemma whisker_right_iff {f g : a ⟶ b} (η θ : f ⟶ g) :
+  (η ▷ 𝟙 b = θ ▷ 𝟙 b) ↔ (η = θ) :=
+by simp
+
+section simp_lemmas
+
+/-! ### Simp lemmas for 2-morphisms -/
+
+/--
+We state it as a simp lemma, which is regarded as an involved version of
+`id_whisker_right f g : 𝟙 f ▷ g = 𝟙 (f ≫ g)`.
+-/
+@[reassoc, simp]
+lemma left_unitor_whisker_right (f : a ⟶ b) (g : b ⟶ c) :
+  (λ_ f).hom ▷ g = (α_ (𝟙 a) f g).hom ≫ (λ_ (f ≫ g)).hom :=
+by rw [←whisker_left_iff, whisker_left_comp, ←cancel_epi (α_ _ _ _).hom,
+  ←cancel_epi ((α_ _ _ _).hom ▷ _), pentagon_assoc, triangle,
+  ←associator_naturality_middle, ←comp_whisker_right_assoc, triangle,
+  associator_naturality_left]; apply_instance
+
+@[reassoc, simp]
+lemma left_unitor_inv_whisker_right (f : a ⟶ b) (g : b ⟶ c) :
+  (λ_ f).inv ▷ g = (λ_ (f ≫ g)).inv ≫ (α_ (𝟙 a) f g).inv :=
+eq_of_inv_eq_inv (by simp)
+
+@[reassoc, simp]
+lemma whisker_left_right_unitor (f : a ⟶ b) (g : b ⟶ c) :
+  f ◁ (ρ_ g).hom = (α_ f g (𝟙 c)).inv ≫ (ρ_ (f ≫ g)).hom :=
+by rw [←whisker_right_iff, comp_whisker_right, ←cancel_epi (α_ _ _ _).inv,
+  ←cancel_epi (f ◁ (α_ _ _ _).inv), pentagon_inv_assoc, triangle_assoc_comp_right,
+  ←associator_inv_naturality_middle, ←whisker_left_comp_assoc, triangle_assoc_comp_right,
+  associator_inv_naturality_right]; apply_instance
+
+@[reassoc, simp]
+lemma whisker_left_right_unitor_inv (f : a ⟶ b) (g : b ⟶ c) :
+  f ◁ (ρ_ g).inv = (ρ_ (f ≫ g)).inv ≫ (α_ f g (𝟙 c)).hom :=
+eq_of_inv_eq_inv (by simp)
+
+end simp_lemmas
+
+/-
+It is not so obvious whether `left_unitor_whisker_right` or `left_unitor_comp` should be a simp
+lemma. Our choice is the former. One reason is that the latter yields the following loop:
+[id_whisker_left]   : 𝟙 a ◁ (ρ_ f).hom ==> (λ_ (f ≫ 𝟙 b)).hom ≫ (ρ_ f).hom ≫ (λ_ f).inv
+[left_unitor_comp]  : (λ_ (f ≫ 𝟙 b)).hom ==> (α_ (𝟙 a) f (𝟙 b)).inv ≫ (λ_ f).hom ▷ 𝟙 b
+[whisker_right_id]  : (λ_ f).hom ▷ 𝟙 b ==> (ρ_ (𝟙 a ≫ f)).hom ≫ (λ_ f).hom ≫ (ρ_ f).inv
+[right_unitor_comp] : (ρ_ (𝟙 a ≫ f)).hom ==> (α_ (𝟙 a) f (𝟙 b)).hom ≫ 𝟙 a ◁ (ρ_ f).hom
+-/
+@[reassoc]
+lemma left_unitor_comp (f : a ⟶ b) (g : b ⟶ c) :
+  (λ_ (f ≫ g)).hom = (α_ (𝟙 a) f g).inv ≫ (λ_ f).hom ▷ g :=
+by simp
+
+@[reassoc]
+lemma left_unitor_comp_inv (f : a ⟶ b) (g : b ⟶ c) :
+  (λ_ (f ≫ g)).inv = (λ_ f).inv ▷ g ≫ (α_ (𝟙 a) f g).hom :=
+by simp
+
+@[reassoc]
+lemma right_unitor_comp (f : a ⟶ b) (g : b ⟶ c) :
+  (ρ_ (f ≫ g)).hom = (α_ f g (𝟙 c)).hom ≫ f ◁ (ρ_ g).hom :=
+by simp
+
+@[reassoc]
+lemma right_unitor_comp_inv (f : a ⟶ b) (g : b ⟶ c) :
+  (ρ_ (f ≫ g)).inv = f ◁ (ρ_ g).inv ≫ (α_ f g (𝟙 c)).inv :=
+by simp
+
 @[simp]
 lemma unitors_equal : (λ_ (𝟙 a)).hom = (ρ_ (𝟙 a)).hom :=
-by rw [←whisker_left_iff, ←cancel_epi (α_ (𝟙 a) (𝟙 _) (𝟙 _)).hom,
-       ←cancel_mono (ρ_ (𝟙 a)).hom, triangle, ←right_unitor_comp, right_unitor_naturality]
+by rw [←whisker_left_iff, ←cancel_epi (α_ _ _ _).hom, ←cancel_mono (ρ_ _).hom, triangle,
+  ←right_unitor_comp, right_unitor_naturality]; apply_instance
 
 @[simp]
 lemma unitors_inv_equal : (λ_ (𝟙 a)).inv = (ρ_ (𝟙 a)).inv :=
 by simp [iso.inv_eq_inv]
-
-end
 
 end bicategory
 

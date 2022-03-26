@@ -47,17 +47,17 @@ def vcomp (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tran
   naturality_naturality' := by tidy,
   naturality_comp' := λ a b c f g, by
   { calc _ = eq_to_hom _ ≫
-    F.map_comp f g ▷ η.app c ▷ θ.app c ≫ eq_to_hom _ ≫
-      F.map f ◁ η.naturality g ▷ θ.app c ≫ eq_to_hom _ ≫
-        η.naturality f ▷ G.map g ▷ θ.app c ≫ eq_to_hom _ ≫
-          η.app a ◁ G.map f ◁ θ.naturality g ≫ eq_to_hom _ ≫
-            η.app a ◁ θ.naturality f ▷ H.map g ≫ eq_to_hom _  : _
+    F.map_comp f g ▷ _ ▷ _ ≫ eq_to_hom _ ≫
+      _ ◁ η.naturality g ▷ _ ≫ eq_to_hom _ ≫
+        η.naturality f ▷ _ ▷ _ ≫ eq_to_hom _ ≫
+          _ ◁ _ ◁ θ.naturality g ≫ eq_to_hom _ ≫
+            _ ◁ θ.naturality f ▷ _ ≫ eq_to_hom _  : _
     ... = eq_to_hom _ ≫
-    F.map_comp f g ▷ η.app c ▷ θ.app c ≫ eq_to_hom _ ≫
-      F.map f ◁ η.naturality g ▷ θ.app c ≫ eq_to_hom _ ≫
-        (F.map f ≫ η.app b) ◁ θ.naturality g ≫
-          η.naturality f ▷ (θ.app b ≫ H.map g) ≫ eq_to_hom _ ≫
-            η.app a ◁ θ.naturality f ▷ H.map g ≫ eq_to_hom _  : _
+    F.map_comp f g ▷ _ ▷ _ ≫ eq_to_hom _ ≫
+      _ ◁ η.naturality g ▷ _ ≫ eq_to_hom _ ≫
+        _ ◁ θ.naturality g ≫
+          η.naturality f ▷ _ ≫ eq_to_hom _ ≫
+            _ ◁ θ.naturality f ▷ _ ≫ eq_to_hom _  : _
     ... =  _ : _,
     all_goals {
       -- fill underlines in `eq_to_hom _'
@@ -65,7 +65,7 @@ def vcomp (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tran
       -- apply exchange law of whiskering
       { rw [whisker_exchange_assoc], simp } <|>
       -- simplify
-      simp } } }
+      try { simp } } } }
 
 end oplax_nat_trans
 

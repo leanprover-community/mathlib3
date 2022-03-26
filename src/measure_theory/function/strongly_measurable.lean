@@ -499,13 +499,6 @@ begin
       λ x, simple_func.tendsto_approx_on hf (set.mem_univ _) (by simp)⟩, },
 end
 
-/-- In a space with second countable topology, measurable implies strongly measurable. -/
-lemma _root_.measurable.ae_strongly_measurable
-  {μ : measure α} [topological_space β] [metrizable_space β]
-  [second_countable_topology β] [opens_measurable_space β] (hf : measurable f) :
-  measure_theory.ae_strongly_measurable f μ :=
-hf.strongly_measurable.ae_strongly_measurable
-
 /-- In a space with second countable topology, strongly measurable and measurable are equivalent. -/
 lemma _root_.strongly_measurable_iff_measurable
   [topological_space β] [metrizable_space β] [borel_space β] [second_countable_topology β] :
@@ -1075,6 +1068,13 @@ protected lemma prod_mk {f : α → β} {g : α → γ}
   ae_strongly_measurable (λ x, (f x, g x)) μ :=
 ⟨λ x, (hf.mk f x, hg.mk g x), hf.strongly_measurable_mk.prod_mk hg.strongly_measurable_mk,
   hf.ae_eq_mk.prod_mk hg.ae_eq_mk⟩
+
+/-- In a space with second countable topology, measurable implies ae strongly measurable. -/
+lemma _root_.measurable.ae_strongly_measurable {m : measurable_space α}
+  {μ : measure α} [topological_space β] [measurable_space β] [metrizable_space β]
+  [second_countable_topology β] [opens_measurable_space β] (hf : measurable f) :
+  measure_theory.ae_strongly_measurable f μ :=
+hf.strongly_measurable.ae_strongly_measurable
 
 section arithmetic
 

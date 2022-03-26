@@ -426,7 +426,7 @@ end
 
 lemma int_coe_eq_int_coe_iff_dvd_sub (a b : ℤ) (c : ℕ) : (a : zmod c) = ↑b ↔ ↑c ∣ b-a :=
 begin
-  rw [int_coe_eq_int_coe_iff, int.modeq_iff_dvd],
+  rw [zmod.int_coe_eq_int_coe_iff, int.modeq_iff_dvd],
 end
 
 lemma nat_coe_zmod_eq_zero_iff_dvd (a b : ℕ) : (a : zmod b) = 0 ↔ b ∣ a :=

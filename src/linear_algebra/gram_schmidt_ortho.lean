@@ -37,6 +37,7 @@ variables (𝕜 : Type*) {E : Type*} [is_R_or_C 𝕜] [inner_product_space 𝕜 
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
+/-- Gram-Schmidt process -/
 noncomputable def gram_schmidt_process (f : ℕ → E) : ℕ → E
 | n := f n - ∑ i : fin n, orthogonal_projection (𝕜 ∙ gram_schmidt_process i) (f n)
 using_well_founded {dec_tac := `[exact i.prop]}

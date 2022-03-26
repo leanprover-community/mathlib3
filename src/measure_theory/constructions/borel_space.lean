@@ -215,8 +215,7 @@ setup_tactic_parser
 
 Finally, `borelize [α, β, γ]` runs `borelize α, borelize β, borelize γ`.
 -/
-meta def borelize (ts : parse (list_of texpr <|> ((λ e, list.cons e list.nil) <$> texpr))) :
-  tactic unit :=
+meta def borelize (ts : parse pexpr_list_or_texpr) : tactic unit :=
 mmap' (λ t, to_expr t >>= tactic.borelize) ts
 
 add_tactic_doc

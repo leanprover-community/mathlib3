@@ -219,6 +219,12 @@ meta def borelize (ts : parse (list_of texpr <|> ((λ e, list.cons e list.nil) <
   tactic unit :=
 mmap' (λ t, to_expr t >>= tactic.borelize) ts
 
+add_tactic_doc
+{ name := "borelize",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.borelize],
+  tags := ["type class"] }
+
 end interactive
 
 end tactic

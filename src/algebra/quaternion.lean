@@ -6,7 +6,7 @@ Authors: Yury Kudryashov
 import algebra.algebra.basic
 import algebra.ring.opposite
 import data.equiv.ring
-import set_theory.cardinal
+import set_theory.cardinal_ordinal
 import tactic.ring_exp
 
 /-!

@@ -1009,7 +1009,7 @@ protected theorem mul_lt_of_lt_div {a b c : ℤ} (H : 0 < c) (H3 : a < b / c) : 
 lt_of_not_ge $ mt (int.div_le_of_le_mul H) (not_le_of_gt H3)
 
 protected theorem mul_le_of_le_div {a b c : ℤ} (H1 : 0 < c) (H2 : a ≤ b / c) : a * c ≤ b :=
-le_trans (decidable.mul_le_mul_of_nonneg_right H2 (le_of_lt H1)) (int.div_mul_le _ (ne_of_gt H1))
+le_trans (mul_le_mul_of_nonneg_right H2 (le_of_lt H1)) (int.div_mul_le _ (ne_of_gt H1))
 
 protected theorem le_div_of_mul_le {a b c : ℤ} (H1 : 0 < c) (H2 : a * c ≤ b) : a ≤ b / c :=
 le_of_lt_add_one $ lt_of_mul_lt_mul_right
@@ -1032,7 +1032,7 @@ protected theorem div_lt_iff_lt_mul {a b c : ℤ} (H : 0 < c) : a / c < b ↔ a 
 
 protected theorem le_mul_of_div_le {a b c : ℤ} (H1 : 0 ≤ b) (H2 : b ∣ a) (H3 : a / b ≤ c) :
   a ≤ c * b :=
-by rw [← int.div_mul_cancel H2]; exact decidable.mul_le_mul_of_nonneg_right H3 H1
+by rw [← int.div_mul_cancel H2]; exact mul_le_mul_of_nonneg_right H3 H1
 
 protected theorem lt_div_of_mul_lt {a b c : ℤ} (H1 : 0 ≤ b) (H2 : b ∣ c) (H3 : a * b < c) :
   a < c / b :=

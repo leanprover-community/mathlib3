@@ -534,7 +534,7 @@ lemma succ_mul_pos (m : ℕ) (hn : 0 < n) : 0 < (succ m) * n :=
 mul_pos (succ_pos m) hn
 
 theorem mul_self_le_mul_self {n m : ℕ} (h : n ≤ m) : n * n ≤ m * m :=
-decidable.mul_le_mul h h (zero_le _) (zero_le _)
+mul_le_mul h h (zero_le _) (zero_le _)
 
 theorem mul_self_lt_mul_self : Π {n m : ℕ}, n < m → n * n < m * m
 | 0        m h := mul_pos h h
@@ -553,13 +553,13 @@ theorem le_mul_self : Π (n : ℕ), n ≤ n * n
 lemma le_mul_of_pos_left {m n : ℕ} (h : 0 < n) : m ≤ n * m :=
 begin
   conv {to_lhs, rw [← one_mul(m)]},
-  exact decidable.mul_le_mul_of_nonneg_right h.nat_succ_le dec_trivial,
+  exact mul_le_mul_of_nonneg_right h.nat_succ_le dec_trivial,
 end
 
 lemma le_mul_of_pos_right {m n : ℕ} (h : 0 < n) : m ≤ m * n :=
 begin
   conv {to_lhs, rw [← mul_one(m)]},
-  exact decidable.mul_le_mul_of_nonneg_left h.nat_succ_le dec_trivial,
+  exact mul_le_mul_of_nonneg_left h.nat_succ_le dec_trivial,
 end
 
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=

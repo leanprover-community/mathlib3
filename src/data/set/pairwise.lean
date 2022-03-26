@@ -157,9 +157,18 @@ lemma pairwise_insert :
 by simp only [insert_eq, pairwise_union, pairwise_singleton, true_and,
   mem_singleton_iff, forall_eq]
 
+lemma pairwise.insert (hs : s.pairwise r) (h : ∀ b ∈ s, a ≠ b → r a b ∧ r b a) :
+  (insert a s).pairwise r :=
+pairwise_insert.2 ⟨hs, h⟩
+
 lemma pairwise_insert_of_symmetric (hr : symmetric r) :
   (insert a s).pairwise r ↔ s.pairwise r ∧ ∀ b ∈ s, a ≠ b → r a b :=
 by simp only [pairwise_insert, hr.iff a, and_self]
+
+lemma pairwise.insert_of_symmetric (hs : s.pairwise r) (hr : symmetric r)
+  (h : ∀ b ∈ s, a ≠ b → r a b) :
+  (insert a s).pairwise r :=
+(pairwise_insert_of_symmetric hr).2 ⟨hs, h⟩
 
 lemma pairwise_pair : set.pairwise {a, b} r ↔ (a ≠ b → r a b ∧ r b a) :=
 by simp [pairwise_insert]

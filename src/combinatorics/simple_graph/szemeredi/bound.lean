@@ -13,18 +13,19 @@ This file gathers the numerical facts required by the proof of Szemerédi's regu
 
 ## Main declarations
 
-* `szemeredi.exp_bound`: During the inductive step, a partition of size `n` is blown one of size at
-  most `exp_bound n`.
-* `szemeredi.exp_bound`: During the inductive step, a partition of size `n` is blown one of size at
-  most `exp_bound n`.
+* `szemeredi.exp_bound`: During the inductive step, a partition of size `n` is blown to size at most
+  `exp_bound n`.
+* `szemeredi.initial_bound`: The size of the partition we start the induction with.
+* `szemeredi.bound`: The upper bound on the size of the partition our version of Szemerédi's
+  regularity lemma produces.
 -/
 
 open fintype function real
 
 namespace szemeredi
 
-/-- Auxiliary function to explicit the bound on the size of the equipartition in the proof of
-Szemerédi's regularity lemma -/
+/-- Auxiliary function for Szemerédi's regularity lemma. Blowing up a partition of size `n` during
+the induction results in a partition of size at most `exp_bound n`. -/
 def exp_bound (n : ℕ) : ℕ := n * 4 ^ n
 
 lemma le_exp_bound : id ≤ exp_bound := λ n, nat.le_mul_of_pos_right $ pow_pos (by norm_num) n
@@ -115,7 +116,8 @@ end
 
 variables (P ε) (l : ℕ)
 
-/-- The size of the equipartition by which we start blowing in the proof of Szemerédi's . -/
+/-- Auxiliary function for Szemerédi's regularity lemma. The size of the partition by which we start
+blowing. -/
 noncomputable def initial_bound : ℕ := max 7 $ max l $ ⌊log (100 / ε^5) / log 4⌋₊ + 1
 
 lemma le_initial_bound : l ≤ initial_bound ε l := (le_max_left _ _).trans $ le_max_right _ _
@@ -133,8 +135,8 @@ begin
   { exact div_pos (by norm_num) (pow_pos hε 5) }
 end
 
-/-- An explicit bound on the size of the equipartition in the proof of Szemerédi's Regularity Lemma.
--/
+/-- An explicit bound on the size of the equipartition whose existence is given by Szemerédi's
+regularity lemma. -/
 noncomputable def bound : ℕ :=
 (exp_bound^[⌊4 / ε^5⌋₊] $ initial_bound ε l) * 16 ^ (exp_bound^[⌊4 / ε^5⌋₊] $ initial_bound ε l)
 

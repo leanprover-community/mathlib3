@@ -134,19 +134,7 @@ instance : monoid (centroid_hom α) :=
 @[simp] lemma coe_one : ⇑(1 : centroid_hom α) = id := rfl
 
 instance : has_add (centroid_hom α) :=
-⟨λ f g, { to_add_monoid_hom := f.to_add_monoid_hom + g.to_add_monoid_hom,
-  map_mul_left' := λ a b, begin
-    refine eq.trans (_ : _ + _ = _) (mul_add _ _ _).symm,
-    congr',
-    exact f.map_mul_left' _ _,
-    exact g.map_mul_left' _ _,
-  end,
-  map_mul_right' := λ a b, begin
-    refine eq.trans (_ : _ + _ = _) (add_mul _ _ _).symm,
-    congr',
-    exact f.map_mul_right' _ _,
-    exact g.map_mul_right' _ _,
-  end }⟩
+⟨λ f g, ⟨f + g, λ a b, by simp [map_mul_left, mul_add], λ a b, by simp [map_mul_right, add_mul]⟩⟩
 
 /-- The zero `centroid_hom` -/
 instance : has_zero (centroid_hom α) :=

@@ -35,6 +35,8 @@ instance : inhabited BoolAlg := ⟨of punit⟩
 /-- Turn a `BoolAlg` into a `BoundedDistribLattice` by forgetting its complement operation. -/
 def to_BoundedDistribLattice (X : BoolAlg) : BoundedDistribLattice := BoundedDistribLattice.of X
 
+@[simp] lemma coe_to_BoundedDistribLattice (X : BoolAlg) : ↥X.to_BoundedDistribLattice = ↥X := rfl
+
 instance : large_category.{u} BoolAlg := induced_category.category to_BoundedDistribLattice
 instance : concrete_category BoolAlg := induced_category.concrete_category to_BoundedDistribLattice
 

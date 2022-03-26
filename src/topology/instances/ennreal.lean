@@ -34,6 +34,8 @@ instance : order_topology ℝ≥0∞ := ⟨rfl⟩
 
 instance : t2_space ℝ≥0∞ := by apply_instance -- short-circuit type class inference
 
+instance : normal_space ℝ≥0∞ := normal_of_compact_t2
+
 instance : second_countable_topology ℝ≥0∞ :=
 ⟨⟨⋃q ≥ (0:ℚ), {{a : ℝ≥0∞ | a < real.to_nnreal q}, {a : ℝ≥0∞ | ↑(real.to_nnreal q) < a}},
   (countable_encodable _).bUnion $ assume a ha, (countable_singleton _).insert _,
@@ -107,7 +109,7 @@ lemma nhds_coe_coe {r p : ℝ≥0} :
 ((open_embedding_coe.prod open_embedding_coe).map_nhds_eq (r, p)).symm
 
 lemma continuous_of_real : continuous ennreal.of_real :=
-(continuous_coe_iff.2 continuous_id).comp nnreal.continuous_of_real
+(continuous_coe_iff.2 continuous_id).comp continuous_real_to_nnreal
 
 lemma tendsto_of_real {f : filter α} {m : α → ℝ} {a : ℝ} (h : tendsto m f (𝓝 a)) :
   tendsto (λa, ennreal.of_real (m a)) f (𝓝 (ennreal.of_real a)) :=
@@ -869,12 +871,17 @@ begin
   exact not_congr tsum_coe_ne_top_iff_summable_coe
 end
 
-lemma summable_to_real {f : α → ℝ≥0∞} (hsum : ∑' x, f x ≠ ∞) :
-  summable (λ x, (f x).to_real) :=
+lemma has_sum_to_real {f : α → ℝ≥0∞} (hsum : ∑' x, f x ≠ ∞) :
+  has_sum (λ x, (f x).to_real) (∑' x, (f x).to_real) :=
 begin
   lift f to α → ℝ≥0 using ennreal.ne_top_of_tsum_ne_top hsum,
-  rwa ennreal.tsum_coe_ne_top_iff_summable_coe at hsum,
+  simp only [coe_to_real, ← nnreal.coe_tsum, nnreal.has_sum_coe],
+  exact (tsum_coe_ne_top_iff_summable.1 hsum).has_sum
 end
+
+lemma summable_to_real {f : α → ℝ≥0∞} (hsum : ∑' x, f x ≠ ∞) :
+  summable (λ x, (f x).to_real) :=
+(has_sum_to_real hsum).summable
 
 end ennreal
 
@@ -1067,7 +1074,8 @@ end
 
 lemma ennreal.of_real_tsum_of_nonneg {f : α → ℝ} (hf_nonneg : ∀ n, 0 ≤ f n) (hf : summable f) :
   ennreal.of_real (∑' n, f n) = ∑' n, ennreal.of_real (f n) :=
-by simp_rw [ennreal.of_real, ennreal.tsum_coe_eq (nnreal.has_sum_of_real_of_nonneg hf_nonneg hf)]
+by simp_rw [ennreal.of_real, ennreal.tsum_coe_eq
+  (nnreal.has_sum_real_to_nnreal_of_nonneg hf_nonneg hf)]
 
 lemma not_summable_iff_tendsto_nat_at_top_of_nonneg {f : ℕ → ℝ} (hf : ∀ n, 0 ≤ f n) :
   ¬ summable f ↔ tendsto (λ n : ℕ, ∑ i in finset.range n, f i) at_top at_top :=

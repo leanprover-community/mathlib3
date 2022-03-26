@@ -202,8 +202,6 @@ end homological_complex
 
 namespace chain_complex
 
--- TODO: dualize to cochain complexes
-
 /--
 Turning an object into a chain complex supported at zero then applying a functor is
 the same as applying the functor then forming the complex.
@@ -242,3 +240,44 @@ nat_iso.of_components (λ X,
   ((single₀_map_homological_complex F).inv.app X).f (n+1) = 0 := rfl
 
 end chain_complex
+
+namespace cochain_complex
+
+/--
+Turning an object into a cochain complex supported at zero then applying a functor is
+the same as applying the functor then forming the cochain complex.
+-/
+def single₀_map_homological_complex (F : V ⥤ W) [F.additive] :
+  single₀ V ⋙ F.map_homological_complex _ ≅ F ⋙ single₀ W :=
+nat_iso.of_components (λ X,
+{ hom := { f := λ i, match i with
+    | 0 := 𝟙 _
+    | (i+1) := F.map_zero_object.hom
+    end, },
+  inv := { f := λ i, match i with
+    | 0 := 𝟙 _
+    | (i+1) := F.map_zero_object.inv
+    end, },
+  hom_inv_id' := begin
+    ext (_|i),
+    { unfold_aux, simp, },
+    { unfold_aux,
+      dsimp,
+      simp only [comp_f, id_f, zero_comp],
+      exact (zero_of_source_iso_zero _ F.map_zero_object).symm, }
+  end,
+  inv_hom_id' := by { ext (_|i); { unfold_aux, dsimp, simp, }, }, })
+  (λ X Y f, by { ext (_|i); { unfold_aux, dsimp, simp, }, }).
+
+@[simp] lemma single₀_map_homological_complex_hom_app_zero (F : V ⥤ W) [F.additive] (X : V) :
+  ((single₀_map_homological_complex F).hom.app X).f 0 = 𝟙 _ := rfl
+@[simp] lemma single₀_map_homological_complex_hom_app_succ
+  (F : V ⥤ W) [F.additive] (X : V) (n : ℕ) :
+  ((single₀_map_homological_complex F).hom.app X).f (n+1) = 0 := rfl
+@[simp] lemma single₀_map_homological_complex_inv_app_zero (F : V ⥤ W) [F.additive] (X : V) :
+  ((single₀_map_homological_complex F).inv.app X).f 0 = 𝟙 _ := rfl
+@[simp] lemma single₀_map_homological_complex_inv_app_succ
+  (F : V ⥤ W) [F.additive] (X : V) (n : ℕ) :
+  ((single₀_map_homological_complex F).inv.app X).f (n+1) = 0 := rfl
+
+end cochain_complex

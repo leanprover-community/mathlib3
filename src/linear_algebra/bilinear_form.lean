@@ -634,11 +634,6 @@ end
 
 end basis
 
-end bilin_form
-
-
-namespace bilin_form
-
 /-- The proposition that a bilinear form is reflexive -/
 def is_refl (B : bilin_form R M) : Prop := ∀ (x y : M), B x y = 0 → B y x = 0
 
@@ -748,7 +743,6 @@ lemma is_adjoint_pair.sub (h : is_adjoint_pair B₁ B₁' f₁ g₁) (h' : is_ad
   is_adjoint_pair B₁ B₁' (f₁ - f₁') (g₁ - g₁') :=
 λ x y, by rw [linear_map.sub_apply, linear_map.sub_apply, sub_left, sub_right, h, h']
 
-variables {M₂' : Type*} [add_comm_monoid M₂'] [module R₂ M₂']
 variables {B₂' : bilin_form R₂ M₂'} {f₂ f₂' : M₂ →ₗ[R₂] M₂'} {g₂ g₂' : M₂' →ₗ[R₂] M₂}
 
 lemma is_adjoint_pair.smul (c : R₂) (h : is_adjoint_pair B₂ B₂' f₂ g₂) :

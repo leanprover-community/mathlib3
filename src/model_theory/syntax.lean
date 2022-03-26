@@ -170,6 +170,12 @@ end term
 def constants.term (c : L.constants) : (L.term α) :=
 func c default
 
+/-- Applies a unary function to a term. -/
+def functions.apply₁ (f : L.functions 1) (t : L.term α) : L.term α := func f ![t]
+
+/-- Applies a binary function to two terms. -/
+def functions.apply₂ (f : L.functions 2) (t₁ t₂ : L.term α) : L.term α := func f ![t₁, t₂]
+
 namespace term
 
 instance inhabited_of_constant [inhabited L.constants] : inhabited (L.term α) :=
@@ -246,6 +252,16 @@ variables {L} {α} {n : ℕ}
 def relations.bounded_formula {l : ℕ} (R : L.relations n) (ts : fin n → L.term (α ⊕ fin l)) :
   L.bounded_formula α l := bounded_formula.rel R ts
 
+/-- Applies a unary relation to a term as a bounded formula. -/
+def relations.bounded_formula₁ (r : L.relations 1) (t : L.term (α ⊕ fin n)) :
+  L.bounded_formula α n :=
+r.bounded_formula ![t]
+
+/-- Applies a binary relation to two terms as a bounded formula. -/
+def relations.bounded_formula₂ (r : L.relations 2) (t₁ t₂ : L.term (α ⊕ fin n)) :
+  L.bounded_formula α n :=
+r.bounded_formula ![t₁, t₂]
+
 /-- The equality of two terms as a bounded formula. -/
 def term.bd_equal (t₁ t₂ : L.term (α ⊕ fin n)) : (L.bounded_formula α n) :=
 bounded_formula.equal t₁ t₂
@@ -253,6 +269,16 @@ bounded_formula.equal t₁ t₂
 /-- Applies a relation to terms as a bounded formula. -/
 def relations.formula (R : L.relations n) (ts : fin n → L.term α) :
   L.formula α := R.bounded_formula (λ i, (ts i).relabel sum.inl)
+
+/-- Applies a unary relation to a term as a formula. -/
+def relations.formula₁ (r : L.relations 1) (t : L.term α) :
+  L.formula α :=
+r.formula ![t]
+
+/-- Applies a binary relation to two terms as a formula. -/
+def relations.formula₂ (r : L.relations 2) (t₁ t₂ : L.term α) :
+  L.formula α :=
+r.formula ![t₁, t₂]
 
 /-- The equality of two terms as a first-order formula. -/
 def term.equal (t₁ t₂ : L.term α) : (L.formula α) :=

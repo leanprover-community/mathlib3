@@ -676,12 +676,12 @@ end
 /-! ### last -/
 
 @[simp] theorem last_cons {a : α} {l : list α} :
-  ∀ (h₁ : a :: l ≠ nil) (h₂ : l ≠ nil), last (a :: l) h₁ = last l h₂ :=
+  ∀ (h : l ≠ nil), last (a :: l) (cons_ne_nil a l) = last l h :=
 by {induction l; intros, contradiction, reflexivity}
 
 @[simp] theorem last_append {a : α} (l : list α) (h : l ++ [a] ≠ []) : last (l ++ [a]) h = a :=
 by induction l;
-  [refl, simp only [cons_append, last_cons _ (λ H, cons_ne_nil _ _ (append_eq_nil.1 H).2), *]]
+  [refl, simp only [cons_append, last_cons (λ H, cons_ne_nil _ _ (append_eq_nil.1 H).2), *]]
 
 theorem last_concat {a : α} (l : list α) (h : concat l a ≠ []) : last (concat l a) h = a :=
 by simp only [concat_eq_append, last_append]
@@ -696,7 +696,7 @@ theorem init_append_last : ∀ {l : list α} (h : l ≠ []), init l ++ [last l h
 | [a] h := rfl
 | (a::b::l) h :=
 begin
-  rw [init, cons_append, last_cons (cons_ne_nil _ _) (cons_ne_nil _ _)],
+  rw [init, cons_append, last_cons (cons_ne_nil _ _)],
   congr,
   exact init_append_last (cons_ne_nil b l)
 end

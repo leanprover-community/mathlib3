@@ -699,4 +699,58 @@ underlying element. This representation also supports cycles that can contain du
 instance [has_repr α] : has_repr (cycle α) :=
 ⟨λ s, "c[" ++ string.intercalate ", " ((s.map repr).lists.sort (≤)).head ++ "]"⟩
 
+/-- `chain R s` means that `R` holds between adjacent elements of `s`.
+
+     chain R [a, b, c] ↔ R a b ∧ R b c ∧ R c a -/
+def chain (r : α → α → Prop) : cycle α → Prop :=
+@quotient.lift _ _ (is_rotated.setoid α) (λ l, match l with
+  | [] := (tt : Prop)
+  | (a :: m) := chain r (last (a :: m) (cons_ne_nil a m)) (a :: m) end) $
+λ a b hab, begin
+  cases a with a l;
+  cases b with b m,
+  { refl },
+  { have := is_rotated_nil_iff'.1 hab,
+    contradiction },
+  { have := is_rotated_nil_iff.1 hab,
+    contradiction },
+  { change chain _ _ _ = chain _ _ _,
+    have hal := cons_ne_nil a l,
+    have : ∀ {s : list α} (hs : s ≠ []), chain r (s.last hs) s = chain r ((s.rotate 1).last
+      (λ h, hs (rotate_eq_nil_iff.1 h))) (s.rotate 1) := λ s hs,
+    begin
+      cases s with c s,
+      { exact hs.irrefl.elim },
+      { simp_rw rotate_cons_succ,
+simp_rw rotate_zero,
+simp,
+rw last_cons hs,
+rw ←chain_split,
+      }
+    end,
+    have : ∀ n, chain r ((a :: l).last hal) (a :: l) = chain r
+      (((a :: l).rotate n).last (λ h, hal (rotate_eq_nil_iff.1 h))) ((a :: l).rotate n) := λ n,
+    begin
+      induction n with n hn,
+      { simp_rw rotate_zero },
+      { rw [hn, nat.succ_eq_add_one],
+        simp_rw ←rotate_rotate,
+        rw this }
+    end,
+    cases hab with n hn,
+    simp_rw ←hn,
+    exact this n }
+end
+
+theorem chain_nil (r : α → α → Prop) : chain r (([] : list α) : cycle α) :=
+by exact rfl
+
+theorem chain_ne_nil_iff (r : α → α → Prop) {l : list α} (hl : l ≠ []) :
+  chain r l ↔ list.chain r (last l hl) l :=
+begin
+  cases l,
+  { exact hl.irrefl.elim },
+  { exact iff.rfl }
+end
+
 end cycle

@@ -14,7 +14,11 @@ import measure_theory.function.simple_func_dense
 
 A function `f` is said to be strongly measurable if `f` is the sequential limit of simple functions.
 It is said to be finitely strongly measurable with respect to a measure `μ` if the supports
-of those simple functions have finite measure.
+of those simple functions have finite measure. We also provide almost everywhere versions of
+these notions.
+
+Almost everywhere measurable functions form the largest class of functions that can be integrated
+using the Bochner integral.
 
 If the target space has a second countable topology, strongly measurable and measurable are
 equivalent.
@@ -31,6 +35,7 @@ results for those functions as if the measure was sigma-finite.
 * `strongly_measurable f`: `f : α → β` is the limit of a sequence `fs : ℕ → simple_func α β`.
 * `fin_strongly_measurable f μ`: `f : α → β` is the limit of a sequence `fs : ℕ → simple_func α β`
   such that for all `n ∈ ℕ`, the measure of the support of `fs n` is finite.
+* `ae_strongly_measurable f μ`: `f` is almost everywhere equal to a `strongly_measurable` function.
 * `ae_fin_strongly_measurable f μ`: `f` is almost everywhere equal to a `fin_strongly_measurable`
   function.
 
@@ -41,6 +46,9 @@ results for those functions as if the measure was sigma-finite.
 
 * `ae_fin_strongly_measurable.exists_set_sigma_finite`: there exists a measurable set `t` such that
   `f =ᵐ[μ.restrict tᶜ] 0` and `μ.restrict t` is sigma-finite.
+
+We provide a solid API for strongly measurable functions, and for almost everywhere strongly
+measurable functions, as a basis for the Bochner integral.
 
 ## References
 
@@ -92,8 +100,7 @@ def fin_strongly_measurable [has_zero β] {m0 : measurable_space α} (f : α →
 
 /-- A function is `ae_strongly_measurable` with respect to a measure `μ` if it is almost everywhere
 equal to the limit of a sequence of simple functions. -/
-def ae_strongly_measurable {m0 : measurable_space α} (f : α → β) (μ : measure α) :
-  Prop :=
+def ae_strongly_measurable {m0 : measurable_space α} (f : α → β) (μ : measure α) : Prop :=
 ∃ g, strongly_measurable g ∧ f =ᵐ[μ] g
 
 /-- A function is `ae_fin_strongly_measurable` with respect to a measure if it is almost everywhere
@@ -350,6 +357,28 @@ continuous_smul.comp_strongly_measurable (hf.prod_mk strongly_measurable_const)
 
 end arithmetic
 
+section mul_action
+
+variables [topological_space β] {G : Type*} [group G] [mul_action G β]
+  [has_continuous_const_smul G β]
+
+lemma _root_.strongly_measurable_const_smul_iff {m : measurable_space α} (c : G) :
+  strongly_measurable (λ x, c • f x) ↔ strongly_measurable f :=
+⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩
+
+variables {G₀ : Type*} [group_with_zero G₀] [mul_action G₀ β]
+  [has_continuous_const_smul G₀ β]
+
+lemma _root_.strongly_measurable_const_smul_iff₀ {m : measurable_space α} {c : G₀} (hc : c ≠ 0) :
+  strongly_measurable (λ x, c • f x) ↔ strongly_measurable f :=
+begin
+  refine ⟨λ h, _, λ h, h.const_smul c⟩,
+  convert h.const_smul' c⁻¹,
+  simp [smul_smul, inv_mul_cancel hc]
+end
+
+end mul_action
+
 section order
 variables [measurable_space α] [topological_space β]
 
@@ -430,11 +459,10 @@ by simpa only [← finset.prod_apply] using s.strongly_measurable_prod' hf
 end comm_monoid
 
 /-- The range of a strongly measurable function is separable. -/
-lemma is_separable_range {m : measurable_space α} [topological_space β] [metrizable_space β]
+lemma is_separable_range {m : measurable_space α} [topological_space β]
   (hf : strongly_measurable f) :
   topological_space.is_separable (range f) :=
 begin
-  letI := metrizable_space_metric β,
   have : is_separable (closure (⋃ n, range (hf.approx n))) :=
     (is_separable_Union (λ n, (simple_func.finite_range (hf.approx n)).is_separable)).closure,
   apply this.mono,
@@ -735,8 +763,7 @@ begin
   letI := metrizable_space_metric E,
   have : {x | f x = g x} = {x | dist (f x) (g x) = 0}, by { ext x, simp },
   rw this,
-  exact (continuous_dist.comp_strongly_measurable (hf.prod_mk hg)).measurable
-    (measurable_set_singleton (0 : ℝ)),
+  exact (hf.dist hg).measurable (measurable_set_singleton (0 : ℝ)),
 end
 
 lemma measurable_set_lt {m : measurable_space α} [topological_space β]
@@ -936,6 +963,7 @@ lemma ae_fin_strongly_measurable_zero {α β} {m : measurable_space α} (μ : me
   ae_fin_strongly_measurable (0 : α → β) μ :=
 ⟨0, fin_strongly_measurable_zero, eventually_eq.rfl⟩
 
+
 /-! ### Almost everywhere strongly measurable functions -/
 
 lemma ae_strongly_measurable_const {α β} {m : measurable_space α} {μ : measure α}
@@ -1038,7 +1066,7 @@ lemma _root_.continuous.comp_ae_strongly_measurable {g : β → γ} {f : α → 
 /-- A continuous function from `α` to `β` is strongly measurable when one of the two spaces is
 second countable. -/
 lemma _root_.continuous.ae_strongly_measurable [topological_space α] [opens_measurable_space α]
-  [metrizable_space β] [second_countable_topology_either α β]  (hf : continuous f) :
+  [metrizable_space β] [second_countable_topology_either α β] (hf : continuous f) :
   ae_strongly_measurable f μ :=
 hf.strongly_measurable.ae_strongly_measurable
 
@@ -1192,7 +1220,7 @@ lemma _root_.ae_strongly_measurable_id {α : Type*} [topological_space α] [metr
 ae_measurable_id.ae_strongly_measurable
 
 /-- In a space with second countable topology, strongly measurable and measurable are equivalent. -/
-lemma ae_strongly_measurable_iff_ae_measurable [metrizable_space β] [borel_space β]
+lemma _root_.ae_strongly_measurable_iff_ae_measurable [metrizable_space β] [borel_space β]
   [second_countable_topology β] :
   ae_strongly_measurable f μ ↔ ae_measurable f μ :=
 ⟨λ h, h.ae_measurable, λ h, h.ae_strongly_measurable⟩
@@ -1470,24 +1498,12 @@ section mul_action
 variables {G : Type*} [group G] [mul_action G β]
   [has_continuous_const_smul G β]
 
-lemma _root_.strongly_measurable_const_smul_iff {m : measurable_space α} (c : G) :
-  strongly_measurable (λ x, c • f x) ↔ strongly_measurable f :=
-⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩
-
 lemma _root_.ae_strongly_measurable_const_smul_iff (c : G) :
   ae_strongly_measurable (λ x, c • f x) μ ↔ ae_strongly_measurable f μ :=
 ⟨λ h, by simpa only [inv_smul_smul] using h.const_smul' c⁻¹, λ h, h.const_smul c⟩
 
 variables {G₀ : Type*} [group_with_zero G₀] [mul_action G₀ β]
   [has_continuous_const_smul G₀ β]
-
-lemma _root_.strongly_measurable_const_smul_iff₀ {m : measurable_space α} {c : G₀} (hc : c ≠ 0) :
-  strongly_measurable (λ x, c • f x) ↔ strongly_measurable f :=
-begin
-  refine ⟨λ h, _, λ h, h.const_smul c⟩,
-  convert h.const_smul' c⁻¹,
-  simp [smul_smul, inv_mul_cancel hc]
-end
 
 lemma _root_.ae_strongly_measurable_const_smul_iff₀ {c : G₀} (hc : c ≠ 0) :
   ae_strongly_measurable (λ x, c • f x) μ ↔ ae_strongly_measurable f μ :=
@@ -1547,6 +1563,7 @@ begin
 end
 
 end ae_strongly_measurable
+
 
 /-! ### Almost everywhere finitely strongly measurable functions -/
 

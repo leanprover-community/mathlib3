@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
 import data.fin.tuple.basic
+import data.equiv.encodable.basic
+import set_theory.cardinal
 import category_theory.concrete_category.bundled
 
 /-!
@@ -45,6 +47,9 @@ the continuum hypothesis*][flypitch_itp]
 -/
 universes u v u' v' w
 
+open_locale cardinal
+open cardinal
+
 namespace first_order
 
 /-! ### Languages and Structures -/
@@ -74,6 +79,14 @@ variable (L : language.{u v})
 /-- The type of symbols in a given language. -/
 @[nolint has_inhabited_instance] def symbols := (Σl, L.functions l) ⊕ (Σl, L.relations l)
 
+/-- The cardinality of a language is the cardinality of its type of symbols. -/
+def card : cardinal := # L.symbols
+
+/-- A language is countable when it has countably many symbols. -/
+class countable : Prop := (card_le_omega' : L.card ≤ ω)
+
+lemma card_le_omega [L.countable] : L.card ≤ ω := countable.card_le_omega'
+
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
 (empty_functions : ∀ n, is_empty (L.functions n))
@@ -82,7 +95,19 @@ class is_relational : Prop :=
 class is_algebraic : Prop :=
 (empty_relations : ∀ n, is_empty (L.relations n))
 
+/-- A language is countable when it has countably many symbols. -/
+class countable_functions : Prop := (card_functions_le_omega' : # (Σl, L.functions l) ≤ ω)
+
+lemma card_functions_le_omega [L.countable_functions] :
+  # (Σl, L.functions l) ≤ ω :=
+countable_functions.card_functions_le_omega'
+
 variables {L} {L' : language.{u' v'}}
+
+lemma card_eq_card_functions_add_card_relations :
+  L.card = cardinal.lift.{v} (# (Σl, L.functions l)) +
+    cardinal.lift.{u} (# (Σl, L.relations l)) :=
+by rw [card, symbols, mk_sum]
 
 instance [L.is_relational] {n : ℕ} : is_empty (L.functions n) := is_relational.empty_functions n
 
@@ -105,6 +130,33 @@ instance is_relational_sum [L.is_relational] [L'.is_relational] : is_relational 
 
 instance is_algebraic_sum [L.is_algebraic] [L'.is_algebraic] : is_algebraic (L.sum L') :=
 ⟨λ n, sum.is_empty⟩
+
+lemma encodable.countable [h : encodable L.symbols] :
+  L.countable :=
+⟨cardinal.encodable_iff.1 ⟨h⟩⟩
+
+instance countable_empty : language.empty.countable :=
+⟨begin
+  rw [card_eq_card_functions_add_card_relations, add_le_omega, lift_le_omega, lift_le_omega,
+    ← cardinal.encodable_iff, ← cardinal.encodable_iff],
+  exact ⟨⟨encodable.sigma⟩, ⟨encodable.sigma⟩⟩,
+end⟩
+
+@[priority 100] instance countable.countable_functions [L.countable] :
+  L.countable_functions :=
+⟨begin
+  refine lift_le_omega.1 (trans _ L.card_le_omega),
+  rw [card, symbols, mk_sum],
+  exact le_self_add,
+end⟩
+
+lemma encodable.countable_functions [h : encodable (Σl, L.functions l)] :
+  L.countable_functions :=
+⟨cardinal.encodable_iff.1 ⟨h⟩⟩
+
+@[priority 100] instance is_relational.countable_functions [L.is_relational] :
+  L.countable_functions :=
+encodable.countable_functions
 
 variables (L) (M : Type w)
 

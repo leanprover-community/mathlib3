@@ -233,21 +233,24 @@ begin
 end
 
 /-- Inductively define a function on `ℤ` by defining it at `b`, for the `succ` of a number greater
-  than `b`, and the `pred` of a number less than `b`. -/
-protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ) :
-  C b → (∀ k, b ≤ k → C k → C (k + 1)) → (∀ k ≤ b, C k → C (k - 1)) → C z :=
-λ H0 Hs Hp,
+than `b`, and the `pred` of a number less than `b`. -/
+protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ)
+  (H0 : C b) (Hs : ∀ k, b ≤ k → C k → C (k + 1)) (Hp : ∀ k ≤ b, C k → C (k - 1)) : C z :=
 begin
+  -- Note that we use `convert` here where possible as we are constructing data, and this reduces
+  -- the number of times `eq.mpr` appears in the term.
   rw ←sub_add_cancel z b,
   induction (z - b) with n n,
-  { induction n with n ih, { rwa [of_nat_zero, zero_add] },
-    rw [of_nat_succ, add_assoc, add_comm 1 b, ←add_assoc],
-    exact Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih },
   { induction n with n ih,
-    { rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub],
-      exact Hp _ le_rfl H0 },
-    { rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub],
-      exact Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) le_rfl)) ih } }
+    { convert H0 using 1,
+      rw [of_nat_zero, zero_add] },
+    convert Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih using 1,
+    rw [of_nat_succ, add_assoc, add_comm 1 b, ←add_assoc] },
+  { induction n with n ih,
+    { convert Hp _ le_rfl H0 using 1,
+      rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub] },
+    { convert Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) le_rfl)) ih using 1,
+      rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub] } }
 end
 
 /-! ### nat abs -/

@@ -397,28 +397,25 @@ end integral
 
 section integrable_of_interval_integral
 
-variables {α ι E : Type*}
-          [topological_space α] [linear_order α] [order_closed_topology α]
-          [measurable_space α] [opens_measurable_space α] {μ : measure α}
+variables {ι E : Type*} {μ : measure ℝ}
           {l : filter ι} [filter.ne_bot l] [is_countably_generated l]
           [measurable_space E] [normed_group E] [borel_space E]
-          {a b : ι → α} {f : α → E}
+          {a b : ι → ℝ} {f : ℝ → E}
 
-lemma integrable_of_interval_integral_norm_bounded [no_min_order α] [nonempty α]
+lemma integrable_of_interval_integral_norm_bounded
   (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
   (ha : tendsto a l at_bot) (hb : tendsto b l at_top)
   (h : ∀ᶠ i in l, ∫ x in a i .. b i, ∥f x∥ ∂μ ≤ I) :
   integrable f μ :=
 begin
-  let c : α := classical.choice ‹_›,
   have hφ : ae_cover μ l _ := ae_cover_Ioc ha hb,
   refine hφ.integrable_of_integral_norm_bounded I hfi (h.mp _),
-  filter_upwards [ha.eventually (eventually_le_at_bot c), hb.eventually (eventually_ge_at_top c)]
+  filter_upwards [ha.eventually (eventually_le_at_bot 0), hb.eventually (eventually_ge_at_top 0)]
     with i hai hbi ht,
   rwa ←interval_integral.integral_of_le (hai.trans hbi)
 end
 
-lemma integrable_of_interval_integral_norm_tendsto [no_min_order α] [nonempty α]
+lemma integrable_of_interval_integral_norm_tendsto
   (I : ℝ) (hfi : ∀ i, integrable_on f (Ioc (a i) (b i)) μ)
   (ha : tendsto a l at_bot) (hb : tendsto b l at_top)
   (h : tendsto (λ i, ∫ x in a i .. b i, ∥f x∥ ∂μ) l (𝓝 I)) :
@@ -426,7 +423,7 @@ lemma integrable_of_interval_integral_norm_tendsto [no_min_order α] [nonempty �
 let ⟨I', hI'⟩ := h.is_bounded_under_le in
   integrable_of_interval_integral_norm_bounded I' hfi ha hb hI'
 
-lemma integrable_on_Iic_of_interval_integral_norm_bounded [no_min_order α] (I : ℝ) (b : α)
+lemma integrable_on_Iic_of_interval_integral_norm_bounded (I b : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc (a i) b) μ) (ha : tendsto a l at_bot)
   (h : ∀ᶠ i in l, (∫ x in a i .. b, ∥f x∥ ∂μ) ≤ I) :
   integrable_on f (Iic b) μ :=
@@ -442,14 +439,14 @@ begin
   exact id
 end
 
-lemma integrable_on_Iic_of_interval_integral_norm_tendsto [no_min_order α] (I : ℝ) (b : α)
+lemma integrable_on_Iic_of_interval_integral_norm_tendsto (I b : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc (a i) b) μ) (ha : tendsto a l at_bot)
   (h : tendsto (λ i, ∫ x in a i .. b, ∥f x∥ ∂μ) l (𝓝 I)) :
   integrable_on f (Iic b) μ :=
 let ⟨I', hI'⟩ := h.is_bounded_under_le in
   integrable_on_Iic_of_interval_integral_norm_bounded I' b hfi ha hI'
 
-lemma integrable_on_Ioi_of_interval_integral_norm_bounded (I : ℝ) (a : α)
+lemma integrable_on_Ioi_of_interval_integral_norm_bounded (I a : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc a (b i)) μ) (hb : tendsto b l at_top)
   (h : ∀ᶠ i in l, (∫ x in a .. b i, ∥f x∥ ∂μ) ≤ I) :
   integrable_on f (Ioi a) μ :=
@@ -466,7 +463,7 @@ begin
   exact id
 end
 
-lemma integrable_on_Ioi_of_interval_integral_norm_tendsto (I : ℝ) (a : α)
+lemma integrable_on_Ioi_of_interval_integral_norm_tendsto (I a : ℝ)
   (hfi : ∀ i, integrable_on f (Ioc a (b i)) μ) (hb : tendsto b l at_top)
   (h : tendsto (λ i, ∫ x in a .. b i, ∥f x∥ ∂μ) l (𝓝 $ I)) :
   integrable_on f (Ioi a) μ :=
@@ -477,28 +474,25 @@ end integrable_of_interval_integral
 
 section integral_of_interval_integral
 
-variables {α ι E : Type*}
-          [topological_space α] [linear_order α] [order_closed_topology α]
-          [measurable_space α] [opens_measurable_space α] {μ : measure α}
+variables {ι E : Type*} {μ : measure ℝ}
           {l : filter ι} [is_countably_generated l]
           [measurable_space E] [normed_group E] [normed_space ℝ E] [borel_space E]
           [complete_space E] [second_countable_topology E]
-          {a b : ι → α} {f : α → E}
+          {a b : ι → ℝ} {f : ℝ → E}
 
-lemma interval_integral_tendsto_integral [no_min_order α] [nonempty α]
+lemma interval_integral_tendsto_integral
   (hfi : integrable f μ) (ha : tendsto a l at_bot) (hb : tendsto b l at_top) :
   tendsto (λ i, ∫ x in a i .. b i, f x ∂μ) l (𝓝 $ ∫ x, f x ∂μ) :=
 begin
   let φ := λ i, Ioc (a i) (b i),
-  let c : α := classical.choice ‹_›,
   have hφ : ae_cover μ l φ := ae_cover_Ioc ha hb,
   refine (hφ.integral_tendsto_of_countably_generated hfi).congr' _,
-  filter_upwards [ha.eventually (eventually_le_at_bot c), hb.eventually (eventually_ge_at_top c)]
+  filter_upwards [ha.eventually (eventually_le_at_bot 0), hb.eventually (eventually_ge_at_top 0)]
     with i hai hbi,
   exact (interval_integral.integral_of_le (hai.trans hbi)).symm
 end
 
-lemma interval_integral_tendsto_integral_Iic [no_min_order α] (b : α)
+lemma interval_integral_tendsto_integral_Iic (b : ℝ)
   (hfi : integrable_on f (Iic b) μ) (ha : tendsto a l at_bot) :
   tendsto (λ i, ∫ x in a i .. b, f x ∂μ) l (𝓝 $ ∫ x in Iic b, f x ∂μ) :=
 begin
@@ -510,7 +504,7 @@ begin
   refl,
 end
 
-lemma interval_integral_tendsto_integral_Ioi (a : α)
+lemma interval_integral_tendsto_integral_Ioi (a : ℝ)
   (hfi : integrable_on f (Ioi a) μ) (hb : tendsto b l at_top) :
   tendsto (λ i, ∫ x in a .. b i, f x ∂μ) l (𝓝 $ ∫ x in Ioi a, f x ∂μ) :=
 begin

@@ -5,6 +5,7 @@ Authors: Moritz Doll, Anatole Dedecker
 -/
 
 import analysis.seminorm
+import analysis.locally_convex.bounded
 
 /-!
 # Topology induced by a family of seminorms
@@ -55,17 +56,17 @@ def basis_sets (p : seminorm_family 𝕜 E ι) : set (set E) :=
 
 variables (p : seminorm_family 𝕜 E ι)
 
-lemma basis_sets_iff (U : set E) :
+lemma basis_sets_iff {U : set E} :
   U ∈ p.basis_sets ↔ ∃ (i : finset ι) r (hr : 0 < r), U = ball (i.sup p) 0 r :=
 by simp only [basis_sets, mem_Union, mem_singleton_iff]
 
 lemma basis_sets_mem (i : finset ι) {r : ℝ} (hr : 0 < r) :
   (i.sup p).ball 0 r ∈ p.basis_sets :=
-(basis_sets_iff _ _).mpr ⟨i,_,hr,rfl⟩
+(basis_sets_iff _).mpr ⟨i,_,hr,rfl⟩
 
 lemma basis_sets_singleton_mem (i : ι) {r : ℝ} (hr : 0 < r) :
   (p i).ball 0 r ∈ p.basis_sets :=
-(basis_sets_iff _ _).mpr ⟨{i},_,hr, by rw finset.sup_singleton⟩
+(basis_sets_iff _).mpr ⟨{i},_,hr, by rw finset.sup_singleton⟩
 
 lemma basis_sets_nonempty [nonempty ι] : p.basis_sets.nonempty :=
 begin
@@ -79,8 +80,8 @@ lemma basis_sets_intersect
   ∃ (z : set E) (H : z ∈ p.basis_sets), z ⊆ U ∩ V :=
 begin
   classical,
-  rcases (p.basis_sets_iff U).mp hU with ⟨s, r₁, hr₁, hU⟩,
-  rcases (p.basis_sets_iff V).mp hV with ⟨t, r₂, hr₂, hV⟩,
+  rcases p.basis_sets_iff.mp hU with ⟨s, r₁, hr₁, hU⟩,
+  rcases p.basis_sets_iff.mp hV with ⟨t, r₂, hr₂, hV⟩,
   use ((s ∪ t).sup p).ball 0 (min r₁ r₂),
   refine ⟨p.basis_sets_mem (s ∪ t) (lt_min_iff.mpr ⟨hr₁, hr₂⟩), _⟩,
   rw [hU, hV, ball_finset_sup_eq_Inter _ _ _ (lt_min_iff.mpr ⟨hr₁, hr₂⟩),
@@ -94,7 +95,7 @@ end
 lemma basis_sets_zero (U) (hU : U ∈ p.basis_sets) :
   (0 : E) ∈ U :=
 begin
-  rcases (p.basis_sets_iff U).mp hU with ⟨ι', r, hr, hU⟩,
+  rcases p.basis_sets_iff.mp hU with ⟨ι', r, hr, hU⟩,
   rw [hU, mem_ball_zero, (ι'.sup p).zero],
   exact hr,
 end
@@ -102,7 +103,7 @@ end
 lemma basis_sets_add (U) (hU : U ∈ p.basis_sets) :
   ∃ (V : set E) (H : V ∈ p.basis_sets), V + V ⊆ U :=
 begin
-  rcases (p.basis_sets_iff U).mp hU with ⟨s, r, hr, hU⟩,
+  rcases p.basis_sets_iff.mp hU with ⟨s, r, hr, hU⟩,
   use (s.sup p).ball 0 (r/2),
   refine ⟨p.basis_sets_mem s (div_pos hr zero_lt_two), _⟩,
   refine set.subset.trans (ball_add_ball_subset (s.sup p) (r/2) (r/2) 0 0) _,
@@ -112,7 +113,7 @@ end
 lemma basis_sets_neg (U) (hU' : U ∈ p.basis_sets) :
   ∃ (V : set E) (H : V ∈ p.basis_sets), V ⊆ (λ (x : E), -x) ⁻¹' U :=
 begin
-  rcases (p.basis_sets_iff U).mp hU' with ⟨s, r, hr, hU⟩,
+  rcases p.basis_sets_iff.mp hU' with ⟨s, r, hr, hU⟩,
   rw [hU, neg_preimage, neg_ball (s.sup p), neg_zero],
   exact ⟨U, hU', eq.subset hU⟩,
 end
@@ -125,7 +126,7 @@ add_group_filter_basis_of_comm p.basis_sets p.basis_sets_nonempty
 lemma basis_sets_smul_right (v : E) (U : set E)
   (hU : U ∈ p.basis_sets) : ∀ᶠ (x : 𝕜) in 𝓝 0, x • v ∈ U :=
 begin
-  rcases (p.basis_sets_iff U).mp hU with ⟨s, r, hr, hU⟩,
+  rcases p.basis_sets_iff.mp hU with ⟨s, r, hr, hU⟩,
   rw [hU, filter.eventually_iff],
   simp_rw [(s.sup p).mem_ball_zero, (s.sup p).smul],
   by_cases h : 0 < (s.sup p) v,
@@ -142,7 +143,7 @@ lemma basis_sets_smul (U) (hU : U ∈ p.basis_sets) :
   ∃ (V : set 𝕜) (H : V ∈ 𝓝 (0 : 𝕜)) (W : set E)
   (H : W ∈ p.add_group_filter_basis.sets), V • W ⊆ U :=
 begin
-  rcases (p.basis_sets_iff U).mp hU with ⟨s, r, hr, hU⟩,
+  rcases p.basis_sets_iff.mp hU with ⟨s, r, hr, hU⟩,
   refine ⟨metric.ball 0 r.sqrt, metric.ball_mem_nhds 0 (real.sqrt_pos.mpr hr), _⟩,
   refine ⟨(s.sup p).ball 0 r.sqrt, p.basis_sets_mem s (real.sqrt_pos.mpr hr), _⟩,
   refine set.subset.trans (ball_smul_ball (s.sup p) r.sqrt r.sqrt) _,
@@ -153,7 +154,7 @@ lemma basis_sets_smul_left (x : 𝕜) (U : set E)
   (hU : U ∈ p.basis_sets) : ∃ (V : set E)
   (H : V ∈ p.add_group_filter_basis.sets), V ⊆ (λ (y : E), x • y) ⁻¹' U :=
 begin
-  rcases (p.basis_sets_iff U).mp hU with ⟨s, r, hr, hU⟩,
+  rcases p.basis_sets_iff.mp hU with ⟨s, r, hr, hU⟩,
   rw hU,
   by_cases h : x ≠ 0,
   { rw [(s.sup p).smul_ball_preimage 0 r x h, smul_zero],
@@ -248,6 +249,15 @@ lemma seminorm_family.with_seminorms_eq (p : seminorm_family 𝕜 E ι) [t : top
   [with_seminorms p] : t = p.module_filter_basis.topology :=
 with_seminorms.topology_eq_with_seminorms
 
+variables [topological_space E]
+variables (p : seminorm_family 𝕜 E ι) [with_seminorms p]
+
+lemma seminorm_family.has_basis : (𝓝 (0 : E)).has_basis
+  (λ (s : set E), s ∈ p.basis_sets) id :=
+begin
+  rw (congr_fun (congr_arg (@nhds E) p.with_seminorms_eq) 0),
+  exact add_group_filter_basis.nhds_zero_has_basis _,
+end
 end topology
 
 section topological_add_group
@@ -272,6 +282,7 @@ lemma seminorm_family.with_seminorms_of_has_basis (p : seminorm_family 𝕜 E ι
 p.with_seminorms_of_nhds $ filter.has_basis.eq_of_same_basis h
   p.add_group_filter_basis.to_filter_basis.has_basis
 
+
 end topological_add_group
 
 section normed_space
@@ -288,7 +299,7 @@ begin
   refine filter.has_basis.to_has_basis p.add_group_filter_basis.nhds_zero_has_basis _
     (λ r hr, ⟨(norm_seminorm 𝕜 E).ball 0 r, p.basis_sets_singleton_mem 0 hr, rfl.subset⟩),
   rintros U (hU : U ∈ p.basis_sets),
-  rcases (p.basis_sets_iff U).mp hU with ⟨s, r, hr, hU⟩,
+  rcases p.basis_sets_iff.mp hU with ⟨s, r, hr, hU⟩,
   use [r, hr],
   rw [hU, id.def],
   by_cases h : s.nonempty,
@@ -299,6 +310,60 @@ end
 
 end normed_space
 
+section nondiscrete_normed_field
+
+variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι]
+variables (p : seminorm_family 𝕜 E ι)
+variables [topological_space E] [with_seminorms p]
+
+lemma bornology.is_vonN_bounded_iff_finset_seminorm_bounded {s : set E} :
+  bornology.is_vonN_bounded 𝕜 s ↔ ∀ I : finset ι, ∃ r (hr : 0 < r), ∀ (x ∈ s), I.sup p x < r :=
+begin
+  rw (p.has_basis).is_vonN_bounded_basis_iff,
+  split,
+  { intros h I,
+    simp only [id.def] at h,
+    specialize h ((I.sup p).ball 0 1) (p.basis_sets_mem I zero_lt_one),
+    rcases h with ⟨r, hr, h⟩,
+    cases normed_field.exists_lt_norm 𝕜 r with a ha,
+    specialize h a (le_of_lt ha),
+    rw [seminorm.smul_ball_zero (lt_trans hr ha), mul_one] at h,
+    refine ⟨∥a∥, lt_trans hr ha, _⟩,
+    intros x hx,
+    specialize h hx,
+    exact (finset.sup I p).mem_ball_zero.mp h },
+  intros h s' hs',
+  rcases p.basis_sets_iff.mp hs' with ⟨I, r, hr, hs'⟩,
+  rw [id.def, hs'],
+  rcases h I with ⟨r', hr', h'⟩,
+  simp_rw ←(I.sup p).mem_ball_zero at h',
+  refine absorbs.mono_right _ h',
+  exact (finset.sup I p).ball_zero_absorbs_ball_zero hr,
+end
+
+lemma bornology.is_vonN_bounded_iff_seminorm_bounded {s : set E} :
+  bornology.is_vonN_bounded 𝕜 s ↔ ∀ i : ι, ∃ r (hr : 0 < r), ∀ (x ∈ s), p i x < r :=
+begin
+  rw bornology.is_vonN_bounded_iff_finset_seminorm_bounded p,
+  split,
+  { intros hI i,
+    convert hI {i},
+    rw [finset.sup_singleton] },
+  intros hi I,
+  by_cases hI : I.nonempty,
+  { choose r hr h using hi,
+    have h' : 0 < I.sup' hI r :=
+    by { rcases hI.bex with ⟨i, hi⟩, exact lt_of_lt_of_le (hr i) (finset.le_sup' r hi) },
+    refine ⟨I.sup' hI r, h', λ x hx, finset_sup_apply_lt h' (λ i hi, _)⟩,
+    refine lt_of_lt_of_le (h i x hx) _,
+    simp only [finset.le_sup'_iff, exists_prop],
+    exact ⟨i, hi, (eq.refl _).le⟩ },
+  simp only [finset.not_nonempty_iff_eq_empty.mp hI, finset.sup_empty, coe_bot, pi.zero_apply,
+    exists_prop],
+  exact ⟨1, zero_lt_one, λ _ _, zero_lt_one⟩,
+end
+
+end nondiscrete_normed_field
 section continuous_bounded
 
 namespace seminorm
@@ -317,7 +382,7 @@ begin
   intros U hU,
   rw [q.with_seminorms_eq, add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff] at hU,
   rcases hU with ⟨V, hV : V ∈ q.basis_sets, hU⟩,
-  rcases (q.basis_sets_iff V).mp hV with ⟨s₂, r, hr, hV⟩,
+  rcases q.basis_sets_iff.mp hV with ⟨s₂, r, hr, hV⟩,
   rw hV at hU,
   rw [p.add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff],
   rcases (seminorm.is_bounded_sup hf s₂) with ⟨C, s₁, hC, hf⟩,

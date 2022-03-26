@@ -1271,20 +1271,15 @@ lemma eventually_eq.inv [has_inv β] {f g : α → β} {l : filter α} (h : f =�
   ((λ x, (f x)⁻¹) =ᶠ[l] (λ x, (g x)⁻¹)) :=
 h.fun_comp has_inv.inv
 
-lemma eventually_eq.div [group_with_zero β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
+lemma eventually_eq.div₀ [group_with_zero β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
 by simpa only [div_eq_mul_inv] using h.mul h'.inv
 
-lemma eventually_eq.div' [group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
+@[to_additive] lemma eventually_eq.div [group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
 by simpa only [div_eq_mul_inv] using h.mul h'.inv
-
-lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
-  (h' : f' =ᶠ[l] g') :
-  ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
-by simpa only [sub_eq_add_neg] using h.add h'.neg
 
 @[to_additive] lemma eventually_eq.const_smul {𝕜} [has_scalar 𝕜 β] {l : filter α} {f g : α → β}
   (h : f =ᶠ[l] g) (c : 𝕜) :

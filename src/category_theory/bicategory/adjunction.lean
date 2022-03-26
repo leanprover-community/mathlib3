@@ -17,7 +17,7 @@ universes w v u
 variables {B : Type u} [bicategory.{w v} B] {a b c : B} {f : a ⟶ b} {g : b ⟶ a}
 
 /--
-The 2-morphism defined by the folowing pasting diagram:
+The 2-morphism defined by the following pasting diagram:
 ```
 a －－－－－－ ▸ a
   ＼    η      ◥   ＼
@@ -31,7 +31,7 @@ def left_zigzag (η : 𝟙 a ⟶ f ≫ g) (ε : g ≫ f ⟶ 𝟙 b) :=
 η ▷ f ≫ (α_ f g f).hom ≫ f ◁ ε
 
 /--
-The 2-morphism defined by the folowing pasting diagram:
+The 2-morphism defined by the following pasting diagram:
 ```
         a －－－－－－ ▸ a
        ◥  ＼     η      ◥

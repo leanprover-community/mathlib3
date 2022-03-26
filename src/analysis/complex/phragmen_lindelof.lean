@@ -13,7 +13,14 @@ open_locale topological_space filter
 
 namespace phragmen_lindelof
 
-variables {E : Type*} [normed_group E] [normed_space ℂ E] [second_countable_topology E]
+variables {ι E F : Type*} [normed_group E] [normed_space ℂ E]
+  [normed_group F] [normed_space ℂ F] [second_countable_topology F]
+
+lemma aux {s : set E} {f : E → F} (hfd : diff_on_int_cont ℂ f s) {g : ι → E → ℂ} {l : filter ι}
+  [ne_bot l] (hgd : ∀ᶠ i in l, diff_on_int_cont ℂ (g i) s)
+  (h₁ : ∀ x ∈ s, tendsto (λ i, g i x) l (𝓝 1))
+  (h₀ :
+
 
 lemma horizontal_strip {a b c C : ℝ} {f : ℂ → E}
   (hd : diff_on_int_cont ℂ f (complex.im ⁻¹' (Icc a b)))

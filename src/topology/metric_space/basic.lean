@@ -1481,23 +1481,27 @@ theorem ball_subset_interior_closed_ball : ball x ε ⊆ interior (closed_ball x
 interior_maximal ball_subset_closed_ball is_open_ball
 
 /-- ε-characterization of the closure in pseudometric spaces-/
-theorem mem_closure_iff {α : Type u} [pseudo_metric_space α] {s : set α} {a : α} :
-  a ∈ closure s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
+theorem mem_closure_iff {s : set α} {a : α} : a ∈ closure s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 (mem_closure_iff_nhds_basis nhds_basis_ball).trans $
   by simp only [mem_ball, dist_comm]
 
-lemma mem_closure_range_iff {α : Type u} [pseudo_metric_space α] {e : β → α} {a : α} :
+lemma mem_closure_range_iff {e : β → α} {a : α} :
   a ∈ closure (range e) ↔ ∀ε>0, ∃ k : β, dist a (e k) < ε :=
 by simp only [mem_closure_iff, exists_range_iff]
 
-lemma mem_closure_range_iff_nat {α : Type u} [pseudo_metric_space α] {e : β → α} {a : α} :
+lemma mem_closure_range_iff_nat {e : β → α} {a : α} :
   a ∈ closure (range e) ↔ ∀n : ℕ, ∃ k : β, dist a (e k) < 1 / ((n : ℝ) + 1) :=
 (mem_closure_iff_nhds_basis nhds_basis_ball_inv_nat_succ).trans $
   by simp only [mem_ball, dist_comm, exists_range_iff, forall_const]
 
-theorem mem_of_closed' {α : Type u} [pseudo_metric_space α] {s : set α} (hs : is_closed s)
-  {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
+theorem mem_of_closed' {s : set α} (hs : is_closed s) {a : α} :
+  a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 by simpa only [hs.closure_eq] using @mem_closure_iff _ _ s a
+
+lemma closed_ball_zero' (x : α) : closed_ball x 0 = closure {x} :=
+subset.antisymm
+  (λ y hy, mem_closure_iff.2 $ λ ε ε0, ⟨x, mem_singleton x, (mem_closed_ball.1 hy).trans_lt ε0⟩)
+  (closure_minimal (singleton_subset_iff.2 (dist_self x).le) is_closed_ball)
 
 end metric
 

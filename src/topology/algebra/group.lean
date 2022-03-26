@@ -8,6 +8,7 @@ import order.filter.pointwise
 import topology.algebra.monoid
 import topology.compact_open
 import topology.sets.compacts
+import topology.algebra.constructions
 
 /-!
 # Theory of topological groups
@@ -459,6 +460,13 @@ instance [topological_space H] [group H] [topological_group H] :
 instance pi.topological_group {C : β → Type*} [∀ b, topological_space (C b)]
   [∀ b, group (C b)] [∀ b, topological_group (C b)] : topological_group (Π b, C b) :=
 { continuous_inv := continuous_pi (λ i, (continuous_apply i).inv) }
+
+open mul_opposite
+
+/-- If multiplication is continuous in `α`, then it also is in `αᵐᵒᵖ`. -/
+@[to_additive] instance [topological_space α] [group α] [topological_group α] :
+  topological_group αᵐᵒᵖ :=
+{ continuous_inv := continuous_induced_rng $ (@continuous_inv α _ _ _).comp continuous_unop }
 
 variable (G)
 
@@ -935,6 +943,8 @@ begin
     exact ⟨t, mem_nhds_within_of_mem_nhds ht, s, hs, h⟩ }
 end
 
+open mul_opposite
+
 /-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`
   such that `V * K ⊆ U`. -/
 @[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of
@@ -942,21 +952,11 @@ end
 lemma compact_open_separated_mul_left {K U : set G} (hK : is_compact K) (hU : is_open U)
   (hKU : K ⊆ U) : ∃ V ∈ 𝓝 (1 : G), V * K ⊆ U :=
 begin
-  apply hK.induction_on,
-  { exact ⟨univ, by simp⟩ },
-  { rintros s t hst ⟨V, hV, hV'⟩,
-    exact ⟨V, hV, (mul_subset_mul_left hst).trans hV'⟩ },
-  { rintros s t  ⟨V, V_in, hV'⟩ ⟨W, W_in, hW'⟩,
-    use [V ∩ W, inter_mem V_in W_in],
-    rw mul_union,
-    exact union_subset ((mul_subset_mul_right (V.inter_subset_left W)).trans hV')
-                       ((mul_subset_mul_right (V.inter_subset_right W)).trans hW') },
-  { intros x hx,
-    have := tendsto_mul (show U ∈ 𝓝 (1 * x), by simpa using hU.mem_nhds (hKU hx)),
-    simp only [nhds_prod_eq, mem_map, mem_prod_iff] at this,
-    rcases this with ⟨t, ht, s, hs, h⟩,
-    rw [← image_subset_iff, image_mul_prod] at h,
-    exact ⟨s, mem_nhds_within_of_mem_nhds hs, t, ht, h⟩ }
+  rcases compact_open_separated_mul_right (hK.image continuous_op) (op_homeomorph.is_open_map U hU)
+    (image_subset op hKU) with ⟨V, (hV : V ∈ 𝓝 (op (1 : G))), hV' : op '' K * V ⊆ op '' U⟩,
+  refine ⟨op ⁻¹' V, continuous_op.continuous_at hV, _⟩,
+  rwa [← image_preimage_eq V op_surjective, ← image_op_mul, image_subset_iff,
+    preimage_image_eq _ op_injective] at hV'
 end
 
 /-- A compact set is covered by finitely many left multiplicative translates of a set

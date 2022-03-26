@@ -322,8 +322,10 @@ lemma _root_.set.pairwise_disjoint.countable_of_nonempty_interior [separable_spa
   countable a :=
 (h.mono $ λ i, interior_subset).countable_of_is_open (λ i hi, is_open_interior) ha
 
-/-- A set in a topological space is separable if it is contained in the closure of a
-countable set.-/
+/-- A set `s` in a topological space is separable if it is contained in the closure of a
+countable set `c`. Beware that this definition does not require that `c` is contained in `s` (to
+express the latter, use `separable_space s` or `is_separable (univ : set s))`. In metric spaces,
+the two definitions are equivalent, see `topological_space.is_separable.separable_space`. -/
 def is_separable (s : set α) :=
 ∃ c : set α, countable c ∧ s ⊆ closure c
 

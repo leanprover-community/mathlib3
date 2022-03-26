@@ -174,12 +174,7 @@ variables [non_unital_non_assoc_ring α]
 
 /-- Negation of `centroid_hom`s as a `centroid_hom`. -/
 instance : has_neg (centroid_hom α) :=
-⟨λ f, ⟨-f.to_add_monoid_hom,
-λ a b, by rw [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.neg_apply, add_monoid_hom.neg_apply,
-  mul_neg, ← add_monoid_hom.to_fun_eq_coe, map_mul_left'],
-λ a b, by rw [add_monoid_hom.to_fun_eq_coe, add_monoid_hom.neg_apply, add_monoid_hom.neg_apply,
-  ← add_monoid_hom.to_fun_eq_coe, map_mul_right', ← neg_mul],
-⟩⟩
+⟨λ f, ⟨-f, by simp [map_mul_left], by simp [map_mul_right]⟩⟩
 
 instance : has_sub (centroid_hom α) :=
 ⟨λ f g, ⟨f.to_add_monoid_hom - g.to_add_monoid_hom, λ a b, begin

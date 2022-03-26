@@ -73,6 +73,7 @@ by { rw inclusion_in_double_dual_norm_eq, exact continuous_linear_map.norm_id_le
 lemma double_dual_bound (x : E) : ∥(inclusion_in_double_dual 𝕜 E) x∥ ≤ ∥x∥ :=
 by simpa using continuous_linear_map.le_of_op_norm_le _ (inclusion_in_double_dual_norm_le 𝕜 E) x
 
+/-- The dual pairing as a bilinear form. -/
 def dual_pairing : (dual 𝕜 E) →ₗ[𝕜] E →ₗ[𝕜] 𝕜 := continuous_linear_map.coe_lm 𝕜
 
 @[simp] lemma dual_pairing_apply {v : dual 𝕜 E} {x : E} : dual_pairing 𝕜 E v x = v x := rfl

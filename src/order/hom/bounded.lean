@@ -436,6 +436,11 @@ variables [has_le α] [order_top α] [has_le β] [order_top β] [has_le γ] [ord
 @[simp] lemma dual_comp (g : top_hom β γ) (f : top_hom α β) :
   (g.comp f).dual = g.dual.comp f.dual := rfl
 
+@[simp] lemma symm_dual_id : top_hom.dual.symm (bot_hom.id _) = top_hom.id α := rfl
+@[simp] lemma symm_dual_comp (g : bot_hom (order_dual β) (order_dual γ))
+  (f : bot_hom (order_dual α) (order_dual β)) :
+  top_hom.dual.symm (g.comp f) = (top_hom.dual.symm g).comp (top_hom.dual.symm f) := rfl
+
 end top_hom
 
 namespace bot_hom
@@ -451,6 +456,11 @@ variables [has_le α] [order_bot α] [has_le β] [order_bot β] [has_le γ] [ord
 @[simp] lemma dual_id : (bot_hom.id α).dual = top_hom.id _ := rfl
 @[simp] lemma dual_comp (g : bot_hom β γ) (f : bot_hom α β) :
   (g.comp f).dual = g.dual.comp f.dual := rfl
+
+@[simp] lemma symm_dual_id : bot_hom.dual.symm (top_hom.id _) = bot_hom.id α := rfl
+@[simp] lemma symm_dual_comp (g : top_hom (order_dual β) (order_dual γ))
+  (f : top_hom (order_dual α) (order_dual β)) :
+  bot_hom.dual.symm (g.comp f) = (bot_hom.dual.symm g).comp (bot_hom.dual.symm f) := rfl
 
 end bot_hom
 
@@ -470,5 +480,12 @@ orders. -/
 @[simp] lemma dual_id : (bounded_order_hom.id α).dual = bounded_order_hom.id _ := rfl
 @[simp] lemma dual_comp (g : bounded_order_hom β γ) (f : bounded_order_hom α β) :
   (g.comp f).dual = g.dual.comp f.dual := rfl
+
+@[simp] lemma symm_dual_id :
+  bounded_order_hom.dual.symm (bounded_order_hom.id _) = bounded_order_hom.id α := rfl
+@[simp] lemma symm_dual_comp (g : bounded_order_hom (order_dual β) (order_dual γ))
+  (f : bounded_order_hom (order_dual α) (order_dual β)) :
+  bounded_order_hom.dual.symm (g.comp f) =
+    (bounded_order_hom.dual.symm g).comp (bounded_order_hom.dual.symm f) := rfl
 
 end bounded_order_hom

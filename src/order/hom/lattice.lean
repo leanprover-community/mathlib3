@@ -788,6 +788,11 @@ variables [has_sup α] [has_sup β] [has_sup γ]
 @[simp] lemma dual_comp (g : sup_hom β γ) (f : sup_hom α β) :
   (g.comp f).dual = g.dual.comp f.dual := rfl
 
+@[simp] lemma symm_dual_id : sup_hom.dual.symm (inf_hom.id _) = sup_hom.id α := rfl
+@[simp] lemma symm_dual_comp (g : inf_hom (order_dual β) (order_dual γ))
+  (f : inf_hom (order_dual α) (order_dual β)) :
+  sup_hom.dual.symm (g.comp f) = (sup_hom.dual.symm g).comp (sup_hom.dual.symm f) := rfl
+
 end sup_hom
 
 namespace inf_hom
@@ -803,6 +808,11 @@ variables [has_inf α] [has_inf β] [has_inf γ]
 @[simp] lemma dual_id : (inf_hom.id α).dual = sup_hom.id _ := rfl
 @[simp] lemma dual_comp (g : inf_hom β γ) (f : inf_hom α β) :
   (g.comp f).dual = g.dual.comp f.dual := rfl
+
+@[simp] lemma symm_dual_id : inf_hom.dual.symm (sup_hom.id _) = inf_hom.id α := rfl
+@[simp] lemma symm_dual_comp (g : sup_hom (order_dual β) (order_dual γ))
+  (f : sup_hom (order_dual α) (order_dual β)) :
+  inf_hom.dual.symm (g.comp f) = (inf_hom.dual.symm g).comp (inf_hom.dual.symm f) := rfl
 
 end inf_hom
 
@@ -821,6 +831,11 @@ def dual : sup_bot_hom α β ≃ inf_top_hom (order_dual α) (order_dual β) :=
 @[simp] lemma dual_comp (g : sup_bot_hom β γ) (f : sup_bot_hom α β) :
   (g.comp f).dual = g.dual.comp f.dual := rfl
 
+@[simp] lemma symm_dual_id : sup_bot_hom.dual.symm (inf_top_hom.id _) = sup_bot_hom.id α := rfl
+@[simp] lemma symm_dual_comp (g : inf_top_hom (order_dual β) (order_dual γ))
+  (f : inf_top_hom (order_dual α) (order_dual β)) :
+  sup_bot_hom.dual.symm (g.comp f) = (sup_bot_hom.dual.symm g).comp (sup_bot_hom.dual.symm f) := rfl
+
 end sup_bot_hom
 
 namespace inf_top_hom
@@ -838,6 +853,11 @@ lattices. -/
 @[simp] lemma dual_comp (g : inf_top_hom β γ) (f : inf_top_hom α β) :
   (g.comp f).dual = g.dual.comp f.dual := rfl
 
+@[simp] lemma symm_dual_id : inf_top_hom.dual.symm (sup_bot_hom.id _) = inf_top_hom.id α := rfl
+@[simp] lemma symm_dual_comp (g : sup_bot_hom (order_dual β) (order_dual γ))
+  (f : sup_bot_hom (order_dual α) (order_dual β)) :
+  inf_top_hom.dual.symm (g.comp f) = (inf_top_hom.dual.symm g).comp (inf_top_hom.dual.symm f) := rfl
+
 end inf_top_hom
 
 namespace lattice_hom
@@ -853,6 +873,11 @@ variables [lattice α] [lattice β] [lattice γ]
 @[simp] lemma dual_id : (lattice_hom.id α).dual = lattice_hom.id _ := rfl
 @[simp] lemma dual_comp (g : lattice_hom β γ) (f : lattice_hom α β) :
   (g.comp f).dual = g.dual.comp f.dual := rfl
+
+@[simp] lemma symm_dual_id : lattice_hom.dual.symm (lattice_hom.id _) = lattice_hom.id α := rfl
+@[simp] lemma symm_dual_comp (g : lattice_hom (order_dual β) (order_dual γ))
+  (f : lattice_hom (order_dual α) (order_dual β)) :
+  lattice_hom.dual.symm (g.comp f) = (lattice_hom.dual.symm g).comp (lattice_hom.dual.symm f) := rfl
 
 end lattice_hom
 
@@ -871,5 +896,12 @@ bounded lattices. -/
 @[simp] lemma dual_id : (bounded_lattice_hom.id α).dual = bounded_lattice_hom.id _ := rfl
 @[simp] lemma dual_comp (g : bounded_lattice_hom β γ) (f : bounded_lattice_hom α β) :
   (g.comp f).dual = g.dual.comp f.dual := rfl
+
+@[simp] lemma symm_dual_id :
+  bounded_lattice_hom.dual.symm (bounded_lattice_hom.id _) = bounded_lattice_hom.id α := rfl
+@[simp] lemma symm_dual_comp (g : bounded_lattice_hom (order_dual β) (order_dual γ))
+  (f : bounded_lattice_hom (order_dual α) (order_dual β)) :
+  bounded_lattice_hom.dual.symm (g.comp f) =
+    (bounded_lattice_hom.dual.symm g).comp (bounded_lattice_hom.dual.symm f) := rfl
 
 end bounded_lattice_hom

@@ -339,6 +339,14 @@ functor.map_iso (cones.forget _) $ is_limit.unique_up_to_iso
 lemma kernel.ι_of_mono [has_kernel f] [mono f] : kernel.ι f = 0 :=
 zero_of_source_iso_zero _ (kernel.of_mono f)
 
+/-- If `g ≫ f = 0` implies `g = 0` for all `g`, then `0 : 0 ⟶ X` is a kernel of `f`. -/
+def zero_kernel_of_cancel_zero {X Y : C} (f : X ⟶ Y)
+  (hf : ∀ (Z : C) (g : Z ⟶ X) (hgf : g ≫ f = 0), g = 0) :
+    is_limit (kernel_fork.of_ι (0 : 0 ⟶ X) (show 0 ≫ f = 0, by simp)) :=
+fork.is_limit.mk _ (λ s, 0)
+  (λ s, by rw [hf _ _ (kernel_fork.condition s), zero_comp])
+  (λ s m h, by ext)
+
 end has_zero_object
 
 section transport
@@ -713,6 +721,14 @@ equalizer.ι_of_eq $ cokernel.π_of_epi f
 instance cokernel.of_kernel_of_mono [has_kernel f]
   [has_cokernel (kernel.ι f)] [mono f] : is_iso (cokernel.π (kernel.ι f)) :=
 coequalizer.π_of_eq $ kernel.ι_of_mono f
+
+/-- If `f ≫ g = 0` implies `g = 0` for all `g`, then `0 : Y ⟶ 0` is a cokernel of `f`. -/
+def zero_cokernel_of_zero_cancel {X Y : C} (f : X ⟶ Y)
+  (hf : ∀ (Z : C) (g : Y ⟶ Z) (hgf : f ≫ g = 0), g = 0) :
+    is_colimit (cokernel_cofork.of_π (0 : Y ⟶ 0) (show f ≫ 0 = 0, by simp)) :=
+cofork.is_colimit.mk _ (λ s, 0)
+  (λ s, by rw [hf _ _ (cokernel_cofork.condition s), comp_zero])
+  (λ s m h, by ext)
 
 end has_zero_object
 

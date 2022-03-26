@@ -90,7 +90,7 @@ lemma exists_mem_adjoin_mul_eq_pow_nat_degree {x : S} (hx : aeval x f = 0)
   (hmo : f.monic) (hf : f.is_weakly_eisenstein_at P) : ∃ y ∈ adjoin R ({x} : set S),
   (algebra_map R S) p * y = x ^ (f.map (algebra_map R S)).nat_degree :=
 begin
-  rw [aeval_def, polynomial.eval₂_eq_eval_map, eval_eq_finset_sum, range_add_one,
+  rw [aeval_def, polynomial.eval₂_eq_eval_map, eval_eq_sum_range, range_add_one,
     sum_insert not_mem_range_self, sum_range, (hmo.map
     (algebra_map R S)).coeff_nat_degree, one_mul] at hx,
   replace hx := eq_neg_of_add_eq_zero hx,
@@ -135,7 +135,7 @@ begin
   rw [hk, pow_add],
   suffices : x ^ f.nat_degree ∈ 𝓟,
   { exact mul_mem_right (x ^ k) 𝓟 this },
-  rw [is_root.def, eval_eq_finset_sum, finset.range_add_one, finset.sum_insert
+  rw [is_root.def, eval_eq_sum_range, finset.range_add_one, finset.sum_insert
     finset.not_mem_range_self, finset.sum_range, hmo.coeff_nat_degree, one_mul] at hroot,
   rw [eq_neg_of_add_eq_zero hroot, neg_mem_iff],
   refine submodule.sum_mem _ (λ i hi,  mul_mem_right _ _ (hf.mem (fin.is_lt i)))
@@ -379,7 +379,7 @@ begin
       Q.coeff i • (B.gen ^ i * B.gen ^ n) =
       p • Q.coeff i • f (i + n),
     { intros i hi,
-      rw [← pow_add, ← (hf _ (aux i hi)).2, ← smul_def, smul_smul, mul_comm _ p, smul_smul] },
+      rw [←pow_add, ←(hf _ (aux i hi)).2, ←algebra.smul_def, smul_smul, mul_comm _ p, smul_smul] },
     simp only [add_mul, smul_mul_assoc, one_mul, sum_mul, sum_congr rfl this] },
   { rw [aeval_eq_sum_range,
         finset.add_sum_erase (range (Q.nat_degree + 1)) (λ i, Q.coeff i • B.gen ^ i)],
@@ -428,7 +428,7 @@ begin
   { rw [← mod_by_monic_add_div Q₁ (minpoly.monic hBint)] at hQ,
     simpa using hQ },
   by_cases hQzero : Q = 0,
-  { simp only [hQzero, smul_def, zero_eq_mul, aeval_zero] at hQ,
+  { simp only [hQzero, algebra.smul_def, zero_eq_mul, aeval_zero] at hQ,
     cases hQ with H H₁,
     { have : function.injective (algebra_map R L),
       { rw [algebra_map_eq R K L],
@@ -466,8 +466,8 @@ begin
       (algebra_map R L p) * (g k • B.gen ^ k),
     { intros k hk,
       rw [hg k (mem_range_succ_iff.1 hk) (mem_range_succ_iff.2 (le_trans (mem_range_succ_iff.1 hk)
-        (succ_le_iff.1 (mem_range_succ_iff.1 hj)).le)), smul_def, smul_def,  ring_hom.map_mul,
-        mul_assoc] },
+        (succ_le_iff.1 (mem_range_succ_iff.1 hj)).le)), algebra.smul_def, algebra.smul_def,
+        ring_hom.map_mul, mul_assoc] },
 
     -- Since `minpoly R B.gen` is Eiseinstein, we can find `f : ℕ → L` such that
     -- `(map (algebra_map R L) (minpoly R B.gen)).nat_degree ≤ i` implies `f i ∈ adjoin R {B.gen}`
@@ -512,7 +512,7 @@ begin
   simp_rw [sum_map, add_left_embedding_apply, add_mul, sum_mul, mul_assoc] at hQ,
   rw [← insert_erase (mem_range.2 (tsub_pos_iff_lt.2 $ nat.lt_of_succ_lt_succ $ mem_range.1 hj)),
       sum_insert (not_mem_erase 0 _), add_zero, sum_congr rfl hf₁, ← mul_sum, ← mul_sum,
-      add_assoc, ← mul_add, smul_mul_assoc, ← pow_add, smul_def] at hQ,
+      add_assoc, ← mul_add, smul_mul_assoc, ← pow_add, algebra.smul_def] at hQ,
   replace hQ := congr_arg (norm K) (eq_sub_of_add_eq hQ),
 
   -- We obtain an equality of elements of `K`, but everything is integral, so we can move to `R`
@@ -533,7 +533,7 @@ begin
         rw [h] at hk,
         simpa using hk } },
     obtain ⟨r, hr⟩ := is_integral_iff.1 (is_integral_norm K hintsum),
-    rw [smul_def, mul_assoc, ← mul_sub, _root_.map_mul, algebra_map_apply R K L, map_pow,
+    rw [algebra.smul_def, mul_assoc, ← mul_sub, _root_.map_mul, algebra_map_apply R K L, map_pow,
       norm_algebra_map, _root_.map_mul, algebra_map_apply R K L, norm_algebra_map, finrank B, ← hr,
       power_basis.norm_gen_eq_coeff_zero_minpoly, minpoly.gcd_domain_eq_field_fractions K hBint,
       coeff_map, show (-1 : K) = algebra_map R K (-1), by simp, ← map_pow, ← map_pow,

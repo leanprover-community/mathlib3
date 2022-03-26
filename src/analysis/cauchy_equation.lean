@@ -46,7 +46,7 @@ begin
   have hrm : measurable_set (f⁻¹' (ball z r)),
   { apply h,
     exact measurable_set_ball },
-  rcases (steinhaus_theorem_add ℝ (f⁻¹' (ball z r)) hrm hr) with ⟨U, hU0, hUr⟩,
+  rcases (steinhaus_theorem_add volume (f⁻¹' (ball z r)) hrm hr) with ⟨U, hU0, hUr⟩,
   refine ⟨U, hU0, _⟩,
   { rw (metric.bounded_iff_subset_ball (0 : ℝ)),
     use 2 * r,

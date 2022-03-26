@@ -376,6 +376,12 @@ namespace equivalence
 restate_axiom left_triangle'
 attribute [simp] left_triangle
 
+@[simp]
+lemma right_triangle (f : a ≌ b) :
+  whisker_left_iso f.inv f.unit ≪≫ (α_ _ _ _).symm ≪≫ whisker_right_iso f.counit f.inv =
+    ρ_ f.inv ≪≫ (λ_ f.inv).symm :=
+right_triangle_of_left_triangle f.left_triangle
+
 def id (a : B) : a ≌ a := ⟨_, _, (ρ_ _).symm, ρ_ _, by { ext, dsimp, coherence }⟩
 
 instance : inhabited (equivalence a a) := ⟨id a⟩
@@ -395,6 +401,18 @@ definition mk_of_adjointify_unit (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ �
   left_triangle' := left_triangle_iff_right_triangle.mpr (adjointify_unit_right_triangle η ε) }
 
 end equivalence
+
+def adjunction.of_equivalence (f : a ≌ b) : f.hom ⊣ f.inv :=
+{ unit   := f.unit.hom,
+  counit := f.counit.hom,
+  left_triangle'  := congr_arg iso.hom f.left_triangle,
+  right_triangle' := congr_arg iso.hom f.right_triangle }
+
+def adjunction.of_equivalence_symm (f : a ≌ b) : f.inv ⊣ f.hom :=
+{ unit   := f.counit.inv,
+  counit := f.unit.inv,
+  left_triangle'  := right_zigzag_iso_inv f.unit f.counit ▸ congr_arg iso.inv f.right_triangle,
+  right_triangle' := left_zigzag_iso_inv  f.unit f.counit ▸ congr_arg iso.inv f.left_triangle }
 
 end
 

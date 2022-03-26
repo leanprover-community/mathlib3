@@ -835,7 +835,7 @@ begin
   end
 end
 
-lemma uniform_integrable.spec [is_finite_measure μ] (hp : p ≠ 0) (hp' : p ≠ ∞)
+lemma uniform_integrable.spec (hp : p ≠ 0) (hp' : p ≠ ∞)
   (hfu : uniform_integrable f p μ) {ε : ℝ} (hε : 0 < ε) :
   ∃ C : ℝ≥0, ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε :=
 begin

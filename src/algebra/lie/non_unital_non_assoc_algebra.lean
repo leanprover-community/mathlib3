@@ -3,8 +3,8 @@ Copyright (c) 2021 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import algebra.hom.non_unital_alg
 import algebra.lie.basic
-import algebra.non_unital_alg_hom
 
 /-!
 # Lie algebras as non-unital, non-associative algebras

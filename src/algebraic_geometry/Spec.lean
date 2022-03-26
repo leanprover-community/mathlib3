@@ -38,7 +38,7 @@ universes u v
 namespace algebraic_geometry
 open opposite
 open category_theory
-open structure_sheaf
+open structure_sheaf Spec (structure_sheaf)
 
 /--
 The spectrum of a commutative ring, as a topological space.

@@ -177,17 +177,7 @@ instance : has_neg (centroid_hom α) :=
 ⟨λ f, ⟨-f, by simp [map_mul_left], by simp [map_mul_right]⟩⟩
 
 instance : has_sub (centroid_hom α) :=
-⟨λ f g, ⟨f.to_add_monoid_hom - g.to_add_monoid_hom, λ a b, begin
-    change _ - _ = _,
-    convert (mul_sub _ _ _).symm,
-    { exact f.map_mul_left' _ _ },
-    { exact g.map_mul_left' _ _ }
-  end, λ a b, begin
-    change _ - _ = _,
-    convert (sub_mul _ _ _).symm,
-    { exact f.map_mul_right' _ _ },
-    { exact g.map_mul_right' _ _ }
-  end⟩⟩
+⟨λ f g, ⟨f - g, λ a b, by simp [map_mul_left, mul_sub], λ a b, by simp [map_mul_right, sub_mul]⟩⟩
 
 instance : add_comm_group (centroid_hom α) :=
 { sub_eq_add_neg := λ _ _, ext $ λ _, sub_eq_add_neg _ _,

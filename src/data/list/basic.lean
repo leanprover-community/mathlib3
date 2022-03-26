@@ -854,6 +854,27 @@ begin
   { simpa }
 end
 
+lemma nth_le_cons_aux {l : list α} {a : α} {n} (hn : n ≠ 0) (h : n < (a :: l).length) :
+  n - 1 < l.length :=
+begin
+  contrapose! h,
+  rw length_cons,
+  convert succ_le_succ h,
+  exact (nat.succ_pred_eq_of_pos hn.bot_lt).symm
+end
+
+lemma nth_le_cons {l : list α} {a : α} {n} (hl) :
+  (a :: l).nth_le n hl = if hn : n = 0 then a else l.nth_le (n - 1) (nth_le_cons_aux hn hl) :=
+begin
+  split_ifs,
+  { simp [nth_le, h] },
+  cases l,
+  { rw [length_singleton, nat.lt_one_iff] at hl, contradiction },
+  cases n,
+  { contradiction },
+  refl
+end
+
 @[simp] lemma modify_head_modify_head (l : list α) (f g : α → α) :
   (l.modify_head f).modify_head g = l.modify_head (g ∘ f) :=
 by cases l; simp
@@ -2972,6 +2993,8 @@ by rw [←mem_iff_nth, ←mem_iff_nth, reduce_option_mem_iff]
 
 section filter
 variables {p : α → Prop} [decidable_pred p]
+
+lemma filter_singleton {a : α} : [a].filter p = if p a then [a] else [] := rfl
 
 theorem filter_eq_foldr (p : α → Prop) [decidable_pred p] (l : list α) :
   filter p l = foldr (λ a out, if p a then a :: out else out) [] l :=

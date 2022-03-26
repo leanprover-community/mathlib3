@@ -14,9 +14,7 @@ import model_theory.terms_and_formulas
 * A `first_order.language.elementary_embedding` is an embedding that commutes with the
   realizations of formulas.
 * A `first_order.language.elementary_substructure` is a substructure where the realization of each
-  formula agrees with the realization in the larger model.
-
-  -/
+  formula agrees with the realization in the larger model. -/
 
 open_locale first_order
 namespace first_order

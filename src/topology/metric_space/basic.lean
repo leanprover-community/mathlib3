@@ -1502,15 +1502,10 @@ by simpa only [hs.closure_eq] using @mem_closure_iff _ _ s a
 lemma dense_iff {s : set α} :
   dense s ↔ ∀ x, ∀ r > 0, (ball x r ∩ s).nonempty :=
 begin
-  split,
-  { assume hs x r rpos,
-    exact hs.inter_open_nonempty _ metric.is_open_ball (metric.nonempty_ball.2 rpos) },
-  { assume H,
-    rw [dense_iff_closure_eq, ← univ_subset_iff],
-    assume x hx,
-    apply metric.mem_closure_iff.2 (λ r rpos, _),
-    rcases H x r rpos with ⟨y, hy⟩,
-    exact ⟨y, hy.2, metric.mem_ball'.1 hy.1⟩ }
+  apply forall_congr (λ x, _),
+  rw mem_closure_iff,
+  refine forall_congr (λ ε, forall_congr (λ h, exists_congr (λ y, _))),
+  rw [mem_inter_iff, mem_ball', exists_prop, and_comm]
 end
 
 lemma dense_range_iff {f : β → α} :
@@ -1572,11 +1567,9 @@ begin
   let g : f ⁻¹' s → s := cod_restrict (f ∘ coe) s (λ x, x.2),
   have : inducing g := (hf.comp inducing_coe).cod_restrict _,
   haveI : second_countable_topology (f ⁻¹' s) := this.second_countable_topology,
-  have : is_separable ((coe : f ⁻¹' s → β) '' univ) :=
-    is_separable.image (is_separable_of_separable_space _) continuous_subtype_coe,
-  convert this,
-  simp only [image_univ, subtype.range_coe_subtype, mem_preimage],
-  refl,
+  rw show f ⁻¹' s = coe '' (univ : set (f ⁻¹' s)), 
+     by simpa only [image_univ, subtype.range_coe_subtype, mem_preimage],
+  exact (is_separable_of_separable_space _).image continuous_subtype_coe
 end
 
 protected lemma _root_.embedding.is_separable_preimage {f : β → α} [topological_space β]
@@ -1589,10 +1582,9 @@ lemma _root_.continuous_on.is_separable_image [topological_space β] {f : α →
   (hf : continuous_on f s) (hs : is_separable s) :
   is_separable (f '' s) :=
 begin
-  convert is_separable.image (is_separable_univ_iff.2 hs.separable_space)
-    (continuous_on_iff_continuous_restrict.1 hf) using 1,
-  ext x,
-  simp,
+  rw show f '' s = s.restrict f '' univ, by ext ; simp,
+  exact (is_separable_univ_iff.2 hs.separable_space).image 
+    (continuous_on_iff_continuous_restrict.1 hf),
 end
 
 end metric

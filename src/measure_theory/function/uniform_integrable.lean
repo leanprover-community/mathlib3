@@ -849,7 +849,7 @@ begin
     refine ⟨0, λ i, _⟩,
     rw (snorm_eq_zero_iff
       ((hf₀ i).indicator (measurable_set_le measurable_const (hf₀ i).nnnorm)).ae_measurable hp).2
-      (indicator_ae_eq_zero _ (this i)),
+      (indicator_ae_eq_zero_of_ae_eq_zero _ (this i)),
     exact bot_le },
   obtain ⟨δ, hδpos, hδ⟩ := hfu hε,
   obtain ⟨C, hC⟩ : ∃ C : ℝ≥0, ∀ i, μ {x | C ≤ ∥f i x∥₊} ≤ ennreal.of_real δ,

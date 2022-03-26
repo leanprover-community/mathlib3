@@ -40,6 +40,30 @@ boolean ring, boolean algebra
 
 variables {α β γ : Type*}
 
+section
+variables [generalized_boolean_algebra α]
+
+lemma inf_inf_distrib_left (a b c : α) : a ⊓ (b ⊓ c) = (a ⊓ b) ⊓ (a ⊓ c) :=
+by rw [inf_inf_inf_comm, inf_idem]
+
+lemma inf_inf_distrib_right (a b c : α) : (a ⊓ b) ⊓ c = (a ⊓ c) ⊓ (b ⊓ c) :=
+by rw [inf_inf_inf_comm, inf_idem]
+
+lemma inf_sdiff_distrib_left (a b c : α) : a ⊓ b \ c = (a ⊓ b) \ (a ⊓ c) :=
+by rw [sdiff_inf, sdiff_eq_bot_iff.2 inf_le_left, bot_sup_eq, inf_sdiff_assoc]
+
+lemma inf_sdiff_distrib_right (a b c : α) : a \ b ⊓ c = (a ⊓ c) \ (b ⊓ c) :=
+by simp_rw [@inf_comm _ _ _ c, inf_sdiff_distrib_left]
+
+lemma inf_symm_diff_distrib_left (a b c : α) : a ⊓ b Δ c = (a ⊓ b) Δ (a ⊓ c) :=
+by rw [symm_diff_eq_sup_sdiff_inf, inf_sdiff_distrib_left, inf_sup_left, inf_inf_distrib_left,
+  symm_diff_eq_sup_sdiff_inf]
+
+lemma inf_symm_diff_distrib_right (a b c : α) : a Δ b ⊓ c = (a ⊓ c) Δ (b ⊓ c) :=
+by simp_rw [@inf_comm _ _ _ c, inf_symm_diff_distrib_left]
+
+end
+
 /-- A Boolean ring is a ring where multiplication is idempotent. -/
 class boolean_ring α extends ring α :=
 (mul_self : ∀ a : α, a * a = a)
@@ -186,10 +210,6 @@ end boolean_ring
 
 instance : boolean_algebra (as_boolalg α) := @boolean_ring.to_boolean_algebra α _
 
-lemma as_boolalg.le_iff {a b : as_boolalg α} :
-  a ≤ b ↔  of_boolalg a * of_boolalg b = of_boolalg a :=
-inf_eq_left.symm
-
 @[simp] lemma of_boolalg_top : of_boolalg (⊤ : as_boolalg α) = 1 := rfl
 @[simp] lemma of_boolalg_bot : of_boolalg (⊥ : as_boolalg α) = 0 := rfl
 
@@ -212,6 +232,10 @@ calc (a + b + a * b) * (1 + a * b)
 @[simp] lemma of_boolalg_symm_diff (a b : as_boolalg α) :
   of_boolalg (a Δ b) = of_boolalg a + of_boolalg b :=
 by { rw symm_diff_eq_sup_sdiff_inf, exact of_boolalg_symm_diff_aux _ _ }
+
+@[simp] lemma of_boolalg_mul_of_boolalg_eq_left_iff {a b : as_boolalg α} :
+  of_boolalg a * of_boolalg b = of_boolalg a ↔ a ≤ b :=
+@inf_eq_left (as_boolalg α) _ _ _
 
 @[simp] lemma to_boolalg_zero : to_boolalg (0 : α) = ⊥ := rfl
 @[simp] lemma to_boolalg_one : to_boolalg (1 : α) = ⊤ := rfl
@@ -270,56 +294,53 @@ iff.rfl
 
 instance [inhabited α] : inhabited (as_boolring α) := ‹inhabited α›
 
-variables [boolean_algebra α] [boolean_algebra β] [boolean_algebra γ]
+/-- Every generalized Boolean algebra has the structure of a non unital ring with the following
+data:
 
-namespace boolean_algebra
+* `a + b` unfolds to `a Δ b` (symmetric difference)
+* `a * b` unfolds to `a ⊓ b`
+* `-a` unfolds to `a`
+* `0` unfolds to `⊥`
+-/
+def generalized_boolean_algebra.to_non_unital_ring [generalized_boolean_algebra α] :
+  non_unital_ring α :=
+{ add := (Δ),
+  add_assoc := symm_diff_assoc,
+  zero := ⊥,
+  zero_add := bot_symm_diff,
+  add_zero := symm_diff_bot,
+  zero_mul := λ _, bot_inf_eq,
+  mul_zero := λ _, inf_bot_eq,
+  neg := id,
+  add_left_neg := symm_diff_self,
+  add_comm := symm_diff_comm,
+  mul := (⊓),
+  mul_assoc := λ _ _ _, inf_assoc,
+  left_distrib := inf_symm_diff_distrib_left,
+  right_distrib := inf_symm_diff_distrib_right }
+
+instance [generalized_boolean_algebra α] : non_unital_ring (as_boolring α) :=
+@generalized_boolean_algebra.to_non_unital_ring α _
+
+variables [boolean_algebra α] [boolean_algebra β] [boolean_algebra γ]
 
 /-- Every Boolean algebra has the structure of a Boolean ring with the following data:
 
-* `a + b` unfolds to `a Δ b` (symmetric difference),
+* `a + b` unfolds to `a Δ b` (symmetric difference)
 * `a * b` unfolds to `a ⊓ b`
 * `-a` unfolds to `a`
 * `0` unfolds to `⊥`
 * `1` unfolds to `⊤`
 -/
-def to_boolean_ring : boolean_ring α :=
-{ add := (Δ),
-  add_assoc := symm_diff_assoc,
-  zero := ⊥,
-  zero_add := λ b, by simp only [symm_diff_eq, compl_bot, bot_inf_eq, inf_top_eq, bot_sup_eq],
-  add_zero := λ b, by simp only [symm_diff_eq, compl_bot, bot_inf_eq, inf_top_eq, sup_bot_eq],
-  neg := λ a, a,
-  add_left_neg := λ b,
-    begin
-      simp only [has_neg.neg, (+), add_semigroup.add, add_monoid.add, add_zero_class.add,
-        symm_diff_eq, sup_bot_eq, inf_compl_eq_bot],
-      refl,
-    end,
-  add_comm := symm_diff_comm,
-  mul := (⊓),
-  mul_assoc := λ a b c, by simp only [(*), inf_assoc],
-  one := ⊤,
-  one_mul := λ b, by simp [(*)],
-  mul_one := λ b, by simp [(*)],
-  left_distrib := λ a b c,
-    begin
-      simp only [symm_diff_eq, compl_inf, inf_sup_left, inf_assoc],
-      rw [@inf_comm _ _ b aᶜ, ←@inf_assoc _ _ a aᶜ, inf_compl_eq_bot, bot_inf_eq,
-        bot_sup_eq, @inf_comm _ _ c aᶜ, ←@inf_assoc _ _ a aᶜ,
-        inf_compl_eq_bot, bot_inf_eq, bot_sup_eq],
-    end,
-  right_distrib := λ a b c,
-    begin
-      simp only [symm_diff_eq, compl_inf, inf_sup_right, inf_assoc, inf_sup_left],
-      rw [@inf_comm _ _ c, @inf_comm _ _ c aᶜ, inf_compl_eq_bot, inf_bot_eq, inf_bot_eq,
-        sup_bot_eq, sup_bot_eq],
-    end,
-  mul_self := λ b, inf_idem }
+def boolean_algebra.to_boolean_ring : boolean_ring α :=
+{ one := ⊤,
+  one_mul := λ _, top_inf_eq,
+  mul_one := λ _, inf_top_eq,
+  mul_self := λ b, inf_idem,
+  ..generalized_boolean_algebra.to_non_unital_ring }
 
-localized "attribute [instance, priority 100] boolean_algebra.to_boolean_ring" in
-  boolean_ring_of_boolean_algebra
-
-end boolean_algebra
+localized "attribute [instance, priority 100] generalized_boolean_algebra.to_non_unital_ring
+  boolean_algebra.to_boolean_ring" in boolean_ring_of_boolean_algebra
 
 instance : boolean_ring (as_boolring α) := @boolean_algebra.to_boolean_ring α _
 
@@ -375,7 +396,8 @@ end algebra_to_ring
 `α`. -/
 @[simps] def order_iso.as_boolalg_as_boolring (α : Type*) [boolean_algebra α] :
   as_boolalg (as_boolring α) ≃o α :=
-⟨of_boolalg.trans of_boolring, λ a b, of_boolring_le_of_boolring_iff.trans as_boolalg.le_iff.symm⟩
+⟨of_boolalg.trans of_boolring, λ a b,
+  of_boolring_le_of_boolring_iff.trans of_boolalg_mul_of_boolalg_eq_left_iff⟩
 
 /-- Ring isomorphism between `α` considered as a Boolean algebra considered as a Boolean ring and
 `α`. -/

@@ -598,11 +598,8 @@ variables {R : Type*} (c₁ c₂ : R)
 @[simp] lemma mk_quaternion_algebra : #ℍ[R, c₁, c₂] = #R ^ 4 :=
 by { rw mk_congr (quaternion_algebra.equiv_prod c₁ c₂), simp only [mk_prod, lift_id], ring }
 
-lemma mk_quaternion_algebra_of_infinite [infinite R] : #ℍ[R, c₁, c₂] = #R :=
-begin
-  simp,
-  rw cardinal.pow_eq_self
-end
+@[simp] lemma mk_quaternion_algebra_of_infinite [infinite R] : #ℍ[R, c₁, c₂] = #R :=
+by rw [mk_quaternion_algebra, power_nat_eq (omega_le_mk R) (by {norm_cast, simp})]
 
 /-- The cardinality of a quaternion algebra, as a set. -/
 @[simp] lemma mk_univ_quaternion_algebra : #(set.univ : set ℍ[R, c₁, c₂]) = #R ^ 4 :=
@@ -617,6 +614,9 @@ variables (R : Type*) [has_one R] [has_neg R]
 /-- The cardinality of the quaternions, as a type. -/
 @[simp] lemma mk_quaternion : #ℍ[R] = #R ^ 4 :=
 mk_quaternion_algebra _ _
+
+@[simp] lemma mk_quaternion_of_infinite [infinite R] : #ℍ[R] = #R :=
+by rw [mk_quaternion, power_nat_eq (omega_le_mk R) (by {norm_cast, simp})]
 
 /-- The cardinality of the quaternions, as a set. -/
 @[simp] lemma mk_univ_quaternion : #(set.univ : set ℍ[R]) = #R ^ 4 :=

@@ -206,15 +206,9 @@ instance : group (free_product G) :=
   ..free_product.has_inv G,
   ..free_product.monoid G }
 
-lemma lift_range_subset {N} [group N] (f : Π i, G i →* N) {s : subgroup N}
-  (h : ∀ i, set.range (f i) ⊆ s) : set.range (lift f) ⊆ s :=
-begin
-  rintros _ ⟨x, rfl⟩,
-  induction x using free_product.induction_on with i x x y hx hy,
-  { exact s.one_mem, },
-  { simp only [lift_of, set_like.mem_coe], exact h i (set.mem_range_self x), },
-  { simp only [map_mul, set_like.mem_coe], exact s.mul_mem hx hy, },
-end
+lemma lift_range_subset {N} [group N] (f : Π i, G i →* N) {s : subgroup N} :
+   (∀ i, set.range (f i) ⊆ s) → set.range (lift f) ⊆ s :=
+by { rw ← s.coe_to_submonoid, exact lift_range_subset_submonoid f, }
 
 lemma range_eq_subgroup_closure {N} [group N] (f : Π i, G i →* N) :
   set.range (lift f) = subgroup.closure (⋃ i, set.range (f i)) :=

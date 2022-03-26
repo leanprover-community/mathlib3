@@ -55,3 +55,7 @@ end BoolRing
 
 @[simps] instance BoolRing.has_forget_to_BoolAlg : has_forget₂ BoolRing BoolAlg :=
 { forget₂ := { obj := λ X, BoolAlg.of (as_boolalg X), map := λ X Y, ring_hom.as_boolalg } }
+
+@[simps] instance BoolAlg.has_forget_to_BoolRing : has_forget₂ BoolAlg BoolRing :=
+{ forget₂ := { obj := λ X, BoolRing.of (as_boolring X),
+               map := λ X Y, bounded_lattice_hom.as_boolring } }

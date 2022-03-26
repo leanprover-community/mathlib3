@@ -1,11 +1,10 @@
 /-
 Copyright (c) 2021 Bryan Gin-ge Chen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Bryan Gin-ge Chen
+Authors: Bryan Gin-ge Chen, Yaël Dillies
 -/
 import algebra.punit_instances
 import order.hom.lattice
-import order.symm_diff
 import tactic.abel
 import tactic.ring
 
@@ -18,14 +17,25 @@ algebras.
 ## Main declarations
 
 * `boolean_ring`: a typeclass for rings where multiplication is idempotent.
-* `boolean_ring.to_boolean_algebra`: every Boolean ring is a Boolean algebra; this definition and
-  the `sup` and `inf` notations for `boolean_ring` are localized as instances in the
-  `boolean_algebra_of_boolean_ring` locale.
+* `boolean_ring.to_boolean_algebra`: Turn a Boolean ring into a Boolean algebra.
+* `boolean_algebra.to_boolean_ring`: Turn a Boolean algebra into a Boolean ring.
+* `as_boolalg`: Type-synonym for the Boolean algebra associated to a Boolean ring.
+* `as_boolring`: Type-synonym for the Boolean ring associated to a Boolean algebra.
+
+## Implementation notes
+
+We provide two ways of turning a Boolean algebra/ring into a Boolean ring/algebra:
+* Instances on the same type accessible in locales `boolean_algebra_of_boolean_ring` and
+  `boolean_ring_of_boolean_algebra`.
+* Type-synonyms `as_boolalg` and `as_boolring`.
+
+At this point in time, it is not clear the first way is useful, but we keep it for educational
+purposes and because it is easier than dealing with
+`of_boolalg`/`to_boolalg`/`of_boolring`/`to_boolring` explicitly.
 
 ## Tags
 
 boolean ring, boolean algebra
-
 -/
 
 variables {α β γ : Type*}
@@ -81,6 +91,8 @@ instance : boolean_ring punit := ⟨λ _, subsingleton.elim _ _⟩
 
 /-! ### Turning a Boolean ring into a Boolean algebra -/
 
+section ring_to_algebra
+
 /-- Type synonym to view a Boolean ring as a Boolean algebra. -/
 def as_boolalg (α : Type*) := α
 
@@ -99,7 +111,6 @@ def of_boolalg : as_boolalg α ≃ α := equiv.refl _
 
 instance [inhabited α] : inhabited (as_boolalg α) := ‹inhabited α›
 
-section ring_to_algebra
 variables [boolean_ring α] [boolean_ring β] [boolean_ring γ]
 
 namespace boolean_ring
@@ -175,6 +186,10 @@ end boolean_ring
 
 instance : boolean_algebra (as_boolalg α) := @boolean_ring.to_boolean_algebra α _
 
+lemma as_boolalg.le_iff {a b : as_boolalg α} :
+  a ≤ b ↔  of_boolalg a * of_boolalg b = of_boolalg a :=
+inf_eq_left.symm
+
 @[simp] lemma of_boolalg_top : of_boolalg (⊤ : as_boolalg α) = 1 := rfl
 @[simp] lemma of_boolalg_bot : of_boolalg (⊥ : as_boolalg α) = 0 := rfl
 
@@ -184,14 +199,32 @@ instance : boolean_algebra (as_boolalg α) := @boolean_ring.to_boolean_algebra �
 @[simp] lemma of_boolalg_inf (a b : as_boolalg α) :
   of_boolalg (a ⊓ b) = of_boolalg a * of_boolalg b := rfl
 
+@[simp] lemma of_boolalg_compl (a : as_boolalg α) : of_boolalg aᶜ = 1 + of_boolalg a := rfl
+
+@[simp] lemma of_boolalg_sdiff (a b : as_boolalg α) :
+  of_boolalg (a \ b) = of_boolalg a * (1 + of_boolalg b) := rfl
+
+private lemma of_boolalg_symm_diff_aux (a b : α) : (a + b + a * b) * (1 + a * b) = a + b :=
+calc (a + b + a * b) * (1 + a * b)
+      = a + b + (a * b + (a * b) * (a * b)) + (a * (b * b) + (a * a) * b) : by ring
+  ... = a + b : by simp only [mul_self, add_self, add_zero]
+
+@[simp] lemma of_boolalg_symm_diff (a b : as_boolalg α) :
+  of_boolalg (a Δ b) = of_boolalg a + of_boolalg b :=
+by { rw symm_diff_eq_sup_sdiff_inf, exact of_boolalg_symm_diff_aux _ _ }
+
 @[simp] lemma to_boolalg_zero : to_boolalg (0 : α) = ⊥ := rfl
 @[simp] lemma to_boolalg_one : to_boolalg (1 : α) = ⊤ := rfl
 
 @[simp] lemma to_boolalg_mul (a b : α) :
   to_boolalg (a * b) = to_boolalg a ⊓ to_boolalg b := rfl
 
-@[simp] lemma to_boolalg_add_add_mul (a b : α) :
+-- `to_boolalg_add` simplifies the LHS but this lemma is eligible to `dsimp`
+@[simp, nolint simp_nf] lemma to_boolalg_add_add_mul (a b : α) :
   to_boolalg (a + b + a * b) = to_boolalg a ⊔ to_boolalg b := rfl
+
+@[simp] lemma to_boolalg_add (a b : α) : to_boolalg (a + b) = to_boolalg a Δ to_boolalg b :=
+(of_boolalg_symm_diff _ _).symm
 
 /-- Turn a ring homomorphism from Boolean rings `α` to `β` into a bounded lattice homomorphism
 from `α` to `β` considered as Boolean algebras. -/
@@ -214,6 +247,31 @@ from `α` to `β` considered as Boolean algebras. -/
 
 end ring_to_algebra
 
+/-! ### Turning a Boolean algebra into a Boolean ring -/
+
+section algebra_to_ring
+
+/-- Type synonym to view a Boolean ring as a Boolean algebra. -/
+def as_boolring (α : Type*) := α
+
+/-- The "identity" equivalence between `as_boolring α` and `α`. -/
+def to_boolring : α ≃ as_boolring α := equiv.refl _
+
+/-- The "identity" equivalence between `α` and `as_boolring α`. -/
+def of_boolring : as_boolring α ≃ α := equiv.refl _
+
+@[simp] lemma to_boolring_symm_eq : (@to_boolring α).symm = of_boolring := rfl
+@[simp] lemma of_boolring_symm_eq : (@of_boolring α).symm = to_boolring := rfl
+@[simp] lemma to_boolring_of_boolring (a : as_boolring α) : to_boolring (of_boolring a) = a := rfl
+@[simp] lemma of_boolring_to_boolring (a : α) : of_boolring (to_boolring a) = a := rfl
+@[simp] lemma to_boolring_inj {a b : α} : to_boolring a = to_boolring b ↔ a = b := iff.rfl
+@[simp] lemma of_boolring_inj {a b : as_boolring α} : of_boolring a = of_boolring b ↔ a = b :=
+iff.rfl
+
+instance [inhabited α] : inhabited (as_boolring α) := ‹inhabited α›
+
+variables [boolean_algebra α] [boolean_algebra β] [boolean_algebra γ]
+
 namespace boolean_algebra
 
 /-- Every Boolean algebra has the structure of a Boolean ring with the following data:
@@ -224,12 +282,12 @@ namespace boolean_algebra
 * `0` unfolds to `⊥`
 * `1` unfolds to `⊤`
 -/
-def to_boolean_ring (α : Type*) [boolean_algebra α] : boolean_ring α :=
+def to_boolean_ring : boolean_ring α :=
 { add := (Δ),
   add_assoc := symm_diff_assoc,
   zero := ⊥,
-  zero_add := λ b, by simp [(+), symm_diff_eq],
-  add_zero := λ b, by simp [(+), symm_diff_eq],
+  zero_add := λ b, by simp only [symm_diff_eq, compl_bot, bot_inf_eq, inf_top_eq, bot_sup_eq],
+  add_zero := λ b, by simp only [symm_diff_eq, compl_bot, bot_inf_eq, inf_top_eq, sup_bot_eq],
   neg := λ a, a,
   add_left_neg := λ b,
     begin
@@ -261,120 +319,68 @@ def to_boolean_ring (α : Type*) [boolean_algebra α] : boolean_ring α :=
 localized "attribute [instance, priority 100] boolean_algebra.to_boolean_ring" in
   boolean_ring_of_boolean_algebra
 
-/-!
-The following lemmas amount to a proof that applying `boolean_algebra.to_boolean_ring` and then
-`boolean_ring.to_boolean_algebra` to a Boolean algebra results in the same Boolean algebra.
--/
-
-variables {α : Type*} (BA : boolean_algebra α)
-
-lemma to_boolean_ring.sup_eq :
-  (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).sup = BA.sup :=
-symm_diff_symm_diff_sup _ _
-
-lemma to_boolean_ring.le_iff :
-  (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).le = BA.le :=
-begin
-  ext a b,
-  change a Δ b Δ (a ⊓ b) = b ↔ a ≤ b,
-  simp [symm_diff_symm_diff_sup],
-end
-
-lemma to_boolean_ring.lt_iff :
-  (@boolean_ring.to_boolean_algebra α (@boolean_algebra.to_boolean_ring α BA)).lt = BA.lt :=
-begin
-  ext a b,
-  change a Δ b Δ (a ⊓ b) = b ∧ b Δ a Δ (b ⊓ a) ≠ a ↔ a < b,
-  simp only [symm_diff_symm_diff_sup, lt_iff_le_not_le, sup_eq_right, ne.def],
-  refl,
-end
-
-lemma to_boolean_ring.inf_eq :
-  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).inf = BA.inf :=
-rfl
-
-lemma to_boolean_ring.top_eq :
-  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).top = BA.top :=
-rfl
-
-lemma to_boolean_ring.bot_eq :
-  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).bot = BA.bot :=
-rfl
-
-lemma to_boolean_ring.compl_eq :
-  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).compl = BA.compl :=
-top_symm_diff _
-
-lemma to_boolean_ring.sdiff_eq :
-  (@boolean_ring.to_boolean_algebra α (@to_boolean_ring α BA)).sdiff = BA.sdiff :=
-begin
-  ext a b,
-  change a ⊓ (⊤ Δ b) = a \ b,
-  rw [top_symm_diff, sdiff_eq],
-end
-
 end boolean_algebra
 
-/-!
-The following lemmas amount to a proof that applying `boolean_ring.to_boolean_algebra` and then
-`boolean_algebra.to_boolean_ring` to a Boolean ring results in the same Boolean ring.
--/
+instance : boolean_ring (as_boolring α) := @boolean_algebra.to_boolean_ring α _
 
-namespace boolean_ring
-variables {α : Type*} (BR : boolean_ring α)
+@[simp] lemma of_boolring_zero : of_boolring (0 : as_boolring α) = ⊥ := rfl
+@[simp] lemma of_boolring_one : of_boolring (1 : as_boolring α) = ⊤ := rfl
 
-lemma to_boolean_algebra.add_eq_aux [boolean_ring α] (a b : α) :
-  (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)) = a + b :=
-calc (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)) =
-    a + b + (a * b + a * b) + (a * b + (a * a)*b) + (a * (b * b) + (a*a)*(b*b)) : by ring
-  ... = a+b : by simp only [mul_self, add_self, add_zero]
+-- `sub_eq_add` proves this lemma but it is eligible for `dsimp`
+@[simp, nolint simp_nf] lemma of_boolring_neg (a : as_boolring α) :
+  of_boolring (-a) = of_boolring a := rfl
 
-lemma to_boolean_algebra.add_eq :
-  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).add = BR.add :=
-begin
-  ext a b,
-  exact to_boolean_algebra.add_eq_aux _ _
-end
+@[simp] lemma of_boolring_add (a b : as_boolring α) :
+  of_boolring (a + b) = of_boolring a Δ of_boolring b := rfl
 
-lemma to_boolean_algebra.zero_eq :
-  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).zero = BR.zero :=
-rfl
+-- `sub_eq_add` simplifies the LHS but this lemma is eligible for `dsimp`
+@[simp, nolint simp_nf] lemma of_boolring_sub (a b : as_boolring α) :
+  of_boolring (a - b) = of_boolring a Δ of_boolring b := rfl
 
-lemma to_boolean_algebra.neg_eq :
-  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).neg = BR.neg :=
-funext $ λ a, (neg_eq a).symm
+@[simp] lemma of_boolring_mul (a b : as_boolring α) :
+  of_boolring (a * b) = of_boolring a ⊓ of_boolring b := rfl
 
-lemma to_boolean_algebra.sub_eq :
-  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).sub = BR.sub :=
-begin
-  ext a b,
-  change  (a * (1 + b)) + (b * (1 + a)) + (a * (1 + b)) * (b * (1 + a)) = a - b,
-  rw [to_boolean_algebra.add_eq_aux, sub_eq_add],
-end
+@[simp] lemma of_boolring_le_of_boolring_iff {a b : as_boolring α} :
+  of_boolring a ≤ of_boolring b ↔ a * b = a := inf_eq_left.symm
 
-lemma to_boolean_algebra.mul_eq :
-  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).mul = BR.mul :=
-rfl
+@[simp] lemma to_boolring_bot : to_boolring (⊥ : α) = 0 := rfl
+@[simp] lemma to_boolring_top : to_boolring (⊤ : α) = 1 := rfl
+@[simp] lemma to_boolring_inf (a b : α) : to_boolring (a ⊓ b) = to_boolring a * to_boolring b := rfl
 
-lemma to_boolean_algebra.one_eq :
-  (@boolean_algebra.to_boolean_ring α (@to_boolean_algebra α BR)).one = BR.one :=
-rfl
+@[simp] lemma to_boolring_symm_diff (a b : α) :
+  to_boolring (a Δ b) = to_boolring a + to_boolring b := rfl
 
-/-- Boolean rings and Boolean algebras are equivalent. -/
-def boolean_ring_equiv_boolean_algebra (α : Type*) : boolean_ring α ≃ boolean_algebra α :=
-{ to_fun := @to_boolean_algebra α,
-  inv_fun := @boolean_algebra.to_boolean_ring α,
-  left_inv := λ BR,
-    begin
-      rcases BR with ⟨⟨⟩⟩,
-      dsimp [to_boolean_algebra, boolean_algebra.to_boolean_ring],
-      sorry
-    end,
-  right_inv := λ BA,
-    begin
-      rcases BA with ⟨⟩,
-      dsimp [to_boolean_algebra, boolean_algebra.to_boolean_ring],
-      sorry
-    end, }
+/-- Turn a bounded lattice homomorphism from Boolean algebras `α` to `β` into a ring homomorphism
+from `α` to `β` considered as Boolean rings. -/
+@[simps] protected def bounded_lattice_hom.as_boolring (f : bounded_lattice_hom α β) :
+  as_boolring α →+* as_boolring β :=
+{ to_fun := to_boolring ∘ f ∘ of_boolring,
+  map_zero' := f.map_bot',
+  map_one' := f.map_top',
+  map_add' := map_symm_diff f,
+  map_mul' := f.map_inf' }
 
-end boolean_ring
+@[simp] lemma bounded_lattice_hom.as_boolring_id :
+  (bounded_lattice_hom.id α).as_boolring = ring_hom.id _ := rfl
+
+@[simp] lemma bounded_lattice_hom.as_boolring_comp (g : bounded_lattice_hom β γ)
+  (f : bounded_lattice_hom α β) :
+  (g.comp f).as_boolring = g.as_boolring.comp f.as_boolring := rfl
+
+end algebra_to_ring
+
+/-! ### Equivalence between Boolean rings and Boolean algebras -/
+
+/-- Order isomorphism between `α` considered as a Boolean ring considered as a Boolean algebra and
+`α`. -/
+@[simps] def order_iso.as_boolalg_as_boolring (α : Type*) [boolean_algebra α] :
+  as_boolalg (as_boolring α) ≃o α :=
+⟨of_boolalg.trans of_boolring, λ a b, of_boolring_le_of_boolring_iff.trans as_boolalg.le_iff.symm⟩
+
+/-- Ring isomorphism between `α` considered as a Boolean algebra considered as a Boolean ring and
+`α`. -/
+@[simps] def ring_equiv.as_boolring_as_boolalg (α : Type*) [boolean_ring α] :
+  as_boolring (as_boolalg α) ≃+* α :=
+{ map_mul' := λ a b, rfl,
+  map_add' := of_boolalg_symm_diff,
+  ..of_boolring.trans of_boolalg }

@@ -5,6 +5,7 @@ Authors: Johan Commelin, Fabian Glöckle
 -/
 import linear_algebra.finite_dimensional
 import linear_algebra.projection
+import linear_algebra.sesquilinear_form
 
 /-!
 # Dual vector spaces

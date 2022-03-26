@@ -70,16 +70,16 @@ begin
   apply equiv.is_lawful_traversable' list_equiv_lazy_list;
   intros ; resetI; ext,
   { induction x, refl,
-    simp! [equiv.map,functor.map] at *,
-    simp [*], refl, },
+    simp! only [equiv.map,functor.map] at *,
+    simp only [x_ih], refl, },
   { induction x, refl,
-    simp! [equiv.map,functor.map_const] at *,
-    simp [*], refl, },
+    simp! only [equiv.map,functor.map_const,comp_app] at *,
+    simp only [x_ih], refl, },
   { induction x,
-    { simp! [traversable.traverse,equiv.traverse] with functor_norm, refl },
-    simp! [equiv.map,functor.map_const,traversable.traverse] at *, rw x_ih,
-    dsimp [list_equiv_lazy_list,equiv.traverse,to_list,traversable.traverse,list.traverse],
-    simp! with functor_norm, refl },
+    { simp! only [traversable.traverse,equiv.traverse] with functor_norm, refl },
+    simp! only [equiv.map,functor.map_const,traversable.traverse] at *, rw x_ih,
+    dsimp only [list_equiv_lazy_list,equiv.traverse,to_list,traversable.traverse,list.traverse],
+    simp! only with functor_norm, refl },
 end
 
 /-- `init xs`, if `xs` non-empty, drops the last element of the list.

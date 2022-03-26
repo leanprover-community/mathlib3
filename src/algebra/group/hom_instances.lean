@@ -45,14 +45,16 @@ group too."]
 instance {M G} [mul_one_class M] [comm_group G] : comm_group (M →* G) :=
 { inv := has_inv.inv,
   div := has_div.div,
-  div_eq_mul_inv := by { intros, ext, apply div_eq_mul_inv },
+  div_eq_mul_inv := by intros; ext; apply div_eq_mul_inv,
   mul_left_inv := by intros; ext; apply mul_left_inv,
   zpow := λ n f, { to_fun := λ x, (f x) ^ n,
-    map_one' := by simp,
-    map_mul' := λ x y, by simp [mul_zpow] },
-  zpow_zero' := λ f, by { ext x, simp },
-  zpow_succ' := λ n f, by { ext x, simp [zpow_of_nat, pow_succ] },
-  zpow_neg'  := λ n f, by { ext x, simp },
+    map_one' := by simp only [map_one, one_zpow],
+    map_mul' := λ x y, by simp only [map_mul, mul_zpow], },
+  zpow_zero' := λ f, by ext x; simp only [monoid_hom.coe_mk, monoid_hom.one_apply, zpow_zero],
+  zpow_succ' := λ n f, by ext x;
+    simp only [monoid_hom.coe_mk, monoid_hom.mul_apply, zpow_of_nat, pow_succ],
+  zpow_neg'  := λ n f, by ext x;
+    simp only [monoid_hom.coe_mk, monoid_hom.inv_apply, zpow_neg_succ_of_nat, zpow_coe_nat],
   ..monoid_hom.comm_monoid }
 
 instance [add_comm_monoid M] : semiring (add_monoid.End M) :=

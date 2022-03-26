@@ -424,11 +424,9 @@ begin
   rw [zmod.int_coe_eq_int_coe_iff, int.modeq_zero_iff_dvd],
 end
 
-lemma int_coe_eq_int_coe_iff_dvd_sub (a b : ℤ) (c : ℕ) : (a : zmod c) = ↑b ↔ ↑c ∣ a-b :=
+lemma int_coe_eq_int_coe_iff_dvd_sub (a b : ℤ) (c : ℕ) : (a : zmod c) = ↑b ↔ ↑c ∣ b-a :=
 begin
-  rw ← sub_eq_zero,
-  norm_cast,
-  exact int_coe_zmod_eq_zero_iff_dvd (a-b) c,
+  rw [int_coe_eq_int_coe_iff, int.modeq_iff_dvd],
 end
 
 lemma nat_coe_zmod_eq_zero_iff_dvd (a b : ℕ) : (a : zmod b) = 0 ↔ b ∣ a :=

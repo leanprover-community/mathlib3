@@ -835,50 +835,6 @@ begin
   end
 end
 
--- move
-lemma snorm_indicator_ge_of_bdd_below (hp : p ≠ 0) (hp' : p ≠ ∞)
-  {f : α → β} {C : ℝ≥0} {s : set α} (hs : measurable_set s) (hμs : μ s < ∞)
-  (hf : ∀ᵐ x ∂μ, x ∈ s → C ≤ ∥s.indicator f x∥₊) :
-  C • μ s ^ (1 / p.to_real) ≤ snorm (s.indicator f) p μ :=
-begin
-  rw [ennreal.smul_def, smul_eq_mul, snorm_eq_lintegral_rpow_nnnorm hp hp',
-    ennreal.le_rpow_one_div_iff (ennreal.to_real_pos hp hp'),
-    ennreal.mul_rpow_of_ne_top ennreal.coe_ne_top
-      (ennreal.rpow_lt_top_of_nonneg (one_div_nonneg.2 ennreal.to_real_nonneg) hμs.ne).ne,
-    ← ennreal.rpow_mul, one_div_mul_cancel (ennreal.to_real_pos hp hp').ne.symm, ennreal.rpow_one,
-    ← set_lintegral_const, ← lintegral_indicator _ hs],
-  refine lintegral_mono_ae _,
-  filter_upwards [hf] with x hx,
-  rw nnnorm_indicator_eq_indicator_nnnorm,
-  by_cases hxs : x ∈ s,
-  { simp only [indicator_of_mem hxs] at ⊢ hx,
-    exact ennreal.rpow_le_rpow (ennreal.coe_le_coe.2 (hx hxs)) ennreal.to_real_nonneg },
-  { simp [indicator_of_not_mem hxs] }
-end
-
--- move
-lemma indicator_ae_eq_zero (s : set α) {f : α → β} (hf : f =ᵐ[μ] 0) :
-  s.indicator f =ᵐ[μ] 0 :=
-begin
-  filter_upwards [hf] with x hx,
-  by_cases x ∈ s,
-  { rwa indicator_of_mem h },
-  { rw indicator_of_not_mem h,
-    refl }
-end
-
-lemma meas_ge_lt_top_of_bdd_snorm {C M : ℝ≥0} {f : α → β} (hf : snorm f p μ ≤ M) :
-  μ {x | C ≤ ∥f x∥₊} < ∞ :=
-begin
-  by_contra hmeas,
-  rw [not_lt, top_le_iff] at hmeas,
-  rw ← not_lt at hf,
-  refine hf _, clear hf,
-  refine lt_of_lt_of_le _ (@snorm_indicator_le _ _ _ _ {x : α | C ≤ ∥f x∥₊} _ _ _),
-  sorry,
-  -- have : ≤ snorm f p μ,
-end
-
 lemma uniform_integrable.spec [is_finite_measure μ] (hp : p ≠ 0) (hp' : p ≠ ∞)
   (hfu : uniform_integrable f p μ) {ε : ℝ} (hε : 0 < ε) :
   ∃ C : ℝ≥0, ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε :=
@@ -911,9 +867,9 @@ begin
       end
       ... ≤ snorm ({x | C ≤ ∥f (ℐ C) x∥₊}.indicator (f (ℐ C))) p μ :
       begin
-        refine snorm_indicator_ge_of_bdd_below hp hp'
+        refine snorm_indicator_ge_of_bdd_below hp hp' _
           (measurable_set_le measurable_const (hf₀ _).nnnorm)
-          (meas_ge_lt_top_of_bdd_snorm (hM _)) (eventually_of_forall $ λ x hx, _),
+          (eventually_of_forall $ λ x hx, _),
         rwa [nnnorm_indicator_eq_indicator_nnnorm, indicator_of_mem hx],
       end
       ... ≤ snorm (f (ℐ C)) p μ : snorm_indicator_le _ },
@@ -930,6 +886,8 @@ begin
   exact ⟨C, λ i, hδ i _ (measurable_set_le measurable_const (hf₀ i).nnnorm) (hC i)⟩,
 end
 
+/-- The definition of uniform integrable in mathlib is equivalent to the definition commonly
+found in literature. -/
 lemma uniform_integrable_iff [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞) :
   uniform_integrable f p μ ↔ (∀ i, measurable (f i)) ∧
   ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,

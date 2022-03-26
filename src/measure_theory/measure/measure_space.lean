@@ -3392,6 +3392,15 @@ piecewise_ae_eq_of_ae_eq_set hst
 lemma indicator_meas_zero (hs : μ s = 0) : indicator s f =ᵐ[μ] 0 :=
 (indicator_empty' f) ▸ indicator_ae_eq_of_ae_eq_set (ae_eq_empty.2 hs)
 
+lemma indicator_ae_eq_zero (hf : f =ᵐ[μ] 0) : s.indicator f =ᵐ[μ] 0 :=
+begin
+  filter_upwards [hf] with x hx,
+  by_cases x ∈ s,
+  { rwa indicator_of_mem h },
+  { rw indicator_of_not_mem h,
+    refl }
+end
+
 variables [measurable_space β]
 
 lemma ae_measurable_indicator_iff {s} (hs : measurable_set s) :

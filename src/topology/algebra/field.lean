@@ -104,7 +104,7 @@ lemma units_top_group : topological_group Kˣ :=
 local attribute [instance] units_top_group
 
 lemma continuous_units_inv : continuous (λ x : Kˣ, (↑(x⁻¹) : K)) :=
-(topological_ring.induced_units.continuous_coe K).comp topological_group.continuous_inv
+(topological_ring.induced_units.continuous_coe K).comp continuous_inv
 
 end topological_division_ring
 

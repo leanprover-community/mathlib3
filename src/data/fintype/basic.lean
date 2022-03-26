@@ -387,8 +387,8 @@ instance (α : Type*) : subsingleton (fintype α) :=
 associated to the predicate is a fintype. -/
 protected def subtype {p : α → Prop} (s : finset α) (H : ∀ x : α, x ∈ s ↔ p x) :
   fintype {x // p x} :=
-⟨⟨multiset.pmap subtype.mk s.1 (λ x, (H x).1),
-  multiset.nodup_pmap (λ a _ b _, congr_arg subtype.val) s.2⟩,
+⟨⟨s.1.pmap subtype.mk (λ x, (H x).1),
+  s.nodup.pmap $ λ a _ b _, congr_arg subtype.val⟩,
 λ ⟨x, px⟩, multiset.mem_pmap.2 ⟨x, (H x).2 px, rfl⟩⟩
 
 theorem subtype_card {p : α → Prop} (s : finset α) (H : ∀ x : α, x ∈ s ↔ p x) :
@@ -628,8 +628,7 @@ namespace set
 
 /-- Construct a finset enumerating a set `s`, given a `fintype` instance.  -/
 def to_finset (s : set α) [fintype s] : finset α :=
-⟨(@finset.univ s _).1.map subtype.val,
- multiset.nodup_map (λ a b, subtype.eq) finset.univ.2⟩
+⟨(@finset.univ s _).1.map subtype.val, finset.univ.nodup.map $ λ a b, subtype.eq⟩
 
 @[congr]
 lemma to_finset_congr {s t : set α} [fintype s] [fintype t] (h : s = t) :
@@ -662,14 +661,15 @@ by simp [finset.subset_iff, set.subset_def]
 
 @[simp, mono] theorem to_finset_strict_mono {s t : set α} [fintype s] [fintype t] :
   s.to_finset ⊂ t.to_finset ↔ s ⊂ t :=
-begin
-  rw [←lt_eq_ssubset, ←finset.lt_iff_ssubset, lt_iff_le_and_ne, lt_iff_le_and_ne],
-  simp
-end
+by simp only [finset.ssubset_def, to_finset_mono, ssubset_def]
 
 @[simp] theorem to_finset_disjoint_iff [decidable_eq α] {s t : set α} [fintype s] [fintype t] :
   disjoint s.to_finset t.to_finset ↔ disjoint s t :=
-⟨λ h x hx, h (by simpa using hx), λ h x hx, h (by simpa using hx)⟩
+by simp only [disjoint_iff_disjoint_coe, coe_to_finset]
+
+theorem to_finset_compl [decidable_eq α] [fintype α] (s : set α) [fintype s] [fintype ↥sᶜ] :
+  (sᶜ).to_finset = s.to_finsetᶜ :=
+by { ext a, simp }
 
 lemma filter_mem_univ_eq_to_finset [fintype α] (s : set α) [fintype s] [decidable_pred (∈ s)] :
   finset.univ.filter (∈ s) = s.to_finset :=
@@ -711,6 +711,13 @@ finset.card_sdiff (subset_univ s)
 lemma finset.card_compl [decidable_eq α] [fintype α] (s : finset α) :
   sᶜ.card = fintype.card α - s.card :=
 finset.card_univ_diff s
+
+lemma fintype.card_compl_set [fintype α] (s : set α) [fintype s] [fintype ↥sᶜ] :
+  fintype.card ↥sᶜ = fintype.card α - fintype.card s :=
+begin
+  classical,
+  rw [← set.to_finset_card, ← set.to_finset_card, ← finset.card_compl, set.to_finset_compl]
+end
 
 instance (n : ℕ) : fintype (fin n) :=
 ⟨finset.fin_range n, finset.mem_fin_range⟩
@@ -969,6 +976,11 @@ card_le_of_injective _ (function.injective_surj_inv h)
 lemma card_range_le {α β : Type*} (f : α → β) [fintype α] [fintype (set.range f)] :
   fintype.card (set.range f) ≤ fintype.card α :=
 fintype.card_le_of_surjective (λ a, ⟨f a, by simp⟩) (λ ⟨_, a, ha⟩, ⟨a, by simpa using ha⟩)
+
+lemma card_range {α β F : Type*} [embedding_like F α β] (f : F) [fintype α]
+  [fintype (set.range f)] :
+  fintype.card (set.range f) = fintype.card α :=
+eq.symm $ fintype.card_congr $ equiv.of_injective _ $ embedding_like.injective f
 
 /--
 The pigeonhole principle for finitely many pigeons and pigeonholes.
@@ -1576,12 +1588,12 @@ lemma mem_perms_of_list_iff {l : list α} {f : perm α} :
 lemma nodup_perms_of_list : ∀ {l : list α} (hl : l.nodup), (perms_of_list l).nodup
 | []       hl := by simp [perms_of_list]
 | (a :: l) hl :=
-have hl' : l.nodup, from nodup_of_nodup_cons hl,
+have hl' : l.nodup, from hl.of_cons,
 have hln' : (perms_of_list l).nodup, from nodup_perms_of_list hl',
 have hmeml : ∀ {f : perm α}, f ∈ perms_of_list l → f a = a,
   from λ f hf, not_not.1 (mt (mem_of_mem_perms_of_list hf) (nodup_cons.1 hl).1),
 by rw [perms_of_list, list.nodup_append, list.nodup_bind, pairwise_iff_nth_le]; exact
-⟨hln', ⟨λ _ _, nodup_map (λ _ _, mul_left_cancel) hln',
+⟨hln', ⟨λ _ _, hln'.map $ λ _ _, mul_left_cancel,
   λ i j hj hij x hx₁ hx₂,
     let ⟨f, hf⟩ := list.mem_map.1 hx₁ in
     let ⟨g, hg⟩ := list.mem_map.1 hx₂ in

@@ -32,7 +32,7 @@ def is_algebraic (x : A) : Prop :=
 /-- An element of an R-algebra is transcendental over R if it is not algebraic over R. -/
 def transcendental (x : A) : Prop := ¬ is_algebraic R x
 
-lemma is_transcendental_of_subsingleton [subsingleton R] (x : R) : transcendental R x :=
+lemma is_transcendental_of_subsingleton [subsingleton R] (x : A) : transcendental R x :=
 λ ⟨p, h, _⟩, h $ subsingleton.elim p 0
 
 variables {R}

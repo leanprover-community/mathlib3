@@ -28,7 +28,7 @@ von Neumann-bounded sets.
 
 -/
 
-variables {𝕜 E : Type*}
+variables {𝕜 E ι : Type*}
 
 open_locale topological_space pointwise
 
@@ -54,6 +54,15 @@ variables {𝕜 E}
 
 lemma is_vonN_bounded_iff (s : set E) : is_vonN_bounded 𝕜 s ↔ ∀ V ∈ 𝓝 (0 : E), absorbs 𝕜 V s :=
 iff.rfl
+
+lemma _root_.filter.has_basis.is_vonN_bounded_basis_iff {q : ι → Prop} {s : ι → set E} {A : set E}
+  (h : (𝓝 (0 : E)).has_basis q s) :
+  is_vonN_bounded 𝕜 A ↔ ∀ i (hi : q i), absorbs 𝕜 (s i) A :=
+begin
+  refine ⟨λ hA i hi, hA (h.mem_of_mem hi), λ hA V hV, _⟩,
+  rcases h.mem_iff.mp hV with ⟨i, hi, hV⟩,
+  exact (hA i hi).mono_left hV,
+end
 
 /-- Subsets of bounded sets are bounded. -/
 lemma is_vonN_bounded.subset {s₁ s₂ : set E} (h : s₁ ⊆ s₂) (hs₂ : is_vonN_bounded 𝕜 s₂) :

@@ -1309,19 +1309,18 @@ end complete_lattice
 protected def function.injective.complete_lattice [has_sup α] [has_inf α] [has_Sup α]
   [has_Inf α] [has_top α] [has_bot α] [complete_lattice β]
   (f : α → β) (hf : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
-  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = Sup (f '' s))
-  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = ⨆ a ∈ s, f a)
+  (map_Inf : ∀ s, f (Inf s) = ⨅ a ∈ s, f a) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
   complete_lattice α :=
 { Sup := Sup,
-  le_Sup := λ s a h, (le_Sup $ mem_image_of_mem f h).trans (map_Sup _).ge,
-  Sup_le := λ s a h, (map_Sup _).le.trans $ Sup_le $ set.ball_image_of_ball $ by exact h,
+  le_Sup := λ s a h, (le_bsupr a h).trans (map_Sup _).ge,
+  Sup_le := λ s a h, (map_Sup _).trans_le $ bsupr_le h,
   Inf := Inf,
-  Inf_le := λ s a h, (map_Inf _).le.trans $ Inf_le $ mem_image_of_mem f h,
-  le_Inf := λ s a h, (le_Inf $ set.ball_image_of_ball $ by exact h).trans (map_Inf _).ge,
+  Inf_le := λ s a h, (map_Inf _).trans_le $ binfi_le a h,
+  le_Inf := λ s a h, (le_binfi h).trans (map_Inf _).ge,
   -- we cannot use bounded_order.lift here as the `has_le` instance doesn't exist yet
   top := ⊤,
   le_top := λ a, (@le_top β _ _ _).trans map_top.ge,
   bot := ⊥,
   bot_le := λ a, map_bot.le.trans bot_le,
   ..hf.lattice f map_sup map_inf }
-

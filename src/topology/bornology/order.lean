@@ -105,14 +105,6 @@ lemma is_bounded_inf_iff :
   @is_bounded _ (b₁ ⊓ b₂) s ↔ @is_bounded _ b₁ s ∧ @is_bounded _ b₂ s :=
 by rw [inf_eq_infi, is_bounded_infi_iff, bool.forall_bool, and_comm]
 
---def map (b : bornology α) (f : α → β) : bornology β :=
---of_bounded ((image f) '' {s | @is_bounded _ b s}) ⟨∅, is_bounded_empty, image_empty f⟩
---  (λ s₁ ⟨t₁, ht₁, hst₁⟩ s₂ hs₁₂, ⟨f ⁻¹' s₂ ∩ t₁, ht₁.subset (inter_subset_right _ _),
---    (image_preimage_inter f t₁ s₂).symm ▸ hst₁.symm ▸ inter_eq_left_iff_subset.mpr hs₁₂⟩)
---  (λ s₁ ⟨t₁, ht₁, hst₁⟩ s₂ ⟨t₂, ht₂, hst₂⟩,
---    hst₁ ▸ hst₂ ▸ image_union f t₁ t₂ ▸ mem_image_of_mem (image f) (ht₁.union ht₂))
---  (eq_univ_of_forall $ λ x, mem_sUnion_of_mem (mem_singleton_of_eq rfl) _)
-
 lemma cobounded_antitone : antitone (@cobounded α) :=
 λ b₁ b₂, id
 

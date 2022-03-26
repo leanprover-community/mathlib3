@@ -586,6 +586,8 @@ end field
 
 end quaternion
 
+private theorem one_le_four : 1 ≤ 4 := by simp
+
 namespace cardinal
 
 open_locale cardinal quaternion
@@ -599,7 +601,7 @@ variables {R : Type*} (c₁ c₂ : R)
 by { rw mk_congr (quaternion_algebra.equiv_prod c₁ c₂), simp only [mk_prod, lift_id], ring }
 
 @[simp] lemma mk_quaternion_algebra_of_infinite [infinite R] : #ℍ[R, c₁, c₂] = #R :=
-by rw [mk_quaternion_algebra, power_nat_eq (omega_le_mk R) (by {norm_cast, simp})]
+by rw [mk_quaternion_algebra, power_nat_eq (omega_le_mk R) one_le_four]
 
 /-- The cardinality of a quaternion algebra, as a set. -/
 @[simp] lemma mk_univ_quaternion_algebra : #(set.univ : set ℍ[R, c₁, c₂]) = #R ^ 4 :=
@@ -616,7 +618,7 @@ variables (R : Type*) [has_one R] [has_neg R]
 mk_quaternion_algebra _ _
 
 @[simp] lemma mk_quaternion_of_infinite [infinite R] : #ℍ[R] = #R :=
-by rw [mk_quaternion, power_nat_eq (omega_le_mk R) (by {norm_cast, simp})]
+by rw [mk_quaternion, power_nat_eq (omega_le_mk R) one_le_four]
 
 /-- The cardinality of the quaternions, as a set. -/
 @[simp] lemma mk_univ_quaternion : #(set.univ : set ℍ[R]) = #R ^ 4 :=

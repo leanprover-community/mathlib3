@@ -29,33 +29,37 @@ theorem roots_finite {R} (A) [comm_ring R] [is_domain R] [ring A] [algebra R A] 
   (hp : p ≠ 0) : {y : A | aeval y p = 0}.finite :=
 sorry
 
-theorem algebraic_card (R) {A} [comm_ring R] [is_domain R] [ring A] [algebra R A]
+theorem algebraic_card (R) {A} [comm_ring R] [is_domain R] [comm_ring A] [is_domain A] [algebra R A]
   [topological_space A] [t1_space A] {s : set (set A)} (hs : is_topological_basis s) :
   #{x : A | is_algebraic R x} ≤ #(polynomial R) * #s :=
 begin
   classical,
   apply @mk_le_of_surjective (polynomial R × s) {x : A | is_algebraic R x} (λ ⟨p, t, ht⟩,
-    if hr : p ≠ 0 ∧ ∃ x : A, x ∈ t ∩ {x | aeval x p = 0}
-    then ⟨classical.some hr.2, p, hr.1, (classical.some_spec hr.2).2⟩
+    if hr : p ≠ 0 ∧ ∃ x : A, x ∈ t ∩ p.root_set A
+    then ⟨classical.some hr.2, p, hr.1,  sorry --(classical.some_spec hr.2).2
+    ⟩
     else ⟨0, is_algebraic_zero⟩),
   rintro ⟨x, p, hp, he⟩,
-  suffices : ∃ t ∈ s, t ∩ {x : A | aeval x p = 0} = {x},
+  suffices : ∃ t ∈ s, t ∩ p.root_set A = {x},
   { rcases this with ⟨t, hts, ht⟩,
     have hx := set.mem_singleton x,
-    have H : ¬p = 0 ∧ ∃ x, x ∈ t ∩ {y | aeval y p = 0} := ⟨hp, x, by rwa ←ht at hx⟩,
+    have H : ¬p = 0 ∧ ∃ x, x ∈ t ∩ p.root_set A := ⟨hp, x, by rwa ←ht at hx⟩,
     use [p, t, hts],
     simp_rw dif_pos H,
     simpa [ht, set.mem_singleton_iff] using classical.some_spec H.2 },
-  { have H : is_open ({y : A | aeval y p = 0} \ {x})ᶜ := begin
+  { have H : is_open (p.root_set A \ {x})ᶜ := begin
       rw is_open_compl_iff,
       refine set.finite.is_closed (set.finite.inter_of_left _ _),
-      exact roots_finite A hp
+      exact p.root_set_finite A
     end,
     rw [compl_sdiff, hs.is_open_iff] at H,
     rcases H x (set.mem_union_right _ (set.mem_singleton x)) with ⟨t, ht, hts, hxt⟩,
     use [t, ht],
     rw set.eq_singleton_iff_unique_mem,
-    use [hts, he],
+    use [hts],
+    {
+      change x ∈ (p.map (algebra_map R A)).roots,
+    },
     rintros y ⟨hyt, hy⟩,
     cases hxt hyt with hy' hy',
     { exact (hy' hy).elim },

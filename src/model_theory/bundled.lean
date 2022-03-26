@@ -10,10 +10,10 @@ import category_theory.concrete_category.bundled
 This file bundles types together with their first-order structure.
 
 ## Main Definitions
+* `first_order.language.Theory.Model` is the type of nonempty models of a particular theory.
 * `first_order.language.equiv_setoid` is the isomorphism equivalence relation on bundled structures.
 
 ## TODO
-* Define bundled models of a given theory.
 * Define category structures on bundled structures and models.
 
 -/
@@ -41,6 +41,7 @@ variable (T : L.Theory)
 
 namespace Theory
 
+/-- The type of nonempty models of a first-order theory. -/
 structure Model :=
 (carrier : Type w)
 [struc : L.Structure carrier]
@@ -62,6 +63,15 @@ def of (M : Type w) [L.Structure M] [M ⊨ T] [nonempty M] :
 lemma coe_of (M : Type w) [L.Structure M] [M ⊨ T] [nonempty M] : (of T M : Type w) = M := rfl
 
 instance (M : T.Model) : nonempty M := infer_instance
+
+section inhabited
+
+local attribute [instance] trivial_unit_structure
+
+instance : inhabited (Model (∅ : L.Theory)) :=
+⟨Model.of _ unit⟩
+
+end inhabited
 
 end Model
 end Theory

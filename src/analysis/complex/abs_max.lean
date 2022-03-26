@@ -206,7 +206,7 @@ begin
   refine ⟨z, hzK, λ x hx, (hle x hx).trans_eq _⟩,
   refine (norm_eq_norm_of_is_max_on_of_closed_ball_subset hd hle _).symm,
   calc closed_ball w (dist z w) = closed_ball w (inf_dist w Kᶜ) : by rw [hzw, dist_comm]
-  ... ⊆ closure K : closed_ball_inf_dist_compl_subset_closure hwK hK.ne_univ
+  ... ⊆ closure K : closed_ball_inf_dist_compl_subset_closure hwK
   ... = K : hK.is_closed.closure_eq
 end
 

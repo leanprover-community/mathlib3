@@ -98,8 +98,7 @@ begin
   ... = ∥d • x - y∥ : by simp [yy', ← smul_sub, norm_smul],
 end
 
-lemma metric.closed_ball_inf_dist_compl_subset_closure {x : F} {s : set F} (hx : x ∈ s)
-  (hs : s ≠ univ) :
+lemma metric.closed_ball_inf_dist_compl_subset_closure {x : F} {s : set F} (hx : x ∈ s) :
   closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
 begin
   cases eq_or_ne (inf_dist x sᶜ) 0 with h₀ h₀,

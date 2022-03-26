@@ -8,8 +8,8 @@ import algebra.big_operators.pi
 import algebra.big_operators.ring
 import algebra.module.linear_map
 import algebra.module.pi
+import algebra.ring.equiv
 import algebra.star.pi
-import data.equiv.ring
 import data.fintype.card
 
 /-!

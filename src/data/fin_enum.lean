@@ -59,7 +59,7 @@ open function
 by simp [to_list]; existsi equiv α x; simp
 
 @[simp] lemma nodup_to_list [fin_enum α] : list.nodup (to_list α) :=
-by simp [to_list]; apply list.nodup_map; [apply equiv.injective, apply list.nodup_fin_range]
+by simp [to_list]; apply list.nodup.map; [apply equiv.injective, apply list.nodup_fin_range]
 
 /-- create a `fin_enum` instance using a surjection -/
 def of_surjective {β} (f : β → α) [decidable_eq α] [fin_enum β] (h : surjective f) : fin_enum α :=

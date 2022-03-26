@@ -387,6 +387,10 @@ lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 instance add_monoid.has_continuous_const_smul_nat {A} [add_monoid A] [topological_space A]
   [has_continuous_add A] : has_continuous_const_smul ℕ A := ⟨continuous_nsmul⟩
 
+instance add_monoid.has_continuous_smul_nat {A} [add_monoid A] [topological_space A]
+  [has_continuous_add A] : has_continuous_smul ℕ A :=
+⟨continuous_uncurry_of_discrete_topology continuous_nsmul⟩
+
 @[continuity, to_additive continuous.nsmul]
 lemma continuous.pow {f : X → M} (h : continuous f) (n : ℕ) :
   continuous (λ b, (f b) ^ n) :=

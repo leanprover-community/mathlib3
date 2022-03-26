@@ -11,19 +11,19 @@ apply_nolint CommGroup.has_limits to_additive_doc
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
 
--- algebra/group/freiman.lean
+-- algebra/group/semiconj.lean
+apply_nolint semiconj_by.one_left to_additive_doc
+apply_nolint semiconj_by.one_right to_additive_doc
+
+-- algebra/hom/freiman.lean
 apply_nolint freiman_hom.has_coe_to_fun to_additive_doc
 
--- algebra/group/hom.lean
+-- algebra/hom/group.lean
 apply_nolint monoid_hom.ext_iff to_additive_doc
 apply_nolint monoid_hom.map_inv to_additive_doc
 apply_nolint monoid_hom.map_mul_inv to_additive_doc
 apply_nolint mul_hom.ext_iff to_additive_doc
 apply_nolint one_hom.comp_assoc to_additive_doc
-
--- algebra/group/semiconj.lean
-apply_nolint semiconj_by.one_left to_additive_doc
-apply_nolint semiconj_by.one_right to_additive_doc
 
 -- algebra/order/group.lean
 apply_nolint inv_le_of_inv_le' to_additive_doc

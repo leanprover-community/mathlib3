@@ -741,9 +741,9 @@ end
 
 end pow_is_subgroup
 
-section linear_ordered_ring
+section strict_linear_ordered_ring
 
-variable [linear_ordered_ring G]
+variable [strict_linear_ordered_ring G]
 
 lemma order_of_abs_ne_one (h : |x| ≠ 1) : order_of x = 0 :=
 begin
@@ -755,7 +755,7 @@ begin
   { exact ((one_lt_pow h hn.ne').ne' hx).elim }
 end
 
-lemma linear_ordered_ring.order_of_le_two : order_of x ≤ 2 :=
+lemma strict_linear_ordered_ring.order_of_le_two : order_of x ≤ 2 :=
 begin
   cases ne_or_eq (|x|) 1 with h h,
   { simp [order_of_abs_ne_one h] },
@@ -764,4 +764,4 @@ begin
   apply order_of_le_of_pow_eq_one; norm_num
 end
 
-end linear_ordered_ring
+end strict_linear_ordered_ring

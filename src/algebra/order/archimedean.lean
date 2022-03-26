@@ -87,21 +87,21 @@ lemma exists_unique_add_zsmul_mem_Ioc {a : α} (ha : 0 < a) (b c : α) :
 
 end linear_ordered_add_comm_group
 
-theorem exists_nat_gt [ordered_semiring α] [nontrivial α] [archimedean α]
+theorem exists_nat_gt [strict_ordered_add_cancel_semiring α] [nontrivial α] [archimedean α]
   (x : α) : ∃ n : ℕ, x < n :=
 let ⟨n, h⟩ := archimedean.arch x zero_lt_one in
 ⟨n+1, lt_of_le_of_lt (by rwa ← nsmul_one)
   (nat.cast_lt.2 (nat.lt_succ_self _))⟩
 
-theorem exists_nat_ge [ordered_semiring α] [archimedean α] (x : α) :
+theorem exists_nat_ge [strict_ordered_add_cancel_semiring α] [archimedean α] (x : α) :
   ∃ n : ℕ, x ≤ n :=
 begin
   nontriviality α,
   exact (exists_nat_gt x).imp (λ n, le_of_lt)
 end
 
-lemma add_one_pow_unbounded_of_pos [ordered_semiring α] [nontrivial α] [archimedean α]
-  (x : α) {y : α} (hy : 0 < y) :
+lemma add_one_pow_unbounded_of_pos [strict_ordered_add_cancel_semiring α] [nontrivial α]
+  [archimedean α] (x : α) {y : α} (hy : 0 < y) :
   ∃ n : ℕ, x < (y + 1) ^ n :=
 have 0 ≤ 1 + y, from add_nonneg zero_le_one hy.le,
 let ⟨n, h⟩ := archimedean.arch x hy in
@@ -112,8 +112,8 @@ let ⟨n, h⟩ := archimedean.arch x hy in
                              (add_nonneg zero_le_two hy.le) _
        ... = (y + 1) ^ n : by rw [add_comm]⟩
 
-section linear_ordered_ring
-variables [linear_ordered_ring α] [archimedean α]
+section strict_linear_ordered_ring
+variables [strict_linear_ordered_ring α] [archimedean α]
 
 lemma pow_unbounded_of_one_lt (x : α) {y : α} (hy1 : 1 < y) :
   ∃ n : ℕ, x < y ^ n :=
@@ -152,7 +152,7 @@ begin
   exact ⟨λ h, le_trans (int.cast_le.2 h) h₁, h₂ z⟩,
 end
 
-end linear_ordered_ring
+end strict_linear_ordered_ring
 
 section linear_ordered_field
 
@@ -246,7 +246,7 @@ by simpa only [nsmul_eq_mul, int.nat_cast_eq_coe_nat, zero_add, mul_one]
 /-- A linear ordered archimedean ring is a floor ring. This is not an `instance` because in some
 cases we have a computable `floor` function. -/
 noncomputable def archimedean.floor_ring (α)
-  [linear_ordered_ring α] [archimedean α] : floor_ring α :=
+  [strict_linear_ordered_ring α] [archimedean α] : floor_ring α :=
 floor_ring.of_floor α (λ a, classical.some (exists_floor a))
   (λ z a, (classical.some_spec (exists_floor a) z).symm)
 

@@ -369,7 +369,7 @@ by nlinarith [abs_nonneg' abs t]
 constant T : Type
 
 attribute [instance]
-constant T_zero : ordered_ring T
+constant T_zero : strict_ordered_ring T
 
 namespace T
 

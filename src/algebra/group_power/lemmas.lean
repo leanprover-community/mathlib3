@@ -403,8 +403,8 @@ end
 lemma neg_one_pow_eq_pow_mod_two [ring R] {n : ℕ} : (-1 : R) ^ n = (-1) ^ (n % 2) :=
 by rw [← nat.mod_add_div n 2, pow_add, pow_mul]; simp [sq]
 
-section ordered_semiring
-variables [ordered_semiring R] {a : R}
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring R] {a : R}
 
 /-- Bernoulli's inequality. This version works for semirings but requires
 additional hypotheses `0 ≤ a * a` and `0 ≤ (1 + a) * (1 + a)`. -/
@@ -441,11 +441,11 @@ lemma pow_le_of_le_one (h₀ : 0 ≤ a) (h₁ : a ≤ 1) {n : ℕ} (hn : n ≠ 0
 
 lemma sq_le (h₀ : 0 ≤ a) (h₁ : a ≤ 1) : a ^ 2 ≤ a := pow_le_of_le_one h₀ h₁ two_ne_zero
 
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
-section linear_ordered_semiring
+section strict_linear_ordered_add_cancel_semiring
 
-variables [linear_ordered_semiring R]
+variables [strict_linear_ordered_add_cancel_semiring R]
 
 lemma sign_cases_of_C_mul_pow_nonneg {C r : R} (h : ∀ n : ℕ, 0 ≤ C * r ^ n) :
   C = 0 ∨ (0 < C ∧ 0 ≤ r) :=
@@ -456,11 +456,11 @@ begin
   simpa only [pow_one] using h 1
 end
 
-end linear_ordered_semiring
+end strict_linear_ordered_add_cancel_semiring
 
-section linear_ordered_ring
+section strict_linear_ordered_ring
 
-variables [linear_ordered_ring R] {a : R} {n : ℕ}
+variables [strict_linear_ordered_ring R] {a : R} {n : ℕ}
 
 @[simp] lemma abs_pow (a : R) (n : ℕ) : |a ^ n| = |a| ^ n :=
 (pow_abs a n).symm
@@ -535,7 +535,7 @@ theorem one_add_mul_sub_le_pow (H : -1 ≤ a) (n : ℕ) : 1 + (n : R) * (a - 1) 
 have -2 ≤ a - 1, by rwa [bit0, neg_add, ← sub_eq_add_neg, sub_le_sub_iff_right],
 by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 
-end linear_ordered_ring
+end strict_linear_ordered_ring
 
 /-- Bernoulli's inequality reformulated to estimate `(n : K)`. -/
 theorem nat.cast_le_pow_sub_div_sub {K : Type*} [linear_ordered_field K] {a : K} (H : 1 < a)

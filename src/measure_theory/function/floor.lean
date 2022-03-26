@@ -16,7 +16,7 @@ open set
 
 section floor_ring
 
-variables {α R : Type*} [measurable_space α] [linear_ordered_ring R] [floor_ring R]
+variables {α R : Type*} [measurable_space α] [strict_linear_ordered_ring R] [floor_ring R]
   [topological_space R] [order_topology R] [measurable_space R]
 
 lemma int.measurable_floor [opens_measurable_space R] :
@@ -59,9 +59,9 @@ end floor_ring
 
 section floor_semiring
 
-variables {α R : Type*} [measurable_space α] [linear_ordered_semiring R] [floor_semiring R]
-  [topological_space R] [order_topology R] [measurable_space R] [opens_measurable_space R]
-  {f : α → R}
+variables {α R : Type*} [measurable_space α] [strict_linear_ordered_add_cancel_semiring R]
+  [floor_semiring R] [topological_space R] [order_topology R] [measurable_space R]
+  [opens_measurable_space R] {f : α → R}
 
 lemma nat.measurable_floor : measurable (nat.floor : R → ℕ) :=
 measurable_to_encodable $ λ n, by cases eq_or_ne ⌊n⌋₊ 0; simp [*, nat.preimage_floor_of_ne_zero]

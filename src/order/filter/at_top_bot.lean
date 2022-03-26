@@ -572,9 +572,9 @@ lemma tendsto_at_bot_iff_tends_to_neg_at_top : tendsto f l at_bot ↔ tendsto (-
 
 end ordered_group
 
-section ordered_semiring
+section strict_ordered_add_cancel_semiring
 
-variables [ordered_semiring α] {l : filter β} {f g : β → α}
+variables [strict_ordered_add_cancel_semiring α] {l : filter β} {f g : β → α}
 
 lemma tendsto_bit1_at_top : tendsto bit1 (at_top : filter α) at_top :=
 tendsto_at_top_add_nonneg_right tendsto_bit0_at_top (λ _, zero_le_one)
@@ -602,15 +602,15 @@ lemma eventually_ne_of_tendsto_at_top [nontrivial α] (hf : tendsto f l at_top)
   (c : α) :  ∀ᶠ x in l, f x ≠ c :=
 (tendsto_at_top.1 hf $ (c + 1)).mono (λ x hx, ne_of_gt (lt_of_lt_of_le (lt_add_one c) hx))
 
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
 lemma zero_pow_eventually_eq [monoid_with_zero α] :
   (λ n : ℕ, (0 : α) ^ n) =ᶠ[at_top] (λ n, 0) :=
 eventually_at_top.2 ⟨1, λ n hn, zero_pow (zero_lt_one.trans_le hn)⟩
 
-section ordered_ring
+section strict_ordered_ring
 
-variables [ordered_ring α] {l : filter β} {f g : β → α}
+variables [strict_ordered_ring α] {l : filter β} {f g : β → α}
 
 lemma eventually_ne_of_tendsto_at_bot [nontrivial α] (hf : tendsto f l at_bot)
   (c : α) : ∀ᶠ x in l, f x ≠ c :=
@@ -634,7 +634,7 @@ have tendsto (λ x, (-f x) * (-g x)) l at_top :=
   (tendsto_neg_at_bot_at_top.comp hf).at_top_mul_at_top (tendsto_neg_at_bot_at_top.comp hg),
 by simpa only [neg_mul_neg] using this
 
-end ordered_ring
+end strict_ordered_ring
 
 section linear_ordered_add_comm_group
 
@@ -660,9 +660,9 @@ end
 
 end linear_ordered_add_comm_group
 
-section linear_ordered_semiring
+section strict_linear_ordered_add_cancel_semiring
 
-variables [linear_ordered_semiring α] {l : filter β} {f : β → α}
+variables [strict_linear_ordered_add_cancel_semiring α] {l : filter β} {f : β → α}
 
 lemma tendsto.at_top_of_const_mul {c : α} (hc : 0 < c) (hf : tendsto (λ x, c * f x) l at_top) :
   tendsto f l at_top :=
@@ -672,9 +672,9 @@ lemma tendsto.at_top_of_mul_const {c : α} (hc : 0 < c) (hf : tendsto (λ x, f x
   tendsto f l at_top :=
 tendsto_at_top.2 $ λ b, (tendsto_at_top.1 hf (b * c)).mono $ λ x hx, le_of_mul_le_mul_right hx hc
 
-end linear_ordered_semiring
+end strict_linear_ordered_add_cancel_semiring
 
-lemma nonneg_of_eventually_pow_nonneg [linear_ordered_ring α] {a : α}
+lemma nonneg_of_eventually_pow_nonneg [strict_linear_ordered_ring α] {a : α}
   (h : ∀ᶠ n in at_top, 0 ≤ a ^ (n : ℕ)) : 0 ≤ a :=
 let ⟨n, hn⟩ := (tendsto_bit1_at_top.eventually h).exists in pow_bit1_nonneg_iff.1 hn
 
@@ -1396,7 +1396,7 @@ open filter finset
 
 section
 
-variables {R : Type*} [linear_ordered_semiring R]
+variables {R : Type*} [strict_linear_ordered_add_cancel_semiring R]
 
 lemma exists_lt_mul_self (a : R) : ∃ x ≥ 0, a < x * x :=
 let ⟨x, hxa, hx0⟩ :=((tendsto_mul_self_at_top.eventually (eventually_gt_at_top a)).and

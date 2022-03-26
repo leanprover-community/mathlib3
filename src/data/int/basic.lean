@@ -10,7 +10,7 @@ import order.min_max
 # Basic operations on the integers
 
 This file contains:
-* instances on `ℤ`. The stronger one is `int.linear_ordered_comm_ring`.
+* instances on `ℤ`. The stronger one is `int.strict_linear_ordered_comm_ring`.
 * some basic lemmas about integers
 
 ## Recursors
@@ -79,7 +79,7 @@ instance : semiring int           := by apply_instance
 instance : ring int               := by apply_instance
 instance : distrib int            := by apply_instance
 
-instance : linear_ordered_comm_ring int :=
+instance : strict_linear_ordered_comm_ring int :=
 { add_le_add_left := @int.add_le_add_left,
   mul_pos         := @int.mul_pos,
   zero_le_one     := le_of_lt int.zero_lt_one,

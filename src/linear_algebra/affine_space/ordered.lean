@@ -38,9 +38,9 @@ In this section we prove that `line_map a b r` is monotone (strictly or not) in 
 other arguments belong to specific domains.
 -/
 
-section ordered_ring
+section strict_ordered_ring
 
-variables [ordered_ring k] [ordered_add_comm_group E] [module k E] [ordered_smul k E]
+variables [strict_ordered_ring k] [ordered_add_comm_group E] [module k E] [ordered_smul k E]
 
 variables {a a' b b' : E} {r r' : k}
 
@@ -104,11 +104,11 @@ iff.trans (by rw line_map_apply_one) (line_map_lt_line_map_iff_of_lt h)
 lemma right_lt_line_map_iff_lt (h : r < 1) : b < line_map a b r ↔ b < a :=
 @line_map_lt_right_iff_lt k (order_dual E) _ _ _ _ _ _ _ h
 
-end ordered_ring
+end strict_ordered_ring
 
-section linear_ordered_ring
+section strict_linear_ordered_ring
 
-variables [linear_ordered_ring k] [ordered_add_comm_group E] [module k E]
+variables [strict_linear_ordered_ring k] [ordered_add_comm_group E] [module k E]
   [ordered_smul k E] [invertible (2:k)] {a a' b b' : E} {r r' : k}
 
 lemma midpoint_le_midpoint (ha : a ≤ a') (hb : b ≤ b') :
@@ -116,7 +116,7 @@ lemma midpoint_le_midpoint (ha : a ≤ a') (hb : b ≤ b') :
 line_map_mono_endpoints ha hb (inv_of_nonneg.2 zero_le_two) $
   inv_of_le_one one_le_two
 
-end linear_ordered_ring
+end strict_linear_ordered_ring
 
 section linear_ordered_field
 

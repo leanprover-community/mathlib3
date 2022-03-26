@@ -23,9 +23,9 @@ local infix ` ≺ `:50 := euclidean_domain.r
 
 namespace absolute_value
 
-section ordered_semiring
+section strict_ordered_add_cancel_semiring
 
-variables {R S : Type*} [euclidean_domain R] [ordered_semiring S]
+variables {R S : Type*} [euclidean_domain R] [strict_ordered_add_cancel_semiring S]
 variables (abv : absolute_value R S)
 
 /-- An absolute value `abv : R → S` is Euclidean if it is compatible with the
@@ -50,7 +50,7 @@ h.map_lt_map_iff.mpr (euclidean_domain.mod_lt a hb)
 
 end is_euclidean
 
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
 section int
 

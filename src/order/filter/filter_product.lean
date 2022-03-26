@@ -65,24 +65,24 @@ lemma lt_def [preorder β] : ((<) : β* → β* → Prop) = lift_rel (<) :=
 by { ext ⟨f⟩ ⟨g⟩, exact coe_lt }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is an ordered ring. -/
-instance [ordered_ring β] : ordered_ring β* :=
+instance [strict_ordered_ring β] : strict_ordered_ring β* :=
 { zero_le_one := const_le zero_le_one,
   mul_pos := λ x y, induction_on₂ x y $ λ f g hf hg, coe_pos.2 $
     (coe_pos.1 hg).mp $ (coe_pos.1 hf).mono $ λ x, mul_pos,
   .. germ.ring, .. germ.ordered_add_comm_group, .. germ.nontrivial }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered ring. -/
-noncomputable instance [linear_ordered_ring β] : linear_ordered_ring β* :=
-{ .. germ.ordered_ring, .. germ.linear_order, .. germ.nontrivial }
+noncomputable instance [strict_linear_ordered_ring β] : strict_linear_ordered_ring β* :=
+{ .. germ.strict_ordered_ring, .. germ.linear_order, .. germ.nontrivial }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered field. -/
 noncomputable instance [linear_ordered_field β] : linear_ordered_field β* :=
-{ .. germ.linear_ordered_ring, .. germ.field }
+{ .. germ.strict_linear_ordered_ring, .. germ.field }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a linear ordered commutative ring. -/
-noncomputable instance [linear_ordered_comm_ring β] :
-  linear_ordered_comm_ring β* :=
-{ .. germ.linear_ordered_ring, .. germ.comm_monoid }
+noncomputable instance [strict_linear_ordered_comm_ring β] :
+  strict_linear_ordered_comm_ring β* :=
+{ .. germ.strict_linear_ordered_ring, .. germ.comm_monoid }
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a decidable linear ordered commutative
 group. -/

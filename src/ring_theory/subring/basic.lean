@@ -311,6 +311,31 @@ instance to_linear_ordered_comm_ring {R} [linear_ordered_comm_ring R] (s : subri
 subtype.coe_injective.linear_ordered_comm_ring coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
+/-- A subring of an `strict_ordered_ring` is an `strict_ordered_ring`. -/
+instance to_strict_ordered_ring {R} [strict_ordered_ring R] (s : subring R) :
+  strict_ordered_ring s :=
+subtype.coe_injective.strict_ordered_ring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subring of an `strict_ordered_comm_ring` is an `strict_ordered_comm_ring`. -/
+instance to_strict_ordered_comm_ring {R} [strict_ordered_comm_ring R] (s : subring R) :
+  strict_ordered_comm_ring s :=
+subtype.coe_injective.strict_ordered_comm_ring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subring of a `strict_linear_ordered_ring` is a `strict_linear_ordered_ring`. -/
+instance to_strict_linear_ordered_ring {R} [strict_linear_ordered_ring R] (s : subring R) :
+  strict_linear_ordered_ring s :=
+subtype.coe_injective.strict_linear_ordered_ring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subring of a `strict_linear_ordered_comm_ring` is a `strict_linear_ordered_comm_ring`. -/
+instance to_strict_linear_ordered_comm_ring {R} [strict_linear_ordered_comm_ring R]
+  (s : subring R) :
+  strict_linear_ordered_comm_ring s :=
+subtype.coe_injective.strict_linear_ordered_comm_ring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
 /-- The natural ring hom from a subring of ring `R` to `R`. -/
 def subtype (s : subring R) : s →+* R :=
 { to_fun := coe,
@@ -1053,11 +1078,11 @@ end actions
 -- both ordered ring structures and submonoids available
 
 /-- The subgroup of positive units of a linear ordered semiring. -/
-def units.pos_subgroup (R : Type*) [linear_ordered_semiring R] :
+def units.pos_subgroup (R : Type*) [strict_linear_ordered_add_cancel_semiring R] :
   subgroup Rˣ :=
 { carrier := {x | (0 : R) < x},
   inv_mem' := λ x, units.inv_pos.mpr,
   ..(pos_submonoid R).comap (units.coe_hom R)}
 
-@[simp] lemma units.mem_pos_subgroup {R : Type*} [linear_ordered_semiring R]
+@[simp] lemma units.mem_pos_subgroup {R : Type*} [strict_linear_ordered_add_cancel_semiring R]
   (u : Rˣ) : u ∈ units.pos_subgroup R ↔ (0 : R) < u := iff.rfl

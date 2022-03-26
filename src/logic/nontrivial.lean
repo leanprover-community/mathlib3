@@ -225,7 +225,7 @@ additional `simp` lemmas that can be passed to `nontriviality` using the syntax
 `nontriviality α using [lemmas]`.
 
 ```
-example {R : Type} [ordered_ring R] {a : R} (h : 0 < a) : 0 < a :=
+example {R : Type} [strict_ordered_ring R] {a : R} (h : 0 < a) : 0 < a :=
 begin
   nontriviality, -- There is now a `nontrivial R` hypothesis available.
   assumption,
@@ -241,7 +241,7 @@ end
 ```
 
 ```
-example {R : Type} [ordered_ring R] {a : R} (h : 0 < a) : (2 : ℕ) ∣ 4 :=
+example {R : Type} [strict_ordered_ring R] {a : R} (h : 0 < a) : (2 : ℕ) ∣ 4 :=
 begin
   nontriviality R, -- there is now a `nontrivial R` hypothesis available.
   dec_trivial

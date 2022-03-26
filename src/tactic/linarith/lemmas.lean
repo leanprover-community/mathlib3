@@ -44,32 +44,38 @@ lemma nat_lt_subst {n1 n2 : ℕ} {z1 z2 : ℤ} (hn : n1 < n2) (h1 : ↑n1 = z1) 
   z1 < z2 :=
 by simpa [eq.symm h1, eq.symm h2, int.coe_nat_lt]
 
-lemma eq_of_eq_of_eq {α} [ordered_semiring α] {a b : α} (ha : a = 0) (hb : b = 0) : a + b = 0 :=
+lemma eq_of_eq_of_eq {α} [strict_ordered_add_cancel_semiring α] {a b : α}
+  (ha : a = 0) (hb : b = 0) : a + b = 0 :=
 by simp *
 
-lemma le_of_eq_of_le {α} [ordered_semiring α] {a b : α} (ha : a = 0) (hb : b ≤ 0) : a + b ≤ 0 :=
+lemma le_of_eq_of_le {α} [strict_ordered_add_cancel_semiring α] {a b : α}
+  (ha : a = 0) (hb : b ≤ 0) : a + b ≤ 0 :=
 by simp *
 
-lemma lt_of_eq_of_lt {α} [ordered_semiring α] {a b : α} (ha : a = 0) (hb : b < 0) : a + b < 0 :=
+lemma lt_of_eq_of_lt {α} [strict_ordered_add_cancel_semiring α] {a b : α}
+  (ha : a = 0) (hb : b < 0) : a + b < 0 :=
 by simp *
 
-lemma le_of_le_of_eq {α} [ordered_semiring α] {a b : α} (ha : a ≤ 0) (hb : b = 0) : a + b ≤ 0 :=
+lemma le_of_le_of_eq {α} [strict_ordered_add_cancel_semiring α] {a b : α}
+  (ha : a ≤ 0) (hb : b = 0) : a + b ≤ 0 :=
 by simp *
 
-lemma lt_of_lt_of_eq {α} [ordered_semiring α] {a b : α} (ha : a < 0) (hb : b = 0) : a + b < 0 :=
+lemma lt_of_lt_of_eq {α} [strict_ordered_add_cancel_semiring α] {a b : α}
+  (ha : a < 0) (hb : b = 0) : a + b < 0 :=
 by simp *
 
-lemma mul_neg {α} [ordered_ring α] {a b : α} (ha : a < 0) (hb : 0 < b) : b * a < 0 :=
+lemma mul_neg {α} [strict_ordered_ring α] {a b : α} (ha : a < 0) (hb : 0 < b) : b * a < 0 :=
 have (-b)*a > 0, from mul_pos_of_neg_of_neg (neg_neg_of_pos hb) ha,
 neg_of_neg_pos (by simpa)
 
-lemma mul_nonpos {α} [ordered_ring α] {a b : α} (ha : a ≤ 0) (hb : 0 < b) : b * a ≤ 0 :=
+lemma mul_nonpos {α} [strict_ordered_ring α] {a b : α} (ha : a ≤ 0) (hb : 0 < b) : b * a ≤ 0 :=
 have (-b)*a ≥ 0, from mul_nonneg_of_nonpos_of_nonpos (le_of_lt (neg_neg_of_pos hb)) ha,
 by simpa
 
 -- used alongside `mul_neg` and `mul_nonpos`, so has the same argument pattern for uniformity
 @[nolint unused_arguments]
-lemma mul_eq {α} [ordered_semiring α] {a b : α} (ha : a = 0) (hb : 0 < b) : b * a = 0 :=
+lemma mul_eq {α} [strict_ordered_add_cancel_semiring α] {a b : α}
+  (ha : a = 0) (hb : 0 < b) : b * a = 0 :=
 by simp *
 
 lemma eq_of_not_lt_of_not_gt {α} [linear_order α] (a b : α) (h1 : ¬ a < b) (h2 : ¬ b < a) : a = b :=

@@ -181,7 +181,8 @@ begin
   exacts [finset.prod_induction _ _ hp₁ hp₀ (λ i hi, hp₂ _), hp₀]
 end
 
-lemma finprod_nonneg {R : Type*} [ordered_comm_semiring R] {f : α → R} (hf : ∀ x, 0 ≤ f x) :
+lemma finprod_nonneg {R : Type*} [strict_ordered_add_cancel_comm_semiring R] {f : α → R}
+  (hf : ∀ x, 0 ≤ f x) :
   0 ≤ ∏ᶠ x, f x :=
 finprod_induction (λ x, 0 ≤ x) zero_le_one (λ x y, mul_nonneg) hf
 
@@ -860,8 +861,8 @@ additive and holds on summands."] lemma finprod_mem_induction (p : M → Prop) (
   p (∏ᶠ i ∈ s, f i) :=
 finprod_induction _ hp₀ hp₁ $ λ x, finprod_induction _ hp₀ hp₁ $ hp₂ x
 
-lemma finprod_cond_nonneg {R : Type*} [ordered_comm_semiring R] {p : α → Prop} {f : α → R}
-  (hf : ∀ x, p x → 0 ≤ f x) :
+lemma finprod_cond_nonneg {R : Type*} [strict_ordered_add_cancel_comm_semiring R] {p : α → Prop}
+  {f : α → R} (hf : ∀ x, p x → 0 ≤ f x) :
   0 ≤ ∏ᶠ x (h : p x), f x :=
 finprod_nonneg $ λ x, finprod_nonneg $ hf x
 

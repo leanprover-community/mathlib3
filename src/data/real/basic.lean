@@ -211,7 +211,7 @@ begin
   simpa only [mk_lt, mk_pos, ← mk_mul] using cau_seq.mul_pos
 end
 
-instance : ordered_comm_ring ℝ :=
+instance : strict_ordered_comm_ring ℝ :=
 { add_le_add_left :=
   begin
     simp only [le_iff_eq_or_lt],
@@ -223,11 +223,11 @@ instance : ordered_comm_ring ℝ :=
   mul_pos     := @real.mul_pos,
   .. real.comm_ring, .. real.partial_order, .. real.semiring }
 
-instance : ordered_ring ℝ               := by apply_instance
-instance : ordered_semiring ℝ           := by apply_instance
-instance : ordered_add_comm_group ℝ     := by apply_instance
-instance : ordered_cancel_add_comm_monoid ℝ := by apply_instance
-instance : ordered_add_comm_monoid ℝ    := by apply_instance
+instance : strict_ordered_ring ℝ                := by apply_instance
+instance : strict_ordered_add_cancel_semiring ℝ := by apply_instance
+instance : ordered_add_comm_group ℝ             := by apply_instance
+instance : ordered_cancel_add_comm_monoid ℝ     := by apply_instance
+instance : ordered_add_comm_monoid ℝ            := by apply_instance
 instance : nontrivial ℝ := ⟨⟨0, 1, ne_of_lt real.zero_lt_one⟩⟩
 
 open_locale classical
@@ -242,14 +242,14 @@ noncomputable instance : linear_order ℝ :=
   decidable_le := by apply_instance,
   .. real.partial_order }
 
-noncomputable instance : linear_ordered_comm_ring ℝ :=
-{ .. real.nontrivial, .. real.ordered_ring, .. real.comm_ring, .. real.linear_order }
+noncomputable instance : strict_linear_ordered_comm_ring ℝ :=
+{ .. real.nontrivial, .. real.strict_ordered_ring, .. real.comm_ring, .. real.linear_order }
 
 /- Extra instances to short-circuit type class resolution -/
-noncomputable instance : linear_ordered_ring ℝ        := by apply_instance
-noncomputable instance : linear_ordered_semiring ℝ    := by apply_instance
+noncomputable instance : strict_linear_ordered_ring ℝ                := by apply_instance
+noncomputable instance : strict_linear_ordered_add_cancel_semiring ℝ := by apply_instance
 instance : is_domain ℝ :=
-{ .. real.nontrivial, .. real.comm_ring, .. linear_ordered_ring.is_domain }
+{ .. real.nontrivial, .. real.comm_ring, .. strict_linear_ordered_ring.is_domain }
 
 @[irreducible] private noncomputable def inv' : ℝ → ℝ | ⟨a⟩ := ⟨a⁻¹⟩
 noncomputable instance : has_inv ℝ := ⟨inv'⟩
@@ -266,7 +266,7 @@ noncomputable instance : linear_ordered_field ℝ :=
     exact cau_seq.completion.inv_mul_cancel h,
   end,
   inv_zero := by simp [← of_cauchy_zero, ←of_cauchy_inv],
-  ..real.linear_ordered_comm_ring, }
+  ..real.strict_linear_ordered_comm_ring, }
 
 /- Extra instances to short-circuit type class resolution -/
 

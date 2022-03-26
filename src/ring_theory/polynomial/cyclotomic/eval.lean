@@ -41,7 +41,7 @@ by simp only [cyclotomic_prime_pow_eq_geom_sum hn.out, geom_sum_def, eval_X, one
   {p : ℕ} (k : ℕ) [fact p.prime] : eval₂ f 1 (cyclotomic (p ^ (k + 1)) R) = p :=
 by simp
 
-private lemma cyclotomic_neg_one_pos {n : ℕ} (hn : 2 < n) {R} [linear_ordered_comm_ring R] :
+private lemma cyclotomic_neg_one_pos {n : ℕ} (hn : 2 < n) {R} [strict_linear_ordered_comm_ring R] :
   0 < eval (-1 : R) (cyclotomic n R) :=
 begin
   haveI := ne_zero.of_gt hn,
@@ -58,10 +58,10 @@ begin
   obtain ⟨y, hy : is_root _ y⟩ := this (show (0 : ℝ) ∈ set.Icc _ _, by simpa [h0] using hx),
   rw is_root_cyclotomic_iff at hy,
   rw hy.eq_order_of at hn,
-  exact hn.not_le linear_ordered_ring.order_of_le_two,
+  exact hn.not_le strict_linear_ordered_ring.order_of_le_two,
 end
 
-lemma cyclotomic_pos {n : ℕ} (hn : 2 < n) {R} [linear_ordered_comm_ring R] (x : R) :
+lemma cyclotomic_pos {n : ℕ} (hn : 2 < n) {R} [strict_linear_ordered_comm_ring R] (x : R) :
   0 < eval x (cyclotomic n R) :=
 begin
   induction n using nat.strong_induction_on with n ih,

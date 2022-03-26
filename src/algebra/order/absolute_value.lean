@@ -21,7 +21,7 @@ This file defines a bundled type of absolute values `absolute_value R S`.
 
 /-- `absolute_value R S` is the type of absolute values on `R` mapping to `S`:
 the maps that preserve `*`, are nonnegative, positive definite and satisfy the triangle equality. -/
-structure absolute_value (R S : Type*) [semiring R] [ordered_semiring S]
+structure absolute_value (R S : Type*) [semiring R] [strict_ordered_add_cancel_semiring S]
   extends mul_hom R S :=
 (nonneg' : ∀ x, 0 ≤ to_fun x)
 (eq_zero' : ∀ x, to_fun x = 0 ↔ x = 0)
@@ -33,9 +33,10 @@ attribute [nolint doc_blame] absolute_value.to_mul_hom
 
 initialize_simps_projections absolute_value (to_mul_hom_to_fun → apply)
 
-section ordered_semiring
+section strict_ordered_add_cancel_semiring
 
-variables {R S : Type*} [semiring R] [ordered_semiring S] (abv : absolute_value R S)
+variables {R S : Type*} [semiring R] [strict_ordered_add_cancel_semiring S]
+  (abv : absolute_value R S)
 
 instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := ⟨λ f, f.to_fun⟩
 
@@ -56,11 +57,11 @@ protected theorem ne_zero {x : R} (hx : x ≠ 0) : abv x ≠ 0 := (abv.pos hx).n
 
 @[simp] protected theorem map_zero : abv 0 = 0 := abv.eq_zero.2 rfl
 
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
-section ordered_ring
+section strict_ordered_ring
 
-variables {R S : Type*} [ring R] [ordered_ring S] (abv : absolute_value R S)
+variables {R S : Type*} [ring R] [strict_ordered_ring S] (abv : absolute_value R S)
 
 protected lemma sub_le (a b c : R) : abv (a - c) ≤ abv (a - b) + abv (b - c) :=
 by simpa [sub_eq_add_neg, add_assoc] using abv.add_le (a - b) (b - c)
@@ -71,11 +72,11 @@ sub_le_iff_le_add.2 $ by simpa using abv.add_le (a - b) b
 @[simp] lemma map_sub_eq_zero_iff (a b : R) : abv (a - b) = 0 ↔ a = b :=
 abv.eq_zero.trans sub_eq_zero
 
-end ordered_ring
+end strict_ordered_ring
 
-section linear_ordered_ring
+section strict_linear_ordered_ring
 
-variables {R S : Type*} [semiring R] [linear_ordered_ring S] (abv : absolute_value R S)
+variables {R S : Type*} [semiring R] [strict_linear_ordered_ring S] (abv : absolute_value R S)
 
 /-- `absolute_value.abs` is `abs` as a bundled `absolute_value`. -/
 @[simps]
@@ -114,13 +115,13 @@ def to_monoid_hom : monoid_hom R S :=
 @[simp] protected lemma map_pow (a : R) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
 abv.to_monoid_hom.map_pow a n
 
-end linear_ordered_ring
+end strict_linear_ordered_ring
 
-section linear_ordered_comm_ring
+section strict_linear_ordered_comm_ring
 
 section ring
 
-variables {R S : Type*} [ring R] [linear_ordered_comm_ring S] (abv : absolute_value R S)
+variables {R S : Type*} [ring R] [strict_linear_ordered_comm_ring S] (abv : absolute_value R S)
 
 @[simp] protected theorem map_neg (a : R) : abv (-a) = abv a :=
 begin
@@ -139,7 +140,7 @@ abs_sub_le_iff.2 ⟨abv.le_sub _ _, by rw abv.map_sub; apply abv.le_sub⟩
 
 end ring
 
-end linear_ordered_comm_ring
+end strict_linear_ordered_comm_ring
 
 section linear_ordered_field
 
@@ -166,7 +167,7 @@ multiplicative.
 
 See also the type `absolute_value` which represents a bundled version of absolute values.
 -/
-class is_absolute_value {S} [ordered_semiring S]
+class is_absolute_value {S} [strict_ordered_add_cancel_semiring S]
   {R} [semiring R] (f : R → S) : Prop :=
 (abv_nonneg [] : ∀ x, 0 ≤ f x)
 (abv_eq_zero [] : ∀ {x}, f x = 0 ↔ x = 0)
@@ -175,9 +176,9 @@ class is_absolute_value {S} [ordered_semiring S]
 
 namespace is_absolute_value
 
-section ordered_semiring
+section strict_ordered_add_cancel_semiring
 
-variables {S : Type*} [ordered_semiring S]
+variables {S : Type*} [strict_ordered_add_cancel_semiring S]
 variables {R : Type*} [semiring R] (abv : R → S) [is_absolute_value abv]
 
 /-- A bundled absolute value is an absolute value. -/
@@ -203,25 +204,25 @@ theorem abv_pos {a : R} : 0 < abv a ↔ a ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [abv_eq_zero abv, abv_nonneg abv]
 
 
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
-section linear_ordered_ring
+section strict_linear_ordered_ring
 
-variables {S : Type*} [linear_ordered_ring S]
+variables {S : Type*} [strict_linear_ordered_ring S]
 variables {R : Type*} [semiring R] (abv : R → S) [is_absolute_value abv]
 
-instance abs_is_absolute_value {S} [linear_ordered_ring S] :
+instance abs_is_absolute_value {S} [strict_linear_ordered_ring S] :
   is_absolute_value (abs : S → S) :=
 { abv_nonneg  := abs_nonneg,
   abv_eq_zero := λ _, abs_eq_zero,
   abv_add     := abs_add,
   abv_mul     := abs_mul }
 
-end linear_ordered_ring
+end strict_linear_ordered_ring
 
-section linear_ordered_comm_ring
+section strict_linear_ordered_comm_ring
 
-variables {S : Type*} [linear_ordered_comm_ring S]
+variables {S : Type*} [strict_linear_ordered_comm_ring S]
 
 section semiring
 variables {R : Type*} [semiring R] (abv : R → S) [is_absolute_value abv]
@@ -239,7 +240,7 @@ lemma abv_pow [nontrivial R] (abv : R → S) [is_absolute_value abv]
 
 end semiring
 
-end linear_ordered_comm_ring
+end strict_linear_ordered_comm_ring
 
 section linear_ordered_field
 variables {S : Type*} [linear_ordered_field S]

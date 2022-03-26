@@ -13,8 +13,8 @@ import algebra.smul_with_zero
 In this file we define
 
 * `ordered_smul R M` : an ordered additive commutative monoid `M` is an `ordered_smul`
-  over an `ordered_semiring` `R` if the scalar product respects the order relation on the
-  monoid and on the ring. There is a correspondence between this structure and convex cones,
+  over an `strict_ordered_add_cancel_semiring` `R` if the scalar product respects the order relation
+  on the monoid and on the ring. There is a correspondence between this structure and convex cones,
   which is proven in `analysis/convex/cone.lean`.
 
 ## Implementation notes
@@ -23,7 +23,7 @@ In this file we define
   used for actions, modules, and algebras
   (the axioms for an "ordered algebra" are exactly that the algebra is ordered as a module).
 * To get ordered modules and ordered vector spaces, it suffices to replace the
-  `order_add_comm_monoid` and the `ordered_semiring` as desired.
+  `order_add_comm_monoid` and the `strict_ordered_add_cancel_semiring` as desired.
 
 ## References
 
@@ -41,7 +41,7 @@ with a partial order has a scalar multiplication which is compatible with the or
 -/
 @[protect_proj]
 class ordered_smul (R M : Type*)
-  [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M] : Prop :=
+  [strict_ordered_add_cancel_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M] : Prop :=
 (smul_lt_smul_of_pos : ∀ {a b : M}, ∀ {c : R}, a < b → 0 < c → c • a < c • b)
 (lt_of_smul_lt_smul_of_pos : ∀ {a b : M}, ∀ {c : R}, c • a < c • b → 0 < c → a < b)
 
@@ -72,7 +72,7 @@ instance [monoid_with_zero R] [add_monoid M] [distrib_mul_action R M] :
 { smul_add := λ k a, order_dual.rec (λ a' b, order_dual.rec (smul_add _ _) b) a,
   smul_zero := λ r, order_dual.rec smul_zero r }
 
-instance [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M]
+instance [strict_ordered_add_cancel_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M]
   [ordered_smul R M] :
   ordered_smul R (order_dual M) :=
 { smul_lt_smul_of_pos := λ a b, @ordered_smul.smul_lt_smul_of_pos R M _ _ _ _ b a,
@@ -90,8 +90,8 @@ end order_dual
 section ordered_smul
 
 variables {R M : Type*}
-  [ordered_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M] [ordered_smul R M]
-  {a b : M} {c : R}
+  [strict_ordered_add_cancel_semiring R] [ordered_add_comm_monoid M] [smul_with_zero R M]
+  [ordered_smul R M] {a b : M} {c : R}
 
 lemma smul_lt_smul_of_pos : a < b → 0 < c → c • a < c • b := ordered_smul.smul_lt_smul_of_pos
 
@@ -141,8 +141,8 @@ end ordered_smul
 `ordered_smul`. Moreover, it suffices to verify that `a < b` and `0 < c` imply
 `c • a ≤ c • b`. We have no semifields in `mathlib`, so we use the assumption `∀ c ≠ 0, is_unit c`
 instead. -/
-lemma ordered_smul.mk'' {R M : Type*} [linear_ordered_semiring R] [ordered_add_comm_monoid M]
-  [mul_action_with_zero R M] (hR : ∀ {c : R}, c ≠ 0 → is_unit c)
+lemma ordered_smul.mk'' {R M : Type*} [strict_linear_ordered_add_cancel_semiring R]
+  [ordered_add_comm_monoid M] [mul_action_with_zero R M] (hR : ∀ {c : R}, c ≠ 0 → is_unit c)
   (hlt : ∀ ⦃a b : M⦄ ⦃c : R⦄, a < b → 0 < c → c • a ≤ c • b) :
   ordered_smul R M :=
 begin
@@ -165,9 +165,9 @@ lemma ordered_smul.mk' {k M : Type*} [linear_ordered_field k] [ordered_add_comm_
   ordered_smul k M :=
 ordered_smul.mk'' (λ c hc, is_unit.mk0 _ hc) hlt
 
-instance linear_ordered_semiring.to_ordered_smul {R : Type*} [linear_ordered_semiring R] :
-  ordered_smul R R :=
-{ smul_lt_smul_of_pos        := ordered_semiring.mul_lt_mul_of_pos_left,
+instance strict_linear_ordered_add_cancel_semiring.to_ordered_smul {R : Type*}
+  [strict_linear_ordered_add_cancel_semiring R] : ordered_smul R R :=
+{ smul_lt_smul_of_pos        := strict_ordered_add_cancel_semiring.mul_lt_mul_of_pos_left,
   lt_of_smul_lt_smul_of_pos  := λ _ _ _ h hc, lt_of_mul_lt_mul_left h hc.le }
 
 section field

@@ -24,8 +24,8 @@ open set
 variables {𝕜 E F : Type*}
 
 section convex_hull
-section ordered_semiring
-variables [ordered_semiring 𝕜]
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring 𝕜]
 
 section add_comm_monoid
 variables (𝕜) [add_comm_monoid E] [add_comm_monoid F] [module 𝕜 E] [module 𝕜 F]
@@ -123,10 +123,10 @@ lemma linear_map.convex_hull_image (f : E →ₗ[𝕜] F) (s : set E) :
 f.is_linear.convex_hull_image s
 
 end add_comm_monoid
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
-section ordered_ring
-variables [ordered_ring 𝕜]
+section strict_ordered_ring
+variables [strict_ordered_ring 𝕜]
 
 section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] (s : set E)
@@ -154,5 +154,5 @@ begin
 end
 
 end add_comm_group
-end ordered_ring
+end strict_ordered_ring
 end convex_hull

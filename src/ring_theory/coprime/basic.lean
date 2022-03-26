@@ -281,7 +281,8 @@ lemma neg_neg_iff (x y : R) : is_coprime (-x) (-y) ↔ is_coprime x y :=
 
 end comm_ring
 
-lemma sq_add_sq_ne_zero {R : Type*} [linear_ordered_comm_ring R] {a b : R} (h : is_coprime a b) :
+lemma sq_add_sq_ne_zero {R : Type*} [strict_linear_ordered_comm_ring R] {a b : R}
+  (h : is_coprime a b) :
   a ^ 2 + b ^ 2 ≠ 0 :=
 begin
   intros h',

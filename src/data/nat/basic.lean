@@ -49,7 +49,7 @@ instance : comm_semiring nat :=
   nsmul_succ'    := λ n x,
     by rw [nat.succ_eq_add_one, nat.add_comm, nat.right_distrib, nat.one_mul] }
 
-instance : linear_ordered_semiring nat :=
+instance : strict_linear_ordered_add_cancel_semiring nat :=
 { add_left_cancel            := @nat.add_left_cancel,
   lt                         := nat.lt,
   add_le_add_left            := @nat.add_le_add_left,
@@ -61,17 +61,18 @@ instance : linear_ordered_semiring nat :=
   exists_pair_ne             := ⟨0, 1, ne_of_lt nat.zero_lt_one⟩,
   ..nat.comm_semiring, ..nat.linear_order }
 
--- all the fields are already included in the linear_ordered_semiring instance
+-- all the fields are already included in the strict_linear_ordered_add_cancel_semiring instance
 instance : linear_ordered_cancel_add_comm_monoid ℕ :=
 { add_left_cancel := @nat.add_left_cancel,
-  ..nat.linear_ordered_semiring }
+  ..nat.strict_linear_ordered_add_cancel_semiring }
 
 instance : linear_ordered_comm_monoid_with_zero ℕ :=
 { mul_le_mul_left := λ a b h c, nat.mul_le_mul_left c h,
-  ..nat.linear_ordered_semiring,
+  ..nat.strict_linear_ordered_add_cancel_semiring,
   ..(infer_instance : comm_monoid_with_zero ℕ)}
 
-instance : ordered_comm_semiring ℕ := { .. nat.comm_semiring, .. nat.linear_ordered_semiring }
+instance : strict_ordered_add_cancel_comm_semiring ℕ :=
+{ .. nat.comm_semiring, .. nat.strict_linear_ordered_add_cancel_semiring }
 
 /-! Extra instances to short-circuit type class resolution -/
 instance : add_comm_monoid nat    := by apply_instance
@@ -84,7 +85,7 @@ instance : add_comm_semigroup nat := by apply_instance
 instance : add_semigroup nat      := by apply_instance
 instance : distrib nat            := by apply_instance
 instance : semiring nat           := by apply_instance
-instance : ordered_semiring nat   := by apply_instance
+instance : strict_ordered_add_cancel_semiring nat   := by apply_instance
 
 instance nat.order_bot : order_bot ℕ :=
 { bot := 0, bot_le := nat.zero_le }
@@ -96,7 +97,7 @@ instance : canonically_ordered_comm_semiring ℕ :=
   .. nat.nontrivial,
   .. nat.order_bot,
   .. (infer_instance : ordered_add_comm_monoid ℕ),
-  .. (infer_instance : linear_ordered_semiring ℕ),
+  .. (infer_instance : strict_linear_ordered_add_cancel_semiring ℕ),
   .. (infer_instance : comm_semiring ℕ) }
 
 instance : canonically_linear_ordered_add_monoid ℕ :=

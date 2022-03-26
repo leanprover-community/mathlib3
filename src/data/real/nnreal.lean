@@ -23,8 +23,8 @@ a.k.a. the interval `[0, ∞)`. We also define the following operations and stru
   complete linear ordered archimedean commutative semifield; we have no typeclass for this in
   `mathlib` yet, so we define the following instances instead:
 
-  - `linear_ordered_semiring ℝ≥0`;
-  - `ordered_comm_semiring ℝ≥0`;
+  - `strict_linear_ordered_add_cancel_semiring ℝ≥0`;
+  - `strict_ordered_add_cancel_comm_semiring ℝ≥0`;
   - `canonically_ordered_comm_semiring ℝ≥0`;
   - `linear_ordered_comm_group_with_zero ℝ≥0`;
   - `canonically_linear_ordered_add_monoid ℝ≥0`;
@@ -51,11 +51,12 @@ open_locale classical big_operators
 
 /-- Nonnegative real numbers. -/
 @[derive [
-  ordered_semiring, comm_monoid_with_zero, -- to ensure these instance are computable
+  strict_ordered_add_cancel_semiring, comm_monoid_with_zero, -- to ensure these instance are computable
   floor_semiring,
   semilattice_inf, densely_ordered, order_bot,
   canonically_linear_ordered_add_monoid, linear_ordered_comm_group_with_zero, archimedean,
-  linear_ordered_semiring, ordered_comm_semiring, canonically_ordered_comm_semiring,
+  strict_linear_ordered_add_cancel_semiring, strict_ordered_add_cancel_comm_semiring,
+  canonically_ordered_comm_semiring,
   has_sub, has_ordered_sub, has_div, inhabited]]
 def nnreal := {r : ℝ // 0 ≤ r}
 localized "notation ` ℝ≥0 ` := nnreal" in nnreal
@@ -274,8 +275,8 @@ noncomputable example : linear_ordered_add_comm_monoid ℝ≥0 := by apply_insta
 noncomputable example : distrib_lattice ℝ≥0 := by apply_instance
 noncomputable example : semilattice_inf ℝ≥0 := by apply_instance
 noncomputable example : semilattice_sup ℝ≥0 := by apply_instance
-noncomputable example : linear_ordered_semiring ℝ≥0 := by apply_instance
-example : ordered_comm_semiring ℝ≥0 := by apply_instance
+noncomputable example : strict_linear_ordered_add_cancel_semiring ℝ≥0 := by apply_instance
+example : strict_ordered_add_cancel_comm_semiring ℝ≥0 := by apply_instance
 noncomputable example : linear_ordered_comm_monoid  ℝ≥0 := by apply_instance
 noncomputable example : linear_ordered_comm_monoid_with_zero ℝ≥0 := by apply_instance
 noncomputable example : linear_ordered_comm_group_with_zero ℝ≥0 := by apply_instance

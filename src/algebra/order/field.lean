@@ -27,7 +27,8 @@ set_option old_structure_cmd true
 variable {α : Type*}
 
 /-- A linear ordered field is a field with a linear order respecting the operations. -/
-@[protect_proj] class linear_ordered_field (α : Type*) extends linear_ordered_comm_ring α, field α
+@[protect_proj] class linear_ordered_field (α : Type*)
+  extends strict_linear_ordered_comm_ring α, field α
 
 section linear_ordered_field
 variables [linear_ordered_field α] {a b c d e : α}
@@ -627,7 +628,7 @@ def function.injective.linear_ordered_field {β : Type*}
   (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
   (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n):
   linear_ordered_field β :=
-{ ..hf.linear_ordered_ring f zero one add mul neg sub nsmul zsmul npow,
+{ ..hf.strict_linear_ordered_ring f zero one add mul neg sub nsmul zsmul npow,
   ..hf.field f zero one add mul neg sub inv div nsmul zsmul npow zpow}
 
 lemma mul_sub_mul_div_mul_neg_iff (hc : c ≠ 0) (hd : d ≠ 0) :

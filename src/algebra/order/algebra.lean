@@ -33,7 +33,7 @@ section ordered_algebra
 
 variables {R A : Type*} {a b : A} {r : R}
 
-variables [ordered_comm_ring R] [ordered_ring A] [algebra R A] [ordered_smul R A]
+variables [strict_ordered_comm_ring R] [strict_ordered_ring A] [algebra R A] [ordered_smul R A]
 
 lemma algebra_map_monotone : monotone (algebra_map R A) :=
 λ a b h,
@@ -48,10 +48,10 @@ end ordered_algebra
 
 section instances
 
-variables {R : Type*} [linear_ordered_comm_ring R]
+variables {R : Type*} [strict_linear_ordered_comm_ring R]
 
-instance linear_ordered_comm_ring.to_ordered_smul : ordered_smul R R :=
-{ smul_lt_smul_of_pos       := ordered_semiring.mul_lt_mul_of_pos_left,
+instance strict_linear_ordered_comm_ring.to_ordered_smul : ordered_smul R R :=
+{ smul_lt_smul_of_pos       := strict_ordered_add_cancel_semiring.mul_lt_mul_of_pos_left,
   lt_of_smul_lt_smul_of_pos := λ a b c w₁ w₂, (mul_lt_mul_left w₂).mp w₁ }
 
 end instances

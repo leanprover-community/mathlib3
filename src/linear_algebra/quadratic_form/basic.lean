@@ -658,12 +658,12 @@ end anisotropic
 
 section pos_def
 
-variables {R₂ : Type u} [ordered_ring R₂] [module R₂ M] {Q₂ : quadratic_form R₂ M}
+variables {R₂ : Type u} [strict_ordered_ring R₂] [module R₂ M] {Q₂ : quadratic_form R₂ M}
 
 /-- A positive definite quadratic form is positive on nonzero vectors. -/
 def pos_def (Q₂ : quadratic_form R₂ M) : Prop := ∀ x ≠ 0, 0 < Q₂ x
 
-lemma pos_def.smul {R} [linear_ordered_comm_ring R] [module R M]
+lemma pos_def.smul {R} [strict_linear_ordered_comm_ring R] [module R M]
   {Q : quadratic_form R M} (h : pos_def Q) {a : R} (a_pos : 0 < a) : pos_def (a • Q) :=
 λ x hx, mul_pos a_pos (h x hx)
 
@@ -692,7 +692,7 @@ lemma pos_def.add (Q Q' : quadratic_form R₂ M) (hQ : pos_def Q) (hQ' : pos_def
   pos_def (Q + Q') :=
 λ x hx, add_pos (hQ x hx) (hQ' x hx)
 
-lemma lin_mul_lin_self_pos_def {R} [linear_ordered_comm_ring R] [module R M]
+lemma lin_mul_lin_self_pos_def {R} [strict_linear_ordered_comm_ring R] [module R M]
   (f : M →ₗ[R] R) (hf : linear_map.ker f = ⊥) :
   pos_def (lin_mul_lin f f) :=
 λ x hx, mul_self_pos.2 (λ h, hx (linear_map.ker_eq_bot.mp hf (by rw [h, linear_map.map_zero])))

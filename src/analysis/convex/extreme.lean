@@ -46,7 +46,7 @@ open set
 variables (𝕜 : Type*) {E : Type*}
 
 section has_scalar
-variables [ordered_semiring 𝕜] [add_comm_monoid E] [has_scalar 𝕜 E]
+variables [strict_ordered_add_cancel_semiring 𝕜] [add_comm_monoid E] [has_scalar 𝕜 E]
 
 /-- A set `B` is an extreme subset of `A` if `B ⊆ A` and all points of `B` only belong to open
 segments whose ends are in `B`. -/
@@ -176,15 +176,16 @@ subset.antisymm (λ x hx, ⟨hx.1, hAB.extreme_points_subset_extreme_points hx�
 
 end has_scalar
 
-section ordered_semiring
-variables {𝕜} [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E] {A B : set E} {x : E}
+section strict_ordered_add_cancel_semiring
+variables {𝕜} [strict_ordered_add_cancel_semiring 𝕜] [add_comm_group E] [module 𝕜 E] {A B : set E}
+  {x : E}
 
 lemma is_extreme.convex_diff (hA : convex 𝕜 A) (hAB : is_extreme 𝕜 A B) :
   convex 𝕜 (A \ B) :=
 convex_iff_open_segment_subset.2 (λ x₁ x₂ ⟨hx₁A, hx₁B⟩ ⟨hx₂A, hx₂B⟩ x hx,
     ⟨hA.open_segment_subset hx₁A hx₂A hx, λ hxB, hx₁B (hAB.2 x₁ hx₁A x₂ hx₂A x hxB hx).1⟩)
 
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
 section linear_ordered_field
 variables {𝕜} [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] {A B : set E} {x : E}

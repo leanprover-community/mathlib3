@@ -723,14 +723,14 @@ or.elim (eq_zero_or_eq_zero_of_mul_eq_zero
   (λe, ne_of_gt a0 e)
   (λe, ne_of_gt b0 e)
 
-instance : linear_ordered_comm_ring ℤ√d :=
+instance : strict_linear_ordered_comm_ring ℤ√d :=
 { add_le_add_left := @zsqrtd.add_le_add_left,
   mul_pos         := @zsqrtd.mul_pos,
   zero_le_one     := dec_trivial,
   .. zsqrtd.comm_ring, .. zsqrtd.linear_order, .. zsqrtd.nontrivial }
 
-instance : linear_ordered_ring ℤ√d := by apply_instance
-instance : ordered_ring ℤ√d        := by apply_instance
+instance : strict_linear_ordered_ring ℤ√d := by apply_instance
+instance : strict_ordered_ring ℤ√d        := by apply_instance
 
 end
 

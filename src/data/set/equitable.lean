@@ -58,8 +58,8 @@ lemma equitable_on_iff_exists_eq_eq_add_one {s : set α} {f : α → ℕ} :
   s.equitable_on f ↔ ∃ b, ∀ a ∈ s, f a = b ∨ f a = b + 1 :=
 by simp_rw [equitable_on_iff_exists_le_le_add_one, nat.le_and_le_add_one_iff]
 
-section ordered_semiring
-variables [ordered_semiring β]
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring β]
 
 lemma subsingleton.equitable_on {s : set α} (hs : s.subsingleton) (f : α → β) : s.equitable_on f :=
 λ i j hi hj, by { rw hs hi hj, exact le_add_of_nonneg_right zero_le_one }
@@ -67,7 +67,7 @@ lemma subsingleton.equitable_on {s : set α} (hs : s.subsingleton) (f : α → �
 lemma equitable_on_singleton (a : α) (f : α → β) : set.equitable_on {a} f :=
 set.subsingleton_singleton.equitable_on f
 
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 end set
 
 open set

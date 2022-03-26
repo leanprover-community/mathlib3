@@ -161,7 +161,7 @@ lemma commute_cast [non_assoc_semiring α] (x : α) (n : ℕ) : commute x n :=
 
 section
 
-variables [ordered_semiring α]
+variables [strict_ordered_add_cancel_semiring α]
 
 @[simp] theorem cast_nonneg : ∀ n : ℕ, 0 ≤ (n : α)
 | 0     := le_rfl
@@ -203,15 +203,15 @@ by rw [← cast_one, cast_le]
 
 end
 
-@[simp, norm_cast] theorem cast_min [linear_ordered_semiring α] {a b : ℕ} :
+@[simp, norm_cast] theorem cast_min [strict_linear_ordered_add_cancel_semiring α] {a b : ℕ} :
   (↑(min a b) : α) = min a b :=
 (@mono_cast α _).map_min
 
-@[simp, norm_cast] theorem cast_max [linear_ordered_semiring α] {a b : ℕ} :
+@[simp, norm_cast] theorem cast_max [strict_linear_ordered_add_cancel_semiring α] {a b : ℕ} :
   (↑(max a b) : α) = max a b :=
 (@mono_cast α _).map_max
 
-@[simp, norm_cast] theorem abs_cast [linear_ordered_ring α] (a : ℕ) :
+@[simp, norm_cast] theorem abs_cast [strict_linear_ordered_ring α] (a : ℕ) :
   |(a : α)| = a :=
 abs_of_nonneg (cast_nonneg a)
 

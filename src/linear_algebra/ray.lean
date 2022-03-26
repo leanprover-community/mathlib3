@@ -23,9 +23,9 @@ noncomputable theory
 
 open_locale big_operators
 
-section ordered_comm_semiring
+section strict_ordered_add_cancel_comm_semiring
 
-variables (R : Type*) [ordered_comm_semiring R]
+variables (R : Type*) [strict_ordered_add_cancel_comm_semiring R]
 variables {M : Type*} [add_comm_monoid M] [module R M]
 variables {N : Type*} [add_comm_monoid N] [module R N]
 variables (ι : Type*) [decidable_eq ι]
@@ -289,11 +289,11 @@ x.some_ray_vector.property
 
 end module.ray
 
-end ordered_comm_semiring
+end strict_ordered_add_cancel_comm_semiring
 
-section ordered_comm_ring
+section strict_ordered_comm_ring
 
-variables {R : Type*} [ordered_comm_ring R]
+variables {R : Type*} [strict_ordered_comm_ring R]
 variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [module R N] {x y : M}
 
 /-- `same_ray.neg` as an `iff`. -/
@@ -391,11 +391,11 @@ end
 
 end module.ray
 
-end ordered_comm_ring
+end strict_ordered_comm_ring
 
-section linear_ordered_comm_ring
+section strict_linear_ordered_comm_ring
 
-variables {R : Type*} [linear_ordered_comm_ring R]
+variables {R : Type*} [strict_linear_ordered_comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
 
 /-- `same_ray` follows from membership of `mul_action.orbit` for the `units.pos_subgroup`. -/
@@ -467,7 +467,7 @@ by rw [← neg_inj, neg_neg, ← module.ray.neg_units_smul, units_smul_eq_self_i
 
 end
 
-end linear_ordered_comm_ring
+end strict_linear_ordered_comm_ring
 
 namespace same_ray
 

@@ -36,10 +36,11 @@ for `nnnorm`.
 
 ## TODO
 
-Some `nat.floor` and `nat.ceil` lemmas require `linear_ordered_ring α`. Is `has_ordered_sub` enough?
+Some `nat.floor` and `nat.ceil` lemmas require `strict_linear_ordered_ring α`.
+Is `has_ordered_sub` enough?
 
-`linear_ordered_ring`/`linear_ordered_semiring` can be relaxed to `order_ring`/`order_semiring` in
-many lemmas.
+`strict_linear_ordered_ring`/`strict_linear_ordered_add_cancel_semiring` can be relaxed to other
+`ordered_ring`-like classes in many lemmas.
 
 ## Tags
 
@@ -54,7 +55,7 @@ variables {α : Type*}
 /-- A `floor_semiring` is an ordered semiring over `α` with a function
 `floor : α → ℕ` satisfying `∀ (n : ℕ) (x : α), n ≤ ⌊x⌋ ↔ (n : α) ≤ x)`.
 Note that many lemmas require a `linear_order`. Please see the above `TODO`. -/
-class floor_semiring (α) [ordered_semiring α] :=
+class floor_semiring (α) [strict_ordered_add_cancel_semiring α] :=
 (floor : α → ℕ)
 (ceil : α → ℕ)
 (floor_of_neg {a : α} (ha : a < 0) : floor a = 0)
@@ -70,8 +71,8 @@ instance : floor_semiring ℕ :=
 
 namespace nat
 
-section ordered_semiring
-variables [ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring α] [floor_semiring α] {a : α} {n : ℕ}
 
 /-- `⌊a⌋₊` is the greatest natural `n` such that `n ≤ a`. If `a` is negative, then `⌊a⌋₊ = 0`. -/
 def floor : α → ℕ := floor_semiring.floor
@@ -82,10 +83,10 @@ def ceil : α → ℕ := floor_semiring.ceil
 notation `⌊` a `⌋₊` := nat.floor a
 notation `⌈` a `⌉₊` := nat.ceil a
 
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
-section linear_ordered_semiring
-variables [linear_ordered_semiring α] [floor_semiring α] {a : α} {n : ℕ}
+section strict_linear_ordered_add_cancel_semiring
+variables [strict_linear_ordered_add_cancel_semiring α] [floor_semiring α] {a : α} {n : ℕ}
 
 lemma le_floor_iff (ha : 0 ≤ a) : n ≤ ⌊a⌋₊ ↔ (n : α) ≤ a := floor_semiring.gc_floor ha
 
@@ -241,10 +242,10 @@ by { ext, simp [lt_ceil] }
 @[simp] lemma preimage_Iic {a : α} (ha : 0 ≤ a) : ((coe : ℕ → α) ⁻¹' (set.Iic a)) = set.Iic ⌊a⌋₊ :=
 by { ext, simp [le_floor_iff, ha] }
 
-end linear_ordered_semiring
+end strict_linear_ordered_add_cancel_semiring
 
-section linear_ordered_ring
-variables [linear_ordered_ring α] [floor_semiring α] {a : α} {n : ℕ}
+section strict_linear_ordered_ring
+variables [strict_linear_ordered_ring α] [floor_semiring α] {a : α} {n : ℕ}
 
 lemma floor_add_nat (ha : 0 ≤ a) (n : ℕ) : ⌊a + n⌋₊ = ⌊a⌋₊ + n :=
 eq_of_forall_le_iff $ λ b, begin
@@ -288,7 +289,7 @@ by { convert ceil_add_nat ha 1, exact cast_one.symm }
 lemma ceil_lt_add_one (ha : 0 ≤ a) : (⌈a⌉₊ : α) < a + 1 :=
 lt_ceil.1 $ (nat.lt_succ_self _).trans_le (ceil_add_one ha).ge
 
-end linear_ordered_ring
+end strict_linear_ordered_ring
 
 section linear_ordered_field
 variables [linear_ordered_field α] [floor_semiring α]
@@ -319,7 +320,7 @@ end linear_ordered_field
 end nat
 
 /-- There exists at most one `floor_semiring` structure on a linear ordered semiring. -/
-lemma subsingleton_floor_semiring {α} [linear_ordered_semiring α] :
+lemma subsingleton_floor_semiring {α} [strict_linear_ordered_add_cancel_semiring α] :
   subsingleton (floor_semiring α) :=
 begin
   refine ⟨λ H₁ H₂, _⟩,
@@ -340,7 +341,7 @@ end
 A `floor_ring` is a linear ordered ring over `α` with a function
 `floor : α → ℤ` satisfying `∀ (z : ℤ) (a : α), z ≤ floor a ↔ (z : α) ≤ a)`.
 -/
-class floor_ring (α) [linear_ordered_ring α] :=
+class floor_ring (α) [strict_linear_ordered_ring α] :=
 (floor : α → ℤ)
 (ceil : α → ℤ)
 (gc_coe_floor : galois_connection coe floor)
@@ -353,7 +354,7 @@ instance : floor_ring ℤ :=
   gc_ceil_coe := λ a b, by { rw int.cast_id, refl } }
 
 /-- A `floor_ring` constructor from the `floor` function alone. -/
-def floor_ring.of_floor (α) [linear_ordered_ring α] (floor : α → ℤ)
+def floor_ring.of_floor (α) [strict_linear_ordered_ring α] (floor : α → ℤ)
   (gc_coe_floor : galois_connection coe floor) : floor_ring α :=
 { floor := floor,
   ceil := λ a, -floor (-a),
@@ -361,7 +362,7 @@ def floor_ring.of_floor (α) [linear_ordered_ring α] (floor : α → ℤ)
   gc_ceil_coe := λ a z, by rw [neg_le, ←gc_coe_floor, int.cast_neg, neg_le_neg_iff] }
 
 /-- A `floor_ring` constructor from the `ceil` function alone. -/
-def floor_ring.of_ceil (α) [linear_ordered_ring α] (ceil : α → ℤ)
+def floor_ring.of_ceil (α) [strict_linear_ordered_ring α] (ceil : α → ℤ)
   (gc_ceil_coe : galois_connection ceil coe) : floor_ring α :=
 { floor := λ a, -ceil (-a),
   ceil := ceil,
@@ -369,7 +370,7 @@ def floor_ring.of_ceil (α) [linear_ordered_ring α] (ceil : α → ℤ)
   gc_ceil_coe := gc_ceil_coe }
 
 namespace int
-variables [linear_ordered_ring α] [floor_ring α] {z : ℤ} {a : α}
+variables [strict_linear_ordered_ring α] [floor_ring α] {z : ℤ} {a : α}
 
 /-- `int.floor a` is the greatest integer `z` such that `z ≤ a`. It is denoted with `⌊a⌋`. -/
 def floor : α → ℤ := floor_ring.floor
@@ -444,8 +445,8 @@ eq.trans (by rw [int.cast_neg, sub_eq_add_neg]) (floor_add_int _ _)
 
 @[simp] lemma floor_sub_nat (a : α) (n : ℕ) : ⌊a - n⌋ = ⌊a⌋ - n := floor_sub_int a n
 
-lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [linear_ordered_comm_ring α] [floor_ring α]
-  {a b : α} (h : ⌊a⌋ = ⌊b⌋) : |a - b| < 1 :=
+lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [strict_linear_ordered_comm_ring α]
+  [floor_ring α] {a b : α} (h : ⌊a⌋ = ⌊b⌋) : |a - b| < 1 :=
 begin
   have : a < ⌊a⌋ + 1     := lt_floor_add_one a,
   have : b < ⌊b⌋ + 1     := lt_floor_add_one b,
@@ -670,7 +671,7 @@ by { ext, simp [le_floor] }
 
 end int
 
-variables {α} [linear_ordered_ring α] [floor_ring α]
+variables {α} [strict_linear_ordered_ring α] [floor_ring α]
 
 /-! #### A floor ring as a floor semiring -/
 
@@ -701,7 +702,7 @@ lemma nat.cast_ceil_eq_cast_int_ceil (ha : 0 ≤ a) : (⌈a⌉₊ : α) = ⌈a�
 by rw [←nat.cast_ceil_eq_int_ceil ha, int.cast_coe_nat]
 
 /-- There exists at most one `floor_ring` structure on a given linear ordered ring. -/
-lemma subsingleton_floor_ring {α} [linear_ordered_ring α] :
+lemma subsingleton_floor_ring {α} [strict_linear_ordered_ring α] :
   subsingleton (floor_ring α) :=
 begin
   refine ⟨λ H₁ H₂, _⟩,

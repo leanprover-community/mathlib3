@@ -43,13 +43,13 @@ suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
 
 /-! ### Powers -/
 
-lemma tendsto_add_one_pow_at_top_at_top_of_pos [linear_ordered_semiring α] [archimedean α] {r : α}
-  (h : 0 < r) :
+lemma tendsto_add_one_pow_at_top_at_top_of_pos [strict_linear_ordered_add_cancel_semiring α]
+  [archimedean α] {r : α} (h : 0 < r) :
   tendsto (λ n:ℕ, (r + 1)^n) at_top at_top :=
 tendsto_at_top_at_top_of_monotone' (λ n m, pow_le_pow (le_add_of_nonneg_left (le_of_lt h))) $
   not_bdd_above_iff.2 $ λ x, set.exists_range_iff.2 $ add_one_pow_unbounded_of_pos _ h
 
-lemma tendsto_pow_at_top_at_top_of_one_lt [linear_ordered_ring α] [archimedean α]
+lemma tendsto_pow_at_top_at_top_of_one_lt [strict_linear_ordered_ring α] [archimedean α]
   {r : α} (h : 1 < r) :
   tendsto (λn:ℕ, r ^ n) at_top at_top :=
 sub_add_cancel r 1 ▸ tendsto_add_one_pow_at_top_at_top_of_pos (sub_pos.2 h)

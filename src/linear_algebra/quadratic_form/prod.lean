@@ -60,7 +60,7 @@ lemma equivalent.prod {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M�
 nonempty.map2 isometry.prod e₁ e₂
 
 /-- If a product is anisotropic then its components must be. The converse is not true. -/
-lemma anisotropic_of_prod {R} [ordered_ring R] [module R M₁] [module R M₂]
+lemma anisotropic_of_prod {R} [strict_ordered_ring R] [module R M₁] [module R M₂]
   {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} (h : (Q₁.prod Q₂).anisotropic) :
   Q₁.anisotropic ∧ Q₂.anisotropic :=
 begin
@@ -74,7 +74,7 @@ begin
     rw [hx, add_zero, map_zero] },
 end
 
-lemma nonneg_prod_iff {R} [ordered_ring R] [module R M₁] [module R M₂]
+lemma nonneg_prod_iff {R} [strict_ordered_ring R] [module R M₁] [module R M₂]
   {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} :
   (∀ x, 0 ≤ (Q₁.prod Q₂) x) ↔ (∀ x, 0 ≤ Q₁ x) ∧ (∀ x, 0 ≤ Q₂ x) :=
 begin
@@ -88,7 +88,7 @@ begin
     exact add_nonneg (h₁ x₁) (h₂ x₂), },
 end
 
-lemma pos_def_prod_iff {R} [ordered_ring R] [module R M₁] [module R M₂]
+lemma pos_def_prod_iff {R} [strict_ordered_ring R] [module R M₁] [module R M₂]
   {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂} :
   (Q₁.prod Q₂).pos_def ↔ Q₁.pos_def ∧ Q₂.pos_def :=
 begin
@@ -104,7 +104,7 @@ begin
     rwa [prod.mk_eq_zero], }
 end
 
-lemma pos_def.prod {R} [ordered_ring R] [module R M₁] [module R M₂]
+lemma pos_def.prod {R} [strict_ordered_ring R] [module R M₁] [module R M₂]
   {Q₁ : quadratic_form R M₁} {Q₂ : quadratic_form R M₂}
   (h₁ : Q₁.pos_def) (h₂ : Q₂.pos_def) : (Q₁.prod Q₂).pos_def :=
 pos_def_prod_iff.mpr ⟨h₁, h₂⟩
@@ -135,7 +135,7 @@ lemma equivalent.pi [fintype ι] {Q : Π i, quadratic_form R (Mᵢ i)}
 ⟨isometry.pi (λ i, classical.choice (e i))⟩
 
 /-- If a family is anisotropic then its components must be. The converse is not true. -/
-lemma anisotropic_of_pi [fintype ι] {R} [ordered_ring R] [Π i, module R (Mᵢ i)]
+lemma anisotropic_of_pi [fintype ι] {R} [strict_ordered_ring R] [Π i, module R (Mᵢ i)]
   {Q : Π i, quadratic_form R (Mᵢ i)} (h : (pi Q).anisotropic) :
   ∀ i, (Q i).anisotropic :=
 begin
@@ -152,7 +152,7 @@ begin
   { rw [pi.single_eq_of_ne hji, map_zero] },
 end
 
-lemma nonneg_pi_iff [fintype ι] {R} [ordered_ring R] [Π i, module R (Mᵢ i)]
+lemma nonneg_pi_iff [fintype ι] {R} [strict_ordered_ring R] [Π i, module R (Mᵢ i)]
   {Q : Π i, quadratic_form R (Mᵢ i)} :
   (∀ x, 0 ≤ pi Q x) ↔ (∀ i x, 0 ≤ Q i x) :=
 begin
@@ -168,7 +168,7 @@ begin
     exact finset.sum_nonneg (λ i hi, h i (x i)), },
 end
 
-lemma pos_def_pi_iff [fintype ι] {R} [ordered_ring R] [Π i, module R (Mᵢ i)]
+lemma pos_def_pi_iff [fintype ι] {R} [strict_ordered_ring R] [Π i, module R (Mᵢ i)]
   {Q : Π i, quadratic_form R (Mᵢ i)} :
   (pi Q).pos_def ↔ (∀ i, (Q i).pos_def) :=
 begin

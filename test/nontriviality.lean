@@ -4,7 +4,7 @@ import data.nat.basic
 
 /-! ### Test `nontriviality` with inequality hypotheses -/
 
-example {R : Type} [ordered_ring R] {a : R} (h : 0 < a) : 0 < a :=
+example {R : Type} [strict_ordered_ring R] {a : R} (h : 0 < a) : 0 < a :=
 begin
   nontriviality,
   guard_hyp _inst : nontrivial R,
@@ -22,27 +22,27 @@ end
 
 /-! ### Test deducing `nontriviality` by instance search -/
 
-example {R : Type} [ordered_ring R] : 0 ≤ (1 : R) :=
+example {R : Type} [strict_ordered_ring R] : 0 ≤ (1 : R) :=
 begin
   nontriviality R,
   guard_hyp _inst : nontrivial R,
   exact zero_le_one,
 end
 
-example {R : Type} [ordered_ring R] : 0 ≤ (1 : R) :=
+example {R : Type} [strict_ordered_ring R] : 0 ≤ (1 : R) :=
 begin
   nontriviality ℕ,
   guard_hyp _inst : nontrivial ℕ,
   exact zero_le_one,
 end
 
-example {R : Type} [ordered_ring R] : 0 ≤ (2 : R) :=
+example {R : Type} [strict_ordered_ring R] : 0 ≤ (2 : R) :=
 begin
   success_if_fail { nontriviality punit },
   exact zero_le_two,
 end
 
-example {R : Type} [ordered_ring R] {a : R} (h : 0 < a) : 2 ∣ 4 :=
+example {R : Type} [strict_ordered_ring R] {a : R} (h : 0 < a) : 2 ∣ 4 :=
 begin
   nontriviality R,
   guard_hyp _inst : nontrivial R,

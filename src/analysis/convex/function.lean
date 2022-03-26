@@ -33,8 +33,8 @@ open_locale big_operators classical convex pointwise
 
 variables {𝕜 E F β ι : Type*}
 
-section ordered_semiring
-variables [ordered_semiring 𝕜]
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring 𝕜]
 
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
@@ -744,10 +744,10 @@ lemma strict_concave_on.translate_left (hf : strict_concave_on 𝕜 s f) (c : E)
 by simpa only [add_comm] using hf.translate_right _
 
 end add_cancel_comm_monoid
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
-section ordered_comm_semiring
-variables [ordered_comm_semiring 𝕜] [add_comm_monoid E]
+section strict_ordered_add_cancel_comm_semiring
+variables [strict_ordered_add_cancel_comm_semiring 𝕜] [add_comm_monoid E]
 
 section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid β]
@@ -769,9 +769,9 @@ hf.dual.smul hc
 
 end module
 end ordered_add_comm_monoid
-end ordered_comm_semiring
+end strict_ordered_add_cancel_comm_semiring
 
-section ordered_ring
+section strict_ordered_ring
 variables [linear_ordered_field 𝕜] [add_comm_group E] [add_comm_group F]
 
 section ordered_add_comm_monoid
@@ -796,7 +796,7 @@ hf.dual.comp_affine_map g
 
 end module
 end ordered_add_comm_monoid
-end ordered_ring
+end strict_ordered_ring
 
 section linear_ordered_field
 variables [linear_ordered_field 𝕜] [add_comm_monoid E]

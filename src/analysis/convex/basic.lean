@@ -42,8 +42,8 @@ open_locale big_operators classical pointwise
 
 /-! ### Segment -/
 
-section ordered_semiring
-variables [ordered_semiring 𝕜] [add_comm_monoid E]
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring 𝕜] [add_comm_monoid E]
 
 section has_scalar
 variables (𝕜) [has_scalar 𝕜 E]
@@ -149,12 +149,12 @@ lemma convex.combo_self {a b : 𝕜} (h : a + b = 1) (x : E) : a • x + b • x
 by rw [←add_smul, h, one_smul]
 
 end module
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
 open_locale convex
 
-section ordered_ring
-variables [ordered_ring 𝕜]
+section strict_ordered_ring
+variables [strict_ordered_ring 𝕜]
 
 section add_comm_group
 variables (𝕜) [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
@@ -241,9 +241,9 @@ lemma open_segment_translate_image (a b c : E) :
 open_segment_translate_preimage 𝕜 a b c ▸ image_preimage_eq _ $ add_left_surjective a
 
 end add_comm_group
-end ordered_ring
+end strict_ordered_ring
 
-lemma same_ray_of_mem_segment [ordered_comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+lemma same_ray_of_mem_segment [strict_ordered_comm_ring 𝕜] [add_comm_group E] [module 𝕜 E]
   {x y z : E} (h : x ∈ [y -[𝕜] z]) : same_ray 𝕜 (x - y) (z - x) :=
 begin
   rw segment_eq_image' at h,
@@ -252,8 +252,8 @@ begin
     using (same_ray_nonneg_smul_left (z - y) hθ₀).nonneg_smul_right (sub_nonneg.2 hθ₁)
 end
 
-section linear_ordered_ring
-variables [linear_ordered_ring 𝕜]
+section strict_linear_ordered_ring
+variables [strict_linear_ordered_ring 𝕜]
 
 section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F]
@@ -280,7 +280,7 @@ begin
 end
 
 end add_comm_group
-end linear_ordered_ring
+end strict_linear_ordered_ring
 
 section linear_ordered_field
 variables [linear_ordered_field 𝕜]
@@ -347,8 +347,8 @@ end linear_ordered_field
 #### Segments in an ordered space
 Relates `segment`, `open_segment` and `set.Icc`, `set.Ico`, `set.Ioc`, `set.Ioo`
 -/
-section ordered_semiring
-variables [ordered_semiring 𝕜]
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring 𝕜]
 
 section ordered_add_comm_monoid
 variables [ordered_add_comm_monoid E] [module 𝕜 E] [ordered_smul 𝕜 E]
@@ -407,7 +407,7 @@ lemma convex.combo_le_max (x y : E) {a b : 𝕜} (ha : 0 ≤ a) (hb : 0 ≤ b) (
 (segment_subset_interval x y ⟨_, _, ha, hb, hab, rfl⟩).2
 
 end linear_ordered_add_comm_monoid
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
 section linear_ordered_field
 variables [linear_ordered_field 𝕜]
@@ -517,8 +517,8 @@ end linear_ordered_field
 
 /-! ### Convexity of sets -/
 
-section ordered_semiring
-variables [ordered_semiring 𝕜]
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring 𝕜]
 
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
@@ -882,10 +882,10 @@ begin
 end
 
 end add_comm_group
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
-section ordered_comm_semiring
-variables [ordered_comm_semiring 𝕜]
+section strict_ordered_add_cancel_comm_semiring
+variables [strict_ordered_add_cancel_comm_semiring 𝕜]
 
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F] [module 𝕜 E] [module 𝕜 F] {s : set E}
@@ -903,10 +903,10 @@ begin
 end
 
 end add_comm_monoid
-end ordered_comm_semiring
+end strict_ordered_add_cancel_comm_semiring
 
-section ordered_ring
-variables [ordered_ring 𝕜]
+section strict_ordered_ring
+variables [strict_ordered_ring 𝕜]
 
 section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E}
@@ -976,7 +976,7 @@ lemma convex.neg_preimage (hs : convex 𝕜 s) : convex 𝕜 ((λ z, -z) ⁻¹' 
 hs.is_linear_preimage is_linear_map.is_linear_map_neg
 
 end add_comm_group
-end ordered_ring
+end strict_ordered_ring
 
 section linear_ordered_field
 variables [linear_ordered_field 𝕜]
@@ -1033,8 +1033,9 @@ Relates `convex` and `ord_connected`.
 
 section
 
-lemma set.ord_connected.convex_of_chain [ordered_semiring 𝕜] [ordered_add_comm_monoid E]
-  [module 𝕜 E] [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected) (h : zorn.chain (≤) s) :
+lemma set.ord_connected.convex_of_chain [strict_ordered_add_cancel_semiring 𝕜]
+  [ordered_add_comm_monoid E] [module 𝕜 E] [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected)
+  (h : zorn.chain (≤) s) :
   convex 𝕜 s :=
 begin
   refine convex_iff_segment_subset.mpr (λ x y hx hy, _),
@@ -1044,7 +1045,8 @@ begin
     exact (segment_subset_Icc hyx).trans (hs.out hy hx) }
 end
 
-lemma set.ord_connected.convex [ordered_semiring 𝕜] [linear_ordered_add_comm_monoid E] [module 𝕜 E]
+lemma set.ord_connected.convex [strict_ordered_add_cancel_semiring 𝕜]
+  [linear_ordered_add_comm_monoid E] [module 𝕜 E]
   [ordered_smul 𝕜 E] {s : set E} (hs : s.ord_connected) :
   convex 𝕜 s :=
 hs.convex_of_chain (zorn.chain_of_trichotomous s)
@@ -1065,7 +1067,8 @@ end
 section submodule
 open submodule
 
-lemma submodule.convex [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] (K : submodule 𝕜 E) :
+lemma submodule.convex [strict_ordered_add_cancel_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
+  (K : submodule 𝕜 E) :
   convex 𝕜 (↑K : set E) :=
 by { repeat {intro}, refine add_mem _ (smul_mem _ _ _) (smul_mem _ _ _); assumption }
 
@@ -1079,7 +1082,7 @@ end submodule
 
 section simplex
 
-variables (𝕜) (ι : Type*) [ordered_semiring 𝕜] [fintype ι]
+variables (𝕜) (ι : Type*) [strict_ordered_add_cancel_semiring 𝕜] [fintype ι]
 
 /-- The standard simplex in the space of functions `ι → 𝕜` is the set of vectors with non-negative
 coordinates with total sum `1`. This is the free object in the category of convex spaces. -/

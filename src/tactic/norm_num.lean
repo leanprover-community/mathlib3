@@ -316,45 +316,63 @@ else do
 
 theorem nonneg_pos {α} [ordered_cancel_add_comm_monoid α] (a : α) : 0 < a → 0 ≤ a := le_of_lt
 
-theorem lt_one_bit0 {α} [linear_ordered_semiring α] (a : α) (h : 1 ≤ a) : 1 < bit0 a :=
+theorem lt_one_bit0 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a : α) (h : 1 ≤ a) : 1 < bit0 a :=
 lt_of_lt_of_le one_lt_two (bit0_le_bit0.2 h)
-theorem lt_one_bit1 {α} [linear_ordered_semiring α] (a : α) (h : 0 < a) : 1 < bit1 a :=
+theorem lt_one_bit1 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a : α) (h : 0 < a) : 1 < bit1 a :=
 one_lt_bit1.2 h
-theorem lt_bit0_bit0 {α} [linear_ordered_semiring α] (a b : α) : a < b → bit0 a < bit0 b :=
+theorem lt_bit0_bit0 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a b : α) : a < b → bit0 a < bit0 b :=
 bit0_lt_bit0.2
-theorem lt_bit0_bit1 {α} [linear_ordered_semiring α] (a b : α) (h : a ≤ b) : bit0 a < bit1 b :=
+theorem lt_bit0_bit1 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a b : α) (h : a ≤ b) : bit0 a < bit1 b :=
 lt_of_le_of_lt (bit0_le_bit0.2 h) (lt_add_one _)
-theorem lt_bit1_bit0 {α} [linear_ordered_semiring α] (a b : α) (h : a + 1 ≤ b) : bit1 a < bit0 b :=
+theorem lt_bit1_bit0 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a b : α) (h : a + 1 ≤ b) : bit1 a < bit0 b :=
 lt_of_lt_of_le (by simp [bit0, bit1, zero_lt_one, add_assoc]) (bit0_le_bit0.2 h)
-theorem lt_bit1_bit1 {α} [linear_ordered_semiring α] (a b : α) : a < b → bit1 a < bit1 b :=
+theorem lt_bit1_bit1 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a b : α) : a < b → bit1 a < bit1 b :=
 bit1_lt_bit1.2
 
-theorem le_one_bit0 {α} [linear_ordered_semiring α] (a : α) (h : 1 ≤ a) : 1 ≤ bit0 a :=
+theorem le_one_bit0 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a : α) (h : 1 ≤ a) : 1 ≤ bit0 a :=
 le_of_lt (lt_one_bit0 _ h)
 -- deliberately strong hypothesis because bit1 0 is not a numeral
-theorem le_one_bit1 {α} [linear_ordered_semiring α] (a : α) (h : 0 < a) : 1 ≤ bit1 a :=
+theorem le_one_bit1 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a : α) (h : 0 < a) : 1 ≤ bit1 a :=
 le_of_lt (lt_one_bit1 _ h)
-theorem le_bit0_bit0 {α} [linear_ordered_semiring α] (a b : α) : a ≤ b → bit0 a ≤ bit0 b :=
+theorem le_bit0_bit0 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a b : α) : a ≤ b → bit0 a ≤ bit0 b :=
 bit0_le_bit0.2
-theorem le_bit0_bit1 {α} [linear_ordered_semiring α] (a b : α) (h : a ≤ b) : bit0 a ≤ bit1 b :=
+theorem le_bit0_bit1 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a b : α) (h : a ≤ b) : bit0 a ≤ bit1 b :=
 le_of_lt (lt_bit0_bit1 _ _ h)
-theorem le_bit1_bit0 {α} [linear_ordered_semiring α] (a b : α) (h : a + 1 ≤ b) : bit1 a ≤ bit0 b :=
+theorem le_bit1_bit0 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a b : α) (h : a + 1 ≤ b) : bit1 a ≤ bit0 b :=
 le_of_lt (lt_bit1_bit0 _ _ h)
-theorem le_bit1_bit1 {α} [linear_ordered_semiring α] (a b : α) : a ≤ b → bit1 a ≤ bit1 b :=
+theorem le_bit1_bit1 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a b : α) : a ≤ b → bit1 a ≤ bit1 b :=
 bit1_le_bit1.2
 
-theorem sle_one_bit0 {α} [linear_ordered_semiring α] (a : α) : 1 ≤ a → 1 + 1 ≤ bit0 a :=
+theorem sle_one_bit0 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a : α) : 1 ≤ a → 1 + 1 ≤ bit0 a :=
 bit0_le_bit0.2
-theorem sle_one_bit1 {α} [linear_ordered_semiring α] (a : α) : 1 ≤ a → 1 + 1 ≤ bit1 a :=
+theorem sle_one_bit1 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a : α) : 1 ≤ a → 1 + 1 ≤ bit1 a :=
 le_bit0_bit1 _ _
-theorem sle_bit0_bit0 {α} [linear_ordered_semiring α] (a b : α) : a + 1 ≤ b → bit0 a + 1 ≤ bit0 b :=
+theorem sle_bit0_bit0 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a b : α) : a + 1 ≤ b → bit0 a + 1 ≤ bit0 b :=
 le_bit1_bit0 _ _
-theorem sle_bit0_bit1 {α} [linear_ordered_semiring α] (a b : α) (h : a ≤ b) : bit0 a + 1 ≤ bit1 b :=
+theorem sle_bit0_bit1 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a b : α) (h : a ≤ b) : bit0 a + 1 ≤ bit1 b :=
 bit1_le_bit1.2 h
-theorem sle_bit1_bit0 {α} [linear_ordered_semiring α] (a b : α) (h : a + 1 ≤ b) :
+theorem sle_bit1_bit0 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a b : α) (h : a + 1 ≤ b) :
   bit1 a + 1 ≤ bit0 b :=
 (bit1_succ a _ rfl).symm ▸ bit0_le_bit0.2 h
-theorem sle_bit1_bit1 {α} [linear_ordered_semiring α] (a b : α) (h : a + 1 ≤ b) :
+theorem sle_bit1_bit1 {α} [strict_linear_ordered_add_cancel_semiring α]
+  (a b : α) (h : a + 1 ≤ b) :
   bit1 a + 1 ≤ bit1 b :=
 (bit1_succ a _ rfl).symm ▸ le_bit0_bit1 _ _ h
 
@@ -429,7 +447,7 @@ meta def prove_lt_nat (ic : instance_cache) : expr → expr → tactic (instance
 
 end
 
-theorem clear_denom_lt {α} [linear_ordered_semiring α] (a a' b b' d : α)
+theorem clear_denom_lt {α} [strict_linear_ordered_add_cancel_semiring α] (a a' b b' d : α)
   (h₀ : 0 < d) (ha : a * d = a') (hb : b * d = b') (h : a' < b') : a < b :=
 lt_of_mul_lt_mul_right (by rwa [ha, hb]) (le_of_lt h₀)
 
@@ -469,7 +487,7 @@ match match_sign a, match_sign b with
 | sum.inr tt, _ := prove_lt_nonneg_rat ic a b na nb
 end
 
-theorem clear_denom_le {α} [linear_ordered_semiring α] (a a' b b' d : α)
+theorem clear_denom_le {α} [strict_linear_ordered_add_cancel_semiring α] (a a' b b' d : α)
   (h₀ : 0 < d) (ha : a * d = a') (hb : b * d = b') (h : a' ≤ b') : a ≤ b :=
 le_of_mul_le_mul_right (by rwa [ha, hb]) h₀
 

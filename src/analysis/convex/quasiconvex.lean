@@ -35,8 +35,8 @@ open function set
 
 variables {𝕜 E F β : Type*}
 
-section ordered_semiring
-variables [ordered_semiring 𝕜]
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring 𝕜]
 
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
@@ -203,4 +203,4 @@ lemma antitone.quasilinear_on (hf : antitone f) : quasilinear_on 𝕜 univ f :=
 ⟨hf.quasiconvex_on, hf.quasiconcave_on⟩
 
 end linear_ordered_add_comm_monoid
-end ordered_semiring
+end strict_ordered_add_cancel_semiring

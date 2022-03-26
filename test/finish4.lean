@@ -44,7 +44,7 @@ by finish using [h barber]
 end barber
 
 constant real : Type
-@[instance] constant orreal : ordered_ring real
+@[instance] constant orreal : strict_ordered_ring real
 
 -- TODO(Mario): suspicious fix
 @[irreducible] noncomputable instance : has_lt real := by apply_instance

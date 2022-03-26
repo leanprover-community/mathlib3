@@ -168,15 +168,15 @@ instance : linear_ordered_field ℚ :=
   ..rat.semiring }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : linear_ordered_comm_ring ℚ       := by apply_instance
-instance : linear_ordered_ring ℚ            := by apply_instance
-instance : ordered_ring ℚ                   := by apply_instance
-instance : linear_ordered_semiring ℚ        := by apply_instance
-instance : ordered_semiring ℚ               := by apply_instance
-instance : linear_ordered_add_comm_group ℚ  := by apply_instance
-instance : ordered_add_comm_group ℚ         := by apply_instance
-instance : ordered_cancel_add_comm_monoid ℚ := by apply_instance
-instance : ordered_add_comm_monoid ℚ        := by apply_instance
+instance : strict_linear_ordered_comm_ring ℚ           := by apply_instance
+instance : strict_linear_ordered_ring ℚ                := by apply_instance
+instance : strict_ordered_ring ℚ                       := by apply_instance
+instance : strict_linear_ordered_add_cancel_semiring ℚ := by apply_instance
+instance : strict_ordered_add_cancel_semiring ℚ        := by apply_instance
+instance : linear_ordered_add_comm_group ℚ             := by apply_instance
+instance : ordered_add_comm_group ℚ                    := by apply_instance
+instance : ordered_cancel_add_comm_monoid ℚ            := by apply_instance
+instance : ordered_add_comm_monoid ℚ                   := by apply_instance
 
 attribute [irreducible] rat.le
 

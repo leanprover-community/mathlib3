@@ -91,7 +91,7 @@ begin
 end
 
 lemma finset.prod_nonneg_of_card_nonpos_even
-  {α β : Type*} [linear_ordered_comm_ring β]
+  {α β : Type*} [strict_linear_ordered_comm_ring β]
   {f : α → β} [decidable_pred (λ x, f x ≤ 0)]
   {s : finset α} (h0 : even (s.filter (λ x, f x ≤ 0)).card) :
   0 ≤ ∏ x in s, f x :=

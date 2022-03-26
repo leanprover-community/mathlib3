@@ -306,8 +306,8 @@ by { rw [←multiset.prod_repeat, ←multiset.map_const], exact prod_map_le_prod
 
 end ordered_comm_monoid
 
-lemma prod_nonneg [ordered_comm_semiring α] {m : multiset α} (h : ∀ a ∈ m, (0 : α) ≤ a) :
-  0 ≤ m.prod :=
+lemma prod_nonneg [strict_ordered_add_cancel_comm_semiring α] {m : multiset α}
+  (h : ∀ a ∈ m, (0 : α) ≤ a) : 0 ≤ m.prod :=
 begin
   revert h,
   refine m.induction_on _ _,

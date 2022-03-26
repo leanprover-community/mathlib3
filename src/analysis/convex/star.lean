@@ -46,8 +46,8 @@ open_locale convex pointwise
 
 variables {𝕜 E F β : Type*}
 
-section ordered_semiring
-variables [ordered_semiring 𝕜]
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring 𝕜]
 
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
@@ -275,10 +275,10 @@ lemma star_convex.sub {s : set (E × E)} (hs : star_convex 𝕜 (x, y) s) :
 hs.is_linear_image is_linear_map.is_linear_map_sub
 
 end add_comm_group
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
-section ordered_comm_semiring
-variables [ordered_comm_semiring 𝕜]
+section strict_ordered_add_cancel_comm_semiring
+variables [strict_ordered_add_cancel_comm_semiring 𝕜]
 
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F] [module 𝕜 E] [module 𝕜 F] {x : E} {s : set E}
@@ -298,10 +298,10 @@ begin
 end
 
 end add_comm_monoid
-end ordered_comm_semiring
+end strict_ordered_add_cancel_comm_semiring
 
-section ordered_ring
-variables [ordered_ring 𝕜]
+section strict_ordered_ring
+variables [strict_ordered_ring 𝕜]
 
 section add_comm_monoid
 variables [add_comm_monoid E] [smul_with_zero 𝕜 E]{s : set E}
@@ -370,7 +370,7 @@ lemma star_convex.neg_preimage (hs : star_convex 𝕜 (-x) s) : star_convex 𝕜
 hs.is_linear_preimage is_linear_map.is_linear_map_neg
 
 end add_comm_group
-end ordered_ring
+end strict_ordered_ring
 
 section linear_ordered_field
 variables [linear_ordered_field 𝕜]
@@ -415,9 +415,9 @@ Relates `star_convex` and `set.ord_connected`.
 
 section ord_connected
 
-lemma set.ord_connected.star_convex [ordered_semiring 𝕜] [ordered_add_comm_monoid E]
-  [module 𝕜 E] [ordered_smul 𝕜 E] {x : E} {s : set E} (hs : s.ord_connected) (hx : x ∈ s)
-  (h : ∀ y ∈ s, x ≤ y ∨ y ≤ x) :
+lemma set.ord_connected.star_convex [strict_ordered_add_cancel_semiring 𝕜]
+  [ordered_add_comm_monoid E] [module 𝕜 E] [ordered_smul 𝕜 E]
+  {x : E} {s : set E} (hs : s.ord_connected) (hx : x ∈ s) (h : ∀ y ∈ s, x ≤ y ∨ y ≤ x) :
   star_convex 𝕜 x s :=
 begin
   intros y hy a b ha hb hab,
@@ -454,7 +454,7 @@ end ord_connected
 section submodule
 open submodule
 
-lemma submodule.star_convex [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
+lemma submodule.star_convex [strict_ordered_add_cancel_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
   (K : submodule 𝕜 E) :
   star_convex 𝕜 (0 : E) K :=
 K.convex.star_convex K.zero_mem

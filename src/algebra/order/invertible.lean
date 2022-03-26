@@ -10,7 +10,7 @@ import algebra.invertible
 # Lemmas about `inv_of` in ordered (semi)rings.
 -/
 
-variables {α : Type*} [linear_ordered_semiring α] {a : α}
+variables {α : Type*} [strict_linear_ordered_add_cancel_semiring α] {a : α}
 
 @[simp] lemma inv_of_pos [invertible a] : 0 < ⅟a ↔ 0 < a :=
 begin

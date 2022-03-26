@@ -36,8 +36,8 @@ instance [semiring k] [ordered_add_comm_monoid M] [module k M] : module k (order
 end order_dual
 
 section semiring
-variables [ordered_semiring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
-  {a b : M} {c : k}
+variables [strict_ordered_add_cancel_semiring k] [ordered_add_comm_group M] [module k M]
+  [ordered_smul k M] {a b : M} {c : k}
 
 /- can be generalized from `module k M` to `distrib_mul_action_with_zero k M` once it exists.
 where `distrib_mul_action_with_zero k M`is the conjunction of `distrib_mul_action k M` and
@@ -52,7 +52,7 @@ end
 end semiring
 
 section ring
-variables [ordered_ring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
+variables [strict_ordered_ring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
   {a b : M} {c : k}
 
 lemma smul_lt_smul_of_neg (h : a < b) (hc : c < 0) :
@@ -183,9 +183,9 @@ end field
 
 /-! ### Upper/lower bounds -/
 
-section ordered_semiring
-variables [ordered_semiring k] [ordered_add_comm_monoid M] [smul_with_zero k M] [ordered_smul k M]
-  {s : set M} {c : k}
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring k] [ordered_add_comm_monoid M] [smul_with_zero k M]
+  [ordered_smul k M] {s : set M} {c : k}
 
 lemma smul_lower_bounds_subset_lower_bounds_smul (hc : 0 ≤ c) :
   c • lower_bounds s ⊆ lower_bounds (c • s) :=
@@ -201,10 +201,10 @@ lemma bdd_below.smul_of_nonneg (hs : bdd_below s) (hc : 0 ≤ c) : bdd_below (c 
 lemma bdd_above.smul_of_nonneg (hs : bdd_above s) (hc : 0 ≤ c) : bdd_above (c • s) :=
 (monotone_smul_left hc).map_bdd_above hs
 
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
-section ordered_ring
-variables [ordered_ring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
+section strict_ordered_ring
+variables [strict_ordered_ring k] [ordered_add_comm_group M] [module k M] [ordered_smul k M]
   {s : set M} {c : k}
 
 lemma smul_lower_bounds_subset_upper_bounds_smul (hc : c ≤ 0) :
@@ -221,7 +221,7 @@ lemma bdd_below.smul_of_nonpos (hc : c ≤ 0) (hs : bdd_below s) : bdd_above (c 
 lemma bdd_above.smul_of_nonpos (hc : c ≤ 0) (hs : bdd_above s) : bdd_below (c • s) :=
 (antitone_smul_left hc).map_bdd_above hs
 
-end ordered_ring
+end strict_ordered_ring
 
 section linear_ordered_field
 variables [linear_ordered_field k] [ordered_add_comm_group M]

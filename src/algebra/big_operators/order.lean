@@ -222,7 +222,7 @@ lemma abs_sum_of_nonneg' {G : Type*} [linear_ordered_add_comm_group G] {f : ι �
   |∑ (i : ι) in s, f i| = ∑ (i : ι) in s, f i :=
 by rw abs_of_nonneg (finset.sum_nonneg' hf)
 
-lemma abs_prod {R : Type*} [linear_ordered_comm_ring R] {f : ι → R} {s : finset ι} :
+lemma abs_prod {R : Type*} [strict_linear_ordered_comm_ring R] {f : ι → R} {s : finset ι} :
   |∏ x in s, f x| = ∏ x in s, |f x| :=
 (abs_hom.to_monoid_hom : R →* R).map_prod _ _
 
@@ -465,9 +465,9 @@ end
 
 end linear_ordered_cancel_comm_monoid
 
-section ordered_comm_semiring
+section strict_ordered_add_cancel_comm_semiring
 
-variables [ordered_comm_semiring R] {f g : ι → R} {s t : finset ι}
+variables [strict_ordered_add_cancel_comm_semiring R] {f g : ι → R} {s t : finset ι}
 open_locale classical
 
 /- this is also true for a ordered commutative multiplicative monoid -/
@@ -504,7 +504,8 @@ begin
 end
 
 /-- If `g, h ≤ f` and `g i + h i ≤ f i`, then the product of `f` over `s` is at least the
-  sum of the products of `g` and `h`. This is the version for `ordered_comm_semiring`. -/
+  sum of the products of `g` and `h`. This is the version for
+  `strict_ordered_add_cancel_comm_semiring`. -/
 lemma prod_add_prod_le {i : ι} {f g h : ι → R}
   (hi : i ∈ s) (h2i : g i + h i ≤ f i) (hgf : ∀ j ∈ s, j ≠ i → g j ≤ f j)
   (hhf : ∀ j ∈ s, j ≠ i → h j ≤ f j) (hg : ∀ i ∈ s, 0 ≤ g i) (hh : ∀ i ∈ s, 0 ≤ h i) :
@@ -519,7 +520,7 @@ begin
     intros j h1j h2j, exact le_trans (hg j h1j) (hgf j h1j h2j) }
 end
 
-end ordered_comm_semiring
+end strict_ordered_add_cancel_comm_semiring
 
 section canonically_ordered_comm_semiring
 
@@ -611,7 +612,7 @@ section absolute_value
 
 variables {S : Type*}
 
-lemma absolute_value.sum_le [semiring R] [ordered_semiring S]
+lemma absolute_value.sum_le [semiring R] [strict_ordered_add_cancel_semiring S]
   (abv : absolute_value R S) (s : finset ι) (f : ι → R) :
   abv (∑ i in s, f i) ≤ ∑ i in s, abv (f i) :=
 begin
@@ -622,17 +623,18 @@ begin
   exact (abv.add_le _ _).trans (add_le_add le_rfl ih) },
 end
 
-lemma is_absolute_value.abv_sum [semiring R] [ordered_semiring S] (abv : R → S)
+lemma is_absolute_value.abv_sum [semiring R] [strict_ordered_add_cancel_semiring S] (abv : R → S)
   [is_absolute_value abv] (f : ι → R) (s : finset ι) :
   abv (∑ i in s, f i) ≤ ∑ i in s, abv (f i) :=
 (is_absolute_value.to_absolute_value abv).sum_le _ _
 
-lemma absolute_value.map_prod [comm_semiring R] [nontrivial R] [linear_ordered_comm_ring S]
+lemma absolute_value.map_prod [comm_semiring R] [nontrivial R] [strict_linear_ordered_comm_ring S]
   (abv : absolute_value R S) (f : ι → R) (s : finset ι) :
   abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
 abv.to_monoid_hom.map_prod f s
 
-lemma is_absolute_value.map_prod [comm_semiring R] [nontrivial R] [linear_ordered_comm_ring S]
+lemma is_absolute_value.map_prod [comm_semiring R] [nontrivial R]
+  [strict_linear_ordered_comm_ring S]
   (abv : R → S) [is_absolute_value abv] (f : ι → R) (s : finset ι) :
   abv (∏ i in s, f i) = ∏ i in s, abv (f i) :=
 (is_absolute_value.to_absolute_value abv).map_prod _ _

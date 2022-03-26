@@ -29,7 +29,7 @@ namespace matrix
 
 open equiv finset
 
-variables {R S : Type*} [comm_ring R] [nontrivial R] [linear_ordered_comm_ring S]
+variables {R S : Type*} [comm_ring R] [nontrivial R] [strict_linear_ordered_comm_ring S]
 variables {n : Type*} [fintype n] [decidable_eq n]
 
 lemma det_le {A : matrix n n R} {abv : absolute_value R S}

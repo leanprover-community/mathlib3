@@ -12,7 +12,7 @@ import tactic.norm_num
 
 constant real : Type
 notation `ℝ` := real
-@[instance] constant real.linear_ordered_ring : linear_ordered_field ℝ
+@[instance] constant real.strict_linear_ordered_ring : linear_ordered_field ℝ
 
 constant complex : Type
 notation `ℂ` := complex

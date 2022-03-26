@@ -35,9 +35,9 @@ noncomputable theory
 
 open_locale big_operators
 
-section ordered_comm_semiring
+section strict_ordered_add_cancel_comm_semiring
 
-variables (R : Type*) [ordered_comm_semiring R]
+variables (R : Type*) [strict_ordered_add_cancel_comm_semiring R]
 variables (M : Type*) [add_comm_monoid M] [module R M]
 variables {N : Type*} [add_comm_monoid N] [module R N]
 variables (ι : Type*) [decidable_eq ι]
@@ -68,11 +68,11 @@ by rw [orientation.map, alternating_map.dom_lcongr_refl, module.ray.map_refl]
 @[simp] lemma orientation.map_symm (e : M ≃ₗ[R] N) :
   (orientation.map ι e).symm = orientation.map ι e.symm := rfl
 
-end ordered_comm_semiring
+end strict_ordered_add_cancel_comm_semiring
 
-section ordered_comm_ring
+section strict_ordered_comm_ring
 
-variables {R : Type*} [ordered_comm_ring R]
+variables {R : Type*} [strict_ordered_comm_ring R]
 variables {M N : Type*} [add_comm_group M] [add_comm_group N] [module R M] [module R N]
 
 namespace basis
@@ -112,11 +112,11 @@ end
 
 end basis
 
-end ordered_comm_ring
+end strict_ordered_comm_ring
 
-section linear_ordered_comm_ring
+section strict_linear_ordered_comm_ring
 
-variables {R : Type*} [linear_ordered_comm_ring R]
+variables {R : Type*} [strict_linear_ordered_comm_ring R]
 variables {M : Type*} [add_comm_group M] [module R M]
 variables {ι : Type*} [decidable_eq ι]
 
@@ -206,7 +206,7 @@ end
 
 end basis
 
-end linear_ordered_comm_ring
+end strict_linear_ordered_comm_ring
 
 section linear_ordered_field
 

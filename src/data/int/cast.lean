@@ -143,7 +143,7 @@ by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 lemma cast_two [ring α] : ((2 : ℤ) : α) = 2 := by simp
 
-theorem cast_mono [ordered_ring α] : monotone (coe : ℤ → α) :=
+theorem cast_mono [strict_ordered_ring α] : monotone (coe : ℤ → α) :=
 begin
   intros m n h,
   rw ← sub_nonneg at h,
@@ -152,44 +152,45 @@ begin
   exact k.cast_nonneg
 end
 
-@[simp] theorem cast_nonneg [ordered_ring α] [nontrivial α] : ∀ {n : ℤ}, (0 : α) ≤ n ↔ 0 ≤ n
+@[simp] theorem cast_nonneg [strict_ordered_ring α] [nontrivial α] : ∀ {n : ℤ}, (0 : α) ≤ n ↔ 0 ≤ n
 | (n : ℕ) := by simp
 | -[1+ n] := have -(n:α) < 1, from lt_of_le_of_lt (by simp) zero_lt_one,
              by simpa [(neg_succ_lt_zero n).not_le, ← sub_eq_add_neg, le_neg] using this.not_le
 
-@[simp, norm_cast] theorem cast_le [ordered_ring α] [nontrivial α] {m n : ℤ} :
+@[simp, norm_cast] theorem cast_le [strict_ordered_ring α] [nontrivial α] {m n : ℤ} :
   (m : α) ≤ n ↔ m ≤ n :=
 by rw [← sub_nonneg, ← cast_sub, cast_nonneg, sub_nonneg]
 
-theorem cast_strict_mono [ordered_ring α] [nontrivial α] : strict_mono (coe : ℤ → α) :=
+theorem cast_strict_mono [strict_ordered_ring α] [nontrivial α] : strict_mono (coe : ℤ → α) :=
 strict_mono_of_le_iff_le $ λ m n, cast_le.symm
 
-@[simp, norm_cast] theorem cast_lt [ordered_ring α] [nontrivial α] {m n : ℤ} :
+@[simp, norm_cast] theorem cast_lt [strict_ordered_ring α] [nontrivial α] {m n : ℤ} :
   (m : α) < n ↔ m < n :=
 cast_strict_mono.lt_iff_lt
 
-@[simp] theorem cast_nonpos [ordered_ring α] [nontrivial α] {n : ℤ} : (n : α) ≤ 0 ↔ n ≤ 0 :=
+@[simp] theorem cast_nonpos [strict_ordered_ring α] [nontrivial α] {n : ℤ} : (n : α) ≤ 0 ↔ n ≤ 0 :=
 by rw [← cast_zero, cast_le]
 
-@[simp] theorem cast_pos [ordered_ring α] [nontrivial α] {n : ℤ} : (0 : α) < n ↔ 0 < n :=
+@[simp] theorem cast_pos [strict_ordered_ring α] [nontrivial α] {n : ℤ} : (0 : α) < n ↔ 0 < n :=
 by rw [← cast_zero, cast_lt]
 
-@[simp] theorem cast_lt_zero [ordered_ring α] [nontrivial α] {n : ℤ} : (n : α) < 0 ↔ n < 0 :=
+@[simp] theorem cast_lt_zero [strict_ordered_ring α] [nontrivial α] {n : ℤ} :
+  (n : α) < 0 ↔ n < 0 :=
 by rw [← cast_zero, cast_lt]
 
-@[simp, norm_cast] theorem cast_min [linear_ordered_ring α] {a b : ℤ} :
+@[simp, norm_cast] theorem cast_min [strict_linear_ordered_ring α] {a b : ℤ} :
   (↑(min a b) : α) = min a b :=
 monotone.map_min cast_mono
 
-@[simp, norm_cast] theorem cast_max [linear_ordered_ring α] {a b : ℤ} :
+@[simp, norm_cast] theorem cast_max [strict_linear_ordered_ring α] {a b : ℤ} :
   (↑(max a b) : α) = max a b :=
 monotone.map_max cast_mono
 
-@[simp, norm_cast] theorem cast_abs [linear_ordered_ring α] {q : ℤ} :
+@[simp, norm_cast] theorem cast_abs [strict_linear_ordered_ring α] {q : ℤ} :
   ((|q| : ℤ) : α) = |q| :=
 by simp [abs_eq_max_neg]
 
-lemma cast_nat_abs {R : Type*} [linear_ordered_ring R] : ∀ (n : ℤ), (n.nat_abs : R) = |n|
+lemma cast_nat_abs {R : Type*} [strict_linear_ordered_ring R] : ∀ (n : ℤ), (n.nat_abs : R) = |n|
 | (n : ℕ) := by simp only [int.nat_abs_of_nat, int.cast_coe_nat, nat.abs_cast]
 | -[1+n]  := by simp only [int.nat_abs, int.cast_neg_succ_of_nat, abs_neg,
                            ← nat.cast_succ, nat.abs_cast]

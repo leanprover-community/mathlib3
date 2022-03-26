@@ -26,7 +26,7 @@ This file proves statements about limits and continuity of functions involving `
 open filter function int set
 open_locale topological_space
 
-variables {α β γ : Type*} [linear_ordered_ring α] [floor_ring α]
+variables {α β γ : Type*} [strict_linear_ordered_ring α] [floor_ring α]
 
 lemma tendsto_floor_at_top : tendsto (floor : α → ℤ) at_top at_top :=
 floor_mono.tendsto_at_top_at_top $ λ b, ⟨(b + 1 : ℤ), by { rw floor_coe, exact (lt_add_one _).le }⟩

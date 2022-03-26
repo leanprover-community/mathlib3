@@ -26,8 +26,8 @@ variables {𝕜 𝕝 E F β : Type*}
 open function set
 open_locale convex
 
-section ordered_semiring
-variables [ordered_semiring 𝕜] [topological_space E] [topological_space F]
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring 𝕜] [topological_space E] [topological_space F]
 
 section add_comm_monoid
 variables [add_comm_monoid E] [add_comm_monoid F]
@@ -252,10 +252,10 @@ lemma strict_convex.affinity [has_continuous_add E] (hs : strict_convex 𝕜 s) 
 
 end continuous_smul
 end add_comm_group
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
-section ordered_comm_semiring
-variables [ordered_comm_semiring 𝕜] [topological_space E]
+section strict_ordered_add_cancel_comm_semiring
+variables [strict_ordered_add_cancel_comm_semiring 𝕜] [topological_space E]
 
 section add_comm_group
 variables [add_comm_group E] [module 𝕜 E] [no_zero_smul_divisors 𝕜 E]
@@ -276,10 +276,10 @@ begin
 end
 
 end add_comm_group
-end ordered_comm_semiring
+end strict_ordered_add_cancel_comm_semiring
 
-section ordered_ring
-variables [ordered_ring 𝕜] [topological_space E] [topological_space F]
+section strict_ordered_ring
+variables [strict_ordered_ring 𝕜] [topological_space E] [topological_space F]
 
 section add_comm_group
 variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E} {x y : E}
@@ -349,7 +349,7 @@ lemma strict_convex.neg_preimage [topological_add_group E] (hs : strict_convex �
 hs.is_linear_preimage is_linear_map.is_linear_map_neg continuous_id.neg neg_injective
 
 end add_comm_group
-end ordered_ring
+end strict_ordered_ring
 
 section linear_ordered_field
 variables [linear_ordered_field 𝕜] [topological_space E]

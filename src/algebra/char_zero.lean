@@ -50,14 +50,15 @@ theorem char_zero_of_inj_zero {R : Type*} [add_left_cancel_monoid R] [has_one R]
 
 /-- Note this is not an instance as `char_zero` implies `nontrivial`,
 and this would risk forming a loop. -/
-lemma ordered_semiring.to_char_zero {R : Type*} [ordered_semiring R] [nontrivial R] :
+lemma strict_ordered_add_cancel_semiring.to_char_zero {R : Type*}
+  [strict_ordered_add_cancel_semiring R] [nontrivial R] :
   char_zero R :=
 ⟨nat.strict_mono_cast.injective⟩
 
 @[priority 100] -- see Note [lower instance priority]
-instance linear_ordered_semiring.to_char_zero {R : Type*}
-  [linear_ordered_semiring R] : char_zero R :=
-ordered_semiring.to_char_zero
+instance strict_linear_ordered_add_cancel_semiring.to_char_zero {R : Type*}
+  [strict_linear_ordered_add_cancel_semiring R] : char_zero R :=
+strict_ordered_add_cancel_semiring.to_char_zero
 
 namespace nat
 variables {R : Type*} [add_monoid R] [has_one R] [char_zero R]

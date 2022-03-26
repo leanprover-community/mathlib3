@@ -124,7 +124,7 @@ end special_linear_group
 
 section
 
-variables {n : Type u} {R : Type v} [decidable_eq n] [fintype n] [linear_ordered_comm_ring R ]
+variables {n : Type u} {R : Type v} [decidable_eq n] [fintype n] [strict_linear_ordered_comm_ring R]
 
 section
 variables (n R)
@@ -140,7 +140,7 @@ end
 
 section has_neg
 
-variables {n : Type u} {R : Type v} [decidable_eq n] [fintype n] [linear_ordered_comm_ring R ]
+variables {n : Type u} {R : Type v} [decidable_eq n] [fintype n] [strict_linear_ordered_comm_ring R]
 [fact (even (fintype.card n))]
 
 /-- Formal operation of negation on general linear group on even cardinality `n` given by negating
@@ -169,7 +169,7 @@ end has_neg
 
 namespace special_linear_group
 
-variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [linear_ordered_comm_ring R]
+variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [strict_linear_ordered_comm_ring R]
 
 /-- `special_linear_group n R` embeds into `GL_pos n R` -/
 def to_GL_pos : special_linear_group n R →* GL_pos n R :=

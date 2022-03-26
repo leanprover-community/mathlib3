@@ -22,7 +22,7 @@ When `α` is `ℝ`, this will give us some properties about `ℝ≥0`.
 
 ## Main declarations
 
-* `{x : α // 0 ≤ x}` is a `canonically_linear_ordered_add_monoid` if `α` is a `linear_ordered_ring`.
+* `{x : α // 0 ≤ x}` is a `canonically_linear_ordered_add_monoid` if `α` is a `strict_linear_ordered_ring`.
 * `{x : α // 0 ≤ x}` is a `linear_ordered_comm_group_with_zero` if `α` is a `linear_ordered_field`.
 
 ## Implementation Notes
@@ -149,74 +149,79 @@ instance archimedean [ordered_add_comm_monoid α] [archimedean α] : archimedean
   let ⟨n, hr⟩ := archimedean.arch (x : α) (pos_y : (0 : α) < y) in
   ⟨n, show (x : α) ≤ (n • y : {x : α // 0 ≤ x}), by simp [*, -nsmul_eq_mul, nsmul_coe]⟩ ⟩
 
-instance has_one [ordered_semiring α] : has_one {x : α // 0 ≤ x} :=
+instance has_one [strict_ordered_add_cancel_semiring α] : has_one {x : α // 0 ≤ x} :=
 { one := ⟨1, zero_le_one⟩ }
 
 @[simp, norm_cast]
-protected lemma coe_one [ordered_semiring α] : ((1 : {x : α // 0 ≤ x}) : α) = 1 := rfl
+protected lemma coe_one [strict_ordered_add_cancel_semiring α] : ((1 : {x : α // 0 ≤ x}) : α) = 1 := rfl
 
-@[simp] lemma mk_eq_one [ordered_semiring α] {x : α} (hx : 0 ≤ x) :
+@[simp] lemma mk_eq_one [strict_ordered_add_cancel_semiring α] {x : α} (hx : 0 ≤ x) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) = 1 ↔ x = 1 :=
 subtype.ext_iff
 
-instance has_mul [ordered_semiring α] : has_mul {x : α // 0 ≤ x} :=
+instance has_mul [strict_ordered_add_cancel_semiring α] : has_mul {x : α // 0 ≤ x} :=
 { mul := λ x y, ⟨x * y, mul_nonneg x.2 y.2⟩ }
 
 @[simp, norm_cast]
-protected lemma coe_mul [ordered_semiring α] (a b : {x : α // 0 ≤ x}) :
+protected lemma coe_mul [strict_ordered_add_cancel_semiring α] (a b : {x : α // 0 ≤ x}) :
   ((a * b : {x : α // 0 ≤ x}) : α) = a * b := rfl
 
-@[simp] lemma mk_mul_mk [ordered_semiring α] {x y : α} (hx : 0 ≤ x) (hy : 0 ≤ y) :
+@[simp] lemma mk_mul_mk [strict_ordered_add_cancel_semiring α] {x y : α} (hx : 0 ≤ x) (hy : 0 ≤ y) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) * ⟨y, hy⟩ = ⟨x * y, mul_nonneg hx hy⟩ :=
 rfl
 
-instance has_pow [ordered_semiring α] : has_pow {x : α // 0 ≤ x} ℕ :=
+instance has_pow [strict_ordered_add_cancel_semiring α] : has_pow {x : α // 0 ≤ x} ℕ :=
 { pow := λ x n, ⟨x ^ n, pow_nonneg x.2 n⟩ }
 
 @[simp, norm_cast]
-protected lemma coe_pow [ordered_semiring α] (a : {x : α // 0 ≤ x}) (n : ℕ) :
+protected lemma coe_pow [strict_ordered_add_cancel_semiring α] (a : {x : α // 0 ≤ x}) (n : ℕ) :
   ((a ^ n: {x : α // 0 ≤ x}) : α) = a ^ n := rfl
 
-@[simp] lemma mk_pow [ordered_semiring α] {x : α} (hx : 0 ≤ x) (n : ℕ) :
+@[simp] lemma mk_pow [strict_ordered_add_cancel_semiring α] {x : α} (hx : 0 ≤ x) (n : ℕ) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) ^ n = ⟨x ^ n, pow_nonneg hx n⟩ :=
 rfl
 
-instance ordered_semiring [ordered_semiring α] : ordered_semiring {x : α // 0 ≤ x} :=
-subtype.coe_injective.ordered_semiring _
+instance strict_ordered_add_cancel_semiring [strict_ordered_add_cancel_semiring α] :
+  strict_ordered_add_cancel_semiring {x : α // 0 ≤ x} :=
+subtype.coe_injective.strict_ordered_add_cancel_semiring _
   rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
-instance ordered_comm_semiring [ordered_comm_semiring α] : ordered_comm_semiring {x : α // 0 ≤ x} :=
-subtype.coe_injective.ordered_comm_semiring _
+instance strict_ordered_add_cancel_comm_semiring [strict_ordered_add_cancel_comm_semiring α] :
+  strict_ordered_add_cancel_comm_semiring {x : α // 0 ≤ x} :=
+subtype.coe_injective.strict_ordered_add_cancel_comm_semiring _
   rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 -- These prevent noncomputable instances being found, as it does not require `linear_order` which
 -- is frequently non-computable.
-instance monoid_with_zero [ordered_semiring α] : monoid_with_zero {x : α // 0 ≤ x} :=
+instance monoid_with_zero [strict_ordered_add_cancel_semiring α] :
+  monoid_with_zero {x : α // 0 ≤ x} :=
 by apply_instance
 
-instance comm_monoid_with_zero [ordered_comm_semiring α] : comm_monoid_with_zero {x : α // 0 ≤ x} :=
+instance comm_monoid_with_zero [strict_ordered_add_cancel_comm_semiring α] :
+  comm_monoid_with_zero {x : α // 0 ≤ x} :=
 by apply_instance
 
-instance nontrivial [linear_ordered_semiring α] : nontrivial {x : α // 0 ≤ x} :=
+instance nontrivial [strict_linear_ordered_add_cancel_semiring α] : nontrivial {x : α // 0 ≤ x} :=
 ⟨ ⟨0, 1, λ h, zero_ne_one (congr_arg subtype.val h)⟩ ⟩
 
-instance linear_ordered_semiring [linear_ordered_semiring α] :
-  linear_ordered_semiring {x : α // 0 ≤ x} :=
-subtype.coe_injective.linear_ordered_semiring _
+instance strict_linear_ordered_add_cancel_semiring [strict_linear_ordered_add_cancel_semiring α] :
+  strict_linear_ordered_add_cancel_semiring {x : α // 0 ≤ x} :=
+subtype.coe_injective.strict_linear_ordered_add_cancel_semiring _
   rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
-instance linear_ordered_comm_monoid_with_zero [linear_ordered_comm_ring α] :
+instance linear_ordered_comm_monoid_with_zero [strict_linear_ordered_comm_ring α] :
   linear_ordered_comm_monoid_with_zero {x : α // 0 ≤ x} :=
 { mul_le_mul_left := λ a b h c, mul_le_mul_of_nonneg_left h c.2,
-  ..nonneg.linear_ordered_semiring,
-  ..nonneg.ordered_comm_semiring }
+  ..nonneg.strict_linear_ordered_add_cancel_semiring,
+  ..nonneg.strict_ordered_add_cancel_comm_semiring }
 
 /-- Coercion `{x : α // 0 ≤ x} → α` as a `ring_hom`. -/
-def coe_ring_hom [ordered_semiring α] : {x : α // 0 ≤ x} →+* α :=
+def coe_ring_hom [strict_ordered_add_cancel_semiring α] : {x : α // 0 ≤ x} →+* α :=
 ⟨coe, nonneg.coe_one, nonneg.coe_mul, nonneg.coe_zero, nonneg.coe_add⟩
 
 @[simp, norm_cast]
-protected lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n :=
+protected lemma coe_nat_cast [strict_ordered_add_cancel_semiring α] (n : ℕ) :
+  ((↑n : {x : α // 0 ≤ x}) : α) = n :=
 map_nat_cast (coe_ring_hom : {x : α // 0 ≤ x} →+* α) n
 
 instance has_inv [linear_ordered_field α] : has_inv {x : α // 0 ≤ x} :=
@@ -249,24 +254,25 @@ protected lemma coe_div [linear_ordered_field α] (a b : {x : α // 0 ≤ x}) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) / ⟨y, hy⟩ = ⟨x / y, div_nonneg hx hy⟩ :=
 rfl
 
-instance canonically_ordered_add_monoid [ordered_ring α] :
+instance canonically_ordered_add_monoid [strict_ordered_ring α] :
   canonically_ordered_add_monoid {x : α // 0 ≤ x} :=
 { le_iff_exists_add     := λ ⟨a, ha⟩ ⟨b, hb⟩,
     by simpa only [mk_add_mk, subtype.exists, subtype.mk_eq_mk] using le_iff_exists_nonneg_add a b,
   ..nonneg.ordered_add_comm_monoid,
   ..nonneg.order_bot }
 
-instance canonically_ordered_comm_semiring [ordered_comm_ring α] [no_zero_divisors α] :
+instance canonically_ordered_comm_semiring [strict_ordered_comm_ring α] [no_zero_divisors α] :
   canonically_ordered_comm_semiring {x : α // 0 ≤ x} :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := by { rintro ⟨a, ha⟩ ⟨b, hb⟩, simp },
   ..nonneg.canonically_ordered_add_monoid,
-  ..nonneg.ordered_comm_semiring }
+  ..nonneg.strict_ordered_add_cancel_comm_semiring }
 
-instance canonically_linear_ordered_add_monoid [linear_ordered_ring α] :
+instance canonically_linear_ordered_add_monoid [strict_linear_ordered_ring α] :
   canonically_linear_ordered_add_monoid {x : α // 0 ≤ x} :=
 { ..subtype.linear_order _, ..nonneg.canonically_ordered_add_monoid }
 
-instance floor_semiring [ordered_semiring α] [floor_semiring α] : floor_semiring {r : α // 0 ≤ r} :=
+instance floor_semiring [strict_ordered_add_cancel_semiring α] [floor_semiring α] :
+  floor_semiring {r : α // 0 ≤ r} :=
 { floor := λ a, ⌊(a : α)⌋₊,
   ceil := λ a, ⌈(a : α)⌉₊,
   floor_of_neg := λ a ha, floor_semiring.floor_of_neg ha,
@@ -279,11 +285,11 @@ instance floor_semiring [ordered_semiring α] [floor_semiring α] : floor_semiri
     rw [←subtype.coe_le_coe, nonneg.coe_nat_cast]
   end}
 
-@[norm_cast] lemma nat_floor_coe [ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
-  ⌊(a : α)⌋₊ = ⌊a⌋₊ := rfl
+@[norm_cast] lemma nat_floor_coe [strict_ordered_add_cancel_semiring α] [floor_semiring α]
+  (a : {r : α // 0 ≤ r}) : ⌊(a : α)⌋₊ = ⌊a⌋₊ := rfl
 
-@[norm_cast] lemma nat_ceil_coe [ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
-  ⌈(a : α)⌉₊ = ⌈a⌉₊  := rfl
+@[norm_cast] lemma nat_ceil_coe [strict_ordered_add_cancel_semiring α] [floor_semiring α]
+  (a : {r : α // 0 ≤ r}) : ⌈(a : α)⌉₊ = ⌈a⌉₊  := rfl
 
 section linear_order
 
@@ -321,7 +327,7 @@ rfl
 
 end linear_order
 
-instance has_ordered_sub [linear_ordered_ring α] : has_ordered_sub {x : α // 0 ≤ x} :=
+instance has_ordered_sub [strict_linear_ordered_ring α] : has_ordered_sub {x : α // 0 ≤ x} :=
 ⟨by { rintro ⟨a, ha⟩ ⟨b, hb⟩ ⟨c, hc⟩, simp only [sub_le_iff_le_add, subtype.mk_le_mk, mk_sub_mk,
   mk_add_mk, to_nonneg_le, subtype.coe_mk]}⟩
 

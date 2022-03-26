@@ -402,7 +402,8 @@ section order
 
 variables {n : ℕ} {x : α}
 
-lemma geom_sum_pos [ordered_semiring α] (hx : 0 < x) (hn : n ≠ 0) : 0 < geom_sum x n :=
+lemma geom_sum_pos [strict_ordered_add_cancel_semiring α] (hx : 0 < x) (hn : n ≠ 0) :
+  0 < geom_sum x n :=
 begin
   refine nat.le_induction _ _ _ (show 1 ≤ n, from hn.bot_lt),
   { simp [@@zero_lt_one _ (nontrivial_of_lt _ _ hx)] },
@@ -411,7 +412,7 @@ begin
   apply add_pos (pow_pos hx _)
 end
 
-lemma geom_sum_pos_and_lt_one [ordered_ring α] (hx : x < 0) (hx' : 0 < x + 1) (hn : 1 < n) :
+lemma geom_sum_pos_and_lt_one [strict_ordered_ring α] (hx : x < 0) (hx' : 0 < x + 1) (hn : 1 < n) :
   0 < geom_sum x n ∧ geom_sum x n < 1 :=
 begin
   refine nat.le_induction _ _ n (show 2 ≤ n, from hn),
@@ -424,7 +425,7 @@ begin
     (neg_lt_iff_pos_add'.2 hx') ihn.2.le, mul_neg_of_neg_of_pos hx ihn.1⟩
 end
 
-lemma geom_sum_alternating_of_lt_neg_one [ordered_ring α] (hx : x + 1 < 0) (hn : 1 < n) :
+lemma geom_sum_alternating_of_lt_neg_one [strict_ordered_ring α] (hx : x + 1 < 0) (hn : 1 < n) :
   if even n then geom_sum x n < 0 else 1 < geom_sum x n  :=
 begin
   have hx0 : x < 0, from ((le_add_iff_nonneg_right _).2 (@zero_le_one α _)).trans_lt hx,
@@ -442,7 +443,7 @@ begin
     exact this.trans hx }
 end
 
-lemma geom_sum_pos_of_odd [linear_ordered_ring α] (h : odd n) :
+lemma geom_sum_pos_of_odd [strict_linear_ordered_ring α] (h : odd n) :
   0 < geom_sum x n :=
 begin
   rcases n with (_ | _ | k),
@@ -460,7 +461,7 @@ begin
   { exact geom_sum_pos hx' (by simp only [nat.succ_ne_zero, ne.def, not_false_iff]) }
 end
 
-lemma geom_sum_pos_iff [linear_ordered_ring α] (hn : 1 < n) :
+lemma geom_sum_pos_iff [strict_linear_ordered_ring α] (hn : 1 < n) :
   0 < geom_sum x n ↔ odd n ∨ 0 < x + 1 :=
 begin
   refine ⟨λ h, _, _⟩,
@@ -482,7 +483,7 @@ begin
     { exact geom_sum_pos hx (zero_lt_one.trans hn).ne' } }
 end
 
-lemma geom_sum_eq_zero_iff_neg_one [linear_ordered_ring α] (hn : 1 < n) :
+lemma geom_sum_eq_zero_iff_neg_one [strict_linear_ordered_ring α] (hn : 1 < n) :
   geom_sum x n = 0 ↔ x = -1 ∧ even n :=
 begin
   refine ⟨λ h, _, λ ⟨h, hn⟩, by simp only [h, hn, neg_one_geom_sum, if_true]⟩,
@@ -502,7 +503,7 @@ begin
   { exact geom_sum_pos h' (pos_of_gt hn).ne' }
 end
 
-lemma geom_sum_neg_iff [linear_ordered_ring α] (hn : 1 < n) :
+lemma geom_sum_neg_iff [strict_linear_ordered_ring α] (hn : 1 < n) :
   geom_sum x n < 0 ↔ even n ∧ x + 1 < 0 :=
 by rw [← not_iff_not, not_lt, le_iff_lt_or_eq, eq_comm,
        or_congr (geom_sum_pos_iff hn) (geom_sum_eq_zero_iff_neg_one hn), nat.odd_iff_not_even,

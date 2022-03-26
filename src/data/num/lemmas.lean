@@ -320,7 +320,7 @@ instance : ordered_cancel_add_comm_monoid num :=
   le_of_add_le_add_left      := by {intros a b c, transfer_rw, apply le_of_add_le_add_left},
   ..num.comm_semiring }
 
-instance : linear_ordered_semiring num :=
+instance : strict_linear_ordered_add_cancel_semiring num :=
 { le_total                   := by {intros a b, transfer_rw, apply le_total},
   zero_le_one                := dec_trivial,
   mul_lt_mul_of_pos_left     := by {intros a b c, transfer_rw, apply mul_lt_mul_of_pos_left},
@@ -456,11 +456,11 @@ theorem cast_inj [add_monoid α] [has_one α] [char_zero α] {m n : pos_num} : (
 by rw [← cast_to_nat m, ← cast_to_nat n, nat.cast_inj, to_nat_inj]
 
 @[simp]
-theorem one_le_cast [linear_ordered_semiring α] (n : pos_num) : (1 : α) ≤ n :=
+theorem one_le_cast [strict_linear_ordered_add_cancel_semiring α] (n : pos_num) : (1 : α) ≤ n :=
 by rw [← cast_to_nat, ← nat.cast_one, nat.cast_le]; apply to_nat_pos
 
 @[simp]
-theorem cast_pos [linear_ordered_semiring α] (n : pos_num) : 0 < (n : α) :=
+theorem cast_pos [strict_linear_ordered_add_cancel_semiring α] (n : pos_num) : 0 < (n : α) :=
 lt_of_lt_of_le zero_lt_one (one_le_cast n)
 
 @[simp, norm_cast]
@@ -476,11 +476,13 @@ begin
 end
 
 @[simp, norm_cast]
-theorem cast_lt [linear_ordered_semiring α] {m n : pos_num} : (m:α) < n ↔ m < n :=
+theorem cast_lt [strict_linear_ordered_add_cancel_semiring α] {m n : pos_num} :
+  (m:α) < n ↔ m < n :=
 by rw [← cast_to_nat m, ← cast_to_nat n, nat.cast_lt, lt_to_nat]
 
 @[simp, norm_cast]
-theorem cast_le [linear_ordered_semiring α] {m n : pos_num} : (m:α) ≤ n ↔ m ≤ n :=
+theorem cast_le [strict_linear_ordered_add_cancel_semiring α] {m n : pos_num} :
+  (m:α) ≤ n ↔ m ≤ n :=
 by rw ← not_lt; exact not_congr cast_lt
 
 end pos_num
@@ -608,15 +610,15 @@ begin
 end
 
 @[simp, norm_cast]
-theorem cast_lt [linear_ordered_semiring α] {m n : num} : (m:α) < n ↔ m < n :=
+theorem cast_lt [strict_linear_ordered_add_cancel_semiring α] {m n : num} : (m:α) < n ↔ m < n :=
 by rw [← cast_to_nat m, ← cast_to_nat n, nat.cast_lt, lt_to_nat]
 
 @[simp, norm_cast]
-theorem cast_le [linear_ordered_semiring α] {m n : num} : (m:α) ≤ n ↔ m ≤ n :=
+theorem cast_le [strict_linear_ordered_add_cancel_semiring α] {m n : num} : (m:α) ≤ n ↔ m ≤ n :=
 by rw ← not_lt; exact not_congr cast_lt
 
 @[simp, norm_cast]
-theorem cast_inj [linear_ordered_semiring α] {m n : num} : (m:α) = n ↔ m = n :=
+theorem cast_inj [strict_linear_ordered_add_cancel_semiring α] {m n : num} : (m:α) = n ↔ m = n :=
 by rw [← cast_to_nat m, ← cast_to_nat n, nat.cast_inj, to_nat_inj]
 
 theorem lt_iff_cmp {m n} : m < n ↔ cmp m n = ordering.lt := iff.rfl
@@ -1026,15 +1028,15 @@ theorem le_to_int {m n : znum} : (m:ℤ) ≤ n ↔ m ≤ n :=
 by rw ← not_lt; exact not_congr lt_to_int
 
 @[simp, norm_cast]
-theorem cast_lt [linear_ordered_ring α] {m n : znum} : (m:α) < n ↔ m < n :=
+theorem cast_lt [strict_linear_ordered_ring α] {m n : znum} : (m:α) < n ↔ m < n :=
 by rw [← cast_to_int m, ← cast_to_int n, int.cast_lt, lt_to_int]
 
 @[simp, norm_cast]
-theorem cast_le [linear_ordered_ring α] {m n : znum} : (m:α) ≤ n ↔ m ≤ n :=
+theorem cast_le [strict_linear_ordered_ring α] {m n : znum} : (m:α) ≤ n ↔ m ≤ n :=
 by rw ← not_lt; exact not_congr cast_lt
 
 @[simp, norm_cast]
-theorem cast_inj [linear_ordered_ring α] {m n : znum} : (m:α) = n ↔ m = n :=
+theorem cast_inj [strict_linear_ordered_ring α] {m n : znum} : (m:α) = n ↔ m = n :=
 by rw [← cast_to_int m, ← cast_to_int n, int.cast_inj, to_int_inj]
 
 /--
@@ -1087,7 +1089,7 @@ instance : add_comm_group znum :=
   neg              := has_neg.neg,
   add_left_neg     := by transfer }
 
-instance : linear_ordered_comm_ring znum :=
+instance : strict_linear_ordered_comm_ring znum :=
 { mul              := (*),
   mul_assoc        := by transfer,
   one              := 1,

@@ -36,11 +36,12 @@ section semimodule
 
 /-- A `locally_convex_space` is a topological semimodule over an ordered semiring in which convex
 neighborhoods of a point form a neighborhood basis at that point. -/
-class locally_convex_space (𝕜 E : Type*) [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
-  [topological_space E] : Prop :=
+class locally_convex_space (𝕜 E : Type*) [strict_ordered_add_cancel_semiring 𝕜] [add_comm_monoid E]
+  [module 𝕜 E] [topological_space E] : Prop :=
 (convex_basis : ∀ x : E, (𝓝 x).has_basis (λ (s : set E), s ∈ 𝓝 x ∧ convex 𝕜 s) id)
 
-variables (𝕜 E : Type*) [ordered_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] [topological_space E]
+variables (𝕜 E : Type*) [strict_ordered_add_cancel_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E]
+  [topological_space E]
 
 lemma locally_convex_space_iff :
   locally_convex_space 𝕜 E ↔
@@ -67,8 +68,8 @@ end semimodule
 
 section module
 
-variables (𝕜 E : Type*) [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
-  [topological_add_group E]
+variables (𝕜 E : Type*) [strict_ordered_add_cancel_semiring 𝕜] [add_comm_group E] [module 𝕜 E]
+  [topological_space E] [topological_add_group E]
 
 lemma locally_convex_space.of_basis_zero {ι : Type*} (b : ι → set E) (p : ι → Prop)
   (hbasis : (𝓝 0).has_basis p b) (hconvex : ∀ i, p i → convex 𝕜 (b i)) :

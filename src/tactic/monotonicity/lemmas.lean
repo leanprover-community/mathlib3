@@ -12,13 +12,13 @@ import tactic.monotonicity.basic
 variables {α : Type*}
 
 @[mono]
-lemma mul_mono_nonneg {x y z : α} [ordered_semiring α]
+lemma mul_mono_nonneg {x y z : α} [strict_ordered_add_cancel_semiring α]
   (h' : 0 ≤ z)
   (h : x ≤ y)
 : x * z ≤ y * z :=
 by apply mul_le_mul_of_nonneg_right; assumption
 
-lemma lt_of_mul_lt_mul_neg_right {a b c : α}  [linear_ordered_ring α]
+lemma lt_of_mul_lt_mul_neg_right {a b c : α} [strict_linear_ordered_ring α]
   (h : a * c < b * c) (hc : c ≤ 0) : b < a :=
 have nhc : -c ≥ 0, from neg_nonneg_of_nonpos hc,
 have h2 : -(b * c) < -(a * c), from neg_lt_neg h,
@@ -29,7 +29,7 @@ have h3 : b * (-c) < a * (-c), from calc
 lt_of_mul_lt_mul_right h3 nhc
 
 @[mono]
-lemma mul_mono_nonpos {x y z : α} [linear_ordered_ring α]
+lemma mul_mono_nonpos {x y z : α} [strict_linear_ordered_ring α]
   (h' : z ≤ 0) (h : y ≤ x) : x * z ≤ y * z :=
 begin
   classical,

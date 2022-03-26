@@ -139,8 +139,8 @@ by rw [pochhammer_succ_right, polynomial.eval_mul, polynomial.eval_add, polynomi
 
 end comm_semiring
 
-section ordered_semiring
-variables {S : Type*} [ordered_semiring S] [nontrivial S]
+section strict_ordered_add_cancel_semiring
+variables {S : Type*} [strict_ordered_add_cancel_semiring S] [nontrivial S]
 
 lemma pochhammer_pos (n : ℕ) (s : S) (h : 0 < s) : 0 < (pochhammer S n).eval s :=
 begin
@@ -152,7 +152,7 @@ begin
       (lt_of_lt_of_le h ((le_add_iff_nonneg_right _).mpr (nat.cast_nonneg n))), }
 end
 
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
 section factorial
 

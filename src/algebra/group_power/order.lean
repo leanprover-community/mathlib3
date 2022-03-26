@@ -123,8 +123,8 @@ pos_iff_ne_zero.2 $ pow_ne_zero _ H.ne'
 
 end canonically_ordered_comm_semiring
 
-section ordered_semiring
-variables [ordered_semiring R] {a x y : R} {n m : ℕ}
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring R] {a x y : R} {n m : ℕ}
 
 theorem pow_add_pow_le (hx : 0 ≤ x) (hy : 0 ≤ y) (hn : n ≠ 0) : x ^ n + y ^ n ≤ (x + y) ^ n :=
 begin
@@ -213,10 +213,10 @@ lemma pow_le_one : ∀ (n : ℕ) (h₀ : 0 ≤ a) (h₁ : a ≤ 1), a ^ n ≤ 1
 
 lemma sq_pos_of_pos (ha : 0 < a) : 0 < a ^ 2 := by { rw sq, exact mul_pos ha ha }
 
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
-section ordered_ring
-variables [ordered_ring R] {a : R}
+section strict_ordered_ring
+variables [strict_ordered_ring R] {a : R}
 
 lemma sq_pos_of_neg (ha : a < 0) : 0 < a ^ 2 := by { rw sq, exact mul_pos_of_neg_of_neg ha ha }
 
@@ -232,10 +232,10 @@ begin
   exact mul_neg_of_neg_of_pos ha (pow_bit0_pos_of_neg ha n),
 end
 
-end ordered_ring
+end strict_ordered_ring
 
-section linear_ordered_semiring
-variable [linear_ordered_semiring R]
+section strict_linear_ordered_add_cancel_semiring
+variable [strict_linear_ordered_add_cancel_semiring R]
 
 lemma pow_le_one_iff_of_nonneg {a : R} (ha : 0 ≤ a) {n : ℕ} (hn : n ≠ 0) : a ^ n ≤ 1 ↔ a ≤ 1 :=
 begin
@@ -282,11 +282,11 @@ le_of_not_lt $ λ h1, not_le_of_lt (pow_lt_pow_of_lt_left h1 hb hn) h
 @[simp] lemma sq_eq_sq {a b : R} (ha : 0 ≤ a) (hb : 0 ≤ b) : a ^ 2 = b ^ 2 ↔ a = b :=
 pow_left_inj ha hb dec_trivial
 
-end linear_ordered_semiring
+end strict_linear_ordered_add_cancel_semiring
 
-section linear_ordered_ring
+section strict_linear_ordered_ring
 
-variable [linear_ordered_ring R]
+variable [strict_linear_ordered_ring R]
 
 lemma pow_abs (a : R) (n : ℕ) : |a| ^ n = |a ^ n| :=
 ((abs_hom.to_monoid_hom : R →* R).map_pow a n).symm
@@ -387,10 +387,10 @@ have t : 1^2 ≤ x^2 ↔ |1| ≤ |x| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, 
 @[simp] lemma one_lt_sq_iff_one_lt_abs (x : R) : 1 < x^2 ↔ 1 < |x| :=
 have t : 1^2 < x^2 ↔ |1| < |x| := ⟨abs_lt_abs_of_sq_lt_sq, sq_lt_sq⟩, by simpa using t
 
-end linear_ordered_ring
+end strict_linear_ordered_ring
 
-section linear_ordered_comm_ring
-variables [linear_ordered_comm_ring R]
+section strict_linear_ordered_comm_ring
+variables [strict_linear_ordered_comm_ring R]
 
 /-- Arithmetic mean-geometric mean (AM-GM) inequality for linearly ordered commutative rings. -/
 lemma two_mul_le_add_sq (a b : R) : 2 * a * b ≤ a ^ 2 + b ^ 2 :=
@@ -398,4 +398,4 @@ sub_nonneg.mp ((sub_add_eq_add_sub _ _ _).subst ((sub_sq a b).subst (sq_nonneg _
 
 alias two_mul_le_add_sq ← two_mul_le_add_pow_two
 
-end linear_ordered_comm_ring
+end strict_linear_ordered_comm_ring

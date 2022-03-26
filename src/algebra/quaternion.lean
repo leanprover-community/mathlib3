@@ -519,9 +519,9 @@ namespace quaternion
 
 variables {R : Type*}
 
-section linear_ordered_comm_ring
+section strict_linear_ordered_comm_ring
 
-variables [linear_ordered_comm_ring R] {a : ℍ[R]}
+variables [strict_linear_ordered_comm_ring R] {a : ℍ[R]}
 
 @[simp] lemma norm_sq_eq_zero : norm_sq a = 0 ↔ a = 0 :=
 begin
@@ -548,7 +548,7 @@ instance : is_domain ℍ[R] :=
     (eq_zero_or_eq_zero_of_mul_eq_zero this).imp norm_sq_eq_zero.1 norm_sq_eq_zero.1,
   ..quaternion.nontrivial, }
 
-end linear_ordered_comm_ring
+end strict_linear_ordered_comm_ring
 
 section field
 

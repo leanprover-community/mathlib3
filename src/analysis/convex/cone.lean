@@ -54,7 +54,7 @@ variables {𝕜 E F G : Type*}
 /-! ### Definition of `convex_cone` and basic properties -/
 
 section definitions
-variables (𝕜 E) [ordered_semiring 𝕜]
+variables (𝕜 E) [strict_ordered_add_cancel_semiring 𝕜]
 
 /-- A convex cone is a subset `s` of a `𝕜`-module such that `a • x + b • y ∈ s` whenever `a, b > 0`
 and `x, y ∈ s`. -/
@@ -68,8 +68,8 @@ end definitions
 variables {𝕜 E}
 
 namespace convex_cone
-section ordered_semiring
-variables [ordered_semiring 𝕜] [add_comm_monoid E]
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring 𝕜] [add_comm_monoid E]
 
 section has_scalar
 variables [has_scalar 𝕜 E] (S T : convex_cone 𝕜 E)
@@ -161,7 +161,7 @@ convex_iff_forall_pos.2 $ λ x y hx hy a b ha hb hab,
   S.add_mem (S.smul_mem ha hx) (S.smul_mem hb hy)
 
 end module
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
 section linear_ordered_field
 variables [linear_ordered_field 𝕜]
@@ -233,8 +233,8 @@ end linear_ordered_field
 
 /-! ### Convex cones with extra properties -/
 
-section ordered_semiring
-variables [ordered_semiring 𝕜]
+section strict_ordered_add_cancel_semiring
+variables [strict_ordered_add_cancel_semiring 𝕜]
 
 section add_comm_monoid
 variables [add_comm_monoid E] [has_scalar 𝕜 E] (S : convex_cone 𝕜 E)
@@ -321,12 +321,13 @@ def to_ordered_add_comm_group (h₁ : S.pointed) (h₂ : S.salient) :
   ..show add_comm_group E, by apply_instance }
 
 end add_comm_group
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
 /-! ### Positive cone of an ordered module -/
 
 section positive_cone
-variables (𝕜 E) [ordered_semiring 𝕜] [ordered_add_comm_group E] [module 𝕜 E] [ordered_smul 𝕜 E]
+variables (𝕜 E) [strict_ordered_add_cancel_semiring 𝕜] [ordered_add_comm_group E] [module 𝕜 E]
+  [ordered_smul 𝕜 E]
 
 /--
 The positive cone is the convex cone formed by the set of nonnegative elements in an ordered

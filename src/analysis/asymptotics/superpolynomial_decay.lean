@@ -124,9 +124,9 @@ lemma superpolynomial_decay.mul_polynomial [has_continuous_add β] [has_continuo
 
 end comm_semiring
 
-section ordered_comm_semiring
+section strict_ordered_add_cancel_comm_semiring
 
-variables [topological_space β] [ordered_comm_semiring β] [order_topology β]
+variables [topological_space β] [strict_ordered_add_cancel_comm_semiring β] [order_topology β]
 
 lemma superpolynomial_decay.trans_eventually_le (hk : 0 ≤ᶠ[l] k)
   (hg : superpolynomial_decay l k g) (hg' : superpolynomial_decay l k g')
@@ -135,11 +135,11 @@ lemma superpolynomial_decay.trans_eventually_le (hk : 0 ≤ᶠ[l] k)
   (hfg.mp (hk.mono $ λ x hx hx', mul_le_mul_of_nonneg_left hx' (pow_nonneg hx z)))
   (hfg'.mp (hk.mono $ λ x hx hx', mul_le_mul_of_nonneg_left hx' (pow_nonneg hx z)))
 
-end ordered_comm_semiring
+end strict_ordered_add_cancel_comm_semiring
 
-section linear_ordered_comm_ring
+section strict_linear_ordered_comm_ring
 
-variables [topological_space β] [linear_ordered_comm_ring β] [order_topology β]
+variables [topological_space β] [strict_linear_ordered_comm_ring β] [order_topology β]
 
 variables (l k f)
 
@@ -170,7 +170,7 @@ lemma superpolynomial_decay.trans_abs_le (hf : superpolynomial_decay l k f)
   (hfg : ∀ x, |g x| ≤ |f x|) : superpolynomial_decay l k g :=
 hf.trans_eventually_abs_le (eventually_of_forall hfg)
 
-end linear_ordered_comm_ring
+end strict_linear_ordered_comm_ring
 
 section field
 

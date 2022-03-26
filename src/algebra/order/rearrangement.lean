@@ -37,7 +37,7 @@ variables {ι α β : Type*}
 /-! ### Scalar multiplication versions -/
 
 section smul
-variables [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β]
+variables [strict_linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β]
   [ordered_smul α β] {s : finset ι} {σ : perm ι} {f : ι → α} {g : ι → β}
 
 /-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is maximized when
@@ -159,7 +159,7 @@ Special cases of the above when scalar multiplication is actually multiplication
 -/
 
 section mul
-variables [linear_ordered_ring α] {s : finset ι} {σ : perm ι} {f g : ι → α}
+variables [strict_linear_ordered_ring α] {s : finset ι} {σ : perm ι} {f g : ι → α}
 
 /-- **Rearrangement Inequality**: Pointwise multiplication of `f` and `g` is maximized when `f` and
 `g` vary together. Stated by permuting the entries of `g`.  -/

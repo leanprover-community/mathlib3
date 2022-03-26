@@ -19,6 +19,7 @@ Each typeclass here comprises
 
 For short,
 * "`+` respects `≤`" means "monotonicity of addition"
+* "`*` respects `≤`" means "monotonicity of multiplication by a nonnegative number".
 * "`*` respects `<`" means "strict monotonicity of multiplication by a positive number".
 
 ## Typeclasses
@@ -61,7 +62,7 @@ For short,
   `+` respects `≤` and `*` respects `<`.
 * `strict_linear_ordered_add_cancel_semiring`: Additively cancellative semiring with a linear order
   such that `+` respects `≤` and `*` respects `<`.
-* `strict_linear_ordered_add_cancel_semiring`: Additively cancellative commutative semiring
+* `strict_linear_ordered_add_cancel_comm_semiring`: Additively cancellative commutative semiring
   with a linear order such that `+` respects `≤` and `*` respects `<`.
 * `strict_linear_ordered_ring`: Ring with a linear order such that `+` respects `≤` and
   `*` respects `<`.
@@ -70,7 +71,7 @@ For short,
 * `canonically_ordered_comm_semiring`: Commutative semiring with a partial order such that `+`
   respects `≤`, `*` respects `<`, and `a ≤ b ↔ ∃ c, b = a + c`.
 
-and some typeclasses to define ordered rings by specifying their nonegative elements:
+and some typeclasses to define ordered rings by specifying their nonnegative elements:
 * `nonneg_ring`: To define `ordered_ring`s.
 * `linear_nonneg_ring`: To define `linear_ordered_ring`s.
 
@@ -186,7 +187,7 @@ calc  a + 1 ≤ a + a : add_le_add_left a1 a
 
 
 /-- An `ordered_semiring α` is a semiring `α` with a partial order such that
-addition is monotone and multiplication by a positive number is monotone. -/
+addition is monotone and multiplication by a nonnegative number is monotone. -/
 @[protect_proj]
 class ordered_semiring (α : Type u) extends semiring α, ordered_add_comm_monoid α :=
 (zero_le_one : 0 ≤ (1 : α))
@@ -387,7 +388,7 @@ end ordered_semiring
 
 
 /-- An `ordered_comm_semiring α` is a commutative semiring `α` with a partial order such that
-addition is monotone and multiplication by a positive number is strictly monotone. -/
+addition is monotone and multiplication by a nonnegative number is monotone. -/
 @[protect_proj]
 class ordered_comm_semiring (α : Type u) extends comm_semiring α, ordered_semiring α
 
@@ -404,8 +405,9 @@ def function.injective.ordered_comm_semiring [ordered_comm_semiring α] {β : Ty
   ..hf.ordered_semiring f zero one add mul nsmul npow }
 
 
-/-- An `ordered_add_cancel_semiring α` is a semiring `α` with a partial order such that
-addition is monotone and multiplication by a positive number is strictly monotone. -/
+/-- An `ordered_add_cancel_semiring α` is a additively cancellative semiring `α`
+with a partial order such that addition is monotone and multiplication by a nonnegative number
+is monotone. -/
 @[protect_proj]
 class ordered_add_cancel_semiring (α : Type u)
   extends ordered_semiring α, ordered_cancel_add_comm_monoid α
@@ -447,8 +449,9 @@ def function.injective.ordered_add_cancel_semiring {β : Type*}
 end ordered_add_cancel_semiring
 
 
-/-- An `ordered_add_cancel_comm_semiring α` is a commutative semiring `α` with a partial order such
-that addition is monotone and multiplication by a positive number is strictly monotone. -/
+/-- An `ordered_add_cancel_comm_semiring α` is a additively cancellative commutative semiring `α`
+with a partial order such that addition is monotone and multiplication by a nonnegative number
+is monotone. -/
 @[protect_proj]
 class ordered_add_cancel_comm_semiring (α : Type u)
   extends ordered_add_cancel_semiring α, ordered_comm_semiring α
@@ -467,7 +470,7 @@ def function.injective.ordered_add_cancel_comm_semiring [ordered_add_cancel_comm
 
 
 /-- An `ordered_ring α` is a ring `α` with a partial order such that
-addition is monotone and multiplication by a positive number is strictly monotone. -/
+addition is monotone and multiplication by a nonnegative number is monotone. -/
 @[protect_proj]
 class ordered_ring (α : Type u) extends ring α, ordered_add_comm_group α :=
 (zero_le_one : 0 ≤ (1 : α))
@@ -542,7 +545,7 @@ end ordered_ring
 
 
 /-- An `ordered_comm_ring α` is a commutative ring `α` with a partial order such that
-addition is monotone and multiplication by a positive number is strictly monotone. -/
+addition is monotone and multiplication by a nonnegative number is monotone. -/
 @[protect_proj]
 class ordered_comm_ring (α : Type u) extends ordered_ring α, comm_ring α
 
@@ -809,8 +812,9 @@ def function.injective.strict_ordered_comm_semiring [strict_ordered_comm_semirin
 end strict_ordered_comm_semiring
 
 
-/-- An `strict_ordered_add_cancel_semiring α` is a semiring `α` with a partial order such that
-addition is monotone and multiplication by a positive number is strictly monotone. -/
+/-- An `strict_ordered_add_cancel_semiring α` is a additively cancellative semiring `α`
+with a partial order such that addition is monotone and multiplication by a positive number
+is strictly monotone. -/
 @[protect_proj]
 class strict_ordered_add_cancel_semiring (α : Type u)
   extends strict_ordered_semiring α, ordered_cancel_add_comm_monoid α
@@ -846,9 +850,9 @@ def function.injective.strict_ordered_add_cancel_semiring {β : Type*}
 end strict_ordered_add_cancel_semiring
 
 
-/-- An `strict_ordered_add_cancel_comm_semiring α` is a commutative semiring `α` with
-a partialorder such that addition is monotone and multiplication by a positive number is strictly
-monotone. -/
+/-- An `strict_ordered_add_cancel_comm_semiring α` is a additively cancellative commutative
+semiring `α` with a partial order such that addition is monotone and multiplication
+by a positive number is strictly monotone. -/
 @[protect_proj]
 class strict_ordered_add_cancel_comm_semiring (α : Type u)
   extends strict_ordered_add_cancel_semiring α, strict_ordered_comm_semiring α
@@ -1024,12 +1028,10 @@ end strict_ordered_comm_ring
 
 /--
 A `linear_ordered_semiring α` is a nontrivial semiring `α` with a linear order
-such that addition is monotone and multiplication by a positive number is strictly monotone.
+such that addition is monotone and multiplication by a nonnegative number is monotone.
 -/
 -- It's not entirely clear we should assume `nontrivial` at this point;
--- it would be reasonable to explore changing this,
--- but be warned that the instances involving `domain` may cause
--- typeclass search loops.
+-- it would be reasonable to explore changing this.
 @[protect_proj]
 class linear_ordered_semiring (α : Type u)
   extends ordered_semiring α, linear_order α, nontrivial α
@@ -1263,7 +1265,7 @@ end linear_ordered_semiring
 
 
 /-- An `linear_ordered_comm_semiring α` is a nontrivial commutative semiring `α` with a linear order
-such that addition is monotone and multiplication by a positive number is strictly monotone. -/
+such that addition is monotone and multiplication by a nonnegative number is monotone. -/
 @[protect_proj]
 class linear_ordered_comm_semiring (α : Type u) extends linear_ordered_semiring α, comm_semiring α
 
@@ -1302,13 +1304,10 @@ end linear_ordered_comm_semiring
 
 
 /--
-A `linear_ordered_add_cancel_semiring α` is a nontrivial semiring `α` with a linear order
-such that addition is monotone and multiplication by a positive number is strictly monotone.
+A `linear_ordered_add_cancel_semiring α` is a nontrivial additively cancellative semiring `α`
+with a linear order such that addition is monotone and multiplication by a nonnegative number
+is monotone.
 -/
--- It's not entirely clear we should assume `nontrivial` at this point;
--- it would be reasonable to explore changing this,
--- but be warned that the instances involving `domain` may cause
--- typeclass search loops.
 @[protect_proj]
 class linear_ordered_add_cancel_semiring (α : Type u)
   extends linear_ordered_semiring α, ordered_add_cancel_semiring α
@@ -1388,8 +1387,9 @@ def function.injective.linear_ordered_add_cancel_semiring {β : Type*}
 end linear_ordered_add_cancel_semiring
 
 
-/-- An `linear_ordered_add_cancel_comm_semiring α` is a nontrivial commutative semiring `α` with a
-linear order such that addition is monotone and multiplication by a positive number is strictly monotone. -/
+/-- An `linear_ordered_add_cancel_comm_semiring α` is a nontrivial additively cancellative
+commutative semiring `α` with a linear order such that addition is monotone and
+multiplication by a nonnegative number is monotone. -/
 @[protect_proj]
 class linear_ordered_add_cancel_comm_semiring (α : Type u)
   extends linear_ordered_add_cancel_semiring α, comm_semiring α
@@ -1409,7 +1409,7 @@ def function.injective.linear_ordered_add_cancel_comm_semiring
 
 
 /-- A `linear_ordered_ring α` is a ring `α` with a linear order such that
-addition is monotone and multiplication by a positive number is strictly monotone. -/
+addition is monotone and multiplication by a nonnegative number is monotone. -/
 @[protect_proj] class linear_ordered_ring (α : Type u)
   extends ordered_ring α, linear_order α, nontrivial α
 
@@ -1589,7 +1589,7 @@ end linear_ordered_ring
 
 
 /-- A `linear_ordered_comm_ring α` is a commutative ring `α` with a linear order
-such that addition is monotone and multiplication by a positive number is strictly monotone. -/
+such that addition is monotone and multiplication by a nonnegative number is monotone. -/
 @[protect_proj]
 class linear_ordered_comm_ring (α : Type u) extends linear_ordered_ring α, comm_monoid α
 
@@ -1885,12 +1885,11 @@ end strict_linear_ordered_comm_semiring
 
 
 /--
-A `strict_linear_ordered_add_cancel_semiring α` is a nontrivial semiring `α` with a linear order
-such that addition is monotone and multiplication by a positive number is strictly monotone.
+A `strict_linear_ordered_add_cancel_semiring α` is a nontrivial additively cancellative semiring `α`
+with a linear order such that addition is monotone and multiplication by a positive number
+is strictly monotone.
 -/
--- It's not entirely clear we should assume `nontrivial` at this point;
--- it would be reasonable to explore changing this,
--- but be warned that the instances involving `domain` may cause
+-- Be warned that the instances involving `domain` may cause
 -- typeclass search loops.
 @[protect_proj]
 class strict_linear_ordered_add_cancel_semiring (α : Type u)
@@ -1921,9 +1920,9 @@ def function.injective.strict_linear_ordered_add_cancel_semiring {β : Type*}
 end strict_linear_ordered_add_cancel_semiring
 
 
-/-- An `strict_linear_ordered_add_cancel_comm_semiring α` is a nontrivial commutative semiring `α`
-with a linear order such that addition is monotone and multiplication by a positive number
-is strictly monotone. -/
+/-- An `strict_linear_ordered_add_cancel_comm_semiring α` is a nontrivial additively cancellative
+commutative semiring `α` with a linear order such that addition is monotone and multiplication
+by a positive number is strictly monotone. -/
 @[protect_proj]
 class strict_linear_ordered_add_cancel_comm_semiring (α : Type u)
   extends strict_linear_ordered_add_cancel_semiring α, comm_semiring α

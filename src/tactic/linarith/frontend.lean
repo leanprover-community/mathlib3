@@ -26,7 +26,7 @@ When the inequalities are over a dense linear order, `linarith` is a decision pr
 prove `false` if and only if the inequalities are unsatisfiable. `linarith` will also run on some
 types like `ℤ` that are not dense orders, but it will fail to prove `false` on some unsatisfiable
 problems. It will run over concrete types like `ℕ`, `ℚ`, and `ℝ`, as well as abstract types that
-are instances of `linear_ordered_comm_ring`.
+are instances of `strict_linear_ordered_comm_ring`.
 
 ## Algorithm sketch
 
@@ -301,7 +301,7 @@ Equivalently, it can prove a linear inequality by assuming its negation and prov
 In theory, `linarith` should prove any goal that is true in the theory of linear arithmetic over
 the rationals. While there is some special handling for non-dense orders like `nat` and `int`,
 this tactic is not complete for these theories and will not prove every true goal. It will solve
-goals over arbitrary types that instantiate `linear_ordered_comm_ring`.
+goals over arbitrary types that instantiate `strict_linear_ordered_comm_ring`.
 
 An example:
 ```lean

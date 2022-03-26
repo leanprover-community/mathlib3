@@ -42,7 +42,7 @@ Simplicial complexes can be generalized to affine spaces once `convex_hull` has 
 
 open finset set
 
-variables (𝕜 E : Type*) {ι : Type*} [ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+variables (𝕜 E : Type*) {ι : Type*} [strict_ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
 
 namespace geometry
 

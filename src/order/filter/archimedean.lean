@@ -19,39 +19,41 @@ variables {α R : Type*}
 
 open filter set
 
-@[simp] lemma nat.comap_coe_at_top [ordered_semiring R] [nontrivial R] [archimedean R] :
+@[simp] lemma nat.comap_coe_at_top [strict_ordered_add_cancel_semiring R] [nontrivial R]
+  [archimedean R] :
   comap (coe : ℕ → R) at_top = at_top :=
 comap_embedding_at_top (λ _ _, nat.cast_le) exists_nat_ge
 
-lemma tendsto_coe_nat_at_top_iff [ordered_semiring R] [nontrivial R] [archimedean R]
+lemma tendsto_coe_nat_at_top_iff [strict_ordered_add_cancel_semiring R] [nontrivial R]
+  [archimedean R]
   {f : α → ℕ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
 tendsto_at_top_embedding (assume a₁ a₂, nat.cast_le) exists_nat_ge
 
-lemma tendsto_coe_nat_at_top_at_top [ordered_semiring R] [archimedean R] :
+lemma tendsto_coe_nat_at_top_at_top [strict_ordered_add_cancel_semiring R] [archimedean R] :
   tendsto (coe : ℕ → R) at_top at_top :=
 nat.mono_cast.tendsto_at_top_at_top exists_nat_ge
 
-@[simp] lemma int.comap_coe_at_top [ordered_ring R] [nontrivial R] [archimedean R] :
+@[simp] lemma int.comap_coe_at_top [strict_ordered_ring R] [nontrivial R] [archimedean R] :
   comap (coe : ℤ → R) at_top = at_top :=
 comap_embedding_at_top (λ _ _, int.cast_le) $ λ r, let ⟨n, hn⟩ := exists_nat_ge r in ⟨n, hn⟩
 
-@[simp] lemma int.comap_coe_at_bot [ordered_ring R] [nontrivial R] [archimedean R] :
+@[simp] lemma int.comap_coe_at_bot [strict_ordered_ring R] [nontrivial R] [archimedean R] :
   comap (coe : ℤ → R) at_bot = at_bot :=
 comap_embedding_at_bot (λ _ _, int.cast_le) $ λ r,
   let ⟨n, hn⟩ := exists_nat_ge (-r) in ⟨-n, by simpa [neg_le] using hn⟩
 
-lemma tendsto_coe_int_at_top_iff [ordered_ring R] [nontrivial R] [archimedean R]
+lemma tendsto_coe_int_at_top_iff [strict_ordered_ring R] [nontrivial R] [archimedean R]
   {f : α → ℤ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_top ↔ tendsto f l at_top :=
 by rw [← tendsto_comap_iff, int.comap_coe_at_top]
 
-lemma tendsto_coe_int_at_bot_iff [ordered_ring R] [nontrivial R] [archimedean R]
+lemma tendsto_coe_int_at_bot_iff [strict_ordered_ring R] [nontrivial R] [archimedean R]
   {f : α → ℤ} {l : filter α} :
   tendsto (λ n, (f n : R)) l at_bot ↔ tendsto f l at_bot :=
 by rw [← tendsto_comap_iff, int.comap_coe_at_bot]
 
-lemma tendsto_coe_int_at_top_at_top [ordered_ring R] [archimedean R] :
+lemma tendsto_coe_int_at_top_at_top [strict_ordered_ring R] [archimedean R] :
   tendsto (coe : ℤ → R) at_top at_top :=
 int.cast_mono.tendsto_at_top_at_top $ λ b,
   let ⟨n, hn⟩ := exists_nat_ge b in ⟨n, hn⟩
@@ -75,14 +77,15 @@ lemma tendsto_coe_rat_at_bot_iff [linear_ordered_field R] [archimedean R]
   tendsto (λ n, (f n : R)) l at_bot ↔ tendsto f l at_bot :=
 by rw [← tendsto_comap_iff, rat.comap_coe_at_bot]
 
-lemma at_top_countable_basis_of_archimedean [linear_ordered_semiring R] [archimedean R] :
+lemma at_top_countable_basis_of_archimedean [strict_linear_ordered_add_cancel_semiring R]
+  [archimedean R] :
   (at_top : filter R).has_countable_basis (λ n : ℕ, true) (λ n, Ici n) :=
 { countable := countable_encodable _,
   to_has_basis := at_top_basis.to_has_basis
     (λ x hx, let ⟨n, hn⟩ := exists_nat_ge x in ⟨n, trivial, Ici_subset_Ici.2 hn⟩)
     (λ n hn, ⟨n, trivial, subset.rfl⟩) }
 
-lemma at_bot_countable_basis_of_archimedean [linear_ordered_ring R] [archimedean R] :
+lemma at_bot_countable_basis_of_archimedean [strict_linear_ordered_ring R] [archimedean R] :
   (at_bot : filter R).has_countable_basis (λ m : ℤ, true) (λ m, Iic m) :=
 { countable := countable_encodable _,
   to_has_basis := at_bot_basis.to_has_basis
@@ -90,12 +93,13 @@ lemma at_bot_countable_basis_of_archimedean [linear_ordered_ring R] [archimedean
     (λ m hm, ⟨m, trivial, subset.rfl⟩) }
 
 @[priority 100]
-instance at_top_countably_generated_of_archimedean [linear_ordered_semiring R] [archimedean R] :
+instance at_top_countably_generated_of_archimedean [strict_linear_ordered_add_cancel_semiring R]
+  [archimedean R] :
   (at_top : filter R).is_countably_generated :=
 at_top_countable_basis_of_archimedean.is_countably_generated
 
 @[priority 100]
-instance at_bot_countably_generated_of_archimedean [linear_ordered_ring R] [archimedean R] :
+instance at_bot_countably_generated_of_archimedean [strict_linear_ordered_ring R] [archimedean R] :
   (at_bot : filter R).is_countably_generated :=
 at_bot_countable_basis_of_archimedean.is_countably_generated
 
@@ -103,9 +107,9 @@ namespace filter
 
 variables {l : filter α} {f : α → R} {r : R}
 
-section linear_ordered_semiring
+section strict_linear_ordered_add_cancel_semiring
 
-variables [linear_ordered_semiring R] [archimedean R]
+variables [strict_linear_ordered_add_cancel_semiring R] [archimedean R]
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
 constant (on the left) also tends to infinity. The archimedean assumption is convenient to get a
@@ -141,11 +145,11 @@ begin
   ... ≤ f x * r : mul_le_mul_of_nonneg_right hx (le_of_lt hr)
 end
 
-end linear_ordered_semiring
+end strict_linear_ordered_add_cancel_semiring
 
-section linear_ordered_ring
+section strict_linear_ordered_ring
 
-variables [linear_ordered_ring R] [archimedean R]
+variables [strict_linear_ordered_ring R] [archimedean R]
 
 /-- See also `filter.tendsto.at_top_mul_neg_const` for a version of this lemma for
 `linear_ordered_field`s which does not require the `archimedean` assumption. -/
@@ -178,7 +182,7 @@ begin
   exact h ▸ tendsto.at_top_mul_neg_const' hr hf,
 end
 
-end linear_ordered_ring
+end strict_linear_ordered_ring
 
 section linear_ordered_cancel_add_comm_monoid
 

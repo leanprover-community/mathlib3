@@ -43,8 +43,8 @@ open_locale affine big_operators classical
 open finset function
 variables {𝕜 E ι : Type*}
 
-section ordered_semiring
-variables (𝕜) [ordered_semiring 𝕜] [add_comm_group E] [module 𝕜 E] {s t : set E}
+section strict_ordered_add_cancel_semiring
+variables (𝕜) [strict_ordered_add_cancel_semiring 𝕜] [add_comm_group E] [module 𝕜 E] {s t : set E}
 
 /-- An indexed family is said to be convex independent if every point only belongs to convex hulls
 of sets containing it. -/
@@ -162,7 +162,7 @@ begin
     exact hs _ hxs (convex_hull_mono (set.subset_diff_singleton ht h) hxt) }
 end
 
-end ordered_semiring
+end strict_ordered_add_cancel_semiring
 
 section linear_ordered_field
 variables [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}

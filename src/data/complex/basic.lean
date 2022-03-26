@@ -590,7 +590,7 @@ lemma not_le_zero_iff {z : ℂ} : ¬z ≤ 0 ↔ 0 < z.re ∨ z.im ≠ 0 := not_l
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is an ordered ring.
 -/
-protected def ordered_comm_ring : ordered_comm_ring ℂ :=
+protected def strict_ordered_comm_ring : strict_ordered_comm_ring ℂ :=
 { zero_le_one := ⟨zero_le_one, rfl⟩,
   add_le_add_left := λ w z h y, ⟨add_le_add_left h.1 _, congr_arg2 (+) rfl h.2⟩,
   mul_pos := λ z w hz hw,
@@ -598,7 +598,7 @@ protected def ordered_comm_ring : ordered_comm_ring ℂ :=
   .. complex.partial_order,
   .. complex.comm_ring }
 
-localized "attribute [instance] complex.ordered_comm_ring" in complex_order
+localized "attribute [instance] complex.strict_ordered_comm_ring" in complex_order
 
 /--
 With `z ≤ w` iff `w - z` is real and nonnegative, `ℂ` is a star ordered ring.
@@ -616,7 +616,7 @@ protected def star_ordered_ring : star_ordered_ring ℂ :=
                    mul_im, mul_zero, neg_zero] } },
     { obtain ⟨s, rfl⟩ := h,
       simp only [←norm_sq_eq_conj_mul_self, norm_sq_nonneg, zero_le_real, star_def] } },
-  ..complex.ordered_comm_ring }
+  ..complex.strict_ordered_comm_ring }
 
 localized "attribute [instance] complex.star_ordered_ring" in complex_order
 

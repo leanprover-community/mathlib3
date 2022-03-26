@@ -18,7 +18,7 @@ This file contains some results on absolute values applied to integers.
  * `absolute_value.map_units_int`: an absolute value sends all units of `ℤ` to `1`
 -/
 
-variables {R S : Type*} [ring R] [linear_ordered_comm_ring S]
+variables {R S : Type*} [ring R] [strict_linear_ordered_comm_ring S]
 
 @[simp]
 lemma absolute_value.map_units_int (abv : absolute_value ℤ S) (x : ℤˣ) :

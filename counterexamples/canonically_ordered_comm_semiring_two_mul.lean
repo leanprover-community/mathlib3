@@ -132,7 +132,7 @@ lemma mul_lt_mul_of_pos_left : ∀ (a b c : ℕ × zmod 2), a < b → 0 < c → 
 lemma mul_lt_mul_of_pos_right : ∀ (a b c : ℕ × zmod 2), a < b → 0 < c → a * c < b * c :=
 λ a b c ab c0, lt_def.mpr ((mul_lt_mul_right (lt_def.mp c0)).mpr (lt_def.mp ab))
 
-instance ocsN2 : ordered_comm_semiring (ℕ × zmod 2) :=
+instance ocsN2 : strict_ordered_add_cancel_comm_semiring (ℕ × zmod 2) :=
 { add_le_add_left := add_le_add_left,
   le_of_add_le_add_left := le_of_add_le_add_left,
   zero_le_one := zero_le_one,
@@ -193,8 +193,8 @@ def L_subsemiring : subsemiring (ℕ × zmod 2) :=
   add_mem' := λ _ _, add_L,
   mul_mem' := λ _ _, mul_L }
 
-instance : ordered_comm_semiring L :=
-L_subsemiring.to_ordered_comm_semiring
+instance : strict_ordered_add_cancel_comm_semiring L :=
+L_subsemiring.to_strict_ordered_add_cancel_comm_semiring
 
 instance inhabited : inhabited L := ⟨1⟩
 
@@ -263,7 +263,7 @@ instance can : canonically_ordered_comm_semiring L :=
 { le_iff_exists_add := le_iff_exists_add,
   eq_zero_or_eq_zero_of_mul_eq_zero := eq_zero_or_eq_zero_of_mul_eq_zero,
   ..(infer_instance : order_bot L),
-  ..(infer_instance : ordered_comm_semiring L) }
+  ..(infer_instance : strict_ordered_add_cancel_comm_semiring L) }
 
 /--
 The elements `(1,0)` and `(1,1)` of `L` are different, but their doubles coincide.

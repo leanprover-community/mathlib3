@@ -49,12 +49,6 @@ def vcomp (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tran
   { calc _ = eq_to_hom _ ≫
     F.map_comp f g ▷ _ ▷ _ ≫ eq_to_hom _ ≫
       _ ◁ η.naturality g ▷ _ ≫ eq_to_hom _ ≫
-        η.naturality f ▷ _ ▷ _ ≫ eq_to_hom _ ≫
-          _ ◁ _ ◁ θ.naturality g ≫ eq_to_hom _ ≫
-            _ ◁ θ.naturality f ▷ _ ≫ eq_to_hom _  : _
-    ... = eq_to_hom _ ≫
-    F.map_comp f g ▷ _ ▷ _ ≫ eq_to_hom _ ≫
-      _ ◁ η.naturality g ▷ _ ≫ eq_to_hom _ ≫
         _ ◁ θ.naturality g ≫
           η.naturality f ▷ _ ≫ eq_to_hom _ ≫
             _ ◁ θ.naturality f ▷ _ ≫ eq_to_hom _  : _

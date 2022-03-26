@@ -22,7 +22,8 @@ When `α` is `ℝ`, this will give us some properties about `ℝ≥0`.
 
 ## Main declarations
 
-* `{x : α // 0 ≤ x}` is a `canonically_linear_ordered_add_monoid` if `α` is a `strict_linear_ordered_ring`.
+* `{x : α // 0 ≤ x}` is a `canonically_linear_ordered_add_monoid` if `α`
+  is a `strict_linear_ordered_ring`.
 * `{x : α // 0 ≤ x}` is a `linear_ordered_comm_group_with_zero` if `α` is a `linear_ordered_field`.
 
 ## Implementation Notes
@@ -153,7 +154,8 @@ instance has_one [strict_ordered_add_cancel_semiring α] : has_one {x : α // 0 
 { one := ⟨1, zero_le_one⟩ }
 
 @[simp, norm_cast]
-protected lemma coe_one [strict_ordered_add_cancel_semiring α] : ((1 : {x : α // 0 ≤ x}) : α) = 1 := rfl
+protected lemma coe_one [strict_ordered_add_cancel_semiring α] :
+  ((1 : {x : α // 0 ≤ x}) : α) = 1 := rfl
 
 @[simp] lemma mk_eq_one [strict_ordered_add_cancel_semiring α] {x : α} (hx : 0 ≤ x) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) = 1 ↔ x = 1 :=

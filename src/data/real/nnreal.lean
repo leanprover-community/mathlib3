@@ -51,7 +51,8 @@ open_locale classical big_operators
 
 /-- Nonnegative real numbers. -/
 @[derive [
-  strict_ordered_add_cancel_semiring, comm_monoid_with_zero, -- to ensure these instance are computable
+  strict_ordered_add_cancel_semiring, comm_monoid_with_zero,
+    -- to ensure these instance are computable
   floor_semiring,
   semilattice_inf, densely_ordered, order_bot,
   canonically_linear_ordered_add_monoid, linear_ordered_comm_group_with_zero, archimedean,

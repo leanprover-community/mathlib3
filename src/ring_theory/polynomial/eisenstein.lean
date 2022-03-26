@@ -168,6 +168,13 @@ lemma _root_.polynomial.monic.leading_coeff_not_mem (hf : f.monic) (h : 𝓟 ≠
   ¬f.leading_coeff ∈ 𝓟 :=
 hf.leading_coeff.symm ▸ (ideal.ne_top_iff_one _).1 h
 
+lemma _root_.polynomial.monic.is_eisenstein_at_of_mem_of_not_mem (hf : f.monic) (h : 𝓟 ≠ ⊤)
+  (hmem : ∀ {n}, n < f.nat_degree → f.coeff n ∈ 𝓟) (hnot_mem : f.coeff 0 ∉ 𝓟 ^ 2) :
+  f.is_eisenstein_at 𝓟 :=
+{ leading := hf.leading_coeff_not_mem h,
+  mem := λ n hn, hmem hn,
+  not_mem := hnot_mem }
+
 include hf
 
 lemma is_weakly_eisenstein_at : is_weakly_eisenstein_at f 𝓟 := ⟨hf.mem⟩
@@ -209,18 +216,15 @@ open polynomial
 
 lemma cyclotomic_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] :
   ((cyclotomic p ℤ).comp (X + 1)).is_eisenstein_at 𝓟 :=
-{ leading :=
-  begin
-    rw [show (X + 1 : ℤ[X]) = X + C 1, by simp],
-    refine ((cyclotomic.monic p ℤ).comp (monic_X_add_C 1) (λ h, _)).leading_coeff_not_mem
-      (ideal.is_prime.ne_top $ (ideal.span_singleton_prime (by exact_mod_cast hp.out.ne_zero)).2
-      $ nat.prime_iff_prime_int.1 hp.out),
+begin
+  refine monic.is_eisenstein_at_of_mem_of_not_mem _
+    (ideal.is_prime.ne_top $(ideal.span_singleton_prime (by exact_mod_cast hp.out.ne_zero)).2 $
+    nat.prime_iff_prime_int.1 hp.out) (λ i hi, _) _,
+  { rw [show (X + 1 : ℤ[X]) = X + C 1, by simp],
+    refine ((cyclotomic.monic p ℤ).comp (monic_X_add_C 1) (λ h, _)),
     rw [nat_degree_X_add_C] at h,
-    exact zero_ne_one h.symm
-  end,
-  mem := λ i hi,
-  begin
-    rw [cyclotomic_eq_geom_sum hp.out, geom_sum_X_comp_X_add_one_eq_sum, ← lcoeff_apply,
+    exact zero_ne_one h.symm },
+  { rw [cyclotomic_eq_geom_sum hp.out, geom_sum_X_comp_X_add_one_eq_sum, ← lcoeff_apply,
       linear_map.map_sum],
     conv { congr, congr, skip, funext,
       rw [lcoeff_apply, ← C_eq_nat_cast, ← monomial_eq_C_mul_X, coeff_monomial] },
@@ -229,11 +233,8 @@ lemma cyclotomic_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] :
     simp only [lt_of_lt_of_le hi (nat.sub_le _ _), int.nat_cast_eq_coe_nat, sum_ite_eq', mem_range,
       if_true, ideal.submodule_span_eq, ideal.mem_span_singleton],
     exact int.coe_nat_dvd.2
-      (nat.prime.dvd_choose_self (nat.succ_pos i) (lt_tsub_iff_right.1 hi) hp.out)
-  end,
-  not_mem :=
-  begin
-    rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_eq_geom_sum hp.out, eval_add, eval_X,
+      (nat.prime.dvd_choose_self (nat.succ_pos i) (lt_tsub_iff_right.1 hi) hp.out) },
+  { rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_eq_geom_sum hp.out, eval_add, eval_X,
       eval_one, zero_add, eval_geom_sum, one_geom_sum, int.nat_cast_eq_coe_nat,
       ideal.submodule_span_eq, ideal.span_singleton_pow, ideal.mem_span_singleton],
     intro h,
@@ -241,23 +242,20 @@ lemma cyclotomic_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] :
     rw [← mul_assoc, mul_one, mul_assoc] at hk,
     nth_rewrite 0 [← nat.mul_one p] at hk,
     rw [nat.mul_right_inj hp.out.pos] at hk,
-    exact nat.prime.not_dvd_one hp.out (dvd.intro k (hk.symm)),
-  end }
+    exact nat.prime.not_dvd_one hp.out (dvd.intro k (hk.symm)) }
+end
 
 lemma cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] (n : ℕ) :
   ((cyclotomic (p ^ (n + 1)) ℤ).comp (X + 1)).is_eisenstein_at 𝓟 :=
-{ leading :=
-  begin
-    rw [show (X + 1 : ℤ[X]) = X + C 1, by simp],
-    refine ((cyclotomic.monic _ ℤ).comp (monic_X_add_C 1) (λ h, _)).leading_coeff_not_mem
-      (ideal.is_prime.ne_top $ (ideal.span_singleton_prime (by exact_mod_cast hp.out.ne_zero)).2
-      $ nat.prime_iff_prime_int.1 hp.out),
+begin
+  refine monic.is_eisenstein_at_of_mem_of_not_mem _
+    (ideal.is_prime.ne_top $(ideal.span_singleton_prime (by exact_mod_cast hp.out.ne_zero)).2 $
+    nat.prime_iff_prime_int.1 hp.out) _ _,
+  { rw [show (X + 1 : ℤ[X]) = X + C 1, by simp],
+    refine ((cyclotomic.monic _ ℤ).comp (monic_X_add_C 1) (λ h, _)),
     rw [nat_degree_X_add_C] at h,
-    exact zero_ne_one h.symm
-  end,
-  mem :=
-  begin
-    induction n with n hn,
+    exact zero_ne_one h.symm },
+  { induction n with n hn,
     { intros i hi,
       rw [zero_add, pow_one] at hi ⊢,
       exact (cyclotomic_comp_X_add_one_is_eisenstein_at p).mem hi },
@@ -277,11 +275,8 @@ lemma cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] (
         rw [ideal.submodule_span_eq, ideal.mem_span_singleton,
           ← zmod.int_coe_zmod_eq_zero_iff_dvd, ← int.coe_cast_ring_hom, ← coeff_map] at hn,
         simpa [map_comp] using hn },
-      { exact ⟨p ^ n, by rw [pow_succ]⟩ } },
-  end,
-  not_mem :=
-  begin
-    rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_prime_pow_eq_geom_sum hp.out, eval_add,
+      { exact ⟨p ^ n, by rw [pow_succ]⟩ } } },
+  { rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_prime_pow_eq_geom_sum hp.out, eval_add,
       eval_X, eval_one, zero_add, geom_sum_def, eval_finset_sum],
     simp only [eval_pow, eval_X, one_pow, sum_const, card_range, nat.smul_one_eq_coe,
       int.nat_cast_eq_coe_nat, submodule_span_eq, ideal.submodule_span_eq,
@@ -291,8 +286,8 @@ lemma cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] (
     rw [← mul_assoc, mul_one, mul_assoc] at hk,
     nth_rewrite 0 [← nat.mul_one p] at hk,
     rw [nat.mul_right_inj hp.out.pos] at hk,
-    exact nat.prime.not_dvd_one hp.out (dvd.intro k (hk.symm))
-  end }
+    exact nat.prime.not_dvd_one hp.out (dvd.intro k (hk.symm)) }
+end
 
 end cyclotomic
 

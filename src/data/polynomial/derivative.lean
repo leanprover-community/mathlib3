@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johannes Hölzl, Scott Morrison, Jens Wagemaker
 -/
-import algebra.iterate_hom
+import algebra.hom.iterate
 import data.polynomial.eval
 
 /-!
@@ -82,6 +82,9 @@ by convert derivative_C_mul_X_pow (1 : R) n; simp
 @[simp] lemma derivative_C {a : R} : derivative (C a) = 0 :=
 by simp [derivative_apply]
 
+lemma derivative_of_nat_degree_zero {p : R[X]} (hp : p.nat_degree = 0) : p.derivative = 0 :=
+by rw [eq_C_of_nat_degree_eq_zero hp, derivative_C]
+
 @[simp] lemma derivative_X : derivative (X : R[X]) = 1 :=
 (derivative_monomial _ _).trans $ by simp
 
@@ -140,19 +143,20 @@ theorem degree_derivative_lt {p : R[X]} (hp : p ≠ 0) : p.derivative.degree < p
 theorem degree_derivative_le {p : R[X]} : p.derivative.degree ≤ p.degree :=
 if H : p = 0 then le_of_eq $ by rw [H, derivative_zero] else (degree_derivative_lt H).le
 
-theorem nat_degree_derivative_lt {p : R[X]} (hp : p.derivative ≠ 0) :
+theorem nat_degree_derivative_lt {p : R[X]} (hp : p.nat_degree ≠ 0) :
   p.derivative.nat_degree < p.nat_degree :=
-have hp1 : p ≠ 0, from λ h, hp $ by rw [h, derivative_zero],
-with_bot.some_lt_some.1 $
 begin
-  rw [nat_degree, option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp, nat_degree,
-    option.get_or_else_of_ne_none $ mt degree_eq_bot.1 hp1],
-  exact degree_derivative_lt hp1
+  cases eq_or_ne p.derivative 0 with hp' hp',
+  { rw [hp', polynomial.nat_degree_zero],
+    exact hp.bot_lt },
+  { rw nat_degree_lt_nat_degree_iff hp',
+    exact degree_derivative_lt (λ h, hp (h.symm ▸ nat_degree_zero)) }
 end
 
 theorem nat_degree_derivative_le (p : R[X]) : p.derivative.nat_degree ≤ p.nat_degree :=
 let _ := classical.prop_decidable in by exactI
-if h : p.derivative = 0 then h.symm ▸ zero_le _ else (nat_degree_derivative_lt h).le
+if h : p.nat_degree = 0 then by simp [derivative_of_nat_degree_zero h]
+                        else (nat_degree_derivative_lt h).le
 
 @[simp] lemma derivative_cast_nat {n : ℕ} : derivative (n : R[X]) = 0 :=
 begin
@@ -167,8 +171,8 @@ begin
   subst h,
   obtain ⟨t, rfl⟩ := nat.exists_eq_succ_of_ne_zero (pos_of_gt hx).ne',
   rw [function.iterate_succ_apply],
-  by_cases hp : p.derivative = 0,
-  { rw [hp, iterate_derivative_zero] },
+  by_cases hp : p.nat_degree = 0,
+  { rw [derivative_of_nat_degree_zero hp, iterate_derivative_zero] },
   have := nat_degree_derivative_lt hp,
   exact ih _ this (this.trans_le $ nat.le_of_lt_succ hx) rfl
 end

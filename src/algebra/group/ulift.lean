@@ -55,6 +55,9 @@ equiv.ulift.injective.comm_semigroup _ $ λ x y, rfl
 instance mul_one_class [mul_one_class α] : mul_one_class (ulift α) :=
 equiv.ulift.injective.mul_one_class _ rfl $ λ x y, rfl
 
+instance mul_zero_one_class [mul_zero_one_class α] : mul_zero_one_class (ulift α) :=
+equiv.ulift.injective.mul_zero_one_class _ rfl rfl $ λ x y, rfl
+
 @[to_additive has_vadd]
 instance has_scalar {β : Type*} [has_scalar α β] : has_scalar α (ulift β) :=
 ⟨λ n x, up (n • x.down)⟩
@@ -71,6 +74,12 @@ equiv.ulift.injective.monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 instance comm_monoid [comm_monoid α] : comm_monoid (ulift α) :=
 equiv.ulift.injective.comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
+instance monoid_with_zero [monoid_with_zero α] : monoid_with_zero (ulift α) :=
+equiv.ulift.injective.monoid_with_zero _ rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+
+instance comm_monoid_with_zero [comm_monoid_with_zero α] : comm_monoid_with_zero (ulift α) :=
+equiv.ulift.injective.comm_monoid_with_zero _ rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+
 @[to_additive]
 instance div_inv_monoid [div_inv_monoid α] : div_inv_monoid (ulift α) :=
 equiv.ulift.injective.div_inv_monoid _ rfl (λ _ _, rfl) (λ _, rfl)
@@ -85,6 +94,14 @@ equiv.ulift.injective.group _ rfl (λ _ _, rfl) (λ _, rfl)
 instance comm_group [comm_group α] : comm_group (ulift α) :=
 equiv.ulift.injective.comm_group _ rfl (λ _ _, rfl) (λ _, rfl)
   (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+instance group_with_zero [group_with_zero α] : group_with_zero (ulift α) :=
+equiv.ulift.injective.group_with_zero _ rfl rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
+
+instance comm_group_with_zero [comm_group_with_zero α] : comm_group_with_zero (ulift α) :=
+equiv.ulift.injective.comm_group_with_zero _ rfl rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl)
 
 @[to_additive add_left_cancel_semigroup]
 instance left_cancel_semigroup [left_cancel_semigroup α] :

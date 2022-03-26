@@ -139,7 +139,7 @@ end
 
 open submodule set
 
-/-- Gram-Schmidt Process preserves span -/
+/-- Gram-Schmidt process preserves span -/
 lemma gram_schmidt_process_span_eq (f : ℕ → E) (c : ℕ) :
   span 𝕜 (f '' Iic c) = span 𝕜 (gram_schmidt_process 𝕜 E f '' Iic c) :=
 begin

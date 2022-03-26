@@ -124,7 +124,7 @@ lemma cancel_left {g f₁ f₂ : centroid_hom α} (hg : injective g) : g.comp f�
 instance : monoid (centroid_hom α) :=
 { mul := centroid_hom.comp,
   one := centroid_hom.id α,
-  mul_assoc := λ _ _ _, centroid_hom.comp_assoc _ _ _,
+  mul_assoc := centroid_hom.comp_assoc,
   mul_one := centroid_hom.comp_id,
   one_mul := centroid_hom.id_comp }
 

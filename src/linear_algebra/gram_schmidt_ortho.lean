@@ -55,9 +55,8 @@ end
 @[simp] lemma gram_schmidt_process_zero (f : ℕ → E) :
   gram_schmidt_process 𝕜 f 0 = f 0 := by simp [gram_schmidt_process]
 
-/-- **Gram-Schmidt Orthogonalisation**
-Gram-Schmidt process produces an orthogonal system of vectors. -/
-theorem gram_schmidt_process_orthogonal (f : ℕ → E) (a b : ℕ) (h₀ : a < b) :
+/-- Gram-Schmidt process produces an orthogonal system of vectors. -/
+theorem gram_schmidt_process_orthogonal' (f : ℕ → E) (a b : ℕ) (h₀ : a < b) :
   ⟪gram_schmidt_process 𝕜 f a, gram_schmidt_process 𝕜 f b⟫ = 0 :=
 begin
   have hc : ∃ c, b ≤ c := ⟨b+1, by linarith⟩,
@@ -104,14 +103,15 @@ begin
         simp [h] }}}
 end
 
-/-- Generalised Gram-Schmidt Orthorgonalization -/
-theorem gram_schmidt_process_orthogonal' (f : ℕ → E) (a b : ℕ) (h₀ : a ≠ b) :
+/-- **Gram-Schmidt Orthogonalisation**
+This version is stronger than `gram_schmidt_process_orthogonal'` as it doesn't require `a < b` -/
+theorem gram_schmidt_process_orthogonal (f : ℕ → E) (a b : ℕ) (h₀ : a ≠ b) :
   ⟪gram_schmidt_process 𝕜 f a, gram_schmidt_process 𝕜 f b⟫ = 0 :=
 begin
   cases h₀.lt_or_lt with ha hb,
-  { exact gram_schmidt_process_orthogonal 𝕜 f a b ha },
+  { exact gram_schmidt_process_orthogonal' 𝕜 f a b ha },
   { rw inner_eq_zero_sym,
-    exact gram_schmidt_process_orthogonal 𝕜 f b a hb }
+    exact gram_schmidt_process_orthogonal' 𝕜 f b a hb }
 end
 
 /-- Normalized Gram-Schmidt process
@@ -135,7 +135,7 @@ begin
   { intros i j hij,
     simp [gram_schmidt_process_normed, inner_smul_left, inner_smul_right],
     repeat {right},
-    exact gram_schmidt_process_orthogonal' 𝕜 f i j hij }
+    exact gram_schmidt_process_orthogonal 𝕜 f i j hij }
 end
 
 open submodule set

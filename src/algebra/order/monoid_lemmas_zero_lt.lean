@@ -503,6 +503,7 @@ end preorder
 section linear_order
 variables [linear_order α]
 
+-- proven with `a0 : 0 ≤ a` as `exists_square_le'`
 lemma exists_square_le [pos_mul_strict_mono α]
   (a : α) (a0 : 0 < a) : ∃ (b : α), b * b ≤ a :=
 begin
@@ -580,6 +581,15 @@ lemma le_mul_of_one_le_left' [mul_pos_mono α] {a b : α} (h : 1 ≤ a) (b0 : 0 
 le_mul_of_one_le_of_le' h le_rfl b0
 
 end partial_order
+
+section linear_order
+variables [linear_order α]
+
+lemma exists_square_le' [pos_mul_strict_mono α]
+  (a : α) (a0 : 0 ≤ a) : ∃ (b : α), b * b ≤ a :=
+a0.lt_or_eq.elim (exists_square_le a) (λ h, by rw [← h]; exact ⟨0, by simp⟩)
+
+end linear_order
 
 end mul_zero_one_class
 end zero_lt

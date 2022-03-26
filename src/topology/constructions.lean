@@ -284,7 +284,6 @@ is_open.inter (hs.preimage continuous_fst) (ht.preimage continuous_snd)
 lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = 𝓝 a ×ᶠ 𝓝 b :=
 by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
 
-
 /-- If a function `f x y` is such that `y ↦ f x y` is continuous for all `x`, and `x` lives in a
 discrete space, then `f` is continuous. -/
 lemma continuous_uncurry_of_discrete_topology [discrete_topology α]

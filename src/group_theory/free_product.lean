@@ -696,7 +696,7 @@ section ping_pong_lemma
 open_locale pointwise
 open_locale cardinal
 
-variables [inhabited ι]
+variables [nonempty ι]
 variables [nontrivial ι]
 variables {G : Type u_1} [group G]
 variables (a : ι → G)
@@ -747,7 +747,7 @@ begin
   apply lift_injective_of_ping_pong f _ X',
 
   show _ ∨ ∃ i, 3 ≤ # (H i),
-  { right, use (arbitrary ι),
+  { right, use classical.arbitrary ι,
     simp only [H],
     rw [free_group.free_group_unit_equiv_int.cardinal_eq, cardinal.mk_denumerable],
     exact cardinal.three_lt_omega.le, },
@@ -810,8 +810,7 @@ begin
             ... ⊆ a i ^ n • Y i : set_smul_subset_set_smul_iff.mpr $ hY i
             ... ⊆ a i ^ n • (X i).compl : set_smul_subset_set_smul_iff.mpr $
               set.disjoint_iff_subset_compl_right.mp (hXYdisj i i).symm
-            ... ⊆ Y i : hi,
-        },
+            ... ⊆ Y i : hi, },
       end
       ... ⊆ X' i : set.subset_union_right _ _, }, },
 end

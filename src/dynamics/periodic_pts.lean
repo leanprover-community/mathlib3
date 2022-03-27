@@ -271,8 +271,8 @@ begin
   exact nat.find_min' (mk_mem_periodic_pts hn hx) ⟨hn, hx⟩
 end
 
-lemma le_of_lt_minimal_period_of_iterate_eq {m n : ℕ} (hm : m < minimal_period f x) (hmn : f^[m] x = (f^[n] x)) :
-  m ≤ n :=
+lemma le_of_lt_minimal_period_of_iterate_eq {m n : ℕ} (hm : m < minimal_period f x)
+  (hmn : f^[m] x = (f^[n] x)) : m ≤ n :=
 begin
   by_contra' hmn',
   rw ←nat.add_sub_of_le hmn'.le at hmn,

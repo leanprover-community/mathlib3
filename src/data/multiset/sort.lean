@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.list.sort
 import data.multiset.basic
@@ -23,7 +23,7 @@ variables (r : α → α → Prop) [decidable_rel r]
   (Uses merge sort algorithm.) -/
 def sort (s : multiset α) : list α :=
 quot.lift_on s (merge_sort r) $ λ a b h,
-eq_of_sorted_of_perm
+eq_of_perm_of_sorted
   ((perm_merge_sort _ _).trans $ h.trans (perm_merge_sort _ _).symm)
   (sorted_merge_sort r _)
   (sorted_merge_sort r _)
@@ -41,6 +41,12 @@ by rw [← mem_coe, sort_eq]
 
 @[simp] theorem length_sort {s : multiset α} : (sort r s).length = s.card :=
 quot.induction_on s $ length_merge_sort _
+
+@[simp] theorem sort_zero : sort r 0 = [] :=
+list.merge_sort_nil r
+
+@[simp] theorem sort_singleton (a : α) : sort r {a} = [a] :=
+list.merge_sort_singleton r a
 
 end sort
 

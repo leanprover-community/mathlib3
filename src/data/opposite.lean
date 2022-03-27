@@ -2,15 +2,22 @@
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Reid Barton, Simon Hudon, Kenny Lau
-
-Opposites.
 -/
-import data.equiv.basic
+import logic.equiv.basic
 
-universes v u -- declare the `v` first; see `category_theory.category` for an explanation
+/-!
+# Opposites
+
+In this file we define a type synonym `opposite α := α`, denoted by `αᵒᵖ` and two synonyms for the
+identity map, `op : α → αᵒᵖ` and `unop : αᵒᵖ → α`. If `α` is a category, then `αᵒᵖ` is the opposite
+category, with all arrows reversed.
+-/
+
+universes v u -- morphism levels before object levels. See note [category_theory universes].
+
 variable (α : Sort u)
 
-/-- The type of objects of the opposite of `α`; used to defined opposite category/group/...
+/-- The type of objects of the opposite of `α`; used to define the opposite category.
 
   In order to avoid confusion between `α` and its opposite type, we
   set up the type of objects `opposite α` using the following pattern,
@@ -41,8 +48,10 @@ notation α `ᵒᵖ`:std.prec.max_plus := opposite α
 namespace opposite
 
 variables {α}
+/-- The canonical map `α → αᵒᵖ`. -/
 @[pp_nodot]
 def op : α → αᵒᵖ := id
+/-- The canonical map `αᵒᵖ → α`. -/
 @[pp_nodot]
 def unop : αᵒᵖ → α := id
 
@@ -61,39 +70,43 @@ attribute [irreducible] opposite
 def equiv_to_opposite : α ≃ αᵒᵖ :=
 { to_fun := op,
   inv_fun := unop,
-  left_inv := λ a, by simp,
-  right_inv := λ a, by simp, }
+  left_inv := unop_op,
+  right_inv := op_unop }
 
 @[simp]
-lemma equiv_to_opposite_apply (a : α) : equiv_to_opposite a = op a := rfl
+lemma equiv_to_opposite_coe : (equiv_to_opposite : α → αᵒᵖ) = op := rfl
 @[simp]
-lemma equiv_to_opposite_symm_apply (a : αᵒᵖ) : equiv_to_opposite.symm a = unop a := rfl
+lemma equiv_to_opposite_symm_coe : (equiv_to_opposite.symm : αᵒᵖ → α) = unop := rfl
 
 lemma op_eq_iff_eq_unop {x : α} {y} : op x = y ↔ x = unop y :=
-equiv_to_opposite.apply_eq_iff_eq_symm_apply _ _
+equiv_to_opposite.apply_eq_iff_eq_symm_apply
 
 lemma unop_eq_iff_eq_op {x} {y : α} : unop x = y ↔ x = op y :=
-equiv_to_opposite.symm.apply_eq_iff_eq_symm_apply _ _
+equiv_to_opposite.symm.apply_eq_iff_eq_symm_apply
 
-instance [inhabited α] : inhabited αᵒᵖ := ⟨op (default _)⟩
+instance [inhabited α] : inhabited αᵒᵖ := ⟨op default⟩
 
-def op_induction {F : Π (X : αᵒᵖ), Sort v} (h : Π X, F (op X)) : Π X, F X :=
+/-- A recursor for `opposite`. Use as `induction x using opposite.rec`. -/
+@[simp]
+protected def rec {F : Π (X : αᵒᵖ), Sort v} (h : Π X, F (op X)) : Π X, F X :=
 λ X, h (unop X)
+
 end opposite
 
 namespace tactic
 
 open opposite
-open interactive interactive.types lean.parser tactic
-local postfix `?`:9001 := optional
 
 namespace op_induction
 
+/-- Test if `e : expr` is of type `opposite α` for some `α`. -/
 meta def is_opposite (e : expr) : tactic bool :=
 do t ← infer_type e,
    `(opposite _) ← whnf t | return ff,
    return tt
 
+/-- Find the first hypothesis of type `opposite _`. Fail if no such hypothesis exist in the local
+context. -/
 meta def find_opposite_hyp : tactic name :=
 do lc ← local_context,
    h :: _ ← lc.mfilter $ is_opposite | fail "No hypotheses of the form Xᵒᵖ",
@@ -103,23 +116,12 @@ end op_induction
 
 open op_induction
 
-meta def op_induction (h : option name) : tactic unit :=
-do h ← match h with
-   | (some h) := pure h
-   | none     := find_opposite_hyp
-   end,
+/-- A version of `induction x using opposite.rec` which finds the appropriate hypothesis
+automatically, for use with `local attribute [tidy] op_induction'`. This is necessary because
+`induction x` is not able to deduce that `opposite.rec` should be used. -/
+meta def op_induction' : tactic unit :=
+do h ← find_opposite_hyp,
    h' ← tactic.get_local h,
-   revert_lst [h'],
-   applyc `opposite.op_induction,
-   tactic.intro h,
-   skip
-
--- For use with `local attribute [tidy] op_induction`
-meta def op_induction' := op_induction none
-
-namespace interactive
-meta def op_induction (h : parse ident?) : tactic unit :=
-tactic.op_induction h
-end interactive
+   tactic.induction' h' [] `opposite.rec
 
 end tactic

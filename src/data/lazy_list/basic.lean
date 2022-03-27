@@ -2,8 +2,6 @@
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
-
-Traversable instance for lazy_lists.
 -/
 import control.traversable.equiv
 import control.traversable.instances
@@ -41,8 +39,6 @@ def list_equiv_lazy_list (α : Type*) : list α ≃ lazy_list α :=
   right_inv := by { intro, induction x, refl, simp! [*],
                     ext, cases x, refl },
   left_inv := by { intro, induction x, refl, simp! [*] } }
-
-instance {α : Type u} : inhabited (lazy_list α) := ⟨nil⟩
 
 instance {α : Type u} [decidable_eq α] : decidable_eq (lazy_list α)
 | nil nil := is_true rfl
@@ -140,7 +136,8 @@ begin
   ext, congr,
 end
 
-lemma append_assoc {α} (xs ys zs : lazy_list α) : (xs.append ys).append zs = xs.append (ys.append zs) :=
+lemma append_assoc {α} (xs ys zs : lazy_list α) :
+  (xs.append ys).append zs = xs.append (ys.append zs) :=
 by induction xs; simp [append, *]
 
 lemma append_bind {α β} (xs : lazy_list α) (ys : thunk (lazy_list α)) (f : α → lazy_list β) :
@@ -164,5 +161,50 @@ def mfirst {m} [alternative m] {α β} (f : α → m β) : lazy_list α → m β
 | nil := failure
 | (cons x xs) :=
   f x <|> mfirst (xs ())
+
+/-- Membership in lazy lists -/
+protected def mem {α} (x : α) : lazy_list α → Prop
+| lazy_list.nil := false
+| (lazy_list.cons y ys) := x = y ∨ mem (ys ())
+
+instance {α} : has_mem α (lazy_list α) :=
+⟨ lazy_list.mem ⟩
+
+instance mem.decidable {α} [decidable_eq α] (x : α) : Π xs : lazy_list α, decidable (x ∈ xs)
+| lazy_list.nil := decidable.false
+| (lazy_list.cons y ys) :=
+  if h : x = y
+    then decidable.is_true (or.inl h)
+    else decidable_of_decidable_of_iff (mem.decidable (ys ())) (by simp [*, (∈), lazy_list.mem])
+
+@[simp]
+lemma mem_nil {α} (x : α) : x ∈ @lazy_list.nil α ↔ false := iff.rfl
+
+@[simp]
+lemma mem_cons {α} (x y : α) (ys : thunk (lazy_list α)) :
+  x ∈ @lazy_list.cons α y ys ↔ x = y ∨ x ∈ ys () := iff.rfl
+
+theorem forall_mem_cons {α} {p : α → Prop} {a : α} {l : thunk (lazy_list α)} :
+  (∀ x ∈ @lazy_list.cons _ a l, p x) ↔ p a ∧ ∀ x ∈ l (), p x :=
+by simp only [has_mem.mem, lazy_list.mem, or_imp_distrib, forall_and_distrib, forall_eq]
+
+/-! ### map for partial functions -/
+
+/-- Partial map. If `f : Π a, p a → β` is a partial function defined on
+  `a : α` satisfying `p`, then `pmap f l h` is essentially the same as `map f l`
+  but is defined only when all members of `l` satisfy `p`, using the proof
+  to apply `f`. -/
+@[simp] def pmap {α β} {p : α → Prop} (f : Π a, p a → β) :
+  Π l : lazy_list α, (∀ a ∈ l, p a) → lazy_list β
+| lazy_list.nil         H := lazy_list.nil
+| (lazy_list.cons x xs) H := lazy_list.cons (f x (forall_mem_cons.1 H).1)
+                               (pmap (xs ()) (forall_mem_cons.1 H).2)
+
+/-- "Attach" the proof that the elements of `l` are in `l` to produce a new `lazy_list`
+  with the same elements but in the type `{x // x ∈ l}`. -/
+def attach {α} (l : lazy_list α) : lazy_list {x // x ∈ l} := pmap subtype.mk l (λ a, id)
+
+instance {α} [has_repr α] : has_repr (lazy_list α) :=
+⟨ λ xs, repr xs.to_list ⟩
 
 end lazy_list

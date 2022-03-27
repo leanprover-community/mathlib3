@@ -3,8 +3,7 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import analysis.calculus.mean_value
-import analysis.special_functions.exp_log
+import analysis.special_functions.exp_deriv
 
 /-!
 # Grönwall's inequality
@@ -32,7 +31,7 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
 
 open metric set asymptotics filter real
-open_locale classical topological_space
+open_locale classical topological_space nnreal
 
 /-! ### Technical lemmas about `gronwall_bound` -/
 
@@ -107,7 +106,7 @@ See also `norm_le_gronwall_bound_of_norm_deriv_right_le` for a version bounding 
 theorem le_gronwall_bound_of_liminf_deriv_right_le {f f' : ℝ → ℝ} {δ K ε : ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
-    ∃ᶠ z in 𝓝[Ioi x] x, (z - x)⁻¹ * (f z - f x) < r)
+    ∃ᶠ z in 𝓝[>] x, (z - x)⁻¹ * (f z - f x) < r)
   (ha : f a ≤ δ) (bound : ∀ x ∈ Ico a b, f' x ≤ K * f x + ε) :
   ∀ x ∈ Icc a b, f x ≤ gronwall_bound δ K ε (x - a) :=
 begin
@@ -133,7 +132,7 @@ end
 `∀ x ∈ [a, b), ∥f' x∥ ≤ K * ∥f x∥ + ε`, then `∥f x∥` is bounded by `gronwall_bound δ K ε (x - a)`
 on `[a, b]`. -/
 theorem norm_le_gronwall_bound_of_norm_deriv_right_le {f f' : ℝ → E} {δ K ε : ℝ} {a b : ℝ}
-  (hf : continuous_on f (Icc a b)) (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  (hf : continuous_on f (Icc a b)) (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ici x) x)
   (ha : ∥f a∥ ≤ δ) (bound : ∀ x ∈ Ico a b, ∥f' x∥ ≤ K * ∥f x∥ + ε) :
   ∀ x ∈ Icc a b, ∥f x∥ ≤ gronwall_bound δ K ε (x - a) :=
 le_gronwall_bound_of_liminf_deriv_right_le (continuous_norm.comp_continuous_on hf)
@@ -149,26 +148,25 @@ theorem dist_le_of_approx_trajectories_ODE_of_mem_set {v : ℝ → E → E} {s :
   {K : ℝ} (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
   {f g f' g' : ℝ → E} {a b : ℝ} {εf εg δ : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (f' t) (Ioi t) t)
+  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (f' t) (Ici t) t)
   (f_bound : ∀ t ∈ Ico a b, dist (f' t) (v t (f t)) ≤ εf)
   (hfs : ∀ t ∈ Ico a b, f t ∈ s t)
   (hg : continuous_on g (Icc a b))
-  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (g' t) (Ioi t) t)
+  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (g' t) (Ici t) t)
   (g_bound : ∀ t ∈ Ico a b, dist (g' t) (v t (g t)) ≤ εg)
   (hgs : ∀ t ∈ Ico a b, g t ∈ s t)
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ gronwall_bound δ K (εf + εg) (t - a) :=
 begin
   simp only [dist_eq_norm] at ha ⊢,
-  have h_deriv : ∀ t ∈ Ico a b, has_deriv_within_at (λ t, f t - g t) (f' t - g' t) (Ioi t) t,
+  have h_deriv : ∀ t ∈ Ico a b, has_deriv_within_at (λ t, f t - g t) (f' t - g' t) (Ici t) t,
     from λ t ht, (hf' t ht).sub (hg' t ht),
   apply norm_le_gronwall_bound_of_norm_deriv_right_le (hf.sub hg) h_deriv ha,
   assume t ht,
   have := dist_triangle4_right (f' t) (g' t) (v t (f t)) (v t (g t)),
   rw [dist_eq_norm] at this,
-  apply le_trans this,
-  apply le_trans (add_le_add (add_le_add (f_bound t ht) (g_bound t ht))
-    (hv t (f t) (g t) (hfs t ht) (hgs t ht))),
+  refine this.trans ((add_le_add (add_le_add (f_bound t ht) (g_bound t ht))
+    (hv t (f t) (hfs t ht) (g t) (hgs t ht))).trans _),
   rw [dist_eq_norm, add_comm]
 end
 
@@ -178,18 +176,18 @@ people call this Grönwall's inequality too.
 
 This version assumes all inequalities to be true in the whole space. -/
 theorem dist_le_of_approx_trajectories_ODE {v : ℝ → E → E}
-  {K : nnreal} (hv : ∀ t, lipschitz_with K (v t))
+  {K : ℝ≥0} (hv : ∀ t, lipschitz_with K (v t))
   {f g f' g' : ℝ → E} {a b : ℝ} {εf εg δ : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (f' t) (Ioi t) t)
+  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (f' t) (Ici t) t)
   (f_bound : ∀ t ∈ Ico a b, dist (f' t) (v t (f t)) ≤ εf)
   (hg : continuous_on g (Icc a b))
-  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (g' t) (Ioi t) t)
+  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (g' t) (Ici t) t)
   (g_bound : ∀ t ∈ Ico a b, dist (g' t) (v t (g t)) ≤ εg)
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ gronwall_bound δ K (εf + εg) (t - a) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_approx_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
+dist_le_of_approx_trajectories_ODE_of_mem_set (λ t x hx y hy, (hv t).dist_le_mul x y)
   hf hf' f_bound hfs hg hg' g_bound (λ t ht, trivial) ha
 
 /-- If `f` and `g` are two exact solutions of the same ODE, then the distance between them
@@ -202,10 +200,10 @@ theorem dist_le_of_trajectories_ODE_of_mem_set {v : ℝ → E → E} {s : ℝ �
   {K : ℝ} (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
   {f g : ℝ → E} {a b : ℝ} {δ : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)
+  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ici t) t)
   (hfs : ∀ t ∈ Ico a b, f t ∈ s t)
   (hg : continuous_on g (Icc a b))
-  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ioi t) t)
+  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ici t) t)
   (hgs : ∀ t ∈ Ico a b, g t ∈ s t)
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ δ * exp (K * (t - a)) :=
@@ -226,16 +224,16 @@ people call this Grönwall's inequality too.
 
 This version assumes all inequalities to be true in the whole space. -/
 theorem dist_le_of_trajectories_ODE {v : ℝ → E → E}
-  {K : nnreal} (hv : ∀ t, lipschitz_with K (v t))
+  {K : ℝ≥0} (hv : ∀ t, lipschitz_with K (v t))
   {f g : ℝ → E} {a b : ℝ} {δ : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)
+  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ici t) t)
   (hg : continuous_on g (Icc a b))
-  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ioi t) t)
+  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ici t) t)
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ δ * exp (K * (t - a)) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
+dist_le_of_trajectories_ODE_of_mem_set (λ t x hx y hy, (hv t).dist_le_mul x y)
   hf hf' hfs hg hg' (λ t ht, trivial) ha
 
 /-- There exists only one solution of an ODE \(\dot x=v(t, x)\) in a set `s ⊆ ℝ × E` with
@@ -245,10 +243,10 @@ theorem ODE_solution_unique_of_mem_set {v : ℝ → E → E} {s : ℝ → set E}
   {K : ℝ} (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
   {f g : ℝ → E} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)
+  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ici t) t)
   (hfs : ∀ t ∈ Ico a b, f t ∈ s t)
   (hg : continuous_on g (Icc a b))
-  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ioi t) t)
+  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ici t) t)
   (hgs : ∀ t ∈ Ico a b, g t ∈ s t)
   (ha : f a = g a) :
   ∀ t ∈ Icc a b, f t = g t :=
@@ -262,14 +260,14 @@ end
 /-- There exists only one solution of an ODE \(\dot x=v(t, x)\) with
 a given initial value provided that RHS is Lipschitz continuous in `x`. -/
 theorem ODE_solution_unique {v : ℝ → E → E}
-  {K : nnreal} (hv : ∀ t, lipschitz_with K (v t))
+  {K : ℝ≥0} (hv : ∀ t, lipschitz_with K (v t))
   {f g : ℝ → E} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
-  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)
+  (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ici t) t)
   (hg : continuous_on g (Icc a b))
-  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ioi t) t)
+  (hg' : ∀ t ∈ Ico a b, has_deriv_within_at g (v t (g t)) (Ici t) t)
   (ha : f a = g a) :
   ∀ t ∈ Icc a b, f t = g t :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-ODE_solution_unique_of_mem_set (λ t x y hx hy, (hv t).dist_le_mul x y)
+ODE_solution_unique_of_mem_set (λ t x hx y hy, (hv t).dist_le_mul x y)
   hf hf' hfs hg hg' (λ t ht, trivial) ha

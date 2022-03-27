@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import data.mv_polynomial
-import field_theory.finite
+import field_theory.finite.basic
 
 /-!
 # The Chevalley–Warning theorem
@@ -66,7 +65,7 @@ begin
   intros x₀,
   let e : K ≃ {x // x ∘ coe = x₀} := (equiv.subtype_equiv_codomain _).symm,
   calc (∑ x : {x : σ → K // x ∘ coe = x₀}, ∏ j, (x : σ → K) j ^ d j)
-        = ∑ a : K, ∏ j : σ, (e a : σ → K) j ^ d j : (finset.sum_equiv e _).symm
+        = ∑ a : K, ∏ j : σ, (e a : σ → K) j ^ d j : (e.sum_comp _).symm
     ... = ∑ a : K, (∏ j, x₀ j ^ d j) * a ^ d i    : fintype.sum_congr _ _ _
     ... = (∏ j, x₀ j ^ d j) * ∑ a : K, a ^ d i    : by rw mul_sum
     ... = 0                                       : by rw [sum_pow_lt_card_sub_one _ hi, mul_zero],
@@ -76,8 +75,9 @@ begin
   { default := ⟨i, rfl⟩, uniq := λ ⟨j, h⟩, subtype.val_injective h },
   calc (∏ j : σ, (e a : σ → K) j ^ d j)
         = (e a : σ → K) i ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) :
-        by { rw [← finset.prod_equiv e', fintype.prod_sum_type, univ_unique, prod_singleton], refl }
-    ... = a ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) : by rw equiv.subtype_equiv_codomain_symm_apply_eq
+        by { rw [← e'.prod_comp, fintype.prod_sum_type, univ_unique, prod_singleton], refl }
+    ... = a ^ d i * (∏ (j : {j // j ≠ i}), (e a : σ → K) j ^ d j) :
+        by rw equiv.subtype_equiv_codomain_symm_apply_eq
     ... = a ^ d i * (∏ j, x₀ j ^ d j) : congr_arg _ (fintype.prod_congr _ _ _) -- see below
     ... = (∏ j, x₀ j ^ d j) * a ^ d i : mul_comm _ _,
   { -- the remaining step of the calculation above
@@ -98,7 +98,7 @@ theorem char_dvd_card_solutions_family (p : ℕ) [char_p K p]
   (h : (∑ i in s, (f i).total_degree) < fintype.card σ) :
   p ∣ fintype.card {x : σ → K // ∀ i ∈ s, eval x (f i) = 0} :=
 begin
-  have hq : 0 < q - 1, { rw [← card_units, fintype.card_pos_iff], exact ⟨1⟩ },
+  have hq : 0 < q - 1, { rw [← fintype.card_units, fintype.card_pos_iff], exact ⟨1⟩ },
   let S : finset (σ → K) := { x ∈ univ | ∀ i ∈ s, eval x (f i) = 0 },
   have hS : ∀ (x : σ → K), x ∈ S ↔ ∀ (i : ι), i ∈ s → eval x (f i) = 0,
   { intros x, simp only [S, true_and, sep_def, mem_filter, mem_univ], },
@@ -124,7 +124,7 @@ begin
       rw [pow_card_sub_one_eq_one (eval x (f i)) hx, sub_self], } },
   -- In particular, we can now show:
   have key : ∑ x, eval x F = fintype.card {x : σ → K // ∀ i ∈ s, eval x (f i) = 0},
-  rw [fintype.card_of_subtype S hS, card_eq_sum_ones, sum_nat_cast, nat.cast_one,
+  rw [fintype.card_of_subtype S hS, card_eq_sum_ones, nat.cast_sum, nat.cast_one,
       ← fintype.sum_extend_by_zero S, sum_congr rfl (λ x hx, hF x)],
   -- With these preparations under our belt, we will approach the main goal.
   show p ∣ fintype.card {x // ∀ (i : ι), i ∈ s → eval x (f i) = 0},
@@ -141,7 +141,8 @@ begin
   -- Now we prove the remaining step from the preceding calculation
   show (1 - f i ^ (q - 1)).total_degree ≤ (q - 1) * (f i).total_degree,
   calc (1 - f i ^ (q - 1)).total_degree
-        ≤ max (1 : mv_polynomial σ K).total_degree (f i ^ (q - 1)).total_degree : total_degree_sub _ _
+        ≤ max (1 : mv_polynomial σ K).total_degree (f i ^ (q - 1)).total_degree :
+        total_degree_sub _ _
     ... ≤ (f i ^ (q - 1)).total_degree : by simp only [max_eq_right, nat.zero_le, total_degree_one]
     ... ≤ (q - 1) * (f i).total_degree : total_degree_pow _ _
 end

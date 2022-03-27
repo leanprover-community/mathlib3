@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 import topology.separation
+import topology.bases
 
 /-!
 # Dense embeddings
@@ -28,57 +29,9 @@ open_locale classical topological_space filter
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
-section dense_range
-variables [topological_space β] [topological_space γ] (f : α → β) (g : β → γ)
-
-/-- `f : α → β` has dense range if its range (image) is a dense subset of β. -/
-def dense_range := ∀ x, x ∈ closure (range f)
-
-variables {f}
-
-lemma dense_range_iff_closure_range : dense_range f ↔ closure (range f) = univ :=
-eq_univ_iff_forall.symm
-
-lemma dense_range.closure_range (h : dense_range f) : closure (range f) = univ :=
-eq_univ_iff_forall.mpr h
-
-lemma dense_range.nhds_within_ne_bot (h : dense_range f) (x : β) :
-  ne_bot (𝓝[range f] x) :=
-mem_closure_iff_cluster_pt.1 (h x)
-
-lemma dense_range.comp (hg : dense_range g) (hf : dense_range f) (cg : continuous g) :
-  dense_range (g ∘ f) :=
-begin
-  have : g '' (closure $ range f) ⊆ closure (g '' range f),
-    from image_closure_subset_closure_image cg,
-  have : closure (g '' closure (range f)) ⊆ closure (g '' range f),
-    by simpa [closure_closure] using (closure_mono this),
-  intro c,
-  rw range_comp,
-  apply this,
-  rw [hf.closure_range, image_univ],
-  exact hg c
-end
-
-/-- If `f : α → β` has dense range and `β` contains some element, then `α` must too. -/
-def dense_range.inhabited (df : dense_range f) (b : β) : inhabited α :=
-⟨classical.choice $
-  by simpa only [univ_inter, range_nonempty_iff_nonempty] using
-    mem_closure_iff.1 (df b) _ is_open_univ trivial⟩
-
-lemma dense_range.nonempty (hf : dense_range f) : nonempty α ↔ nonempty β :=
-⟨nonempty.map f, λ ⟨b⟩, @nonempty_of_inhabited _ (hf.inhabited b)⟩
-
-lemma dense_range.prod {ι : Type*} {κ : Type*} {f : ι → β} {g : κ → γ}
-  (hf : dense_range f) (hg : dense_range g) : dense_range (λ p : ι × κ, (f p.1, g p.2)) :=
-have closure (range $ λ p : ι×κ, (f p.1, g p.2)) = set.prod (closure $ range f) (closure $ range g),
-    by rw [←closure_prod_eq, prod_range_range_eq],
-assume ⟨b, d⟩, this.symm ▸ mem_prod.2 ⟨hf _, hg _⟩
-end dense_range
-
 /-- `i : α → β` is "dense inducing" if it has dense range and the topology on `α`
   is the one induced by `i` from the topology on `β`. -/
-structure dense_inducing [topological_space α] [topological_space β] (i : α → β)
+@[protect_proj] structure dense_inducing [topological_space α] [topological_space β] (i : α → β)
   extends inducing i : Prop :=
 (dense : dense_range i)
 
@@ -96,30 +49,38 @@ di.to_inducing.continuous
 lemma closure_range : closure (range i) = univ :=
 di.dense.closure_range
 
-lemma self_sub_closure_image_preimage_of_open {s : set β} (di : dense_inducing i) :
-  is_open s → s ⊆ closure (i '' (i ⁻¹' s)) :=
+protected lemma preconnected_space [preconnected_space α] (di : dense_inducing i) :
+  preconnected_space β :=
+di.dense.preconnected_space di.continuous
+
+lemma closure_image_mem_nhds {s : set α} {a : α} (di : dense_inducing i) (hs : s ∈ 𝓝 a) :
+  closure (i '' s) ∈ 𝓝 (i a) :=
 begin
-  intros s_op b b_in_s,
-  rw [image_preimage_eq_inter_range, mem_closure_iff],
-  intros U U_op b_in,
-  rw ←inter_assoc,
-  exact (dense_iff_inter_open.1 di.closure_range) _ (is_open_inter U_op s_op) ⟨b, b_in, b_in_s⟩
+  rw [di.nhds_eq_comap a, ((nhds_basis_opens _).comap _).mem_iff] at hs,
+  rcases hs with ⟨U, ⟨haU, hUo⟩, sub : i ⁻¹' U ⊆ s⟩,
+  refine mem_of_superset (hUo.mem_nhds haU) _,
+  calc U ⊆ closure (i '' (i ⁻¹' U)) : di.dense.subset_closure_image_preimage_of_is_open hUo
+     ... ⊆ closure (i '' s)         : closure_mono (image_subset i sub)
 end
 
-lemma closure_image_nhds_of_nhds {s : set α} {a : α} (di : dense_inducing i) :
-  s ∈ 𝓝 a → closure (i '' s) ∈ 𝓝 (i a) :=
+lemma dense_image (di : dense_inducing i) {s : set α} : dense (i '' s) ↔ dense s :=
 begin
-  rw [di.nhds_eq_comap a, mem_comap_sets],
-  intro h,
-  rcases h with ⟨t, t_nhd, sub⟩,
-  rw mem_nhds_sets_iff at t_nhd,
-  rcases t_nhd with ⟨U, U_sub, ⟨U_op, e_a_in_U⟩⟩,
-  have := calc i ⁻¹' U ⊆ i⁻¹' t : preimage_mono U_sub
-                   ... ⊆ s      : sub,
-  have := calc U ⊆ closure (i '' (i ⁻¹' U)) : self_sub_closure_image_preimage_of_open di U_op
-             ... ⊆ closure (i '' s)         : closure_mono (image_subset i this),
-  have U_nhd : U ∈ 𝓝 (i a) := mem_nhds_sets U_op e_a_in_U,
-  exact (𝓝 (i a)).sets_of_superset U_nhd this
+  refine ⟨λ H x, _, di.dense.dense_image di.continuous⟩,
+  rw [di.to_inducing.closure_eq_preimage_closure_image, H.closure_eq, preimage_univ],
+  trivial
+end
+
+/-- If `i : α → β` is a dense embedding with dense complement of the range, then any compact set in
+`α` has empty interior. -/
+lemma interior_compact_eq_empty [t2_space β] (di : dense_inducing i) (hd : dense (range i)ᶜ)
+  {s : set α} (hs : is_compact s) : interior s = ∅ :=
+begin
+  refine eq_empty_iff_forall_not_mem.2 (λ x hx, _),
+  rw [mem_interior_iff_mem_nhds] at hx,
+  have := di.closure_image_mem_nhds hx,
+  rw (hs.image di.continuous).is_closed.closure_eq at this,
+  rcases hd.inter_nhds_nonempty this with ⟨y, hyi, hys⟩,
+  exact hyi (image_subset_range _ _ hys)
 end
 
 /-- The product of two dense inducings is a dense inducing -/
@@ -127,16 +88,24 @@ protected lemma prod [topological_space γ] [topological_space δ]
   {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_inducing e₁) (de₂ : dense_inducing e₂) :
   dense_inducing (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
 { induced := (de₁.to_inducing.prod_mk de₂.to_inducing).induced,
-  dense := de₁.dense.prod de₂.dense }
+  dense := de₁.dense.prod_map de₂.dense }
+
+open topological_space
+
+/-- If the domain of a `dense_inducing` map is a separable space, then so is the codomain. -/
+protected lemma separable_space [separable_space α] : separable_space β :=
+di.dense.separable_space di.continuous
 
 variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 /--
+```
  γ -f→ α
 g↓     ↓e
  δ -h→ β
+```
 -/
-lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (di : dense_inducing i) (H : tendsto h (𝓝 d) (𝓝 (i a)))
-  (comm : h ∘ g = i ∘ f) : tendsto f (comap g (𝓝 d)) (𝓝 a) :=
+lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (di : dense_inducing i)
+  (H : tendsto h (𝓝 d) (𝓝 (i a))) (comm : h ∘ g = i ∘ f) : tendsto f (comap g (𝓝 d)) (𝓝 a) :=
 begin
   have lim1 : map g (comap g (𝓝 d)) ≤ 𝓝 d := map_comap_le,
   replace lim1 : map h (map g (comap g (𝓝 d))) ≤ map h (𝓝 d) := map_mono lim1,
@@ -161,20 +130,36 @@ variables [topological_space γ]
   continuous extension, then `g` is the unique such extension. In general,
   `g` might not be continuous or even extend `f`. -/
 def extend (di : dense_inducing i) (f : α → γ) (b : β) : γ :=
-@@lim _ ⟨f (di.dense.inhabited b).default⟩ (comap i (𝓝 b)) f
+@@lim _ ⟨f (di.dense.some b)⟩ (comap i (𝓝 b)) f
 
 lemma extend_eq_of_tendsto [t2_space γ] {b : β} {c : γ} {f : α → γ}
   (hf : tendsto f (comap i (𝓝 b)) (𝓝 c)) :
   di.extend f b = c :=
 by haveI := di.comap_nhds_ne_bot; exact hf.lim_eq
 
-lemma extend_eq_at [t2_space γ] {f : α → γ} (a : α) (hf : continuous_at f a) :
+lemma extend_eq_at [t2_space γ] {f : α → γ} {a : α} (hf : continuous_at f a) :
   di.extend f (i a) = f a :=
 extend_eq_of_tendsto _ $ di.nhds_eq_comap a ▸ hf
 
+lemma extend_eq_at' [t2_space γ] {f : α → γ} {a : α} (c : γ) (hf : tendsto f (𝓝 a) (𝓝 c)) :
+  di.extend f (i a) = f a :=
+di.extend_eq_at (continuous_at_of_tendsto_nhds hf)
+
 lemma extend_eq [t2_space γ] {f : α → γ} (hf : continuous f) (a : α) :
   di.extend f (i a) = f a :=
-di.extend_eq_at a hf.continuous_at
+di.extend_eq_at hf.continuous_at
+
+/-- Variation of `extend_eq` where we ask that `f` has a limit along `comap i (𝓝 b)` for each
+`b : β`. This is a strictly stronger assumption than continuity of `f`, but in a lot of cases
+you'd have to prove it anyway to use `continuous_extend`, so this avoids doing the work twice. -/
+lemma extend_eq' [t2_space γ] {f : α → γ}
+  (di : dense_inducing i) (hf : ∀ b, ∃ c, tendsto f (comap i (𝓝 b)) (𝓝 c)) (a : α) :
+  di.extend f (i a) = f a :=
+begin
+  rcases hf (i a) with ⟨b, hb⟩,
+  refine di.extend_eq_at' b _,
+  rwa ← di.to_inducing.nhds_eq_comap at hb,
+end
 
 lemma extend_unique_at [t2_space γ] {b : β} {f : α → γ} {g : β → γ} (di : dense_inducing i)
   (hf : ∀ᶠ x in comap i (𝓝 b), g (i x) = f x) (hg : continuous_at g b) :
@@ -211,11 +196,11 @@ begin
     rwa di.extend_eq_of_tendsto hc },
   obtain ⟨V₂, V₂_in, V₂_op, hV₂⟩ : ∃ V₂ ∈ 𝓝 b, is_open V₂ ∧ ∀ x ∈ i ⁻¹' V₂, f x ∈ V',
   { simpa [and_assoc] using ((nhds_basis_opens' b).comap i).tendsto_left_iff.mp
-                            (mem_of_nhds V₁_in : b ∈ V₁) V' V'_in },
+                            (mem_of_mem_nhds V₁_in : b ∈ V₁) V' V'_in },
   suffices : ∀ x ∈ V₁ ∩ V₂, φ x ∈ V',
-  { filter_upwards [inter_mem_sets V₁_in V₂_in], exact this },
+  { filter_upwards [inter_mem V₁_in V₂_in] using this, },
   rintros x ⟨x_in₁, x_in₂⟩,
-  have hV₂x : V₂ ∈ 𝓝 x := mem_nhds_sets V₂_op x_in₂,
+  have hV₂x : V₂ ∈ 𝓝 x := is_open.mem_nhds V₂_op x_in₂,
   apply V'_closed.mem_of_tendsto x_in₁,
   use V₂,
   tauto,
@@ -223,7 +208,7 @@ end
 
 lemma continuous_extend [regular_space γ] {f : α → γ} (di : dense_inducing i)
   (hf : ∀b, ∃c, tendsto f (comap i (𝓝 b)) (𝓝 c)) : continuous (di.extend f) :=
-continuous_iff_continuous_at.mpr $ assume b, di.continuous_at_extend $ univ_mem_sets' hf
+continuous_iff_continuous_at.mpr $ assume b, di.continuous_at_extend $ univ_mem' hf
 
 lemma mk'
   (i : α → β)
@@ -233,7 +218,7 @@ lemma mk'
     ∃t ∈ 𝓝 (i a), ∀ b, i b ∈ t → b ∈ s) :
   dense_inducing i :=
 { induced := (induced_iff_nhds_eq i).2 $
-    λ a, le_antisymm (tendsto_iff_comap.1 $ c.tendsto _) (by simpa [le_def] using H a),
+    λ a, le_antisymm (tendsto_iff_comap.1 $ c.tendsto _) (by simpa [filter.le_def] using H a),
   dense := dense }
 end dense_inducing
 
@@ -245,7 +230,7 @@ structure dense_embedding [topological_space α] [topological_space β] (e : α 
 theorem dense_embedding.mk'
   [topological_space α] [topological_space β] (e : α → β)
   (c     : continuous e)
-  (dense : ∀x, x ∈ closure (range e))
+  (dense : dense_range e)
   (inj   : function.injective e)
   (H     : ∀ (a:α) s ∈ 𝓝 a,
     ∃t ∈ 𝓝 (e a), ∀ b, e b ∈ t → b ∈ s) :
@@ -254,6 +239,7 @@ theorem dense_embedding.mk'
   ..dense_inducing.mk' e c dense H}
 
 namespace dense_embedding
+open topological_space
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 variables {e : α → β} (de : dense_embedding e)
 
@@ -263,34 +249,43 @@ lemma to_embedding : embedding e :=
 { induced := de.induced,
   inj := de.inj }
 
-/-- The product of two dense embeddings is a dense embedding -/
-protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁) (de₂ : dense_embedding e₂) :
+/-- If the domain of a `dense_embedding` is a separable space, then so is its codomain. -/
+protected lemma separable_space [separable_space α] : separable_space β :=
+de.to_dense_inducing.separable_space
+
+/-- The product of two dense embeddings is a dense embedding. -/
+protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁)
+  (de₂ : dense_embedding e₂) :
   dense_embedding (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
 { inj := assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩,
     by simp; exact assume h₁ h₂, ⟨de₁.inj h₁, de₂.inj h₂⟩,
   ..dense_inducing.prod de₁.to_dense_inducing de₂.to_dense_inducing }
 
 /-- The dense embedding of a subtype inside its closure. -/
-def subtype_emb {α : Type*} (p : α → Prop) (e : α → β) (x : {x // p x}) :
+@[simps] def subtype_emb {α : Type*} (p : α → Prop) (e : α → β) (x : {x // p x}) :
   {x // x ∈ closure (e '' {x | p x})} :=
 ⟨e x, subset_closure $ mem_image_of_mem e x.prop⟩
 
 protected lemma subtype (p : α → Prop) : dense_embedding (subtype_emb p e) :=
-{ dense_embedding .
-  dense   := assume ⟨x, hx⟩, closure_subtype.mpr $
-    have (λ (x : {x // p x}), e x) = e ∘ coe, from rfl,
+{ dense := dense_iff_closure_eq.2 $
     begin
-      rw ← image_univ,
-      simp [(image_comp _ _ _).symm, (∘), subtype_emb, -image_univ],
-      rw [this, image_comp, subtype.coe_image],
-      simp,
-      assumption
+      ext ⟨x, hx⟩,
+      rw image_eq_range at hx,
+      simpa [closure_subtype, ← range_comp, (∘)],
     end,
-  inj     := assume ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq $ de.inj $ @@congr_arg subtype.val h,
+  inj := (de.inj.comp subtype.coe_injective).cod_restrict _,
   induced := (induced_iff_nhds_eq _).2 (assume ⟨x, hx⟩,
     by simp [subtype_emb, nhds_subtype_eq_comap, de.to_inducing.nhds_eq_comap, comap_comap, (∘)]) }
 
+lemma dense_image {s : set α} : dense (e '' s) ↔ dense s :=
+de.to_dense_inducing.dense_image
+
 end dense_embedding
+
+lemma dense.dense_embedding_coe [topological_space α] {s : set α} (hs : dense s) :
+  dense_embedding (coe : s → α) :=
+{ dense := hs.dense_range_coe,
+  .. embedding_subtype_coe }
 
 lemma is_closed_property [topological_space β] {e : α → β} {p : β → Prop}
   (he : dense_range e) (hp : is_closed {x | p x}) (h : ∀a, p (e a)) :
@@ -305,14 +300,15 @@ lemma is_closed_property2 [topological_space β] {e : α → β} {p : β → β 
   (he : dense_range e) (hp : is_closed {q:β×β | p q.1 q.2}) (h : ∀a₁ a₂, p (e a₁) (e a₂)) :
   ∀b₁ b₂, p b₁ b₂ :=
 have ∀q:β×β, p q.1 q.2,
-  from is_closed_property (he.prod he) hp $ λ _, h _ _,
+  from is_closed_property (he.prod_map he) hp $ λ _, h _ _,
 assume b₁ b₂, this ⟨b₁, b₂⟩
 
 lemma is_closed_property3 [topological_space β] {e : α → β} {p : β → β → β → Prop}
-  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
+  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2})
+  (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
   ∀b₁ b₂ b₃, p b₁ b₂ b₃ :=
 have ∀q:β×β×β, p q.1 q.2.1 q.2.2,
-  from is_closed_property (he.prod $ he.prod he) hp $ λ _, h _ _ _,
+  from is_closed_property (he.prod_map $ he.prod_map he) hp $ λ _, h _ _ _,
 assume b₁ b₂ b₃, this ⟨b₁, b₂, b₃⟩
 
 @[elab_as_eliminator]
@@ -327,7 +323,8 @@ lemma dense_range.induction_on₂ [topological_space β] {e : α → β} {p : β
 
 @[elab_as_eliminator]
 lemma dense_range.induction_on₃ [topological_space β] {e : α → β} {p : β → β → β → Prop}
-  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃))
+  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2})
+  (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃))
   (b₁ b₂ b₃ : β) : p b₁ b₂ b₃ := is_closed_property3 he hp h _ _ _
 
 section

@@ -1,10 +1,11 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author(s): Simon Hudon
+Authors: Simon Hudon
 -/
 import control.monad.basic
 import data.fintype.basic
+import data.list.prod_sigma
 
 /-!
 Type class for finitely enumerable types. The property is stronger
@@ -12,6 +13,7 @@ than `fintype` in that it assigns each element a rank in a finite
 enumeration.
 -/
 
+universes u v
 open finset
 
 /-- `fin_enum α` means that `α` is finite and can be enumerated in some order,
@@ -25,7 +27,7 @@ attribute [instance, priority 100] fin_enum.dec_eq
 
 namespace fin_enum
 
-variables {α : Type*}
+variables {α : Type u} {β : α → Type v}
 
 /-- transport a `fin_enum` instance across an equivalence -/
 def of_equiv (α) {β} [fin_enum α] (h : β ≃ α) : fin_enum β :=
@@ -41,11 +43,11 @@ def of_nodup_list [decidable_eq α] (xs : list α) (h : ∀ x : α, x ∈ xs) (h
            λ ⟨i,h⟩, xs.nth_le _ h,
            λ x, by simp [of_nodup_list._match_1],
            λ ⟨i,h⟩, by simp [of_nodup_list._match_1,*]; rw list.nth_le_index_of;
-             apply list.nodup_erase_dup ⟩ }
+             apply list.nodup_dedup ⟩ }
 
 /-- create a `fin_enum` instance from an exhaustive list; duplicates are removed -/
 def of_list [decidable_eq α] (xs : list α) (h : ∀ x : α, x ∈ xs) : fin_enum α :=
-of_nodup_list xs.erase_dup (by simp *) (list.nodup_erase_dup _)
+of_nodup_list xs.dedup (by simp *) (list.nodup_dedup _)
 
 /-- create an exhaustive list of the values of a given type -/
 def to_list (α) [fin_enum α] : list α :=
@@ -57,7 +59,7 @@ open function
 by simp [to_list]; existsi equiv α x; simp
 
 @[simp] lemma nodup_to_list [fin_enum α] : list.nodup (to_list α) :=
-by simp [to_list]; apply list.nodup_map; [apply equiv.injective, apply list.nodup_fin_range]
+by simp [to_list]; apply list.nodup.map; [apply equiv.injective, apply list.nodup_fin_range]
 
 /-- create a `fin_enum` instance using a surjection -/
 def of_surjective {β} (f : β → α) [decidable_eq α] [fin_enum β] (h : surjective f) : fin_enum α :=
@@ -113,7 +115,7 @@ begin
     { right, apply h, subst a, exact hx, },
     { simp only [h', mem_union, mem_singleton] at hx ⊢, cases hx,
       { exact or.inl hx },
-      { exact or.inr (h _ hx) }  },
+      { exact or.inr (h _ hx) } },
     intro h, existsi s \ ({xs_hd} : finset α),
     simp only [and_imp, union_comm, mem_sdiff, mem_singleton],
     simp only [or_iff_not_imp_left] at h,
@@ -134,17 +136,17 @@ instance subtype.fin_enum [fin_enum α] (p : α → Prop) [decidable_pred p] : f
 of_list ((to_list α).filter_map $ λ x, if h : p x then some ⟨_,h⟩ else none)
   (by rintro ⟨x,h⟩; simp; existsi x; simp *)
 
-instance (β : α → Type*)
+instance (β : α → Type v)
   [fin_enum α] [∀ a, fin_enum (β a)] : fin_enum (sigma β) :=
 of_list
   ((to_list α).bind $ λ a, (to_list (β a)).map $ sigma.mk a)
   (by intro x; cases x; simp)
 
-instance psigma.fin_enum {β : α → Type*} [fin_enum α] [∀ a, fin_enum (β a)] :
+instance psigma.fin_enum [fin_enum α] [∀ a, fin_enum (β a)] :
   fin_enum (Σ' a, β a) :=
 fin_enum.of_equiv _ (equiv.psigma_equiv_sigma _)
 
-instance psigma.fin_enum_prop_left {α : Prop} {β : α → Type*} [∀ a, fin_enum (β a)] [decidable α] :
+instance psigma.fin_enum_prop_left {α : Prop} {β : α → Type v} [∀ a, fin_enum (β a)] [decidable α] :
   fin_enum (Σ' a, β a) :=
 if h : α then of_list ((to_list (β h)).map $ psigma.mk h) (λ ⟨a,Ba⟩, by simp)
 else of_list [] (λ ⟨a,Ba⟩, (h a).elim)
@@ -166,7 +168,7 @@ instance [fin_enum α] : fintype α :=
 
 /-- For `pi.cons x xs y f` create a function where every `i ∈ xs` is mapped to `f i` and
 `x` is mapped to `y`  -/
-def pi.cons {β : α → Type*} [decidable_eq α] (x : α) (xs : list α) (y : β x)
+def pi.cons [decidable_eq α] (x : α) (xs : list α) (y : β x)
   (f : Π a, a ∈ xs → β a) :
   Π a, a ∈ (x :: xs : list α) → β a
 | b h :=
@@ -175,19 +177,18 @@ def pi.cons {β : α → Type*} [decidable_eq α] (x : α) (xs : list α) (y : �
 
 /-- Given `f` a function whose domain is `x :: xs`, produce a function whose domain
 is restricted to `xs`.  -/
-def pi.tail {α : Type*} {β : α → Type*} {x : α} {xs : list α}
-  (f : Π a, a ∈ (x :: xs : list α) → β a) :
+def pi.tail {x : α} {xs : list α} (f : Π a, a ∈ (x :: xs : list α) → β a) :
   Π a, a ∈ xs → β a
 | a h := f a (list.mem_cons_of_mem _ h)
 
 /-- `pi xs f` creates the list of functions `g` such that, for `x ∈ xs`, `g x ∈ f x` -/
-def pi {α : Type*} {β : α → Type*} [decidable_eq α] : Π xs : list α, (Π a, list (β a)) →
+def pi {β : α → Type (max u v)} [decidable_eq α] : Π xs : list α, (Π a, list (β a)) →
   list (Π a, a ∈ xs → β a)
 | [] fs := [λ x h, h.elim]
 | (x :: xs) fs :=
   fin_enum.pi.cons x xs <$> fs x <*> pi xs fs
 
-lemma mem_pi  {α : Type*} {β : α → Type*} [fin_enum α] [∀a, fin_enum (β a)] (xs : list α)
+lemma mem_pi {β : α → Type (max u v)} [fin_enum α] [∀a, fin_enum (β a)] (xs : list α)
   (f : Π a, a ∈ xs → β a) :
   f ∈ pi xs (λ x, to_list (β x)) :=
 begin
@@ -201,14 +202,14 @@ begin
 end
 
 /-- enumerate all functions whose domain and range are finitely enumerable -/
-def pi.enum  {α : Type*} (β : α → Type*) [fin_enum α] [∀a, fin_enum (β a)] : list (Π a, β a) :=
+def pi.enum (β : α → Type (max u v)) [fin_enum α] [∀a, fin_enum (β a)] : list (Π a, β a) :=
 (pi (to_list α) (λ x, to_list (β x))).map (λ f x, f x (mem_to_list _))
 
-lemma pi.mem_enum  {α : Type*} {β : α → Type*} [fin_enum α] [∀a, fin_enum (β a)] (f : Π a, β a) :
+lemma pi.mem_enum {β : α → Type (max u v)} [fin_enum α] [∀a, fin_enum (β a)] (f : Π a, β a) :
   f ∈ pi.enum β :=
 by simp [pi.enum]; refine ⟨λ a h, f a, mem_pi _ _, rfl⟩
 
-instance pi.fin_enum {α : Type*} {β : α → Type*}
+instance pi.fin_enum {β : α → Type (max u v)}
   [fin_enum α] [∀a, fin_enum (β a)] : fin_enum (Πa, β a) :=
 of_list (pi.enum _) (λ x, pi.mem_enum _)
 

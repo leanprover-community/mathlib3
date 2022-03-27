@@ -428,9 +428,9 @@ begin
     assumption,
     apply ha1,
     dec_trivial, },
-  -- simp, -- should simplify here
+  simp [hn], -- should simplify here, coprime_pow_left_iff should be simp
   -- library_search, --library_search should get this
-  apply nat.coprime.pow_left,
+  -- apply nat.coprime.pow_left,
   exact (prime.coprime_iff_not_dvd hp').mpr hpa,
   apply hp _ _ hp' ha,
   assumption,

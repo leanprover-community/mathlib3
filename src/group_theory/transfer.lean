@@ -18,15 +18,47 @@ In this file we construct the transfer homomorphism.
 - `transfer ϕ : G →* A` for `ϕ : H →* A` from `H : subgroup G` to a commutative group `A`.
 -/
 
-class subgroup.coset_action
-  {G : Type*} [group G] (H : subgroup G) (F : Type*) [monoid F] [mul_action F G] : Prop :=
-(inv_mul_mem : ∀ (f : F) {g₁ g₂ : G}, g₁⁻¹ * g₂ ∈ H → (f • g₁)⁻¹ * (f • g₂) ∈ H)
+@[simp, to_additive] lemma smul_eq_mul_unop {α : Type*} [has_mul α] {a : αᵐᵒᵖ} {a' : α} :
+  a • a' = a' * a.unop := rfl
 
-class add_subgroup.coset_action
-  {G : Type*} [add_group G] (H : add_subgroup G) (F : Type*) [add_monoid F] [add_action F G] : Prop :=
-(inv_mul_mem : ∀ (f : F) {g₁ g₂ : G}, -g₁ + g₂ ∈ H → -(f +ᵥ g₁) + (f +ᵥ g₂) ∈ H)
+namespace mul_action
 
-attribute [to_additive add_subgroup.coset_action] subgroup.coset_action
+open subgroup
+
+variables (α : Type*) {β : Type*} [monoid α] [mul_action α β] [group β] (H : subgroup β)
+
+/-- A typeclass for when a `mul_action α β` descends to the quotient `β ⧸ H`. -/
+class quotient_action : Prop :=
+(inv_mul_mem : ∀ (a : α) {b c : β}, b⁻¹ * c ∈ H → (a • b)⁻¹ * (a • c) ∈ H)
+
+/-- A typeclass for when an `add_action α β` descends to the quotient `β ⧸ H`. -/
+class _root_.add_action.quotient_action (α : Type*) {β : Type*} [add_monoid α] [add_action α β]
+  [add_group β] (H : add_subgroup β) : Prop :=
+(inv_mul_mem : ∀ (a : α) {b c : β}, -b + c ∈ H → -(a +ᵥ b) + (a +ᵥ c) ∈ H)
+
+attribute [to_additive add_action.quotient_action] mul_action.quotient_action
+
+@[to_additive] instance left_quotient_action : quotient_action β H :=
+⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
+
+@[to_additive] instance right_quotient_action : quotient_action H.normalizer.opposite H :=
+⟨λ b c _ _, by rwa [smul_def, smul_def, smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev,
+  ←mul_assoc, ←subtype.val_eq_coe, mem_normalizer_iff'.mp b.2, mul_assoc, mul_inv_cancel_left]⟩
+
+@[to_additive] instance [quotient_action α H] : mul_action α (β ⧸ H) :=
+{ smul := λ a, quotient.map' ((•) a) (λ b c h, quotient_action.inv_mul_mem a h),
+  one_smul := λ q, quotient.induction_on' q (λ b, congr_arg quotient.mk' (one_smul α b)),
+  mul_smul := λ a a' q, quotient.induction_on' q (λ b, congr_arg quotient.mk' (mul_smul a a' b)) }
+
+variables {α}
+
+@[simp, to_additive] lemma quotient_action.smul_mk [quotient_action α H] (a : α) (b : β) :
+  (a • quotient_group.mk b : β ⧸ H) = quotient_group.mk (a • b) := rfl
+
+@[simp, to_additive] lemma quotient_action.smul_coe [quotient_action α H] (a : α) (b : β) :
+  (a • b : β ⧸ H) = ↑(a • b) := rfl
+
+end mul_action
 
 open_locale big_operators
 
@@ -37,35 +69,13 @@ variables {A : Type*} [comm_group A] (ϕ : H →* A) (R S T : left_transversals 
 
 namespace subgroup
 
-@[to_additive] instance inst1 : H.coset_action G :=
-⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
-
-@[to_additive] instance inst3 : mul_action Hᵐᵒᵖ G :=
-{ smul := λ h, (* h.unop),
-  one_smul := mul_one,
-  mul_smul := λ h₁ h₂ g, (mul_assoc g h₂.unop h₁.unop).symm }
-
-@[to_additive] lemma smul_eq_mul_unop (h : Hᵐᵒᵖ) (g : G) : h • g = g * h.unop := rfl
-
-@[to_additive] instance inst2 : H.coset_action H.normalizerᵐᵒᵖ :=
-⟨λ g g' _ _, by rwa [smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, ←mul_assoc, mul_assoc _ g'⁻¹,
-  mem_normalizer_iff'.mp (show ↑g.unop ∈ H.normalizer, from g.unop.2), mul_inv_cancel_left]⟩
-
-@[to_additive] instance mk_coset_action {F : Type*} [group F] [mul_action F G] [H.coset_action F] :
-  mul_action F (G ⧸ H) :=
-{ smul := λ f, quotient.map' ((•) f) (λ g g' h, coset_action.inv_mul_mem f h),
-  one_smul := λ q, quotient.induction_on' q (λ g, congr_arg quotient.mk' (one_smul F g)),
-  mul_smul := λ f f' q, quotient.induction_on' q (λ g, congr_arg quotient.mk' (mul_smul f f' g)) }
-
-@[to_additive] instance action1 : mul_action G (G ⧸ H) := subgroup.mk_coset_action
-
-@[to_additive] instance action2 : mul_action H.normalizerᵐᵒᵖ (G ⧸ H) := subgroup.mk_coset_action
-
 namespace left_transversals
+
+open mul_action
 
 open_locale pointwise
 
-variables {F : Type*} [group F] [mul_action F G] [H.coset_action F]
+variables {F : Type*} [group F] [mul_action F G] [mul_action.quotient_action F H]
 
 @[to_additive] instance : mul_action F (left_transversals (H : set G)) :=
 { smul := λ f T, ⟨f • T, by
@@ -73,12 +83,12 @@ variables {F : Type*} [group F] [mul_action F G] [H.coset_action F]
     obtain ⟨t, ht1, ht2⟩ := mem_left_transversals_iff_exists_unique_inv_mul_mem.mp T.2 (f⁻¹ • g),
     refine ⟨⟨f • t, set.smul_mem_smul_set t.2⟩, _, _⟩,
     { exact (congr_arg (λ g', (f • (t : G))⁻¹ * g' ∈ H) (smul_inv_smul f g)).mp
-        (coset_action.inv_mul_mem f ht1) },
+        (quotient_action.inv_mul_mem f ht1) },
     { rintros ⟨-, t', ht', rfl⟩ h,
       simp_rw [subtype.ext_iff, subtype.coe_mk, smul_left_cancel_iff],
       refine subtype.ext_iff.mp (ht2 ⟨t', ht'⟩ _),
       exact (congr_arg (λ g', g'⁻¹ * f⁻¹ • g ∈ H) (inv_smul_smul f t')).mp
-        (coset_action.inv_mul_mem f⁻¹ h) } }⟩,
+        (quotient_action.inv_mul_mem f⁻¹ h) } }⟩,
   one_smul := λ T, subtype.ext (one_smul F T),
   mul_smul := λ f₁ f₂ T, subtype.ext (mul_smul f₁ f₂ T) }
 
@@ -88,7 +98,7 @@ begin
   change ↑(⟨_, set.smul_mem_smul_set (subtype.coe_prop _)⟩ : f • T) = _,
   exact subtype.ext_iff.mp (unique_of_exists_unique
     (mem_left_transversals_iff_exists_unique_inv_mul_mem.mp (f • T).2 (f • g))
-      (coset_action.inv_mul_mem f (mem_left_transversals.inv_to_fun_mul_mem T.2 g))
+      (quotient_action.inv_mul_mem f (mem_left_transversals.inv_to_fun_mul_mem T.2 g))
       (mem_left_transversals.inv_to_fun_mul_mem (f • T).2 (f • g))),
 end
 
@@ -136,14 +146,14 @@ begin
     rwa [inv_mul_cancel_left, iff.comm] at h },
 end
 
-lemma smul_diff_smul' [is_commutative H] (g : H.normalizerᵐᵒᵖ) :
+lemma smul_diff_smul' [is_commutative H] (g : H.normalizer.opposite) :
   diff (monoid_hom.id H) (g • S) (g • T) =
-    ⟨g.unop⁻¹ * (diff (monoid_hom.id H) S T : H) * g.unop,
-      (mem_normalizer_iff''.mp g.unop.2 _).mp (set_like.coe_mem _)⟩ :=
+    ⟨(g : Gᵐᵒᵖ).unop⁻¹ * (diff (monoid_hom.id H) S T : H) * (g : Gᵐᵒᵖ).unop,
+      (mem_normalizer_iff''.mp g.2 _).mp (set_like.coe_mem _)⟩ :=
 begin
   let ϕ : H →* H :=
-  { to_fun := λ h, ⟨g.unop⁻¹ * h * g.unop,
-      (mem_normalizer_iff''.mp g.unop.2 _).mp (set_like.coe_mem _)⟩,
+  { to_fun := λ h, ⟨(g : Gᵐᵒᵖ).unop⁻¹ * h * (g : Gᵐᵒᵖ).unop,
+      (mem_normalizer_iff''.mp g.2 _).mp (set_like.coe_mem _)⟩,
     map_one' := by rw [subtype.ext_iff, coe_mk, coe_one, mul_one, inv_mul_self],
     map_mul' := λ h₁ h₂, by rw [subtype.ext_iff, coe_mk, coe_mul, coe_mul, coe_mk, coe_mk,
       mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_inv_cancel_left] },
@@ -151,8 +161,8 @@ begin
     (λ q _, subtype.ext _) (λ q _, g • q) (λ _ _, finset.mem_univ _)
     (λ q _, smul_inv_smul _ q) (λ q _, inv_smul_smul _ q)) (ϕ.map_prod _ _).symm,
   rw [monoid_hom.id_apply, monoid_hom.id_apply, monoid_hom.coe_mk, coe_mk, coe_mk, coe_mk,
-      smul_apply_eq_smul_apply_inv_smul, smul_apply_eq_smul_apply_inv_smul, smul_eq_mul_unop,
-      smul_eq_mul_unop, mul_inv_rev, mul_assoc, mul_assoc, mul_assoc],
+      smul_apply_eq_smul_apply_inv_smul, smul_apply_eq_smul_apply_inv_smul, smul_def, smul_def,
+      smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, mul_assoc, mul_assoc, mul_assoc],
 end
 
 end left_transversals

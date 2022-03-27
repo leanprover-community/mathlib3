@@ -5,7 +5,6 @@ Authors: Mario Carneiro, Kenny Lau, Yury Kudryashov
 -/
 import data.list.pairwise
 import logic.relation
-import tactic.nth_rewrite
 
 /-!
 # Relation chain
@@ -59,17 +58,6 @@ theorem chain.iff_mem {a : α} {l : list α} :
 
 theorem chain_singleton {a b : α} : chain R a [b] ↔ R a b :=
 by simp only [chain_cons, chain.nil, and_true]
-
-@[simp] theorem chain_append_cons_cons (r : α → α → Prop) (a b c : α) (l : list α) :
-  chain r a (l ++ [b, c]) ↔ r b c ∧ chain r a (l ++ [b]) :=
-begin
-  induction l with d l H generalizing a b c,
-  { simp [and.comm] },
-  { simp only [cons_append, chain_cons],
-    rw [H d b c, ←and.assoc],
-    nth_rewrite 1 and.comm,
-    rw and.assoc }
-end
 
 theorem chain_split {a b : α} {l₁ l₂ : list α} : chain R a (l₁ ++ b :: l₂) ↔
   chain R a (l₁ ++ [b]) ∧ chain R b l₂ :=

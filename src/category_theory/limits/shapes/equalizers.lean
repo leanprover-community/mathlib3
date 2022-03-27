@@ -1008,19 +1008,20 @@ lemma has_coequalizer_epi_comp [has_coequalizer f g] {W : C} (h : W ⟶ X) [hm :
 variables (C f g)
 
 /-- A coequalizer of an idempotent morphism and the identity is split epi. -/
+@[simps]
 def split_epi_of_idempotent_of_is_colimit_cofork {X : C} {f : X ⟶ X} (hf : f ≫ f = f)
-  {c : cofork f (𝟙 X)} (i : is_colimit c) : split_epi c.π :=
+  {c : cofork (𝟙 X) f} (i : is_colimit c) : split_epi c.π :=
 { section_ := i.desc (cofork.of_π f (by simp [hf])),
   id' :=
   begin
     letI := epi_of_is_colimit_parallel_pair i,
-    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_desc_of_π, c.condition],
+    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_desc_of_π, ← c.condition],
     exact category.id_comp _,
   end }
 
 /-- The coequalizer of an idempotent morphism and the identity is split epi. -/
 def split_epi_of_idempotent_coequalizer {X : C} {f : X ⟶ X} (hf : f ≫ f = f)
-  [has_coequalizer f (𝟙 X)] : split_epi (coequalizer.π f (𝟙 X)) :=
+  [has_coequalizer (𝟙 X) f] : split_epi (coequalizer.π (𝟙 X) f) :=
 split_epi_of_idempotent_of_is_colimit_cofork _ hf (colimit.is_colimit _)
 
 end category_theory.limits

@@ -452,11 +452,12 @@ def is_colimit.of_π {Z : C} (g : Y ⟶ Z) (eq : f ≫ g = 0)
 is_colimit_aux _ (λ s, desc s.π s.condition) (λ s, fac s.π s.condition) (λ s, uniq s.π s.condition)
 
 /-- Every cokernel of `f` induces a cokernel of `g ≫ f` if `g` is epi. -/
-def is_cokernel_epi_comp  {c : cokernel_cofork f} (i : is_colimit c) {W} (g : W ⟶ X) [hg : epi g] :
-  is_colimit (cokernel_cofork.of_π c.π (by simp) : cokernel_cofork (g ≫ f)) :=
+def is_cokernel_epi_comp  {c : cokernel_cofork f} (i : is_colimit c) {W} (g : W ⟶ X) [hg : epi g] 
+  {h : W ⟶ Y} (hh : h = g ≫ f) :
+  is_colimit (cokernel_cofork.of_π c.π (by rw [hh]; simp) : cokernel_cofork h) :=
 cofork.is_colimit.mk' _ $ λ s,
   let s' : cokernel_cofork f := cofork.of_π s.π
-    (by apply hg.left_cancellation; simp [←category.assoc, s.condition]) in
+    (by { apply hg.left_cancellation, rw [←category.assoc, ←hh, s.condition], simp }) in
   let l := cokernel_cofork.is_colimit.desc' i s'.π s'.condition in
   ⟨l.1, l.2, 
     λ m hm, by apply cofork.is_colimit.hom_ext i; rw cofork.π_of_π at hm; rw hm; exact l.2.symm⟩
@@ -625,14 +626,13 @@ def cokernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [has_cokernel f
 
 instance has_cokernel_epi_comp {X Y : C} (f : X ⟶ Y) [has_cokernel f] {W} (g : W ⟶ X) [epi g] :
   has_cokernel (g ≫ f) :=
-⟨⟨{ cocone := _, is_colimit := is_cokernel_epi_comp (colimit.is_colimit _) g }⟩⟩
+⟨⟨{ cocone := _, is_colimit := is_cokernel_epi_comp (colimit.is_colimit _) g rfl }⟩⟩
 
 /--
 When `f` is an epimorphism, the cokernel of `f ≫ g` is isomorphic to the cokernel of `g`.
 -/
 @[simps]
-def cokernel_epi_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
-  [epi f] [has_cokernel g] :
+def cokernel_epi_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [epi f] [has_cokernel g] :
   cokernel (f ≫ g) ≅ cokernel g :=
 { hom := cokernel.desc _ (cokernel.π g) (by simp),
   inv := cokernel.desc _ (cokernel.π (f ≫ g)) (by { rw [←cancel_epi f, ←category.assoc], simp, }), }

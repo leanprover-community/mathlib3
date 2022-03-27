@@ -1536,16 +1536,18 @@ lemma binary_bicone_of_split_mono {X Y : C} (f : X ⟶ Y) [split_mono f]
   inl := f,
   inr := 
     begin
-      have hf' : retraction f ≫ f = 𝟙 Y - (𝟙 Y - retraction f ≫ f), { simp },
-      let c' : cokernel_cofork (𝟙 Y - retraction f ≫ f - 𝟙 Y) :=
+      let c' : cokernel_cofork (𝟙 Y - (𝟙 Y - retraction f ≫ f)) :=
         cokernel_cofork.of_π (cofork.π c) (by simp),
-      let i' : is_colimit c',
-      { have h := is_cokernel_epi_comp i (retraction f),
-         }, -- clueless here, cant use is_cokernel_epi_comp
+      let i' : is_colimit c' :=
+        is_cokernel_epi_comp i (retraction f) (by simp),
       have i'' := is_colimit_cofork_of_cokernel_cofork i',
       have hf : (𝟙 Y - retraction f ≫ f) ≫ (𝟙 Y - retraction f ≫ f) = 𝟙 Y - retraction f ≫ f, { simp },
-      exact (split_epi_of_idempotent_of_is_colimit_cofork C hf i'').section_
-    end }
+      exact (split_epi_of_idempotent_of_is_colimit_cofork C hf i'').section_,
+    end,
+  inl_fst' := by simp,
+  inl_snd' := by simp,
+  inr_fst' := by { simp [is_colimit_cofork_of_cokernel_cofork],  },
+  inr_snd' := by { dsimp, } }
 
 end
 

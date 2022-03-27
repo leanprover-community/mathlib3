@@ -66,6 +66,11 @@ end
 @[simp] lemma abs_norm_eq_norm (z : β) : |∥z∥| = ∥z∥ :=
   (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
 
+lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ β] (x : β) :
+  ∥x∥⁻¹ • x ∈ closed_ball (0 : β) 1 :=
+by simp only [mem_closed_ball_zero_iff, norm_smul, norm_inv, norm_norm, ← div_eq_inv_mul,
+  div_self_le_one]
+
 lemma dist_smul [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ∥s∥ * dist x y :=
 by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
 

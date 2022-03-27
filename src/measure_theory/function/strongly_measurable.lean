@@ -1071,7 +1071,7 @@ protected lemma prod_mk {f : α → β} {g : α → γ}
 
 /-- In a space with second countable topology, measurable implies ae strongly measurable. -/
 lemma _root_.measurable.ae_strongly_measurable {m : measurable_space α}
-  {μ : measure α} [topological_space β] [measurable_space β] [metrizable_space β]
+  {μ : measure α} [measurable_space β] [metrizable_space β]
   [second_countable_topology β] [opens_measurable_space β] (hf : measurable f) :
   measure_theory.ae_strongly_measurable f μ :=
 hf.strongly_measurable.ae_strongly_measurable
@@ -1311,7 +1311,7 @@ lemma comp_measurable {γ : Type*} {mγ : measurable_space γ} {mα : measurable
   ae_strongly_measurable (g ∘ f) μ :=
 ⟨(hg.mk g) ∘ f, hg.strongly_measurable_mk.comp_measurable hf, ae_eq_comp hf hg.ae_eq_mk⟩
 
-lemma is_separable_ae_range [metrizable_space β] (hf : ae_strongly_measurable f μ) :
+lemma is_separable_ae_range (hf : ae_strongly_measurable f μ) :
   ∃ (t : set β), is_separable t ∧ ∀ᵐ x ∂μ, f x ∈ t :=
 begin
   refine ⟨range (hf.mk f), hf.strongly_measurable_mk.is_separable_range, _⟩,

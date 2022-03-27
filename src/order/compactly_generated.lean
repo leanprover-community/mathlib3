@@ -341,7 +341,7 @@ begin
   exact ⟨λ x, ⟨{x}, ⟨λ x _, h x, Sup_singleton⟩⟩⟩,
 end
 
-/-- A compact element `k` has the property that any `b < `k lies below a "maximal element below
+/-- A compact element `k` has the property that any `b < k` lies below a "maximal element below
 `k`", which is to say `[⊥, k]` is coatomic. -/
 theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
   is_coatomic (set.Iic k) :=
@@ -349,8 +349,7 @@ theorem Iic_coatomic_of_compact_element {k : α} (h : is_compact_element k) :
   by_cases htriv : b = k,
   { left, ext, simp only [htriv, set.Iic.coe_top, subtype.coe_mk], },
   right,
-  rcases zorn.zorn_nonempty_partial_order₀ (set.Iio k) _ b (lt_of_le_of_ne hbk htriv)
-    with ⟨a, a₀, ba, h⟩,
+  obtain ⟨a, a₀, ba, h⟩ := zorn_nonempty_partial_order₀ (set.Iio k) _ b (lt_of_le_of_ne hbk htriv),
   { refine ⟨⟨a, le_of_lt a₀⟩, ⟨ne_of_lt a₀, λ c hck, by_contradiction $ λ c₀, _⟩, ba⟩,
     cases h c.1 (lt_of_le_of_ne c.2 (λ con, c₀ (subtype.ext con))) hck.le,
     exact lt_irrefl _ hck, },
@@ -410,7 +409,7 @@ end, λ _, and.left⟩⟩
 /-- See Theorem 6.6, Călugăreanu -/
 theorem is_complemented_of_Sup_atoms_eq_top (h : Sup {a : α | is_atom a} = ⊤) : is_complemented α :=
 ⟨λ b, begin
-  obtain ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩ := zorn.zorn_subset
+  obtain ⟨s, ⟨s_ind, b_inf_Sup_s, s_atoms⟩, s_max⟩ := zorn_subset
     {s : set α | complete_lattice.set_independent s ∧ b ⊓ Sup s = ⊥ ∧ ∀ a ∈ s, is_atom a} _,
   { refine ⟨Sup s, le_of_eq b_inf_Sup_s, _⟩,
     rw [← h, Sup_le_iff],

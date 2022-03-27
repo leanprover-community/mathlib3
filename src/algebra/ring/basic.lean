@@ -602,8 +602,7 @@ variables [semiring α] {a : α}
 
 @[simp] theorem two_dvd_bit0 : 2 ∣ bit0 a := ⟨a, bit0_eq_two_mul _⟩
 
-lemma ring_hom.map_dvd [semiring β] (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b :=
-f.to_monoid_hom.map_dvd
+lemma ring_hom.map_dvd [semiring β] (f : α →+* β) {a b : α} : a ∣ b → f a ∣ f b := map_dvd f
 
 end semiring
 
@@ -1148,9 +1147,7 @@ The typeclass that restricts all terms of `α` to have this property is `no_zero
 lemma is_left_regular_of_non_zero_divisor [ring α] (k : α)
   (h : ∀ (x : α), k * x = 0 → x = 0) : is_left_regular k :=
 begin
-  intros x y h',
-  rw ←sub_eq_zero,
-  refine h _ _,
+  refine λ x y (h' : k * x = k * y), sub_eq_zero.mp (h _ _),
   rw [mul_sub, sub_eq_zero, h']
 end
 
@@ -1159,10 +1156,7 @@ The typeclass that restricts all terms of `α` to have this property is `no_zero
 lemma is_right_regular_of_non_zero_divisor [ring α] (k : α)
   (h : ∀ (x : α), x * k = 0 → x = 0) : is_right_regular k :=
 begin
-  intros x y h',
-  simp only at h',
-  rw ←sub_eq_zero,
-  refine h _ _,
+  refine λ x y (h' : x * k = y * k), sub_eq_zero.mp (h _ _),
   rw [sub_mul, sub_eq_zero, h']
 end
 
@@ -1172,6 +1166,10 @@ lemma is_regular_of_ne_zero' [ring α] [no_zero_divisors α] {k : α} (hk : k �
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_left hk),
  is_right_regular_of_non_zero_divisor k
   (λ x h, (no_zero_divisors.eq_zero_or_eq_zero_of_mul_eq_zero h).resolve_right hk)⟩
+
+lemma is_regular_iff_ne_zero' [nontrivial α] [ring α] [no_zero_divisors α] {k : α} :
+  is_regular k ↔ k ≠ 0 :=
+⟨λ h, by { rintro rfl, exact not_not.mpr h.left not_is_left_regular_zero }, is_regular_of_ne_zero'⟩
 
 /-- A ring with no zero divisors is a cancel_monoid_with_zero.
 

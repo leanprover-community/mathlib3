@@ -29,17 +29,16 @@ def vcomp' (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tra
     --       (η.app a ≫ G.map f) ◁ θ.naturality g) ≫ _ ≫
     --         η.app a ◁ θ.naturality f ▷ H.map g ≫ _  : _
     -- ... =  _ ≫
-    F.map_comp f g ▷ η.app c ▷ θ.app c ≫ _ ≫
-      F.map f ◁ η.naturality g ▷ θ.app c ≫ _ ≫
-        ((F.map f ≫ η.app b) ◁ θ.naturality g ≫
-          η.naturality f ▷ (θ.app b ≫ H.map g)) ≫ _ ≫
-            η.app a ◁ θ.naturality f ▷ H.map g ≫ _  : _
+    F.map_comp f g ▷ _ ▷ _ ≫ _ ≫
+      _ ◁ η.naturality g ▷ _ ≫ _ ≫
+        (_ ◁ θ.naturality g ≫
+          η.naturality f ▷ _) ≫ _ ≫
+            _ ◁ θ.naturality f ▷ _ ≫ _  : _
     ... =  _ : _,
-    exact (α_ _ _ _).inv,
-    exact (α_ _ _ _).hom ▷ _ ≫ (α_ _ _ _).hom,
-    exact _ ◁ (α_ _ _ _).hom ≫ (α_ _ _ _).inv,
-    exact (α_ _ _ _).hom ≫ _ ◁ (α_ _ _ _).inv,
-    exact _ ◁ (α_ _ _ _).hom ≫ (α_ _ _ _).inv,
+    any_goals { exact (α_ _ _ _).inv },
+    any_goals { exact (α_ _ _ _).hom ▷ _ ≫ (α_ _ _ _).hom },
+    any_goals { exact _ ◁ (α_ _ _ _).hom ≫ (α_ _ _ _).inv },
+    any_goals { exact (α_ _ _ _).hom ≫ _ ◁ (α_ _ _ _).inv },
     { rw [whisker_exchange], simp },
     { simp },
     -- exact (α_ _ _ _).inv ≫ (α_ _ _ _).hom ≫ (α_ _ _ _).inv,

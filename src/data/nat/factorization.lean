@@ -414,26 +414,21 @@ def rec_on_pos_prime_pos_coprime {P : ℕ → Sort*} (hp : ∀ p n : ℕ, prime 
   ∀ a, P a :=
 rec_on_prime_pow h0 h1 $
 begin
-  intros a p n hp' hpa ha hPa,
+  intros a p n hp' hpa hn hPa,
   by_cases ha1 : a = 1,
   { rw [ha1, mul_one],
-    apply hp p n hp' ha, },
-  apply h (p^n) a,
-  exact (lt_of_lt_of_le (hp'.one_lt)
-                  (le_self_pow (le_of_lt (prime.one_lt hp')) (succ_le_iff.mpr ha))),
+    apply hp p n hp' hn, },
+  apply h (p^n) a
+    (lt_of_lt_of_le (hp'.one_lt) (le_self_pow (le_of_lt (prime.one_lt hp')) (succ_le_iff.mpr hn)))
+    _ _ (hp _ _ hp' hn) hPa,
   { by_contra,
-    simp at h,
+    simp only [not_lt] at h,
     interval_cases a,
-    simp at hpa,
+    simp only [dvd_zero, not_true] at hpa,
     assumption,
     apply ha1,
     dec_trivial, },
-  simp [hn], -- should simplify here, coprime_pow_left_iff should be simp
-  -- library_search, --library_search should get this
-  -- apply nat.coprime.pow_left,
-  exact (prime.coprime_iff_not_dvd hp').mpr hpa,
-  apply hp _ _ hp' ha,
-  assumption,
+  simpa [hn, prime.coprime_iff_not_dvd hp'],
 end
 
 /-- Given `P 0`, `P (p ^ n)` for all prime powers, and a way to extend `P a` and `P b` to

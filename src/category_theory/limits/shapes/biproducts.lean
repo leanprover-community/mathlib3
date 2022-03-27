@@ -594,11 +594,10 @@ section
 variables (C)
 
 /-- A category with finite biproducts has a zero object. -/
-def has_zero_object_of_has_finite_biproducts [has_zero_morphisms C] [has_finite_biproducts C] :
-  has_zero_object C :=
-{ zero := biproduct (λ i : ulift (fin 0), i.down.elim0'),
-  unique_to := λ X, ⟨⟨0⟩, λ f, by { ext i, exact i.down.elim0' }⟩,
-  unique_from := λ X, ⟨⟨0⟩, λ f, by { ext i, exact i.down.elim0' }⟩, }
+def has_zero_object_of_has_finite_biproducts [has_finite_biproducts C] : has_zero_object C :=
+{ zero := biproduct pempty.elim,
+  unique_to := λ X, ⟨⟨0⟩, by tidy⟩,
+  unique_from := λ X, ⟨⟨0⟩, by tidy⟩, }
 
 end
 

@@ -696,7 +696,6 @@ instance strong_epi_mono_factorisation_inhabited {X Y : C} (f : X ⟶ Y) [strong
 
 /-- A mono factorisation coming from a strong epi-mono factorisation always has the universal
     property of the image. -/
-@[simps]
 def strong_epi_mono_factorisation.to_mono_is_image {X Y : C} {f : X ⟶ Y}
   (F : strong_epi_mono_factorisation f) : is_image F.to_mono_factorisation :=
 { lift := λ G, arrow.lift $ arrow.hom_mk' $

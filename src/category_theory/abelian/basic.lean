@@ -366,7 +366,9 @@ instance : is_iso (coimage_image_comparison f) :=
 begin
   convert is_iso.of_iso (is_image.iso_ext (coimage_strong_epi_mono_factorisation f).to_mono_is_image
     (image_strong_epi_mono_factorisation f).to_mono_is_image),
-  ext, simp,
+  ext,
+  change _ = _ ≫ (image_strong_epi_mono_factorisation f).m,
+  simp [-image_strong_epi_mono_factorisation_to_mono_factorisation_m]
 end
 
 /-- There is a canonical isomorphism between the abelian coimage and the abelian image of a

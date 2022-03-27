@@ -801,7 +801,7 @@ begin
     rw this }
 end
 
-variables [decidable_eq α] {r : α → α → Prop} {s : cycle α}
+variables {r : α → α → Prop} {s : cycle α}
 
 theorem chain_of_pairwise (hs : ∀ (a ∈ s) (b ∈ s), r a b) : chain r s :=
 begin

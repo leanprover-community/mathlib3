@@ -60,7 +60,7 @@ theorem chain_singleton {a b : α} : chain R a [b] ↔ R a b :=
 by simp only [chain_cons, chain.nil, and_true]
 
 @[simp] theorem chain_append_singleton_cons (r : α → α → Prop) (a b c : α) (l m : list α) :
-  chain r a (l ++ [b] ++ (c :: m)) ↔ chain r a (l ++ [b]) ∧ r b c ∧ chain r c m :=
+  chain r a (l ++ b :: c :: m) ↔ chain r a (l ++ [b]) ∧ r b c ∧ chain r c m :=
 begin
   induction l with d l H generalizing a b c,
   { simp },

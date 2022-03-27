@@ -666,7 +666,7 @@ protected lemma formal_multilinear_series.has_fpower_series_on_ball [complete_sp
   r_pos   := h,
   has_sum := λ y hy, by { rw zero_add, exact p.has_sum hy } }
 
-lemma has_fpower_series_on_ball.sum [complete_space F] (h : has_fpower_series_on_ball f p x r)
+lemma has_fpower_series_on_ball.sum (h : has_fpower_series_on_ball f p x r)
   {y : E} (hy : y ∈ emetric.ball (0 : E) r) : f (x + y) = p.sum y :=
 (h.has_sum hy).tsum_eq.symm
 

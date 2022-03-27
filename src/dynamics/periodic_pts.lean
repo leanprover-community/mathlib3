@@ -271,15 +271,20 @@ begin
   exact nat.find_min' (mk_mem_periodic_pts hn hx) ⟨hn, hx⟩
 end
 
-private lemma iterate_inj_on_aux {m n : ℕ} (hm : m < minimal_period f x)
-  (hn : n < minimal_period f x) (hmn : f^[m] x = (f^[n] x)) : m ≤ n :=
+lemma le_of_lt_minimal_period_of_iterate_eq {m n : ℕ} (hm : m < minimal_period f x) (hmn : f^[m] x = (f^[n] x)) :
+  m ≤ n :=
 begin
   by_contra' hmn',
+  rw ←nat.add_sub_of_le hmn'.le at hmn,
+  exact ((is_periodic_pt.minimal_period_le (tsub_pos_of_lt hmn') (iterate_eq_of_periodic_pt
+    (minimal_period_pos_iff_mem_periodic_pts.1 ((zero_le m).trans_lt hm)) hmn)).trans
+    (nat.sub_le m n)).not_lt hm
 end
 
-lemma iterate_inj_on {m n : ℕ} (hm : m < minimal_period f x) (hn : n < minimal_period f x) :
-  f^[m] x = (f^[n] x) ↔ m = n :=
-⟨λ hmn, (iterate_inj_on_aux hm hn hmn).antisymm (iterate_inj_on_aux hn hm hmn.symm), congr_arg _⟩
+lemma eq_iff_lt_minimal_period_of_iterate_eq {m n : ℕ} (hm : m < minimal_period f x)
+  (hn : n < minimal_period f x) : f^[m] x = (f^[n] x) ↔ m = n :=
+⟨λ hmn, (le_of_lt_minimal_period_of_iterate_eq hm hmn).antisymm
+  (le_of_lt_minimal_period_of_iterate_eq hn hmn.symm), congr_arg _⟩
 
 lemma minimal_period_id : minimal_period id x = 1 :=
 ((is_periodic_id _ _ ).minimal_period_le nat.one_pos).antisymm
@@ -424,10 +429,10 @@ end
 
 theorem nodup_orbit {f : α → α} {x : α} : cycle.nodup (orbit f x) :=
 begin
-  rw [orbit_def, cycle.nodup_coe_iff],
-  rw list.nodup_map_iff_inj_on (list.nodup_range _),
+  rw [orbit_def, cycle.nodup_coe_iff, list.nodup_map_iff_inj_on (list.nodup_range _)],
   intros m hm n hn hmn,
-
+  rw list.mem_range at hm hn,
+  rwa eq_iff_lt_minimal_period_of_iterate_eq hm hn at hmn
 end
 
 end function

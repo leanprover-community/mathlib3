@@ -302,8 +302,7 @@ begin
 end
 
 lemma is_periodic_pt.eq_zero_of_lt_minimal_period (hx : is_periodic_pt f n x)
-  (hn : n < minimal_period f x) :
-  n = 0 :=
+  (hn : n < minimal_period f x) : n = 0 :=
 eq.symm $ (eq_or_lt_of_le $ n.zero_le).resolve_right $ λ hn0,
 not_lt.2 (hx.minimal_period_le hn0) hn
 

@@ -458,7 +458,7 @@ cofork.is_colimit.mk' _ $ λ s,
   let s' : cokernel_cofork f := cofork.of_π s.π
     (by apply hg.left_cancellation; simp [←category.assoc, s.condition]) in
   let l := cokernel_cofork.is_colimit.desc' i s'.π s'.condition in
-  ⟨l.1, l.2, 
+  ⟨l.1, l.2,
     λ m hm, by apply cofork.is_colimit.hom_ext i; rw cofork.π_of_π at hm; rw hm; exact l.2.symm⟩
 
 end
@@ -667,6 +667,15 @@ lemma cokernel.π_of_epi [has_cokernel f] [epi f] : cokernel.π f = 0 :=
 zero_of_target_iso_zero _ (cokernel.of_epi f)
 
 end has_zero_object
+
+section mono_factorisation
+variables {f}
+
+@[simp] lemma mono_factorisation.kernel_ι_comp [has_kernel f] (F : mono_factorisation f) :
+  kernel.ι f ≫ F.e = 0 :=
+by rw [← cancel_mono F.m, zero_comp, category.assoc, F.fac, kernel.condition]
+
+end mono_factorisation
 
 section has_image
 

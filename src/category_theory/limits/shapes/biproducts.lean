@@ -590,6 +590,13 @@ def biproduct.unique_up_to_iso (f : J → C) [has_biproduct f] {b : bicone f} (h
   inv_hom_id' := by rw [← biproduct.cone_point_unique_up_to_iso_hom f hb,
     ← biproduct.cone_point_unique_up_to_iso_inv f hb, iso.inv_hom_id] }
 
+/-- A category with finite biproducts has a zero object. -/
+def has_zero_object_of_has_finite_biproducts [has_zero_morphisms C] [has_finite_biproducts C] :
+  has_zero_object C :=
+{ zero := biproduct (λ i : ulift (fin 0), i.down.elim0'),
+  unique_to := λ X, ⟨⟨0⟩, λ f, by { ext i, exact i.down.elim0' }⟩,
+  unique_from := λ X, ⟨⟨0⟩, λ f, by { ext i, exact i.down.elim0' }⟩, }
+
 /--
 A binary bicone for a pair of objects `P Q : C` consists of the cone point `X`,
 maps from `X` to both `P` and `Q`, and maps from both `P` and `Q` to `X`,

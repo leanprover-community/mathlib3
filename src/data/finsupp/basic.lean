@@ -2392,8 +2392,7 @@ instance [monoid R] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action 
 
 instance [monoid_with_zero R] [add_monoid M] [distrib_mul_action_with_zero R M] :
   distrib_mul_action_with_zero R (α →₀ M) :=
-{ mul_smul := λ a b c, ext $ λ i, by simp only [coe_smul, pi.smul_apply, mul_smul],
-  one_smul := λ a, ext $ λ i, by rw [coe_smul, pi.smul_apply, one_smul] }
+{ zero_smul := λ x, ext $ λ _, zero_smul _ _ }
 
 instance [semiring R] [add_comm_monoid M] [module R M] : module R (α →₀ M) :=
 { add_smul  := λ a x y, ext $ λ _, add_smul _ _ _ }

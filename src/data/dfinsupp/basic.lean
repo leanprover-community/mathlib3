@@ -270,9 +270,7 @@ function.injective.distrib_mul_action coe_fn_add_monoid_hom fun_like.coe_injecti
 
 instance [monoid_with_zero γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action_with_zero γ (β i)] :
   distrib_mul_action_with_zero γ (Π₀ i, β i) :=
-{ mul_smul := λ a b c, ext $ λ i, by simp only [coe_smul, pi.smul_apply, mul_smul],
-  one_smul := λ a, ext $ λ i, by rw [coe_smul, pi.smul_apply, one_smul],
-  ..dfinsupp.smul_with_zero }
+{ zero_smul := λ c, ext $ λ i, by simp only [smul_apply, zero_smul, zero_apply] }
 
 /-- Dependent functions with finite support inherit a module structure from such a structure on
 each coordinate. -/

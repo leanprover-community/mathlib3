@@ -1,12 +1,13 @@
 /-
 Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jean Lo
+Authors: Jean Lo, Yury Kudryashov
 -/
+import analysis.normed_space.basic
 import topology.metric_space.hausdorff_distance
 
 /-!
-# Riesz's lemma
+# Applications of the Hausdorff distance in normed spaces
 
 Riesz's lemma, stated for a normed space over a normed field: for any
 closed proper subspace `F` of `E`, there is a nonzero `x` such that `∥x - F∥`
@@ -14,7 +15,13 @@ is at least `r * ∥x∥` for any `r < 1`. This is `riesz_lemma`.
 
 In a nondiscrete normed field (with an element `c` of norm `> 1`) and any `R > ∥c∥`, one can
 guarantee `∥x∥ ≤ R` and `∥x - y∥ ≥ 1` for any `y` in `F`. This is `riesz_lemma_of_norm_lt`.
+
+A further lemma, `closed_ball_inf_dist_compl_subset_closure`, finds a *closed* ball within the
+closure of a set `s` of optimal distance from a point in `x` to the frontier of `s`.
 -/
+
+open set metric
+open_locale topological_space
 
 variables {𝕜 : Type*} [normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -88,4 +95,29 @@ begin
   ... ≤ ∥d∥ * ∥x - y'∥ :
     mul_le_mul_of_nonneg_left (hx y' (by simp [hy', submodule.smul_mem _ _ hy])) (norm_nonneg _)
   ... = ∥d • x - y∥ : by simp [yy', ← smul_sub, norm_smul],
+end
+
+lemma metric.closed_ball_inf_dist_compl_subset_closure' {E : Type*} [semi_normed_group E]
+  [normed_space ℝ E] {x : E} {s : set E} (hx : s ∈ 𝓝 x) (hs : s ≠ univ) :
+  closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
+begin
+  have hne : sᶜ.nonempty, from nonempty_compl.2 hs,
+  have hpos : 0 < inf_dist x sᶜ,
+  { rwa [← inf_dist_eq_closure, ← is_closed_closure.not_mem_iff_inf_dist_pos hne.closure,
+      closure_compl, mem_compl_iff, not_not, mem_interior_iff_mem_nhds] },
+  rw ← closure_ball x hpos,
+  apply closure_mono,
+  rw [← le_eq_subset, ← is_compl_compl.disjoint_right_iff],
+  exact disjoint_ball_inf_dist
+end
+
+lemma metric.closed_ball_inf_dist_compl_subset_closure [normed_space ℝ E]
+  {x : E} {s : set E} (hx : x ∈ s) (hs : s ≠ univ) :
+  closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
+begin
+  by_cases hx' : x ∈ closure sᶜ,
+  { rw [mem_closure_iff_inf_dist_zero (nonempty_compl.2 hs)] at hx',
+    simpa [hx'] using subset_closure hx },
+  { rw [closure_compl, mem_compl_iff, not_not, mem_interior_iff_mem_nhds] at hx',
+    exact metric.closed_ball_inf_dist_compl_subset_closure' hx' hs }
 end

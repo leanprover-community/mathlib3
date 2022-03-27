@@ -543,8 +543,7 @@ begin
     rw [centroid_def,
         affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ _ _
           (sum_centroid_weights_eq_one_of_cast_card_ne_zero _ hc) (p i₁)],
-    simp [h],
-    norm_num }
+    simp [h] }
 end
 
 /-- The centroid of two points indexed by `fin 2`, expressed directly

@@ -1223,7 +1223,7 @@ by simp_rw preimage_Union
 
 @[simp] theorem preimage_sUnion {f : α → β} {s : set (set β)} :
   f ⁻¹' (⋃₀ s) = (⋃ t ∈ s, f ⁻¹' t) :=
-set.ext $ by simp [preimage]
+by rw [sUnion_eq_bUnion, preimage_Union₂]
 
 lemma preimage_Inter {f : α → β} {s : ι → set β} : f ⁻¹' (⋂ i, s i) = (⋂ i, f ⁻¹' s i) :=
 by ext; simp
@@ -1231,6 +1231,9 @@ by ext; simp
 lemma preimage_Inter₂ {f : α → β} {s : Π i, κ i → set β} :
   f ⁻¹' (⋂ i j, s i j) = ⋂ i j, f ⁻¹' s i j :=
 by simp_rw preimage_Inter
+
+@[simp] lemma preimage_sInter {f : α → β} {s : set (set β)} : f ⁻¹' (⋂₀ s) = ⋂ t ∈ s, f ⁻¹' t :=
+by rw [sInter_eq_bInter, preimage_Inter₂]
 
 @[simp] lemma bUnion_preimage_singleton (f : α → β) (s : set β) : (⋃ y ∈ s, f ⁻¹' {y}) = f ⁻¹' s :=
 by rw [← preimage_Union₂, bUnion_of_singleton]

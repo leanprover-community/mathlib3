@@ -439,14 +439,14 @@ rfl
 /-- The unique empty cycle. -/
 def nil : cycle α := ↑([] : list α)
 
-@[simp] theorem coe_nil : ↑([] : list α) = @nil α :=
+@[simp] lemma coe_nil : ↑([] : list α) = @nil α :=
 rfl
 
 instance : has_emptyc (cycle α) := ⟨nil⟩
 
 instance : inhabited (cycle α) := ⟨nil⟩
 
-@[elab_as_eliminator] theorem rec_on {C : cycle α → Prop} (s : cycle α) (H0 : C nil)
+@[elab_as_eliminator] lemma rec_on {C : cycle α → Prop} (s : cycle α) (H0 : C nil)
   (HI : ∀ a (l : list α), C ↑l → C ↑(a :: l)) : C s :=
 quotient.induction_on' s $ λ l, by { apply list.rec_on l; simp, assumption' }
 
@@ -459,7 +459,7 @@ instance : has_mem α (cycle α) := ⟨mem⟩
 @[simp] lemma mem_coe_iff {a : α} {l : list α} : a ∈ (l : cycle α) ↔ a ∈ l :=
 iff.rfl
 
-@[simp] theorem not_mem_nil : ∀ a, a ∉ @nil α :=
+@[simp] lemma not_mem_nil : ∀ a, a ∉ @nil α :=
 not_mem_nil
 
 instance [decidable_eq α] : decidable_eq (cycle α) :=
@@ -502,7 +502,7 @@ quot.induction_on s length_reverse
 def subsingleton (s : cycle α) : Prop :=
 s.length ≤ 1
 
-theorem subsingleton_nil : subsingleton (@nil α) :=
+lemma subsingleton_nil : subsingleton (@nil α) :=
 zero_le_one
 
 lemma length_subsingleton_iff {s : cycle α} : subsingleton s ↔ length s ≤ 1 :=
@@ -588,20 +588,20 @@ The `s : cycle α` as a `multiset α`.
 def to_multiset (s : cycle α) : multiset α :=
 quotient.lift_on' s (λ l, (l : multiset α)) (λ l₁ l₂ (h : l₁ ~r l₂), multiset.coe_eq_coe.mpr h.perm)
 
-@[simp] theorem coe_to_multiset (l : list α) : (l : cycle α).to_multiset = l :=
+@[simp] lemma coe_to_multiset (l : list α) : (l : cycle α).to_multiset = l :=
 rfl
 
-@[simp] theorem nil_to_multiset : nil.to_multiset = (∅ : multiset α) :=
+@[simp] lemma nil_to_multiset : nil.to_multiset = (∅ : multiset α) :=
 rfl
 
 /-- The lift of `list.map`. -/
 def map {β : Type*} (f : α → β) : cycle α → cycle β :=
 quotient.map' (list.map f) $ λ l₁ l₂ h, h.map _
 
-@[simp] theorem map_nil {β : Type*} (f : α → β) : map f nil = nil :=
+@[simp] lemma map_nil {β : Type*} (f : α → β) : map f nil = nil :=
 rfl
 
-@[simp] theorem map_coe {β : Type*} (f : α → β) (l : list α) : map f ↑l = list.map f l :=
+@[simp] lemma map_coe {β : Type*} (f : α → β) (l : list α) : map f ↑l = list.map f l :=
 rfl
 
 /-- The `multiset` of lists that can make the cycle. -/
@@ -655,7 +655,7 @@ fintype.subtype (((finset.univ : finset {s : cycle α // s.nodup}).map
 def to_finset (s : cycle α) : finset α :=
 s.to_multiset.to_finset
 
-@[simp] theorem nil_to_finset : (@nil α).to_finset = ∅ :=
+@[simp] lemma nil_to_finset : (@nil α).to_finset = ∅ :=
 rfl
 
 /-- Given a `s : cycle α` such that `nodup s`, retrieve the next element after `x ∈ s`. -/

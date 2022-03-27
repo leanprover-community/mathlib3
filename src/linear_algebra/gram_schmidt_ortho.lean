@@ -28,7 +28,7 @@ and outputs a set of orthogonal vectors which have the same span.
 
 ## Notation
 
- - `⟪_, _⟫` : inner product operator
+ - `⟪·, ·⟫` : inner product operator
 -/
 
 open_locale big_operators

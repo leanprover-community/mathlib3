@@ -8,14 +8,17 @@ import algebra.algebra.subalgebra.basic
 
 /-!
 # Star subalgebras
+
+A *-subalgebra is a subalgebra of a *-algebra which is closed under *.
+
+The centralizer of a *-closed set is a *-subalgebra.
 -/
 
 universes u v
 
 set_option old_structure_cmd true
 
-/-- A *-subalgebra is a sub
-algebra of a *-algebra which is closed under *. -/
+/-- A *-subalgebra is a subalgebra of a *-algebra which is closed under *. -/
 structure star_subalgebra (R : Type u) (A : Type v) [comm_semiring R] [star_ring R]
   [semiring A] [star_ring A] [algebra R A] [star_module R A] extends subalgebra R A : Type v :=
 (star_mem' {a} : a ∈ carrier → star a ∈ carrier)

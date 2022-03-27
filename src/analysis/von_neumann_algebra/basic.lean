@@ -75,3 +75,11 @@ Consider a von Neumann algebra acting on a Hilbert space `H` as a *-subalgebra o
 or equivalently that it is closed in the weak and strong operator topologies.)
 -/
 add_decl_doc von_neumann_algebra.to_star_subalgebra
+
+namespace von_neumann_algebra
+variables (H : Type u) [inner_product_space ℂ H] [complete_space H]
+
+instance : set_like (von_neumann_algebra H) (H →L[ℂ] H) :=
+⟨von_neumann_algebra.carrier, λ p q h, by cases p; cases q; congr'⟩
+
+end von_neumann_algebra

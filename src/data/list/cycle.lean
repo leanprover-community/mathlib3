@@ -437,7 +437,7 @@ instance : has_coe (list α) (cycle α) := ⟨quot.mk _⟩
   quotient.mk' l = (l : cycle α) := rfl
 
 /-- The unique empty cycle. -/
-def nil : cycle α := (([] : list α) : cycle α)
+def nil : cycle α := ↑([] : list α)
 
 @[simp] theorem coe_nil : ↑([] : list α) = @nil α :=
 rfl
@@ -447,10 +447,7 @@ instance : has_emptyc (cycle α) := ⟨nil⟩
 instance : inhabited (cycle α) := ⟨nil⟩
 
 theorem cases_on (s : cycle α) : s = nil ∨ ∃ a (l : list α), s = a :: l :=
-begin
-  suffices : ∀ m : list α, (m : cycle α) = nil ∨ ∃ a (l : list α), (m : cycle α) = a :: l,
-  { have := this (@quotient.out' _ (is_rotated.setoid _) s),
-    rwa [←mk'_eq_coe, quotient.out_eq'] at this },
+quotient.induction_on' s begin
   rintro (rfl | ⟨a, l⟩),
   { exact or.inl rfl },
   { exact or.inr ⟨a, l, rfl⟩ }

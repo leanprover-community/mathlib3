@@ -979,7 +979,7 @@ strongly_measurable_one.ae_strongly_measurable
   ae_strongly_measurable f μ :=
 (subsingleton.strongly_measurable' f).ae_strongly_measurable
 
-@[simp, measurability] lemma ae_measurable_zero_measure [measurable_space α] [topological_space β]
+@[simp] lemma ae_measurable_zero_measure [measurable_space α] [topological_space β]
   (f : α → β) :
   ae_strongly_measurable f (0 : measure α) :=
 begin
@@ -1056,7 +1056,7 @@ lemma _root_.continuous.comp_ae_strongly_measurable {g : β → γ} {f : α → 
   ae_strongly_measurable (λ x, g (f x)) μ :=
 ⟨_, hg.comp_strongly_measurable hf.strongly_measurable_mk, eventually_eq.fun_comp hf.ae_eq_mk g⟩
 
-/-- A continuous function from `α` to `β` is strongly measurable when one of the two spaces is
+/-- A continuous function from `α` to `β` is ae strongly measurable when one of the two spaces is
 second countable. -/
 lemma _root_.continuous.ae_strongly_measurable [topological_space α] [opens_measurable_space α]
   [metrizable_space β] [second_countable_topology_either α β] (hf : continuous f) :
@@ -1073,7 +1073,7 @@ protected lemma prod_mk {f : α → β} {g : α → γ}
 lemma _root_.measurable.ae_strongly_measurable {m : measurable_space α}
   {μ : measure α} [measurable_space β] [metrizable_space β]
   [second_countable_topology β] [opens_measurable_space β] (hf : measurable f) :
-  measure_theory.ae_strongly_measurable f μ :=
+  ae_strongly_measurable f μ :=
 hf.strongly_measurable.ae_strongly_measurable
 
 section arithmetic
@@ -1269,19 +1269,11 @@ is_R_or_C.continuous_im.comp_ae_strongly_measurable hf
 protected lemma inner {m : measurable_space α} {μ : measure α} {f g : α → E}
   (hf : ae_strongly_measurable f μ) (hg : ae_strongly_measurable g μ) :
   ae_strongly_measurable (λ x, ⟪f x, g x⟫) μ :=
-begin
-  refine ⟨λ x, ⟪hf.mk f x, hg.mk g x⟫,
-    hf.strongly_measurable_mk.inner hg.strongly_measurable_mk, _⟩,
-  refine hf.ae_eq_mk.mp (hg.ae_eq_mk.mono (λ x hxg hxf, _)),
-  dsimp only,
-  congr,
-  exacts [hxf, hxg],
-end
+continuous_inner.comp_ae_strongly_measurable (hf.prod_mk hg)
 
 end
 
-lemma _root_.ae_strongly_measurable_indicator_iff [has_zero β]
-  {s : set α} (hs : measurable_set s) :
+lemma _root_.ae_strongly_measurable_indicator_iff [has_zero β] {s : set α} (hs : measurable_set s) :
   ae_strongly_measurable (indicator s f) μ ↔ ae_strongly_measurable f (μ.restrict s)  :=
 begin
   split,
@@ -1482,7 +1474,6 @@ lemma smul_measure {R : Type*} [monoid R] [distrib_mul_action R ℝ≥0∞]
   ae_strongly_measurable f (c • μ) :=
 ⟨h.mk f, h.strongly_measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
 
-
 section normed_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -1673,6 +1664,28 @@ instance sigma_finite_restrict (hf : ae_fin_strongly_measurable f μ) :
 hf.exists_set_sigma_finite.some_spec.2.2
 
 end ae_fin_strongly_measurable
+
+section second_countable_topology
+
+variables {G : Type*} {p : ℝ≥0∞} {m m0 : measurable_space α} {μ : measure α}
+  [normed_group G] [measurable_space G] [borel_space G] [second_countable_topology G]
+  {f : α → G}
+
+/-- In a space with second countable topology and a sigma-finite measure, `fin_strongly_measurable`
+  and `measurable` are equivalent. -/
+lemma fin_strongly_measurable_iff_measurable {m0 : measurable_space α} (μ : measure α)
+  [sigma_finite μ] :
+  fin_strongly_measurable f μ ↔ measurable f :=
+⟨λ h, h.measurable, λ h, (measurable.strongly_measurable h).fin_strongly_measurable μ⟩
+
+/-- In a space with second countable topology and a sigma-finite measure,
+  `ae_fin_strongly_measurable` and `ae_measurable` are equivalent. -/
+lemma ae_fin_strongly_measurable_iff_ae_measurable {m0 : measurable_space α} (μ : measure α)
+  [sigma_finite μ] :
+  ae_fin_strongly_measurable f μ ↔ ae_measurable f μ :=
+by simp_rw [ae_fin_strongly_measurable, ae_measurable, fin_strongly_measurable_iff_measurable]
+
+end second_countable_topology
 
 lemma measurable_uncurry_of_continuous_of_measurable {α β ι : Type*} [topological_space ι]
   [metrizable_space ι] [measurable_space ι] [second_countable_topology ι] [opens_measurable_space ι]

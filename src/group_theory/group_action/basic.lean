@@ -310,16 +310,9 @@ attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 @[to_additive] instance left_quotient_action : quotient_action β H :=
 ⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
 
-@[to_additive] instance right_action : mul_action Hᵐᵒᵖ β :=
-{ smul := λ h, (* h.unop),
-  one_smul := mul_one,
-  mul_smul := λ h₁ h₂ g, (mul_assoc g h₂.unop h₁.unop).symm }
-
-@[to_additive] lemma smul_eq_mul_unop (h : Hᵐᵒᵖ) (b : β) : h • b = b * h.unop := rfl
-
-@[to_additive] instance right_quotient_action : quotient_action H.normalizerᵐᵒᵖ H :=
-⟨λ b c _ _, by rwa [smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, ←mul_assoc, mul_assoc _ c⁻¹,
-  mem_normalizer_iff'.mp (show ↑b.unop ∈ H.normalizer, from b.unop.2), mul_inv_cancel_left]⟩
+@[to_additive] instance right_quotient_action : quotient_action H.normalizer.opposite H :=
+⟨λ b c _ _, by rwa [smul_def, smul_def, smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev,
+  ←mul_assoc, ←subtype.val_eq_coe, mem_normalizer_iff'.mp b.2, mul_assoc, mul_inv_cancel_left]⟩
 
 @[to_additive] instance quotient [quotient_action α H] : mul_action α (β ⧸ H) :=
 { smul := λ a, quotient.map' ((•) a) (λ b c h, quotient_action.inv_mul_mem a h),

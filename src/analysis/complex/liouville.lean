@@ -63,9 +63,7 @@ end
 
 /-- If `f` is continuous on a closed disc of radius `R`, is complex differentiable on its interior,
 and its values on the boundary circle of this disc are bounded from above by `C`, then the norm of
-its derivative at the center is at most `C / R`.
-
-TODO: drop unneeded assumption `[second_countable_topology F]`.  -/
+its derivative at the center is at most `C / R`. -/
 lemma norm_deriv_le_of_forall_mem_sphere_norm_le {c : ℂ} {R C : ℝ} {f : ℂ → F} (hR : 0 < R)
   (hd : diff_on_int_cont ℂ f (closed_ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
   ∥deriv f c∥ ≤ C / R :=

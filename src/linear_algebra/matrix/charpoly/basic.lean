@@ -94,7 +94,7 @@ applied to the matrix itself, is zero.
 
 This holds over any commutative ring.
 
-See `linear_map.aeval_self_charpoly` for the equivalent statement about endomorphisms. -/
+See `linear_map.aeval_self_charpoly` for the equivalent statement about endomorphisms.
 -/
 -- This proof follows http://drorbn.net/AcademicPensieve/2015-12/CayleyHamilton.pdf
 theorem matrix.aeval_self_charpoly (M : matrix n n R) :

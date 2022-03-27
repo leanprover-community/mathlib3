@@ -71,26 +71,26 @@ def hom_diagram {F : J ⥤ Cat.{v v}} (X Y : limit (F ⋙ Cat.objects.{v v})) : 
     refl,
   end, }
 
-
+@[simps]
+instance (F : J ⥤ Cat.{v v}) : category (limit (F ⋙ Cat.objects)) :=
+{ hom := λ X Y, limit (hom_diagram X Y),
+  id := λ X, begin fapply types.limit.mk, intro j, dsimp, exact 𝟙 _, intros j j' f, simp, end,
+  comp := λ X Y Z f g,
+  begin
+    fapply types.limit.mk,
+    { exact λ j, limit.π (hom_diagram X Y) j f ≫ limit.π (hom_diagram Y Z) j g, },
+    { intros j j' h,
+      dsimp,
+      conv_rhs { rw ←congr_fun (limit.w (hom_diagram X Y) h) f, },
+      conv_rhs { rw ←congr_fun (limit.w (hom_diagram Y Z) h) g, },
+      dsimp,
+      simp, },
+  end }
 
 
 @[simps]
 def limit (F : J ⥤ Cat.{v v}) : Cat.{v v} :=
-{ α := limit (F ⋙ Cat.objects),
-  str :=
-  { hom := λ X Y, limit (hom_diagram X Y),
-    id := λ X, begin fapply types.limit.mk, intro j, dsimp, exact 𝟙 _, intros j j' f, simp, end,
-    comp := λ X Y Z f g,
-    begin
-      fapply types.limit.mk,
-      { exact λ j, limit.π (hom_diagram X Y) j f ≫ limit.π (hom_diagram Y Z) j g, },
-      { intros j j' h,
-        dsimp,
-        conv_rhs { rw ←congr_fun (limit.w (hom_diagram X Y) h) f, },
-        conv_rhs { rw ←congr_fun (limit.w (hom_diagram Y Z) h) g, },
-        dsimp,
-        simp, },
-    end } }.
+{ α := limit (F ⋙ Cat.objects), }.
 
 
 
@@ -118,7 +118,6 @@ def limit_cone_lift (F : J ⥤ Cat.{v v}) (s : cone F) : s.X ⟶ limit F :=
   begin
     fapply types.limit.mk,
     { intro j,
-      dsimp,
       refine eq_to_hom _ ≫ (s.π.app j).map f ≫ eq_to_hom _;
       simp, },
     { intros j j' h,

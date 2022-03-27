@@ -442,6 +442,9 @@ def nil : cycle α := ↑([] : list α)
 @[simp] lemma coe_nil : ↑([] : list α) = @nil α :=
 rfl
 
+@[simp] lemma coe_eq_nil (l : list α) : (l : cycle α) = nil ↔ l = [] :=
+coe_eq_coe.trans is_rotated_nil_iff
+
 instance : has_emptyc (cycle α) := ⟨nil⟩
 
 instance : inhabited (cycle α) := ⟨nil⟩
@@ -603,6 +606,9 @@ rfl
 
 @[simp] lemma map_coe {β : Type*} (f : α → β) (l : list α) : map f ↑l = list.map f l :=
 rfl
+
+@[simp] lemma map_eq_nil {β : Type*} (f : α → β) (s : cycle α) : map f s = nil ↔ s = nil :=
+quotient.induction_on' s $ λ l, by simp
 
 /-- The `multiset` of lists that can make the cycle. -/
 def lists (s : cycle α) : multiset (list α) :=

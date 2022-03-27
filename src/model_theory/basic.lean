@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
 import data.fin.vec_notation
-import data.equiv.encodable.basic
+import data.fin.tuple.basic
+import logic.encodable.basic
 import set_theory.cardinal
+import category_theory.concrete_category.bundled
+
 
 /-!
 # Basics on First-Order Structures

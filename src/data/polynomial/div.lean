@@ -412,6 +412,22 @@ lemma sum_mod_by_monic_coeff [nontrivial R] (hq : q.monic)
   ((degree_mod_by_monic_lt _ hq).trans_le hn)).trans
   (sum_monomial_eq _)
 
+variable (R)
+
+lemma not_is_field [nontrivial R] : ¬ is_field R[X] :=
+begin
+  rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
+  use ideal.span {polynomial.X},
+  split,
+  { rw [bot_lt_iff_ne_bot, ne.def, ideal.span_singleton_eq_bot],
+    exact polynomial.X_ne_zero, },
+  { rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ideal.mem_span_singleton,
+      polynomial.X_dvd_iff, polynomial.coeff_one_zero],
+    exact one_ne_zero, }
+end
+
+variable {R}
+
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.
 The algorithm is "compute `p %ₘ q` and compare to `0`". `

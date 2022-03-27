@@ -9,7 +9,7 @@ import ring_theory.nilpotent
 import ring_theory.localization.away
 import ring_theory.ideal.prod
 import ring_theory.ideal.over
-import topology.opens
+import topology.sets.opens
 import topology.sober
 
 /-!
@@ -718,8 +718,6 @@ section order
 
 We endow `prime_spectrum R` with a partial order,
 where `x ≤ y` if and only if `y ∈ closure {x}`.
-
-TODO: maybe define sober topological spaces, and generalise this instance to those
 -/
 
 instance : partial_order (prime_spectrum R) :=

@@ -154,20 +154,6 @@ begin
   exact nat.sub_add_cancel h, -- TODO should be a simp lemma in lean
 end
 
--- TODO(Sean): A git task for you: This lemma should probably go in the src/data/nat/gcd.lean file
--- probably around line 469 (after the coprime_self theorem).
--- Go to the master branch and pull it, then make a new branch, and put this lemma in that
--- location in that branch, then commit and publish the new branch. Then go to github and make a PR.
-lemma nat.gcd_mul_of_dvd_coprime (a b c : ℕ) (b_dvd_c : b ∣ c) (hac : nat.coprime a c) :
-  nat.gcd (a * b) c = b :=
-begin
-  rcases exists_eq_mul_left_of_dvd b_dvd_c with ⟨d, hd⟩,
-  rw hd at hac ⊢,
-  rw [nat.gcd_mul_right],
-  convert one_mul b,
-  exact nat.coprime.coprime_mul_right_right hac,
-end
-
 lemma sub_one_dvd_pow_sub_one (p α : ℕ) (one_le_p : 1 ≤ p) : (p - 1) ∣ (p^α - 1) :=
 begin
   induction α with a ih,

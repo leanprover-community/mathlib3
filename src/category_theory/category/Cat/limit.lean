@@ -25,8 +25,6 @@ universes v u
 open category_theory
 open category_theory.limits
 
-@[simp] lemma foo {C D E : Cat.{v u}} (f : C ⟶ D) (g : D ⟶ E) : f ≫ g = f ⋙ g := rfl
-@[simp] lemma bar {C D : Cat.{v u}} (f : C ⟶ D) : 𝟙 C ⋙ f = f := sorry
 
 variables {J : Type v} [small_category J]
 
@@ -43,6 +41,11 @@ instance category_objects' {F : J ⥤ Cat.{v v}} {j} :
 @[simp]
 lemma id_map {C : Cat} {X Y : C} (f : X ⟶ Y) : (𝟙 C : C ⥤ C).map f = f :=
 functor.id_map f
+
+@[simp]
+lemma comp_obj {C D E : Cat} (F : C ⟶ D) (G : D ⟶ E) (X : C) :
+  (F ≫ G).obj X = G.obj (F.obj X) :=
+functor.comp_obj F G X
 
 @[simp]
 lemma comp_map {C D E : Cat} (F : C ⟶ D) (G : D ⟶ E) {X Y : C} (f : X ⟶ Y) :
@@ -80,15 +83,13 @@ def limit (F : J ⥤ Cat.{v v}) : Cat.{v v} :=
     comp := λ X Y Z f g,
     begin
       fapply types.limit.mk,
-      intro j,
-      dsimp,
-      exact limit.π (hom_diagram X Y) j f ≫ limit.π (hom_diagram Y Z) j g,
-      intros j j' h,
-      dsimp,
-      conv_rhs { rw ←congr_fun (limit.w (hom_diagram X Y) h) f, },
-      conv_rhs { rw ←congr_fun (limit.w (hom_diagram Y Z) h) g, },
-      dsimp,
-      simp,
+      { exact λ j, limit.π (hom_diagram X Y) j f ≫ limit.π (hom_diagram Y Z) j g, },
+      { intros j j' h,
+        dsimp,
+        conv_rhs { rw ←congr_fun (limit.w (hom_diagram X Y) h) f, },
+        conv_rhs { rw ←congr_fun (limit.w (hom_diagram Y Z) h) g, },
+        dsimp,
+        simp, },
     end } }.
 
 
@@ -112,14 +113,10 @@ def limit_cone_lift (F : J ⥤ Cat.{v v}) (s : cone F) : s.X ⟶ limit F :=
   { X := s.X,
     π :=
     { app := λ j, (s.π.app j).obj,
-      naturality' := λ j j' f,
-      begin
-        ext X,
-        exact congr_fun (congr_arg functor.obj (s.π.naturality f) : _) X,
-      end, } },
+      naturality' := λ j j' f, (congr_arg functor.obj (s.π.naturality f) : _), } },
   map := λ X Y f,
   begin
-    dsimp, fapply types.limit.mk,
+    fapply types.limit.mk,
     { intro j,
       dsimp,
       refine eq_to_hom _ ≫ (s.π.app j).map f ≫ eq_to_hom _;
@@ -139,26 +136,25 @@ instance quux (F : J ⥤ Cat.{v v}) : category.{v v} (limit.{v v v v+1} (F ⋙ C
 (limit F).str
 
 @[simp]
-lemma fooo {F : J ⥤ Cat.{v v}} (X Y : limit (F ⋙ Cat.objects.{v v})) (j : J) (h : X = Y) :
+lemma limit_π_hom_diagram_eq_to_hom {F : J ⥤ Cat.{v v}}
+  (X Y : limit (F ⋙ Cat.objects.{v v})) (j : J) (h : X = Y) :
   limit.π (hom_diagram X Y) j (eq_to_hom h) =
     eq_to_hom (congr_arg (limit.π (F ⋙ Cat.objects.{v v}) j) h) :=
 by { subst h, simp, }
 
+/-- The proposed cone is a limit cone. -/
 def limit_cone_is_limit (F : J ⥤ Cat.{v v}) : is_limit (limit_cone F) :=
 { lift := limit_cone_lift F,
-  fac' := λ s j, category_theory.functor.ext (by tidy)
-    (by { intros X Y f, convert types.limit.π_mk _ _ _ _, dsimp, simp, }),
+  fac' := λ s j, category_theory.functor.ext (by tidy) (λ X Y f, types.limit.π_mk _ _ _ _),
   uniq' := λ s m w,
   begin
     symmetry,
     fapply category_theory.functor.ext,
-    { dsimp,
-      intro X,
+    { intro X,
       ext,
-      simp only [types.limit.lift_π_apply, ←w j],
+      dsimp, simp only [types.limit.lift_π_apply, ←w j],
       refl, },
     { intros X Y f,
-      dsimp only [limit_cone_lift],
-      simp_rw (λ j, functor.congr_hom (w j).symm f),
-      dsimp, simp, congr, },
+      dsimp, simp [(λ j, functor.congr_hom (w j).symm f)],
+      congr, },
   end, }

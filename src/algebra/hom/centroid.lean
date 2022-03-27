@@ -3,8 +3,8 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Christopher Hoskin
 -/
-import algebra.hom.group_instances
-import algebra.ring.basic
+import algebra.group.pi
+import algebra.group_power.lemmas
 
 /-!
 # Centroid homomorphisms
@@ -80,6 +80,15 @@ instance : has_coe_to_fun (centroid_hom α) (λ _, α → α) := fun_like.has_co
 @[simp] lemma to_add_monoid_hom_eq_coe (f : centroid_hom α) : f.to_add_monoid_hom = f :=
 fun_like.coe_injective rfl
 
+lemma coe_to_add_monoid_hom_injective : injective (coe : centroid_hom α → α →+ α) :=
+λ f g h, ext $ λ a, by { have := fun_like.congr_fun h a, exact this }
+
+/-- Turn a centroid homomorphism into an additive monoid endomorphism. -/
+def to_End (f : centroid_hom α) : add_monoid.End α := (f : α →+ α)
+
+lemma to_End_injective : injective (to_End : centroid_hom α → add_monoid.End α) :=
+coe_to_add_monoid_hom_injective
+
 /-- Copy of a `centroid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/
 protected def copy (f : centroid_hom α) (f' : α → α) (h : f' = f) :
@@ -125,47 +134,55 @@ lemma cancel_right {g₁ g₂ f : centroid_hom α} (hf : surjective f) :
 lemma cancel_left {g f₁ f₂ : centroid_hom α} (hg : injective g) : g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
 ⟨λ h, ext $ λ a, hg $ by rw [←comp_apply, h, comp_apply], congr_arg _⟩
 
--- c.f. https://github.com/leanprover-community/mathlib/blob/5d405e2a7028f87e962e7cc2133dc0cfc9c55f7d/src/algebra/group/hom.lean#L885
-instance : monoid (centroid_hom α) :=
-{ mul := centroid_hom.comp,
-  one := centroid_hom.id α,
-  mul_assoc := centroid_hom.comp_assoc,
-  mul_one := centroid_hom.comp_id,
-  one_mul := centroid_hom.id_comp }
-
-@[simp] lemma coe_mul (f g : centroid_hom α) : ⇑(f * g) = f ∘ g := rfl
-@[simp] lemma coe_one : ⇑(1 : centroid_hom α) = id := rfl
+instance : has_zero (centroid_hom α) := ⟨⟨0, λ a b, (mul_zero _).symm, λ a b, (zero_mul _).symm⟩⟩
+instance : has_one (centroid_hom α) := ⟨centroid_hom.id α⟩
 
 instance : has_add (centroid_hom α) :=
 ⟨λ f g, ⟨f + g, λ a b, by simp [map_mul_left, mul_add], λ a b, by simp [map_mul_right, add_mul]⟩⟩
 
-/-- The zero `centroid_hom` -/
-instance : has_zero (centroid_hom α) :=
-⟨⟨(0 : add_monoid.End α), λ a b, (mul_zero _).symm, λ a b, (zero_mul _).symm⟩⟩
+instance : has_mul (centroid_hom α) := ⟨comp⟩
 
--- c.f. https://github.com/leanprover-community/mathlib/blob/master/src/algebra/group/hom_instances.lean#L28
-instance : add_comm_monoid (centroid_hom α) :=
-{ add := (+),
-  add_assoc := by intros; ext; apply add_assoc,
-  zero := 0,
-  zero_add := by intros; ext; apply zero_add,
-  add_zero := by intros; ext; apply add_zero,
-  add_comm := by intros; ext; apply add_comm }
+instance has_scalar_nat : has_scalar ℕ (centroid_hom α) :=
+⟨λ n f, ⟨n • f,
+  λ a b, by { change n • f (a * b) = a * n • f b, rw [map_mul_left f, mul_nsmul_left] },
+  λ a b, by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, mul_nsmul_assoc] }⟩⟩
+
+instance has_npow_nat : has_pow (centroid_hom α) ℕ :=
+⟨λ f n, ⟨(f.to_End ^ n : add_monoid.End α), λ a b, begin
+    induction n with n ih,
+    { simp },
+    { rw pow_succ,
+      exact (congr_arg f.to_End ih).trans (f.map_mul_left' _ _) }
+  end, λ a b, begin
+    induction n with n ih,
+    { simp },
+    { rw pow_succ,
+      exact (congr_arg f.to_End ih).trans (f.map_mul_right' _ _) }
+  end⟩⟩
 
 @[simp] lemma coe_zero : ⇑(0 : centroid_hom α) = 0 := rfl
+@[simp] lemma coe_one : ⇑(1 : centroid_hom α) = id := rfl
 @[simp] lemma coe_add (f g : centroid_hom α) : ⇑(f + g) = f + g := rfl
+@[simp] lemma coe_mul (f g : centroid_hom α) : ⇑(f * g) = f ∘ g := rfl
+-- Eligible for `dsimp`
+@[simp, nolint simp_nf] lemma coe_nsmul (f : centroid_hom α) (n : ℕ) : ⇑(n • f) = n • f := rfl
 
 @[simp] lemma zero_apply (a : α) : (0 : centroid_hom α) a = 0 := rfl
+@[simp] lemma one_apply (a : α) : (1 : centroid_hom α) a = a := rfl
 @[simp] lemma add_apply (f g : centroid_hom α) (a : α) : (f + g) a = f a + g a := rfl
+@[simp] lemma mul_apply (f g : centroid_hom α) (a : α) : (f * g) a = f (g a) := rfl
+-- Eligible for `dsimp`
+@[simp, nolint simp_nf]
+lemma nsmul_apply (f : centroid_hom α) (n : ℕ) (a : α) : (n • f) a = n • f a := rfl
 
--- c.f https://github.com/leanprover-community/mathlib/blob/master/src/algebra/group/hom_instances.lean#L58
+-- cf.`add_monoid_hom.add_comm_monoid`
+instance : add_comm_monoid (centroid_hom α) :=
+coe_to_add_monoid_hom_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
+
+-- cf `add_monoid.End.semiring`
 instance : semiring (centroid_hom α) :=
-{ zero_mul := λ x, ext $ λ i, rfl,
-  mul_zero := λ x, ext $ λ i, add_monoid_hom.map_zero _,
-  left_distrib :=  λ x y z, ext $ λ i, add_monoid_hom.map_add _ _ _,
-  right_distrib := λ x y z, ext $ λ i, rfl,
-  .. centroid_hom.monoid,
-  .. centroid_hom.add_comm_monoid }
+to_End_injective.semiring _ (by { ext, refl }) (by { ext, refl }) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ f a, by { ext, refl })
 
 lemma comp_mul_comm (T S : centroid_hom α) (a b : α) : (T ∘ S) (a * b) = (S ∘ T) (a * b) :=
 by rw [comp_app, map_mul_right, map_mul_left, ←map_mul_right, ←map_mul_left]
@@ -182,13 +199,16 @@ instance : has_neg (centroid_hom α) :=
 instance : has_sub (centroid_hom α) :=
 ⟨λ f g, ⟨f - g, λ a b, by simp [map_mul_left, mul_sub], λ a b, by simp [map_mul_right, sub_mul]⟩⟩
 
-instance : add_comm_group (centroid_hom α) :=
-{ sub_eq_add_neg := λ _ _, ext $ λ _, sub_eq_add_neg _ _,
-  add_left_neg := λ _, ext $ λ _, add_left_neg _,
-  ..centroid_hom.add_comm_monoid, ..centroid_hom.has_neg, ..centroid_hom.has_sub }
+instance has_scalar_int : has_scalar ℤ (centroid_hom α) :=
+⟨λ n f, ⟨n • f,
+  λ a b, by { change n • f (a * b) = a * n • f b, rw [map_mul_left f, mul_zsmul_left] },
+  λ a b, by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, mul_zsmul_assoc] }⟩⟩
 
-instance  : ring (centroid_hom α) :=
-{ ..centroid_hom.semiring, ..centroid_hom.add_comm_group }
+instance : add_comm_group (centroid_hom α) :=
+to_End_injective.add_comm_group _ (by { ext, refl }) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, by { ext, refl })
+
+instance : ring (centroid_hom α) := { ..centroid_hom.semiring, ..centroid_hom.add_comm_group }
 
 lemma coe_neg (f : centroid_hom α) : ⇑(-f) = -f := rfl
 lemma coe_sub (f g : centroid_hom α) : ⇑(f - g) = f - g := rfl

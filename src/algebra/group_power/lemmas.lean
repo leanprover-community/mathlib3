@@ -335,18 +335,22 @@ end linear_ordered_add_comm_group
   ((n • a : A) : with_bot A) = n • a :=
 add_monoid_hom.map_nsmul ⟨(coe : A → with_bot A), with_bot.coe_zero, with_bot.coe_add⟩ a n
 
+lemma mul_nsmul_left [non_unital_non_assoc_semiring R] (a b : R) :
+  ∀ n : ℕ, n • (a * b) = a * n • b
+| 0 := by simp_rw [zero_nsmul, mul_zero]
+| (n + 1) := by simp_rw [succ_nsmul, mul_nsmul_left, mul_add]
+
+lemma mul_nsmul_assoc [non_unital_non_assoc_semiring R] (a b : R) :
+  ∀ n : ℕ, n • (a * b) = n • a * b
+| 0 := by simp_rw [zero_nsmul, zero_mul]
+| (n + 1) := by simp_rw [succ_nsmul, mul_nsmul_assoc, add_mul]
+
 theorem nsmul_eq_mul' [semiring R] (a : R) (n : ℕ) : n • a = a * n :=
 by induction n with n ih; [rw [zero_nsmul, nat.cast_zero, mul_zero],
   rw [succ_nsmul', ih, nat.cast_succ, mul_add, mul_one]]
 
 @[simp] theorem nsmul_eq_mul [semiring R] (n : ℕ) (a : R) : n • a = n * a :=
 by rw [nsmul_eq_mul', (n.cast_commute a).eq]
-
-theorem mul_nsmul_left [semiring R] (a b : R) (n : ℕ) : n • (a * b) = a * (n • b) :=
-by rw [nsmul_eq_mul', nsmul_eq_mul', mul_assoc]
-
-theorem mul_nsmul_assoc [semiring R] (a b : R) (n : ℕ) : n • (a * b) = n • a * b :=
-by rw [nsmul_eq_mul, nsmul_eq_mul, mul_assoc]
 
 @[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
@@ -360,6 +364,16 @@ by induction m with m ih; [exact int.coe_nat_one, rw [pow_succ', pow_succ', int.
 
 theorem int.nat_abs_pow (n : ℤ) (k : ℕ) : int.nat_abs (n ^ k) = (int.nat_abs n) ^ k :=
 by induction k with k ih; [refl, rw [pow_succ', int.nat_abs_mul, pow_succ', ih]]
+
+lemma mul_zsmul_left [non_unital_non_assoc_ring R] (a b : R) :
+  ∀ n : ℤ, n • (a * b) = a * (n • b)
+| (n : ℕ) := by simp_rw [coe_nat_zsmul, mul_nsmul_left]
+| -[1+n]  := by simp_rw [zsmul_neg_succ_of_nat, mul_nsmul_left, mul_neg]
+
+lemma mul_zsmul_assoc [non_unital_non_assoc_ring R] (a b : R) :
+  ∀ n : ℤ, n • (a * b) = n • a * b
+| (n : ℕ) := by simp_rw [coe_nat_zsmul, mul_nsmul_assoc]
+| -[1+n]  := by simp_rw [zsmul_neg_succ_of_nat, mul_nsmul_assoc, neg_mul]
 
 -- The next four lemmas allow us to replace multiplication by a numeral with a `zsmul` expression.
 -- They are used by the `noncomm_ring` tactic, to normalise expressions before passing to `abel`.
@@ -382,12 +396,6 @@ by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
 theorem zsmul_eq_mul' [ring R] (a : R) (n : ℤ) : n • a = a * n :=
 by rw [zsmul_eq_mul, (n.cast_commute a).eq]
-
-theorem mul_zsmul_left [ring R] (a b : R) (n : ℤ) : n • (a * b) = a * (n • b) :=
-by rw [zsmul_eq_mul', zsmul_eq_mul', mul_assoc]
-
-theorem mul_zsmul_assoc [ring R] (a b : R) (n : ℤ) : n • (a * b) = n • a * b :=
-by rw [zsmul_eq_mul, zsmul_eq_mul, mul_assoc]
 
 lemma zsmul_int_int (a b : ℤ) : a • b = a * b := by simp
 

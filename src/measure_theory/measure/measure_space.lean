@@ -838,6 +838,9 @@ instance [measurable_space α] : complete_lattice (measure α) :=
 
 end Inf
 
+@[simp] lemma top_add : ⊤ + μ = ⊤ := top_unique $ measure.le_add_right le_rfl
+@[simp] lemma add_top : μ + ⊤ = ⊤ := top_unique $ measure.le_add_left le_rfl
+
 protected lemma zero_le {m0 : measurable_space α} (μ : measure α) : 0 ≤ μ := bot_le
 
 lemma nonpos_iff_eq_zero' : μ ≤ 0 ↔ μ = 0 :=

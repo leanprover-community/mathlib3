@@ -59,6 +59,15 @@ theorem chain.iff_mem {a : α} {l : list α} :
 theorem chain_singleton {a b : α} : chain R a [b] ↔ R a b :=
 by simp only [chain_cons, chain.nil, and_true]
 
+@[simp] theorem chain_append_singleton_cons (r : α → α → Prop) (a b c : α) (l m : list α) :
+  chain r a (l ++ b :: c :: m) ↔ chain r a (l ++ [b]) ∧ r b c ∧ chain r c m :=
+begin
+  induction l with d l H generalizing a b c,
+  { simp },
+  { simp only [cons_append, chain_cons],
+    rw [H d b c, and.assoc] }
+end
+
 theorem chain_split {a b : α} {l₁ l₂ : list α} : chain R a (l₁ ++ b :: l₂) ↔
   chain R a (l₁ ++ [b]) ∧ chain R b l₂ :=
 by induction l₁ with x l₁ IH generalizing a;

@@ -770,7 +770,7 @@ def chain (r : α → α → Prop) : cycle α → Prop :=
       { simp only [rotate_singleton] at hn,
         rw [hn.1, hn.2] },
       { rw [nat.succ_eq_one_add, ←rotate_rotate, rotate_cons_succ, rotate_zero, cons_append] at hn,
-        rw [←hd c _ _ _ hn, chain_append_singleton_cons],
+        rw [←hd c _ _ _ hn],
         simp,
         exact and.comm } } }
 end

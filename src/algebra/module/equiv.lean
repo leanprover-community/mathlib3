@@ -178,6 +178,8 @@ include σ'
 @[simp] lemma inv_fun_eq_symm : e.inv_fun = e.symm := rfl
 omit σ'
 
+@[simp] lemma coe_to_equiv_symm : ⇑e.to_equiv.symm = e.symm := rfl
+
 variables {module_M₁ : module R₁ M₁} {module_M₂ : module R₂ M₂} {module_M₃ : module R₃ M₃}
 variables {module_N₁ : module R₁ N₁} {module_N₂ : module R₁ N₂}
 variables {σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R₁ →+* R₃}

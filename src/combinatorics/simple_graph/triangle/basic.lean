@@ -92,6 +92,10 @@ end
 @[simp] lemma triangle_finset_eq_empty_iff : G.triangle_finset = ∅ ↔ G.triangle_free :=
 by simp_rw [triangle_free, eq_empty_iff_forall_not_mem, mem_triangle_finset_iff]
 
+alias triangle_finset_eq_empty_iff ↔ _ simple_graph.triangle_free.triangle_finset
+
+attribute [protected] triangle_free.triangle_finset
+
 variables {G} [decidable_rel H.adj]
 
 lemma triangle_finset_mono (h : G ≤ H) : G.triangle_finset ⊆ H.triangle_finset :=
@@ -118,7 +122,7 @@ lemma triangle_free_far.triangle_finset_nonempty' (hH : H ≤ G) (hG : G.triangl
 begin
   apply nonempty_of_ne_empty,
   rw [ne.def, triangle_finset_eq_empty_iff],
-  exact λ hH', (hG hH hH').not_lt hcard ,
+  exact λ hH', (hG hH hH').not_lt hcard,
 end
 
 variables [nonempty α]

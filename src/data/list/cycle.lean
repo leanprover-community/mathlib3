@@ -779,8 +779,9 @@ begin
     rw this }
 end
 
-protected theorem chain_of_pairwise [decidable_eq α] {r : α → α → Prop} {s : cycle α}
-  (hs : ∀ (a ∈ s) (b ∈ s), r a b) : cycle.chain r s :=
+variables [decidable_eq α] {r : α → α → Prop} {s : cycle α}
+
+protected theorem chain_of_pairwise (hs : ∀ (a ∈ s) (b ∈ s), r a b) : cycle.chain r s :=
 begin
   rcases s.cases_on with rfl | ⟨a, l, rfl⟩,
   { exact cycle.chain.nil r },
@@ -802,12 +803,12 @@ begin
       exact hs b (Hl hb) a Ha } }
 end
 
-protected theorem chain_iff_pairwise [decidable_eq α] {r : α → α → Prop} {s : cycle α}
-  (hr' : transitive r) : (∀ (a ∈ s) (b ∈ s), r a b) ↔ cycle.chain r s :=
-⟨cycle.chain_of_pairwise, λ hs b hb c hc, begin
+protected theorem chain_iff_pairwise (hr : transitive r) :
+  cycle.chain r s ↔ ∀ (a ∈ s) (b ∈ s), r a b :=
+⟨λ hs b hb c hc, begin
   rcases s.cases_on with rfl | ⟨a, l, rfl⟩,
   { exact hb.elim },
-  { rw [cycle.chain_cons, chain_iff_pairwise hr'] at hs,
+  { rw [cycle.chain_cons, chain_iff_pairwise hr] at hs,
     simp [pairwise_append] at hs,
     simp only [mem_coe_iff, mem_cons_iff] at hb hc,
     rcases hb with rfl | hb;
@@ -815,7 +816,11 @@ protected theorem chain_iff_pairwise [decidable_eq α] {r : α → α → Prop} 
     { exact hs.1 c (or.inr rfl) },
     { exact hs.1 c (or.inl hc) },
     { exact hs.2.2 b hb },
-    { exact hr' (hs.2.2 b hb) (hs.1 c (or.inl hc)) } }
-end⟩
+    { exact hr (hs.2.2 b hb) (hs.1 c (or.inl hc)) } }
+end, cycle.chain_of_pairwise⟩
+
+protected theorem forall_eq_of_chain (hr : transitive r) (hr' : anti_symmetric r)
+  (hs : cycle.chain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) : a = b :=
+by { rw cycle.chain_iff_pairwise hr at hs, exact hr' (hs a ha b hb) (hs b hb a ha) }
 
 end cycle

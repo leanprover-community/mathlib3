@@ -710,6 +710,10 @@ mt (congr_arg (λ p, coeff p 1)) (by simp)
 
 end nonzero_semiring
 
+@[simp] lemma nontrivial_iff [semiring R] : nontrivial R[X] ↔ nontrivial R :=
+⟨λ h, let ⟨r, s, hrs⟩ := @exists_pair_ne _ h, ⟨n, hne⟩ := (ext_iff.not.trans not_forall).mp hrs in
+  ⟨⟨_, _, hne⟩⟩, λ h, @polynomial.nontrivial _ _ h⟩
+
 section repr
 variables [semiring R]
 open_locale classical

@@ -405,25 +405,32 @@ begin
   ... = p.sum f : p.sum_def _
 end
 
-lemma sum_mod_by_monic_coeff [nontrivial R] (hq : q.monic)
-  {n : ℕ} (hn : q.degree ≤ n) :
+lemma sum_mod_by_monic_coeff (hq : q.monic) {n : ℕ} (hn : q.degree ≤ n) :
   ∑ (i : fin n), monomial i ((p %ₘ q).coeff i) = p %ₘ q :=
-(sum_fin (λ i c, monomial i c) (by simp)
-  ((degree_mod_by_monic_lt _ hq).trans_le hn)).trans
-  (sum_monomial_eq _)
+begin
+  nontriviality R,
+  exact (sum_fin (λ i c, monomial i c) (by simp)
+    ((degree_mod_by_monic_lt _ hq).trans_le hn)).trans
+    (sum_monomial_eq _)
+end
 
 variable (R)
 
-lemma not_is_field [nontrivial R] : ¬ is_field R[X] :=
+lemma not_is_field : ¬ is_field R[X] :=
 begin
-  rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
-  use ideal.span {polynomial.X},
-  split,
-  { rw [bot_lt_iff_ne_bot, ne.def, ideal.span_singleton_eq_bot],
-    exact polynomial.X_ne_zero, },
-  { rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ideal.mem_span_singleton,
-      polynomial.X_dvd_iff, polynomial.coeff_one_zero],
-    exact one_ne_zero, }
+  by_cases h : nontrivial R,
+  { resetI,
+    rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
+    use ideal.span {polynomial.X},
+    split,
+    { rw [bot_lt_iff_ne_bot, ne.def, ideal.span_singleton_eq_bot],
+      exact polynomial.X_ne_zero, },
+    { rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ideal.mem_span_singleton,
+        polynomial.X_dvd_iff, polynomial.coeff_one_zero],
+      exact one_ne_zero, } },
+  { intro hf,
+    rw ←polynomial.nontrivial_iff.not at h,
+    exact h ⟨hf.exists_pair_ne⟩, }
 end
 
 variable {R}
@@ -440,11 +447,14 @@ open_locale classical
 
 lemma multiplicity_X_sub_C_finite (a : R) (h0 : p ≠ 0) :
   multiplicity.finite (X - C a) p :=
-multiplicity_finite_of_degree_pos_of_monic
-  (have (0 : R) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one h;
-      exact h0 (subsingleton.elim _ _)),
-    by haveI : nontrivial R := ⟨⟨0, 1, this⟩⟩; rw degree_X_sub_C; exact dec_trivial)
-    (monic_X_sub_C _) h0
+begin
+  nontriviality R[X],
+  haveI := polynomial.nontrivial_iff.mp ‹_›,
+  refine multiplicity_finite_of_degree_pos_of_monic _ (monic_X_sub_C _) h0,
+  rw degree_X_sub_C,
+  dec_trivial,
+end
+
 /-- The largest power of `X - C a` which divides `p`.
 This is computable via the divisibility algorithm `decidable_dvd_monic`. -/
 def root_multiplicity (a : R) (p : R[X]) : ℕ :=

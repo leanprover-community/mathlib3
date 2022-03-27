@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.category.Cat
 import category_theory.limits.types
+import category_theory.limits.preserves.basic
 
 /-!
 # The category of small categories has all small limits.
@@ -15,28 +16,17 @@ A morphism between two such objects is a family of morphisms between the corresp
 which are carried to one another by the action on morphisms of the functors in the diagram.
 
 ## Future work
-The universe restrictions are likely unnecessarily strict.
+The universe restrictions are likely unnecessarily strict:
+the indexing category could live in a lower universe.
 -/
 
 noncomputable theory
 
 universes v u
 
-open category_theory
 open category_theory.limits
 
-
-variables {J : Type v} [small_category J]
-
-set_option pp.universes true
-
-instance category_objects {F : J ⥤ Cat.{v v}} {j} :
-  small_category ((F ⋙ Cat.objects.{v v}).obj j) :=
-(F.obj j).str
-
-instance category_objects' {F : J ⥤ Cat.{v v}} {j} :
-  small_category ((Cat.objects.{v v}).obj (F.obj j)) :=
-(F.obj j).str
+namespace category_theory
 
 @[simp]
 lemma id_map {C : Cat} {X Y : C} (f : X ⟶ Y) : (𝟙 C : C ⥤ C).map f = f :=
@@ -51,6 +41,16 @@ functor.comp_obj F G X
 lemma comp_map {C D E : Cat} (F : C ⟶ D) (G : D ⟶ E) {X Y : C} (f : X ⟶ Y) :
   (F ≫ G).map f = G.map (F.map f) :=
 functor.comp_map F G f
+
+variables {J : Type v} [small_category J]
+
+namespace Cat
+
+namespace has_limits
+
+instance category_objects {F : J ⥤ Cat.{u u}} {j} :
+  small_category ((F ⋙ Cat.objects.{u u}).obj j) :=
+(F.obj j).str
 
 @[simps]
 def hom_diagram {F : J ⥤ Cat.{v v}} (X Y : limit (F ⋙ Cat.objects.{v v})) : J ⥤ Type v :=
@@ -74,41 +74,32 @@ def hom_diagram {F : J ⥤ Cat.{v v}} (X Y : limit (F ⋙ Cat.objects.{v v})) : 
 @[simps]
 instance (F : J ⥤ Cat.{v v}) : category (limit (F ⋙ Cat.objects)) :=
 { hom := λ X Y, limit (hom_diagram X Y),
-  id := λ X, begin fapply types.limit.mk, intro j, dsimp, exact 𝟙 _, intros j j' f, simp, end,
-  comp := λ X Y Z f g,
-  begin
-    fapply types.limit.mk,
-    { exact λ j, limit.π (hom_diagram X Y) j f ≫ limit.π (hom_diagram Y Z) j g, },
-    { intros j j' h,
+  id := λ X, types.limit.mk (hom_diagram X X) (λ j, 𝟙 _) (λ j j' f, by simp),
+  comp := λ X Y Z f g, types.limit.mk (hom_diagram X Z)
+    (λ j, limit.π (hom_diagram X Y) j f ≫ limit.π (hom_diagram Y Z) j g)
+    (λ j j' h, begin
+      rw [←congr_fun (limit.w (hom_diagram X Y) h) f, ←congr_fun (limit.w (hom_diagram Y Z) h) g],
       dsimp,
-      conv_rhs { rw ←congr_fun (limit.w (hom_diagram X Y) h) f, },
-      conv_rhs { rw ←congr_fun (limit.w (hom_diagram Y Z) h) g, },
-      dsimp,
-      simp, },
-  end }
-
+      simp,
+    end), }
 
 @[simps]
-def limit (F : J ⥤ Cat.{v v}) : Cat.{v v} :=
+def limit_cone_X (F : J ⥤ Cat.{v v}) : Cat.{v v} :=
 { α := limit (F ⋙ Cat.objects), }.
-
-
 
 @[simps]
 def limit_cone (F : J ⥤ Cat.{v v}) : cone F :=
-{ X := limit F,
+{ X := limit_cone_X F,
   π :=
   { app := λ j,
     { obj := limit.π (F ⋙ Cat.objects) j,
-      map := λ X Y, limit.π (hom_diagram X Y) j,
-      map_id' := by tidy,
-      map_comp' := by tidy, },
+      map := λ X Y, limit.π (hom_diagram X Y) j, },
     naturality' := λ j j' f, category_theory.functor.ext
       (λ X, (congr_fun (limit.w (F ⋙ Cat.objects) f) X).symm)
       (λ X Y h, (congr_fun (limit.w (hom_diagram X Y) f) h).symm), } }
 
 @[simps]
-def limit_cone_lift (F : J ⥤ Cat.{v v}) (s : cone F) : s.X ⟶ limit F :=
+def limit_cone_lift (F : J ⥤ Cat.{v v}) (s : cone F) : s.X ⟶ limit_cone_X F :=
 { obj := limit.lift (F ⋙ Cat.objects)
   { X := s.X,
     π :=
@@ -122,17 +113,14 @@ def limit_cone_lift (F : J ⥤ Cat.{v v}) (s : cone F) : s.X ⟶ limit F :=
       simp, },
     { intros j j' h,
       dsimp,
-      simp only [category.assoc, eq_to_hom_trans_assoc, functor.map_comp,
-        eq_to_hom_map, eq_to_hom_trans],
+      simp only [category.assoc, functor.map_comp,
+        eq_to_hom_map, eq_to_hom_trans, eq_to_hom_trans_assoc],
       rw [←functor.comp_map],
       have := (s.π.naturality h).symm,
       conv at this { congr, skip, dsimp, simp, },
       erw [functor.congr_hom this f],
       dsimp, simp, },
   end, }
-
-instance quux (F : J ⥤ Cat.{v v}) : category.{v v} (limit.{v v v v+1} (F ⋙ Cat.objects.{v v})) :=
-(limit F).str
 
 @[simp]
 lemma limit_π_hom_diagram_eq_to_hom {F : J ⥤ Cat.{v v}}
@@ -157,3 +145,21 @@ def limit_cone_is_limit (F : J ⥤ Cat.{v v}) : is_limit (limit_cone F) :=
       dsimp, simp [(λ j, functor.congr_hom (w j).symm f)],
       congr, },
   end, }
+
+end has_limits
+
+/-- The category of small categories has all small limits. -/
+instance : has_limits (Cat.{v v}) :=
+{ has_limits_of_shape := λ J _, by exactI
+  { has_limit := λ F, ⟨⟨⟨has_limits.limit_cone F, has_limits.limit_cone_is_limit F⟩⟩⟩, } }
+
+instance : preserves_limits Cat.objects.{v v} :=
+{ preserves_limits_of_shape := λ J _, by exactI
+  { preserves_limit := λ F,
+    preserves_limit_of_preserves_limit_cone (has_limits.limit_cone_is_limit F)
+      (limits.is_limit.of_iso_limit (limit.is_limit (F ⋙ Cat.objects))
+        (cones.ext (by refl) (by tidy))), }}
+
+end Cat
+
+end category_theory

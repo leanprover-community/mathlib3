@@ -62,6 +62,11 @@ We also have a set of recursion and induction principles:
  - `ratfunc.induction_on`: if `P` holds on `p / q` for all polynomials `p q`, then `P` holds on all
    rational functions
 
+We define the degree of a rational function, with values in `ℤ`:
+ - `int_degree` is the degree of a rational function, defined as the difference between the
+   `nat_degree` of its numerator and the `nat_degree` of its denominator. In particular,
+   `int_degree 0 = 0`.
+
 ## Implementation notes
 
 To provide good API encapsulation and speed up unification problems,
@@ -1034,6 +1039,10 @@ begin
   { exact algebra_map_ne_zero (denom_ne_zero y) }
 end
 
+lemma num_denom_neg (x : ratfunc K) :
+  (-x).num * x.denom = - x.num * (-x).denom :=
+by rw [num_mul_eq_mul_denom_iff (denom_ne_zero x), _root_.map_neg, neg_div, num_div_denom]
+
 lemma num_denom_mul (x y : ratfunc K) :
   (x * y).num * (x.denom * y.denom) = x.num * y.num * (x * y).denom :=
 (num_mul_eq_mul_denom_iff (mul_ne_zero (denom_ne_zero x) (denom_ne_zero y))).mpr $
@@ -1123,6 +1132,15 @@ lemma lift_alg_hom_apply {L S : Type*} [field L] [comm_semiring S] [algebra S K[
   lift_alg_hom φ hφ f = φ f.num / φ f.denom :=
 lift_monoid_with_zero_hom_apply _ _ _
 
+lemma num_mul_denom_add_denom_mul_num_ne_zero {x y : ratfunc K} (hxy : x + y ≠ 0) :
+  x.num * y.denom + x.denom * y.num ≠ 0 :=
+begin
+  intro h_zero,
+  have h := num_denom_add x y,
+  rw [h_zero, zero_mul] at h,
+  exact (mul_ne_zero (num_ne_zero hxy) (mul_ne_zero x.denom_ne_zero y.denom_ne_zero)) h
+end
+
 end num_denom
 
 section eval
@@ -1164,6 +1182,9 @@ denom_algebra_map _
 num_algebra_map _
 @[simp] lemma denom_X : denom (X : ratfunc K) = 1 :=
 denom_algebra_map _
+
+lemma X_ne_zero : (ratfunc.X : ratfunc K) ≠ 0 :=
+ratfunc.algebra_map_ne_zero polynomial.X_ne_zero
 
 variables {L : Type*} [field L]
 
@@ -1242,6 +1263,89 @@ begin
 end
 
 end eval
+
+section int_degree
+
+open polynomial
+
+omit hring
+
+variables [field K]
+
+/-- `int_degree x` is the degree of the rational function `x`, defined as the difference between
+the `nat_degree` of its numerator and the `nat_degree` of its denominator. In particular,
+`int_degree 0 = 0`. -/
+def int_degree (x : ratfunc K) : ℤ := nat_degree x.num - nat_degree x.denom
+
+@[simp] lemma int_degree_zero : int_degree (0 : ratfunc K) = 0 :=
+by rw [int_degree, num_zero, nat_degree_zero, denom_zero, nat_degree_one, sub_self]
+
+@[simp] lemma int_degree_one : int_degree (1 : ratfunc K) = 0 :=
+by rw [int_degree, num_one, denom_one, sub_self]
+
+@[simp] lemma int_degree_C (k : K): int_degree (ratfunc.C k) = 0 :=
+by rw [int_degree, num_C, nat_degree_C, denom_C, nat_degree_one, sub_self]
+
+@[simp] lemma int_degree_X : int_degree (X : ratfunc K) = 1 :=
+by rw [int_degree, ratfunc.num_X, polynomial.nat_degree_X, ratfunc.denom_X,
+  polynomial.nat_degree_one, int.coe_nat_one, int.coe_nat_zero, sub_zero]
+
+@[simp] lemma int_degree_polynomial {p : polynomial K} :
+  int_degree (algebra_map (polynomial K) (ratfunc K) p) = nat_degree p :=
+by rw [int_degree, ratfunc.num_algebra_map, ratfunc.denom_algebra_map, polynomial.nat_degree_one,
+  int.coe_nat_zero, sub_zero]
+
+lemma int_degree_mul {x y : ratfunc K} (hx : x ≠ 0) (hy : y ≠ 0) :
+  int_degree (x * y) = int_degree x + int_degree y :=
+begin
+  simp only [int_degree, add_sub, sub_add, sub_sub_assoc_swap, sub_sub, sub_eq_sub_iff_add_eq_add],
+  norm_cast,
+  rw [← polynomial.nat_degree_mul x.denom_ne_zero y.denom_ne_zero,
+        ← polynomial.nat_degree_mul (ratfunc.num_ne_zero (mul_ne_zero hx hy))
+          (mul_ne_zero x.denom_ne_zero y.denom_ne_zero),
+        ← polynomial.nat_degree_mul (ratfunc.num_ne_zero hx) (ratfunc.num_ne_zero hy),
+        ← polynomial.nat_degree_mul (mul_ne_zero (ratfunc.num_ne_zero hx) (ratfunc.num_ne_zero hy))
+          (x * y).denom_ne_zero, ratfunc.num_denom_mul]
+end
+
+@[simp] lemma int_degree_neg (x : ratfunc K) : int_degree (-x) = int_degree x :=
+begin
+  by_cases hx : x = 0,
+  { rw [hx, neg_zero] },
+  { rw [int_degree, int_degree, ← nat_degree_neg x.num],
+    exact nat_degree_sub_eq_of_prod_eq (num_ne_zero (neg_ne_zero.mpr hx)) (denom_ne_zero (- x))
+      (neg_ne_zero.mpr (num_ne_zero hx)) (denom_ne_zero x) (num_denom_neg x) }
+end
+
+lemma int_degree_add {x y : ratfunc K}
+  (hxy : x + y ≠ 0) : (x + y).int_degree  =
+    (x.num * y.denom + x.denom * y.num).nat_degree - (x.denom * y.denom).nat_degree :=
+nat_degree_sub_eq_of_prod_eq (num_ne_zero hxy) ((x + y).denom_ne_zero)
+    (num_mul_denom_add_denom_mul_num_ne_zero hxy) (mul_ne_zero x.denom_ne_zero y.denom_ne_zero)
+    (num_denom_add x y)
+
+lemma nat_degree_num_mul_right_sub_nat_degree_denom_mul_left_eq_int_degree {x : ratfunc K}
+  (hx : x ≠ 0) {s : polynomial K} (hs : s ≠ 0) :
+  ((x.num * s).nat_degree : ℤ) - (s * x.denom).nat_degree = x.int_degree :=
+begin
+  apply nat_degree_sub_eq_of_prod_eq (mul_ne_zero (num_ne_zero hx) hs)
+    (mul_ne_zero hs x.denom_ne_zero) (num_ne_zero hx) x.denom_ne_zero,
+  rw mul_assoc
+end
+
+lemma int_degree_add_le {x y : ratfunc K} (hx : x ≠ 0) (hy : y ≠ 0) (hxy : x + y ≠ 0) :
+  int_degree (x + y) ≤ max (int_degree x) (int_degree y) :=
+begin
+  rw [int_degree_add hxy,
+    ← nat_degree_num_mul_right_sub_nat_degree_denom_mul_left_eq_int_degree hx y.denom_ne_zero,
+    mul_comm y.denom,
+    ← nat_degree_num_mul_right_sub_nat_degree_denom_mul_left_eq_int_degree hy x.denom_ne_zero,
+    le_max_iff,sub_le_sub_iff_right, int.coe_nat_le, sub_le_sub_iff_right, int.coe_nat_le,
+    ← le_max_iff, mul_comm y.num],
+    exact nat_degree_add_le _ _,
+end
+
+end int_degree
 
 section laurent_series
 

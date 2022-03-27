@@ -6,6 +6,7 @@ Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 import algebraic_geometry.prime_spectrum.noetherian
 import ring_theory.fractional_ideal
 import ring_theory.dedekind_domain.basic
+import algebra.algebra.subalgebra.pointwise
 
 /-!
 # Dedekind domains and ideals
@@ -207,16 +208,10 @@ lemma is_dedekind_domain_inv_iff [algebra A K] [is_fraction_ring A K] :
   is_dedekind_domain_inv A ↔
     (∀ I ≠ (⊥ : fractional_ideal A⁰ K), I * I⁻¹ = 1) :=
 begin
-  set h := fraction_ring.alg_equiv A K,
-  split; rintros hi I hI,
-  { refine fractional_ideal.map_injective h.symm.to_alg_hom h.symm.injective _,
-    rw [alg_equiv.to_alg_hom_eq_coe, inv_eq, fractional_ideal.map_mul,
-        fractional_ideal.map_one_div, fractional_ideal.map_one, ← inv_eq, hi],
-    exact fractional_ideal.map_ne_zero _ hI },
-  { refine fractional_ideal.map_injective h.to_alg_hom h.injective _,
-    rw [alg_equiv.to_alg_hom_eq_coe, inv_eq, fractional_ideal.map_mul,
-        fractional_ideal.map_one_div, fractional_ideal.map_one, ← inv_eq, hi],
-    exact fractional_ideal.map_ne_zero _ hI },
+  let h := fractional_ideal.map_equiv (fraction_ring.alg_equiv A K),
+  refine h.to_equiv.forall_congr (λ I, _),
+  rw ← h.to_equiv.apply_eq_iff_eq,
+  simp
 end
 
 lemma fractional_ideal.adjoin_integral_eq_one_of_is_unit [algebra A K] [is_fraction_ring A K]

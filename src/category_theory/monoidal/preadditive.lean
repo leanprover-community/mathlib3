@@ -23,7 +23,7 @@ open category_theory.monoidal_category
 variables (C : Type*) [category C] [preadditive C] [monoidal_category C]
 
 /--
-A category is `monoidal_preadditive` if tensoring is linear in both factors.
+A category is `monoidal_preadditive` if tensoring is additive in both factors.
 
 Note we don't `extend preadditive C` here, as `abelian C` already extends it,
 and we'll need to have both typeclasses sometimes.
@@ -44,6 +44,8 @@ variables [monoidal_preadditive C]
 
 local attribute [simp] monoidal_preadditive.tensor_add monoidal_preadditive.add_tensor
 
+instance tensor_left_additive (X : C) : (tensor_left X).additive := {}
+instance tensor_right_additive (X : C) : (tensor_right X).additive := {}
 instance tensoring_left_additive (X : C) : ((tensoring_left C).obj X).additive := {}
 instance tensoring_right_additive (X : C) : ((tensoring_right C).obj X).additive := {}
 
@@ -85,35 +87,49 @@ lemma sum_tensor {P Q R S : C} {J : Type*} (s : finset J) (f : P ⟶ Q) (g : J �
   (∑ j in s, g j) ⊗ f = ∑ j in s, g j ⊗ f :=
 (right_tensor R S f).map_sum _ _
 
-variables {C} [has_finite_biproducts C]
+variables {C}
+
+-- In a closed monoidal category, this would hold because
+-- `tensor_left X` is a left adjoint and hence preserves all colimits.
+-- In any case it is true in any preadditive category.
+instance (X : C) : preserves_finite_biproducts (tensor_left X) :=
+{ preserves := λ J _ _, by exactI
+  { preserves := λ f,
+    { preserves := λ b i, is_bilimit_of_total _ begin
+      dsimp,
+      simp only [←tensor_comp, category.comp_id, ←tensor_sum, ←tensor_id, is_bilimit.total i],
+    end } } }
+
+instance (X : C) : preserves_finite_biproducts (tensor_right X) :=
+{ preserves := λ J _ _, by exactI
+  { preserves := λ f,
+    { preserves := λ b i, is_bilimit_of_total _ begin
+      dsimp,
+      simp only [←tensor_comp, category.comp_id, ←sum_tensor, ←tensor_id, is_bilimit.total i],
+    end } } }
+
+variables [has_finite_biproducts C]
 
 /-- The isomorphism showing how tensor product on the left distributes over direct sums. -/
-@[simps]
 def left_distributor {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
   X ⊗ (⨁ f) ≅ ⨁ (λ j, X ⊗ f j) :=
-{ hom := ∑ j : J, (𝟙 X ⊗ biproduct.π f j) ≫ biproduct.ι _ j,
-  inv := ∑ j : J, biproduct.π _ j ≫ (𝟙 X ⊗ biproduct.ι f j),
-  hom_inv_id' := begin
-    simp only [if_true, dif_ctx_congr,
-      finset.mem_univ, finset.sum_congr, finset.sum_dite_eq',
-      preadditive.sum_comp, preadditive.comp_sum,
-      category.id_comp, category.assoc, eq_to_hom_refl,
-      biproduct.ι_π_assoc, comp_zero, zero_comp, dite_comp, comp_dite],
-    simp only [←id_tensor_comp, ←tensor_sum, biproduct.total, tensor_id],
-  end,
-  inv_hom_id' := begin
-    ext j j',
-    simp only [preadditive.sum_comp, preadditive.comp_sum,
-      category.assoc, category.comp_id, category.id_comp, dite_comp, comp_dite,
-      ←id_tensor_comp_assoc, biproduct.ι_π, biproduct.ι_π_assoc],
-    simp only [category.comp_id, category.id_comp, eq_to_hom_refl, tensor_dite,
-      finset.sum_dite_eq, finset.mem_univ, finset.sum_congr, finset.sum_dite_eq',
-      dite_eq_ite, if_t_t, if_true, dif_ctx_congr,
-      comp_zero, zero_comp, monoidal_preadditive.tensor_zero],
-    split_ifs with h,
-    { cases h, simp, },
-    { refl, },
-  end, }
+(tensor_left X).map_biproduct f
+
+@[simp]
+lemma left_distributor_hom {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
+  (left_distributor X f).hom = ∑ j : J, (𝟙 X ⊗ biproduct.π f j) ≫ biproduct.ι _ j :=
+begin
+  ext, dsimp [tensor_left, left_distributor],
+  simp [preadditive.sum_comp, biproduct.ι_π, comp_dite],
+end
+
+@[simp]
+lemma left_distributor_inv {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
+  (left_distributor X f).inv = ∑ j : J, biproduct.π _ j ≫ (𝟙 X ⊗ biproduct.ι f j) :=
+begin
+  ext, dsimp [tensor_left, left_distributor],
+  simp [preadditive.comp_sum, biproduct.ι_π_assoc, dite_comp],
+end
 
 lemma left_distributor_assoc {J : Type*} [decidable_eq J] [fintype J] (X Y : C) (f : J → C) :
    (as_iso (𝟙 X) ⊗ left_distributor Y f) ≪≫ left_distributor X _ =
@@ -134,32 +150,25 @@ begin
 end
 
 /-- The isomorphism showing how tensor product on the right distributes over direct sums. -/
-@[simps]
 def right_distributor {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
-  (⨁ f) ⊗ X ≅ ⨁ (λ j, f j ⊗ X) :=
-{ hom := ∑ j : J, (biproduct.π f j ⊗ 𝟙 X) ≫ biproduct.ι _ j,
-  inv := ∑ j : J, biproduct.π _ j ≫ (biproduct.ι f j ⊗ 𝟙 X),
-  hom_inv_id' := begin
-    simp only [if_true, dif_ctx_congr,
-      finset.mem_univ, finset.sum_congr, finset.sum_dite_eq',
-      preadditive.sum_comp, preadditive.comp_sum,
-      category.id_comp, category.assoc, eq_to_hom_refl,
-      biproduct.ι_π_assoc, comp_zero, zero_comp, dite_comp, comp_dite],
-    simp only [←comp_tensor_id, ←sum_tensor, biproduct.total, tensor_id],
-  end,
-  inv_hom_id' := begin
-    ext j j',
-    simp only [preadditive.sum_comp, preadditive.comp_sum,
-      category.assoc, category.comp_id, category.id_comp, dite_comp, comp_dite,
-      ←comp_tensor_id_assoc, biproduct.ι_π, biproduct.ι_π_assoc],
-    simp only [category.comp_id, category.id_comp, eq_to_hom_refl, tensor_dite,
-      finset.sum_dite_eq, finset.mem_univ, finset.sum_congr, finset.sum_dite_eq',
-      dite_eq_ite, if_t_t, if_true, dif_ctx_congr,
-      comp_zero, zero_comp, monoidal_preadditive.tensor_zero],
-    split_ifs with h,
-    { cases h, simp, },
-    { simp, },
-  end, }
+  (⨁ f) ⊗ X ≅ ⨁ (λ j, f j ⊗ X)  :=
+(tensor_right X).map_biproduct f
+
+@[simp]
+lemma right_distributor_hom {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
+  (right_distributor X f).hom = ∑ j : J, (biproduct.π f j ⊗ 𝟙 X) ≫ biproduct.ι _ j :=
+begin
+  ext, dsimp [tensor_right, right_distributor],
+  simp [preadditive.sum_comp, biproduct.ι_π, comp_dite],
+end
+
+@[simp]
+lemma right_distributor_inv {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
+  (right_distributor X f).inv = ∑ j : J, biproduct.π _ j ≫ (biproduct.ι f j ⊗ 𝟙 X) :=
+begin
+  ext, dsimp [tensor_right, right_distributor],
+  simp [preadditive.comp_sum, biproduct.ι_π_assoc, dite_comp],
+end
 
 lemma right_distributor_assoc {J : Type*} [decidable_eq J] [fintype J] (X Y : C) (f : J → C) :
    (right_distributor X f ⊗ as_iso (𝟙 Y)) ≪≫ right_distributor Y _ =

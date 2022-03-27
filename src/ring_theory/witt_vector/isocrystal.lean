@@ -184,7 +184,7 @@ begin
   let F : standard_one_dim_isocrystal p k m ≃ₗ[K(p,k)] V,
   { refine linear_equiv.of_bijective F₀ _ _,
     { rw ← linear_map.ker_eq_bot,
-      exact linear_equiv.ker_to_span_singleton K(p, k) V hx },
+      exact linear_map.ker_to_span_singleton K(p, k) V hx },
     { rw ← linear_map.range_eq_top,
       rw ← (finrank_eq_one_iff_of_nonzero x hx).mp h_dim,
       rw linear_map.span_singleton_eq_range } },

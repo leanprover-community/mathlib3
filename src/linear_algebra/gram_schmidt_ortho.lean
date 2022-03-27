@@ -25,10 +25,6 @@ and outputs a set of orthogonal vectors which have the same span.
   the proof that "gram_schmidt_process_normed" produces an orthornormal system of vectors
 - `gram_schmidt_process_span_eq` :
   the proof that `gram_schmidt_process` preserves the span of vectors
-
-## Notation
-
- - `⟪·, ·⟫` : inner product operator
 -/
 
 open_locale big_operators

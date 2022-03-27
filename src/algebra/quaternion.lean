@@ -4,9 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.algebra.basic
-import algebra.ring.equiv
-import algebra.ring.opposite
-import data.equiv.ring
 import set_theory.cardinal_ordinal
 import tactic.ring_exp
 

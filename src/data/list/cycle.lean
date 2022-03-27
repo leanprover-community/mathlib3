@@ -461,7 +461,7 @@ instance : has_mem α (cycle α) := ⟨mem⟩
 @[simp] lemma mem_coe_iff {a : α} {l : list α} : a ∈ (l : cycle α) ↔ a ∈ l :=
 iff.rfl
 
-@[simp] theorem not_mem_nil : ∀ a, a ∉ (@nil α) :=
+@[simp] theorem not_mem_nil : ∀ a, a ∉ @nil α :=
 not_mem_nil
 
 instance [decidable_eq α] : decidable_eq (cycle α) :=

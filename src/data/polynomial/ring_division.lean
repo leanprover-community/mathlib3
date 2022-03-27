@@ -54,35 +54,34 @@ begin
   rw [sub_eq_iff_eq_add.mp sub_eq, mul_add, ← add_assoc, mod_by_monic_add_div _ hq, add_comm]
 end
 
-lemma add_mod_by_monic (hq : q.monic)
-  (p₁ p₂ : R[X]) : (p₁ + p₂) %ₘ q = p₁ %ₘ q + p₂ %ₘ q :=
+lemma add_mod_by_monic (p₁ p₂ : R[X]) : (p₁ + p₂) %ₘ q = p₁ %ₘ q + p₂ %ₘ q :=
 begin
-  nontriviality R,
-  exact (div_mod_by_monic_unique (p₁ /ₘ q + p₂ /ₘ q) _ hq
-    ⟨by rw [mul_add, add_left_comm, add_assoc, mod_by_monic_add_div _ hq, ← add_assoc,
-            add_comm (q * _), mod_by_monic_add_div _ hq],
-      (degree_add_le _ _).trans_lt (max_lt (degree_mod_by_monic_lt _ hq)
-        (degree_mod_by_monic_lt _ hq))⟩).2
+  by_cases hq : q.monic,
+  { nontriviality R,
+    exact (div_mod_by_monic_unique (p₁ /ₘ q + p₂ /ₘ q) _ hq
+      ⟨by rw [mul_add, add_left_comm, add_assoc, mod_by_monic_add_div _ hq, ← add_assoc,
+              add_comm (q * _), mod_by_monic_add_div _ hq],
+        (degree_add_le _ _).trans_lt (max_lt (degree_mod_by_monic_lt _ hq)
+          (degree_mod_by_monic_lt _ hq))⟩).2 },
+  { simp_rw mod_by_monic_eq_of_not_monic _ hq }
 end
 
-lemma smul_mod_by_monic (hq : q.monic)
-  (c : R) (p : R[X]) : (c • p) %ₘ q = c • (p %ₘ q) :=
+lemma smul_mod_by_monic (c : R) (p : R[X]) : (c • p) %ₘ q = c • (p %ₘ q) :=
 begin
-  nontriviality R,
-  exact (div_mod_by_monic_unique (c • (p /ₘ q)) (c • (p %ₘ q)) hq
-    ⟨by rw [mul_smul_comm, ← smul_add, mod_by_monic_add_div p hq],
-    (degree_smul_le _ _).trans_lt (degree_mod_by_monic_lt _ hq)⟩).2
+  by_cases hq : q.monic,
+  { nontriviality R,
+    exact (div_mod_by_monic_unique (c • (p /ₘ q)) (c • (p %ₘ q)) hq
+      ⟨by rw [mul_smul_comm, ← smul_add, mod_by_monic_add_div p hq],
+      (degree_smul_le _ _).trans_lt (degree_mod_by_monic_lt _ hq)⟩).2 },
+  { simp_rw mod_by_monic_eq_of_not_monic _ hq }
 end
 
-/--
-`polynomial.mod_by_monic_hom (hq : monic (q : R[X]))` is `_ %ₘ q` as a `R`-linear map.
--/
+/--  `_ %ₘ q` as an `R`-linear map. -/
 @[simps]
-def mod_by_monic_hom (hq : q.monic) :
-  R[X] →ₗ[R] R[X] :=
+def mod_by_monic_hom (q : R[X]) : R[X] →ₗ[R] R[X] :=
 { to_fun := λ p, p %ₘ q,
-  map_add' := add_mod_by_monic hq,
-  map_smul' := smul_mod_by_monic hq }
+  map_add' := add_mod_by_monic,
+  map_smul' := smul_mod_by_monic }
 
 end comm_ring
 

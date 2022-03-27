@@ -418,19 +418,15 @@ variable (R)
 
 lemma not_is_field : ¬ is_field R[X] :=
 begin
-  by_cases h : nontrivial R,
-  { resetI,
-    rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
-    use ideal.span {polynomial.X},
-    split,
-    { rw [bot_lt_iff_ne_bot, ne.def, ideal.span_singleton_eq_bot],
-      exact polynomial.X_ne_zero, },
-    { rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ideal.mem_span_singleton,
-        polynomial.X_dvd_iff, polynomial.coeff_one_zero],
-      exact one_ne_zero, } },
-  { intro hf,
-    rw ←polynomial.nontrivial_iff.not at h,
-    exact h ⟨hf.exists_pair_ne⟩, }
+  nontriviality R,
+  rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
+  use ideal.span {polynomial.X},
+  split,
+  { rw [bot_lt_iff_ne_bot, ne.def, ideal.span_singleton_eq_bot],
+    exact polynomial.X_ne_zero, },
+  { rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ideal.mem_span_singleton,
+      polynomial.X_dvd_iff, polynomial.coeff_one_zero],
+    exact one_ne_zero, }
 end
 
 variable {R}

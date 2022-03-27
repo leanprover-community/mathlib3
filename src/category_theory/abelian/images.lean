@@ -14,6 +14,11 @@ In an abelian category we usually want the image of a morphism `f` to be defined
 We make these definitions here, as `abelian.image f` and `abelian.coimage f`
 (without assuming the category is actually abelian),
 and later relate these to the usual categorical notions when in an abelian category.
+
+There is a canonical morphism `coimage_image_comparison : abelian.coimage f ⟶ abelian.image f`.
+Later we show that this is always an isomorphism in an abelian category,
+and conversely a category with (co)kernels and finite products in which this morphism
+is always an isomorphism is an abelian category.
 -/
 
 noncomputable theory

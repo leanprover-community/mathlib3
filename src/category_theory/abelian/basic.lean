@@ -25,8 +25,8 @@ actually a consequence of the other properties, as we show in
 `non_preadditive_abelian.lean`. However, this fact is of little practical
 relevance, since essentially all interesting abelian categories come with a
 preadditive structure. In this way, by requiring preadditivity, we allow the
-user to pass in the preadditive structure the specific category they are
-working with has natively.
+user to pass in the "native" preadditive structure for the specific category they are
+working with.
 
 ## Main definitions
 
@@ -42,9 +42,11 @@ working with has natively.
 * Factoring through the image and coimage is a strong epi-mono factorisation. This means that
   * every abelian category has images. We provide the isomorphism
     `image_iso_image : abelian.image f ≅ limits.image f`.
-  * there is a canonical isomorphism `coimage_iso_image : coimage f ≅ image f` such that
-    `coimage.π f ≫ (coimage_iso_image f).hom ≫ image.ι f = f`. The lemma stating this is called
-    `full_image_factorisation`.
+  * the canonical morphism `coimage_image_comparison : coimage f ⟶ image f`
+    is an isomorphism.
+* We provide the alternate characterisation of an abelian category as a category with
+  (co)kernels and finite products, and in which the canonical coimage-image comparison morphism
+  is always an isomorphism.
 * Every epimorphism is a cokernel of its kernel. Every monomorphism is a kernel of its cokernel.
 * The pullback of an epimorphism is an epimorphism. The pushout of a monomorphism is a monomorphism.
   (This is not to be confused with the fact that the pullback of a monomorphism is a monomorphism,
@@ -168,17 +170,6 @@ instance [has_zero_object C] {X Y : C} (f : X ⟶ Y) [epi f]
   is_iso (image_mono_factorisation f).m :=
 by { dsimp, apply_instance }
 
--- /-- A category with finite biproducts has a zero object. -/
--- def has_zero_object_of_has_finite_biproducts
---   (D : Type*) [category D] [has_zero_morphisms D] [has_finite_biproducts D] :
---   has_zero_object D :=
--- { zero := biproduct (λ i : ulift (fin 0), i.down.elim0'),
---   unique_to := λ X, ⟨⟨0⟩, λ f, by { ext i, exact i.down.elim0' }⟩,
---   unique_from := λ X, ⟨⟨0⟩, λ f, by { ext i, exact i.down.elim0' }⟩, }
-
--- instance (D : Type*) [category D] [has_zero_morphisms D] [has_finite_biproducts D] : nonempty D :=
--- ⟨biproduct (λ i : ulift (fin 0), i.down.elim0')⟩
-
 variables [∀ {X Y : C} (f : X ⟶ Y), is_iso (abelian.coimage_image_comparison f)]
 
 /-- A category in which coimage-image comparisons are all isomorphisms has images. -/
@@ -257,7 +248,7 @@ is an abelian category.
 The Stacks project uses this characterisation at the definition of an abelian category.
 See https://stacks.math.columbia.edu/tag/0109.
 -/
-def of_coimage_image_comparison_is_iso: abelian C := {}
+def of_coimage_image_comparison_is_iso : abelian C := {}
 
 end category_theory.abelian
 
@@ -368,24 +359,21 @@ end has_strong_epi_mono_factorisations
 section images
 variables {X Y : C} (f : X ⟶ Y)
 
-/-- There is a canonical isomorphism between the coimage and the image of a morphism. -/
-abbreviation coimage_iso_image : abelian.coimage f ≅ abelian.image f :=
-is_image.iso_ext (coimage_strong_epi_mono_factorisation f).to_mono_is_image
-  (image_strong_epi_mono_factorisation f).to_mono_is_image
-
-lemma full_image_factorisation : abelian.coimage.π f ≫ (coimage_iso_image f).hom ≫
-  abelian.image.ι f = f :=
-by rw [limits.is_image.iso_ext_hom,
-  ←image_strong_epi_mono_factorisation_to_mono_factorisation_m, is_image.lift_fac,
-  coimage_strong_epi_mono_factorisation_to_mono_factorisation_m, abelian.coimage.fac]
-
 /--
-The forward direction of the canonical isomorphism is
-the canonical comparison morphism from the abelian coimage to the abelian image
-(which we may define even if the category is not abelian).
+The coimage-image comparison morphism is always an isomorphism in an abelian category.
+See `category_theory.abelian.of_coimage_image_comparison_is_iso` for the converse.
 -/
-lemma coimage_iso_image_hom : (coimage_iso_image f).hom = coimage_image_comparison f :=
-by { ext, simp, }
+instance : is_iso (coimage_image_comparison f) :=
+begin
+  convert is_iso.of_iso (is_image.iso_ext (coimage_strong_epi_mono_factorisation f).to_mono_is_image
+    (image_strong_epi_mono_factorisation f).to_mono_is_image),
+  ext, simp,
+end
+
+/-- There is a canonical isomorphism between the abelian coimage and the abelian image of a
+    morphism. -/
+abbreviation coimage_iso_image : abelian.coimage f ≅ abelian.image f :=
+as_iso (coimage_image_comparison f)
 
 /-- There is a canonical isomorphism between the abelian coimage and the categorical image of a
     morphism. -/

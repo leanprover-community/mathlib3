@@ -39,8 +39,7 @@ variables [comm_semiring R] {p q : R[X]}
 
 lemma multiplicity_finite_of_degree_pos_of_monic (hp : (0 : with_bot ℕ) < degree p)
   (hmp : monic p) (hq : q ≠ 0) : multiplicity.finite p q :=
-have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one h;
-  exact hq (subsingleton.elim _ _),
+have zn0 : (0 : R) ≠ 1, by haveI := nontrivial.of_polynomial_ne hq; exact zero_ne_one,
 ⟨nat_degree q, λ ⟨r, hr⟩,
   have hp0 : p ≠ 0, from λ hp0, by simp [hp0] at hp; contradiction,
   have hr0 : r ≠ 0, from λ hr0, by simp * at *,
@@ -444,8 +443,7 @@ open_locale classical
 lemma multiplicity_X_sub_C_finite (a : R) (h0 : p ≠ 0) :
   multiplicity.finite (X - C a) p :=
 begin
-  nontriviality R[X],
-  haveI := polynomial.nontrivial_iff.mp ‹_›,
+  haveI := nontrivial.of_polynomial_ne h0,
   refine multiplicity_finite_of_degree_pos_of_monic _ (monic_X_sub_C _) h0,
   rw degree_X_sub_C,
   dec_trivial,

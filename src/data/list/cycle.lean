@@ -748,8 +748,9 @@ protected def chain (r : α → α → Prop) : cycle α → Prop :=
       { simp only [rotate_singleton] at hn,
         rw [hn.1, hn.2] },
       { rw [nat.succ_eq_one_add, ←rotate_rotate, rotate_cons_succ, rotate_zero, cons_append] at hn,
-        rw ←hd c _ _ _ hn,
-        simp } } }
+        rw [←hd c _ _ _ hn, chain_append_singleton_cons],
+        simp,
+        exact and.comm } } }
 end
 
 @[simp] protected theorem chain.nil (r : α → α → Prop) : cycle.chain r (([] : list α) : cycle α) :=
@@ -788,36 +789,30 @@ begin
     rw cycle.chain_cons,
     apply chain_of_pairwise,
     rw pairwise_cons,
-    have := pairwise_of_reflexive_of_forall_ne,
-    refine ⟨λ b hb, _, pairwise_append.2 ⟨pairwise_of_forall_mem_list hr
-      (λ b hb c hc,_), pairwise_singleton r a, λ b hb c hc, _⟩⟩,
+    refine ⟨λ b hb, _, pairwise_append.2 ⟨pairwise_of_forall_mem_list
+      (λ b hb c hc, hs b (Hl hb) c (Hl hc)), pairwise_singleton r a, λ b hb c hc, _⟩⟩,
     { rw mem_append at hb,
-      rcases eq_or_ne a b with rfl | hab,
-      { exact hr a },
       cases hb,
-      { exact hs a Ha b (Hl hb)  },
+      { exact hs a Ha b (Hl hb) },
       { rw mem_singleton at hb,
-        exact (hab hb.symm).elim } },
-  { rw mem_singleton at hc,
-    rw hc,
-    rcases eq_or_ne b a with rfl | hab,
-    { exact hr b },
-    exact hs (Hl hb) Ha hab } }
+        rw hb,
+        exact hs a Ha a Ha } },
+    { rw mem_singleton at hc,
+      rw hc,
+      exact hs b (Hl hb) a Ha } }
 end
 
 protected theorem chain_iff_pairwise [decidable_eq α] {r : α → α → Prop} {s : cycle α}
-  (hr : reflexive r) (hr' : transitive r) : set.pairwise ↑s.to_finset r ↔ cycle.chain r s :=
-⟨cycle.chain_of_pairwise hr, λ hs, begin
+  (hr' : transitive r) : (∀ (a ∈ s) (b ∈ s), r a b) ↔ cycle.chain r s :=
+⟨cycle.chain_of_pairwise, λ hs b hb c hc, begin
   rcases s.cases_on with rfl | ⟨a, l, rfl⟩,
-  { simp },
-  { rw cycle.chain_cons at hs,
-    intros b hb c hc hbc,
-    rw chain_iff_pairwise hr' at hs,
+  { exact hb.elim },
+  { rw [cycle.chain_cons, chain_iff_pairwise hr'] at hs,
     simp [pairwise_append] at hs,
-    simp at hb hc,
+    simp only [mem_coe_iff, mem_cons_iff] at hb hc,
     rcases hb with rfl | hb;
     rcases hc with rfl | hc,
-    { exact hr c },
+    { exact hs.1 c (or.inr rfl) },
     { exact hs.1 c (or.inl hc) },
     { exact hs.2.2 b hb },
     { exact hr' (hs.2.2 b hb) (hs.1 c (or.inl hc)) } }

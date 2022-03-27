@@ -5,7 +5,7 @@ Authors: Aaron Anderson
 -/
 import data.set_like.basic
 import logic.equiv.fintype
-import model_theory.terms_and_formulas
+import model_theory.semantics
 
 /-!
 # Definable Sets

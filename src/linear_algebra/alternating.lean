@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Zhangir Azerbayev
 -/
 
-import linear_algebra.multilinear.basis
-import linear_algebra.multilinear.tensor_product
-import linear_algebra.linear_independent
 import group_theory.perm.sign
 import group_theory.perm.subgroup
-import data.equiv.fin
 import group_theory.quotient_group
+import linear_algebra.linear_independent
+import linear_algebra.multilinear.basis
+import linear_algebra.multilinear.tensor_product
+import logic.equiv.fin
 
 /-!
 # Alternating Maps

@@ -87,24 +87,6 @@ begin
   simpa only [this, dist_eq_norm, add_sub_cancel', mem_closed_ball] using I,
 end
 
-lemma set_smul_mem_nhds_zero {s : set E} (hs : s ∈ 𝓝 (0 : E)) {c : 𝕜} (hc : c ≠ 0) :
-  c • s ∈ 𝓝 (0 : E) :=
-begin
-  obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : 0 < ε), ball 0 ε ⊆ s := metric.mem_nhds_iff.1 hs,
-  have : c • ball (0 : E) ε ∈ 𝓝 (0 : E),
-  { rw [smul_ball hc, smul_zero],
-    exact ball_mem_nhds _ (mul_pos (by simpa using hc) εpos) },
-  exact filter.mem_of_superset this ((set_smul_subset_set_smul_iff₀ hc).2 hε)
-end
-
-lemma set_smul_mem_nhds_zero_iff (s : set E) {c : 𝕜} (hc : c ≠ 0) :
-  c • s ∈ 𝓝 (0 : E) ↔ s ∈ 𝓝(0 : E) :=
-begin
-  refine ⟨λ h, _, λ h, set_smul_mem_nhds_zero h hc⟩,
-  convert set_smul_mem_nhds_zero h (inv_ne_zero hc),
-  rw [smul_smul, inv_mul_cancel hc, one_smul],
-end
-
 /-- Any ball is the image of a ball centered at the origin under a shift. -/
 lemma vadd_ball_zero (x : E) (r : ℝ) : x +ᵥ ball 0 r = ball x r :=
 by rw [vadd_ball, vadd_eq_add, add_zero]

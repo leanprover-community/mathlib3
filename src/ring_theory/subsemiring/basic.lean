@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import algebra.ring.prod
 import algebra.module.basic
-import group_theory.submonoid.membership
-import group_theory.submonoid.center
+import algebra.ring.equiv
+import algebra.ring.prod
 import data.set.finite
-import data.equiv.ring
+import group_theory.submonoid.center
+import group_theory.submonoid.membership
 
 /-!
 # Bundled subsemirings
@@ -525,7 +525,7 @@ of the closure of `s`. -/
 lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H0 : p 0) (H1 : p 1)
   (Hadd : ∀ x y, p x → p y → p (x + y)) (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd⟩).2 Hs h
+(@closure_le _ _ _ ⟨p, Hmul, H1, Hadd, H0⟩).2 Hs h
 
 /-- An induction principle for closure membership for predicates with two arguments. -/
 @[elab_as_eliminator]

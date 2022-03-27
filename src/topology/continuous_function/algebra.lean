@@ -159,7 +159,7 @@ def continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topol
 @[to_additive "The `add_subgroup` of continuous maps `α → β`. "]
 def continuous_subgroup (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   [group β] [topological_group β] : subgroup (α → β) :=
-{ inv_mem' := λ f fc, continuous.comp (@topological_group.continuous_inv β _ _ _) fc,
+{ inv_mem' := λ f fc, continuous.inv fc,
   ..continuous_submonoid α β, }.
 
 end subtype

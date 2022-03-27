@@ -663,8 +663,8 @@ holds of any point where `eval f a` evaluates to `b`. This formalizes the notion
 @[elab_as_eliminator] def eval_induction {σ}
   {f : σ → option σ} {b : σ} {C : σ → Sort*} {a : σ} (h : b ∈ eval f a)
   (H : ∀ a, b ∈ eval f a →
-    (∀ a', b ∈ eval f a' → f a = some a' → C a') → C a) : C a :=
-pfun.fix_induction h (λ a' ha' h', H _ ha' $ λ b' hb' e, h' _ hb' $
+    (∀ a', f a = some a' → C a') → C a) : C a :=
+pfun.fix_induction h (λ a' ha' h', H _ ha' $ λ b' e, h' _ $
   part.mem_some_iff.2 $ by rw e; refl)
 
 theorem mem_eval {σ} {f : σ → option σ} {a b} :
@@ -675,9 +675,9 @@ theorem mem_eval {σ} {f : σ → option σ} {a b} :
   { rw part.mem_unique h (pfun.mem_fix_iff.2 $ or.inl $
       part.mem_some_iff.2 $ by rw e; refl),
     exact ⟨refl_trans_gen.refl, e⟩ },
-  { rcases pfun.mem_fix_iff.1 h with h | ⟨_, h, h'⟩;
+  { rcases pfun.mem_fix_iff.1 h with h | ⟨_, h, _⟩;
       rw e at h; cases part.mem_some_iff.1 h,
-    cases IH a' h' (by rwa e) with h₁ h₂,
+    cases IH a' (by rwa e) with h₁ h₂,
     exact ⟨refl_trans_gen.head e h₁, h₂⟩ }
 end, λ ⟨h₁, h₂⟩, begin
   refine refl_trans_gen.head_induction_on h₁ _ (λ a a' h _ IH, _),

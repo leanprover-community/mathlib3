@@ -430,11 +430,11 @@ instance : has_coe (list α) (cycle α) := ⟨quot.mk _⟩
 @[simp] lemma coe_eq_coe {l₁ l₂ : list α} : (l₁ : cycle α) = l₂ ↔ (l₁ ~r l₂) :=
 @quotient.eq _ (is_rotated.setoid _) _ _
 
-@[simp] lemma mk_eq_coe (l : list α) :
-  quot.mk _ l = (l : cycle α) := rfl
+@[simp] lemma mk_eq_coe (l : list α) : quot.mk _ l = (l : cycle α) :=
+rfl
 
-@[simp] lemma mk'_eq_coe (l : list α) :
-  quotient.mk' l = (l : cycle α) := rfl
+@[simp] lemma mk'_eq_coe (l : list α) : quotient.mk' l = (l : cycle α) :=
+rfl
 
 /-- The unique empty cycle. -/
 def nil : cycle α := ↑([] : list α)
@@ -446,12 +446,9 @@ instance : has_emptyc (cycle α) := ⟨nil⟩
 
 instance : inhabited (cycle α) := ⟨nil⟩
 
-theorem cases_on (s : cycle α) : s = nil ∨ ∃ a (l : list α), s = a :: l :=
-quotient.induction_on' s begin
-  rintro (rfl | ⟨a, l⟩),
-  { exact or.inl rfl },
-  { exact or.inr ⟨a, l, rfl⟩ }
-end
+@[elab_as_eliminator] theorem rec_on {C : cycle α → Prop} (s : cycle α) (H0 : C nil)
+  (HI : ∀ a (l : list α), C ↑l → C ↑(a :: l)) : C s :=
+quotient.induction_on' s $ λ l, by { apply list.rec_on l; simp, assumption' }
 
 /--
 For `x : α`, `s : cycle α`, `x ∈ s` indicates that `x` occurs at least once in `s`.
@@ -461,15 +458,14 @@ quot.lift_on s (λ l, a ∈ l) (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.mem
 
 instance : has_mem α (cycle α) := ⟨mem⟩
 
-@[simp] lemma mem_coe_iff {a : α} {l : list α} :
-  a ∈ (l : cycle α) ↔ a ∈ l := iff.rfl
+@[simp] lemma mem_coe_iff {a : α} {l : list α} : a ∈ (l : cycle α) ↔ a ∈ l :=
+iff.rfl
 
 @[simp] theorem not_mem_nil : ∀ a, a ∉ (@nil α) :=
 not_mem_nil
 
 instance [decidable_eq α] : decidable_eq (cycle α) :=
-λ s₁ s₂, quotient.rec_on_subsingleton₂' s₁ s₂ (λ l₁ l₂,
-  decidable_of_iff' _ quotient.eq')
+λ s₁ s₂, quotient.rec_on_subsingleton₂' s₁ s₂ (λ l₁ l₂, decidable_of_iff' _ quotient.eq')
 
 instance [decidable_eq α] (x : α) (s : cycle α) : decidable (x ∈ s) :=
 quotient.rec_on_subsingleton' s (λ l, list.decidable_mem x l)
@@ -480,19 +476,17 @@ Reverse a `s : cycle α` by reversing the underlying `list`.
 def reverse (s : cycle α) : cycle α :=
 quot.map reverse (λ l₁ l₂ (e : l₁ ~r l₂), e.reverse) s
 
-@[simp] lemma reverse_coe (l : list α) :
-  (l : cycle α).reverse = l.reverse := rfl
+@[simp] lemma reverse_coe (l : list α) : (l : cycle α).reverse = l.reverse :=
+rfl
 
-@[simp] lemma mem_reverse_iff {a : α} {s : cycle α} :
-  a ∈ s.reverse ↔ a ∈ s :=
+@[simp] lemma mem_reverse_iff {a : α} {s : cycle α} : a ∈ s.reverse ↔ a ∈ s :=
 quot.induction_on s (λ _, mem_reverse)
 
-@[simp] lemma reverse_reverse (s : cycle α) :
-  s.reverse.reverse = s :=
+@[simp] lemma reverse_reverse (s : cycle α) : s.reverse.reverse = s :=
 quot.induction_on s (λ _, by simp)
 
 @[simp] lemma reverse_nil : nil.reverse = @nil α :=
-by { change ↑(([] : list α).reverse) = ↑[], rw reverse_nil }
+rfl
 
 /--
 The length of the `s : cycle α`, which is the number of elements, counting duplicates.

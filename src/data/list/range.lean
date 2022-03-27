@@ -148,6 +148,23 @@ by simp only [range_eq_range', range'_concat, zero_add]
 
 @[simp] lemma range_zero : range 0 = [] := rfl
 
+theorem chain_range_succ (r : ℕ → ℕ → Prop) (n a : ℕ) :
+  chain r a (range n.succ) ↔ r a 0 ∧ ∀ m < n, r m m.succ :=
+begin
+  rw range_succ,
+  induction n with n hn,
+  { simp },
+  { rw range_succ,
+    simp,
+    rw hn,
+    refine ⟨_, λ ⟨hr, H⟩, ⟨⟨hr, λ m hm, H m (nat.lt_succ_iff.2 hm.le)⟩, H n (nat.lt_succ_self n)⟩⟩,
+    rintro ⟨⟨hr, H⟩, hr'⟩,
+    refine ⟨hr, λ m hm, _⟩,
+    rcases eq_or_lt_of_le (nat.lt_succ_iff.1 hm) with rfl | hmn,
+    { exact hr' },
+    { exact H m hmn } }
+end
+
 lemma range_add (a : ℕ) :
   ∀ b, range (a + b) = range a ++ (range b).map (λ x, a + x)
 | 0 := by rw [add_zero, range_zero, map_nil, append_nil]

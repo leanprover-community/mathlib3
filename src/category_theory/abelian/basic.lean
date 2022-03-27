@@ -156,8 +156,7 @@ def image_factorisation {X Y : C} (f : X ⟶ Y) [is_iso (abelian.coimage_image_c
       simp only [image_mono_factorisation_m, is_iso.inv_comp_eq, category.assoc,
         abelian.coimage_image_comparison],
       ext,
-      erw [limits.coequalizer.π_desc_assoc, limits.coequalizer.π_desc_assoc, F.fac,
-        (image_mono_factorisation f).fac],
+      rw [limits.coequalizer.π_desc_assoc, limits.coequalizer.π_desc_assoc, F.fac, kernel.lift_ι]
     end } }
 
 instance [has_zero_object C] {X Y : C} (f : X ⟶ Y) [mono f]

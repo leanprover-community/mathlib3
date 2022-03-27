@@ -439,6 +439,9 @@ instance : has_coe (list α) (cycle α) := ⟨quot.mk _⟩
 /-- The unique empty cycle. -/
 def nil : cycle α := (([] : list α) : cycle α)
 
+@[simp] theorem coe_nil : ↑([] : list α) = @nil α :=
+rfl
+
 instance : has_emptyc (cycle α) := ⟨nil⟩
 
 instance : inhabited (cycle α) := ⟨nil⟩
@@ -464,7 +467,7 @@ instance : has_mem α (cycle α) := ⟨mem⟩
 @[simp] lemma mem_coe_iff {a : α} {l : list α} :
   a ∈ (l : cycle α) ↔ a ∈ l := iff.rfl
 
-theorem not_mem_nil : ∀ a, a ∉ (@nil α) :=
+@[simp] theorem not_mem_nil : ∀ a, a ∉ (@nil α) :=
 not_mem_nil
 
 instance [decidable_eq α] : decidable_eq (cycle α) :=
@@ -621,7 +624,10 @@ def map {β : Type*} (f : α → β) : cycle α → cycle β :=
 quotient.map' (list.map f) $ λ l₁ l₂ h, h.map _
 
 @[simp] theorem map_nil {β : Type*} (f : α → β) : map f nil = nil :=
-by apply quotient.map'_mk
+rfl
+
+@[simp] theorem map_coe {β : Type*} (f : α → β) (l : list α) : map f ↑l = list.map f l :=
+rfl
 
 /--
 The `multiset` of lists that can make the cycle.

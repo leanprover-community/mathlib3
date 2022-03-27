@@ -56,15 +56,7 @@ instance : has_top (bornology α) :=
 ⟨⟨⊥, bot_le⟩⟩
 
 instance : lattice (bornology α) :=
-{ le_sup_left := λ b₁ b₂, by {rw [bornology.le_def], exact inf_le_left},
-  le_sup_right := λ b₁ b₂, by {rw [bornology.le_def], exact inf_le_right},
-  sup_le := λ b₁ b₂ b₃ h₁₃ h₂₃, by {rw [bornology.le_def] at *, exact le_inf h₁₃ h₂₃},
-  inf_le_left := λ b₁ b₂, by {rw [bornology.le_def], exact le_sup_left},
-  inf_le_right := λ b₁ b₂, by {rw [bornology.le_def], exact le_sup_right},
-  le_inf := λ b₁ b₂ b₃ h₁₃ h₂₃, by {rw [bornology.le_def] at *, exact sup_le h₁₃ h₂₃},
-  ..bornology.partial_order,
-  ..bornology.has_inf,
-  ..bornology.has_sup }
+injective.lattice (order_dual.to_dual ∘ @cobounded α) cobounded_injective (λ a b, rfl) (λ a b, rfl)
 
 instance : complete_lattice (bornology α) :=
 { le_Sup := λ S b hb,
@@ -114,10 +106,10 @@ lemma is_bounded_inf_iff :
 by rw [inf_eq_infi, is_bounded_infi_iff, bool.forall_bool, and_comm]
 
 lemma cobounded_antitone : antitone (@cobounded α) :=
-λ b₁ b₂, id
+monotone_id
 
 lemma cobounded_strict_anti : strict_anti (@cobounded α) :=
-λ b₁ b₂, id
+strict_mono_id
 
 @[simp] lemma cobounded_sup :
   @cobounded _ (b₁ ⊔ b₂) = (@cobounded _ b₁) ⊓ (@cobounded _ b₂) :=

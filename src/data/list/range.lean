@@ -149,7 +149,7 @@ by simp only [range_eq_range', range'_concat, zero_add]
 @[simp] lemma range_zero : range 0 = [] := rfl
 
 theorem chain_range_succ (r : ℕ → ℕ → Prop) (n a : ℕ) :
-  list.chain r a (list.range n.succ) ↔ r a 0 ∧ ∀ m < n, r m m.succ :=
+  chain r a (range n.succ) ↔ r a 0 ∧ ∀ m < n, r m m.succ :=
 begin
   rw range_succ,
   induction n with n hn,

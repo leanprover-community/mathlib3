@@ -442,6 +442,9 @@ quot.sound ⟨1, by rw [rotate_cons_succ, rotate_zero]⟩
 /-- The unique empty cycle. -/
 def nil : cycle α := (([] : list α) : cycle α)
 
+@[simp] theorem coe_nil : ↑([] : list α) = @nil α :=
+rfl
+
 instance : has_emptyc (cycle α) := ⟨nil⟩
 
 instance : inhabited (cycle α) := ⟨nil⟩
@@ -467,7 +470,7 @@ instance : has_mem α (cycle α) := ⟨mem⟩
 @[simp] lemma mem_coe_iff {a : α} {l : list α} :
   a ∈ (l : cycle α) ↔ a ∈ l := iff.rfl
 
-theorem not_mem_nil : ∀ a, a ∉ (@nil α) :=
+@[simp] theorem not_mem_nil : ∀ a, a ∉ (@nil α) :=
 not_mem_nil
 
 instance [decidable_eq α] : decidable_eq (cycle α) :=
@@ -624,7 +627,10 @@ def map {β : Type*} (f : α → β) : cycle α → cycle β :=
 quotient.map' (list.map f) $ λ l₁ l₂ h, h.map _
 
 @[simp] theorem map_nil {β : Type*} (f : α → β) : map f nil = nil :=
-by apply quotient.map'_mk
+rfl
+
+@[simp] theorem map_coe {β : Type*} (f : α → β) (l : list α) : map f ↑l = list.map f l :=
+rfl
 
 /--
 The `multiset` of lists that can make the cycle.
@@ -778,7 +784,7 @@ def chain (r : α → α → Prop) : cycle α → Prop :=
         exact and.comm } } }
 end
 
-@[simp] theorem chain.nil (r : α → α → Prop) : cycle.chain r (([] : list α) : cycle α) :=
+@[simp] theorem chain.nil (r : α → α → Prop) : cycle.chain r (@nil α) :=
 by exact rfl
 
 @[simp] theorem chain_cons (r : α → α → Prop) (a : α) (l : list α) :
@@ -792,6 +798,16 @@ theorem chain_ne_nil (r : α → α → Prop) {l : list α} (hl : l ≠ []) :
   chain r l ↔ list.chain r (last l hl) l :=
 @list.reverse_rec_on α (λ m, ∀ hm : m ≠ [], (chain r ↑m ↔ list.chain r (last m hm) m)) l
   (λ hm, hm.irrefl.elim) (λ m a H _, by rw [←coe_cons_eq_coe_append, chain_cons, last_append]) hl
+
+theorem chain_map {β : Type*} {r : α → α → Prop} (f : β → α) {s : cycle β} :
+  chain r (s.map f) ↔ chain (λ a b, r (f a) (f b)) s :=
+quotient.induction_on' s $ λ l, begin
+  cases l with a l;
+  simp,
+  convert list.chain_map f,
+  rw map_append f l [a],
+  refl
+end
 
 variables {r : α → α → Prop} {s : cycle α}
 

@@ -28,15 +28,15 @@ variables {G H : Module.{v} R} (f : G ⟶ H)
 local attribute [ext] subtype.ext_val
 
 section -- implementation details of `has_image` for Module; use the API, not these
-/-- the image of a morphism in `Module R` is just the bundling of `linear_map.range f` -/
+/-- The image of a morphism in `Module R` is just the bundling of `linear_map.range f` -/
 def image : Module R := Module.of R (linear_map.range f)
 
-/-- the inclusion of `image f` into the target -/
+/-- The inclusion of `image f` into the target -/
 def image.ι : image f ⟶ H := f.range.subtype
 
 instance : mono (image.ι f) := concrete_category.mono_of_injective (image.ι f) subtype.val_injective
 
-/-- the corestriction map to the image -/
+/-- The corestriction map to the image -/
 def factor_thru_image : G ⟶ image f := f.range_restrict
 
 lemma image.fac : factor_thru_image f ≫ image.ι f = f :=
@@ -45,7 +45,7 @@ by { ext, refl, }
 local attribute [simp] image.fac
 
 variables {f}
-/-- the universal property for the image factorisation -/
+/-- The universal property for the image factorisation -/
 noncomputable def image.lift (F' : mono_factorisation f) : image f ⟶ F'.I :=
 { to_fun :=
   (λ x, F'.e (classical.indefinite_description _ x.2).1 : image f → F'.I),
@@ -83,13 +83,13 @@ begin
 end
 end
 
-/-- the factorisation of any morphism in `Module R` through a mono. -/
+/-- The factorisation of any morphism in `Module R` through a mono. -/
 def mono_factorisation : mono_factorisation f :=
 { I := image f,
   m := image.ι f,
   e := factor_thru_image f }
 
-/-- the factorisation of any morphism in `Module R` through a mono has the universal property of
+/-- The factorisation of any morphism in `Module R` through a mono has the universal property of
 the image. -/
 noncomputable def is_image : is_image (mono_factorisation f) :=
 { lift := image.lift,

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import set_theory.continuum
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import data.rat.denumerable
 import data.set.intervals.image_preimage
 

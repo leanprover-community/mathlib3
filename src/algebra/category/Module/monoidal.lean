@@ -312,4 +312,17 @@ lemma monoidal_closed_uncurry {M N P : Module.{u} R}
   monoidal_closed.uncurry f (x ⊗ₜ[R] y) = (@coe_fn _ _ linear_map.has_coe_to_fun (f y)) x :=
 by { simp only [monoidal_closed.uncurry, ihom.adjunction, is_left_adjoint.adj], simp, }
 
+-- I can't seem to express the function coercion here without writing `@coe_fn`.
+@[simp]
+lemma monoidal_closed_curry {M N P : Module.{u} R} (f : M ⊗ N ⟶ P) (x : M) (y : N) :
+  @coe_fn _ _ linear_map.has_coe_to_fun ((monoidal_closed.curry f : N →ₗ[R] (M →ₗ[R] P)) y) x =
+    f (x ⊗ₜ[R] y) :=
+rfl
+
+@[simp]
+lemma monoidal_closed_uncurry {M N P : Module.{u} R}
+  (f : N ⟶ (M ⟶[Module.{u} R] P)) (x : M) (y : N) :
+  monoidal_closed.uncurry f (x ⊗ₜ[R] y) = (@coe_fn _ _ linear_map.has_coe_to_fun (f y)) x :=
+by { simp only [monoidal_closed.uncurry, ihom.adjunction, is_left_adjoint.adj], simp, }
+
 end Module

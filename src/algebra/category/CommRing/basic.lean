@@ -5,7 +5,7 @@ Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
 -/
 import algebra.category.Group.basic
 import category_theory.concrete_category.reflects_isomorphisms
-import data.equiv.ring
+import algebra.ring.equiv
 
 /-!
 # Category instances for semiring, ring, comm_semiring, and comm_ring.
@@ -47,7 +47,7 @@ def of (R : Type u) [semiring R] : SemiRing := bundled.of R
 /-- Typecheck a `ring_hom` as a morphism in `SemiRing`. -/
 def of_hom {R S : Type u} [semiring R] [semiring S] (f : R →+* S) : of R ⟶ of S := f
 
-@[simp] lemma of_hom_apply {R S : Type u} [semiring R] [semiring S] (f : R →+* S) :
+@[simp] lemma of_hom_apply {R S : Type u} [semiring R] [semiring S] (f : R →+* S) (x : R) :
   of_hom f x = f x := rfl
 
 instance : inhabited SemiRing := ⟨of punit⟩
@@ -84,7 +84,7 @@ def of (R : Type u) [ring R] : Ring := bundled.of R
 /-- Typecheck a `ring_hom` as a morphism in `Ring`. -/
 def of_hom {R S : Type u} [ring R] [ring S] (f : R →+* S) : of R ⟶ of S := f
 
-@[simp] lemma of_hom_apply {R S : Type u} [ring R] [ring S] (f : R →+* S) :
+@[simp] lemma of_hom_apply {R S : Type u} [ring R] [ring S] (f : R →+* S) (x : R) :
   of_hom f x = f x := rfl
 
 instance : inhabited Ring := ⟨of punit⟩
@@ -119,7 +119,8 @@ def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
 /-- Typecheck a `ring_hom` as a morphism in `CommSemiRing`. -/
 def of_hom {R S : Type u} [comm_semiring R] [comm_semiring S] (f : R →+* S) : of R ⟶ of S := f
 
-@[simp] lemma of_hom_apply {R S : Type u} [comm_semiring R] [comm_semiring S] (f : R →+* S) :
+@[simp]
+lemma of_hom_apply {R S : Type u} [comm_semiring R] [comm_semiring S] (f : R →+* S) (x : R) :
   of_hom f x = f x := rfl
 
 instance : inhabited CommSemiRing := ⟨of punit⟩
@@ -155,7 +156,7 @@ def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 /-- Typecheck a `ring_hom` as a morphism in `CommRing`. -/
 def of_hom {R S : Type u} [comm_ring R] [comm_ring S] (f : R →+* S) : of R ⟶ of S := f
 
-@[simp] lemma of_hom_apply {R S : Type u} [comm_ring R] [comm_ring S] (f : R →+* S) :
+@[simp] lemma of_hom_apply {R S : Type u} [comm_ring R] [comm_ring S] (f : R →+* S) (x : R) :
   of_hom f x = f x := rfl
 
 instance : inhabited CommRing := ⟨of punit⟩

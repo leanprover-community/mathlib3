@@ -3,8 +3,7 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import algebra.algebra.basic
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
 import algebra.free_algebra
 import algebra.category.CommRing.basic
 import algebra.category.Module.basic
@@ -64,7 +63,7 @@ def of_hom {R : Type u} [comm_ring R] {X Y : Type v} [ring X] [algebra R X] [rin
   (f : X →ₐ[R] Y) : of R X ⟶ of R Y := f
 
 @[simp] lemma of_hom_apply {R : Type u} [comm_ring R]
-  {X Y : Type v} [ring X] [algebra R X] [ring Y] [algebra R Y] (f : X →ₐ[R] Y)(x : X) :
+  {X Y : Type v} [ring X] [algebra R X] [ring Y] [algebra R Y] (f : X →ₐ[R] Y) (x : X) :
   of_hom f x = f x := rfl
 
 instance : inhabited (Algebra R) := ⟨of R R⟩

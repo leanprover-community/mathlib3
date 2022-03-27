@@ -389,6 +389,17 @@ end
 theorem prime.coprime_iff_not_dvd {p n : R} (pp : prime p) : is_coprime p n ↔ ¬ p ∣ n :=
 pp.irreducible.coprime_iff_not_dvd
 
+theorem irreducible.dvd_iff_not_coprime {p n : R} (hp : irreducible p) : p ∣ n ↔ ¬ is_coprime p n :=
+iff_not_comm.2 hp.coprime_iff_not_dvd
+
+theorem irreducible.coprime_pow_of_not_dvd {p a : R} (m : ℕ) (hp : irreducible p) (h : ¬ p ∣ a) :
+  is_coprime a (p ^ m) :=
+(hp.coprime_iff_not_dvd.2 h).symm.pow_right
+
+theorem irreducible.coprime_or_dvd {p : R} (hp : irreducible p) (i : R) :
+  is_coprime p i ∨ p ∣ i :=
+(em _).imp_right hp.dvd_iff_not_coprime.2
+
 theorem exists_associated_pow_of_mul_eq_pow' {a b c : R}
   (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ k) : ∃ d, associated (d ^ k) a :=
 exists_associated_pow_of_mul_eq_pow ((gcd_is_unit_iff _ _).mpr hab) h

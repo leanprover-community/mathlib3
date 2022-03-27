@@ -450,6 +450,9 @@ coe_eq_coe.trans is_rotated_nil_iff
 
 instance : has_emptyc (cycle α) := ⟨nil⟩
 
+@[simp] lemma empty_eq : ∅ = @nil α :=
+rfl
+
 instance : inhabited (cycle α) := ⟨nil⟩
 
 @[elab_as_eliminator] lemma rec_on {C : cycle α → Prop} (s : cycle α) (H0 : C nil)
@@ -500,8 +503,7 @@ rfl
 @[simp] lemma length_nil : length (@nil α) = 0 :=
 rfl
 
-@[simp] lemma length_reverse (s : cycle α) :
-  s.reverse.length = s.length :=
+@[simp] lemma length_reverse (s : cycle α) : s.reverse.length = s.length :=
 quot.induction_on s length_reverse
 
 /-- A `s : cycle α` that is at most one element. -/

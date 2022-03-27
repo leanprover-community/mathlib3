@@ -440,7 +440,7 @@ theorem coe_cons_eq_coe_append (l : list α) (a : α) : (↑(a :: l) : cycle α)
 quot.sound ⟨1, by rw [rotate_cons_succ, rotate_zero]⟩
 
 /-- The unique empty cycle. -/
-def nil : cycle α := (([] : list α) : cycle α)
+def nil : cycle α := ↑([] : list α)
 
 @[simp] theorem coe_nil : ↑([] : list α) = @nil α :=
 rfl
@@ -449,15 +449,9 @@ instance : has_emptyc (cycle α) := ⟨nil⟩
 
 instance : inhabited (cycle α) := ⟨nil⟩
 
-theorem cases_on (s : cycle α) : s = nil ∨ ∃ a (l : list α), s = a :: l :=
-begin
-  suffices : ∀ m : list α, (m : cycle α) = nil ∨ ∃ a (l : list α), (m : cycle α) = a :: l,
-  { have := this (@quotient.out' _ (is_rotated.setoid _) s),
-    rwa [←mk'_eq_coe, quotient.out_eq'] at this },
-  rintro (rfl | ⟨a, l⟩),
-  { exact or.inl rfl },
-  { exact or.inr ⟨a, l, rfl⟩ }
-end
+@[elab_as_eliminator] theorem rec_on {C : cycle α → Prop} (s : cycle α) (H0 : C nil)
+  (HI : ∀ a (l : list α), C ↑l → C ↑(a :: l)) : C s :=
+quotient.induction_on' s $ λ l, by { apply list.rec_on l; simp, assumption' }
 
 /--
 For `x : α`, `s : cycle α`, `x ∈ s` indicates that `x` occurs at least once in `s`.
@@ -467,15 +461,14 @@ quot.lift_on s (λ l, a ∈ l) (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.mem
 
 instance : has_mem α (cycle α) := ⟨mem⟩
 
-@[simp] lemma mem_coe_iff {a : α} {l : list α} :
-  a ∈ (l : cycle α) ↔ a ∈ l := iff.rfl
+@[simp] lemma mem_coe_iff {a : α} {l : list α} : a ∈ (l : cycle α) ↔ a ∈ l :=
+iff.rfl
 
 @[simp] theorem not_mem_nil : ∀ a, a ∉ (@nil α) :=
 not_mem_nil
 
 instance [decidable_eq α] : decidable_eq (cycle α) :=
-λ s₁ s₂, quotient.rec_on_subsingleton₂' s₁ s₂ (λ l₁ l₂,
-  decidable_of_iff' _ quotient.eq')
+λ s₁ s₂, quotient.rec_on_subsingleton₂' s₁ s₂ (λ l₁ l₂, decidable_of_iff' _ quotient.eq')
 
 instance [decidable_eq α] (x : α) (s : cycle α) : decidable (x ∈ s) :=
 quotient.rec_on_subsingleton' s (λ l, list.decidable_mem x l)
@@ -486,19 +479,17 @@ Reverse a `s : cycle α` by reversing the underlying `list`.
 def reverse (s : cycle α) : cycle α :=
 quot.map reverse (λ l₁ l₂ (e : l₁ ~r l₂), e.reverse) s
 
-@[simp] lemma reverse_coe (l : list α) :
-  (l : cycle α).reverse = l.reverse := rfl
+@[simp] lemma reverse_coe (l : list α) : (l : cycle α).reverse = l.reverse :=
+rfl
 
-@[simp] lemma mem_reverse_iff {a : α} {s : cycle α} :
-  a ∈ s.reverse ↔ a ∈ s :=
+@[simp] lemma mem_reverse_iff {a : α} {s : cycle α} : a ∈ s.reverse ↔ a ∈ s :=
 quot.induction_on s (λ _, mem_reverse)
 
-@[simp] lemma reverse_reverse (s : cycle α) :
-  s.reverse.reverse = s :=
+@[simp] lemma reverse_reverse (s : cycle α) : s.reverse.reverse = s :=
 quot.induction_on s (λ _, by simp)
 
 @[simp] lemma reverse_nil : nil.reverse = @nil α :=
-by { change ↑(([] : list α).reverse) = ↑[], rw reverse_nil }
+rfl
 
 /--
 The length of the `s : cycle α`, which is the number of elements, counting duplicates.
@@ -811,41 +802,43 @@ end
 
 variables {r : α → α → Prop} {s : cycle α}
 
-theorem chain_of_pairwise (hs : ∀ (a ∈ s) (b ∈ s), r a b) : chain r s :=
+theorem chain_of_pairwise : (∀ (a ∈ s) (b ∈ s), r a b) → chain r s :=
 begin
-  rcases s.cases_on with rfl | ⟨a, l, rfl⟩,
-  { exact cycle.chain.nil r },
-  { have Ha : a ∈ ((a :: l) : cycle α) := by simp,
-    have Hl : ∀ {b} (hb : b ∈ l), b ∈ ((a :: l) : cycle α) := λ b hb, by simp [hb],
-    rw cycle.chain_cons,
-    apply chain_of_pairwise,
-    rw pairwise_cons,
-    refine ⟨λ b hb, _, pairwise_append.2 ⟨pairwise_of_forall_mem_list
-      (λ b hb c hc, hs b (Hl hb) c (Hl hc)), pairwise_singleton r a, λ b hb c hc, _⟩⟩,
-    { rw mem_append at hb,
-      cases hb,
-      { exact hs a Ha b (Hl hb) },
-      { rw mem_singleton at hb,
-        rw hb,
-        exact hs a Ha a Ha } },
-    { rw mem_singleton at hc,
-      rw hc,
-      exact hs b (Hl hb) a Ha } }
+  apply s.rec_on,
+  exact λ _, cycle.chain.nil r,
+  intros a l _ hs,
+  have Ha : a ∈ ((a :: l) : cycle α) := by simp,
+  have Hl : ∀ {b} (hb : b ∈ l), b ∈ ((a :: l) : cycle α) := λ b hb, by simp [hb],
+  rw cycle.chain_cons,
+  apply chain_of_pairwise,
+  rw pairwise_cons,
+  refine ⟨λ b hb, _, pairwise_append.2 ⟨pairwise_of_forall_mem_list
+    (λ b hb c hc, hs b (Hl hb) c (Hl hc)), pairwise_singleton r a, λ b hb c hc, _⟩⟩,
+  { rw mem_append at hb,
+    cases hb,
+    { exact hs a Ha b (Hl hb) },
+    { rw mem_singleton at hb,
+      rw hb,
+      exact hs a Ha a Ha } },
+  { rw mem_singleton at hc,
+    rw hc,
+    exact hs b (Hl hb) a Ha }
 end
 
 theorem chain_iff_pairwise (hr : transitive r) : chain r s ↔ ∀ (a ∈ s) (b ∈ s), r a b :=
-⟨λ hs b hb c hc, begin
-  rcases s.cases_on with rfl | ⟨a, l, rfl⟩,
-  { exact hb.elim },
-  { rw [cycle.chain_cons, chain_iff_pairwise hr] at hs,
-    simp [pairwise_append] at hs,
-    simp only [mem_coe_iff, mem_cons_iff] at hb hc,
-    rcases hb with rfl | hb;
-    rcases hc with rfl | hc,
-    { exact hs.1 c (or.inr rfl) },
-    { exact hs.1 c (or.inl hc) },
-    { exact hs.2.2 b hb },
-    { exact hr (hs.2.2 b hb) (hs.1 c (or.inl hc)) } }
+⟨begin
+  apply s.rec_on,
+  exact λ _ b hb, hb.elim,
+  intros a l _ hs b hb c hc,
+  rw [cycle.chain_cons, chain_iff_pairwise hr] at hs,
+  simp [pairwise_append] at hs,
+  simp only [mem_coe_iff, mem_cons_iff] at hb hc,
+  rcases hb with rfl | hb;
+  rcases hc with rfl | hc,
+  { exact hs.1 c (or.inr rfl) },
+  { exact hs.1 c (or.inl hc) },
+  { exact hs.2.2 b hb },
+  { exact hr (hs.2.2 b hb) (hs.1 c (or.inl hc)) }
 end, cycle.chain_of_pairwise⟩
 
 theorem forall_eq_of_chain (hr : transitive r) (hr' : anti_symmetric r)

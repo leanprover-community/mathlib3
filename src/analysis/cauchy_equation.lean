@@ -5,7 +5,7 @@ import measure_theory.measure.haar_lebesgue
 
 
 open add_monoid_hom measure_theory measure_theory.measure metric nnreal set
-open_locale pointwise
+open_locale pointwise topological_space
 
 /-!
 # Cauchy's Functional Equation
@@ -146,14 +146,29 @@ begin
   { rw map_rat_cast_smul f ℝ ℝ q 1 }
 end
 
-lemma additive_is_bounded_of_bounded_on_interval (f : ℝ →+ ℝ) {a b : ℝ} (hab : a < b)
-  (h : metric.bounded (f '' set.Icc a b)) :
-  ∀ (U : set ℝ), metric.bounded U → metric.bounded (f '' U) :=
+lemma additive_is_bounded_of_bounded_on_interval (f : ℝ →+ ℝ) {a : ℝ} {U : set ℝ} (hU : U ∈ 𝓝 a)
+  (h : metric.bounded (f '' U)) : ∃ (V : set ℝ), V ∈ 𝓝 (0 : ℝ) ∧ metric.bounded (f '' V) :=
 begin
-  contrapose h,
-  simp only [not_forall, exists_prop] at h,
-  rcases h with ⟨U, hU, hUf⟩,
-  sorry
+  rcases (metric.mem_nhds_iff.mp hU) with ⟨δ, hδ, hδa⟩,
+  refine ⟨ball 0 δ, ball_mem_nhds 0 hδ, _⟩,
+  rw bounded_iff_exists_norm_le,
+  simp only [mem_image, mem_ball_zero_iff, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂],
+  rcases (bounded_iff_exists_norm_le.mp h) with ⟨M, hM⟩,
+  simp only [mem_image, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂] at hM,
+  refine ⟨2 * M, λ x hxδ, _⟩,
+  suffices : ∥ f (x + a) ∥ + ∥ f a ∥ ≤ 2 * M,
+  { apply le_trans _ this,
+    simp only [_root_.map_add, norm_le_add_norm_add] },
+  { rw two_mul,
+    apply add_le_add,
+    { apply hM,
+      apply hδa,
+      simp only [mem_ball],
+      convert hxδ,
+      rw [← dist_zero_right, ← dist_add_right x 0 a, zero_add] },
+    { apply hM,
+      apply hδa,
+      simpa [mem_ball, dist_self] }}
 end
 
 lemma is_linear_real_of_continuous (f : ℝ →+ ℝ) (h : continuous f) : ∀ (x : ℝ), f x  = f 1 * x :=
@@ -236,19 +251,12 @@ begin
   ring_exp_eq
 end
 
-lemma is_linear_of_bounded_interval (f : ℝ →+ ℝ) {a b : ℝ} (hab : a < b)
-  (hf : metric.bounded (f '' (set.Icc a b))) : ∀ (x : ℝ), f x = f 1 * x :=
+lemma is_linear_of_bounded_nbhd (f : ℝ →+ ℝ) {a : ℝ} {U : set ℝ} (hU : U ∈ 𝓝 a)
+  (hf : metric.bounded (f '' U)) : ∀ (x : ℝ), f x = f 1 * x :=
 begin
-  replace hf := (additive_is_bounded_of_bounded_on_interval f hab hf) (set.Icc (-1 : ℝ) 1) _,
-  { have : continuous_at f 0,
-    { apply additive_continuous_at_zero_of_bounded_nbhd_zero f _ hf,
-      rw metric.mem_nhds_iff,
-      refine ⟨1, one_pos, _⟩,
-      rw real.ball_eq_Ioo,
-      convert Ioo_subset_Icc_self;
-      norm_num },
-    exact is_linear_real_of_continuous_at f this },
-  { exact bounded_Icc (-1 : ℝ) 1 },
+  rcases (additive_is_bounded_of_bounded_on_interval f hU hf) with ⟨V, hV0, hVb⟩,
+  exact is_linear_real_of_continuous_at f
+    (additive_continuous_at_zero_of_bounded_nbhd_zero f hV0 hVb)
 end
 
 

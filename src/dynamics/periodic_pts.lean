@@ -426,9 +426,9 @@ rfl
 @[simp] theorem orbit_length (f : α → α) (x : α) : (orbit f x).length = minimal_period f x :=
 by rw [orbit, cycle.length_coe, list.length_map, list.length_range]
 
-theorem orbit_eq_nil_of_not_periodic_pt {f : α → α} {x : α} (h : x ∉ periodic_pts f) :
+theorem orbit_eq_nil_of_not_periodic_pt {f : α → α} {x : α} (hx : x ∉ periodic_pts f) :
   orbit f x = cycle.nil :=
-by { simp [orbit], exact minimal_period_eq_zero_of_nmem_periodic_pts h }
+by { simp [orbit], exact minimal_period_eq_zero_of_nmem_periodic_pts hx }
 
 @[simp] theorem self_mem_orbit {f : α → α} {x : α} (h : x ∈ periodic_pts f) : x ∈ orbit f x :=
 by { simp [orbit], exact ⟨0, minimal_period_pos_of_mem_periodic_pts h, rfl⟩ }
@@ -472,26 +472,35 @@ end⟩
 theorem orbit_apply_eq {f : α → α} {x : α} (hx : x ∈ periodic_pts f) : orbit f (f x) = orbit f x :=
 orbit_apply_iterate_eq hx 1
 
-@[simp] theorem orbit_chain (r : α → α → Prop) {f : α → α} {x : α} (hx : x ∈ periodic_pts f) :
+theorem orbit_chain (r : α → α → Prop) {f : α → α} {x : α} :
+  (orbit f x).chain r ↔ ∀ n < minimal_period f x, r (f^[n] x) (f^[n+1] x) :=
+begin
+  by_cases hx : x ∈ periodic_pts f,
+  { have hx' := minimal_period_pos_of_mem_periodic_pts hx,
+    have hM := nat.sub_add_cancel (succ_le_iff.2 hx'),
+    rw [orbit, ←cycle.map_coe, cycle.chain_map, ←hM, cycle.chain_range_succ],
+    refine ⟨_, λ H, ⟨_, λ m hm, H _ (hm.trans (nat.lt_succ_self _))⟩⟩,
+    { rintro ⟨hr, H⟩ n hn,
+      cases eq_or_lt_of_le (lt_succ_iff.1 hn) with hM' hM',
+      { rwa [hM', hM, iterate_minimal_period] },
+      { exact H _ hM' } },
+    { rw iterate_zero_apply,
+      nth_rewrite 2 ←@iterate_minimal_period α f x,
+      nth_rewrite 1 ←hM,
+      exact H _ (nat.lt_succ_self _) } },
+  { rw [orbit_eq_nil_of_not_periodic_pt hx, minimal_period_eq_zero_of_nmem_periodic_pts hx],
+    simp }
+end
+
+theorem orbit_chain' (r : α → α → Prop) {f : α → α} {x : α} (hx : x ∈ periodic_pts f) :
   (orbit f x).chain r ↔ ∀ n, r (f^[n] x) (f^[n+1] x) :=
 begin
-  have hx' := minimal_period_pos_of_mem_periodic_pts hx,
-  have hM := nat.sub_add_cancel (succ_le_iff.2 hx'),
-  rw [orbit, ←cycle.map_coe, cycle.chain_map, ←hM, cycle.chain_range_succ],
-  refine ⟨_, λ H, ⟨_, λ m _, H m⟩⟩,
-  { rintro ⟨hr, H⟩ n,
-    rw [iterate_succ_apply, ←iterate_eq_mod_minimal_period],
-    nth_rewrite 1 ←iterate_eq_mod_minimal_period,
-    rw [←iterate_succ_apply, minimal_period_apply hx],
-    have hM' := mod_lt n hx',
-    nth_rewrite 1 ←hM at hM',
-    cases eq_or_lt_of_le (lt_succ_iff.1 hM') with hM' hM',
-    { rwa [hM', nat.succ_eq_add_one (minimal_period f x - 1), hM, iterate_minimal_period] },
-    { exact H _ hM' } },
-  { rw iterate_zero_apply,
-    nth_rewrite 2 ←@iterate_minimal_period α f x,
-    convert H _,
-    rw hM }
+  rw orbit_chain r,
+  refine ⟨λ H n, _, λ H n _, H n⟩,
+  rw [iterate_succ_apply, ←iterate_eq_mod_minimal_period],
+  nth_rewrite 1 ←iterate_eq_mod_minimal_period,
+  rw [←iterate_succ_apply, minimal_period_apply hx],
+  exact H _ (mod_lt _ (minimal_period_pos_of_mem_periodic_pts hx))
 end
 
 end function

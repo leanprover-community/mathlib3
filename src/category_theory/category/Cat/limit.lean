@@ -16,8 +16,7 @@ A morphism between two such objects is a family of morphisms between the corresp
 which are carried to one another by the action on morphisms of the functors in the diagram.
 
 ## Future work
-The universe restrictions are likely unnecessarily strict:
-the indexing category could live in a lower universe.
+Can the indexing category live in a lower universe?
 -/
 
 noncomputable theory
@@ -27,20 +26,6 @@ universes v u
 open category_theory.limits
 
 namespace category_theory
-
-@[simp]
-lemma id_map {C : Cat} {X Y : C} (f : X ⟶ Y) : (𝟙 C : C ⥤ C).map f = f :=
-functor.id_map f
-
-@[simp]
-lemma comp_obj {C D E : Cat} (F : C ⟶ D) (G : D ⟶ E) (X : C) :
-  (F ≫ G).obj X = G.obj (F.obj X) :=
-functor.comp_obj F G X
-
-@[simp]
-lemma comp_map {C D E : Cat} (F : C ⟶ D) (G : D ⟶ E) {X Y : C} (f : X ⟶ Y) :
-  (F ≫ G).map f = G.map (F.map f) :=
-functor.comp_map F G f
 
 variables {J : Type v} [small_category J]
 
@@ -52,6 +37,8 @@ instance category_objects {F : J ⥤ Cat.{u u}} {j} :
   small_category ((F ⋙ Cat.objects.{u u}).obj j) :=
 (F.obj j).str
 
+/-- Auxiliary definition:
+the diagram whose limit gives the morphism space between two objects of the limit category. -/
 @[simps]
 def hom_diagram {F : J ⥤ Cat.{v v}} (X Y : limit (F ⋙ Cat.objects.{v v})) : J ⥤ Type v :=
 { obj := λ j, limit.π (F ⋙ Cat.objects) j X ⟶ limit.π (F ⋙ Cat.objects) j Y,
@@ -83,10 +70,12 @@ instance (F : J ⥤ Cat.{v v}) : category (limit (F ⋙ Cat.objects)) :=
       simp,
     end), }
 
+/-- Auxiliary definition: the limit category. -/
 @[simps]
 def limit_cone_X (F : J ⥤ Cat.{v v}) : Cat.{v v} :=
 { α := limit (F ⋙ Cat.objects), }.
 
+/-- Auxiliary definition: the cone over the limit category. -/
 @[simps]
 def limit_cone (F : J ⥤ Cat.{v v}) : cone F :=
 { X := limit_cone_X F,
@@ -98,6 +87,7 @@ def limit_cone (F : J ⥤ Cat.{v v}) : cone F :=
       (λ X, (congr_fun (limit.w (F ⋙ Cat.objects) f) X).symm)
       (λ X Y h, (congr_fun (limit.w (hom_diagram X Y) f) h).symm), } }
 
+/-- Auxiliary definition: the universal morphism to the proposed limit cone. -/
 @[simps]
 def limit_cone_lift (F : J ⥤ Cat.{v v}) (s : cone F) : s.X ⟶ limit_cone_X F :=
 { obj := limit.lift (F ⋙ Cat.objects)
@@ -129,7 +119,7 @@ lemma limit_π_hom_diagram_eq_to_hom {F : J ⥤ Cat.{v v}}
     eq_to_hom (congr_arg (limit.π (F ⋙ Cat.objects.{v v}) j) h) :=
 by { subst h, simp, }
 
-/-- The proposed cone is a limit cone. -/
+/-- Auxiliary definition: the proposed cone is a limit cone. -/
 def limit_cone_is_limit (F : J ⥤ Cat.{v v}) : is_limit (limit_cone F) :=
 { lift := limit_cone_lift F,
   fac' := λ s j, category_theory.functor.ext (by tidy) (λ X Y f, types.limit.π_mk _ _ _ _),

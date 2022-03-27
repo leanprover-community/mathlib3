@@ -3,7 +3,7 @@ Copyright (c) 2022 Yaël Dillies. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Christopher Hoskin
 -/
-import algebra.group.hom_instances
+import algebra.hom.group_instances
 import algebra.ring.basic
 
 /-!
@@ -71,11 +71,14 @@ instance : centroid_hom_class (centroid_hom α) α :=
 directly. -/
 instance : has_coe_to_fun (centroid_hom α) (λ _, α → α) := fun_like.has_coe_to_fun
 
-@[simp] lemma to_fun_eq_coe {f : centroid_hom α} : f.to_fun = (f : α → α) := rfl
-
-@[simp] lemma coe_to_add_monoid_hom (f : centroid_hom α) : (f.to_add_monoid_hom : α → α) = f := rfl
+-- Eligible for `dsimp`
+@[simp, nolint simp_nf] lemma to_fun_eq_coe {f : centroid_hom α} : f.to_fun = (f : α → α) := rfl
 
 @[ext] lemma ext {f g : centroid_hom α} (h : ∀ a, f a = g a) : f = g := fun_like.ext f g h
+
+@[simp] lemma coe_to_add_monoid_hom (f : centroid_hom α) : ⇑(f : α →+ α) = f := rfl
+@[simp] lemma to_add_monoid_hom_eq_coe (f : centroid_hom α) : f.to_add_monoid_hom = f :=
+fun_like.coe_injective rfl
 
 /-- Copy of a `centroid_hom` with a new `to_fun` equal to the old one. Useful to fix
 definitional equalities. -/

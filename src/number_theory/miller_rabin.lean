@@ -340,6 +340,20 @@ begin
   }
 end
 
+lemma unlikely_strong_probable_prime_of_composite_1 (n : ℕ) [hn_pos : fact (0 < n)] (h : (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1)) (not_prime : ¬ n.prime) :
+  ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
+  begin
+    sorry,
+  end
+
+lemma unlikely_strong_probable_prime_of_composite_2 (n : ℕ) [hn_pos : fact (0 < n)] (h : (∃ (p k : ℕ), p.prime ∧ p^k = n)) (not_prime : ¬ n.prime) :
+  ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
+  begin
+    sorry,
+  end
+
+
+
 lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [hn_pos : fact (0 < n)] (not_prime : ¬ n.prime) :
   ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
 begin
@@ -353,10 +367,7 @@ begin
       by {
         rw finset.filter_nonempty_iff,
         use 0,
-        -- TODO(Sean): Mathlib has a rule that says that simps in the middle of blocks have to be simp onlys
-        -- use squeeze_simp to find out what these simps are doing and changes them to simp only,
-        -- or to rewrites if possible.
-        simp,
+        simp only [finset.mem_range, pow_zero, pow_one, exists_apply_eq_apply, and_true],
         by_contra,
         simp at h,
         have hn' : n - 1 ≠ 0,

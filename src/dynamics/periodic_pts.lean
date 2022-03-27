@@ -267,6 +267,9 @@ lemma minimal_period_pos_iff_mem_periodic_pts :
   by simp only [minimal_period, dif_neg h, lt_irrefl 0, not_false_iff],
   minimal_period_pos_of_mem_periodic_pts⟩
 
+lemma minimal_period_eq_zero_iff_nmem_periodic_pts : minimal_period f x = 0 ↔ x ∉ periodic_pts f :=
+by rw [←minimal_period_pos_iff_mem_periodic_pts, not_lt, nonpos_iff_eq_zero]
+
 lemma is_periodic_pt.minimal_period_le (hn : 0 < n) (hx : is_periodic_pt f n x) :
   minimal_period f x ≤ n :=
 begin
@@ -426,9 +429,13 @@ rfl
 @[simp] theorem orbit_length (f : α → α) (x : α) : (orbit f x).length = minimal_period f x :=
 by rw [orbit, cycle.length_coe, list.length_map, list.length_range]
 
+@[simp] theorem orbit_eq_nil_iff_not_periodic_pt {f : α → α} {x : α} :
+  orbit f x = (([] : list α) : cycle α) ↔ x ∉ periodic_pts f :=
+by { simp [orbit], exact minimal_period_eq_zero_iff_nmem_periodic_pts }
+
 theorem orbit_eq_nil_of_not_periodic_pt {f : α → α} {x : α} (h : x ∉ periodic_pts f) :
   orbit f x = (([] : list α) : cycle α) :=
-by { simp [orbit], exact minimal_period_eq_zero_of_nmem_periodic_pts h }
+orbit_eq_nil_iff_not_periodic_pt.2 h
 
 @[simp] theorem self_mem_orbit {f : α → α} {x : α} (h : x ∈ periodic_pts f) : x ∈ orbit f x :=
 by { simp [orbit], exact ⟨0, minimal_period_pos_of_mem_periodic_pts h, rfl⟩ }

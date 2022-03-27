@@ -472,4 +472,19 @@ end⟩
 theorem orbit_apply_eq {f : α → α} {x : α} (hx : x ∈ periodic_pts f) : orbit f (f x) = orbit f x :=
 orbit_apply_iterate_eq hx 1
 
+@[simp] theorem orbit_chain (r : α → α → Prop) {f : α → α} {x : α} (hx : x ∈ periodic_pts f) :
+  (orbit f x).chain r ↔ ∀ n, r (f^[n] x) (f^[n+1] x) :=
+begin
+  have H := nat.sub_add_cancel (succ_le_iff.2 (minimal_period_pos_of_mem_periodic_pts hx)),
+  rw [orbit, ←cycle.map_coe, cycle.chain_map],
+  rw ←H,
+  rw list.range_succ,
+  rw ←cycle.coe_cons_eq_coe_append,
+  simp only [cycle.chain_cons, iterate_succ, comp_app],
+
+  rw ←list.range_succ,
+  rw nat.succ_eq_add_one (minimal_period f x - 1),
+  rw H,
+end
+
 end function

@@ -818,4 +818,8 @@ theorem forall_eq_of_chain (hr : transitive r) (hr' : anti_symmetric r)
   (hs : chain r s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) : a = b :=
 by { rw chain_iff_pairwise hr at hs, exact hr' (hs a ha b hb) (hs b hb a ha) }
 
+theorem chain_range_succ (r : ℕ → ℕ → Prop) (n : ℕ) :
+  chain r (list.range n.succ) ↔ r n 0 ∧ ∀ m < n, r m m.succ :=
+by rw [range_succ, ←coe_cons_eq_coe_append, chain_cons, ←range_succ, chain_range_succ]
+
 end cycle

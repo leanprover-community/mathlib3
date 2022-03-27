@@ -3,13 +3,13 @@ Copyright (c) 2022 Eric Rodriguez. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Rodriguez
 -/
-import ring_theory.localization.cardinality
-import set_theory.cardinal_divisibility
-import field_theory.finite.galois_field
-import data.equiv.transfer_instance
 import algebra.ring.ulift
 import data.mv_polynomial.cardinal
 import data.rat.denumerable
+import field_theory.finite.galois_field
+import logic.equiv.transfer_instance
+import ring_theory.localization.cardinality
+import set_theory.cardinal_divisibility
 
 /-!
 # Cardinality of Fields

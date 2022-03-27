@@ -3,7 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import data.equiv.option
+import logic.equiv.option
 import order.rel_iso
 import tactic.monotonicity.basic
 
@@ -93,7 +93,7 @@ abbreviation order_iso (α β : Type*) [has_le α] [has_le β] := @rel_iso α β
 infix ` ≃o `:25 := order_iso
 
 /-- `order_hom_class F α b` asserts that `F` is a type of `≤`-preserving morphisms. -/
-abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [preorder α] [preorder β] :=
+abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [has_le α] [has_le β] :=
 rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop)
 
 /-- `order_iso_class F α β` states that `F` is a type of order isomorphisms.
@@ -111,7 +111,7 @@ instance [has_le α] [has_le β] [order_iso_class F α β] : has_coe_t F (α ≃
 ⟨λ f, ⟨f, λ _ _, map_le_map_iff f⟩⟩
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso_class.to_order_hom_class [preorder α] [preorder β] [order_iso_class F α β] :
+instance order_iso_class.to_order_hom_class [has_le α] [has_le β] [order_iso_class F α β] :
   order_hom_class F α β :=
 { map_rel := λ f a b, (map_le_map_iff f).2, ..equiv_like.to_embedding_like }
 

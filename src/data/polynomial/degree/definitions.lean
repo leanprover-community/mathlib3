@@ -371,9 +371,6 @@ lemma coeff_mul_X_sub_C {p : R[X]} {r : R} {a : ℕ} :
   coeff (p * (X - C r)) (a + 1) = coeff p a - coeff p (a + 1) * r :=
 by simp [mul_sub]
 
-lemma C_eq_int_cast (n : ℤ) : C (n : R) = n :=
-(C : R →+* _).map_int_cast n
-
 @[simp] lemma degree_neg (p : R[X]) : degree (-p) = degree p :=
 by unfold degree; rw support_neg
 

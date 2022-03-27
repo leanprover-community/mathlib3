@@ -3159,17 +3159,17 @@ lemma prod_mk {γ : Type*} [measurable_space γ] {f : α → β} {g : α → γ}
   eventually_eq.prod_mk hf.ae_eq_mk hg.ae_eq_mk⟩
 
 lemma exists_ae_eq_range_subset (H : ae_measurable f μ) {t : set β} (ht : ∀ᵐ x ∂μ, f x ∈ t)
-  {y₀ : β} (h₀ : y₀ ∈ t) :
+  (h₀ : t.nonempty) :
   ∃ g, measurable g ∧ range g ⊆ t ∧ f =ᵐ[μ] g :=
 begin
   let s : set α := to_measurable μ {x | f x = H.mk f x ∧ f x ∈ t}ᶜ,
-  let g : α → β := piecewise s (λ x, y₀) (H.mk f),
+  let g : α → β := piecewise s (λ x, h₀.some) (H.mk f),
   refine ⟨g, _, _, _⟩,
   { exact measurable.piecewise (measurable_set_to_measurable _ _)
       measurable_const H.measurable_mk },
   { rintros - ⟨x, rfl⟩,
     by_cases hx : x ∈ s,
-    { simpa [g, hx] using h₀ },
+    { simpa [g, hx] using h₀.some_mem },
     { simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
       contrapose! hx,
       apply subset_to_measurable,
@@ -3191,7 +3191,7 @@ lemma subtype_mk (h : ae_measurable f μ) {s : set β} {hfs : ∀ x, f x ∈ s} 
 begin
   nontriviality α, inhabit α,
   obtain ⟨g, g_meas, hg, fg⟩ : ∃ (g : α → β), measurable g ∧ range g ⊆ s ∧ f =ᵐ[μ] g :=
-    h.exists_ae_eq_range_subset (eventually_of_forall hfs) (hfs default),
+    h.exists_ae_eq_range_subset (eventually_of_forall hfs) ⟨_, hfs default⟩,
   refine ⟨cod_restrict g s (λ x, hg (mem_range_self _)), measurable.subtype_mk g_meas, _⟩,
   filter_upwards [fg] with x hx,
   simpa [subtype.ext_iff],

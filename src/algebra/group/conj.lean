@@ -5,8 +5,8 @@ Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
 import algebra.group.semiconj
 import algebra.group_with_zero.basic
+import algebra.hom.aut
 import algebra.hom.group
-import data.equiv.mul_add_aut
 import data.fintype.basic
 
 /-!

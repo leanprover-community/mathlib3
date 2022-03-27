@@ -5,9 +5,9 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 
 import algebra.indicator_function
-import data.equiv.fin
 import data.tprod
 import group_theory.coset
+import logic.equiv.fin
 import measure_theory.measurable_space_def
 import measure_theory.tactic
 import order.filter.lift

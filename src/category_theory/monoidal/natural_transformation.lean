@@ -103,6 +103,14 @@ def hcomp {F G : lax_monoidal_functor C D} {H K : lax_monoidal_functor D E}
   end,
   ..(nat_trans.hcomp α.to_nat_trans β.to_nat_trans) }
 
+def prod {F G : lax_monoidal_functor C D} {H K : lax_monoidal_functor C E}
+  (α : monoidal_nat_trans F G) (β : monoidal_nat_trans H K) :
+  monoidal_nat_trans (F.prod' H) (G.prod' K) :=
+{ app := λ X, (α.app X, β.app X),
+  naturality' := λ X Y f, congr_arg2 prod.mk (α.naturality' f) (β.naturality' f),
+  unit' := congr_arg2 prod.mk α.unit' β.unit',
+  tensor' := λ X Y, congr_arg2 prod.mk (α.tensor' X Y) (β.tensor' X Y) }
+
 end monoidal_nat_trans
 
 namespace monoidal_nat_iso

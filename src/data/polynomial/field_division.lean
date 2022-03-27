@@ -178,30 +178,11 @@ by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv₀, �
     ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
 
 /-- Division of polynomials. See polynomial.div_by_monic for more details.-/
-def div (p q : R[X]) :=
-C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff q)⁻¹))
+instance : has_div R[X] := ⟨λ p q, C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff q)⁻¹))⟩
 
 /-- Remainder of polynomial division, see the lemma `quotient_mul_add_remainder_eq_aux`.
 See polynomial.mod_by_monic for more details. -/
-def mod (p q : R[X]) :=
-p %ₘ (q * C (leading_coeff q)⁻¹)
-
-private lemma quotient_mul_add_remainder_eq_aux (p q : R[X]) :
-  q * div p q + mod p q = p :=
-if h : q = 0 then by simp only [h, zero_mul, mod, mod_by_monic_zero, zero_add]
-else begin
-  conv {to_rhs, rw ← mod_by_monic_add_div p (monic_mul_leading_coeff_inv h)},
-  rw [div, mod, add_comm, mul_assoc]
-end
-
-private lemma remainder_lt_aux (p : R[X]) (hq : q ≠ 0) :
-  degree (mod p q) < degree q :=
-by rw ← degree_mul_leading_coeff_inv q hq; exact
-  degree_mod_by_monic_lt p (monic_mul_leading_coeff_inv hq)
-
-instance : has_div R[X] := ⟨div⟩
-
-instance : has_mod R[X] := ⟨mod⟩
+instance : has_mod R[X] := ⟨λ p q, p %ₘ (q * C (leading_coeff q)⁻¹)⟩
 
 lemma div_def : p / q = C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff q)⁻¹)) := rfl
 
@@ -226,8 +207,16 @@ instance : euclidean_domain R[X] :=
   remainder := (%),
   r := _,
   r_well_founded := degree_lt_wf,
-  quotient_mul_add_remainder_eq := quotient_mul_add_remainder_eq_aux,
-  remainder_lt := λ p q hq, remainder_lt_aux _ hq,
+  quotient_mul_add_remainder_eq := λ p q, begin
+    by_cases h : q = 0,
+    { simp only [h, zero_mul, mod_def, mod_by_monic_zero, zero_add] },
+    { conv_rhs { rw ← mod_by_monic_add_div p (monic_mul_leading_coeff_inv h) },
+      rw [div_def, mod_def, add_comm, mul_assoc] },
+  end,
+  remainder_lt := λ p q hq, begin
+    rw ← degree_mul_leading_coeff_inv q hq,
+    exact degree_mod_by_monic_lt p (monic_mul_leading_coeff_inv hq),
+  end,
   mul_left_not_lt := λ p q hq, not_lt_of_ge (degree_le_mul_left _ hq),
   .. polynomial.comm_ring,
   .. polynomial.nontrivial }

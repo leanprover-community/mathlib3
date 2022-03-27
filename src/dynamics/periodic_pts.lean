@@ -3,10 +3,11 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
+import data.list.cycle
 import data.nat.prime
-import dynamics.fixed_points.basic
 import data.pnat.basic
 import data.set.lattice
+import dynamics.fixed_points.basic
 
 /-!
 # Periodic points
@@ -22,6 +23,7 @@ A point `x : α` is a periodic point of `f : α → α` of period `n` if `f^[n] 
 * `periodic_pts f` : the set of all periodic points of `f`.
 * `minimal_period f x` : the minimal period of a point `x` under an endomorphism `f` or zero
   if `x` is not a periodic point of `f`.
+* `orbit f x`: the cycle `[x, f x, f (f x), ...]` for a periodic point.
 
 ## Main statements
 
@@ -190,6 +192,19 @@ lemma mk_mem_periodic_pts (hn : 0 < n) (hx : is_periodic_pt f n x) :
 
 lemma mem_periodic_pts : x ∈ periodic_pts f ↔ ∃ n > 0, is_periodic_pt f n x := iff.rfl
 
+lemma iterate_eq_of_periodic_pt {α : Type*} {f : α → α} {x : α} (hx : x ∈ periodic_pts f)
+  {n k : ℕ} (H : f^[n+k] x = (f^[n]) x) : f^[k] x = x :=
+begin
+  rcases hx with ⟨r, hr, hr'⟩,
+  apply_fun (f^[(n / r + 1) * r - n]) at H,
+  have : (n / r + 1) * r - n + n = (n / r + 1) * r := nat.sub_add_cancel begin
+    rw [add_mul, one_mul],
+    exact (nat.lt_div_mul_add hr).le
+  end,
+  rwa [←iterate_add_apply, ←iterate_add_apply, ←add_assoc, this, iterate_add_apply, iterate_mul,
+    (hr'.iterate (n / r + 1)).eq, ((hr'.apply_iterate k).iterate (n / r + 1)).eq] at H
+end
+
 variable (f)
 
 lemma bUnion_pts_of_period : (⋃ n > 0, pts_of_period f n) = periodic_pts f :=
@@ -217,8 +232,7 @@ then `minimal_period f x = 0`. -/
 def minimal_period (f : α → α) (x : α) :=
 if h : x ∈ periodic_pts f then nat.find h else 0
 
-lemma is_periodic_pt_minimal_period (f : α → α) (x : α) :
-  is_periodic_pt f (minimal_period f x) x :=
+lemma is_periodic_pt_minimal_period (f : α → α) (x : α) : is_periodic_pt f (minimal_period f x) x :=
 begin
   delta minimal_period,
   split_ifs with hx,
@@ -226,12 +240,22 @@ begin
   { exact is_periodic_pt_zero f x }
 end
 
-lemma iterate_eq_mod_minimal_period : f^[n] x = (f^[n % minimal_period f x] x) :=
-((is_periodic_pt_minimal_period f x).iterate_mod_apply n).symm
+@[simp] lemma iterate_minimal_period : f^[minimal_period f x] x = x :=
+is_periodic_pt_minimal_period f x
+
+@[simp] lemma iterate_eq_add_minimal_period : f^[n + minimal_period f x] x = (f^[n] x) :=
+by { rw iterate_add_apply, congr, exact is_periodic_pt_minimal_period f x }
+
+@[simp] lemma iterate_eq_mod_minimal_period : f^[n % minimal_period f x] x = (f^[n] x) :=
+((is_periodic_pt_minimal_period f x).iterate_mod_apply n)
 
 lemma minimal_period_pos_of_mem_periodic_pts (hx : x ∈ periodic_pts f) :
   0 < minimal_period f x :=
 by simp only [minimal_period, dif_pos hx, (nat.find_spec hx).fst.lt]
+
+lemma minimal_period_eq_zero_of_nmem_periodic_pts (hx : x ∉ periodic_pts f) :
+  minimal_period f x = 0 :=
+by simp only [minimal_period, dif_neg hx]
 
 lemma is_periodic_pt.minimal_period_pos (hn : 0 < n) (hx : is_periodic_pt f n x) :
   0 < minimal_period f x :=
@@ -250,6 +274,42 @@ begin
   exact nat.find_min' (mk_mem_periodic_pts hn hx) ⟨hn, hx⟩
 end
 
+theorem minimal_period_apply_iterate (hx : x ∈ periodic_pts f) (n : ℕ) :
+  minimal_period f (f^[n] x) = minimal_period f x :=
+begin
+  apply le_antisymm,
+  { apply is_periodic_pt.minimal_period_le (minimal_period_pos_iff_mem_periodic_pts.2 hx),
+    change (f^[_] (f^[n] x)) = (f^[n] x),
+    rw [←iterate_add_apply, add_comm, iterate_add_apply, iterate_minimal_period] },
+  { have hx' : (f^[n] x) ∈ periodic_pts f := begin
+      rcases hx with ⟨m, hm, hx⟩,
+      exact ⟨m, hm, hx.apply_iterate n⟩
+    end,
+    apply is_periodic_pt.minimal_period_le (minimal_period_pos_iff_mem_periodic_pts.2 hx'),
+    change (f^[_] x) = x,
+    apply @iterate_eq_of_periodic_pt α f x hx n,
+    rw [add_comm, iterate_add_apply, iterate_minimal_period] }
+end
+
+theorem minimal_period_apply (hx : x ∈ periodic_pts f) :
+  minimal_period f (f x) = minimal_period f x :=
+minimal_period_apply_iterate hx 1
+
+lemma le_of_lt_minimal_period_of_iterate_eq {m n : ℕ} (hm : m < minimal_period f x)
+  (hmn : f^[m] x = (f^[n] x)) : m ≤ n :=
+begin
+  by_contra' hmn',
+  rw ←nat.add_sub_of_le hmn'.le at hmn,
+  exact ((is_periodic_pt.minimal_period_le (tsub_pos_of_lt hmn') (iterate_eq_of_periodic_pt
+    (minimal_period_pos_iff_mem_periodic_pts.1 ((zero_le m).trans_lt hm)) hmn)).trans
+    (nat.sub_le m n)).not_lt hm
+end
+
+lemma eq_iff_lt_minimal_period_of_iterate_eq {m n : ℕ} (hm : m < minimal_period f x)
+  (hn : n < minimal_period f x) : f^[m] x = (f^[n] x) ↔ m = n :=
+⟨λ hmn, (le_of_lt_minimal_period_of_iterate_eq hm hmn).antisymm
+  (le_of_lt_minimal_period_of_iterate_eq hn hmn.symm), congr_arg _⟩
+
 lemma minimal_period_id : minimal_period id x = 1 :=
 ((is_periodic_id _ _ ).minimal_period_le nat.one_pos).antisymm
   (nat.succ_le_of_lt ((is_periodic_id _ _ ).minimal_period_pos nat.one_pos))
@@ -266,25 +326,22 @@ begin
 end
 
 lemma is_periodic_pt.eq_zero_of_lt_minimal_period (hx : is_periodic_pt f n x)
-  (hn : n < minimal_period f x) :
-  n = 0 :=
+  (hn : n < minimal_period f x) : n = 0 :=
 eq.symm $ (eq_or_lt_of_le $ n.zero_le).resolve_right $ λ hn0,
 not_lt.2 (hx.minimal_period_le hn0) hn
 
 lemma not_is_periodic_pt_of_pos_of_lt_minimal_period :
-  ∀ {n: ℕ} (n0 : n ≠ 0) (hn : n < minimal_period f x), ¬ is_periodic_pt f n x
+  ∀ {n : ℕ} (n0 : n ≠ 0) (hn : n < minimal_period f x), ¬ is_periodic_pt f n x
 | 0 n0 _ := (n0 rfl).elim
 | (n + 1) _ hn := λ hp, nat.succ_ne_zero _ (hp.eq_zero_of_lt_minimal_period hn)
 
-lemma is_periodic_pt.minimal_period_dvd (hx : is_periodic_pt f n x) :
-  minimal_period f x ∣ n :=
+lemma is_periodic_pt.minimal_period_dvd (hx : is_periodic_pt f n x) : minimal_period f x ∣ n :=
 (eq_or_lt_of_le $ n.zero_le).elim (λ hn0, hn0 ▸ dvd_zero _) $ λ hn0,
 (nat.dvd_iff_mod_eq_zero _ _).2 $
 (hx.mod $ is_periodic_pt_minimal_period f x).eq_zero_of_lt_minimal_period $
 nat.mod_lt _ $ hx.minimal_period_pos hn0
 
-lemma is_periodic_pt_iff_minimal_period_dvd :
-  is_periodic_pt f n x ↔ minimal_period f x ∣ n :=
+lemma is_periodic_pt_iff_minimal_period_dvd : is_periodic_pt f n x ↔ minimal_period f x ∣ n :=
 ⟨is_periodic_pt.minimal_period_dvd, λ h, (is_periodic_pt_minimal_period f x).trans_dvd h⟩
 
 open nat
@@ -356,5 +413,63 @@ lemma minimal_period_iterate_eq_div_gcd' (h : x ∈ periodic_pts f) :
   minimal_period (f ^[n]) x = minimal_period f x / nat.gcd (minimal_period f x) n :=
 minimal_period_iterate_eq_div_gcd_aux $
   gcd_pos_of_pos_left n (minimal_period_pos_iff_mem_periodic_pts.mpr h)
+
+/-- The orbit of a periodic point `x` of `f` is the cycle `[x, f x, f (f x), ...]`. Its length is
+the minimal period of `x`. -/
+def orbit (f : α → α) (x : α) : cycle α :=
+(list.range (minimal_period f x)).map (λ n, f^[n] x)
+
+theorem orbit_def (f : α → α) (x : α) :
+  orbit f x = (list.range (minimal_period f x)).map (λ n, f^[n] x) :=
+rfl
+
+@[simp] theorem orbit_length (f : α → α) (x : α) : (orbit f x).length = minimal_period f x :=
+by rw [orbit, cycle.length_coe, list.length_map, list.length_range]
+
+theorem orbit_eq_nil_of_not_periodic_pt {f : α → α} {x : α} (h : x ∉ periodic_pts f) :
+  orbit f x = (([] : list α) : cycle α) :=
+by { simp [orbit], exact minimal_period_eq_zero_of_nmem_periodic_pts h }
+
+@[simp] theorem self_mem_orbit {f : α → α} {x : α} (h : x ∈ periodic_pts f) : x ∈ orbit f x :=
+by { simp [orbit], exact ⟨0, minimal_period_pos_of_mem_periodic_pts h, rfl⟩ }
+
+@[simp] theorem mem_orbit_iff {f : α → α} {x y : α} (hx : x ∈ periodic_pts f) :
+  y ∈ orbit f x ↔ ∃ n, f^[n] x = y :=
+begin
+  simp [orbit, periodic_pts, is_periodic_pt],
+  split,
+  { rintro ⟨a, ha, ha'⟩,
+    use a + minimal_period f x,
+    rwa iterate_eq_add_minimal_period },
+  { rintro ⟨n, rfl⟩,
+    use [n % minimal_period f x, mod_lt _ (minimal_period_pos_iff_mem_periodic_pts.2 hx)],
+    rw iterate_eq_mod_minimal_period }
+end
+
+@[simp] theorem iterate_mem_orbit {f : α → α} {x : α} (hx : x ∈ periodic_pts f) (n : ℕ) :
+  f^[n] x ∈ orbit f x :=
+(mem_orbit_iff hx).2 ⟨n, rfl⟩
+
+theorem nodup_orbit {f : α → α} {x : α} : (orbit f x).nodup :=
+begin
+  rw [orbit_def, cycle.nodup_coe_iff, list.nodup_map_iff_inj_on (list.nodup_range _)],
+  intros m hm n hn hmn,
+  rw list.mem_range at hm hn,
+  rwa eq_iff_lt_minimal_period_of_iterate_eq hm hn at hmn
+end
+
+theorem orbit_apply_iterate_eq {f : α → α} {x : α} (hx : x ∈ periodic_pts f) (n : ℕ) :
+  orbit f (f^[n] x) = orbit f x :=
+eq.symm $ cycle.coe_eq_coe.2 $ ⟨n, begin
+  apply list.ext_le;
+  simp [minimal_period_apply_iterate hx],
+  intros m _ _,
+  rw list.nth_le_rotate _ n m,
+  simp,
+  apply iterate_add_apply
+end⟩
+
+theorem orbit_apply_eq {f : α → α} {x : α} (hx : x ∈ periodic_pts f) : orbit f (f x) = orbit f x :=
+orbit_apply_iterate_eq hx 1
 
 end function

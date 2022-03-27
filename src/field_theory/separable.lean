@@ -467,10 +467,11 @@ variables {F : Type u} [field F] {K : Type v} [field K]
 theorem separable_iff_derivative_ne_zero {f : F[X]} (hf : irreducible f) :
   f.separable ↔ f.derivative ≠ 0 :=
 ⟨λ h1 h2, hf.not_unit $ is_coprime_zero_right.1 $ h2 ▸ h1,
-λ h, euclidean_domain.is_coprime_of_dvd (mt and.right h) $ λ g hg1 hg2 ⟨p, hg3⟩ hg4,
+  λ h, euclidean_domain.is_coprime_of_dvd (mt and.right h) $ λ g hg1 hg2 ⟨p, hg3⟩ hg4,
 let ⟨u, hu⟩ := (hf.is_unit_or_is_unit hg3).resolve_left hg1 in
-have f ∣ f.derivative, by { conv_lhs { rw [hg3, ← hu] }, rwa units.mul_right_dvd },
-not_lt_of_le (nat_degree_le_of_dvd this h) $ nat_degree_derivative_lt h⟩
+  have f ∣ f.derivative, by { conv_lhs { rw [hg3, ← hu] }, rwa units.mul_right_dvd },
+  not_lt_of_le (nat_degree_le_of_dvd this h) $
+  nat_degree_derivative_lt $ mt derivative_of_nat_degree_zero h⟩
 
 theorem separable_map (f : F →+* K) {p : F[X]} : (p.map f).separable ↔ p.separable :=
 by simp_rw [separable_def, derivative_map, is_coprime_map]

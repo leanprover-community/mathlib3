@@ -420,7 +420,7 @@ section
 variables (C : Type u) [category.{v} C] [monoidal_category.{v} C]
 
 /-- The tensor product expressed as a functor. -/
-def tensor : (C × C) ⥤ C :=
+@[simps] def tensor : (C × C) ⥤ C :=
 { obj := λ X, X.1 ⊗ X.2,
   map := λ {X Y : C × C} (f : X ⟶ Y), f.1 ⊗ f.2 }
 
@@ -607,7 +607,7 @@ universes v₁ v₂ u₁ u₂
 variables (C₁ : Type u₁) [category.{v₁} C₁] [monoidal_category.{v₁} C₁]
 variables (C₂ : Type u₂) [category.{v₂} C₂] [monoidal_category.{v₂} C₂]
 
-instance prod_monoidal : monoidal_category (C₁ × C₂) :=
+@[simps] instance prod_monoidal : monoidal_category (C₁ × C₂) :=
 { tensor_obj := λ X Y, (X.1 ⊗ Y.1, X.2 ⊗ Y.2),
   tensor_hom := λ X₁ Y₁ X₂ Y₂ f₁ f₂, (f₁.1 ⊗ f₂.1, f₁.2 ⊗ f₂.2),
   tensor_id' :=

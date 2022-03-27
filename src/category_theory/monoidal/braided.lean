@@ -3,6 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import category_theory.monoidal.free.basic
+import category_theory.monoidal.free.coherence
 import category_theory.monoidal.natural_transformation
 import category_theory.monoidal.discrete
 
@@ -138,6 +140,20 @@ calc ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_
 @[simp]
 lemma braiding_right_unitor (X : C) : (β_ (𝟙_ C) X).hom ≫ (ρ_ X).hom = (λ_ X).hom :=
 by rw [←tensor_left_iff, id_tensor_comp, braiding_right_unitor_aux₂]
+
+@[simp]
+lemma left_unitor_inv_braiding (X : C) : (λ_ X).inv ≫ (β_ (𝟙_ C) X).hom = (ρ_ X).inv :=
+begin
+  apply (cancel_mono (ρ_ X).hom).1,
+  simp only [assoc, braiding_right_unitor, iso.inv_hom_id],
+end
+
+@[simp]
+lemma right_unitor_inv_braiding (X : C) : (ρ_ X).inv ≫ (β_ X (𝟙_ C)).hom = (λ_ X).inv :=
+begin
+  apply (cancel_mono (λ_ X).hom).1,
+  simp only [assoc, braiding_left_unitor, iso.inv_hom_id],
+end
 
 end
 
@@ -282,5 +298,365 @@ def discrete.braided_functor (F : M →* N) : braided_functor (discrete M) (disc
 { ..discrete.monoidal_functor F }
 
 end comm_monoid
+
+section tensor
+
+open free_monoidal_category
+
+def tensor_μ (X Y : C × C) : (tensor C).obj X ⊗ (tensor C).obj Y ⟶ (tensor C).obj (X ⊗ Y) :=
+(α_ X.1 X.2 (Y.1 ⊗ Y.2)).hom ≫ (𝟙 X.1 ⊗ (α_ X.2 Y.1 Y.2).inv) ≫
+(𝟙 X.1 ⊗ ((β_ X.2 Y.1).hom ⊗ 𝟙 Y.2)) ≫
+(𝟙 X.1 ⊗ (α_ Y.1 X.2 Y.2).hom) ≫ (α_ X.1 Y.1 (X.2 ⊗ Y.2)).inv
+
+lemma tensor_μ_def₁ (X₁ X₂ Y₁ Y₂ : C) :
+    tensor_μ C (X₁, X₂) (Y₁, Y₂) ≫ (α_ X₁ Y₁ (X₂ ⊗ Y₂)).hom ≫ (𝟙 X₁ ⊗ (α_ Y₁ X₂ Y₂).inv)
+  = (α_ X₁ X₂ (Y₁ ⊗ Y₂)).hom ≫ (𝟙 X₁ ⊗ (α_ X₂ Y₁ Y₂).inv) ≫ (𝟙 X₁ ⊗ ((β_ X₂ Y₁).hom ⊗ 𝟙 Y₂)) :=
+by { dsimp [tensor_μ], simp }
+
+lemma tensor_μ_def₂ (X₁ X₂ Y₁ Y₂ : C) :
+    (𝟙 X₁ ⊗ (α_ X₂ Y₁ Y₂).hom) ≫ (α_ X₁ X₂ (Y₁ ⊗ Y₂)).inv ≫ tensor_μ C (X₁, X₂) (Y₁, Y₂)
+  = (𝟙 X₁ ⊗ ((β_ X₂ Y₁).hom ⊗ 𝟙 Y₂)) ≫ (𝟙 X₁ ⊗ (α_ Y₁ X₂ Y₂).hom) ≫ (α_ X₁ Y₁ (X₂ ⊗ Y₂)).inv :=
+by { dsimp [tensor_μ], simp }
+
+lemma tensor_μ_natural {X₁ X₂ Y₁ Y₂ U₁ U₂ V₁ V₂ : C}
+  (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (g₁ : U₁ ⟶ V₁) (g₂ : U₂ ⟶ V₂) :
+  ((f₁ ⊗ f₂) ⊗ (g₁ ⊗ g₂)) ≫ tensor_μ C (Y₁, Y₂) (V₁, V₂) =
+    tensor_μ C (X₁, X₂) (U₁, U₂) ≫ ((f₁ ⊗ g₁) ⊗ (f₂ ⊗ g₂)) :=
+begin
+  dsimp [tensor_μ],
+  slice_lhs 1 2 { rw [associator_naturality] },
+  slice_lhs 2 3 { rw [←tensor_comp,
+                      comp_id f₁, ←id_comp f₁,
+                      associator_inv_naturality,
+                      tensor_comp] },
+  slice_lhs 3 4 { rw [←tensor_comp, ←tensor_comp,
+                      comp_id f₁, ←id_comp f₁,
+                      comp_id g₂, ←id_comp g₂,
+                      braiding_naturality,
+                      tensor_comp, tensor_comp] },
+  slice_lhs 4 5 { rw [←tensor_comp,
+                      comp_id f₁, ←id_comp f₁,
+                      associator_naturality,
+                      tensor_comp] },
+  slice_lhs 5 6 { rw [associator_inv_naturality] },
+  simp only [assoc],
+end
+
+lemma tensor_left_unitality (X₁ X₂ : C) :
+    (λ_ (X₁ ⊗ X₂)).hom
+  = ((λ_ (𝟙_ C)).inv ⊗ 𝟙 (X₁ ⊗ X₂)) ≫
+    tensor_μ C (𝟙_ C, 𝟙_ C) (X₁, X₂) ≫
+    ((λ_ X₁).hom ⊗ (λ_ X₂).hom) :=
+begin
+  dsimp [tensor_μ],
+  have :
+      ((λ_ (𝟙_ C)).inv ⊗ 𝟙 (X₁ ⊗ X₂)) ≫
+      (α_ (𝟙_ C) (𝟙_ C) (X₁ ⊗ X₂)).hom ≫
+      (𝟙 (𝟙_ C) ⊗ (α_ (𝟙_ C) X₁ X₂).inv)
+    = 𝟙 (𝟙_ C) ⊗ ((λ_ X₁).inv ⊗ 𝟙 X₂),
+  { let lhs :=
+      ((λ_ unit).inv ⊗ 𝟙 ((of X₁) ⊗ (of X₂))) ≫
+      (α_ unit unit ((of X₁) ⊗ (of X₂))).hom ≫
+      (𝟙 unit ⊗ (α_ unit (of X₁) (of X₂)).inv),
+    let rhs :=
+      𝟙 unit ⊗ ((λ_ (of X₁)).inv ⊗ 𝟙 (of X₂)),
+    change project_map id _ _ lhs = project_map id _ _ rhs,
+    congr },
+  slice_rhs 1 3 { rw this }, clear this,
+  slice_rhs 1 2 { rw [←tensor_comp, ←tensor_comp,
+                      comp_id, comp_id,
+                      left_unitor_inv_braiding] },
+  simp only [assoc],
+  have :
+      (𝟙 (𝟙_ C) ⊗ ((ρ_ X₁).inv ⊗ 𝟙 X₂)) ≫
+      (𝟙 (𝟙_ C) ⊗ (α_ X₁ (𝟙_ C) X₂).hom) ≫
+      (α_ (𝟙_ C) X₁ (𝟙_ C ⊗ X₂)).inv ≫
+      ((λ_ X₁).hom ⊗ (λ_ X₂).hom)
+    = (λ_ (X₁ ⊗ X₂)).hom,
+  { let lhs :=
+      (𝟙 unit ⊗ ((ρ_ (of X₁)).inv ⊗ 𝟙 (of X₂))) ≫
+      (𝟙 unit ⊗ (α_ (of X₁) unit (of X₂)).hom) ≫
+      (α_ unit (of X₁) (unit ⊗ (of X₂))).inv ≫
+      ((λ_ (of X₁)).hom ⊗ (λ_ (of X₂)).hom),
+    let rhs :=
+      (λ_ ((of X₁) ⊗ (of X₂))).hom,
+    change project_map id _ _ lhs = project_map id _ _ rhs,
+    congr },
+  rw this,
+end
+
+lemma tensor_right_unitality (X₁ X₂ : C) :
+    (ρ_ (X₁ ⊗ X₂)).hom
+  = (𝟙 (X₁ ⊗ X₂) ⊗ (λ_ (𝟙_ C)).inv) ≫
+    tensor_μ C (X₁, X₂) (𝟙_ C, 𝟙_ C) ≫
+    ((ρ_ X₁).hom ⊗ (ρ_ X₂).hom) :=
+begin
+  dsimp [tensor_μ],
+  have :
+      (𝟙 (X₁ ⊗ X₂) ⊗ (λ_ (𝟙_ C)).inv) ≫
+      (α_ X₁ X₂ (𝟙_ C ⊗ 𝟙_ C)).hom ≫
+      (𝟙 X₁ ⊗ (α_ X₂ (𝟙_ C) (𝟙_ C)).inv)
+    = (α_ X₁ X₂ (𝟙_ C)).hom ≫
+      (𝟙 X₁ ⊗ ((ρ_ X₂).inv ⊗ 𝟙 (𝟙_ C))),
+  { let lhs :=
+      (𝟙 ((of X₁) ⊗ (of X₂)) ⊗ (λ_ unit).inv) ≫
+      (α_ (of X₁) (of X₂) (unit ⊗ unit)).hom ≫
+      (𝟙 (of X₁) ⊗ (α_ (of X₂) unit unit).inv),
+    let rhs :=
+      (α_ (of X₁) (of X₂) unit).hom ≫
+      (𝟙 (of X₁) ⊗ ((ρ_ (of X₂)).inv ⊗ 𝟙 unit)),
+    change project_map id _ _ lhs = project_map id _ _ rhs,
+    congr },
+  slice_rhs 1 3 { rw this }, clear this,
+  slice_rhs 2 3 { rw [←tensor_comp, ←tensor_comp,
+                      comp_id, comp_id,
+                      right_unitor_inv_braiding] },
+  simp only [assoc],
+  have :
+      (α_ X₁ X₂ (𝟙_ C)).hom ≫
+      (𝟙 X₁ ⊗ ((λ_ X₂).inv ⊗ 𝟙 (𝟙_ C))) ≫
+      (𝟙 X₁ ⊗ (α_ (𝟙_ C) X₂ (𝟙_ C)).hom) ≫
+      (α_ X₁ (𝟙_ C) (X₂ ⊗ 𝟙_ C)).inv ≫
+      ((ρ_ X₁).hom ⊗ (ρ_ X₂).hom)
+    = (ρ_ (X₁ ⊗ X₂)).hom,
+  { let lhs :=
+      (α_ (of X₁) (of X₂) unit).hom ≫
+      (𝟙 (of X₁) ⊗ ((λ_ (of X₂)).inv ⊗ 𝟙 unit)) ≫
+      (𝟙 (of X₁) ⊗ (α_ unit (of X₂) unit).hom) ≫
+      (α_ (of X₁) unit ((of X₂) ⊗ unit)).inv ≫
+      ((ρ_ (of X₁)).hom ⊗ (ρ_ (of X₂)).hom),
+    let rhs :=
+      (ρ_ ((of X₁) ⊗ (of X₂))).hom,
+    change project_map id _ _ lhs = project_map id _ _ rhs,
+    congr },
+  rw this,
+end
+
+/-
+Diagram B6 from Proposition 1 of André Joyal and Ross Street,
+"Braided monoidal categories", Macquarie Math Reports 860081 (1986).
+-/
+lemma tensor_associativity_aux (W X Y Z : C) :
+    ((β_ W X).hom ⊗ 𝟙 (Y ⊗ Z)) ≫
+    (α_ X W (Y ⊗ Z)).hom ≫
+    (𝟙 X ⊗ (α_ W Y Z).inv) ≫
+    (𝟙 X ⊗ (β_ (W ⊗ Y) Z).hom) ≫
+    (𝟙 X ⊗ (α_ Z W Y).inv)
+  = (𝟙 (W ⊗ X) ⊗ (β_ Y Z).hom) ≫
+    (α_ (W ⊗ X) Z Y).inv ≫
+    ((α_ W X Z).hom ⊗ 𝟙 Y) ≫
+    ((β_ W (X ⊗ Z)).hom ⊗ 𝟙 Y) ≫
+    ((α_ X Z W).hom ⊗ 𝟙 Y) ≫
+    (α_ X (Z ⊗ W) Y).hom :=
+begin
+  slice_rhs 3 5 { rw [←tensor_comp, ←tensor_comp,
+                      hexagon_forward,
+                      tensor_comp, tensor_comp] },
+  slice_rhs 5 6 { rw [associator_naturality] },
+  slice_rhs 2 3 { rw [←associator_inv_naturality] },
+  slice_rhs 3 5 { rw [←pentagon_hom_inv] },
+  slice_rhs 1 2 { rw [tensor_id,
+                      id_tensor_comp_tensor_id,
+                      ←tensor_id_comp_id_tensor] },
+  slice_rhs 2 3 { rw [← tensor_id, associator_naturality] },
+  slice_rhs 3 5 { rw [←tensor_comp, ←tensor_comp,
+                      ←hexagon_reverse,
+                      tensor_comp, tensor_comp] },
+end
+
+lemma tensor_associativity (X₁ X₂ Y₁ Y₂ Z₁ Z₂ : C) :
+    (tensor_μ C (X₁, X₂) (Y₁, Y₂) ⊗ 𝟙 (Z₁ ⊗ Z₂)) ≫
+    tensor_μ C (X₁ ⊗ Y₁, X₂ ⊗ Y₂) (Z₁, Z₂) ≫
+    ((α_ X₁ Y₁ Z₁).hom ⊗ (α_ X₂ Y₂ Z₂).hom)
+  = (α_ (X₁ ⊗ X₂) (Y₁ ⊗ Y₂) (Z₁ ⊗ Z₂)).hom ≫
+    (𝟙 (X₁ ⊗ X₂) ⊗ tensor_μ C (Y₁, Y₂) (Z₁, Z₂)) ≫
+    tensor_μ C (X₁, X₂) (Y₁ ⊗ Z₁, Y₂ ⊗ Z₂) :=
+begin
+  have :
+      ((α_ X₁ Y₁ Z₁).hom ⊗ (α_ X₂ Y₂ Z₂).hom)
+    = (α_ (X₁ ⊗ Y₁) Z₁ ((X₂ ⊗ Y₂) ⊗ Z₂)).hom ≫
+      (𝟙 (X₁ ⊗ Y₁) ⊗ (α_ Z₁ (X₂ ⊗ Y₂) Z₂).inv) ≫
+      (α_ X₁ Y₁ ((Z₁ ⊗ (X₂ ⊗ Y₂)) ⊗ Z₂)).hom ≫
+      (𝟙 X₁ ⊗ (α_ Y₁ (Z₁ ⊗ (X₂ ⊗ Y₂)) Z₂).inv) ≫
+      (α_ X₁ (Y₁ ⊗ (Z₁ ⊗ (X₂ ⊗ Y₂))) Z₂).inv ≫
+      ((𝟙 X₁ ⊗ (𝟙 Y₁ ⊗ (α_ Z₁ X₂ Y₂).inv)) ⊗ 𝟙 Z₂) ≫
+      ((𝟙 X₁ ⊗ (α_ Y₁ (Z₁ ⊗ X₂) Y₂).inv) ⊗ 𝟙 Z₂) ≫
+      ((𝟙 X₁ ⊗ ((α_ Y₁ Z₁ X₂).inv ⊗ 𝟙 Y₂)) ⊗ 𝟙 Z₂) ≫
+      (α_ X₁ (((Y₁ ⊗ Z₁) ⊗ X₂) ⊗ Y₂) Z₂).hom ≫
+      (𝟙 X₁ ⊗ (α_ ((Y₁ ⊗ Z₁) ⊗ X₂) Y₂ Z₂).hom) ≫
+      (𝟙 X₁ ⊗ (α_ (Y₁ ⊗ Z₁) X₂ (Y₂ ⊗ Z₂)).hom) ≫
+      (α_ X₁ (Y₁ ⊗ Z₁) (X₂ ⊗ (Y₂ ⊗ Z₂))).inv,
+  { let lhs :=
+      ((α_ (of X₁) (of Y₁) (of Z₁)).hom ⊗ (α_ (of X₂) (of Y₂) (of Z₂)).hom),
+    let rhs :=
+      (α_ ((of X₁) ⊗ (of Y₁)) (of Z₁) (((of X₂) ⊗ (of Y₂)) ⊗ (of Z₂))).hom ≫
+      (𝟙 ((of X₁) ⊗ (of Y₁)) ⊗ (α_ (of Z₁) ((of X₂) ⊗ (of Y₂)) (of Z₂)).inv) ≫
+      (α_ (of X₁) (of Y₁) (((of Z₁) ⊗ ((of X₂) ⊗ (of Y₂))) ⊗ (of Z₂))).hom ≫
+      (𝟙 (of X₁) ⊗ (α_ (of Y₁) ((of Z₁) ⊗ ((of X₂) ⊗ (of Y₂))) (of Z₂)).inv) ≫
+      (α_ (of X₁) ((of Y₁) ⊗ ((of Z₁) ⊗ ((of X₂) ⊗ (of Y₂)))) (of Z₂)).inv ≫
+      ((𝟙 (of X₁) ⊗ (𝟙 (of Y₁) ⊗ (α_ (of Z₁) (of X₂) (of Y₂)).inv)) ⊗ 𝟙 (of Z₂)) ≫
+      ((𝟙 (of X₁) ⊗ (α_ (of Y₁) ((of Z₁) ⊗ (of X₂)) (of Y₂)).inv) ⊗ 𝟙 (of Z₂)) ≫
+      ((𝟙 (of X₁) ⊗ ((α_ (of Y₁) (of Z₁) (of X₂)).inv ⊗ 𝟙 (of Y₂))) ⊗ 𝟙 (of Z₂)) ≫
+      (α_ (of X₁) ((((of Y₁) ⊗ (of Z₁)) ⊗ (of X₂)) ⊗ (of Y₂)) (of Z₂)).hom ≫
+      (𝟙 (of X₁) ⊗ (α_ (((of Y₁) ⊗ (of Z₁)) ⊗ (of X₂)) (of Y₂) (of Z₂)).hom) ≫
+      (𝟙 (of X₁) ⊗ (α_ ((of Y₁) ⊗ (of Z₁)) (of X₂) ((of Y₂) ⊗ (of Z₂))).hom) ≫
+      (α_ (of X₁) ((of Y₁) ⊗ (of Z₁)) ((of X₂) ⊗ ((of Y₂) ⊗ (of Z₂)))).inv,
+    change project_map id _ _ lhs = project_map id _ _ rhs,
+    congr },
+  rw this, clear this,
+  slice_lhs 2 4 { rw [tensor_μ_def₁] },
+  slice_lhs 4 5 { rw [←tensor_id, associator_naturality] },
+  slice_lhs 5 6 { rw [←tensor_comp,
+                      associator_inv_naturality,
+                      tensor_comp] },
+  slice_lhs 6 7 { rw [associator_inv_naturality] },
+  have :
+      (α_ (X₁ ⊗ Y₁) (X₂ ⊗ Y₂) (Z₁ ⊗ Z₂)).hom ≫
+      (𝟙 (X₁ ⊗ Y₁) ⊗ (α_ (X₂ ⊗ Y₂) Z₁ Z₂).inv) ≫
+      (α_ X₁ Y₁ (((X₂ ⊗ Y₂) ⊗ Z₁) ⊗ Z₂)).hom ≫
+      (𝟙 X₁ ⊗ (α_ Y₁ ((X₂ ⊗ Y₂) ⊗ Z₁) Z₂).inv) ≫
+      (α_ X₁ (Y₁ ⊗ ((X₂ ⊗ Y₂) ⊗ Z₁)) Z₂).inv
+    = ((α_ X₁ Y₁ (X₂ ⊗ Y₂)).hom ⊗ 𝟙 (Z₁ ⊗ Z₂)) ≫
+      ((𝟙 X₁ ⊗ (α_ Y₁ X₂ Y₂).inv) ⊗ 𝟙 (Z₁ ⊗ Z₂)) ≫
+      (α_ (X₁ ⊗ ((Y₁ ⊗ X₂) ⊗ Y₂)) Z₁ Z₂).inv ≫
+      ((α_ X₁ ((Y₁ ⊗ X₂) ⊗ Y₂) Z₁).hom ⊗ 𝟙 Z₂) ≫
+      ((𝟙 X₁ ⊗ (α_ (Y₁ ⊗ X₂) Y₂ Z₁).hom) ⊗ 𝟙 Z₂) ≫
+      ((𝟙 X₁ ⊗ (α_ Y₁ X₂ (Y₂ ⊗ Z₁)).hom) ⊗ 𝟙 Z₂) ≫
+      ((𝟙 X₁ ⊗ (𝟙 Y₁ ⊗ (α_ X₂ Y₂ Z₁).inv)) ⊗ 𝟙 Z₂),
+  { let lhs :=
+      (α_ ((of X₁) ⊗ (of Y₁)) ((of X₂) ⊗ (of Y₂)) ((of Z₁) ⊗ (of Z₂))).hom ≫
+      (𝟙 ((of X₁) ⊗ (of Y₁)) ⊗ (α_ ((of X₂) ⊗ (of Y₂)) (of Z₁) (of Z₂)).inv) ≫
+      (α_ (of X₁) (of Y₁) ((((of X₂) ⊗ (of Y₂)) ⊗ (of Z₁)) ⊗ (of Z₂))).hom ≫
+      (𝟙 (of X₁) ⊗ (α_ (of Y₁) (((of X₂) ⊗ (of Y₂)) ⊗ (of Z₁)) (of Z₂)).inv) ≫
+      (α_ (of X₁) ((of Y₁) ⊗ (((of X₂) ⊗ (of Y₂)) ⊗ (of Z₁))) (of Z₂)).inv,
+    let rhs :=
+      ((α_ (of X₁) (of Y₁) ((of X₂) ⊗ (of Y₂))).hom ⊗ 𝟙 ((of Z₁) ⊗ (of Z₂))) ≫
+      ((𝟙 (of X₁) ⊗ (α_ (of Y₁) (of X₂) (of Y₂)).inv) ⊗ 𝟙 ((of Z₁) ⊗ (of Z₂))) ≫
+      (α_ ((of X₁) ⊗ (((of Y₁) ⊗ (of X₂)) ⊗ (of Y₂))) (of Z₁) (of Z₂)).inv ≫
+      ((α_ (of X₁) (((of Y₁) ⊗ (of X₂)) ⊗ (of Y₂)) (of Z₁)).hom ⊗ 𝟙 (of Z₂)) ≫
+      ((𝟙 (of X₁) ⊗ (α_ ((of Y₁) ⊗ (of X₂)) (of Y₂) (of Z₁)).hom) ⊗ 𝟙 (of Z₂)) ≫
+      ((𝟙 (of X₁) ⊗ (α_ (of Y₁) (of X₂) ((of Y₂) ⊗ (of Z₁))).hom) ⊗ 𝟙 (of Z₂)) ≫
+      ((𝟙 (of X₁) ⊗ (𝟙 (of Y₁) ⊗ (α_ (of X₂) (of Y₂) (of Z₁)).inv)) ⊗ 𝟙 (of Z₂)),
+    change project_map id _ _ lhs = project_map id _ _ rhs,
+    congr },
+  slice_lhs 2 6 { rw this }, clear this,
+  slice_lhs 1 3 { rw [←tensor_comp, ←tensor_comp,
+                      tensor_μ_def₁,
+                      tensor_comp, tensor_comp] },
+  slice_lhs 3 4 { rw [←tensor_id,
+                      associator_inv_naturality] },
+  slice_lhs 4 5 { rw [←tensor_comp,
+                      associator_naturality,
+                      tensor_comp] },
+  slice_lhs 5 6 { rw [←tensor_comp, ←tensor_comp,
+                      associator_naturality,
+                      tensor_comp, tensor_comp] },
+  slice_lhs 6 10 { rw [←tensor_comp, ←tensor_comp, ←tensor_comp, ←tensor_comp,
+                       ←tensor_comp, ←tensor_comp, ←tensor_comp, ←tensor_comp,
+                       tensor_id,
+                       tensor_associativity_aux,
+                       ←tensor_id,
+                       ←id_comp (𝟙 X₁ ≫ 𝟙 X₁ ≫ 𝟙 X₁ ≫ 𝟙 X₁ ≫ 𝟙 X₁),
+                       ←id_comp (𝟙 Z₂ ≫ 𝟙 Z₂ ≫ 𝟙 Z₂ ≫ 𝟙 Z₂ ≫ 𝟙 Z₂),
+                       tensor_comp, tensor_comp, tensor_comp, tensor_comp, tensor_comp,
+                       tensor_comp, tensor_comp, tensor_comp, tensor_comp, tensor_comp] },
+  slice_lhs 11 12 { rw [←tensor_comp, ←tensor_comp,
+                        iso.hom_inv_id],
+                    simp },
+  simp only [assoc, id_comp],
+  slice_lhs 10 11 { rw [←tensor_comp, ←tensor_comp, ←tensor_comp,
+                        iso.hom_inv_id],
+                    simp },
+  simp only [assoc, id_comp],
+  slice_lhs 9 10 { rw [associator_naturality] },
+  slice_lhs 10 11 { rw [←tensor_comp,
+                        associator_naturality,
+                        tensor_comp] },
+  slice_lhs 11 13 { rw [tensor_id, ←tensor_μ_def₂] },
+  have :
+      ((𝟙 X₁ ⊗ (α_ (X₂ ⊗ Y₁) Z₁ Y₂).inv) ⊗ 𝟙 Z₂) ≫
+      ((𝟙 X₁ ⊗ (α_ X₂ Y₁ Z₁).hom ⊗ 𝟙 Y₂) ⊗ 𝟙 Z₂) ≫
+      (α_ X₁ ((X₂ ⊗ Y₁ ⊗ Z₁) ⊗ Y₂) Z₂).hom ≫
+      (𝟙 X₁ ⊗ (α_ (X₂ ⊗ Y₁ ⊗ Z₁) Y₂ Z₂).hom) ≫
+      (𝟙 X₁ ⊗ (α_ X₂ (Y₁ ⊗ Z₁) (Y₂ ⊗ Z₂)).hom) ≫
+      (α_ X₁ X₂ ((Y₁ ⊗ Z₁) ⊗ Y₂ ⊗ Z₂)).inv
+    = (α_ X₁ ((X₂ ⊗ Y₁) ⊗ (Z₁ ⊗ Y₂)) Z₂).hom ≫
+      (𝟙 X₁ ⊗ (α_ (X₂ ⊗ Y₁) (Z₁ ⊗ Y₂) Z₂).hom) ≫
+      (𝟙 X₁ ⊗ (α_ X₂ Y₁ ((Z₁ ⊗ Y₂) ⊗ Z₂)).hom) ≫
+      (α_ X₁ X₂ (Y₁ ⊗ ((Z₁ ⊗ Y₂) ⊗ Z₂))).inv ≫
+      (𝟙 (X₁ ⊗ X₂) ⊗ (𝟙 Y₁ ⊗ (α_ Z₁ Y₂ Z₂).hom)) ≫
+      (𝟙 (X₁ ⊗ X₂) ⊗ (α_ Y₁ Z₁ (Y₂ ⊗ Z₂)).inv),
+  { let lhs :=
+      ((𝟙 (of X₁) ⊗ (α_ ((of X₂) ⊗ (of Y₁)) (of Z₁) (of Y₂)).inv) ⊗ 𝟙 (of Z₂)) ≫
+      ((𝟙 (of X₁) ⊗ (α_ (of X₂) (of Y₁) (of Z₁)).hom ⊗ 𝟙 (of Y₂)) ⊗ 𝟙 (of Z₂)) ≫
+      (α_ (of X₁) (((of X₂) ⊗ (of Y₁) ⊗ (of Z₁)) ⊗ (of Y₂)) (of Z₂)).hom ≫
+      (𝟙 (of X₁) ⊗ (α_ ((of X₂) ⊗ (of Y₁) ⊗ (of Z₁)) (of Y₂) (of Z₂)).hom) ≫
+      (𝟙 (of X₁) ⊗ (α_ (of X₂) ((of Y₁) ⊗ (of Z₁)) ((of Y₂) ⊗ (of Z₂))).hom) ≫
+      (α_ (of X₁) (of X₂) (((of Y₁) ⊗ (of Z₁)) ⊗ (of Y₂) ⊗ (of Z₂))).inv,
+    let rhs :=
+      (α_ (of X₁) (((of X₂) ⊗ (of Y₁)) ⊗ ((of Z₁) ⊗ (of Y₂))) (of Z₂)).hom ≫
+      (𝟙 (of X₁) ⊗ (α_ ((of X₂) ⊗ (of Y₁)) ((of Z₁) ⊗ (of Y₂)) (of Z₂)).hom) ≫
+      (𝟙 (of X₁) ⊗ (α_ (of X₂) (of Y₁) (((of Z₁) ⊗ (of Y₂)) ⊗ (of Z₂))).hom) ≫
+      (α_ (of X₁) (of X₂) ((of Y₁) ⊗ (((of Z₁) ⊗ (of Y₂)) ⊗ (of Z₂)))).inv ≫
+      (𝟙 ((of X₁) ⊗ (of X₂)) ⊗ (𝟙 (of Y₁) ⊗ (α_ (of Z₁) (of Y₂) (of Z₂)).hom)) ≫
+      (𝟙 ((of X₁) ⊗ (of X₂)) ⊗ (α_ (of Y₁) (of Z₁) ((of Y₂) ⊗ (of Z₂))).inv),
+    change project_map id _ _ lhs = project_map id _ _ rhs,
+    congr },
+  slice_lhs 7 12 { rw this }, clear this,
+  slice_lhs 6 7 { rw [associator_naturality] },
+  slice_lhs 7 8 { rw [←tensor_comp,
+                      associator_naturality,
+                      tensor_comp] },
+  slice_lhs 8 9 { rw [←tensor_comp,
+                      associator_naturality,
+                      tensor_comp] },
+  slice_lhs 9 10 { rw [associator_inv_naturality] },
+  slice_lhs 10 12 { rw [←tensor_comp, ←tensor_comp,
+                        ←tensor_μ_def₂,
+                        tensor_comp, tensor_comp] },
+  have :
+      ((α_ X₁ X₂ (Y₁ ⊗ Y₂)).hom ⊗ 𝟙 (Z₁ ⊗ Z₂)) ≫
+      ((𝟙 X₁ ⊗ (α_ X₂ Y₁ Y₂).inv) ⊗ 𝟙 (Z₁ ⊗ Z₂)) ≫
+      (α_ (X₁ ⊗ (X₂ ⊗ Y₁) ⊗ Y₂) Z₁ Z₂).inv ≫
+      ((α_ X₁ ((X₂ ⊗ Y₁) ⊗ Y₂) Z₁).hom ⊗ 𝟙 Z₂) ≫
+      ((𝟙 X₁ ⊗ (α_ (X₂ ⊗ Y₁) Y₂ Z₁).hom) ⊗ 𝟙 Z₂) ≫
+      (α_ X₁ ((X₂ ⊗ Y₁) ⊗ Y₂ ⊗ Z₁) Z₂).hom ≫
+      (𝟙 X₁ ⊗ (α_ (X₂ ⊗ Y₁) (Y₂ ⊗ Z₁) Z₂).hom) ≫
+      (𝟙 X₁ ⊗ (α_ X₂ Y₁ ((Y₂ ⊗ Z₁) ⊗ Z₂)).hom) ≫
+      (α_ X₁ X₂ (Y₁ ⊗ (Y₂ ⊗ Z₁) ⊗ Z₂)).inv ≫
+      ((𝟙 X₁ ⊗ 𝟙 X₂) ⊗ 𝟙 Y₁ ⊗ (α_ Y₂ Z₁ Z₂).hom) ≫
+      (𝟙 (X₁ ⊗ X₂) ⊗ (α_ Y₁ Y₂ (Z₁ ⊗ Z₂)).inv)
+    = (α_ (X₁ ⊗ X₂) (Y₁ ⊗ Y₂) (Z₁ ⊗ Z₂)).hom,
+  { let lhs :=
+      ((α_ (of X₁) (of X₂) ((of Y₁) ⊗ (of Y₂))).hom ⊗ 𝟙 ((of Z₁) ⊗ (of Z₂))) ≫
+      ((𝟙 (of X₁) ⊗ (α_ (of X₂) (of Y₁) (of Y₂)).inv) ⊗ 𝟙 ((of Z₁) ⊗ (of Z₂))) ≫
+      (α_ ((of X₁) ⊗ ((of X₂) ⊗ (of Y₁)) ⊗ (of Y₂)) (of Z₁) (of Z₂)).inv ≫
+      ((α_ (of X₁) (((of X₂) ⊗ (of Y₁)) ⊗ (of Y₂)) (of Z₁)).hom ⊗ 𝟙 (of Z₂)) ≫
+      ((𝟙 (of X₁) ⊗ (α_ ((of X₂) ⊗ (of Y₁)) (of Y₂) (of Z₁)).hom) ⊗ 𝟙 (of Z₂)) ≫
+      (α_ (of X₁) (((of X₂) ⊗ (of Y₁)) ⊗ (of Y₂) ⊗ (of Z₁)) (of Z₂)).hom ≫
+      (𝟙 (of X₁) ⊗ (α_ ((of X₂) ⊗ (of Y₁)) ((of Y₂) ⊗ (of Z₁)) (of Z₂)).hom) ≫
+      (𝟙 (of X₁) ⊗ (α_ (of X₂) (of Y₁) (((of Y₂) ⊗ (of Z₁)) ⊗ (of Z₂))).hom) ≫
+      (α_ (of X₁) (of X₂) ((of Y₁) ⊗ ((of Y₂) ⊗ (of Z₁)) ⊗ (of Z₂))).inv ≫
+      ((𝟙 (of X₁) ⊗ 𝟙 (of X₂)) ⊗ 𝟙 (of Y₁) ⊗ (α_ (of Y₂) (of Z₁) (of Z₂)).hom) ≫
+      (𝟙 ((of X₁) ⊗ (of X₂)) ⊗ (α_ (of Y₁) (of Y₂) ((of Z₁) ⊗ (of Z₂))).inv),
+    let rhs :=
+      (α_ ((of X₁) ⊗ (of X₂)) ((of Y₁) ⊗ (of Y₂)) ((of Z₁) ⊗ (of Z₂))).hom,
+    change project_map id _ _ lhs = project_map id _ _ rhs,
+    congr },
+  slice_lhs 1 11 { rw this },
+  simp only [assoc],
+end
+
+def tensor_monoidal : monoidal_functor (C × C) C :=
+{ ε := (λ_ (𝟙_ C)).inv,
+  μ := λ X Y, tensor_μ C X Y,
+  μ_natural' := λ X Y X' Y' f g, tensor_μ_natural C f.1 f.2 g.1 g.2,
+  associativity' := λ X Y Z, tensor_associativity C X.1 X.2 Y.1 Y.2 Z.1 Z.2,
+  left_unitality' := λ X, tensor_left_unitality C X.1 X.2,
+  right_unitality' := λ X, tensor_right_unitality C X.1 X.2,
+  μ_is_iso := by { dsimp [tensor_μ], apply_instance },
+  .. tensor C }
+
+end tensor
 
 end category_theory

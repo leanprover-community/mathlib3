@@ -20,7 +20,7 @@ This file gathers the numerical facts required by the proof of Szemerédi's regu
   regularity lemma produces.
 -/
 
-open fintype function real
+open finset fintype function real
 
 namespace szemeredi
 

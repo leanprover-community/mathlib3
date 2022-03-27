@@ -548,12 +548,10 @@ begin
     exact hl.left.left }
 end
 
-@[simp] lemma nontrivial_reverse_iff {s : cycle α} :
-  s.reverse.nontrivial ↔ s.nontrivial :=
+@[simp] lemma nontrivial_reverse_iff {s : cycle α} : s.reverse.nontrivial ↔ s.nontrivial :=
 by simp [nontrivial]
 
-lemma length_nontrivial {s : cycle α} (h : nontrivial s) :
-  2 ≤ length s :=
+lemma length_nontrivial {s : cycle α} (h : nontrivial s) : 2 ≤ length s :=
 begin
   obtain ⟨x, y, hxy, hx, hy⟩ := h,
   induction s using quot.induction_on with l,
@@ -564,9 +562,7 @@ begin
   { simp [bit0] }
 end
 
-/--
-The `s : cycle α` contains no duplicates.
--/
+/-- The `s : cycle α` contains no duplicates. -/
 def nodup (s : cycle α) : Prop :=
 quot.lift_on s nodup (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.nodup_iff)
 
@@ -608,9 +604,7 @@ rfl
 @[simp] theorem nil_to_multiset : nil.to_multiset = (∅ : multiset α) :=
 rfl
 
-/--
-The lift of `list.map`.
--/
+/-- The lift of `list.map`. -/
 def map {β : Type*} (f : α → β) : cycle α → cycle β :=
 quotient.map' (list.map f) $ λ l₁ l₂ h, h.map _
 
@@ -620,27 +614,20 @@ rfl
 @[simp] theorem map_coe {β : Type*} (f : α → β) (l : list α) : map f ↑l = list.map f l :=
 rfl
 
-/--
-The `multiset` of lists that can make the cycle.
--/
+/-- The `multiset` of lists that can make the cycle. -/
 def lists (s : cycle α) : multiset (list α) :=
 quotient.lift_on' s
   (λ l, (l.cyclic_permutations : multiset (list α))) $
   λ l₁ l₂ (h : l₁ ~r l₂), by simpa using h.cyclic_permutations.perm
 
-@[simp] lemma mem_lists_iff_coe_eq {s : cycle α} {l : list α} :
-  l ∈ s.lists ↔ (l : cycle α) = s :=
-begin
-  induction s using quotient.induction_on',
-  rw [lists, quotient.lift_on'_mk'],
-  simp
-end
+@[simp] lemma lists_coe (l : list α) : lists (l : cycle α) = ↑l.cyclic_permutations :=
+rfl
+
+@[simp] lemma mem_lists_iff_coe_eq {s : cycle α} {l : list α} : l ∈ s.lists ↔ (l : cycle α) = s :=
+quotient.induction_on' s $ λ l, by { rw [lists, quotient.lift_on'_mk'], simp }
 
 @[simp] lemma lists_nil : lists (@nil α) = [([] : list α)] :=
-begin
-  change (([] : list α).cyclic_permutations : multiset (list α)) = _,
-  rw cyclic_permutations_nil
-end
+by rw [nil, lists_coe, cyclic_permutations_nil]
 
 section decidable
 
@@ -665,11 +652,8 @@ instance {s : cycle α} : decidable (nodup s) :=
 quot.rec_on_subsingleton s (λ (l : list α), list.nodup_decidable l)
 
 instance fintype_nodup_cycle [fintype α] : fintype {s : cycle α // s.nodup} :=
-fintype.of_surjective (λ (l : {l : list α // l.nodup}), ⟨l.val, by simpa using l.prop⟩) (λ ⟨s, hs⟩,
-  begin
-    induction s using quotient.induction_on',
-    exact ⟨⟨s, hs⟩, by simp⟩
-  end)
+fintype.of_surjective (λ (l : {l : list α // l.nodup}), ⟨l.val, by simpa using l.prop⟩)
+  (λ ⟨s, hs⟩, by { induction s using quotient.induction_on', exact ⟨⟨s, hs⟩, by simp⟩ })
 
 instance fintype_nodup_nontrivial_cycle [fintype α] :
   fintype {s : cycle α // s.nodup ∧ s.nontrivial} :=
@@ -677,13 +661,11 @@ fintype.subtype (((finset.univ : finset {s : cycle α // s.nodup}).map
   (function.embedding.subtype _)).filter cycle.nontrivial)
   (by simp)
 
-/--
-The `s : cycle α` as a `finset α`.
--/
+/-- The `s : cycle α` as a `finset α`. -/
 def to_finset (s : cycle α) : finset α :=
 s.to_multiset.to_finset
 
-@[simp] theorem nil_to_finset : nil.to_finset = (∅ : finset α) :=
+@[simp] theorem nil_to_finset : (@nil α).to_finset = ∅ :=
 rfl
 
 /-- Given a `s : cycle α` such that `nodup s`, retrieve the next element after `x ∈ s`. -/
@@ -710,16 +692,11 @@ def prev : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
   s.reverse.next (nodup_reverse_iff.mpr hs) x (mem_reverse_iff.mpr hx) = s.prev hs x hx :=
 by simp [←prev_reverse_eq_next]
 
-@[simp] lemma next_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
-  s.next hs x hx ∈ s :=
-begin
-  induction s using quot.induction_on,
-  exact next_mem _ _ _
-end
+@[simp] lemma next_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) : s.next hs x hx ∈ s :=
+by { induction s using quot.induction_on, apply next_mem }
 
-lemma prev_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
-  s.prev hs x hx ∈ s :=
-by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], exact next_mem _ _ _ _ }
+lemma prev_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) : s.prev hs x hx ∈ s :=
+by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], apply next_mem }
 
 @[simp] lemma prev_next (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
   s.prev hs (s.next hs x hx) (next_mem s hs x hx) = x :=

@@ -24,20 +24,14 @@ Although this can be used to prove transcendental numbers exist, a more direct p
 open cardinal polynomial topological_space
 open_locale cardinal
 
--- This needs to be proved, and goes elsewhere.
-theorem roots_finite {R} (A) [comm_ring R] [is_domain R] [ring A] [algebra R A] {p : polynomial R}
-  (hp : p ≠ 0) : {y : A | aeval y p = 0}.finite :=
-sorry
-
 theorem algebraic_card (R) {A} [comm_ring R] [is_domain R] [comm_ring A] [is_domain A] [algebra R A]
-  [topological_space A] [t1_space A] {s : set (set A)} (hs : is_topological_basis s) :
-  #{x : A | is_algebraic R x} ≤ #(polynomial R) * #s :=
+  [no_zero_smul_divisors R A] [topological_space A] [t1_space A] {s : set (set A)}
+  (hs : is_topological_basis s) : #{x : A | is_algebraic R x} ≤ #(polynomial R) * #s :=
 begin
   classical,
   apply @mk_le_of_surjective (polynomial R × s) {x : A | is_algebraic R x} (λ ⟨p, t, ht⟩,
     if hr : p ≠ 0 ∧ ∃ x : A, x ∈ t ∩ p.root_set A
-    then ⟨classical.some hr.2, p, hr.1,  sorry --(classical.some_spec hr.2).2
-    ⟩
+    then ⟨classical.some hr.2, p, hr.1, (mem_root_set_iff hr.1 _).1 (classical.some_spec hr.2).2⟩
     else ⟨0, is_algebraic_zero⟩),
   rintro ⟨x, p, hp, he⟩,
   suffices : ∃ t ∈ s, t ∩ p.root_set A = {x},
@@ -56,24 +50,21 @@ begin
     rcases H x (set.mem_union_right _ (set.mem_singleton x)) with ⟨t, ht, hts, hxt⟩,
     use [t, ht],
     rw set.eq_singleton_iff_unique_mem,
-    use [hts],
-    {
-      change x ∈ (p.map (algebra_map R A)).roots,
-    },
+    use [hts, (mem_root_set_iff hp _).2 he],
     rintros y ⟨hyt, hy⟩,
     cases hxt hyt with hy' hy',
     { exact (hy' hy).elim },
     { exact hy' } }
 end
 
-theorem algebraic_card' (R) {A} [comm_ring R] [is_domain R] [ring A] [algebra R A]
-  [topological_space A] [t1_space A] {s : set (set A)} (hs : is_topological_basis s) :
-  #{x : A | is_algebraic R x} ≤ max (#R) ω * #s :=
+theorem algebraic_card' (R) {A} [comm_ring R] [is_domain R] [comm_ring A] [is_domain A]
+  [algebra R A] [no_zero_smul_divisors R A] [topological_space A] [t1_space A] {s : set (set A)}
+  (hs : is_topological_basis s) : #{x : A | is_algebraic R x} ≤ max (#R) ω * #s :=
 (algebraic_card R hs).trans (mul_le_mul_right' polynomial.cardinal_mk_le_max _)
 
-theorem algebraic_card_of_second_countable (R A : Type*) [comm_ring R] [is_domain R] [ring A]
-  [algebra R A] [topological_space A] [t1_space A] [second_countable_topology A] :
-  #{x : A | is_algebraic R x} ≤ max (#R) ω :=
+theorem algebraic_card_of_second_countable (R A : Type*) [comm_ring R] [is_domain R] [comm_ring A]
+  [is_domain A] [algebra R A] [no_zero_smul_divisors R A] [topological_space A] [t1_space A]
+  [second_countable_topology A] : #{x : A | is_algebraic R x} ≤ max (#R) ω :=
 begin
   rcases exists_countable_basis A with ⟨s, hs', _, hs⟩,
   apply ((algebraic_card' R hs).trans ((mul_le_mul_left' ((mk_set_le_omega s).2 hs') _))).trans,

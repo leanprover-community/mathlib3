@@ -654,6 +654,16 @@ by induction l; [refl, simp only [*, reverse_cons, mem_append, mem_singleton, me
 eq_repeat.2 ⟨by simp only [length_reverse, length_repeat],
   λ b h, eq_of_mem_repeat (mem_reverse.1 h)⟩
 
+/-- Backwards induction on lists: if `P []` and `P l` implies `P (l ++ [a])`, then `P m` for any
+list `m`. -/
+def induction_on_bws {P : list α → Prop} (H0 : P []) (HI : ∀ l a, P l → P (l ++ [a])) (m) : P m :=
+begin
+  rw ←reverse_reverse m,
+  apply @list.rec_on _ (λ l, P l.reverse) m.reverse H0 (λ a l HI', _),
+  rw reverse_cons,
+  exact HI _ a HI'
+end
+
 /-! ### empty -/
 
 attribute [simp] list.empty

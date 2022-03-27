@@ -11,6 +11,7 @@ import group_theory.perm.cycles
 import linear_algebra.matrix.charpoly.basic
 import linear_algebra.matrix.trace
 import linear_algebra.matrix.to_lin
+import linear_algebra.matrix.nonsingular_inverse
 import ring_theory.polynomial.basic
 import ring_theory.power_basis
 
@@ -237,6 +238,24 @@ lemma aeval_eq_aeval_mod_charpoly (M : matrix n n R) (p : R[X]) :
 TODO: add the statement for negative powers phrased with `zpow`. -/
 lemma pow_eq_aeval_mod_charpoly (M : matrix n n R) (k : ℕ) : M^k = aeval M (X^k %ₘ M.charpoly) :=
 by rw [←aeval_eq_aeval_mod_charpoly, map_pow, aeval_X]
+
+/-- Any matrix power can be computed as the sum of matrix powers less than `fintype.card n`.
+
+TODO: add the statement for negative powers phrased with `zpow`. -/
+lemma inv_eq_aeval_mod_charpoly (M : matrix n n R) :
+  M⁻¹ = aeval M ((ring.inverse (M.charpoly.coeff 0) • M.charpoly.div_X ) %ₘ M.charpoly) :=
+begin
+  nontriviality R,
+  by_cases hM : is_unit M,
+  { have := (is_unit_iff_is_unit_det _).mp hM,
+    rw [det_eq_sign_charpoly_coeff, is_unit.mul_iff] at this,
+    rw smul_mod_by_monic,
+    lift M.charpoly.coeff 0 to Rˣ using this.2 with c0 hc0,
+    rw [ring.inverse_unit, alg_hom.map_smul (c0⁻¹)],
+    classical,
+    simp only [ring.inverse],
+    rw dif_pos this.right, },
+end
 
 end matrix
 

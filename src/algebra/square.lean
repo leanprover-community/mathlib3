@@ -66,8 +66,7 @@ begin
   have : c * d * (c * d) = (c * c) * (d * d),
   { rw mul_assoc,
     conv in (d * (c * d)) { rw [mul_comm, mul_assoc], },
-    rw ←mul_assoc,
-  },
+    rw ←mul_assoc, },
   rw [this, hc, hd],
 end
 

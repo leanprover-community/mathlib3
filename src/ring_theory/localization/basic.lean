@@ -995,7 +995,7 @@ lemma is_field.localization_map_bijective
   {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
   [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
 begin
-  letI := hR.to_field R,
+  letI := hR.to_field,
   replace hM := le_non_zero_divisors_of_no_zero_divisors hM,
   refine ⟨is_localization.injective _ hM, λ x, _⟩,
   obtain ⟨r, ⟨m, hm⟩, rfl⟩ := mk'_surjective M x,

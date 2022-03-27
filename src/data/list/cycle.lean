@@ -436,7 +436,20 @@ instance : has_coe (list α) (cycle α) := ⟨quot.mk _⟩
 @[simp] lemma mk'_eq_coe (l : list α) :
   quotient.mk' l = (l : cycle α) := rfl
 
-instance : inhabited (cycle α) := ⟨(([] : list α) : cycle α)⟩
+/-- The unique empty cycle. -/
+protected def nil : cycle α := (([] : list α) : cycle α)
+
+instance : inhabited (cycle α) := ⟨cycle.nil⟩
+
+theorem cases_on (s : cycle α) : s = cycle.nil ∨ ∃ a (l : list α), s = a :: l :=
+begin
+  suffices : ∀ m : list α, (m : cycle α) = cycle.nil ∨ ∃ a (l : list α), (m : cycle α) = a :: l,
+  { have := this (@quotient.out' _ (is_rotated.setoid _) s),
+    rwa [←mk'_eq_coe, quotient.out_eq'] at this },
+  rintro (rfl | ⟨a, l⟩),
+  { exact or.inl rfl },
+  { exact or.inr ⟨a, l, rfl⟩ }
+end
 
 /--
 For `x : α`, `s : cycle α`, `x ∈ s` indicates that `x` occurs at least once in `s`.
@@ -582,6 +595,12 @@ The `s : cycle α` as a `multiset α`.
 def to_multiset (s : cycle α) : multiset α :=
 quotient.lift_on' s (λ l, (l : multiset α)) (λ l₁ l₂ (h : l₁ ~r l₂), multiset.coe_eq_coe.mpr h.perm)
 
+@[simp] theorem coe_to_multiset (l : list α) : (l : cycle α).to_multiset = l :=
+rfl
+
+@[simp] theorem nil_to_multiset : cycle.nil.to_multiset = (∅ : multiset α) :=
+rfl
+
 /--
 The lift of `list.map`.
 -/
@@ -645,6 +664,12 @@ The `s : cycle α` as a `finset α`.
 def to_finset (s : cycle α) : finset α :=
 s.to_multiset.to_finset
 
+@[simp] theorem coe_to_finset (l : list α) : (l : cycle α).to_finset = l.to_finset :=
+rfl
+
+@[simp] theorem nil_to_finset : cycle.nil.to_finset = (∅ : finset α) :=
+rfl
+
 /-- Given a `s : cycle α` such that `nodup s`, retrieve the next element after `x ∈ s`. -/
 def next : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
 λ s, quot.hrec_on s (λ l hn x hx, next l x hx)
@@ -702,10 +727,10 @@ instance [has_repr α] : has_repr (cycle α) :=
 /-- `chain R s` means that `R` holds between adjacent elements of `s`.
 
      chain R [a, b, c] ↔ R a b ∧ R b c ∧ R c a -/
-def chain (r : α → α → Prop) : cycle α → Prop :=
+protected def chain (r : α → α → Prop) : cycle α → Prop :=
 @quotient.lift _ _ (is_rotated.setoid α) (λ l, match l with
   | [] := (tt : Prop)
-  | (a :: m) := chain r (last (a :: m) (cons_ne_nil a m)) (a :: m) end) $
+  | (a :: m) := chain r a (m ++ [a]) end) $
 λ a b hab, begin
   cases a with a l;
   cases b with b m,
@@ -715,42 +740,87 @@ def chain (r : α → α → Prop) : cycle α → Prop :=
   { have := is_rotated_nil_iff.1 hab,
     contradiction },
   { change chain _ _ _ = chain _ _ _,
-    have hal := cons_ne_nil a l,
-    have : ∀ {s : list α} (hs : s ≠ []), chain r (s.last hs) s = chain r ((s.rotate 1).last
-      (λ h, hs (rotate_eq_nil_iff.1 h))) (s.rotate 1) := λ s hs,
-    begin
-      cases s with c s,
-      { exact hs.irrefl.elim },
-      { simp_rw rotate_cons_succ,
-simp_rw rotate_zero,
-simp,
-rw last_cons hs,
-rw ←chain_split,
-      }
-    end,
-    have : ∀ n, chain r ((a :: l).last hal) (a :: l) = chain r
-      (((a :: l).rotate n).last (λ h, hal (rotate_eq_nil_iff.1 h))) ((a :: l).rotate n) := λ n,
-    begin
-      induction n with n hn,
-      { simp_rw rotate_zero },
-      { rw [hn, nat.succ_eq_add_one],
-        simp_rw ←rotate_rotate,
-        rw this }
-    end,
     cases hab with n hn,
-    simp_rw ←hn,
-    exact this n }
+    induction n with d hd generalizing a b l m,
+    { simp only [rotate_zero] at hn,
+      rw [hn.1, hn.2] },
+    { cases l with c s,
+      { simp only [rotate_singleton] at hn,
+        rw [hn.1, hn.2] },
+      { rw [nat.succ_eq_one_add, ←rotate_rotate, rotate_cons_succ, rotate_zero, cons_append] at hn,
+        rw ←hd c _ _ _ hn,
+        simp } } }
 end
 
-theorem chain_nil (r : α → α → Prop) : chain r (([] : list α) : cycle α) :=
+@[simp] protected theorem chain.nil (r : α → α → Prop) : cycle.chain r (([] : list α) : cycle α) :=
 by exact rfl
 
-theorem chain_ne_nil_iff (r : α → α → Prop) {l : list α} (hl : l ≠ []) :
-  chain r l ↔ list.chain r (last l hl) l :=
+@[simp] protected theorem chain_cons (r : α → α → Prop) (a : α) (l : list α) :
+  cycle.chain r (a :: l) ↔ chain r a (l ++ [a]) :=
+iff.rfl
+
+@[simp] protected theorem chain_singleton (r : α → α → Prop) (a : α) : cycle.chain r [a] ↔ r a a :=
+by rw [cycle.chain_cons, nil_append, chain_singleton]
+
+protected theorem chain_ne_nil (r : α → α → Prop) {l : list α} (hl : l ≠ []) :
+  cycle.chain r l ↔ chain r (last l hl) l :=
 begin
-  cases l,
-  { exact hl.irrefl.elim },
-  { exact iff.rfl }
+  suffices : ∀ (m : list α) (hm : m.reverse ≠ []), cycle.chain r ↑(m.reverse) ↔
+    list.chain r ((m.reverse).last hm) m.reverse,
+  { simpa [hl] using this l.reverse },
+  intros l hl,
+  induction l with a l,
+  { simp },
+  { simp,
+    rw ←cycle.chain_cons,
+    have : (↑(a :: l.reverse) : cycle α) = ↑(l.reverse ++ [a]) :=
+      quot.sound ⟨1, by rw [rotate_cons_succ, rotate_zero]⟩,
+    rw this }
 end
+
+protected theorem chain_of_pairwise [decidable_eq α] {r : α → α → Prop} {s : cycle α}
+  (hs : ∀ (a ∈ s) (b ∈ s), r a b) : cycle.chain r s :=
+begin
+  rcases s.cases_on with rfl | ⟨a, l, rfl⟩,
+  { exact cycle.chain.nil r },
+  { have Ha : a ∈ ((a :: l) : cycle α) := by simp,
+    have Hl : ∀ {b} (hb : b ∈ l), b ∈ ((a :: l) : cycle α) := λ b hb, by simp [hb],
+    rw cycle.chain_cons,
+    apply chain_of_pairwise,
+    rw pairwise_cons,
+    have := pairwise_of_reflexive_of_forall_ne,
+    refine ⟨λ b hb, _, pairwise_append.2 ⟨pairwise_of_forall_mem_list hr
+      (λ b hb c hc,_), pairwise_singleton r a, λ b hb c hc, _⟩⟩,
+    { rw mem_append at hb,
+      rcases eq_or_ne a b with rfl | hab,
+      { exact hr a },
+      cases hb,
+      { exact hs a Ha b (Hl hb)  },
+      { rw mem_singleton at hb,
+        exact (hab hb.symm).elim } },
+  { rw mem_singleton at hc,
+    rw hc,
+    rcases eq_or_ne b a with rfl | hab,
+    { exact hr b },
+    exact hs (Hl hb) Ha hab } }
+end
+
+protected theorem chain_iff_pairwise [decidable_eq α] {r : α → α → Prop} {s : cycle α}
+  (hr : reflexive r) (hr' : transitive r) : set.pairwise ↑s.to_finset r ↔ cycle.chain r s :=
+⟨cycle.chain_of_pairwise hr, λ hs, begin
+  rcases s.cases_on with rfl | ⟨a, l, rfl⟩,
+  { simp },
+  { rw cycle.chain_cons at hs,
+    intros b hb c hc hbc,
+    rw chain_iff_pairwise hr' at hs,
+    simp [pairwise_append] at hs,
+    simp at hb hc,
+    rcases hb with rfl | hb;
+    rcases hc with rfl | hc,
+    { exact hr c },
+    { exact hs.1 c (or.inl hc) },
+    { exact hs.2.2 b hb },
+    { exact hr' (hs.2.2 b hb) (hs.1 c (or.inl hc)) } }
+end⟩
 
 end cycle

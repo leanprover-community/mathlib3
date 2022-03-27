@@ -8,7 +8,7 @@ import category_theory.limits.preserves.shapes.products
 import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.finite_products
 import category_theory.pempty
-import data.equiv.fin
+import logic.equiv.fin
 
 /-!
 # Constructing finite products from binary products and terminal.

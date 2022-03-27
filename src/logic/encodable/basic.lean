@@ -3,9 +3,9 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.equiv.nat
-import order.rel_iso
+import logic.equiv.nat
 import order.directed
+import order.rel_iso
 
 /-!
 # Encodable types

@@ -10,13 +10,15 @@ import combinatorics.simple_graph.basic
 
 This file defines cliques and triangles in simple graphs.
 
-
+A `n`-clique is a set of `n` vertices which are pairwise connected. A triangle is a `3`-clique.
 
 ## Main declarations
 
-* `simple_graph.is_n_clique`:
-* `simple_graph.triangle_finset`
-* `simple_graph.triangle_free`
+* `simple_graph.is_n_clique`: Predicate for a set of vertices to be a `n`-clique.
+* `simple_graph.triangle_finset`: Finset of triangles of a graph.
+* `simple_graph.triangle_free`: Predicate for a graph to have no triangle.
+* `simple_graph.triangle_free_far`: Predicate for a graph to have enough triangles that one must
+  remove a lot of edges to remove all of them. This is the crux of the Triangle Removal lemma.
 -/
 
 open finset fintype
@@ -127,10 +129,10 @@ monotone_filter_right _ $ λ _, is_n_clique.le h
 
 end triangle_finset
 
-open_locale classical
-
 section triangle_free_far
 variables [fintype α] {G H} {ε δ : 𝕜}
+
+open_locale classical
 
 /-- A simple graph is `ε`-triangle-free far if one must remove a density of `ε` edges to make it
 triangle-free. -/

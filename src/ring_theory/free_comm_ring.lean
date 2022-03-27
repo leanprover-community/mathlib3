@@ -3,11 +3,11 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
-import data.equiv.functor
 import data.mv_polynomial.equiv
 import data.mv_polynomial.comm_ring
-import ring_theory.free_ring
 import deprecated.ring
+import logic.equiv.functor
+import ring_theory.free_ring
 
 /-!
 # Free commutative rings

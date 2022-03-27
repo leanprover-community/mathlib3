@@ -430,11 +430,14 @@ instance : has_coe (list α) (cycle α) := ⟨quot.mk _⟩
 @[simp] lemma coe_eq_coe {l₁ l₂ : list α} : (l₁ : cycle α) = l₂ ↔ (l₁ ~r l₂) :=
 @quotient.eq _ (is_rotated.setoid _) _ _
 
-@[simp] lemma mk_eq_coe (l : list α) :
-  quot.mk _ l = (l : cycle α) := rfl
+@[simp] lemma mk_eq_coe (l : list α) : quot.mk _ l = (l : cycle α) :=
+rfl
 
-@[simp] lemma mk'_eq_coe (l : list α) :
-  quotient.mk' l = (l : cycle α) := rfl
+@[simp] lemma mk'_eq_coe (l : list α) : quotient.mk' l = (l : cycle α) :=
+rfl
+
+theorem coe_cons_eq_coe_append (l : list α) (a : α) : (↑(a :: l) : cycle α) = ↑(l ++ [a]) :=
+quot.sound ⟨1, by rw [rotate_cons_succ, rotate_zero]⟩
 
 /-- The unique empty cycle. -/
 def nil : cycle α := (([] : list α) : cycle α)
@@ -787,19 +790,8 @@ by rw [chain_cons, nil_append, chain_singleton]
 
 theorem chain_ne_nil (r : α → α → Prop) {l : list α} (hl : l ≠ []) :
   chain r l ↔ list.chain r (last l hl) l :=
-begin
-  suffices : ∀ (m : list α) (hm : m.reverse ≠ []), cycle.chain r ↑(m.reverse) ↔
-    list.chain r ((m.reverse).last hm) m.reverse,
-  { simpa [hl] using this l.reverse },
-  intros l hl,
-  induction l with a l,
-  { simp },
-  { simp,
-    rw ←cycle.chain_cons,
-    have : (↑(a :: l.reverse) : cycle α) = ↑(l.reverse ++ [a]) :=
-      quot.sound ⟨1, by rw [rotate_cons_succ, rotate_zero]⟩,
-    rw this }
-end
+@list.reverse_rec_on α (λ m, ∀ hm : m ≠ [], (chain r ↑m ↔ list.chain r (last m hm) m)) l
+  (λ hm, hm.irrefl.elim) (λ m a H _, by rw [←coe_cons_eq_coe_append, chain_cons, last_append]) hl
 
 variables {r : α → α → Prop} {s : cycle α}
 

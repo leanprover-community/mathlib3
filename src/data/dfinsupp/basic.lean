@@ -235,12 +235,6 @@ instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β 
   has_scalar γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
 
-/-- Dependent functions with finite support inherit a semiring action from an action on each
-coordinate. -/
-instance has_scalar' [has_zero γ] [Π i, has_zero (β i)] [Π i, smul_with_zero γ (β i)] :
-  has_scalar γ (Π₀ i, β i) :=
-⟨λ c v, v.map_range (λ _, (•) c) (λ _, smul_zero' _ _)⟩
-
 lemma smul_apply [monoid γ] [Π i, add_monoid (β i)]
   [Π i, distrib_mul_action γ (β i)] (b : γ) (v : Π₀ i, β i) (i : ι) :
   (b • v) i = b • (v i) :=
@@ -250,16 +244,6 @@ map_range_apply _ _ v i
   [Π i, distrib_mul_action γ (β i)] (b : γ) (v : Π₀ i, β i) :
   ⇑(b • v) = b • v :=
 funext $ smul_apply b v
-
-lemma smul_apply' [has_zero γ] [Π i, has_zero (β i)] [Π i, smul_with_zero γ (β i)] (b : γ)
-  (v : Π₀ i, β i) (i : ι) :
-  (b • v) i = b • (v i) :=
-map_range_apply _ _ v i
-
-@[simp] lemma coe_smul' [has_zero γ] [Π i, has_zero (β i)] [Π i, smul_with_zero γ (β i)] (b : γ)
-  (v : Π₀ i, β i) :
-  ⇑(b • v) = b • v :=
-funext $ smul_apply' b v
 
 instance {δ : Type*} [monoid γ] [monoid δ]
   [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] [Π i, distrib_mul_action δ (β i)]
@@ -284,20 +268,11 @@ instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β 
   distrib_mul_action γ (Π₀ i, β i) :=
 function.injective.distrib_mul_action coe_fn_add_monoid_hom fun_like.coe_injective coe_smul
 
-instance [has_zero γ] [Π i, has_zero (β i)] [Π i, smul_with_zero γ (β i)] :
-  smul_with_zero γ (Π₀ i, β i) :=
-{ smul_zero := λ c, ext $ λ _, smul_zero' _ _,
-  zero_smul := λ c, ext $ λ _, by simp only [coe_smul', zero_smul, coe_zero] }
-
-instance [monoid_with_zero γ] [Π i, add_monoid (β i)] [Π i, mul_action_with_zero γ (β i)] :
-  mul_action_with_zero γ (Π₀ i, β i) :=
-{ mul_smul := λ a b c, ext $ λ i, by simp only [coe_smul', pi.smul_apply, mul_smul],
-  one_smul := λ a, ext $ λ i, by rw [coe_smul', pi.smul_apply, one_smul],
-  ..dfinsupp.smul_with_zero }
-
 instance [monoid_with_zero γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action_with_zero γ (β i)] :
   distrib_mul_action_with_zero γ (Π₀ i, β i) :=
-{ ..dfinsupp.smul_with_zero }
+{ mul_smul := λ a b c, ext $ λ i, by simp only [coe_smul, pi.smul_apply, mul_smul],
+  one_smul := λ a, ext $ λ i, by rw [coe_smul, pi.smul_apply, one_smul],
+  ..dfinsupp.smul_with_zero }
 
 /-- Dependent functions with finite support inherit a module structure from such a structure on
 each coordinate. -/

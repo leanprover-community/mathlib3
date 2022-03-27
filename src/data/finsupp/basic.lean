@@ -2348,9 +2348,6 @@ section
 instance [monoid R] [add_monoid M] [distrib_mul_action R M] : has_scalar R (α →₀ M) :=
 ⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
 
-instance has_scalar' [has_zero R] [has_zero M] [smul_with_zero R M] : has_scalar R (α →₀ M) :=
-⟨λ a v, v.map_range ((•) a) $ smul_zero' _ _⟩
-
 /-!
 Throughout this section, some `monoid` and `semiring` arguments are specified with `{}` instead of
 `[]`. See note [implicit instance arguments].
@@ -2359,11 +2356,6 @@ Throughout this section, some `monoid` and `semiring` arguments are specified wi
 @[simp] lemma coe_smul {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
   (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
 lemma smul_apply {_ : monoid R} [add_monoid M] [distrib_mul_action R M]
-  (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
-
-@[simp] lemma coe_smul' {_ : has_zero R} [has_zero M] [smul_with_zero R M]
-  (b : R) (v : α →₀ M) : ⇑(b • v) = b • v := rfl
-lemma smul_apply' {_ : has_zero R} [has_zero M] [smul_with_zero R M]
   (b : R) (v : α →₀ M) (a : α) : (b • v) a = b • (v a) := rfl
 
 lemma _root_.is_smul_regular.finsupp {_ : monoid R} [add_monoid M] [distrib_mul_action R M] {k : R}
@@ -2398,19 +2390,10 @@ instance [monoid R] [add_monoid M] [distrib_mul_action R M] [distrib_mul_action 
   [is_central_scalar R M] : is_central_scalar R (α →₀ M) :=
 { op_smul_eq_smul := λ r a, ext $ λ _, op_smul_eq_smul _ _ }
 
-instance [has_zero R] [has_zero M] [smul_with_zero R M] : smul_with_zero R (α →₀ M) :=
-{ smul_zero := λ _, ext $ λ _, by rw [coe_smul', coe_zero, smul_zero'],
-  zero_smul := λ _, ext $ λ _, by rw [coe_smul', zero_smul, coe_zero] }
-
-instance [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M] :
-  mul_action_with_zero R (α →₀ M) :=
-{ mul_smul := λ a b c, ext $ λ i, by simp only [coe_smul', pi.smul_apply, mul_smul],
-  one_smul := λ a, ext $ λ i, by rw [coe_smul', pi.smul_apply, one_smul],
-  ..finsupp.smul_with_zero α M }
-
 instance [monoid_with_zero R] [add_monoid M] [distrib_mul_action_with_zero R M] :
   distrib_mul_action_with_zero R (α →₀ M) :=
-{ ..finsupp.smul_with_zero α M }
+{ mul_smul := λ a b c, ext $ λ i, by simp only [coe_smul, pi.smul_apply, mul_smul],
+  one_smul := λ a, ext $ λ i, by rw [coe_smul, pi.smul_apply, one_smul] }
 
 instance [semiring R] [add_comm_monoid M] [module R M] : module R (α →₀ M) :=
 { add_smul  := λ a x y, ext $ λ _, add_smul _ _ _ }

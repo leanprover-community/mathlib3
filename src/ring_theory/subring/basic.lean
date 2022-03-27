@@ -1045,11 +1045,11 @@ instance [monoid α] [mul_distrib_mul_action R α] (S : subring R) : mul_distrib
 S.to_subsemiring.mul_distrib_mul_action
 
 /-- The action by a subring is the action by the underlying ring. -/
-instance |has_zero α] [smul_with_zero R α] (S : subring R) : smul_with_zero S α :=
+instance [has_zero α] [smul_with_zero R α] (S : subring R) : smul_with_zero S α :=
 S.to_subsemiring.smul_with_zero
 
 /-- The action by a subring is the action by the underlying ring. -/
-instance |has_zero α] [mul_action_with_zero R α] (S : subring R) : mul_action_with_zero S α :=
+instance [has_zero α] [mul_action_with_zero R α] (S : subring R) : mul_action_with_zero S α :=
 S.to_subsemiring.mul_action_with_zero
 
 /-- The action by a subring is the action by the underlying ring. -/

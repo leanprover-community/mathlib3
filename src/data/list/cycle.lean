@@ -450,9 +450,7 @@ instance : inhabited (cycle α) := ⟨nil⟩
   (HI : ∀ a (l : list α), C ↑l → C ↑(a :: l)) : C s :=
 quotient.induction_on' s $ λ l, by { apply list.rec_on l; simp, assumption' }
 
-/--
-For `x : α`, `s : cycle α`, `x ∈ s` indicates that `x` occurs at least once in `s`.
--/
+/-- For `x : α`, `s : cycle α`, `x ∈ s` indicates that `x` occurs at least once in `s`. -/
 def mem (a : α) (s : cycle α) : Prop :=
 quot.lift_on s (λ l, a ∈ l) (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.mem_iff)
 
@@ -470,9 +468,7 @@ instance [decidable_eq α] : decidable_eq (cycle α) :=
 instance [decidable_eq α] (x : α) (s : cycle α) : decidable (x ∈ s) :=
 quotient.rec_on_subsingleton' s (λ l, list.decidable_mem x l)
 
-/--
-Reverse a `s : cycle α` by reversing the underlying `list`.
--/
+/-- Reverse a `s : cycle α` by reversing the underlying `list`. -/
 def reverse (s : cycle α) : cycle α :=
 quot.map reverse (λ l₁ l₂ (e : l₁ ~r l₂), e.reverse) s
 
@@ -488,9 +484,7 @@ quot.induction_on s (λ _, by simp)
 @[simp] lemma reverse_nil : nil.reverse = @nil α :=
 rfl
 
-/--
-The length of the `s : cycle α`, which is the number of elements, counting duplicates.
--/
+/-- The length of the `s : cycle α`, which is the number of elements, counting duplicates. -/
 def length (s : cycle α) : ℕ :=
 quot.lift_on s length (λ l₁ l₂ (e : l₁ ~r l₂), e.perm.length_eq)
 
@@ -504,9 +498,7 @@ rfl
   s.reverse.length = s.length :=
 quot.induction_on s length_reverse
 
-/--
-A `s : cycle α` that is at most one element.
--/
+/-- A `s : cycle α` that is at most one element. -/
 def subsingleton (s : cycle α) : Prop :=
 s.length ≤ 1
 
@@ -529,9 +521,7 @@ begin
   simp
 end
 
-/--
-A `s : cycle α` that is made up of at least two unique elements.
--/
+/-- A `s : cycle α` that is made up of at least two unique elements. -/
 def nontrivial (s : cycle α) : Prop := ∃ (x y : α) (h : x ≠ y), x ∈ s ∧ y ∈ s
 
 @[simp] lemma nontrivial_coe_nodup_iff {l : list α} (hl : l.nodup) :

@@ -450,7 +450,7 @@ end
   f^[n] x ∈ orbit f x :=
 (mem_orbit_iff hx).2 ⟨n, rfl⟩
 
-theorem nodup_orbit {f : α → α} {x : α} : cycle.nodup (orbit f x) :=
+theorem nodup_orbit {f : α → α} {x : α} : (orbit f x).nodup :=
 begin
   rw [orbit_def, cycle.nodup_coe_iff, list.nodup_map_iff_inj_on (list.nodup_range _)],
   intros m hm n hn hmn,

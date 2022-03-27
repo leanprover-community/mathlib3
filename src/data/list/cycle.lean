@@ -436,7 +436,20 @@ instance : has_coe (list α) (cycle α) := ⟨quot.mk _⟩
 @[simp] lemma mk'_eq_coe (l : list α) :
   quotient.mk' l = (l : cycle α) := rfl
 
-instance : inhabited (cycle α) := ⟨(([] : list α) : cycle α)⟩
+/-- The unique empty cycle. -/
+protected def nil : cycle α := (([] : list α) : cycle α)
+
+instance : inhabited (cycle α) := ⟨cycle.nil⟩
+
+theorem cases_on (s : cycle α) : s = cycle.nil ∨ ∃ a (l : list α), s = a :: l :=
+begin
+  suffices : ∀ m : list α, (m : cycle α) = cycle.nil ∨ ∃ a (l : list α), (m : cycle α) = a :: l,
+  { have := this (@quotient.out' _ (is_rotated.setoid _) s),
+    rwa [←mk'_eq_coe, quotient.out_eq'] at this },
+  rintro (rfl | ⟨a, l⟩),
+  { exact or.inl rfl },
+  { exact or.inr ⟨a, l, rfl⟩ }
+end
 
 /--
 For `x : α`, `s : cycle α`, `x ∈ s` indicates that `x` occurs at least once in `s`.
@@ -581,6 +594,12 @@ The `s : cycle α` as a `multiset α`.
 -/
 def to_multiset (s : cycle α) : multiset α :=
 quotient.lift_on' s (λ l, (l : multiset α)) (λ l₁ l₂ (h : l₁ ~r l₂), multiset.coe_eq_coe.mpr h.perm)
+
+@[simp] theorem coe_to_multiset (l : list α) : (l : cycle α).to_multiset = l :=
+rfl
+
+@[simp] theorem nil_to_multiset : cycle.nil.to_multiset = (∅ : multiset α) :=
+rfl
 
 /--
 The lift of `list.map`.

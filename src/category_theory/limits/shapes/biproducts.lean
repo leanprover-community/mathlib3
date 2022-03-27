@@ -1528,6 +1528,26 @@ lemma biprod.map_eq [has_binary_biproducts C] {W X Y Z : C} {f : W ⟶ Y} {g : X
   biprod.map f g = biprod.fst ≫ f ≫ biprod.inl + biprod.snd ≫ g ≫ biprod.inr :=
 by apply biprod.hom_ext; apply biprod.hom_ext'; simp
 
+lemma binary_bicone_of_split_mono {X Y : C} (f : X ⟶ Y) [split_mono f] 
+  {c : cokernel_cofork f} (i : is_colimit c):
+  binary_bicone X c.X :=
+{ X := Y,
+  fst := retraction f,
+  snd := c.π,
+  inl := f,
+  inr := begin
+    have hf : (𝟙 Y - retraction f ≫ f) ≫ (𝟙 Y - retraction f ≫ f) = 𝟙 Y - retraction f ≫ f, { simp },
+    have hf' : retraction f ≫ f = 𝟙 Y - (𝟙 Y - retraction f ≫ f), { simp },
+    let c' : cokernel_cofork (𝟙 Y - (𝟙 Y - retraction f ≫ f)), 
+    { apply cokernel_cofork.of_π (cofork.π c), simp, },
+    let i' : is_colimit c',
+    { sorry }, -- clueless here
+    have := is_colimit_cofork_of_cokernel_cofork i',
+    have c'' : cofork (𝟙 Y - retraction f ≫ f) (𝟙 Y), sorry,
+    have i'' : is_colimit c'', sorry, -- closure under symmetry of coforks
+    sorry, --exact (split_epi_of_idempotent_of_is_colimit_cofork C hf i'').section_
+  end }
+
 end
 
 section

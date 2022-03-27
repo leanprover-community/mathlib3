@@ -1330,7 +1330,7 @@ begin
   classical,
   refine ⟨λ H, ⟨H.ae_measurable, H.is_separable_ae_range⟩, _⟩,
   rintros ⟨H, ⟨t, t_sep, ht⟩⟩,
-  rcases eq_empty_or_nonempty t with rfl|⟨⟨y₀, h₀⟩⟩,
+  rcases eq_empty_or_nonempty t with rfl|h₀,
   { simp only [mem_empty_eq, eventually_false_iff_eq_bot, ae_eq_bot] at ht,
     rw ht,
     exact ae_measurable_zero_measure f },

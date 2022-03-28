@@ -90,6 +90,10 @@ instance [fintype n] [has_mul R] [add_comm_monoid R] [has_continuous_add R]
   [has_continuous_mul R] : has_continuous_mul (matrix n n R) :=
 ⟨continuous_mul⟩
 
+instance [topological_space α] [has_scalar α R] [has_continuous_smul α R] :
+  has_continuous_smul α (matrix n n R) :=
+pi.has_continuous_smul
+
 instance [fintype n] [decidable_eq n] [semiring R] [topological_ring R] :
   topological_ring (matrix n n R) :=
 { ..pi.has_continuous_add }
@@ -145,5 +149,13 @@ continuous_matrix $ λ j k, continuous_det.comp $ begin
   exact (continuous_update_column k).comp
     (continuous.comp (continuous_id.prod_mk continuous_const) continuous_transpose),
 end
+
+/-- When `ring.inverse` is continuous on the units (such as in a normed_ring, or a
+`topological_field`), so is `matrix.has_inv`. -/
+lemma continuous_on_inv [fintype n] [decidable_eq n] [comm_ring R] [topological_ring R]
+  (h : continuous_on ring.inverse {r : R | is_unit r }) :
+  continuous_on (has_inv.inv : matrix n n R → matrix n n R) {A | is_unit A.det} :=
+(h.comp continuous_det.continuous_on (set.maps_to_preimage _ _)).smul
+  continuous_adjugate.continuous_on
 
 end matrix

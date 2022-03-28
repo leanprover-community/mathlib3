@@ -164,8 +164,7 @@ instance [has_zero_object C] {X Y : C} (f : X ⟶ Y) [mono f]
   is_iso (image_mono_factorisation f).e :=
 by { rw image_mono_factorisation_e', exact is_iso.comp_is_iso }
 
-instance [has_zero_object C] {X Y : C} (f : X ⟶ Y) [epi f]
-  [is_iso (abelian.coimage_image_comparison f)] :
+instance [has_zero_object C] {X Y : C} (f : X ⟶ Y) [epi f] :
   is_iso (image_mono_factorisation f).m :=
 by { dsimp, apply_instance }
 

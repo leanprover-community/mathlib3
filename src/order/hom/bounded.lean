@@ -103,6 +103,16 @@ instance order_iso.bounded_order_hom_class [partial_order α] [partial_order β]
   bounded_order_hom_class (α ≃o β) α β :=
 { ..order_iso.top_hom_class, ..order_iso.bot_hom_class }
 
+lemma map_eq_top_iff [partial_order α] [partial_order β] [order_bot α] [order_bot β]
+  [order_iso_class F α β] {a : α} (f : F) :  (f : α ≃o β) a = ⊥ ↔ a = ⊥ :=
+⟨(λ h, by rw [(show a = (f : α ≃o β).symm ⊥, by simp only [← h, order_iso.symm_apply_apply]),
+  order_iso.map_bot (f : α ≃o β).symm]), λ h, by rw [h, (f : α ≃o β).map_bot]⟩
+
+lemma map_eq_bot_iff [partial_order α] [partial_order β] [order_bot α] [order_bot β]
+  [order_iso_class F α β] {a : α} (f : F) : (f : α ≃o β) a = ⊥ ↔ a = ⊥ :=
+⟨(λ h, by rw [(show a = (f : α ≃o β).symm ⊥, by simp only [← h, order_iso.symm_apply_apply]),
+  order_iso.map_bot (f : α ≃o β).symm]), λ h, by rw [h, (f : α ≃o β).map_bot]⟩
+
 instance [has_top α] [has_top β] [top_hom_class F α β] : has_coe_t F (top_hom α β) :=
 ⟨λ f, ⟨f, map_top f⟩⟩
 

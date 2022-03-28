@@ -38,19 +38,17 @@ begin
   conv_rhs { rw ←direct_sum.sum_support_of _ x },
   rw [show finset.range ((submodule_coe _ x).total_degree + 1) = x.support ∪
       ((finset.range ((submodule_coe _ x).total_degree + 1)) \ x.support), begin
-      rw finset.union_sdiff_of_subset,
-      intros a ha,
+      rw finset.union_sdiff_of_subset (λ a ha, _),
       simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_range] at ha ⊢,
       contrapose! ha,
       have := homogeneous_component_eq_zero _ _ ha,
       rw [homogeneous_component_of_direct_sum, ← subtype.val_eq_coe] at this,
-      rw [subtype.ext_iff_val, this],
-      refl
+      rw [subtype.ext_iff_val, this, subtype.val_eq_coe, submodule.coe_zero],
     end, finset.sum_union, show ∑ (j : ℕ) in finset.range (((submodule_coe _) x).total_degree + 1) \
       dfinsupp.support x,
       (of (λ (i : ℕ), ↥(homogeneous_submodule σ R i)) j) ⟨(x j), _⟩ = 0, from _, add_zero,
     finset.sum_congr rfl (λ i hi, _)],
-  { simp, },
+  { simp only [set_like.eta], },
   { rw ←finset.sum_const_zero,
     apply finset.sum_congr rfl (λ i hi, _),
     simp only [set_like.eta, not_not, finset.mem_sdiff, ne.def, dfinsupp.mem_support_to_fun,
@@ -64,8 +62,7 @@ begin
   rw [decompose, linear_map.map_sum],
   conv_rhs { rw ← sum_homogeneous_component x },
   apply finset.sum_congr rfl (λ _ _, _),
-  rw submodule_coe_of,
-  refl,
+  rw [submodule_coe_of, ← subtype.val_eq_coe],
 end
 
 noncomputable instance mv_polynomial_is_graded :

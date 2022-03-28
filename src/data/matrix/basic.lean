@@ -601,7 +601,7 @@ protected theorem mul_sub (M : matrix m n α) (N N' : matrix n o α) :
   M ⬝ (N - N') = M ⬝ N - M ⬝ N' :=
 by rw [sub_eq_add_neg, matrix.mul_add, matrix.mul_neg, sub_eq_add_neg]
 
-instance [fintype n] [non_unital_non_assoc_ring α] : non_unital_non_assoc_ring (matrix n n α) :=
+instance : non_unital_non_assoc_ring (matrix n n α) :=
 { ..matrix.non_unital_non_assoc_semiring, ..matrix.add_comm_group }
 
 end non_unital_non_assoc_ring

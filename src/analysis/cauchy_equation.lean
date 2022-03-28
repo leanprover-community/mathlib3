@@ -1,15 +1,27 @@
-import measure_theory.group.measure measure_theory.measure.lebesgue topology.basic
-import analysis.normed_space.pointwise measure_theory.measure.haar
+/-
+Copyright (c) 2022 Mantas Bakšys. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mantas Bakšys
+-/
+import analysis.normed_space.pointwise
 import measure_theory.measure.haar_lebesgue
 
+/-!
+# Cauchy's Functional Equation
 
+This file contains the classical results about the Cauchy's functional equation
+`f (x + y) = f x + f y` for functions `f : ℝ → ℝ`. In this file, we prove that the solutions to this
+equation are linear up to the case when `f` is a Lebesgue measurable functions, while also deducing
+intermediate well-known variants.
+-/
 
 open add_monoid_hom measure_theory measure_theory.measure metric nnreal set
 open_locale pointwise topological_space
 
-/-!
-# Cauchy's Functional Equation
--/
+variables {ι : Type*} [fintype ι]
+
+local notation `ℝⁿ` := ι → ℝ
+
 
 theorem cauchy_rational_add (f : ℝ →+ ℝ) :
   is_linear_map ℚ f := by exact ⟨map_add f, λ c x, add_monoid_hom.map_rat_cast_smul f ℝ ℝ c x⟩
@@ -259,5 +271,8 @@ begin
     (additive_continuous_at_zero_of_bounded_nbhd_zero f hV0 hVb)
 end
 
-
---todo add the monotone assumption case
+lemma is_linear_of_monotone_nbhd (f : ℝ →+ ℝ) {a : ℝ} {U : set ℝ} (hU : U ∈ 𝓝 a)
+  (hf : monotone_on f U) : ∀ (x : ℝ), f x = f 1 * x :=
+begin
+  sorry
+end

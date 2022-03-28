@@ -60,10 +60,10 @@ begin
   { exact disjoint_sdiff_self_right },
 end
 
-lemma right_inv : function.right_inverse (decompose R σ) (submodule_coe _) := λ p,
+lemma right_inv (x) : submodule_coe _ (decompose R σ x) = x :=
 begin
   rw [decompose, linear_map.map_sum],
-  conv_rhs { rw ←sum_homogeneous_component p },
+  conv_rhs { rw ← sum_homogeneous_component x },
   apply finset.sum_congr rfl (λ _ _, _),
   rw submodule_coe_of,
   refl,

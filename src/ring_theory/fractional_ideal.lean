@@ -768,25 +768,22 @@ begin
 end
 
 @[simp] lemma map_eq_zero_iff [nontrivial R] : I.map h = 0 ↔ I = 0 :=
-⟨imp_of_not_imp_not _ _ (map_ne_zero _),
- λ hI, hI.symm ▸ map_zero h⟩
+⟨imp_of_not_imp_not _ _ (map_ne_zero _), λ hI, hI.symm ▸ map_zero h⟩
 
-lemma coe_ideal_injective :
-  function.injective (coe : ideal R → fractional_ideal R⁰ K) :=
+lemma coe_ideal_injective : function.injective (coe : ideal R → fractional_ideal R⁰ K) :=
 injective_of_le_imp_le _ (λ _ _, (coe_ideal_le_coe_ideal _).mp)
 
-@[simp]
-lemma coe_ideal_eq_zero_iff
-  {I : ideal R} : (I : fractional_ideal R⁰ K) = 0 ↔ I = ⊥ :=
-by { rw ← coe_to_fractional_ideal_bot, exact coe_ideal_injective.eq_iff }
+@[simp] lemma coe_ideal_eq_zero_iff {I : ideal R} : (I : fractional_ideal R⁰ K) = 0 ↔ I = ⊥ :=
+coe_ideal_injective.eq_iff
 
-lemma coe_ideal_ne_zero_iff
-  {I : ideal R} : (I : fractional_ideal R⁰ K) ≠ 0 ↔ I ≠ ⊥ :=
+lemma coe_ideal_ne_zero_iff {I : ideal R} : (I : fractional_ideal R⁰ K) ≠ 0 ↔ I ≠ ⊥ :=
 not_iff_not.mpr coe_ideal_eq_zero_iff
 
-lemma coe_ideal_ne_zero
-  {I : ideal R} (hI : I ≠ ⊥) : (I : fractional_ideal R⁰ K) ≠ 0 :=
+lemma coe_ideal_ne_zero {I : ideal R} (hI : I ≠ ⊥) : (I : fractional_ideal R⁰ K) ≠ 0 :=
 coe_ideal_ne_zero_iff.mpr hI
+
+@[simp] lemma coe_ideal_eq_one_iff {I : ideal R} : (I : fractional_ideal R⁰ K) = 1 ↔ I = 1 :=
+by simpa only [ideal.one_eq_top] using coe_ideal_injective.eq_iff
 
 end is_fraction_ring
 

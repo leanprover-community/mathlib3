@@ -224,7 +224,7 @@ begin
       { simp, },
       { intros l m, apply w₁, exact list.mem_cons_of_mem _ m, },
       { intro h,
-        { rw [list.last_cons _ h] at w₂,
+        { rw [list.last_cons h] at w₂,
             convert w₂, }}},
     { convert w₁ d (list.mem_cons_self _ _), simp, },
     { by_cases h' : L = [],
@@ -237,7 +237,7 @@ begin
         apply nat.pos_of_ne_zero,
         contrapose! w₂,
         apply digits_zero_of_eq_zero _ w₂,
-        { rw list.last_cons _ h',
+        { rw list.last_cons h',
           exact list.last_mem h', },
         { exact le_of_lt h, }, }, }, },
 end

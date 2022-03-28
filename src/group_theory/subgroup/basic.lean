@@ -9,6 +9,7 @@ import group_theory.submonoid.centralizer
 import algebra.group.conj
 import algebra.module.basic
 import order.atoms
+import order.sup_indep
 
 /-!
 # Subgroups
@@ -834,6 +835,18 @@ begin
   { simp only [true_and, coe_to_submonoid, union_subset_iff, subset_closure, inv_subset_closure] }
 end
 
+@[to_additive] lemma closure_induction_left {p : G → Prop} {x : G}
+  (h : x ∈ closure k) (H1 : p 1) (Hmul : ∀ (x ∈ k) y, p y → p (x * y))
+  (Hinv : ∀ (x ∈ k) y, p y → p (x⁻¹ * y)) : p x :=
+let key := le_of_eq (closure_to_submonoid k) in submonoid.closure_induction_left (key h) H1
+  (λ x hx, hx.elim (Hmul x) (λ hx y hy, (congr_arg _ (inv_inv x)).mp (Hinv x⁻¹ hx y hy)))
+
+@[to_additive] lemma closure_induction_right {p : G → Prop} {x : G}
+  (h : x ∈ closure k) (H1 : p 1) (Hmul : ∀ x (y ∈ k), p x → p (x * y))
+  (Hinv : ∀ x (y ∈ k), p x → p (x * y⁻¹)) : p x :=
+let key := le_of_eq (closure_to_submonoid k) in submonoid.closure_induction_right (key h) H1
+  (λ x y hy, hy.elim (Hmul x y) (λ hy hx, (congr_arg _ (inv_inv y)).mp (Hinv x y⁻¹ hy hx)))
+
 /-- An induction principle for closure membership. If `p` holds for `1` and all elements of
 `k` and their inverse, and is preserved under multiplication, then `p` holds for all elements of
 the closure of `k`. -/
@@ -843,15 +856,8 @@ elements of the additive closure of `k`."]
 lemma closure_induction'' {p : G → Prop} {x} (h : x ∈ closure k)
   (Hk : ∀ x ∈ k, p x) (Hk_inv : ∀ x ∈ k, p x⁻¹) (H1 : p 1)
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-begin
-  rw [← mem_to_submonoid, closure_to_submonoid k] at h,
-  refine submonoid.closure_induction h (λ x hx, _) H1 (λ x y hx hy, Hmul x y hx hy),
-  { rw [mem_union, mem_inv] at hx,
-    cases hx with mem invmem,
-    { exact Hk x mem },
-    { rw [← inv_inv x],
-      exact Hk_inv _ invmem } },
-end
+closure_induction_left h H1 (λ x hx y hy, Hmul x y (Hk x hx) hy)
+  (λ x hx y hy, Hmul x⁻¹ y (Hk_inv x hx) hy)
 
 /-- An induction principle for elements of `⨆ i, S i`.
 If `C` holds for `1` and all elements of `S i` for all `i`, and is preserved under multiplication,
@@ -1501,6 +1507,15 @@ let ⟨y, hy⟩ := this in conj_injective hy.2 ▸ hy.1⟩
 variable {H}
 @[to_additive] lemma mem_normalizer_iff {g : G} :
   g ∈ normalizer H ↔ ∀ n, n ∈ H ↔ g * n * g⁻¹ ∈ H := iff.rfl
+
+@[to_additive] lemma mem_normalizer_iff' {g : G} : g ∈ normalizer H ↔ ∀ n, n * g ∈ H ↔ g * n ∈ H :=
+begin
+  refine ⟨λ h n, _, λ h n, _⟩,
+  { specialize h (n * g),
+    rwa [mul_assoc, mul_inv_cancel_right] at h },
+  { specialize h (n * g⁻¹),
+    rwa [inv_mul_cancel_right, ←mul_assoc] at h },
+end
 
 @[to_additive] lemma le_normalizer : H ≤ normalizer H :=
 λ x xH n, by rw [H.mul_mem_cancel_right (H.inv_mem xH), H.mul_mem_cancel_left xH]

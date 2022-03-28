@@ -110,4 +110,24 @@ begin
   refine continuous_finset_prod _ (λ l _, continuous_matrix_elem _ _),
 end
 
+lemma continuous_update_column [decidable_eq n] (i : n) :
+  continuous (λ x : matrix m n R × (m → R), x.1.update_column i x.2) :=
+continuous_matrix $ λ j k, begin
+  obtain rfl | h := decidable.eq_or_ne k i,
+  { simp_rw matrix.update_column_self,
+    exact (continuous_apply _).comp continuous_snd },
+  { simp_rw matrix.update_column_ne h,
+    exact (continuous_matrix_elem _ _).comp continuous_fst },
+end
+
+lemma continuous_update_row [decidable_eq m] (i : m) :
+  continuous (λ x : matrix m n R × (n → R), x.1.update_row i x.2) :=
+continuous_matrix $ λ j k, begin
+  obtain rfl | h := decidable.eq_or_ne j i,
+  { simp_rw matrix.update_row_self,
+    exact (continuous_apply _).comp continuous_snd },
+  { simp_rw matrix.update_row_ne h,
+    exact (continuous_matrix_elem _ _).comp continuous_fst },
+end
+
 end matrix

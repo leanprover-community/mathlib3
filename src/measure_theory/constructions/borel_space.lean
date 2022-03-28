@@ -45,7 +45,7 @@ import topology.metric_space.metrizable
 noncomputable theory
 
 open classical set filter measure_theory
-open_locale classical big_operators topological_space nnreal ennreal interval measure_theory
+open_locale classical big_operators topological_space nnreal ennreal measure_theory
 
 universes u v w x y
 variables {α β γ γ₂ δ : Type*} {ι : Sort y} {s t u : set α}
@@ -437,6 +437,9 @@ end partial_order
 
 section linear_order
 variables [linear_order α] [order_closed_topology α] {a b x : α}
+
+-- we open this locale only here to avoid issues with list being treated as intervals above
+open_locale interval
 
 @[simp, measurability]
 lemma measurable_set_Iio : measurable_set (Iio a) := is_open_Iio.measurable_set

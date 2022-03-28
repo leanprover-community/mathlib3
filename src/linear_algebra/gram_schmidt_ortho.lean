@@ -19,12 +19,14 @@ and outputs a set of orthogonal vectors which have the same span.
 - `gram_schmidt_process` : Gram-Schmidt process
 - `gram_schmidt_process_orthogonal` :
   the proof that "gram_schmidt_process" produces an orthogonal system of vectors
+- `span_gram_schmidt_process` :
+  Gram-Schmidt process preserves span of vectors
+- `gram_schmidt_process_ne_zero` :
+  If the input of gram_schmidt_process is linearly independent, then output is non-zero
 - `gram_schmidt_process_normed` :
   Normalized "Gram-Schmidt" (i.e each vector in this system has unit length)
 - `gram_schmidt_process_orthornormal` :
   the proof that "gram_schmidt_process_normed" produces an orthornormal system of vectors
-- `gram_schmidt_process_span_eq` :
-  the proof that `gram_schmidt_process` preserves the span of vectors
 -/
 
 open_locale big_operators
@@ -60,7 +62,7 @@ begin
   cases hc with c h₁,
   induction c with c hc generalizing a b,
   { simp at h₁,
-    simp [h₁] at h₀,
+    simp only [h₁, not_lt_zero'] at h₀,
     contradiction },
   { rw nat.le_add_one_iff at h₁,
     cases h₁ with hb₁ hb₂,
@@ -77,13 +79,13 @@ begin
           { rw hb₂ at h₀,
             exact nat.lt_succ_iff.mp h₀ },
           specialize hc x a,
-          simp [hxa₁, ha₂] at hc,
+          simp only [hxa₁, ha₂, forall_true_left] at hc,
           simp only [mul_eq_zero, div_eq_zero_iff, inner_self_eq_zero],
           right,
           rwa inner_eq_zero_sym at hc },
         { rw [finset.mem_range, nat.lt_succ_iff] at hx₁,
           specialize hc a x,
-          simp [hxa₂, hx₁] at hc,
+          simp only [hxa₂, hx₁, forall_true_left] at hc,
           simp only [mul_eq_zero, div_eq_zero_iff, inner_self_eq_zero],
           right,
           exact hc }},
@@ -111,30 +113,6 @@ begin
     exact gram_schmidt_process_orthogonal' 𝕜 f b a hb }
 end
 
-/-- Normalized Gram-Schmidt process
-(i.e each vector in 'gram_schmidt_process_normed` has unit length) -/
-noncomputable def gram_schmidt_process_normed (f : ℕ → E) (n : ℕ) : E :=
-(∥ gram_schmidt_process 𝕜 f n ∥ : 𝕜)⁻¹ • (gram_schmidt_process 𝕜 f n)
-
-lemma gram_schmidt_process_normed_unit_length (f : ℕ → E) (n : ℕ)
-  (h : gram_schmidt_process 𝕜 f n ≠ 0) :
-    ∥ gram_schmidt_process_normed 𝕜 f n ∥ = 1 :=
-by simp only [gram_schmidt_process_normed, norm_smul_inv_norm h]
-
-/-- **Gram-Schmidt Orthonormalization**
-Normalized Gram-Schmidt process produces an orthornormal system of vectors. -/
-theorem gram_schmidt_process_orthonormal (f : ℕ → E) (h₀ : ∀ n, gram_schmidt_process 𝕜 f n ≠ 0) :
-  orthonormal 𝕜 (gram_schmidt_process_normed 𝕜 f) :=
-begin
-  simp only [orthonormal],
-  split,
-  { simp [gram_schmidt_process_normed_unit_length, h₀] },
-  { intros i j hij,
-    simp [gram_schmidt_process_normed, inner_smul_left, inner_smul_right],
-    repeat {right},
-    exact gram_schmidt_process_orthogonal 𝕜 f i j hij }
-end
-
 open submodule set
 
 /-- Gram-Schmidt process preserves span -/
@@ -142,7 +120,8 @@ lemma span_gram_schmidt_process (f : ℕ → E) (c : ℕ) :
   span 𝕜 (gram_schmidt_process 𝕜 f '' Iic c) = span 𝕜 (f '' Iic c) :=
 begin
   induction c with c hc,
-  { simp [Iic, gram_schmidt_process_zero] },
+  { simp only [Iic, gram_schmidt_process_zero, le_zero_iff,
+      set_of_eq_eq_singleton, image_singleton] },
   apply le_antisymm,
   { have h₀ : ∀ x ∈ gram_schmidt_process 𝕜 f '' Iic c.succ, x ∈ span 𝕜 (f '' Iic c.succ),
     { intros x hx,
@@ -157,7 +136,7 @@ begin
         have h₃ : span 𝕜 (f '' Iic c) ≤ span 𝕜 (f '' Iic (c + 1)),
         { have h₄ : f '' Iic c ⊆ f '' Iic (c + 1),
           { have h₅ : Iic c ⊆ Iic (c + 1),
-            { simp [Iic],
+            { simp only [Iic, set_of_subset_set_of],
               intros a ha,
               linarith },
             exact image_subset f h₅ },
@@ -190,7 +169,7 @@ begin
             have h₅ : span 𝕜 (f '' Iic c) ≤ span 𝕜 (f '' Iic (c + 1)),
             { have h₆ : f '' Iic c ⊆ f '' Iic (c + 1),
               { have h₇ : Iic c ⊆ Iic (c + 1),
-                { simp [Iic],
+                { simp only [Iic, set_of_subset_set_of],
                   intros a ha,
                   linarith },
                 exact image_subset f h₇ },
@@ -217,7 +196,7 @@ begin
           ≤ span 𝕜 (gram_schmidt_process 𝕜 f '' Iic (c + 1)),
         { have h₃ : gram_schmidt_process 𝕜 f '' Iic c ⊆ gram_schmidt_process 𝕜 f '' Iic (c+1),
           { have h₄ : Iic c ⊆ Iic (c + 1),
-            { simp [Iic],
+            { simp only [Iic, set_of_subset_set_of],
               intros a ha,
               linarith },
             exact image_subset (gram_schmidt_process 𝕜 f) h₄ },
@@ -227,7 +206,7 @@ begin
         rw hy₃ at hy₂,
         have hx : x = gram_schmidt_process 𝕜 f (c + 1) + ∑ i in finset.range (c + 1),
           orthogonal_projection (𝕜 ∙ gram_schmidt_process 𝕜 f i) x :=
-            by simp [gram_schmidt_process_def, hy₂],
+            by simp only [gram_schmidt_process_def, hy₂, sub_add_cancel],
         simp only [orthogonal_projection_singleton] at hx,
         rw hx,
         apply add_mem _ _ _,
@@ -254,4 +233,75 @@ begin
               hc₁ }}},
     have h₁ : f '' Iic c.succ ⊆ span 𝕜 (gram_schmidt_process 𝕜 f '' Iic c.succ) := h₀,
     rwa ← span_le at h₁ }
+end
+
+/-- If the input of gram_schmidt_process is linearly independent, then output is non-zero -/
+lemma gram_schmidt_process_ne_zero (f : ℕ → E) (h₀ : linear_independent 𝕜 f) (n : ℕ) :
+  gram_schmidt_process 𝕜 f n ≠ 0 :=
+begin
+  have h₁ : ∃ c, n ≤ c := by refine ⟨n + 1, by linarith⟩,
+  cases h₁ with c hc,
+  induction c with c hc₁ generalizing n,
+  { simp only [nat.nat_zero_eq_zero, le_zero_iff] at hc,
+    simp only [hc, gram_schmidt_process_zero],
+    exact linear_independent.ne_zero 0 h₀ },
+  { rw nat.succ_eq_add_one at hc,
+    by_cases n ≤ c,
+    { specialize hc₁ n h,
+      exact hc₁ },
+    { have h₁ : n = c + 1 := by linarith,
+      rw h₁,
+      by_contra h₂,
+      have h₃ : f (c + 1) = gram_schmidt_process 𝕜 f (c + 1) + ∑ i in finset.range (c + 1),
+          orthogonal_projection (𝕜 ∙ gram_schmidt_process 𝕜 f i) (f (c + 1))
+            := by simp only [gram_schmidt_process_def, sub_add_cancel],
+      simp only [h₂, orthogonal_projection_singleton, zero_add] at h₃,
+      have h₄ : ∑ (x : ℕ) in finset.range (c + 1),
+        ((⟪gram_schmidt_process 𝕜 f x, f (c + 1)⟫ / ∥gram_schmidt_process 𝕜 f x∥ ^ 2) : 𝕜)
+          • gram_schmidt_process 𝕜 f x ∈ span 𝕜 (gram_schmidt_process 𝕜 f '' Iic c),
+      { apply sum_mem _ _,
+        intros a ha,
+        have ha₁ : gram_schmidt_process 𝕜 f a ∈ gram_schmidt_process 𝕜 f '' Iic c,
+        { simp only [mem_image, mem_Iic],
+          rw finset.mem_range at ha,
+          have ha₂ : a ≤ c := by linarith,
+          refine ⟨a, ha₂, by refl⟩ },
+        have h₄ : gram_schmidt_process 𝕜 f '' Iic c
+          ⊆ span 𝕜 (gram_schmidt_process 𝕜 f '' Iic c) := subset_span,
+        have h₅ : gram_schmidt_process 𝕜 f a ∈ span 𝕜 (gram_schmidt_process 𝕜 f '' Iic c) := h₄ ha₁,
+        exact smul_mem (span 𝕜 (gram_schmidt_process 𝕜 f '' Iic c))
+          ((⟪gram_schmidt_process 𝕜 f a, f (c + 1)⟫ / ∥gram_schmidt_process 𝕜 f a∥ ^ 2) : 𝕜) h₅ },
+      have h₅ := span_gram_schmidt_process 𝕜 f c,
+      rw [h₅, ← h₃] at h₄,
+      have h₆ : (c + 1) ∉ Iic c
+        := by simp only [mem_Iic, add_le_iff_nonpos_right, le_zero_iff, nat.one_ne_zero, not_false_iff],
+      have h₇ := linear_independent.not_mem_span_image h₀ h₆,
+      apply h₇,
+      exact h₄ }}
+end
+
+/-- Normalized Gram-Schmidt process
+(i.e each vector in 'gram_schmidt_process_normed` has unit length) -/
+noncomputable def gram_schmidt_process_normed (f : ℕ → E) (n : ℕ) : E :=
+(∥gram_schmidt_process 𝕜 f n∥ : 𝕜)⁻¹ • (gram_schmidt_process 𝕜 f n)
+
+lemma gram_schmidt_process_normed_unit_length (f : ℕ → E) (n : ℕ)
+  (h : linear_independent 𝕜 f) :
+    ∥gram_schmidt_process_normed 𝕜 f n∥ = 1 :=
+by simp only [gram_schmidt_process_ne_zero 𝕜 f h,
+  gram_schmidt_process_normed, norm_smul_inv_norm, ne.def, not_false_iff]
+
+/-- **Gram-Schmidt Orthonormalization**
+Normalized Gram-Schmidt process produces an orthornormal system of vectors. -/
+theorem gram_schmidt_process_orthonormal (f : ℕ → E) (h₀ : linear_independent 𝕜 f) :
+  orthonormal 𝕜 (gram_schmidt_process_normed 𝕜 f) :=
+begin
+  simp only [orthonormal],
+  split,
+  { simp only [gram_schmidt_process_normed_unit_length, h₀, forall_const] },
+  { intros i j hij,
+    simp only [gram_schmidt_process_normed, inner_smul_left, inner_smul_right, is_R_or_C.conj_inv,
+      is_R_or_C.conj_of_real, mul_eq_zero, inv_eq_zero, is_R_or_C.of_real_eq_zero, norm_eq_zero],
+    repeat { right },
+    exact gram_schmidt_process_orthogonal 𝕜 f i j hij }
 end

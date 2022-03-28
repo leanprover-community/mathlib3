@@ -467,6 +467,17 @@ theorem left_inverse_inv_mul_mul_right (c : G) :
   function.left_inverse (λ x, c⁻¹ * x) (λ x, c * x) :=
 assume x, inv_mul_cancel_left c x
 
+@[to_additive]
+lemma exists_npow_eq_one_of_zpow_eq_one {n : ℤ} (hn : n ≠ 0) {x : G} (h : x ^ n = 1) :
+  ∃ n : ℕ, 0 < n ∧ x ^ n = 1 :=
+begin
+  cases n with n n,
+  { rw zpow_of_nat at h,
+    refine ⟨n, nat.pos_of_ne_zero (λ n0, hn _), h⟩, rw n0, refl },
+  { rw [zpow_neg_succ_of_nat, inv_eq_one] at h,
+    refine ⟨n + 1, n.succ_pos, h⟩ }
+end
+
 end group
 
 section comm_group

@@ -116,6 +116,16 @@ begin
   rw [nat_degree_mul h2.1 h2.2], exact nat.le_add_right _ _
 end
 
+/-- This lemma is useful for working with the `int_degree` of a rational function. -/
+lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : polynomial R} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
+  (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁ * q₂ = p₂ * q₁) :
+  (p₁.nat_degree : ℤ) - q₁.nat_degree = (p₂.nat_degree : ℤ) - q₂.nat_degree :=
+begin
+  rw sub_eq_sub_iff_add_eq_add,
+  norm_cast,
+  rw [← nat_degree_mul hp₁ hq₂, ← nat_degree_mul hp₂ hq₁, h_eq]
+end
+
 end no_zero_divisors
 
 section no_zero_divisors
@@ -524,53 +534,6 @@ by rw [nth_roots_finset, mem_to_finset, mem_nth_roots h]
 
 end nth_roots
 
-lemma coeff_comp_degree_mul_degree (hqd0 : nat_degree q ≠ 0) :
-  coeff (p.comp q) (nat_degree p * nat_degree q) =
-  leading_coeff p * leading_coeff q ^ nat_degree p :=
-if hp0 : p = 0 then by simp [hp0] else
-calc coeff (p.comp q) (nat_degree p * nat_degree q)
-  = p.sum (λ n a, coeff (C a * q ^ n) (nat_degree p * nat_degree q)) :
-    by rw [comp, eval₂, coeff_sum]
-... = coeff (C (leading_coeff p) * q ^ nat_degree p) (nat_degree p * nat_degree q) :
-  finset.sum_eq_single _
-  begin
-    assume b hbs hbp,
-    have hq0 : q ≠ 0, from λ hq0, hqd0 (by rw [hq0, nat_degree_zero]),
-    have : coeff p b ≠ 0, by rwa mem_support_iff at hbs,
-    refine coeff_eq_zero_of_degree_lt _,
-    erw [degree_mul, degree_C this, degree_pow, zero_add, degree_eq_nat_degree hq0,
-      ← with_bot.coe_nsmul, nsmul_eq_mul, with_bot.coe_lt_coe, nat.cast_id,
-      mul_lt_mul_right (pos_iff_ne_zero.mpr hqd0)],
-    exact lt_of_le_of_ne (le_nat_degree_of_ne_zero this) hbp,
-  end
-  begin
-    intro h, contrapose! hp0,
-    rw mem_support_iff at h, push_neg at h,
-    rwa ← leading_coeff_eq_zero,
-  end
-... = _ :
-  have coeff (q ^ nat_degree p) (nat_degree p * nat_degree q) = leading_coeff (q ^ nat_degree p),
-    by rw [leading_coeff, nat_degree_pow],
-  by rw [coeff_C_mul, this, leading_coeff_pow]
-
-lemma nat_degree_comp : nat_degree (p.comp q) = nat_degree p * nat_degree q :=
-le_antisymm nat_degree_comp_le
-  (if hp0 : p = 0 then by rw [hp0, zero_comp, nat_degree_zero, zero_mul]
-  else if hqd0 : nat_degree q = 0
-  then have degree q ≤ 0, by rw [← with_bot.coe_zero, ← hqd0]; exact degree_le_nat_degree,
-    by rw [eq_C_of_degree_le_zero this]; simp
-  else le_nat_degree_of_ne_zero $
-    have hq0 : q ≠ 0, from λ hq0, hqd0 $ by rw [hq0, nat_degree_zero],
-    calc coeff (p.comp q) (nat_degree p * nat_degree q)
-        = leading_coeff p * leading_coeff q ^ nat_degree p :
-      coeff_comp_degree_mul_degree hqd0
-    ... ≠ 0 : mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
-      (pow_ne_zero _ (mt leading_coeff_eq_zero.1 hq0)))
-
-lemma leading_coeff_comp (hq : nat_degree q ≠ 0) : leading_coeff (p.comp q) =
-  leading_coeff p * leading_coeff q ^ nat_degree p :=
-by rw [← coeff_comp_degree_mul_degree hq, ← nat_degree_comp]; refl
-
 lemma monic.comp (hp : p.monic) (hq : q.monic) (h : q.nat_degree ≠ 0) : (p.comp q).monic :=
 by rw [monic.def, leading_coeff_comp h, monic.def.1 hp, monic.def.1 hq, one_pow, one_mul]
 
@@ -648,6 +611,21 @@ finset_coe.fintype _
 lemma root_set_finite (p : T[X])
   (S : Type*) [comm_ring S] [is_domain S] [algebra T S] : (p.root_set S).finite :=
 ⟨polynomial.root_set_fintype p S⟩
+
+theorem mem_root_set_iff' {p : T[X]} {S : Type*} [comm_ring S] [is_domain S]
+  [algebra T S] (hp : p.map (algebra_map T S) ≠ 0) (a : S) :
+  a ∈ p.root_set S ↔ (p.map (algebra_map T S)).eval a = 0 :=
+by { change a ∈ multiset.to_finset _ ↔ _, rw [mem_to_finset, mem_roots hp], refl }
+
+theorem mem_root_set_iff {p : T[X]} (hp : p ≠ 0) {S : Type*} [comm_ring S] [is_domain S]
+  [algebra T S] [no_zero_smul_divisors T S] (a : S) : a ∈ p.root_set S ↔ aeval a p = 0 :=
+begin
+  rw [mem_root_set_iff', ←eval₂_eq_eval_map],
+  { refl },
+  intro h,
+  rw ←map_zero (algebra_map T S) at h,
+  exact hp (map_injective _ (no_zero_smul_divisors.algebra_map_injective T S) h)
+end
 
 end roots
 

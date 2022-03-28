@@ -8,8 +8,10 @@ import group_theory.group_action.pi
 
 /-!
 # Group actions on embeddings
+
 This file provides a `mul_action G (α ↪ β)` instance that agrees with the `mul_action G (α → β)`
 instances defined by `pi.mul_action`.
+
 Note that unlike the `pi` instance, this requires `G` to be a group.
 -/
 

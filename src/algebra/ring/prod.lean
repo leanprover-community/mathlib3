@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Chris Hughes, Mario Carneiro, Yury Kudryashov
 -/
 import algebra.group.prod
 import algebra.ring.basic
-import data.equiv.ring
+import algebra.ring.equiv
 
 /-!
 # Semiring, ring etc structures on `R × S`

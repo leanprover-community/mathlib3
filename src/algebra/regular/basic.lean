@@ -45,8 +45,8 @@ def is_right_regular (c : R) := function.injective (* c)
 /-- An add-regular element is an element `c` such that addition by `c` both on the left and
 on the right is injective. -/
 structure is_add_regular {R : Type*} [has_add R] (c : R) : Prop :=
-(left : is_left_add_regular c)
-(right : is_right_add_regular c)
+(left : is_add_left_regular c)
+(right : is_add_right_regular c)
 
 /-- A regular element is an element `c` such that multiplication by `c` both on the left and
 on the right is injective. -/

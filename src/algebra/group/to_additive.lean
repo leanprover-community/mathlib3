@@ -217,6 +217,11 @@ meta def tr : bool → list string → list string
 | is_comm ("pow" :: s)                := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("npow" :: s)               := add_comm_prefix is_comm "nsmul"     :: tr ff s
 | is_comm ("zpow" :: s)               := add_comm_prefix is_comm "zsmul"     :: tr ff s
+| is_comm ("is" :: "regular" :: s)    := add_comm_prefix is_comm "is_add_regular"   :: tr ff s
+| is_comm ("is" :: "left" :: "regular" :: s)  :=
+  add_comm_prefix is_comm "is_add_left_regular"  :: tr ff s
+| is_comm ("is" :: "right" :: "regular" :: s) :=
+  add_comm_prefix is_comm "is_add_right_regular" :: tr ff s
 | is_comm ("monoid" :: s)      := ("add_" ++ add_comm_prefix is_comm "monoid")    :: tr ff s
 | is_comm ("submonoid" :: s)   := ("add_" ++ add_comm_prefix is_comm "submonoid") :: tr ff s
 | is_comm ("group" :: s)       := ("add_" ++ add_comm_prefix is_comm "group")     :: tr ff s
@@ -227,7 +232,6 @@ meta def tr : bool → list string → list string
 | is_comm ("prehaar" :: s)     := ("add_" ++ add_comm_prefix is_comm "prehaar")   :: tr ff s
 | is_comm ("unit" :: s)        := ("add_" ++ add_comm_prefix is_comm "unit")      :: tr ff s
 | is_comm ("units" :: s)       := ("add_" ++ add_comm_prefix is_comm "units")     :: tr ff s
-| is_comm ("regular" :: s)     := ("add_" ++ add_comm_prefix is_comm "regular")   :: tr ff s
 | is_comm ("comm" :: s)        := tr tt s
 | is_comm (x :: s)             := (add_comm_prefix is_comm x :: tr ff s)
 | tt []                        := ["comm"]

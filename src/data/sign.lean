@@ -13,7 +13,7 @@ This file defines the sign function for types with zero and a decidable less-tha
 proves some basic theorems about it.
 -/
 
-@[derive decidable_eq]
+@[derive [decidable_eq, inhabited]]
 inductive sign_type
 | zero | neg | pos
 
@@ -92,6 +92,13 @@ def fin3_equiv : sign_type ≃* fin 3 :=
     | ⟨n+3, h⟩ := (h.not_le le_add_self).elim
   end,
   map_mul' := λ x y, by casesm* _; refl }
+
+def cast {α} [has_zero α] [has_one α] [has_neg α] : sign_type → α
+| zero :=  0
+| pos  :=  1
+| neg  := -1
+
+instance {α} [has_zero α] [has_one α] [has_neg α] : has_coe sign_type α := ⟨cast⟩
 
 end sign_type
 

@@ -44,6 +44,15 @@ open function.embedding nat
 
 variable {α : Type*}
 
+lemma gimme_some {m : ℕ} (hα : ↑m ≤ #α) : ∃ (x : fin m ↪ α), true :=
+begin
+  suffices : ∃ (x' : ulift (fin m) ↪ α), true,
+  { obtain ⟨x'⟩ := this, use equiv.ulift.symm.to_embedding.trans x' },
+  rw [exists_true_iff_nonempty, ← cardinal.le_def],
+  simp only [cardinal.mk_fintype, fintype.card_ulift, fintype.card_fin],
+  exact hα,
+end
+
 lemma gimme_another {m : ℕ} (x : fin m → α) (hα : ↑m < #α) :
   ∃ (a : α), a ∉ set.range x :=
 begin
@@ -510,8 +519,6 @@ begin
   simp only [add_tsub_cancel_left], exact hi,
 end
 
-#check equiv.ulift
-
 /-- The fixator of a subset of cardinal d in a k-transitive action
 acts (k-d) transitively on the remaining -/
 lemma remaining_transitivity (d : ℕ) (s : set α) (hs : ↑d = #s)
@@ -606,9 +613,7 @@ begin
   apply or.intro_right, apply or.intro_right,
   rw [← cardinal.one_lt_iff_nontrivial, ← cast_one, ← cardinal.succ_le, ← cardinal.nat_succ] at h,
   change  ↑2 ≤ #↥B  at h,
-  rw [← cardinal.mk_fin 2, cardinal.le_def] at h,
-  obtain ⟨x : fin 2 ↪ ↥B⟩ := h,
-
+  obtain ⟨x : fin 2 ↪ ↥B⟩ := gimme_some h,
   rw set.top_eq_univ,
   apply set.eq_univ_of_forall,
   intro a,

@@ -140,7 +140,6 @@ lemma graded_algebra.decompose_of_mem_ne {x : A} {i j : ι} (hx : x ∈ 𝒜 i) 
   (graded_algebra.decompose 𝒜 x j : A) = 0 :=
 by rw [graded_algebra.decompose_of_mem _ hx, direct_sum.of_eq_of_ne _ _ _ _ hij, submodule.coe_zero]
 
-
 variable [Π (i : ι) (x : 𝒜 i), decidable (x ≠ 0)]
 
 lemma graded_algebra.mem_support_iff (r : A) (i : ι) :
@@ -161,88 +160,43 @@ end
 
 end graded_algebra
 
-section mv_polynomial
+section canonical_order
 
-open mv_polynomial direct_sum
+open graded_algebra set_like.graded_monoid direct_sum
 
-variables (R : Type*) [comm_ring R] (σ : Type*)
-  [Π (i : ℕ) (x : homogeneous_submodule σ R i), decidable (x ≠ 0)]
+variables {ι R A : Type*}
+variables [comm_semiring R] [semiring A]
+variables [algebra R A] [decidable_eq ι]
+variables [canonically_ordered_add_monoid ι]
+variables (𝒜 : ι → submodule R A) [graded_algebra 𝒜]
 
-private noncomputable def decompose (p : mv_polynomial σ R) :
-  ⨁ i, (homogeneous_submodule σ R i) :=
-∑ i in finset.range (p.total_degree + 1),
-    of (λ i : ℕ, (homogeneous_submodule σ R i)) i
-    ⟨(homogeneous_component i p),
-      by { simp only [mem_homogeneous_submodule],
-           apply homogeneous_component_is_homogeneous }⟩
+/--
+If `A` is graded by a canonically ordered add monoid, then the projection map `x ↦ x₀` is a ring
+homomorphism.
+-/
+@[simps]
+def graded_algebra.proj_zero_ring_hom : A →+* A :=
+{ to_fun := λ a, decompose 𝒜 a 0,
+  map_one' := decompose_of_mem_same 𝒜 one_mem,
+  map_zero' := by simp only [subtype.ext_iff_val, map_zero, zero_apply, submodule.coe_zero],
+  map_add' := λ _ _, by simp [subtype.ext_iff_val, map_add, add_apply, submodule.coe_add],
+  map_mul' := λ x y,
+    have m : ∀ x, x ∈ supr 𝒜, from λ x, (is_internal 𝒜).supr_eq_top.symm ▸ submodule.mem_top,
+    begin
+    refine submodule.supr_induction 𝒜 (m x) (λ i c hc, _) _ _,
+    { refine submodule.supr_induction 𝒜 (m y) (λ j c' hc', _) _ _,
+      { by_cases h : i + j = 0,
+        { rw [decompose_of_mem_same 𝒜 (show c * c' ∈ 𝒜 0, from h ▸ mul_mem hc hc'),
+            decompose_of_mem_same 𝒜 (show c ∈ 𝒜 0, from (add_eq_zero_iff.mp h).1 ▸ hc),
+            decompose_of_mem_same 𝒜 (show c' ∈ 𝒜 0, from (add_eq_zero_iff.mp h).2 ▸ hc')] },
+        { rw [decompose_of_mem_ne 𝒜 (mul_mem hc hc') h],
+          cases (show i ≠ 0 ∨ j ≠ 0, by rwa [add_eq_zero_iff, not_and_distrib] at h) with h' h',
+          { simp only [decompose_of_mem_ne 𝒜 hc h', zero_mul] },
+          { simp only [decompose_of_mem_ne 𝒜 hc' h', mul_zero] } } },
+      { simp only [map_zero, zero_apply, submodule.coe_zero, mul_zero] },
+      { intros _ _ hd he, simp only [mul_add, map_add, add_apply, submodule.coe_add, hd, he] } },
+    { simp only [map_zero, zero_apply, submodule.coe_zero, zero_mul] },
+    { rintros _ _ ha hb, simp only [add_mul, map_add, add_apply, submodule.coe_add, ha, hb] },
+  end }
 
-private lemma homogeneous_component_of_direct_sum
-  (i : ℕ) (x : ⨁ i, homogeneous_submodule σ R i) :
-homogeneous_component i (submodule_coe _ x) = x i :=
-begin
-  rw [←sum_support_of _ x, linear_map.map_sum, linear_map.map_sum, submodule_coe],
-  simp_rw to_add_monoid_of,
-  simp only [add_subgroup.coe_subtype, submodule.coe_sum, dfinsupp.finset_sum_apply],
-  apply finset.sum_congr rfl, intros j hj,
-  rw homogeneous_component_homogeneous_polynomial i j,
-  split_ifs,
-  { erw [h, of_eq_same, dfinsupp.lift_add_hom_apply_single], refl,  },
-  { rw of_eq_of_ne, refl, intro rid, exact h rid.symm },
-  { simp only [mem_homogeneous_submodule],
-    convert (x j).2,
-    erw [dfinsupp.lift_add_hom_apply_single], refl, },
-end
-
-private lemma left_inv : function.left_inverse (decompose R σ) (submodule_coe _) := λ x,
-begin
-  rw decompose,
-  simp_rw [homogeneous_component_of_direct_sum],
-  conv_rhs { rw ←direct_sum.sum_support_of _ x },
-  have set_eq :
-    finset.range (((submodule_coe (λ (i : ℕ), homogeneous_submodule σ R i)) x).total_degree + 1)
-    = x.support ∪
-      ((finset.range (((submodule_coe (λ (i : ℕ),
-        homogeneous_submodule σ R i)) x).total_degree + 1)) \ x.support),
-  { rw finset.union_sdiff_of_subset,
-      intros a ha, simp only [ne.def, dfinsupp.mem_support_to_fun, finset.mem_range] at ha ⊢,
-      rw lt_iff_not_ge, intro rid, rw ge_iff_le at rid,
-      have := homogeneous_component_eq_zero _ _ rid,
-      erw homogeneous_component_of_direct_sum at this, apply ha,
-      simp only [submodule.coe_eq_zero] at this, exact this, },
-  rw [set_eq, finset.sum_union],
-  have :
-    ∑ k in finset.range
-      ((submodule_coe
-        (λ i, homogeneous_submodule σ R i) x).total_degree + 1) \ x.support,
-        (of (λ i, ↥((homogeneous_submodule σ R i))) k) ⟨↑(x k), _⟩ = 0,
-  { rw ←finset.sum_const_zero, apply finset.sum_congr rfl, intros i hi,
-    simp only [set_like.eta, not_not, finset.mem_sdiff, ne.def, dfinsupp.mem_support_to_fun,
-      finset.mem_range] at hi ⊢,
-    rw hi.2, simp only [add_monoid_hom.map_zero], },
-  rw [this, add_zero],
-  apply finset.sum_congr, ext, simp only [dfinsupp.mem_support_to_fun],
-  intros i hi, congr, simp only [set_like.eta],
-  refine disjoint_sdiff_self_right,
-end
-
-private lemma right_inv : function.right_inverse (decompose R σ) (submodule_coe _) := λ p,
-begin
-  rw [decompose, linear_map.map_sum],
-  have :
-    ∑ x in finset.range (p.total_degree + 1),
-      submodule_coe _ ((of (λ i, homogeneous_submodule σ R i) x)
-      ⟨(homogeneous_component x) p, _⟩) =
-    ∑ x in finset.range (p.total_degree + 1),
-      direct_sum.to_add_monoid _ ((of (λ i, homogeneous_submodule σ R i) x)
-      ⟨(homogeneous_component x) p, _⟩) := rfl,
-    rw this, simp_rw [to_add_monoid_of],
-    conv_rhs { rw ←sum_homogeneous_component p }, apply finset.sum_congr rfl (λ _ _, rfl),
-end
-
-noncomputable instance mv_polynomial_is_graded :
-  graded_algebra (λ i : ℕ, (homogeneous_submodule σ R i)) :=
-{ decompose' := decompose R σ,
-  left_inv := left_inv R σ,
-  right_inv := right_inv R σ }
-
-end mv_polynomial
+end canonical_order

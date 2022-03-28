@@ -3,9 +3,10 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import analysis.asymptotics.asymptotic_equivalent
 import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
-import analysis.asymptotics.asymptotic_equivalent
+import analysis.normed_space.riesz_lemma
 import linear_algebra.matrix.to_lin
 import topology.algebra.matrix
 
@@ -322,6 +323,27 @@ by { ext x, refl }
 by { ext x, refl }
 
 end linear_equiv
+
+namespace continuous_linear_map
+
+variable [finite_dimensional 𝕜 E]
+
+/-- Builds a continuous linear equivalence from a continuous linear map on a finite-dimensional
+vector space whose determinant is nonzero. -/
+def to_continuous_linear_equiv_of_det_ne_zero
+  (f : E →L[𝕜] E) (hf : f.det ≠ 0) : E ≃L[𝕜] E :=
+((f : E →ₗ[𝕜] E).equiv_of_det_ne_zero hf).to_continuous_linear_equiv
+
+@[simp] lemma coe_to_continuous_linear_equiv_of_det_ne_zero (f : E →L[𝕜] E) (hf : f.det ≠ 0) :
+  (f.to_continuous_linear_equiv_of_det_ne_zero hf : E →L[𝕜] E) = f :=
+by { ext x, refl }
+
+@[simp] lemma to_continuous_linear_equiv_of_det_ne_zero_apply
+  (f : E →L[𝕜] E) (hf : f.det ≠ 0) (x : E) :
+  f.to_continuous_linear_equiv_of_det_ne_zero hf x = f x :=
+rfl
+
+end continuous_linear_map
 
 /-- Any `K`-Lipschitz map from a subset `s` of a metric space `α` to a finite-dimensional real
 vector space `E'` can be extended to a Lipschitz map on the whole space `α`, with a slightly worse
@@ -684,7 +706,7 @@ let ⟨g, hg⟩ := (f : E →ₗ[𝕜] F).exists_right_inverse_of_surjective hf 
 ⟨g.to_continuous_linear_map, continuous_linear_map.ext $ linear_map.ext_iff.1 hg⟩
 
 lemma closed_embedding_smul_left {c : E} (hc : c ≠ 0) : closed_embedding (λ x : 𝕜, x • c) :=
-linear_equiv.closed_embedding_of_injective (linear_equiv.ker_to_span_singleton 𝕜 E hc)
+linear_equiv.closed_embedding_of_injective (linear_map.ker_to_span_singleton 𝕜 E hc)
 
 /- `smul` is a closed map in the first argument. -/
 lemma is_closed_map_smul_left (c : E) : is_closed_map (λ x : 𝕜, x • c) :=

@@ -116,6 +116,16 @@ begin
   rw [nat_degree_mul h2.1 h2.2], exact nat.le_add_right _ _
 end
 
+/-- This lemma is useful for working with the `int_degree` of a rational function. -/
+lemma nat_degree_sub_eq_of_prod_eq {p₁ p₂ q₁ q₂ : polynomial R} (hp₁ : p₁ ≠ 0) (hq₁ : q₁ ≠ 0)
+  (hp₂ : p₂ ≠ 0) (hq₂ : q₂ ≠ 0) (h_eq : p₁ * q₂ = p₂ * q₁) :
+  (p₁.nat_degree : ℤ) - q₁.nat_degree = (p₂.nat_degree : ℤ) - q₂.nat_degree :=
+begin
+  rw sub_eq_sub_iff_add_eq_add,
+  norm_cast,
+  rw [← nat_degree_mul hp₁ hq₂, ← nat_degree_mul hp₂ hq₁, h_eq]
+end
+
 end no_zero_divisors
 
 section no_zero_divisors
@@ -234,7 +244,7 @@ begin
   induction n with n hn,
   { refine root_multiplicity_eq_zero _,
     simp only [eval_one, is_root.def, not_false_iff, one_ne_zero, pow_zero] },
-  have hzero :=  (ne_zero_of_monic (monic_pow (monic_X_sub_C a) n.succ)),
+  have hzero := pow_ne_zero n.succ (X_sub_C_ne_zero a),
   rw pow_succ (X - C a) n at hzero ⊢,
   simp only [root_multiplicity_mul hzero, root_multiplicity_X_sub_C_self, hn, nat.one_add]
 end
@@ -524,35 +534,6 @@ by rw [nth_roots_finset, mem_to_finset, mem_nth_roots h]
 
 end nth_roots
 
-lemma coeff_comp_degree_mul_degree (hqd0 : nat_degree q ≠ 0) :
-  coeff (p.comp q) (nat_degree p * nat_degree q) =
-  leading_coeff p * leading_coeff q ^ nat_degree p :=
-if hp0 : p = 0 then by simp [hp0] else
-calc coeff (p.comp q) (nat_degree p * nat_degree q)
-  = p.sum (λ n a, coeff (C a * q ^ n) (nat_degree p * nat_degree q)) :
-    by rw [comp, eval₂, coeff_sum]
-... = coeff (C (leading_coeff p) * q ^ nat_degree p) (nat_degree p * nat_degree q) :
-  finset.sum_eq_single _
-  begin
-    assume b hbs hbp,
-    have hq0 : q ≠ 0, from λ hq0, hqd0 (by rw [hq0, nat_degree_zero]),
-    have : coeff p b ≠ 0, by rwa mem_support_iff at hbs,
-    refine coeff_eq_zero_of_degree_lt _,
-    erw [degree_mul, degree_C this, degree_pow, zero_add, degree_eq_nat_degree hq0,
-      ← with_bot.coe_nsmul, nsmul_eq_mul, with_bot.coe_lt_coe, nat.cast_id,
-      mul_lt_mul_right (pos_iff_ne_zero.mpr hqd0)],
-    exact lt_of_le_of_ne (le_nat_degree_of_ne_zero this) hbp,
-  end
-  begin
-    intro h, contrapose! hp0,
-    rw mem_support_iff at h, push_neg at h,
-    rwa ← leading_coeff_eq_zero,
-  end
-... = _ :
-  have coeff (q ^ nat_degree p) (nat_degree p * nat_degree q) = leading_coeff (q ^ nat_degree p),
-    by rw [leading_coeff, nat_degree_pow],
-  by rw [coeff_C_mul, this, leading_coeff_pow]
-
 lemma nat_degree_comp : nat_degree (p.comp q) = nat_degree p * nat_degree q :=
 le_antisymm nat_degree_comp_le
   (if hp0 : p = 0 then by rw [hp0, zero_comp, nat_degree_zero, zero_mul]
@@ -739,13 +720,13 @@ begin
   have dz := degree_eq_zero_of_is_unit H,
   rw degree_map_eq_of_leading_coeff_ne_zero at dz,
   { rw eq_C_of_degree_eq_zero dz,
-    refine is_unit.map (C.to_monoid_hom : R →* R[X]) _,
+    refine is_unit.map (C : R →+* R[X]) _,
     convert hf,
     rw (degree_eq_iff_nat_degree_eq _).1 dz,
     rintro rfl,
     simpa using H, },
   { intro h,
-    have u : is_unit (φ f.leading_coeff) := is_unit.map φ.to_monoid_hom hf,
+    have u : is_unit (φ f.leading_coeff) := is_unit.map φ hf,
     rw h at u,
     simpa using u, }
 end
@@ -767,7 +748,7 @@ lemma monic.irreducible_of_irreducible_map (f : R[X])
 begin
   fsplit,
   { intro h,
-    exact h_irr.not_unit (is_unit.map (map_ring_hom φ).to_monoid_hom h), },
+    exact h_irr.not_unit (is_unit.map (map_ring_hom φ) h), },
   { intros a b h,
 
     have q := (leading_coeff_mul a b).symm,

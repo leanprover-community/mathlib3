@@ -116,7 +116,7 @@ section preorder
 
 variables [has_zero α] [preorder α] [decidable_rel ((<) : α → α → Prop)] {a : α}
 
-/-- The sign of an element - 1 if it's positive, -1 if negative, 0 otherwise. -/
+/-- The sign of an element is 1 if it's positive, -1 if negative, 0 otherwise. -/
 def sign : α →o sign_type :=
 ⟨λ a, if 0 < a then 1 else if a < 0 then -1 else 0, λ a b h, begin
   dsimp,

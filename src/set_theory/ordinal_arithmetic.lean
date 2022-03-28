@@ -2026,7 +2026,7 @@ theorem CNF_fst_le_log (b := omega) {o p} : p ∈ CNF b o → prod.fst p ≤ log
 theorem CNF_fst_le (b := omega) {o p} (hp : p ∈ CNF b o) : prod.fst p ≤ o :=
 (CNF_fst_le_log _ hp).trans (log_le_self _ _)
 
-/-- This theorem exists to factor out commonalities between the proofs. -/
+/-- This theorem exists to factor out commonalities between the proofs of `ordinal.CNF_snd_lt` and `ordinal.CNF_lt_snd`. -/
 private theorem CNF_snd_lt_aux {b : ordinal} (b1 : 1 < b) {o} :
   ∀ p ∈ CNF b o, prod.snd p < b ∧ 0 < p.2 :=
 begin

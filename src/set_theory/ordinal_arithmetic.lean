@@ -1281,7 +1281,9 @@ begin
 end
 
 /-- The least strict upper bound of a family of ordinals indexed by the set of ordinals less than
-    some `o : ordinal.{u}`. -/
+    some `o : ordinal.{u}`.
+
+    This is to `lsub` as `bsup` is to `sup`. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
 
@@ -1497,7 +1499,9 @@ end
 
 /-- The minimum excluded ordinal of a family of ordinals indexed by the set of ordinals less than
     some `o : ordinal.{u}`. This is a special case of `mex` over the family provided by
-    `family_of_bfamily`.-/
+    `family_of_bfamily`.
+
+    This is to `mex` as `bsup` is to `sup`. -/
 def bmex (o : ordinal) (f : Π a < o, ordinal) : ordinal :=
 mex (family_of_bfamily o f)
 

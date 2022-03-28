@@ -5,12 +5,15 @@ Authors: Anatole Dedecker
 -/
 import topology.uniform_space.uniform_convergence
 import topology.bornology.order
+import topology.uniform_space.pi
 
 /-!
 # TODO
 -/
 noncomputable theory
 open_locale topological_space classical uniformity filter
+
+local attribute [-instance] Pi.uniform_space
 
 open set filter bornology
 
@@ -110,7 +113,14 @@ lemma uniform_convergence_on_convergence_sets : uniform_convergence_on.uniform_s
   uniform_convergence_on.uniform_space α β
     {s | @is_bounded _ (convergence_sets β $ uniform_convergence_on.uniform_space α β 𝔖) s} :=
 begin
-  refine le_antisymm _ _, sorry, sorry
+  refine le_antisymm _ _,
+  { refine le_infi (λ s, le_infi $ λ (hs : @is_bounded _ (convergence_sets _ _) s), _),
+    rw ← uniform_continuous_iff,
+    exact (is_bounded_of_bounded_iff _).mp hs },
+  { refine uniform_convergence_on.uniform_space_antitone _ _ (λ s hs, _),
+    change @is_bounded _ (convergence_sets _ _) s,
+    rw [convergence_sets, is_bounded_of_bounded_iff],
+    exact uniform_convergence_on.uniform_continuous_restrict _ _ 𝔖 hs }
 end
 
 lemma uniform_space_eq_uniform_space_generated :

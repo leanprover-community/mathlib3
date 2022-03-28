@@ -56,15 +56,7 @@ lemma prime.not_square [cancel_comm_monoid_with_zero R] {x : R} (h : prime x) :
 /-- The product of squares is a square. For a partial converse, see `nat.square_mul` -/
 lemma square_mul_of_square_of_square {R : Type*} [comm_monoid R] {m n : R} :
   square m → square n → square (m * n) :=
-begin
-  rintros ⟨c, hc⟩,
-  rintros ⟨d, hd⟩,
-  use (c * d),
-  have : c * d * (c * d) = (c * c) * (d * d),
-  { rw mul_assoc,
-    conv in (d * (c * d)) { rw [mul_comm, mul_assoc], },
-    rw ←mul_assoc, },
-  rw [this, hc, hd],
+λ ⟨c, hc⟩ ⟨d, hd⟩, ⟨c * d, by assoc_rw [mul_comm d c, hc, hd]⟩
 end
 
 section factorization

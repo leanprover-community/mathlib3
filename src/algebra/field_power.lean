@@ -165,6 +165,15 @@ calc x ^ (n + 1) = x ^ n * x : zpow_add_one₀ h₀.ne' _
   x ^ m ≤ x ^ n ↔ m ≤ n :=
 (zpow_strict_mono hx).le_iff_le
 
+lemma min_le_of_zpow_le_max {x : K} (hx : 1 < x) {a b c : ℤ}
+  (h_max : x ^ (-c) ≤ max (x ^ (-a)) (x ^ (-b)) ) : min a b ≤ c :=
+begin
+  rw min_le_iff,
+  cases le_max_iff.mp h_max with h; [left, right];
+  rw [zpow_le_iff_le hx, neg_le_neg_iff] at h;
+  exact h
+end
+
 @[simp] lemma pos_div_pow_pos {a b : K} (ha : 0 < a) (hb : 0 < b) (k : ℕ) : 0 < a/b^k :=
 div_pos ha (pow_pos hb k)
 

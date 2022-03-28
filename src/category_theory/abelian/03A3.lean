@@ -1,4 +1,5 @@
 
+import category_theory.preadditive.additive_functor
 import category_theory.abelian.basic
 import category_theory.limits.preserves.shapes.kernels
 
@@ -13,8 +14,9 @@ variables {𝒜 : Type u₁} [category.{v} 𝒜] [preadditive 𝒜] [has_finite_
 variables {A₁ A₂ : 𝒜} (ψ : A₁ ⟶ A₂)
 
 variables {ℬ : Type u₂} [category.{v} ℬ] [abelian ℬ]
-variables (a : 𝒜 ⥤ ℬ) (b : ℬ ⥤ 𝒜) [preserves_finite_limits b] (adj : b ⊣ a) (i : a ⋙ b ≅ 𝟭 𝒜)
-variables [functor.preserves_zero_morphisms a] [functor.preserves_zero_morphisms b]
+variables (a : 𝒜 ⥤ ℬ) [functor.additive a]
+variables (b : ℬ ⥤ 𝒜) [functor.additive b] [preserves_finite_limits b]
+variables (adj : b ⊣ a) (i : a ⋙ b ≅ 𝟭 𝒜) -- Is this really enough? I'm suprised we don't need that `i` is the counit.
 
 instance {B₁ B₂ : ℬ} (φ : B₁ ⟶ B₂) : has_kernel (b.map φ) := sorry
 instance {B₁ B₂ : ℬ} (φ : B₁ ⟶ B₂) : has_cokernel (b.map φ) := sorry
@@ -63,6 +65,7 @@ begin
   ... ≅ abelian.image f                       : iso.refl _,
 end
 
+-- The account of this proof in the Stacks project omits this calculation.
 lemma zz_hom' {X Y : 𝒜} (f : X ⟶ Y) :
 begin
   haveI := xx a b i, haveI := yy a b i,

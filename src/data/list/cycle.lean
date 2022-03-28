@@ -452,7 +452,8 @@ rfl
 
 instance : inhabited (cycle α) := ⟨nil⟩
 
-@[elab_as_eliminator] lemma rec_on {C : cycle α → Prop} (s : cycle α) (H0 : C nil)
+/-- An induction principle for `cycle`. Use as `induction s using cycle.induction_on`. -/
+@[elab_as_eliminator] lemma induction_on {C : cycle α → Prop} (s : cycle α) (H0 : C nil)
   (HI : ∀ a (l : list α), C ↑l → C ↑(a :: l)) : C s :=
 quotient.induction_on' s $ λ l, by { apply list.rec_on l; simp, assumption' }
 

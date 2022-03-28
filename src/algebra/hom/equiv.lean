@@ -150,10 +150,13 @@ instance [has_mul M] [has_mul N] : mul_equiv_class (M ≃* N) M N :=
 variables [has_mul M] [has_mul N] [has_mul P] [has_mul Q]
 
 @[simp, to_additive]
+lemma to_equiv_eq_coe (f : M ≃* N) : f.to_equiv = f := rfl
+
+@[simp, to_additive]
 lemma to_fun_eq_coe {f : M ≃* N} : f.to_fun = f := rfl
 
 @[simp, to_additive]
-lemma coe_to_equiv {f : M ≃* N} : ⇑f.to_equiv = f := rfl
+lemma coe_to_equiv {f : M ≃* N} : ⇑(f : M ≃ N) = f := rfl
 
 @[simp, to_additive]
 lemma coe_to_mul_hom {f : M ≃* N} : ⇑f.to_mul_hom = f := rfl
@@ -193,8 +196,6 @@ def symm (h : M ≃* N) : N ≃* M :=
 
 @[simp, to_additive]
 lemma inv_fun_eq_symm {f : M ≃* N} : f.inv_fun = f.symm := rfl
-
-@[simp] lemma coe_to_equiv_symm {f : M ≃* N} : ⇑f.to_equiv.symm = f.symm := rfl
 
 /-- See Note [custom simps projection] -/
 -- we don't hyperlink the note in the additive version, since that breaks syntax highlighting

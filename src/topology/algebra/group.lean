@@ -463,11 +463,14 @@ instance pi.topological_group {C : β → Type*} [∀ b, topological_space (C b)
 
 open mul_opposite
 
+@[to_additive]
+instance [group α] [has_continuous_inv α] : has_continuous_inv αᵐᵒᵖ :=
+{ continuous_inv := continuous_induced_rng $ (@continuous_inv α _ _ _).comp continuous_unop }
+
 /-- If multiplication is continuous in `α`, then it also is in `αᵐᵒᵖ`. -/
 @[to_additive "If addition is continuous in `α`, then it also is in `αᵃᵒᵖ`."]
-instance [topological_space α] [group α] [topological_group α] :
-  topological_group αᵐᵒᵖ :=
-{ continuous_inv := continuous_induced_rng $ (@continuous_inv α _ _ _).comp continuous_unop }
+instance [group α] [topological_group α] :
+  topological_group αᵐᵒᵖ := { }
 
 variable (G)
 

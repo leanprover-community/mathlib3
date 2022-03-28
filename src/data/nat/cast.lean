@@ -326,7 +326,7 @@ end ring_hom_class
 namespace ring_hom
 
 /-- This is primed to match `ring_hom.eq_int_cast'`. -/
-@[simp] lemma eq_nat_cast' {R} [non_assoc_semiring R] (f : ℕ →+* R) : f = nat.cast_ring_hom R :=
+lemma eq_nat_cast' {R} [non_assoc_semiring R] (f : ℕ →+* R) : f = nat.cast_ring_hom R :=
 ring_hom.ext $ eq_nat_cast f
 
 end ring_hom

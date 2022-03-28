@@ -12,20 +12,22 @@ import measure_theory.function.strongly_measurable
 
 # Almost everywhere equal functions
 
-Two measurable functions are treated as identical if they are almost everywhere equal. We form the
-set of equivalence classes under the relation of being almost everywhere equal, which is sometimes
-known as the `L⁰` space.
+We build a space of equivalence classes of functions, where two functions are treated as identical
+if they are almost everywhere equal. We form the set of equivalence classes under the relation of
+being almost everywhere equal, which is sometimes known as the `L⁰` space.
+To use this space as a basis for the `L^p` spaces and for the Bochner integral, we consider
+equivalence classes of strongly measurable functions (or, equivalently, of almost everywhere
+strongly measurable functions.)
 
 See `l1_space.lean` for `L¹` space.
 
 ## Notation
 
-* `α →ₘ[μ] β` is the type of `L⁰` space, where `α` and `β` are measurable spaces and `μ`
-  is a measure on `α`. `f : α →ₘ β` is a "function" in `L⁰`. In comments, `[f]` is also used
-  to denote an `L⁰` function.
+* `α →ₘ[μ] β` is the type of `L⁰` space, where `α` is a measurable space, `β` is a topological
+  space, and `μ` is a measure on `α`. `f : α →ₘ β` is a "function" in `L⁰`.
+  In comments, `[f]` is also used to denote an `L⁰` function.
 
   `ₘ` can be typed as `\_m`. Sometimes it is shown as a box if font is missing.
-
 
 ## Main statements
 
@@ -46,13 +48,16 @@ See `l1_space.lean` for `L¹` space.
 
 ## Implementation notes
 
-* `f.to_fun`     : To find a representative of `f : α →ₘ β`, use `f.to_fun`.
-                 For each operation `op` in `L⁰`, there is a lemma called `op_to_fun`,
-                 characterizing, say, `(f op g).to_fun`.
-* `ae_eq_fun.mk` : To constructs an `L⁰` function `α →ₘ β` from a measurable function `f : α → β`,
-                 use `ae_eq_fun.mk`
-* `comp`         : Use `comp g f` to get `[g ∘ f]` from `g : β → γ` and `[f] : α →ₘ γ`
-* `comp₂`        : Use `comp₂ g f₁ f₂ to get `[λa, g (f₁ a) (f₂ a)]`.
+* `f.to_fun`     : To find a representative of `f : α →ₘ β`, use the coercion `(f : α → β)`, which
+                 is implemented as `f.to_fun`.
+                 For each operation `op` in `L⁰`, there is a lemma called `coe_fn_op`,
+                 characterizing, say, `(f op g : α → β)`.
+* `ae_eq_fun.mk` : To constructs an `L⁰` function `α →ₘ β` from an almost everywhere strongly
+                 measurable function `f : α → β`, use `ae_eq_fun.mk`
+* `comp`         : Use `comp g f` to get `[g ∘ f]` from `g : β → γ` and `[f] : α →ₘ γ` when `g` is
+                 continuous. Use `comp_measurable` if `g` is only measurable (this requires the
+                 target space to be second countable).
+* `comp₂`        : Use `comp₂ g f₁ f₂ to get `[λ a, g (f₁ a) (f₂ a)]`.
                  For example, `[f + g]` is `comp₂ (+)`
 
 
@@ -63,7 +68,7 @@ function space, almost everywhere equal, `L⁰`, ae_eq_fun
 -/
 
 noncomputable theory
-open_locale classical ennreal
+open_locale classical ennreal topological_space
 
 open set filter topological_space ennreal emetric measure_theory function
 variables {α β γ δ : Type*} [measurable_space α] {μ ν : measure α}
@@ -75,14 +80,16 @@ variables [topological_space β]
 
 variable (β)
 
-/-- The equivalence relation of being almost everywhere equal -/
+/-- The equivalence relation of being almost everywhere equal for almost everywhere strongly
+measurable functions. -/
 def measure.ae_eq_setoid (μ : measure α) : setoid { f : α → β // ae_strongly_measurable f μ } :=
-⟨λf g, (f : α → β) =ᵐ[μ] g, λ f, ae_eq_refl f, λ f g, ae_eq_symm, λ f g h, ae_eq_trans⟩
+⟨λ f g, (f : α → β) =ᵐ[μ] g, λ f, ae_eq_refl f, λ f g, ae_eq_symm, λ f g h, ae_eq_trans⟩
 
 variable (α)
 
-/-- The space of equivalence classes of measurable functions, where two measurable functions are
-    equivalent if they agree almost everywhere, i.e., they differ on a set of measure `0`.  -/
+/-- The space of equivalence classes of almost everywhere strongly measurable functions, where two
+    strongly measurable functions are equivalent if they agree almost everywhere, i.e.,
+    they differ on a set of measure `0`.  -/
 def ae_eq_fun (μ : measure α) : Type* := quotient (μ.ae_eq_setoid β)
 
 variables {α β}
@@ -101,7 +108,7 @@ def mk {β : Type*} [topological_space β]
 
 /-- A measurable representative of an `ae_eq_fun` [f] -/
 instance : has_coe_to_fun (α →ₘ[μ] β) (λ _, α → β) :=
-⟨λf, ae_strongly_measurable.mk _ (quotient.out' f : {f : α → β // ae_strongly_measurable f μ}).2⟩
+⟨λ f, ae_strongly_measurable.mk _ (quotient.out' f : {f : α → β // ae_strongly_measurable f μ}).2⟩
 
 protected lemma strongly_measurable (f : α →ₘ[μ] β) : strongly_measurable f :=
 ae_strongly_measurable.strongly_measurable_mk _
@@ -240,8 +247,8 @@ by { rw pair_eq_mk, apply coe_fn_mk }
 
 /-- Given a continuous function `g : β → γ → δ`, and almost everywhere equal functions
     `[f₁] : α →ₘ β` and `[f₂] : α →ₘ γ`, return the equivalence class of the function
-    `λa, g (f₁ a) (f₂ a)`, i.e., the almost everywhere equal function
-    `[λa, g (f₁ a) (f₂ a)] : α →ₘ γ` -/
+    `λ a, g (f₁ a) (f₂ a)`, i.e., the almost everywhere equal function
+    `[λ a, g (f₁ a) (f₂ a)] : α →ₘ γ` -/
 def comp₂ (g : β → γ → δ)
   (hg : continuous (uncurry g)) (f₁ : α →ₘ[μ] β) (f₂ : α →ₘ[μ] γ) : α →ₘ[μ] δ :=
 comp _ hg (f₁.pair f₂)
@@ -249,7 +256,7 @@ comp _ hg (f₁.pair f₂)
 @[simp] lemma comp₂_mk_mk
   (g : β → γ → δ) (hg : continuous (uncurry g)) (f₁ : α → β) (f₂ : α → γ) (hf₁ hf₂) :
   comp₂ g hg (mk f₁ hf₁ : α →ₘ[μ] β) (mk f₂ hf₂) =
-    mk (λa, g (f₁ a) (f₂ a)) (hg.comp_ae_strongly_measurable (hf₁.prod_mk hf₂)) :=
+    mk (λ a, g (f₁ a) (f₂ a)) (hg.comp_ae_strongly_measurable (hf₁.prod_mk hf₂)) :=
 rfl
 
 lemma comp₂_eq_pair
@@ -274,10 +281,10 @@ variables [measurable_space β] [metrizable_space β] [borel_space β] [second_c
   [measurable_space γ] [metrizable_space γ] [borel_space γ] [second_countable_topology γ]
   [measurable_space δ] [metrizable_space δ] [opens_measurable_space δ] [second_countable_topology δ]
 
-/-- Given a continuous function `g : β → γ → δ`, and almost everywhere equal functions
+/-- Given a measurable function `g : β → γ → δ`, and almost everywhere equal functions
     `[f₁] : α →ₘ β` and `[f₂] : α →ₘ γ`, return the equivalence class of the function
-    `λa, g (f₁ a) (f₂ a)`, i.e., the almost everywhere equal function
-    `[λa, g (f₁ a) (f₂ a)] : α →ₘ γ` -/
+    `λ a, g (f₁ a) (f₂ a)`, i.e., the almost everywhere equal function
+    `[λ a, g (f₁ a) (f₂ a)] : α →ₘ γ`. This requires `δ` to have second-countable topology. -/
 def comp₂_measurable (g : β → γ → δ)
   (hg : measurable (uncurry g)) (f₁ : α →ₘ[μ] β) (f₂ : α →ₘ[μ] γ) : α →ₘ[μ] δ :=
 comp_measurable _ hg (f₁.pair f₂)
@@ -285,7 +292,7 @@ comp_measurable _ hg (f₁.pair f₂)
 @[simp] lemma comp₂_measurable_mk_mk
   (g : β → γ → δ) (hg : measurable (uncurry g)) (f₁ : α → β) (f₂ : α → γ) (hf₁ hf₂) :
   comp₂_measurable g hg (mk f₁ hf₁ : α →ₘ[μ] β) (mk f₂ hf₂) =
-  mk (λa, g (f₁ a) (f₂ a))
+  mk (λ a, g (f₁ a) (f₂ a))
     (hg.comp_ae_measurable (hf₁.ae_measurable.prod_mk hf₂.ae_measurable)).ae_strongly_measurable :=
 rfl
 
@@ -308,7 +315,7 @@ by { rw comp₂_measurable_eq_mk, apply coe_fn_mk }
 end
 
 /-- Interpret `f : α →ₘ[μ] β` as a germ at `μ.ae` forgetting that `f` is almost everywhere
-    measurable. -/
+    strongly measurable. -/
 def to_germ (f : α →ₘ[μ] β) : germ μ.ae β :=
 quotient.lift_on' f (λ f, ((f : α → β) : germ μ.ae β)) $ λ f g H, germ.coe_eq.2 H
 
@@ -448,9 +455,9 @@ end lattice
 end order
 
 variable (α)
-/-- The equivalence class of a constant function: `[λa:α, b]`, based on the equivalence relation of
+/-- The equivalence class of a constant function: `[λ a:α, b]`, based on the equivalence relation of
     being almost everywhere equal -/
-def const (b : β) : α →ₘ[μ] β := mk (λa:α, b) ae_strongly_measurable_const
+def const (b : β) : α →ₘ[μ] β := mk (λ a:α, b) ae_strongly_measurable_const
 
 lemma coe_fn_const (b : β) : (const α b : α →ₘ[μ] β) =ᵐ[μ] function.const α b :=
 coe_fn_mk _ _
@@ -461,7 +468,7 @@ instance [inhabited β] : inhabited (α →ₘ[μ] β) := ⟨const α default⟩
 
 @[to_additive] instance [has_one β] : has_one (α →ₘ[μ] β) := ⟨const α 1⟩
 @[to_additive] lemma one_def [has_one β] :
-  (1 : α →ₘ[μ] β) = mk (λa:α, 1) ae_strongly_measurable_const := rfl
+  (1 : α →ₘ[μ] β) = mk (λ a:α, 1) ae_strongly_measurable_const := rfl
 @[to_additive] lemma coe_fn_one [has_one β] : ⇑(1 : α →ₘ[μ] β) =ᵐ[μ] 1 := coe_fn_const _ _
 @[simp, to_additive] lemma one_to_germ [has_one β] : (1 : α →ₘ[μ] β).to_germ = 1 := rfl
 
@@ -514,8 +521,6 @@ rfl
 comp₂_to_germ _ _ _ _
 
 end has_mul
-
-open_locale topological_space
 
 instance [add_monoid γ] [has_continuous_add γ] : add_monoid (α →ₘ[μ] γ) :=
 to_germ_injective.add_monoid to_germ zero_to_germ add_to_germ (λ _ _, smul_to_germ _ _)
@@ -652,7 +657,7 @@ open ennreal
 
 /-- For `f : α → ℝ≥0∞`, define `∫ [f]` to be `∫ f` -/
 def lintegral (f : α →ₘ[μ] ℝ≥0∞) : ℝ≥0∞ :=
-quotient.lift_on' f (λf, ∫⁻ a, (f : α → ℝ≥0∞) a ∂μ) (assume f g, lintegral_congr_ae)
+quotient.lift_on' f (λ f, ∫⁻ a, (f : α → ℝ≥0∞) a ∂μ) (assume f g, lintegral_congr_ae)
 
 @[simp] lemma lintegral_mk (f : α → ℝ≥0∞) (hf) :
   (mk f hf : α →ₘ[μ] ℝ≥0∞).lintegral = ∫⁻ a, f a ∂μ := rfl
@@ -698,7 +703,7 @@ namespace continuous_map
 open measure_theory
 
 variables [topological_space α] [borel_space α] (μ)
-variables [topological_space β] [second_countable_topology β] [metrizable_space β]
+variables [topological_space β] [second_countable_topology_either α β] [metrizable_space β]
 
 /-- The equivalence class of `μ`-almost-everywhere measurable functions associated to a continuous
 map. -/
@@ -723,7 +728,7 @@ def to_ae_eq_fun_mul_hom : C(α, β) →* α →ₘ[μ] β :=
 variables {𝕜 : Type*} [semiring 𝕜]
 variables [topological_space γ] [metrizable_space γ] [add_comm_group γ]
   [module 𝕜 γ] [topological_add_group γ] [has_continuous_const_smul 𝕜 γ]
-  [second_countable_topology γ]
+  [second_countable_topology_either α γ]
 
 /-- The linear map from the group of continuous maps from `α` to `β` to the group of equivalence
 classes of `μ`-almost-everywhere measurable functions. -/

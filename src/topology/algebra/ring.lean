@@ -115,12 +115,10 @@ end mul_opposite
 section add_opposite
 open add_opposite
 
-instance {α : Type*} [semiring α] [topological_space α] [has_continuous_mul α] :
+instance [semiring α] [topological_space α] [has_continuous_mul α] :
   has_continuous_mul αᵃᵒᵖ :=
-{ continuous_mul := begin
-  convert (continuous_op.comp $ continuous_mul.comp $ continuous_unop.prod_map continuous_unop),
-  apply_instance
-end }
+{ continuous_mul := by convert
+  (continuous_op.comp $ (@continuous_mul α _ _ _).comp $ continuous_unop.prod_map continuous_unop) }
 
 instance [semiring α] [topological_space α] [topological_ring α] :
   topological_ring αᵃᵒᵖ := {}

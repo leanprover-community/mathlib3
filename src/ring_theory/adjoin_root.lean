@@ -265,6 +265,7 @@ basis.of_equiv_fun
          rw [mod_by_monic_eq_sub_mul_div _ hg, sub_sub_cancel],
          exact dvd_mul_right _ _ }),
   right_inv := λ x, funext $ λ i, begin
+    nontriviality R,
     simp only [mod_by_monic_hom_mk],
     rw [(mod_by_monic_eq_self_iff hg).mpr, finset_sum_coeff, finset.sum_eq_single i];
       try { simp only [coeff_monomial, eq_self_iff_true, if_true] },
@@ -279,8 +280,7 @@ basis.of_equiv_fun
 
 /-- The power basis `1, root g, ..., root g ^ (d - 1)` for `adjoin_root g`,
 where `g` is a monic polynomial of degree `d`. -/
-@[simps] def power_basis' [nontrivial R] (hg : g.monic) :
-  power_basis R (adjoin_root g) :=
+@[simps] def power_basis' (hg : g.monic) : power_basis R (adjoin_root g) :=
 { gen := root g,
   dim := g.nat_degree,
   basis := power_basis_aux' hg,

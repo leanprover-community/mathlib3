@@ -20,10 +20,6 @@ the usual way this is considered.
 * `complex.abs_add_eq/complex.abs_sub_eq`: If two non zero complex numbers have different argument,
   then the triangle inequality becomes strict.
 
-## TODO:
-
-When the strictly convex spaces PR comes in, upgrade some of these results to `iff`s.
-
 -/
 
 variables {x y : ℂ}

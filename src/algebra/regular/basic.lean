@@ -31,14 +31,14 @@ variable [has_mul R]
 
 /-- A left-regular element is an element `c` such that multiplication on the left by `c`
 is injective. -/
-@[to_additive "A left-add-regular element is an element `c` such that addition on the left by `c`
+@[to_additive "An add-left-regular element is an element `c` such that addition on the left by `c`
 is injective. -/
 "]
 def is_left_regular (c : R) := function.injective ((*) c)
 
 /-- A right-regular element is an element `c` such that multiplication on the right by `c`
 is injective. -/
-@[to_additive "A right-add-regular element is an element `c` such that addition on the right by `c`
+@[to_additive "An add-right-regular element is an element `c` such that addition on the right by `c`
 is injective."]
 def is_right_regular (c : R) := function.injective (* c)
 
@@ -68,38 +68,38 @@ section semigroup
 variable [semigroup R]
 
 /-- In a semigroup, the product of left-regular elements is left-regular. -/
-@[to_additive "In an additive semigroup, the sum of left-add-regular elements is left-add.regular."]
+@[to_additive "In an additive semigroup, the sum of add-left-regular elements is add-left.regular."]
 lemma is_left_regular.mul (lra : is_left_regular a) (lrb : is_left_regular b) :
   is_left_regular (a * b) :=
 show function.injective ((*) (a * b)), from (comp_mul_left a b) ▸ lra.comp lrb
 
 /-- In a semigroup, the product of right-regular elements is right-regular. -/
 @[to_additive
-"In an additive semigroup, the sum of right-add-regular elements is right-add-regular."]
+"In an additive semigroup, the sum of add-right-regular elements is add-right-regular."]
 lemma is_right_regular.mul (rra : is_right_regular a) (rrb : is_right_regular b) :
   is_right_regular (a * b) :=
 show function.injective (* (a * b)), from (comp_mul_right b a) ▸ rrb.comp rra
 
 /--  If an element `b` becomes left-regular after multiplying it on the left by a left-regular
 element, then `b` is left-regular. -/
-@[to_additive "If an element `b` becomes left-add-regular after adding to it on the left a
-left-add-regular element, then `b` is left-add-regular."]
+@[to_additive "If an element `b` becomes add-left-regular after adding to it on the left a
+add-left-regular element, then `b` is add-left-regular."]
 lemma is_left_regular.of_mul (ab : is_left_regular (a * b)) :
   is_left_regular b :=
 function.injective.of_comp (by rwa comp_mul_left a b)
 
 /--  An element is left-regular if and only if multiplying it on the left by a left-regular element
 is left-regular. -/
-@[simp, to_additive "An element is left-add-regular if and only if adding to it on the left a
-left-add-regular element is left-add-regular."]
+@[simp, to_additive "An element is add-left-regular if and only if adding to it on the left a
+add-left-regular element is add-left-regular."]
 lemma mul_is_left_regular_iff (b : R) (ha : is_left_regular a) :
   is_left_regular (a * b) ↔ is_left_regular b :=
 ⟨λ ab, is_left_regular.of_mul ab, λ ab, is_left_regular.mul ha ab⟩
 
 /--  If an element `b` becomes right-regular after multiplying it on the right by a right-regular
 element, then `b` is right-regular. -/
-@[to_additive "If an element `b` becomes right-add-regular after adding to it on the right a
-right-add-regular element, then `b` is right-add-regular."]
+@[to_additive "If an element `b` becomes add-right-regular after adding to it on the right a
+add-right-regular element, then `b` is add-right-regular."]
 lemma is_right_regular.of_mul (ab : is_right_regular (b * a)) :
   is_right_regular b :=
 begin
@@ -110,8 +110,8 @@ end
 
 /--  An element is right-regular if and only if multiplying it on the right with a right-regular
 element is right-regular. -/
-@[simp, to_additive "An element is right-add-regular if and only if adding it on the right to a
-right-add-regular element is right-add-regular."]
+@[simp, to_additive "An element is add-right-regular if and only if adding it on the right to a
+add-right-regular element is add-right-regular."]
 lemma mul_is_right_regular_iff (b : R) (ha : is_right_regular a) :
   is_right_regular (b * a) ↔ is_right_regular b :=
 ⟨λ ab, is_right_regular.of_mul ab, λ ab, is_right_regular.mul ab ha⟩
@@ -257,12 +257,12 @@ lemma is_regular_one : is_regular (1 : R) :=
   λ a b ab, (mul_one a).symm.trans (eq.trans ab (mul_one b))⟩
 
 /-- An element admitting a left inverse is left-regular. -/
-@[to_additive "An element admitting a left additive opposite is left-add-regular."]
+@[to_additive "An element admitting a left additive opposite is add-left-regular."]
 lemma is_left_regular_of_mul_eq_one (h : b * a = 1) : is_left_regular a :=
 @is_left_regular.of_mul R _ a _ (by { rw h, exact is_regular_one.left })
 
 /-- An element admitting a right inverse is right-regular. -/
-@[to_additive "An element admitting a right additive opposite is right-add-regular."]
+@[to_additive "An element admitting a right additive opposite is add-right-regular."]
 lemma is_right_regular_of_mul_eq_one (h : a * b = 1) : is_right_regular a :=
 @is_right_regular.of_mul R _ a _ (by { rw h, exact is_regular_one.right })
 
@@ -309,13 +309,13 @@ lemma mul_left_embedding_eq_mul_right_embedding {G : Type*} [cancel_comm_monoid 
 by { ext, exact mul_comm _ _ }
 
 /--  Elements of a left cancel semigroup are left regular. -/
-@[to_additive "Elements of an add left cancel semigroup are left-add-regular."]
+@[to_additive "Elements of an add left cancel semigroup are add-left-regular."]
 lemma is_left_regular_of_left_cancel_semigroup [left_cancel_semigroup R] (g : R) :
   is_left_regular g :=
 mul_right_injective g
 
 /--  Elements of a right cancel semigroup are right regular. -/
-@[to_additive "Elements of an add right cancel semigroup are right-add-regular"]
+@[to_additive "Elements of an add right cancel semigroup are add-right-regular"]
 lemma is_right_regular_of_right_cancel_semigroup [right_cancel_semigroup R] (g : R) :
   is_right_regular g :=
 mul_left_injective g

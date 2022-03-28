@@ -375,6 +375,18 @@ instance : comm_semiring cardinal.{u} :=
   npow_zero'    := @power_zero,
   npow_succ'    := λ n c, by rw [nat.cast_succ, power_add, power_one, cardinal.mul_comm] }
 
+@[simp] theorem mul_bit0 (a b : cardinal) : a * (bit0 b) = a * b + a * b :=
+left_distrib a b b
+
+@[simp] theorem mul_bit1 (a b : cardinal) : a * (bit1 b) = a * (bit0 b) + a :=
+by { convert left_distrib a _ 1, rw mul_one }
+
+@[simp] theorem power_bit0 (a b : cardinal) : a ^ (bit0 b) = a ^ b * a ^ b :=
+power_add
+
+@[simp] theorem power_bit1 (a b : cardinal) : a ^ (bit1 b) = a ^ (bit0 b) * a :=
+by { convert power_add, rw power_one }
+
 @[simp] theorem one_power {a : cardinal} : 1 ^ a = 1 :=
 induction_on a $ assume α, (equiv.arrow_punit_equiv_punit α).cardinal_eq
 

@@ -44,16 +44,6 @@ lemma diff_cont_on_cl_const {c : F} :
   diff_cont_on_cl 𝕜 (λ x : E, c) s :=
 ⟨differentiable_on_const c, continuous_on_const⟩
 
-lemma differentiable_on.comp_diff_cont_on_cl {g : G → E} {t : set G}
-  (hf : differentiable_on 𝕜 f s) (hg : diff_cont_on_cl 𝕜 g t) (h : maps_to g t s) :
-  diff_cont_on_cl 𝕜 (f ∘ g) t :=
--- ⟨hf.comp hg.differentiable_on $ h.mono_left interior_subset, hf.continuous_on.comp hg.2 h⟩
-
-lemma differentiable.comp_diff_cont_on_cl {g : G → E} {t : set G}
-  (hf : differentiable 𝕜 f) (hg : diff_cont_on_cl 𝕜 g t) :
-  diff_cont_on_cl 𝕜 (f ∘ g) t :=
-hf.differentiable_on.comp_diff_cont_on_cl hg (maps_to_image _ _)
-
 namespace diff_cont_on_cl
 
 lemma comp {g : G → E} {t : set G} (hf : diff_cont_on_cl 𝕜 f s) (hg : diff_cont_on_cl 𝕜 g t)
@@ -64,33 +54,27 @@ lemma comp {g : G → E} {t : set G} (hf : diff_cont_on_cl 𝕜 f s) (hg : diff_
 lemma continuous_on_ball [normed_space ℝ E] {x : E} {r : ℝ} (h : diff_cont_on_cl 𝕜 f (ball x r)) :
   continuous_on f (closed_ball x r) :=
 begin
-  rw ← closure_ball,
+  rcases eq_or_ne r 0 with rfl|hr,
+  { rw closed_ball_zero,
+    exact continuous_on_singleton f x },
+  { rw ← closure_ball x hr,
+    exact h.continuous_on }
 end
-
-lemma differentiable_on_ball {x : E} {r : ℝ} (h : diff_cont_on_cl 𝕜 f (closed_ball x r)) :
-  differentiable_on 𝕜 f (ball x r) :=
-h.differentiable_on.mono ball_subset_interior_closed_ball
 
 lemma mk_ball [normed_space ℝ E] {x : E} {r : ℝ} (hd : differentiable_on 𝕜 f (ball x r))
-  (hc : continuous_on f (closed_ball x r)) : diff_cont_on_cl 𝕜 f (closed_ball x r) :=
-begin
-  refine ⟨_, hc⟩,
-  rcases eq_or_ne r 0 with rfl|hr,
-  { rw [closed_ball_zero],
-    exact (subsingleton_singleton.mono interior_subset).differentiable_on },
-  { rwa interior_closed_ball x hr }
-end
+  (hc : continuous_on f (closed_ball x r)) : diff_cont_on_cl 𝕜 f (ball x r) :=
+⟨hd, hc.mono $ closure_ball_subset_closed_ball⟩
 
-protected lemma differentiable_at (h : diff_cont_on_cl 𝕜 f s) (hx : x ∈ interior s) :
+protected lemma differentiable_at (h : diff_cont_on_cl 𝕜 f s) (hs : is_open s) (hx : x ∈ s) :
   differentiable_at 𝕜 f x :=
-h.differentiable_on.differentiable_at $ is_open_interior.mem_nhds hx
+h.differentiable_on.differentiable_at $ hs.mem_nhds hx
 
 lemma differentiable_at' (h : diff_cont_on_cl 𝕜 f s) (hx : s ∈ 𝓝 x) :
   differentiable_at 𝕜 f x :=
-h.differentiable_at (mem_interior_iff_mem_nhds.2 hx)
+h.differentiable_on.differentiable_at hx
 
 protected lemma mono (h : diff_cont_on_cl 𝕜 f s) (ht : t ⊆ s) : diff_cont_on_cl 𝕜 f t :=
-⟨h.differentiable_on.mono (interior_mono ht), h.continuous_on.mono ht⟩
+⟨h.differentiable_on.mono ht, h.continuous_on.mono (closure_mono ht)⟩
 
 lemma add (hf : diff_cont_on_cl 𝕜 f s) (hg : diff_cont_on_cl 𝕜 g s) :
   diff_cont_on_cl 𝕜 (f + g) s :=
@@ -133,8 +117,13 @@ lemma smul_const {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebr
   diff_cont_on_cl 𝕜 (λ x, c x • y) s :=
 hc.smul diff_cont_on_cl_const
 
-lemma inv {f : E → 𝕜} (hf : diff_cont_on_cl 𝕜 f s) (h₀ : ∀ x ∈ s, f x ≠ 0) :
+lemma inv {f : E → 𝕜} (hf : diff_cont_on_cl 𝕜 f s) (h₀ : ∀ x ∈ closure s, f x ≠ 0) :
   diff_cont_on_cl 𝕜 f⁻¹ s :=
-⟨differentiable_on_inv.comp hf.1 $ λ x hx, h₀ _ (interior_subset hx), hf.2.inv₀ h₀⟩
+⟨differentiable_on_inv.comp hf.1 $ λ x hx, h₀ _ (subset_closure hx), hf.2.inv₀ h₀⟩
 
 end diff_cont_on_cl
+
+lemma differentiable.comp_diff_cont_on_cl {g : G → E} {t : set G}
+  (hf : differentiable 𝕜 f) (hg : diff_cont_on_cl 𝕜 g t) :
+  diff_cont_on_cl 𝕜 (f ∘ g) t :=
+hf.diff_cont_on_cl.comp hg (maps_to_image _ _)

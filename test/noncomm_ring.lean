@@ -1,5 +1,4 @@
 import tactic.noncomm_ring
-import algebra.module.basic
 
 local notation `⁅`a`,` b`⁆` := a * b - b * a
 local infix ` ⚬ `:70 := λ a b, a * b + b * a

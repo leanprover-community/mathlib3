@@ -9,6 +9,9 @@ import algebra.module.basic  -- needed to empower `mul_smul_comm` and `smul_mul_
 namespace tactic
 namespace interactive
 
+example {R} [semiring R] : is_scalar_tower ℕ R R := by refine add_comm_monoid.nat_is_scalar_tower
+example {R} [ring R] : is_scalar_tower ℤ R R := by apply_instance
+
 /-- A tactic for simplifying identities in not-necessarily-commutative rings.
 
 An example:

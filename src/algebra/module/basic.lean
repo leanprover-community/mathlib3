@@ -325,7 +325,7 @@ def add_comm_monoid.nat_module.unique : unique (module ℕ M) :=
 { default := by apply_instance,
   uniq := λ P, module.ext' P _ $ λ n, nat_smul_eq_nsmul P n }
 
-instance add_comm_monoid.nat_is_scalar_tower :
+instance add_comm_monoid.nat_is_scalar_tower {R M} [add_comm_monoid R] [add_comm_monoid M] [smul_with_zero R M]:
   is_scalar_tower ℕ R M :=
 { smul_assoc := λ n x y, nat.rec_on n
     (by simp only [zero_smul])

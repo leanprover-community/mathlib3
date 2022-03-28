@@ -1555,7 +1555,7 @@ end
 end ae_strongly_measurable
 
 
-/-! ### Almost everywhere finitely strongly measurable functions -/
+/-! ## Almost everywhere finitely strongly measurable functions -/
 
 namespace ae_fin_strongly_measurable
 

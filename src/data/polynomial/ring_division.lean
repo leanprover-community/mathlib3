@@ -612,6 +612,21 @@ lemma root_set_finite (p : T[X])
   (S : Type*) [comm_ring S] [is_domain S] [algebra T S] : (p.root_set S).finite :=
 ⟨polynomial.root_set_fintype p S⟩
 
+theorem mem_root_set_iff' {p : T[X]} {S : Type*} [comm_ring S] [is_domain S]
+  [algebra T S] (hp : p.map (algebra_map T S) ≠ 0) (a : S) :
+  a ∈ p.root_set S ↔ (p.map (algebra_map T S)).eval a = 0 :=
+by { change a ∈ multiset.to_finset _ ↔ _, rw [mem_to_finset, mem_roots hp], refl }
+
+theorem mem_root_set_iff {p : T[X]} (hp : p ≠ 0) {S : Type*} [comm_ring S] [is_domain S]
+  [algebra T S] [no_zero_smul_divisors T S] (a : S) : a ∈ p.root_set S ↔ aeval a p = 0 :=
+begin
+  rw [mem_root_set_iff', ←eval₂_eq_eval_map],
+  { refl },
+  intro h,
+  rw ←map_zero (algebra_map T S) at h,
+  exact hp (map_injective _ (no_zero_smul_divisors.algebra_map_injective T S) h)
+end
+
 end roots
 
 theorem is_unit_iff {f : R[X]} : is_unit f ↔ ∃ r : R, is_unit r ∧ C r = f :=

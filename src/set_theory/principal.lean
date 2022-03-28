@@ -67,13 +67,13 @@ theorem op_eq_self_of_principal {op : ordinal → ordinal → ordinal} {a o : or
   (hao : a < o) (H : is_normal (op a)) (ho : principal op o) (ho' : is_limit o) : op a o = o :=
 begin
   refine le_antisymm _ (H.self_le _),
-  rw [←is_normal.bsup_eq.{u u} H ho', bsup_le],
+  rw [←is_normal.bsup_eq.{u u} H ho', bsup_le_iff],
   exact λ b hbo, (ho hao hbo).le
 end
 
 theorem nfp_le_of_principal {op : ordinal → ordinal → ordinal}
   {a o : ordinal} (hao : a < o) (ho : principal op o) : nfp (op a) a ≤ o :=
-nfp_le.2 $ λ n, (ho.iterate_lt hao n).le
+nfp_le $ λ n, (ho.iterate_lt hao n).le
 
 /-! ### Principal ordinals are unbounded -/
 
@@ -147,6 +147,26 @@ begin
   { rw ←h a hao,
     exact (add_is_normal a).strict_mono hbo }
 end
+
+theorem exists_lt_add_of_not_principal_add {a} (ha : ¬ principal (+) a) :
+  ∃ (b c) (hb : b < a) (hc : c < a), b + c = a :=
+begin
+  unfold principal at ha,
+  push_neg at ha,
+  rcases ha with ⟨b, c, hb, hc, H⟩,
+  refine ⟨b, _, hb, lt_of_le_of_ne (sub_le_self a b) (λ hab, _),
+    ordinal.add_sub_cancel_of_le hb.le⟩,
+  rw [←sub_le, hab] at H,
+  exact H.not_lt hc
+end
+
+theorem principal_add_iff_add_lt_ne_self {a} :
+  principal (+) a ↔ ∀ ⦃b c⦄, b < a → c < a → b + c ≠ a :=
+⟨λ ha b c hb hc, (ha hb hc).ne, λ H, begin
+  by_contra' ha,
+  rcases exists_lt_add_of_not_principal_add ha with ⟨b, c, hb, hc, rfl⟩,
+  exact (H hb hc).irrefl
+end⟩
 
 theorem add_omega {a : ordinal} (h : a < omega) : a + omega = omega :=
 begin

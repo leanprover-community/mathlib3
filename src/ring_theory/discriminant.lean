@@ -234,7 +234,7 @@ begin
   conv_rhs { congr, skip, funext,
     rw [← aeval_alg_hom_apply, aeval_root_derivative_of_splits (minpoly.monic
       (is_separable.is_integral K pb.gen)) (is_alg_closed.splits_codomain _) (hroots σ),
-      ← finset.prod_mk _ (multiset.nodup_erase_of_nodup _ hnodup)] },
+      ← finset.prod_mk _ (hnodup.erase _)] },
   rw [prod_sigma', prod_sigma'],
   refine prod_bij (λ i hi, ⟨e i.2, e i.1 pb.gen⟩) (λ i hi, _) (λ i hi, by simp at hi)
     (λ i j hi hj hij, _) (λ σ hσ, _),
@@ -258,7 +258,7 @@ begin
     { replace h := alg_hom.congr_fun (equiv.injective _ h) pb.gen,
       rw [power_basis.lift_gen] at h,
       rw [← h] at hσ,
-      refine multiset.mem_erase_of_nodup hnodup hσ, },
+      exact hnodup.not_mem_erase hσ },
     all_goals { simp } }
 end
 

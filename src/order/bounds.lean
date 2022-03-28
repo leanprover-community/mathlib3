@@ -933,6 +933,109 @@ hf.dual_left.le_is_glb_image ha hb
 
 end antitone
 
+namespace monotone_on
+
+variables [preorder α] [preorder β] {f : α → β} {s t : set α}
+  (Hf : monotone_on f t) {a : α} (Hst : s ⊆ t)
+include Hst
+
+lemma mem_upper_bounds_image (Ha : a ∈ upper_bounds s) :
+  f a ∈ upper_bounds (f '' s) :=
+ball_image_of_ball (assume x H,  Hf (Ha ‹x ∈ s›))
+
+lemma mem_lower_bounds_image (Ha : a ∈ lower_bounds s) :
+  f a ∈ lower_bounds (f '' s) :=
+ball_image_of_ball (assume x H, Hf (Ha ‹x ∈ s›))
+
+lemma image_upper_bounds_subset_upper_bounds_image (hf : monotone_on f) :
+  f '' upper_bounds s ⊆ upper_bounds (f '' s) :=
+begin
+  rintro _ ⟨a, ha, rfl⟩,
+  exact hf.mem_upper_bounds_image ha,
+end
+
+lemma image_lower_bounds_subset_lower_bounds_image (hf : monotone_on f) :
+  f '' lower_bounds s ⊆ lower_bounds (f '' s) :=
+hf.dual.image_upper_bounds_subset_upper_bounds_image
+
+/-- The image under a monotone function of a set which is bounded above is bounded above. -/
+lemma map_bdd_above (hf : monotone_on f) : bdd_above s → bdd_above (f '' s)
+| ⟨C, hC⟩ := ⟨f C, hf.mem_upper_bounds_image hC⟩
+
+/-- The image under a monotone function of a set which is bounded below is bounded below. -/
+lemma map_bdd_below (hf : monotone_on f) : bdd_below s → bdd_below (f '' s)
+| ⟨C, hC⟩ := ⟨f C, hf.mem_lower_bounds_image hC⟩
+
+/-- A monotone map sends a least element of a set to a least element of its image. -/
+lemma map_is_least (Ha : is_least s a) : is_least (f '' s) (f a) :=
+⟨mem_image_of_mem _ Ha.1, Hf.mem_lower_bounds_image Ha.2⟩
+
+/-- A monotone map sends a greatest element of a set to a greatest element of its image. -/
+lemma map_is_greatest (Ha : is_greatest s a) : is_greatest (f '' s) (f a) :=
+⟨mem_image_of_mem _ Ha.1, Hf.mem_upper_bounds_image Ha.2⟩
+
+lemma is_lub_image_le (Ha : is_lub s a) {b : β} (Hb : is_lub (f '' s) b) :
+  b ≤ f a :=
+Hb.2 (Hf.mem_upper_bounds_image Ha.1)
+
+lemma le_is_glb_image (Ha : is_glb s a) {b : β} (Hb : is_glb (f '' s) b) :
+  f a ≤ b :=
+Hb.2 (Hf.mem_lower_bounds_image Ha.1)
+
+end monotone_on
+
+namespace antitone_on
+
+-- adjust lower/upper
+variables [preorder α] [preorder β] {f : α → β} {s t : set α}
+  (Hf : antitone_on f t) {a : α} (Hst : s ⊆ t)
+include Hst
+
+lemma mem_upper_bounds_image (Ha : a ∈ upper_bounds s) :
+  f a ∈ upper_bounds (f '' s) :=
+ball_image_of_ball (assume x H,  Hf (Ha ‹x ∈ s›))
+
+lemma mem_lower_bounds_image (Ha : a ∈ lower_bounds s) :
+  f a ∈ lower_bounds (f '' s) :=
+ball_image_of_ball (assume x H, Hf (Ha ‹x ∈ s›))
+
+lemma image_upper_bounds_subset_upper_bounds_image (hf : monotone_on f) :
+  f '' upper_bounds s ⊆ upper_bounds (f '' s) :=
+begin
+  rintro _ ⟨a, ha, rfl⟩,
+  exact hf.mem_upper_bounds_image ha,
+end
+
+lemma image_lower_bounds_subset_lower_bounds_image (hf : monotone_on f) :
+  f '' lower_bounds s ⊆ lower_bounds (f '' s) :=
+hf.dual.image_upper_bounds_subset_upper_bounds_image
+
+/-- The image under a monotone function of a set which is bounded above is bounded above. -/
+lemma map_bdd_above (hf : monotone_on f) : bdd_above s → bdd_above (f '' s)
+| ⟨C, hC⟩ := ⟨f C, hf.mem_upper_bounds_image hC⟩
+
+/-- The image under a monotone function of a set which is bounded below is bounded below. -/
+lemma map_bdd_below (hf : monotone_on f) : bdd_below s → bdd_below (f '' s)
+| ⟨C, hC⟩ := ⟨f C, hf.mem_lower_bounds_image hC⟩
+
+/-- A monotone map sends a least element of a set to a least element of its image. -/
+lemma map_is_least (Ha : is_least s a) : is_least (f '' s) (f a) :=
+⟨mem_image_of_mem _ Ha.1, Hf.mem_lower_bounds_image Ha.2⟩
+
+/-- A monotone map sends a greatest element of a set to a greatest element of its image. -/
+lemma map_is_greatest (Ha : is_greatest s a) : is_greatest (f '' s) (f a) :=
+⟨mem_image_of_mem _ Ha.1, Hf.mem_upper_bounds_image Ha.2⟩
+
+lemma is_lub_image_le (Ha : is_lub s a) {b : β} (Hb : is_lub (f '' s) b) :
+  b ≤ f a :=
+Hb.2 (Hf.mem_upper_bounds_image Ha.1)
+
+lemma le_is_glb_image (Ha : is_glb s a) {b : β} (Hb : is_glb (f '' s) b) :
+  f a ≤ b :=
+Hb.2 (Hf.mem_lower_bounds_image Ha.1)
+
+end antitone_on
+
 lemma is_glb.of_image [preorder α] [preorder β] {f : α → β} (hf : ∀ {x y}, f x ≤ f y ↔ x ≤ y)
   {s : set α} {x : α} (hx : is_glb (f '' s) (f x)) :
   is_glb s x :=

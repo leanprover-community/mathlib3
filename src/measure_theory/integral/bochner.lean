@@ -85,9 +85,9 @@ file `set_to_L1`).
 Some tips on how to prove a proposition if the API for the Bochner integral is not enough so that
 you need to unfold the definition of the Bochner integral and go back to simple functions.
 
-One method is to use the theorem `integrable.induction` in the file `simple_func_dense` (or one of
-the related results, like `Lp.induction` for functions in `Lp`), which allows you to prove something
-for an arbitrary measurable + integrable function.
+One method is to use the theorem `integrable.induction` in the file `simple_func_dense_lp` (or one
+of the related results, like `Lp.induction` for functions in `Lp`), which allows you to prove
+something for an arbitrary integrable function.
 
 Another method is using the following steps.
 See `integral_eq_lintegral_max_sub_lintegral_min` for a complicated example, which proves that
@@ -676,7 +676,7 @@ end integration_in_L1
 end L1
 
 /-!
-### The Bochner integral on functions
+## The Bochner integral on functions
 
 Define the Bochner integral on functions generally to be the `L1` Bochner integral, for integrable
 functions, and 0 otherwise; prove its basic properties.
@@ -820,7 +820,7 @@ lemma integrable.tendsto_set_integral_nhds_zero {ι} {f : α → E}
   tendsto (λ i, ∫ x in s i, f x ∂μ) l (𝓝 0) :=
 hf.2.tendsto_set_integral_nhds_zero hs
 
-/-- If `F i → f` in `L1`, then `∫ x, F i x ∂μ → ∫ x, f x∂μ`. -/
+/-- If `F i → f` in `L1`, then `∫ x, F i x ∂μ → ∫ x, f x ∂μ`. -/
 lemma tendsto_integral_of_L1 {ι} (f : α → E) (hfi : integrable f μ)
   {F : ι → α → E} {l : filter ι} (hFi : ∀ᶠ i in l, integrable (F i) μ)
   (hF : tendsto (λ i, ∫⁻ x, ∥F i x - f x∥₊ ∂μ) l (𝓝 0)) :

@@ -65,11 +65,6 @@ also prove order-related properties:
 
 The starting object `T : set α → E →L[ℝ] F` matters only through its restriction on measurable sets
 with finite measure. Its value on other sets is ignored.
-
-The extension step from integrable simple functions to L1 relies on a `second_countable_topology`
-assumption. Without it, we could only extend to `ae_fin_strongly_measurable` functions. (TODO: this
-might be worth doing?)
-
 -/
 
 noncomputable theory

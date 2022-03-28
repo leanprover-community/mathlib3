@@ -29,8 +29,8 @@ section
 
 variables [topological_space β] {l l' : filter α} {f g : α → β} {μ ν : measure α}
 
-/-- A function `f` is measurable at a filter `l` w.r.t. a measure `μ` if it is ae-measurable
-w.r.t. `μ.restrict s` for some `s ∈ l`. -/
+/-- A function `f` is strongly measurable at a filter `l` w.r.t. a measure `μ` if it is
+ae strongly measurable w.r.t. `μ.restrict s` for some `s ∈ l`. -/
 def strongly_measurable_at_filter (f : α → β) (l : filter α) (μ : measure α . volume_tac) :=
 ∃ s ∈ l, ae_strongly_measurable f (μ.restrict s)
 
@@ -75,8 +75,8 @@ by haveI : is_finite_measure (μ.restrict s) := ⟨by rwa [measure.restrict_appl
 
 variables [normed_group E] {f g : α → E} {s t : set α} {μ ν : measure α}
 
-/-- A function is `integrable_on` a set `s` if it is almost everywhere measurable on `s` and if the
-integral of its pointwise norm over `s` is less than infinity. -/
+/-- A function is `integrable_on` a set `s` if it is almost everywhere strongly measurable on `s`
+and if the integral of its pointwise norm over `s` is less than infinity. -/
 def integrable_on (f : α → E) (s : set α) (μ : measure α . volume_tac) : Prop :=
 integrable f (μ.restrict s)
 
@@ -390,7 +390,6 @@ begin
     simp },
   { exact is_separable_of_separable_space _ }
 end
-
 
 lemma continuous_on.integrable_at_nhds_within_of_is_separable
   [topological_space α] [metrizable_space α]

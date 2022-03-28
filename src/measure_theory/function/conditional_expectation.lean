@@ -12,7 +12,7 @@ import measure_theory.decomposition.radon_nikodym
 
 We build the conditional expectation of an integrable function `f` with value in a Banach space
 with respect to a measure `μ` (defined on a measurable space structure `m0`) and a measurable space
-structure `m` with `hm : m ≤ m0` (a sub-sigma-algebra). This is an `m`-measurable
+structure `m` with `hm : m ≤ m0` (a sub-sigma-algebra). This is an `m`-strongly measurable
 function `μ[f|hm]` which is integrable and verifies `∫ x in s, μ[f|hm] x ∂μ = ∫ x in s, f x ∂μ`
 for all `m`-measurable sets `s`. It is unique as an element of `L¹`.
 

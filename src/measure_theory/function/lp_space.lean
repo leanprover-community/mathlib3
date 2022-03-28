@@ -2516,7 +2516,7 @@ open bounded_continuous_function
 
 section
 
-variables [second_countable_topology E] [topological_space α] [borel_space α]
+variables [topological_space α] [borel_space α] [second_countable_topology_either α E]
 variables (E p μ)
 
 /-- An additive subgroup of `Lp E p μ`, consisting of the equivalence classes which contain a

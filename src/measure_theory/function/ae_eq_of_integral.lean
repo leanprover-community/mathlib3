@@ -241,7 +241,7 @@ section real_finite_measure
 variables [is_finite_measure μ] {f : α → ℝ}
 
 /-- Don't use this lemma. Use `ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure`. -/
-lemma ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure_of_measurable
+lemma ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure_of_strongly_measurable
   (hfm : strongly_measurable f)
   (hf : integrable f μ) (hf_zero : ∀ s, measurable_set s → 0 ≤ ∫ x in s, f x ∂μ) :
   0 ≤ᵐ[μ] f :=
@@ -278,7 +278,7 @@ begin
   { intros s hs,
     rw set_integral_congr_ae hs (hf_ae.mono (λ x hx hxs, hx.symm)),
     exact hf_zero s hs, },
-  exact (ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure_of_measurable hf'_meas
+  exact (ae_nonneg_of_forall_set_integral_nonneg_of_finite_measure_of_strongly_measurable hf'_meas
     hf'_integrable hf'_zero).trans hf_ae.symm.le,
 end
 

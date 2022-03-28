@@ -718,7 +718,7 @@ instance [has_repr α] : has_repr (cycle α) :=
      chain R [a, b, c] ↔ R a b ∧ R b c ∧ R c a -/
 def chain (r : α → α → Prop) (c : cycle α) : Prop :=
 quotient.lift_on' c (λ l, match l with
-  | [] := (tt : Prop)
+  | [] := true
   | (a :: m) := chain r a (m ++ [a]) end) $
 λ a b hab, begin
   cases a with a l;

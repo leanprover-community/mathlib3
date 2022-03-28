@@ -808,7 +808,7 @@ instance : comm_ring (localization M) :=
 
 lemma sub_mk (a c) (b d) : (mk a b : localization M) - mk c d = mk (d * a - b * c) (b * d) :=
 calc  mk a b - mk c d
-    = mk a b + (- mk c d) : rfl
+    = mk a b + (- mk c d) : sub_eq_add_neg _ _
 ... = mk a b + (mk (-c) d) : by rw neg_mk
 ... = mk (b * (-c) + d * a) (b * d) : add_mk _ _ _ _
 ... = mk (d * a - b * c) (b * d) : by congr'; ring

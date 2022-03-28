@@ -465,29 +465,30 @@ end
 lemma coe_T_zpow (n : ℤ) : ↑ₘ(T ^ n) = ![![1, n], ![0,1]] :=
 begin
   induction n using int.induction_on with n h n h,
-  { rw [zpow_zero, coe_one], sorry },
-  { rw [zpow_add, zpow_one, coe_mul, h, coe_T], ext i j, sorry },
-  { rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv], sorry },
+  { rw [zpow_zero, coe_one],  ext i j,
+    fin_cases i; fin_cases j; simp, },
+  { rw [zpow_add, zpow_one, coe_mul, h, coe_T], ext i j,
+    fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ]; ring, },
+  { rw [zpow_sub, zpow_one, coe_mul, h, coe_T_inv], ext i j,
+    fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ]; ring, },
 end
 
 /- If c=1, then `g=[[1,a],[0,1]] * S * [[1,d],[0,1]]`. -/
 lemma g_eq_of_c_eq_one (g : SL(2,ℤ)) (hc : ↑ₘg 1 0 = 1) :
-  g = coe_T_zpow (g 0 0) * S * coe_T_zpow (g 1 1) :=
+  g = T^(g 0 0) * S * T^(g 1 1) :=
 begin
-  rw [coe_T_zpow, coe_T_zpow],
-  ext i,
-  fin_cases i; fin_cases j,
-  { simp [S, matrix.mul_apply, fin.sum_univ_succ] },
+  ext i j, fin_cases i; fin_cases j,
+  { simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ] },
   { have g_det : (1:ℤ) = ↑ₘg 0 0 * ↑ₘg 1 1 - 1 * ↑ₘg 0 1,
     { convert det_fin_two ↑ₘg using 1,
       { rw g.det_coe },
       rw hc,
       ring },
-    simp [S, matrix.mul_apply, fin.sum_univ_succ],
+    simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ],
     rw g_det,
     simp, },
-  { simpa [S, matrix.mul_apply, fin.sum_univ_succ] using hc },
-  { simp [S, matrix.mul_apply, fin.sum_univ_succ], },
+  { simpa [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ] using hc },
+  { simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ], },
 end
 
 lemma cast_one_le_of_pos {n : ℤ} (hn : 0 < n) : (1 : ℝ) ≤ n :=
@@ -564,11 +565,12 @@ begin
 end
 
 /-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`. -/
-lemma move_by_T {z : ℍ} (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((coe_T_zpow n) • z) : ℍ) :=
+lemma move_by_T {z : ℍ} (hz : z ∈ 𝒟ᵒ) (n : ℤ) : 1 < norm_sq (((T^n) • z) : ℍ) :=
 begin
-  rw coe_T_zpow,
-  simp,
-  rw complex.norm_sq_apply,
+  simp only [coe_T_zpow, upper_half_plane.num, coe_smul, coe_fn_eq_coe, coe_matrix_coe,
+    int.coe_cast_ring_hom, map_apply, cons_val_zero, int.cast_one, of_real_one, one_mul,
+    cons_val_one, head_cons, of_real_int_cast, denom_apply, int.cast_zero, zero_mul, zero_add,
+    div_one, complex.norm_sq_apply],
   have hz1 : 1 < z.re * z.re + z.im * z.im,
   { have := hz.1,
     rw norm_sq at this,
@@ -584,7 +586,7 @@ end
 
 /-- If `c=1`, then `[[1,-a],[0,1]]*g = S * [[1,d],[0,1]]`. -/
 lemma coe_T_zpow_mul_g_eq_S_mul_coe_T_zpow_of_c_eq_one (g : SL(2,ℤ))
-  (hc : g 1 0 = 1) : coe_T_zpow (- g 0 0) * g = S * coe_T_zpow (g 1 1) :=
+  (hc : g 1 0 = 1) : T^(- g 0 0) * g = S * T^(g 1 1) :=
 begin
   rw g_eq_of_c_eq_one g hc,
   ext i,
@@ -600,8 +602,8 @@ end
 lemma c_ne_one {z : ℍ} {g : SL(2,ℤ)} (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) : g 1 0 ≠ 1 :=
 begin
   by_contra hc,
-  let z₁ := coe_T_zpow (g 1 1) • z,
-  let w₁ := coe_T_zpow (- g 0 0) • (g • z),
+  let z₁ := T^(g 1 1) • z,
+  let w₁ := T^(- g 0 0) • (g • z),
   have w₁_norm : 1 < norm_sq w₁ := move_by_T hg (- g 0 0),
   have z₁_norm : 1 < norm_sq z₁ := move_by_T hz (g 1 1),
   have w₁_S_z₁ : w₁ = S • z₁,

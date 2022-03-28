@@ -307,22 +307,6 @@ class _root_.add_action.quotient_action {α : Type*} (β : Type*) [add_group α]
 
 attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 
-@[to_additive] instance quotient [quotient_action β H] : mul_action β (α ⧸ H) :=
-{ smul := λ b, quotient.map' ((•) b) (λ a a' h, quotient_action.inv_mul_mem b h),
-  one_smul := λ q, quotient.induction_on' q (λ a, congr_arg quotient.mk' (one_smul β a)),
-  mul_smul := λ b b' q, quotient.induction_on' q (λ a, congr_arg quotient.mk' (mul_smul b b' a)) }
-
-@[to_additive] instance left_quotient_action : quotient_action α H :=
-⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
-
-variables {β}
-
-@[simp, to_additive] lemma quotient.smul_mk [quotient_action β H] (a : β) (x : α) :
-  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (a • x) := rfl
-
-@[simp, to_additive] lemma quotient.smul_coe [quotient_action β H] (a : β) (x : α) :
-  (a • x : α ⧸ H) = ↑(a • x) := rfl
-
 end quotient_action
 
 open quotient_group

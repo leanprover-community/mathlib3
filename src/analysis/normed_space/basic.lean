@@ -66,6 +66,11 @@ end
 @[simp] lemma abs_norm_eq_norm (z : β) : |∥z∥| = ∥z∥ :=
   (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
 
+lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ β] (x : β) :
+  ∥x∥⁻¹ • x ∈ closed_ball (0 : β) 1 :=
+by simp only [mem_closed_ball_zero_iff, norm_smul, norm_inv, norm_norm, ← div_eq_inv_mul,
+  div_self_le_one]
+
 lemma dist_smul [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ∥s∥ * dist x y :=
 by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
 
@@ -91,7 +96,7 @@ have tendsto (λ y, ∥c • (y - x)∥) (𝓝 x) (𝓝 0),
   from ((continuous_id.sub continuous_const).const_smul _).norm.tendsto' _ _ (by simp),
 this.eventually (gt_mem_nhds h)
 
-theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
+theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
   closure (ball x r) = closed_ball x r :=
 begin
   refine set.subset.antisymm closure_ball_subset_closed_ball (λ y hy, _),
@@ -104,10 +109,11 @@ begin
     rw [mem_ball, dist_eq_norm, add_sub_cancel, norm_smul, real.norm_eq_abs,
       abs_of_nonneg hc0, mul_comm, ← mul_one r],
     rw [mem_closed_ball, dist_eq_norm] at hy,
+    replace hr : 0 < r, from ((norm_nonneg _).trans hy).lt_of_ne hr.symm,
     apply mul_lt_mul'; assumption }
 end
 
-theorem frontier_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
+theorem frontier_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
   frontier (ball x r) = sphere x r :=
 begin
   rw [frontier, closure_ball x hr, is_open_ball.interior_eq],

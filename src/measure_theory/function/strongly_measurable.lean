@@ -17,8 +17,8 @@ It is said to be finitely strongly measurable with respect to a measure `μ` if 
 of those simple functions have finite measure. We also provide almost everywhere versions of
 these notions.
 
-Almost everywhere measurable functions form the largest class of functions that can be integrated
-using the Bochner integral.
+Almost everywhere strongly measurable functions form the largest class of functions that can be
+integrated using the Bochner integral.
 
 If the target space has a second countable topology, strongly measurable and measurable are
 equivalent.
@@ -473,7 +473,7 @@ begin
   exact mem_range_self _
 end
 
-lemma separable_space_range_union {m : measurable_space α} [topological_space β]
+lemma separable_space_range_union_singleton {m : measurable_space α} [topological_space β]
   [metrizable_space β] (hf : strongly_measurable f) {b : β} :
   separable_space (range f ∪ {b} : set β) :=
 begin
@@ -780,8 +780,8 @@ end
 
 lemma measurable_set_le {m : measurable_space α} [topological_space β]
   [linear_order β] [order_closed_topology β] [metrizable_space β]
-  {f g : α → β} (hf : strongly_measurable f)
-  (hg : strongly_measurable g) : measurable_set {a | f a ≤ g a} :=
+  {f g : α → β} (hf : strongly_measurable f) (hg : strongly_measurable g) :
+  measurable_set {a | f a ≤ g a} :=
 begin
   letI := metrizable_space_metric β,
   let β' : Type* := (range f ∪ range g : set β),
@@ -957,7 +957,7 @@ lemma ae_fin_strongly_measurable_zero {α β} {m : measurable_space α} (μ : me
 ⟨0, fin_strongly_measurable_zero, eventually_eq.rfl⟩
 
 
-/-! ### Almost everywhere strongly measurable functions -/
+/-! ## Almost everywhere strongly measurable functions -/
 
 lemma ae_strongly_measurable_const {α β} {m : measurable_space α} {μ : measure α}
   [topological_space β] {b : β} :
@@ -983,7 +983,8 @@ strongly_measurable_one.ae_strongly_measurable
   (f : α → β) :
   ae_strongly_measurable f (0 : measure α) :=
 begin
-  nontriviality α, inhabit α,
+  nontriviality α,
+  inhabit α,
   exact ⟨λ x, f default, strongly_measurable_const, rfl⟩
 end
 
@@ -1518,7 +1519,8 @@ lemma _root_.strongly_measurable.apply_continuous_linear_map
 (continuous_linear_map.apply 𝕜 E v).continuous.comp_strongly_measurable hφ
 
 lemma apply_continuous_linear_map {φ : α → F →L[𝕜] E}
-  (hφ : ae_strongly_measurable φ μ) (v : F) : ae_strongly_measurable (λ a, φ a v) μ :=
+  (hφ : ae_strongly_measurable φ μ) (v : F) :
+  ae_strongly_measurable (λ a, φ a v) μ :=
 (continuous_linear_map.apply 𝕜 E v).continuous.comp_ae_strongly_measurable hφ
 
 end continuous_linear_map_nondiscrete_normed_field
@@ -1535,19 +1537,16 @@ begin
     apply @ae_of_ae_restrict_of_ae_restrict_compl _ _ _ {x | f x ≠ 0},
     { rw [eventually_eq, ae_with_density_iff hf.coe_nnreal_ennreal] at hg',
       rw ae_restrict_iff' A,
-      filter_upwards [hg'],
-      assume a ha h'a,
+      filter_upwards [hg'] with a ha h'a,
       have : (f a : ℝ≥0∞) ≠ 0, by simpa only [ne.def, ennreal.coe_eq_zero] using h'a,
       rw ha this },
-    { filter_upwards [ae_restrict_mem A.compl],
-      assume x hx,
+    { filter_upwards [ae_restrict_mem A.compl] with x hx,
       simp only [not_not, mem_set_of_eq, mem_compl_eq] at hx,
       simp [hx] } },
   { rintros ⟨g', g'meas, hg'⟩,
     refine ⟨λ x, (f x : ℝ)⁻¹ • g' x, hf.coe_nnreal_real.inv.strongly_measurable.smul g'meas, _⟩,
     rw [eventually_eq, ae_with_density_iff hf.coe_nnreal_ennreal],
-    filter_upwards [hg'],
-    assume x hx h'x,
+    filter_upwards [hg'] with x hx h'x,
     rw [← hx, smul_smul, _root_.inv_mul_cancel, one_smul],
     simp only [ne.def, ennreal.coe_eq_zero] at h'x,
     simpa only [nnreal.coe_eq_zero, ne.def] using h'x }

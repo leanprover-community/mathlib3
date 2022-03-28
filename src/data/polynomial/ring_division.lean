@@ -534,24 +534,6 @@ by rw [nth_roots_finset, mem_to_finset, mem_nth_roots h]
 
 end nth_roots
 
-lemma nat_degree_comp : nat_degree (p.comp q) = nat_degree p * nat_degree q :=
-le_antisymm nat_degree_comp_le
-  (if hp0 : p = 0 then by rw [hp0, zero_comp, nat_degree_zero, zero_mul]
-  else if hqd0 : nat_degree q = 0
-  then have degree q ≤ 0, by rw [← with_bot.coe_zero, ← hqd0]; exact degree_le_nat_degree,
-    by rw [eq_C_of_degree_le_zero this]; simp
-  else le_nat_degree_of_ne_zero $
-    have hq0 : q ≠ 0, from λ hq0, hqd0 $ by rw [hq0, nat_degree_zero],
-    calc coeff (p.comp q) (nat_degree p * nat_degree q)
-        = leading_coeff p * leading_coeff q ^ nat_degree p :
-      coeff_comp_degree_mul_degree hqd0
-    ... ≠ 0 : mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
-      (pow_ne_zero _ (mt leading_coeff_eq_zero.1 hq0)))
-
-lemma leading_coeff_comp (hq : nat_degree q ≠ 0) : leading_coeff (p.comp q) =
-  leading_coeff p * leading_coeff q ^ nat_degree p :=
-by rw [← coeff_comp_degree_mul_degree hq, ← nat_degree_comp]; refl
-
 lemma monic.comp (hp : p.monic) (hq : q.monic) (h : q.nat_degree ≠ 0) : (p.comp q).monic :=
 by rw [monic.def, leading_coeff_comp h, monic.def.1 hp, monic.def.1 hq, one_pow, one_mul]
 

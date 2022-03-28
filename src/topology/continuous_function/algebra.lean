@@ -7,7 +7,7 @@ import topology.algebra.module.basic
 import topology.continuous_function.ordered
 import topology.algebra.uniform_group
 import topology.uniform_space.compact_convergence
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
 import tactic.field_simp
 
 /-!
@@ -64,23 +64,23 @@ lemma coe_one [has_one β]  : ⇑(1 : C(α, β)) = 1 := rfl
 instance has_nsmul [add_monoid β] [has_continuous_add β] : has_scalar ℕ C(α, β) :=
 ⟨λ n f, ⟨n • f, f.continuous.nsmul n⟩⟩
 
-@[to_additive has_nsmul]
+@[to_additive]
 instance has_pow [monoid β] [has_continuous_mul β] : has_pow C(α, β) ℕ :=
 ⟨λ f n, ⟨f ^ n, f.continuous.pow n⟩⟩
 
-@[norm_cast, to_additive coe_nsmul]
+@[norm_cast, to_additive]
 lemma coe_pow [monoid β] [has_continuous_mul β] (f : C(α, β)) (n : ℕ) :
   ⇑(f ^ n) = f ^ n := rfl
-  
--- don't make `coe_nsmul` simp as the linter complains it's redundant WRT `coe_smul` 
+
+-- don't make `coe_nsmul` simp as the linter complains it's redundant WRT `coe_smul`
 attribute [simp] coe_pow
 
-@[to_additive nsmul_comp] lemma pow_comp [monoid γ] [has_continuous_mul γ]
+@[to_additive] lemma pow_comp [monoid γ] [has_continuous_mul γ]
   (f : C(β, γ)) (n : ℕ) (g : C(α, β)) :
   (f^n).comp g = (f.comp g)^n :=
 rfl
 
--- don't make `nsmul_comp` simp as the linter complains it's redundant WRT `smul_comp` 
+-- don't make `nsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
 attribute [simp] pow_comp
 
 @[to_additive]
@@ -122,7 +122,7 @@ lemma coe_zpow [group β] [topological_group β] (f : C(α, β)) (z : ℤ) :
   ⇑(f ^ z) = f ^ z :=
 rfl
 
--- don't make `coe_zsmul` simp as the linter complains it's redundant WRT `coe_smul` 
+-- don't make `coe_zsmul` simp as the linter complains it's redundant WRT `coe_smul`
 attribute [simp] coe_zpow
 
 @[to_additive]
@@ -130,7 +130,7 @@ lemma zpow_comp [group γ] [topological_group γ] (f : C(β, γ)) (z : ℤ) (g :
   (f^z).comp g = (f.comp g)^z :=
 rfl
 
--- don't make `zsmul_comp` simp as the linter complains it's redundant WRT `smul_comp` 
+-- don't make `zsmul_comp` simp as the linter complains it's redundant WRT `smul_comp`
 attribute [simp] zpow_comp
 
 end continuous_map
@@ -159,7 +159,7 @@ def continuous_submonoid (α : Type*) (β : Type*) [topological_space α] [topol
 @[to_additive "The `add_subgroup` of continuous maps `α → β`. "]
 def continuous_subgroup (α : Type*) (β : Type*) [topological_space α] [topological_space β]
   [group β] [topological_group β] : subgroup (α → β) :=
-{ inv_mem' := λ f fc, continuous.comp (@topological_group.continuous_inv β _ _ _) fc,
+{ inv_mem' := λ f fc, continuous.inv fc,
   ..continuous_submonoid α β, }.
 
 end subtype
@@ -188,20 +188,33 @@ coe_injective.mul_zero_class _ coe_zero coe_mul
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid β] [has_continuous_mul β] : monoid C(α, β) :=
-coe_injective.monoid_pow _ coe_one coe_mul coe_pow
+coe_injective.monoid _ coe_one coe_mul coe_pow
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [monoid_with_zero β] [has_continuous_mul β] : monoid_with_zero C(α, β) :=
-{ ..continuous_map.monoid, ..continuous_map.mul_zero_class }
+coe_injective.monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_monoid β] [has_continuous_mul β] : comm_monoid C(α, β) :=
-{ ..continuous_map.comm_semigroup, ..continuous_map.monoid }
+coe_injective.comm_monoid _ coe_one coe_mul coe_pow
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [comm_monoid_with_zero β] [has_continuous_mul β] : comm_monoid_with_zero C(α, β) :=
-{ ..continuous_map.comm_monoid, ..continuous_map.monoid_with_zero }
+coe_injective.comm_monoid_with_zero _ coe_zero coe_one coe_mul coe_pow
+
+@[to_additive]
+instance {α : Type*} {β : Type*} [topological_space α]
+  [locally_compact_space α] [topological_space β]
+  [has_mul β] [has_continuous_mul β] : has_continuous_mul C(α, β) :=
+⟨begin
+  refine continuous_of_continuous_uncurry _ _,
+  have h1 : continuous (λ x : (C(α, β) × C(α, β)) × α, x.fst.fst x.snd) :=
+    continuous_eval'.comp (continuous_fst.prod_map continuous_id),
+  have h2 : continuous (λ x : (C(α, β) × C(α, β)) × α, x.fst.snd x.snd) :=
+    continuous_eval'.comp (continuous_snd.prod_map continuous_id),
+  exact h1.mul h2,
+end⟩
 
 /-- Coercion to a function as an `monoid_hom`. Similar to `monoid_hom.coe_fn`. -/
 @[to_additive "Coercion to a function as an `add_monoid_hom`. Similar to `add_monoid_hom.coe_fn`.",
@@ -247,13 +260,12 @@ by simp
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   [group β] [topological_group β] : group C(α, β) :=
-coe_injective.group_pow _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
+coe_injective.group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
 @[to_additive]
 instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_group β] [topological_group β] : comm_group C(α, β) :=
-{ ..continuous_map.group,
-  ..continuous_map.comm_monoid }
+coe_injective.comm_group _ coe_one coe_mul coe_inv coe_div coe_pow coe_zpow
 
 @[to_additive] instance {α : Type*} {β : Type*} [topological_space α]
   [topological_space β] [comm_group β] [topological_group β] : topological_group C(α, β) :=
@@ -384,6 +396,21 @@ variables {α β : Type*} [topological_space α] [topological_space β]
 @[to_additive continuous_map.has_vadd]
 instance [has_scalar R M] [has_continuous_const_smul R M] : has_scalar R C(α, M) :=
 ⟨λ r f, ⟨r • f, f.continuous.const_smul r⟩⟩
+
+@[to_additive]
+instance [locally_compact_space α] [has_scalar R M] [has_continuous_const_smul R M] :
+  has_continuous_const_smul R C(α, M) :=
+⟨λ γ, continuous_of_continuous_uncurry _ (continuous_eval'.const_smul γ)⟩
+
+@[to_additive]
+instance [locally_compact_space α] [topological_space R] [has_scalar R M]
+  [has_continuous_smul R M] : has_continuous_smul R C(α, M) :=
+⟨begin
+  refine continuous_of_continuous_uncurry _ _,
+  have h : continuous (λ x : (R × C(α, M)) × α, x.fst.snd x.snd) :=
+    continuous_eval'.comp (continuous_snd.prod_map continuous_id),
+  exact (continuous_fst.comp continuous_fst).smul h,
+end⟩
 
 @[simp, to_additive, norm_cast]
 lemma coe_smul [has_scalar R M] [has_continuous_const_smul R M]

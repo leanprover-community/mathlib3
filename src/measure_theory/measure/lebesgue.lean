@@ -356,7 +356,7 @@ begin
       ennreal.of_real_one, one_smul] },
   { simp only [matrix.transvection_struct.det, ennreal.of_real_one, map_transvection_volume_pi,
       one_smul, _root_.inv_one, abs_one] },
-  { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, linear_map.map_smul,
+  { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, measure.map_smul,
       IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv₀],
     { apply continuous.measurable,
       apply linear_map.continuous_on_pi },
@@ -468,7 +468,6 @@ begin
       (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm },
 end
 
-
 theorem volume_region_between_eq_integral' [sigma_finite μ]
   (f_int : integrable_on f s μ) (g_int : integrable_on g s μ)
   (hs : measurable_set s) (hfg : f ≤ᵐ[μ.restrict s] g ) :
@@ -493,28 +492,3 @@ volume_region_between_eq_integral' f_int g_int hs
   ((ae_restrict_iff' hs).mpr (eventually_of_forall hfg))
 
 end region_between
-
-/-
-section vitali
-
-def vitali_aux_h (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) :
-  ∃ y ∈ Icc (0:ℝ) 1, ∃ q:ℚ, ↑q = x - y :=
-⟨x, h, 0, by simp⟩
-
-def vitali_aux (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) : ℝ :=
-classical.some (vitali_aux_h x h)
-
-theorem vitali_aux_mem (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) : vitali_aux x h ∈ Icc (0:ℝ) 1 :=
-Exists.fst (classical.some_spec (vitali_aux_h x h):_)
-
-theorem vitali_aux_rel (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) :
- ∃ q:ℚ, ↑q = x - vitali_aux x h :=
-Exists.snd (classical.some_spec (vitali_aux_h x h):_)
-
-def vitali : set ℝ := {x | ∃ h, x = vitali_aux x h}
-
-theorem vitali_nonmeasurable : ¬ null_measurable_set measure_space.μ vitali :=
-sorry
-
-end vitali
--/

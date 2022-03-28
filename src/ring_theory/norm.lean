@@ -39,7 +39,7 @@ See also `algebra.trace`, which is defined similarly as the trace of
 
 universes u v w
 
-variables {R S T : Type*} [comm_ring R] [is_domain R] [comm_ring S]
+variables {R S T : Type*} [comm_ring R] [comm_ring S]
 variables [algebra R S]
 variables {K L F : Type*} [field K] [field L] [field F]
 variables [algebra K L] [algebra K F]
@@ -118,7 +118,7 @@ lemma power_basis.norm_gen_eq_prod_roots [algebra K S] (pb : power_basis K S)
 begin
   rw [power_basis.norm_gen_eq_coeff_zero_minpoly, ← pb.nat_degree_minpoly, ring_hom.map_mul,
     ← coeff_map, prod_roots_eq_coeff_zero_of_monic_of_split
-      (monic_map _ (minpoly.monic (power_basis.is_integral_gen _)))
+      ((minpoly.monic (power_basis.is_integral_gen _)).map _)
       ((splits_id_iff_splits _).2 hf), nat_degree_map, map_pow, ← mul_assoc, ← mul_pow],
   simp
 end
@@ -127,7 +127,7 @@ end eq_prod_roots
 
 section eq_zero_iff
 
-lemma norm_eq_zero_iff_of_basis [is_domain S] (b : basis ι R S) {x : S} :
+lemma norm_eq_zero_iff_of_basis [is_domain R] [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x = 0 ↔ x = 0 :=
 begin
   have hι : nonempty ι := b.index_nonempty,
@@ -147,7 +147,7 @@ begin
     rw [alg_hom.map_zero, matrix.det_zero hι] },
 end
 
-lemma norm_ne_zero_iff_of_basis [is_domain S] (b : basis ι R S) {x : S} :
+lemma norm_ne_zero_iff_of_basis [is_domain R] [is_domain S] (b : basis ι R S) {x : S} :
   algebra.norm R x ≠ 0 ↔ x ≠ 0 :=
 not_iff_not.mpr (algebra.norm_eq_zero_iff_of_basis b)
 

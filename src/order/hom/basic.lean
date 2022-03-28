@@ -3,6 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
+import logic.equiv.option
 import order.rel_iso
 import tactic.monotonicity.basic
 
@@ -92,7 +93,7 @@ abbreviation order_iso (α β : Type*) [has_le α] [has_le β] := @rel_iso α β
 infix ` ≃o `:25 := order_iso
 
 /-- `order_hom_class F α b` asserts that `F` is a type of `≤`-preserving morphisms. -/
-abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [preorder α] [preorder β] :=
+abbreviation order_hom_class (F : Type*) (α β : out_param Type*) [has_le α] [has_le β] :=
 rel_hom_class F ((≤) : α → α → Prop) ((≤) : β → β → Prop)
 
 /-- `order_iso_class F α β` states that `F` is a type of order isomorphisms.
@@ -110,7 +111,7 @@ instance [has_le α] [has_le β] [order_iso_class F α β] : has_coe_t F (α ≃
 ⟨λ f, ⟨f, λ _ _, map_le_map_iff f⟩⟩
 
 @[priority 100] -- See note [lower instance priority]
-instance order_iso_class.to_order_hom_class [preorder α] [preorder β] [order_iso_class F α β] :
+instance order_iso_class.to_order_hom_class [has_le α] [has_le β] [order_iso_class F α β] :
   order_hom_class F α β :=
 { map_rel := λ f a b, (map_le_map_iff f).2, ..equiv_like.to_embedding_like }
 
@@ -123,6 +124,32 @@ protected lemma mono (f : F) : monotone (f : α → β) := λ _ _, map_rel f
 instance : has_coe_t F (α →o β) := ⟨λ f, { to_fun := f, monotone' := order_hom_class.mono _ }⟩
 
 end order_hom_class
+
+section order_iso_class
+section has_le
+variables [has_le α] [has_le β] [order_iso_class F α β]
+
+@[simp] lemma map_inv_le_iff (f : F) {a : α} {b : β} : equiv_like.inv f b ≤ a ↔ b ≤ f a :=
+by { convert (map_le_map_iff _).symm, exact (equiv_like.right_inv _ _).symm }
+
+@[simp] lemma le_map_inv_iff (f : F) {a : α} {b : β} : a ≤ equiv_like.inv f b ↔ f a ≤ b :=
+by { convert (map_le_map_iff _).symm, exact (equiv_like.right_inv _ _).symm }
+
+end has_le
+
+variables [preorder α] [preorder β] [order_iso_class F α β]
+include β
+
+lemma map_lt_map_iff (f : F) {a b : α} : f a < f b ↔ a < b :=
+lt_iff_lt_of_le_iff_le' (map_le_map_iff f) (map_le_map_iff f)
+
+@[simp] lemma map_inv_lt_iff (f : F) {a : α} {b : β} : equiv_like.inv f b < a ↔ b < f a :=
+by { convert (map_lt_map_iff _).symm, exact (equiv_like.right_inv _ _).symm }
+
+@[simp] lemma lt_map_inv_iff (f : F) {a : α} {b : β} : a < equiv_like.inv f b ↔ f a < b :=
+by { convert (map_lt_map_iff _).symm, exact (equiv_like.right_inv _ _).symm }
+
+end order_iso_class
 
 namespace order_hom
 variables [preorder α] [preorder β] [preorder γ] [preorder δ]
@@ -326,6 +353,14 @@ subsingleton.elim _ _
   left_inv := λ f, ext _ _ rfl,
   right_inv := λ f, ext _ _ rfl }
 
+@[simp] lemma dual_id : (order_hom.id : α →o α).dual = order_hom.id := rfl
+@[simp] lemma dual_comp (g : β →o γ) (f : α →o β) : (g.comp f).dual = g.dual.comp f.dual := rfl
+
+@[simp] lemma symm_dual_id : order_hom.dual.symm order_hom.id = (order_hom.id : α →o α) := rfl
+@[simp] lemma symm_dual_comp (g : order_dual β →o order_dual γ)
+  (f : order_dual α →o order_dual β) :
+  order_hom.dual.symm (g.comp f) = (order_hom.dual.symm g).comp (order_hom.dual.symm f) := rfl
+
 /-- `order_hom.dual` as an order isomorphism. -/
 def dual_iso (α β : Type*) [preorder α] [preorder β] :
   (α →o β) ≃o order_dual (order_dual α →o order_dual β) :=
@@ -449,7 +484,7 @@ instance : order_iso_class (α ≃o β) α β :=
 
 @[simp] lemma to_fun_eq_coe {f : α ≃o β} : f.to_fun = f := rfl
 
-@[ext] -- See library note [partially-applied ext lemmas]
+@[ext] -- See note [partially-applied ext lemmas]
 lemma ext {f g : α ≃o β} (h : (f : α → β) = g) : f = g := fun_like.coe_injective h
 
 /-- Reinterpret an order isomorphism as an order embedding. -/
@@ -532,6 +567,14 @@ lemma trans_apply (e : α ≃o β) (e' : β ≃o γ) (x : α) : e.trans e' x = e
 @[simp] lemma refl_trans (e : α ≃o β) : (refl α).trans e = e := by { ext x, refl }
 
 @[simp] lemma trans_refl (e : α ≃o β) : e.trans (refl β) = e := by { ext x, refl }
+
+/-- `prod.swap` as an `order_iso`. -/
+def prod_comm : (α × β) ≃o (β × α) :=
+{ to_equiv := equiv.prod_comm α β,
+  map_rel_iff' := λ a b, prod.swap_le_swap }
+
+@[simp] lemma coe_prod_comm : ⇑(prod_comm : (α × β) ≃o (β × α)) = prod.swap := rfl
+@[simp] lemma prod_comm_symm : (prod_comm : (α × β) ≃o (β × α)).symm = prod_comm := rfl
 
 variables (α)
 
@@ -710,6 +753,72 @@ lemma order_iso.map_sup [semilattice_sup α] [semilattice_sup β]
   (f : α ≃o β) (x y : α) :
   f (x ⊔ y) = f x ⊔ f y :=
 f.dual.map_inf x y
+
+namespace with_bot
+
+/-- Taking the dual then adding `⊥` is the same as adding `⊤` then taking the dual. -/
+protected def to_dual_top [has_le α] : with_bot (order_dual α) ≃o order_dual (with_top α) :=
+order_iso.refl _
+
+@[simp] lemma to_dual_top_coe [has_le α] (a : α) :
+  with_bot.to_dual_top ↑(to_dual a) = to_dual (a : with_top α) := rfl
+@[simp] lemma to_dual_top_symm_coe [has_le α] (a : α) :
+  with_bot.to_dual_top.symm (to_dual (a : with_top α)) = ↑(to_dual a) := rfl
+
+end with_bot
+
+namespace with_top
+
+/-- Taking the dual then adding `⊤` is the same as adding `⊥` then taking the dual. -/
+protected def to_dual_bot [has_le α] : with_top (order_dual α) ≃o order_dual (with_bot α) :=
+order_iso.refl _
+
+@[simp] lemma to_dual_bot_coe [has_le α] (a : α) :
+  with_top.to_dual_bot ↑(to_dual a) = to_dual (a : with_bot α) := rfl
+@[simp] lemma to_dual_bot_symm_coe [has_le α] (a : α) :
+  with_top.to_dual_bot.symm (to_dual (a : with_bot α)) = ↑(to_dual a) := rfl
+
+end with_top
+
+namespace order_iso
+variables [partial_order α] [partial_order β] [partial_order γ]
+
+/-- A version of `equiv.option_congr` for `with_top`. -/
+@[simps apply]
+def with_top_congr (e : α ≃o β) : with_top α ≃o with_top β :=
+{ to_equiv := e.to_equiv.option_congr,
+  map_rel_iff' := λ x y,
+    by induction x using with_top.rec_top_coe; induction y using with_top.rec_top_coe; simp }
+
+@[simp] lemma with_top_congr_refl : (order_iso.refl α).with_top_congr = order_iso.refl _ :=
+rel_iso.to_equiv_injective equiv.option_congr_refl
+
+@[simp] lemma with_top_congr_symm (e : α ≃o β) : e.with_top_congr.symm = e.symm.with_top_congr :=
+rel_iso.to_equiv_injective e.to_equiv.option_congr_symm
+
+@[simp] lemma with_top_congr_trans (e₁ : α ≃o β) (e₂ : β ≃o γ) :
+  e₁.with_top_congr.trans e₂.with_top_congr = (e₁.trans e₂).with_top_congr :=
+rel_iso.to_equiv_injective $ e₁.to_equiv.option_congr_trans e₂.to_equiv
+
+/-- A version of `equiv.option_congr` for `with_bot`. -/
+@[simps apply]
+def with_bot_congr (e : α ≃o β) :
+  with_bot α ≃o with_bot β :=
+{ to_equiv := e.to_equiv.option_congr,
+  map_rel_iff' := λ x y,
+    by induction x using with_bot.rec_bot_coe; induction y using with_bot.rec_bot_coe; simp }
+
+@[simp] lemma with_bot_congr_refl : (order_iso.refl α).with_bot_congr = order_iso.refl _ :=
+rel_iso.to_equiv_injective equiv.option_congr_refl
+
+@[simp] lemma with_bot_congr_symm (e : α ≃o β) : e.with_bot_congr.symm = e.symm.with_bot_congr :=
+rel_iso.to_equiv_injective e.to_equiv.option_congr_symm
+
+@[simp] lemma with_bot_congr_trans (e₁ : α ≃o β) (e₂ : β ≃o γ) :
+  e₁.with_bot_congr.trans e₂.with_bot_congr = (e₁.trans e₂).with_bot_congr :=
+rel_iso.to_equiv_injective $ e₁.to_equiv.option_congr_trans e₂.to_equiv
+
+end order_iso
 
 section bounded_order
 

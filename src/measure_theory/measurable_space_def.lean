@@ -3,11 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import order.symm_diff
-import order.disjointed
-import order.conditionally_complete_lattice
-import data.equiv.encodable.lattice
 import data.set.countable
+import logic.encodable.lattice
+import order.conditionally_complete_lattice
+import order.disjointed
+import order.symm_diff
 
 /-!
 # Measurable spaces and measurable functions
@@ -302,7 +302,7 @@ def generate_from (s : set (set α)) : measurable_space α :=
   measurable_set_Union := generate_measurable.union }
 
 lemma measurable_set_generate_from {s : set (set α)} {t : set α} (ht : t ∈ s) :
-  (generate_from s).measurable_set' t :=
+  @measurable_set _ (generate_from s) t :=
 generate_measurable.basic t ht
 
 lemma generate_from_le {s : set (set α)} {m : measurable_space α}

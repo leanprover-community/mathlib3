@@ -720,7 +720,7 @@ def chain (r : α → α → Prop) (c : cycle α) : Prop :=
 quotient.lift_on' c (λ l, match l with
   | [] := true
   | (a :: m) := chain r a (m ++ [a]) end) $
-λ a b hab, begin
+λ a b hab, propext $ begin
   cases a with a l;
   cases b with b m,
   { refl },

@@ -342,12 +342,6 @@ by induction n with n ih; [rw [zero_nsmul, nat.cast_zero, mul_zero],
 @[simp] theorem nsmul_eq_mul [semiring R] (n : ℕ) (a : R) : n • a = n * a :=
 by rw [nsmul_eq_mul', (n.cast_commute a).eq]
 
-theorem mul_nsmul_left [semiring R] (a b : R) (n : ℕ) : n • (a * b) = a * (n • b) :=
-by rw [nsmul_eq_mul', nsmul_eq_mul', mul_assoc]
-
-theorem mul_nsmul_assoc [semiring R] (a b : R) (n : ℕ) : n • (a * b) = n • a * b :=
-by rw [nsmul_eq_mul, nsmul_eq_mul, mul_assoc]
-
 @[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
   induction m with m ih,
@@ -382,12 +376,6 @@ by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
 theorem zsmul_eq_mul' [ring R] (a : R) (n : ℤ) : n • a = a * n :=
 by rw [zsmul_eq_mul, (n.cast_commute a).eq]
-
-theorem mul_zsmul_left [ring R] (a b : R) (n : ℤ) : n • (a * b) = a * (n • b) :=
-by rw [zsmul_eq_mul', zsmul_eq_mul', mul_assoc]
-
-theorem mul_zsmul_assoc [ring R] (a b : R) (n : ℤ) : n • (a * b) = n • a * b :=
-by rw [zsmul_eq_mul, zsmul_eq_mul, mul_assoc]
 
 lemma zsmul_int_int (a b : ℤ) : a • b = a * b := by simp
 

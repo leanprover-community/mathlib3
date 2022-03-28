@@ -76,6 +76,12 @@ instance : linear_order sign_type :=
   le_trans     := λ a b c hab hbc, by casesm* _; constructor,
   decidable_le := le.decidable_rel }
 
+instance : has_distrib_neg sign_type :=
+{ neg_neg := λ x, by cases x; refl,
+  neg_mul := λ x y, by casesm* _; refl,
+  mul_neg := λ x y, by casesm* _; refl,
+..sign_type.has_neg }
+
 def fin3_equiv : sign_type ≃* fin 3 :=
 { to_fun :=  λ a, a.rec_on 0 (-1) 1,
   inv_fun := λ a, match a with
@@ -102,12 +108,16 @@ instance {α} [has_zero α] [has_one α] [has_neg α] : has_coe sign_type α := 
 
 end sign_type
 
-variables {α : Type*} [has_zero α]
+variables {α : Type*}
 
 open sign_type
 
+section preorder
+
+variables [has_zero α] [preorder α] [decidable_rel ((<) : α → α → Prop)] {a : α}
+
 /-- The sign of an element - 1 if it's positive, -1 if negative, 0 otherwise. -/
-@[simps] def sign [preorder α] [decidable_rel ((<) : α → α → Prop)] : α →o sign_type :=
+def sign : α →o sign_type :=
 ⟨λ a, if 0 < a then 1 else if a < 0 then -1 else 0, λ a b h, begin
   dsimp,
   split_ifs; try {constructor},
@@ -116,22 +126,22 @@ open sign_type
   { cases h_2 (h.trans_lt h_4) }
   end⟩
 
-section preorder
+lemma sign_apply : sign a = ite (0 < a) 1 (ite (a < 0) (-1) 0) := rfl
 
-variables [preorder α] [decidable_rel ((<) : α → α → Prop)] {a b : α}
-
-@[simp] lemma sign_zero : sign (0 : α) = 0 := by simp [sign]
+@[simp] lemma sign_zero : sign (0 : α) = 0 := by simp [sign_apply]
+@[simp] lemma sign_pos (ha : 0 < a) :  sign a = 1 := by rwa [sign_apply, if_pos]
+@[simp] lemma sign_neg (ha : a < 0) : sign a = -1 := by rwa [sign_apply, if_neg $ asymm ha, if_pos]
 
 end preorder
 
 section linear_order
 
-variables [linear_order α] {a b : α}
+variables [has_zero α] [linear_order α] {a : α}
 
 lemma sign_ne_zero (h : a ≠ 0) : sign a ≠ 0 :=
 begin
   contrapose! h,
-  rw sign_coe at h,
+  rw sign_apply at h,
   split_ifs at h,
   { cases h },
   { cases h },
@@ -139,3 +149,33 @@ begin
 end
 
 end linear_order
+
+section linear_ordered_semiring
+
+variables [linear_ordered_ring α] {a b : α}
+
+/- I'm not sure why this is necessary, see https://leanprover.zulipchat.com/#narrow/stream/
+113488-general/topic/type.20class.20inference.20issues/near/276937942 -/
+local attribute [instance] linear_ordered_ring.decidable_lt
+
+-- TODO: determine whether `ring` is required. Current thinking is that it is, for the implication
+-- a < 0 → b < 0 → 0 < a * b.
+/-- `sign` as a `monoid_with_zero_hom` for a nontrivial ordered semiring. Note that linearity
+is required; consider ℂ with the order `z ≤ w` iff they have the same imaginary part and
+`z - w ≤ 0` in the reals; then `1 + i` and `1 - i` are incomparable to zero, and thus we have:
+`0 * 0 = sign (1 + i) * sign (1 - i) ≠ sign 2 = 1`. (`complex.ordered_comm_ring`) -/
+def sign_hom : α →*₀ sign_type :=
+{ to_fun := sign,
+  map_zero' := sign_zero,
+  map_one' := sign_pos zero_lt_one,
+  map_mul' := λ x y, begin
+    rcases lt_trichotomy x 0 with hx | rfl | hx; rcases lt_trichotomy y 0 with hy | rfl | hy,
+    any_goals { simp only [sign_zero, mul_zero, zero_mul] },
+    all_goals { simp only [sign_pos, sign_neg, hx, hy, mul_one, neg_one_mul, neg_neg, one_mul] },
+    { exact sign_pos (mul_pos_of_neg_of_neg hx hy) },
+    { exact sign_neg (mul_neg_of_neg_of_pos hx hy) },
+    { exact sign_neg (mul_neg_of_pos_of_neg hx hy) },
+    { exact sign_pos (mul_pos hx hy) }
+  end }
+
+end linear_ordered_semiring

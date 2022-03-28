@@ -35,6 +35,8 @@ instance : has_coe_to_sort Preorder Type* := bundled.has_coe_to_sort
 /-- Construct a bundled Preorder from the underlying type and typeclass. -/
 def of (α : Type*) [preorder α] : Preorder := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [preorder α] : ↥(of α) = α := rfl
+
 instance : inhabited Preorder := ⟨of punit⟩
 
 instance (α : Preorder) : preorder α := α.str
@@ -47,12 +49,12 @@ instance (α : Preorder) : preorder α := α.str
   inv_hom_id' := by { ext, exact e.apply_symm_apply x } }
 
 /-- `order_dual` as a functor. -/
-@[simps] def to_dual : Preorder ⥤ Preorder :=
+@[simps] def dual : Preorder ⥤ Preorder :=
 { obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `Preorder` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : Preorder ≌ Preorder :=
-equivalence.mk to_dual to_dual
+equivalence.mk dual dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
 

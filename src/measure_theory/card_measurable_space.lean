@@ -29,7 +29,6 @@ variables {α : Type u}
 open_locale cardinal
 open cardinal set
 
-local notation a `<₁` b := (aleph 1 : cardinal.{u}).ord.out.r a b
 local notation `ω₁`:= (aleph 1 : cardinal.{u}).ord.out.α
 
 namespace measurable_space
@@ -39,7 +38,7 @@ step, we add all elements of `s`, the empty set, the complements of already cons
 countable unions of already constructed sets. We index this construction by an ordinal `< ω₁`, as
 this will be enough to generate all sets in the sigma-algebra. -/
 def generate_measurable_rec (s : set (set α)) : ω₁ → set (set α)
-| i := let S := ⋃ j : {j // j <₁ i}, generate_measurable_rec j.1 in
+| i := let S := ⋃ j : {j // j < i}, generate_measurable_rec j.1 in
     s ∪ {∅} ∪ compl '' S ∪ (set.range (λ (f : ℕ → S), ⋃ n, (f n).1))
 using_well_founded {dec_tac := `[exact j.2]}
 
@@ -54,12 +53,12 @@ begin
   have B : aleph 1 ≤ (max (#s) 2) ^ omega.{u} :=
     aleph_one_le_continuum.trans (power_le_power_right (le_max_right _ _)),
   have C : omega.{u} ≤ (max (#s) 2) ^ omega.{u} := A.trans B,
-  have J : #(⋃ (j : {j // j <₁ i}), generate_measurable_rec s j.1) ≤ (max (#s) 2) ^ omega.{u},
+  have J : #(⋃ (j : {j // j < i}), generate_measurable_rec s j.1) ≤ (max (#s) 2) ^ omega.{u},
   { apply (mk_Union_le _).trans,
-    have D : # {j // j <₁ i} ≤ aleph 1 := (mk_subtype_le _).trans (le_of_eq (aleph 1).mk_ord_out),
+    have D : # {j // j < i} ≤ aleph 1 := (mk_subtype_le _).trans (le_of_eq (aleph 1).mk_ord_out),
     have E : cardinal.sup.{u u}
-      (λ (j : {j // j <₁ i}), #(generate_measurable_rec s j.1)) ≤ (max (#s) 2) ^ omega.{u} :=
-    cardinal.sup_le.2 (λ ⟨j, hj⟩, IH j hj),
+      (λ (j : {j // j < i}), #(generate_measurable_rec s j.1)) ≤ (max (#s) 2) ^ omega.{u} :=
+    cardinal.sup_le (λ ⟨j, hj⟩, IH j hj),
     apply (mul_le_mul' D E).trans,
     rw mul_eq_max A C,
     exact max_le B le_rfl },
@@ -80,7 +79,7 @@ begin
   apply (mk_Union_le _).trans,
   rw [(aleph 1).mk_ord_out],
   refine le_trans (mul_le_mul' aleph_one_le_continuum
-    (cardinal.sup_le.2 (λ i, cardinal_generate_measurable_rec_le s i))) _,
+    (cardinal.sup_le (λ i, cardinal_generate_measurable_rec_le s i))) _,
   have := power_le_power_right (le_max_right (#s) 2),
   rw mul_eq_max omega_le_continuum (omega_le_continuum.trans this),
   exact max_le this le_rfl
@@ -94,7 +93,6 @@ theorem generate_measurable_subset_rec (s : set (set α)) ⦃t : set α⦄
   (ht : generate_measurable s t) :
   t ∈ ⋃ i, generate_measurable_rec s i :=
 begin
-  haveI : nonempty ω₁, by simp [← mk_ne_zero_iff, ne_of_gt, (aleph 1).mk_ord_out, aleph_pos 1],
   inhabit ω₁,
   induction ht with u hu u hu IH f hf IH,
   { refine mem_Union.2 ⟨default, _⟩,
@@ -104,24 +102,24 @@ begin
     rw generate_measurable_rec,
     simp only [union_singleton, mem_union_eq, mem_insert_iff, eq_self_iff_true, true_or] },
   { rcases mem_Union.1 IH with ⟨i, hi⟩,
-    obtain ⟨j, hj⟩ : ∃ j, i <₁ j := ordinal.has_succ_of_is_limit
-      (by { rw ordinal.type_out, exact ord_aleph_is_limit 1 }) _,
+    obtain ⟨j, hj⟩ : ∃ j, i < j := ordinal.has_succ_of_type_succ_lt
+      (by { rw ordinal.type_lt, exact (ord_aleph_is_limit 1).2 }) _,
     apply mem_Union.2 ⟨j, _⟩,
     rw generate_measurable_rec,
-    have : ∃ a, (a <₁ j) ∧ u ∈ generate_measurable_rec s a := ⟨i, hj, hi⟩,
+    have : ∃ a, (a < j) ∧ u ∈ generate_measurable_rec s a := ⟨i, hj, hi⟩,
     simp [this] },
   { have : ∀ n, ∃ i, f n ∈ generate_measurable_rec s i := λ n, by simpa using IH n,
     choose I hI using this,
-    obtain ⟨j, hj⟩ : ∃ j, ∀ k, k ∈ range I → (k <₁ j),
+    obtain ⟨j, hj⟩ : ∃ j, ∀ k, k ∈ range I → (k < j),
     { apply ordinal.lt_cof_type,
-      simp only [is_regular_aleph_one.2, mk_singleton, ordinal.type_out],
+      simp only [is_regular_aleph_one.2, mk_singleton, ordinal.type_lt],
       have : #(range I) = lift.{0} (#(range I)), by simp only [lift_uzero],
       rw this,
       apply mk_range_le_lift.trans_lt _,
       simp [omega_lt_aleph_one] },
     apply mem_Union.2 ⟨j, _⟩,
     rw generate_measurable_rec,
-    have : ∃ (g : ℕ → (↥⋃ (i : {i // i <₁ j}), generate_measurable_rec s i.1)),
+    have : ∃ (g : ℕ → (↥⋃ (i : {i // i < j}), generate_measurable_rec s i.1)),
       (⋃ (n : ℕ), ↑(g n)) = (⋃ n, f n),
     { refine ⟨λ n, ⟨f n, _⟩, rfl⟩,
       exact mem_Union.2 ⟨⟨I n, hj (I n) (mem_range_self _)⟩, hI n⟩ },

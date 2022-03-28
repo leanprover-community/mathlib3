@@ -384,7 +384,7 @@ lemma coeff_zero_eq_constant_coeff_apply (φ : mv_power_series σ R) :
  then so is its constant coefficient.-/
 lemma is_unit_constant_coeff (φ : mv_power_series σ R) (h : is_unit φ) :
   is_unit (constant_coeff σ R φ) :=
-h.map (constant_coeff σ R).to_monoid_hom
+h.map _
 
 @[simp]
 lemma coeff_smul (f : mv_power_series σ R) (n) (a : R) :
@@ -648,7 +648,7 @@ section comm_ring
 variable [comm_ring R]
 
 /-- Multivariate formal power series over a local ring form a local ring. -/
-instance is_local_ring [local_ring R] : local_ring (mv_power_series σ R) :=
+instance [local_ring R] : local_ring (mv_power_series σ R) :=
 { is_local := by { intro φ, rcases local_ring.is_local (constant_coeff σ R φ) with ⟨u,h⟩|⟨u,h⟩;
     [left, right];
     { refine is_unit_of_mul_eq_one _ _ (mul_inv_of_unit _ u _),
@@ -676,11 +676,6 @@ instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
   rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
   exact is_unit_of_mul_eq_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc.symm)
 end⟩
-
-variables [local_ring R] [local_ring S]
-
-instance : local_ring (mv_power_series σ R) :=
-{ is_local := local_ring.is_local }
 
 end local_ring
 

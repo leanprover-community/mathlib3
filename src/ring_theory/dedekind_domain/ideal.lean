@@ -6,6 +6,7 @@ Authors: Kenji Nakagawa, Anne Baanen, Filippo A. E. Nuccio
 import algebraic_geometry.prime_spectrum.noetherian
 import ring_theory.fractional_ideal
 import ring_theory.dedekind_domain.basic
+import algebra.algebra.subalgebra.pointwise
 
 /-!
 # Dedekind domains and ideals
@@ -207,16 +208,10 @@ lemma is_dedekind_domain_inv_iff [algebra A K] [is_fraction_ring A K] :
   is_dedekind_domain_inv A ↔
     (∀ I ≠ (⊥ : fractional_ideal A⁰ K), I * I⁻¹ = 1) :=
 begin
-  set h := fraction_ring.alg_equiv A K,
-  split; rintros hi I hI,
-  { refine fractional_ideal.map_injective h.symm.to_alg_hom h.symm.injective _,
-    rw [alg_equiv.to_alg_hom_eq_coe, inv_eq, fractional_ideal.map_mul,
-        fractional_ideal.map_one_div, fractional_ideal.map_one, ← inv_eq, hi],
-    exact fractional_ideal.map_ne_zero _ hI },
-  { refine fractional_ideal.map_injective h.to_alg_hom h.injective _,
-    rw [alg_equiv.to_alg_hom_eq_coe, inv_eq, fractional_ideal.map_mul,
-        fractional_ideal.map_one_div, fractional_ideal.map_one, ← inv_eq, hi],
-    exact fractional_ideal.map_ne_zero _ hI },
+  let h := fractional_ideal.map_equiv (fraction_ring.alg_equiv A K),
+  refine h.to_equiv.forall_congr (λ I, _),
+  rw ← h.to_equiv.apply_eq_iff_eq,
+  simp
 end
 
 lemma fractional_ideal.adjoin_integral_eq_one_of_is_unit [algebra A K] [is_fraction_ring A K]
@@ -435,7 +430,7 @@ begin
   by_cases hI1 : I = ⊤,
   { rw [hI1, coe_ideal_top, one_mul, fractional_ideal.one_inv] },
   by_cases hNF : is_field A,
-  { letI := hNF.to_field A, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
+  { letI := hNF.to_field, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
   -- We'll show a contradiction with `exists_not_mem_one_of_ne_bot`:
   -- `J⁻¹ = (I * I⁻¹)⁻¹` cannot have an element `x ∉ 1`, so it must equal `1`.
   obtain ⟨J, hJ⟩ : ∃ (J : ideal A), (J : fractional_ideal A⁰ K) = I * I⁻¹ :=
@@ -593,6 +588,7 @@ noncomputable instance ideal.cancel_comm_monoid_with_zero :
   cancel_comm_monoid_with_zero (ideal A) :=
 function.injective.cancel_comm_monoid_with_zero (coe_ideal_hom A⁰ (fraction_ring A))
   coe_ideal_injective (ring_hom.map_zero _) (ring_hom.map_one _) (ring_hom.map_mul _)
+  (ring_hom.map_pow _)
 
 /-- For ideals in a Dedekind domain, to divide is to contain. -/
 lemma ideal.dvd_iff_le {I J : ideal A} : (I ∣ J) ↔ J ≤ I :=
@@ -735,12 +731,11 @@ end is_dedekind_domain
 
 section is_dedekind_domain
 
-variables {T : Type*} [comm_ring T] [is_domain T] [is_dedekind_domain T] (I J : ideal T)
+variables {T : Type*} [comm_ring T] [is_domain T] [is_dedekind_domain T] {I J : ideal T}
 open_locale classical
 open multiset unique_factorization_monoid ideal
 
-lemma prod_normalized_factors_eq_self {I : ideal T} (hI : I ≠ ⊥) :
-  (normalized_factors I).prod = I :=
+lemma prod_normalized_factors_eq_self (hI : I ≠ ⊥) : (normalized_factors I).prod = I :=
 associated_iff_eq.1 (normalized_factors_prod hI)
 
 lemma normalized_factors_prod {α : multiset (ideal T)}
@@ -783,6 +778,30 @@ begin
       exact prime_of_normalized_factor p hp.left },
     { exact ne_bot_of_le_ne_bot hI le_sup_left },
     { exact this } },
+end
+
+lemma irreducible_pow_sup (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ) :
+  J^n ⊔ I = J^(min ((normalized_factors I).count J) n) :=
+by rw [sup_eq_prod_inf_factors (pow_ne_zero n hJ.ne_zero) hI, ← inf_eq_inter,
+       normalized_factors_of_irreducible_pow hJ, normalize_eq J, repeat_inf, prod_repeat]
+
+lemma irreducible_pow_sup_of_le (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ)
+  (hn : ↑n ≤ multiplicity J I) : J^n ⊔ I = J^n :=
+begin
+  rw [irreducible_pow_sup hI hJ, min_eq_right],
+  rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J]
+    at hn
+end
+
+lemma irreducible_pow_sup_of_ge (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ)
+  (hn : multiplicity J I ≤ n) : J^n ⊔ I = J ^ (multiplicity J I).get (enat.dom_of_le_coe hn) :=
+begin
+  rw [irreducible_pow_sup hI hJ, min_eq_left],
+  congr,
+  { rw [← enat.coe_inj, enat.coe_get, multiplicity_eq_count_normalized_factors hJ hI,
+    normalize_eq J] },
+  { rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J]
+      at hn }
 end
 
 end is_dedekind_domain

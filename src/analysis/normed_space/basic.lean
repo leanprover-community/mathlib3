@@ -66,6 +66,11 @@ end
 @[simp] lemma abs_norm_eq_norm (z : β) : |∥z∥| = ∥z∥ :=
   (abs_eq (norm_nonneg z)).mpr (or.inl rfl)
 
+lemma inv_norm_smul_mem_closed_unit_ball [normed_space ℝ β] (x : β) :
+  ∥x∥⁻¹ • x ∈ closed_ball (0 : β) 1 :=
+by simp only [mem_closed_ball_zero_iff, norm_smul, norm_inv, norm_norm, ← div_eq_inv_mul,
+  div_self_le_one]
+
 lemma dist_smul [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ∥s∥ * dist x y :=
 by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
 
@@ -91,7 +96,7 @@ have tendsto (λ y, ∥c • (y - x)∥) (𝓝 x) (𝓝 0),
   from ((continuous_id.sub continuous_const).const_smul _).norm.tendsto' _ _ (by simp),
 this.eventually (gt_mem_nhds h)
 
-theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
+theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
   closure (ball x r) = closed_ball x r :=
 begin
   refine set.subset.antisymm closure_ball_subset_closed_ball (λ y hy, _),
@@ -104,10 +109,11 @@ begin
     rw [mem_ball, dist_eq_norm, add_sub_cancel, norm_smul, real.norm_eq_abs,
       abs_of_nonneg hc0, mul_comm, ← mul_one r],
     rw [mem_closed_ball, dist_eq_norm] at hy,
+    replace hr : 0 < r, from ((norm_nonneg _).trans hy).lt_of_ne hr.symm,
     apply mul_lt_mul'; assumption }
 end
 
-theorem frontier_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : 0 < r) :
+theorem frontier_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
   frontier (ball x r) = sphere x r :=
 begin
   rw [frontier, closure_ball x hr, is_open_ball.interior_eq],
@@ -288,7 +294,7 @@ def matrix.normed_space {α : Type*} [normed_field α] {n m : Type*} [fintype n]
   normed_space α (matrix n m α) :=
 pi.normed_space
 
-lemma matrix.norm_entry_le_entrywise_sup_norm {α : Type*} [normed_field α] {n m : Type*} [fintype n]
+lemma matrix.norm_entry_le_entrywise_sup_norm {α : Type*} [normed_ring α] {n m : Type*} [fintype n]
   [fintype m] (M : (matrix n m α)) {i : n} {j : m} :
   ∥M i j∥ ≤ ∥M∥ :=
 (norm_le_pi_norm (M i) j).trans (norm_le_pi_norm M i)
@@ -358,6 +364,20 @@ begin
 end
 
 variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
+
+/-- The inclusion of the base field in a normed algebra as a continuous linear map. -/
+@[simps]
+def algebra_map_clm [semi_normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] : 𝕜 →L[𝕜] 𝕜' :=
+{ to_fun := algebra_map 𝕜 𝕜',
+  map_add' := (algebra_map 𝕜 𝕜').map_add,
+  map_smul' := λ r x, by rw [algebra.id.smul_eq_mul, map_mul, ring_hom.id_apply, algebra.smul_def],
+  cont := (algebra_map_isometry 𝕜 𝕜').continuous }
+
+lemma algebra_map_clm_coe [semi_normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
+  (algebra_map_clm 𝕜 𝕜' : 𝕜 → 𝕜') = (algebra_map 𝕜 𝕜' : 𝕜 → 𝕜') := rfl
+
+lemma algebra_map_clm_to_linear_map [semi_normed_ring 𝕜'] [normed_algebra 𝕜 𝕜'] :
+  (algebra_map_clm 𝕜 𝕜').to_linear_map = algebra.linear_map 𝕜 𝕜' := rfl
 
 @[priority 100]
 instance normed_algebra.to_normed_space [semi_normed_ring 𝕜'] [h : normed_algebra 𝕜 𝕜'] :

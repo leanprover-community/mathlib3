@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
+import algebra.algebra.bilinear
 
 /-!
 # Towers of algebras
@@ -306,6 +307,25 @@ le_antisymm (span_le.2 $ λ x hx, let ⟨p, q, hps, hqt, hpqx⟩ := set.mem_smul
   (zero_mem _)
   (λ _ _, add_mem _)
   (λ k x hx, smul_mem_span_smul' hs hx)
+
+/-- A variant of `submodule.span_image` for `algebra_map`. -/
+lemma span_algebra_map_image (a : set R) :
+  submodule.span R (algebra_map R S '' a) =
+    (submodule.span R a).map (algebra.linear_map R S) :=
+(submodule.span_image $ algebra.linear_map R S).trans rfl
+
+lemma span_algebra_map_image_of_tower {S T : Type*} [comm_semiring S] [semiring T]
+  [module R S] [is_scalar_tower R S S] [algebra R T] [algebra S T] [is_scalar_tower R S T]
+  (a : set S) :
+  submodule.span R (algebra_map S T '' a) =
+    (submodule.span R a).map ((algebra.linear_map S T).restrict_scalars R) :=
+(submodule.span_image $ (algebra.linear_map S T).restrict_scalars R).trans rfl
+
+lemma map_mem_span_algebra_map_image {S T : Type*} [comm_semiring S] [semiring T]
+  [algebra R S] [algebra R T] [algebra S T] [is_scalar_tower R S T]
+  (x : S) (a : set S) (hx : x ∈ submodule.span R a) :
+  algebra_map S T x ∈ submodule.span R (algebra_map S T '' a) :=
+by { rw [span_algebra_map_image_of_tower, mem_map], exact ⟨x, hx, rfl⟩ }
 
 end submodule
 

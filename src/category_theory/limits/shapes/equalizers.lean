@@ -303,6 +303,14 @@ lemma cofork.is_colimit.hom_ext {s : cofork f g} (hs : is_colimit s) {W : C} {k 
   (h : cofork.π s ≫ k = cofork.π s ≫ l) : k = l :=
 hs.hom_ext $ cofork.coequalizer_ext _ h
 
+@[simp] lemma fork.is_limit.lift_of_ι_ι {s : fork f g} (hs : is_limit s) {W : C}
+  {k : W ⟶ X} (hk : k ≫ f = k ≫ g) : hs.lift (fork.of_ι k hk) ≫ s.ι = k :=
+hs.fac _ _
+
+@[simp] lemma cofork.is_colimit.π_desc_of_π {s : cofork f g} (hs : is_colimit s) {W : C}
+  {k : Y ⟶ W} (hk : f ≫ k = g ≫ k) : s.π ≫ hs.desc (cofork.of_π k hk) = k :=
+hs.fac _ _
+
 /-- If `s` is a limit fork over `f` and `g`, then a morphism `k : W ⟶ X` satisfying
     `k ≫ f = k ≫ g` induces a morphism `l : W ⟶ s.X` such that `l ≫ fork.ι s = k`. -/
 def fork.is_limit.lift' {s : fork f g} (hs : is_limit s) {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) :
@@ -894,7 +902,6 @@ Here we build the cone, and show in `split_mono_equalizes` that it is a limit co
 def cone_of_split_mono : cone (parallel_pair (𝟙 Y) (retraction f ≫ f)) :=
 fork.of_ι f (by simp)
 
-
 /--
 A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
 -/
@@ -905,6 +912,48 @@ fork.is_limit.mk' _ $ λ s,
  λ m hm, by simp [←hm]⟩
 
 end
+
+/-- We show that the converse to `split_mono_equalizes` is true:
+Whenever `f` equalizes `(r ≫ f)` and `(𝟙 Y)`, then `r` is a retraction of `f`. -/
+def split_mono_of_equalizer {X Y : C} {f : X ⟶ Y} {r : Y ⟶ X} (hr : f ≫ r ≫ f = f)
+  (h : is_limit (fork.of_ι f (hr.trans (category.comp_id _).symm : f ≫ r ≫ f = f ≫ 𝟙 Y))) :
+  split_mono f :=
+{ retraction := r,
+  id' := fork.is_limit.hom_ext h
+    ((category.assoc _ _ _).trans $ hr.trans (category.id_comp _).symm) }
+
+variables {C f g}
+
+/-- The fork obtained by postcomposing an equalizer fork with a monomorphism is an equalizer. -/
+def is_equalizer_comp_mono {c : fork f g} (i : is_limit c) {Z : C} (h : Y ⟶ Z) [hm : mono h] :
+  is_limit (fork.of_ι c.ι (by simp) : fork (f ≫ h) (g ≫ h)) :=
+fork.is_limit.mk' _ $ λ s,
+  let s' : fork f g := fork.of_ι s.ι (by apply hm.right_cancellation; simp [s.condition]) in
+  let l := fork.is_limit.lift' i s'.ι s'.condition in
+  ⟨l.1, l.2, λ m hm, by apply fork.is_limit.hom_ext i; rw fork.ι_of_ι at hm; rw hm; exact l.2.symm⟩
+
+variables (C f g)
+
+@[instance]
+lemma has_equalizer_comp_mono [has_equalizer f g] {Z : C} (h : Y ⟶ Z) [mono h] :
+  has_equalizer (f ≫ h) (g ≫ h) :=
+⟨⟨{ cone := _, is_limit := is_equalizer_comp_mono (limit.is_limit _) h }⟩⟩
+
+/-- An equalizer of an idempotent morphism and the identity is split mono. -/
+def split_mono_of_idempotent_of_is_limit_fork {X : C} {f : X ⟶ X} (hf : f ≫ f = f)
+  {c : fork f (𝟙 X)} (i : is_limit c) : split_mono c.ι :=
+{ retraction := i.lift (fork.of_ι f (by simp [hf])),
+  id' :=
+  begin
+    letI := mono_of_is_limit_parallel_pair i,
+    rw [← cancel_mono_id c.ι, category.assoc, fork.is_limit.lift_of_ι_ι, c.condition],
+    exact category.comp_id c.ι
+  end }
+
+/-- The equalizer of an idempotent morphism and the identity is split mono. -/
+def split_mono_of_idempotent_equalizer {X : C} {f : X ⟶ X} (hf : f ≫ f = f)
+  [has_equalizer f (𝟙 X)] : split_mono (equalizer.ι f (𝟙 X)) :=
+split_mono_of_idempotent_of_is_limit_fork _ hf (limit.is_limit _)
 
 section
 -- In this section we show that a split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.
@@ -929,5 +978,49 @@ cofork.is_colimit.mk' _ $ λ s,
  λ m hm, by simp [← hm]⟩
 
 end
+
+/-- We show that the converse to `split_epi_equalizes` is true:
+Whenever `f` coequalizes `(f ≫ s)` and `(𝟙 X)`, then `s` is a section of `f`. -/
+def split_epi_of_coequalizer {X Y : C} {f : X ⟶ Y} {s : Y ⟶ X} (hs : f ≫ s ≫ f = f)
+  (h : is_colimit (cofork.of_π f ((category.assoc _ _ _).trans $
+    hs.trans (category.id_comp f).symm : (f ≫ s) ≫ f = 𝟙 X ≫ f))) :
+  split_epi f :=
+{ section_ := s,
+  id' := cofork.is_colimit.hom_ext h (hs.trans (category.comp_id _).symm) }
+
+variables {C f g}
+
+/-- The cofork obtained by precomposing a coequalizer cofork with an epimorphism is 
+a coequalizer. -/
+def is_coequalizer_epi_comp {c : cofork f g} (i : is_colimit c) {W : C} (h : W ⟶ X) [hm : epi h] :
+  is_colimit (cofork.of_π c.π (by simp) : cofork (h ≫ f) (h ≫ g)) :=
+cofork.is_colimit.mk' _ $ λ s,
+  let s' : cofork f g := cofork.of_π s.π 
+    (by apply hm.left_cancellation; simp_rw [←category.assoc, s.condition]) in
+  let l := cofork.is_colimit.desc' i s'.π s'.condition in
+  ⟨l.1, l.2,
+    λ m hm,by apply cofork.is_colimit.hom_ext i; rw cofork.π_of_π at hm; rw hm; exact l.2.symm⟩
+
+lemma has_coequalizer_epi_comp [has_coequalizer f g] {W : C} (h : W ⟶ X) [hm : epi h] :
+  has_coequalizer (h ≫ f) (h ≫ g) :=
+⟨⟨{ cocone := _, is_colimit := is_coequalizer_epi_comp (colimit.is_colimit _) h }⟩⟩
+
+variables (C f g)
+
+/-- A coequalizer of an idempotent morphism and the identity is split epi. -/
+def split_epi_of_idempotent_of_is_colimit_cofork {X : C} {f : X ⟶ X} (hf : f ≫ f = f)
+  {c : cofork f (𝟙 X)} (i : is_colimit c) : split_epi c.π :=
+{ section_ := i.desc (cofork.of_π f (by simp [hf])),
+  id' :=
+  begin
+    letI := epi_of_is_colimit_parallel_pair i,
+    rw [← cancel_epi_id c.π, ← category.assoc, cofork.is_colimit.π_desc_of_π, c.condition],
+    exact category.id_comp _,
+  end }
+
+/-- The coequalizer of an idempotent morphism and the identity is split epi. -/
+def split_epi_of_idempotent_coequalizer {X : C} {f : X ⟶ X} (hf : f ≫ f = f)
+  [has_coequalizer f (𝟙 X)] : split_epi (coequalizer.π f (𝟙 X)) :=
+split_epi_of_idempotent_of_is_colimit_cofork _ hf (colimit.is_colimit _)
 
 end category_theory.limits

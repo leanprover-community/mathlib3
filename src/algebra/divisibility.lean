@@ -75,13 +75,14 @@ theorem dvd_of_mul_right_dvd (h : a * b ∣ c) : a ∣ c :=
 
 section map_dvd
 
-variables {M N : Type*}
+variables {M N : Type*} [monoid M] [monoid N]
 
-lemma mul_hom.map_dvd [monoid M] [monoid N] (f : mul_hom M N) {a b} : a ∣ b → f a ∣ f b
-| ⟨c, h⟩ := ⟨f c, h.symm ▸ f.map_mul a c⟩
+lemma map_dvd {F : Type*} [mul_hom_class F M N] (f : F) {a b} : a ∣ b → f a ∣ f b
+| ⟨c, h⟩ := ⟨f c, h.symm ▸ map_mul f a c⟩
 
-lemma monoid_hom.map_dvd [monoid M] [monoid N] (f : M →* N) {a b} : a ∣ b → f a ∣ f b :=
-f.to_mul_hom.map_dvd
+lemma mul_hom.map_dvd (f : mul_hom M N) {a b} : a ∣ b → f a ∣ f b := map_dvd f
+
+lemma monoid_hom.map_dvd (f : M →* N) {a b} : a ∣ b → f a ∣ f b := map_dvd f
 
 end map_dvd
 
@@ -257,6 +258,30 @@ end comm_monoid
 
 end is_unit
 
+section comm_monoid
+variables [comm_monoid α]
+
+theorem is_unit_iff_dvd_one {x : α} : is_unit x ↔ x ∣ 1 :=
+⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,
+ λ ⟨y, h⟩, ⟨⟨x, y, h.symm, by rw [h, mul_comm]⟩, rfl⟩⟩
+
+theorem is_unit_iff_forall_dvd {x : α} :
+  is_unit x ↔ ∀ y, x ∣ y :=
+is_unit_iff_dvd_one.trans ⟨λ h y, h.trans (one_dvd _), λ h, h _⟩
+
+theorem is_unit_of_dvd_unit {x y : α}
+  (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
+is_unit_iff_dvd_one.2 $ xy.trans $ is_unit_iff_dvd_one.1 hu
+
+lemma is_unit_of_dvd_one : ∀a ∣ 1, is_unit (a:α)
+| a ⟨b, eq⟩ := ⟨units.mk_of_mul_eq_one a b eq.symm, rfl⟩
+
+lemma not_is_unit_of_not_is_unit_dvd {a b : α} (ha : ¬is_unit a) (hb : a ∣ b) :
+  ¬ is_unit b :=
+mt (is_unit_of_dvd_unit hb) ha
+
+end comm_monoid
+
 section comm_monoid_with_zero
 
 variable [comm_monoid_with_zero α]
@@ -277,6 +302,13 @@ begin
 end
 
 end comm_monoid_with_zero
+
+lemma dvd_and_not_dvd_iff [cancel_comm_monoid_with_zero α] {x y : α} :
+  x ∣ y ∧ ¬y ∣ x ↔ dvd_not_unit x y :=
+⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,
+    mt is_unit_iff_dvd_one.1 (λ ⟨e, he⟩, hyx ⟨e, by rw [hd, mul_assoc, ← he, mul_one]⟩), hd⟩⟩,
+  λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
+    ⟨e, mul_left_cancel₀ hx0 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
 
 section monoid_with_zero
 

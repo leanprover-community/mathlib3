@@ -478,7 +478,7 @@ begin
   refl,
 end
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma comm_from (f : hom C₁ C₂) (i : ι) :
   f.f i ≫ C₂.d_from i = C₁.d_from i ≫ f.next i :=
 begin
@@ -487,7 +487,7 @@ begin
   { simp [d_from_eq _ w, next_eq _ w] }
 end
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma comm_to (f : hom C₁ C₂) (j : ι) :
   f.prev j ≫ C₂.d_to j = C₁.d_to j ≫ f.f j :=
 begin

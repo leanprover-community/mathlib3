@@ -49,7 +49,7 @@ begin
         { rw [sg, units.neg_smul, one_smul, nat_degree_neg] } }
   ... ≤ ∑ (i : n), nat_degree (((X : α[X]) • A.map C + B.map C) (g i) i) :
     nat_degree_prod_le (finset.univ : finset n) (λ (i : n), (X • A.map C + B.map C) (g i) i)
-  ... ≤ finset.univ.card • 1 : finset.sum_le_of_forall_le _ _ 1 (λ (i : n) _, _)
+  ... ≤ finset.univ.card • 1 : finset.sum_le_card_nsmul _ _ 1 (λ (i : n) _, _)
   ... ≤ fintype.card n : by simpa,
   calc  nat_degree (((X : α[X]) • A.map C + B.map C) (g i) i)
       = nat_degree ((X : α[X]) * C (A (g i) i) + C (B (g i) i)) : by simp

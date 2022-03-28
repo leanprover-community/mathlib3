@@ -179,24 +179,24 @@ theorem cof_eq_Inf_lsub (o : ordinal.{u}) :
 begin
   refine le_antisymm (le_cInf (cof_lsub_def_nonempty o) _) (cInf_le' _),
   { rintros a ⟨ι, f, hf, rfl⟩,
-    rw ←type_out o,
+    rw ←type_lt o,
     refine (cof_type_le _ (λ a, _)).trans (@mk_le_of_injective _ _
-      (λ s : (typein o.out.r)⁻¹' (set.range f), classical.some s.prop)
+      (λ s : (typein ((<) : o.out.α → o.out.α → Prop))⁻¹' (set.range f), classical.some s.prop)
       (λ s t hst, let H := congr_arg f hst in by rwa [classical.some_spec s.prop,
         classical.some_spec t.prop, typein_inj, subtype.coe_inj] at H)),
     have := typein_lt_self a,
     simp_rw [←hf, lt_lsub_iff] at this,
     cases this with i hi,
-    refine ⟨enum o.out.r (f i) _, _, _⟩,
-    { rw [type_out, ←hf], apply lt_lsub },
+    refine ⟨enum (<) (f i) _, _, _⟩,
+    { rw [type_lt, ←hf], apply lt_lsub },
     { rw [mem_preimage, typein_enum], exact mem_range_self i },
     { rwa [←typein_le_typein, typein_enum] } },
-  { rcases cof_eq o.out.r with ⟨S, hS, hS'⟩,
-    let f : S → ordinal := λ s, typein o.out.r s,
-    refine ⟨S, f, le_antisymm (lsub_le.2 (λ i, typein_lt_self i)) (le_of_forall_lt (λ a ha, _)),
-      by rwa type_out o at hS'⟩,
-    rw ←type_out o at ha,
-    rcases hS (enum o.out.r a ha) with ⟨b, hb, hb'⟩,
+  { rcases cof_eq (<) with ⟨S, hS, hS'⟩,
+    let f : S → ordinal := λ s, typein (<) s.val,
+    refine ⟨S, f, le_antisymm (lsub_le (λ i, typein_lt_self i)) (le_of_forall_lt (λ a ha, _)),
+      by rwa type_lt o at hS'⟩,
+    rw ←type_lt o at ha,
+    rcases hS (enum (<) a ha) with ⟨b, hb, hb'⟩,
     rw [←typein_le_typein, typein_enum] at hb',
     exact hb'.trans_lt (lt_lsub.{u u} f ⟨b, hb⟩) }
 end
@@ -229,8 +229,11 @@ by simpa using cof_le_card c.ord
 theorem ord_cof_le (o : ordinal.{u}) : o.cof.ord ≤ o :=
 (ord_le_ord.2 (cof_le_card o)).trans (ord_card_le o)
 
-theorem exists_lsub_cof (o : ordinal) : ∃ {ι} (f : ι → ordinal), (lsub.{u u} f = o) ∧ #ι = cof o :=
+theorem exists_lsub_cof (o : ordinal) : ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = cof o :=
 by { rw cof_eq_Inf_lsub, exact Inf_mem (cof_lsub_def_nonempty o) }
+
+theorem cof_lsub_le {ι} (f : ι → ordinal) : cof (lsub.{u u} f) ≤ #ι :=
+by { rw cof_eq_Inf_lsub, exact cInf_le' ⟨ι, f, rfl, rfl⟩ }
 
 theorem le_cof_iff_lsub {o : ordinal} {a : cardinal} :
   a ≤ cof o ↔ ∀ {ι} (f : ι → ordinal), lsub.{u u} f = o → a ≤ #ι :=
@@ -285,7 +288,7 @@ theorem exists_blsub_cof (o : ordinal) : ∃ (f : Π a < (cof o).ord, ordinal), 
 begin
   rcases exists_lsub_cof o with ⟨ι, f, hf, hι⟩,
   rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
-  rw @lsub_eq_blsub' ι r hr at hf,
+  rw ←@blsub_eq_lsub' ι r hr at hf,
   rw [←hι, hι'],
   exact ⟨_, hf⟩
 end

@@ -1,14 +1,31 @@
+/-
+Copyright (c) 2022 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang
+-/
 import ring_theory.graded_algebra.basic
 import data.mv_polynomial.basic
 
-section mv_polynomial
+/-!
+
+This file contains an instance of `mv_polynomial R σ` as a `ℕ`-graded algebra.
+
+## Tags
+
+graded algebra, polynomial
+-/
+
+
+namespace mv_polynomial
 
 open mv_polynomial direct_sum
 open_locale direct_sum big_operators
 
 variables (R : Type*) [comm_ring R] (σ : Type*)
-  [Π (i : ℕ) (x : homogeneous_submodule σ R i), decidable (x ≠ 0)]
 
+/-
+For a multivariable polynomial `p`, we can decompose `p` as a direct sum of monomials
+-/
 noncomputable def decompose (p : mv_polynomial σ R) :
   ⨁ i, (homogeneous_submodule σ R i) :=
 ∑ i in finset.range (p.total_degree + 1), of (λ i, (homogeneous_submodule σ R i)) i
@@ -18,6 +35,8 @@ lemma homogeneous_component_of_direct_sum
   (i : ℕ) (x : ⨁ i, homogeneous_submodule σ R i) :
 homogeneous_component i (submodule_coe _ x) = x i :=
 begin
+  haveI :  Π (i : ℕ) (x : homogeneous_submodule σ R i), decidable (x ≠ 0) :=
+    λ _, classical.dec_pred _,
   rw [←sum_support_of _ x, linear_map.map_sum, linear_map.map_sum],
   simp_rw [submodule_coe_of],
   simp only [add_subgroup.coe_subtype, submodule.coe_sum, dfinsupp.finset_sum_apply],
@@ -33,6 +52,8 @@ end
 lemma left_inv (x) :
   (decompose R σ) (submodule_coe (λ (i : ℕ), homogeneous_submodule σ R i) x) = x :=
 begin
+  haveI :  Π (i : ℕ) (x : homogeneous_submodule σ R i), decidable (x ≠ 0) :=
+    λ _, classical.dec_pred _,
   rw decompose,
   simp_rw [homogeneous_component_of_direct_sum],
   conv_rhs { rw ←direct_sum.sum_support_of _ x },
@@ -65,7 +86,7 @@ begin
   rw [submodule_coe_of, ← subtype.val_eq_coe],
 end
 
-noncomputable instance mv_polynomial_is_graded :
+noncomputable instance graded_algebra :
   graded_algebra (λ i : ℕ, (homogeneous_submodule σ R i)) :=
 { one_mem := is_homogeneous_one σ R,
   mul_mem := λ i j x y hx hy, is_homogeneous.mul hx hy,

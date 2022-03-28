@@ -58,10 +58,10 @@ end
 theorem gram_schmidt_process_orthogonal' (f : ℕ → E) (a b : ℕ) (h₀ : a < b) :
   ⟪gram_schmidt_process 𝕜 f a, gram_schmidt_process 𝕜 f b⟫ = 0 :=
 begin
-  have hc : ∃ c, b ≤ c := ⟨b+1, by linarith⟩,
+  have hc : ∃ c, b ≤ c := ⟨b + 1, by linarith⟩,
   cases hc with c h₁,
   induction c with c hc generalizing a b,
-  { simp at h₁,
+  { simp only [nat.nat_zero_eq_zero, le_zero_iff] at h₁,
     simp only [h₁, not_lt_zero'] at h₀,
     contradiction },
   { rw nat.le_add_one_iff at h₁,
@@ -99,7 +99,7 @@ begin
         repeat {rw h},
         simp only [inner_zero_left, mul_zero, sub_zero] },
       { rw ← inner_self_eq_norm_sq_to_K,
-        simp [h] }}}
+        simp only [h, div_mul_cancel, ne.def, not_false_iff, sub_self] }}}
 end
 
 /-- **Gram-Schmidt Orthogonalisation**
@@ -194,7 +194,7 @@ begin
         rw ← hc at hx₁,
         have h₂ : span 𝕜 (gram_schmidt_process 𝕜 f '' Iic c)
           ≤ span 𝕜 (gram_schmidt_process 𝕜 f '' Iic (c + 1)),
-        { have h₃ : gram_schmidt_process 𝕜 f '' Iic c ⊆ gram_schmidt_process 𝕜 f '' Iic (c+1),
+        { have h₃ : gram_schmidt_process 𝕜 f '' Iic c ⊆ gram_schmidt_process 𝕜 f '' Iic (c + 1),
           { have h₄ : Iic c ⊆ Iic (c + 1),
             { simp only [Iic, set_of_subset_set_of],
               intros a ha,

@@ -751,7 +751,7 @@ lemma exists_mem_frontier_inf_dist_compl_eq_dist {E : Type*} [normed_group E]
 begin
   rcases metric.exists_mem_closure_inf_dist_eq_dist (nonempty_compl.2 hs) x with ⟨y, hys, hyd⟩,
   rw closure_compl at hys,
-  refine ⟨y, ⟨metric.closed_ball_inf_dist_compl_subset_closure hx hs $
+  refine ⟨y, ⟨metric.closed_ball_inf_dist_compl_subset_closure hx $
     metric.mem_closed_ball.2 $ ge_of_eq _, hys⟩, hyd⟩,
   rwa dist_comm
 end

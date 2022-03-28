@@ -288,44 +288,42 @@ have this : stabilizer α x = (stabilizer α y).map (add_aut.conj g).to_add_mono
 
 end add_action
 
-namespace mul_action
+namespace subgroup
 
-open subgroup
+variables (β) [monoid β] [mul_action β α] [group α] (H : subgroup α)
 
-variables (α) [monoid α] [mul_action α β] [group β] (H : subgroup β)
-
-/-- A typeclass for when a `mul_action α β` descends to the quotient `β ⧸ H`. -/
+/-- A typeclass for when a `mul_action β α` descends to the quotient `α ⧸ H`. -/
 class quotient_action : Prop :=
-(inv_mul_mem : ∀ (a : α) {b c : β}, b⁻¹ * c ∈ H → (a • b)⁻¹ * (a • c) ∈ H)
+(inv_mul_mem : ∀ (b : β) {a a' : α}, a⁻¹ * a' ∈ H → (b • a)⁻¹ * (b • a') ∈ H)
 
-/-- A typeclass for when an `add_action α β` descends to the quotient `β ⧸ H`. -/
-class _root_.add_action.quotient_action (α : Type*) {β : Type*} [add_monoid α] [add_action α β]
-  [add_group β] (H : add_subgroup β) : Prop :=
-(inv_mul_mem : ∀ (a : α) {b c : β}, -b + c ∈ H → -(a +ᵥ b) + (a +ᵥ c) ∈ H)
+/-- A typeclass for when an `add_action β α` descends to the quotient `α ⧸ H`. -/
+class _root_.add_subgroup.quotient_action {α : Type*} (β : Type*) [add_monoid β] [add_action β α]
+  [add_group α] (H : add_subgroup α) : Prop :=
+(inv_mul_mem : ∀ (b : β) {a a' : α}, -a + a' ∈ H → -(b +ᵥ a) + (b +ᵥ a') ∈ H)
 
-attribute [to_additive add_action.quotient_action] mul_action.quotient_action
+attribute [to_additive add_subgroup.quotient_action] subgroup.quotient_action
 
-@[to_additive] instance left_quotient_action : quotient_action β H :=
+@[to_additive] instance left_quotient_action : H.quotient_action α :=
 ⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
 
-@[to_additive] instance right_quotient_action : quotient_action H.normalizer.opposite H :=
+@[to_additive] instance right_quotient_action : H.quotient_action H.normalizer.opposite :=
 ⟨λ b c _ _, by rwa [smul_def, smul_def, smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev,
   ←mul_assoc, ←subtype.val_eq_coe, mem_normalizer_iff'.mp b.2, mul_assoc, mul_inv_cancel_left]⟩
 
-@[to_additive] instance quotient [quotient_action α H] : mul_action α (β ⧸ H) :=
-{ smul := λ a, quotient.map' ((•) a) (λ b c h, quotient_action.inv_mul_mem a h),
-  one_smul := λ q, quotient.induction_on' q (λ b, congr_arg quotient.mk' (one_smul α b)),
-  mul_smul := λ a a' q, quotient.induction_on' q (λ b, congr_arg quotient.mk' (mul_smul a a' b)) }
+@[to_additive] instance quotient [H.quotient_action β] : mul_action β (α ⧸ H) :=
+{ smul := λ b, quotient.map' ((•) b) (λ a a' h, quotient_action.inv_mul_mem b h),
+  one_smul := λ q, quotient.induction_on' q (λ a, congr_arg quotient.mk' (one_smul β a)),
+  mul_smul := λ b b' q, quotient.induction_on' q (λ a, congr_arg quotient.mk' (mul_smul b b' a)) }
 
-variables {α}
+variables {β}
 
-@[simp, to_additive] lemma quotient.smul_mk [quotient_action α H] (a : α) (b : β) :
-  (a • quotient_group.mk b : β ⧸ H) = quotient_group.mk (a • b) := rfl
+@[simp, to_additive] lemma quotient.smul_mk [H.quotient_action β] (a : β) (x : α) :
+  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (a • x) := rfl
 
-@[simp, to_additive] lemma quotient.smul_coe [quotient_action α H] (a : α) (b : β) :
-  (a • b : β ⧸ H) = ↑(a • b) := rfl
+@[simp, to_additive] lemma quotient.smul_mk [H.quotient_action β] (a : β) (x : α) :
+  (a • x : α ⧸ H) = ↑(a • x) := rfl
 
-end mul_action
+end subgroup
 
 namespace mul_action
 

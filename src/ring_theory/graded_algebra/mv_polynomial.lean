@@ -23,12 +23,11 @@ begin
   simp only [add_subgroup.coe_subtype, submodule.coe_sum, dfinsupp.finset_sum_apply],
   apply finset.sum_congr rfl,
   intros j hj,
-  rw homogeneous_component_homogeneous_polynomial i j,
+  rw [← subtype.val_eq_coe, homogeneous_component_homogeneous_polynomial i j _
+    (by simp only [mem_homogeneous_submodule]; convert (x j).2)],
   split_ifs,
-  { rw [h, of_eq_same]  },
+  { rw [h, of_eq_same], refl, },
   { rw of_eq_of_ne _ _ _ _ (ne.symm h), refl },
-  { simp only [mem_homogeneous_submodule],
-    convert (x j).2 },
 end
 
 lemma left_inv (x) :

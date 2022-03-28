@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin H. Wilson
 -/
 import ring_theory.int.basic
+import algebra.parity
 
 /-!
 # Square elements of monoids
@@ -66,13 +67,10 @@ instance : decidable_pred (square : ℕ → Prop)
 | n := decidable_of_iff' _ (nat.exists_mul_self n)
 
 lemma square_iff_factorization_even {m : ℕ} :
-square m ↔ ∀ (p : ℕ), even (m.factorization p) :=
+  square m ↔ ∀ (p : ℕ), even (m.factorization p) :=
 begin
-  by_cases hm_zero : m = 0,
-  { simp only [hm_zero, square_zero, factorization_zero, finsupp.coe_zero,
-      pi.zero_apply, forall_const, true_iff],
-    use 0,
-    exact mul_zero 2, },
+  rcases eq_or_ne m 0 with rfl | hm_zero,
+  { simp, },
   { split,
     { rintros ⟨c, hc⟩,
       by_cases hc' : c = 0,
@@ -92,8 +90,25 @@ begin
       intros x hx,
       rcases hp x with ⟨c, hc⟩,
       rw [←pow_add, ←two_mul, hc],
-      congr,
       simp, }, },
+end
+
+lemma square.of_mul_left {m n : ℕ} (hmn : m.coprime n) :
+  square (m * n) → square m :=
+begin
+  rw [square_iff_factorization_even, square_iff_factorization_even],
+  intros hmn',
+  intros p,
+  by_cases hp : p ∈ m.factors,
+  { rw ← factorization_eq_of_coprime_left hmn hp, exact hmn' p, },
+  { rw [←nat.factors_count_eq, list.count_eq_zero_of_not_mem hp], simp, },
+end
+
+lemma square.of_mul_right {m n : ℕ} (hmn : m.coprime n) :
+  square (m * n) → square n :=
+begin
+  rw mul_comm,
+  exact square.of_mul_left hmn.symm,
 end
 
 /-- The property of being a square is multiplicative. The ← direction can be generalized
@@ -104,22 +119,8 @@ lemma square_mul {m n : ℕ} (hmn : m.coprime n) :
   square (m * n) ↔ square m ∧ square n :=
 begin
   split,
-  { rw [square_iff_factorization_even, square_iff_factorization_even],
-    rw square_iff_factorization_even,
-    intros hmn',
-    split,
-    { intros p,
-      by_cases hp : p ∈ m.factors,
-      { rw ← factorization_eq_of_coprime_left hmn hp, exact hmn' p, },
-      { rw [←nat.factors_count_eq, list.count_eq_zero_of_not_mem hp],
-        use zero,
-        exact mul_zero 2, }, },
-    { intros p,
-      by_cases hp : p ∈ n.factors,
-      { rw ← factorization_eq_of_coprime_right hmn hp, exact hmn' p, },
-      { rw [←nat.factors_count_eq, list.count_eq_zero_of_not_mem hp],
-        use zero,
-        exact mul_zero 2, }, }, },
+  { intros hsquare,
+    exact ⟨square.of_mul_left hmn hsquare, square.of_mul_right hmn hsquare⟩, },
   { rintros ⟨hm, hn⟩, exact square_mul_of_square_of_square hm hn, },
 end
 

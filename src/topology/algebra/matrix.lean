@@ -15,6 +15,7 @@ This file is a place to collect topological results about matrices.
 
  * `matrix.topological_ring`: square matrices form a topological ring
  * `matrix.continuous_det`: the determinant is continuous over a topological ring.
+ * `matrix.continuous_adjugate`: the adjugate is continuous over a topological ring.
 -/
 
 open matrix
@@ -128,6 +129,21 @@ continuous_matrix $ λ j k, begin
     exact (continuous_apply _).comp continuous_snd },
   { simp_rw matrix.update_row_ne h,
     exact (continuous_matrix_elem _ _).comp continuous_fst },
+end
+
+lemma continuous_cramer [fintype n] [decidable_eq n] [comm_ring R] [topological_ring R]:
+  continuous (λ A : matrix n n R × (n → R), A.1.cramer A.2) :=
+continuous_pi $ λ i, continuous_det.comp $ continuous_update_column _
+
+lemma continuous_adjugate [fintype n] [decidable_eq n] [comm_ring R] [topological_ring R] :
+  continuous (adjugate : matrix n n R → matrix n n R) :=
+continuous_matrix $ λ j k, continuous_det.comp $ begin
+  show continuous (
+    (λ (a : matrix n n R × (n → R)), a.1.update_column k a.2) ∘
+    (λ a, (a, pi.single j 1)) ∘
+    transpose),
+  exact (continuous_update_column k).comp
+    (continuous.comp (continuous_id.prod_mk continuous_const) continuous_transpose),
 end
 
 end matrix

@@ -174,7 +174,7 @@ instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]
         ≤ finset.univ.sup ((λ i, ∥x i∥₊) * (λ i, ∥y i∥₊)) :
             finset.sup_mono_fun $ λ b hb, norm_mul_le _ _
     ... ≤ finset.univ.sup (λ i, ∥x i∥₊) * finset.univ.sup (λ i, ∥y i∥₊) :
-            finset.sup_mul_le_mul_sup (λ i, nnreal.coe_nonneg _) (λ i, nnreal.coe_nonneg _) _,
+            finset.sup_mul_le_mul_sup_of_nonneg _ (λ i _, zero_le _) (λ i _, zero_le _),
   ..pi.semi_normed_group }
 
 /-- Seminormed group instance (using sup norm of sup norm) for matrices over a seminormed ring. Not

@@ -44,11 +44,9 @@ lemma irreducible.not_square [comm_monoid R] {x : R} (h : irreducible x) :
   ¬square x :=
 begin
   rintros ⟨y, hy⟩,
-  rcases h.is_unit_or_is_unit hy.symm with hu | hu,
-  { rw ← hy at h,
-    exact h.not_unit (hu.mul hu), },
-  { rw ← hy at h,
-    exact h.not_unit (hu.mul hu), },
+  rcases h.is_unit_or_is_unit hy.symm with hu | hu;
+  rw ← hy at h;
+  exact h.not_unit (hu.mul hu)
 end
 
 @[simp]

@@ -13,7 +13,8 @@ This file is a place to collect topological results about matrices.
 
 ## Main definitions:
 
- * `continuous_det`: the determinant is continuous over a topological ring.
+ * `matrix.topological_ring`: square matrices form a topological ring
+ * `matrix.continuous_det`: the determinant is continuous over a topological ring.
 -/
 
 open matrix
@@ -49,6 +50,18 @@ continuous_matrix $ λ i j, continuous_apply _
 lemma continuous_col : continuous (col : (n → R) → matrix n unit R) :=
 continuous_matrix $ λ i j, continuous_apply _
 
+lemma continuous_transpose :
+  continuous (transpose : matrix m n R → matrix n m R) :=
+continuous_matrix $ λ i j, continuous_matrix_elem _ _
+
+/-! TODO: add a `has_continuous_star` typeclass so we can write
+```
+lemma continuous_conj_transpose [has_star R] :
+  continuous (conj_transpose : matrix m n R → matrix n m R) :=
+continuous_matrix $ λ i j, continuous.comp sorry (continuous_matrix_elem _ _)
+```
+-/
+
 lemma continuous_diag [semiring S] [add_comm_monoid R] [module S R] :
   continuous (matrix.diag n S R) :=
 continuous_pi (λ _, continuous_matrix_elem _ _)
@@ -64,12 +77,21 @@ lemma continuous_dot_product [fintype n] [has_mul R] [add_comm_monoid R] [has_co
 continuous_finset_sum _ $ λ i _,
   ((continuous_apply i).comp continuous_fst).mul ((continuous_apply i).comp continuous_snd)
 
+/-- Note this refers to `matrix.mul`, for square matrices the usual `continuous_mul` can be used. -/
 lemma continuous_mul [fintype n] [has_mul R] [add_comm_monoid R] [has_continuous_add R]
   [has_continuous_mul R] :
   continuous (λ A : matrix m n R × matrix n p R, A.1.mul A.2) :=
 continuous_matrix $ λ i j, continuous_finset_sum _ $ λ k _,
   ((continuous_matrix_elem _ _).comp continuous_fst).mul
     ((continuous_matrix_elem _ _).comp continuous_snd)
+
+instance [fintype n] [has_mul R] [add_comm_monoid R] [has_continuous_add R]
+  [has_continuous_mul R] : has_continuous_mul (matrix n n R) :=
+⟨continuous_mul⟩
+
+instance [fintype n] [decidable_eq n] [semiring R] [topological_ring R] :
+  topological_ring (matrix n n R) :=
+{ ..pi.has_continuous_add }
 
 lemma continuous_minor (e₁ : m → l) (e₂ : p → n) :
   continuous (λ A : matrix l n R, A.minor e₁ e₂) :=
@@ -79,14 +101,13 @@ lemma continuous_reindex (e₁ : l ≃ m) (e₂ : n ≃ p) :
   continuous (reindex e₁ e₂ : matrix l n R → matrix m p R) :=
 continuous_minor _ _
 
-end matrix
-
-variables [fintype n] [decidable_eq n] [comm_ring R] [topological_ring R]
-
-lemma continuous_det : continuous (det : matrix n n R → R) :=
+lemma continuous_det [fintype n] [decidable_eq n] [comm_ring R] [topological_ring R] :
+  continuous (det : matrix n n R → R) :=
 begin
   show continuous (λ A : matrix n n R, A.det),
   simp_rw matrix.det_apply,
   refine continuous_finset_sum _ (λ l _, continuous.const_smul _ _),
   refine continuous_finset_prod _ (λ l _, continuous_matrix_elem _ _),
 end
+
+end matrix

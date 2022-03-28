@@ -257,7 +257,7 @@ begin
     { change continuous ((linear_map.to_matrix b b).to_linear_map.comp
         (continuous_linear_map.coe_lm 𝕜)),
       exact linear_map.continuous_of_finite_dimensional _ },
-    convert continuous_det.comp A,
+    convert matrix.continuous_det.comp A,
     ext f,
     congr },
   { unfold linear_map.det,

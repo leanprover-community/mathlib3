@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Oliver Nash
 -/
 import tactic.abel
+import algebra.module.basic  -- needed to empower `mul_smul_comm` and `smul_mul_assoc`
 
 namespace tactic
 namespace interactive
@@ -26,7 +27,7 @@ meta def noncomm_ring :=
              -- Replace multiplication by numerals with `zsmul`.
              bit0_mul, mul_bit0, bit1_mul, mul_bit1, one_mul, mul_one, zero_mul, mul_zero,
              -- Pull `zsmul n` out the front so `abel` can see them.
-             mul_smul_comm (_ : ℤ), smul_mul_assoc (_ : ℤ),
+             mul_smul_comm, smul_mul_assoc,
              -- Pull out negations.
              neg_mul, mul_neg] {fail_if_unchanged := ff};
   abel]

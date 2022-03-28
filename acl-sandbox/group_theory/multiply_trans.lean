@@ -633,10 +633,10 @@ begin
     cases nat.eq_zero_or_pos i,
     { apply or.intro_left,
       change _ = (⟨0,_⟩ : fin 2),
-      rw fin.mk.inj_iff , exact h, },
+      rw fin.mk.inj_iff , exact h_2, },
     { apply or.intro_right,
       change _ = (⟨1,_⟩ : fin 2),
-      rw fin.mk.inj_iff , exact le_antisymm hi h } },
+      rw fin.mk.inj_iff, exact le_antisymm hi h_2 } },
   have hy : function.injective y,
   { intros i j hij,
     cases this i with hi hi;

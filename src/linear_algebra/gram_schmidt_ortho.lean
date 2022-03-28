@@ -268,13 +268,15 @@ begin
           refine ⟨a, ha₂, by refl⟩ },
         have h₄ : gram_schmidt_process 𝕜 f '' Iic c
           ⊆ span 𝕜 (gram_schmidt_process 𝕜 f '' Iic c) := subset_span,
-        have h₅ : gram_schmidt_process 𝕜 f a ∈ span 𝕜 (gram_schmidt_process 𝕜 f '' Iic c) := h₄ ha₁,
+        have h₅ : gram_schmidt_process 𝕜 f a
+          ∈ span 𝕜 (gram_schmidt_process 𝕜 f '' Iic c) := h₄ ha₁,
         exact smul_mem (span 𝕜 (gram_schmidt_process 𝕜 f '' Iic c))
           ((⟪gram_schmidt_process 𝕜 f a, f (c + 1)⟫ / ∥gram_schmidt_process 𝕜 f a∥ ^ 2) : 𝕜) h₅ },
       have h₅ := span_gram_schmidt_process 𝕜 f c,
       rw [h₅, ← h₃] at h₄,
       have h₆ : (c + 1) ∉ Iic c
-        := by simp only [mem_Iic, add_le_iff_nonpos_right, le_zero_iff, nat.one_ne_zero, not_false_iff],
+        := by simp only [mem_Iic, add_le_iff_nonpos_right,
+          le_zero_iff, nat.one_ne_zero, not_false_iff],
       have h₇ := linear_independent.not_mem_span_image h₀ h₆,
       apply h₇,
       exact h₄ }}

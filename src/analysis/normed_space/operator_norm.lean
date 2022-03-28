@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 -/
 import algebra.algebra.tower
+import analysis.asymptotics.asymptotics
 import analysis.normed_space.linear_isometry
 import analysis.normed_space.riesz_lemma
 
@@ -1612,9 +1613,9 @@ include σ₂₁
 lemma linear_equiv.uniform_embedding (e : E ≃ₛₗ[σ₁₂] F) (h₁ : continuous e)
   (h₂ : continuous e.symm) : uniform_embedding e :=
 continuous_linear_equiv.uniform_embedding
-{ continuous_to_fun := h₁,
+({ continuous_to_fun := h₁,
   continuous_inv_fun := h₂,
-  .. e }
+  .. e } : E ≃SL[σ₁₂] F)
 
 omit σ₂₁
 

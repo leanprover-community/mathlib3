@@ -5,8 +5,7 @@ Authors: Floris van Doorn
 -/
 import measure_theory.measure.measure_space
 import measure_theory.measure.regular
-import topology.opens
-import topology.compacts
+import topology.sets.compacts
 
 /-!
 # Contents

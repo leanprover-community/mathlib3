@@ -93,6 +93,9 @@ instance has_mul : has_mul (special_linear_group n R) :=
 instance has_one : has_one (special_linear_group n R) :=
 ⟨⟨1, det_one⟩⟩
 
+instance : has_pow (special_linear_group n R) ℕ :=
+{ pow := λ x n, ⟨x ^ n, (det_pow _ _).trans $ x.prop.symm ▸ one_pow _⟩}
+
 instance : inhabited (special_linear_group n R) := ⟨1⟩
 
 section coe_lemmas
@@ -111,6 +114,8 @@ rfl
 
 @[simp] lemma det_coe : det ↑ₘA = 1 := A.2
 
+@[simp] lemma coe_pow (m : ℕ) : ↑ₘ(A ^ m) = ↑ₘA ^ m := rfl
+
 lemma det_ne_zero [nontrivial R] (g : special_linear_group n R) :
   det ↑ₘg ≠ 0 :=
 by { rw g.det_coe, norm_num }
@@ -122,7 +127,7 @@ lemma row_ne_zero [nontrivial R] (g : special_linear_group n R) (i : n):
 end coe_lemmas
 
 instance : monoid (special_linear_group n R) :=
-function.injective.monoid coe subtype.coe_injective coe_one coe_mul
+function.injective.monoid coe subtype.coe_injective coe_one coe_mul coe_pow
 
 instance : group (special_linear_group n R) :=
 { mul_left_inv := λ A, by { ext1, simp [adjugate_mul] },

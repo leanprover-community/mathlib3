@@ -57,7 +57,6 @@ lemma prime.not_square [cancel_comm_monoid_with_zero R] {x : R} (h : prime x) :
 lemma square_mul_of_square_of_square {R : Type*} [comm_monoid R] {m n : R} :
   square m → square n → square (m * n) :=
 λ ⟨c, hc⟩ ⟨d, hd⟩, ⟨c * d, by assoc_rw [mul_comm d c, hc, hd]⟩
-end
 
 section factorization
 

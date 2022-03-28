@@ -375,7 +375,7 @@ end gamma_integral_recurrence
 
 section gamma_def
 
-/- This function is `Γ(s)` if `1-n ≤ s.re`, and junk otherwise .-/
+/-- This function is `Γ(s)` if `1-n ≤ s.re`, and junk otherwise. -/
 noncomputable def gamma_aux : ℕ → (ℂ → ℂ)
 | 0      := gamma_complex_integral
 | (n+1)  := λ s:ℂ, (gamma_aux n (s+1)) / s
@@ -550,21 +550,23 @@ begin
   by_cases (1 ≤ x),
   { suffices: ∥ dgamma_integrand t x ∥ ≤ dgamma_integrand_real s2 x, -- case 1 ≤ x
     { have: 0 ≤ dgamma_integrand_real s1 x := by apply abs_nonneg, linarith, },
-    rw [dgamma_integrand, dgamma_integrand_real, complex.norm_eq_abs, complex.abs_mul,
-    complex.abs_mul, abs_mul, abs_mul, complex.abs_of_real, complex.abs_of_real],
-    refine mul_le_mul_of_nonneg_left _ (mul_nonneg (abs_nonneg $ exp $ -x) (abs_nonneg $ log x)),
-    rw abs_cpow_of_pos_real (t-1) hx,
+    rw [dgamma_integrand, dgamma_integrand_real, complex.norm_eq_abs, complex.abs_mul, abs_mul,
+      ←complex.of_real_mul, complex.abs_of_real],
+    refine mul_le_mul_of_nonneg_left _ (abs_nonneg _),
+    rw abs_cpow_of_pos_real _ hx,
     refine le_trans _ (le_abs_self _),
-    apply rpow_le_rpow_of_exponent_le h, rw [complex.sub_re, complex.one_re], linarith, },
-  { simp only [not_le] at h, -- case x < 1
+    apply rpow_le_rpow_of_exponent_le h,
+    rw [complex.sub_re, complex.one_re], linarith, },
+  { push_neg at h, -- case x < 1
     suffices: ∥ dgamma_integrand t x ∥ ≤ dgamma_integrand_real s1 x,
     { have : 0 ≤ dgamma_integrand_real s2 x := by apply abs_nonneg, linarith, },
-    rw [dgamma_integrand, dgamma_integrand_real, complex.norm_eq_abs, complex.abs_mul,
-    complex.abs_mul, abs_mul, abs_mul, complex.abs_of_real, complex.abs_of_real],
-    refine mul_le_mul_of_nonneg_left _ (mul_nonneg (abs_nonneg $ exp $ -x) (abs_nonneg $ log x)),
-    rw abs_cpow_of_pos_real, swap, exact hx,
+    rw [dgamma_integrand, dgamma_integrand_real, complex.norm_eq_abs, complex.abs_mul, abs_mul,
+      ←complex.of_real_mul, complex.abs_of_real],
+    refine mul_le_mul_of_nonneg_left _ (abs_nonneg _),
+    rw abs_cpow_of_pos_real _ hx,
     refine le_trans _ (le_abs_self _),
-    apply rpow_le_rpow_of_exponent_ge hx h.le,rw [complex.sub_re, complex.one_re], linarith, },
+    apply rpow_le_rpow_of_exponent_ge hx h.le,
+    rw [complex.sub_re, complex.one_re], linarith, },
 end
 
 open complex

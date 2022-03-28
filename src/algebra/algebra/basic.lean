@@ -814,6 +814,8 @@ rfl
 
 @[simp] lemma to_fun_eq_coe (e : A₁ ≃ₐ[R] A₂) : e.to_fun = e := rfl
 
+@[simp] lemma to_equiv_eq_coe : e.to_equiv = e := rfl
+
 @[simp] lemma to_ring_equiv_eq_coe : e.to_ring_equiv = e := rfl
 
 @[simp, norm_cast] lemma coe_ring_equiv : ((e : A₁ ≃+* A₂) : A₁ → A₂) = e := rfl

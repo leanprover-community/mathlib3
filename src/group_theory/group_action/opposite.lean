@@ -82,8 +82,7 @@ See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_a
 @[simp, to_additive] lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
 
 /-- The right regular action of a group on itself is transitive. -/
-@[to_additive add_action.opposite_regular.is_pretransitive
-"The right regular action of an additive group on itself is transitive."]
+@[to_additive "The right regular action of an additive group on itself is transitive."]
 instance mul_action.opposite_regular.is_pretransitive {G : Type*} [group G] :
   mul_action.is_pretransitive Gᵐᵒᵖ G :=
 ⟨λ x y, ⟨op (x⁻¹ * y), mul_inv_cancel_left _ _⟩⟩

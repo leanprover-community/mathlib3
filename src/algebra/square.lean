@@ -118,10 +118,9 @@ of `nat.factorization` in this proof. -/
 lemma square_mul {m n : ℕ} (hmn : m.coprime n) :
   square (m * n) ↔ square m ∧ square n :=
 begin
-  split,
-  { intros hsquare,
-    exact ⟨square.of_mul_left hmn hsquare, square.of_mul_right hmn hsquare⟩, },
-  { rintros ⟨hm, hn⟩, exact square_mul_of_square_of_square hm hn, },
+  refine ⟨_, λ ⟨hm, hn⟩, square_mul_of_square_of_square hm hn⟩,
+  intros hsquare,
+  exact ⟨square.of_mul_left hmn hsquare, square.of_mul_right hmn hsquare⟩,
 end
 
 lemma square_prime_pow_iff_pow_even : ∀ (p i : ℕ), nat.prime p → (square (p ^ i) ↔ even i) :=
@@ -129,18 +128,15 @@ begin
   intros p i hp,
   split,
   { rintros ⟨s, hs⟩,
-    have : s ∣ p ^ i,
-      calc s ∣ s * s : dvd_mul_left s s
-        ... = p ^ i : hs,
-    rw nat.dvd_prime_pow hp at this,
+    have := dvd_mul_left s s,
+    rw [hs, nat.dvd_prime_pow hp] at this,
     rcases this with ⟨k, hk, s_eq⟩,
     rw [s_eq, ←pow_add] at hs,
     have aa : (p ^ (k + k)).factorization p = k + k, { simp [hp.factorization_pow], },
     have bb : (p ^ i).factorization p = i, { simp [hp.factorization_pow], },
     have : i = k + k, { rw [←aa, ←bb, hs], },
     rw this,
-    use k,
-    exact (two_mul k).symm, },
+    exact ⟨k, (two_mul k).symm⟩, },
   { rintros ⟨k, hk⟩,
     use p ^ k,
     rw [hk, pow_mul, pow_two, mul_pow], },

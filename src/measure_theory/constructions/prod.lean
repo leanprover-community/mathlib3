@@ -253,7 +253,8 @@ lemma measure_theory.strongly_measurable.integral_prod_right [sigma_finite ν] �
 begin
   letI : measurable_space E := borel E,
   haveI : borel_space E := ⟨rfl⟩,
-  haveI : separable_space (range (uncurry f) ∪ {0} : set E) := hf.separable_space_range_union,
+  haveI : separable_space (range (uncurry f) ∪ {0} : set E) :=
+    hf.separable_space_range_union_singleton,
   let s : ℕ → simple_func (α × β) E := simple_func.approx_on _ hf.measurable
     (range (uncurry f) ∪ {0}) 0 (by simp),
   let s' : ℕ → α → simple_func β E := λ n x, (s n).comp (prod.mk x) measurable_prod_mk_left,

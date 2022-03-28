@@ -41,7 +41,8 @@ lemma mem_ℒp.fin_strongly_measurable_of_strongly_measurable
 begin
   letI : measurable_space G := borel G,
   haveI : borel_space G := ⟨rfl⟩,
-  haveI : separable_space (set.range f ∪ {0} : set G) := hf_meas.separable_space_range_union,
+  haveI : separable_space (set.range f ∪ {0} : set G) :=
+    hf_meas.separable_space_range_union_singleton,
   let fs := simple_func.approx_on f hf_meas.measurable (set.range f ∪ {0}) 0 (by simp),
   refine ⟨fs, _, _⟩,
   { have h_fs_Lp : ∀ n, mem_ℒp (fs n) p μ,

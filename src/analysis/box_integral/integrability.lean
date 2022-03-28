@@ -201,7 +201,7 @@ begin
   haveI : borel_space E := ⟨rfl⟩,
   /- First we replace an `ae_strongly_measurable` function by a measurable one. -/
   rcases hf.ae_strongly_measurable with ⟨g, hg, hfg⟩,
-  haveI : separable_space (range g ∪ {0} : set E) := hg.separable_space_range_union,
+  haveI : separable_space (range g ∪ {0} : set E) := hg.separable_space_range_union_singleton,
   rw integral_congr_ae hfg, have hgi : integrable_on g I μ := (integrable_congr hfg).1 hf,
   refine box_integral.has_integral.congr_ae _ hfg.symm hl,
   clear_dependent f,

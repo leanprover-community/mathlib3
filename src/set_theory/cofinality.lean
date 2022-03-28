@@ -187,7 +187,7 @@ begin
     { rwa [←typein_le_typein, typein_enum] } },
   { rcases cof_eq (<) with ⟨S, hS, hS'⟩,
     let f : S → ordinal := λ s, typein (<) s.val,
-    refine ⟨S, f, le_antisymm (lsub_le.2 (λ i, typein_lt_self i)) (le_of_forall_lt (λ a ha, _)),
+    refine ⟨S, f, le_antisymm (lsub_le (λ i, typein_lt_self i)) (le_of_forall_lt (λ a ha, _)),
       by rwa type_lt o at hS'⟩,
     rw ←type_lt o at ha,
     rcases hS (enum (<) a ha) with ⟨b, hb, hb'⟩,
@@ -219,6 +219,43 @@ by { rw cof_eq_Inf_lsub, exact cInf_le' card_mem_cof }
 
 theorem cof_ord_le (c : cardinal) : cof c.ord ≤ c :=
 by simpa using cof_le_card c.ord
+
+theorem ord_cof_le (o : ordinal.{u}) : o.cof.ord ≤ o :=
+(ord_le_ord.2 (cof_le_card o)).trans (ord_card_le o)
+
+theorem exists_lsub_cof (o : ordinal) : ∃ {ι} (f : ι → ordinal), lsub.{u u} f = o ∧ #ι = cof o :=
+by { rw cof_eq_Inf_lsub, exact Inf_mem (cof_lsub_def_nonempty o) }
+
+theorem cof_lsub_le {ι} (f : ι → ordinal) : cof (lsub.{u u} f) ≤ #ι :=
+by { rw cof_eq_Inf_lsub, exact cInf_le' ⟨ι, f, rfl, rfl⟩ }
+
+theorem le_cof_iff_lsub {o : ordinal} {a : cardinal} :
+  a ≤ cof o ↔ ∀ {ι} (f : ι → ordinal), lsub.{u u} f = o → a ≤ #ι :=
+begin
+  rw cof_eq_Inf_lsub,
+  exact (le_cInf_iff'' (cof_lsub_def_nonempty o)).trans ⟨λ H ι f hf, H _ ⟨ι, f, hf, rfl⟩,
+    λ H b ⟨ι, f, hf, hb⟩, ( by { rw ←hb, exact H _ hf} )⟩
+end
+
+theorem exists_blsub_cof (o : ordinal) : ∃ (f : Π a < (cof o).ord, ordinal), blsub.{u u} _ f = o :=
+begin
+  rcases exists_lsub_cof o with ⟨ι, f, hf, hι⟩,
+  rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
+  rw ←@blsub_eq_lsub' ι r hr at hf,
+  rw [←hι, hι'],
+  exact ⟨_, hf⟩
+end
+
+theorem cof_blsub_le {o} (f : Π a < o, ordinal) : cof (blsub.{u u} o f) ≤ o.card :=
+by { convert cof_lsub_le _, exact (mk_ordinal_out o).symm }
+
+theorem le_cof_iff_blsub {b : ordinal} {a : cardinal} :
+  a ≤ cof b ↔ ∀ {o} (f : Π a < o, ordinal), blsub.{u u} o f = b → a ≤ o.card :=
+le_cof_iff_lsub.trans ⟨λ H o f hf, by simpa using H _ hf, λ H ι f hf, begin
+  rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
+  rw ←@blsub_eq_lsub' ι r hr at hf,
+  simpa using H _ hf
+end⟩
 
 @[simp] theorem cof_zero : cof 0 = 0 :=
 (cof_le_card 0).antisymm (cardinal.zero_le _)
@@ -350,7 +387,7 @@ begin
     ⟨embedding.of_surjective _ _⟩,
   { intro a, by_contra h,
     apply not_le_of_lt (typein_lt_type r a),
-    rw [← e', sup_le],
+    rw [← e', sup_le_iff],
     intro i,
     have h : ∀ (x : ι), r (enum r (f x) _) a, { simpa using h },
     simpa only [typein_enum] using le_of_lt ((typein_lt_typein r).2 (h i)) },
@@ -401,7 +438,7 @@ theorem sup_lt_ord {ι} (f : ι → ordinal) {c : ordinal} (H1 : #ι < c.cof)
   (H2 : ∀ i, f i < c) : sup.{u u} f < c :=
 begin
   apply lt_of_le_of_ne,
-  { rw [sup_le], exact λ i, le_of_lt (H2 i) },
+  { rw sup_le_iff, exact λ i, (H2 i).le },
   rintro h, apply not_le_of_lt H1,
   simpa [sup_ord, H2, h] using cof_sup_le.{u} f
 end

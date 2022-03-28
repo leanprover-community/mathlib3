@@ -342,11 +342,21 @@ by induction n with n ih; [rw [zero_nsmul, nat.cast_zero, mul_zero],
 @[simp] theorem nsmul_eq_mul [semiring R] (n : ℕ) (a : R) : n • a = n * a :=
 by rw [nsmul_eq_mul', (n.cast_commute a).eq]
 
-theorem mul_nsmul_left [semiring R] (a b : R) (n : ℕ) : n • (a * b) = a * (n • b) :=
-by rw [nsmul_eq_mul', nsmul_eq_mul', mul_assoc]
+/-- Note that `add_comm_monoid.nat_smul_comm_class` requires stronger assumptions on `R`. -/
+instance non_unital_non_assoc_semiring.nat_smul_comm_class [non_unital_non_assoc_semiring R] :
+  smul_comm_class ℕ R R :=
+⟨λ n x y, match n with
+  | 0 := by simp_rw [zero_nsmul, smul_eq_mul, mul_zero]
+  | (n + 1) := by simp_rw [succ_nsmul, smul_eq_mul, mul_add, ←smul_eq_mul, _match n]
+  end⟩
 
-theorem mul_nsmul_assoc [semiring R] (a b : R) (n : ℕ) : n • (a * b) = n • a * b :=
-by rw [nsmul_eq_mul, nsmul_eq_mul, mul_assoc]
+/-- Note that `add_comm_monoid.nat_is_scalar_tower` requires stronger assumptions on `R`. -/
+instance non_unital_non_assoc_semiring.nat_is_scalar_tower [non_unital_non_assoc_semiring R] :
+  is_scalar_tower ℕ R R :=
+⟨λ n x y, match n with
+  | 0 := by simp_rw [zero_nsmul, smul_eq_mul, zero_mul]
+  | (n + 1) := by simp_rw [succ_nsmul, ←_match n, smul_eq_mul, add_mul]
+  end⟩
 
 @[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
@@ -383,11 +393,21 @@ by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 theorem zsmul_eq_mul' [ring R] (a : R) (n : ℤ) : n • a = a * n :=
 by rw [zsmul_eq_mul, (n.cast_commute a).eq]
 
-theorem mul_zsmul_left [ring R] (a b : R) (n : ℤ) : n • (a * b) = a * (n • b) :=
-by rw [zsmul_eq_mul', zsmul_eq_mul', mul_assoc]
+/-- Note that `add_comm_group.int_smul_comm_class` requires stronger assumptions on `R`. -/
+instance non_unital_non_assoc_ring.int_smul_comm_class [non_unital_non_assoc_ring R] :
+  smul_comm_class ℤ R R :=
+⟨λ n x y, match n with
+  | (n : ℕ) := by simp_rw [coe_nat_zsmul, smul_comm]
+  | -[1+n]  := by simp_rw [zsmul_neg_succ_of_nat, smul_eq_mul, mul_neg, mul_smul_comm]
+  end⟩
 
-theorem mul_zsmul_assoc [ring R] (a b : R) (n : ℤ) : n • (a * b) = n • a * b :=
-by rw [zsmul_eq_mul, zsmul_eq_mul, mul_assoc]
+/-- Note that `add_comm_group.int_is_scalar_tower` requires stronger assumptions on `R`. -/
+instance non_unital_non_assoc_ring.int_is_scalar_tower [non_unital_non_assoc_ring R] :
+  is_scalar_tower ℤ R R :=
+⟨λ n x y, match n with
+  | (n : ℕ) := by simp_rw [coe_nat_zsmul, smul_assoc]
+  | -[1+n]  := by simp_rw [zsmul_neg_succ_of_nat, smul_eq_mul, neg_mul, smul_mul_assoc]
+  end⟩
 
 lemma zsmul_int_int (a b : ℤ) : a • b = a * b := by simp
 

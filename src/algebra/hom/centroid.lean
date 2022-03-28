@@ -144,8 +144,8 @@ instance : has_mul (centroid_hom α) := ⟨comp⟩
 
 instance has_scalar_nat : has_scalar ℕ (centroid_hom α) :=
 ⟨λ n f, ⟨n • f,
-  λ a b, by { change n • f (a * b) = a * n • f b, rw [map_mul_left f, mul_nsmul_left] },
-  λ a b, by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, mul_nsmul_assoc] }⟩⟩
+  λ a b, by { change n • f (a * b) = a * n • f b, rw [map_mul_left f, mul_smul_comm] },
+  λ a b, by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, smul_mul_assoc] }⟩⟩
 
 instance has_npow_nat : has_pow (centroid_hom α) ℕ :=
 ⟨λ f n, ⟨(f.to_End ^ n : add_monoid.End α), λ a b, begin
@@ -201,8 +201,8 @@ instance : has_sub (centroid_hom α) :=
 
 instance has_scalar_int : has_scalar ℤ (centroid_hom α) :=
 ⟨λ n f, ⟨n • f,
-  λ a b, by { change n • f (a * b) = a * n • f b, rw [map_mul_left f, mul_zsmul_left] },
-  λ a b, by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, mul_zsmul_assoc] }⟩⟩
+  λ a b, by { change n • f (a * b) = a * n • f b, rw [map_mul_left f, mul_smul_comm] },
+  λ a b, by { change n • f (a * b) = n • f a * b, rw [map_mul_right f, smul_mul_assoc] }⟩⟩
 
 instance : add_comm_group (centroid_hom α) :=
 to_End_injective.add_comm_group _ (by { ext, refl }) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)

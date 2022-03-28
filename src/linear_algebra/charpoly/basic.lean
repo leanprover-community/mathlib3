@@ -69,7 +69,7 @@ lemma minpoly_dvd_charpoly {K : Type u} {M : Type v} [field K] [add_comm_group M
   [finite_dimensional K M] (f : M →ₗ[K] M) : minpoly K f ∣ f.charpoly :=
 minpoly.dvd _ _ (aeval_self_charpoly f)
 
-/-- Any endomorphism polynomial `p` is equivalence under evaluation to `p %ₘ f.charpoly`; that is,
+/-- Any endomorphism polynomial `p` is equivalent under evaluation to `p %ₘ f.charpoly`; that is,
 `p` is equivalent to a polynomial with degree less than the dimension of the module. -/
 lemma aeval_eq_aeval_mod_charpoly (p : R[X]) : aeval f p = aeval f (p %ₘ f.charpoly) :=
 (aeval_mod_by_monic_eq_self_of_root f.charpoly_monic f.aeval_self_charpoly).symm

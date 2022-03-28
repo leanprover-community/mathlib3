@@ -456,11 +456,23 @@ end
 
 end gamma_def
 
+
+/- Now check that the gamma function is differentiable, wherever this makes sense. -/
+
 section gamma_has_deriv
 
+/- The following definitions probably ought to be private in some way -/
+
+/-- Integrand for the complex gamma function -/
 def integrand (s : ℂ) (x : ℝ) : ℂ := exp(-x) * x^(s-1)
+
+/-- Integrand for the complex gamma function -/
 def integrand_real (s x : ℝ) : ℝ := exp(-x) * x^(s-1)
+
+/-- Integrand for the derivative of the complex gamma function -/
 def dgamma_integrand (s : ℂ) (x : ℝ) : ℂ := exp(-x) * log x * x^(s-1)
+
+/-- Abs value of the complex gamma function integrand -/
 def dgamma_integrand_real (s x : ℝ) : ℝ := | exp(-x) * log x * x^(s-1) |
 
 lemma dgamma_integrand_is_O_at_top (s : ℝ) : asymptotics.is_O (λ x:ℝ, exp(-x) * log x * x^(s-1))

@@ -15,6 +15,7 @@ import topology.instances.ereal
 import topology.G_delta
 import topology.order.lattice
 import topology.semicontinuous
+import topology.metric_space.metrizable
 
 /-!
 # Borel (measurable) space
@@ -1494,7 +1495,7 @@ variable [measurable_space α]
 
 @[measurability]
 lemma measurable_real_to_nnreal : measurable (real.to_nnreal) :=
-nnreal.continuous_of_real.measurable
+continuous_real_to_nnreal.measurable
 
 @[measurability]
 lemma measurable.real_to_nnreal {f : α → ℝ} (hf : measurable f) :
@@ -1602,7 +1603,7 @@ instance : has_measurable_sub₂ ℝ≥0∞ :=
 ⟨by apply measurable_of_measurable_nnreal_nnreal;
   simp [← with_top.coe_sub, continuous_sub.measurable.coe_nnreal_ennreal]⟩
 
-instance : has_measurable_inv ℝ≥0∞ := ⟨ennreal.continuous_inv.measurable⟩
+instance : has_measurable_inv ℝ≥0∞ := ⟨continuous_inv.measurable⟩
 
 end ennreal
 
@@ -1800,8 +1801,7 @@ lemma measurable_of_tendsto_nnreal {f : ℕ → α → ℝ≥0} {g : α → ℝ�
 measurable_of_tendsto_nnreal' at_top hf lim
 
 /-- A limit (over a general filter) of measurable functions valued in a metric space is measurable.
-The assumption `hs` can be dropped using `filter.is_countably_generated.has_antitone_basis`, but we
-don't need that case yet. -/
+-/
 lemma measurable_of_tendsto_metric' {ι} {f : ι → α → β} {g : α → β}
   (u : filter ι) [ne_bot u] [is_countably_generated u]
   (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
@@ -1824,24 +1824,48 @@ lemma measurable_of_tendsto_metric {f : ℕ → α → β} {g : α → β}
   measurable g :=
 measurable_of_tendsto_metric' at_top hf lim
 
-lemma ae_measurable_of_tendsto_metric_ae {ι : Type*} [hι : nonempty ι] [encodable ι]
-  {μ : measure α} {f : ι → α → β} {g : α → β}
+/-- A limit (over a general filter) of measurable functions valued in a metrizable space is
+measurable. -/
+lemma measurable_of_tendsto_metrizable'
+  {β : Type*} [topological_space β] [metrizable_space β]
+  [measurable_space β] [borel_space β] {ι} {f : ι → α → β} {g : α → β}
   (u : filter ι) [ne_bot u] [is_countably_generated u]
+  (hf : ∀ i, measurable (f i)) (lim : tendsto f u (𝓝 g)) :
+  measurable g :=
+begin
+  letI : metric_space β := metrizable_space_metric β,
+  exact measurable_of_tendsto_metric' u hf lim
+end
+
+/-- A sequential limit of measurable functions valued in a metrizable space is measurable. -/
+lemma measurable_of_tendsto_metrizable {β : Type*} [topological_space β] [metrizable_space β]
+  [measurable_space β] [borel_space β] {f : ℕ → α → β} {g : α → β}
+  (hf : ∀ i, measurable (f i)) (lim : tendsto f at_top (𝓝 g)) :
+  measurable g :=
+measurable_of_tendsto_metrizable' at_top hf lim
+
+lemma ae_measurable_of_tendsto_metric_ae {ι : Type*}
+  {μ : measure α} {f : ι → α → β} {g : α → β}
+  (u : filter ι) [hu : ne_bot u] [is_countably_generated u]
   (hf : ∀ n, ae_measurable (f n) μ) (h_tendsto : ∀ᵐ x ∂μ, tendsto (λ n, f n x) u (𝓝 (g x))) :
   ae_measurable g μ :=
 begin
-  set p : α → (ι → β) → Prop := λ x f', tendsto (λ n, f' n) u (𝓝 (g x)),
-  have hp : ∀ᵐ x ∂μ, p x (λ n, f n x) := h_tendsto,
-  set ae_seq_lim := λ x, ite (x ∈ ae_seq_set hf p) (g x) (⟨f hι.some x⟩ : nonempty β).some with hs,
-  refine ⟨ae_seq_lim, measurable_of_tendsto_metric' u (@ae_seq.measurable α β _ _ _ f μ hf p)
+  rcases u.exists_seq_tendsto with ⟨v, hv⟩,
+  have h'f : ∀ n, ae_measurable (f (v n)) μ := λ n, hf (v n),
+  set p : α → (ℕ → β) → Prop := λ x f', tendsto (λ n, f' n) at_top (𝓝 (g x)),
+  have hp : ∀ᵐ x ∂μ, p x (λ n, f (v n) x),
+    by filter_upwards [h_tendsto] with x hx using hx.comp hv,
+  set ae_seq_lim := λ x, ite (x ∈ ae_seq_set h'f p) (g x) (⟨f (v 0) x⟩ : nonempty β).some with hs,
+  refine ⟨ae_seq_lim,
+    measurable_of_tendsto_metric' at_top (@ae_seq.measurable α β _ _ _ (λ n x, f (v n) x) μ h'f p)
     (tendsto_pi_nhds.mpr (λ x, _)), _⟩,
   { simp_rw [ae_seq, ae_seq_lim],
     split_ifs with hx,
-    { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set hf hx,
-      exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ hf x hx, },
+    { simp_rw ae_seq.mk_eq_fun_of_mem_ae_seq_set h'f hx,
+      exact @ae_seq.fun_prop_of_mem_ae_seq_set α β _ _ _ _ _ _ h'f x hx, },
     { exact tendsto_const_nhds } },
-  { exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f hι.some x⟩ : nonempty β).some)
-      (ae_seq_set hf p) (ae_seq.measure_compl_ae_seq_set_eq_zero hf hp)).symm },
+  { exact (ite_ae_eq_of_measure_compl_zero g (λ x, (⟨f (v 0) x⟩ : nonempty β).some)
+      (ae_seq_set h'f p) (ae_seq.measure_compl_ae_seq_set_eq_zero h'f hp)).symm },
 end
 
 lemma ae_measurable_of_tendsto_metric_ae' {μ : measure α} {f : ℕ → α → β} {g : α → β}

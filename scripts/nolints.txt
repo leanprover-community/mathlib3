@@ -11,19 +11,30 @@ apply_nolint CommGroup.has_limits to_additive_doc
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
 
--- algebra/group/freiman.lean
+-- algebra/group/semiconj.lean
+apply_nolint semiconj_by.one_left to_additive_doc
+apply_nolint semiconj_by.one_right to_additive_doc
+
+-- algebra/hom/equiv.lean
+apply_nolint equiv.mul_left_symm_apply to_additive_doc
+apply_nolint equiv.mul_right_symm_apply to_additive_doc
+apply_nolint mul_equiv.apply_symm_apply to_additive_doc
+apply_nolint mul_equiv.map_div to_additive_doc
+apply_nolint mul_equiv.map_inv to_additive_doc
+apply_nolint mul_equiv.map_mul to_additive_doc
+apply_nolint mul_equiv.map_one to_additive_doc
+apply_nolint mul_equiv.symm_apply_apply to_additive_doc
+apply_nolint mul_equiv.unique to_additive_doc
+
+-- algebra/hom/freiman.lean
 apply_nolint freiman_hom.has_coe_to_fun to_additive_doc
 
--- algebra/group/hom.lean
+-- algebra/hom/group.lean
 apply_nolint monoid_hom.ext_iff to_additive_doc
 apply_nolint monoid_hom.map_inv to_additive_doc
 apply_nolint monoid_hom.map_mul_inv to_additive_doc
 apply_nolint mul_hom.ext_iff to_additive_doc
 apply_nolint one_hom.comp_assoc to_additive_doc
-
--- algebra/group/semiconj.lean
-apply_nolint semiconj_by.one_left to_additive_doc
-apply_nolint semiconj_by.one_right to_additive_doc
 
 -- algebra/order/group.lean
 apply_nolint inv_le_of_inv_le' to_additive_doc
@@ -66,11 +77,6 @@ apply_nolint with_zero.canonically_ordered_add_monoid check_reducibility
 
 -- algebra/order/monoid_lemmas.lean
 apply_nolint mul_le_one' to_additive_doc
-
--- algebra/pointwise.lean
-apply_nolint set.set_semiring.comm_semiring check_reducibility
-apply_nolint set.set_semiring.non_assoc_semiring check_reducibility
-apply_nolint set.set_semiring.non_unital_non_assoc_semiring check_reducibility
 
 -- category_theory/limits/filtered_colimit_commutes_finite_limit.lean
 apply_nolint category_theory.limits.colimit_limit_to_limit_colimit_is_iso fails_quickly
@@ -221,22 +227,6 @@ apply_nolint ctop.realizer.nhds_σ unused_arguments
 apply_nolint ctop.realizer.of_equiv doc_blame
 apply_nolint ctop.to_realizer doc_blame
 apply_nolint locally_finite.realizer doc_blame has_inhabited_instance
-
--- data/equiv/list.lean
-apply_nolint encodable.fintype_arrow doc_blame
-apply_nolint encodable.fintype_pi doc_blame
-apply_nolint encodable.trunc_encodable_of_fintype doc_blame
-
--- data/equiv/mul_add.lean
-apply_nolint equiv.mul_left_symm_apply to_additive_doc
-apply_nolint equiv.mul_right_symm_apply to_additive_doc
-apply_nolint mul_equiv.apply_symm_apply to_additive_doc
-apply_nolint mul_equiv.map_div to_additive_doc
-apply_nolint mul_equiv.map_inv to_additive_doc
-apply_nolint mul_equiv.map_mul to_additive_doc
-apply_nolint mul_equiv.map_one to_additive_doc
-apply_nolint mul_equiv.symm_apply_apply to_additive_doc
-apply_nolint mul_equiv.unique to_additive_doc
 
 -- data/finset/noncomm_prod.lean
 apply_nolint finset.noncomm_prod_union_of_disjoint to_additive_doc
@@ -441,6 +431,11 @@ apply_nolint wseq.mem doc_blame
 apply_nolint wseq.tail.aux doc_blame
 apply_nolint wseq.think_congr unused_arguments
 
+-- data/set/pointwise.lean
+apply_nolint set.set_semiring.comm_semiring check_reducibility
+apply_nolint set.set_semiring.non_assoc_semiring check_reducibility
+apply_nolint set.set_semiring.non_unital_non_assoc_semiring check_reducibility
+
 -- data/stream/defs.lean
 apply_nolint stream.corec doc_blame
 apply_nolint stream.corec' doc_blame
@@ -550,6 +545,11 @@ apply_nolint affine_subspace.to_add_torsor fails_quickly
 -- linear_algebra/pi.lean
 apply_nolint function.has_scalar to_additive_doc
 apply_nolint function.smul_comm_class to_additive_doc
+
+-- logic/equiv/list.lean
+apply_nolint encodable.fintype_arrow doc_blame
+apply_nolint encodable.fintype_pi doc_blame
+apply_nolint encodable.trunc_encodable_of_fintype doc_blame
 
 -- logic/relator.lean
 apply_nolint relator.bi_total doc_blame

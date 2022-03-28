@@ -728,7 +728,7 @@ quotient.lift_on' c (λ l, match l with
     contradiction },
   { have := is_rotated_nil_iff.1 hab,
     contradiction },
-  { change chain _ _ _ = chain _ _ _,
+  { unfold chain._match_1,
     cases hab with n hn,
     induction n with d hd generalizing a b l m,
     { simp only [rotate_zero] at hn,

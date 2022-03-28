@@ -299,7 +299,8 @@ begin
   apply_fun (λ x:ℂ, -x) at int_eval,
 
   rw [interval_integral.integral_add (deriv_interval_integrable_A hs hX)
-  (deriv_interval_integrable_B hs hX), interval_integral.integral_neg, neg_add, neg_neg] at int_eval,
+    (deriv_interval_integrable_B hs hX), interval_integral.integral_neg, neg_add, neg_neg]
+    at int_eval,
   replace int_eval := eq_sub_of_add_eq int_eval,
   rw [int_eval, sub_neg_eq_add, neg_sub, add_comm, add_sub],
   simp only [sub_left_inj, add_left_inj],
@@ -573,11 +574,11 @@ begin
   let bound := (λ x:ℝ, dgamma_integrand_real (s.re - ε) x + dgamma_integrand_real (s.re + ε) x),
 
   have eps_pos: 0 < ε := by { refine div_pos _ zero_lt_two, linarith },
-  have hF_meas : ∀ᶠ (t : ℂ) in 𝓝 s, ae_measurable (integrand t) μ,
+  have hF_meas: ∀ᶠ (t : ℂ) in 𝓝 s, ae_measurable (integrand t) μ,
   { apply eventually_of_forall, intro s,
     exact continuous_on.ae_measurable cont_integrand' measurable_set_Ioi, },
-  have hF_int : measure_theory.integrable (integrand s) μ := gamma_complex_integral_convergent hs.le,
-  have hF'_meas : ae_measurable (dgamma_integrand s) μ,
+  have hF_int: measure_theory.integrable (integrand s) μ := gamma_complex_integral_convergent hs.le,
+  have hF'_meas: ae_measurable (dgamma_integrand s) μ,
   { refine continuous_on.ae_measurable _ measurable_set_Ioi,
     have : dgamma_integrand s = (λ x:ℝ, ↑(real.exp(-x)) * (↑x) ^ (s-1) * ↑ (log x) : ℝ → ℂ),
     { ext1, simp only [dgamma_integrand], ring },
@@ -586,7 +587,7 @@ begin
     apply continuous_at.continuous_on, intros x hx,
     refine continuous_at.comp continuous_of_real.continuous_at _,
     rw mem_Ioi at hx, exact continuous_at_log hx.ne', },
-  have h_bound : ∀ᵐ (x : ℝ) ∂μ, ∀ (t : ℂ), t ∈ metric.ball s ε → ∥dgamma_integrand t x∥ ≤ bound x,
+  have h_bound: ∀ᵐ (x : ℝ) ∂μ, ∀ (t : ℂ), t ∈ metric.ball s ε → ∥dgamma_integrand t x∥ ≤ bound x,
   { refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (λ x hx, _)),
     intros t ht,
     refine loc_unif_bound_dgamma_integrand _ hx,

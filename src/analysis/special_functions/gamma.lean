@@ -461,19 +461,11 @@ end gamma_def
 
 section gamma_has_deriv
 
-/- The following definitions probably ought to be private in some way -/
-
-/-- Integrand for the complex gamma function -/
-def integrand (s : ℂ) (x : ℝ) : ℂ := exp(-x) * x^(s-1)
-
-/-- Integrand for the complex gamma function -/
-def integrand_real (s x : ℝ) : ℝ := exp(-x) * x^(s-1)
-
 /-- Integrand for the derivative of the complex gamma function -/
-def dgamma_integrand (s : ℂ) (x : ℝ) : ℂ := exp(-x) * log x * x^(s-1)
+private def dgamma_integrand (s : ℂ) (x : ℝ) : ℂ := exp(-x) * log x * x^(s-1)
 
-/-- Abs value of the complex gamma function integrand -/
-def dgamma_integrand_real (s x : ℝ) : ℝ := | exp(-x) * log x * x^(s-1) |
+/-- Integrand for abslute value -/
+private def dgamma_integrand_real (s x : ℝ) : ℝ := | exp(-x) * log x * x^(s-1) |
 
 lemma dgamma_integrand_is_O_at_top (s : ℝ) : asymptotics.is_O (λ x:ℝ, exp(-x) * log x * x^(s-1))
   (λ x:ℝ, exp(-(1/2) * x) ) at_top :=
@@ -586,10 +578,10 @@ begin
   let bound := (λ x:ℝ, dgamma_integrand_real (s.re - ε) x + dgamma_integrand_real (s.re + ε) x),
 
   have eps_pos: 0 < ε := by { refine div_pos _ zero_lt_two, linarith },
-  have hF_meas: ∀ᶠ (t : ℂ) in 𝓝 s, ae_measurable (integrand t) μ,
+  have hF_meas: ∀ᶠ (t : ℂ) in 𝓝 s, ae_measurable (λ x, ↑(exp (-x)) * x ^ (t - 1) : ℝ → ℂ) μ,
   { apply eventually_of_forall, intro s,
     exact continuous_on.ae_measurable cont_integrand' measurable_set_Ioi, },
-  have hF_int: measure_theory.integrable (integrand s) μ := gamma_complex_integral_convergent hs.le,
+  have hF_int :=  gamma_complex_integral_convergent hs.le,
   have hF'_meas: ae_measurable (dgamma_integrand s) μ,
   { refine continuous_on.ae_measurable _ measurable_set_Ioi,
     have : dgamma_integrand s = (λ x:ℝ, ↑(real.exp(-x)) * (↑x) ^ (s-1) * ↑ (log x) : ℝ → ℂ),
@@ -614,10 +606,10 @@ begin
       { linarith }, { exact zero_lt_two }, },
     { refine dgamma_integral_abs_convergent (s.re + ε) _, linarith, }, },
   have h_diff : ∀ᵐ (x : ℝ) ∂μ, ∀ (t : ℂ), t ∈ metric.ball s ε
-    → has_deriv_at (λ (u : ℂ), integrand u x) (dgamma_integrand t x) t,
+    → has_deriv_at (λ (u : ℂ), ↑(-x).exp * ↑x ^ (u - 1)) (dgamma_integrand t x) t,
   { refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (λ x hx, _)),
     intros t ht, rw mem_Ioi at hx,
-    simp only [integrand, dgamma_integrand],
+    simp only [dgamma_integrand],
     rw mul_assoc,
     apply has_deriv_at.const_mul,
     rw [of_real_log hx.le, mul_comm],

@@ -89,7 +89,7 @@ by simp_rw [basis.orientation, orientation.map_apply, basis.det_map']
 
 /-- The value of `orientation.map` when the index type has the cardinality of a basis, in terms
 of `f.det`. -/
-lemma map_orientation_eq_det_inv_smul [is_domain R] (e : basis ι R M)
+lemma map_orientation_eq_det_inv_smul (e : basis ι R M)
   (x : orientation R M ι) (f : M ≃ₗ[R] M) : orientation.map ι f x = (f.det)⁻¹ • x :=
 begin
   induction x using module.ray.ind with g hg,

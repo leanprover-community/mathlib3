@@ -165,33 +165,29 @@ lemma subset_interior_mul : interior s * interior t ⊆ interior (s * t) :=
 
 end pointwise
 
-section topological_group
-
 /-!
-### Topological groups
-
-A topological group is a group in which the multiplication and inversion operations are
-continuous. Topological additive groups are defined in the same way. Equivalently, we can require
-that the division operation `λ x y, x * y⁻¹` (resp., subtraction) is continuous.
+### `has_continuous_inv` and `has_continuous_neg`
 -/
 
-/-- A topological (additive) group is a group in which the addition and negation operations are
-continuous. -/
-class topological_add_group (G : Type u) [topological_space G] [add_group G]
-  extends has_continuous_add G : Prop :=
-(continuous_neg : continuous (λa:G, -a))
+/-- Basic hypothesis to talk about a topological additive group. A topological additive group
+over `M`, for example, is obtained by requiring the instances `add_group M` and
+`has_continuous_add M` and `has_continuous_neg M`. -/
+class has_continuous_neg (G : Type u) [topological_space G] [has_neg G] : Prop :=
+(continuous_neg : continuous (λ a : G, -a))
 
-/-- A topological group is a group in which the multiplication and inversion operations are
-continuous. -/
+/-- Basic hypothesis to talk about a topological group. A topological group over `M`, for example,
+is obtained by requiring the instances `group M` and `has_continuous_mul M` and
+`has_continuous_inv M`. -/
 @[to_additive]
-class topological_group (G : Type*) [topological_space G] [group G]
-  extends has_continuous_mul G : Prop :=
-(continuous_inv : continuous (has_inv.inv : G → G))
+class has_continuous_inv (G : Type u) [topological_space G] [has_inv G] : Prop :=
+(continuous_inv : continuous (λ a : G, a⁻¹))
 
-variables [topological_space G] [group G] [topological_group G]
+export has_continuous_inv (continuous_inv)
+export has_continuous_neg (continuous_neg)
 
-export topological_group (continuous_inv)
-export topological_add_group (continuous_neg)
+section continuous_inv
+
+variables [topological_space G] [has_inv G] [has_continuous_inv G]
 
 @[to_additive]
 lemma continuous_on_inv {s : set G} : continuous_on has_inv.inv s :=
@@ -208,11 +204,6 @@ continuous_inv.continuous_at
 @[to_additive]
 lemma tendsto_inv (a : G) : tendsto has_inv.inv (𝓝 a) (𝓝 (a⁻¹)) :=
 continuous_at_inv
-
-/-- Conjugation in a topological group is continuous.-/
-@[to_additive "Conjugation in a topological additive group is continuous."]
-lemma topological_group.continuous_conj (g : G) : continuous (λ (h : G), g * h * g⁻¹) :=
-(continuous_mul_right g⁻¹).comp (continuous_mul_left g)
 
 /-- If a function converges to a value in a multiplicative topological group, then its inverse
 converges to the inverse of this value. For the version in normed fields assuming additionally
@@ -242,8 +233,139 @@ lemma continuous_within_at.inv (hf : continuous_within_at f s x) :
 hf.inv
 
 @[to_additive]
-lemma is_compact.inv {s : set G} (hs : is_compact s) : is_compact (s⁻¹) :=
+instance [topological_space H] [has_inv H] [has_continuous_inv H] : has_continuous_inv (G × H) :=
+⟨(continuous_inv.comp continuous_fst).prod_mk (continuous_inv.comp continuous_snd)⟩
+
+variable {ι : Type*}
+
+@[to_additive]
+instance pi.has_continuous_inv {C : ι → Type*} [∀ i, topological_space (C i)]
+  [∀ i, has_inv (C i)] [∀ i, has_continuous_inv (C i)] : has_continuous_inv (Π i, C i) :=
+{ continuous_inv := continuous_pi (λ i, continuous.inv (continuous_apply i)) }
+
+/-- A version of `pi.has_continuous_inv` for non-dependent functions. It is needed because sometimes
+Lean fails to use `pi.has_continuous_inv` for non-dependent functions. -/
+@[to_additive "A version of `pi.has_continuous_neg` for non-dependent functions. It is needed
+because sometimes Lean fails to use `pi.has_continuous_neg` for non-dependent functions."]
+instance pi.has_continuous_inv' : has_continuous_inv (ι → G) :=
+pi.has_continuous_inv
+
+@[priority 100, to_additive]
+instance has_continuous_inv_of_discrete_topology [topological_space H]
+  [has_inv H] [discrete_topology H] : has_continuous_inv H :=
+⟨continuous_of_discrete_topology⟩
+
+section pointwise_limits
+
+variables (G₁ G₂ : Type*) [topological_space G₂] [t2_space G₂]
+
+@[to_additive] lemma is_closed_set_of_map_inv [has_inv G₁] [has_inv G₂] [has_continuous_inv G₂] :
+  is_closed {f : G₁ → G₂ | ∀ x, f x⁻¹ = (f x)⁻¹ } :=
+begin
+  simp only [set_of_forall],
+  refine is_closed_Inter (λ i, is_closed_eq (continuous_apply _) (continuous_apply _).inv),
+end
+
+end pointwise_limits
+
+instance additive.has_continuous_neg [h : topological_space H] [has_inv H]
+  [has_continuous_inv H] : @has_continuous_neg (additive H) h _ :=
+{ continuous_neg := @continuous_inv H _ _ _ }
+
+instance multiplicative.has_continuous_inv [h : topological_space H] [has_neg H]
+  [has_continuous_neg H] : @has_continuous_inv (multiplicative H) h _ :=
+{ continuous_inv := @continuous_neg H _ _ _ }
+
+end continuous_inv
+
+@[to_additive]
+lemma is_compact.inv [topological_space G] [has_involutive_inv G] [has_continuous_inv G]
+  {s : set G} (hs : is_compact s) : is_compact (s⁻¹) :=
 by { rw [← image_inv], exact hs.image continuous_inv }
+
+section lattice_ops
+
+variables {ι' : Sort*} [has_inv G] [has_inv H] {ts : set (topological_space G)}
+  (h : Π t ∈ ts, @has_continuous_inv G t _) {ts' : ι' → topological_space G}
+  (h' : Π i, @has_continuous_inv G (ts' i) _) {t₁ t₂ : topological_space G}
+  (h₁ : @has_continuous_inv G t₁ _) (h₂ : @has_continuous_inv G t₂ _)
+  {t : topological_space H} [has_continuous_inv H]
+
+
+@[to_additive] lemma has_continuous_inv_Inf :
+  @has_continuous_inv G (Inf ts) _ :=
+{ continuous_inv := continuous_Inf_rng (λ t ht, continuous_Inf_dom ht
+  (@has_continuous_inv.continuous_inv G t _ (h t ht))) }
+
+include h'
+
+@[to_additive] lemma has_continuous_inv_infi :
+  @has_continuous_inv G (⨅ i, ts' i) _ :=
+by {rw ← Inf_range, exact has_continuous_inv_Inf (set.forall_range_iff.mpr h')}
+
+omit h'
+
+include h₁ h₂
+
+@[to_additive] lemma has_continuous_inv_inf :
+  @has_continuous_inv G (t₁ ⊓ t₂) _ :=
+by {rw inf_eq_infi, refine has_continuous_inv_infi (λ b, _), cases b; assumption}
+
+end lattice_ops
+
+section topological_group
+
+/-!
+### Topological groups
+
+A topological group is a group in which the multiplication and inversion operations are
+continuous. Topological additive groups are defined in the same way. Equivalently, we can require
+that the division operation `λ x y, x * y⁻¹` (resp., subtraction) is continuous.
+-/
+
+/-- A topological (additive) group is a group in which the addition and negation operations are
+continuous. -/
+class topological_add_group (G : Type u) [topological_space G] [add_group G]
+  extends has_continuous_add G, has_continuous_neg G : Prop
+
+/-- A topological group is a group in which the multiplication and inversion operations are
+continuous. -/
+@[to_additive]
+class topological_group (G : Type*) [topological_space G] [group G]
+  extends has_continuous_mul G, has_continuous_inv G : Prop
+
+section conj
+
+/-- we slightly weaken the type class assumptions here so that it will also apply to `ennreal`, but
+we nevertheless leave it in the `topological_group` namespace. -/
+
+variables [topological_space G] [has_inv G] [has_mul G]
+[has_continuous_mul G]
+
+/-- Conjugation is jointly continuous on `G × G` when both `mul` and `inv` are continuous. -/
+@[to_additive "Conjugation is jointly continuous on `G × G` when both `mul` and `inv` are
+continuous."]
+lemma topological_group.continuous_conj_prod [has_continuous_inv G] :
+  continuous (λ g : G × G, g.fst * g.snd * g.fst⁻¹) :=
+continuous_mul.mul (continuous_inv.comp continuous_fst)
+
+/-- Conjugation by a fixed element is continuous when `mul` is continuous. -/
+@[to_additive "Conjugation by a fixed element is continuous when `add` is continuous."]
+lemma topological_group.continuous_conj (g : G) : continuous (λ (h : G), g * h * g⁻¹) :=
+(continuous_mul_right g⁻¹).comp (continuous_mul_left g)
+
+/-- Conjugation acting on fixed element of the group is continuous when both `mul` and
+`inv` are continuous. -/
+@[to_additive "Conjugation acting on fixed element of the additive group is continuous when both
+  `add` and `neg` are continuous."]
+lemma topological_group.continuous_conj' [has_continuous_inv G]
+  (h : G) : continuous (λ (g : G), g * h * g⁻¹) :=
+(continuous_mul_right h).mul continuous_inv
+
+end conj
+
+variables [topological_space G] [group G] [topological_group G]
+[topological_space α] {f : α → G} {s : set α} {x : α}
 
 section zpow
 
@@ -254,6 +376,10 @@ lemma continuous_zpow : ∀ z : ℤ, continuous (λ a : G, a ^ z)
 
 instance add_group.has_continuous_const_smul_int {A} [add_group A] [topological_space A]
   [topological_add_group A] : has_continuous_const_smul ℤ A := ⟨continuous_zsmul⟩
+
+instance add_group.has_continuous_smul_int {A} [add_group A] [topological_space A]
+  [topological_add_group A] : has_continuous_smul ℤ A :=
+⟨continuous_uncurry_of_discrete_topology continuous_zsmul⟩
 
 @[continuity, to_additive]
 lemma continuous.zpow {f : α → G} (h : continuous f) (z : ℤ) :
@@ -997,8 +1123,9 @@ variables {ι : Sort*} [group G] [group H] {ts : set (topological_space G)}
 
 @[to_additive] lemma topological_group_Inf :
   @topological_group G (Inf ts) _ :=
-{ continuous_inv := continuous_Inf_rng (λ t ht, continuous_Inf_dom ht
-    (@topological_group.continuous_inv G t _ (h t ht))),
+{ continuous_inv := @has_continuous_inv.continuous_inv G (Inf ts) _
+    (@has_continuous_inv_Inf _ _ _
+      (λ t ht, @topological_group.to_has_continuous_inv G t _ (h t ht))),
   continuous_mul := @has_continuous_mul.continuous_mul G (Inf ts) _
     (@has_continuous_mul_Inf _ _ _
       (λ t ht, @topological_group.to_has_continuous_mul G t _ (h t ht))) }

@@ -318,7 +318,7 @@ begin
   obtain ⟨tl, tl', rfl⟩ := exists_list_nodup_eq t,
   rw list.disjoint_to_finset_iff_disjoint at h,
   simp [sl', tl', noncomm_prod_to_finset, ←list.prod_append, ←list.to_finset_append,
-        list.nodup_append_of_nodup sl' tl' h]
+    sl'.append tl' h]
 end
 
 @[protected, to_additive]

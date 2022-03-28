@@ -3,9 +3,10 @@ Copyright (c) 2020 Patrick Stevens. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Stevens
 -/
-import tactic.ring_exp
-import data.nat.parity
+import algebra.big_operators.associated
 import data.nat.choose.sum
+import data.nat.parity
+import tactic.ring_exp
 
 /-!
 # Primorial
@@ -30,15 +31,10 @@ local notation x`#` := primorial x
 
 lemma primorial_succ {n : ℕ} (n_big : 1 < n) (r : n % 2 = 1) : (n + 1)# = n# :=
 begin
-  have not_prime : ¬nat.prime (n + 1),
-  { intros is_prime,
-    cases (prime.eq_two_or_odd is_prime) with _ n_even,
-    { linarith, },
-    { apply nat.zero_ne_one,
-      rwa [add_mod, r, nat.one_mod, ←two_mul, mul_one, nat.mod_self] at n_even, }, },
-  apply finset.prod_congr,
-  { rw [@range_succ (n + 1), filter_insert, if_neg not_prime], },
-  { exact λ _ _, rfl, },
+  refine prod_congr _ (λ _ _, rfl),
+  rw [range_succ, filter_insert, if_neg (λ h, _)],
+  have two_dvd : 2 ∣ n + 1 := (dvd_iff_mod_eq_zero _ _).mpr (by rw [← mod_add_mod, r, mod_self]),
+  linarith [(h.dvd_iff_eq (nat.bit0_ne_one 1)).mp two_dvd],
 end
 
 lemma dvd_choose_of_middling_prime (p : ℕ) (is_prime : nat.prime p) (m : ℕ)
@@ -63,27 +59,6 @@ begin
   { exact p_div_choose, },
   cases (prime.dvd_mul is_prime).1 p_div_facts,
   exacts [(s h).elim, (t h).elim],
-end
-
-lemma prod_primes_dvd {s : finset ℕ} : ∀ (n : ℕ) (h : ∀ a ∈ s, nat.prime a) (div : ∀ a ∈ s, a ∣ n),
-  (∏ p in s, p) ∣ n :=
-begin
-  apply finset.induction_on s,
-  { simp, },
-  { intros a s a_not_in_s induct n primes divs,
-    rw finset.prod_insert a_not_in_s,
-    obtain ⟨k, rfl⟩ : a ∣ n := divs a (finset.mem_insert_self a s),
-    apply mul_dvd_mul_left a,
-    apply induct k,
-    { intros b b_in_s,
-      exact primes b (finset.mem_insert_of_mem b_in_s), },
-    { intros b b_in_s,
-      have b_div_n := divs b (finset.mem_insert_of_mem b_in_s),
-      have a_prime := primes a (finset.mem_insert_self a s),
-      have b_prime := primes b (finset.mem_insert_of_mem b_in_s),
-      refine ((prime.dvd_mul b_prime).mp b_div_n).resolve_left (λ b_div_a, _),
-      obtain rfl : b = a := ((nat.dvd_prime a_prime).1 b_div_a).resolve_left b_prime.ne_one,
-      exact a_not_in_s b_in_s, } },
 end
 
 lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
@@ -124,7 +99,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
                 have s : ∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2)),
                   i ∣ choose (2 * m + 1) (m + 1),
                 { refine prod_primes_dvd  (choose (2 * m + 1) (m + 1)) _ _,
-                  { intros a, rw finset.mem_filter, apply and.right, },
+                  { intros a, rw [finset.mem_filter, nat.prime_iff], apply and.right, },
                   { intros a, rw finset.mem_filter,
                     intros pr,
                     rcases pr with ⟨ size, is_prime ⟩,

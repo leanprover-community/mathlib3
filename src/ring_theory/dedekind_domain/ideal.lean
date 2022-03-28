@@ -208,16 +208,10 @@ lemma is_dedekind_domain_inv_iff [algebra A K] [is_fraction_ring A K] :
   is_dedekind_domain_inv A ↔
     (∀ I ≠ (⊥ : fractional_ideal A⁰ K), I * I⁻¹ = 1) :=
 begin
-  set h := fraction_ring.alg_equiv A K,
-  split; rintros hi I hI,
-  { refine fractional_ideal.map_injective h.symm.to_alg_hom h.symm.injective _,
-    rw [alg_equiv.to_alg_hom_eq_coe, inv_eq, fractional_ideal.map_mul,
-        fractional_ideal.map_one_div, fractional_ideal.map_one, ← inv_eq, hi],
-    exact fractional_ideal.map_ne_zero _ hI },
-  { refine fractional_ideal.map_injective h.to_alg_hom h.injective _,
-    rw [alg_equiv.to_alg_hom_eq_coe, inv_eq, fractional_ideal.map_mul,
-        fractional_ideal.map_one_div, fractional_ideal.map_one, ← inv_eq, hi],
-    exact fractional_ideal.map_ne_zero _ hI },
+  let h := fractional_ideal.map_equiv (fraction_ring.alg_equiv A K),
+  refine h.to_equiv.forall_congr (λ I, _),
+  rw ← h.to_equiv.apply_eq_iff_eq,
+  simp
 end
 
 lemma fractional_ideal.adjoin_integral_eq_one_of_is_unit [algebra A K] [is_fraction_ring A K]
@@ -436,7 +430,7 @@ begin
   by_cases hI1 : I = ⊤,
   { rw [hI1, coe_ideal_top, one_mul, fractional_ideal.one_inv] },
   by_cases hNF : is_field A,
-  { letI := hNF.to_field A, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
+  { letI := hNF.to_field, rcases hI1 (I.eq_bot_or_top.resolve_left hI0) },
   -- We'll show a contradiction with `exists_not_mem_one_of_ne_bot`:
   -- `J⁻¹ = (I * I⁻¹)⁻¹` cannot have an element `x ∉ 1`, so it must equal `1`.
   obtain ⟨J, hJ⟩ : ∃ (J : ideal A), (J : fractional_ideal A⁰ K) = I * I⁻¹ :=

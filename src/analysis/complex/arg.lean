@@ -35,7 +35,7 @@ begin
   rw [mul_comm, eq_comm]
 end
 
-lemma complex.abs_add_eq_iff : (x + y).abs = x.abs + y.abs ↔ x = 0 ∨ y = 0 ∨ x.arg = y.arg
+lemma complex.abs_add_eq_iff : (x + y).abs = x.abs + y.abs ↔ x = 0 ∨ y = 0 ∨ x.arg = y.arg :=
 complex.same_ray_iff.symm.trans same_ray_iff_norm_add
 
 lemma complex.same_ray_of_arg_eq (h : x.arg = y.arg) : same_ray ℝ x y :=

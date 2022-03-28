@@ -497,41 +497,6 @@ by simp only [le_iff_lt_or_eq, pow_bit1_neg_iff, pow_eq_zero_iff (bit1_pos (zero
 @[simp] theorem pow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le pow_bit1_nonpos_iff
 
-lemma even.pow_nonneg (hn : even n) (a : R) : 0 ≤ a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_nonneg a k
-
-lemma even.pow_pos (hn : even n) (ha : a ≠ 0) : 0 < a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_pos ha k
-
-lemma odd.pow_nonpos (hn : odd n) (ha : a ≤ 0) : a ^ n ≤ 0:=
-by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonpos_iff.mpr ha
-
-lemma odd.pow_neg (hn : odd n) (ha : a < 0) : a ^ n < 0:=
-by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_neg_iff.mpr ha
-
-lemma odd.pow_nonneg_iff (hn : odd n) : 0 ≤ a ^ n ↔ 0 ≤ a :=
-⟨λ h, le_of_not_lt (λ ha, h.not_lt $ hn.pow_neg ha), λ ha, pow_nonneg ha n⟩
-
-lemma odd.pow_nonpos_iff (hn : odd n) : a ^ n ≤ 0 ↔ a ≤ 0 :=
-⟨λ h, le_of_not_lt (λ ha, h.not_lt $ pow_pos ha _), hn.pow_nonpos⟩
-
-lemma odd.pow_pos_iff (hn : odd n) : 0 < a ^ n ↔ 0 < a :=
-⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ hn.pow_nonpos ha), λ ha, pow_pos ha n⟩
-
-lemma odd.pow_neg_iff (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
-⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ pow_nonneg ha _), hn.pow_neg⟩
-
-lemma even.pow_pos_iff (hn : even n) (h₀ : 0 < n) : 0 < a ^ n ↔ a ≠ 0 :=
-⟨λ h ha, by { rw [ha, zero_pow h₀] at h, exact lt_irrefl 0 h }, hn.pow_pos⟩
-
-lemma even.pow_abs {p : ℕ} (hp : even p) (a : R) : |a| ^ p = a ^ p :=
-begin
-  rw [←abs_pow, abs_eq_self],
-  exact hp.pow_nonneg _
-end
-
-@[simp] lemma pow_bit0_abs (a : R) (p : ℕ) : |a| ^ bit0 p = a ^ bit0 p := (even_bit0 _).pow_abs _
-
 lemma strict_mono_pow_bit1 (n : ℕ) : strict_mono (λ a : R, a ^ bit1 n) :=
 begin
   intros a b hab,
@@ -542,9 +507,6 @@ begin
     { exact (pow_bit1_nonpos_iff.2 ha).trans_lt (pow_bit1_pos_iff.2 hb) } },
   { exact pow_lt_pow_of_lt_left hab ha (bit1_pos (zero_le n)) }
 end
-
-lemma odd.strict_mono_pow (hn : odd n) : strict_mono (λ a : R, a ^ n) :=
-by cases hn with k hk; simpa only [hk, two_mul] using strict_mono_pow_bit1 _
 
 /-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/
 theorem one_add_mul_le_pow (H : -2 ≤ a) (n : ℕ) : 1 + (n : R) * a ≤ (1 + a) ^ n :=

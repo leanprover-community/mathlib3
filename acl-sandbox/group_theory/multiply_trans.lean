@@ -8,6 +8,8 @@ import tactic.lift
 
 import .ad_sub_mul_actions
 import .wielandt
+import .ad_to_ulift
+
 import group_theory.group_action.embedding
 import set_theory.cardinal
 
@@ -36,45 +38,27 @@ open_locale big_operators pointwise cardinal
 
 open_locale classical
 
-namespace mul_action
-
-section multiple_transitivity
+section Extensions
 
 open function.embedding nat
 
-variables (M α : Type) [group M] [mul_action M α]
+variable {α : Type*}
 
-/--/
-def is_multiply_pretransitive' (M α : Type*) [has_scalar M α] (n : ℕ) :=
-∀ {x : list α} (hx : x.length = n) (ndx : x.nodup)
-  {y : list α} (hy : y.length = n) (ndy : y.nodup),
-∃ (g : M), g • x = y
--/
-
-def is_multiply_pretransitive (n : ℕ) :=
-  is_pretransitive M (fin n ↪ α)
-
-lemma is_zero_pretransitive : is_multiply_pretransitive M α 0 :=
+lemma gimme_another {m : ℕ} (x : fin m → α) (hα : ↑m < #α) :
+  ∃ (a : α), a ∉ set.range x :=
 begin
-  apply is_pretransitive.mk,
-  intros x y, use 1, rw one_smul,
-  ext i, exfalso,
-  exact is_empty.false i,
-end
-
-lemma gimme_more (m : ℕ) (x : fin m ↪ α) (hα : ↑m < #α) :
-  ∃ (a : α), a ∉ set.range x := -- ∀ (i : fin m), x i ≠ a :=
-begin
-  suffices : ¬ (function.surjective x.to_fun ),
-  exact not_forall.mp this,
+  apply not_forall.mp,
+  -- change ¬ (function.surjective x),
   intro h,
   apply (lt_iff_not_ge _ _).mp  hα,
-  rw ← cardinal.mk_fin,
-  exact cardinal.mk_le_of_surjective h
+  --   rw ge_iff_le,
+  let hx := cardinal.mk_le_of_surjective (ulift.surjective_iff_surjective.mpr h),
+  simp only [cardinal.mk_ulift, cardinal.mk_fintype, fintype.card_ulift, fintype.card_fin] at hx,
+  rw  cardinal.lift_id at hx,
+  exact hx,
 end
 
-
-lemma may_extend_with {α : Type*} {n : ℕ} (x : fin n ↪ α) (a : α) (ha : a ∉ set.range x.to_fun) :
+lemma may_extend_with {n : ℕ} (x : fin n ↪ α) (a : α) (ha : a ∉ set.range x.to_fun) :
   ∃ (x' : fin n.succ ↪ α),
   -- (∀ (i : fin n.succ) (hi : i.val < n), x' i = x ⟨i, hi⟩)
   (fin.cast_le n.le_succ).to_embedding.trans x' = x
@@ -122,16 +106,102 @@ begin
     { use (equiv.to_embedding (fin.cast h.symm).to_equiv).trans x,
       ext ⟨i, hi⟩,
       simp only [trans_apply, rel_embedding.coe_fn_to_embedding, fin.cast_le_mk,
-        equiv.to_embedding_apply, rel_iso.coe_fn_to_equiv, fin.cast_mk]},
+        equiv.to_embedding_apply, rel_iso.coe_fn_to_equiv, fin.cast_mk] },
     -- case where m < n.succ
     { obtain ⟨y, hy⟩ :=
       hrec (nat.le_of_lt_succ h) (le_trans (cardinal.nat_cast_le.mpr (nat.le_succ n)) hα),
       obtain ⟨a,ha⟩ :=
-      gimme_more α n y (lt_of_lt_of_le (cardinal.nat_cast_lt.mpr (nat.lt_succ_self n)) hα),
+      gimme_another y (lt_of_lt_of_le (cardinal.nat_cast_lt.mpr (nat.lt_succ_self n)) hα),
       obtain ⟨x', hx', hx'a⟩ := may_extend_with y a ha,
       use x', rw ← hy, rw ← hx',
       ext ⟨i, hi⟩, refl } }
 end
+
+lemma may_extend_with' {m n k : ℕ} {s : set α} (z : fin k ↪ ↥s) (h : n = m + k)
+  (x : fin m ↪ ↥sᶜ) : -- let h' : n = k + m := eq.trans h (add_comm m k) in
+  ∃ (x' : fin n ↪ α),
+  (fin.cast_le (le_trans le_self_add (le_of_eq (eq.symm h)))).to_embedding.trans x'
+    = x.trans  (subtype sᶜ)
+  ∧
+  (fin.nat_add m).to_embedding.trans ((fin.cast h.symm).to_equiv.to_embedding.trans x')
+    = z.trans (subtype s) :=
+begin
+  let h' := eq.trans h (add_comm m k),
+  let p := λ i : fin n, i.val < m,
+  let f : { i : fin n | p i } → α := λ i, x.to_fun (fin.cast_lt i.val i.prop),
+  let g : { i : fin n | ¬ (p i) } → α :=
+    λ i, z.to_fun (fin.sub_nat m (fin.cast h' i.val)
+      (by simpa [h] using not_lt.mp (subtype.mem i))),
+  use (λ i, if hi : p i then f ⟨i, hi⟩ else g ⟨i, hi⟩),
+  { refine function.injective.dite p _ _ _ ,
+    { rintros ⟨i, hi⟩ ⟨j, hj⟩ hij,
+      let hij' := x.inj' (subtype.coe_injective  hij),
+      simp only at hij', unfold fin.cast_lt at hij',
+      simp only [subtype.mk_eq_mk] at hij' ⊢,
+      apply fin.ext,
+      simpa only using hij' },
+    { rintros ⟨i, hi⟩ ⟨j, hj⟩ hij,
+      simp only [subtype.mk_eq_mk],
+      apply (fin.cast h').injective,
+
+      rw not_lt at hi hj,
+      have  hi' : m ≤ (fin.cast h') i,
+      { simp only [fin.coe_cast,fin.coe_eq_val], exact hi, },
+      have  hj' : m ≤ (fin.cast h') j,
+      { simp only [fin.coe_cast,fin.coe_eq_val], exact hj, },
+
+      let hij' := z.inj' (subtype.coe_injective  hij),
+      simp only at hij',
+      rw [← fin.add_nat_sub_nat hi', ← fin.add_nat_sub_nat hj', hij'] },
+    { intros i j hi hj hij,
+      suffices : f ⟨i, hi⟩ ∉ s,
+      { apply this, rw hij, simp only [subtype.coe_prop] },
+      simp only [← set.mem_compl_eq, subtype.coe_prop] } },
+
+  split,
+  { ext ⟨i, hi⟩,
+    simp only [trans_apply, rel_embedding.coe_fn_to_embedding,
+      fin.cast_le_mk, coe_fn_mk],
+    rw dite_eq_iff,
+    apply or.intro_left, use hi, refl },
+  { ext ⟨j, hj⟩,
+    simp only [not_lt, le_add_iff_nonneg_right, zero_le', trans_apply,
+      rel_embedding.coe_fn_to_embedding, fin.nat_add_mk,
+      equiv.to_embedding_apply, rel_iso.coe_fn_to_equiv, fin.cast_mk,
+      function.embedding.coe_fn_mk, dif_neg, function.embedding.coe_subtype],
+    change ↑(z.to_fun _) = _,
+    simp only [fin.cast_mk, add_tsub_cancel_left, fin.sub_nat_mk, to_fun_eq_coe]}
+end
+
+
+end Extensions
+
+namespace mul_action
+
+section multiple_transitivity
+
+open function.embedding nat
+
+variables (M α : Type*) [group M] [mul_action M α]
+
+/--/
+def is_multiply_pretransitive' (M α : Type*) [has_scalar M α] (n : ℕ) :=
+∀ {x : list α} (hx : x.length = n) (ndx : x.nodup)
+  {y : list α} (hy : y.length = n) (ndy : y.nodup),
+∃ (g : M), g • x = y
+-/
+
+def is_multiply_pretransitive (n : ℕ) :=
+  is_pretransitive M (fin n ↪ α)
+
+lemma is_zero_pretransitive : is_multiply_pretransitive M α 0 :=
+begin
+  apply is_pretransitive.mk,
+  intros x y, use 1, rw one_smul,
+  ext i, exfalso,
+  exact is_empty.false i,
+end
+
 
 /-
 lemma is_multiply_pretransitive_of_higher (M α : Type*) [has_scalar M α] {n : ℕ}
@@ -158,8 +228,8 @@ begin
   let hn_eq := hn.exists_smul_eq,
   apply is_pretransitive.mk,
   intros x y,
-  obtain ⟨x', hx'⟩ := may_extend α hmn hα x,
-  obtain ⟨y', hy'⟩ := may_extend α hmn hα y,
+  obtain ⟨x', hx'⟩ := may_extend hmn hα x,
+  obtain ⟨y', hy'⟩ := may_extend hmn hα y,
   obtain ⟨g, hg⟩ := hn_eq  x' y',
   use g,
   ext, rw [← hy', ← hx', ← hg], refl
@@ -440,26 +510,57 @@ begin
   simp only [add_tsub_cancel_left], exact hi,
 end
 
+#check equiv.ulift
+
 /-- The fixator of a subset of cardinal d in a k-transitive action
 acts (k-d) transitively on the remaining -/
-lemma remaining_transitivity (d : ℕ) (s : set α) (hs : ↑d ≤ #s)
+lemma remaining_transitivity (d : ℕ) (s : set α) (hs : ↑d = #s)
   (n : ℕ) (hα : ↑n ≤ #α) (h : is_multiply_pretransitive M α n) :
   is_multiply_pretransitive (fixing_subgroup M s) (sub_mul_action_of_fixing_subgroup M α s) (n-d) :=
 begin
   cases le_total d n with hdn hnd,
   { apply is_pretransitive.mk,
     intros x y,
-    have hd' : (n - d) + d = n := nat.sub_add_cancel hdn,
+    let h_eq := h.exists_smul_eq,
 
-    rw ← cardinal.mk_fin d at hs,
-    obtain ⟨z : fin d ↪ ↥s⟩ := (cardinal.le_def _ _).mp hs,
+    have : ∃ (z : (fin d) ≃ ↥s), true,
+    { suffices : ∃ (z' : ulift (fin d) ≃ ↥s), true,
+      { obtain ⟨z'⟩ := this, use equiv.trans equiv.ulift.symm z' },
+      rw exists_true_iff_nonempty ,
+      rw ← cardinal.eq,
+      simp only [cardinal.mk_fintype, fintype.card_ulift, fintype.card_fin, hs] },
+    obtain ⟨z⟩ := this,
 
+    have hd' : n = (n - d) + d := (nat.sub_add_cancel hdn).symm,
 
-    let x' : fin n → α :=
-      λ ⟨i, hi⟩, if hi' : i < n-d then x ⟨i,hi'⟩ else z ⟨i-(n-d), aux_nat hdn hi hi' ⟩,
-    have hx' : function.injective x',
+    obtain ⟨x' : fin n ↪ α, hx'⟩ := may_extend_with' z.to_embedding hd' x,
+    obtain ⟨y' : fin n ↪ α, hy'⟩ := may_extend_with' z.to_embedding hd' y,
+    obtain ⟨g, hg⟩ := h_eq x' y',
 
-    sorry },
+    use g,
+    { intro a,
+      let i := z.symm a,
+      have : z.to_embedding.trans (subtype s) i = a,
+      by simp only [trans_apply, equiv.to_embedding_apply, equiv.apply_symm_apply,
+          function.embedding.coe_subtype],
+      rw ← this,
+      conv_lhs { rw ← hx'.right },
+      rw ← hy'.right,
+      rw ← hg,
+      simp only [trans_apply, smul_apply] },
+    { ext i,
+      simp only [smul_apply, sub_mul_action.coe_smul_of_tower],
+      have : ((y i) : α) = (y.trans (subtype sᶜ) i : α),
+      by simp only [trans_apply, function.embedding.coe_subtype],
+      rw this,
+      have : ((x i) : α) = (x.trans (subtype sᶜ) i : α),
+      by simp only [trans_apply, function.embedding.coe_subtype],
+      rw this,
+
+      rw ← function.embedding.ext_iff at hx' hy',
+      simp_rw [← hy'.left i, ← hx'.left i, ← hg],
+      simp only [trans_apply, smul_apply, rel_embedding.coe_fn_to_embedding],
+      refl } },
   { rw nat.sub_eq_zero_of_le hnd,
     apply is_zero_pretransitive }
 end

@@ -204,6 +204,19 @@ cardinal.to_nat_apply_of_omega_le (le_trans (le_of_not_lt (λ h, cardinal.mk_ne_
   ((cardinal.cast_to_nat_of_lt_omega h).symm.trans (cardinal.nat_cast_inj.mpr hHK))))
     (quotient_subgroup_of_embedding_of_le H hKL).cardinal_le)
 
+lemma relindex_le_of_le_left (hHK : H ≤ K) (hHL : H.relindex L ≠ 0) : K.relindex L ≤ H.relindex L :=
+begin
+  rw ←inf_relindex_right H L at *,
+  rw [←relindex_mul_relindex _ _ _ (inf_le_inf_right L hHK) inf_le_right, inf_relindex_right],
+  exact nat.le_mul_of_pos_left (nat.pos_of_ne_zero
+    (mt (relindex_eq_zero_of_le_right inf_le_right) hHL)),
+end
+
+lemma relindex_le_of_le_right (hKL : K ≤ L) (hHL : H.relindex L ≠ 0) :
+  H.relindex K ≤ H.relindex L :=
+cardinal.to_nat_le_of_le_of_lt_omega (lt_of_not_ge (mt cardinal.to_nat_apply_of_omega_le hHL))
+  (cardinal.mk_le_of_injective (quotient_subgroup_of_embedding_of_le H hKL).2)
+
 lemma relindex_ne_zero_trans (hHK : H.relindex K ≠ 0) (hKL : K.relindex L ≠ 0) :
   H.relindex L ≠ 0 :=
 λ h, mul_ne_zero (mt (relindex_eq_zero_of_le_right (show K ⊓ L ≤ K, from inf_le_left)) hHK) hKL
@@ -230,9 +243,7 @@ begin
   { exact (le_of_eq (relindex_eq_zero_of_le_left (by exact inf_le_left) h)).trans (zero_le _) },
   rw [←inf_relindex_right, inf_assoc, ←relindex_mul_relindex _ _ L inf_le_right inf_le_right,
       inf_relindex_right, inf_relindex_right],
-  apply mul_le_mul_right' (cardinal.to_nat_le_of_le_of_lt_omega
-    (lt_of_not_ge (mt cardinal.to_nat_apply_of_omega_le h))
-    (cardinal.mk_le_of_injective (quotient_subgroup_of_embedding_of_le H inf_le_right).2)),
+  exact mul_le_mul_right' (relindex_le_of_le_right inf_le_right h) (K.relindex L),
 end
 
 lemma index_inf_le : (H ⊓ K).index ≤ H.index * K.index :=

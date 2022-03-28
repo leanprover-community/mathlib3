@@ -273,16 +273,13 @@ lemma pairwise_of_forall_mem_list {l : list α} {r : α → α → Prop} (h : �
 begin
   classical,
   refine pairwise_of_reflexive_on_dupl_of_forall_ne (λ a ha', _) (λ a ha b hb _, h a ha b hb),
-  have ha : a ∈ l := list.one_le_count_iff_mem.1 ha'.le,
+  have ha := list.one_le_count_iff_mem.1 ha'.le,
   exact h a ha a ha
 end
 
 lemma pairwise_of_reflexive_of_forall_ne {l : list α} {r : α → α → Prop}
   (hr : reflexive r) (h : ∀ (a ∈ l) (b ∈ l), a ≠ b → r a b) : l.pairwise r :=
-begin
-  classical,
-  exact pairwise_of_reflexive_on_dupl_of_forall_ne (λ _ _, hr _) h
-end
+by { classical, exact pairwise_of_reflexive_on_dupl_of_forall_ne (λ _ _, hr _) h }
 
 theorem pairwise_iff_nth_le {R} : ∀ {l : list α},
   pairwise R l ↔ ∀ i j (h₁ : j < length l) (h₂ : i < j),

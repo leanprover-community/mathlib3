@@ -436,20 +436,24 @@ rfl
 @[simp] lemma mk'_eq_coe (l : list α) : quotient.mk' l = (l : cycle α) :=
 rfl
 
-lemma coe_cons_eq_coe_append (l : list α) (a : α) : (↑(a :: l) : cycle α) = ↑(l ++ [a]) :=
-quot.sound ⟨1, by rw [rotate_cons_succ, rotate_zero]⟩
-
 /-- The unique empty cycle. -/
 def nil : cycle α := ↑([] : list α)
 
 @[simp] lemma coe_nil : ↑([] : list α) = @nil α :=
 rfl
 
+@[simp] lemma coe_eq_nil (l : list α) : (l : cycle α) = nil ↔ l = [] :=
+coe_eq_coe.trans is_rotated_nil_iff
+
 instance : has_emptyc (cycle α) := ⟨nil⟩
+
+@[simp] lemma empty_eq : ∅ = @nil α :=
+rfl
 
 instance : inhabited (cycle α) := ⟨nil⟩
 
-@[elab_as_eliminator] lemma rec_on {C : cycle α → Prop} (s : cycle α) (H0 : C nil)
+/-- An induction principle for `cycle`. Use as `induction s using cycle.induction_on`. -/
+@[elab_as_eliminator] lemma induction_on {C : cycle α → Prop} (s : cycle α) (H0 : C nil)
   (HI : ∀ a (l : list α), C ↑l → C ↑(a :: l)) : C s :=
 quotient.induction_on' s $ λ l, by { apply list.rec_on l; simp, assumption' }
 
@@ -497,8 +501,7 @@ rfl
 @[simp] lemma length_nil : length (@nil α) = 0 :=
 rfl
 
-@[simp] lemma length_reverse (s : cycle α) :
-  s.reverse.length = s.length :=
+@[simp] lemma length_reverse (s : cycle α) : s.reverse.length = s.length :=
 quot.induction_on s length_reverse
 
 /-- A `s : cycle α` that is at most one element. -/
@@ -606,6 +609,9 @@ rfl
 
 @[simp] lemma map_coe {β : Type*} (f : α → β) (l : list α) : map f ↑l = list.map f l :=
 rfl
+
+@[simp] lemma map_eq_nil {β : Type*} (f : α → β) (s : cycle α) : map f s = nil ↔ s = nil :=
+quotient.induction_on' s $ λ l, by simp
 
 /-- The `multiset` of lists that can make the cycle. -/
 def lists (s : cycle α) : multiset (list α) :=

@@ -2015,8 +2015,6 @@ by rw [CNF_rec, dif_pos rfl]; refl
   @CNF_rec b b0 C H0 H o = H o o0 (@CNF_rec b b0 C H0 H _) :=
 by rw [CNF_rec, dif_neg o0]
 
-set_option pp.universes true
-
 /-- The Cantor normal form of an ordinal `o` is the list of coefficients and exponents in the
     base-`b` expansion of `o`.
 

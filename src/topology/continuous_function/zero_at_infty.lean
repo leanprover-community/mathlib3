@@ -85,7 +85,7 @@ lemma eq_of_empty [is_empty α] (f g : α →C₀ β) : f = g :=
 ext $ is_empty.elim ‹_›
 
 /-- A continuous function on a compact space is automatically a continuous function vanishing at
-infitnity. -/
+infinity. -/
 @[simps]
 def continuous_map.lift_zero_at_infty [compact_space α] : C(α, β) ≃ (α →C₀ β) :=
 { to_fun := λ f, { to_fun := f, continuous_to_fun := f.continuous, zero_at_infty' := by simp },
@@ -94,7 +94,8 @@ def continuous_map.lift_zero_at_infty [compact_space α] : C(α, β) ≃ (α →
   right_inv := λ f, by { ext, refl } }
 
 /-- A continuous function on a compact space is automatically a continuous function vanishing at
-infitnity. This is not an instance to avoid type class loops. -/
+infinity. This is not an instance to avoid type class loops. -/
+@[simps]
 def zero_at_infty_continuous_map_class.of_compact {G : Type*} [continuous_map_class G α β]
   [compact_space α] : zero_at_infty_continuous_map_class G α β :=
 { coe := λ g, g,

@@ -1966,11 +1966,13 @@ by rw [CNF_rec, dif_pos rfl]; refl
   @CNF_rec b b0 C H0 H o = H o o0 (@CNF_rec b b0 C H0 H _) :=
 by rw [CNF_rec, dif_neg o0]
 
+set_option pp.universes true
+
 /-- The Cantor normal form of an ordinal `o` is the list of coefficients and exponents in the
     base-`b` expansion of `o`.
 
     `CNF b (b ^ u₁ * v₁ + b ^ u₂ * v₂) = [(u₁, v₁), (u₂, v₂)]` -/
-def CNF (b := omega) (o : ordinal) : list (ordinal × ordinal) :=
+def CNF (b o : ordinal) : list (ordinal × ordinal) :=
 if b0 : b = 0 then [] else
 CNF_rec b0 [] (λ o o0 IH, (log b o, o / b ^ log b o) :: IH) o
 
@@ -1993,9 +1995,10 @@ theorem CNF_foldr {b : ordinal} (b0 : b ≠ 0) (o) :
 CNF_rec b0 (by rw CNF_zero; refl)
   (λ o o0 IH, by rw [CNF_ne_zero b0 o0, list.foldr_cons, IH, div_add_mod]) o
 
-/-- This theorem exists to factor out commonalities between the proofs. -/
-private theorem CNF_pairwise_aux (b := omega) (o) :
-  (∀ p ∈ CNF b o, prod.fst p ≤ log b o) ∧ (CNF b o).pairwise (λ p q, q.1 < p.1) :=
+/-- This theorem exists to factor out commonalities between the proofs of `ordinal.CNF_pairwise` and
+`ordinal.CNF_fst_le_log`. -/
+private theorem CNF_pairwise_aux (b o : ordinal.{u}) :
+  (∀ p : ordinal × ordinal, p ∈ CNF b o → p.1 ≤ log b o) ∧ (CNF b o).pairwise (λ p q, q.1 < p.1) :=
 begin
   by_cases b0 : b = 0,
   { simp only [b0, zero_CNF, list.pairwise.nil, and_true], exact λ _, false.elim },
@@ -2017,36 +2020,41 @@ begin
       list.pairwise_singleton] }
 end
 
-theorem CNF_pairwise (b := omega) (o) : (CNF b o).pairwise (λ p q, prod.fst q < p.1) :=
+theorem CNF_pairwise (b o : ordinal.{u}) :
+  (CNF b o).pairwise (λ p q : ordinal × ordinal, q.1 < p.1) :=
 (CNF_pairwise_aux _ _).2
 
-theorem CNF_fst_le_log (b := omega) {o p} : p ∈ CNF b o → prod.fst p ≤ log b o :=
-(CNF_pairwise_aux _ _).1 p
+theorem CNF_fst_le_log {b o : ordinal.{u}} :
+  ∀ {p : ordinal × ordinal}, p ∈ CNF b o → p.1 ≤ log b o :=
+(CNF_pairwise_aux _ _).1
 
-theorem CNF_fst_le (b := omega) {o p} (hp : p ∈ CNF b o) : prod.fst p ≤ o :=
-(CNF_fst_le_log _ hp).trans (log_le_self _ _)
+theorem CNF_fst_le {b o : ordinal.{u}} {p : ordinal × ordinal} (hp : p ∈ CNF b o) : p.1 ≤ o :=
+(CNF_fst_le_log hp).trans (log_le_self _ _)
 
-/-- This theorem exists to factor out commonalities between the proofs of `ordinal.CNF_snd_lt` and `ordinal.CNF_lt_snd`. -/
-private theorem CNF_snd_lt_aux {b : ordinal} (b1 : 1 < b) {o} :
-  ∀ p ∈ CNF b o, prod.snd p < b ∧ 0 < p.2 :=
+/-- This theorem exists to factor out commonalities between the proofs of `ordinal.CNF_snd_lt` and
+`ordinal.CNF_lt_snd`. -/
+private theorem CNF_snd_lt_aux {b o : ordinal.{u}} (b1 : 1 < b) :
+  ∀ {p : ordinal × ordinal}, p ∈ CNF b o → p.2 < b ∧ 0 < p.2 :=
 begin
   have b0 := (zero_lt_one.trans b1).ne',
   refine CNF_rec b0 (λ _, by { rw CNF_zero, exact false.elim }) (λ o o0 IH, _) o,
-  simp only [CNF_ne_zero b0 o0, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro IH, and_true],
+  simp only [CNF_ne_zero b0 o0, list.mem_cons_iff, forall_eq_or_imp, iff_true_intro @IH, and_true],
   nth_rewrite 1 ←succ_le,
   rw [div_lt (opow_ne_zero _ b0), ←opow_succ, le_div (opow_ne_zero _ b0), succ_zero, mul_one],
   refine ⟨lt_opow_succ_log b1 _, opow_log_le _ _⟩,
   rwa ordinal.pos_iff_ne_zero
 end
 
-theorem CNF_snd_lt {b : ordinal} (b1 : 1 < b) {o p} (hp : p ∈ CNF b o) : p.2 < b :=
-(CNF_snd_lt_aux b1 p hp).1
+theorem CNF_snd_lt {b o : ordinal.{u}} (b1 : 1 < b) {p : ordinal × ordinal} (hp : p ∈ CNF b o) :
+  p.2 < b :=
+(CNF_snd_lt_aux b1 hp).1
 
-theorem CNF_lt_snd {b : ordinal} (b1 : 1 < b) {o p} (hp : p ∈ CNF b o) : 0 < p.2 :=
-(CNF_snd_lt_aux b1 p hp).2
+theorem CNF_lt_snd {b o : ordinal.{u}} (b1 : 1 < b) {p : ordinal × ordinal} (hp : p ∈ CNF b o) :
+  0 < p.2 :=
+(CNF_snd_lt_aux b1 hp).2
 
-theorem CNF_sorted (b := omega) (o) : ((CNF b o).map prod.fst).sorted (>) :=
-by rw [list.sorted, list.pairwise_map]; exact CNF_pairwise b o
+theorem CNF_sorted (b o : ordinal) : ((CNF b o).map prod.fst).sorted (>) :=
+by { rw [list.sorted, list.pairwise_map], exact CNF_pairwise b o }
 
 /-! ### Casting naturals into ordinals, compatibility with operations -/
 

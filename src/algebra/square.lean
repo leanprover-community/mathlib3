@@ -34,11 +34,10 @@ variables {R : Type*}
 def square [monoid R] (r : R) : Prop := ∃ x : R, x * x = r
 
 @[simp]
-lemma square_one [comm_monoid R] : square (1 : R) := by { use 1, simp, }
+lemma square_one [comm_monoid R] : square (1 : R) := ⟨1, mul_one 1⟩
 
 @[simp]
-lemma square_zero [monoid_with_zero R] : square (0 : R) :=
-by { use 0, simp, }
+lemma square_zero [monoid_with_zero R] : square (0 : R) := ⟨0, mul_zero 0⟩
 
 @[simp]
 lemma irreducible.not_square [comm_monoid R] {x : R} (h : irreducible x) :

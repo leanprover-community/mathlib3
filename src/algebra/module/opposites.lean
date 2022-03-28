@@ -13,21 +13,21 @@ This file contains definitions that build on top of the group action definitions
 `group_theory.group_action.opposite`.
 -/
 
-variables (R M : Type*}
+variables (R M : Type*)
 
 namespace mul_opposite
 
 instance [has_zero R] [has_zero M] [smul_with_zero R M] : smul_with_zero R Mᵐᵒᵖ :=
-{ smul_zero := λ r, unop_injective $ smul_zero r,
-  zero_smul := λ r, unop_injective $ zero_smul' r }
+{ smul_zero := λ r, unop_injective $ smul_zero' _ _,
+  zero_smul := λ r, unop_injective $ zero_smul _ _ }
 
 instance [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M] :
   mul_action_with_zero R Mᵐᵒᵖ :=
-{ ..mul_opposite.smul_with_zero M R }
+{ ..mul_opposite.smul_with_zero R M }
 
 instance [monoid_with_zero R] [add_monoid M] [distrib_mul_action_with_zero R M] :
   distrib_mul_action_with_zero R Mᵐᵒᵖ :=
-{ ..mul_opposite.smul_with_zero M R }
+{ ..mul_opposite.smul_with_zero R M }
 
 variables {M} [semiring R] [add_comm_monoid M] [module R M]
 

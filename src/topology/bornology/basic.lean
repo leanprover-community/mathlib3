@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jireh Loreaux
 -/
 import order.filter.cofinite
+import order.pfilter
 
 /-!
 # Basic theory of bornology
@@ -74,8 +75,7 @@ def bornology.of_bounded {α : Type*} (B : set (set α))
       exact subset_mem _ hb _ (singleton_subset_iff.mpr hxb) },
   end }
 
-/-- A constructor for bornologies by specifying the bounded sets,
-and showing that they satisfy the appropriate conditions. -/
+/-- TODO -/
 @[simps]
 def bornology.of_bounded' {α : Type*} (B : set (set α))
   (empty_mem : ∅ ∈ B) (subset_mem : ∀ s₁ ∈ B, ∀ s₂ : set α, s₂ ⊆ s₁ → s₂ ∈ B)
@@ -83,6 +83,18 @@ def bornology.of_bounded' {α : Type*} (B : set (set α))
   bornology α :=
 bornology.of_bounded B empty_mem subset_mem union_mem
   (eq_univ_of_forall $ λ x, mem_sUnion_of_mem (mem_singleton x) (singleton_mem x))
+
+@[simps]
+def bornology.of_ideal {α : Type*} (B : order.ideal (set α)) (sUnion_univ : ⋃₀ ↑B = univ) :
+  bornology α :=
+bornology.of_bounded ↑B order.ideal.bot_mem (λ s₁ h₁ s₂ h₂₁, B.mem_of_le h₂₁ h₁)
+  order.ideal.sup_mem sUnion_univ
+
+@[simps]
+def bornology.of_ideal' {α : Type*} (B : order.ideal (set α)) (singleton_mem : ∀ x, {x} ∈ B) :
+  bornology α :=
+bornology.of_bounded' ↑B order.ideal.bot_mem (λ s₁ h₁ s₂ h₂₁, B.mem_of_le h₂₁ h₁)
+  order.ideal.sup_mem singleton_mem
 
 namespace bornology
 

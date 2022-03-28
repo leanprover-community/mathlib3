@@ -1475,10 +1475,6 @@ lemma smul_measure {R : Type*} [monoid R] [distrib_mul_action R ℝ≥0∞]
   ae_strongly_measurable f (c • μ) :=
 ⟨h.mk f, h.strongly_measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
 
-<<<<<<< HEAD
-
-=======
->>>>>>> upstream/master
 section normed_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]

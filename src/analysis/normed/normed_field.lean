@@ -164,18 +164,6 @@ instance prod.non_unital_semi_normed_ring [non_unital_semi_normed_ring β] :
         ... = (∥x∥*∥y∥) : rfl,
   ..prod.semi_normed_group }
 
-lemma finset.sup_mul_le_mul_sup {α ι : Type*} [linear_ordered_semiring α] [order_bot α]
-  {a b : ι → α} (ha : 0 ≤ a) (hb : 0 ≤ b) (s : finset ι):
-  s.sup (a * b) ≤ s.sup a * s.sup b :=
-begin
-  apply finset.sup_le,
-  intros i hi,
-  classical,
-  rw [←finset.insert_erase hi, finset.sup_insert, finset.sup_insert, sup_eq_max, sup_eq_max,
-    pi.mul_apply],
-  refine mul_le_mul (le_max_left _ _) (le_max_left _ _) (hb i) (le_max_of_le_left $ ha i),
-end
-
 /-- Non-unital seminormed ring structure on the product of finitely many non-unital seminormed
 rings, using the sup norm. -/
 instance pi.non_unital_semi_normed_ring {π : ι → Type*} [fintype ι]

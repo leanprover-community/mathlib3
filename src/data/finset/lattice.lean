@@ -1208,6 +1208,18 @@ end set
 
 namespace finset
 
+/-! ### Interaction with ordered ring structures -/
+
+lemma sup_mul_le_mul_sup [linear_ordered_semiring α] [order_bot α]
+  {a b : ι → α} (ha : 0 ≤ a) (hb : 0 ≤ b) (s : finset ι) :
+  s.sup (a * b) ≤ s.sup a * s.sup b :=
+finset.sup_le $ λ i hi, begin
+  classical,
+  rw [←finset.insert_erase hi, finset.sup_insert, finset.sup_insert, sup_eq_max, sup_eq_max,
+    pi.mul_apply],
+  exact mul_le_mul (le_max_left _ _) (le_max_left _ _) (hb i) (le_max_of_le_left $ ha i),
+end
+
 open function
 
 /-! ### Interaction with big lattice/set operations -/

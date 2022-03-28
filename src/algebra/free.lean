@@ -6,7 +6,7 @@ Authors: Kenny Lau
 import algebra.hom.group
 import control.applicative
 import control.traversable.basic
-import data.equiv.basic
+import logic.equiv.basic
 
 /-!
 # Free constructions

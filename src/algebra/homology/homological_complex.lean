@@ -74,7 +74,6 @@ begin
   { rw [C.shape i j hij, zero_comp] }
 end
 
-@[ext]
 lemma ext {C₁ C₂ : homological_complex V c} (h_X : C₁.X = C₂.X)
   (h_d : ∀ (i j : ι), c.rel i j → C₁.d i j ≫ eq_to_hom (congr_fun h_X j) =
     eq_to_hom (congr_fun h_X i) ≫ C₂.d i j) : C₁ = C₂ :=

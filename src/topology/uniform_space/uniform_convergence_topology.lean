@@ -90,6 +90,27 @@ end
 protected lemma uniform_space_antitone : antitone (uniform_convergence_on.uniform_space α β) :=
 λ 𝔖₁ 𝔖₂ h₁₂, infi_le_infi_of_subset h₁₂
 
+protected lemma le_Pi_of_covering (h : ⋃₀ 𝔖 = univ) :
+  uniform_convergence_on.uniform_space α β 𝔖 ≤ Pi.uniform_space (λ _, β) :=
+begin
+  change _ ≤ (⨅ _, _ : filter _),
+  rw infi_range,
+  refine le_infi (λ x, _),
+  rw [uniformity_comap rfl, ← uniformity,
+      ((𝓤 _).basis_sets.comap _).ge_iff],
+  intros U hU,
+  obtain ⟨s, hs, hxs⟩ : ∃ s ∈ 𝔖, x ∈ s := mem_sUnion.mp (h.symm ▸ true.intro),
+  change _ ∈ (⨅ _, _ : filter _),
+  rw infi_range,
+  refine mem_infi_of_mem s _,
+  change _ ∈ (⨅ _, _ : filter _),
+  rw infi_range,
+  exact mem_infi_of_mem hs (mem_comap.mpr
+    ⟨ uniform_convergence.gen s β U,
+      (uniform_convergence.has_basis_uniformity s β).mem_of_mem hU,
+      λ uv huv, huv ⟨x, hxs⟩ ⟩)
+end
+
 variables {α}
 
 def compl_convergence_sets (u : uniform_space (α → β)) :
@@ -127,66 +148,70 @@ def compl_convergence_sets (u : uniform_space (α → β)) :
     filter_upwards [h₁ U hU] using λ uv huv ⟨x, hx⟩, huv ⟨x, h₂₁ hx⟩
   end }
 
-def convergence_sets (u : uniform_space (α → β)) (hu : u ≤ Pi.uniform_space (λ _, β)) :
+def convergence_sets {u : uniform_space (α → β)} (hu : u ≤ Pi.uniform_space (λ _, β)) :
   bornology α :=
-bornology.of_bounded'
-  {S | @uniform_continuous _ _ u (uniform_convergence.uniform_space _ _) (restrict S)}
-  (@uniform_continuous_of_const _ _ u (uniform_convergence.uniform_space (∅ : set α) _)
-    ((∅ : set α).restrict) (λ a b, funext $ λ x, x.2.elim))
-  begin
-    intros s₁ h₁ s₂ h₂₁,
-    change tendsto _ _ _,
-    change tendsto _ _ _ at h₁,
-    rw (uniform_convergence.has_basis_uniformity _ β).tendsto_right_iff at ⊢ h₁,
-    intros U hU,
-    filter_upwards [h₁ U hU] using λ uv huv ⟨x, hx⟩, huv ⟨x, h₂₁ hx⟩
-  end
-  begin
-    intros s₁ h₁ s₂ h₂,
-    change tendsto _ _ _,
-    change tendsto _ _ _ at h₁,
-    change tendsto _ _ _ at h₂,
-    rw (uniform_convergence.has_basis_uniformity _ β).tendsto_right_iff at ⊢ h₁ h₂,
-    intros U hU,
-    filter_upwards [h₁ U hU, h₂ U hU],
-    rintros uv huv₁ huv₂ ⟨x, (hx|hx)⟩,
-    { exact huv₁ ⟨x, hx⟩ },
-    { exact huv₂ ⟨x, hx⟩ }
-  end
+{ cobounded := compl_convergence_sets β u,
+  le_cofinite :=
   begin
     intros x,
-    change tendsto _ _ _,
-    rw (uniform_convergence.has_basis_uniformity _ β).tendsto_right_iff,
-    intros U hU,
-    refine eventually.filter_mono hu _,
+    --change tendsto _ _ _,
+    --rw (uniform_convergence.has_basis_uniformity _ β).tendsto_right_iff,
+    --intros U hU,
+    --refine eventually.filter_mono hu _,
     sorry
-  end
+  end }
 
-lemma uniform_convergence_on_convergence_sets : uniform_convergence_on.uniform_space α β 𝔖 =
+lemma convergence_sets.is_bounded_iff {u : uniform_space (α → β)}
+  (hu : u ≤ Pi.uniform_space (λ _, β)) (s : set α) :
+  @is_bounded _ (convergence_sets β hu) s ↔
+  @uniform_continuous _ _ u (uniform_convergence.uniform_space _ _) (restrict s) :=
+begin
+  change @uniform_continuous _ _ u (uniform_convergence.uniform_space _ _) (restrict sᶜᶜ)
+    ↔ @uniform_continuous _ _ u _ _,
+  rw compl_compl
+end
+
+lemma uniform_convergence_on_convergence_sets' : uniform_convergence_on.uniform_space α β 𝔖 =
   uniform_convergence_on.uniform_space α β
-    {s | @is_bounded _ (convergence_sets β (uniform_convergence_on.uniform_space α β 𝔖) sorry) s} :=
+    {s | sᶜ ∈ compl_convergence_sets β (uniform_convergence_on.uniform_space α β 𝔖)} :=
 begin
   refine le_antisymm _ _,
-  { refine le_infi (λ s, le_infi $ λ (hs : @is_bounded _ (convergence_sets _ _ _) s), _),
+  { refine le_infi (λ s, le_infi $ λ hs, _),
+    rw [← uniform_continuous_iff, ← compl_compl s],
+    exact hs },
+  { exact uniform_convergence_on.uniform_space_antitone _ _
+      (λ s hs, uniform_convergence_on.uniform_continuous_restrict _ _ 𝔖
+      ((compl_compl s).symm ▸ hs)) }
+end
+
+lemma uniform_convergence_on_convergence_sets (sUnion_univ : ⋃₀ 𝔖 = univ) :
+  uniform_convergence_on.uniform_space α β 𝔖 =
+  uniform_convergence_on.uniform_space α β
+    {s | @is_bounded _ (convergence_sets β
+      (uniform_convergence_on.le_Pi_of_covering α β 𝔖 sUnion_univ)) s} :=
+begin
+  have := uniform_convergence_on.le_Pi_of_covering α β 𝔖 sUnion_univ,
+  refine le_antisymm _ _,
+  { refine le_infi (λ s, le_infi $ λ (hs : @is_bounded _ (convergence_sets β this) s), _),
     rw ← uniform_continuous_iff,
-    exact (is_bounded_of_bounded_iff _).mp hs },
+    exact (convergence_sets.is_bounded_iff _ this _).mp hs },
   { refine uniform_convergence_on.uniform_space_antitone _ _ (λ s hs, _),
-    change @is_bounded _ (convergence_sets _ _) s,
-    rw [convergence_sets, is_bounded_of_bounded_iff],
+    change @is_bounded _ (convergence_sets _ this) s,
+    rw [convergence_sets, convergence_sets.is_bounded_iff _ this],
     exact uniform_convergence_on.uniform_continuous_restrict _ _ 𝔖 hs }
 end
 
-lemma uniform_space_eq_uniform_space_generated :
+lemma uniform_space_eq_uniform_space_generated (sUnion_univ : ⋃₀ 𝔖 = univ) :
   uniform_convergence_on.uniform_space α β 𝔖 =
   uniform_convergence_on.uniform_space α β {s | @is_bounded _ (bornology.generate 𝔖) s} :=
 begin
   refine le_antisymm _ (infi_le_infi_of_subset $ λ s, is_bounded_generate),
-  rw uniform_convergence_on_convergence_sets β 𝔖,
+  rw uniform_convergence_on_convergence_sets β 𝔖 sUnion_univ,
   refine uniform_convergence_on.uniform_space_antitone _ _ _,
   change ∀ s, @is_bounded _ _ s → @is_bounded _ _ s,
   rw [← bornology.le_iff],
   refine bornology.generate_minimal (λ s, _),
-  rw is_bounded_of_bounded_iff,
+  rw convergence_sets.is_bounded_iff,
   exact uniform_convergence_on.uniform_continuous_restrict α β 𝔖
 end
 

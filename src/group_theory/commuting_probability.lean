@@ -163,24 +163,25 @@ begin
 end
 
 lemma schreier_aux3 {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
-  (hH : H.index ≠ 0) : @group.rank H _ (schreier_aux2 hH) ≤ H.index * group.rank G :=
+  (hH : H.index ≠ 0) : @group.rank H _ (schreier_aux2 hH) _ ≤ H.index * group.rank G :=
 begin
-  sorry
+  obtain ⟨S, hS⟩ := hG.1,
+  obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
+  haveI : fintype (quotient (quotient_group.right_rel H)) := sorry,
+  haveI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
+  let R : finset G := set.to_finset R₀,
+  replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
+  replace hR1 : (1 : G) ∈ R := by rwa set.mem_to_finset,
+  letI hH' : group.fg H := ⟨⟨_, schreier_aux4 hR hR1 hS⟩⟩,
+  convert (show @group.rank H _ hH' _ ≤ H.index * group.rank G, from _),
+  calc group.rank H ≤ _ : group.rank_le H (schreier_aux4 hR hR1 hS)
+  ... ≤ (R * S).card : finset.card_image_le
+  ... ≤ (R.product S).card : finset.card_image_le
+  ... = R.card * S.card : R.card_product S
+  ... = H.index * group.rank G : _,
 end
 
 end subgroup
-
-lemma fintype.card_image_le {α β : Type*} (f : α → β) (s : set α) [fintype s] :
-  fintype.card (f '' s) ≤ fintype.card s :=
-fintype.card_le_of_surjective (s.image_factorization f) set.surjective_onto_image
-
-lemma fintype.card_image2_le {α β γ : Type*} (f : α → β → γ) (s : set α) (t : set β) [fintype s] [fintype t] :
-  fintype.card (set.image2 f s t) ≤ fintype.card s * fintype.card t :=
-sorry
-
-def card_mul_le {α : Type*} [has_mul α] [decidable_eq α] (s t : set α) [hs : fintype s] [ht : fintype t] :
-  card (s * t : set α) ≤ card s * card t :=
-by convert fintype.card_image2_le _ s t
 
 end technical
 

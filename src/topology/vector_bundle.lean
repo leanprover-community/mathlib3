@@ -18,8 +18,8 @@ Let `B` be the base space. In our formalism, a topological vector bundle is by d
 `Σ (x : B), E x`, with the interest that one can put another topology than on `Σ (x : B), E x`
 which has the disjoint union topology.
 
-To have a topological vector bundle structure on `bundle.total_space E`, one should addtionally have
-the following data:
+To have a topological vector bundle structure on `bundle.total_space E`, one should
+additionally have the following data:
 
 * `F` should be a topological space and a module over a semiring `R`;
 * There should be a topology on `bundle.total_space E`, for which the projection to `B` is

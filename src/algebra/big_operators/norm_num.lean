@@ -34,6 +34,15 @@ Finally, we package up the result using some congruence lemmas.
 
 open tactic
 
+/-- Convert a list of expressions to an expression denoting the list of those expressions. -/
+meta def expr.of_list (α : expr) : list expr → tactic expr
+| [] := i_to_expr ``(@list.nil %%α)
+| (x :: xs) := do
+  exs ← expr.of_list xs,
+  i_to_expr ``(@list.cons %%α %%x %%exs)
+
+namespace tactic.norm_num
+
 /-- Use `norm_num` to decide equality between two expressions.
 
 If the decision procedure succeeds, the `bool` value indicates whether the expressions are equal,
@@ -41,7 +50,7 @@ and the `expr` is a proof of (dis)equality.
 This procedure is partial: it will fail in cases where `norm_num` can't reduce either side
 to a rational numeral.
 -/
-meta def tactic.norm_num.decide_eq (l r : expr) : tactic (bool × expr) := do
+meta def decide_eq (l r : expr) : tactic (bool × expr) := do
   (l', l'_pf) ← or_refl_conv norm_num.derive l,
   (r', r'_pf) ← or_refl_conv norm_num.derive r,
   n₁ ← l'.to_rat, n₂ ← r'.to_rat,
@@ -107,7 +116,7 @@ which is in general not true).
 `decide_eq` is a (partial) decision procedure for determining whether two
 elements of the finset are equal, for example to parse `{2, 1, 2}` into `[2, 1]`.
 -/
-meta def tactic.norm_num.eval_finset (decide_eq : expr → expr → tactic (bool × expr)) :
+meta def eval_finset (decide_eq : expr → expr → tactic (bool × expr)) :
   expr → tactic (list expr × expr × expr)
 | e@`(has_emptyc.emptyc) := do
   eq ← mk_eq_refl e,
@@ -118,7 +127,7 @@ meta def tactic.norm_num.eval_finset (decide_eq : expr → expr → tactic (bool
   nd ← i_to_expr ``(list.nodup_singleton %%x),
   pure ([x], eq, nd)
 | `(@@has_insert.insert (@@finset.has_insert %%dec) %%x %%xs) := do
-  (exs, xs_eq, xs_nd) ← tactic.norm_num.eval_finset xs,
+  (exs, xs_eq, xs_nd) ← eval_finset xs,
   (is_mem, mem_pf) ← list.decide_mem decide_eq x exs,
   if is_mem then do
     pf ← i_to_expr ``(finset.insert_eq_coe_list_of_mem %%x %%xs %%mem_pf %%xs_nd %%xs_eq),
@@ -133,7 +142,7 @@ meta def tactic.norm_num.eval_finset (decide_eq : expr → expr → tactic (bool
   `fintype.mk ← get_app_fn_const_whnf ft
     | fail (to_fmt "Unknown fintype expression" ++ format.line ++ to_fmt ft),
   [_, args, _] ← get_app_args_whnf ft | fail (to_fmt "Expected 3 arguments to `fintype.mk`"),
-  tactic.norm_num.eval_finset args
+  eval_finset args
 | e@`(finset.range %%en) := do
   n ← expr.to_nat en,
   eis ← (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
@@ -148,25 +157,18 @@ meta def tactic.norm_num.eval_finset (decide_eq : expr → expr → tactic (bool
   pure (eis, eq, nd)
 | e := fail (to_fmt "Unknown finset expression" ++ format.line ++ to_fmt e)
 
-/-- Convert a list of expressions to an expression denoting the list of those expressions. -/
-meta def expr.of_list (α : expr) : list expr → tactic expr
-| [] := i_to_expr ``(@list.nil %%α)
-| (x :: xs) := do
-  exs ← expr.of_list xs,
-  i_to_expr ``(@list.cons %%α %%x %%exs)
-
 lemma list.map_cons_congr {α β : Type*} (f : α → β) {x : α} {xs : list α} {fx : β} {fxs : list β}
   (h₁ : f x = fx) (h₂ : xs.map f = fxs) : (x :: xs).map f = fx :: fxs :=
 by rw [list.map_cons, h₁, h₂]
 
 /-- Apply `ef : α → β` to all elements of the list, constructing an equality proof. -/
-meta def tactic.norm_num.eval_list_map (ef : expr) : list expr → tactic (list expr × expr)
+meta def eval_list_map (ef : expr) : list expr → tactic (list expr × expr)
 | [] := do
   eq ← i_to_expr ``(list.map_nil %%ef),
   pure ([], eq)
 | (x :: xs) := do
   (fx, fx_eq) ← or_refl_conv norm_num.derive (expr.app ef x),
-  (fxs, fxs_eq) ← tactic.norm_num.eval_list_map xs,
+  (fxs, fxs_eq) ← eval_list_map xs,
   eq ← i_to_expr ``(list.map_cons_congr %%ef %%fx_eq %%fxs_eq),
   pure (fx :: fxs, eq)
 
@@ -174,7 +176,7 @@ lemma multiset.cons_congr {α : Type*} (x : α) {xs : multiset α} {xs' : list �
   (xs_eq : (xs' : multiset α) = xs) : (list.cons x xs' : multiset α) = x ::ₘ xs :=
 by rw [← xs_eq]; refl
 
-lemma tactic.norm_num.multiset.map_congr {α β : Type*} (f : α → β) {xs : multiset α}
+lemma multiset.map_congr {α β : Type*} (f : α → β) {xs : multiset α}
   {xs' : list α} {ys : list β} (xs_eq : xs = (xs' : multiset α)) (ys_eq : xs'.map f = ys) :
   xs.map f = (ys : multiset β) :=
 by rw [← ys_eq, ← multiset.coe_map, xs_eq]
@@ -185,7 +187,7 @@ We return a list rather than a finset, so we can more easily iterate over it
 (without having to prove that our tactics are independent of the order of iteration,
 which is in general not true).
 -/
-meta def tactic.norm_num.eval_multiset : expr → tactic (list expr × expr)
+meta def eval_multiset : expr → tactic (list expr × expr)
 | e@`(@has_zero.zero (multiset _) _) := do
   eq ← mk_eq_refl e,
   pure ([], eq)
@@ -196,11 +198,11 @@ meta def tactic.norm_num.eval_multiset : expr → tactic (list expr × expr)
   eq ← mk_eq_refl e,
   pure ([x], eq)
 | e@`(multiset.cons %%x %%xs) := do
-  (xs, xs_eq) ← tactic.norm_num.eval_multiset xs,
+  (xs, xs_eq) ← eval_multiset xs,
   eq ← i_to_expr ``(multiset.cons_congr %%x %%xs_eq),
   pure (x :: xs, eq)
 | e@`(@@has_insert.insert multiset.has_insert %%x %%xs) := do
-  (xs, xs_eq) ← tactic.norm_num.eval_multiset xs,
+  (xs, xs_eq) ← eval_multiset xs,
   eq ← i_to_expr ``(multiset.cons_congr %%x %%xs_eq),
   pure (x :: xs, eq)
 | e@`(multiset.range %%en) := do
@@ -209,9 +211,9 @@ meta def tactic.norm_num.eval_multiset : expr → tactic (list expr × expr)
   eq ← mk_eq_refl e,
   pure (eis, eq)
 | `(@multiset.map %%α %%β %%ef %%exs) := do
-  (xs, xs_eq) ← tactic.norm_num.eval_multiset exs,
-  (ys, ys_eq) ← tactic.norm_num.eval_list_map ef xs,
-  eq ← i_to_expr ``(tactic.norm_num.multiset.map_congr %%ef %%xs_eq %%ys_eq),
+  (xs, xs_eq) ← eval_multiset exs,
+  (ys, ys_eq) ← eval_list_map ef xs,
+  eq ← i_to_expr ``(multiset.map_congr %%ef %%xs_eq %%ys_eq),
   pure (ys, eq)
 | e := fail (to_fmt "Unknown multiset expression" ++ format.line ++ to_fmt e)
 
@@ -219,18 +221,18 @@ lemma list.cons_congr {α : Type*} (x : α) {xs : list α} {xs' : list α} (xs_e
   x :: xs' = x :: xs :=
 by rw xs_eq
 
-lemma tactic.norm_num.list.map_congr {α β : Type*} (f : α → β) {xs xs' : list α}
+lemma list.map_congr {α β : Type*} (f : α → β) {xs xs' : list α}
   {ys : list β} (xs_eq : xs = xs') (ys_eq : xs'.map f = ys) :
   xs.map f = ys :=
 by rw [← ys_eq, xs_eq]
 
 /-- Convert an expression denoting a list to a list of elements. -/
-meta def tactic.norm_num.eval_list : expr → tactic (list expr × expr)
+meta def eval_list : expr → tactic (list expr × expr)
 | e@`(list.nil) := do
   eq ← mk_eq_refl e,
   pure ([], eq)
 | e@`(list.cons %%x %%xs) := do
-  (xs, xs_eq) ← tactic.norm_num.eval_list xs,
+  (xs, xs_eq) ← eval_list xs,
   eq ← i_to_expr ``(list.cons_congr %%x %%xs_eq),
   pure (x :: xs, eq)
 | e@`(list.range %%en) := do
@@ -239,9 +241,9 @@ meta def tactic.norm_num.eval_list : expr → tactic (list expr × expr)
   eq ← mk_eq_refl e,
   pure (eis, eq)
 | `(@list.map %%α %%β %%ef %%exs) := do
-  (xs, xs_eq) ← tactic.norm_num.eval_list exs,
-  (ys, ys_eq) ← tactic.norm_num.eval_list_map ef xs,
-  eq ← i_to_expr ``(tactic.norm_num.list.map_congr %%ef %%xs_eq %%ys_eq),
+  (xs, xs_eq) ← eval_list exs,
+  (ys, ys_eq) ← eval_list_map ef xs,
+  eq ← i_to_expr ``(list.map_congr %%ef %%xs_eq %%ys_eq),
   pure (ys, eq)
 | e := fail (to_fmt "Unknown list expression" ++ format.line ++ to_fmt e)
 
@@ -293,7 +295,7 @@ by rw [← h₂, ← multiset.coe_prod, h₁]
 /-- Evaluate `(%%xs.map (%%ef : %%α → %%β)).prod`,
 producing the evaluated expression and an equality proof. -/
 meta def list.prove_prod_map (β ef : expr) (xs : list expr) : tactic (expr × expr) := do
-  (fxs, fxs_eq) ← tactic.norm_num.eval_list_map ef xs,
+  (fxs, fxs_eq) ← eval_list_map ef xs,
   (prod, prod_eq) ← list.prove_prod β fxs,
   eq ← i_to_expr ``(list.prod_congr %%fxs_eq %%prod_eq),
   pure (prod, eq)
@@ -301,7 +303,7 @@ meta def list.prove_prod_map (β ef : expr) (xs : list expr) : tactic (expr × e
 /-- Evaluate `(%%xs.map (%%ef : %%α → %%β)).sum`,
 producing the evaluated expression and an equality proof. -/
 meta def list.prove_sum_map (β ef : expr) (xs : list expr) : tactic (expr × expr) := do
-  (fxs, fxs_eq) ← tactic.norm_num.eval_list_map ef xs,
+  (fxs, fxs_eq) ← eval_list_map ef xs,
   (sum, sum_eq) ← list.prove_sum β fxs,
   eq ← i_to_expr ``(list.sum_congr %%fxs_eq %%sum_eq),
   pure (sum, eq)
@@ -322,35 +324,37 @@ by rw [← hs, finset.prod_mk, multiset.coe_map, multiset.coe_prod, hx]
  * `finset.prod`
  * `finset.sum`
 -/
-@[norm_num] meta def tactic.norm_num.eval_big_operators : expr → tactic (expr × expr)
+@[norm_num] meta def eval_big_operators : expr → tactic (expr × expr)
 | `(@list.prod %%α %%inst1 %%inst2 %%exs) := tactic.trace_error "" $ do
-  (xs, list_eq) ← tactic.norm_num.eval_list exs,
+  (xs, list_eq) ← eval_list exs,
   (result, sum_eq) ← list.prove_prod α xs,
   pf ← i_to_expr ``(list.prod_congr %%list_eq %%sum_eq),
   pure (result, pf)
 | `(@list.sum %%α %%inst1 %%inst2 %%exs) := tactic.trace_error "" $ do
-  (xs, list_eq) ← tactic.norm_num.eval_list exs,
+  (xs, list_eq) ← eval_list exs,
   (result, sum_eq) ← list.prove_sum α xs,
   pf ← i_to_expr ``(list.sum_congr %%list_eq %%sum_eq),
   pure (result, pf)
 | `(@multiset.prod %%α %%inst %%exs) := tactic.trace_error "" $ do
-  (xs, list_eq) ← tactic.norm_num.eval_multiset exs,
+  (xs, list_eq) ← eval_multiset exs,
   (result, sum_eq) ← list.prove_prod α xs,
   pf ← i_to_expr ``(multiset.prod_congr %%list_eq %%sum_eq),
   pure (result, pf)
 | `(@multiset.sum %%α %%inst %%exs) := tactic.trace_error "" $ do
-  (xs, list_eq) ← tactic.norm_num.eval_multiset exs,
+  (xs, list_eq) ← eval_multiset exs,
   (result, sum_eq) ← list.prove_sum α xs,
   pf ← i_to_expr ``(multiset.sum_congr %%list_eq %%sum_eq),
   pure (result, pf)
 | `(@finset.prod %%β %%α %%inst %%es %%ef) := tactic.trace_error "" $ do
-  (xs, list_eq, nodup) ← tactic.norm_num.eval_finset tactic.norm_num.decide_eq es,
+  (xs, list_eq, nodup) ← eval_finset decide_eq es,
   (result, sum_eq) ← list.prove_prod_map β ef xs,
   pf ← i_to_expr ``(finset.eval_prod_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),
   pure (result, pf)
 | `(@finset.sum %%β %%α %%inst %%es %%ef) := tactic.trace_error "" $ do
-  (xs, list_eq, nodup) ← tactic.norm_num.eval_finset tactic.norm_num.decide_eq es,
+  (xs, list_eq, nodup) ← eval_finset decide_eq es,
   (result, sum_eq) ← list.prove_sum_map β ef xs,
   pf ← i_to_expr ``(finset.eval_sum_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),
   pure (result, pf)
 | _ := failed
+
+end tactic.norm_num

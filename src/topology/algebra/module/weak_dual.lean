@@ -174,7 +174,7 @@ instance : inhabited (weak_dual 𝕜 E) :=
 by {dunfold weak_dual, dunfold weak_bilin, apply_instance}
 
 instance add_monoid_hom_class_weak_dual : add_monoid_hom_class (weak_dual 𝕜 E) E 𝕜 :=
-by {dunfold weak_dual, dunfold weak_bilin, apply_instance}
+continuous_linear_map.add_monoid_hom_class
 
 /-- If a monoid `M` distributively continuously acts on `𝕜` and this action commutes with
 multiplication on `𝕜`, then it acts on `weak_dual 𝕜 E`. -/

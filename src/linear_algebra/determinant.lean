@@ -93,8 +93,10 @@ begin
     minor_mul_equiv, equiv.coe_refl, minor_id_id]
 end
 
-/-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`. -/
-lemma det_conj [decidable_eq m] [decidable_eq n]
+/-- If `M'` is a two-sided inverse for `M` (indexed differently), `det (M ⬝ N ⬝ M') = det N`.
+
+See `matrix.det_conj` and `matrix.det_conj'` for the case when `M' = M⁻¹` or vice versa. -/
+lemma det_conj_of_mul_eq_one [decidable_eq m] [decidable_eq n]
   {M : matrix m n A} {M' : matrix n m A} {N : matrix n n A}
   (hMM' : M ⬝ M' = 1) (hM'M : M' ⬝ M = 1) :
   det (M ⬝ N ⬝ M') = det N :=
@@ -117,7 +119,7 @@ lemma det_to_matrix_eq_det_to_matrix [decidable_eq κ]
   det (linear_map.to_matrix b b f) = det (linear_map.to_matrix c c f) :=
 by rw [← linear_map_to_matrix_mul_basis_to_matrix c b c,
        ← basis_to_matrix_mul_linear_map_to_matrix b c b,
-       matrix.det_conj]; rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
+       matrix.det_conj_of_mul_eq_one]; rw [basis.to_matrix_mul_to_matrix, basis.to_matrix_self]
 
 /-- The determinant of an endomorphism given a basis.
 
@@ -262,7 +264,7 @@ begin
   by_cases H : ∃ (s : finset M), nonempty (basis s A M),
   { rcases H with ⟨s, ⟨b⟩⟩,
     rw [← det_to_matrix b f, ← det_to_matrix (b.map e), to_matrix_comp (b.map e) b (b.map e),
-        to_matrix_comp (b.map e) b b, ← matrix.mul_assoc, matrix.det_conj],
+        to_matrix_comp (b.map e) b b, ← matrix.mul_assoc, matrix.det_conj_of_mul_eq_one],
     { rw [← to_matrix_comp, linear_equiv.comp_coe, e.symm_trans_self,
           linear_equiv.refl_to_linear_map, to_matrix_id] },
     { rw [← to_matrix_comp, linear_equiv.comp_coe, e.self_trans_symm,

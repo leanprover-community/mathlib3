@@ -18,9 +18,6 @@ In this file we construct the transfer homomorphism.
 - `transfer ϕ : G →* A` for `ϕ : H →* A` from `H : subgroup G` to a commutative group `A`.
 -/
 
-@[simp, to_additive] lemma smul_eq_mul_unop {α : Type*} [has_mul α] {a : αᵐᵒᵖ} {a' : α} :
-  a • a' = a' * a.unop := rfl
-
 namespace mul_action
 
 open subgroup
@@ -42,7 +39,8 @@ attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 ⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
 
 @[to_additive] instance right_quotient_action : quotient_action H.normalizer.opposite H :=
-⟨λ b c _ _, by rwa [smul_def, smul_def, smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev,
+⟨λ b c _ _, by rwa [smul_def, smul_def, mul_opposite.smul_eq_mul_unop, mul_inv_rev,
+  mul_opposite.smul_eq_mul_unop,
   ←mul_assoc, ←subtype.val_eq_coe, mem_normalizer_iff'.mp b.2, mul_assoc, mul_inv_cancel_left]⟩
 
 @[to_additive] instance [quotient_action α H] : mul_action α (β ⧸ H) :=
@@ -162,7 +160,8 @@ begin
     (λ q _, smul_inv_smul _ q) (λ q _, inv_smul_smul _ q)) (ϕ.map_prod _ _).symm,
   rw [monoid_hom.id_apply, monoid_hom.id_apply, monoid_hom.coe_mk, coe_mk, coe_mk, coe_mk,
       smul_apply_eq_smul_apply_inv_smul, smul_apply_eq_smul_apply_inv_smul, smul_def, smul_def,
-      smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, mul_assoc, mul_assoc, mul_assoc],
+      mul_opposite.smul_eq_mul_unop, mul_opposite.smul_eq_mul_unop, mul_inv_rev,
+      mul_assoc, mul_assoc, mul_assoc],
 end
 
 end left_transversals
@@ -195,7 +194,7 @@ begin
   rw [←quotient_group.eq_one_iff, quotient_group.coe_pow, index_eq_card, pow_card_eq_one],
 end
 
-@[to_additive] noncomputable def transfer_pow (hH : H ≤ center G) : G →* H :=
+@[to_additive] noncomputable def transfer_pow [H.normal] (hH : H ≤ center G) : G →* H :=
 { to_fun := λ g, ⟨g ^ H.index, H.pow_index_mem g⟩,
   map_one' := subtype.ext (one_pow H.index),
   map_mul' := sorry }

@@ -162,7 +162,7 @@ begin
       { exact le_add_left card_support_C_mul_X_pow_le_one },
       { exact (le_trans (nat_degree_C_mul_X_pow_le g.leading_coeff g.nat_degree) Og) },
       { exact nat.lt_succ_iff.mp (gt_of_ge_of_gt Cg (erase_lead_support_card_lt g0)) },
-      { exact le_trans erase_lead_nat_degree_le Og } } },
+      { exact le_trans erase_lead_nat_degree_le_aux Og } } },
   --first induction (left): induction step
   { intros N O f g Cf Cg Nf Og,
     by_cases f0 : f = 0,
@@ -173,7 +173,7 @@ begin
     { exact le_add_left card_support_C_mul_X_pow_le_one },
     { exact (le_trans (nat_degree_C_mul_X_pow_le f.leading_coeff f.nat_degree) Nf) },
     { exact nat.lt_succ_iff.mp (gt_of_ge_of_gt Cf (erase_lead_support_card_lt f0)) },
-    { exact (le_trans erase_lead_nat_degree_le Nf) } },
+    { exact (le_trans erase_lead_nat_degree_le_aux Nf) } }
 end
 
 @[simp] theorem reflect_mul

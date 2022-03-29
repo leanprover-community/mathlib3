@@ -24,7 +24,7 @@ variables {α : Type*} [decidable_eq α] {s : finset α} (P : finpartition s) (G
 
 namespace finpartition
 
-/-- The energy of a partition. -/
+/-- The energy of a partition, also known as index. -/
 def energy : ℚ := (∑ uv in P.parts.off_diag, G.edge_density uv.1 uv.2 ^ 2) / P.parts.card ^ 2
 
 lemma energy_nonneg : 0 ≤ P.energy G :=

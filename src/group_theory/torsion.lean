@@ -7,6 +7,7 @@ Authors: Julian Berman
 import group_theory.exponent
 import group_theory.order_of_element
 import group_theory.quotient_group
+import group_theory.submonoid.operations
 
 /-!
 # Torsion groups
@@ -15,10 +16,11 @@ This file defines torsion groups, i.e. groups where all elements have finite ord
 
 ## Main definitions
 
-* `torsion G`, the torsion subgroup of an abelian group `G`
 * `monoid.is_torsion` a predicate asserting `G` is torsion, i.e. that all
   elements are of finite order.
 * `add_monoid.is_torsion` the additive version of `monoid.is_torsion`.
+* `comm_group.torsion G`, the torsion subgroup of an abelian group `G`
+* `comm_monoid.torsion G`, the above stated for commutative monoids
 
 ## Implementation
 
@@ -28,7 +30,7 @@ the group theory library.
 
 ## Tags
 
-periodic groups, torsion subgroup, torsion abelian group
+periodic group, torsion subgroup, torsion abelian group
 
 ## Future work
 
@@ -99,45 +101,72 @@ exponent_exists.is_torsion $ exponent_exists_iff_ne_zero.mpr exponent_ne_zero_of
 
 end group
 
+
+section comm_monoid
+
+variables (G) [comm_monoid G]
+
+namespace comm_monoid
+
+/--
+The torsion submonoid of a commutative monoid.
+
+(Note that by `monoid.is_torsion.group` torsion monoids are truthfully groups.)
+-/
+@[to_additive add_torsion "The torsion submonoid of an additive commutative monoid."]
+def torsion : submonoid G :=
+{ carrier := {x | is_of_fin_order x},
+  one_mem' := is_of_fin_order_one,
+  mul_mem' := λ _ _ hx hy, hx.mul hy }
+
+variable {G}
+
+/-- Torsion submonoids are torsion. -/
+@[to_additive "Additive torsion submonoids are additively torsion."]
+lemma torsion.is_torsion : is_torsion $ torsion G :=
+λ ⟨_, n, npos, hn⟩,
+  ⟨n, npos, subtype.ext $
+    by rw [mul_left_iterate, _root_.mul_one, submonoid.coe_pow,
+           subtype.coe_mk, submonoid.coe_one, (is_periodic_pt_mul_iff_pow_eq_one _).mp hn]⟩
+
+end comm_monoid
+
+open comm_monoid (torsion)
+
+namespace monoid.is_torsion
+
+variable {G}
+
+/-- The torsion submonoid of a torsion monoid is `⊤`. -/
+@[simp, to_additive "The additive torsion submonoid of an additive torsion monoid is `⊤`."]
+lemma torsion_eq_top (tG : is_torsion G) : torsion G = ⊤ := by ext; tauto
+
+/-- A torsion monoid is isomorphic to its torsion submonoid. -/
+@[to_additive "An additive torsion monoid is isomorphic to its torsion submonoid.", simps]
+def torsion_mul_equiv (tG : is_torsion G) : torsion G ≃* G :=
+ (mul_equiv.submonoid_congr tG.torsion_eq_top).trans submonoid.top_equiv
+
+end monoid.is_torsion
+
+/-- Torsion submonoids of a torsion submonoid are isomorphic to the submonoid. -/
+@[simp, to_additive add_comm_monoid.torsion.of_torsion
+  "Additive torsion submonoids of an additive torsion submonoid are isomorphic to the submonoid."]
+def torsion.of_torsion : (torsion (torsion G)) ≃* (torsion G) :=
+monoid.is_torsion.torsion_mul_equiv comm_monoid.torsion.is_torsion
+
+end comm_monoid
+
 section comm_group
 
 variables (G) [comm_group G]
 
 /-- The torsion subgroup of an abelian group. -/
-@[to_additive add_tor "The torsion subgroup of an additive abelian group."]
-def torsion : subgroup G :=
-{ carrier := {x | is_of_fin_order x},
-  one_mem' := is_of_fin_order_one,
-  inv_mem' := λ x, is_of_fin_order.inv,
-  mul_mem' := λ _ _ hx hy, hx.mul hy }
+@[to_additive add_torsion "The torsion subgroup of an additive abelian group."]
+def torsion : subgroup G := { comm_monoid.torsion G with inv_mem' := λ x, is_of_fin_order.inv }
 
-variables {G}
-
-/-- Torsion subgroups are torsion. -/
-@[to_additive "Additive torsion subgroups are additively torsion."]
-lemma torsion.is_torsion : is_torsion $ torsion G :=
-λ ⟨_, n, npos, hn⟩,
-  ⟨n, npos, subtype.ext $
-    by rw [mul_left_iterate, _root_.mul_one, subgroup.coe_pow,
-           subtype.coe_mk, subgroup.coe_one, (is_periodic_pt_mul_iff_pow_eq_one _).mp hn]⟩
-
-namespace monoid.is_torsion
-
-/-- The torsion subgroup of a torsion group is `⊤`. -/
-@[simp, to_additive "The additive torsion subgroup of an additive torsion group is `⊤`."]
-lemma torsion_eq_top (tG : is_torsion G) : torsion G = ⊤ := by ext; tauto
-
-/-- A torsion group is isomorphic to its own torsion group. -/
-@[to_additive "A torsion additive group is isomorphic to its own torsion group."]
-def torsion_mul_equiv (tG : is_torsion G) : torsion G ≃* G :=
-by rw tG.torsion_eq_top; exact subgroup.top_equiv
-
-end monoid.is_torsion
-
-/-- Torsion subgroups of torsion subgroups are isomorphic to the subgroup. -/
-@[simp, to_additive
-  "Additive torsion subgroups of additive torsion subgroups are isomorphic to the subgroup."]
-def torsion.of_torsion : (torsion (torsion G)) ≃* (torsion G) :=
-monoid.is_torsion.torsion_mul_equiv torsion.is_torsion
+/-- The torsion submonoid of an abelian group equals the torsion subgroup as a submonoid. -/
+@[to_additive add_torsion_eq_add_torsion_submonoid
+  "The additive torsion submonoid of an abelian group equals the torsion subgroup as a submonoid."]
+lemma torsion_eq_torsion_submonoid : comm_monoid.torsion G = (torsion G).to_submonoid := rfl
 
 end comm_group

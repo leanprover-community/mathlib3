@@ -92,30 +92,24 @@ begin
     refl, },
 end
 
-lemma pochhammer_add_pochhammer_aux {R : Type*} [comm_semiring R] : ∀ (n : ℕ),
-  pochhammer R (n + 1) + (n + 1) * (pochhammer R n).comp (X + 1) =
-    (pochhammer R (n + 1)).comp (X + 1)
-| 0       := by simp
-| (n + 1) := begin
-    nth_rewrite 0 pochhammer_succ_left,
-    rw [← add_mul, pochhammer_succ_right R (n + 1), mul_comp, mul_comm, add_comp, X_comp,
-      nat_cast_comp, add_comm ↑(n + 1), ← add_assoc]
-  end
-
-lemma pochhammer_add_pochhammer_aux_pred {R : Type*} [comm_semiring R] : ∀ (n : ℕ),
-  pochhammer R n + n * (pochhammer R (n - 1)).comp (X + 1) = (pochhammer R n).comp (X + 1)
-| 0       := by simp
-| (n + 1) := pochhammer_add_pochhammer_aux n
-
-lemma pochhammer_add_pochhammer (n : ℕ) :
-  pochhammer S n + n * (pochhammer S (n - 1)).comp (X + 1) = (pochhammer S n).comp (X + 1) :=
+lemma pochhammer_succ_comp_X_add_one (n : ℕ) :
+  (pochhammer S (n + 1)).comp (X + 1) =
+    pochhammer S (n + 1) + (n + 1) * (pochhammer S n).comp (X + 1) :=
 begin
-  have X1 : map (nat.cast_ring_hom S) (X + 1) = X + 1,
-  { simp only [polynomial.map_add, map_X, polynomial.map_one] },
-  rw [← pochhammer_map (nat.cast_ring_hom S) (n - 1), ← pochhammer_map (nat.cast_ring_hom S) n,
-    ← X1, ← map_comp (nat.cast_ring_hom S) (pochhammer ℕ n) (X + 1)],
-  simp [← pochhammer_add_pochhammer_aux_pred n, map_comp],
+  suffices : (pochhammer ℕ (n + 1)).comp (X + 1) =
+              pochhammer ℕ (n + 1) + (n + 1) * (pochhammer ℕ n).comp (X + 1),
+  { simpa [map_comp] using congr_arg (polynomial.map (nat.cast_ring_hom S)) this },
+  cases n,
+  { simp },
+  { nth_rewrite 1 pochhammer_succ_left,
+    rw [← add_mul, pochhammer_succ_right ℕ (n + 1), mul_comp, mul_comm, add_comp, X_comp,
+      nat_cast_comp, add_comm ↑(n + 1), ← add_assoc] },
 end
+
+lemma pochhammer_add_pochhammer : ∀ (n : ℕ),
+  pochhammer S n + n * (pochhammer S (n - 1)).comp (X + 1) = (pochhammer S n).comp (X + 1)
+| 0       := by simp
+| (n + 1) := (pochhammer_succ_comp_X_add_one _ _).symm
 
 lemma polynomial.mul_X_add_nat_cast_comp {p q : S[X]} {n : ℕ} :
   (p * (X + n)).comp q = (p.comp q) * (q + n) :=

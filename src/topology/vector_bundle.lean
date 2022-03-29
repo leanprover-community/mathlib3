@@ -316,7 +316,7 @@ structure topological_vector_bundle_core (ι : Type*) :=
 (is_open_base_set  : ∀ i, is_open (base_set i))
 (index_at          : B → ι)
 (mem_base_set_at   : ∀ x, x ∈ base_set (index_at x))
-(coord_change      : ι → ι → B → (F →ₗ[R] F))
+(coord_change      : ι → ι → B → (F →L[R] F))
 (coord_change_self : ∀ i, ∀ x ∈ base_set i, ∀ v, coord_change i i x v = v)
 (coord_change_continuous : ∀ i j, continuous_on (λp : B × F, coord_change i j p.1 p.2)
                                                (((base_set i) ∩ (base_set j)) ×ˢ (univ : set F)))
@@ -331,7 +331,7 @@ def trivial_topological_vector_bundle_core (ι : Type*) [inhabited ι] :
   is_open_base_set := λ i, is_open_univ,
   index_at := λ x, default,
   mem_base_set_at := λ x, mem_univ x,
-  coord_change := λ i j x, linear_map.id,
+  coord_change := λ i j x, continuous_linear_map.id R F,
   coord_change_self := λ i x hx v, rfl,
   coord_change_comp := λ i j k x hx v, rfl,
   coord_change_continuous := λ i j, continuous_on_snd, }
@@ -416,8 +416,8 @@ variables {ι} (b : B) (a : F)
 registering additionally in its type that it is a local bundle trivialization. -/
 def local_triv (i : ι) : topological_vector_bundle.trivialization R F Z.fiber :=
 { linear := λ x hx,
-  { map_add := λ v w, by simp only [linear_map.map_add] with mfld_simps,
-    map_smul := λ r v, by simp only [linear_map.map_smul] with mfld_simps},
+  { map_add := λ v w, by simp only [continuous_linear_map.map_add] with mfld_simps,
+    map_smul := λ r v, by simp only [continuous_linear_map.map_smul] with mfld_simps},
   ..topological_fiber_bundle_core.local_triv ↑Z i }
 
 variable (i : ι)

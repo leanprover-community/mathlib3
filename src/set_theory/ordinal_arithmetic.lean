@@ -1574,7 +1574,7 @@ end
 def bmex (o : ordinal) (f : Π a < o, ordinal) : ordinal :=
 mex (family_of_bfamily o f)
 
-theorem bmex_nmem_brange {o : ordinal} (f : Π a < o, ordinal) : bmex o f ∉ brange o f :=
+theorem bmex_not_mem_brange {o : ordinal} (f : Π a < o, ordinal) : bmex o f ∉ brange o f :=
 by { rw ←range_family_of_bfamily, apply mex_not_mem_range }
 
 theorem ne_bmex {o : ordinal} (f : Π a < o, ordinal) {i} (hi) : f i hi ≠ bmex o f :=

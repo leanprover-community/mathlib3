@@ -325,32 +325,38 @@ by rw [← hs, finset.prod_mk, multiset.coe_map, multiset.coe_prod, hx]
  * `finset.sum`
 -/
 @[norm_num] meta def eval_big_operators : expr → tactic (expr × expr)
-| `(@list.prod %%α %%inst1 %%inst2 %%exs) := tactic.trace_error "" $ do
+| `(@list.prod %%α %%inst1 %%inst2 %%exs) :=
+tactic.trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
   (xs, list_eq) ← eval_list exs,
   (result, sum_eq) ← list.prove_prod α xs,
   pf ← i_to_expr ``(list.prod_congr %%list_eq %%sum_eq),
   pure (result, pf)
-| `(@list.sum %%α %%inst1 %%inst2 %%exs) := tactic.trace_error "" $ do
+| `(@list.sum %%α %%inst1 %%inst2 %%exs) :=
+tactic.trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
   (xs, list_eq) ← eval_list exs,
   (result, sum_eq) ← list.prove_sum α xs,
   pf ← i_to_expr ``(list.sum_congr %%list_eq %%sum_eq),
   pure (result, pf)
-| `(@multiset.prod %%α %%inst %%exs) := tactic.trace_error "" $ do
+| `(@multiset.prod %%α %%inst %%exs) :=
+tactic.trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
   (xs, list_eq) ← eval_multiset exs,
   (result, sum_eq) ← list.prove_prod α xs,
   pf ← i_to_expr ``(multiset.prod_congr %%list_eq %%sum_eq),
   pure (result, pf)
-| `(@multiset.sum %%α %%inst %%exs) := tactic.trace_error "" $ do
+| `(@multiset.sum %%α %%inst %%exs) :=
+tactic.trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
   (xs, list_eq) ← eval_multiset exs,
   (result, sum_eq) ← list.prove_sum α xs,
   pf ← i_to_expr ``(multiset.sum_congr %%list_eq %%sum_eq),
   pure (result, pf)
-| `(@finset.prod %%β %%α %%inst %%es %%ef) := tactic.trace_error "" $ do
+| `(@finset.prod %%β %%α %%inst %%es %%ef) :=
+tactic.trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
   (xs, list_eq, nodup) ← eval_finset decide_eq es,
   (result, sum_eq) ← list.prove_prod_map β ef xs,
   pf ← i_to_expr ``(finset.eval_prod_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),
   pure (result, pf)
-| `(@finset.sum %%β %%α %%inst %%es %%ef) := tactic.trace_error "" $ do
+| `(@finset.sum %%β %%α %%inst %%es %%ef) :=
+tactic.trace_error "Internal error in `tactic.norm_num.eval_big_operators`:" $ do
   (xs, list_eq, nodup) ← eval_finset decide_eq es,
   (result, sum_eq) ← list.prove_sum_map β ef xs,
   pf ← i_to_expr ``(finset.eval_sum_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),

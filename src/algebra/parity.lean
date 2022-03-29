@@ -18,51 +18,58 @@ for some `r : α`. -/
 @[to_additive
 "An element `a` of a type `α` with addition satisfies `even a` if `a = r + r`,
 for some `r : α`."]
-def square [has_mul α] (a : α) : Prop := ∃ r, a = r * r
+def is_square [has_mul α] (a : α) : Prop := ∃ r, a = r * r
+
+@[simp, to_additive]
+lemma is_square_mul_self [has_mul α] (m : α) : is_square (m * m) := ⟨m, rfl⟩
+
+@[to_additive even_iff_exists_two_nsmul]
+lemma is_square_iff_exists_sq [monoid α] (m : α) : is_square m ↔ ∃ c, m = c ^ 2 :=
+by simp [is_square, pow_two]
+
+@[simp, to_additive even_two_nsmul]
+lemma is_square_sq [monoid α] (a : α) : is_square (a ^ 2) := ⟨a, pow_two _⟩
+
+@[simp, to_additive]
+lemma is_square_one [mul_one_class α] : is_square (1 : α) := ⟨1, (mul_one _).symm⟩
+
+@[to_additive]
+lemma monoid_hom.is_square [mul_one_class α] [mul_one_class β] {m : α}
+  (f : α →* β) (hm : is_square m) :
+  is_square (f m) :=
+begin
+  rcases hm with ⟨m, rfl⟩,
+  exact ⟨f m, by simp⟩
+end
+
+@[to_additive]
+lemma is_square.mul_is_square [comm_monoid α] {m n : α} (hm : is_square m) (hn : is_square n) :
+  is_square (m * n) :=
+begin
+  rcases hm with ⟨m, rfl⟩,
+  rcases hn with ⟨n, rfl⟩,
+  refine ⟨m * n, mul_mul_mul_comm m m n n⟩,
+end
 
 section semiring
 variables [semiring α] [semiring β] {m n : α}
 
-/-- An element `a` of a semiring is even if there exists `k` such `a = 2*k`. -/
-def even (a : α) : Prop := ∃ k, a = 2*k
+@[simp]
+lemma even_two_mul (m : α) : even (2 * m) := ⟨m, two_mul _⟩
 
-@[simp] lemma even_zero : even (0 : α) := ⟨0, (mul_zero _).symm⟩
+lemma even_iff_exists_two_mul (m : α) : even m ↔ ∃ c, m = 2 * c :=
+by simp [even_iff_exists_two_nsmul]
 
-lemma even_two_mul (m : α) : even (2 * m) := ⟨m, rfl⟩
-
-lemma add_monoid_hom.even (f : α →+ β) (hm : even m) : even (f m) :=
-begin
-  rcases hm with ⟨m, rfl⟩,
-  exact ⟨f m, by simp [two_mul]⟩
-end
-
-lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
+lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := by simp [even, has_dvd.dvd, two_mul]
 
 @[simp] lemma range_two_mul (α : Type*) [semiring α] :
   set.range (λ x : α, 2 * x) = {a | even a} :=
-by { ext x, simp [even, eq_comm] }
+by { ext x, simp [eq_comm, two_mul, even] }
 
 @[simp] lemma even_bit0 (a : α) : even (bit0 a) :=
-⟨a, by rw [bit0, two_mul]⟩
+⟨a, rfl⟩
 
-lemma even.add_even (hm : even m) (hn : even n) : even (m + n) :=
-begin
-  rcases hm with ⟨m, rfl⟩,
-  rcases hn with ⟨n, rfl⟩,
-  exact ⟨m + n, (mul_add _ _ _).symm⟩
-end
-
-@[simp] lemma even_zero : even (0 : α) := ⟨0, (mul_zero _).symm⟩
-
-@[simp] lemma even_two : even (2 : α) := ⟨1, (mul_one _).symm⟩
-
-lemma even_two_mul (m : α) : even (2 * m) := ⟨m, rfl⟩
-
-lemma add_monoid_hom.even (f : α →+ β) (hm : even m) : even (f m) :=
-begin
-  rcases hm with ⟨m, rfl⟩,
-  exact ⟨f m, by simp [two_mul]⟩
-end
+@[simp] lemma even_two : even (2 : α) := ⟨1, rfl⟩
 
 @[simp] lemma even.mul_right (hm : even m) (n) : even (m * n) :=
 (add_monoid_hom.mul_right n).even hm
@@ -90,7 +97,7 @@ lemma even.add_odd (hm : even m) (hn : odd n) : odd (m + n) :=
 begin
   rcases hm with ⟨m, rfl⟩,
   rcases hn with ⟨n, rfl⟩,
-  exact ⟨m + n, by rw [mul_add, add_assoc]⟩
+  exact ⟨m + n, by rw [mul_add, ← two_mul, add_assoc]⟩
 end
 
 lemma odd.add_even (hm : odd m) (hn : even n) : odd (m + n) :=
@@ -101,10 +108,11 @@ begin
   rcases hm with ⟨m, rfl⟩,
   rcases hn with ⟨n, rfl⟩,
   refine ⟨n + m + 1, _⟩,
-  rw [←add_assoc, add_comm _ (2 * n), ←add_assoc, ←mul_add, add_assoc, mul_add _ (n + m), mul_one],
+  rw [← two_mul, ←add_assoc, add_comm _ (2 * n), ←add_assoc, ←mul_add, add_assoc, mul_add _ (n + m),
+    mul_one],
   refl
 end
-
+#exit
 @[simp] lemma odd_one : odd (1 : α) :=
 ⟨0, (zero_add _).symm.trans (congr_arg (+ (1 : α)) (mul_zero _).symm)⟩
 

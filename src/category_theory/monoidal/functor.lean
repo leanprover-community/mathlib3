@@ -292,6 +292,8 @@ end lax_monoidal_functor
 namespace lax_monoidal_functor
 variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{v₁ v₃} C E)
 
+/-- The cartesian product of two lax monoidal functors starting from the same monoidal category `C`
+    is lax monoidal. -/
 def prod' : lax_monoidal_functor C (D × E) :=
 { ε := (ε F, ε G),
   μ := λ X Y, (μ F X Y, μ G X Y),
@@ -337,6 +339,8 @@ end monoidal_functor
 namespace monoidal_functor
 variables (F : monoidal_functor.{v₁ v₂} C D) (G : monoidal_functor.{v₁ v₃} C E)
 
+/-- The cartesian product of two monoidal functors starting from the same monoidal category `C`
+    is monoidal. -/
 def prod' : monoidal_functor C (D × E) :=
 { ε_is_iso := (is_iso_prod_iff D E).mpr ⟨ε_is_iso F, ε_is_iso G⟩,
   μ_is_iso := λ X Y, (is_iso_prod_iff D E).mpr ⟨μ_is_iso F X Y, μ_is_iso G X Y⟩,

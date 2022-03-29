@@ -8,8 +8,8 @@ import algebra.big_operators.pi
 import algebra.big_operators.ring
 import algebra.module.linear_map
 import algebra.module.pi
+import algebra.ring.equiv
 import algebra.star.pi
-import data.equiv.ring
 import data.fintype.card
 
 /-!
@@ -387,8 +387,8 @@ by convert finset.sum_eq_single i (λ j _, this j) _ using 1; simp
 
 end non_unital_non_assoc_semiring_decidable
 
-section ring
-variables [ring α] (u v w : m → α)
+section non_unital_non_assoc_ring
+variables [non_unital_non_assoc_ring α] (u v w : m → α)
 
 @[simp] lemma neg_dot_product : -v ⬝ᵥ w = - (v ⬝ᵥ w) := by simp [dot_product]
 
@@ -400,7 +400,7 @@ by simp [sub_eq_add_neg]
 @[simp] lemma dot_product_sub : u ⬝ᵥ (v - w) = u ⬝ᵥ v - u ⬝ᵥ w :=
 by simp [sub_eq_add_neg]
 
-end ring
+end non_unital_non_assoc_ring
 
 section distrib_mul_action
 variables [monoid R] [has_mul α] [add_comm_monoid α] [distrib_mul_action R α]
@@ -416,7 +416,7 @@ by simp [dot_product, finset.smul_sum, mul_smul_comm]
 end distrib_mul_action
 
 section star_ring
-variables [semiring α] [star_ring α] (v w : m → α)
+variables [non_unital_semiring α] [star_ring α] (v w : m → α)
 
 lemma star_dot_product_star : star v ⬝ᵥ star w = star (w ⬝ᵥ v) :=
 by simp [dot_product]
@@ -582,8 +582,8 @@ instance [fintype n] [decidable_eq n] : semiring (matrix n n α) :=
 
 end semiring
 
-section ring
-variables [ring α] [fintype n]
+section non_unital_non_assoc_ring
+variables [non_unital_non_assoc_ring α] [fintype n]
 
 @[simp] protected theorem neg_mul (M : matrix m n α) (N : matrix n o α) :
   (-M) ⬝ N = -(M ⬝ N) :=
@@ -601,7 +601,16 @@ protected theorem mul_sub (M : matrix m n α) (N N' : matrix n o α) :
   M ⬝ (N - N') = M ⬝ N - M ⬝ N' :=
 by rw [sub_eq_add_neg, matrix.mul_add, matrix.mul_neg, sub_eq_add_neg]
 
-end ring
+instance : non_unital_non_assoc_ring (matrix n n α) :=
+{ ..matrix.non_unital_non_assoc_semiring, ..matrix.add_comm_group }
+
+end non_unital_non_assoc_ring
+
+instance [fintype n] [non_unital_ring α] : non_unital_ring (matrix n n α) :=
+{ ..matrix.non_unital_semiring, ..matrix.add_comm_group }
+
+instance [fintype n] [decidable_eq n] [non_assoc_ring α] : non_assoc_ring (matrix n n α) :=
+{ ..matrix.non_assoc_semiring, ..matrix.add_comm_group }
 
 instance [fintype n] [decidable_eq n] [ring α] : ring (matrix n n α) :=
 { ..matrix.semiring, ..matrix.add_comm_group }
@@ -1077,9 +1086,8 @@ by { ext, rw [←diagonal_one, vec_mul_diagonal, mul_one] }
 
 end non_assoc_semiring
 
-section ring
-
-variables [ring α]
+section non_unital_non_assoc_ring
+variables [non_unital_non_assoc_ring α]
 
 lemma neg_vec_mul [fintype m] (v : m → α) (A : matrix m n α) : vec_mul (-v) A = - vec_mul v A :=
 by { ext, apply neg_dot_product }
@@ -1093,7 +1101,7 @@ by { ext, apply neg_dot_product }
 lemma mul_vec_neg [fintype n] (v : n → α) (A : matrix m n α) : mul_vec A (-v) = - mul_vec A v :=
 by { ext, apply dot_product_neg }
 
-end ring
+end non_unital_non_assoc_ring
 
 section comm_semiring
 
@@ -1241,7 +1249,7 @@ by ext i j; simp [mul_comm]
 @[simp] lemma conj_transpose_mul [fintype n] [semiring α] [star_ring α]
   (M : matrix m n α) (N : matrix n l α) : (M ⬝ N)ᴴ = Nᴴ ⬝ Mᴴ  := by ext i j; simp [mul_apply]
 
-@[simp] lemma conj_transpose_neg [ring α] [star_ring α] (M : matrix m n α) :
+@[simp] lemma conj_transpose_neg [non_unital_ring α] [star_ring α] (M : matrix m n α) :
   (- M)ᴴ = - Mᴴ  := by ext i j; simp
 
 /-- `matrix.conj_transpose` as an `add_equiv` -/

@@ -16,8 +16,8 @@ is at least `r * ∥x∥` for any `r < 1`. This is `riesz_lemma`.
 In a nondiscrete normed field (with an element `c` of norm `> 1`) and any `R > ∥c∥`, one can
 guarantee `∥x∥ ≤ R` and `∥x - y∥ ≥ 1` for any `y` in `F`. This is `riesz_lemma_of_norm_lt`.
 
-A further lemma, `closed_ball_inf_dist_compl_subset_closure`, finds a *closed* ball within the
-closure of a set `s` of optimal distance from a point in `x` to the frontier of `s`.
+A further lemma, `metric.closed_ball_inf_dist_compl_subset_closure`, finds a *closed* ball within
+the closure of a set `s` of optimal distance from a point in `x` to the frontier of `s`.
 -/
 
 open set metric
@@ -25,6 +25,7 @@ open_locale topological_space
 
 variables {𝕜 : Type*} [normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {F : Type*} [semi_normed_group F] [normed_space ℝ F]
 
 /-- Riesz's lemma, which usually states that it is possible to find a
 vector with norm 1 whose distance to a closed proper subspace is
@@ -97,27 +98,14 @@ begin
   ... = ∥d • x - y∥ : by simp [yy', ← smul_sub, norm_smul],
 end
 
-lemma metric.closed_ball_inf_dist_compl_subset_closure' {E : Type*} [semi_normed_group E]
-  [normed_space ℝ E] {x : E} {s : set E} (hx : s ∈ 𝓝 x) (hs : s ≠ univ) :
+lemma metric.closed_ball_inf_dist_compl_subset_closure {x : F} {s : set F} (hx : x ∈ s) :
   closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
 begin
-  have hne : sᶜ.nonempty, from nonempty_compl.2 hs,
-  have hpos : 0 < inf_dist x sᶜ,
-  { rwa [← inf_dist_eq_closure, ← is_closed_closure.not_mem_iff_inf_dist_pos hne.closure,
-      closure_compl, mem_compl_iff, not_not, mem_interior_iff_mem_nhds] },
-  rw ← closure_ball x hpos,
-  apply closure_mono,
-  rw [← le_eq_subset, ← is_compl_compl.disjoint_right_iff],
-  exact disjoint_ball_inf_dist
-end
-
-lemma metric.closed_ball_inf_dist_compl_subset_closure [normed_space ℝ E]
-  {x : E} {s : set E} (hx : x ∈ s) (hs : s ≠ univ) :
-  closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
-begin
-  by_cases hx' : x ∈ closure sᶜ,
-  { rw [mem_closure_iff_inf_dist_zero (nonempty_compl.2 hs)] at hx',
-    simpa [hx'] using subset_closure hx },
-  { rw [closure_compl, mem_compl_iff, not_not, mem_interior_iff_mem_nhds] at hx',
-    exact metric.closed_ball_inf_dist_compl_subset_closure' hx' hs }
+  cases eq_or_ne (inf_dist x sᶜ) 0 with h₀ h₀,
+  { rw [h₀, closed_ball_zero'],
+    exact closure_mono (singleton_subset_iff.2 hx) },
+  { rw ← closure_ball x h₀,
+    apply closure_mono,
+    calc ball x (inf_dist x sᶜ) ⊆ sᶜᶜ : disjoint_iff_subset_compl_right.1 disjoint_ball_inf_dist
+    ... = s : compl_compl s },
 end

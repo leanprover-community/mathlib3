@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.group.defs
-import data.equiv.set
 import data.fun_like.basic
 import logic.embedding
+import logic.equiv.set
 import order.rel_classes
 
 /-!

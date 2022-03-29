@@ -571,10 +571,10 @@ begin
     exact hkx }
 end
 
-/-- The determinant of a 2x2 block matrix with the lower-left block equal to zero is the product of
+/-- The determinant of a 2×2 block matrix with the lower-left block equal to zero is the product of
 the determinants of the diagonal blocks. For the generalization to any number of blocks, see
-`matrix.upper_block_triangular_det`. -/
-lemma upper_two_block_triangular_det
+`matrix.det_of_upper_triangular`. -/
+@[simp] lemma det_from_blocks_zero₂₁
   (A : matrix m m R) (B : matrix m n R) (D : matrix n n R) :
   (matrix.from_blocks A B 0 D).det = A.det * D.det :=
 begin
@@ -627,6 +627,15 @@ begin
     { rw [finset.prod_eq_zero (finset.mem_univ (sum.inl a)), mul_zero],
       rw [hx, from_blocks_apply₂₁], refl }}
 end
+
+/-- The determinant of a 2×2 block matrix with the upper-right block equal to zero is the product of
+the determinants of the diagonal blocks. For the generalization to any number of blocks, see
+`matrix.det_of_lower_triangular`. -/
+@[simp] lemma det_from_blocks_zero₁₂
+  (A : matrix m m R) (C : matrix n m R) (D : matrix n n R) :
+  (matrix.from_blocks A 0 C D).det = A.det * D.det :=
+by rw [←det_transpose, from_blocks_transpose, transpose_zero, det_from_blocks_zero₂₁,
+  det_transpose, det_transpose]
 
 /-- Laplacian expansion of the determinant of an `n+1 × n+1` matrix along column 0. -/
 lemma det_succ_column_zero {n : ℕ} (A : matrix (fin n.succ) (fin n.succ) R) :

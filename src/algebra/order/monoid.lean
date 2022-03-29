@@ -6,8 +6,8 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 import algebra.group.with_one
 import algebra.group.type_tags
 import algebra.group.prod
+import algebra.hom.equiv
 import algebra.order.monoid_lemmas
-import data.equiv.mul_add
 import order.bounded_order
 import order.min_max
 import order.hom.basic

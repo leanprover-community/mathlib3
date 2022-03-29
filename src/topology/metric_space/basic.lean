@@ -1481,23 +1481,116 @@ theorem ball_subset_interior_closed_ball : ball x ε ⊆ interior (closed_ball x
 interior_maximal ball_subset_closed_ball is_open_ball
 
 /-- ε-characterization of the closure in pseudometric spaces-/
-theorem mem_closure_iff {α : Type u} [pseudo_metric_space α] {s : set α} {a : α} :
+theorem mem_closure_iff {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 (mem_closure_iff_nhds_basis nhds_basis_ball).trans $
   by simp only [mem_ball, dist_comm]
 
-lemma mem_closure_range_iff {α : Type u} [pseudo_metric_space α] {e : β → α} {a : α} :
+lemma mem_closure_range_iff {e : β → α} {a : α} :
   a ∈ closure (range e) ↔ ∀ε>0, ∃ k : β, dist a (e k) < ε :=
 by simp only [mem_closure_iff, exists_range_iff]
 
-lemma mem_closure_range_iff_nat {α : Type u} [pseudo_metric_space α] {e : β → α} {a : α} :
+lemma mem_closure_range_iff_nat {e : β → α} {a : α} :
   a ∈ closure (range e) ↔ ∀n : ℕ, ∃ k : β, dist a (e k) < 1 / ((n : ℝ) + 1) :=
 (mem_closure_iff_nhds_basis nhds_basis_ball_inv_nat_succ).trans $
   by simp only [mem_ball, dist_comm, exists_range_iff, forall_const]
 
-theorem mem_of_closed' {α : Type u} [pseudo_metric_space α] {s : set α} (hs : is_closed s)
-  {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
+theorem mem_of_closed' {s : set α} (hs : is_closed s) {a : α} :
+  a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 by simpa only [hs.closure_eq] using @mem_closure_iff _ _ s a
+
+lemma closed_ball_zero' (x : α) : closed_ball x 0 = closure {x} :=
+subset.antisymm
+  (λ y hy, mem_closure_iff.2 $ λ ε ε0, ⟨x, mem_singleton x, (mem_closed_ball.1 hy).trans_lt ε0⟩)
+  (closure_minimal (singleton_subset_iff.2 (dist_self x).le) is_closed_ball)
+
+lemma dense_iff {s : set α} :
+  dense s ↔ ∀ x, ∀ r > 0, (ball x r ∩ s).nonempty :=
+begin
+  apply forall_congr (λ x, _),
+  rw mem_closure_iff,
+  refine forall_congr (λ ε, forall_congr (λ h, exists_congr (λ y, _))),
+  rw [mem_inter_iff, mem_ball', exists_prop, and_comm]
+end
+
+lemma dense_range_iff {f : β → α} :
+  dense_range f ↔ ∀ x, ∀ r > 0, ∃ y, dist x (f y) < r :=
+begin
+  rw [dense_range, metric.dense_iff],
+  refine forall_congr (λ x, forall_congr (λ r, forall_congr (λ rpos, ⟨_, _⟩))),
+  { rintros ⟨-, hz, ⟨z, rfl⟩⟩,
+    exact ⟨z, metric.mem_ball'.1 hz⟩ },
+  { rintros ⟨z, hz⟩,
+    exact ⟨f z, metric.mem_ball'.1 hz, mem_range_self _⟩ }
+end
+
+/-- If a set `s` is separable, then the corresponding subtype is separable in a metric space.
+This is not obvious, as the countable set whose closure covers `s` does not need in general to
+be contained in `s`. -/
+lemma _root_.topological_space.is_separable.separable_space {s : set α} (hs : is_separable s) :
+  separable_space s :=
+begin
+  classical,
+  rcases eq_empty_or_nonempty s with rfl|⟨⟨x₀, x₀s⟩⟩,
+  { haveI : encodable (∅ : set α) := fintype.encodable ↥∅, exact encodable.separable_space },
+  rcases hs with ⟨c, hc, h'c⟩,
+  haveI : encodable c := hc.to_encodable,
+  obtain ⟨u, -, u_pos, u_lim⟩ : ∃ (u : ℕ → ℝ), strict_anti u ∧ (∀ (n : ℕ), 0 < u n) ∧
+    tendsto u at_top (𝓝 0) := exists_seq_strict_anti_tendsto (0 : ℝ),
+  let f : c × ℕ → α := λ p, if h : (metric.ball (p.1 : α) (u p.2) ∩ s).nonempty then h.some else x₀,
+  have fs : ∀ p, f p ∈ s,
+  { rintros ⟨y, n⟩,
+    by_cases h : (ball (y : α) (u n) ∩ s).nonempty,
+    { simpa only [f, h, dif_pos] using h.some_spec.2 },
+    { simpa only [f, h, not_false_iff, dif_neg] } },
+  let g : c × ℕ → s := λ p, ⟨f p, fs p⟩,
+  apply separable_space_of_dense_range g,
+  apply metric.dense_range_iff.2,
+  rintros ⟨x, xs⟩ r (rpos : 0 < r),
+  obtain ⟨n, hn⟩ : ∃ n, u n < r / 2 := ((tendsto_order.1 u_lim).2 _ (half_pos rpos)).exists,
+  obtain ⟨z, zc, hz⟩ : ∃ z ∈ c, dist x z < u n :=
+    metric.mem_closure_iff.1 (h'c xs) _ (u_pos n),
+  refine ⟨(⟨z, zc⟩, n), _⟩,
+  change dist x (f (⟨z, zc⟩, n)) < r,
+  have A : (metric.ball z (u n) ∩ s).nonempty := ⟨x, hz, xs⟩,
+  dsimp [f],
+  simp only [A, dif_pos],
+  calc dist x A.some
+      ≤ dist x z + dist z A.some : dist_triangle _ _ _
+  ... < r/2 + r/2 : add_lt_add (hz.trans hn) ((metric.mem_ball'.1 A.some_spec.1).trans hn)
+  ... = r : add_halves _
+end
+
+/-- The preimage of a separable set by an inducing map is separable. -/
+protected lemma _root_.inducing.is_separable_preimage {f : β → α} [topological_space β]
+  (hf : inducing f) {s : set α} (hs : is_separable s) :
+  is_separable (f ⁻¹' s) :=
+begin
+  haveI : second_countable_topology s,
+  { haveI : separable_space s := hs.separable_space,
+    exact uniform_space.second_countable_of_separable _ },
+  let g : f ⁻¹' s → s := cod_restrict (f ∘ coe) s (λ x, x.2),
+  have : inducing g := (hf.comp inducing_coe).cod_restrict _,
+  haveI : second_countable_topology (f ⁻¹' s) := this.second_countable_topology,
+  rw show f ⁻¹' s = coe '' (univ : set (f ⁻¹' s)), 
+     by simpa only [image_univ, subtype.range_coe_subtype, mem_preimage],
+  exact (is_separable_of_separable_space _).image continuous_subtype_coe
+end
+
+protected lemma _root_.embedding.is_separable_preimage {f : β → α} [topological_space β]
+  (hf : embedding f) {s : set α} (hs : is_separable s) :
+  is_separable (f ⁻¹' s) :=
+hf.to_inducing.is_separable_preimage hs
+
+/-- If a map is continuous on a separable set `s`, then the image of `s` is also separable. -/
+lemma _root_.continuous_on.is_separable_image [topological_space β] {f : α → β} {s : set α}
+  (hf : continuous_on f s) (hs : is_separable s) :
+  is_separable (f '' s) :=
+begin
+  rw show f '' s = s.restrict f '' univ, by ext ; simp,
+  exact (is_separable_univ_iff.2 hs.separable_space).image 
+    (continuous_on_iff_continuous_restrict.1 hf),
+end
 
 end metric
 
@@ -1751,6 +1844,13 @@ begin
 end
 
 end proper_space
+
+lemma is_compact.is_separable {s : set α} (hs : is_compact s) :
+  is_separable s :=
+begin
+  haveI : compact_space s := is_compact_iff_compact_space.mp hs,
+  exact is_separable_of_separable_space_subtype s,
+end
 
 namespace metric
 section second_countable

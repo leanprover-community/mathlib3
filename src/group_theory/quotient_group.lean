@@ -338,8 +338,8 @@ monoid_hom_ext _ rfl
 
 @[to_additive, simp]
 lemma hom_quotient_zpow_of_hom_comp (n : ℤ) :
-  (hom_quotient_zpow_of_hom φ' n).comp (hom_quotient_zpow_of_hom ψ' n)
-    = hom_quotient_zpow_of_hom (φ'.comp ψ') n :=
+  hom_quotient_zpow_of_hom (φ'.comp ψ') n
+    = (hom_quotient_zpow_of_hom φ' n).comp (hom_quotient_zpow_of_hom ψ' n) :=
 monoid_hom_ext _ rfl
 
 @[to_additive, simp]

@@ -72,7 +72,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
       have recurse : m + 1 < n + 2 := by linarith,
       begin
         calc (n + 2)#
-            = ∏ i in filter nat.prime (range (2 * m + 2)), i : by simpa [←twice_m]
+            = ∏ i in filter nat.prime (range (2 * m + 2)), i : by simpa [two_mul, ←twice_m]
         ... = ∏ i in filter nat.prime (finset.Ico (m + 2) (2 * m + 2) ∪ range (m + 2)), i :
               begin
                 rw [range_eq_Ico, finset.union_comm, finset.Ico_union_Ico_eq_Ico],
@@ -116,7 +116,7 @@ lemma primorial_le_4_pow : ∀ (n : ℕ), n# ≤ 4 ^ n
         ... = (choose (2 * m + 1) m) * 4 ^ (m + 1) : by rw choose_symm_half m
         ... ≤ 4 ^ m * 4 ^ (m + 1) : nat.mul_le_mul_right _ (choose_middle_le_pow m)
         ... = 4 ^ (2 * m + 1) : by ring_exp
-        ... = 4 ^ (n + 2) : by rw ←twice_m,
+        ... = 4 ^ (n + 2) : by rw [two_mul, ←twice_m],
       end
     end
   | or.inr n_even :=

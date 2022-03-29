@@ -228,7 +228,7 @@ attribute [simp] val_zero
 
 lemma zero_lt_one : (0 : fin (n + 2)) < 1 := nat.zero_lt_one
 
-@[simp] lemma fin.not_lt_zero (a : fin n.succ) : ¬a < 0.
+@[simp] lemma not_lt_zero (a : fin n.succ) : ¬a < 0.
 
 lemma pos_iff_ne_zero (a : fin (n+1)) : 0 < a ↔ a ≠ 0 :=
 by rw [← coe_fin_lt, coe_zero, pos_iff_ne_zero, ne.def, ne.def, ext_iff, coe_zero]

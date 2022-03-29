@@ -223,7 +223,7 @@ begin
     simp only [nat.cast_succ, mul_add_one, add_assoc, this, IH] }
 end
 
-theorem opow_principal_add_is_principal_add {a} (ha : principal (+) a) (b : ordinal) :
+theorem opow_principal_add_of_principal_add {a} (ha : principal (+) a) (b : ordinal) :
   principal (+) (a ^ b) :=
 begin
   rcases principal_add_iff_zero_or_omega_opow.1 ha with rfl | ⟨c, rfl⟩,

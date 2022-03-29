@@ -2302,9 +2302,8 @@ begin
   { exact (mul_is_normal ho).apply_omega }
 end
 
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
 theorem sup_opow_nat {o : ordinal.{u}} (ho : 0 < o) :
-  sup (λ n : ℕ, o ^ n) = o ^ omega :=
+  sup (λ n : ℕ, pow o n) = pow o omega :=
 begin
   rcases lt_or_eq_of_le (one_le_iff_pos.2 ho) with ho₁ | rfl,
   { exact (opow_is_normal ho₁).apply_omega },

@@ -1112,8 +1112,7 @@ begin
   exact le_bsupr e he,
 end
 
-lemma is_open_source_of_mem_pretrivialization_atlas (he : e ∈ a.pretrivialization_atlas) :
-  @is_open _ a.total_space_topology e.source :=
+lemma is_open_source (e : pretrivialization F proj) : @is_open _ a.total_space_topology e.source :=
 begin
   letI := a.total_space_topology,
   refine is_open_supr_iff.mpr (λ e', _),
@@ -1125,13 +1124,13 @@ begin
     pretrivialization.preimage_symm_proj_inter],
 end
 
-lemma is_open_target_of_mem_pretrivialization_atlas_inter {e e' : pretrivialization F proj}
-  (he : e ∈ a.pretrivialization_atlas) (he' : e' ∈ a.pretrivialization_atlas) :
+lemma is_open_target_of_mem_pretrivialization_atlas_inter (e e' : pretrivialization F proj)
+  (he' : e' ∈ a.pretrivialization_atlas) :
   is_open (e'.to_local_equiv.target ∩ e'.to_local_equiv.symm ⁻¹' e.source) :=
 begin
   letI := a.total_space_topology,
   obtain ⟨u, hu1, hu2⟩ := continuous_on_iff'.mp (a.continuous_symm_of_mem_pretrivialization_atlas
-    he') e.source (a.is_open_source_of_mem_pretrivialization_atlas he),
+    he') e.source (a.is_open_source e),
   rw [inter_comm, hu2],
   exact hu1.inter e'.open_target,
 end
@@ -1139,7 +1138,7 @@ end
 /-- Promotion from a `pretrivialization` to a `trivialization`. -/
 def trivialization_of_mem_pretrivialization_atlas (he : e ∈ a.pretrivialization_atlas) :
   @trivialization B F Z _ _ a.total_space_topology proj :=
-{ open_source := a.is_open_source_of_mem_pretrivialization_atlas he,
+{ open_source := a.is_open_source e,
   continuous_to_fun := begin
     letI := a.total_space_topology,
     refine continuous_on_iff'.mpr (λ s hs, ⟨e ⁻¹' s ∩ e.source, (is_open_supr_iff.mpr (λ e', _)),
@@ -1153,7 +1152,7 @@ def trivialization_of_mem_pretrivialization_atlas (he : e ∈ a.pretrivializatio
       (e'.to_local_equiv.symm ⁻¹' e.source), _, by
       { simp only [preimage_inter, inter_univ, subtype.coe_preimage_self, hu3.symm], refl }⟩,
     rw inter_assoc,
-    exact hu1.inter (a.is_open_target_of_mem_pretrivialization_atlas_inter he he'),
+    exact hu1.inter (a.is_open_target_of_mem_pretrivialization_atlas_inter e e' he'),
   end,
   continuous_inv_fun := a.continuous_symm_of_mem_pretrivialization_atlas he,
   .. e }

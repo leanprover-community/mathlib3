@@ -359,12 +359,12 @@ section mod_by_monic
 
 variables {q : R[X]}
 
-lemma mem_ker_mod_by_monic [nontrivial R] (hq : q.monic) {p : R[X]} :
-  p ∈ (mod_by_monic_hom hq).ker ↔ q ∣ p :=
+lemma mem_ker_mod_by_monic (hq : q.monic) {p : R[X]} :
+  p ∈ (mod_by_monic_hom q).ker ↔ q ∣ p :=
 linear_map.mem_ker.trans (dvd_iff_mod_by_monic_eq_zero hq)
 
-@[simp] lemma ker_mod_by_monic_hom [nontrivial R] (hq : q.monic) :
-  (polynomial.mod_by_monic_hom hq).ker = (ideal.span {q}).restrict_scalars R :=
+@[simp] lemma ker_mod_by_monic_hom (hq : q.monic) :
+  (polynomial.mod_by_monic_hom q).ker = (ideal.span {q}).restrict_scalars R :=
 submodule.ext (λ f, (mem_ker_mod_by_monic hq).trans ideal.mem_span_singleton.symm)
 
 end mod_by_monic

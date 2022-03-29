@@ -357,7 +357,7 @@ lemma antiperiodic.nat_mul_eq_of_eq_zero [comm_semiring α] [add_group β]
 begin
   rcases nat.even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
   have hk : (k : α) * (2 * c) = 2 * k * c := by rw [mul_left_comm, ← mul_assoc],
-  { simpa [hk, hi] using (h.nat_even_mul_periodic k).eq },
+  { simpa [← two_mul, hk, hi] using (h.nat_even_mul_periodic k).eq },
   { simpa [add_mul, hk, hi] using (h.nat_odd_mul_antiperiodic k).eq },
 end
 
@@ -367,7 +367,7 @@ lemma antiperiodic.int_mul_eq_of_eq_zero [comm_ring α] [add_group β]
 begin
   rcases int.even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
   have hk : (k : α) * (2 * c) = 2 * k * c := by rw [mul_left_comm, ← mul_assoc],
-  { simpa [hk, hi] using (h.int_even_mul_periodic k).eq },
+  { simpa [← two_mul, hk, hi] using (h.int_even_mul_periodic k).eq },
   { simpa [add_mul, hk, hi] using (h.int_odd_mul_antiperiodic k).eq },
 end
 

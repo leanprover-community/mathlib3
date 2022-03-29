@@ -7,6 +7,7 @@ import analysis.specific_limits.basic
 import analysis.analytic.basic
 import analysis.complex.basic
 import data.nat.choose.cast
+import data.finset.noncomm_prod
 
 /-!
 # Exponential in a Banach algebra
@@ -95,7 +96,7 @@ funext exp_series_sum_eq
 lemma exp_eq_tsum_field : exp 𝕂 𝕂 = (λ x : 𝕂, ∑' (n : ℕ), x^n / n!) :=
 funext exp_series_sum_eq_field
 
-lemma exp_zero : exp 𝕂 𝔸 0 = 1 :=
+@[simp] lemma exp_zero : exp 𝕂 𝔸 0 = 1 :=
 begin
   suffices : (λ x : 𝔸, ∑' (n : ℕ), (1 / n! : 𝕂) • x^n) 0 = ∑' (n : ℕ), if n = 0 then 1 else 0,
   { have key : ∀ n ∉ ({0} : finset ℕ), (if n = 0 then (1 : 𝔸) else 0) = 0,
@@ -328,6 +329,49 @@ lemma exp_add_of_commute [complete_space 𝔸]
   exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
 exp_add_of_commute_of_mem_ball hxy ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
+
+
+section
+variables (𝕂)
+lemma commute.exp [complete_space 𝔸] {x y : 𝔸} (h : commute x y) :
+  commute (exp 𝕂 𝔸 x) (exp 𝕂 𝔸 y) :=
+(exp_add_of_commute h).symm.trans $ (congr_arg _ $ add_comm _ _).trans (exp_add_of_commute h.symm)
+end
+
+lemma commute.finset_sum_right {α} {ι} [semiring α] (s : finset ι) (a : α) (f : ι → α)
+  (h : ∀ i ∈ s, commute a (f i)) : commute a (∑ i in s, f i) :=
+begin
+  induction s using finset.cons_induction_on with i s hi ih,
+  { exact commute.zero_right _, },
+  { rw finset.sum_cons,
+    exact (h _ $ finset.mem_cons_self _ _).add_right
+      (ih $ λ j hj, h _ $ finset.mem_cons.mpr $ or.inr hj), }
+end
+
+lemma exp_sum_of_commute {ι} [complete_space 𝔸] (s : finset ι) (f : ι → 𝔸)
+  (h : ∀ (i ∈ s) (j ∈ s), commute (f i) (f j)) :
+  exp 𝕂 𝔸 (∑ i in s, f i) = s.noncomm_prod (λ i, exp 𝕂 𝔸 (f i))
+    (λ i hi j hj, (h i hi j hj).exp 𝕂) :=
+begin
+  classical,
+  induction s using finset.induction_on with a s ha ih,
+  { simp },
+  rw [finset.noncomm_prod_insert_of_not_mem _ _ _ _ ha, finset.sum_insert ha,
+      exp_add_of_commute, ih],
+  have : ∀ i ∈ s, commute (f a) (f i) :=
+    λ i hi, h _ (finset.mem_insert_self _ _) _ (finset.mem_insert_of_mem hi),
+  induction n with n ih,
+  { rw [zero_smul, pow_zero, exp_zero], },
+  { rw [succ_nsmul, pow_succ, exp_add_of_commute ((commute.refl x).smul_right n), ih] }
+end
+
+lemma exp_nsmul [complete_space 𝔸] (n : ℕ) (x : 𝔸) :
+  exp 𝕂 𝔸 (n • x) = exp 𝕂 𝔸 x ^ n :=
+begin
+  induction n with n ih,
+  { rw [zero_smul, pow_zero, exp_zero], },
+  { rw [succ_nsmul, pow_succ, exp_add_of_commute ((commute.refl x).smul_right n), ih] }
+end
 
 lemma algebra_map_exp_comm (x : 𝕂) :
   algebra_map 𝕂 𝔸 (exp 𝕂 𝕂 x) = exp 𝕂 𝔸 (algebra_map 𝕂 𝔸 x) :=

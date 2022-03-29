@@ -6,7 +6,7 @@ Authors: Jireh Loreaux
 
 import algebra.algebra.basic
 import linear_algebra.prod
-import algebra.non_unital_alg_hom
+import algebra.hom.non_unital_alg
 
 /-!
 # Unitization of a non-unital algebra

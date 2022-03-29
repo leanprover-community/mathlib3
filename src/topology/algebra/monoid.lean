@@ -488,18 +488,25 @@ continuous_multiset_prod _
 
 open function
 
+@[to_additive] lemma finprod_eventually_eq_prod {M : Type*} [comm_monoid M]
+  {f : ι → X → M} (hf : locally_finite (λ i, mul_support (f i))) (x : X) :
+  ∃ s : finset ι, ∀ᶠ y in 𝓝 x, (∏ᶠ i, f i y) = ∏ i in s, f i y :=
+begin
+  rcases hf x with ⟨U, hxU, hUf⟩,
+  refine ⟨hUf.to_finset, mem_of_superset hxU $ λ y hy, _⟩,
+  refine (finprod_eq_prod_of_mul_support_subset _ (λ i hi, _)),
+  rw [hUf.coe_to_finset],
+  exact ⟨y, hi, hy⟩
+end
+
 @[to_additive] lemma continuous_finprod {f : ι → X → M} (hc : ∀ i, continuous (f i))
   (hf : locally_finite (λ i, mul_support (f i))) :
   continuous (λ x, ∏ᶠ i, f i x) :=
 begin
   refine continuous_iff_continuous_at.2 (λ x, _),
-  rcases hf x with ⟨U, hxU, hUf⟩,
-  have : continuous_at (λ x, ∏ i in hUf.to_finset, f i x) x,
-    from tendsto_finset_prod _ (λ i hi, (hc i).continuous_at),
-  refine this.congr (mem_of_superset hxU $ λ y hy, _),
-  refine (finprod_eq_prod_of_mul_support_subset _ (λ i hi, _)).symm,
-  rw [hUf.coe_to_finset],
-  exact ⟨y, hi, hy⟩
+  rcases finprod_eventually_eq_prod hf x with ⟨s, hs⟩,
+  refine continuous_at.congr _ (eventually_eq.symm hs),
+  exact tendsto_finset_prod _ (λ i hi, (hc i).continuous_at),
 end
 
 @[to_additive] lemma continuous_finprod_cond {f : ι → X → M} {p : ι → Prop}

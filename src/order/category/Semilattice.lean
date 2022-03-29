@@ -21,26 +21,28 @@ universes u
 open category_theory
 
 /-- The category of sup-semilattices with a bottom element. -/
-structure SemilatticeSup : Type.{u + 1} :=
+structure SemilatticeSup : Type.{u+1} :=
 (X : Type.{u})
 [is_semilattice_sup : semilattice_sup X]
 [is_order_bot : order_bot X]
 
 /-- The category of inf-semilattices with a top element. -/
-structure SemilatticeInf : Type.{u + 1} :=
+structure SemilatticeInf : Type.{u+1} :=
 (X : Type.{u})
 [is_semilattice_inf : semilattice_inf X]
 [is_order_top : order_top X]
 
+attribute [protected] SemilatticeSup.X SemilatticeInf.X
+
 namespace SemilatticeSup
 
-instance : has_coe_to_sort SemilatticeSup Type* := ⟨X⟩
-
-attribute [protected] X
+instance : has_coe_to_sort SemilatticeSup Type* := ⟨SemilatticeSup.X⟩
 attribute [instance] is_semilattice_sup is_order_bot
 
 /-- Construct a bundled `SemilatticeSup` from a `semilattice_sup`. -/
 def of (α : Type*) [semilattice_sup α] [order_bot α] : SemilatticeSup := ⟨α⟩
+
+@[simp] lemma coe_of (α : Type*) [semilattice_sup α] [order_bot α] : ↥(of α) = α := rfl
 
 instance : inhabited SemilatticeSup := ⟨of punit⟩
 
@@ -57,20 +59,23 @@ instance : concrete_category SemilatticeSup :=
   forget_faithful := ⟨λ X Y, fun_like.coe_injective⟩ }
 
 instance has_forget_to_PartialOrder : has_forget₂ SemilatticeSup PartialOrder :=
-{ forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y f, f },
-  forget_comp := rfl }
+{ forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y f, f } }
+
+@[simp] lemma coe_forget_to_PartialOrder (X : SemilatticeSup) :
+  ↥((forget₂ SemilatticeSup PartialOrder).obj X) = ↥X := rfl
 
 end SemilatticeSup
 
 namespace SemilatticeInf
 
-instance : has_coe_to_sort SemilatticeInf Type* := ⟨X⟩
+instance : has_coe_to_sort SemilatticeInf Type* := ⟨SemilatticeInf.X⟩
 
-attribute [protected] X
 attribute [instance] is_semilattice_inf is_order_top
 
 /-- Construct a bundled `SemilatticeInf` from a `semilattice_inf`. -/
 def of (α : Type*) [semilattice_inf α] [order_top α] : SemilatticeInf := ⟨α⟩
+
+@[simp] lemma coe_of (α : Type*) [semilattice_inf α] [order_top α] : ↥(of α) = α := rfl
 
 instance : inhabited SemilatticeInf := ⟨of punit⟩
 
@@ -87,8 +92,10 @@ instance : concrete_category SemilatticeInf :=
   forget_faithful := ⟨λ X Y, fun_like.coe_injective⟩ }
 
 instance has_forget_to_PartialOrder : has_forget₂ SemilatticeInf PartialOrder :=
-{ forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y f, f },
-  forget_comp := rfl }
+{ forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y f, f } }
+
+@[simp] lemma coe_forget_to_PartialOrder (X : SemilatticeInf) :
+  ↥((forget₂ SemilatticeInf PartialOrder).obj X) = ↥X := rfl
 
 end SemilatticeInf
 

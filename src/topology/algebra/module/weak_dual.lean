@@ -72,21 +72,17 @@ nolint has_inhabited_instance unused_arguments]
 def weak_bilin [comm_semiring 𝕜] [add_comm_monoid E] [module 𝕜 E] [add_comm_monoid F]
   [module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) := E
 
-instance [comm_semiring 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_monoid F]
-  [module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : add_comm_group (weak_bilin B) :=
-by { dunfold weak_bilin, apply_instance }
+instance [comm_semiring 𝕜] [a : add_comm_group E] [module 𝕜 E] [add_comm_monoid F]
+  [module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : add_comm_group (weak_bilin B) := a
 
 @[priority 100]
 instance module_weak_bilin [comm_semiring 𝕜] [comm_semiring 𝕝] [add_comm_group E] [module 𝕜 E]
-  [add_comm_group F] [module 𝕜 F] [module 𝕝 E] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
-  module 𝕝 (weak_bilin B) :=
-by { dunfold weak_bilin, apply_instance }
+  [add_comm_group F] [module 𝕜 F] [m : module 𝕝 E] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
+  module 𝕝 (weak_bilin B) := m
 
 instance scalar_tower_weak_bilin [comm_semiring 𝕜] [comm_semiring 𝕝] [add_comm_group E] [module 𝕜 E]
-  [add_comm_group F] [module 𝕜 F] [has_scalar 𝕝 𝕜] [module 𝕝 E] [is_scalar_tower 𝕝 𝕜 E]
-  (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
-  is_scalar_tower 𝕝 𝕜 (weak_bilin B) :=
-by { dunfold weak_bilin, apply_instance }
+  [add_comm_group F] [module 𝕜 F] [has_scalar 𝕝 𝕜] [module 𝕝 E] [s : is_scalar_tower 𝕝 𝕜 E]
+  (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : is_scalar_tower 𝕝 𝕜 (weak_bilin B) := s
 
 section semiring
 
@@ -182,8 +178,7 @@ def weak_dual (𝕜 E) [comm_semiring 𝕜] [topological_space 𝕜] [has_contin
   [has_continuous_const_smul 𝕜 𝕜] [add_comm_monoid E] [module 𝕜 E] [topological_space E] :=
 weak_bilin (top_dual_pairing 𝕜 E)
 
-instance : inhabited (weak_dual 𝕜 E) :=
-by {dunfold weak_dual, dunfold weak_bilin, apply_instance}
+instance : inhabited (weak_dual 𝕜 E) := continuous_linear_map.inhabited
 
 instance fun_like_weak_dual : fun_like (weak_dual 𝕜 E) E (λ _, 𝕜) :=
 by {dunfold weak_dual, dunfold weak_bilin, apply_instance}

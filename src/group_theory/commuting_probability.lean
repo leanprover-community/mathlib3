@@ -3,6 +3,7 @@ Copyright (c) 2022 Thomas Browning. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Thomas Browning
 -/
+import data.finset.pointwise
 import group_theory.complement
 import group_theory.finiteness
 import group_theory.group_action.conj_act
@@ -34,62 +35,11 @@ end for_mathlib
 noncomputable theory
 open_locale classical
 open_locale big_operators
+open_locale pointwise
 
 open fintype
 
 section technical
-
-open_locale pointwise
-
-namespace mem_left_transversals
-
-def to_equiv {G : Type*} [group G] {H : subgroup G} {S : set G}
-  (hS : S ∈ subgroup.left_transversals (H : set G)) : G ⧸ H ≃ S :=
-(equiv.of_bijective _ (subgroup.mem_left_transversals_iff_bijective.mp hS)).symm
-
-lemma mk'_to_equiv {G : Type*} [group G] {H : subgroup G} {S : set G}
-  (hS : S ∈ subgroup.left_transversals (H : set G)) (q : G ⧸ H) :
-  quotient.mk' (to_equiv hS q : G) = q :=
-(to_equiv hS).symm_apply_apply q
-
-def to_fun {G : Type*} [group G] {H : subgroup G} {S : set G}
-  (hS : S ∈ subgroup.left_transversals (H : set G)) : G → S :=
-to_equiv hS ∘ quotient.mk'
-
-lemma inv_to_fun_mul_mem {G : Type*} [group G] {H : subgroup G} {S : set G}
-  (hS : S ∈ subgroup.left_transversals (H : set G)) (g : G) : (to_fun hS g : G)⁻¹ * g ∈ H :=
-quotient.exact' (mk'_to_equiv hS g)
-
-lemma inv_mul_to_fun_mem {G : Type*} [group G] {H : subgroup G} {S : set G}
-  (hS : S ∈ subgroup.left_transversals (H : set G)) (g : G) : g⁻¹ * to_fun hS g ∈ H :=
-(congr_arg (∈ H) (by rw [mul_inv_rev, inv_inv])).mp (H.inv_mem (inv_to_fun_mul_mem hS g))
-
-end mem_left_transversals
-
-namespace mem_right_transversals
-
-def to_equiv {G : Type*} [group G] {H : subgroup G} {S : set G}
-  (hS : S ∈ subgroup.right_transversals (H : set G)) : quotient (quotient_group.right_rel H) ≃ S :=
-(equiv.of_bijective _ (subgroup.mem_right_transversals_iff_bijective.mp hS)).symm
-
-lemma mk'_to_equiv {G : Type*} [group G] {H : subgroup G} {S : set G}
-  (hS : S ∈ subgroup.right_transversals (H : set G)) (q : quotient (quotient_group.right_rel H)) :
-  quotient.mk' (to_equiv hS q : G) = q :=
-(to_equiv hS).symm_apply_apply q
-
-def to_fun {G : Type*} [group G] {H : subgroup G} {S : set G}
-  (hS : S ∈ subgroup.right_transversals (H : set G)) : G → S :=
-to_equiv hS ∘ quotient.mk'
-
-lemma mul_inv_to_fun_mem {G : Type*} [group G] {H : subgroup G} {S : set G}
-  (hS : S ∈ subgroup.right_transversals (H : set G)) (g : G) : g * (to_fun hS g : G)⁻¹ ∈ H :=
-quotient.exact' (mk'_to_equiv hS _)
-
-lemma to_fun_mul_inv_mem {G : Type*} [group G] {H : subgroup G} {S : set G}
-  (hS : S ∈ subgroup.right_transversals (H : set G)) (g : G) : (to_fun hS g : G) * g⁻¹ ∈ H :=
-(congr_arg (∈ H) (by rw [mul_inv_rev, inv_inv])).mp (H.inv_mem (mul_inv_to_fun_mem hS g))
-
-end mem_right_transversals
 
 namespace subgroup
 

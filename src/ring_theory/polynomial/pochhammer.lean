@@ -141,7 +141,7 @@ by rw [pochhammer_succ_right, polynomial.eval_mul, polynomial.eval_add, polynomi
 lemma map_eval_pochhammer_eq_self {S : Type*} [semiring S] : ∀ (n : ℕ),
   map (nat.cast_ring_hom S) (eval X (pochhammer ℕ[X] n)) = pochhammer S n
 | 0       := by simp
-| (n + 1) := by simp [pochhammer_succ_eval_aux, pochhammer_succ_right, map_eval_pochhammer_eq_self n]
+| (n + 1) := by simp [pochhammer_succ_eval_aux, pochhammer_succ_right, map_eval_pochhammer_eq_self]
 
 lemma pochhammer_succ_eval {S : Type*} [semiring S] (n : ℕ) (k : S) :
   (pochhammer S n.succ).eval k = (pochhammer S n).eval k * (k + ↑n) :=

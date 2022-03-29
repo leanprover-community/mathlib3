@@ -236,7 +236,7 @@ by simpa only [set_lintegral_one] using hs.set_lintegral_eq ht (λ _, 1) (λ _ _
   ae_strongly_measurable f (μ.restrict s) ↔ ae_strongly_measurable f (μ.restrict t) :=
 calc ae_strongly_measurable f (μ.restrict s)
     ↔ ae_strongly_measurable f (measure.sum $ λ g : G, (μ.restrict (g • t ∩ s))) :
-  by simp only [← restrict_restrict (ht.measurable_set_smul _),
+  by simp only [← ht.restrict_restrict,
     ht.sum_restrict_of_ac restrict_le_self.absolutely_continuous]
 ... ↔ ∀ g : G, ae_strongly_measurable f (μ.restrict (g • (g⁻¹ • s ∩ t))) :
   by simp only [smul_set_inter, inter_comm, smul_inv_smul, ae_strongly_measurable_sum_measure_iff]
@@ -251,8 +251,7 @@ calc ae_strongly_measurable f (μ.restrict s)
     simp only [(∘), hf]
   end
 ... ↔ ae_strongly_measurable f (μ.restrict t) :
-  by simp only [← ae_strongly_measurable_sum_measure_iff,
-    ← restrict_restrict (hs.measurable_set_smul _),
+  by simp only [← ae_strongly_measurable_sum_measure_iff, ← hs.restrict_restrict,
     hs.sum_restrict_of_ac restrict_le_self.absolutely_continuous]
 
 @[to_additive] protected lemma has_finite_integral_on_iff (hs : is_fundamental_domain G s μ)

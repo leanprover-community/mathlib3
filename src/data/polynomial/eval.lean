@@ -242,16 +242,13 @@ def eval : R → R[X] → R := eval₂ (ring_hom.id _)
 lemma eval_eq_sum : p.eval x = p.sum (λ e a, a * x ^ e) :=
 rfl
 
-lemma eval_eq_finset_sum (p : R[X]) (x : R) :
-  p.eval x = ∑ i in range (p.nat_degree + 1), p.coeff i * x ^ i :=
-by { rw [eval_eq_sum, sum_over_range], simp }
+lemma eval_eq_sum_range {p : R[X]} (x : R) :
+  p.eval x = ∑ i in finset.range (p.nat_degree + 1), p.coeff i * x ^ i :=
+by rw [eval_eq_sum, sum_over_range]; simp
 
-lemma eval_eq_finset_sum' (P : R[X]) :
-  (λ x, eval x P) = (λ x, ∑ i in range (P.nat_degree + 1), P.coeff i * x ^ i) :=
-begin
-  ext,
-  exact P.eval_eq_finset_sum x
-end
+lemma eval_eq_sum_range' {p : R[X]} {n : ℕ} (hn : p.nat_degree < n) (x : R) :
+  p.eval x = ∑ i in finset.range n, p.coeff i * x ^ i :=
+by rw [eval_eq_sum, p.sum_over_range' _ _ hn]; simp
 
 @[simp] lemma eval₂_at_apply {S : Type*} [semiring S] (f : R →+* S) (r : R) :
   p.eval₂ f (f r) = f (p.eval r) :=
@@ -823,12 +820,8 @@ protected lemma map_prod {ι : Type*} (g : ι → R[X]) (s : finset ι) :
 lemma support_map_subset (p : R[X]) : (map f p).support ⊆ p.support :=
 begin
   intros x,
-  simp only [mem_support_iff],
   contrapose!,
-  rw coeff_map,
-  intro hx,
-  rw hx,
-  exact ring_hom.map_zero f,
+  simp { contextual := tt },
 end
 
 lemma is_root.map {f : R →+* S} {x : R} {p : R[X]} (h : is_root p x) :

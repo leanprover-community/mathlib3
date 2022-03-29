@@ -6,6 +6,7 @@ Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 
 import analysis.complex.upper_half_plane
 import linear_algebra.general_linear_group
+import analysis.matrix
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane

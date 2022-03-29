@@ -302,7 +302,7 @@ lemma exists_solution :
   ∃ f : ℝ → E, f v.t₀ = v.x₀ ∧ ∀ t ∈ Icc v.t_min v.t_max,
     has_deriv_within_at f (v t (f t)) (Icc v.t_min v.t_max) t :=
 begin
-  letI : measurable_space E := borel E, haveI : borel_space E := ⟨rfl⟩,
+  borelize E,
   rcases v.exists_fixed with ⟨f, hf⟩,
   refine ⟨f ∘ v.proj, _, λ t ht, _⟩,
   { simp only [(∘), proj_coe, f.map_t₀] },

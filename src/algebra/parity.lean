@@ -23,6 +23,19 @@ def square [has_mul α] (a : α) : Prop := ∃ r, a = r * r
 section semiring
 variables [semiring α] [semiring β] {m n : α}
 
+/-- An element `a` of a semiring is even if there exists `k` such `a = 2*k`. -/
+def even (a : α) : Prop := ∃ k, a = 2*k
+
+@[simp] lemma even_zero : even (0 : α) := ⟨0, (mul_zero _).symm⟩
+
+lemma even_two_mul (m : α) : even (2 * m) := ⟨m, rfl⟩
+
+lemma add_monoid_hom.even (f : α →+ β) (hm : even m) : even (f m) :=
+begin
+  rcases hm with ⟨m, rfl⟩,
+  exact ⟨f m, by simp [two_mul]⟩
+end
+
 lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
 
 @[simp] lemma range_two_mul (α : Type*) [semiring α] :
@@ -157,6 +170,11 @@ by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
 
 lemma odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
+
+-- from src/algebra/order/ring.lean
+variables [linear_order α]
+lemma even_abs {a : α} : even (|a|) ↔ even a :=
+dvd_abs _ _
 
 -- from src/algebra/order/ring.lean
 lemma odd_abs {a : α} : odd (abs a) ↔ odd a :=

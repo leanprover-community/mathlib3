@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.equiv.denumerable
 import data.finset.sort
+import logic.denumerable
 
 /-!
 # Equivalences involving `list`-like types
@@ -236,8 +236,7 @@ lemma raise_lower : ∀ {l n}, list.sorted (≤) (n :: l) → raise (lower l n) 
 | []       n h := rfl
 | (m :: l) n h :=
   have n ≤ m, from list.rel_of_sorted_cons h _ (l.mem_cons_self _),
-  by simp [raise, lower, tsub_add_cancel_of_le this,
-           raise_lower (list.sorted_of_sorted_cons h)]
+  by simp [raise, lower, tsub_add_cancel_of_le this, raise_lower h.of_cons]
 
 lemma raise_chain : ∀ l n, list.chain (≤) n (raise l n)
 | []       n := list.chain.nil
@@ -284,7 +283,7 @@ lemma raise_lower' : ∀ {l n}, (∀ m ∈ l, n ≤ m) → list.sorted (<) l →
 | (m :: l) n h₁ h₂ :=
   have n ≤ m, from h₁ _ (l.mem_cons_self _),
   by simp [raise', lower', tsub_add_cancel_of_le this, raise_lower'
-    (list.rel_of_sorted_cons h₂ : ∀ a ∈ l, m < a) (list.sorted_of_sorted_cons h₂)]
+    (list.rel_of_sorted_cons h₂ : ∀ a ∈ l, m < a) h₂.of_cons]
 
 lemma raise'_chain : ∀ l {m n}, m < n → list.chain (<) m (raise' l n)
 | []       m n h := list.chain.nil

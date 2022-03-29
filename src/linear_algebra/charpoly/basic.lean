@@ -53,8 +53,10 @@ end coeff
 
 section cayley_hamilton
 
-/-- The Cayley-Hamilton Theorem, that the characteristic polynomial of a linear map, applied to
-the linear map itself, is zero. -/
+/-- The **Cayley-Hamilton Theorem**, that the characteristic polynomial of a linear map, applied
+to the linear map itself, is zero.
+
+See `matrix.aeval_self_charpoly` for the equivalent statement about matrices. -/
 lemma aeval_self_charpoly : aeval f f.charpoly = 0 :=
 begin
   apply (linear_equiv.map_eq_zero_iff (alg_equiv_matrix _).to_linear_equiv).1,

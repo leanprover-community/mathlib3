@@ -3,9 +3,9 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.equiv.nat
-import order.rel_iso
+import logic.equiv.nat
 import order.directed
+import order.rel_iso
 
 /-!
 # Encodable types
@@ -90,8 +90,8 @@ instance nat : encodable ℕ :=
 @[simp] theorem encode_nat (n : ℕ) : encode n = n := rfl
 @[simp] theorem decode_nat (n : ℕ) : decode ℕ n = some n := rfl
 
-instance empty : encodable empty :=
-⟨λ a, a.rec _, λ n, none, λ a, a.rec _⟩
+@[priority 100] instance is_empty [is_empty α] : encodable α :=
+⟨is_empty_elim, λ n, none, is_empty_elim⟩
 
 instance unit : encodable punit :=
 ⟨λ_, 0, λ n, nat.cases_on n (some punit.star) (λ _, none), λ _, by simp⟩

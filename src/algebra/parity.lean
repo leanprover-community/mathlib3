@@ -24,15 +24,10 @@ def hom.op_inv {α : Type*} [group α] : α →* αᵐᵒᵖ :=
 ⟨λ x, op x⁻¹, by simp, by simp⟩
 
 @[simp] lemma hom.op_inv_def {α : Type*} [group α] (a : α) : hom.op_inv a = (op a⁻¹) := rfl
--/
 
 @[to_additive]
 def op_inv_equiv (α : Type*) [group α] : αᵐᵒᵖ ≃* α :=
-{ to_fun    := λ x, unop x⁻¹,
-  inv_fun   := λ x, op x⁻¹,
-  left_inv  := λ x, by simp,
-  right_inv := λ x, by simp,
-  map_mul'  := λ x y, by simp }
+(mul_equiv.inv' α).symm
 
 @[simp] lemma op_inv_equiv_def (a : αᵐᵒᵖ) : (op_inv_equiv α).to_fun a = unop a⁻¹ := rfl
 
@@ -45,6 +40,7 @@ rfl
 @[simp] lemma op_inv_equiv_symm_to_monoid_hom_def (a : α) :
   (op_inv_equiv α).symm.to_monoid_hom a = (op a⁻¹) :=
 rfl
+-/
 
 end mul_opposite
 
@@ -97,8 +93,8 @@ lemma is_square_op_iff (a : α) : is_square (op a) ↔ is_square a :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [← is_square_op_iff, ← inv_inv a],
-    exact (mul_opposite.op_inv_equiv α).symm.to_monoid_hom.is_square h },
-  { exact (mul_opposite.op_inv_equiv α).to_monoid_hom.is_square ((is_square_op_iff a).mpr h) }
+    exact (mul_equiv.inv' α).to_monoid_hom.is_square h },
+  { exact (mul_equiv.inv' α).symm.to_monoid_hom.is_square ((is_square_op_iff a).mpr h) }
 end
 
 end group
@@ -205,11 +201,17 @@ section ring
 variables [ring α] {m n : α}
 
 @[simp] lemma even_neg_two : even (- 2 : α) := by simp
-#exit
+
 -- from src/algebra/order/ring.lean
 variables [linear_order α]
 lemma even_abs {a : α} : even (|a|) ↔ even a :=
-dvd_abs _ _
+begin
+  rcases abs_choice a with rfl | h,
+  refine ⟨λ h, _, λ h, _⟩,
+  rcases h with ⟨c, hc⟩,
+  sorry,
+  library_search
+end
 
 lemma odd.neg {a : α} (hp : odd a) : odd (-a) :=
 begin
@@ -232,11 +234,6 @@ by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
 
 lemma odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
-
--- from src/algebra/order/ring.lean
-variables [linear_order α]
-lemma even_abs {a : α} : even (|a|) ↔ even a :=
-dvd_abs _ _
 
 -- from src/algebra/order/ring.lean
 lemma odd_abs {a : α} : odd (abs a) ↔ odd a :=

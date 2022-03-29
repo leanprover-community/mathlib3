@@ -436,6 +436,9 @@ rfl
 @[simp] lemma mk'_eq_coe (l : list α) : quotient.mk' l = (l : cycle α) :=
 rfl
 
+lemma coe_cons_eq_coe_append (l : list α) (a : α) : (↑(a :: l) : cycle α) = ↑(l ++ [a]) :=
+quot.sound ⟨1, by rw [rotate_cons_succ, rotate_zero]⟩
+
 /-- The unique empty cycle. -/
 def nil : cycle α := ↑([] : list α)
 
@@ -744,12 +747,11 @@ quotient.lift_on' c (λ l, match l with
         rw [hn.1, hn.2] },
       { rw [nat.succ_eq_one_add, ←rotate_rotate, rotate_cons_succ, rotate_zero, cons_append] at hn,
         rw [←hd c _ _ _ hn],
-        simp,
-        exact and.comm } } }
+        simp [and.comm] } } }
 end
 
 @[simp] lemma chain.nil (r : α → α → Prop) : cycle.chain r (@nil α) :=
-by exact rfl
+by unfold chain
 
 @[simp] lemma chain_cons (r : α → α → Prop) (a : α) (l : list α) :
   chain r (a :: l) ↔ list.chain r a (l ++ [a]) :=
@@ -766,8 +768,8 @@ lemma chain_ne_nil (r : α → α → Prop) {l : list α} (hl : l ≠ []) :
 lemma chain_map {β : Type*} {r : α → α → Prop} (f : β → α) {s : cycle β} :
   chain r (s.map f) ↔ chain (λ a b, r (f a) (f b)) s :=
 quotient.induction_on' s $ λ l, begin
-  cases l with a l;
-  simp,
+  cases l with a l,
+  refl,
   convert list.chain_map f,
   rw map_append f l [a],
   refl
@@ -777,7 +779,7 @@ variables {r : α → α → Prop} {s : cycle α}
 
 theorem chain_of_pairwise : (∀ (a ∈ s) (b ∈ s), r a b) → chain r s :=
 begin
-  apply s.rec_on,
+  apply s.induction_on,
   exact λ _, cycle.chain.nil r,
   intros a l _ hs,
   have Ha : a ∈ ((a :: l) : cycle α) := by simp,
@@ -800,7 +802,7 @@ end
 
 theorem chain_iff_pairwise (hr : transitive r) : chain r s ↔ ∀ (a ∈ s) (b ∈ s), r a b :=
 ⟨begin
-  apply s.rec_on,
+  apply s.induction_on,
   exact λ _ b hb, hb.elim,
   intros a l _ hs b hb c hc,
   rw [cycle.chain_cons, chain_iff_pairwise hr] at hs,

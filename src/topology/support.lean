@@ -226,7 +226,7 @@ of open sets, then for any point we can find a neighbourhood on which only finit
 /-" If a family of functions `f` has locally-finite support, subordinate to a family of open sets,
 then for any point we can find a neighbourhood on which only finitely-many members of `f` are
 non-zero. "-/]
-lemma exists_finset_nhd_mul_support_subseteq
+lemma exists_finset_nhd_mul_support_subset
   {f : ι → X → R} (hlf : locally_finite (λ i, mul_support (f i)))
   (hso : ∀ i, mul_tsupport (f i) ⊆ U i) (ho : ∀ i, is_open (U i)) (x : X) :
   ∃ (is : finset ι) {n : set X} (hn₁ : n ∈ 𝓝 x) (hn₂ : n ⊆ ⋂ i ∈ is, U i), ∀ (z ∈ n),

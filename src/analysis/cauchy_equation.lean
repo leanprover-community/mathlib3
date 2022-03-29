@@ -129,7 +129,7 @@ begin
   exact additive_continuous_at_zero_of_bounded_nbhd_zero f hU hbounded
 end
 
-lemma continuous_of_measurable (μ : measure ℝ) [is_add_haar_measure μ] (f : ℝ →+ ℝ)
+lemma continuous_of_measurable (f : ℝ →+ ℝ)
   (h : @measurable ℝ ℝ (borel ℝ) (borel ℝ) f) : continuous f :=
   by exact uniform_continuous.continuous
     (uniform_continuous_of_continuous_at_zero f (additive_continuous_at_zero f h))
@@ -146,6 +146,19 @@ begin
     norm_num [sub_eq_zero, h] },
   { rw div_le_iff (show 0 < (2 : ℝ), by norm_num),
     simp only [mul_two, le_add_iff_nonneg_left, norm_nonneg] }
+end
+
+lemma is_linear_map_api_lemma {M : Type*} [comm_semiring M] (f : M →+ M) :
+  is_linear_map M f ↔ ∀ x : M, f x = f 1 * x :=
+begin
+  split,
+  { intros h x,
+    convert h.2 x 1 using 1,
+    { simp only [algebra.id.smul_eq_mul, mul_one] },
+    { simp only [mul_comm, algebra.id.smul_eq_mul] }},
+  { intros h,
+    refine ⟨map_add f, λ c x, _⟩,
+    rw [smul_eq_mul, smul_eq_mul, h (c * x), h x, ← mul_assoc, mul_comm _ c, mul_assoc] }
 end
 
 lemma is_linear_rat (f : ℝ →+ ℝ) : ∀ (q : ℚ), f q = f 1 * q :=

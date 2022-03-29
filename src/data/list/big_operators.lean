@@ -160,7 +160,7 @@ lemma head_mul_tail_prod_of_ne_nil [inhabited M] (l : list M) (h : l ≠ []) :
   l.head * l.tail.prod = l.prod :=
 by cases l; [contradiction, simp]
 
-@[to_additive]
+@[to_additive sum_add_commute]
 lemma prod_commute (l : list M) (y : M) (h : ∀ (x ∈ l), commute y x) : commute y l.prod :=
 begin
   induction l with z l IH,
@@ -168,6 +168,16 @@ begin
   { rw list.ball_cons at h,
     rw list.prod_cons,
     exact commute.mul_right h.1 (IH h.2), }
+end
+
+lemma sum_commute [non_unital_non_assoc_semiring R] (a : R) (l : list R)
+  (h : ∀ b ∈ l, commute a b) :
+  commute a l.sum :=
+begin
+  induction l with x xs ih,
+  { exact commute.zero_right _, },
+  { rw sum_cons,
+    exact (h _ $ mem_cons_self _ _).add_right (ih $ λ j hj, h _ $ mem_cons_of_mem _ hj) }
 end
 
 @[to_additive sum_le_sum] lemma prod_le_prod' [preorder M]

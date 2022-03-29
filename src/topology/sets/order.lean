@@ -34,7 +34,8 @@ lemma clopen (s : clopen_upper_set α) : is_clopen (s : set α) := s.clopen'
 /-- Reinterpret a upper clopen as an upper set. -/
 @[simps] def to_upper_set (s : clopen_upper_set α) : upper_set α := ⟨s, s.upper⟩
 
-@[ext] protected lemma ext {s t : clopen_upper_set α} (h : (s : set α) = t) : s = t := set_like.ext' h
+@[ext] protected lemma ext {s t : clopen_upper_set α} (h : (s : set α) = t) : s = t :=
+set_like.ext' h
 
 @[simp] lemma coe_mk (s : clopens α) (h) : (mk s h : set α) = s := rfl
 

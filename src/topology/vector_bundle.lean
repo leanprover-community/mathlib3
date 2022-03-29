@@ -116,14 +116,12 @@ variables [∀ x, topological_space (E x)]
 space) has a topological vector space structure with fiber `F` (denoted with
 `topological_vector_bundle R F E`) if around every point there is a fiber bundle trivialization
 which is linear in the fibers. -/
--- /-- `trivialization_at R F E b` is some choice of trivialization of a vector bundle whose base set
--- contains a given point `b`. -/
 class topological_vector_bundle :=
 (total_space_mk_inducing [] : ∀ (b : B), inducing (total_space_mk E b))
-(atlas []            : set (trivialization R F E))
+(trivialization_atlas []            : set (trivialization R F E))
 (trivialization_at []         : B → trivialization R F E)
 (mem_base_set_trivialization_at [] : ∀ b : B, b ∈ (trivialization_at b).base_set)
-(trivialization_mem_atlas []  : ∀ b : B, trivialization_at b ∈ atlas)
+(trivialization_mem_atlas []  : ∀ b : B, trivialization_at b ∈ trivialization_atlas)
 
 export topological_vector_bundle (trivialization_at mem_base_set_trivialization_at)
 
@@ -276,7 +274,7 @@ def trivial_topological_vector_bundle.trivialization : trivialization R F (bundl
 
 instance trivial_bundle.topological_vector_bundle :
   topological_vector_bundle R F (bundle.trivial B F) :=
-{ atlas := {trivial_topological_vector_bundle.trivialization R B F},
+{ trivialization_atlas := {trivial_topological_vector_bundle.trivialization R B F},
   trivialization_at := λ x, trivial_topological_vector_bundle.trivialization R B F,
   mem_base_set_trivialization_at := mem_univ,
   trivialization_mem_atlas := λ x, mem_singleton _,
@@ -472,7 +470,7 @@ instance : topological_vector_bundle R F Z.fiber :=
         exact ha.2.2, },
       { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply],
         exact ⟨Z.mem_base_set_at b, ha⟩, } } end⟩,
-  atlas := set.range Z.local_triv_at,
+  trivialization_atlas := set.range Z.local_triv_at,
   trivialization_at := Z.local_triv_at,
   mem_base_set_trivialization_at := Z.mem_base_set_at,
   trivialization_mem_atlas := mem_range_self }
@@ -578,7 +576,7 @@ lemma to_topological_vector_bundle :
   @topological_vector_bundle R _ F E _ _ _ _ _ _ _ a.total_space_topology _ :=
 { total_space_mk_inducing := λ b, a.inducing_total_space_mk_of_inducing_comp b
     (a.total_space_mk_inducing b),
-  atlas := set.range a.trivialization_at,
+  trivialization_atlas := set.range a.trivialization_at,
   trivialization_at := a.trivialization_at,
   mem_base_set_trivialization_at := a.mem_base_pretrivialization_at,
   trivialization_mem_atlas := mem_range_self }
@@ -785,8 +783,8 @@ instance _root_.bundle.prod.topological_vector_bundle :
     rw (prod.inducing_diag E₁ E₂).inducing_iff,
     exact (total_space_mk_inducing R F₁ E₁ b).prod_mk (total_space_mk_inducing R F₂ E₂ b),
   end,
-  atlas := (λ (p : trivialization R F₁ E₁ × trivialization R F₂ E₂), p.1.prod p.2) ''
-    (atlas R F₁ E₁ ×ˢ atlas R F₂ E₂),
+  trivialization_atlas := (λ (p : trivialization R F₁ E₁ × trivialization R F₂ E₂), p.1.prod p.2) ''
+    (trivialization_atlas R F₁ E₁ ×ˢ trivialization_atlas R F₂ E₂),
   trivialization_at := λ b, (trivialization_at R F₁ E₁ b).prod (trivialization_at R F₂ E₂ b),
   mem_base_set_trivialization_at :=
     λ b, ⟨mem_base_set_trivialization_at R F₁ E₁ b, mem_base_set_trivialization_at R F₂ E₂ b⟩,

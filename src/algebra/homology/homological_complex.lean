@@ -35,7 +35,7 @@ Defined in terms of these we have `C.d_from i : C.X i ⟶ C.X_next i` and
 
 universes v u
 
-open category_theory category_theory.limits
+open category_theory category_theory.category category_theory.limits
 
 variables {ι : Type*}
 variables (V : Type u) [category.{v} V] [has_zero_morphisms V]
@@ -72,6 +72,21 @@ begin
     { exact C.d_comp_d' i j k hij hjk },
     { rw [C.shape j k hjk, comp_zero] } },
   { rw [C.shape i j hij, zero_comp] }
+end
+
+lemma ext {C₁ C₂ : homological_complex V c} (h_X : C₁.X = C₂.X)
+  (h_d : ∀ (i j : ι), c.rel i j → C₁.d i j ≫ eq_to_hom (congr_fun h_X j) =
+    eq_to_hom (congr_fun h_X i) ≫ C₂.d i j) : C₁ = C₂ :=
+begin
+  cases C₁,
+  cases C₂,
+  dsimp at h_X,
+  subst h_X,
+  simp only [true_and, eq_self_iff_true, heq_iff_eq],
+  ext i j,
+  by_cases hij : c.rel i j,
+  { simpa only [id_comp, eq_to_hom_refl, comp_id] using h_d i j hij, },
+  { rw [C₁_shape' i j hij, C₂_shape' i j hij], }
 end
 
 end homological_complex
@@ -175,6 +190,12 @@ end
 @[simp] lemma comp_f {C₁ C₂ C₃ : homological_complex V c} (f : C₁ ⟶ C₂) (g : C₂ ⟶ C₃) (i : ι) :
   (f ≫ g).f i = f.f i ≫ g.f i :=
 rfl
+
+@[simp]
+lemma eq_to_hom_f {C₁ C₂ : homological_complex V c} (h : C₁ = C₂) (n : ι) :
+  homological_complex.hom.f (eq_to_hom h) n =
+  eq_to_hom (congr_fun (congr_arg homological_complex.X h) n) :=
+by { subst h, refl, }
 
 -- We'll use this later to show that `homological_complex V c` is preadditive when `V` is.
 lemma hom_f_injective {C₁ C₂ : homological_complex V c} :

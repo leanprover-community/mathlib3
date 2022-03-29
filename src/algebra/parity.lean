@@ -8,10 +8,39 @@ import algebra.ring.basic
 import algebra.algebra.basic
 import algebra.group_power.basic
 import algebra.field_power
+import algebra.opposites
 
 /-!  This file proves some general facts about even and odd elements of semirings. -/
 
 variables {α β : Type*}
+open mul_opposite
+
+namespace mul_opposite
+variable [group α]
+
+/-
+@[to_additive]
+def hom.op_inv {α : Type*} [group α] : α →* αᵐᵒᵖ :=
+⟨λ x, op x⁻¹, by simp, by simp⟩
+
+@[simp] lemma hom.op_inv_def {α : Type*} [group α] (a : α) : hom.op_inv a = (op a⁻¹) := rfl
+-/
+
+@[to_additive]
+def op_inv_equiv (α : Type*) [group α] : α ≃* αᵐᵒᵖ :=
+{ to_fun    := λ x, op x⁻¹,
+  inv_fun   := λ x, unop x⁻¹,
+  left_inv  := λ x, by simp,
+  right_inv := λ x, by simp,
+  map_mul'  := λ x y, by simp }
+
+@[simp] lemma op_inv_equiv_to_monoid_hom_def (a : α) :
+  (op_inv_equiv α).to_monoid_hom a = (op a⁻¹) :=
+rfl
+
+@[simp] lemma op_inv_equiv_def (a : α) : (op_inv_equiv α).to_fun a = (op a⁻¹) := rfl
+
+end mul_opposite
 
 /--  An element `a` of a type `α` with multiplication satisfies `square a` if `a = r * r`,
 for some `r : α`. -/
@@ -51,11 +80,34 @@ begin
   refine ⟨m * n, mul_mul_mul_comm m m n n⟩,
 end
 
+section group
+variable [group α]
+
+@[to_additive]
+lemma is_square_op_iff (a : α) : is_square (op a) ↔ is_square a :=
+⟨λ ⟨c, hc⟩, ⟨unop c, by rw [← unop_mul, ← hc, unop_op]⟩, λ ⟨c, hc⟩, by simp [hc]⟩
+
+@[simp, to_additive] lemma is_square_inv (a : α) : is_square a⁻¹ ↔ is_square a :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { rw [← is_square_op_iff, ← inv_inv a],
+    exact (mul_opposite.op_inv_equiv α).to_monoid_hom.is_square h },
+  { exact (mul_opposite.op_inv_equiv α).symm.to_monoid_hom.is_square ((is_square_op_iff a).mpr h) }
+end
+
+end group
+
+section comm_group
+variable [comm_group α]
+
+@[to_additive]
+lemma is_square.div_is_square {m n : α} (hm : is_square m) (hn : is_square n) : is_square (m / n) :=
+by { rw div_eq_mul_inv,  exact hm.mul_is_square ((is_square_inv n).mpr hn) }
+
+end comm_group
+
 section semiring
 variables [semiring α] [semiring β] {m n : α}
-
-@[simp]
-lemma even_two_mul (m : α) : even (2 * m) := ⟨m, two_mul _⟩
 
 lemma even_iff_exists_two_mul (m : α) : even m ↔ ∃ c, m = 2 * c :=
 by simp [even_iff_exists_two_nsmul]
@@ -71,11 +123,13 @@ by { ext x, simp [eq_comm, two_mul, even] }
 
 @[simp] lemma even_two : even (2 : α) := ⟨1, rfl⟩
 
+@[simp] lemma even.mul_left (hm : even m) (n) : even (n * m) :=
+(add_monoid_hom.mul_left n).even hm
+
 @[simp] lemma even.mul_right (hm : even m) (n) : even (m * n) :=
 (add_monoid_hom.mul_right n).even hm
 
-@[simp] lemma even.mul_left (hm : even m) (n) : even (n * m) :=
-(add_monoid_hom.mul_left n).even hm
+lemma even_two_mul (m : α) : even (2 * m) := ⟨m, two_mul _⟩
 
 lemma even.pow_of_ne_zero (hm : even m) : ∀ {a : ℕ}, a ≠ 0 → even (m ^ a)
 | 0       a0 := (a0 rfl).elim
@@ -112,7 +166,7 @@ begin
     mul_one],
   refl
 end
-#exit
+
 @[simp] lemma odd_one : odd (1 : α) :=
 ⟨0, (zero_add _).symm.trans (congr_arg (+ (1 : α)) (mul_zero _).symm)⟩
 
@@ -144,14 +198,8 @@ end semiring
 section ring
 variables [ring α] {m n : α}
 
-@[simp] theorem even_neg (a : α) : even (-a) ↔ even a :=
-dvd_neg _ _
-
 @[simp] lemma even_neg_two : even (- 2 : α) := by simp
-
-lemma even.sub_even (hm : even m) (hn : even n) : even (m - n) :=
-by { rw sub_eq_add_neg, exact hm.add_even ((even_neg n).mpr hn) }
-
+#exit
 -- from src/algebra/order/ring.lean
 variables [linear_order α]
 lemma even_abs {a : α} : even (|a|) ↔ even a :=

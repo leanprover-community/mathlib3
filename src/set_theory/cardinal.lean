@@ -381,12 +381,6 @@ power_add
 theorem power_bit1 (a b : cardinal) : a ^ (bit1 b) = a ^ b * a ^ b * a :=
 by { unfold bit1, rw [←power_bit0, power_add, power_one] }
 
-theorem power_bit0' (a : cardinal) (n : ℕ) : a ^ℕ (bit0 n) = a ^ℕ n * a ^ℕ n :=
-pow_bit0 a n
-
-theorem power_bit1' (a : cardinal) (n : ℕ) : a ^ℕ (bit1 n) = a ^ℕ n * a ^ℕ n * a :=
-pow_bit1 a n
-
 @[simp] theorem one_power {a : cardinal} : 1 ^ a = 1 :=
 induction_on a $ assume α, (equiv.arrow_punit_equiv_punit α).cardinal_eq
 

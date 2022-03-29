@@ -1495,9 +1495,14 @@ lemma mem_closure_range_iff_nat {e : β → α} {a : α} :
 (mem_closure_iff_nhds_basis nhds_basis_ball_inv_nat_succ).trans $
   by simp only [mem_ball, dist_comm, exists_range_iff, forall_const]
 
-theorem mem_of_closed' {s : set α} (hs : is_closed s)
-  {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
+theorem mem_of_closed' {s : set α} (hs : is_closed s) {a : α} :
+  a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 by simpa only [hs.closure_eq] using @mem_closure_iff _ _ s a
+
+lemma closed_ball_zero' (x : α) : closed_ball x 0 = closure {x} :=
+subset.antisymm
+  (λ y hy, mem_closure_iff.2 $ λ ε ε0, ⟨x, mem_singleton x, (mem_closed_ball.1 hy).trans_lt ε0⟩)
+  (closure_minimal (singleton_subset_iff.2 (dist_self x).le) is_closed_ball)
 
 lemma dense_iff {s : set α} :
   dense s ↔ ∀ x, ∀ r > 0, (ball x r ∩ s).nonempty :=

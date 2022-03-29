@@ -135,7 +135,7 @@ continuous_matrix $ λ j k, begin
     exact (continuous_matrix_elem _ _).comp continuous_fst },
 end
 
-lemma continuous_cramer [fintype n] [decidable_eq n] [comm_ring R] [topological_ring R]:
+lemma continuous_cramer [fintype n] [decidable_eq n] [comm_ring R] [topological_ring R] :
   continuous (λ A : matrix n n R × (n → R), A.1.cramer A.2) :=
 continuous_pi $ λ i, continuous_det.comp $ continuous_update_column _
 
@@ -150,12 +150,11 @@ continuous_matrix $ λ j k, continuous_det.comp $ begin
     (continuous.comp (continuous_id.prod_mk continuous_const) continuous_transpose),
 end
 
-/-- When `ring.inverse` is continuous on the units (such as in a normed_ring, or a
+/-- When `ring.inverse` is continuous at the determinant (such as in a `normed_ring`, or a
 `topological_field`), so is `matrix.has_inv`. -/
-lemma continuous_on_inv [fintype n] [decidable_eq n] [comm_ring R] [topological_ring R]
-  (h : continuous_on ring.inverse {r : R | is_unit r }) :
-  continuous_on (has_inv.inv : matrix n n R → matrix n n R) {A | is_unit A.det} :=
-(h.comp continuous_det.continuous_on (set.maps_to_preimage _ _)).smul
-  continuous_adjugate.continuous_on
+lemma continuous_at_inv [fintype n] [decidable_eq n] [comm_ring R] [topological_ring R]
+  (A : matrix n n R) (h : continuous_at ring.inverse A.det):
+  continuous_at has_inv.inv A :=
+(h.comp continuous_det.continuous_at).smul continuous_adjugate.continuous_at
 
 end matrix

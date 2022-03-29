@@ -406,6 +406,7 @@ begin
   rw [cpow_def_of_ne_zero (of_real_ne_zero.mpr hx.ne'), abs_exp, ←of_real_log hx.le,
     of_real_mul_re, real.exp_mul, real.exp_log hx],
 end
+
 lemma abs_cpow_eq_rpow_re_of_nonneg {x : ℝ} (hx : 0 ≤ x) {y : ℂ} (hy : re y ≠ 0) :
   abs (x ^ y) = x ^ y.re :=
 begin

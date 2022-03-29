@@ -235,17 +235,6 @@ by { rw cof_eq_Inf_lsub, exact Inf_mem (cof_lsub_def_nonempty o) }
 theorem cof_lsub_le {ι} (f : ι → ordinal) : cof (lsub.{u u} f) ≤ #ι :=
 by { rw cof_eq_Inf_lsub, exact cInf_le' ⟨ι, f, rfl, rfl⟩ }
 
-theorem le_cof_iff_lsub {o : ordinal} {a : cardinal} :
-  a ≤ cof o ↔ ∀ {ι} (f : ι → ordinal), lsub.{u u} f = o → a ≤ #ι :=
-begin
-  rw cof_eq_Inf_lsub,
-  exact (le_cInf_iff'' (cof_lsub_def_nonempty o)).trans ⟨λ H ι f hf, H _ ⟨ι, f, hf, rfl⟩,
-    λ H b ⟨ι, f, hf, hb⟩, ( by { rw ←hb, exact H _ hf} )⟩
-end
-
-theorem cof_lsub_le {ι} (f : ι → ordinal) : cof (lsub.{u u} f) ≤ #ι :=
-by { rw cof_eq_Inf_lsub, exact cInf_le' ⟨ι, f, rfl, rfl⟩ }
-
 theorem cof_lsub_le_lift {ι} (f : ι → ordinal) : cof (lsub f) ≤ cardinal.lift.{v u} (#ι) :=
 begin
   rw ←mk_ulift,
@@ -254,9 +243,17 @@ begin
     (set.ext (λ x, ⟨λ ⟨i, hi⟩, ⟨ulift.up i, hi⟩, λ ⟨i, hi⟩, ⟨_, hi⟩⟩))
 end
 
+theorem le_cof_iff_lsub {o : ordinal} {a : cardinal} :
+  a ≤ cof o ↔ ∀ {ι} (f : ι → ordinal), lsub.{u u} f = o → a ≤ #ι :=
+begin
+  rw cof_eq_Inf_lsub,
+  exact (le_cInf_iff'' (cof_lsub_def_nonempty o)).trans ⟨λ H ι f hf, H _ ⟨ι, f, hf, rfl⟩,
+    λ H b ⟨ι, f, hf, hb⟩, ( by { rw ←hb, exact H _ hf} )⟩
+end
+
 theorem lsub_lt_ord_lift {ι} {f : ι → ordinal} {c : ordinal} (hι : cardinal.lift (#ι) < c.cof)
   (hf : ∀ i, f i < c) : lsub.{u v} f < c :=
-lt_of_le_of_ne (lsub_le.2 hf) (λ h, by { subst h, exact (cof_lsub_le_lift f).not_lt hι })
+lt_of_le_of_ne (lsub_le hf) (λ h, by { subst h, exact (cof_lsub_le_lift f).not_lt hι })
 
 theorem lsub_lt_ord {ι} {f : ι → ordinal} {c : ordinal} (hι : #ι < c.cof) :
   (∀ i, f i < c) → lsub.{u u} f < c :=
@@ -295,15 +292,11 @@ end
 
 theorem le_cof_iff_blsub {b : ordinal} {a : cardinal} :
   a ≤ cof b ↔ ∀ {o} (f : Π a < o, ordinal), blsub.{u u} o f = b → a ≤ o.card :=
-begin
-  refine le_cof_iff_lsub.trans ⟨λ H o f hf, _, λ H ι f hf, _⟩,
-  { convert H _ hf,
-    exact (mk_ordinal_out o).symm },
-  { rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
-    rw @lsub_eq_blsub' ι r hr at hf,
-    have := H _ hf,
-    rwa [←hι', card_ord] at this }
-end
+le_cof_iff_lsub.trans ⟨λ H o f hf, by simpa using H _ hf, λ H ι f hf, begin
+  rcases cardinal.ord_eq ι with ⟨r, hr, hι'⟩,
+  rw ←@blsub_eq_lsub' ι r hr at hf,
+  simpa using H _ hf
+end⟩
 
 theorem cof_blsub_le_lift {o} (f : Π a < o, ordinal) :
   cof (blsub o f) ≤ cardinal.lift.{v u} (o.card) :=
@@ -314,7 +307,7 @@ by { rw ←(o.card).lift_id, exact cof_blsub_le_lift f }
 
 theorem blsub_lt_ord_lift {o : ordinal} {f : Π a < o, ordinal} {c : ordinal}
   (ho : o.card.lift < c.cof) (hf : ∀ i hi, f i hi < c) : blsub.{u v} o f < c :=
-lt_of_le_of_ne (blsub_le.2 hf) (λ h, not_le_of_lt ho
+lt_of_le_of_ne (blsub_le hf) (λ h, not_le_of_lt ho
   (by simpa [sup_ord, hf, h] using cof_blsub_le_lift.{u} f))
 
 theorem blsub_lt_ord {o : ordinal} {f : Π a < o, ordinal} {c : ordinal} (ho : o.card < c.cof)
@@ -717,8 +710,7 @@ sup_lt (by rwa hc.2)
 
 theorem sum_lt_lift_of_is_regular {ι : Type u} {f : ι → cardinal} {c : cardinal} (hc : is_regular c)
   (hι : cardinal.lift.{v u} (#ι) < c) (hf : ∀ i, f i < c) : sum f < c :=
-(sum_le_sup_lift _).trans_lt $
-  mul_lt_of_lt hc.1 (by rwa lift_umax) (sup_lt_lift_of_is_regular hc hι hf)
+(sum_le_sup_lift _).trans_lt $ mul_lt_of_lt hc.1 hι (sup_lt_lift_of_is_regular hc hι hf)
 
 theorem sum_lt_of_is_regular {ι : Type u} {f : ι → cardinal} {c : cardinal} (hc : is_regular c)
   (hι : #ι < c) : (∀ i, f i < c) → sum f < c :=

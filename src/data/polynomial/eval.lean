@@ -641,7 +641,7 @@ mem_map_srange f
 
 lemma eval₂_map [semiring T] (g : S →+* T) (x : T) :
   (p.map f).eval₂ g x = p.eval₂ (g.comp f) x :=
-(eval₂_eq_eval_map _).trans $ (congr_arg _ (map_map f g p)).trans (eval₂_eq_eval_map _).symm
+by rw [eval₂_eq_eval_map, eval₂_eq_eval_map, map_map]
 
 lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x :=
 (eval₂_eq_eval_map f).symm

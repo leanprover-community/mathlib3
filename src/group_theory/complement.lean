@@ -198,9 +198,10 @@ mem_left_transversals_iff_exists_unique_quotient_mk'_eq.trans
 mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 
-@[to_additive] lemma exists_left_transversal [decidable_eq (G ⧸ H)] (g : G) :
+@[to_additive] lemma exists_left_transversal (g : G) :
   ∃ S ∈ left_transversals (H : set G), g ∈ S :=
 begin
+  classical,
   let f : G ⧸ H → G := function.update quotient.out' g g,
   have hf : ∀ q, ↑(f q) = q,
   { intro q,
@@ -213,10 +214,10 @@ begin
   exact congr_arg _ (((hf q₁).symm.trans hg).trans (hf q₂)),
 end
 
-@[to_additive] lemma exists_right_transversal
-  [decidable_eq (quotient (quotient_group.right_rel H))] (g : G) :
+@[to_additive] lemma exists_right_transversal (g : G) :
   ∃ S ∈ right_transversals (H : set G), g ∈ S :=
 begin
+  classical,
   let f : _ → G := function.update quotient.out' (quotient.mk' g) g,
   have hf : ∀ q : quotient (quotient_group.right_rel H), quotient.mk' (f q) = q,
   { intro q,

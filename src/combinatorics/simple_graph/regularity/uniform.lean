@@ -9,7 +9,7 @@ import combinatorics.simple_graph.density
 # Graph uniformity and uniform partitions
 
 In this file we define uniformity of a pair of vertices in a graph and uniformity of a partition of
-vertices of a graph.
+vertices of a graph. Both are also known as ε-regularity.
 
 Finsets of vertices `s` and `t` are `ε`-uniform in a graph `G` if their edge density is at most
 `ε`-far from the density of any big enough `s'` and `t'` where `s' ⊆ s`, `t' ⊆ t`.
@@ -36,15 +36,15 @@ variables {α 𝕜 : Type*} [linear_ordered_field 𝕜]
 namespace simple_graph
 variables (G : simple_graph α) [decidable_rel G.adj] (ε : 𝕜) {s t : finset α} {a b : α}
 
-/-- A pair of finsets of vertices is `ε`-uniform iff their edge density is close to the density of
-any big enough pair of subsets. Intuitively, the edges between them are random-like. -/
+/-- A pair of finsets of vertices is `ε`-uniform (aka `ε`-regular) iff their edge density is close
+to the density of any big enough pair of subsets. Intuitively, the edges between them are
+random-like. -/
 def is_uniform (s t : finset α) : Prop :=
 ∀ ⦃s'⦄, s' ⊆ s → ∀ ⦃t'⦄, t' ⊆ t → (s.card : 𝕜) * ε ≤ s'.card → (t.card : 𝕜) * ε ≤ t'.card →
   |(G.edge_density s' t' : 𝕜) - (G.edge_density s t : 𝕜)| < ε
 
 variables {G ε}
 
-/-- If the pair `(s, t)` is `ε`-uniform and `ε ≤ ε'`, then it is `ε'`-uniform. -/
 lemma is_uniform.mono {ε' : 𝕜} (h : ε ≤ ε') (hε : is_uniform G ε s t) : is_uniform G ε' s t :=
 λ s' hs' t' ht' hs ht, by refine (hε hs' ht' (le_trans _ hs) (le_trans _ ht)).trans_le h;
   exact mul_le_mul_of_nonneg_left h (nat.cast_nonneg _)
@@ -99,8 +99,8 @@ lemma mk_mem_non_uniforms_iff (u v : finset α) (ε : 𝕜) :
   (u, v) ∈ P.non_uniforms G ε ↔ u ∈ P.parts ∧ v ∈ P.parts ∧ u ≠ v ∧ ¬G.is_uniform ε u v :=
 by rw [non_uniforms, mem_filter, mem_off_diag, and_assoc, and_assoc]
 
-/-- A finpartition is `ε`-uniform iff at most a proportion of `ε` of its pairs of parts are not
-`ε-uniform`. -/
+/-- A finpartition is `ε`-uniform (aka `ε`-regular) iff at most a proportion of `ε` of its pairs of
+parts are not `ε-uniform`. -/
 def is_uniform (ε : 𝕜) : Prop :=
 ((P.non_uniforms G ε).card : 𝕜) ≤ (P.parts.card * (P.parts.card - 1) : ℕ) * ε
 

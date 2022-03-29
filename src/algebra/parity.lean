@@ -10,39 +10,27 @@ import algebra.group_power.basic
 import algebra.field_power
 import algebra.opposites
 
-/-!  This file proves some general facts about even and odd elements of semirings. -/
+/-!  # Squares, even and odd elements
 
-variables {α β : Type*}
+This file proves some general facts about squares, even and odd elements of semirings.
+
+In the implementation, we define `is_square` and we let `even` be the notion transported by
+`to_additive`.  The definition are therefore as follows:
+```lean
+is_square a ↔ ∃ r, a = r * r
+even a ↔ ∃ r, a = r + r
+```
+
+Odd elements are not unified with a multiplicative notion.
+
+* TODO: Try to generalize further the typeclass assumptions on `is_square/even`.
+  For instance, in some cases, there are `semiring` assumptions that I (DT) am not convinced are
+  necessary.
+* TODO: Consider moving the definition and lemmas about `odd` to a separate file.
+ -/
+
 open mul_opposite
-
-namespace mul_opposite
-variable [group α]
-
-/-
-@[to_additive]
-def hom.op_inv {α : Type*} [group α] : α →* αᵐᵒᵖ :=
-⟨λ x, op x⁻¹, by simp, by simp⟩
-
-@[simp] lemma hom.op_inv_def {α : Type*} [group α] (a : α) : hom.op_inv a = (op a⁻¹) := rfl
-
-@[to_additive]
-def op_inv_equiv (α : Type*) [group α] : αᵐᵒᵖ ≃* α :=
-(mul_equiv.inv' α).symm
-
-@[simp] lemma op_inv_equiv_def (a : αᵐᵒᵖ) : (op_inv_equiv α).to_fun a = unop a⁻¹ := rfl
-
-@[simp] lemma op_inv_equiv_symm_def (a : α) : (op_inv_equiv α).symm.to_fun a = op a⁻¹ := rfl
-
-@[simp] lemma op_inv_equiv_to_monoid_hom_def (a : αᵐᵒᵖ) :
-  (op_inv_equiv α).to_monoid_hom a = unop a⁻¹ :=
-rfl
-
-@[simp] lemma op_inv_equiv_symm_to_monoid_hom_def (a : α) :
-  (op_inv_equiv α).symm.to_monoid_hom a = (op a⁻¹) :=
-rfl
--/
-
-end mul_opposite
+variables {α β : Type*}
 
 /--  An element `a` of a type `α` with multiplication satisfies `square a` if `a = r * r`,
 for some `r : α`. -/
@@ -203,14 +191,10 @@ variables [ring α] {m n : α}
 @[simp] lemma even_neg_two : even (- 2 : α) := by simp
 
 -- from src/algebra/order/ring.lean
-variables [linear_order α]
-lemma even_abs {a : α} : even (|a|) ↔ even a :=
+lemma even_abs [linear_order α] {a : α} : even (|a|) ↔ even a :=
 begin
-  rcases abs_choice a with rfl | h,
-  refine ⟨λ h, _, λ h, _⟩,
-  rcases h with ⟨c, hc⟩,
-  sorry,
-  library_search
+  rcases abs_choice a with h | h; rw h,
+  exact even_neg a,
 end
 
 lemma odd.neg {a : α} (hp : odd a) : odd (-a) :=
@@ -236,7 +220,7 @@ lemma odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
 
 -- from src/algebra/order/ring.lean
-lemma odd_abs {a : α} : odd (abs a) ↔ odd a :=
+lemma odd_abs [linear_order α] {a : α} : odd (abs a) ↔ odd a :=
 by { cases abs_choice a with h h; simp only [h, odd_neg] }
 
 end ring
@@ -301,7 +285,7 @@ lemma even.zpow_neg [division_ring K] {n : ℤ} (h : even n) (a : K) :
   (-a) ^ n = a ^ n :=
 begin
   obtain ⟨k, rfl⟩ := h,
-  rw [←bit0_eq_two_mul, zpow_bit0_neg],
+  rw [← two_mul, ←bit0_eq_two_mul, zpow_bit0_neg],
 end
 
 variables [linear_ordered_field K] {n : ℤ} {a : K}

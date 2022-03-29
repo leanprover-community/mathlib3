@@ -123,7 +123,8 @@ class topological_vector_bundle :=
 (mem_base_set_trivialization_at [] : ∀ b : B, b ∈ (trivialization_at b).base_set)
 (trivialization_mem_atlas []  : ∀ b : B, trivialization_at b ∈ trivialization_atlas)
 
-export topological_vector_bundle (trivialization_at mem_base_set_trivialization_at)
+export topological_vector_bundle (trivialization_atlas trivialization_at
+  mem_base_set_trivialization_at trivialization_mem_atlas)
 
 variable [topological_vector_bundle R F E]
 
@@ -408,7 +409,7 @@ topological_fiber_bundle_core.to_topological_space ι ↑Z
 
 variables {ι} (b : B) (a : F)
 
-@[simp, mfld_simps] lemma coe_cord_change (i j : ι) :
+@[simp, mfld_simps] lemma coe_coord_change (i j : ι) :
   topological_fiber_bundle_core.coord_change ↑Z i j b = Z.coord_change i j b := rfl
 
 /-- Extended version of the local trivialization of a fiber bundle constructed from core,
@@ -470,10 +471,10 @@ instance : topological_vector_bundle R F Z.fiber :=
         exact ha.2.2, },
       { simp only [mem_prod, mem_preimage, mem_inter_eq, local_triv_at_apply],
         exact ⟨Z.mem_base_set_at b, ha⟩, } } end⟩,
-  trivialization_atlas := set.range Z.local_triv_at,
+  trivialization_atlas := set.range Z.local_triv,
   trivialization_at := Z.local_triv_at,
   mem_base_set_trivialization_at := Z.mem_base_set_at,
-  trivialization_mem_atlas := mem_range_self }
+  trivialization_mem_atlas := λ b, ⟨Z.index_at b, rfl⟩ }
 
 /-- The projection on the base of a topological vector bundle created from core is continuous -/
 @[continuity] lemma continuous_proj : continuous Z.proj :=

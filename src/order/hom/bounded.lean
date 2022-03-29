@@ -105,6 +105,14 @@ instance order_iso_class.to_bounded_order_hom_class [has_le α] [bounded_order �
   bounded_order_hom_class F α β :=
 { ..order_iso_class.to_top_hom_class, ..order_iso_class.to_bot_hom_class }
 
+@[simp] lemma map_eq_top_iff [has_le α] [order_top α] [partial_order β] [order_top β]
+  [order_iso_class F α β] (f : F) {a : α} : f a = ⊤ ↔ a = ⊤ :=
+by rw [←map_top f, (equiv_like.injective f).eq_iff]
+
+@[simp] lemma map_eq_bot_iff [has_le α] [order_bot α] [partial_order β] [order_bot β]
+  [order_iso_class F α β] (f : F) {a : α} : f a = ⊥ ↔ a = ⊥ :=
+by rw [←map_bot f, (equiv_like.injective f).eq_iff]
+
 instance [has_top α] [has_top β] [top_hom_class F α β] : has_coe_t F (top_hom α β) :=
 ⟨λ f, ⟨f, map_top f⟩⟩
 

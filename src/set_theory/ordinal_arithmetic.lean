@@ -621,6 +621,9 @@ by rw [mul_add, mul_one]
 
 @[simp] theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one _ _
 
+theorem mul_two (a : ordinal) : a * 2 = a + a :=
+by { change a * (succ 1) = a + a, rw [mul_succ, mul_one] }
+
 instance has_le.le.mul_covariant_class : covariant_class ordinal.{u} ordinal.{u} (*) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,
@@ -2317,11 +2320,6 @@ theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 theorem omega_le_of_is_limit {o} (h : is_limit o) : omega ≤ o :=
 omega_le.2 $ λ n, le_of_lt $ nat_lt_limit h n
 
-theorem mul_lt_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a * b < omega :=
-match a, b, lt_omega.1 ha, lt_omega.1 hb with
-| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_mul]; apply nat_lt_omega
-end
-
 theorem is_limit_iff_omega_dvd {a : ordinal} : is_limit a ↔ a ≠ 0 ∧ omega ∣ a :=
 begin
   refine ⟨λ l, ⟨l.1, ⟨a / omega, le_antisymm _ (mul_div_le _ _)⟩⟩, λ h, _⟩,
@@ -2336,13 +2334,6 @@ begin
     refine mul_is_limit_left omega_is_limit
       (ordinal.pos_iff_ne_zero.2 $ mt _ a0),
     intro e, simp only [e, mul_zero] }
-end
-
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
-
-theorem opow_lt_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a ^ b < omega :=
-match a, b, lt_omega.1 ha, lt_omega.1 hb with
-| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_opow]; apply nat_lt_omega
 end
 
 theorem add_mul_limit_aux {a b c : ordinal} (ba : b + a = a)
@@ -2376,47 +2367,6 @@ theorem add_mul_limit {a b c : ordinal} (ba : b + a = a)
   (l : is_limit c) : (a + b) * c = a * c :=
 add_mul_limit_aux ba l (λ c' _, add_mul_succ c' ba)
 
-theorem mul_omega {a : ordinal} (a0 : 0 < a) (ha : a < omega) : a * omega = omega :=
-le_antisymm
-  ((mul_le_of_limit omega_is_limit).2 $ λ b hb, le_of_lt (mul_lt_omega ha hb))
-  (by simpa only [one_mul] using mul_le_mul_right' (one_le_iff_pos.2 a0) omega)
-
-theorem mul_lt_omega_opow {a b c : ordinal}
-  (c0 : 0 < c) (ha : a < omega ^ c) (hb : b < omega) : a * b < omega ^ c :=
-begin
-  rcases zero_or_succ_or_limit c with rfl|⟨c,rfl⟩|l,
-  { exact (lt_irrefl _).elim c0 },
-  { rw opow_succ at ha,
-    rcases ((mul_is_normal $ opow_pos _ omega_pos).limit_lt
-      omega_is_limit).1 ha with ⟨n, hn, an⟩,
-    refine (mul_le_mul_right' (le_of_lt an) _).trans_lt _,
-    rw [opow_succ, mul_assoc, mul_lt_mul_iff_left (opow_pos _ omega_pos)],
-    exact mul_lt_omega hn hb },
-  { rcases ((opow_is_normal one_lt_omega).limit_lt l).1 ha with ⟨x, hx, ax⟩,
-    refine (mul_le_mul' (le_of_lt ax) (le_of_lt hb)).trans_lt _,
-    rw [← opow_succ, opow_lt_opow_iff_right one_lt_omega],
-    exact l.2 _ hx }
-end
-
-theorem mul_omega_dvd {a : ordinal}
-  (a0 : 0 < a) (ha : a < omega) : ∀ {b}, omega ∣ b → a * b = b
-| _ ⟨b, rfl⟩ := by rw [← mul_assoc, mul_omega a0 ha]
-
-/- This will be part of a future PR on multiplicative principal ordinals.
-
-theorem mul_omega_opow_opow {a b : ordinal} (a0 : 0 < a) (h : a < omega ^ omega ^ b) :
-  a * omega ^ omega ^ b = omega ^ omega ^ b :=
-begin
-  by_cases b0 : b = 0, {rw [b0, opow_zero, opow_one] at h ⊢, exact mul_omega a0 h},
-  refine le_antisymm _
-    (by simpa only [one_mul] using mul_le_mul_right' (one_le_iff_pos.2 a0) (omega ^ omega ^ b)),
-  rcases (lt_opow_of_limit omega_ne_zero (opow_is_limit_left omega_is_limit b0)).1 h
-    with ⟨x, xb, ax⟩,
-  apply (mul_le_mul_right' (le_of_lt ax) _).trans,
-  rw [← opow_add, add_omega_opow xb]
-end
---/
-
 theorem add_le_of_forall_add_lt {a b c : ordinal} (hb : 0 < b) (h : ∀ d < b, a + d < c) :
   a + b ≤ c :=
 begin
@@ -2426,12 +2376,6 @@ begin
   by_contra' hb,
   exact (h _ hb).ne H
 end
-
-theorem opow_omega {a : ordinal} (a1 : 1 < a) (h : a < omega) : a ^ omega = omega :=
-le_antisymm
-  ((opow_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2
-    (λ b hb, le_of_lt (opow_lt_omega h hb)))
-  (right_le_opow _ a1)
 
 theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
   sup.{0 u} (f ∘ nat.cast) = f omega :=
@@ -2447,8 +2391,8 @@ begin
   { exact (mul_is_normal ho).apply_omega }
 end
 
-theorem sup_opow_nat {o : ordinal.{u}} (ho : 0 < o) :
-  sup (λ n : ℕ, o ^ n) = o ^ omega :=
+local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+theorem sup_opow_nat {o : ordinal.{u}} (ho : 0 < o) : sup (λ n : ℕ, o ^ n) = o ^ omega :=
 begin
   rcases lt_or_eq_of_le (one_le_iff_pos.2 ho) with ho₁ | rfl,
   { exact (opow_is_normal ho₁).apply_omega },

@@ -332,7 +332,6 @@ lift _ ((mk' _).comp φ') $
   λ g ⟨h, (hg : h ^ n = g)⟩, (eq_one_iff _).mpr ⟨_, by simpa only [← hg, map_zpow]⟩
 
 @[to_additive, simp]
-<<<<<<< HEAD
 lemma hom_quotient_zpow_of_hom_comp (n : ℤ) :
   (hom_quotient_zpow_of_hom φ' n).comp (hom_quotient_zpow_of_hom ψ' n)
     = hom_quotient_zpow_of_hom (φ'.comp ψ') n :=
@@ -340,9 +339,6 @@ monoid_hom_ext _ rfl
 
 @[to_additive, simp]
 lemma hom_quotient_zpow_of_hom_comp_of_right_inverse (h : function.right_inverse ψ' φ') (n : ℤ) :
-=======
-lemma hom_quotient_zpow_of_hom_right_inverse (h : function.right_inverse ψ' φ') (n : ℤ) :
->>>>>>> origin/master
   (hom_quotient_zpow_of_hom φ' n).comp (hom_quotient_zpow_of_hom ψ' n) = monoid_hom.id _ :=
 monoid_hom_ext _ $ monoid_hom.ext $ λ g, congr_arg coe $ h g
 
@@ -351,13 +347,8 @@ monoid_hom_ext _ $ monoid_hom.ext $ λ g, congr_arg coe $ h g
 isomorphism."]
 def equiv_quotient_zpow_of_equiv (χ : G' ≃* H') (n : ℤ) :
   G' ⧸ (zpow_group_hom n : G' →* G').range ≃* H' ⧸ (zpow_group_hom n : H' →* H').range :=
-<<<<<<< HEAD
 monoid_hom.to_mul_equiv _ _ (hom_quotient_zpow_of_hom_comp_of_right_inverse χ.symm χ χ.left_inv n)
   (hom_quotient_zpow_of_hom_comp_of_right_inverse χ χ.symm χ.right_inv n)
-=======
-monoid_hom.to_mul_equiv _ _ (hom_quotient_zpow_of_hom_right_inverse χ.symm χ χ.left_inv n)
-  (hom_quotient_zpow_of_hom_right_inverse χ χ.symm χ.right_inv n)
->>>>>>> origin/master
 
 end zpow
 

@@ -269,18 +269,11 @@ theorem zpow_mul (A : M) (h : is_unit A.det) : ∀ m n : ℤ, A ^ (m * n) = (A ^
 theorem zpow_mul' (A : M) (h : is_unit A.det) (m n : ℤ) : A ^ (m * n) = (A ^ n) ^ m :=
 by rw [mul_comm, zpow_mul _ h]
 
-@[simp, norm_cast] lemma units.coe_inv'' (u : Mˣ) :
-  ((u⁻¹ : Mˣ) : M) = u⁻¹ :=
-begin
-  refine (inv_eq_left_inv _).symm,
-  rw [←mul_eq_mul, ←units.coe_mul, inv_mul_self, units.coe_one]
-end
-
-@[simp, norm_cast] lemma units.coe_zpow (u : Mˣ) :
+@[simp, norm_cast] lemma coe_units_zpow (u : Mˣ) :
   ∀ (n : ℤ), ((u ^ n : Mˣ) : M) = u ^ n
 | (n : ℕ) := by rw [_root_.zpow_coe_nat, zpow_coe_nat, units.coe_pow]
 | -[1+k] := by rw [zpow_neg_succ_of_nat, zpow_neg_succ_of_nat, ←inv_pow, u⁻¹.coe_pow, ←inv_pow',
-                   units.coe_inv'']
+                   coe_units_inv]
 
 lemma zpow_ne_zero_of_is_unit_det [nonempty n'] [nontrivial R] {A : M}
   (ha : is_unit A.det) (z : ℤ) : A ^ z ≠ 0 :=

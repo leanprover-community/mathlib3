@@ -928,26 +928,30 @@ by simp [← lie_submodule.coe_to_submodule_eq_iff]
 
 end lie_submodule
 
-section top_equiv_self
+section top_equiv
 
 variables {R : Type u} {L : Type v}
 variables [comm_ring R] [lie_ring L] [lie_algebra R L]
 
-/-- The natural equivalence between the 'top' Lie subalgebra and the enclosing Lie algebra. -/
-def lie_subalgebra.top_equiv_self : (⊤ : lie_subalgebra R L) ≃ₗ⁅R⁆ L :=
+/-- The natural equivalence between the 'top' Lie subalgebra and the enclosing Lie algebra.
+
+This is the Lie subalgebra version of `submodule.top_equiv`. -/
+def lie_subalgebra.top_equiv : (⊤ : lie_subalgebra R L) ≃ₗ⁅R⁆ L :=
 { inv_fun   := λ x, ⟨x, set.mem_univ x⟩,
   left_inv  := λ x, by { ext, refl, },
   right_inv := λ x, rfl,
   ..(⊤ : lie_subalgebra R L).incl, }
 
-@[simp] lemma lie_subalgebra.top_equiv_self_apply (x : (⊤ : lie_subalgebra R L)) :
-  lie_subalgebra.top_equiv_self x = x := rfl
+@[simp] lemma lie_subalgebra.top_equiv_apply (x : (⊤ : lie_subalgebra R L)) :
+  lie_subalgebra.top_equiv x = x := rfl
 
-/-- The natural equivalence between the 'top' Lie ideal and the enclosing Lie algebra. -/
-def lie_ideal.top_equiv_self : (⊤ : lie_ideal R L) ≃ₗ⁅R⁆ L :=
-lie_subalgebra.top_equiv_self
+/-- The natural equivalence between the 'top' Lie ideal and the enclosing Lie algebra.
 
-@[simp] lemma lie_ideal.top_equiv_self_apply (x : (⊤ : lie_ideal R L)) :
-  lie_ideal.top_equiv_self x = x := rfl
+This is the Lie ideal version of `submodule.top_equiv`. -/
+def lie_ideal.top_equiv : (⊤ : lie_ideal R L) ≃ₗ⁅R⁆ L :=
+lie_subalgebra.top_equiv
 
-end top_equiv_self
+@[simp] lemma lie_ideal.top_equiv_apply (x : (⊤ : lie_ideal R L)) :
+  lie_ideal.top_equiv x = x := rfl
+
+end top_equiv

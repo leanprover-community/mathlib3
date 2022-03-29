@@ -112,6 +112,10 @@ rfl
 def of_hom {R : Type u} [ring R] {X Y : Type v} [add_comm_group X] [module R X] [add_comm_group Y]
   [module R Y] (f : X →ₗ[R] Y) : of R X ⟶ of R Y := f
 
+@[simp] lemma of_hom_apply {R : Type u} [ring R]
+  {X Y : Type v} [add_comm_group X] [module R X] [add_comm_group Y] [module R Y] (f : X →ₗ[R] Y)
+  (x : X) : of_hom f x = f x := rfl
+
 instance : has_zero (Module R) := ⟨of R punit⟩
 instance : inhabited (Module R) := ⟨0⟩
 

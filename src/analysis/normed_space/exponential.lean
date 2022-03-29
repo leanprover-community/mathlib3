@@ -3,7 +3,7 @@ Copyright (c) 2021 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import analysis.analytic.basic
 import analysis.complex.basic
 import data.nat.choose.cast
@@ -25,10 +25,10 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 
 ### General case
 
-- `exp_add_of_commute_of_lt_radius` : if `𝕂` has characteristic zero, then given two commuting
+- `exp_add_of_commute_of_mem_ball` : if `𝕂` has characteristic zero, then given two commuting
   elements `x` and `y` in the disk of convergence, we have
   `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
-- `exp_add_of_lt_radius` : if `𝕂` has characteristic zero and `𝔸` is commutative, then given two
+- `exp_add_of_mem_ball` : if `𝕂` has characteristic zero and `𝔸` is commutative, then given two
   elements `x` and `y` in the disk of convergence, we have
   `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
 

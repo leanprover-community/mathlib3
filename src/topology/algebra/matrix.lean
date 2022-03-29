@@ -24,8 +24,17 @@ variables {α l m n p S R : Type*} [topological_space R]
 
 instance : topological_space (matrix m n R) := Pi.topological_space
 
+instance [has_scalar α R] [has_continuous_const_smul α R] :
+  has_continuous_const_smul α (matrix n n R) :=
+pi.has_continuous_const_smul
+
+instance [topological_space α] [has_scalar α R] [has_continuous_smul α R] :
+  has_continuous_smul α (matrix n n R) :=
+pi.has_continuous_smul
+
 /-- To show a function into matrices is continuous it suffices to show the coefficients of the
-resulting matrix are continuous-/
+resulting matrix are continuous -/
+@[continuity]
 lemma continuous_matrix [topological_space α] {f : α → matrix m n R}
   (h : ∀ i j, continuous (λ a, f a i j)) : continuous f :=
 continuous_pi $ λ _, continuous_pi $ λ j, h _ _
@@ -57,15 +66,6 @@ continuous_matrix $ λ i j, continuous_apply _
 lemma continuous_row : continuous (row : (n → R) → matrix unit n R) :=
 continuous_matrix $ λ i j, continuous_apply _
 
-lemma continuous_diag [semiring S] [add_comm_monoid R] [module S R] :
-  continuous (matrix.diag n S R) :=
-continuous_pi (λ _, continuous_matrix_elem _ _)
-
-lemma continuous_trace [fintype n] [semiring S] [add_comm_monoid R] [has_continuous_add R]
-  [module S R] :
-  continuous (trace n S R) :=
-continuous_finset_sum _ $ λ i hi, continuous_matrix_elem _ _
-
 lemma continuous_diagonal [has_zero R] [decidable_eq n] :
   continuous (diagonal : (n → R) → matrix n n R) :=
 continuous_matrix $ λ i j, begin
@@ -94,17 +94,29 @@ instance [fintype n] [has_mul R] [add_comm_monoid R] [has_continuous_add R]
   [has_continuous_mul R] : has_continuous_mul (matrix n n R) :=
 ⟨continuous_mul⟩
 
-instance [has_scalar α R] [has_continuous_const_smul α R] :
-  has_continuous_const_smul α (matrix n n R) :=
-pi.has_continuous_const_smul
-
-instance [topological_space α] [has_scalar α R] [has_continuous_smul α R] :
-  has_continuous_smul α (matrix n n R) :=
-pi.has_continuous_smul
-
 instance [fintype n] [decidable_eq n] [semiring R] [topological_ring R] :
   topological_ring (matrix n n R) :=
 { ..pi.has_continuous_add }
+
+lemma continuous_vec_mul_vec [has_mul R] [has_continuous_mul R] :
+  continuous (λ x : (m → R) × (n → R), vec_mul_vec x.1 x.2) :=
+continuous_matrix $ λ i j,
+  ((continuous_apply _).comp continuous_fst).mul ((continuous_apply _).comp continuous_snd)
+
+lemma continuous_mul_vec [non_unital_non_assoc_semiring R] [has_continuous_add R]
+  [has_continuous_mul R] [fintype n] :
+  continuous (λ x : matrix m n R × (n → R), x.1.mul_vec x.2) :=
+continuous_pi $ λ i, show continuous ((λ x : (n → R) × (n → R), dot_product x.1 x.2) ∘
+                                      (λ x : matrix m n R × (n → R), (x.1 i, x.2))),
+  from continuous_dot_product.comp ((continuous_apply i).prod_map continuous_id)
+
+lemma continuous_vec_mul [non_unital_non_assoc_semiring R] [has_continuous_add R]
+  [has_continuous_mul R] [fintype m] :
+  continuous (λ x : (m → R) × matrix m n R , matrix.vec_mul x.1 x.2) :=
+continuous_pi $ λ i, show continuous ((λ x : (m → R) × (m → R), dot_product x.1 x.2) ∘
+                                      (λ x : (m → R) × matrix m n R, (x.1, λ j, x.2 j i))),
+  from continuous_dot_product.comp $
+    continuous_fst.prod_mk (continuous_pi (λ j, (continuous_matrix_elem _ _).comp continuous_snd))
 
 lemma continuous_minor (e₁ : m → l) (e₂ : p → n) :
   continuous (λ A : matrix l n R, A.minor e₁ e₂) :=
@@ -113,6 +125,15 @@ continuous_matrix $ λ i j, continuous_matrix_elem _ _
 lemma continuous_reindex (e₁ : l ≃ m) (e₂ : n ≃ p) :
   continuous (reindex e₁ e₂ : matrix l n R → matrix m p R) :=
 continuous_minor _ _
+
+lemma continuous_diag [semiring S] [add_comm_monoid R] [module S R] :
+  continuous (matrix.diag n S R) :=
+continuous_pi (λ _, continuous_matrix_elem _ _)
+
+lemma continuous_trace [fintype n] [semiring S] [add_comm_monoid R] [has_continuous_add R]
+  [module S R] :
+  continuous (trace n S R) :=
+continuous_finset_sum _ $ λ i hi, continuous_matrix_elem _ _
 
 lemma continuous_det [fintype n] [decidable_eq n] [comm_ring R] [topological_ring R] :
   continuous (det : matrix n n R → R) :=

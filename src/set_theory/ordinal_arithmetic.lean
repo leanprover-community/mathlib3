@@ -2303,7 +2303,7 @@ begin
 end
 
 theorem sup_opow_nat {o : ordinal.{u}} (ho : 0 < o) :
-  sup (λ n : ℕ, pow o n) = pow o omega :=
+  sup (λ n : ℕ, opow o n) = opow o omega :=
 begin
   rcases lt_or_eq_of_le (one_le_iff_pos.2 ho) with ho₁ | rfl,
   { exact (opow_is_normal ho₁).apply_omega },

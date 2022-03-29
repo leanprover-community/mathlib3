@@ -16,14 +16,7 @@ include ha0
 lemma to_name {ι α : Type*} [preorder ι] [linear_order α] {f : ι → α} (s : finset ι) :
   ∃ σ : equiv.perm ι, {x | σ x ≠ x} ⊆ s ∧ monotone_on (f ∘ σ) s :=
 begin
-  classical,
-  apply s.induction_on,
-  { use equiv.refl ι,
-    simp only [equiv.coe_refl, id.def, ne.def, eq_self_iff_true, not_true, set.set_of_false,
-    finset.coe_empty, set.empty_subset, true_and, monotone_on, set.mem_empty_eq, forall_false_left,
-    implies_true_iff] },
-  { intros a s has hind,
-    sorry}
+  sorry
 end
 
 

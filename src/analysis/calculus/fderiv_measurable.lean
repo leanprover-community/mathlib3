@@ -413,8 +413,7 @@ lemma strongly_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 
   [second_countable_topology F] (f : 𝕜 → F) :
   strongly_measurable (deriv f) :=
 begin
-  letI : measurable_space F := borel F,
-  haveI : borel_space F := ⟨rfl⟩,
+  borelize F,
   exact (measurable_deriv f).strongly_measurable,
 end
 

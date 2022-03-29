@@ -60,8 +60,7 @@ variables [normed_space ℝ E]
 lemma bounded_continuous_function_dense [μ.weakly_regular] :
   (bounded_continuous_function E p μ).topological_closure = ⊤ :=
 begin
-  letI : measurable_space E := borel E,
-  haveI : borel_space E := ⟨rfl⟩,
+  borelize E,
   have hp₀ : 0 < p := lt_of_lt_of_le ennreal.zero_lt_one _i.elim,
   have hp₀' : 0 ≤ 1 / p.to_real := div_nonneg zero_le_one ennreal.to_real_nonneg,
   have hp₀'' : 0 < p.to_real,

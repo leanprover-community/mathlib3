@@ -77,7 +77,7 @@ lemma has_fderiv_at_integral_of_dominated_loc_of_lip' {F : H → α → E} {F' :
   (h_diff : ∀ᵐ a ∂μ, has_fderiv_at (λ x, F x a) (F' a) x₀) :
   integrable F' μ ∧ has_fderiv_at (λ x, ∫ a, F x a ∂μ) (∫ a, F' a ∂μ) x₀ :=
 begin
-  letI : measurable_space 𝕜 := borel 𝕜, haveI : opens_measurable_space 𝕜 := ⟨le_rfl⟩,
+  borelize 𝕜,
   have x₀_in : x₀ ∈ ball x₀ ε := mem_ball_self ε_pos,
   have nneg : ∀ x, 0 ≤ ∥x - x₀∥⁻¹ := λ x, inv_nonneg.mpr (norm_nonneg _) ,
   set b : α → ℝ := λ a, |bound a|,
@@ -218,7 +218,7 @@ lemma has_deriv_at_integral_of_dominated_loc_of_lip {F : 𝕜 → α → E} {F' 
   (h_diff : ∀ᵐ a ∂μ, has_deriv_at (λ x, F x a) (F' a) x₀) :
   (integrable F' μ) ∧ has_deriv_at (λ x, ∫ a, F x a ∂μ) (∫ a, F' a ∂μ) x₀ :=
 begin
-  letI : measurable_space 𝕜 := borel 𝕜, haveI : opens_measurable_space 𝕜 := ⟨le_rfl⟩,
+  borelize 𝕜,
   set L : E →L[𝕜] (𝕜 →L[𝕜] E) := (continuous_linear_map.smul_rightL 𝕜 𝕜 E 1),
   replace h_diff : ∀ᵐ a ∂μ, has_fderiv_at (λ x, F x a) (L (F' a)) x₀ :=
     h_diff.mono (λ x hx, hx.has_fderiv_at),

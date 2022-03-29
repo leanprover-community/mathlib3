@@ -1772,8 +1772,7 @@ lemma mem_ℒp_add_of_disjoint {f g : α → E}
   (h : disjoint (support f) (support g)) (hf : strongly_measurable f) (hg : strongly_measurable g) :
   mem_ℒp (f + g) p μ ↔ mem_ℒp f p μ ∧ mem_ℒp g p μ :=
 begin
-  letI : measurable_space E := borel E,
-  letI : borel_space E := ⟨rfl⟩,
+  borelize E,
   refine ⟨λ hfg, ⟨_, _⟩, λ h, h.1.add h.2⟩,
   { rw ← indicator_add_eq_left h, exact hfg.indicator (measurable_set_support hf.measurable) },
   { rw ← indicator_add_eq_right h, exact hfg.indicator (measurable_set_support hg.measurable) }

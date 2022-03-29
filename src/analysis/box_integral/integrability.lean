@@ -197,8 +197,7 @@ lemma integrable_on.has_box_integral [complete_space E] {f : (ι → ℝ) → E}
   (hl : l.bRiemann = ff) :
   has_integral.{u v v} I l f μ.to_box_additive.to_smul (∫ x in I, f x ∂ μ) :=
 begin
-  letI : measurable_space E := borel E,
-  haveI : borel_space E := ⟨rfl⟩,
+  borelize E,
   /- First we replace an `ae_strongly_measurable` function by a measurable one. -/
   rcases hf.ae_strongly_measurable with ⟨g, hg, hfg⟩,
   haveI : separable_space (range g ∪ {0} : set E) := hg.separable_space_range_union_singleton,

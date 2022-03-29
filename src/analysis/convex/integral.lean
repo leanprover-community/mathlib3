@@ -53,8 +53,7 @@ lemma convex.integral_mem [is_probability_measure μ] {s : set E} (hs : convex �
   (hsc : is_closed s) {f : α → E} (hf : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) :
   ∫ x, f x ∂μ ∈ s :=
 begin
-  letI : measurable_space E := borel E,
-  haveI : borel_space E := ⟨rfl⟩,
+  borelize E,
   rcases hfi.ae_strongly_measurable with ⟨g, hgm, hfg⟩,
   haveI : separable_space (range g ∩ s : set E) :=
     (hgm.is_separable_range.mono (inter_subset_left _ _)).separable_space,

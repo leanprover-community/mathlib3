@@ -660,8 +660,7 @@ simple_func.uniform_embedding.to_uniform_inducing
 protected lemma dense_embedding (hp_ne_top : p ≠ ∞) :
   dense_embedding (coe : (Lp.simple_func E p μ) → (Lp E p μ)) :=
 begin
-  letI : measurable_space E := borel E,
-  haveI : borel_space E := ⟨rfl⟩,
+  borelize E,
   apply simple_func.uniform_embedding.dense_embedding,
   assume f,
   rw mem_closure_iff_seq_limit,
@@ -771,8 +770,7 @@ def coe_simple_func_nonneg_to_Lp_nonneg :
 lemma dense_range_coe_simple_func_nonneg_to_Lp_nonneg [hp : fact (1 ≤ p)] (hp_ne_top : p ≠ ∞) :
   dense_range (coe_simple_func_nonneg_to_Lp_nonneg p μ G) :=
 begin
-  letI : measurable_space G := borel G,
-  haveI : borel_space G := ⟨rfl⟩,
+  borelize G,
   assume g,
   rw mem_closure_iff_seq_limit,
   have hg_mem_ℒp : mem_ℒp g p μ := Lp.mem_ℒp g,

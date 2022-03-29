@@ -1293,8 +1293,7 @@ begin
   by_cases hfi : integrable f (measure.map φ μ), swap,
   { rw [integral_undef hfi, integral_undef],
     rwa [← integrable_map_measure hfm.ae_strongly_measurable hφ] },
-  letI : measurable_space E := borel E,
-  haveI : borel_space E := ⟨rfl⟩,
+  borelize E,
   haveI : separable_space (range f ∪ {0} : set E) := hfm.separable_space_range_union_singleton,
   refine tendsto_nhds_unique
     (tendsto_integral_approx_on_of_measurable_of_range_subset hfm.measurable hfi _ subset.rfl) _,
@@ -1352,8 +1351,7 @@ by { rw ← map_comap_subtype_coe hs,  exact (measurable_embedding.subtype_coe h
   (hfm : strongly_measurable f) :
   ∫ x, f x ∂(measure.dirac a) = f a :=
 begin
-  letI : measurable_space E := borel E,
-  haveI : borel_space E := ⟨rfl⟩,
+  borelize E,
   calc ∫ x, f x ∂(measure.dirac a) = ∫ x, f a ∂(measure.dirac a) :
     integral_congr_ae $ ae_eq_dirac' hfm.measurable
   ... = f a : by simp [measure.dirac_apply_of_mem]
@@ -1413,8 +1411,7 @@ end
 lemma integral_trim (hm : m ≤ m0) {f : β → F} (hf : strongly_measurable[m] f) :
   ∫ x, f x ∂μ = ∫ x, f x ∂(μ.trim hm) :=
 begin
-  letI : measurable_space F := borel F,
-  haveI : borel_space F := ⟨rfl⟩,
+  borelize F,
   by_cases hf_int : integrable f μ,
   swap,
   { have hf_int_m : ¬ integrable f (μ.trim hm),

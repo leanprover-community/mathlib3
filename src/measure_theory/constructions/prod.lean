@@ -251,8 +251,7 @@ variables [normed_space ℝ E] [complete_space E]
 lemma measure_theory.strongly_measurable.integral_prod_right [sigma_finite ν] ⦃f : α → β → E⦄
   (hf : strongly_measurable (uncurry f)) : strongly_measurable (λ x, ∫ y, f x y ∂ν) :=
 begin
-  letI : measurable_space E := borel E,
-  haveI : borel_space E := ⟨rfl⟩,
+  borelize E,
   haveI : separable_space (range (uncurry f) ∪ {0} : set E) :=
     hf.separable_space_range_union_singleton,
   let s : ℕ → simple_func (α × β) E := simple_func.approx_on _ hf.measurable

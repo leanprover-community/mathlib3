@@ -162,8 +162,7 @@ variables [borel_space X] [metrizable_space X]
 lemma monotone_on.integrable_on_compact (hs : is_compact s) (hmono : monotone_on f s) :
   integrable_on f s μ :=
 begin
-  letI : measurable_space E := borel E,
-  haveI : borel_space E := ⟨rfl⟩,
+  borelize E,
   obtain rfl | h := s.eq_empty_or_nonempty,
   { exact integrable_on_empty },
   have hbelow : bdd_below (f '' s) :=

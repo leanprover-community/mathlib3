@@ -362,8 +362,7 @@ lemma continuous_on.ae_strongly_measurable_of_is_separable
   ae_strongly_measurable f (μ.restrict s) :=
 begin
   letI := metrizable_space_metric α,
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
+  borelize β,
   rw ae_strongly_measurable_iff_ae_measurable_separable,
   refine ⟨hf.ae_measurable hs, f '' s, hf.is_separable_image h's, _⟩,
   exact mem_of_superset (self_mem_ae_restrict hs) (subset_preimage_image _ _),
@@ -377,8 +376,7 @@ lemma continuous_on.ae_strongly_measurable
   {f : α → β} {s : set α} {μ : measure α} (hf : continuous_on f s) (hs : measurable_set s) :
   ae_strongly_measurable f (μ.restrict s) :=
 begin
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
+  borelize β,
   refine ae_strongly_measurable_iff_ae_measurable_separable.2 ⟨hf.ae_measurable hs, f '' s, _,
     mem_of_superset (self_mem_ae_restrict hs) (subset_preimage_image _ _)⟩,
   casesI h.out,

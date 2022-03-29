@@ -676,6 +676,14 @@ lemma neg_one_mul (a : α) : -1 * a = -a := by simp
 
 end mul_one_class
 
+section mul_zero_class
+variables [mul_zero_class α] [has_distrib_neg α]
+
+lemma neg_zero' : (-0 : α) = 0 :=
+by rw [←zero_mul (0 : α), ←neg_mul, mul_zero, mul_zero]
+
+end mul_zero_class
+
 section group
 variables [group α] [has_distrib_neg α]
 

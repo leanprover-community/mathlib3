@@ -13,6 +13,7 @@ This file defines the sign function for types with zero and a decidable less-tha
 proves some basic theorems about it.
 -/
 
+/-- The type of signs. -/
 @[derive [decidable_eq, inhabited]]
 inductive sign_type
 | zero | neg | pos
@@ -33,6 +34,7 @@ end⟩
 @[simp] lemma neg_eq_neg_one : neg = -1 := rfl
 @[simp] lemma pos_eq_one     : pos = 1  := rfl
 
+/-- The multiplication on `sign_type`. -/
 def mul : sign_type → sign_type → sign_type
 | neg neg  := pos
 | neg zero := zero
@@ -42,6 +44,7 @@ def mul : sign_type → sign_type → sign_type
 
 instance : has_mul sign_type := ⟨mul⟩
 
+/-- The less-than relation on signs. -/
 inductive le : sign_type → sign_type → Prop
 | of_neg (a) : le neg a
 | zero       : le zero zero
@@ -52,7 +55,8 @@ instance : has_le sign_type := ⟨le⟩
 instance : decidable_rel le :=
 λ a b, by cases a; cases b; exact is_false (by rintro ⟨⟩) <|> exact is_true (by constructor)
 
-/- We can define a `field` instance on `sign_type`, but it's not mathematically sensible -/
+/- We can define a `field` instance on `sign_type`, but it's not mathematically sensible,
+so we only define the `comm_group_with_zero`. -/
 instance : comm_group_with_zero sign_type :=
 { zero            := 0,
   one             := 1,
@@ -82,6 +86,13 @@ instance : has_distrib_neg sign_type :=
   mul_neg := λ x y, by casesm* _; refl,
 ..sign_type.has_neg }
 
+@[simp] lemma neg_zero {α} [mul_zero_class α] [has_distrib_neg α] : (-0 : α) = 0 :=
+begin
+  nth_rewrite 0 [←zero_mul (0 : α)],
+  rw [←neg_mul, mul_zero]
+end
+
+/-- `sign_type` is equivalent to `fin 3`. -/
 def fin3_equiv : sign_type ≃* fin 3 :=
 { to_fun :=  λ a, a.rec_on 0 (-1) 1,
   inv_fun := λ a, match a with
@@ -99,12 +110,25 @@ def fin3_equiv : sign_type ≃* fin 3 :=
   end,
   map_mul' := λ x y, by casesm* _; refl }
 
+/-- Turn a `sign_type` into zero, one, or minus one. This is a coercion instance, not note it is
+only a `has_coe_t` instance: see note [use has_coe_t]. -/
 def cast {α} [has_zero α] [has_one α] [has_neg α] : sign_type → α
 | zero :=  0
 | pos  :=  1
 | neg  := -1
 
-instance {α} [has_zero α] [has_one α] [has_neg α] : has_coe sign_type α := ⟨cast⟩
+@[simp] lemma cast_zero    {α} [has_zero α] [has_one α] [has_neg α] : cast 0 = (0 : α) := rfl
+@[simp] lemma cast_one     {α} [has_zero α] [has_one α] [has_neg α] : cast 1 = (1 : α) := rfl
+@[simp] lemma cast_neg_one {α} [has_zero α] [has_one α] [has_neg α] : cast (-1) = (-1 : α) := rfl
+
+instance {α} [has_zero α] [has_one α] [has_neg α] : has_coe_t sign_type α := ⟨cast⟩
+
+/-- `sign_type.cast` as a `mul_with_zero_hom`. -/
+@[simps] def cast_hom {α} [mul_zero_one_class α] [has_distrib_neg α] : sign_type →*₀ α :=
+{ to_fun    := cast,
+  map_zero' := rfl,
+  map_one'  := rfl,
+  map_mul'  := λ x y, by cases x; cases y; simp }
 
 end sign_type
 
@@ -150,7 +174,7 @@ end
 
 end linear_order
 
-section linear_ordered_semiring
+section linear_ordered_ring
 
 variables [linear_ordered_ring α] {a b : α}
 
@@ -178,4 +202,4 @@ def sign_hom : α →*₀ sign_type :=
     { exact sign_pos (mul_pos hx hy) }
   end }
 
-end linear_ordered_semiring
+end linear_ordered_ring

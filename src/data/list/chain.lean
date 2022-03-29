@@ -64,8 +64,8 @@ theorem chain_split {a b : α} {l₁ l₂ : list α} : chain R a (l₁ ++ b :: l
 by induction l₁ with x l₁ IH generalizing a;
 simp only [*, nil_append, cons_append, chain.nil, chain_cons, and_true, and_assoc]
 
-@[simp] theorem chain_append_cons_cons (a b c : α) (l m : list α) :
-  chain R a (l ++ b :: c :: m) ↔ chain R a (l ++ [b]) ∧ R b c ∧ chain R c m :=
+@[simp] theorem chain_append_cons_cons {a b c : α} {l₁ l₂ : list α} :
+  chain R a (l₁ ++ b :: c :: l₂) ↔ chain R a (l₁ ++ [b]) ∧ R b c ∧ chain R c l₂ :=
 by rw [chain_split, chain_cons]
 
 theorem chain_map (f : β → α) {b : β} {l : list β} :

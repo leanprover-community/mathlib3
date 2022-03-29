@@ -153,7 +153,7 @@ end
 /-- When `ring.inverse` is continuous at the determinant (such as in a `normed_ring`, or a
 `topological_field`), so is `matrix.has_inv`. -/
 lemma continuous_at_inv [fintype n] [decidable_eq n] [comm_ring R] [topological_ring R]
-  (A : matrix n n R) (h : continuous_at ring.inverse A.det):
+  (A : matrix n n R) (h : continuous_at ring.inverse A.det) :
   continuous_at has_inv.inv A :=
 (h.comp continuous_det.continuous_at).smul continuous_adjugate.continuous_at
 

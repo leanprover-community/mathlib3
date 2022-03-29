@@ -43,16 +43,36 @@ section technical
 
 namespace subgroup
 
-lemma exists_left_transversal {G : Type*} [group G] {H : subgroup G} {h : G} (hh : h ∈ H) :
-  ∃ S ∈ left_transversals (H : set G), h ∈ S :=
+lemma exists_left_transversal {G : Type*} [group G] {H : subgroup G} (g : G) :
+  ∃ S ∈ left_transversals (H : set G), g ∈ S :=
 begin
-  sorry
+  let f : quotient (quotient_group.left_rel H) → G :=
+  function.update quotient.out' (quotient.mk' g) g,
+  have hf : ∀ q : quotient (quotient_group.left_rel H), quotient.mk' (f q) = q,
+  { intro q,
+    by_cases hq : q = quotient.mk' g,
+    { exact hq.symm ▸ congr_arg _ (function.update_same (quotient.mk' g) g quotient.out') },
+    { exact eq.trans (congr_arg _ (function.update_noteq hq g quotient.out')) q.out_eq' } },
+  refine ⟨set.range f, mem_left_transversals_iff_bijective.mpr ⟨_, λ q, ⟨⟨f q, q, rfl⟩, hf q⟩⟩,
+    ⟨quotient.mk' g, function.update_same (quotient.mk' g) g quotient.out'⟩⟩,
+  rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ hg,
+  exact congr_arg _ (((hf q₁).symm.trans hg).trans (hf q₂)),
 end
 
-lemma exists_right_transversal {G : Type*} [group G] {H : subgroup G} {h : G} (hh : h ∈ H) :
-  ∃ S ∈ right_transversals (H : set G), h ∈ S :=
+lemma exists_right_transversal {G : Type*} [group G] {H : subgroup G} (g : G) :
+  ∃ S ∈ right_transversals (H : set G), g ∈ S :=
 begin
-  sorry
+  let f : quotient (quotient_group.right_rel H) → G :=
+  function.update quotient.out' (quotient.mk' g) g,
+  have hf : ∀ q : quotient (quotient_group.right_rel H), quotient.mk' (f q) = q,
+  { intro q,
+    by_cases hq : q = quotient.mk' g,
+    { exact hq.symm ▸ congr_arg _ (function.update_same (quotient.mk' g) g quotient.out') },
+    { exact eq.trans (congr_arg _ (function.update_noteq hq g quotient.out')) q.out_eq' } },
+  refine ⟨set.range f, mem_right_transversals_iff_bijective.mpr ⟨_, λ q, ⟨⟨f q, q, rfl⟩, hf q⟩⟩,
+    ⟨quotient.mk' g, function.update_same (quotient.mk' g) g quotient.out'⟩⟩,
+  rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ hg,
+  exact congr_arg _ (((hf q₁).symm.trans hg).trans (hf q₂)),
 end
 
 lemma schreier' {G : Type*} [group G] {H : subgroup G} {R S : set G}
@@ -133,7 +153,7 @@ lemma schreier_aux2 {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
   (hH : H.index ≠ 0) : group.fg H :=
 begin
   obtain ⟨S, hS⟩ := hG.1,
-  obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal H.one_mem,
+  obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
   haveI : fintype (quotient (quotient_group.right_rel H)) := sorry,
   haveI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
   let R : finset G := set.to_finset R₀,

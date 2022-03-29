@@ -1425,16 +1425,21 @@ interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
   ff (simp_arg_type.except ``one_div :: hs) [] l >> skip
 
 /-- Carry out similar operations as `tactic.norm_num` but on an `expr` rather than a location.
+Given an expression `e`, returns `(e', ⊢ e = e')`.
 The `no_dflt`, `hs`, and `attr_names` are passed on to `simp`.
 Unlike `norm_num`, this tactic does not fail. -/
 meta def tactic.expr_norm_num (step : expr → tactic (expr × expr))
   (no_dflt : bool := ff) (hs : list simp_arg_type := []) (attr_names : list name := []) :
-  expr → tactic expr :=
-λ e,
-(do e' ← (prod.fst <$> norm_num.derive' step e) <|>
-         (prod.fst <$> e.simp {} (tactic.norm_num1 step (interactive.loc.ns [none]))
-                       no_dflt attr_names (simp_arg_type.except ``one_div :: hs)),
-  tactic.expr_norm_num e') <|> pure e
+  expr → tactic (expr × expr) :=
+let simp_step (e : expr) := do
+      (e', p, _) ← e.simp {} (tactic.norm_num1 step (interactive.loc.ns [none]))
+                   no_dflt attr_names (simp_arg_type.except ``one_div :: hs),
+      return (e', p)
+in or_refl_conv $ λ e, do
+  (e', p') ← norm_num.derive' step e <|> simp_step e,
+  (e'', p'') ← tactic.expr_norm_num e',
+  p ← mk_eq_trans p' p'',
+  return (e'', p)
 
 namespace tactic.interactive
 open norm_num interactive interactive.types
@@ -1597,7 +1602,7 @@ do
 
     /- Try simplifying the expression. -/
     step ← norm_num.get_step,
-    tactic.expr_norm_num step no_dflt hs attr_names e } ts,
+    prod.fst <$> tactic.expr_norm_num step no_dflt hs attr_names e } ts,
 
   /- Trace the result. -/
   when (¬ is_trace_enabled_for `silence_norm_num_if_true ∨ result ≠ expr.const `true [])

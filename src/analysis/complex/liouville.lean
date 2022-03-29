@@ -51,7 +51,7 @@ lemma norm_deriv_le_aux [complete_space F] {c : ℂ} {R C : ℝ} {f : ℂ → F}
   (hf : diff_cont_on_cl ℂ f (ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
   ∥deriv f c∥ ≤ C / R :=
 begin
-  letI : measurable_space F := borel F, haveI : borel_space F := ⟨rfl⟩,
+  borelize F,
   have : ∀ z ∈ sphere c R, ∥(z - c) ^ (-2 : ℤ) • f z∥ ≤ C / (R * R),
     from λ z (hz : abs (z - c) = R), by simpa [norm_smul, hz, zpow_two, ← div_eq_inv_mul]
       using (div_le_div_right (mul_pos hR hR)).2 (hC z hz),

@@ -346,9 +346,8 @@ begin
       { apply div_pos,
         linarith only [real.pi_pos, hn],
         exact_mod_cast hn, }, },
-    { rw div_lt_iff,
-      sorry,
-      exact_mod_cast hn, }, }, --END TOFIX
+    { rw [div_lt_iff, mul_comm 2 real.pi, mul_lt_mul_left real.pi_pos];
+      { norm_cast, linarith } }}, --END TOFIX
   have : ¬eval ↑q (cyclotomic n ℂ) = 0, -- this is also a general lemma
   { erw cyclotomic.eval_apply q n (algebra_map ℝ ℂ),
     simp only [complex.coe_algebra_map, complex.of_real_eq_zero],

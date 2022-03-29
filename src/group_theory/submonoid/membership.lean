@@ -337,7 +337,8 @@ S.mul_mem_add_closure (add_submonoid.mem_closure.mpr (λ sT hT, hT ha)) hb
 
 /-- An element is in the closure of a two-element set if it is a linear combination of those two
 elements. -/
-@[to_additive]
+@[to_additive "An element is in the closure of a two-element set if it is a linear combination of those two
+elements."]
 lemma mem_closure_pair {A : Type*} [comm_monoid A] (a b c : A) :
   c ∈ submonoid.closure ({a, b} : set A) ↔ ∃ m n : ℕ, a ^ m * b ^ n = c :=
 begin

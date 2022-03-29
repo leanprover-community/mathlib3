@@ -150,11 +150,11 @@ def is_subordinate (U : ι → set X) : Prop :=
 
 variables {f}
 
-lemma exists_finset_nhd_support_subseteq {U : ι → set X}
+lemma exists_finset_nhd_support_subset {U : ι → set X}
   (hso : f.is_subordinate U) (ho : ∀ i, is_open (U i)) (x : X) :
   ∃ (is : finset ι) {n : set X} (hn₁ : n ∈ 𝓝 x) (hn₂ : n ⊆ ⋂ i ∈ is, U i), ∀ (z ∈ n),
     support (λ i, f i z) ⊆ is :=
-f.locally_finite.exists_finset_nhd_support_subseteq hso ho x
+f.locally_finite.exists_finset_nhd_support_subset hso ho x
 
 end partition_of_unity
 

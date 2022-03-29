@@ -42,7 +42,7 @@ class nonarchimedean_group (G : Type*)
 /-- An topological semiring is nonarchimedean if its underlying topological additive
   group is nonarchimedean. -/
 class nonarchimedean_ring (R : Type*)
-  [ring R] [topological_space R] extends topological_semiring R : Prop :=
+  [ring R] [topological_space R] extends topological_ring R : Prop :=
 (is_nonarchimedean : ∀ U ∈ nhds (0 : R), ∃ V : open_add_subgroup R, (V : set R) ⊆ U)
 
 /-- Every nonarchimedean ring is naturally a nonarchimedean additive group. -/

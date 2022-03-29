@@ -493,16 +493,22 @@ continuous_multiset_prod _
 
 open function
 
-@[to_additive] lemma finprod_eventually_eq_prod {M : Type*} [comm_monoid M]
-  {f : ι → X → M} (hf : locally_finite (λ i, mul_support (f i))) (x : X) :
-  ∃ s : finset ι, ∀ᶠ y in 𝓝 x, (∏ᶠ i, f i y) = ∏ i in s, f i y :=
+@[to_additive]
+lemma locally_finite.exists_finset_mul_support {M : Type*} [comm_monoid M] {f : ι → X → M}
+  (hf : locally_finite (λ i, mul_support $ f i)) (x₀ : X) :
+  ∃ I : finset ι, ∀ᶠ x in 𝓝 x₀, mul_support (λ i, f i x) ⊆ I :=
 begin
-  rcases hf x with ⟨U, hxU, hUf⟩,
-  refine ⟨hUf.to_finset, mem_of_superset hxU $ λ y hy, _⟩,
-  refine (finprod_eq_prod_of_mul_support_subset _ (λ i hi, _)),
+  rcases hf x₀ with ⟨U, hxU, hUf⟩,
+  refine ⟨hUf.to_finset, mem_of_superset hxU $ λ y hy i hi, _⟩,
   rw [hUf.coe_to_finset],
   exact ⟨y, hi, hy⟩
 end
+
+@[to_additive] lemma finprod_eventually_eq_prod {M : Type*} [comm_monoid M]
+  {f : ι → X → M} (hf : locally_finite (λ i, mul_support (f i))) (x : X) :
+  ∃ s : finset ι, ∀ᶠ y in 𝓝 x, (∏ᶠ i, f i y) = ∏ i in s, f i y :=
+let ⟨I, hI⟩ := hf.exists_finset_mul_support x in
+  ⟨I, hI.mono (λ y hy, finprod_eq_prod_of_mul_support_subset _ $ λ i hi, hy hi)⟩
 
 @[to_additive] lemma continuous_finprod {f : ι → X → M} (hc : ∀ i, continuous (f i))
   (hf : locally_finite (λ i, mul_support (f i))) :

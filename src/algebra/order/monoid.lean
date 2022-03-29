@@ -6,8 +6,8 @@ Authors: Jeremy Avigad, Leonardo de Moura, Mario Carneiro, Johannes Hölzl
 import algebra.group.with_one
 import algebra.group.type_tags
 import algebra.group.prod
+import algebra.hom.equiv
 import algebra.order.monoid_lemmas
-import data.equiv.mul_add
 import order.bounded_order
 import order.min_max
 import order.hom.basic
@@ -254,6 +254,14 @@ begin
     norm_cast at h ⊢,
     apply lt_of_mul_lt_mul_left' h }
 end
+
+@[simp] lemma le_max_iff [linear_order α] {a b c : α} :
+  (a : with_zero α) ≤ max b c ↔ a ≤ max b c :=
+by simp only [with_zero.coe_le_coe, le_max_iff]
+
+@[simp] lemma min_le_iff [linear_order α] {a b c : α} :
+   min (a : with_zero α) b ≤ c ↔ min a b ≤ c :=
+by simp only [with_zero.coe_le_coe, min_le_iff]
 
 instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
 { mul_le_mul_left := with_zero.mul_le_mul_left,
@@ -640,15 +648,17 @@ instance with_top.canonically_ordered_add_monoid {α : Type u} [canonically_orde
   canonically_ordered_add_monoid (with_top α) :=
 { le_iff_exists_add := assume a b,
   match a, b with
-  | a, none     := show a ≤ ⊤ ↔ ∃c, ⊤ = a + c, by simp; refine ⟨⊤, _⟩; cases a; refl
-  | (some a), (some b) := show (a:with_top α) ≤ ↑b ↔ ∃c:with_top α, ↑b = ↑a + c,
-    begin
-      simp [canonically_ordered_add_monoid.le_iff_exists_add, -add_comm],
+  | ⊤, ⊤ := by simp
+  | (a : α), ⊤ := by { simp only [true_iff, le_top], refine ⟨⊤, _⟩, refl }
+  | (a : α), (b : α) := begin
+      rw [with_top.coe_le_coe, le_iff_exists_add],
       split,
-      { rintro ⟨c, rfl⟩, refine ⟨c, _⟩, norm_cast },
-      { exact assume h, match b, h with _, ⟨some c, rfl⟩ := ⟨_, rfl⟩ end }
+      { rintro ⟨c, rfl⟩,
+        refine ⟨c, _⟩, norm_cast },
+      { intro h,
+        exact match b, h with _, ⟨some c, rfl⟩ := ⟨_, rfl⟩ end }
     end
-  | none, some b := show (⊤ : with_top α) ≤ b ↔ ∃c:with_top α, ↑b = ⊤ + c, by simp
+  | ⊤, (b : α) := by simp
   end,
   .. with_top.order_bot,
   .. with_top.ordered_add_comm_monoid }
@@ -681,6 +691,12 @@ variables [canonically_linear_ordered_monoid α]
 @[priority 100, to_additive]  -- see Note [lower instance priority]
 instance canonically_linear_ordered_monoid.semilattice_sup : semilattice_sup α :=
 { ..linear_order.to_lattice }
+
+instance with_zero.canonically_linear_ordered_add_monoid
+  (α : Type*) [canonically_linear_ordered_add_monoid α] :
+    canonically_linear_ordered_add_monoid (with_zero α) :=
+{ .. with_zero.canonically_ordered_add_monoid,
+  .. with_zero.linear_order }
 
 instance with_top.canonically_linear_ordered_add_monoid
   (α : Type*) [canonically_linear_ordered_add_monoid α] :

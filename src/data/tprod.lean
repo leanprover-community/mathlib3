@@ -81,7 +81,7 @@ by simp [tprod.elim, hji]
 
 @[simp] lemma elim_of_mem (hl : (i :: l).nodup) (hj : j ∈ l) (v : tprod α (i :: l)) :
   v.elim (mem_cons_of_mem _ hj) = tprod.elim v.2 hj :=
-by { apply elim_of_ne, rintro rfl, exact not_mem_of_nodup_cons hl hj }
+by { apply elim_of_ne, rintro rfl, exact hl.not_mem hj }
 
 lemma elim_mk : ∀ (l : list ι) (f : Π i, α i) {i : ι} (hi : i ∈ l),
   (tprod.mk l f).elim hi = f i

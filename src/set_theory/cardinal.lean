@@ -606,22 +606,25 @@ theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f
 /-- The indexed supremum of cardinals is the smallest cardinal above
   everything in the family. -/
 def sup {ι : Type u} (f : ι → cardinal.{max u v}) : cardinal :=
-Inf {c | ∀ i, f i ≤ c}
+Sup (set.range f)
 
-theorem nonempty_sup {ι : Type u} (f : ι → cardinal.{max u v}) : {c | ∀ i, f i ≤ c}.nonempty :=
-⟨_, le_sum f⟩
+theorem bdd_above_range {ι : Type u} (f : ι → cardinal.{max u v}) : bdd_above (set.range f) :=
+⟨_, by { rintros a ⟨i, rfl⟩, exact le_sum f i }⟩
 
 theorem le_sup {ι} (f : ι → cardinal.{max u v}) (i) : f i ≤ sup f :=
-le_cInf (nonempty_sup f) (λ b H, H i)
+le_cSup (bdd_above_range f) (mem_range_self i)
 
-theorem sup_le {ι} {f : ι → cardinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a :=
-⟨λ h i, le_trans (le_sup _ _) h, λ h, cInf_le' h⟩
+theorem sup_le_iff {ι} {f : ι → cardinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a :=
+(cSup_le_iff' (bdd_above_range f)).trans (by simp)
+
+theorem sup_le {ι} {f : ι → cardinal} {a} : (∀ i, f i ≤ a) → sup f ≤ a :=
+sup_le_iff.2
 
 theorem sup_le_sup {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sup f ≤ sup g :=
-sup_le.2 $ λ i, le_trans (H i) (le_sup _ _)
+sup_le $ λ i, le_trans (H i) (le_sup _ _)
 
 theorem sup_le_sum {ι} (f : ι → cardinal) : sup f ≤ sum f :=
-sup_le.2 $ le_sum _
+sup_le $ le_sum _
 
 theorem sum_le_sup {ι : Type u} (f : ι → cardinal.{u}) : sum f ≤ #ι * sup.{u u} f :=
 by rw ← sum_const'; exact sum_le_sum _ _ (le_sup _)
@@ -634,7 +637,7 @@ begin
 end
 
 theorem sup_eq_zero {ι} {f : ι → cardinal} [is_empty ι] : sup f = 0 :=
-by { rw [← nonpos_iff_eq_zero, sup_le], exact is_empty_elim }
+by { rw ←nonpos_iff_eq_zero, exact sup_le is_empty_elim }
 
 /-- The indexed product of cardinals is the cardinality of the Pi type
   (dependent product). -/
@@ -711,9 +714,23 @@ calc lift.{(max v w)} a = lift.{(max u w)} b
   ↔ lift.{w} (lift.{v} a) = lift.{w} (lift.{u} b) : by simp
   ... ↔ lift.{v} a = lift.{u} b : lift_inj
 
+@[simp] theorem lift_min' {a b : cardinal} : lift (min a b) = min (lift a) (lift b) :=
+begin
+  cases le_total a b,
+  { rw [min_eq_left h, min_eq_left (lift_le.2 h)] },
+  { rw [min_eq_right h, min_eq_right (lift_le.2 h)] }
+end
+
+@[simp] theorem lift_max' {a b : cardinal} : lift (max a b) = max (lift a) (lift b) :=
+begin
+  cases le_total a b,
+  { rw [max_eq_right h, max_eq_right (lift_le.2 h)] },
+  { rw [max_eq_left h, max_eq_left (lift_le.2 h)] }
+end
+
 protected lemma le_sup_iff {ι : Type v} {f : ι → cardinal.{max v w}} {c : cardinal} :
   (c ≤ sup f) ↔ (∀ b, (∀ i, f i ≤ b) → c ≤ b) :=
-⟨λ h b hb, le_trans h (sup_le.mpr hb), λ h, h _ $ λ i, le_sup f i⟩
+⟨λ h b hb, le_trans h (sup_le hb), λ h, h _ $ le_sup f⟩
 
 /-- The lift of a supremum is the supremum of the lifts. -/
 lemma lift_sup {ι : Type v} (f : ι → cardinal.{max v w}) :
@@ -722,7 +739,7 @@ begin
   apply le_antisymm,
   { rw [cardinal.le_sup_iff], intros c hc, by_contra h,
     obtain ⟨d, rfl⟩ := cardinal.lift_down (not_le.mp h).le,
-    simp only [lift_le, sup_le] at h hc,
+    simp only [lift_le, sup_le_iff] at h hc,
     exact h hc },
   { simp only [cardinal.sup_le, lift_le, le_sup, implies_true_iff] }
 end
@@ -732,7 +749,7 @@ it suffices to show that the lift of each cardinal is bounded by `t`. -/
 lemma lift_sup_le {ι : Type v} (f : ι → cardinal.{max v w})
   (t : cardinal.{max u v w}) (w : ∀ i, lift.{u} (f i) ≤ t) :
   lift.{u} (sup f) ≤ t :=
-by { rw lift_sup, exact sup_le.mpr w, }
+by { rw lift_sup, exact sup_le w }
 
 @[simp] lemma lift_sup_le_iff {ι : Type v} (f : ι → cardinal.{max v w}) (t : cardinal.{max u v w}) :
   lift.{u} (sup f) ≤ t ↔ ∀ i, lift.{u} (f i) ≤ t :=
@@ -1008,6 +1025,22 @@ by rw [to_nat_apply_of_lt_omega h, ← classical.some_spec (lt_omega.1 h)]
 lemma cast_to_nat_of_omega_le {c : cardinal} (h : ω ≤ c) :
   ↑c.to_nat = (0 : cardinal) :=
 by rw [to_nat_apply_of_omega_le h, nat.cast_zero]
+
+lemma to_nat_le_iff_le_of_lt_omega {c d : cardinal} (hc : c < ω) (hd : d < ω) :
+  c.to_nat ≤ d.to_nat ↔ c ≤ d :=
+by rw [←nat_cast_le, cast_to_nat_of_lt_omega hc, cast_to_nat_of_lt_omega hd]
+
+lemma to_nat_lt_iff_lt_of_lt_omega {c d : cardinal} (hc : c < ω) (hd : d < ω) :
+  c.to_nat < d.to_nat ↔ c < d :=
+by rw [←nat_cast_lt, cast_to_nat_of_lt_omega hc, cast_to_nat_of_lt_omega hd]
+
+lemma to_nat_le_of_le_of_lt_omega {c d : cardinal} (hd : d < ω) (hcd : c ≤ d) :
+  c.to_nat ≤ d.to_nat :=
+(to_nat_le_iff_le_of_lt_omega (lt_of_le_of_lt hcd hd) hd).mpr hcd
+
+lemma to_nat_lt_of_lt_of_lt_omega {c d : cardinal} (hd : d < ω) (hcd : c < d) :
+  c.to_nat < d.to_nat :=
+(to_nat_lt_iff_lt_of_lt_omega (hcd.trans hd) hd).mpr hcd
 
 @[simp]
 lemma to_nat_cast (n : ℕ) : cardinal.to_nat n = n :=
@@ -1427,14 +1460,14 @@ by { rcases powerlt_aux h with ⟨s, rfl⟩, apply le_sup _ s }
 
 lemma powerlt_le {c₁ c₂ c₃ : cardinal} : c₁ ^< c₂ ≤ c₃ ↔ ∀(c₄ < c₂), c₁ ^ c₄ ≤ c₃ :=
 begin
-  rw [powerlt, sup_le],
+  rw [powerlt, sup_le_iff],
   split,
   { intros h c₄ hc₄, rcases powerlt_aux hc₄ with ⟨s, rfl⟩, exact h s },
   intros h s, exact h _ s.2
 end
 
 lemma powerlt_le_powerlt_left {a b c : cardinal} (h : b ≤ c) : a ^< b ≤ a ^< c :=
-by { rw [powerlt, sup_le], rintro ⟨s, hs⟩, apply le_powerlt, exact lt_of_lt_of_le hs h }
+by { rw [powerlt, sup_le_iff], exact λ ⟨s, hs⟩, le_powerlt (lt_of_lt_of_le hs h) }
 
 lemma powerlt_succ {c₁ c₂ : cardinal} (h : c₁ ≠ 0) : c₁ ^< c₂.succ = c₁ ^ c₂ :=
 begin

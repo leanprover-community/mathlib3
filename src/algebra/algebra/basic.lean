@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.module.basic
-import linear_algebra.basic
+import algebra.ring.aut
+import linear_algebra.span
 import tactic.abel
-import data.equiv.ring_aut
 
 /-!
 # Algebras over commutative semirings
@@ -670,6 +670,10 @@ by { ext, refl }
   of_linear_map linear_map.id map_one map_mul = alg_hom.id R A :=
 ext $ λ _, rfl
 
+lemma map_smul_of_tower {R'} [has_scalar R' A] [has_scalar R' B]
+  [linear_map.compatible_smul A B R' R] (r : R') (x : A) : φ (r • x) = r • φ x :=
+φ.to_linear_map.map_smul_of_tower r x
+
 lemma map_list_prod (s : list A) :
   φ s.prod = (s.map φ).prod :=
 φ.to_ring_hom.map_list_prod s
@@ -809,6 +813,8 @@ rfl
   (⟨e, e', h₁, h₂, h₃, h₄, h₅⟩ : A₁ ≃ₐ[R] A₂) = e := ext $ λ _, rfl
 
 @[simp] lemma to_fun_eq_coe (e : A₁ ≃ₐ[R] A₂) : e.to_fun = e := rfl
+
+@[simp] lemma to_equiv_eq_coe : e.to_equiv = e := rfl
 
 @[simp] lemma to_ring_equiv_eq_coe : e.to_ring_equiv = e := rfl
 

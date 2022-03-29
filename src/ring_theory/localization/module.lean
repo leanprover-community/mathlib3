@@ -56,7 +56,7 @@ section fraction_ring
 variables (R K : Type*) [comm_ring R] [field K] [algebra R K] [is_fraction_ring R K]
 variables {V : Type*} [add_comm_group V] [module R V] [module K V] [is_scalar_tower R K V]
 
-lemma linear_independent.iff_fraction_ring [nontrivial R] {ι : Type*} {b : ι → V} :
+lemma linear_independent.iff_fraction_ring {ι : Type*} {b : ι → V} :
   linear_independent R b ↔ linear_independent K b :=
 ⟨linear_independent.localization K (R⁰),
  linear_independent.restrict_scalars (smul_left_injective R one_ne_zero)⟩

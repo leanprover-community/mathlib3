@@ -412,10 +412,7 @@ by simpa only [fderiv_deriv] using measurable_fderiv_apply_const 𝕜 f 1
 lemma strongly_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜]
   [second_countable_topology F] (f : 𝕜 → F) :
   strongly_measurable (deriv f) :=
-begin
-  borelize F,
-  exact (measurable_deriv f).strongly_measurable,
-end
+by { borelize F, exact (measurable_deriv f).strongly_measurable }
 
 lemma ae_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
   [borel_space F] (f : 𝕜 → F) (μ : measure 𝕜) : ae_measurable (deriv f) μ :=

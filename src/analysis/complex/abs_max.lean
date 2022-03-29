@@ -57,7 +57,6 @@ lemma norm_max_aux₁ [complete_space F] {f : ℂ → F} {z w : ℂ}
   (hz : is_max_on (norm ∘ f) (closed_ball z (dist w z)) z) :
   ∥f w∥ = ∥f z∥ :=
 begin
-  borelize F,
   /- Consider a circle of radius `r = dist w z`. -/
   set r : ℝ := dist w z,
   have hw : w ∈ closed_ball z r, from mem_closed_ball.2 le_rfl,

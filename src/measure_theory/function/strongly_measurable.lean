@@ -261,10 +261,7 @@ lemma _root_.continuous.comp_strongly_measurable
 lemma measurable_set_mul_support {m : measurable_space α}
   [has_one β] [topological_space β] [metrizable_space β] (hf : strongly_measurable f) :
   measurable_set (mul_support f) :=
-begin
-  borelize β,
-  exact measurable_set_mul_support hf.measurable,
-end
+by { borelize β, exact measurable_set_mul_support hf.measurable }
 
 protected lemma mono {m m' : measurable_space α} [topological_space β]
   (hf : strongly_measurable[m'] f) (h_mono : m' ≤ m) :

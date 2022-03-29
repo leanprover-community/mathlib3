@@ -194,6 +194,37 @@ lemma component.of (i j : ι) (b : M j) :
   if h : j = i then eq.rec_on h b else 0 :=
 dfinsupp.single_apply
 
+section sigma
+variables {α : ι → Type u} {δ : (Σ i, α i) → Type w}
+variables [Π i, add_comm_monoid (δ i)] [Π i, module R (δ i)]
+variables [Π i, decidable_eq (α i)] [Π i (x : δ i), decidable (x ≠ 0)]
+instance inst : module R (⨁ i j, δ ⟨i, j⟩) := by apply_instance
+--set_option trace.class_instances true
+/--`curry` as a linear map.-/
+noncomputable def lcurry : (⨁ i, δ i) →ₗ[R] ⨁ i j, δ ⟨i, j⟩ :=
+{ map_smul' := λ a f, by { ext i j, change curry (a • f) i j = (a • curry f) i j,
+    rw [curry_apply, smul_apply, smul_apply, smul_apply, curry_apply] },
+  ..curry }
+
+@[simp] lemma lcurry_apply (f : ⨁ i, δ i) (i : ι) (j : α i) : lcurry R f i j = f ⟨i, j⟩ :=
+curry_apply f i j
+
+variables [Π i (f : ⨁ j, δ ⟨i, j⟩), decidable (f ≠ 0)]
+
+/--`uncurry` as a linear map.-/
+def luncurry : (⨁ i j, δ ⟨i, j⟩) →ₗ[R] ⨁ i, δ i :=
+{ map_smul' := λ a f, by { ext ⟨i, j⟩, change uncurry (a • f) ⟨i, j⟩ = (a • uncurry f) ⟨i, j⟩,
+    rw [uncurry_apply, smul_apply, smul_apply, smul_apply, uncurry_apply] },
+  ..uncurry }
+
+@[simp] lemma luncurry_apply (f : ⨁ i j, δ ⟨i, j⟩) (i : ι) (j : α i) :
+luncurry R f ⟨i, j⟩ = f i j := uncurry_apply f i j
+
+/--`curry_equiv` as a linear equiv.-/
+noncomputable def lcurry_equiv : (⨁ i, δ i) ≃ₗ[R] ⨁ i j, δ ⟨i, j⟩ := { ..curry_equiv, ..lcurry R }
+
+end sigma
+
 end general
 
 section submodule

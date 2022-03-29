@@ -6,7 +6,7 @@ Authors: Kenny Lau
 import data.dfinsupp.basic
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
-
+import data.finset.preimage
 /-!
 # Direct sum
 
@@ -21,6 +21,52 @@ This notation is in the `direct_sum` locale, accessible after `open_locale direc
 
 * https://en.wikipedia.org/wiki/Direct_sum
 -/
+
+namespace dfinsupp
+open finset
+variables {ι : Type*}
+
+instance {β : ι → Type*} [Π i, has_zero (β i)] [is_empty ι] : unique (Π₀ i, β i) :=
+⟨⟨0⟩, λ a, by { ext, exact is_empty_elim i }⟩
+
+variables {α : ι → Type*} {β : (Σ i, α i) → Type*} [Π i, has_zero (β i)]
+[decidable_eq ι] [Π i, decidable_eq (α i)] [Π i (x : β i), decidable (x ≠ 0)]
+
+/--The natural map between `Π₀ (i : Σ i, α i), β i` and `Π₀ i (j : α i), β ⟨i, j⟩`.-/
+noncomputable def curry (f : Π₀ i, β i) : Π₀ i j, β ⟨i, j⟩ :=
+mk (f.support.image $ λ i, i.1)
+  (λ i, mk (f.support.preimage (sigma.mk i) $ sigma_mk_injective.inj_on _) $ λ j, f ⟨i, j⟩)
+
+@[simp] lemma curry_apply (f : Π₀ i, β i) (i : ι) (j : α i) : curry f i j = f ⟨i, j⟩ :=
+begin
+  dunfold curry, by_cases h : f ⟨i, j⟩ = 0,
+  { rw [h, mk_apply], split_ifs, { rw mk_apply, split_ifs, { exact h }, { refl } }, { refl } },
+  { rw [mk_of_mem, mk_of_mem], { refl },
+    { rw [mem_preimage, mem_support_to_fun], exact h },
+    { rw mem_image, refine ⟨⟨i, j⟩, _, rfl⟩, rw mem_support_to_fun, exact h } }
+end
+
+variables [Π (i : ι) (f : Π₀ (j : α i), β ⟨i, j⟩), decidable (f ≠ 0)]
+/--The natural map between `Π₀ i (j : α i), β ⟨i, j⟩` and `Π₀ (i : Σ i, α i), β i`, inverse of
+`curry`.-/
+def uncurry (f : Π₀ i j, β ⟨i, j⟩) : Π₀ i, β i :=
+mk (f.support.bUnion $ λ i, (f i).support.image $ sigma.mk i) (λ ⟨⟨i, j⟩, _⟩, f i j)
+
+@[simp] lemma uncurry_apply (f : Π₀ i j, β ⟨i, j⟩) (i : ι) (j : α i) : uncurry f ⟨i, j⟩ = f i j :=
+begin
+  dunfold uncurry, by_cases h : f i j = 0,
+  { rw mk_apply, split_ifs, { refl }, { exact h.symm } },
+  { apply mk_of_mem, rw mem_bUnion, refine ⟨i, _, _⟩,
+    { rw mem_support_to_fun, intro H, rw ext_iff at H, exact h (H j) },
+    { apply mem_image_of_mem, rw mem_support_to_fun, exact h } }
+end
+
+/--The natural bijection between `Π₀ (i : Σ i, α i), β i` and `Π₀ i (j : α i), β ⟨i, j⟩`.-/
+noncomputable def curry_equiv : (Π₀ i, β i) ≃ Π₀ i j, β ⟨i, j⟩ := ⟨curry, uncurry,
+λ f, by { ext ⟨i, j⟩, rw [uncurry_apply, curry_apply] },
+λ f, by { ext i j, rw [curry_apply, uncurry_apply] }⟩
+
+end dfinsupp
 
 open_locale big_operators
 
@@ -179,6 +225,9 @@ variables {β}
 
 omit dec_ι
 
+/-- A direct sum over an empty type is trivial. -/
+instance [is_empty ι] : unique (⨁ i, β i) := dfinsupp.unique
+
 /-- The natural equivalence between `⨁ _ : ι, M` and `M` when `unique ι`. -/
 protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique ι] :
   (⨁ (_ : ι), M) ≃+ M :=
@@ -190,6 +239,37 @@ protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique 
     (λ x y ihx ihy, by rw [add_monoid_hom.map_add, add_monoid_hom.map_add, ihx, ihy]),
   right_inv := λ x, to_add_monoid_of _ _ _,
   ..direct_sum.to_add_monoid (λ _, add_monoid_hom.id M) }
+
+section sigma
+variables {α : ι → Type u} {δ : (Σ i, α i) → Type w} [Π i, add_comm_monoid (δ i)]
+variables [decidable_eq ι] [Π i, decidable_eq (α i)] [Π i (x : δ i), decidable (x ≠ 0)]
+
+/--The natural map between `⨁ (i : Σ i, α i), δ i` and `⨁ i (j : α i), δ ⟨i, j⟩`.-/
+noncomputable def curry : (⨁ i, δ i) →+ ⨁ i j, δ ⟨i, j⟩ :=
+⟨dfinsupp.curry, by { ext i j, rw dfinsupp.curry_apply, refl },
+λ f g, by { ext i j, rw [@dfinsupp.add_apply _ (λ i, Π₀ j, δ ⟨i,j⟩) _ f.curry, dfinsupp.add_apply,
+  (f + g).curry_apply, f.curry_apply, g.curry_apply, add_apply] }⟩
+
+@[simp] lemma curry_apply (f : ⨁ i, δ i) (i : ι) (j : α i) : curry f i j = f ⟨i, j⟩ :=
+dfinsupp.curry_apply f i j
+
+variables [Π i (f : ⨁ j, δ ⟨i, j⟩), decidable (f ≠ 0)]
+
+/--The natural map between `⨁ i (j : α i), δ ⟨i, j⟩` and `Π₀ (i : Σ i, α i), δ i`, inverse of
+`curry`.-/
+def uncurry : (⨁ i j, δ ⟨i, j⟩) →+ ⨁ i, δ i :=
+⟨@dfinsupp.uncurry _ _ δ _ _ _ _ _, by { ext ⟨i, j⟩, rw dfinsupp.uncurry_apply, refl },
+λ f g, by { ext ⟨i, j⟩, rw [dfinsupp.add_apply, dfinsupp.uncurry_apply, dfinsupp.uncurry_apply,
+  dfinsupp.uncurry_apply, add_apply, add_apply] }⟩
+
+@[simp] lemma uncurry_apply (f : ⨁ i j, δ ⟨i, j⟩) (i : ι) (j : α i) : uncurry f ⟨i, j⟩ = f i j :=
+dfinsupp.uncurry_apply f i j
+
+/--The natural map between `⨁ (i : Σ i, α i), δ i` and `⨁ i (j : α i), δ ⟨i, j⟩`.-/
+noncomputable def curry_equiv : (⨁ i, δ i) ≃+ ⨁ i j, δ ⟨i, j⟩ :=
+{ inv_fun := uncurry, ..dfinsupp.curry_equiv, ..curry }
+
+end sigma
 
 /-- The canonical embedding from `⨁ i, A i` to `M` where `A` is a collection of `add_submonoid M`
 indexed by `ι`-/

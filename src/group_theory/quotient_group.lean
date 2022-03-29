@@ -332,6 +332,11 @@ lift _ ((mk' _).comp φ') $
   λ g ⟨h, (hg : h ^ n = g)⟩, (eq_one_iff _).mpr ⟨_, by simpa only [← hg, map_zpow]⟩
 
 @[to_additive, simp]
+lemma hom_quotient_zpow_of_hom_id (n : ℤ) :
+  hom_quotient_zpow_of_hom (monoid_hom.id G') n = monoid_hom.id _ :=
+monoid_hom_ext _ rfl
+
+@[to_additive, simp]
 lemma hom_quotient_zpow_of_hom_comp (n : ℤ) :
   (hom_quotient_zpow_of_hom φ' n).comp (hom_quotient_zpow_of_hom ψ' n)
     = hom_quotient_zpow_of_hom (φ'.comp ψ') n :=

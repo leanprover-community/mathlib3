@@ -12,7 +12,7 @@ import topology.sets.closeds
 In this file we define the type of clopen upper sets.
 -/
 
-open set
+open set topological_space
 
 variables {α β : Type*} [topological_space α] [has_le α] [topological_space β] [has_le β]
 

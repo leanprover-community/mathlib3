@@ -35,21 +35,9 @@ continuous_apply_apply i j
 
 namespace matrix
 
-lemma continuous_diagonal [has_zero R] [decidable_eq n] :
-  continuous (diagonal : (n → R) → matrix n n R) :=
-continuous_matrix $ λ i j, begin
-  obtain rfl | hij := decidable.eq_or_ne i j,
-  { simp_rw diagonal_apply_eq,
-    exact continuous_apply _ },
-  { simp_rw diagonal_apply_ne hij,
-    exact continuous_zero },
-end
-
-lemma continuous_row : continuous (row : (n → R) → matrix unit n R) :=
-continuous_matrix $ λ i j, continuous_apply _
-
-lemma continuous_col : continuous (col : (n → R) → matrix n unit R) :=
-continuous_matrix $ λ i j, continuous_apply _
+lemma continuous_map [topological_space S] (f : S → R) (hf : continuous f) :
+  continuous (λ A : matrix m n S, A.map f) :=
+continuous_matrix $ λ i j, hf.comp (continuous_matrix_elem _ _)
 
 lemma continuous_transpose :
   continuous (transpose : matrix m n R → matrix n m R) :=
@@ -63,6 +51,12 @@ continuous_matrix $ λ i j, continuous.comp sorry (continuous_matrix_elem _ _)
 ```
 -/
 
+lemma continuous_col : continuous (col : (n → R) → matrix n unit R) :=
+continuous_matrix $ λ i j, continuous_apply _
+
+lemma continuous_row : continuous (row : (n → R) → matrix unit n R) :=
+continuous_matrix $ λ i j, continuous_apply _
+
 lemma continuous_diag [semiring S] [add_comm_monoid R] [module S R] :
   continuous (matrix.diag n S R) :=
 continuous_pi (λ _, continuous_matrix_elem _ _)
@@ -71,6 +65,16 @@ lemma continuous_trace [fintype n] [semiring S] [add_comm_monoid R] [has_continu
   [module S R] :
   continuous (trace n S R) :=
 continuous_finset_sum _ $ λ i hi, continuous_matrix_elem _ _
+
+lemma continuous_diagonal [has_zero R] [decidable_eq n] :
+  continuous (diagonal : (n → R) → matrix n n R) :=
+continuous_matrix $ λ i j, begin
+  obtain rfl | hij := decidable.eq_or_ne i j,
+  { simp_rw diagonal_apply_eq,
+    exact continuous_apply _ },
+  { simp_rw diagonal_apply_ne hij,
+    exact continuous_zero },
+end
 
 lemma continuous_dot_product [fintype n] [has_mul R] [add_comm_monoid R] [has_continuous_add R]
   [has_continuous_mul R] :
@@ -89,6 +93,10 @@ continuous_matrix $ λ i j, continuous_finset_sum _ $ λ k _,
 instance [fintype n] [has_mul R] [add_comm_monoid R] [has_continuous_add R]
   [has_continuous_mul R] : has_continuous_mul (matrix n n R) :=
 ⟨continuous_mul⟩
+
+instance [has_scalar α R] [has_continuous_const_smul α R] :
+  has_continuous_const_smul α (matrix n n R) :=
+pi.has_continuous_const_smul
 
 instance [topological_space α] [has_scalar α R] [has_continuous_smul α R] :
   has_continuous_smul α (matrix n n R) :=

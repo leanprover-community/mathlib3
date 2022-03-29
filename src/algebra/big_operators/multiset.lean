@@ -234,7 +234,15 @@ by { convert (m.map f).prod_hom (zpow_group_hom₀ _ : α →* α), rw map_map, 
 end comm_group_with_zero
 
 section semiring
-variables [semiring α] {a : α} {s : multiset ι} {f : ι → α}
+variables [non_unital_non_assoc_semiring α] {a : α} {s : multiset ι} {f : ι → α}
+
+lemma sum_commute (a : α) (s : multiset α) (h : ∀ b ∈ s, commute a b) :
+  commute a s.sum :=
+begin
+  induction s using quotient.induction_on,
+  rw [quot_mk_to_coe, coe_sum],
+  exact list.sum_commute _ _ h,
+end
 
 lemma sum_map_mul_left : sum (s.map (λ i, a * f i)) = a * sum (s.map f) :=
 multiset.induction_on s (by simp) (λ i s ih, by simp [ih, mul_add])

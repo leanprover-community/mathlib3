@@ -1305,6 +1305,14 @@ begin
   simp [finset.sum_range_succ', add_comm]
 end
 
+lemma sum_commute [non_unital_non_assoc_semiring β] (s : finset α)
+  (b : β) (f : α → β) (h : ∀ i ∈ s, commute b (f i)) :
+  commute b (∑ i in s, f i) :=
+multiset.sum_commute _ _ $ λ b hb, begin
+  obtain ⟨i, hi, rfl⟩ := multiset.mem_map.mp hb,
+  exact h _ hi
+end
+
 section opposite
 
 open mul_opposite

@@ -7,20 +7,18 @@ import model_theory.quotients
 import order.filter.germ
 import order.filter.ultrafilter
 
-/-! # Ultraproducts, Łoś's Theorem, and Compactness
+/-! # Ultraproducts and Łoś's Theorem
 
 ## Main Definitions
-* `first_order.language.ultraproduct.Structure` is a structure on `filter.product`.
+* `first_order.language.ultraproduct.Structure` is the ultraproduct structure on `filter.product`.
 
 ## Main Results
 * Łoś's Theorem: `first_order.language.ultraproduct.sentence_realize`. An ultraproduct models a
 sentence `φ` if and only if the set of structures in the product that model `φ` is in the
 ultrafilter.
-* The Compactness Theorem: `first_order.language.Theory.is_satisfiable_iff_is_finitely_satisfiable`.
-A theory is satisfiable if and only if it is finitely satisfiable.
 
 ## Tags
-ultraproduct, Los's theorem, compactness
+ultraproduct, Los's theorem
 
 -/
 
@@ -143,32 +141,6 @@ begin
 end
 
 end ultraproduct
-
-namespace Theory
-
-/-- The Compactness Theorem of first-order logic: A theory is satisfiable if and only if it is
-finitely satisfiable. -/
-theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
-  T.is_satisfiable ↔ T.is_finitely_satisfiable :=
-⟨Theory.is_satisfiable.is_finitely_satisfiable, λ h, begin
-  classical,
-  set M : Π (T0 : finset T), Type (max u v) :=
-    λ T0, (h (T0.map (function.embedding.subtype (λ x, x ∈ T)))
-      T0.map_subtype_subset).some_model with hM,
-  letI : Π (T0 : finset T), L.Structure (M T0) := λ T0, is_satisfiable.some_model_structure _,
-  haveI : (filter.at_top : filter (finset T)).ne_bot := at_top_ne_bot,
-  refine ⟨(↑(ultrafilter.of filter.at_top) : filter _).product M, infer_instance,
-    ultraproduct.Structure, ⟨_⟩⟩,
-  intros φ hφ,
-  rw ultraproduct.sentence_realize,
-  refine filter.eventually.filter_mono (ultrafilter.of_le _) (filter.eventually_at_top.2 ⟨{⟨φ, hφ⟩},
-    λ s h', Theory.realize_sentence_of_mem (s.map (function.embedding.subtype (λ x, x ∈ T))) _⟩),
-  simp only [finset.coe_map, function.embedding.coe_subtype, set.mem_image, finset.mem_coe,
-    subtype.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right],
-  exact ⟨hφ, h' (finset.mem_singleton_self _)⟩,
-end⟩
-
-end Theory
 
 end language
 end first_order

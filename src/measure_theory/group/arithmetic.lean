@@ -44,7 +44,7 @@ measurable function, arithmetic operator
 
 universes u v
 
-open_locale big_operators pointwise
+open_locale big_operators pointwise measure_theory
 open measure_theory
 
 /-!
@@ -324,7 +324,7 @@ end
 
 lemma ae_eq_trim_of_measurable {α E} {m m0 : measurable_space α} {μ : measure α}
   [measurable_space E] [add_group E] [measurable_singleton_class E] [has_measurable_sub₂ E]
-  (hm : m ≤ m0) {f g : α → E} (hf : @measurable _ _ m _ f) (hg : @measurable _ _ m _ g)
+  (hm : m ≤ m0) {f g : α → E} (hf : measurable[m] f) (hg : measurable[m] g)
   (hfg : f =ᵐ[μ] g) :
   f =ᶠ[@measure.ae α m (μ.trim hm)] g :=
 begin

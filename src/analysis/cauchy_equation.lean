@@ -196,8 +196,9 @@ begin
       simpa [mem_ball, dist_self] }}
 end
 
-lemma is_linear_real_of_continuous (f : ℝ →+ ℝ) (h : continuous f) : ∀ (x : ℝ), f x  = f 1 * x :=
+lemma is_linear_real_of_continuous (f : ℝ →+ ℝ) (h : continuous f) : is_linear_map ℝ f :=
 begin
+  rw is_linear_map_api_lemma,
   have h1 := is_linear_rat f,
   intro x,
   apply real_eq_forall_pos_lt,
@@ -263,21 +264,13 @@ begin
 end
 
 lemma is_linear_real_of_continuous_at (f : ℝ →+ ℝ) {y : ℝ} (h : continuous_at f y) :
-  ∀ (x : ℝ), f x  = f 1 * x := by exact is_linear_real_of_continuous f
+  is_linear_map ℝ f := by exact is_linear_real_of_continuous f
     (uniform_continuous.continuous (uniform_continuous_of_continuous_at_zero f
     ((additive_continuous_at_iff_continuos_at_zero f).mp h)))
 
 
-lemma is_linear_map_real_of_continuous (f : ℝ →+ ℝ) (h : continuous f) : is_linear_map ℝ f :=
-begin
-  refine ⟨map_add f,λ c x, _⟩,
-  rw [smul_eq_mul, smul_eq_mul, is_linear_real_of_continuous f h (c * x),
-    is_linear_real_of_continuous f h x],
-  ring_exp_eq
-end
-
 lemma is_linear_of_bounded_nbhd (f : ℝ →+ ℝ) {a : ℝ} {U : set ℝ} (hU : U ∈ 𝓝 a)
-  (hf : metric.bounded (f '' U)) : ∀ (x : ℝ), f x = f 1 * x :=
+  (hf : metric.bounded (f '' U)) : is_linear_map ℝ f :=
 begin
   rcases (additive_is_bounded_of_bounded_on_interval f hU hf) with ⟨V, hV0, hVb⟩,
   exact is_linear_real_of_continuous_at f
@@ -285,7 +278,7 @@ begin
 end
 
 lemma is_linear_of_monotone_nbhd (f : ℝ →+ ℝ) {a : ℝ} {U : set ℝ} (hU : U ∈ 𝓝 a)
-  (hf : monotone_on f U) : ∀ (x : ℝ), f x = f 1 * x :=
+  (hf : monotone_on f U) : ∀ (x : ℝ), is_linear_map ℝ f :=
 begin
   sorry
 end

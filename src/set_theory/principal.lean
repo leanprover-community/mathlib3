@@ -392,7 +392,7 @@ theorem mul_eq_opow_log_succ {a b : ordinal.{u}} (ha : 0 < a) (hb : principal (*
 begin
   apply le_antisymm,
   { have hbl := principal_mul_is_limit hb₂ hb,
-    rw [←is_normal.bsup_eq.{u u} (mul_is_normal ha) hbl, bsup_le],
+    rw [←is_normal.bsup_eq.{u u} (mul_is_normal ha) hbl, bsup_le_iff],
     intros c hcb,
     have hb₁ : 1 < b := (lt_succ_self 1).trans hb₂,
     have hbo₀ : b ^ b.log a ≠ 0 := ordinal.pos_iff_ne_zero.1 (opow_pos _ (zero_lt_one.trans hb₁)),

@@ -40,19 +40,6 @@ this implementation would be much slower.
 
 open_locale big_operators
 
--- TODO: move
-@[simp]
-lemma list.bind_eq_nil {α β} (l : list α) (f : α → list β) :
-  list.bind l f = [] ↔ ∀ x ∈ l, f x = [] :=
-by simp [list.bind]
-
-
-lemma list.pairwise_bind {α β} {R : β → β → Prop} {l : list α} {f : α → list β} :
-  list.pairwise R (l.bind f) ↔
-    (∀ a ∈ l, list.pairwise R (f a)) ∧ list.pairwise (λ a₁ a₂, ∀ (x ∈ f a₁) (y ∈ f a₂), R x y) l :=
-by simp [list.bind, list.pairwise_join, list.mem_map, list.pairwise_map]
-
-
 /-! ### Lists -/
 
 namespace list.nat

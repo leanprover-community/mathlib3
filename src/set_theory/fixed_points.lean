@@ -58,11 +58,14 @@ le_sup _ []
 theorem lt_nfp_family {a b} : a < nfp_family f b ↔ ∃ l, a < list.foldr f b l :=
 lt_sup
 
-theorem nfp_family_le {a b} : nfp_family f a ≤ b ↔ ∀ l, list.foldr f a l ≤ b :=
+theorem nfp_family_le_iff {a b} : nfp_family f a ≤ b ↔ ∀ l, list.foldr f a l ≤ b :=
+sup_le_iff
+
+theorem nfp_family_le {a b} : (∀ l, list.foldr f a l ≤ b) → nfp_family f a ≤ b :=
 sup_le
 
 theorem nfp_family_monotone (hf : ∀ i, monotone (f i)) : monotone (nfp_family f) :=
-λ a b h, sup_le.2 $ λ l, (list.foldr_monotone hf l h).trans (le_sup _ l)
+λ a b h, sup_le $ λ l, (list.foldr_monotone hf l h).trans (le_sup _ l)
 
 theorem apply_lt_nfp_family (H : ∀ i, is_normal (f i)) {a b} (hb : b < nfp_family f a) (i) :
   f i b < nfp_family f a :=
@@ -79,7 +82,7 @@ by { rw ←not_iff_not, push_neg, exact apply_lt_nfp_family_iff H }
 
 theorem nfp_family_le_fp (H : ∀ i, monotone (f i)) {a b} (ab : a ≤ b) (h : ∀ i, f i b ≤ b) :
   nfp_family f a ≤ b :=
-sup_le.2 $ λ l, begin
+sup_le $ λ l, begin
   by_cases hι : is_empty ι,
   { rwa @unique.eq_default _ (@list.unique_of_is_empty ι hι) l },
   { haveI := not_is_empty_iff.1 hι,
@@ -90,9 +93,9 @@ end
 theorem nfp_family_fp (H : ∀ i, is_normal (f i)) (i a) : f i (nfp_family f a) = nfp_family f a :=
 begin
   unfold nfp_family,
-  rw (H i).sup ⟨[]⟩,
+  rw @is_normal.sup _ (H i) _ _ ⟨[]⟩,
   apply le_antisymm;
-  refine ordinal.sup_le.2 (λ l, _),
+  refine ordinal.sup_le (λ l, _),
   { exact le_sup _ (i :: l) },
   { exact ((H i).self_le _).trans (le_sup _ _) }
 end
@@ -109,7 +112,7 @@ end
 
 theorem nfp_family_eq_self {f : ι → ordinal → ordinal} {a} (h : ∀ i, f i a = a) :
   nfp_family f a = a :=
-le_antisymm (sup_le.2 (λ l, (by rw list.foldr_fixed' h l))) (self_le_nfp_family f a)
+le_antisymm (sup_le (λ l, (by rw list.foldr_fixed' h l))) (self_le_nfp_family f a)
 
 /-- A generalization of the fixed point lemma for normal functions: any family of normal functions
     has an unbounded set of common fixed points. -/
@@ -140,7 +143,7 @@ limit_rec_on_limit _ _ _ _
 
 theorem deriv_family_is_normal (f : ι → ordinal → ordinal) : is_normal (deriv_family f) :=
 ⟨λ o, by rw [deriv_family_succ, ← succ_le]; apply self_le_nfp_family,
- λ o l a, by rw [deriv_family_limit _ l, bsup_le]⟩
+ λ o l a, by rw [deriv_family_limit _ l, bsup_le_iff]⟩
 
 theorem deriv_family_fp (H : ∀ i, is_normal (f i)) (o : ordinal.{max u v}) (i) :
   f i (deriv_family f o) = deriv_family f o :=
@@ -152,7 +155,7 @@ begin
     rw [deriv_family_limit _ l,
       is_normal.bsup.{(max u v) u (max u v)} (H i) (λ a _, deriv_family f a) l.1],
     refine eq_of_forall_ge_iff (λ c, _),
-    simp only [bsup_le, IH] {contextual:=tt} }
+    simp only [bsup_le_iff, IH] {contextual:=tt} }
 end
 
 theorem le_iff_deriv_family (H : ∀ i, is_normal (f i)) {a} :
@@ -168,7 +171,7 @@ theorem le_iff_deriv_family (H : ∀ i, is_normal (f i)) {a} :
     rw deriv_family_succ,
     exact nfp_family_le_fp (λ i, (H i).strict_mono.monotone) (succ_le.2 h) ha },
   { cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
-    rw [deriv_family_limit _ l, ← not_le, bsup_le, not_ball] at h,
+    rw [deriv_family_limit _ l, ← not_le, bsup_le_iff, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
 end, λ ⟨o, e⟩ i, e ▸ le_of_eq (deriv_family_fp H _ i)⟩
 
@@ -218,8 +221,12 @@ theorem lt_nfp_bfamily {a b} :
   a < nfp_bfamily o f b ↔ ∃ l, a < list.foldr (family_of_bfamily o f) b l :=
 lt_sup
 
-theorem nfp_bfamily_le {o : ordinal} {f : Π b < o, ordinal → ordinal} {a b} :
+theorem nfp_bfamily_le_iff {o : ordinal} {f : Π b < o, ordinal → ordinal} {a b} :
   nfp_bfamily o f a ≤ b ↔ ∀ l, list.foldr (family_of_bfamily o f) a l ≤ b :=
+sup_le_iff
+
+theorem nfp_bfamily_le {o : ordinal} {f : Π b < o, ordinal → ordinal} {a b} :
+  (∀ l, list.foldr (family_of_bfamily o f) a l ≤ b) → nfp_bfamily o f a ≤ b :=
 sup_le
 
 theorem nfp_bfamily_monotone (hf : ∀ i hi, monotone (f i hi)) : monotone (nfp_bfamily o f) :=

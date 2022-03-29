@@ -27,6 +27,9 @@ Odd elements are not unified with a multiplicative notion.
   For instance, in some cases, there are `semiring` assumptions that I (DT) am not convinced are
   necessary.
 * TODO: Consider moving the definition and lemmas about `odd` to a separate file.
+* TODO: The "old" definition of `even a` asked for the existence of an element `c` such that
+  `a = 2 * c`.  For this reason, several fixes introduce an extra `two_mul` or `← two_mul`.
+  It might be the case that by making a careful choice of `simp` lemma, this can be avoided.
  -/
 
 open mul_opposite

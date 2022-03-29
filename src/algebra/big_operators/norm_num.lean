@@ -5,7 +5,6 @@ Authors: Anne Baanen
 -/
 import algebra.big_operators.basic
 import tactic.norm_num
-import tactic.ring
 
 /-! ### `norm_num` plugin for big operators
 
@@ -33,13 +32,6 @@ Finally, we package up the result using some congruence lemmas.
 -/
 
 open tactic
-
-/-- Convert a list of expressions to an expression denoting the list of those expressions. -/
-meta def expr.of_list (α : expr) : list expr → tactic expr
-| [] := i_to_expr ``(@list.nil %%α)
-| (x :: xs) := do
-  exs ← expr.of_list xs,
-  i_to_expr ``(@list.cons %%α %%x %%exs)
 
 namespace tactic.norm_num
 

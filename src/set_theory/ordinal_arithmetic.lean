@@ -1037,7 +1037,7 @@ supr f
 @[simp] theorem Sup_eq_sup {ι : Type u} (f : ι → ordinal.{max u v}) : Sup (set.range f) = sup f :=
 rfl
 
-/-- The range of any family of ordinals is bounded above. See also `lsub_nmem_range`. -/
+/-- The range of any family of ordinals is bounded above. See also `lsub_not_mem_range`. -/
 theorem bdd_above_range {ι : Type u} (f : ι → ordinal.{max u v}) : bdd_above (set.range f) :=
 ⟨(cardinal.sup.{u v} (cardinal.succ ∘ card ∘ f)).ord, begin
   rintros a ⟨i, rfl⟩,
@@ -1310,11 +1310,11 @@ theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f = set.range g) : lsub.{u (max v w)} f = lsub.{v (max u w)} g :=
 (lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset.{v u w} h.ge)
 
-theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
+theorem lsub_not_mem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
 
 theorem nonempty_compl_range {ι : Type u} (f : ι → ordinal.{max u v}) : (set.range f)ᶜ.nonempty :=
-⟨_, lsub_nmem_range f⟩
+⟨_, lsub_not_mem_range f⟩
 
 @[simp] theorem lsub_typein (o : ordinal) :
   lsub.{u u} (typein ((<) : o.out.α → o.out.α → Prop)) = o :=
@@ -1527,11 +1527,11 @@ end)⟩
 def mex {ι : Type u} (f : ι → ordinal.{max u v}) : ordinal :=
 Inf (set.range f)ᶜ
 
-theorem mex_nmem_range {ι : Type u} (f : ι → ordinal.{max u v}) : mex f ∉ set.range f :=
+theorem mex_not_mem_range {ι : Type u} (f : ι → ordinal.{max u v}) : mex f ∉ set.range f :=
 Inf_mem (nonempty_compl_range f)
 
 theorem ne_mex {ι} (f : ι → ordinal) : ∀ i, f i ≠ mex f :=
-by simpa using mex_nmem_range f
+by simpa using mex_not_mem_range f
 
 theorem mex_le_of_ne {ι} {f : ι → ordinal} {a} (ha : ∀ i, f i ≠ a) : mex f ≤ a :=
 cInf_le' (by simp [ha])
@@ -1540,7 +1540,7 @@ theorem exists_of_lt_mex {ι} {f : ι → ordinal} {a} (ha : a < mex f) : ∃ i,
 by { by_contra' ha', exact ha.not_le (mex_le_of_ne ha') }
 
 theorem mex_le_lsub {ι} (f : ι → ordinal) : mex f ≤ lsub f :=
-cInf_le' (lsub_nmem_range f)
+cInf_le' (lsub_not_mem_range f)
 
 theorem mex_monotone {α β} {f : α → ordinal} {g : β → ordinal} (h : set.range f ⊆ set.range g) :
   mex f ≤ mex g :=
@@ -1575,7 +1575,7 @@ def bmex (o : ordinal) (f : Π a < o, ordinal) : ordinal :=
 mex (family_of_bfamily o f)
 
 theorem bmex_nmem_brange {o : ordinal} (f : Π a < o, ordinal) : bmex o f ∉ brange o f :=
-by { rw ←range_family_of_bfamily, apply mex_nmem_range }
+by { rw ←range_family_of_bfamily, apply mex_not_mem_range }
 
 theorem ne_bmex {o : ordinal} (f : Π a < o, ordinal) {i} (hi) : f i hi ≠ bmex o f :=
 begin
@@ -1609,7 +1609,7 @@ end ordinal
 /-! ### Results about injectivity and surjectivity -/
 
 lemma not_surjective_of_ordinal {α : Type u} (f : α → ordinal.{u}) : ¬ function.surjective f :=
-λ h, ordinal.lsub_nmem_range.{u u} f (h _)
+λ h, ordinal.lsub_not_mem_range.{u u} f (h _)
 
 lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) : ¬ function.injective f :=
 λ h, not_surjective_of_ordinal _ (inv_fun_surjective h)

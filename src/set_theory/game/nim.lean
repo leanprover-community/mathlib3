@@ -258,7 +258,7 @@ begin
   -- We are done!
   apply (ordinal.mex_le_of_ne.{u u} h₀).antisymm,
   contrapose! h₁,
-  exact ⟨_, ⟨h₁, ordinal.mex_nmem_range _⟩⟩,
+  exact ⟨_, ⟨h₁, ordinal.mex_not_mem_range _⟩⟩,
 end
 
 lemma nim_add_nim_equiv {n m : ℕ} : nim n + nim m ≈ nim (nat.lxor n m) :=

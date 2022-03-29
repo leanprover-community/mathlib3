@@ -125,23 +125,12 @@ end
 
 lemma continuous_update_column [decidable_eq n] (i : n) :
   continuous (λ x : matrix m n R × (m → R), x.1.update_column i x.2) :=
-continuous_matrix $ λ j k, begin
-  obtain rfl | h := decidable.eq_or_ne k i,
-  { simp_rw matrix.update_column_self,
-    exact (continuous_apply _).comp continuous_snd },
-  { simp_rw matrix.update_column_ne h,
-    exact (continuous_matrix_elem _ _).comp continuous_fst },
-end
+continuous_matrix $ λ j k, (continuous_apply k).comp $ continuous.update
+  ((continuous_apply _).comp continuous_fst) i ((continuous_apply _).comp continuous_snd)
 
 lemma continuous_update_row [decidable_eq m] (i : m) :
   continuous (λ x : matrix m n R × (n → R), x.1.update_row i x.2) :=
-continuous_matrix $ λ j k, begin
-  obtain rfl | h := decidable.eq_or_ne j i,
-  { simp_rw matrix.update_row_self,
-    exact (continuous_apply _).comp continuous_snd },
-  { simp_rw matrix.update_row_ne h,
-    exact (continuous_matrix_elem _ _).comp continuous_fst },
-end
+continuous_update i
 
 lemma continuous_cramer [fintype n] [decidable_eq n] [comm_ring R] [topological_ring R] :
   continuous (λ A : matrix n n R × (n → R), A.1.cramer A.2) :=

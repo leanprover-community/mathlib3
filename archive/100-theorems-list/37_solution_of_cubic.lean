@@ -3,7 +3,7 @@ Copyright (c) 2022 Jeoff Lee. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeoff Lee
 -/
-import tactic.basic
+import tactic.linear_combination
 import ring_theory.roots_of_unity
 import ring_theory.polynomial.cyclotomic.basic
 

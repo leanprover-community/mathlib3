@@ -1428,7 +1428,7 @@ interactive.simp_core {} (tactic.norm_num1 step (interactive.loc.ns [none]))
 Given an expression `e`, returns `(e', ⊢ e = e')`.
 The `no_dflt`, `hs`, and `attr_names` are passed on to `simp`.
 Unlike `norm_num`, this tactic does not fail. -/
-meta def tactic.expr_norm_num (step : expr → tactic (expr × expr))
+meta def _root_.expr.norm_num (step : expr → tactic (expr × expr))
   (no_dflt : bool := ff) (hs : list simp_arg_type := []) (attr_names : list name := []) :
   expr → tactic (expr × expr) :=
 let simp_step (e : expr) := do
@@ -1437,7 +1437,7 @@ let simp_step (e : expr) := do
       return (e', p)
 in or_refl_conv $ λ e, do
   (e', p') ← norm_num.derive' step e <|> simp_step e,
-  (e'', p'') ← tactic.expr_norm_num e',
+  (e'', p'') ← _root_.expr.norm_num e',
   p ← mk_eq_trans p' p'',
   return (e'', p)
 
@@ -1602,7 +1602,7 @@ do
 
     /- Try simplifying the expression. -/
     step ← norm_num.get_step,
-    prod.fst <$> tactic.expr_norm_num step no_dflt hs attr_names e } ts,
+    prod.fst <$> e.norm_num step no_dflt hs attr_names } ts,
 
   /- Trace the result. -/
   when (¬ is_trace_enabled_for `silence_norm_num_if_true ∨ result ≠ expr.const `true [])

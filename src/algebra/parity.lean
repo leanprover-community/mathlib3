@@ -188,7 +188,7 @@ end semiring
 section ring
 variables [ring α] {m n : α}
 
-@[simp] lemma even_neg_two : even (- 2 : α) := by simp
+@[simp] lemma even_neg_two : even (- 2 : α) := by simp only [even_neg, even_two]
 
 -- from src/algebra/order/ring.lean
 lemma even_abs [linear_order α] {a : α} : even (|a|) ↔ even a :=

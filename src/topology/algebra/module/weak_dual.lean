@@ -76,6 +76,7 @@ instance [comm_semiring 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_monoi
   [module 𝕜 F] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : add_comm_group (weak_bilin B) :=
 by { dunfold weak_bilin, apply_instance }
 
+@[priority 100]
 instance module_weak_bilin [comm_semiring 𝕜] [comm_semiring 𝕝] [add_comm_group E] [module 𝕜 E]
   [add_comm_group F] [module 𝕜 F] [module 𝕝 E] (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
   module 𝕝 (weak_bilin B) :=

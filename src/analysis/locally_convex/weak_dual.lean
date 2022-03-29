@@ -69,15 +69,6 @@ def to_seminorm_family (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : seminorm_famil
 @[simp] lemma to_seminorm_family_apply {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} {x y} :
   (B.to_seminorm_family y) x = ∥B x y∥ := rfl
 
-/-- A basis of the weak topology `weak_bilin B`. -/
-def weak_bilin_basis_zero (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) : set (set E) :=
-⋃ (s : finset F) (hs : s.nonempty) r (hr : 0 < r), { s.inf' hs (λ y, { x : E | ∥B x y∥ < r}) }
-
-lemma weak_bilin_basis_zero_iff {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} {U : set E}:
-  U ∈ weak_bilin_basis_zero B ↔ ∃ (s : finset F) (hs : s.nonempty) r (hr : 0 < r),
-    U = s.inf' hs (λ y, { x : E | ∥B x y∥ < r}) :=
-by simp only [weak_bilin_basis_zero, set.mem_Union, set.mem_singleton_iff]
-
 end linear_map
 
 end bilin_form
@@ -142,8 +133,7 @@ section locally_convex
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
 variables [nonempty ι] [normed_space ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
 
-lemma weak_bilin.to_locally_convex_space' {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} :
-  locally_convex_space ℝ (weak_bilin B) :=
+instance {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} : locally_convex_space ℝ (weak_bilin B) :=
 seminorm_family.to_locally_convex_space B.to_seminorm_family
 
 end locally_convex

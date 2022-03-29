@@ -196,8 +196,7 @@ end
 variables {H K L}
 
 lemma relindex_eq_zero_of_le_left (hHK : H ≤ K) (hKL : K.relindex L = 0) : H.relindex L = 0 :=
-by rw [←inf_relindex_right, ←relindex_mul_relindex (H ⊓ L) (K ⊓ L) L
-  (inf_le_inf_right L hHK) inf_le_right, inf_relindex_right, hKL, mul_zero]
+eq_zero_of_zero_dvd (hKL ▸ (relindex_dvd_of_le_left L hHK))
 
 lemma relindex_eq_zero_of_le_right (hKL : K ≤ L) (hHK : H.relindex K = 0) : H.relindex L = 0 :=
 cardinal.to_nat_apply_of_omega_le (le_trans (le_of_not_lt (λ h, cardinal.mk_ne_zero _

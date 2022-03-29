@@ -27,18 +27,24 @@ def hom.op_inv {α : Type*} [group α] : α →* αᵐᵒᵖ :=
 -/
 
 @[to_additive]
-def op_inv_equiv (α : Type*) [group α] : α ≃* αᵐᵒᵖ :=
-{ to_fun    := λ x, op x⁻¹,
-  inv_fun   := λ x, unop x⁻¹,
+def op_inv_equiv (α : Type*) [group α] : αᵐᵒᵖ ≃* α :=
+{ to_fun    := λ x, unop x⁻¹,
+  inv_fun   := λ x, op x⁻¹,
   left_inv  := λ x, by simp,
   right_inv := λ x, by simp,
   map_mul'  := λ x y, by simp }
 
-@[simp] lemma op_inv_equiv_to_monoid_hom_def (a : α) :
-  (op_inv_equiv α).to_monoid_hom a = (op a⁻¹) :=
+@[simp] lemma op_inv_equiv_def (a : αᵐᵒᵖ) : (op_inv_equiv α).to_fun a = unop a⁻¹ := rfl
+
+@[simp] lemma op_inv_equiv_symm_def (a : α) : (op_inv_equiv α).symm.to_fun a = op a⁻¹ := rfl
+
+@[simp] lemma op_inv_equiv_to_monoid_hom_def (a : αᵐᵒᵖ) :
+  (op_inv_equiv α).to_monoid_hom a = unop a⁻¹ :=
 rfl
 
-@[simp] lemma op_inv_equiv_def (a : α) : (op_inv_equiv α).to_fun a = (op a⁻¹) := rfl
+@[simp] lemma op_inv_equiv_symm_to_monoid_hom_def (a : α) :
+  (op_inv_equiv α).symm.to_monoid_hom a = (op a⁻¹) :=
+rfl
 
 end mul_opposite
 
@@ -91,8 +97,8 @@ lemma is_square_op_iff (a : α) : is_square (op a) ↔ is_square a :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [← is_square_op_iff, ← inv_inv a],
-    exact (mul_opposite.op_inv_equiv α).to_monoid_hom.is_square h },
-  { exact (mul_opposite.op_inv_equiv α).symm.to_monoid_hom.is_square ((is_square_op_iff a).mpr h) }
+    exact (mul_opposite.op_inv_equiv α).symm.to_monoid_hom.is_square h },
+  { exact (mul_opposite.op_inv_equiv α).to_monoid_hom.is_square ((is_square_op_iff a).mpr h) }
 end
 
 end group

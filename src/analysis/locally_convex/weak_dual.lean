@@ -10,17 +10,23 @@ import analysis.locally_convex.with_seminorms
 /-!
 # Weak Dual in Topological Vector Spaces
 
+We prove that the weak topolog induced by a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜` is locally
+convex and we explicit give a neighborhood basis in terms of the family of seminorms `λ x, ∥B x y∥`
+for `y : F`.
+
 ## Main definitions
 
-* `weak_bilin_basis_zero`: a basis for the neighborhood filter at 0.
-* `linear_map.to_seminorm_family`: turn a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜`
-into a map `F → seminorm 𝕜 E`.
+* `linear_map.to_seminorm`: turn a linear form `f : E →ₗ[𝕜] 𝕜` into a seminorm `λ x, ∥f x∥`.
+* `linear_map.to_seminorm_family`: turn a bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜` into a map
+`F → seminorm 𝕜 E`.
 
 ## Main statements
 
-* `with_seminorms B.to_seminorm_family`: the topology of a weak space is induced by the family of
-seminorm `B.to_seminorm_family`.
-* `weak_bilin.to_locally_convex_space'`: a spaced endowed with a weak topology is locally convex.
+* `linear_map.has_basis_weak_bilin`: the seminorm balls of `B.to_seminorm_family` form a
+neighborhood basis of `0` in the weak topology.
+* `linear_map.to_seminorm_family.with_seminorms`: the topology of a weak space is induced by the
+family of seminorm `B.to_seminorm_family`.
+* `weak_bilin.locally_convex_space`: a spaced endowed with a weak topology is locally convex.
 
 ## References
 
@@ -79,7 +85,7 @@ variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group
 variables [nonempty ι]
 variables {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜}
 
-lemma has_basis_weak_bilin (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
+lemma linear_map.has_basis_weak_bilin (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
   (𝓝 (0 : weak_bilin B)).has_basis B.to_seminorm_family.basis_sets id :=
 begin
   let p := B.to_seminorm_family,
@@ -124,7 +130,7 @@ end
 
 instance : with_seminorms
   (linear_map.to_seminorm_family B : F → seminorm 𝕜 (weak_bilin B)) :=
-seminorm_family.with_seminorms_of_has_basis _ (has_basis_weak_bilin _)
+seminorm_family.with_seminorms_of_has_basis _ B.has_basis_weak_bilin
 
 end topology
 

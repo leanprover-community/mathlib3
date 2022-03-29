@@ -37,7 +37,7 @@ variables {R : Type*} {M : Type*}
 [topological_space M] [add_comm_group M]
 [module R M]
 
-lemma has_continuous_smul.of_nhds_zero [topological_semiring R] [topological_add_group M]
+lemma has_continuous_smul.of_nhds_zero [topological_ring R] [topological_add_group M]
   (hmul : tendsto (λ p : R × M, p.1 • p.2) (𝓝 0 ×ᶠ (𝓝 0)) (𝓝 0))
   (hmulleft : ∀ m : M, tendsto (λ a : R, a • m) (𝓝 0) (𝓝 0))
   (hmulright : ∀ a : R, tendsto (λ m : M, a • m) (𝓝 0) (𝓝 0)) : has_continuous_smul R M :=
@@ -975,7 +975,7 @@ instance [topological_add_group M] : ring (M →L[R] M) :=
   right_distrib := λ _ _ _, ext $ λ _, linear_map.add_apply _ _ _,
   ..continuous_linear_map.add_comm_group }
 
-lemma smul_right_one_pow [topological_space R] [topological_semiring R] (c : R) (n : ℕ) :
+lemma smul_right_one_pow [topological_space R] [topological_ring R] (c : R) (n : ℕ) :
   (smul_right (1 : R →L[R] R) c)^n = smul_right (1 : R →L[R] R) (c^n) :=
 begin
   induction n with n ihn,

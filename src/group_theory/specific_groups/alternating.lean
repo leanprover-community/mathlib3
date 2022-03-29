@@ -138,6 +138,7 @@ closure_eq_of_le _ (λ σ hσ, mem_alternating_group.2 hσ.sign) $ λ σ hσ, be
     (hn : l.length = 2 * n), l.prod ∈ closure {σ : perm α | is_three_cycle σ},
   { obtain ⟨l, rfl, hl⟩ := trunc_swap_factors σ,
     obtain ⟨n, hn⟩ := (prod_list_swap_mem_alternating_group_iff_even_length hl).1 hσ,
+    rw ← two_mul at hn,
     exact hind n l hl hn },
   intro n,
   induction n with n ih; intros l hl hn,

@@ -760,10 +760,14 @@ iff.rfl
 @[simp] lemma chain_singleton (r : α → α → Prop) (a : α) : chain r [a] ↔ r a a :=
 by rw [chain_cons, nil_append, chain_singleton]
 
-lemma chain_ne_nil (r : α → α → Prop) {l : list α} (hl : l ≠ []) :
-  chain r l ↔ list.chain r (last l hl) l :=
-@list.reverse_rec_on α (λ m, ∀ hm : m ≠ [], (chain r ↑m ↔ list.chain r (last m hm) m)) l
-  (λ hm, hm.irrefl.elim) (λ m a H _, by rw [←coe_cons_eq_coe_append, chain_cons, last_append]) hl
+lemma chain_ne_nil (r : α → α → Prop) {l : list α} :
+  Π hl : l ≠ [], chain r l ↔ list.chain r (last l hl) l :=
+begin
+  apply l.reverse_rec_on,
+  exact λ hm, hm.irrefl.elim,
+  intros m a H _,
+  rw [←coe_cons_eq_coe_append, chain_cons, last_append]
+end
 
 lemma chain_map {β : Type*} {r : α → α → Prop} (f : β → α) {s : cycle β} :
   chain r (s.map f) ↔ chain (λ a b, r (f a) (f b)) s :=

@@ -15,7 +15,7 @@ every non-zero element.
 -/
 
 
-namespace topological_semiring
+namespace topological_ring
 open topological_space function
 variables (R : Type*) [ring R]
 
@@ -61,13 +61,13 @@ instance top_monoid_units [topological_semiring R] [induced_units R] :
   rw ← continuous_iff_le_induced,
   exact continuous_mul,
 end⟩
-end topological_semiring
+end topological_ring
 
 variables (K : Type*) [division_ring K] [topological_space K]
 
 /-- A topological division ring is a division ring with a topology where all operations are
     continuous, including inversion. -/
-class topological_division_ring extends topological_semiring K, has_continuous_inv₀ K : Prop
+class topological_division_ring extends topological_ring K, has_continuous_inv₀ K : Prop
 
 namespace topological_division_ring
 open filter set
@@ -82,9 +82,9 @@ topological_semiring.topological_space_units topological_division_ring.units_top
 ```
 -/
 
-local attribute [instance] topological_semiring.topological_space_units
+local attribute [instance] topological_ring.topological_space_units
 
-@[priority 100] instance induced_units : topological_semiring.induced_units K := ⟨rfl⟩
+@[priority 100] instance induced_units : topological_ring.induced_units K := ⟨rfl⟩
 
 variables [topological_division_ring K]
 
@@ -99,12 +99,12 @@ lemma units_top_group : topological_group Kˣ :=
      rw [← tendsto_iff_comap, units.coe_inv'],
      exact continuous_at_inv₀ x.ne_zero
    end ,
-  ..topological_semiring.top_monoid_units K}
+  ..topological_ring.top_monoid_units K}
 
 local attribute [instance] units_top_group
 
 lemma continuous_units_inv : continuous (λ x : Kˣ, (↑(x⁻¹) : K)) :=
-(topological_semiring.induced_units.continuous_coe K).comp continuous_inv
+(topological_ring.induced_units.continuous_coe K).comp continuous_inv
 
 end topological_division_ring
 
@@ -115,7 +115,7 @@ This section is about affine homeomorphisms from a topological field `𝕜` to i
 Technically it does not require `𝕜` to be a topological field, a topological semiring that
 happens to be a field is enough.
 -/
-variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_semiring 𝕜]
+variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]
 
 /--
 The map `λ x, a * x + b`, as a homeomorphism from `𝕜` (a topological field) to itself, when `a ≠ 0`.

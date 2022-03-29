@@ -26,7 +26,7 @@ the sequence of elements `x : fin k → ℕ` such that `n = ∑ i, x i`.
 
 ## Main results
 
-* When `antidiagonal_tuple 2 n` is analogous to `antidiagonal n`:
+* `antidiagonal_tuple 2 n` is analogous to `antidiagonal n`:
 
   * `list.nat.antidiagonal_tuple_two`
   * `multiset.nat.antidiagonal_tuple_two`
@@ -141,20 +141,6 @@ begin
   refl,
 end
 
-
--- lemma antidiagonal_tuple_pairwise_lex (k n : ℕ) :
---   (antidiagonal_tuple k n).pairwise (pi.lex (≤) (λ _, (≤))) :=
--- begin
---   induction k with k ih generalizing n,
---   { cases n,
---     { simp },
---     { simp [eq_comm] }, },
---   simp_rw [antidiagonal_tuple, list.pairwise_bind, list.pairwise_map, list.mem_map,
---     forall_exists_index, and_imp, forall_apply_eq_imp_iff₂],
---   simp only [mem_antidiagonal, prod.forall, and_imp, forall_apply_eq_imp_iff₂],
---   split,
--- end
-
 end list.nat
 
 /-! ### Multisets -/
@@ -198,14 +184,10 @@ lemma mem_antidiagonal_tuple {n : ℕ} {k : ℕ} (x : fin k → ℕ) :
 list.nat.mem_antidiagonal_tuple _
 
 @[simp] lemma antidiagonal_tuple_one (n : ℕ) : antidiagonal_tuple 1 n = { ![n]} :=
-begin
-  change finset.mk _ _ = finset.mk _ _,
-  congr' 1,
-  exact (multiset.nat.antidiagonal_tuple_one n)
-end
+finset.eq_of_veq (multiset.nat.antidiagonal_tuple_one n)
 
 lemma antidiagonal_tuple_two (n : ℕ) :
-  antidiagonal_tuple 2 n = (antidiagonal n).map pi_fin_two_equiv.symm.to_embedding) :=
-congr_arg _ (list.nat.antidiagonal_tuple_two n)
+  antidiagonal_tuple 2 n = (antidiagonal n).map (pi_fin_two_equiv (λ _, ℕ)).symm.to_embedding :=
+finset.eq_of_veq (multiset.nat.antidiagonal_tuple_two n)
 
 end finset.nat

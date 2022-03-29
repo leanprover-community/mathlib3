@@ -5,6 +5,7 @@ Authors: Eric Rodriguez
 -/
 import order.basic
 import algebra.algebra.basic
+import tactic.derive_fintype
 
 /-!
 # Sign function
@@ -14,7 +15,7 @@ proves some basic theorems about it.
 -/
 
 /-- The type of signs. -/
-@[derive [decidable_eq, inhabited]]
+@[derive [decidable_eq, inhabited, fintype]]
 inductive sign_type
 | zero | neg | pos
 

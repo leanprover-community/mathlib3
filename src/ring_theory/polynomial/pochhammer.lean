@@ -132,10 +132,26 @@ end semiring
 section comm_semiring
 variables {S : Type*} [comm_semiring S]
 
-lemma pochhammer_succ_eval (n : ℕ) (k : S) :
+lemma pochhammer_succ_eval_aux (n : ℕ) (k : S) :
   (pochhammer S n.succ).eval k = (pochhammer S n).eval k * (k + ↑n) :=
 by rw [pochhammer_succ_right, polynomial.eval_mul, polynomial.eval_add, polynomial.eval_X,
     polynomial.eval_nat_cast]
+
+-- should `S` be explicit?
+lemma map_eval_pochhammer_eq_self {S : Type*} [semiring S] : ∀ (n : ℕ),
+  map (nat.cast_ring_hom S) (eval X (pochhammer ℕ[X] n)) = pochhammer S n
+| 0       := by simp
+| (n + 1) := by simp [pochhammer_succ_eval_aux, pochhammer_succ_right, map_eval_pochhammer_eq_self n]
+
+lemma pochhammer_succ_eval {S : Type*} [semiring S] (n : ℕ) (k : S) :
+  (pochhammer S n.succ).eval k = (pochhammer S n).eval k * (k + ↑n) :=
+begin
+  rw [← map_eval_pochhammer_eq_self, ← map_eval_pochhammer_eq_self n, pochhammer_succ_eval_aux,
+    mul_add, polynomial.map_add, eval_add, mul_add],
+  congr,
+  { simp only [polynomial.map_mul, map_X, eval_mul_X] },
+  { simp [← nat.cast_comm] }
+end
 
 end comm_semiring
 

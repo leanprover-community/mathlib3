@@ -45,6 +45,8 @@ class contractible_space (X : Type*) [topological_space X] : Prop :=
 
 variables (X : Type*) [topological_space X] [contractible_space X]
 
+namespace contractible_space
+
 lemma id_nullhomotopic : (continuous_map.id X).nullhomotopic :=
 begin
   obtain ⟨hv⟩ := contractible_space.hequiv_unit X,
@@ -52,18 +54,6 @@ begin
   convert hv.left_inv.symm,
   ext, simp, congr,
 end
-
-lemma contractible_iff_id_nullhomotopic (Y : Type*) [topological_space Y] :
-  contractible_space Y ↔ (continuous_map.id Y).nullhomotopic :=
-begin
-  split, { introI, apply id_nullhomotopic, },
-  rintro ⟨p, h⟩,
-  refine_struct { hequiv_unit := ⟨{ to_fun := continuous_map.const _ (),
-    inv_fun := continuous_map.const _ p }⟩ },
-  { exact h.symm, }, { convert homotopic.refl (continuous_map.id unit), ext, },
-end
-
-namespace contractible_space
 
 @[priority 50]
 instance : nonempty X := nonempty.map (λ h, homotopy_equiv.inv_fun h ()) (hequiv_unit X)
@@ -77,3 +67,13 @@ begin
 end
 
 end contractible_space
+
+lemma contractible_iff_id_nullhomotopic (Y : Type*) [topological_space Y] :
+  contractible_space Y ↔ (continuous_map.id Y).nullhomotopic :=
+begin
+  split, { introI, apply contractible_space.id_nullhomotopic, },
+  rintro ⟨p, h⟩,
+  refine_struct { hequiv_unit := ⟨{ to_fun := continuous_map.const _ (),
+    inv_fun := continuous_map.const _ p }⟩ },
+  { exact h.symm, }, { convert homotopic.refl (continuous_map.id unit), ext, },
+end

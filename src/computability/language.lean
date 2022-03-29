@@ -17,6 +17,8 @@ over the languages.
 
 universes u v
 
+open set
+
 variables {α : Type u}
 
 /-- A language is a set of strings over an alphabet. -/
@@ -34,15 +36,18 @@ instance : has_one (language α) := ⟨{[]}⟩
 
 instance : inhabited (language α) := ⟨0⟩
 
-/-- The sum of two languages is the union of  -/
+/-- The sum of two languages is their union. -/
 instance : has_add (language α) := ⟨set.union⟩
-instance : has_mul (language α) := ⟨set.image2 (++)⟩
+
+/-- The product of two languages `l` and `m` is the language made of the strings `x ++ y` where
+`x ∈ l` and `y ∈ m`. -/
+instance : has_mul (language α) := ⟨image2 (++)⟩
 
 lemma zero_def : (0 : language α) = (∅ : set _) := rfl
 lemma one_def : (1 : language α) = {[]} := rfl
 
 lemma add_def (l m : language α) : l + m = l ∪ m := rfl
-lemma mul_def (l m : language α) : l * m = set.image2 (++) l m := rfl
+lemma mul_def (l m : language α) : l * m = image2 (++) l m := rfl
 
 /-- The star of a language `L` is the set of all strings which can be written by concatenating
   strings from `L`. -/
@@ -52,7 +57,9 @@ def star (l : language α) : language α :=
 lemma star_def (l : language α) :
   l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l} := rfl
 
-@[simp] lemma mem_one (x : list α) : x ∈ (1 : language α) ↔ x = [] := by refl
+@[simp] lemma not_mem_zero (x : list α) : x ∉ (0 : language α) := id
+@[simp] lemma nil_mem_one : [] ∈ (1 : language α) := mem_singleton _
+@[simp] lemma mem_one (x : list α) : x ∈ (1 : language α) ↔ x = [] := iff.rfl
 @[simp] lemma mem_add (l m : language α) (x : list α) : x ∈ l + m ↔ x ∈ l ∨ x ∈ m :=
 by simp [add_def]
 lemma mem_mul (l m : language α) (x : list α) : x ∈ l * m ↔ ∃ a b, a ∈ l ∧ b ∈ m ∧ a ++ b = x :=
@@ -63,21 +70,20 @@ iff.rfl
 
 instance : semiring (language α) :=
 { add := (+),
-  add_assoc := set.union_assoc,
+  add_assoc := union_assoc,
   zero := 0,
-  zero_add := set.empty_union,
-  add_zero := set.union_empty,
-  add_comm := set.union_comm,
+  zero_add := empty_union,
+  add_zero := union_empty,
+  add_comm := union_comm,
   mul := (*),
-  mul_assoc := λ l m n,
-    by simp only [mul_def, set.image2_image2_left, set.image2_image2_right, list.append_assoc],
-  zero_mul := by simp [zero_def, mul_def],
-  mul_zero := by simp [zero_def, mul_def],
+  mul_assoc := λ _ _ _, image2_assoc list.append_assoc,
+  zero_mul := λ _, image2_empty_left,
+  mul_zero := λ _, image2_empty_right,
   one := 1,
   one_mul := λ l, by simp [mul_def, one_def],
   mul_one := λ l, by simp [mul_def, one_def],
-  left_distrib := λ l m n, by simp only [mul_def, add_def, set.image2_union_right],
-  right_distrib := λ l m n, by simp only [mul_def, add_def, set.image2_union_left] }
+  left_distrib := λ _ _ _, image2_union_right,
+  right_distrib := λ _ _ _, image2_union_left }
 
 @[simp] lemma add_self (l : language α) : l + l = l := sup_idem
 
@@ -99,7 +105,7 @@ lemma le_iff (l m : language α) : l ≤ m ↔ l + m = m := sup_eq_right.symm
 lemma le_mul_congr {l₁ l₂ m₁ m₂ : language α} : l₁ ≤ m₁ → l₂ ≤ m₂ → l₁ * l₂ ≤ m₁ * m₂ :=
 begin
   intros h₁ h₂ x hx,
-  simp only [mul_def, exists_and_distrib_left, set.mem_image2, set.image_prod] at hx ⊢,
+  simp only [mul_def, exists_and_distrib_left, mem_image2, image_prod] at hx ⊢,
   tauto
 end
 
@@ -107,15 +113,15 @@ lemma le_add_congr {l₁ l₂ m₁ m₂ : language α} : l₁ ≤ m₁ → l₂ 
 
 lemma mem_supr {ι : Sort v} {l : ι → language α} {x : list α} :
   x ∈ (⨆ i, l i) ↔ ∃ i, x ∈ l i :=
-set.mem_Union
+mem_Union
 
 lemma supr_mul {ι : Sort v} (l : ι → language α) (m : language α) :
   (⨆ i, l i) * m = ⨆ i, l i * m :=
-set.image2_Union_left _ _ _
+image2_Union_left _ _ _
 
 lemma mul_supr {ι : Sort v} (l : ι → language α) (m : language α) :
   m * (⨆ i, l i) = ⨆ i, m * l i :=
-set.image2_Union_right _ _ _
+image2_Union_right _ _ _
 
 lemma supr_add {ι : Sort v} [nonempty ι] (l : ι → language α) (m : language α) :
   (⨆ i, l i) + m = ⨆ i, l i + m := supr_sup

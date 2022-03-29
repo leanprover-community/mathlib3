@@ -173,7 +173,7 @@ begin
   induction f using measure_theory.simple_func.induction with y s hs f g hd hfi hgi,
   { simpa [function.const, measure.restrict_apply hs]
       using box_integral.has_integral_indicator_const l hl hs I y μ },
-  { letI := borel E, haveI : borel_space E := ⟨rfl⟩, haveI := fact.mk (I.measure_coe_lt_top μ),
+  { borelize E, haveI := fact.mk (I.measure_coe_lt_top μ),
     rw integral_add,
     exacts [hfi.add hgi, integrable_iff.2 $ λ _ _, measure_lt_top _ _,
       integrable_iff.2 $ λ _ _, measure_lt_top _ _] }

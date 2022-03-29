@@ -37,7 +37,10 @@ namespace ordinal
 section
 variables {ι : Type u} {f : ι → ordinal.{max u v} → ordinal.{max u v}}
 
-/-- The next common fixed point, at least `a`, for a family of normal functions. -/
+/-- The next common fixed point, at least `a`, for a family of normal functions.
+
+`ordinal.nfp_family_fp` shows this is a fixed point, `ordinal.self_le_nfp_family` shows it's at
+least `a`, and `ordinal.nfp_family_le_fp` shows this is the least ordinal with these properties. -/
 def nfp_family (f : ι → ordinal → ordinal) (a) : ordinal :=
 sup (list.foldr f a)
 

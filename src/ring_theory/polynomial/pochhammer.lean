@@ -93,14 +93,19 @@ begin
 end
 
 lemma pochhammer_add_pochhammer_aux {R : Type*} [comm_semiring R] : ∀ (n : ℕ),
-  pochhammer R n + n * (pochhammer R (n - 1)).comp (X + 1) = (pochhammer R n).comp (X + 1)
+  pochhammer R (n + 1) + (n + 1) * (pochhammer R n).comp (X + 1) =
+    (pochhammer R (n + 1)).comp (X + 1)
 | 0       := by simp
 | (n + 1) := begin
     nth_rewrite 0 pochhammer_succ_left,
-    rw [← nat.pred_eq_sub_one, ← n.succ_eq_add_one, n.pred_succ, ← add_mul,
-      pochhammer_succ_right R n, mul_comp, mul_comm, add_comp, X_comp, nat_cast_comp,
-      n.succ_eq_add_one, n.cast_add, nat.cast_one, add_comm ↑n, ← add_assoc]
+    rw [← add_mul, pochhammer_succ_right R (n + 1), mul_comp, mul_comm, add_comp, X_comp,
+      nat_cast_comp, add_comm ↑(n + 1), ← add_assoc]
   end
+
+lemma pochhammer_add_pochhammer_aux_pred {R : Type*} [comm_semiring R] : ∀ (n : ℕ),
+  pochhammer R n + n * (pochhammer R (n - 1)).comp (X + 1) = (pochhammer R n).comp (X + 1)
+| 0       := by simp
+| (n + 1) := pochhammer_add_pochhammer_aux n
 
 lemma pochhammer_add_pochhammer (n : ℕ) :
   pochhammer S n + n * (pochhammer S (n - 1)).comp (X + 1) = (pochhammer S n).comp (X + 1) :=
@@ -109,7 +114,7 @@ begin
   { simp only [polynomial.map_add, map_X, polynomial.map_one] },
   rw [← pochhammer_map (nat.cast_ring_hom S) (n - 1), ← pochhammer_map (nat.cast_ring_hom S) n,
     ← X1, ← map_comp (nat.cast_ring_hom S) (pochhammer ℕ n) (X + 1)],
-  simp [← pochhammer_add_pochhammer_aux n, map_comp],
+  simp [← pochhammer_add_pochhammer_aux_pred n, map_comp],
 end
 
 lemma polynomial.mul_X_add_nat_cast_comp {p q : S[X]} {n : ℕ} :

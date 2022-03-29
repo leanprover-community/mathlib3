@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.basic
+import combinatorics.simple_graph.subgraph
 import data.list
 /-!
 
@@ -36,6 +37,16 @@ counterparts in [Chou1994].
 * `simple_graph.walk.is_trail`, `simple_graph.walk.is_path`, and `simple_graph.walk.is_cycle`.
 
 * `simple_graph.path`
+
+* `simple_graph.reachable` for the relation of whether there exists
+  a walk between a given pair of vertices
+
+* `simple_graph.preconnected` and `simple_graph.connected` are predicates
+  on simple graphs for whether every vertex can be reached from every other,
+  and in the latter case, whether the vertex type is nonempty.
+
+* `simple_graph.subgraph.connected` gives subgraphs the connectivity
+  predicate via `simple_graph.subgraph.coe`.
 
 ## Tags
 walks, trails, paths, circuits, cycles
@@ -193,6 +204,18 @@ by simp [reverse]
 
 @[simp] lemma length_reverse {u v : V} (p : G.walk u v) : p.reverse.length = p.length :=
 by simp [reverse]
+
+lemma eq_of_length_eq_zero : Π {u v : V} {p : G.walk u v}, p.length = 0 → u = v
+| _ _ nil _ := rfl
+
+@[simp] lemma exists_length_eq_zero_iff {u v : V} : (∃ (p : G.walk u v), p.length = 0) ↔ u = v :=
+begin
+  split,
+  { rintro ⟨p, hp⟩,
+    exact eq_of_length_eq_zero hp, },
+  { rintro rfl,
+    exact ⟨nil, rfl⟩, },
+end
 
 /-- The `support` of a walk is the list of vertices it visits in order. -/
 def support : Π {u v : V}, G.walk u v → list V
@@ -417,7 +440,7 @@ structure is_circuit {u : V} (p : G.walk u u) extends to_trail : is_trail p : Pr
 
 /-- A *cycle* at `u : V` is a circuit at `u` whose only repeating vertex
 is `u` (which appears exactly twice). -/
-structure is_cycle [decidable_eq V] {u : V} (p : G.walk u u)
+structure is_cycle {u : V} (p : G.walk u u)
   extends to_circuit : is_circuit p : Prop :=
 (support_nodup : p.support.tail.nodup)
 
@@ -430,7 +453,7 @@ lemma is_path.mk' {u v : V} {p : G.walk u v} (h : p.support.nodup) : is_path p :
 lemma is_path_def {u v : V} (p : G.walk u v) : p.is_path ↔ p.support.nodup :=
 ⟨is_path.support_nodup, is_path.mk'⟩
 
-lemma is_cycle_def [decidable_eq V] {u : V} (p : G.walk u u) :
+lemma is_cycle_def {u : V} (p : G.walk u u) :
   p.is_cycle ↔ is_trail p ∧ p ≠ nil ∧ p.support.tail.nodup :=
 iff.intro (λ h, ⟨h.1.1, h.1.2, h.2⟩) (λ h, ⟨⟨h.1, h.2.1⟩, h.2.2⟩)
 
@@ -487,7 +510,7 @@ by split; intro h; convert h.reverse; simp
 
 lemma is_path.of_append_left {u v w : V} {p : G.walk u v} {q : G.walk v w} :
   (p.append q).is_path → p.is_path :=
-by { simp only [is_path_def, support_append], exact list.nodup_of_nodup_append_left }
+by { simp only [is_path_def, support_append], exact list.nodup.of_append_left }
 
 lemma is_path.of_append_right {u v w : V} {p : G.walk u v} {q : G.walk v w}
   (h : (p.append q).is_path) : q.is_path :=
@@ -780,5 +803,90 @@ lemma edges_to_path_subset {u v : V} (p : G.walk u v) :
 edges_bypass_subset _
 
 end walk
+
+/-! ## `reachable` and `connected` -/
+
+/-- Two vertices are *reachable* if there is a walk between them.
+This is equivalent to `relation.refl_trans_gen` of `G.adj`.
+See `simple_graph.reachable_iff_refl_trans_gen`. -/
+def reachable (u v : V) : Prop := nonempty (G.walk u v)
+
+variables {G}
+
+lemma reachable_iff_nonempty_univ {u v : V} :
+  G.reachable u v ↔ (set.univ : set (G.walk u v)).nonempty :=
+set.nonempty_iff_univ_nonempty
+
+protected lemma reachable.elim {p : Prop} {u v : V}
+  (h : G.reachable u v) (hp : G.walk u v → p) : p :=
+nonempty.elim h hp
+
+protected lemma reachable.elim_path {p : Prop} {u v : V}
+  (h : G.reachable u v) (hp : G.path u v → p) : p :=
+begin
+  classical,
+  exact h.elim (λ q, hp q.to_path),
+end
+
+@[refl] protected lemma reachable.refl {u : V} : G.reachable u u := by { fsplit, refl }
+
+@[symm] protected lemma reachable.symm {u v : V} (huv : G.reachable u v) : G.reachable v u :=
+huv.elim (λ p, ⟨p.reverse⟩)
+
+@[trans] protected lemma reachable.trans {u v w : V}
+  (huv : G.reachable u v) (hvw : G.reachable v w) :
+  G.reachable u w :=
+huv.elim (λ puv, hvw.elim (λ pvw, ⟨puv.append pvw⟩))
+
+lemma reachable_iff_refl_trans_gen (u v : V) :
+  G.reachable u v ↔ relation.refl_trans_gen G.adj u v :=
+begin
+  split,
+  { rintro ⟨h⟩,
+    induction h,
+    { refl, },
+    { exact (relation.refl_trans_gen.single h_h).trans h_ih, }, },
+  { intro h,
+    induction h with _ _ _ ha hr,
+    { refl, },
+    { exact reachable.trans hr ⟨walk.cons ha walk.nil⟩, }, },
+end
+
+variables (G)
+
+lemma reachable_is_equivalence : equivalence G.reachable :=
+mk_equivalence _ (@reachable.refl _ G) (@reachable.symm _ G) (@reachable.trans _ G)
+
+/-- The equivalence relation on vertices given by `simple_graph.reachable`. -/
+def reachable_setoid : setoid V := setoid.mk _ G.reachable_is_equivalence
+
+/-- A graph is preconnected if every pair of vertices is reachable from one another. -/
+def preconnected : Prop := ∀ (u v : V), G.reachable u v
+
+/-- A graph is connected if it's preconnected and contains at least one vertex.
+This follows the convention observed by mathlib that something is connected iff it has
+exactly one connected component.
+
+There is a `has_coe_to_fun` instance so that `h u v` can be used instead
+of `h.preconnected u v`. -/
+@[protect_proj]
+structure connected : Prop :=
+(preconnected : G.preconnected)
+(nonempty : nonempty V)
+
+instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
+⟨λ h, h.preconnected⟩
+
+/-- A subgraph is connected if it is connected as a simple graph. -/
+abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := H.coe.connected
+
+variables {G}
+
+lemma preconnected.set_univ_walk_nonempty (hconn : G.preconnected) (u v : V) :
+  (set.univ : set (G.walk u v)).nonempty :=
+by { rw ← set.nonempty_iff_univ_nonempty, exact hconn u v }
+
+lemma connected.set_univ_walk_nonempty (hconn : G.connected) (u v : V) :
+  (set.univ : set (G.walk u v)).nonempty := hconn.preconnected.set_univ_walk_nonempty u v
 
 end simple_graph

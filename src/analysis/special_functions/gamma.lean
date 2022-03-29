@@ -57,8 +57,8 @@ def gamma_real_integral (s : ℝ) : ℝ := ∫ x in Ioi (0:ℝ), exp (-x) * x ^ 
 
 This is not optimal, but the optimal bound (convergence for `0 < s`) is hard to establish with the
 results currently in the library. -/
-lemma gamma_real_integral_convergent {s : ℝ} (h : 1 ≤ s) : integrable_on
-  (λ x:ℝ, exp (-x) * x ^ (s - 1)) (Ioi 0) :=
+lemma gamma_real_integral_convergent {s : ℝ} (h : 1 ≤ s) : 
+  integrable_on (λ x:ℝ, exp (-x) * x ^ (s - 1)) (Ioi 0) :=
 begin
   refine integrable_of_is_O_exp_neg one_half_pos _ (gamma_integrand_is_O _ ),
   refine continuous_on_id.neg.exp.mul (continuous_on_id.rpow_const _),

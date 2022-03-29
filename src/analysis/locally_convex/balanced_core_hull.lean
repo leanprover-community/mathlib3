@@ -21,9 +21,9 @@ import order.closure
 
 ## Implementation details
 
-The core and hull implemented differently: for the core we take the obvious definition of the
-union over all balanced sets that are contained in `s`, whereas for the hull, we take the union
-over `r • s`, for `r` the scalars with `∥r∥ ≤ 1`. We show that `balanced_hull` has the
+The balanced core and hull are implemented differently: for the core we take the obvious definition
+of the union over all balanced sets that are contained in `s`, whereas for the hull, we take the
+union over `r • s`, for `r` the scalars with `∥r∥ ≤ 1`. We show that `balanced_hull` has the
 defining properties of a hull in `balanced.hull_minimal` and `subset_balanced_hull`.
 For the core we need slightly stronger assumptions to obtain a characterization as an intersection,
 this is `balanced_core_eq_Inter`.
@@ -93,7 +93,10 @@ end
 lemma balanced_core_balanced (s : set E) : balanced 𝕜 (balanced_core 𝕜 s) :=
 λ _, smul_balanced_core_subset s
 
-lemma balanced.core_maximal {s t : set E} (hs : balanced 𝕜 s) (h : s ⊆ t): s ⊆ balanced_core 𝕜 t :=
+/-- The balanced core of `t` is maximal in the sense that it contains any balanced subset
+`s` of `t`.-/
+lemma balanced.subset_core_of_subset {s t : set E} (hs : balanced 𝕜 s) (h : s ⊆ t):
+  s ⊆ balanced_core 𝕜 t :=
 begin
   refine subset_sUnion_of_mem _,
   rw [mem_set_of_eq],
@@ -104,12 +107,14 @@ lemma balanced_core_aux_mem_iff (s : set E) (x : E) : x ∈ balanced_core_aux �
   ∀ (r : 𝕜) (hr : 1 ≤ ∥r∥), x ∈ r • s :=
 by rw [balanced_core_aux, set.mem_Inter₂]
 
-
 lemma balanced_hull_mem_iff (s : set E) (x : E) : x ∈ balanced_hull 𝕜 s ↔
   ∃ (r : 𝕜) (hr : ∥r∥ ≤ 1), x ∈ r • s :=
 by rw [balanced_hull, set.mem_Union₂]
 
-lemma balanced.hull_minimal {s t : set E} (ht : balanced 𝕜 t) (h : s ⊆ t) : balanced_hull 𝕜 s ⊆ t :=
+/-- The balanced core of `s` is minimal in the sense that it is contained in any balanced superset
+`t` of `s`. -/
+lemma balanced.hull_subset_of_subset {s t : set E} (ht : balanced 𝕜 t) (h : s ⊆ t) :
+  balanced_hull 𝕜 s ⊆ t :=
 begin
   intros x hx,
   rcases (balanced_hull_mem_iff _ _).mp hx with ⟨r, hr, hx⟩,
@@ -133,10 +138,10 @@ begin
     refine mem_of_subset_of_mem (subset.trans h'' (balanced_core_subset s)) _,
     exact mem_smul_set.mpr ⟨x, hx, zero_smul _ _⟩ },
   refine nonempty_of_mem (mem_of_subset_of_mem _ (mem_singleton 0)),
-  exact balanced.core_maximal zero_singleton_balanced (singleton_subset_iff.mpr h),
+  exact balanced.subset_core_of_subset zero_singleton_balanced (singleton_subset_iff.mpr h),
 end
 
-lemma balanced_core_zero {s : set E} (hs: (0 : E) ∈ s) : (0 : E) ∈ balanced_core 𝕜 s :=
+lemma balanced_core_zero_mem {s : set E} (hs: (0 : E) ∈ s) : (0 : E) ∈ balanced_core 𝕜 s :=
 balanced_core_mem_iff.mpr
   ⟨{0}, zero_singleton_balanced, singleton_subset_iff.mpr hs, mem_singleton 0⟩
 
@@ -188,7 +193,7 @@ begin
   exact h,
 end
 
-lemma balanced_core_aux_balanced (s : set E) (h0 : (0 : E) ∈ balanced_core_aux 𝕜 s):
+lemma balanced_core_aux_balanced {s : set E} (h0 : (0 : E) ∈ balanced_core_aux 𝕜 s):
   balanced 𝕜 (balanced_core_aux 𝕜 s) :=
 begin
   intros a ha x hx,
@@ -232,8 +237,8 @@ lemma balanced_core_eq_Inter {s : set E} (hs : (0 : E) ∈ s) :
 begin
   rw ←balanced_core_aux,
   refine subset_antisymm balanced_core_subset_balanced_core_aux _,
-  refine balanced.core_maximal (balanced_core_aux_balanced s _) (balanced_core_aux_subset s),
-  refine mem_of_subset_of_mem balanced_core_subset_balanced_core_aux (balanced_core_zero hs),
+  refine balanced.subset_core_of_subset (balanced_core_aux_balanced _) (balanced_core_aux_subset s),
+  refine mem_of_subset_of_mem balanced_core_subset_balanced_core_aux (balanced_core_zero_mem hs),
 end
 
 end normed_field

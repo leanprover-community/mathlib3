@@ -585,7 +585,7 @@ begin
   exact (a.continuous_total_space_mk b).cod_restrict (a.mem_trivialization_at_source b),
 end
 
-noncomputable lemma to_topological_vector_bundle :
+lemma to_topological_vector_bundle :
   @topological_vector_bundle R _ F E _ _ _ _ _ _ _ a.total_space_topology _ :=
 { total_space_mk_inducing := λ b, a.inducing_total_space_mk_of_inducing_comp b
     (a.total_space_mk_inducing b),

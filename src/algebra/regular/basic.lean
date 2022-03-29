@@ -10,7 +10,8 @@ import logic.embedding
 /-!
 # Regular elements
 
-We introduce left-regular, right-regular and regular elements.
+We introduce left-regular, right-regular and regular elements, along with their `to_additive`
+analogues add-left-regular, add-right-regular and add-regular elements.
 
 By definition, a regular element in a commutative ring is a non-zero divisor.
 Lemma `is_regular_of_ne_zero` implies that every non-zero element of an integral domain is regular.

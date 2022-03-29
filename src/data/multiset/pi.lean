@@ -85,7 +85,7 @@ lemma card_pi (m : multiset α) (t : Πa, multiset (δ a)) :
   card (pi m t) = prod (m.map $ λa, card (t a)) :=
 multiset.induction_on m (by simp) (by simp [mul_comm] {contextual := tt})
 
-lemma nodup_pi {s : multiset α} {t : Πa, multiset (δ a)} :
+protected lemma nodup.pi {s : multiset α} {t : Π a, multiset (δ a)} :
   nodup s → (∀a∈s, nodup (t a)) → nodup (pi s t) :=
 multiset.induction_on s (assume _ _, nodup_singleton _)
 begin
@@ -93,14 +93,12 @@ begin
   have has : a ∉ s, by simp at hs; exact hs.1,
   have hs : nodup s, by simp at hs; exact hs.2,
   simp,
-  split,
-  { assume b hb,
-    from nodup_map (pi_cons_injective has) (ih hs $ assume a' h', ht a' $ mem_cons_of_mem h') },
-  { apply pairwise_of_nodup _ (ht a $ mem_cons_self _ _),
-    from assume b₁ hb₁ b₂ hb₂ neb, disjoint_map_map.2 (assume f hf g hg eq,
-      have pi.cons s a b₁ f a (mem_cons_self _ _) = pi.cons s a b₂ g a (mem_cons_self _ _),
-        by rw [eq],
-      neb $ show b₁ = b₂, by rwa [pi.cons_same, pi.cons_same] at this) }
+  refine ⟨λ b hb, (ih hs $ λ a' h', ht a' $ mem_cons_of_mem h').map (pi_cons_injective has), _⟩,
+  refine (ht a $ mem_cons_self _ _).pairwise _,
+  from assume b₁ hb₁ b₂ hb₂ neb, disjoint_map_map.2 (assume f hf g hg eq,
+    have pi.cons s a b₁ f a (mem_cons_self _ _) = pi.cons s a b₂ g a (mem_cons_self _ _),
+      by rw [eq],
+    neb $ show b₁ = b₂, by rwa [pi.cons_same, pi.cons_same] at this)
 end
 
 @[simp]

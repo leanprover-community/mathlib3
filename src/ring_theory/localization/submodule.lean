@@ -114,6 +114,52 @@ begin
     rw [hx, ideal.submodule_span_eq, coe_submodule_span_singleton] }
 end
 
+variables {S} (M)
+lemma mem_span_iff {N : Type*} [add_comm_group N] [module R N] [module S N] [is_scalar_tower R S N]
+  {x : N} {a : set N} :
+  x ∈ submodule.span S a ↔ ∃ (y ∈ submodule.span R a) (z : M), x = mk' S 1 z • y :=
+begin
+  split, intro h,
+  { refine submodule.span_induction h _ _ _ _,
+    { rintros x hx,
+      exact ⟨x, submodule.subset_span hx, 1, by rw [mk'_one, _root_.map_one, one_smul]⟩ },
+    { exact ⟨0, submodule.zero_mem _, 1, by rw [mk'_one, _root_.map_one, one_smul]⟩ },
+    { rintros _ _ ⟨y, hy, z, rfl⟩ ⟨y', hy', z', rfl⟩,
+      refine ⟨(z' : R) • y + (z : R) • y',
+        (submodule.add_mem _ (submodule.smul_mem _ _ hy) (submodule.smul_mem _ _ hy')), z * z', _⟩,
+      rw [smul_add, ← is_scalar_tower.algebra_map_smul S (z : R),
+          ← is_scalar_tower.algebra_map_smul S (z' : R), smul_smul, smul_smul],
+      congr' 1,
+      { rw [← mul_one (1 : R), mk'_mul, mul_assoc, mk'_spec,
+            _root_.map_one, mul_one, mul_one] },
+      { rw [← mul_one (1 : R), mk'_mul, mul_right_comm, mk'_spec,
+            _root_.map_one, mul_one, one_mul] },
+      all_goals { apply_instance } },
+    { rintros a _ ⟨y, hy, z, rfl⟩,
+      obtain ⟨y', z', rfl⟩ := mk'_surjective M a,
+      refine ⟨y' • y, submodule.smul_mem _ _ hy, z' * z, _⟩,
+      rw [← is_scalar_tower.algebra_map_smul S y', smul_smul, ← mk'_mul,
+          smul_smul, mul_comm (mk' S _ _), mul_mk'_eq_mk'_of_mul],
+      all_goals { apply_instance } } },
+  { rintro ⟨y, hy, z, rfl⟩,
+    exact submodule.smul_mem _ _ (submodule.span_subset_span R S _ hy) }
+end
+
+lemma mem_span_map {x : S} {a : set R} :
+  x ∈ ideal.span (algebra_map R S '' a) ↔
+    ∃ (y ∈ ideal.span a) (z : M), x = mk' S y z :=
+begin
+  refine (mem_span_iff M).trans _,
+  split,
+  { rw ← coe_submodule_span,
+    rintros ⟨_, ⟨y, hy, rfl⟩, z, hz⟩,
+    refine ⟨y, hy, z, _⟩,
+    rw [hz, algebra.linear_map_apply, smul_eq_mul, mul_comm, mul_mk'_eq_mk'_of_mul, mul_one] },
+  { rintros ⟨y, hy, z, hz⟩,
+    refine ⟨algebra_map R S y, submodule.map_mem_span_algebra_map_image _ _ hy, z, _⟩,
+    rw [hz, smul_eq_mul, mul_comm, mul_mk'_eq_mk'_of_mul, mul_one] },
+end
+
 end is_localization
 
 namespace is_fraction_ring

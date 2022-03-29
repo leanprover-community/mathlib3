@@ -865,7 +865,7 @@ lemma is_field_of_is_integral_of_is_field'
   (H : algebra.is_integral R S) (hR : is_field R) :
   is_field S :=
 begin
-  letI := hR.to_field R,
+  letI := hR.to_field,
   refine ⟨⟨0, 1, zero_ne_one⟩, mul_comm, λ x hx, _⟩,
   let A := algebra.adjoin R ({x} : set S),
   haveI : is_noetherian R A :=

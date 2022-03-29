@@ -13,40 +13,40 @@ This file gathers the numerical facts required by the proof of Szemerédi's regu
 
 ## Main declarations
 
-* `szemeredi.exp_bound`: During the inductive step, a partition of size `n` is blown to size at most
-  `exp_bound n`.
-* `szemeredi.initial_bound`: The size of the partition we start the induction with.
-* `szemeredi.bound`: The upper bound on the size of the partition our version of Szemerédi's
-  regularity lemma produces.
+* `szemeredi_regularity.step_bound`: During the inductive step, a partition of size `n` is blown to
+  size at most `step_bound n`.
+* `szemeredi_regularity.initial_bound`: The size of the partition we start the induction with.
+* `szemeredi_regularity.bound`: The upper bound on the size of the partition produced by our version
+  of Szemerédi's regularity lemma.
 -/
 
 open finset fintype function real
 
-namespace szemeredi
+namespace szemeredi_regularity
 
 /-- Auxiliary function for Szemerédi's regularity lemma. Blowing up a partition of size `n` during
-the induction results in a partition of size at most `exp_bound n`. -/
-def exp_bound (n : ℕ) : ℕ := n * 4 ^ n
+the induction results in a partition of size at most `step_bound n`. -/
+def step_bound (n : ℕ) : ℕ := n * 4 ^ n
 
-lemma le_exp_bound : id ≤ exp_bound := λ n, nat.le_mul_of_pos_right $ pow_pos (by norm_num) n
+lemma le_step_bound : id ≤ step_bound := λ n, nat.le_mul_of_pos_right $ pow_pos (by norm_num) n
 
-lemma exp_bound_mono : monotone exp_bound :=
+lemma step_bound_mono : monotone step_bound :=
 λ a b h, nat.mul_le_mul h $ nat.pow_le_pow_of_le_right (by norm_num) h
 
-lemma exp_bound_pos_iff {n : ℕ} : 0 < exp_bound n ↔ 0 < n :=
+lemma step_bound_pos_iff {n : ℕ} : 0 < step_bound n ↔ 0 < n :=
 zero_lt_mul_right $ pow_pos (by norm_num) _
 
-alias exp_bound_pos_iff ↔ _ szemeredi.exp_bound_pos
+alias step_bound_pos_iff ↔ _ szemeredi_regularity.step_bound_pos
 
 variables {α : Type*} [decidable_eq α] [fintype α] {P : finpartition (univ : finset α)}
   {u : finset α} {ε : ℝ}
 
-local notation `m` := (card α/exp_bound P.parts.card : ℕ)
+local notation `m` := (card α/step_bound P.parts.card : ℕ)
 local notation `a` := (card α/P.parts.card - m * 4^P.parts.card : ℕ)
 
 lemma m_pos [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : 0 < m :=
 nat.div_pos ((nat.mul_le_mul_left _ $ nat.pow_le_pow_of_le_left (by norm_num) _).trans hPα) $
-  exp_bound_pos (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos
+  step_bound_pos (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos
 
 lemma m_coe_pos [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α) : (0 : ℝ) < m :=
 nat.cast_pos.2 $ m_pos hPα
@@ -70,8 +70,8 @@ lemma hundred_div_ε_pow_five_le_m [nonempty α] (hPα : P.parts.card * 16^P.par
 (div_le_of_nonneg_of_le_mul (eps_pow_five_pos hPε).le four_pow_pos.le hPε).trans
 begin
   norm_cast,
-  rwa [nat.le_div_iff_mul_le'(exp_bound_pos (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos),
-    exp_bound, mul_left_comm, ←mul_pow],
+  rwa [nat.le_div_iff_mul_le'(step_bound_pos (P.parts_nonempty $ univ_nonempty.ne_empty).card_pos),
+    step_bound, mul_left_comm, ←mul_pow],
 end
 
 lemma hundred_le_m [nonempty α] (hPα : P.parts.card * 16^P.parts.card ≤ card α)
@@ -83,7 +83,7 @@ by exact_mod_cast
 lemma a_add_one_le_four_pow_parts_card : a + 1 ≤ 4^P.parts.card :=
 begin
   have h : 1 ≤ 4^P.parts.card := one_le_pow_of_one_le (by norm_num) _,
-  rw [exp_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h, tsub_le_iff_left,
+  rw [step_bound, ←nat.div_div_eq_div_mul, nat.add_le_to_le_sub _ h, tsub_le_iff_left,
     ←nat.add_sub_assoc h],
   exact nat.le_pred_of_lt (nat.lt_div_mul_add h),
 end
@@ -98,7 +98,7 @@ lemma card_aux₂ (hP : P.is_equipartition) (hu : u ∈ P.parts)
   (4^P.parts.card - (a + 1)) * m + (a + 1) * (m + 1) = u.card :=
 begin
   have : m * 4 ^ P.parts.card ≤ card α / P.parts.card,
-  { rw [exp_bound, ←nat.div_div_eq_div_mul],
+  { rw [step_bound, ←nat.div_div_eq_div_mul],
     exact nat.div_mul_le_self _ _ },
   rw nat.add_sub_of_le this at hucard,
   rw [(hP.card_parts_eq_average hu).resolve_left hucard, mul_add, mul_one, ←add_assoc, ←add_mul,
@@ -110,7 +110,7 @@ lemma pow_mul_m_le_card_part (hP : P.is_equipartition) (hu : u ∈ P.parts) :
   (4 : ℝ) ^ P.parts.card * m ≤ u.card :=
 begin
   norm_cast,
-  rw [exp_bound, ←nat.div_div_eq_div_mul],
+  rw [step_bound, ←nat.div_div_eq_div_mul],
   exact (nat.mul_div_le _ _).trans (hP.average_le_card_part hu),
 end
 
@@ -138,12 +138,12 @@ end
 /-- An explicit bound on the size of the equipartition whose existence is given by Szemerédi's
 regularity lemma. -/
 noncomputable def bound : ℕ :=
-(exp_bound^[⌊4 / ε^5⌋₊] $ initial_bound ε l) * 16 ^ (exp_bound^[⌊4 / ε^5⌋₊] $ initial_bound ε l)
+(step_bound^[⌊4 / ε^5⌋₊] $ initial_bound ε l) * 16 ^ (step_bound^[⌊4 / ε^5⌋₊] $ initial_bound ε l)
 
 lemma initial_bound_le_bound : initial_bound ε l ≤ bound ε l :=
-(id_le_iterate_of_id_le le_exp_bound _ _).trans $ nat.le_mul_of_pos_right $ pow_pos (by norm_num) _
+(id_le_iterate_of_id_le le_step_bound _ _).trans $ nat.le_mul_of_pos_right $ pow_pos (by norm_num) _
 
 lemma le_bound : l ≤ bound ε l := (le_initial_bound ε l).trans $ initial_bound_le_bound ε l
 lemma bound_pos : 0 < bound ε l := (initial_bound_pos ε l).trans_le $ initial_bound_le_bound ε l
 
-end szemeredi
+end szemeredi_regularity

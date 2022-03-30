@@ -48,9 +48,9 @@ instance discrete_topology.order_topology_of_pred_succ' [h : discrete_topology �
 ⟨begin
   rw h.eq_bot,
   refine (eq_bot_of_singletons_open (λ a, _)).symm,
-  have h_singleton_eq_inter : {a} = Iio (order.succ a) ∩ Ioi (pred_order.pred a),
+  have h_singleton_eq_inter : {a} = Iio (succ a) ∩ Ioi (pred a),
   { suffices h_singleton_eq_inter' : {a} = Iic a ∩ Ici a,
-      by rw [h_singleton_eq_inter', ←pred_order.Ioi_pred, ←Iio_succ],
+      by rw [h_singleton_eq_inter', ←Ioi_pred, ←Iio_succ],
     rw [inter_comm, Ici_inter_Iic, Icc_self a], },
   rw h_singleton_eq_inter,
   apply is_open.inter,

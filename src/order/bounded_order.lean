@@ -118,7 +118,7 @@ or.elim (lt_or_eq_of_le le_top) (λ hlt, absurd hlt (h ⊤)) (λ he, he)
 variables [nontrivial α]
 
 lemma not_is_min_top : ¬ is_min (⊤ : α) :=
-λ h, let ⟨a, ha⟩ := exists_ne (⊤ : α) in ha.symm $ top_le_iff.1 $ h le_top
+λ h, let ⟨a, ha⟩ := exists_ne (⊤ : α) in ha $ top_le_iff.1 $ h le_top
 
 end order_top
 

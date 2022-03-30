@@ -120,7 +120,7 @@ def succ_order.of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ
   succ_order α :=
 { succ := succ,
   le_succ := λ a, (hsucc_le_iff.1 le_rfl).le,
-  max_of_succ_le := λ a ha, (lt_irrefl a (hsucc_le_iff.1 ha)).elim,
+  max_of_succ_le := λ a ha, (lt_irrefl a $ hsucc_le_iff.1 ha).elim,
   succ_le_of_lt := λ a b, hsucc_le_iff.2,
   le_of_lt_succ := λ a b h, le_of_not_lt ((not_congr hsucc_le_iff).1 h.not_le) }
 
@@ -129,7 +129,7 @@ def pred_order.of_le_pred_iff (pred : α → α) (hle_pred_iff : ∀ {a b}, a �
   pred_order α :=
 { pred := pred,
   pred_le := λ a, (hle_pred_iff.1 le_rfl).le,
-  min_of_le_pred := λ a ha, (lt_irrefl a (hle_pred_iff.1 ha)).elim,
+  min_of_le_pred := λ a ha, (lt_irrefl a $ hle_pred_iff.1 ha).elim,
   le_pred_of_lt := λ a b, hle_pred_iff.2,
   le_of_pred_lt := λ a b h, le_of_not_lt ((not_congr hle_pred_iff).1 h.not_le) }
 
@@ -170,7 +170,7 @@ lemma succ_le_iff_of_not_is_max (ha : ¬ is_max a) : succ a ≤ b ↔ a < b :=
 begin
   by_cases hb : is_max b,
   { by_cases hba : b ≤ a,
-    { exact (hb (hba.trans $ le_succ _)).trans (le_succ _) },
+    { exact (hb $ hba.trans $ le_succ _).trans (le_succ _) },
     { exact succ_le_of_lt ((h.lt_of_not_le hba).trans_le $ le_succ b) } },
   { rwa [succ_le_iff_of_not_is_max (λ ha, hb $ ha.mono h), lt_succ_iff_of_not_is_max hb] }
 end
@@ -437,7 +437,7 @@ end⟩
 section complete_lattice
 variables [complete_lattice α] [pred_order α]
 
-lemma pred_eq_supr (a : α) : pred a = ⨆ (b : α) (h : b < a), b :=
+lemma pred_eq_supr (a : α) : pred a = ⨆ b (h : b < a), b :=
 begin
   refine le_antisymm _ (supr_le (λ b, supr_le le_pred_of_lt)),
   obtain rfl | ha := eq_or_ne a ⊥,

@@ -74,6 +74,15 @@ protected def repr_aux : Π {s b : ℕ}, stars_and_bars s b → string
 instance {s b : ℕ}  : has_repr (stars_and_bars s b) :=
 ⟨λ s, "(" ++ s.repr_aux ++ ")"⟩
 
+@[simp]
+def append : Π {s₁ b₁ s₂ b₂ : ℕ} (x₁ : stars_and_bars s₁ b₁) (x₂ : stars_and_bars s₂ b₂),
+  stars_and_bars (s₂ + s₁) (b₂ + b₁)
+| _ _ _ _ nil x₂ := x₂
+| _ _ _ _ (star x₁) x₂ := (append x₁ x₂).star
+| _ _ _ _ (bar x₁) x₂ := (append x₁ x₂).bar
+
+#print list.append
+
 /-! ### Cardinality and finiteness -/
 section card
 
@@ -244,5 +253,113 @@ lemma to_list_of_list : Π {s b : ℕ} (l : {l : list bool // l.count ff = s ∧
   right_inv := to_list_of_list }
 
 end list
+
+section tuple
+
+@[elab_as_eliminator]
+lemma _root_.fin.cons_induction {n : ℕ} {α : fin n.succ → Type*} {P : (Π i : fin n.succ, α i) → Prop}
+  (h : ∀ x₀ x, P (fin.cons x₀ x)) (x : (Π i : fin n.succ, α i)) : P x :=
+fin.cons_self_tail x ▸ h (x 0) (fin.tail x)
+
+/-- The tuple corresponding to the number of consecutive stars between the bars. -/
+@[simp]
+def to_tuple : Π {s b : ℕ}, stars_and_bars s b → {f : fin b.succ → ℕ // ∑ i, f i = s}
+| _ _ nil := ⟨![0], by simp⟩
+| (nat.succ s) b (star x) :=
+  ⟨fin.cons ((to_tuple x : fin b.succ → ℕ) 0).succ (fin.tail (to_tuple x : fin b.succ → ℕ)), begin
+    generalize : to_tuple x = f,
+    cases f with f hf,
+    refine fin.cons_induction (λ x₀ x, _) f hf,
+    rintro rfl,
+    simp [nat.succ_add_eq_succ_add, nat.add_succ, fin.sum_univ_succ],
+  end⟩
+| s (nat.succ b) (bar x) := ⟨fin.cons 0 (to_tuple x), begin
+    generalize : to_tuple x = f,
+    cases f with f hf,
+    refine fin.cons_induction (λ x₀ x, _) f hf,
+    rintro rfl,
+    simp [fin.sum_univ_succ],
+  end⟩
+
+attribute [pattern] matrix.vec_cons
+
+/-- The stars and bars produced by joining `f i` stars with bars inbetween. -/
+@[simp]
+def of_tuple : Π {s b : ℕ}, {f : fin b.succ → ℕ // ∑ i, f i = s} → stars_and_bars s b
+| s 0 ⟨f, _⟩ := begin
+  convert (nil.stars s),
+  rw zero_add
+end
+| s (nat.succ b) ⟨f, hf⟩ := begin
+  rw [fin.sum_univ_succ, add_comm] at hf,
+  subst hf,
+  exact (of_tuple ⟨fin.tail f, rfl⟩).bar.stars (f 0),
+end
+
+set_option trace.check true
+
+lemma to_tuple_of_tuple : Π {s b : ℕ} (f : {f : fin b.succ → ℕ // ∑ i, f i = s}),
+  to_tuple (of_tuple f) = f
+| s 0 ⟨f, hf⟩ := begin
+  ext x,
+  dsimp,
+  rw subsingleton.elim x 0,
+  sorry
+  -- dsimp,
+  -- rw [fin.sum_univ_succ, fin.sum_univ_zero, add_zero] at hf,
+  -- rw hf,
+  -- clear hf,
+  -- generalize : cast _ (nil.stars s) = q,
+  -- cases hq : q,
+  -- { simp, },
+  -- { rw to_tuple,
+  --   simp, },
+  -- dsimp,
+  -- simp,
+end
+| s (nat.succ b) ⟨f, hf⟩ := begin
+  refine fin.cons_induction _ f hf,
+  intros x₀ x hx,
+  rw fin.sum_univ_succ at hx,
+  simp_rw [of_tuple,fin.tail_cons],
+  generalize_proofs h1 h2,
+  revert hx,
+  simp_rw fin.cons_zero,
+  simp_rw fin.cons_zero,  -- why?
+end
+
+lemma of_tuple_to_tuple : Π {s b : ℕ} (x : stars_and_bars s b),
+  of_tuple (to_tuple x) = x
+| _ _ nil := rfl
+| (nat.succ s) b (star x) := begin
+  simp,
+end
+| s (nat.succ b) (bar x) := begin
+  simp,
+  have := (of_tuple.equations._eqn_2 s b (fin.cons 0 ↑(x.to_tuple)) _),
+  swap,
+  { rw fin.sum_univ_succ,
+    simp_rw [fin.cons_zero, zero_add, fin.cons_succ],
+    exact (x.to_tuple).prop,},
+  refine this.trans _,
+  simp only [fin.tail_cons, subtype.coe_eta],
+  simp_rw fin.cons_zero,
+  -- simp_rw [fin.tail_cons] at this,
+  -- simp_rw fin.cons_zero (0 : (λ i : fin b.succ.succ, ℕ) 0) at this,
+  -- convert this using 1,
+end
+
+#print prefix stars_and_bars.of_tuple.equations
+
+/-- `stars_and_bars.to_tuple` and `stars_and_bars.of_tuple` form an equiv. -/
+def equiv_tuple {s b : ℕ} : stars_and_bars s b ≃ {f : fin b.succ → ℕ // ∑ i, f i = s} :=
+{ to_fun := _,
+  inv_fun := _,
+  left_inv := of_tuple_to_tuple,
+  right_inv := to_tuple_of_tuple }
+
+#print prefix stars_and_bars.of_tuple.equations
+
+end tuple
 
 end stars_and_bars

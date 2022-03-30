@@ -52,7 +52,7 @@ class bornology (α : Type*) :=
 /-- A constructor for bornologies by specifying the bounded sets,
 and showing that they satisfy the appropriate conditions. -/
 @[simps]
-def bornology.of_bounded' {α : Type*} (B : set (set α))
+def bornology.of_bounded {α : Type*} (B : set (set α))
   (empty_mem : ∅ ∈ B) (subset_mem : ∀ s₁ ∈ B, ∀ s₂ : set α, s₂ ⊆ s₁ → s₂ ∈ B)
   (union_mem : ∀ s₁ s₂ ∈ B, s₁ ∪ s₂ ∈ B) (singleton_mem : ∀ x, {x} ∈ B) :
   bornology α :=
@@ -73,11 +73,11 @@ def bornology.of_bounded' {α : Type*} (B : set (set α))
 /-- A constructor for bornologies by specifying the bounded sets,
 and showing that they satisfy the appropriate conditions. -/
 @[simps]
-def bornology.of_bounded {α : Type*} (B : set (set α))
+def bornology.of_bounded' {α : Type*} (B : set (set α))
   (empty_mem : ∅ ∈ B) (subset_mem : ∀ s₁ ∈ B, ∀ s₂ : set α, s₂ ⊆ s₁ → s₂ ∈ B)
   (union_mem : ∀ s₁ s₂ ∈ B, s₁ ∪ s₂ ∈ B) (sUnion_univ : ⋃₀ B = univ) :
   bornology α :=
-bornology.of_bounded' B empty_mem subset_mem union_mem
+bornology.of_bounded B empty_mem subset_mem union_mem
   begin
     rw eq_univ_iff_forall at sUnion_univ,
     intros x,

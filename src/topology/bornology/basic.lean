@@ -90,11 +90,15 @@ lemma is_cobounded_def {s : set α} : is_cobounded s ↔ s ∈ cobounded α := i
 
 lemma is_bounded_def {s : set α} : is_bounded s ↔ sᶜ ∈ cobounded α := iff.rfl
 
-lemma is_bounded_compl_iff {s : set α} : is_bounded sᶜ ↔ is_cobounded s :=
+@[simp] lemma is_bounded_compl_iff {s : set α} : is_bounded sᶜ ↔ is_cobounded s :=
 by rw [is_bounded_def, is_cobounded_def, compl_compl]
 
-@[simp]
-lemma is_bounded_empty : is_bounded (∅ : set α) :=
+@[simp] lemma is_cobounded_compl_iff {s : set α} : is_cobounded sᶜ ↔ is_bounded s := iff.rfl
+
+alias is_bounded_compl_iff ↔ bornology.is_bounded.of_compl bornology.is_cobounded.compl
+alias is_cobounded_compl_iff ↔ bornology.is_cobounded.of_compl bornology.is_bounded.compl
+
+@[simp] lemma is_bounded_empty : is_bounded (∅ : set α) :=
 by { rw [is_bounded_def, compl_empty], exact univ_mem}
 
 lemma is_bounded.union (h₁ : is_bounded s₁) (h₂ : is_bounded s₂) : is_bounded (s₁ ∪ s₂) :=
@@ -108,6 +112,16 @@ lemma sUnion_bounded_univ : (⋃₀ {s : set α | is_bounded s}) = set.univ :=
 univ_subset_iff.mp $ λ x hx, mem_sUnion_of_mem (mem_singleton x)
   $ le_def.mp (le_cofinite α) {x}ᶜ $ (set.finite_singleton x).compl_mem_cofinite
 
+lemma comap_cobounded_le_iff [bornology β] {f : α → β} :
+  (cobounded β).comap f ≤ cobounded α ↔ ∀ ⦃s⦄, is_bounded s → is_bounded (f '' s) :=
+begin
+  refine ⟨λ h s hs, _, λ h t ht,
+    ⟨(f '' tᶜ)ᶜ, h $ is_cobounded.compl ht, compl_subset_comm.1 $ subset_preimage_image _ _⟩⟩,
+  obtain ⟨t, ht, hts⟩ := h hs.compl,
+  rw [subset_compl_comm, ←preimage_compl] at hts,
+  exact (is_cobounded.compl ht).subset ((image_subset f hts).trans $ image_preimage_subset _ _),
+end
+
 end
 
 lemma ext_iff' {t t' : bornology α} :
@@ -117,6 +131,15 @@ lemma ext_iff' {t t' : bornology α} :
 lemma ext_iff_is_bounded {t t' : bornology α} :
   t = t' ↔ ∀ s, @is_bounded α t s ↔ @is_bounded α t' s :=
 ⟨λ h s, h ▸ iff.rfl, λ h, by { ext, simpa only [is_bounded_def, compl_compl] using h sᶜ, }⟩
+
+variables {s : set α}
+
+lemma is_cobounded_of_bounded_iff (B : set (set α)) {empty_mem subset_mem union_mem sUnion_univ} :
+  @is_cobounded _ (of_bounded B empty_mem subset_mem union_mem sUnion_univ) s ↔ sᶜ ∈ B := iff.rfl
+
+lemma is_bounded_of_bounded_iff (B : set (set α)) {empty_mem subset_mem union_mem sUnion_univ} :
+  @is_bounded _ (of_bounded B empty_mem subset_mem union_mem sUnion_univ) s ↔ s ∈ B :=
+by rw [is_bounded_def, ←filter.mem_sets, of_bounded_cobounded_sets, set.mem_set_of_eq, compl_compl]
 
 variables [bornology α]
 

@@ -176,7 +176,7 @@ instance : has_Inf (upper_set α) :=
 
 instance : complete_distrib_lattice (upper_set α) :=
 set_like.coe_injective.complete_distrib_lattice _
-  (λ _ _, rfl) (λ _ _, rfl) (λ _, sorry) (λ _, sorry) rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) rfl rfl
 
 instance : inhabited (upper_set α) := ⟨⊥⟩
 
@@ -222,7 +222,7 @@ instance : has_Inf (lower_set α) := ⟨λ S, ⟨⋂ s ∈ S, ↑s, is_lower_set
 
 instance : complete_distrib_lattice (lower_set α) :=
 set_like.coe_injective.complete_distrib_lattice _
-  (λ _ _, rfl) (λ _ _, rfl) (λ _, sorry) (λ _, sorry) rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _, rfl) rfl rfl
 
 instance : inhabited (lower_set α) := ⟨⊥⟩
 
@@ -339,7 +339,7 @@ by simp_rw lower_set.compl_infi
 end lower_set
 end has_le
 
-/-! #### Principal sets-/
+/-! #### Principal sets -/
 
 namespace upper_set
 section preorder

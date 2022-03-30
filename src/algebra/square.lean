@@ -3,10 +3,8 @@ Copyright (c) 2022 Kevin H. Wilson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin H. Wilson
 -/
-import data.int.sqrt
-import ring_theory.int.basic
 import algebra.parity
-import data.rat.sqrt
+import data.nat.factorization
 
 /-!
 # Square elements of monoids
@@ -34,42 +32,38 @@ variables {R : Type*}
 
 /-- An element of a monoid is squarefree if the only squares that
   divide it are the squares of units. -/
-def square [monoid R] (r : R) : Prop := ∃ x : R, x * x = r
-
-@[simp]
-lemma square_one [comm_monoid R] : square (1 : R) := ⟨1, mul_one 1⟩
-
-@[simp]
-lemma square_zero [monoid_with_zero R] : square (0 : R) := ⟨0, mul_zero 0⟩
-
 @[simp]
 lemma irreducible.not_square [comm_monoid R] {x : R} (h : irreducible x) :
-  ¬square x :=
+  ¬is_square x :=
 begin
   rintros ⟨y, hy⟩,
-  rcases h.is_unit_or_is_unit hy.symm with hu | hu;
-  rw ← hy at h;
-  exact h.not_unit (hu.mul hu)
+  rcases h.is_unit_or_is_unit hy with hu | hu;
+  rw hy at h;
+  exact h.not_unit (hu.mul hu),
 end
 
 @[simp]
 lemma prime.not_square [cancel_comm_monoid_with_zero R] {x : R} (h : prime x) :
-  ¬square x := h.irreducible.not_square
-
-/-- The product of squares is a square. For a partial converse, see `nat.square_mul` -/
-lemma square_mul_of_square_of_square {R : Type*} [comm_monoid R] {m n : R} :
-  square m → square n → square (m * n) :=
-λ ⟨c, hc⟩ ⟨d, hd⟩, ⟨c * d, by assoc_rw [mul_comm d c, hc, hd]⟩
+  ¬is_square x := h.irreducible.not_square
 
 section factorization
 
 namespace nat
 
-instance : decidable_pred (square : ℕ → Prop)
-| n := decidable_of_iff' _ (nat.exists_mul_self n)
+instance : decidable_pred (is_square : ℕ → Prop)
+| n :=
+begin
+  convert decidable_of_iff' _ (nat.exists_mul_self n),
+  unfold is_square,
+  congr,
+  ext,
+  split,
+  { intros h, simp [h], },
+  { intros h, simp [h],},
+end
 
 lemma square_iff_factorization_even {m : ℕ} :
-  square m ↔ ∀ (p : ℕ), even (m.factorization p) :=
+  is_square m ↔ ∀ (p : ℕ), even (m.factorization p) :=
 begin
   rcases eq_or_ne m 0 with rfl | hm_zero,
   { simp, },

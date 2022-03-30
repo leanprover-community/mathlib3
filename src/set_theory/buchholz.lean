@@ -262,7 +262,7 @@ begin
     apply le_trans (mk_Union_le _) _,
     rw mk_nat,
     refine le_trans (mul_le_max _ _) (max_le (max_le (omega_le_aleph v) _) (omega_le_aleph v)),
-    { rw cardinal.sup_le,
+    { rw cardinal.sup_le_iff,
       exact mk_height_le_aleph v } },
   { induction v with v hv,
     { convert cardinal.mk_le_of_injective add_iterate.inj, simp },
@@ -279,7 +279,7 @@ def well_formed {o : ordinal} (v : ℕ) (Ψ : Π a, a < o → ℕ → ordinal) :
 
 theorem lt_Omega'_well_formed {o : ordinal} (v : ℕ) (Ψ : Π a, a < o → ℕ → ordinal)
   (a : (Omega v).ord.out.α) : lt_Omega' a ∈ well_formed v Ψ :=
-(rfl : well_formed v Ψ (lt_Omega' a))
+by exact rfl
 
 theorem lt_Omega_well_formed {o : ordinal} (v : ℕ) (Ψ : Π a, a < o → ℕ → ordinal)
   {a : ordinal} (ha : a < (Omega v).ord) : lt_Omega ha ∈ well_formed v Ψ :=
@@ -473,7 +473,7 @@ theorem buchholz_zero (v : ℕ) : buchholz 0 v = (Omega v).ord :=
 begin
   refine le_antisymm _ (Omega_le_buchholz 0 v),
   rw buchholz_def,
-  exact (mex_le_lsub _).trans (lsub_le.2 (buchholz_exp.value_zero rfl _))
+  exact (mex_le_lsub _).trans (lsub_le (buchholz_exp.value_zero rfl _))
 end
 
 theorem principal_add_buchholz (o : ordinal) (v : ℕ) : principal (+) (buchholz o v) :=

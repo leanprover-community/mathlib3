@@ -15,7 +15,7 @@ non-zero element.
 -/
 
 
-namespace topological_semiring
+namespace topological_ring
 open topological_space function
 variables (R : Type*) [semiring R]
 
@@ -61,7 +61,7 @@ instance top_monoid_units [topological_semiring R] [induced_units R] :
   rw ← continuous_iff_le_induced,
   exact continuous_mul,
 end⟩
-end topological_semiring
+end topological_ring
 
 variables (K : Type*) [division_ring K] [topological_space K]
 
@@ -112,7 +112,7 @@ end topological_division_ring
 section affine_homeomorph
 /-!
 This section is about affine homeomorphisms from a topological field `𝕜` to itself.
-Technically it does not require `𝕜` to be a topological field, a topological semiring that
+Technically it does not require `𝕜` to be a topological field, a topological ring that
 happens to be a field is enough.
 -/
 variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜] [topological_ring 𝕜]

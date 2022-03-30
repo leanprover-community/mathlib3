@@ -596,7 +596,7 @@ theorem coe_le [has_le α] {a b : α} :
 
 @[norm_cast]
 lemma coe_lt_coe [has_lt α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
-lemma not_coe_le_bot [preorder α] (a : α) : ¬ (a : with_bot α) ≤ ⊥ := (bot_lt_coe _).not_le
+lemma not_coe_le_bot [preorder α] (a : α) : ¬ (a : with_bot α) ≤ ⊥ := (bot_lt_coe a).not_le
 
 lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.get_or_else b
 | (some a) b := le_refl a
@@ -730,7 +730,7 @@ instance [has_lt α] [no_max_order α] [nonempty α] : no_max_order (with_bot α
     exact ⟨b, with_bot.coe_lt_coe.mpr ha⟩, }
 end⟩
 
-protected lemma _root_.is_max.with_bot [has_le α] (h : is_max a) : is_max (a : with_bot α)
+protected lemma _root_.is_max.with_bot [has_le α] {a : α} (h : is_max a) : is_max (a : with_bot α)
 | none _ := bot_le
 | (some b) hb := some_le_some.2 $ h $ some_le_some.1 hb
 
@@ -881,7 +881,7 @@ theorem coe_lt_iff [preorder α] {a : α} : ∀{x : with_top α}, ↑a < x ↔ (
 | (some b) := by simp [some_eq_coe, coe_eq_coe, coe_lt_coe]
 | none     := by simp [none_eq_top, coe_lt_top]
 
-lemma not_top_le_coe [preorder α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a := (coe_lt_top _).not_le
+lemma not_top_le_coe [preorder α] (a : α) : ¬ (⊤ : with_top α) ≤ ↑a := (coe_lt_top a).not_le
 
 instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=
 λ x y, @with_bot.decidable_le (order_dual α) _ _ y x
@@ -998,7 +998,7 @@ instance [has_lt α] [no_min_order α] [nonempty α] : no_min_order (with_top α
     exact ⟨b, with_top.coe_lt_coe.mpr ha⟩, }
 end⟩
 
-protected lemma _root_.is_min.with_top [has_le α] (h : is_min a) : is_min (a : with_top α)
+protected lemma _root_.is_min.with_top [has_le α] {a : α} (h : is_min a) : is_min (a : with_top α)
 | none _ := le_top
 | (some b) hb := some_le_some.2 $ h $ some_le_some.1 hb
 

@@ -488,6 +488,10 @@ finprod_mem_mul_distrib' (hs.inter_of_left _) (hs.inter_of_left _)
   g (∏ᶠ i, f i) = ∏ᶠ i, g (f i) :=
 g.map_finprod_plift f $ hf.preimage $ equiv.plift.injective.inj_on _
 
+@[to_additive] lemma finprod_pow (hf : (mul_support f).finite) (n : ℕ) :
+  (∏ᶠ i, f i) ^ n = ∏ᶠ i, f i ^ n :=
+(pow_monoid_hom n).map_finprod hf
+
 /-- A more general version of `monoid_hom.map_finprod_mem` that requires `s ∩ mul_support f` rather
 than `s` to be finite. -/
 @[to_additive "A more general version of `add_monoid_hom.map_finsum_mem` that requires

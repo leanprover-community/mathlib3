@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
 import data.sum.order
+import logic.small
 import order.succ_pred.basic
 import set_theory.cardinal
 
@@ -1387,6 +1388,18 @@ theorem lt_univ' {c} : c < univ.{u v} ↔ ∃ c', c = lift.{(max (u+1) v) u} c' 
   rcases lt_univ.{u}.1 h' with ⟨c', rfl⟩,
   exact ⟨c', by simp only [e.symm, lift_lift]⟩
 end, λ ⟨c', e⟩, e.symm ▸ lift_lt_univ' _⟩
+
+theorem small_iff_lift_mk_lt_univ {α : Type u} :
+  small.{v} α ↔
+  (cardinal.lift (# α : cardinal.{u}) < univ.{v (max u (v + 1))}) :=
+begin
+  rw lt_univ',
+  split,
+  { rintro ⟨β, e⟩,
+    exact ⟨# β, (lift_mk_eq.{u _ (v + 1)}.2 e)⟩ },
+  { rintro ⟨c, hc⟩,
+    exact ⟨⟨c.out, lift_mk_eq.{u _ (v + 1)}.1 (hc.trans (congr rfl c.mk_out.symm))⟩⟩ }
+end
 
 end cardinal
 

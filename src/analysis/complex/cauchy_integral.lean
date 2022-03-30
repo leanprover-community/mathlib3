@@ -149,8 +149,7 @@ noncomputable theory
 
 universes u
 
-variables {E : Type u} [normed_group E] [normed_space ℂ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E]
+variables {E : Type u} [normed_group E] [normed_space ℂ E] [complete_space E]
 
 namespace complex
 

@@ -26,7 +26,7 @@ of topological (semi)rings.
 - `pi.topological_semiring`/`pi.topological_ring`: The arbitrary product of topological
   (semi)rings.
 - `ideal.closure`: The closure of an ideal is an ideal.
-- `topological_semiring_quotient`: The quotient of a topological semiring by an ideal is a
+- `topological_ring_quotient`: The quotient of a topological semiring by an ideal is a
   topological ring.
 
 -/

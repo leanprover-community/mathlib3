@@ -38,7 +38,13 @@ section topological_semiring
 variables (α : Type*)
 
 /-- a topological semiring is a semiring `R` where addition and multiplication are continuous.
-We allow for non-unital and non-associative semirings as well. -/
+We allow for non-unital and non-associative semirings as well.
+
+The `topological_semiring` class should *only* be instantiated in the presence of a
+`non_unital_non_assoc_semiring` instance; if there is an instance of `non_unital_non_assoc_ring`,
+then `topological_ring` should be used. Note: in the presence of `non_assoc_ring`, these classes are
+mathematically equivalent (see `topological_semiring.has_continuous_neg_of_mul` or
+`topological_semiring.to_topological_ring`).  -/
 class topological_semiring [topological_space α] [non_unital_non_assoc_semiring α]
   extends has_continuous_add α, has_continuous_mul α : Prop
 

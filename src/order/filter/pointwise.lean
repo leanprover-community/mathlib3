@@ -44,35 +44,14 @@ Add missing operations: subtraction/division, negation/inversion, scalar multipl
 filter multiplication, filter addition, pointwise addition, pointwise multiplication,
 -/
 
-section move
-section logic
-variables {α : Sort*} {β : α → Sort*} {γ : Π a, β a → Sort*}
-
-lemma Exists₃.imp {p q : Π a b, γ a b → Prop} (h : ∀ a b c, p a b c → q a b c) :
-  (∃ a b c, p a b c) → ∃ a b c, q a b c :=
-Exists.imp $ λ a, Exists₂.imp $ h a
-
-end logic
-
-variables {F α β γ δ : Type*}
-
 namespace set
 open_locale pointwise
 open function
 
+variables {F α β γ δ : Type*}
+
 lemma le_iff_subset {s t : set α} : s ≤ t ↔ s ⊆ t := iff.rfl
 
-/-- A multiplicative action of a monoid on a type β gives also a
- multiplicative action on the subsets of β. -/
-@[to_additive "An additive action of an additive monoid on a type β gives also an additive action
-on the subsets of β."]
-protected def mul_action [monoid α] [mul_action α β] : mul_action (set α) (set β) :=
-{ mul_smul := λ _ _ _, image2_assoc mul_smul,
-  one_smul := λ s, image2_singleton_left.trans $ by simp_rw [one_smul, image_id'] }
-
-localized "attribute [instance] set.mul_action set.add_action" in pointwise
-
-section image2
 variables {f : α → β → γ} {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
 
 -- lemma image2_subset_image2_iff {f : α → β → γ} (hf : injective2 f) :
@@ -93,22 +72,7 @@ ball_image_of_ball $ λ a ha, mem_image2_of_mem ha hb
 lemma image_subset_image2_right (ha : a ∈ s) : f a '' t ⊆ image2 f s t :=
 ball_image_of_ball $ λ b, mem_image2_of_mem ha
 
-@[simp] lemma image2_nonempty_iff : (image2 f s t).nonempty ↔ s.nonempty ∧ t.nonempty :=
-⟨λ ⟨_, a, b, ha, hb, _⟩, ⟨⟨a, ha⟩, b, hb⟩, λ h, h.1.image2 h.2⟩
-
-@[simp] lemma image2_eq_empty_iff : image2 f s t = ∅ ↔ s = ∅ ∨ t = ∅ :=
-by simp_rw [←not_nonempty_iff_eq_empty, image2_nonempty_iff, not_and_distrib]
-
-end image2
-
-variables {f : α → β → γ → δ} {s s₁ s₂ : set α} {t t₁ t₂ : set β} {u u₁ u₂ : set γ} {a : α} {b : β}
-
-lemma image3_mono (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) (hu : u₁ ⊆ u₂) :
-  image3 f s₁ t₁ u₁ ⊆ image3 f s₂ t₂ u₂ :=
-λ x, Exists₃.imp $ λ a b c ⟨ha, hb, hc, hx⟩, ⟨hs ha, ht hb, hu hc, hx⟩
-
 end set
-end move
 
 open function set
 open_locale filter pointwise

@@ -258,7 +258,7 @@ lemma mul_le_iff_le_one_right
 iff.trans (by rw [mul_one]) (mul_le_mul_iff_left a0)
 
 @[simp]
-lemma mul_lt_iff_lt_one_left
+lemma mul_lt_iff_lt_one_right
   [pos_mul_strict_mono α] [pos_mul_reflect_lt α]
   (a0 : 0 < a) :
   a * b < a ↔ b < 1 :=
@@ -289,7 +289,7 @@ lemma mul_le_iff_le_one_left
 iff.trans (by rw [one_mul]) (mul_le_mul_iff_right b0)
 
 @[simp]
-lemma mul_lt_iff_lt_one_right
+lemma mul_lt_iff_lt_one_left
   [mul_pos_strict_mono α] [mul_pos_reflect_lt α]
   (b0 : 0 < b) :
   a * b < b ↔ a < 1 :=
@@ -514,7 +514,7 @@ variables [linear_order α]
 
 -- proven with `a0 : 0 ≤ a` as `exists_square_le'`
 lemma exists_square_le [pos_mul_strict_mono α]
-  (a : α) (a0 : 0 < a) : ∃ (b : α), b * b ≤ a :=
+  (a0 : 0 < a) : ∃ (b : α), b * b ≤ a :=
 begin
   by_cases h : a < 1,
   { use a,
@@ -595,8 +595,8 @@ section linear_order
 variables [linear_order α]
 
 lemma exists_square_le' [pos_mul_strict_mono α]
-  (a : α) (a0 : 0 ≤ a) : ∃ (b : α), b * b ≤ a :=
-a0.lt_or_eq.elim (exists_square_le a) (λ h, by rw [← h]; exact ⟨0, by simp⟩)
+  (a0 : 0 ≤ a) : ∃ (b : α), b * b ≤ a :=
+a0.lt_or_eq.elim exists_square_le (λ h, by rw [← h]; exact ⟨0, by simp⟩)
 
 end linear_order
 

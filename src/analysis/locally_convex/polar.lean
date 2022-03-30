@@ -25,6 +25,7 @@ any bilinear form `B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜`, where `𝕜` is a no
 
 * `linear_map.polar_eq_Inter`: The polar as an intersection.
 * `linear_map.subset_bipolar`: The polar is a subset of the bipolar.
+* `linear_map.polar_weak_closed`: The polar is closed in the weak topology induced by `B.flip`.
 
 ## References
 
@@ -99,6 +100,15 @@ begin
   exact B.flip_flip.symm,
 end
 
+/-- The polar set is closed in the weak topology induced by `B.flip`. -/
+lemma polar_weak_closed (s : set E) :
+  @is_closed _ (weak_bilin.topological_space B.flip) (B.polar s) :=
+begin
+  rw polar_eq_Inter,
+  refine is_closed_Inter (λ x, is_closed_Inter (λ _, _)),
+  exact is_closed_le (eval_continuous B.flip x).norm continuous_const,
+end
+
 end normed_ring
 
 section nondiscrete_normed_field
@@ -119,15 +129,6 @@ begin
       mul_inv_cancel_left₀ hc.ne']
   ... ≤ ε * 1 : mul_le_mul hcε.le (hy _ trivial) (norm_nonneg _) hε.le
   ... = ε : mul_one _
-end
-
-/-- The polar set is closed in the weak topology induced by `B.flip`. -/
-lemma polar_weak_closed (s : set E) :
-  @is_closed _ (weak_bilin.topological_space B.flip) (B.polar s) :=
-begin
-  rw polar_eq_Inter,
-  refine is_closed_Inter (λ x, is_closed_Inter (λ _, _)),
-  exact is_closed_le (eval_continuous B.flip x).norm continuous_const,
 end
 
 end nondiscrete_normed_field

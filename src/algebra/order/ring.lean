@@ -1317,12 +1317,6 @@ lemma self_dvd_abs (a : α) : a ∣ |a| :=
 lemma abs_dvd_abs (a b : α) : |a| ∣ |b| ↔ a ∣ b :=
 (abs_dvd _ _).trans (dvd_abs _ _)
 
-lemma even_abs {a : α} : even (|a|) ↔ even a :=
-dvd_abs _ _
-
-lemma odd_abs {a : α} : odd (abs a) ↔ odd a :=
-by { cases abs_choice a with h h; simp only [h, odd_neg] }
-
 end
 
 section linear_ordered_comm_ring

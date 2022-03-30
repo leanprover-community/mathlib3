@@ -13,7 +13,7 @@ import analysis.analytic.basic
 
 In this file we define `∮ z in C(c, R), f z` to be the integral $\oint_{|z-c|=|R|} f(z)\,dz$ and
 prove some properties of this integral. We give definition and prove most lemmas for a function
-`f : ℂ → E`, where `E` is a complex Banach space with second countable topology. For this reason,
+`f : ℂ → E`, where `E` is a complex Banach space. For this reason,
 some lemmas use, e.g., `(z - c)⁻¹ • f z` instead of `f z / (z - c)`.
 
 ## Main definitions
@@ -65,7 +65,7 @@ some lemmas use, e.g., `(z - c)⁻¹ • f z` instead of `f z / (z - c)`.
 integral, circle, Cauchy integral
 -/
 
-variables {E : Type*} [measurable_space E] [normed_group E]
+variables {E : Type*} [normed_group E]
 
 noncomputable theory
 
@@ -183,22 +183,21 @@ namespace circle_integrable
 
 variables {f g : ℂ → E} {c : ℂ} {R : ℝ}
 
-lemma add [borel_space E] [second_countable_topology E]
-  (hf : circle_integrable f c R) (hg : circle_integrable g c R) :
+lemma add (hf : circle_integrable f c R) (hg : circle_integrable g c R) :
   circle_integrable (f + g) c R :=
 hf.add hg
 
-lemma neg [borel_space E] (hf : circle_integrable f c R) : circle_integrable (-f) c R := hf.neg
+lemma neg (hf : circle_integrable f c R) : circle_integrable (-f) c R := hf.neg
 
 /-- The function we actually integrate over `[0, 2π]` in the definition of `circle_integral` is
 integrable. -/
-lemma out [borel_space E] [normed_space ℂ E] [second_countable_topology E]
-  (hf : circle_integrable f c R) :
+lemma out [normed_space ℂ E] (hf : circle_integrable f c R) :
   interval_integrable (λ θ : ℝ, deriv (circle_map c R) θ • f (circle_map c R θ)) volume 0 (2 * π) :=
 begin
   simp only [circle_integrable, deriv_circle_map, interval_integrable_iff] at *,
   refine (hf.norm.const_mul (|R|)).mono' _ _,
-  { exact (((continuous_circle_map _ _).ae_measurable _).mul_const I).smul hf.ae_measurable },
+  { exact ((continuous_circle_map _ _).ae_strongly_measurable.mul_const I).smul
+      hf.ae_strongly_measurable },
   { simp [norm_smul] }
 end
 
@@ -207,7 +206,7 @@ end circle_integrable
 @[simp] lemma circle_integrable_zero_radius {f : ℂ → E} {c : ℂ} : circle_integrable f c 0 :=
 by simp [circle_integrable]
 
-lemma circle_integrable_iff [borel_space E] [normed_space ℂ E] [second_countable_topology E]
+lemma circle_integrable_iff [normed_space ℂ E]
   {f : ℂ → E} {c : ℂ} {R : ℝ} (h₀ : R ≠ 0) : circle_integrable f c R ↔
   interval_integrable (λ θ : ℝ, deriv (circle_map c R) θ • f (circle_map c R θ)) volume 0 (2 * π) :=
 begin
@@ -216,17 +215,18 @@ begin
   refine (h.norm.const_mul (|R|⁻¹)).mono' _ _,
   { have H : ∀ {θ}, circle_map 0 R θ * I ≠ 0 := λ θ, by simp [h₀, I_ne_zero],
     simpa only [inv_smul_smul₀ H]
-      using (((continuous_circle_map 0 R).ae_measurable _).mul_const I).inv.smul h.ae_measurable },
+      using (((continuous_circle_map 0 R).ae_strongly_measurable).mul_const I).ae_measurable
+        .inv.ae_strongly_measurable.smul h.ae_strongly_measurable },
   { simp [norm_smul, h₀] },
 end
 
-lemma continuous_on.circle_integrable' [borel_space E] {f : ℂ → E} {c : ℂ} {R : ℝ}
+lemma continuous_on.circle_integrable' {f : ℂ → E} {c : ℂ} {R : ℝ}
   (hf : continuous_on f (sphere c (|R|))) :
   circle_integrable f c R :=
 (hf.comp_continuous (continuous_circle_map _ _)
   (circle_map_mem_sphere' _ _)).interval_integrable _ _
 
-lemma continuous_on.circle_integrable [borel_space E] {f : ℂ → E} {c : ℂ} {R : ℝ} (hR : 0 ≤ R)
+lemma continuous_on.circle_integrable {f : ℂ → E} {c : ℂ} {R : ℝ} (hR : 0 ≤ R)
   (hf : continuous_on f (sphere c R)) :
   circle_integrable f c R :=
 continuous_on.circle_integrable' $ (_root_.abs_of_nonneg hR).symm ▸ hf
@@ -268,7 +268,7 @@ end
   circle_integrable (λ z, (z - w)⁻¹) c R ↔ R = 0 ∨ w ∉ sphere c (|R|) :=
 by { simp only [← zpow_neg_one, circle_integrable_sub_zpow_iff], norm_num }
 
-variables [normed_space ℂ E] [complete_space E] [borel_space E] [second_countable_topology E]
+variables [normed_space ℂ E] [complete_space E]
 
 /-- Definition for $\oint_{|z-c|=R} f(z)\,dz$. -/
 def circle_integral (f : ℂ → E) (c : ℂ) (R : ℝ) : E :=
@@ -497,7 +497,9 @@ begin
     from ⟨div_nonneg (abs_nonneg w) hR.le, (div_lt_one hR).2 hw⟩,
   refine interval_integral.has_sum_integral_of_dominated_convergence
     (λ n θ, ∥f (circle_map c R θ)∥ * (abs w / R) ^ n) (λ n, _) (λ n, _) _ _ _,
-  { simp only [deriv_circle_map], have := hf.def.1, measurability },
+  { simp only [deriv_circle_map],
+    apply_rules [ae_strongly_measurable.smul, hf.def.1];
+    { apply measurable.ae_strongly_measurable, measurability } },
   { simp [norm_smul, abs_of_pos hR, mul_left_comm R, mul_inv_cancel_left₀ hR.ne', mul_comm (∥_∥)] },
   { exact eventually_of_forall (λ _ _, (summable_geometric_of_lt_1 hwR.1 hwR.2).mul_left _) },
   { simpa only [tsum_mul_left, tsum_geometric_of_lt_1 hwR.1 hwR.2]

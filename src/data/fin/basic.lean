@@ -94,6 +94,10 @@ localized "attribute [instance] fact.bit1.pos" in fin_fact
 localized "attribute [instance] fact.pow.pos" in fin_fact
 
 namespace fin
+
+/-- A non-dependent variant of `elim0`. -/
+def elim0' {α : Sort*} (x : fin 0) : α := x.elim0
+
 variables {n m : ℕ} {a b : fin n}
 
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨subtype.val⟩

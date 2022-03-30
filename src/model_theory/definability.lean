@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import data.set_like.basic
-import data.equiv.fintype
-import model_theory.terms_and_formulas
+import logic.equiv.fintype
+import model_theory.semantics
 
 /-!
 # Definable Sets
@@ -58,15 +58,8 @@ end
 lemma empty_definable_iff :
   (∅ : set M).definable L s ↔ ∃ (φ : L.formula α), s = set_of φ.realize :=
 begin
-  split,
-  { rintro ⟨φ, rfl⟩,
-    refine ⟨(L.Lhom_trim_empty_constants (∅ : set M)).on_formula φ, _⟩,
-    ext x,
-    simp only [mem_set_of_eq, Lhom.realize_on_formula], },
-  { rintro ⟨φ, rfl⟩,
-    refine ⟨(L.Lhom_with_constants (∅ : set M)).on_formula φ, _⟩,
-    ext x,
-    simp only [mem_set_of_eq, Lhom.realize_on_formula], }
+  rw [definable, equiv.exists_congr_left (Lequiv.add_empty_constants L (∅ : set M)).on_formula],
+  simp,
 end
 
 lemma definable_iff_empty_definable_with_params :

@@ -375,6 +375,12 @@ instance : comm_semiring cardinal.{u} :=
   npow_zero'    := @power_zero,
   npow_succ'    := λ n c, by rw [nat.cast_succ, power_add, power_one, cardinal.mul_comm] }
 
+theorem power_bit0 (a b : cardinal) : a ^ (bit0 b) = a ^ b * a ^ b :=
+power_add
+
+theorem power_bit1 (a b : cardinal) : a ^ (bit1 b) = a ^ b * a ^ b * a :=
+by rw [bit1, ←power_bit0, power_add, power_one]
+
 @[simp] theorem one_power {a : cardinal} : 1 ^ a = 1 :=
 induction_on a $ assume α, (equiv.arrow_punit_equiv_punit α).cardinal_eq
 
@@ -1025,6 +1031,22 @@ by rw [to_nat_apply_of_lt_omega h, ← classical.some_spec (lt_omega.1 h)]
 lemma cast_to_nat_of_omega_le {c : cardinal} (h : ω ≤ c) :
   ↑c.to_nat = (0 : cardinal) :=
 by rw [to_nat_apply_of_omega_le h, nat.cast_zero]
+
+lemma to_nat_le_iff_le_of_lt_omega {c d : cardinal} (hc : c < ω) (hd : d < ω) :
+  c.to_nat ≤ d.to_nat ↔ c ≤ d :=
+by rw [←nat_cast_le, cast_to_nat_of_lt_omega hc, cast_to_nat_of_lt_omega hd]
+
+lemma to_nat_lt_iff_lt_of_lt_omega {c d : cardinal} (hc : c < ω) (hd : d < ω) :
+  c.to_nat < d.to_nat ↔ c < d :=
+by rw [←nat_cast_lt, cast_to_nat_of_lt_omega hc, cast_to_nat_of_lt_omega hd]
+
+lemma to_nat_le_of_le_of_lt_omega {c d : cardinal} (hd : d < ω) (hcd : c ≤ d) :
+  c.to_nat ≤ d.to_nat :=
+(to_nat_le_iff_le_of_lt_omega (lt_of_le_of_lt hcd hd) hd).mpr hcd
+
+lemma to_nat_lt_of_lt_of_lt_omega {c d : cardinal} (hd : d < ω) (hcd : c < d) :
+  c.to_nat < d.to_nat :=
+(to_nat_lt_iff_lt_of_lt_omega (hcd.trans hd) hd).mpr hcd
 
 @[simp]
 lemma to_nat_cast (n : ℕ) : cardinal.to_nat n = n :=

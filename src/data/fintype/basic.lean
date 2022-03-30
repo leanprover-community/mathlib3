@@ -404,11 +404,11 @@ by { rw ← subtype_card s H, congr }
 def of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : fintype p :=
 fintype.subtype s H
 
-theorem card_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) :
+@[simp] theorem card_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) :
   @fintype.card p (of_finset s H) = s.card :=
 fintype.subtype_card s H
 
-@[simp] theorem card_of_finset' {p : set α} (s : finset α)
+theorem card_of_finset' {p : set α} (s : finset α)
   (H : ∀ x, x ∈ s ↔ x ∈ p) [fintype p] : fintype.card p = s.card :=
 by rw ←card_of_finset s H; congr
 

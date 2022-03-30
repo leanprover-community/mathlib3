@@ -127,15 +127,30 @@ def subsemiring.comm_semiring_topological_closure [t2_space α] (s : subsemiring
   (hs : ∀ (x y : s), x * y = y * x) : comm_semiring s.topological_closure :=
 { ..s.topological_closure.to_semiring,
   ..s.to_submonoid.comm_monoid_topological_closure hs }
+end
+
+section
+variables {β : Type*} [topological_space α] [topological_space β]
 
 /-- The product topology on the cartesian product of two topological semirings
   makes the product into a topological semiring. -/
-instance {β : Type*} [semiring β] [topological_space β] [topological_semiring β] :
-  topological_semiring (α × β) := {}
+instance [non_unital_non_assoc_semiring α] [non_unital_non_assoc_semiring β]
+  [topological_semiring α] [topological_semiring β] : topological_semiring (α × β) := {}
+
+/-- The product topology on the cartesian product of two topological rings
+  makes the product into a topological ring. -/
+instance [non_unital_non_assoc_ring α] [non_unital_non_assoc_ring β]
+  [topological_ring α] [topological_ring β] : topological_ring (α × β) := {}
+
+end
 
 instance {β : Type*} {C : β → Type*} [∀ b, topological_space (C b)]
-  [Π b, semiring (C b)] [Π b, topological_semiring (C b)] : topological_semiring (Π b, C b) := {}
-end
+  [Π b, non_unital_non_assoc_semiring (C b)]
+  [Π b, topological_semiring (C b)] : topological_semiring (Π b, C b) := {}
+
+instance {β : Type*} {C : β → Type*} [∀ b, topological_space (C b)]
+  [Π b, non_unital_non_assoc_ring (C b)]
+  [Π b, topological_ring (C b)] : topological_ring (Π b, C b) := {}
 
 section
 variables {R : Type*} [ring R] [topological_space R]

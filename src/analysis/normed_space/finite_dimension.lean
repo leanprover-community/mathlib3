@@ -7,6 +7,7 @@ import analysis.asymptotics.asymptotic_equivalent
 import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
 import analysis.normed_space.riesz_lemma
+import analysis.matrix
 import linear_algebra.matrix.to_lin
 import topology.algebra.matrix
 

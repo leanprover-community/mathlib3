@@ -152,13 +152,6 @@ lemma add_apply : (D1 + D2) a = D1 a + D2 a := rfl
 
 instance : inhabited (derivation R A M) := ⟨0⟩
 
-instance : add_comm_monoid (derivation R A M) :=
-coe_injective.add_comm_monoid _ coe_zero coe_add
-
-/-- `coe_fn` as an `add_monoid_hom`. -/
-def coe_fn_add_monoid_hom : derivation R A M →+ (A → M) :=
-{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
-
 section scalar
 
 variables {S : Type*} [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
@@ -176,6 +169,13 @@ instance : has_scalar S (derivation R A M) :=
 @[simp] lemma coe_smul_linear_map (r : S) (D : derivation R A M) :
   ↑(r • D) = (r • D : A →ₗ[R] M) := rfl
 lemma smul_apply (r : S) (D : derivation R A M) : (r • D) a = r • D a := rfl
+
+instance : add_comm_monoid (derivation R A M) :=
+coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, rfl)
+
+/-- `coe_fn` as an `add_monoid_hom`. -/
+def coe_fn_add_monoid_hom : derivation R A M →+ (A → M) :=
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
 
 @[priority 100]
 instance : distrib_mul_action S (derivation R A M) :=
@@ -296,7 +296,7 @@ rfl
 lemma sub_apply : (D1 - D2) a = D1 a - D2 a := rfl
 
 instance : add_comm_group (derivation R A M) :=
-coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
+coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 end
 

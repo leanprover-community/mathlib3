@@ -39,8 +39,7 @@ variables [comm_semiring R] {p q : R[X]}
 
 lemma multiplicity_finite_of_degree_pos_of_monic (hp : (0 : with_bot ℕ) < degree p)
   (hmp : monic p) (hq : q ≠ 0) : multiplicity.finite p q :=
-have zn0 : (0 : R) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one h;
-  exact hq (subsingleton.elim _ _),
+have zn0 : (0 : R) ≠ 1, by haveI := nontrivial.of_polynomial_ne hq; exact zero_ne_one,
 ⟨nat_degree q, λ ⟨r, hr⟩,
   have hp0 : p ≠ 0, from λ hp0, by simp [hp0] at hp; contradiction,
   have hr0 : r ≠ 0, from λ hr0, by simp * at *,
@@ -256,11 +255,7 @@ end
 theorem nat_degree_div_by_monic {R : Type u} [comm_ring R] (f : R[X]) {g : R[X]}
   (hg : g.monic) : nat_degree (f /ₘ g) = nat_degree f - nat_degree g :=
 begin
-  by_cases h01 : (0 : R) = 1,
-  { haveI := subsingleton_of_zero_eq_one h01,
-    rw [subsingleton.elim (f /ₘ g) 0, subsingleton.elim f 0, subsingleton.elim g 0,
-        nat_degree_zero] },
-  haveI : nontrivial R := ⟨⟨0, 1, h01⟩⟩,
+  nontriviality R,
   by_cases hfg : f /ₘ g = 0,
   { rw [hfg, nat_degree_zero], rw div_by_monic_eq_zero_iff hg at hfg,
     rw tsub_eq_zero_iff_le.mpr (nat_degree_le_nat_degree $ le_of_lt hfg) },
@@ -305,7 +300,7 @@ begin
   nontriviality S,
   haveI : nontrivial R := f.domain_nontrivial,
   have : map f p /ₘ map f q = map f (p /ₘ q) ∧ map f p %ₘ map f q = map f (p %ₘ q),
-  { exact (div_mod_by_monic_unique ((p /ₘ q).map f) _ (monic_map f hq)
+  { exact (div_mod_by_monic_unique ((p /ₘ q).map f) _ (hq.map f)
       ⟨eq.symm $ by rw [← map_mul, ← map_add, mod_by_monic_add_div _ hq],
       calc _ ≤ degree (p %ₘ q) : degree_map_le _ _
       ... < degree q : degree_mod_by_monic_lt _ hq
@@ -346,7 +341,7 @@ end⟩
 theorem map_dvd_map [comm_ring S] (f : R →+* S) (hf : function.injective f) {x y : R[X]}
   (hx : x.monic) : x.map f ∣ y.map f ↔ x ∣ y :=
 begin
-  rw [← dvd_iff_mod_by_monic_eq_zero hx, ← dvd_iff_mod_by_monic_eq_zero (monic_map f hx),
+  rw [← dvd_iff_mod_by_monic_eq_zero hx, ← dvd_iff_mod_by_monic_eq_zero (hx.map f),
     ← map_mod_by_monic f hx],
   exact ⟨λ H, map_injective f hf $ by rw [H, map_zero],
   λ H, by rw [H, map_zero]⟩
@@ -409,12 +404,38 @@ begin
   ... = p.sum f : p.sum_def _
 end
 
-lemma sum_mod_by_monic_coeff [nontrivial R] (hq : q.monic)
-  {n : ℕ} (hn : q.degree ≤ n) :
+lemma sum_mod_by_monic_coeff (hq : q.monic) {n : ℕ} (hn : q.degree ≤ n) :
   ∑ (i : fin n), monomial i ((p %ₘ q).coeff i) = p %ₘ q :=
-(sum_fin (λ i c, monomial i c) (by simp)
-  ((degree_mod_by_monic_lt _ hq).trans_le hn)).trans
-  (sum_monomial_eq _)
+begin
+  nontriviality R,
+  exact (sum_fin (λ i c, monomial i c) (by simp)
+    ((degree_mod_by_monic_lt _ hq).trans_le hn)).trans
+    (sum_monomial_eq _)
+end
+
+lemma sub_dvd_eval_sub (a b : R) (p : R[X]) : a - b ∣ p.eval a - p.eval b :=
+begin
+  suffices : X - C b ∣ p - C (p.eval b),
+  { simpa only [coe_eval_ring_hom, eval_sub, eval_X, eval_C] using (eval_ring_hom a).map_dvd this },
+  simp [dvd_iff_is_root]
+end
+
+variable (R)
+
+lemma not_is_field : ¬ is_field R[X] :=
+begin
+  nontriviality R,
+  rw ring.not_is_field_iff_exists_ideal_bot_lt_and_lt_top,
+  use ideal.span {polynomial.X},
+  split,
+  { rw [bot_lt_iff_ne_bot, ne.def, ideal.span_singleton_eq_bot],
+    exact polynomial.X_ne_zero, },
+  { rw [lt_top_iff_ne_top, ne.def, ideal.eq_top_iff_one, ideal.mem_span_singleton,
+      polynomial.X_dvd_iff, polynomial.coeff_one_zero],
+    exact one_ne_zero, }
+end
+
+variable {R}
 
 section multiplicity
 /-- An algorithm for deciding polynomial divisibility.
@@ -428,17 +449,19 @@ open_locale classical
 
 lemma multiplicity_X_sub_C_finite (a : R) (h0 : p ≠ 0) :
   multiplicity.finite (X - C a) p :=
-multiplicity_finite_of_degree_pos_of_monic
-  (have (0 : R) ≠ 1, from (λ h, by haveI := subsingleton_of_zero_eq_one h;
-      exact h0 (subsingleton.elim _ _)),
-    by haveI : nontrivial R := ⟨⟨0, 1, this⟩⟩; rw degree_X_sub_C; exact dec_trivial)
-    (monic_X_sub_C _) h0
+begin
+  haveI := nontrivial.of_polynomial_ne h0,
+  refine multiplicity_finite_of_degree_pos_of_monic _ (monic_X_sub_C _) h0,
+  rw degree_X_sub_C,
+  dec_trivial,
+end
+
 /-- The largest power of `X - C a` which divides `p`.
 This is computable via the divisibility algorithm `decidable_dvd_monic`. -/
 def root_multiplicity (a : R) (p : R[X]) : ℕ :=
 if h0 : p = 0 then 0
 else let I : decidable_pred (λ n : ℕ, ¬(X - C a) ^ (n + 1) ∣ p) :=
-  λ n, @not.decidable _ (decidable_dvd_monic p (monic_pow (monic_X_sub_C a) (n + 1))) in
+  λ n, @not.decidable _ (decidable_dvd_monic p ((monic_X_sub_C a).pow (n + 1))) in
 by exactI nat.find (multiplicity_X_sub_C_finite a h0)
 
 lemma root_multiplicity_eq_multiplicity (p : R[X]) (a : R) :
@@ -485,7 +508,7 @@ lemma div_by_monic_mul_pow_root_multiplicity_eq
   p /ₘ ((X - C a) ^ root_multiplicity a p) *
   (X - C a) ^ root_multiplicity a p = p :=
 have monic ((X - C a) ^ root_multiplicity a p),
-  from monic_pow (monic_X_sub_C _) _,
+  from (monic_X_sub_C _).pow _,
 by conv_rhs { rw [← mod_by_monic_add_div p this,
     (dvd_iff_mod_by_monic_eq_zero this).2 (pow_root_multiplicity_dvd _ _)] };
   simp [mul_comm]

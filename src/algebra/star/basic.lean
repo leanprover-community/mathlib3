@@ -6,7 +6,7 @@ Authors: Scott Morrison
 import tactic.apply_fun
 import algebra.field.opposite
 import algebra.field_power
-import data.equiv.ring_aut
+import algebra.ring.aut
 import group_theory.group_action.units
 import group_theory.group_action.opposite
 import algebra.ring.comp_typeclasses
@@ -77,7 +77,7 @@ star_involutive.injective
 
 /-- `star` as an equivalence when it is involutive. -/
 protected def equiv.star [has_involutive_star R] : equiv.perm R :=
-star_involutive.to_equiv _
+star_involutive.to_perm _
 
 lemma eq_star_of_eq_star [has_involutive_star R] {r s : R} (h : r = star s) : s = star r :=
 by simp [h]
@@ -117,14 +117,14 @@ attribute [simp] star_mul
 def star_mul_equiv [semigroup R] [star_semigroup R] : R ≃* Rᵐᵒᵖ :=
 { to_fun := λ x, mul_opposite.op (star x),
   map_mul' := λ x y, (star_mul x y).symm ▸ (mul_opposite.op_mul _ _),
-  ..(has_involutive_star.star_involutive.to_equiv star).trans op_equiv}
+  ..(has_involutive_star.star_involutive.to_perm star).trans op_equiv}
 
 /-- `star` as a `mul_aut` for commutative `R`. -/
 @[simps apply]
 def star_mul_aut [comm_semigroup R] [star_semigroup R] : mul_aut R :=
 { to_fun := star,
   map_mul' := star_mul',
-  ..(has_involutive_star.star_involutive.to_equiv star) }
+  ..(has_involutive_star.star_involutive.to_perm star) }
 
 variables (R)
 
@@ -194,7 +194,7 @@ attribute [simp] star_add
 def star_add_equiv [add_monoid R] [star_add_monoid R] : R ≃+ R :=
 { to_fun := star,
   map_add' := star_add,
-  ..(has_involutive_star.star_involutive.to_equiv star)}
+  ..(has_involutive_star.star_involutive.to_perm star)}
 
 variables (R)
 

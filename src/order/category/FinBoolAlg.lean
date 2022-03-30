@@ -5,11 +5,18 @@ Authors: Yaël Dillies
 -/
 import order.category.BoolAlg
 import order.category.FinDistribLattice
+import order.hom.complete_lattice
 
 /-!
 # The category of finite boolean algebras
 
 This file defines `FinBoolAlg`, the category of finite boolean algebras.
+
+## TODO
+
+`Fintype_to_FinBoolAlg_op.left_op ⋙ FinBoolAlg.dual ≅ Fintype_to_FinBoolAlg_op.left_op`
+
+`FinBoolAlg` is essentially small.
 -/
 
 universes u
@@ -28,10 +35,14 @@ instance (X : FinBoolAlg) : boolean_algebra X := X.to_BoolAlg.str
 
 attribute [instance]  FinBoolAlg.is_fintype
 
+@[simp] lemma coe_to_BoolAlg (X : FinBoolAlg) : ↥X.to_BoolAlg = ↥X := rfl
+
 /-- Construct a bundled `FinBoolAlg` from `boolean_algebra` + `fintype`. -/
 def of (α : Type*) [boolean_algebra α] [fintype α] : FinBoolAlg := ⟨⟨α⟩⟩
 
-instance : inhabited FinBoolAlg := ⟨of bool⟩
+@[simp] lemma coe_of (α : Type*) [boolean_algebra α] [fintype α] : ↥(of α) = α := rfl
+
+instance : inhabited FinBoolAlg := ⟨of punit⟩
 
 instance large_category : large_category FinBoolAlg :=
 induced_category.category FinBoolAlg.to_BoolAlg
@@ -45,6 +56,17 @@ induced_category.has_forget₂ FinBoolAlg.to_BoolAlg
 -- instance has_forget_to_FinDistribLattice : has_forget₂ FinBoolAlg FinDistribLattice :=
 -- { forget₂ := { obj := λ X, FinDistribLattice.of X, map := λ X Y f, f },
 --   forget_comp := rfl }
+
+instance forget_to_BoolAlg_full : full (forget₂ FinBoolAlg BoolAlg) := induced_category.full _
+instance forget_to_BoolAlg_faithful : faithful (forget₂ FinBoolAlg BoolAlg) :=
+induced_category.faithful _
+
+@[simps] instance has_forget_to_FinPartialOrder : has_forget₂ FinBoolAlg FinPartialOrder :=
+{ forget₂ := { obj := λ X, FinPartialOrder.of X, map := λ X Y f,
+    show order_hom X Y, from ↑(show bounded_lattice_hom X Y, from f) } }
+
+instance forget_to_FinPartialOrder_faithful : faithful (forget₂ FinBoolAlg FinPartialOrder) :=
+⟨λ X Y f g h, by { have := congr_arg (coe_fn : _ → X → Y) h, exact fun_like.coe_injective this }⟩
 
 /-- Constructs an equivalence between finite Boolean algebras from an order isomorphism between
 them. -/
@@ -71,6 +93,7 @@ end FinBoolAlg
 --     forget₂ FinBoolAlg FinDistribLattice ⋙ FinDistribLattice.dual := rfl
 
 /-- The powerset functor. `set` as a functor. -/
-def Fintype_to_FinBoolAlg_op : Fintype ⥤ FinBoolAlgᵒᵖ :=
+@[simps] def Fintype_to_FinBoolAlg_op : Fintype ⥤ FinBoolAlgᵒᵖ :=
 { obj := λ X, op $ FinBoolAlg.of (set X),
-  map := λ X Y f, quiver.hom.op $ bounded_lattice_hom.set_preimage f }
+  map := λ X Y f, quiver.hom.op $
+    (complete_lattice_hom.set_preimage f : bounded_lattice_hom (set Y) (set X)) }

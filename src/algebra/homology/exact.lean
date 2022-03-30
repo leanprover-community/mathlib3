@@ -37,7 +37,7 @@ these results are found in `category_theory/abelian/exact.lean`.
 
 -/
 
-universes v u
+universes v v₂ u u₂
 
 open category_theory
 open category_theory.limits
@@ -98,6 +98,16 @@ begin
   simp only [arrow.mk_hom, is_iso.inv_hom_id_assoc, category.assoc, ← arrow.inv_right,
     is_iso.iso.inv_hom]
 end
+
+/-- A reformulation of `preadditive.exact_of_iso_of_exact` that does not involve the arrow
+category. -/
+lemma preadditive.exact_of_iso_of_exact' {A₁ B₁ C₁ A₂ B₂ C₂ : V}
+  (f₁ : A₁ ⟶ B₁) (g₁ : B₁ ⟶ C₁) (f₂ : A₂ ⟶ B₂) (g₂ : B₂ ⟶ C₂)
+  (α : A₁ ≅ A₂) (β : B₁ ≅ B₂) (γ : C₁ ≅ C₂) (hsq₁ : α.hom ≫ f₂ = f₁ ≫ β.hom)
+  (hsq₂ : β.hom ≫ g₂ = g₁ ≫ γ.hom)
+  (h : exact f₁ g₁) :
+  exact f₂ g₂ :=
+preadditive.exact_of_iso_of_exact f₁ g₁ f₂ g₂ (arrow.iso_mk α β hsq₁) (arrow.iso_mk β γ hsq₂) rfl h
 
 lemma preadditive.exact_iff_exact_of_iso {A₁ B₁ C₁ A₂ B₂ C₂ : V}
   (f₁ : A₁ ⟶ B₁) (g₁ : B₁ ⟶ C₁) (f₂ : A₂ ⟶ B₂) (g₂ : B₂ ⟶ C₂)
@@ -290,7 +300,7 @@ end
 section
 variables [preadditive V]
 
-lemma mono_iff_exact_zero_left [has_kernels V]{B C : V} (f : B ⟶ C) :
+lemma mono_iff_exact_zero_left [has_kernels V] {B C : V} (f : B ⟶ C) :
   mono f ↔ exact (0 : (0 ⟶ B)) f :=
 ⟨λ h, by { resetI, apply_instance, },
   λ h, preadditive.mono_of_kernel_iso_zero
@@ -314,5 +324,24 @@ lemma epi_iff_exact_zero_right [has_equalizers V] {A B : V} (f : A ⟶ B) :
 end
 
 end
+
+namespace functor
+variables [has_zero_morphisms V] [has_kernels V] {W : Type u₂} [category.{v₂} W]
+variables [has_images W] [has_zero_morphisms W] [has_kernels W]
+
+/-- A functor reflects exact sequences if any composable pair of morphisms that is mapped to an
+    exact pair is itself exact. -/
+class reflects_exact_sequences (F : V ⥤ W) :=
+(reflects : ∀ {A B C : V} (f : A ⟶ B) (g : B ⟶ C), exact (F.map f) (F.map g) → exact f g)
+
+lemma exact_of_exact_map (F : V ⥤ W) [reflects_exact_sequences F] {A B C : V} {f : A ⟶ B}
+  {g : B ⟶ C} (hfg : exact (F.map f) (F.map g)) : exact f g :=
+reflects_exact_sequences.reflects f g hfg
+
+lemma exact_of_exact_map' (F : V ⥤ W) [reflects_exact_sequences F] {A B C : V} {f : A ⟶ B}
+  {g : B ⟶ C} [hfg : exact (F.map f) (F.map g)] : exact f g :=
+F.exact_of_exact_map hfg
+
+end functor
 
 end category_theory

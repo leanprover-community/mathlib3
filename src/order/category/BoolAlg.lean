@@ -16,35 +16,6 @@ This defines `BoolAlg`, the category of boolean algebras.
 
 open order_dual opposite set
 
---TODO@Yaël: Once we have Heyting algebras, we won't need to go through `boolean_algebra.of_core`
-instance {α : Type*} [boolean_algebra α] : boolean_algebra (order_dual α) :=
-boolean_algebra.of_core
-{ compl := λ a, to_dual (of_dual a)ᶜ,
-  inf_compl_le_bot := λ _, sup_compl_eq_top.ge,
-  top_le_sup_compl := λ _, inf_compl_eq_bot.ge,
-  ..order_dual.distrib_lattice α, ..order_dual.bounded_order α }
-
-/-- `set.preimage` as a bounded lattice homomorphism. -/
-def bounded_lattice_hom.set_preimage {α β : Type*} (f : α → β) :
-  bounded_lattice_hom (set β) (set α) :=
-{ to_fun := set.preimage f,
-  map_sup' := λ s t, set.preimage_union,
-  map_inf' := λ s t, set.preimage_inter,
-  map_top' := set.preimage_univ,
-  map_bot' := set.preimage_empty }
-
-@[simp] lemma preimage_sInter {α β : Type*} {f : α → β} {s : set (set β)} :
-  f ⁻¹' (⋂₀ s) = ⋂ t ∈ s, f ⁻¹' t :=
-set.ext $ by simp only [set.preimage, set.mem_sInter, set.mem_set_of_eq, set.mem_Inter, iff_self,
-  implies_true_iff]
-
-/-- `set.preimage` as a complete lattice homomorphism. -/
-def complete_lattice_hom.set_preimage {α β : Type*} (f : α → β) :
-  complete_lattice_hom (set β) (set α) :=
-{ to_fun := set.preimage f,
-  map_Sup' := λ s, preimage_sUnion.trans $ by simp only [set.Sup_eq_sUnion, set.sUnion_image],
-  map_Inf' := λ s, preimage_sInter.trans $ by simp only [set.Inf_eq_sInter, set.sInter_image] }
-
 universes u
 
 open category_theory
@@ -60,10 +31,14 @@ instance (X : BoolAlg) : boolean_algebra X := X.str
 /-- Construct a bundled `BoolAlg` from a `boolean_algebra`. -/
 def of (α : Type*) [boolean_algebra α] : BoolAlg := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [boolean_algebra α] : ↥(of α) = α := rfl
+
 instance : inhabited BoolAlg := ⟨of punit⟩
 
 /-- Turn a `BoolAlg` into a `BoundedDistribLattice` by forgetting its complement operation. -/
 def to_BoundedDistribLattice (X : BoolAlg) : BoundedDistribLattice := BoundedDistribLattice.of X
+
+@[simp] lemma coe_to_BoundedDistribLattice (X : BoolAlg) : ↥X.to_BoundedDistribLattice = ↥X := rfl
 
 instance : large_category.{u} BoolAlg := induced_category.category to_BoundedDistribLattice
 instance : concrete_category BoolAlg := induced_category.concrete_category to_BoundedDistribLattice
@@ -83,7 +58,7 @@ between them. -/
 @[simps] def dual : BoolAlg ⥤ BoolAlg :=
 { obj := λ X, of (order_dual X), map := λ X Y, bounded_lattice_hom.dual }
 
-/-- The equivalence between `NonemptyFinLinOrd` and itself induced by `order_dual` both ways. -/
+/-- The equivalence between `BoolAlg` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : BoolAlg ≌ BoolAlg :=
 equivalence.mk dual dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)

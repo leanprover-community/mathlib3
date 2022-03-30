@@ -102,6 +102,39 @@ instance : inhabited (continuous_multilinear_map R M₁ M₂) := ⟨0⟩
 @[simp] lemma to_multilinear_map_zero :
   (0 : continuous_multilinear_map R M₁ M₂).to_multilinear_map = 0 :=
 rfl
+section has_scalar
+
+variables {R' R'' A : Type*} [monoid R'] [monoid R''] [semiring A]
+  [Π i, module A (M₁ i)] [module A M₂]
+  [distrib_mul_action R' M₂] [has_continuous_const_smul R' M₂] [smul_comm_class A R' M₂]
+  [distrib_mul_action R'' M₂] [has_continuous_const_smul R'' M₂] [smul_comm_class A R'' M₂]
+
+instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
+⟨λ c f, { cont := f.cont.const_smul c, .. c • f.to_multilinear_map }⟩
+
+@[simp] lemma smul_apply (f : continuous_multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
+  (c • f) m = c • f m := rfl
+
+@[simp] lemma to_multilinear_map_smul (c : R') (f : continuous_multilinear_map A M₁ M₂) :
+  (c • f).to_multilinear_map = c • f.to_multilinear_map :=
+rfl
+
+instance [smul_comm_class R' R'' M₂] :
+  smul_comm_class R' R'' (continuous_multilinear_map A M₁ M₂) :=
+⟨λ c₁ c₂ f, ext $ λ x, smul_comm _ _ _⟩
+
+instance [has_scalar R' R''] [is_scalar_tower R' R'' M₂] :
+  is_scalar_tower R' R'' (continuous_multilinear_map A M₁ M₂) :=
+⟨λ c₁ c₂ f, ext $ λ x, smul_assoc _ _ _⟩
+
+instance [distrib_mul_action R'ᵐᵒᵖ M₂] [is_central_scalar R' M₂] :
+  is_central_scalar R' (continuous_multilinear_map A M₁ M₂) :=
+⟨λ c₁ f, ext $ λ x, op_smul_eq_smul _ _⟩
+
+instance : mul_action R' (continuous_multilinear_map A M₁ M₂) :=
+function.injective.mul_action to_multilinear_map to_multilinear_map_inj (λ _ _, rfl)
+
+end has_scalar
 
 section has_continuous_add
 variable [has_continuous_add M₂]
@@ -116,7 +149,7 @@ instance : has_add (continuous_multilinear_map R M₁ M₂) :=
 rfl
 
 instance add_comm_monoid : add_comm_monoid (continuous_multilinear_map R M₁ M₂) :=
-to_multilinear_map_inj.add_comm_monoid _ rfl (λ _ _, rfl)
+to_multilinear_map_inj.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- Evaluation of a `continuous_multilinear_map` at a vector as an `add_monoid_hom`. -/
 def apply_add_hom (m : Π i, M₁ i) : continuous_multilinear_map R M₁ M₂ →+ M₂ :=
@@ -297,7 +330,8 @@ instance : has_sub (continuous_multilinear_map R M₁ M₂) :=
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - f') m = f m - f' m := rfl
 
 instance : add_comm_group (continuous_multilinear_map R M₁ M₂) :=
-to_multilinear_map_inj.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+to_multilinear_map_inj.add_comm_group _
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end topological_add_group
 
@@ -331,31 +365,6 @@ variables {R' R'' A : Type*} [monoid R'] [monoid R''] [semiring A]
   [Π i, module A (M₁ i)] [module A M₂]
   [distrib_mul_action R' M₂] [has_continuous_const_smul R' M₂] [smul_comm_class A R' M₂]
   [distrib_mul_action R'' M₂] [has_continuous_const_smul R'' M₂] [smul_comm_class A R'' M₂]
-
-instance : has_scalar R' (continuous_multilinear_map A M₁ M₂) :=
-⟨λ c f, { cont := f.cont.const_smul c, .. c • f.to_multilinear_map }⟩
-
-@[simp] lemma smul_apply (f : continuous_multilinear_map A M₁ M₂) (c : R') (m : Πi, M₁ i) :
-  (c • f) m = c • f m := rfl
-
-@[simp] lemma to_multilinear_map_smul (c : R') (f : continuous_multilinear_map A M₁ M₂) :
-  (c • f).to_multilinear_map = c • f.to_multilinear_map :=
-rfl
-
-instance [smul_comm_class R' R'' M₂] :
-  smul_comm_class R' R'' (continuous_multilinear_map A M₁ M₂) :=
-⟨λ c₁ c₂ f, ext $ λ x, smul_comm _ _ _⟩
-
-instance [has_scalar R' R''] [is_scalar_tower R' R'' M₂] :
-  is_scalar_tower R' R'' (continuous_multilinear_map A M₁ M₂) :=
-⟨λ c₁ c₂ f, ext $ λ x, smul_assoc _ _ _⟩
-
-instance [distrib_mul_action R'ᵐᵒᵖ M₂] [is_central_scalar R' M₂] :
-  is_central_scalar R' (continuous_multilinear_map A M₁ M₂) :=
-⟨λ c₁ f, ext $ λ x, op_smul_eq_smul _ _⟩
-
-instance : mul_action R' (continuous_multilinear_map A M₁ M₂) :=
-function.injective.mul_action to_multilinear_map to_multilinear_map_inj (λ _ _, rfl)
 
 instance [has_continuous_add M₂] : distrib_mul_action R' (continuous_multilinear_map A M₁ M₂) :=
 function.injective.distrib_mul_action

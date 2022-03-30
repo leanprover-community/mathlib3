@@ -22,7 +22,7 @@ open nat
 
 namespace list
 
-variables {α : Type u} {β : Type v} {R : α → α → Prop} {l l₁ l₂ : list α} {a : \a}
+variables {α : Type u} {β : Type v} {R r : α → α → Prop} {l l₁ l₂ : list α} {a b : α}
 
 mk_iff_of_inductive_prop list.chain list.chain_iff
 
@@ -113,29 +113,23 @@ begin
   exact chain_cons.2 ⟨r.1, IH r'⟩
 end
 
+protected lemma chain.pairwise (tr : transitive R) :
+  ∀ {a : α} {l : list α}, chain R a l → pairwise R (a :: l)
+| a [] chain.nil := pairwise_singleton _ _
+| a _ (@chain.cons _ _ _ b l h hb) := hb.pairwise.cons begin
+    simp only [mem_cons_iff, forall_eq_or_imp, h, true_and],
+    exact λ c hc, tr h (rel_of_pairwise_cons hb.pairwise hc),
+  end
+
 theorem chain_iff_pairwise (tr : transitive R) {a : α} {l : list α} :
   chain R a l ↔ pairwise R (a :: l) :=
-⟨λ c, begin
-  induction c with b b c l r p IH, {exact pairwise_singleton _ _},
-  apply IH.cons _, simp only [mem_cons_iff, forall_eq_or_imp, r, true_and],
-  show ∀ x ∈ l, R b x, from λ x m, (tr r (rel_of_pairwise_cons IH m)),
-end, pairwise.chain⟩
+⟨chain.pairwise tr, pairwise.chain⟩
 
 protected lemma chain.sublist [is_trans α R] (hl : l₂.chain R a) (h : l₁ <+ l₂) : l₁.chain R a :=
 by { rw chain_iff_pairwise (transitive_of_trans R) at ⊢ hl, exact hl.sublist (h.cons_cons a) }
 
 protected lemma chain.rel [is_trans α R] (hl : l.chain R a) (hb : b ∈ l) : R a b :=
 by { rw chain_iff_pairwise (transitive_of_trans R) at hl, exact rel_of_pairwise_cons hl hb }
-begin
-  have hR : transitive R := λ a b c, trans,
-  rw chain_iff_pairwise hR at hl,
-  exact rel_of_pairwise_cons hl hb,
-end
-
-protected lemma chain'.sublist [is_trans α R] (hl : l₂.chain' R) (h : l₁ <+ l₂) : l₁.chain' R :=
-by { rw chain'_iff_pairwise (transitive_of_trans R) at ⊢ hl, exact hl.sublist h }
-
-alias chain_iff_pairwise ↔ list.chain.pairwise list.pairwise.chain
 
 theorem chain_iff_nth_le {R} : ∀ {a : α} {l : list α},
   chain R a l ↔ (∀ h : 0 < length l, R a (nth_le l 0 h)) ∧ (∀ i (h : i < length l - 1),
@@ -207,6 +201,9 @@ theorem chain'_iff_pairwise (tr : transitive R) : ∀ {l : list α},
   chain' R l ↔ pairwise R l
 | []       := (iff_true_intro pairwise.nil).symm
 | (a :: l) := chain_iff_pairwise tr
+
+protected lemma chain'.sublist [is_trans α R] (hl : l₂.chain' R) (h : l₁ <+ l₂) : l₁.chain' R :=
+by { rw chain'_iff_pairwise (transitive_of_trans R) at ⊢ hl, exact hl.sublist h }
 
 @[simp] theorem chain'_cons {x y l} : chain' R (x :: y :: l) ↔ R x y ∧ chain' R (y :: l) :=
 chain_cons
@@ -301,7 +298,6 @@ lemma chain'.append_overlap : ∀ {l₁ l₂ l₃ : list α}
   exact ⟨h₁.1, chain'.append_overlap h₁.2 h₂ (cons_ne_nil _ _)⟩
 end
 
-variables {r : α → α → Prop} {a b : α}
 /--
 If `a` and `b` are related by the reflexive transitive closure of `r`, then there is a `r`-chain
 starting from `a` and ending on `b`.

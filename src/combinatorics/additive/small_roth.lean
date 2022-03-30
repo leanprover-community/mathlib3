@@ -8,14 +8,15 @@ import combinatorics.additive.salem_spencer
 /-!
 # Calculation of small Roth numbers
 
-This file implements an algorithm to calculate small Roth numbers.
+This file implements an algorithm to calculate small Roth numbers. This
 
 The algorithm we implement is the BASIC2 algorithm from the reference.
 
 ## References
 
-[W. Gasarch, J. Glenn, C. Kruskal, *Finding Large 3-free sets I: The Small `n` Case]
-(https://www.cs.umd.edu/~gasarch/papers/3apI.pdf)
+* [W. Gasarch, J. Glenn, C. Kruskal, *Finding Large 3-free sets I: The Small `n` Case]
+  (https://www.cs.umd.edu/~gasarch/papers/3apI.pdf)
+* Sequence [A003002](http://oeis.org/A003002) of the OEIS.
 
 ## Tags
 
@@ -24,77 +25,7 @@ Roth, arithmetic progression, average, three-free, algorithm
 
 open list nat
 
-variables {α β : Type*}
-
-/-!
-### Explicit values
-
-Some lemmas and calculations of the Roth number for (very) small naturals.
-
-Sequence [A003002](http://oeis.org/A003002) in the OEIS.
--/
-
-lemma transitive_gt [preorder α] : transitive (@gt α _) := @gt_trans _ _
-
-namespace list
-
-variables {R : α → α → Prop} {l l₁ l₂ : list α} {a b : α}
-
-lemma chain.sublist [is_trans α R] (hl : l₂.chain R a) (h : l₁ <+ l₂) : l₁.chain R a :=
-begin
-  have hR : transitive R := λ a b c, trans,
-  rw chain_iff_pairwise hR at ⊢ hl,
-  exact pairwise_of_sublist (h.cons_cons a) hl,
-end
-
-lemma chain.rel [is_trans α R] (hl : l.chain R a) (hb : b ∈ l) : R a b :=
-begin
-  have hR : transitive R := λ a b c, trans,
-  rw chain_iff_pairwise hR at hl,
-  exact rel_of_pairwise_cons hl hb,
-end
-
-lemma chain'.sublist [is_trans α R] (hl : l₂.chain' R) (h : l₁ <+ l₂) : l₁.chain' R :=
-begin
-  have hR : transitive R := λ a b c, trans,
-  rw chain'_iff_pairwise hR at ⊢ hl,
-  exact pairwise_of_sublist h hl,
-end
-
-lemma pairwise.of_cons {a : α} {l : list α} (p : pairwise R (a :: l)) : pairwise R l :=
-(pairwise_cons.1 p).2
-
-alias chain_iff_pairwise ↔ list.chain.pairwise list.pairwise.chain
-
-attribute [protected] chain.pairwise pairwise.chain
-
-@[simp] lemma set_of_mem_cons (l : list α) (a : α) : {x | x ∈ a :: l} = insert a {x | x ∈ l} :=
-set.ext $ λ _, iff.rfl
-
-lemma pairwise.forall_of_forall_of_flip (h₁ : ∀ x ∈ l, R x x) (h₂ : l.pairwise R)
-  (h₃ : l.pairwise (flip R)) :
-  ∀ {x}, x ∈ l → ∀ {y}, y ∈ l → R x y :=
-begin
-  induction l with a l ih,
-  { exact λ x hx, hx.elim },
-  rw pairwise_cons at h₂ h₃,
-  rintro x (rfl | hx) y (rfl | hy),
-  { exact h₁ _ (l.mem_cons_self _) },
-  { exact h₂.1 _ hy },
-  { exact h₃.1 _ hx },
-  { exact ih (λ x hx, h₁ _ $ mem_cons_of_mem _ hx) h₂.2 h₃.2 hx hy }
-end
-
-end list
-
-open list
-
-lemma lt_of_le_of_ne' [partial_order α] {a b : α} : a ≤ b → b ≠ a → a < b :=
-λ h h', lt_of_le_of_ne h h'.symm
-
-alias lt_of_le_of_ne' ← has_le.le.lt_of_ne'
-
-variables {l l₁ l₂ : list ℕ} {a b d m n : ℕ}
+variables {α β : Type*} {l l₁ l₂ : list ℕ} {a b d m n : ℕ}
 
 /-- `three_free a l` returns whether adding `a` to `l` keeps it three-free. -/
 def three_free : ℕ → list ℕ → bool
@@ -109,7 +40,7 @@ lemma three_free_iff_pairwise : three_free a l ↔ l.pairwise (λ b c, a + c ≠
 by induction l; simp [three_free, *, all_iff_forall]
 
 lemma three_free.sublist (hl : three_free a l₂) (h : l₁ <+ l₂) : three_free a l₁ :=
-by { rw three_free_iff_pairwise at hl ⊢, exact pairwise_of_sublist h hl }
+by { rw three_free_iff_pairwise at hl ⊢, exact hl.sublist h }
 
 lemma three_free_spec (hl : chain (>) a l) (h₁ : add_salem_spencer {n | n ∈ l}) :
   three_free a l ↔ add_salem_spencer {n | n ∈ a :: l} :=

@@ -22,7 +22,7 @@ open nat
 
 namespace list
 
-variables {α : Type u} {β : Type v} {R : α → α → Prop}
+variables {α : Type u} {β : Type v} {R : α → α → Prop} {l l₁ l₂ : list α} {a : \a}
 
 mk_iff_of_inductive_prop list.chain list.chain_iff
 
@@ -105,7 +105,7 @@ begin
   { simp [H _ _ _ _ (rel_of_chain_cons hl₂), l_ih _ _ (chain_of_chain_cons hl₂)] }
 end
 
-theorem chain_of_pairwise {a : α} {l : list α} (p : pairwise R (a :: l)) : chain R a l :=
+protected lemma pairwise.chain (p : pairwise R (a :: l)) : chain R a l :=
 begin
   cases pairwise_cons.1 p with r p', clear p,
   induction p' with b l r' p IH generalizing a, {exact chain.nil},
@@ -119,7 +119,23 @@ theorem chain_iff_pairwise (tr : transitive R) {a : α} {l : list α} :
   induction c with b b c l r p IH, {exact pairwise_singleton _ _},
   apply IH.cons _, simp only [mem_cons_iff, forall_eq_or_imp, r, true_and],
   show ∀ x ∈ l, R b x, from λ x m, (tr r (rel_of_pairwise_cons IH m)),
-end, chain_of_pairwise⟩
+end, pairwise.chain⟩
+
+protected lemma chain.sublist [is_trans α R] (hl : l₂.chain R a) (h : l₁ <+ l₂) : l₁.chain R a :=
+by { rw chain_iff_pairwise (transitive_of_trans R) at ⊢ hl, exact hl.sublist (h.cons_cons a) }
+
+protected lemma chain.rel [is_trans α R] (hl : l.chain R a) (hb : b ∈ l) : R a b :=
+by { rw chain_iff_pairwise (transitive_of_trans R) at hl, exact rel_of_pairwise_cons hl hb }
+begin
+  have hR : transitive R := λ a b c, trans,
+  rw chain_iff_pairwise hR at hl,
+  exact rel_of_pairwise_cons hl hb,
+end
+
+protected lemma chain'.sublist [is_trans α R] (hl : l₂.chain' R) (h : l₁ <+ l₂) : l₁.chain' R :=
+by { rw chain'_iff_pairwise (transitive_of_trans R) at ⊢ hl, exact hl.sublist h }
+
+alias chain_iff_pairwise ↔ list.chain.pairwise list.pairwise.chain
 
 theorem chain_iff_nth_le {R} : ∀ {a : α} {l : list α},
   chain R a l ↔ (∀ h : 0 < length l, R a (nth_le l 0 h)) ∧ (∀ i (h : i < length l - 1),
@@ -185,7 +201,7 @@ theorem chain'_map_of_chain' {S : β → β → Prop} (f : α → β)
 
 theorem pairwise.chain' : ∀ {l : list α}, pairwise R l → chain' R l
 | []       _ := trivial
-| (a :: l) h := chain_of_pairwise h
+| (a :: l) h := pairwise.chain h
 
 theorem chain'_iff_pairwise (tr : transitive R) : ∀ {l : list α},
   chain' R l ↔ pairwise R l

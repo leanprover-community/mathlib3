@@ -92,6 +92,11 @@ begin
     refl, },
 end
 
+lemma pochhammer_succ_eval {S : Type*} [semiring S] (n : ℕ) (k : S) :
+  (pochhammer S n.succ).eval k = (pochhammer S n).eval k * (k + ↑n) :=
+by rw [pochhammer_succ_right, mul_add, eval_add, eval_mul_X, ← nat.cast_comm, ← C_eq_nat_cast,
+    eval_C_mul, nat.cast_comm, ← mul_add]
+
 lemma polynomial.mul_X_add_nat_cast_comp {p q : S[X]} {n : ℕ} :
   (p * (X + n)).comp q = (p.comp q) * (q + n) :=
 by rw [mul_add, add_comp, mul_X_comp, ←nat.cast_comm, nat_cast_mul_comp, nat.cast_comm, mul_add]
@@ -128,33 +133,6 @@ begin
 end
 
 end semiring
-
-section comm_semiring
-variables {S : Type*} [comm_semiring S]
-
-lemma pochhammer_succ_eval_aux (n : ℕ) (k : S) :
-  (pochhammer S n.succ).eval k = (pochhammer S n).eval k * (k + ↑n) :=
-by rw [pochhammer_succ_right, polynomial.eval_mul, polynomial.eval_add, polynomial.eval_X,
-    polynomial.eval_nat_cast]
-
--- should `S` be explicit?
-lemma map_eval_pochhammer_eq_self {S : Type*} [semiring S] : ∀ (n : ℕ),
-  map (nat.cast_ring_hom S) (eval X (pochhammer ℕ[X] n)) = pochhammer S n
-| 0       := by simp
-| (n + 1) := by simp [pochhammer_succ_eval_aux, pochhammer_succ_right, map_eval_pochhammer_eq_self]
-
-lemma pochhammer_succ_eval {S : Type*} [semiring S] (n : ℕ) (k : S) :
-  (pochhammer S n.succ).eval k = (pochhammer S n).eval k * (k + ↑n) :=
-begin
-  suffices : (pochhammer ℕ[X] n.succ).eval X = (pochhammer ℕ[X] n).eval X * (X + ↑n),
-  { rw [← map_eval_pochhammer_eq_self, this, polynomial.map_mul, polynomial.map_add, map_X,
-      polynomial.map_nat_cast, mul_add, eval_add, eval_mul_X, ← nat.cast_comm, eval_nat_cast_mul,
-      nat.cast_comm, mul_add, map_eval_pochhammer_eq_self] },
-  rw [pochhammer_succ_right, polynomial.eval_mul, polynomial.eval_add, polynomial.eval_X,
-    polynomial.eval_nat_cast],
-end
-
-end comm_semiring
 
 section ordered_semiring
 variables {S : Type*} [ordered_semiring S] [nontrivial S]

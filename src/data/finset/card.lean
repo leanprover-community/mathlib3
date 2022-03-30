@@ -290,6 +290,9 @@ have hif : injective f',
       (right_inverse_surj_inv _)).injective,
 subtype.ext_iff_val.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
 
+@[simp] lemma card_disj_union (s t : finset α) (h) : (s.disj_union t h).card = s.card + t.card :=
+multiset.card_add _ _
+
 /-! ### Lattice structure -/
 
 section lattice
@@ -300,9 +303,6 @@ finset.induction_on t (by simp) $ λ a r har, by by_cases a ∈ s; simp *; cc
 
 lemma card_union_le (s t : finset α) : (s ∪ t).card ≤ s.card + t.card :=
 card_union_add_card_inter s t ▸ nat.le_add_right _ _
-
-@[simp] lemma card_disj_union (s t : finset α) (h) : (s.disj_union t h).card = s.card + t.card :=
-multiset.card_add _ _
 
 lemma card_union_eq (h : disjoint s t) : (s ∪ t).card = s.card + t.card :=
 by rw [←card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empty, add_zero]

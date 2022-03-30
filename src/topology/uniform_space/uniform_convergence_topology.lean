@@ -7,8 +7,45 @@ import topology.uniform_space.uniform_convergence
 import topology.uniform_space.pi
 
 /-!
-# TODO
+# Topology and uniform structure of uniform convergence
+
+This files endows `α → β` with the topologies / uniform structures of
+- uniform convergence on `α` (in the `uniform_convergence` namespace)
+- uniform convergence on a specified family `𝔖` of sets of `α`
+  (in the `uniform_convergence_on` namespace)
+
+Usual examples of the second construction include :
+- the topology of compact convergence, when `𝔖` is the set of compacts of `α`
+- the strong topology on the dual of a TVS `E`, when `𝔖` is the set of Von Neuman bounded subsets
+  of `E`
+- the weak-* topology on the dual of a TVS `E`, when `𝔖` is the set of singletons of `E`.
+
+## Main definitions
+
+* `foo_bar`
+
+## Main statements
+
+* `foo_bar_unique`
+
+## Notation
+
+
+
+## Implementation details
+
+
+
+## References
+
+* [N. Bourbaki, *General Topology*][bourbaki1966]
+
+## Tags
+
+uniform convergence
 -/
+
+
 noncomputable theory
 open_locale topological_space classical uniformity filter
 

@@ -76,7 +76,7 @@ lemma odd_gt_zero (h : odd n) : 0 < n :=
 by { obtain ⟨k, rfl⟩ := h, exact succ_pos' }
 
 @[simp] theorem two_dvd_ne_zero : ¬ 2 ∣ n ↔ n % 2 = 1 :=
-by simp [← even_iff_two_dvd, not_even_iff]
+even_iff_two_dvd.symm.not.trans not_even_iff
 
 instance : decidable_pred (even : ℕ → Prop) :=
 λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
@@ -198,12 +198,10 @@ variables {R : Type*} [ring R]
 
 theorem neg_one_pow_eq_one_iff_even (h1 : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
 begin
-  rw neg_one_pow_eq_pow_mod_two,
-  refine ⟨λ h, _, λ h, _⟩,
-  { cases n.mod_two_eq_zero_or_one with h2 h2,
-    { exact even_iff.mpr h2 },
-    { exact (h1 (by rwa [h2, pow_one] at h)).elim } },
-  { rw [even_iff.mp h, pow_zero] },
+  rcases n.even_or_odd' with ⟨n, rfl | rfl⟩,
+  { simp [neg_one_pow_eq_pow_mod_two, pow_zero] },
+  { rw [← not_iff_not, neg_one_pow_eq_pow_mod_two, not_even_iff, add_mod],
+    simp only [h1, mul_mod_right, one_mod, pow_one, not_false_iff, eq_self_iff_true] }
 end
 
 @[simp] theorem neg_one_sq : (-1 : R) ^ 2 = 1 := by simp
@@ -217,10 +215,10 @@ theorem neg_one_pow_of_odd : odd n → (-1 : R) ^ n = -1 :=
 by { rintro ⟨c, rfl⟩, simp [pow_add, pow_mul] }
 
 lemma two_mul_div_two_of_even : even n → 2 * (n / 2) = n :=
- λ h, by { rcases h with ⟨n, rfl⟩, exact nat.mul_div_cancel_left' (by simp [← two_mul]) }
+ λ h, nat.mul_div_cancel_left' (even_iff_two_dvd.mp h)
 
 lemma div_two_mul_two_of_even : even n → n / 2 * 2 = n := --nat.div_mul_cancel
-λ h, by { rcases h with ⟨n, rfl⟩, exact nat.div_mul_cancel (by simp [← two_mul]) }
+λ h, nat.div_mul_cancel (even_iff_two_dvd.mp h)
 
 lemma two_mul_div_two_add_one_of_odd (h : odd n) : 2 * (n / 2) + 1 = n :=
 by { rw mul_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }

@@ -27,7 +27,7 @@ open category_theory.limits
 
 universes v u₁ u₂
 
-namespace stacks_03A3
+namespace abelian_of_adjunction
 
 variables {𝒜 : Type u₁} [category.{v} 𝒜] [preadditive 𝒜]
 variables {ℬ : Type u₂} [category.{v} ℬ] [abelian ℬ]
@@ -143,9 +143,9 @@ begin
 end :=
 by { ext, simpa [-functor.map_comp, ←b.map_comp_assoc] using nat_iso.naturality_1 i f, }
 
-end stacks_03A3
+end abelian_of_adjunction
 
-open stacks_03A3
+open abelian_of_adjunction
 
 /--
 If `𝒜` is an additive category, `ℬ` is an abelian category,
@@ -156,7 +156,7 @@ then `𝒜` is also abelian.
 
 See https://stacks.math.columbia.edu/tag/03A3
 -/
-def stacks_03A3
+def abelian_of_adjunction
   {𝒜 : Type u₁} [category.{v} 𝒜] [preadditive 𝒜] [has_finite_products 𝒜]
   {ℬ : Type u₂} [category.{v} ℬ] [abelian ℬ]
   (a : 𝒜 ⥤ ℬ) [functor.preserves_zero_morphisms a]

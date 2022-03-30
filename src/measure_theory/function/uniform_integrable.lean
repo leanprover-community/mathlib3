@@ -843,11 +843,13 @@ begin
   { subst hMzero,
     have : ∀ i, f i =ᵐ[μ] 0,
     { intro i,
-      rw [← snorm_eq_zero_iff (hf₀ i).ae_measurable hp, ← nonpos_iff_eq_zero, ← ennreal.coe_zero],
+      rw [← snorm_eq_zero_iff (hf₀ i).ae_strongly_measurable hp,
+        ← nonpos_iff_eq_zero, ← ennreal.coe_zero],
       exact hM i },
     refine ⟨0, λ i, _⟩,
     rw (snorm_eq_zero_iff
-      ((hf₀ i).indicator (measurable_set_le measurable_const (hf₀ i).nnnorm)).ae_measurable hp).2
+      ((hf₀ i).indicator (measurable_set_le measurable_const
+      (hf₀ i).nnnorm.measurable)).ae_strongly_measurable hp).2
       (indicator_ae_eq_zero_of_ae_eq_zero (this i)),
     exact bot_le },
   obtain ⟨δ, hδpos, hδ⟩ := hfu hε,
@@ -867,7 +869,7 @@ begin
       ... ≤ snorm ({x | C ≤ ∥f (ℐ C) x∥₊}.indicator (f (ℐ C))) p μ :
       begin
         refine snorm_indicator_ge_of_bdd_below hp hp' _
-          (measurable_set_le measurable_const (hf₀ _).nnnorm)
+          (measurable_set_le measurable_const (hf₀ _).nnnorm.measurable)
           (eventually_of_forall $ λ x hx, _),
         rwa [nnnorm_indicator_eq_indicator_nnnorm, indicator_of_mem hx],
       end
@@ -882,13 +884,13 @@ begin
     conv_lhs { rw [← one_mul M, ennreal.coe_mul] },
     exact (ennreal.mul_lt_mul_right (ennreal.coe_ne_zero.2 hMzero) ennreal.coe_ne_top).2
       (by norm_num) },
-  exact ⟨C, λ i, hδ i _ (measurable_set_le measurable_const (hf₀ i).nnnorm) (hC i)⟩,
+  exact ⟨C, λ i, hδ i _ (measurable_set_le measurable_const (hf₀ i).nnnorm.measurable) (hC i)⟩,
 end
 
 /-- The definition of uniform integrable in mathlib is equivalent to the definition commonly
 found in literature. -/
 lemma uniform_integrable_iff [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞) :
-  uniform_integrable f p μ ↔ (∀ i, measurable (f i)) ∧
+  uniform_integrable f p μ ↔ (∀ i, strongly_measurable (f i)) ∧
   ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
     ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε  :=
 ⟨λ h, ⟨h.1, λ ε, h.spec (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm hp'⟩,

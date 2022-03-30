@@ -155,11 +155,19 @@ instance {β : Type*} {C : β → Type*} [∀ b, topological_space (C b)]
 section mul_opposite
 open mul_opposite
 
-instance [semiring α] [topological_space α] [has_continuous_add α] : has_continuous_add αᵐᵒᵖ :=
+instance [non_unital_non_assoc_semiring α] [topological_space α] [has_continuous_add α] :
+  has_continuous_add αᵐᵒᵖ :=
 { continuous_add := continuous_induced_rng $ (@continuous_add α _ _ _).comp
   (continuous_unop.prod_map continuous_unop) }
 
-instance [semiring α] [topological_space α] [topological_ring α] :
+instance [non_unital_non_assoc_semiring α] [topological_space α] [topological_semiring α] :
+  topological_semiring αᵐᵒᵖ := {}
+
+instance [non_unital_non_assoc_ring α] [topological_space α] [has_continuous_neg α] :
+  has_continuous_neg αᵐᵒᵖ :=
+{ continuous_neg := continuous_induced_rng $ (@continuous_neg α _ _ _).comp continuous_unop }
+
+instance [non_unital_non_assoc_ring α] [topological_space α] [topological_ring α] :
   topological_ring αᵐᵒᵖ := {}
 
 end mul_opposite
@@ -167,25 +175,27 @@ end mul_opposite
 section add_opposite
 open add_opposite
 
-instance [semiring α] [topological_space α] [has_continuous_mul α] :
+instance [non_unital_non_assoc_semiring α] [topological_space α] [has_continuous_mul α] :
   has_continuous_mul αᵃᵒᵖ :=
 { continuous_mul := by convert
   (continuous_op.comp $ (@continuous_mul α _ _ _).comp $ continuous_unop.prod_map continuous_unop) }
 
-instance [semiring α] [topological_space α] [topological_ring α] :
+instance [non_unital_non_assoc_semiring α] [topological_space α] [topological_semiring α] :
+  topological_semiring αᵃᵒᵖ := {}
+
+instance [non_unital_non_assoc_ring α] [topological_space α] [topological_ring α] :
   topological_ring αᵃᵒᵖ := {}
 
 end add_opposite
 
 
 section
-variables {R : Type*} [ring R] [topological_space R]
+variables {R : Type*} [non_unital_non_assoc_ring R] [topological_space R]
 
 lemma topological_ring.of_add_group_of_nhds_zero [topological_add_group R]
   (hmul : tendsto (uncurry ((*) : R → R → R)) ((𝓝 0) ×ᶠ (𝓝 0)) $ 𝓝 0)
   (hmul_left : ∀ (x₀ : R), tendsto (λ x : R, x₀ * x) (𝓝 0) $ 𝓝 0)
   (hmul_right : ∀ (x₀ : R), tendsto (λ x : R, x * x₀) (𝓝 0) $ 𝓝 0) : topological_ring R :=
-topological_semiring.to_topological_ring R $
 begin
   refine {..‹topological_add_group R›, ..},
   have hleft : ∀ x₀ : R, 𝓝 x₀ = map (λ x, x₀ + x) (𝓝 0), by simp,
@@ -222,7 +232,10 @@ end
 
 end
 
-variables {α} [ring α] [topological_space α] [topological_ring α]
+variables {α} [topological_space α]
+
+section
+variables [non_unital_non_assoc_ring α] [topological_ring α]
 
 /-- In a topological semiring, the left-multiplication `add_monoid_hom` is continuous. -/
 lemma mul_left_continuous (x : α) : continuous (add_monoid_hom.mul_left x) :=
@@ -231,6 +244,10 @@ continuous_const.mul continuous_id
 /-- In a topological semiring, the right-multiplication `add_monoid_hom` is continuous. -/
 lemma mul_right_continuous (x : α) : continuous (add_monoid_hom.mul_right x) :=
 continuous_id.mul continuous_const
+
+end
+
+variables [ring α] [topological_ring α]
 
 namespace subring
 

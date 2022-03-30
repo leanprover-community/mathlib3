@@ -196,8 +196,7 @@ end
 variables {H K L}
 
 lemma relindex_eq_zero_of_le_left (hHK : H ≤ K) (hKL : K.relindex L = 0) : H.relindex L = 0 :=
-by rw [←inf_relindex_right, ←relindex_mul_relindex (H ⊓ L) (K ⊓ L) L
-  (inf_le_inf_right L hHK) inf_le_right, inf_relindex_right, hKL, mul_zero]
+eq_zero_of_zero_dvd (hKL ▸ (relindex_dvd_of_le_left L hHK))
 
 lemma relindex_eq_zero_of_le_right (hKL : K ≤ L) (hHK : H.relindex K = 0) : H.relindex L = 0 :=
 cardinal.to_nat_apply_of_omega_le (le_trans (le_of_not_lt (λ h, cardinal.mk_ne_zero _
@@ -208,6 +207,21 @@ lemma relindex_ne_zero_trans (hHK : H.relindex K ≠ 0) (hKL : K.relindex L ≠ 
   H.relindex L ≠ 0 :=
 λ h, mul_ne_zero (mt (relindex_eq_zero_of_le_right (show K ⊓ L ≤ K, from inf_le_left)) hHK) hKL
   ((relindex_inf_mul_relindex H K L).trans (relindex_eq_zero_of_le_left inf_le_left h))
+
+lemma relindex_inf_ne_zero (hH : H.relindex L ≠ 0) (hK : K.relindex L ≠ 0) :
+  (H ⊓ K).relindex L ≠ 0 :=
+begin
+  replace hH : H.relindex (K ⊓ L) ≠ 0 := mt (relindex_eq_zero_of_le_right inf_le_right) hH,
+  rw ← inf_relindex_right at hH hK ⊢,
+  rw inf_assoc,
+  exact relindex_ne_zero_trans hH hK,
+end
+
+lemma index_inf_ne_zero (hH : H.index ≠ 0) (hK : K.index ≠ 0) : (H ⊓ K).index ≠ 0 :=
+begin
+  rw ← relindex_top_right at hH hK ⊢,
+  exact relindex_inf_ne_zero hH hK,
+end
 
 @[simp] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,

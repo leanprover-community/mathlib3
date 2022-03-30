@@ -505,7 +505,7 @@ theorem exists_top (p : linear_pmap ℝ E ℝ)
   ∃ q ≥ p, q.domain = ⊤ ∧ ∀ x : q.domain, (x : E) ∈ s → 0 ≤ q x :=
 begin
   replace hp_nonneg : p ∈ { p | _ }, by { rw mem_set_of_eq, exact hp_nonneg },
-  obtain ⟨q, hqs, hpq, hq⟩ := zorn.zorn_nonempty_partial_order₀ _ _ _ hp_nonneg,
+  obtain ⟨q, hqs, hpq, hq⟩ := zorn_nonempty_partial_order₀ _ _ _ hp_nonneg,
   { refine ⟨q, hpq, _, hqs⟩,
     contrapose! hq,
     rcases step s q hqs _ hq with ⟨r, hqr, hr⟩,
@@ -589,7 +589,7 @@ open_locale real_inner_product_space
 
 /-- The dual cone is the cone consisting of all points `y` such that for
 all points `x` in a given set `0 ≤ ⟪ x, y ⟫`. -/
-noncomputable def set.inner_dual_cone (s : set H) : convex_cone ℝ H :=
+def set.inner_dual_cone (s : set H) : convex_cone ℝ H :=
 { carrier := { y | ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ },
   smul_mem' := λ c hc y hy x hx,
   begin

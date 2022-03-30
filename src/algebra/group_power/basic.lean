@@ -49,7 +49,7 @@ theorem pow_one (a : M) : a^1 = a :=
 by rw [pow_succ, pow_zero, mul_one]
 
 /-- Note that most of the lemmas about powers of two refer to it as `sq`. -/
-@[to_additive two_nsmul]
+@[to_additive two_nsmul, nolint to_additive_doc]
 theorem pow_two (a : M) : a^2 = a * a :=
 by rw [pow_succ, pow_one]
 

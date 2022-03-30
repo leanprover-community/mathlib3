@@ -11,105 +11,38 @@ import order.hom.lattice
 
 This defines `SemilatticeSup` and `SemilatticeInf`, the categories of sup-semilattices with a bottom
 element and inf-semilattices with a top element.
+
+## References
+
+* [nLab, *semilattice*](https://ncatlab.org/nlab/show/semilattice)
 -/
 
 universes u
 open category_theory
 
-instance order_iso_class.to_top_hom_class {F α β : Type*} [partial_order α] [order_top α]
-  [partial_order β] [order_top β] [order_iso_class F α β] :
-  top_hom_class F α β :=
-⟨λ f, top_le_iff.1 sorry⟩
-
-instance order_iso_class.to_bot_hom_class {F α β : Type*} [partial_order α] [order_bot α]
-  [partial_order β] [order_bot β] [order_iso_class F α β] :
-  bot_hom_class F α β :=
-⟨λ f, le_bot_iff.1 sorry⟩
-
-instance order_iso_class.to_sup_hom_class {F α β : Type*} [semilattice_sup α] [semilattice_sup β]
-  [order_iso_class F α β] :
-  sup_hom_class F α β :=
-⟨λ f a b, eq_of_forall_ge_iff $ λ c, sorry⟩
-
-instance order_iso_class.to_inf_hom_class {F α β : Type*} [semilattice_inf α] [semilattice_inf β]
-  [order_iso_class F α β] :
-  inf_hom_class F α β :=
-⟨λ f a b, eq_of_forall_le_iff $ λ c, sorry⟩
-
-instance order_iso_class.to_sup_bot_hom_class {F α β : Type*} [semilattice_sup α] [order_bot α]
-  [semilattice_sup β] [order_bot β] [order_iso_class F α β] :
-  sup_bot_hom_class F α β :=
-{ ..order_iso_class.to_sup_hom_class, ..order_iso_class.to_bot_hom_class }
-
-instance order_iso_class.to_inf_top_hom_class {F α β : Type*} [semilattice_inf α] [order_top α]
-  [semilattice_inf β] [order_top β] [order_iso_class F α β] :
-  inf_top_hom_class F α β :=
-{ ..order_iso_class.to_inf_hom_class, ..order_iso_class.to_top_hom_class }
-
-def sup_hom.dual {α β : Type*} [has_sup α] [has_sup β] :
-  sup_hom α β ≃ inf_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, ⟨f, f.map_sup'⟩,
-  inv_fun := λ f, ⟨f, f.map_inf'⟩,
-  left_inv := λ f, sup_hom.ext $ λ _, rfl,
-  right_inv := λ f, inf_hom.ext $ λ _, rfl }
-
-def inf_hom.dual {α β : Type*} [has_inf α] [has_inf β] :
-  inf_hom α β ≃ sup_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, ⟨f, f.map_inf'⟩,
-  inv_fun := λ f, ⟨f, f.map_sup'⟩,
-  left_inv := λ f, inf_hom.ext $ λ _, rfl,
-  right_inv := λ f, sup_hom.ext $ λ _, rfl }
-
-def top_hom.dual {α β : Type*} [has_top α] [has_top β] :
-  top_hom α β ≃ bot_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, ⟨f, f.map_top'⟩,
-  inv_fun := λ f, ⟨f, f.map_bot'⟩,
-  left_inv := λ f, top_hom.ext $ λ _, rfl,
-  right_inv := λ f, bot_hom.ext $ λ _, rfl }
-
-def bot_hom.dual {α β : Type*} [has_bot α] [has_bot β] :
-  bot_hom α β ≃ top_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, ⟨f, f.map_bot'⟩,
-  inv_fun := λ f, ⟨f, f.map_top'⟩,
-  left_inv := λ f, bot_hom.ext $ λ _, rfl,
-  right_inv := λ f, top_hom.ext $ λ _, rfl }
-
-def sup_bot_hom.dual {α β : Type*} [has_sup α] [has_bot α] [has_sup β] [has_bot β] :
-  sup_bot_hom α β ≃ inf_top_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, ⟨f.to_sup_hom.dual, f.map_bot'⟩,
-  inv_fun := λ f, ⟨sup_hom.dual.symm f.to_inf_hom, f.map_top'⟩,
-  left_inv := λ f, sup_bot_hom.ext $ λ _, rfl,
-  right_inv := λ f, inf_top_hom.ext $ λ _, rfl }
-
-def inf_top_hom.dual {α β : Type*} [has_inf α] [has_top α] [has_inf β] [has_top β] :
-  inf_top_hom α β ≃ sup_bot_hom (order_dual α) (order_dual β) :=
-{ to_fun := λ f, ⟨f.to_inf_hom.dual, f.map_top'⟩,
-  inv_fun := λ f, ⟨inf_hom.dual.symm f.to_sup_hom, f.map_bot'⟩,
-  left_inv := λ f, inf_top_hom.ext $ λ _, rfl,
-  right_inv := λ f, sup_bot_hom.ext $ λ _, rfl }
-
-
 /-- The category of sup-semilattices with a bottom element. -/
-structure SemilatticeSup : Type.{u + 1} :=
+structure SemilatticeSup : Type.{u+1} :=
 (X : Type.{u})
 [is_semilattice_sup : semilattice_sup X]
 [is_order_bot : order_bot X]
 
 /-- The category of inf-semilattices with a top element. -/
-structure SemilatticeInf : Type.{u + 1} :=
+structure SemilatticeInf : Type.{u+1} :=
 (X : Type.{u})
 [is_semilattice_inf : semilattice_inf X]
 [is_order_top : order_top X]
 
+attribute [protected] SemilatticeSup.X SemilatticeInf.X
+
 namespace SemilatticeSup
 
-instance : has_coe_to_sort SemilatticeSup Type* := ⟨X⟩
-
-attribute [protected] X
+instance : has_coe_to_sort SemilatticeSup Type* := ⟨SemilatticeSup.X⟩
 attribute [instance] is_semilattice_sup is_order_bot
 
 /-- Construct a bundled `SemilatticeSup` from a `semilattice_sup`. -/
 def of (α : Type*) [semilattice_sup α] [order_bot α] : SemilatticeSup := ⟨α⟩
+
+@[simp] lemma coe_of (α : Type*) [semilattice_sup α] [order_bot α] : ↥(of α) = α := rfl
 
 instance : inhabited SemilatticeSup := ⟨of punit⟩
 
@@ -126,20 +59,23 @@ instance : concrete_category SemilatticeSup :=
   forget_faithful := ⟨λ X Y, fun_like.coe_injective⟩ }
 
 instance has_forget_to_PartialOrder : has_forget₂ SemilatticeSup PartialOrder :=
-{ forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y f, f },
-  forget_comp := rfl }
+{ forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y f, f } }
+
+@[simp] lemma coe_forget_to_PartialOrder (X : SemilatticeSup) :
+  ↥((forget₂ SemilatticeSup PartialOrder).obj X) = ↥X := rfl
 
 end SemilatticeSup
 
 namespace SemilatticeInf
 
-instance : has_coe_to_sort SemilatticeInf Type* := ⟨X⟩
+instance : has_coe_to_sort SemilatticeInf Type* := ⟨SemilatticeInf.X⟩
 
-attribute [protected] X
 attribute [instance] is_semilattice_inf is_order_top
 
 /-- Construct a bundled `SemilatticeInf` from a `semilattice_inf`. -/
 def of (α : Type*) [semilattice_inf α] [order_top α] : SemilatticeInf := ⟨α⟩
+
+@[simp] lemma coe_of (α : Type*) [semilattice_inf α] [order_top α] : ↥(of α) = α := rfl
 
 instance : inhabited SemilatticeInf := ⟨of punit⟩
 
@@ -156,8 +92,10 @@ instance : concrete_category SemilatticeInf :=
   forget_faithful := ⟨λ X Y, fun_like.coe_injective⟩ }
 
 instance has_forget_to_PartialOrder : has_forget₂ SemilatticeInf PartialOrder :=
-{ forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y f, f },
-  forget_comp := rfl }
+{ forget₂ := { obj := λ X, ⟨X⟩, map := λ X Y f, f } }
+
+@[simp] lemma coe_forget_to_PartialOrder (X : SemilatticeInf) :
+  ↥((forget₂ SemilatticeInf PartialOrder).obj X) = ↥X := rfl
 
 end SemilatticeInf
 
@@ -203,8 +141,8 @@ equivalence.mk SemilatticeSup.dual SemilatticeInf.dual
 
 lemma SemilatticeSup_dual_comp_forget_to_PartialOrder :
   SemilatticeSup.dual ⋙ forget₂ SemilatticeInf PartialOrder =
-    forget₂ SemilatticeSup PartialOrder ⋙ PartialOrder.to_dual := rfl
+    forget₂ SemilatticeSup PartialOrder ⋙ PartialOrder.dual := rfl
 
 lemma SemilatticeInf_dual_comp_forget_to_PartialOrder :
   SemilatticeInf.dual ⋙ forget₂ SemilatticeSup PartialOrder =
-    forget₂ SemilatticeInf PartialOrder ⋙ PartialOrder.to_dual := rfl
+    forget₂ SemilatticeInf PartialOrder ⋙ PartialOrder.dual := rfl

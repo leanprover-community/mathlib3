@@ -76,7 +76,11 @@ lemma BoolAlg_dual_comp_forget_to_BoundedDistribLattice :
 @[nolint inhabited_instance] def atom (α : Type*) [preorder α] [order_bot α] := {a : α // is_atom a}
 
 namespace atom
-variables {α β : Type*} [preorder α] [order_bot α] [preorder β] [order_bot β]
+variables {α β : Type*}
+
+
+section preorder
+variables [preorder α] [order_bot α] [preorder β] [order_bot β]
 
 instance : has_coe (atom α) α := coe_subtype
 
@@ -84,16 +88,24 @@ instance : has_coe (atom α) α := coe_subtype
 
 @[ext] protected lemma ext {a b : atom α} (h : (a : α) = b) : a = b := subtype.ext h
 
-def comap (f : lattice_hom α β) (b : atom β) : atom α := sorry
+end preorder
+
+variables [lattice α] [bounded_order α] [lattice β] [bounded_order β]
+
+def comap (f : bounded_lattice_hom α β) (b : atom β) : atom α := sorry
 
 end atom
 
 /-- The powerset functor. `set` as a functor. -/
 def Type_to_BoolAlg : Type* ⥤ BoolAlgᵒᵖ :=
 { obj := λ X, op $ BoolAlg.of (set X),
-  map := λ X Y f, quiver.hom.op $ bounded_lattice_hom.set_preimage f }
+  map := λ X Y f, quiver.hom.op $
+    (complete_lattice_hom.set_preimage f : bounded_lattice_hom (set Y) (set X)) }
 
 /-- The atoms functor. `atom` as a functor. -/
-def BoolAlg_to_Type : BoolAlgᵒᵖ ⥤ Type* :=
+def BoolAlg_op_to_Type : BoolAlgᵒᵖ ⥤ Type* :=
 { obj := λ X, atom (unop X : BoolAlg),
-  map := λ X Y f, quiver.hom.op $ bounded_lattice_hom.set_preimage f }
+  map := λ X Y f,
+    sorry
+    -- atom.comap $ quiver.hom.unop f
+     }

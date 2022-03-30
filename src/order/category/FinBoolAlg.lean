@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.category.BoolAlg
-import order.category.FinDistribLattice
+import order.category.FinBoundedDistribLattice
 import order.hom.complete_lattice
 
 /-!
@@ -53,8 +53,8 @@ induced_category.concrete_category FinBoolAlg.to_BoolAlg
 instance has_forget_to_BoolAlg : has_forget₂ FinBoolAlg BoolAlg :=
 induced_category.has_forget₂ FinBoolAlg.to_BoolAlg
 
--- instance has_forget_to_FinDistribLattice : has_forget₂ FinBoolAlg FinDistribLattice :=
--- { forget₂ := { obj := λ X, FinDistribLattice.of X, map := λ X Y f, f },
+-- instance has_forget_to_FinBoundedDistribLattice : has_forget₂ FinBoolAlg FinBoundedDistribLattice :=
+-- { forget₂ := { obj := λ X, FinBoundedDistribLattice.of X, map := λ X Y f, f },
 --   forget_comp := rfl }
 
 instance forget_to_BoolAlg_full : full (forget₂ FinBoolAlg BoolAlg) := induced_category.full _
@@ -88,9 +88,9 @@ equivalence.mk dual dual
 
 end FinBoolAlg
 
--- lemma FinBoolAlg_dual_comp_forget_to_FinDistribLattice :
---   FinBoolAlg.dual ⋙ forget₂ FinBoolAlg FinDistribLattice =
---     forget₂ FinBoolAlg FinDistribLattice ⋙ FinDistribLattice.dual := rfl
+-- lemma FinBoolAlg_dual_comp_forget_to_FinBoundedDistribLattice :
+--   FinBoolAlg.dual ⋙ forget₂ FinBoolAlg FinBoundedDistribLattice =
+--     forget₂ FinBoolAlg FinBoundedDistribLattice ⋙ FinBoundedDistribLattice.dual := rfl
 
 /-- The powerset functor. `set` as a functor. -/
 @[simps] def Fintype_to_FinBoolAlg_op : Fintype ⥤ FinBoolAlgᵒᵖ :=

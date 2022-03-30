@@ -81,17 +81,6 @@ end bicategory
 namespace interactive
 setup_tactic_parser
 
-meta def bicategory.coherence : tactic unit :=
-focus1 $
-do
-  (lhs, rhs) ← get_goal >>= infer_type >>= match_eq,
-  lhs' ← bicategory.free₂ lhs,
-  rhs' ← bicategory.free₂ rhs,
-  n ← get_unused_name,
-  «have» n ``(%%lhs' = %%rhs') ``(subsingleton.elim _ _),
-  h ← get_local n,
-  apply ``(congr_arg (λ η, (free_bicategory.lift (prefunctor.id _)).map₂ η) %%h)
-
 meta def monoical_category.coherence : tactic unit :=
 focus1 $
 do
@@ -102,6 +91,18 @@ do
   «have» n ``(%%lhs' = %%rhs') ``(subsingleton.elim _ _),
   h ← get_local n,
   apply ``(congr_arg (λ η, (free_monoidal_category.project id).map η) %%h)
+
+
+meta def bicategory.coherence : tactic unit :=
+focus1 $
+do
+  (lhs, rhs) ← get_goal >>= infer_type >>= match_eq,
+  lhs' ← bicategory.free₂ lhs,
+  rhs' ← bicategory.free₂ rhs,
+  n ← get_unused_name,
+  «have» n ``(%%lhs' = %%rhs') ``(subsingleton.elim _ _),
+  h ← get_local n,
+  apply ``(congr_arg (λ η, (free_bicategory.lift (prefunctor.id _)).map₂ η) %%h)
 
 /--
 `coherence` uses the coherence theorem for monoidal categories or bicategories to prove the goal.

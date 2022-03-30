@@ -52,7 +52,7 @@ protected lemma has_basis_uniformity :
 protected def topological_space : topological_space (α → β) :=
 (uniform_convergence.uniform_core α β).to_topological_space
 
-variables {α β}
+variables {α}
 
 lemma uniform_continuous_eval (x : α) : @uniform_continuous _ _
   (uniform_convergence.uniform_space α β) _ (function.eval x) :=
@@ -63,11 +63,23 @@ begin
   exact λ U hU, ⟨U, hU, λ uv huv, huv x⟩
 end
 
+variables {β}
+
+lemma t2_space [t2_space β] : @t2_space _ (uniform_convergence.topological_space α β) :=
+{ t2 :=
+  begin
+    letI : uniform_space (α → β) := uniform_convergence.uniform_space α β,
+    letI : topological_space (α → β) := uniform_convergence.topological_space α β,
+    intros f g h,
+    obtain ⟨x, hx⟩ := not_forall.mp (mt funext h),
+    exact separated_by_continuous (uniform_continuous_eval β x).continuous hx
+  end }
+
 protected lemma le_Pi : uniform_convergence.uniform_space α β ≤ Pi.uniform_space (λ _, β) :=
 begin
   rw [le_iff_uniform_continuous_id, uniform_continuous_pi],
   intros x,
-  exact uniform_continuous_eval x
+  exact uniform_continuous_eval β x
 end
 
 variable {α}
@@ -83,6 +95,9 @@ protected def uniform_space : uniform_space (α → β) :=
 ⨅ (s : set α) (hs : s ∈ 𝔖), uniform_space.comap (λ f, s.restrict f)
   (uniform_convergence.uniform_space s β)
 
+protected def topological_space : topological_space (α → β) :=
+(uniform_convergence_on.uniform_space α β 𝔖).to_topological_space
+
 protected lemma uniform_continuous_restrict (h : s ∈ 𝔖) :
   @uniform_continuous _ _ (uniform_convergence_on.uniform_space α β 𝔖)
   (uniform_convergence.uniform_space s β) s.restrict :=
@@ -97,7 +112,7 @@ end
 protected lemma uniform_space_antitone : antitone (uniform_convergence_on.uniform_space α β) :=
 λ 𝔖₁ 𝔖₂ h₁₂, infi_le_infi_of_subset h₁₂
 
-variables {α β}
+variables {α}
 
 lemma uniform_continuous_eval_of_mem {x : α} (hxs : x ∈ s) (hs : s ∈ 𝔖) :
   @uniform_continuous _ _ (uniform_convergence_on.uniform_space α β 𝔖) _ (function.eval x) :=
@@ -114,13 +129,27 @@ begin
       λ uv huv, huv ⟨x, hxs⟩ ⟩)
 end
 
+variables {β}
+
+lemma t2_space_of_covering [t2_space β] (h : ⋃₀ 𝔖 = univ) :
+  @t2_space _ (uniform_convergence_on.topological_space α β 𝔖) :=
+{ t2 :=
+  begin
+    letI : uniform_space (α → β) := uniform_convergence_on.uniform_space α β 𝔖,
+    letI : topological_space (α → β) := uniform_convergence_on.topological_space α β 𝔖,
+    intros f g hfg,
+    obtain ⟨x, hx⟩ := not_forall.mp (mt funext hfg),
+    obtain ⟨s, hs, hxs⟩ : ∃ s ∈ 𝔖, x ∈ s := mem_sUnion.mp (h.symm ▸ true.intro),
+    exact separated_by_continuous (uniform_continuous_eval_of_mem β 𝔖 hxs hs).continuous hx
+  end }
+
 protected lemma le_Pi_of_covering (h : ⋃₀ 𝔖 = univ) :
   uniform_convergence_on.uniform_space α β 𝔖 ≤ Pi.uniform_space (λ _, β) :=
 begin
   rw [le_iff_uniform_continuous_id, uniform_continuous_pi],
   intros x,
   obtain ⟨s, hs, hxs⟩ : ∃ s ∈ 𝔖, x ∈ s := mem_sUnion.mp (h.symm ▸ true.intro),
-  exact uniform_continuous_eval_of_mem 𝔖 hxs hs
+  exact uniform_continuous_eval_of_mem β 𝔖 hxs hs
 end
 
 end uniform_convergence_on

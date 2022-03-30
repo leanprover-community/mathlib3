@@ -148,6 +148,16 @@ by simp only [range_eq_range', range'_concat, zero_add]
 
 @[simp] lemma range_zero : range 0 = [] := rfl
 
+theorem forall_lt_and_self_iff_forall_lt_succ {P : ℕ → Prop} {n : ℕ} :
+  (∀ m < n, P m) ∧ P n ↔ (∀ m < n.succ, P m) :=
+begin
+  refine ⟨_, λ H, ⟨λ m hm, H m (nat.lt_succ_iff.2 hm.le), H n (nat.lt_succ_self n)⟩⟩,
+  rintro ⟨H, hn⟩ m hm,
+  rcases eq_or_lt_of_le (nat.lt_succ_iff.1 hm) with rfl | hmn,
+  { exact hn },
+  { exact H m hmn }
+end
+
 theorem chain_range_succ (r : ℕ → ℕ → Prop) (n a : ℕ) :
   chain r a (range n.succ) ↔ r a 0 ∧ ∀ m < n, r m m.succ :=
 begin
@@ -157,11 +167,18 @@ begin
   { rw range_succ,
     simp only [append_assoc, singleton_append, chain_append_cons_cons, chain.nil, and_true],
     rw [hn, and_assoc, and.congr_right_iff],
-    refine λ hr, ⟨_, λ H, ⟨λ m hm, H m (nat.lt_succ_iff.2 hm.le), H n (nat.lt_succ_self n)⟩⟩,
-    rintro ⟨H, hr'⟩ m hm,
-    rcases eq_or_lt_of_le (nat.lt_succ_iff.1 hm) with rfl | hmn,
-    { exact hr' },
-    { exact H m hmn } }
+    exact λ H, forall_lt_and_self_iff_forall_lt_succ }
+end
+
+theorem chain'_range_succ (r : ℕ → ℕ → Prop) (n a : ℕ) :
+  chain' r (range n.succ) ↔ ∀ m < n, r m m.succ :=
+begin
+  rw range_succ,
+  induction n with n hn,
+  { simp },
+  { rw range_succ,
+    simp only [append_assoc, singleton_append, chain'_append_cons_cons, chain'_singleton, and_true],
+    rw [hn, forall_lt_and_self_iff_forall_lt_succ] }
 end
 
 lemma range_add (a : ℕ) :

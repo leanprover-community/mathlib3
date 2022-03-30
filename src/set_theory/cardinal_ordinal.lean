@@ -195,7 +195,8 @@ aleph'_lt.trans (add_lt_add_iff_left _)
 @[simp] theorem aleph_le {o₁ o₂ : ordinal.{u}} : aleph o₁ ≤ aleph o₂ ↔ o₁ ≤ o₂ :=
 le_iff_le_iff_lt_iff_lt.2 aleph_lt
 
-@[simp] theorem max_aleph_eq {o₁ o₂ : ordinal.{u}} : max (aleph o₁) (aleph o₂) = aleph (max o₁ o₂) :=
+@[simp] theorem max_aleph_eq {o₁ o₂ : ordinal.{u}} :
+  max (aleph o₁) (aleph o₂) = aleph (max o₁ o₂) :=
 begin
   cases le_total (aleph o₁) (aleph o₂) with h h,
   { rw [max_eq_right h, max_eq_right (aleph_le.1 h)] },

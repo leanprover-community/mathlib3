@@ -177,12 +177,11 @@ hp3 (f * C f.leading_coeff⁻¹) (g * C g.leading_coeff⁻¹)
 by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv₀, ← leading_coeff_mul,
     ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
 
-/-- Division of polynomials. See polynomial.div_by_monic for more details.-/
+/-- Division of polynomials. See `polynomial.div_by_monic` for more details.-/
 def div (p q : R[X]) :=
 C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff q)⁻¹))
 
-/-- Remainder of polynomial division, see the lemma `quotient_mul_add_remainder_eq_aux`.
-See polynomial.mod_by_monic for more details. -/
+/-- Remainder of polynomial division. See `polynomial.mod_by_monic` for more details. -/
 def mod (p q : R[X]) :=
 p %ₘ (q * C (leading_coeff q)⁻¹)
 

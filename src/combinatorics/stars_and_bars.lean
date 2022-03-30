@@ -194,10 +194,10 @@ set_option pp.proofs true
 @[simp] lemma to_list_nil : to_list nil = ⟨[], to_list.nil_proof⟩ := rfl
 @[simp] lemma to_list_star {s b : ℕ} (x : stars_and_bars s b) :
   to_list (star x) = ⟨ff :: to_list x, to_list.star_proof (to_list x).prop⟩ :=
-by {cases b; refl}
+by { rw to_list, ext, refl }
 @[simp] lemma to_list_bar {s b : ℕ} (x : stars_and_bars s b) :
   to_list (bar x) = ⟨tt :: to_list x, to_list.bar_proof (to_list x).prop⟩ :=
-by {cases s; refl}
+by { rw to_list, ext, refl }
 
 lemma of_list.tt_proof {s b : ℕ} {l : list bool}
   (hl : (tt :: l).count ff = s ∧ (tt :: l).count tt = b.succ) :

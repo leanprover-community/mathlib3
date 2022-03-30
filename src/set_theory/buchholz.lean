@@ -8,9 +8,10 @@ import set_theory.cardinal_ordinal
 /-!
 # Buchholz's psi functions
 
-Buchholz's psi functions are a fast-growing family of ordinal functions. Intuitively speaking,
-`buchholz a v` is the least ordinal that can't be made with reference to `buchholz o v` for `o < a`,
-and `Omega v`. Here, `Omega v` is defined so that `Omega 0 = 1` and `Omega v = aleph v` otherwise.
+Buchholz's psi functions are a family of ordinal functions, which allow one to build large countable
+ordinals. Intuitively speaking, `buchholz a v` is the least ordinal that can't be made with
+reference to `buchholz o v` for `o < a`, and `Omega v`. Here, `Omega v` is defined so that
+`Omega 0 = 1` and `Omega v = aleph v` otherwise.
 
 More explicitly, we define an inductive type `buchholz_exp' o v` of "Buchholz expressions",
 containing an expression for all ordinals up to `Omega v`, and closed under sums and applications of

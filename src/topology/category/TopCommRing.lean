@@ -23,7 +23,7 @@ structure TopCommRing :=
 (α : Type u)
 [is_comm_ring : comm_ring α]
 [is_topological_space : topological_space α]
-[is_topological_semiring : topological_semiring α]
+[is_topological_ring : topological_ring α]
 
 namespace TopCommRing
 
@@ -31,7 +31,7 @@ instance : inhabited TopCommRing := ⟨⟨punit⟩⟩
 
 instance : has_coe_to_sort TopCommRing (Type u) := ⟨TopCommRing.α⟩
 
-attribute [instance] is_comm_ring is_topological_space is_topological_semiring
+attribute [instance] is_comm_ring is_topological_space is_topological_ring
 
 instance : category TopCommRing.{u} :=
 { hom   := λ R S, {f : R →+* S // continuous f },
@@ -47,10 +47,9 @@ instance : concrete_category TopCommRing.{u} :=
   forget_faithful := { } }
 
 /-- Construct a bundled `TopCommRing` from the underlying type and the appropriate typeclasses. -/
-def of (X : Type u) [comm_ring X] [topological_space X] [topological_semiring X] : TopCommRing :=
-⟨X⟩
+def of (X : Type u) [comm_ring X] [topological_space X] [topological_ring X] : TopCommRing := ⟨X⟩
 
-@[simp] lemma coe_of (X : Type u) [comm_ring X] [topological_space X] [topological_semiring X] :
+@[simp] lemma coe_of (X : Type u) [comm_ring X] [topological_space X] [topological_ring X] :
   (of X : Type u) = X := rfl
 
 instance forget_topological_space (R : TopCommRing) :
@@ -59,9 +58,9 @@ R.is_topological_space
 instance forget_comm_ring (R : TopCommRing) :
   comm_ring ((forget TopCommRing).obj R) :=
 R.is_comm_ring
-instance forget_topological_semiring (R : TopCommRing) :
-  topological_semiring ((forget TopCommRing).obj R) :=
-R.is_topological_semiring
+instance forget_topological_ring (R : TopCommRing) :
+  topological_ring ((forget TopCommRing).obj R) :=
+R.is_topological_ring
 
 instance has_forget_to_CommRing : has_forget₂ TopCommRing CommRing :=
 has_forget₂.mk'
@@ -86,9 +85,9 @@ instance forget_to_Top_comm_ring (R : TopCommRing) :
   comm_ring ((forget₂ TopCommRing Top).obj R) :=
 R.is_comm_ring
 
-instance forget_to_Top_topological_semiring (R : TopCommRing) :
-  topological_semiring ((forget₂ TopCommRing Top).obj R) :=
-R.is_topological_semiring
+instance forget_to_Top_topological_ring (R : TopCommRing) :
+  topological_ring ((forget₂ TopCommRing Top).obj R) :=
+R.is_topological_ring
 
 /--
 The forgetful functors to `Type` do not reflect isomorphisms,

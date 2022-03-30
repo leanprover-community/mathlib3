@@ -139,8 +139,7 @@ etc., we also define "bundled" versions, which carry `category` instances.
 
 These bundled versions are usually named in camel case,
 so for example we have `AddCommGroup` as a bundled `add_comm_group`,
-and `TopCommRing` (which bundles together `comm_ring`, `topological_space`, and
-`topological_semiring`).
+and `TopCommRing` (which bundles together `comm_ring`, `topological_space`, and `topological_ring`).
 
 These bundled versions have many appealing features:
 * a uniform notation for morphisms `X ⟶ Y`

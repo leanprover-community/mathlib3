@@ -135,16 +135,12 @@ instance [preorder α] [pred_order α] : succ_order (order_dual α) :=
   succ_le_of_lt := λ a b h, pred_order.le_pred_of_lt h,
   le_of_lt_succ := λ a b, pred_order.le_of_pred_lt }
 
-/-! ### Successor order -/
-
-namespace order
 section preorder
 variables [preorder α]
 
 /-- A constructor for `succ_order α` usable when `α` has no maximal element. -/
-def of_succ_le_iff_of_le_lt_succ (succ : α → α)
-  (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b)
-  (hle_of_lt_succ : ∀ {a b}, a < succ b → a ≤ b) :
+def succ_order.of_succ_le_iff_of_le_lt_succ (succ : α → α)
+  (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b) (hle_of_lt_succ : ∀ {a b}, a < succ b → a ≤ b) :
   succ_order α :=
 { succ := succ,
   le_succ := λ a, (hsucc_le_iff.1 le_rfl).le,
@@ -152,7 +148,46 @@ def of_succ_le_iff_of_le_lt_succ (succ : α → α)
   succ_le_of_lt := λ a b, hsucc_le_iff.2,
   le_of_lt_succ := λ a b, hle_of_lt_succ }
 
-variables [succ_order α] {a b : α}
+/-- A constructor for `pred_order α` usable when `α` has no minimal element. -/
+def pred_order.of_le_pred_iff_of_pred_le_pred (pred : α → α)
+  (hle_pred_iff : ∀ {a b}, a ≤ pred b ↔ a < b) (hle_of_pred_lt : ∀ {a b}, pred a < b → a ≤ b) :
+  pred_order α :=
+{ pred := pred,
+  pred_le := λ a, (hle_pred_iff.1 le_rfl).le,
+  min_of_le_pred := λ a ha, (lt_irrefl a $ hle_pred_iff.1 ha).elim,
+  le_pred_of_lt := λ a b, hle_pred_iff.2,
+  le_of_pred_lt := λ a b, hle_of_pred_lt }
+
+end preorder
+
+section linear_order
+variables [linear_order α]
+
+/-- A constructor for `succ_order α` usable when `α` is a linear order with no maximal element. -/
+def succ_order.of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b) :
+  succ_order α :=
+{ succ := succ,
+  le_succ := λ a, (hsucc_le_iff.1 le_rfl).le,
+  max_of_succ_le := λ a ha, (lt_irrefl a (hsucc_le_iff.1 ha)).elim,
+  succ_le_of_lt := λ a b, hsucc_le_iff.2,
+  le_of_lt_succ := λ a b h, le_of_not_lt ((not_congr hsucc_le_iff).1 h.not_le) }
+
+/-- A constructor for `pred_order α` usable when `α` is a linear order with no minimal element. -/
+def pred_order.of_le_pred_iff (pred : α → α) (hle_pred_iff : ∀ {a b}, a ≤ pred b ↔ a < b) :
+  pred_order α :=
+{ pred := pred,
+  pred_le := λ a, (hle_pred_iff.1 le_rfl).le,
+  min_of_le_pred := λ a ha, (lt_irrefl a (hle_pred_iff.1 ha)).elim,
+  le_pred_of_lt := λ a b, hle_pred_iff.2,
+  le_of_pred_lt := λ a b h, le_of_not_lt ((not_congr hle_pred_iff).1 h.not_le) }
+
+end linear_order
+
+/-! ### Successor order -/
+
+namespace order
+section preorder
+variables [preorder α] [succ_order α] {a b : α}
 
 /-- The successor of an element. If `a` is not maximal, then `succ a` is the least element greater
 than `a`. If `a` is maximal, then `succ a = a`. -/
@@ -268,8 +303,9 @@ variables [order_top α]
 
 @[simp] lemma succ_top : succ (⊤ : α) = ⊤ := is_max_top.succ_eq
 
-lemma succ_le_iff_eq_top : succ a ≤ a ↔ a = ⊤ := succ_le_iff_is_max.trans is_max_iff_eq_top
-lemma lt_succ_iff_ne_top : a < succ a ↔ a ≠ ⊤ := lt_succ_iff_not_is_max.trans not_is_max_iff_ne_top
+@[simp] lemma succ_le_iff_eq_top : succ a ≤ a ↔ a = ⊤ := succ_le_iff_is_max.trans is_max_iff_eq_top
+@[simp] lemma lt_succ_iff_ne_top : a < succ a ↔ a ≠ ⊤ :=
+lt_succ_iff_not_is_max.trans not_is_max_iff_ne_top
 
 end order_top
 
@@ -294,19 +330,6 @@ instance [partial_order α] : subsingleton (succ_order α) :=
   { exact @covby.succ_eq _ _ h₀ _ _ (covby_succ_of_not_is_max ha) }
 end⟩
 
-section linear_order
-variables [linear_order α]
-
-/-- A constructor for `succ_order α` usable when `α` is a linear order with no maximal element. -/
-def of_succ_le_iff (succ : α → α) (hsucc_le_iff : ∀ {a b}, succ a ≤ b ↔ a < b) : succ_order α :=
-{ succ := succ,
-  le_succ := λ a, (hsucc_le_iff.1 le_rfl).le,
-  max_of_succ_le := λ a ha, (lt_irrefl a (hsucc_le_iff.1 ha)).elim,
-  succ_le_of_lt := λ a b, hsucc_le_iff.2,
-  le_of_lt_succ := λ a b h, le_of_not_lt ((not_congr hsucc_le_iff).1 h.not_le) }
-
-end linear_order
-
 section complete_lattice
 variables [complete_lattice α] [succ_order α]
 
@@ -324,20 +347,7 @@ end complete_lattice
 /-! ### Predecessor order -/
 
 section preorder
-variables [preorder α]
-
-/-- A constructor for `pred_order α` usable when `α` has no minimal element. -/
-def of_le_pred_iff_of_pred_le_pred (pred : α → α)
-  (hle_pred_iff : ∀ {a b}, a ≤ pred b ↔ a < b)
-  (hle_of_pred_lt : ∀ {a b}, pred a < b → a ≤ b) :
-  pred_order α :=
-{ pred := pred,
-  pred_le := λ a, (hle_pred_iff.1 le_rfl).le,
-  min_of_le_pred := λ a ha, (lt_irrefl a (hle_pred_iff.1 ha)).elim,
-  le_pred_of_lt := λ a b, hle_pred_iff.2,
-  le_of_pred_lt := λ a b, hle_of_pred_lt }
-
-variables [pred_order α] {a b : α}
+variables [preorder α] [pred_order α] {a b : α}
 
 /-- The predecessor of an element. If `a` is not minimal, then `pred a` is the greatest element less
 than `a`. If `a` is minimal, then `pred a = a`. -/
@@ -368,10 +378,10 @@ lemma le_pred_iff_of_not_is_min (ha : ¬ is_min a) : b ≤ pred a ↔ b < a :=
 
 lemma pred_mono : monotone (pred : α → α) := λ a b, pred_le_pred
 
-lemma Ioi_pred_of_not_is_max (ha : ¬ is_min a) : Ioi (pred a) = Ici a :=
+lemma Ioi_pred_of_not_is_min (ha : ¬ is_min a) : Ioi (pred a) = Ici a :=
 set.ext $ λ x, pred_lt_iff_of_not_is_min ha
 
-lemma Iic_succ_of_not_is_max (ha : ¬ is_min a) : Iic (pred a) = Iio a :=
+lemma Iic_pred_of_not_is_min (ha : ¬ is_min a) : Iic (pred a) = Iio a :=
 set.ext $ λ x, le_pred_iff_of_not_is_min ha
 
 section no_min_order
@@ -394,8 +404,8 @@ lemma pred_strict_mono : strict_mono (pred : α → α) := λ a b, pred_lt_pred
 
 lemma pred_covby (a : α) : pred a ⋖ a := pred_covby_of_not_is_min $ not_is_min a
 
-lemma Ioi_pred (a : α) : Ioi (pred a) = Ici a := Ioi_pred_of_not_is_max $ not_is_min a
-lemma Iic_pred (a : α) : Iic (pred a) = Iio a := Iic_succ_of_not_is_max $ not_is_min a
+lemma Ioi_pred (a : α) : Ioi (pred a) = Ici a := Ioi_pred_of_not_is_min $ not_is_min a
+lemma Iic_pred (a : α) : Iic (pred a) = Iio a := Iic_pred_of_not_is_min $ not_is_min a
 
 end no_min_order
 end preorder
@@ -403,10 +413,10 @@ end preorder
 section partial_order
 variables [partial_order α] [pred_order α] {a b : α}
 
-@[simp] lemma pred_eq_iff_is_max : pred a = a ↔ is_min a :=
+@[simp] lemma pred_eq_iff_is_min : pred a = a ↔ is_min a :=
 ⟨λ h, min_of_le_pred h.ge, λ h, h.eq_of_le $ pred_le _⟩
 
-alias pred_eq_iff_is_max ↔ _ is_min.pred_eq
+alias pred_eq_iff_is_min ↔ _ is_min.pred_eq
 
 lemma pred_le_le_iff {a b : α} : pred a ≤ b ∧ b ≤ a ↔ b = a ∨ b = pred a :=
 begin
@@ -446,11 +456,8 @@ variables [order_bot α]
 
 @[simp] lemma pred_bot : pred (⊥ : α) = ⊥ := is_min_bot.pred_eq
 
-@[simp] lemma le_pred_iff_eq_bot {a : α} : a ≤ pred a ↔ a = ⊥ :=
-@succ_le_iff_eq_top (order_dual α) _ _ _ _
-
-@[simp] lemma pred_lt_iff_ne_bot {a : α} : pred a < a ↔ a ≠ ⊥ :=
-@lt_succ_iff_ne_top (order_dual α) _ _ _ _
+@[simp] lemma le_pred_iff_eq_bot : a ≤ pred a ↔ a = ⊥ := @succ_le_iff_eq_top (order_dual α) _ _ _ _
+@[simp] lemma pred_lt_iff_ne_bot : pred a < a ↔ a ≠ ⊥ := @lt_succ_iff_ne_top (order_dual α) _ _ _ _
 
 end order_bot
 
@@ -474,20 +481,6 @@ instance [partial_order α] : subsingleton (pred_order α) :=
   { exact (@is_min.pred_eq _ _ h₀ _ ha).trans ha.pred_eq.symm },
   { exact @covby.pred_eq _ _ h₀ _ _ (pred_covby_of_not_is_min ha) }
 end⟩
-
-section linear_order
-variables [linear_order α]
-
-/-- A constructor for `pred_order α` usable when `α` is a linear order with no maximal element. -/
-def of_le_pred_iff (pred : α → α) (hle_pred_iff : ∀ {a b}, a ≤ pred b ↔ a < b) :
-  pred_order α :=
-{ pred := pred,
-  pred_le := λ a, (hle_pred_iff.1 le_rfl).le,
-  min_of_le_pred := λ a ha, (lt_irrefl a (hle_pred_iff.1 ha)).elim,
-  le_pred_of_lt := λ a b, hle_pred_iff.2,
-  le_of_pred_lt := λ a b h, le_of_not_lt ((not_congr hle_pred_iff).1 h.not_le) }
-
-end linear_order
 
 section complete_lattice
 variables [complete_lattice α] [pred_order α]
@@ -584,7 +577,7 @@ instance [decidable_eq α] [partial_order α] [order_top α] [succ_order α] :
     { exact le_of_lt_succ (some_lt_some.1 h) }
   end }
 
-instance [partial_order α] [order_top α] [pred_order α] : pred_order (with_top α) :=
+instance [preorder α] [order_top α] [pred_order α] : pred_order (with_top α) :=
 { pred := λ a, match a with
     | ⊤        := some ⊤
     | (some a) := some (pred a)
@@ -615,7 +608,7 @@ instance [partial_order α] [order_top α] [pred_order α] : pred_order (with_to
 
 /-! #### Adding a `⊤` to a `no_max_order` -/
 
-instance with_top.succ_order_of_no_max_order [partial_order α] [no_max_order α] [succ_order α] :
+instance with_top.succ_order_of_no_max_order [preorder α] [no_max_order α] [succ_order α] :
   succ_order (with_top α) :=
 { succ := λ a, match a with
     | ⊤        := ⊤
@@ -646,8 +639,7 @@ instance with_top.succ_order_of_no_max_order [partial_order α] [no_max_order α
     { exact some_le_some.2 (le_of_lt_succ $ some_lt_some.1 h) }
   end }
 
-instance [partial_order α] [no_max_order α] [hα : nonempty α] :
-  is_empty (pred_order (with_top α)) :=
+instance [preorder α] [no_max_order α] [hα : nonempty α] : is_empty (pred_order (with_top α)) :=
 ⟨begin
   introI,
   set b := pred (⊤ : with_top α) with h,
@@ -744,8 +736,7 @@ instance [decidable_eq α] [partial_order α] [order_bot α] [pred_order α] :
 
 /-! #### Adding a `⊥` to a `no_min_order` -/
 
-instance [partial_order α] [no_min_order α] [hα : nonempty α] :
-  is_empty (succ_order (with_bot α)) :=
+instance [preorder α] [no_min_order α] [hα : nonempty α] : is_empty (succ_order (with_bot α)) :=
 ⟨begin
   introI,
   set b : with_bot α := succ ⊥ with h,
@@ -756,7 +747,7 @@ instance [partial_order α] [no_min_order α] [hα : nonempty α] :
     exact (le_of_lt_succ hc).not_lt (none_lt_some _) }
 end⟩
 
-instance with_bot.pred_order_of_no_min_order [partial_order α] [no_min_order α] [pred_order α] :
+instance with_bot.pred_order_of_no_min_order [preorder α] [no_min_order α] [pred_order α] :
   pred_order (with_bot α) :=
 { pred := λ a, match a with
     | ⊥        := ⊥

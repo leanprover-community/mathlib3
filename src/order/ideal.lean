@@ -73,20 +73,29 @@ def is_ideal.to_ideal [has_le P] {I : set P} (h : is_ideal I) : ideal P :=
 
 namespace ideal
 section has_le
-variables [has_le P] {I J s t : ideal P} {x y : P}
+variables [has_le P]
+
+section
+variables {I J s t : ideal P} {x y : P}
+
+lemma to_lower_set_injective : injective (to_lower_set : ideal P → lower_set P) :=
+λ s t h, by { cases s, cases t, congr' }
 
 instance : set_like (ideal P) P :=
 { coe := λ s, s.carrier,
-  coe_injective' := λ s t h, by { obtain ⟨⟨_, _⟩, _⟩ := s, obtain ⟨⟨_, _⟩, _⟩ := t, congr' } }
+  coe_injective' := λ s t h, to_lower_set_injective $ set_like.coe_injective h }
 
 @[ext] lemma ext {s t : ideal P} : (s : set P) = t → s = t := set_like.ext'
 
-lemma carrier_eq_coe (s : ideal P) : s.carrier = s := rfl
+@[simp] lemma carrier_eq_coe (s : ideal P) : s.carrier = s := rfl
+@[simp] lemma coe_to_lower_set (s : ideal P) : (s.to_lower_set : set P) = s := rfl
 
 protected lemma lower (s : ideal P) : is_lower_set (s : set P) := s.lower'
 protected lemma nonempty (s : ideal P) : (s : set P).nonempty := s.nonempty'
 protected lemma directed (s : ideal P) : directed_on (≤) (s : set P) := s.directed'
 protected lemma is_ideal (s : ideal P) : is_ideal (s : set P) := ⟨s.lower, s.nonempty, s.directed⟩
+
+lemma mem_compl_of_ge {x y : P} : x ≤ y → x ∈ (I : set P)ᶜ → y ∈ (I : set P)ᶜ := λ h, mt $ I.lower h
 
 /-- The partial ordering by subset inclusion, inherited from `set P`. -/
 instance : partial_order (ideal P) := partial_order.lift coe set_like.coe_injective
@@ -122,52 +131,14 @@ begin
   exact ⟨c, I.lower hac ha, J.lower hbc hb⟩,
 end
 
-section order_bot
-variables [order_bot P]
-
-@[simp] lemma bot_mem (s : ideal P) : ⊥ ∈ s := s.lower bot_le s.nonempty.some_mem
-
-end order_bot
-end has_le
-
-section preorder
-variables [preorder P] {I J : ideal P} {x y : P}
-
-/-- The smallest ideal containing a given element. -/
-def principal (p : P) : ideal P :=
-{ to_lower_set   := lower_set.principal p,
-  nonempty' := ⟨p, le_rfl⟩,
-  directed' := λ x hx y hy, ⟨p, le_rfl, hx, hy⟩ }
-
-instance [inhabited P] : inhabited (ideal P) := ⟨ideal.principal default⟩
-
-@[simp] lemma principal_le_iff : principal x ≤ I ↔ x ∈ I :=
-⟨λ h, h le_rfl, λ hx y hy, I.lower hy hx⟩
-
-@[simp] lemma mem_principal : x ∈ principal y ↔ x ≤ y := iff.rfl
-
-lemma mem_compl_of_ge {x y : P} : x ≤ y → x ∈ (I : set P)ᶜ → y ∈ (I : set P)ᶜ := λ h, mt $ I.lower h
-
-end preorder
-
-section order_bot
-variables [preorder P] [order_bot P] {I : ideal P}
-
-/-- There is a bottom ideal when `P` has a bottom element. -/
-instance : order_bot (ideal P) :=
-{ bot := principal ⊥,
-  bot_le := by simp }
-
-end order_bot
+end
 
 section directed
-variables [has_le P] [is_directed P (≤)] [nonempty P] {I : ideal P}
+variables [is_directed P (≤)] [nonempty P] {I : ideal P}
 
 /-- In a directed and nonempty order, the top ideal of a is `univ`. -/
 instance : order_top (ideal P) :=
-{ top := { to_lower_set := ⊤,
-           nonempty' := univ_nonempty,
-           directed' := directed_on_univ },
+{ top := ⟨⊤, univ_nonempty, directed_on_univ⟩,
   le_top := λ I, le_top }
 
 @[simp] lemma top_to_lower_set : (⊤ : ideal P).to_lower_set = ⊤ := rfl
@@ -194,14 +165,64 @@ lemma is_maximal_iff_is_coatom : is_maximal I ↔ is_coatom I := ⟨λ h, h.is_c
 
 end directed
 
+section order_bot
+variables [order_bot P]
+
+@[simp] lemma bot_mem (s : ideal P) : ⊥ ∈ s := s.lower bot_le s.nonempty.some_mem
+
+end order_bot
+
 section order_top
-variables [has_le P] [order_top P] {I : ideal P}
+variables [order_top P] {I : ideal P}
 
 lemma top_of_top_mem (h : ⊤ ∈ I) : I = ⊤ := by { ext, exact iff_of_true (I.lower le_top h) trivial }
 
 lemma is_proper.top_not_mem (hI : is_proper I) : ⊤ ∉ I := λ h, hI.ne_top $ top_of_top_mem h
 
 end order_top
+end has_le
+
+section preorder
+variables [preorder P]
+
+section
+variables {I J : ideal P} {x y : P}
+
+/-- The smallest ideal containing a given element. -/
+@[simps] def principal (p : P) : ideal P :=
+{ to_lower_set := lower_set.principal p,
+  nonempty' := ⟨p, le_rfl⟩,
+  directed' := λ x hx y hy, ⟨p, le_rfl, hx, hy⟩ }
+
+instance [inhabited P] : inhabited (ideal P) := ⟨ideal.principal default⟩
+
+@[simp] lemma principal_le_iff : principal x ≤ I ↔ x ∈ I :=
+⟨λ h, h le_rfl, λ hx y hy, I.lower hy hx⟩
+
+@[simp] lemma mem_principal : x ∈ principal y ↔ x ≤ y := iff.rfl
+
+end
+
+section order_bot
+variables [order_bot P]
+
+/-- There is a bottom ideal when `P` has a bottom element. -/
+instance : order_bot (ideal P) :=
+{ bot := principal ⊥,
+  bot_le := by simp }
+
+@[simp] lemma principal_bot : principal (⊥ : P) = ⊥ := rfl
+
+end order_bot
+
+section order_top
+variables [order_top P]
+
+@[simp] lemma principal_top : principal (⊤ : P) = ⊤ :=
+to_lower_set_injective $ lower_set.principal_top
+
+end order_top
+end preorder
 
 section semilattice_sup
 variables [semilattice_sup P] {x y : P} {I s : ideal P}
@@ -311,7 +332,7 @@ begin
 end
 
 lemma coe_sup_eq : ↑(I ⊔ J) = {x | ∃ i ∈ I, ∃ j ∈ J, x = i ⊔ j} :=
-set.ext $ λ _,  ⟨λ ⟨_, _, _, _, _⟩, eq_sup_of_le_sup ‹_› ‹_› ‹_›,
+set.ext $ λ _, ⟨λ ⟨_, _, _, _, _⟩, eq_sup_of_le_sup ‹_› ‹_› ‹_›,
   λ ⟨i, _, j, _, _⟩, ⟨i, ‹_›, j, ‹_›, le_of_eq ‹_›⟩⟩
 
 end distrib_lattice

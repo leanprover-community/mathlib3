@@ -57,6 +57,8 @@ multiplication as it is multiplication with `-1`. (See
 class topological_ring [topological_space α] [non_unital_non_assoc_ring α]
   extends topological_semiring α, has_continuous_neg α : Prop
 
+variables {α}
+
 /-- If `R` is a ring with a continuous multiplication, then negation is continuous as well since it
 is just multiplication with `-1`. -/
 lemma topological_semiring.has_continuous_neg_of_mul [topological_space α] [non_assoc_ring α]
@@ -71,7 +73,7 @@ lemma topological_semiring.to_topological_ring [topological_space α] [non_assoc
   (h : topological_semiring α) : topological_ring α :=
 { ..h,
   ..(by { haveI := h.to_has_continuous_mul,
-          exact topological_semiring.has_continuous_neg_of_mul α } : has_continuous_neg α) }
+          exact topological_semiring.has_continuous_neg_of_mul } : has_continuous_neg α) }
 
 @[priority 100] -- See note [lower instance priority]
 instance topological_ring.to_topological_add_group [non_unital_non_assoc_ring α]
@@ -80,15 +82,15 @@ instance topological_ring.to_topological_add_group [non_unital_non_assoc_ring α
   ..topological_ring.to_has_continuous_neg }
 
 @[priority 50]
-instance discrete_topology.topological_semiring {α} [topological_space α]
+instance discrete_topology.topological_semiring [topological_space α]
   [non_unital_non_assoc_semiring α] [discrete_topology α] : topological_semiring α := ⟨⟩
 
 @[priority 50]
-instance discrete_topology.topological_ring {α} [topological_space α]
+instance discrete_topology.topological_ring [topological_space α]
   [non_unital_non_assoc_ring α] [discrete_topology α] : topological_ring α := ⟨⟩
 
 section
-variables {α} [topological_space α] [semiring α] [topological_semiring α]
+variables [topological_space α] [semiring α] [topological_semiring α]
 namespace subsemiring
 
 instance (S : subsemiring α) :
@@ -259,7 +261,7 @@ namespace subring
 
 instance (S : subring α) :
   topological_ring S :=
-topological_semiring.to_topological_ring ↥S S.to_subsemiring.topological_semiring
+topological_semiring.to_topological_ring S.to_subsemiring.topological_semiring
 
 end subring
 
@@ -332,7 +334,7 @@ is_open_map.to_quotient_map
 (by rintro ⟨⟨x⟩, ⟨y⟩⟩; exact ⟨(x, y), rfl⟩)
 
 instance topological_ring_quotient : topological_ring (α ⧸ N) :=
-topological_semiring.to_topological_ring (α ⧸ N)
+topological_semiring.to_topological_ring
 { continuous_add :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst + p.snd)) :=
       continuous_quot_mk.comp continuous_add,

@@ -5,6 +5,8 @@ Authors: Johan Commelin, Floris van Doorn
 -/
 import algebra.module.basic
 import data.set.finite
+import algebra.opposites
+import data.set.opposite
 import group_theory.submonoid.basic
 
 /-!
@@ -353,6 +355,19 @@ begin
   use bA * bB,
   rintro x ⟨xa, xb, hxa, hxb, rfl⟩,
   exact mul_le_mul' (hbA hxa) (hbB hxb),
+end
+
+open mul_opposite
+
+@[to_additive]
+lemma image_op_mul {α : Type*} [has_mul α] {s t : set α} :  op '' (s * t) = (op '' t) * (op '' s) :=
+begin
+  ext x,
+  split,
+  { rintro ⟨-, ⟨x, y, hx, hy, rfl⟩, rfl⟩,
+    apply mul_mem_mul (mem_image_of_mem op hy) (mem_image_of_mem op hx) },
+  { rintro ⟨-, -, ⟨y, hy, rfl⟩, ⟨z, hz, rfl⟩, rfl⟩,
+    refine ⟨z*y, mul_mem_mul hz hy, op_mul z y⟩ }
 end
 
 end mul

@@ -100,6 +100,32 @@ instance {β : Type*} {C : β → Type*} [∀ b, topological_space (C b)]
   [Π b, semiring (C b)] [Π b, topological_ring (C b)] : topological_ring (Π b, C b) := {}
 end
 
+section mul_opposite
+open mul_opposite
+
+instance [semiring α] [topological_space α] [has_continuous_add α] : has_continuous_add αᵐᵒᵖ :=
+{ continuous_add := continuous_induced_rng $ (@continuous_add α _ _ _).comp
+  (continuous_unop.prod_map continuous_unop) }
+
+instance [semiring α] [topological_space α] [topological_ring α] :
+  topological_ring αᵐᵒᵖ := {}
+
+end mul_opposite
+
+section add_opposite
+open add_opposite
+
+instance [semiring α] [topological_space α] [has_continuous_mul α] :
+  has_continuous_mul αᵃᵒᵖ :=
+{ continuous_mul := by convert
+  (continuous_op.comp $ (@continuous_mul α _ _ _).comp $ continuous_unop.prod_map continuous_unop) }
+
+instance [semiring α] [topological_space α] [topological_ring α] :
+  topological_ring αᵃᵒᵖ := {}
+
+end add_opposite
+
+
 section
 variables {R : Type*} [ring R] [topological_space R]
 

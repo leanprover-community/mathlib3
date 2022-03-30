@@ -50,6 +50,8 @@ circumvent this, we quotient `num_denom_same_deg 𝒜 x` by the kernel of `c ↦
 * `homogeneous_localization.eq_num_div_denom`: if `f : homogeneous_localization 𝒜 x`, then
   `f.val : Aₓ` is equal to `f.num / f.denom`.
 
+* `homogeneous_localization.local_ring`: `homogeneous_localization 𝒜 x` is a local ring.
+
 ## References
 
 * [Robin Hartshorne, *Algebraic Geometry*][Har77]

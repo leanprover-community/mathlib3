@@ -235,7 +235,7 @@ section
 variables (A : Type*) [comm_ring A] [is_domain A] [valuation_ring A]
 
 @[priority 100]
-instance : local_ring A :=
+def local_ring : local_ring A :=
 begin
   constructor,
   intros a,

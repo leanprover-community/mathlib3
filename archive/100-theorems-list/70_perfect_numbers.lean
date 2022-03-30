@@ -75,7 +75,7 @@ begin
   apply dvd.intro k,
   rw [pow_succ', mul_assoc, ← hm],
 end
-#check @prime.coprime_pow_of_not_dvd
+
 /-- **Perfect Number Theorem**: Euler's theorem that even perfect numbers can be factored as a
   power of two times a Mersenne prime. -/
 theorem eq_two_pow_mul_prime_mersenne_of_even_perfect {n : ℕ} (ev : even n) (perf : perfect n) :

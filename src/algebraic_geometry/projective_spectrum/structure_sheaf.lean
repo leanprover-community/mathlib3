@@ -5,7 +5,6 @@ Authors: Jujian Zhang
 -/
 import algebraic_geometry.projective_spectrum.topology
 import topology.sheaves.local_predicate
--- import ring_theory.localization.at_prime
 import ring_theory.graded_algebra.homogeneous_localization
 import algebraic_geometry.locally_ringed_space
 
@@ -24,12 +23,9 @@ this file we will construct a sheaf on `projective_spectrum 𝒜`.
 ## Main definitions and results
 * `projective_spectrum.Top`: the topological space of `projective_spectrum 𝒜` endowed with the
   zariski topology
-* `algebraic_geometry.projective_spectrum.structure_sheaf.homogeneous_localization`: given `x` in
-  `projective_spectrum.Top 𝒜`, homogeneous localization at `x` is the subring of `Aₓ` (`A` localized
-  at prime `x`) where the numerator and denominator have same grading.
 
 Then we define the structure sheaf as the subsheaf of all dependent function
-`f : Π x : U, homogeneous_localization x` such that `f` is locally expressible as ratio of two
+`f : Π x : U, homogeneous_localization 𝒜 x` such that `f` is locally expressible as ratio of two
 elements of the *same grading*, i.e. `∀ y ∈ U, ∃ (V ⊆ U) (i : ℕ) (a b ∈ 𝒜 i), ∀ z ∈ V, f z = a / b`.
 
 * `algebraic_geometry.projective_spectrum.structure_sheaf.is_locally_fraction`: the predicate that
@@ -417,9 +413,6 @@ def homogeneous_localization.is_local (x : projective_spectrum.Top 𝒜) :
       homogeneous_localization.one_val],
     induction a using quotient.induction_on',
     simp only [homogeneous_localization.val_mk', ← subtype.val_eq_coe],
-
-    -- induction a using localization.induction_on with r s,
-    -- rcases ha with ⟨r', s', s'_nin, i, r'_hom, s'_hom, eq1⟩,
     by_cases mem1 : a.num.1 ∈ x.as_homogeneous_ideal.1,
     { right,
       have : a.denom.1 - a.num.1 ∈ x.1.to_ideal.prime_compl,

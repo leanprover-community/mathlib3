@@ -61,7 +61,6 @@ lemma has_cokernels : has_cokernels 𝒜 :=
   end }
 
 /-- Auxiliary construction for `coimage_iso_image` -/
-@[simps]
 def cokernel_iso {X Y : 𝒜} (f : X ⟶ Y) : begin
   haveI := has_cokernels a b i adj,
   exact b.obj (cokernel (a.map f)) ≅ cokernel f
@@ -81,22 +80,26 @@ end
 variables [preserves_finite_limits b]
 
 /-- Auxiliary construction for `coimage_iso_image` -/
-@[simps]
 def coimage_iso_image_aux {X Y : 𝒜} (f : X ⟶ Y) : begin
   haveI := has_kernels a b i, haveI := has_cokernels a b i adj,
-  exact kernel (cokernel.π (b.map (a.map f))) ≅ kernel (cokernel.π f)
+  exact kernel (b.map (cokernel.π (a.map f))) ≅ kernel (cokernel.π f)
 end :=
 begin
   haveI := has_kernels a b i, haveI := has_cokernels a b i adj,
-  calc kernel (cokernel.π (b.map (a.map f)))
-      ≅ kernel (cokernel.π (_ ≫ f ≫ _) ≫ (cokernel_iso_of_eq _).hom)
+  haveI : preserves_colimits b := adj.left_adjoint_preserves_colimits,
+  calc kernel (b.map (cokernel.π (a.map f)))
+      ≅ kernel (cokernel.π (b.map (a.map f)) ≫ cokernel_comparison (a.map f) b)
+          : kernel_iso_of_eq (π_comp_cokernel_comparison _ _).symm
+  ... ≅ kernel (cokernel.π (b.map (a.map f))) : kernel_comp_mono _ _
+  ... ≅ kernel (cokernel.π (_ ≫ f ≫ _) ≫ (cokernel_iso_of_eq _).hom)
           : kernel_iso_of_eq (π_comp_cokernel_iso_of_eq_hom (nat_iso.naturality_2 i f)).symm
   ... ≅ kernel (cokernel.π (_ ≫ f ≫ _))       : kernel_comp_mono _ _
   ... ≅ kernel (cokernel.π (f ≫ i.inv.app Y) ≫ (cokernel_epi_comp (i.hom.app X) _).inv)
-                                              : kernel_iso_of_eq (by simp)
+          : kernel_iso_of_eq (by simp only [cokernel.π_desc, cokernel_epi_comp_inv])
   ... ≅ kernel (cokernel.π (f ≫ _))           : kernel_comp_mono _ _
   ... ≅ kernel (inv (i.inv.app Y) ≫ cokernel.π f ≫ (cokernel_comp_is_iso f (i.inv.app Y)).inv)
-                                              : kernel_iso_of_eq (by simp)
+          : kernel_iso_of_eq (by simp only [cokernel.π_desc, cokernel_comp_is_iso_inv,
+              iso.hom_inv_id_app_assoc, nat_iso.inv_inv_app])
   ... ≅ kernel (cokernel.π f ≫ _)             : kernel_is_iso_comp _ _
   ... ≅ kernel (cokernel.π f)                 : kernel_comp_mono _ _
 end
@@ -107,7 +110,6 @@ variables [functor.preserves_zero_morphisms a]
 Auxiliary definition: the abelian coimage and abelian image agree.
 We still need to check that this agrees with the canonical morphism.
 -/
-@[simps]
 def coimage_iso_image {X Y : 𝒜} (f : X ⟶ Y) : begin
   haveI := has_kernels a b i, haveI := has_cokernels a b i adj,
   exact abelian.coimage f ≅ abelian.image f
@@ -116,7 +118,6 @@ begin
   haveI := has_kernels a b i, haveI := has_cokernels a b i adj,
   haveI : preserves_limits a := adj.right_adjoint_preserves_limits,
   haveI : preserves_colimits b := adj.left_adjoint_preserves_colimits,
-  have := nat_iso.naturality_2 i f,
   calc abelian.coimage f
       ≅ cokernel (kernel.ι f)                 : iso.refl _
   ... ≅ b.obj (cokernel (a.map (kernel.ι f))) : (cokernel_iso _ _ i adj _).symm
@@ -127,16 +128,15 @@ begin
   ... ≅ b.obj (abelian.image (a.map f))       : b.map_iso (abelian.coimage_iso_image _)
   ... ≅ b.obj (kernel (cokernel.π (a.map f))) : iso.refl _
   ... ≅ kernel (b.map (cokernel.π (a.map f))) : preserves_kernel.iso _ _
-  ... ≅ kernel (cokernel.π (b.map (a.map f)) ≫ cokernel_comparison (a.map f) b)
-                                              : kernel_iso_of_eq (by simp)
-  ... ≅ kernel (cokernel.π (b.map (a.map f))) : kernel_comp_mono _ _
   ... ≅ kernel (cokernel.π f)                 : coimage_iso_image_aux a b i adj f
   ... ≅ abelian.image f                       : iso.refl _,
 end
 
+local attribute [simp] cokernel_iso coimage_iso_image coimage_iso_image_aux
+
 -- The account of this proof in the Stacks project omits this calculation.
 -- Happily it's little effort: our `[ext]` and `[simp]` lemmas only need a little guidance.
-lemma coimage_iso_image_hom' {X Y : 𝒜} (f : X ⟶ Y) :
+lemma coimage_iso_image_hom {X Y : 𝒜} (f : X ⟶ Y) :
 begin
   haveI := has_kernels a b i, haveI := has_cokernels a b i adj,
   exact (coimage_iso_image a b i adj f).hom = abelian.coimage_image_comparison f,

@@ -10,15 +10,18 @@ import data.real.basic
 
 open_locale big_operators
 
-variables (n : ℕ) (a : ℕ ↪ ℕ) (ha0 : a 0 = 0)
-include ha0
 
 lemma to_name {ι α : Type*} [preorder ι] [linear_order α] {f : ι → α} (s : finset ι) :
   ∃ σ : equiv.perm ι, {x | σ x ≠ x} ⊆ s ∧ monotone_on (f ∘ σ) s :=
 begin
-  sorry
+  classical,
+  apply s.induction_on,
+  { },
+  { }
 end
 
+variables (n : ℕ) (a : ℕ ↪ ℕ) (ha0 : a 0 = 0)
+include ha0
 
 
 theorem IMO_1978_Q5 : (∑ k in finset.Icc 1 n, 1 / k : ℚ) ≤ ∑ k in finset.Icc 1 n, a k / k ^ 2 :=

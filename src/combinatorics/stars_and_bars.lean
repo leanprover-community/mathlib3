@@ -45,6 +45,8 @@ inductive stars_and_bars : Π s b : ℕ, Type
 
 namespace stars_and_bars
 
+instance : inhabited (stars_and_bars 0 0) := ⟨nil⟩
+
 /-- `stars_and_bars.star` as an embedding. -/
 @[simps] def star_embedding {s b : ℕ} : stars_and_bars s b ↪ stars_and_bars s.succ b :=
 ⟨star, λ _ _, star.inj⟩
@@ -65,6 +67,7 @@ def bars : Π {s b : ℕ}, stars_and_bars s b → Π b', stars_and_bars s (b + b
 | s b x 0 := x
 | s b x (b' + 1) := (x.bars b').bar
 
+/-- Helper for `stars_and_bars.has_repr` -/
 protected def repr_aux : Π {s b : ℕ}, stars_and_bars s b → string
 | _ _ (nil)      := ""
 | _ _ (star x) := "⋆" ++ repr_aux x
@@ -154,40 +157,46 @@ end card
 section list
 open list
 
-/--
-The equation compiler does not generate nice lemmas for these definitions, in that it splits `n`
-into `0` and `n.succ` even when both statements are teh same. As such, we state all the internal
-proofs as standalone lemmas, so that we can use them again in our own equation-like lemmas
+/-!
+The equation compiler does not generate nice lemmas for this definition. Despite
+`to_list_star` appearing to have exactly the same statement as `to_list.equations._eqn_2`, the
+former refuses to be proved by the latter.
+
+As such, we state all the internal proofs as standalone lemmas, so that we can use them again in our
+own equation-like lemmas.
 -/
 
 lemma to_list.nil_proof : [].count ff = 0 ∧ [].count tt = 0 :=
 ⟨count_nil _, count_nil _⟩
 
-lemma to_list.star_proof {s b : ℕ} (x : stars_and_bars s b) {l : list bool}
+lemma to_list.star_proof {s b : ℕ} {l : list bool}
   (hl : l.count ff = s ∧ l.count tt = b) :
   (ff :: l).count ff = s.succ ∧ (ff :: l).count tt = b :=
 ⟨(count_cons_self _ _).trans (congr_arg nat.succ hl.1),
   (count_cons_of_ne tt_eq_ff_eq_false _).trans hl.2⟩
 
-lemma to_list.bar_proof {s b : ℕ} (x : stars_and_bars s b) {l : list bool}
+lemma to_list.bar_proof {s b : ℕ} {l : list bool}
   (hl : l.count ff = s ∧ l.count tt = b) :
   (tt :: l).count ff = s ∧ (tt :: l).count tt = b.succ :=
 ⟨(count_cons_of_ne ff_eq_tt_eq_false _).trans hl.1,
   (count_cons_self _ _).trans (congr_arg nat.succ hl.2)⟩
 
 /-- Convert `stars_and_bars s b` to a list with `s` `ff`s and `b` `tt`s. -/
+@[simp]
 def to_list : Π {s b : ℕ},
   stars_and_bars s b → {l : list bool // l.count ff = s ∧ l.count tt = b}
 | 0 0 nil := ⟨[], stars_and_bars.to_list.nil_proof⟩
-| (nat.succ s) b (star x) := ⟨ff :: to_list x, stars_and_bars.to_list.star_proof x (to_list x).prop⟩
-| s (nat.succ b) (bar x) := ⟨tt :: to_list x, stars_and_bars.to_list.bar_proof x (to_list x).prop⟩
+| _ .(b) (@star s b x) := ⟨ff :: to_list x, stars_and_bars.to_list.star_proof (to_list x).prop⟩
+| .(s) _ (@bar s b x) := ⟨tt :: to_list x, stars_and_bars.to_list.bar_proof (to_list x).prop⟩
+
+set_option pp.proofs true
 
 @[simp] lemma to_list_nil : to_list nil = ⟨[], to_list.nil_proof⟩ := rfl
 @[simp] lemma to_list_star {s b : ℕ} (x : stars_and_bars s b) :
-  to_list (star x) = ⟨ff :: to_list x, to_list.star_proof x (to_list x).prop⟩ :=
+  to_list (star x) = ⟨ff :: to_list x, to_list.star_proof (to_list x).prop⟩ :=
 by {cases b; refl}
 @[simp] lemma to_list_bar {s b : ℕ} (x : stars_and_bars s b) :
-  to_list (bar x) = ⟨tt :: to_list x, to_list.bar_proof x (to_list x).prop⟩ :=
+  to_list (bar x) = ⟨tt :: to_list x, to_list.bar_proof (to_list x).prop⟩ :=
 by {cases s; refl}
 
 lemma of_list.tt_proof {s b : ℕ} {l : list bool}
@@ -201,6 +210,12 @@ lemma of_list.ff_proof {s b : ℕ} {l : list bool}
   l.count ff = s ∧ l.count tt = b :=
 ⟨nat.succ.inj $ (count_cons_self _ _).symm.trans hl.1,
   (count_cons_of_ne tt_eq_ff_eq_false _).symm.trans hl.2⟩
+
+/-!
+The equation compiler does not generate nice lemmas for this definition either, in that it splits
+`n` into `0` and `n.succ` even when both statements are teh same. As such, we state all the internal
+proofs as standalone lemmas, so that we can use them again in our own equation-like lemmas
+-/
 
 /-- Convert a list with `s` `ff`s and `b` `tt`s to `stars_and_bars s b` -/
 def of_list : Π {s b : ℕ},

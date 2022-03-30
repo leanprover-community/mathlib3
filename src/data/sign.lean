@@ -87,12 +87,6 @@ instance : has_distrib_neg sign_type :=
   mul_neg := λ x y, by casesm* _; refl,
 ..sign_type.has_neg }
 
-@[simp] lemma neg_zero {α} [mul_zero_class α] [has_distrib_neg α] : (-0 : α) = 0 :=
-begin
-  nth_rewrite 0 [←zero_mul (0 : α)],
-  rw [←neg_mul, mul_zero]
-end
-
 /-- `sign_type` is equivalent to `fin 3`. -/
 def fin3_equiv : sign_type ≃* fin 3 :=
 { to_fun :=  λ a, a.rec_on 0 (-1) 1,
@@ -111,7 +105,7 @@ def fin3_equiv : sign_type ≃* fin 3 :=
   end,
   map_mul' := λ x y, by casesm* _; refl }
 
-/-- Turn a `sign_type` into zero, one, or minus one. This is a coercion instance, not note it is
+/-- Turn a `sign_type` into zero, one, or minus one. This is a coercion instance, but note it is
 only a `has_coe_t` instance: see note [use has_coe_t]. -/
 def cast {α} [has_zero α] [has_one α] [has_neg α] : sign_type → α
 | zero :=  0

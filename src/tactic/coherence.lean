@@ -82,6 +82,7 @@ namespace interactive
 setup_tactic_parser
 
 meta def bicategory.coherence : tactic unit :=
+focus1 $
 do
   (lhs, rhs) ← get_goal >>= infer_type >>= match_eq,
   lhs' ← bicategory.free₂ lhs,
@@ -92,6 +93,7 @@ do
   apply ``(congr_arg (λ η, (free_bicategory.lift (prefunctor.id _)).map₂ η) %%h)
 
 meta def monoical_category.coherence : tactic unit :=
+focus1 $
 do
   (lhs, rhs) ← get_goal >>= infer_type >>= match_eq,
   lhs' ← monoidal_category.free₂ lhs,

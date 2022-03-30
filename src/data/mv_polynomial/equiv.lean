@@ -5,11 +5,11 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
 import data.mv_polynomial.rename
-import data.equiv.fin
 import data.polynomial.algebra_map
 import data.polynomial.lifts
 import data.mv_polynomial.variables
 import data.finsupp.fin
+import logic.equiv.fin
 
 /-!
 # Equivalences between polynomial rings

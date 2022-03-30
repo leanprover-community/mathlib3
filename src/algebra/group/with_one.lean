@@ -3,10 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
 -/
+import algebra.hom.equiv
 import algebra.ring.basic
-import data.equiv.basic
-import data.equiv.mul_add
-import data.equiv.option
+import logic.equiv.basic
+import logic.equiv.option
 
 /-!
 # Adjoining a zero/one to semigroups and related algebraic structures
@@ -28,6 +28,13 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 def with_one (α) := option α
 
 namespace with_one
+
+instance [has_repr α] : has_repr (with_zero α) :=
+⟨λ o, match o with | none := "0" | (some a) := "↑" ++ repr a end⟩
+
+@[to_additive]
+instance [has_repr α] : has_repr (with_one α) :=
+⟨λ o, match o with | none := "1" | (some a) := "↑" ++ repr a end⟩
 
 @[to_additive]
 instance : monad with_one := option.monad

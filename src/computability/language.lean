@@ -17,7 +17,7 @@ over the languages.
 
 universes u v
 
-open set
+open list set
 
 variables {α : Type u}
 
@@ -58,7 +58,7 @@ lemma star_def (l : language α) :
   l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l} := rfl
 
 @[simp] lemma not_mem_zero (x : list α) : x ∉ (0 : language α) := id
-@[simp] lemma nil_mem_one : [] ∈ (1 : language α) := mem_singleton _
+lemma nil_mem_one : [] ∈ (1 : language α) := mem_singleton _
 @[simp] lemma mem_one (x : list α) : x ∈ (1 : language α) ↔ x = [] := iff.rfl
 @[simp] lemma mem_add (l m : language α) (x : list α) : x ∈ l + m ↔ x ∈ l ∨ x ∈ m :=
 by simp [add_def]
@@ -76,7 +76,7 @@ instance : semiring (language α) :=
   add_zero := union_empty,
   add_comm := union_comm,
   mul := (*),
-  mul_assoc := λ _ _ _, image2_assoc list.append_assoc,
+  mul_assoc := λ _ _ _, image2_assoc append_assoc,
   zero_mul := λ _, image2_empty_left,
   mul_zero := λ _, image2_empty_right,
   one := 1,
@@ -94,7 +94,7 @@ begin
   split,
   { rintro ⟨S, rfl, h⟩,
     refine ⟨S.filter (λ l, ¬list.empty l), by simp, λ y hy, _⟩,
-    rw [list.mem_filter, list.empty_iff_eq_nil] at hy,
+    rw [mem_filter, empty_iff_eq_nil] at hy,
     exact ⟨h y hy.1, hy.2⟩ },
   { rintro ⟨S, hx, h⟩,
     exact ⟨S, hx, λ y hy, (h y hy).1⟩ }
@@ -133,16 +133,16 @@ lemma mem_pow {l : language α} {x : list α} {n : ℕ} :
   x ∈ l ^ n ↔ ∃ S : list (list α), x = S.join ∧ S.length = n ∧ ∀ y ∈ S, y ∈ l :=
 begin
   induction n with n ihn generalizing x,
-  { simp only [mem_one, pow_zero, list.length_eq_zero],
+  { simp only [mem_one, pow_zero, length_eq_zero],
     split,
     { rintro rfl, exact ⟨[], rfl, rfl, λ y h, h.elim⟩ },
     { rintro ⟨_, rfl, rfl, _⟩, refl } },
   { simp only [pow_succ, mem_mul, ihn],
     split,
     { rintro ⟨a, b, ha, ⟨S, rfl, rfl, hS⟩, rfl⟩,
-      exact ⟨a :: S, rfl, rfl, list.forall_mem_cons.2 ⟨ha, hS⟩⟩ },
+      exact ⟨a :: S, rfl, rfl, forall_mem_cons.2 ⟨ha, hS⟩⟩ },
     { rintro ⟨_|⟨a, S⟩, rfl, hn, hS⟩; cases hn,
-      rw list.forall_mem_cons at hS,
+      rw forall_mem_cons at hS,
       exact ⟨a, _, hS.1, ⟨S, rfl, rfl, hS.2⟩, rfl⟩ } }
 end
 

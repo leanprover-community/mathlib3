@@ -193,6 +193,21 @@ by simp_rw coe_supr
 @[simp] lemma coe_infi₂ (f : Π i, κ i → upper_set α) : (↑(⨅ i j, f i j) : set α) = ⋂ i j, f i j :=
 by simp_rw coe_infi
 
+@[simp] lemma mem_top : a ∈ (⊤ : upper_set α) := trivial
+@[simp] lemma not_mem_bot : a ∉ (⊥ : upper_set α) := id
+@[simp] lemma mem_sup_iff : a ∈ s ⊔ t ↔ a ∈ s ∨ a ∈ t := iff.rfl
+@[simp] lemma mem_inf_iff : a ∈ s ⊓ t ↔ a ∈ s ∧ a ∈ t := iff.rfl
+@[simp] lemma mem_Sup_iff : a ∈ Sup S ↔ ∃ s ∈ S, a ∈ s := mem_Union₂
+@[simp] lemma mem_Inf_iff  : a ∈ Inf S ↔ ∀ s ∈ S, a ∈ s := mem_Inter₂
+@[simp] lemma mem_supr_iff {f : ι → upper_set α} : a ∈ (⨆ i, f i) ↔ ∃ i, a ∈ f i :=
+by { rw [←set_like.mem_coe, coe_supr], exact mem_Union }
+@[simp] lemma mem_infi_iff {f : ι → upper_set α} : a ∈ (⨅ i, f i) ↔ ∀ i, a ∈ f i :=
+by { rw [←set_like.mem_coe, coe_infi], exact mem_Inter }
+@[simp] lemma mem_supr₂_iff {f : Π i, κ i → upper_set α} : a ∈ (⨆ i j, f i j) ↔ ∃ i j, a ∈ f i j :=
+by simp_rw mem_supr_iff
+@[simp] lemma mem_infi₂_iff {f : Π i, κ i → upper_set α} : a ∈ (⨅ i j, f i j) ↔ ∀ i j, a ∈ f i j :=
+by simp_rw mem_infi_iff
+
 end upper_set
 
 namespace lower_set
@@ -225,6 +240,21 @@ by simp_rw [infi, coe_Inf, mem_range, Inter_exists, Inter_Inter_eq']
 by simp_rw coe_supr
 @[simp] lemma coe_infi₂ (f : Π i, κ i → lower_set α) : (↑(⨅ i j, f i j) : set α) = ⋂ i j, f i j :=
 by simp_rw coe_infi
+
+@[simp] lemma mem_top : a ∈ (⊤ : lower_set α) := trivial
+@[simp] lemma not_mem_bot : a ∉ (⊥ : lower_set α) := id
+@[simp] lemma mem_sup_iff : a ∈ s ⊔ t ↔ a ∈ s ∨ a ∈ t := iff.rfl
+@[simp] lemma mem_inf_iff : a ∈ s ⊓ t ↔ a ∈ s ∧ a ∈ t := iff.rfl
+@[simp] lemma mem_Sup_iff : a ∈ Sup S ↔ ∃ s ∈ S, a ∈ s := mem_Union₂
+@[simp] lemma mem_Inf_iff  : a ∈ Inf S ↔ ∀ s ∈ S, a ∈ s := mem_Inter₂
+@[simp] lemma mem_supr_iff {f : ι → lower_set α} : a ∈ (⨆ i, f i) ↔ ∃ i, a ∈ f i :=
+by { rw [←set_like.mem_coe, coe_supr], exact mem_Union }
+@[simp] lemma mem_infi_iff {f : ι → lower_set α} : a ∈ (⨅ i, f i) ↔ ∀ i, a ∈ f i :=
+by { rw [←set_like.mem_coe, coe_infi], exact mem_Inter }
+@[simp] lemma mem_supr₂_iff {f : Π i, κ i → lower_set α} : a ∈ (⨆ i j, f i j) ↔ ∃ i j, a ∈ f i j :=
+by simp_rw mem_supr_iff
+@[simp] lemma mem_infi₂_iff {f : Π i, κ i → lower_set α} : a ∈ (⨅ i j, f i j) ↔ ∀ i j, a ∈ f i j :=
+by simp_rw mem_infi_iff
 
 end lower_set
 
@@ -308,3 +338,81 @@ by simp_rw lower_set.compl_infi
 
 end lower_set
 end has_le
+
+/-! #### Principal sets -/
+
+namespace upper_set
+section preorder
+variables [preorder α] {a b : α}
+
+/-- The smallest upper set containing a given element. -/
+def principal (a : α) : upper_set α := ⟨{x | a ≤ x}, λ b c, ge_trans⟩
+
+@[simp] lemma coe_principal (a : α) : ↑(principal a) = {x | a ≤ x} := rfl
+@[simp] lemma mem_principal_iff : b ∈ principal a ↔ a ≤ b := iff.rfl
+
+end preorder
+
+section semilattice_sup
+variables [semilattice_sup α]
+
+@[simp] lemma principal_sup (a b : α) : principal (a ⊔ b) = principal a ⊓ principal b :=
+set_like.ext $ λ c, sup_le_iff
+
+end semilattice_sup
+
+section complete_lattice
+variables [complete_lattice α]
+
+@[simp] lemma principal_Sup (S : set α) : principal (Sup S) = ⨅ a ∈ S, principal a :=
+set_like.ext $ λ c, by simp only [mem_principal_iff, mem_infi₂_iff, Sup_le_iff]
+
+@[simp] lemma principal_supr (f : ι → α) : principal (⨆ i, f i) = ⨅ i, principal (f i) :=
+set_like.ext $ λ c, by simp only [mem_principal_iff, mem_infi_iff, supr_le_iff]
+
+@[simp] lemma principal_supr₂ (f : Π i, κ i → α) :
+  principal (⨆ i j, f i j) = ⨅ i j, principal (f i j) :=
+by simp_rw principal_supr
+
+end complete_lattice
+end upper_set
+
+namespace lower_set
+section preorder
+variables [preorder α] {a b : α}
+
+/-- The smallest lower set containing a given element. -/
+def principal (a : α) : lower_set α := ⟨{x | x ≤ a}, λ b c, le_trans⟩
+
+@[simp] lemma coe_principal (a : α) : ↑(principal a) = {x | x ≤ a} := rfl
+@[simp] lemma mem_principal_iff : b ∈ principal a ↔ b ≤ a := iff.rfl
+
+variables [order_top α]
+
+@[simp] lemma principal_top : principal (⊤ : α) = ⊤ := set_like.ext $ λ c, (iff_true _).2 le_top
+
+end preorder
+
+section semilattice_inf
+variables [semilattice_inf α]
+
+@[simp] lemma principal_inf (a b : α) : principal (a ⊓ b) = principal a ⊓ principal b :=
+set_like.ext $ λ c, le_inf_iff
+
+end semilattice_inf
+
+section complete_lattice
+variables [complete_lattice α]
+
+@[simp] lemma principal_Inf (S : set α) : principal (Inf S) = ⨅ a ∈ S, principal a :=
+set_like.ext $ λ c, by simp only [mem_principal_iff, mem_infi₂_iff, le_Inf_iff]
+
+@[simp] lemma principal_infi (f : ι → α) : principal (⨅ i, f i) = ⨅ i, principal (f i) :=
+set_like.ext $ λ c, by simp only [mem_principal_iff, mem_infi_iff, le_infi_iff]
+
+@[simp] lemma principal_infi₂ (f : Π i, κ i → α) :
+  principal (⨅ i j, f i j) = ⨅ i j, principal (f i j) :=
+by simp_rw principal_infi
+
+end complete_lattice
+end lower_set

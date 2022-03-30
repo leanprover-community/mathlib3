@@ -57,7 +57,7 @@ def gamma_real_integral (s : ℝ) : ℝ := ∫ x in Ioi (0:ℝ), exp (-x) * x ^ 
 
 This is not optimal, but the optimal bound (convergence for `0 < s`) is hard to establish with the
 results currently in the library. -/
-lemma gamma_real_integral_convergent {s : ℝ} (h : 1 ≤ s) : 
+lemma gamma_real_integral_convergent {s : ℝ} (h : 1 ≤ s) :
   integrable_on (λ x:ℝ, exp (-x) * x ^ (s - 1)) (Ioi 0) :=
 begin
   refine integrable_of_is_O_exp_neg one_half_pos _ (gamma_integrand_is_O _ ),
@@ -84,13 +84,6 @@ section gamma_complex
 
 open complex
 
-lemma abs_cpow_of_pos_real (s : ℂ) {x : ℝ} (hx : 0 < x) : complex.abs (x ^ s)  = x ^ (s.re) :=
-begin
-  rw cpow_def_of_ne_zero,
-  { rw [complex.abs_exp, ←of_real_log hx.le, of_real_mul_re, exp_mul, exp_log hx],},
-  { rwa [ne.def, of_real_eq_zero, ←ne.def], exact hx.ne',}
-end
-
 /-- The integral defining the Γ function converges for complex `s` with `1 ≤ re s`.
 
 This is proved by reduction to the real case. The bound is not optimal, but the optimal bound
@@ -102,7 +95,7 @@ begin
   -- at the lower endpoint. However, it is continuous on the interior, and its norm is continuous
   -- at the endpoint, which is good enough.
   split,
-  { refine continuous_on.ae_measurable _ measurable_set_Ioi,
+  { refine continuous_on.ae_strongly_measurable _ measurable_set_Ioi,
     apply (continuous_of_real.comp continuous_neg.exp).continuous_on.mul,
     apply continuous_at.continuous_on,
     intros x hx,
@@ -114,7 +107,7 @@ begin
     refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (λ x hx, _)),
     dsimp only,
     rw [complex.norm_eq_abs, complex.abs_mul, complex.abs_of_nonneg $ le_of_lt $ exp_pos $ -x,
-      abs_cpow_of_pos_real _ hx],
+      abs_cpow_eq_rpow_re_of_pos hx _],
     simp }
 end
 
@@ -137,7 +130,7 @@ end
 
 lemma gamma_complex_integral_one : gamma_complex_integral 1 = 1 :=
 begin
-  rw [←of_real_one, gamma_complex_integral_of_real 1, of_real_inj],
+  rw [←of_real_one, gamma_complex_integral_of_real, of_real_inj],
   exact gamma_real_integral_one,
 end
 

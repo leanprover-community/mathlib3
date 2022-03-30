@@ -8,6 +8,18 @@ import category_theory.abelian.basic
 import category_theory.limits.preserves.shapes.kernels
 import category_theory.adjunction.limits
 
+/-!
+# Transferring "abelian-ness" across a functor
+
+If `𝒜` is an additive category, `ℬ` is an abelian category,
+we have `a : 𝒜 ⥤ ℬ` `b : ℬ ⥤ 𝒜` (both preserving zero morphisms),
+`b` is left exact (that is, preserves finite limits),
+and further we have `adj : b ⊣ a` and `i : a ⋙ b ≅ 𝟭 𝒜`,
+then `𝒜` is also abelian.
+
+See https://stacks.math.columbia.edu/tag/03A3
+-/
+
 noncomputable theory
 
 namespace category_theory
@@ -89,7 +101,6 @@ begin
   ... ≅ kernel (cokernel.π f)                 : kernel_comp_mono _ _
 end
 
-variables [has_finite_products 𝒜]
 variables [functor.preserves_zero_morphisms a]
 
 /--
@@ -157,6 +168,5 @@ begin
   { intros X Y f, rw ←coimage_iso_image_hom' a b i adj f, apply_instance, },
   apply abelian.of_coimage_image_comparison_is_iso,
 end
-#lint
 
 end category_theory

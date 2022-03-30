@@ -3,9 +3,11 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import analysis.asymptotics.asymptotic_equivalent
 import analysis.normed_space.affine_isometry
 import analysis.normed_space.operator_norm
-import analysis.asymptotics.asymptotic_equivalent
+import analysis.normed_space.riesz_lemma
+import analysis.matrix
 import linear_algebra.matrix.to_lin
 import topology.algebra.matrix
 
@@ -322,6 +324,27 @@ by { ext x, refl }
 by { ext x, refl }
 
 end linear_equiv
+
+namespace continuous_linear_map
+
+variable [finite_dimensional 𝕜 E]
+
+/-- Builds a continuous linear equivalence from a continuous linear map on a finite-dimensional
+vector space whose determinant is nonzero. -/
+def to_continuous_linear_equiv_of_det_ne_zero
+  (f : E →L[𝕜] E) (hf : f.det ≠ 0) : E ≃L[𝕜] E :=
+((f : E →ₗ[𝕜] E).equiv_of_det_ne_zero hf).to_continuous_linear_equiv
+
+@[simp] lemma coe_to_continuous_linear_equiv_of_det_ne_zero (f : E →L[𝕜] E) (hf : f.det ≠ 0) :
+  (f.to_continuous_linear_equiv_of_det_ne_zero hf : E →L[𝕜] E) = f :=
+by { ext x, refl }
+
+@[simp] lemma to_continuous_linear_equiv_of_det_ne_zero_apply
+  (f : E →L[𝕜] E) (hf : f.det ≠ 0) (x : E) :
+  f.to_continuous_linear_equiv_of_det_ne_zero hf x = f x :=
+rfl
+
+end continuous_linear_map
 
 /-- Any `K`-Lipschitz map from a subset `s` of a metric space `α` to a finite-dimensional real
 vector space `E'` can be extended to a Lipschitz map on the whole space `α`, with a slightly worse
@@ -729,7 +752,7 @@ lemma exists_mem_frontier_inf_dist_compl_eq_dist {E : Type*} [normed_group E]
 begin
   rcases metric.exists_mem_closure_inf_dist_eq_dist (nonempty_compl.2 hs) x with ⟨y, hys, hyd⟩,
   rw closure_compl at hys,
-  refine ⟨y, ⟨metric.closed_ball_inf_dist_compl_subset_closure hx hs $
+  refine ⟨y, ⟨metric.closed_ball_inf_dist_compl_subset_closure hx $
     metric.mem_closed_ball.2 $ ge_of_eq _, hys⟩, hyd⟩,
   rwa dist_comm
 end

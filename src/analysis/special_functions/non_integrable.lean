@@ -39,9 +39,8 @@ integrable function
 open_locale measure_theory topological_space interval nnreal ennreal
 open measure_theory topological_space set filter asymptotics interval_integral
 
-variables {E F : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E] [normed_group F]
-  [measurable_space F] [borel_space F]
+variables {E F : Type*} [normed_group E] [normed_space ℝ E] [second_countable_topology E]
+[complete_space E] [normed_group F]
 
 /-- If `f` is eventually differentiable along a nontrivial filter `l : filter ℝ` that is generated
 by convex sets, the norm of `f` tends to infinity along `l`, and `f' = O(g)` along `l`, where `f'`
@@ -79,7 +78,7 @@ begin
   have hsub' : Ι c d ⊆ Ι a b,
     from interval_oc_subset_interval_oc_of_interval_subset_interval hsub,
   have hfi : interval_integrable (deriv f) volume c d,
-    from (hgi.mono_set hsub).mono_fun' (ae_measurable_deriv _ _) hg_ae,
+    from (hgi.mono_set hsub).mono_fun' (ae_strongly_measurable_deriv _ _) hg_ae,
   refine hlt.not_le (sub_le_iff_le_add'.1 _),
   calc ∥f d∥ - ∥f c∥ ≤ ∥f d - f c∥ : norm_sub_norm_le _ _
   ... = ∥∫ x in c..d, deriv f x∥ : congr_arg _ (integral_deriv_eq_sub hfd hfi).symm

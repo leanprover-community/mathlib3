@@ -454,11 +454,8 @@ lemma is_unit_iff_is_unit_val (f : homogeneous_localization 𝒜 x) :
   simp only [← subtype.val_eq_coe] at eq1,
   change a * f.num * 1 * c = _ at eq1,
   simp only [one_mul, mul_one] at eq1,
-  have mem1 : a * f.num * c ∈ x.prime_compl,
-  { rw eq1,
-    intro rid,
-    rcases ideal.is_prime.mem_or_mem infer_instance rid with h1|h2;
-    tauto, },
+  have mem1 : a * f.num * c ∈ x.prime_compl :=
+    eq1.symm ▸ λ r, or.elim (ideal.is_prime.mem_or_mem infer_instance r) (by tauto)(by tauto),
   have mem2 : f.num ∉ x,
   { contrapose! mem1,
     erw [not_not],

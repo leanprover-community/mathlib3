@@ -5,6 +5,7 @@ Authors: Lucas Allen, Scott Morrison
 -/
 import data.bool.basic
 import data.mllist
+import tactic.apply
 import tactic.solve_by_elim
 
 /-!
@@ -188,7 +189,7 @@ Returns the number of subgoals which were closed using `solve_by_elim`.
 meta def apply_and_solve (close_goals : bool) (opt : suggest_opt := { }) (e : expr) : tactic ℕ :=
 do
   trace_if_enabled `suggest format!"Trying to apply lemma: {e}",
-  apply e opt.to_apply_cfg,
+  apply' e opt.to_apply_cfg,
   trace_if_enabled `suggest format!"Applied lemma: {e}",
   ng ← num_goals,
   -- Phase 1

@@ -1573,7 +1573,7 @@ begin
   have : inducing g := (hf.comp inducing_coe).cod_restrict _,
   haveI : second_countable_topology (f ⁻¹' s) := this.second_countable_topology,
   rw show f ⁻¹' s = coe '' (univ : set (f ⁻¹' s)),
-     by simpa only [image_univ, subtype.range_coe_subtype, mem_preimage],
+     by simpa only [image_univ, subtype.range_coe_subtype],
   exact (is_separable_of_separable_space _).image continuous_subtype_coe
 end
 

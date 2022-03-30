@@ -408,7 +408,6 @@ variable {𝕜}
   [measurable_space F] [borel_space F] (f : 𝕜 → F) : measurable (deriv f) :=
 by simpa only [fderiv_deriv] using measurable_fderiv_apply_const 𝕜 f 1
 
-
 lemma strongly_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜]
   [second_countable_topology F] (f : 𝕜 → F) :
   strongly_measurable (deriv f) :=

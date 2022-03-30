@@ -54,6 +54,7 @@ begin
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
   { intro x,
     rcases nat.even.sub_even hn (even_bit0 1) with ⟨k, hk⟩,
+    tw ← two_mul at hk,
     rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, pow_mul'],
     exact mul_nonneg (nat.cast_nonneg _) (pow_two_nonneg _) }
 end

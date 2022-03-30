@@ -417,6 +417,7 @@ begin
     have t := abs_cpow_eq_rpow_re_of_pos this y,
     rwa cpow_def_of_ne_zero (of_real_ne_zero.mpr this.ne') at t }
 end
+
 end complex
 
 namespace real

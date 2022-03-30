@@ -284,6 +284,18 @@ is_open.inter (hs.preimage continuous_fst) (ht.preimage continuous_snd)
 lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = 𝓝 a ×ᶠ 𝓝 b :=
 by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
 
+/-- If a function `f x y` is such that `y ↦ f x y` is continuous for all `x`, and `x` lives in a
+discrete space, then `f` is continuous. -/
+lemma continuous_uncurry_of_discrete_topology [discrete_topology α]
+  {f : α → β → γ} (hf : ∀ a, continuous (f a)) : continuous (function.uncurry f) :=
+begin
+  apply continuous_iff_continuous_at.2,
+  rintros ⟨a, x⟩,
+  change map _ _ ≤ _,
+  rw [nhds_prod_eq, nhds_discrete, filter.map_pure_prod],
+  exact (hf a).continuous_at
+end
+
 lemma mem_nhds_prod_iff {a : α} {b : β} {s : set (α × β)} :
   s ∈ 𝓝 (a, b) ↔ ∃ (u ∈ 𝓝 a) (v ∈ 𝓝 b), u ×ˢ v ⊆ s :=
 by rw [nhds_prod_eq, mem_prod_iff]
@@ -777,6 +789,14 @@ closure_induced
 
 @[continuity] lemma continuous.cod_restrict {f : α → β} {s : set β} (hf : continuous f)
   (hs : ∀ a, f a ∈ s) : continuous (s.cod_restrict f hs) := continuous_subtype_mk hs hf
+
+lemma inducing.cod_restrict {e : α → β} (he : inducing e) {s : set β} (hs : ∀ x, e x ∈ s) :
+  inducing (cod_restrict e s hs) :=
+inducing_of_inducing_compose (he.continuous.cod_restrict hs) continuous_subtype_coe he
+
+lemma embedding.cod_restrict {e : α → β} (he : embedding e) (s : set β) (hs : ∀ x, e x ∈ s) :
+  embedding (cod_restrict e s hs) :=
+embedding_of_embedding_compose (he.continuous.cod_restrict hs) continuous_subtype_coe he
 
 end subtype
 

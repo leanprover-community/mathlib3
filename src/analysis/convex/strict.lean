@@ -12,10 +12,6 @@ import topology.algebra.order.basic
 This file defines strictly convex sets.
 
 A set is strictly convex if the open segment between any two distinct points lies in its interior.
-
-## TODO
-
-Define strictly convex spaces.
 -/
 
 open set

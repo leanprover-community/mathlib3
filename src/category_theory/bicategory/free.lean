@@ -202,8 +202,8 @@ variables {a b c d : free_bicategory B}
 
 variables (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d)
 
-@[simp] lemma id_def : hom.id a = 𝟙 a := rfl
-@[simp] lemma comp_def : hom.comp f g = f ≫ g := rfl
+lemma id_def : hom.id a = 𝟙 a := rfl
+lemma comp_def : hom.comp f g = f ≫ g := rfl
 @[simp] lemma mk_id : quot.mk _ (hom₂.id f) = 𝟙 f := rfl
 @[simp] lemma mk_associator_hom : quot.mk _ (hom₂.associator f g h) = (α_ f g h).hom := rfl
 @[simp] lemma mk_associator_inv : quot.mk _ (hom₂.associator_inv f g h) = (α_ f g h).inv := rfl

@@ -73,7 +73,7 @@ begin
 end
 
 @[simp] theorem two_dvd_ne_zero : ¬ 2 ∣ n ↔ n % 2 = 1 :=
-by simp [← even_iff_two_dvd, not_even_iff]
+even_iff_two_dvd.symm.not.trans not_even_iff
 
 instance : decidable_pred (even : ℤ → Prop) :=
 λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
@@ -158,7 +158,7 @@ by rw_mod_cast [even_iff, nat.even_iff]
 by rw [odd_iff_not_even, nat.odd_iff_not_even, even_coe_nat]
 
 @[simp] theorem nat_abs_even : even n.nat_abs ↔ even n :=
-by simp [even_iff_two_dvd, dvd_nat_abs, (coe_nat_dvd_left).symm]
+by simp [even_iff_two_dvd, dvd_nat_abs, coe_nat_dvd_left.symm]
 
 @[simp] theorem nat_abs_odd : odd n.nat_abs ↔ odd n :=
 by rw [odd_iff_not_even, nat.odd_iff_not_even, nat_abs_even]

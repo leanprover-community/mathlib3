@@ -21,7 +21,9 @@ noncomputable theory
 
 namespace finsupp
 
-variables {M : Type*} [has_zero M] {n : ℕ} (i : fin n) (t : fin (n + 1) →₀ M) (s : fin n →₀ M) (y : M)
+variables {n : ℕ} (i : fin n) {M : Type*} [has_zero M] (y : M)
+  (t : fin (n + 1) →₀ M) (s : fin n →₀ M)
+
 
 /-- `tail` for maps `fin (n + 1) →₀ M`. See `fin.tail` for more details. -/
 def tail (s : fin (n + 1) →₀ M) : fin n →₀ M :=
@@ -88,7 +90,7 @@ begin
   by_contradiction c,
   have h' : s = 0,
   { ext,
-    simp [ ← cons_succ a s y, c] },
+    simp [ ← cons_succ a y s, c] },
   cc,
 end
 

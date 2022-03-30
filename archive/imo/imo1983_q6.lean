@@ -20,4 +20,5 @@ begin
     have h5 : 1 / a ≤ 1 / b ∧ 1 / b ≤ 1 / c,
     { sorry },
     sorry },
+    sorry
 end

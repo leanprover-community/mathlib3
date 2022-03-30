@@ -165,7 +165,7 @@ def stacks_03A3
 begin
   haveI := has_kernels a b i, haveI := has_cokernels a b i adj,
   haveI : ∀ {X Y : 𝒜} (f : X ⟶ Y), is_iso (abelian.coimage_image_comparison f),
-  { intros X Y f, rw ←coimage_iso_image_hom' a b i adj f, apply_instance, },
+  { intros X Y f, rw ←coimage_iso_image_hom a b i adj f, apply_instance, },
   apply abelian.of_coimage_image_comparison_is_iso,
 end
 

@@ -7,6 +7,7 @@ Authors: Moritz Doll, Kalle Kytölä
 import analysis.normed.normed_field
 import analysis.convex.basic
 import linear_algebra.sesquilinear_form
+import topology.algebra.module.weak_dual
 
 /-!
 # Polar set
@@ -118,6 +119,15 @@ begin
       mul_inv_cancel_left₀ hc.ne']
   ... ≤ ε * 1 : mul_le_mul hcε.le (hy _ trivial) (norm_nonneg _) hε.le
   ... = ε : mul_one _
+end
+
+/-- The polar set is closed in the weak topology induced by `B.flip`. -/
+lemma polar_weak_closed (s : set E) :
+  @is_closed _ (weak_bilin.topological_space B.flip) (B.polar s) :=
+begin
+  rw polar_eq_Inter,
+  refine is_closed_Inter (λ x, is_closed_Inter (λ _, _)),
+  exact is_closed_le (eval_continuous B.flip x).norm continuous_const,
 end
 
 end nondiscrete_normed_field

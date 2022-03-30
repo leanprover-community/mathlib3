@@ -29,11 +29,12 @@ structure FinPartialOrder :=
 [is_fintype : fintype to_PartialOrder]
 
 namespace FinPartialOrder
+
 instance : has_coe_to_sort FinPartialOrder Type* := ⟨λ X, X.to_PartialOrder⟩
-
 instance (X : FinPartialOrder) : partial_order X := X.to_PartialOrder.str
-
 attribute [instance]  FinPartialOrder.is_fintype
+
+@[simp] lemma coe_to_PartialOrder (X : FinPartialOrder) : ↥X.to_PartialOrder = ↥X := rfl
 
 /-- Construct a bundled `FinPartialOrder` from `fintype` + `partial_order`. -/
 def of (α : Type*) [partial_order α] [fintype α] : FinPartialOrder := ⟨⟨α⟩⟩

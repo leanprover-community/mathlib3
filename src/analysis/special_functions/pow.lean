@@ -1114,7 +1114,7 @@ begin
     rw [coe_rpow, real.coe_to_nnreal _ (real.rpow_nonneg_of_nonneg p.1.2 _)],
     refl },
   rw this,
-  refine nnreal.continuous_of_real.continuous_at.comp (continuous_at.comp _ _),
+  refine continuous_real_to_nnreal.continuous_at.comp (continuous_at.comp _ _),
   { apply real.continuous_at_rpow,
     simp at h,
     rw ← (nnreal.coe_eq_zero x) at h,
@@ -1669,7 +1669,7 @@ begin
   { obtain ⟨z, hz⟩ : ∃ z, y = -z := ⟨-y, (neg_neg _).symm⟩,
     have z_pos : 0 < z, by simpa [hz] using hy,
     simp_rw [hz, rpow_neg],
-    exact ennreal.continuous_inv.continuous_at.comp (continuous_at_rpow_const_of_pos z_pos) }
+    exact continuous_inv.continuous_at.comp (continuous_at_rpow_const_of_pos z_pos) }
 end
 
 lemma tendsto_const_mul_rpow_nhds_zero_of_pos {c : ℝ≥0∞} (hc : c ≠ ∞) {y : ℝ} (hy : 0 < y) :

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import analysis.convex.function
-import analysis.convex.strict
+import analysis.convex.strict_convex_space
 import measure_theory.function.ae_eq_of_integral
 import measure_theory.integral.average
 
@@ -21,7 +21,7 @@ In this file we prove several forms of Jensen's inequality for integrals.
 - for strictly convex sets: `strict_convex.ae_eq_const_or_average_mem_interior`;
 
 - for a closed ball in a strictly convex normed space:
-  `strict_convex.ae_eq_const_or_norm_integral_lt_of_norm_le_const`
+  `ae_eq_const_or_norm_integral_lt_of_norm_le_const`;
 
 - for strictly convex functions: `strict_convex_on.ae_eq_const_or_map_average_lt`.
 
@@ -39,9 +39,7 @@ open_locale topological_space big_operators ennreal convex
 
 variables {α E F : Type*} {m0 : measurable_space α}
   [normed_group E] [normed_space ℝ E] [complete_space E]
-  [topological_space.second_countable_topology E] [measurable_space E] [borel_space E]
   [normed_group F] [normed_space ℝ F] [complete_space F]
-  [topological_space.second_countable_topology F] [measurable_space F] [borel_space F]
   {μ : measure α} {s : set E}
 
 /-!
@@ -55,13 +53,19 @@ lemma convex.integral_mem [is_probability_measure μ] {s : set E} (hs : convex �
   (hsc : is_closed s) {f : α → E} (hf : ∀ᵐ x ∂μ, f x ∈ s) (hfi : integrable f μ) :
   ∫ x, f x ∂μ ∈ s :=
 begin
-  obtain ⟨y₀, h₀⟩ : s.nonempty,
-  { rcases hf.exists with ⟨x₀, h₀⟩, exact ⟨f x₀, h₀⟩ },
-  rcases hfi.ae_measurable with ⟨g, hgm, hfg⟩,
+  borelize E,
+  rcases hfi.ae_strongly_measurable with ⟨g, hgm, hfg⟩,
+  haveI : separable_space (range g ∩ s : set E) :=
+    (hgm.is_separable_range.mono (inter_subset_left _ _)).separable_space,
+  obtain ⟨y₀, h₀⟩ : (range g ∩ s).nonempty,
+  { rcases (hf.and hfg).exists with ⟨x₀, h₀⟩,
+    exact ⟨f x₀, by simp only [h₀.2, mem_range_self], h₀.1⟩ },
   rw [integral_congr_ae hfg], rw [integrable_congr hfg] at hfi,
-  have hg : ∀ᵐ x ∂μ, g x ∈ closure s,
-    from (hfg.rw (λ x y, y ∈ s) hf).mono (λ x hx, subset_closure hx),
-  set G : ℕ → simple_func α E := simple_func.approx_on _ hgm s y₀ h₀,
+  have hg : ∀ᵐ x ∂μ, g x ∈ closure (range g ∩ s),
+  { filter_upwards [hfg.rw (λ x y, y ∈ s) hf] with x hx,
+    apply subset_closure,
+    exact ⟨mem_range_self _, hx⟩ },
+  set G : ℕ → simple_func α E := simple_func.approx_on _ hgm.measurable (range g ∩ s) y₀ h₀,
   have : tendsto (λ n, (G n).integral μ) at_top (𝓝 $ ∫ x, g x ∂μ),
     from tendsto_integral_approx_on_of_measurable hfi _ hg _ (integrable_const _),
   refine hsc.mem_of_tendsto this (eventually_of_forall $ λ n, hs.sum_mem _ _ _),
@@ -70,7 +74,9 @@ begin
       ennreal.one_to_real],
     exact λ _ _, measure_ne_top _ _ },
   { simp only [simple_func.mem_range, forall_range_iff],
-    exact λ x, simple_func.approx_on_mem hgm _ _ _ },
+    assume x,
+    apply inter_subset_right (range g),
+    exact simple_func.approx_on_mem hgm.measurable _ _ _ },
 end
 
 /-- If `μ` is a non-zero finite measure on `α`, `s` is a convex closed set in `E`, and `f` is an
@@ -309,12 +315,11 @@ lemma strict_concave_on.ae_eq_const_or_lt_map_average [is_finite_measure μ] {s 
 by simpa only [pi.neg_apply, average_neg, neg_lt_neg_iff]
   using hg.neg.ae_eq_const_or_map_average_lt hgc.neg hsc hfs hfi hgi.neg
 
-/-- If the closed ball of radius `C` in a normed space `E` is strictly convex and `f : α → E` is
-a function such that `∥f x∥ ≤ C` a.e., then either either this function is a.e. equal to its
-average value, or the norm of its integral is strictly less than `(μ univ).to_real * C`. -/
-lemma strict_convex.ae_eq_const_or_norm_integral_lt_of_norm_le_const [is_finite_measure μ]
-  {f : α → E} {C : ℝ} (h_convex : strict_convex ℝ (closed_ball (0 : E) C))
-  (h_le : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
+/-- If `E` is a strictly normed space and `f : α → E` is a function such that `∥f x∥ ≤ C` a.e., then
+either either this function is a.e. equal to its average value, or the norm of its integral is
+strictly less than `(μ univ).to_real * C`. -/
+lemma ae_eq_const_or_norm_integral_lt_of_norm_le_const [strict_convex_space ℝ E]
+  [is_finite_measure μ] {f : α → E} {C : ℝ} (h_le : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
   (f =ᵐ[μ] const α ⨍ x, f x ∂μ) ∨ ∥∫ x, f x ∂μ∥ < (μ univ).to_real * C :=
 begin
   cases le_or_lt C 0 with hC0 hC0,
@@ -332,5 +337,6 @@ begin
     from ennreal.to_real_pos (mt measure_univ_eq_zero.1 hμ) (measure_ne_top _ _),
   simpa only [interior_closed_ball _ hC0.ne', mem_ball_zero_iff, average_def', norm_smul,
     real.norm_eq_abs, abs_inv, abs_of_pos hμ', ← div_eq_inv_mul, div_lt_iff' hμ']
-    using h_convex.ae_eq_const_or_average_mem_interior is_closed_ball h_le hfi,
+    using (strict_convex_closed_ball ℝ (0 : E) C).ae_eq_const_or_average_mem_interior
+      is_closed_ball h_le hfi
 end

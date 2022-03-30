@@ -107,7 +107,8 @@ lemma int_prod_range_nonneg (m : ℤ) (n : ℕ) (hn : even n) :
 begin
   rcases hn with ⟨n, rfl⟩,
   induction n with n ihn, { simp },
-  rw [nat.succ_eq_add_one, mul_add, mul_one, bit0, ← add_assoc, finset.prod_range_succ,
+  rw ← two_mul at ihn,
+  rw [← two_mul, nat.succ_eq_add_one, mul_add, mul_one, bit0, ← add_assoc, finset.prod_range_succ,
     finset.prod_range_succ, mul_assoc],
   refine mul_nonneg ihn _, generalize : (1 + 1) * n = k,
   cases le_or_lt m k with hmk hmk,

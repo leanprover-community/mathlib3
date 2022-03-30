@@ -32,15 +32,15 @@ elements of the *same grading*, i.e. `∀ y ∈ U, ∃ (V ⊆ U) (i : ℕ) (a b 
   a dependent function is locally expressible as ration of two elements of the same grading.
 * `algebraic_geometry.projective_spectrum.structure_sheaf.sections_subring`: the dependent functions
   satisfying the above local property forms a subring of all dependent functions
-  `Π x : U, homogeneous_localization x`.
+  `Π x : U, homogeneous_localization 𝒜 x`.
 * `algebraic_geometry.Proj.structure_sheaf`: the sheaf with `U ↦ sections_subring U` and natural
   restriction map.
 
 Then we establish that `Proj 𝒜` is a `LocallyRingedSpace`:
 * `algebraic_geometry.homogeneous_localization.is_local`: for any `x : projective_spectrum 𝒜`,
-  `homogeneous_localization x` is a local ring.
+  `homogeneous_localization 𝒜 x` is a local ring.
 * `algebraic_geometry.Proj.stalk_iso'`: for any `x : projective_spectrum 𝒜`, the stalk of
-  `Proj.structure_sheaf` at `x` is isomorphic to `homogeneous_localization x`.
+  `Proj.structure_sheaf` at `x` is isomorphic to `homogeneous_localization 𝒜 x`.
 * `algebraic_geometry.Proj.to_LocallyRingedSpace`: `Proj` as a locally ringed space.
 
 ## References
@@ -78,11 +78,10 @@ variables {𝒜}
 The predicate saying that a dependent function on an open `U` is realised as a fixed fraction
 `r / s` of *same grading* in each of the stalks (which are localizations at various prime ideals).
 -/
-def is_fraction {U : opens (projective_spectrum.Top 𝒜)}
-  (f : Π x : U, at x.1) : Prop :=
-∃ (r s : A) (i : ℕ) (r_mem : r ∈ 𝒜 i) (s_mem : s ∈ 𝒜 i),
-  ∀ x : U, ∃ (s_nin : ¬ (s ∈ x.1.as_homogeneous_ideal)),
-  (f x) = quotient.mk' ⟨i, ⟨r, r_mem⟩, ⟨s, s_mem⟩, s_nin⟩
+def is_fraction {U : opens (projective_spectrum.Top 𝒜)} (f : Π x : U, at x.1) : Prop :=
+∃ (i : ℕ) (r s : 𝒜 i),
+  ∀ x : U, ∃ (s_nin : ¬ (s.1 ∈ x.1.as_homogeneous_ideal)),
+  (f x) = quotient.mk' ⟨i, r, s, s_nin⟩
 
 variables (𝒜)
 
@@ -92,12 +91,11 @@ subset `V` of `U`.
 -/
 def is_fraction_prelocal : prelocal_predicate (λ (x : projective_spectrum.Top 𝒜), at x) :=
 { pred := λ U f, is_fraction f,
-  res := by { rintros V U i f ⟨r, s, j, r_hom, s_hom, w⟩,
-    refine ⟨r, s, j, r_hom, s_hom, λ y, w (i y)⟩ } }
+  res := by rintros V U i f ⟨j, r, s, w⟩; exact ⟨j, r, s, λ y, w (i y)⟩ }
 
 /--
 We will define the structure sheaf as
-the subsheaf of all dependent functions in `Π x : U, homogeneous_localization x`
+the subsheaf of all dependent functions in `Π x : U, homogeneous_localization 𝒜 x`
 consisting of those functions which can locally be expressed as a ratio of `A` of same grading.-/
 def is_locally_fraction : local_predicate (λ (x : projective_spectrum.Top 𝒜), at x) :=
 (is_fraction_prelocal 𝒜).sheafify
@@ -109,30 +107,28 @@ open submodule set_like.graded_monoid homogeneous_localization
 
 lemma zero_mem' (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
   (is_locally_fraction 𝒜).pred (0 : Π x : unop U, at x.1) :=
-λ x, ⟨unop U, x.2, 𝟙 (unop U), ⟨0, 1, 0, zero_mem _, one_mem,
-  λ y, ⟨(ideal.ne_top_iff_one _).mp y.1.is_prime.ne_top, rfl⟩⟩⟩
+λ x, ⟨unop U, x.2, 𝟙 (unop U), ⟨0, ⟨0, zero_mem _⟩, ⟨1, one_mem⟩, λ y, ⟨_, rfl⟩⟩⟩
 
 lemma one_mem' (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
   (is_locally_fraction 𝒜).pred (1 : Π x : unop U, at x.1) :=
-λ x, ⟨unop U, x.2, 𝟙 (unop U), ⟨1, 1, 0, one_mem, one_mem,
-  λ y, ⟨(ideal.ne_top_iff_one _).mp y.1.is_prime.ne_top, rfl⟩⟩⟩
+λ x, ⟨unop U, x.2, 𝟙 (unop U), ⟨0, ⟨1, one_mem⟩, ⟨1, one_mem⟩, λ y, ⟨_, rfl⟩⟩⟩
 
 lemma add_mem' (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ)
   (a b : Π x : unop U, at x.1)
   (ha : (is_locally_fraction 𝒜).pred a) (hb : (is_locally_fraction 𝒜).pred b) :
   (is_locally_fraction 𝒜).pred (a + b) := λ x,
 begin
-  rcases ha x with ⟨Va, ma, ia, ra, sa, ja, ra_hom, sa_hom, wa⟩,
-  rcases hb x with ⟨Vb, mb, ib, rb, sb, jb, rb_hom, sb_hom, wb⟩,
-  refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, sb * ra + sa * rb, sa * sb, jb + ja,
-    submodule.add_mem _ (set_like.graded_monoid.mul_mem sb_hom ra_hom) begin
+  rcases ha x with ⟨Va, ma, ia, ja, ⟨ra, ra_mem⟩, ⟨sa, sa_mem⟩, wa⟩,
+  rcases hb x with ⟨Vb, mb, ib, jb, ⟨rb, rb_mem⟩, ⟨sb, sb_mem⟩, wb⟩,
+  refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, jb + ja,
+    ⟨sb * ra + sa * rb, submodule.add_mem _ (set_like.graded_monoid.mul_mem sb_mem ra_mem) begin
       rw add_comm,
-      apply set_like.graded_monoid.mul_mem sa_hom rb_hom,
-    end,
-    begin
+      exact set_like.graded_monoid.mul_mem sa_mem rb_mem,
+    end⟩,
+    ⟨sa * sb, begin
       rw add_comm,
-      apply set_like.graded_monoid.mul_mem sa_hom sb_hom,
-    end,
+      apply set_like.graded_monoid.mul_mem sa_mem sb_mem,
+    end⟩,
     λ y, ⟨λ h, _, _⟩⟩,
   { cases (y : projective_spectrum.Top 𝒜).is_prime.mem_or_mem h with h h,
     { obtain ⟨nin, -⟩ := (wa ⟨y, (opens.inf_le_left Va Vb y).2⟩), exact nin h },
@@ -150,10 +146,9 @@ lemma neg_mem' (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ)
   (ha : (is_locally_fraction 𝒜).pred a) :
   (is_locally_fraction 𝒜).pred (-a) := λ x,
 begin
-  rcases ha x with ⟨V, m, i, r, s, j, r_hom_j, s_hom_j, w⟩,
-  refine ⟨V, m, i, -r, s, j, submodule.neg_mem _ r_hom_j, s_hom_j, λ y, ⟨_, _⟩⟩,
-  choose nin hy using w y, exact nin,
-  choose nin hy using w y,
+  rcases ha x with ⟨V, m, i, j, ⟨r, r_mem⟩, ⟨s, s_mem⟩, w⟩,
+  choose nin hy using w,
+  refine ⟨V, m, i, j, ⟨-r, submodule.neg_mem _ r_mem⟩, ⟨s, s_mem⟩, λ y, ⟨nin y, _⟩⟩,
   simp only [ext_iff_val, val_mk', ← subtype.val_eq_coe, localization.neg_mk] at hy,
   simp only [ring_hom.map_neg, pi.neg_apply, ext_iff_val, neg_val, hy, val_mk', localization.neg_mk,
     ← subtype.val_eq_coe],
@@ -164,11 +159,11 @@ lemma mul_mem' (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ)
   (ha : (is_locally_fraction 𝒜).pred a) (hb : (is_locally_fraction 𝒜).pred b) :
   (is_locally_fraction 𝒜).pred (a * b) := λ x,
 begin
-  rcases ha x with ⟨Va, ma, ia, ra, sa, ja, ra_hom_ja, sa_hom_ja, wa⟩,
-  rcases hb x with ⟨Vb, mb, ib, rb, sb, jb, rb_hom_jb, sb_hom_jb, wb⟩,
-  refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ra * rb, sa * sb,
-    ja + jb, set_like.graded_monoid.mul_mem ra_hom_ja rb_hom_jb,
-      set_like.graded_monoid.mul_mem sa_hom_ja sb_hom_jb, λ y, ⟨λ h, _, _⟩⟩,
+  rcases ha x with ⟨Va, ma, ia, ja, ⟨ra, ra_mem⟩, ⟨sa, sa_mem⟩, wa⟩,
+  rcases hb x with ⟨Vb, mb, ib, jb, ⟨rb, rb_mem⟩, ⟨sb, sb_mem⟩, wb⟩,
+  refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia,
+    ja + jb, ⟨ra * rb, set_like.graded_monoid.mul_mem ra_mem rb_mem⟩,
+      ⟨sa * sb, set_like.graded_monoid.mul_mem sa_mem sb_mem⟩, λ y, ⟨λ h, _, _⟩⟩,
   { cases (y : projective_spectrum.Top 𝒜).is_prime.mem_or_mem h with h h,
     { choose nin hy using wa ⟨y, (opens.inf_le_left Va Vb y).2⟩,
       exact nin h },
@@ -179,9 +174,7 @@ begin
     choose nin2 hy2 using wb (opens.inf_le_right Va Vb y),
     rw [ext_iff_val] at hy1 hy2 ⊢,
     erw [mul_val, hy1, hy2],
-    simp only [val, quotient.lift_on'_mk', num_denom_same_deg.embedding, localization.mk_mul,
-      ← subtype.val_eq_coe],
-    refl, }
+    simpa only [val_mk', localization.mk_mul, ← subtype.val_eq_coe], }
 end
 
 end section_subring
@@ -191,10 +184,8 @@ section
 open section_subring
 
 variable {𝒜}
-/--
-The functions satisfying `is_locally_fraction` form a subring of all dependent functions
-`Π x : U, homogeneous_localization x`.
--/
+/--The functions satisfying `is_locally_fraction` form a subring of all dependent functions
+`Π x : U, homogeneous_localization 𝒜 x`.-/
 def sections_subring (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
   subring (Π x : unop U, at x.1) :=
 { carrier := { f | (is_locally_fraction 𝒜).pred f },
@@ -206,22 +197,16 @@ def sections_subring (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
 
 end
 
-/--
-The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of
-functions satisfying `is_locally_fraction`.
--/
+/--The structure sheaf (valued in `Type`, not yet `CommRing`) is the subsheaf consisting of
+functions satisfying `is_locally_fraction`.-/
 def structure_sheaf_in_Type : sheaf Type* (projective_spectrum.Top 𝒜):=
 subsheaf_to_Types (is_locally_fraction 𝒜)
 
-instance comm_ring_structure_sheaf_in_Type_obj
-  (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
-  comm_ring ((structure_sheaf_in_Type 𝒜).1.obj U) :=
-(sections_subring U).to_comm_ring
+instance comm_ring_structure_sheaf_in_Type_obj (U : (opens (projective_spectrum.Top 𝒜))ᵒᵖ) :
+  comm_ring ((structure_sheaf_in_Type 𝒜).1.obj U) := (sections_subring U).to_comm_ring
 
-/--
-The structure presheaf, valued in `CommRing`, constructed by dressing up the `Type` valued
-structure presheaf.
--/
+/--The structure presheaf, valued in `CommRing`, constructed by dressing up the `Type` valued
+structure presheaf.-/
 @[simps]
 def structure_presheaf_in_CommRing : presheaf CommRing (projective_spectrum.Top 𝒜) :=
 { obj := λ U, CommRing.of ((structure_sheaf_in_Type 𝒜).1.obj U),
@@ -232,15 +217,11 @@ def structure_presheaf_in_CommRing : presheaf CommRing (projective_spectrum.Top 
     map_one' := rfl,
     map_mul' := λ x y, rfl, }, }
 
-/--
-Some glue, verifying that that structure presheaf valued in `CommRing` agrees
-with the `Type` valued structure presheaf.
--/
+/--Some glue, verifying that that structure presheaf valued in `CommRing` agrees with the `Type`
+valued structure presheaf.-/
 def structure_presheaf_comp_forget :
   structure_presheaf_in_CommRing 𝒜 ⋙ (forget CommRing) ≅ (structure_sheaf_in_Type 𝒜).1 :=
-nat_iso.of_components
-  (λ U, iso.refl _)
-  (by tidy)
+nat_iso.of_components (λ U, iso.refl _) (by tidy)
 
 end projective_spectrum.structure_sheaf
 
@@ -248,10 +229,7 @@ namespace projective_spectrum
 
 open Top.presheaf projective_spectrum.structure_sheaf opens
 
-/--
-The structure sheaf on `Proj` 𝒜, valued in `CommRing`.
-This is provided as a bundled `SheafedSpace` as `Spec.SheafedSpace R` later.
--/
+/--The structure sheaf on `Proj` 𝒜, valued in `CommRing`.-/
 def Proj.structure_sheaf : sheaf CommRing (projective_spectrum.Top 𝒜) :=
 ⟨structure_presheaf_in_CommRing 𝒜,
   -- We check the sheaf condition under `forget CommRing`.

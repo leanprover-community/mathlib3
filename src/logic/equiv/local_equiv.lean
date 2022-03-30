@@ -3,8 +3,8 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.equiv.basic
 import data.set.function
+import logic.equiv.basic
 
 /-!
 # Local equivalences

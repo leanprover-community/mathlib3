@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import data.fin.vec_notation
-import data.equiv.basic
+import logic.equiv.basic
 import tactic.norm_num
 
 /-!

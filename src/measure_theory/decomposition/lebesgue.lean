@@ -966,7 +966,8 @@ lemma integrable_rn_deriv (s : signed_measure α) (μ : measure α) :
   integrable (rn_deriv s μ) μ :=
 begin
   refine integrable.sub _ _;
-  { split, measurability,
+  { split,
+    { apply measurable.ae_strongly_measurable, measurability },
     exact has_finite_integral_to_real_of_lintegral_ne_top
       (lintegral_rn_deriv_lt_top _ μ).ne }
 end

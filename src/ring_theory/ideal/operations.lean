@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.algebra.operations
-import ring_theory.non_zero_divisors
+import algebra.ring.equiv
 import data.nat.choose.sum
 import ring_theory.coprime.lemmas
-import data.equiv.ring
 import ring_theory.ideal.quotient
+import ring_theory.non_zero_divisors
 /-!
 # More operations on modules and ideals
 -/
@@ -1335,6 +1335,10 @@ end⟩
 end is_primary
 
 end ideal
+
+lemma associates.mk_ne_zero' {R : Type*} [comm_ring R] {r : R} :
+  (associates.mk (ideal.span {r} : ideal R)) ≠ 0 ↔ (r ≠ 0):=
+by rw [associates.mk_ne_zero, ideal.zero_eq_bot, ne.def, ideal.span_singleton_eq_bot]
 
 namespace ring_hom
 

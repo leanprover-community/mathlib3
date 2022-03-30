@@ -113,8 +113,7 @@ end
           (finset.univ.map bar_embedding) mem_map_embedding_elim, λ x, _⟩,
   cases x; simp
 end
-using_well_founded {
-  rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.1 + f.2)⟩] }
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.1 + f.2)⟩] }
 
 @[simp] lemma univ_zero_zero : (finset.univ : finset (stars_and_bars 0 0)) = {nil} :=
 by rw [finset.univ, stars_and_bars.fintype]
@@ -146,8 +145,7 @@ lemma card : Π (s b : ℕ),
   by simpa [fintype.card, univ_succ_succ, nat.add_succ, nat.succ_add_eq_succ_add,
     (s + b).succ.choose_succ_succ] using
     (add_comm _ _).trans (congr_arg2 (+) (card s.succ b) (card s b.succ))
-using_well_founded {
-  rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.1 + f.2)⟩] }
+using_well_founded { rel_tac := λ _ _, `[exact ⟨_, measure_wf (λ f, f.1 + f.2)⟩] }
 
 end card
 

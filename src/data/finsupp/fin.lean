@@ -5,8 +5,17 @@ Authors: Ivan Sadofschi Costa
 -/
 import data.fin.tuple
 import data.finsupp.basic
+/-!
+# `cons` and `tail` for maps `fin n →₀ M`
 
-/-! `cons` and `tail` for maps `fin n →₀ M` and their properties -/
+We interpret maps `fin n →₀ M` as `n`-tuples of elements of `M`,
+We define the following operations:
+* `finsupp.tail` : the tail of a map `fin (n + 1) →₀ M`, i.e., its last `n` entries;
+* `finsupp.cons` : adding an element at the beginning of an `n`-tuple, to get an `n + 1`-tuple;
+
+In this context, we prove some usual properties of `tail` and `cons`, analogous to those of
+`data.fin.tuple.basic`.
+-/
 
 noncomputable theory
 
@@ -14,15 +23,15 @@ namespace finsupp
 
 variables {M : Type*} [has_zero M] {n : ℕ}
 
-/-- `tail` for maps `fin (n+1) →₀ M`. See `fin.tail` for more details. -/
-def tail (s : fin (n+1) →₀ M) : fin n →₀ M :=
+/-- `tail` for maps `fin (n + 1) →₀ M`. See `fin.tail` for more details. -/
+def tail (s : fin (n + 1) →₀ M) : fin n →₀ M :=
 finsupp.equiv_fun_on_fintype.inv_fun (fin.tail s.to_fun)
 
 /-- `cons` for maps `fin n →₀ M`. See `fin.cons` for more details. -/
-def cons (y : M) (s : fin n →₀ M) : fin (n+1) →₀ M :=
+def cons (y : M) (s : fin n →₀ M) : fin (n + 1) →₀ M :=
 finsupp.equiv_fun_on_fintype.inv_fun (fin.cons y s.to_fun)
 
-lemma tail_apply (s : fin (n+1) →₀ M) (i : fin n) : tail s i = s i.succ :=
+lemma tail_apply (s : fin (n + 1) →₀ M) (i : fin n) : tail s i = s i.succ :=
 begin
   simp only [tail, equiv_fun_on_fintype_symm_apply_to_fun, equiv.inv_fun_as_coe],
   congr,

@@ -81,6 +81,7 @@ end bicategory
 namespace interactive
 setup_tactic_parser
 
+/-- Coherence tactic for monoidal categories. -/
 meta def monoical_category.coherence : tactic unit :=
 focus1 $
 do
@@ -92,7 +93,7 @@ do
   h ← get_local n,
   apply ``(congr_arg (λ η, (free_monoidal_category.project id).map η) %%h)
 
-
+/-- Coherence tactic for bicategories. -/
 meta def bicategory.coherence : tactic unit :=
 focus1 $
 do

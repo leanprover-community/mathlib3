@@ -226,6 +226,10 @@ numerator and denominator are of the same grading.
 def val (y : homogeneous_localization 𝒜 x) : at x :=
 quotient.lift_on' y (num_denom_same_deg.embedding 𝒜 x) $ λ _ _, id
 
+@[simp] lemma val_mk' (i : num_denom_same_deg 𝒜 x) :
+  val (quotient.mk' i) = localization.mk i.num ⟨i.denom, i.denom_not_mem⟩ :=
+by simp only [val, embedding, quotient.lift_on'_mk']
+
 variable (x)
 lemma val_injective :
   function.injective (@homogeneous_localization.val _ _ _ _ _ _ _ _ 𝒜 _ x _) :=

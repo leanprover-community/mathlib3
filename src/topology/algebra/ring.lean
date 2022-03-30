@@ -21,9 +21,9 @@ of topological (semi)rings.
 
 - `subring.topological_closure`/`subsemiring.topological_closure`: the topological closure of a
   `subring`/`subsemiring` is itself a `sub(semi)ring`.
-- `prod.topological_semiring`/`prod.topological_semiring`: The product of two topological
+- `prod.topological_semiring`/`prod.topological_ring`: The product of two topological
   (semi)rings.
-- `pi.topological_semiring`/`pi.topological_semiring`: The arbitrary product of topological
+- `pi.topological_semiring`/`pi.topological_ring`: The arbitrary product of topological
   (semi)rings.
 - `ideal.closure`: The closure of an ideal is an ideal.
 - `topological_semiring_quotient`: The quotient of a topological semiring by an ideal is a

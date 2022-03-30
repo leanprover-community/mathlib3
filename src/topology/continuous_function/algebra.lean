@@ -297,7 +297,7 @@ def continuous_subsemiring (α : Type*) (R : Type*) [topological_space α] [topo
 
 /-- The subring of continuous maps `α → β`. -/
 def continuous_subring (α : Type*) (R : Type*) [topological_space α] [topological_space R]
-  [ring R] [topological_semiring R] : subring (α → R) :=
+  [ring R] [topological_ring R] : subring (α → R) :=
 { ..continuous_subsemiring α R,
   ..continuous_add_subgroup α R }
 
@@ -313,7 +313,7 @@ instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
   ..continuous_map.monoid_with_zero }
 
 instance {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [ring β] [topological_semiring β] : ring C(α, β) :=
+  [ring β] [topological_ring β] : ring C(α, β) :=
 { ..continuous_map.semiring,
   ..continuous_map.add_comm_group, }
 
@@ -323,7 +323,7 @@ instance {α : Type*} {β : Type*} [topological_space α]
   ..continuous_map.comm_monoid, }
 
 instance {α : Type*} {β : Type*} [topological_space α]
-  [topological_space β] [comm_ring β] [topological_semiring β] : comm_ring C(α, β) :=
+  [topological_space β] [comm_ring β] [topological_ring β] : comm_ring C(α, β) :=
 { ..continuous_map.comm_semiring,
   ..continuous_map.ring, }
 
@@ -339,7 +339,7 @@ instance {α : Type*} {β : Type*} [topological_space α]
 /-- Coercion to a function as a `ring_hom`. -/
 @[simps]
 def coe_fn_ring_hom {α : Type*} {β : Type*} [topological_space α] [topological_space β]
-  [ring β] [topological_semiring β] : C(α, β) →+* (α → β) :=
+  [ring β] [topological_ring β] : C(α, β) →+* (α → β) :=
 { to_fun := coe_fn,
   ..(coe_fn_monoid_hom : C(α, β) →* _),
   ..(coe_fn_add_monoid_hom : C(α, β) →+ _) }
@@ -561,7 +561,7 @@ where the functions would be continuous functions vanishing at infinity.)
 def set.separates_points_strongly (s : set C(α, 𝕜)) : Prop :=
 ∀ (v : α → 𝕜) (x y : α), ∃ f : s, (f x : 𝕜) = v x ∧ f y = v y
 
-variables [field 𝕜] [topological_semiring 𝕜]
+variables [field 𝕜] [topological_ring 𝕜]
 
 /--
 Working in continuous functions into a topological field,
@@ -640,7 +640,7 @@ instance has_scalar' {α : Type*} [topological_space α]
 ⟨λ f g, ⟨λ x, (f x) • (g x), (continuous.smul f.2 g.2)⟩⟩
 
 instance module' {α : Type*} [topological_space α]
-  (R : Type*) [ring R] [topological_space R] [topological_semiring R]
+  (R : Type*) [ring R] [topological_space R] [topological_ring R]
   (M : Type*) [topological_space M] [add_comm_monoid M] [has_continuous_add M]
   [module R M] [has_continuous_smul R M] :
   module C(α, R) C(α, M) :=
@@ -682,7 +682,7 @@ namespace continuous_map
 section lattice
 variables {α : Type*} [topological_space α]
 variables {β : Type*} [linear_ordered_field β] [topological_space β]
-  [order_topology β] [topological_semiring β]
+  [order_topology β] [topological_ring β]
 
 lemma inf_eq (f g : C(α, β)) : f ⊓ g = (2⁻¹ : β) • (f + g - |f - g|) :=
 ext (λ x, by simpa using min_eq_half_add_sub_abs_sub)

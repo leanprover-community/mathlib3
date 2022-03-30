@@ -299,7 +299,7 @@ instance prod.normed_ring [normed_ring β] : normed_ring (α × β) :=
 end normed_ring
 
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul α :=
+instance semi_normed_ring_top_monoid [non_unital_semi_normed_ring α] : has_continuous_mul α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     begin
       have : ∀ e : α × α, ∥e.1 * e.2 - x.1 * x.2∥ ≤ ∥e.1∥ * ∥e.2 - x.2∥ + ∥e.1 - x.1∥ * ∥x.2∥,
@@ -318,7 +318,7 @@ instance semi_normed_ring_top_monoid [semi_normed_ring α] : has_continuous_mul 
 
 /-- A seminormed ring is a topological semiring. -/
 @[priority 100] -- see Note [lower instance priority]
-instance semi_normed_top_ring [semi_normed_ring α] : topological_semiring α := { }
+instance semi_normed_top_ring [non_unital_semi_normed_ring α] : topological_ring α := { }
 
 section normed_division_ring
 

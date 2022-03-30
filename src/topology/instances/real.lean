@@ -126,7 +126,7 @@ tendsto_of_uniform_continuous_subtype
       ((is_open_gt' (|a₂| + 1)).preimage continuous_abs ))
     ⟨lt_add_one (|a₁|), lt_add_one (|a₂|)⟩)
 
-instance : topological_semiring ℝ :=
+instance : topological_ring ℝ :=
 { continuous_mul := real.continuous_mul, ..real.topological_add_group }
 
 instance : complete_space ℝ :=

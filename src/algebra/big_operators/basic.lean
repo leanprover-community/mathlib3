@@ -1491,6 +1491,21 @@ lemma prod_finset_coe [comm_monoid β] :
   ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
 (finset.prod_subtype s (λ _, iff.rfl) f).symm
 
+variables (f s)
+
+@[to_additive]
+lemma prod_coe_sort [comm_monoid β] :
+  ∏ (i : s), f i = ∏ i in s, f i :=
+(finset.prod_subtype s (λ _, iff.rfl) f).symm
+
+@[to_additive]
+lemma prod_coe_sort_eq_attach [comm_monoid β] (f : s → β) :
+  ∏ (i : s), f i = ∏ i in s.attach, f i :=
+finset.prod_bij (λ a ha, a) (λ a _, finset.mem_attach _ a) (λ _ _, rfl) (λ _ _ _ _ h, h)
+  (λ a _, ⟨a, finset.mem_univ _, rfl⟩)
+
+variables {f s}
+
 @[to_additive]
 lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] (f : α → β) :
   (∏ x : α, f x) = f default :=

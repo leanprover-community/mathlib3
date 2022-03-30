@@ -18,6 +18,16 @@ and further we have `adj : b ⊣ a` and `i : a ⋙ b ≅ 𝟭 𝒜`,
 then `𝒜` is also abelian.
 
 See https://stacks.math.columbia.edu/tag/03A3
+
+## Notes
+The hypotheses, following the statement from the Stack project,
+may appear suprising: we don't ask that the counit of the adjunction is an isomorphism,
+but just that we have some potentially unrelated isomorphism `i : a ⋙ b ≅ 𝟭 𝒜`.
+
+However Lemma A1.1.1 from [Elephant] shows that in this situation the counit itself
+must be an isomorphism, and thus that `𝒜` is a reflective subcategory of `ℬ`.
+
+Someone may like to formalize that lemma, and restate this theorem in terms of `reflective`.
 -/
 
 noncomputable theory

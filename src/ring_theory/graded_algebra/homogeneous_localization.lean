@@ -226,6 +226,10 @@ numerator and denominator are of the same grading.
 def val (y : homogeneous_localization 𝒜 x) : at x :=
 quotient.lift_on' y (num_denom_same_deg.embedding 𝒜 x) $ λ _ _, id
 
+@[simp] lemma val_mk' (i : num_denom_same_deg 𝒜 x) :
+  val (quotient.mk' i) = localization.mk i.num ⟨i.denom, i.denom_not_mem⟩ :=
+by simp only [val, embedding, quotient.lift_on'_mk']
+
 variable (x)
 lemma val_injective :
   function.injective (@homogeneous_localization.val _ _ _ _ _ _ _ _ 𝒜 _ x _) :=
@@ -428,5 +432,47 @@ lemma ext_iff_val (f g : homogeneous_localization 𝒜 x) : f = g ↔ f.val = g.
     unfold homogeneous_localization.val at h,
     simpa only [quotient.lift_on'_mk] using h,
   end }
+
+lemma is_unit_iff_is_unit_val (f : homogeneous_localization 𝒜 x) :
+  is_unit f.val ↔ is_unit f :=
+⟨λ h1, begin
+  rcases h1 with ⟨⟨a, b, eq0, eq1⟩, (eq2 : a = f.val)⟩,
+  rw eq2 at eq0 eq1,
+  clear' a eq2,
+  induction b using localization.induction_on with data,
+  rcases data with ⟨a, ⟨b, hb⟩⟩,
+  dsimp only at eq0 eq1,
+  have b_f_denom_not_mem : b * f.denom ∈ x.prime_compl := λ r, or.elim
+    (ideal.is_prime.mem_or_mem infer_instance r) (λ r2, hb r2) (λ r2, f.denom_not_mem r2),
+  rw [f.eq_num_div_denom, localization.mk_mul,
+    show (⟨b, hb⟩ : x.prime_compl) * ⟨f.denom, _⟩ = ⟨b * f.denom, _⟩, from rfl,
+    show (1 : at x) = localization.mk 1 1, by erw localization.mk_self 1,
+    localization.mk_eq_mk', is_localization.eq] at eq1,
+  rcases eq1 with ⟨⟨c, hc⟩, eq1⟩,
+  simp only [← subtype.val_eq_coe] at eq1,
+  change a * f.num * 1 * c = _ at eq1,
+  simp only [one_mul, mul_one] at eq1,
+  have mem1 : a * f.num * c ∈ x.prime_compl,
+  { rw eq1,
+    intro rid,
+    rcases ideal.is_prime.mem_or_mem infer_instance rid with h1|h2,
+    { exact b_f_denom_not_mem h1, },
+    { exact hc h2, }, },
+  have mem2 : f.num ∉ x,
+  { contrapose! mem1,
+    erw [not_not],
+    apply ideal.mul_mem_right,
+    apply ideal.mul_mem_left,
+    assumption, },
+  refine ⟨⟨f, quotient.mk' ⟨f.deg, ⟨f.denom, f.denom_mem⟩, ⟨f.num, f.num_mem⟩, mem2⟩, _, _⟩, rfl⟩;
+  simp only [ext_iff_val, mul_val, val_mk', ← subtype.val_eq_coe, f.eq_num_div_denom,
+    localization.mk_mul, one_val];
+  convert localization.mk_self _;
+  rw mul_comm;
+  refl,
+end, λ ⟨⟨_, b, eq1, eq2⟩, rfl⟩, begin
+  simp only [ext_iff_val, mul_val, one_val] at eq1 eq2,
+  exact ⟨⟨f.val, b.val, eq1, eq2⟩, rfl⟩
+end⟩
 
 end homogeneous_localization

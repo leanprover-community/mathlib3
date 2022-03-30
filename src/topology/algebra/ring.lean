@@ -232,7 +232,7 @@ end topological_semiring
 section topological_comm_ring
 variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring α]
 
-/-- The closure of an ideal in a topological semiring as an ideal. -/
+/-- The closure of an ideal in a topological ring as an ideal. -/
 def ideal.closure (S : ideal α) : ideal α :=
 { carrier   := closure S,
   smul_mem' := λ c x hx, map_mem_closure (mul_left_continuous _) hx $ λ a, S.mul_mem_left c,
@@ -246,7 +246,7 @@ section topological_ring
 variables {α : Type*} [topological_space α] [comm_ring α] (N : ideal α)
 open ideal.quotient
 
-instance topological_semiring_quotient_topology : topological_space (α ⧸ N) :=
+instance topological_ring_quotient_topology : topological_space (α ⧸ N) :=
 show topological_space (quotient _), by apply_instance
 
 -- note for the reader: in the following, `mk` is `ideal.quotient.mk`, the canonical map `R → R/I`.
@@ -369,7 +369,7 @@ instance : complete_lattice (ring_topology α) :=
 complete_lattice_of_complete_semilattice_Inf _
 
 /--  Given `f : α → β` and a topology on `α`, the coinduced ring topology on `β` is the finest
-topology such that `f` is continuous and `β` is a topological semiring. -/
+topology such that `f` is continuous and `β` is a topological ring. -/
 def coinduced {α β : Type*} [t : topological_space α] [ring β] (f : α → β) :
   ring_topology β :=
 Inf {b : ring_topology β | (topological_space.coinduced f t) ≤ b.to_topological_space}
@@ -386,8 +386,8 @@ end
 /-- The forgetful functor from ring topologies on `a` to additive group topologies on `a`. -/
 def to_add_group_topology (t : ring_topology α) : add_group_topology α :=
 { to_topological_space     := t.to_topological_space,
-  to_topological_add_group := @topological_ring.to_topological_add_group _ _
-    t.to_topological_space t.to_topological_ring }
+  to_topological_add_group := @topological_ring.to_topological_add_group _ _ t.to_topological_space
+    t.to_topological_ring }
 
 /-- The order embedding from ring topologies on `a` to additive group topologies on `a`. -/
 def to_add_group_topology.order_embedding : order_embedding (ring_topology α)

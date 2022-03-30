@@ -29,8 +29,8 @@ corresponding adic topology to the type class inference system.
 * `ideal.adic_topology`: the adic topology associated to an ideal. It has the above basis
   for neighborhoods of zero.
 * `ideal.nonarchimedean`: the adic topology is non-archimedean
-* `is_ideal_adic_iff`: A topological ring is `J`-adic if and only if it admits the powers of `J`
-  as a basis of open neighborhoods of zero.
+* `is_ideal_adic_iff`: A topological ring is `J`-adic if and only if it admits the powers of `J` as
+  a basis of open neighborhoods of zero.
 * `with_ideal`: a class registering an ideal in a ring.
 
 ## Implementation notes

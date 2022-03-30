@@ -14,7 +14,7 @@ In this file we set up the theory of nonarchimedean topological groups and rings
 
 A nonarchimedean group is a topological group whose topology admits a basis of
 open neighborhoods of the identity element in the group consisting of open subgroups.
-A nonarchimedean ring is a topological semiring whose underlying topological (additive)
+A nonarchimedean ring is a topological ring whose underlying topological (additive)
 group is nonarchimedean.
 
 ## Definitions
@@ -39,7 +39,7 @@ class nonarchimedean_group (G : Type*)
   [group G] [topological_space G] extends topological_group G : Prop :=
 (is_nonarchimedean : ∀ U ∈ nhds (1 : G), ∃ V : open_subgroup G, (V : set G) ⊆ U)
 
-/-- An topological semiring is nonarchimedean if its underlying topological additive
+/-- An topological ring is nonarchimedean if its underlying topological additive
   group is nonarchimedean. -/
 class nonarchimedean_ring (R : Type*)
   [ring R] [topological_space R] extends topological_ring R : Prop :=

@@ -155,8 +155,8 @@ end uniform_space.completion
 
 namespace uniform_space
 variables {α : Type*}
-lemma ring_sep_rel (α) [comm_ring α] [uniform_space α] [uniform_add_group α]
-  [topological_ring α] : separation_setoid α = submodule.quotient_rel (ideal.closure ⊥) :=
+lemma ring_sep_rel (α) [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
+  separation_setoid α = submodule.quotient_rel (ideal.closure ⊥) :=
 setoid.ext $ assume x y, add_group_separation_rel x y
 
 lemma ring_sep_quot
@@ -164,8 +164,8 @@ lemma ring_sep_quot
   quotient (separation_setoid α) = (α ⧸ (⊥ : ideal α).closure) :=
 by rw [@ring_sep_rel α r]; refl
 
-/-- Given a topological ring `α` equipped with a uniform structure that makes subtraction
-uniformly continuous, get an equivalence between the separated quotient of `α` and the quotient ring
+/-- Given a topological ring `α` equipped with a uniform structure that makes subtraction uniformly
+continuous, get an equivalence between the separated quotient of `α` and the quotient ring
 corresponding to the closure of zero. -/
 def sep_quot_equiv_ring_quot (α)
   [r : comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :

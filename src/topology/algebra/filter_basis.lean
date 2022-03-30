@@ -227,7 +227,7 @@ end
 end group_filter_basis
 
 /-- A `ring_filter_basis` on a ring is a `filter_basis` satisfying some additional axioms.
-  Example : if `R` is a topological semiring then the neighbourhoods of the identity are a
+  Example : if `R` is a topological ring then the neighbourhoods of the identity are a
   `ring_filter_basis`. Conversely given a `ring_filter_basis` on a ring `R`, one can define a
   topology on `R` which is compatible with the ring structure.  -/
 class ring_filter_basis (R : Type u) [ring R] extends add_group_filter_basis R :=
@@ -258,7 +258,7 @@ It has the given basis as a basis of neighborhoods of zero. -/
 def topology : topological_space R := B.to_add_group_filter_basis.topology
 
 /-- If a ring is endowed with a topological structure coming from
-a ring filter basis then it's a topological semiring. -/
+a ring filter basis then it's a topological ring. -/
 @[priority 100]
 instance is_topological_ring {R : Type u} [ring R] (B : ring_filter_basis R) :
   @topological_ring R B.topology _ :=
@@ -337,11 +337,11 @@ instance [discrete_topology R] : inhabited (module_filter_basis R M) :=
    end,
    ..show add_group_filter_basis M, from default }⟩
 
-/-- The topology associated to a module filter basis on a module over a topological semiring.
+/-- The topology associated to a module filter basis on a module over a topological ring.
 It has the given basis as a basis of neighborhoods of zero. -/
 def topology : topological_space M := B.to_add_group_filter_basis.topology
 
-/-- The topology associated to a module filter basis on a module over a topological semiring.
+/-- The topology associated to a module filter basis on a module over a topological ring.
 It has the given basis as a basis of neighborhoods of zero. This version gets the ring
 topology by unification instead of type class inference. -/
 def topology' {R M : Type*} [comm_ring R] {tR : topological_space R}

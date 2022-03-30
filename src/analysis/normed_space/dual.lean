@@ -78,6 +78,12 @@ def dual_pairing : (dual 𝕜 E) →ₗ[𝕜] E →ₗ[𝕜] 𝕜 := continuous_
 
 @[simp] lemma dual_pairing_apply {v : dual 𝕜 E} {x : E} : dual_pairing 𝕜 E v x = v x := rfl
 
+lemma dual_pairing_separating_left : (dual_pairing 𝕜 E).separating_left :=
+begin
+  rw [linear_map.separating_left_iff_ker_eq_bot, linear_map.ker_eq_bot],
+  exact continuous_linear_map.coe_injective,
+end
+
 end general
 
 section bidual_isometry
@@ -145,17 +151,8 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 lemma mem_polar_iff {x' : dual 𝕜 E} (s : set E) : x' ∈ polar 𝕜 s ↔ ∀ z ∈ s, ∥x' z∥ ≤ 1 := iff.rfl
 
 @[simp] lemma polar_univ : polar 𝕜 (univ : set E) = {(0 : dual 𝕜 E)} :=
-begin
-  refine eq_singleton_iff_unique_mem.2 ⟨linear_map.zero_mem_polar _ _, λ x' hx', _⟩,
-  ext x,
-  refine norm_le_zero_iff.1 (le_of_forall_le_of_dense $ λ ε hε, _),
-  rcases normed_field.exists_norm_lt 𝕜 hε with ⟨c, hc, hcε⟩,
-  calc ∥x' x∥ = ∥c∥ * ∥x' (c⁻¹ • x)∥ :
-    by rw [x'.map_smul, norm_smul, norm_inv,
-      mul_inv_cancel_left₀ hc.ne']
-  ... ≤ ε * 1 : mul_le_mul hcε.le (hx' _ trivial) (norm_nonneg _) hε.le
-  ... = ε : mul_one _
-end
+(dual_pairing 𝕜 E).flip.polar_univ
+  (linear_map.flip_separating_right.mpr (dual_pairing_separating_left 𝕜 E))
 
 lemma is_closed_polar (s : set E) : is_closed (polar 𝕜 s) :=
 begin

@@ -475,4 +475,43 @@ end, λ ⟨⟨_, b, eq1, eq2⟩, rfl⟩, begin
   exact ⟨⟨f.val, b.val, eq1, eq2⟩, rfl⟩
 end⟩
 
+instance : local_ring (homogeneous_localization 𝒜 x) :=
+{ exists_pair_ne := ⟨0, 1, λ rid, begin
+    rw [homogeneous_localization.ext_iff_val, homogeneous_localization.zero_val,
+      homogeneous_localization.one_val] at rid,
+    simpa only [localization.mk_eq_mk', is_localization.mk'_eq_iff_eq, mul_one, map_one,
+      submonoid.coe_one, zero_ne_one, map_zero] using rid,
+  end⟩,
+  is_local := λ a, begin
+    rw [← homogeneous_localization.is_unit_iff_is_unit_val,
+      ← homogeneous_localization.is_unit_iff_is_unit_val,
+      homogeneous_localization.sub_val,
+      homogeneous_localization.one_val],
+    induction a using quotient.induction_on',
+    simp only [homogeneous_localization.val_mk', ← subtype.val_eq_coe],
+    by_cases mem1 : a.num.1 ∈ x,
+    { right,
+      have : a.denom.1 - a.num.1 ∈ x.prime_compl,
+      { intro h,
+        apply a.denom_not_mem,
+        convert submodule.add_mem' _ h mem1,
+        rw sub_add_cancel,
+        refl, },
+      apply is_unit_of_mul_eq_one _
+        (localization.mk a.denom.1 ⟨a.denom.1 - a.num.1, this⟩),
+      simp only [sub_mul, localization.mk_mul, one_mul, localization.sub_mk, ← subtype.val_eq_coe,
+        show ∀ (z z' : x.prime_compl), (z * z').1 = z.1 * z'.1, from λ _ _, rfl],
+      convert localization.mk_self _,
+      simp only [← subtype.val_eq_coe,
+        show ∀ (z z' : x.prime_compl), (z * z').1 = z.1 * z'.1, from λ _ _, rfl],
+      ring, },
+    { left,
+      change _ ∈ x.prime_compl at mem1,
+      apply is_unit_of_mul_eq_one _ (localization.mk a.denom.1 ⟨a.num.1, mem1⟩),
+      rw [localization.mk_mul],
+      convert localization.mk_self _,
+      rw mul_comm,
+      refl },
+end}
+
 end homogeneous_localization

@@ -45,6 +45,19 @@ open unique_factorization_monoid multiplicity irreducible
 
 variables {M : Type*} [cancel_comm_monoid_with_zero M]
 
+lemma multiplicity_eq_multiplicity_associates_mk' [wf_dvd_monoid M] {p q : M}
+  (hq : q ≠ 0) : multiplicity p q = multiplicity (associates.mk p) (associates.mk q) :=
+begin
+  by_cases h : finite p q,
+  sorry,
+  suffices : ¬ (finite (associates.mk p) (associates.mk q)),
+  rw finite_iff_dom at h,
+  rw finite_iff_dom at this,
+  simp at h,
+  intro n,
+  have temp : not_finite_iff_forall.mp h,
+end
+
 lemma multiplicity_eq_multiplicity_associates_mk [wf_dvd_monoid M] {p q : M} (hp : prime p)
   (hq : q ≠ 0) : multiplicity p q = multiplicity (associates.mk p) (associates.mk q) :=
 begin
@@ -67,41 +80,13 @@ begin
   exact multiplicity.pow_multiplicity_dvd finite₂,
 end
 
+
+
 variable [unique_factorization_monoid M]
 
 variables {N : Type*} [cancel_comm_monoid_with_zero N] [unique_factorization_monoid N]
 
-lemma order_iso.map_eq_bot_iff {α β : Type*} [partial_order α] [partial_order β] [order_bot α]
-  [order_bot β] {a : α} (f : α ≃o β) : f a = ⊥ ↔ a = ⊥ :=
-⟨(λ h, by rw [(show a = f.symm ⊥, by simp only [← h, order_iso.symm_apply_apply]),
-  order_iso.map_bot f.symm]), λ h, by rw [h, f.map_bot]⟩
-
 variables [nontrivial M] [nontrivial N] {m : associates M}
-
-instance : ordered_comm_monoid (associates M) :=
-{ mul_le_mul_left := λ a b h c, by {obtain ⟨d, rfl⟩ := h, rw ← mul_assoc,
-  exact associates.le_mul_right},
-  ..associates.comm_monoid,
-  ..associates.partial_order}
-
-instance : canonically_ordered_monoid (associates M) :=
-{ le_iff_exists_mul := λ a b, ⟨λ h, h, λ h, h⟩,
-  ..associates.cancel_comm_monoid_with_zero,
-  ..associates.bounded_order,
-  ..associates.ordered_comm_monoid}
-
-instance order_bot_divisors : order_bot {l : associates M // l ≤ m} :=
-subtype.order_bot bot_le
-
-@[simp]
-lemma mem_subtype_eq_bot_iff {α : Type*} [preorder α] [order_bot α] {P : α → Prop}
-  (Pbot : P ⊥) {x : α} (Px : P x) :
-  (⟨x, Px⟩ : {y : α // P y}) = (subtype.order_bot Pbot).bot ↔ x = ⊥ := by simp
-
-
-
-lemma associates.is_unit_iff_eq_bot {a : associates M}: is_unit a ↔ a = ⊥ :=
-by rw [associates.is_unit_iff_eq_one, bot_eq_one]
 
 lemma map_is_unit_of_monotone_is_unit {m u : associates M} {n : associates N}
   (hu : is_unit u) (hu' : u ≤ m)
@@ -131,15 +116,10 @@ lemma map_is_unit_iff_is_unit {m u : associates M} {n : associates N} (hu' : u �
 variable (hm : m ≠ 0)
 
 
-instance divisors_has_bot: has_bot {l : associates M // l ≤ m} :=
-{ bot := ⟨(⊥ : associates M), show ⊥ ≤ m, from by exact bot_le⟩ }
-
 lemma mem_divisors_eq_bot_iff {a : associates M} (ha : a ≤ m) : a = ⊥
   ↔ (⟨a, ha⟩ : {l : associates M // l ≤ m}) = ⟨⊥, bot_le⟩ := by simp
 
 lemma divisors_bot : ↑(⟨⊥, bot_le⟩ : {l : associates M // l ≤ m}) = (⊥ : associates M) := rfl
-
-lemma divisors_bot' : (@divisors_has_bot M _ _ _ m).bot = ⟨⊥, bot_le⟩ := rfl
 
 lemma map_prime_of_monotone_equiv {m p : associates M} {n : associates N}
   (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
@@ -169,6 +149,10 @@ def associates.mk_monoid_equiv : M ≃* associates M := mul_equiv.of_bijective
   (@associates.mk_monoid_hom M _) ⟨associates.mk_injective, associates.mk_surjective⟩
 
 variables [comm_ring M] [is_domain M] [is_dedekind_domain M]
+
+
+
+
 
 
 

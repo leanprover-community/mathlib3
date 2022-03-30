@@ -412,6 +412,7 @@ begin
     rw nat.div_lt_iff_lt_mul _ _ zero_lt_two,
     exact lt_of_le_of_lt hin h },
   { rintro ⟨a, -, rfl⟩,
+    rw even_iff_two_dvd,
     apply nat.two_not_dvd_two_mul_add_one },
 end
 

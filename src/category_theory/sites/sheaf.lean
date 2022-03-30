@@ -510,8 +510,8 @@ reflects isomorphisms, and `A` has limits, an `A`-valued presheaf `P : Cᵒᵖ �
 underlying `Type`-valued presheaf `P ⋙ s : Cᵒᵖ ⥤ Type` is a sheaf.
 
 Note this lemma applies for "algebraic" categories, eg groups, abelian groups and rings, but not
-for the category of topological spaces, topological semirings, etc since reflecting isomorphisms
-doesn't hold.
+for the category of topological spaces, topological rings, etc since reflecting isomorphisms doesn't
+hold.
 -/
 lemma is_sheaf_iff_is_sheaf_forget (s : A ⥤ Type (max v₁ u₁))
   [has_limits A] [preserves_limits s] [reflects_isomorphisms s] :

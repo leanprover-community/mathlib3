@@ -9,15 +9,15 @@ import topology.algebra.group_with_zero
 /-!
 # Topological fields
 
-A topological division ring is a topological semiring whose inversion function is continuous at
-every non-zero element.
+A topological division ring is a topological ring whose inversion function is continuous at every
+non-zero element.
 
 -/
 
 
-namespace topological_ring
+namespace topological_semiring
 open topological_space function
-variables (R : Type*) [ring R]
+variables (R : Type*) [semiring R]
 
 variables  [topological_space R]
 
@@ -61,7 +61,7 @@ instance top_monoid_units [topological_semiring R] [induced_units R] :
   rw ← continuous_iff_le_induced,
   exact continuous_mul,
 end⟩
-end topological_ring
+end topological_semiring
 
 variables (K : Type*) [division_ring K] [topological_space K]
 

@@ -316,7 +316,7 @@ instance semi_normed_ring_top_monoid [non_unital_semi_normed_ring α] : has_cont
       simp
     end ⟩
 
-/-- A seminormed ring is a topological semiring. -/
+/-- A seminormed ring is a topological ring. -/
 @[priority 100] -- see Note [lower instance priority]
 instance semi_normed_top_ring [non_unital_semi_normed_ring α] : topological_ring α := { }
 

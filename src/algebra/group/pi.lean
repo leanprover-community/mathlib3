@@ -3,11 +3,11 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
+import algebra.hom.group_instances
 import data.pi
 import data.set.function
 import data.set.pairwise
 import tactic.pi_instances
-import algebra.group.hom_instances
 
 /-!
 # Pi instances for groups and monoids
@@ -195,7 +195,7 @@ def one_hom.single [Π i, has_one $ f i] (i : I) : one_hom (f i) (Π i, f i) :=
 { to_fun := mul_single i,
   map_one' := mul_single_one i }
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma one_hom.single_apply [Π i, has_one $ f i] (i : I) (x : f i) :
   one_hom.single f i x = mul_single i x := rfl
 
@@ -211,7 +211,7 @@ def monoid_hom.single [Π i, mul_one_class $ f i] (i : I) : f i →* Π i, f i :
 { map_mul' := mul_single_op₂ (λ _, (*)) (λ _, one_mul _) _,
   .. (one_hom.single f i) }
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma monoid_hom.single_apply [Π i, mul_one_class $ f i] (i : I) (x : f i) :
   monoid_hom.single f i x = mul_single i x := rfl
 

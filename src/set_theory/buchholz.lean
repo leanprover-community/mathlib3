@@ -3,6 +3,7 @@ Copyright (c) 2022 Violeta Hernández Palacios. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
+import data.W.cardinal
 import set_theory.cardinal_ordinal
 
 /-!
@@ -67,6 +68,15 @@ theorem Omega_pos : Π v, 0 < Omega v
 | 0       := cardinal.zero_lt_one
 | (v + 1) := aleph_pos _
 
+theorem Omega_ne_zero (v : ℕ) : Omega v ≠ 0 :=
+pos_iff_ne_zero.1 (Omega_pos v)
+
+instance nonempty_Omega_ord_out (v : ℕ) : nonempty (Omega v).ord.out.α :=
+begin
+  rw [out_nonempty_iff_ne_zero, ←ord_zero],
+  exact λ h, (Omega_ne_zero v) (cardinal.ord_injective h)
+end
+
 theorem Omega_eq_aleph : Π v : ℕ, 0 < v → Omega v = aleph v
 | 0       := λ h, h.false.elim
 | (v + 1) := λ _, rfl
@@ -89,11 +99,11 @@ theorem principal_add_Omega : Π v : ℕ, principal (+) (Omega v).ord
 | (v + 1) := principal_add_aleph _
 
 /-- The type of all Buchholz expressions. These may consist of
-* ordinals less than `Ωᵥ`
-* sums of two other Buchholz expressions
-* some function `Ψᵤ` applied to a Buchholz expression
+    * ordinals less than `Ωᵥ`
+    * sums of two other Buchholz expressions
+    * some function `Ψᵤ` applied to a Buchholz expression
 
-For the type of well-founded expressions, see `buchholz_exp`. -/
+    For the type of well-founded expressions, see `buchholz_exp`. -/
 inductive buchholz_exp' (v : ℕ) : Type 0
 | lt_Omega' (a : (Omega v).ord.out.α) : buchholz_exp'
 | add       (a b : buchholz_exp') : buchholz_exp'
@@ -101,6 +111,44 @@ inductive buchholz_exp' (v : ℕ) : Type 0
 
 instance (v : ℕ) : has_add (buchholz_exp' v) :=
 ⟨buchholz_exp'.add⟩
+
+/-- The different labels in a Buchholz expression. This is used to build a W-type. -/
+inductive buchholz_label (v : ℕ) : Type
+| lt_Omega : (Omega v).ord.out.α → buchholz_label
+| add      : buchholz_label
+| psi      : ℕ → buchholz_label
+
+def sigma_buchholz_label_equiv {v : ℕ} (p : buchholz_label v → Type*) :
+  sigma p ≃ (Σ a, p (buchholz_label.lt_Omega a)) ⊕
+  p (buchholz_label.add) ⊕ (Σ u, p (buchholz_label.psi u)) :=
+{ to_fun := begin
+    rintro ⟨a | _ | u, h⟩,
+    { exact sum.inl ⟨a, h⟩ },
+    { exact sum.inr (sum.inl h) },
+    { exact sum.inr (sum.inr ⟨u, h⟩) }
+  end,
+  inv_fun := begin
+    rintro (⟨a, h⟩ | h | ⟨u, h⟩),
+    { exact ⟨buchholz_label.lt_Omega a, h⟩ },
+    { exact ⟨buchholz_label.add, h⟩ },
+    { exact ⟨buchholz_label.psi u, h⟩ }
+  end,
+  left_inv := begin
+    rw [function.left_inverse, sigma.forall],
+    rintros (a | _ | u) h;
+    refl
+  end,
+  right_inv := by { rintros (⟨a, h⟩ | h | ⟨u, h⟩); refl } }
+
+/-- The different values associated to each label in a Buchholz expression. This is used to build a
+    W-type. -/
+def buchholz_indices (v : ℕ) : buchholz_label v → Type
+| (buchholz_label.lt_Omega a) := empty
+| (buchholz_label.add)        := bool
+| (buchholz_label.psi u)      := unit
+
+instance (v : ℕ) : inhabited (W_type (buchholz_indices v)) :=
+⟨W_type.mk (buchholz_label.lt_Omega (classical.arbitrary _)) (default : empty → W_type _)⟩
 
 namespace buchholz_exp'
 
@@ -158,28 +206,32 @@ add_value Ψ e₁ e₂
   (u : ℕ) {e : buchholz_exp' v} (he : e.value Ψ < o) : (psi u e).value Ψ = Ψ (e.value Ψ) he u :=
 by { unfold value, exact dif_pos he }
 
-/-- The height of a Buchholz expression, as a syntax tree. -/
-noncomputable def height {v : ℕ} : buchholz_exp' v → ℕ
-| (lt_Omega' a) := 0
-| (a + b)       := max (height a) (height b) + 1
-| (psi u a)     := height a + 1
+/-- Converts a Buchholz expression into a member of a certain W-type. This function is injective. -/
+noncomputable def to_W_type (v : ℕ) : buchholz_exp' v → W_type (buchholz_indices v)
+| (lt_Omega' a) := W_type.mk (buchholz_label.lt_Omega a) (λ _, default)
+| (add a b)     := W_type.mk buchholz_label.add (λ x : bool, if x then a.to_W_type else b.to_W_type)
+| (psi u a)     := W_type.mk (buchholz_label.psi u) (λ _, a.to_W_type)
 
-@[simp] theorem lt_Omega'_height {v : ℕ} (a) : height (@lt_Omega' v a) = 0 :=
-rfl
-
-theorem lt_Omega'_of_height {v : ℕ} {e : buchholz_exp' v} (he : height e = 0) :
-  ∃ a, e = lt_Omega' a :=
-by { induction e with a, use a, all_goals { simpa only [height] } }
-
-theorem left_height_lt_add_height {v : ℕ} (a b : buchholz_exp' v) : a.height < (a + b).height :=
-by { unfold height, exact nat.lt_succ_iff.2 (le_max_left _ _) }
-
-theorem right_height_lt_add_height {v : ℕ} (a b : buchholz_exp' v) : b.height < (a + b).height :=
-by { unfold height, exact nat.lt_succ_iff.2 (le_max_right _ _) }
-
-@[simp] theorem psi_height {v : ℕ} (u : ℕ) (a : buchholz_exp' v) :
-  (psi u a).height = a.height + 1 :=
-by unfold height
+theorem to_W_type_injective (v : ℕ) : function.injective (to_W_type v)
+| (lt_Omega' a) (lt_Omega' b) H := by { simp only [to_W_type, heq_iff_eq] at H, rw H.1 }
+| (lt_Omega' a) (add b c) H := by { simp only [to_W_type, false_and] at H, exact H.elim }
+| (lt_Omega' a) (psi u b) H := by { simp only [to_W_type, false_and] at H, exact H.elim }
+| (add a b) (lt_Omega' c) H := by { simp only [to_W_type, false_and] at H, exact H.elim }
+| (add a b) (add c d) H := begin
+  simp only [to_W_type, eq_self_iff_true, heq_iff_eq, true_and] at H,
+  have H₁ := congr_fun H tt,
+  have H₂ := congr_fun H ff,
+  simp only [coe_sort_ff, if_false, coe_sort_tt, if_true] at H₁ H₂,
+  rw [to_W_type_injective H₁, to_W_type_injective H₂]
+end
+| (add a b) (psi u c) H := by { simp only [to_W_type, false_and] at H, exact H.elim }
+| (psi u a) (lt_Omega' b) H := by { simp only [to_W_type, false_and] at H, exact H.elim }
+| (psi u a) (add b c) H := by { simp only [to_W_type, false_and] at H, exact H.elim }
+| (psi u a) (psi v b) H := begin
+  simp only [to_W_type, heq_iff_eq] at H,
+  have H' := congr_fun H.2 unit.star,
+  rw [H.1, to_W_type_injective H']
+end
 
 /-- An auxiliary definition which gives a denumerable family of well-formed Buchholz expressions. -/
 def add_iterate (n : ℕ) : buchholz_exp' 0 :=
@@ -197,81 +249,21 @@ begin
   rw hm (add.inj h).right
 end
 
-private theorem mk_height_le_aleph (v : ℕ) : Π h, # {e : buchholz_exp' v | e.height ≤ h} ≤ aleph v
-| 0 := begin
-  refine le_trans _ (Omega_le_aleph v),
-  let f : ↥{e : buchholz_exp' v | e.height = 0} → (Omega v).ord.out.α :=
-    λ e, classical.some (lt_Omega'_of_height e.prop),
-  have hf : function.injective f := begin
-    intros e₁ e₂ h,
-    apply_fun lt_Omega' at h,
-    have H := λ e : ↥{e : buchholz_exp' v | e.height = 0},
-      classical.some_spec (lt_Omega'_of_height e.prop),
-    rwa [←H, ←H, ←subtype.ext_iff] at h
-  end,
-  convert mk_le_of_injective hf,
-  simp only [nonpos_iff_eq_zero],
-  exact (mk_ord_out _).symm
-end
-| (h + 1) := begin
-  let α : Type := {e : buchholz_exp' v | e.height ≤ h},
-  have hα : mk α ≤ aleph v := mk_height_le_aleph h,
-  let f : ↥{e : buchholz_exp' v | e.height ≤ h + 1} → (Omega v).ord.out.α ⊕ (α × α) ⊕ (ℕ × α) :=
-  begin
-    rintro ⟨a | ⟨a, b⟩ | ⟨u, a⟩, he⟩;
-    dsimp at he,
-    { exact sum.inl a },
-    { exact sum.inr (sum.inl ⟨
-      ⟨a, nat.lt_succ_iff.1 ((left_height_lt_add_height a b).trans_le he)⟩,
-      ⟨b, nat.lt_succ_iff.1 ((right_height_lt_add_height a b).trans_le he)⟩⟩) },
-    { refine sum.inr (sum.inr ⟨u, a, _⟩),
-      rw psi_height at he,
-      exact nat.le_of_add_le_add_right he }
-  end,
-  have hf : function.injective f := begin
-    rintro ⟨a | ⟨a, b⟩ | ⟨u, a⟩, he₁⟩;
-    rintro ⟨c | ⟨c, d⟩ | ⟨w, c⟩, he₂⟩;
-    intro h;
-    simp [f] at *;
-    assumption
-  end,
-  apply (mk_le_of_injective hf).trans,
-  simp only [mk_prod, mk_sum, lift_uzero, mk_denumerable],
-  convert cardinal.add_le_add (Omega_le_aleph v)
-    (cardinal.add_le_add (mul_le_mul' hα hα) (mul_le_mul' (omega_le_aleph v) hα)),
-  { exact cardinal.mk_ord_out _ },
-  { simp only [cardinal.mul_eq_self (omega_le_aleph v), cardinal.add_eq_self (omega_le_aleph v)] }
-end
-
-private theorem mk_eq_Union_height (v : ℕ) :
-  #(buchholz_exp' v) = #(⋃ h, {e : buchholz_exp' v | e.height ≤ h}) :=
-begin
-  let f : buchholz_exp' v → ⋃ h, {e : buchholz_exp' v | e.height ≤ h} :=
-    λ e', ⟨e', by { rw set.mem_Union, exact ⟨_, le_refl e'.height⟩ }⟩,
-  refine le_antisymm
-    (@mk_le_of_injective _ _ f (λ e₁ e₂ h, _))
-    (@mk_le_of_surjective _ _ f (λ a, ⟨a, _⟩)),
-  { simp only [subtype.mk_eq_mk] at h, exact h },
-  { simp only [f, subtype.coe_eta] }
-end
-
 theorem mk_eq_aleph (v : ℕ) : #(buchholz_exp' v) = cardinal.aleph v :=
 begin
-  apply le_antisymm,
-  { rw mk_eq_Union_height,
-    apply le_trans (mk_Union_le _) _,
-    rw mk_nat,
-    refine le_trans (mul_le_max _ _) (max_le (max_le (omega_le_aleph v) _) (omega_le_aleph v)),
-    { rw cardinal.sup_le_iff,
-      exact mk_height_le_aleph v } },
+  apply le_antisymm ((cardinal.mk_le_of_injective (to_W_type_injective v)).trans
+    (W_type.cardinal_mk_le_of_le _)),
   { induction v with v hv,
     { convert cardinal.mk_le_of_injective add_iterate.inj, simp },
     { convert cardinal.mk_le_of_injective (@lt_Omega'.inj (v + 1)),
-      exact (cardinal.mk_ord_out _).symm } }
+      exact (cardinal.mk_ord_out _).symm } },
+  { rw [cardinal.sum, cardinal.mk_congr (sigma_buchholz_label_equiv _)],
+    convert add_le_of_le (omega_le_aleph v) (Omega_le_aleph v) le_rfl,
+    simp [buchholz_indices, bit0, power_add] }
 end
 
 /-- A well-formed Buchholz expression is one where `Ψ` is only ever called with arguments with value
-less than `o`. -/
+    less than `o`. -/
 def well_formed {o : ordinal} (v : ℕ) (Ψ : Π a, a < o → ℕ → ordinal) : set (buchholz_exp' v)
 | (lt_Omega' a)  := tt
 | (a + b)        := a.well_formed ∧ b.well_formed
@@ -327,7 +319,7 @@ end
 end buchholz_exp'
 
 /-- The type of well-formed Buchholz expressions. This corresponds to `C` in Buchholz's original
-definition. -/
+    definition. -/
 def buchholz_exp (o : ordinal) (v : ℕ) (Ψ : Π a, a < o → ℕ → ordinal) : Type 0 :=
 buchholz_exp'.well_formed v Ψ
 

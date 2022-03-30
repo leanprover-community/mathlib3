@@ -48,7 +48,7 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 @[derive [add_comm_monoid, module R]] def dual := M →ₗ[R] R
 
 instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
-  add_comm_group (dual S N) := by {unfold dual, apply_instance}
+  add_comm_group (dual S N) := linear_map.add_comm_group
 
 instance : add_monoid_hom_class (dual R M) M R :=
 linear_map.add_monoid_hom_class
@@ -61,7 +61,7 @@ def dual_pairing (R M) [comm_semiring R] [add_comm_monoid M] [module R M] :
 
 namespace dual
 
-instance : inhabited (dual R M) := by dunfold dual; apply_instance
+instance : inhabited (dual R M) := linear_map.inhabited
 
 instance : has_coe_to_fun (dual R M) (λ _, M → R) := ⟨linear_map.to_fun⟩
 

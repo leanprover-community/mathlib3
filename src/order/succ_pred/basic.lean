@@ -57,54 +57,6 @@ open function order_dual set
 
 variables {α : Type*}
 
-section preorder
-variables [preorder α] {a b : α}
-
-@[simp] lemma not_is_min_of_lt (h : b < a) : ¬ is_min a := λ ha, ha.not_lt h
-@[simp] lemma not_is_max_of_lt (h : a < b) : ¬ is_max a := λ ha, ha.not_lt h
-
-alias not_is_min_of_lt ← has_lt.lt.not_is_min
-alias not_is_max_of_lt ← has_lt.lt.not_is_max
-
-protected lemma is_min.with_top (h : is_min a) : is_min (a : with_top α)
-| none _ := le_top
-| (some b) hb := with_top.some_le_some.2 $ h $ with_top.some_le_some.1 hb
-
-protected lemma is_max.with_bot (h : is_max a) : is_max (a : with_bot α)
-| none _ := bot_le
-| (some b) hb := with_bot.some_le_some.2 $ h $ with_bot.some_le_some.1 hb
-
-
-end preorder
-
-section partial_order
-variables [partial_order α] {a b : α}
-
-section order_bot
-variables [order_bot α]
-
-lemma not_is_min_iff_ne_bot : ¬ is_min a ↔ a ≠ ⊥ := is_min_iff_eq_bot.not
-
-variables [nontrivial α]
-
-lemma not_is_max_bot : ¬ is_max (⊥ : α) :=
-λ h, let ⟨a, ha⟩ := exists_ne (⊥ : α) in ha $ le_bot_iff.1 $ h bot_le
-
-end order_bot
-
-section order_top
-variables [order_top α]
-
-lemma not_is_max_iff_ne_top : ¬ is_max a ↔ a ≠ ⊤ := is_max_iff_eq_top.not
-
-variables [nontrivial α]
-
-lemma not_is_min_top : ¬ is_min (⊤ : α) :=
-λ h, let ⟨a, ha⟩ := exists_ne (⊤ : α) in ha $ top_le_iff.1 $ h le_top
-
-end order_top
-end partial_order
-
 /-- Order equipped with a sensible successor function. -/
 @[ext] class succ_order (α : Type*) [preorder α] :=
 (succ : α → α)
@@ -705,7 +657,7 @@ instance [decidable_eq α] [partial_order α] [order_bot α] [pred_order α] :
     { exact is_min_bot },
     change ((≤) : with_bot α → with_bot α → Prop) _ (ite _ _ _) at ha,
     split_ifs at ha with ha',
-    { exact ((bot_lt_coe a).not_le ha).elim },
+    { exact (not_coe_le_bot _ ha).elim },
     { rw [some_le_some, le_pred_iff_eq_bot] at ha,
       exact (ha' ha).elim }
   end,

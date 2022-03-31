@@ -8,8 +8,7 @@ import data.set.pairwise
 /-!
 # Chains
 
-This file defines chains for an arbitrary relation and proves several formulations of Zorn's Lemma,
-along with Hausdorff's Maximality Principle.
+This file defines chains for an arbitrary relation and proves Hausdorff's Maximality Principle.
 
 ## Main declarations
 
@@ -78,7 +77,7 @@ variables [is_refl α r]
 lemma is_chain.total (h : is_chain r s) (hx : x ∈ s) (hy : y ∈ s) : x ≺ y ∨ y ≺ x :=
 (eq_or_ne x y).elim (λ e, or.inl $ e ▸ refl _) (h hx hy)
 
-lemma is_chain.directed_on (H : is_chain r s) : directed_on (≺) s :=
+lemma is_chain.directed_on (H : is_chain r s) : directed_on r s :=
 λ x hx y hy, (H.total hx hy).elim (λ h, ⟨y, hy, h, refl _⟩) $ λ h, ⟨x, hx, refl _, h⟩
 
 protected lemma is_chain.directed {f : β → α} {c : set β} (h : is_chain (f ⁻¹'o r) c) :

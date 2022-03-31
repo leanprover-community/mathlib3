@@ -77,6 +77,10 @@ begin
       rw [update_noteq h', update_noteq this, cons_succ] } }
 end
 
+/-- As a map from the first element to a concatenation function, `fin.cons` is injective. -/
+lemma cons_injective2 : function.injective2 (@cons n α) :=
+λ x₀ y₀ x y h, ⟨congr_fun h 0, funext $ λ i, by simpa using congr_fun h (fin.succ i)⟩
+
 @[simp] lemma cons_eq_cons {x₀ y₀ : α 0} {x y : Π i : fin n, α (i.succ)} :
   cons x₀ x = cons y₀ y ↔ x₀ = y₀ ∧ x = y :=
 function.funext_iff.trans
@@ -117,7 +121,7 @@ begin
 end
 
 @[elab_as_eliminator]
-lemma cons_induction {P : (Π i : fin n.succ, α i) → Prop}
+lemma cons_induction {P : (Π i : fin n.succ, α i) → Sort*}
   (h : ∀ x₀ x, P (fin.cons x₀ x)) (x : (Π i : fin n.succ, α i)) : P x :=
 cons_self_tail x ▸ h (x 0) (tail x)
 

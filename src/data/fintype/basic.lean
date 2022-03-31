@@ -849,7 +849,7 @@ def fintype_of_equiv [fintype α] (f : α ≃ β) : fintype β :=
   λ x, finset.mem_map_equiv.mpr (fintype.complete ((equiv.symm f) x))⟩
 
 /-- A type is a `fintype` if its successor (using `option`) is a `fintype`. -/
-def fintype_of_equiv_option [fintype α] (f : option α ≃ β) : fintype β :=
+def fintype_of_option_equiv [fintype α] (f : option α ≃ β) : fintype β :=
 by { haveI := fintype_of_equiv f, exact fintype_of_option }
 
 instance {α : Type*} (β : α → Type*)

@@ -4,16 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
 import data.set.pairwise
+import data.set_like.basic
 
 /-!
-# Chains
+# Chains and flags
 
-This file defines chains for an arbitrary relation and proves Hausdorff's Maximality Principle.
+This file defines chains for an arbitrary relation and flags for an order and proves Hausdorff's
+Maximality Principle.
 
 ## Main declarations
 
 * `is_chain s`: A chain `s` is a set of comparable elements.
 * `max_chain_spec`: Hausdorff's Maximality Principle.
+* `flag`: The type of flag, aka maximal chains, of an order.
 
 ## Notes
 
@@ -24,12 +27,14 @@ Fleuriot, Tobias Nipkow, Christian Sternagel.
 
 open classical set
 
-variables {α β : Type*} (r : α → α → Prop)
+variables {α β : Type*}
 
-local infix ` ≺ `:50 := r
+/-! ### Chains -/
 
 section chain
-variables (r)
+variables (r : α → α → Prop)
+
+local infix ` ≺ `:50 := r
 
 /-- A chain is a set `s` satisfying `x ≺ y ∨ x = y ∨ y ≺ x` for all `x y ∈ s`. -/
 def is_chain (s : set α) : Prop := s.pairwise (λ x y, x ≺ y ∨ y ≺ x)
@@ -92,6 +97,12 @@ end total
 lemma is_max_chain.is_chain (h : is_max_chain r s) : is_chain r s := h.1
 lemma is_max_chain.not_super_chain (h : is_max_chain r s) : ¬super_chain r s t :=
 λ ht, ht.2.ne $ h.2 ht.1 ht.2.1
+
+lemma is_max_chain.bot_mem [has_le α] [order_bot α] (h : is_max_chain (≤) s) : ⊥ ∈ s :=
+(h.2 (h.1.insert $ λ a _ _, or.inl bot_le) $ subset_insert _ _).symm ▸ mem_insert _ _
+
+lemma is_max_chain.top_mem [has_le α] [order_top α] (h : is_max_chain (≤) s) : ⊤ ∈ s :=
+(h.2 (h.1.insert $ λ a _ _, or.inr le_top) $ subset_insert _ _).symm ▸ mem_insert _ _
 
 open_locale classical
 
@@ -219,3 +230,47 @@ let ⟨h₁, H⟩ := chain_closure_max_chain.is_chain.super_chain_succ_chain h i
   H.ne (chain_closure_max_chain.succ_fixpoint_iff.mpr rfl).symm
 
 end chain
+
+/-! ### Flags -/
+
+/-- The type of flags, aka maximal chains, of an order. -/
+structure flag (α : Type*) [has_le α] :=
+(carrier : set α)
+(chain' : is_chain (≤) carrier)
+(max_chain' : ∀ ⦃s⦄, is_chain (≤) s → carrier ⊆ s → carrier = s)
+
+namespace flag
+section has_le
+variables [has_le α]
+
+instance : set_like (flag α) α :=
+{ coe := carrier,
+  coe_injective' := λ s t h, by { cases s, cases t, congr' } }
+
+@[ext] lemma ext {s t : flag α} : (s : set α) = t → s = t := set_like.ext'
+
+lemma chain (s : flag α) : is_chain (≤) (s : set α) := s.chain'
+protected lemma max_chain (s : flag α) : is_max_chain (≤) (s : set α) := ⟨s.chain, s.max_chain'⟩
+
+lemma top_mem [order_top α] (s : flag α) : (⊤ : α) ∈ s := s.max_chain.top_mem
+lemma bot_mem [order_bot α] (s : flag α) : (⊥ : α) ∈ s := s.max_chain.bot_mem
+
+end has_le
+
+instance [partial_order α] [decidable_eq α] [@decidable_rel α (≤)] [@decidable_rel α (<)]
+  (φ : flag α) : linear_order φ :=
+{ le_total := λ a b, begin
+    have : reflexive (λ a b : α, a ≤ b ∨ b ≤ a) := λ a, or.inl le_rfl,
+    exact this.set_pairwise_iff.1 φ.chain a.2 b.2,
+  end,
+  decidable_eq := subtype.decidable_eq,
+  decidable_le := subtype.decidable_le,
+  decidable_lt := subtype.decidable_lt,
+  ..subtype.partial_order _ }
+
+instance [preorder α] [order_top α] (φ : flag α) : order_top φ := subtype.order_top φ.top_mem
+instance [preorder α] [order_bot α] (φ : flag α) : order_bot φ := subtype.order_bot φ.bot_mem
+instance [preorder α] [bounded_order α] (φ : flag α) : bounded_order φ :=
+subtype.bounded_order φ.bot_mem φ.top_mem
+
+end flag

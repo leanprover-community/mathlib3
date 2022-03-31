@@ -490,6 +490,14 @@ instance subtype.partial_order {α} [partial_order α] (p : α → Prop) :
   partial_order (subtype p) :=
 partial_order.lift coe subtype.coe_injective
 
+instance subtype.decidable_le [preorder α] [@decidable_rel α (≤)] {p : α → Prop} :
+  @decidable_rel (subtype p) (≤) :=
+λ a b, decidable_of_iff _ subtype.coe_le_coe
+
+instance subtype.decidable_lt [preorder α] [@decidable_rel α (<)] {p : α → Prop} :
+  @decidable_rel (subtype p) (<) :=
+λ a b, decidable_of_iff _ subtype.coe_lt_coe
+
 /-- A subtype of a linear order is a linear order. We explicitly give the proof of decidable
   equality as the existing instance, in order to not have two instances of decidable equality that
   are not definitionally equal. -/

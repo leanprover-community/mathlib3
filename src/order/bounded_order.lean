@@ -1000,6 +1000,13 @@ protected def order_top [preorder α] [order_top α] {P : α → Prop} (Ptop : P
 { top := ⟨⊤, Ptop⟩,
   le_top := λ _, le_top }
 
+/-- A subtype remains a bounded order if the property holds at `⊥` and `⊤`. -/
+@[reducible] -- See note [reducible non-instances]
+protected def bounded_order [preorder α] [bounded_order α] {p : α → Prop} (hbot : p ⊥)
+  (htop : p ⊤) :
+  bounded_order (subtype p) :=
+{ ..subtype.order_top htop, ..subtype.order_bot hbot }
+
 end subtype
 
 namespace order_dual

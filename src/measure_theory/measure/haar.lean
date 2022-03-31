@@ -417,8 +417,12 @@ begin
   rcases compact_compact_separated K₁.2 K₂.2 (disjoint_iff.mp h) with
     ⟨U₁, U₂, h1U₁, h1U₂, h2U₁, h2U₂, hU⟩,
   rw [← disjoint_iff_inter_eq_empty] at hU,
-  rcases compact_open_separated_mul K₁.2 h1U₁ h2U₁ with ⟨V₁, h1V₁, h2V₁, h3V₁⟩,
-  rcases compact_open_separated_mul K₂.2 h1U₂ h2U₂ with ⟨V₂, h1V₂, h2V₂, h3V₂⟩,
+  rcases compact_open_separated_mul_right K₁.2 h1U₁ h2U₁ with ⟨L₁, h1L₁, h2L₁⟩,
+  rcases mem_nhds_iff.mp h1L₁ with ⟨V₁, h1V₁, h2V₁, h3V₁⟩,
+  replace h2L₁ := subset.trans (mul_subset_mul_left h1V₁) h2L₁,
+  rcases compact_open_separated_mul_right K₂.2 h1U₂ h2U₂ with ⟨L₂, h1L₂, h2L₂⟩,
+  rcases mem_nhds_iff.mp h1L₂ with ⟨V₂, h1V₂, h2V₂, h3V₂⟩,
+  replace h2L₂ := subset.trans (mul_subset_mul_left h1V₂) h2L₂,
   let eval : (compacts G → ℝ) → ℝ := λ f, f K₁ + f K₂ - f (K₁ ⊔ K₂),
   have : continuous eval :=
     ((@continuous_add ℝ _ _ _).comp ((continuous_apply K₁).prod_mk (continuous_apply K₂))).sub
@@ -426,19 +430,19 @@ begin
   rw [eq_comm, ← sub_eq_zero], show chaar K₀ ∈ eval ⁻¹' {(0 : ℝ)},
   let V := V₁ ∩ V₂,
   apply mem_of_subset_of_mem _ (chaar_mem_cl_prehaar K₀
-    ⟨V⁻¹, (is_open.inter h1V₁ h1V₂).preimage continuous_inv,
-    by simp only [mem_inv, one_inv, h2V₁, h2V₂, V, mem_inter_eq, true_and]⟩),
+    ⟨V⁻¹, (is_open.inter h2V₁ h2V₂).preimage continuous_inv,
+    by simp only [mem_inv, one_inv, h3V₁, h3V₂, V, mem_inter_eq, true_and]⟩),
   unfold cl_prehaar, rw is_closed.closure_subset_iff,
   { rintro _ ⟨U, ⟨h1U, h2U, h3U⟩, rfl⟩,
     simp only [mem_preimage, eval, sub_eq_zero, mem_singleton_iff], rw [eq_comm],
     apply prehaar_sup_eq,
     { rw h2U.interior_eq, exact ⟨1, h3U⟩ },
     { refine disjoint_of_subset _ _ hU,
-      { refine subset.trans (mul_subset_mul subset.rfl _) h3V₁,
+      { refine subset.trans (mul_subset_mul subset.rfl _) h2L₁,
         exact subset.trans (inv_subset.mpr h1U) (inter_subset_left _ _) },
-      { refine subset.trans (mul_subset_mul subset.rfl _) h3V₂,
+      { refine subset.trans (mul_subset_mul subset.rfl _) h2L₂,
         exact subset.trans (inv_subset.mpr h1U) (inter_subset_right _ _) }}},
-  { apply continuous_iff_is_closed.mp this, exact is_closed_singleton },
+  { apply continuous_iff_is_closed.mp this, exact is_closed_singleton }
 end
 
 @[to_additive is_left_invariant_add_chaar]

@@ -106,8 +106,8 @@ namespace is_primitive_root
 /-- The `power_basis` given by a primitive root `ζ`. -/
 @[simps] noncomputable def power_basis : power_basis K L :=
 power_basis.map (algebra.adjoin.power_basis $ integral {n} K L ζ) $
-(subalgebra.equiv_of_eq _ _ (is_cyclotomic_extension.adjoin_primitive_root_eq_top n _ hζ)).trans
-top_equiv
+  (subalgebra.equiv_of_eq _ _ (is_cyclotomic_extension.adjoin_primitive_root_eq_top n _ hζ)).trans
+  subalgebra.top_equiv
 
 lemma power_basis_gen_mem_adjoin_zeta_sub_one :
   (power_basis K hζ).gen ∈ adjoin K ({ζ - 1} : set L) :=
@@ -220,6 +220,15 @@ begin
     erw [is_cyclotomic_extension.finrank _ hirr, totient_two, pow_one],
     apply_instance },
   { exact hζ.norm_eq_one hn hirr }
+end
+
+lemma minpoly_sub_one_eq_cyclotomic_comp [is_cyclotomic_extension {n} K L]
+  (h : irreducible (polynomial.cyclotomic n K)) :
+  minpoly K (ζ - 1) = (cyclotomic n K).comp (X + 1) :=
+begin
+  rw [show ζ - 1 = ζ + (algebra_map K L (-1)), by simp [sub_eq_add_neg], minpoly.add_algebra_map
+    (is_cyclotomic_extension.integral {n} K L ζ), hζ.minpoly_eq_cyclotomic_of_irreducible h],
+  simp
 end
 
 /-- If `irreducible (cyclotomic n K)` (in particular for `K = ℚ`), then the norm of
@@ -338,7 +347,7 @@ lemma norm_zeta_eq_one [is_cyclotomic_extension {n} K L] (hn : n ≠ 2)
   (hirr : irreducible (cyclotomic n K)) : norm K (zeta n K L) = 1 :=
 begin
   haveI := ne_zero.of_no_zero_smul_divisors K L n,
-  exact norm_eq_one (zeta_primitive_root n K L) hn hirr,
+  exact (zeta_primitive_root n K L).norm_eq_one hn hirr,
 end
 
 /-- If `is_prime_pow (n : ℕ)`, `n ≠ 2` and `irreducible (cyclotomic n K)` (in particular for
@@ -349,7 +358,7 @@ lemma is_prime_pow_norm_zeta_sub_one (hn : is_prime_pow (n : ℕ))
   norm K (zeta n K L - 1) = (n : ℕ).min_fac :=
 begin
   haveI := ne_zero.of_no_zero_smul_divisors K L n,
-  exact sub_one_norm_is_prime_pow (zeta_primitive_root n K L) hn hirr h,
+  exact (zeta_primitive_root n K L).sub_one_norm_is_prime_pow hn hirr h,
 end
 
 /-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is an odd
@@ -365,7 +374,7 @@ begin
   { refine ⟨λ hzero, _⟩,
     rw [pow_coe] at hzero,
     simpa [ne_zero.ne ((p : ℕ) : L)] using hzero },
-  exact sub_one_norm_prime_ne_two (zeta_primitive_root _ K L) hirr h,
+  exact (zeta_primitive_root _ K L).sub_one_norm_prime_ne_two hirr h,
 end
 
 /-- If `irreducible (cyclotomic p K)` (in particular for `K = ℚ`) and `p` is an odd prime,
@@ -375,7 +384,7 @@ lemma prime_ne_two_norm_zeta_sub_one {p : ℕ+} [ne_zero ((p : ℕ) : K)] [hpri 
   norm K (zeta p K L - 1) = p :=
 begin
   haveI := ne_zero.of_no_zero_smul_divisors K L p,
-  exact sub_one_norm_prime (zeta_primitive_root _ K L) hirr h,
+  exact (zeta_primitive_root _ K L).sub_one_norm_prime hirr h,
 end
 
 /-- If `irreducible (cyclotomic (2 ^ k) K)` (in particular for `K = ℚ`) and `k` is at least `2`,

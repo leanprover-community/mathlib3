@@ -35,7 +35,7 @@ finitely many vertices.
 * `simple_graph.dart` is an ordered pair of adjacent vertices, thought of as being an
   orientated edge.
 
-* `simple_graph.homo`, `simple_graph.embedding`, and `simple_graph.iso` for graph
+* `simple_graph.hom`, `simple_graph.embedding`, and `simple_graph.iso` for graph
   homomorphisms, graph embeddings, and
   graph isomorphisms. Note that a graph embedding is a stronger notion than an
   injective graph homomorphism, since its image is an induced subgraph.
@@ -428,7 +428,7 @@ lemma incidence_set_inter_incidence_set_subset (h : a ≠ b) :
   G.incidence_set a ∩ G.incidence_set b ⊆ {⟦(a, b)⟧} :=
 λ e he, (sym2.mem_and_mem_iff h).1 ⟨he.1.2, he.2.2⟩
 
-lemma incidence_set_inter_incidence_set (h : G.adj a b) :
+lemma incidence_set_inter_incidence_set_of_adj (h : G.adj a b) :
   G.incidence_set a ∩ G.incidence_set b = {⟦(a, b)⟧} :=
 begin
   refine (G.incidence_set_inter_incidence_set_subset $ h.ne).antisymm _,
@@ -441,6 +441,14 @@ lemma adj_of_mem_incidence_set (h : a ≠ b) (ha : e ∈ G.incidence_set a)
   G.adj a b :=
 by rwa [←mk_mem_incidence_set_left_iff,
   ←set.mem_singleton_iff.1 $ G.incidence_set_inter_incidence_set_subset h ⟨ha, hb⟩]
+
+lemma incidence_set_inter_incidence_set_of_not_adj (h : ¬ G.adj a b) (hn : a ≠ b) :
+  G.incidence_set a ∩ G.incidence_set b = ∅ :=
+begin
+  simp_rw [set.eq_empty_iff_forall_not_mem, set.mem_inter_eq, not_and],
+  intros u ha hb,
+  exact h (G.adj_of_mem_incidence_set hn ha hb),
+end
 
 instance decidable_mem_incidence_set [decidable_eq V] [decidable_rel G.adj] (v : V) :
   decidable_pred (∈ G.incidence_set v) := λ e, and.decidable
@@ -686,6 +694,11 @@ def incidence_finset [decidable_eq V] : finset (sym2 V) := (G.incidence_set v).t
 lemma card_incidence_set_eq_degree [decidable_eq V] :
   fintype.card (G.incidence_set v) = G.degree v :=
 by { rw fintype.card_congr (G.incidence_set_equiv_neighbor_set v), simp }
+
+@[simp]
+lemma card_incidence_finset_eq_degree [decidable_eq V] :
+  (G.incidence_finset v).card = G.degree v :=
+by { rw ← G.card_incidence_set_eq_degree, apply set.to_finset_card }
 
 @[simp]
 lemma mem_incidence_finset [decidable_eq V] (e : sym2 V) :

@@ -73,7 +73,7 @@ begin
 end
 
 @[to_additive]
-lemma exponent_eq_zero_iff : exponent G = 0 ↔ ¬ exponent_exists G := 
+lemma exponent_eq_zero_iff : exponent G = 0 ↔ ¬ exponent_exists G :=
 by simp only [exponent_exists_iff_ne_zero, not_not]
 
 @[to_additive]
@@ -175,7 +175,7 @@ begin
   rw ← finsupp.mem_support_iff at h,
   obtain ⟨g, hg⟩ : ∃ (g : G), g ^ (exponent G / p) ≠ 1,
   { suffices key : ¬ exponent G ∣ exponent G / p,
-    { by simpa using mt (exponent_dvd_of_forall_pow_eq_one G (exponent G / p)) key },
+    { simpa using mt (exponent_dvd_of_forall_pow_eq_one G (exponent G / p)) key },
     exact λ hd, hp.one_lt.not_le ((mul_le_iff_le_one_left he).mp $
                 nat.le_of_dvd he $ nat.mul_dvd_of_dvd_div (nat.dvd_of_mem_factorization h) hd) },
   obtain ⟨k, hk : exponent G = p ^ _ * k⟩ := nat.pow_factorization_dvd _ _,

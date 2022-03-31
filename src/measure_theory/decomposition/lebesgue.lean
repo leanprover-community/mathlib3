@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kexing Ying
 -/
 import measure_theory.measure.complex
+import measure_theory.measure.sub
 import measure_theory.decomposition.jordan
 import measure_theory.measure.with_density_vector_measure
 import measure_theory.function.ae_eq_of_integral
@@ -965,7 +966,8 @@ lemma integrable_rn_deriv (s : signed_measure α) (μ : measure α) :
   integrable (rn_deriv s μ) μ :=
 begin
   refine integrable.sub _ _;
-  { split, measurability,
+  { split,
+    { apply measurable.ae_strongly_measurable, measurability },
     exact has_finite_integral_to_real_of_lintegral_ne_top
       (lintegral_rn_deriv_lt_top _ μ).ne }
 end

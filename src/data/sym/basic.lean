@@ -30,7 +30,7 @@ symmetric powers
 
 open function
 
-universes u v
+universes u
 
 /--
 The nth symmetric power is n-tuples up to permutation.  We define it

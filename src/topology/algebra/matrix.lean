@@ -59,7 +59,7 @@ continuous_matrix $ λ i j, hA.matrix_elem j i
 ```
 lemma continuous.matrix.conj_transpose [has_star R] {A : X → matrix n m R} (hA : continuous A) :
   continuous (λ x, (A x)ᴴ) :=
-hA.matrix_transpose.matrix_map _
+hA.matrix_transpose.matrix_map continuous_star
 ```
 -/
 

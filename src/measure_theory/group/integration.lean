@@ -19,9 +19,7 @@ open measure topological_space
 open_locale ennreal
 
 variables {𝕜 G E F : Type*} [measurable_space G]
-variables [normed_group E] [second_countable_topology E] [normed_space ℝ E] [complete_space E]
-variables [measurable_space E] [borel_space E]
-variables [normed_group F] [measurable_space F] [opens_measurable_space F]
+variables [normed_group E] [normed_space ℝ E] [complete_space E] [normed_group F]
 variables {μ : measure G} {f : G → E} {g : G}
 
 section measurable_inv
@@ -128,11 +126,11 @@ lemma integrable.comp_div_left {f : G → F}
 begin
   rw [← map_mul_right_inv_eq_self μ g⁻¹, integrable_map_measure, function.comp],
   { simp_rw [div_inv_eq_mul, mul_inv_cancel_left], exact hf },
-  { refine ae_measurable.comp_measurable _ (measurable_id.const_div g),
+  { refine ae_strongly_measurable.comp_measurable _ (measurable_id.const_div g),
     simp_rw [map_map (measurable_id'.const_div g) (measurable_id'.const_mul g⁻¹).inv,
       function.comp, div_inv_eq_mul, mul_inv_cancel_left, map_id'],
-    exact hf.ae_measurable },
-  exact (measurable_id'.const_mul g⁻¹).inv
+    exact hf.ae_strongly_measurable },
+  { exact (measurable_id'.const_mul g⁻¹).inv }
 end
 
 @[to_additive]

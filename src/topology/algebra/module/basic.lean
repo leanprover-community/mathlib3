@@ -254,7 +254,7 @@ notation M ` →L⋆[`:25 R `] ` M₂ := continuous_linear_map (star_ring_end R)
 
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
-topological ring `R`. -/
+topological semiring `R`. -/
 @[nolint has_inhabited_instance]
 structure continuous_linear_equiv
   {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)

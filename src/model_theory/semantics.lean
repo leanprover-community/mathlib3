@@ -421,7 +421,7 @@ lemma realize_relabel_sum_inr (φ : L.formula (fin n)) {v : empty → M} {x : fi
   (bounded_formula.relabel sum.inr φ).realize v x ↔ φ.realize x :=
 begin
   rw [bounded_formula.realize_relabel, formula.realize, sum.elim_comp_inr, iff_eq_eq,
-    fin.cast_add_zero],
+    fin.cast_add_zero, cast_refl, order_iso.coe_refl, function.comp.right_id],
   exact congr rfl (unique.eq_default _)
 end
 

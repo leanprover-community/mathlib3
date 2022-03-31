@@ -106,6 +106,66 @@ begin
       (setoid.is_partition.pairwise_disjoint hP ht hu htu) }
 end
 
+lemma setoid.is_partition_on {α : Type*} {P : set (set α)} (hP : setoid.is_partition P) (s : set α) :
+  setoid.is_partition { u : set ↥s | ∃ (t : set α), t ∈ P ∧ coe ⁻¹' t = u ∧ t ∩ s ≠ ∅ } :=
+begin
+  split,
+  { intro h ,
+    obtain ⟨t, htP, ht, hts⟩ := set.mem_set_of_eq.mp h,
+    apply hts,
+    rw [← subtype.image_preimage_coe, ht,set.image_empty] },
+  { intro a,
+    obtain ⟨t, ht⟩ := hP.right ↑a,
+    simp only [exists_unique_iff_exists, exists_prop, and_imp] at ht,
+    use coe ⁻¹' t,
+    split,
+    { simp only [ne.def, set.mem_set_of_eq, set.mem_preimage, exists_unique_iff_exists, exists_prop],
+      use t,
+      apply and.intro ht.left.left,
+      apply and.intro rfl,
+      intro h, rw ← set.mem_empty_eq (a : α), rw ← h,
+      exact set.mem_inter (ht.left.right) (subtype.mem a),
+      exact (ht.left.right) },
+    { simp only [ne.def, set.mem_set_of_eq, exists_unique_iff_exists, exists_prop, and_imp,
+        forall_exists_index],
+      intros y x hxP hxy hxs hay, rw ← hxy,
+      rw subtype.preimage_coe_eq_preimage_coe_iff ,
+      refine congr_arg2 _ _ rfl,
+      apply ht.right x hxP, rw [← set.mem_preimage, hxy], exact hay } }
+end
+
+example {α : Type*} (s : finset α) : s.card = fintype.card ↥s :=
+begin
+refine (fintype.card_coe s).symm,
+end
+
+lemma setoid.is_partition.card_set_eq_sum_parts' {α : Type*}
+  {P : set (set α)} (hP : setoid.is_partition P)
+  {s : finset α}  :
+  let P' := { u : set ↥s | ∃ (t : set α), t ∈ P ∧ coe ⁻¹' t = u ∧ t ∩ s ≠ ∅ } in
+  let hP' := setoid.is_partition_on hP in
+  s.card =
+    finset.sum P'.to_finset (λ (t : set ↥s), t.to_finset.card) :=
+begin
+  -- let P' := { u : set ↥s | ∃ (t : set α), t ∈ P ∧ coe ⁻¹' t = u ∧ t ∩ s ≠ ∅ },
+  -- let hP' := setoid.is_partition_on hP,
+/-   have fs : fintype ↥(↑s : set α) := finset_coe.fintype s,
+  have fcs : fintype.card ↥s =  fintype.card ↥(s : set α) :=
+  by simp only [fintype.card_coe, finset.coe_sort_coe, fintype.card_coe],
+  have fcs' : fintype.card ↥(s : set α) = s.card :=
+  by simp only [finset.coe_sort_coe, fintype.card_coe],
+  -/
+  have this :=
+    @partition.card_of_partition _ (finset_coe.fintype s) _ (setoid.is_partition_on hP (s : set α)),
+  simp only [finset.coe_sort_coe, fintype.card_coe] at this,
+  rw ← this,
+  apply congr_arg2,
+  { apply finset.coe_injective ,
+    simp only [ne.def, set.coe_to_finset],
+    exact rfl },
+  { ext, apply congr_arg, rw set.to_finset_inj }
+end
+
 /-- The cardinality of a finite type is
   the sum of the cardinalities of the parts of any partition -/
 lemma setoid.is_partition.card_eq_sum_parts {α : Type*} [fintype α] {P : set (set α)}
@@ -219,12 +279,7 @@ lemma is_block.mk {B : set X} :
   is_block G X B ↔ (∀ (g : G), g • B = B ∨ disjoint (g • B) B) :=
 begin
   split,
-  { intros hB g,
-    suffices : g • B = (1 : G) • B ∨ disjoint (g • B) ((1 : G) • B),
-    { rw one_smul at this, exact this },
-    cases em (g • B = (1 : G) • B),
-    exact or.intro_left _ h,
-    exact or.intro_right _ (hB (set.mem_range_self g) (set.mem_range_self 1) h) },
+  { intros hB g, exact is_block.def_one G X hB g },
   { intros hB,
     intros u hu v hv,
     obtain ⟨g, rfl⟩ := hu, obtain ⟨g', rfl⟩ := hv,
@@ -262,10 +317,10 @@ begin
 end
 
 lemma is_block.mk_mem {B : set X} :
-  is_block G X B ↔ ∀ (a : X) (g : G) (ha : a ∈ B) (hga : g • a ∈ B), g • B = B :=
+  is_block G X B ↔ ∀ (g : G) (a : X) (ha : a ∈ B) (hga : g • a ∈ B), g • B = B :=
 begin
   split,
-  { intros hB a g ha hga,
+  { intros hB g a ha hga,
     cases is_block.def_one G X hB g⁻¹ with h h',
     { rw [smul_eq_iff_eq_inv_smul, h] },
     exfalso, rw ← set.mem_empty_eq a,
@@ -281,12 +336,12 @@ begin
       obtain ⟨a, hga, ha⟩ := h,
       rw smul_eq_iff_eq_inv_smul, apply symm,
       rw mem_smul_set_iff_inv_smul_mem at hga,
-      exact H a g⁻¹ ha hga  } }
+      exact H g⁻¹ a ha hga } }
 end
 
 -- was : is_block_def'
 lemma is_block.def_mem {B : set X} (hB : is_block G X B) (a : X) (g : G) :
-  a ∈ B → g • a ∈ B → g • B = B := (is_block.mk_mem G X).mp hB a g
+  a ∈ B → g • a ∈ B → g • B = B := (is_block.mk_mem G X).mp hB g a
 
 lemma is_block.mk_subset {B : set X} :
     is_block G X B ↔ ∀ (g : G) (b : X) (hb : b ∈ B) (hb' : b ∈ g • B), g • B ≤ B :=
@@ -307,10 +362,11 @@ begin
     exact hB g⁻¹ (g⁻¹ • b) (mem_smul_set_iff_inv_smul_mem.mp hb') (smul_mem_smul_set_iff.mpr hb) }
 end
 
+/-- Subsingletons are (trivial) blocks -/
 lemma subsingleton_is_block (B : set X) (hB : B.subsingleton) : is_block G X B :=
 begin
   rw is_block.mk_mem,
-  intros a g  ha hga,
+  intros g a ha hga,
   ext b,
   have hB1 : B = { a },
   { ext b,
@@ -321,7 +377,6 @@ begin
   { rw hB1, simp only [set.smul_set_singleton], },
   rw hB3, rw ← hB2,
 end
-
 
 /-- The empty set is a block -/
 lemma bot_is_block : is_block G X (⊥ : set X) :=
@@ -343,7 +398,6 @@ begin
   simp only [set.smul_set_singleton, set.disjoint_singleton, ne.def],
   exact h',
 end
-
 
 /-- An invariant block is a block -/
 lemma is_block_of_invariant (B : set X) (hfB : is_invariant_block G X B) :
@@ -1249,122 +1303,5 @@ end
 end primitivity
 
 end mul_action
-
-section nodup
-/- Lemmas about nodup lists and some constructions -/
-
-/-- Ad hoc definition for α : Type* to have at least n members -/
-def card_ge (α : Type*) (n : ℕ) :=
-  ∃ (x : list α), x.length = n ∧ x.nodup
-
-/-- A take of a nodup_list has nodup -/
-lemma list.nodup_take_of_nodup {α: Type*} {l : list α} {n : ℕ} (h : l.nodup) :
-  (l.take n).nodup :=
-begin
-  rw ← list.take_append_drop n l at h,
-  exact (list.nodup_append.mp h).1,
-end
-
-/-- A drop of a nodup_list has nodup -/
-lemma list.nodup_drop_of_nodup {α: Type*} {l : list α} {n : ℕ} (h : l.nodup) :
-  (l.drop n).nodup :=
-begin
-  rw ← list.take_append_drop n l at h,
-  exact (list.nodup_append.mp h).2.1,
-end
-
-/-- The take and drop of a nodup list are disjoint -/
-lemma list.take_disjoint_drop_of_nodup {α: Type*} {l : list α} {n : ℕ} (h : l.nodup) :
-  list.disjoint (l.take n) (l.drop n) :=
-begin
-  rw ← list.take_append_drop n l at h,
-  exact (list.nodup_append.mp h).2.2,
-end
-
-/- Auxiliary lemma for deduping a concatenation of lists -/
-lemma nodup_aux1 {α: Type*} (l1 l2 : list α) (h1 : l1.nodup) :
-  (list.reverse (l2 ++ l1.reverse).dedup).take l1.length = l1 :=
-begin
-    have : l1.reverse.dedup = l1.reverse,
-    { rw [list.dedup_eq_self, list.nodup_reverse], exact h1 },
-    rw [list.dedup_append, this],
-    obtain ⟨t, ht, ht'⟩ := list.sublist_suffix_of_union l2 l1.reverse,
-    rw [← ht', list.reverse_append],
-    simp only [list.reverse_reverse, list.take_left]
-end
-
-/-
-lemma nodup_aux1' {α: Type*} (l1 l2 : list α) (h1 : l1.nodup) :
-  (list.reverse (l2 ++ l1.reverse).dedup).take l1.length = l1 :=
-begin
-  induction l2 with a l2' hrec,
-  { rw [list.nil_append],
-    suffices : l1.reverse.dedup.reverse = l1,
-      rw [this, list.take_length],
-    rw [list.reverse_eq_iff, list.dedup_eq_self, list.nodup_reverse],
-    exact h1 },
-  { rw [list.dedup_append, list.cons_union, ← list.dedup_append],
-    unfold list.dedup at hrec ⊢,
-    cases dec_em (a ∈ list.pw_filter ne (l2' ++ l1.reverse)) with ha ha',
-    { simp only [ha, list.insert_of_mem], exact hrec, },
-    { simp only [ha', list.insert_of_not_mem, not_false_iff, list.reverse_cons],
-      rw list.take_append_eq_append_take,
-      rw hrec,
-      have : ∀ (s : list α) (hs : s = list.nil), l1 ++ s = l1,
-        { intros s hs, rw [hs, list.append_nil], },
-      refine this _ _,
-      simp only [list.length_reverse, list.take_eq_nil_iff, tsub_eq_zero_iff_le, false_or],
-      conv_lhs { rw ← hrec },
-      simp only [list.length_take, list.length_reverse, min_le_iff, le_refl, or_true] } }
-end
--/
-
-/-- Union to nil of a list l is l.dedup -/
-lemma list.union_nil {α : Type*} (l : list α) : l ∪ list.nil = l.dedup :=
-begin
-  rw [← list.dedup_nil, ← list.dedup_append, list.append_nil],
-end
-
-/- Auxiliary lemma -/
-lemma nodup_aux2 {α: Type*} (l1 l2 : list α) (h2 : l2.nodup):
-  ((l2 ++ l1).dedup).length ≥ l2.length :=
-begin
-  rw ← list.to_finset_card_of_nodup (list.nodup_dedup _),
-  rw ← list.to_finset_card_of_nodup h2,
-  apply finset.card_le_of_subset ,
-  rw list.dedup_append,
-  simp only [list.to_finset_union],
-  exact (list.to_finset l2).subset_union_left (list.dedup l1).to_finset,
-end
-
-/-- If the type α has ≥ n elements, every nodup_list of length ≤ n
-can be extended to a nodup_list of length n -/
-lemma list.extend_nodup {α : Type*} (n : ℕ) (hα : card_ge α n)
-  (l : list α) (hln : l.nodup) (hl : l.length ≤ n) :
-  ∃ (l' : list α), l'.length = n ∧ l'.nodup ∧ l'.take l.length = l :=
-begin
-  obtain ⟨z, hzn, hznd⟩ := hα,
-  induction n with n hrec,
-  { simp only [nat.nat_zero_eq_zero, nonpos_iff_eq_zero] at hl,
-    use l,
-    suffices : l = list.nil,
-    { rw this,
-      simp only [list.length, eq_self_iff_true, list.nodup_nil, list.take_nil, and_self] },
-    exact (list.eq_nil_of_length_eq_zero hl) },
-  { use (list.reverse (z ++ l.reverse).dedup).take z.length,
-    split,
-    { rw ← hzn, rw list.length_take,
-      simp only [list.length_reverse, min_eq_left_iff],
-      refine nodup_aux2 _ _ hznd },
-    split,
-    { apply list.nodup_take_of_nodup,
-      rw list.nodup_reverse,
-      apply list.nodup_dedup },
-    { rw list.take_take ,
-      rw ← hzn at hl,
-      rw [min_eq_left hl, nodup_aux1 l z hln] } }
-end
-
-end nodup
 
 end FundamentalConcepts

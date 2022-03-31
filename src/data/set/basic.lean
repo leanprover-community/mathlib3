@@ -638,7 +638,7 @@ theorem insert_def (x : α) (s : set α) : insert x s = { y | y = x ∨ y ∈ s 
 
 @[simp] lemma set_of_eq_or (a : α) (p : α → Prop) : {x | x = a ∨ p x} = insert a {x | p x} := rfl
 @[simp] lemma set_of_or_eq (a : α) (p : α → Prop) : {x | p x ∨ x = a} = insert a {x | p x} :=
-or_comm _ _
+set.ext $ λ _, or_comm _ _
 
 @[simp] theorem subset_insert (x : α) (s : set α) : s ⊆ insert x s := λ y, or.inr
 

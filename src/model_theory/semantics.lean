@@ -634,8 +634,9 @@ end
 lemma realize_antisymmetric :
   M ⊨ r.antisymmetric ↔ anti_symmetric (λ (x y : M), rel_map r ![x,y]) :=
 begin
-  simp only [relations.antisymmetric, sentence.realize, formula.realize, bounded_formula.realize_all,
-    bounded_formula.realize_imp, term.realize, bounded_formula.realize_rel₂, sum.elim_inr],
+  simp only [relations.antisymmetric, sentence.realize, formula.realize,
+    bounded_formula.realize_all, bounded_formula.realize_imp, term.realize,
+    bounded_formula.realize_rel₂, sum.elim_inr],
   refl,
 end
 

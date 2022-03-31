@@ -27,12 +27,16 @@ instance : is_relational (language.order) := language.is_relational_mk₂
 
 class is_ordered (L : language.{u v}) := (le_symb : L.relations 2)
 
-namespace is_ordered
+export is_ordered (le_symb)
+
+section is_ordered
 
 variables [is_ordered L]
 
 def term.le (t₁ t₂ : L.term (α ⊕ fin n)) : L.bounded_formula α n :=
 le_symb.bounded_formula₂ t₁ t₂
+
+variable (L)
 
 def order_Lhom : language.order →ᴸ L :=
 Lhom.mk₂ empty.elim empty.elim empty.elim empty.elim (λ _, le_symb)
@@ -51,12 +55,16 @@ protected def Theory.linear_order : language.order.Theory :=
 
 variables (L α)
 
-class is_ordered_structure [is_ordered L] [has_le α] [L.Structure α] : Prop :=
-(rel_map_le_symb : ∀ (v : fin 2 → α), rel_map (is_ordered.le_symb : L.relations 2) v ↔ v 0 ≤ v 1)
+def is_ordered_structure [is_ordered L] [has_le α] [L.Structure α] : Prop :=
+Lhom.is_expansion_on (order_Lhom L) α
 
-@[simp]
-lemma rel_map_le_symb [has_le α] {v : fin 2 → α} :
-  Structure.rel_map (is_ordered.le_symb : language.order.relations 2) v ↔ v 0 ≤ v 1 := iff.rfl
+instance is_ordered_structure_has_le [has_le α] :
+  is_ordered_structure language.order α :=
+⟨λ n, (is_relational.empty_functions n).elim,
+  λ n, nat.cases_on n (λ R, pempty.elim R)
+      (λ n, nat.cases_on n (λ R, empty.elim R)
+      (λ n, nat.cases_on n (λ R x, rfl)
+      (λ n R, pempty.elim R)))⟩
 
 instance model_partial_order [partial_order α] :
   α ⊨ Theory.partial_order :=

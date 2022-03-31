@@ -192,15 +192,14 @@ begin
   { apply nat.le_of_lt_succ,
     rw ←hn,
     convert (card_lt_iff_ne_univ _).mpr hns,
-    convert fintype.card_coe _ },
+    rw fintype.card_coe },
   rcases ih t' card_ι'_le (hall_cond_of_restrict ht) with ⟨f', hf', hsf'⟩,
   /- Restrict to `sᶜ` in the domain and `(s.bUnion t)ᶜ` in the codomain. -/
   set ι'' := (s : set ι)ᶜ with ι''_def,
   let t'' : ι'' → finset α := λ a'', t a'' \ s.bUnion t,
   have card_ι''_le : fintype.card ι'' ≤ n,
   { simp_rw [← nat.lt_succ_iff, ← hn, ι'', ← finset.coe_compl, coe_sort_coe],
-    rw [fintype.card_congr' rfl, fintype.card_coe],
-    rwa card_compl_lt_iff_nonempty },
+    rwa [fintype.card_coe, card_compl_lt_iff_nonempty] },
   rcases ih t'' card_ι''_le (hall_cond_of_compl hus ht) with ⟨f'', hf'', hsf''⟩,
   /- Put them together -/
   have f'_mem_bUnion : ∀ {x'} (hx' : x' ∈ s), f' ⟨x', hx'⟩ ∈ s.bUnion t,

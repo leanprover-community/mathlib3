@@ -496,7 +496,8 @@ theorem of_apply : (of f h0 h1 hadd hmul) r = f r := rfl
 `add_valuation.of`). -/
 def valuation : valuation R (multiplicative (order_dual Γ₀)) := v
 
-@[simp] lemma valuation_apply (r : R) : v.valuation r = multiplicative.of_add (v r) := rfl
+@[simp] lemma valuation_apply (r : R) :
+  v.valuation r = multiplicative.of_add (order_dual.to_dual (v r)) := rfl
 
 end
 

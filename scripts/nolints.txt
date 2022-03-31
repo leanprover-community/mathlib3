@@ -1186,10 +1186,6 @@ apply_nolint group_topology.partial_order to_additive_doc
 apply_nolint separable_locally_compact_group.sigma_compact_space to_additive_doc
 apply_nolint topological_space.positive_compacts.locally_compact_space_of_group to_additive_doc
 
--- topology/algebra/monoid.lean
-apply_nolint mul_opposite.has_continuous_mul to_additive_doc
-apply_nolint units.has_continuous_mul to_additive_doc
-
 -- topology/algebra/nonarchimedean/basic.lean
 apply_nolint nonarchimedean_group.nonarchimedean_of_emb to_additive_doc
 apply_nolint nonarchimedean_group.prod.nonarchimedean_group to_additive_doc

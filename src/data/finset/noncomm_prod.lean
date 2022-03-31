@@ -163,7 +163,7 @@ begin
         simp [hy] } } }
 end
 
-@[to_additive, protected]
+@[protected, to_additive]
 lemma nocomm_prod_map_aux (s : multiset α)
   (comm : ∀ (x ∈ s) (y ∈ s), commute x y)
   {F : Type*} [monoid_hom_class F α β] (f : F) :

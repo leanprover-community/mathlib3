@@ -297,26 +297,10 @@ variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{
 def prod' : lax_monoidal_functor C (D × E) :=
 { ε := (ε F, ε G),
   μ := λ X Y, (μ F X Y, μ G X Y),
-  μ_natural' :=
-    λ X Y X' Y' f g,
-      congr_arg2 prod.mk
-        (μ_natural F f g)
-        (μ_natural G f g),
-  associativity' :=
-    λ X Y Z,
-      congr_arg2 prod.mk
-        (associativity F X Y Z)
-        (associativity G X Y Z),
-  left_unitality' :=
-    λ X,
-      congr_arg2 prod.mk
-        (left_unitality F X)
-        (left_unitality G X),
-  right_unitality' :=
-    λ X,
-      congr_arg2 prod.mk
-        (right_unitality F X)
-        (right_unitality G X),
+  μ_natural' := λ X Y X' Y' f g, congr_arg2 prod.mk (μ_natural F f g) (μ_natural G f g),
+  associativity' := λ X Y Z, congr_arg2 prod.mk (associativity F X Y Z) (associativity G X Y Z),
+  left_unitality' := λ X, congr_arg2 prod.mk (left_unitality F X) (left_unitality G X),
+  right_unitality' := λ X, congr_arg2 prod.mk (right_unitality F X) (right_unitality G X),
   .. (F.to_functor).prod' (G.to_functor) }
 
 end lax_monoidal_functor

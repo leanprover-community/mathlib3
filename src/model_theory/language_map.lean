@@ -46,6 +46,15 @@ variables {L L'}
 
 namespace Lhom
 
+/-- Defines a map between languages defined with `language.mk₂`. -/
+protected def mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  (φ₀ : c → L'.constants) (φ₁ : f₁ → L'.functions 1) (φ₂ : f₂ → L'.functions 2)
+  (φ₁' : r₁ → L'.relations 1) (φ₂' : r₂ → L'.relations 2) :
+  language.mk₂ c f₁ f₂ r₁ r₂ →ᴸ L' :=
+⟨λ n, nat.cases_on n φ₀ (λ n, nat.cases_on n φ₁ (λ n, nat.cases_on n φ₂ (λ _, pempty.elim))),
+  λ n, nat.cases_on n pempty.elim
+    (λ n, nat.cases_on n φ₁' (λ n, nat.cases_on n φ₂' (λ _, pempty.elim)))⟩
+
 variables (ϕ : L →ᴸ L')
 
 /-- The identity language homomorphism. -/

@@ -252,7 +252,7 @@ def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
 @[simp] lemma mem_map {α β : Type*} {n : ℕ} {f : α → β} {b : β} {l : sym α n} :
   b ∈ sym.map f l ↔ ∃ a, a ∈ l ∧ f a = b := multiset.mem_map
 
-/-- The duplication in the folowing two lemmas is to avoid a complaint from the simp_nf linter -/
+/-- Note that `sym.map_id` is not simp-normal, as simp ends up unfolding `id` with `sym.map_congr` -/
 @[simp] lemma map_id' {α : Type*} {n : ℕ} (s : sym α n) : sym.map (λ (x : α), x) s = s :=
 by simp [sym.map]
 

@@ -74,13 +74,7 @@ continuous_matrix $ λ i j, (continuous_apply _).comp hA
 @[continuity]
 lemma continuous_matrix.diagonal [has_zero R] [decidable_eq n] {A : X → n → R} (hA : continuous A) :
   continuous (λ x, diagonal (A x)) :=
-continuous_matrix $ λ i j, begin
-  obtain rfl | hij := decidable.eq_or_ne i j,
-  { simp_rw diagonal_apply_eq,
-    exact (continuous_apply _).comp hA },
-  { simp_rw diagonal_apply_ne hij,
-    exact continuous_zero },
-end
+continuous_matrix $ λ i j, ((continuous_apply i).comp hA).if_const _ continuous_zero
 
 @[continuity]
 lemma continuous.matrix_dot_product [fintype n] [has_mul R] [add_comm_monoid R]

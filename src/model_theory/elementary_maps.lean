@@ -5,7 +5,6 @@ Authors: Aaron Anderson
 -/
 import data.fintype.basic
 import model_theory.substructures
-import model_theory.terms_and_formulas
 
 /-!
 # Elementary Maps Between First-Order Structures

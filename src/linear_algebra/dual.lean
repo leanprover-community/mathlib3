@@ -5,6 +5,7 @@ Authors: Johan Commelin, Fabian Glöckle
 -/
 import linear_algebra.finite_dimensional
 import linear_algebra.projection
+import linear_algebra.sesquilinear_form
 
 /-!
 # Dual vector spaces
@@ -47,14 +48,20 @@ variables [comm_semiring R] [add_comm_monoid M] [module R M]
 @[derive [add_comm_monoid, module R]] def dual := M →ₗ[R] R
 
 instance {S : Type*} [comm_ring S] {N : Type*} [add_comm_group N] [module S N] :
-  add_comm_group (dual S N) := by {unfold dual, apply_instance}
+  add_comm_group (dual S N) := linear_map.add_comm_group
 
 instance : add_monoid_hom_class (dual R M) M R :=
 linear_map.add_monoid_hom_class
 
+/-- The canonical pairing of a vector space and its algebraic dual. -/
+def dual_pairing (R M) [comm_semiring R] [add_comm_monoid M] [module R M] :
+  module.dual R M →ₗ[R] M →ₗ[R] R := linear_map.id
+
+@[simp] lemma dual_pairing_apply (v x) : dual_pairing R M v x = v x := rfl
+
 namespace dual
 
-instance : inhabited (dual R M) := by dunfold dual; apply_instance
+instance : inhabited (dual R M) := linear_map.inhabited
 
 instance : has_coe_to_fun (dual R M) (λ _, M → R) := ⟨linear_map.to_fun⟩
 
@@ -704,5 +711,29 @@ begin
 end
 
 end finite_dimensional
+
+section field
+
+variables {K V : Type*}
+variables [field K] [add_comm_group V] [module K V]
+
+lemma dual_pairing_nondegenerate : (dual_pairing K V).nondegenerate :=
+begin
+  refine ⟨separating_left_iff_ker_eq_bot.mpr ker_id, _⟩,
+  intros x,
+  contrapose,
+  rintros hx : x ≠ 0,
+  rw [not_forall],
+  let f : V →ₗ[K] K := classical.some (linear_pmap.mk_span_singleton x 1 hx).to_fun.exists_extend,
+  use [f],
+  refine ne_zero_of_eq_one _,
+  have h : f.comp (K ∙ x).subtype = (linear_pmap.mk_span_singleton x 1 hx).to_fun :=
+    classical.some_spec (linear_pmap.mk_span_singleton x (1 : K) hx).to_fun.exists_extend,
+  rw linear_map.ext_iff at h,
+  convert h ⟨x, submodule.mem_span_singleton_self x⟩,
+  exact (linear_pmap.mk_span_singleton_apply' K hx 1).symm,
+end
+
+end field
 
 end linear_map

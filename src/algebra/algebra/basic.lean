@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.module.basic
+import algebra.ring.aut
 import linear_algebra.span
 import tactic.abel
-import data.equiv.ring_aut
 
 /-!
 # Algebras over commutative semirings
@@ -813,6 +813,8 @@ rfl
   (⟨e, e', h₁, h₂, h₃, h₄, h₅⟩ : A₁ ≃ₐ[R] A₂) = e := ext $ λ _, rfl
 
 @[simp] lemma to_fun_eq_coe (e : A₁ ≃ₐ[R] A₂) : e.to_fun = e := rfl
+
+@[simp] lemma to_equiv_eq_coe : e.to_equiv = e := rfl
 
 @[simp] lemma to_ring_equiv_eq_coe : e.to_ring_equiv = e := rfl
 

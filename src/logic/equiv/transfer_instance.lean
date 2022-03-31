@@ -6,8 +6,8 @@ Authors: Johannes Hölzl
 import algebra.algebra.basic
 import algebra.field.basic
 import algebra.group.type_tags
+import logic.equiv.basic
 import ring_theory.ideal.local_ring
-import data.equiv.basic
 
 /-!
 # Transfer algebraic structures across `equiv`s

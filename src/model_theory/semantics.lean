@@ -413,19 +413,16 @@ bounded_formula.realize_iff
   (φ.relabel g).realize v ↔ φ.realize (v ∘ g) :=
 begin
   rw [realize, realize, relabel, bounded_formula.realize_relabel,
-    iff_eq_eq],
-  refine congr (congr rfl _) (funext fin_zero_elim),
-  ext,
-  simp,
+    iff_eq_eq, fin.cast_add_zero],
+  exact congr rfl (funext fin_zero_elim),
 end
 
 lemma realize_relabel_sum_inr (φ : L.formula (fin n)) {v : empty → M} {x : fin n → M} :
   (bounded_formula.relabel sum.inr φ).realize v x ↔ φ.realize x :=
 begin
-  rw [bounded_formula.realize_relabel, formula.realize, sum.elim_comp_inr, iff_eq_eq],
-  refine congr (congr rfl (funext (λ i, _))) (unique.eq_default _),
-  rw [function.comp_app],
-  exact congr rfl (fin.ext (fin.coe_cast_add _ _)),
+  rw [bounded_formula.realize_relabel, formula.realize, sum.elim_comp_inr, iff_eq_eq,
+    fin.cast_add_zero],
+  exact congr rfl (unique.eq_default _)
 end
 
 @[simp]

@@ -15,8 +15,8 @@ This file defines ordered first-order languages and structures, as well as their
 representing `≤` to the actual relation `≤`.
 * `first_order.language.is_ordered` points out a specific symbol in a language as representing `≤`.
 * `first_order.language.is_ordered_structure` indicates that a structure over a
-* `first_order.language.Theory.partial_order` and `first_order.language.Theory.linear_order` are the
-theories of partial and linear orders.
+* `first_order.language.linear_order` and similar define the theories of preorders, partial orders,
+and linear orders.
 
 ## Main Results
 * `partial_order`s model the theory of partial orders, and `linear_order`s model the theory of
@@ -67,13 +67,17 @@ instance : is_ordered language.order := ⟨unit.star⟩
 
 instance : is_ordered (L.sum language.order) := ⟨sum.inr is_ordered.le_symb⟩
 
+/-- The theory of preorders. -/
+protected def Theory.preorder : language.order.Theory :=
+{is_ordered.le_symb.reflexive, is_ordered.le_symb.transitive}
+
 /-- The theory of partial orders. -/
 protected def Theory.partial_order : language.order.Theory :=
-{is_ordered.le_symb.antisymmetric, is_ordered.le_symb.transitive}
+{is_ordered.le_symb.reflexive, is_ordered.le_symb.antisymmetric, is_ordered.le_symb.transitive}
 
 /-- The theory of linear orders. -/
 protected def Theory.linear_order : language.order.Theory :=
-{is_ordered.le_symb.antisymmetric, is_ordered.le_symb.transitive, is_ordered.le_symb.reflexive}
+{is_ordered.le_symb.reflexive, is_ordered.le_symb.antisymmetric, is_ordered.le_symb.transitive}
 
 variables (L α)
 
@@ -89,10 +93,20 @@ instance is_ordered_structure_has_le [has_le α] :
       (λ n, nat.cases_on n (λ R x, rfl)
       (λ n R, pempty.elim R)))⟩
 
+instance model_preorder [preorder α] :
+  α ⊨ Theory.preorder :=
+⟨begin
+  rintro φ (rfl | hφ),
+  { exact le_refl },
+  { rw set.eq_of_mem_singleton hφ,
+    exact λ _ _ _, le_trans },
+end⟩
+
 instance model_partial_order [partial_order α] :
   α ⊨ Theory.partial_order :=
 ⟨begin
-  rintro φ (rfl | hφ),
+  rintro φ (rfl | rfl | hφ),
+  { exact le_refl },
   { exact λ _ _, le_antisymm },
   { rw set.eq_of_mem_singleton hφ,
     exact λ _ _ _, le_trans },
@@ -101,11 +115,12 @@ end⟩
 instance model_linear_order [linear_order α] :
   α ⊨ Theory.linear_order :=
 ⟨begin
-  rintro φ (rfl | rfl | hφ),
+  rintro φ (rfl | rfl | rfl | hφ),
+  { exact le_refl },
   { exact λ _ _, le_antisymm },
   { exact λ _ _ _, le_trans },
   { rw set.eq_of_mem_singleton hφ,
-    exact λ _, le_rfl }
+    exact le_refl }
 end⟩
 
 end language

@@ -206,7 +206,7 @@ lemma noncomm_prod_commute (s : multiset α)
 begin
   induction s using quotient.induction_on,
   simp only [quot_mk_to_coe, noncomm_prod_coe],
-  exact list.prod_commute _ _ h,
+  exact commute.list_prod_right _ _ h,
 end
 
 end multiset

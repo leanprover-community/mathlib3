@@ -236,13 +236,17 @@ end comm_group_with_zero
 section semiring
 variables [non_unital_non_assoc_semiring α] {a : α} {s : multiset ι} {f : ι → α}
 
-lemma sum_commute (a : α) (s : multiset α) (h : ∀ b ∈ s, commute a b) :
+lemma _root_.commute.multiset_sum_right (s : multiset α) (a : α) (h : ∀ b ∈ s, commute a b) :
   commute a s.sum :=
 begin
   induction s using quotient.induction_on,
   rw [quot_mk_to_coe, coe_sum],
-  exact list.sum_commute _ _ h,
+  exact commute.list_sum_right _ _ h,
 end
+
+lemma _root_.commute.multiset_sum_left (s : multiset α) (b : α) (h : ∀ a ∈ s, commute a b) :
+  commute s.sum b :=
+(commute.multiset_sum_right _ _ $ λ a ha, (h _ ha).symm).symm
 
 lemma sum_map_mul_left : sum (s.map (λ i, a * f i)) = a * sum (s.map f) :=
 multiset.induction_on s (by simp) (λ i s ih, by simp [ih, mul_add])

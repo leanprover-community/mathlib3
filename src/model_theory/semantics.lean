@@ -649,6 +649,15 @@ begin
   refl,
 end
 
+@[simp]
+lemma realize_total :
+  M ⊨ r.total ↔ total (λ (x y : M), rel_map r ![x,y]) :=
+begin
+  simp only [relations.total, sentence.realize, formula.realize, bounded_formula.realize_all,
+    bounded_formula.realize_imp, term.realize, bounded_formula.realize_rel₂, sum.elim_inr],
+  refl,
+end
+
 end relations
 
 end language

@@ -845,10 +845,8 @@ def fintype_of_option {α : Type*} [fintype (option α)] : fintype α :=
 ⟨finset.erase_none (fintype.elems (option α)), λ x, mem_erase_none.mpr (fintype.complete (some x))⟩
 
 def fintype_of_equiv [fintype α] (f : α ≃ β) : fintype β :=
-begin
-
-  sorry,
-end
+⟨map (equiv.to_embedding f) (fintype.elems α),
+  λ x, finset.mem_map_equiv.mpr (fintype.complete ((equiv.symm f) x))⟩
 
 /-- A type is a `fintype` if its successor (using `option`) is a `fintype`. -/
 def fintype_of_equiv_option [fintype α] (f : option α ≃ β) : fintype β :=

@@ -691,6 +691,10 @@ protected lemma left (hf : injective2 f) (b : β) : function.injective (λ a, f 
 protected lemma right (hf : injective2 f) (a : α) : function.injective (f a) :=
 λ a₁ a₂ h, (hf h).right
 
+protected lemma uncurry {α β γ : Type*} {f : α → β → γ} (hf : injective2 f) :
+  function.injective (uncurry f) :=
+λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h, and.elim (hf h) (congr_arg2 _)
+
 /-- As a map from the left argument to a unary function, `f` is injective. -/
 lemma left' (hf : injective2 f) [nonempty β] : function.injective f :=
 λ a₁ a₂ h, let ⟨b⟩ := ‹nonempty β› in hf.left b $ (congr_fun h b : _)

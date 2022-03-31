@@ -10,7 +10,7 @@ open category_theory.bicategory
 
 /-- normalize 1-morphisms -/
 meta def normalize : expr → expr → tactic expr
-| p `(%% f ≫ %%g) := do pf ← normalize p f, normalize pf g
+| p `(%%f ≫ %%g) := do pf ← normalize p f, normalize pf g
 | p `(𝟙 %%a)      := return p
 | p f              := to_expr ``(%%p ≫ %%f)
 

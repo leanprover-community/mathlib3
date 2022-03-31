@@ -615,7 +615,8 @@ instance prod_monoidal : monoidal_category (C₁ × C₂) :=
     { hom := ((α_ X.1 Y.1 Z.1).hom, (α_ X.2 Y.2 Z.2).hom),
       inv := ((α_ X.1 Y.1 Z.1).inv, (α_ X.2 Y.2 Z.2).inv) },
   associator_naturality' := λ X₁ X₂ X₃ Y₁ Y₂ Y₃ f₁ f₂ f₃,
-    congr_arg2 prod.mk (associator_naturality f₁.1 f₂.1 f₃.1) (associator_naturality f₁.2 f₂.2 f₃.2),
+    congr_arg2 prod.mk
+      (associator_naturality f₁.1 f₂.1 f₃.1) (associator_naturality f₁.2 f₂.2 f₃.2),
   left_unitor := λ X,
     { hom := ((λ_ X.1).hom, (λ_ X.2).hom),
       inv := ((λ_ X.1).inv, (λ_ X.2).inv) },
@@ -626,7 +627,8 @@ instance prod_monoidal : monoidal_category (C₁ × C₂) :=
       inv := ((ρ_ X.1).inv, (ρ_ X.2).inv) },
   right_unitor_naturality' :=
     λ X Y f, congr_arg2 prod.mk (right_unitor_naturality f.1) (right_unitor_naturality f.2),
-  pentagon' := λ W X Y Z, congr_arg2 prod.mk (pentagon W.1 X.1 Y.1 Z.1) (pentagon W.2 X.2 Y.2 Z.2) }
+  pentagon' :=
+    λ W X Y Z, congr_arg2 prod.mk (pentagon W.1 X.1 Y.1 Z.1) (pentagon W.2 X.2 Y.2 Z.2) }
 
 end
 

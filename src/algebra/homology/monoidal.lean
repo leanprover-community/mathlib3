@@ -110,34 +110,52 @@ lemma bar' (n k : ℕ) {α : Type*} [add_comm_monoid α] (X : Π p : antidiagona
     if h : k ≤ n then X ⟨⟨n-k, k⟩, sorry⟩ rfl else 0 :=
 sorry
 
+
 def associator_hom (X Y Z : cochain_complex C ℕ) :
   tensor_obj (tensor_obj X Y) Z ⟶ tensor_obj X (tensor_obj Y Z) :=
 { f := λ i, biproduct.matrix (λ p q,
   (right_distributor _ _).hom ≫ biproduct.matrix (associator_hom_aux X.X Y.X Z.X i p q) ≫
     (left_distributor _ _).inv),
   comm' := begin
-    intros, ext ⟨⟨p₁, p₂⟩, ph⟩ ⟨⟨q₁, q₂⟩, qh⟩,
-    dsimp [biproduct.matrix],
-    simp only [biproduct.ι_desc_assoc, biproduct.lift_desc, category.assoc, finset.sum_congr],
-    simp only [preadditive.comp_sum, preadditive.sum_comp,
-      biproduct.lift_π_assoc, biproduct.lift_π, biproduct.ι_desc_assoc,
-      category.assoc, finset.sum_congr],
-    simp only [associator_hom_aux, comp_dite, dite_comp],
-    simp only [and_congr,
- dif_ctx_congr,
- category_theory.category.assoc,
- category_theory.limits.comp_zero,
- category_theory.limits.zero_comp,
- finset.sum_congr,
- subtype.val_eq_coe],
- simp_rw [dite_and],
- simp_rw [bar'],
- have : ∀ (x : antidiagonal i), p₂ ≤ (x : ℕ × ℕ).snd := sorry,
- simp? [this],
- -- Need to work on those `dite`, simplifying the conditions using antidiagonal.
-    -- split_ifs,
-    -- simp?,
-    -- simp [preadditive.sum_comp],
+    intros, ext ⟨⟨p₁, p₂⟩, ph⟩ ⟨⟨q₁, q₂⟩, qh⟩ ⟨⟨j₁, j₂⟩, jh⟩ ⟨⟨k₁, k₂⟩, kh⟩,
+    dsimp [tensor_left],
+    simp only [category_theory.category.assoc],
+    erw [biproduct.ι_matrix_assoc, biproduct.ι_matrix_assoc],
+    erw [biproduct.matrix_π_assoc],
+    erw [biproduct.matrix_π_assoc],
+    simp only [biproduct.lift_desc_assoc, category.assoc, finset.sum_congr, preadditive.sum_comp, preadditive.comp_sum],
+    dsimp, simp only [iso.inv_hom_id_assoc, finset.sum_congr],
+    simp [left_distributor, right_distributor],
+    dsimp [tensor_left],
+    simp,
+    simp only [biproduct.matrix_π],
+--     dsimp [biproduct.matrix],
+--     simp only [biproduct.lift_desc, biproduct.ι_desc_assoc, category.assoc, finset.sum_congr],
+--     simp only [preadditive.sum_comp, biproduct.lift_π, category.assoc, finset.sum_congr],
+--     -- Sad: right_distributor_hom and left_distributor_inv don't fire here.
+--     simp only [right_distributor, left_distributor],
+--     -- simp_rw [right_distributor_hom], simp_rw [left_distributor_inv],
+--     simp only [biproduct.ι_desc_assoc, biproduct.lift_desc, category.assoc, finset.sum_congr],
+--     simp only [tensor_right_map, functor.map_biproduct_hom, functor.map_biproduct_inv,
+--       preadditive.comp_sum, preadditive.sum_comp,
+--       biproduct.lift_π_assoc, biproduct.lift_π, biproduct.ι_desc_assoc, biproduct.lift_desc_assoc,
+--       category.assoc, finset.sum_congr],
+--     simp only [associator_hom_aux, comp_dite, dite_comp],
+--     simp only [and_congr,
+--  dif_ctx_congr,
+--  category_theory.category.assoc,
+--  category_theory.limits.comp_zero,
+--  category_theory.limits.zero_comp,
+--  finset.sum_congr,
+--  subtype.val_eq_coe],
+--  simp_rw [dite_and],
+--  simp_rw [bar'],
+--  have : ∀ (x : antidiagonal i), p₂ ≤ (x : ℕ × ℕ).snd := sorry,
+--  simp? [this],
+--  -- Need to work on those `dite`, simplifying the conditions using antidiagonal.
+--     -- split_ifs,
+--     -- simp?,
+--     -- simp [preadditive.sum_comp],
   end, }
 #exit
 def associator_inv_aux (X Y Z : ℕ → C) (i : ℕ)

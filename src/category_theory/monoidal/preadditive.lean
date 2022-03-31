@@ -149,6 +149,29 @@ begin
   simp only [←tensor_id, associator_naturality, iso.inv_hom_id_assoc],
 end
 
+@[ext]
+lemma left_distributor_ext {J : Type*} [decidable_eq J] [fintype J] {f : J → C} {X Y : C}
+  {g h : X ⊗ (⨁ f) ⟶ Y}
+  (w : ∀ j, biproduct.ι _ j ≫ (left_distributor X f).inv ≫ g =
+    biproduct.ι _ j ≫ (left_distributor X f).inv ≫ h) : g = h :=
+begin
+  apply (cancel_epi (left_distributor X f).inv).1,
+  ext,
+  apply w,
+end
+
+@[ext]
+lemma left_distributor_ext' {J : Type*} [decidable_eq J] [fintype J] {f : J → C} {X Y : C}
+  {g h : X ⟶ Y ⊗ (⨁ f)}
+  (w : ∀ j, g ≫ (left_distributor Y f).hom ≫ biproduct.π _ j =
+    h ≫ (left_distributor Y f).hom ≫ biproduct.π _ j) : g = h :=
+begin
+  apply (cancel_mono (left_distributor Y f).hom).1,
+  ext,
+  simp only [category.assoc],
+  apply w,
+end
+
 /-- The isomorphism showing how tensor product on the right distributes over direct sums. -/
 def right_distributor {J : Type*} [decidable_eq J] [fintype J] (X : C) (f : J → C) :
   (⨁ f) ⊗ X ≅ ⨁ (λ j, f j ⊗ X)  :=
@@ -185,6 +208,30 @@ begin
     monoidal_preadditive.zero_tensor,
     if_true, dif_ctx_congr, finset.mem_univ, finset.sum_congr, finset.sum_dite_eq'],
   simp only [←tensor_id, associator_inv_naturality, iso.hom_inv_id_assoc]
+end
+
+@[ext]
+lemma right_distributor_ext {J : Type*} [decidable_eq J] [fintype J] {f : J → C} {X Y : C}
+  {g h : (⨁ f) ⊗ X ⟶ Y}
+  (w : ∀ j, biproduct.ι _ j ≫ (right_distributor X f).inv ≫ g =
+    biproduct.ι _ j ≫ (right_distributor X f).inv ≫ h) : g = h :=
+begin
+  apply (cancel_epi (right_distributor X f).inv).1,
+  ext,
+  apply w,
+end
+
+
+@[ext]
+lemma right_distributor_ext' {J : Type*} [decidable_eq J] [fintype J] {f : J → C} {X Y : C}
+  {g h : X ⟶ (⨁ f) ⊗ Y}
+  (w : ∀ j, g ≫ (right_distributor Y f).hom ≫ biproduct.π _ j =
+    h ≫ (right_distributor Y f).hom ≫ biproduct.π _ j) : g = h :=
+begin
+  apply (cancel_mono (right_distributor Y f).hom).1,
+  ext,
+  simp only [category.assoc],
+  apply w,
 end
 
 lemma left_distributor_right_distributor_assoc

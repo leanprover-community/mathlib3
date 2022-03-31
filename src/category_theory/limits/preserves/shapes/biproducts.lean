@@ -177,13 +177,14 @@ has_biproduct.mk
 
 /-- If `F` preserves a biproduct, we get a definitionally nice isomorphism
     `F.obj (⨁ f) ≅ ⨁ (F.obj ∘ f)`. -/
-@[simp]
 def map_biproduct : F.obj (⨁ f) ≅ ⨁ (F.obj ∘ f) :=
 biproduct.unique_up_to_iso _ (preserves_biproduct.preserves (biproduct.is_bilimit _))
 
+@[simp]
 lemma map_biproduct_hom : (map_biproduct F f).hom = biproduct.lift (λ j, F.map (biproduct.π f j)) :=
 rfl
 
+@[simp]
 lemma map_biproduct_inv : (map_biproduct F f).inv = biproduct.desc (λ j, F.map (biproduct.ι f j)) :=
 rfl
 
@@ -199,14 +200,15 @@ has_binary_biproduct.mk
 
 /-- If `F` preserves a binary biproduct, we get a definitionally nice isomorphism
     `F.obj (X ⊞ Y) ≅ F.obj X ⊞ F.obj Y`. -/
-@[simp]
 def map_biprod : F.obj (X ⊞ Y) ≅ F.obj X ⊞ F.obj Y :=
 biprod.unique_up_to_iso _ _
   (preserves_binary_biproduct.preserves (binary_biproduct.is_bilimit _ _))
 
+@[simp]
 lemma map_biprod_hom : (map_biprod F X Y).hom = biprod.lift (F.map biprod.fst) (F.map biprod.snd) :=
 rfl
 
+@[simp]
 lemma map_biprod_inv : (map_biprod F X Y).inv = biprod.desc (F.map biprod.inl) (F.map biprod.inr) :=
 rfl
 

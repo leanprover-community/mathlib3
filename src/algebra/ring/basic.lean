@@ -274,28 +274,6 @@ lemma ite_and_mul_zero {α : Type*} [mul_zero_class α]
   ite (P ∧ Q) (a * b) 0 = ite P a 0 * ite Q b 0 :=
 by simp only [←ite_and, ite_mul, mul_ite, mul_zero, zero_mul, and_comm]
 
-/-- An element `a` of a semiring is even if there exists `k` such `a = 2*k`. -/
-def even (a : α) : Prop := ∃ k, a = 2*k
-
-lemma even_iff_two_dvd {a : α} : even a ↔ 2 ∣ a := iff.rfl
-
-@[simp] lemma range_two_mul (α : Type*) [semiring α] :
-  set.range (λ x : α, 2 * x) = {a | even a} :=
-by { ext x, simp [even, eq_comm] }
-
-@[simp] lemma even_bit0 (a : α) : even (bit0 a) :=
-⟨a, by rw [bit0, two_mul]⟩
-
-/-- An element `a` of a semiring is odd if there exists `k` such `a = 2*k + 1`. -/
-def odd (a : α) : Prop := ∃ k, a = 2*k + 1
-
-@[simp] lemma odd_bit1 (a : α) : odd (bit1 a) :=
-⟨a, by rw [bit1, bit0, two_mul]⟩
-
-@[simp] lemma range_two_mul_add_one (α : Type*) [semiring α] :
-  set.range (λ x : α, 2 * x + 1) = {a | odd a} :=
-by { ext x, simp [odd, eq_comm] }
-
 theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
 dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
 
@@ -698,6 +676,15 @@ lemma neg_one_mul (a : α) : -1 * a = -a := by simp
 
 end mul_one_class
 
+section mul_zero_class
+variables [mul_zero_class α] [has_distrib_neg α]
+
+/-- Prefer `neg_zero` if `add_comm_group` is available. -/
+@[simp] lemma neg_zero' : (-0 : α) = 0 :=
+by rw [←zero_mul (0 : α), ←neg_mul, mul_zero, mul_zero]
+
+end mul_zero_class
+
 section group
 variables [group α] [has_distrib_neg α]
 
@@ -1063,20 +1050,6 @@ begin
     convert dvd_add h h',
     exact eq_add_of_sub_eq rfl }
 end
-
-@[simp] theorem even_neg (a : α) : even (-a) ↔ even a :=
-dvd_neg _ _
-
-lemma odd.neg {a : α} (hp : odd a) : odd (-a) :=
-begin
-  obtain ⟨k, hk⟩ := hp,
-  use -(k + 1),
-  rw [mul_neg, mul_add, neg_add, add_assoc, two_mul (1 : α), neg_add,
-    neg_add_cancel_right, ←neg_add, hk],
-end
-
-@[simp] lemma odd_neg (a : α) : odd (-a) ↔ odd a :=
-⟨λ h, neg_neg a ▸ h.neg, odd.neg⟩
 
 end ring
 

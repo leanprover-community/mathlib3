@@ -20,7 +20,7 @@ variables (R : Type u)
 
 /-- The generator of the kernel of the unique homomorphism ℕ → R for a semiring R.
 
-*Warning*: for a semiring `R`, `char_zero R` and `char_p R 0` need not coincide.
+*Warning*: for a semiring `R`, `char_p R 0` and `char_zero R` need not coincide.
 * `char_p R 0` asks that only `0 : ℕ` maps to `0 : R` under the map `ℕ → R`;
 * `char_zero R` requires an injection `ℕ ↪ R`.
 

@@ -70,12 +70,14 @@ open set filter
 
 namespace uniform_convergence
 
-variables (α β : Type*) {γ ι : Type*} [uniform_space β]
+variables (α β : Type*) {γ ι : Type*}
 variables {F : ι → α → β} {f : α → β} {s s' : set α} {x : α} {p : filter ι} {g : ι → α}
 
 /-- Basis sets for the uniformity of uniform convergence -/
 protected def gen (V : set (β × β)) : set ((α → β) × (α → β)) :=
   {uv : (α → β) × (α → β) | ∀ x, (uv.1 x, uv.2 x) ∈ V}
+
+variables [uniform_space β]
 
 protected lemma is_basis_gen :
   is_basis (λ V : set (β × β), V ∈ 𝓤 β) (uniform_convergence.gen α β) :=

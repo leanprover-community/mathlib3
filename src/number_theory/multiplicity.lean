@@ -33,83 +33,111 @@ section comm_ring
 variables [comm_ring R] {a b x y : R}
 
 
-lemma dvd_geom_sum₂ {x y : R} (h : ↑n ∣ x - y) : ↑n ∣ geom_sum₂ x y n :=
+lemma dvd_geom_sum₂_iff_of_dvd_sub {x y p : R} (h : p ∣ x - y) :
+  p ∣ geom_sum₂ x y n ↔ p ∣ n * y ^ (n - 1) :=
 begin
-  rw ← mem_span_singleton at ⊢ h,
-  rw ← ideal.quotient.eq at h,
-  rw [← eq_zero_iff_mem, ring_hom.map_geom_sum₂, h, geom_sum₂_self],
-  apply mul_eq_zero_of_left,
-  rw [← map_nat_cast (mk $ span ({n} : set R)) n, eq_zero_iff_mem, mem_span_singleton]
+  rw [← mem_span_singleton, ← ideal.quotient.eq] at h,
+  simp only [← mem_span_singleton, ← eq_zero_iff_mem, ring_hom.map_geom_sum₂, h, geom_sum₂_self,
+    _root_.map_mul, map_pow, map_nat_cast]
 end
 
-lemma sq_dvd_add_mul_pow_sub (p x y : R) (n : ℕ) :
-  p ^ 2 ∣ (x + p * y) ^ n - (x ^ (n - 1) * (p * y) * n + x ^ n) :=
+-- Move this to `algebra/geom_sum.lean`
+lemma geom_sum₂_comm {R : Type*} [comm_semiring R] (x y : R) (n : ℕ) :
+  geom_sum₂ x y n = geom_sum₂ y x n :=
+begin
+  cases n, { simp },
+  simp only [geom_sum₂_def, nat.succ_eq_add_one, nat.add_sub_cancel],
+  rw ← finset.sum_flip,
+  refine finset.sum_congr rfl (λ i hi, _),
+  rw [mul_comm, nat.sub_sub_self (nat.succ_le_succ_iff.mp (finset.mem_range.mp hi))],
+end
+
+lemma dvd_geom_sum₂_iff_of_dvd_sub' {x y p : R} (h : p ∣ x - y) :
+  p ∣ geom_sum₂ x y n ↔ p ∣ n * x ^ (n - 1) :=
+by rw [geom_sum₂_comm, dvd_geom_sum₂_iff_of_dvd_sub]; simpa using (dvd_neg _ _).mpr h
+lemma dvd_geom_sum₂ {x y : R} (h : ↑n ∣ x - y) : ↑n ∣ geom_sum₂ x y n :=
+(dvd_geom_sum₂_iff_of_dvd_sub h).mpr (dvd_mul_right _ _)
+
+lemma sq_dvd_add_mul_pow_sub (p x : R) (n : ℕ) :
+  p ^ 2 ∣ (x + p) ^ n - (x ^ (n - 1) * p * n + x ^ n) :=
 begin
   cases n,
   { simp only [pow_zero, nat.cast_zero, mul_zero, sub_self, dvd_zero, zero_add] },
   { simp only [nat.succ_sub_succ_eq_sub, tsub_zero, nat.cast_succ, add_pow,
-    finset.sum_range_succ, nat.choose_self, nat.succ_sub _, tsub_self, pow_one,
-    nat.choose_succ_self_right, pow_zero, mul_one, nat.cast_zero, zero_add, nat.succ_eq_add_one],
+      finset.sum_range_succ, nat.choose_self, nat.succ_sub _, tsub_self, pow_one,
+      nat.choose_succ_self_right, pow_zero, mul_one, nat.cast_zero, zero_add, nat.succ_eq_add_one],
     abel,
     apply finset.dvd_sum,
-    intros x hx,
-    apply dvd_mul_of_dvd_left,
-    apply dvd_mul_of_dvd_right,
-    rw mul_pow,
-    apply dvd_mul_of_dvd_left,
-    apply pow_dvd_pow,
-    apply le_tsub_of_add_le_left,
-    linarith [finset.mem_range.mp hx]  },
+    intros y hy,
+    calc p ^ 2 ∣ p ^ (n + 1 - y) : pow_dvd_pow p (le_tsub_of_add_le_left
+      (by linarith [finset.mem_range.mp hy]))
+    ... ∣ x ^ y * p ^ (n + 1 - y) * ↑((n + 1).choose y) : dvd_mul_of_dvd_left (dvd_mul_left _ _)
+      ((n + 1).choose y) },
 end
 
 lemma not_dvd_geom_sum₂ {p : R} (hp : prime p)
   (hxy : p ∣ x - y) (hx : ¬p ∣ x) (hn : ¬p ∣ n) :
   ¬p ∣ geom_sum₂ x y n :=
-begin
-  rw ← mem_span_singleton at *,
-  rw ← ideal.quotient.eq at hxy,
-  rw ← eq_zero_iff_mem at *,
-  haveI := (span_singleton_prime hp.1).mpr hp,
-  rw [ring_hom.map_geom_sum₂, ←hxy, geom_sum₂_self, mul_eq_zero],
-  exact not_or (by rwa map_nat_cast at hn) (λ h, hx $ pow_eq_zero h)
-end
+λ h, hx $ hp.dvd_of_dvd_pow $
+(hp.dvd_or_dvd $ (dvd_geom_sum₂_iff_of_dvd_sub' hxy).mp h).resolve_left hn
 
-variables {p : ℕ}
+variables {p : ℕ} (a b)
 
 lemma odd_sq_dvd_geom_sum₂_sub (hp : odd p) :
   ↑p ^ 2 ∣ geom_sum₂ (a + p * b) a p - p * a ^ (p - 1) :=
 begin
-  have h1 := λ i, sq_dvd_add_mul_pow_sub ↑p a b i,
+  have h1 : ∀ i, ↑p ^ 2 ∣ (a + ↑p * b) ^ i - (a ^ (i - 1) * (↑p * b) * ↑i + a ^ i),
+  { intro i,
+    calc ↑p ^ 2 ∣ (↑p * b) ^ 2 : by simp only [mul_pow, dvd_mul_right]
+    ... ∣ (a + ↑p * b) ^ i - (a ^ (i - 1) * (↑p * b) * ↑i + a ^ i) :
+      sq_dvd_add_mul_pow_sub (↑p * b) a i },
   simp_rw [← mem_span_singleton, ← ideal.quotient.eq] at *,
-  simp_rw [ring_hom.map_geom_sum₂, geom_sum₂, ← map_pow, h1, ← ring_hom.map_mul],
-  ring_exp,
-  simp only [← pow_add, ring_hom.map_add, finset.sum_add_distrib, ← ring_hom.map_sum],
-  have h2 : (∑ (x : ℕ) in finset.range p, a ^ (x + (p - 1 - x))) =
-    ∑ (x : ℕ) in finset.range p, a ^ (p - 1),
-  { apply finset.sum_congr rfl,
-    intros x hx,
-    congr,
-    rw finset.mem_range at hx,
-    have hxp : x ≤ p - 1, { exact nat.le_pred_of_lt hx },
-    zify [hxp],
-    simp only [add_sub_cancel'_right] },
-  simp only [finset.sum_const, finset.card_range, nsmul_eq_mul] at h2,
-  simp only [h2, add_left_eq_self, ← mul_assoc, ← pow_add, mul_comm b _, mul_comm ↑p _,
-    ← finset.sum_mul],
-  have h3 : ∑ (x : ℕ) in finset.range p, a ^ (x - 1 + (p - 1 - x)) * ↑x =
-    ∑ (x : ℕ) in finset.range p, a ^ (p - 2) * x,
-  { apply finset.sum_congr rfl _,
-    intros i hi,
-    cases i,
-    { rw [nat.cast_zero, mul_zero, mul_zero] },
+  calc (mk (span {↑p ^ 2})) (geom_sum₂ (a + ↑p * b) a p) =
+    ∑ (i : ℕ) in finset.range p, mk (span {↑p ^ 2})
+    ((a ^ (i - 1) * (↑p * b) * ↑i + a ^ i) * a ^ (p - 1 - i)) :
+    by simp_rw [ring_hom.map_geom_sum₂, geom_sum₂, ← ring_hom.map_pow, h1, ← ring_hom.map_mul]
+  ... = (mk (span {↑p ^ 2})) (∑ (x : ℕ) in finset.range p,
+    a ^ (x - 1) * (a ^ (p - 1 - x) * (↑p * (b * ↑x)))) +
+    (mk (span {↑p ^ 2})) (∑ (x : ℕ) in finset.range p, a ^ (x + (p - 1 - x))) : by
+    { ring_exp,
+      simp only [← pow_add, ring_hom.map_add, finset.sum_add_distrib, ← ring_hom.map_sum] }
+  ... = (mk (span {↑p ^ 2})) (∑ (x : ℕ) in finset.range p,
+    a ^ (x - 1) * (a ^ (p - 1 - x) * (↑p * (b * ↑x)))) +
+    (mk (span {↑ p ^ 2})) ∑ (x : ℕ) in finset.range p, a ^ (p - 1) : by
+    { rw add_right_inj,
+      congr' 1,
+      apply finset.sum_congr rfl,
+      intros x hx,
+      congr,
+      rw finset.mem_range at hx,
+      have hxp : x ≤ p - 1, { exact nat.le_pred_of_lt hx },
+      zify [hxp],
+      simp only [add_sub_cancel'_right] }
+  ... = (mk (span {↑p ^ 2})) (∑ (x : ℕ) in finset.range p,
+    a ^ (x - 1) * (a ^ (p - 1 - x) * (↑p * (b * ↑x)))) +
+    (mk (span {↑ p ^ 2})) (↑p * a ^ (p - 1)) : by
+    { simp only [add_right_inj, finset.sum_const, finset.card_range, nsmul_eq_mul] }
+  ... = (mk (span {↑p ^ 2})) (↑p * b * ∑ (x : ℕ) in finset.range p, a ^ (p - 2) * x) +
+    (mk (span {↑p ^ 2})) (↑p * a ^ (p - 1)) : by
     { congr' 2,
-      rw ←nat.add_sub_assoc (nat.le_pred_of_lt (finset.mem_range.mp hi)),
-      exact congr_arg nat.pred (nat.add_sub_cancel_left _ _) }},
-  rw [h3, ← finset.mul_sum, ← nat.cast_sum, finset.sum_range_id,
-    nat.mul_div_assoc _ (even_iff_two_dvd.mp (nat.odd.sub_odd hp odd_one)), nat.cast_mul],
-  ring_exp,
-  simp only [ring_hom.map_mul, mul_eq_zero_of_right, mul_eq_zero_of_left,
-    ideal.quotient.eq_zero_iff_mem, mem_span_singleton],
+      simp only [finset.mul_sum, ← mul_assoc, ← pow_add],
+      apply finset.sum_congr rfl,
+      intros x hx,
+      cases x,
+      { rw [nat.cast_zero, mul_zero, mul_zero] },
+      { have : x.succ - 1 + (p - 1 - x.succ) = p - 2,
+        { rw ← nat.add_sub_assoc (nat.le_pred_of_lt (finset.mem_range.mp hx)),
+          exact congr_arg nat.pred (nat.add_sub_cancel_left _ _)},
+        rw this; ring_exp_eq }}
+  ... = (mk (span {↑p ^ 2})) (↑p * a ^ (p - 1)) : by
+    { simp only [add_left_eq_self, ← finset.mul_sum],
+      norm_cast,
+      simp only [finset.sum_range_id,
+      nat.mul_div_assoc _ (even_iff_two_dvd.mp (nat.odd.sub_odd hp odd_one)), nat.cast_mul,
+        _root_.map_mul],
+      ring_exp,
+      simp only [← map_pow, mul_eq_zero_of_left, ideal.quotient.eq_zero_iff_mem,
+        mem_span_singleton] }
 end
 
 
@@ -118,7 +146,7 @@ namespace multiplicity
 section integral_domain
 variables [is_domain R] [@decidable_rel R (∣)]
 
-lemma pow_sub_pow' {p : R} (hp : prime p) {x y : R} (hxy : p ∣ x - y) (hx : ¬p ∣ x)
+lemma pow_sub_pow_of_prime {p : R} (hp : prime p) {x y : R} (hxy : p ∣ x - y) (hx : ¬p ∣ x)
   {n : ℕ} (hn : ¬p ∣ n) :
   multiplicity p (x ^ n - y ^ n) = multiplicity p (x - y) :=
 by rw [←geom_sum₂_mul, multiplicity.mul hp,
@@ -129,24 +157,16 @@ include hp hp1 hxy hx
 
 lemma geom_sum₂_eq_one : multiplicity ↑p (geom_sum₂ x y p) = 1 :=
 begin
-  rw ← nat.cast_one,
+    rw ← nat.cast_one,
   refine multiplicity.eq_coe_iff.2 ⟨_, _⟩,
   { rw pow_one,
     exact dvd_geom_sum₂ hxy },
-  { have hy : ¬↑p ∣ y,
-    { intro y,
-      apply hx,
-      exact (dvd_iff_dvd_of_dvd_sub hxy).mpr y },
-    cases hxy with k hk,
-    replace hk : x = y + p * k, { exact eq_add_of_sub_eq' hk },
-    have h1 := @odd_sq_dvd_geom_sum₂_sub _ _ y k _ hp1,
-    intro hp1,
-    rw [one_add_one_eq_two, hk] at hp1,
-    replace h1 : ↑p ^ 2 ∣ ↑p * y ^ (p - 1), { exact (dvd_iff_dvd_of_dvd_sub h1).mp hp1 },
-    rw [pow_two, mul_dvd_mul_iff_left] at h1,
-    { replace h1 := prime.dvd_of_dvd_pow hp h1,
-      exact hy h1 },
-    { exact prime.ne_zero hp } }
+  rw dvd_iff_dvd_of_dvd_sub hxy at hx,
+  cases hxy with k hk,
+  rw [one_add_one_eq_two, eq_add_of_sub_eq' hk],
+  refine mt (dvd_iff_dvd_of_dvd_sub (@odd_sq_dvd_geom_sum₂_sub _ _ y k _ hp1)).mp _,
+  rw [pow_two, mul_dvd_mul_iff_left hp.ne_zero],
+  exact mt hp.dvd_of_dvd_pow hx
 end
 
 lemma pow_prime_sub_pow_prime : multiplicity ↑p (x ^ p - y ^ p) = multiplicity ↑p (x - y) + 1 :=
@@ -181,7 +201,7 @@ begin
   conv_lhs { rw [hk, pow_mul, pow_mul] },
   rw nat.prime_iff_prime_int at hp,
   rw ←int.nat_cast_eq_coe_nat at *,
-  rw [pow_sub_pow' hp, pow_prime_pow_sub_pow_prime_pow hp hp1 hxy hx, enat.coe_get],
+  rw [pow_sub_pow_of_prime hp, pow_prime_pow_sub_pow_prime_pow hp hp1 hxy hx, enat.coe_get],
   { rw ←geom_sum₂_mul,
     exact dvd_mul_of_dvd_right hxy _ },
   { exact λ h, hx (hp.dvd_of_dvd_pow h) },
@@ -198,31 +218,30 @@ lemma int.pow_add_pow {x y : ℤ} (hxy : ↑p ∣ x + y) (hx : ¬↑p ∣ x) {n 
 begin
   rw ←sub_neg_eq_add at hxy,
   rw [←sub_neg_eq_add, ←sub_neg_eq_add, ←nat.odd.neg_pow hn],
-  exact int.pow_sub_pow hp hp1 hxy hx n,
+  exact int.pow_sub_pow hp hp1 hxy hx n
 end
 
 lemma nat.pow_sub_pow {x y : ℕ} (hxy : p ∣ x - y) (hx : ¬p ∣ x) (n : ℕ) :
   multiplicity p (x ^ n - y ^ n) = multiplicity p (x - y) + multiplicity p n :=
 begin
   obtain hyx | hyx := le_total y x,
-  { iterate 2 { rw ←int.coe_nat_multiplicity },
-    rw [int.coe_nat_sub (nat.pow_le_pow_of_le_left hyx n),
-    int.coe_nat_pow, int.coe_nat_pow],
-    rw ←int.coe_nat_dvd at hxy hx,
-    rw int.coe_nat_sub hyx at hxy ⊢,
+ { iterate 2 { rw ← int.coe_nat_multiplicity },
+    rw int.coe_nat_sub (nat.pow_le_pow_of_le_left hyx n),
+    rw ← int.coe_nat_dvd at hxy hx,
+    push_cast at *,
     exact int.pow_sub_pow hp hp1 hxy hx n },
   { simp only [nat.sub_eq_zero_iff_le.mpr hyx,
       nat.sub_eq_zero_iff_le.mpr (nat.pow_le_pow_of_le_left hyx n), multiplicity.zero,
-        enat.top_add] },
+        enat.top_add] }
 end
 
 lemma nat.pow_add_pow {x y : ℕ} (hxy : p ∣ x + y) (hx : ¬p ∣ x) {n : ℕ} (hn : odd n) :
   multiplicity p (x ^ n + y ^ n) = multiplicity p (x + y) + multiplicity p n :=
 begin
-  iterate 2 { rw [←int.coe_nat_multiplicity, int.coe_nat_add, int.coe_nat_pow] },
+  iterate 2 { rw [←int.coe_nat_multiplicity] },
   rw ←int.coe_nat_dvd at hxy hx,
-  rw int.coe_nat_add at hxy,
-  exact int.pow_add_pow hp hp1 hxy hx hn,
+  push_cast at *,
+  exact int.pow_add_pow hp hp1 hxy hx hn
 end
 
 end lifting_the_exponent
@@ -344,7 +363,7 @@ begin
     { exact dvd_rfl },
     { exact (not_not.mp hpn) }},
   simp only [pow_mul],
-  rw pow_sub_pow'(int.prime_two) hxy2 hxpow _,
+  rw pow_sub_pow_of_prime (int.prime_two) hxy2 hxpow _,
   { simp only [int.two_pow_two_sub_pow ((multiplicity 2 n.succ).get h) hxy hx],
     rw [← hk],
     simp only [enat.coe_get, int.coe_nat_succ, ← int.coe_nat_multiplicity],

@@ -69,15 +69,15 @@ instance : is_ordered (L.sum language.order) := ⟨sum.inr is_ordered.le_symb⟩
 
 /-- The theory of preorders. -/
 protected def Theory.preorder : language.order.Theory :=
-{is_ordered.le_symb.reflexive, is_ordered.le_symb.transitive}
+{le_symb.reflexive, le_symb.transitive}
 
 /-- The theory of partial orders. -/
 protected def Theory.partial_order : language.order.Theory :=
-{is_ordered.le_symb.reflexive, is_ordered.le_symb.antisymmetric, is_ordered.le_symb.transitive}
+{le_symb.reflexive, le_symb.antisymmetric, le_symb.transitive}
 
 /-- The theory of linear orders. -/
 protected def Theory.linear_order : language.order.Theory :=
-{is_ordered.le_symb.reflexive, is_ordered.le_symb.antisymmetric, is_ordered.le_symb.transitive}
+{le_symb.reflexive, le_symb.antisymmetric, le_symb.transitive, le_symb.total}
 
 variables (L α)
 
@@ -119,8 +119,8 @@ instance model_linear_order [linear_order α] :
   { exact le_refl },
   { exact λ _ _, le_antisymm },
   { exact λ _ _ _, le_trans },
-  { rw set.eq_of_mem_singleton hφ,
-    exact le_refl }
+  { rw [set.eq_of_mem_singleton hφ, relations.realize_total],
+    exact le_total }
 end⟩
 
 end language

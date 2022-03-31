@@ -230,7 +230,7 @@ quotient.lift_on' y (num_denom_same_deg.embedding 𝒜 x) $ λ _ _, id
 
 @[simp] lemma val_mk' (i : num_denom_same_deg 𝒜 x) :
   val (quotient.mk' i) = localization.mk i.num ⟨i.denom, i.denom_not_mem⟩ :=
-by simp only [val, embedding, quotient.lift_on'_mk']
+rfl
 
 variable (x)
 lemma val_injective :

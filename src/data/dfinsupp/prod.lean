@@ -5,7 +5,7 @@ universes u v w
 
 namespace dfinsupp.prod
 
-variables {ι₁ : Type u} {ι₂ : Type v} [decidable_eq ι₁] [decidable_eq ι₂]
+variables {ι₁ : Type u} {ι₂ : Type v}
 variables {β : ι₁ → ι₂ → Type w} [Π i j, has_zero (β i j)]
 
 -- this definition is complete, and looks fairly readable - although there may be a shorter way
@@ -62,7 +62,9 @@ def uncurry (f : Π₀ i j, β i j) : Π₀ (ij : ι₁ × ι₂), β ij.1 ij.2 
 end
 
 -- second attempt, by rewriting the inner function into a product function first.
-def uncurry2 (f : Π₀ i j, β i j) : Π₀ (ij : ι₁ × ι₂), β ij.1 ij.2 := begin
+def uncurry2  [decidable_eq ι₁] [decidable_eq ι₂] (f : Π₀ i j, β i j) :
+  Π₀ (ij : ι₁ × ι₂), β ij.1 ij.2 :=
+begin
   fapply quotient.lift_on f,
   exact λ fi, by {
     -- build a set of functions, each non-zero for a single i

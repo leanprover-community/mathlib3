@@ -545,7 +545,7 @@ end
   λ h, by simp [h]⟩
 
 @[to_additive] lemma one_lt_card_iff_ne_bot [fintype H] : 1 < fintype.card H ↔ H ≠ ⊥ :=
-lt_iff_not_ge'.trans (not_iff_not.mpr H.card_le_one_iff_eq_bot)
+lt_iff_not_le.trans (not_iff_not.mpr H.card_le_one_iff_eq_bot)
 
 /-- The inf of two subgroups is their intersection. -/
 @[to_additive "The inf of two `add_subgroups`s is their intersection."]

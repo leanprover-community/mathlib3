@@ -636,6 +636,10 @@ sup_inf_right
 
 theorem insert_def (x : α) (s : set α) : insert x s = { y | y = x ∨ y ∈ s } := rfl
 
+@[simp] lemma set_of_eq_or (a : α) (p : α → Prop) : {x | x = a ∨ p x} = insert a {x | p x} := rfl
+@[simp] lemma set_of_or_eq (a : α) (p : α → Prop) : {x | p x ∨ x = a} = insert a {x | p x} :=
+or_comm
+
 @[simp] theorem subset_insert (x : α) (s : set α) : s ⊆ insert x s := λ y, or.inr
 
 theorem mem_insert (x : α) (s : set α) : x ∈ insert x s := or.inl rfl

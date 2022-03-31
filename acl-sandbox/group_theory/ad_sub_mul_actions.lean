@@ -1,3 +1,4 @@
+import data.finset.pointwise
 import group_theory.group_action.sub_mul_action
 import tactic
 
@@ -107,10 +108,14 @@ begin
   rw list.map_nil,
 end
 
+-- Useless : in data.finset.pointwise
+/-
 /-- If G acts on X, then G acts on finite subsets of X -/
 instance [decidable_eq X] : has_scalar G (finset X) :=
 { smul := λ g s, finset.image (λ x, g • x) s }
+-/
 
+/- Inutile grâce à finset.mem_smul_finset
 lemma mem_smul_finset_iff [decidable_eq X] (a : X) (s : finset X) (g : G) :
   a ∈ g • s ↔ a ∈ g • (s : set X) :=
 begin
@@ -124,7 +129,7 @@ begin
     rw [← finset.mem_coe,  finset.coe_image],
     exact h }
 end
-
+-/
 end scalar
 
 section mul_action

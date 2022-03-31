@@ -187,14 +187,10 @@ def sign_hom : α →*₀ sign_type :=
 { to_fun := sign,
   map_zero' := sign_zero,
   map_one' := sign_pos zero_lt_one,
-  map_mul' := λ x y, begin
-    rcases lt_trichotomy x 0 with hx | rfl | hx; rcases lt_trichotomy y 0 with hy | rfl | hy,
-    any_goals { simp only [sign_zero, mul_zero, zero_mul] },
-    all_goals { simp only [sign_pos, sign_neg, hx, hy, mul_one, neg_one_mul, neg_neg, one_mul] },
-    { exact sign_pos (mul_pos_of_neg_of_neg hx hy) },
-    { exact sign_neg (mul_neg_of_neg_of_pos hx hy) },
-    { exact sign_neg (mul_neg_of_pos_of_neg hx hy) },
-    { exact sign_pos (mul_pos hx hy) }
-  end }
+  map_mul' := λ x y, by
+    rcases lt_trichotomy x 0 with hx | hx | hx; rcases lt_trichotomy y 0 with hy | hy | hy;
+    simp only [sign_zero, mul_zero, zero_mul, sign_pos, sign_neg, hx, hy, mul_one, neg_one_mul,
+               neg_neg, one_mul, mul_pos_of_neg_of_neg, mul_neg_of_neg_of_pos, neg_zero',
+               mul_neg_of_pos_of_neg, mul_pos] }
 
 end linear_ordered_ring

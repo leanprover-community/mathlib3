@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Yury Kudryashov, Sébastien Gouëzel, Chris Hughes
 -/
 import data.fin.basic
+import order.pilex
 /-!
 # Operation on tuples
 
@@ -161,6 +162,19 @@ forall_fin_succ.trans $ and_congr iff.rfl $ forall_congr $ λ j, by simp [tail]
 lemma cons_le [Π i, preorder (α i)] {x : α 0} {q : Π i, α i} {p : Π i : fin n, α i.succ} :
   cons x p ≤ q ↔ x ≤ q 0 ∧ p ≤ tail q :=
 @le_cons  _ (λ i, order_dual (α i)) _ x q p
+
+lemma cons_le_cons [Π i, preorder (α i)] {x₀ y₀ : α 0} {x y : Π i : fin n, α (i.succ)} :
+  cons x₀ x ≤ cons y₀ y ↔ x₀ ≤ y₀ ∧ x ≤ y :=
+forall_fin_succ.trans $ and_congr_right' $ by simp only [cons_succ, pi.le_def]
+
+lemma pi_lex_lt_cons_cons {x₀ y₀ : α 0} {x y : Π i : fin n, α (i.succ)}
+  (s : Π {i : fin n.succ}, α i → α i → Prop) :
+  pi.lex (<) @s (fin.cons x₀ x) (fin.cons y₀ y) ↔
+    s x₀ y₀ ∨ x₀ = y₀ ∧ pi.lex (<) (λ i : fin n, @s i.succ) x y :=
+begin
+  simp_rw [pi.lex, fin.exists_fin_succ, fin.cons_succ, fin.cons_zero, fin.forall_fin_succ],
+  simp [and_assoc, exists_and_distrib_left],
+end
 
 @[simp]
 lemma range_cons {α : Type*} {n : ℕ} (x : α) (b : fin n → α) :

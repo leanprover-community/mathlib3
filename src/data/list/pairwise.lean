@@ -234,6 +234,11 @@ begin
   simp only [and_assoc, and_comm, and.left_comm],
 end
 
+lemma pairwise_bind {R : β → β → Prop} {l : list α} {f : α → list β} :
+  list.pairwise R (l.bind f) ↔
+    (∀ a ∈ l, pairwise R (f a)) ∧ pairwise (λ a₁ a₂, ∀ (x ∈ f a₁) (y ∈ f a₂), R x y) l :=
+by simp [list.bind, list.pairwise_join, list.mem_map, list.pairwise_map]
+
 @[simp] theorem pairwise_reverse : ∀ {R} {l : list α},
   pairwise R (reverse l) ↔ pairwise (λ x y, R y x) l :=
 suffices ∀ {R l}, @pairwise α R l → pairwise (λ x y, R y x) (reverse l),

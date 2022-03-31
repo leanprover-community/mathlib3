@@ -529,6 +529,12 @@ by rw [closure_compl, frontier, diff_eq]
 
 lemma frontier_subset_closure {s : set α} : frontier s ⊆ closure s := diff_subset _ _
 
+lemma frontier_closure_subset {s : set α} : frontier (closure s) ⊆ frontier s :=
+diff_subset_diff closure_closure.subset $ interior_mono subset_closure
+
+lemma frontier_interior_subset {s : set α} : frontier (interior s) ⊆ frontier s :=
+diff_subset_diff (closure_mono interior_subset) interior_interior.symm.subset
+
 /-- The complement of a set has the same frontier as the original set. -/
 @[simp] lemma frontier_compl (s : set α) : frontier sᶜ = frontier s :=
 by simp only [frontier_eq_closure_inter_closure, compl_compl, inter_comm]

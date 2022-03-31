@@ -3,7 +3,9 @@ Copyright (c) 2019 Zhouhang Zhou. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Heather Macbeth
 -/
-import measure_theory.integral.lebesgue
+import measure_theory.integral.mean_inequalities
+import topology.continuous_function.compact
+import topology.metric_space.metrizable
 
 /-!
 # Density of simple functions

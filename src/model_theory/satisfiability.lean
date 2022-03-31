@@ -55,7 +55,7 @@ lemma model.is_satisfiable (M : Type (max u v)) [n : nonempty M]
 
 lemma is_satisfiable.mono (h : T'.is_satisfiable) (hs : T ⊆ T') :
   T.is_satisfiable :=
-⟨@Model.of L T h.some _ (Theory.model.mono (Model.is_model h.some) hs) _⟩
+⟨(Theory.model.mono (Model.is_model h.some) hs).bundled⟩
 
 lemma is_satisfiable.is_finitely_satisfiable (h : T.is_satisfiable) :
   T.is_finitely_satisfiable :=

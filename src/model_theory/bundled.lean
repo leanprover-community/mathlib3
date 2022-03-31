@@ -52,7 +52,7 @@ attribute [instance] Model.struc Model.is_model Model.nonempty'
 
 namespace Model
 
-instance : has_coe_to_sort (T.Model) (Type w) := ⟨Model.carrier⟩
+instance : has_coe_to_sort T.Model (Type w) := ⟨Model.carrier⟩
 
 /-- The object in the category of R-algebras associated to a type equipped with the appropriate
 typeclasses. -/
@@ -74,6 +74,18 @@ instance : inhabited (Model (∅ : L.Theory)) :=
 end inhabited
 
 end Model
+
+variables {T}
+
+/-- Bundles `M ⊨ T` as a `T.Model`. -/
+def model.bundled {M : Type w} [LM : L.Structure M] [ne : nonempty M] (h : M ⊨ T) :
+  T.Model :=
+@Model.of L T M LM h ne
+
+@[simp]
+lemma coe_of {M : Type w} [L.Structure M] [nonempty M] (h : M ⊨ T) :
+  (h.bundled : Type w) = M := rfl
+
 end Theory
 end language
 end first_order

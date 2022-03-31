@@ -705,6 +705,10 @@ protected def antisymmetric : L.sentence :=
 protected def transitive : L.sentence :=
   ∀' ∀' ∀' (r.bounded_formula₂ &0 &1 ⟹ (r.bounded_formula₂ &1 &2 ⟹ r.bounded_formula₂ &0 &2))
 
+/-- The sentence indicating that a basic relation symbol is total. -/
+protected def total : L.sentence :=
+  ∀' ∀' (r.bounded_formula₂ &0 &1 ⊔ r.bounded_formula₂ &1 &0)
+
 end relations
 
 end language

@@ -6,25 +6,15 @@ Authors: Antoine Chambert-Loir
 
 import tactic.lift
 
-import group_theory.subgroup.pointwise
-import group_theory.coset
-import group_theory.quotient_group
-import group_theory.abelianization
-import group_theory.group_action.defs
 import group_theory.group_action.basic
-import group_theory.group_action.group
-import group_theory.group_action.conj_act
 import group_theory.group_action.sub_mul_action
-
 import .ad_sub_mul_actions
-import order.partition.finpartition
-import data.finset.lattice
-
 import data.setoid.partition
-import data.set.basic
-import data.fintype.basic
 import order.rel_classes
 import algebra.big_operators.order
+import group_theory.subgroup.pointwise
+
+import .mathlib
 
 open_locale big_operators pointwise
 
@@ -316,8 +306,6 @@ begin
       rw [← inv_inv g, ← set_smul_subset_iff], exact this },
     exact hB g⁻¹ (g⁻¹ • b) (mem_smul_set_iff_inv_smul_mem.mp hb') (smul_mem_smul_set_iff.mpr hb) }
 end
-
-#check subsingleton
 
 lemma subsingleton_is_block (B : set X) (hB : B.subsingleton) : is_block G X B :=
 begin
@@ -1378,3 +1366,5 @@ begin
 end
 
 end nodup
+
+end FundamentalConcepts

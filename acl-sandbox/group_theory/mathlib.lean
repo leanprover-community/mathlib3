@@ -1,4 +1,3 @@
-import algebra.pointwise
 import group_theory.group_action.basic
 
 open function

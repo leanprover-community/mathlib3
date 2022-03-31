@@ -3,10 +3,12 @@ Copyright (c) 2021 Aaron Anderson, Jesse Michael Han, Floris van Doorn. All righ
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
-import category_theory.concrete_category.bundled
+import data.fin.vec_notation
 import data.fin.tuple.basic
 import logic.encodable.basic
 import set_theory.cardinal
+import category_theory.concrete_category.bundled
+
 
 /-!
 # Basics on First-Order Structures
@@ -55,7 +57,21 @@ namespace first_order
 structure language :=
 (functions : ℕ → Type u) (relations : ℕ → Type v)
 
+/-- Used to define `first_order.language₂`. -/
+def sequence₂ (a₀ a₁ a₂ : Type u) : ℕ → Type u
+| 0 := a₀
+| 1 := a₁
+| 2 := a₂
+| _ := pempty
+
+instance {a₀ a₁ a₂ : Type u} [h : inhabited a₀] : inhabited (sequence₂ a₀ a₁ a₂ 0) := h
+
 namespace language
+
+/-- A constructor for languages with only constants, unary and binary functions, and
+unary and binary relations. -/
+protected def mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) : language :=
+⟨sequence₂ c f₁ f₂, sequence₂ pempty r₁ r₂⟩
 
 /-- The empty language has no symbols. -/
 protected def empty : language := ⟨λ _, pempty, λ _, pempty⟩
@@ -210,6 +226,55 @@ lemma fun_map_eq_coe_constants {c : L.constants} {x : fin 0 → M} :
   be a global instance, because `L` becomes a metavariable. -/
 lemma nonempty_of_nonempty_constants [h : nonempty L.constants] : nonempty M :=
 h.map coe
+
+/-- The function map for `first_order.language.Structure₂`. -/
+def fun_map₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  (c' : c → M) (f₁' : f₁ → M → M) (f₂' : f₂ → M → M → M) :
+  ∀{n}, (language.mk₂ c f₁ f₂ r₁ r₂).functions n → (fin n → M) → M
+| 0 f _ := c' f
+| 1 f x := f₁' f (x 0)
+| 2 f x := f₂' f (x 0) (x 1)
+| (n + 3) f _ := pempty.elim f
+
+/-- The relation map for `first_order.language.Structure₂`. -/
+def rel_map₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  (r₁' : r₁ → set M) (r₂' : r₂ → M → M → Prop) :
+  ∀{n}, (language.mk₂ c f₁ f₂ r₁ r₂).relations n → (fin n → M) → Prop
+| 0 r _ := pempty.elim r
+| 1 r x := (x 0) ∈ r₁' r
+| 2 r x := r₂' r (x 0) (x 1)
+| (n + 3) r _ := pempty.elim r
+
+/-- A structure constructor to match `first_order.language₂`. -/
+protected def Structure.mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  (c' : c → M) (f₁' : f₁ → M → M) (f₂' : f₂ → M → M → M)
+  (r₁' : r₁ → set M) (r₂' : r₂ → M → M → Prop) :
+  (language.mk₂ c f₁ f₂ r₁ r₂).Structure M :=
+⟨λ _, fun_map₂ c' f₁' f₂', λ _, rel_map₂ r₁' r₂'⟩
+
+namespace Structure
+
+variables {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+variables {c' : c → M} {f₁' : f₁ → M → M} {f₂' : f₂ → M → M → M}
+variables {r₁' : r₁ → set M} {r₂' : r₂ → M → M → Prop}
+
+@[simp] lemma fun_map_apply₀ (c₀ : c) {x : fin 0 → M} :
+  @Structure.fun_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 0 c₀ x = c' c₀ := rfl
+
+@[simp] lemma fun_map_apply₁ (f : f₁) (x : M) :
+  @Structure.fun_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 1 f (![x]) = f₁' f x := rfl
+
+@[simp] lemma fun_map_apply₂ (f : f₂) (x y : M) :
+  @Structure.fun_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 2 f (![x,y]) = f₂' f x y := rfl
+
+@[simp] lemma rel_map_apply₁ (r : r₁) (x : M) :
+  @Structure.rel_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 1 r (![x]) = (x ∈ r₁' r) := rfl
+
+@[simp] lemma rel_map_apply₂ (r : r₂) (x y : M) :
+  @Structure.rel_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 2 r (![x,y]) = r₂' r x y := rfl
+
+end Structure
+
 
 /-- `hom_class L F M N` states that `F` is a type of `L`-homomorphisms. You should extend this
   typeclass when you extend `first_order.language.hom`. -/

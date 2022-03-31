@@ -1884,6 +1884,8 @@ order_embedding.of_map_le_iff (map f) (λ _ _, map_subset_map)
 @[simp] theorem map_inj {s₁ s₂ : finset α} : s₁.map f = s₂.map f ↔ s₁ = s₂ :=
 (map_embedding f).injective.eq_iff
 
+lemma map_injective (f : α ↪ β) : injective (map f) := (map_embedding f).injective
+
 @[simp] theorem map_embedding_apply : map_embedding f s = map f s := rfl
 
 theorem map_filter {p : β → Prop} [decidable_pred p] :

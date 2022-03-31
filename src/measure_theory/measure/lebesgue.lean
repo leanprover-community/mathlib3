@@ -468,7 +468,6 @@ begin
       (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm },
 end
 
-
 theorem volume_region_between_eq_integral' [sigma_finite μ]
   (f_int : integrable_on f s μ) (g_int : integrable_on g s μ)
   (hs : measurable_set s) (hfg : f ≤ᵐ[μ.restrict s] g ) :
@@ -493,28 +492,3 @@ volume_region_between_eq_integral' f_int g_int hs
   ((ae_restrict_iff' hs).mpr (eventually_of_forall hfg))
 
 end region_between
-
-/-
-section vitali
-
-def vitali_aux_h (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) :
-  ∃ y ∈ Icc (0:ℝ) 1, ∃ q:ℚ, ↑q = x - y :=
-⟨x, h, 0, by simp⟩
-
-def vitali_aux (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) : ℝ :=
-classical.some (vitali_aux_h x h)
-
-theorem vitali_aux_mem (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) : vitali_aux x h ∈ Icc (0:ℝ) 1 :=
-Exists.fst (classical.some_spec (vitali_aux_h x h):_)
-
-theorem vitali_aux_rel (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) :
- ∃ q:ℚ, ↑q = x - vitali_aux x h :=
-Exists.snd (classical.some_spec (vitali_aux_h x h):_)
-
-def vitali : set ℝ := {x | ∃ h, x = vitali_aux x h}
-
-theorem vitali_nonmeasurable : ¬ null_measurable_set measure_space.μ vitali :=
-sorry
-
-end vitali
--/

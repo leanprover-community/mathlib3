@@ -199,7 +199,7 @@ variables {α : ι → Type u} {δ : (Σ i, α i) → Type w}
 variables [Π i, add_comm_monoid (δ i)] [Π i, module R (δ i)]
 variables [Π i, decidable_eq (α i)] [Π i (x : δ i), decidable (x ≠ 0)]
 instance inst : module R (⨁ i j, δ ⟨i, j⟩) := by apply_instance
---set_option trace.class_instances true
+
 /--`curry` as a linear map.-/
 noncomputable def lcurry : (⨁ i, δ i) →ₗ[R] ⨁ i j, δ ⟨i, j⟩ :=
 { map_smul' := λ a f, by { ext i j, change curry (a • f) i j = (a • curry f) i j,

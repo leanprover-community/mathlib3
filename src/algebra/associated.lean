@@ -522,6 +522,46 @@ protected def mk_monoid_hom : α →* (associates α) := ⟨associates.mk, mk_on
 
 @[simp] lemma mk_monoid_hom_apply (a : α) : associates.mk_monoid_hom a = associates.mk a := rfl
 
+section unique_units
+
+variable [unique (αˣ)]
+
+noncomputable def associates.mk_monoid_equiv : α ≃* associates α :=
+mul_equiv.of_bijective
+  (@associates.mk_monoid_hom α _) ⟨associates.mk_injective, associates.mk_surjective⟩
+
+@[simp]
+lemma associates.mk_monoid_equiv_apply {a : α} :
+  associates.mk_monoid_equiv a = associates.mk a := rfl
+
+@[simp]
+lemma associates.mk_monoid_equiv_apply_symm {a : associates α} :
+  associates.mk_monoid_hom (associates.mk_monoid_equiv.symm a) = a :=
+of_bijective_apply_symm_apply associates.mk_monoid_hom
+  ⟨associates.mk_injective, associates.mk_surjective⟩
+
+@[simp]
+lemma associates.mk_monoid_equiv_apply_symm' {a : associates α} :
+  associates.mk (associates.mk_monoid_equiv.symm a) = a :=
+by rw [← associates.mk_monoid_hom_apply, associates.mk_monoid_equiv_apply_symm]
+
+@[simp]
+lemma associates.mk_monoid_equiv_apply_symm_mk {a : α} :
+  associates.mk_monoid_equiv.symm (associates.mk a) = a :=
+by rw [associates.mk_monoid_equiv, of_bijective_apply_symm, ← associates.mk_monoid_hom_apply,
+  equiv.of_bijective_symm_apply_apply]
+
+lemma associates.mk_monoid_equiv_symm_dvd_iff_le {a b : associates α} :
+  (associates.mk_monoid_equiv.symm a) ∣ (associates.mk_monoid_equiv.symm b) ↔ a ≤ b :=
+begin
+  conv_rhs {rw [← (associates.mk_monoid_equiv).apply_symm_apply m,
+    ← (associates.mk_monoid_equiv).apply_symm_apply n]},
+  rw [associates.mk_monoid_equiv_apply, associates.mk_monoid_equiv_apply,
+    associates.mk_le_mk_iff_dvd_iff],
+end
+
+end unique_units
+
 lemma associated_map_mk {f : associates α →* α}
   (hinv : function.right_inverse f associates.mk) (a : α) :
   a ~ᵤ f (associates.mk a) :=

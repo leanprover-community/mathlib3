@@ -250,26 +250,6 @@ lemma enat.eq_top_iff_not_dom {x : enat} : ¬ x.dom ↔ x = ⊤  :=
 ⟨λ h, enat.top_eq_none ▸ part.eq_none_iff'.mpr h,
   λ h, by rw [h, enat.top_eq_none, part.eq_none_iff'.symm]⟩
 
-lemma multiplicity_eq_multiplicity_mk [decidable_rel ((∣) : M → M → Prop)] {p q : M} :
-  multiplicity p q = multiplicity (associates.mk p) (associates.mk q) :=
-begin
-  by_cases h : finite p q,
-  { rw ← enat.coe_get (finite_iff_dom.mp h),
-    refine multiplicity.unique
-      (show (associates.mk p)^(((multiplicity p q).get h)) ∣ associates.mk q, from _) _,
-    rw [← associates.mk_pow, associates.mk_dvd_mk],
-    exact pow_multiplicity_dvd h,
-    rw [← associates.mk_pow, associates.mk_dvd_mk],
-    exact is_greatest ((enat.lt_coe_iff _ _).mpr (exists.intro
-      (finite_iff_dom.mp h) (nat.lt_succ_self _))) },
-  { suffices : ¬ (finite (associates.mk p) (associates.mk q)),
-    { rw [finite_iff_dom, enat.eq_top_iff_not_dom] at h,
-      rw [finite_iff_dom, enat.eq_top_iff_not_dom] at this,
-      rw [h, this] },
-    refine not_finite_iff_forall.mpr (λ n, by {rw [← associates.mk_pow, associates.mk_dvd_mk],
-      exact not_finite_iff_forall.mp h n }) }
-end
-
 variables [nontrivial M] [nontrivial N] {m : associates M}
 
 lemma map_is_unit_of_monotone_is_unit {m u : associates M} {n : associates N}
@@ -332,55 +312,8 @@ begin
     -/
 end
 
-variables [unique (units M)] [unique (units N)]
+variables [unique (Mˣ)] [unique (Nˣ)]
 
-@[simp]
-lemma of_bijective_apply {M N} [mul_one_class M] [mul_one_class N] {m : M} (f : M →* N)
-  (hf : function.bijective f) : mul_equiv.of_bijective f hf m = f m := rfl
-
-@[simp]
-lemma of_bijective_apply_symm {M N} [mul_one_class M] [mul_one_class N] {n : N} (f : M →* N)
-  (hf : function.bijective f) :
-    (mul_equiv.of_bijective f hf).symm n = (equiv.of_bijective f hf).symm n := rfl
-
-@[simp]
-lemma of_bijective_apply_symm_apply {M N} [mul_one_class M] [mul_one_class N] {n : N} (f : M →* N)
-  (hf : function.bijective f) : f ((mul_equiv.of_bijective f hf).symm n) = n :=
-(mul_equiv.of_bijective f hf).apply_symm_apply n
-
-
-noncomputable def associates.mk_monoid_equiv : M ≃* associates M := mul_equiv.of_bijective
-  (@associates.mk_monoid_hom M _) ⟨associates.mk_injective, associates.mk_surjective⟩
-
-@[simp]
-lemma associates.mk_monoid_equiv_apply {x : M} :
-  associates.mk_monoid_equiv x = associates.mk x := rfl
-
-@[simp]
-lemma associates.mk_monoid_equiv_apply_symm {x : associates M} :
-  associates.mk_monoid_hom (associates.mk_monoid_equiv.symm x) = x :=
-of_bijective_apply_symm_apply associates.mk_monoid_hom
-  ⟨associates.mk_injective, associates.mk_surjective⟩
-
-@[simp]
-lemma associates.mk_monoid_equiv_apply_symm' {x : associates M} :
-  associates.mk (associates.mk_monoid_equiv.symm x) = x :=
-by rw [← associates.mk_monoid_hom_apply, associates.mk_monoid_equiv_apply_symm]
-
-@[simp]
-lemma associates.mk_monoid_equiv_apply_symm_mk {x : M} :
-  associates.mk_monoid_equiv.symm (associates.mk x) = x :=
-by rw [associates.mk_monoid_equiv, of_bijective_apply_symm, ← associates.mk_monoid_hom_apply,
-  equiv.of_bijective_symm_apply_apply]
-
-lemma associates.mk_monoid_equiv_symm_dvd_iff_le {m n : associates M} :
-  (associates.mk_monoid_equiv.symm m) ∣ (associates.mk_monoid_equiv.symm n) ↔ m ≤ n :=
-begin
-  conv_rhs {rw [← (associates.mk_monoid_equiv).apply_symm_apply m,
-    ← (associates.mk_monoid_equiv).apply_symm_apply n]},
-  rw [associates.mk_monoid_equiv_apply, associates.mk_monoid_equiv_apply,
-    associates.mk_le_mk_iff_dvd_iff],
-end
 
 noncomputable def mk_factor_order_iso_of_factor_dvd_equiv [decidable_eq (associates N)]
   {m : M} {n : N} (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l',

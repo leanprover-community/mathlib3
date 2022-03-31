@@ -11,13 +11,13 @@ import order.closure
 
 ## Main definitions
 
-* `balanced_core`: the largest balanced subset of a set `s`.
-* `balanced_hull`: the smallest balanced superset of a set `s`.
+* `balanced_core`: The largest balanced subset of a set `s`.
+* `balanced_hull`: The smallest balanced superset of a set `s`.
 
 ## Main statements
 
 * `balanced_core_eq_Inter`: Characterization of the balanced core as an intersection over subsets.
-
+* `nhds_basis_closed_balanced`: The closed balanced sets form a basis of the neighborhood filter.
 
 ## Implementation details
 
@@ -283,7 +283,8 @@ begin
   exact balanced_core_nonempty_iff.mp (set.ne_empty_iff_nonempty.mp h),
 end
 
-lemma balanced_core_nhds_zero {U : set E} (hU : U ∈ 𝓝 (0 : E)) : balanced_core 𝕜 U ∈ 𝓝 (0 : E) :=
+lemma balanced_core_mem_nhds_zero {U : set E} (hU : U ∈ 𝓝 (0 : E)) :
+  balanced_core 𝕜 U ∈ 𝓝 (0 : E) :=
 begin
   -- Getting neighborhoods of the origin for `0 : 𝕜` and `0 : E`
   have h : filter.tendsto (λ (x : 𝕜 × E), x.fst • x.snd) (𝓝 (0,0)) (𝓝 ((0 : 𝕜) • (0 : E))) :=
@@ -315,11 +316,11 @@ end
 
 variables (𝕜)
 
-lemma closed_balanced_nhds_basis [regular_space E] : (𝓝 (0 : E)).has_basis
+lemma nhds_basis_closed_balanced [regular_space E] : (𝓝 (0 : E)).has_basis
   (λ (s : set E), s ∈ 𝓝 (0 : E) ∧ is_closed s ∧ balanced 𝕜 s) id :=
 begin
   refine (closed_nhds_basis 0).to_has_basis (λ s hs, _) (λ s hs, ⟨s, ⟨hs.1, hs.2.1⟩, rfl.subset⟩),
-  refine ⟨balanced_core 𝕜 s, ⟨balanced_core_nhds_zero hs.1, _⟩, balanced_core_subset s⟩,
+  refine ⟨balanced_core 𝕜 s, ⟨balanced_core_mem_nhds_zero hs.1, _⟩, balanced_core_subset s⟩,
   refine ⟨balanced_core_is_closed hs.2, balanced_core_balanced s⟩
 end
 

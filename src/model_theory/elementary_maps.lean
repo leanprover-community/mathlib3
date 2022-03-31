@@ -19,7 +19,7 @@ import model_theory.substructures
 * The Tarski-Vaught Test for embeddings: `first_order.language.embedding.is_elementary_of_exists`
 gives a simple criterion for an embedding to be elementary.
 * The Tarski-Vaught Test for substructures: `first_order.language.embedding.is_elementary_of_exists`
-gives a simple criterion for an embedding to be elementary.
+gives a simple criterion for a substructure to be elementary.
  -/
 
 open_locale first_order

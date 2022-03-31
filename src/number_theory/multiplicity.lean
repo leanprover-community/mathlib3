@@ -157,7 +157,7 @@ include hp hp1 hxy hx
 
 lemma geom_sum₂_eq_one : multiplicity ↑p (geom_sum₂ x y p) = 1 :=
 begin
-    rw ← nat.cast_one,
+  rw ← nat.cast_one,
   refine multiplicity.eq_coe_iff.2 ⟨_, _⟩,
   { rw pow_one,
     exact dvd_geom_sum₂ hxy },

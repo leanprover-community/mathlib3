@@ -681,7 +681,7 @@ def injective2 {α β γ} (f : α → β → γ) : Prop :=
 ∀ ⦃a₁ a₂ b₁ b₂⦄, f a₁ b₁ = f a₂ b₂ → a₁ = a₂ ∧ b₁ = b₂
 
 namespace injective2
-variables {α β γ : Type*} {f : α → β → γ}
+variables {α β γ : Sort*} {f : α → β → γ}
 
 /-- A binary injective function is injective when only the left argument varies. -/
 protected lemma left (hf : injective2 f) (b : β) : function.injective (λ a, f a b) :=

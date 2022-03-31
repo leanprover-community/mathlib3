@@ -400,7 +400,7 @@ by rw [euclidean.ball_eq_preimage, ← f.to_cont_diff_bump_of_inner.support_eq,
   ← support_comp_eq_preimage, coe_eq_comp]
 
 lemma tsupport_eq : tsupport f = euclidean.closed_ball c f.R :=
-by rw [tsupport, f.support_eq, euclidean.closure_ball _ f.R_pos]
+by rw [tsupport, f.support_eq, euclidean.closure_ball _ f.R_pos.ne']
 
 protected lemma has_compact_support : has_compact_support f :=
 by simp_rw [has_compact_support, f.tsupport_eq, euclidean.is_compact_closed_ball]

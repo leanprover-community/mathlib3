@@ -31,7 +31,7 @@ lemma analytic_at_of_differentiable_on_punctured_nhds_of_continuous_at {f : ℂ 
   (hd : ∀ᶠ z in 𝓝[≠] c, differentiable_at ℂ f z) (hc : continuous_at f c) :
   analytic_at ℂ f c :=
 begin
-  letI : measurable_space E := borel E, haveI : borel_space E := ⟨rfl⟩,
+  borelize E,
   rcases (nhds_within_has_basis nhds_basis_closed_ball _).mem_iff.1 hd with ⟨R, hR0, hRs⟩,
   lift R to ℝ≥0 using hR0.le,
   replace hc : continuous_on f (closed_ball c R),

@@ -448,24 +448,17 @@ lemma inv_liminf {ι : Sort*} {x : ι → ℝ≥0∞} {l : filter ι} :
   (l.liminf x)⁻¹ = l.limsup (λ i, (x i)⁻¹) :=
 by simp only [limsup_eq_infi_supr, inv_map_infi, inv_map_supr, liminf_eq_supr_infi]
 
-protected lemma continuous_inv : continuous (has_inv.inv : ℝ≥0∞ → ℝ≥0∞) :=
-continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
-⟨begin
-  assume b hb,
-  simp only [@ennreal.lt_inv_iff_lt_inv b],
-  exact gt_mem_nhds (ennreal.lt_inv_iff_lt_inv.1 hb),
-end,
-begin
-  assume b hb,
-  simp only [gt_iff_lt, @ennreal.inv_lt_iff_inv_lt _ b],
-  exact lt_mem_nhds (ennreal.inv_lt_iff_inv_lt.1 hb)
-end⟩
+instance : has_continuous_inv ℝ≥0∞ :=
+{ continuous_inv :=
+  continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
+  ⟨λ b hb, by simpa only [ennreal.lt_inv_iff_lt_inv]
+     using gt_mem_nhds (ennreal.lt_inv_iff_lt_inv.1 hb),
+   λ b hb, by simpa only [gt_iff_lt, ennreal.inv_lt_iff_inv_lt]
+     using lt_mem_nhds (ennreal.inv_lt_iff_inv_lt.1 hb)⟩ }
 
 @[simp] protected lemma tendsto_inv_iff {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} :
   tendsto (λ x, (m x)⁻¹) f (𝓝 a⁻¹) ↔ tendsto m f (𝓝 a) :=
-⟨λ h, by simpa only [function.comp, inv_inv]
-  using (ennreal.continuous_inv.tendsto a⁻¹).comp h,
-  (ennreal.continuous_inv.tendsto a).comp⟩
+⟨λ h, by simpa only [inv_inv] using tendsto.inv h,  tendsto.inv⟩
 
 protected lemma tendsto.div {f : filter α} {ma : α → ℝ≥0∞} {mb : α → ℝ≥0∞} {a b : ℝ≥0∞}
   (hma : tendsto ma f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ 0) (hmb : tendsto mb f (𝓝 b)) (hb : b ≠ ⊤ ∨ a ≠ ⊤) :
@@ -871,12 +864,17 @@ begin
   exact not_congr tsum_coe_ne_top_iff_summable_coe
 end
 
-lemma summable_to_real {f : α → ℝ≥0∞} (hsum : ∑' x, f x ≠ ∞) :
-  summable (λ x, (f x).to_real) :=
+lemma has_sum_to_real {f : α → ℝ≥0∞} (hsum : ∑' x, f x ≠ ∞) :
+  has_sum (λ x, (f x).to_real) (∑' x, (f x).to_real) :=
 begin
   lift f to α → ℝ≥0 using ennreal.ne_top_of_tsum_ne_top hsum,
-  rwa ennreal.tsum_coe_ne_top_iff_summable_coe at hsum,
+  simp only [coe_to_real, ← nnreal.coe_tsum, nnreal.has_sum_coe],
+  exact (tsum_coe_ne_top_iff_summable.1 hsum).has_sum
 end
+
+lemma summable_to_real {f : α → ℝ≥0∞} (hsum : ∑' x, f x ≠ ∞) :
+  summable (λ x, (f x).to_real) :=
+(has_sum_to_real hsum).summable
 
 end ennreal
 

@@ -599,5 +599,57 @@ begin
   exact congr rfl (funext fin_zero_elim),
 end
 
+namespace relations
+
+variable {r : L.relations 2}
+
+@[simp]
+lemma realize_reflexive :
+  M ⊨ r.reflexive ↔ reflexive (λ (x y : M), rel_map r ![x,y]) :=
+begin
+  rw [relations.reflexive, sentence.realize, formula.realize, bounded_formula.realize_all],
+  simp only [term.realize, bounded_formula.realize_rel₂, sum.elim_inr],
+  refl,
+end
+
+@[simp]
+lemma realize_irreflexive :
+  M ⊨ r.irreflexive ↔ irreflexive (λ (x y : M), rel_map r ![x,y]) :=
+begin
+  rw [relations.irreflexive, sentence.realize, formula.realize, bounded_formula.realize_all],
+  simp only [bounded_formula.realize_not, term.realize, bounded_formula.realize_rel₂, sum.elim_inr],
+  refl,
+end
+
+@[simp]
+lemma realize_symmetric :
+  M ⊨ r.symmetric ↔ symmetric (λ (x y : M), rel_map r ![x,y]) :=
+begin
+  simp only [relations.symmetric, sentence.realize, formula.realize, bounded_formula.realize_all,
+    bounded_formula.realize_imp, term.realize, bounded_formula.realize_rel₂, sum.elim_inr],
+  refl,
+end
+
+@[simp]
+lemma realize_antisymmetric :
+  M ⊨ r.antisymmetric ↔ anti_symmetric (λ (x y : M), rel_map r ![x,y]) :=
+begin
+  simp only [relations.antisymmetric, sentence.realize, formula.realize,
+    bounded_formula.realize_all, bounded_formula.realize_imp, term.realize,
+    bounded_formula.realize_rel₂, sum.elim_inr],
+  refl,
+end
+
+@[simp]
+lemma realize_transitive :
+  M ⊨ r.transitive ↔ transitive (λ (x y : M), rel_map r ![x,y]) :=
+begin
+  simp only [relations.transitive, sentence.realize, formula.realize, bounded_formula.realize_all,
+    bounded_formula.realize_imp, term.realize, bounded_formula.realize_rel₂, sum.elim_inr],
+  refl,
+end
+
+end relations
+
 end language
 end first_order

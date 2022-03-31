@@ -290,6 +290,24 @@ infixr ` ⊗⋙ `:80 := comp
 end lax_monoidal_functor
 
 namespace lax_monoidal_functor
+universes v₀ u₀
+variables (B : Type u₀) [category.{v₀} B] [monoidal_category.{v₀} B]
+variables (F : lax_monoidal_functor.{v₀ v₁} B C) (G : lax_monoidal_functor.{v₂ v₃} D E)
+
+/-- The cartesian product of two lax monoidal functors is lax monoidal. -/
+def prod : lax_monoidal_functor (B × D) (C × E) :=
+{ ε := (ε F, ε G),
+  μ := λ X Y, (μ F X.1 Y.1, μ G X.2 Y.2),
+  μ_natural' := λ X Y X' Y' f g, congr_arg2 prod.mk (μ_natural F f.1 g.1) (μ_natural G f.2 g.2),
+  associativity' :=
+    λ X Y Z, congr_arg2 prod.mk (associativity F X.1 Y.1 Z.1) (associativity G X.2 Y.2 Z.2),
+  left_unitality' := λ X, congr_arg2 prod.mk (left_unitality F X.1) (left_unitality G X.2),
+  right_unitality' := λ X, congr_arg2 prod.mk (right_unitality F X.1) (right_unitality G X.2),
+  .. (F.to_functor).prod (G.to_functor) }
+
+end lax_monoidal_functor
+
+namespace lax_monoidal_functor
 variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{v₁ v₃} C E)
 
 /-- The cartesian product of two lax monoidal functors starting from the same monoidal category `C`

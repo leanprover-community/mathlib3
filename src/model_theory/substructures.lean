@@ -5,7 +5,7 @@ Authors: Aaron Anderson
 -/
 
 import order.closure
-import model_theory.terms_and_formulas
+import model_theory.semantics
 import set_theory.cardinal_ordinal
 
 /-!

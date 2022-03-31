@@ -25,7 +25,7 @@ open function
 class has_set_prod (α β : Type*) (γ : out_param Type*) :=
 (prod : α → β → γ)
 
-infix ` ×ˢ `:72 := has_set_prod.prod
+infixr ` ×ˢ `:72 := has_set_prod.prod
 
 namespace set
 

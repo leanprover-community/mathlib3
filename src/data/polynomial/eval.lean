@@ -641,18 +641,10 @@ mem_map_srange f
 
 lemma eval₂_map [semiring T] (g : S →+* T) (x : T) :
   (p.map f).eval₂ g x = p.eval₂ (g.comp f) x :=
-begin
-  have A : nat_degree (p.map f) < p.nat_degree.succ :=
-    (nat_degree_map_le _ _).trans_lt (nat.lt_succ_self _),
-  conv_lhs { rw [eval₂_eq_sum], },
-  rw [sum_over_range' _ _ _ A],
-  { simp only [coeff_map, eval₂_eq_sum, sum_over_range, forall_const, zero_mul, ring_hom.map_zero,
-      function.comp_app, ring_hom.coe_comp] },
-  { simp only [forall_const, zero_mul, ring_hom.map_zero] }
-end
+by rw [eval₂_eq_eval_map, eval₂_eq_eval_map, map_map]
 
 lemma eval_map (x : S) : (p.map f).eval x = p.eval₂ f x :=
-eval₂_map f (ring_hom.id _) x
+(eval₂_eq_eval_map f).symm
 
 protected lemma map_sum {ι : Type*} (g : ι → R[X]) (s : finset ι) :
   (∑ i in s, g i).map f = ∑ i in s, (g i).map f :=
@@ -820,12 +812,8 @@ protected lemma map_prod {ι : Type*} (g : ι → R[X]) (s : finset ι) :
 lemma support_map_subset (p : R[X]) : (map f p).support ⊆ p.support :=
 begin
   intros x,
-  simp only [mem_support_iff],
   contrapose!,
-  rw coeff_map,
-  intro hx,
-  rw hx,
-  exact ring_hom.map_zero f,
+  simp { contextual := tt },
 end
 
 lemma is_root.map {f : R →+* S} {x : R} {p : R[X]} (h : is_root p x) :

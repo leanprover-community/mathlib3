@@ -378,6 +378,10 @@ lemma continuous_zpow : ∀ z : ℤ, continuous (λ a : G, a ^ z)
 instance add_group.has_continuous_const_smul_int {A} [add_group A] [topological_space A]
   [topological_add_group A] : has_continuous_const_smul ℤ A := ⟨continuous_zsmul⟩
 
+instance add_group.has_continuous_smul_int {A} [add_group A] [topological_space A]
+  [topological_add_group A] : has_continuous_smul ℤ A :=
+⟨continuous_uncurry_of_discrete_topology continuous_zsmul⟩
+
 @[continuity, to_additive]
 lemma continuous.zpow {f : α → G} (h : continuous f) (z : ℤ) :
   continuous (λ b, (f b) ^ z) :=

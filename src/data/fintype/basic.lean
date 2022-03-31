@@ -841,9 +841,11 @@ lemma univ_option (α : Type*) [fintype α] : (univ : finset (option α)) = inse
   fintype.card (option α) = fintype.card α + 1 :=
 (finset.card_cons _).trans $ congr_arg2 _ (card_map _) rfl
 
+/-- If `option α` is a `fintype` then so is `α` -/
 def fintype_of_option {α : Type*} [fintype (option α)] : fintype α :=
 ⟨finset.erase_none (fintype.elems (option α)), λ x, mem_erase_none.mpr (fintype.complete (some x))⟩
 
+/-- If `α` is a `fintype` then any type equivalent to `α` is a `fintype` -/
 def fintype_of_equiv [fintype α] (f : α ≃ β) : fintype β :=
 ⟨map (equiv.to_embedding f) (fintype.elems α),
   λ x, finset.mem_map_equiv.mpr (fintype.complete ((equiv.symm f) x))⟩

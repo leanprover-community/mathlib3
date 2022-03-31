@@ -850,11 +850,7 @@ def fintype_of_equiv [fintype α] (f : α ≃ β) : fintype β :=
 
 /-- A type is a `fintype` if its successor (using `option`) is a `fintype`. -/
 def fintype_of_equiv_option [fintype α] (f : option α ≃ β) : fintype β :=
-begin
-  haveI := fintype_of_equiv f,
-  exact fintype_of_option,
-end
-#exit
+by { haveI := fintype_of_equiv f, exact fintype_of_option }
 
 instance {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] : fintype (sigma β) :=

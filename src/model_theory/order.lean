@@ -42,18 +42,7 @@ Structure.mk₂ empty.elim empty.elim empty.elim empty.elim (λ _, (≤))
 instance : is_relational (language.order) := language.is_relational_mk₂
 
 instance : subsingleton (language.order.relations n) :=
-begin
-  cases n,
-  { exact ⟨λ x, pempty.elim x⟩, },
-  cases n,
-  { exact ⟨λ x, empty.elim x⟩, },
-  cases n,
-  { refine ⟨λ x y, _⟩,
-    cases x,
-    cases y,
-    refl, },
-  { exact ⟨λ x, pempty.elim x⟩, },
-end
+language.subsingleton_mk₂_relations
 
 /-- A language is ordered if it has a symbol representing `≤`. -/
 class is_ordered (L : language.{u v}) := (le_symb : L.relations 2)

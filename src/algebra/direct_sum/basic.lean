@@ -3,7 +3,7 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import data.dfinsupp.equiv
+import data.dfinsupp.basic
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
 /-!
@@ -197,11 +197,12 @@ section option
 include dec_ι
 variables {α : option ι → Type w} [Π i, add_comm_monoid (α i)] [Π i (x : α i), decidable (x ≠ 0)]
 
+/--Isomorphism obtained by separating the term of index `none` of a dfinsupp over `option ι`.-/
 @[simps] noncomputable def add_equiv_prod_direct_sum : (⨁ i, α i) ≃+ α none × ⨁ i, α (some i) :=
 { map_add' := λ f g, begin
     simp only [equiv.to_fun_as_coe, dfinsupp.equiv_prod_dfinsupp_apply, add_apply, prod.mk_add_mk,
       prod.mk.inj_iff, eq_self_iff_true, true_and],
-    { ext i, simp only [dfinsupp.remove_none_apply, add_apply] }
+    ext i, simp only [dfinsupp.congr_left_apply, add_apply]
   end, ..dfinsupp.equiv_prod_dfinsupp }
 end option
 
@@ -307,3 +308,4 @@ lemma add_subgroup_is_internal.to_add_submonoid
 iff.rfl
 
 end direct_sum
+#lint

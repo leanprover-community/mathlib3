@@ -229,12 +229,14 @@ section option
 variables {α : option ι → Type w} [Π i, add_comm_monoid (α i)] [Π i, module R (α i)]
 variables [Π i (x : α i), decidable (x ≠ 0)]
 
+/--Linear isomorphism obtained by separating the term of index `none` of a dfinsupp over
+`option ι`.-/
 @[simps] noncomputable def lequiv_prod_direct_sum : (⨁ i, α i) ≃ₗ[R] α none × ⨁ i, α (some i) :=
 { map_smul' := λ a f, begin
     simp only [add_equiv.to_fun_eq_coe, add_equiv_prod_direct_sum_apply, equiv.to_fun_as_coe,
       dfinsupp.equiv_prod_dfinsupp_apply, dfinsupp.coe_smul, pi.smul_apply, ring_hom.id_apply,
       prod.smul_mk, prod.mk.inj_iff, eq_self_iff_true, true_and],
-    ext i, simp only [dfinsupp.remove_none_apply, dfinsupp.coe_smul, pi.smul_apply],
+    ext i, simp only [dfinsupp.congr_left_apply, dfinsupp.coe_smul, pi.smul_apply],
   end, ..add_equiv_prod_direct_sum }
 end option
 

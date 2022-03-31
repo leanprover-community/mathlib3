@@ -27,6 +27,34 @@ variables {α : Type*}
 
 open_locale big_operators classical
 
+/-- A partion of a type induces partitions on subsets -/
+lemma setoid.is_partition_on {α : Type*} {P : set (set α)} (hP : setoid.is_partition P) (s : set α) :
+  setoid.is_partition { u : set ↥s | ∃ (t : set α), t ∈ P ∧ coe ⁻¹' t = u ∧ t ∩ s ≠ ∅ } :=
+begin
+  split,
+  { intro h ,
+    obtain ⟨t, htP, ht, hts⟩ := set.mem_set_of_eq.mp h,
+    apply hts,
+    rw [← subtype.image_preimage_coe, ht,set.image_empty] },
+  { intro a,
+    obtain ⟨t, ht⟩ := hP.right ↑a,
+    simp only [exists_unique_iff_exists, exists_prop, and_imp] at ht,
+    use coe ⁻¹' t,
+    split,
+    { simp only [ne.def, set.mem_set_of_eq, set.mem_preimage, exists_unique_iff_exists, exists_prop],
+      use t,
+      apply and.intro ht.left.left,
+      apply and.intro rfl,
+      intro h, rw ← set.mem_empty_eq (a : α), rw ← h,
+      exact set.mem_inter (ht.left.right) (subtype.mem a),
+      exact (ht.left.right) },
+    { simp only [ne.def, set.mem_set_of_eq, exists_unique_iff_exists, exists_prop, and_imp,
+        forall_exists_index],
+      intros y x hxP hxy hxs hay, rw ← hxy,
+      rw subtype.preimage_coe_eq_preimage_coe_iff ,
+      refine congr_arg2 _ _ rfl,
+      apply ht.right x hxP, rw [← set.mem_preimage, hxy], exact hay } }
+end
 
 /-- The cardinal of ambient fintype equals
   the sum of cardinals of the parts of a partition (finset style)-/
@@ -85,7 +113,6 @@ begin
   { intros a ha, refl },
 end
 
--- TODO : remove the finiteness assumption on α and put it on s
 /-- Given a partition of the ambient finite type,
 the cardinal of a set is the sum of the cardinalities of its trace on the parts of the partition -/
 lemma setoid.is_partition.card_set_eq_sum_parts {α : Type*} [fintype α] (s : set α)
@@ -106,40 +133,25 @@ begin
       (setoid.is_partition.pairwise_disjoint hP ht hu htu) }
 end
 
-lemma setoid.is_partition_on {α : Type*} {P : set (set α)} (hP : setoid.is_partition P) (s : set α) :
-  setoid.is_partition { u : set ↥s | ∃ (t : set α), t ∈ P ∧ coe ⁻¹' t = u ∧ t ∩ s ≠ ∅ } :=
+/-- The cardinality of a finite type is
+  the sum of the cardinalities of the parts of any partition -/
+lemma setoid.is_partition.card_eq_sum_parts {α : Type*} [fintype α] {P : set (set α)}
+  (hP : setoid.is_partition P) :
+  fintype.card α =
+    finset.sum P.to_finset (λ (t : set α), t.to_finset.card) :=
 begin
-  split,
-  { intro h ,
-    obtain ⟨t, htP, ht, hts⟩ := set.mem_set_of_eq.mp h,
-    apply hts,
-    rw [← subtype.image_preimage_coe, ht,set.image_empty] },
-  { intro a,
-    obtain ⟨t, ht⟩ := hP.right ↑a,
-    simp only [exists_unique_iff_exists, exists_prop, and_imp] at ht,
-    use coe ⁻¹' t,
-    split,
-    { simp only [ne.def, set.mem_set_of_eq, set.mem_preimage, exists_unique_iff_exists, exists_prop],
-      use t,
-      apply and.intro ht.left.left,
-      apply and.intro rfl,
-      intro h, rw ← set.mem_empty_eq (a : α), rw ← h,
-      exact set.mem_inter (ht.left.right) (subtype.mem a),
-      exact (ht.left.right) },
-    { simp only [ne.def, set.mem_set_of_eq, exists_unique_iff_exists, exists_prop, and_imp,
-        forall_exists_index],
-      intros y x hxP hxy hxs hay, rw ← hxy,
-      rw subtype.preimage_coe_eq_preimage_coe_iff ,
-      refine congr_arg2 _ _ rfl,
-      apply ht.right x hxP, rw [← set.mem_preimage, hxy], exact hay } }
+  change finset.univ.card = _,
+  have : ∀ (t : set α) (ht : t ∈ P.to_finset), t.to_finset.card = (set.univ ∩ t).to_finset.card,
+  { intros t ht, apply congr_arg,
+    rw set.to_finset_inj, exact (set.univ_inter t).symm,  },
+  simp_rw finset.sum_congr rfl this,
+  simpa only [set.to_finset_univ, set.to_finset_card, fintype.card_of_finset]
+    using setoid.is_partition.card_set_eq_sum_parts (set.univ) hP,
 end
 
-example {α : Type*} (s : finset α) : s.card = fintype.card ↥s :=
-begin
-refine (fintype.card_coe s).symm,
-end
-
-lemma setoid.is_partition.card_set_eq_sum_parts' {α : Type*}
+/-- The cardinality of a finset is the sum of the cardinalities
+of the traces of any partition of the ambient type  -/
+lemma setoid.is_partition.card_finset_eq_sum_parts {α : Type*}
   {P : set (set α)} (hP : setoid.is_partition P)
   {s : finset α}  :
   let P' := { u : set ↥s | ∃ (t : set α), t ∈ P ∧ coe ⁻¹' t = u ∧ t ∩ s ≠ ∅ } in
@@ -164,22 +176,6 @@ begin
     simp only [ne.def, set.coe_to_finset],
     exact rfl },
   { ext, apply congr_arg, rw set.to_finset_inj }
-end
-
-/-- The cardinality of a finite type is
-  the sum of the cardinalities of the parts of any partition -/
-lemma setoid.is_partition.card_eq_sum_parts {α : Type*} [fintype α] {P : set (set α)}
-  (hP : setoid.is_partition P) :
-  fintype.card α =
-    finset.sum P.to_finset (λ (t : set α), t.to_finset.card) :=
-begin
-  change finset.univ.card = _,
-  have : ∀ (t : set α) (ht : t ∈ P.to_finset), t.to_finset.card = (set.univ ∩ t).to_finset.card,
-  { intros t ht, apply congr_arg,
-    rw set.to_finset_inj, exact (set.univ_inter t).symm,  },
-  simp_rw finset.sum_congr rfl this,
-  simpa only [set.to_finset_univ, set.to_finset_card, fintype.card_of_finset]
-    using setoid.is_partition.card_set_eq_sum_parts (set.univ) hP,
 end
 
 end partition

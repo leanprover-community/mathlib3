@@ -92,6 +92,11 @@ begin
     refl, },
 end
 
+lemma pochhammer_succ_eval (n : ℕ) (k : S) :
+  (pochhammer S (n + 1)).eval k = (pochhammer S n).eval k * (k + n) :=
+by rw [pochhammer_succ_right, mul_add, eval_add, eval_mul_X, ← nat.cast_comm, ← C_eq_nat_cast,
+    eval_C_mul, nat.cast_comm, ← mul_add]
+
 lemma pochhammer_succ_comp_X_add_one (n : ℕ) :
   (pochhammer S (n + 1)).comp (X + 1) =
     pochhammer S (n + 1) + (n + 1) • (pochhammer S n).comp (X + 1) :=
@@ -142,16 +147,6 @@ begin
 end
 
 end semiring
-
-section comm_semiring
-variables {S : Type*} [comm_semiring S]
-
-lemma pochhammer_succ_eval (n : ℕ) (k : S) :
-  (pochhammer S n.succ).eval k = (pochhammer S n).eval k * (k + ↑n) :=
-by rw [pochhammer_succ_right, polynomial.eval_mul, polynomial.eval_add, polynomial.eval_X,
-    polynomial.eval_nat_cast]
-
-end comm_semiring
 
 section ordered_semiring
 variables {S : Type*} [ordered_semiring S] [nontrivial S]

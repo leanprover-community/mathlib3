@@ -92,6 +92,20 @@ begin
     refl, },
 end
 
+lemma pochhammer_succ_comp_X_add_one (n : ℕ) :
+  (pochhammer S (n + 1)).comp (X + 1) =
+    pochhammer S (n + 1) + (n + 1) • (pochhammer S n).comp (X + 1) :=
+begin
+  suffices : (pochhammer ℕ (n + 1)).comp (X + 1) =
+              pochhammer ℕ (n + 1) + (n + 1) * (pochhammer ℕ n).comp (X + 1),
+  { simpa [map_comp] using congr_arg (polynomial.map (nat.cast_ring_hom S)) this },
+  cases n,
+  { simp },
+  { nth_rewrite 1 pochhammer_succ_left,
+    rw [← add_mul, pochhammer_succ_right ℕ (n + 1), mul_comp, mul_comm, add_comp, X_comp,
+      nat_cast_comp, add_comm ↑(n + 1), ← add_assoc] }
+end
+
 lemma polynomial.mul_X_add_nat_cast_comp {p q : S[X]} {n : ℕ} :
   (p * (X + n)).comp q = (p.comp q) * (q + n) :=
 by rw [mul_add, add_comp, mul_X_comp, ←nat.cast_comm, nat_cast_mul_comp, nat.cast_comm, mul_add]

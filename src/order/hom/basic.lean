@@ -3,7 +3,7 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import data.equiv.option
+import logic.equiv.option
 import order.rel_iso
 import tactic.monotonicity.basic
 
@@ -352,6 +352,14 @@ subsingleton.elim _ _
   inv_fun := λ f, ⟨order_dual.of_dual ∘ f ∘ order_dual.to_dual, f.mono.dual⟩,
   left_inv := λ f, ext _ _ rfl,
   right_inv := λ f, ext _ _ rfl }
+
+@[simp] lemma dual_id : (order_hom.id : α →o α).dual = order_hom.id := rfl
+@[simp] lemma dual_comp (g : β →o γ) (f : α →o β) : (g.comp f).dual = g.dual.comp f.dual := rfl
+
+@[simp] lemma symm_dual_id : order_hom.dual.symm order_hom.id = (order_hom.id : α →o α) := rfl
+@[simp] lemma symm_dual_comp (g : order_dual β →o order_dual γ)
+  (f : order_dual α →o order_dual β) :
+  order_hom.dual.symm (g.comp f) = (order_hom.dual.symm g).comp (order_hom.dual.symm f) := rfl
 
 /-- `order_hom.dual` as an order isomorphism. -/
 def dual_iso (α β : Type*) [preorder α] [preorder β] :

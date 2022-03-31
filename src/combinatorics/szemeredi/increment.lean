@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import .chunk
-import .energy
+import combinatorics.simple_graph.regularity.energy
 
 /-!
 # Increment
@@ -12,13 +12,13 @@ import .energy
 
 universes u v
 
-open finset fintype simple_graph
+open finset fintype simple_graph szemeredi_regularity
 open_locale big_operators classical
 
 variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
   (G : simple_graph α) (ε : ℝ)
 
-local notation `m` := (card α/exp_bound P.parts.card : ℕ)
+local notation `m` := (card α/step_bound P.parts.card : ℕ)
 
 namespace finpartition
 
@@ -34,19 +34,18 @@ open finpartition finpartition.is_equipartition
 variables {hP G ε}
 
 lemma card_increment (hPα : P.parts.card * 16^P.parts.card ≤ card α) (hPG : ¬P.is_uniform G ε) :
-  (hP.increment G ε).parts.card = exp_bound P.parts.card :=
+  (hP.increment G ε).parts.card = step_bound P.parts.card :=
 begin
-  have hPα' : exp_bound P.parts.card ≤ card α :=
+  have hPα' : step_bound P.parts.card ≤ card α :=
     (nat.mul_le_mul_of_nonneg_left $ nat.pow_le_pow_of_le_left (by norm_num) _).trans hPα,
-  have hPpos : 0 < exp_bound P.parts.card :=
-    exp_bound_pos.2 (nonempty_of_not_uniform hPG).card_pos,
+  have hPpos : 0 < step_bound P.parts.card := step_bound_pos (nonempty_of_not_uniform hPG).card_pos,
   rw [is_equipartition, finset.equitable_on_iff] at hP,
   rw [increment, card_bind],
   simp_rw [finpartition.is_equipartition.chunk_increment, apply_dite finpartition.parts,
     apply_dite card],
   rw [sum_dite, sum_const_nat, sum_const_nat, card_attach, card_attach], rotate,
-  exact λ x hx, finpartition.equitabilise.parts_card (nat.div_pos hPα' hPpos) _,
-  exact λ x hx, finpartition.equitabilise.parts_card (nat.div_pos hPα' hPpos) _,
+  { exact λ x hx, finpartition.equitabilise.parts_card (nat.div_pos hPα' hPpos) _ },
+  { exact λ x hx, finpartition.equitabilise.parts_card (nat.div_pos hPα' hPpos) _ },
   rw [nat.sub_add_cancel a_add_one_le_four_pow_parts_card, nat.sub_add_cancel ((nat.le_succ _).trans
     a_add_one_le_four_pow_parts_card), ←add_mul],
   congr,
@@ -131,7 +130,7 @@ lemma uniform_add_nonuniform_eq_off_diag_pairs [nonempty α] (hε₁ : ε ≤ 1)
       ≤ ∑ x in P.parts.off_diag.attach, pair_contrib G ε hP x / (hP.increment G ε).parts.card ^ 2 :=
 begin
   conv_rhs
-  { rw [←sum_div, card_increment hPα hPG, exp_bound, ←nat.cast_pow, mul_pow, pow_right_comm,
+  { rw [←sum_div, card_increment hPα hPG, step_bound, ←nat.cast_pow, mul_pow, pow_right_comm,
       nat.cast_mul, mul_comm, ←div_div_eq_div_mul, (show 4^2 = 16, by norm_num), sum_div] },
   rw [←nat.cast_pow, nat.cast_pow 16],
   refine div_le_div_of_le_of_nonneg _ (nat.cast_nonneg _),
@@ -145,7 +144,7 @@ begin
       (G.edge_density x.1 x.2^2 - ε^5/25 + if G.is_uniform ε x.1 x.2 then 0 else ε^4/3),
   { convert sum_attach, refl },
   rw [this, sum_add_distrib, sum_sub_distrib, sum_const, nsmul_eq_mul, sum_ite, sum_const_zero,
-    zero_add, sum_const, nsmul_eq_mul, ←finpartition.non_uniform_pairs],
+    zero_add, sum_const, nsmul_eq_mul, ←finpartition.non_uniforms],
   rw finpartition.is_uniform at hPG,
   simp only [not_le] at hPG,
   apply le_trans _ (add_le_add_left (mul_le_mul_of_nonneg_right hPG.le _) _),

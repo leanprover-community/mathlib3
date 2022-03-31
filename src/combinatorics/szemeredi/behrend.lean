@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import .mathlib
-import analysis.inner_product_space.basic
 import analysis.inner_product_space.pi_L2
 import combinatorics.additive.salem_spencer
 import data.complex.exponential_bounds
-import data.nat.digits
 
 /-!
 # Behrend bound on Roth numbers

@@ -3,11 +3,11 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import analysis.special_functions.log
+import algebra.geom_sum
 import combinatorics.simple_graph.density
 import combinatorics.simple_graph.degree_sum
 import combinatorics.pigeonhole
-import order.partition.equipartition
+import data.real.basic
 
 /-! # Things that belong to mathlib -/
 
@@ -144,6 +144,16 @@ end
 
 end finset
 
+lemma annoying_thing {n k : ℕ} (hk : 0 < k) (hn : k ≤ n) : n < 2 * k * (n / k) :=
+begin
+  rw [mul_assoc, two_mul, ←add_lt_add_iff_right (n % k), add_right_comm, add_assoc,
+    nat.mod_add_div n k, add_comm, add_lt_add_iff_right],
+  apply (nat.mod_lt n hk).trans_le,
+  have : 1 ≤ n / k,
+  { rwa [nat.le_div_iff_mul_le _ _ hk, one_mul] },
+  simpa using nat.mul_le_mul_left k this,
+end
+
 lemma exists_ne_ne_fin {n : ℕ} (hn : 3 ≤ n) (a b : fin n) : ∃ c, a ≠ c ∧ b ≠ c :=
 begin
   obtain ⟨c, hc⟩ : ({a,b}ᶜ : finset (fin n)).nonempty,
@@ -164,9 +174,6 @@ variables [linear_ordered_field α] {x y z : α}
 
 lemma one_div_le_one_of_one_le {a : α} (ha : 1 ≤ a) : 1 / a ≤ 1 :=
 (div_le_one $ zero_lt_one.trans_le ha).2 ha
-
-lemma le_div_self (hx : 0 ≤ x) (hy₀ : 0 < y) (hy₁ : y ≤ 1) : x ≤ x / y :=
-by simpa using div_le_div_of_le_left hx hy₀ hy₁
 
 lemma mul_le_of_nonneg_of_le_div (hy : 0 ≤ y) (hz : 0 ≤ z) (h : x ≤ y / z) : x * z ≤ y :=
 begin
@@ -327,12 +334,3 @@ by simp_rw [card_interedges_finpartition_left P, card_interedges_finpartition_ri
   sum_product]
 
 end rel
-
-namespace finpartition
-variables [decidable_eq α] {s t : finset α} {P : finpartition s}
-
-lemma is_equipartition.card_parts_eq_average (hP : P.is_equipartition) (ht : t ∈ P.parts) :
-  t.card = s.card/P.parts.card ∨ t.card = s.card/P.parts.card + 1 :=
-P.is_equipartition_iff_card_parts_eq_average.1 hP _ ht
-
-end finpartition

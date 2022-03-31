@@ -3,7 +3,7 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
-import .bounds
+import combinatorics.simple_graph.regularity.bound
 import .finpartitions
 import .prereqs
 import .witness
@@ -12,20 +12,20 @@ import .witness
 # Chunk of `increment`
 -/
 
-open finpartition finset fintype rel
+open finpartition finset fintype rel szemeredi_regularity
 open_locale big_operators classical
 
 variables {α : Type*} [fintype α] {P : finpartition (univ : finset α)} (hP : P.is_equipartition)
   (G : simple_graph α) (ε : ℝ) {U : finset α} (hU : U ∈ P.parts) (V : finset α)
 
-local notation `m` := (card α/exp_bound P.parts.card : ℕ)
+local notation `m` := (card α/step_bound P.parts.card : ℕ)
 
 /-- The portion of `increment` that partitions `U`. -/
 noncomputable def finpartition.is_equipartition.chunk_increment :
   finpartition U :=
 dite (U.card = m * 4^P.parts.card + (card α/P.parts.card - m * 4^P.parts.card))
-  (λ hUcard, (atomise U (P.witnesses G ε U)).equitabilise $ card_aux₂ hUcard)
-  (λ hUcard, (atomise U (P.witnesses G ε U)).equitabilise $ card_aux₃ hP hU hUcard)
+  (λ hUcard, (atomise U (P.witnesses G ε U)).equitabilise $ card_aux₁ hUcard)
+  (λ hUcard, (atomise U (P.witnesses G ε U)).equitabilise $ card_aux₂ hP hU hUcard)
   -- hP and hU are used to get that U has size m * 4^P.parts.card + a or m * 4^P.parts.card + a + 1
 
 /-- The portion of `chunk_increment` that's contained in the witness of non uniformity of `U` and
@@ -78,14 +78,14 @@ begin
     { intros,
       refl } },
   refine le_trans _ this,
-  have : ∀ B ∈ (atomise U (P.witnesses G ε U)).parts,
+  suffices : ∀ B ∈ (atomise U (P.witnesses G ε U)).parts,
           (B \ ((hP.chunk_increment G ε hU).parts.filter (λ x, x ⊆ B)).bUnion id).card ≤ m,
-  { intros B hB,
-    rw [finpartition.is_equipartition.chunk_increment],
-    split_ifs with h₁,
-    { convert almost_in_atoms_of_mem_parts_equitabilise (card_aux₂ h₁) hB },
-    convert almost_in_atoms_of_mem_parts_equitabilise (card_aux₃ hP hU h₁) hB },
-  exact sum_le_sum (λ B hB, this B $ filter_subset _ _ hB),
+  { exact sum_le_sum (λ B hB, this B $ filter_subset _ _ hB) },
+  intros B hB,
+  rw [finpartition.is_equipartition.chunk_increment],
+  split_ifs with h₁,
+  { convert almost_in_atoms_of_mem_parts_equitabilise (card_aux₁ h₁) hB },
+  { convert almost_in_atoms_of_mem_parts_equitabilise (card_aux₂ hP hU h₁) hB }
 end
 
 lemma one_sub_eps_mul_card_witness_le_card_star (hV : V ∈ P.parts) (hUV : U ≠ V)

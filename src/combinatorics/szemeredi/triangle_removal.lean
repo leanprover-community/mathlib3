@@ -12,7 +12,7 @@ import .triangle_counting
 In this file, we prove the triangle removal lemma.
 -/
 
-open finset fintype
+open finset fintype szemeredi_regularity
 open_locale classical
 
 variables {α : Type*} [fintype α] {G : simple_graph α}
@@ -21,7 +21,7 @@ namespace simple_graph
 
 /-- An explicit form for the constant in the triangle removal lemma. -/
 noncomputable def triangle_removal_bound (ε : ℝ) : ℝ :=
-min (1 / (2 * ⌈4/ε⌉₊^3)) ((1 - ε/4) * (ε/(16 * szemeredi_bound (ε/8) ⌈4/ε⌉₊))^3)
+min (1 / (2 * ⌈4/ε⌉₊^3)) ((1 - ε/4) * (ε/(16 * bound (ε/8) ⌈4/ε⌉₊))^3)
 
 lemma triangle_removal_bound_pos {ε : ℝ} (hε : 0 < ε) (hε₁ : ε ≤ 1) :
   0 < triangle_removal_bound ε :=
@@ -31,9 +31,8 @@ begin
     refine mul_pos zero_lt_two (pow_pos _ _),
     rw [nat.cast_pos, nat.lt_ceil, nat.cast_zero],
     exact div_pos zero_lt_four hε },
-  { refine mul_pos (by linarith) (pow_pos (div_pos hε (mul_pos (by norm_num) _)) _),
-    rw nat.cast_pos,
-    exact (initial_bound_pos _ _).trans_le (initial_bound_le_szemeredi_bound _ _) }
+  { exact mul_pos (by linarith) (pow_pos (div_pos hε $ mul_pos (by norm_num) $ nat.cast_pos.2 $
+      bound_pos _ _) _) }
 end
 
 lemma triangle_removal_bound_mul_cube_lt {ε : ℝ} (hε : 0 < ε) :
@@ -48,20 +47,10 @@ begin
   exact div_pos zero_lt_four hε
 end
 
-lemma annoying_thing {n k : ℕ} (hk : 0 < k) (hn : k ≤ n) : n < 2 * k * (n / k) :=
-begin
-  rw [mul_assoc, two_mul, ←add_lt_add_iff_right (n % k), add_right_comm, add_assoc,
-    nat.mod_add_div n k, add_comm, add_lt_add_iff_right],
-  apply (nat.mod_lt n hk).trans_le,
-  have : 1 ≤ n / k,
-  { rwa [nat.le_div_iff_mul_le _ _ hk, one_mul] },
-  simpa using nat.mul_le_mul_left k this,
-end
-
 lemma card_bound [nonempty α] {ε : ℝ} {X : finset α} {P : finpartition (univ : finset α)}
-  (hP₁ : P.is_equipartition) (hP₃ : P.parts.card ≤ szemeredi_bound (ε / 8) ⌈4/ε⌉₊)
+  (hP₁ : P.is_equipartition) (hP₃ : P.parts.card ≤ bound (ε / 8) ⌈4/ε⌉₊)
   (hX : X ∈ P.parts) :
-  (card α : ℝ) / (2 * szemeredi_bound (ε / 8) ⌈4/ε⌉₊) ≤ X.card :=
+  (card α : ℝ) / (2 * bound (ε / 8) ⌈4/ε⌉₊) ≤ X.card :=
 begin
   refine le_trans _ (nat.cast_le.2 (hP₁.average_le_card_part hX)),
   rw div_le_iff',
@@ -70,16 +59,14 @@ begin
       P.card_parts_le_card).le.trans,
     apply nat.mul_le_mul_right,
     exact nat.mul_le_mul_left _ hP₃ },
-  refine mul_pos zero_lt_two _,
-  rw nat.cast_pos,
-  apply (initial_bound_pos _ _).trans_le (initial_bound_le_szemeredi_bound _ _)
+  refine mul_pos zero_lt_two (nat.cast_pos.2 $ bound_pos _ _),
 end
 
 lemma triangle_removal_aux [nonempty α] {ε : ℝ}
   (hε : 0 < ε) (hε₁ : ε ≤ 1)
   {P : finpartition univ}
   (hP₁ : P.is_equipartition)
-  (hP₃ : P.parts.card ≤ szemeredi_bound (ε / 8) ⌈4/ε⌉₊)
+  (hP₃ : P.parts.card ≤ bound (ε / 8) ⌈4/ε⌉₊)
   {t : finset α} (ht : t ∈ (G.reduced_graph ε P).triangle_finset) :
   triangle_removal_bound ε * ↑(card α) ^ 3 ≤ ↑(G.triangle_finset.card) :=
 begin
@@ -109,7 +96,7 @@ begin
   apply nat.cast_nonneg,
   rw [mul_assoc, ←mul_pow, div_mul_eq_mul_div, (show (16:ℝ) = 8 * 2, by norm_num), mul_assoc (8:ℝ),
     ←div_mul_div_comm₀, mul_pow, ←mul_assoc],
-  suffices : ((card α : ℝ) / (2 * szemeredi_bound (ε / 8) ⌈4 / ε⌉₊)) ^ 3 ≤ X.card * Y.card * Z.card,
+  suffices : ((card α : ℝ) / (2 * bound (ε / 8) ⌈4 / ε⌉₊)) ^ 3 ≤ X.card * Y.card * Z.card,
   { refine (mul_le_mul_of_nonneg_left this (mul_nonneg _ _)).trans _,
     { linarith },
     { apply pow_nonneg,

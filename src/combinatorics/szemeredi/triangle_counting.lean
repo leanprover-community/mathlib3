@@ -3,8 +3,10 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
+import .mathlib
 import .triangle
-import .uniform
+import combinatorics.simple_graph.regularity.uniform
+import order.partition.equipartition
 
 /-!
 # Triangle counting lemma
@@ -277,7 +279,7 @@ end
 lemma reduced_double_edges {ε : ℝ} {P : finpartition univ} :
   univ.filter (λ (xy : α × α), G.adj xy.1 xy.2) \
     univ.filter (λ (xy : α × α), (reduced_graph G ε P).adj xy.1 xy.2) ⊆
-      (P.non_uniform_pairs G (ε/8)).bUnion (λ UV, UV.1.product UV.2) ∪
+      (P.non_uniforms G (ε/8)).bUnion (λ UV, UV.1.product UV.2) ∪
         P.parts.bUnion (λ U, U.off_diag) ∪
           (P.parts.off_diag.filter (λ (UV : _ × _), ↑(G.edge_density UV.1 UV.2) < ε/4)).bUnion
             (λ UV, (UV.1.product UV.2).filter (λ xy, G.adj xy.1 xy.2)) :=
@@ -285,7 +287,7 @@ begin
   rintro ⟨x, y⟩,
   simp only [mem_sdiff, mem_filter, mem_univ, true_and, reduced_graph_adj, not_and, not_exists,
     not_le, mem_bUnion, mem_union, exists_prop, mem_product, prod.exists, mem_off_diag, and_imp,
-    or.assoc, and.assoc, P.mem_non_uniform_pairs],
+    or.assoc, and.assoc, P.mk_mem_non_uniforms_iff],
   intros h h',
   replace h' := h' h,
   obtain ⟨U, hU, hx⟩ := P.exists_mem (mem_univ x),
@@ -299,8 +301,8 @@ end
 
 -- We will break up the sum more later
 lemma non_uniform_killed_card {ε : ℝ} {P : finpartition univ} :
-  (((P.non_uniform_pairs G ε).bUnion (λ UV, UV.1.product UV.2)).card : ℝ) ≤
-    (∑ i in P.non_uniform_pairs G ε, i.1.card * i.2.card : ℝ) :=
+  (((P.non_uniforms G ε).bUnion (λ UV, UV.1.product UV.2)).card : ℝ) ≤
+    (∑ i in P.non_uniforms G ε, i.1.card * i.2.card : ℝ) :=
 begin
   norm_cast,
   simp_rw ←card_product,
@@ -355,7 +357,7 @@ begin
   apply mul_le_mul_of_nonneg_left _ hε,
   refine (sum_le_card_nsmul P.parts.off_diag (λ i, (i.1.card * i.2.card : ℝ))
     ((card α / P.parts.card + 1)^2 : ℕ) _).trans _,
-  { simp only [prod.forall, finpartition.mem_non_uniform_pairs, and_imp, mem_off_diag],
+  { simp only [prod.forall, finpartition.mk_mem_non_uniforms_iff, and_imp, mem_off_diag],
     rintro U V hU hV -,
     rw [sq, ←nat.cast_mul, nat.cast_le],
     exact nat.mul_le_mul (hP.card_part_le_average_add_one hU)
@@ -382,11 +384,11 @@ end
 
 lemma sum_irreg_pairs_le_of_uniform [nonempty α] {ε : ℝ} (hε : 0 < ε) (P : finpartition univ)
   (hP : P.is_equipartition) (hG : P.is_uniform G ε) :
-  (∑ i in P.non_uniform_pairs G ε, i.1.card * i.2.card : ℝ) < ε * (card α + P.parts.card)^2 :=
+  (∑ i in P.non_uniforms G ε, i.1.card * i.2.card : ℝ) < ε * (card α + P.parts.card)^2 :=
 begin
-  refine (sum_le_card_nsmul (P.non_uniform_pairs G ε) (λ i, (i.1.card * i.2.card : ℝ))
+  refine (sum_le_card_nsmul (P.non_uniforms G ε) (λ i, (i.1.card * i.2.card : ℝ))
     ((card α / P.parts.card + 1)^2 : ℕ) _).trans_lt _,
-  { simp only [prod.forall, finpartition.mem_non_uniform_pairs, and_imp],
+  { simp only [prod.forall, finpartition.mk_mem_non_uniforms_iff, and_imp],
     rintro U V hU hV hUV -,
     rw [sq, ←nat.cast_mul, nat.cast_le],
     exact nat.mul_le_mul (hP.card_part_le_average_add_one hU)
@@ -402,7 +404,7 @@ end
 
 lemma sum_irreg_pairs_le_of_uniform' [nonempty α] {ε : ℝ} (hε : 0 < ε) (P : finpartition univ)
   (hP : P.is_equipartition) (hG : P.is_uniform G ε) :
-  (((P.non_uniform_pairs G ε).bUnion (λ UV, UV.1.product UV.2)).card : ℝ) < 4 * ε * (card α)^2 :=
+  (((P.non_uniforms G ε).bUnion (λ UV, UV.1.product UV.2)).card : ℝ) < 4 * ε * (card α)^2 :=
 begin
   apply non_uniform_killed_card.trans_lt,
   apply (sum_irreg_pairs_le_of_uniform hε P hP hG).trans_le,

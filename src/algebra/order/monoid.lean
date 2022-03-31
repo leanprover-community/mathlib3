@@ -255,6 +255,14 @@ begin
     apply lt_of_mul_lt_mul_left' h }
 end
 
+@[simp] lemma le_max_iff [linear_order α] {a b c : α} :
+  (a : with_zero α) ≤ max b c ↔ a ≤ max b c :=
+by simp only [with_zero.coe_le_coe, le_max_iff]
+
+@[simp] lemma min_le_iff [linear_order α] {a b c : α} :
+   min (a : with_zero α) b ≤ c ↔ min a b ≤ c :=
+by simp only [with_zero.coe_le_coe, min_le_iff]
+
 instance [ordered_comm_monoid α] : ordered_comm_monoid (with_zero α) :=
 { mul_le_mul_left := with_zero.mul_le_mul_left,
   ..with_zero.comm_monoid_with_zero,

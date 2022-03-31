@@ -24,10 +24,10 @@ variables {C : Type u} [category.{v} C] {J : Type v} [small_category J]
 namespace Top
 
 instance [has_limits C] (X : Top) : has_limits (presheaf C X) :=
-by { dsimp [presheaf], apply_instance, }
+limits.functor_category_has_limits_of_size
 
 instance [has_colimits C] (X : Top) : has_colimits (presheaf C X) :=
-by { dsimp [presheaf], apply_instance, }
+limits.functor_category_has_colimits_of_size
 
 instance [has_limits C] (X : Top) : creates_limits (sheaf.forget C X) :=
 (@@creates_limits_of_nat_iso _ _

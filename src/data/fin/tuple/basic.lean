@@ -78,24 +78,19 @@ begin
       rw [update_noteq h', update_noteq this, cons_succ] } }
 end
 
-/-- As a map from the first element to a concatenation function, `fin.cons` is injective. -/
+/-- As a binary function, `fin.cons` is injective. -/
 lemma cons_injective2 : function.injective2 (@cons n α) :=
 λ x₀ y₀ x y h, ⟨congr_fun h 0, funext $ λ i, by simpa using congr_fun h (fin.succ i)⟩
 
 @[simp] lemma cons_eq_cons {x₀ y₀ : α 0} {x y : Π i : fin n, α (i.succ)} :
   cons x₀ x = cons y₀ y ↔ x₀ = y₀ ∧ x = y :=
-function.funext_iff.trans
-  ⟨λ h, ⟨h 0, funext $ λ i, by simpa using h (fin.succ i)⟩,  λ h, h.1 ▸ h.2 ▸ λ _, rfl⟩
-
-/-- As a map from the first element to a concatenation function, `fin.cons` is injective. -/
-lemma cons_injective [∀ i, nonempty (α i)] : function.injective (@cons n α) :=
-λ x₀ y₀ h, congr_fun (congr_fun h $ λ j, nonempty.some $ by apply_instance) 0
+cons_injective2.eq_iff
 
 lemma cons_left_injective (x : Π i : fin n, α (i.succ)) : function.injective (λ x₀, cons x₀ x) :=
-λ x y h, congr_fun h 0
+cons_injective2.left _
 
 lemma cons_right_injective (x₀ : α 0) : function.injective (cons x₀) :=
-λ x y h, by simpa only [tail_cons] using congr_arg fin.tail h
+cons_injective2.right _
 
 /-- Adding an element at the beginning of a tuple and then updating it amounts to adding it
 directly. -/
@@ -122,9 +117,13 @@ begin
 end
 
 @[elab_as_eliminator]
-lemma cons_induction {P : (Π i : fin n.succ, α i) → Sort*}
+def cons_induction {P : (Π i : fin n.succ, α i) → Sort*}
   (h : ∀ x₀ x, P (fin.cons x₀ x)) (x : (Π i : fin n.succ, α i)) : P x :=
 cons_self_tail x ▸ h (x 0) (tail x)
+
+@[simp] lemma cons_induction_cons {P : (Π i : fin n.succ, α i) → Sort*}
+  (h : Π x₀ x, P (fin.cons x₀ x)) (x₀ : α 0) (x : Π i : fin n, α i.succ) :
+  @cons_induction n α P h (cons x₀ x) = h x₀ x := rfl
 
 /-- Updating the first element of a tuple does not change the tail. -/
 @[simp] lemma tail_update_zero : tail (update q 0 z) = tail q :=

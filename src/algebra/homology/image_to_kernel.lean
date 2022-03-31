@@ -166,7 +166,7 @@ def homology.desc {D : V} (k : (kernel_subobject g : V) ⟶ D) (p : image_to_ker
   homology f g w ⟶ D :=
 cokernel.desc _ k p
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma homology.π_desc
   {D : V} (k : (kernel_subobject g : V) ⟶ D) (p : image_to_kernel f g w ≫ k = 0) :
   homology.π f g w ≫ homology.desc f g w k p = k :=
@@ -227,12 +227,12 @@ cokernel.desc _ (kernel_subobject_map β ≫ cokernel.π _)
     simp only [cokernel.condition, comp_zero],
   end
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma homology.π_map (p : α.right = β.left) :
   homology.π f g w ≫ homology.map w w' α β p = kernel_subobject_map β ≫ homology.π f' g' w' :=
 by simp only [homology.π, homology.map, cokernel.π_desc]
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma homology.map_desc (p : α.right = β.left)
   {D : V} (k : (kernel_subobject g' : V) ⟶ D) (z : image_to_kernel f' g' w' ≫ k = 0) :
   homology.map w w' α β p ≫ homology.desc f' g' w' k z =

@@ -117,13 +117,22 @@ begin
 end
 
 @[elab_as_eliminator]
-def cons_induction {P : (Π i : fin n.succ, α i) → Sort*}
+def cons_induction {P : (Π i : fin n.succ, α i) → Sort v}
   (h : ∀ x₀ x, P (fin.cons x₀ x)) (x : (Π i : fin n.succ, α i)) : P x :=
-cons_self_tail x ▸ h (x 0) (tail x)
+_root_.cast (by rw cons_self_tail) $ h (x 0) (tail x)
 
-@[simp] lemma cons_induction_cons {P : (Π i : fin n.succ, α i) → Sort*}
+@[simp] lemma cons_induction_cons {P : (Π i : fin n.succ, α i) → Sort v}
   (h : Π x₀ x, P (fin.cons x₀ x)) (x₀ : α 0) (x : Π i : fin n, α i.succ) :
-  @cons_induction n α P h (cons x₀ x) = h x₀ x := rfl
+  @cons_induction _ _ _ h (cons x₀ x) = h x₀ x :=
+begin
+  suffices : ∀ y (hy : y = cons x₀ x), _root_.cast (by rw hy) (@cons_induction _ _ _ h y) = h x₀ x,
+  { convert this _ rfl },
+  rintro y rfl,
+  dunfold cons_induction,
+  simp_rw [cast_cast, cast_eq],
+  congr,
+  rw tail_cons,
+end
 
 /-- Updating the first element of a tuple does not change the tail. -/
 @[simp] lemma tail_update_zero : tail (update q 0 z) = tail q :=

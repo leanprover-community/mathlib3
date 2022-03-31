@@ -257,6 +257,6 @@ end field
 begin
   convert (alg_hom.card_of_power_basis (field.power_basis_of_finite_of_separable F E)
     (is_separable.separable _ _) (is_alg_closed.splits_codomain _)).trans
-  (power_basis.finrank _).symm,
+    (power_basis.finrank _).symm,
   apply_instance,
 end

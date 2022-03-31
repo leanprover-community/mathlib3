@@ -156,7 +156,7 @@ end
 /--
 Second case of the inductive step: assuming that
 `∃ (s : finset ι), s ≠ univ → s.card = (s.bUnion t).card`
-and that the statement of Hall's Marriage Theorem is true for all
+and that the statement of **Hall's Marriage Theorem** is true for all
 `ι'` of cardinality ≤ `n`, then it is true for `ι` of cardinality `n + 1`.
 -/
 lemma hall_hard_inductive_step_B {n : ℕ} (hn : fintype.card ι = n + 1)
@@ -212,9 +212,8 @@ begin
 end
 
 /--
-Here we combine the base case and the inductive step into
-a full strong induction proof, thus completing the proof
-of the second direction.
+Here we combine the two inductive steps into a full strong induction proof,
+completing the proof the harder direction of **Hall's Marriage Theorem**.
 -/
 theorem hall_hard_inductive
   (ht : ∀ (s : finset ι), s.card ≤ (s.bUnion t).card) :

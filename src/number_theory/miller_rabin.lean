@@ -235,7 +235,7 @@ begin
     rw ← order_of_dvd_iff_pow_eq_one at euler h2 ⊢,
     have order_gcd := nat.dvd_gcd euler h2,
     have gcd_eq : (p ^ (α - 1) * (p - 1)).gcd (p ^ α - 1) = p - 1,
-    { apply nat.gcd_mul_of_dvd_coprime,
+    { apply nat.gcd_mul_of_coprime_of_dvd,
       {exact sub_one_dvd_pow_sub_one p α one_le_p,},
       { -- p is relatively prime to p^α - 1
         apply nat.coprime.pow_left,

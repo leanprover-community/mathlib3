@@ -308,4 +308,3 @@ lemma add_subgroup_is_internal.to_add_submonoid
 iff.rfl
 
 end direct_sum
-#lint

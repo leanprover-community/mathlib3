@@ -291,7 +291,7 @@ end lax_monoidal_functor
 
 namespace lax_monoidal_functor
 universes v₀ u₀
-variables (B : Type u₀) [category.{v₀} B] [monoidal_category.{v₀} B]
+variables {B : Type u₀} [category.{v₀} B] [monoidal_category.{v₀} B]
 variables (F : lax_monoidal_functor.{v₀ v₁} B C) (G : lax_monoidal_functor.{v₂ v₃} D E)
 
 /-- The cartesian product of two lax monoidal functors is lax monoidal. -/
@@ -335,6 +335,19 @@ def comp : monoidal_functor.{v₁ v₃} C E :=
   .. (F.to_lax_monoidal_functor).comp (G.to_lax_monoidal_functor) }.
 
 infixr ` ⊗⋙ `:80 := comp -- We overload notation; potentially dangerous, but it seems to work.
+
+end monoidal_functor
+
+namespace monoidal_functor
+universes v₀ u₀
+variables {B : Type u₀} [category.{v₀} B] [monoidal_category.{v₀} B]
+variables (F : monoidal_functor.{v₀ v₁} B C) (G : monoidal_functor.{v₂ v₃} D E)
+
+/-- The cartesian product of two monoidal functors is monoidal. -/
+def prod : monoidal_functor (B × D) (C × E) :=
+{ ε_is_iso := (is_iso_prod_iff C E).mpr ⟨ε_is_iso F, ε_is_iso G⟩,
+  μ_is_iso := λ X Y, (is_iso_prod_iff C E).mpr ⟨μ_is_iso F X.1 Y.1, μ_is_iso G X.2 Y.2⟩,
+  .. (F.to_lax_monoidal_functor).prod (G.to_lax_monoidal_functor) }
 
 end monoidal_functor
 

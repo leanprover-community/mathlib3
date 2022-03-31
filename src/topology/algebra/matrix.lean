@@ -111,14 +111,14 @@ lemma continuous.matrix_mul_vec [non_unital_non_assoc_semiring R] [has_continuou
   [has_continuous_mul R] [fintype n]
   {A : X → matrix m n R} {B : X → n → R} (hA : continuous A) (hB : continuous B) :
   continuous (λ x, (A x).mul_vec (B x)) :=
-continuous_pi $ λ i, ((continuous_apply i).comp hA).matrix_dot_product  hB
+continuous_pi $ λ i, ((continuous_apply i).comp hA).matrix_dot_product hB
 
 @[continuity]
 lemma continuous.matrix_vec_mul [non_unital_non_assoc_semiring R] [has_continuous_add R]
   [has_continuous_mul R] [fintype m]
   {A : X → m → R} {B : X → matrix m n R} (hA : continuous A) (hB : continuous B) :
   continuous (λ x, vec_mul (A x) (B x)) :=
-continuous_pi $ λ i, hA.matrix_dot_product $ continuous_pi $ λ j, (hB.matrix_elem _ _)
+continuous_pi $ λ i, hA.matrix_dot_product $ continuous_pi $ λ j, hB.matrix_elem _ _
 
 @[continuity]
 lemma continuous.matrix_minor {A : X → matrix l n R} (hA : continuous A) (e₁ : m → l) (e₂ : p → n) :

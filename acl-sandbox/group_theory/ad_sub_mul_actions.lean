@@ -1,8 +1,8 @@
 import group_theory.group_action.sub_mul_action
 import tactic
 
-import .mathlib
-import .pairs
+-- import .mathlib
+-- import .pairs
 
 open_locale pointwise
 
@@ -55,6 +55,7 @@ open_locale pointwise
 section scalar
 variables {G : Type*} {X : Type*} [has_scalar G X]
 
+/- Remove subpairs
 /-- If G acts on X, explicit action on subpairs of X -/
 @[simp]
 def has_scalar.subpair_apply (g : G) (x y : X) :
@@ -63,6 +64,7 @@ begin
   change (λ w, g • w) '' {x, y} = {g • x, g • y},
   rw set.image_pair,
 end
+-/
 
 /-- If G acts on X, then G acts on lists of X -/
 instance : has_scalar G (list X) := { smul := λ g s, list.map (λ x, g • x) s }
@@ -231,6 +233,7 @@ set_like.eta : ∀ (x : ↥?M_4) (hx : ↑x ∈ ?M_4), ⟨↑x, hx⟩ = x
 
 variables (G X)
 
+/- Remomve pairs
 /-- If a *group* G acts on X, it acts on pairs of X -/
 def action_on_pairs_of : sub_mul_action G (set X) :=
 { carrier := pair.pairs_of X,
@@ -240,16 +243,12 @@ def action_on_pairs_of : sub_mul_action G (set X) :=
     rw ← subtype.coe_mk s hs,
     apply pair.map  (mul_action.injective g),
   end }
+-/
 
 /-- If a *group* G acts on X, it acts on nodup_list of X -/
 def mul_action.nodup_list_of : sub_mul_action G (list X) :=
 { carrier := { l : list X | l.nodup },
-  smul_mem' := λ g b hb,
-begin
-  apply list.nodup_map _ hb,
-  exact mul_action.injective g,
-end
-}
+  smul_mem' := λ g b hb, list.nodup.map (mul_action.injective g) hb }
 
 def mul_action.nodup_list_of.has_coe :
   has_coe (mul_action.nodup_list_of G X) (list X) :=
@@ -290,8 +289,6 @@ begin
   exact hx
 end
 
-#check sub_mul_action.mem_carrier
-
 end group
 
 end mul_action
@@ -300,7 +297,7 @@ end Actions_on_subsets
 
 variables (G : Type*) [group G] (X : Type*) [decidable_eq X] [mul_action G X]
 
-lemma test (s : finset X) (g : G) : g • (s : set X) = (g • s : set X) := rfl
+-- lemma test (s : finset X) (g : G) : g • (s : set X) = (g • s : set X) := rfl
 
 
 -- At least one of the next two lemmas is redundant

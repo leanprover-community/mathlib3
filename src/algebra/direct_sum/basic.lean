@@ -193,6 +193,18 @@ protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique 
   right_inv := λ x, to_add_monoid_of _ _ _,
   ..direct_sum.to_add_monoid (λ _, add_monoid_hom.id M) }
 
+section option
+include dec_ι
+variables {α : option ι → Type w} [Π i, add_comm_monoid (α i)] [Π i (x : α i), decidable (x ≠ 0)]
+
+@[simps] noncomputable def add_equiv_prod_direct_sum : (⨁ i, α i) ≃+ α none × ⨁ i, α (some i) :=
+{ map_add' := λ f g, begin
+    simp only [equiv.to_fun_as_coe, dfinsupp.equiv_prod_dfinsupp_apply, add_apply, prod.mk_add_mk,
+      prod.mk.inj_iff, eq_self_iff_true, true_and],
+    { ext i, simp only [dfinsupp.remove_none_apply, add_apply] }
+  end, ..dfinsupp.equiv_prod_dfinsupp }
+end option
+
 section sigma
 variables {α : ι → Type u} {δ : (Σ i, α i) → Type w} [Π i, add_comm_monoid (δ i)]
 variables [decidable_eq ι] [Π i, decidable_eq (α i)] [Π i (x : δ i), decidable (x ≠ 0)]

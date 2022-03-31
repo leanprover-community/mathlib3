@@ -76,29 +76,23 @@ noncomputable def curry_equiv : (Π₀ i, δ i) ≃ Π₀ i j, δ ⟨i, j⟩ := 
 
 end curry
 
-variables {α : Type v} [has_zero α] [Π x : α, decidable (x ≠ 0)]
-example : option ι ≃ Σ b : bool, cond b ι punit :=
-(equiv.option_equiv_sum_punit ι).trans (equiv.sum_equiv_sigma_bool.{u} ι punit)
+variables {α : option ι → Type v} [Π i, has_zero (α i)] [Π i (x : α i), decidable (x ≠ 0)]
 
-instance : Π i, has_zero (option.rec α β i) := λ i, option.rec infer_instance infer_instance i
-instance : Π i (x : (option.rec α β i : Type v)), decidable (x ≠ 0) :=
-λ i, option.rec infer_instance infer_instance i
-
-noncomputable def remove_none (f : Π₀ i, option.rec α β i) : Π₀ i, β i :=
+noncomputable def remove_none (f : Π₀ i, α i) : Π₀ i, α (some i) :=
 mk (f.support.preimage some $ (option.some_injective _).inj_on _) $ λ i, f $ some i
-@[simp] lemma remove_none_apply (f : Π₀ i, option.rec α β i) (i : ι) :
-remove_none f i = f (some i) :=
+@[simp] lemma remove_none_apply (f : Π₀ i, α i) (i : ι) : remove_none f i = f (some i) :=
 begin
   by_cases h : f (some i) = 0,
   { rw h, apply mk_of_not_mem, rw [mem_preimage, mem_support_to_fun, not_ne_iff, h] },
   { apply mk_of_mem, rw [mem_preimage, mem_support_to_fun], exact h }
 end
 
-def extend_with (f : Π₀ i, β i) (a : α) : Π₀ i, option.rec α β i :=
+def extend_with (f : Π₀ i, α (some i)) (a : α none) : Π₀ i, α i :=
 mk (insert none $ f.support.image some) $ λ i, option.rec a f (i : option ι)
-@[simp] lemma extend_with_none (f : Π₀ i, β i) (a : α) : f.extend_with a none = a :=
+@[simp] lemma extend_with_none (f : Π₀ i, α (some i)) (a : α none) : f.extend_with a none = a :=
 mk_of_mem $ mem_insert_self _ _
-@[simp] lemma extend_with_some (f : Π₀ i, β i) (a : α) (i : ι) : f.extend_with a (some i) = f i :=
+@[simp] lemma extend_with_some (f : Π₀ i, α (some i)) (a : α none) (i : ι) :
+f.extend_with a (some i) = f i :=
 begin
   by_cases h : f i = 0,
   { rw h, apply mk_of_not_mem, simp only [mem_insert, mem_image, mem_support_to_fun, exists_prop,
@@ -106,7 +100,7 @@ begin
   { exact (mk_of_mem $ mem_insert_of_mem $ mem_image_of_mem _ $ (mem_support_to_fun _ _).mpr h) }
 end
 
-@[simps] noncomputable def equiv_prod_dfinsupp : (Π₀ i, option.rec α β i) ≃ α × Π₀ i, β i :=
+@[simps] noncomputable def equiv_prod_dfinsupp : (Π₀ i, α i) ≃ α none × Π₀ i, α (some i) :=
 ⟨λ f, (f none, f.remove_none), λ f, f.2.extend_with f.1,
 λ f, begin ext i, cases i with i,
   { rw extend_with_none }, { rw [extend_with_some, remove_none_apply] } end,

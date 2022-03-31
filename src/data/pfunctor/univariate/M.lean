@@ -4,14 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
 import data.pfunctor.univariate.basic
-import meta.coinductive_predicates
 
 /-!
 # M-types
 
 M types are potentially infinite tree-like structures. They are defined
 as the greatest fixpoint of a polynomial functor.
-
 -/
 
 universes u v w
@@ -33,7 +31,7 @@ inductive cofix_a : ℕ → Type u
 /-- default inhabitant of `cofix_a` -/
 protected def cofix_a.default [inhabited F.A] : Π n, cofix_a F n
 | 0 := cofix_a.continue
-| (succ n) := cofix_a.intro (default _) $ λ _, cofix_a.default n
+| (succ n) := cofix_a.intro default $ λ _, cofix_a.default n
 
 instance [inhabited F.A] {n} : inhabited (cofix_a F n) := ⟨ cofix_a.default F n ⟩
 
@@ -57,8 +55,8 @@ lemma approx_eta  {n : ℕ} (x : cofix_a F (n+1)) :
   x = cofix_a.intro (head' x) (children' x) :=
 by cases x; refl
 
-/-- Relation between two approximations of the cofix of a pfunctor that state they both contain the same
-data until one of them is truncated -/
+/-- Relation between two approximations of the cofix of a pfunctor
+that state they both contain the same data until one of them is truncated -/
 inductive agree : ∀ {n : ℕ}, cofix_a F n → cofix_a F (n+1) → Prop
  | continue (x : cofix_a F 0) (y : cofix_a F 1) : agree x y
  | intro {n} {a} (x : F.B a → cofix_a F n) (x' : F.B a → cofix_a F (n+1)) :
@@ -81,8 +79,8 @@ lemma agree_children {n : ℕ} (x : cofix_a F (succ n)) (y : cofix_a F (succ n+1
     {i j} (h₀ : i == j) (h₁ : agree x y) :
   agree (children' x i) (children' y j) :=
 begin
-  cases h₁, cases h₀,
-  apply h₁_a_1,
+  cases h₁ with _ _ _ _ _ _ hagree, cases h₀,
+  apply hagree,
 end
 
 /-- `truncate a` turns `a` into a more limited approximation -/
@@ -147,10 +145,10 @@ begin
     rw [h₀,h₂] at H,
     apply n_ih (truncate ∘ f₀),
     rw h₂,
-    cases H,
+    cases H with _ _ _ _ _ _ hagree,
     congr, funext j, dsimp only [comp_app],
     rw truncate_eq_of_agree,
-    apply H_a_1 }
+    apply hagree }
 end
 
 end approx
@@ -166,12 +164,13 @@ structure M_intl :=
 /-- For polynomial functor `F`, `M F` is its final coalgebra -/
 def M := M_intl F
 
-lemma M.default_consistent [inhabited F.A] : Π n, agree (default (cofix_a F n)) (default (cofix_a F (succ n)))
+lemma M.default_consistent [inhabited F.A] :
+  Π n, agree (default : cofix_a F n) default
 | 0 := agree.continue _ _
 | (succ n) := agree.intro _ _ $ λ _, M.default_consistent n
 
 instance M.inhabited [inhabited F.A] : inhabited (M F) :=
-⟨ { approx := λ n, default _,
+⟨ { approx := λ n, default,
     consistent := M.default_consistent _ } ⟩
 
 instance M_intl.inhabited [inhabited F.A] : inhabited (M_intl F) :=
@@ -179,12 +178,8 @@ show inhabited (M F), by apply_instance
 
 namespace M
 
-lemma ext' (x y : M F) (H : ∀ i : ℕ, x.approx i = y.approx i) :
-  x = y :=
-begin
-  cases x, cases y,
-  congr, ext, apply H,
-end
+lemma ext' (x y : M F) (H : ∀ i : ℕ, x.approx i = y.approx i) : x = y :=
+by { cases x, cases y, congr' with n, apply H }
 
 variables {X : Type*}
 variables (f : X → F.obj X)
@@ -222,7 +217,7 @@ def children (x : M F) (i : F.B (head x)) : M F :=
 def ichildren [inhabited (M F)] [decidable_eq F.A] (i : F.Idx) (x : M F) : M F :=
 if H' : i.1 = head x
   then children x (cast (congr_arg _ $ by simp only [head,H']; refl) i.2)
-  else default _
+  else default
 
 lemma head_succ (n m : ℕ) (x : M F) :
   head' (x.approx (succ n)) = head' (x.approx (succ m)) :=
@@ -280,9 +275,9 @@ lemma dest_mk (x : F.obj $ M F) :
 begin
   funext i,
   dsimp only [M.mk,dest],
-  cases x with x ch, congr, ext i,
+  cases x with x ch, congr' with i,
   cases h : ch i,
-  simp  only [children,M.approx.s_mk,children',cast_eq],
+  simp only [children,M.approx.s_mk,children',cast_eq],
   dsimp only [M.approx.s_mk,children'],
   congr, rw h,
 end
@@ -344,17 +339,17 @@ begin
   { induction n generalizing x y, constructor,
     { induction x using pfunctor.M.cases_on',
       induction y using pfunctor.M.cases_on',
-      simp only [approx_mk] at h, cases h,
+      simp only [approx_mk] at h, cases h with _ _ _ _ _ _ hagree,
       constructor; try { refl },
-      intro i, apply n_ih, apply h_a_1 } },
+      intro i, apply n_ih, apply hagree } },
   { induction n generalizing x y, constructor,
     { cases h,
       induction x using pfunctor.M.cases_on',
       induction y using pfunctor.M.cases_on',
       simp only [approx_mk],
-      replace h_a_1 := mk_inj h_a_1, cases h_a_1,
-      replace h_a_2 := mk_inj h_a_2, cases h_a_2,
-      constructor, intro i, apply n_ih, apply h_a_3 } },
+      have h_a_1 := mk_inj ‹M.mk ⟨x_a, x_f⟩ = M.mk ⟨h_a, h_x⟩›, cases h_a_1,
+      replace h_a_2 := mk_inj ‹M.mk ⟨y_a, y_f⟩ = M.mk ⟨h_a, h_y⟩›, cases h_a_2,
+      constructor, intro i, apply n_ih, simp * } },
 end
 
 @[simp]
@@ -364,12 +359,10 @@ begin
   dsimp only [M.mk,pfunctor.M.cases,dest,head,approx.s_mk,head'],
   cases x, dsimp only [approx.s_mk],
   apply eq_of_heq,
-  apply rec_heq_of_heq, congr,
-  ext, dsimp only [children,approx.s_mk,children'],
+  apply rec_heq_of_heq, congr' with x,
+  dsimp only [children,approx.s_mk,children'],
   cases h : x_snd x, dsimp only [head],
-  congr, ext,
-  change (x_snd (x)).approx x_1 = _,
-  rw h
+  congr' with n, change (x_snd (x)).approx n = _, rw h
 end
 
 @[simp]
@@ -378,12 +371,13 @@ lemma cases_on_mk {r : M F → Sort*} (x : F.obj $ M F) (f : Π x : F.obj $ M F,
 cases_mk x f
 
 @[simp]
-lemma cases_on_mk' {r : M F → Sort*} {a} (x : F.B a → M F) (f : Π a (f : F.B a → M F), r (M.mk ⟨a,f⟩)) :
+lemma cases_on_mk'
+  {r : M F → Sort*} {a} (x : F.B a → M F) (f : Π a (f : F.B a → M F), r (M.mk ⟨a,f⟩)) :
   pfunctor.M.cases_on' (M.mk ⟨a,x⟩) f = f a x :=
 cases_mk ⟨_,x⟩ _
 
 /-- `is_path p x` tells us if `p` is a valid path through `x` -/
-inductive is_path  : path F → M F → Prop
+inductive is_path : path F → M F → Prop
 | nil (x : M F) : is_path [] x
 | cons (xs : path F) {a} (x : M F) (f : F.B a → M F) (i : F.B a) :
   x = M.mk ⟨a,f⟩ →
@@ -396,7 +390,7 @@ lemma is_path_cons {xs : path F} {a a'} {f : F.B a → M F} {i : F.B a'}
 begin
   revert h, generalize h : (M.mk ⟨a,f⟩) = x,
   intros h', cases h', subst x,
-  cases mk_inj h'_a_1, refl,
+  cases mk_inj ‹_›, refl,
 end
 
 lemma is_path_cons' {xs : path F} {a} {f : F.B a → M F} {i : F.B a}
@@ -405,7 +399,8 @@ lemma is_path_cons' {xs : path F} {a} {f : F.B a → M F} {i : F.B a}
 begin
   revert h, generalize h : (M.mk ⟨a,f⟩) = x,
   intros h', cases h', subst x,
-  cases mk_inj h'_a_1, exact h'_a_2,
+  have := mk_inj ‹_›, cases this, cases this,
+  assumption,
 end
 
 /-- follow a path through a value of `M F` and return the subtree
@@ -416,7 +411,7 @@ def isubtree [decidable_eq F.A] [inhabited (M F)] : path F → M F → M F
 | (⟨a, i⟩ :: ps) x :=
 pfunctor.M.cases_on' x (λ a' f,
 (if h : a = a' then isubtree ps (f $ cast (by rw h) i)
- else default (M F) : (λ x, M F) (M.mk ⟨a',f⟩)))
+ else default : (λ x, M F) (M.mk ⟨a',f⟩)))
 
 /-- similar to `isubtree` but returns the data at the end of the path instead
 of the whole subtree -/
@@ -425,7 +420,7 @@ def iselect [decidable_eq F.A] [inhabited (M F)] (ps : path F) : M F → F.A :=
 
 lemma iselect_eq_default [decidable_eq F.A] [inhabited (M F)] (ps : path F) (x : M F)
   (h : ¬ is_path ps x) :
-  iselect ps x = head (default $ M F) :=
+  iselect ps x = head default :=
 begin
   induction ps generalizing x,
   { exfalso, apply h, constructor },
@@ -454,12 +449,13 @@ by apply ext'; intro n; refl
 lemma ichildren_mk [decidable_eq F.A] [inhabited (M F)] (x : F.obj (M F)) (i : F.Idx) :
   ichildren i (M.mk x) = x.iget i :=
 by { dsimp only [ichildren,pfunctor.obj.iget],
-     congr, ext, apply ext',
+     congr' with h, apply ext',
      dsimp only [children',M.mk,approx.s_mk],
      intros, refl }
 
 @[simp]
-lemma isubtree_cons [decidable_eq F.A] [inhabited (M F)] (ps : path F) {a} (f : F.B a → M F) {i : F.B a} :
+lemma isubtree_cons
+  [decidable_eq F.A] [inhabited (M F)] (ps : path F) {a} (f : F.B a → M F) {i : F.B a} :
   isubtree (⟨_,i⟩ :: ps) (M.mk ⟨a,f⟩) = isubtree ps (f i) :=
 by simp only [isubtree,ichildren_mk,pfunctor.obj.iget,dif_pos,isubtree,M.cases_on_mk']; refl
 
@@ -477,7 +473,7 @@ lemma corec_def {X} (f : X → F.obj X) (x₀ : X) :
   M.corec f x₀ = M.mk (M.corec f <$> f x₀)  :=
 begin
   dsimp only [M.corec,M.mk],
-  congr, ext n,
+  congr' with n,
   cases n with n,
   { dsimp only [s_corec,approx.s_mk], refl, },
   { dsimp only [s_corec,approx.s_mk], cases h : (f x₀),
@@ -502,12 +498,11 @@ begin
   { cases hx, cases hy,
     induction x using pfunctor.M.cases_on', induction y using pfunctor.M.cases_on',
     subst z,
-    replace hx_a_2 := mk_inj hx_a_2, cases hx_a_2,
-    replace hy_a_1 := mk_inj hy_a_1, cases hy_a_1,
-    replace hy_a_2 := mk_inj hy_a_2, cases hy_a_2,
+    iterate 3 { have := mk_inj ‹_›, repeat { cases this } },
     simp only [approx_mk, true_and, eq_self_iff_true, heq_iff_eq],
     ext i, apply n_ih,
-    { apply hx_a_3 }, { apply hy_a_3 },
+    { solve_by_elim },
+    { solve_by_elim },
     introv h, specialize hrec (⟨_,i⟩ :: ps) (congr_arg _ h),
     simp only [iselect_cons] at hrec, exact hrec }
 end
@@ -538,7 +533,7 @@ end
 section bisim
 
 variable (R : M F → M F → Prop)
-local infix ~ := R
+local infix ` ~ `:50 := R
 
 /-- Bisimulation is the standard proof technique for equality between
 infinite tree-like structures -/
@@ -592,86 +587,11 @@ end
 
 end bisim
 
-section coinduction
-
-variables F
-
-/-- generic bisimulation relation for M-types -/
-coinductive R : Π (s₁ s₂ : M F), Prop
-| intro {a} (s₁ s₂ : F.B a → M F) :
-   (∀ i, R (s₁ i) (s₂ i)) →
-   R (M.mk ⟨_,s₁⟩) (M.mk ⟨_,s₂⟩)
-
-attribute [nolint doc_blame] R.functional R
-
-open ulift
-
-lemma R_is_bisimulation : is_bisimulation (R F) :=
-begin
-  constructor; introv hr,
-  { suffices : (λ a b, head a = head b) (M.mk ⟨a, f⟩) (M.mk ⟨a', f'⟩),
-    { simp only [head_mk] at this, exact this },
-    refine R.cases_on _ hr _,
-    intros, simp only [head_mk] },
-  { suffices : (λ a b, ∀ i j, i == j → R F (children a i) (children b j)) (M.mk ⟨a, f⟩) (M.mk ⟨a, f'⟩),
-    { specialize this (cast (by rw head_mk) i) (cast (by rw head_mk) i) heq.rfl,
-      simp only [children_mk] at this, exact this, },
-    refine R.cases_on _ hr _,
-    introv h₂ h₃,
-    let k := cast (by rw head_mk) i_1,
-    have h₀ : (children (M.mk ⟨a_1, s₁⟩) i_1) = s₁ k := children_mk _ _,
-    have h₁ : (children (M.mk ⟨a_1, s₂⟩) j) = s₂ k,
-    { rw children_mk, congr, symmetry, apply eq_of_heq h₃ },
-    rw [h₀,h₁], apply h₂ },
-end
-
-variables {F}
-
-lemma coinduction {s₁ s₂ : M F}
-  (hh : R _ s₁ s₂) :
-  s₁ = s₂ :=
-begin
-  haveI := inhabited.mk s₁,
-  exact eq_of_bisim
-    (R F) (R_is_bisimulation F) _ _
-    hh
-end
-
-lemma coinduction' {s₁ s₂ : M F}
-  (hh : R _ s₁ s₂) :
-  s₁ = s₂ :=
-begin
-  have hh' := hh, revert hh',
-  apply R.cases_on F hh, clear hh s₁ s₂,
-  introv h₀ h₁,
-  rw coinduction h₁
-end
-
-end coinduction
-
 universes u' v'
 
 /-- corecursor for `M F` with swapped arguments -/
 def corec_on {X : Type*} (x₀ : X) (f : X → F.obj X) : M F :=
 M.corec f x₀
-
-end M
-
-end pfunctor
-
-namespace tactic.interactive
-open tactic (hiding coinduction) lean.parser interactive interactive.types
-
-/-- tactic for proving equality on `M F` through bisimulation -/
-meta def bisim (ids : parse $ types.with_ident_list) (g : parse $ optional (tk "generalizing" *> many ident)) : tactic unit :=
-do applyc ``pfunctor.M.coinduction,
-   coinduction ``pfunctor.M.R.corec_on ids g
-
-end tactic.interactive
-
-namespace pfunctor
-
-namespace M
 
 variables {P : pfunctor.{u}} {α : Type u}
 
@@ -686,14 +606,18 @@ lemma bisim (R : M P → M P → Prop)
       ∀ i, R (f i) (f' i)) :
   ∀ x y, R x y → x = y :=
 begin
-  intros,
-  bisim with x y ih generalizing x y,
-  rcases h _ _ ih with ⟨ a', f, f', h₀, h₁, h₂ ⟩, clear h,
-  existsi [a',f,f'], split,
-  { intro, existsi [f i,f' i,h₂ _,rfl], refl },
-  split,
-  { simp [← h₀,mk_dest] },
-  { rw [← h₁,mk_dest] },
+  introv h',
+  haveI := inhabited.mk x.head,
+  apply eq_of_bisim R _ _ _ h', clear h' x y,
+  split; introv ih;
+    rcases h _ _ ih with ⟨ a'', g, g', h₀, h₁, h₂ ⟩; clear h,
+  { replace h₀ := congr_arg sigma.fst h₀,
+    replace h₁ := congr_arg sigma.fst h₁,
+    simp only [dest_mk] at h₀ h₁,
+    rw [h₀,h₁], },
+  { simp only [dest_mk] at h₀ h₁,
+    cases h₀, cases h₁,
+    apply h₂, },
 end
 
 theorem bisim' {α : Type*} (Q : α → Prop) (u v : α → M P)

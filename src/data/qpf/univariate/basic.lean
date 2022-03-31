@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad
+Authors: Jeremy Avigad
 -/
-import data.pfunctor.univariate
+import data.pfunctor.univariate.M
 
 /-!
 
@@ -264,7 +264,7 @@ begin
   rw [←fix.ind_aux a f], apply h,
   rw [←abs_map, ←abs_map, pfunctor.map_eq, pfunctor.map_eq],
   dsimp [function.comp],
-  congr, ext x, apply ih
+  congr' with x, apply ih
 end
 
 theorem fix.rec_unique {α : Type u} (g : F α → α) (h : fix F → α)
@@ -290,7 +290,7 @@ theorem fix.dest_mk (x : F (fix F)) : fix.dest (fix.mk x) = x :=
 begin
   unfold fix.dest, rw [fix.rec_eq, ←fix.dest, ←comp_map],
   conv { to_rhs, rw ←(id_map x) },
-  congr, ext x, apply fix.mk_dest
+  congr' with x, apply fix.mk_dest
 end
 
 theorem fix.ind (p : fix F → Prop)
@@ -341,7 +341,7 @@ def Mcongr : q.P.M → q.P.M → Prop :=
 /-- coinductive type defined as the final coalgebra of a qpf -/
 def cofix (F : Type u → Type u) [functor F] [q : qpf F]:= quot (@Mcongr F _ q)
 
-instance [inhabited q.P.A] : inhabited (cofix F) := ⟨ quot.mk _ (default _) ⟩
+instance [inhabited q.P.A] : inhabited (cofix F) := ⟨ quot.mk _ default ⟩
 
 /-- corecursor for type defined by `cofix` -/
 def cofix.corec {α : Type*} (g : α → F α) (x : α) : cofix F :=
@@ -424,7 +424,7 @@ begin
   intros x y rxy,
   rcases (liftr_iff r _ _).mp (h x y rxy) with ⟨a, f₀, f₁, dxeq, dyeq, h'⟩,
   rw [dxeq, dyeq, ←abs_map, ←abs_map, pfunctor.map_eq, pfunctor.map_eq],
-  congr' 2, ext i,
+  congr' 2 with i,
   apply quot.sound,
   apply h'
 end
@@ -478,21 +478,20 @@ def comp : qpf (functor.comp F₂ F₁) :=
     end,
   abs_repr := λ α,
     begin
-      abstract {
-      dsimp [functor.comp],
+      abstract
+    { dsimp [functor.comp],
       intro x,
       conv { to_rhs, rw ←abs_repr x},
       cases h : repr x with a f,
       dsimp,
-      congr,
-      ext x,
+      congr' with x,
       cases h' : repr (f x) with b g,
       dsimp, rw [←h', abs_repr] }
     end,
   abs_map := λ α β f,
     begin
-      abstract {
-      dsimp [functor.comp, pfunctor.comp],
+      abstract
+    { dsimp [functor.comp, pfunctor.comp],
       intro p,
       cases p with a g, dsimp,
       cases a with b h, dsimp,
@@ -509,8 +508,7 @@ def comp : qpf (functor.comp F₂ F₁) :=
       ext x,
       rw ←abs_map,
       reflexivity }
-    end
-}
+    end }
 
 end qpf
 

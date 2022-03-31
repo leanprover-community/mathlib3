@@ -1,10 +1,10 @@
 /-
 Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad
+Authors: Jeremy Avigad
 -/
 
-import data.W
+import data.W.basic
 
 /-!
 # W types
@@ -75,13 +75,13 @@ private def arity (α : Type*) : constructors α → nat
 
 variable {α : Type*}
 
-private def f : prop_form α → W (λ i, fin (arity α i))
+private def f : prop_form α → W_type (λ i, fin (arity α i))
 | (var a)   := ⟨cvar a, mk_fn0⟩
 | (not p)   := ⟨cnot, mk_fn1 (f p)⟩
 | (and p q) := ⟨cand, mk_fn2 (f p) (f q)⟩
 | (or  p q) := ⟨cor, mk_fn2 (f p) (f q)⟩
 
-private def finv : W (λ i, fin (arity α i)) → prop_form α
+private def finv : W_type (λ i, fin (arity α i)) → prop_form α
 | ⟨cvar a, fn⟩ := var a
 | ⟨cnot, fn⟩   := not (finv (fn ⟨0, dec_trivial⟩))
 | ⟨cand, fn⟩   := and (finv (fn ⟨0, dec_trivial⟩)) (finv (fn ⟨1, dec_trivial⟩))
@@ -89,8 +89,8 @@ private def finv : W (λ i, fin (arity α i)) → prop_form α
 
 instance [encodable α] : encodable (prop_form α) :=
 begin
-  haveI : encodable (constructors α) :=
-    by { unfold constructors, apply_instance },
+  haveI : encodable (constructors α),
+  { unfold constructors, apply_instance },
   exact encodable.of_left_inverse f finv
     (by { intro p, induction p; simp [f, finv, *] })
 end

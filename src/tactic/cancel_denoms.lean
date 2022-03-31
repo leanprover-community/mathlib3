@@ -57,7 +57,7 @@ lemma cancel_factors_lt {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α
 begin
   rw [mul_lt_mul_left, ←ha, ←hb, ←mul_assoc, ←mul_assoc, mul_comm bd, mul_lt_mul_left],
   exact mul_pos had hbd,
-  exact one_div_pos_of_pos hgcd
+  exact one_div_pos.2 hgcd
 end
 
 lemma cancel_factors_le {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α} (ha : ad*a = a')
@@ -66,7 +66,7 @@ lemma cancel_factors_le {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α
 begin
   rw [mul_le_mul_left, ←ha, ←hb, ←mul_assoc, ←mul_assoc, mul_comm bd, mul_le_mul_left],
   exact mul_pos had hbd,
-  exact one_div_pos_of_pos hgcd
+  exact one_div_pos.2 hgcd
 end
 
 lemma cancel_factors_eq {α} [linear_ordered_field α] {a b ad bd a' b' gcd : α} (ha : ad*a = a')
@@ -78,7 +78,7 @@ begin
   { rintro rfl, refl },
   { intro h,
     simp only [←mul_assoc] at h,
-    refine mul_left_cancel' (mul_ne_zero _ _) h,
+    refine mul_left_cancel₀ (mul_ne_zero _ _) h,
     apply mul_ne_zero, apply div_ne_zero,
     all_goals {apply ne_of_gt; assumption <|> exact zero_lt_one}}
 end
@@ -161,7 +161,6 @@ do (n, p) ← derive e,
    tp ← infer_type e,
    n' ← tp.of_nat n, tgt ← to_expr ``(%%n' ≠ 0),
    (_, pn) ← solve_aux tgt `[norm_num, done],
-   infer_type p >>= trace, infer_type pn >>= trace,
    prod.mk n <$> mk_mapp ``cancel_factors_eq_div [none, none, n', none, none, p, pn]
 
 /--
@@ -199,7 +198,7 @@ do some (lhs, rhs, lem) ← return $ find_comp_lemma h | fail "cannot kill facto
    (_, gcd_pos) ← solve_aux gcd_pos `[norm_num, done],
    pf ← mk_app lem [lhs_p, rhs_p, al_pos, ar_pos, gcd_pos],
    pf_tp ← infer_type pf,
-   return ((find_comp_lemma pf_tp).elim (default _) (prod.fst ∘ prod.snd), pf)
+   return ((find_comp_lemma pf_tp).elim default (prod.fst ∘ prod.snd), pf)
 
 end cancel_factors
 

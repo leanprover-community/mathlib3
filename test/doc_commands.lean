@@ -9,7 +9,7 @@ def foo := 5
 /-- ok -/
 add_decl_doc foo
 
-#eval do
+run_cmd do
 ds ← doc_string ``foo,
 guard $ ds = "ok"
 

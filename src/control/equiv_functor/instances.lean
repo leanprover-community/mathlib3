@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Scott Morrison
+Authors: Scott Morrison
 -/
-import data.finset.basic
+import data.fintype.basic
 import control.equiv_functor
 
 /-!
@@ -24,3 +24,6 @@ instance equiv_functor_perm : equiv_functor perm :=
 -- but we provide this computable alternative separately.
 instance equiv_functor_finset : equiv_functor finset :=
 { map := λ α β e s, s.map e.to_embedding, }
+
+instance equiv_functor_fintype : equiv_functor fintype :=
+{ map := λ α β e s, by exactI fintype.of_bijective e e.bijective, }

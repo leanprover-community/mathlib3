@@ -1,10 +1,9 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad
+Authors: Jeremy Avigad, Simon Hudon
 -/
 import data.pfunctor.multivariate.basic
-universe u
 
 /-!
 # Multivariate quotients of polynomial functors.
@@ -44,7 +43,7 @@ inductive tree (a : Type)
 ```
 
 An unordered tree. This is currently not supported by Lean because it nests
-an inductive type inside of a quotient. We can go further and define 
+an inductive type inside of a quotient. We can go further and define
 unordered, possibly infinite trees:
 
 ```lean
@@ -63,14 +62,18 @@ matched because they preserve the properties of QPF. The latter example,
    * cofix
    * quot
    * comp
+   * sigma / pi
+   * prj
+   * const
 
 each proves that some operations on functors preserves the QPF structure
 
-##reference
+## Reference
 
  * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
-
 -/
+
+universe u
 
 open_locale mvfunctor
 
@@ -154,7 +157,8 @@ begin
   rw ←hi, apply h'
 end
 
-theorem supp_eq {α : typevec n} {i} (x : F α) : supp x i = { u | ∀ a f, abs ⟨a, f⟩ = x → u ∈ f i '' univ } :=
+theorem supp_eq {α : typevec n} {i} (x : F α) :
+  supp x i = { u | ∀ a f, abs ⟨a, f⟩ = x → u ∈ f i '' univ } :=
 by ext; apply mem_supp
 
 theorem has_good_supp_iff {α : typevec n} (x : F α) :
@@ -247,7 +251,8 @@ begin
   { rintros α p ⟨a,f⟩,
     have h' := h, rw supp_preservation_iff_uniform at h',
     dsimp only [supp_preservation,supp] at h,
-    simp only [liftp_iff_of_is_uniform, supp_eq_of_is_uniform, mvpfunctor.liftp_iff', h', image_univ, mem_range, exists_imp_distrib],
+    simp only [liftp_iff_of_is_uniform, supp_eq_of_is_uniform, mvpfunctor.liftp_iff', h',
+      image_univ, mem_range, exists_imp_distrib],
     split; intros; subst_vars; solve_by_elim },
   { rintros α ⟨a,f⟩,
     simp only [liftp_preservation] at h,

@@ -25,18 +25,27 @@ do hs ← local_context,
          | `(¬ _ = _) := replace h.local_pp_name ``(mt iff.to_eq %%h)
          | `(_ ≠ _)   := replace h.local_pp_name ``(mt iff.to_eq %%h)
          | `(_ = _)   := replace h.local_pp_name ``(eq.to_iff %%h)
-         | `(¬ (_ ∧ _))  := replace h.local_pp_name ``(not_and_distrib'.mp %%h) <|>
-                            replace h.local_pp_name ``(not_and_distrib.mp %%h)
+         | `(¬ (_ ∧ _))  := replace h.local_pp_name ``(decidable.not_and_distrib'.mp %%h) <|>
+                            replace h.local_pp_name ``(decidable.not_and_distrib.mp %%h)
          | `(¬ (_ ∨ _))  := replace h.local_pp_name ``(not_or_distrib.mp %%h)
-         | `(¬ ¬ _)      := replace h.local_pp_name ``(of_not_not %%h)
-         | `(¬ (_ → (_ : Prop))) := replace h.local_pp_name ``(not_imp.mp %%h)
-         | `(¬ (_ ↔ _)) := replace h.local_pp_name ``(not_iff.mp %%h)
-         | `(_ ↔ _) := replace h.local_pp_name ``(iff_iff_and_or_not_and_not.mp %%h) <|>
-                       replace h.local_pp_name ``(iff_iff_and_or_not_and_not.mp (%%h).symm) <|>
+         | `(¬ ¬ _)      := replace h.local_pp_name ``(decidable.of_not_not %%h)
+         | `(¬ (_ → (_ : Prop))) := replace h.local_pp_name ``(decidable.not_imp.mp %%h)
+         | `(¬ (_ ↔ _)) := replace h.local_pp_name ``(decidable.not_iff.mp %%h)
+         | `(_ ↔ _) := replace h.local_pp_name ``(decidable.iff_iff_and_or_not_and_not.mp %%h) <|>
+                       replace h.local_pp_name
+                         ``(decidable.iff_iff_and_or_not_and_not.mp (%%h).symm) <|>
                        () <$ tactic.cases h
-         | `(_ → _)     := replace h.local_pp_name ``(not_or_of_imp %%h)
+         | `(_ → _)     := replace h.local_pp_name ``(decidable.not_or_of_imp %%h)
          | _ := failed
          end
+
+/-!
+  The following definitions maintain a path compression datastructure, i.e. a forest such that:
+    - every node is the type of a hypothesis
+    - there is a edge between two nodes only if they are provably equivalent
+    - every edge is labelled with a proof of equivalence for its vertices
+    - edges are added when normalizing propositions.
+-/
 
 meta def tauto_state := ref $ expr_map (option (expr × expr))
 
@@ -49,6 +58,10 @@ do m ← read_ref r,
    write_ref r $ m.insert e none,
    return (e,p)
 
+/--
+  If there exists a symmetry lemma that can be applied to the hypothesis `e`,
+  store it.
+-/
 meta def add_symm_proof (r : tauto_state) (e : expr) : tactic (expr × expr) :=
 do env ← get_env,
    let rel := e.get_app_fn.const_name,
@@ -67,6 +80,10 @@ do env ← get_env,
 meta def add_edge (r : tauto_state) (x y p : expr) : tactic unit :=
 modify_ref r $ λ m, m.insert x (y,p)
 
+/--
+  Retrieve the root of the hypothesis `e` from the proof forest.
+  If `e` has not been internalized, add it to the proof forest.
+-/
 meta def root (r : tauto_state) : expr → tactic (expr × expr) | e :=
 do m ← read_ref r,
    let record_e : tactic (expr × expr) :=
@@ -88,6 +105,11 @@ do m ← read_ref r,
    | none := prod.mk e <$> mk_mapp `rfl [none,some e]
    end
 
+/--
+  Given hypotheses `a` and `b`, build a proof that `a` is equivalent to `b`,
+  applying congruence and recursing into arguments if `a` and `b`
+  are applications of function symbols.
+-/
 meta def symm_eq (r : tauto_state) : expr → expr → tactic expr | a b :=
 do m ← read_ref r,
    (a',pa) ← root r a,
@@ -138,15 +160,14 @@ do m ← read_ref r,
                  guard $ a'' =ₐ b',
                  pure pa' )
            end,
-           p' ← mk_eq_trans pa p,
-           add_edge r a' b' p',
-           mk_eq_symm pb >>= mk_eq_trans p'
+    p' ← mk_eq_trans pa p,
+    add_edge r a' b' p',
+    mk_eq_symm pb >>= mk_eq_trans p'
 
 meta def find_eq_type (r : tauto_state) : expr → list expr → tactic (expr × expr)
 | e []         := failed
 | e (H :: Hs) :=
   do t  ← infer_type H,
-     t' ← infer_type e,
      (prod.mk H <$> symm_eq r e t) <|> find_eq_type e Hs
 
 private meta def contra_p_not_p (r : tauto_state) : list expr → list expr → tactic unit
@@ -180,33 +201,44 @@ do { ctx ← local_context,
 meta def assumption_symm :=
 using_new_ref (native.rb_map.mk _ _) assumption_with
 
-meta def tautology (c : bool := ff) : tactic unit :=
-do when c classical,
-   using_new_ref (expr_map.mk _) $ λ r,
-   do try (contradiction_with r);
-      try (assumption_with r);
-      repeat (do
-        gs ← get_goals,
-        repeat (() <$ tactic.intro1);
-        distrib_not;
-        casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _),``(false)];
-        try (contradiction_with r);
-        try (target >>= match_or >> refine ``( or_iff_not_imp_left.mpr _));
-        try (target >>= match_or >> refine ``( or_iff_not_imp_right.mpr _));
-        repeat (() <$ tactic.intro1);
-        constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
-        try (assumption_with r),
-        gs' ← get_goals,
-        guard (gs ≠ gs') ) ;
-      repeat
-      (reflexivity <|> solve_by_elim <|>
-       constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _),``(true)] ) ;
-      done
+/--
+  Configuration options for `tauto`.
+  If `classical` is `tt`, runs `classical` before the rest of `tauto`.
+  `closer` is run on any remaining subgoals left by `tauto_core; basic_tauto_tacs`.
+-/
+meta structure tauto_cfg :=
+(classical : bool     := ff)
+(closer : tactic unit := pure ())
 
-open interactive lean.parser
+meta def tautology (cfg : tauto_cfg := {}) : tactic unit := focus1 $
+  let basic_tauto_tacs : list (tactic unit) :=
+        [reflexivity, solve_by_elim,
+          constructor_matching none [``(_ ∧ _),``(_ ↔ _),``(Exists _),``(true)]],
+
+      tauto_core (r : tauto_state) : tactic unit :=
+        do try (contradiction_with r);
+           try (assumption_with r);
+           repeat (do
+             gs ← get_goals,
+             repeat (() <$ tactic.intro1);
+             distrib_not;
+             casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _),``(false)];
+             try (contradiction_with r);
+             try (target >>= match_or >> refine ``( or_iff_not_imp_left.mpr _));
+             try (target >>= match_or >> refine ``( or_iff_not_imp_right.mpr _));
+             repeat (() <$ tactic.intro1);
+             constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
+             try (assumption_with r),
+             gs' ← get_goals,
+             guard (gs ≠ gs') ) in
+
+    do when cfg.classical classical,
+       using_new_ref (expr_map.mk _) tauto_core;
+       repeat (first basic_tauto_tacs); cfg.closer, done
 
 namespace interactive
 local postfix `?`:9001 := optional
+setup_tactic_parser
 
 /--
 `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
@@ -214,8 +246,12 @@ and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be
 using `reflexivity` or `solve_by_elim`.
 This is a finishing tactic: it either closes the goal or raises an error.
 The variant `tautology!` uses the law of excluded middle.
+
+`tautology {closer := tac}` will use `tac` on any subgoals created by `tautology`
+that it is unable to solve before failing.
 -/
-meta def tautology (c : parse $ (tk "!")?) := tactic.tautology c.is_some
+meta def tautology (c : parse $ (tk "!")?) (cfg : tactic.tauto_cfg := {}) :=
+tactic.tautology $ { classical := c.is_some, ..cfg }
 
 -- Now define a shorter name for the tactic `tautology`.
 
@@ -225,8 +261,12 @@ and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be
 using `reflexivity` or `solve_by_elim`.
 This is a finishing tactic: it either closes the goal or raises an error.
 The variant `tauto!` uses the law of excluded middle.
+
+`tauto {closer := tac}` will use `tac` on any subgoals created by `tauto`
+that it is unable to solve before failing.
 -/
-meta def tauto (c : parse $ (tk "!")?) := tautology c
+meta def tauto (c : parse $ (tk "!")?) (cfg : tactic.tauto_cfg := {}) : tactic unit :=
+tautology c cfg
 
 add_hint_tactic "tauto"
 
@@ -245,6 +285,9 @@ example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ 
 ```
 and the decidability assumptions can be dropped if `tauto!` is used
 instead of `tauto`.
+
+`tauto {closer := tac}` will use `tac` on any subgoals created by `tauto`
+that it is unable to solve before failing.
 -/
 add_tactic_doc
 { name       := "tautology",

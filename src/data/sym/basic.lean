@@ -147,8 +147,8 @@ def erase [decidable_eq α] (s : sym α (n + 1)) (a : α) (h : a ∈ s) : sym α
   a :: s.erase a h = s :=
 coe_injective $ multiset.cons_erase h
 
-@[simp] lemma erase_cons_head [decidable_eq α] (s : sym α n) (a : α) (h : a ∈ a :: s) :
-  (a :: s).erase a h = s :=
+@[simp] lemma erase_cons_head [decidable_eq α] (s : sym α n) (a : α)
+  (h : a ∈ a :: s := mem_cons_self a s) : (a :: s).erase a h = s :=
 coe_injective $ multiset.erase_cons_head a s.1
 
 /--

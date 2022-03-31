@@ -381,7 +381,8 @@ section algebra
 variables (S R A : Type*)
 [comm_semiring S] [comm_semiring R] [non_unital_semiring A]
 [module R A] [is_scalar_tower R A A] [smul_comm_class R A A]
-[algebra S R] [distrib_mul_action S A] [is_scalar_tower S R A]
+[algebra S R] [distrib_mul_action S A] [distrib_mul_action Sᵐᵒᵖ A] [is_central_scalar S A]
+[is_scalar_tower S R A]
 
 instance algebra : algebra S (unitization R A) :=
 { commutes' := λ r x,
@@ -398,17 +399,26 @@ instance algebra : algebra S (unitization R A) :=
       inl_ring_hom_apply, algebra.algebra_map_eq_smul_one],
     rw [inl_mul_inl, inl_mul_coe, smul_one_mul, inl_smul, coe_smul, smul_one_smul]
   end,
+  op_smul_def' := λ x s,
+  begin
+    induction x using unitization.ind,
+    simp only [add_mul, smul_add, ring_hom.to_fun_eq_coe, ring_hom.coe_comp, function.comp_app,
+      inl_ring_hom_apply, algebra.algebra_map_eq_smul_one, op_smul_eq_smul],
+    rw [inl_mul_inl, coe_mul_inl, mul_smul_one, inl_smul, coe_smul, smul_one_smul],
+  end,
   ..(unitization.inl_ring_hom R A).comp (algebra_map S R) }
 
 lemma algebra_map_eq_inl_comp : ⇑(algebra_map S (unitization R A)) = inl ∘ algebra_map S R := rfl
 lemma algebra_map_eq_inl_ring_hom_comp :
   algebra_map S (unitization R A) = (inl_ring_hom R A).comp (algebra_map S R) := rfl
-lemma algebra_map_eq_inl : ⇑(algebra_map R (unitization R A)) = inl := rfl
-lemma algebra_map_eq_inl_hom : algebra_map R (unitization R A) = inl_ring_hom R A := rfl
+lemma algebra_map_eq_inl [module Rᵐᵒᵖ A] [is_central_scalar R A] :
+  ⇑(algebra_map R (unitization R A)) = inl := rfl
+lemma algebra_map_eq_inl_hom [module Rᵐᵒᵖ A] [is_central_scalar R A] :
+  algebra_map R (unitization R A) = inl_ring_hom R A := rfl
 
 /-- The canonical `R`-algebra projection `unitization R A → R`. -/
 @[simps]
-def fst_hom : unitization R A →ₐ[R] R :=
+def fst_hom  [module Rᵐᵒᵖ A] [is_central_scalar R A] : unitization R A →ₐ[R] R :=
 { to_fun := fst,
   map_one' := fst_one,
   map_mul' := fst_mul,
@@ -437,9 +447,11 @@ section alg_hom
 
 variables {S R A : Type*}
   [comm_semiring S] [comm_semiring R] [non_unital_semiring A]
-  [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
+  [module R A] [module Rᵐᵒᵖ A]
+  [is_central_scalar R A] [smul_comm_class R A A] [is_scalar_tower R A A]
   {B : Type*} [ring B] [algebra S B]
-  [algebra S R] [distrib_mul_action S A] [is_scalar_tower S R A]
+  [algebra S R] [distrib_mul_action S A] [distrib_mul_action Sᵐᵒᵖ A] [is_central_scalar S A]
+  [is_scalar_tower S R A]
   {C : Type*} [ring C] [algebra R C]
 
 lemma alg_hom_ext {φ ψ : unitization R A →ₐ[S] B} (h : ∀ a : A, φ a = ψ a)

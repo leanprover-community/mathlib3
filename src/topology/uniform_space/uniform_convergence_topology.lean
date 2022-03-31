@@ -87,7 +87,15 @@ protected lemma has_basis_uniformity :
 (uniform_convergence.is_basis_gen α β).has_basis
 
 protected def topological_space : topological_space (α → β) :=
-(uniform_convergence.uniform_core α β).to_topological_space
+(uniform_convergence.uniform_space α β).to_topological_space
+
+protected lemma has_basis_nhds :
+  (@nhds (α → β) (uniform_convergence.topological_space α β) f).has_basis (λ V, V ∈ 𝓤 β)
+  (λ V, {g | (g, f) ∈ uniform_convergence.gen α β V}) :=
+begin
+  letI : uniform_space (α → β) := uniform_convergence.uniform_space α β,
+  exact nhds_basis_uniformity (uniform_convergence.has_basis_uniformity α β)
+end
 
 variables {α}
 
@@ -119,6 +127,18 @@ begin
   exact uniform_continuous_eval β x
 end
 
+protected lemma tendsto_iff_tendsto_uniformly :
+  tendsto F p (@nhds _ (uniform_convergence.topological_space α β) f) ↔
+  tendsto_uniformly F f p :=
+begin
+  letI : uniform_space (α → β) := uniform_convergence.uniform_space α β,
+  rw [(uniform_convergence.has_basis_nhds α β).tendsto_right_iff, tendsto_uniformly],
+  split;
+  { intros h U hU,
+    filter_upwards [h (prod.swap ⁻¹' U) (tendsto_swap_uniformity hU)],
+    exact λ n, id }
+end
+
 variable {α}
 
 end uniform_convergence
@@ -134,6 +154,15 @@ protected def uniform_space : uniform_space (α → β) :=
 
 protected def topological_space : topological_space (α → β) :=
 (uniform_convergence_on.uniform_space α β 𝔖).to_topological_space
+
+protected lemma topological_space_eq :
+  uniform_convergence_on.topological_space α β 𝔖 = ⨅ (s : set α) (hs : s ∈ 𝔖),
+  topological_space.induced (λ f, s.restrict f) (uniform_convergence.topological_space s β) :=
+begin
+  simp only [uniform_convergence_on.topological_space, to_topological_space_infi,
+    to_topological_space_infi, to_topological_space_comap],
+  refl
+end
 
 protected lemma uniform_continuous_restrict (h : s ∈ 𝔖) :
   @uniform_continuous _ _ (uniform_convergence_on.uniform_space α β 𝔖)
@@ -187,6 +216,20 @@ begin
   intros x,
   obtain ⟨s, hs, hxs⟩ : ∃ s ∈ 𝔖, x ∈ s := mem_sUnion.mp (h.symm ▸ true.intro),
   exact uniform_continuous_eval_of_mem β 𝔖 hxs hs
+end
+
+protected lemma tendsto_iff_tendsto_uniformly_on :
+  tendsto F p (@nhds _ (uniform_convergence_on.topological_space α β 𝔖) f) ↔
+  ∀ s ∈ 𝔖, tendsto_uniformly_on F f p s :=
+begin
+  letI : uniform_space (α → β) := uniform_convergence_on.uniform_space α β 𝔖,
+  rw [uniform_convergence_on.topological_space_eq, nhds_infi, tendsto_infi],
+  refine forall_congr (λ s, _),
+  rw [nhds_infi, tendsto_infi],
+  refine forall_congr (λ hs, _),
+  rw [nhds_induced, tendsto_comap_iff, tendsto_uniformly_on_iff_tendsto_uniformly_comp_coe,
+      uniform_convergence.tendsto_iff_tendsto_uniformly],
+  refl
 end
 
 end uniform_convergence_on

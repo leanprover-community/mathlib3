@@ -4,12 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 
---import data.polynomial.ring_division
 import data.polynomial.erase_lead
 import data.polynomial.degree.lemmas
---import ring_theory.polynomial.basic
---import data.polynomial.eval
---import data.polynomial.coeff
 
 /-! # Computing special coefficients of polynomials
 

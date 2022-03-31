@@ -29,7 +29,7 @@ Then we define the structure sheaf as the subsheaf of all dependent function
 elements of the *same grading*, i.e. `∀ y ∈ U, ∃ (V ⊆ U) (i : ℕ) (a b ∈ 𝒜 i), ∀ z ∈ V, f z = a / b`.
 
 * `algebraic_geometry.projective_spectrum.structure_sheaf.is_locally_fraction`: the predicate that
-  a dependent function is locally expressible as ration of two elements of the same grading.
+  a dependent function is locally expressible as a ratio of two elements of the same grading.
 * `algebraic_geometry.projective_spectrum.structure_sheaf.sections_subring`: the dependent functions
   satisfying the above local property forms a subring of all dependent functions
   `Π x : U, homogeneous_localization 𝒜 x`.

@@ -55,7 +55,7 @@ local attribute [instance] vector.perm.is_setoid
 
 namespace sym
 
-variables {α : Type u} {n : ℕ} {s : sym α n} {a b : α}
+variables {α : Type u} {β : Type*} {n : ℕ} {s : sym α n} {a b : α}
 
 lemma coe_injective : injective (coe : sym α n → multiset α) := subtype.coe_injective
 
@@ -246,10 +246,10 @@ instance (n : ℕ) [nontrivial α] : nontrivial (sym α (n + 1)) :=
 
 /-- A function `α → β` induces a function `sym α n → sym β n` by applying it to every element of
 the underlying `n`-tuple. -/
-def map {α β : Type*} {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
+def map {n : ℕ} (f : α → β) (x : sym α n) : sym β n :=
 ⟨x.val.map f, by simpa [multiset.card_map] using x.property⟩
 
-@[simp] lemma mem_map {α β : Type*} {n : ℕ} {f : α → β} {b : β} {l : sym α n} :
+@[simp] lemma mem_map {n : ℕ} {f : α → β} {b : β} {l : sym α n} :
   b ∈ sym.map f l ↔ ∃ a, a ∈ l ∧ f a = b := multiset.mem_map
 
 /-- Note: `sym.map_id` is not simp-normal, as simp ends up unfolding `id` with `sym.map_congr` -/
@@ -263,29 +263,29 @@ by simp [sym.map]
   sym.map g (sym.map f s) = sym.map (g ∘ f) s :=
 by simp [sym.map]
 
-@[simp] lemma map_zero {α β : Type*} (f : α → β) :
+@[simp] lemma map_zero (f : α → β) :
   sym.map f (0 : sym α 0) = (0 : sym β 0) := rfl
 
-@[simp] lemma map_cons {α β : Type*} {n : ℕ} (f : α → β) (a : α) (s : sym α n) :
+@[simp] lemma map_cons {n : ℕ} (f : α → β) (a : α) (s : sym α n) :
   (a :: s).map f = (f a) :: s.map f :=
 by simp [map, cons]
 
-@[congr] lemma map_congr {β : Type*} {f g : α → β} {s : sym α n} (h : ∀ x ∈ s, f x = g x) :
+@[congr] lemma map_congr {f g : α → β} {s : sym α n} (h : ∀ x ∈ s, f x = g x) :
   map f s = map g s := subtype.ext $ multiset.map_congr rfl h
 
-@[simp] lemma map_mk {β : Type*} {f : α → β} {m : multiset α} {hc : m.card = n} :
+@[simp] lemma map_mk {f : α → β} {m : multiset α} {hc : m.card = n} :
   map f (mk m hc) = mk (m.map f) (by simp [hc]) := rfl
 
-@[simp] lemma coe_map {β : Type*} (s : sym α n) (f : α → β) : ↑(s.map f) = multiset.map f s := rfl
+@[simp] lemma coe_map (s : sym α n) (f : α → β) : ↑(s.map f) = multiset.map f s := rfl
 
-lemma map_injective {β : Type*} {f : α → β} (hf : injective f) (n : ℕ) :
+lemma map_injective {f : α → β} (hf : injective f) (n : ℕ) :
   injective (map f : sym α n → sym β n) :=
 λ s t h, coe_injective $ multiset.map_injective hf $ coe_inj.2 h
 
 /-- Mapping an equivalence `α ≃ β` using `sym.map` gives an equivalence between `sym α n` and
 `sym β n`. -/
 @[simps]
-def equiv_congr {α β : Type*} (e : α ≃ β) : sym α n ≃ sym β n :=
+def equiv_congr (e : α ≃ β) : sym α n ≃ sym β n :=
 { to_fun := map e,
   inv_fun := map e.symm,
   left_inv := λ x, by rw [map_map, equiv.symm_comp_self, map_id],

@@ -30,15 +30,13 @@ symmetric powers
 
 open function
 
-universes u
-
 /--
 The nth symmetric power is n-tuples up to permutation.  We define it
 as a subtype of `multiset` since these are well developed in the
 library.  We also give a definition `sym.sym'` in terms of vectors, and we
 show these are equivalent in `sym.sym_equiv_sym'`.
 -/
-def sym (α : Type u) (n : ℕ) := {s : multiset α // s.card = n}
+def sym (α : Type*) (n : ℕ) := {s : multiset α // s.card = n}
 
 instance sym.has_coe (α : Type*) (n : ℕ) : has_coe (sym α n) (multiset α) := coe_subtype
 
@@ -48,14 +46,14 @@ This is the `list.perm` setoid lifted to `vector`.
 See note [reducible non-instances].
 -/
 @[reducible]
-def vector.perm.is_setoid (α : Type u) (n : ℕ) : setoid (vector α n) :=
+def vector.perm.is_setoid (α : Type*) (n : ℕ) : setoid (vector α n) :=
 (list.is_setoid α).comap subtype.val
 
 local attribute [instance] vector.perm.is_setoid
 
 namespace sym
 
-variables {α : Type u} {β : Type*} {n : ℕ} {s : sym α n} {a b : α}
+variables {α β : Type*} {n : ℕ} {s : sym α n} {a b : α}
 
 lemma coe_injective : injective (coe : sym α n → multiset α) := subtype.coe_injective
 
@@ -154,12 +152,12 @@ coe_injective $ multiset.erase_cons_head a s.1
 /--
 Another definition of the nth symmetric power, using vectors modulo permutations. (See `sym`.)
 -/
-def sym' (α : Type u) (n : ℕ) := quotient (vector.perm.is_setoid α n)
+def sym' (α : Type*) (n : ℕ) := quotient (vector.perm.is_setoid α n)
 
 /--
 This is `cons` but for the alternative `sym'` definition.
 -/
-def cons' {α : Type u} {n : ℕ} : α → sym' α n → sym' α (nat.succ n) :=
+def cons' {α : Type*} {n : ℕ} : α → sym' α n → sym' α (nat.succ n) :=
 λ a, quotient.map (vector.cons a) (λ ⟨l₁, h₁⟩ ⟨l₂, h₂⟩ h, list.perm.cons _ h)
 
 notation a :: b := cons' a b
@@ -167,10 +165,10 @@ notation a :: b := cons' a b
 /--
 Multisets of cardinality n are equivalent to length-n vectors up to permutations.
 -/
-def sym_equiv_sym' {α : Type u} {n : ℕ} : sym α n ≃ sym' α n :=
+def sym_equiv_sym' {α : Type*} {n : ℕ} : sym α n ≃ sym' α n :=
 equiv.subtype_quotient_equiv_quotient_subtype _ _ (λ _, by refl) (λ _ _, by refl)
 
-lemma cons_equiv_eq_equiv_cons (α : Type u) (n : ℕ) (a : α) (s : sym α n) :
+lemma cons_equiv_eq_equiv_cons (α : Type*) (n : ℕ) (a : α) (s : sym α n) :
   a :: sym_equiv_sym' s = sym_equiv_sym' (a :: s) :=
 by { rcases s with ⟨⟨l⟩, _⟩, refl, }
 

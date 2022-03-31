@@ -96,9 +96,13 @@ instance [fintype n] [has_mul R] [add_comm_monoid R] [has_continuous_add R]
   [has_continuous_mul R] : has_continuous_mul (matrix n n R) :=
 ⟨continuous_fst.matrix_mul continuous_snd⟩
 
-instance [fintype n] [decidable_eq n] [semiring R] [topological_ring R] :
-  topological_ring (matrix n n R) :=
+instance [fintype n] [non_unital_non_assoc_semiring R] [topological_semiring R] :
+  topological_semiring (matrix n n R) :=
 { ..pi.has_continuous_add }
+
+instance [fintype n] [non_unital_non_assoc_ring R] [topological_ring R] :
+  topological_ring (matrix n n R) :=
+{ ..pi.has_continuous_neg, ..pi.has_continuous_add }
 
 @[continuity]
 lemma continuous.matrix_vec_mul_vec [has_mul R] [has_continuous_mul R]

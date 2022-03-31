@@ -483,6 +483,8 @@ end
 
 variables {M} {T}
 
+instance model_empty : M ⊨ (∅ : L.Theory) := ⟨λ φ hφ, (set.not_mem_empty φ hφ).elim⟩
+
 lemma Theory.model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
   M ⊨ T :=
 ⟨λ φ hφ, T'.realize_sentence_of_mem (hs hφ)⟩

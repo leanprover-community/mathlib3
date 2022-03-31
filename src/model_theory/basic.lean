@@ -167,6 +167,9 @@ variables (N : Type*) [L.Structure M] [L.Structure N]
 
 open Structure
 
+/-- Used for defining `first_order.language.Theory.Model.inhabited`. -/
+def trivial_unit_structure : L.Structure unit := ⟨default, default⟩
+
 /-! ### Maps -/
 
 /-- A homomorphism between first-order structures is a function that commutes with the

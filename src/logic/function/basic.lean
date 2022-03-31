@@ -685,11 +685,11 @@ variables {α β γ : Sort*} {f : α → β → γ}
 
 /-- A binary injective function is injective when only the left argument varies. -/
 protected lemma left (hf : injective2 f) (b : β) : function.injective (λ a, f a b) :=
-λ a₁ a₂ h, (hf h).1
+λ a₁ a₂ h, (hf h).left
 
 /-- A binary injective function is injective when only the right argument varies. -/
 protected lemma right (hf : injective2 f) (a : α) : function.injective (f a) :=
-λ a₁ a₂ h, (hf h).2
+λ a₁ a₂ h, (hf h).right
 
 /-- As a map from the left argument to a unary function, `f` is injective. -/
 lemma left' (hf : injective2 f) [nonempty β] : function.injective f :=

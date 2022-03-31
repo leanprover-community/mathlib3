@@ -6,33 +6,34 @@ Authors: Antoine Chambert-Loir
 
 import tactic.lift
 
+import field_theory.galois
+
 import .ad_sub_mul_actions
 import .wielandt
 import .ad_to_ulift
 
 import group_theory.group_action.embedding
-import set_theory.cardinal
+-- import set_theory.cardinal
 
-import field_theory.galois
 
-import group_theory.subgroup.pointwise
-import group_theory.coset
-import group_theory.quotient_group
-import group_theory.abelianization
-import group_theory.group_action.defs
-import group_theory.group_action.basic
-import group_theory.group_action.group
-import group_theory.group_action.conj_act
-import group_theory.group_action.sub_mul_action
+-- import group_theory.subgroup.pointwise
+-- import group_theory.coset
+-- import group_theory.quotient_group
+-- import group_theory.abelianization
+-- import group_theory.group_action.defs
+-- import group_theory.group_action.basic
+-- import group_theory.group_action.group
+-- import group_theory.group_action.conj_act
+-- import group_theory.group_action.sub_mul_action
 
-import order.partition.finpartition
-import data.finset.lattice
+-- import order.partition.finpartition
+-- import data.finset.lattice
 
-import data.setoid.partition
-import data.set.basic
-import data.fintype.basic
-import order.rel_classes
-import algebra.big_operators.order
+-- import data.setoid.partition
+-- import data.set.basic
+-- import data.fintype.basic
+-- import order.rel_classes
+-- import algebra.big_operators.order
 
 open_locale big_operators pointwise cardinal
 
@@ -315,7 +316,7 @@ end
   (Wielandt, th. 9.1, 1st part)-/
 theorem stabilizer.is_multiply_pretransitive
   (hα' : is_pretransitive M α)
-  {n : ℕ} (hα : card_ge α n.succ) (a : α) :
+  {n : ℕ} (hα : ↑n ≤ #α) (a : α) /- (hα : card_ge α n.succ) -/  :
   is_multiply_pretransitive M α n.succ ↔
   is_multiply_pretransitive (stabilizer M a) (sub_mul_action_of_stabilizer M α a) n :=
 begin
@@ -507,6 +508,7 @@ begin
   exact hcx,
 end }
 
+/-
 lemma aux_nat : ∀ {d n i : ℕ} (h : d ≤ n) (hi : i < n) (hi' : ¬(i < n-d)),
   i - (n - d) < d :=
 begin
@@ -518,6 +520,7 @@ begin
   rw add_comm at hi, simp only [add_lt_add_iff_right] at hi,
   simp only [add_tsub_cancel_left], exact hi,
 end
+-/
 
 /-- The fixator of a subset of cardinal d in a k-transitive action
 acts (k-d) transitively on the remaining -/
@@ -572,9 +575,6 @@ begin
     apply is_zero_pretransitive }
 end
 
-
-
-
 open_locale classical
 
 /-- A 2-transitive action is primitive -/
@@ -588,11 +588,9 @@ begin
     { apply is_pretransitive.mk,
       intros x y, use 1, exact subsingleton_iff.mp hα _ _ },
     { intros B hB,
-      cases B.eq_empty_or_nonempty with h h',
-      { exact or.intro_left _ h, },
-      { apply or.intro_right, apply or.intro_right,
-        rw @subsingleton.eq_univ_of_nonempty _ hα B h',
-        exact set.top_eq_univ } } },
+      apply or.intro_left,
+      rw set.subsingleton_coe ,
+      exact @set.subsingleton_of_subsingleton _ hα B} },
   -- Important case : 2 ≤ #α
   let hα' := id hα,
   rw [not_le, ← cardinal.succ_le, ← cardinal.nat_succ] at hα',
@@ -603,14 +601,9 @@ begin
   norm_num,
   intros B hB,
   cases subsingleton_or_nontrivial B with h h,
-  -- Cas qui devra être trivial avec la changement de définition
-  {  rw set.subsingleton_coe at h,
-    cases set.subsingleton.eq_empty_or_singleton h with h' h',
-    apply or.intro_left, exact h',
-    apply or.intro_right, apply or.intro_left, exact h'},
-
+  exact or.intro_left _ h,
   -- Cas top
-  apply or.intro_right, apply or.intro_right,
+  apply or.intro_right,
   rw [← cardinal.one_lt_iff_nontrivial, ← cast_one, ← cardinal.succ_le, ← cardinal.nat_succ] at h,
   change  ↑2 ≤ #↥B  at h,
   obtain ⟨x : fin 2 ↪ ↥B⟩ := gimme_some h,
@@ -657,8 +650,6 @@ begin
   rw [← hy0, ← hg 0, ← mul_smul, inv_mul_self, one_smul],
     exact subtype.mem (x 0),
 end
-
-
 
 end multiple_transitivity
 end mul_action

@@ -13,6 +13,8 @@ import .wielandt
 import .ad_to_ulift
 
 import group_theory.group_action.embedding
+import group_theory.specific_groups.alternating
+
 -- import set_theory.cardinal
 
 
@@ -651,9 +653,44 @@ begin
     exact subtype.mem (x 0),
 end
 
+
 end multiple_transitivity
 end mul_action
 
+section finite_groups
+
+open mul_action
+open_locale classical
+
+variables (α : Type*) [fintype α]
+
+#check equiv.perm.mul_def
+
+lemma unnamed [fintype α] :
+  mul_action.is_multiply_pretransitive (equiv.perm α) α (fintype.card α):=
+begin
+  apply is_pretransitive.mk,
+  intros x y,
+  let x' := equiv.of_bijective x.to_fun _,
+  let y' := equiv.of_bijective y.to_fun _,
+  use x'.symm.trans y',
+  ext i,
+  simp only [function.embedding.smul_apply, equiv.perm.smul_def, equiv.coe_trans,
+    function.comp_app, equiv.of_bijective_apply, function.embedding.to_fun_eq_coe,
+    embedding_like.apply_eq_iff_eq],
+  exact x'.left_inv i,
+  all_goals { rw fintype.bijective_iff_injective_and_card, split },
+  any_goals { try {exact fintype.card_fin (fintype.card α) } },
+  exact embedding_like.injective y,
+  exact embedding_like.injective x,
+end
+
+lemma unnamed' [fintype α] :
+  mul_action.is_multiply_pretransitive (alternating_group α) α (fintype.card α - 2) :=
+sorry
+
+
+end finite_groups
 
 
 #exit

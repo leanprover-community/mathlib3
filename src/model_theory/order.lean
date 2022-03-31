@@ -41,6 +41,20 @@ Structure.mk₂ empty.elim empty.elim empty.elim empty.elim (λ _, (≤))
 
 instance : is_relational (language.order) := language.is_relational_mk₂
 
+instance : subsingleton (language.order.relations n) :=
+begin
+  cases n,
+  { exact ⟨λ x, pempty.elim x⟩, },
+  cases n,
+  { exact ⟨λ x, empty.elim x⟩, },
+  cases n,
+  { refine ⟨λ x y, _⟩,
+    cases x,
+    cases y,
+    refl, },
+  { exact ⟨λ x, pempty.elim x⟩, },
+end
+
 /-- A language is ordered if it has a symbol representing `≤`. -/
 class is_ordered (L : language.{u v}) := (le_symb : L.relations 2)
 
@@ -65,6 +79,10 @@ end is_ordered
 
 instance : is_ordered language.order := ⟨unit.star⟩
 
+@[simp]
+lemma order_Lhom_order : order_Lhom (language.order) = Lhom.id language.order :=
+Lhom.funext (subsingleton.elim _ _) (subsingleton.elim _ _)
+
 instance : is_ordered (L.sum language.order) := ⟨sum.inr is_ordered.le_symb⟩
 
 /-- The theory of preorders. -/
@@ -87,11 +105,10 @@ Lhom.is_expansion_on (order_Lhom L) α
 
 instance is_ordered_structure_has_le [has_le α] :
   is_ordered_structure language.order α :=
-⟨λ n, (is_relational.empty_functions n).elim,
-  λ n, nat.cases_on n (λ R, pempty.elim R)
-      (λ n, nat.cases_on n (λ R, empty.elim R)
-      (λ n, nat.cases_on n (λ R x, rfl)
-      (λ n R, pempty.elim R)))⟩
+begin
+  rw [is_ordered_structure, order_Lhom_order],
+  exact Lhom.id_is_expansion_on α,
+end
 
 instance model_preorder [preorder α] :
   α ⊨ Theory.preorder :=

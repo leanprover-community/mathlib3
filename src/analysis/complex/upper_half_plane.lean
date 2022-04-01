@@ -232,7 +232,7 @@ variable (Γ : subgroup (special_linear_group (fin 2) ℤ))
 
 @[simp] lemma SL_neg_smul (g : SL(2,ℤ)) (z : ℍ) : -g • z = g • z :=
 begin
-simp,
+simp [coe_GL_pos_neg],
 end
 
 end upper_half_plane

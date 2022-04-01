@@ -1,6 +1,7 @@
 import topology.algebra.order.intermediate_value
 import analysis.normed.group.basic
-import group_theory.basic
+--import group_theory.basic
+import group_theory.free_group
 
 /-! normed groups.
 -/
@@ -11,17 +12,27 @@ open set function real
 
 namespace normed_group
 
-variables {G : Type*}
+variables {G S : Type*} [group G]
 
-structure normed_group (G : Type*) extends has_norm G, group G, metric_space G :=
+-- maybe a bad idea?
+structure normed_group (G : Type*) extends has_norm G, metric_space G :=
 (dist_eq : ∀ x y : G, dist x y = ∥x⁻¹*y∥)
 
---!! just the fact that there exists a generating set
-definition finitely_generated (G : Type*) [group G] : Prop := sorry
+"""an S-generated group"""
+structure generated_group (G S : Type*) :=
+(marking : free_group S → G)
 
---!! also a structure, where we store the group and its generating set
+structure norm_generated_group (G S :Type*) extends generated_group G S :=
+(Snorm : S → ℝ)
 
-lemma mk_normed_group (G : Type*) [group G] (S : set G) (generates : subgroup.closure S = ⊤) : normed_group G := sorry
+-- norm on free group: ∥w∥ = sum of Snorm(s_i) where w = product s_i^{±1} in reduced form
+
+instance : "coercion from generated_group to norm_generated_group" (generated_group G S) (norm_generated_group G S) := ⟨λ GS, { Snorm := λ s, 1, ..GS }⟩
+
+instance : "coerction from norm_generated_group to normed_group" (generated_group G S) (normed_group G) := ⟨λ GS, {norm := λ g, inf{ ∥w∥ | GS.marking w = g }, .. GS }⟩
+
+--! certainly this is not OK: "S" in treated once as a set and once as a type. How do we make this work?
+lemma mk_generated_group (G : Type*) (S : set G) (generates : subgroup.closure S = ⊤) : generated_group G S := sorry
 
 -- version of the previous one, where we give length f(s) to s∈S
 lemma mk_normed_group_f (G : Type*) [group G] (S : set G) (generates : subgroup.closure S = ⊤) (f : S → ℝ) (pos : ∀(s∈S), f(s) > 0) : normed_group G := sorry
@@ -45,6 +56,8 @@ lemma growth_independence_of_generating_set (G : Type*) [group G] (S₁ S₂ : s
 --!! define growth types: exponential, polynomial, intermediate
 
 /- then lots of basic lemmas: growth of subgroup is smaller than growth of group; if finite-index subgroup then the growth relate by at most the index; etc.
+
+also: natural norm on generated_group by declaring each generator to have length 1
 -/
 end group_growth
 

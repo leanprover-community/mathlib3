@@ -365,6 +365,10 @@ end
 theorem abs_le_of_sq_le_sq' (h : x^2 ≤ y^2) (hy : 0 ≤ y) : -y ≤ x ∧ x ≤ y :=
 abs_le.mp $ abs_le_of_sq_le_sq h hy
 
+theorem abs_le_iff_sq_le_sq_and_nonneg : |x| ≤ y ↔ x ^ 2 ≤ y ^ 2 ∧ 0 ≤ y :=
+⟨λ H, ⟨sq_le_sq' (abs_le.1 H).1 (abs_le.1 H).2, (abs_nonneg x).trans H⟩,
+  λ H, abs_le_of_sq_le_sq H.1 H.2⟩
+
 lemma sq_eq_sq_iff_abs_eq_abs (x y : R) : x^2 = y^2 ↔ |x| = |y| :=
 ⟨λ h, (abs_le_abs_of_sq_le_sq h.le).antisymm (abs_le_abs_of_sq_le_sq h.ge),
  λ h, by rw [←sq_abs, h, sq_abs]⟩

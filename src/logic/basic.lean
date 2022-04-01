@@ -1499,6 +1499,14 @@ lemma apply_ite2 (f : α → β → γ) (P : Prop) [decidable P] (a b : α) (c d
   f (ite P a b) (ite P c d) = ite P (f a c) (f b d) :=
 apply_dite2 f P (λ _, a) (λ _, b) (λ _, c) (λ _, d)
 
+lemma mem_dite {α β : Type*} [has_mem α β] {P : Prop} [decidable P] {a : α} {b : P → β}
+  {c : ¬P → β} : a ∈ (if h : P then b h else c h) ↔ (∃ h, a ∈ b h) ∨ (∃ h, a ∈ c h) :=
+by by_cases h : P; simp [h]
+
+lemma mem_ite {α β : Type*} [has_mem α β] {P : Prop} [decidable P] {a : α} {b c : β} :
+  a ∈ (if P then b else c) ↔ (P ∧ a ∈ b) ∨ (¬P ∧ a ∈ c) :=
+mem_dite.trans $ by rw [exists_prop, exists_prop]
+
 /-- A 'dite' producing a `Pi` type `Π a, σ a`, applied to a value `a : α` is a `dite` that applies
 either branch to `a`. -/
 lemma dite_apply (f : P → Π a, σ a) (g : ¬ P → Π a, σ a) (a : α) :

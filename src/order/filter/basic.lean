@@ -1174,6 +1174,10 @@ lemma frequently_principal {a : set α} {p : α → Prop} :
   (∃ᶠ x in 𝓟 a, p x) ↔ (∃ x ∈ a, p x) :=
 by simp [filter.frequently, not_forall]
 
+theorem frequently_inf_principal {f : filter α} {p : α → Prop} {s : set α} :
+  (∃ᶠ x in f ⊓ 𝓟 s, p x) ↔ ∃ᶠ x in f, x ∈ s ∧ p x :=
+by simp only [filter.frequently, eventually_inf_principal, not_and]
+
 lemma frequently_sup {p : α → Prop} {f g : filter α} :
   (∃ᶠ x in f ⊔ g, p x) ↔ (∃ᶠ x in f, p x) ∨ (∃ᶠ x in g, p x) :=
 by simp only [filter.frequently, eventually_sup, not_and_distrib]

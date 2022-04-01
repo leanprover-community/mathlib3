@@ -504,6 +504,12 @@ lemma _root_.is_min.Iic_eq (h : is_min a) : Iic a = {a} := h.to_dual.Ici_eq
 lemma Iic_inter_Ioc_of_le (h : a ≤ c) : Iic a ∩ Ioc b c = Ioc b a :=
 ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
 
+lemma Ioc_inter_Iio_of_ge {a b c : α} (h : c ≤ b) : Ioc a b ∩ Iio c = Ioo a c :=
+ext $ λ x, ⟨λ H, ⟨H.1.1, H.2⟩, λ H, ⟨⟨H.1, H.2.le.trans h⟩, H.2⟩⟩
+
+lemma Iio_inter_Ioc_of_le {a b c : α} (h : a ≤ c) : Iio a ∩ Ioc b c = Ioo b a :=
+by rw [inter_comm, Ioc_inter_Iio_of_ge h]
+
 end partial_order
 
 section order_top
@@ -1140,6 +1146,9 @@ by { ext x, simp [Ioi] }
 @[simp] lemma Ioc_inter_Ioi [is_total α (≤)] {a b c : α} : Ioc a b ∩ Ioi c = Ioc (a ⊔ c) b :=
 by rw [← Ioi_inter_Iic, inter_assoc, inter_comm, inter_assoc, Ioi_inter_Ioi, inter_comm,
   Ioi_inter_Iic, sup_comm]
+
+@[simp] lemma Ioi_inter_Ioc [is_total α (≤)] {a b c : α} : Ioi a ∩ Ioc b c = Ioc (a ⊔ b) c :=
+by rw [inter_comm, Ioc_inter_Ioi, sup_comm]
 
 end sup
 

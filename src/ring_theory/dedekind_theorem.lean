@@ -1,52 +1,41 @@
-/-- temporary
- variables {S : Type*} [cancel_comm_monoid_with_zero S] [decidable_rel (has_dvd.dvd : S → S → Prop)]
- (f : R →* S) (hf : function.surjective f)
+import ring_theory.dedekind_domain.ideal
 
-lemma monoid_hom.image_dvd_image_of_dvd {α β : Type*} [comm_monoid α] [comm_monoid β] (f : α →* β)
- {a b : α} (H : a ∣ b) : f a ∣ (f b) :=
-by { obtain ⟨c, rfl⟩ := H, simp only [map_mul, dvd_mul_right] }
-
-lemma monoid_hom.image_dvd_image_iff_dvd_of_surjective {α β : Type*} [comm_monoid α] [comm_monoid β]
-  (f : α ≃* β) {a b : α} : a ∣ b ↔ f a ∣ (f b) :=
-begin
-  refine ⟨λ h, monoid_hom.image_dvd_image_of_dvd (f : α →* β) h, λ h, _ ⟩,
-  obtain ⟨c', hc'⟩ := h,
-  sorry,
-end
-
-lemma multiplicity_eq_multiplicity_iff {p q : R} (hp : prime p) (hq : q ≠ 0) :
-  multiplicity p q = multiplicity (f p) (f q) :=
-begin
-  by_cases hcases : finite p q,
-  have temp := multiplicity.finite_def.1 hcases,
-  apply le_antisymm,
-  rw ← enat.le_iff_of_dom (multiplicity.finite_iff_dom.1 hcases),
-  apply multiplicity.le_multiplicity_of_pow_dvd,
-
-end
-
-lemma multiplicity_eq_multiplicity_associates_mk
-  [decidable_rel (has_dvd.dvd : associates R → associates R → Prop)] {p q : R} (hp : prime p) (hq : q ≠ 0) :
-  multiplicity p q = multiplicity (associates.mk p) (associates.mk q) :=
-begin
-  by_cases hcases : finite p q,
-
-
-  /-
-  have finite₁ := multiplicity.finite_prime_left hp hq,
-  have finite₂ := multiplicity.finite_prime_left ((associates.prime_mk p).2 hp)
-    (associates.mk_ne_zero.2 hq),
-  apply le_antisymm,
-  { rw ← enat.le_iff_of_dom,
-    apply multiplicity.le_multiplicity_of_pow_dvd,
-    rw [← associates.mk_pow, associates.mk_dvd_mk],
-    exact multiplicity.pow_multiplicity_dvd finite₁ },
-
-  { rw ← enat.le_iff_of_dom,
-    apply multiplicity.le_multiplicity_of_pow_dvd,
-    rw [← associates.mk_dvd_mk, associates.mk_pow],
-    exact multiplicity.pow_multiplicity_dvd finite₂ },-/
-end
-
-
--/
+@[simps]
+def ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient):
+  {p : ideal T | p ∣ I} ≃ {p : ideal S | p ∣ J} :=
+{
+  to_fun := λ X, ⟨comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)),
+    begin
+      rw [set.mem_set_of_eq, dvd_iff_le],
+      have : (J^.quotient.mk).ker ≤ comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)),
+      { exact ker_le_comap J^.quotient.mk },
+      rw mk_ker at this,
+      exact this,
+    end ⟩,
+  inv_fun := λ X, ⟨comap I^.quotient.mk (map ↑(f.symm) (map J^.quotient.mk X)),
+    begin
+      rw [set.mem_set_of_eq, dvd_iff_le],
+      have : (I^.quotient.mk).ker ≤ comap I^.quotient.mk (map ↑(f.symm) (map J^.quotient.mk X)),
+      { exact ker_le_comap I^.quotient.mk },
+      rw mk_ker at this,
+      exact this,
+    end⟩,
+  left_inv := λ X,
+  begin
+    obtain ⟨p, hp⟩:= X,
+      rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk, map_comap_of_surjective _
+        quotient.mk_surjective, map_of_equiv _ f, comap_map_of_surjective _ quotient.mk_surjective,
+        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left],
+      exact dvd_iff_le.1 hp,
+  end,
+  right_inv := λ X,
+    begin
+      obtain ⟨p, hp⟩:= X,
+      rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk, map_comap_of_surjective _
+        quotient.mk_surjective],
+      nth_rewrite 0 ← ring_equiv.symm_symm f,
+      rw [map_of_equiv _ f.symm, comap_map_of_surjective _ quotient.mk_surjective,
+        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left],
+      exact dvd_iff_le.1 hp,
+    end
+}

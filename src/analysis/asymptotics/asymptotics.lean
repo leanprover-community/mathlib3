@@ -170,6 +170,12 @@ is_O_iff_is_O_with.trans
 lemma is_O_iff_eventually : is_O f g' l ↔ ∀ᶠ c in at_top, ∀ᶠ x in l, ∥f x∥ ≤ c * ∥g' x∥ :=
 is_O_iff_eventually_is_O_with.trans $ by simp only [is_O_with]
 
+lemma is_O.exists_of_basis {ι} {p : ι → Prop} {s : ι → set α} (h : is_O f g' l)
+  (hb : l.has_basis p s) :
+  ∃ (c : ℝ) (hc : 0 < c) (i : ι) (hi : p i), ∀ x ∈ s i, ∥f x∥ ≤ c * ∥g' x∥ :=
+flip Exists₂.imp h.exists_pos $ λ c hc h,
+  by simpa only [is_O_with_iff, hb.eventually_iff, exists_prop] using h
+
 /-! ### Subsingleton -/
 
 @[nontriviality] lemma is_o_of_subsingleton [subsingleton E'] : is_o f' g' l :=

@@ -8,13 +8,13 @@ import analysis.complex.abs_max
 /-!
 -/
 
-open topological_space set filter asymptotics
-open_locale topological_space filter
+open set filter asymptotics complex
+open_locale topological_space filter real
 
 namespace phragmen_lindelof
 
 variables {ι E F : Type*} [normed_group E] [normed_space ℂ E]
-  [normed_group F] [normed_space ℂ F] [second_countable_topology F]
+  [normed_group F] [normed_space ℂ F]
 
 lemma aux {s : set E} {f : E → F} (hfd : diff_cont_on_cl ℂ f s) {g : ι → E → ℂ} {l : filter ι}
   [ne_bot l] (hgd : ∀ᶠ i in l, diff_cont_on_cl ℂ (g i) s)
@@ -40,17 +40,29 @@ begin
 end
 
 
-lemma horizontal_strip {a b c C : ℝ} {f : ℂ → E}
-  (hd : diff_on_int_cont ℂ f (complex.im ⁻¹' (Icc a b)))
-  (hO : is_O (λ z, real.log ∥f z∥) (λ z, real.exp (c * z.re))
-    (comap (abs ∘ complex.re) at_top ⊓ 𝓟 (complex.im ⁻¹' (Icc a b))))
+lemma horizontal_strip {a b C : ℝ} {f : ℂ → E}
+  (hd : diff_cont_on_cl ℂ f (complex.im ⁻¹' Ioo a b))
+  (hB : ∃ (c ∈ Ioo 0 (π / (b - a))) A, ∀ z : ℂ, z.im ∈ Ioo a b →
+    ∥f z∥ ≤ real.exp (A * real.exp (c * |z.re|)))
   (hle : ∀ z : ℂ, (z.im = a ∨ z.im = b) → ∥f z∥ ≤ C) {z : ℂ} (hz : z.im ∈ Icc a b) :
   ∥f z∥ ≤ C :=
 begin
   -- If `z.im = a` or `z.im = b`, then apply `hle`, otherwise `z.im ∈ Ioo a b`
   rcases eq_endpoints_or_mem_Ioo_of_mem_Icc hz with (hz|hz|hz'),
   { exact hle z (or.inl hz) }, { exact hle z (or.inr hz) }, clear hz, rename hz' hz,
-  
+  have hab : a < b, from hz.1.trans hz.2,
+  have hc : continuous_on f (complex.im ⁻¹' Icc a b),
+  { rw [← closure_Ioo hab.ne, ← complex.closure_preimage_im],
+    exact hd.continuous_on },
+  -- obtain ⟨c, hc, R, hzR, hR⟩ : ∃ (c ∈ Ioo 0 (π / (b - a))) (R : ℝ), |z.re| < R ∧
+  rcases hB with ⟨c, ⟨hc₀, hc⟩, A, Hle⟩,
+  rcases exists_between hc with ⟨d, hcd, hd⟩,
+  set g : ℝ → ℂ → ℂ := λ ε w, exp (-ε * (exp (d * w) + exp (-d * w))),
+  have hg₁ : ∀ w, tendsto (λ ε, g ε w) (𝓝[>] 0) (𝓝 1),
+  { refine λ w, (continuous.tendsto' _ _ _ _).mono_left nhds_within_le_nhds,
+    { exact continuous_exp.comp (is_R_or_C.continuous_of_real.neg.mul continuous_const) },
+    { simp only [g], simp only [of_real_zero, neg_zero', zero_mul, exp_zero] } },
+  refine le_of_forall_pos_le_add _,
 end
 
 end phragmen_lindelof

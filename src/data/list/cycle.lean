@@ -724,7 +724,7 @@ instance [has_repr α] : has_repr (cycle α) :=
 
 /-- `chain R s` means that `R` holds between adjacent elements of `s`.
 
-     chain R [a, b, c] ↔ R a b ∧ R b c ∧ R c a -/
+`chain R ([a, b, c] : cycle α) ↔ R a b ∧ R b c ∧ R c a` -/
 def chain (r : α → α → Prop) (c : cycle α) : Prop :=
 quotient.lift_on' c (λ l, match l with
   | [] := true

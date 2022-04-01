@@ -180,7 +180,7 @@ end
 lemma is_field.is_principal_ideal_ring
   {R : Type*} [comm_ring R] (h : is_field R) :
   is_principal_ideal_ring R :=
-@euclidean_domain.to_principal_ideal_domain R (@field.to_euclidean_domain R (h.to_field R))
+@euclidean_domain.to_principal_ideal_domain R (@field.to_euclidean_domain R h.to_field)
 
 namespace principal_ideal_ring
 open is_principal_ideal_ring

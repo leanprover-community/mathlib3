@@ -191,7 +191,7 @@ lemma mk_mem_periodic_pts (hn : 0 < n) (hx : is_periodic_pt f n x) :
 lemma mem_periodic_pts : x ∈ periodic_pts f ↔ ∃ n > 0, is_periodic_pt f n x := iff.rfl
 
 lemma is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate (hx : x ∈ periodic_pts f)
-  {m n : ℕ} (hm : is_periodic_pt f m (f^[n] x)) : is_periodic_pt f m x :=
+  (hm : is_periodic_pt f m (f^[n] x)) : is_periodic_pt f m x :=
 begin
   rcases hx with ⟨r, hr, hr'⟩,
   convert (hm.apply_iterate ((n / r + 1) * r - n)).eq,

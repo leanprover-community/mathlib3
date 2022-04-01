@@ -161,7 +161,7 @@ namespace embedding
 theorem is_elementary_of_exists (f : M ↪[L] N)
   (htv : ∀ (n : ℕ) (φ : L.bounded_formula empty (n + 1)) (x : fin n → M) (a : N),
     φ.realize default (fin.snoc (f ∘ x) a : _ → N) →
-    ∃ b : M, φ.realize default (fin.snoc x b : _ → M)) :
+    ∃ b : M, φ.realize default (fin.snoc (f ∘ x) (f b) : _ → N)) :
   ∀{n} (φ : L.formula (fin n)) (x : fin n → M), φ.realize (f ∘ x) ↔ φ.realize x :=
 begin
   suffices h : ∀ (n : ℕ) (φ : L.bounded_formula empty n) (xs : fin n → M),
@@ -184,7 +184,8 @@ begin
     { contrapose!,
       rintro ⟨a, ha⟩,
       obtain ⟨b, hb⟩ := htv n φ.not xs a _,
-      { exact ⟨b, λ h, hb ((congr (congr rfl (subsingleton.elim _ _)) rfl).mp h)⟩ },
+      { refine ⟨b, λ h, hb (eq.mp _ ((ih _).2 h))⟩,
+        rw [unique.eq_default (f ∘ default), fin.comp_snoc], },
       { rw [bounded_formula.realize_not, ← unique.eq_default (f ∘ default)],
         exact ha } } },
 end
@@ -193,7 +194,7 @@ end
 @[simps] def to_elementary_embedding (f : M ↪[L] N)
   (htv : ∀ (n : ℕ) (φ : L.bounded_formula empty (n + 1)) (x : fin n → M) (a : N),
     φ.realize default (fin.snoc (f ∘ x) a : _ → N) →
-    ∃ b : M, φ.realize default (fin.snoc x b : _ → M)) :
+    ∃ b : M, φ.realize default (fin.snoc (f ∘ x) (f b) : _ → N)) :
   M ↪ₑ[L] N :=
 ⟨f, λ _, f.is_elementary_of_exists htv⟩
 
@@ -290,7 +291,7 @@ namespace substructure
 theorem is_elementary_of_exists (S : L.substructure M)
   (htv : ∀ (n : ℕ) (φ : L.bounded_formula empty (n + 1)) (x : fin n → S) (a : M),
     φ.realize default (fin.snoc (coe ∘ x) a : _ → M) →
-    ∃ b : S, φ.realize default (fin.snoc x b : _ → S)) :
+    ∃ b : S, φ.realize default (fin.snoc (coe ∘ x) b : _ → M)) :
   S.is_elementary :=
 λ n, S.subtype.is_elementary_of_exists htv
 
@@ -298,7 +299,7 @@ theorem is_elementary_of_exists (S : L.substructure M)
 @[simps] def to_elementary_substructure (S : L.substructure M)
   (htv : ∀ (n : ℕ) (φ : L.bounded_formula empty (n + 1)) (x : fin n → S) (a : M),
     φ.realize default (fin.snoc (coe ∘ x) a : _ → M) →
-    ∃ b : S, φ.realize default (fin.snoc x b : _ → S)) :
+    ∃ b : S, φ.realize default (fin.snoc (coe ∘ x) b : _ → M)) :
   L.elementary_substructure M :=
 ⟨S, λ _, S.is_elementary_of_exists htv⟩
 

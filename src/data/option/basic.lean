@@ -34,7 +34,7 @@ along with a term `a : α` if the value is `true`.
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-lemma coe_def : (coe : α → option α) = some := rfl
+@[simp] lemma coe_def : (coe : α → option α) = some := rfl
 
 lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
 

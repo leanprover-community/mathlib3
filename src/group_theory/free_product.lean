@@ -151,8 +151,8 @@ lemma of_left_inverse [decidable_eq ι] (i : ι) :
 lemma of_injective (i : ι) : function.injective ⇑(of : M i →* _) :=
 by { classical, exact (of_left_inverse i).injective }
 
-lemma lift_range_subset_submonoid {N} [monoid N] (f : Π i, M i →* N) {s : submonoid N}
-  (h : ∀ i, set.range (f i) ⊆ s) : set.range (lift f) ⊆ s :=
+lemma lift_mrange_le {N} [monoid N] (f : Π i, M i →* N) {s : submonoid N}
+  (h : ∀ i, (f i).mrange ≤ s) : (lift f).mrange ≤ s :=
 begin
   rintros _ ⟨x, rfl⟩,
   induction x using free_product.induction_on with i x x y hx hy,
@@ -161,24 +161,13 @@ begin
   { simp only [map_mul, set_like.mem_coe], exact s.mul_mem hx hy, },
 end
 
-lemma range_eq_submonoid_closure {N} [monoid N] (f : Π i, M i →* N) :
-  set.range (lift f) = submonoid.closure (⋃ i, set.range (f i)) :=
-begin
-  apply set.subset.antisymm,
-  { exact lift_range_subset_submonoid f
-      (λ i, @set.subset.trans _ _ (⋃ i, set.range (f i)) _
-        (set.subset_Union _ i) submonoid.subset_closure), },
-  { suffices : (submonoid.closure (⋃ i, set.range (f i))) ≤ monoid_hom.mrange (lift f), by simpa,
-    rw submonoid.closure_le,
-    rintros y ⟨_, ⟨⟨i, rfl⟩, ⟨x, rfl⟩⟩⟩,
-    exact ⟨of x, by simp⟩ }
-end
-
 lemma mrange_eq_supr {N} [monoid N] (f : Π i, M i →* N) :
   (lift f).mrange = ⨆ i, (f i).mrange :=
 begin
-  apply set_like.ext',
-  simp only [monoid_hom.coe_mrange, range_eq_submonoid_closure, submonoid.supr_eq_closure],
+  apply le_antisymm (lift_mrange_le f (λ i, le_supr _ i)),
+  apply supr_le _,
+  rintros i _ ⟨x, rfl⟩,
+  exact ⟨of x, by simp only [lift_of]⟩
 end
 
 section group
@@ -206,28 +195,23 @@ instance : group (free_product G) :=
   ..free_product.has_inv G,
   ..free_product.monoid G }
 
-lemma lift_range_subset {N} [group N] (f : Π i, G i →* N) {s : subgroup N} :
-   (∀ i, set.range (f i) ⊆ s) → set.range (lift f) ⊆ s :=
-by { rw ← s.coe_to_submonoid, exact lift_range_subset_submonoid f, }
-
-lemma range_eq_subgroup_closure {N} [group N] (f : Π i, G i →* N) :
-  set.range (lift f) = subgroup.closure (⋃ i, set.range (f i)) :=
+lemma lift_range_le {N} [group N] (f : Π i, G i →* N) {s : subgroup N}
+  (h : ∀ i, (f i).range ≤ s) : (lift f).range ≤ s :=
 begin
-  apply set.subset.antisymm,
-  { exact lift_range_subset _ f
-      (λ i, @set.subset.trans _ _ (⋃ i, set.range (f i)) _
-        (set.subset_Union _ i) subgroup.subset_closure), },
-  { suffices : (subgroup.closure (⋃ i, set.range (f i))) ≤ monoid_hom.range (lift f), by simpa,
-    rw subgroup.closure_le,
-    rintros y ⟨_, ⟨⟨i, rfl⟩, ⟨x, rfl⟩⟩⟩,
-    exact ⟨of x, by simp⟩ }
+  rintros _ ⟨x, rfl⟩,
+  induction x using free_product.induction_on with i x x y hx hy,
+  { exact s.one_mem, },
+  { simp only [lift_of, set_like.mem_coe], exact h i (set.mem_range_self x), },
+  { simp only [map_mul, set_like.mem_coe], exact s.mul_mem hx hy, },
 end
 
 lemma range_eq_supr {N} [group N] (f : Π i, G i →* N) :
   (lift f).range = ⨆ i, (f i).range :=
 begin
-  apply set_like.ext',
-  simp only [monoid_hom.coe_range, range_eq_subgroup_closure, subgroup.supr_eq_closure],
+  apply le_antisymm (lift_range_le _ f (λ i, le_supr _ i)),
+  apply supr_le _,
+  rintros i _ ⟨x, rfl⟩,
+  exact ⟨of x, by simp only [lift_of]⟩
 end
 
 end group

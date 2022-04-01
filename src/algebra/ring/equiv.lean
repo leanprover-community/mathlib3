@@ -321,7 +321,7 @@ end semiring
 
 section
 
-variables [ring R] [ring S] (f : R ≃+* S) (x y : R)
+variables [non_assoc_ring R] [non_assoc_ring S] (f : R ≃+* S) (x y : R)
 
 protected lemma map_neg : f (-x) = -f x := map_neg f x
 

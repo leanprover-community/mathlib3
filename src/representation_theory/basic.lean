@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Antoine Labelle
 -/
 import algebra.module.basic
-import data.equiv.module
 import algebra.module.linear_map
 import algebra.monoid_algebra.basic
 import linear_algebra.trace

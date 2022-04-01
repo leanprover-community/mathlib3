@@ -845,14 +845,9 @@ lemma univ_option (α : Type*) [fintype α] : (univ : finset (option α)) = inse
 def fintype_of_option {α : Type*} [fintype (option α)] : fintype α :=
 ⟨finset.erase_none (fintype.elems (option α)), λ x, mem_erase_none.mpr (fintype.complete (some x))⟩
 
-/-- If `α` is a `fintype` then any type equivalent to `α` is a `fintype` -/
-def fintype_of_equiv [fintype α] (f : α ≃ β) : fintype β :=
-⟨map (equiv.to_embedding f) (fintype.elems α),
-  λ x, finset.mem_map_equiv.mpr (fintype.complete ((equiv.symm f) x))⟩
-
 /-- A type is a `fintype` if its successor (using `option`) is a `fintype`. -/
 def fintype_of_option_equiv [fintype α] (f : option α ≃ β) : fintype β :=
-by { haveI := fintype_of_equiv f, exact fintype_of_option }
+by { haveI := fintype.of_equiv (option α) f, exact fintype_of_option }
 
 instance {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] : fintype (sigma β) :=

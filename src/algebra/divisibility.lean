@@ -31,9 +31,9 @@ divisibility, divides
 
 variables {α : Type*}
 
-section semigroup
+section has_mul
 
-variables [semigroup α] {a b c : α}
+variables [has_mul α] {a b c : α}
 
 /-- There are two possible conventions for divisibility, which coincide in a `comm_monoid`.
     This matches the convention for ordinals. -/
@@ -53,25 +53,7 @@ theorem exists_eq_mul_right_of_dvd (h : a ∣ b) : ∃ c, b = a * c := h
 theorem dvd.elim {P : Prop} {a b : α} (H₁ : a ∣ b) (H₂ : ∀ c, b = a * c → P) : P :=
 exists.elim H₁ H₂
 
-local attribute [simp] mul_assoc mul_comm mul_left_comm
-
-@[trans] theorem dvd_trans (h₁ : a ∣ b) (h₂ : b ∣ c) : a ∣ c :=
-match h₁, h₂ with
-| ⟨d, (h₃ : b = a * d)⟩, ⟨e, (h₄ : c = b * e)⟩ :=
-  ⟨d * e, show c = a * (d * e), by simp [h₃, h₄]⟩
-end
-
-alias dvd_trans ← has_dvd.dvd.trans
-
 @[simp] theorem dvd_mul_right (a b : α) : a ∣ a * b := dvd.intro b rfl
-
-theorem dvd_mul_of_dvd_left (h : a ∣ b) (c : α) : a ∣ b * c :=
-h.trans (dvd_mul_right b c)
-
-alias dvd_mul_of_dvd_left ← has_dvd.dvd.mul_right
-
-theorem dvd_of_mul_right_dvd (h : a * b ∣ c) : a ∣ c :=
-(dvd_mul_right a b).trans h
 
 section map_dvd
 
@@ -85,6 +67,30 @@ lemma mul_hom.map_dvd (f : mul_hom M N) {a b} : a ∣ b → f a ∣ f b := map_d
 lemma monoid_hom.map_dvd (f : M →* N) {a b} : a ∣ b → f a ∣ f b := map_dvd f
 
 end map_dvd
+
+end has_mul
+
+section semigroup
+
+variables [semigroup α] {a b c : α}
+
+local attribute [simp] mul_assoc mul_comm mul_left_comm
+
+@[trans] theorem dvd_trans (h₁ : a ∣ b) (h₂ : b ∣ c) : a ∣ c :=
+match h₁, h₂ with
+| ⟨d, (h₃ : b = a * d)⟩, ⟨e, (h₄ : c = b * e)⟩ :=
+  ⟨d * e, show c = a * (d * e), by simp [h₃, h₄]⟩
+end
+
+alias dvd_trans ← has_dvd.dvd.trans
+
+theorem dvd_mul_of_dvd_left (h : a ∣ b) (c : α) : a ∣ b * c :=
+h.trans (dvd_mul_right b c)
+
+alias dvd_mul_of_dvd_left ← has_dvd.dvd.mul_right
+
+theorem dvd_of_mul_right_dvd (h : a * b ∣ c) : a ∣ c :=
+(dvd_mul_right a b).trans h
 
 end semigroup
 
@@ -282,9 +288,9 @@ mt (is_unit_of_dvd_unit hb) ha
 
 end comm_monoid
 
-section comm_monoid_with_zero
+section monoid_with_zero
 
-variable [comm_monoid_with_zero α]
+variable [monoid_with_zero α]
 
 /-- `dvd_not_unit a b` expresses that `a` divides `b` "strictly", i.e. that `b` divided by `a`
 is not a unit. -/
@@ -301,19 +307,6 @@ begin
     simpa using hnd }
 end
 
-end comm_monoid_with_zero
-
-lemma dvd_and_not_dvd_iff [cancel_comm_monoid_with_zero α] {x y : α} :
-  x ∣ y ∧ ¬y ∣ x ↔ dvd_not_unit x y :=
-⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,
-    mt is_unit_iff_dvd_one.1 (λ ⟨e, he⟩, hyx ⟨e, by rw [hd, mul_assoc, ← he, mul_one]⟩), hd⟩⟩,
-  λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
-    ⟨e, mul_left_cancel₀ hx0 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩
-
-section monoid_with_zero
-
-variable [monoid_with_zero α]
-
 theorem ne_zero_of_dvd_ne_zero {p q : α} (h₁ : q ≠ 0)
   (h₂ : p ∣ q) : p ≠ 0 :=
 begin
@@ -322,3 +315,10 @@ begin
 end
 
 end monoid_with_zero
+
+lemma dvd_and_not_dvd_iff [cancel_comm_monoid_with_zero α] {x y : α} :
+  x ∣ y ∧ ¬y ∣ x ↔ dvd_not_unit x y :=
+⟨λ ⟨⟨d, hd⟩, hyx⟩, ⟨λ hx0, by simpa [hx0] using hyx, ⟨d,
+    mt is_unit_iff_dvd_one.1 (λ ⟨e, he⟩, hyx ⟨e, by rw [hd, mul_assoc, ← he, mul_one]⟩), hd⟩⟩,
+  λ ⟨hx0, d, hdu, hdx⟩, ⟨⟨d, hdx⟩, λ ⟨e, he⟩, hdu (is_unit_of_dvd_one _
+    ⟨e, mul_left_cancel₀ hx0 $ by conv {to_lhs, rw [he, hdx]};simp [mul_assoc]⟩)⟩⟩

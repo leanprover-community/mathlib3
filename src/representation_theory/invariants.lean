@@ -96,7 +96,7 @@ noncomputable def invariants' : submodule (monoid_algebra k G) V :=
 variables [fintype G] [invertible (fintype.card G : k)]
 
 /--
-Scalar multiplication by `average k G` sends elements of `V` to the subspace of invariants
+Scalar multiplication by `average k G` sends elements of `V` to the subspace of invariants.
 -/
 theorem smul_average_invariant (v : V) : (average k G) • v ∈ invariants k G V :=
 λ g, by rw [←of_smul k, smul_smul, of_apply, mul_average_left]

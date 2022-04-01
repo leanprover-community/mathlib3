@@ -120,10 +120,11 @@ section ring
 variables {R : Type*} [comm_ring R]
 variables {A : Type u} [topological_space A]
 variables [ring A]
-variables [algebra R A] [topological_ring A] [t2_space A]
+variables [algebra R A] [topological_ring A]
 
-/-- If a subalgebra of a topological algebra is commutative, then so is its topological closure. -/
-def subalgebra.comm_ring_topological_closure (s : subalgebra R A)
+/-- If a subalgebra of a topological algebra is commutative, then so is its topological closure.
+See note [reducible non-instances]. -/
+@[reducible] def subalgebra.comm_ring_topological_closure [t2_space A] (s : subalgebra R A)
   (hs : ∀ (x y : s), x * y = y * x) : comm_ring s.topological_closure :=
 { ..s.topological_closure.to_ring,
   ..s.to_submonoid.comm_monoid_topological_closure hs }
@@ -139,7 +140,7 @@ set_like.le_def.mp (subalgebra.subalgebra_topological_closure (algebra.adjoin R 
 
 variables {R}
 
-instance (x : A) : comm_ring (algebra.elemental_algebra R x) :=
+instance [t2_space A] {x : A} : comm_ring (algebra.elemental_algebra R x) :=
 subalgebra.comm_ring_topological_closure _
 begin
   letI : comm_ring (algebra.adjoin R ({x} : set A)) := algebra.adjoin_comm_ring_of_comm R

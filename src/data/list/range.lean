@@ -156,7 +156,8 @@ begin
   { simp },
   { rw range_succ,
     simp only [append_assoc, singleton_append, chain_append_cons_cons, chain.nil, and_true],
-    rw [hn, and_assoc, and.congr_right_iff, forall_lt_succ] }
+    rw [hn, and_assoc, and.congr_right_iff],
+    exact λ _, forall_lt_succ.symm }
 end
 
 theorem chain'_range_succ (r : ℕ → ℕ → Prop) (n : ℕ) :

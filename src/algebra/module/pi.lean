@@ -53,7 +53,7 @@ instance mul_action_with_zero' {g : I → Type*} [Π i, monoid_with_zero (g i)]
 
 variables (I f)
 
-instance module (α) {r : semiring α} {m : ∀ i, add_comm_monoid $ f i}
+instance module (α) {r : non_assoc_semiring α} {m : ∀ i, add_comm_monoid $ f i}
   [∀ i, module α $ f i] :
   @module α (Π i : I, f i) r (@pi.add_comm_monoid I f m) :=
 { add_smul := λ c f g, funext $ λ i, add_smul _ _ _,

@@ -1,3 +1,4 @@
+import algebra.big_operators.norm_num
 import data.nat.fib
 import data.nat.succ_pred
 import linear_algebra.basis
@@ -49,12 +50,12 @@ begin
     linear_equiv.apply_symm_apply]
 end
 
-@[simp] lemma basis.repr_bit0 (b : basis ι R S) (x : S) (i : ι) :
-  b.repr (bit0 x) i = bit0 (b.repr x i) :=
+@[simp] lemma linear_equiv.map_bit0 {R M N : Type*} [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N]
+  (f : M ≃ₗ[R] N) (x : M) : f (bit0 x) = bit0 (f x) :=
 by { unfold bit0, simp only [_root_.map_add, finsupp.coe_add, pi.add_apply] }
-@[simp] lemma basis.repr_bit1 (b : basis ι R S) (x : S) (i : ι) :
-  b.repr (bit1 x) i = bit0 (b.repr x i) + b.repr 1 i :=
-by { unfold bit0 bit1, simp only [_root_.map_add, finsupp.coe_add, pi.add_apply] }
+@[simp] lemma linear_equiv.map_bit1 {R M N : Type*} [semiring R] [add_comm_monoid M] [module R M] [add_comm_monoid N] [module R N] [has_one M]
+  (f : M ≃ₗ[R] N) (x : M) : f (bit1 x) = bit0 (f x) + f 1 :=
+by { unfold bit1 bit0, simp only [_root_.map_add, finsupp.coe_add, pi.add_apply] }
 
 noncomputable def times_table.reindex {ι' : Type*} (t : times_table ι R S) (e : ι ≃ ι') :
   times_table ι' R S :=
@@ -190,15 +191,17 @@ def sqrt_2 : sqrt_2_sqrt_3 := ⟨0, 1, 0, 0⟩
 def sqrt_3 : sqrt_2_sqrt_3 := ⟨0, 0, 1, 0⟩
 @[simp] lemma repr_sqrt_3 (i : fin 4) : sqrt_2_sqrt_3.basis.repr sqrt_3 i = ![0, 0, 1, 0] i := rfl
 
-@[simp] lemma sqrt_2_mul_sqrt_3 : sqrt_2 * sqrt_3 = _ := _
+@[simp]
+lemma finsupp.bit0_apply {α M : Type*} [add_monoid M] (f : α →₀ M) (i : α) : (bit0 f) i = bit0 (f i) := rfl
 
-set_option profiler true
+#print tactic.interactive.simp
+#print interactive.types.location
 
--- Top-down: easier to do with `simp`, but produces huge terms
-example : (sqrt_2 + sqrt_3)^3 - 9 * (sqrt_2 + sqrt_3) = 2 * sqrt_2 :=
-begin
-  -- Work coefficient-wise.
-  apply sqrt_2_sqrt_3.times_table.basis.ext_elem (λ k, _),
+/-- TODO: integrate into `norm_num` -/
+meta def _root_.tactic.interactive.times_table_eval
+  (hs : interactive.parse tactic.simp_arg_list)
+  (locat : interactive.parse interactive.types.location) : tactic unit := do
+  /-
   -- Write the term as a product (TODO: efficient handling of exponentiation?)
   /- repeat { ring_nf SOP }, -/ simp only [pow_succ, pow_zero, mul_one],
   -- Use the times table for multiplications.
@@ -206,224 +209,27 @@ begin
     _root_.map_sub, finsupp.coe_sub, pi.sub_apply,
     pi.mul_apply, times_table.unfold_mul],
   -- Determine what the values in the table refer to.
-  simp only [sqrt_2_sqrt_3.times_table, sqrt_2_sqrt_3.table,
-    basis.repr_bit0, basis.repr_bit1, repr_one, repr_sqrt_2, repr_sqrt_3, repr_mk],
-  -- Clean up the expression.
-  -- TODO: invent a norm_num plugin for finite sums
-  by { simp only [fin.sum_univ_succ, fin.sum_univ_zero, matrix.cons_val_succ, matrix.cons_val_zero,
-    -- The following ensures that the term produced by `simp` isn't overwhelmingly big:
-    mul_zero, zero_mul, add_zero, zero_add, one_mul, mul_one],
+  simp only [linear_equiv.map_bit0, linear_equiv.map_bit1, finsupp.bit0_apply, finsupp.add_apply,
+    sqrt_2_sqrt_3.times_table, sqrt_2_sqrt_3.table, repr_one, repr_sqrt_2, repr_sqrt_3],
+  norm_num,
+  -/
+  `[simp only [pow_succ, pow_zero, mul_one]],
+    -- Use the times table for multiplications.
+  `[simp only [_root_.map_add, finsupp.coe_add, pi.add_apply, _root_.map_sub, finsupp.coe_sub,
+    pi.sub_apply, pi.mul_apply, times_table.unfold_mul]],
+  `[simp only [linear_equiv.map_bit0, linear_equiv.map_bit1, finsupp.bit0_apply, finsupp.add_apply]],
+  -- Determine what the values in the table refer to.
+  tactic.interactive.simp none none tt hs [] locat,
+  `[norm_num]
+
+-- Top-down: easier to do with `simp`, but produces huge terms
+example : (sqrt_2 + sqrt_3)^3 - 9 * (sqrt_2 + sqrt_3) = 2 * sqrt_2 :=
+begin
+  -- Work coefficient-wise.
+  apply sqrt_2_sqrt_3.times_table.basis.ext_elem (λ k, _),
+  times_table_eval [sqrt_2_sqrt_3.times_table, sqrt_2_sqrt_3.table, repr_one, repr_sqrt_2, repr_sqrt_3],
   -- Finish the proof coefficientwise.
-  fin_cases k; norm_num }
+  fin_cases k; norm_num,
 end
 
 end sqrt_2_sqrt_3
-
-section norm_num
-
-open tactic
-
-/-- Run `t` while tracing any errors that are raised during evaluation of `t`. -/
-meta def with_trace_errors {α : Type*} (t : tactic α) : tactic α :=
-λ s, match t s with
-| (result.success x s) := result.success x s
-| (result.exception (some msg) pos s) := (tactic.trace (msg ()) >> fail (msg ())) s
-| (result.exception none pos s) := (tactic.trace "failed!" >> failure) s
-end
-
-lemma list.not_mem_cons {α : Type*} {x y : α} {ys : list α} (h₁ : x ≠ y) (h₂ : x ∉ ys) :
-  x ∉ y :: ys :=
-λ h, ((list.mem_cons_iff _ _ _).mp h).elim h₁ h₂
-
-/-- Use `norm_num` to decide equality between two expressions. -/
-meta def tactic.norm_num.decide_eq (l r : expr) : tactic (bool × expr) := do
-  (l', l'_pf) ← or_refl_conv norm_num.derive l,
-  (r', r'_pf) ← or_refl_conv norm_num.derive r,
-  n₁ ← l'.to_rat, n₂ ← r'.to_rat,
-  c ← infer_type l' >>= mk_instance_cache,
-  if n₁ = n₂ then do
-    pf ← i_to_expr ``(eq.trans %%l'_pf $ eq.symm %%r'_pf),
-    pure (tt, pf)
-  else do
-    (_, p) ← norm_num.prove_ne c l' r' n₁ n₂,
-    pure (ff, p)
-
-/-- Use a decision procedure for the equality of list elements to decide list membership. -/
-meta def list.decide_mem (decide_eq : expr → expr → tactic (bool × expr)) :
-  expr → list expr → tactic (bool × expr)
-| x [] := do
-  pf ← i_to_expr ``(list.not_mem_nil %%x),
-  pure (ff, pf)
-| x (y :: ys) := do
-  (is_head, head_pf) ← decide_eq x y,
-  if is_head then do
-    pf ← i_to_expr ``((list.mem_cons_iff %%x %%y _).mpr (or.inl %%head_pf)),
-    pure (tt, pf)
-  else do
-    (mem_tail, tail_pf) ← list.decide_mem x ys,
-    if mem_tail then do
-      pf ← i_to_expr ``((list.mem_cons_iff %%x %%y _).mpr (or.inr %%tail_pf)),
-      pure (tt, pf)
-    else do
-      pf ← i_to_expr ``(list.not_mem_cons %%head_pf %%tail_pf),
-      pure (ff, pf)
-
-lemma list.nodup_cons_of_coe_finset_eq {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
-  {xs' : list α} (h : x ∉ xs') (nd_xs : xs'.nodup)
-  (hxs' : finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs) = xs) :
-  (x :: xs').nodup :=
-list.nodup_cons.mpr ⟨by simpa [← hxs'] using h, nd_xs⟩
-
-lemma finset.coe_list_eq_insert_of_mem {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
-  {xs' : list α} (h : x ∈ xs') (nd_xs : xs'.nodup)
-  (hxs' : finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs) = xs) :
-  finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs) = insert x xs :=
-have h : x ∈ xs, by simpa [← hxs'] using h,
-by rw [finset.insert_eq_of_mem h, hxs']
-
-lemma finset.coe_list_cons_eq_insert {α : Type*} [decidable_eq α] (x : α) (xs : finset α)
-  {xs' : list α} (h : x ∉ xs') (nd_xs : xs'.nodup) (nd_xxs : (x :: xs').nodup)
-  (hxs' : finset.mk ↑xs' (multiset.coe_nodup.mpr nd_xs) = xs) :
-  finset.mk ↑(x :: xs') (multiset.coe_nodup.mpr nd_xxs) = insert x xs :=
-have h : x ∉ xs, by simpa [← hxs'] using h,
-by { rw [← finset.val_inj, finset.insert_val_of_not_mem h, ← hxs'], simp only [multiset.cons_coe] }
-
-/-- Convert an expression denoting a finset to a list of elements,
-a proof that this list is equal to the original finset,
-and a proof that the list contains no duplicates.
-
-`decide_eq` is a (partial) decision procedure for determining whether two
-elements of the finset are equal, for example to parse `{2, 1, 2}` into `[2, 1]`.
--/
-meta def expr.finset_to_list (decide_eq : expr → expr → tactic (bool × expr)) : expr → tactic (list expr × expr × expr)
-| e@`(has_emptyc.emptyc) := do
-  eq ← mk_eq_refl e,
-  nd ← i_to_expr ``(list.nodup_nil),
-  pure ([], eq, nd)
-| e@`(has_singleton.singleton %%x) := do
-  eq ← mk_eq_refl e,
-  nd ← i_to_expr ``(list.nodup_singleton %%x),
-  pure ([x], eq, nd)
-| e@`(@finset.cons %%x %%xs %%h) := do
-  eq ← mk_eq_refl e,
-  nd ← i_to_expr ``(list.nodup_singleton %%x),
-  pure ([x], eq, nd)
-| `(@@has_insert.insert (@@finset.has_insert %%dec) %%x %%xs) := do
-  (exs, xs_eq, xs_nd) ← expr.finset_to_list xs,
-  (is_mem, mem_pf) ← list.decide_mem decide_eq x exs,
-  if is_mem then do
-    pf ← i_to_expr ``(finset.coe_list_eq_insert_of_mem %%x %%xs %%mem_pf %%xs_nd %%xs_eq),
-    pure (exs, pf, xs_nd)
-  else do
-    nd ← i_to_expr ``(list.nodup_cons_of_coe_finset_eq %%x %%xs %%mem_pf %%xs_nd %%xs_eq),
-    pf ← i_to_expr ``(finset.coe_list_cons_eq_insert %%x %%xs %%mem_pf %%xs_nd %%nd %%xs_eq),
-    pure (x :: exs, pf, nd)
-| `(@@finset.univ %%ft) := do
-  -- Convert the fintype instance expression `ft` to a list of its elements.
-  -- We'll use `whnf` while unfolding semireducibles, which gives us either the `fintype.mk` constructor,
-  -- or give up.
-  ft ← whnf ft transparency.semireducible,
-  match ft with
-  | `(fintype.mk %%elems %%_) := expr.finset_to_list elems
-  | _ := fail (to_fmt "Unknown fintype expression" ++ format.line ++ to_fmt ft)
-  end
-| e@`(finset.range %%en) := do
-  n ← expr.to_nat en,
-  eis ← (list.range n).mmap (λ i, expr.of_nat `(ℕ) i),
-  eq ← mk_eq_refl e,
-  nd ← i_to_expr ``(list.nodup_range %%en),
-  pure (eis, eq, nd)
-| e@`(finset.fin_range %%en) := do
-  n ← expr.to_nat en,
-  eis ← (list.fin_range n).mmap (λ i, expr.of_nat `(fin %%en) i),
-  eq ← mk_eq_refl e,
-  nd ← i_to_expr ``(list.nodup_fin_range %%en),
-  pure (eis, eq, nd)
-| e := fail (to_fmt "Unknown finset expression" ++ format.line ++ to_fmt e)
-
-/-- Convert a list of expressions to an expression denoting the list of those expressions. -/
-meta def expr.of_list (α : expr) : list expr → tactic expr
-| [] := i_to_expr ``(@list.nil %%α)
-| (x :: xs) := do
-  exs ← expr.of_list xs,
-  i_to_expr ``(@list.cons %%α %%x %%exs)
-
-@[to_additive]
-lemma list.prod_map_cons {β α : Type*} [monoid β] (f : α → β) (is : list α) (i : α)
-  (x y : β) (his : (is.map f).prod = x) (hi : f i * x = y) : ((i :: is).map f).prod = y :=
-by rw [list.map_cons, list.prod_cons, his, hi]
-
-/-- Evaluate `(%%xs.map (%%ef : %%α → %%β)).prod`,
-producing the evaluated expression and an equality proof. -/
-meta def list.prove_prod_map (β α ef : expr) : list expr → tactic (expr × expr)
-| [] := do
-  result ← expr.of_nat β 1,
-  proof ← i_to_expr ``(@list.prod_nil %%β _),
-  pure (result, proof)
-| (x :: xs) := do
-  eval_xs ← list.prove_prod_map xs,
-  xxs ← i_to_expr ``(%%ef %%x * %%eval_xs.1),
-  eval_xxs ← or_refl_conv norm_num.derive xxs,
-  exs ← expr.of_list α xs,
-  proof ← i_to_expr ``(list.prod_map_cons %%ef %%exs %%x %%eval_xs.1 %%eval_xxs.1 %%eval_xs.2 %%eval_xxs.2),
-  pure (eval_xxs.1, proof)
-
-/-- Evaluate `(%%xs.map (%%ef : %%α → %%β)).sum`,
-producing the evaluated expression and an equality proof. -/
-meta def list.prove_sum_map (β α ef : expr) : list expr → tactic (expr × expr)
-| [] := do
-  result ← expr.of_nat β 0,
-  proof ← i_to_expr ``(@list.sum_nil %%β _),
-  pure (result, proof)
-| (x :: xs) := do
-  eval_xs ← list.prove_sum_map xs,
-  xxs ← i_to_expr ``(%%ef %%x + %%eval_xs.1),
-  eval_xxs ← or_refl_conv norm_num.derive xxs,
-  exs ← expr.of_list α xs,
-  proof ← i_to_expr ``(list.sum_map_cons %%ef %%exs %%x %%eval_xs.1 %%eval_xxs.1 %%eval_xs.2 %%eval_xxs.2),
-  pure (eval_xxs.1, proof)
-
-@[to_additive]
-lemma finset.eval_prod_of_list {β α : Type*} [comm_monoid β]
-  (s : finset α) (f : α → β) {is : list α} (his : is.nodup)
-  (hs : finset.mk ↑is (multiset.coe_nodup.mpr his) = s)
-  {x : β} (hx : (is.map f).prod = x) :
-  s.prod f = x :=
-by rw [← hs, finset.prod_mk, multiset.coe_map, multiset.coe_prod, hx]
-
-/-- `norm_num` plugin for evaluating big operators:
- * `list.prod` (TODO)
- * `list.sum` (TODO)
- * `multiset.prod` (TODO)
- * `multiset.sum` (TODO)
- * `finset.prod` (TODO)
- * `finset.sum`
-
--/
-@[norm_num] meta def tactic.norm_num.eval_big_operators : expr → tactic (expr × expr)
-| `(@finset.prod %%β %%α %%inst %%es %%ef) := with_trace_errors $ do
-  (xs, list_eq, nodup) ← es.finset_to_list tactic.norm_num.decide_eq,
-  (result, sum_eq) ← list.prove_prod_map β α ef xs,
-  pf ← i_to_expr ``(finset.eval_prod_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),
-  pure (result, pf)
-| `(@finset.sum %%β %%α %%inst %%es %%ef) := with_trace_errors $ do
-  (xs, list_eq, nodup) ← es.finset_to_list tactic.norm_num.decide_eq,
-  (result, sum_eq) ← list.prove_sum_map β α ef xs,
-  pf ← i_to_expr ``(finset.eval_sum_of_list %%es %%ef %%nodup %%list_eq %%sum_eq),
-  pure (result, pf)
-| _ := failed
-
-variables {α : Type*} [comm_ring α]
-
-set_option profiler true
-
-example (f : fin 0 → α) : ∑ i : fin 0, f i = 0 := by norm_num
-example (f : ℕ → α) : ∑ i in (∅ : finset ℕ), f i = 0 := by norm_num
-example (f : fin 3 → α) : ∑ i : fin 3, f i = f 0 + f 1 + f 2 := by norm_num; ring
-example (f : fin 4 → α) : ∑ i : fin 4, f i = f 0 + f 1 + f 2 + f 3 := by norm_num; ring
-example (f : ℕ → α) : ∑ i in {0, 1, 2}, f i = f 0 + f 1 + f 2 := by norm_num; ring
-example (f : ℕ → α) : ∑ i in {0, 2, 2, 3, 1, 0}, f i = f 0 + f 1 + f 2 + f 3 := by norm_num; ring
-example (f : ℕ → α) : ∑ i in {0, 2, 2 - 3, 3 - 1, 1, 0}, f i = f 0 + f 1 + f 2 := by norm_num; ring
-example : ∏ i in finset.range 9, nat.sqrt (i + 1) = 96 := by norm_num
-
-end norm_num

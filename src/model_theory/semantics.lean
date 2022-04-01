@@ -522,7 +522,7 @@ infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \mo
 
 variables {M} (T : L.Theory)
 
-lemma Theory.model_iff : M ⊨ T ↔ ∀ φ ∈ T, M ⊨ φ := ⟨λ h, h.realize_of_mem, λ h, ⟨h⟩⟩
+@[simp] lemma Theory.model_iff : M ⊨ T ↔ ∀ φ ∈ T, M ⊨ φ := ⟨λ h, h.realize_of_mem, λ h, ⟨h⟩⟩
 
 lemma Theory.realize_sentence_of_mem [M ⊨ T] {φ : L.sentence} (h : φ ∈ T) :
   M ⊨ φ :=

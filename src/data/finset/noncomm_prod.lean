@@ -163,7 +163,7 @@ begin
         simp [hy] } } }
 end
 
-@[to_additive, protected]
+@[protected, to_additive]
 lemma nocomm_prod_map_aux (s : multiset α)
   (comm : ∀ (x ∈ s) (y ∈ s), commute x y)
   {F : Type*} [monoid_hom_class F α β] (f : F) :
@@ -318,7 +318,7 @@ begin
   obtain ⟨tl, tl', rfl⟩ := exists_list_nodup_eq t,
   rw list.disjoint_to_finset_iff_disjoint at h,
   simp [sl', tl', noncomm_prod_to_finset, ←list.prod_append, ←list.to_finset_append,
-        list.nodup_append_of_nodup sl' tl' h]
+    sl'.append tl' h]
 end
 
 @[protected, to_additive]

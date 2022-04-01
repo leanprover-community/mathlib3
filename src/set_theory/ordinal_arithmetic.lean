@@ -3,7 +3,6 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn, Violeta Hernández Palacios
 -/
-import logic.small
 import set_theory.ordinal
 import tactic.by_contra
 
@@ -622,6 +621,9 @@ by rw [mul_add, mul_one]
 
 @[simp] theorem mul_succ (a b : ordinal) : a * succ b = a * b + a := mul_add_one _ _
 
+theorem mul_two (a : ordinal) : a * 2 = a + a :=
+by { change a * (succ 1) = a + a, rw [mul_succ, mul_one] }
+
 instance has_le.le.mul_covariant_class : covariant_class ordinal.{u} ordinal.{u} (*) (≤) :=
 ⟨λ c a b, quotient.induction_on₃ a b c $ λ ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨γ, t, _⟩ ⟨f⟩, begin
   resetI,
@@ -1033,36 +1035,44 @@ rfl
 
 /-- The supremum of a family of ordinals -/
 def sup {ι : Type u} (f : ι → ordinal.{max u v}) : ordinal.{max u v} :=
-Inf {c | ∀ i, f i ≤ c}
+supr f
 
-/-- The set in the definition of the supremum is nonempty. -/
-theorem sup_nonempty {ι : Type u} {f : ι → ordinal.{max u v}} : {c | ∀ i, f i ≤ c}.nonempty :=
-⟨(cardinal.sup.{u v} (cardinal.succ ∘ card ∘ f)).ord, λ i, le_of_lt $
-  cardinal.lt_ord.2 ((cardinal.lt_succ_self _).trans_le (le_sup _ _))⟩
+@[simp] theorem Sup_eq_sup {ι : Type u} (f : ι → ordinal.{max u v}) : Sup (set.range f) = sup f :=
+rfl
+
+/-- The range of any family of ordinals is bounded above. See also `lsub_not_mem_range`. -/
+theorem bdd_above_range {ι : Type u} (f : ι → ordinal.{max u v}) : bdd_above (set.range f) :=
+⟨(cardinal.sup.{u v} (cardinal.succ ∘ card ∘ f)).ord, begin
+  rintros a ⟨i, rfl⟩,
+  exact le_of_lt (cardinal.lt_ord.2 ((cardinal.lt_succ_self _).trans_le (le_sup _ _)))
+end⟩
 
 theorem le_sup {ι} (f : ι → ordinal) : ∀ i, f i ≤ sup f :=
-Inf_mem sup_nonempty
+λ i, le_cSup (bdd_above_range f) (mem_range_self i)
 
-theorem sup_le {ι} {f : ι → ordinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a :=
-⟨λ h i, le_trans (le_sup _ _) h, λ h, cInf_le' h⟩
+theorem sup_le_iff {ι} {f : ι → ordinal} {a} : sup f ≤ a ↔ ∀ i, f i ≤ a :=
+(cSup_le_iff' (bdd_above_range f)).trans (by simp)
+
+theorem sup_le {ι} {f : ι → ordinal} {a} : (∀ i, f i ≤ a) → sup f ≤ a :=
+sup_le_iff.2
 
 theorem lt_sup {ι} {f : ι → ordinal} {a} : a < sup f ↔ ∃ i, a < f i :=
-by simpa only [not_forall, not_le] using not_congr (@sup_le _ f a)
+by simpa only [not_forall, not_le] using not_congr (@sup_le_iff _ f a)
 
-theorem lt_sup_of_ne_sup {ι} {f : ι → ordinal} : (∀ i, f i ≠ sup f) ↔ ∀ i, f i < sup f :=
+theorem ne_sup_iff_lt_sup {ι} {f : ι → ordinal} : (∀ i, f i ≠ sup f) ↔ ∀ i, f i < sup f :=
 ⟨λ hf _, lt_of_le_of_ne (le_sup _ _) (hf _), λ hf _, ne_of_lt (hf _)⟩
 
 theorem sup_not_succ_of_ne_sup {ι} {f : ι → ordinal} (hf : ∀ i, f i ≠ sup f) {a}
   (hao : a < sup f) : succ a < sup f :=
 begin
   by_contra' hoa,
-  exact hao.not_le (sup_le.2 (λ i, lt_succ.1 ((lt_of_le_of_ne (le_sup _ _) (hf i)).trans_le hoa)))
+  exact hao.not_le (sup_le (λ i, lt_succ.1 ((lt_of_le_of_ne (le_sup _ _) (hf i)).trans_le hoa)))
 end
 
 @[simp] theorem sup_eq_zero_iff {ι} {f : ι → ordinal} : sup f = 0 ↔ ∀ i, f i = 0 :=
 begin
   refine ⟨λ h i, _, λ h, le_antisymm
-    (sup_le.2 (λ i, ordinal.le_zero.2 (h i))) (ordinal.zero_le _)⟩,
+    (sup_le (λ i, ordinal.le_zero.2 (h i))) (ordinal.zero_le _)⟩,
   rw [←ordinal.le_zero, ←h],
   exact le_sup f i
 end
@@ -1070,21 +1080,21 @@ end
 theorem is_normal.sup {f} (H : is_normal f) {ι} (g : ι → ordinal) (h : nonempty ι) :
   f (sup g) = sup (f ∘ g) :=
 eq_of_forall_ge_iff $ λ a,
-by rw [sup_le, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
-  intros; simp only [sup_le, true_implies_iff]; tauto
+by rw [sup_le_iff, comp, H.le_set' (λ_:ι, true) g (let ⟨i⟩ := h in ⟨i, ⟨⟩⟩)];
+  intros; simp only [sup_le_iff, true_implies_iff]; tauto
 
 theorem sup_empty {ι} [is_empty ι] (f : ι → ordinal) : sup f = 0 :=
 sup_eq_zero_iff.2 is_empty_elim
 
 theorem sup_ord {ι} (f : ι → cardinal) : sup (λ i, (f i).ord) = (cardinal.sup f).ord :=
-eq_of_forall_ge_iff $ λ a, by simp only [sup_le, cardinal.ord_le, cardinal.sup_le]
+eq_of_forall_ge_iff $ λ a, by simp only [sup_le_iff, cardinal.ord_le, cardinal.sup_le_iff]
 
 theorem sup_const {ι} [hι : nonempty ι] (o : ordinal) : sup (λ _ : ι, o) = o :=
-le_antisymm (sup_le.2 (λ _, le_rfl)) (le_sup _ hι.some)
+le_antisymm (sup_le (λ _, le_rfl)) (le_sup _ hι.some)
 
 theorem sup_le_of_range_subset {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f ⊆ set.range g) : sup.{u (max v w)} f ≤ sup.{v (max u w)} g :=
-sup_le.2 $ λ i, match h (mem_range_self i) with ⟨j, hj⟩ := hj ▸ le_sup _ _ end
+sup_le $ λ i, match h (mem_range_self i) with ⟨j, hj⟩ := hj ▸ le_sup _ _ end
 
 theorem sup_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f = set.range g) : sup.{u (max v w)} f = sup.{v (max u w)} g :=
@@ -1093,8 +1103,37 @@ theorem sup_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
 lemma unbounded_range_of_sup_ge {α β : Type u} (r : α → α → Prop) [is_well_order α r] (f : β → α)
   (h : type r ≤ sup.{u u} (typein r ∘ f)) : unbounded r (range f) :=
 (not_bounded_iff _).1 $ λ ⟨x, hx⟩, not_lt_of_le h $ lt_of_le_of_lt
-  (sup_le.2 $ λ y, le_of_lt $ (typein_lt_typein r).2 $ hx _ $ mem_range_self y)
+  (sup_le $ λ y, le_of_lt $ (typein_lt_typein r).2 $ hx _ $ mem_range_self y)
   (typein_lt_type r x)
+
+theorem le_sup_shrink_equiv {s : set ordinal.{u}} (hs : small.{u} s) (a) (ha : a ∈ s) :
+  a ≤ sup.{u u} (λ x, ((@equiv_shrink s hs).symm x).val) :=
+by { convert le_sup.{u u} _ ((@equiv_shrink s hs) ⟨a, ha⟩), rw symm_apply_apply }
+
+theorem small_Iio (o : ordinal.{u}) : small.{u} (set.Iio o) :=
+let f : o.out.α → set.Iio o := λ x, ⟨typein (<) x, typein_lt_self x⟩ in
+let hf : surjective f := λ b, ⟨enum (<) b.val (by { rw type_lt, exact b.prop }),
+  subtype.ext (typein_enum _ _)⟩ in
+small_of_surjective hf
+
+theorem bdd_above_iff_small {s : set ordinal.{u}} : bdd_above s ↔ small.{u} s :=
+⟨λ ⟨a, h⟩, @small_subset _ _ _ (by exact λ b hb, lt_succ.2 (h hb)) (small_Iio a.succ),
+λ h, ⟨sup.{u u} (λ x, ((@equiv_shrink s h).symm x).val), le_sup_shrink_equiv h⟩⟩
+
+theorem sup_eq_Sup {s : set ordinal.{u}} (hs : small.{u} s) :
+  sup.{u u} (λ x, (@equiv_shrink s hs).symm x) = Sup s :=
+let hs' := bdd_above_iff_small.2 hs in
+  ((cSup_le_iff' hs').2 (le_sup_shrink_equiv hs)).antisymm'
+  (sup_le (λ x, le_cSup hs' (subtype.mem _)))
+
+private theorem sup_le_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop)
+  [is_well_order ι r] [is_well_order ι' r'] {o} (ho : type r = o) (ho' : type r' = o)
+  (f : Π a < o, ordinal) : sup (family_of_bfamily' r ho f) ≤ sup (family_of_bfamily' r' ho' f) :=
+sup_le $ λ i, begin
+  cases typein_surj r' (by { rw [ho', ←ho], exact typein_lt_type r i }) with j hj,
+  simp_rw [family_of_bfamily', ←hj],
+  apply le_sup
+end
 
 theorem sup_eq_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' → Prop) [is_well_order ι r]
   [is_well_order ι' r'] {o : ordinal.{u}} (ho : type r = o) (ho' : type r' = o)
@@ -1103,8 +1142,8 @@ theorem sup_eq_sup {ι ι' : Type u} (r : ι → ι → Prop) (r' : ι' → ι' 
 sup_eq_of_range_eq.{u u v} (by simp)
 
 /-- The supremum of a family of ordinals indexed by the set of ordinals less than some
-  `o : ordinal.{u}`. This is a special case of `sup` over the family provided by
-  `family_of_bfamily`. -/
+    `o : ordinal.{u}`. This is a special case of `sup` over the family provided by
+    `family_of_bfamily`. -/
 def bsup (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 sup (family_of_bfamily o f)
 
@@ -1114,6 +1153,9 @@ rfl
 @[simp] theorem sup_eq_bsup' {o ι} (r : ι → ι → Prop) [is_well_order ι r] (ho : type r = o) (f) :
   sup (family_of_bfamily' r ho f) = bsup o f :=
 sup_eq_sup r _ ho _ f
+
+@[simp] theorem Sup_eq_bsup {o} (f : Π a < o, ordinal) : Sup (brange o f) = bsup o f :=
+by { congr, rw range_family_of_bfamily }
 
 @[simp] theorem bsup_eq_sup' {ι} (r : ι → ι → Prop) [is_well_order ι r] (f : ι → ordinal) :
   bsup _ (bfamily_of_family' r f) = sup f :=
@@ -1126,14 +1168,18 @@ by rw [bsup_eq_sup', bsup_eq_sup']
 @[simp] theorem bsup_eq_sup {ι} (f : ι → ordinal) : bsup _ (bfamily_of_family f) = sup f :=
 bsup_eq_sup' _ f
 
-theorem bsup_le {o f a} : bsup.{u v} o f ≤ a ↔ ∀ i h, f i h ≤ a :=
-sup_le.trans ⟨λ h i hi, by { rw ←family_of_bfamily_enum o f, exact h _ }, λ h i, h _ _⟩
+theorem bsup_le_iff {o f a} : bsup.{u v} o f ≤ a ↔ ∀ i h, f i h ≤ a :=
+sup_le_iff.trans ⟨λ h i hi, by { rw ←family_of_bfamily_enum o f, exact h _ }, λ h i, h _ _⟩
+
+theorem bsup_le {o : ordinal} {f : Π b < o, ordinal} {a} :
+  (∀ i h, f i h ≤ a) → bsup.{u v} o f ≤ a :=
+bsup_le_iff.2
 
 theorem le_bsup {o} (f : Π a < o, ordinal) (i h) : f i h ≤ bsup o f :=
-bsup_le.1 le_rfl _ _
+bsup_le_iff.1 le_rfl _ _
 
 theorem lt_bsup {o} (f : Π a < o, ordinal) {a} : a < bsup o f ↔ ∃ i hi, a < f i hi :=
-by simpa only [not_forall, not_le] using not_congr (@bsup_le _ f a)
+by simpa only [not_forall, not_le] using not_congr (@bsup_le_iff _ f a)
 
 theorem is_normal.bsup {f} (H : is_normal f) {o} :
   ∀ (g : Π a < o, ordinal) (h : o ≠ 0), f (bsup o g) = bsup o (λ a h, f (g a h)) :=
@@ -1152,7 +1198,7 @@ by { rw ←sup_eq_bsup at *, exact sup_not_succ_of_ne_sup (λ i, hf _) }
 @[simp] theorem bsup_eq_zero_iff {o} {f : Π a < o, ordinal} : bsup o f = 0 ↔ ∀ i hi, f i hi = 0 :=
 begin
   refine ⟨λ h i hi, _, λ h, le_antisymm
-    (bsup_le.2 (λ i hi, ordinal.le_zero.2 (h i hi))) (ordinal.zero_le _)⟩,
+    (bsup_le (λ i hi, ordinal.le_zero.2 (h i hi))) (ordinal.zero_le _)⟩,
   rw [←ordinal.le_zero, ←h],
   exact le_bsup f i hi,
 end
@@ -1166,11 +1212,11 @@ theorem bsup_zero {o : ordinal} (ho : o = 0) (f : Π a < o, ordinal) : bsup o f 
 bsup_eq_zero_iff.2 (λ i hi, by { subst ho, exact (ordinal.not_lt_zero i hi).elim })
 
 theorem bsup_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : bsup o (λ _ _, a) = a :=
-le_antisymm (bsup_le.2 (λ _ _, le_rfl)) (le_bsup _ 0 (ordinal.pos_iff_ne_zero.2 ho))
+le_antisymm (bsup_le (λ _ _, le_rfl)) (le_bsup _ 0 (ordinal.pos_iff_ne_zero.2 ho))
 
 theorem bsup_le_of_brange_subset {o o'} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
   (h : brange o f ⊆ brange o' g) : bsup.{u (max v w)} o f ≤ bsup.{v (max u w)} o' g :=
-bsup_le.2 $ λ i hi, begin
+bsup_le $ λ i hi, begin
   obtain ⟨j, hj, hj'⟩ := h ⟨i, hi, rfl⟩,
   rw ←hj',
   apply le_bsup
@@ -1187,20 +1233,23 @@ sup (ordinal.succ ∘ f)
 @[simp] theorem sup_eq_lsub {ι} (f : ι → ordinal) : sup (ordinal.succ ∘ f) = lsub f :=
 rfl
 
-theorem lsub_le {ι} {f : ι → ordinal} {a} : lsub f ≤ a ↔ ∀ i, f i < a :=
-by { convert sup_le, simp [succ_le] }
+theorem lsub_le_iff {ι} {f : ι → ordinal} {a} : lsub f ≤ a ↔ ∀ i, f i < a :=
+by { convert sup_le_iff, simp only [succ_le] }
+
+theorem lsub_le {ι} {f : ι → ordinal} {a} : (∀ i, f i < a) → lsub f ≤ a :=
+lsub_le_iff.2
 
 theorem lt_lsub {ι} (f : ι → ordinal) (i) : f i < lsub f :=
 succ_le.1 (le_sup _ i)
 
 theorem lt_lsub_iff {ι} {f : ι → ordinal} {a} : a < lsub f ↔ ∃ i, a ≤ f i :=
-by simpa only [not_forall, not_lt, not_le] using not_congr (@lsub_le _ f a)
+by simpa only [not_forall, not_lt, not_le] using not_congr (@lsub_le_iff _ f a)
 
 theorem sup_le_lsub {ι} (f : ι → ordinal) : sup f ≤ lsub f :=
-sup_le.2 $ λ i, le_of_lt (lt_lsub f i)
+sup_le $ λ i, le_of_lt (lt_lsub f i)
 
 theorem lsub_le_sup_succ {ι} (f : ι → ordinal) : lsub f ≤ succ (sup f) :=
-lsub_le.2 $ λ i, lt_succ.2 (le_sup f i)
+lsub_le $ λ i, lt_succ.2 (le_sup f i)
 
 theorem sup_eq_lsub_or_sup_succ_eq_lsub {ι} (f : ι → ordinal) :
   sup f = lsub f ∨ (sup f).succ = lsub f :=
@@ -1214,8 +1263,7 @@ theorem sup_succ_le_lsub {ι} (f : ι → ordinal) : (sup f).succ ≤ lsub f ↔
 begin
   refine ⟨λ h, _, _⟩,
   { by_contra' hf,
-    exact ne_of_lt (succ_le.1 h) (le_antisymm (sup_le_lsub f)
-      (lsub_le.2 (lt_sup_of_ne_sup.1 hf))) },
+    exact ne_of_lt (succ_le.1 h) ((sup_le_lsub f).antisymm (lsub_le (ne_sup_iff_lt_sup.1 hf))) },
   rintro ⟨_, hf⟩,
   rw [succ_le, ←hf],
   exact lt_lsub _ _
@@ -1227,9 +1275,9 @@ theorem sup_succ_eq_lsub {ι} (f : ι → ordinal) : (sup f).succ = lsub f ↔ �
 theorem sup_eq_lsub_iff_succ {ι} (f : ι → ordinal) :
   sup f = lsub f ↔ ∀ a < lsub f, succ a < lsub f :=
 begin
-  refine ⟨λ h, _, λ hf, le_antisymm (sup_le_lsub f) (lsub_le.2 (λ i, _))⟩,
+  refine ⟨λ h, _, λ hf, le_antisymm (sup_le_lsub f) (lsub_le (λ i, _))⟩,
   { rw ←h,
-    exact λ a, sup_not_succ_of_ne_sup (λ i, ne_of_lt (lsub_le.1 (le_of_eq h.symm) i)) },
+    exact λ a, sup_not_succ_of_ne_sup (λ i, ne_of_lt (lsub_le_iff.1 (le_of_eq h.symm) i)) },
   by_contra' hle,
   have heq := (sup_succ_eq_lsub f).2 ⟨i, le_antisymm (le_sup _ _) hle⟩,
   have := hf (sup f) (by { rw ←heq, exact lt_succ_self _ }),
@@ -1238,10 +1286,10 @@ begin
 end
 
 theorem sup_eq_lsub_iff_lt_sup {ι} (f : ι → ordinal) : sup f = lsub f ↔ ∀ i, f i < sup f :=
-⟨λ h i, (by { rw h, apply lt_lsub }), λ h, le_antisymm (sup_le_lsub f) (lsub_le.2 h)⟩
+⟨λ h i, (by { rw h, apply lt_lsub }), λ h, le_antisymm (sup_le_lsub f) (lsub_le h)⟩
 
 lemma lsub_empty {ι} [h : is_empty ι] (f : ι → ordinal) : lsub f = 0 :=
-by { rw [←ordinal.le_zero, lsub_le], exact h.elim }
+by { rw [←ordinal.le_zero, lsub_le_iff], exact h.elim }
 
 lemma lsub_pos {ι} [h : nonempty ι] (f : ι → ordinal) : 0 < lsub f :=
 h.elim $ λ i, (ordinal.zero_le _).trans_lt (lt_lsub f i)
@@ -1265,12 +1313,15 @@ theorem lsub_eq_of_range_eq {ι ι'} {f : ι → ordinal} {g : ι' → ordinal}
   (h : set.range f = set.range g) : lsub.{u (max v w)} f = lsub.{v (max u w)} g :=
 (lsub_le_of_range_subset h.le).antisymm (lsub_le_of_range_subset.{v u w} h.ge)
 
-theorem lsub_nmem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
+theorem lsub_not_mem_range {ι} (f : ι → ordinal) : lsub f ∉ set.range f :=
 λ ⟨i, h⟩, h.not_lt (lt_lsub f i)
+
+theorem nonempty_compl_range {ι : Type u} (f : ι → ordinal.{max u v}) : (set.range f)ᶜ.nonempty :=
+⟨_, lsub_not_mem_range f⟩
 
 @[simp] theorem lsub_typein (o : ordinal) :
   lsub.{u u} (typein ((<) : o.out.α → o.out.α → Prop)) = o :=
-(lsub_le.{u u}.2 typein_lt_self).antisymm begin
+(lsub_le.{u u} typein_lt_self).antisymm begin
   by_contra' h,
   nth_rewrite 0 ←type_lt o at h,
   simpa [typein_enum] using lt_lsub.{u u} (typein (<)) (enum (<) _ h)
@@ -1292,7 +1343,10 @@ begin
   apply lsub_typein
 end
 
-/-- The bounded least strict upper bound of a family of ordinals. -/
+/-- The least strict upper bound of a family of ordinals indexed by the set of ordinals less than
+    some `o : ordinal.{u}`.
+
+    This is to `lsub` as `bsup` is to `sup`. -/
 def blsub (o : ordinal.{u}) (f : Π a < o, ordinal.{max u v}) : ordinal.{max u v} :=
 o.bsup (λ a ha, (f a ha).succ)
 
@@ -1324,20 +1378,23 @@ by rw [blsub_eq_lsub', blsub_eq_lsub']
 @[simp] theorem blsub_eq_lsub {ι} (f : ι → ordinal) : blsub _ (bfamily_of_family f) = lsub f :=
 blsub_eq_lsub' _ _
 
-theorem blsub_le {o f a} : blsub o f ≤ a ↔ ∀ i h, f i h < a :=
-by { convert bsup_le, apply propext, simp [succ_le] }
+theorem blsub_le_iff {o f a} : blsub o f ≤ a ↔ ∀ i h, f i h < a :=
+by { convert bsup_le_iff, apply propext, simp [succ_le] }
+
+theorem blsub_le {o : ordinal} {f : Π b < o, ordinal} {a} : (∀ i h, f i h < a) → blsub o f ≤ a :=
+blsub_le_iff.2
 
 theorem lt_blsub {o} (f : Π a < o, ordinal) (i h) : f i h < blsub o f :=
-blsub_le.1 le_rfl _ _
+blsub_le_iff.1 le_rfl _ _
 
 theorem lt_blsub_iff {o f a} : a < blsub o f ↔ ∃ i hi, a ≤ f i hi :=
-by simpa only [not_forall, not_lt, not_le] using not_congr (@blsub_le _ f a)
+by simpa only [not_forall, not_lt, not_le] using not_congr (@blsub_le_iff _ f a)
 
 theorem bsup_le_blsub {o} (f : Π a < o, ordinal) : bsup o f ≤ blsub o f :=
-bsup_le.2 (λ i h, le_of_lt (lt_blsub f i h))
+bsup_le (λ i h, le_of_lt (lt_blsub f i h))
 
 theorem blsub_le_bsup_succ {o} (f : Π a < o, ordinal) : blsub o f ≤ (bsup o f).succ :=
-blsub_le.2 (λ i h, lt_succ.2 (le_bsup f i h))
+blsub_le (λ i h, lt_succ.2 (le_bsup f i h))
 
 theorem bsup_eq_blsub_or_succ_bsup_eq_blsub {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ∨ succ (bsup o f) = blsub o f :=
@@ -1349,7 +1406,7 @@ begin
   refine ⟨λ h, _, _⟩,
   { by_contra' hf,
     exact ne_of_lt (succ_le.1 h) (le_antisymm (bsup_le_blsub f)
-      (blsub_le.2 (lt_bsup_of_ne_bsup.1 hf))) },
+      (blsub_le (lt_bsup_of_ne_bsup.1 hf))) },
   rintro ⟨_, _, hf⟩,
   rw [succ_le, ←hf],
   exact lt_blsub _ _ _
@@ -1365,7 +1422,7 @@ by { rw [←sup_eq_bsup, ←lsub_eq_blsub], apply sup_eq_lsub_iff_succ }
 
 theorem bsup_eq_blsub_iff_lt_bsup {o} (f : Π a < o, ordinal) :
   bsup o f = blsub o f ↔ ∀ i hi, f i hi < bsup o f :=
-⟨λ h i, (by { rw h, apply lt_blsub }), λ h, le_antisymm (bsup_le_blsub f) (blsub_le.2 h)⟩
+⟨λ h i, (by { rw h, apply lt_blsub }), λ h, le_antisymm (bsup_le_blsub f) (blsub_le h)⟩
 
 theorem bsup_eq_blsub_of_lt_succ_limit {o} (ho : is_limit o) {f : Π a < o, ordinal}
   (hf : ∀ a ha, f a ha < f a.succ (ho.2 a ha)) : bsup o f = blsub o f :=
@@ -1386,7 +1443,7 @@ lemma blsub_pos {o : ordinal} (ho : 0 < o) (f : Π a < o, ordinal) : 0 < blsub o
 theorem blsub_type (r : α → α → Prop) [is_well_order α r] (f) :
   blsub (type r) f = lsub (λ a, f (typein r a) (typein_lt_type _ _)) :=
 eq_of_forall_ge_iff $ λ o,
-by rw [blsub_le, lsub_le]; exact
+by rw [blsub_le_iff, lsub_le_iff]; exact
   ⟨λ H b, H _ _, λ H i h, by simpa only [typein_enum] using H (enum r i h)⟩
 
 theorem blsub_const {o : ordinal} (ho : o ≠ 0) (a : ordinal) : blsub.{u v} o (λ _ _, a) = a + 1 :=
@@ -1419,7 +1476,7 @@ theorem bsup_comp {o o' : ordinal} {f : Π a < o, ordinal}
   bsup o' (λ a ha, f (g a ha) (by { rw ←hg, apply lt_blsub })) = bsup o f :=
 begin
   apply le_antisymm;
-  refine bsup_le.2 (λ i hi, _),
+  refine bsup_le (λ i hi, _),
   { apply le_bsup },
   { rw [←hg, lt_blsub_iff] at hi,
     rcases hi with ⟨j, hj, hj'⟩,
@@ -1441,7 +1498,8 @@ by { rw [←H.bsup_eq h, bsup_eq_blsub_of_lt_succ_limit h], exact (λ a _, H.1 a
 
 theorem is_normal_iff_lt_succ_and_bsup_eq {f} :
   is_normal f ↔ (∀ a, f a < f a.succ) ∧ ∀ o, is_limit o → bsup o (λ x _, f x) = f o :=
-⟨λ h, ⟨h.1, @is_normal.bsup_eq f h⟩, λ ⟨h₁, h₂⟩, ⟨h₁, λ o ho a, (by {rw ←h₂ o ho, exact bsup_le})⟩⟩
+⟨λ h, ⟨h.1, @is_normal.bsup_eq f h⟩, λ ⟨h₁, h₂⟩, ⟨h₁, λ o ho a,
+  (by {rw ←h₂ o ho, exact bsup_le_iff})⟩⟩
 
 theorem is_normal_iff_lt_succ_and_blsub_eq {f} :
   is_normal f ↔ (∀ a, f a < f a.succ) ∧ ∀ o, is_limit o → blsub o (λ x _, f x) = f o :=
@@ -1466,12 +1524,95 @@ theorem is_normal.eq_iff_zero_and_succ {f : ordinal.{u} → ordinal.{u}} (hf : i
   exact H b hb
 end)⟩
 
+/-! ### Minimum excluded ordinals -/
+
+/-- The minimum excluded ordinal in a family of ordinals. -/
+def mex {ι : Type u} (f : ι → ordinal.{max u v}) : ordinal :=
+Inf (set.range f)ᶜ
+
+theorem mex_not_mem_range {ι : Type u} (f : ι → ordinal.{max u v}) : mex f ∉ set.range f :=
+Inf_mem (nonempty_compl_range f)
+
+theorem ne_mex {ι} (f : ι → ordinal) : ∀ i, f i ≠ mex f :=
+by simpa using mex_not_mem_range f
+
+theorem mex_le_of_ne {ι} {f : ι → ordinal} {a} (ha : ∀ i, f i ≠ a) : mex f ≤ a :=
+cInf_le' (by simp [ha])
+
+theorem exists_of_lt_mex {ι} {f : ι → ordinal} {a} (ha : a < mex f) : ∃ i, f i = a :=
+by { by_contra' ha', exact ha.not_le (mex_le_of_ne ha') }
+
+theorem mex_le_lsub {ι} (f : ι → ordinal) : mex f ≤ lsub f :=
+cInf_le' (lsub_not_mem_range f)
+
+theorem mex_monotone {α β} {f : α → ordinal} {g : β → ordinal} (h : set.range f ⊆ set.range g) :
+  mex f ≤ mex g :=
+begin
+  refine mex_le_of_ne (λ i hi, _),
+  cases h ⟨i, rfl⟩ with j hj,
+  rw ←hj at hi,
+  exact ne_mex g j hi
+end
+
+theorem mex_lt_ord_succ_mk {ι} (f : ι → ordinal) : mex f < (#ι).succ.ord :=
+begin
+  by_contra' h,
+  apply not_le_of_lt (cardinal.lt_succ_self (#ι)),
+  have H := λ a, exists_of_lt_mex ((typein_lt_self a).trans_le h),
+  let g : (#ι).succ.ord.out.α → ι := λ a, classical.some (H a),
+  have hg : function.injective g := λ a b h', begin
+    have Hf : ∀ x, f (g x) = typein (<) x := λ a, classical.some_spec (H a),
+    apply_fun f at h',
+    rwa [Hf, Hf, typein_inj] at h'
+  end,
+  convert cardinal.mk_le_of_injective hg,
+  rw cardinal.mk_ord_out
+end
+
+/-- The minimum excluded ordinal of a family of ordinals indexed by the set of ordinals less than
+    some `o : ordinal.{u}`. This is a special case of `mex` over the family provided by
+    `family_of_bfamily`.
+
+    This is to `mex` as `bsup` is to `sup`. -/
+def bmex (o : ordinal) (f : Π a < o, ordinal) : ordinal :=
+mex (family_of_bfamily o f)
+
+theorem bmex_not_mem_brange {o : ordinal} (f : Π a < o, ordinal) : bmex o f ∉ brange o f :=
+by { rw ←range_family_of_bfamily, apply mex_not_mem_range }
+
+theorem ne_bmex {o : ordinal} (f : Π a < o, ordinal) {i} (hi) : f i hi ≠ bmex o f :=
+begin
+  convert ne_mex _ (enum (<) i (by rwa type_lt)),
+  rw family_of_bfamily_enum
+end
+
+theorem bmex_le_of_ne {o : ordinal} {f : Π a < o, ordinal} {a} (ha : ∀ i hi, f i hi ≠ a) :
+  bmex o f ≤ a :=
+mex_le_of_ne (λ i, ha _ _)
+
+theorem exists_of_lt_bmex {o : ordinal} {f : Π a < o, ordinal} {a} (ha : a < bmex o f) :
+  ∃ i hi, f i hi = a :=
+begin
+  cases exists_of_lt_mex ha with i hi,
+  exact ⟨_, typein_lt_self i, hi⟩
+end
+
+theorem bmex_le_blsub {o : ordinal} (f : Π a < o, ordinal) : bmex o f ≤ blsub o f :=
+mex_le_lsub _
+
+theorem bmex_monotone {o o' : ordinal} {f : Π a < o, ordinal} {g : Π a < o', ordinal}
+  (h : brange o f ⊆ brange o' g) : bmex o f ≤ bmex o' g :=
+mex_monotone (by rwa [range_family_of_bfamily, range_family_of_bfamily])
+
+theorem bmex_lt_ord_succ_card {o : ordinal} (f : Π a < o, ordinal) : bmex o f < o.card.succ.ord :=
+by { rw ←mk_ordinal_out, exact (mex_lt_ord_succ_mk (family_of_bfamily o f)) }
+
 end ordinal
 
 /-! ### Results about injectivity and surjectivity -/
 
 lemma not_surjective_of_ordinal {α : Type u} (f : α → ordinal.{u}) : ¬ function.surjective f :=
-λ h, ordinal.lsub_nmem_range.{u u} f (h _)
+λ h, ordinal.lsub_not_mem_range.{u u} f (h _)
 
 lemma not_injective_of_ordinal {α : Type u} (f : ordinal.{u} → α) : ¬ function.injective f :=
 λ h, not_surjective_of_ordinal _ (inv_fun_surjective h)
@@ -1530,7 +1671,7 @@ theorem enum_ord_def (o) :
 begin
   rw enum_ord_def',
   congr, ext,
-  exact ⟨λ h a hao, (lt_blsub.{u u} _ _ hao).trans_le h, λ h, blsub_le.2 h⟩
+  exact ⟨λ h a hao, (lt_blsub.{u u} _ _ hao).trans_le h, blsub_le⟩
 end
 
 /-- The set in `enum_ord_def` is nonempty. -/
@@ -1640,7 +1781,7 @@ by simp only [pow, opow, if_neg a0]; rw limit_rec_on_limit _ _ _ _ h; refl
 
 theorem opow_le_of_limit {a b c : ordinal} (a0 : a ≠ 0) (h : is_limit b) :
   a ^ b ≤ c ↔ ∀ b' < b, a ^ b' ≤ c :=
-by rw [opow_limit a0 h, bsup_le]
+by rw [opow_limit a0 h, bsup_le_iff]
 
 theorem lt_opow_of_limit {a b c : ordinal} (b0 : b ≠ 0) (h : is_limit c) :
   a < b ^ c ↔ ∃ c' < c, a < b ^ c' :=
@@ -2170,7 +2311,7 @@ theorem omega_le {o : ordinal.{u}} : omega ≤ o ↔ ∀ n : ℕ, (n : ordinal) 
    by rw [e, ← succ_le]; exact H (n+1)⟩
 
 @[simp] theorem sup_nat_cast : sup nat.cast = omega :=
-(sup_le.2 $ λ n, (nat_lt_omega n).le).antisymm $ omega_le.2 $ le_sup _
+(sup_le $ λ n, (nat_lt_omega n).le).antisymm $ omega_le.2 $ le_sup _
 
 theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 | 0     := lt_of_le_of_ne (ordinal.zero_le o) h.1.symm
@@ -2178,11 +2319,6 @@ theorem nat_lt_limit {o} (h : is_limit o) : ∀ n : ℕ, (n : ordinal) < o
 
 theorem omega_le_of_is_limit {o} (h : is_limit o) : omega ≤ o :=
 omega_le.2 $ λ n, le_of_lt $ nat_lt_limit h n
-
-theorem mul_lt_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a * b < omega :=
-match a, b, lt_omega.1 ha, lt_omega.1 hb with
-| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_mul]; apply nat_lt_omega
-end
 
 theorem is_limit_iff_omega_dvd {a : ordinal} : is_limit a ↔ a ≠ 0 ∧ omega ∣ a :=
 begin
@@ -2198,13 +2334,6 @@ begin
     refine mul_is_limit_left omega_is_limit
       (ordinal.pos_iff_ne_zero.2 $ mt _ a0),
     intro e, simp only [e, mul_zero] }
-end
-
-local infixr ^ := @pow ordinal ordinal ordinal.has_pow
-
-theorem opow_lt_omega {a b : ordinal} (ha : a < omega) (hb : b < omega) : a ^ b < omega :=
-match a, b, lt_omega.1 ha, lt_omega.1 hb with
-| _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_opow]; apply nat_lt_omega
 end
 
 theorem add_mul_limit_aux {a b c : ordinal} (ba : b + a = a)
@@ -2238,47 +2367,6 @@ theorem add_mul_limit {a b c : ordinal} (ba : b + a = a)
   (l : is_limit c) : (a + b) * c = a * c :=
 add_mul_limit_aux ba l (λ c' _, add_mul_succ c' ba)
 
-theorem mul_omega {a : ordinal} (a0 : 0 < a) (ha : a < omega) : a * omega = omega :=
-le_antisymm
-  ((mul_le_of_limit omega_is_limit).2 $ λ b hb, le_of_lt (mul_lt_omega ha hb))
-  (by simpa only [one_mul] using mul_le_mul_right' (one_le_iff_pos.2 a0) omega)
-
-theorem mul_lt_omega_opow {a b c : ordinal}
-  (c0 : 0 < c) (ha : a < omega ^ c) (hb : b < omega) : a * b < omega ^ c :=
-begin
-  rcases zero_or_succ_or_limit c with rfl|⟨c,rfl⟩|l,
-  { exact (lt_irrefl _).elim c0 },
-  { rw opow_succ at ha,
-    rcases ((mul_is_normal $ opow_pos _ omega_pos).limit_lt
-      omega_is_limit).1 ha with ⟨n, hn, an⟩,
-    refine (mul_le_mul_right' (le_of_lt an) _).trans_lt _,
-    rw [opow_succ, mul_assoc, mul_lt_mul_iff_left (opow_pos _ omega_pos)],
-    exact mul_lt_omega hn hb },
-  { rcases ((opow_is_normal one_lt_omega).limit_lt l).1 ha with ⟨x, hx, ax⟩,
-    refine (mul_le_mul' (le_of_lt ax) (le_of_lt hb)).trans_lt _,
-    rw [← opow_succ, opow_lt_opow_iff_right one_lt_omega],
-    exact l.2 _ hx }
-end
-
-theorem mul_omega_dvd {a : ordinal}
-  (a0 : 0 < a) (ha : a < omega) : ∀ {b}, omega ∣ b → a * b = b
-| _ ⟨b, rfl⟩ := by rw [← mul_assoc, mul_omega a0 ha]
-
-/- This will be part of a future PR on multiplicative principal ordinals.
-
-theorem mul_omega_opow_opow {a b : ordinal} (a0 : 0 < a) (h : a < omega ^ omega ^ b) :
-  a * omega ^ omega ^ b = omega ^ omega ^ b :=
-begin
-  by_cases b0 : b = 0, {rw [b0, opow_zero, opow_one] at h ⊢, exact mul_omega a0 h},
-  refine le_antisymm _
-    (by simpa only [one_mul] using mul_le_mul_right' (one_le_iff_pos.2 a0) (omega ^ omega ^ b)),
-  rcases (lt_opow_of_limit omega_ne_zero (opow_is_limit_left omega_is_limit b0)).1 h
-    with ⟨x, xb, ax⟩,
-  apply (mul_le_mul_right' (le_of_lt ax) _).trans,
-  rw [← opow_add, add_omega_opow xb]
-end
---/
-
 theorem add_le_of_forall_add_lt {a b c : ordinal} (hb : 0 < b) (h : ∀ d < b, a + d < c) :
   a + b ≤ c :=
 begin
@@ -2288,12 +2376,6 @@ begin
   by_contra' hb,
   exact (h _ hb).ne H
 end
-
-theorem opow_omega {a : ordinal} (a1 : 1 < a) (h : a < omega) : a ^ omega = omega :=
-le_antisymm
-  ((opow_le_of_limit (one_le_iff_ne_zero.1 $ le_of_lt a1) omega_is_limit).2
-    (λ b hb, le_of_lt (opow_lt_omega h hb)))
-  (right_le_opow _ a1)
 
 theorem is_normal.apply_omega {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) :
   sup.{0 u} (f ∘ nat.cast) = f omega :=
@@ -2309,13 +2391,13 @@ begin
   { exact (mul_is_normal ho).apply_omega }
 end
 
-theorem sup_opow_nat {o : ordinal.{u}} (ho : 0 < o) :
-  sup (λ n : ℕ, o ^ n) = o ^ omega :=
+local infixr ^ := @pow ordinal ordinal ordinal.has_pow
+theorem sup_opow_nat {o : ordinal.{u}} (ho : 0 < o) : sup (λ n : ℕ, o ^ n) = o ^ omega :=
 begin
   rcases lt_or_eq_of_le (one_le_iff_pos.2 ho) with ho₁ | rfl,
   { exact (opow_is_normal ho₁).apply_omega },
   { rw one_opow,
-    refine le_antisymm (sup_le.2 (λ n, by rw one_opow)) _,
+    refine le_antisymm (sup_le (λ n, by rw one_opow)) _,
     convert le_sup _ 0,
     rw [nat.cast_zero, opow_zero] }
 end
@@ -2329,7 +2411,10 @@ variable {f : ordinal.{u} → ordinal.{u}}
 def nfp (f : ordinal → ordinal) (a : ordinal) :=
 sup (λ n : ℕ, f^[n] a)
 
-theorem nfp_le {f a b} : nfp f a ≤ b ↔ ∀ n, f^[n] a ≤ b :=
+theorem nfp_le_iff {f a b} : nfp f a ≤ b ↔ ∀ n, f^[n] a ≤ b :=
+sup_le_iff
+
+theorem nfp_le {f a b} : (∀ n, f^[n] a ≤ b) → nfp f a ≤ b :=
 sup_le
 
 theorem iterate_le_nfp (f a n) : f^[n] a ≤ nfp f a :=
@@ -2342,7 +2427,7 @@ theorem lt_nfp {f : ordinal → ordinal} {a b} : a < nfp f b ↔ ∃ n, a < (f^[
 lt_sup
 
 protected theorem is_normal.lt_nfp {f} (H : is_normal f) {a b} : f b < nfp f a ↔ b < nfp f a :=
-lt_sup.trans $ iff.trans
+lt_nfp.trans $ iff.trans
   (by exact
    ⟨λ ⟨n, h⟩, ⟨n, lt_of_le_of_lt (H.self_le _) h⟩,
     λ ⟨n, h⟩, ⟨n+1, by rw iterate_succ'; exact H.lt_iff.2 h⟩⟩)
@@ -2352,7 +2437,7 @@ protected theorem is_normal.nfp_le (H : is_normal f) {a b} : nfp f a ≤ f b ↔
 le_iff_le_iff_lt_iff_lt.2 H.lt_nfp
 
 theorem is_normal.nfp_le_fp (H : is_normal f) {a b} (ab : a ≤ b) (h : f b ≤ b) : nfp f a ≤ b :=
-sup_le.2 $ λ i, begin
+nfp_le $ λ i, begin
   induction i with i IH generalizing a, {exact ab},
   exact IH (le_trans (H.le_iff.2 ab) h),
 end
@@ -2380,10 +2465,10 @@ theorem is_normal.le_nfp (H : is_normal f) {a b} : f b ≤ nfp f a ↔ b ≤ nfp
 ⟨le_trans (H.self_le _), λ h, by simpa only [H.nfp_fp] using H.le_iff.2 h⟩
 
 theorem nfp_eq_self {a} (h : f a = a) : nfp f a = a :=
-le_antisymm (sup_le.mpr $ λ i, by rw [iterate_fixed h]) (le_nfp_self f a)
+(nfp_le $ λ i, by rw [iterate_fixed h]).antisymm (le_nfp_self f a)
 
 protected lemma monotone.nfp (hf : monotone f) : monotone (nfp f) :=
-λ a b h, nfp_le.2 (λ n, (hf.iterate n h).trans (le_sup _ n))
+λ a b h, nfp_le (λ n, (hf.iterate n h).trans (le_sup _ n))
 
 /-- Fixed point lemma for normal functions: the fixed points of a normal function are unbounded. -/
 theorem is_normal.nfp_unbounded {f} (H : is_normal f) : unbounded (<) (fixed_points f) :=
@@ -2405,7 +2490,7 @@ limit_rec_on_limit _ _ _ _
 
 theorem deriv_is_normal (f) : is_normal (deriv f) :=
 ⟨λ o, by rw [deriv_succ, ← succ_le]; apply le_nfp_self,
- λ o l a, by rw [deriv_limit _ l, bsup_le]⟩
+ λ o l a, by rw [deriv_limit _ l, bsup_le_iff]⟩
 
 theorem is_normal.deriv_fp (H : is_normal f) (o) : f (deriv.{u} f o) = deriv f o :=
 begin
@@ -2415,7 +2500,7 @@ begin
   intros o l IH,
   rw [deriv_limit _ l, is_normal.bsup.{u u u} H _ l.1],
   refine eq_of_forall_ge_iff (λ c, _),
-  simp only [bsup_le, IH] {contextual:=tt}
+  simp only [bsup_le_iff, IH] {contextual:=tt}
 end
 
 theorem is_normal.le_iff_deriv (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deriv f o = a :=
@@ -2430,7 +2515,7 @@ theorem is_normal.le_iff_deriv (H : is_normal f) {a} : f a ≤ a ↔ ∃ o, deri
     rw deriv_succ,
     exact H.nfp_le_fp (succ_le.2 h) ha },
   { cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
-    rw [deriv_limit _ l, ← not_le, bsup_le, not_ball] at h,
+    rw [deriv_limit _ l, ← not_le, bsup_le_iff, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
 end, λ ⟨o, e⟩, e ▸ le_of_eq (H.deriv_fp _)⟩
 
@@ -2515,7 +2600,7 @@ end
 
 @[simp] theorem nfp_mul_zero (a : ordinal) : nfp ((*) a) 0 = 0 :=
 begin
-  rw [←ordinal.le_zero, nfp_le],
+  rw [←ordinal.le_zero, nfp_le_iff],
   intro n,
   induction n with n hn, { refl },
   rwa [iterate_succ_apply, mul_zero]
@@ -2523,7 +2608,7 @@ end
 
 @[simp] theorem nfp_zero_mul : nfp ((*) 0) = id :=
 begin
-  refine funext (λ a, (nfp_le.2 (λ n, _)).antisymm (le_sup (λ n, ((*) 0)^[n] a) 0)),
+  refine funext (λ a, (nfp_le (λ n, _)).antisymm (le_sup (λ n, ((*) 0)^[n] a) 0)),
   induction n with n hn, { refl },
   rw function.iterate_succ',
   change 0 * _ ≤ a,

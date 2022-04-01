@@ -196,4 +196,8 @@ lemma eq_conj_eq_to_hom {X Y : C} (f : X ⟶ Y) :
   f = eq_to_hom rfl ≫ f ≫ eq_to_hom rfl :=
 by simp only [category.id_comp, eq_to_hom_refl, category.comp_id]
 
+lemma dcongr_arg {ι : Type*} {F G : ι → C} (α : ∀ i, F i ⟶ G i) {i j : ι} (h : i = j) :
+  α i = eq_to_hom (congr_arg F h) ≫ α j ≫ eq_to_hom (congr_arg G h.symm) :=
+by { subst h, simp }
+
 end category_theory

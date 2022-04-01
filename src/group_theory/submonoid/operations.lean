@@ -4,12 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzzard,
 Amelia Livingston, Yury Kudryashov
 -/
-
-import group_theory.submonoid.basic
-import data.equiv.mul_add
-import algebra.group.prod
-import algebra.group.inj_surj
 import group_theory.group_action.defs
+import group_theory.submonoid.basic
 
 /-!
 # Operations on `submonoid`s
@@ -472,6 +468,19 @@ def subtype : S →* M := ⟨coe, rfl, λ _ _, rfl⟩
 
 @[simp, to_additive] theorem coe_subtype : ⇑S.subtype = coe := rfl
 
+/-- The top submonoid is isomorphic to the monoid. -/
+@[to_additive "The top additive submonoid is isomorphic to the additive monoid.", simps]
+def top_equiv : (⊤ : submonoid M) ≃* M :=
+{ to_fun    := λ x, x,
+  inv_fun   := λ x, ⟨x, mem_top x⟩,
+  left_inv  := λ x, x.eta _,
+  right_inv := λ _, rfl,
+  map_mul'  := λ _ _, rfl }
+
+@[simp, to_additive] lemma top_equiv_to_monoid_hom :
+  (top_equiv : _ ≃* M).to_monoid_hom = (⊤ : submonoid M).subtype :=
+rfl
+
 /-- A submonoid is isomorphic to its image under an injective function -/
 @[to_additive "An additive submonoid is isomorphic to its image under an injective function"]
 noncomputable def equiv_map_of_injective
@@ -923,17 +932,47 @@ These instances work particularly well in conjunction with `monoid.to_mul_action
 -/
 
 namespace submonoid
+variables {M' : Type*} {α β : Type*}
 
-variables {M' : Type*} {α β : Type*} [monoid M']
+section mul_one_class
+variables [mul_one_class M']
+
+@[to_additive]
+instance [has_scalar M' α] (S : submonoid M') : has_scalar S α := has_scalar.comp _ S.subtype
+
+@[to_additive]
+instance smul_comm_class_left
+  [has_scalar M' β] [has_scalar α β] [smul_comm_class M' α β] (S : submonoid M') :
+  smul_comm_class S α β :=
+⟨λ a, (smul_comm (a : M') : _)⟩
+
+@[to_additive]
+instance smul_comm_class_right
+  [has_scalar α β] [has_scalar M' β] [smul_comm_class α M' β] (S : submonoid M') :
+  smul_comm_class α S β :=
+⟨λ a s, (smul_comm a (s : M') : _)⟩
+
+/-- Note that this provides `is_scalar_tower S M' M'` which is needed by `smul_mul_assoc`. -/
+instance
+  [has_scalar α β] [has_scalar M' α] [has_scalar M' β] [is_scalar_tower M' α β] (S : submonoid M') :
+  is_scalar_tower S α β :=
+⟨λ a, (smul_assoc (a : M') : _)⟩
+
+@[to_additive]
+lemma smul_def [has_scalar M' α] {S : submonoid M'} (g : S) (m : α) : g • m = (g : M') • m := rfl
+
+instance [has_scalar M' α] [has_faithful_scalar M' α] (S : submonoid M') :
+  has_faithful_scalar S α :=
+⟨λ x y h, subtype.ext $ eq_of_smul_eq_smul h⟩
+
+end mul_one_class
+
+variables [monoid M']
 
 /-- The action by a submonoid is the action by the underlying monoid. -/
 @[to_additive /-"The additive action by an add_submonoid is the action by the underlying
 add_monoid. "-/]
-instance [mul_action M' α] (S : submonoid M') : mul_action S α :=
-mul_action.comp_hom _ S.subtype
-
-@[to_additive]
-lemma smul_def [mul_action M' α] {S : submonoid M'} (g : S) (m : α) : g • m = (g : M') • m := rfl
+instance [mul_action M' α] (S : submonoid M') : mul_action S α := mul_action.comp_hom _ S.subtype
 
 /-- The action by a submonoid is the action by the underlying monoid. -/
 instance [add_monoid α] [distrib_mul_action M' α] (S : submonoid M') : distrib_mul_action S α :=
@@ -943,29 +982,7 @@ distrib_mul_action.comp_hom _ S.subtype
 instance [monoid α] [mul_distrib_mul_action M' α] (S : submonoid M') : mul_distrib_mul_action S α :=
 mul_distrib_mul_action.comp_hom _ S.subtype
 
-@[to_additive]
-instance smul_comm_class_left
-  [mul_action M' β] [has_scalar α β] [smul_comm_class M' α β] (S : submonoid M') :
-  smul_comm_class S α β :=
-⟨λ a, (smul_comm (a : M') : _)⟩
-
-@[to_additive]
-instance smul_comm_class_right
-  [has_scalar α β] [mul_action M' β] [smul_comm_class α M' β] (S : submonoid M') :
-  smul_comm_class α S β :=
-⟨λ a s, (smul_comm a (s : M') : _)⟩
-
-/-- Note that this provides `is_scalar_tower S M' M'` which is needed by `smul_mul_assoc`. -/
-instance
-  [has_scalar α β] [mul_action M' α] [mul_action M' β] [is_scalar_tower M' α β] (S : submonoid M') :
-  is_scalar_tower S α β :=
-⟨λ a, (smul_assoc (a : M') : _)⟩
-
 example {S : submonoid M'} : is_scalar_tower S M' M' := by apply_instance
-
-instance [mul_action M' α] [has_faithful_scalar M' α] (S : submonoid M') :
-  has_faithful_scalar S α :=
-{ eq_of_smul_eq_smul := λ x y h, subtype.ext (eq_of_smul_eq_smul h) }
 
 end submonoid
 

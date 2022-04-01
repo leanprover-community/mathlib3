@@ -236,5 +236,3 @@ begin
   apply le_of_lt,
   exact real.two_pi_pos,
 end
-
-#lint

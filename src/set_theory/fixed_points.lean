@@ -90,14 +90,14 @@ sup_le $ λ l, begin
     exact (H i (IH ab)).trans (h i) }
 end
 
-theorem nfp_family_fp (H : ∀ i, is_normal (f i)) (i a) : f i (nfp_family f a) = nfp_family f a :=
+theorem nfp_family_fp {i} (H : is_normal (f i)) (a) : f i (nfp_family f a) = nfp_family f a :=
 begin
   unfold nfp_family,
-  rw @is_normal.sup _ (H i) _ _ ⟨[]⟩,
+  rw @is_normal.sup _ H _ _ ⟨[]⟩,
   apply le_antisymm;
   refine ordinal.sup_le (λ l, _),
   { exact le_sup _ (i :: l) },
-  { exact ((H i).self_le _).trans (le_sup _ _) }
+  { exact (H.self_le _).trans (le_sup _ _) }
 end
 
 theorem apply_le_nfp_family [hι : nonempty ι] {f : ι → ordinal → ordinal} (H : ∀ i, is_normal (f i))
@@ -106,7 +106,7 @@ begin
   refine ⟨λ h, _, λ h i, _⟩,
   { unfreezingI { cases hι with i },
     exact ((H i).self_le b).trans (h i) },
-  rw ←nfp_family_fp H i,
+  rw ←nfp_family_fp (H i),
   exact (H i).strict_mono.monotone h
 end
 
@@ -120,7 +120,7 @@ theorem fp_family_unbounded (H : ∀ i, is_normal (f i)) :
   (⋂ i, function.fixed_points (f i)).unbounded (<) :=
 λ a, ⟨_, λ s ⟨i, hi⟩, begin
   rw ←hi,
-  exact nfp_family_fp H i a
+  exact nfp_family_fp (H i) a
 end, (self_le_nfp_family f a).not_lt⟩
 
 /-- The derivative of a family of normal functions is the sequence of their common fixed points. -/
@@ -145,15 +145,15 @@ theorem deriv_family_is_normal (f : ι → ordinal → ordinal) : is_normal (der
 ⟨λ o, by rw [deriv_family_succ, ← succ_le]; apply self_le_nfp_family,
  λ o l a, by rw [deriv_family_limit _ l, bsup_le_iff]⟩
 
-theorem deriv_family_fp (H : ∀ i, is_normal (f i)) (o : ordinal.{max u v}) (i) :
+theorem deriv_family_fp {i} (H : is_normal (f i)) (o : ordinal.{max u v}) :
   f i (deriv_family f o) = deriv_family f o :=
 begin
   refine limit_rec_on o _ (λ o IH, _) _,
-  { rw [deriv_family_zero], exact nfp_family_fp H i 0 },
-  { rw [deriv_family_succ], exact nfp_family_fp H i _ },
+  { rw [deriv_family_zero], exact nfp_family_fp H 0 },
+  { rw [deriv_family_succ], exact nfp_family_fp H _ },
   { intros o l IH,
     rw [deriv_family_limit _ l,
-      is_normal.bsup.{(max u v) u (max u v)} (H i) (λ a _, deriv_family f a) l.1],
+      is_normal.bsup.{(max u v) u (max u v)} H (λ a _, deriv_family f a) l.1],
     refine eq_of_forall_ge_iff (λ c, _),
     simp only [bsup_le_iff, IH] {contextual:=tt} }
 end
@@ -173,7 +173,7 @@ theorem le_iff_deriv_family (H : ∀ i, is_normal (f i)) {a} :
   { cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
     rw [deriv_family_limit _ l, ← not_le, bsup_le_iff, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
-end, λ ⟨o, e⟩ i, e ▸ le_of_eq (deriv_family_fp H _ i)⟩
+end, λ ⟨o, e⟩ i, e ▸ le_of_eq (deriv_family_fp (H i) _)⟩
 
 theorem fp_iff_deriv_family (H : ∀ i, is_normal (f i)) {a} :
   (∀ i, f i a = a) ↔ ∃ o, deriv_family f o = a :=
@@ -188,7 +188,7 @@ begin
   refine ⟨_, λ a ha, _⟩,
   { rintros a S ⟨i, hi⟩,
     rw ←hi,
-    exact deriv_family_fp H a i },
+    exact deriv_family_fp (H i) a },
   rw set.mem_Inter at ha,
   rwa ←fp_iff_deriv_family H
 end
@@ -251,9 +251,9 @@ theorem nfp_bfamily_le_fp (H : ∀ i hi, monotone (f i hi)) {a b} (ab : a ≤ b)
   (h : ∀ i hi, f i hi b ≤ b) : nfp_bfamily o f a ≤ b :=
 nfp_family_le_fp (λ _, H _ _) ab (λ i, h _ _)
 
-theorem nfp_bfamily_fp (H : ∀ i hi, is_normal (f i hi)) (i hi a) :
+theorem nfp_bfamily_fp {i hi} (H : is_normal (f i hi)) (a) :
   f i hi (nfp_bfamily o f a) = nfp_bfamily o f a :=
-by { rw ←family_of_bfamily_enum o f, exact nfp_family_fp (λ i, H _ _) _ _ }
+by { rw ←family_of_bfamily_enum o f, apply nfp_family_fp, rw family_of_bfamily_enum, exact H }
 
 theorem le_nfp_bfamily (ho : o ≠ 0) (H : ∀ i hi, is_normal (f i hi)) {a b} :
   (∀ i hi, f i hi b ≤ nfp_bfamily o f a) ↔ b ≤ nfp_bfamily o f a :=
@@ -261,7 +261,7 @@ begin
   refine ⟨λ h, _, λ h i hi, _⟩,
   { have ho' : 0 < o := ordinal.pos_iff_ne_zero.2 ho,
     exact ((H 0 ho').self_le b).trans (h 0 ho') },
-  rw ←nfp_bfamily_fp H i,
+  rw ←nfp_bfamily_fp (H i hi),
   exact (H i hi).strict_mono.monotone h
 end
 
@@ -272,7 +272,7 @@ nfp_family_eq_self (λ _, h _ _)
     has an unbounded set of common fixed points. -/
 theorem fp_bfamily_unbounded (H : ∀ i hi, is_normal (f i hi)) :
   (⋂ i hi, function.fixed_points (f i hi)).unbounded (<) :=
-λ a, ⟨_, by { rw set.mem_Inter₂, exact λ _ _, nfp_bfamily_fp H _ _ _ },
+λ a, ⟨_, by { rw set.mem_Inter₂, exact λ i hi, nfp_bfamily_fp (H i hi) _ },
   (self_le_nfp_bfamily f a).not_lt⟩
 
 /-- The derivative of a family of normal functions is the sequence of their common fixed points. -/
@@ -287,9 +287,9 @@ theorem deriv_bfamily_is_normal {o : ordinal} (f : Π b < o, ordinal → ordinal
   is_normal (deriv_bfamily o f) :=
 deriv_family_is_normal _
 
-theorem deriv_bfamily_fp (H : ∀ i hi, is_normal (f i hi)) (a : ordinal) (i hi) :
+theorem deriv_bfamily_fp {i hi} (H : is_normal (f i hi)) (a : ordinal) :
   f i hi (deriv_bfamily o f a) = deriv_bfamily o f a :=
-by { rw ←family_of_bfamily_enum o f, exact deriv_family_fp (λ _, H _ _) _ _ }
+by { rw ←family_of_bfamily_enum o f, apply deriv_family_fp, rw family_of_bfamily_enum, exact H }
 
 theorem le_iff_deriv_bfamily (H : ∀ i hi, is_normal (f i hi)) {a} :
   (∀ i hi, f i hi a ≤ a) ↔ ∃ b, deriv_bfamily o f b = a :=
@@ -317,7 +317,7 @@ begin
   rw ←eq_enum_ord _ (fp_bfamily_unbounded H),
   use (deriv_bfamily_is_normal f).strict_mono,
   rw set.range_eq_iff,
-  refine ⟨λ a, set.mem_Inter₂.2 (deriv_bfamily_fp H a), λ a ha, _⟩,
+  refine ⟨λ a, set.mem_Inter₂.2 (λ i hi, deriv_bfamily_fp (H i hi) a), λ a ha, _⟩,
   rw set.mem_Inter₂ at ha,
   rwa ←fp_iff_deriv_bfamily H
 end

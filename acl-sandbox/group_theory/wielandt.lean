@@ -20,10 +20,8 @@ open_locale big_operators pointwise
 
 open_locale classical
 
-
 section partition
 variables {α : Type*}
-
 
 open_locale big_operators classical
 

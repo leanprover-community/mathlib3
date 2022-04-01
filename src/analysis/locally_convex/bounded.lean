@@ -81,7 +81,7 @@ end semi_normed_ring
 
 section multiple_topologies
 
-variables [semi_normed_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+variables [semi_normed_ring 𝕜] [has_zero E] [has_scalar 𝕜 E]
 
 /-- If a topology `t'` is coarser than `t`, then any set `s` that is bounded with respect to
 `t` is bounded with respect to `t'`. -/

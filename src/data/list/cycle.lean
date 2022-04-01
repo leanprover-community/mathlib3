@@ -751,14 +751,14 @@ quotient.lift_on' c (λ l, match l with
 end
 
 @[simp] lemma chain.nil (r : α → α → Prop) : cycle.chain r (@nil α) :=
-by unfold chain
+by trivial
 
-@[simp] lemma chain_cons (r : α → α → Prop) (a : α) (l : list α) :
+@[simp] lemma chain_coe_cons (r : α → α → Prop) (a : α) (l : list α) :
   chain r (a :: l) ↔ list.chain r a (l ++ [a]) :=
 iff.rfl
 
 @[simp] lemma chain_singleton (r : α → α → Prop) (a : α) : chain r [a] ↔ r a a :=
-by rw [chain_cons, nil_append, chain_singleton]
+by rw [chain_coe_cons, nil_append, chain_singleton]
 
 lemma chain_ne_nil (r : α → α → Prop) {l : list α} :
   Π hl : l ≠ [], chain r l ↔ list.chain r (last l hl) l :=
@@ -766,7 +766,7 @@ begin
   apply l.reverse_rec_on,
   exact λ hm, hm.irrefl.elim,
   intros m a H _,
-  rw [←coe_cons_eq_coe_append, chain_cons, last_append]
+  rw [←coe_cons_eq_coe_append, chain_coe_cons, last_append]
 end
 
 lemma chain_map {β : Type*} {r : α → α → Prop} (f : β → α) {s : cycle β} :
@@ -783,12 +783,12 @@ variables {r : α → α → Prop} {s : cycle α}
 
 theorem chain_of_pairwise : (∀ (a ∈ s) (b ∈ s), r a b) → chain r s :=
 begin
-  apply s.induction_on,
+  induction s using cycle.induction_on with a l _,
   exact λ _, cycle.chain.nil r,
-  intros a l _ hs,
+  intro hs,
   have Ha : a ∈ ((a :: l) : cycle α) := by simp,
   have Hl : ∀ {b} (hb : b ∈ l), b ∈ ((a :: l) : cycle α) := λ b hb, by simp [hb],
-  rw cycle.chain_cons,
+  rw cycle.chain_coe_cons,
   apply chain_of_pairwise,
   rw pairwise_cons,
   refine ⟨λ b hb, _, pairwise_append.2 ⟨pairwise_of_forall_mem_list
@@ -806,10 +806,10 @@ end
 
 theorem chain_iff_pairwise (hr : transitive r) : chain r s ↔ ∀ (a ∈ s) (b ∈ s), r a b :=
 ⟨begin
-  apply s.induction_on,
+  induction s using cycle.induction_on with a l _,
   exact λ _ b hb, hb.elim,
-  intros a l _ hs b hb c hc,
-  rw [cycle.chain_cons, chain_iff_pairwise hr] at hs,
+  intros hs b hb c hc,
+  rw [cycle.chain_coe_cons, chain_iff_pairwise hr] at hs,
   simp only [pairwise_append, pairwise_cons, mem_append, mem_singleton, list.not_mem_nil,
     forall_false_left, implies_true_iff, pairwise.nil, forall_eq, true_and] at hs,
   simp only [mem_coe_iff, mem_cons_iff] at hb hc,

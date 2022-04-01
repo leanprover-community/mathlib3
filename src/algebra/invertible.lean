@@ -158,7 +158,7 @@ def invertible_one [monoid α] : invertible (1 : α) :=
 inv_of_eq_right_inv (mul_one _)
 
 /-- `-⅟a` is the inverse of `-a` -/
-def invertible_neg [ring α] (a : α) [invertible a] : invertible (-a) :=
+def invertible_neg [non_assoc_ring α] (a : α) [invertible a] : invertible (-a) :=
 ⟨ -⅟a, by simp, by simp ⟩
 
 @[simp] lemma inv_of_neg [ring α] (a : α) [invertible a] [invertible (-a)] : ⅟(-a) = -⅟a :=
@@ -168,7 +168,7 @@ inv_of_eq_right_inv (by simp)
 (is_unit_of_invertible (2:α)).mul_right_inj.1 $
   by rw [mul_sub, mul_inv_of_self, mul_one, bit0, add_sub_cancel]
 
-@[simp] lemma inv_of_two_add_inv_of_two [semiring α] [invertible (2 : α)] :
+@[simp] lemma inv_of_two_add_inv_of_two [non_assoc_semiring α] [invertible (2 : α)] :
   (⅟2 : α) + (⅟2 : α) = 1 :=
 by simp only [←two_mul, mul_inv_of_self]
 

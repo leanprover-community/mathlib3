@@ -47,21 +47,20 @@ variables {R : Type u} {k : Type u'} {S : Type v} {M : Type w} {M₂ : Type x} {
   connected by a "scalar multiplication" operation `r • x : M`
   (where `r : R` and `x : M`) with some natural associativity and
   distributivity axioms similar to those on a ring. -/
-@[ext, protect_proj] class module (R : Type u) (M : Type v) [semiring R]
+@[ext, protect_proj] class module (R : Type u) (M : Type v) [non_assoc_semiring R]
   [add_comm_monoid M] extends distrib_mul_action R M :=
 (add_smul : ∀(r s : R) (x : M), (r + s) • x = r • x + s • x)
 (zero_smul : ∀x : M, (0 : R) • x = 0)
 
 section add_comm_monoid
-variables [semiring R] [add_comm_monoid M] [module R M] (r s : R) (x y : M)
+variables [non_assoc_semiring R] [add_comm_monoid M] [module R M] (r s : R) (x y : M)
 
 /-- A module over a semiring automatically inherits a `mul_action_with_zero` structure. -/
 @[priority 100] -- see Note [lower instance priority]
-instance module.to_mul_action_with_zero :
-  mul_action_with_zero R M :=
+instance module.smul_with_zero :
+  smul_with_zero R M :=
 { smul_zero := smul_zero,
-  zero_smul := module.zero_smul,
-  ..(infer_instance : mul_action R M) }
+  zero_smul := module.zero_smul, }
 
 instance add_comm_monoid.nat_module : module ℕ M :=
 { one_smul := one_nsmul,
@@ -117,18 +116,6 @@ def function.surjective.module_left {R S M : Type*} [semiring R] [add_comm_monoi
   add_smul := hf.forall₂.mpr (λ a b x, by simp only [← f.map_add, hsmul, add_smul]),
   .. hf.distrib_mul_action_left f.to_monoid_hom hsmul }
 
-variables {R} (M)
-
-/-- Compose a `module` with a `ring_hom`, with action `f s • m`.
-
-See note [reducible non-instances]. -/
-@[reducible] def module.comp_hom [semiring S] (f : S →+* R) :
-  module S M :=
-{ smul := has_scalar.comp.smul f,
-  add_smul := λ r s x, by simp [add_smul],
-  .. mul_action_with_zero.comp_hom M f.to_monoid_with_zero_hom,
-  .. distrib_mul_action.comp_hom M (f : S →* R) }
-
 variables (R) (M)
 
 /-- `(•)` as an `add_monoid_hom`.
@@ -165,13 +152,38 @@ lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
 
 end add_comm_monoid
 
+section
+variables [semiring R] [add_comm_monoid M] [module R M] (r s : R) (x y : M)
+
+/-- A module over a semiring automatically inherits a `mul_action_with_zero` structure. -/
+@[priority 100] -- see Note [lower instance priority]
+instance module.to_mul_action_with_zero :
+  mul_action_with_zero R M :=
+{ smul_zero := smul_zero,
+  zero_smul := module.zero_smul,
+  ..(infer_instance : mul_action R M) }
+
+variables {R} (M)
+
+/-- Compose a `module` with a `ring_hom`, with action `f s • m`.
+
+See note [reducible non-instances]. -/
+@[reducible] def module.comp_hom [semiring S] (f : S →+* R) :
+  module S M :=
+{ smul := has_scalar.comp.smul f,
+  add_smul := λ r s x, by simp [add_smul],
+  .. mul_action_with_zero.comp_hom M f.to_monoid_with_zero_hom,
+  .. distrib_mul_action.comp_hom M (f : S →* R) }
+
+end
+
 variables (R)
 
 /-- An `add_comm_monoid` that is a `module` over a `ring` carries a natural `add_comm_group`
 structure.
 See note [reducible non-instances]. -/
 @[reducible]
-def module.add_comm_monoid_to_add_comm_group [ring R] [add_comm_monoid M] [module R M] :
+def module.add_comm_monoid_to_add_comm_group [non_assoc_ring R] [add_comm_monoid M] [module R M] :
   add_comm_group M :=
 { neg          := λ a, (-1 : R) • a,
   add_left_neg := λ a, show (-1 : R) • a + a = 0, by
@@ -183,7 +195,7 @@ variables {R}
 
 section add_comm_group
 
-variables (R M) [semiring R] [add_comm_group M]
+variables (R M) [non_assoc_semiring R] [add_comm_group M]
 
 instance add_comm_group.int_module : module ℤ M :=
 { one_smul := one_zsmul,
@@ -218,7 +230,8 @@ end add_comm_group
 
 /-- A variant of `module.ext` that's convenient for term-mode. -/
 -- We'll later use this to show `module ℕ M` and `module ℤ M` are subsingletons.
-lemma module.ext' {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M] (P Q : module R M)
+lemma module.ext' {R : Type*} [non_assoc_semiring R] {M : Type*} [add_comm_monoid M]
+  (P Q : module R M)
   (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
   P = Q :=
 begin
@@ -227,16 +240,14 @@ begin
 end
 
 section module
-variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
+section
+variables [non_assoc_ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
 
 @[simp] theorem neg_smul : -r • x = - (r • x) :=
 eq_neg_of_add_eq_zero (by rw [← add_smul, add_left_neg, zero_smul])
 
 @[simp] lemma neg_smul_neg : -r • -x = r • x :=
 by rw [neg_smul, smul_neg, neg_neg]
-
-@[simp] theorem units.neg_smul (u : Rˣ) (x : M) : -u • x = - (u • x) :=
-by rw [units.smul_def, units.coe_neg, neg_smul, units.smul_def]
 
 variables (R)
 theorem neg_one_smul (x : M) : (-1 : R) • x = -x := by simp
@@ -245,18 +256,27 @@ variables {R}
 theorem sub_smul (r s : R) (y : M) : (r - s) • y = r • y - s • y :=
 by simp [add_smul, sub_eq_add_neg]
 
+end
+
+section
+variables [ring R] [add_comm_group M] [module R M] (r s : R) (x y : M)
+
+@[simp] theorem units.neg_smul (u : Rˣ) (x : M) : -u • x = - (u • x) :=
+by rw [units.smul_def, units.coe_neg, neg_smul, units.smul_def]
+
+end
 end module
 
 /-- A module over a `subsingleton` semiring is a `subsingleton`. We cannot register this
 as an instance because Lean has no way to guess `R`. -/
-protected theorem module.subsingleton (R M : Type*) [semiring R] [subsingleton R]
+protected theorem module.subsingleton (R M : Type*) [non_assoc_semiring R] [subsingleton R]
   [add_comm_monoid M] [module R M] :
   subsingleton M :=
 ⟨λ x y, by rw [← one_smul R x, ← one_smul R y, subsingleton.elim (1:R) 0, zero_smul, zero_smul]⟩
 
 /-- A semiring is `nontrivial` provided that there exists a nontrivial module over this semiring. -/
-protected theorem module.nontrivial (R M : Type*) [semiring R] [nontrivial M] [add_comm_monoid M]
-  [module R M] :
+protected theorem module.nontrivial (R M : Type*) [non_assoc_semiring R] [nontrivial M]
+  [add_comm_monoid M] [module R M] :
   nontrivial R :=
 (subsingleton_or_nontrivial R).resolve_left $ λ hR, not_subsingleton M $
   by exactI module.subsingleton R M
@@ -282,23 +302,25 @@ module.comp_hom S f
 /-- The tautological action by `R →+* R` on `R`.
 
 This generalizes `function.End.apply_mul_action`. -/
-instance ring_hom.apply_distrib_mul_action [semiring R] : distrib_mul_action (R →+* R) R :=
+instance ring_hom.apply_distrib_mul_action [non_assoc_semiring R] :
+  distrib_mul_action (R →+* R) R :=
 { smul := ($),
   smul_zero := ring_hom.map_zero,
   smul_add := ring_hom.map_add,
   one_smul := λ _, rfl,
   mul_smul := λ _ _ _, rfl }
 
-@[simp] protected lemma ring_hom.smul_def [semiring R] (f : R →+* R) (a : R) :
+@[simp] protected lemma ring_hom.smul_def [non_assoc_semiring R] (f : R →+* R) (a : R) :
   f • a = f a := rfl
 
 /-- `ring_hom.apply_distrib_mul_action` is faithful. -/
-instance ring_hom.apply_has_faithful_scalar [semiring R] : has_faithful_scalar (R →+* R) R :=
+instance ring_hom.apply_has_faithful_scalar [non_assoc_semiring R] :
+  has_faithful_scalar (R →+* R) R :=
 ⟨ring_hom.ext⟩
 
 section add_comm_monoid
 
-variables [semiring R] [add_comm_monoid M] [module R M]
+variables [non_assoc_semiring R] [add_comm_monoid M] [module R M]
 
 section
 variables (R)
@@ -344,7 +366,7 @@ end add_comm_monoid
 
 section add_comm_group
 
-variables [semiring S] [ring R] [add_comm_group M] [module S M] [module R M]
+variables [non_assoc_semiring S] [non_assoc_ring R] [add_comm_group M] [module S M] [module R M]
 
 section
 variables (R)
@@ -451,29 +473,29 @@ lemma rat_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ri
   (r : R) • x = (r : S) • x :=
 (add_monoid_hom.id E).map_rat_cast_smul R S r x
 
-instance add_comm_group.int_is_scalar_tower {R : Type u} {M : Type v} [ring R] [add_comm_group M]
-  [module R M]: is_scalar_tower ℤ R M :=
+instance add_comm_group.int_is_scalar_tower {R : Type u} {M : Type v} [non_assoc_ring R]
+  [add_comm_group M] [module R M] : is_scalar_tower ℤ R M :=
 { smul_assoc := λ n x y, ((smul_add_hom R M).flip y).map_int_module_smul n x }
 
-instance add_comm_group.int_smul_comm_class {S : Type u} {M : Type v} [semiring S]
+instance add_comm_group.int_smul_comm_class {S : Type u} {M : Type v} [non_assoc_semiring S]
   [add_comm_group M] [module S M] :
   smul_comm_class ℤ S M :=
 { smul_comm := λ n x y, ((smul_add_hom S M x).map_zsmul y n).symm }
 
 -- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
-instance add_comm_group.int_smul_comm_class' {S : Type u} {M : Type v} [semiring S]
+instance add_comm_group.int_smul_comm_class' {S : Type u} {M : Type v} [non_assoc_semiring S]
   [add_comm_group M] [module S M] : smul_comm_class S ℤ M :=
 smul_comm_class.symm _ _ _
 
-instance is_scalar_tower.rat {R : Type u} {M : Type v} [ring R] [add_comm_group M]
+instance is_scalar_tower.rat {R : Type u} {M : Type v} [non_assoc_ring R] [add_comm_group M]
   [module R M] [module ℚ R] [module ℚ M] : is_scalar_tower ℚ R M :=
 { smul_assoc := λ r x y, ((smul_add_hom R M).flip y).map_rat_module_smul r x }
 
-instance smul_comm_class.rat {R : Type u} {M : Type v} [semiring R] [add_comm_group M]
+instance smul_comm_class.rat {R : Type u} {M : Type v} [non_assoc_semiring R] [add_comm_group M]
   [module R M] [module ℚ M] : smul_comm_class ℚ R M :=
 { smul_comm := λ r x y, ((smul_add_hom R M x).map_rat_module_smul r y).symm }
 
-instance smul_comm_class.rat' {R : Type u} {M : Type v} [semiring R] [add_comm_group M]
+instance smul_comm_class.rat' {R : Type u} {M : Type v} [non_assoc_semiring R] [add_comm_group M]
   [module R M] [module ℚ M] : smul_comm_class R ℚ M :=
 smul_comm_class.symm _ _ _
 
@@ -507,7 +529,7 @@ lemma function.injective.no_zero_smul_divisors {R M N : Type*} [has_zero R] [has
 
 section module
 
-variables [semiring R] [add_comm_monoid M] [module R M]
+variables [non_assoc_semiring R] [add_comm_monoid M] [module R M]
 
 instance no_zero_smul_divisors.of_no_zero_divisors [no_zero_divisors R] :
   no_zero_smul_divisors R R :=
@@ -550,7 +572,7 @@ end module
 
 section add_comm_group -- `R` can still be a semiring here
 
-variables [semiring R] [add_comm_group M] [module R M]
+variables [non_assoc_semiring R] [add_comm_group M] [module R M]
 
 section smul_injective
 
@@ -591,7 +613,7 @@ end add_comm_group
 
 section module
 
-variables [ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
+variables [non_assoc_ring R] [add_comm_group M] [module R M] [no_zero_smul_divisors R M]
 
 section smul_injective
 
@@ -619,10 +641,10 @@ end division_ring
 
 end no_zero_smul_divisors
 
-@[simp] lemma nat.smul_one_eq_coe {R : Type*} [semiring R] (m : ℕ) :
+@[simp] lemma nat.smul_one_eq_coe {R : Type*} [non_assoc_semiring R] (m : ℕ) :
   m • (1 : R) = ↑m :=
 by rw [nsmul_eq_mul, mul_one]
 
-@[simp] lemma int.smul_one_eq_coe {R : Type*} [ring R] (m : ℤ) :
+@[simp] lemma int.smul_one_eq_coe {R : Type*} [non_assoc_ring R] (m : ℤ) :
   m • (1 : R) = ↑m :=
 by rw [zsmul_eq_mul, mul_one]

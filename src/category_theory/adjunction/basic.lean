@@ -588,7 +588,6 @@ adjunction.mk_of_hom_equiv
       rw [F.map_comp, category.assoc]
     end,
   hom_equiv_naturality_right' :=
-
     begin
       intros X' X Y f g,
       dsimp [right_adjoint_of_counit_restrict],

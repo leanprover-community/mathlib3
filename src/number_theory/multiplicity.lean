@@ -6,6 +6,7 @@ Authors: Tian Chen
 import algebra.geom_sum
 import data.int.parity
 import number_theory.padics.padic_norm
+import data.zmod.basic
 
 /-!
 # Multiplicity in Number Theory
@@ -92,52 +93,45 @@ begin
     ... ∣ (a + ↑p * b) ^ i - (a ^ (i - 1) * (↑p * b) * ↑i + a ^ i) :
       sq_dvd_add_mul_pow_sub (↑p * b) a i },
   simp_rw [← mem_span_singleton, ← ideal.quotient.eq] at *,
-  calc (mk (span {↑p ^ 2})) (geom_sum₂ (a + ↑p * b) a p) =
-    ∑ (i : ℕ) in finset.range p, mk (span {↑p ^ 2})
-    ((a ^ (i - 1) * (↑p * b) * ↑i + a ^ i) * a ^ (p - 1 - i)) :
-    by simp_rw [ring_hom.map_geom_sum₂, geom_sum₂, ← ring_hom.map_pow, h1, ← ring_hom.map_mul]
-  ... = (mk (span {↑p ^ 2})) (∑ (x : ℕ) in finset.range p,
-    a ^ (x - 1) * (a ^ (p - 1 - x) * (↑p * (b * ↑x)))) +
-    (mk (span {↑p ^ 2})) (∑ (x : ℕ) in finset.range p, a ^ (x + (p - 1 - x))) : by
-    { ring_exp,
-      simp only [← pow_add, ring_hom.map_add, finset.sum_add_distrib, ← ring_hom.map_sum] }
-  ... = (mk (span {↑p ^ 2})) (∑ (x : ℕ) in finset.range p,
-    a ^ (x - 1) * (a ^ (p - 1 - x) * (↑p * (b * ↑x)))) +
-    (mk (span {↑ p ^ 2})) ∑ (x : ℕ) in finset.range p, a ^ (p - 1) : by
-    { rw add_right_inj,
-      congr' 1,
-      apply finset.sum_congr rfl,
-      intros x hx,
-      congr,
-      rw finset.mem_range at hx,
-      have hxp : x ≤ p - 1, { exact nat.le_pred_of_lt hx },
-      zify [hxp],
-      simp only [add_sub_cancel'_right] }
-  ... = (mk (span {↑p ^ 2})) (∑ (x : ℕ) in finset.range p,
-    a ^ (x - 1) * (a ^ (p - 1 - x) * (↑p * (b * ↑x)))) +
-    (mk (span {↑ p ^ 2})) (↑p * a ^ (p - 1)) : by
-    { simp only [add_right_inj, finset.sum_const, finset.card_range, nsmul_eq_mul] }
-  ... = (mk (span {↑p ^ 2})) (↑p * b * ∑ (x : ℕ) in finset.range p, a ^ (p - 2) * x) +
-    (mk (span {↑p ^ 2})) (↑p * a ^ (p - 1)) : by
-    { congr' 2,
-      simp only [finset.mul_sum, ← mul_assoc, ← pow_add],
-      apply finset.sum_congr rfl,
-      intros x hx,
-      cases x,
-      { rw [nat.cast_zero, mul_zero, mul_zero] },
-      { have : x.succ - 1 + (p - 1 - x.succ) = p - 2,
-        { rw ← nat.add_sub_assoc (nat.le_pred_of_lt (finset.mem_range.mp hx)),
-          exact congr_arg nat.pred (nat.add_sub_cancel_left _ _)},
-        rw this; ring_exp_eq }}
-  ... = (mk (span {↑p ^ 2})) (↑p * a ^ (p - 1)) : by
-    { simp only [add_left_eq_self, ← finset.mul_sum],
-      norm_cast,
-      simp only [finset.sum_range_id,
-      nat.mul_div_assoc _ (even_iff_two_dvd.mp (nat.odd.sub_odd hp odd_one)), nat.cast_mul,
-        _root_.map_mul],
-      ring_exp,
-      simp only [← map_pow, mul_eq_zero_of_left, ideal.quotient.eq_zero_iff_mem,
-        mem_span_singleton] }
+  calc  mk (span {↑p ^ 2}) (geom_sum₂ (a + ↑p * b) a p)
+      = ∑ (i : ℕ) in finset.range p, mk (span {↑p ^ 2})
+          ((a ^ (i - 1) * (↑p * b) * ↑i + a ^ i) * a ^ (p - 1 - i)) :
+    by simp_rw [ring_hom.map_geom_sum₂, geom_sum₂, ← map_pow, h1, ← _root_.map_mul]
+  ... = mk (span {↑p ^ 2}) (∑ (x : ℕ) in finset.range p,
+          a ^ (x - 1) * (a ^ (p - 1 - x) * (↑p * (b * ↑x)))) +
+        mk (span {↑p ^ 2}) (∑ (x : ℕ) in finset.range p, a ^ (x + (p - 1 - x))) :
+    by { ring_exp,
+         simp only [← pow_add, map_add, finset.sum_add_distrib, ← map_sum] }
+  ... = mk (span {↑p ^ 2}) (∑ (x : ℕ) in finset.range p,
+          a ^ (x - 1) * (a ^ (p - 1 - x) * (↑p * (b * ↑x)))) +
+        mk (span {↑ p ^ 2}) ∑ (x : ℕ) in finset.range p, a ^ (p - 1) :
+    by { rw [add_right_inj, finset.sum_congr rfl],
+         intros x hx,
+         rw [← nat.add_sub_assoc _ x, nat.add_sub_cancel_left],
+         exact nat.le_pred_of_lt (finset.mem_range.mp hx) }
+  ... = mk (span {↑p ^ 2}) (∑ (x : ℕ) in finset.range p,
+          a ^ (x - 1) * (a ^ (p - 1 - x) * (↑p * (b * ↑x)))) +
+        mk (span {↑ p ^ 2}) (↑p * a ^ (p - 1)) :
+    by simp only [add_right_inj, finset.sum_const, finset.card_range, nsmul_eq_mul]
+  ... = mk (span {↑p ^ 2}) (↑p * b * ∑ (x : ℕ) in finset.range p, a ^ (p - 2) * x) +
+        mk (span {↑p ^ 2}) (↑p * a ^ (p - 1)) :
+    by { simp only [finset.mul_sum, ← mul_assoc, ← pow_add],
+         rw finset.sum_congr rfl,
+         rintros (⟨⟩|⟨x⟩) hx,
+         { rw [nat.cast_zero, mul_zero, mul_zero] },
+         { have : x.succ - 1 + (p - 1 - x.succ) = p - 2,
+           { rw ← nat.add_sub_assoc (nat.le_pred_of_lt (finset.mem_range.mp hx)),
+             exact congr_arg nat.pred (nat.add_sub_cancel_left _ _)},
+           rw this,
+           ring_exp_eq }}
+  ... = mk (span {↑p ^ 2}) (↑p * a ^ (p - 1)) :
+    by { simp only [add_left_eq_self, ← finset.mul_sum],
+         norm_cast,
+         simp only [finset.sum_range_id, nat.cast_mul, _root_.map_mul,
+           nat.mul_div_assoc _ (even_iff_two_dvd.mp (nat.odd.sub_odd hp odd_one))],
+         ring_exp,
+         simp only [← map_pow, mul_eq_zero_of_left, ideal.quotient.eq_zero_iff_mem,
+           mem_span_singleton] }
 end
 
 
@@ -250,7 +244,7 @@ end comm_ring
 
 namespace multiplicity
 
-lemma int.pow_two_sub_pow_two_eq_factorisation {x y : ℤ} (n : ℕ) :
+lemma  _root_.pow_two_pow_sub_pow_two_pow [comm_ring R] {x y : R} (n : ℕ) :
   x ^ (2 ^ n) - y ^ (2 ^ n) = (∏ i in finset.range n, (x ^ (2 ^ i) + y ^ (2 ^ i))) * (x - y) :=
 begin
   induction n with d hd,
@@ -260,115 +254,72 @@ begin
     { ring_exp_eq }}
 end
 
-lemma int.sq_mod_four_eq_one_of_odd {x : ℤ} : odd x → x ^ 2 % 4 = 1 :=
+lemma _root_.int.sq_mod_four_eq_one_of_odd {x : ℤ} : odd x → x ^ 2 % 4 = 1 :=
 begin
   intro hx,
-  rw int.odd_iff at hx,
-  suffices : x ^ 2 % 4 = 1 % 4,
-  { norm_num [this] },
-  { rw int.mod_eq_mod_iff_mod_sub_eq_zero,
-    suffices : (x ^ 2 - 1 ^ 2) % 4 = 0,
-    { convert this },
-    { rw sq_sub_sq,
-      apply int.mod_eq_zero_of_dvd,
-      suffices : 2 * 2 ∣ (x + 1) * (x - 1),
-      { convert this },
-      apply mul_dvd_mul,
-      { rw [int.dvd_iff_mod_eq_zero, int.add_mod, hx],
-        norm_num },
-      { rw [int.dvd_iff_mod_eq_zero, int.sub_mod, hx],
-        norm_num }}}
+  -- Replace `x : ℤ` with `y : zmod 4`
+  replace hx : x % (2 : ℕ) = 1 % (2 : ℕ), { rw int.odd_iff at hx, norm_num [hx] },
+  calc x^2 % (4 : ℕ)
+      = 1 % (4 : ℕ) : _
+  ... = 1 : by norm_num,
+  rw ← zmod.int_coe_eq_int_coe_iff' at hx ⊢,
+  push_cast,
+  rw [← (zmod.cast_hom (show 2 ∣ 4, by norm_num) (zmod 2)).map_int_cast x] at hx,
+  set y : zmod 4 := x,
+  -- Now we can just consider each of the 4 possible values for y
+  fin_cases y using hy;
+    rw hy at ⊢ hx; revert hx; dec_trivial
 end
 
-lemma int.two_pow_two_sub_pow {x y : ℤ} (n : ℕ) (hxy : 4 ∣ x - y) (hx : ¬ 2 ∣ x) :
-  multiplicity 2 (x ^ (2 ^ n) - y ^ (2 ^ n)) = multiplicity 2 (x - y) + n :=
+lemma int.two_pow_two_pow_add_two_pow_two_pow {x y : ℤ}
+  (hx : ¬ 2 ∣ x) (hxy : 4 ∣ (x - y))
+  (i : ℕ) : multiplicity 2 (x ^ 2 ^ i + y ^ 2 ^ i) = ↑(1 : ℕ) :=
 begin
-  simp only [int.pow_two_sub_pow_two_eq_factorisation n, multiplicity.mul (int.prime_two),
-    multiplicity.finset.prod (int.prime_two)],
-  have hyodd : odd y,
-  { have hsub : even (y - x),
-        { rw [even_iff_two_dvd, ← dvd_neg, neg_sub],
-          apply dvd_trans (show (2 : ℤ) ∣ 4, by norm_num) hxy },
-        rw [← sub_add_cancel y x],
-        apply even.add_odd hsub,
-        simp only [int.odd_iff_not_even, even_iff_two_dvd, hx, not_false_iff] },
-  have hi : ∀ (i : ℕ), multiplicity 2 (x ^ 2 ^ i + y ^ 2 ^ i) = ↑(1 : ℕ),
-  { intro i,
-    rw multiplicity.eq_coe_iff,
-    split,
-    { rw [pow_one, ← even_iff_two_dvd],
-      apply odd.add_odd,
-      { apply odd.pow,
-        simp only [int.odd_iff_not_even, even_iff_two_dvd, hx, not_false_iff] },
-      { apply odd.pow hyodd }},
-    norm_num,
-    rw int.dvd_iff_mod_eq_zero,
-    obtain rfl | hnezero := eq_or_ne i 0,
-    { simp only [pow_zero, pow_one, euclidean_domain.mod_eq_zero],
-      suffices : ¬ 2 * 2 ∣ x + y,
-      { convert this },
-      { intro hyx,
-        replace hyx := dvd_add hyx hxy,
-        simp only [←two_mul, mul_one, add_add_sub_cancel, pow_two] at hyx,
-        rw mul_dvd_mul_iff_left (show (2 : ℤ) ≠ 0, by norm_num) at hyx,
-          exact hx hyx }},
-      have hixy : x ^ 2 ^ i % 4 = 1 ∧ y ^ 2 ^ i % 4 = 1,
-      { suffices : (x ^ 2 ^ (i - 1)) ^ 2 % 4 = 1 ∧ (y ^ 2 ^ (i-1)) ^ 2 % 4 = 1,
-        { convert this using 3;
-          { rw [← pow_mul, ← pow_succ', nat.sub_add_cancel (nat.one_le_iff_ne_zero.mpr hnezero)] }},
-          split,
-          { apply int.sq_mod_four_eq_one_of_odd,
-            apply odd.pow,
-            simp only [int.odd_iff_not_even, even_iff_two_dvd, hx, not_false_iff] },
-          { apply int.sq_mod_four_eq_one_of_odd,
-            apply odd.pow hyodd }},
-    rw [int.add_mod, hixy.1, hixy.2],
+  have hx_odd : odd x, { rwa [int.odd_iff_not_even, even_iff_two_dvd] },
+  have hxy_even : even (x - y) := even_iff_two_dvd.mpr (dvd_trans (by norm_num) hxy),
+  have hy_odd : odd y := by simpa using hx_odd.sub_even hxy_even,
+  refine multiplicity.eq_coe_iff.mpr ⟨_, _⟩,
+  { rw [pow_one, ← even_iff_two_dvd],
+    exact (hx_odd.pow).add_odd hy_odd.pow },
+  cases i with i,
+  { intro hxy',
+    have : 2 * 2 ∣ 2 * x, { convert dvd_add hxy hxy', ring_exp },
+    have : 2 ∣ x := (mul_dvd_mul_iff_left (by norm_num)).mp this,
+    contradiction },
+  suffices : ∀ (x : ℤ), odd x → x ^ (2 ^ (i + 1)) % 4 = 1,
+  { rw [show (2 ^ (1 + 1) : ℤ) = 4, by norm_num, int.dvd_iff_mod_eq_zero, int.add_mod,
+        this _ hx_odd, this _ hy_odd],
     norm_num },
-  { simp only [hi, add_comm, nat.cast_one, finset.sum_const, finset.card_range, nsmul_one] }
+  intros x hx,
+  rw [pow_succ, mul_comm, pow_mul, int.sq_mod_four_eq_one_of_odd hx.pow]
 end
+lemma int.two_pow_two_pow_sub_pow_two_pow {x y : ℤ} (n : ℕ) (hxy : 4 ∣ x - y) (hx : ¬ 2 ∣ x) :
+  multiplicity 2 (x ^ (2 ^ n) - y ^ (2 ^ n)) = multiplicity 2 (x - y) + n :=
+by simp only [pow_two_pow_sub_pow_two_pow  n, multiplicity.mul int.prime_two,
+    multiplicity.finset.prod (int.prime_two), add_comm, nat.cast_one, finset.sum_const,
+    finset.card_range, nsmul_one, multiplicity.int.two_pow_two_pow_add_two_pow_two_pow hx hxy]
 
 lemma int.two_pow_sub_pow' {x y : ℤ} (n : ℕ) (hxy : 4 ∣ x - y) (hx : ¬ 2 ∣ x) :
   multiplicity 2 (x ^ n - y ^ n) = multiplicity 2 (x - y) + multiplicity (2 : ℤ) n :=
 begin
-  have hy : ¬ 2 ∣ y,
-  { rw [← even_iff_two_dvd, ← int.odd_iff_not_even] at *,
-    replace hxy := (even_neg (x - y)).mpr (even_iff_two_dvd.mpr
-      (dvd_trans (show (2 : ℤ) ∣ 4, by norm_num) hxy)),
-    convert even.add_odd hxy hx,
-    abel },
+  have hx_odd : odd x, { rwa [int.odd_iff_not_even, even_iff_two_dvd] },
+  have hxy_even : even (x - y) := even_iff_two_dvd.mpr (dvd_trans (by norm_num) hxy),
+  have hy_odd : odd y := by simpa using hx_odd.sub_even hxy_even,
   cases n,
   { simp only [pow_zero, sub_self, multiplicity.zero, int.coe_nat_zero, enat.add_top] },
-  { have h : (multiplicity 2 n.succ).dom := finite_nat_iff.mpr
-    ⟨nat.bit0_ne_one 1, n.succ_pos⟩,
+  have h : (multiplicity 2 n.succ).dom := finite_nat_iff.mpr ⟨by norm_num, n.succ_pos⟩,
   rcases eq_coe_iff.mp (enat.coe_get h).symm with ⟨⟨k, hk⟩, hpn⟩,
-  rw hk,
-  have hxpow : ¬ 2 ∣ x ^ 2 ^ (multiplicity 2 n.succ).get h,
-  { rw [← even_iff_two_dvd, ← int.odd_iff_not_even],
-    apply odd.pow,
-    simp only [int.odd_iff_not_even, even_iff_two_dvd, hx, not_false_iff] },
-  have hxy2 : 2 ∣ x ^ 2 ^ (multiplicity 2 n.succ).get h - y ^ 2 ^ (multiplicity 2 n.succ).get h,
-  { rw [← even_iff_two_dvd],
-    apply odd.sub_odd,
-    { apply odd.pow,
-      simp only [int.odd_iff_not_even, even_iff_two_dvd, hx, not_false_iff] },
-    { apply odd.pow,
-      simp only [int.odd_iff_not_even, even_iff_two_dvd, hy, not_false_iff] }},
-  have hk2 : ¬ (2 : ℤ) ∣ k,
-  { norm_cast,
-    contrapose hpn,
-    simp only [not_not, pow_add, pow_one],
-    suffices : 2 ^ (multiplicity 2 n.succ).get h * 2 ∣ 2 ^ (multiplicity 2 n.succ).get h * k,
-    { convert this },
-    apply mul_dvd_mul,
-    { exact dvd_rfl },
-    { exact (not_not.mp hpn) }},
-  simp only [pow_mul],
-  rw pow_sub_pow_of_prime (int.prime_two) hxy2 hxpow _,
-  { simp only [int.two_pow_two_sub_pow ((multiplicity 2 n.succ).get h) hxy hx],
-    rw [← hk],
-    simp only [enat.coe_get, int.coe_nat_succ, ← int.coe_nat_multiplicity],
-    refl  },
-  simp only [hk2, int.nat_cast_eq_coe_nat, not_false_iff] }
+  rw [hk, pow_mul, pow_mul, pow_sub_pow_of_prime, int.two_pow_two_pow_sub_pow_two_pow _ hxy hx,
+      ← hk, enat.coe_get],
+  { norm_cast },
+  { exact int.prime_two },
+  { simpa only [int.odd_iff_not_even] using hx_odd.pow.sub_odd hy_odd.pow },
+  { simpa only [int.odd_iff_not_even] using hx_odd.pow },
+  erw [int.nat_cast_eq_coe_nat, int.coe_nat_dvd], -- `erw` to deal with `2 : ℤ` vs `(2 : ℕ) : ℤ`
+  contrapose! hpn,
+  rw pow_succ',
+  conv_rhs { rw hk },
+  exact mul_dvd_mul_left _ hpn
 end
 
 /-- **Lifting the exponent lemma** for `p = 2` -/

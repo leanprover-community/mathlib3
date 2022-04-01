@@ -102,9 +102,8 @@ end has_scalar
 
 section mul_action_monoid
 
-variables [monoid R] [mul_action R M]
-
 section
+variables [mul_one_class R] [mul_action R M]
 variables [has_scalar S R] [has_scalar S M] [is_scalar_tower S R M]
 variables (p : sub_mul_action R M)
 
@@ -129,6 +128,8 @@ instance [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M] [is_scalar_tower S�
 { op_smul_eq_smul := λ r x, subtype.ext $ op_smul_eq_smul r x }
 
 end
+
+variables [monoid R] [mul_action R M]
 
 section
 

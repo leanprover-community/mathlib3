@@ -231,46 +231,46 @@ fun_like.coe_injective.add_comm_group _
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
 coordinate. -/
-instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
+instance [mul_one_class γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
   has_scalar γ (Π₀ i, β i) :=
 ⟨λc v, v.map_range (λ _, (•) c) (λ _, smul_zero _)⟩
 
-lemma smul_apply [monoid γ] [Π i, add_monoid (β i)]
+lemma smul_apply [mul_one_class γ] [Π i, add_monoid (β i)]
   [Π i, distrib_mul_action γ (β i)] (b : γ) (v : Π₀ i, β i) (i : ι) :
   (b • v) i = b • (v i) :=
 map_range_apply _ _ v i
 
-@[simp] lemma coe_smul [monoid γ] [Π i, add_monoid (β i)]
+@[simp] lemma coe_smul [mul_one_class γ] [Π i, add_monoid (β i)]
   [Π i, distrib_mul_action γ (β i)] (b : γ) (v : Π₀ i, β i) :
   ⇑(b • v) = b • v :=
 funext $ smul_apply b v
 
-instance {δ : Type*} [monoid γ] [monoid δ]
+instance {δ : Type*} [mul_one_class γ] [mul_one_class δ]
   [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] [Π i, distrib_mul_action δ (β i)]
   [Π i, smul_comm_class γ δ (β i)] :
   smul_comm_class γ δ (Π₀ i, β i) :=
 { smul_comm := λ r s m, ext $ λ i, by simp only [smul_apply, smul_comm r s (m i)] }
 
-instance {δ : Type*} [monoid γ] [monoid δ]
+instance {δ : Type*} [mul_one_class γ] [mul_one_class δ]
   [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] [Π i, distrib_mul_action δ (β i)]
   [has_scalar γ δ] [Π i, is_scalar_tower γ δ (β i)] :
   is_scalar_tower γ δ (Π₀ i, β i) :=
 { smul_assoc := λ r s m, ext $ λ i, by simp only [smul_apply, smul_assoc r s (m i)] }
 
-instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)]
+instance [mul_one_class γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)]
   [Π i, distrib_mul_action γᵐᵒᵖ (β i)] [∀ i, is_central_scalar γ (β i)] :
   is_central_scalar γ (Π₀ i, β i) :=
 { op_smul_eq_smul := λ r m, ext $ λ i, by simp only [smul_apply, op_smul_eq_smul r (m i)] }
 
 /-- Dependent functions with finite support inherit a `distrib_mul_action` structure from such a
 structure on each coordinate. -/
-instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
+instance [mul_one_class γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
   distrib_mul_action γ (Π₀ i, β i) :=
 function.injective.distrib_mul_action coe_fn_add_monoid_hom fun_like.coe_injective coe_smul
 
 /-- Dependent functions with finite support inherit a module structure from such a structure on
 each coordinate. -/
-instance [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, module γ (β i)] :
+instance [non_assoc_semiring γ] [Π i, add_comm_monoid (β i)] [Π i, module γ (β i)] :
   module γ (Π₀ i, β i) :=
 { zero_smul := λ c, ext $ λ i, by simp only [smul_apply, zero_smul, zero_apply],
   add_smul := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, add_smul],
@@ -315,7 +315,7 @@ by { ext, simp }
   (f + g).filter p = f.filter p + g.filter p :=
 by { ext, simp [ite_add_zero] }
 
-@[simp] lemma filter_smul [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)]
+@[simp] lemma filter_smul [mul_one_class γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)]
   (p : ι → Prop) [decidable_pred p] (r : γ) (f : Π₀ i, β i) :
   (r • f).filter p = r • f.filter p :=
 by { ext, simp [smul_ite] }
@@ -1026,8 +1026,8 @@ support_zip_with
   support (-f) = support f :=
 by ext i; simp
 
-lemma support_smul {γ : Type w} [semiring γ] [Π i, add_comm_monoid (β i)] [Π i, module γ (β i)]
-  [Π ( i : ι) (x : β i), decidable (x ≠ 0)]
+lemma support_smul {γ : Type w} [non_assoc_semiring γ] [Π i, add_comm_monoid (β i)]
+  [Π i, module γ (β i)] [Π (i : ι) (x : β i), decidable (x ≠ 0)]
   (b : γ) (v : Π₀ i, β i) : (b • v).support ⊆ v.support :=
 support_map_range
 

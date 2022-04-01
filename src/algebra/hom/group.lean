@@ -830,10 +830,10 @@ lemma monoid_hom.to_one_hom_injective [mul_one_class M] [mul_one_class N] :
 lemma monoid_hom.to_mul_hom_injective [mul_one_class M] [mul_one_class N] :
   function.injective (monoid_hom.to_mul_hom : (M →* N) → mul_hom M N) :=
 λ f g h, monoid_hom.ext $ mul_hom.ext_iff.mp h
-lemma monoid_with_zero_hom.to_monoid_hom_injective [monoid_with_zero M] [monoid_with_zero N] :
+lemma monoid_with_zero_hom.to_monoid_hom_injective [mul_zero_one_class M] [mul_zero_one_class N] :
   function.injective (monoid_with_zero_hom.to_monoid_hom : (M →*₀ N) → M →* N) :=
 λ f g h, monoid_with_zero_hom.ext $ monoid_hom.ext_iff.mp h
-lemma monoid_with_zero_hom.to_zero_hom_injective [monoid_with_zero M] [monoid_with_zero N] :
+lemma monoid_with_zero_hom.to_zero_hom_injective [mul_zero_one_class M] [mul_zero_one_class N] :
   function.injective (monoid_with_zero_hom.to_zero_hom : (M →*₀ N) → zero_hom M N) :=
 λ f g h, monoid_with_zero_hom.ext $ zero_hom.ext_iff.mp h
 
@@ -989,7 +989,7 @@ add_decl_doc add_hom.has_add
   (f g : mul_hom M N) (x : M) :
   (f * g) x = f x * g x := rfl
 
-@[to_additive] lemma mul_comp [has_mul M] [comm_semigroup N] [comm_semigroup P]
+@[to_additive] lemma mul_comp [has_mul M] [has_mul N] [comm_semigroup P]
   (g₁ g₂ : mul_hom N P) (f : mul_hom M N) :
   (g₁ * g₂).comp f = g₁.comp f * g₂.comp f := rfl
 @[to_additive] lemma comp_mul [has_mul M] [comm_semigroup N] [comm_semigroup P]
@@ -1027,7 +1027,7 @@ add_decl_doc add_monoid_hom.has_add
   (f : N →* P) : f.comp (1 : M →* N) = 1 :=
 by { ext, simp only [map_one, coe_comp, function.comp_app, one_apply] }
 
-@[to_additive] lemma mul_comp [mul_one_class M] [comm_monoid N] [comm_monoid P]
+@[to_additive] lemma mul_comp [mul_one_class M] [mul_one_class N] [comm_monoid P]
   (g₁ g₂ : N →* P) (f : M →* N) :
   (g₁ * g₂).comp f = g₁.comp f * g₂.comp f := rfl
 @[to_additive] lemma comp_mul [mul_one_class M] [comm_monoid N] [comm_monoid P]

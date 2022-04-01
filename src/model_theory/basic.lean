@@ -142,6 +142,28 @@ instance is_relational_sum [L.is_relational] [L'.is_relational] : is_relational 
 instance is_algebraic_sum [L.is_algebraic] [L'.is_algebraic] : is_algebraic (L.sum L') :=
 ⟨λ n, sum.is_empty⟩
 
+instance is_relational_mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  [h0 : is_empty c] [h1 : is_empty f₁] [h2 : is_empty f₂] :
+  is_relational (language.mk₂ c f₁ f₂ r₁ r₂) :=
+⟨λ n, nat.cases_on n h0 (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ _, pempty.is_empty)))⟩
+
+instance is_algebraic_mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  [h1 : is_empty r₁] [h2 : is_empty r₂] :
+  is_algebraic (language.mk₂ c f₁ f₂ r₁ r₂) :=
+⟨λ n, nat.cases_on n pempty.is_empty
+  (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ _, pempty.is_empty)))⟩
+
+instance subsingleton_mk₂_functions {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  [h0 : subsingleton c] [h1 : subsingleton f₁] [h2 : subsingleton f₂] {n : ℕ} :
+  subsingleton ((language.mk₂ c f₁ f₂ r₁ r₂).functions n) :=
+nat.cases_on n h0 (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ n, ⟨λ x, pempty.elim x⟩)))
+
+instance subsingleton_mk₂_relations {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  [h1 : subsingleton r₁] [h2 : subsingleton r₂] {n : ℕ} :
+  subsingleton ((language.mk₂ c f₁ f₂ r₁ r₂).relations n) :=
+nat.cases_on n ⟨λ x, pempty.elim x⟩
+  (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ n, ⟨λ x, pempty.elim x⟩)))
+
 lemma encodable.countable [h : encodable L.symbols] :
   L.countable :=
 ⟨cardinal.encodable_iff.1 ⟨h⟩⟩

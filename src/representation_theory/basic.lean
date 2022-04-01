@@ -98,7 +98,7 @@ variables [module k V] [distrib_mul_action G V] [smul_comm_class G k V]
 
 /--
 The character associated to a representation of `G`, which as a map `G → k`
-sends each element to the trace of the corresponding linear map
+sends each element to the trace of the corresponding linear map.
 -/
 @[simp]
 noncomputable def character (g : G) : k :=

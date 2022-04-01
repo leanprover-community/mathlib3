@@ -196,7 +196,7 @@ begin
   rcases hx with ⟨r, hr, hr'⟩,
   convert (hm.apply_iterate ((n / r + 1) * r - n)).eq,
   suffices : n ≤ (n / r + 1) * r,
-  { rw [←iterate_add_apply, nat.sub_add_cancel this, iterate_mul, (hr'.iterate _).eq], },
+  { rw [←iterate_add_apply, nat.sub_add_cancel this, iterate_mul, (hr'.iterate _).eq] },
   rw [add_mul, one_mul],
   exact (nat.lt_div_mul_add hr).le
 end

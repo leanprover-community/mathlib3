@@ -3,12 +3,7 @@ Copyright (c) 2020 Joseph Myers. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joseph Myers, Yury Kudryashov
 -/
-import algebra.group.prod
-import algebra.group.type_tags
-import algebra.group.pi
-import algebra.pointwise
-import data.equiv.basic
-import data.set.finite
+import data.set.pointwise
 
 /-!
 # Torsors of additive group actions
@@ -160,11 +155,6 @@ open_locale pointwise
 
 @[simp] lemma singleton_vsub_self (p : P) : ({p} : set P) -ᵥ {p} = {(0:G)} :=
 by rw [set.singleton_vsub_singleton, vsub_self]
-
-instance add_action : add_action (set G) (set P) :=
-{ zero_vadd := λ s, by simp [has_vadd.vadd, ←singleton_zero, image2_singleton_left],
-  add_vadd := λ s t p, by { apply image2_assoc, intros, apply add_vadd },
-  ..(show has_vadd (set G) (set P), by apply_instance) }
 
 end set
 

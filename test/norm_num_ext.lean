@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import data.int.gcd
+import data.nat.sqrt_norm_num
 import data.nat.prime
+import data.nat.fib
 import algebra.squarefree
 
 /-!
@@ -12,6 +14,17 @@ import algebra.squarefree
 -/
 
 -- coverage tests
+example : nat.sqrt 0 = 0 := by norm_num
+example : nat.sqrt 1 = 1 := by norm_num
+example : nat.sqrt 2 = 1 := by norm_num
+example : nat.sqrt 3 = 1 := by norm_num
+example : nat.sqrt 4 = 2 := by norm_num
+example : nat.sqrt 9 = 3 := by norm_num
+example : nat.sqrt 10 = 3 := by norm_num
+example : nat.sqrt 100 = 10 := by norm_num
+example : nat.sqrt 120 = 10 := by norm_num
+example : nat.sqrt 121 = 11 := by norm_num
+
 example : nat.coprime 1 2 := by norm_num
 example : nat.coprime 2 1 := by norm_num
 example : ¬ nat.coprime 0 0 := by norm_num
@@ -227,3 +240,18 @@ example : squarefree 10 := by norm_num
 example : squarefree (2*3*5*17) := by norm_num
 example : ¬ squarefree (2*3*5*5*17) := by norm_num
 example : squarefree 251 := by norm_num
+
+example : nat.fib 0 = 0 := by norm_num
+example : nat.fib 1 = 1 := by norm_num
+example : nat.fib 2 = 1 := by norm_num
+example : nat.fib 3 = 2 := by norm_num
+example : nat.fib 4 = 3 := by norm_num
+example : nat.fib 5 = 5 := by norm_num
+example : nat.fib 6 = 8 := by norm_num
+example : nat.fib 7 = 13 := by norm_num
+example : nat.fib 8 = 21 := by norm_num
+example : nat.fib 9 = 34 := by norm_num
+example : nat.fib 10 = 55 := by norm_num
+example : nat.fib 37 = 24157817 := by norm_num
+example : nat.fib 64 = 10610209857723 := by norm_num
+example : nat.fib 100 + nat.fib 101 = nat.fib 102 := by norm_num

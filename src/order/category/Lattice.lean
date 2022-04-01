@@ -35,6 +35,8 @@ instance (X : Lattice) : lattice X := X.str
 /-- Construct a bundled `Lattice` from a `lattice`. -/
 def of (α : Type*) [lattice α] : Lattice := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [lattice α] : ↥(of α) = α := rfl
+
 instance : inhabited Lattice := ⟨of bool⟩
 
 instance : bundled_hom @lattice_hom :=
@@ -71,4 +73,4 @@ end Lattice
 
 lemma Lattice_dual_comp_forget_to_PartialOrder :
   Lattice.dual ⋙ forget₂ Lattice PartialOrder =
-    forget₂ Lattice PartialOrder ⋙ PartialOrder.to_dual := rfl
+    forget₂ Lattice PartialOrder ⋙ PartialOrder.dual := rfl

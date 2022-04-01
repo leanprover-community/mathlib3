@@ -1,26 +1,18 @@
 /-
 Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jean Lo, Bhavik Mehta, Yaël Dillies, Moritz Doll
+Authors: Jean Lo, Yaël Dillies, Moritz Doll
 -/
-import analysis.convex.function
-import analysis.normed_space.ordered
+import analysis.locally_convex.basic
 import data.real.pointwise
 import data.real.sqrt
 import topology.algebra.filter_basis
 import topology.algebra.module.locally_convex
 
 /-!
-# Seminorms and Local Convexity
+# Seminorms
 
-This file defines absorbent sets, balanced sets and seminorms.
-
-An absorbent set is one that "surrounds" the origin. The idea is made precise by requiring that any
-point belongs to all large enough scalings of the set. This is the vector world analog of a
-topological neighborhood of the origin.
-
-A balanced set is one that is everywhere around the origin. This means that `a • s ⊆ s` for all `a`
-of norm less than `1`.
+This file defines seminorms.
 
 A seminorm is a function to the reals which is positive-semidefinite, absolutely homogeneous, and
 subadditive. They are closely related to convex sets and a topological vector space is locally
@@ -28,10 +20,7 @@ convex if and only if its topology is induced by a family of seminorms.
 
 ## Main declarations
 
-For a vector space over a normed field:
-* `absorbent`: A set `s` is absorbent if every point eventually belongs to all large scalings of
-  `s`.
-* `balanced`: A set `s` is balanced if `a • s ⊆ s` for all `a` of norm less than `1`.
+For a module over a normed ring:
 * `seminorm`: A function to the reals that is positive-semidefinite, absolutely homogeneous, and
   subadditive.
 * `norm_seminorm 𝕜 E`: The norm on `E` as a seminorm.
@@ -40,280 +29,18 @@ For a vector space over a normed field:
 
 * [H. H. Schaefer, *Topological Vector Spaces*][schaefer1966]
 
-## TODO
-
-Define and show equivalence of two notions of local convexity for a
-topological vector space over ℝ or ℂ: that it has a local base of
-balanced convex absorbent sets, and that it carries the initial
-topology induced by a family of seminorms.
-
-Prove the properties of balanced and absorbent sets of a real vector space.
-
 ## Tags
 
-absorbent, balanced, seminorm, locally convex, LCTVS
+seminorm, locally convex, LCTVS
 -/
 
 open normed_field set
 open_locale big_operators nnreal pointwise topological_space
 
-variables {R R' 𝕜 𝕝 E F G ι ι' : Type*}
+variables {R R' 𝕜 E F G ι : Type*}
 
-/-!
-### Set Properties
-
-Absorbent and balanced sets in a vector space over a normed field.
--/
-
-section semi_normed_ring
-variables [semi_normed_ring 𝕜]
-
-section has_scalar
-variables (𝕜) [has_scalar 𝕜 E]
-
-/-- A set `A` absorbs another set `B` if `B` is contained in all scalings of
-`A` by elements of sufficiently large norms. -/
-def absorbs (A B : set E) := ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → B ⊆ a • A
-
-/-- A set is absorbent if it absorbs every singleton. -/
-def absorbent (A : set E) := ∀ x, ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → x ∈ a • A
-
-/-- A set `A` is balanced if `a • A` is contained in `A` whenever `a`
-has norm less than or equal to one. -/
-def balanced (A : set E) := ∀ a : 𝕜, ∥a∥ ≤ 1 → a • A ⊆ A
-
-variables {𝕜} {A B : set E}
-
-lemma balanced_univ : balanced 𝕜 (univ : set E) := λ a ha, subset_univ _
-
-lemma balanced.union (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∪ B) :=
-begin
-  intros a ha t ht,
-  rw [smul_set_union] at ht,
-  exact ht.imp (λ x, hA _ ha x) (λ x, hB _ ha x),
-end
-
-end has_scalar
-
-section add_comm_group
-variables [add_comm_group E] [module 𝕜 E] {s t u v A B : set E}
-
-lemma balanced.inter (hA : balanced 𝕜 A) (hB : balanced 𝕜 B) : balanced 𝕜 (A ∩ B) :=
-begin
-  rintro a ha _ ⟨x, ⟨hx₁, hx₂⟩, rfl⟩,
-  exact ⟨hA _ ha ⟨_, hx₁, rfl⟩, hB _ ha ⟨_, hx₂, rfl⟩⟩,
-end
-
-lemma balanced.add (hA₁ : balanced 𝕜 A) (hA₂ : balanced 𝕜 B) : balanced 𝕜 (A + B) :=
-begin
-  rintro a ha _ ⟨_, ⟨x, y, hx, hy, rfl⟩, rfl⟩,
-  rw smul_add,
-  exact ⟨_, _, hA₁ _ ha ⟨_, hx, rfl⟩, hA₂ _ ha ⟨_, hy, rfl⟩, rfl⟩,
-end
-
-lemma absorbs.mono (hs : absorbs 𝕜 s u) (hst : s ⊆ t) (hvu : v ⊆ u) : absorbs 𝕜 t v :=
-let ⟨r, hr, h⟩ := hs in ⟨r, hr, λ a ha, hvu.trans $ (h _ ha).trans $ smul_set_mono hst⟩
-
-lemma absorbs.mono_left (hs : absorbs 𝕜 s u) (h : s ⊆ t) : absorbs 𝕜 t u := hs.mono h subset.rfl
-lemma absorbs.mono_right (hs : absorbs 𝕜 s u) (h : v ⊆ u) : absorbs 𝕜 s v := hs.mono subset.rfl h
-
-lemma absorbs.union (hu : absorbs 𝕜 s u) (hv : absorbs 𝕜 s v) : absorbs 𝕜 s (u ∪ v) :=
-begin
-  obtain ⟨a, ha, hu⟩ := hu,
-  obtain ⟨b, hb, hv⟩ := hv,
-  exact ⟨max a b, lt_max_of_lt_left ha,
-    λ c hc, union_subset (hu _ $ le_of_max_le_left hc) (hv _ $ le_of_max_le_right hc)⟩,
-end
-
-@[simp] lemma absorbs_union : absorbs 𝕜 s (u ∪ v) ↔ absorbs 𝕜 s u ∧ absorbs 𝕜 s v :=
-⟨λ h, ⟨h.mono_right $ subset_union_left _ _, h.mono_right $ subset_union_right _ _⟩,
-  λ h, h.1.union h.2⟩
-
-lemma absorbent.subset (hA : absorbent 𝕜 A) (hAB : A ⊆ B) : absorbent 𝕜 B :=
-begin
-  rintro x,
-  obtain ⟨r, hr, hx⟩ := hA x,
-  exact ⟨r, hr, λ a ha, set.smul_set_mono hAB $ hx a ha⟩,
-end
-
-lemma absorbent_iff_forall_absorbs_singleton : absorbent 𝕜 A ↔ ∀ x, absorbs 𝕜 A {x} :=
-by simp_rw [absorbs, absorbent, singleton_subset_iff]
-
-lemma absorbent.absorbs (hs : absorbent 𝕜 s) {x : E} : absorbs 𝕜 s {x} :=
-absorbent_iff_forall_absorbs_singleton.1 hs _
-
-lemma absorbent_iff_nonneg_lt : absorbent 𝕜 A ↔ ∀ x, ∃ r, 0 ≤ r ∧ ∀ a : 𝕜, r < ∥a∥ → x ∈ a • A :=
-begin
-  split,
-  { rintro hA x,
-    obtain ⟨r, hr, hx⟩ := hA x,
-    exact ⟨r, hr.le, λ a ha, hx a ha.le⟩ },
-  { rintro hA x,
-    obtain ⟨r, hr, hx⟩ := hA x,
-    exact ⟨r + 1, add_pos_of_nonneg_of_pos hr zero_lt_one,
-      λ a ha, hx a ((lt_add_of_pos_right r zero_lt_one).trans_le ha)⟩ }
-end
-
-end add_comm_group
-end semi_normed_ring
-
-section normed_comm_ring
-variables [normed_comm_ring 𝕜] [add_comm_monoid E] [module 𝕜 E] {A B : set E} (a : 𝕜)
-
-lemma balanced.smul (hA : balanced 𝕜 A) : balanced 𝕜 (a • A) :=
-begin
-  rintro b hb _ ⟨_, ⟨x, hx, rfl⟩, rfl⟩,
-  exact ⟨b • x, hA _ hb ⟨_, hx, rfl⟩, smul_comm _ _ _⟩,
-end
-
-end normed_comm_ring
-
-section normed_field
-variables [normed_field 𝕜] [normed_ring 𝕝] [normed_space 𝕜 𝕝] [add_comm_group E] [module 𝕜 E]
-  [smul_with_zero 𝕝 E] [is_scalar_tower 𝕜 𝕝 E] {s t u v A B : set E} {a b : 𝕜}
-
-/-- Scalar multiplication (by possibly different types) of a balanced set is monotone. -/
-lemma balanced.smul_mono (hs : balanced 𝕝 s) {a : 𝕝} {b : 𝕜} (h : ∥a∥ ≤ ∥b∥) : a • s ⊆ b • s :=
-begin
-  obtain rfl | hb := eq_or_ne b 0,
-  { rw norm_zero at h,
-    rw norm_eq_zero.1 (h.antisymm $ norm_nonneg _),
-    obtain rfl | h := s.eq_empty_or_nonempty,
-    { simp_rw [smul_set_empty] },
-    { simp_rw [zero_smul_set h] } },
-  rintro _ ⟨x, hx, rfl⟩,
-  refine ⟨b⁻¹ • a • x, _, smul_inv_smul₀ hb _⟩,
-  rw ←smul_assoc,
-  refine hs _ _ (smul_mem_smul_set hx),
-  rw [norm_smul, norm_inv, ←div_eq_inv_mul],
-  exact div_le_one_of_le h (norm_nonneg _),
-end
-
-/-- A balanced set absorbs itself. -/
-lemma balanced.absorbs_self (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
-begin
-  use [1, zero_lt_one],
-  intros a ha x hx,
-  rw mem_smul_set_iff_inv_smul_mem₀,
-  { apply hA a⁻¹,
-    { rw norm_inv, exact inv_le_one ha },
-    { rw mem_smul_set, use [x, hx] }},
-  { rw ←norm_pos_iff, calc 0 < 1 : zero_lt_one ... ≤ ∥a∥ : ha, }
-end
-
-lemma balanced.subset_smul (hA : balanced 𝕜 A) (ha : 1 ≤ ∥a∥) : A ⊆ a • A :=
-begin
-  refine (subset_set_smul_iff₀ _).2 (hA (a⁻¹) _),
-  { rintro rfl,
-    rw norm_zero at ha,
-    exact zero_lt_one.not_le ha },
-  { rw norm_inv,
-    exact inv_le_one ha }
-end
-
-lemma balanced.smul_eq (hA : balanced 𝕜 A) (ha : ∥a∥ = 1) : a • A = A :=
-(hA _ ha.le).antisymm $ hA.subset_smul ha.ge
-
-lemma absorbs.inter (hs : absorbs 𝕜 s u) (ht : absorbs 𝕜 t u) : absorbs 𝕜 (s ∩ t) u :=
-begin
-  obtain ⟨a, ha, hs⟩ := hs,
-  obtain ⟨b, hb, ht⟩ := ht,
-  have h : 0 < max a b := lt_max_of_lt_left ha,
-  refine ⟨max a b, lt_max_of_lt_left ha, λ c hc, _⟩,
-  rw smul_set_inter₀ (norm_pos_iff.1 $ h.trans_le hc),
-  exact subset_inter (hs _ $ le_of_max_le_left hc) (ht _ $ le_of_max_le_right hc),
-end
-
-@[simp] lemma absorbs_inter : absorbs 𝕜 (s ∩ t) u ↔ absorbs 𝕜 s u ∧ absorbs 𝕜 t u :=
-⟨λ h, ⟨h.mono_left $ inter_subset_left _ _, h.mono_left $ inter_subset_right _ _⟩,
-  λ h, h.1.inter h.2⟩
-
-lemma absorbent_univ : absorbent 𝕜 (univ : set E) :=
-begin
-  refine λ x, ⟨1, zero_lt_one, λ a ha, _⟩,
-  rw smul_set_univ₀ (norm_pos_iff.1 $ zero_lt_one.trans_le ha),
-  exact trivial,
-end
-
-/-! #### Topological vector space -/
-
-variables [topological_space E] [has_continuous_smul 𝕜 E]
-
-/-- Every neighbourhood of the origin is absorbent. -/
-lemma absorbent_nhds_zero (hA : A ∈ 𝓝 (0 : E)) : absorbent 𝕜 A :=
-begin
-  intro x,
-  rcases mem_nhds_iff.mp hA with ⟨w, hw₁, hw₂, hw₃⟩,
-  have hc : continuous (λ t : 𝕜, t • x), from continuous_id.smul continuous_const,
-  rcases metric.is_open_iff.mp (hw₂.preimage hc) 0 (by rwa [mem_preimage, zero_smul])
-    with ⟨r, hr₁, hr₂⟩,
-  have hr₃, from inv_pos.mpr (half_pos hr₁),
-  use [(r/2)⁻¹, hr₃],
-  intros a ha₁,
-  have ha₂ : 0 < ∥a∥ := hr₃.trans_le ha₁,
-  rw [mem_smul_set_iff_inv_smul_mem₀ (norm_pos_iff.mp ha₂)],
-  refine hw₁ (hr₂ _),
-  rw [metric.mem_ball, dist_zero_right, norm_inv],
-  calc ∥a∥⁻¹ ≤ r/2 : (inv_le (half_pos hr₁) ha₂).mp ha₁
-  ...       < r : half_lt_self hr₁,
-end
-
-/-- The union of `{0}` with the interior of a balanced set is balanced. -/
-lemma balanced_zero_union_interior (hA : balanced 𝕜 A) : balanced 𝕜 ((0 : set E) ∪ interior A) :=
-begin
-  intros a ha, by_cases a = 0,
-  { rw [h, zero_smul_set],
-    exacts [subset_union_left _ _, ⟨0, or.inl rfl⟩] },
-  { rw [←image_smul, image_union],
-    apply union_subset_union,
-    { rw [image_zero, smul_zero],
-      refl },
-    { calc a • interior A ⊆ interior (a • A) : (is_open_map_smul₀ h).image_interior_subset A
-                      ... ⊆ interior A       : interior_mono (hA _ ha) } }
-end
-
-/-- The interior of a balanced set is balanced if it contains the origin. -/
-lemma balanced.interior (hA : balanced 𝕜 A) (h : (0 : E) ∈ interior A) :
-  balanced 𝕜 (interior A) :=
-begin
-  rw ←singleton_subset_iff at h,
-  rw [←union_eq_self_of_subset_left h],
-  exact balanced_zero_union_interior hA,
-end
-
-/-- The closure of a balanced set is balanced. -/
-lemma balanced.closure (hA : balanced 𝕜 A) : balanced 𝕜 (closure A) :=
-assume a ha,
-calc _ ⊆ closure (a • A) : image_closure_subset_closure_image (continuous_id.const_smul _)
-...    ⊆ _ : closure_mono (hA _ ha)
-
-end normed_field
-
-section nondiscrete_normed_field
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
-
-lemma absorbs_zero_iff : absorbs 𝕜 s 0 ↔ (0 : E) ∈ s :=
-begin
-  refine ⟨_, λ h, ⟨1, zero_lt_one, λ a _, zero_subset.2 $ zero_mem_smul_set h⟩⟩,
-  rintro ⟨r, hr, h⟩,
-  obtain ⟨a, ha⟩ := normed_space.exists_lt_norm 𝕜 𝕜 r,
-  have := h _ ha.le,
-  rwa [zero_subset, zero_mem_smul_set_iff] at this,
-  exact norm_ne_zero_iff.1 (hr.trans ha).ne',
-end
-
-lemma absorbent.zero_mem (hs : absorbent 𝕜 s) : (0 : E) ∈ s :=
-absorbs_zero_iff.1 $ absorbent_iff_forall_absorbs_singleton.1 hs _
-
-end nondiscrete_normed_field
-
-/-!
-### Seminorms
--/
-
-/-- A seminorm on a vector space over a normed field is a function to
-the reals that is positive semidefinite, positive homogeneous, and
-subadditive. -/
+/-- A seminorm on a module over a normed ring is a function to the reals that is positive
+semidefinite, positive homogeneous, and subadditive. -/
 structure seminorm (𝕜 : Type*) (E : Type*) [semi_normed_ring 𝕜] [add_monoid E] [has_scalar 𝕜 E] :=
 (to_fun    : E → ℝ)
 (smul'     : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
@@ -576,6 +303,23 @@ begin
   exact bot_le,
 end
 
+lemma finset_sup_apply_le {p : ι → seminorm 𝕜 E} {s : finset ι} {x : E} {a : ℝ} (ha : 0 ≤ a)
+  (h : ∀ i, i ∈ s → p i x ≤ a) : s.sup p x ≤ a :=
+begin
+  lift a to ℝ≥0 using ha,
+  rw [finset_sup_apply, nnreal.coe_le_coe],
+  exact finset.sup_le h,
+end
+
+lemma finset_sup_apply_lt {p : ι → seminorm 𝕜 E} {s : finset ι} {x : E} {a : ℝ} (ha : 0 < a)
+  (h : ∀ i, i ∈ s → p i x < a) : s.sup p x < a :=
+begin
+  lift a to ℝ≥0 using ha.le,
+  rw [finset_sup_apply, nnreal.coe_lt_coe, finset.sup_lt_iff],
+  { exact h },
+  { exact nnreal.coe_pos.mpr ha },
+end
+
 end norm_one_class
 end module
 end semi_normed_ring
@@ -763,6 +507,13 @@ begin
   exact mul_lt_mul'' (mem_ball_zero_iff.mp ha) (p.mem_ball_zero.mp hy) (norm_nonneg a) (p.nonneg y),
 end
 
+@[simp] lemma ball_eq_emptyset (p : seminorm 𝕜 E) {x : E} {r : ℝ} (hr : r ≤ 0) : p.ball x r = ∅ :=
+begin
+  ext,
+  rw [seminorm.mem_ball, set.mem_empty_eq, iff_false, not_lt],
+  exact hr.trans (p.nonneg _),
+end
+
 end norm_one_class
 end module
 end add_comm_group
@@ -771,6 +522,40 @@ end semi_normed_ring
 section normed_field
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) {A B : set E}
   {a : 𝕜} {r : ℝ} {x : E}
+
+lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ∥k∥) :
+  k • p.ball 0 r = p.ball 0 (∥k∥ * r) :=
+begin
+  ext,
+  rw [set.mem_smul_set, seminorm.mem_ball_zero],
+  split; intro h,
+  { rcases h with ⟨y, hy, h⟩,
+    rw [←h, seminorm.smul],
+    rw seminorm.mem_ball_zero at hy,
+    exact (mul_lt_mul_left hk).mpr hy },
+  refine ⟨k⁻¹ • x, _, _⟩,
+  { rw [seminorm.mem_ball_zero, seminorm.smul, norm_inv, ←(mul_lt_mul_left hk),
+      ←mul_assoc, ←(div_eq_mul_inv ∥k∥ ∥k∥), div_self (ne_of_gt hk), one_mul],
+    exact h},
+  rw [←smul_assoc, smul_eq_mul, ←div_eq_mul_inv, div_self (norm_pos_iff.mp hk), one_smul],
+end
+
+lemma ball_zero_absorbs_ball_zero (p : seminorm 𝕜 E) {r₁ r₂ : ℝ} (hr₁ : 0 < r₁) :
+  absorbs 𝕜 (p.ball 0 r₁) (p.ball 0 r₂) :=
+begin
+  by_cases hr₂ : r₂ ≤ 0,
+  { rw ball_eq_emptyset p hr₂, exact absorbs_empty },
+  rw [not_le] at hr₂,
+  rcases exists_between hr₁ with ⟨r, hr, hr'⟩,
+  refine ⟨r₂/r, div_pos hr₂ hr, _⟩,
+  simp_rw set.subset_def,
+  intros a ha x hx,
+  have ha' : 0 < ∥a∥ := lt_of_lt_of_le (div_pos hr₂ hr) ha,
+  rw [smul_ball_zero ha', p.mem_ball_zero],
+  rw p.mem_ball_zero at hx,
+  rw div_le_iff hr at ha,
+  exact hx.trans (lt_of_le_of_lt ha ((mul_lt_mul_left ha').mpr hr')),
+end
 
 /-- Seminorm-balls at the origin are absorbent. -/
 protected lemma absorbent_ball_zero (hr : 0 < r) : absorbent 𝕜 (ball p (0 : E) r) :=
@@ -808,8 +593,8 @@ set.ext $ λ _, by rw [mem_preimage, mem_ball, mem_ball,
 
 end normed_field
 
-section normed_linear_ordered_field
-variables [normed_linear_ordered_field 𝕜] [add_comm_group E] [normed_space ℝ 𝕜] [module 𝕜 E]
+section convex
+variables [normed_field 𝕜] [add_comm_group E] [normed_space ℝ 𝕜] [module 𝕜 E]
 
 section has_scalar
 variables [has_scalar ℝ E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E)
@@ -841,10 +626,7 @@ begin
 end
 
 end module
-end normed_linear_ordered_field
-
--- TODO: convexity and absorbent/balanced sets in vector spaces over ℝ
-
+end convex
 end seminorm
 
 /-! ### The norm as a seminorm -/
@@ -875,317 +657,3 @@ lemma balanced_ball_zero [norm_one_class 𝕜] : balanced 𝕜 (metric.ball (0 :
 by { rw ←ball_norm_seminorm 𝕜, exact (norm_seminorm _ _).balanced_ball_zero r }
 
 end norm_seminorm
-
-/-! ### Topology induced by a family of seminorms -/
-
-namespace seminorm
-
-section filter_basis
-
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
-
-/-- A filter basis for the neighborhood filter of 0. -/
-def seminorm_basis_zero (p : ι → seminorm 𝕜 E) : set (set E) :=
-⋃ (s : finset ι) r (hr : 0 < r), singleton $ ball (s.sup p) (0 : E) r
-
-lemma seminorm_basis_zero_iff (p : ι → seminorm 𝕜 E) (U : set E) :
-  U ∈ seminorm_basis_zero p ↔ ∃ (i : finset ι) r (hr : 0 < r), U = ball (i.sup p) 0 r :=
-by simp only [seminorm_basis_zero, mem_Union, mem_singleton_iff]
-
-lemma seminorm_basis_zero_mem (p : ι → seminorm 𝕜 E) (i : finset ι) {r : ℝ} (hr : 0 < r) :
-  (i.sup p).ball 0 r ∈ seminorm_basis_zero p :=
-(seminorm_basis_zero_iff _ _).mpr ⟨i,_,hr,rfl⟩
-
-lemma seminorm_basis_zero_singleton_mem (p : ι → seminorm 𝕜 E) (i : ι) {r : ℝ} (hr : 0 < r) :
-  (p i).ball 0 r ∈ seminorm_basis_zero p :=
-(seminorm_basis_zero_iff _ _).mpr ⟨{i},_,hr, by rw finset.sup_singleton⟩
-
-lemma seminorm_basis_zero_nonempty (p : ι → seminorm 𝕜 E) [nonempty ι] :
-  (seminorm_basis_zero p).nonempty :=
-begin
-  let i := classical.arbitrary ι,
-  refine set.nonempty_def.mpr ⟨ball (p i) 0 1, _⟩,
-  exact seminorm_basis_zero_singleton_mem _ i zero_lt_one,
-end
-
-lemma seminorm_basis_zero_intersect (p : ι → seminorm 𝕜 E)
-  (U V : set E) (hU : U ∈ seminorm_basis_zero p) (hV : V ∈ seminorm_basis_zero p) :
-  ∃ (z : set E) (H : z ∈ (seminorm_basis_zero p)), z ⊆ U ∩ V :=
-begin
-  classical,
-  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r₁, hr₁, hU⟩,
-  rcases (seminorm_basis_zero_iff p V).mp hV with ⟨t, r₂, hr₂, hV⟩,
-  use ((s ∪ t).sup p).ball 0 (min r₁ r₂),
-  refine ⟨seminorm_basis_zero_mem p (s ∪ t) (lt_min_iff.mpr ⟨hr₁, hr₂⟩), _⟩,
-  rw [hU, hV, ball_finset_sup_eq_Inter _ _ _ (lt_min_iff.mpr ⟨hr₁, hr₂⟩),
-    ball_finset_sup_eq_Inter _ _ _ hr₁, ball_finset_sup_eq_Inter _ _ _ hr₂],
-  exact set.subset_inter
-    (set.Inter₂_mono' $ λ i hi, ⟨i, finset.subset_union_left _ _ hi, ball_mono $ min_le_left _ _⟩)
-    (set.Inter₂_mono' $ λ i hi, ⟨i, finset.subset_union_right _ _ hi, ball_mono $
-    min_le_right _ _⟩),
-end
-
-lemma seminorm_basis_zero_zero (p : ι → seminorm 𝕜 E) (U) (hU : U ∈ seminorm_basis_zero p) :
-  (0 : E) ∈ U :=
-begin
-  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨ι', r, hr, hU⟩,
-  rw [hU, mem_ball_zero, (ι'.sup p).zero],
-  exact hr,
-end
-
-lemma seminorm_basis_zero_add (p : ι → seminorm 𝕜 E) (U) (hU : U ∈ seminorm_basis_zero p) :
-  ∃ (V : set E) (H : V ∈ (seminorm_basis_zero p)), V + V ⊆ U :=
-begin
-  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r, hr, hU⟩,
-  use (s.sup p).ball 0 (r/2),
-  refine ⟨seminorm_basis_zero_mem p s (div_pos hr zero_lt_two), _⟩,
-  refine set.subset.trans (ball_add_ball_subset (s.sup p) (r/2) (r/2) 0 0) _,
-  rw [hU, add_zero, add_halves'],
-end
-
-lemma seminorm_basis_zero_neg (p : ι → seminorm 𝕜 E) (U) (hU' : U ∈ seminorm_basis_zero p) :
-  ∃ (V : set E) (H : V ∈ (seminorm_basis_zero p)), V ⊆ (λ (x : E), -x) ⁻¹' U :=
-begin
-  rcases (seminorm_basis_zero_iff p U).mp hU' with ⟨s, r, hr, hU⟩,
-  rw [hU, neg_preimage, neg_ball (s.sup p), neg_zero],
-  exact ⟨U, hU', eq.subset hU⟩,
-end
-
-/-- The `add_group_filter_basis` induced by the filter basis `seminorm_basis_zero`. -/
-def seminorm_add_group_filter_basis [nonempty ι]
-  (p : ι → seminorm 𝕜 E) : add_group_filter_basis E :=
-add_group_filter_basis_of_comm (seminorm_basis_zero p)
-  (seminorm_basis_zero_nonempty p)
-  (seminorm_basis_zero_intersect p)
-  (seminorm_basis_zero_zero p)
-  (seminorm_basis_zero_add p)
-  (seminorm_basis_zero_neg p)
-
-lemma seminorm_basis_zero_smul_right (p : ι → seminorm 𝕜 E) (v : E) (U : set E)
-  (hU : U ∈ seminorm_basis_zero p) : ∀ᶠ (x : 𝕜) in 𝓝 0, x • v ∈ U :=
-begin
-  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r, hr, hU⟩,
-  rw [hU, filter.eventually_iff],
-  simp_rw [(s.sup p).mem_ball_zero, (s.sup p).smul],
-  by_cases h : 0 < (s.sup p) v,
-  { simp_rw (lt_div_iff h).symm,
-    rw ←_root_.ball_zero_eq,
-    exact metric.ball_mem_nhds 0 (div_pos hr h) },
-  simp_rw [le_antisymm (not_lt.mp h) ((s.sup p).nonneg v), mul_zero, hr],
-  exact is_open.mem_nhds is_open_univ (mem_univ 0),
-end
-
-variables [nonempty ι]
-
-lemma seminorm_basis_zero_smul (p : ι → seminorm 𝕜 E) (U) (hU : U ∈ seminorm_basis_zero p) :
-  ∃ (V : set 𝕜) (H : V ∈ 𝓝 (0 : 𝕜)) (W : set E)
-  (H : W ∈ (seminorm_add_group_filter_basis p).sets), V • W ⊆ U :=
-begin
-  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r, hr, hU⟩,
-  refine ⟨metric.ball 0 r.sqrt, metric.ball_mem_nhds 0 (real.sqrt_pos.mpr hr), _⟩,
-  refine ⟨(s.sup p).ball 0 r.sqrt, seminorm_basis_zero_mem p s (real.sqrt_pos.mpr hr), _⟩,
-  refine set.subset.trans (ball_smul_ball (s.sup p) r.sqrt r.sqrt) _,
-  rw [hU, real.mul_self_sqrt (le_of_lt hr)],
-end
-
-lemma seminorm_basis_zero_smul_left (p : ι → seminorm 𝕜 E) (x : 𝕜) (U : set E)
-  (hU : U ∈ seminorm_basis_zero p) : ∃ (V : set E)
-  (H : V ∈ (seminorm_add_group_filter_basis p).sets), V ⊆ (λ (y : E), x • y) ⁻¹' U :=
-begin
-  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r, hr, hU⟩,
-  rw hU,
-  by_cases h : x ≠ 0,
-  { rw [(s.sup p).smul_ball_preimage 0 r x h, smul_zero],
-    use (s.sup p).ball 0 (r / ∥x∥),
-    exact ⟨seminorm_basis_zero_mem p s (div_pos hr (norm_pos_iff.mpr h)), subset.rfl⟩ },
-  refine ⟨(s.sup p).ball 0 r, seminorm_basis_zero_mem p s hr, _⟩,
-  simp only [not_ne_iff.mp h, subset_def, mem_ball_zero, hr, mem_univ, seminorm.zero,
-    implies_true_iff, preimage_const_of_mem, zero_smul],
-end
-
-/-- The `module_filter_basis` induced by the filter basis `seminorm_basis_zero`. -/
-def seminorm_module_filter_basis (p : ι → seminorm 𝕜 E) : module_filter_basis 𝕜 E :=
-{ to_add_group_filter_basis := seminorm_add_group_filter_basis p,
-  smul' := seminorm_basis_zero_smul p,
-  smul_left' := seminorm_basis_zero_smul_left p,
-  smul_right' := seminorm_basis_zero_smul_right p }
-
-end filter_basis
-
-section bounded
-
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
-
-/-- The proposition that a linear map is bounded between spaces with families of seminorms. -/
-def is_bounded (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F) (f : E →ₗ[𝕜] F) : Prop :=
-  ∀ i, ∃ s : finset ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • s.sup p
-
-lemma is_bounded_const (ι' : Type*) [nonempty ι']
-  {p : ι → seminorm 𝕜 E} {q : seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
-  is_bounded p (λ _ : ι', q) f ↔ ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ q.comp f ≤ C • s.sup p :=
-by simp only [is_bounded, forall_const]
-
-lemma const_is_bounded (ι : Type*) [nonempty ι]
-  {p : seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F} (f : E →ₗ[𝕜] F) :
-  is_bounded (λ _ : ι, p) q f ↔ ∀ i, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • p :=
-begin
-  dunfold is_bounded,
-  split,
-  { intros h i,
-    rcases h i with ⟨s, C, hC, h⟩,
-    exact ⟨C, hC, le_trans h (smul_le_smul (finset.sup_le (λ _ _, le_rfl)) le_rfl)⟩ },
-  intros h i,
-  use [{classical.arbitrary ι}],
-  simp only [h, finset.sup_singleton],
-end
-
-lemma is_bounded_sup {p : ι → seminorm 𝕜 E} {q : ι' → seminorm 𝕜 F}
-  {f : E →ₗ[𝕜] F} (hf : is_bounded p q f) (s' : finset ι') :
-  ∃ (C : ℝ≥0) (s : finset ι), 0 < C ∧ (s'.sup q).comp f ≤ C • (s.sup p) :=
-begin
-  classical,
-  by_cases hs' : ¬s'.nonempty,
-  { refine ⟨1, ∅, zero_lt_one, _⟩,
-    rw [finset.not_nonempty_iff_eq_empty.mp hs', finset.sup_empty, bot_eq_zero, zero_comp],
-    exact seminorm.nonneg _ },
-  rw not_not at hs',
-  choose fₛ fC hf using hf,
-  use [s'.card • s'.sup fC, finset.bUnion s' fₛ],
-  split,
-  { refine nsmul_pos _ (ne_of_gt (finset.nonempty.card_pos hs')),
-    cases finset.nonempty.bex hs' with j hj,
-    exact lt_of_lt_of_le (zero_lt_iff.mpr (and.elim_left (hf j))) (finset.le_sup hj) },
-  have hs : ∀ i : ι', i ∈ s' → (q i).comp f ≤ s'.sup fC • ((finset.bUnion s' fₛ).sup p) :=
-  begin
-    intros i hi,
-    refine le_trans (and.elim_right (hf i)) (smul_le_smul _ (finset.le_sup hi)),
-    exact finset.sup_mono (finset.subset_bUnion_of_mem fₛ hi),
-  end,
-  refine le_trans (comp_mono f (finset_sup_le_sum q s')) _,
-  simp_rw [←pullback_apply, add_monoid_hom.map_sum, pullback_apply], --improve this
-  refine le_trans (finset.sum_le_sum hs) _,
-  rw [finset.sum_const, smul_assoc],
-  exact le_rfl,
-end
-
-end bounded
-
-section topology
-
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
-variables [nonempty ι] [nonempty ι']
-
-/-- The proposition that the topology of `E` is induced by a family of seminorms `p`. -/
-class with_seminorms (p : ι → seminorm 𝕜 E) [t : topological_space E] : Prop :=
-(topology_eq_with_seminorms : t = (seminorm_module_filter_basis p).topology)
-
-lemma with_seminorms_eq (p : ι → seminorm 𝕜 E) [t : topological_space E] [with_seminorms p] :
-  t = ((seminorm_module_filter_basis p).topology) := with_seminorms.topology_eq_with_seminorms
-
-/-- The topology of a `normed_space 𝕜 E` is induced by the seminorm `norm_seminorm 𝕜 E`. -/
-instance norm_with_seminorms (𝕜 E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] :
-  with_seminorms (λ (_ : fin 1), norm_seminorm 𝕜 E) :=
-begin
-  let p := λ _ : fin 1, norm_seminorm 𝕜 E,
-  refine ⟨topological_add_group.ext normed_top_group
-    ((seminorm_add_group_filter_basis _).is_topological_add_group) _⟩,
-  refine filter.has_basis.eq_of_same_basis metric.nhds_basis_ball _,
-  rw ←ball_norm_seminorm 𝕜 E,
-  refine filter.has_basis.to_has_basis (seminorm_add_group_filter_basis p).nhds_zero_has_basis _
-    (λ r hr, ⟨(norm_seminorm 𝕜 E).ball 0 r, seminorm_basis_zero_singleton_mem p 0 hr, rfl.subset⟩),
-  rintros U (hU : U ∈ seminorm_basis_zero p),
-  rcases (seminorm_basis_zero_iff p U).mp hU with ⟨s, r, hr, hU⟩,
-  use [r, hr],
-  rw [hU, id.def],
-  by_cases h : s.nonempty,
-  { rw finset.sup_const h },
-  rw [finset.not_nonempty_iff_eq_empty.mp h, finset.sup_empty, ball_bot _ hr],
-  exact set.subset_univ _,
-end
-
-lemma continuous_from_bounded (p : ι → seminorm 𝕜 E) (q : ι' → seminorm 𝕜 F)
-  [uniform_space E] [uniform_add_group E] [with_seminorms p]
-  [uniform_space F] [uniform_add_group F] [with_seminorms q]
-  (f : E →ₗ[𝕜] F) (hf : is_bounded p q f) : continuous f :=
-begin
-  refine uniform_continuous.continuous _,
-  refine add_monoid_hom.uniform_continuous_of_continuous_at_zero f.to_add_monoid_hom _,
-  rw [f.to_add_monoid_hom_coe, continuous_at_def, f.map_zero, with_seminorms_eq p],
-  intros U hU,
-  rw [with_seminorms_eq q, add_group_filter_basis.nhds_zero_eq, filter_basis.mem_filter_iff] at hU,
-  rcases hU with ⟨V, hV : V ∈ seminorm_basis_zero q, hU⟩,
-  rcases (seminorm_basis_zero_iff q V).mp hV with ⟨s₂, r, hr, hV⟩,
-  rw hV at hU,
-  rw [(seminorm_add_group_filter_basis p).nhds_zero_eq, filter_basis.mem_filter_iff],
-  rcases (is_bounded_sup hf s₂) with ⟨C, s₁, hC, hf⟩,
-  refine ⟨(s₁.sup p).ball 0 (r/C),
-    seminorm_basis_zero_mem p _ (div_pos hr (nnreal.coe_pos.mpr hC)), _⟩,
-  refine subset.trans _ (preimage_mono hU),
-  simp_rw [←linear_map.map_zero f, ←ball_comp],
-  refine subset.trans _ (ball_antitone hf),
-  rw ball_smul (s₁.sup p) hC,
-end
-
-lemma cont_with_seminorms_normed_space (F) [semi_normed_group F] [normed_space 𝕜 F]
-  [uniform_space E] [uniform_add_group E]
-  (p : ι → seminorm 𝕜 E) [with_seminorms p] (f : E →ₗ[𝕜] F)
-  (hf : ∃ (s : finset ι) C : ℝ≥0, C ≠ 0 ∧ (norm_seminorm 𝕜 F).comp f ≤ C • s.sup p) :
-  continuous f :=
-begin
-  rw ←is_bounded_const (fin 1) at hf,
-  exact continuous_from_bounded p (λ _ : fin 1, norm_seminorm 𝕜 F) f hf,
-end
-
-lemma cont_normed_space_to_with_seminorms (E) [semi_normed_group E] [normed_space 𝕜 E]
-  [uniform_space F] [uniform_add_group F]
-  (q : ι → seminorm 𝕜 F) [with_seminorms q] (f : E →ₗ[𝕜] F)
-  (hf : ∀ i : ι, ∃ C : ℝ≥0, C ≠ 0 ∧ (q i).comp f ≤ C • (norm_seminorm 𝕜 E)) : continuous f :=
-begin
-  rw ←const_is_bounded (fin 1) at hf,
-  exact continuous_from_bounded (λ _ : fin 1, norm_seminorm 𝕜 E) q f hf,
-end
-
-end topology
-
-section locally_convex_space
-
-open locally_convex_space
-
-variables [nonempty ι] [normed_linear_ordered_field 𝕜] [normed_space ℝ 𝕜]
-  [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
-  [topological_add_group E]
-
-lemma with_seminorms.to_locally_convex_space (p : ι → seminorm 𝕜 E) [with_seminorms p] :
-  locally_convex_space ℝ E :=
-begin
-  apply of_basis_zero ℝ E id (λ s, s ∈ seminorm_basis_zero p),
-  { rw [with_seminorms_eq p, add_group_filter_basis.nhds_eq _, add_group_filter_basis.N_zero],
-    exact filter_basis.has_basis _ },
-  { intros s hs,
-    change s ∈ set.Union _ at hs,
-    simp_rw [set.mem_Union, set.mem_singleton_iff] at hs,
-    rcases hs with ⟨I, r, hr, rfl⟩,
-    exact convex_ball _ _ _ }
-end
-
-end locally_convex_space
-
-end seminorm
-
-section normed_space
-
-variables (𝕜) [normed_linear_ordered_field 𝕜] [normed_space ℝ 𝕜] [semi_normed_group E]
-
-/-- Not an instance since `𝕜` can't be inferred. See `normed_space.to_locally_convex_space` for a
-slightly weaker instance version. -/
-lemma normed_space.to_locally_convex_space' [normed_space 𝕜 E] [module ℝ E]
-  [is_scalar_tower ℝ 𝕜 E] : locally_convex_space ℝ E :=
-seminorm.with_seminorms.to_locally_convex_space (λ _ : fin 1, norm_seminorm 𝕜 E)
-
-/-- See `normed_space.to_locally_convex_space'` for a slightly stronger version which is not an
-instance. -/
-instance normed_space.to_locally_convex_space [normed_space ℝ E] :
-  locally_convex_space ℝ E :=
-normed_space.to_locally_convex_space' ℝ
-
-end normed_space

@@ -1061,20 +1061,32 @@ begin
   { apply mk_of_mem, rw [mem_preimage, mem_support_to_fun], exact h0 }
 end
 
+/--A computable version of congr_left when an explicit left inverse is provided.-/
+def congr_left' (h : κ → ι) {h' : ι → κ} (hh' : function.left_inverse h' h) (f : Π₀ i, β i) :
+(Π₀ k, β (h k)) := mk (f.support.image h') (λ i, f (h i))
+
+@[simp] lemma congr_left'_apply (h : κ → ι) {h' : ι → κ} (hh' : function.left_inverse h' h)
+(f : Π₀ i, β i) (k : κ) : congr_left' h hh' f k = f (h k) :=
+begin
+  dunfold congr_left', by_cases h0 : f (h k) = 0,
+  { rw mk_apply, split_ifs, { refl }, { exact h0.symm } },
+  { apply mk_of_mem, rw mem_image, refine ⟨_, _, hh' k⟩, rw mem_support_to_fun, exact h0 }
+end
+
 /--Reindexing terms of a dfinsupp.-/
-noncomputable def congr_left_equiv (h : ι ≃ κ) : (Π₀ i, β i) ≃ (Π₀ k, β (h.symm k)) :=
-⟨congr_left h.symm h.symm.injective,
+def congr_left_equiv (h : ι ≃ κ) : (Π₀ i, β i) ≃ (Π₀ k, β (h.symm k)) :=
+⟨congr_left' h.symm h.right_inv,
 λ f, map_range (λ i, equiv.cast $ congr_arg β $ h.symm_apply_apply i)
   (λ i, (equiv.cast_eq_iff_heq _).mpr $
     by { convert heq.rfl, repeat { exact (h.symm_apply_apply i).symm } })
-  (@congr_left _ _ _ _ _ _ _ h h.injective f),
-λ f, by { ext i, rw [map_range_apply, congr_left_apply, congr_left_apply,
+  (@congr_left' _ _ _ _ _ _ _ h _ h.left_inv f),
+λ f, by { ext i, rw [map_range_apply, congr_left'_apply, congr_left'_apply,
   equiv.cast_eq_iff_heq, h.symm_apply_apply] },
-λ f, by { ext k, rw [congr_left_apply, map_range_apply, congr_left_apply,
+λ f, by { ext k, rw [congr_left'_apply, map_range_apply, congr_left'_apply,
   equiv.cast_eq_iff_heq, h.apply_symm_apply] }⟩
 
 @[simp] lemma congr_left_equiv_apply (h : ι ≃ κ) (f : Π₀ i, β i) (k : κ) :
-congr_left_equiv h f k = f (h.symm k) := congr_left_apply h.symm h.symm.injective f k
+congr_left_equiv h f k = f (h.symm k) := congr_left'_apply h.symm h.right_inv f k
 
 section curry
 variables {α : ι → Type*} {δ : (Σ i, α i) → Type v} [Π i, has_zero (δ i)]

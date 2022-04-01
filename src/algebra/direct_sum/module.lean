@@ -194,6 +194,21 @@ lemma component.of (i j : ι) (b : M j) :
   if h : j = i then eq.rec_on h b else 0 :=
 dfinsupp.single_apply
 
+section congr_left
+variables {κ : Type*} [decidable_eq κ] [Π i (x : M i), decidable (x ≠ 0)]
+
+/--Reindexing terms of a direct sum is linear.-/
+def congr_left_lequiv (h : ι ≃ κ) : (⨁ i, M i) ≃ₗ[R] ⨁ k, M (h.symm k) :=
+{ map_smul' := λ a f,
+    by { ext i, simp only [add_equiv.to_fun_eq_coe, congr_left_equiv_apply, dfinsupp.coe_smul,
+      pi.smul_apply, ring_hom.id_apply] },
+  ..congr_left_equiv h }
+
+@[simp] lemma congr_left_lequiv_apply (h : ι ≃ κ) (f : ⨁ i, M i) (k : κ) :
+congr_left_lequiv R h f k = f (h.symm k) := congr_left_equiv_apply _ _ _
+
+end congr_left
+
 section sigma
 variables {α : ι → Type u} {δ : (Σ i, α i) → Type w}
 variables [Π i, add_comm_monoid (δ i)] [Π i, module R (δ i)]

@@ -392,11 +392,11 @@ instance [has_star R] [has_star A] : has_star (unitization R A) :=
 @[simp] lemma snd_star [has_star R] [has_star A] (x : unitization R A) :
   (star x).snd = star x.snd := rfl
 
-lemma inl_star [has_star R] [add_monoid A] [star_add_monoid A] (r : R) :
+@[simp] lemma inl_star [has_star R] [add_monoid A] [star_add_monoid A] (r : R) :
   inl (star r) = star (inl r : unitization R A) :=
 ext rfl (by simp only [snd_star, star_zero, snd_inl])
 
-lemma coe_star [add_monoid R] [star_add_monoid R] [has_star A] (a : A) :
+@[simp] lemma coe_star [add_monoid R] [star_add_monoid R] [has_star A] (a : A) :
   ↑(star a) = star (a : unitization R A) :=
 ext (by simp only [fst_star, star_zero, fst_coe]) rfl
 

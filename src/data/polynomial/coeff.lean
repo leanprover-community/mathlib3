@@ -285,7 +285,7 @@ end
 
 end cast
 
-instance polynomial.char_zero [char_zero R] : char_zero R[X] :=
+instance [char_zero R] : char_zero R[X] :=
 { cast_injective := λ x y, nat_cast_inj.mp }
 
 end polynomial

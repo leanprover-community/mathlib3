@@ -254,7 +254,7 @@ theorem finset.all_card_le_bUnion_card_iff_exists_injective'
     (∃ (f : ι → α), function.injective f ∧ ∀ x, f x ∈ t x) :=
 begin
   split,
-  { exact hall_marriage_theorem.hall_hard_inductive, },
+  { exact hall_marriage_theorem.hall_hard_inductive },
   { rintro ⟨f, hf₁, hf₂⟩ s,
     rw ←card_image_of_injective s hf₁,
     apply card_le_of_subset,

@@ -74,6 +74,16 @@ def bornology.of_bounded {α : Type*} (B : set (set α))
       exact subset_mem _ hb _ (singleton_subset_iff.mpr hxb) },
   end }
 
+/-- A constructor for bornologies by specifying the bounded sets,
+and showing that they satisfy the appropriate conditions. -/
+@[simps]
+def bornology.of_bounded' {α : Type*} (B : set (set α))
+  (empty_mem : ∅ ∈ B) (subset_mem : ∀ s₁ ∈ B, ∀ s₂ : set α, s₂ ⊆ s₁ → s₂ ∈ B)
+  (union_mem : ∀ s₁ s₂ ∈ B, s₁ ∪ s₂ ∈ B) (singleton_mem : ∀ x, {x} ∈ B) :
+  bornology α :=
+bornology.of_bounded B empty_mem subset_mem union_mem
+  (eq_univ_of_forall $ λ x, mem_sUnion_of_mem (mem_singleton x) (singleton_mem x))
+
 namespace bornology
 
 section
@@ -100,6 +110,9 @@ alias is_cobounded_compl_iff ↔ bornology.is_cobounded.of_compl bornology.is_bo
 
 @[simp] lemma is_bounded_empty : is_bounded (∅ : set α) :=
 by { rw [is_bounded_def, compl_empty], exact univ_mem}
+
+@[simp] lemma is_bounded_singleton {x : α} : is_bounded ({x} : set α) :=
+by {rw [is_bounded_def], exact le_cofinite _ (finite_singleton x).compl_mem_cofinite}
 
 lemma is_bounded.union (h₁ : is_bounded s₁) (h₂ : is_bounded s₂) : is_bounded (s₁ ∪ s₂) :=
 by { rw [is_bounded_def, compl_union], exact (cobounded α).inter_sets h₁ h₂ }

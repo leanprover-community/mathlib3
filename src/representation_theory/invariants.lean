@@ -20,7 +20,9 @@ results that the order of `G` is invertible in `k` (e. g. `k` has characteristic
 open_locale big_operators
 open monoid_algebra finset finite_dimensional linear_map representation
 
-namespace average
+namespace representation
+
+section average
 
 variables (k G : Type*) [comm_semiring k] [group G]
 variables [fintype G] [invertible (fintype.card G : k)]
@@ -62,8 +64,6 @@ end
 end average
 
 section invariants
-
-open average
 
 variables (k G V : Type*) [comm_semiring k] [group G] [add_comm_group V]
 variables [module k V] [distrib_mul_action G V] [smul_comm_class G k V]
@@ -117,3 +117,5 @@ Scalar multiplication by `average k G` gives a projection map onto the subspace 
 noncomputable def average_map : V →ₗ[k] V := (as_algebra_hom k G V) (average k G)
 
 end invariants
+
+end representation

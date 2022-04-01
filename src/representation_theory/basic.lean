@@ -18,7 +18,7 @@ including equivalences between different definitions of representations.
 ## Main definitions
 
   * `representation.as_module`
-  * `representation.as_group_hom`git
+  * `representation.as_group_hom`
   * `representation.character`
 
 ## Implementation notes

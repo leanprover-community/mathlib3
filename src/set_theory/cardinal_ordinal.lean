@@ -351,11 +351,20 @@ max_le
   (by simpa only [one_mul] using
     mul_le_mul_right' (one_lt_omega.le.trans ha) b)
 
+@[simp] theorem mul_mk_eq_max {α β : Type*} [infinite α] [infinite β] : #α * #β = max (#α) (#β) :=
+mul_eq_max (omega_le_mk α) (omega_le_mk β)
+
 @[simp] theorem omega_mul_eq {a : cardinal} (ha : ω ≤ a) : ω * a = a :=
 (mul_eq_max le_rfl ha).trans (max_eq_right ha)
 
 @[simp] theorem mul_omega_eq {a : cardinal} (ha : ω ≤ a) : a * ω = a :=
 (mul_eq_max ha le_rfl).trans (max_eq_left ha)
+
+@[simp] theorem omega_mul_mk_eq {α : Type*} [infinite α] : ω * #α = #α :=
+omega_mul_eq (omega_le_mk α)
+
+@[simp] theorem mk_mul_omega_eq {α : Type*} [infinite α] : #α * ω = #α :=
+mul_omega_eq (omega_le_mk α)
 
 theorem mul_lt_of_lt {a b c : cardinal} (hc : ω ≤ c)
   (h1 : a < c) (h2 : b < c) : a * b < c :=
@@ -454,6 +463,15 @@ le_antisymm
     add_le_add (le_max_left _ _) (le_max_right _ _)) $
 max_le (self_le_add_right _ _) (self_le_add_left _ _)
 
+theorem add_eq_max' {a b : cardinal} (ha : ω ≤ b) : a + b = max a b :=
+by rw [add_comm, max_comm, add_eq_max ha]
+
+@[simp] theorem add_mk_eq_max {α β : Type*} [infinite α] : #α + #β = max (#α) (#β) :=
+add_eq_max (omega_le_mk α)
+
+@[simp] theorem add_mk_eq_max' {α β : Type*} [infinite β] : #α + #β = max (#α) (#β) :=
+add_eq_max' (omega_le_mk β)
+
 theorem add_le_max (a b : cardinal) : a + b ≤ max (max a b) ω :=
 begin
   by_cases ha : ω ≤ a,
@@ -510,6 +528,9 @@ by { rw [add_comm, add_eq_left_iff] }
 lemma add_one_eq {a : cardinal} (ha : ω ≤ a) : a + 1 = a :=
 have 1 ≤ a, from le_trans (le_of_lt one_lt_omega) ha,
 add_eq_left ha this
+
+@[simp] lemma mk_add_one_eq {α : Type*} [infinite α] : #α + 1 = #α :=
+add_one_eq (omega_le_mk α)
 
 protected lemma eq_of_add_eq_add_left {a b c : cardinal} (h : a + b = a + c) (ha : a < ω) :
   b = c :=

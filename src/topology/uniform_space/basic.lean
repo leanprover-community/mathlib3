@@ -370,7 +370,7 @@ from map_le_iff_le_comap.1 tendsto_swap_uniformity
 lemma uniformity_eq_symm : 𝓤 α = (@prod.swap α α) <$> 𝓤 α :=
 le_antisymm uniformity_le_symm symm_le_uniformity
 
-lemma comap_swap_uniformity : comap (@prod.swap α α) (𝓤 α) = 𝓤 α :=
+@[simp] lemma comap_swap_uniformity : comap (@prod.swap α α) (𝓤 α) = 𝓤 α :=
 (congr_arg _ uniformity_eq_symm).trans $ comap_map prod.swap_injective
 
 lemma symmetrize_mem_uniformity {V : set (α × α)} (h : V ∈ 𝓤 α) : symmetrize_rel V ∈ 𝓤 α :=
@@ -1203,7 +1203,7 @@ lemma uniformity_mul_opposite [uniform_space α] :
   𝓤 (αᵐᵒᵖ) = comap (λ q : αᵐᵒᵖ × αᵐᵒᵖ, (q.1.unop, q.2.unop)) (𝓤 α) :=
 rfl
 
-@[to_additive] lemma comap_uniformity_mul_opposite [uniform_space α] :
+@[simp, to_additive] lemma comap_uniformity_mul_opposite [uniform_space α] :
   comap (λ p : α × α, (mul_opposite.op p.1, mul_opposite.op p.2)) (𝓤 αᵐᵒᵖ) = 𝓤 α :=
 by simpa [uniformity_mul_opposite, comap_comap, (∘)] using comap_id
 

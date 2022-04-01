@@ -1062,6 +1062,8 @@ begin
 end
 
 /--A computable version of congr_left when an explicit left inverse is provided.-/
+@[nolint unused_arguments] /-the definition doesn't need h' to be a left inverse of h but is
+pointless otherwise-/
 def congr_left' (h : κ → ι) {h' : ι → κ} (hh' : function.left_inverse h' h) (f : Π₀ i, β i) :
 (Π₀ k, β (h k)) := mk (f.support.image h') (λ i, f (h i))
 

@@ -18,13 +18,10 @@ results that the order of `G` is invertible in `k` (e. g. `k` has characteristic
 -/
 
 open_locale big_operators
-open monoid_algebra
-open finset
-open finite_dimensional
-open linear_map
-open representation
+open monoid_algebra finset finite_dimensional linear_map representation
 
-section average
+namespace average
+
 variables (k G : Type*) [comm_semiring k] [group G]
 variables [fintype G] [invertible (fintype.card G : k)]
 
@@ -65,11 +62,14 @@ end
 end average
 
 section invariants
+
+open average
+
 variables (k G V : Type*) [comm_semiring k] [group G] [add_comm_group V]
 variables [module k V] [distrib_mul_action G V] [smul_comm_class G k V]
 
 /--
-The subspace of invariants, consisting of the vectors fixed by all elements of `G`
+The subspace of invariants, consisting of the vectors fixed by all elements of `G`.
 -/
 def invariants : submodule k V :=
 { carrier := set_of (λ v, ∀ (g : G), g • v = v),
@@ -80,12 +80,12 @@ def invariants : submodule k V :=
 @[simp]
 lemma mem_invariants (v : V) : v ∈ (invariants k G V) ↔ ∀ (g: G), g • v = v := by refl
 
-lemma invariants_inter :
+lemma invariants_eq_inter :
   (invariants k G V).carrier = ⋂ g : G, function.fixed_points (has_scalar.smul g) :=
 by { ext, simp [function.is_fixed_pt] }
 
 /--
-The subspace of invariants, as a submodule over `monoid_algebra k G`
+The subspace of invariants, as a submodule over `monoid_algebra k G`.
 -/
 noncomputable def invariants' : submodule (monoid_algebra k G) V :=
   submodule_of_smul_mem (invariants k G V) (λ g v hv, by {rw [of_smul, hv g], exact hv})
@@ -102,7 +102,7 @@ theorem smul_average_invariant (v : V) : (average k G) • v ∈ invariants k G 
 λ g, by rw [←of_smul k, smul_smul, of_apply, mul_average_left]
 
 /--
-`average k G` acts as the identity on the subspace of invariants
+`average k G` acts as the identity on the subspace of invariants.
 -/
 theorem smul_average_id (v ∈ invariants k G V) : (average k G) • v = v :=
 begin
@@ -112,7 +112,7 @@ begin
 end
 
 /--
-Scalar multiplication by `average k G` gives a projection map onto the subspace of invariants
+Scalar multiplication by `average k G` gives a projection map onto the subspace of invariants.
 -/
 noncomputable def average_map : V →ₗ[k] V := (as_algebra_hom k G V) (average k G)
 

@@ -71,6 +71,9 @@ distrib.right_distrib a b c
 
 alias right_distrib ← add_mul
 
+lemma distrib_three_right [distrib R] (a b c d : R) : (a + b + c) * d = a * d + b * d + c * d :=
+by simp [right_distrib]
+
 /-- Pullback a `distrib` instance along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
@@ -217,20 +220,30 @@ protected def function.surjective.semiring
 
 end injective_surjective_maps
 
+section non_unital_semiring
+variables [non_unital_semiring α]
+
+theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
+dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
+
+end non_unital_semiring
+
+section non_assoc_semiring
+variables [non_assoc_semiring α]
+
+theorem two_mul (n : α) : 2 * n = n + n :=
+eq.trans (right_distrib 1 1 n) (by simp)
+
+theorem mul_two (n : α) : n * 2 = n + n :=
+(left_distrib n 1 1).trans (by simp)
+
+end non_assoc_semiring
+
 section semiring
 variables [semiring α]
 
 lemma one_add_one_eq_two : 1 + 1 = (2 : α) :=
 by unfold bit0
-
-theorem two_mul (n : α) : 2 * n = n + n :=
-eq.trans (right_distrib 1 1 n) (by simp)
-
-lemma distrib_three_right (a b c d : α) : (a + b + c) * d = a * d + b * d + c * d :=
-by simp [right_distrib]
-
-theorem mul_two (n : α) : n * 2 = n + n :=
-(left_distrib n 1 1).trans (by simp)
 
 theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
 (two_mul _).symm
@@ -253,11 +266,11 @@ by split_ifs; refl
 -- `mul_ite` and `ite_mul`.
 attribute [simp] mul_ite ite_mul
 
-@[simp] lemma mul_boole {α} [non_assoc_semiring α] (P : Prop) [decidable P] (a : α) :
+@[simp] lemma mul_boole {α} [mul_zero_one_class α] (P : Prop) [decidable P] (a : α) :
   a * (if P then 1 else 0) = if P then a else 0 :=
 by simp
 
-@[simp] lemma boole_mul {α} [non_assoc_semiring α] (P : Prop) [decidable P] (a : α) :
+@[simp] lemma boole_mul {α} [mul_zero_one_class α] (P : Prop) [decidable P] (a : α) :
   (if P then 1 else 0) * a = if P then a else 0 :=
 by simp
 
@@ -273,9 +286,6 @@ lemma ite_and_mul_zero {α : Type*} [mul_zero_class α]
   (P Q : Prop) [decidable P] [decidable Q] (a b : α) :
   ite (P ∧ Q) (a * b) 0 = ite P a 0 * ite Q b 0 :=
 by simp only [←ite_and, ite_mul, mul_ite, mul_zero, zero_mul, and_comm]
-
-theorem dvd_add {a b c : α} (h₁ : a ∣ b) (h₂ : a ∣ c) : a ∣ b + c :=
-dvd.elim h₁ (λ d hd, dvd.elim h₂ (λ e he, dvd.intro (d + e) (by simp [left_distrib, hd, he])))
 
 end semiring
 
@@ -1117,7 +1127,7 @@ lemma pred_ne_self [ring α] [nontrivial α] (a : α) : a - 1 ≠ a :=
 
 /-- Left `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
 The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
-lemma is_left_regular_of_non_zero_divisor [ring α] (k : α)
+lemma is_left_regular_of_non_zero_divisor [non_unital_non_assoc_ring α] (k : α)
   (h : ∀ (x : α), k * x = 0 → x = 0) : is_left_regular k :=
 begin
   refine λ x y (h' : k * x = k * y), sub_eq_zero.mp (h _ _),
@@ -1126,7 +1136,7 @@ end
 
 /-- Right `mul` by a `k : α` over `[ring α]` is injective, if `k` is not a zero divisor.
 The typeclass that restricts all terms of `α` to have this property is `no_zero_divisors`. -/
-lemma is_right_regular_of_non_zero_divisor [ring α] (k : α)
+lemma is_right_regular_of_non_zero_divisor [non_unital_non_assoc_ring α] (k : α)
   (h : ∀ (x : α), x * k = 0 → x = 0) : is_right_regular k :=
 begin
   refine λ x y (h' : x * k = y * k), sub_eq_zero.mp (h _ _),
@@ -1294,10 +1304,10 @@ h.add_right h
 lemma bit0_left [distrib R] {x y : R} (h : commute x y) : commute (bit0 x) y :=
 h.add_left h
 
-lemma bit1_right [semiring R] {x y : R} (h : commute x y) : commute x (bit1 y) :=
+lemma bit1_right [non_assoc_semiring R] {x y : R} (h : commute x y) : commute x (bit1 y) :=
 h.bit0_right.add_right (commute.one_right x)
 
-lemma bit1_left [semiring R] {x y : R} (h : commute x y) : commute (bit1 x) y :=
+lemma bit1_left [non_assoc_semiring R] {x y : R} (h : commute x y) : commute (bit1 x) y :=
 h.bit0_left.add_left (commute.one_left y)
 
 /-- Representation of a difference of two squares of commuting elements as a product. -/

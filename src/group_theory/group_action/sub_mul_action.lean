@@ -129,11 +129,10 @@ instance [has_scalar Sᵐᵒᵖ R] [has_scalar Sᵐᵒᵖ M] [is_scalar_tower S�
 
 end
 
-variables [monoid R] [mul_action R M]
-
 section
 
-variables [monoid S] [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
+variables [mul_one_class R] [mul_action R M]
+variables [mul_one_class S] [has_scalar S R] [mul_action S M] [is_scalar_tower S R M]
 variables (p : sub_mul_action R M)
 
 /-- If the scalar product forms a `mul_action`, then the subset inherits this action -/
@@ -146,6 +145,7 @@ instance : mul_action R p := p.mul_action'
 
 end
 
+variables [monoid R] [mul_action R M]
 
 /-- Orbits in a `sub_mul_action` coincide with orbits in the ambient space. -/
 lemma coe_image_orbit {p : sub_mul_action R M} (m : p) :
@@ -184,7 +184,7 @@ end mul_action_group
 
 section module
 
-variables [semiring R] [add_comm_monoid M]
+variables [non_assoc_semiring R] [add_comm_monoid M]
 variables [module R M]
 variables (p : sub_mul_action R M)
 
@@ -200,7 +200,7 @@ end module
 
 section add_comm_group
 
-variables [ring R] [add_comm_group M]
+variables [non_assoc_ring R] [add_comm_group M]
 variables [module R M]
 variables (p p' : sub_mul_action R M)
 variables {r : R} {x y : M}

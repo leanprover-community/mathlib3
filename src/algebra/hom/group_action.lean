@@ -30,7 +30,7 @@ variables (M' : Type*)
 variables (X : Type*) [has_scalar M' X]
 variables (Y : Type*) [has_scalar M' Y]
 variables (Z : Type*) [has_scalar M' Z]
-variables (M : Type*) [monoid M]
+variables (M : Type*) [mul_one_class M]
 variables (A : Type*) [add_monoid A] [distrib_mul_action M A]
 variables (A' : Type*) [add_group A'] [distrib_mul_action M A']
 variables (B : Type*) [add_monoid B] [distrib_mul_action M B]
@@ -317,16 +317,18 @@ ext $ λ x, by rw [comp_apply, id_apply]
 end mul_semiring_action_hom
 
 section
-variables (M) {R'} (U : subring R') [is_invariant_subring M U]
+
+variables (M'' : Type*) [monoid M''] {R'} [mul_semiring_action M'' R'] (U : subring R')
+  [is_invariant_subring M'' U]
 
 /-- The canonical inclusion from an invariant subring. -/
-def is_invariant_subring.subtype_hom : U →+*[M] R' :=
+def is_invariant_subring.subtype_hom : U →+*[M''] R' :=
 { map_smul' := λ m s, rfl, ..U.subtype }
 
 @[simp] theorem is_invariant_subring.coe_subtype_hom :
-  (is_invariant_subring.subtype_hom M U : U → R') = coe := rfl
+  (is_invariant_subring.subtype_hom M'' U : U → R') = coe := rfl
 
 @[simp] theorem is_invariant_subring.coe_subtype_hom' :
-  (is_invariant_subring.subtype_hom M U : U →+* R') = U.subtype := rfl
+  (is_invariant_subring.subtype_hom M'' U : U →+* R') = U.subtype := rfl
 
 end

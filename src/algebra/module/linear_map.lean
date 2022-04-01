@@ -67,7 +67,7 @@ variables {N₁ : Type*} {N₂ : Type*} {N₃ : Type*} {ι : Type*}
 property. A bundled version is available with `linear_map`, and should be favored over
 `is_linear_map` most of the time. -/
 structure is_linear_map (R : Type u) {M : Type v} {M₂ : Type w}
-  [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module R M₂]
+  [non_assoc_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module R M₂]
   (f : M → M₂) : Prop :=
 (map_add : ∀ x y, f (x + y) = f x + f y)
 (map_smul : ∀ (c : R) x, f (c • x) = c • f x)
@@ -82,8 +82,8 @@ is semilinear if it satisfies the two properties `f (x + y) = f x + f y` and
 `M →ₛₗ[σ] M₂`) are bundled versions of such maps. For plain linear maps (i.e. for which
 `σ = ring_hom.id R`), the notation `M →ₗ[R] M₂` is available. An unbundled version of plain linear
 maps is available with the predicate `is_linear_map`, but it should be avoided most of the time. -/
-structure linear_map {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
-  (M : Type*) (M₂ : Type*)
+structure linear_map {R : Type*} {S : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
+  (σ : R →+* S) (M : Type*) (M₂ : Type*)
   [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module S M₂]
   extends add_hom M M₂ :=
 (map_smul' : ∀ (r : R) (x : M), to_fun (r • x) = (σ r) • to_fun x)
@@ -101,7 +101,7 @@ namespace linear_map
 
 section add_comm_monoid
 
-variables [semiring R] [semiring S]
+variables [non_assoc_semiring R] [non_assoc_semiring S]
 
 section
 variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃]
@@ -213,23 +213,6 @@ lemma image_smul_set (c : R) (s : set M) :
   fₗ '' (c • s) = c • fₗ '' s :=
 by simp
 
-lemma preimage_smul_setₛₗ {c : R} (hc : is_unit c) (s : set M₃) :
-  f ⁻¹' (σ c • s) = c • f ⁻¹' s :=
-begin
-  apply set.subset.antisymm,
-  { rintros x ⟨y, ys, hy⟩,
-    refine ⟨(hc.unit.inv : R) • x, _, _⟩,
-    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ, ← σ.map_mul,
-        is_unit.coe_inv_mul, one_smul, ring_hom.map_one, ys] },
-    { simp only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
-  { rintros x ⟨y, hy, rfl⟩,
-    refine ⟨f y, hy, by simp only [ring_hom.id_apply, linear_map.map_smulₛₗ]⟩ }
-end
-
-lemma preimage_smul_set {c : R} (hc : is_unit c) (s : set M₂) :
-  fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
-fₗ.preimage_smul_setₛₗ hc s
-
 end pointwise
 
 variables (M M₂)
@@ -239,20 +222,20 @@ This typeclass is generated automatically from a `is_scalar_tower` instance, but
 we can also add an instance for `add_comm_group.int_module`, allowing `z •` to be moved even if
 `R` does not support negation.
 -/
-class compatible_smul (R S : Type*) [semiring S] [has_scalar R M]
+class compatible_smul (R S : Type*) [non_assoc_semiring S] [has_scalar R M]
   [module S M] [has_scalar R M₂] [module S M₂] :=
 (map_smul : ∀ (fₗ : M →ₗ[S] M₂) (c : R) (x : M), fₗ (c • x) = c • fₗ x)
 variables {M M₂}
 
 @[priority 100]
 instance is_scalar_tower.compatible_smul
-  {R S : Type*} [semiring S] [has_scalar R S]
+  {R S : Type*} [non_assoc_semiring S] [has_scalar R S]
   [has_scalar R M] [module S M] [is_scalar_tower R S M]
   [has_scalar R M₂] [module S M₂] [is_scalar_tower R S M₂] : compatible_smul M M₂ R S :=
 ⟨λ fₗ c x, by rw [← smul_one_smul S c x, ← smul_one_smul S c (fₗ x), map_smul]⟩
 
 @[simp, priority 900]
-lemma map_smul_of_tower {R S : Type*} [semiring S] [has_scalar R M]
+lemma map_smul_of_tower {R S : Type*} [non_assoc_semiring S] [has_scalar R M]
   [module S M] [has_scalar R M₂] [module S M₂]
   [compatible_smul M M₂ R S] (fₗ : M →ₗ[S] M₂) (c : R) (x : M) :
   fₗ (c • x) = c • fₗ x :=
@@ -307,25 +290,11 @@ theorem to_add_monoid_hom_injective :
   function.injective (to_add_monoid_hom : (M →ₛₗ[σ] M₃) → (M →+ M₃)) :=
 λ f g h, ext $ add_monoid_hom.congr_fun h
 
-/-- If two `σ`-linear maps from `R` are equal on `1`, then they are equal. -/
-@[ext] theorem ext_ring {f g : R →ₛₗ[σ] M₃} (h : f 1 = g 1) : f = g :=
-ext $ λ x, by rw [← mul_one x, ← smul_eq_mul, f.map_smulₛₗ, g.map_smulₛₗ, h]
-
-theorem ext_ring_iff {σ : R →+* R} {f g : R →ₛₗ[σ] M} : f = g ↔ f 1 = g 1 :=
-⟨λ h, h ▸ rfl, ext_ring⟩
-
 end
-
-/-- Interpret a `ring_hom` `f` as an `f`-semilinear map. -/
-@[simps]
-def _root_.ring_hom.to_semilinear_map (f : R →+* S) : R →ₛₗ[f] S :=
-{ to_fun := f,
-  map_smul' := f.map_mul,
-  .. f}
 
 section
 
-variables [semiring R₁] [semiring R₂] [semiring R₃]
+variables [non_assoc_semiring R₁] [non_assoc_semiring R₂] [non_assoc_semiring R₃]
 variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables {module_M₁ : module R₁ M₁} {module_M₂ : module R₂ M₂} {module_M₃ : module R₃ M₃}
 variables {σ₁₂ : R₁ →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R₁ →+* R₃}
@@ -372,9 +341,55 @@ by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
 
 end add_comm_monoid
 
+section semiring
+
+variables [semiring R] [semiring S]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M] [module R M₂] [module S M₃]
+variables {σ : R →+* S} (fₗ : M →ₗ[R] M₂)  (f : M →ₛₗ[σ] M₃)
+
+/-- If two `σ`-linear maps from `R` are equal on `1`, then they are equal. -/
+@[ext] theorem ext_ring {f g : R →ₛₗ[σ] M₃} (h : f 1 = g 1) : f = g :=
+ext $ λ x, by rw [← mul_one x, ← smul_eq_mul, f.map_smulₛₗ, g.map_smulₛₗ, h]
+
+theorem ext_ring_iff {σ : R →+* R} {f g : R →ₛₗ[σ] M} : f = g ↔ f 1 = g 1 :=
+⟨λ h, h ▸ rfl, ext_ring⟩
+
+/-- Interpret a `ring_hom` `f` as an `f`-semilinear map. -/
+@[simps]
+def _root_.ring_hom.to_semilinear_map (f : R →+* S) : R →ₛₗ[f] S :=
+{ to_fun := f,
+  map_smul' := f.map_mul,
+  .. f}
+
+section pointwise
+
+open_locale pointwise
+
+lemma preimage_smul_setₛₗ {c : R} (hc : is_unit c) (s : set M₃) :
+  f ⁻¹' (σ c • s) = c • f ⁻¹' s :=
+begin
+  apply set.subset.antisymm,
+  { rintros x ⟨y, ys, hy⟩,
+    refine ⟨(hc.unit.inv : R) • x, _, _⟩,
+    { simp only [←hy, smul_smul, set.mem_preimage, units.inv_eq_coe_inv, map_smulₛₗ, ← σ.map_mul,
+        is_unit.coe_inv_mul, one_smul, ring_hom.map_one, ys] },
+    { simp only [smul_smul, is_unit.mul_coe_inv, one_smul, units.inv_eq_coe_inv] } },
+  { rintros x ⟨y, hy, rfl⟩,
+    refine ⟨f y, hy, by simp only [ring_hom.id_apply, linear_map.map_smulₛₗ]⟩ }
+end
+
+lemma preimage_smul_set {c : R} (hc : is_unit c) (s : set M₂) :
+  fₗ ⁻¹' (c • s) = c • fₗ ⁻¹' s :=
+fₗ.preimage_smul_setₛₗ hc s
+
+end pointwise
+
+end semiring
+
 section add_comm_group
 
-variables [semiring R] [semiring S] [add_comm_group M] [add_comm_group M₂]
+variables [non_assoc_semiring R] [non_assoc_semiring S] [add_comm_group M] [add_comm_group M₂]
 variables {module_M : module R M} {module_M₂ : module S M₂} {σ : R →+* S}
 variables (f : M →ₛₗ[σ] M₂)
 
@@ -383,7 +398,7 @@ protected lemma map_neg (x : M) : f (- x) = - f x := map_neg f x
 protected lemma map_sub (x y : M) : f (x - y) = f x - f y := map_sub f x y
 
 instance compatible_smul.int_module
-  {S : Type*} [semiring S] [module S M] [module S M₂] : compatible_smul M M₂ ℤ S :=
+  {S : Type*} [non_assoc_semiring S] [module S M] [module S M₂] : compatible_smul M M₂ ℤ S :=
 ⟨λ fₗ c x, begin
   induction c using int.induction_on,
   case hz : { simp },
@@ -392,7 +407,7 @@ instance compatible_smul.int_module
 end⟩
 
 instance compatible_smul.units {R S : Type*}
-  [monoid R] [mul_action R M] [mul_action R M₂] [semiring S] [module S M] [module S M₂]
+  [monoid R] [mul_action R M] [mul_action R M₂] [non_assoc_semiring S] [module S M] [module S M₂]
   [compatible_smul M M₂ R S] :
   compatible_smul M M₂ Rˣ S :=
 ⟨λ fₗ c x, (compatible_smul.map_smul fₗ (c : R) x : _)⟩
@@ -416,7 +431,7 @@ end module
 
 namespace distrib_mul_action_hom
 
-variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module R M₂]
+variables [non_assoc_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module R M₂]
 
 /-- A `distrib_mul_action_hom` between two modules is a linear map. -/
 def to_linear_map (fₗ : M →+[R] M₂) : M →ₗ[R] M₂ := { ..fₗ }
@@ -440,7 +455,7 @@ end distrib_mul_action_hom
 namespace is_linear_map
 
 section add_comm_monoid
-variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
+variables [non_assoc_semiring R] [add_comm_monoid M] [add_comm_monoid M₂]
 variables [module R M] [module R M₂]
 include R
 
@@ -473,7 +488,7 @@ end add_comm_monoid
 
 section add_comm_group
 
-variables [semiring R] [add_comm_group M] [add_comm_group M₂]
+variables [non_assoc_semiring R] [add_comm_group M] [add_comm_group M₂]
 variables [module R M] [module R M₂]
 include R
 
@@ -495,7 +510,7 @@ end is_linear_map
 /-- Linear endomorphisms of a module, with associated ring structure
 `module.End.semiring` and algebra structure `module.End.algebra`. -/
 abbreviation module.End (R : Type u) (M : Type v)
-  [semiring R] [add_comm_monoid M] [module R M] := M →ₗ[R] M
+  [non_assoc_semiring R] [add_comm_monoid M] [module R M] := M →ₗ[R] M
 
 /-- Reinterpret an additive homomorphism as a `ℕ`-linear map. -/
 def add_monoid_hom.to_nat_linear_map [add_comm_monoid M] [add_comm_monoid M₂] (f : M →+ M₂) :
@@ -538,7 +553,7 @@ namespace linear_map
 
 section has_scalar
 
-variables [semiring R] [semiring R₂] [semiring R₃]
+variables [non_assoc_semiring R] [non_assoc_semiring R₂] [non_assoc_semiring R₃]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [module R M] [module R₂ M₂] [module R₃ M₃]
 variables {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
@@ -572,7 +587,7 @@ end has_scalar
 /-! ### Arithmetic on the codomain -/
 section arithmetic
 
-variables [semiring R₁] [semiring R₂] [semiring R₃]
+variables [non_assoc_semiring R₁] [non_assoc_semiring R₂] [non_assoc_semiring R₃]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [add_comm_group N₁] [add_comm_group N₂] [add_comm_group N₃]
 variables [module R₁ M] [module R₂ M₂] [module R₃ M₃]
@@ -652,7 +667,7 @@ end arithmetic
 
 section actions
 
-variables [semiring R] [semiring R₂] [semiring R₃]
+variables [non_assoc_semiring R] [non_assoc_semiring R₂] [non_assoc_semiring R₃]
 variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [module R M] [module R₂ M₂] [module R₃ M₃]
 variables {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
@@ -702,7 +717,7 @@ Lemmas about `pow` such as `linear_map.pow_apply` appear in later files.
 -/
 section endomorphisms
 
-variables [semiring R] [add_comm_monoid M] [add_comm_group N₁] [module R M] [module R N₁]
+variables [non_assoc_semiring R] [add_comm_monoid M] [add_comm_group N₁] [module R M] [module R N₁]
 
 instance : has_one (module.End R M) := ⟨linear_map.id⟩
 instance : has_mul (module.End R M) := ⟨linear_map.comp⟩
@@ -793,8 +808,8 @@ end linear_map
 
 namespace distrib_mul_action
 
-variables (R M) [semiring R] [add_comm_monoid M] [module R M]
-variables [monoid S] [distrib_mul_action S M] [smul_comm_class S R M]
+variables (R M) [non_assoc_semiring R] [add_comm_monoid M] [module R M]
+variables [mul_one_class S] [distrib_mul_action S M] [smul_comm_class S R M]
 
 /-- Each element of the monoid defines a linear map.
 
@@ -818,8 +833,8 @@ end distrib_mul_action
 
 namespace module
 
-variables (R M) [semiring R] [add_comm_monoid M] [module R M]
-variables [semiring S] [module S M] [smul_comm_class S R M]
+variables (R M) [non_assoc_semiring R] [add_comm_monoid M] [module R M]
+variables [non_assoc_semiring S] [module S M] [smul_comm_class S R M]
 
 /-- Each element of the monoid defines a module endomorphism.
 

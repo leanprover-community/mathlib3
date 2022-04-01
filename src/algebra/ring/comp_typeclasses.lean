@@ -41,7 +41,7 @@ Instances of these typeclasses mostly involving `ring_hom.id` are also provided:
 -/
 
 variables {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
-variables [semiring R₁] [semiring R₂] [semiring R₃]
+variables [non_assoc_semiring R₁] [non_assoc_semiring R₂] [non_assoc_semiring R₃]
 
 /-- Class that expresses the fact that three ring homomorphisms form a composition triple. This is
 used to handle composition of semilinear maps. -/

@@ -33,14 +33,14 @@ open_locale big_operators
 /-- Typeclass for multiplicative actions by monoids on semirings.
 
 This combines `distrib_mul_action` with `mul_distrib_mul_action`. -/
-class mul_semiring_action (M : Type u) (R : Type v) [monoid M] [semiring R]
+class mul_semiring_action (M : Type u) (R : Type v) [mul_one_class M] [non_assoc_semiring R]
   extends distrib_mul_action M R :=
 (smul_one : ∀ (g : M), (g • 1 : R) = 1)
 (smul_mul : ∀ (g : M) (x y : R), g • (x * y) = (g • x) * (g • y))
 
 section semiring
 
-variables (M G : Type u) [monoid M] [group G]
+variables (M G : Type u) [mul_one_class M] [group G]
 variables (A R S F : Type v) [add_monoid A] [semiring R] [comm_semiring S] [division_ring F]
 
 -- note we could not use `extends` since these typeclasses are made with `old_structure_cmd`

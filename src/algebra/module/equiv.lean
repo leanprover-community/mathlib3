@@ -46,8 +46,8 @@ set_option old_structure_cmd true
 
 /-- A linear equivalence is an invertible linear map. -/
 @[nolint has_inhabited_instance]
-structure linear_equiv {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
-  {σ' : S →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
+structure linear_equiv {R : Type*} {S : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
+  (σ : R →+* S) {σ' : S →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
   (M : Type*) (M₂ : Type*)
   [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module S M₂]
   extends linear_map σ M M₂, M ≃+ M₂
@@ -65,7 +65,7 @@ namespace linear_equiv
 section add_comm_monoid
 
 variables {M₄ : Type*}
-variables [semiring R] [semiring S]
+variables [non_assoc_semiring R] [non_assoc_semiring S]
 
 section
 variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂]
@@ -114,7 +114,7 @@ fun_like.coe_injective
 end
 
 section
-variables [semiring R₁] [semiring R₂] [semiring R₃]
+variables [non_assoc_semiring R₁] [non_assoc_semiring R₂] [non_assoc_semiring R₃]
 variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂]
 variables [add_comm_monoid M₃] [add_comm_monoid M₄]
 variables [add_comm_monoid N₁] [add_comm_monoid N₂]
@@ -167,8 +167,8 @@ def symm (e : M ≃ₛₗ[σ] M₂) : M₂ ≃ₛₗ[σ'] M :=
 omit module_M module_S_M₂ re₁ re₂
 
 /-- See Note [custom simps projection] -/
-def simps.symm_apply {R : Type*} {S : Type*} [semiring R] [semiring S] {σ : R →+* S}
-  {σ' : S →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
+def simps.symm_apply {R : Type*} {S : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
+  {σ : R →+* S} {σ' : S →+* R} [ring_hom_inv_pair σ σ'] [ring_hom_inv_pair σ' σ]
   {M : Type*} {M₂ : Type*} [add_comm_monoid M] [add_comm_monoid M₂] [module R M] [module S M₂]
   (e : M ≃ₛₗ[σ] M₂) : M₂ → M := e.symm
 
@@ -391,7 +391,7 @@ end
 
 /-- Interpret a `ring_equiv` `f` as an `f`-semilinear equiv. -/
 @[simps]
-def _root_.ring_equiv.to_semilinear_equiv (f : R ≃+* S) :
+def _root_.ring_equiv.to_semilinear_equiv {R S : Type*} [semiring R] [semiring S] (f : R ≃+* S) :
   by haveI := ring_hom_inv_pair.of_ring_equiv f;
      haveI := ring_hom_inv_pair.symm (↑f : R →+* S) (f.symm : S →+* R);
      exact (R ≃ₛₗ[(↑f : R →+* S)] S) :=
@@ -400,7 +400,7 @@ by exact
   map_smul' := f.map_mul,
   .. f}
 
-variables [semiring R₁] [semiring R₂] [semiring R₃]
+variables [non_assoc_semiring R₁] [non_assoc_semiring R₂] [non_assoc_semiring R₃]
 variables [add_comm_monoid M] [add_comm_monoid M₁] [add_comm_monoid M₂]
 
 /-- An involutive linear map is a linear equivalence. -/
@@ -508,7 +508,7 @@ end module
 
 namespace distrib_mul_action
 
-variables (R M) [semiring R] [add_comm_monoid M] [module R M]
+variables (R M) [non_assoc_semiring R] [add_comm_monoid M] [module R M]
 variables [group S] [distrib_mul_action S M] [smul_comm_class S R M]
 
 /-- Each element of the group defines a linear equivalence.
@@ -534,7 +534,7 @@ namespace add_equiv
 
 section add_comm_monoid
 
-variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [non_assoc_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
 variables [module R M] [module R M₂]
 
 variable (e : M ≃+ M₂)

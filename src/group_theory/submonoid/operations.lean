@@ -965,10 +965,6 @@ instance [has_scalar M' α] [has_faithful_scalar M' α] (S : submonoid M') :
   has_faithful_scalar S α :=
 ⟨λ x y h, subtype.ext $ eq_of_smul_eq_smul h⟩
 
-end mul_one_class
-
-variables [monoid M']
-
 /-- The action by a submonoid is the action by the underlying monoid. -/
 @[to_additive /-"The additive action by an add_submonoid is the action by the underlying
 add_monoid. "-/]
@@ -979,8 +975,13 @@ instance [add_monoid α] [distrib_mul_action M' α] (S : submonoid M') : distrib
 distrib_mul_action.comp_hom _ S.subtype
 
 /-- The action by a submonoid is the action by the underlying monoid. -/
-instance [monoid α] [mul_distrib_mul_action M' α] (S : submonoid M') : mul_distrib_mul_action S α :=
+instance [mul_one_class α] [mul_distrib_mul_action M' α] (S : submonoid M') :
+  mul_distrib_mul_action S α :=
 mul_distrib_mul_action.comp_hom _ S.subtype
+
+end mul_one_class
+
+variables [monoid M']
 
 example {S : submonoid M'} : is_scalar_tower S M' M' := by apply_instance
 

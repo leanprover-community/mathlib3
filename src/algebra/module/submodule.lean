@@ -33,7 +33,7 @@ set_option old_structure_cmd true
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
   to themselves form a module. -/
-structure submodule (R : Type u) (M : Type v) [semiring R]
+structure submodule (R : Type u) (M : Type v) [non_assoc_semiring R]
   [add_comm_monoid M] [module R M] extends add_submonoid M, sub_mul_action R M : Type v.
 
 /-- Reinterpret a `submodule` as an `add_submonoid`. -/
@@ -44,7 +44,7 @@ add_decl_doc submodule.to_sub_mul_action
 
 namespace submodule
 
-variables [semiring R] [add_comm_monoid M] [module R M]
+variables [non_assoc_semiring R] [add_comm_monoid M] [module R M]
 
 instance : set_like (submodule R M) M :=
 ⟨submodule.carrier, λ p q h, by cases p; cases q; congr'⟩
@@ -123,7 +123,7 @@ namespace submodule
 
 section add_comm_monoid
 
-variables [semiring R] [add_comm_monoid M]
+variables [non_assoc_semiring R] [add_comm_monoid M]
 
 -- We can infer the module structure implicitly from the bundled submodule,
 -- rather than via typeclass resolution.
@@ -189,7 +189,8 @@ variables (p)
 instance : add_comm_monoid p :=
 { add := (+), zero := 0, .. p.to_add_submonoid.to_add_comm_monoid }
 
-instance module' [semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] : module S p :=
+instance module' [non_assoc_semiring S] [has_scalar S R] [module S M] [is_scalar_tower S R M] :
+  module S p :=
 by refine {smul := (•), ..p.to_sub_mul_action.mul_action', ..};
    { intros, apply set_coe.ext, simp [smul_add, add_smul, mul_smul] }
 instance : module R p := p.module'
@@ -215,7 +216,7 @@ lemma injective_subtype : injective p.subtype := subtype.coe_injective
 p.subtype.map_sum
 
 section restrict_scalars
-variables (S) [semiring S] [module S M] [module R M] [has_scalar S R] [is_scalar_tower S R M]
+variables (S) [non_assoc_semiring S] [module S M] [module R M] [has_scalar S R] [is_scalar_tower S R M]
 
 /--
 `V.restrict_scalars S` is the `S`-submodule of the `S`-module given by restriction of scalars,
@@ -277,7 +278,7 @@ end add_comm_monoid
 
 section add_comm_group
 
-variables [ring R] [add_comm_group M]
+variables [non_assoc_ring R] [add_comm_group M]
 variables {module_M : module R M}
 variables (p p' : submodule R M)
 variables {r : R} {x y : M}
@@ -354,7 +355,7 @@ end is_domain
 
 section ordered_monoid
 
-variables [semiring R]
+variables [non_assoc_semiring R]
 
 /-- A submodule of an `ordered_add_comm_monoid` is an `ordered_add_comm_monoid`. -/
 instance to_ordered_add_comm_monoid
@@ -385,7 +386,7 @@ end ordered_monoid
 
 section ordered_group
 
-variables [ring R]
+variables [non_assoc_ring R]
 
 /-- A submodule of an `ordered_add_comm_group` is an `ordered_add_comm_group`. -/
 instance to_ordered_add_comm_group

@@ -93,10 +93,9 @@ private lemma bounded_iff_aux {α : Type*} (dist : α → α → ℝ)
   (∃ c, ∀ ⦃x y⦄, x ∈ s → y ∈ s → dist x y ≤ c) ↔ (∃ r, ∀ ⦃x⦄, x ∈ s → dist x a ≤ r) :=
 begin
   split; rintro ⟨C, hC⟩,
-  { cases s.eq_empty_or_nonempty with h h,
-    { subst s, exact ⟨0, by simp⟩ },
-    { rcases h with ⟨x, hx⟩,
-      exact ⟨C + dist x a, λ y hy,
+  { rcases s.eq_empty_or_nonempty with rfl | ⟨x, hx⟩,
+    { exact ⟨0, by simp⟩ },
+    { exact ⟨C + dist x a, λ y hy,
              (dist_triangle y x a).trans (add_le_add_right (hC hy hx) _)⟩ } },
   { exact ⟨C + C, λ x y hx hy,
            (dist_triangle x a y).trans (add_le_add (hC hx) (by {rw dist_comm, exact hC hy}))⟩ }
@@ -114,14 +113,13 @@ bornology.of_bounded
   (λ s ⟨c, hc⟩ t h, ⟨c, λ x y hx hy, hc (h hx) (h hy)⟩)
   (λ s hs t ht,
     begin
-      by_cases hs' : s = ∅,
-      { simpa [hs'] using ht },
-      { obtain ⟨z, hz⟩ := ne_empty_iff_nonempty.1 hs',
-        simp only [λ u, bounded_iff_aux dist dist_comm dist_triangle u z] at hs ht ⊢,
+      rcases s.eq_empty_or_nonempty with rfl | ⟨z, hz⟩,
+      { exact (empty_union t).symm ▸ ht },
+      { simp only [λ u, bounded_iff_aux dist dist_comm dist_triangle u z] at hs ht ⊢,
         rcases ⟨hs, ht⟩ with ⟨⟨r₁, hr₁⟩, ⟨r₂, hr₂⟩⟩,
         exact ⟨max r₁ r₂, λ x hx, or.elim hx
           (λ hx', (hr₁ hx').trans (le_max_left _ _))
-          (λ hx', (hr₂ hx').trans (le_max_right _ _))⟩, }
+          (λ hx', (hr₂ hx').trans (le_max_right _ _))⟩ }
     end)
   (sUnion_eq_univ_iff.2 $ λ z, ⟨{z},
     begin

@@ -39,8 +39,8 @@ variables (k G V : Type*) [comm_semiring k] [monoid G] [add_comm_monoid V]
 variables [module k V] [distrib_mul_action G V] [smul_comm_class G k V]
 
 /--
-A k-linear representation of G on V can be thought of as
-an algebra map from `monoid_algebra k G` into the k-linear endomorphisms of V.
+A `k`-linear representation of `G` on `V` can be thought of as
+an algebra map from `monoid_algebra k G` into the `k`-linear endomorphisms of `V`.
 -/
 noncomputable def as_algebra_hom : monoid_algebra k G →ₐ[k] (module.End k V) :=
   (lift k G _) (distrib_mul_action.to_module_End k V)

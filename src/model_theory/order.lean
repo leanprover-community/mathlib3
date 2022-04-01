@@ -101,33 +101,30 @@ end
 
 instance model_preorder [preorder α] :
   α ⊨ Theory.preorder :=
-⟨begin
-  rintro φ (rfl | hφ),
-  { exact le_refl },
-  { rw set.eq_of_mem_singleton hφ,
-    exact λ _ _ _, le_trans },
-end⟩
+begin
+  simp only [Theory.preorder, Theory.model_iff, set.mem_insert_iff, set.mem_singleton_iff,
+    forall_eq_or_imp, relations.realize_reflexive, rel_map_apply₂, forall_eq,
+    relations.realize_transitive],
+  exact ⟨le_refl, λ _ _ _, le_trans⟩
+end
 
 instance model_partial_order [partial_order α] :
   α ⊨ Theory.partial_order :=
-⟨begin
-  rintro φ (rfl | rfl | hφ),
-  { exact le_refl },
-  { exact λ _ _, le_antisymm },
-  { rw set.eq_of_mem_singleton hφ,
-    exact λ _ _ _, le_trans },
-end⟩
+begin
+  simp only [Theory.partial_order, Theory.model_iff, set.mem_insert_iff, set.mem_singleton_iff,
+    forall_eq_or_imp, relations.realize_reflexive, rel_map_apply₂, relations.realize_antisymmetric,
+    forall_eq, relations.realize_transitive],
+  exact ⟨le_refl, λ _ _, le_antisymm, λ _ _ _, le_trans⟩,
+end
 
 instance model_linear_order [linear_order α] :
   α ⊨ Theory.linear_order :=
-⟨begin
-  rintro φ (rfl | rfl | rfl | hφ),
-  { exact le_refl },
-  { exact λ _ _, le_antisymm },
-  { exact λ _ _ _, le_trans },
-  { rw [set.eq_of_mem_singleton hφ, relations.realize_total],
-    exact le_total }
-end⟩
+begin
+  simp only [Theory.linear_order, Theory.model_iff, set.mem_insert_iff, set.mem_singleton_iff,
+    forall_eq_or_imp, relations.realize_reflexive, rel_map_apply₂, relations.realize_antisymmetric,
+    relations.realize_transitive, forall_eq, relations.realize_total],
+  exact ⟨le_refl, λ _ _, le_antisymm, λ _ _ _, le_trans, le_total⟩,
+end
 
 end language
 end first_order

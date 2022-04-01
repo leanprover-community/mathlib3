@@ -58,8 +58,8 @@ namespace quaternion_algebra
 
 /-- The equivalence between a quaternion algebra over R and R × R × R × R. -/
 def equiv_prod {R : Type*} (c₁ c₂ : R) : ℍ[R, c₁, c₂] ≃ R × R × R × R :=
-{ to_fun := λ ⟨a₁, a₂, a₃, a₄⟩, ⟨a₁, a₂, a₃, a₄⟩,
-  inv_fun := λ ⟨a₁, a₂, a₃, a₄⟩, ⟨a₁, a₂, a₃, a₄⟩,
+{ to_fun := λ a, ⟨a.1, a.2, a.3, a.4⟩,
+  inv_fun := λ a, ⟨a.1, a.2.1, a.2.2.1, a.2.2.2⟩,
   left_inv := λ ⟨a₁, a₂, a₃, a₄⟩, rfl,
   right_inv := λ ⟨a₁, a₂, a₃, a₄⟩, rfl }
 

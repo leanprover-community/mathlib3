@@ -1024,8 +1024,9 @@ instance linear_ordered_ring.to_linear_ordered_add_comm_group [s : linear_ordere
 section linear_ordered_semiring
 variables [linear_ordered_semiring α] {a b c : α}
 
+local attribute [instance] linear_ordered_semiring.decidable_le
+
 lemma le_of_mul_le_of_one_le {a b c : α} (h : a * c ≤ b) (hb : 0 ≤ b) (hc : 1 ≤ c) : a ≤ b :=
-by haveI := @linear_order.decidable_le α _; exact
 have h' : a * c ≤ b * c, from calc
      a * c ≤ b : h
        ... = b * 1 : by rewrite mul_one
@@ -1033,19 +1034,15 @@ have h' : a * c ≤ b * c, from calc
 le_of_mul_le_mul_right h' (zero_lt_one.trans_le hc)
 
 lemma nonneg_le_nonneg_of_sq_le_sq {a b : α} (hb : 0 ≤ b) (h : a * a ≤ b * b) : a ≤ b :=
-by haveI := @linear_order.decidable_le α _; exact
 le_of_not_gt (λhab, (decidable.mul_self_lt_mul_self hb hab).not_le h)
 
 lemma mul_self_le_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a ≤ b ↔ a * a ≤ b * b :=
-by haveI := @linear_order.decidable_le α _; exact
 ⟨decidable.mul_self_le_mul_self h1, nonneg_le_nonneg_of_sq_le_sq h2⟩
 
 lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b ↔ a * a < b * b :=
-by haveI := @linear_order.decidable_le α _; exact
 ((@decidable.strict_mono_on_mul_self α _ _).lt_iff_lt h1 h2).symm
 
 lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
-by haveI := @linear_order.decidable_le α _; exact
 (@decidable.strict_mono_on_mul_self α _ _).inj_on.eq_iff h1 h2
 
 end linear_ordered_semiring

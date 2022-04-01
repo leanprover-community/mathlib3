@@ -94,40 +94,40 @@ instance has_faithful_scalar {α : Type*}
 let ⟨i⟩ := ‹nonempty I› in has_faithful_scalar_at i
 
 @[to_additive]
-instance mul_action (α) {m : monoid α} [Π i, mul_action α $ f i] :
+instance mul_action (α) {m : mul_one_class α} [Π i, mul_action α $ f i] :
   @mul_action α (Π i : I, f i) m :=
 { smul := (•),
   mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
   one_smul := λ f, funext $ λ i, one_smul α _ }
 
 @[to_additive]
-instance mul_action' {g : I → Type*} {m : Π i, monoid (f i)} [Π i, mul_action (f i) (g i)] :
-  @mul_action (Π i, f i) (Π i : I, g i) (@pi.monoid I f m) :=
+instance mul_action' {g : I → Type*} {m : Π i, mul_one_class (f i)} [Π i, mul_action (f i) (g i)] :
+  @mul_action (Π i, f i) (Π i : I, g i) (@pi.mul_one_class I f m) :=
 { smul := (•),
   mul_smul := λ r s f, funext $ λ i, mul_smul _ _ _,
   one_smul := λ f, funext $ λ i, one_smul _ _ }
 
-instance distrib_mul_action (α) {m : monoid α} {n : ∀ i, add_monoid $ f i}
+instance distrib_mul_action (α) {m : mul_one_class α} {n : ∀ i, add_monoid $ f i}
   [∀ i, distrib_mul_action α $ f i] :
   @distrib_mul_action α (Π i : I, f i) m (@pi.add_monoid I f n) :=
 { smul_zero := λ c, funext $ λ i, smul_zero _,
   smul_add := λ c f g, funext $ λ i, smul_add _ _ _,
   ..pi.mul_action _ }
 
-instance distrib_mul_action' {g : I → Type*} {m : Π i, monoid (f i)} {n : Π i, add_monoid $ g i}
-  [Π i, distrib_mul_action (f i) (g i)] :
-  @distrib_mul_action (Π i, f i) (Π i : I, g i) (@pi.monoid I f m) (@pi.add_monoid I g n) :=
+instance distrib_mul_action' {g : I → Type*} {m : Π i, mul_one_class (f i)}
+  {n : Π i, add_monoid $ g i} [Π i, distrib_mul_action (f i) (g i)] :
+  @distrib_mul_action (Π i, f i) (Π i : I, g i) (@pi.mul_one_class I f m) (@pi.add_monoid I g n) :=
 { smul_add := by { intros, ext x, apply smul_add },
   smul_zero := by { intros, ext x, apply smul_zero } }
 
-lemma single_smul {α} [monoid α] [Π i, add_monoid $ f i]
+lemma single_smul {α} [mul_one_class α] [Π i, add_monoid $ f i]
   [Π i, distrib_mul_action α $ f i] [decidable_eq I] (i : I) (r : α) (x : f i) :
   single i (r • x) = r • single i x :=
 single_op (λ i : I, ((•) r : f i → f i)) (λ j, smul_zero _) _ _
 
 /-- A version of `pi.single_smul` for non-dependent functions. It is useful in cases Lean fails
 to apply `pi.single_smul`. -/
-lemma single_smul' {α β} [monoid α] [add_monoid β]
+lemma single_smul' {α β} [mul_one_class α] [add_monoid β]
   [distrib_mul_action α β] [decidable_eq I] (i : I) (r : α) (x : β) :
   single i (r • x) = r • single i x :=
 single_smul i r x
@@ -137,16 +137,18 @@ lemma single_smul₀ {g : I → Type*} [Π i, monoid_with_zero (f i)] [Π i, add
   single i (r • x) = single i r • single i x :=
 single_op₂ (λ i : I, ((•) : f i → g i → g i)) (λ j, smul_zero _) _ _ _
 
-instance mul_distrib_mul_action (α) {m : monoid α} {n : Π i, monoid $ f i}
+instance mul_distrib_mul_action (α) {m : mul_one_class α} {n : Π i, mul_one_class $ f i}
   [Π i, mul_distrib_mul_action α $ f i] :
-  @mul_distrib_mul_action α (Π i : I, f i) m (@pi.monoid I f n) :=
+  @mul_distrib_mul_action α (Π i : I, f i) m (@pi.mul_one_class I f n) :=
 { smul_one := λ c, funext $ λ i, smul_one _,
   smul_mul := λ c f g, funext $ λ i, smul_mul' _ _ _,
   ..pi.mul_action _ }
 
-instance mul_distrib_mul_action' {g : I → Type*} {m : Π i, monoid (f i)} {n : Π i, monoid $ g i}
+instance mul_distrib_mul_action' {g : I → Type*}
+  {m : Π i, mul_one_class (f i)} {n : Π i, mul_one_class $ g i}
   [Π i, mul_distrib_mul_action (f i) (g i)] :
-  @mul_distrib_mul_action (Π i, f i) (Π i : I, g i) (@pi.monoid I f m) (@pi.monoid I g n) :=
+  @mul_distrib_mul_action (Π i, f i) (Π i : I, g i)
+    (@pi.mul_one_class I f m) (@pi.mul_one_class I g n) :=
 { smul_mul := by { intros, ext x, apply smul_mul' },
   smul_one := by { intros, ext x, apply smul_one } }
 

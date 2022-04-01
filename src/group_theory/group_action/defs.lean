@@ -75,13 +75,14 @@ instance has_mul.to_has_scalar (α : Type*) [has_mul α] : has_scalar α α := �
 @[simp, to_additive] lemma smul_eq_mul (α : Type*) [has_mul α] {a a' : α} : a • a' = a * a' := rfl
 
 /-- Type class for additive monoid actions. -/
-@[ext, protect_proj] class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
+@[ext, protect_proj] class add_action (G : Type*) (P : Type*) [add_zero_class G]
+  extends has_vadd G P :=
 (zero_vadd : ∀ p : P, (0 : G) +ᵥ p = p)
 (add_vadd : ∀ (g₁ g₂ : G) (p : P), (g₁ + g₂) +ᵥ p = g₁ +ᵥ (g₂ +ᵥ p))
 
 /-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
 @[ext, protect_proj, to_additive]
-class mul_action (α : Type*) (β : Type*) [monoid α] extends has_scalar α β :=
+class mul_action (α : Type*) (β : Type*) [mul_one_class α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
 
@@ -287,7 +288,7 @@ by split_ifs; refl
 end ite
 
 section
-variables [monoid M] [mul_action M α]
+variables [mul_one_class M] [mul_action M α]
 
 @[to_additive] lemma smul_smul (a₁ a₂ : M) (b : α) : a₁ • a₂ • b = (a₁ * a₂) • b :=
 (mul_smul _ _ _).symm
@@ -340,7 +341,9 @@ def function.surjective.mul_action_left {R S M : Type*} [monoid R] [mul_action R
   one_smul := λ b, by rw [← f.map_one, hsmul, one_smul],
   mul_smul := hf.forall₂.mpr $ λ a b x, by simp only [← f.map_mul, hsmul, mul_smul] }
 
-section
+end
+
+section monoid
 
 variables (M)
 
@@ -348,7 +351,7 @@ variables (M)
 
 This is promoted to a module by `semiring.to_module`. -/
 @[priority 910, to_additive] -- see Note [lower instance priority]
-instance monoid.to_mul_action : mul_action M M :=
+instance monoid.to_mul_action [monoid M]  : mul_action M M :=
 { smul := (*),
   one_smul := one_mul,
   mul_smul := mul_assoc }
@@ -357,6 +360,8 @@ instance monoid.to_mul_action : mul_action M M :=
 
 This is promoted to an `add_torsor` by `add_group_is_add_torsor`. -/
 add_decl_doc add_monoid.to_add_action
+
+variables [mul_one_class M] [mul_action M α]
 
 instance is_scalar_tower.left : is_scalar_tower M M α :=
 ⟨λ x y z, mul_smul x y z⟩
@@ -393,8 +398,6 @@ lemma commute.smul_left [has_mul α] [smul_comm_class M α α] [is_scalar_tower 
   commute (r • a) b :=
 (h.symm.smul_right r).symm
 
-end
-
 namespace mul_action
 
 variables (M α)
@@ -417,7 +420,7 @@ variable (α)
 a multiplicative action of `N` on `α`.
 
 See note [reducible non-instances]. -/
-@[reducible, to_additive] def comp_hom [monoid N] (g : N →* M) :
+@[reducible, to_additive] def comp_hom [mul_one_class N] (g : N →* M) :
   mul_action N α :=
 { smul := has_scalar.comp.smul g,
   one_smul := by simp [g.map_one, mul_action.one_smul],
@@ -431,12 +434,12 @@ add_decl_doc add_action.comp_hom
 
 end mul_action
 
-end
+end monoid
 
 section compatible_scalar
 
-@[simp] lemma smul_one_smul {M} (N) [monoid N] [has_scalar M N] [mul_action N α] [has_scalar M α]
-  [is_scalar_tower M N α] (x : M) (y : α) :
+@[simp] lemma smul_one_smul {M} (N) [mul_one_class N]
+  [has_scalar M N] [mul_action N α] [has_scalar M α] [is_scalar_tower M N α] (x : M) (y : α) :
   (x • (1 : N)) • y = x • y :=
 by rw [smul_assoc, one_smul]
 
@@ -444,8 +447,8 @@ by rw [smul_assoc, one_smul]
   (y : N) : (x • 1) * y = x • y :=
 smul_one_smul N x y
 
-@[simp, to_additive] lemma mul_smul_one {M N} [monoid N] [has_scalar M N] [smul_comm_class M N N]
-  (x : M) (y : N) :
+@[simp, to_additive] lemma mul_smul_one
+  {M N} [mul_one_class N] [has_scalar M N] [smul_comm_class M N N] (x : M) (y : N) :
   y * (x • 1) = x • y :=
 by rw [← smul_eq_mul, ← smul_comm, smul_eq_mul, mul_one]
 
@@ -461,13 +464,13 @@ lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_scalar M N]
 end compatible_scalar
 
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
-@[ext] class distrib_mul_action (M : Type*) (A : Type*) [monoid M] [add_monoid A]
+@[ext] class distrib_mul_action (M : Type*) (A : Type*) [mul_one_class M] [add_monoid A]
   extends mul_action M A :=
 (smul_add : ∀(r : M) (x y : A), r • (x + y) = r • x + r • y)
 (smul_zero : ∀(r : M), r • (0 : A) = 0)
 
 section
-variables [monoid M] [add_monoid A] [distrib_mul_action M A]
+variables [mul_one_class M] [add_monoid A] [distrib_mul_action M A]
 
 theorem smul_add (a : M) (b₁ b₂ : A) : a • (b₁ + b₂) = a • b₁ + a • b₂ :=
 distrib_mul_action.smul_add _ _ _
@@ -518,7 +521,7 @@ variable (A)
 
 /-- Compose a `distrib_mul_action` with a `monoid_hom`, with action `f r' • m`.
 See note [reducible non-instances]. -/
-@[reducible] def distrib_mul_action.comp_hom [monoid N] (f : N →* M) :
+@[reducible] def distrib_mul_action.comp_hom [mul_one_class N] (f : N →* M) :
   distrib_mul_action N A :=
 { smul := has_scalar.comp.smul f,
   smul_zero := λ x, smul_zero (f x),
@@ -544,7 +547,7 @@ def distrib_mul_action.to_add_monoid_End : M →* add_monoid.End A :=
 end
 
 section
-variables [monoid M] [add_group A] [distrib_mul_action M A]
+variables [mul_one_class M] [add_group A] [distrib_mul_action M A]
 
 @[simp] theorem smul_neg (r : M) (x : A) : r • (-x) = -(r • x) :=
 eq_neg_of_add_eq_zero $ by rw [← smul_add, neg_add_self, smul_zero]
@@ -556,7 +559,7 @@ end
 
 /-- Typeclass for multiplicative actions on multiplicative structures. This generalizes
 conjugation actions. -/
-@[ext] class mul_distrib_mul_action (M : Type*) (A : Type*) [monoid M] [monoid A]
+@[ext] class mul_distrib_mul_action (M : Type*) (A : Type*) [mul_one_class M] [mul_one_class A]
   extends mul_action M A :=
 (smul_mul : ∀ (r : M) (x y : A), r • (x * y) = (r • x) * (r • y))
 (smul_one : ∀ (r : M), r • (1 : A) = 1)
@@ -564,7 +567,7 @@ conjugation actions. -/
 export mul_distrib_mul_action (smul_one)
 
 section
-variables [monoid M] [monoid A] [mul_distrib_mul_action M A]
+variables [mul_one_class M] [mul_one_class A] [mul_distrib_mul_action M A]
 
 theorem smul_mul' (a : M) (b₁ b₂ : A) : a • (b₁ * b₂) = (a • b₁) * (a • b₂) :=
 mul_distrib_mul_action.smul_mul _ _ _
@@ -573,7 +576,8 @@ mul_distrib_mul_action.smul_mul _ _ _
 homomorphism.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.injective.mul_distrib_mul_action [monoid B] [has_scalar M B] (f : B →* A)
+protected def function.injective.mul_distrib_mul_action
+  [mul_one_class B] [has_scalar M B] (f : B →* A)
   (hf : injective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   mul_distrib_mul_action M B :=
 { smul := (•),
@@ -585,7 +589,8 @@ protected def function.injective.mul_distrib_mul_action [monoid B] [has_scalar M
 homomorphism.
 See note [reducible non-instances]. -/
 @[reducible]
-protected def function.surjective.mul_distrib_mul_action [monoid B] [has_scalar M B] (f : A →* B)
+protected def function.surjective.mul_distrib_mul_action
+  [mul_one_class B] [has_scalar M B] (f : A →* B)
   (hf : surjective f) (smul : ∀ (c : M) x, f (c • x) = c • f x) :
   mul_distrib_mul_action M B :=
 { smul := (•),
@@ -598,7 +603,7 @@ variable (A)
 
 /-- Compose a `mul_distrib_mul_action` with a `monoid_hom`, with action `f r' • m`.
 See note [reducible non-instances]. -/
-@[reducible] def mul_distrib_mul_action.comp_hom [monoid N] (f : N →* M) :
+@[reducible] def mul_distrib_mul_action.comp_hom [mul_one_class N] (f : N →* M) :
   mul_distrib_mul_action N A :=
 { smul := has_scalar.comp.smul f,
   smul_one := λ x, smul_one (f x),
@@ -628,7 +633,7 @@ def mul_distrib_mul_action.to_monoid_End : M →* monoid.End A :=
 end
 
 section
-variables [monoid M] [group A] [mul_distrib_mul_action M A]
+variables [mul_one_class M] [group A] [mul_distrib_mul_action M A]
 
 @[simp] theorem smul_inv' (r : M) (x : A) : r • (x⁻¹) = (r • x)⁻¹ :=
 (mul_distrib_mul_action.to_monoid_hom A r).map_inv x
@@ -702,7 +707,7 @@ instance add_monoid.End.apply_has_faithful_scalar [add_monoid α] :
 /-- The monoid hom representing a monoid action.
 
 When `M` is a group, see `mul_action.to_perm_hom`. -/
-def mul_action.to_End_hom [monoid M] [mul_action M α] : M →* function.End α :=
+def mul_action.to_End_hom [mul_one_class M] [mul_action M α] : M →* function.End α :=
 { to_fun := (•),
   map_one' := funext (one_smul M),
   map_mul' := λ x y, funext (mul_smul x y) }

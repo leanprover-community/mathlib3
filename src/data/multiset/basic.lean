@@ -1790,6 +1790,7 @@ end
 
 /-- Associate to an embedding `f` from `α` to `β` the order embedding that maps a multiset to its
 image under `f`. -/
+@[simps]
 def map_embedding (f : α ↪ β) : multiset α ↪o multiset β :=
 order_embedding.of_map_le_iff (map f) (λ _ _, map_le_map_iff f.inj')
 

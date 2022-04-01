@@ -197,8 +197,8 @@ dfinsupp.single_apply
 section sigma
 variables {α : ι → Type u} {δ : (Σ i, α i) → Type w}
 variables [Π i, add_comm_monoid (δ i)] [Π i, module R (δ i)]
-variables [Π i, decidable_eq (α i)] [Π i (x : δ i), decidable (x ≠ 0)]
 instance inst : module R (⨁ i j, δ ⟨i, j⟩) := by apply_instance
+variables [Π i, decidable_eq (α i)] [Π i (x : δ i), decidable (x ≠ 0)]
 
 /--`curry` as a linear map.-/
 noncomputable def lcurry : (⨁ i, δ i) →ₗ[R] ⨁ i j, δ ⟨i, j⟩ :=

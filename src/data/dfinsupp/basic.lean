@@ -453,6 +453,9 @@ begin
 end
 
 omit dec
+instance [is_empty ι] : unique (Π₀ i, β i) :=
+⟨⟨0⟩, λ a, by { ext, exact is_empty_elim i }⟩
+
 /-- Given `fintype ι`, `equiv_fun_on_fintype` is the `equiv` between `Π₀ i, β i` and `Π i, β i`.
   (All dependent functions on a finite type are finitely supported.) -/
 @[simps apply] def equiv_fun_on_fintype [fintype ι] : (Π₀ i, β i) ≃ (Π i, β i) :=
@@ -1044,9 +1047,6 @@ assume f g, decidable_of_iff (f.support = g.support ∧ (∀i∈f.support, f i =
 section equiv
 open finset
 variables [Π i, has_zero (β i)]
-
-instance [is_empty ι] : unique (Π₀ i, β i) :=
-⟨⟨0⟩, λ a, by { ext, exact is_empty_elim i }⟩
 
 variables {κ : Type*} [decidable_eq κ] [Π i (x : β i), decidable (x ≠ 0)]
 /--Reindexing (and possibly removing) terms of a dfinsupp.-/

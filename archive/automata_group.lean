@@ -21,20 +21,26 @@ structure invertible_machine (S X : Type*) :=
 (out : S → equiv.perm X)
 (step : S → X → S)
 
+def invertible_machine.to_machine (m : invertible_machine S X) : machine S X X := {
+   out := λ s, m.out s, step := m.step }
+
 structure transducer (S X Y : Type*) extends machine S X Y :=
 (init : S)
-
---!! notation self_transducer S X := transducer S X X
 
 structure invertible_transducer (S X : Type*) extends invertible_machine S X :=
 (init : S)
 
-def reachable (t : transducer S X Y) : set S := "minimal set R such that init ∈ R and step(R,X)⊆R"
+instance : has_coe (invertible_transducer S X) (transducer S X X) :=
+   ⟨λ m, { out := λ s, m.out s, step := m.step, init := m.init }⟩
 
-def is_trivial (t : transducer S X X) : Prop :=
+-- the minimal set R of states containing init and closed under step(R,X)
+def reachable (t : transducer S X Y) : set S := ⋂₀{R | t.init∈R ∧ ∀(s∈R) x, t.step s x∈R}
+
+def transducer.is_trivial (t : transducer S X X) : Prop :=
     ∀ s : S, s ∈ reachable t → t.out s = id
 
---!!later: example is_trivial ⟨grigorchuk_machine,4⟩ := dec_trivial
+def invertible_transducer.is_trivial (t : invertible_transducer S X) : Prop :=
+    (t : transducer S X X).is_trivial
 
 namespace machine
 
@@ -48,6 +54,8 @@ def machine_inverse (inv : is_invertible m) : machine S Y X := {
 }
 
 --!! how to convert automatically a machine with is_invertible to an invertible_machine?
+
+#check function.End
 
 --!! notation ⬝?
 def machine_action : S → (list X) → (list Y)
@@ -79,14 +87,14 @@ open machine
 variables (t : transducer S X Y)
 
 --!! how do I tell lean that t is also a machine?
-def transducer_action : (list X) → (list Y) := machine_action t t.init
+def transducer_action : (list X) → (list Y) := machine_action t.to_machine t.init
 
 def transducer_composition (t₁ : transducer S X Y) (t₂ : transducer T Y Z) : transducer (S×T) X Z := {
     init := (t₁.init,t₂.init),
-    .. machine_composition t₁ t₂
+    ..machine_composition t₁.to_machine t₂.to_machine
 }
 
-def transducer_mk (m : machine S X Y) (i : S) := { init := i, ..m }
+def transducer_mk (m : machine S X Y) (i : S) : transducer S X Y := { init := i, ..m }
 
 end transducer
 
@@ -99,12 +107,30 @@ open automata_group
 notation `X` := fin 2
 notation `S` := fin 5
 
-def grigorchuk_machine : S → X → X × S :=
-![![(1,4), (0,4)], ![(0,0),(1,2)], ![(0,0),(1,3)], ![(0,4),(1,1)], ![(0,4),(1,4)]]
+def grigorchuk_machine : machine S X X := {
+   out := ![![1,0], ![0,1], ![0,1], ![0,1], ![0,1]],
+   step := ![![4,4], ![0,2], ![0,3], ![0,1], ![4,4]]
+}
 
 -- this fails, though it should be easily decidable
 def inv : isinvertible_machine grigorchuk_machine := begin
   rw isinvertible_machine, dec_trivial,
+end
+
+--! do automatically? a tactic replacing the maps in out with fintype.bij_inv
+def grigorchuk_invmachine : invertible_machine S X := {
+   out := ![equiv.swap 0 1, equiv.refl _, equiv.refl _, equiv.refl _, equiv.refl _],
+   step := ![![4,4], ![0,2], ![0,3], ![0,1], ![4,4]]
+}
+
+def grigorchuk_a : invertible_transducer S X := { init := 0, ..grigorchuk_invmachine }
+def grigorchuk_b : invertible_transducer S X := { init := 1, ..grigorchuk_invmachine }
+def grigorchuk_c : invertible_transducer S X := { init := 2, ..grigorchuk_invmachine }
+def grigorchuk_d : invertible_transducer S X := { init := 3, ..grigorchuk_invmachine }
+def grigorchuk_e : invertible_transducer S X := { init := 4, ..grigorchuk_invmachine }
+
+example : grigorchuk_e.is_trivial := begin
+-- set reachable = {4}, check that all outputs are trivial 
 end
 
 def _root_.grigorchuk_group : subgroup (equiv.perm (list X)) := automata_group grigorchuk_machine inv

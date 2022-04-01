@@ -498,11 +498,15 @@ instance subtype.decidable_lt [preorder α] [@decidable_rel α (<)] {p : α → 
   @decidable_rel (subtype p) (<) :=
 λ a b, decidable_of_iff _ subtype.coe_lt_coe
 
-/-- A subtype of a linear order is a linear order. We explicitly give the proof of decidable
-  equality as the existing instance, in order to not have two instances of decidable equality that
-  are not definitionally equal. -/
+/-- A subtype of a linear order is a linear order. We explicitly give the proofs of decidable
+equality and decidable order in order to ensure the decidability instances are all definitionally
+equal. -/
 instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
 { decidable_eq := subtype.decidable_eq,
+  decidable_le := subtype.decidable_le,
+  decidable_lt := subtype.decidable_lt,
+  max_def := by { ext a b, convert rfl },
+  min_def := by { ext a b, convert rfl },
   .. linear_order.lift coe subtype.coe_injective }
 
 /-!

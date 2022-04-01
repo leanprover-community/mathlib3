@@ -195,7 +195,8 @@ lemma is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate (hx : x ∈ p
 begin
   rcases hx with ⟨r, hr, hr'⟩,
   convert (hm.apply_iterate ((n / r + 1) * r - n)).eq,
-  rw [←iterate_add_apply, nat.sub_add_cancel, iterate_mul, (hr'.iterate _).eq],
+  suffices : n ≤ (n / r + 1) * r,
+  { rw [←iterate_add_apply, nat.sub_add_cancel this, iterate_mul, (hr'.iterate _).eq], },
   rw [add_mul, one_mul],
   exact (nat.lt_div_mul_add hr).le
 end

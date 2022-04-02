@@ -347,7 +347,7 @@ section indep_fun
 variables {α β β' γ γ' : Type*} [measurable_space α] [measurable_space β] [measurable_space β']
 variables [measurable_space γ] [measurable_space γ'] {μ : measure α}
 
-lemma indep_fun_of_indep_fun_of_ae_eq {f g f' g' : α → β} (hfg : indep_fun f g μ)
+lemma indep_fun.ae_eq {f g f' g' : α → β} (hfg : indep_fun f g μ)
   (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') : indep_fun f' g' μ :=
 begin
   rintro _ _ ⟨A,hA,rfl⟩ ⟨B,hB,rfl⟩,

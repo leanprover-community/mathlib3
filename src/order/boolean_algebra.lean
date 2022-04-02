@@ -123,9 +123,13 @@ begin
   exact (eq_of_inf_eq_sup_eq i s).symm,
 end
 
-theorem sdiff_symm (hy : y ≤ x) (hz : z ≤ x) (H : x \ y = z) : x \ z = y :=
+lemma sdiff_le : x \ y ≤ x :=
+calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
+       ... = x                 : sup_inf_sdiff x y
+
+lemma sdiff_symm (hy : y ≤ x) (H : x \ y = z) : x \ z = y :=
 have hyi : x ⊓ y = y := inf_eq_right.2 hy,
-have hzi : x ⊓ z = z := inf_eq_right.2 hz,
+have hzi : x ⊓ z = z := inf_eq_right.2 (by { rw ←H, exact sdiff_le }),
 eq_of_inf_eq_sup_eq
   (begin
     have ixy := inf_inf_sdiff x y,
@@ -141,10 +145,6 @@ eq_of_inf_eq_sup_eq
     have sxy := sup_inf_sdiff x y,
     rwa [H, hyi] at sxy,
   end)
-
-lemma sdiff_le : x \ y ≤ x :=
-calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
-       ... = x                 : sup_inf_sdiff x y
 
 @[simp] lemma bot_sdiff : ⊥ \ x = ⊥ := le_bot_iff.1 sdiff_le
 
@@ -527,6 +527,12 @@ sdiff_unique
                             ... = x ⊓ y                     : by rw sup_inf_sdiff)
   (calc x ⊓ y ⊓ z ⊓ (x ⊓ (y \ z)) = x ⊓ x ⊓ ((y ⊓ z) ⊓ (y \ z)) : by ac_refl
                               ... = ⊥                           : by rw [inf_inf_sdiff, inf_bot_eq])
+
+lemma inf_sdiff_distrib_left (a b c : α) : a ⊓ b \ c = (a ⊓ b) \ (a ⊓ c) :=
+by rw [sdiff_inf, sdiff_eq_bot_iff.2 inf_le_left, bot_sup_eq, inf_sdiff_assoc]
+
+lemma inf_sdiff_distrib_right (a b c : α) : a \ b ⊓ c = (a ⊓ c) \ (b ⊓ c) :=
+by simp_rw [@inf_comm _ _ _ c, inf_sdiff_distrib_left]
 
 lemma sup_eq_sdiff_sup_sdiff_sup_inf : x ⊔ y = (x \ y) ⊔ (y \ x) ⊔ (x ⊓ y) :=
 eq.symm $

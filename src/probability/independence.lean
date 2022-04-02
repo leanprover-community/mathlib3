@@ -357,7 +357,7 @@ begin
   exact hfg _ _ ⟨_,hA,rfl⟩ ⟨_,hB,rfl⟩
 end
 
-lemma indep_fun_comp_of_indep_fun {f : α → β} {g : α → β'} (hfg : indep_fun f g μ)
+lemma indep_fun.comp {f : α → β} {g : α → β'} (hfg : indep_fun f g μ)
   {φ : β → γ} {ψ : β' → γ'} (hφ : measurable φ) (hψ : measurable ψ) :
   indep_fun (φ ∘ f) (ψ ∘ g) μ :=
 begin

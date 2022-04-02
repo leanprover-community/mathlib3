@@ -266,7 +266,7 @@ do
     tactic.congr_core',
     -- with identical first terms,
     reflexivity <|> fail "`coherence` tactic failed, non-structural morphisms don't match",
-    -- and whose second terms can be identified by recursively called `coherence2`.
+    -- and whose second terms can be identified by recursively called `coherence1`.
     coherence)
 
 run_cmd add_interactive [`coherence1, `coherence]

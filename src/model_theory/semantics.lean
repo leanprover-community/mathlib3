@@ -550,7 +550,7 @@ lemma Theory.model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
 
 lemma Theory.model_singleton_iff {φ : L.sentence} :
   M ⊨ ({φ} : L.Theory) ↔ M ⊨ φ :=
-by simp [Theory.model_iff]
+by simp
 
 namespace bounded_formula
 

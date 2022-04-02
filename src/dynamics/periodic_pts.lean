@@ -265,6 +265,9 @@ lemma minimal_period_pos_iff_mem_periodic_pts :
   by simp only [minimal_period, dif_neg h, lt_irrefl 0, not_false_iff],
   minimal_period_pos_of_mem_periodic_pts⟩
 
+lemma minimal_period_eq_zero_iff_nmem_periodic_pts : minimal_period f x = 0 ↔ x ∉ periodic_pts f :=
+by rw [←minimal_period_pos_iff_mem_periodic_pts, not_lt, nonpos_iff_eq_zero]
+
 lemma is_periodic_pt.minimal_period_le (hn : 0 < n) (hx : is_periodic_pt f n x) :
   minimal_period f x ≤ n :=
 begin
@@ -275,18 +278,14 @@ end
 theorem minimal_period_apply_iterate (hx : x ∈ periodic_pts f) (n : ℕ) :
   minimal_period f (f^[n] x) = minimal_period f x :=
 begin
-  apply le_antisymm,
-  { apply is_periodic_pt.minimal_period_le (minimal_period_pos_iff_mem_periodic_pts.2 hx),
-    change (f^[_] (f^[n] x)) = (f^[n] x),
+  apply (is_periodic_pt.minimal_period_le (minimal_period_pos_of_mem_periodic_pts hx) _).antisymm
+    ((is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate hx
+      (is_periodic_pt_minimal_period f _)).minimal_period_le
+    (minimal_period_pos_of_mem_periodic_pts _)),
+  { change (f^[_] (f^[n] x)) = (f^[n] x),
     rw [←iterate_add_apply, add_comm, iterate_add_apply, iterate_minimal_period] },
-  { have hx' : (f^[n] x) ∈ periodic_pts f := begin
-      rcases hx with ⟨m, hm, hx⟩,
-      exact ⟨m, hm, hx.apply_iterate n⟩
-    end,
-    apply is_periodic_pt.minimal_period_le (minimal_period_pos_iff_mem_periodic_pts.2 hx'),
-    change (f^[_] x) = x,
-    apply @iterate_eq_of_periodic_pt α f x hx n,
-    rw [add_comm, iterate_add_apply, iterate_minimal_period] }
+  { rcases hx with ⟨m, hm, hx⟩,
+    exact ⟨m, hm, hx.apply_iterate n⟩ }
 end
 
 theorem minimal_period_apply (hx : x ∈ periodic_pts f) :
@@ -297,8 +296,9 @@ lemma le_of_lt_minimal_period_of_iterate_eq {m n : ℕ} (hm : m < minimal_period
   (hmn : f^[m] x = (f^[n] x)) : m ≤ n :=
 begin
   by_contra' hmn',
-  rw ←nat.add_sub_of_le hmn'.le at hmn,
-  exact ((is_periodic_pt.minimal_period_le (tsub_pos_of_lt hmn') (iterate_eq_of_periodic_pt
+  rw [←nat.add_sub_of_le hmn'.le, add_comm, iterate_add_apply] at hmn,
+  exact ((is_periodic_pt.minimal_period_le (tsub_pos_of_lt hmn')
+    (is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate
     (minimal_period_pos_iff_mem_periodic_pts.1 ((zero_le m).trans_lt hm)) hmn)).trans
     (nat.sub_le m n)).not_lt hm
 end
@@ -417,57 +417,57 @@ the minimal period of `x`. -/
 def orbit (f : α → α) (x : α) : cycle α :=
 (list.range (minimal_period f x)).map (λ n, f^[n] x)
 
+/-- The definition of an orbit, in terms of `list.map`. -/
 theorem orbit_def (f : α → α) (x : α) :
   orbit f x = (list.range (minimal_period f x)).map (λ n, f^[n] x) :=
 rfl
 
-@[simp] theorem orbit_length (f : α → α) (x : α) : (orbit f x).length = minimal_period f x :=
+/-- The definition of an orbit, in terms of `cycle.map`. -/
+theorem orbit_def' (f : α → α) (x : α) :
+  orbit f x = (list.range (minimal_period f x) : cycle ℕ).map (λ n, f^[n] x) :=
+rfl
+
+@[simp] theorem orbit_length : (orbit f x).length = minimal_period f x :=
 by rw [orbit, cycle.length_coe, list.length_map, list.length_range]
 
-theorem orbit_eq_nil_of_not_periodic_pt {f : α → α} {x : α} (hx : x ∉ periodic_pts f) :
-  orbit f x = cycle.nil :=
-by { simp [orbit], exact minimal_period_eq_zero_of_nmem_periodic_pts hx }
+@[simp] theorem orbit_eq_nil_iff_not_periodic_pt : orbit f x = cycle.nil ↔ x ∉ periodic_pts f :=
+by { simp [orbit], exact minimal_period_eq_zero_iff_nmem_periodic_pts }
 
-@[simp] theorem self_mem_orbit {f : α → α} {x : α} (h : x ∈ periodic_pts f) : x ∈ orbit f x :=
-by { simp [orbit], exact ⟨0, minimal_period_pos_of_mem_periodic_pts h, rfl⟩ }
+theorem orbit_eq_nil_of_not_periodic_pt (h : x ∉ periodic_pts f) : orbit f x = cycle.nil :=
+orbit_eq_nil_iff_not_periodic_pt.2 h
 
-@[simp] theorem mem_orbit_iff {f : α → α} {x y : α} (hx : x ∈ periodic_pts f) :
-  y ∈ orbit f x ↔ ∃ n, f^[n] x = y :=
+@[simp] theorem mem_orbit_iff (hx : x ∈ periodic_pts f) : y ∈ orbit f x ↔ ∃ n, f^[n] x = y :=
 begin
-  simp [orbit, periodic_pts, is_periodic_pt],
-  split,
-  { rintro ⟨a, ha, ha'⟩,
-    use a + minimal_period f x,
-    rwa iterate_eq_add_minimal_period },
-  { rintro ⟨n, rfl⟩,
-    use [n % minimal_period f x, mod_lt _ (minimal_period_pos_iff_mem_periodic_pts.2 hx)],
-    rw iterate_eq_mod_minimal_period }
+  simp only [orbit, cycle.mem_coe_iff, list.mem_map, list.mem_range],
+  use λ ⟨a, ha, ha'⟩, ⟨a, ha'⟩,
+  rintro ⟨n, rfl⟩,
+  use [n % minimal_period f x, mod_lt _ (minimal_period_pos_of_mem_periodic_pts hx)],
+  rw iterate_eq_mod_minimal_period
 end
 
-@[simp] theorem iterate_mem_orbit {f : α → α} {x : α} (hx : x ∈ periodic_pts f) (n : ℕ) :
-  f^[n] x ∈ orbit f x :=
+@[simp] theorem iterate_mem_orbit (hx : x ∈ periodic_pts f) (n : ℕ) : f^[n] x ∈ orbit f x :=
 (mem_orbit_iff hx).2 ⟨n, rfl⟩
 
-theorem nodup_orbit {f : α → α} {x : α} : (orbit f x).nodup :=
+@[simp] theorem self_mem_orbit (hx : x ∈ periodic_pts f) : x ∈ orbit f x :=
+iterate_mem_orbit hx 0
+
+theorem nodup_orbit : (orbit f x).nodup :=
 begin
-  rw [orbit_def, cycle.nodup_coe_iff, list.nodup_map_iff_inj_on (list.nodup_range _)],
+  rw [orbit, cycle.nodup_coe_iff, list.nodup_map_iff_inj_on (list.nodup_range _)],
   intros m hm n hn hmn,
   rw list.mem_range at hm hn,
   rwa eq_iff_lt_minimal_period_of_iterate_eq hm hn at hmn
 end
 
-theorem orbit_apply_iterate_eq {f : α → α} {x : α} (hx : x ∈ periodic_pts f) (n : ℕ) :
-  orbit f (f^[n] x) = orbit f x :=
+theorem orbit_apply_iterate_eq (hx : x ∈ periodic_pts f) (n : ℕ) : orbit f (f^[n] x) = orbit f x :=
 eq.symm $ cycle.coe_eq_coe.2 $ ⟨n, begin
-  apply list.ext_le;
-  simp [minimal_period_apply_iterate hx],
-  intros m _ _,
-  rw list.nth_le_rotate _ n m,
-  simp,
-  apply iterate_add_apply
+  apply list.ext_le _ (λ m _ _, _),
+  { simp [minimal_period_apply_iterate hx] },
+  { rw list.nth_le_rotate _ n m,
+    simp [iterate_add_apply] }
 end⟩
 
-theorem orbit_apply_eq {f : α → α} {x : α} (hx : x ∈ periodic_pts f) : orbit f (f x) = orbit f x :=
+theorem orbit_apply_eq (hx : x ∈ periodic_pts f) : orbit f (f x) = orbit f x :=
 orbit_apply_iterate_eq hx 1
 
 theorem orbit_chain (r : α → α → Prop) {f : α → α} {x : α} :

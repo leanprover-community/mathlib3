@@ -59,15 +59,6 @@ theorem chain.iff_mem {a : α} {l : list α} :
 theorem chain_singleton {a b : α} : chain R a [b] ↔ R a b :=
 by simp only [chain_cons, chain.nil, and_true]
 
-@[simp] theorem chain_append_singleton_cons (r : α → α → Prop) (a b c : α) (l m : list α) :
-  chain r a (l ++ b :: c :: m) ↔ chain r a (l ++ [b]) ∧ r b c ∧ chain r c m :=
-begin
-  induction l with d l H generalizing a b c,
-  { simp },
-  { simp only [cons_append, chain_cons],
-    rw [H d b c, and.assoc] }
-end
-
 theorem chain_split {a b : α} {l₁ l₂ : list α} : chain R a (l₁ ++ b :: l₂) ↔
   chain R a (l₁ ++ [b]) ∧ chain R b l₂ :=
 by induction l₁ with x l₁ IH generalizing a;
@@ -173,10 +164,17 @@ theorem chain'.iff_mem : ∀ {l : list α}, chain' R l ↔ chain' (λ x y, x ∈
 
 @[simp] theorem chain'_singleton (a : α) : chain' R [a] := chain.nil
 
+@[simp] theorem chain'_cons {x y l} : chain' R (x :: y :: l) ↔ R x y ∧ chain' R (y :: l) :=
+chain_cons
+
 theorem chain'_split {a : α} : ∀ {l₁ l₂ : list α}, chain' R (l₁ ++ a :: l₂) ↔
   chain' R (l₁ ++ [a]) ∧ chain' R (a :: l₂)
 | []        l₂ := (and_iff_right (chain'_singleton a)).symm
 | (b :: l₁) l₂ := chain_split
+
+@[simp] theorem chain'_append_cons_cons {b c : α} {l₁ l₂ : list α} :
+  chain' R (l₁ ++ b :: c :: l₂) ↔ chain' R (l₁ ++ [b]) ∧ R b c ∧ chain' R (c :: l₂) :=
+by rw [chain'_split, chain'_cons]
 
 theorem chain'_map (f : β → α) {l : list β} :
   chain' R (map f l) ↔ chain' (λ a b : β, R (f a) (f b)) l :=
@@ -200,9 +198,6 @@ theorem chain'_iff_pairwise (tr : transitive R) : ∀ {l : list α},
   chain' R l ↔ pairwise R l
 | []       := (iff_true_intro pairwise.nil).symm
 | (a :: l) := chain_iff_pairwise tr
-
-@[simp] theorem chain'_cons {x y l} : chain' R (x :: y :: l) ↔ R x y ∧ chain' R (y :: l) :=
-chain_cons
 
 theorem chain'.cons {x y l} (h₁ : R x y) (h₂ : chain' R (y :: l)) :
   chain' R (x :: y :: l) :=

@@ -237,7 +237,7 @@ where `a = a'`, `b = b'`, and `c = c'` can be proved using `coherence1`.
 meta def coherence : tactic unit :=
 do
   -- To prove an equality `f = g` in a monoidal category,
-  -- first try the `coherence` tactic on the entire equation:
+  -- first try the `coherence1` tactic on the entire equation:
   coherence1 <|> do
   -- Otherewise, rearrange so we have a maximal prefix of each side
   -- that is built out of unitors and associators:
@@ -253,7 +253,8 @@ do
   -- Then check that either `g₀` is identically `g₁`,
   reflexivity <|> (do
     -- or that both are compositions,
-    `(_ ≫ _ = _ ≫ _) ← target,
+    `(_ ≫ _ = _ ≫ _) ← target |
+      fail "`coherence` tactic failed, non-structural morphisms don't match",
     tactic.congr_core',
     -- with identical first terms,
     reflexivity <|> fail "`coherence` tactic failed, non-structural morphisms don't match",

@@ -104,6 +104,7 @@ def hcomp {F G : lax_monoidal_functor C D} {H K : lax_monoidal_functor D E}
   ..(nat_trans.hcomp α.to_nat_trans β.to_nat_trans) }
 
 /-- The cartesian product of two monoidal natural transformations is monoidal. -/
+@[simps]
 def prod {F G : lax_monoidal_functor C D} {H K : lax_monoidal_functor C E}
   (α : monoidal_nat_trans F G) (β : monoidal_nat_trans H K) :
   monoidal_nat_trans (F.prod' H) (G.prod' K) :=

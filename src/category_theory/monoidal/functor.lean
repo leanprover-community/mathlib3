@@ -295,6 +295,7 @@ variables {B : Type u₀} [category.{v₀} B] [monoidal_category.{v₀} B]
 variables (F : lax_monoidal_functor.{v₀ v₁} B C) (G : lax_monoidal_functor.{v₂ v₃} D E)
 
 /-- The cartesian product of two lax monoidal functors is lax monoidal. -/
+@[simps]
 def prod : lax_monoidal_functor (B × D) (C × E) :=
 { ε := (ε F, ε G),
   μ := λ X Y, (μ F X.1 Y.1, μ G X.2 Y.2),
@@ -312,6 +313,7 @@ variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{
 
 /-- The cartesian product of two lax monoidal functors starting from the same monoidal category `C`
     is lax monoidal. -/
+@[simps]
 def prod' : lax_monoidal_functor C (D × E) :=
 { ε := (ε F, ε G),
   μ := λ X Y, (μ F X Y, μ G X Y),
@@ -344,6 +346,7 @@ variables {B : Type u₀} [category.{v₀} B] [monoidal_category.{v₀} B]
 variables (F : monoidal_functor.{v₀ v₁} B C) (G : monoidal_functor.{v₂ v₃} D E)
 
 /-- The cartesian product of two monoidal functors is monoidal. -/
+@[simps]
 def prod : monoidal_functor (B × D) (C × E) :=
 { ε_is_iso := (is_iso_prod_iff C E).mpr ⟨ε_is_iso F, ε_is_iso G⟩,
   μ_is_iso := λ X Y, (is_iso_prod_iff C E).mpr ⟨μ_is_iso F X.1 Y.1, μ_is_iso G X.2 Y.2⟩,
@@ -356,6 +359,7 @@ variables (F : monoidal_functor.{v₁ v₂} C D) (G : monoidal_functor.{v₁ v�
 
 /-- The cartesian product of two monoidal functors starting from the same monoidal category `C`
     is monoidal. -/
+@[simps]
 def prod' : monoidal_functor C (D × E) :=
 { ε_is_iso := (is_iso_prod_iff D E).mpr ⟨ε_is_iso F, ε_is_iso G⟩,
   μ_is_iso := λ X Y, (is_iso_prod_iff D E).mpr ⟨μ_is_iso F X Y, μ_is_iso G X Y⟩,

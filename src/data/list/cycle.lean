@@ -724,12 +724,12 @@ instance [has_repr α] : has_repr (cycle α) :=
 
 /-- `chain R s` means that `R` holds between adjacent elements of `s`.
 
-     chain R [a, b, c] ↔ R a b ∧ R b c ∧ R c a -/
-def chain (r : α → α → Prop) : cycle α → Prop :=
-@quotient.lift _ _ (is_rotated.setoid α) (λ l, match l with
-  | [] := (tt : Prop)
+`chain R ([a, b, c] : cycle α) ↔ R a b ∧ R b c ∧ R c a` -/
+def chain (r : α → α → Prop) (c : cycle α) : Prop :=
+quotient.lift_on' c (λ l, match l with
+  | [] := true
   | (a :: m) := chain r a (m ++ [a]) end) $
-λ a b hab, begin
+λ a b hab, propext $ begin
   cases a with a l;
   cases b with b m,
   { refl },
@@ -737,7 +737,7 @@ def chain (r : α → α → Prop) : cycle α → Prop :=
     contradiction },
   { have := is_rotated_nil_iff.1 hab,
     contradiction },
-  { change chain _ _ _ = chain _ _ _,
+  { unfold chain._match_1,
     cases hab with n hn,
     induction n with d hd generalizing a b l m,
     { simp only [rotate_zero] at hn,
@@ -747,30 +747,33 @@ def chain (r : α → α → Prop) : cycle α → Prop :=
         rw [hn.1, hn.2] },
       { rw [nat.succ_eq_one_add, ←rotate_rotate, rotate_cons_succ, rotate_zero, cons_append] at hn,
         rw [←hd c _ _ _ hn],
-        simp,
-        exact and.comm } } }
+        simp [and.comm] } } }
 end
 
 @[simp] lemma chain.nil (r : α → α → Prop) : cycle.chain r (@nil α) :=
-by exact rfl
+by trivial
 
-@[simp] lemma chain_cons (r : α → α → Prop) (a : α) (l : list α) :
+@[simp] lemma chain_coe_cons (r : α → α → Prop) (a : α) (l : list α) :
   chain r (a :: l) ↔ list.chain r a (l ++ [a]) :=
 iff.rfl
 
 @[simp] lemma chain_singleton (r : α → α → Prop) (a : α) : chain r [a] ↔ r a a :=
-by rw [chain_cons, nil_append, chain_singleton]
+by rw [chain_coe_cons, nil_append, chain_singleton]
 
-lemma chain_ne_nil (r : α → α → Prop) {l : list α} (hl : l ≠ []) :
-  chain r l ↔ list.chain r (last l hl) l :=
-@list.reverse_rec_on α (λ m, ∀ hm : m ≠ [], (chain r ↑m ↔ list.chain r (last m hm) m)) l
-  (λ hm, hm.irrefl.elim) (λ m a H _, by rw [←coe_cons_eq_coe_append, chain_cons, last_append]) hl
+lemma chain_ne_nil (r : α → α → Prop) {l : list α} :
+  Π hl : l ≠ [], chain r l ↔ list.chain r (last l hl) l :=
+begin
+  apply l.reverse_rec_on,
+  exact λ hm, hm.irrefl.elim,
+  intros m a H _,
+  rw [←coe_cons_eq_coe_append, chain_coe_cons, last_append]
+end
 
 lemma chain_map {β : Type*} {r : α → α → Prop} (f : β → α) {s : cycle β} :
   chain r (s.map f) ↔ chain (λ a b, r (f a) (f b)) s :=
 quotient.induction_on' s $ λ l, begin
-  cases l with a l;
-  simp,
+  cases l with a l,
+  refl,
   convert list.chain_map f,
   rw map_append f l [a],
   refl
@@ -780,12 +783,12 @@ variables {r : α → α → Prop} {s : cycle α}
 
 theorem chain_of_pairwise : (∀ (a ∈ s) (b ∈ s), r a b) → chain r s :=
 begin
-  apply s.rec_on,
+  induction s using cycle.induction_on with a l _,
   exact λ _, cycle.chain.nil r,
-  intros a l _ hs,
+  intro hs,
   have Ha : a ∈ ((a :: l) : cycle α) := by simp,
   have Hl : ∀ {b} (hb : b ∈ l), b ∈ ((a :: l) : cycle α) := λ b hb, by simp [hb],
-  rw cycle.chain_cons,
+  rw cycle.chain_coe_cons,
   apply chain_of_pairwise,
   rw pairwise_cons,
   refine ⟨λ b hb, _, pairwise_append.2 ⟨pairwise_of_forall_mem_list
@@ -803,11 +806,12 @@ end
 
 theorem chain_iff_pairwise (hr : transitive r) : chain r s ↔ ∀ (a ∈ s) (b ∈ s), r a b :=
 ⟨begin
-  apply s.rec_on,
+  induction s using cycle.induction_on with a l _,
   exact λ _ b hb, hb.elim,
-  intros a l _ hs b hb c hc,
-  rw [cycle.chain_cons, chain_iff_pairwise hr] at hs,
-  simp [pairwise_append] at hs,
+  intros hs b hb c hc,
+  rw [cycle.chain_coe_cons, chain_iff_pairwise hr] at hs,
+  simp only [pairwise_append, pairwise_cons, mem_append, mem_singleton, list.not_mem_nil,
+    forall_false_left, implies_true_iff, pairwise.nil, forall_eq, true_and] at hs,
   simp only [mem_coe_iff, mem_cons_iff] at hb hc,
   rcases hb with rfl | hb;
   rcases hc with rfl | hc,

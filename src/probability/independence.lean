@@ -344,14 +344,10 @@ end indep_set
 
 section indep_fun
 
-variables {α β β' γ γ' : Type*} {mα : measurable_space α} {mβ : measurable_space β}
-  {mβ' : measurable_space β'} {mγ : measurable_space γ} {mγ' : measurable_space γ'}
-  {μ : measure α}
+variables {α β β' γ γ' : Type*} {mα : measurable_space α} {μ : measure α}
 
-include mα mβ
-
-lemma indep_fun.ae_eq {f g f' g' : α → β} (hfg : indep_fun f g μ)
-  (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :
+lemma indep_fun.ae_eq {mβ : measurable_space β} {f g f' g' : α → β}
+  (hfg : indep_fun f g μ) (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :
   indep_fun f' g' μ :=
 begin
   rintro _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
@@ -361,8 +357,10 @@ begin
   exact hfg _ _ ⟨_, hA, rfl⟩ ⟨_, hB, rfl⟩
 end
 
-lemma indep_fun.comp {f : α → β} {g : α → β'} (hfg : indep_fun f g μ)
-  {φ : β → γ} {ψ : β' → γ'} (hφ : measurable φ) (hψ : measurable ψ) :
+lemma indep_fun.comp {mβ : measurable_space β} {mβ' : measurable_space β'}
+  {mγ : measurable_space γ} {mγ' : measurable_space γ'}
+  {f : α → β} {g : α → β'} {φ : β → γ} {ψ : β' → γ'}
+  (hfg : indep_fun f g μ) (hφ : measurable φ) (hψ : measurable ψ) :
   indep_fun (φ ∘ f) (ψ ∘ g) μ :=
 begin
   rintro _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,

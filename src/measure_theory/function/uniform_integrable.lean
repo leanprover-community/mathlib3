@@ -834,66 +834,6 @@ begin
   end
 end
 
-lemma uniform_integrable.spec (hp : p ≠ 0) (hp' : p ≠ ∞)
-  (hfu : uniform_integrable f p μ) {ε : ℝ} (hε : 0 < ε) :
-  ∃ C : ℝ≥0, ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε :=
-begin
-  obtain ⟨hf₀, hfu, M, hM⟩ := hfu,
-  by_cases hMzero : M = 0,
-  { subst hMzero,
-    have : ∀ i, f i =ᵐ[μ] 0,
-    { intro i,
-      rw [← snorm_eq_zero_iff (hf₀ i).ae_measurable hp, ← nonpos_iff_eq_zero, ← ennreal.coe_zero],
-      exact hM i },
-    refine ⟨0, λ i, _⟩,
-    rw (snorm_eq_zero_iff
-      ((hf₀ i).indicator (measurable_set_le measurable_const (hf₀ i).nnnorm)).ae_measurable hp).2
-      (indicator_ae_eq_zero_of_ae_eq_zero (this i)),
-    exact bot_le },
-  obtain ⟨δ, hδpos, hδ⟩ := hfu hε,
-  obtain ⟨C, hC⟩ : ∃ C : ℝ≥0, ∀ i, μ {x | C ≤ ∥f i x∥₊} ≤ ennreal.of_real δ,
-  { by_contra hcon, push_neg at hcon,
-    choose ℐ hℐ using hcon,
-    lift δ to ℝ≥0 using hδpos.le,
-    have : ∀ C : ℝ≥0, C • (δ : ℝ≥0∞) ^ (1 / p.to_real) ≤ snorm (f (ℐ C)) p μ,
-    { intros C,
-      calc C • (δ : ℝ≥0∞) ^ (1 / p.to_real) ≤ C • μ {x | C ≤ ∥f (ℐ C) x∥₊} ^ (1 / p.to_real):
-      begin
-        rw [ennreal.smul_def, ennreal.smul_def, smul_eq_mul, smul_eq_mul],
-        simp_rw ennreal.of_real_coe_nnreal at hℐ,
-        refine ennreal.mul_le_mul le_rfl (ennreal.rpow_le_rpow (hℐ C).le
-          (one_div_nonneg.2 ennreal.to_real_nonneg)),
-      end
-      ... ≤ snorm ({x | C ≤ ∥f (ℐ C) x∥₊}.indicator (f (ℐ C))) p μ :
-      begin
-        refine snorm_indicator_ge_of_bdd_below hp hp' _
-          (measurable_set_le measurable_const (hf₀ _).nnnorm)
-          (eventually_of_forall $ λ x hx, _),
-        rwa [nnnorm_indicator_eq_indicator_nnnorm, indicator_of_mem hx],
-      end
-      ... ≤ snorm (f (ℐ C)) p μ : snorm_indicator_le _ },
-    specialize hM (ℐ (2 * M * (δ⁻¹ ^ (1 / p.to_real)))),
-    specialize this ((2 * M * (δ⁻¹ ^ (1 / p.to_real)))),
-    rw [ennreal.coe_rpow_of_nonneg _ (one_div_nonneg.2 ennreal.to_real_nonneg),
-      ← ennreal.coe_smul, smul_eq_mul, mul_assoc, nnreal.inv_rpow,
-      inv_mul_cancel (nnreal.rpow_pos (nnreal.coe_pos.1 hδpos)).ne.symm, mul_one,
-      ennreal.coe_mul, ← nnreal.inv_rpow] at this,
-    refine (lt_of_le_of_lt hM (lt_of_lt_of_le _ this)).ne rfl,
-    conv_lhs { rw [← one_mul M, ennreal.coe_mul] },
-    exact (ennreal.mul_lt_mul_right (ennreal.coe_ne_zero.2 hMzero) ennreal.coe_ne_top).2
-      (by norm_num) },
-  exact ⟨C, λ i, hδ i _ (measurable_set_le measurable_const (hf₀ i).nnnorm) (hC i)⟩,
-end
-
-/-- The definition of uniform integrable in mathlib is equivalent to the definition commonly
-found in literature. -/
-lemma uniform_integrable_iff [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞) :
-  uniform_integrable f p μ ↔ (∀ i, measurable (f i)) ∧
-  ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
-    ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε  :=
-⟨λ h, ⟨h.1, λ ε, h.spec (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm hp'⟩,
- λ h, uniform_integrable_of hp hp' h.1 h.2⟩
-
 end uniform_integrable
 
 end measure_theory

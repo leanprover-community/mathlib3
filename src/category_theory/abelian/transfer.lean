@@ -20,7 +20,7 @@ then `𝒜` is also abelian.
 See https://stacks.math.columbia.edu/tag/03A3
 
 ## Notes
-The hypotheses, following the statement from the Stack project,
+The hypotheses, following the statement from the Stacks project,
 may appear suprising: we don't ask that the counit of the adjunction is an isomorphism,
 but just that we have some potentially unrelated isomorphism `i : a ⋙ b ≅ 𝟭 𝒜`.
 

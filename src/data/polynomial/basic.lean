@@ -30,7 +30,7 @@ the polynomials. For instance,
 
 ## Implementation
 
-Polynomials are defined using `add_monoid_algebra R ℕ`, where `R` is a commutative semiring, but
+Polynomials are defined using `add_monoid_algebra R ℕ`, where `R` is a semiring, but
 through a structure to make them irreducible from the point of view of the kernel. Most operations
 are irreducible since Lean can not compute anyway with `add_monoid_algebra`. There are two
 exceptions that we make semireducible:

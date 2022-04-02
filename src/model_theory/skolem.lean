@@ -55,6 +55,8 @@ rfl
 open cardinal
 open_locale cardinal
 
+variables (L) (M)
+
 theorem exists_small_elementary_substructure :
   ∃ (S : L.elementary_substructure M), small.{max u v} S :=
 begin

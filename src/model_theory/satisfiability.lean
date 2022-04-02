@@ -5,6 +5,7 @@ Authors: Aaron Anderson
 -/
 import model_theory.ultraproducts
 import model_theory.bundled
+import model_theory.skolem
 
 /-!
 # First-Order Satisfiability
@@ -49,9 +50,13 @@ def is_finitely_satisfiable : Prop :=
 
 variables {T} {T' : L.Theory}
 
-lemma model.is_satisfiable (M : Type (max u v)) [n : nonempty M]
+lemma model.is_satisfiable (M : Type w) [n : nonempty M]
   [S : L.Structure M] [M ⊨ T] : T.is_satisfiable :=
-⟨Model.of T M⟩
+begin
+  obtain ⟨S', hs⟩ := exists_small_elementary_substructure L (Model.of T M),
+  resetI,
+  exact ⟨(S'.to_Model T).shrink⟩,
+end
 
 lemma is_satisfiable.mono (h : T'.is_satisfiable) (hs : T ⊆ T') :
   T.is_satisfiable :=

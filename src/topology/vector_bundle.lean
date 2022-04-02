@@ -656,6 +656,32 @@ trivialization for the direct sum of `E₁` and `E₂`. -/
 def prod.to_fun' : total_space (E₁ ×ᵇ E₂) → B × (F₁ × F₂) :=
 λ ⟨x, v₁, v₂⟩, ⟨x, (e₁ ⟨x, v₁⟩).2, (e₂ ⟨x, v₂⟩).2⟩
 
+variables {e₁ e₂}
+
+lemma prod.continuous_to_fun :
+  continuous_on (prod.to_fun' e₁ e₂) (proj (E₁ ×ᵇ E₂) ⁻¹' (e₁.base_set ∩ e₂.base_set)) :=
+begin
+  let f₁ : total_space (E₁ ×ᵇ E₂) → total_space E₁ × total_space E₂ :=
+    λ p, ((⟨p.1, p.2.1⟩ : total_space E₁), (⟨p.1, p.2.2⟩ : total_space E₂)),
+  let f₂ : total_space E₁ × total_space E₂ → (B × F₁) × (B × F₂) := λ p, ⟨e₁ p.1, e₂ p.2⟩,
+  let f₃ : (B × F₁) × (B × F₂) → B × F₁ × F₂ := λ p, ⟨p.1.1, p.1.2, p.2.2⟩,
+  have hf₁ : continuous f₁ := (prod.inducing_diag E₁ E₂).continuous,
+  have hf₂ : continuous_on f₂ (e₁.source ×ˢ e₂.source) :=
+    e₁.to_local_homeomorph.continuous_on.prod_map e₂.to_local_homeomorph.continuous_on,
+  have hf₃ : continuous f₃ :=
+    (continuous_fst.comp continuous_fst).prod_mk (continuous_snd.prod_map continuous_snd),
+  refine ((hf₃.comp_continuous_on hf₂).comp hf₁.continuous_on _).congr _,
+  { rw [e₁.source_eq, e₂.source_eq],
+    exact maps_to_preimage _ _ },
+  rintros ⟨b, v₁, v₂⟩ ⟨hb₁, hb₂⟩,
+  simp only [prod.to_fun', prod.mk.inj_iff, eq_self_iff_true, and_true],
+  rw e₁.coe_fst,
+  rw [e₁.source_eq, mem_preimage],
+  exact hb₁,
+end
+
+variables (e₁ e₂)
+
 variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
   [topological_vector_bundle R F₁ E₁] [topological_vector_bundle R F₂ E₂]
 
@@ -713,28 +739,6 @@ begin
       continuous_linear_equiv.apply_symm_apply] },
   { rw [dif_pos, ← e₂.continuous_linear_equiv_at_apply x h.2,
       continuous_linear_equiv.apply_symm_apply] },
-end
-
-lemma prod.continuous_to_fun :
-  continuous_on (prod.to_fun' e₁ e₂) (proj (E₁ ×ᵇ E₂) ⁻¹' (e₁.base_set ∩ e₂.base_set)) :=
-begin
-  let f₁ : total_space (E₁ ×ᵇ E₂) → total_space E₁ × total_space E₂ :=
-    λ p, ((⟨p.1, p.2.1⟩ : total_space E₁), (⟨p.1, p.2.2⟩ : total_space E₂)),
-  let f₂ : total_space E₁ × total_space E₂ → (B × F₁) × (B × F₂) := λ p, ⟨e₁ p.1, e₂ p.2⟩,
-  let f₃ : (B × F₁) × (B × F₂) → B × F₁ × F₂ := λ p, ⟨p.1.1, p.1.2, p.2.2⟩,
-  have hf₁ : continuous f₁ := (prod.inducing_diag E₁ E₂).continuous,
-  have hf₂ : continuous_on f₂ (e₁.source ×ˢ e₂.source) :=
-    e₁.to_local_homeomorph.continuous_on.prod_map e₂.to_local_homeomorph.continuous_on,
-  have hf₃ : continuous f₃ :=
-    (continuous_fst.comp continuous_fst).prod_mk (continuous_snd.prod_map continuous_snd),
-  refine ((hf₃.comp_continuous_on hf₂).comp hf₁.continuous_on _).congr _,
-  { rw [e₁.source_eq, e₂.source_eq],
-    exact maps_to_preimage _ _ },
-  rintros ⟨b, v₁, v₂⟩ ⟨hb₁, hb₂⟩,
-  simp only [prod.to_fun', prod.mk.inj_iff, eq_self_iff_true, and_true],
-  rw e₁.coe_fst,
-  rw [e₁.source_eq, mem_preimage],
-  exact hb₁,
 end
 
 lemma prod.continuous_inv_fun :

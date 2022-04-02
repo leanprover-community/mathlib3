@@ -195,7 +195,7 @@ aleph'_lt.trans (add_lt_add_iff_left _)
 @[simp] theorem aleph_le {o₁ o₂ : ordinal.{u}} : aleph o₁ ≤ aleph o₂ ↔ o₁ ≤ o₂ :=
 le_iff_le_iff_lt_iff_lt.2 aleph_lt
 
-@[simp] theorem max_aleph_eq {o₁ o₂ : ordinal.{u}} : max (aleph o₁) (aleph o₂) = aleph (max o₁ o₂) :=
+@[simp] theorem max_aleph_eq (o₁ o₂ : ordinal) : max (aleph o₁) (aleph o₂) = aleph (max o₁ o₂) :=
 begin
   cases le_total (aleph o₁) (aleph o₂) with h h,
   { rw [max_eq_right h, max_eq_right (aleph_le.1 h)] },
@@ -358,7 +358,7 @@ max_le
   (by simpa only [one_mul] using
     mul_le_mul_right' (one_lt_omega.le.trans ha) b)
 
-@[simp] theorem aleph_mul_aleph {o₁ o₂ : ordinal} : aleph o₁ * aleph o₂ = aleph (max o₁ o₂) :=
+@[simp] theorem aleph_mul_aleph (o₁ o₂ : ordinal) : aleph o₁ * aleph o₂ = aleph (max o₁ o₂) :=
 by rw [cardinal.mul_eq_max (omega_le_aleph o₁) (omega_le_aleph o₂), max_aleph_eq]
 
 @[simp] theorem omega_mul_eq {a : cardinal} (ha : ω ≤ a) : ω * a = a :=
@@ -367,10 +367,10 @@ by rw [cardinal.mul_eq_max (omega_le_aleph o₁) (omega_le_aleph o₂), max_alep
 @[simp] theorem mul_omega_eq {a : cardinal} (ha : ω ≤ a) : a * ω = a :=
 (mul_eq_max ha le_rfl).trans (max_eq_left ha)
 
-@[simp] theorem omega_mul_aleph {o : ordinal} : ω * aleph o = aleph o :=
+@[simp] theorem omega_mul_aleph (o : ordinal) : ω * aleph o = aleph o :=
 omega_mul_eq (omega_le_aleph o)
 
-@[simp] theorem aleph_mul_omega {o : ordinal} : aleph o * ω = aleph o :=
+@[simp] theorem aleph_mul_omega (o : ordinal) : aleph o * ω = aleph o :=
 mul_omega_eq (omega_le_aleph o)
 
 theorem mul_lt_of_lt {a b c : cardinal} (hc : ω ≤ c)

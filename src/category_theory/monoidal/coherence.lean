@@ -171,6 +171,8 @@ f ≫ monoidal_coherence.hom X Y ≫ g
 
 infixr ` ⊗≫ `:80 := monoidal_comp -- type as \ot \gg
 
+example {U V W X Y : C} (f : U ⟶ V ⊗ (W ⊗ X)) (g : (V ⊗ W) ⊗ X ⟶ Y) : U ⟶ Y := f ⊗≫ g
+
 -- To automatically insert unitors/associators at the beginning or end,
 -- you can use `f ⊗≫ 𝟙 _`
 example {W X Y Z : C} (f : W ⟶ (X ⊗ Y) ⊗ Z) : W ⟶ X ⊗ (Y ⊗ Z) := f ⊗≫ 𝟙 _
@@ -181,9 +183,7 @@ by { dsimp [monoidal_comp], simp, }
 
 example {U V W X Y : C} (f : U ⟶ V ⊗ (W ⊗ X)) (g : (V ⊗ W) ⊗ X ⟶ Y) :
   f ⊗≫ g = f ≫ (α_ _ _ _).inv ≫ g :=
-begin
-  simp [monoidal_comp],
-end
+by simp [monoidal_comp]
 
 /-!
 Sadly, we can't prove lemmas such as the following,
@@ -207,7 +207,7 @@ end
 # Proposal for a better `coherence` tactic:
 
 To prove an equality `f = g` in a monoidal category,
-parse each of `f` and `g` as the composition of some lift of morphisms.
+parse each of `f` and `g` as the composition of some list of morphisms.
 Identify the morphisms for which we can not construct a `lift_hom`.
 Make sure the lists of such morphisms in `f` and `g` are identical; fail if not.
 Now split the lists at these points,

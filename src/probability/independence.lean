@@ -367,8 +367,8 @@ lemma indep_fun.comp {f : α → β} {g : α → β'} (hfg : indep_fun f g μ)
 begin
   rintro _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
   apply hfg,
-  exact ⟨φ ⁻¹' A, hφ hA, set.preimage_comp.symm⟩,
-  exact ⟨ψ ⁻¹' B, hψ hB, set.preimage_comp.symm⟩
+  { exact ⟨φ ⁻¹' A, hφ hA, set.preimage_comp.symm⟩ },
+  { exact ⟨ψ ⁻¹' B, hψ hB, set.preimage_comp.symm⟩ }
 end
 
 end indep_fun

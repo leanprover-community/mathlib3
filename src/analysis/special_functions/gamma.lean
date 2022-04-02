@@ -69,7 +69,6 @@ begin
   intros x hx, right, simpa only [sub_nonneg] using h,
 end
 
-/- Most of this is just showing `∫ x in Ioi 0, exp (-x) = 1` -- maybe this should go elsewhere? -/
 lemma Gamma_integral_one : Gamma_integral 1 = 1 :=
 begin
   simpa only [Gamma_integral, sub_self, rpow_zero, mul_one] using integral_exp_neg_Ioi,

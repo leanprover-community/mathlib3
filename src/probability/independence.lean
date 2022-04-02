@@ -344,8 +344,11 @@ end indep_set
 
 section indep_fun
 
-variables {α β β' γ γ' : Type*} [measurable_space α] [measurable_space β] [measurable_space β']
-variables [measurable_space γ] [measurable_space γ'] {μ : measure α}
+variables {α β β' γ γ' : Type*} {mα : measurable_space α} {mβ : measurable_space β}
+  {mβ' : measurable_space β'} {mγ : measurable_space γ} {mγ' : measurable_space γ'}
+  {μ : measure α}
+
+include mα mβ
 
 lemma indep_fun.ae_eq {f g f' g' : α → β} (hfg : indep_fun f g μ)
   (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :

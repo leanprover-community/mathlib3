@@ -32,27 +32,34 @@ namespace measure_theory
 local infixr ` →ₛ `:25 := simple_func
 
 variables {α G : Type*} {p : ℝ≥0∞} {m m0 : measurable_space α} {μ : measure α}
-  [normed_group G] [measurable_space G] [borel_space G] [second_countable_topology G]
+  [normed_group G]
   {f : α → G}
 
-lemma mem_ℒp.fin_strongly_measurable_of_measurable (hf : mem_ℒp f p μ) (hf_meas : measurable f)
-  (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
+lemma mem_ℒp.fin_strongly_measurable_of_strongly_measurable
+  (hf : mem_ℒp f p μ) (hf_meas : strongly_measurable f) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   fin_strongly_measurable f μ :=
 begin
-  let fs := simple_func.approx_on f hf_meas set.univ 0 (set.mem_univ _),
+  borelize G,
+  haveI : separable_space (set.range f ∪ {0} : set G) :=
+    hf_meas.separable_space_range_union_singleton,
+  let fs := simple_func.approx_on f hf_meas.measurable (set.range f ∪ {0}) 0 (by simp),
   refine ⟨fs, _, _⟩,
-  { have h_fs_Lp : ∀ n, mem_ℒp (fs n) p μ, from simple_func.mem_ℒp_approx_on_univ hf_meas hf,
-    exact λ n, (fs n).measure_support_lt_top_of_mem_ℒp (h_fs_Lp n) hp_ne_zero hp_ne_top, },
-  { exact λ x, simple_func.tendsto_approx_on hf_meas (set.mem_univ 0) (by simp), },
+  { have h_fs_Lp : ∀ n, mem_ℒp (fs n) p μ,
+      from simple_func.mem_ℒp_approx_on_range hf_meas.measurable hf,
+    exact λ n, (fs n).measure_support_lt_top_of_mem_ℒp (h_fs_Lp n) hp_ne_zero hp_ne_top },
+  { assume x,
+    apply simple_func.tendsto_approx_on,
+    apply subset_closure,
+    simp },
 end
 
 lemma mem_ℒp.ae_fin_strongly_measurable (hf : mem_ℒp f p μ) (hp_ne_zero : p ≠ 0)
   (hp_ne_top : p ≠ ∞) :
   ae_fin_strongly_measurable f μ :=
-⟨hf.ae_measurable.mk f,
-  ((mem_ℒp_congr_ae hf.ae_measurable.ae_eq_mk).mp hf).fin_strongly_measurable_of_measurable
-    hf.ae_measurable.measurable_mk hp_ne_zero hp_ne_top,
-  hf.ae_measurable.ae_eq_mk⟩
+⟨hf.ae_strongly_measurable.mk f, ((mem_ℒp_congr_ae hf.ae_strongly_measurable.ae_eq_mk).mp hf)
+  .fin_strongly_measurable_of_strongly_measurable
+    hf.ae_strongly_measurable.strongly_measurable_mk hp_ne_zero hp_ne_top,
+  hf.ae_strongly_measurable.ae_eq_mk⟩
 
 lemma integrable.ae_fin_strongly_measurable (hf : integrable f μ) :
   ae_fin_strongly_measurable f μ :=
@@ -60,6 +67,7 @@ lemma integrable.ae_fin_strongly_measurable (hf : integrable f μ) :
 
 lemma Lp.fin_strongly_measurable (f : Lp G p μ) (hp_ne_zero : p ≠ 0) (hp_ne_top : p ≠ ∞) :
   fin_strongly_measurable f μ :=
-(Lp.mem_ℒp f).fin_strongly_measurable_of_measurable (Lp.measurable f) hp_ne_zero hp_ne_top
+(Lp.mem_ℒp f).fin_strongly_measurable_of_strongly_measurable
+  (Lp.strongly_measurable f) hp_ne_zero hp_ne_top
 
 end measure_theory

@@ -114,7 +114,7 @@ metric bornology.-/
 @[reducible] -- See note [reducible non-instances]
 def vonN_bornology : bornology E :=
 bornology.of_bounded (set_of (is_vonN_bounded 𝕜)) (is_vonN_bounded_empty 𝕜 E)
-  (λ _ hs _ ht, hs.subset ht) (λ _ hs _, hs.union) is_vonN_bounded_covers
+  (λ _ hs _ ht, hs.subset ht) (λ _ hs _, hs.union) is_vonN_bounded_singleton
 
 variables {E}
 

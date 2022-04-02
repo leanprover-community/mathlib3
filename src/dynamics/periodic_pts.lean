@@ -278,11 +278,10 @@ end
 theorem minimal_period_apply_iterate (hx : x ∈ periodic_pts f) (n : ℕ) :
   minimal_period f (f^[n] x) = minimal_period f x :=
 begin
-  apply le_antisymm
-    (is_periodic_pt.minimal_period_le (minimal_period_pos_iff_mem_periodic_pts.2 hx) _)
+  apply (is_periodic_pt.minimal_period_le (minimal_period_pos_of_mem_periodic_pts hx) _).antisymm
     ((is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate hx
       (is_periodic_pt_minimal_period f _)).minimal_period_le
-      (minimal_period_pos_iff_mem_periodic_pts.2 _)),
+    (minimal_period_pos_of_mem_periodic_pts _)),
   { change (f^[_] (f^[n] x)) = (f^[n] x),
     rw [←iterate_add_apply, add_comm, iterate_add_apply, iterate_minimal_period] },
   { rcases hx with ⟨m, hm, hx⟩,
@@ -442,7 +441,7 @@ begin
   simp only [orbit, cycle.mem_coe_iff, list.mem_map, list.mem_range],
   use λ ⟨a, ha, ha'⟩, ⟨a, ha'⟩,
   rintro ⟨n, rfl⟩,
-  use [n % minimal_period f x, mod_lt _ (minimal_period_pos_iff_mem_periodic_pts.2 hx)],
+  use [n % minimal_period f x, mod_lt _ (minimal_period_pos_of_mem_periodic_pts hx)],
   rw iterate_eq_mod_minimal_period
 end
 

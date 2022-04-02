@@ -192,17 +192,15 @@ lemma mk_mem_periodic_pts (hn : 0 < n) (hx : is_periodic_pt f n x) :
 
 lemma mem_periodic_pts : x ∈ periodic_pts f ↔ ∃ n > 0, is_periodic_pt f n x := iff.rfl
 
-lemma iterate_eq_of_periodic_pt {α : Type*} {f : α → α} {x : α} (hx : x ∈ periodic_pts f)
-  {n k : ℕ} (H : f^[n+k] x = (f^[n]) x) : f^[k] x = x :=
+lemma is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate (hx : x ∈ periodic_pts f)
+  (hm : is_periodic_pt f m (f^[n] x)) : is_periodic_pt f m x :=
 begin
   rcases hx with ⟨r, hr, hr'⟩,
-  apply_fun (f^[(n / r + 1) * r - n]) at H,
-  have : (n / r + 1) * r - n + n = (n / r + 1) * r := nat.sub_add_cancel begin
-    rw [add_mul, one_mul],
-    exact (nat.lt_div_mul_add hr).le
-  end,
-  rwa [←iterate_add_apply, ←iterate_add_apply, ←add_assoc, this, iterate_add_apply, iterate_mul,
-    (hr'.iterate (n / r + 1)).eq, ((hr'.apply_iterate k).iterate (n / r + 1)).eq] at H
+  convert (hm.apply_iterate ((n / r + 1) * r - n)).eq,
+  suffices : n ≤ (n / r + 1) * r,
+  { rw [←iterate_add_apply, nat.sub_add_cancel this, iterate_mul, (hr'.iterate _).eq] },
+  rw [add_mul, one_mul],
+  exact (nat.lt_div_mul_add hr).le
 end
 
 variable (f)

@@ -318,6 +318,12 @@ lemma add_mem_iff_left : y ∈ p → (x + y ∈ p ↔ x ∈ p) := p.to_add_subgr
 
 lemma add_mem_iff_right : x ∈ p → (x + y ∈ p ↔ y ∈ p) := p.to_add_subgroup.add_mem_cancel_left
 
+lemma sub_mem_iff_left (hy : y ∈ p) : (x - y) ∈ p ↔ x ∈ p :=
+by rw [sub_eq_add_neg, p.add_mem_iff_left (p.neg_mem hy)]
+
+lemma sub_mem_iff_right (hx : x ∈ p) : (x - y) ∈ p ↔ y ∈ p :=
+by rw [sub_eq_add_neg, p.add_mem_iff_right hx, p.neg_mem_iff]
+
 instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 
 @[simp, norm_cast] lemma coe_neg (x : p) : ((-x : p) : M) = -x := rfl

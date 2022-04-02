@@ -11,23 +11,24 @@ import category_theory.adjunction.limits
 /-!
 # Transferring "abelian-ness" across a functor
 
-If `𝒜` is an additive category, `ℬ` is an abelian category,
-we have `a : 𝒜 ⥤ ℬ` `b : ℬ ⥤ 𝒜` (both preserving zero morphisms),
-`b` is left exact (that is, preserves finite limits),
-and further we have `adj : b ⊣ a` and `i : a ⋙ b ≅ 𝟭 𝒜`,
-then `𝒜` is also abelian.
+If `C` is an additive category, `D` is an abelian category,
+we have `F : C ⥤ D` `G : D ⥤ C` (both preserving zero morphisms),
+`G` is left exact (that is, preserves finite limits),
+and further we have `adj : G ⊣ F` and `i : F ⋙ G ≅ 𝟭 C`,
+then `C` is also abelian.
 
 See https://stacks.math.columbia.edu/tag/03A3
 
 ## Notes
 The hypotheses, following the statement from the Stack project,
 may appear suprising: we don't ask that the counit of the adjunction is an isomorphism,
-but just that we have some potentially unrelated isomorphism `i : a ⋙ b ≅ 𝟭 𝒜`.
+but just that we have some potentially unrelated isomorphism `i : F ⋙ G ≅ 𝟭 C`.
 
 However Lemma A1.1.1 from [Elephant] shows that in this situation the counit itself
-must be an isomorphism, and thus that `𝒜` is a reflective subcategory of `ℬ`.
+must be an isomorphism, and thus that `C` is a reflective subcategory of `D`.
 
 Someone may like to formalize that lemma, and restate this theorem in terms of `reflective`.
+(That lemma has a nice string diagrammatic proof that holds in any bicategory.)
 -/
 
 noncomputable theory
@@ -39,68 +40,63 @@ universes v u₁ u₂
 
 namespace abelian_of_adjunction
 
-variables {𝒜 : Type u₁} [category.{v} 𝒜] [preadditive 𝒜]
-variables {ℬ : Type u₂} [category.{v} ℬ] [abelian ℬ]
-variables (a : 𝒜 ⥤ ℬ)
-variables (b : ℬ ⥤ 𝒜) [functor.preserves_zero_morphisms b]
-variables (i : a ⋙ b ≅ 𝟭 𝒜) (adj : b ⊣ a)
+variables {C : Type u₁} [category.{v} C] [preadditive C]
+variables {D : Type u₂} [category.{v} D] [abelian D]
+variables (F : C ⥤ D)
+variables (G : D ⥤ C) [functor.preserves_zero_morphisms G]
+variables (i : F ⋙ G ≅ 𝟭 C) (adj : G ⊣ F)
 
 include i
 
 /-- No point making this an instance, as it requires `i`. -/
-lemma has_kernels [preserves_finite_limits b] : has_kernels 𝒜 :=
+lemma has_kernels [preserves_finite_limits G] : has_kernels C :=
 { has_limit := λ X Y f, begin
     have := nat_iso.naturality_1 i f,
     simp at this,
     rw ←this,
-    haveI : has_kernel (b.map (a.map f) ≫ i.hom.app _) := limits.has_kernel_comp_mono _ _,
+    haveI : has_kernel (G.map (F.map f) ≫ i.hom.app _) := limits.has_kernel_comp_mono _ _,
     apply limits.has_kernel_iso_comp,
   end }
 
 include adj
 
 /-- No point making this an instance, as it requires `i` and `adj`. -/
-lemma has_cokernels : has_cokernels 𝒜 :=
+lemma has_cokernels : has_cokernels C :=
 { has_colimit := λ X Y f, begin
-    haveI : preserves_colimits b := adj.left_adjoint_preserves_colimits,
+    haveI : preserves_colimits G := adj.left_adjoint_preserves_colimits,
     have := nat_iso.naturality_1 i f,
     simp at this,
     rw ←this,
-    haveI : has_cokernel (b.map (a.map f) ≫ i.hom.app _) := limits.has_cokernel_comp_iso _ _,
+    haveI : has_cokernel (G.map (F.map f) ≫ i.hom.app _) := limits.has_cokernel_comp_iso _ _,
     apply limits.has_cokernel_epi_comp,
   end }
 
+variables [limits.has_kernels C] [limits.has_cokernels C]
+
 /-- Auxiliary construction for `coimage_iso_image` -/
-def cokernel_iso {X Y : 𝒜} (f : X ⟶ Y) : begin
-  haveI := has_cokernels a b i adj,
-  exact b.obj (cokernel (a.map f)) ≅ cokernel f
-end :=
+def cokernel_iso {X Y : C} (f : X ⟶ Y) : G.obj (cokernel (F.map f)) ≅ cokernel f :=
 begin
-  haveI := has_cokernels a b i adj,
   -- We have to write an explicit `preserves_colimits` type here,
   -- as `left_adjoint_preserves_colimits` has universe variables.
-  haveI : preserves_colimits b := adj.left_adjoint_preserves_colimits,
-  calc b.obj (cokernel (a.map f))
-      ≅ cokernel (b.map (a.map f)) : (as_iso (cokernel_comparison _ b)).symm
+  haveI : preserves_colimits G := adj.left_adjoint_preserves_colimits,
+  calc G.obj (cokernel (F.map f))
+      ≅ cokernel (G.map (F.map f)) : (as_iso (cokernel_comparison _ G)).symm
   ... ≅ cokernel (_ ≫ f ≫ _)       : cokernel_iso_of_eq (nat_iso.naturality_2 i f).symm
   ... ≅ cokernel (f ≫ _)           : cokernel_epi_comp _ _
   ... ≅ cokernel f                 : cokernel_comp_is_iso _ _
 end
 
-variables [preserves_finite_limits b]
+variables [preserves_finite_limits G]
 
 /-- Auxiliary construction for `coimage_iso_image` -/
-def coimage_iso_image_aux {X Y : 𝒜} (f : X ⟶ Y) : begin
-  haveI := has_kernels a b i, haveI := has_cokernels a b i adj,
-  exact kernel (b.map (cokernel.π (a.map f))) ≅ kernel (cokernel.π f)
-end :=
+def coimage_iso_image_aux {X Y : C} (f : X ⟶ Y) :
+  kernel (G.map (cokernel.π (F.map f))) ≅ kernel (cokernel.π f) :=
 begin
-  haveI := has_kernels a b i, haveI := has_cokernels a b i adj,
-  haveI : preserves_colimits b := adj.left_adjoint_preserves_colimits,
-  calc kernel (b.map (cokernel.π (a.map f)))
-      ≅ kernel (cokernel.π (b.map (a.map f)) ≫ cokernel_comparison (a.map f) b)
+  haveI : preserves_colimits G := adj.left_adjoint_preserves_colimits,
+  calc kernel (G.map (cokernel.π (F.map f)))
+      ≅ kernel (cokernel.π (G.map (F.map f)) ≫ cokernel_comparison (F.map f) G)
           : kernel_iso_of_eq (π_comp_cokernel_comparison _ _).symm
-  ... ≅ kernel (cokernel.π (b.map (a.map f))) : kernel_comp_mono _ _
+  ... ≅ kernel (cokernel.π (G.map (F.map f))) : kernel_comp_mono _ _
   ... ≅ kernel (cokernel.π (_ ≫ f ≫ _) ≫ (cokernel_iso_of_eq _).hom)
           : kernel_iso_of_eq (π_comp_cokernel_iso_of_eq_hom (nat_iso.naturality_2 i f)).symm
   ... ≅ kernel (cokernel.π (_ ≫ f ≫ _))       : kernel_comp_mono _ _
@@ -114,31 +110,27 @@ begin
   ... ≅ kernel (cokernel.π f)                 : kernel_comp_mono _ _
 end
 
-variables [functor.preserves_zero_morphisms a]
+variables [functor.preserves_zero_morphisms F]
 
 /--
 Auxiliary definition: the abelian coimage and abelian image agree.
 We still need to check that this agrees with the canonical morphism.
 -/
-def coimage_iso_image {X Y : 𝒜} (f : X ⟶ Y) : begin
-  haveI := has_kernels a b i, haveI := has_cokernels a b i adj,
-  exact abelian.coimage f ≅ abelian.image f
-end :=
+def coimage_iso_image {X Y : C} (f : X ⟶ Y) : abelian.coimage f ≅ abelian.image f :=
 begin
-  haveI := has_kernels a b i, haveI := has_cokernels a b i adj,
-  haveI : preserves_limits a := adj.right_adjoint_preserves_limits,
-  haveI : preserves_colimits b := adj.left_adjoint_preserves_colimits,
+  haveI : preserves_limits F := adj.right_adjoint_preserves_limits,
+  haveI : preserves_colimits G := adj.left_adjoint_preserves_colimits,
   calc abelian.coimage f
       ≅ cokernel (kernel.ι f)                 : iso.refl _
-  ... ≅ b.obj (cokernel (a.map (kernel.ι f))) : (cokernel_iso _ _ i adj _).symm
-  ... ≅ b.obj (cokernel (kernel_comparison f a ≫ (kernel.ι (a.map f))))
-                                              : b.map_iso (cokernel_iso_of_eq (by simp))
-  ... ≅ b.obj (cokernel (kernel.ι (a.map f))) : b.map_iso (cokernel_epi_comp _ _)
-  ... ≅ b.obj (abelian.coimage (a.map f))     : iso.refl _
-  ... ≅ b.obj (abelian.image (a.map f))       : b.map_iso (abelian.coimage_iso_image _)
-  ... ≅ b.obj (kernel (cokernel.π (a.map f))) : iso.refl _
-  ... ≅ kernel (b.map (cokernel.π (a.map f))) : preserves_kernel.iso _ _
-  ... ≅ kernel (cokernel.π f)                 : coimage_iso_image_aux a b i adj f
+  ... ≅ G.obj (cokernel (F.map (kernel.ι f))) : (cokernel_iso _ _ i adj _).symm
+  ... ≅ G.obj (cokernel (kernel_comparison f F ≫ (kernel.ι (F.map f))))
+                                              : G.map_iso (cokernel_iso_of_eq (by simp))
+  ... ≅ G.obj (cokernel (kernel.ι (F.map f))) : G.map_iso (cokernel_epi_comp _ _)
+  ... ≅ G.obj (abelian.coimage (F.map f))     : iso.refl _
+  ... ≅ G.obj (abelian.image (F.map f))       : G.map_iso (abelian.coimage_iso_image _)
+  ... ≅ G.obj (kernel (cokernel.π (F.map f))) : iso.refl _
+  ... ≅ kernel (G.map (cokernel.π (F.map f))) : preserves_kernel.iso _ _
+  ... ≅ kernel (cokernel.π f)                 : coimage_iso_image_aux F G i adj f
   ... ≅ abelian.image f                       : iso.refl _,
 end
 
@@ -146,36 +138,33 @@ local attribute [simp] cokernel_iso coimage_iso_image coimage_iso_image_aux
 
 -- The account of this proof in the Stacks project omits this calculation.
 -- Happily it's little effort: our `[ext]` and `[simp]` lemmas only need a little guidance.
-lemma coimage_iso_image_hom {X Y : 𝒜} (f : X ⟶ Y) :
-begin
-  haveI := has_kernels a b i, haveI := has_cokernels a b i adj,
-  exact (coimage_iso_image a b i adj f).hom = abelian.coimage_image_comparison f,
-end :=
-by { ext, simpa [-functor.map_comp, ←b.map_comp_assoc] using nat_iso.naturality_1 i f, }
+lemma coimage_iso_image_hom {X Y : C} (f : X ⟶ Y) :
+  (coimage_iso_image F G i adj f).hom = abelian.coimage_image_comparison f :=
+by { ext, simpa [-functor.map_comp, ←G.map_comp_assoc] using nat_iso.naturality_1 i f, }
 
 end abelian_of_adjunction
 
 open abelian_of_adjunction
 
 /--
-If `𝒜` is an additive category, `ℬ` is an abelian category,
-we have `a : 𝒜 ⥤ ℬ` `b : ℬ ⥤ 𝒜` (both preserving zero morphisms),
-`b` is left exact (that is, preserves finite limits),
-and further we have `adj : b ⊣ a` and `i : a ⋙ b ≅ 𝟭 𝒜`,
-then `𝒜` is also abelian.
+If `C` is an additive category, `D` is an abelian category,
+we have `F : C ⥤ D` `G : D ⥤ C` (both preserving zero morphisms),
+`G` is left exact (that is, preserves finite limits),
+and further we have `adj : G ⊣ F` and `i : F ⋙ G ≅ 𝟭 C`,
+then `C` is also abelian.
 
 See https://stacks.math.columbia.edu/tag/03A3
 -/
 def abelian_of_adjunction
-  {𝒜 : Type u₁} [category.{v} 𝒜] [preadditive 𝒜] [has_finite_products 𝒜]
-  {ℬ : Type u₂} [category.{v} ℬ] [abelian ℬ]
-  (a : 𝒜 ⥤ ℬ) [functor.preserves_zero_morphisms a]
-  (b : ℬ ⥤ 𝒜) [functor.preserves_zero_morphisms b] [preserves_finite_limits b]
-  (i : a ⋙ b ≅ 𝟭 𝒜) (adj : b ⊣ a) : abelian 𝒜 :=
+  {C : Type u₁} [category.{v} C] [preadditive C] [has_finite_products C]
+  {D : Type u₂} [category.{v} D] [abelian D]
+  (F : C ⥤ D) [functor.preserves_zero_morphisms F]
+  (G : D ⥤ C) [functor.preserves_zero_morphisms G] [preserves_finite_limits G]
+  (i : F ⋙ G ≅ 𝟭 C) (adj : G ⊣ F) : abelian C :=
 begin
-  haveI := has_kernels a b i, haveI := has_cokernels a b i adj,
-  haveI : ∀ {X Y : 𝒜} (f : X ⟶ Y), is_iso (abelian.coimage_image_comparison f),
-  { intros X Y f, rw ←coimage_iso_image_hom a b i adj f, apply_instance, },
+  haveI := has_kernels F G i, haveI := has_cokernels F G i adj,
+  haveI : ∀ {X Y : C} (f : X ⟶ Y), is_iso (abelian.coimage_image_comparison f),
+  { intros X Y f, rw ←coimage_iso_image_hom F G i adj f, apply_instance, },
   apply abelian.of_coimage_image_comparison_is_iso,
 end
 

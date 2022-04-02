@@ -324,11 +324,11 @@ instance [semiring R] [non_unital_non_assoc_semiring A] [module R A] :
   left_distrib := λ x₁ x₂ x₃, ext (mul_add x₁.1 x₂.1 x₃.1) $
     show x₁.1 • (x₂.2 + x₃.2) + (x₂.1 + x₃.1) • x₁.2 + x₁.2 * (x₂.2 + x₃.2) =
       x₁.1 • x₂.2 + x₂.1 • x₁.2 + x₁.2 * x₂.2 + (x₁.1 • x₃.2 + x₃.1 • x₁.2 + x₁.2 * x₃.2),
-    by { rw [smul_add, add_smul, mul_add], ac_refl },
+    by { simp only [smul_add, add_smul, mul_add], abel },
   right_distrib := λ x₁ x₂ x₃, ext (add_mul x₁.1 x₂.1 x₃.1) $
     show (x₁.1 + x₂.1) • x₃.2 + x₃.1 • (x₁.2 + x₂.2) + (x₁.2 + x₂.2) * x₃.2 =
       x₁.1 • x₃.2 + x₃.1 • x₁.2 + x₁.2 * x₃.2 + (x₂.1 • x₃.2 + x₃.1 • x₂.2 + x₂.2 * x₃.2),
-    by { rw [add_smul, smul_add, add_mul], ac_refl },
+    by { simp only [add_smul, smul_add, add_mul], abel },
   .. unitization.mul_one_class,
   .. unitization.add_comm_monoid }
 

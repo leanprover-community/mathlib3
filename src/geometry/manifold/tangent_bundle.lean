@@ -96,6 +96,7 @@ structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_fie
 (coord_change_smooth : ∀ i j : atlas H M,
   cont_diff_on 𝕜 ∞ (λp : E × F, coord_change i j (I.symm p.1) p.2)
   ((I '' (i.1.symm.trans j.1).source) ×ˢ (univ : set F)))
+(coord_change_continuous : ∀ i j, continuous_on (coord_change i j) (i.1.symm.trans j.1).source)
 
 /-- The trivial basic smooth bundle core, in which all the changes of coordinates are the
 identity. -/
@@ -107,7 +108,8 @@ def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_f
 { coord_change := λ i j x, continuous_linear_map.id 𝕜 F,
   coord_change_self := λ i x hx v, rfl,
   coord_change_comp := λ i j k x hx v, rfl,
-  coord_change_smooth := λ i j, cont_diff_snd.cont_diff_on }
+  coord_change_smooth := λ i j, cont_diff_snd.cont_diff_on,
+  coord_change_continuous := λ i j, continuous_on_const }
 
 namespace basic_smooth_vector_bundle_core
 
@@ -136,26 +138,13 @@ def to_topological_vector_bundle_core : topological_vector_bundle_core 𝕜 M F 
     { simp only [hx1, hx2, hx3] with mfld_simps }
   end,
   coord_change_continuous := λi j, begin
-    have A : continuous_on (λp : E × F, Z.coord_change i j (I.symm p.1) p.2)
-      ((I '' (i.1.symm.trans j.1).source) ×ˢ (univ : set F)) :=
-      (Z.coord_change_smooth i j).continuous_on,
+    have := Z.coord_change_continuous i j,
     have B : continuous_on (λ x : M, I (i.1 x)) i.1.source :=
       I.continuous.comp_continuous_on i.1.continuous_on,
-    have C : continuous_on (λp : M × F, (⟨I (i.1 p.1), p.2⟩ : E × F))
-             (i.1.source ×ˢ (univ : set F)),
-    { apply continuous_on.prod _ continuous_snd.continuous_on,
-      exact B.comp continuous_fst.continuous_on (prod_subset_preimage_fst _ _) },
-    have C' : continuous_on (λp : M × F, (⟨I (i.1 p.1), p.2⟩ : E × F))
-              ((i.1.source ∩ j.1.source) ×ˢ (univ : set F)) :=
-      continuous_on.mono C (prod_mono (inter_subset_left _ _) (subset.refl _)),
-    have D : (i.1.source ∩ j.1.source) ×ˢ (univ : set F) ⊆ (λ (p : M × F),
-      (I (i.1 p.1), p.2)) ⁻¹' ((I '' (i.1.symm.trans j.1).source) ×ˢ (univ : set F)),
-    { rintros ⟨x, v⟩ hx,
-      simp only with mfld_simps at hx,
-      simp only [hx] with mfld_simps },
-    convert continuous_on.comp A C' D,
-    ext p,
-    simp only with mfld_simps
+    refine (this.comp' i.1.continuous_on).mono _,
+    rintros p ⟨hp₁, hp₂⟩,
+    refine ⟨hp₁, i.1.maps_to hp₁, _⟩,
+    simp only [i.1.left_inv hp₁, hp₂] with mfld_simps
   end }
 
 @[simp, mfld_simps] lemma base_set (i : atlas H M) :
@@ -322,6 +311,7 @@ def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
     rw [this, D x E],
     refl
   end,
+  coord_change_continuous := sorry,
   coord_change_self := λ i x hx v, begin
     /- Locally, a self-change of coordinate is just the identity, thus its derivative is the
     identity. One just needs to write this carefully, paying attention to the sets where the

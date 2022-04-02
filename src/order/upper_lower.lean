@@ -119,7 +119,7 @@ end unbundled
 
 /-! ### Bundled upper/lower sets -/
 
-section bundled
+section has_le
 variables [has_le α]
 
 /-- The type of upper sets of an order. -/
@@ -134,11 +134,13 @@ structure lower_set (α : Type*) [has_le α] :=
 
 namespace upper_set
 
-instance upper_set.set_like : set_like (upper_set α) α :=
+instance : set_like (upper_set α) α :=
 { coe := upper_set.carrier,
   coe_injective' := λ s t h, by { cases s, cases t, congr' } }
 
 @[ext] lemma ext {s t : upper_set α} : (s : set α) = t → s = t := set_like.ext'
+
+@[simp] lemma carrier_eq_coe (s : upper_set α) : s.carrier = s := rfl
 
 protected lemma upper (s : upper_set α) : is_upper_set (s : set α) := s.upper'
 
@@ -152,6 +154,8 @@ instance : set_like (lower_set α) α :=
 
 @[ext] lemma ext {s t : lower_set α} : (s : set α) = t → s = t := set_like.ext'
 
+@[simp] lemma carrier_eq_coe (s : lower_set α) : s.carrier = s := rfl
+
 protected lemma lower (s : lower_set α) : is_lower_set (s : set α) := s.lower'
 
 end lower_set
@@ -159,15 +163,16 @@ end lower_set
 /-! #### Order -/
 
 namespace upper_set
+variables {S : set (upper_set α)} {s t : upper_set α} {a : α}
 
 instance : has_sup (upper_set α) := ⟨λ s t, ⟨s ∪ t, s.upper.union t.upper⟩⟩
 instance : has_inf (upper_set α) := ⟨λ s t, ⟨s ∩ t, s.upper.inter t.upper⟩⟩
 instance : has_top (upper_set α) := ⟨⟨univ, is_upper_set_univ⟩⟩
 instance : has_bot (upper_set α) := ⟨⟨∅, is_upper_set_empty⟩⟩
 instance : has_Sup (upper_set α) :=
-⟨λ S, ⟨Sup (coe '' S), is_upper_set_sUnion $ ball_image_iff.2 $ λ s _, s.upper⟩⟩
+⟨λ S, ⟨⋃ s ∈ S, ↑s, is_upper_set_Union₂ $ λ s _, s.upper⟩⟩
 instance : has_Inf (upper_set α) :=
-⟨λ S, ⟨Inf (coe '' S), is_upper_set_sInter $ ball_image_iff.2 $ λ s _, s.upper⟩⟩
+⟨λ S, ⟨⋂ s ∈ S, ↑s, is_upper_set_Inter₂ $ λ s _, s.upper⟩⟩
 
 instance : complete_distrib_lattice (upper_set α) :=
 set_like.coe_injective.complete_distrib_lattice _
@@ -179,29 +184,26 @@ instance : inhabited (upper_set α) := ⟨⊥⟩
 @[simp] lemma coe_bot : ((⊥ : upper_set α) : set α) = ∅ := rfl
 @[simp] lemma coe_sup (s t : upper_set α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
 @[simp] lemma coe_inf (s t : upper_set α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
-@[simp] lemma coe_Sup (S : set (upper_set α)) : (↑(Sup S) : set α) = Sup (coe '' S) := rfl
-@[simp] lemma coe_Inf (S : set (upper_set α)) : (↑(Inf S) : set α) = Inf (coe '' S) := rfl
-@[simp] lemma coe_supr (f : ι → upper_set α) : (↑(⨆ i, f i) : set α) = ⨆ i, f i :=
-congr_arg Sup (range_comp _ _).symm
-@[simp] lemma coe_infi (f : ι → upper_set α) : (↑(⨅ i, f i) : set α) = ⨅ i, f i :=
-congr_arg Inf (range_comp _ _).symm
-@[simp] lemma coe_supr₂ (f : Π i, κ i → upper_set α) : (↑(⨆ i j, f i j) : set α) = ⨆ i j, f i j :=
+@[simp] lemma coe_Sup (S : set (upper_set α)) : (↑(Sup S) : set α) = ⋃ s ∈ S, ↑s := rfl
+@[simp] lemma coe_Inf (S : set (upper_set α)) : (↑(Inf S) : set α) = ⋂ s ∈ S, ↑s := rfl
+@[simp] lemma coe_supr (f : ι → upper_set α) : (↑(⨆ i, f i) : set α) = ⋃ i, f i := by simp [supr]
+@[simp] lemma coe_infi (f : ι → upper_set α) : (↑(⨅ i, f i) : set α) = ⋂ i, f i := by simp [infi]
+@[simp] lemma coe_supr₂ (f : Π i, κ i → upper_set α) : (↑(⨆ i j, f i j) : set α) = ⋃ i j, f i j :=
 by simp_rw coe_supr
-@[simp] lemma coe_infi₂ (f : Π i, κ i → upper_set α) : (↑(⨅ i j, f i j) : set α) = ⨅ i j, f i j :=
+@[simp] lemma coe_infi₂ (f : Π i, κ i → upper_set α) : (↑(⨅ i j, f i j) : set α) = ⋂ i j, f i j :=
 by simp_rw coe_infi
 
 end upper_set
 
 namespace lower_set
+variables {S : set (lower_set α)} {s t : lower_set α} {a : α}
 
 instance : has_sup (lower_set α) := ⟨λ s t, ⟨s ∪ t, λ a b h, or.imp (s.lower h) (t.lower h)⟩⟩
 instance : has_inf (lower_set α) := ⟨λ s t, ⟨s ∩ t, λ a b h, and.imp (s.lower h) (t.lower h)⟩⟩
 instance : has_top (lower_set α) := ⟨⟨univ, λ a b h, id⟩⟩
 instance : has_bot (lower_set α) := ⟨⟨∅, λ a b h, id⟩⟩
-instance : has_Sup (lower_set α) :=
-⟨λ S, ⟨Sup (coe '' S), is_lower_set_sUnion $ ball_image_iff.2 $ λ s _, s.lower⟩⟩
-instance : has_Inf (lower_set α) :=
-⟨λ S, ⟨Inf (coe '' S), is_lower_set_sInter $ ball_image_iff.2 $ λ s _, s.lower⟩⟩
+instance : has_Sup (lower_set α) := ⟨λ S, ⟨⋃ s ∈ S, ↑s, is_lower_set_Union₂ $ λ s _, s.lower⟩⟩
+instance : has_Inf (lower_set α) := ⟨λ S, ⟨⋂ s ∈ S, ↑s, is_lower_set_Inter₂ $ λ s _, s.lower⟩⟩
 
 instance : complete_distrib_lattice (lower_set α) :=
 set_like.coe_injective.complete_distrib_lattice _
@@ -213,15 +215,15 @@ instance : inhabited (lower_set α) := ⟨⊥⟩
 @[simp] lemma coe_bot : ((⊥ : lower_set α) : set α) = ∅ := rfl
 @[simp] lemma coe_sup (s t : lower_set α) : (↑(s ⊔ t) : set α) = s ∪ t := rfl
 @[simp] lemma coe_inf (s t : lower_set α) : (↑(s ⊓ t) : set α) = s ∩ t := rfl
-@[simp] lemma coe_Sup (S : set (lower_set α)) : (↑(Sup S) : set α) = Sup (coe '' S) := rfl
-@[simp] lemma coe_Inf (S : set (lower_set α)) : (↑(Inf S) : set α) = Inf (coe '' S) := rfl
-@[simp] lemma coe_supr (f : ι → lower_set α) : (↑(⨆ i, f i) : set α) = ⨆ i, f i :=
-congr_arg Sup (range_comp _ _).symm
-@[simp] lemma coe_infi (f : ι → lower_set α) : (↑(⨅ i, f i) : set α) = ⨅ i, f i :=
-congr_arg Inf (range_comp _ _).symm
-@[simp] lemma coe_supr₂ (f : Π i, κ i → lower_set α) : (↑(⨆ i j, f i j) : set α) = ⨆ i j, f i j :=
+@[simp] lemma coe_Sup (S : set (lower_set α)) : (↑(Sup S) : set α) = ⋃ s ∈ S, ↑s := rfl
+@[simp] lemma coe_Inf (S : set (lower_set α)) : (↑(Inf S) : set α) = ⋂ s ∈ S, ↑s := rfl
+@[simp] lemma coe_supr (f : ι → lower_set α) : (↑(⨆ i, f i) : set α) = ⋃ i, f i :=
+by simp_rw [supr, coe_Sup, mem_range, Union_exists, Union_Union_eq']
+@[simp] lemma coe_infi (f : ι → lower_set α) : (↑(⨅ i, f i) : set α) = ⋂ i, f i :=
+by simp_rw [infi, coe_Inf, mem_range, Inter_exists, Inter_Inter_eq']
+@[simp] lemma coe_supr₂ (f : Π i, κ i → lower_set α) : (↑(⨆ i j, f i j) : set α) = ⋃ i j, f i j :=
 by simp_rw coe_supr
-@[simp] lemma coe_infi₂ (f : Π i, κ i → lower_set α) : (↑(⨅ i j, f i j) : set α) = ⨅ i j, f i j :=
+@[simp] lemma coe_infi₂ (f : Π i, κ i → lower_set α) : (↑(⨅ i j, f i j) : set α) = ⋂ i j, f i j :=
 by simp_rw coe_infi
 
 end lower_set
@@ -235,31 +237,31 @@ def upper_set.compl (s : upper_set α) : lower_set α := ⟨sᶜ, s.upper.compl�
 def lower_set.compl (s : lower_set α) : upper_set α := ⟨sᶜ, s.lower.compl⟩
 
 namespace upper_set
+variables {s : upper_set α} {a : α}
 
 @[simp] lemma coe_compl (s : upper_set α) : (s.compl : set α) = sᶜ := rfl
+@[simp] lemma mem_compl_iff : a ∈ s.compl ↔ a ∉ s := iff.rfl
 @[simp] lemma compl_compl (s : upper_set α) : s.compl.compl = s := upper_set.ext $ compl_compl _
 
-protected lemma compl_sup (s t : upper_set α) : (s ⊔ t).compl = s.compl ⊓ t.compl :=
+@[simp] protected lemma compl_sup (s t : upper_set α) : (s ⊔ t).compl = s.compl ⊓ t.compl :=
 lower_set.ext compl_sup
-protected lemma compl_inf (s t : upper_set α) : (s ⊓ t).compl = s.compl ⊔ t.compl :=
+@[simp] protected lemma compl_inf (s t : upper_set α) : (s ⊓ t).compl = s.compl ⊔ t.compl :=
 lower_set.ext compl_inf
-protected lemma compl_top : (⊤ : upper_set α).compl = ⊥ := lower_set.ext compl_univ
-protected lemma compl_bot : (⊥ : upper_set α).compl = ⊤ := lower_set.ext compl_empty
-protected lemma compl_Sup (S : set (upper_set α)) : (Sup S).compl = Inf (upper_set.compl '' S) :=
-lower_set.ext $ compl_Sup'.trans $
-  by { congr' 1, ext, simp only [mem_image, exists_exists_and_eq_and, coe_compl] }
+@[simp] protected lemma compl_top : (⊤ : upper_set α).compl = ⊥ := lower_set.ext compl_univ
+@[simp] protected lemma compl_bot : (⊥ : upper_set α).compl = ⊤ := lower_set.ext compl_empty
+@[simp] protected lemma compl_Sup (S : set (upper_set α)) :
+  (Sup S).compl = ⨅ s ∈ S, upper_set.compl s :=
+lower_set.ext $ by simp only [coe_compl, coe_Sup, compl_Union₂, lower_set.coe_infi₂]
 
-protected lemma compl_Inf (S : set (upper_set α)) : (Inf S).compl = Sup (upper_set.compl '' S) :=
-lower_set.ext $ compl_Inf'.trans $
-  by { congr' 1, ext, simp only [mem_image, exists_exists_and_eq_and, coe_compl] }
+@[simp] protected lemma compl_Inf (S : set (upper_set α)) :
+  (Inf S).compl = ⨆ s ∈ S, upper_set.compl s :=
+lower_set.ext $ by simp only [coe_compl, coe_Inf, compl_Inter₂, lower_set.coe_supr₂]
 
-protected lemma compl_supr (f : ι → upper_set α) : (⨆ i, f i).compl = ⨅ i, (f i).compl :=
-lower_set.ext $
-  by simp only [coe_compl, coe_supr, supr_eq_Union, compl_Union, lower_set.coe_infi, infi_eq_Inter]
+@[simp] protected lemma compl_supr (f : ι → upper_set α) : (⨆ i, f i).compl = ⨅ i, (f i).compl :=
+lower_set.ext $ by simp only [coe_compl, coe_supr, compl_Union, lower_set.coe_infi]
 
-protected lemma compl_infi (f : ι → upper_set α) : (⨅ i, f i).compl = ⨆ i, (f i).compl :=
-lower_set.ext $
-  by simp only [coe_compl, coe_infi, infi_eq_Inter, compl_Inter, lower_set.coe_supr, supr_eq_Union]
+@[simp] protected lemma compl_infi (f : ι → upper_set α) : (⨅ i, f i).compl = ⨆ i, (f i).compl :=
+lower_set.ext $ by simp only [coe_compl, coe_infi, compl_Inter, lower_set.coe_supr]
 
 @[simp] lemma compl_supr₂ (f : Π i, κ i → upper_set α) :
   (⨆ i j, f i j).compl = ⨅ i j, (f i j).compl :=
@@ -272,8 +274,10 @@ by simp_rw upper_set.compl_infi
 end upper_set
 
 namespace lower_set
+variables {s : lower_set α} {a : α}
 
 @[simp] lemma coe_compl (s : lower_set α) : (s.compl : set α) = sᶜ := rfl
+@[simp] lemma mem_compl_iff : a ∈ s.compl ↔ a ∉ s := iff.rfl
 @[simp] lemma compl_compl (s : lower_set α) : s.compl.compl = s := lower_set.ext $ compl_compl _
 
 protected lemma compl_sup (s t : lower_set α) : (s ⊔ t).compl = s.compl ⊓ t.compl :=
@@ -282,21 +286,17 @@ protected lemma compl_inf (s t : lower_set α) : (s ⊓ t).compl = s.compl ⊔ t
 upper_set.ext compl_inf
 protected lemma compl_top : (⊤ : lower_set α).compl = ⊥ := upper_set.ext compl_univ
 protected lemma compl_bot : (⊥ : lower_set α).compl = ⊤ := upper_set.ext compl_empty
-protected lemma compl_Sup (S : set (lower_set α)) : (Sup S).compl = Inf (lower_set.compl '' S) :=
-upper_set.ext $ compl_Sup'.trans $
-  by { congr' 1, ext, simp only [mem_image, exists_exists_and_eq_and, coe_compl] }
+protected lemma compl_Sup (S : set (lower_set α)) : (Sup S).compl = ⨅ s ∈ S, lower_set.compl s :=
+upper_set.ext $ by simp only [coe_compl, coe_Sup, compl_Union₂, upper_set.coe_infi₂]
 
-protected lemma compl_Inf (S : set (lower_set α)) : (Inf S).compl = Sup (lower_set.compl '' S) :=
-upper_set.ext $ compl_Inf'.trans $
-  by { congr' 1, ext, simp only [mem_image, exists_exists_and_eq_and, coe_compl] }
+protected lemma compl_Inf (S : set (lower_set α)) : (Inf S).compl = ⨆ s ∈ S, lower_set.compl s :=
+upper_set.ext $ by simp only [coe_compl, coe_Inf, compl_Inter₂, upper_set.coe_supr₂]
 
 protected lemma compl_supr (f : ι → lower_set α) : (⨆ i, f i).compl = ⨅ i, (f i).compl :=
-upper_set.ext $
-  by simp only [coe_compl, coe_supr, supr_eq_Union, compl_Union, upper_set.coe_infi, infi_eq_Inter]
+upper_set.ext $ by simp only [coe_compl, coe_supr, compl_Union, upper_set.coe_infi]
 
 protected lemma compl_infi (f : ι → lower_set α) : (⨅ i, f i).compl = ⨆ i, (f i).compl :=
-upper_set.ext $
-  by simp only [coe_compl, coe_infi, infi_eq_Inter, compl_Inter, upper_set.coe_supr, supr_eq_Union]
+upper_set.ext $ by simp only [coe_compl, coe_infi, compl_Inter, upper_set.coe_supr]
 
 @[simp] lemma compl_supr₂ (f : Π i, κ i → lower_set α) :
   (⨆ i j, f i j).compl = ⨅ i j, (f i j).compl :=
@@ -307,4 +307,4 @@ by simp_rw lower_set.compl_supr
 by simp_rw lower_set.compl_infi
 
 end lower_set
-end bundled
+end has_le

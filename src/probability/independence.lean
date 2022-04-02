@@ -358,7 +358,7 @@ begin
   have h1 : f ⁻¹' A =ᵐ[μ] f' ⁻¹' A := hf.fun_comp A,
   have h2 : g ⁻¹' B =ᵐ[μ] g' ⁻¹' B := hg.fun_comp B,
   rw [←measure_congr h1, ←measure_congr h2, ←measure_congr (h1.inter h2)],
-  exact hfg _ _ ⟨_,hA,rfl⟩ ⟨_,hB,rfl⟩
+  exact hfg _ _ ⟨_, hA, rfl⟩ ⟨_, hB, rfl⟩
 end
 
 lemma indep_fun.comp {f : α → β} {g : α → β'} (hfg : indep_fun f g μ)

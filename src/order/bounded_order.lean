@@ -843,11 +843,11 @@ theorem le_coe_iff [partial_order α] {b : α} : ∀{x : with_top α}, x ≤ b �
 | (some a) := by simp [some_eq_coe, coe_eq_coe]
 | none     := by simp [none_eq_top]
 
-theorem coe_le_iff [partial_order α] {a : α} : ∀{x : with_top α}, ↑a ≤ x ↔ (∀b:α, x = ↑b → a ≤ b)
+theorem coe_le_iff [preorder α] {a : α} : ∀{x : with_top α}, ↑a ≤ x ↔ (∀b:α, x = ↑b → a ≤ b)
 | (some b) := by simp [some_eq_coe, coe_eq_coe]
 | none     := by simp [none_eq_top]
 
-theorem lt_iff_exists_coe [partial_order α] : ∀{a b : with_top α}, a < b ↔ (∃p:α, a = p ∧ ↑p < b)
+theorem lt_iff_exists_coe [preorder α] : ∀{a b : with_top α}, a < b ↔ (∃p:α, a = p ∧ ↑p < b)
 | (some a) b := by simp [some_eq_coe, coe_eq_coe]
 | none     b := by simp [none_eq_top]
 
@@ -1097,12 +1097,9 @@ lemma disjoint.of_disjoint_inf_of_le' {a b c : α} (h : disjoint (a ⊓ b) c) (h
 
 end semilattice_inf_bot
 
-section bounded_order
+section order_bot
 
-variables [lattice α] [bounded_order α] {a : α}
-
-@[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
-@[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
+variables [lattice α] [order_bot α]
 
 lemma eq_bot_of_disjoint_absorbs
   {a b : α} (w : disjoint a b) (h : a ⊔ b = a) : b = ⊥ :=
@@ -1111,6 +1108,15 @@ begin
   rw [←w, right_eq_inf],
   rwa sup_eq_left at h,
 end
+
+end order_bot
+
+section bounded_order
+
+variables [lattice α] [bounded_order α] {a : α}
+
+@[simp] theorem disjoint_top : disjoint a ⊤ ↔ a = ⊥ := by simp [disjoint_iff]
+@[simp] theorem top_disjoint : disjoint ⊤ a ↔ a = ⊥ := by simp [disjoint_iff]
 
 end bounded_order
 

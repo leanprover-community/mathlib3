@@ -397,8 +397,8 @@ lemma coeff_C_ne_zero (h : n ≠ 0) : (C a).coeff n = 0 :=
 by rw [coeff_C, if_neg h]
 
 theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
-⟨⟨0, 1, λ h01 : 0 = 1, h $
-    by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] ⟩⟩
+nontrivial_of_ne 0 1 $ λ h01, h $
+  by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero]
 
 lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 | 0     := (mul_one _).symm
@@ -709,6 +709,10 @@ lemma X_ne_zero : (X : R[X]) ≠ 0 :=
 mt (congr_arg (λ p, coeff p 1)) (by simp)
 
 end nonzero_semiring
+
+@[simp] lemma nontrivial_iff [semiring R] : nontrivial R[X] ↔ nontrivial R :=
+⟨λ h, let ⟨r, s, hrs⟩ := @exists_pair_ne _ h in nontrivial.of_polynomial_ne hrs,
+  λ h, @polynomial.nontrivial _ _ h⟩
 
 section repr
 variables [semiring R]

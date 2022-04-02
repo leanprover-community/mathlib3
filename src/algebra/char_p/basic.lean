@@ -18,7 +18,15 @@ universes u v
 
 variables (R : Type u)
 
-/-- The generator of the kernel of the unique homomorphism ℕ → R for a semiring R -/
+/-- The generator of the kernel of the unique homomorphism ℕ → R for a semiring R.
+
+*Warning*: for a semiring `R`, `char_p R 0` and `char_zero R` need not coincide.
+* `char_p R 0` asks that only `0 : ℕ` maps to `0 : R` under the map `ℕ → R`;
+* `char_zero R` requires an injection `ℕ ↪ R`.
+
+For instance, endowing `{0, 1}` with addition given by `max` (i.e. `1` is absorbing), shows that
+`char_zero {0, 1}` does not hold and yet `char_p {0, 1} 0` does.
+ -/
 class char_p [add_monoid R] [has_one R] (p : ℕ) : Prop :=
 (cast_eq_zero_iff [] : ∀ x:ℕ, (x:R) = 0 ↔ p ∣ x)
 

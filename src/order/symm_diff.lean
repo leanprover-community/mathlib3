@@ -68,7 +68,7 @@ lemma symm_diff_eq_sup_sdiff_inf : a Δ b = (a ⊔ b) \ (a ⊓ b) :=
 by simp [sup_sdiff, sdiff_inf, sup_comm, (Δ)]
 
 @[simp] lemma sup_sdiff_symm_diff : (a ⊔ b) \ (a Δ b) = a ⊓ b :=
-sdiff_symm inf_le_sup (by rw symm_diff_eq_sup_sdiff_inf)
+sdiff_eq_symm inf_le_sup (by rw symm_diff_eq_sup_sdiff_inf)
 
 lemma disjoint_symm_diff_inf : disjoint (a Δ b) (a ⊓ b) :=
 begin
@@ -189,7 +189,7 @@ by { rw symm_diff_eq_sup_sdiff_inf, exact (ha.sup_left hb).disjoint_sdiff_left }
 
 protected lemma disjoint.symm_diff_right (ha : disjoint a b) (hb : disjoint a c) :
   disjoint a (b Δ c) :=
-by { rw symm_diff_eq_sup_sdiff_inf, exact (ha.sup_right hb).disjoint_sdiff_right }
+(ha.symm.symm_diff_left hb.symm).symm
 
 end generalized_boolean_algebra
 

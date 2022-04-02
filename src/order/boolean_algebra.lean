@@ -127,25 +127,6 @@ lemma sdiff_le : x \ y ≤ x :=
 calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
        ... = x                 : sup_inf_sdiff x y
 
-lemma sdiff_symm (hy : y ≤ x) (H : x \ y = z) : x \ z = y :=
-have hyi : x ⊓ y = y := inf_eq_right.2 hy,
-have hzi : x ⊓ z = z := inf_eq_right.2 (by { rw ←H, exact sdiff_le }),
-eq_of_inf_eq_sup_eq
-  (begin
-    have ixy := inf_inf_sdiff x y,
-    rw [H, hyi] at ixy,
-    have ixz := inf_inf_sdiff x z,
-    rwa [hzi, inf_comm, ←ixy] at ixz,
-  end)
-  (begin
-    have sxz := sup_inf_sdiff x z,
-    rw [hzi, sup_comm] at sxz,
-    rw sxz,
-    symmetry,
-    have sxy := sup_inf_sdiff x y,
-    rwa [H, hyi] at sxy,
-  end)
-
 @[simp] lemma bot_sdiff : ⊥ \ x = ⊥ := le_bot_iff.1 sdiff_le
 
 lemma inf_sdiff_right : x ⊓ (x \ y) = x \ y := by rw [inf_of_le_right (@sdiff_le _ x y _)]
@@ -447,6 +428,10 @@ by rw [sdiff_sdiff_right, inf_idem, sdiff_self, bot_sup_eq]
 
 lemma sdiff_sdiff_eq_self (h : y ≤ x) : x \ (x \ y) = y :=
 by rw [sdiff_sdiff_right_self, inf_of_le_right h]
+
+lemma sdiff_eq_symm (hy : y ≤ x) (h : x \ y = z) : x \ z = y := by rw [←h, sdiff_sdiff_eq_self hy]
+lemma sdiff_eq_comm (hy : y ≤ x) (hz : z ≤ x) : x \ y = z ↔ x \ z = y :=
+⟨sdiff_eq_symm hy, sdiff_eq_symm hz⟩
 
 lemma sdiff_sdiff_left : (x \ y) \ z = x \ (y ⊔ z) :=
 begin

@@ -278,18 +278,15 @@ end
 theorem minimal_period_apply_iterate (hx : x ∈ periodic_pts f) (n : ℕ) :
   minimal_period f (f^[n] x) = minimal_period f x :=
 begin
-  apply le_antisymm,
-  { apply is_periodic_pt.minimal_period_le (minimal_period_pos_iff_mem_periodic_pts.2 hx),
-    change (f^[_] (f^[n] x)) = (f^[n] x),
+  apply le_antisymm
+    (is_periodic_pt.minimal_period_le (minimal_period_pos_iff_mem_periodic_pts.2 hx) _)
+    ((is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate hx
+      (is_periodic_pt_minimal_period f _)).minimal_period_le
+      (minimal_period_pos_iff_mem_periodic_pts.2 _)),
+  { change (f^[_] (f^[n] x)) = (f^[n] x),
     rw [←iterate_add_apply, add_comm, iterate_add_apply, iterate_minimal_period] },
-  { have hx' : (f^[n] x) ∈ periodic_pts f := begin
-      rcases hx with ⟨m, hm, hx⟩,
-      exact ⟨m, hm, hx.apply_iterate n⟩
-    end,
-    apply is_periodic_pt.minimal_period_le (minimal_period_pos_iff_mem_periodic_pts.2 hx'),
-    change (f^[_] x) = x,
-    apply @iterate_eq_of_periodic_pt α f x hx n,
-    rw [add_comm, iterate_add_apply, iterate_minimal_period] }
+  { rcases hx with ⟨m, hm, hx⟩,
+    exact ⟨m, hm, hx.apply_iterate n⟩ }
 end
 
 theorem minimal_period_apply (hx : x ∈ periodic_pts f) :
@@ -300,8 +297,9 @@ lemma le_of_lt_minimal_period_of_iterate_eq {m n : ℕ} (hm : m < minimal_period
   (hmn : f^[m] x = (f^[n] x)) : m ≤ n :=
 begin
   by_contra' hmn',
-  rw ←nat.add_sub_of_le hmn'.le at hmn,
-  exact ((is_periodic_pt.minimal_period_le (tsub_pos_of_lt hmn') (iterate_eq_of_periodic_pt
+  rw [←nat.add_sub_of_le hmn'.le, add_comm, iterate_add_apply] at hmn,
+  exact ((is_periodic_pt.minimal_period_le (tsub_pos_of_lt hmn')
+    (is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate
     (minimal_period_pos_iff_mem_periodic_pts.1 ((zero_le m).trans_lt hm)) hmn)).trans
     (nat.sub_le m n)).not_lt hm
 end
@@ -436,12 +434,15 @@ theorem orbit_eq_nil_of_not_periodic_pt {f : α → α} {x : α} (h : x ∉ peri
 orbit_eq_nil_iff_not_periodic_pt.2 h
 
 @[simp] theorem self_mem_orbit {f : α → α} {x : α} (h : x ∈ periodic_pts f) : x ∈ orbit f x :=
-by { simp [orbit], exact ⟨0, minimal_period_pos_of_mem_periodic_pts h, rfl⟩ }
+begin
+  simp only [orbit, cycle.mem_coe_iff, list.mem_map, list.mem_range],
+  exact ⟨0, minimal_period_pos_of_mem_periodic_pts h, rfl⟩
+end
 
 @[simp] theorem mem_orbit_iff {f : α → α} {x y : α} (hx : x ∈ periodic_pts f) :
   y ∈ orbit f x ↔ ∃ n, f^[n] x = y :=
 begin
-  simp [orbit, periodic_pts, is_periodic_pt],
+  simp only [orbit, cycle.mem_coe_iff, list.mem_map, list.mem_range],
   split,
   { rintro ⟨a, ha, ha'⟩,
     use a + minimal_period f x,

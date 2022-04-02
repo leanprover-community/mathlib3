@@ -1,4 +1,5 @@
 import ring_theory.dedekind_domain.ideal
+import ring_theory.chain_of_divisors
 
 @[simps]
 def ideal_correspondence (hI : I ≠ ⊥) (hJ : J ≠ ⊥) (f : I.quotient ≃+* J.quotient):

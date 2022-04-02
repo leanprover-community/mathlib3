@@ -293,8 +293,6 @@ lemma map_prime_of_monotone_equiv {m p : associates M} {n : associates N}
   (hd' : monotone d.symm) {s : ℕ} (hs : s ≠ 0) (hs' : p^s ≤ m) :
   irreducible (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N) :=
 begin
-  sorry,
-  /-
   refine (associates.is_atom_iff (ne_zero_of_dvd_ne_zero hn (d ⟨p, _⟩).prop)).mp ⟨_, λ b hb, _⟩,
   { rw [ne.def, ← associates.is_unit_iff_eq_bot, ← map_is_unit_iff_is_unit
     (dvd_of_mem_normalized_factors hp) d],
@@ -309,7 +307,6 @@ begin
     rw [divisors_bot', ← mem_divisors_eq_bot_iff],
     exact ((associates.is_atom_iff (prime.ne_zero (prime_of_normalized_factor p hp))).mpr
       (irreducible_of_normalized_factor p hp) ).right a (subtype.mk_lt_mk.mp (d.lt_iff_lt.mp hb)) },
-    -/
 end
 
 variables [unique (Mˣ)] [unique (Nˣ)]

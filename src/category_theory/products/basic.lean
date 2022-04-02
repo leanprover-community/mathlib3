@@ -195,6 +195,10 @@ variable (C)
 /-- The diagonal functor. -/
 def diag : C ⥤ C × C := (𝟭 C).prod' (𝟭 C)
 
+@[simp] lemma diag_obj (X : C) : (diag C).obj X = (X, X) := rfl
+
+@[simp] lemma diag_map {X Y : C} (f : X ⟶ Y) : (diag C).map f = (f, f) := rfl
+
 end
 
 end functor

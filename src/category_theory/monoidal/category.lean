@@ -615,9 +615,22 @@ instance prod_monoidal : monoidal_category (C₁ × C₂) :=
 { tensor_obj := λ X Y, (X.1 ⊗ Y.1, X.2 ⊗ Y.2),
   tensor_hom := λ _ _ _ _ f g, (f.1 ⊗ g.1, f.2 ⊗ g.2),
   tensor_unit := (𝟙_ C₁, 𝟙_ C₂),
-  associator := λ ⟨X₁, X₂⟩ ⟨Y₁, Y₂⟩ ⟨Z₁, Z₂⟩, (α_ X₁ Y₁ Z₁).prod (α_ X₂ Y₂ Z₂),
-  left_unitor := λ ⟨X₁, X₂⟩, (λ_ X₁).prod (λ_ X₂),
-  right_unitor := λ ⟨X₁, X₂⟩, (ρ_ X₁).prod (ρ_ X₂) }
+  associator := λ X Y Z, (α_ X.1 Y.1 Z.1).prod (α_ X.2 Y.2 Z.2),
+  left_unitor := λ X,
+  begin
+    dsimp,
+    have : X = (X.1, X.2) := prod.ext rfl rfl,
+    rw this,
+    dsimp,
+    exact (λ_ X.1).prod (λ_ X.2),
+  end,
+  right_unitor := λ X,
+  begin
+    dsimp,
+    have : X = (X.1, X.2) := prod.ext rfl rfl,
+    rw this,
+    exact (ρ_ X.1).prod (ρ_ X.2),
+  end }
 
 end
 

@@ -294,16 +294,13 @@ universes v₀ u₀
 variables {B : Type u₀} [category.{v₀} B] [monoidal_category.{v₀} B]
 variables (F : lax_monoidal_functor.{v₀ v₁} B C) (G : lax_monoidal_functor.{v₂ v₃} D E)
 
+local attribute [simp] μ_natural associativity left_unitality right_unitality
+
 /-- The cartesian product of two lax monoidal functors is lax monoidal. -/
 @[simps]
 def prod : lax_monoidal_functor (B × D) (C × E) :=
 { ε := (ε F, ε G),
   μ := λ X Y, (μ F X.1 Y.1, μ G X.2 Y.2),
-  μ_natural' := λ X Y X' Y' f g, congr_arg2 prod.mk (μ_natural F f.1 g.1) (μ_natural G f.2 g.2),
-  associativity' :=
-    λ X Y Z, congr_arg2 prod.mk (associativity F X.1 Y.1 Z.1) (associativity G X.2 Y.2 Z.2),
-  left_unitality' := λ X, congr_arg2 prod.mk (left_unitality F X.1) (left_unitality G X.2),
-  right_unitality' := λ X, congr_arg2 prod.mk (right_unitality F X.1) (right_unitality G X.2),
   .. (F.to_functor).prod (G.to_functor) }
 
 end lax_monoidal_functor
@@ -330,6 +327,12 @@ def prod' : lax_monoidal_functor C (D × E) :=
 
 @[simp] lemma prod'_to_functor :
   (F.prod' G).to_functor = (F.to_functor).prod' (G.to_functor) := rfl
+
+@[simp] lemma prod'_ε : (F.prod' G).ε = (F.ε, G.ε) :=
+by { dsimp [prod'], simp }
+
+@[simp] lemma prod'_μ (X Y : C) : (F.prod' G).μ X Y = (F.μ X Y, G.μ X Y) :=
+by { dsimp [prod'], simp }
 
 end lax_monoidal_functor
 

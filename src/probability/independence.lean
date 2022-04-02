@@ -365,7 +365,8 @@ lemma indep_fun.comp {f : α → β} {g : α → β'} (hfg : indep_fun f g μ)
   {φ : β → γ} {ψ : β' → γ'} (hφ : measurable φ) (hψ : measurable ψ) :
   indep_fun (φ ∘ f) (ψ ∘ g) μ :=
 begin
-  rintro _ _ ⟨A,hA,rfl⟩ ⟨B,hB,rfl⟩, apply hfg,
+  rintro _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
+  apply hfg,
   exact ⟨φ ⁻¹' A, hφ hA, set.preimage_comp.symm⟩,
   exact ⟨ψ ⁻¹' B, hψ hB, set.preimage_comp.symm⟩
 end

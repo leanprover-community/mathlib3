@@ -600,6 +600,58 @@ end
 
 end
 
+variables {C : Type*} [category C] [monoidal_category C]
+
+class monoidal_coherence (X Y : C) :=
+(iso [] : X ≅ Y)
+
+namespace monoidal_coherence
+
+@[simps]
+instance refl (X : C) : monoidal_coherence X X := ⟨iso.refl _⟩
+instance tensor (X Y Z : C) [monoidal_coherence Y Z] : monoidal_coherence (X ⊗ Y) (X ⊗ Z) :=
+⟨iso.refl X ⊗ monoidal_coherence.iso Y Z⟩
+instance left (X Y : C) [monoidal_coherence X Y] : monoidal_coherence (𝟙_ C ⊗ X) Y :=
+⟨λ_ X ≪≫ monoidal_coherence.iso X Y⟩
+instance left' (X Y : C) [monoidal_coherence X Y] : monoidal_coherence X (𝟙_ C ⊗ Y) :=
+⟨monoidal_coherence.iso X Y ≪≫ (λ_ Y).symm⟩
+instance right (X Y : C) [monoidal_coherence X Y] : monoidal_coherence (X ⊗ 𝟙_ C) Y :=
+⟨ρ_ X ≪≫ monoidal_coherence.iso X Y⟩
+instance right' (X Y : C) [monoidal_coherence X Y] : monoidal_coherence X (Y ⊗ 𝟙_ C) :=
+⟨monoidal_coherence.iso X Y ≪≫ (ρ_ Y).symm⟩
+instance assoc (X Y Z W : C) [monoidal_coherence (X ⊗ (Y ⊗ Z)) W] :
+  monoidal_coherence ((X ⊗ Y) ⊗ Z) W :=
+⟨α_ X Y Z ≪≫
+  monoidal_coherence.iso (X ⊗ (Y ⊗ Z)) W⟩
+instance assoc' (W X Y Z : C) [monoidal_coherence W (X ⊗ (Y ⊗ Z))] :
+  monoidal_coherence W ((X ⊗ Y) ⊗ Z) :=
+⟨monoidal_coherence.iso W (X ⊗ (Y ⊗ Z)) ≪≫
+  (α_ X Y Z).symm⟩
+
+example (X1 X2 X3 X4 X5 X6 X7 X8 X9 : C) : monoidal_coherence
+  (𝟙_ C ⊗ (X1 ⊗ X2 ⊗ ((X3 ⊗ X4) ⊗ X5)) ⊗ X6 ⊗ (X7 ⊗ X8 ⊗ X9))
+  (X1 ⊗ (X2 ⊗ X3) ⊗ X4 ⊗ (X5 ⊗ (𝟙_ C ⊗ X6) ⊗ X7) ⊗ X8 ⊗ X9) :=
+by apply_instance
+
+end monoidal_coherence
+
+def monoidal_comp {W X Y Z : C} [monoidal_coherence X Y] (f : W ⟶ X) (g : Y ⟶ Z) : W ⟶ Z :=
+f ≫ (monoidal_coherence.iso X Y).hom ≫ g
+
+infixr ` ⊗≫ `:80 := monoidal_comp -- type as \gg
+
+-- To automatically insert unitors/associators at the beginning or end,
+-- you can use `f ⊗≫ 𝟙 _`
+example {W X Y Z : C} (f : W ⟶ (X ⊗ Y) ⊗ Z) : W ⟶ X ⊗ (Y ⊗ Z) := f ⊗≫ 𝟙 _
+
+@[simp] lemma monoidal_comp_refl {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  f ⊗≫ g = f ≫ g :=
+by { dsimp [monoidal_comp], simp, }
+
+@[simp] lemma monoidal_comp_assoc {U V W X Y Z : C} [monoidal_coherence V (W ⊗ (X ⊗ Y))]
+  (f : U ⟶ V) (g : W ⊗ (X ⊗ Y) ⟶ Z) : f ⊗≫ ((α_ W X Y).hom ≫ g) = f ⊗≫ g :=
+sorry
+
 end monoidal_category
 
 end category_theory

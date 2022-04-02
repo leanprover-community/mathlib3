@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Yury Kudryashov, Sébastien Gouëzel, Chris Hughes
 -/
 import data.fin.basic
+import order.pilex
 /-!
 # Operation on tuples
 
@@ -138,6 +139,19 @@ lemma cons_le [Π i, preorder (α i)] {x : α 0} {q : Π i, α i} {p : Π i : fi
   cons x p ≤ q ↔ x ≤ q 0 ∧ p ≤ tail q :=
 @le_cons  _ (λ i, order_dual (α i)) _ x q p
 
+lemma cons_le_cons [Π i, preorder (α i)] {x₀ y₀ : α 0} {x y : Π i : fin n, α (i.succ)} :
+  cons x₀ x ≤ cons y₀ y ↔ x₀ ≤ y₀ ∧ x ≤ y :=
+forall_fin_succ.trans $ and_congr_right' $ by simp only [cons_succ, pi.le_def]
+
+lemma pi_lex_lt_cons_cons {x₀ y₀ : α 0} {x y : Π i : fin n, α (i.succ)}
+  (s : Π {i : fin n.succ}, α i → α i → Prop) :
+  pi.lex (<) @s (fin.cons x₀ x) (fin.cons y₀ y) ↔
+    s x₀ y₀ ∨ x₀ = y₀ ∧ pi.lex (<) (λ i : fin n, @s i.succ) x y :=
+begin
+  simp_rw [pi.lex, fin.exists_fin_succ, fin.cons_succ, fin.cons_zero, fin.forall_fin_succ],
+  simp [and_assoc, exists_and_distrib_left],
+end
+
 @[simp]
 lemma range_cons {α : Type*} {n : ℕ} (x : α) (b : fin n → α) :
   set.range (fin.cons x b : fin n.succ → α) = insert x (set.range b) :=
@@ -207,6 +221,10 @@ begin
   simp [snoc, this, h'],
   convert cast_eq rfl (p i)
 end
+
+@[simp] lemma snoc_comp_cast_succ {n : ℕ} {α : Sort*} {a : α} {f : fin n → α} :
+  (snoc f a : fin (n + 1) → α) ∘ cast_succ = f :=
+funext (λ i, by rw [function.comp_app, snoc_cast_succ])
 
 @[simp] lemma snoc_last : snoc p x (last n) = x :=
 by { simp [snoc] }

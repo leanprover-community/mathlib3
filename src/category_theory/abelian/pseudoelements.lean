@@ -301,20 +301,20 @@ theorem pseudo_exact_of_exact {P Q R : C} {f : P ⟶ Q} {g : Q ⟶ R} [exact f g
 
       -- We compute the pullback of the map into the image and c.
       -- The pseudoelement induced by the first pullback map will be our preimage.
-      use (pullback.fst : pullback (images.factor_thru_image f) c ⟶ P),
+      use (pullback.fst : pullback (abelian.factor_thru_image f) c ⟶ P),
 
       -- It remains to show that the image of this element under f is pseudo-equal to b.
       apply quotient.sound,
 
       -- pullback.snd is an epimorphism because the map onto the image is!
-      refine ⟨pullback (images.factor_thru_image f) c, 𝟙 _, pullback.snd,
+      refine ⟨pullback (abelian.factor_thru_image f) c, 𝟙 _, pullback.snd,
         by apply_instance, by apply_instance, _⟩,
 
       -- Now we can verify that the diagram commutes.
-      calc 𝟙 (pullback (images.factor_thru_image f) c) ≫ pullback.fst ≫ f = pullback.fst ≫ f
+      calc 𝟙 (pullback (abelian.factor_thru_image f) c) ≫ pullback.fst ≫ f = pullback.fst ≫ f
                 : category.id_comp _
-        ... = pullback.fst ≫ images.factor_thru_image f ≫ kernel.ι (cokernel.π f)
-                : by rw images.image.fac
+        ... = pullback.fst ≫ abelian.factor_thru_image f ≫ kernel.ι (cokernel.π f)
+                : by rw abelian.image.fac
         ... = (pullback.snd ≫ c) ≫ kernel.ι (cokernel.π f)
                 : by rw [←category.assoc, pullback.condition]
         ... = pullback.snd ≫ b.hom
@@ -346,8 +346,8 @@ begin
   -- The commutative diagram given by the pseudo-equality f a = b induces
   -- a cone over this pullback, so we get a factorization z.
   obtain ⟨z, hz₁, hz₂⟩ := @pullback.lift' _ _ _ _ _ _ (kernel.ι (cokernel.π f)) (kernel.ι g) _
-    (r ≫ a.hom ≫ images.factor_thru_image f) q
-      (by { simp only [category.assoc, images.image.fac], exact comm }),
+    (r ≫ a.hom ≫ abelian.factor_thru_image f) q
+      (by { simp only [category.assoc, abelian.image.fac], exact comm }),
 
   -- Let's give a name to the second pullback morphism.
   let j : pullback (kernel.ι (cokernel.π f)) (kernel.ι g) ⟶ kernel g := pullback.snd,

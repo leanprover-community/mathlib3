@@ -1309,165 +1309,18 @@ end complete_lattice
 protected def function.injective.complete_lattice [has_sup α] [has_inf α] [has_Sup α]
   [has_Inf α] [has_top α] [has_bot α] [complete_lattice β]
   (f : α → β) (hf : function.injective f) (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b)
-  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = Sup (f '' s))
-  (map_Inf : ∀ s, f (Inf s) = Inf (f '' s)) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
+  (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b) (map_Sup : ∀ s, f (Sup s) = ⨆ a ∈ s, f a)
+  (map_Inf : ∀ s, f (Inf s) = ⨅ a ∈ s, f a) (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) :
   complete_lattice α :=
 { Sup := Sup,
-  le_Sup := λ s a h, (le_Sup $ mem_image_of_mem f h).trans (map_Sup _).ge,
-  Sup_le := λ s a h, (map_Sup _).le.trans $ Sup_le $ set.ball_image_of_ball $ by exact h,
+  le_Sup := λ s a h, (le_bsupr a h).trans (map_Sup _).ge,
+  Sup_le := λ s a h, (map_Sup _).trans_le $ bsupr_le h,
   Inf := Inf,
-  Inf_le := λ s a h, (map_Inf _).le.trans $ Inf_le $ mem_image_of_mem f h,
-  le_Inf := λ s a h, (le_Inf $ set.ball_image_of_ball $ by exact h).trans (map_Inf _).ge,
+  Inf_le := λ s a h, (map_Inf _).trans_le $ binfi_le a h,
+  le_Inf := λ s a h, (le_binfi h).trans (map_Inf _).ge,
   -- we cannot use bounded_order.lift here as the `has_le` instance doesn't exist yet
   top := ⊤,
   le_top := λ a, (@le_top β _ _ _).trans map_top.ge,
   bot := ⊥,
   bot_le := λ a, map_bot.le.trans bot_le,
   ..hf.lattice f map_sup map_inf }
-
-/-! ### Supremum independence-/
-
-namespace complete_lattice
-variables [complete_lattice α]
-
-/-- An independent set of elements in a complete lattice is one in which every element is disjoint
-  from the `Sup` of the rest. -/
-def set_independent (s : set α) : Prop := ∀ ⦃a⦄, a ∈ s → disjoint a (Sup (s \ {a}))
-
-variables {s : set α} (hs : set_independent s)
-
-@[simp]
-lemma set_independent_empty : set_independent (∅ : set α) :=
-λ x hx, (set.not_mem_empty x hx).elim
-
-theorem set_independent.mono {t : set α} (hst : t ⊆ s) :
-  set_independent t :=
-λ a ha, (hs (hst ha)).mono_right (Sup_le_Sup (diff_subset_diff_left hst))
-
-/-- If the elements of a set are independent, then any pair within that set is disjoint. -/
-lemma set_independent.disjoint {x y : α} (hx : x ∈ s) (hy : y ∈ s) (h : x ≠ y) : disjoint x y :=
-disjoint_Sup_right (hs hx) ((mem_diff y).mpr ⟨hy, by simp [h.symm]⟩)
-
-lemma set_independent_pair {a b : α} (hab : a ≠ b) :
-  set_independent ({a, b} : set α) ↔ disjoint a b :=
-begin
-  split,
-  { intro h,
-    exact h.disjoint (mem_insert _ _) (mem_insert_of_mem _ (mem_singleton _)) hab, },
-  { rintros h c ((rfl : c = a) | (rfl : c = b)),
-    { convert h using 1,
-      simp [hab, Sup_singleton] },
-    { convert h.symm using 1,
-      simp [hab, Sup_singleton] }, },
-end
-
-include hs
-
-/-- If the elements of a set are independent, then any element is disjoint from the `Sup` of some
-subset of the rest. -/
-lemma set_independent.disjoint_Sup {x : α} {y : set α} (hx : x ∈ s) (hy : y ⊆ s) (hxy : x ∉ y) :
-  disjoint x (Sup y) :=
-begin
-  have := (hs.mono $ insert_subset.mpr ⟨hx, hy⟩) (mem_insert x _),
-  rw [insert_diff_of_mem _ (mem_singleton _), diff_singleton_eq_self hxy] at this,
-  exact this,
-end
-
-omit hs
-
-/-- An independent indexed family of elements in a complete lattice is one in which every element
-  is disjoint from the `supr` of the rest.
-
-  Example: an indexed family of non-zero elements in a
-  vector space is linearly independent iff the indexed family of subspaces they generate is
-  independent in this sense.
-
-  Example: an indexed family of submodules of a module is independent in this sense if
-  and only the natural map from the direct sum of the submodules to the module is injective. -/
-def independent {ι : Sort*} {α : Type*} [complete_lattice α] (t : ι → α) : Prop :=
-∀ i : ι, disjoint (t i) (⨆ (j ≠ i), t j)
-
-lemma set_independent_iff {α : Type*} [complete_lattice α] (s : set α) :
-  set_independent s ↔ independent (coe : s → α) :=
-begin
-  simp_rw [independent, set_independent, set_coe.forall, Sup_eq_supr],
-  refine forall₂_congr (λ a ha, _),
-  congr' 2,
-  convert supr_subtype.symm,
-  simp [supr_and],
-end
-
-variables {t : ι → α} (ht : independent t)
-
-theorem independent_def : independent t ↔ ∀ i : ι, disjoint (t i) (⨆ (j ≠ i), t j) :=
-iff.rfl
-
-theorem independent_def' {ι : Type*} {t : ι → α} :
-  independent t ↔ ∀ i, disjoint (t i) (Sup (t '' {j | j ≠ i})) :=
-by {simp_rw Sup_image, refl}
-
-theorem independent_def'' {ι : Type*} {t : ι → α} :
-  independent t ↔ ∀ i, disjoint (t i) (Sup {a | ∃ j ≠ i, t j = a}) :=
-by {rw independent_def', tidy}
-
-@[simp]
-lemma independent_empty (t : empty → α) : independent t.
-
-@[simp]
-lemma independent_pempty (t : pempty → α) : independent t.
-
-/-- If the elements of a set are independent, then any pair within that set is disjoint. -/
-lemma independent.disjoint {x y : ι} (h : x ≠ y) : disjoint (t x) (t y) :=
-disjoint_Sup_right (ht x) ⟨y, by simp [h.symm]⟩
-
-lemma independent.mono {ι : Type*} {α : Type*} [complete_lattice α]
-  {s t : ι → α} (hs : independent s) (hst : t ≤ s) :
-  independent t :=
-λ i, (hs i).mono (hst i) (supr_le_supr $ λ j, supr_le_supr $ λ _, hst j)
-
-/-- Composing an independent indexed family with an injective function on the index results in
-another indepedendent indexed family. -/
-lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
-  {s : ι → α} (hs : independent s) (f : ι' → ι) (hf : function.injective f) :
-  independent (s ∘ f) :=
-λ i, (hs (f i)).mono_right begin
-  refine (supr_le_supr $ λ i, _).trans (supr_comp_le _ f),
-  exact supr_le_supr_const hf.ne,
-end
-
-lemma independent_pair {i j : ι} (hij : i ≠ j) (huniv : ∀ k, k = i ∨ k = j):
-  independent t ↔ disjoint (t i) (t j) :=
-begin
-  split,
-  { intro h,
-    exact h.disjoint hij, },
-  { rintros h k,
-    obtain rfl | rfl := huniv k,
-    { refine h.mono_right (supr_le $ λ i, supr_le $ λ hi, eq.le _),
-      rw (huniv i).resolve_left hi },
-    { refine h.symm.mono_right (supr_le $ λ j, supr_le $ λ hj, eq.le _),
-      rw (huniv j).resolve_right hj } },
-end
-
-/-- Composing an indepedent indexed family with an order isomorphism on the elements results in
-another indepedendent indexed family. -/
-lemma independent.map_order_iso {ι : Sort*} {α β : Type*}
-  [complete_lattice α] [complete_lattice β] (f : α ≃o β) {a : ι → α} (ha : independent a) :
-  independent (f ∘ a) :=
-λ i, ((ha i).map_order_iso f).mono_right (f.monotone.le_map_supr2 _)
-
-@[simp] lemma independent_map_order_iso_iff {ι : Sort*} {α β : Type*}
-  [complete_lattice α] [complete_lattice β] (f : α ≃o β) {a : ι → α} :
-  independent (f ∘ a) ↔ independent a :=
-⟨ λ h, have hf : f.symm ∘ f ∘ a = a := congr_arg (∘ a) f.left_inv.comp_eq_id,
-      hf ▸ h.map_order_iso f.symm,
-  λ h, h.map_order_iso f⟩
-
-/-- If the elements of a set are independent, then any element is disjoint from the `supr` of some
-subset of the rest. -/
-lemma independent.disjoint_bsupr {ι : Type*} {α : Type*} [complete_lattice α]
-  {t : ι → α} (ht : independent t) {x : ι} {y : set ι} (hx : x ∉ y) :
-  disjoint (t x) (⨆ i ∈ y, t i) :=
-disjoint.mono_right (bsupr_le_bsupr' $ λ i hi, (ne_of_mem_of_not_mem hi hx : _)) (ht x)
-
-end complete_lattice

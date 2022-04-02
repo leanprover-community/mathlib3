@@ -75,13 +75,14 @@ theorem dvd_of_mul_right_dvd (h : a * b ∣ c) : a ∣ c :=
 
 section map_dvd
 
-variables {M N : Type*}
+variables {M N : Type*} [monoid M] [monoid N]
 
-lemma mul_hom.map_dvd [monoid M] [monoid N] (f : mul_hom M N) {a b} : a ∣ b → f a ∣ f b
-| ⟨c, h⟩ := ⟨f c, h.symm ▸ f.map_mul a c⟩
+lemma map_dvd {F : Type*} [mul_hom_class F M N] (f : F) {a b} : a ∣ b → f a ∣ f b
+| ⟨c, h⟩ := ⟨f c, h.symm ▸ map_mul f a c⟩
 
-lemma monoid_hom.map_dvd [monoid M] [monoid N] (f : M →* N) {a b} : a ∣ b → f a ∣ f b :=
-f.to_mul_hom.map_dvd
+lemma mul_hom.map_dvd (f : mul_hom M N) {a b} : a ∣ b → f a ∣ f b := map_dvd f
+
+lemma monoid_hom.map_dvd (f : M →* N) {a b} : a ∣ b → f a ∣ f b := map_dvd f
 
 end map_dvd
 

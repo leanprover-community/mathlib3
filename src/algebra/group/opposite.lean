@@ -5,8 +5,8 @@ Authors: Kenny Lau
 -/
 import algebra.group.inj_surj
 import algebra.group.commute
+import algebra.hom.equiv
 import algebra.opposites
-import data.equiv.mul_add
 
 /-!
 # Group structures on the multiplicative and additive opposites
@@ -114,6 +114,14 @@ We also generate additive structures on `αᵃᵒᵖ` using `to_additive`
 { .. mul_opposite.group α, .. mul_opposite.comm_monoid α }
 
 variable {α}
+
+@[simp, to_additive] lemma unop_div [div_inv_monoid α] (x y : αᵐᵒᵖ) :
+  unop (x / y) = (unop y)⁻¹ * unop x :=
+rfl
+
+@[simp, to_additive] lemma op_div [div_inv_monoid α] (x y : α) :
+  op (x / y) = (op y)⁻¹ * op x :=
+by simp [div_eq_mul_inv]
 
 @[simp, to_additive] lemma semiconj_by_op [has_mul α] {a x y : α} :
   semiconj_by (op a) (op y) (op x) ↔ semiconj_by a x y :=

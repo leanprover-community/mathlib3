@@ -434,13 +434,10 @@ orbit_eq_nil_iff_not_periodic_pt.2 h
 @[simp] theorem mem_orbit_iff (hx : x ∈ periodic_pts f) : y ∈ orbit f x ↔ ∃ n, f^[n] x = y :=
 begin
   simp only [orbit, cycle.mem_coe_iff, list.mem_map, list.mem_range],
-  split,
-  { rintro ⟨a, ha, ha'⟩,
-    use a + minimal_period f x,
-    rwa iterate_eq_add_minimal_period },
-  { rintro ⟨n, rfl⟩,
-    use [n % minimal_period f x, mod_lt _ (minimal_period_pos_iff_mem_periodic_pts.2 hx)],
-    rw iterate_eq_mod_minimal_period }
+  use λ ⟨a, ha, ha'⟩, ⟨a, ha'⟩,
+  rintro ⟨n, rfl⟩,
+  use [n % minimal_period f x, mod_lt _ (minimal_period_pos_iff_mem_periodic_pts.2 hx)],
+  rw iterate_eq_mod_minimal_period
 end
 
 @[simp] theorem iterate_mem_orbit (hx : x ∈ periodic_pts f) (n : ℕ) : f^[n] x ∈ orbit f x :=

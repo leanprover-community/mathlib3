@@ -308,20 +308,28 @@ def prod : lax_monoidal_functor (B × D) (C × E) :=
 
 end lax_monoidal_functor
 
+namespace monoidal_functor
+variable (C)
+
+/-- The diagonal functor as a monoidal functor. -/
+@[simps]
+def diag : monoidal_functor C (C × C) :=
+{ ε := 𝟙 _,
+  μ := λ X Y, 𝟙 _,
+  .. functor.diag C }
+
+end monoidal_functor
+
 namespace lax_monoidal_functor
 variables (F : lax_monoidal_functor.{v₁ v₂} C D) (G : lax_monoidal_functor.{v₁ v₃} C E)
 
 /-- The cartesian product of two lax monoidal functors starting from the same monoidal category `C`
     is lax monoidal. -/
-@[simps]
 def prod' : lax_monoidal_functor C (D × E) :=
-{ ε := (ε F, ε G),
-  μ := λ X Y, (μ F X Y, μ G X Y),
-  μ_natural' := λ X Y X' Y' f g, congr_arg2 prod.mk (μ_natural F f g) (μ_natural G f g),
-  associativity' := λ X Y Z, congr_arg2 prod.mk (associativity F X Y Z) (associativity G X Y Z),
-  left_unitality' := λ X, congr_arg2 prod.mk (left_unitality F X) (left_unitality G X),
-  right_unitality' := λ X, congr_arg2 prod.mk (right_unitality F X) (right_unitality G X),
-  .. (F.to_functor).prod' (G.to_functor) }
+(monoidal_functor.diag C).to_lax_monoidal_functor ⊗⋙ (F.prod G)
+
+@[simp] lemma prod'_to_functor :
+  (F.prod' G).to_functor = (F.to_functor).prod' (G.to_functor) := rfl
 
 end lax_monoidal_functor
 
@@ -359,11 +367,11 @@ variables (F : monoidal_functor.{v₁ v₂} C D) (G : monoidal_functor.{v₁ v�
 
 /-- The cartesian product of two monoidal functors starting from the same monoidal category `C`
     is monoidal. -/
-@[simps]
-def prod' : monoidal_functor C (D × E) :=
-{ ε_is_iso := (is_iso_prod_iff D E).mpr ⟨ε_is_iso F, ε_is_iso G⟩,
-  μ_is_iso := λ X Y, (is_iso_prod_iff D E).mpr ⟨μ_is_iso F X Y, μ_is_iso G X Y⟩,
-  .. (F.to_lax_monoidal_functor).prod' (G.to_lax_monoidal_functor) }
+def prod' : monoidal_functor C (D × E) := diag C ⊗⋙ (F.prod G)
+
+@[simp] lemma prod'_to_lax_monoidal_functor :
+    (F.prod' G).to_lax_monoidal_functor
+  = (F.to_lax_monoidal_functor).prod' (G.to_lax_monoidal_functor) := rfl
 
 end monoidal_functor
 

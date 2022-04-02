@@ -101,6 +101,14 @@ begin
   exact div_le_div_of_le_of_nonneg (norm_add_le _ _) (norm_nonneg _),
 end
 
+omit V
+include W
+
+lemma antilipschitz_with_line_map [normed_space 𝕜 W] {p₁ p₂ : Q} (h : p₁ ≠ p₂) :
+  antilipschitz_with (nndist p₁ p₂)⁻¹ (line_map p₁ p₂ : 𝕜 → Q) :=
+antilipschitz_with.of_le_mul_dist $ λ c₁ c₂, by rw [dist_line_map_line_map, nnreal.coe_inv,
+  ← dist_nndist, mul_left_comm, inv_mul_cancel (dist_ne_zero.2 h), mul_one]
+
 end normed_space
 
 variables [normed_space ℝ V] [normed_space ℝ W]

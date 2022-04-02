@@ -7,7 +7,6 @@ import measure_theory.integral.bochner
 import measure_theory.integral.lebesgue
 import measure_theory.function.l1_space
 import probability.independence
-import probability.notation
 
 /-!
 # Integration in Probability Theory
@@ -31,7 +30,7 @@ example [M1 : measurable_space α] {M2 : measurable_space α} {μ : measure α} 
 
 noncomputable theory
 open set measure_theory
-open_locale ennreal probability_theory
+open_locale ennreal
 
 variables {α : Type*}
 

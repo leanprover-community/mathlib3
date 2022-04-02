@@ -459,8 +459,7 @@ begin
   rwa eq_iff_lt_minimal_period_of_iterate_eq hm hn at hmn
 end
 
-theorem orbit_apply_iterate_eq (hx : x ∈ periodic_pts f) (n : ℕ) :
-  orbit f (f^[n] x) = orbit f x :=
+theorem orbit_apply_iterate_eq (hx : x ∈ periodic_pts f) (n : ℕ) : orbit f (f^[n] x) = orbit f x :=
 eq.symm $ cycle.coe_eq_coe.2 $ ⟨n, begin
   apply list.ext_le _ (λ m _ _, _),
   { simp [minimal_period_apply_iterate hx] },

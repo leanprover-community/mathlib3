@@ -354,7 +354,7 @@ lemma indep_fun.ae_eq {f g f' g' : α → β} (hfg : indep_fun f g μ)
   (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :
   indep_fun f' g' μ :=
 begin
-  rintro _ _ ⟨A,hA,rfl⟩ ⟨B,hB,rfl⟩,
+  rintro _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
   have h1 : f ⁻¹' A =ᵐ[μ] f' ⁻¹' A := hf.fun_comp A,
   have h2 : g ⁻¹' B =ᵐ[μ] g' ⁻¹' B := hg.fun_comp B,
   rw [←measure_congr h1, ←measure_congr h2, ←measure_congr (h1.inter h2)],

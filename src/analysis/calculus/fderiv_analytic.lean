@@ -14,8 +14,6 @@ A function expressible as a power series at a point has a Frechet derivative the
 Also the special case in terms of `deriv` when the domain is 1-dimensional.
 -/
 
-universe u
-
 open filter asymptotics
 open_locale ennreal
 
@@ -165,7 +163,7 @@ lemma analytic_on.deriv [complete_space F] (h : analytic_on 𝕜 f s) :
   analytic_on 𝕜 (deriv f) s :=
 (continuous_linear_map.apply 𝕜 F (1 : 𝕜)).comp_analytic_on h.fderiv
 
-/-- If a function is analytic on a set `s`, so are its successive derivative. -/
+/-- If a function is analytic on a set `s`, so are its successive derivatives. -/
 lemma analytic_on.iterated_deriv [complete_space F] (h : analytic_on 𝕜 f s) (n : ℕ) :
   analytic_on 𝕜 (deriv^[n] f) s :=
 begin

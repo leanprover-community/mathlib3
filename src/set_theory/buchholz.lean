@@ -191,6 +191,7 @@ typein_enum _ _
   (0 : buchholz_exp' v).value Ψ = 0 :=
 by { rw ←ord_zero, apply lt_Omega_value }
 
+/-- The value of any expression over any empty family is less than `Ωᵥ`. -/
 theorem value_zero {o : ordinal} (ho : o = 0) {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal) :
   Π (e : buchholz_exp' v), e.value Ψ < (Omega v).ord
 | (lt_Omega' a)  := typein_lt_self _
@@ -382,6 +383,7 @@ buchholz_exp'.add_value Ψ e₁.val e₂.val
   (psi u he).value = Ψ e.value he u :=
 buchholz_exp'.psi_value Ψ u he
 
+/-- The value of any expression over any empty family is less than `Ωᵥ`. -/
 theorem value_zero {o : ordinal} (ho : o = 0) {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal)
   (e : buchholz_exp o v Ψ) : e.value < (Omega v).ord :=
 buchholz_exp'.value_zero ho Ψ _
@@ -401,11 +403,6 @@ def lift {o o' : ordinal} {v : ℕ} {Ψ : Π a, a < o → ℕ → ordinal} (ho :
     rw ←buchholz_exp'.value_eq_of_extend_psi ho H he.1,
     exact he.2.trans_le ho }
 end⟩
-
-/-- The hypothesis needed to use lift on an unbounded family of functions. -/
-theorem lift_H {o o' : ordinal} (ho : o ≤ o') (Ψ : ordinal → ℕ → ordinal) (a) (ha : a < o) (u) :
-  (λ a (ha : a < o) u, Ψ a u) a ha u = (λ a (ha : a < o') u, Ψ a u) a (ha.trans_le ho) u :=
-rfl
 
 @[simp] theorem lift_value {o o' : ordinal} {v : ℕ} {Ψ : Π a, a < o → ℕ → ordinal} (ho : o ≤ o')
   {Ψ' : Π a, a < o' → ℕ → ordinal} (H : ∀ a (ha : a < o) u, Ψ a ha u = Ψ' a (ha.trans_le ho) u)
@@ -508,7 +505,7 @@ theorem buchholz_monotone (v : ℕ) : monotone (function.swap buchholz v) :=
   rw [buchholz_def, buchholz_def],
   apply mex_monotone,
   rintros o ⟨e, he⟩,
-  use buchholz_exp.lift h (buchholz_exp.lift_H h buchholz) e,
+  use buchholz_exp.lift h (λ _ _ _, rfl) e,
   rw ←he,
   exact buchholz_exp.lift_value h _ e
 end

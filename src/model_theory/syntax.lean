@@ -148,7 +148,7 @@ begin
     exact le_self_add }
 end
 
-instance [encodable α] [encodable ((Σ i, L.functions i))] [inhabited (L.term α)] :
+instance [encodable α] [encodable (Σ i, L.functions i)] [inhabited (L.term α)] :
   encodable (L.term α) :=
 encodable.of_left_injection list_encode (λ l, (list_decode l).head')
   (λ t, by rw [← bind_singleton list_encode, list_decode_encode_list, head'])
@@ -160,6 +160,10 @@ begin
   rw [add_le_omega, mk_sum, add_le_omega, lift_le_omega, lift_le_omega, ← encodable_iff],
   exact ⟨⟨h1, L.card_functions_le_omega⟩, refl _⟩,
 end
+
+instance small [small.{u} α] :
+  small.{u} (L.term α) :=
+small_of_injective list_encode_injective
 
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
@@ -683,6 +687,12 @@ lemma is_atomic_graph (f : L.functions n) : (graph f).is_atomic :=
 bounded_formula.is_atomic.equal _ _
 
 end formula
+
+variable (L)
+
+protected def sentence.nonempty : L.sentence := ∃' (&0 =' &0)
+
+protected def Theory.nonempty : L.Theory := {sentence.nonempty L}
 
 end language
 end first_order

@@ -522,6 +522,8 @@ infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \mo
 
 variables {M} (T : L.Theory)
 
+@[simp] lemma Theory.model_iff : M ⊨ T ↔ ∀ φ ∈ T, M ⊨ φ := ⟨λ h, h.realize_of_mem, λ h, ⟨h⟩⟩
+
 lemma Theory.realize_sentence_of_mem [M ⊨ T] {φ : L.sentence} (h : φ ∈ T) :
   M ⊨ φ :=
 Theory.model.realize_of_mem φ h
@@ -529,14 +531,7 @@ Theory.model.realize_of_mem φ h
 @[simp] lemma Lhom.on_Theory_model [L'.Structure M] (φ : L →ᴸ L') [φ.is_expansion_on M]
   (T : L.Theory) :
   M ⊨ φ.on_Theory T ↔ M ⊨ T :=
-begin
-  split; introI,
-  { exact ⟨λ ψ hψ, (φ.realize_on_sentence M _).1
-      ((φ.on_Theory T).realize_sentence_of_mem (set.mem_image_of_mem φ.on_sentence hψ))⟩ },
-  { refine ⟨λ ψ hψ, _⟩,
-    obtain ⟨ψ₀, hψ₀, rfl⟩ := Lhom.mem_on_Theory.1 hψ,
-    exact (φ.realize_on_sentence M _).2 (T.realize_sentence_of_mem hψ₀) },
-end
+by simp [Theory.model_iff, Lhom.on_Theory]
 
 variables {M} {T}
 
@@ -545,6 +540,10 @@ instance model_empty : M ⊨ (∅ : L.Theory) := ⟨λ φ hφ, (set.not_mem_empt
 lemma Theory.model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
   M ⊨ T :=
 ⟨λ φ hφ, T'.realize_sentence_of_mem (hs hφ)⟩
+
+lemma Theory.model_singleton_iff {φ : L.sentence} :
+  M ⊨ ({φ} : L.Theory) ↔ M ⊨ φ :=
+by simp
 
 namespace bounded_formula
 
@@ -602,6 +601,20 @@ begin
     iff_eq_eq],
   exact congr rfl (funext fin_zero_elim),
 end
+
+variable (L)
+
+@[simp] lemma sentence.realize_nonempty :
+  M ⊨ (sentence.nonempty L) ↔ nonempty M :=
+bounded_formula.realize_ex.trans (trans (exists_congr eq_self_iff_true) exists_true_iff_nonempty)
+
+@[simp] lemma Theory.model_nonempty_iff :
+  M ⊨ (Theory.nonempty L) ↔ nonempty M :=
+Theory.model_singleton_iff.trans (sentence.realize_nonempty L)
+
+instance Theory.model_nonempty [h : nonempty M] :
+  M ⊨ (Theory.nonempty L) :=
+(Theory.model_nonempty_iff L).2 h
 
 end language
 end first_order

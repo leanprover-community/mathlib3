@@ -168,9 +168,9 @@ begin
   have h : a = a - 1 + 1,
   { zify,
     simp, },
-  -- TODO(Sean): you should be able to finish this with the only lemmas you need being h and the
-  -- coprime_add_one lemma above.
-  sorry,
+    rw [h, nat.add_succ_sub_one, add_zero, nat.coprime_self_add_left, nat.coprime_one_left_iff],
+    trivial,
+  -- didn't have to use coprime_add_one
 end
 
 /-- Theorem 3.4 of Conrad -/
@@ -235,13 +235,13 @@ begin
     rw ← order_of_dvd_iff_pow_eq_one at euler h2 ⊢,
     have order_gcd := nat.dvd_gcd euler h2,
     have gcd_eq : (p ^ (α - 1) * (p - 1)).gcd (p ^ α - 1) = p - 1,
-    { apply nat.gcd_mul_of_dvd_coprime,
+    { apply nat.gcd_mul_of_coprime_of_dvd,
       {exact sub_one_dvd_pow_sub_one p α one_le_p,},
       { -- p is relatively prime to p^α - 1
         apply nat.coprime.pow_left,
         rw ←nat.coprime_pow_left_iff (hα),
-        -- TODO(Sean): Once you've completed the lemma above, finish this
-        sorry,
+        apply coprime_self_sub_one,
+        exact zero_lt_n,
       },
     },
     rwa gcd_eq at order_gcd,
@@ -261,7 +261,11 @@ begin
     by_cases j = 0,
     { rw strong_probable_prime,
       have hfoo : a ^ odd_part (p - 1) = 1,
-      {
+      { have stuff : order_of (a ^ odd_part (p - 1)) = 1,
+        rw hj,
+        rw h,
+        simp,
+        rw ← stuff,
         -- TODO(Sean): I think you'll need the lemma order_of_eq_one_iff as well
         -- as h and hj
         sorry,
@@ -343,12 +347,8 @@ begin
     rw eq_self_iff_true,
     trivial,
     split,
-    -- I'm thinking there's a possible mistake? I don't see how the hypotheses lead to the
-    -- conclusion here
-    -- ... yes, you're right, let me change things ...
-    -- TODO(Sean): I've merged in the other PRs to miller_rabin branch, so you should be able to
-    -- finish this now
-    sorry,
+    exact hn0,
+    exact hn1,
   }
 end
 
@@ -409,11 +409,10 @@ lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [hn_pos : fact (0 < 
   ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
 begin
   cases coprime_factorization_or_prime_power n (hn_pos.out),
-  { -- n is not a prime power - it can be factored into two coprime numbers.
-    -- TODO(Sean): This sorry and the one below should be solvable using the two lemmas above
-    -- unlikely_strong_probable_prime_of_coprime_mul and unlikely_strong_probable_prime_of_prime_power,
-    -- respectively. You shouldn't need any other lemmas from this file.
-    sorry,
+  { apply unlikely_strong_probable_prime_of_coprime_mul,
+    exact h,
+    exact not_prime,
+    -- didn't need unlikely_strong_probable_prime_of_prime_power
   },
   { -- n is a prime power
     sorry,

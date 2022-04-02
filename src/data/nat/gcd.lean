@@ -467,11 +467,10 @@ by simp [coprime]
 @[simp] theorem coprime_self (n : ℕ) : coprime n n ↔ n = 1 :=
 by simp [coprime]
 
-lemma gcd_mul_of_dvd_coprime (a b c : ℕ) (b_dvd_c : b ∣ c) (hac : coprime a c) :
+lemma gcd_mul_of_coprime_of_dvd (a b c : ℕ) (hac : coprime a c) (b_dvd_c : b ∣ c) :
   gcd (a * b) c = b :=
 begin
-  rcases exists_eq_mul_left_of_dvd b_dvd_c with ⟨d, hd⟩,
-  rw hd at hac ⊢,
+  rcases exists_eq_mul_left_of_dvd b_dvd_c with ⟨d, rfl⟩,
   rw [gcd_mul_right],
   convert one_mul b,
   exact coprime.coprime_mul_right_right hac,

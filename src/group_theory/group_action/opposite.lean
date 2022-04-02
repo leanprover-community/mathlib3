@@ -106,12 +106,12 @@ instance comm_semigroup.is_central_scalar [comm_semigroup α] : is_central_scala
   one_smul := mul_one,
   mul_smul := λ x y r, (mul_assoc _ _ _).symm }
 
-instance is_scalar_tower.opposite_mid {M N} [monoid N] [has_scalar M N]
+instance is_scalar_tower.opposite_mid {M N} [has_mul N] [has_scalar M N]
   [smul_comm_class M N N] :
   is_scalar_tower M Nᵐᵒᵖ N :=
 ⟨λ x y z, mul_smul_comm _ _ _⟩
 
-instance smul_comm_class.opposite_mid {M N} [monoid N] [has_scalar M N]
+instance smul_comm_class.opposite_mid {M N} [has_mul N] [has_scalar M N]
   [is_scalar_tower M N N] :
   smul_comm_class M Nᵐᵒᵖ N :=
 ⟨λ x y z, by { induction y using mul_opposite.rec, simp [smul_mul_assoc] }⟩

@@ -11,21 +11,6 @@ apply_nolint CommGroup.has_limits to_additive_doc
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
 
--- algebra/group/semiconj.lean
-apply_nolint semiconj_by.one_left to_additive_doc
-apply_nolint semiconj_by.one_right to_additive_doc
-
--- algebra/hom/equiv.lean
-apply_nolint equiv.mul_left_symm_apply to_additive_doc
-apply_nolint equiv.mul_right_symm_apply to_additive_doc
-apply_nolint mul_equiv.apply_symm_apply to_additive_doc
-apply_nolint mul_equiv.map_div to_additive_doc
-apply_nolint mul_equiv.map_inv to_additive_doc
-apply_nolint mul_equiv.map_mul to_additive_doc
-apply_nolint mul_equiv.map_one to_additive_doc
-apply_nolint mul_equiv.symm_apply_apply to_additive_doc
-apply_nolint mul_equiv.unique to_additive_doc
-
 -- algebra/hom/freiman.lean
 apply_nolint freiman_hom.has_coe_to_fun to_additive_doc
 
@@ -71,9 +56,6 @@ apply_nolint right.one_le_inv_iff to_additive_doc
 
 -- algebra/order/lattice_group.lean
 apply_nolint lattice_ordered_comm_group.mabs_mul_le to_additive_doc
-
--- algebra/order/monoid.lean
-apply_nolint with_zero.canonically_ordered_add_monoid check_reducibility
 
 -- algebra/order/monoid_lemmas.lean
 apply_nolint mul_le_one' to_additive_doc
@@ -1200,10 +1182,6 @@ apply_nolint continuous.exists_forall_le_of_has_compact_mul_support to_additive_
 
 -- topology/category/Top/open_nhds.lean
 apply_nolint topological_space.open_nhds.map doc_blame
-
--- topology/metric_space/emetric_space.lean
-apply_nolint mul_opposite.emetric_space to_additive_doc
-apply_nolint mul_opposite.pseudo_emetric_space to_additive_doc
 
 -- topology/uniform_space/completion.lean
 apply_nolint Cauchy.extend doc_blame

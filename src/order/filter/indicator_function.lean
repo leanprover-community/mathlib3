@@ -86,3 +86,13 @@ begin
   refine monotone.tendsto_indicator (λ n : finset ι, ⋃ i ∈ n, s i) _ f a,
   exact λ t₁ t₂, bUnion_subset_bUnion_left
 end
+
+lemma _root_.filter.eventually_eq.support [has_zero β] {f g : α → β} {l : filter α}
+  (h : f =ᶠ[l] g) :
+  function.support f =ᶠ[l] function.support g :=
+begin
+  filter_upwards [h] with x hx,
+  rw eq_iff_iff,
+  change f x ≠ 0 ↔ g x ≠ 0,
+  rw hx,
+end

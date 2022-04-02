@@ -639,6 +639,73 @@ begin
       (Lp.coe_fn_add _ _).symm, },
 end
 
+/-- To prove something for an arbitrary `mem_ℒp` function strongly measurable with respect to a
+sub-σ-algebra `m` in a normed space, it suffices to show that
+* the property holds for (multiples of) characteristic functions which are measurable w.r.t. `m`;
+* is closed under addition;
+* the set of functions in the `Lᵖ` space strongly measurable w.r.t. `m` for which the property
+  holds is closed.
+* the property is closed under the almost-everywhere equal relation.
+-/
+@[elab_as_eliminator]
+lemma mem_ℒp.induction_strongly_measurable (hm : m ≤ m0) (hp_ne_top : p ≠ ∞)
+  (P : (α → F) → Prop)
+  (h_ind : ∀ (c : F) ⦃s⦄, measurable_set[m] s → μ s < ∞ → P (s.indicator (λ _, c)))
+  (h_add : ∀ ⦃f g : α → F⦄, disjoint (function.support f) (function.support g)
+    → mem_ℒp f p μ → mem_ℒp g p μ → strongly_measurable[m] f → strongly_measurable[m] g →
+    P f → P g → P (f + g))
+  (h_closed : is_closed {f : Lp_meas F ℝ m p μ | P f} )
+  (h_ae : ∀ ⦃f g⦄, f =ᵐ[μ] g → mem_ℒp f p μ → P f → P g) :
+  ∀ ⦃f : α → F⦄ (hf : mem_ℒp f p μ) (hfm : strongly_measurable[m] f), P f :=
+begin
+  intros f hf hfm,
+  suffices h_add_ae : ∀ ⦃f g : α → F⦄, disjoint (function.support f) (function.support g)
+    → mem_ℒp f p μ → mem_ℒp g p μ → ae_strongly_measurable' m f μ → ae_strongly_measurable' m g μ →
+    P f → P g → P (f + g),
+  { refine hf.induction_ae_strongly_measurable' hm hp_ne_top P h_ind h_add_ae h_closed h_ae _,
+    exact hfm.ae_strongly_measurable', },
+  intros f g h_disj hf hg hfm hgm hPf hPg,
+  let s_f : set α := function.support (hfm.mk f),
+  have hs_f : measurable_set[m] s_f := hfm.strongly_measurable_mk.measurable_set_support,
+  have hs_f_eq : s_f =ᵐ[μ] function.support f := hfm.ae_eq_mk.symm.support,
+  let s_g : set α := function.support (hgm.mk g),
+  have hs_g : measurable_set[m] s_g := hgm.strongly_measurable_mk.measurable_set_support,
+  have hs_g_eq : s_g =ᵐ[μ] function.support g := hgm.ae_eq_mk.symm.support,
+  have h_inter_empty : (s_f.inter s_g) =ᵐ[μ] (∅ : set α),
+  { refine (hs_f_eq.inter hs_g_eq).trans _,
+    suffices : function.support f ∩ function.support g = ∅, by rw this,
+    exact set.disjoint_iff_inter_eq_empty.mp h_disj, },
+  let f' := (s_f \ s_g).indicator (hfm.mk f),
+  have hff' : f =ᵐ[μ] f',
+  { have : s_f \ s_g =ᵐ[μ] s_f,
+    { rw [← set.diff_inter_self_eq_diff, set.inter_comm],
+      refine ((ae_eq_refl s_f).diff h_inter_empty).trans _,
+      rw set.diff_empty, },
+    refine ((indicator_ae_eq_of_ae_eq_set this).trans _).symm,
+    rw set.indicator_support,
+    exact hfm.ae_eq_mk.symm, },
+  have hf'_meas : strongly_measurable[m] f',
+    from hfm.strongly_measurable_mk.indicator (hs_f.diff hs_g),
+  have hf'_Lp : mem_ℒp f' p μ := hf.ae_eq hff',
+  let g' := (s_g \ s_f).indicator (hgm.mk g),
+  have hgg' : g =ᵐ[μ] g',
+  { have : s_g \ s_f =ᵐ[μ] s_g,
+    { rw [← set.diff_inter_self_eq_diff],
+      refine ((ae_eq_refl s_g).diff h_inter_empty).trans _,
+      rw set.diff_empty, },
+    refine ((indicator_ae_eq_of_ae_eq_set this).trans _).symm,
+    rw set.indicator_support,
+    exact hgm.ae_eq_mk.symm, },
+  have hg'_meas : strongly_measurable[m] g',
+    from hgm.strongly_measurable_mk.indicator (hs_g.diff hs_f),
+  have hg'_Lp : mem_ℒp g' p μ := hg.ae_eq hgg',
+  have h_disj : disjoint (function.support f') (function.support g'),
+  { have : disjoint (s_f \ s_g) (s_g \ s_f) := disjoint_sdiff_sdiff,
+    exact this.mono set.support_indicator_subset set.support_indicator_subset, },
+  refine h_ae (hff'.add hgg').symm (hf'_Lp.add hg'_Lp) _,
+  exact h_add h_disj hf'_Lp hg'_Lp hf'_meas hg'_meas (h_ae hff' hf hPf) (h_ae hgg' hg hPg),
+end
+
 end induction
 
 

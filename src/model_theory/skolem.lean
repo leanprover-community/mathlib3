@@ -6,11 +6,21 @@ Authors: Aaron Anderson
 import model_theory.elementary_maps
 
 /-!
-#
+# Skolem Functions and Downward Löwenheim–Skolem
 
 ## Main Definitions
+* `first_order.language.skolem₁` is a language consisting of Skolem functions for another language.
+
+## Main Results
+* `first_order.language.exists_small_elementary_substructure` is a weak version of
+Downward Löwenheim–Skolem, showing that any `L`-structure admits a small `L`-elementary
+substructure.
 
 ## TODO
+* Bound the cardinality of `L.bounded_formula empty (n + 1)`, and based on that, bound the
+cardinality of `(⊥ : (L.sum L.skolem₁).substructure M)` well enough to prove
+Downward Löwenheim–Skolem.
+* Use `skolem₁` recursively to construct an actual Skolemization of a language.
 
 -/
 
@@ -30,6 +40,8 @@ def skolem₁ : language := ⟨λ n, L.bounded_formula empty (n + 1), λ _, empt
 
 variables {L}
 
+/-- The structure assigning each function symbol of `L.skolem₁` to a skolem function generated with
+choice. -/
 noncomputable instance skolem₁_Structure : L.skolem₁.Structure M :=
 ⟨λ n φ x, classical.epsilon (λ a, φ.realize default (fin.snoc x a : _ → M)), λ _ r, empty.elim r⟩
 
@@ -43,6 +55,7 @@ begin
     classical.epsilon_spec ⟨a, h⟩⟩,
 end
 
+/-- Any `L.sum L.skolem₁`-substructure is an elementary `L`-substructure. -/
 noncomputable def substructure.elementary_skolem₁_reduct (S : (L.sum L.skolem₁).substructure M) :
   L.elementary_substructure M :=
 ⟨Lhom.sum_inl.substructure_reduct S, λ _, S.skolem₁_reduct_is_elementary⟩
@@ -57,13 +70,15 @@ open_locale cardinal
 
 variables (L) (M)
 
-theorem exists_small_elementary_substructure :
-  ∃ (S : L.elementary_substructure M), small.{max u v} S :=
+instance : small (⊥ : (L.sum L.skolem₁).substructure M).elementary_skolem₁_reduct :=
 begin
-  refine ⟨substructure.elementary_skolem₁_reduct ⊥, _⟩,
   rw [substructure.coe_sort_elementary_skolem₁_reduct],
   apply_instance,
 end
+
+theorem exists_small_elementary_substructure :
+  ∃ (S : L.elementary_substructure M), small.{max u v} S :=
+⟨substructure.elementary_skolem₁_reduct ⊥, infer_instance⟩
 
 end language
 end first_order

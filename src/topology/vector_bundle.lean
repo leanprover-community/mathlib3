@@ -654,7 +654,7 @@ def trivialization_of_mem_pretrivialization_atlas (a : topological_vector_prebun
   @topological_vector_bundle.trivialization R _ F E _ _ _ _ _ _ _ a.total_space_topology :=
 begin
   letI := a.total_space_topology,
-  exact { linear := e.linear,
+  exact { linear' := e.linear,
   ..a.to_topological_fiber_prebundle.trivialization_of_mem_pretrivialization_atlas ⟨e, he, rfl⟩ }
 end
 
@@ -897,8 +897,11 @@ instance pullback [∀ x, topological_space (E x)] [topological_vector_bundle R 
 { total_space_mk_inducing := λ x, inducing_of_inducing_compose
     (pullback.continuous_total_space_mk R F) pullback.continuous_lift
     (topological_vector_bundle.total_space_mk_inducing R F E (f x)),
-  locally_trivial := λ x, ⟨(topological_vector_bundle.trivialization_at R F E (f x)).pullback f,
-    (topological_vector_bundle.mem_base_set_trivialization_at R F E (f x))⟩ }
+  trivialization_atlas := {e | ∃ e' : trivialization R F E, e = e'.pullback f},
+  trivialization_at := λ x, (topological_vector_bundle.trivialization_at R F E (f x)).pullback f,
+  mem_base_set_trivialization_at :=
+    λ x, topological_vector_bundle.mem_base_set_trivialization_at R F E (f x),
+  trivialization_mem_atlas := λ x, ⟨topological_vector_bundle.trivialization_at R F E (f x), rfl⟩ }
 
 end pullback
 

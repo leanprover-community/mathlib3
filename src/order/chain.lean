@@ -16,7 +16,7 @@ Maximality Principle.
 
 * `is_chain s`: A chain `s` is a set of comparable elements.
 * `max_chain_spec`: Hausdorff's Maximality Principle.
-* `flag`: The type of flag, aka maximal chains, of an order.
+* `flag`: The type of flags, aka maximal chains, of an order.
 
 ## Notes
 
@@ -241,36 +241,49 @@ structure flag (α : Type*) [has_le α] :=
 
 namespace flag
 section has_le
-variables [has_le α]
+variables [has_le α] {s t : flag α} {a : α}
 
 instance : set_like (flag α) α :=
 { coe := carrier,
   coe_injective' := λ s t h, by { cases s, cases t, congr' } }
 
-@[ext] lemma ext {s t : flag α} : (s : set α) = t → s = t := set_like.ext'
+@[ext] lemma ext : (s : set α) = t → s = t := set_like.ext'
+@[simp] lemma mem_coe_iff : a ∈ (s : set α) ↔ a ∈ s := iff.rfl
+@[simp] lemma coe_mk (s : set α) (h₁ h₂) : (mk s h₁ h₂ : set α) = s := rfl
+@[simp] lemma mk_coe (s : flag α) : mk (s : set α) s.chain' s.max_chain' = s := ext rfl
 
-lemma chain (s : flag α) : is_chain (≤) (s : set α) := s.chain'
-protected lemma max_chain (s : flag α) : is_max_chain (≤) (s : set α) := ⟨s.chain, s.max_chain'⟩
+lemma chain_le (s : flag α) : is_chain (≤) (s : set α) := s.chain'
+protected lemma max_chain (s : flag α) : is_max_chain (≤) (s : set α) := ⟨s.chain_le, s.max_chain'⟩
 
 lemma top_mem [order_top α] (s : flag α) : (⊤ : α) ∈ s := s.max_chain.top_mem
 lemma bot_mem [order_bot α] (s : flag α) : (⊥ : α) ∈ s := s.max_chain.bot_mem
 
 end has_le
 
-instance [partial_order α] [decidable_eq α] [@decidable_rel α (≤)] [@decidable_rel α (<)]
-  (φ : flag α) : linear_order φ :=
-{ le_total := λ a b, begin
-    have : reflexive (λ a b : α, a ≤ b ∨ b ≤ a) := λ a, or.inl le_rfl,
-    exact this.set_pairwise_iff.1 φ.chain a.2 b.2,
-  end,
+section preorder
+variables [preorder α] {a b : α}
+
+protected lemma le_or_le (s : flag α) (ha : a ∈ s) (hb : b ∈ s) : a ≤ b ∨ b ≤ a :=
+s.chain_le.total ha hb
+
+instance [order_top α] (s : flag α) : order_top s := subtype.order_top s.top_mem
+instance [order_bot α] (s : flag α) : order_bot s := subtype.order_bot s.bot_mem
+instance [bounded_order α] (s : flag α) : bounded_order s :=
+subtype.bounded_order s.bot_mem s.top_mem
+
+end preorder
+
+variables [partial_order α]
+
+lemma chain_lt (s : flag α) : is_chain (<) (s : set α) :=
+λ a ha b hb h, (s.le_or_le ha hb).imp h.lt_of_le h.lt_of_le'
+
+instance [decidable_eq α] [@decidable_rel α (≤)] [@decidable_rel α (<)] (s : flag α) :
+  linear_order s :=
+{ le_total := λ a b, s.le_or_le a.2 b.2,
   decidable_eq := subtype.decidable_eq,
   decidable_le := subtype.decidable_le,
   decidable_lt := subtype.decidable_lt,
   ..subtype.partial_order _ }
-
-instance [preorder α] [order_top α] (φ : flag α) : order_top φ := subtype.order_top φ.top_mem
-instance [preorder α] [order_bot α] (φ : flag α) : order_bot φ := subtype.order_bot φ.bot_mem
-instance [preorder α] [bounded_order α] (φ : flag α) : bounded_order φ :=
-subtype.bounded_order φ.bot_mem φ.top_mem
 
 end flag

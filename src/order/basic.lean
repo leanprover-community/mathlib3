@@ -57,8 +57,15 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
-lemma ge_antisymm [partial_order α] {a b : α} (hab : a ≤ b) (hba : b ≤ a) : b = a :=
-le_antisymm hba hab
+section partial_orde
+variables [partial_order α] {a b : α}
+
+lemma ge_antisymm : a ≤ b → b ≤ a → b = a := flip le_antisymm
+lemma lt_of_le_of_ne' : a ≤ b → b ≠ a → a < b := λ h₁ h₂, lt_of_le_of_ne h₁ h₂.symm
+lemma ne.lt_of_le : a ≠ b → a ≤ b → a < b := flip lt_of_le_of_ne
+lemma ne.lt_of_le' : b ≠ a → a ≤ b → a < b := flip lt_of_le_of_ne'
+
+end partial_order
 
 attribute [simp] le_refl
 attribute [ext] has_le
@@ -68,6 +75,7 @@ alias lt_of_le_of_lt  ← has_le.le.trans_lt
 alias le_antisymm     ← has_le.le.antisymm
 alias ge_antisymm     ← has_le.le.antisymm'
 alias lt_of_le_of_ne  ← has_le.le.lt_of_ne
+alias lt_of_le_of_ne' ← has_le.le.lt_of_ne'
 alias lt_of_le_not_le ← has_le.le.lt_of_not_le
 alias lt_or_eq_of_le  ← has_le.le.lt_or_eq
 alias decidable.lt_or_eq_of_le ← has_le.le.lt_or_eq_dec

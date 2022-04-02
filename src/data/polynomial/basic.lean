@@ -144,6 +144,24 @@ lemma _root_.is_smul_regular.polynomial {S : Type*} [monoid S] [distrib_mul_acti
 lemma to_finsupp_injective : function.injective (to_finsupp : R[X] → add_monoid_algebra _ _) :=
 λ ⟨x⟩ ⟨y⟩, congr_arg _
 
+@[simp] lemma to_finsupp_inj {a b : R[X]} : a.to_finsupp = b.to_finsupp ↔ a = b :=
+to_finsupp_injective.eq_iff
+
+@[simp] lemma to_finsupp_eq_zero {a : R[X]} : a.to_finsupp = 0 ↔ a = 0 :=
+by rw [←to_finsupp_zero, to_finsupp_inj]
+
+@[simp] lemma to_finsupp_eq_one {a : R[X]} : a.to_finsupp = 1 ↔ a = 1 :=
+by rw [←to_finsupp_one, to_finsupp_inj]
+
+@[simp] lemma of_finsupp_inj {a b} : (⟨a⟩ : R[X]) = ⟨b⟩ ↔ a = b :=
+iff_of_eq of_finsupp.inj_eq
+
+@[simp] lemma of_finsupp_eq_zero {a} : (⟨a⟩ : R[X]) = 0 ↔ a = 0 :=
+by rw [←of_finsupp_zero, of_finsupp_inj]
+
+@[simp] lemma of_finsupp_eq_one {a} : (⟨a⟩ : R[X]) = 1 ↔ a = 1 :=
+by rw [←of_finsupp_one, of_finsupp_inj]
+
 instance : inhabited R[X] := ⟨0⟩
 
 instance : semiring R[X] :=
@@ -213,7 +231,7 @@ def support : R[X] → finset ℕ
 rfl
 
 @[simp] lemma support_eq_empty : p.support = ∅ ↔ p = 0 :=
-by { rcases p, simp [support, ← of_finsupp_zero] }
+by { rcases p, simp [support] }
 
 lemma card_support_eq_zero : p.support.card = 0 ↔ p = 0 :=
 by simp
@@ -221,7 +239,7 @@ by simp
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (n : ℕ) : R →ₗ[R] R[X] :=
 { to_fun := monomial_fun n,
-  map_add' := by simp [monomial_fun, ←of_finsupp_add],
+  map_add' := by simp [monomial_fun],
   map_smul' := by simp [monomial_fun, ←of_finsupp_smul] }
 
 @[simp] lemma monomial_to_finsupp (n : ℕ) (r : R) :
@@ -276,14 +294,6 @@ end
 @[simp] lemma monomial_eq_zero_iff (t : R) (n : ℕ) :
   monomial n t = 0 ↔ t = 0 :=
 linear_map.map_eq_zero_iff _ (polynomial.monomial_injective n)
-
-@[simp] lemma op_ring_equiv_monomial (n : ℕ) (r : R) :
-  op_ring_equiv R (mul_opposite.op (monomial n r)) = monomial n (mul_opposite.op r) :=
-begin
-  dsimp [op_ring_equiv],
-end
-
-#exit
 
 lemma support_add : (p + q).support ⊆ p.support ∪ q.support :=
 begin

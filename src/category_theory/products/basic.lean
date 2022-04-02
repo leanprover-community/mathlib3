@@ -60,6 +60,17 @@ begin
     refine ⟨⟨(g₁, g₂), _, _⟩⟩; { simp; split; assumption } }
 end
 
+section
+variables {C D}
+
+/-- Construct an isomorphism in `C × D` out of two isomorphisms in `C` and `D`. -/
+@[simps]
+def iso.prod {P Q : C} {S T : D} (f : P ≅ Q) (g : S ≅ T) : (P, S) ≅ (Q, T) :=
+{ hom := (f.hom, g.hom),
+  inv := (f.inv, g.inv), }
+
+end
+
 end
 
 section

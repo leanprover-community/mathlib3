@@ -613,17 +613,11 @@ associator_naturality left_unitor_naturality right_unitor_naturality pentagon
 @[simps]
 instance prod_monoidal : monoidal_category (C₁ × C₂) :=
 { tensor_obj := λ X Y, (X.1 ⊗ Y.1, X.2 ⊗ Y.2),
-  tensor_hom := λ X₁ Y₁ X₂ Y₂ f₁ f₂, (f₁.1 ⊗ f₂.1, f₁.2 ⊗ f₂.2),
+  tensor_hom := λ _ _ _ _ f g, (f.1 ⊗ g.1, f.2 ⊗ g.2),
   tensor_unit := (𝟙_ C₁, 𝟙_ C₂),
-  associator := λ X Y Z,
-    { hom := ((α_ X.1 Y.1 Z.1).hom, (α_ X.2 Y.2 Z.2).hom),
-      inv := ((α_ X.1 Y.1 Z.1).inv, (α_ X.2 Y.2 Z.2).inv) },
-  left_unitor := λ X,
-    { hom := ((λ_ X.1).hom, (λ_ X.2).hom),
-      inv := ((λ_ X.1).inv, (λ_ X.2).inv) },
-  right_unitor := λ X,
-    { hom := ((ρ_ X.1).hom, (ρ_ X.2).hom),
-      inv := ((ρ_ X.1).inv, (ρ_ X.2).inv) } }
+  associator := λ ⟨X₁, X₂⟩ ⟨Y₁, Y₂⟩ ⟨Z₁, Z₂⟩, (α_ X₁ Y₁ Z₁).prod (α_ X₂ Y₂ Z₂),
+  left_unitor := λ ⟨X₁, X₂⟩, (λ_ X₁).prod (λ_ X₂),
+  right_unitor := λ ⟨X₁, X₂⟩, (ρ_ X₁).prod (ρ_ X₂) }
 
 end
 

@@ -129,6 +129,7 @@ end topological_vector_bundle
 end trivialization
 
 section topological_vector_bundle
+open topological_vector_bundle
 
 variables [∀ x, topological_space (E x)] [topological_space (total_space E)]
 
@@ -143,8 +144,12 @@ class topological_vector_bundle :=
 (mem_base_set_trivialization_at [] : ∀ b : B, b ∈ (trivialization_at b).base_set)
 (trivialization_mem_atlas [] : ∀ b : B, trivialization_at b ∈ trivialization_atlas)
 
+#check @topological_vector_bundle
+
 export topological_vector_bundle (trivialization_atlas trivialization_at
   mem_base_set_trivialization_at trivialization_mem_atlas)
+
+variable [topological_vector_bundle R F E]
 
 namespace topological_vector_bundle
 
@@ -626,7 +631,7 @@ establishes that for the topology constructed on the sigma-type using
 `topological_vector_prebundle.total_space_topology`, these "pretrivializations" are actually
 "trivializations" (i.e., homeomorphisms with respect to the constructed topology). -/
 def to_topological_vector_bundle :
-  @topological_vector_bundle R _ F E _ _ _ _ _ _ _ a.total_space_topology _ :=
+  @topological_vector_bundle R _ F E _ _ _ _ _ _ _ _ a.total_space_topology :=
 { total_space_mk_inducing := λ b, a.inducing_total_space_mk_of_inducing_comp b
     (a.total_space_mk_inducing b),
   trivialization_atlas := {e | ∃ e₀ (he₀ : e₀ ∈ a.pretrivialization_atlas),

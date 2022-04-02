@@ -195,6 +195,16 @@ instance sum_map_is_expansion_on {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) 
   (ϕ.sum_map ψ).is_expansion_on M :=
 ⟨λ _ f _, sum.cases_on f (by simp) (by simp), λ _ R _, sum.cases_on R (by simp) (by simp)⟩
 
+instance sum_inl_is_expansion_on (M : Type*)
+  [L.Structure M] [L'.Structure M] :
+  (Lhom.sum_inl : L →ᴸ L.sum L').is_expansion_on M :=
+⟨λ _ f _, rfl, λ _ R _, rfl⟩
+
+instance sum_inr_is_expansion_on (M : Type*)
+  [L.Structure M] [L'.Structure M] :
+  (Lhom.sum_inr : L' →ᴸ L.sum L').is_expansion_on M :=
+⟨λ _ f _, rfl, λ _ R _, rfl⟩
+
 end Lhom
 
 /-- A language equivalence maps the symbols of one language to symbols of another bijectively. -/

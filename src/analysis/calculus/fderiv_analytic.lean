@@ -99,7 +99,7 @@ begin
     h.r_pos h.r_le).comp_sub x,
 end
 
-/-- If a function is analytic on a set `s`, so is its derivative. -/
+/-- If a function is analytic on a set `s`, so is its Fréchet derivative. -/
 lemma analytic_on.fderiv [complete_space F] (h : analytic_on 𝕜 f s) :
   analytic_on 𝕜 (fderiv 𝕜 f) s :=
 begin
@@ -108,7 +108,7 @@ begin
   exact hp.fderiv.analytic_at,
 end
 
-/-- If a function is analytic on a set `s`, so are its successive derivative. -/
+/-- If a function is analytic on a set `s`, so are its successive Fréchet derivative. -/
 lemma analytic_on.iterated_fderiv [complete_space F] (h : analytic_on 𝕜 f s) (n : ℕ) :
   analytic_on 𝕜 (iterated_fderiv 𝕜 n f) s :=
 begin
@@ -146,7 +146,7 @@ end fderiv
 section deriv
 
 variables {p : formal_multilinear_series 𝕜 𝕜 F} {r : ℝ≥0∞}
-variables {f : 𝕜 → F} {x : 𝕜}
+variables {f : 𝕜 → F} {x : 𝕜} {s : set 𝕜}
 
 protected lemma has_fpower_series_at.has_strict_deriv_at (h : has_fpower_series_at f p x) :
   has_strict_deriv_at f (p 1 (λ _, 1)) x :=
@@ -159,5 +159,19 @@ h.has_strict_deriv_at.has_deriv_at
 protected lemma has_fpower_series_at.deriv (h : has_fpower_series_at f p x) :
   deriv f x = p 1 (λ _, 1) :=
 h.has_deriv_at.deriv
+
+/-- If a function is analytic on a set `s`, so is its derivative. -/
+lemma analytic_on.deriv [complete_space F] (h : analytic_on 𝕜 f s) :
+  analytic_on 𝕜 (deriv f) s :=
+(continuous_linear_map.apply 𝕜 F (1 : 𝕜)).comp_analytic_on h.fderiv
+
+/-- If a function is analytic on a set `s`, so are its successive derivative. -/
+lemma analytic_on.iterated_deriv [complete_space F] (h : analytic_on 𝕜 f s) (n : ℕ) :
+  analytic_on 𝕜 (deriv^[n] f) s :=
+begin
+  induction n with n IH,
+  { exact h },
+  { simpa only [function.iterate_succ', function.comp_app] using IH.deriv }
+end
 
 end deriv

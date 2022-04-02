@@ -422,25 +422,16 @@ theorem orbit_def (f : α → α) (x : α) :
   orbit f x = (list.range (minimal_period f x)).map (λ n, f^[n] x) :=
 rfl
 
-@[simp] theorem orbit_length (f : α → α) (x : α) : (orbit f x).length = minimal_period f x :=
+@[simp] theorem orbit_length : (orbit f x).length = minimal_period f x :=
 by rw [orbit, cycle.length_coe, list.length_map, list.length_range]
 
-@[simp] theorem orbit_eq_nil_iff_not_periodic_pt {f : α → α} {x : α} :
-  orbit f x = cycle.nil ↔ x ∉ periodic_pts f :=
+@[simp] theorem orbit_eq_nil_iff_not_periodic_pt : orbit f x = cycle.nil ↔ x ∉ periodic_pts f :=
 by { simp [orbit], exact minimal_period_eq_zero_iff_nmem_periodic_pts }
 
-theorem orbit_eq_nil_of_not_periodic_pt {f : α → α} {x : α} (h : x ∉ periodic_pts f) :
-  orbit f x = cycle.nil :=
+theorem orbit_eq_nil_of_not_periodic_pt (h : x ∉ periodic_pts f) : orbit f x = cycle.nil :=
 orbit_eq_nil_iff_not_periodic_pt.2 h
 
-@[simp] theorem self_mem_orbit {f : α → α} {x : α} (h : x ∈ periodic_pts f) : x ∈ orbit f x :=
-begin
-  simp only [orbit, cycle.mem_coe_iff, list.mem_map, list.mem_range],
-  exact ⟨0, minimal_period_pos_of_mem_periodic_pts h, rfl⟩
-end
-
-@[simp] theorem mem_orbit_iff {f : α → α} {x y : α} (hx : x ∈ periodic_pts f) :
-  y ∈ orbit f x ↔ ∃ n, f^[n] x = y :=
+@[simp] theorem mem_orbit_iff (hx : x ∈ periodic_pts f) : y ∈ orbit f x ↔ ∃ n, f^[n] x = y :=
 begin
   simp only [orbit, cycle.mem_coe_iff, list.mem_map, list.mem_range],
   split,
@@ -452,30 +443,30 @@ begin
     rw iterate_eq_mod_minimal_period }
 end
 
-@[simp] theorem iterate_mem_orbit {f : α → α} {x : α} (hx : x ∈ periodic_pts f) (n : ℕ) :
-  f^[n] x ∈ orbit f x :=
+@[simp] theorem iterate_mem_orbit (hx : x ∈ periodic_pts f) (n : ℕ) : f^[n] x ∈ orbit f x :=
 (mem_orbit_iff hx).2 ⟨n, rfl⟩
 
-theorem nodup_orbit {f : α → α} {x : α} : (orbit f x).nodup :=
+@[simp] theorem self_mem_orbit (hx : x ∈ periodic_pts f) : x ∈ orbit f x :=
+iterate_mem_orbit hx 0
+
+theorem nodup_orbit : (orbit f x).nodup :=
 begin
-  rw [orbit_def, cycle.nodup_coe_iff, list.nodup_map_iff_inj_on (list.nodup_range _)],
+  rw [orbit, cycle.nodup_coe_iff, list.nodup_map_iff_inj_on (list.nodup_range _)],
   intros m hm n hn hmn,
   rw list.mem_range at hm hn,
   rwa eq_iff_lt_minimal_period_of_iterate_eq hm hn at hmn
 end
 
-theorem orbit_apply_iterate_eq {f : α → α} {x : α} (hx : x ∈ periodic_pts f) (n : ℕ) :
+theorem orbit_apply_iterate_eq (hx : x ∈ periodic_pts f) (n : ℕ) :
   orbit f (f^[n] x) = orbit f x :=
 eq.symm $ cycle.coe_eq_coe.2 $ ⟨n, begin
-  apply list.ext_le;
-  simp [minimal_period_apply_iterate hx],
-  intros m _ _,
-  rw list.nth_le_rotate _ n m,
-  simp,
-  apply iterate_add_apply
+  apply list.ext_le _ (λ m _ _, _),
+  { simp [minimal_period_apply_iterate hx] },
+  { rw list.nth_le_rotate _ n m,
+    simp [iterate_add_apply] }
 end⟩
 
-theorem orbit_apply_eq {f : α → α} {x : α} (hx : x ∈ periodic_pts f) : orbit f (f x) = orbit f x :=
+theorem orbit_apply_eq (hx : x ∈ periodic_pts f) : orbit f (f x) = orbit f x :=
 orbit_apply_iterate_eq hx 1
 
 end function

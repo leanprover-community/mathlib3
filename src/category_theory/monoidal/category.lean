@@ -607,29 +607,23 @@ universes v₁ v₂ u₁ u₂
 variables (C₁ : Type u₁) [category.{v₁} C₁] [monoidal_category.{v₁} C₁]
 variables (C₂ : Type u₂) [category.{v₂} C₂] [monoidal_category.{v₂} C₂]
 
+local attribute [simp]
+associator_naturality left_unitor_naturality right_unitor_naturality pentagon
+
 @[simps]
 instance prod_monoidal : monoidal_category (C₁ × C₂) :=
 { tensor_obj := λ X Y, (X.1 ⊗ Y.1, X.2 ⊗ Y.2),
   tensor_hom := λ X₁ Y₁ X₂ Y₂ f₁ f₂, (f₁.1 ⊗ f₂.1, f₁.2 ⊗ f₂.2),
-  tensor_unit := (tensor_unit C₁, tensor_unit C₂),
+  tensor_unit := (𝟙_ C₁, 𝟙_ C₂),
   associator := λ X Y Z,
     { hom := ((α_ X.1 Y.1 Z.1).hom, (α_ X.2 Y.2 Z.2).hom),
       inv := ((α_ X.1 Y.1 Z.1).inv, (α_ X.2 Y.2 Z.2).inv) },
-  associator_naturality' := λ X₁ X₂ X₃ Y₁ Y₂ Y₃ f₁ f₂ f₃,
-    congr_arg2 prod.mk
-      (associator_naturality f₁.1 f₂.1 f₃.1) (associator_naturality f₁.2 f₂.2 f₃.2),
   left_unitor := λ X,
     { hom := ((λ_ X.1).hom, (λ_ X.2).hom),
       inv := ((λ_ X.1).inv, (λ_ X.2).inv) },
-  left_unitor_naturality' :=
-    λ X Y f, congr_arg2 prod.mk (left_unitor_naturality f.1) (left_unitor_naturality f.2),
   right_unitor := λ X,
     { hom := ((ρ_ X.1).hom, (ρ_ X.2).hom),
-      inv := ((ρ_ X.1).inv, (ρ_ X.2).inv) },
-  right_unitor_naturality' :=
-    λ X Y f, congr_arg2 prod.mk (right_unitor_naturality f.1) (right_unitor_naturality f.2),
-  pentagon' :=
-    λ W X Y Z, congr_arg2 prod.mk (pentagon W.1 X.1 Y.1 Z.1) (pentagon W.2 X.2 Y.2 Z.2) }
+      inv := ((ρ_ X.1).inv, (ρ_ X.2).inv) } }
 
 end
 

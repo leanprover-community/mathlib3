@@ -212,7 +212,7 @@ which are "liftable" (i.e. expressible as compositions of unitors and associator
 meta def liftable_prefixes : tactic unit :=
 try `[simp only [monoidal_comp, category_theory.category.assoc]] >>
   `[apply (cancel_epi (𝟙 _)).1; try { apply_instance }] >>
-  try `[simp only [assoc_lift_hom]]
+  try `[simp only [tactic.coherence.assoc_lift_hom]]
 
 example {W X Y Z : C} (f : Y ⟶ Z) (g) (w : false) : (λ_ _).hom ≫ f = g :=
 begin

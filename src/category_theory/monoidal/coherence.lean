@@ -71,6 +71,10 @@ instance lift_hom_tensor {W X Y Z : C} [lift_obj W] [lift_obj X] [lift_obj Y] [l
   (f : W ⟶ X) (g : Y ⟶ Z) [lift_hom f] [lift_hom g] : lift_hom (f ⊗ g) :=
 { lift := lift_hom.lift f ⊗ lift_hom.lift g }
 
+/--
+A typeclass carrying a choice of monoidal structural isomorphism between two objects.
+Used by the `⊗≫` monoidal composition operator, and the `coherence` tactic.
+-/
 -- We could likely turn this into a `Prop` valued existential if that proves useful.
 class monoidal_coherence (X Y : C) [lift_obj X] [lift_obj Y] :=
 (hom [] : X ⟶ Y)
@@ -205,6 +209,10 @@ Auxiliary simp lemma for the `coherence` tactic:
 this move brackets to the left in order to expose a maximal prefix
 built out of unitors and associators.
 -/
+-- We have unused typeclass arguments here.
+-- They are intentional, to ensure that `simp only [assoc_lift_hom]` only left associates
+-- monoidal structural morphisms.
+@[nolint unused_arguments]
 lemma assoc_lift_hom {W X Y Z : C} [lift_obj W] [lift_obj X] [lift_obj Y]
   (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z) [lift_hom f] [lift_hom g] :
   f ≫ (g ≫ h) = (f ≫ g) ≫ h :=

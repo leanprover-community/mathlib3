@@ -178,6 +178,14 @@ namespace functor
 { obj := λ a, (F.obj a, G.obj a),
   map := λ x y f, (F.map f, G.map f), }
 
+section
+variable (C)
+
+/-- The diagonal functor. -/
+def diag : C ⥤ C × C := (𝟭 C).prod' (𝟭 C)
+
+end
+
 end functor
 
 namespace nat_trans

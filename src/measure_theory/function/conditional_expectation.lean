@@ -516,9 +516,129 @@ lemma Lp_meas.ae_fin_strongly_measurable' (hm : m ≤ m0) (f : Lp_meas F 𝕜 m 
 ⟨Lp_meas_subgroup_to_Lp_trim F p μ hm f, Lp.fin_strongly_measurable _ hp_ne_zero hp_ne_top,
   (Lp_meas_subgroup_to_Lp_trim_ae_eq hm f).symm⟩
 
+lemma Lp_meas_to_Lp_trim_lie_symm_indicator [one_le_p : fact (1 ≤ p)] [normed_space ℝ F]
+  {hm : m ≤ m0} {s : set α} {μ : measure α}
+  (hs : measurable_set[m] s) (hμs : μ.trim hm s ≠ ∞) (c : F) :
+  ((Lp_meas_to_Lp_trim_lie F ℝ p μ hm).symm
+      (indicator_const_Lp p hs hμs c) : Lp F p μ)
+    = indicator_const_Lp p (hm s hs) ((le_trim hm).trans_lt hμs.lt_top).ne c :=
+begin
+  ext1,
+  rw ← Lp_meas_coe,
+  change Lp_trim_to_Lp_meas F ℝ p μ hm (indicator_const_Lp p hs hμs c)
+    =ᵐ[μ] (indicator_const_Lp p _ _ c : α → F),
+  refine (Lp_trim_to_Lp_meas_ae_eq hm _).trans _,
+  exact (ae_eq_of_ae_eq_trim indicator_const_Lp_coe_fn).trans indicator_const_Lp_coe_fn.symm,
+end
+
+lemma Lp_meas_to_Lp_trim_lie_symm_to_Lp [one_le_p : fact (1 ≤ p)] [normed_space ℝ F]
+  (hm : m ≤ m0) (f : α → F) (hf : mem_ℒp f p (μ.trim hm)) :
+  ((Lp_meas_to_Lp_trim_lie F ℝ p μ hm).symm (hf.to_Lp f) : Lp F p μ)
+    = (mem_ℒp_of_mem_ℒp_trim hm hf).to_Lp f :=
+begin
+  ext1,
+  rw ← Lp_meas_coe,
+  refine (Lp_trim_to_Lp_meas_ae_eq hm _).trans _,
+  exact (ae_eq_of_ae_eq_trim (mem_ℒp.coe_fn_to_Lp hf)).trans (mem_ℒp.coe_fn_to_Lp _).symm,
+end
+
 end strongly_measurable
 
 end Lp_meas
+
+
+section induction
+
+variables {m m0 : measurable_space α} {μ : measure α} [fact (1 ≤ p)] [normed_space ℝ F]
+
+/-- To prove something for an `Lp` function strongly measurable with respect to a sub-σ-algebra `m`
+in a normed space, it suffices to show that
+* the property holds for (multiples of) characteristic functions which are measurable w.r.t. `m`;
+* is closed under addition;
+* the set of functions in `Lp` strongly measurable w.r.t. `m` for which the property holds is closed.
+-/
+@[elab_as_eliminator]
+lemma Lp.induction_ae_strongly_measurable' (hm : m ≤ m0) (hp_ne_top : p ≠ ∞) (P : Lp F p μ → Prop)
+  (h_ind : ∀ (c : F) {s : set α} (hs : measurable_set[m] s) (hμs : μ s < ∞),
+      P (Lp.simple_func.indicator_const p (hm s hs) hμs.ne c))
+  (h_add : ∀ ⦃f g⦄, ∀ hf : mem_ℒp f p μ, ∀ hg : mem_ℒp g p μ,
+    ∀ hfm : ae_strongly_measurable' m f μ, ∀ hgm : ae_strongly_measurable' m g μ,
+    disjoint (function.support f) (function.support g) →
+    P (hf.to_Lp f) → P (hg.to_Lp g) → P ((hf.to_Lp f) + (hg.to_Lp g)))
+  (h_closed : is_closed {f : Lp_meas F ℝ m p μ | P f}) :
+  ∀ f : Lp F p μ, ae_strongly_measurable' m f μ → P f :=
+begin
+  intros f hf,
+  let f' := (⟨f, hf⟩ : Lp_meas F ℝ m p μ),
+  let g := Lp_meas_to_Lp_trim_lie F ℝ p μ hm f',
+  have hfg : f' = (Lp_meas_to_Lp_trim_lie F ℝ p μ hm).symm g,
+    by simp only [linear_isometry_equiv.symm_apply_apply],
+  change P ↑f',
+  rw hfg,
+  refine @Lp.induction α F m _ p (μ.trim hm) _ hp_ne_top
+    (λ g, P ((Lp_meas_to_Lp_trim_lie F ℝ p μ hm).symm g)) _ _ _ g,
+  { intros b t ht hμt,
+    rw [Lp.simple_func.coe_indicator_const,
+      Lp_meas_to_Lp_trim_lie_symm_indicator ht hμt.ne b],
+      have hμt' : μ t < ∞, from (le_trim hm).trans_lt hμt,
+    specialize h_ind b ht hμt',
+    rwa Lp.simple_func.coe_indicator_const at h_ind, },
+  { intros f g hf hg h_disj hfP hgP,
+    rw linear_isometry_equiv.map_add,
+    push_cast,
+    have h_eq : ∀ (f : α → F) (hf : mem_ℒp f p (μ.trim hm)),
+      ((Lp_meas_to_Lp_trim_lie F ℝ p μ hm).symm (mem_ℒp.to_Lp f hf) : Lp F p μ)
+        = (mem_ℒp_of_mem_ℒp_trim hm hf).to_Lp f,
+      from Lp_meas_to_Lp_trim_lie_symm_to_Lp hm,
+    rw h_eq f hf at hfP ⊢,
+    rw h_eq g hg at hgP ⊢,
+    exact h_add (mem_ℒp_of_mem_ℒp_trim hm hf) (mem_ℒp_of_mem_ℒp_trim hm hg)
+      (ae_strongly_measurable'_of_ae_strongly_measurable'_trim hm hf.ae_strongly_measurable)
+      (ae_strongly_measurable'_of_ae_strongly_measurable'_trim hm hg.ae_strongly_measurable)
+      h_disj hfP hgP, },
+  { change is_closed ((Lp_meas_to_Lp_trim_lie F ℝ p μ hm).symm ⁻¹' {g : Lp_meas F ℝ m p μ | P ↑g}),
+    exact is_closed.preimage (linear_isometry_equiv.continuous _) h_closed, },
+end
+
+/-- To prove something for an arbitrary `mem_ℒp` function strongly measurable with respect to a
+sub-σ-algebra `m` in a normed space, it suffices to show that
+* the property holds for (multiples of) characteristic functions which are measurable w.r.t. `m`;
+* is closed under addition;
+* the set of functions in the `Lᵖ` space strongly measurable w.r.t. `m` for which the property
+  holds is closed.
+* the property is closed under the almost-everywhere equal relation.
+-/
+@[elab_as_eliminator]
+lemma mem_ℒp.induction_ae_strongly_measurable' (hm : m ≤ m0) (hp_ne_top : p ≠ ∞)
+  (P : (α → F) → Prop)
+  (h_ind : ∀ (c : F) ⦃s⦄, measurable_set[m] s → μ s < ∞ → P (s.indicator (λ _, c)))
+  (h_add : ∀ ⦃f g : α → F⦄, disjoint (function.support f) (function.support g)
+    → mem_ℒp f p μ → mem_ℒp g p μ → ae_strongly_measurable' m f μ → ae_strongly_measurable' m g μ →
+    P f → P g → P (f + g))
+  (h_closed : is_closed {f : Lp_meas F ℝ m p μ | P f} )
+  (h_ae : ∀ ⦃f g⦄, f =ᵐ[μ] g → mem_ℒp f p μ → P f → P g) :
+  ∀ ⦃f : α → F⦄ (hf : mem_ℒp f p μ) (hfm : ae_strongly_measurable' m f μ), P f :=
+begin
+  intros f hf hfm,
+  let f_Lp := hf.to_Lp f,
+  have hfm_Lp : ae_strongly_measurable' m f_Lp μ, from hfm.congr hf.coe_fn_to_Lp.symm,
+  refine h_ae (hf.coe_fn_to_Lp) (Lp.mem_ℒp _) _,
+  change P f_Lp,
+  refine Lp.induction_ae_strongly_measurable' hm hp_ne_top (λ f, P ⇑f) _ _ h_closed f_Lp hfm_Lp,
+  { intros c s hs hμs,
+    rw Lp.simple_func.coe_indicator_const,
+    refine h_ae (indicator_const_Lp_coe_fn).symm _ (h_ind c hs hμs),
+    exact mem_ℒp_indicator_const p (hm s hs) c (or.inr hμs.ne), },
+  { intros f g hf_mem hg_mem hfm hgm h_disj hfP hgP,
+    have hfP' : P f := h_ae (hf_mem.coe_fn_to_Lp) (Lp.mem_ℒp _) hfP,
+    have hgP' : P g := h_ae (hg_mem.coe_fn_to_Lp) (Lp.mem_ℒp _) hgP,
+    specialize h_add h_disj hf_mem hg_mem hfm hgm hfP' hgP',
+    refine h_ae _ (hf_mem.add hg_mem) h_add,
+    exact ((hf_mem.coe_fn_to_Lp).symm.add (hg_mem.coe_fn_to_Lp).symm).trans
+      (Lp.coe_fn_add _ _).symm, },
+end
+
+end induction
 
 
 section uniqueness_of_conditional_expectation
@@ -1523,20 +1643,6 @@ begin
     rw this,
     refine is_closed.preimage (condexp_L1_clm hm μ).continuous _,
     exact is_closed_ae_strongly_measurable' hm, },
-end
-
-lemma Lp_meas_to_Lp_trim_lie_symm_indicator [normed_space ℝ F] {μ : measure α}
-  (hs : measurable_set[m] s) (hμs : μ.trim hm s ≠ ∞) (c : F) :
-  ((Lp_meas_to_Lp_trim_lie F ℝ 1 μ hm).symm
-      (indicator_const_Lp 1 hs hμs c) : α →₁[μ] F)
-    = indicator_const_Lp 1 (hm s hs) ((le_trim hm).trans_lt hμs.lt_top).ne c :=
-begin
-  ext1,
-  rw ← Lp_meas_coe,
-  change Lp_trim_to_Lp_meas F ℝ 1 μ hm (indicator_const_Lp 1 hs hμs c)
-    =ᵐ[μ] (indicator_const_Lp 1 _ _ c : α → F),
-  refine (Lp_trim_to_Lp_meas_ae_eq hm _).trans _,
-  exact (ae_eq_of_ae_eq_trim indicator_const_Lp_coe_fn).trans indicator_const_Lp_coe_fn.symm,
 end
 
 lemma condexp_L1_clm_Lp_meas (f : Lp_meas F' ℝ m 1 μ) :

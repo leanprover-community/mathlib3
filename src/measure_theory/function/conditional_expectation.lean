@@ -555,7 +555,8 @@ variables {m m0 : measurable_space α} {μ : measure α} [fact (1 ≤ p)] [norme
 in a normed space, it suffices to show that
 * the property holds for (multiples of) characteristic functions which are measurable w.r.t. `m`;
 * is closed under addition;
-* the set of functions in `Lp` strongly measurable w.r.t. `m` for which the property holds is closed.
+* the set of functions in `Lp` strongly measurable w.r.t. `m` for which the property holds is
+  closed.
 -/
 @[elab_as_eliminator]
 lemma Lp.induction_ae_strongly_measurable' (hm : m ≤ m0) (hp_ne_top : p ≠ ∞) (P : Lp F p μ → Prop)

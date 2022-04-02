@@ -1185,6 +1185,10 @@ end
 lemma mul_le_iff_le_inv {a b r : ℝ≥0∞} (hr₀ : r ≠ 0) (hr₁ : r ≠ ∞) : (r * a ≤ b ↔ a ≤ r⁻¹ * b) :=
 by rw [← @ennreal.mul_le_mul_left _ a _ hr₀ hr₁, ← mul_assoc, mul_inv_cancel hr₀ hr₁, one_mul]
 
+lemma inv_mul_eq_iff_eq_mul {x y z : ennreal} (hnz : z ≠ 0) (hnt : z ≠ ⊤) :
+  x = z * y ↔ z ⁻¹ * x = y :=
+by split; rintro rfl; simp [←mul_assoc, inv_mul_cancel, mul_inv_cancel, hnt, hnz]
+
 lemma le_of_forall_nnreal_lt {x y : ℝ≥0∞} (h : ∀ r : ℝ≥0, ↑r < x → ↑r ≤ y) : x ≤ y :=
 begin
   refine le_of_forall_ge_of_dense (λ r hr, _),

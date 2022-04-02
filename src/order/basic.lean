@@ -57,7 +57,7 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
-section partial_orde
+section partial_order
 variables [partial_order α] {a b : α}
 
 lemma ge_antisymm : a ≤ b → b ≤ a → b = a := flip le_antisymm

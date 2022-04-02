@@ -428,11 +428,11 @@ rfl
 by rw [orbit, cycle.length_coe, list.length_map, list.length_range]
 
 @[simp] theorem orbit_eq_nil_iff_not_periodic_pt {f : α → α} {x : α} :
-  orbit f x = (([] : list α) : cycle α) ↔ x ∉ periodic_pts f :=
+  orbit f x = cycle.nil ↔ x ∉ periodic_pts f :=
 by { simp [orbit], exact minimal_period_eq_zero_iff_nmem_periodic_pts }
 
 theorem orbit_eq_nil_of_not_periodic_pt {f : α → α} {x : α} (h : x ∉ periodic_pts f) :
-  orbit f x = (([] : list α) : cycle α) :=
+  orbit f x = cycle.nil :=
 orbit_eq_nil_iff_not_periodic_pt.2 h
 
 @[simp] theorem self_mem_orbit {f : α → α} {x : α} (h : x ∈ periodic_pts f) : x ∈ orbit f x :=

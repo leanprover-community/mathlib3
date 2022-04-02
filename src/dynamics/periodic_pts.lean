@@ -418,8 +418,14 @@ the minimal period of `x`. -/
 def orbit (f : α → α) (x : α) : cycle α :=
 (list.range (minimal_period f x)).map (λ n, f^[n] x)
 
+/-- The definition of an orbit, in terms of `list.map`. -/
 theorem orbit_def (f : α → α) (x : α) :
   orbit f x = (list.range (minimal_period f x)).map (λ n, f^[n] x) :=
+rfl
+
+/-- The definition of an orbit, in terms of `cycle.map`. -/
+theorem orbit_def' (f : α → α) (x : α) :
+  orbit f x = (list.range (minimal_period f x) : cycle ℕ).map (λ n, f^[n] x) :=
 rfl
 
 @[simp] theorem orbit_length : (orbit f x).length = minimal_period f x :=

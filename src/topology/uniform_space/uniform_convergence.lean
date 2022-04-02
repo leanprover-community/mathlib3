@@ -196,19 +196,18 @@ uniform_continuous_on.tendsto_uniformly univ_mem $
   by rwa [univ_prod_univ, uniform_continuous_on_univ]
 
 section seq_tendsto
-variables {f : ι → α → β} {g : α → β} {s : set α} [uniform_space β]
 
 lemma tendsto_uniformly_on_of_seq_tendsto_uniformly_on {l : filter ι} [l.is_countably_generated]
-  (h : ∀ u : ℕ → ι, tendsto u at_top l → tendsto_uniformly_on (λ n, f (u n)) g at_top s) :
-  tendsto_uniformly_on f g l s :=
+  (h : ∀ u : ℕ → ι, tendsto u at_top l → tendsto_uniformly_on (λ n, F (u n)) f at_top s) :
+  tendsto_uniformly_on F f l s :=
 begin
   rw [tendsto_uniformly_on_iff_tendsto, tendsto_iff_seq_tendsto],
   intros u hu,
   rw tendsto_prod_iff' at hu,
   specialize h (λ n, (u n).fst) hu.1,
   rw tendsto_uniformly_on_iff_tendsto at h,
-  have : ((λ (q : ι × α), (g q.snd, f q.fst q.snd)) ∘ u)
-    = (λ (q : ℕ × α), (g q.snd, f ((λ (n : ℕ), (u n).fst) q.fst) q.snd)) ∘ (λ n, (n, (u n).snd)),
+  have : ((λ (q : ι × α), (f q.snd, F q.fst q.snd)) ∘ u)
+    = (λ (q : ℕ × α), (f q.snd, F ((λ (n : ℕ), (u n).fst) q.fst) q.snd)) ∘ (λ n, (n, (u n).snd)),
   { ext1 n, simp, },
   rw this,
   refine tendsto.comp h _,
@@ -217,12 +216,12 @@ begin
 end
 
 lemma tendsto_uniformly_on.seq_tendsto_uniformly_on {l : filter ι}
-  (h : tendsto_uniformly_on f g l s) (u : ℕ → ι) (hu : tendsto u at_top l) :
-  tendsto_uniformly_on (λ n, f (u n)) g at_top s :=
+  (h : tendsto_uniformly_on F f l s) (u : ℕ → ι) (hu : tendsto u at_top l) :
+  tendsto_uniformly_on (λ n, F (u n)) f at_top s :=
 begin
   rw tendsto_uniformly_on_iff_tendsto at h ⊢,
-  have : (λ (q : ℕ × α), (g q.snd, f (u q.fst) q.snd))
-    = (λ (q : ι × α), (g q.snd, f q.fst q.snd)) ∘ (λ p : ℕ × α, (u p.fst, p.snd)),
+  have : (λ (q : ℕ × α), (f q.snd, F (u q.fst) q.snd))
+    = (λ (q : ι × α), (f q.snd, F q.fst q.snd)) ∘ (λ p : ℕ × α, (u p.fst, p.snd)),
   { ext1 x, simp, },
   rw this,
   refine h.comp _,
@@ -231,13 +230,13 @@ begin
 end
 
 lemma tendsto_uniformly_on_iff_seq_tendsto_uniformly_on {l : filter ι} [l.is_countably_generated] :
-  tendsto_uniformly_on f g l s
-    ↔ ∀ u : ℕ → ι, tendsto u at_top l → tendsto_uniformly_on (λ n, f (u n)) g at_top s :=
+  tendsto_uniformly_on F f l s
+    ↔ ∀ u : ℕ → ι, tendsto u at_top l → tendsto_uniformly_on (λ n, F (u n)) f at_top s :=
 ⟨tendsto_uniformly_on.seq_tendsto_uniformly_on, tendsto_uniformly_on_of_seq_tendsto_uniformly_on⟩
 
 lemma tendsto_uniformly_iff_seq_tendsto_uniformly {l : filter ι} [l.is_countably_generated] :
-  tendsto_uniformly f g l
-    ↔ ∀ u : ℕ → ι, tendsto u at_top l → tendsto_uniformly (λ n, f (u n)) g at_top :=
+  tendsto_uniformly F f l
+    ↔ ∀ u : ℕ → ι, tendsto u at_top l → tendsto_uniformly (λ n, F (u n)) f at_top :=
 begin
   simp_rw ← tendsto_uniformly_on_univ,
   exact tendsto_uniformly_on_iff_seq_tendsto_uniformly_on,

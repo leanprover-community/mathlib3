@@ -408,6 +408,9 @@ by simpa only [div_one] using div_le_div_of_le_left ha zero_lt_one hb
 lemma div_lt_self (ha : 0 < a) (hb : 1 < b) : a / b < a :=
 by simpa only [div_one] using div_lt_div_of_lt_left ha zero_lt_one hb
 
+lemma le_div_self (ha : 0 ≤ a) (hb₀ : 0 < b) (hb₁ : b ≤ 1) : a ≤ a / b :=
+by simpa only [div_one] using div_le_div_of_le_left ha hb₀ hb₁
+
 lemma one_le_div (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
 by rw [le_div_iff hb, one_mul]
 

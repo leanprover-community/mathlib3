@@ -125,7 +125,7 @@ class linear_ordered_add_comm_monoid_with_top (α : Type*)
 (le_top : ∀ x : α, x ≤ ⊤)
 (top_add' : ∀ x : α, ⊤ + x = ⊤)
 
-@[priority 100]    -- see Note [lower instance priority]
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_add_comm_monoid_with_top.to_order_top (α : Type u)
   [h : linear_ordered_add_comm_monoid_with_top α] : order_top α :=
 { ..h }
@@ -278,8 +278,9 @@ elements are ≤ 1 and then 1 is the top element.
 
 /--
 If `0` is the least element in `α`, then `with_zero α` is an `ordered_add_comm_monoid`.
+See note [reducible non-instances].
 -/
-protected def ordered_add_comm_monoid [ordered_add_comm_monoid α]
+@[reducible] protected def ordered_add_comm_monoid [ordered_add_comm_monoid α]
   (zero_le : ∀ a : α, 0 ≤ a) : ordered_add_comm_monoid (with_zero α) :=
 begin
   suffices, refine

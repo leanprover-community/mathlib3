@@ -47,6 +47,14 @@ protected lemma mul_le_cancellable.is_left_regular [partial_order R] {a : R}
   (ha : mul_le_cancellable a) : is_left_regular a :=
 ha.injective
 
+lemma is_left_regular.right_of_commute {a : R} (ca : ∀ b, commute a b)
+  (h : is_left_regular a) : is_right_regular a :=
+λ x y xy, h $ (ca x).trans $ xy.trans $ (ca y).symm
+
+lemma commute.is_regular_iff {a : R} (ca : ∀ b, commute a b) :
+  is_regular a ↔ is_left_regular a :=
+⟨λ h, h.left, λ h, ⟨h, h.right_of_commute ca⟩⟩
+
 end has_mul
 
 section semigroup

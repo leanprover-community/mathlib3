@@ -181,12 +181,15 @@ calc a Δ b = ⊥ ↔ a Δ b = a Δ a : by rw symm_diff_self
 @[simp] lemma symm_diff_symm_diff_inf : a Δ b Δ (a ⊓ b) = a ⊔ b :=
 by rw [symm_diff_eq_iff_sdiff_eq (symm_diff_le_sup _ _), sup_sdiff_symm_diff]
 
-protected lemma disjoint.symm_diff {a b c : α} (ha : disjoint a c) (hb : disjoint b c) :
+variables {a b c}
+
+protected lemma disjoint.symm_diff_left (ha : disjoint a c) (hb : disjoint b c) :
   disjoint (a Δ b) c :=
-begin
-  rw symm_diff_eq_sup_sdiff_inf,
-  exact (ha.sup_left hb).disjoint_sdiff_left,
-end
+by { rw symm_diff_eq_sup_sdiff_inf, exact (ha.sup_left hb).disjoint_sdiff_left }
+
+protected lemma disjoint.symm_diff_right (ha : disjoint a b) (hb : disjoint a c) :
+  disjoint a (b Δ c) :=
+by { rw symm_diff_eq_sup_sdiff_inf, exact (ha.sup_right hb).disjoint_sdiff_right }
 
 end generalized_boolean_algebra
 

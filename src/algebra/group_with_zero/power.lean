@@ -217,7 +217,7 @@ by rw [zpow_bit1₀, (commute.refl a).mul_zpow₀]
 lemma zpow_eq_zero {x : G₀} {n : ℤ} (h : x ^ n = 0) : x = 0 :=
 classical.by_contradiction $ λ hx, zpow_ne_zero_of_ne_zero hx n h
 
-lemma zpow_eq_zero_iff {a : G₀} {n : ℤ}(hn : 0 < n) :
+lemma zpow_eq_zero_iff {a : G₀} {n : ℤ} (hn : 0 < n) :
   a ^ n = 0 ↔ a = 0 :=
 begin
   refine ⟨zpow_eq_zero, _⟩,

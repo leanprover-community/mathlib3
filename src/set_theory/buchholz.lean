@@ -213,9 +213,13 @@ by unfold value
   (e₁ e₂ : buchholz_exp' v) : (add e₁ e₂).value Ψ = e₁.value Ψ + e₂.value Ψ :=
 add_value Ψ e₁ e₂
 
-@[simp] theorem psi_value {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal)
+theorem psi_value {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal)
   (u : ℕ) {e : buchholz_exp' v} (he : e.value Ψ < o) : (psi u e).value Ψ = Ψ (e.value Ψ) he u :=
 by { unfold value, exact dif_pos he }
+
+theorem psi_value' {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal)
+  (u : ℕ) {e : buchholz_exp' v} (he : o ≤ e.value Ψ) : (psi u e).value Ψ = 0 :=
+by { unfold value, exact dif_neg he.not_lt }
 
 /-- Converts a Buchholz expression into a member of a certain W-type. This function is injective. -/
 noncomputable def to_W_type (v : ℕ) : buchholz_exp' v → W_type (buchholz_indices v)

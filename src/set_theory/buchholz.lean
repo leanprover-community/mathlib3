@@ -17,7 +17,7 @@ reference to `buchholz o v` for `o < a`, and `Omega v`. Here, `Omega v` is defin
 More explicitly, we define an inductive type `buchholz_exp' o v` of "Buchholz expressions",
 containing an expression for all ordinals up to `Omega v`, and closed under sums and applications of
 a function `Ψ u` for `u : ℕ`. Any such expression can be evaluated by plugging in a family of
-functions `Ψ`. We then define the type of well-formed Buchholz expressions `buchholz_exp' o v Ψ`
+functions `Ψ`. We then define the type of well-formed Buchholz expressions `buchholz_exp o v Ψ`
 with respect to `Ψ` as those expressions where `Ψ` is only evaluated at values less than `o`.
 Finally, we define `buchholz o v` as the least ordinal that isn't the value of some well-formed
 Buchholz expression with respect to the Buchholz functions at lesser values.
@@ -61,7 +61,7 @@ def Omega : ℕ → cardinal.{0}
 | 0       := 1
 | (v + 1) := aleph (v + 1)
 
-theorem Omega_zero : Omega 0 = 1 :=
+@[simp] theorem Omega_zero : Omega 0 = 1 :=
 rfl
 
 theorem Omega_pos : Π v, 0 < Omega v
@@ -118,7 +118,11 @@ inductive buchholz_label (v : ℕ) : Type
 | add      : buchholz_label
 | psi      : ℕ → buchholz_label
 
-def sigma_buchholz_label_equiv {v : ℕ} (p : buchholz_label v → Type*) :
+instance (v : ℕ) : inhabited (buchholz_label v) :=
+⟨buchholz_label.add⟩
+
+/-- An equivalence between sigma types of buchholz labels, and the sum of-/
+def sigma_buchholz_label_equiv {v : ℕ} (p : buchholz_label v → Type u) :
   sigma p ≃ (Σ a, p (buchholz_label.lt_Omega a)) ⊕
   p (buchholz_label.add) ⊕ (Σ u, p (buchholz_label.psi u)) :=
 { to_fun := begin
@@ -138,7 +142,7 @@ def sigma_buchholz_label_equiv {v : ℕ} (p : buchholz_label v → Type*) :
     rintros (a | _ | u) h;
     refl
   end,
-  right_inv := by { rintros (⟨a, h⟩ | h | ⟨u, h⟩); refl } }
+  right_inv := by rintros (⟨a, h⟩ | h | ⟨u, h⟩); refl }
 
 /-- The different values associated to each label in a Buchholz expression. This is used to build a
     W-type. -/
@@ -147,8 +151,14 @@ def buchholz_indices (v : ℕ) : buchholz_label v → Type
 | (buchholz_label.add)        := bool
 | (buchholz_label.psi u)      := unit
 
+instance buchholz_indices_add.inhabited (v : ℕ) :
+  inhabited (buchholz_indices v buchholz_label.add) := ⟨tt⟩
+
+instance buchholz_indices_psi.inhabited (v n : ℕ) :
+  inhabited (buchholz_indices v (buchholz_label.psi n)) := ⟨unit.star⟩
+
 instance (v : ℕ) : inhabited (W_type (buchholz_indices v)) :=
-⟨W_type.mk (buchholz_label.lt_Omega (classical.arbitrary _)) (default : empty → W_type _)⟩
+⟨W_type.mk (buchholz_label.lt_Omega (classical.arbitrary _)) empty.elim⟩
 
 namespace buchholz_exp'
 
@@ -179,7 +189,7 @@ typein_enum _ _
 
 @[simp] theorem zero_value {o : ordinal} {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal) :
   (0 : buchholz_exp' v).value Ψ = 0 :=
-by { convert lt_Omega'_value _ _, simp }
+by { rw ←ord_zero, apply lt_Omega_value }
 
 theorem value_zero {o : ordinal} (ho : o = 0) {v : ℕ} (Ψ : Π a, a < o → ℕ → ordinal) :
   Π (e : buchholz_exp' v), e.value Ψ < (Omega v).ord

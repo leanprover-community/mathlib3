@@ -175,12 +175,8 @@ def tensor_unit : center C :=
 def associator (X Y Z : center C) : tensor_obj (tensor_obj X Y) Z ≅ tensor_obj X (tensor_obj Y Z) :=
 iso_mk ⟨(α_ X.1 Y.1 Z.1).hom, λ U, begin
   dsimp,
-  simp only [category.assoc, comp_tensor_id, id_tensor_comp],
-  rw [pentagon, pentagon_assoc, ←associator_naturality_assoc (𝟙 X.1) (𝟙 Y.1), tensor_id, cancel_epi,
-    cancel_epi, iso.eq_inv_comp, ←pentagon_assoc, ←id_tensor_comp_assoc, iso.hom_inv_id, tensor_id,
-    category.id_comp, ←associator_naturality_assoc, cancel_epi, cancel_epi, ←is_iso.inv_comp_eq,
-    inv_tensor, is_iso.inv_id, is_iso.iso.inv_inv, pentagon_assoc, iso.hom_inv_id_assoc, ←tensor_id,
-    ←associator_naturality_assoc],
+  simp only [comp_tensor_id, id_tensor_comp, ←tensor_id, ←associator_conjugation],
+  coherence,
 end⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/

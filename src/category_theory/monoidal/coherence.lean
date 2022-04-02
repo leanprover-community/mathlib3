@@ -138,6 +138,14 @@ f ≫ monoidal_coherence.hom X Y ≫ g
 
 infixr ` ⊗≫ `:80 := monoidal_comp -- type as \ot \gg
 
+/-- Compose two isomorphisms in a monoidal category,
+inserting unitors and associators between as necessary. -/
+def monoidal_iso_comp {W X Y Z : C} [lift_obj X] [lift_obj Y]
+  [monoidal_coherence X Y] (f : W ≅ X) (g : Y ≅ Z) : W ≅ Z :=
+f ≪≫ as_iso (monoidal_coherence.hom X Y) ≪≫ g
+
+infixr ` ≪⊗≫ `:80 := monoidal_iso_comp -- type as \ot \gg
+
 example {U V W X Y : C} (f : U ⟶ V ⊗ (W ⊗ X)) (g : (V ⊗ W) ⊗ X ⟶ Y) : U ⟶ Y := f ⊗≫ g
 
 -- To automatically insert unitors/associators at the beginning or end,

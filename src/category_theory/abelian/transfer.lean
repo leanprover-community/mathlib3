@@ -71,7 +71,7 @@ lemma has_cokernels : has_cokernels C :=
     apply limits.has_cokernel_epi_comp,
   end }
 
-variables [limits.has_kernels C] [limits.has_cokernels C]
+variables [limits.has_cokernels C]
 
 /-- Auxiliary construction for `coimage_iso_image` -/
 def cokernel_iso {X Y : C} (f : X ⟶ Y) : G.obj (cokernel (F.map f)) ≅ cokernel f :=
@@ -86,7 +86,7 @@ begin
   ... ≅ cokernel f                 : cokernel_comp_is_iso _ _
 end
 
-variables [preserves_finite_limits G]
+variables [limits.has_kernels C] [preserves_finite_limits G]
 
 /-- Auxiliary construction for `coimage_iso_image` -/
 def coimage_iso_image_aux {X Y : C} (f : X ⟶ Y) :

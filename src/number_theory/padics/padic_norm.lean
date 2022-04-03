@@ -552,6 +552,41 @@ end
 
 end padic_val_nat
 
+section padic_val_int
+variables (p : ℕ) [p_prime : fact p.prime]
+
+lemma padic_val_int_dvd_iff (p : ℕ) [fact p.prime] (n : ℕ) (a : ℤ) :
+  ↑p^n ∣ a ↔ a = 0 ∨ n ≤ padic_val_int p a :=
+begin
+  sorry,
+end
+
+lemma padic_val_int_dvd (p : ℕ) [fact p.prime] (a : ℤ) : ↑p^(padic_val_int p a) ∣ a :=
+begin
+  sorry,
+end
+
+lemma padic_val_int_eq_one (p : ℕ) [fact p.prime] : padic_val_int p p = 1 :=
+begin
+  apply padic_val_int.self,
+  exact _inst_1.out.one_lt,
+end
+
+lemma padic_val_int_add_of_mul (p : ℕ) [fact p.prime] {a b : ℤ} (ha : a ≠ 0) (hb : b ≠ 0) :
+  padic_val_int p (a*b) = padic_val_int p a + padic_val_int p b :=
+begin
+  sorry,
+end
+
+lemma padic_val_int_succ_mul_p (p : ℕ) [fact p.prime] (a : ℤ) (ha : a ≠ 0) :
+  padic_val_int p (a * p) = (padic_val_int p a) + 1 :=
+begin
+  sorry,
+end
+
+end padic_val_int
+
+
 /--
 If `q ≠ 0`, the p-adic norm of a rational `q` is `p ^ (-(padic_val_rat p q))`.
 If `q = 0`, the p-adic norm of `q` is 0.

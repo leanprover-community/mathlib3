@@ -122,8 +122,8 @@ variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, mo
 /-- The valid transition functions for a topological vector bundle over `B` modelled on
 a normed space `F`: a transition function must be a local homeomorphism of `B × F` with source and
 target both `s ×ˢ univ`, which on this set is of the form `λ (b, v), (b, ε b v)` for some continuous
-map `ε` from `s` to `F ≃L[𝕜] F`.  Here continuity is with respect to the operator norm on
-`F ≃L[𝕜] F`. -/
+map `ε` from `s` to `F ≃L[R] F`.  Here continuity is with respect to the operator norm on
+`F →L[R] F`. -/
 def continuous_transitions (e : local_equiv (B × F) (B × F)) : Prop :=
 ∃ s : set B, e.source = s ×ˢ (univ : set F) ∧ e.target = s ×ˢ (univ : set F)
     ∧ ∃ ε : B → (F ≃L[R] F), continuous_on (λ b, (ε b : F →L[R] F)) s

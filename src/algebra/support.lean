@@ -157,7 +157,7 @@ by tidy
 
 end has_one
 
-@[to_additive] lemma mul_support_mul [monoid M] (f g : α → M) :
+@[to_additive] lemma mul_support_mul [mul_one_class M] (f g : α → M) :
   mul_support (λ x, f x * g x) ⊆ mul_support f ∪ mul_support g :=
 mul_support_binop_subset (*) (one_mul _) f g
 

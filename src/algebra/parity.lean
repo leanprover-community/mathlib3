@@ -9,6 +9,7 @@ import algebra.algebra.basic
 import algebra.group_power.basic
 import algebra.field_power
 import algebra.opposites
+import data.int.sqrt
 
 /-!  # Squares, even and odd elements
 
@@ -72,6 +73,27 @@ begin
   rcases hn with ⟨n, rfl⟩,
   refine ⟨m * n, mul_mul_mul_comm m m n n⟩,
 end
+
+section monoid
+
+@[simp]
+lemma is_square_zero [monoid_with_zero α] : is_square (0 : α) := ⟨0, (mul_zero _).symm⟩
+
+@[simp]
+lemma irreducible.not_square [comm_monoid α] {x : α} (h : irreducible x) :
+  ¬is_square x :=
+begin
+  rintros ⟨y, hy⟩,
+  rcases h.is_unit_or_is_unit hy with hu | hu;
+  rw hy at h;
+  exact h.not_unit (hu.mul hu),
+end
+
+@[simp]
+lemma prime.not_square [cancel_comm_monoid_with_zero α] {x : α} (h : prime x) :
+  ¬is_square x := h.irreducible.not_square
+
+end monoid
 
 section group
 variable [group α]
@@ -336,3 +358,39 @@ end
 (even_bit0 _).abs_zpow _
 
 end field_power
+
+section decidability
+
+namespace nat
+
+instance : decidable_pred (is_square : ℕ → Prop)
+| n :=
+begin
+  convert decidable_of_iff' _ (nat.exists_mul_self n),
+  unfold is_square,
+  congr,
+  ext,
+  split,
+  { intros h, simp [h], },
+  { intros h, simp [h],},
+end
+
+end nat
+
+namespace int
+
+instance : decidable_pred (is_square : ℤ → Prop)
+| n :=
+begin
+  convert decidable_of_iff' _ (int.exists_mul_self n),
+  unfold is_square,
+  congr,
+  ext,
+  split,
+  { intros h, simp [h], },
+  { intros h, simp [h],},
+end
+
+end int
+
+end decidability

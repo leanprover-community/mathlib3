@@ -373,6 +373,82 @@ begin
   exact support_add_eq (factorization_disjoint_of_coprime hab),
 end
 
+/-! ### Factorization and `is_square` -/
+
+lemma is_square_iff_factorization_even {m : ℕ} :
+  is_square m ↔ ∀ (p : ℕ), even (m.factorization p) :=
+begin
+  rcases eq_or_ne m 0 with rfl | hm_zero,
+  { simp, },
+  { split,
+    { rintros ⟨c, hc⟩,
+      by_cases hc' : c = 0,
+      { rw [hc', mul_zero] at hc,
+        rw hc,
+        simp only [factorization_zero, finsupp.coe_zero, pi.zero_apply, forall_const, even_zero], },
+      { intros p,
+        rw [hc, nat.factorization_mul hc' hc', finsupp.coe_add],
+        exact even_add_self _, }, },
+    { intros hp,
+      use m.factorization.prod (λ p i, p ^ (i / 2)),
+      rw ← finsupp.prod_mul,
+      conv { to_lhs, rw ← nat.factorization_prod_pow_eq_self hm_zero, },
+      apply finsupp.prod_congr,
+      intros x hx,
+      rcases hp x with ⟨c, hc⟩,
+      rw [hc, ←two_mul],
+      simp only [mul_div_right, succ_pos'],
+      rw [←pow_add, ←two_mul], }, },
+end
+
+lemma is_square.of_mul_left {m n : ℕ} (hmn : m.coprime n) :
+  is_square (m * n) → is_square m :=
+begin
+  rw [is_square_iff_factorization_even, is_square_iff_factorization_even],
+  intros hmn' p,
+  by_cases hp : p ∈ m.factors,
+  { rw ← factorization_eq_of_coprime_left hmn hp, exact hmn' p, },
+  { rw [←nat.factors_count_eq, list.count_eq_zero_of_not_mem hp], simp, },
+end
+
+lemma is_square.of_mul_right {m n : ℕ} (hmn : m.coprime n) :
+  is_square (m * n) → is_square n :=
+begin
+  rw mul_comm,
+  exact is_square.of_mul_left hmn.symm,
+end
+
+/-- The property of being a square is multiplicative. The ← direction can be generalized
+to an arbitrary commutative monoid. See `square_mul_of_square_of_square`. Similarly,
+this lemma could be generalized to an arbitrary unique factorization domain, but we make use
+of `nat.factorization` in this proof. -/
+lemma is_square_mul {m n : ℕ} (hmn : m.coprime n) :
+  is_square (m * n) ↔ is_square m ∧ is_square n :=
+begin
+  refine ⟨_, λ ⟨hm, hn⟩, hm.mul_is_square hn⟩,
+  intros hsquare,
+  exact ⟨is_square.of_mul_left hmn hsquare, is_square.of_mul_right hmn hsquare⟩,
+end
+
+lemma square_prime_pow_iff_pow_even : ∀ (p i : ℕ), nat.prime p → (is_square (p ^ i) ↔ even i) :=
+begin
+  intros p i hp,
+  split,
+  { rintros ⟨s, hs⟩,
+    have := dvd_mul_left s s,
+    rw [←hs, nat.dvd_prime_pow hp] at this,
+    rcases this with ⟨k, hk, s_eq⟩,
+    rw [s_eq, ←pow_add] at hs,
+    have aa : (p ^ (k + k)).factorization p = k + k, { simp [hp.factorization_pow], },
+    have bb : (p ^ i).factorization p = i, { simp [hp.factorization_pow], },
+    have : i = k + k, { rw [←aa, ←bb, hs], },
+    rw this,
+    simp, },
+  { rintros ⟨k, hk⟩,
+    use p ^ k,
+    rw [hk, pow_add], },
+end
+
 /-! ### Induction principles involving factorizations -/
 
 /-- Given `P 0, P 1` and a way to extend `P a` to `P (p ^ n * a)` for prime `p` not dividing `a`,

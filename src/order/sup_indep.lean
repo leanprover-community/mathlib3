@@ -263,7 +263,10 @@ another indepedendent indexed family. -/
 lemma independent.comp {ι ι' : Sort*} {α : Type*} [complete_lattice α]
   {s : ι → α} (hs : independent s) (f : ι' → ι) (hf : function.injective f) :
   independent (s ∘ f) :=
-λ i, (hs (f i)).mono_right $ (bsupr_mono $ λ i, hf.ne).trans $ supr_comp_le _ f
+λ i, (hs (f i)).mono_right $ begin
+  refine (supr_mono $ λ i, _).trans (supr_comp_le _ f),
+  exact supr_const_mono hf.ne,
+end
 
 lemma independent_pair {i j : ι} (hij : i ≠ j) (huniv : ∀ k, k = i ∨ k = j):
   independent t ↔ disjoint (t i) (t j) :=

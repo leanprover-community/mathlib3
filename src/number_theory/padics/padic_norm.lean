@@ -129,7 +129,7 @@ by simp [padic_val_int]
 @[simp] lemma of_nat {n : ℕ} : padic_val_int p (n : ℤ) = padic_val_nat p n :=
 by simp [padic_val_int]
 
-/-- For `p ≠ 0, p ≠ 1, `padic_val_rat p p` is 1. -/
+/-- For `p ≠ 0, p ≠ 1, `padic_val_int p p` is 1. -/
 lemma self (hp : 1 < p) : padic_val_int p p = 1 :=
 by simp [padic_val_nat.self hp]
 

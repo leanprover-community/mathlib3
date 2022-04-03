@@ -569,16 +569,7 @@ begin
     = (α_ (𝟙_ C) X₁ (𝟙_ C ⊗ X₂)).hom ≫
       (𝟙 (𝟙_ C) ⊗ (α_ X₁ (𝟙_ C) X₂).inv) ≫
       (λ_ ((X₁ ⊗ (𝟙_ C)) ⊗ X₂)).hom ≫
-      ((ρ_ X₁).hom ⊗ (𝟙 X₂)),
-  { let lhs :=
-      (λ_ (of X₁)).hom ⊗ (λ_ (of X₂)).hom,
-    let rhs :=
-      (α_ unit (of X₁) (unit ⊗ (of X₂))).hom ≫
-      (𝟙 unit ⊗ (α_ (of X₁) unit (of X₂)).inv) ≫
-      (λ_ (((of X₁) ⊗ free_monoidal_category.unit) ⊗ (of X₂))).hom ≫
-      ((ρ_ (of X₁)).hom ⊗ (𝟙 (of X₂))),
-    change project_map id _ _ lhs = project_map id _ _ rhs,
-    congr },
+      ((ρ_ X₁).hom ⊗ (𝟙 X₂)) := by pure_coherence,
   rw this, clear this,
   rw ←braiding_left_unitor,
   slice_lhs 3 4 { rw [←id_comp (𝟙 X₂), tensor_comp] },
@@ -589,17 +580,7 @@ begin
     = (𝟙 (𝟙_ C) ⊗ (α_ (𝟙_ C) X₁ X₂).hom) ≫
       (α_ (𝟙_ C) (𝟙_ C) (X₁ ⊗ X₂)).inv ≫
       ((λ_ (𝟙_ C)).hom ⊗ 𝟙 (X₁ ⊗ X₂)) ≫
-      (λ_ (X₁ ⊗ X₂)).hom,
-  { let lhs :=
-      (λ_ ((free_monoidal_category.unit ⊗ (of X₁)) ⊗ (of X₂))).hom ≫
-      ((λ_ (of X₁)).hom ⊗ 𝟙 (of X₂)),
-    let rhs :=
-      (𝟙 unit ⊗ (α_ unit (of X₁) (of X₂)).hom) ≫
-      (α_ unit unit ((of X₁) ⊗ (of X₂))).inv ≫
-      ((λ_ unit).hom ⊗ 𝟙 ((of X₁) ⊗ (of X₂))) ≫
-      (λ_ ((of X₁) ⊗ (of X₂))).hom,
-    change project_map id _ _ lhs = project_map id _ _ rhs,
-    congr },
+      (λ_ (X₁ ⊗ X₂)).hom := by pure_coherence,
   slice_lhs 4 5 { rw this }, clear this,
   simp only [assoc],
 end
@@ -616,16 +597,7 @@ begin
     = (α_ X₁ (𝟙_ C) (X₂ ⊗ (𝟙_ C))).hom ≫
       (𝟙 X₁ ⊗ (α_ (𝟙_ C) X₂ (𝟙_ C)).inv) ≫
       (𝟙 X₁ ⊗ (ρ_ (𝟙_ C ⊗ X₂)).hom) ≫
-      (𝟙 X₁ ⊗ (λ_ X₂).hom),
-  { let lhs :=
-      (ρ_ (of X₁)).hom ⊗ (ρ_ (of X₂)).hom,
-    let rhs :=
-      (α_ (of X₁) unit ((of X₂) ⊗ unit)).hom ≫
-      (𝟙 (of X₁) ⊗ (α_ unit (of X₂) unit).inv) ≫
-      (𝟙 (of X₁) ⊗ (ρ_ (free_monoidal_category.unit ⊗ (of X₂))).hom) ≫
-      (𝟙 (of X₁) ⊗ (λ_ (of X₂)).hom),
-    change project_map id _ _ lhs = project_map id _ _ rhs,
-    congr },
+      (𝟙 X₁ ⊗ (λ_ X₂).hom) := by pure_coherence,
   rw this, clear this,
   rw ←braiding_right_unitor,
   slice_lhs 3 4 { rw [←id_comp (𝟙 X₁), tensor_comp, id_comp] },
@@ -638,17 +610,7 @@ begin
     = (𝟙 X₁ ⊗ (α_ X₂ (𝟙_ C) (𝟙_ C)).hom) ≫
       (α_ X₁ X₂ (𝟙_ C ⊗ 𝟙_ C)).inv ≫
       (𝟙 (X₁ ⊗ X₂) ⊗ (λ_ (𝟙_ C)).hom) ≫
-      (ρ_ (X₁ ⊗ X₂)).hom,
-  { let lhs :=
-      (𝟙 (of X₁) ⊗ (ρ_ ((of X₂) ⊗ free_monoidal_category.unit)).hom) ≫
-      (𝟙 (of X₁) ⊗ (ρ_ (of X₂)).hom),
-    let rhs :=
-      (𝟙 (of X₁) ⊗ (α_ (of X₂) unit unit).hom) ≫
-      (α_ (of X₁) (of X₂) (unit ⊗ unit)).inv ≫
-      (𝟙 ((of X₁) ⊗ (of X₂)) ⊗ (λ_ unit).hom) ≫
-      (ρ_ ((of X₁) ⊗ (of X₂))).hom,
-    change project_map id _ _ lhs = project_map id _ _ rhs,
-    congr },
+      (ρ_ (X₁ ⊗ X₂)).hom := by pure_coherence,
   slice_lhs 4 5 { rw this }, clear this,
   simp only [assoc],
 end
@@ -703,23 +665,7 @@ begin
       (𝟙 X₁ ⊗ (α_ Y₁ X₂ ((Y₂ ⊗ X₃) ⊗ Y₃)).hom) ≫
       (α_ X₁ Y₁ (X₂ ⊗ ((Y₂ ⊗ X₃) ⊗ Y₃))).inv ≫
       (𝟙 (X₁ ⊗ Y₁) ⊗ (𝟙 X₂ ⊗ (α_ Y₂ X₃ Y₃).hom)) ≫
-      (𝟙 (X₁ ⊗ Y₁) ⊗ (α_ X₂ Y₂ (X₃ ⊗ Y₃)).inv),
-  { let lhs :=
-      (α_ ((of X₁) ⊗ (of Y₁)) ((of X₂) ⊗ (of Y₂)) ((of X₃) ⊗ (of Y₃))).hom,
-    let rhs :=
-      ((α_ (of X₁) (of Y₁) ((of X₂) ⊗ (of Y₂))).hom ⊗ 𝟙 ((of X₃) ⊗ (of Y₃))) ≫
-      ((𝟙 (of X₁) ⊗ (α_ (of Y₁) (of X₂) (of Y₂)).inv) ⊗ 𝟙 ((of X₃) ⊗ (of Y₃))) ≫
-      (α_ ((of X₁) ⊗ (((of Y₁) ⊗ (of X₂)) ⊗ (of Y₂))) (of X₃) (of Y₃)).inv ≫
-      ((α_ (of X₁) (((of Y₁) ⊗ (of X₂)) ⊗ (of Y₂)) (of X₃)).hom ⊗ 𝟙 (of Y₃)) ≫
-      ((𝟙 (of X₁) ⊗ (α_ ((of Y₁) ⊗ (of X₂)) (of Y₂) (of X₃)).hom) ⊗ 𝟙 (of Y₃)) ≫
-      (α_ (of X₁) (((of Y₁) ⊗ (of X₂)) ⊗ ((of Y₂) ⊗ (of X₃))) (of Y₃)).hom ≫
-      (𝟙 (of X₁) ⊗ (α_ ((of Y₁) ⊗ (of X₂)) ((of Y₂) ⊗ (of X₃)) (of Y₃)).hom) ≫
-      (𝟙 (of X₁) ⊗ (α_ (of Y₁) (of X₂) (((of Y₂) ⊗ (of X₃)) ⊗ (of Y₃))).hom) ≫
-      (α_ (of X₁) (of Y₁) ((of X₂) ⊗ (((of Y₂) ⊗ (of X₃)) ⊗ (of Y₃)))).inv ≫
-      (𝟙 ((of X₁) ⊗ (of Y₁)) ⊗ (𝟙 (of X₂) ⊗ (α_ (of Y₂) (of X₃) (of Y₃)).hom)) ≫
-      (𝟙 ((of X₁) ⊗ (of Y₁)) ⊗ (α_ (of X₂) (of Y₂) ((of X₃) ⊗ (of Y₃))).inv),
-    change project_map id _ _ lhs = project_map id _ _ rhs,
-    congr },
+      (𝟙 (X₁ ⊗ Y₁) ⊗ (α_ X₂ Y₂ (X₃ ⊗ Y₃)).inv) := by pure_coherence,
   rw this, clear this,
   slice_lhs 2 4 { rw [←tensor_comp, ←tensor_comp,
                       tensor_μ_def₁,
@@ -744,23 +690,7 @@ begin
       (𝟙 X₁ ⊗ (α_ X₂ ((Y₁ ⊗ Y₂) ⊗ X₃) Y₃).inv) ≫
       (α_ X₁ (X₂ ⊗ ((Y₁ ⊗ Y₂) ⊗ X₃)) Y₃).inv ≫
       ((𝟙 X₁ ⊗ (𝟙 X₂ ⊗ (α_ Y₁ Y₂ X₃).hom)) ⊗ 𝟙 Y₃) ≫
-      ((𝟙 X₁ ⊗ (α_ X₂ Y₁ (Y₂ ⊗ X₃)).inv) ⊗ 𝟙 Y₃),
-  { let lhs :=
-      ((α_ (of X₁) (of X₂) ((of Y₁) ⊗ (of Y₂))).hom ⊗ 𝟙 ((of X₃) ⊗ (of Y₃))) ≫
-      ((𝟙 (of X₁) ⊗ (α_ (of X₂) (of Y₁) (of Y₂)).inv) ⊗ 𝟙 ((of X₃) ⊗ (of Y₃))) ≫
-      (α_ ((of X₁) ⊗ (((of X₂) ⊗ (of Y₁)) ⊗ (of Y₂))) (of X₃) (of Y₃)).inv ≫
-      ((α_ (of X₁) (((of X₂) ⊗ (of Y₁)) ⊗ (of Y₂)) (of X₃)).hom ⊗ 𝟙 (of Y₃)) ≫
-      ((𝟙 (of X₁) ⊗ (α_ ((of X₂) ⊗ (of Y₁)) (of Y₂) (of X₃)).hom) ⊗ 𝟙 (of Y₃)),
-    let rhs :=
-      (α_ ((of X₁) ⊗ (of X₂)) ((of Y₁) ⊗ (of Y₂)) ((of X₃) ⊗ (of Y₃))).hom ≫
-      (𝟙 ((of X₁) ⊗ (of X₂)) ⊗ (α_ ((of Y₁) ⊗ (of Y₂)) (of X₃) (of Y₃)).inv) ≫
-      (α_ (of X₁) (of X₂) ((((of Y₁) ⊗ (of Y₂)) ⊗ (of X₃)) ⊗ (of Y₃))).hom ≫
-      (𝟙 (of X₁) ⊗ (α_ (of X₂) (((of Y₁) ⊗ (of Y₂)) ⊗ (of X₃)) (of Y₃)).inv) ≫
-      (α_ (of X₁) ((of X₂) ⊗ (((of Y₁) ⊗ (of Y₂)) ⊗ (of X₃))) (of Y₃)).inv ≫
-      ((𝟙 (of X₁) ⊗ (𝟙 (of X₂) ⊗ (α_ (of Y₁) (of Y₂) (of X₃)).hom)) ⊗ 𝟙 (of Y₃)) ≫
-      ((𝟙 (of X₁) ⊗ (α_ (of X₂) (of Y₁) ((of Y₂) ⊗ (of X₃))).inv) ⊗ 𝟙 (of Y₃)),
-    change project_map id _ _ lhs = project_map id _ _ rhs,
-    congr },
+      ((𝟙 X₁ ⊗ (α_ X₂ Y₁ (Y₂ ⊗ X₃)).inv) ⊗ 𝟙 Y₃) := by pure_coherence,
   slice_lhs 2 6 { rw this }, clear this,
   slice_lhs 1 3 { rw tensor_μ_def₁ },
   slice_lhs 3 4 { rw [←tensor_id,
@@ -802,23 +732,7 @@ begin
     = (α_ X₁ ((Y₁ ⊗ (X₂ ⊗ X₃)) ⊗ Y₂) Y₃).hom ≫
       (𝟙 X₁ ⊗ (α_ (Y₁ ⊗ (X₂ ⊗ X₃)) Y₂ Y₃).hom) ≫
       (𝟙 X₁ ⊗ (α_ Y₁ (X₂ ⊗ X₃) (Y₂ ⊗ Y₃)).hom) ≫
-      (α_ X₁ Y₁ ((X₂ ⊗ X₃) ⊗ (Y₂ ⊗ Y₃))).inv,
-  { let lhs :=
-      ((𝟙 (of X₁) ⊗ ((α_ (of Y₁) (of X₂) (of X₃)).inv ⊗ 𝟙 (of Y₂))) ⊗ 𝟙 (of Y₃)) ≫
-      ((𝟙 (of X₁) ⊗ (α_ ((of Y₁) ⊗ (of X₂)) (of X₃) (of Y₂)).hom) ⊗ 𝟙 (of Y₃)) ≫
-      (α_ (of X₁) (((of Y₁) ⊗ (of X₂)) ⊗ ((of X₃) ⊗ (of Y₂))) (of Y₃)).hom ≫
-      (𝟙 (of X₁) ⊗ (α_ ((of Y₁) ⊗ (of X₂)) ((of X₃) ⊗ (of Y₂)) (of Y₃)).hom) ≫
-      (𝟙 (of X₁) ⊗ (α_ (of Y₁) (of X₂) (((of X₃) ⊗ (of Y₂)) ⊗ (of Y₃))).hom) ≫
-      (α_ (of X₁) (of Y₁) ((of X₂) ⊗ (((of X₃) ⊗ (of Y₂)) ⊗ (of Y₃)))).inv ≫
-      (𝟙 ((of X₁) ⊗ (of Y₁)) ⊗ (𝟙 (of X₂) ⊗ (α_ (of X₃) (of Y₂) (of Y₃)).hom)) ≫
-      (𝟙 ((of X₁) ⊗ (of Y₁)) ⊗ (α_ (of X₂) (of X₃) ((of Y₂) ⊗ (of Y₃))).inv),
-    let rhs :=
-      (α_ (of X₁) (((of Y₁) ⊗ ((of X₂) ⊗ (of X₃))) ⊗ (of Y₂)) (of Y₃)).hom ≫
-      (𝟙 (of X₁) ⊗ (α_ ((of Y₁) ⊗ ((of X₂) ⊗ (of X₃))) (of Y₂) (of Y₃)).hom) ≫
-      (𝟙 (of X₁) ⊗ (α_ (of Y₁) ((of X₂) ⊗ (of X₃)) ((of Y₂) ⊗ (of Y₃))).hom) ≫
-      (α_ (of X₁) (of Y₁) (((of X₂) ⊗ (of X₃)) ⊗ ((of Y₂) ⊗ (of Y₃)))).inv,
-    change project_map id _ _ lhs = project_map id _ _ rhs,
-    congr },
+      (α_ X₁ Y₁ ((X₂ ⊗ X₃) ⊗ (Y₂ ⊗ Y₃))).inv := by pure_coherence,
   slice_lhs 9 16 { rw this }, clear this,
   slice_lhs 8 9 { rw associator_naturality },
   slice_lhs 9 10 { rw [←tensor_comp,
@@ -838,23 +752,7 @@ begin
       (𝟙 X₁ ⊗ (α_ ((X₂ ⊗ X₃) ⊗ Y₁) Y₂ Y₃).hom) ≫
       (𝟙 X₁ ⊗ (α_ (X₂ ⊗ X₃) Y₁ (Y₂ ⊗ Y₃)).hom) ≫
       (α_ X₁ (X₂ ⊗ X₃) (Y₁ ⊗ (Y₂ ⊗ Y₃))).inv
-    = (α_ X₁ X₂ X₃).hom ⊗ (α_ Y₁ Y₂ Y₃).hom,
-  { let lhs :=
-      (α_ ((of X₁) ⊗ (of X₂)) (of X₃) (((of Y₁) ⊗ (of Y₂)) ⊗ (of Y₃))).hom ≫
-      (𝟙 ((of X₁) ⊗ (of X₂)) ⊗ (α_ (of X₃) ((of Y₁) ⊗ (of Y₂)) (of Y₃)).inv) ≫
-      (α_ (of X₁) (of X₂) (((of X₃) ⊗ ((of Y₁) ⊗ (of Y₂))) ⊗ (of Y₃))).hom ≫
-      (𝟙 (of X₁) ⊗ (α_ (of X₂) ((of X₃) ⊗ ((of Y₁) ⊗ (of Y₂))) (of Y₃)).inv) ≫
-      (α_ (of X₁) ((of X₂) ⊗ ((of X₃) ⊗ ((of Y₁) ⊗ (of Y₂)))) (of Y₃)).inv ≫
-      ((𝟙 (of X₁) ⊗ (α_ (of X₂) (of X₃) ((of Y₁) ⊗ (of Y₂))).inv) ⊗ 𝟙 (of Y₃)) ≫
-      ((𝟙 (of X₁) ⊗ (α_ ((of X₂) ⊗ (of X₃)) (of Y₁) (of Y₂)).inv) ⊗ 𝟙 (of Y₃)) ≫
-      (α_ (of X₁) ((((of X₂) ⊗ (of X₃)) ⊗ (of Y₁)) ⊗ (of Y₂)) (of Y₃)).hom ≫
-      (𝟙 (of X₁) ⊗ (α_ (((of X₂) ⊗ (of X₃)) ⊗ (of Y₁)) (of Y₂) (of Y₃)).hom) ≫
-      (𝟙 (of X₁) ⊗ (α_ ((of X₂) ⊗ (of X₃)) (of Y₁) ((of Y₂) ⊗ (of Y₃))).hom) ≫
-      (α_ (of X₁) ((of X₂) ⊗ (of X₃)) ((of Y₁) ⊗ ((of Y₂) ⊗ (of Y₃)))).inv,
-    let rhs :=
-      (α_ (of X₁) (of X₂) (of X₃)).hom ⊗ (α_ (of Y₁) (of Y₂) (of Y₃)).hom,
-    change project_map id _ _ lhs = project_map id _ _ rhs,
-    congr },
+    = (α_ X₁ X₂ X₃).hom ⊗ (α_ Y₁ Y₂ Y₃).hom := by pure_coherence,
   slice_lhs 1 11 { rw this }, clear this,
   simp only [assoc],
 end

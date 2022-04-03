@@ -47,8 +47,8 @@ lemma smul_symm_apply_eq_mul_symm_apply_inv_smul
   (g : G) (α : left_transversals (H : set G)) (q : G ⧸ H) :
   ↑(to_equiv (g • α).2 q) = g * (to_equiv α.2 (g⁻¹ • q : G ⧸ H)) :=
 begin
-  change ↑(to_equiv (g • α).2 q) = ↑(⟨_, mem_left_coset g (subtype.mem _)⟩ : (g • α).1),
-  refine subtype.ext_iff.mp ((to_equiv (g • α).2).apply_eq_iff_eq_symm_apply.mpr _),
+  refine eq.trans (subtype.ext_iff.mp ((to_equiv (g • α).2).apply_eq_iff_eq_symm_apply.mpr _))
+    (subtype.coe_mk _ (mem_left_coset g (subtype.mem _))),
   change q = g • ((to_equiv α.2).symm (to_equiv α.2 (g⁻¹ • q : G ⧸ H))),
   rw [equiv.symm_apply_apply, ←mul_smul, mul_inv_self, one_smul],
 end

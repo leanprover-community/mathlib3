@@ -983,41 +983,6 @@ variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E
 -- Note that continuous_linear_equiv.prod should also be renamed to continuous_linear_equiv.prod_map
 universes u₁ u₂ u₃ u₄ u₅
 
-lemma continuous_linear_map.is_bounded_linear_prod_map
-  (R₁ : Type u₁) [nondiscrete_normed_field R₁]
-  (M₁ : Type u₂) [normed_group M₁] [normed_space R₁ M₁]
-  (M₂ : Type u₃) [normed_group M₂] [normed_space R₁ M₂]
-  (M₃ : Type u₄) [normed_group M₃] [normed_space R₁ M₃]
-  (M₄ : Type u₅) [normed_group M₄] [normed_space R₁ M₄] :
-  is_bounded_linear_map R₁ (λ p : (M₁ →L[R₁] M₂) × (M₃ →L[R₁] M₄), p.1.prod_map p.2) :=
-{ map_add := begin
-    rintros ⟨f, g⟩ ⟨f', g'⟩,
-    apply continuous_linear_map.ext,
-    rintros ⟨u, v⟩,
-    simp only [prod.mk_add_mk, continuous_linear_map.coe_prod_map', prod.map_mk, continuous_linear_map.add_apply],
-  end,
-  map_smul := begin
-    intros,
-    apply continuous_linear_map.ext,
-    rintros ⟨u, v⟩,
-    simp only [prod.smul_fst, prod.smul_snd, continuous_linear_map.coe_prod_map', continuous_linear_map.coe_smul', prod.map_mk,
-    pi.smul_apply, prod.smul_mk]
-  end,
-  bound := begin
-    use [1, zero_lt_one],
-    rintros ⟨f, g⟩,
-    rw one_mul,
-    apply continuous_linear_map.op_norm_le_bound _ (norm_nonneg _),
-    rintros ⟨u, v⟩,
-    apply max_le,
-    apply (f.le_op_norm _).trans (mul_le_mul _ _ (norm_nonneg _) (norm_nonneg _)),
-    apply le_max_left,
-    apply le_max_left,
-    apply (g.le_op_norm _).trans (mul_le_mul _ _ (norm_nonneg _) (norm_nonneg _)),
-    apply le_max_right,
-    apply le_max_right
-  end }
-
 def continuous_linear_map.prod_mapL
   (R₁ : Type u₁) [nondiscrete_normed_field R₁]
   (M₁ : Type u₂) [normed_group M₁] [normed_space R₁ M₁]
@@ -1025,7 +990,32 @@ def continuous_linear_map.prod_mapL
   (M₃ : Type u₄) [normed_group M₃] [normed_space R₁ M₃]
   (M₄ : Type u₅) [normed_group M₄] [normed_space R₁ M₄] :
   ((M₁ →L[R₁] M₂) × (M₃ →L[R₁] M₄)) →L[R₁] ((M₁ × M₃) →L[R₁] (M₂ × M₄)) :=
-(continuous_linear_map.is_bounded_linear_prod_map R₁ M₁ M₂ M₃ M₄).to_continuous_linear_map
+begin
+  have Φ₁ : (M₁ →L[R₁] M₂) →L[R₁] (M₁ →L[R₁] M₂ × M₄) :=
+    continuous_linear_map.compL R₁ M₁ M₂ (M₂ × M₄) (continuous_linear_map.inl R₁ M₂ M₄),
+  have Φ₂ : (M₃ →L[R₁] M₄) →L[R₁] (M₃ →L[R₁] M₂ × M₄) :=
+    continuous_linear_map.compL R₁ M₃ M₄ (M₂ × M₄) (continuous_linear_map.inr R₁ M₂ M₄),
+  have Φ₁' := (continuous_linear_map.compL R₁ (M₁ × M₃) M₁ (M₂ × M₄)).flip
+    (continuous_linear_map.fst R₁ M₁ M₃),
+  have Φ₂' := (continuous_linear_map.compL R₁ (M₁ × M₃) M₃ (M₂ × M₄)).flip
+    (continuous_linear_map.snd R₁ M₁ M₃),
+  have Ψ₁ : ((M₁ →L[R₁] M₂) × (M₃ →L[R₁] M₄)) →L[R₁] (M₁ →L[R₁] M₂) :=
+    continuous_linear_map.fst R₁ (M₁ →L[R₁] M₂) (M₃ →L[R₁] M₄),
+  have Ψ₂ : ((M₁ →L[R₁] M₂) × (M₃ →L[R₁] M₄)) →L[R₁] (M₃ →L[R₁] M₄) :=
+    continuous_linear_map.snd R₁ (M₁ →L[R₁] M₂) (M₃ →L[R₁] M₄),
+  exact Φ₁' ∘L Φ₁ ∘L Ψ₁ + Φ₂' ∘L Φ₂ ∘L Ψ₂,
+end
+
+@[simp] lemma continuous_linear_map.prod_mapL_apply
+  (R₁ : Type u₁) [nondiscrete_normed_field R₁]
+  (M₁ : Type u₂) [normed_group M₁] [normed_space R₁ M₁]
+  (M₂ : Type u₃) [normed_group M₂] [normed_space R₁ M₂]
+  (M₃ : Type u₄) [normed_group M₃] [normed_space R₁ M₃]
+  (M₄ : Type u₅) [normed_group M₄] [normed_space R₁ M₄]
+  (p : (M₁ →L[R₁] M₂) × (M₃ →L[R₁] M₄)) :
+  continuous_linear_map.prod_mapL R₁ M₁ M₂ M₃ M₄ p
+  = p.1.prod_map p.2 :=
+continuous_linear_map.ext (λ x, by simp [continuous_linear_map.prod_mapL])
 
 /-- The product of two vector bundles is a vector bundle. -/
 instance _root_.bundle.prod.topological_vector_bundle :
@@ -1058,8 +1048,10 @@ instance _root_.bundle.prod.topological_vector_bundle :
       apply topological_fiber_bundle.trivialization.symm_trans_target_eq },
     { have hε := (continuous_on_coord_change he₁ he'₁).mono (inter_subset_left s t),
       have hη := (continuous_on_coord_change he₂ he'₂).mono (inter_subset_right s t),
-      exact (continuous_linear_map.prod_mapL R F₁ F₁ F₂ F₂).continuous.comp_continuous_on
-        (hε.prod hη) },
+      convert (continuous_linear_map.prod_mapL R F₁ F₁ F₂ F₂).continuous.comp_continuous_on
+        (hε.prod hη),
+      ext1 b,
+      simp, },
     { rintros b ⟨hbs, hbt⟩ ⟨u, v⟩,
       have h : (e₁.prod e₂).to_local_homeomorph.symm _ = _ := prod_symm_apply hbs.1 hbt.1 u v,
       simp only [ε, η, h, prod_apply hbs.2 hbt.2,

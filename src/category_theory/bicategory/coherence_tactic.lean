@@ -97,6 +97,18 @@ instance whisker_right
 ⟨bicategorical_coherence.hom f g ▷ h⟩
 
 @[simps]
+instance tensor_right (f : a ⟶ b) (g : b ⟶ b) [lift_hom f] [lift_hom g]
+  [bicategorical_coherence (𝟙 b) g] :
+  bicategorical_coherence f (f ≫ g) :=
+⟨(ρ_ f).inv ≫ (f ◁ bicategorical_coherence.hom (𝟙 b) g)⟩
+
+@[simps]
+instance tensor_right' (f : a ⟶ b) (g : b ⟶ b) [lift_hom f] [lift_hom g]
+  [bicategorical_coherence g (𝟙 b)] :
+  bicategorical_coherence (f ≫ g) f :=
+⟨(f ◁ bicategorical_coherence.hom g (𝟙 b)) ≫ (ρ_ f).hom⟩
+
+@[simps]
 instance left (f g : a ⟶ b) [lift_hom f] [lift_hom g] [bicategorical_coherence f g] :
   bicategorical_coherence (𝟙 a ≫ f) g :=
 ⟨(λ_ f).hom ≫ bicategorical_coherence.hom f g⟩
@@ -127,6 +139,15 @@ instance assoc' (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : a ⟶ d)
   [lift_hom f] [lift_hom g] [lift_hom h] [lift_hom i] [bicategorical_coherence i (f ≫ (g ≫ h))] :
   bicategorical_coherence i ((f ≫ g) ≫ h) :=
 ⟨bicategorical_coherence.hom i (f ≫ (g ≫ h)) ≫ (α_ f g h).inv⟩
+
+example (f : a ⟶ b) : bicategorical_coherence f ((f ≫ 𝟙 b) ≫ 𝟙 b) :=
+by apply_instance
+
+example (f : a ⟶ b) : bicategorical_coherence f (f ≫ 𝟙 b ≫ 𝟙 b) :=
+by apply_instance
+
+example (f : a ⟶ b) : bicategorical_coherence ((𝟙 a ≫ 𝟙 a ≫ 𝟙 a) ≫ f) (((f ≫ 𝟙 b) ≫ 𝟙 b) ≫ 𝟙 b) :=
+by apply_instance
 
 end bicategorical_coherence
 
@@ -200,6 +221,10 @@ example (f : a ⟶ b) (g : b ⟶ c) :
   (f ◁ (λ_ g).inv) ≫ (α_ f (𝟙 b) g).inv = (ρ_ f).inv ▷ g :=
 by coherence1
 
+example :
+  (λ_ $ 𝟙 a).hom = (ρ_ $ 𝟙 a).hom :=
+by coherence1
+
 namespace coherence
 
 /--
@@ -235,41 +260,26 @@ end coherence
 
 open coherence
 
-/--
-Use the coherence theorem for bicategorical categories to solve equations in a bicategorical equation,
-where the two sides only differ by replacing strings of "structural" morphisms with
-different strings with the same source and target.
-
-That is, `coherence` can handle goals of the form
-`a ≫ f ≫ b ≫ g ≫ c = a' ≫ f ≫ b' ≫ g ≫ c'`
-where `a = a'`, `b = b'`, and `c = c'` can be proved using `coherence1`.
--/
-meta def coherence : tactic unit :=
-do
-  -- To prove an equality `f = g` in a bicategory,
-  -- first try the `coherence1` tactic on the entire equation:
+/-- hoge -/
+meta def coherence_loop : tactic unit :=
   coherence1 <|> do
-  -- Otherewise, rearrange so we have a maximal prefix of each side
-  -- that is built out of unitors and associators:
-  liftable_prefixes <|>
-    fail ("Something went wrong in the `coherence` tactic: " ++
-      "is the target an equation in a bicategory?"),
-  -- The goal should now look like `f₀ ≫ f₁ = g₀ ≫ g₁`,
   tactic.congr_core',
-  -- and now we have two goals `f₀ = g₀` and `f₁ = g₁`.
-  -- Discharge the first using `coherence`,
   focus1 coherence1 <|>
     fail "`coherence` tactic failed, subgoal not true in the free bicategory",
-  -- Then check that either `g₀` is identically `g₁`,
   reflexivity <|> (do
-    -- or that both are compositions,
     `(_ ≫ _ = _ ≫ _) ← target |
       fail "`coherence` tactic failed, non-structural morphisms don't match",
     tactic.congr_core',
-    -- with identical first terms,
     reflexivity <|> fail "`coherence` tactic failed, non-structural morphisms don't match",
-    -- and whose second terms can be identified by recursively called `coherence2`.
-    coherence)
+    coherence_loop)
+
+meta def coherence : tactic unit :=
+do
+  coherence1 <|> do
+  liftable_prefixes <|>
+    fail ("Something went wrong in the `coherence` tactic: " ++
+      "is the target an equation in a bicategory?"),
+  coherence_loop
 
 run_cmd add_interactive [`coherence1, `coherence]
 

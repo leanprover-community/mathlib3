@@ -121,11 +121,8 @@ bornology.of_bounded
           (λ hx', (hr₁ hx').trans (le_max_left _ _))
           (λ hx', (hr₂ hx').trans (le_max_right _ _))⟩ }
     end)
-  (sUnion_eq_univ_iff.2 $ λ z, ⟨{z},
-    begin
-      simp only [mem_set_of_eq, mem_singleton_iff, mem_singleton, exists_prop, and_true],
-      exact ⟨0, λ x y hx hy, (hx.symm ▸ hy.symm ▸ dist_self z : dist x y = 0).le⟩
-    end⟩)
+  (λ z, ⟨0, λ x y hx hy,
+    by { rw [eq_of_mem_singleton hx, eq_of_mem_singleton hy], exact (dist_self z).le }⟩)
 
 /-- The distance function (given an ambient metric space on `α`), which returns
   a nonnegative real number `dist x y` given `x y : α`. -/

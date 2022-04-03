@@ -524,17 +524,14 @@ begin
   all_goals
   { set c := (⨆ (k : ℕ) (hk : k ≤ m + 1), f k a) with hc,
     set d := (f m.succ a ⊔ ⨆ (k : ℕ) (hk : k ≤ m), f k a) with hd,
-    suffices : c ≤ d ∧ d ≤ c,
-    { change c = d, -- removing this line breaks
-      exact le_antisymm this.1 this.2 },
-    rw [hc, hd],
+    rw [@le_antisymm_iff ℝ≥0∞, hc, hd], -- Specifying the type is weirdly necessary
     refine ⟨_, _⟩,
     { refine supr₂_le (λ n hn, _),
       rcases nat.of_le_succ hn with (h | h),
       { exact le_sup_of_le_right (le_supr₂ n h) },
       { exact h ▸ le_sup_left } },
     { refine sup_le _ _,
-      { convert @le_supr₂ _ _ _ (λ i, i ≤ m + 1) _ m.succ le_rfl, refl },
+      { convert @le_supr₂ _ _ (λ i, i ≤ m + 1) _ _ m.succ le_rfl, refl },
       { refine supr₂_le (λ n hn, _),
         have := (le_trans hn (nat.le_succ m)), -- replacing `this` below with the proof breaks
         exact (le_supr₂ n this) } } },

@@ -273,8 +273,8 @@ begin
     exact is_greatest ((enat.lt_coe_iff _ _).mpr (exists.intro
       (finite_iff_dom.mp h) (nat.lt_succ_self _))) },
   { suffices : ¬ (finite (associates.mk a) (associates.mk b)),
-    { rw [finite_iff_dom, enat.eq_top_iff_not_dom] at h,
-      rw [finite_iff_dom, enat.eq_top_iff_not_dom] at this,
+    { rw [finite_iff_dom, enat.not_dom_iff_eq_top] at h,
+      rw [finite_iff_dom, enat.not_dom_iff_eq_top] at this,
       rw [h, this] },
     refine not_finite_iff_forall.mpr (λ n, by {rw [← associates.mk_pow, associates.mk_dvd_mk],
       exact not_finite_iff_forall.mp h n }) }

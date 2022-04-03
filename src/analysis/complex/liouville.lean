@@ -31,8 +31,9 @@ local postfix `̂`:100 := uniform_space.completion
 
 namespace complex
 
-/-- If `f` is complex differentiable on a closed disc with center `c` and radius `R > 0`, then
-`f' c` can be represented as an integral over the corresponding circle.
+/-- If `f` is complex differentiable on an open disc with center `c` and radius `R > 0` and is
+continuous on its closure, then `f' c` can be represented as an integral over the corresponding
+circle.
 
 TODO: add a version for `w ∈ metric.ball c R`.
 
@@ -61,9 +62,9 @@ begin
   ... = C / R : by rw [mul_div_comm, div_self_mul_self', div_eq_mul_inv]
 end
 
-/-- If `f` is continuous on a closed disc of radius `R`, is complex differentiable on its interior,
-and its values on the boundary circle of this disc are bounded from above by `C`, then the norm of
-its derivative at the center is at most `C / R`. -/
+/-- If `f` is complex differentiable on an open disc of radius `R > 0`, is continuous on its
+closure, and its values on the boundary circle of this disc are bounded from above by `C`, then the
+norm of its derivative at the center is at most `C / R`. -/
 lemma norm_deriv_le_of_forall_mem_sphere_norm_le {c : ℂ} {R C : ℝ} {f : ℂ → F} (hR : 0 < R)
   (hd : diff_cont_on_cl ℂ f (ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
   ∥deriv f c∥ ≤ C / R :=

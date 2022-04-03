@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
-import data.polynomial.eval
+import data.polynomial.div
 import dynamics.periodic_pts
 
 /-!
@@ -19,9 +19,11 @@ The trick is proving
 
 open function polynomial
 
+/-
 theorem periodic_lemma {p : polynomial ℤ} {n : ℕ} (hn : 1 ≤ n) {t : ℤ}
   (H : (p.comp^[n] X).eval t = t) : (p.comp p).eval t = t :=
 begin
   have : p.comp p = (p.comp^[2] X) := by simp,
   rw this,
 end
+-/

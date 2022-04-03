@@ -46,12 +46,9 @@ variables {G : Type*} [group G] {H : subgroup G}
 lemma smul_symm_apply_eq_mul_symm_apply_inv_smul
   (g : G) (α : left_transversals (H : set G)) (q : G ⧸ H) :
   ↑(to_equiv (g • α).2 q) = g * (to_equiv α.2 (g⁻¹ • q : G ⧸ H)) :=
-begin
-  refine (subtype.ext_iff.mp ((to_equiv (g • α).2).apply_eq_iff_eq_symm_apply.mpr _)).trans
-    (subtype.coe_mk _ (mem_left_coset g (subtype.mem _))),
-  change q = g • (to_equiv α.2).symm (to_equiv α.2 (g⁻¹ • q)),
-  rw [equiv.symm_apply_apply, smul_inv_smul],
-end
+(subtype.ext_iff.mp (by exact (to_equiv (g • α).2).apply_eq_iff_eq_symm_apply.mpr
+  ((congr_arg _ ((to_equiv α.2).symm_apply_apply _)).trans (smul_inv_smul g q)).symm)).trans
+  (subtype.coe_mk _ (mem_left_coset g (subtype.mem _)))
 
 variables [is_commutative H] [fintype (G ⧸ H)]
 

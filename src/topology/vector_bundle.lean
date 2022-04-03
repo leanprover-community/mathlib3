@@ -48,16 +48,6 @@ topology on continuous linear maps between general topological vector spaces).  
 products of topological vector bundles, exterior algebras, and so on, where the topology can be
 defined using a norm on the fiber model if this helps.
 
-## TODO
-
-The definition `topological_vector_bundle` is currently not the standard definition given in the
-literature, but rather a variant definition which agrees *in finite dimension* with the standard
-definition.  The standard definition in the literature requires a further condition on the
-compatibility of transition functions, see
-https://mathoverflow.net/questions/4943/vector-bundle-with-non-smoothly-varying-transition-functions/4997#4997
-https://mathoverflow.net/questions/54550/the-third-axiom-in-the-definition-of-infinite-dimensional-vector-bundles-why/54706#54706
-This will be fixed in a future refactor.
-
 ## Tags
 Vector bundle
 -/

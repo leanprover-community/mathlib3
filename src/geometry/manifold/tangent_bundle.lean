@@ -83,6 +83,11 @@ corner `I`) with fiber the normed vector space `F` over `𝕜`, which is trivial
 of `M`. This structure registers the changes in the fibers when one changes coordinate charts in the
 base. We require the change of coordinates of the fibers to be linear, so that the resulting bundle
 is a vector bundle. -/
+-- TODO For more serious applications, we would need the stronger condition
+-- `(coord_change_smooth :`
+--   `∀ i j, cont_diff_on 𝕜 ∞ ((coord_change i j) ∘ I.symm) (I '' (i.1.symm.trans j.1).source))`
+-- which subsumes both `coord_change_smooth` and `coord_change_continuous`.  But this increases the
+-- difficulty of proving that the tangent bundle is a `basic_smooth_vector_bundle_core`.
 structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
@@ -138,10 +143,7 @@ def to_topological_vector_bundle_core : topological_vector_bundle_core 𝕜 M F 
     { simp only [hx1, hx2, hx3] with mfld_simps }
   end,
   coord_change_continuous := λi j, begin
-    have := Z.coord_change_continuous i j,
-    have B : continuous_on (λ x : M, I (i.1 x)) i.1.source :=
-      I.continuous.comp_continuous_on i.1.continuous_on,
-    refine (this.comp' i.1.continuous_on).mono _,
+    refine ((Z.coord_change_continuous i j).comp' i.1.continuous_on).mono _,
     rintros p ⟨hp₁, hp₂⟩,
     refine ⟨hp₁, i.1.maps_to hp₁, _⟩,
     simp only [i.1.left_inv hp₁, hp₂] with mfld_simps
@@ -270,6 +272,38 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
+lemma coord_change_continuous' (i j : ↥(atlas H M)) :
+  continuous_on
+    (λ (x : H), fderiv_within 𝕜 (I ∘ j.val ∘ i.val.symm ∘ I.symm) (range I) (I x))
+    (i.val.symm ≫ₕ j.val).to_local_equiv.source :=
+begin
+  have : i.val.symm ≫ₕ j.val ∈ cont_diff_groupoid ∞ I :=
+    (cont_diff_groupoid ∞ I).compatible i.2 j.2,
+  have hij : cont_diff_on 𝕜 ↑(1:ℕ) (I ∘ (i.val.symm ≫ₕ j.val) ∘ I.symm)
+    (I.symm ⁻¹' (i.val.symm ≫ₕ j.val).to_local_equiv.source ∩ range I) :=
+    (mem_groupoid_of_pregroupoid.mp this).1.of_le le_top,
+  rw cont_diff_on_succ_iff_has_fderiv_within_at at hij,
+  intros x hx,
+  have hx' : I x ∈ ⇑(I.symm) ⁻¹' (i.val.symm ≫ₕ j.val).to_local_equiv.source ∩ range I,
+  { refine ⟨_, set.mem_range_self x⟩,
+    rw [set.mem_preimage, I.left_inv],
+    exact hx },
+  obtain ⟨s, hs, f, hijf, hf : cont_diff_on 𝕜 0 f s⟩ := hij (I x) hx',
+  rw cont_diff_on_zero at hf,
+  have hxs : I x ∈ s,
+  { sorry },
+  have hIs : maps_to I (i.val.symm ≫ₕ j.val).to_local_equiv.source s,
+  { sorry },
+  refine ((hf (I x) hxs).comp I.continuous_within_at hIs).congr _ _,
+  { intros a ha,
+    refine eq.trans _ ((hijf (I a) (hIs ha)).fderiv_within _),
+    { sorry }, -- `congr` argument for `fderiv`
+    { sorry } }, -- `unique_diff_within`
+  { refine eq.trans _ ((hijf (I x) hxs).fderiv_within _),
+    { sorry }, -- `congr` argument for `fderiv`
+    { sorry } }, -- `unique_diff_within`
+end
+
 /-- Basic smooth bundle core version of the tangent bundle of a smooth manifold `M` modelled over a
 model with corners `I` on `(E, H)`. The fibers are equal to `E`, and the coordinate change in the
 fiber corresponds to the derivative of the coordinate change in `M`. -/
@@ -311,7 +345,7 @@ def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
     rw [this, D x E],
     refl
   end,
-  coord_change_continuous := sorry,
+  coord_change_continuous := coord_change_continuous' I M,
   coord_change_self := λ i x hx v, begin
     /- Locally, a self-change of coordinate is just the identity, thus its derivative is the
     identity. One just needs to write this carefully, paying attention to the sets where the

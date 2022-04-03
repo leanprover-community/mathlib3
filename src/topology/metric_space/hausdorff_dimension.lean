@@ -246,7 +246,7 @@ begin
   refine le_antisymm (supr_le $ λ x, _) _,
   { refine Limsup_le_of_le (by apply_auto_param) (eventually_map.2 _),
     exact eventually_lift'_powerset.2 ⟨s, self_mem_nhds_within, λ t, dimH_mono⟩ },
-  { rw ← bsupr_limsup_dimH, exact bsupr_le_supr _ _ }
+  { rw ← bsupr_limsup_dimH, exact supr₂_le_supr _ _ }
 end
 
 end

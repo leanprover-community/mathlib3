@@ -358,7 +358,7 @@ of σ-algebras such that that sequence of functions is measurable with respect t
 the filtration. -/
 def natural (u : ι → α → β) (hum : ∀ i, strongly_measurable (u i)) : filtration ι m :=
 { seq   := λ i, ⨆ j ≤ i, measurable_space.comap (u j) mβ,
-  mono' := λ i j hij, bsupr_mono $ λ k, ge_antisymm hij,
+  mono' := λ i j hij, bsupr_mono $ λ k, ge_trans hij,
   le'   := λ i,
   begin
     refine supr₂_le _,

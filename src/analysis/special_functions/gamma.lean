@@ -165,17 +165,15 @@ begin
   exact tendsto.congr' (eventually_nhds_within_of_forall u) w,
 end
 
-lemma has_deriv_at_coe (t : ℝ) : has_deriv_at (coe: ℝ → ℂ) 1 t :=
+lemma has_deriv_at_coe (t : ℝ) : has_deriv_at (coe : ℝ → ℂ) 1 t :=
 begin
   rw has_deriv_at_iff_tendsto,
   simpa using tendsto_const_nhds,
 end
 
-lemma has_deriv_at_of_real {f : ℝ → ℝ} {d x: ℝ} (hf: has_deriv_at f d x) :
+lemma has_deriv_at_of_real {f : ℝ → ℝ} {d x : ℝ} (hf : has_deriv_at f d x) :
   (has_deriv_at ((coe ∘ f) : ℝ → ℂ) ↑d x) :=
-begin
-  simpa using has_deriv_at.scomp x (has_deriv_at_coe $ f x ) hf
-end
+by simpa using has_deriv_at.scomp x (has_deriv_at_coe $ f x) hf
 
 lemma deriv_integrand (s : ℂ) {x : ℝ} (h1: 0 < x) : has_deriv_at  (λ x, (-x).exp * x ^ s : ℝ → ℂ)
 ( -((-x).exp * x ^ s) + (-x).exp  * (s * x ^ (s - 1))) x :=
@@ -219,7 +217,7 @@ begin
     (λ x, s * ((-x).exp * x ^ (s - 1)) : ℝ → ℂ) := by { ext1, ring, },
   rw [this, interval_integrable_iff_integrable_Ioc_of_le hY],
   split,
-  { refine continuous_on.ae_strongly_measurable (continuous_on_const.mul _) measurable_set_Ioc,
+  { refine (continuous_on_const.mul _).ae_strongly_measurable measurable_set_Ioc,
     apply (continuous_of_real.comp continuous_neg.exp).continuous_on.mul,
     apply continuous_at.continuous_on,
     intros x hx,
@@ -228,7 +226,7 @@ begin
   apply has_finite_integral_of_bounded, swap, exact s.abs * Y ^ (s.re - 1),
   refine (ae_restrict_iff' measurable_set_Ioc).mpr (ae_of_all _ (λ x hx, _)),
   rw [norm_eq_abs, abs_mul,abs_mul, abs_of_nonneg (exp_pos(-x)).le],
-  apply mul_le_mul_of_nonneg_left, swap, exact abs_nonneg s,
+  refine mul_le_mul_of_nonneg_left _ (abs_nonneg s),
   have i1: (-x).exp ≤ 1 := by { simpa using hx.1.le, },
   have i2: abs (↑x ^ (s - 1)) ≤ Y ^ (s.re - 1),
   { rw [abs_cpow_eq_rpow_re_of_pos hx.1 _, sub_re, one_re],
@@ -249,6 +247,7 @@ begin
     (Gamma_integrand_deriv_integrable_B hs hX),
   have int_eval := integral_eq_sub_of_has_deriv_at_of_le hX (cont.mono Icc_subset_Ici_self)
     F_der_I der_ible,
+  -- We are basically done here but manipulating the output into the right form is fiddly.
   apply_fun (λ x:ℂ, -x) at int_eval,
   rw [interval_integral.integral_add (Gamma_integrand_deriv_integrable_A hs hX)
     (Gamma_integrand_deriv_integrable_B hs hX), interval_integral.integral_neg, neg_add, neg_neg]
@@ -277,12 +276,10 @@ begin
   { apply eventually_eq_of_mem (Ici_mem_at_top (0:ℝ)),
     intros X hX,
     rw partial_Gamma_recurrence hs (mem_Ici.mp hX),
-    ring_nf },
+    ring_nf, },
   refine tendsto.congr' a.symm _,
   suffices l1: tendsto (λ X:ℝ, -(↑X ^ s) * (-X).exp : ℝ → ℂ) at_top (𝓝 0),
-  {
-    simpa using tendsto.add (tendsto.const_mul s (tendsto_partial_Gamma hs)) l1,
-  },
+  { simpa using tendsto.add (tendsto.const_mul s (tendsto_partial_Gamma hs)) l1 },
   have l2: tendsto (λ X:ℝ, ↑X ^ s * (-X).exp : ℝ → ℂ) at_top (𝓝 0),
   { rw tendsto_zero_iff_norm_tendsto_zero,
     have: eventually_eq at_top (λ (e : ℝ), ∥(e:ℂ) ^ s * ↑((-e).exp)∥ )

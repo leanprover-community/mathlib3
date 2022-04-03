@@ -79,7 +79,7 @@ le_principal_iff.mp $ show f.lift g ≤ 𝓟 s,
 
 lemma lift_le {f : filter α} {g : set α → filter β} {h : filter β} {s : set α}
   (hs : s ∈ f) (hg : g s ≤ h) : f.lift g ≤ h :=
-infiç₂_le_of_le s hs hg
+infi₂_le_of_le s hs hg
 
 lemma le_lift {f : filter α} {g : set α → filter β} {h : filter β}
   (hh : ∀s∈f, h ≤ g s) : h ≤ f.lift g :=

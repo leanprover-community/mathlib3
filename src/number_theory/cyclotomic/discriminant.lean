@@ -23,13 +23,9 @@ universes u v
 
 open algebra polynomial nat is_primitive_root power_basis
 
-local attribute [instance] is_cyclotomic_extension.finite_dimensional
-local attribute [instance] is_cyclotomic_extension.is_galois
-local attribute [instance] is_cyclotomic_extension.number_field
+open_locale polynomial cyclotomic
 
 namespace is_primitive_root
-
-open_locale polynomial
 
 variables {n : ℕ+} {K : Type u} [field K] [char_zero K] {ζ : K}
 variables [is_cyclotomic_extension {n} ℚ K]

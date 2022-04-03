@@ -146,9 +146,6 @@ def iso_of_iso {M N : Mon_ C}
       simp,
     end } }
 
-@[simp] lemma iso_of_iso_hom_hom {M N : Mon_ C} (f : M.X ≅ N.X) (one_f) (mul_f) :
-  (iso_of_iso f one_f mul_f).hom.hom = f.hom := rfl
-
 instance unique_hom_from_trivial (A : Mon_ C) : unique (trivial C ⟶ A) :=
 { default :=
   { hom := A.one,

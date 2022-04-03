@@ -39,7 +39,7 @@ in the implementation details section.
   primitive root ζ. We also prove the analogous of this result for `zeta`.
 * `is_primitive_root.pow_prime_ne_two_pow_sub_one_norm` : if
   `irreducible (cyclotomic (p ^ (k + 1)) K)` and `irreducible (cyclotomic (p ^ (k - s + 1)) K))`
-  (in particular for `K = ℚ`) and `p` is an odd prime, then the norm of `ζ ^ s - 1` is
+  (in particular for `K = ℚ`) and `p` is an odd prime, then the norm of ``ζ ^ (p ^ s) - 1`` is
   `p ^ (p ^ s)`. We also prove the analogous of this result for `zeta`.
 * `is_primitive_root.embeddings_equiv_primitive_roots`: the equivalence between `L →ₐ[K] A`
   and `primitive_roots n A` given by the choice of `ζ`.
@@ -283,7 +283,7 @@ local attribute [instance] is_cyclotomic_extension.is_galois
 
 /-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` and
 `irreducible (cyclotomic (p ^ (k - s + 1)) K))` (in particular for `K = ℚ`) and `p` is an odd
-prime, then the norm of `ζ ^ s - 1` is `p ^ (p ^ s)`. -/
+prime, then the norm of `ζ ^ (p ^ s) - 1` is `p ^ (p ^ s)`. -/
 lemma pow_prime_ne_two_pow_sub_one_norm [ne_zero ((p : ℕ) : K)] {k : ℕ}
   (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) [hpri : fact (p : ℕ).prime]
   [is_cyclotomic_extension {p ^ (k + 1)} K L]

@@ -340,7 +340,7 @@ begin
 end
 
 /-- UV-compression will reduce the size of the shadow of `𝒜` if, for all `x ∈ u` there is `y ∈ v`
-such that `𝒜` is `(U - x, V - y)`-compressed. This is the key fact about compression for
+such that `𝒜` is `(u.erase x, v.erase y)`-compressed. This is the key fact about compression for
 Kruskal-Katona -/
 lemma card_shadow_compression_le (u v : finset α)
   (h₁ : ∀ x ∈ u, ∃ y ∈ v, is_compressed (u.erase x) (v.erase y) 𝒜) :
@@ -374,7 +374,7 @@ begin
   have : x ∉ u,
   { intro a,
     obtain ⟨y, hyv, hxy⟩ := h₁ x ‹x ∈ u›,
-    -- If `x ∈ u`, we can get `y ∈ v` so that `𝒜` is `(U - x, V - y)`-compressed
+    -- If `x ∈ u`, we can get `y ∈ v` so that `𝒜` is `(u.erase x, v.erase y)`-compressed
     apply m y (disjoint_right.1 hsv hyv),
     -- and we will use this `y` to contradict `m`, so we would like to show `insert y s ∈ 𝒜`.
     -- We do this by showing the below

@@ -158,19 +158,6 @@ by { rw topological_fiber_bundle.trivialization.mem_source, apply mem_base_set_t
 
 variables {R F E}
 
--- move this
-@[simp] lemma prod_eq_iff_eq {α β : Type*} {s₁ s₂ : set α} {t : set β} (ht : t.nonempty) :
-  s₁ ×ˢ t = s₂ ×ˢ t ↔ s₁ = s₂ :=
-begin
-  obtain ⟨b, hb⟩ := ht,
-  split,
-  { simp only [set.ext_iff],
-    intros h a,
-    simpa [hb, set.mem_prod] using h (a, b) },
-  { rintros rfl,
-    refl },
-end
-
 /-- The co-ordinate change (transition function) between two trivializations of a vector bundle
 over `B` modelled on `F`: this is a function from `B` to `F ≃L[R] F` (of course, only meaningful
 on the intersection of the domains of definition of the two trivializations). -/

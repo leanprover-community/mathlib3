@@ -230,6 +230,17 @@ begin
     exact prod_mono H.1 H.2 }
 end
 
+@[simp] lemma prod_eq_iff_eq (ht : t.nonempty) : s ×ˢ t = s₁ ×ˢ t ↔ s = s₁ :=
+begin
+  obtain ⟨b, hb⟩ := ht,
+  split,
+  { simp only [set.ext_iff],
+    intros h a,
+    simpa [hb, set.mem_prod] using h (a, b) },
+  { rintros rfl,
+    refl },
+end
+
 @[simp] lemma image_prod (f : α → β → γ) : (λ x : α × β, f x.1 x.2) '' (s ×ˢ t) = image2 f s t :=
 set.ext $ λ a,
 ⟨ by { rintro ⟨_, _, rfl⟩, exact ⟨_, _, (mem_prod.mp ‹_›).1, (mem_prod.mp ‹_›).2, rfl⟩ },

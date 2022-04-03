@@ -50,7 +50,7 @@ begin
   refine (subtype.ext_iff.mp ((to_equiv (g • α).2).apply_eq_iff_eq_symm_apply.mpr _)).trans
     (subtype.coe_mk _ (mem_left_coset g (subtype.mem _))),
   change q = g • (to_equiv α.2).symm (to_equiv α.2 (g⁻¹ • q)),
-  rw [equiv.symm_apply_apply, ←mul_smul, mul_inv_self, one_smul],
+  rw [equiv.symm_apply_apply, smul_inv_smul],
 end
 
 variables [is_commutative H] [fintype (G ⧸ H)]

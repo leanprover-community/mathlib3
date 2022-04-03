@@ -343,7 +343,7 @@ begin
   simp only [category.assoc],
 end
 
-lemma one_associator {M N P : Mon_ C} :
+lemma one_associator {C : Type u₁} [category.{v₁} C] [monoidal_category.{v₁} C] {M N P : Mon_ C} :
     ((λ_ (𝟙_ C)).inv ≫ ((λ_ (𝟙_ C)).inv ≫ (M.one ⊗ N.one) ⊗ P.one)) ≫ (α_ M.X N.X P.X).hom
   = (λ_ (𝟙_ C)).inv ≫ (M.one ⊗ (λ_ (𝟙_ C)).inv ≫ (N.one ⊗ P.one)) :=
 begin
@@ -373,7 +373,7 @@ begin
   simp only [category.assoc],
 end
 
-lemma one_left_unitor {M : Mon_ C} :
+lemma one_left_unitor {C : Type u₁} [category.{v₁} C] [monoidal_category.{v₁} C] {M : Mon_ C} :
   ((λ_ (𝟙_ C)).inv ≫ (𝟙 (𝟙_ C) ⊗ M.one)) ≫ (λ_ M.X).hom = M.one :=
 by { slice_lhs 2 3 { rw left_unitor_naturality }, simp }
 
@@ -387,7 +387,7 @@ begin
   simp only [category.assoc, category.id_comp],
 end
 
-lemma one_right_unitor {M : Mon_ C} :
+lemma one_right_unitor {C : Type u₁} [category.{v₁} C] [monoidal_category.{v₁} C] {M : Mon_ C} :
   ((λ_ (𝟙_ C)).inv ≫ (M.one ⊗ 𝟙 (𝟙_ C))) ≫ (ρ_ M.X).hom = M.one :=
 by { slice_lhs 2 3 { rw [right_unitor_naturality, ←unitors_equal] }, simp }
 

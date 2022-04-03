@@ -24,12 +24,12 @@ is less than `ε`.
 ## Main declarations
 
 * `simple_graph.is_uniform`: Graph uniformity of a pair of finsets of vertices.
+* `simple_graph.nonuniform_witness`: `G.nonuniform_witness ε s t` and `G.nonuniform_witness ε t s`
+  together witness the non-uniformity of `s` and `t`.
 * `finpartition.non_uniforms`: Non uniform pairs of parts of a partition.
 * `finpartition.is_uniform`: Uniformity of a partition.
-
-* `simple_graph.nonuniform_witness`: Pair of subsets which witnesses the non-uniformity of `s` and
-  `t`.
-* `finpartition.nonuniform_witnesses`
+* `finpartition.nonuniform_witnesses`: For each non-uniform pair of parts of a partition, pick
+  witnesses of non-uniformity and dump them all together.
 -/
 
 open finset

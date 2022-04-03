@@ -56,12 +56,11 @@ noncomputable theory
 
 open bundle set
 
-section
+variables (R : Type*) {B : Type*} (F : Type*) (E : B → Type*)
 
 section topological_vector_space
-variables (R : Type*) {B : Type*} (F : Type*) (E : B → Type*)
-[semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-variables [topological_space F] [add_comm_monoid F] [module R F] [topological_space B]
+variables [semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+  [topological_space F] [add_comm_monoid F] [module R F] [topological_space B]
 
 /-- Local pretrivialization for vector prebundles. -/
 @[nolint has_inhabited_instance]
@@ -112,12 +111,13 @@ end topological_vector_bundle
 
 end topological_vector_space
 
+section
 open topological_vector_bundle
 
-variables (R : Type*) (B : Type*) (F : Type*) (E : B → Type*)
-[nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-variables [normed_group F] [normed_space R F] [topological_space B]
-variables [topological_space (total_space E)] [∀ x, topological_space (E x)]
+variables (B)
+variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+  [normed_group F] [normed_space R F] [topological_space B]
+  [topological_space (total_space E)] [∀ x, topological_space (E x)]
 
 /-- The valid transition functions for a topological vector bundle over `B` modelled on
 a normed space `F`: a transition function must be a local homeomorphism of `B × F` with source and
@@ -624,10 +624,9 @@ end
 /-! ### Topological vector prebundle -/
 
 section
-variables (R : Type*) {B : Type*} (F : Type*) (E : B → Type*)
-[nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-variables [normed_group F] [normed_space R F] [topological_space B]
-variable [∀ x, topological_space (E x)]
+variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+  [normed_group F] [normed_space R F] [topological_space B]
+  [∀ x, topological_space (E x)]
 
 open topological_space
 
@@ -775,7 +774,7 @@ end
 namespace topological_vector_bundle
 
 section defs
-variables {B : Type*} (E₁ : B → Type*)  (E₂ : B → Type*)
+variables (E₁ : B → Type*) (E₂ : B → Type*)
 variables [topological_space (total_space E₁)] [topological_space (total_space E₂)]
 
 /-- Equip the total space of the fibrewise product of two topological vector bundles `E₁`, `E₂` with
@@ -795,7 +794,7 @@ lemma prod.inducing_diag : inducing
 
 end defs
 
-variables (R : Type*) [nondiscrete_normed_field R] {B : Type*} [topological_space B]
+variables [nondiscrete_normed_field R] [topological_space B]
 
 variables (F₁ : Type*) [normed_group F₁] [normed_space R F₁]
   (E₁ : B → Type*) [topological_space (total_space E₁)]

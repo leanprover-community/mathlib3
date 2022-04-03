@@ -164,10 +164,17 @@ theorem chain'.iff_mem : ∀ {l : list α}, chain' R l ↔ chain' (λ x y, x ∈
 
 @[simp] theorem chain'_singleton (a : α) : chain' R [a] := chain.nil
 
+@[simp] theorem chain'_cons {x y l} : chain' R (x :: y :: l) ↔ R x y ∧ chain' R (y :: l) :=
+chain_cons
+
 theorem chain'_split {a : α} : ∀ {l₁ l₂ : list α}, chain' R (l₁ ++ a :: l₂) ↔
   chain' R (l₁ ++ [a]) ∧ chain' R (a :: l₂)
 | []        l₂ := (and_iff_right (chain'_singleton a)).symm
 | (b :: l₁) l₂ := chain_split
+
+@[simp] theorem chain'_append_cons_cons {b c : α} {l₁ l₂ : list α} :
+  chain' R (l₁ ++ b :: c :: l₂) ↔ chain' R (l₁ ++ [b]) ∧ R b c ∧ chain' R (c :: l₂) :=
+by rw [chain'_split, chain'_cons]
 
 theorem chain'_map (f : β → α) {l : list β} :
   chain' R (map f l) ↔ chain' (λ a b : β, R (f a) (f b)) l :=
@@ -191,9 +198,6 @@ theorem chain'_iff_pairwise (tr : transitive R) : ∀ {l : list α},
   chain' R l ↔ pairwise R l
 | []       := (iff_true_intro pairwise.nil).symm
 | (a :: l) := chain_iff_pairwise tr
-
-@[simp] theorem chain'_cons {x y l} : chain' R (x :: y :: l) ↔ R x y ∧ chain' R (y :: l) :=
-chain_cons
 
 theorem chain'.cons {x y l} (h₁ : R x y) (h₂ : chain' R (y :: l)) :
   chain' R (x :: y :: l) :=

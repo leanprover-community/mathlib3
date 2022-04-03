@@ -6,10 +6,10 @@ Authors: Yury G. Kudryashov
 import analysis.calculus.deriv
 
 /-!
-# Functions continuous on a domain and differentiable on its interior
+# Functions differentiable on a domain and continuous on its closure
 
-Many theorems in complex analysis assume that a function is continuous on a domain and is complex
-differentiable on its interior. In this file we define a predicate `diff_on_int_cont` that expresses
+Many theorems in complex analysis assume that a function is complex differentiable on a domain and
+is continuous on its closure. In this file we define a predicate `diff_cont_on_cl` that expresses
 this property and prove basic facts about this predicate.
 -/
 
@@ -20,6 +20,8 @@ variables (𝕜 : Type*) {E F G : Type*} [nondiscrete_normed_field 𝕜] [normed
   [normed_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_group G] [normed_space 𝕜 G]
   {f g : E → F} {s t : set E} {x : E}
 
+/-- A predicate saying that a function is differentiable on a set and is continuous on its
+closure. This is a common assumption in complex analysis. -/
 @[protect_proj] structure diff_cont_on_cl (f : E → F) (s : set E) : Prop :=
 (differentiable_on : differentiable_on 𝕜 f s)
 (continuous_on : continuous_on f (closure s))
@@ -61,7 +63,7 @@ begin
     exact h.continuous_on }
 end
 
-lemma mk_ball [normed_space ℝ E] {x : E} {r : ℝ} (hd : differentiable_on 𝕜 f (ball x r))
+lemma mk_ball {x : E} {r : ℝ} (hd : differentiable_on 𝕜 f (ball x r))
   (hc : continuous_on f (closed_ball x r)) : diff_cont_on_cl 𝕜 f (ball x r) :=
 ⟨hd, hc.mono $ closure_ball_subset_closed_ball⟩
 

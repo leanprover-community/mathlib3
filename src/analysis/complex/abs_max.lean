@@ -181,9 +181,9 @@ begin
     (λ x hx y hy, le_trans (hz.2 hy) hx.ge)
 end
 
-/-- **Maximum modulus principle**: if `f : E → F` is complex differentiable on a nonempty compact
-set `K`, then there exists a point `z ∈ frontier K` such that `λ z, ∥f z∥` takes it maximum value on
-`K` at `z`. -/
+/-- **Maximum modulus principle**: if `f : E → F` is complex differentiable on a nonempty bounded
+set `U` and is continuous on its closure, then there exists a point `z ∈ frontier U` such that
+`λ z, ∥f z∥` takes it maximum value on `closure U` at `z`. -/
 lemma exists_mem_frontier_is_max_on_norm [nontrivial E] [finite_dimensional ℂ E]
   {f : E → F} {U : set E} (hb : bounded U) (hne : U.nonempty) (hd : diff_cont_on_cl ℂ f U) :
   ∃ z ∈ frontier U, is_max_on (norm ∘ f) (closure U) z :=
@@ -201,8 +201,8 @@ begin
   exact ball_inf_dist_compl_subset.trans interior_subset
 end
 
-/-- **Maximum modulus principle**: if `f : E → F` is complex differentiable on a compact set `K` and
-`∥f z∥ ≤ C` for any `z ∈ frontier K`, then the same is true for any `z ∈ K`. -/
+/-- **Maximum modulus principle**: if `f : E → F` is complex differentiable on a bounded set `U` and
+`∥f z∥ ≤ C` for any `z ∈ frontier U`, then the same is true for any `z ∈ closure U`. -/
 lemma norm_le_of_forall_mem_frontier_norm_le [nontrivial E] {f : E → F} {U : set E} (hU : bounded U)
   (hd : diff_cont_on_cl ℂ f U) {C : ℝ} (hC : ∀ z ∈ frontier U, ∥f z∥ ≤ C)
   {z : E} (hz : z ∈ closure U) :
@@ -226,9 +226,8 @@ begin
   ... ≤ C : hC _ (hde.continuous.frontier_preimage_subset _ hζU)
 end
 
-
-/-- If two complex differentiable functions `f g : E → F` are equal on the boundary of a compact set
-`K`, then they are equal on `K`. -/
+/-- If two complex differentiable functions `f g : E → F` are equal on the boundary of a bounded set
+`U`, then they are equal on `closure U`. -/
 lemma eq_on_closure_of_eq_on_frontier [nontrivial E] {f g : E → F} {U : set E} (hU : bounded U)
   (hf : diff_cont_on_cl ℂ f U) (hg : diff_cont_on_cl ℂ g U) (hfg : eq_on f g (frontier U)) :
   eq_on f g (closure U) :=
@@ -238,8 +237,8 @@ begin
   simp [hfg hw]
 end
 
-/-- If two complex differentiable functions `f g : E → F` are equal on the boundary of a compact set
-`K`, then they are equal on `K`. -/
+/-- If two complex differentiable functions `f g : E → F` are equal on the boundary of a bounded set
+`U`, then they are equal on `U`. -/
 lemma eq_on_of_eq_on_frontier [nontrivial E] {f g : E → F} {U : set E} (hU : bounded U)
   (hf : diff_cont_on_cl ℂ f U) (hg : diff_cont_on_cl ℂ g U) (hfg : eq_on f g (frontier U)) :
   eq_on f g U :=

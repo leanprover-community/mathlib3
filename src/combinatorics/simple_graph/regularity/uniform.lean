@@ -142,7 +142,8 @@ begin
   { exact G.right_nonuniform_witnesses_subset (λ i, h i.symm) }
 end
 
-lemma nonuniform_witness_card (h : ¬ G.is_uniform ε s t) : (s.card : 𝕜) * ε ≤ (G.nonuniform_witness ε s t).card :=
+lemma nonuniform_witness_card_le (h : ¬ G.is_uniform ε s t) :
+  (s.card : 𝕜) * ε ≤ (G.nonuniform_witness ε s t).card :=
 begin
   dsimp [nonuniform_witness],
   split_ifs,

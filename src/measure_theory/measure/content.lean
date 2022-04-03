@@ -131,7 +131,7 @@ end
 /-- This is "unbundled", because that it required for the API of `induced_outer_measure`. -/
 lemma inner_content_mono ⦃U V : set G⦄ (hU : is_open U) (hV : is_open V)
   (h2 : U ⊆ V) : μ.inner_content ⟨U, hU⟩ ≤ μ.inner_content ⟨V, hV⟩ :=
-bsupr_mono $ λ K, ge_antisymm h2
+bsupr_mono $ λ K hK, hK.trans h2
 
 lemma inner_content_exists_compact {U : opens G}
   (hU : μ.inner_content U ≠ ∞) {ε : ℝ≥0} (hε : ε ≠ 0) :
@@ -212,7 +212,7 @@ end
 
 lemma inner_content_mono' ⦃U V : set G⦄ (hU : is_open U) (hV : is_open V) (h2 : U ⊆ V) :
   μ.inner_content ⟨U, hU⟩ ≤ μ.inner_content ⟨V, hV⟩ :=
-bsupr_mono $ λ K, ge_antisymm h2
+bsupr_mono $ λ K hK, hK.trans h2
 
 /-- Extending a content on compact sets to an outer measure on all sets. -/
 protected def outer_measure : outer_measure G :=

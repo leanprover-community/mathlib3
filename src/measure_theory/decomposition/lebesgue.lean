@@ -530,11 +530,9 @@ begin
       rcases nat.of_le_succ hn with (h | h),
       { exact le_sup_of_le_right (le_supr₂ n h) },
       { exact h ▸ le_sup_left } },
-    { refine sup_le _ _,
-      { convert @le_supr₂ _ _ (λ i, i ≤ m + 1) _ _ m.succ le_rfl, refl },
-      { refine supr₂_le (λ n hn, _),
-        have := (le_trans hn (nat.le_succ m)), -- replacing `this` below with the proof breaks
-        exact (le_supr₂ n this) } } },
+    { refine sup_le _ (bsupr_mono $ λ n hn, hn.trans m.le_succ),
+      convert @le_supr₂ _ _ (λ i, i ≤ m + 1) _ _ m.succ le_rfl,
+      refl } }
 end
 
 lemma supr_mem_measurable_le
@@ -565,13 +563,7 @@ omit m
 
 lemma supr_monotone {α : Type*} (f : ℕ → α → ℝ≥0∞) :
   monotone (λ n x, ⨆ k (hk : k ≤ n), f k x) :=
-begin
-  intros n m hnm x,
-  simp only,
-  refine supr₂_le (λ k hk, _),
-  have : k ≤ m := le_trans hk hnm, -- replacing `this` below with the proof breaks
-  exact le_supr₂ k this,
-end
+λ n m hnm x, bsupr_mono $ λ i, ge_trans hnm
 
 lemma supr_monotone' {α : Type*} (f : ℕ → α → ℝ≥0∞) (x : α) :
   monotone (λ n, ⨆ k (hk : k ≤ n), f k x) :=

@@ -107,9 +107,8 @@ begin
   exact real.to_nnreal_le_to_nnreal (sub_le_sub (f.mono h₁) (f.mono h₂))
 end
 
-lemma length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) :
-  f.length s₁ ≤ f.length s₂ :=
-infi₂_mono $ λ a b, infi_mono' $ λ h', ⟨h.trans h', le_rfl⟩
+lemma length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) : f.length s₁ ≤ f.length s₂ :=
+infi_mono $ λ a, bsupr_mono $ λ b, h.trans
 
 open measure_theory
 

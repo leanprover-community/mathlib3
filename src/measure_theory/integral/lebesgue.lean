@@ -1129,7 +1129,7 @@ begin
   exact (monotone_lintegral μ).le_map_supr
 end
 
-theorem supr₂_lintegral_le {ι : Sort*} {ι' : ι → Sort*} (f : Π i, ι' i → α → ℝ≥0∞) :
+lemma supr₂_lintegral_le {ι : Sort*} {ι' : ι → Sort*} (f : Π i, ι' i → α → ℝ≥0∞) :
   (⨆ i j, ∫⁻ a, f i j a ∂μ) ≤ (∫⁻ a, ⨆ i j, f i j a ∂μ) :=
 by { convert (monotone_lintegral μ).le_map_supr₂ f, ext1 a, simp only [supr_apply] }
 

@@ -50,7 +50,7 @@ universe u
 
 /-! ### Closure operator -/
 
-variable (α : Type*) {ι : Sort*} {κ : ι → Sort*}
+variables (α : Type*) {ι : Sort*} {κ : ι → Sort*}
 
 /-- A closure operator on the preorder `α` is a monotone function which is extensive (every `x`
 is less than its closure) and idempotent. -/
@@ -222,7 +222,8 @@ le_antisymm ((c.le_closure_iff _ _).1 $ supr_le $ λ i, c.monotone $ le_supr f i
   c.monotone $ supr_mono $ λ i, c.le_closure _
 
 @[simp] lemma closure_supr₂_closure (f : Π i, κ i → α) : c (⨆ i j, c (f i j)) = c (⨆ i j, f i j) :=
-by simp_rw closure_supr_closure
+le_antisymm ((c.le_closure_iff _ _).1 $ supr₂_le $ λ i j, c.monotone $ le_supr₂ i j) $
+  c.monotone $ supr₂_mono $ λ i j, c.le_closure _
 
 end complete_lattice
 end closure_operator
@@ -360,11 +361,11 @@ section complete_lattice
 variables [complete_lattice α] [preorder β] {u : β → α} (l : lower_adjoint u)
 
 lemma closure_supr_closure (f : ι → α) : u (l (⨆ i, u (l (f i)))) = u (l (⨆ i, f i)) :=
-l.closure_operator.closure_supr_closure x
+l.closure_operator.closure_supr_closure _
 
 lemma closure_supr₂_closure (f : Π i, κ i → α) :
   u (l $ ⨆ i j, u (l $ f i j)) = u (l $ ⨆ i j, f i j) :=
-l.closure_operator.closure_supr₂_closure p
+l.closure_operator.closure_supr₂_closure _
 
 end complete_lattice
 
@@ -405,10 +406,10 @@ set_like.coe_injective (l.closure_sup_closure_right x y)
 set_like.coe_injective (l.closure_operator.closure_sup_closure x y)
 
 @[simp] lemma closure_Union_closure (f : ι → α) : l (⋃ i, l (f i)) = l (⋃ i, f i) :=
-set_like.coe_injective (l.closure_supr_closure (coe ∘ x))
+set_like.coe_injective $ l.closure_supr_closure _
 
-@[simp] lemma closure_Union₂_closure : l (⋃ i j, l (f i j)) = l (⋃ i j, f i j) :=
-set_like.coe_injective (l.closure_supr₂_closure p)
+@[simp] lemma closure_Union₂_closure (f : Π i, κ i → α) : l (⋃ i j, l (f i j)) = l (⋃ i j, f i j) :=
+set_like.coe_injective $ l.closure_supr₂_closure _
 
 end coe_to_set
 

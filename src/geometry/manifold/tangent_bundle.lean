@@ -88,7 +88,7 @@ structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_fie
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 (F : Type*) [normed_group F] [normed_space 𝕜 F] :=
-(coord_change      : atlas H M → atlas H M → H → (F →ₗ[𝕜] F))
+(coord_change      : atlas H M → atlas H M → H → (F →L[𝕜] F))
 (coord_change_self : ∀ i : atlas H M, ∀ x ∈ i.1.target, ∀ v, coord_change i i x v = v)
 (coord_change_comp : ∀ i j k : atlas H M,
   ∀ x ∈ ((i.1.symm.trans j.1).trans (j.1.symm.trans k.1)).source, ∀ v,
@@ -104,7 +104,7 @@ def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_f
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 (F : Type*) [normed_group F] [normed_space 𝕜 F] : basic_smooth_vector_bundle_core I M F :=
-{ coord_change := λ i j x, linear_map.id,
+{ coord_change := λ i j x, continuous_linear_map.id 𝕜 F,
   coord_change_self := λ i x hx v, rfl,
   coord_change_comp := λ i j k x hx v, rfl,
   coord_change_smooth := λ i j, cont_diff_snd.cont_diff_on }
@@ -449,7 +449,6 @@ def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
       simpa only [model_with_corners.left_inv] using hx },
     rw [B, C, D, E] at A,
     simp only [A, continuous_linear_map.coe_comp'] with mfld_simps,
-    simp only [forall_const, eq_self_iff_true, linear_map.coe_comp, continuous_linear_map.coe_comp],
   end }
 
 variable {M}
@@ -552,7 +551,7 @@ begin
   { rintros ⟨x_fst, x_snd⟩,
     simp only [basic_smooth_vector_bundle_core.to_topological_vector_bundle_core,
       tangent_bundle_core, A, continuous_linear_map.coe_id', basic_smooth_vector_bundle_core.chart,
-      chart_at, continuous_linear_map.coe_coe] with mfld_simps, },
+      chart_at, continuous_linear_map.coe_coe, sigma.mk.inj_iff] with mfld_simps, },
   show ((chart_at (model_prod H E) p).to_local_equiv).source = univ,
     by simp only [chart_at] with mfld_simps,
 end

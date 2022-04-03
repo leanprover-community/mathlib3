@@ -19,7 +19,7 @@ import tactic.abel
 -/
 
 noncomputable theory
-open_locale classical uniformity topological_space filter
+open_locale classical uniformity topological_space filter pointwise
 
 section uniform_group
 open filter set
@@ -98,8 +98,18 @@ le_antisymm
   end,
   inj := mul_left_injective a }
 
+
+namespace mul_opposite
+
+@[to_additive] instance : uniform_group αᵐᵒᵖ :=
+⟨uniform_continuous_op.comp ((uniform_continuous_unop.comp uniform_continuous_snd).inv.mul $
+  uniform_continuous_unop.comp uniform_continuous_fst)⟩
+
+end mul_opposite
+
 section
 variables (α)
+
 @[to_additive] lemma uniformity_eq_comap_nhds_one : 𝓤 α = comap (λx:α×α, x.2 / x.1) (𝓝 (1:α)) :=
 begin
   rw [nhds_eq_comap_uniformity, filter.comap_comap],
@@ -116,7 +126,46 @@ begin
     refine ⟨_, ht, _⟩,
     rintros ⟨a, b⟩, simpa [subset_def] using hts 1 (b / a) a }
 end
+
+@[to_additive] lemma uniformity_eq_comap_nhds_one_swapped :
+  𝓤 α = comap (λx:α×α, x.1 / x.2) (𝓝 (1:α)) :=
+by { rw [← comap_swap_uniformity, uniformity_eq_comap_nhds_one, comap_comap, (∘)], refl }
+
+open mul_opposite
+
+@[to_additive]
+lemma uniformity_eq_comap_inv_mul_nhds_one : 𝓤 α = comap (λx:α×α, x.1⁻¹ * x.2) (𝓝 (1:α)) :=
+begin
+  rw [← comap_uniformity_mul_opposite, uniformity_eq_comap_nhds_one, ← op_one, ← comap_unop_nhds,
+    comap_comap, comap_comap],
+  simp [(∘)]
 end
+
+@[to_additive] lemma uniformity_eq_comap_inv_mul_nhds_one_swapped :
+  𝓤 α = comap (λx:α×α, x.2⁻¹ * x.1) (𝓝 (1:α)) :=
+by { rw [← comap_swap_uniformity, uniformity_eq_comap_inv_mul_nhds_one, comap_comap, (∘)], refl }
+
+end
+
+@[to_additive] lemma filter.has_basis.uniformity_of_nhds_one {ι} {p : ι → Prop} {U : ι → set α}
+  (h : (𝓝 (1 : α)).has_basis p U) :
+  (𝓤 α).has_basis p (λ i, {x : α × α | x.2 / x.1 ∈ U i}) :=
+by { rw uniformity_eq_comap_nhds_one, exact h.comap _ }
+
+@[to_additive] lemma filter.has_basis.uniformity_of_nhds_one_inv_mul
+  {ι} {p : ι → Prop} {U : ι → set α} (h : (𝓝 (1 : α)).has_basis p U) :
+  (𝓤 α).has_basis p (λ i, {x : α × α | x.1⁻¹ * x.2 ∈ U i}) :=
+by { rw uniformity_eq_comap_inv_mul_nhds_one, exact h.comap _ }
+
+@[to_additive] lemma filter.has_basis.uniformity_of_nhds_one_swapped
+  {ι} {p : ι → Prop} {U : ι → set α} (h : (𝓝 (1 : α)).has_basis p U) :
+  (𝓤 α).has_basis p (λ i, {x : α × α | x.1 / x.2 ∈ U i}) :=
+by { rw uniformity_eq_comap_nhds_one_swapped, exact h.comap _ }
+
+@[to_additive] lemma filter.has_basis.uniformity_of_nhds_one_inv_mul_swapped
+  {ι} {p : ι → Prop} {U : ι → set α} (h : (𝓝 (1 : α)).has_basis p U) :
+  (𝓤 α).has_basis p (λ i, {x : α × α | x.2⁻¹ * x.1 ∈ U i}) :=
+by { rw uniformity_eq_comap_inv_mul_nhds_one_swapped, exact h.comap _ }
 
 @[to_additive] lemma group_separation_rel (x y : α) :
   (x, y) ∈ separation_rel α ↔ x / y ∈ closure ({1} : set α) :=
@@ -179,6 +228,11 @@ uniform_continuous_mul.comp_cauchy_seq (hu.prod hv)
 @[to_additive] lemma cauchy_seq.inv {ι : Type*} [semilattice_sup ι]
   {u : ι → α} (h : cauchy_seq u) : cauchy_seq (u⁻¹) :=
 uniform_continuous_inv.comp_cauchy_seq h
+
+@[to_additive] lemma totally_bounded_iff_subset_finite_Union_nhds_one {s : set α} :
+  totally_bounded s ↔ ∀ U ∈ 𝓝 (1 : α), ∃ (t : set α), t.finite ∧ s ⊆ ⋃ y ∈ t, y • U :=
+(𝓝 (1 : α)).basis_sets.uniformity_of_nhds_one_inv_mul_swapped.totally_bounded_iff.trans $
+  by simp [← preimage_smul_inv, preimage]
 
 end uniform_group
 

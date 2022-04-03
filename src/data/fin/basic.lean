@@ -228,9 +228,11 @@ attribute [simp] val_zero
 @[simp] lemma val_zero' (n) : (0 : fin (n+1)).val = 0 := rfl
 @[simp] lemma mk_zero : (⟨0, nat.succ_pos'⟩ : fin (n + 1)) = (0 : fin _) := rfl
 
-lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
+@[simp] lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 
 lemma zero_lt_one : (0 : fin (n + 2)) < 1 := nat.zero_lt_one
+
+@[simp] lemma not_lt_zero (a : fin n.succ) : ¬a < 0.
 
 lemma pos_iff_ne_zero (a : fin (n+1)) : 0 < a ↔ a ≠ 0 :=
 by rw [← coe_fin_lt, coe_zero, pos_iff_ne_zero, ne.def, ne.def, ext_iff, coe_zero]
@@ -516,6 +518,7 @@ section succ
 @[simp] lemma coe_succ (j : fin n) : (j.succ : ℕ) = j + 1 :=
 by cases j; simp [fin.succ]
 
+@[simp]
 lemma succ_pos (a : fin n) : (0 : fin (n + 1)) < a.succ := by simp [lt_iff_coe_lt_coe]
 
 /-- `fin.succ` as an `order_embedding` -/
@@ -640,6 +643,8 @@ by { subst h, ext, simp }
 def cast_add (m) : fin n ↪o fin (n + m) := cast_le $ nat.le_add_right n m
 
 @[simp] lemma coe_cast_add (m : ℕ) (i : fin n) : (cast_add m i : ℕ) = i := rfl
+
+@[simp] lemma cast_add_zero : (cast_add 0 : fin n → fin (n + 0)) = cast rfl := rfl
 
 lemma cast_add_lt {m : ℕ} (n : ℕ) (i : fin m) : (cast_add n i : ℕ) < m := i.2
 
@@ -1268,7 +1273,7 @@ lemma succ_above_pos (p : fin (n + 2)) (i : fin (n + 1)) (h : 0 < i) : 0 < p.suc
 begin
   by_cases H : i.cast_succ < p,
   { simpa [succ_above_below _ _ H] using cast_succ_pos h },
-  { simpa [succ_above_above _ _ (le_of_not_lt H)] using succ_pos _ },
+  { simp [succ_above_above _ _ (le_of_not_lt H)] },
 end
 
 @[simp] lemma succ_above_cast_lt {x y : fin (n + 1)} (h : x < y)

@@ -838,6 +838,9 @@ instance [measurable_space α] : complete_lattice (measure α) :=
 
 end Inf
 
+@[simp] lemma top_add : ⊤ + μ = ⊤ := top_unique $ measure.le_add_right le_rfl
+@[simp] lemma add_top : μ + ⊤ = ⊤ := top_unique $ measure.le_add_left le_rfl
+
 protected lemma zero_le {m0 : measurable_space α} (μ : measure α) : 0 ≤ μ := bot_le
 
 lemma nonpos_iff_eq_zero' : μ ≤ 0 ↔ μ = 0 :=
@@ -3158,14 +3161,43 @@ lemma prod_mk {γ : Type*} [measurable_space γ] {f : α → β} {g : α → γ}
 ⟨λ a, (hf.mk f a, hg.mk g a), hf.measurable_mk.prod_mk hg.measurable_mk,
   eventually_eq.prod_mk hf.ae_eq_mk hg.ae_eq_mk⟩
 
-lemma subtype_mk (h : ae_measurable f μ) {s : set β} {hfs : ∀ x, f x ∈ s} (hs : measurable_set s) :
+lemma exists_ae_eq_range_subset (H : ae_measurable f μ) {t : set β} (ht : ∀ᵐ x ∂μ, f x ∈ t)
+  (h₀ : t.nonempty) :
+  ∃ g, measurable g ∧ range g ⊆ t ∧ f =ᵐ[μ] g :=
+begin
+  let s : set α := to_measurable μ {x | f x = H.mk f x ∧ f x ∈ t}ᶜ,
+  let g : α → β := piecewise s (λ x, h₀.some) (H.mk f),
+  refine ⟨g, _, _, _⟩,
+  { exact measurable.piecewise (measurable_set_to_measurable _ _)
+      measurable_const H.measurable_mk },
+  { rintros - ⟨x, rfl⟩,
+    by_cases hx : x ∈ s,
+    { simpa [g, hx] using h₀.some_mem },
+    { simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
+      contrapose! hx,
+      apply subset_to_measurable,
+      simp only [hx, mem_compl_eq, mem_set_of_eq, not_and, not_false_iff, implies_true_iff]
+        {contextual := tt} } },
+  { have A : μ (to_measurable μ {x | f x = H.mk f x ∧ f x ∈ t}ᶜ) = 0,
+    { rw [measure_to_measurable, ← compl_mem_ae_iff, compl_compl],
+      exact H.ae_eq_mk.and ht },
+    filter_upwards [compl_mem_ae_iff.2 A] with x hx,
+    rw mem_compl_iff at hx,
+    simp only [g, hx, piecewise_eq_of_not_mem, not_false_iff],
+    contrapose! hx,
+    apply subset_to_measurable,
+    simp only [hx, mem_compl_eq, mem_set_of_eq, false_and, not_false_iff] }
+end
+
+lemma subtype_mk (h : ae_measurable f μ) {s : set β} {hfs : ∀ x, f x ∈ s} :
   ae_measurable (cod_restrict f s hfs) μ :=
 begin
   nontriviality α, inhabit α,
-  rcases h with ⟨g, hgm, hg⟩,
-  rcases hs.exists_measurable_proj ⟨f default, hfs _⟩ with ⟨π, hπm, hπ⟩,
-  refine ⟨π ∘ g, hπm.comp hgm, hg.mono $ λ x hx, _⟩,
-  rw [comp_apply, ← hx, ← coe_cod_restrict_apply f s hfs, hπ]
+  obtain ⟨g, g_meas, hg, fg⟩ : ∃ (g : α → β), measurable g ∧ range g ⊆ s ∧ f =ᵐ[μ] g :=
+    h.exists_ae_eq_range_subset (eventually_of_forall hfs) ⟨_, hfs default⟩,
+  refine ⟨cod_restrict g s (λ x, hg (mem_range_self _)), measurable.subtype_mk g_meas, _⟩,
+  filter_upwards [fg] with x hx,
+  simpa [subtype.ext_iff],
 end
 
 protected lemma null_measurable (h : ae_measurable f μ) : null_measurable f μ :=
@@ -3199,7 +3231,7 @@ begin
   refine ⟨λ H, _, hg.measurable.comp_ae_measurable⟩,
   suffices : ae_measurable ((range_splitting g ∘ range_factorization g) ∘ f) μ,
     by rwa [(right_inverse_range_splitting hg.injective).comp_eq_id] at this,
-  exact hg.measurable_range_splitting.comp_ae_measurable (H.subtype_mk hg.measurable_set_range)
+  exact hg.measurable_range_splitting.comp_ae_measurable H.subtype_mk
 end
 
 lemma ae_measurable_restrict_iff_comap_subtype {s : set α} (hs : measurable_set s)

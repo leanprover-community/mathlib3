@@ -17,11 +17,11 @@ non-zero element.
 
 namespace topological_ring
 open topological_space function
-variables (R : Type*) [ring R]
+variables (R : Type*) [semiring R]
 
 variables  [topological_space R]
 
-/-- The induced topology on units of a topological ring.
+/-- The induced topology on units of a topological semiring.
 This is not a global instance since other topologies could be relevant. Instead there is a class
 `induced_units` asserting that something equivalent to this construction holds. -/
 def topological_space_units : topological_space Rˣ := induced (coe : Rˣ → R) ‹_›
@@ -49,7 +49,7 @@ lemma units_embedding [induced_units R] :
 { induced := units_topology_eq R,
   inj := λ x y h, units.ext h }
 
-instance top_monoid_units [topological_ring R] [induced_units R] :
+instance top_monoid_units [topological_semiring R] [induced_units R] :
   has_continuous_mul Rˣ :=
 ⟨begin
   let mulR := (λ (p : R × R), p.1*p.2),
@@ -78,7 +78,7 @@ one could want another topology on units. To turn on this feature, use:
 
 ```lean
 local attribute [instance]
-topological_ring.topological_space_units topological_division_ring.units_top_group
+topological_semiring.topological_space_units topological_division_ring.units_top_group
 ```
 -/
 

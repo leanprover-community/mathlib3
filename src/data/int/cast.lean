@@ -238,6 +238,9 @@ ext_iff.1 (f.eq_int_cast_hom h1)
 
 end add_monoid_hom
 
+@[simp] lemma int.cast_add_hom_int : int.cast_add_hom ℤ = add_monoid_hom.id ℤ :=
+((add_monoid_hom.id ℤ).eq_int_cast_hom rfl).symm
+
 namespace monoid_hom
 variables {M : Type*} [monoid M]
 open multiplicative
@@ -302,6 +305,9 @@ end ring_hom
 
 @[simp, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=
 ((ring_hom.id ℤ).eq_int_cast n).symm
+
+@[simp] lemma int.cast_ring_hom_int : int.cast_ring_hom ℤ = ring_hom.id ℤ :=
+(ring_hom.id ℤ).eq_int_cast'.symm
 
 namespace pi
 

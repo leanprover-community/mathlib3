@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 
 import model_theory.finitely_generated
 import model_theory.direct_limit
+import model_theory.bundled
 
 /-!
 # Fraïssé Classes and Fraïssé Limits

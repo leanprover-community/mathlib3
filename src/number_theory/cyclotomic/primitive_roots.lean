@@ -201,8 +201,7 @@ begin
     exact neg_one_pow_of_even (totient_even (lt_of_le_of_ne h1 (λ h, hn (pnat.coe_inj.1 h.symm)))) }
 end
 
-/-- If `K` is linearly ordered, the norm of a primitive root is `1`
-if `n` is odd. -/
+/-- If `K` is linearly ordered, the norm of a primitive root is `1` if `n` is odd. -/
 lemma norm_eq_one_of_linearly_ordered {K : Type*} [linear_ordered_field K] [algebra K L]
   (hodd : odd (n : ℕ)) : norm K ζ = 1 :=
 begin

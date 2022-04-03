@@ -355,9 +355,9 @@ begin
     exact add_le_add_right ‹_› _ },
   -- We will define an injection `∂ 𝒜' \ ∂ 𝒜 → ∂ 𝒜 \ ∂ 𝒜'`.
   -- First, let's prove a few facts about things in the domain:
-  suffices q₁ : ∀ s ∈ ∂ 𝒜' \ ∂ 𝒜, u ⊆ s ∧ disjoint v s ∧ (s ∪ v) \ u ∈ ∂ 𝒜 \ ∂ 𝒜',
-  { refine card_le_card_of_inj_on (λ s, (s ∪ v) \ u) (λ s hs, (q₁ s hs).2.2) (λ s₁ hs₁ s₂ hs₂ h, _),
-    exact sup_sdiff_inj_on _ _ ⟨(q₁ s₁ hs₁).2.1, (q₁ s₁ hs₁).1⟩ ⟨(q₁ s₂ hs₂).2.1, (q₁ s₂ hs₂).1⟩ h },
+  suffices h : ∀ s ∈ ∂ 𝒜' \ ∂ 𝒜, u ⊆ s ∧ disjoint v s ∧ (s ∪ v) \ u ∈ ∂ 𝒜 \ ∂ 𝒜',
+  { refine card_le_card_of_inj_on (λ s, (s ∪ v) \ u) (λ s hs, (h s hs).2.2) (λ s₁ hs₁ s₂ hs₂, _),
+    exact sup_sdiff_inj_on _ _ ⟨(h s₁ hs₁).2.1, (h s₁ hs₁).1⟩ ⟨(h s₂ hs₂).2.1, (h s₂ hs₂).1⟩ },
   intros s hs,
   obtain ⟨hs𝒜', hs𝒜⟩ : s ∈ ∂ 𝒜' ∧ s ∉ ∂ 𝒜 := mem_sdiff.1 hs,
   -- This is gonna be useful a couple of times so let's name it.

@@ -108,7 +108,7 @@ begin
 end
 
 lemma length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) : f.length s₁ ≤ f.length s₂ :=
-infi_mono $ λ a, bsupr_mono $ λ b, h.trans
+infi_mono $ λ a, binfi_mono $ λ b, h.trans
 
 open measure_theory
 

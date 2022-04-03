@@ -70,9 +70,7 @@ begin
 end
 
 lemma Gamma_integral_one : Gamma_integral 1 = 1 :=
-begin
-  simpa only [Gamma_integral, sub_self, rpow_zero, mul_one] using integral_exp_neg_Ioi,
-end
+by simpa only [Gamma_integral, sub_self, rpow_zero, mul_one] using integral_exp_neg_Ioi
 
 end real
 

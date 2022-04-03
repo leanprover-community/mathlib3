@@ -140,6 +140,12 @@ begin
   exact congr rfl (subsingleton.elim _ _),
 end
 
+instance : nonempty ((u : filter α).product M) :=
+begin
+  letI : Π a, inhabited (M a) := λ _, classical.inhabited_of_nonempty',
+  exact nonempty_of_inhabited,
+end
+
 end ultraproduct
 
 end language

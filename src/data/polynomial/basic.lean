@@ -30,8 +30,10 @@ the polynomials. For instance,
 
 ## Implementation
 
-Polynomials are defined using `add_monoid_algebra R ℕ`, where `R` is a commutative semiring, but
-through a structure to make them irreducible from the point of view of the kernel. Most operations
+Polynomials are defined using `add_monoid_algebra R ℕ`, where `R` is a semiring.
+The variable `X` commutes with every polynomial `p`: lemma `X_mul` proves the identity
+`X * p = `p * X`.  The relationship to `add_monoid_algebra R ℕ` is through a structure
+to make polynomials irreducible from the point of view of the kernel. Most operations
 are irreducible since Lean can not compute anyway with `add_monoid_algebra`. There are two
 exceptions that we make semireducible:
 * The zero polynomial, so that its coefficients are definitionally equal to `0`.
@@ -397,8 +399,8 @@ lemma coeff_C_ne_zero (h : n ≠ 0) : (C a).coeff n = 0 :=
 by rw [coeff_C, if_neg h]
 
 theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
-⟨⟨0, 1, λ h01 : 0 = 1, h $
-    by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] ⟩⟩
+nontrivial_of_ne 0 1 $ λ h01, h $
+  by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero]
 
 lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 | 0     := (mul_one _).symm
@@ -709,6 +711,10 @@ lemma X_ne_zero : (X : R[X]) ≠ 0 :=
 mt (congr_arg (λ p, coeff p 1)) (by simp)
 
 end nonzero_semiring
+
+@[simp] lemma nontrivial_iff [semiring R] : nontrivial R[X] ↔ nontrivial R :=
+⟨λ h, let ⟨r, s, hrs⟩ := @exists_pair_ne _ h in nontrivial.of_polynomial_ne hrs,
+  λ h, @polynomial.nontrivial _ _ h⟩
 
 section repr
 variables [semiring R]

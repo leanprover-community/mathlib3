@@ -1495,9 +1495,14 @@ lemma mem_closure_range_iff_nat {e : β → α} {a : α} :
 (mem_closure_iff_nhds_basis nhds_basis_ball_inv_nat_succ).trans $
   by simp only [mem_ball, dist_comm, exists_range_iff, forall_const]
 
-theorem mem_of_closed' {s : set α} (hs : is_closed s)
-  {a : α} : a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
+theorem mem_of_closed' {s : set α} (hs : is_closed s) {a : α} :
+  a ∈ s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 by simpa only [hs.closure_eq] using @mem_closure_iff _ _ s a
+
+lemma closed_ball_zero' (x : α) : closed_ball x 0 = closure {x} :=
+subset.antisymm
+  (λ y hy, mem_closure_iff.2 $ λ ε ε0, ⟨x, mem_singleton x, (mem_closed_ball.1 hy).trans_lt ε0⟩)
+  (closure_minimal (singleton_subset_iff.2 (dist_self x).le) is_closed_ball)
 
 lemma dense_iff {s : set α} :
   dense s ↔ ∀ x, ∀ r > 0, (ball x r ∩ s).nonempty :=
@@ -1567,8 +1572,8 @@ begin
   let g : f ⁻¹' s → s := cod_restrict (f ∘ coe) s (λ x, x.2),
   have : inducing g := (hf.comp inducing_coe).cod_restrict _,
   haveI : second_countable_topology (f ⁻¹' s) := this.second_countable_topology,
-  rw show f ⁻¹' s = coe '' (univ : set (f ⁻¹' s)), 
-     by simpa only [image_univ, subtype.range_coe_subtype, mem_preimage],
+  rw show f ⁻¹' s = coe '' (univ : set (f ⁻¹' s)),
+     by simpa only [image_univ, subtype.range_coe_subtype],
   exact (is_separable_of_separable_space _).image continuous_subtype_coe
 end
 
@@ -1583,7 +1588,7 @@ lemma _root_.continuous_on.is_separable_image [topological_space β] {f : α →
   is_separable (f '' s) :=
 begin
   rw show f '' s = s.restrict f '' univ, by ext ; simp,
-  exact (is_separable_univ_iff.2 hs.separable_space).image 
+  exact (is_separable_univ_iff.2 hs.separable_space).image
     (continuous_on_iff_continuous_restrict.1 hf),
 end
 

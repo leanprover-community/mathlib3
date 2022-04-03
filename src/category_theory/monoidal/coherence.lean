@@ -13,7 +13,7 @@ which proves equations where the two sides differ by replacing
 strings of monoidal structural morphisms with other such strings.
 (The replacements are always equalities by the monoidal coherence theorem.)
 
-A simpler version of this tactic is `coherence1`,
+A simpler version of this tactic is `pure_coherence`,
 which proves that any two morphisms (with the same source and target)
 in a monoidal category which are built out of associators and unitors
 are equal.
@@ -93,6 +93,16 @@ instance tensor (X Y Z : C) [lift_obj X] [lift_obj Y] [lift_obj Z] [monoidal_coh
 ⟨𝟙 X ⊗ monoidal_coherence.hom Y Z⟩
 
 @[simps]
+instance tensor_right (X Y : C) [lift_obj X] [lift_obj Y] [monoidal_coherence (𝟙_ C) Y] :
+  monoidal_coherence X (X ⊗ Y) :=
+⟨(ρ_ X).inv ≫ (𝟙 X ⊗ monoidal_coherence.hom (𝟙_ C) Y)⟩
+
+@[simps]
+instance tensor_right' (X Y : C) [lift_obj X] [lift_obj Y] [monoidal_coherence Y (𝟙_ C)] :
+  monoidal_coherence (X ⊗ Y) X :=
+⟨(𝟙 X ⊗ monoidal_coherence.hom Y (𝟙_ C)) ≫ (ρ_ X).hom⟩
+
+@[simps]
 instance left (X Y : C) [lift_obj X] [lift_obj Y] [monoidal_coherence X Y] :
   monoidal_coherence (𝟙_ C ⊗ X) Y :=
 ⟨(λ_ X).hom ≫ monoidal_coherence.hom X Y⟩
@@ -128,6 +138,8 @@ end monoidal_coherence
 out of unitors and associators. -/
 def monoidal_iso (X Y : C) [lift_obj X] [lift_obj Y] [monoidal_coherence X Y] : X ≅ Y :=
 as_iso (monoidal_coherence.hom X Y)
+
+example (X : C) : X ≅ (X ⊗ (𝟙_ C ⊗ 𝟙_ C)) := monoidal_iso _ _
 
 example (X1 X2 X3 X4 X5 X6 X7 X8 X9 : C) :
   (𝟙_ C ⊗ (X1 ⊗ X2 ⊗ ((X3 ⊗ X4) ⊗ X5)) ⊗ X6 ⊗ (X7 ⊗ X8 ⊗ X9)) ≅
@@ -182,25 +194,26 @@ do
   congr
 
 /--
-`coherence1` uses the coherence theorem for monoidal categories to prove the goal.
+`pure_coherence` uses the coherence theorem for monoidal categories to prove the goal.
 It can prove any equality made up only of associators and unitors.
 ```lean
 example {C : Type} [category C] [monoidal_category C] :
   (λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ C)).hom :=
-by coherence1
+by pure_coherence
 ```
-See also `coherence`, which can cope with identities of the form
+
+Users will typicall just use the `coherence` tactic, which can also cope with identities of the form
 `a ≫ f ≫ b ≫ g ≫ c = a' ≫ f ≫ b' ≫ g ≫ c'`
-where `a = a'`, `b = b'`, and `c = c'` can be proved using `coherence1`
+where `a = a'`, `b = b'`, and `c = c'` can be proved using `pure_coherence`
 -/
 -- TODO: provide the `bicategory_coherence` tactic, and add that here.
-meta def coherence1 : tactic unit := monoidal_coherence
+meta def pure_coherence : tactic unit := monoidal_coherence
 
 example (X₁ X₂ : C) :
   ((λ_ (𝟙_ C)).inv ⊗ 𝟙 (X₁ ⊗ X₂)) ≫ (α_ (𝟙_ C) (𝟙_ C) (X₁ ⊗ X₂)).hom ≫
     (𝟙 (𝟙_ C) ⊗ (α_ (𝟙_ C) X₁ X₂).inv) =
   𝟙 (𝟙_ C) ⊗ ((λ_ X₁).inv ⊗ 𝟙 X₂) :=
-by coherence1
+by pure_coherence
 
 namespace coherence
 
@@ -248,13 +261,13 @@ different strings with the same source and target.
 
 That is, `coherence` can handle goals of the form
 `a ≫ f ≫ b ≫ g ≫ c = a' ≫ f ≫ b' ≫ g ≫ c'`
-where `a = a'`, `b = b'`, and `c = c'` can be proved using `coherence1`.
+where `a = a'`, `b = b'`, and `c = c'` can be proved using `pure_coherence`.
 -/
 meta def coherence : tactic unit :=
 do
   -- To prove an equality `f = g` in a monoidal category,
-  -- first try the `coherence1` tactic on the entire equation:
-  coherence1 <|> do
+  -- first try the `pure_coherence` tactic on the entire equation:
+  pure_coherence <|> do
   -- Otherewise, rearrange so we have a maximal prefix of each side
   -- that is built out of unitors and associators:
   liftable_prefixes <|>
@@ -264,7 +277,7 @@ do
   tactic.congr_core',
   -- and now we have two goals `f₀ = g₀` and `f₁ = g₁`.
   -- Discharge the first using `coherence`,
-  focus1 coherence1 <|>
+  focus1 pure_coherence <|>
     fail "`coherence` tactic failed, subgoal not true in the free monoidal_category",
   -- Then check that either `g₀` is identically `g₁`,
   reflexivity <|> (do
@@ -274,10 +287,10 @@ do
     tactic.congr_core',
     -- with identical first terms,
     reflexivity <|> fail "`coherence` tactic failed, non-structural morphisms don't match",
-    -- and whose second terms can be identified by recursively called `coherence1`.
+    -- and whose second terms can be identified by recursively called `coherence`.
     coherence)
 
-run_cmd add_interactive [`coherence1, `coherence]
+run_cmd add_interactive [`pure_coherence, `coherence]
 
 add_tactic_doc
 { name        := "coherence",

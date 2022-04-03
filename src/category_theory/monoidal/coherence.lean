@@ -254,6 +254,26 @@ end coherence
 
 open coherence
 
+/-- Implementation of `coherence`. -/
+meta def coherence_loop : tactic unit :=
+  pure_coherence <|> do
+  -- The goal should now look like `f₀ ≫ f₁ = g₀ ≫ g₁`,
+  tactic.congr_core',
+  -- and now we have two goals `f₀ = g₀` and `f₁ = g₁`.
+  -- Discharge the first using `pure_coherence`,
+  focus1 pure_coherence <|>
+    fail "`coherence` tactic failed, subgoal not true in the free bicategory",
+  -- Then check that either `g₀` is identically `g₁`,
+  reflexivity <|> (do
+    -- or that both are compositions,
+    `(_ ≫ _ = _ ≫ _) ← target |
+      fail "`coherence` tactic failed, non-structural morphisms don't match",
+    tactic.congr_core',
+    -- with identical first terms,
+    reflexivity <|> fail "`coherence` tactic failed, non-structural morphisms don't match",
+    -- and whose second terms can be identified by recursively calling `coherence_loop`.
+    coherence_loop)
+
 /--
 Use the coherence theorem for monoidal categories to solve equations in a monoidal equation,
 where the two sides only differ by replacing strings of "structural" morphisms with
@@ -272,23 +292,8 @@ do
   -- that is built out of unitors and associators:
   liftable_prefixes <|>
     fail ("Something went wrong in the `coherence` tactic: " ++
-      "is the target an equation in a monoidal category?"),
-  -- The goal should now look like `f₀ ≫ f₁ = g₀ ≫ g₁`,
-  tactic.congr_core',
-  -- and now we have two goals `f₀ = g₀` and `f₁ = g₁`.
-  -- Discharge the first using `coherence`,
-  focus1 pure_coherence <|>
-    fail "`coherence` tactic failed, subgoal not true in the free monoidal_category",
-  -- Then check that either `g₀` is identically `g₁`,
-  reflexivity <|> (do
-    -- or that both are compositions,
-    `(_ ≫ _ = _ ≫ _) ← target |
-      fail "`coherence` tactic failed, non-structural morphisms don't match",
-    tactic.congr_core',
-    -- with identical first terms,
-    reflexivity <|> fail "`coherence` tactic failed, non-structural morphisms don't match",
-    -- and whose second terms can be identified by recursively called `coherence`.
-    coherence)
+      "is the target an equation in a bicategory?"),
+  coherence_loop
 
 run_cmd add_interactive [`pure_coherence, `coherence]
 

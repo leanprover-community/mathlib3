@@ -109,7 +109,7 @@ end
 
 @[simp] lemma reflect_eq_zero_iff {N : ℕ} {f : R[X]} :
   reflect N (f : R[X]) = 0 ↔ f = 0 :=
-by { rcases f, simp [reflect, ← zero_to_finsupp] }
+by { rcases f, simp [reflect] }
 
 @[simp] lemma reflect_add (f g : R[X]) (N : ℕ) :
   reflect N (f + g) = reflect N f + reflect N g :=

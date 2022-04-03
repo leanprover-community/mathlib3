@@ -213,7 +213,7 @@ homology.lift _ _ _ (F.map (P.ι.f 0) ≫ cokernel.π _) begin
   have : (complex_shape.up ℕ).rel 0 1 := rfl,
   rw [category.assoc, cokernel.π_desc, homological_complex.d_from_eq _ this,
     map_homological_complex_obj_d, ← category.assoc, ← functor.map_comp],
-  simp only [exact.w, functor.map_zero, zero_comp],
+  simp only [InjectiveResolution.ι_f_zero_comp_complex_d, functor.map_zero, zero_comp],
 end ≫ (right_derived_obj_iso F 0 P).inv
 
 lemma right_derived_zero_to_self_app_comp_inv [enough_injectives C] [preserves_finite_limits F]
@@ -289,4 +289,3 @@ nat_iso.of_components (λ X, (right_derived_zero_to_self_app_iso _ (InjectiveRes
 end category_theory.abelian.functor
 
 end
-

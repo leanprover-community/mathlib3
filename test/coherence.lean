@@ -52,6 +52,12 @@ by coherence
 example (X Y : C) :
   (𝟙 X ⊗ (λ_ Y).inv) ≫ (α_ X (𝟙_ C) Y).inv = (ρ_ X).inv ⊗ 𝟙 Y :=
 by coherence
+example (X Y : C) (f : 𝟙_ C ⟶ X) (g : X ⟶ Y) (w : false) :
+  (λ_ (𝟙_ C)).hom ≫ f ≫ 𝟙 X ≫ g = (ρ_ (𝟙_ C)).hom ≫ f ≫ g :=
+begin
+  success_if_fail { coherence },
+  cases w
+end
 
 set_option class.instance_max_depth 52
 

@@ -71,7 +71,7 @@ instance [preorder β] [order_top β] : order_top (α →o β) :=
   le_top := λ a x, le_top }
 
 instance [complete_lattice β] : has_Inf (α →o β) :=
-{ Inf := λ s, ⟨λ x, ⨅ f ∈ s, (f : _) x, λ x y h, binfi_le_binfi (λ f _, f.mono h)⟩ }
+{ Inf := λ s, ⟨λ x, ⨅ f ∈ s, (f : _) x, λ x y h, infi₂_mono $ λ f _, f.mono h⟩ }
 
 @[simp] lemma Inf_apply [complete_lattice β] (s : set (α →o β)) (x : α) :
   Inf s x = ⨅ f ∈ s, (f : _) x := rfl

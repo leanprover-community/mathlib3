@@ -131,7 +131,7 @@ end
 /-- This is "unbundled", because that it required for the API of `induced_outer_measure`. -/
 lemma inner_content_mono ⦃U V : set G⦄ (hU : is_open U) (hV : is_open V)
   (h2 : U ⊆ V) : μ.inner_content ⟨U, hU⟩ ≤ μ.inner_content ⟨V, hV⟩ :=
-supr_le_supr $ λ K, supr_le_supr_const $ λ hK, subset.trans hK h2
+bsupr_mono $ λ K, ge_antisymm h2
 
 lemma inner_content_exists_compact {U : opens G}
   (hU : μ.inner_content U ≠ ∞) {ε : ℝ≥0} (hε : ε ≠ 0) :
@@ -180,8 +180,7 @@ lemma inner_content_comap (f : G ≃ₜ G)
   (h : ∀ ⦃K : compacts G⦄, μ (K.map f f.continuous) = μ K) (U : opens G) :
   μ.inner_content (opens.comap f.to_continuous_map U) = μ.inner_content U :=
 begin
-  refine supr_congr _ ((compacts.equiv f).surjective) _,
-  intro K, refine supr_congr_Prop image_subset_iff _,
+  refine (compacts.equiv f).surjective.supr_congr _ (λ K, supr_congr_Prop image_subset_iff _),
   intro hK, simp only [equiv.coe_fn_mk, subtype.mk_eq_mk, ennreal.coe_eq_coe, compacts.equiv],
   apply h,
 end
@@ -211,10 +210,9 @@ begin
   simp only [μ.is_mul_left_invariant_inner_content h3, finset.sum_const, nsmul_eq_mul, le_refl]
 end
 
-lemma inner_content_mono' ⦃U V : set G⦄
-  (hU : is_open U) (hV : is_open V) (h2 : U ⊆ V) :
+lemma inner_content_mono' ⦃U V : set G⦄ (hU : is_open U) (hV : is_open V) (h2 : U ⊆ V) :
   μ.inner_content ⟨U, hU⟩ ≤ μ.inner_content ⟨V, hV⟩ :=
-supr_le_supr $ λ K, supr_le_supr_const $ λ hK, subset.trans hK h2
+bsupr_mono $ λ K, ge_antisymm h2
 
 /-- Extending a content on compact sets to an outer measure on all sets. -/
 protected def outer_measure : outer_measure G :=

@@ -664,8 +664,7 @@ begin
     refine (hl _).union ih _,
     refine (hd i s s.finite_to_set his).mono_right _,
     simp only [(span_Union _).symm],
-    refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
-    exact λ i, ⟨i, le_rfl⟩ }
+    refl }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}

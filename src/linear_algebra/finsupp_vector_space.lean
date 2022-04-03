@@ -52,10 +52,8 @@ begin
       simp only [supr_singleton],
       rw range_coe,
       apply range_comp_subset_range },
-    { refine supr_le_supr (λ i, supr_le_supr _),
-      intros hi,
-      rw span_le,
-      rw range_coe,
+    { refine supr₂_mono (λ i hi, _),
+      rw [span_le, range_coe],
       apply range_comp_subset_range } }
 end
 

@@ -117,7 +117,7 @@ le_of_not_lt $ mt hausdorff_measure_of_lt_dimH h
 
 lemma le_dimH_of_hausdorff_measure_eq_top {s : set X} {d : ℝ≥0} (h : μH[d] s = ∞) :
   ↑d ≤ dimH s :=
-by { rw dimH_def, exact le_bsupr d h }
+by { rw dimH_def, exact le_supr₂ d h }
 
 lemma hausdorff_measure_of_dimH_lt {s : set X} {d : ℝ≥0}
   (h : dimH s < d) : μH[d] s = 0 :=
@@ -125,8 +125,7 @@ begin
   rw dimH_def at h,
   rcases ennreal.lt_iff_exists_nnreal_btwn.1 h with ⟨d', hsd', hd'd⟩,
   rw [ennreal.coe_lt_coe, ← nnreal.coe_lt_coe] at hd'd,
-  exact (hausdorff_measure_zero_or_top hd'd s).resolve_right
-    (λ h, hsd'.not_le (le_bsupr d' h))
+  exact (hausdorff_measure_zero_or_top hd'd s).resolve_right (λ h, hsd'.not_le $ le_supr₂ d' h)
 end
 
 lemma measure_zero_of_dimH_lt {μ : measure X} {d : ℝ≥0}
@@ -234,7 +233,7 @@ begin
     exact eventually_lift'_powerset.2 ⟨s, self_mem_nhds_within, λ t, dimH_mono⟩ },
   { refine le_of_forall_ge_of_dense (λ r hr, _),
     rcases exists_mem_nhds_within_lt_dimH_of_lt_dimH hr with ⟨x, hxs, hxr⟩,
-    refine le_bsupr_of_le x hxs _, rw limsup_eq, refine le_Inf (λ b hb, _),
+    refine le_supr₂_of_le x hxs _, rw limsup_eq, refine le_Inf (λ b hb, _),
     rcases eventually_lift'_powerset.1 hb with ⟨t, htx, ht⟩,
     exact (hxr t htx).le.trans (ht t subset.rfl) }
 end

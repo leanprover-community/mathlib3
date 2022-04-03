@@ -77,7 +77,7 @@ by simp_rw [inf_edist, infi_lt_iff]
 the edist from `x` to `y` -/
 lemma inf_edist_le_inf_edist_add_edist : inf_edist x s ≤ inf_edist y s + edist x y :=
 calc (⨅ z ∈ s, edist x z) ≤ ⨅ z ∈ s, edist y z + edist x y :
-  binfi_le_binfi $ λ z hz, (edist_triangle _ _ _).trans_eq (add_comm _ _)
+  infi₂_mono $ λ z hz, (edist_triangle _ _ _).trans_eq (add_comm _ _)
 ... = (⨅ z ∈ s, edist y z) + edist x y : by simp only [ennreal.infi_add]
 
 /-- The edist to a set depends continuously on the point -/
@@ -227,7 +227,7 @@ lemma inf_edist_le_Hausdorff_edist_of_mem (h : x ∈ s) : inf_edist x t ≤ Haus
 begin
   rw Hausdorff_edist_def,
   refine le_trans _ le_sup_left,
-  exact le_bsupr x h
+  exact le_supr₂ x h
 end
 
 /-- If the Hausdorff distance is `<r`, then any point in one of the sets has

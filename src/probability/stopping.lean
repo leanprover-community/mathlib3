@@ -370,7 +370,7 @@ lemma adapted_natural {u : ι → α → β} (hum : ∀ i, strongly_measurable[m
   adapted (natural u hum) u :=
 begin
   assume i,
-  refine strongly_measurable.mono _ (le_bsupr_of_le i (le_refl i) le_rfl),
+  refine strongly_measurable.mono _ (le_supr₂_of_le i (le_refl i) le_rfl),
   rw strongly_measurable_iff_measurable_separable,
   exact ⟨measurable_iff_comap_le.2 le_rfl, (hum i).is_separable_range⟩
 end

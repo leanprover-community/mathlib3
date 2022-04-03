@@ -531,13 +531,13 @@ begin
     refine ⟨_, _⟩,
     { refine bsupr_le (λ n hn, _),
       rcases nat.of_le_succ hn with (h | h),
-      { exact le_sup_of_le_right (le_bsupr n h) },
+      { exact le_sup_of_le_right (le_supr₂ n h) },
       { exact h ▸ le_sup_left } },
     { refine sup_le _ _,
-      { convert @le_bsupr _ _ _ (λ i, i ≤ m + 1) _ m.succ le_rfl, refl },
+      { convert @le_supr₂ _ _ _ (λ i, i ≤ m + 1) _ m.succ le_rfl, refl },
       { refine bsupr_le (λ n hn, _),
         have := (le_trans hn (nat.le_succ m)), -- replacing `this` below with the proof breaks
-        exact (le_bsupr n this) } } },
+        exact (le_supr₂ n this) } } },
 end
 
 lemma supr_mem_measurable_le
@@ -573,7 +573,7 @@ begin
   simp only,
   refine bsupr_le (λ k hk, _),
   have : k ≤ m := le_trans hk hnm, -- replacing `this` below with the proof breaks
-  exact le_bsupr k this,
+  exact le_supr₂ k this,
 end
 
 lemma supr_monotone' {α : Type*} (f : ℕ → α → ℝ≥0∞) (x : α) :
@@ -582,7 +582,7 @@ lemma supr_monotone' {α : Type*} (f : ℕ → α → ℝ≥0∞) (x : α) :
 
 lemma supr_le_le {α : Type*} (f : ℕ → α → ℝ≥0∞) (n k : ℕ) (hk : k ≤ n) :
   f k ≤ λ x, ⨆ k (hk : k ≤ n), f k x :=
-λ x, le_bsupr k hk
+λ x, le_supr₂ k hk
 
 end supr_lemmas
 

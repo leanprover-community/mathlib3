@@ -370,7 +370,7 @@ lemma isometry_comap_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) {f : X → Y} (hf
   comap f (mk_metric m) = mk_metric m :=
 begin
   simp only [mk_metric, mk_metric', mk_metric'.pre, induced_outer_measure, comap_supr],
-  refine supr_congr id surjective_id (λ ε, supr_congr id surjective_id $ λ hε, _),
+  refine surjective_id.supr_congr id (λ ε, surjective_id.supr_congr id $ λ hε, _),
   rw comap_bounded_by _ (H.imp (λ h_mono, _) id),
   { congr' with s : 1,
     apply extend_congr,
@@ -408,7 +408,7 @@ end
 lemma le_mk_metric (m : ℝ≥0∞ → ℝ≥0∞) (μ : outer_measure X)
   (r : ℝ≥0∞) (h0 : 0 < r) (hr : ∀ s, diam s ≤ r → μ s ≤ m (diam s)) :
   μ ≤ mk_metric m :=
-le_bsupr_of_le r h0 $ mk_metric'.le_pre.2 $ λ s hs, hr _ hs
+le_supr₂_of_le r h0 $ mk_metric'.le_pre.2 $ λ s hs, hr _ hs
 
 end outer_measure
 
@@ -483,8 +483,8 @@ begin
   simp only [← outer_measure.coe_mk_metric, outer_measure.mk_metric, outer_measure.mk_metric',
     outer_measure.supr_apply, outer_measure.mk_metric'.pre, outer_measure.bounded_by_apply,
     extend],
-  refine supr_congr (λ r, r) surjective_id (λ r, supr_congr_Prop iff.rfl $ λ hr,
-    infi_congr _ surjective_id $ λ t, infi_congr_Prop iff.rfl $ λ ht, _),
+  refine surjective_id.supr_congr (λ r, r) (λ r, supr_congr_Prop iff.rfl $ λ hr,
+    surjective_id.infi_congr _ $ λ t, infi_congr_Prop iff.rfl $ λ ht, _),
   by_cases htr : ∀ n, diam (t n) ≤ r,
   { rw [infi_eq_if, if_pos htr],
     congr' 1 with n : 1,
@@ -521,7 +521,7 @@ begin
   rcases ((frequently_lt_of_liminf_lt (by apply_auto_param) hc).and_eventually
     ((hr.eventually (gt_mem_nhds hε)).and (ht.and hst))).exists with ⟨n, hn, hrn, htn, hstn⟩,
   set u : ℕ → set X := λ j, ⋃ b ∈ decode₂ (ι n) j, t n b,
-  refine binfi_le_of_le u (by rwa Union_decode₂) _,
+  refine infi₂_le_of_le u (by rwa Union_decode₂) _,
   refine infi_le_of_le (λ j, _) _,
   { rw emetric.diam_Union_mem_option,
     exact bsupr_le (λ _ _, (htn _).trans hrn.le) },
@@ -629,7 +629,7 @@ lemma no_atoms_hausdorff {d : ℝ} (hd : 0 < d) : has_no_atoms (hausdorff_measur
 begin
   refine ⟨λ x, _⟩,
   rw [← nonpos_iff_eq_zero, hausdorff_measure_apply],
-  refine bsupr_le (λ ε ε0, binfi_le_of_le (λ n, {x}) _ (infi_le_of_le (λ n, _) _)),
+  refine bsupr_le (λ ε ε0, infi₂_le_of_le (λ n, {x}) _ $ infi_le_of_le (λ n, _) _),
   { exact subset_Union (λ n, {x} : ℕ → set X) 0 },
   { simp only [emetric.diam_singleton, zero_le] },
   { simp [hd] }
@@ -649,7 +649,7 @@ begin
     suffices : (1 : ℝ≥0∞) ≤ ⨅ (t : ℕ → set X) (hts : {x} ⊆ ⋃ n, t n)
       (ht : ∀ n, diam (t n) ≤ 1), ∑' n, ⨆ (h : (t n).nonempty), (diam (t n)) ^ (0 : ℝ),
     { apply le_trans this _,
-      convert le_bsupr (1 : ℝ≥0∞) (ennreal.zero_lt_one),
+      convert le_supr₂ (1 : ℝ≥0∞) (ennreal.zero_lt_one),
       refl },
     simp only [ennreal.rpow_zero, le_infi_iff],
     assume t hst h't,
@@ -829,7 +829,7 @@ begin
     rcases ennreal.nhds_zero_basis_Iic.eventually_iff.1 (this.eventually (gt_mem_nhds hR))
       with ⟨δ, δ0, H⟩,
     refine le_supr_of_le δ (le_supr_of_le δ0 $ le_binfi $ λ t hst, le_infi $ λ htδ, _),
-    refine binfi_le_of_le (λ n, f '' (t n ∩ s)) _ (infi_le_of_le (λ n, _) _),
+    refine infi₂_le_of_le (λ n, f '' (t n ∩ s)) _ (infi_le_of_le (λ n, _) _),
     { rw [← image_Union, ← Union_inter],
       exact image_subset _ (subset_inter hst subset.rfl) },
     { exact (h.ediam_image_inter_le (t n)).trans (H (htδ n)).le },
@@ -897,10 +897,10 @@ begin
   simp only [hausdorff_measure_apply, ennreal.mul_supr, ennreal.mul_infi_of_ne hKd0 hKd,
     ← ennreal.tsum_mul_left],
   refine bsupr_le (λ ε ε0, _),
-  refine le_bsupr_of_le (ε / K) (by simp [ε0.ne']) _,
+  refine le_supr₂_of_le (ε / K) (by simp [ε0.ne']) _,
   refine le_binfi (λ t hst, le_infi $ λ htε, _),
   replace hst : f ⁻¹' s ⊆ _ := preimage_mono hst, rw preimage_Union at hst,
-  refine binfi_le_of_le _ hst (infi_le_of_le (λ n, _) _),
+  refine infi₂_le_of_le _ hst (infi_le_of_le (λ n, _) _),
   { exact (hf.ediam_preimage_le _).trans (ennreal.mul_le_of_le_div' $ htε n) },
   { refine ennreal.tsum_le_tsum (λ n, supr_le_iff.2 (λ hft, _)),
     simp only [nonempty_of_nonempty_preimage hft, csupr_pos],

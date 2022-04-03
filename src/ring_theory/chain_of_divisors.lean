@@ -277,18 +277,18 @@ lemma map_is_unit_iff_is_unit [decidable_eq (associates N)] {m u : associates M}
 
 variable (hm : m ≠ 0)
 
-
 lemma mem_divisors_eq_bot_iff {a : associates M} (ha : a ≤ m) : a = ⊥
   ↔ (⟨a, ha⟩ : {l : associates M // l ≤ m}) = ⟨⊥, bot_le⟩ := by simp
 
 lemma divisors_bot : ↑(⟨⊥, bot_le⟩ : {l : associates M // l ≤ m}) = (⊥ : associates M) := rfl
 
-lemma map_prime_of_monotone_equiv {m p : associates M} {n : associates N}
-  (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+lemma map_prime_of_monotone_equiv [decidable_eq (associates N)]
+  {m p : associates M} {n : associates N} (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
   (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) (hd : monotone d)
   (hd' : monotone d.symm) {s : ℕ} (hs : s ≠ 0) (hs' : p^s ≤ m) :
   irreducible (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N) :=
 begin
+  /-
   refine (associates.is_atom_iff (ne_zero_of_dvd_ne_zero hn (d ⟨p, _⟩).prop)).mp ⟨_, λ b hb, _⟩,
   { rw [ne.def, ← associates.is_unit_iff_eq_bot, ← map_is_unit_iff_is_unit
     (dvd_of_mem_normalized_factors hp) d],
@@ -296,6 +296,8 @@ begin
   { obtain ⟨x, hx⟩ := d.surjective ⟨b, le_trans (le_of_lt hb)
       (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop⟩,
     rw [← subtype.coe_mk b _ , subtype.coe_lt_coe, ← hx] at hb,
+    haveI : order_bot {l : associates M // l ≤ m} := subtype.order_bot bot_le,
+    haveI : order_bot {l : associates N // l ≤ n} := subtype.order_bot bot_le,
     suffices : x = ⊥,
     { rw [this, order_iso.map_bot d, divisors_bot'] at hx,
       exact subtype.mk_eq_mk.mp hx.symm  },
@@ -303,12 +305,13 @@ begin
     rw [divisors_bot', ← mem_divisors_eq_bot_iff],
     exact ((associates.is_atom_iff (prime.ne_zero (prime_of_normalized_factor p hp))).mpr
       (irreducible_of_normalized_factor p hp) ).right a (subtype.mk_lt_mk.mp (d.lt_iff_lt.mp hb)) },
+      -/
+      sorry
 end
 
 variables [unique (Mˣ)] [unique (Nˣ)]
 
-
-noncomputable def mk_factor_order_iso_of_factor_dvd_equiv [decidable_eq (associates N)]
+def mk_factor_order_iso_of_factor_dvd_equiv [decidable_eq (associates N)]
   {m : M} {n : N} (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l',
   ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)) :
    {l : associates M // l ≤ associates.mk m} ≃o {l : associates N // l ≤ associates.mk n} :=

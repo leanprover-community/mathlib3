@@ -631,27 +631,27 @@ variable [unique (αˣ)]
 lemma mk_injective : function.injective (@associates.mk α _) :=
 λ a b h, associated_iff_eq.mp (associates.mk_eq_mk_iff_associated.mp h)
 
-noncomputable def associates.mk_monoid_equiv : α ≃* associates α :=
+noncomputable def mk_monoid_equiv : α ≃* associates α :=
 mul_equiv.of_bijective
   (@associates.mk_monoid_hom α _) ⟨associates.mk_injective, associates.mk_surjective⟩
 
 @[simp]
-lemma associates.mk_monoid_equiv_apply {a : α} :
+lemma mk_monoid_equiv_apply {a : α} :
   associates.mk_monoid_equiv a = associates.mk a := rfl
 
 @[simp]
-lemma associates.mk_monoid_equiv_apply_symm {a : associates α} :
+lemma mk_monoid_equiv_apply_symm {a : associates α} :
   associates.mk_monoid_hom (associates.mk_monoid_equiv.symm a) = a :=
 mul_equiv.of_bijective_apply_symm_apply associates.mk_monoid_hom
   ⟨associates.mk_injective, associates.mk_surjective⟩
 
 @[simp]
-lemma associates.mk_monoid_equiv_apply_symm' {a : associates α} :
+lemma mk_monoid_equiv_apply_symm' {a : associates α} :
   associates.mk (associates.mk_monoid_equiv.symm a) = a :=
 by rw [← associates.mk_monoid_hom_apply, associates.mk_monoid_equiv_apply_symm]
 
 @[simp]
-lemma associates.mk_monoid_equiv_apply_symm_mk {a : α} :
+lemma mk_monoid_equiv_apply_symm_mk {a : α} :
   associates.mk_monoid_equiv.symm (associates.mk a) = a :=
 by rw [associates.mk_monoid_equiv, mul_equiv.of_bijective_apply_symm,
   ← associates.mk_monoid_hom_apply, equiv.of_bijective_symm_apply_apply]

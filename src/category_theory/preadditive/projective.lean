@@ -181,15 +181,15 @@ the middle object `R` of a pair of exact morphisms `f : Q ⟶ R` and `g : R ⟶ 
 such that `h ≫ g = 0`, there is a lift of `h` to `Q`.
 -/
 def exact.lift {P Q R S : C} [projective P] (h : P ⟶ R) (f : Q ⟶ R) (g : R ⟶ S)
-  [exact f g] (w : h ≫ g = 0) : P ⟶ Q :=
+  (hfg : exact f g) (w : h ≫ g = 0) : P ⟶ Q :=
 factor_thru
   (factor_thru
     (factor_thru_kernel_subobject g h w)
-    (image_to_kernel f g (by simp)))
+    (image_to_kernel f g hfg.w))
   (factor_thru_image_subobject f)
 
 @[simp] lemma exact.lift_comp {P Q R S : C} [projective P] (h : P ⟶ R) (f : Q ⟶ R) (g : R ⟶ S)
-  [exact f g] (w : h ≫ g = 0) : exact.lift h f g w ≫ f = h :=
+  (hfg : exact f g) (w : h ≫ g = 0) : exact.lift h f g hfg w ≫ f = h :=
 begin
   simp [exact.lift],
   conv_lhs { congr, skip, rw ← image_subobject_arrow_comp f, },

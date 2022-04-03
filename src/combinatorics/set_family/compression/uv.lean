@@ -25,6 +25,8 @@ minimise the shadow.
   the element whose compression is already in `s`. This way of splitting into what moves and what
   does not ensures the compression doesn't squash the set family, which is proved by
   `uv.card_compress`.
+* `uv.card_shadow_compression_le`: Compressing reduces the size of the shadow. This is a key fact in
+  the proof of Kruskal-Katona.
 
 ## Notation
 
@@ -337,9 +339,9 @@ begin
   { refl }
 end
 
-/-- Here's the key fact about compression for Kruskal-Katona. If, for all `x ∈ u` there is
-`y ∈ v` such that `𝒜` is `(U-x,V-y)`-compressed, then UV-compression will reduce the size of the
-shadow of `𝒜`. -/
+/-- UV-compression will reduce the size of the shadow of `𝒜` if, for all `x ∈ u` there is `y ∈ v`
+such that `𝒜` is `(U - x, V - y)`-compressed. This is the key fact about compression for
+Kruskal-Katona -/
 lemma card_shadow_compression_le (u v : finset α)
   (h₁ : ∀ x ∈ u, ∃ y ∈ v, is_compressed (u.erase x) (v.erase y) 𝒜) :
   (∂ (𝓒 u v 𝒜)).card ≤ (∂ 𝒜).card :=
@@ -372,7 +374,7 @@ begin
   have : x ∉ u,
   { intro a,
     obtain ⟨y, hyv, hxy⟩ := h₁ x ‹x ∈ u›,
-    -- If `x ∈ u`, we can get `y ∈ v` so that `𝒜` is `(U-x,V-y)`-compressed
+    -- If `x ∈ u`, we can get `y ∈ v` so that `𝒜` is `(U - x, V - y)`-compressed
     apply m y (disjoint_right.1 hsv hyv),
     -- and we will use this `y` to contradict `m`, so we would like to show `insert y s ∈ 𝒜`.
     -- We do this by showing the below

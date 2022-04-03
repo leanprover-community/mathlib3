@@ -123,7 +123,7 @@ begin
   rw [sum_insert, eval₂_add, hs, sum_insert]; assumption,
 end
 
-lemma eval₂_to_finsupp_eq_lift_nc {f : R →+* S} {x : S} {p : add_monoid_algebra R ℕ} :
+lemma eval₂_of_finsupp {f : R →+* S} {x : S} {p : add_monoid_algebra R ℕ} :
   eval₂ f x (⟨p⟩ : R[X]) = lift_nc ↑f (powers_hom S x) p :=
 by { simp only [eval₂_eq_sum, sum, to_finsupp_sum, support, coeff], refl }
 
@@ -132,7 +132,7 @@ lemma eval₂_mul_noncomm (hf : ∀ k, commute (f $ q.coeff k) x) :
 begin
   rcases p, rcases q,
   simp only [coeff] at hf,
-  simp only [←of_finsupp_mul, eval₂_to_finsupp_eq_lift_nc],
+  simp only [←of_finsupp_mul, eval₂_of_finsupp],
   exact lift_nc_mul _ _ p q (λ k n hn, (hf k).pow_right n)
 end
 

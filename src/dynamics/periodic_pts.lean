@@ -5,8 +5,6 @@ Authors: Yury G. Kudryashov
 -/
 import data.list.cycle
 import data.nat.prime
-import data.pnat.basic
-import data.set.lattice
 import dynamics.fixed_points.basic
 
 /-!

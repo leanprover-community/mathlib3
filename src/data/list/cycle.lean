@@ -827,6 +827,6 @@ by { rw chain_iff_pairwise hr at hs, exact hr' (hs a ha b hb) (hs b hb a ha) }
 
 theorem chain_range_succ (r : ℕ → ℕ → Prop) (n : ℕ) :
   chain r (list.range n.succ) ↔ r n 0 ∧ ∀ m < n, r m m.succ :=
-by rw [range_succ, ←coe_cons_eq_coe_append, chain_cons, ←range_succ, chain_range_succ]
+by rw [range_succ, ←coe_cons_eq_coe_append, chain_coe_cons, ←range_succ, chain_range_succ]
 
 end cycle

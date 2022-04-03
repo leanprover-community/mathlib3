@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import data.set_like.basic
-import data.equiv.fintype
-import model_theory.terms_and_formulas
+import logic.equiv.fintype
+import model_theory.semantics
 
 /-!
 # Definable Sets

@@ -226,6 +226,18 @@ theorem minpoly_dvd_charpoly {K : Type*} [field K] (M : matrix n n K) :
   (minpoly K M) ∣ M.charpoly :=
 minpoly.dvd _ _ (aeval_self_charpoly M)
 
+/-- Any matrix polynomial `p` is equivalent under evaluation to `p %ₘ M.charpoly`; that is, `p`
+is equivalent to a polynomial with degree less than the dimension of the matrix. -/
+lemma aeval_eq_aeval_mod_charpoly (M : matrix n n R) (p : R[X]) :
+  aeval M p = aeval M (p %ₘ M.charpoly) :=
+(aeval_mod_by_monic_eq_self_of_root M.charpoly_monic M.aeval_self_charpoly).symm
+
+/-- Any matrix power can be computed as the sum of matrix powers less than `fintype.card n`.
+
+TODO: add the statement for negative powers phrased with `zpow`. -/
+lemma pow_eq_aeval_mod_charpoly (M : matrix n n R) (k : ℕ) : M^k = aeval M (X^k %ₘ M.charpoly) :=
+by rw [←aeval_eq_aeval_mod_charpoly, map_pow, aeval_X]
+
 end matrix
 
 section power_basis

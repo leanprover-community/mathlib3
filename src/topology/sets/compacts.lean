@@ -42,6 +42,13 @@ instance : set_like (compacts α) α :=
 
 lemma compact (s : compacts α) : is_compact (s : set α) := s.compact'
 
+instance (K : compacts α) : compact_space K := is_compact_iff_compact_space.1 K.compact
+
+instance : can_lift (set α) (compacts α) :=
+{ coe := coe,
+  cond := is_compact,
+  prf := λ K hK, ⟨⟨K, hK⟩, rfl⟩ }
+
 @[ext] protected lemma ext {s t : compacts α} (h : (s : set α) = t) : s = t := set_like.ext' h
 
 @[simp] lemma coe_mk (s : set α) (h) : (mk s h : set α) = s := rfl
@@ -142,7 +149,7 @@ instance [inhabited α] : inhabited (nonempty_compacts α) :=
 ⟨{ carrier := {default}, compact' := is_compact_singleton, nonempty' := singleton_nonempty _ }⟩
 
 instance to_compact_space {s : nonempty_compacts α} : compact_space s :=
-⟨is_compact_iff_is_compact_univ.1 s.compact⟩
+is_compact_iff_compact_space.1 s.compact
 
 instance to_nonempty {s : nonempty_compacts α} : nonempty s := s.nonempty.to_subtype
 

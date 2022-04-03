@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import algebra.ring.ulift
-import data.equiv.module
+import algebra.module.equiv
 
 /-!
 # `ulift` instances for module and multiplicative actions

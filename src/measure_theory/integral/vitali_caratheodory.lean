@@ -256,7 +256,8 @@ lemma exists_lt_lower_semicontinuous_integral_gt_nnreal [sigma_finite μ] (f : �
   ∧ (integrable (λ x, (g x).to_real) μ) ∧ (∫ x, (g x).to_real ∂μ < ∫ x, f x ∂μ + ε) :=
 begin
   have fmeas : ae_measurable f μ,
-    by { convert fint.ae_measurable.real_to_nnreal, ext1 x, simp only [real.to_nnreal_coe] },
+  by { convert fint.ae_strongly_measurable.real_to_nnreal.ae_measurable, ext1 x,
+       simp only [real.to_nnreal_coe] },
   lift ε to ℝ≥0 using εpos.le,
   obtain ⟨δ, δpos, hδε⟩ : ∃ δ : ℝ≥0, 0 < δ ∧ δ < ε, from exists_between εpos,
   have int_f_ne_top : ∫⁻ (a : α), (f a) ∂μ ≠ ∞ :=
@@ -271,7 +272,7 @@ begin
     filter_upwards [g_lt_top] with _ hx,
     simp only [hx.ne, ennreal.of_real_to_real, ne.def, not_false_iff], },
   refine ⟨g, f_lt_g, gcont, g_lt_top, _, _⟩,
-  { refine ⟨gcont.measurable.ennreal_to_real.ae_measurable, _⟩,
+  { refine ⟨gcont.measurable.ennreal_to_real.ae_measurable.ae_strongly_measurable, _⟩,
     simp only [has_finite_integral_iff_norm, real.norm_eq_abs,
       abs_of_nonneg ennreal.to_real_nonneg],
     convert gint_ne.lt_top using 1 },
@@ -291,9 +292,9 @@ begin
       ... = (∫⁻ (a : α), ennreal.of_real ↑(f a) ∂μ).to_real + ε :
         by simp },
     { apply filter.eventually_of_forall (λ x, _), simp },
-    { exact fmeas.coe_nnreal_real, },
+    { exact fmeas.coe_nnreal_real.ae_strongly_measurable, },
     { apply filter.eventually_of_forall (λ x, _), simp },
-    { apply gcont.measurable.ennreal_to_real.ae_measurable } }
+    { apply gcont.measurable.ennreal_to_real.ae_measurable.ae_strongly_measurable } }
 end
 
 
@@ -408,7 +409,8 @@ begin
   { apply lt_of_le_of_lt (lintegral_mono (λ x, _)) If,
     simpa using gf x },
   refine ⟨g, gf, gcont, _, _⟩,
-  { refine integrable.mono fint gcont.measurable.coe_nnreal_real.ae_measurable _,
+  { refine integrable.mono fint
+      gcont.measurable.coe_nnreal_real.ae_measurable.ae_strongly_measurable _,
     exact filter.eventually_of_forall (λ x, by simp [gf x]) },
   { rw [integral_eq_lintegral_of_nonneg_ae, integral_eq_lintegral_of_nonneg_ae],
     { rw sub_le_iff_le_add,
@@ -417,9 +419,9 @@ begin
       { rw ennreal.to_real_add Ig.ne ennreal.coe_ne_top, simp },
       { simpa using Ig.ne } },
     { apply filter.eventually_of_forall, simp },
-    { exact gcont.measurable.coe_nnreal_real.ae_measurable },
+    { exact gcont.measurable.coe_nnreal_real.ae_measurable.ae_strongly_measurable },
     { apply filter.eventually_of_forall, simp },
-    { exact fint.ae_measurable } }
+    { exact fint.ae_strongly_measurable } }
 end
 
 /-! ### Vitali-Carathéodory theorem -/

@@ -262,9 +262,17 @@ begin
   exact ⟨x, hx⟩
 end
 
+lemma t0_space_of_injective_of_continuous [topological_space β] {f : α → β}
+  (hf : function.injective f) (hf' : continuous f) [t0_space β] : t0_space α :=
+⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (f x) (f y) (hf.ne hxy) in
+  ⟨f ⁻¹' U, hU.preimage hf', hxyU⟩⟩
+
+protected lemma embedding.t0_space [topological_space β] [t0_space β] {f : α → β}
+  (hf : embedding f) : t0_space α :=
+t0_space_of_injective_of_continuous hf.inj hf.continuous
+
 instance subtype.t0_space [t0_space α] {p : α → Prop} : t0_space (subtype p) :=
-⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (x:α) y ((not_congr subtype.ext_iff_val).1 hxy) in
-  ⟨(coe : subtype p → α) ⁻¹' U, is_open_induced hU, hxyU⟩⟩
+embedding_subtype_coe.t0_space
 
 theorem t0_space_iff_or_not_mem_closure (α : Type u) [topological_space α] :
   t0_space α ↔ (∀ a b : α, (a ≠ b) → (a ∉ closure ({b} : set α) ∨ b ∉ closure ({a} : set α))) :=
@@ -279,15 +287,6 @@ begin
         or.inr ⟨h h', not_not.mpr (subset_closure (set.mem_singleton a))⟩⟩ },
     { exact ⟨(closure {b})ᶜ, is_closed_closure.1,
         or.inl ⟨h', not_not.mpr (subset_closure (set.mem_singleton b))⟩⟩ } }
-end
-
-lemma t0_space_of_injective_of_continuous {α β : Type u} [topological_space α] [topological_space β]
-  {f : α → β} (hf : function.injective f) (hf' : continuous f) [t0_space β] : t0_space α :=
-begin
-  constructor,
-  intros x y h,
-  obtain ⟨U, hU, e⟩ := t0_space.t0 _ _ (hf.ne h),
-  exact ⟨f ⁻¹' U, hf'.1 U hU, e⟩
 end
 
 /-- A T₁ space, also known as a Fréchet space, is a topological space
@@ -321,6 +320,34 @@ protected lemma set.finite.is_closed [t1_space α] {s : set α} (hs : set.finite
 begin
   rw ← bUnion_of_singleton s,
   exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
+end
+
+lemma filter.coclosed_compact_le_cofinite [t1_space α] :
+  filter.coclosed_compact α ≤ filter.cofinite :=
+λ s hs, compl_compl s ▸ hs.is_compact.compl_mem_coclosed_compact_of_is_closed hs.is_closed
+
+variable (α)
+
+/-- In a `t1_space`, relatively compact sets form a bornology. Its cobounded filter is
+`filter.coclosed_compact`. See also `bornology.in_compact` the bornology of sets contained
+in a compact set. -/
+def bornology.relatively_compact [t1_space α] : bornology α :=
+{ cobounded := filter.coclosed_compact α,
+  le_cofinite := filter.coclosed_compact_le_cofinite }
+
+variable {α}
+
+lemma bornology.relatively_compact.is_bounded_iff [t1_space α] {s : set α} :
+  @bornology.is_bounded _ (bornology.relatively_compact α) s ↔ is_compact (closure s) :=
+begin
+  change sᶜ ∈ filter.coclosed_compact α ↔ _,
+  rw filter.mem_coclosed_compact,
+  split,
+  { rintros ⟨t, ht₁, ht₂, hst⟩,
+    rw compl_subset_compl at hst,
+    exact compact_of_is_closed_subset ht₂ is_closed_closure (closure_minimal hst ht₁) },
+  { intros h,
+    exact ⟨closure s, is_closed_closure, h, compl_subset_compl.mpr subset_closure⟩ }
 end
 
 protected lemma finset.is_closed [t1_space α] (s : finset α) : is_closed (s : set α) :=
@@ -463,13 +490,16 @@ begin
   exact ⟨i, hi, λ h, hsub h rfl⟩
 end
 
-@[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
+@[simp] lemma pure_le_nhds_iff [t1_space α] {a b : α} : pure a ≤ 𝓝 b ↔ a = b :=
 begin
-  refine ⟨λ h, _, λ h, h ▸ le_rfl⟩,
+  refine ⟨λ h, _, λ h, h ▸ pure_le_nhds a⟩,
   by_contra hab,
-  have := h (compl_singleton_mem_nhds $ ne.symm hab),
-  refine mem_of_mem_nhds this (mem_singleton a)
+  simpa only [mem_pure, mem_compl_iff, mem_singleton, not_true] using
+    h (compl_singleton_mem_nhds $ ne.symm hab)
 end
+
+@[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
+⟨λ h, pure_le_nhds_iff.mp $ (pure_le_nhds a).trans h, λ h, h ▸ le_rfl⟩
 
 @[simp] lemma nhds_eq_nhds_iff [t1_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
 ⟨λ h, nhds_le_nhds_iff.mp h.le, λ h, h ▸ rfl⟩
@@ -541,6 +571,10 @@ fact₂ fact₁ (eq.refl $ f a)
 lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
   (h : tendsto f (𝓝 a) (𝓝 b)) : continuous_at f a :=
 show tendsto f (𝓝 a) (𝓝 $ f a), by rwa eq_of_tendsto_nhds h
+
+lemma tendsto_const_nhds_iff [t1_space α] {l : filter α} [ne_bot l] {c d : α} :
+  tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
+by simp_rw [tendsto, filter.map_const, pure_le_nhds_iff]
 
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
 infinite. -/
@@ -807,10 +841,6 @@ lemma tendsto_nhds_unique_of_frequently_eq [t2_space α] {f g : β → α} {l : 
 have ∃ᶠ z : α × α in 𝓝 (a, b), z.1 = z.2 := (ha.prod_mk_nhds hb).frequently hfg,
 not_not.1 $ λ hne, this (is_closed_diagonal.is_open_compl.mem_nhds hne)
 
-lemma tendsto_const_nhds_iff [t2_space α] {l : filter α} [ne_bot l] {c d : α} :
-  tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
-⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
-
 /-- A T₂.₅ space, also known as a Urysohn space, is a topological space
   where for every pair `x ≠ y`, there are two open sets, with the intersection of closures
   empty, one containing `x` and the other `y` . -/
@@ -1044,6 +1074,10 @@ is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
 @[simp] lemma filter.coclosed_compact_eq_cocompact [t2_space α] :
   coclosed_compact α = cocompact α :=
 by simp [coclosed_compact, cocompact, infi_and', and_iff_right_of_imp is_compact.is_closed]
+
+@[simp] lemma bornology.relatively_compact_eq_in_compact [t2_space α] :
+  bornology.relatively_compact α = bornology.in_compact α :=
+by rw bornology.ext_iff; exact filter.coclosed_compact_eq_cocompact
 
 /-- If `V : ι → set α` is a decreasing family of compact sets then any neighborhood of
 `⋂ i, V i` contains some `V i`. This is a version of `exists_subset_nhd_of_compact'` where we

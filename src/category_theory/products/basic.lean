@@ -60,6 +60,17 @@ begin
     refine ⟨⟨(g₁, g₂), _, _⟩⟩; { simp; split; assumption } }
 end
 
+section
+variables {C D}
+
+/-- Construct an isomorphism in `C × D` out of two isomorphisms in `C` and `D`. -/
+@[simps]
+def iso.prod {P Q : C} {S T : D} (f : P ≅ Q) (g : S ≅ T) : (P, S) ≅ (Q, T) :=
+{ hom := (f.hom, g.hom),
+  inv := (f.inv, g.inv), }
+
+end
+
 end
 
 section
@@ -177,6 +188,18 @@ namespace functor
 @[simps] def prod' (F : A ⥤ B) (G : A ⥤ C) : A ⥤ (B × C) :=
 { obj := λ a, (F.obj a, G.obj a),
   map := λ x y f, (F.map f, G.map f), }
+
+section
+variable (C)
+
+/-- The diagonal functor. -/
+def diag : C ⥤ C × C := (𝟭 C).prod' (𝟭 C)
+
+@[simp] lemma diag_obj (X : C) : (diag C).obj X = (X, X) := rfl
+
+@[simp] lemma diag_map {X Y : C} (f : X ⟶ Y) : (diag C).map f = (f, f) := rfl
+
+end
 
 end functor
 

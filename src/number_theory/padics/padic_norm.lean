@@ -442,22 +442,11 @@ end padic_val_nat
 
 section padic_val_nat
 
-/-- If a prime doesn't appear in `n`, `padic_val_nat p n` is `0`. -/
-lemma padic_val_nat_of_not_dvd {p : ℕ} [fact p.prime] {n : ℕ} (not_dvd : ¬(p ∣ n)) :
-  padic_val_nat p n = 0 :=
-begin
-  by_cases hn : n = 0,
-  { subst hn, simp at not_dvd, trivial, },
-  { rw padic_val_nat_def (nat.pos_of_ne_zero hn),
-    exact (@multiplicity.unique' _ _ _ p n 0 (by simp) (by simpa using not_dvd)).symm,
-    assumption, },
-end
-
 lemma dvd_of_one_le_padic_val_nat {n p : nat} [prime : fact p.prime] (hp : 1 ≤ padic_val_nat p n) :
   p ∣ n :=
 begin
   by_contra h,
-  rw padic_val_nat_of_not_dvd h at hp,
+  rw padic_val_nat.eq_zero_of_not_dvd h at hp,
   exact lt_irrefl 0 (lt_of_lt_of_le zero_lt_one hp),
 end
 
@@ -486,7 +475,7 @@ end
 
 lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime]
   (neq : p ≠ q) : padic_val_nat p q = 0 :=
-@padic_val_nat_of_not_dvd p p_prime q $
+@padic_val_nat.eq_zero_of_not_dvd p q $
 (not_congr (iff.symm (prime_dvd_prime_iff_eq p_prime.1 q_prime.1))).mp neq
 
 protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
@@ -500,7 +489,7 @@ protected lemma padic_val_nat.div' {p : ℕ} [p_prime : fact p.prime] :
     { rw [hc, mul_zero] },
     { rw padic_val_nat.mul,
       { suffices : ¬ p ∣ (n+1),
-        { rw [padic_val_nat_of_not_dvd this, zero_add] },
+        { rw [padic_val_nat.eq_zero_of_not_dvd this, zero_add] },
         contrapose! cpm,
         exact p_prime.1.dvd_iff_not_coprime.mp cpm },
       { exact nat.succ_ne_zero _ },

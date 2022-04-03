@@ -329,7 +329,7 @@ in `category_theory.monoidal.braided`.
 
 -/
 
-variable [braided_category C]
+variables {C} [braided_category C]
 
 lemma Mon_tensor_one_mul (M N : Mon_ C) :
     ((λ_ (𝟙_ C)).inv ≫ (M.one ⊗ N.one) ⊗ 𝟙 (M.X ⊗ N.X)) ≫
@@ -436,9 +436,9 @@ instance Mon_monoidal : monoidal_category (Mon_ C) :=
   { X := M.X ⊗ N.X,
     one := (λ_ (𝟙_ C)).inv ≫ (M.one ⊗ N.one),
     mul := tensor_μ C (M.X, N.X) (M.X, N.X) ≫ (M.mul ⊗ N.mul),
-    one_mul' := Mon_tensor_one_mul C M N,
-    mul_one' := Mon_tensor_mul_one C M N,
-    mul_assoc' := Mon_tensor_mul_assoc C M N },
+    one_mul' := Mon_tensor_one_mul M N,
+    mul_one' := Mon_tensor_mul_one M N,
+    mul_assoc' := Mon_tensor_mul_assoc M N },
   tensor_hom := λ M N P Q f g,
   { hom := f.hom ⊗ g.hom,
     one_hom' :=
@@ -456,23 +456,11 @@ instance Mon_monoidal : monoidal_category (Mon_ C) :=
   tensor_id' := by { intros, ext, apply tensor_id },
   tensor_comp' := by { intros, ext, apply tensor_comp },
   tensor_unit := trivial C,
-  associator := λ M N P,
-  iso_of_iso
-    (α_ M.X N.X P.X)
-    (by { dsimp, apply one_associator })
-    (by { dsimp, apply mul_associator }),
+  associator := λ M N P, iso_of_iso (α_ M.X N.X P.X) one_associator mul_associator,
   associator_naturality' := by { intros, ext, dsimp, apply associator_naturality },
-  left_unitor := λ M,
-  iso_of_iso
-    (λ_ M.X)
-    (by { dsimp, apply one_left_unitor })
-    (by { dsimp, apply mul_left_unitor }),
+  left_unitor := λ M, iso_of_iso (λ_ M.X) one_left_unitor mul_left_unitor,
   left_unitor_naturality' := by { intros, ext, dsimp, apply left_unitor_naturality },
-  right_unitor := λ M,
-  iso_of_iso
-    (ρ_ M.X)
-    (by { dsimp, apply one_right_unitor })
-    (by { dsimp, apply mul_right_unitor }),
+  right_unitor := λ M, iso_of_iso (ρ_ M.X) one_right_unitor mul_right_unitor,
   right_unitor_naturality' := by { intros, ext, dsimp, apply right_unitor_naturality },
   pentagon' := by { intros, ext, dsimp, apply pentagon },
   triangle' := by { intros, ext, dsimp, apply triangle } }

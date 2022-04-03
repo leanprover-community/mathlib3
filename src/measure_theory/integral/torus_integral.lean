@@ -127,7 +127,8 @@ begin
     exact continuous_finset_prod finset.univ
     (λ (i : fin ↑n) (H : i ∈ finset.univ),
     continuous_const.mul
-      (continuous_exp.comp ((is_R_or_C.continuous_of_real.comp (continuous_apply i)).mul continuous_const))) },
+      (continuous_exp.comp
+        ((is_R_or_C.continuous_of_real.comp (continuous_apply i)).mul continuous_const))) },
   exact hf.1 },
   simp [norm_smul, map_prod],
 end
@@ -156,9 +157,11 @@ end
 lemma torus_integral_add {f g : ℂⁿ → E} {c : ℂⁿ} {R : ℝⁿ}
   (hf : torus_integrable f c R) (hg : torus_integrable g c R) :
   ∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π),
-  (∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ) + (∏ i, I * R i * exp(θ i * I)) • g (torus_map c R θ)
+    (∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ)
+    + (∏ i, I * R i * exp(θ i * I)) • g (torus_map c R θ)
   = (∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), (∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ))
-  + (∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), (∏ i, I * R i * exp(θ i * I)) • g (torus_map c R θ)) :=
+  + (∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), (∏ i, I * R i * exp(θ i * I)) • g (torus_map c R θ))
+    :=
 begin
   apply integral_add _ _,
   exact function_integrable f c R hf,
@@ -177,9 +180,11 @@ end
 lemma torus_integral_sub {f g : ℂⁿ → E} {c : ℂⁿ} {R : ℝⁿ}
   (hf : torus_integrable f c R) (hg : torus_integrable g c R) :
   ∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π),
-  (∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ) - (∏ i, I * R i * exp(θ i * I)) • g (torus_map c R θ)
+    (∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ)
+    - (∏ i, I * R i * exp(θ i * I)) • g (torus_map c R θ)
   = (∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), (∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ))
-  - (∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), (∏ i, I * R i * exp(θ i * I)) • g (torus_map c R θ)) :=
+  - (∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), (∏ i, I * R i * exp(θ i * I)) • g (torus_map c R θ))
+    :=
 begin
   rw [sub_eq_add_neg, ← torus_integral, ← torus_integral,
       torus_integral_neg, ← torus_integral_add' hf (neg hg), torus_integral],
@@ -189,14 +194,16 @@ end
 lemma torus_integral_smul {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
   (a : 𝕜) (f : ℂⁿ → E) (c : ℂⁿ) (R : ℝⁿ) :
   ∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), a • ((∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ))
-  = a • ∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), (∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ) :=
+  = a • ∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π),
+          (∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ) :=
 begin
   exact integral_smul _ _,
 end
 
 lemma torus_integral_const_mul (a : ℂ) (f : ℂⁿ → ℂ) (c : ℂⁿ) (R : ℝⁿ) :
   ∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), a * ((∏ i, I * R i * exp(θ i * I)) * f (torus_map c R θ))
-  = a * ∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), (∏ i, I * R i * exp(θ i * I)) * f (torus_map c R θ) :=
+  = a * ∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π),
+          (∏ i, I * R i * exp(θ i * I)) * f (torus_map c R θ) :=
 begin
   exact torus_integral_smul a f c R,
 end

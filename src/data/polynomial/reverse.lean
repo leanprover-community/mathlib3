@@ -150,8 +150,9 @@ begin
     -- second induction (right): base case
     { intros N O f g Cf Cg Nf Og,
       rw [← C_mul_X_pow_eq_self Cf, ← C_mul_X_pow_eq_self Cg],
-      simp only [mul_assoc, X_pow_mul, ← pow_add X, reflect_C_mul, reflect_monomial,
-                 add_comm, rev_at_add Nf Og] },
+      simp_rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add (X : R[X]), reflect_C_mul,
+        reflect_monomial, add_comm, rev_at_add Nf Og, mul_assoc, X_pow_mul, mul_assoc,
+        ← pow_add (X : R[X]), add_comm], },
     -- second induction (right): induction step
     { intros N O f g Cf Cg Nf Og,
       by_cases g0 : g = 0,

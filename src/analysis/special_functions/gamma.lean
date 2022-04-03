@@ -104,7 +104,7 @@ begin
     refine has_finite_integral.congr (real.Gamma_integral_convergent hs).2 _,
     refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (λ x hx, _)),
     dsimp only,
-    rw [complex.norm_eq_abs, complex.abs_mul, complex.abs_of_nonneg $ le_of_lt $ exp_pos $ -x,
+    rw [norm_eq_abs, abs_mul, abs_of_nonneg $ le_of_lt $ exp_pos $ -x,
       abs_cpow_eq_rpow_re_of_pos hx _],
     simp }
 end
@@ -150,15 +150,15 @@ begin
   intros x hx,
   by_cases 0 < x,
   { apply continuous_at.continuous_within_at,
-    refine (_ : continuous_at (λ x : ℂ, x ^ s) ↑x).comp complex.continuous_of_real.continuous_at,
-    apply continuous_at_cpow_const, rw complex.of_real_re, exact or.inl h },
+    refine (_ : continuous_at (λ x : ℂ, x ^ s) ↑x).comp continuous_of_real.continuous_at,
+    apply continuous_at_cpow_const, rw of_real_re, exact or.inl h },
   have : x = 0 := by { rw mem_Ici at hx, linarith }, rw this,
-  have hs2 : s ≠ 0 := by { contrapose! hs, rw [hs, complex.zero_re], },
+  have hs2 : s ≠ 0 := by { contrapose! hs, rw [hs, zero_re], },
   rw continuous_within_at,
-  have : ↑(0 : ℝ) ^ s = (0 : ℂ) := by { rw complex.of_real_zero, exact complex.zero_cpow hs2 },
+  have : ↑(0 : ℝ) ^ s = (0 : ℂ) := by { rw of_real_zero, exact zero_cpow hs2 },
   rw [this, tendsto_zero_iff_norm_tendsto_zero],
-  have u: eq_on (λ (e : ℝ), e ^ s.re)  (λ (e : ℝ), complex.abs(↑e ^ s)) (Ici 0),
-  { intros y hy, exact (complex.abs_cpow_eq_rpow_re_of_nonneg hy hs.ne').symm },
+  have u: eq_on (λ (e : ℝ), e ^ s.re)  (λ (e : ℝ), abs(↑e ^ s)) (Ici 0),
+  { intros y hy, exact (abs_cpow_eq_rpow_re_of_nonneg hy hs.ne').symm },
   have w: tendsto (λ (e : ℝ), e ^ s.re) (𝓝[Ici 0] 0) (𝓝 (0 ^ s.re)),
   { exact tendsto.rpow_const continuous_within_at_id (or.inr hs.le), },
   rw zero_rpow hs.ne' at w,
@@ -181,18 +181,21 @@ lemma deriv_integrand (s : ℂ) {x : ℝ} (h1: 0 < x) : has_deriv_at  (λ x, (-x
 ( -((-x).exp * x ^ s) + (-x).exp  * (s * x ^ (s - 1))) x :=
 begin
   have d1 : has_deriv_at (λ (y: ℝ), (-y).exp) (-(-x).exp) x,
-  { simpa only [mul_neg, mul_one] using (has_deriv_at_neg x).exp },
+  { simpa using (has_deriv_at_neg x).exp },
   have d2: has_deriv_at (λ (y : ℝ), ↑y ^ s) (s * x ^ (s - 1)) x,
-  { have t := has_deriv_at.cpow_const (has_deriv_at_id ↑x),
-    swap, exact s,
-    simp only [id.def, complex.of_real_re, complex.of_real_im, ne.def,
+  { have t := @has_deriv_at.cpow_const _ _ _ s (has_deriv_at_id ↑x),
+    simp only [id.def, of_real_re, of_real_im, ne.def,
        eq_self_iff_true, not_true, or_false, mul_one] at t,
-    simpa only [mul_one] using has_deriv_at.comp _ (t h1) (has_deriv_at_coe x), },
-  simpa only [complex.of_real_neg, neg_mul] using has_deriv_at.mul (has_deriv_at_of_real d1) d2,
+    simpa using has_deriv_at.comp _ (t h1) (has_deriv_at_coe x), },
+  simpa using has_deriv_at.mul (has_deriv_at_of_real d1) d2,
 end
 
 /-- The indefinite version of the Γ function, Γ(s, X) = ∫ x ∈ 0..X, exp(-x) x ^ (s - 1). -/
 def partial_Gamma (s : ℂ) (X : ℝ) : ℂ := ∫ x in 0..X, (-x).exp * x ^ (s - 1)
+
+lemma tendsto_partial_Gamma {s : ℂ} (hs: 1 ≤ s.re) :
+  tendsto (λ X:ℝ, partial_Gamma s X) at_top (𝓝 $ Gamma_integral s) :=
+interval_integral_tendsto_integral_Ioi 0 (Gamma_integral_convergent hs) tendsto_id
 
 lemma Gamma_integrand_interval_integrable (s : ℂ) {X : ℝ} (hs : 1 ≤ s.re) (hX : 0 ≤ X):
   interval_integrable (λ x, (-x).exp * x ^ (s - 1) : ℝ → ℂ) volume 0 X :=
@@ -201,40 +204,40 @@ begin
   exact integrable_on.mono_set (Gamma_integral_convergent hs) Ioc_subset_Ioi_self
 end
 
-lemma deriv_interval_integrable_A {s : ℂ} (hs: 1 ≤ s.re) {X : ℝ} (hX : 0 ≤ X):
+lemma Gamma_integrand_deriv_integrable_A {s : ℂ} (hs: 1 ≤ s.re) {X : ℝ} (hX : 0 ≤ X):
  interval_integrable (λ x, -((-x).exp * x ^ s) : ℝ → ℂ) volume 0 X :=
 begin
   have t := (Gamma_integrand_interval_integrable (s+1) _ hX).neg,
-  { simpa only [add_sub_cancel] using t },
-  { simp only [complex.add_re, complex.one_re], linarith,},
+  { simpa using t },
+  { simp only [add_re, one_re], linarith,},
 end
 
-lemma deriv_interval_integrable_B {s : ℂ} (hs: 1 ≤ s.re) {Y : ℝ} (hY : 0 ≤ Y): interval_integrable
-  (λ (x : ℝ), (-x).exp * (s * x ^ (s - 1)) : ℝ → ℂ) volume 0 Y :=
+lemma Gamma_integrand_deriv_integrable_B {s : ℂ} (hs: 1 ≤ s.re) {Y : ℝ} (hY : 0 ≤ Y) :
+  interval_integrable (λ (x : ℝ), (-x).exp * (s * x ^ (s - 1)) : ℝ → ℂ) volume 0 Y :=
 begin
   have: (λ x, (-x).exp * (s * x ^ (s - 1)) : ℝ → ℂ) =
     (λ x, s * ((-x).exp * x ^ (s - 1)) : ℝ → ℂ) := by { ext1, ring, },
   rw [this, interval_integrable_iff_integrable_Ioc_of_le hY],
   split,
   { refine continuous_on.ae_strongly_measurable (continuous_on_const.mul _) measurable_set_Ioc,
-    apply (complex.continuous_of_real.comp continuous_neg.exp).continuous_on.mul,
+    apply (continuous_of_real.comp continuous_neg.exp).continuous_on.mul,
     apply continuous_at.continuous_on,
     intros x hx,
-    refine (_ : continuous_at (λ x:ℂ, x ^ (s - 1)) _).comp complex.continuous_of_real.continuous_at,
-    apply continuous_at_cpow_const, rw complex.of_real_re, exact or.inl hx.1, },
+    refine (_ : continuous_at (λ x:ℂ, x ^ (s - 1)) _).comp continuous_of_real.continuous_at,
+    apply continuous_at_cpow_const, rw of_real_re, exact or.inl hx.1, },
   apply has_finite_integral_of_bounded, swap, exact s.abs * Y ^ (s.re - 1),
   refine (ae_restrict_iff' measurable_set_Ioc).mpr (ae_of_all _ (λ x hx, _)),
-  rw [complex.norm_eq_abs, complex.abs_mul,complex.abs_mul, complex.abs_of_nonneg (exp_pos(-x)).le],
-  apply mul_le_mul_of_nonneg_left, swap, exact complex.abs_nonneg s,
+  rw [norm_eq_abs, abs_mul,abs_mul, abs_of_nonneg (exp_pos(-x)).le],
+  apply mul_le_mul_of_nonneg_left, swap, exact abs_nonneg s,
   have i1: (-x).exp ≤ 1 := by { simpa using hx.1.le, },
-  have i2: complex.abs (↑x ^ (s - 1)) ≤ Y ^ (s.re - 1),
-  { rw [complex.abs_cpow_eq_rpow_re_of_pos hx.1 _, complex.sub_re, complex.one_re],
+  have i2: abs (↑x ^ (s - 1)) ≤ Y ^ (s.re - 1),
+  { rw [abs_cpow_eq_rpow_re_of_pos hx.1 _, sub_re, one_re],
     apply rpow_le_rpow hx.1.le hx.2, linarith, },
-  simpa using mul_le_mul i1 i2 (complex.abs_nonneg (↑x ^ (s - 1))) zero_le_one,
+  simpa using mul_le_mul i1 i2 (abs_nonneg (↑x ^ (s - 1))) zero_le_one,
 end
 
 lemma partial_Gamma_recurrence {s : ℂ} (hs: 1 ≤ s.re) {X : ℝ} (hX : 0 ≤ X) :
-  partial_Gamma (s+1) X = s * partial_Gamma s X - (-X).exp * X ^ s :=
+  partial_Gamma (s + 1) X = s * partial_Gamma s X - (-X).exp * X ^ s :=
 begin
   rw [partial_Gamma, partial_Gamma, add_sub_cancel],
   have F_der_I: (∀ (x:ℝ), (x ∈ Ioo 0 X) → has_deriv_at (λ x, (-x).exp * x ^ s : ℝ → ℂ)
@@ -242,12 +245,13 @@ begin
   { intros x hx, rw mem_Ioo at hx, exact deriv_integrand s hx.1 },
   have cont := (continuous_of_real.comp continuous_neg.exp).continuous_on.mul
     (cts_cpow (lt_of_lt_of_le zero_lt_one hs)),
-  have der_ible := (deriv_interval_integrable_A hs hX).add (deriv_interval_integrable_B hs hX),
+  have der_ible := (Gamma_integrand_deriv_integrable_A hs hX).add
+    (Gamma_integrand_deriv_integrable_B hs hX),
   have int_eval := integral_eq_sub_of_has_deriv_at_of_le hX (cont.mono Icc_subset_Ici_self)
     F_der_I der_ible,
   apply_fun (λ x:ℂ, -x) at int_eval,
-  rw [interval_integral.integral_add (deriv_interval_integrable_A hs hX)
-    (deriv_interval_integrable_B hs hX), interval_integral.integral_neg, neg_add, neg_neg]
+  rw [interval_integral.integral_add (Gamma_integrand_deriv_integrable_A hs hX)
+    (Gamma_integrand_deriv_integrable_B hs hX), interval_integral.integral_neg, neg_add, neg_neg]
     at int_eval,
   replace int_eval := eq_sub_of_add_eq int_eval,
   rw [int_eval, sub_neg_eq_add, neg_sub, add_comm, add_sub],
@@ -255,37 +259,17 @@ begin
   have : (λ x, (-x).exp * (s * x ^ (s - 1)) : ℝ → ℂ) = (λ x, s * (-x).exp * x ^ (s - 1) : ℝ → ℂ),
   { ext1, ring,},
   rw this,
-  have t := integral_const_mul s (λ x : ℝ, (-x).exp * x ^ (s - 1)),
-  swap, exact 0, swap, exact X, swap, exact volume,
-  dsimp at t, rw [←t, complex.of_real_zero, complex.zero_cpow],
+  have t := @integral_const_mul (0:ℝ) X volume _ _ s (λ x:ℝ, (-x).exp * x ^ (s - 1)),
+  dsimp at t, rw [←t, of_real_zero, zero_cpow],
   { rw [mul_zero, add_zero], congr', ext1, ring },
-  { contrapose! hs, rw [hs,complex.zero_re], exact zero_lt_one,}
-end
-
-lemma tendsto_partial_Gamma {s : ℂ} (hs: 1 ≤ s.re) :
-  tendsto (λ Y:ℝ, partial_Gamma s Y) at_top (𝓝 $ Gamma_integral s) :=
-begin
-  refine interval_integral_tendsto_integral_Ioi 0 _ tendsto_id,
-  split,
-  { refine continuous_on.ae_strongly_measurable _ measurable_set_Ioi,
-    apply (complex.continuous_of_real.comp continuous_neg.exp).continuous_on.mul,
-    apply continuous_at.continuous_on,
-    intros x hx,
-    refine (_: continuous_at (λ x:ℂ, x ^ (s - 1)) ↑x).comp complex.continuous_of_real.continuous_at,
-    apply continuous_at_cpow_const, rw complex.of_real_re, exact or.inl hx, },
-  rw ←has_finite_integral_norm_iff,
-  apply has_finite_integral.congr (real.Gamma_integral_convergent hs).2,
-  rw eventually_eq,
-  refine (ae_restrict_iff' measurable_set_Ioi).mpr (ae_of_all _ (λ x hx, _)),
-  rw [complex.norm_eq_abs, complex.abs_mul, complex.abs_of_nonneg (real.exp_pos (-x)).le],
-  congr, rw complex.abs_cpow_eq_rpow_re_of_pos hx, simp,
+  { contrapose! hs, rw [hs, zero_re], exact zero_lt_one,}
 end
 
 theorem Gamma_integral_recurrence {s : ℂ} (hs: 1 ≤ s.re) :
   Gamma_integral (s + 1) = s * Gamma_integral s :=
 begin
   have t1: tendsto (partial_Gamma (s+1)) at_top (𝓝 (Gamma_integral (s+1))),
-  { apply tendsto_partial_Gamma, rw [complex.add_re, complex.one_re], linarith, },
+  { apply tendsto_partial_Gamma, rw [add_re, one_re], linarith, },
   suffices t2: tendsto (partial_Gamma (s+1)) at_top (𝓝 $ s * Gamma_integral s),
   { apply tendsto_nhds_unique t1 t2 },
   have a: eventually_eq at_top
@@ -295,16 +279,17 @@ begin
     rw partial_Gamma_recurrence hs (mem_Ici.mp hX),
     ring_nf },
   refine tendsto.congr' a.symm _,
-  suffices l1: tendsto (λ X:ℝ, -↑X ^ s * (-X).exp : ℝ → ℂ) at_top (𝓝 0),
-  { simpa using tendsto.add (tendsto.const_mul s (tendsto_partial_Gamma hs)) l1 },
+  suffices l1: tendsto (λ X:ℝ, -(↑X ^ s) * (-X).exp : ℝ → ℂ) at_top (𝓝 0),
+  {
+    simpa using tendsto.add (tendsto.const_mul s (tendsto_partial_Gamma hs)) l1,
+  },
   have l2: tendsto (λ X:ℝ, ↑X ^ s * (-X).exp : ℝ → ℂ) at_top (𝓝 0),
   { rw tendsto_zero_iff_norm_tendsto_zero,
     have: eventually_eq at_top (λ (e : ℝ), ∥(e:ℂ) ^ s * ↑((-e).exp)∥ )
       (λ (e : ℝ), e ^ s.re * (-e).exp ),
     { refine eventually_eq_of_mem (Ioi_mem_at_top 0) _,
       intros x hx, dsimp,
-      rw [complex.abs_mul, complex.abs_cpow_eq_rpow_re_of_pos hx,
-          complex.abs_of_nonneg (exp_pos(-x)).le], },
+      rw [abs_mul, abs_cpow_eq_rpow_re_of_pos hx, abs_of_nonneg (exp_pos(-x)).le], },
     rw (tendsto_congr' this),
     simpa using (tendsto_rpow_mul_exp_neg_mul_at_top_nhds_0 s.re (1:ℝ) zero_lt_one), },
   have: (λ X, -↑X ^ s *  (-X).exp : ℝ → ℂ) = (λ X, (-1) * (↑X ^ s *  (-X).exp ): ℝ → ℂ) :=
@@ -338,7 +323,7 @@ begin
     intros s h1,
     have hh1 : 1 - (s+1).re ≤ n,
     { rw [nat.succ_eq_add_one, nat.cast_add, nat.cast_one] at h1,
-      rw [complex.add_re, complex.one_re], linarith, },
+      rw [add_re, one_re], linarith, },
     rw ←(hn (s+1) hh1) }
 end
 
@@ -354,7 +339,7 @@ begin
     have : (Gamma_aux n (s + 1 + 1)) / (s+1) = Gamma_aux n (s + 1),
     { have hh1 : 1 - (s+1).re ≤ n,
       { rw [nat.succ_eq_add_one, nat.cast_add, nat.cast_one] at h1,
-        rw [complex.add_re, complex.one_re], linarith, },
+        rw [add_re, one_re], linarith, },
       rw Gamma_aux_recurrence1 (s+1) n hh1, },
     rw this },
 end
@@ -380,7 +365,7 @@ theorem Gamma_recurrence (s : ℂ) (h2 : s ≠ 0) : s * Gamma(s) = Gamma (s+1) :
 begin
   let n := ⌈ 1 - s.re ⌉₊,
   have t1 : 1 - s.re ≤ n := nat.le_ceil (1 - s.re),
-  have t2 : 1 - (s+1).re ≤ n := by { rw [complex.add_re, complex.one_re], linarith, },
+  have t2 : 1 - (s+1).re ≤ n := by { rw [add_re, one_re], linarith, },
   rw [Gamma_eq_Gamma_aux s n t1, Gamma_eq_Gamma_aux (s+1) n t2, Gamma_aux_recurrence1 s n t1],
   field_simp, ring
 end

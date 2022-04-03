@@ -488,5 +488,4 @@ Projects:
   (We've already got `Mon_ (Module R) ≌ Algebra R`, in `category_theory.monoidal.internal.Module`.)
 * Can you transport this monoidal structure to `Ring` or `Algebra R`?
   How does it compare to the "native" one?
-* Show that if `C` is braided then `Mon_ C` is naturally monoidal.
 -/

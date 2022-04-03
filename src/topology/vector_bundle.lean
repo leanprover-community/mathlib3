@@ -634,19 +634,6 @@ namespace topological_vector_prebundle
 
 variables {R E F}
 
--- The next two lemmas are no longer necessary, but I think they should still go into mathlib
-
-lemma set.inj_on.eq_iff {α β : Type*} (f : α → β) {a a' : α} {s : set α} (h : inj_on f s)
-  (ha : a ∈ s) (ha' : a' ∈ s) : f a = f a' ↔ a = a' :=
-⟨h ha ha', congr_arg f⟩
-
-lemma local_equiv.eq_iff_symm_eq {α β : Type*} (e : local_equiv α β) {a : α} {b : β}
-  (ha : a ∈ e.source) (hb : b ∈ e.target) : e a = b ↔ e.symm b = a :=
-begin
-  conv_lhs { rw [← local_equiv.right_inv e hb, eq_comm] },
-  exact e.inj_on.eq_iff (e.map_target hb) ha
-end
-
 /-- Natural identification of `topological_vector_prebundle` as a `topological_fiber_prebundle`. -/
 def to_topological_fiber_prebundle (a : topological_vector_prebundle R F E) :
   topological_fiber_prebundle F (proj E) :=
@@ -943,15 +930,6 @@ def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
       congr_arg2 prod.mk ((e₁.linear x h₁).map_add v₁ v₁') ((e₂.linear x h₂).map_add v₂ v₂'),
     map_smul := λ c ⟨v₁, v₂⟩,
       congr_arg2 prod.mk ((e₁.linear x h₁).map_smul c v₁) ((e₂.linear x h₂).map_smul c v₂), } }
-
--- Patrick is not sure the next two simp lemmas really help. One could also use @[simps] above
-
-@[simp] lemma source_prod :
-  (prod e₁ e₂).source = (proj (λ x, E₁ x × E₂ x)) ⁻¹' (e₁.base_set ∩ e₂.base_set) := rfl
-
-@[simp] lemma target_prod :
-  (prod e₁ e₂).target = (e₁.base_set ∩ e₂.base_set) ×ˢ (set.univ : set (F₁ × F₂)) := rfl
-
 
 @[simp] lemma base_set_prod : (prod e₁ e₂).base_set = e₁.base_set ∩ e₂.base_set :=
 rfl

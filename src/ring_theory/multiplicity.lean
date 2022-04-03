@@ -179,7 +179,7 @@ begin
   exact (multiplicity.eq_coe_iff.1 (by simp)).2 h₁,
 end
 
-lemma multiplicity_eq_multiplicity_mk [decidable_rel : ((∣) : associates α → associates α → Prop)]
+lemma multiplicity_eq_multiplicity_mk [decidable_rel ((∣) : associates α → associates α → Prop)]
   {a b : α} : multiplicity a b = multiplicity (associates.mk a) (associates.mk b) :=
 begin
   by_cases h : finite a b,

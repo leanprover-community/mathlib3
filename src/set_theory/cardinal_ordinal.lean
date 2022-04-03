@@ -195,6 +195,13 @@ aleph'_lt.trans (add_lt_add_iff_left _)
 @[simp] theorem aleph_le {o₁ o₂ : ordinal.{u}} : aleph o₁ ≤ aleph o₂ ↔ o₁ ≤ o₂ :=
 le_iff_le_iff_lt_iff_lt.2 aleph_lt
 
+@[simp] theorem max_aleph_eq (o₁ o₂ : ordinal) : max (aleph o₁) (aleph o₂) = aleph (max o₁ o₂) :=
+begin
+  cases le_total (aleph o₁) (aleph o₂) with h h,
+  { rw [max_eq_right h, max_eq_right (aleph_le.1 h)] },
+  { rw [max_eq_left h, max_eq_left (aleph_le.1 h)] }
+end
+
 @[simp] theorem aleph_succ {o : ordinal.{u}} : aleph o.succ = (aleph o).succ :=
 by rw [aleph, ordinal.add_succ, aleph'_succ]; refl
 
@@ -354,6 +361,9 @@ max_le
 @[simp] theorem mul_mk_eq_max {α β : Type*} [infinite α] [infinite β] : #α * #β = max (#α) (#β) :=
 mul_eq_max (omega_le_mk α) (omega_le_mk β)
 
+@[simp] theorem aleph_mul_aleph (o₁ o₂ : ordinal) : aleph o₁ * aleph o₂ = aleph (max o₁ o₂) :=
+by rw [cardinal.mul_eq_max (omega_le_aleph o₁) (omega_le_aleph o₂), max_aleph_eq]
+
 @[simp] theorem omega_mul_eq {a : cardinal} (ha : ω ≤ a) : ω * a = a :=
 (mul_eq_max le_rfl ha).trans (max_eq_right ha)
 
@@ -365,6 +375,12 @@ omega_mul_eq (omega_le_mk α)
 
 @[simp] theorem mk_mul_omega_eq {α : Type*} [infinite α] : #α * ω = #α :=
 mul_omega_eq (omega_le_mk α)
+
+@[simp] theorem omega_mul_aleph (o : ordinal) : ω * aleph o = aleph o :=
+omega_mul_eq (omega_le_aleph o)
+
+@[simp] theorem aleph_mul_omega (o : ordinal) : aleph o * ω = aleph o :=
+mul_omega_eq (omega_le_aleph o)
 
 theorem mul_lt_of_lt {a b c : cardinal} (hc : ω ≤ c)
   (h1 : a < c) (h2 : b < c) : a * b < c :=
@@ -551,6 +567,9 @@ end
 protected lemma eq_of_add_eq_add_right {a b c : cardinal} (h : a + b = c + b) (hb : b < ω) :
   a = c :=
 by { rw [add_comm a b, add_comm c b] at h, exact cardinal.eq_of_add_eq_add_left h hb }
+
+@[simp] theorem aleph_add_aleph (o₁ o₂ : ordinal) : aleph o₁ + aleph o₂ = aleph (max o₁ o₂) :=
+by rw [cardinal.add_eq_max (omega_le_aleph o₁), max_aleph_eq]
 
 theorem principal_add_ord {c : cardinal} (hc : ω ≤ c) : ordinal.principal (+) c.ord :=
 λ a b ha hb, by { rw [lt_ord, ordinal.card_add] at *, exact add_lt_of_lt hc ha hb }

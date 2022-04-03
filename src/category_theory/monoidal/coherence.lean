@@ -282,6 +282,10 @@ different strings with the same source and target.
 That is, `coherence` can handle goals of the form
 `a ≫ f ≫ b ≫ g ≫ c = a' ≫ f ≫ b' ≫ g ≫ c'`
 where `a = a'`, `b = b'`, and `c = c'` can be proved using `pure_coherence`.
+
+(If you have very large equations on which `coherence` is unexpectedly failing,
+you may need to increase the typeclass search depth,
+using e.g. `set_option class.instance_max_depth 100`.)
 -/
 meta def coherence : tactic unit :=
 do

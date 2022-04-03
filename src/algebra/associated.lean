@@ -642,7 +642,7 @@ lemma associates.mk_monoid_equiv_apply {a : α} :
 @[simp]
 lemma associates.mk_monoid_equiv_apply_symm {a : associates α} :
   associates.mk_monoid_hom (associates.mk_monoid_equiv.symm a) = a :=
-of_bijective_apply_symm_apply associates.mk_monoid_hom
+mul_equiv.of_bijective_apply_symm_apply associates.mk_monoid_hom
   ⟨associates.mk_injective, associates.mk_surjective⟩
 
 @[simp]
@@ -653,17 +653,8 @@ by rw [← associates.mk_monoid_hom_apply, associates.mk_monoid_equiv_apply_symm
 @[simp]
 lemma associates.mk_monoid_equiv_apply_symm_mk {a : α} :
   associates.mk_monoid_equiv.symm (associates.mk a) = a :=
-by rw [associates.mk_monoid_equiv, of_bijective_apply_symm, ← associates.mk_monoid_hom_apply,
-  equiv.of_bijective_symm_apply_apply]
-
-lemma associates.mk_monoid_equiv_symm_dvd_iff_le {a b : associates α} :
-  (associates.mk_monoid_equiv.symm a) ∣ (associates.mk_monoid_equiv.symm b) ↔ a ≤ b :=
-begin
-  conv_rhs {rw [← (associates.mk_monoid_equiv).apply_symm_apply m,
-    ← (associates.mk_monoid_equiv).apply_symm_apply n]},
-  rw [associates.mk_monoid_equiv_apply, associates.mk_monoid_equiv_apply,
-    associates.mk_le_mk_iff_dvd_iff],
-end
+by rw [associates.mk_monoid_equiv, mul_equiv.of_bijective_apply_symm,
+  ← associates.mk_monoid_hom_apply, equiv.of_bijective_symm_apply_apply]
 
 end unique_units
 
@@ -738,6 +729,15 @@ assume ⟨c, hc⟩, ⟨associates.mk c, by simp [hc]; refl⟩
 
 theorem mk_le_mk_iff_dvd_iff {a b : α} : associates.mk a ≤ associates.mk b ↔ a ∣ b :=
 iff.intro dvd_of_mk_le_mk mk_le_mk_of_dvd
+
+lemma associates.mk_monoid_equiv_symm_dvd_iff_le [unique αˣ] {a b : associates α} :
+  (associates.mk_monoid_equiv.symm a) ∣ (associates.mk_monoid_equiv.symm b) ↔ a ≤ b :=
+begin
+  conv_rhs {rw [← (associates.mk_monoid_equiv).apply_symm_apply a,
+    ← (associates.mk_monoid_equiv).apply_symm_apply b]},
+  rw [associates.mk_monoid_equiv_apply, associates.mk_monoid_equiv_apply,
+    associates.mk_le_mk_iff_dvd_iff],
+end
 
 theorem mk_dvd_mk {a b : α} : associates.mk a ∣ associates.mk b ↔ a ∣ b :=
 iff.intro dvd_of_mk_le_mk mk_le_mk_of_dvd

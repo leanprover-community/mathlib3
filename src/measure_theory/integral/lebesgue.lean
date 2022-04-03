@@ -1014,8 +1014,8 @@ theorem simple_func.lintegral_eq_lintegral {m : measurable_space α} (f : α →
 begin
   rw lintegral,
   exact le_antisymm
-    (bsupr_le $ λ g hg, lintegral_mono hg $ le_rfl)
-    (le_supr_of_le f $ le_supr_of_le le_rfl le_rfl)
+    (supr₂_le $ λ g hg, lintegral_mono hg $ le_rfl)
+    (le_supr₂_of_le f le_rfl le_rfl)
 end
 
 @[mono] lemma lintegral_mono' {m : measurable_space α} ⦃μ ν : measure α⦄ (hμν : μ ≤ ν)
@@ -1045,7 +1045,7 @@ begin
   apply le_antisymm,
   { exact supr_le (λ i, supr_le (λ hi, supr_le (λ h'i, lintegral_mono h'i))) },
   { rw lintegral,
-    refine bsupr_le (λ i hi, le_supr_of_le i (le_supr_of_le i.measurable (le_supr_of_le hi _))),
+    refine supr₂_le (λ i hi, le_supr₂_of_le i i.measurable $ le_supr_of_le hi _),
     exact le_of_eq (i.lintegral_eq_lintegral _).symm },
 end
 
@@ -1083,7 +1083,7 @@ lemma lintegral_eq_nnreal {m : measurable_space α} (f : α → ℝ≥0∞) (μ 
 begin
   rw lintegral,
   refine le_antisymm
-    (bsupr_le $ assume φ hφ, _)
+    (supr₂_le $ assume φ hφ, _)
     (supr_mono' $ λ φ, ⟨φ.map (coe : ℝ≥0 → ℝ≥0∞), le_rfl⟩),
   by_cases h : ∀ᵐ a ∂μ, φ a ≠ ∞,
   { let ψ := φ.map ennreal.to_nnreal,
@@ -1137,9 +1137,9 @@ theorem le_infi_lintegral {ι : Sort*} (f : ι → α → ℝ≥0∞) :
   (∫⁻ a, ⨅i, f i a ∂μ) ≤ (⨅i, ∫⁻ a, f i a ∂μ) :=
 by { simp only [← infi_apply], exact (monotone_lintegral μ).map_infi_le }
 
-theorem le_infi2_lintegral {ι : Sort*} {ι' : ι → Sort*} (f : Π i, ι' i → α → ℝ≥0∞) :
+lemma le_infi₂_lintegral {ι : Sort*} {ι' : ι → Sort*} (f : Π i, ι' i → α → ℝ≥0∞) :
   (∫⁻ a, ⨅ i (h : ι' i), f i h a ∂μ) ≤ (⨅ i (h : ι' i), ∫⁻ a, f i h a ∂μ) :=
-by { convert (monotone_lintegral μ).map_infi2_le f, ext1 a, simp only [infi_apply] }
+by { convert (monotone_lintegral μ).map_infi₂_le f, ext1 a, simp only [infi_apply] }
 
 lemma lintegral_mono_ae {f g : α → ℝ≥0∞} (h : ∀ᵐ a ∂μ, f a ≤ g a) :
   (∫⁻ a, f a ∂μ) ≤ (∫⁻ a, g a ∂μ) :=
@@ -1771,7 +1771,7 @@ calc
       (assume n, ae_measurable_binfi _ (countable_encodable _) h_meas)
       (ae_of_all μ (assume a n m hnm, infi_le_infi_of_subset $ λ i hi, le_trans hnm hi))
   ... ≤ ⨆n:ℕ, ⨅i≥n, ∫⁻ a, f i a ∂μ :
-    supr_mono $ λ n, le_infi2_lintegral _
+    supr_mono $ λ n, le_infi₂_lintegral _
   ... = at_top.liminf (λ n, ∫⁻ a, f n a ∂μ) : filter.liminf_eq_supr_infi_of_nat.symm
 
 /-- Known as Fatou's lemma -/
@@ -1959,8 +1959,8 @@ lemma lintegral_map_le {mβ : measurable_space β} (f : β → ℝ≥0∞) {g : 
   ∫⁻ a, f a ∂(measure.map g μ) ≤ ∫⁻ a, f (g a) ∂μ :=
 begin
   rw [← supr_lintegral_measurable_le_eq_lintegral, ← supr_lintegral_measurable_le_eq_lintegral],
-  refine bsupr_le (λ i hi, supr_le (λ h'i, _)),
-  refine le_supr_of_le (i ∘ g) (le_supr_of_le (hi.comp hg) _),
+  refine supr₂_le (λ i hi, supr_le $ λ h'i, _),
+  refine le_supr₂_of_le (i ∘ g) (hi.comp hg) _,
   exact le_supr_of_le (λ x, h'i (g x)) (le_of_eq (lintegral_map hi hg))
 end
 
@@ -1981,7 +1981,7 @@ lemma _root_.measurable_embedding.lintegral_map [measurable_space β] {g : α �
   ∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ :=
 begin
   rw [lintegral, lintegral],
-  refine le_antisymm (bsupr_le $ λ f₀ hf₀, _) (bsupr_le $ λ f₀ hf₀, _),
+  refine le_antisymm (supr₂_le $ λ f₀ hf₀, _) (supr₂_le $ λ f₀ hf₀, _),
   { rw [simple_func.lintegral_map _ hg.measurable],
     have : (f₀.comp g hg.measurable : α → ℝ≥0∞) ≤ f ∘ g, from λ x, hf₀ (g x),
     exact le_supr_of_le (comp f₀ g hg.measurable) (le_supr _ this) },
@@ -2452,9 +2452,9 @@ lemma lintegral_with_density_le_lintegral_mul (μ : measure α)
   ∫⁻ a, g a ∂(μ.with_density f) ≤ ∫⁻ a, (f * g) a ∂μ :=
 begin
   rw [← supr_lintegral_measurable_le_eq_lintegral, ← supr_lintegral_measurable_le_eq_lintegral],
-  refine bsupr_le (λ i i_meas, supr_le (λ hi, _)),
+  refine supr₂_le (λ i i_meas, supr_le (λ hi, _)),
   have A : f * i ≤ f * g := λ x, ennreal.mul_le_mul le_rfl (hi x),
-  refine le_supr_of_le (f * i) (le_supr_of_le (f_meas.mul i_meas) _),
+  refine le_supr₂_of_le (f * i) (f_meas.mul i_meas) _,
   exact le_supr_of_le A (le_of_eq (lintegral_with_density_eq_lintegral_mul _ f_meas i_meas))
 end
 
@@ -2464,7 +2464,7 @@ lemma lintegral_with_density_eq_lintegral_mul_non_measurable (μ : measure α)
 begin
   refine le_antisymm (lintegral_with_density_le_lintegral_mul μ f_meas g) _,
   rw [← supr_lintegral_measurable_le_eq_lintegral, ← supr_lintegral_measurable_le_eq_lintegral],
-  refine bsupr_le (λ i i_meas, supr_le (λ hi, _)),
+  refine supr₂_le (λ i i_meas, supr_le $ λ hi, _),
   have A : (λ x, (f x)⁻¹ * i x) ≤ g,
   { assume x,
     dsimp,

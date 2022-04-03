@@ -529,13 +529,13 @@ begin
       exact le_antisymm this.1 this.2 },
     rw [hc, hd],
     refine ⟨_, _⟩,
-    { refine bsupr_le (λ n hn, _),
+    { refine supr₂_le (λ n hn, _),
       rcases nat.of_le_succ hn with (h | h),
       { exact le_sup_of_le_right (le_supr₂ n h) },
       { exact h ▸ le_sup_left } },
     { refine sup_le _ _,
       { convert @le_supr₂ _ _ _ (λ i, i ≤ m + 1) _ m.succ le_rfl, refl },
-      { refine bsupr_le (λ n hn, _),
+      { refine supr₂_le (λ n hn, _),
         have := (le_trans hn (nat.le_succ m)), -- replacing `this` below with the proof breaks
         exact (le_supr₂ n this) } } },
 end
@@ -571,7 +571,7 @@ lemma supr_monotone {α : Type*} (f : ℕ → α → ℝ≥0∞) :
 begin
   intros n m hnm x,
   simp only,
-  refine bsupr_le (λ k hk, _),
+  refine supr₂_le (λ k hk, _),
   have : k ≤ m := le_trans hk hnm, -- replacing `this` below with the proof breaks
   exact le_supr₂ k this,
 end

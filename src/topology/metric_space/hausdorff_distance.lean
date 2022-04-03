@@ -58,8 +58,7 @@ infi_union
 infi_singleton
 
 /-- The edist to a set is bounded above by the edist to any of its points -/
-lemma inf_edist_le_edist_of_mem (h : y ∈ s) : inf_edist x s ≤ edist x y :=
-binfi_le _ h
+lemma inf_edist_le_edist_of_mem (h : y ∈ s) : inf_edist x s ≤ edist x y := infi₂_le _ h
 
 /-- If a point `x` belongs to `s`, then its edist to `s` vanishes -/
 lemma inf_edist_zero_of_mem (h : x ∈ s) : inf_edist x s = 0 :=

@@ -101,7 +101,7 @@ metric.is_compact_of_is_closed_bounded (is_closed a) (is_bounded a)
 
 theorem spectral_radius_le_nnnorm (a : A) :
   spectral_radius 𝕜 a ≤ ∥a∥₊ :=
-by { refine bsupr_le (λ k hk, _), exact_mod_cast norm_le_norm_of_mem hk }
+by { refine supr₂_le (λ k hk, _), exact_mod_cast norm_le_norm_of_mem hk }
 
 open ennreal polynomial
 
@@ -109,7 +109,7 @@ variable (𝕜)
 theorem spectral_radius_le_pow_nnnorm_pow_one_div (a : A) (n : ℕ) :
   spectral_radius 𝕜 a ≤ ∥a ^ (n + 1)∥₊ ^ (1 / (n + 1) : ℝ) :=
 begin
-  refine bsupr_le (λ k hk, _),
+  refine supr₂_le (λ k hk, _),
   /- apply easy direction of the spectral mapping theorem for polynomials -/
   have pow_mem : k ^ (n + 1) ∈ σ (a ^ (n + 1)),
     by simpa only [one_mul, algebra.algebra_map_eq_smul_one, one_smul, aeval_monomial, one_mul,

@@ -298,7 +298,7 @@ subset of the rest. -/
 lemma independent.disjoint_bsupr {ι : Type*} {α : Type*} [complete_lattice α]
   {t : ι → α} (ht : independent t) {x : ι} {y : set ι} (hx : x ∉ y) :
   disjoint (t x) (⨆ i ∈ y, t i) :=
-disjoint.mono_right (bsupr_le_bsupr' $ λ i hi, (ne_of_mem_of_not_mem hi hx : _)) (ht x)
+disjoint.mono_right (bsupr_mono $ λ i hi, (ne_of_mem_of_not_mem hi hx : _)) (ht x)
 
 end complete_lattice
 

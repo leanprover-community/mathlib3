@@ -516,7 +516,7 @@ lemma mk_metric_le_liminf_tsum {β : Type*} {ι : β → Type*} [∀ n, encodabl
   mk_metric m s ≤ liminf l (λ n, ∑' i, m (diam (t n i))) :=
 begin
   simp only [mk_metric_apply],
-  refine bsupr_le (λ ε hε, _),
+  refine supr₂_le (λ ε hε, _),
   refine le_of_forall_le_of_dense (λ c hc, _),
   rcases ((frequently_lt_of_liminf_lt (by apply_auto_param) hc).and_eventually
     ((hr.eventually (gt_mem_nhds hε)).and (ht.and hst))).exists with ⟨n, hn, hrn, htn, hstn⟩,
@@ -524,7 +524,7 @@ begin
   refine infi₂_le_of_le u (by rwa Union_decode₂) _,
   refine infi_le_of_le (λ j, _) _,
   { rw emetric.diam_Union_mem_option,
-    exact bsupr_le (λ _ _, (htn _).trans hrn.le) },
+    exact supr₂_le (λ _ _, (htn _).trans hrn.le) },
   { calc (∑' (j : ℕ), ⨆ (h : (u j).nonempty), m (diam (u j))) = _ :
               tsum_Union_decode₂ (λ t : set X, ⨆ (h : t.nonempty), m (diam t)) (by simp) _
     ... ≤ ∑' (i : ι n), m (diam (t n i)) :
@@ -629,7 +629,7 @@ lemma no_atoms_hausdorff {d : ℝ} (hd : 0 < d) : has_no_atoms (hausdorff_measur
 begin
   refine ⟨λ x, _⟩,
   rw [← nonpos_iff_eq_zero, hausdorff_measure_apply],
-  refine bsupr_le (λ ε ε0, infi₂_le_of_le (λ n, {x}) _ $ infi_le_of_le (λ n, _) _),
+  refine supr₂_le (λ ε ε0, infi₂_le_of_le (λ n, {x}) _ $ infi_le_of_le (λ n, _) _),
   { exact subset_Union (λ n, {x} : ℕ → set X) 0 },
   { simp only [emetric.diam_singleton, zero_le] },
   { simp [hd] }
@@ -828,7 +828,7 @@ begin
       from ennreal.tendsto_const_mul_rpow_nhds_zero_of_pos ennreal.coe_ne_top hr,
     rcases ennreal.nhds_zero_basis_Iic.eventually_iff.1 (this.eventually (gt_mem_nhds hR))
       with ⟨δ, δ0, H⟩,
-    refine le_supr_of_le δ (le_supr_of_le δ0 $ le_binfi $ λ t hst, le_infi $ λ htδ, _),
+    refine le_supr_of_le δ (le_supr_of_le δ0 $ le_infi₂ $ λ t hst, le_infi $ λ htδ, _),
     refine infi₂_le_of_le (λ n, f '' (t n ∩ s)) _ (infi_le_of_le (λ n, _) _),
     { rw [← image_Union, ← Union_inter],
       exact image_subset _ (subset_inter hst subset.rfl) },
@@ -896,9 +896,9 @@ begin
   have hKd : (K : ℝ≥0∞) ^ d ≠ ∞, by simp [hd],
   simp only [hausdorff_measure_apply, ennreal.mul_supr, ennreal.mul_infi_of_ne hKd0 hKd,
     ← ennreal.tsum_mul_left],
-  refine bsupr_le (λ ε ε0, _),
+  refine supr₂_le (λ ε ε0, _),
   refine le_supr₂_of_le (ε / K) (by simp [ε0.ne']) _,
-  refine le_binfi (λ t hst, le_infi $ λ htε, _),
+  refine le_infi₂ (λ t hst, le_infi $ λ htε, _),
   replace hst : f ⁻¹' s ⊆ _ := preimage_mono hst, rw preimage_Union at hst,
   refine infi₂_le_of_le _ hst (infi_le_of_le (λ n, _) _),
   { exact (hf.ediam_preimage_le _).trans (ennreal.mul_le_of_le_div' $ htε n) },

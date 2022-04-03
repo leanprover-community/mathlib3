@@ -113,18 +113,18 @@ le_supr_of_le K $ le_supr _ h2
 
 lemma inner_content_le (U : opens G) (K : compacts G) (h2 : (U : set G) ⊆ K) :
   μ.inner_content U ≤ μ K :=
-bsupr_le $ λ K' hK', μ.mono _ _ (subset.trans hK' h2)
+supr₂_le $ λ K' hK', μ.mono _ _ (subset.trans hK' h2)
 
 lemma inner_content_of_is_compact {K : set G} (h1K : is_compact K) (h2K : is_open K) :
   μ.inner_content ⟨K, h2K⟩ = μ ⟨K, h1K⟩ :=
-le_antisymm (bsupr_le $ λ K' hK', μ.mono _ ⟨K, h1K⟩ hK')
+le_antisymm (supr₂_le $ λ K' hK', μ.mono _ ⟨K, h1K⟩ hK')
             (μ.le_inner_content _ _ subset.rfl)
 
 lemma inner_content_empty :
   μ.inner_content ∅ = 0 :=
 begin
   refine le_antisymm _ (zero_le _), rw ←μ.empty,
-  refine bsupr_le (λ K hK, _),
+  refine supr₂_le (λ K hK, _),
   have : K = ⊥, { ext1, rw [subset_empty_iff.mp hK, compacts.coe_bot] }, rw this, refl'
 end
 
@@ -156,7 +156,7 @@ begin
     { simp only [μ.empty, nonpos_iff_eq_zero, finset.sum_empty, finset.sup_empty], },
     { intros n s hn ih, rw [finset.sup_insert, finset.sum_insert hn],
       exact le_trans (μ.sup_le _ _) (add_le_add_left ih _) }},
-  refine bsupr_le (λ K hK, _),
+  refine supr₂_le (λ K hK, _),
   obtain ⟨t, ht⟩ := K.compact.elim_finite_subcover  _ (λ i, (U i).prop) _, swap,
   { convert hK, rw [opens.supr_def, subtype.coe_mk] },
   rcases K.compact.finite_compact_cover t (coe ∘ U) (λ i _, (U _).prop) (by simp only [ht])

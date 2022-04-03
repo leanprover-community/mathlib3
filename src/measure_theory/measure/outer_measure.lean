@@ -307,16 +307,16 @@ section supremum
 instance : has_Sup (outer_measure α) :=
 ⟨λms,
 { measure_of := λs, ⨆ m ∈ ms, (m : outer_measure α) s,
-  empty      := nonpos_iff_eq_zero.1 $ bsupr_le $ λ m h, le_of_eq m.empty,
-  mono       := assume s₁ s₂ hs, bsupr_le_bsupr $ assume m hm, m.mono hs,
-  Union_nat  := assume f, bsupr_le $ assume m hm,
+  empty      := nonpos_iff_eq_zero.1 $ supr₂_le $ λ m h, le_of_eq m.empty,
+  mono       := assume s₁ s₂ hs, supr₂_mono $ assume m hm, m.mono hs,
+  Union_nat  := assume f, supr₂_le $ assume m hm,
     calc m (⋃i, f i) ≤ ∑' (i : ℕ), m (f i) : m.Union_nat _
       ... ≤ ∑'i, (⨆ m ∈ ms, (m : outer_measure α) (f i)) :
         ennreal.tsum_le_tsum $ λ i, le_supr₂ m hm }⟩
 
 instance : complete_lattice (outer_measure α) :=
 { .. outer_measure.order_bot, .. complete_lattice_of_Sup (outer_measure α)
-    (λ ms, ⟨λ m hm s, le_supr₂ m hm, λ m hm s, bsupr_le (λ m' hm', hm hm' s)⟩) }
+    (λ ms, ⟨λ m hm s, le_supr₂ m hm, λ m hm s, supr₂_le (λ m' hm', hm hm' s)⟩) }
 
 @[simp] theorem Sup_apply (ms : set (outer_measure α)) (s : set α) :
   (Sup ms) s = ⨆ m ∈ ms, (m : outer_measure α) s := rfl
@@ -915,9 +915,9 @@ lemma Inf_eq_bounded_by_Inf_gen (m : set (outer_measure α)) :
   Inf m = outer_measure.bounded_by (Inf_gen m) :=
 begin
   refine le_antisymm _ _,
-  { refine (le_bounded_by.2 $ λ s, _), refine le_binfi _,
-    intros μ hμ, refine (show Inf m ≤ μ, from Inf_le hμ) s },
-  { refine le_Inf _, intros μ hμ t, refine le_trans (bounded_by_le t) (binfi_le μ hμ) }
+  { refine (le_bounded_by.2 $ λ s, le_infi₂ $ λ μ hμ, _),
+    exact (show Inf m ≤ μ, from Inf_le hμ) s },
+  { refine le_Inf _, intros μ hμ t, refine le_trans (bounded_by_le t) (infi₂_le μ hμ) }
 end
 
 lemma supr_Inf_gen_nonempty {m : set (outer_measure α)} (h : m.nonempty) (t : set α) :

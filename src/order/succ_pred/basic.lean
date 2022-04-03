@@ -272,7 +272,7 @@ begin
   obtain rfl | ha := eq_or_ne a ⊤,
   { rw succ_top,
     exact le_top },
-  exact binfi_le _ (lt_succ_iff_ne_top.2 ha),
+  exact infi₂_le _ (lt_succ_iff_ne_top.2 ha),
 end
 
 end complete_lattice

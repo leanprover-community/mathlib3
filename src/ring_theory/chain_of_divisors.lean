@@ -246,10 +246,6 @@ begin
   exact part.get_mem _,
 end
 
-lemma enat.eq_top_iff_not_dom {x : enat} : ¬ x.dom ↔ x = ⊤  :=
-⟨λ h, enat.top_eq_none ▸ part.eq_none_iff'.mpr h,
-  λ h, by rw [h, enat.top_eq_none, part.eq_none_iff'.symm]⟩
-
 variables [nontrivial M] [nontrivial N] {m : associates M}
 
 lemma map_is_unit_of_monotone_is_unit {m u : associates M} {n : associates N}

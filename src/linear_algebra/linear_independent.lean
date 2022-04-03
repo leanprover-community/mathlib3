@@ -662,9 +662,8 @@ begin
     simp },
   { rw [finset.set_bUnion_insert],
     refine (hl _).union ih _,
-    refine (hd i s s.finite_to_set his).mono_right _,
-    simp only [(span_Union _).symm],
-    refl }
+    rw span_Union₂,
+    exact hd i s s.finite_to_set his }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}

@@ -8,18 +8,18 @@ import data.nat.factorization
 
 section sqrt0
 
-/-! #### Square root of squares
+/-! ### Square root of squares
 
 Throughout mathlib, there are several types `α` for which a notion of `sqrt` has been defined.
 For instance, `nat.sqrt`, `int.sqrt`, `nnreal.sqrt`, and `real.sqrt`. In most cases, `sqrt x` is
 defined as the greatest `y ∈ α` such that `y * y ≤ x` or `0` if no such `y` exists.
 
-But this definition has some limits. For example, it's not true for `rat.sqrt` where
-`rat.sqrt ((1 : ℚ) / (3 : ℚ)) = 1`.
+But this definition has some limits. For example, it's not true for `rat.sqrt`. (Indeed, the
+squares are dense in the positive reals, so such a definintion can't work for the rationals.)
 
 The following definition offers a different take on how to handle the "undefined" aspect of
-`sqrt`. Specifically, in `ℕ`, if `¬square x`, then we'll define `sqrt0 x = 0`. Otherwise, we'll
-define `sqrt0 x` as the (unique) `y` such that `y * y = x`.
+`sqrt`. Specifically, in `ℕ`, if `¬is_square x`, then we'll define `sqrt0 x = 0`. Otherwise, we'll
+define `sqrt0 x` as the (unique) `y` such that `x = y * y`.
 
 `TODO`: For now, we only define `sqrt0` for the natural numbers. This could be generalized to a
 `unique_factorization_monoid`, but there is a choice to make about units. Consider `ℤ` where we

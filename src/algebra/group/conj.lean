@@ -45,8 +45,10 @@ protected lemma monoid_hom.map_is_conj (f : α →* β) {a b : α} : is_conj a b
 
 end monoid
 
-section right_cancel_monoid
-variables [right_cancel_monoid α]
+section cancel_monoid
+variables [cancel_monoid α]
+-- These lemmas hold for either `left_cancel_monoid` or `right_cancel_monoid`,
+-- with slightly different proofs; so far these don't seem necessary.
 
 @[simp] lemma is_conj_one_right {a : α} : is_conj 1 a  ↔ a = 1 :=
 ⟨λ ⟨c, hc⟩, mul_right_cancel (hc.symm.trans ((mul_one _).trans (one_mul _).symm)), λ h, by rw [h]⟩
@@ -55,7 +57,7 @@ variables [right_cancel_monoid α]
 calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj.symm, is_conj.symm⟩
 ... ↔ a = 1 : is_conj_one_right
 
-end right_cancel_monoid
+end cancel_monoid
 
 section group
 

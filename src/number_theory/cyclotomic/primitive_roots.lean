@@ -37,9 +37,10 @@ in the implementation details section.
 * `is_primitive_root.sub_one_norm_eq_eval_cyclotomic`: if `irreducible (cyclotomic n K)`
   (in particular for `K = ℚ`), then the norm of `ζ - 1` is `eval 1 (cyclotomic n ℤ)`, for a
   primitive root ζ. We also prove the analogous of this result for `zeta`.
-* `is_primitive_root.sub_one_norm_prime_ne_two` : if `irreducible (cyclotomic (p ^ (k + 1)) K)`
-  (in particular for `K = ℚ`) and `p` is an odd prime, then the norm of `ζ - 1` is `p`. We also
-  prove the analogous of this result for `zeta`.
+* `is_primitive_root.pow_prime_ne_two_pow_sub_one_norm` : if
+  `irreducible (cyclotomic (p ^ (k + 1)) K)` and `irreducible (cyclotomic (p ^ (k - s + 1)) K))`
+  (in particular for `K = ℚ`) and `p` is an odd prime, then the norm of `ζ ^ s - 1` is
+  `p ^ (p ^ s)`. We also prove the analogous of this result for `zeta`.
 * `is_primitive_root.embeddings_equiv_primitive_roots`: the equivalence between `L →ₐ[K] A`
   and `primitive_roots n A` given by the choice of `ζ`.
 
@@ -57,12 +58,12 @@ and only at the "final step", when we need to provide an "explicit" primitive ro
 
 -/
 
-open polynomial algebra finset finite_dimensional is_cyclotomic_extension nat pnat
+open polynomial algebra finset finite_dimensional is_cyclotomic_extension nat pnat set
 
 
 universes u v w z
 
-variables {n : ℕ+} (A : Type w) (B : Type z) (K : Type u) {L : Type v} (C : Type w)
+variables {p n : ℕ+} (A : Type w) (B : Type z) (K : Type u) {L : Type v} (C : Type w)
 variables [comm_ring A] [comm_ring B] [algebra A B] [is_cyclotomic_extension {n} A B]
 
 section zeta
@@ -247,7 +248,7 @@ begin
     rw [← neg_sub, alg_hom.map_neg, alg_hom.map_sub, alg_hom.map_one, neg_eq_neg_one_mul] },
   rw [prod_mul_distrib, prod_const, card_univ, alg_hom.card, is_cyclotomic_extension.finrank L hirr,
       neg_one_pow_of_even (totient_even h), one_mul],
-  have : univ.prod (λ (σ : L →ₐ[K] E), 1 - σ ζ) = eval 1 (cyclotomic' n E),
+  have : finset.univ.prod (λ (σ : L →ₐ[K] E), 1 - σ ζ) = eval 1 (cyclotomic' n E),
   { rw [cyclotomic', eval_prod, ← @finset.prod_attach E E, ← univ_eq_attach],
     refine fintype.prod_equiv (hζ.embeddings_equiv_primitive_roots E hirr) _ _ (λ σ, _),
     simp },
@@ -277,29 +278,101 @@ end
 
 omit hζ
 
+local attribute [instance] is_cyclotomic_extension.finite_dimensional
+local attribute [instance] is_cyclotomic_extension.is_galois
+
+/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` and
+`irreducible (cyclotomic (p ^ (k - s + 1)) K))` (in particular for `K = ℚ`) and `p` is an odd
+prime, then the norm of `ζ ^ s - 1` is `p ^ (p ^ s)`. -/
+lemma pow_prime_ne_two_pow_sub_one_norm [ne_zero ((p : ℕ) : K)] {k : ℕ}
+  (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) [hpri : fact (p : ℕ).prime]
+  [is_cyclotomic_extension {p ^ (k + 1)} K L]
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))  {s : ℕ}
+  (hirr₁ : irreducible (cyclotomic (↑(p ^ (k - s + 1)) : ℕ) K)) (h : p ≠ 2) (hs : s ≤ k) :
+  norm K (ζ ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
+begin
+  haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
+  { refine ⟨λ hzero, _⟩,
+    rw [pnat.pow_coe] at hzero,
+    simpa [ne_zero.ne ((p : ℕ) : K)] using hzero },
+  haveI : ne_zero ((↑(p ^ (k - s + 1)) : ℕ) : K),
+  { refine ⟨λ hzero, _⟩,
+    rw [pnat.pow_coe] at hzero,
+    simpa [ne_zero.ne ((p : ℕ) : K)] using hzero },
+
+  let η := ζ ^ ((p : ℕ) ^ s) - 1,
+  let η₁ : K⟮η⟯ := intermediate_field.adjoin_simple.gen K η,
+  have hη : is_primitive_root (η + 1) (p ^ (k + 1 - s)),
+  { rw [sub_add_cancel],
+    refine is_primitive_root.pow (p ^ (k + 1)).pos hζ _,
+    rw [pnat.pow_coe, ← pow_add, add_comm s, nat.sub_add_cancel (le_trans hs (nat.le_succ k))] },
+  haveI : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η⟯,
+  { suffices : is_cyclotomic_extension {p ^ (k - s + 1)} K K⟮η + 1⟯.to_subalgebra,
+    { have H : K⟮η + 1⟯.to_subalgebra = K⟮η⟯.to_subalgebra,
+      { simp only [intermediate_field.adjoin_simple_to_subalgebra_of_integral _ _
+          (is_cyclotomic_extension.integral {p ^ (k + 1)} K L _)],
+        refine subalgebra.ext (λ x, ⟨λ hx, adjoin_le _ hx, λ hx, adjoin_le _ hx⟩),
+        { simp only [set.singleton_subset_iff, set_like.mem_coe],
+          exact subalgebra.add_mem _ (subset_adjoin (mem_singleton η)) (subalgebra.one_mem _) },
+        { simp only [set.singleton_subset_iff, set_like.mem_coe],
+          nth_rewrite 0 [← add_sub_cancel η 1],
+          refine subalgebra.sub_mem _ (subset_adjoin (mem_singleton _)) (subalgebra.one_mem _) } },
+      rw [H] at this,
+      exact this },
+    rw [intermediate_field.adjoin_simple_to_subalgebra_of_integral _ _
+      (is_cyclotomic_extension.integral {p ^ (k + 1)} K L _)],
+    have hη' : is_primitive_root (η + 1) ↑(p ^ (k + 1 - s)) := by simpa using hη,
+    convert hη'.adjoin_is_cyclotomic_extension K,
+    rw [nat.sub_add_comm hs] },
+  replace hη : is_primitive_root (η₁ + 1) ↑(p ^ (k - s + 1)),
+  { refine ⟨_, λ l hl, _⟩,
+    { rw [← subalgebra.coe_eq_one, subalgebra.coe_pow, pnat.pow_coe],
+      convert hη.1,
+      rw [nat.sub_add_comm hs] },
+    { rw [← subalgebra.coe_eq_one, subalgebra.coe_pow] at hl,
+      rw [pnat.pow_coe],
+      convert hη.2 _ hl,
+      rw [nat.sub_add_comm hs] } },
+  rw [norm_eq_norm_adjoin K],
+  { have : p ^ (k - s + 1) ≠ 2,
+    { intro H,
+      rw [← pnat.coe_inj, pnat.coe_bit0, pnat.one_coe, pnat.pow_coe, ← pow_one 2] at H,
+      replace H := eq_of_prime_pow_eq (prime_iff.1 hpri.out) (prime_iff.1 nat.prime_two)
+        ((k - s).succ_pos) H,
+      rw [← pnat.one_coe, ← pnat.coe_bit0, pnat.coe_inj] at H,
+      exact h H },
+    have H := hη.sub_one_norm_is_prime_pow _ hirr₁ this,
+    swap, { rw [pnat.pow_coe], exact hpri.1.is_prime_pow.pow (nat.succ_ne_zero _) },
+    rw [add_sub_cancel] at H,
+    rw [H, coe_coe],
+    congr,
+    { rw [pnat.pow_coe, nat.pow_min_fac, hpri.1.min_fac_eq], exact nat.succ_ne_zero _ },
+    have := finite_dimensional.finrank_mul_finrank K K⟮η⟯ L,
+    rw [is_cyclotomic_extension.finrank L hirr, is_cyclotomic_extension.finrank K⟮η⟯ hirr₁,
+      pnat.pow_coe, pnat.pow_coe, nat.totient_prime_pow hpri.out (k - s).succ_pos,
+      nat.totient_prime_pow hpri.out k.succ_pos, mul_comm _ (↑p - 1), mul_assoc,
+      mul_comm (↑p ^ (k.succ - 1))] at this,
+    replace this := nat.eq_of_mul_eq_mul_left (tsub_pos_iff_lt.2 (nat.prime.one_lt hpri.out)) this,
+    have Hex : k.succ - 1 = (k - s).succ - 1 + s,
+    { simp only [nat.succ_sub_succ_eq_sub, tsub_zero],
+      exact (nat.sub_add_cancel hs).symm },
+    rw [Hex, pow_add] at this,
+    exact nat.eq_of_mul_eq_mul_left (pow_pos hpri.out.pos _) this },
+  all_goals { apply_instance }
+end
+
 /-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is an odd
 prime, then the norm of `ζ - 1` is `p`. -/
-lemma sub_one_norm_prime_ne_two {p : ℕ+} [ne_zero ((p : ℕ) : K)] {k : ℕ}
+lemma sub_one_norm_prime_ne_two [ne_zero ((p : ℕ) : K)] {k : ℕ}
   (hζ : is_primitive_root ζ ↑(p ^ (k + 1))) [hpri : fact (p : ℕ).prime]
   [is_cyclotomic_extension {p ^ (k + 1)} K L]
   (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) (h : p ≠ 2) :
   norm K (ζ - 1) = p :=
-begin
-  haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : K),
-  { refine ⟨λ hzero, _⟩,
-    rw [pow_coe] at hzero,
-    simpa [ne_zero.ne ((p : ℕ) : K)] using hzero },
-  have : 2 < p ^ (k + 1),
-  { rw [← coe_lt_coe, pow_coe, pnat.coe_bit0, one_coe],
-    calc 2 < (p : ℕ) : lt_of_le_of_ne hpri.1.two_le (by contrapose! h; exact coe_injective h.symm)
-      ...  = (p : ℕ) ^ 1 : (pow_one _).symm
-      ...  ≤ (p : ℕ) ^ (k + 1) : pow_le_pow (nat.prime.pos hpri.out) le_add_self },
-  simp [sub_one_norm_eq_eval_cyclotomic hζ this hirr]
-end
+by simpa using hζ.pow_prime_ne_two_pow_sub_one_norm hirr (by exact hirr) h (zero_le k)
 
 /-- If `irreducible (cyclotomic p K)` (in particular for `K = ℚ`) and `p` is an odd prime,
 then the norm of `ζ - 1` is `p`. -/
-lemma sub_one_norm_prime {p : ℕ+} [ne_zero ((p : ℕ) : K)] [hpri : fact (p : ℕ).prime]
+lemma sub_one_norm_prime [ne_zero ((p : ℕ) : K)] [hpri : fact (p : ℕ).prime]
   [hcyc : is_cyclotomic_extension {p} K L] (hζ: is_primitive_root ζ p)
   (hirr : irreducible (cyclotomic p K)) (h : p ≠ 2) :
   norm K (ζ - 1) = p :=
@@ -361,11 +434,28 @@ begin
   exact (zeta_primitive_root n K L).sub_one_norm_is_prime_pow hn hirr h,
 end
 
-/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is an odd
-prime, then the norm of `zeta (p ^ (k + 1)) K L - 1` is `p`. -/
-lemma prime_ne_two_pow_norm_zeta_sub_one {p : ℕ+} [ne_zero ((p : ℕ) : K)] (k : ℕ)
+/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` and `irreducible (cyclotomic (p ^ (k - s + 1)) K)`
+(in particular for `K = ℚ`) and `p` is an odd prime, then the norm of
+`(zeta (p ^ (k + 1)) K L) ^ (p ^ s) - 1` is `p ^ (p ^ s)`. -/
+lemma prime_ne_two_pow_norm_zeta_pow_sub_one [ne_zero ((p : ℕ) : K)] {k : ℕ}
   [hpri : fact (p : ℕ).prime]
   [is_cyclotomic_extension {p ^ (k + 1)} K L]
+  (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))  {s : ℕ}
+  (hirr₁ : irreducible (cyclotomic (↑(p ^ (k - s + 1)) : ℕ) K)) (h : p ≠ 2) (hs : s ≤ k) :
+  norm K ((zeta (p ^ (k + 1)) K L) ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
+begin
+  haveI := ne_zero.of_no_zero_smul_divisors K L p,
+  haveI : ne_zero ((↑(p ^ (k + 1)) : ℕ) : L),
+  { refine ⟨λ hzero, _⟩,
+    rw [pow_coe] at hzero,
+    simpa [ne_zero.ne ((p : ℕ) : L)] using hzero },
+  exact (zeta_primitive_root _ K L).pow_prime_ne_two_pow_sub_one_norm hirr hirr₁ h hs
+end
+
+/-- If `irreducible (cyclotomic (p ^ (k + 1)) K)` (in particular for `K = ℚ`) and `p` is an odd
+prime, then the norm of `zeta (p ^ (k + 1)) K L - 1` is `p`. -/
+lemma prime_ne_two_pow_norm_zeta_sub_one [ne_zero ((p : ℕ) : K)] {k : ℕ}
+  [hpri : fact (p : ℕ).prime] [is_cyclotomic_extension {p ^ (k + 1)} K L]
   (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K)) (h : p ≠ 2) :
   norm K (zeta (p ^ (k + 1)) K L - 1) = p :=
 begin
@@ -379,7 +469,7 @@ end
 
 /-- If `irreducible (cyclotomic p K)` (in particular for `K = ℚ`) and `p` is an odd prime,
 then the norm of `zeta p K L - 1` is `p`. -/
-lemma prime_ne_two_norm_zeta_sub_one {p : ℕ+} [ne_zero ((p : ℕ) : K)] [hpri : fact (p : ℕ).prime]
+lemma prime_ne_two_norm_zeta_sub_one [ne_zero ((p : ℕ) : K)] [hpri : fact (p : ℕ).prime]
   [hcyc : is_cyclotomic_extension {p} K L] (hirr : irreducible (cyclotomic p K)) (h : p ≠ 2) :
   norm K (zeta p K L - 1) = p :=
 begin

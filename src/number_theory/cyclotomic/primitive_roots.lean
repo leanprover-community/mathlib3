@@ -460,7 +460,7 @@ lemma prime_ne_two_pow_norm_zeta_pow_sub_one [ne_zero ((p : ℕ) : K)] {k : ℕ}
   [hpri : fact (p : ℕ).prime]
   [is_cyclotomic_extension {p ^ (k + 1)} K L]
   (hirr : irreducible (cyclotomic (↑(p ^ (k + 1)) : ℕ) K))  {s : ℕ}
-  (hirr₁ : irreducible (cyclotomic (↑(p ^ (k - s + 1)) : ℕ) K)) (h : p ≠ 2) (hs : s < k) :
+  (hirr₁ : irreducible (cyclotomic (↑(p ^ (k - s + 1)) : ℕ) K)) (hs : s < k) :
   norm K ((zeta (p ^ (k + 1)) K L) ^ ((p : ℕ) ^ s) - 1) = p ^ ((p : ℕ) ^ s) :=
 begin
   haveI := ne_zero.of_no_zero_smul_divisors K L p,

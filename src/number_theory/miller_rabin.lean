@@ -280,6 +280,21 @@ begin
   },
 end
 
+-- https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Abelian.20subgroup.20dividing.20order/near/277098292
+def pow_eq_one_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
+{ carrier := ((finset.univ : finset ((zmod n)ˣ)).filter (λ (a : (zmod n)ˣ), a^e = 1)),
+  one_mem' := by simp,
+  mul_mem' := begin
+    simp,
+    intros a b ha hb,
+    -- TODO(Sean) this lemma is similar to the one below in pow_alt_subgroup below. Try to solve it using the lemmas you used there
+    sorry,
+  end,
+  inv_mem' := begin
+    simp,
+  end,
+}
+
 def pow_alt_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
 { carrier := ((finset.univ : finset ((zmod n)ˣ)).filter (λ (a : (zmod n)ˣ), a^e = 1 ∨ a^e = -1)),
   one_mem' := by simp,
@@ -372,6 +387,18 @@ lemma unlikely_strong_probable_prime_of_prime_power (n : ℕ) [hn_pos : fact (0 
   (h : (∃ (p k : ℕ), p.prime ∧ p^k = n)) (not_prime : ¬ n.prime) :
   ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
 begin
+  rcases h with ⟨p, k, p_prime, n_pow⟩,
+  have n_pos : 0 < n, exact hn_pos.out,
+  have one_lt_k : 1 < k,
+  {
+    by_contra,
+    simp at h,
+    interval_cases k,
+    -- TODO(Sean): try to solve these two sorrys, shouldn't need any other lemmas in this file.
+    { sorry, },
+    { apply not_prime,
+      sorry, },
+  },
   sorry,
 end
 

@@ -725,6 +725,14 @@ lemma eq_univ_of_nonempty_clopen [preconnected_space α] {s : set α}
   (h : s.nonempty) (h' : is_clopen s) : s = univ :=
 by { rw is_clopen_iff at h', exact h'.resolve_left h.ne_empty }
 
+lemma frontier_eq_empty_iff [preconnected_space α] {s : set α} :
+  frontier s = ∅ ↔ s = ∅ ∨ s = univ :=
+is_clopen_iff_frontier_eq_empty.symm.trans is_clopen_iff
+
+lemma nonempty_frontier_iff [preconnected_space α] {s : set α} :
+  (frontier s).nonempty ↔ s.nonempty ∧ s ≠ univ :=
+by simp only [← ne_empty_iff_nonempty, ne.def, frontier_eq_empty_iff, not_or_distrib]
+
 lemma subtype.preconnected_space {s : set α} (h : is_preconnected s) :
   preconnected_space s :=
 { is_preconnected_univ := by rwa [← embedding_subtype_coe.to_inducing.is_preconnected_image,

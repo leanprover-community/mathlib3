@@ -3,11 +3,11 @@ Copyright (c) 2018  Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
-import data.fintype.basic
-import algebra.group.hom
 import algebra.group.semiconj
-import data.equiv.mul_add_aut
 import algebra.group_with_zero.basic
+import algebra.hom.aut
+import algebra.hom.group
+import data.fintype.basic
 
 /-!
 # Conjugacy of group elements

@@ -141,7 +141,7 @@ end
 by { cases a, cases b, rw ←of_finsupp_add }
 @[simp] lemma to_finsupp_neg {R : Type u} [ring R] (a : R[X]) : (-a).to_finsupp = -a.to_finsupp :=
 by { cases a, rw ←of_finsupp_neg }
-@[simp] lemma to_finsupp_sub {R : Type u} [ring R] (a b  : R[X]) :
+@[simp] lemma to_finsupp_sub {R : Type u} [ring R] (a b : R[X]) :
   (a - b).to_finsupp = a.to_finsupp - b.to_finsupp :=
 by { rw [sub_eq_add_neg, ←to_finsupp_neg, ←to_finsupp_add], refl }
 @[simp] lemma to_finsupp_mul (a b : R[X]) : (a * b).to_finsupp = a.to_finsupp * b.to_finsupp :=
@@ -767,7 +767,9 @@ lemma C_eq_int_cast (n : ℤ) : C (n : R) = n :=
 end ring
 
 instance [comm_ring R] : comm_ring R[X] :=
-{ .. polynomial.comm_semiring, .. polynomial.ring }
+function.injective.comm_ring to_finsupp to_finsupp_injective
+  to_finsupp_zero to_finsupp_one to_finsupp_add to_finsupp_mul to_finsupp_neg to_finsupp_sub
+  (λ _ _, to_finsupp_smul _ _) (λ _ _, to_finsupp_smul _ _) to_finsupp_pow
 
 section nonzero_semiring
 

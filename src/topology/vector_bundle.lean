@@ -656,6 +656,32 @@ trivialization for the direct sum of `E₁` and `E₂`. -/
 def prod.to_fun' : total_space (E₁ ×ᵇ E₂) → B × (F₁ × F₂) :=
 λ ⟨x, v₁, v₂⟩, ⟨x, (e₁ ⟨x, v₁⟩).2, (e₂ ⟨x, v₂⟩).2⟩
 
+variables {e₁ e₂}
+
+lemma prod.continuous_to_fun :
+  continuous_on (prod.to_fun' e₁ e₂) (proj (E₁ ×ᵇ E₂) ⁻¹' (e₁.base_set ∩ e₂.base_set)) :=
+begin
+  let f₁ : total_space (E₁ ×ᵇ E₂) → total_space E₁ × total_space E₂ :=
+    λ p, ((⟨p.1, p.2.1⟩ : total_space E₁), (⟨p.1, p.2.2⟩ : total_space E₂)),
+  let f₂ : total_space E₁ × total_space E₂ → (B × F₁) × (B × F₂) := λ p, ⟨e₁ p.1, e₂ p.2⟩,
+  let f₃ : (B × F₁) × (B × F₂) → B × F₁ × F₂ := λ p, ⟨p.1.1, p.1.2, p.2.2⟩,
+  have hf₁ : continuous f₁ := (prod.inducing_diag E₁ E₂).continuous,
+  have hf₂ : continuous_on f₂ (e₁.source ×ˢ e₂.source) :=
+    e₁.to_local_homeomorph.continuous_on.prod_map e₂.to_local_homeomorph.continuous_on,
+  have hf₃ : continuous f₃ :=
+    (continuous_fst.comp continuous_fst).prod_mk (continuous_snd.prod_map continuous_snd),
+  refine ((hf₃.comp_continuous_on hf₂).comp hf₁.continuous_on _).congr _,
+  { rw [e₁.source_eq, e₂.source_eq],
+    exact maps_to_preimage _ _ },
+  rintros ⟨b, v₁, v₂⟩ ⟨hb₁, hb₂⟩,
+  simp only [prod.to_fun', prod.mk.inj_iff, eq_self_iff_true, and_true],
+  rw e₁.coe_fst,
+  rw [e₁.source_eq, mem_preimage],
+  exact hb₁,
+end
+
+variables (e₁ e₂)
+
 variables [Π x : B, topological_space (E₁ x)] [Π x : B, topological_space (E₂ x)]
   [topological_vector_bundle R F₁ E₁] [topological_vector_bundle R F₂ E₂]
 
@@ -686,6 +712,60 @@ begin
   rw [dif_pos, dif_pos],
 end
 
+lemma prod.left_inv {x : total_space (E₁ ×ᵇ E₂)}
+  (h : x ∈ proj (E₁ ×ᵇ E₂) ⁻¹' (e₁.base_set ∩ e₂.base_set)) :
+  prod.inv_fun' e₁ e₂ (prod.to_fun' e₁ e₂ x) = x :=
+begin
+  obtain ⟨x, v₁, v₂⟩ := x,
+  simp only [prod.to_fun', prod.inv_fun', sigma.mk.inj_iff, true_and, eq_self_iff_true,
+    prod.mk.inj_iff, heq_iff_eq],
+  split,
+  { rw [dif_pos, ← e₁.continuous_linear_equiv_at_apply x h.1,
+      continuous_linear_equiv.symm_apply_apply] },
+  { rw [dif_pos, ← e₂.continuous_linear_equiv_at_apply x h.2,
+      continuous_linear_equiv.symm_apply_apply] },
+end
+
+lemma prod.right_inv {x : B × F₁ × F₂}
+  (h : x ∈ (e₁.base_set ∩ e₂.base_set) ×ˢ (univ : set (F₁ × F₂))) :
+  prod.to_fun' e₁ e₂ (prod.inv_fun' e₁ e₂ x) = x :=
+begin
+  obtain ⟨x, w₁, w₂⟩ := x,
+  obtain ⟨h, -⟩ := h,
+  dsimp only [prod.to_fun', prod.inv_fun'],
+  simp only [prod.mk.inj_iff, eq_self_iff_true, true_and],
+  split,
+  { rw [dif_pos, ← e₁.continuous_linear_equiv_at_apply x h.1,
+      continuous_linear_equiv.apply_symm_apply] },
+  { rw [dif_pos, ← e₂.continuous_linear_equiv_at_apply x h.2,
+      continuous_linear_equiv.apply_symm_apply] },
+end
+
+lemma prod.continuous_inv_fun :
+  continuous_on (prod.inv_fun' e₁ e₂) ((e₁.base_set ∩ e₂.base_set) ×ˢ (univ : set (F₁ × F₂))) :=
+begin
+  rw (prod.inducing_diag E₁ E₂).continuous_on_iff,
+  suffices : continuous_on (λ p : B × F₁ × F₂,
+    (e₁.to_local_homeomorph.symm ⟨p.1, p.2.1⟩, e₂.to_local_homeomorph.symm ⟨p.1, p.2.2⟩))
+    ((e₁.base_set ∩ e₂.base_set) ×ˢ (univ : set (F₁ × F₂))),
+  { refine this.congr _,
+    rintros ⟨b, v₁, v₂⟩ ⟨⟨h₁, h₂⟩, _⟩,
+    dsimp at ⊢ h₁ h₂,
+    rw [prod.inv_fun'_apply h₁ h₂, e₁.symm_apply_eq_mk_continuous_linear_equiv_at_symm b h₁,
+      e₂.symm_apply_eq_mk_continuous_linear_equiv_at_symm b h₂] },
+  have H₁ : continuous (λ p : B × F₁ × F₂, ((p.1, p.2.1), (p.1, p.2.2))) :=
+    (continuous_id.prod_map continuous_fst).prod_mk (continuous_id.prod_map continuous_snd),
+  have H₂ := e₁.to_local_homeomorph.symm.continuous_on.prod_map
+    e₂.to_local_homeomorph.symm.continuous_on,
+  refine H₂.comp H₁.continuous_on (λ x h, ⟨_, _⟩),
+  { dsimp,
+    rw e₁.target_eq,
+    exact ⟨h.1.1, mem_univ _⟩ },
+  { dsimp,
+    rw e₂.target_eq,
+    exact ⟨h.1.2, mem_univ _⟩ }
+end
+
 variables (e₁ e₂)
 
 /-- Given trivializations `e₁`, `e₂` for vector bundles `E₁`, `E₂` over a base `B`, the induced
@@ -698,75 +778,16 @@ def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
   target := (e₁.base_set ∩ e₂.base_set) ×ˢ (set.univ : set (F₁ × F₂)),
   map_source' := λ ⟨x, v₁, v₂⟩ h, ⟨h, set.mem_univ _⟩,
   map_target' := λ ⟨x, w₁, w₂⟩ h, h.1,
-  left_inv' := λ ⟨x, v₁, v₂⟩ h,
-  begin
-    simp only [prod.to_fun', prod.inv_fun', sigma.mk.inj_iff, true_and, eq_self_iff_true,
-      prod.mk.inj_iff, heq_iff_eq],
-    split,
-    { rw [dif_pos, ← e₁.continuous_linear_equiv_at_apply x h.1,
-        continuous_linear_equiv.symm_apply_apply] },
-    { rw [dif_pos, ← e₂.continuous_linear_equiv_at_apply x h.2,
-        continuous_linear_equiv.symm_apply_apply] },
-  end,
-  right_inv' := λ ⟨x, w₁, w₂⟩ ⟨h, _⟩,
-  begin
-    dsimp only [prod.to_fun', prod.inv_fun'],
-    simp only [prod.mk.inj_iff, eq_self_iff_true, true_and],
-    split,
-    { rw [dif_pos, ← e₁.continuous_linear_equiv_at_apply x h.1,
-        continuous_linear_equiv.apply_symm_apply] },
-    { rw [dif_pos, ← e₂.continuous_linear_equiv_at_apply x h.2,
-        continuous_linear_equiv.apply_symm_apply] },
-  end,
+  left_inv' := λ x, prod.left_inv,
+  right_inv' := λ x, prod.right_inv,
   open_source := begin
     refine (e₁.open_base_set.inter e₂.open_base_set).preimage _,
     have : continuous (proj E₁) := continuous_proj R B F₁,
     exact this.comp (continuous_fst.comp (prod.inducing_diag E₁ E₂).continuous),
   end,
   open_target := (e₁.open_base_set.inter e₂.open_base_set).prod is_open_univ,
-  continuous_to_fun :=
-  begin
-    let f₁ : total_space (E₁ ×ᵇ E₂) → total_space E₁ × total_space E₂ :=
-      λ p, ((⟨p.1, p.2.1⟩ : total_space E₁), (⟨p.1, p.2.2⟩ : total_space E₂)),
-    let f₂ : total_space E₁ × total_space E₂ → (B × F₁) × (B × F₂) := λ p, ⟨e₁ p.1, e₂ p.2⟩,
-    let f₃ : (B × F₁) × (B × F₂) → B × F₁ × F₂ := λ p, ⟨p.1.1, p.1.2, p.2.2⟩,
-    have hf₁ : continuous f₁ := (prod.inducing_diag E₁ E₂).continuous,
-    have hf₂ : continuous_on f₂ (e₁.source ×ˢ e₂.source) :=
-      e₁.to_local_homeomorph.continuous_on.prod_map e₂.to_local_homeomorph.continuous_on,
-    have hf₃ : continuous f₃ :=
-      (continuous_fst.comp continuous_fst).prod_mk (continuous_snd.prod_map continuous_snd),
-    refine ((hf₃.comp_continuous_on hf₂).comp hf₁.continuous_on _).congr _,
-    { rw [e₁.source_eq, e₂.source_eq],
-      exact maps_to_preimage _ _ },
-    rintros ⟨b, v₁, v₂⟩ ⟨hb₁, hb₂⟩,
-    simp only [prod.to_fun', prod.mk.inj_iff, eq_self_iff_true, and_true],
-    rw e₁.coe_fst,
-    rw [e₁.source_eq, mem_preimage],
-    exact hb₁,
-  end,
-  continuous_inv_fun :=
-  begin
-    rw (prod.inducing_diag E₁ E₂).continuous_on_iff,
-    suffices : continuous_on (λ p : B × F₁ × F₂,
-      (e₁.to_local_homeomorph.symm ⟨p.1, p.2.1⟩, e₂.to_local_homeomorph.symm ⟨p.1, p.2.2⟩))
-      ((e₁.base_set ∩ e₂.base_set) ×ˢ (univ : set (F₁ × F₂))),
-    { refine this.congr _,
-      rintros ⟨b, v₁, v₂⟩ ⟨⟨h₁, h₂⟩, _⟩,
-      dsimp at ⊢ h₁ h₂,
-      rw [prod.inv_fun'_apply h₁ h₂, e₁.symm_apply_eq_mk_continuous_linear_equiv_at_symm b h₁,
-        e₂.symm_apply_eq_mk_continuous_linear_equiv_at_symm b h₂] },
-    have H₁ : continuous (λ p : B × F₁ × F₂, ((p.1, p.2.1), (p.1, p.2.2))) :=
-      (continuous_id.prod_map continuous_fst).prod_mk (continuous_id.prod_map continuous_snd),
-    have H₂ := e₁.to_local_homeomorph.symm.continuous_on.prod_map
-      e₂.to_local_homeomorph.symm.continuous_on,
-    refine H₂.comp H₁.continuous_on (λ x h, ⟨_, _⟩),
-    { dsimp,
-      rw e₁.target_eq,
-      exact ⟨h.1.1, mem_univ _⟩ },
-    { dsimp,
-      rw e₂.target_eq,
-      exact ⟨h.1.2, mem_univ _⟩ }
-  end,
+  continuous_to_fun := prod.continuous_to_fun,
+  continuous_inv_fun := prod.continuous_inv_fun,
   base_set := e₁.base_set ∩ e₂.base_set,
   open_base_set := e₁.open_base_set.inter e₂.open_base_set,
   source_eq := rfl,

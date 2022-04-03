@@ -10,6 +10,11 @@ import algebra.punit_instances
 
 /-!
 # The category of monoids in a monoidal category.
+
+We define monoids in a monoidal category `C` and show that the category of monoids is equivalent to
+the category of lax monoidal functors from the unit monoidal category to `C`.  We also show that if
+`C` is braided, then the category of monoids is naturally monoidal.
+
 -/
 
 universes v₁ v₂ u₁ u₂ u
@@ -295,6 +300,34 @@ def equiv_lax_monoidal_functor_punit : lax_monoidal_functor (discrete punit.{u+1
 end Mon_
 
 namespace Mon_
+
+/-!
+In this section, we prove that the category of monoids in a braided monoidal category is monoidal.
+
+Given two monoids `M` and `N` in a braided monoidal category `C`, the multiplication on the tensor
+product `M.X ⊗ N.X` is defined in the obvious way: it is the tensor product of the multiplications
+on `M` and `N`, except that the tensor factors in the source come in the wrong order, which we fix
+by pre-composing with a permutation isomorphism constructed from the braiding.
+
+A more conceptual way of understanding this definition is the following: The braiding on `C` gives
+rise to a monoidal structure on the tensor product functor from `C × C` to `C`.  A pair of monoids
+in `C` gives rise to a monoid in `C × C`, which the tensor product functor by being monoidal takes
+to a monoid in `C`.  The permutation isomorphism appearing in the definition of the multiplication
+on the tensor product of two monoids is an instance of a more general family of isomorphisms which
+together form a strength that equips the tensor product functor with a monoidal structure, and the
+monoid axioms for the tensor product follow from the monoid axioms for the tensor factors plus the
+properties of the strength (i.e., monoidal functor axioms).  The strength `tensor_μ` of the tensor
+product functor has been defined in `category_theory.monoidal.braided`.  Its properties, stated as
+independent lemmas in that module, are used extensively in the proofs below.
+
+To complete the definition of the monoidal category structure on the category of monoids, we need
+to provide definitions of associator and unitors.  The obvious candidates are the associator and
+unitors from `C`, but we need to prove that they are monoid morphisms, i.e., compatible with unit
+and multiplication.  These properties translate to the monoidality of the associator and unitors
+(with respect to the monoidal structures on the functors they relate), which have also been proved
+in `category_theory.monoidal.braided`.
+
+-/
 
 variable [braided_category C]
 

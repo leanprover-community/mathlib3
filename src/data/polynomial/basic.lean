@@ -98,7 +98,8 @@ instance {R : Type u} [ring R] : has_sub R[X] := ⟨λ a b, a + -b⟩
 instance : has_mul R[X] := ⟨mul⟩
 instance {S : Type*} [monoid S] [distrib_mul_action S R] : has_scalar S R[X] :=
 ⟨λ r p, ⟨r • p.to_finsupp⟩⟩
-instance : has_pow R[X] ℕ := { pow := λ p n, npow_rec n p }
+@[priority 1]  -- to avoid a bug in the `ring` tactic
+instance has_pow : has_pow R[X] ℕ := { pow := λ p n, npow_rec n p }
 
 @[simp] lemma of_finsupp_zero : (⟨0⟩ : R[X]) = 0 :=
 rfl

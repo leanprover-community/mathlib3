@@ -213,6 +213,19 @@ begin
   field_simp [this]
 end
 
+lemma exp_ne_zero_of_mem_ball [char_zero 𝕂] [nontrivial 𝔸] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) : exp 𝕂 𝔸 x ≠ 0 :=
+begin
+  intro h,
+  refine @zero_ne_one 𝔸 _ _ _,
+  rw ←@exp_zero 𝕂,
+  conv_rhs {rw ← add_neg_self x},
+  have hnx : -x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius,
+  { rw [emetric.mem_ball, ←neg_zero, edist_neg_neg],
+    exact hx },
+  rw [exp_add_of_commute_of_mem_ball (commute.neg_right $ commute.refl x) hx hnx, h, zero_mul],
+end
+
 end complete_algebra
 
 lemma algebra_map_exp_comm_of_mem_ball [complete_space 𝕂] (x : 𝕂)
@@ -324,11 +337,9 @@ lemma exp_analytic (x : 𝔸) :
   analytic_at 𝕂 (exp 𝕂 𝔸) x :=
 analytic_at_exp_of_mem_ball x ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
-end complete_algebra
-
 /-- In a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, if `x` and `y` commute, then
 `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`. -/
-lemma exp_add_of_commute [complete_space 𝔸]
+lemma exp_add_of_commute
   {x y : 𝔸} (hxy : commute x y) :
   exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
 exp_add_of_commute_of_mem_ball hxy ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
@@ -336,14 +347,14 @@ exp_add_of_commute_of_mem_ball hxy ((exp_series_radius_eq_top 𝕂 𝔸).symm �
 
 section
 variables (𝕂)
-lemma commute.exp [complete_space 𝔸] {x y : 𝔸} (h : commute x y) :
+lemma commute.exp {x y : 𝔸} (h : commute x y) :
   commute (exp 𝕂 𝔸 x) (exp 𝕂 𝔸 y) :=
 (exp_add_of_commute h).symm.trans $ (congr_arg _ $ add_comm _ _).trans (exp_add_of_commute h.symm)
 end
 
 /-- In a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, if a family of elements `f i` mutually
 commute then `exp 𝕂 𝔸 (∑ i, f i) = ∏ i, exp 𝕂 𝔸 (f i)`. -/
-lemma exp_sum_of_commute {ι} [complete_space 𝔸] (s : finset ι) (f : ι → 𝔸)
+lemma exp_sum_of_commute {ι} (s : finset ι) (f : ι → 𝔸)
   (h : ∀ (i ∈ s) (j ∈ s), commute (f i) (f j)) :
   exp 𝕂 𝔸 (∑ i in s, f i) = s.noncomm_prod (λ i, exp 𝕂 𝔸 (f i))
     (λ i hi j hj, (h i hi j hj).exp 𝕂) :=
@@ -358,7 +369,7 @@ begin
   exact h _ (finset.mem_insert_self _ _) _ (finset.mem_insert_of_mem hi),
 end
 
-lemma exp_nsmul [complete_space 𝔸] (n : ℕ) (x : 𝔸) :
+lemma exp_nsmul (n : ℕ) (x : 𝔸) :
   exp 𝕂 𝔸 (n • x) = exp 𝕂 𝔸 x ^ n :=
 begin
   induction n with n ih,
@@ -366,11 +377,43 @@ begin
   { rw [succ_nsmul, pow_succ, exp_add_of_commute ((commute.refl x).smul_right n), ih] }
 end
 
+lemma exp_ne_zero [nontrivial 𝔸] (x) : exp 𝕂 𝔸 x ≠ 0 :=
+begin
+  intro h,
+  refine @zero_ne_one 𝔸 _ _ _,
+  rw ←@exp_zero 𝕂,
+  conv_rhs {rw ← add_neg_self x},
+  rw [exp_add_of_commute (commute.neg_right $ commute.refl x), h, zero_mul],
+end
+
+end complete_algebra
+
 lemma algebra_map_exp_comm (x : 𝕂) :
   algebra_map 𝕂 𝔸 (exp 𝕂 𝕂 x) = exp 𝕂 𝔸 (algebra_map 𝕂 𝔸 x) :=
 algebra_map_exp_comm_of_mem_ball x (by simp [exp_series_radius_eq_top])
 
 end any_algebra
+
+section division_algebra
+
+variables (𝕂 𝔸 : Type*) [is_R_or_C 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
+
+
+lemma exp_neg (n : ℕ) (x : 𝔸) :
+  exp 𝕂 𝔸 (-x) = (exp 𝕂 𝔸 x)⁻¹ :=
+begin
+  apply mul_left_injective₀ (exp)
+  by_cases h : x = 0,
+  { simp [h] },
+  rw eq_inv_iff,
+  apply mul_left_injective₀ (_ : exp 𝕂 𝔸 x ≠ 0),
+  dsimp,
+  induction n with n ih,
+  { rw [zero_smul, pow_zero, exp_zero], },
+  { rw [succ_nsmul, pow_succ, exp_add_of_commute ((commute.refl x).smul_right n), ih] }
+end
+
+end division_algebra
 
 section comm_algebra
 

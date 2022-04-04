@@ -2274,7 +2274,11 @@ by rw [← image_eq_image hf.1, hf.2.image_preimage]
 
 end image_preimage
 
-/-! ### Lemmas about images of binary and ternary functions -/
+/-!
+### Images of binary and ternary functions
+
+This section is very similar to `order.filter.n_ary`. Please keep them in sync.
+-/
 
 section n_ary_image
 
@@ -2307,6 +2311,12 @@ lemma image2_subset_left (ht : t ⊆ t') : image2 f s t ⊆ image2 f s t' := ima
 
 lemma image2_subset_right (hs : s ⊆ s') : image2 f s t ⊆ image2 f s' t :=
 image2_subset hs subset.rfl
+
+lemma image_subset_image2_left (hb : b ∈ t) : (λ a, f a b) '' s ⊆ image2 f s t :=
+ball_image_of_ball $ λ a ha, mem_image2_of_mem ha hb
+
+lemma image_subset_image2_right (ha : a ∈ s) : f a '' t ⊆ image2 f s t :=
+ball_image_of_ball $ λ b, mem_image2_of_mem ha
 
 lemma forall_image2_iff {p : γ → Prop} :
   (∀ z ∈ image2 f s t, p z) ↔ ∀ (x ∈ s) (y ∈ t), p (f x y) :=

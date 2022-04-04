@@ -60,7 +60,7 @@ end
 begin
   induction p using mul_opposite.rec,
   cases p,
-  exact support_map_range_of_injective _ _ op_injective
+  exact finsupp.support_map_range_of_injective _ _ op_injective
 end
 
 @[simp] lemma nat_degree_op_ring_equiv (p : R[X]ᵐᵒᵖ) :

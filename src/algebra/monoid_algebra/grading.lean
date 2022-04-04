@@ -205,7 +205,8 @@ of_grades_by (add_monoid_hom.id ι)
 @[simp]
 lemma of_grades_by_of (i : ι) (x : grade_by R f i) :
   of_grades_by f (direct_sum.of (λ i, grade_by R f i) i x) = x :=
-direct_sum.submodule_coe_alg_hom_of (grade_by R f) i x
+-- Use `simpa only` to help the elaborator decide what to unfold.
+by simpa only [of_grades_by] using direct_sum.submodule_coe_alg_hom_of (grade_by R f) i x
 
 @[simp]
 lemma of_grades_of (i : ι) (x : grade R i) :
@@ -217,7 +218,8 @@ lemma of_grades_by_comp_to_grades_by :
   (of_grades_by f).comp (to_grades_by f) = alg_hom.id R (add_monoid_algebra R M) :=
 begin
   ext : 2,
-  dsimp,
+  dsimp only [monoid_hom.coe_comp, alg_hom.coe_to_monoid_hom, alg_hom.coe_comp, function.comp_app,
+    of_apply, alg_hom.coe_id, function.comp.left_id, id],
   rw [to_grades_by_single, of_grades_by_of, subtype.coe_mk],
 end
 
@@ -240,7 +242,8 @@ lemma to_grades_by_comp_of_grades_by :
   (to_grades_by f).comp (of_grades_by f) = alg_hom.id R (⨁ i : ι, grade_by R f i) :=
 begin
   ext : 2,
-  dsimp [direct_sum.lof_eq_of],
+  dsimp only [direct_sum.lof_eq_of, linear_map.coe_comp, alg_hom.comp_to_linear_map,
+    alg_hom.to_linear_map_apply, function.comp_app, alg_hom.coe_id, id],
   rw [of_grades_by_of, to_grades_by_coe],
 end
 
@@ -276,6 +279,7 @@ lemma grade_by.is_internal : direct_sum.submodule_is_internal (grade_by R f) :=
 
 /-- `add_monoid_algebra.grades` describe an internally graded algebra -/
 lemma grade.is_internal : direct_sum.submodule_is_internal (grade R : ι → submodule R _) :=
-grade_by.is_internal (add_monoid_hom.id ι)
+-- Use `simpa only` to help the elaborator decide what to unfold.
+by simpa only [grade_by_id] using grade_by.is_internal (add_monoid_hom.id ι)
 
 end add_monoid_algebra

@@ -55,16 +55,6 @@ begin
   refl
 end
 
--- TODO: move to finsupp/basic
-lemma finsupp.support_map_range_of_injective {ι α β} [has_zero α] [has_zero β]
-  {e : α → β} (he0 : e 0 = 0) (f : ι →₀ α) (he : function.injective e) :
-  (finsupp.map_range e he0 f).support = f.support :=
-begin
-  ext,
-  simp only [finsupp.mem_support_iff, ne.def, finsupp.map_range_apply],
-  exact he.ne_iff' he0,
-end
-
 @[simp] lemma support_op_ring_equiv (p : R[X]ᵐᵒᵖ) :
   (op_ring_equiv R p).support = (unop p).support :=
 begin

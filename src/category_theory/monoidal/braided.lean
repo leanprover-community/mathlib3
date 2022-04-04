@@ -357,13 +357,7 @@ begin
                       comp_id, comp_id,
                       left_unitor_inv_braiding] },
   simp only [assoc],
-  have :
-      (𝟙 (𝟙_ C) ⊗ ((ρ_ X₁).inv ⊗ 𝟙 X₂)) ≫
-      (𝟙 (𝟙_ C) ⊗ (α_ X₁ (𝟙_ C) X₂).hom) ≫
-      (α_ (𝟙_ C) X₁ (𝟙_ C ⊗ X₂)).inv ≫
-      ((λ_ X₁).hom ⊗ (λ_ X₂).hom)
-    = (λ_ (X₁ ⊗ X₂)).hom := by pure_coherence,
-  rw this,
+  coherence,
 end
 
 lemma tensor_right_unitality (X₁ X₂ : C) :
@@ -384,14 +378,7 @@ begin
                       comp_id, comp_id,
                       right_unitor_inv_braiding] },
   simp only [assoc],
-  have :
-      (α_ X₁ X₂ (𝟙_ C)).hom ≫
-      (𝟙 X₁ ⊗ ((λ_ X₂).inv ⊗ 𝟙 (𝟙_ C))) ≫
-      (𝟙 X₁ ⊗ (α_ (𝟙_ C) X₂ (𝟙_ C)).hom) ≫
-      (α_ X₁ (𝟙_ C) (X₂ ⊗ 𝟙_ C)).inv ≫
-      ((ρ_ X₁).hom ⊗ (ρ_ X₂).hom)
-    = (ρ_ (X₁ ⊗ X₂)).hom := by pure_coherence,
-  rw this,
+  coherence,
 end
 
 /-
@@ -529,6 +516,8 @@ begin
   slice_lhs 10 12 { rw [←tensor_comp, ←tensor_comp,
                         ←tensor_μ_def₂,
                         tensor_comp, tensor_comp] },
+  -- It should be possible to close the goal by `coherence` here, but if fails with "Something went
+  -- wrong in the `coherence` tactic: is the target an equation in a monoidal category?",
   have :
       ((α_ X₁ X₂ (Y₁ ⊗ Y₂)).hom ⊗ 𝟙 (Z₁ ⊗ Z₂)) ≫
       ((𝟙 X₁ ⊗ (α_ X₂ Y₁ Y₂).inv) ⊗ 𝟙 (Z₁ ⊗ Z₂)) ≫

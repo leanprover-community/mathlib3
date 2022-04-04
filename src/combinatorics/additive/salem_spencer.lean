@@ -230,7 +230,7 @@ variables [monoid α] [decidable_eq β] [monoid β] (s t : finset α)
 /-- The multiplicative Roth number of a finset is the cardinality of its biggest multiplicative
 Salem-Spencer subset. -/
 @[to_additive "The additive Roth number of a finset is the cardinality of its biggest additive
-Salem-Spencer subset. The usual Roth number corresponds to `roth_number (finset.range n)`, see
+Salem-Spencer subset. The usual Roth number corresponds to `add_roth_number (finset.range n)`, see
 `roth_number_nat`. "]
 def mul_roth_number : finset α →o ℕ :=
 ⟨λ s, nat.find_greatest (λ m, ∃ t ⊆ s, t.card = m ∧ mul_salem_spencer (t : set α)) s.card,

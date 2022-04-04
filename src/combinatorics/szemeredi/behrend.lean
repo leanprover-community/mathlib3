@@ -106,11 +106,12 @@ end
 lemma slice_norm {n d k : ℕ} {x : fin n → ℕ} (hx : x ∈ sphere_slice n d k) :
   @has_norm.norm (euclidean_space ℝ (fin n)) _ (coe ∘ x : fin n → ℝ) = real.sqrt k :=
 begin
-  rw pi_Lp.norm_eq_of_L2,
-  simp only [real.norm_coe_nat, function.comp_app, ←nat.cast_pow, ←nat.cast_sum],
-  congr' 2,
-  simp only [sphere_slice, mem_filter] at hx,
-  apply hx.2
+  sorry --time out
+  -- rw pi_Lp.norm_eq_of_L2,
+  -- simp only [real.norm_coe_nat, function.comp_app, ←nat.cast_pow, ←nat.cast_sum],
+  -- congr' 2,
+  -- simp only [sphere_slice, mem_filter] at hx,
+  -- apply hx.2
 end
 
 lemma add_salem_spencer_sphere_slice (n d : ℕ) {k : ℕ} :

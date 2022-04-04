@@ -272,6 +272,53 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
+lemma foo
+  (b : E → E)
+  {s : set H}
+  (hs : is_open s)
+  (ha : cont_diff_on 𝕜 1 b (I.symm ⁻¹' s ∩ range I)) :
+  continuous_on (λ (x : H), fderiv_within 𝕜 b (range I) (I x)) s :=
+begin
+  change cont_diff_on 𝕜 ↑(1:ℕ) _ _ at ha,
+  rw cont_diff_on_succ_iff_fderiv_within at ha,
+  intros x hx,
+  have hf₁ := ha.1,
+  rw ← I.image_eq at hf₁,
+  have h'' : ∀ y ∈ s, I '' s ∈ 𝓝[range I] (I y),
+  { intros y hy,
+    apply I.image_mem_nhds_within,
+    apply hs.mem_nhds,
+    exact hy },
+  have hf₁' : ∀ y ∈ s, differentiable_within_at 𝕜 b (range I) (I y),
+  { intros y hy,
+    have := hf₁ _ ⟨y, hy, rfl⟩,
+    rw ← differentiable_within_at_inter' (h'' y hy),
+    convert this,
+    apply inter_eq_self_of_subset_right,
+    exact image_subset_range I s },
+  have hf₁'' : ∀ y ∈ s, fderiv_within 𝕜 b (range I) (I y) = fderiv_within 𝕜 b (I '' s) (I y),
+  { intros y hy,
+    symmetry,
+    apply fderiv_within_subset,
+    { exact image_subset_range I s },
+    { rw I.image_eq,
+      apply I.unique_diff_preimage hs,
+      rw ← I.image_eq,
+      exact mem_image_of_mem I hy },
+    { exact hf₁' y hy } },
+  have hf : cont_diff_on 𝕜 0 _ _ := ha.2,
+  rw cont_diff_on_zero at hf,
+  rw ← I.image_eq at hf,
+  have := hf (I x) _,
+  refine (this.comp I.continuous_within_at _).congr _ _,
+  { exact maps_to_image I s },
+  { exact hf₁'' },
+  { dsimp,
+    exact hf₁'' x hx },
+  { exact mem_image_of_mem I hx },
+  { exact I.unique_diff_preimage hs },
+end
+
 lemma coord_change_continuous' (i j : ↥(atlas H M)) :
   continuous_on
     (λ (x : H), fderiv_within 𝕜 (I ∘ j.val ∘ i.val.symm ∘ I.symm) (range I) (I x))
@@ -279,29 +326,9 @@ lemma coord_change_continuous' (i j : ↥(atlas H M)) :
 begin
   have : i.val.symm ≫ₕ j.val ∈ cont_diff_groupoid ∞ I :=
     (cont_diff_groupoid ∞ I).compatible i.2 j.2,
-  have hij : cont_diff_on 𝕜 ↑(1:ℕ) (I ∘ (i.val.symm ≫ₕ j.val) ∘ I.symm)
-    (I.symm ⁻¹' (i.val.symm ≫ₕ j.val).to_local_equiv.source ∩ range I) :=
-    (mem_groupoid_of_pregroupoid.mp this).1.of_le le_top,
-  rw cont_diff_on_succ_iff_has_fderiv_within_at at hij,
-  intros x hx,
-  have hx' : I x ∈ ⇑(I.symm) ⁻¹' (i.val.symm ≫ₕ j.val).to_local_equiv.source ∩ range I,
-  { refine ⟨_, set.mem_range_self x⟩,
-    rw [set.mem_preimage, I.left_inv],
-    exact hx },
-  obtain ⟨s, hs, f, hijf, hf : cont_diff_on 𝕜 0 f s⟩ := hij (I x) hx',
-  rw cont_diff_on_zero at hf,
-  have hxs : I x ∈ s,
-  { sorry },
-  have hIs : maps_to I (i.val.symm ≫ₕ j.val).to_local_equiv.source s,
-  { sorry },
-  refine ((hf (I x) hxs).comp I.continuous_within_at hIs).congr _ _,
-  { intros a ha,
-    refine eq.trans _ ((hijf (I a) (hIs ha)).fderiv_within _),
-    { sorry }, -- `congr` argument for `fderiv`
-    { sorry } }, -- `unique_diff_within`
-  { refine eq.trans _ ((hijf (I x) hxs).fderiv_within _),
-    { sorry }, -- `congr` argument for `fderiv`
-    { sorry } }, -- `unique_diff_within`
+  have : cont_diff_on _ _ _ _ := this.1,
+  have hij : cont_diff_on 𝕜 1 _ (I.symm ⁻¹' _ ∩ range I) := this.of_le le_top,
+  exact foo I (I ∘ (i.val.symm ≫ₕ j.val) ∘ I.symm) (i.val.symm ≫ₕ j.val).open_source hij,
 end
 
 /-- Basic smooth bundle core version of the tangent bundle of a smooth manifold `M` modelled over a

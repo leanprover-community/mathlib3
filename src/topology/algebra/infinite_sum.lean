@@ -228,7 +228,7 @@ lemma function.surjective.summable_iff_of_has_sum_iff {α' : Type*} [add_comm_mo
   [topological_space α'] {e : α' → α} (hes : function.surjective e) {f : β → α} {g : γ → α'}
   (he : ∀ {a}, has_sum f (e a) ↔ has_sum g a) :
   summable f ↔ summable g :=
-⟨λ ⟨a, ha⟩, let ⟨x, hx⟩ := hes a in ⟨x, he.1 $ by rwa hx⟩, λ ⟨a, ha⟩, ⟨e a, he.2 ha⟩⟩
+hes.exists.trans $ exists_congr $ @he
 
 variable [has_continuous_add α]
 

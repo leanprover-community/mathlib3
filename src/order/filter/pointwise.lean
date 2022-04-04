@@ -50,7 +50,7 @@ namespace filter
 /-! ### `0`/`1` as filters -/
 
 section one
-variables [has_one α] [has_one β] {s : set α}
+variables [has_one α] [has_one β] {f : filter α} {s : set α}
 
 /-- `1 : filter α` is the set of sets containing `1 : α`. -/
 @[to_additive "`0 : filter α` is the set of sets containing `0 : α`."]
@@ -62,6 +62,7 @@ instance : has_one (filter α) := ⟨principal 1⟩
 
 @[simp, to_additive] lemma principal_one : 𝓟 1 = (1 : filter α) := rfl
 @[simp, to_additive] lemma pure_one : pure 1 = (1 : filter α) := (principal_singleton _).symm
+@[simp, to_additive] lemma le_one_iff : f ≤ 1 ↔ (1 : set α) ∈ f := le_principal_iff
 
 @[simp, to_additive]
 protected lemma map_one [one_hom_class F α β] (φ : F) : map φ 1 = 1 :=
@@ -127,7 +128,7 @@ instance [comm_monoid α] : comm_monoid (filter α) :=
 
 section map
 
-variables [mul_one_class α] [mul_one_class β] {f f₁ f₂ : filter α}
+variables [mul_one_class α] [mul_one_class β]
 
 /-- If `φ : α →* β` then `map_monoid_hom φ` is the monoid homomorphism
 `filter α →* filter β` induced by `map φ`. -/
@@ -156,7 +157,7 @@ end map
 /-! ### Filter negation/inversion -/
 
 section has_inv
-variables [has_inv α] {f f₁ f₂ g g₁ g₂ : filter α} {s t : set α}
+variables [has_inv α] {f g : filter α} {s : set α}
 
 @[simp, to_additive] lemma preimage_inv (s : set α) : has_inv.inv ⁻¹' s = s⁻¹ := rfl
 
@@ -173,7 +174,7 @@ instance : has_inv (filter α) := ⟨map has_inv.inv⟩
 end has_inv
 
 section has_involutive_inv
-variables [has_involutive_inv α] {f f₁ f₂ g g₁ g₂ : filter α} {s t : set α}
+variables [has_involutive_inv α] {f : filter α} {s : set α}
 
 @[to_additive] lemma inv_mem_inv (hs : s ∈ f) : s⁻¹ ∈ f⁻¹ := by rwa [mem_inv, preimage_inv, inv_inv]
 
@@ -311,7 +312,7 @@ end vsub
 /-! ### Translation/scaling of filters -/
 
 section smul
-variables [has_scalar α β] {f f₁ f₂ g g₁ g₂ : filter β} {s : set β} {a : α}
+variables [has_scalar α β] {f f₁ f₂ : filter β} {s : set β} {a : α}
 
 @[to_additive filter.has_vadd_filter]
 instance has_scalar_filter : has_scalar α (filter β) := ⟨λ a, map ((•) a)⟩

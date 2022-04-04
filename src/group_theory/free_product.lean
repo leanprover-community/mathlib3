@@ -9,6 +9,7 @@ import group_theory.is_free_group
 import group_theory.subgroup.pointwise
 import data.list.chain
 import set_theory.cardinal
+import set_theory.cardinal_ordinal
 /-!
 # The free product of groups or monoids
 
@@ -750,7 +751,8 @@ begin
   { right, use classical.arbitrary ι,
     simp only [H],
     rw [free_group.free_group_unit_equiv_int.cardinal_eq, cardinal.mk_denumerable],
-    exact cardinal.three_lt_omega.le, },
+    apply le_of_lt,
+    simp },
 
   show ∀ i, (X' i).nonempty,
   { exact (λ i, set.nonempty.inl (hXnonempty i)), },

@@ -73,15 +73,31 @@ lemma is_torsion.subgroup (tG : is_torsion G) (H : subgroup G) : is_torsion H :=
 
 /-- Quotient groups of torsion groups are torsion groups. -/
 @[to_additive "Quotient groups of additive torsion groups are additive torsion groups."]
-lemma is_torsion.quotient_group [nN : N.normal] (tG : is_torsion G) : is_torsion (G ⧸ N) :=
+lemma is_torsion.quotient_group [N.normal] (tG : is_torsion G) : is_torsion (G ⧸ N) :=
 λ h, quotient_group.induction_on' h $ λ g, (tG g).quotient N g
+
+/-- Torsion groups are closed under extensions. -/
+@[to_additive add_is_torsion.extension_closed
+  "Additive torsion groups are closed under extensions."]
+lemma is_torsion.extension_closed (tN : is_torsion N) [N.normal] (tGN : is_torsion (G ⧸ N)) :
+is_torsion G := λ g, begin
+  obtain ⟨ngn, ngnpos, hngn⟩ := (is_of_fin_order_iff_pow_eq_one _).mp (tGN g),
+  lift g ^ ngn to N using (quotient_group.eq_one_iff _).mp hngn with gn,
+  obtain ⟨nn, nnpos, hnn⟩ := (is_of_fin_order_iff_pow_eq_one _).mp (tN gn),
+  exact ((is_of_fin_order_iff_pow_eq_one _).mpr
+    ⟨ngn * nn, mul_pos ngnpos nnpos, by rw [pow_mul, ←h, ←subgroup.coe_pow, hnn, subgroup.coe_one]⟩)
+end
+
+/-- An iff version of `is_torsion.quotient_group`. -/
+@[to_additive "An iff version of `is_torsion.quotient_group`."]
+lemma is_torsion.quotient_group_iff [nN : N.normal] (tN : is_torsion N) :
+is_torsion (G ⧸ N) ↔ is_torsion G := ⟨is_torsion.extension_closed tN, is_torsion.quotient_group⟩
 
 /-- If a group exponent exists, the group is torsion. -/
 @[to_additive exponent_exists.is_add_torsion
   "If a group exponent exists, the group is additively torsion."]
-lemma exponent_exists.is_torsion (h : exponent_exists G) : is_torsion G := begin
+lemma exponent_exists.is_torsion (h : exponent_exists G) : is_torsion G := λ g, begin
   obtain ⟨n, npos, hn⟩ := h,
-  intro g,
   exact (is_of_fin_order_iff_pow_eq_one g).mpr ⟨n, npos, hn g⟩,
 end
 
@@ -101,6 +117,27 @@ exponent_exists.is_torsion $ exponent_exists_iff_ne_zero.mpr exponent_ne_zero_of
 
 end group
 
+section module
+
+-- A (semi/)ring of scalars and a commutative monoid of elements
+variables (Fq R : Type*) [add_comm_monoid R]
+
+namespace add_monoid
+
+/-- A module whose scalars are additively torsion is additively torsion. -/
+lemma is_torsion.module_of_torsion [semiring Fq] [module Fq R] (tFq : is_torsion Fq) :
+is_torsion R := λ f, (is_of_fin_add_order_iff_nsmul_eq_zero _).mpr $ begin
+  obtain ⟨n, npos, hn⟩ := (is_of_fin_add_order_iff_nsmul_eq_zero _).mp (tFq 1),
+  exact ⟨n, npos, by simp only [nsmul_eq_smul_cast Fq _ f, ←nsmul_one, hn, zero_smul]⟩,
+end
+
+/-- A module with a finite ring of scalars is additively torsion. -/
+lemma is_torsion.module_of_fintype [ring Fq] [fintype Fq] [module Fq R] : is_torsion R :=
+(is_add_torsion_of_fintype : is_torsion Fq).module_of_torsion _ _
+
+end add_monoid
+
+end module
 
 section comm_monoid
 

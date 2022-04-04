@@ -14,6 +14,11 @@ In an abelian category we usually want the image of a morphism `f` to be defined
 We make these definitions here, as `abelian.image f` and `abelian.coimage f`
 (without assuming the category is actually abelian),
 and later relate these to the usual categorical notions when in an abelian category.
+
+There is a canonical morphism `coimage_image_comparison : abelian.coimage f ⟶ abelian.image f`.
+Later we show that this is always an isomorphism in an abelian category,
+and conversely a category with (co)kernels and finite products in which this morphism
+is always an isomorphism is an abelian category.
 -/
 
 noncomputable theory
@@ -72,5 +77,32 @@ instance epi_factor_thru_coimage [epi f] : epi (abelian.factor_thru_coimage f) :
 epi_of_epi_fac $ coimage.fac f
 
 end coimage
+
+/--
+The canonical map from the abelian coimage to the abelian image.
+In any abelian category this is an isomorphism.
+
+Conversely, any additive category with kernels and cokernels and
+in which this is always an isomorphism, is abelian.
+
+See https://stacks.math.columbia.edu/tag/0107
+-/
+def coimage_image_comparison : abelian.coimage f ⟶ abelian.image f :=
+cokernel.desc (kernel.ι f) (kernel.lift (cokernel.π f) f (by simp)) $ (by { ext, simp, })
+
+/--
+An alternative formulation of the canonical map from the abelian coimage to the abelian image.
+-/
+def coimage_image_comparison' : abelian.coimage f ⟶ abelian.image f :=
+kernel.lift (cokernel.π f) (cokernel.desc (kernel.ι f) f (by simp)) (by { ext, simp, })
+
+lemma coimage_image_comparison_eq_coimage_image_comparison' :
+  coimage_image_comparison f = coimage_image_comparison' f :=
+by { ext, simp [coimage_image_comparison, coimage_image_comparison'], }
+
+@[simp, reassoc]
+lemma coimage_image_factorisation :
+  coimage.π f ≫ coimage_image_comparison f ≫ image.ι f = f :=
+by simp [coimage_image_comparison]
 
 end category_theory.abelian

@@ -26,7 +26,7 @@ variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {a b : R} {n : ℕ
 section comm_ring
 variables [comm_ring R] {p q : R[X]}
 
-variables [comm_ring S]
+variables [ring S]
 
 lemma nat_degree_pos_of_aeval_root [algebra R S] {p : R[X]} (hp : p ≠ 0)
   {z : S} (hz : aeval z p = 0) (inj : ∀ (x : R), algebra_map R S x = 0 → x = 0) :
@@ -41,7 +41,8 @@ nat_degree_pos_iff_degree_pos.mp (nat_degree_pos_of_aeval_root hp hz inj)
 lemma aeval_mod_by_monic_eq_self_of_root [algebra R S]
   {p q : R[X]} (hq : q.monic) {x : S} (hx : aeval x q = 0) :
   aeval x (p %ₘ q) = aeval x p :=
-eval₂_mod_by_monic_eq_self_of_root hq hx
+-- `eval₂_mod_by_monic_eq_self_of_root` doesn't work here as it needs commutativity
+by rw [mod_by_monic_eq_sub_mul_div p hq, _root_.map_sub, _root_.map_mul, hx, zero_mul, sub_zero]
 
 lemma mod_by_monic_eq_of_dvd_sub (hq : q.monic) {p₁ p₂ : R[X]}
   (h : q ∣ (p₁ - p₂)) :

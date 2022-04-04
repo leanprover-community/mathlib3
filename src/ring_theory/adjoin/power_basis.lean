@@ -163,7 +163,7 @@ begin
     { exact is_integral_zero } },
   { intros hx,
     rw [pow_succ],
-    refine repr_mul_is_integral hB hx (λ _, hn _ le_rfl (λ _, hx _) _) hmin }
+    exact repr_mul_is_integral hB hx (λ _, hn _ le_rfl (λ _, hx _) _) hmin }
 end
 
 /-- Let `B B' : power_basis K S` be such that `is_integral R B.gen`, and let `P : R[X]` be such that

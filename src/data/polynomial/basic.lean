@@ -334,12 +334,14 @@ begin
     rw [mul_assoc, X_mul, ←mul_assoc, ih, mul_assoc, ←pow_succ'], }
 end
 
-/--  This lemma is the loop-avoiding `simp` version of `X_mul`. -/
-@[simp] lemma X_mul_C {r : R} : X * C r = C r * X :=
+/-- Prefer putting constants to the left of `X`.
+
+This lemma is the loop-avoiding `simp` version of `polynomial.X_mul`. -/
+@[simp] lemma X_mul_C (r : R) : X * C r = C r * X :=
 X_mul
 
 /--  This lemma is the loop-avoiding `simp` version of `X_pow_mul`. -/
-@[simp] lemma X_pow_mul_C {r : R} {n : ℕ} : X^n * C r = C r * X^n :=
+@[simp] lemma X_pow_mul_C (r : R) (n : ℕ) : X^n * C r = C r * X^n :=
 X_pow_mul
 
 lemma X_pow_mul_assoc {n : ℕ} : (p * X^n) * q = (p * q) * X^n :=

@@ -37,18 +37,46 @@ instance (C : Type u) [presented_category.{v} C] : category.{max v u} (of C) :=
       intros p q p' q' hp hq,
       exact quotient.sound (setoid.trans (equiv_rel.comp_left _ hq) (equiv_rel.comp_right _ hp)),
      end) f g,
-  id_comp' := sorry,
-  comp_id' := sorry,
-  assoc' := sorry, }
+  id_comp' := by { intros, induction f, { apply quotient.sound, simp, }, { refl, }, },
+  comp_id' := by { intros, induction f, { apply quotient.sound, simp, }, { refl, }, },
+  assoc' := begin
+    intros,
+    induction f, induction g, induction h,
+    { apply quotient.sound,
+      simp,  },
+    all_goals { refl, },
+  end, }
 
 def trivial_presentation (C : Type u) [category.{v} C] : Type u := C
 
-instance (C : Type u) [category.{v} C] : presented_category (trivial_presentation C) :=
+instance (C : Type u) [category.{v} C] :
+  presented_category (trivial_presentation C) :=
 { rel := λ X Y p q, @compose_path C _ _ _ p = @compose_path C _ _ _ q, }
+
+lemma trivial_presentation_equiv_rel (C : Type u) [category.{v} C] {X Y : C} (p q : path X Y) :
+  equiv_rel (trivial_presentation C) p q ↔ @compose_path C _ _ _ p = @compose_path C _ _ _ q :=
+sorry
 
 def of_trivial_presentation_equivalence (C : Type u) [category.{v} C] :
   of (trivial_presentation C) ≌ C :=
-sorry
+{ functor :=
+  { obj := λ X, X,
+    map := begin
+      intros X Y f,
+      apply quotient.lift_on f (λ p, @compose_path C _ _ _ p),
+      intros g h w,
+      rw ←trivial_presentation_equiv_rel,
+      exact w,
+    end,
+    map_id' := sorry,
+    map_comp' := sorry, },
+  inverse :=
+  { obj := λ X, X,
+    map := λ X Y f, quotient.mk (hom.to_path f),
+    map_id' := sorry,
+    map_comp' := sorry, },
+  unit_iso := nat_iso.of_components (λ X, iso.refl _) sorry,
+  counit_iso := nat_iso.of_components (λ X, iso.refl _) sorry, }
 
 end presented_category
 

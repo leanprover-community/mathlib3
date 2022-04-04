@@ -1,0 +1,85 @@
+/-
+Copyright (c) 2022 Mark Lavrentyev. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mark Lavrentyev
+-/
+import topology.metric_space.basic
+import algebraic_topology.fundamental_groupoid.fundamental_group.basic
+import algebraic_topology.fundamental_groupoid.basic
+import analysis.normed_space.basic
+import analysis.convex.basic
+import algebra.category.Group.basic
+
+/-!
+# Fundamental group computations
+
+Provides basic computations of fundamental groups of common spaces. Useful for proving
+various theorems about these spaces later.
+-/
+
+universes u v
+local attribute [instance] path.homotopic.setoid
+
+variable (n : ℕ)
+local notation `ℝⁿ` := fin n → ℝ
+local notation `ℝⁿ⁺¹` := fin (n + 1) → ℝ
+
+section convex_space
+
+variables (X : set ℝⁿ) {x₀ x₁ : X}
+
+/-- In a convex subset X ⊆ ℝⁿ, any two paths are homotopic. -/
+def path_homotopic_of_convex (p₀ p₁ : path x₀ x₁) :
+  convex ℝ X → path.homotopy p₀ p₁ := sorry
+
+/-- The fundamental group of a convex subset X ⊆ ℝⁿ is isomorphic to the trivial group. -/
+noncomputable lemma trivial_fundamental_group_of_convex (h_convex : convex ℝ X):
+  fundamental_group X x₀ ≃* Group.of unit :=
+{
+  to_fun := λ_, unit.star,
+  inv_fun := λ_, sorry, --fundamental_group.from_path ⟦path.refl x₀⟧,
+  left_inv := sorry,
+  right_inv := sorry,
+  map_mul' := sorry,
+}
+
+end convex_space
+
+
+section unit_disk
+
+/-- The unit disk Dⁿ ⊆ ℝⁿ. -/
+def unit_disk := metric.closed_ball (0 : ℝⁿ) 1
+
+lemma convex_of_unit_disk : convex ℝ (unit_disk n) :=
+sorry
+
+/-- A convenient basepoint for computing the fundamental group, namely (1, 0 ...). -/
+def unit_disk_basepoint : unit_disk n := sorry --⟨(1, 0), by simp [unit_disk, norm]⟩
+
+/-- The fundamental group of the disk is isomorphic to the trivial group. -/
+noncomputable lemma fundamental_group_trivial :
+  fundamental_group (unit_disk n) (unit_disk_basepoint n) ≃* Group.of unit :=
+trivial_fundamental_group_of_convex n (unit_disk n) (convex_of_unit_disk n)
+
+end unit_disk
+
+
+section unit_sphere
+
+/-- The unit sphere Sⁿ ⊆ ℝⁿ⁺¹. -/
+def unit_sphere := metric.sphere (0 : ℝⁿ⁺¹) 1
+
+/-- A convenient basepoint for computing the fundamental group, namely (1, 0 ...). -/
+def unit_sphere_basepoint : unit_sphere n := sorry
+
+/-- The fundamental group of the circle S¹ is isomorphic to the group of integers. -/
+noncomputable lemma fundamental_group_circle_iso_int :
+  fundamental_group (unit_sphere 1) (unit_sphere_basepoint 1) ≃* ℤ :=
+sorry
+
+noncomputable lemma fundamental_group_sphere_trivial (n : ℕ) (hn : n ≥ 2) :
+  fundamental_group (unit_sphere n) (unit_sphere_basepoint n) ≃* Group.of unit :=
+sorry
+
+end unit_sphere

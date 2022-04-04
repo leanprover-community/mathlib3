@@ -54,17 +54,8 @@ lemma coe_injective : injective (coe : ultrafilter α → filter α)
 lemma eq_of_le {f g : ultrafilter α} (h : (f : filter α) ≤ g) : f = g :=
 coe_injective (g.unique h)
 
-lemma is_atom (f : ultrafilter α) : is_atom (f.to_filter) :=
-begin
-  split,
-  exact ne_bot_iff.mp f.ne_bot,
-  intros g hle,
-  by_contra hnb,
-  rw [← ne.def, ← ne_bot_iff] at hnb,
-  have : g = f, from unique f (le_of_lt hle) hnb,
-  have : g ≠ f, from has_lt.lt.ne hle,
-  tauto,
-end
+lemma is_atom (f : ultrafilter α) : is_atom (f : filter α) :=
+⟨f.ne_bot.ne, λ g h, not_ne_iff.1 $ λ hg, h.ne $ f.unique h.le ⟨hg⟩⟩
 
 @[simp, norm_cast] lemma coe_le_coe {f g : ultrafilter α} : (f : filter α) ≤ g ↔ f = g :=
 ⟨λ h, eq_of_le h, λ h, h ▸ le_rfl⟩

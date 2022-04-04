@@ -86,6 +86,10 @@ def compose_path {X : C} : Π {Y : C} (p : path X Y), X ⟶ Y
 | _ (path.cons p e) := compose_path p ≫ e
 
 @[simp]
+lemma compose_path_to_path {X Y : C} (f : X ⟶ Y) : compose_path (f.to_path) = f :=
+category.id_comp _
+
+@[simp]
 lemma compose_path_comp {X Y Z : C} (f : path X Y) (g : path Y Z) :
   compose_path (f.comp g) = compose_path f ≫ compose_path g :=
 begin

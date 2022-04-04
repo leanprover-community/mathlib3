@@ -183,8 +183,17 @@ example {f' : a ⟶ d} {f : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} {h' : a ⟶ d}
 example {f' : a ⟶ d } {f : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} (η : f' ⟶ (f ≫ g) ≫ h) :
   f' ⟶ f ≫ (g ≫ h) := η ⊗≫ 𝟙 _
 
-@[simp] lemma bicategorical_comp_refl {f g h : a ⟶ b} (f : f ⟶ g) (g : g ⟶ h) :
-  f ⊗≫ g = f ≫ g :=
+@[simp] lemma bicategorical_comp_refl {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h) :
+  η ⊗≫ θ = η ≫ θ :=
+by { dsimp [bicategorical_comp], simp, }
+
+@[simp] lemma comp_id_of_lift {f g : a ⟶ b} [lift_hom f] [lift_hom g] (η : f ⟶ g) [lift_hom₂ η] :
+  η ≫ bicategorical_coherence.hom g g = η :=
+by { dsimp [bicategorical_comp], simp, }
+
+@[simp] lemma id_comp_of_lift {f g : a ⟶ b} [lift_hom f] [lift_hom g] (η : f ⟶ g)
+  [lift_hom₂ η] :
+  bicategorical_coherence.hom f f ≫ η = η :=
 by { dsimp [bicategorical_comp], simp, }
 
 end category_theory.bicategory
@@ -215,15 +224,15 @@ by coherence
 ```
 -/
 -- TODO: provide the `bicategory_coherence` tactic, and add that here.
-meta def coherence1 : tactic unit := bicategorical_coherence
+meta def pure_coherence : tactic unit := bicategorical_coherence
 
 example (f : a ⟶ b) (g : b ⟶ c) :
   (f ◁ (λ_ g).inv) ≫ (α_ f (𝟙 b) g).inv = (ρ_ f).inv ▷ g :=
-by coherence1
+by pure_coherence
 
 example :
   (λ_ $ 𝟙 a).hom = (ρ_ $ 𝟙 a).hom :=
-by coherence1
+by pure_coherence
 
 namespace coherence
 
@@ -237,6 +246,20 @@ lemma assoc_lift_hom₂ {f g h i : a ⟶ b} [lift_hom f] [lift_hom g] [lift_hom 
   η ≫ (θ ≫ ι) = (η ≫ θ) ≫ ι :=
 (category.assoc _ _ _).symm
 
+
+meta def assoc_simps : tactic unit :=
+`[simp only [
+  bicategorical_comp,
+  category.assoc,
+  bicategory.comp_whisker_left,
+  bicategory.id_whisker_left,
+  bicategory.whisker_right_comp, bicategory.whisker_right_id,
+  bicategory.whisker_left_comp, bicategory.whisker_left_comp_assoc,
+  bicategory.whisker_left_id,
+  bicategory.comp_whisker_right, bicategory.comp_whisker_right_assoc,
+  bicategory.id_whisker_right,
+  bicategory.whisker_assoc]]
+
 /--
 Internal tactic used in `coherence`.
 
@@ -245,14 +268,16 @@ where `f₀` and `g₀` are maximal prefixes of `f` and `g` (possibly after reas
 which are "liftable" (i.e. expressible as compositions of unitors and associators).
 -/
 meta def liftable_prefixes : tactic unit :=
-try `[simp only [bicategorical_comp, category_theory.category.assoc]] >>
-  `[apply (cancel_epi (𝟙 _)).1; try { apply_instance }] >>
-  try `[simp only [tactic.coherence.assoc_lift_hom₂]]
+try `[simp only [←bicategorical_comp_refl]] >>
+  try `[assoc_simps] >>
+    `[apply (cancel_epi (𝟙 _)).1; try { apply_instance }] >>
+      try `[simp only [tactic.coherence.assoc_lift_hom₂]]
 
-example {f g h i : a ⟶ b} (η : h ⟶ i) (g) (w : false) : (λ_ _).hom ≫ η = g :=
+open_locale bicategory
+example {f g h i : a ⟶ b} (η : h ⟶ i) (θ) (w : false) : (λ_ _).hom ≫ η = θ :=
 begin
   liftable_prefixes,
-  guard_target (𝟙 _ ≫ (λ_ _).hom) ≫ η = (𝟙 _) ≫ g,
+  guard_target (𝟙 _ ≫ (λ_ _).hom) ≫ η = (𝟙 _) ≫ θ,
   cases w,
 end
 
@@ -260,11 +285,10 @@ end coherence
 
 open coherence
 
-/-- hoge -/
 meta def coherence_loop : tactic unit :=
-  coherence1 <|> do
+  pure_coherence <|> do
   tactic.congr_core',
-  focus1 coherence1 <|>
+  focus1 pure_coherence <|>
     fail "`coherence` tactic failed, subgoal not true in the free bicategory",
   reflexivity <|> (do
     `(_ ≫ _ = _ ≫ _) ← target |
@@ -275,13 +299,40 @@ meta def coherence_loop : tactic unit :=
 
 meta def coherence : tactic unit :=
 do
-  coherence1 <|> do
+  pure_coherence <|> do
   liftable_prefixes <|>
     fail ("Something went wrong in the `coherence` tactic: " ++
       "is the target an equation in a bicategory?"),
   coherence_loop
 
-run_cmd add_interactive [`coherence1, `coherence]
+-- meta def coherence : tactic unit :=
+-- do
+--   -- To prove an equality `f = g` in a monoidal category,
+--   -- first try the `pure_coherence` tactic on the entire equation:
+--   pure_coherence <|> do
+--   -- Otherewise, rearrange so we have a maximal prefix of each side
+--   -- that is built out of unitors and associators:
+--   liftable_prefixes <|>
+--     fail ("Something went wrong in the `coherence` tactic: " ++
+--       "is the target an equation in a monoidal category?"),
+--   -- The goal should now look like `f₀ ≫ f₁ = g₀ ≫ g₁`,
+--   tactic.congr_core',
+--   -- and now we have two goals `f₀ = g₀` and `f₁ = g₁`.
+--   -- Discharge the first using `coherence`,
+--   focus1 pure_coherence <|>
+--     fail "`coherence` tactic failed, subgoal not true in the free monoidal_category",
+--   -- Then check that either `g₀` is identically `g₁`,
+--   reflexivity <|> (do
+--     -- or that both are compositions,
+--     `(_ ≫ _ = _ ≫ _) ← target |
+--       fail "`coherence` tactic failed, non-structural morphisms don't match",
+--     tactic.congr_core',
+--     -- with identical first terms,
+--     reflexivity <|> fail "`coherence` tactic failed, non-structural morphisms don't match",
+--     -- and whose second terms can be identified by recursively called `coherence`.
+--     coherence)
+
+run_cmd add_interactive [`pure_coherence, `coherence]
 
 add_tactic_doc
 { name        := "coherence",
@@ -378,20 +429,21 @@ do
   (f_to_g'', pr', _) ← simplify s [] f_to_g',
   tactic.exact f_to_g''
 
-meta def assoc_simps : tactic unit :=
-`[simp only [
-  category.assoc,
-  bicategory.comp_whisker_left,
-  bicategory.id_whisker_left,
-  bicategory.whisker_right_comp, bicategory.whisker_right_id,
-  bicategory.whisker_left_comp, bicategory.whisker_left_comp_assoc,
-  bicategory.whisker_left_id,
-  bicategory.comp_whisker_right, bicategory.comp_whisker_right_assoc,
-  bicategory.id_whisker_right,
-  bicategory.whisker_assoc]]
-
 meta def can : tactic unit :=
 can_iso <|> can_hom
+
+set_option class.instance_max_depth 50
+
+set_option profiler true
+
+example (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) (j : a ⟶ e)
+  (η : f ≫ g ≫ h ≫ i ⟶ j):
+  (by can : ((f ≫ g) ≫ h) ≫ i ⟶ f ≫ g ≫ h ≫ i) ≫ η ≫ (λ_ _).inv ≫ (ρ_ _).inv =
+    (α_ _ _ _).hom ≫ (α_ _ _ _).hom ≫ η ≫ (λ_ _).inv ≫ (ρ_ _).inv :=
+begin
+  liftable_prefixes,
+  erw comp_id_of_lift (𝟙 (((f ≫ g) ≫ h) ≫ i) ≫ (λ_ (((f ≫ g) ≫ h) ≫ i)).inv),
+end
 
 example (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) (j : a ⟶ e)
   (η : f ≫ g ≫ h ≫ i ⟶ j):
@@ -399,6 +451,12 @@ example (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) (j : a ⟶ e)
     (α_ _ _ _).hom ≫ (α_ _ _ _).hom ≫ η ≫ (λ_ _).inv ≫ (ρ_ _).inv :=
 begin
   coherence
+end
+
+example (f g : a ⟶ a) (η : 𝟙 a ⟶ f) (θ : f ⟶ g) (w : false) :
+  (λ_ (𝟙 a)).hom ≫ η ≫ 𝟙 f ≫ θ = (ρ_ (𝟙 a)).hom ≫ η ≫ θ :=
+begin
+  coherence,
 end
 
 end interactive

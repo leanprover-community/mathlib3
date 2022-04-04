@@ -53,7 +53,7 @@ by simp only [← nsmul_one, nsmul_mem, one_mem]
 /-- A subsemiring of a `non_assoc_semiring` inherits a `non_assoc_semiring` structure -/
 @[priority 75] -- Prefer subclasses of `non_assoc_semiring` over subclasses of `subsemiring_class`.
 instance to_non_assoc_semiring : non_assoc_semiring s :=
-subtype.coe_injective.non_assoc_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.non_assoc_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance nontrivial [nontrivial R] : nontrivial s :=
 nontrivial_of_ne 0 1 $ λ H, zero_ne_one (congr_arg subtype.val H)
@@ -74,7 +74,7 @@ omit hSR
 /-- A subsemiring of a `semiring` is a `semiring`. -/
 @[priority 75] -- Prefer subclasses of `semiring` over subclasses of `subsemiring_class`.
 instance to_semiring {R} [semiring R] [set_like S R] [subsemiring_class S R] : semiring s :=
-subtype.coe_injective.semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 @[simp, norm_cast] lemma coe_pow {R} [semiring R] [set_like S R] [subsemiring_class S R]
   (x : s) (n : ℕ) :
@@ -88,22 +88,25 @@ end
 /-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
 instance to_comm_semiring {R} [comm_semiring R] [set_like S R] [subsemiring_class S R] :
   comm_semiring s :=
-subtype.coe_injective.comm_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.comm_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subsemiring of an `ordered_semiring` is an `ordered_semiring`. -/
 instance to_ordered_semiring {R} [ordered_semiring R] [set_like S R] [subsemiring_class S R] :
   ordered_semiring s :=
-subtype.coe_injective.ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 /-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
 instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] [set_like S R]
   [subsemiring_class S R] : ordered_comm_semiring s :=
-subtype.coe_injective.ordered_comm_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_comm_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 /-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
 instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] [set_like S R]
   [subsemiring_class S R] : linear_ordered_semiring s :=
-subtype.coe_injective.linear_ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 /-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
 

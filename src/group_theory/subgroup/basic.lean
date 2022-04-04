@@ -194,7 +194,7 @@ include hSG
 @[to_additive "An additive subgroup of an `add_group` inherits an `add_group` structure.",
 priority 75] -- Prefer subclasses of `group` over subclasses of `subgroup_class`.
 instance to_group : group H :=
-subtype.coe_injective.group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 omit hSG
 
@@ -203,14 +203,16 @@ omit hSG
 priority 75] -- Prefer subclasses of `comm_group` over subclasses of `subgroup_class`.
 instance to_comm_group {G : Type*} [comm_group G] [set_like S G] [subgroup_class S G] :
   comm_group H :=
-subtype.coe_injective.comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 /-- A subgroup of an `ordered_comm_group` is an `ordered_comm_group`. -/
 @[to_additive "An additive subgroup of an `add_ordered_comm_group` is an `add_ordered_comm_group`.",
 priority 75] -- Prefer subclasses of `group` over subclasses of `subgroup_class`.
 instance to_ordered_comm_group {G : Type*} [ordered_comm_group G] [set_like S G]
   [subgroup_class S G] : ordered_comm_group H :=
-subtype.coe_injective.ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
 
 /-- A subgroup of a `linear_ordered_comm_group` is a `linear_ordered_comm_group`. -/
 @[to_additive "An additive subgroup of a `linear_ordered_add_comm_group` is a
@@ -219,6 +221,7 @@ subtype.coe_injective.ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _
 instance to_linear_ordered_comm_group {G : Type*} [linear_ordered_comm_group G] [set_like S G]
   [subgroup_class S G] : linear_ordered_comm_group H :=
 subtype.coe_injective.linear_ordered_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl)
 
 include hSG
 

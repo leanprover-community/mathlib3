@@ -84,7 +84,8 @@ instance subfield_class.to_subgroup_class : subgroup_class S K := { .. h }
 @[priority 75] -- Prefer subclasses of `field` over subclasses of `subfield_class`.
 instance to_field (s : S) : field s :=
 subtype.coe_injective.field (coe : s → K)
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 omit h
 
@@ -94,7 +95,8 @@ instance to_linear_ordered_field {K} [linear_ordered_field K] [set_like S K]
   [subfield_class S K] (s : S) :
   linear_ordered_field s :=
 subtype.coe_injective.linear_ordered_field coe
-  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end subfield_class
 

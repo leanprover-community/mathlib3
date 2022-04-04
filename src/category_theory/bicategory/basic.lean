@@ -90,7 +90,7 @@ class bicategory (B : Type u) extends category_struct.{v} B :=
 (associator_naturality_right' :
   ∀ {a b c d} (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h'),
   ((f ≫ g) ◁ η) ≫ (α_ f g h').hom = (α_ f g h).hom ≫ (f ◁ (g ◁ η)) . obviously)
---left unitor:
+-- left unitor:
 (left_unitor {a b : B} (f : a ⟶ b) : 𝟙 a ≫ f ≅ f)
 (notation `λ_` := left_unitor)
 (left_unitor_naturality' : ∀ {a b} {f f' : a ⟶ b} (η : f ⟶ f'),

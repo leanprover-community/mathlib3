@@ -1,5 +1,22 @@
+/-
+Copyright (c) 2022 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.bicategory.End
 import category_theory.monoidal.functorial
+
+/-!
+# Promoting a monoidal category to a single object bicategory.
+
+A monoidal category can be thought of as a bicategory with a single object.
+
+The objects of the monoidal category become the 1-morphisms,
+with composition given by tensor product,
+and the morphisms of the monoidal category become the 2-morphisms.
+
+We verify that the endomorphisms of that single object recovers the original monoidal category.
+-/
 
 namespace category_theory
 
@@ -13,6 +30,8 @@ and the morphisms of the monoidal category become the 2-morphisms.)
 -/
 def monoidal_single_obj (C : Type*) := punit
 
+open monoidal_category
+
 instance : bicategory (monoidal_single_obj C) :=
 { hom := λ _ _, C,
   id := λ _, 𝟙_ C,
@@ -22,23 +41,51 @@ instance : bicategory (monoidal_single_obj C) :=
   associator := λ _ _ _ _ X Y Z, α_ X Y Z,
   left_unitor := λ _ _ X, λ_ X,
   right_unitor := λ _ _ X, ρ_ X,
-  associator_naturality_left' := sorry,
-  associator_naturality_middle' := sorry,
-  associator_naturality_right' := sorry,
-  left_unitor_naturality' := sorry,
-  right_unitor_naturality' := sorry,
-  pentagon' := sorry, }
+  associator_naturality_left' := by { intros, rw [associator_naturality, tensor_id], },
+  associator_naturality_middle' := by { intros, rw [associator_naturality], },
+  associator_naturality_right' := by { intros, rw [←tensor_id, associator_naturality], },
+  left_unitor_naturality' := by { intros, rw [left_unitor_naturality], },
+  right_unitor_naturality' := by { intros, rw [right_unitor_naturality], },
+  pentagon' := by { intros, rw [pentagon], }, }
 
 namespace monoidal_single_obj
 
 protected def star : monoidal_single_obj C := punit.star
 
-def End_monoidal_star_functor : monoidal_functor (End_monoidal (monoidal_single_obj.star C)) C :=
-sorry
+/--
+The monoidal functor from the endomorphisms of the single object
+when we promote a monoidal category to a single object bicategory,
+to the original monoidal category.
 
+We subsequently show this is an equivalence.
+-/
+@[simps]
+def End_monoidal_star_functor : monoidal_functor (End_monoidal (monoidal_single_obj.star C)) C :=
+{ obj := λ X, X,
+  map := λ X Y f, f,
+  ε := 𝟙 _,
+  μ := λ X Y, 𝟙 _,
+  μ_natural' := λ X Y X' Y' f g, begin
+    dsimp,
+    simp only [category.id_comp, category.comp_id],
+    -- Should we provide further simp lemmas so this goal becomes visible?
+    exact (tensor_id_comp_id_tensor _ _).symm,
+  end, }
+
+noncomputable theory
+
+/--
+The equivalence between the endomorphisms of the single object
+when we promote a monoidal category to a single object bicategory,
+and the original monoidal category.
+-/
 def End_monoidal_star_functor_is_equivalence :
   is_equivalence (End_monoidal_star_functor C).to_functor :=
-sorry
+{ inverse :=
+  { obj := λ X, X,
+    map := λ X Y f, f, },
+  unit_iso := nat_iso.of_components (λ X, as_iso (𝟙 _)) (by tidy),
+  counit_iso := nat_iso.of_components (λ X, as_iso (𝟙 _)) (by tidy), }
 
 end monoidal_single_obj
 

@@ -681,16 +681,30 @@ def injective2 {α β γ} (f : α → β → γ) : Prop :=
 ∀ ⦃a₁ a₂ b₁ b₂⦄, f a₁ b₁ = f a₂ b₂ → a₁ = a₂ ∧ b₁ = b₂
 
 namespace injective2
-variables {α β γ : Type*} (f : α → β → γ)
+variables {α β γ : Sort*} {f : α → β → γ}
 
-protected lemma left (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ (h : f a₁ b₁ = f a₂ b₂) : a₁ = a₂ :=
-(hf h).1
+/-- A binary injective function is injective when only the left argument varies. -/
+protected lemma left (hf : injective2 f) (b : β) : function.injective (λ a, f a b) :=
+λ a₁ a₂ h, (hf h).left
 
-protected lemma right (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ (h : f a₁ b₁ = f a₂ b₂) : b₁ = b₂ :=
-(hf h).2
+/-- A binary injective function is injective when only the right argument varies. -/
+protected lemma right (hf : injective2 f) (a : α) : function.injective (f a) :=
+λ a₁ a₂ h, (hf h).right
 
-lemma eq_iff (hf : injective2 f) ⦃a₁ a₂ b₁ b₂⦄ : f a₁ b₁ = f a₂ b₂ ↔ a₁ = a₂ ∧ b₁ = b₂ :=
-⟨λ h, hf h, λ⟨h1, h2⟩, congr_arg2 f h1 h2⟩
+protected lemma uncurry {α β γ : Type*} {f : α → β → γ} (hf : injective2 f) :
+  function.injective (uncurry f) :=
+λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ h, and.elim (hf h) (congr_arg2 _)
+
+/-- As a map from the left argument to a unary function, `f` is injective. -/
+lemma left' (hf : injective2 f) [nonempty β] : function.injective f :=
+λ a₁ a₂ h, let ⟨b⟩ := ‹nonempty β› in hf.left b $ (congr_fun h b : _)
+
+/-- As a map from the right argument to a unary function, `f` is injective. -/
+lemma right' (hf : injective2 f) [nonempty α] : function.injective (λ b a, f a b) :=
+λ b₁ b₂ h, let ⟨a⟩ := ‹nonempty α› in hf.right a $ (congr_fun h a : _)
+
+lemma eq_iff (hf : injective2 f) {a₁ a₂ b₁ b₂} : f a₁ b₁ = f a₂ b₂ ↔ a₁ = a₂ ∧ b₁ = b₂ :=
+⟨λ h, hf h, and.rec $ congr_arg2 f⟩
 
 end injective2
 

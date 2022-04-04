@@ -2539,6 +2539,13 @@ lemma mem_sup' : x ∈ s ⊔ t ↔ ∃ (y : s) (z : t), (y:C) * z = x :=
 mem_sup.trans $ by simp only [set_like.exists, coe_mk]
 
 @[to_additive]
+lemma mem_closure_pair {x y z : C} : z ∈ closure ({x, y} : set C) ↔ ∃ m n : ℤ, x ^ m * y ^ n = z :=
+begin
+  rw [←set.singleton_union, subgroup.closure_union, mem_sup],
+  simp_rw [exists_prop, mem_closure_singleton, exists_exists_eq_and],
+end
+
+@[to_additive]
 instance : is_modular_lattice (subgroup C) :=
 ⟨λ x y z xz a ha, begin
   rw [mem_inf, mem_sup] at ha,

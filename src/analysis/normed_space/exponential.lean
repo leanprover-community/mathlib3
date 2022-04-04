@@ -41,6 +41,10 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
   `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
 - `exp_add` : if `𝔸` is commutative, then we have `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
   for any `x` and `y`
+- `exp_sum_of_commute` : the analogous result to `exp_add_of_commute` for `finset.sum`.
+- `exp_sum` : the analogous result to `exp_add` for `finset.sum`.
+- `exp_nsmul` : repeated addition in the domain corresponds to repeated multiplication in the
+  codomain.
 
 ### Other useful compatibility results
 
@@ -330,7 +334,6 @@ lemma exp_add_of_commute [complete_space 𝔸]
 exp_add_of_commute_of_mem_ball hxy ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
-
 section
 variables (𝕂)
 lemma commute.exp [complete_space 𝔸] {x y : 𝔸} (h : commute x y) :
@@ -338,16 +341,8 @@ lemma commute.exp [complete_space 𝔸] {x y : 𝔸} (h : commute x y) :
 (exp_add_of_commute h).symm.trans $ (congr_arg _ $ add_comm _ _).trans (exp_add_of_commute h.symm)
 end
 
-lemma commute.finset_sum_right {α} {ι} [semiring α] (s : finset ι) (a : α) (f : ι → α)
-  (h : ∀ i ∈ s, commute a (f i)) : commute a (∑ i in s, f i) :=
-begin
-  induction s using finset.cons_induction_on with i s hi ih,
-  { exact commute.zero_right _, },
-  { rw finset.sum_cons,
-    exact (h _ $ finset.mem_cons_self _ _).add_right
-      (ih $ λ j hj, h _ $ finset.mem_cons.mpr $ or.inr hj), }
-end
-
+/-- In a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, if a family of elements `f i` mutually
+commute then `exp 𝕂 𝔸 (∑ i, f i) = ∏ i, exp 𝕂 𝔸 (f i)`. -/
 lemma exp_sum_of_commute {ι} [complete_space 𝔸] (s : finset ι) (f : ι → 𝔸)
   (h : ∀ (i ∈ s) (j ∈ s), commute (f i) (f j)) :
   exp 𝕂 𝔸 (∑ i in s, f i) = s.noncomm_prod (λ i, exp 𝕂 𝔸 (f i))
@@ -358,11 +353,9 @@ begin
   { simp },
   rw [finset.noncomm_prod_insert_of_not_mem _ _ _ _ ha, finset.sum_insert ha,
       exp_add_of_commute, ih],
-  have : ∀ i ∈ s, commute (f a) (f i) :=
-    λ i hi, h _ (finset.mem_insert_self _ _) _ (finset.mem_insert_of_mem hi),
-  induction n with n ih,
-  { rw [zero_smul, pow_zero, exp_zero], },
-  { rw [succ_nsmul, pow_succ, exp_add_of_commute ((commute.refl x).smul_right n), ih] }
+  refine commute.sum_right _ _ _ _,
+  intros i hi,
+  exact h _ (finset.mem_insert_self _ _) _ (finset.mem_insert_of_mem hi),
 end
 
 lemma exp_nsmul [complete_space 𝔸] (n : ℕ) (x : 𝔸) :
@@ -388,6 +381,14 @@ variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_comm_ring 𝔸] [normed_a
 lemma exp_add {x y : 𝔸} : exp 𝕂 𝔸 (x + y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y) :=
 exp_add_of_mem_ball ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
+
+/-- A version of `exp_sum_of_commute` for a commutative Banach-algebra. -/
+lemma exp_sum {ι} [complete_space 𝔸] (s : finset ι) (f : ι → 𝔸) :
+  exp 𝕂 𝔸 (∑ i in s, f i) = ∏ i in s, exp 𝕂 𝔸 (f i) :=
+begin
+  rw [exp_sum_of_commute, finset.noncomm_prod_eq_prod],
+  exact λ i hi j hj, commute.all _ _,
+end
 
 end comm_algebra
 

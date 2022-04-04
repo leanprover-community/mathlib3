@@ -17,7 +17,7 @@ A valuation ring is a domain such that for every pair of elements `a b`, either 
 
 Any valuation ring induces a natural valuation on its fraction field, as we show in this file.
 Namely, given the following instances:
-`[comm_ring A] [is_domain A] [valuation_ring A] [field K] [algebra A K] [is_fraction_ring A K]`,
+`[comm_ring A] [valuation_ring A] [field K] [algebra A K] [is_fraction_ring A K]`,
 there is a natural valuation `valuation A K` on `K` with values in `value_group A K` where
 the image of `A` under `algebra_map A K` agrees with `(valuation A K).integer`.
 
@@ -28,7 +28,7 @@ universes u v w
 
 /-- An integral domain is called a `valuation ring` provided that for any pair
 of elements `a b : A`, either `a` divides `b` or vice versa. -/
-class valuation_ring (A : Type u) [comm_ring A] [is_domain A] : Prop :=
+class valuation_ring (A : Type u) [comm_ring A] extends is_domain A : Prop :=
 (cond [] : ∀ a b : A, ∃ c : A, a * c = b ∨ b * c = a)
 
 namespace valuation_ring
@@ -84,7 +84,7 @@ begin
     mul_inv₀, ring_hom.map_units_inv],
 end
 
-variables [is_domain A] [valuation_ring A] [is_fraction_ring A K]
+variables [valuation_ring A] [is_fraction_ring A K]
 
 protected lemma le_total (a b : value_group A K) : a ≤ b ∨ b ≤ a :=
 begin
@@ -233,7 +233,7 @@ end
 
 section
 
-variables (A : Type u) [comm_ring A] [is_domain A] [valuation_ring A]
+variables (A : Type u) [comm_ring A] [valuation_ring A]
 
 @[priority 100]
 instance : local_ring A :=

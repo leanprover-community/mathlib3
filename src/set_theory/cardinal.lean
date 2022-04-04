@@ -881,10 +881,10 @@ succ_le.1 $ by rw [← nat_succ, ← lift_mk_fin, omega, lift_mk_le.{0 0 u}]; ex
 @[simp] theorem one_lt_omega : 1 < ω :=
 by simpa using nat_lt_omega 1
 
-@[simp] theorem two_lt_omega : 2 < ω :=
+@[simp, priority 900] theorem two_lt_omega : 2 < ω :=
 by simpa using nat_lt_omega 2
 
-@[simp] theorem three_lt_omega : 3 < ω :=
+@[simp, priority 900] theorem three_lt_omega : 3 < ω :=
 by simpa using nat_lt_omega 3
 
 theorem lt_omega {c : cardinal.{u}} : c < ω ↔ ∃ n : ℕ, c = n :=

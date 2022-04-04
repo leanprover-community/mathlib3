@@ -352,7 +352,7 @@ by rw [mul_assoc, X_pow_mul, ←mul_assoc]
 /-- Prefer putting constants to the left of `X ^ n`.
 
 This lemma is the loop-avoiding `simp` version of `X_pow_mul_assoc`. -/
-@[simp] lemma X_pow_mul_assoc_C {n : ℕ} (r s : R) : (C r * X^n) * C s = C r * C s * X^n :=
+@[simp] lemma X_pow_mul_assoc_C {n : ℕ} (r : R) : (p * X^n) * C r = p * C r * X^n :=
 X_pow_mul_assoc
 
 lemma commute_X (p : R[X]) : commute X p := X_mul

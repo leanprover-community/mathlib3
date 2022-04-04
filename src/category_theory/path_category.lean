@@ -125,12 +125,12 @@ def path_composition : paths C ⥤ C :=
 /-- The canonical relation on the path category of a category:
 two paths are related if they compose to the same morphism. -/
 @[simp]
-def path_category_hom_rel : hom_rel (paths C) :=
+def paths_hom_rel : hom_rel (paths C) :=
 λ X Y p q, compose_path p = compose_path q
 
 /-- The functor from a category to the canonical quotient of its path category. -/
 @[simps]
-def to_quotient_path_category : C ⥤ quotient (path_category_hom_rel C) :=
+def to_quotient_paths : C ⥤ quotient (paths_hom_rel C) :=
 { obj := λ X, quotient.mk X,
   map := λ X Y f, quot.mk _ f.to_path,
   map_id' := λ X, quot.sound (quotient.comp_closure.of _ _ _ (by simp)),
@@ -139,14 +139,14 @@ def to_quotient_path_category : C ⥤ quotient (path_category_hom_rel C) :=
 /-- The functor from the canonical quotient of a path category of a category
 to the original category. -/
 @[simps]
-def quotient_path_category_to : quotient (path_category_hom_rel C) ⥤ C :=
+def quotient_paths_to : quotient (paths_hom_rel C) ⥤ C :=
 quotient.lift _ (path_composition C) (λ X Y p q w, w)
 
 /-- The canonical quotient of the path category of a category
 is equivalent to the original category. -/
-def equiv : quotient (path_category_hom_rel C) ≌ C :=
-{ functor := quotient_path_category_to C,
-  inverse := to_quotient_path_category C,
+def quotient_paths_equiv : quotient (paths_hom_rel C) ≌ C :=
+{ functor := quotient_paths_to C,
+  inverse := to_quotient_paths C,
   unit_iso := nat_iso.of_components (λ X, by { cases X, refl, }) begin
     intros,
     cases X, cases Y,
@@ -155,7 +155,7 @@ def equiv : quotient (path_category_hom_rel C) ≌ C :=
     simp only [category.comp_id, category.id_comp],
     apply quot.sound,
     apply quotient.comp_closure.of,
-    simp [path_category_hom_rel],
+    simp [paths_hom_rel],
   end,
   counit_iso := nat_iso.of_components (λ X, iso.refl _) (by tidy),
   functor_unit_iso_comp' := by { intros, cases X, dsimp, simp, refl, }, }

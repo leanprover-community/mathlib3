@@ -133,8 +133,8 @@ def path_category_hom_rel : hom_rel (paths C) :=
 def to_quotient_path_category : C ⥤ quotient (path_category_hom_rel C) :=
 { obj := λ X, quotient.mk X,
   map := λ X Y f, quot.mk _ f.to_path,
-  map_id' := λ X, quot.sound (quotient.comp_closure.of _ _ _ begin dsimp, simp, end),
-  map_comp' := λ X Y Z f g, quot.sound (quotient.comp_closure.of _ _ _ begin dsimp, simp, end), }
+  map_id' := λ X, quot.sound (quotient.comp_closure.of _ _ _ (by simp)),
+  map_comp' := λ X Y Z f g, quot.sound (quotient.comp_closure.of _ _ _ (by simp)), }
 
 /-- The functor from the canonical quotient of a path category of a category
 to the original category. -/
@@ -147,7 +147,7 @@ is equivalent to the original category. -/
 def equiv : quotient (path_category_hom_rel C) ≌ C :=
 { functor := quotient_path_category_to C,
   inverse := to_quotient_path_category C,
-  unit_iso := nat_iso.of_components (λ X, begin cases X, refl, end) begin
+  unit_iso := nat_iso.of_components (λ X, by { cases X, refl, }) begin
     intros,
     cases X, cases Y,
     induction f,

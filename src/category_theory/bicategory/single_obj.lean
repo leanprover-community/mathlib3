@@ -16,6 +16,13 @@ with composition given by tensor product,
 and the morphisms of the monoidal category become the 2-morphisms.
 
 We verify that the endomorphisms of that single object recovers the original monoidal category.
+
+One could go much further: the bicategory of monoidal categories
+(equipped with monoidal functors and monoidal natural transformations)
+is equivalent to the bicategory consisting of
+* single object bicategories,
+* pseudofunctors, and
+* (oplax) natural transformations `η` such that `η.app punit.star = 𝟙 _`.
 -/
 
 namespace category_theory

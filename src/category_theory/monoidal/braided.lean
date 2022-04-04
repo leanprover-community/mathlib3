@@ -561,15 +561,7 @@ begin
   rw ←braiding_left_unitor,
   slice_lhs 3 4 { rw [←id_comp (𝟙 X₂), tensor_comp] },
   slice_lhs 3 4 { rw [←left_unitor_naturality] },
-  have :
-      (λ_ ((𝟙_ C ⊗ X₁) ⊗ X₂)).hom ≫
-      ((λ_ X₁).hom ⊗ 𝟙 X₂)
-    = (𝟙 (𝟙_ C) ⊗ (α_ (𝟙_ C) X₁ X₂).hom) ≫
-      (α_ (𝟙_ C) (𝟙_ C) (X₁ ⊗ X₂)).inv ≫
-      ((λ_ (𝟙_ C)).hom ⊗ 𝟙 (X₁ ⊗ X₂)) ≫
-      (λ_ (X₁ ⊗ X₂)).hom := by pure_coherence,
-  slice_lhs 4 5 { rw this }, clear this,
-  simp only [assoc],
+  coherence,
 end
 
 lemma right_unitor_monoidal (X₁ X₂ : C) :
@@ -591,15 +583,7 @@ begin
   slice_lhs 3 4 { rw [←tensor_comp,
                       ←right_unitor_naturality,
                       tensor_comp] },
-  have :
-      (𝟙 X₁ ⊗ (ρ_ (X₂ ⊗ 𝟙_ C)).hom) ≫
-      (𝟙 X₁ ⊗ (ρ_ X₂).hom)
-    = (𝟙 X₁ ⊗ (α_ X₂ (𝟙_ C) (𝟙_ C)).hom) ≫
-      (α_ X₁ X₂ (𝟙_ C ⊗ 𝟙_ C)).inv ≫
-      (𝟙 (X₁ ⊗ X₂) ⊗ (λ_ (𝟙_ C)).hom) ≫
-      (ρ_ (X₁ ⊗ X₂)).hom := by pure_coherence,
-  slice_lhs 4 5 { rw this }, clear this,
-  simp only [assoc],
+  coherence,
 end
 
 lemma associator_monoidal_aux (W X Y Z : C) :
@@ -727,6 +711,8 @@ begin
                        tensor_comp] },
   slice_lhs 10 12 { rw [tensor_id,
                         ←tensor_μ_def₂] },
+  -- It should be possible to close the goal by `coherence` here, but it fails with "Something went
+  -- wrong in the `coherence` tactic: is the target an equation in a monoidal category?"
   have :
       (α_ (X₁ ⊗ X₂) X₃ ((Y₁ ⊗ Y₂) ⊗ Y₃)).hom ≫
       (𝟙 (X₁ ⊗ X₂) ⊗ (α_ X₃ (Y₁ ⊗ Y₂) Y₃).inv) ≫

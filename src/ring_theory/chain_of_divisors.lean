@@ -34,7 +34,7 @@ and the set of factors of `a`.
 
 variables {M : Type*} [cancel_comm_monoid_with_zero M]
 
-open unique_factorization_monoid multiplicity irreducible
+open unique_factorization_monoid multiplicity irreducible associates
 
 namespace divisor_chain
 
@@ -246,7 +246,7 @@ begin
   exact part.get_mem _,
 end
 
-variables [nontrivial M] [nontrivial N] {m : associates M}
+variables [nontrivial M] [nontrivial N]
 
 lemma map_is_unit_of_monotone_is_unit {m u : associates M} {n : associates N}
   (hu : is_unit u) (hu' : u ≤ m)
@@ -275,19 +275,12 @@ lemma map_is_unit_iff_is_unit [decidable_eq (associates N)] {m u : associates M}
   { rw (show u = ↑(d.symm ⟨↑(d ⟨u, hu'⟩), (d ⟨u, hu'⟩).prop⟩), from by simp),
     exact map_is_unit_of_monotone_is_unit hu _ d.symm }⟩
 
-variable (hm : m ≠ 0)
-
-lemma mem_divisors_eq_bot_iff {a : associates M} (ha : a ≤ m) : a = ⊥
-  ↔ (⟨a, ha⟩ : {l : associates M // l ≤ m}) = ⟨⊥, bot_le⟩ := by simp
-
-lemma divisors_bot : ↑(⟨⊥, bot_le⟩ : {l : associates M // l ≤ m}) = (⊥ : associates M) := rfl
-
 lemma map_prime_of_monotone_equiv [decidable_eq (associates N)]
-  {m p : associates M} {n : associates N} (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
-  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) (hd : monotone d)
-  (hd' : monotone d.symm) {s : ℕ} (hs : s ≠ 0) (hs' : p^s ≤ m) :
-  irreducible (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N) :=
+  {m p : associates M} {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
+  prime (d ⟨p, dvd_of_mem_normalized_factors hp⟩ : associates N) :=
 begin
+  rw ← irreducible_iff_prime,
   /-
   refine (associates.is_atom_iff (ne_zero_of_dvd_ne_zero hn (d ⟨p, _⟩).prop)).mp ⟨_, λ b hb, _⟩,
   { rw [ne.def, ← associates.is_unit_iff_eq_bot, ← map_is_unit_iff_is_unit
@@ -309,43 +302,84 @@ begin
       sorry
 end
 
+lemma mem_normalized_factors_factor_order_iso_of_mem_normalized_factors
+  [decidable_eq (associates N)] {m p : associates M} {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0)
+  (hp : p ∈ normalized_factors m) (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}):
+  ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) ∈ normalized_factors n :=
+begin
+  obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd hn
+      (map_prime_of_monotone_equiv hm hn hp d).irreducible
+      (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop,
+    rw associated_iff_eq at hq',
+    rwa hq'
+end
+
+lemma multiplicity_prime_eq_multiplicity_image_by_factor_order_iso [decidable_eq (associates N)]
+  {m p : associates M} {n : associates N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+  (d : {l : associates M // l ≤ m} ≃o {l : associates N // l ≤ n}) :
+  multiplicity p m = multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n :=
+begin
+  refine le_antisymm (multiplicity_prime_le_multiplicity_image_by_factor_order_iso hm hn hp d) _,
+  suffices : multiplicity ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) n ≤
+    multiplicity ↑(d.symm (d ⟨p, dvd_of_mem_normalized_factors hp⟩)) m,
+  { rw [d.symm_apply_apply ⟨p, dvd_of_mem_normalized_factors hp⟩, subtype.coe_mk] at this,
+    exact this },
+  have := (multiplicity_prime_le_multiplicity_image_by_factor_order_iso hn hm
+    (mem_normalized_factors_factor_order_iso_of_mem_normalized_factors hm hn hp d) d.symm),
+  rw [subtype.coe_eta] at this,
+  exact this,
+end
+
 variables [unique (Mˣ)] [unique (Nˣ)]
 
-def mk_factor_order_iso_of_factor_dvd_equiv [decidable_eq (associates N)]
+@[simps]
+noncomputable def mk_factor_order_iso_of_factor_dvd_equiv [decidable_eq (associates N)]
   {m : M} {n : N} (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l',
   ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)) :
    {l : associates M // l ≤ associates.mk m} ≃o {l : associates N // l ≤ associates.mk n} :=
-{ to_fun := λ l, ⟨associates.mk (d (⟨(associates.mk_monoid_equiv.symm l.val), sorry⟩)), sorry⟩,
-  inv_fun := λ l, ⟨associates.mk (d.symm (⟨(associates.mk_monoid_equiv.symm l.val), sorry⟩)), sorry⟩,
+{ to_fun := λ l, ⟨associates.mk (d ⟨mk_monoid_equiv.symm ↑l , by obtain ⟨x, hx⟩ := l ;
+    rw [subtype.coe_mk, ← mk_monoid_equiv.symm_apply_apply m, mk_monoid_equiv_apply,
+    associates.mk_monoid_equiv_symm_dvd_iff_le] ; exact hx⟩),
+    mk_le_mk_iff_dvd_iff.mpr (subtype.prop (d ⟨mk_monoid_equiv.symm ↑l,_⟩))⟩,
+  inv_fun := λ l, ⟨associates.mk (d.symm (⟨(mk_monoid_equiv.symm ↑l), by obtain ⟨x, hx⟩ := l ;
+  rw [subtype.coe_mk, ← mk_monoid_equiv.symm_apply_apply n, mk_monoid_equiv_apply,
+    associates.mk_monoid_equiv_symm_dvd_iff_le] ; exact hx⟩)),
+    mk_le_mk_iff_dvd_iff.mpr (subtype.prop (d.symm ⟨mk_monoid_equiv.symm ↑l,_⟩)) ⟩,
   left_inv := λ ⟨l, hl⟩, by simp only [associates.mk_monoid_equiv_apply_symm_mk, subtype.coe_eta,
     equiv.symm_apply_apply, subtype.coe_mk, associates.mk_monoid_equiv_apply_symm'],
   right_inv := λ ⟨l, hl⟩, by simp only [associates.mk_monoid_equiv_apply_symm_mk, subtype.coe_eta,
     equiv.apply_symm_apply, subtype.coe_mk, associates.mk_monoid_equiv_apply_symm'],
-  map_rel_iff' :=
-  begin
-    rintros ⟨a, ha⟩ ⟨b, hb⟩,
-    simp only [subtype.val_eq_coe, subtype.coe_mk, equiv.coe_fn_mk, subtype.mk_le_mk,
-      associates.mk_le_mk_iff_dvd_iff, hd, subtype.coe_mk, subtype.coe_mk,
-      associates.mk_monoid_equiv_symm_dvd_iff_le],
-  end}
+  map_rel_iff' := by rintros ⟨a, ha⟩ ⟨b, hb⟩ ; simp only [subtype.val_eq_coe, subtype.coe_mk,
+    equiv.coe_fn_mk, subtype.mk_le_mk, associates.mk_le_mk_iff_dvd_iff, hd, subtype.coe_mk,
+    subtype.coe_mk, associates.mk_monoid_equiv_symm_dvd_iff_le]
+}
 
 variables [decidable_eq M] [decidable_eq N]
-
-def normalized_factors_equiv_of_factors_dvd_equiv {m : M} {n : N}
-  (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l',
-  ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)) :
-  {p : M // p ∈ normalized_factors m} ≃ {p : N // p ∈ normalized_factors n} :=
-sorry
 
 lemma multiplicity_eq_multiplicity_of_im_factor_dvd_iso [decidable_rel ((∣) : M → M → Prop)]
   [decidable_rel ((∣) : N → N → Prop)] [decidable_eq (associates M)]
   [decidable_eq (associates N)]
-  {m q : M} {n : N}
-  (hq : q ∈ normalized_factors m) (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l',
+  {m p : M} {n : N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
+  (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l',
   ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)) :
-    multiplicity q m = multiplicity ((d ⟨q, dvd_of_mem_normalized_factors hq⟩) : N) n :=
+    multiplicity p m = multiplicity ((d ⟨p, dvd_of_mem_normalized_factors hp⟩) : N) n :=
 begin
-  rw multiplicity_eq_multiplicity_mk,
-  conv_rhs {rw multiplicity_eq_multiplicity_mk},
-  sorry,
+  suffices : multiplicity (associates.mk p) (associates.mk m) = multiplicity (associates.mk
+    ↑(d ⟨mk_monoid_equiv.symm (mk_monoid_equiv p), by simp [dvd_of_mem_normalized_factors hp]⟩))
+    (associates.mk n),
+  { simp only [mk_monoid_equiv_apply, mk_monoid_equiv_apply_symm_mk,
+     ← multiplicity_eq_multiplicity_mk] at this,
+    exact this },
+  have : associates.mk ↑(d ⟨mk_monoid_equiv.symm (mk_monoid_equiv p), by simp only
+    [dvd_of_mem_normalized_factors hp, mk_monoid_equiv_apply, mk_monoid_equiv_apply_symm_mk]⟩)
+      = ↑(mk_factor_order_iso_of_factor_dvd_equiv d hd ⟨(mk_monoid_equiv p), by
+      rw mk_monoid_equiv_apply ; exact mk_le_mk_of_dvd (dvd_of_mem_normalized_factors hp) ⟩),
+  { rw mk_factor_order_iso_of_factor_dvd_equiv_apply_coe, refl },
+  rw this,
+  refine multiplicity_prime_eq_multiplicity_image_by_factor_order_iso (mk_ne_zero.mpr hm)
+    (mk_ne_zero.mpr hn) _ (mk_factor_order_iso_of_factor_dvd_equiv d hd),
+  obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd (mk_ne_zero.mpr hm)
+    ((prime_mk p).mpr (prime_of_normalized_factor p hp)).irreducible
+      (mk_le_mk_of_dvd (dvd_of_mem_normalized_factors hp)),
+    rwa associated_iff_eq.mp hq',
 end

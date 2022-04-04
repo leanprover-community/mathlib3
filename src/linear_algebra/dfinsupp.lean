@@ -260,9 +260,7 @@ lemma bsupr_eq_range_dfinsupp_lsum (p : ι → Prop)
     ((dfinsupp.lsum ℕ (λ i, (S i).subtype)).comp (dfinsupp.filter_linear_map R _ p)).range :=
 begin
   apply le_antisymm,
-  { apply bsupr_le _,
-    intros i hi y hy,
-    refine ⟨dfinsupp.single i ⟨y, hy⟩, _⟩,
+  { refine supr₂_le (λ i hi y hy, ⟨dfinsupp.single i ⟨y, hy⟩, _⟩),
     rw [linear_map.comp_apply, filter_linear_map_apply, filter_single_pos _ _ hi],
     exact dfinsupp.sum_add_hom_single _ _ _, },
   { rintros x ⟨v, rfl⟩,

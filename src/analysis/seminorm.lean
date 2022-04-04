@@ -361,7 +361,8 @@ noncomputable instance : has_inf (seminorm 𝕜 E) :=
           (λ i, add_nonneg (p.nonneg _) (q.nonneg _))
           (λ x hx, ⟨0, by rwa [p.zero, q.zero, add_zero]⟩) },
       simp_rw [real.mul_infi_of_nonneg (norm_nonneg a), mul_add, ←p.smul, ←q.smul, smul_sub],
-      refine infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩) (λ u, _),
+      refine function.surjective.infi_congr ((•) a⁻¹ : E → E) (λ u, ⟨a • u, inv_smul_smul₀ ha u⟩)
+        (λ u, _),
       rw smul_inv_smul₀ ha,
     end } }
 

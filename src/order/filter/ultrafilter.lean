@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov
 -/
 import order.filter.cofinite
 import order.zorn
+import order.atoms
 
 /-!
 # Ultrafilters
@@ -52,6 +53,18 @@ lemma coe_injective : injective (coe : ultrafilter α → filter α)
 
 lemma eq_of_le {f g : ultrafilter α} (h : (f : filter α) ≤ g) : f = g :=
 coe_injective (g.unique h)
+
+lemma is_atom (f : ultrafilter α) : is_atom (f.to_filter) :=
+begin
+  split,
+  exact ne_bot_iff.mp f.ne_bot,
+  intros g hle,
+  by_contra hnb,
+  rw [← ne.def, ← ne_bot_iff] at hnb,
+  have : g = f, from unique f (le_of_lt hle) hnb,
+  have : g ≠ f, from has_lt.lt.ne hle,
+  tauto,
+end
 
 @[simp, norm_cast] lemma coe_le_coe {f g : ultrafilter α} : (f : filter α) ≤ g ↔ f = g :=
 ⟨λ h, eq_of_le h, λ h, h ▸ le_rfl⟩
@@ -165,6 +178,10 @@ begin
   change (f : filter α) ≤ pure a,
   rwa [← principal_singleton, le_principal_iff]
 end
+
+lemma eq_of_ne_bot_le_pure {α : Type*} {f : filter α} [ne_bot f] {a : α} (h : f ≤ pure a) :
+  f = pure a :=
+ultrafilter.unique (pure a) h
 
 /-- Monadic bind for ultrafilters, coming from the one on filters
 defined in terms of map and join.-/

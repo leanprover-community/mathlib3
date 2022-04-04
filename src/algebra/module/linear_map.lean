@@ -192,6 +192,11 @@ protected def copy (f : M →ₛₗ[σ] M₃) (f' : M → M₃) (h : f' = ⇑f) 
   map_add' := h.symm ▸ f.map_add',
   map_smul' := h.symm ▸ f.map_smul' }
 
+/-- See Note [custom simps projection]. -/
+protected def simps.apply {R S : Type*} [semiring R] [semiring S] (σ : R →+* S)
+  (M M₃ : Type*) [add_comm_monoid M] [add_comm_monoid M₃] [module R M] [module S M₃]
+  (f : M →ₛₗ[σ] M₃) : M → M₃ := f
+
 initialize_simps_projections linear_map (to_fun → apply)
 
 @[simp] lemma coe_mk {σ : R →+* S} (f : M → M₃) (h₁ h₂) :

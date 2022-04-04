@@ -23,9 +23,99 @@ open_locale big_operators
 
 universes u v w
 
-variables {R : Type u} {S : Type v} {T : Type w}
-  [non_assoc_semiring R] [non_assoc_semiring S] [non_assoc_semiring T]
-  (M : submonoid R)
+variables {R : Type u} {S : Type v} {T : Type w} [non_assoc_semiring R] (M : submonoid R)
+
+section subsemiring_class
+
+/-- `subsemiring_class S R` states that `S` is a type of subsets `s ⊆ R` that
+are both a multiplicative and an additive submonoid. -/
+class subsemiring_class (S : Type*) (R : out_param $ Type u) [non_assoc_semiring R] [set_like S R]
+  extends submonoid_class S R :=
+(add_mem : ∀ {s : S} {a b : R}, a ∈ s → b ∈ s → a + b ∈ s)
+(zero_mem : ∀ (s : S), (0 : R) ∈ s)
+
+@[priority 100] -- See note [lower instance priority]
+instance subsemiring_class.add_submonoid_class (S : Type*) (R : out_param $ Type u)
+  [non_assoc_semiring R] [set_like S R] [h : subsemiring_class S R] :
+  add_submonoid_class S R :=
+{ .. h }
+
+variables [set_like S R] [hSR : subsemiring_class S R] (s : S)
+include hSR
+
+open one_mem_class add_submonoid_class
+
+namespace subsemiring_class
+
+lemma coe_nat_mem (n : ℕ) : (n : R) ∈ s :=
+by simp only [← nsmul_one, nsmul_mem, one_mem]
+
+/-- A subsemiring of a `non_assoc_semiring` inherits a `non_assoc_semiring` structure -/
+instance to_non_assoc_semiring : non_assoc_semiring s :=
+{ mul_zero := λ x, subtype.eq $ mul_zero x,
+  zero_mul := λ x, subtype.eq $ zero_mul x,
+  right_distrib := λ x y z, subtype.eq $ right_distrib x y z,
+  left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
+  .. submonoid_class.to_mul_one_class s,
+  .. add_submonoid_class.to_add_comm_monoid s }
+
+instance nontrivial [nontrivial R] : nontrivial s :=
+nontrivial_of_ne 0 1 $ λ H, zero_ne_one (congr_arg subtype.val H)
+
+instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y h,
+  or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ subtype.ext_iff.mp h)
+    (λ h, or.inl $ subtype.eq h) (λ h, or.inr $ subtype.eq h) }
+
+/-- The natural ring hom from a subsemiring of semiring `R` to `R`. -/
+def subtype : s →+* R :=
+{ to_fun := coe, .. submonoid_class.subtype s, .. add_submonoid_class.subtype s }
+
+@[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
+
+omit hSR
+
+/-- A subsemiring of a `semiring` is a `semiring`. -/
+instance to_semiring {R} [semiring R] [set_like S R] [subsemiring_class S R] : semiring s :=
+{ ..subsemiring_class.to_non_assoc_semiring s,
+  ..submonoid_class.to_monoid s }
+
+@[simp, norm_cast] lemma coe_pow {R} [semiring R] [set_like S R] [subsemiring_class S R]
+  (x : s) (n : ℕ) :
+  ((x^n : s) : R) = (x^n : R) :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
+
+/-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
+instance to_comm_semiring {R} [comm_semiring R] [set_like S R] [subsemiring_class S R] :
+  comm_semiring s :=
+{ mul_comm := λ _ _, subtype.eq $ mul_comm _ _, .. subsemiring_class.to_semiring s }
+
+/-- A subsemiring of an `ordered_semiring` is an `ordered_semiring`. -/
+instance to_ordered_semiring {R} [ordered_semiring R] [set_like S R] [subsemiring_class S R] :
+  ordered_semiring s :=
+subtype.coe_injective.ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
+instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] [set_like S R]
+  [subsemiring_class S R] : ordered_comm_semiring s :=
+subtype.coe_injective.ordered_comm_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
+instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] [set_like S R]
+  [subsemiring_class S R] : linear_ordered_semiring s :=
+subtype.coe_injective.linear_ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+
+/-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
+
+end subsemiring_class
+
+end subsemiring_class
+
+variables [non_assoc_semiring S] [non_assoc_semiring T]
 
 set_option old_structure_cmd true
 
@@ -42,7 +132,14 @@ add_decl_doc subsemiring.to_add_submonoid
 namespace subsemiring
 
 instance : set_like (subsemiring R) R :=
-⟨subsemiring.carrier, λ p q h, by cases p; cases q; congr'⟩
+{ coe := subsemiring.carrier,
+  coe_injective' := λ p q h, by cases p; cases q; congr' }
+
+instance : subsemiring_class (subsemiring R) R :=
+{ zero_mem := zero_mem',
+  add_mem := add_mem',
+  one_mem := one_mem',
+  mul_mem := mul_mem' }
 
 @[simp]
 lemma mem_carrier {s : subsemiring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := iff.rfl

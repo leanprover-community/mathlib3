@@ -49,9 +49,19 @@ instance : has_zero (lie_subalgebra R L) :=
 
 instance : inhabited (lie_subalgebra R L) := ⟨0⟩
 instance : has_coe (lie_subalgebra R L) (submodule R L) := ⟨lie_subalgebra.to_submodule⟩
-instance : has_mem L (lie_subalgebra R L) := ⟨λ x L', x ∈ (L' : set L)⟩
 
 namespace lie_subalgebra
+
+open neg_mem_class
+
+instance : set_like (lie_subalgebra R L) L :=
+{ coe := λ L', L',
+  coe_injective' := λ L' L'' h, by { rcases L' with ⟨⟨⟩⟩, rcases L'' with ⟨⟨⟩⟩, congr' } }
+
+instance : add_subgroup_class (lie_subalgebra R L) L :=
+{ add_mem := λ L', L'.add_mem',
+  zero_mem := λ L', L'.zero_mem',
+  neg_mem := λ L' x hx, show -x ∈ (L' : submodule R L), from neg_mem hx }
 
 /-- A Lie subalgebra forms a new Lie ring. -/
 instance (L' : lie_subalgebra R L) : lie_ring L' :=
@@ -119,10 +129,10 @@ lemma coe_zero_iff_zero (x : L') : (x : L) = 0 ↔ x = 0 := (ext_iff L' x 0).sym
 
 @[ext] lemma ext (L₁' L₂' : lie_subalgebra R L) (h : ∀ x, x ∈ L₁' ↔ x ∈ L₂') :
   L₁' = L₂' :=
-by { cases L₁', cases L₂', simp only [], ext x, exact h x, }
+set_like.ext h
 
 lemma ext_iff' (L₁' L₂' : lie_subalgebra R L) : L₁' = L₂' ↔ ∀ x, x ∈ L₁' ↔ x ∈ L₂' :=
-⟨λ h x, by rw h, ext L₁' L₂'⟩
+set_like.ext_iff
 
 @[simp] lemma mk_coe (S : set L) (h₁ h₂ h₃ h₄) :
   ((⟨⟨S, h₁, h₂, h₃⟩, h₄⟩ : lie_subalgebra R L) : set L) = S := rfl
@@ -132,12 +142,12 @@ lemma ext_iff' (L₁' L₂' : lie_subalgebra R L) : L₁' = L₂' ↔ ∀ x, x �
 by { cases p, refl, }
 
 lemma coe_injective : function.injective (coe : lie_subalgebra R L → set L) :=
-by { rintro ⟨⟨⟩⟩ ⟨⟨⟩⟩ h, congr' }
+set_like.coe_injective
 
 instance : set_like (lie_subalgebra R L) L := ⟨coe, coe_injective⟩
 
 @[norm_cast] theorem coe_set_eq (L₁' L₂' : lie_subalgebra R L) :
-  (L₁' : set L) = L₂' ↔ L₁' = L₂' := coe_injective.eq_iff
+  (L₁' : set L) = L₂' ↔ L₁' = L₂' := set_like.coe_set_eq
 
 lemma to_submodule_injective :
   function.injective (coe : lie_subalgebra R L → submodule R L) :=
@@ -542,8 +552,8 @@ variables [comm_ring R] [lie_ring L₁] [lie_ring L₂] [lie_algebra R L₁] [li
 /-- An injective Lie algebra morphism is an equivalence onto its range. -/
 noncomputable def of_injective (f : L₁ →ₗ⁅R⁆ L₂) (h : function.injective f) :
   L₁ ≃ₗ⁅R⁆ f.range :=
-{ map_lie' := λ x y, by { apply set_coe.ext, simpa, },
-..(linear_equiv.of_injective ↑f $ by rwa [lie_hom.coe_to_linear_map])}
+{ map_lie' := λ x y, by { apply set_coe.ext, simpa },
+  .. linear_equiv.of_injective (f : L₁ →ₗ[R] L₂) $ by rwa [lie_hom.coe_to_linear_map] }
 
 @[simp] lemma of_injective_apply (f : L₁ →ₗ⁅R⁆ L₂) (h : function.injective f) (x : L₁) :
   ↑(of_injective f h x) = f x := rfl

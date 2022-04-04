@@ -37,7 +37,14 @@ variables [semiring A] [algebra R A] [semiring B] [algebra R B] [semiring C] [al
 include R
 
 instance : set_like (subalgebra R A) A :=
-⟨subalgebra.carrier, λ p q h, by cases p; cases q; congr'⟩
+{ coe := subalgebra.carrier,
+  coe_injective' := λ p q h, by cases p; cases q; congr' }
+
+instance : subsemiring_class (subalgebra R A) A :=
+{ add_mem := add_mem',
+  mul_mem := mul_mem',
+  one_mem := one_mem',
+  zero_mem := zero_mem' }
 
 @[simp]
 lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -100,6 +107,10 @@ S.to_subsemiring.zero_mem
 
 theorem add_mem {x y : A} (hx : x ∈ S) (hy : y ∈ S) : x + y ∈ S :=
 S.to_subsemiring.add_mem hx hy
+
+instance {R A : Type*} [comm_ring R] [ring A] [algebra R A] : subring_class (subalgebra R A) A :=
+{ neg_mem := λ S x hx, neg_one_smul R x ▸ S.smul_mem hx _,
+  .. subalgebra.subsemiring_class }
 
 theorem neg_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) : -x ∈ S :=

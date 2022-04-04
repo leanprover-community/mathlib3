@@ -32,6 +32,8 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 - `exp_add_of_mem_ball` : if `𝕂` has characteristic zero and `𝔸` is commutative, then given two
   elements `x` and `y` in the disk of convergence, we have
   `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
+- `exp_neg_of_mem_ball` : if `𝕂` has characteristic zero and `𝔸` is a division ring, then given an
+  element `x` in the disk of convergence, we have `exp 𝕂 𝔸 (-x) = (exp 𝕂 𝔸 x)⁻¹`.
 
 ### `𝕂 = ℝ` or `𝕂 = ℂ`
 
@@ -41,9 +43,12 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
   `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
 - `exp_add` : if `𝔸` is commutative, then we have `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
   for any `x` and `y`
+- `exp_neg` : if `𝔸` is a division ring, then we have `exp 𝕂 𝔸 (-x) = (exp 𝕂 𝔸 x)⁻¹`.
 - `exp_sum_of_commute` : the analogous result to `exp_add_of_commute` for `finset.sum`.
 - `exp_sum` : the analogous result to `exp_add` for `finset.sum`.
 - `exp_nsmul` : repeated addition in the domain corresponds to repeated multiplication in the
+  codomain.
+- `exp_zsmul` : repeated addition in the domain corresponds to repeated multiplication in the
   codomain.
 
 ### Other useful compatibility results
@@ -216,14 +221,13 @@ end
 lemma exp_ne_zero_of_mem_ball [char_zero 𝕂] [nontrivial 𝔸] {x : 𝔸}
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) : exp 𝕂 𝔸 x ≠ 0 :=
 begin
-  intro h,
-  refine @zero_ne_one 𝔸 _ _ _,
-  rw ←@exp_zero 𝕂,
-  conv_rhs {rw ← add_neg_self x},
   have hnx : -x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius,
   { rw [emetric.mem_ball, ←neg_zero, edist_neg_neg],
     exact hx },
-  rw [exp_add_of_commute_of_mem_ball (commute.neg_right $ commute.refl x) hx hnx, h, zero_mul],
+  apply_fun ((*) (exp 𝕂 𝔸 (-x))),
+  rw [←exp_add_of_commute_of_mem_ball (commute.neg_left $ commute.refl x) hnx hx, neg_add_self,
+    exp_zero, mul_zero],
+  exact one_ne_zero,
 end
 
 end complete_algebra
@@ -240,6 +244,26 @@ begin
 end
 
 end any_field_any_algebra
+
+section any_field_division_algebra
+
+variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
+
+lemma exp_neg_of_mem_ball [char_zero 𝕂] [complete_space 𝔸] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
+  exp 𝕂 𝔸 (-x) = (exp 𝕂 𝔸 x)⁻¹ :=
+begin
+  have hnx : -x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius,
+  { rw [emetric.mem_ball, ←neg_zero, edist_neg_neg],
+    exact hx },
+  apply mul_right_injective₀ (exp_ne_zero_of_mem_ball hx),
+  rw [mul_inv_cancel (exp_ne_zero_of_mem_ball hx),
+    ←exp_add_of_commute_of_mem_ball (commute.refl x).neg_right hx hnx,
+    add_neg_self, exp_zero],
+end
+
+end any_field_division_algebra
+
 
 section any_field_comm_algebra
 
@@ -347,9 +371,14 @@ exp_add_of_commute_of_mem_ball hxy ((exp_series_radius_eq_top 𝕂 𝔸).symm �
 
 section
 variables (𝕂)
+
+lemma exp_ne_zero [nontrivial 𝔸] (x : 𝔸) : exp 𝕂 𝔸 x ≠ 0 :=
+exp_ne_zero_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
+
 lemma commute.exp {x y : 𝔸} (h : commute x y) :
   commute (exp 𝕂 𝔸 x) (exp 𝕂 𝔸 y) :=
 (exp_add_of_commute h).symm.trans $ (congr_arg _ $ add_comm _ _).trans (exp_add_of_commute h.symm)
+
 end
 
 /-- In a Banach-algebra `𝔸` over `𝕂 = ℝ` or `𝕂 = ℂ`, if a family of elements `f i` mutually
@@ -377,15 +406,6 @@ begin
   { rw [succ_nsmul, pow_succ, exp_add_of_commute ((commute.refl x).smul_right n), ih] }
 end
 
-lemma exp_ne_zero [nontrivial 𝔸] (x) : exp 𝕂 𝔸 x ≠ 0 :=
-begin
-  intro h,
-  refine @zero_ne_one 𝔸 _ _ _,
-  rw ←@exp_zero 𝕂,
-  conv_rhs {rw ← add_neg_self x},
-  rw [exp_add_of_commute (commute.neg_right $ commute.refl x), h, zero_mul],
-end
-
 end complete_algebra
 
 lemma algebra_map_exp_comm (x : 𝕂) :
@@ -396,21 +416,17 @@ end any_algebra
 
 section division_algebra
 
-variables (𝕂 𝔸 : Type*) [is_R_or_C 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables {𝕂 𝔸 : Type*} [is_R_or_C 𝕂] [normed_division_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables [complete_space 𝔸]
 
+lemma exp_neg (x : 𝔸) : exp 𝕂 𝔸 (-x) = (exp 𝕂 𝔸 x)⁻¹ :=
+exp_neg_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
 
-lemma exp_neg (n : ℕ) (x : 𝔸) :
-  exp 𝕂 𝔸 (-x) = (exp 𝕂 𝔸 x)⁻¹ :=
+lemma exp_zsmul (z : ℤ) (x : 𝔸) : exp 𝕂 𝔸 (z • x) = (exp 𝕂 𝔸 x) ^ z :=
 begin
-  apply mul_left_injective₀ (exp)
-  by_cases h : x = 0,
-  { simp [h] },
-  rw eq_inv_iff,
-  apply mul_left_injective₀ (_ : exp 𝕂 𝔸 x ≠ 0),
-  dsimp,
-  induction n with n ih,
-  { rw [zero_smul, pow_zero, exp_zero], },
-  { rw [succ_nsmul, pow_succ, exp_add_of_commute ((commute.refl x).smul_right n), ih] }
+  obtain ⟨n, rfl | rfl⟩ := z.eq_coe_or_neg,
+  { rw [zpow_coe_nat, coe_nat_zsmul, exp_nsmul] },
+  { rw [zpow_neg₀, zpow_coe_nat, neg_smul, exp_neg, coe_nat_zsmul, exp_nsmul] },
 end
 
 end division_algebra

@@ -51,26 +51,26 @@ by simp only [X_pow_mul, op_mul, op_pow, map_mul, map_pow, op_ring_equiv_op_X, o
   (op_ring_equiv R p).coeff n = op ((unop p).coeff n) :=
 begin
   induction p using mul_opposite.rec,
-  apply p.induction_on,
-  { intros a,
-    by_cases n0 : n = 0,
-    { simp only [coeff_C, n0, op_ring_equiv_op_C, eq_self_iff_true, if_true, unop_op] },
-    { simp only [coeff_C, n0, op_ring_equiv_op_C, if_false, op_zero, unop_op] } },
-  { intros f g hf hg,
-    simp only [hf, hg, op_add, _root_.map_add, coeff_add, unop_add] },
-  { intros m r hm,
-    rw [op_ring_equiv_op_C_mul_X_pow, coeff_C_mul, op_mul, unop_mul, unop_op, coeff_C_mul, op_mul,
-      unop_op, coeff_X_pow, coeff_X_pow],
-    split_ifs;
-    simp }
+  cases p,
+  refl
+end
+
+-- TODO: move to finsupp/basic
+lemma finsupp.support_map_range_of_injective {ι α β} [has_zero α] [has_zero β]
+  {e : α → β} (he0 : e 0 = 0) (f : ι →₀ α) (he : function.injective e) :
+  (finsupp.map_range e he0 f).support = f.support :=
+begin
+  ext,
+  simp only [finsupp.mem_support_iff, ne.def, finsupp.map_range_apply],
+  exact he.ne_iff' he0,
 end
 
 @[simp] lemma support_op_ring_equiv (p : R[X]ᵐᵒᵖ) :
   (op_ring_equiv R p).support = (unop p).support :=
 begin
-  ext,
-  rw [mem_support_iff, mem_support_iff, ne.def, coeff_op_ring_equiv],
-  simp only [op_eq_zero_iff],
+  induction p using mul_opposite.rec,
+  cases p,
+  exact support_map_range_of_injective _ _ op_injective
 end
 
 @[simp] lemma nat_degree_op_ring_equiv (p : R[X]ᵐᵒᵖ) :

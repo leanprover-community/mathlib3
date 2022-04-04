@@ -76,11 +76,21 @@ by { rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one], norm_c
 
 /-- Elements of finite order are of finite order in quotient groups.-/
 @[to_additive is_of_fin_add_order_iff_quotient]
-lemma is_of_fin_order.quotient {G : Type u} [group G] (N : subgroup G) [N.normal] (x : G) :
-  is_of_fin_order x → is_of_fin_order (x : G ⧸ N) := begin
-  rw [is_of_fin_order_iff_pow_eq_one, is_of_fin_order_iff_pow_eq_one],
-  rintros ⟨n, ⟨npos, hn⟩⟩,
-  exact ⟨n, ⟨npos, (quotient_group.con N).eq.mpr $ hn ▸ (quotient_group.con N).eq.mp rfl⟩⟩,
+lemma is_of_fin_order.quotient
+  {G : Type u} [group G] (N : subgroup G) [N.normal] {x : G} (h : is_of_fin_order x) :
+  is_of_fin_order (x : G ⧸ N) := begin
+  rcases (is_of_fin_order_iff_pow_eq_one _).mp h with ⟨n, npos, hn⟩,
+  exact (is_of_fin_order_iff_pow_eq_one _).mpr
+    ⟨n, npos, (quotient_group.con N).eq.mpr $ hn ▸ (quotient_group.con N).eq.mp rfl⟩,
+end
+
+/-- If a direct product has finite order then so does each component. -/
+@[to_additive "If a direct product has finite additive order then so does each component."]
+lemma is_of_fin_order.ext
+  {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)] {x : Π i, Gs i} (h : is_of_fin_order x) :
+∀ i, is_of_fin_order (x i) := begin
+  rcases (is_of_fin_order_iff_pow_eq_one _).mp h with ⟨n, npos, hn⟩,
+  exact λ _, (is_of_fin_order_iff_pow_eq_one _).mpr ⟨n, npos, (congr_fun hn.symm _).symm⟩,
 end
 
 /-- 1 is of finite order in any group. -/

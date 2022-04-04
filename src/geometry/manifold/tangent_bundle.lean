@@ -272,63 +272,55 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
-lemma foo
-  (b : E → E)
+lemma has_fderiv_within_at.antimono
+  (f : E → E)
+  (f' : E →L[𝕜] E)
   {s : set H}
   (hs : is_open s)
-  (ha : cont_diff_on 𝕜 1 b (I.symm ⁻¹' s ∩ range I)) :
-  continuous_on (λ (x : H), fderiv_within 𝕜 b (range I) (I x)) s :=
+  {x : H}
+  (hx : x ∈ s)
+  (hf : has_fderiv_within_at f f' (I '' s) (I x)) :
+  has_fderiv_within_at f f' (range I) (I x) :=
 begin
-  change cont_diff_on 𝕜 ↑(1:ℕ) _ _ at ha,
-  rw cont_diff_on_succ_iff_fderiv_within at ha,
-  intros x hx,
-  have hf₁ := ha.1,
-  rw ← I.image_eq at hf₁,
-  have h'' : ∀ y ∈ s, I '' s ∈ 𝓝[range I] (I y),
-  { intros y hy,
-    apply I.image_mem_nhds_within,
+  have h₁ : I '' s ∈ 𝓝[range I] (I x),
+  { apply I.image_mem_nhds_within,
     apply hs.mem_nhds,
-    exact hy },
-  have hf₁' : ∀ y ∈ s, differentiable_within_at 𝕜 b (range I) (I y),
-  { intros y hy,
-    have := hf₁ _ ⟨y, hy, rfl⟩,
-    rw ← differentiable_within_at_inter' (h'' y hy),
-    convert this,
-    apply inter_eq_self_of_subset_right,
+    exact hx },
+  have h₂ : differentiable_within_at 𝕜 f (range I) (I x),
+  { rw ← differentiable_within_at_inter' h₁,
+    convert hf.differentiable_within_at,
+    rw inter_eq_self_of_subset_right,
     exact image_subset_range I s },
-  have hf₁'' : ∀ y ∈ s, fderiv_within 𝕜 b (range I) (I y) = fderiv_within 𝕜 b (I '' s) (I y),
-  { intros y hy,
-    symmetry,
-    apply fderiv_within_subset,
-    { exact image_subset_range I s },
-    { rw I.image_eq,
-      apply I.unique_diff_preimage hs,
-      rw ← I.image_eq,
-      exact mem_image_of_mem I hy },
-    { exact hf₁' y hy } },
-  have hf : cont_diff_on 𝕜 0 _ _ := ha.2,
-  rw cont_diff_on_zero at hf,
-  rw ← I.image_eq at hf,
-  have := hf (I x) _,
-  refine (this.comp I.continuous_within_at _).congr _ _,
-  { exact maps_to_image I s },
-  { exact hf₁'' },
-  { dsimp,
-    exact hf₁'' x hx },
-  { exact mem_image_of_mem I hx },
-  { exact I.unique_diff_preimage hs },
+  have hf' := h₂.has_fderiv_within_at.mono (image_subset_range I s),
+  have := I.unique_diff_preimage hs,
+  rw ← I.image_eq at this,
+  rw this.eq (mem_image_of_mem I hx) hf hf',
+  exact h₂.has_fderiv_within_at,
 end
 
-lemma coord_change_continuous' (i j : ↥(atlas H M)) :
-  continuous_on
-    (λ (x : H), fderiv_within 𝕜 (I ∘ j.val ∘ i.val.symm ∘ I.symm) (range I) (I x))
-    (i.val.symm ≫ₕ j.val).to_local_equiv.source :=
+lemma fderiv_within_subset'
+  (f : E → E)
+  {s : set H}
+  (hs : is_open s)
+  {x : H}
+  (hx : x ∈ s)
+  (hf : differentiable_within_at 𝕜 f (I '' s) (I x)) :
+  fderiv_within 𝕜 f (I '' s) (I x) = fderiv_within 𝕜 f (range I) (I x) :=
 begin
-  have : i.val.symm ≫ₕ j.val ∈ cont_diff_groupoid ∞ I :=
-    (cont_diff_groupoid ∞ I).compatible i.2 j.2,
-  have : cont_diff_on _ _ _ _ := this.1,
-  have hij : cont_diff_on 𝕜 1 _ (I.symm ⁻¹' _ ∩ range I) := this.of_le le_top,
-  exact foo I (I ∘ (i.val.symm ≫ₕ j.val) ∘ I.symm) (i.val.symm ≫ₕ j.val).open_source hij,
+  have h₁ : I '' s ∈ 𝓝[range I] (I x),
+  { apply I.image_mem_nhds_within,
+    apply hs.mem_nhds,
+    exact hx },
+  have h₂ : differentiable_within_at 𝕜 f (range I) (I x),
+  { rw ← differentiable_within_at_inter' h₁,
+    convert hf,
+    rw inter_eq_self_of_subset_right,
+    exact image_subset_range I s },
+  apply fderiv_within_subset (image_subset_range I s) _ h₂,
+  rw I.image_eq,
+  apply I.unique_diff_preimage hs (I x),
+  rw ← I.image_eq,
+  exact mem_image_of_mem I hx,
 end
 
 /-- Basic smooth bundle core version of the tangent bundle of a smooth manifold `M` modelled over a
@@ -372,7 +364,28 @@ def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
     rw [this, D x E],
     refl
   end,
-  coord_change_continuous := coord_change_continuous' I M,
+  coord_change_continuous := λ i j, begin
+    /- The co-ordinate changes in the tangent bundle (an element of `E ≃L[𝕜] E` at each point) are
+    precisely the differential of the co-ordinate changes of the charts.  Since the charts are
+    smooth and hence `C¹`, these co-ordinate changes are continuous. -/
+    let e : local_homeomorph H H := i.val.symm ≫ₕ j.val,
+    let f : E → E := I ∘ e ∘ I.symm,
+    have hij : cont_diff_on 𝕜 ↑(1:ℕ) f ((I.symm) ⁻¹' e.source ∩ range I),
+    { apply cont_diff_on.of_le _ le_top,
+      exact ((cont_diff_groupoid ∞ I).compatible i.2 j.2).1 },
+    obtain ⟨hf, hf'⟩ : differentiable_on 𝕜 f (I '' e.source)
+      ∧ continuous_on (λ (y : E), fderiv_within 𝕜 f (I '' e.source) y) (I '' e.source),
+    { rw [← @cont_diff_on_zero 𝕜, I.image_eq],
+      rwa cont_diff_on_succ_iff_fderiv_within (I.unique_diff_preimage e.open_source) at hij },
+    intros x hx,
+    refine ((hf' (I x) (mem_image_of_mem I hx)).comp I.continuous_within_at _).congr _ _,
+    { exact maps_to_image I e.source },
+    { intros y hy,
+      symmetry,
+      exact fderiv_within_subset' I f e.open_source hy (hf (I y) (mem_image_of_mem I hy)) },
+    { symmetry,
+      exact fderiv_within_subset' I f e.open_source hx (hf (I x) (mem_image_of_mem I hx)) },
+  end,
   coord_change_self := λ i x hx v, begin
     /- Locally, a self-change of coordinate is just the identity, thus its derivative is the
     identity. One just needs to write this carefully, paying attention to the sets where the

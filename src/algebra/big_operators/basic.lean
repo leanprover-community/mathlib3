@@ -668,12 +668,12 @@ end
 variables (f s)
 
 @[to_additive]
-lemma prod_coe_sort_eq_attach [comm_monoid β] (f : s → β) :
+lemma prod_coe_sort_eq_attach (f : s → β) :
   ∏ (i : s), f i = ∏ i in s.attach, f i :=
 rfl
 
 @[to_additive]
-lemma prod_coe_sort [comm_monoid β] :
+lemma prod_coe_sort :
   ∏ (i : s), f i = ∏ i in s, f i :=
 prod_attach
 

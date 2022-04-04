@@ -116,6 +116,7 @@ begin
     rw [← this, tail, cons_succ] }
 end
 
+/-- Recurse on an `n+1`-tuple by splitting it into a single element and an `n`-tuple. -/
 @[elab_as_eliminator]
 def cons_induction {P : (Π i : fin n.succ, α i) → Sort v}
   (h : ∀ x₀ x, P (fin.cons x₀ x)) (x : (Π i : fin n.succ, α i)) : P x :=

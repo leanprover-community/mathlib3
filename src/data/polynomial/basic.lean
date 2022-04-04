@@ -168,7 +168,8 @@ by rw [←to_finsupp_zero, to_finsupp_inj]
 @[simp] lemma to_finsupp_eq_one {a : R[X]} : a.to_finsupp = 1 ↔ a = 1 :=
 by rw [←to_finsupp_one, to_finsupp_inj]
 
-@[simp] lemma of_finsupp_inj {a b} : (⟨a⟩ : R[X]) = ⟨b⟩ ↔ a = b :=
+/-- A more convenient spelling of `polynomial.of_finsupp.inj_eq` in terms of `iff`. -/
+lemma of_finsupp_inj {a b} : (⟨a⟩ : R[X]) = ⟨b⟩ ↔ a = b :=
 iff_of_eq of_finsupp.inj_eq
 
 @[simp] lemma of_finsupp_eq_zero {a} : (⟨a⟩ : R[X]) = 0 ↔ a = 0 :=
@@ -274,10 +275,6 @@ by simp [monomial, monomial_fun]
 @[simp] lemma of_finsupp_single (n : ℕ) (r : R) :
   (⟨finsupp.single n r⟩ : R[X]) = monomial n r :=
 by simp [monomial, monomial_fun]
-
-@[simp] lemma of_finsupp_of (n : ℕ) :
-  (⟨add_monoid_algebra.of R ℕ (multiplicative.of_add n)⟩ : R[X]) = monomial n 1 :=
-by { rw ←of_finsupp_single, refl }
 
 @[simp]
 lemma monomial_zero_right (n : ℕ) :

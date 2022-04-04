@@ -23,7 +23,7 @@ variables [semiring R] {p q r : R[X]}
 lemma monomial_one_eq_iff [nontrivial R] {i j : ℕ} :
   (monomial i 1 : R[X]) = monomial j 1 ↔ i = j :=
 begin
-  simp_rw [←of_finsupp_of],
+  simp_rw [←of_finsupp_single],
   exact add_monoid_algebra.of_injective.eq_iff
 end
 

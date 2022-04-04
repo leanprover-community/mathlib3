@@ -49,7 +49,7 @@ rfl
   (algebra_map R (polynomial A) r).to_finsupp = algebra_map R _ r :=
 show to_finsupp (C (algebra_map _ _ r)) = _, by { rw to_finsupp_C, refl }
 
-@[simp] lemma of_finsupp_algebra_map (r : R) :
+lemma of_finsupp_algebra_map (r : R) :
   (⟨algebra_map R _ r⟩ : A[X]) = algebra_map R (polynomial A) r :=
 to_finsupp_injective (to_finsupp_algebra_map _).symm
 

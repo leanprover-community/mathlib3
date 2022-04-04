@@ -175,19 +175,6 @@ lemma has_deriv_at_of_real {f : ℝ → ℝ} {d x : ℝ} (hf : has_deriv_at f d 
   (has_deriv_at ((coe ∘ f) : ℝ → ℂ) ↑d x) :=
 by simpa using has_deriv_at.scomp x (has_deriv_at_coe $ f x) hf
 
-lemma deriv_integrand (s : ℂ) {x : ℝ} (h1: 0 < x) : has_deriv_at  (λ x, (-x).exp * x ^ s : ℝ → ℂ)
-( -((-x).exp * x ^ s) + (-x).exp  * (s * x ^ (s - 1))) x :=
-begin
-  have d1 : has_deriv_at (λ (y: ℝ), (-y).exp) (-(-x).exp) x,
-  { simpa using (has_deriv_at_neg x).exp },
-  have d2: has_deriv_at (λ (y : ℝ), ↑y ^ s) (s * x ^ (s - 1)) x,
-  { have t := @has_deriv_at.cpow_const _ _ _ s (has_deriv_at_id ↑x),
-    simp only [id.def, of_real_re, of_real_im, ne.def,
-       eq_self_iff_true, not_true, or_false, mul_one] at t,
-    simpa using has_deriv_at.comp _ (t h1) (has_deriv_at_coe x), },
-  simpa using has_deriv_at.mul (has_deriv_at_of_real d1) d2,
-end
-
 /-- The indefinite version of the Γ function, Γ(s, X) = ∫ x ∈ 0..X, exp(-x) x ^ (s - 1). -/
 def partial_Gamma (s : ℂ) (X : ℝ) : ℂ := ∫ x in 0..X, (-x).exp * x ^ (s - 1)
 
@@ -240,7 +227,15 @@ begin
   rw [partial_Gamma, partial_Gamma, add_sub_cancel],
   have F_der_I: (∀ (x:ℝ), (x ∈ Ioo 0 X) → has_deriv_at (λ x, (-x).exp * x ^ s : ℝ → ℂ)
     ( -((-x).exp * x ^ s) + (-x).exp * (s * x ^ (s - 1))) x),
-  { intros x hx, rw mem_Ioo at hx, exact deriv_integrand s hx.1 },
+  { intros x hx,
+    have d1 : has_deriv_at (λ (y: ℝ), (-y).exp) (-(-x).exp) x,
+    { simpa using (has_deriv_at_neg x).exp },
+    have d2: has_deriv_at (λ (y : ℝ), ↑y ^ s) (s * x ^ (s - 1)) x,
+    { have t := @has_deriv_at.cpow_const _ _ _ s (has_deriv_at_id ↑x),
+      simp only [id.def, of_real_re, of_real_im,
+        ne.def, eq_self_iff_true, not_true, or_false, mul_one] at t,
+      simpa using has_deriv_at.comp _ (t hx.left) (has_deriv_at_coe x), },
+    simpa using has_deriv_at.mul (has_deriv_at_of_real d1) d2 },
   have cont := (continuous_of_real.comp continuous_neg.exp).continuous_on.mul
     (cts_cpow (lt_of_lt_of_le zero_lt_one hs)),
   have der_ible := (Gamma_integrand_deriv_integrable_A hs hX).add
@@ -297,7 +292,6 @@ end
 
 end Gamma_recurrence
 
-
 /- Now we define `Γ(s)` on the whole complex plane, by recursion. -/
 
 section Gamma_def
@@ -348,7 +342,7 @@ lemma Gamma_eq_Gamma_aux (s : ℂ) (n : ℕ) (h1 : 1 - s.re ≤ ↑n) : Gamma s 
 begin
   have u : ∀ (k : ℕ), Gamma_aux (⌈ 1 - s.re ⌉₊ + k) s = Gamma s,
   { intro k, induction k with k hk,
-    { dsimp only [Gamma], simp, },
+    { simp [Gamma],},
     { rw [←hk, nat.succ_eq_add_one, ←add_assoc],
       refine (Gamma_aux_recurrence2 s (⌈ 1 - s.re ⌉₊ + k) _).symm,
       rw nat.cast_add,

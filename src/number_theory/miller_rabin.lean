@@ -62,7 +62,9 @@ def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
 a^(n-1) = 1
 
 def fast_two_multiplicity : ℕ → ℕ :=
-nat.binary_rec 0 (λ b _ ih, cond b (ih+1) 0)
+nat.binary_rec 0 (λ b _ ih, cond b 0 (ih+1))
+
+#eval fast_two_multiplicity 10000
 
 lemma fast_two_multiplicity_eq_padic_val_nat_two (n : ℕ) :
   padic_val_nat 2 n = fast_two_multiplicity n :=

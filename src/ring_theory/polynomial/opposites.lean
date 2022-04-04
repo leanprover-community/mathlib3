@@ -28,7 +28,7 @@ def op_ring_equiv (R : Type*) [semiring R] : R[X]ᵐᵒᵖ ≃+* Rᵐᵒᵖ[X] :
 ((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
 
 @[simp] lemma op_ring_equiv_op_monomial (n : ℕ) (r : R) :
-  (op_ring_equiv R) (op (monomial n r : R[X])) = monomial n (op r) :=
+  op_ring_equiv R (op (monomial n r : R[X])) = monomial n (op r) :=
 by simp only [op_ring_equiv, ring_equiv.trans_apply, ring_equiv.op_apply_apply,
     ring_equiv.to_add_equiv_eq_coe, add_equiv.mul_op_apply, add_equiv.to_fun_eq_coe,
     add_equiv.coe_trans, op_add_equiv_apply, ring_equiv.coe_to_add_equiv, op_add_equiv_symm_apply,
@@ -36,15 +36,15 @@ by simp only [op_ring_equiv, ring_equiv.trans_apply, ring_equiv.op_apply_apply,
     to_finsupp_iso_symm_single]
 
 @[simp] lemma op_ring_equiv_op_C (a : R) :
-  (op_ring_equiv R) (op (C a)) = C (op a) :=
+  op_ring_equiv R (op (C a)) = C (op a) :=
 op_ring_equiv_op_monomial 0 a
 
 @[simp] lemma op_ring_equiv_op_X :
-  (op_ring_equiv R) (op (X : R[X])) = X :=
+  op_ring_equiv R (op (X : R[X])) = X :=
 op_ring_equiv_op_monomial 1 1
 
 lemma op_ring_equiv_op_C_mul_X_pow (r : R) (n : ℕ) :
-  (op_ring_equiv R) (op (C r * X ^ n : R[X])) = C (op r) * X ^ n :=
+  op_ring_equiv R (op (C r * X ^ n : R[X])) = C (op r) * X ^ n :=
 by simp only [X_pow_mul, op_mul, op_pow, map_mul, map_pow, op_ring_equiv_op_X, op_ring_equiv_op_C]
 
 @[simp] lemma coeff_op_ring_equiv (p : R[X]ᵐᵒᵖ) (n : ℕ) :

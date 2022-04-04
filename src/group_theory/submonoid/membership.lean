@@ -41,10 +41,6 @@ variables [monoid M] [set_like B M] [submonoid_class B M] {S : B}
 
 namespace submonoid_class
 
-@[simp, norm_cast, to_additive coe_nsmul] theorem coe_pow (x : S) (n : ℕ) :
-  ↑(x ^ n) = (x ^ n : M) :=
-(submonoid_class.subtype S : _ →* M).map_pow x n
-
 @[simp, norm_cast, to_additive] theorem coe_list_prod (l : list S) :
   (l.prod : M) = (l.map coe).prod :=
 (submonoid_class.subtype S : _ →* M).map_list_prod l
@@ -79,18 +75,11 @@ lemma prod_mem {M : Type*} [comm_monoid M] [set_like B M] [submonoid_class B M]
   ∏ c in t, f c ∈ S :=
 multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
 
-@[to_additive nsmul_mem] lemma pow_mem {x : M} (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
-by simpa only [coe_pow] using ((⟨x, hx⟩ : S) ^ n).coe_prop
-
 end submonoid_class
 
 namespace submonoid
 
 variables [monoid M] (s : submonoid M)
-
-@[simp, norm_cast, to_additive coe_nsmul] theorem coe_pow (x : s) (n : ℕ) :
-  ↑(x ^ n) = (x ^ n : M) :=
-s.subtype.map_pow x n
 
 @[simp, norm_cast, to_additive] theorem coe_list_prod (l : list s) :
   (l.prod : M) = (l.map coe).prod :=
@@ -136,7 +125,6 @@ lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
   ∏ c in t, f c ∈ S :=
 S.multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
 
-<<<<<<< HEAD
 @[to_additive]
 lemma noncomm_prod_mem (S : submonoid M) {ι : Type*} (t : finset ι) (f : ι → M)
   (comm : ∀ (x ∈ t) (y ∈ t), commute (f x) (f y)) (h : ∀ c ∈ t, f c ∈ S) :
@@ -148,12 +136,8 @@ begin
   rintros ⟨x, ⟨hx, rfl⟩⟩,
   exact h x hx,
 end
-=======
-@[to_additive nsmul_mem] lemma pow_mem {x : M} (hx : x ∈ s) (n : ℕ) : x ^ n ∈ s :=
-by simpa only [coe_pow] using ((⟨x, hx⟩ : s) ^ n).coe_prop
 
 end submonoid
->>>>>>> 7d76acc0c0 (feat(*): define subobject classes from `submonoid` up to `subfield`)
 
 end assoc
 

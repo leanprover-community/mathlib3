@@ -114,6 +114,12 @@ instance submonoid_class.to_one_mem_class (S : Type*) (M : out_param $ Type*) [m
   [set_like S M] [h : submonoid_class S M] : one_mem_class S M :=
 { ..h }
 
+@[to_additive]
+lemma pow_mem {M} [monoid M] {A : Type*} [set_like A M] [submonoid_class A M] {S : A} {x : M}
+  (hx : x ∈ S) : ∀ (n : ℕ), x ^ n ∈ S
+| 0 := by { rw pow_zero, exact one_mem_class.one_mem S }
+| (n + 1) := by { rw pow_succ, exact mul_mem_class.mul_mem hx (pow_mem n) }
+
 namespace submonoid
 
 @[to_additive]

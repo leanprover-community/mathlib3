@@ -411,6 +411,29 @@ variables (S')
 
 omit hA
 
+/-- An `add_submonoid` of an `add_monoid` inherits a scalar multiplication. -/
+instance _root_.add_submonoid_class.has_nsmul {M} [add_monoid M] {A : Type*} [set_like A M]
+  [add_submonoid_class A M] (S : A) :
+  has_scalar ℕ S :=
+⟨λ n a, ⟨n • a.1, nsmul_mem a.2 n⟩⟩
+
+/-- A submonoid of a monoid inherits a power operator. -/
+instance has_pow {M} [monoid M] {A : Type*} [set_like A M] [submonoid_class A M] (S : A) :
+  has_pow S ℕ :=
+⟨λ a n, ⟨a.1 ^ n, pow_mem a.2 n⟩⟩
+
+attribute [to_additive] submonoid_class.has_pow
+
+@[simp, norm_cast, to_additive] lemma coe_pow {M} [monoid M] {A : Type*} [set_like A M]
+  [submonoid_class A M] {S : A} (x : S) (n : ℕ) :
+  (↑(x ^ n) : M) = ↑x ^ n :=
+rfl
+
+@[simp, to_additive] lemma mk_pow {M} [monoid M] {A : Type*} [set_like A M]
+  [submonoid_class A M] {S : A} (x : M) (hx : x ∈ S) (n : ℕ) :
+  (⟨x, hx⟩ : S) ^ n = ⟨x ^ n, pow_mem hx n⟩ :=
+rfl
+
 /-- A submonoid of a unital magma inherits a unital magma structure. -/
 @[to_additive "An `add_submonoid` of an unital additive magma inherits an unital additive magma
 structure."]
@@ -423,21 +446,21 @@ subtype.coe_injective.mul_one_class _ rfl (λ _ _, rfl)
 structure."]
 instance to_monoid {M : Type*} [monoid M] {A : Type*} [set_like A M] [submonoid_class A M]
   (S : A) : monoid S :=
-subtype.coe_injective.monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of a `comm_monoid` is a `comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `add_comm_monoid` is
 an `add_comm_monoid`."]
 instance to_comm_monoid {M} [comm_monoid M] {A : Type*} [set_like A M] [submonoid_class A M]
   (S : A) : comm_monoid S :=
-subtype.coe_injective.comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of an `ordered_comm_monoid` is an `ordered_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `ordered_add_comm_monoid` is
 an `ordered_add_comm_monoid`."]
 instance to_ordered_comm_monoid {M} [ordered_comm_monoid M] {A : Type*} [set_like A M]
   [submonoid_class A M] (S : A) : ordered_comm_monoid S :=
-subtype.coe_injective.ordered_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.ordered_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of a `linear_ordered_comm_monoid` is a `linear_ordered_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of a `linear_ordered_add_comm_monoid` is
@@ -445,7 +468,7 @@ a `linear_ordered_add_comm_monoid`."]
 instance to_linear_ordered_comm_monoid {M} [linear_ordered_comm_monoid M] {A : Type*}
   [set_like A M] [submonoid_class A M] (S : A) :
   linear_ordered_comm_monoid S :=
-subtype.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of an `ordered_cancel_comm_monoid` is an `ordered_cancel_comm_monoid`. -/
 @[to_additive "An `add_submonoid` of an `ordered_cancel_add_comm_monoid` is
@@ -453,7 +476,7 @@ an `ordered_cancel_add_comm_monoid`."]
 instance to_ordered_cancel_comm_monoid {M} [ordered_cancel_comm_monoid M] {A : Type*}
   [set_like A M] [submonoid_class A M] (S : A) :
   ordered_cancel_comm_monoid S :=
-subtype.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submonoid of a `linear_ordered_cancel_comm_monoid` is a `linear_ordered_cancel_comm_monoid`.
 -/
@@ -461,7 +484,7 @@ subtype.coe_injective.ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
 a `linear_ordered_cancel_add_comm_monoid`."]
 instance to_linear_ordered_cancel_comm_monoid {M} [linear_ordered_cancel_comm_monoid M]
   {A : Type*} [set_like A M] [submonoid_class A M] (S : A) : linear_ordered_cancel_comm_monoid S :=
-subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_cancel_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 include hA
 
@@ -500,11 +523,7 @@ subtype.coe_injective.mul_one_class coe rfl (λ _ _, rfl)
 
 @[to_additive] lemma pow_mem {M : Type*} [monoid M] (S : submonoid M) {x : M}
   (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
-begin
-  induction n with n ih,
-  { simpa only [pow_zero] using S.one_mem },
-  { simpa only [pow_succ] using S.mul_mem hx ih }
-end
+pow_mem hx n
 
 instance _root_.add_submonoid.has_nsmul {M : Type*} [add_monoid M] (S : add_submonoid M) :
   has_scalar ℕ S :=

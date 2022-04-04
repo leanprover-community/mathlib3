@@ -23,12 +23,13 @@ inductive equiv_rel (C : Type u) [presented_category.{v} C] : Π {X Y : C}, path
 
 instance setoid {C : Type u} [presented_category.{v} C] (X Y : C) : setoid (path X Y) :=
 { r := equiv_rel C,
-  iseqv := sorry, }
+  iseqv := ⟨λ p, equiv_rel.refl p, λ _ _ f, equiv_rel.symm f, λ _ _ _ f g, equiv_rel.trans f g⟩, }
 
 def of (C : Type*) [presented_category C] : Type* := C
 
 def unwrap {C : Type*} [presented_category C] (X : of C) : C := X
 
+@[simps]
 instance (C : Type u) [presented_category.{v} C] : category.{max v u} (of C) :=
 { hom := λ X Y, quotient (presented_category.setoid (unwrap X) (unwrap Y)),
   id := λ X, quotient.mk path.nil,
@@ -55,8 +56,20 @@ instance (C : Type u) [category.{v} C] :
 
 lemma trivial_presentation_equiv_rel (C : Type u) [category.{v} C] {X Y : C} (p q : path X Y) :
   equiv_rel (trivial_presentation C) p q ↔ @compose_path C _ _ _ p = @compose_path C _ _ _ q :=
-sorry
+begin
+  split,
+  { intro w, induction w,
+    { exact w_r, },
+    { refl, },
+    { cc, },
+    { cc, },
+    { simp [w_ih], },
+    { simp [w_ih], }, },
+  { intro w, exact equiv_rel.of w, }
+end
 
+/-- The category constructed from the trivial presentation of a category
+is equivalent to the original category. -/
 def of_trivial_presentation_equivalence (C : Type u) [category.{v} C] :
   of (trivial_presentation C) ≌ C :=
 { functor :=
@@ -68,15 +81,21 @@ def of_trivial_presentation_equivalence (C : Type u) [category.{v} C] :
       rw ←trivial_presentation_equiv_rel,
       exact w,
     end,
-    map_id' := sorry,
-    map_comp' := sorry, },
+    map_id' := by { intros, simp, refl, },
+    map_comp' := by { intros, induction f, { induction g; simp, }, { refl, }, }, },
   inverse :=
   { obj := λ X, X,
     map := λ X Y f, quotient.mk (hom.to_path f),
-    map_id' := sorry,
-    map_comp' := sorry, },
-  unit_iso := nat_iso.of_components (λ X, iso.refl _) sorry,
-  counit_iso := nat_iso.of_components (λ X, iso.refl _) sorry, }
+    map_id' := by { intros, apply quotient.sound, apply (trivial_presentation_equiv_rel _ _ _).2, simp, refl, },
+    map_comp' := by { intros, apply quotient.sound, apply (trivial_presentation_equiv_rel _ _ _).2, simp, }, },
+  unit_iso := nat_iso.of_components (λ X, iso.refl _) begin
+    intros,
+    induction f,
+    { apply quotient.sound, apply (trivial_presentation_equiv_rel _ _ _).2,
+      simp, },
+    { refl, },
+  end,
+  counit_iso := nat_iso.of_components (λ X, iso.refl _) (by tidy), }
 
 end presented_category
 

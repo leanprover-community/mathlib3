@@ -467,7 +467,7 @@ exp_add_of_mem_ball ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top 
   ((exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _)
 
 /-- A version of `exp_sum_of_commute` for a commutative Banach-algebra. -/
-lemma exp_sum {ι} [complete_space 𝔸] (s : finset ι) (f : ι → 𝔸) :
+lemma exp_sum {ι} (s : finset ι) (f : ι → 𝔸) :
   exp 𝕂 𝔸 (∑ i in s, f i) = ∏ i in s, exp 𝕂 𝔸 (f i) :=
 begin
   rw [exp_sum_of_commute, finset.noncomm_prod_eq_prod],

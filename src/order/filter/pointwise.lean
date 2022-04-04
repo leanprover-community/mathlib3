@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yaël Dillies
 -/
 import data.set.pointwise
-import order.filter.basic
+import order.filter.n_ary
 
 /-!
 # Pointwise operations on filters
@@ -35,44 +35,10 @@ distribute over pointwise operations. For example,
 * `a +ᵥ f` (`filter.has_vadd_filter`): Translation, filter of all `a +ᵥ x` where `s ∈ f`.
 * `a • f` (`filter.has_smul_filter`): Scaling, filter of all `a • s` where `s ∈ f`.
 
-## TODO
-
-Add missing operations: subtraction/division, negation/inversion, scalar multiplication/addition
-
 ## Tags
 
 filter multiplication, filter addition, pointwise addition, pointwise multiplication,
 -/
-
-namespace set
-open_locale pointwise
-open function
-
-variables {F α β γ δ : Type*}
-
-lemma le_iff_subset {s t : set α} : s ≤ t ↔ s ⊆ t := iff.rfl
-
-variables {f : α → β → γ} {s s₁ s₂ : set α} {t t₁ t₂ : set β} {a : α} {b : β}
-
--- lemma image2_subset_image2_iff {f : α → β → γ} (hf : injective2 f) :
---   image2 f s₁ t₁ ⊆ image2 f s₂ t₂ ↔ s₁ ⊆ s₂ ∧ t₁ ⊆ t₂ :=
--- begin
---   simp_rw ←image_prod,
---   rw image_subset_image_iff,
---   rw prod_subset_prod_iff,
---   refine ⟨_, λ h, image2_subset h.1 h.2⟩,
---   refine (iff.symm $ iff.intro (image2_subset f) $ assume h, _),
---   rw [← preimage_image_eq s hf, ← preimage_image_eq t hf],
---   exact preimage_mono h
--- end
-
-lemma image_subset_image2_left (hb : b ∈ t) : (λ a, f a b) '' s ⊆ image2 f s t :=
-ball_image_of_ball $ λ a ha, mem_image2_of_mem ha hb
-
-lemma image_subset_image2_right (ha : a ∈ s) : f a '' t ⊆ image2 f s t :=
-ball_image_of_ball $ λ b, mem_image2_of_mem ha
-
-end set
 
 open function set
 open_locale filter pointwise
@@ -104,243 +70,6 @@ le_antisymm
   (le_map $ λ s hs, mem_one.2 ⟨1, mem_one.1 hs, map_one φ⟩)
 
 end one
-
-section map
-open function
-variables {m : α → β → γ} {f f₁ f₂ : filter α} {g g₁ g₂ : filter β} {h h₁ h₂ : filter γ}
-  {s s₁ s₂ : set α} {t t₁ t₂ : set β} {u : set γ} {v : set δ} {a : α} {b : β} {c : γ}
-
-/-- The image of a binary function `m : α → β → γ` as a function `filter α → filter β → filter γ`.
-Mathematically this should be thought of as the image of the corresponding function `α × β → γ`. -/
-def map₂ (m : α → β → γ) (f : filter α) (g : filter β) : filter γ :=
-{ sets := {s | ∃ u v, u ∈ f ∧ v ∈ g ∧ image2 m u v ⊆ s},
-  univ_sets := ⟨univ, univ, univ_sets _, univ_sets _, subset_univ _⟩,
-  sets_of_superset := λ s t hs hst,
-    Exists₂.imp (λ u v, and.imp_right $ and.imp_right $ λ h, subset.trans h hst) hs,
-  inter_sets := λ s t,
-  begin
-    simp only [exists_prop, mem_set_of_eq, subset_inter_iff],
-    rintro ⟨s₁, s₂, hs₁, hs₂, hs⟩ ⟨t₁, t₂, ht₁, ht₂, ht⟩,
-    exact ⟨s₁ ∩ t₁, s₂ ∩ t₂, inter_sets f hs₁ ht₁, inter_sets g hs₂ ht₂,
-      (image2_subset (inter_subset_left _ _) $ inter_subset_left _ _).trans hs,
-      (image2_subset (inter_subset_right _ _) $ inter_subset_right _ _).trans ht⟩,
-  end }
-
-@[simp] lemma mem_map₂_iff : u ∈ map₂ m f g ↔ ∃ s t, s ∈ f ∧ t ∈ g ∧ image2 m s t ⊆ u := iff.rfl
-
-lemma image2_mem_map₂ (hs : s ∈ f) (ht : t ∈ g) : image2 m s t ∈ map₂ m f g :=
-⟨_, _, hs, ht, subset.rfl⟩
-
--- lemma image2_mem_map₂_iff (hm : injective2 m) : image2 m s t ∈ map₂ m f g ↔ s ∈ f ∧ t ∈ g :=
--- ⟨by { rintro ⟨u, v, hu, hv, h⟩, rw image2_subset_image2_iff hm at h,
---   exact ⟨mem_of_superset hu h.1, mem_of_superset hv h.2⟩ }, λ h, image2_mem_map₂ h.1 h.2⟩
-
-lemma map₂_mono (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) : map₂ m f₁ g₁ ≤ map₂ m f₂ g₂ :=
-λ _ ⟨s, t, hs, ht, hst⟩, ⟨s, t, hf hs, hg ht, hst⟩
-
-lemma map₂_mono_left (h : g₁ ≤ g₂) : map₂ m f g₁ ≤ map₂ m f g₂ := map₂_mono subset.rfl h
-lemma map₂_mono_right (h : f₁ ≤ f₂) : map₂ m f₁ g ≤ map₂ m f₂ g := map₂_mono h subset.rfl
-
-@[simp] lemma le_map₂_iff {h : filter γ} :
-  h ≤ map₂ m f g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → image2 m s t ∈ h :=
-⟨λ H s hs t ht, H $ image2_mem_map₂ hs ht, λ H u ⟨s, t, hs, ht, hu⟩, mem_of_superset (H hs ht) hu⟩
-
-@[simp] lemma map₂_bot_left : map₂ m ⊥ g = ⊥ :=
-empty_mem_iff_bot.1 ⟨∅, univ, trivial, univ_mem, (image2_empty_left).subset⟩
-
-@[simp] lemma map₂_bot_right : map₂ m f ⊥ = ⊥ :=
-empty_mem_iff_bot.1 ⟨univ, ∅, univ_mem, trivial, (image2_empty_right).subset⟩
-
-@[simp] lemma map₂_eq_bot_iff : map₂ m f g = ⊥ ↔ f = ⊥ ∨ g = ⊥ :=
-begin
-  simp only [←empty_mem_iff_bot, mem_map₂_iff, subset_empty_iff, image2_eq_empty_iff],
-  split,
-  { rintro ⟨s, t, hs, ht, rfl | rfl⟩,
-    { exact or.inl hs },
-    { exact or.inr ht } },
-  { rintro (h | h),
-    { exact ⟨_, _, h, univ_mem, or.inl rfl⟩ },
-    { exact ⟨_, _, univ_mem, h, or.inr rfl⟩ } }
-end
-
-@[simp] lemma map₂_ne_bot_iff : (map₂ m f g).ne_bot ↔ f.ne_bot ∧ g.ne_bot :=
-by { simp_rw ne_bot_iff, exact map₂_eq_bot_iff.not.trans not_or_distrib }
-
-lemma ne_bot.map₂ (hf : f.ne_bot) (hg : g.ne_bot) : (map₂ m f g).ne_bot :=
-map₂_ne_bot_iff.2 ⟨hf, hg⟩
-
-lemma map₂_sup_left : map₂ m (f₁ ⊔ f₂) g = map₂ m f₁ g ⊔ map₂ m f₂ g :=
-begin
-  ext u,
-  split,
-  { rintro ⟨s, t, ⟨h₁, h₂⟩, ht, hu⟩,
-    exact ⟨mem_of_superset (image2_mem_map₂ h₁ ht) hu,
-      mem_of_superset (image2_mem_map₂ h₂ ht) hu⟩ },
-  { rintro ⟨⟨s₁, t₁, hs₁, ht₁, hu₁⟩, s₂, t₂, hs₂, ht₂, hu₂⟩,
-    refine ⟨s₁ ∪ s₂, t₁ ∩ t₂, union_mem_sup hs₁ hs₂, inter_mem ht₁ ht₂, _⟩,
-    rw image2_union_left,
-    exact union_subset ((image2_subset_left $ inter_subset_left _ _).trans hu₁)
-      ((image2_subset_left $ inter_subset_right _ _).trans hu₂) }
-end
-
-lemma map₂_sup_right : map₂ m f (g₁ ⊔ g₂) = map₂ m f g₁ ⊔ map₂ m f g₂ :=
-begin
-  ext u,
-  split,
-  { rintro ⟨s, t, hs, ⟨h₁, h₂⟩, hu⟩,
-    exact ⟨mem_of_superset (image2_mem_map₂ hs h₁) hu,
-      mem_of_superset (image2_mem_map₂ hs h₂) hu⟩ },
-  { rintro ⟨⟨s₁, t₁, hs₁, ht₁, hu₁⟩, s₂, t₂, hs₂, ht₂, hu₂⟩,
-    refine ⟨s₁ ∩ s₂, t₁ ∪ t₂, inter_mem hs₁ hs₂, union_mem_sup ht₁ ht₂, _⟩,
-    rw image2_union_right,
-    exact union_subset ((image2_subset_right $ inter_subset_left _ _).trans hu₁)
-      ((image2_subset_right $ inter_subset_right _ _).trans hu₂) }
-end
-
-lemma map₂_inf_subset_left : map₂ m (f₁ ⊓ f₂) g ≤ map₂ m f₁ g ⊓ map₂ m f₂ g :=
-le_inf (map₂_mono_right inf_le_left) (map₂_mono_right inf_le_right)
-
-lemma map₂_inf_subset_right : map₂ m f (g₁ ⊓ g₂) ≤ map₂ m f g₁ ⊓ map₂ m f g₂ :=
-le_inf (map₂_mono_left inf_le_left) (map₂_mono_left inf_le_right)
-
-@[simp] lemma map₂_pure_left : map₂ m (pure a) g = g.map (λ b, m a b) :=
-filter.ext $ λ u, ⟨λ ⟨s, t, hs, ht, hu⟩,
-  mem_of_superset (image_mem_map ht) ((image_subset_image2_right $ mem_pure.1 hs).trans hu),
-    λ h, ⟨{a}, _, singleton_mem_pure, h, by rw [image2_singleton_left, image_subset_iff]⟩⟩
-
-@[simp] lemma map₂_pure_right : map₂ m f (pure b) = f.map (λ a, m a b) :=
-filter.ext $ λ u, ⟨λ ⟨s, t, hs, ht, hu⟩,
-  mem_of_superset (image_mem_map hs) ((image_subset_image2_left $ mem_pure.1 ht).trans hu),
-    λ h, ⟨_, {b}, h, singleton_mem_pure, by rw [image2_singleton_right, image_subset_iff]⟩⟩
-
-lemma map₂_pure : map₂ m (pure a) (pure b) = pure (m a b) := by rw [map₂_pure_right, map_pure]
-
-lemma map₂_swap (m : α → β → γ) (f : filter α) (g : filter β) :
-  map₂ m f g = map₂ (λ a b, m b a) g f :=
-by { ext u, split; rintro ⟨s, t, hs, ht, hu⟩; refine ⟨t, s, ht, hs, by rwa image2_swap⟩ }
-
-@[simp] lemma map₂_left (h : g.ne_bot) : map₂ (λ x y, x) f g = f :=
-begin
-  ext u,
-  refine ⟨_, λ hu, ⟨_, _, hu, univ_mem, (image2_left $ h.nonempty_of_mem univ_mem).subset⟩⟩,
-  rintro ⟨s, t, hs, ht, hu⟩,
-  rw image2_left (h.nonempty_of_mem ht) at hu,
-  exact mem_of_superset hs hu,
-end
-
-@[simp] lemma map₂_right (h : f.ne_bot) : map₂ (λ x y, y) f g = g := by rw [map₂_swap, map₂_left h]
-
-/-- The image of a ternary function `m : α → β → γ → δ` as a function
-`filter α → filter β → filter γ → filter δ`. Mathematically this should be thought of as the image
-of the corresponding function `α × β × γ → δ`. -/
-def map₃ (m : α → β → γ → δ) (f : filter α) (g : filter β) (h : filter γ) : filter δ :=
-{ sets := {s | ∃ u v w, u ∈ f ∧ v ∈ g ∧ w ∈ h ∧ image3 m u v w ⊆ s},
-  univ_sets := ⟨univ, univ, univ, univ_sets _, univ_sets _, univ_sets _, subset_univ _⟩,
-  sets_of_superset := λ s t hs hst, Exists₃.imp
-    (λ u v w, and.imp_right $ and.imp_right $ and.imp_right $ λ h, subset.trans h hst) hs,
-  inter_sets := λ s t,
-  begin
-    simp only [exists_prop, mem_set_of_eq, subset_inter_iff],
-    rintro ⟨s₁, s₂, s₃, hs₁, hs₂, hs₃, hs⟩ ⟨t₁, t₂, t₃, ht₁, ht₂, ht₃, ht⟩,
-    exact ⟨s₁ ∩ t₁, s₂ ∩ t₂, s₃ ∩ t₃, inter_mem hs₁ ht₁, inter_mem hs₂ ht₂, inter_mem hs₃ ht₃,
-      (image3_mono (inter_subset_left _ _) (inter_subset_left _ _) $ inter_subset_left _ _).trans
-        hs,
-      (image3_mono (inter_subset_right _ _) (inter_subset_right _ _) $ inter_subset_right _ _).trans
-        ht⟩,
-  end }
-
--- @[simp] lemma mem_map₃ : d ∈ map₃ g f g h ↔ ∃ a b c, a ∈ f ∧ b ∈ g ∧ c ∈ h ∧ g a b c = d :=
--- iff.rfl
-
--- @[congr] lemma map₃_congr (h : ∀ (a ∈ f) (b ∈ g) (c ∈ h), g a b c = g' a b c) :
---   map₃ g f g h = map₃ g' f g h :=
--- by { ext x, split;
---   rintro ⟨a, b, c, ha, hb, hc, rfl⟩; exact ⟨a, b, c, ha, hb, hc, by rw h a ha b hb c hc⟩ }
-
--- /-- A common special case of `map₃_congr` -/
--- lemma map₃_congr' (h : ∀ a b c, g a b c = g' a b c) : map₃ g f g h = map₃ g' f g h :=
--- map₃_congr (λ a _ b _ c _, h a b c)
-
-lemma map₂_map₂_left (m : δ → γ → ε) (n : α → β → δ) :
-  map₂ m (map₂ n f g) h = map₃ (λ a b c, m (n a b) c) f g h :=
-begin
-  ext w,
-  split,
-  { rintro ⟨s, t, ⟨u, v, hu, hv, hs⟩, ht, hw⟩,
-    refine ⟨u, v, t, hu, hv, ht, _⟩,
-    rw ←image2_image2_left,
-    exact (image2_subset_right hs).trans hw },
-  { rintro ⟨s, t, u, hs, ht, hu, hw⟩,
-    exact ⟨_, u, image2_mem_map₂ hs ht, hu, by rwa image2_image2_left⟩ }
-end
-
-lemma map₂_map₂_right (m : α → δ → ε) (n : β → γ → δ) :
-  map₂ m f (map₂ n g h) = map₃ (λ a b c, m a (n b c)) f g h :=
-begin
-  ext w,
-  split,
-  { rintro ⟨s, t, hs, ⟨u, v, hu, hv, ht⟩, hw⟩,
-    refine ⟨s, u, v, hs, hu, hv, _⟩,
-    rw ←image2_image2_right,
-    exact (image2_subset_left ht).trans hw },
-  { rintro ⟨s, t, u, hs, ht, hu, hw⟩,
-    exact ⟨s, _, hs, image2_mem_map₂ ht hu, by rwa image2_image2_right⟩ }
-end
-
-lemma map₂_assoc {ε'} {m : δ → γ → ε} {n : α → β → δ} {m' : α → ε' → ε} {n' : β → γ → ε'}
-  {h : filter γ} (h_assoc : ∀ a b c, m (n a b) c = m' a (n' b c)) :
-  map₂ m (map₂ n f g) h = map₂ m' f (map₂ n' g h) :=
-by simp only [map₂_map₂_left, map₂_map₂_right, h_assoc]
-
-lemma map₂_comm {n : β → α → γ} (h_comm : ∀ a b, m a b = n b a) : map₂ m f g = map₂ n g f :=
-(map₂_swap _ _ _).trans $ by simp_rw h_comm
-
-lemma map₂_left_comm {δ'} {m : α → δ → ε} {n : β → γ → δ} {m' : α → γ → δ'} {n' : β → δ' → ε}
-  (h_left_comm : ∀ a b c, m a (n b c) = n' b (m' a c)) :
-  map₂ m f (map₂ n g h) = map₂ n' g (map₂ m' f h) :=
-by { rw [map₂_swap m', map₂_swap m], exact map₂_assoc (λ _ _ _, h_left_comm _ _ _) }
-
-lemma map₂_right_comm {δ'} {m : δ → γ → ε} {n : α → β → δ} {m' : α → γ → δ'} {n' : δ' → β → ε}
-  (h_right_comm : ∀ a b c, m (n a b) c = n' (m' a c) b) :
-  map₂ m (map₂ n f g) h = map₂ n' (map₂ m' f h) g :=
-by { rw [map₂_swap n, map₂_swap n'], exact map₂_assoc (λ _ _ _, h_right_comm _ _ _) }
-
-lemma map_map₂ (m : α → β → γ) (n : γ → δ) : (map₂ m f g).map n = map₂ (λ a b, n (m a b)) f g :=
-filter.ext $ λ u, exists₂_congr $ λ s t, by rw [←image_subset_iff, image_image2]
-
-lemma map₂_map_left (m : γ → β → δ) (n : α → γ) :
-  map₂ m (f.map n) g = map₂ (λ a b, m (n a) b) f g :=
-begin
-  ext u,
-  split,
-  { rintro ⟨s, t, hs, ht, hu⟩,
-    refine ⟨_, t, hs, ht, _⟩,
-    rw ←image2_image_left,
-    exact (image2_subset_right $ image_preimage_subset _ _).trans hu, },
-  { rintro ⟨s, t, hs, ht, hu⟩,
-    exact ⟨_, t, image_mem_map hs, ht, by rwa image2_image_left⟩ }
-end
-
-lemma map₂_map_right (m : α → γ → δ) (n : β → γ) :
-  map₂ m f (g.map n) = map₂ (λ a b, m a (n b)) f g :=
-by rw [map₂_swap, map₂_map_left, map₂_swap]
-
-lemma map_map₂_distrib {α' β'} {n : γ → δ} {m' : α' → β' → δ} {n₁ : α → α'} {n₂ : β → β'}
-  (h_distrib : ∀ a b, n (m a b) = m' (n₁ a) (n₂ b)) :
-  (map₂ m f g).map n = map₂ m' (f.map n₁) (g.map n₂) :=
-by simp_rw [map_map₂, map₂_map_left, map₂_map_right, h_distrib]
-
-lemma map_map₂_distrib_left {α'} {n : γ → δ} {m' : α' → β → δ} {n' : α → α'}
-  (h_distrib : ∀ a b, n (m a b) = m' (n' a) b) :
-  (map₂ m f g).map n = map₂ m' (f.map n') g :=
-map_map₂_distrib h_distrib
-
-lemma map_map₂_distrib_right {β'} {n : γ → δ} {m' : α → β' → δ} {n' : β → β'}
-  (h_distrib : ∀ a b, n (m a b) = m' a (n' b)) :
-  (map₂ m f g).map n = map₂ m' f (g.map n') :=
-map_map₂_distrib h_distrib
-
-end map
 
 /-! ### Filter addition/multiplication -/
 
@@ -486,6 +215,8 @@ variables [has_div α] {f f₁ f₂ g g₁ g₂ h : filter α} {s t : set α}
 @[simp,to_additive] lemma le_div_iff : h ≤ f / g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s / t ∈ h :=
 le_map₂_iff
 @[to_additive] protected lemma div_le_div : f₁ ≤ f₂ → g₁ ≤ g₂ → f₁ / g₁ ≤ f₂ / g₂ := map₂_mono
+@[to_additive] protected lemma div_le_div_left : g₁ ≤ g₂ → f / g₁ ≤ f / g₂ := map₂_mono_left
+@[to_additive] protected lemma div_le_div_right : f₁ ≤ f₂ → f₁ / g ≤ f₂ / g := map₂_mono_right
 
 @[to_additive] instance covariant_div : covariant_class (filter α) (filter α) (/) (≤) :=
 ⟨λ f g h, map₂_mono_left⟩
@@ -540,11 +271,12 @@ variables [has_scalar α β] {f f₁ f₂ : filter α} {g g₁ g₂ h : filter �
 @[to_additive] lemma ne_bot.smul : ne_bot f → ne_bot g → ne_bot (f • g) := ne_bot.map₂
 @[simp, to_additive] lemma le_smul_iff : h ≤ f • g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s • t ∈ h :=
 le_map₂_iff
+@[to_additive] lemma smul_le_smul : f₁ ≤ f₂ → g₁ ≤ g₂ → f₁ • g₁ ≤ f₂ • g₂ := map₂_mono
+@[to_additive] lemma smul_le_smul_left : g₁ ≤ g₂ → f • g₁ ≤ f • g₂ := map₂_mono_left
+@[to_additive] lemma smul_le_smul_right : f₁ ≤ f₂ → f₁ • g ≤ f₂ • g := map₂_mono_right
 
 @[to_additive] instance covariant_smul : covariant_class (filter α) (filter β) (•) (≤) :=
 ⟨λ f g h, map₂_mono_left⟩
-
-@[to_additive] protected lemma smul_le_smul : f₁ ≤ f₂ → g₁ ≤ g₂ → f₁ • g₁ ≤ f₂ • g₂ := map₂_mono
 
 end smul
 
@@ -570,8 +302,9 @@ lemma vsub_mem_vsub : s ∈ f → t ∈ g → s -ᵥ t ∈ f -ᵥ g :=  image2_m
 @[simp] lemma vsub_ne_bot_iff : (f -ᵥ g : filter α).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
 lemma ne_bot.vsub : ne_bot f → ne_bot g → ne_bot (f -ᵥ g) := ne_bot.map₂
 @[simp] lemma le_vsub_iff : h ≤ f -ᵥ g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s -ᵥ t ∈ h := le_map₂_iff
-
-protected lemma vsub_le_vsub : f₁ ≤ f₂ → g₁ ≤ g₂ → f₁ -ᵥ g₁ ≤ f₂ -ᵥ g₂ := map₂_mono
+lemma vsub_le_vsub : f₁ ≤ f₂ → g₁ ≤ g₂ → f₁ -ᵥ g₁ ≤ f₂ -ᵥ g₂ := map₂_mono
+lemma vsub_le_vsub_left : g₁ ≤ g₂ → f -ᵥ g₁ ≤ f -ᵥ g₂ := map₂_mono_left
+lemma vsub_le_vsub_right : f₁ ≤ f₂ → f₁ -ᵥ g ≤ f₂ -ᵥ g := map₂_mono_right
 
 end vsub
 
@@ -591,9 +324,8 @@ instance has_scalar_filter : has_scalar α (filter β) := ⟨λ a, map ((•) a)
 @[simp, to_additive] lemma smul_filter_eq_bot_iff : a • f = ⊥ ↔ f = ⊥ := map_eq_bot_iff
 @[simp, to_additive] lemma smul_filter_ne_bot_iff : (a • f).ne_bot ↔ f.ne_bot := map_ne_bot_iff _
 @[to_additive] lemma ne_bot.smul_filter : f.ne_bot → (a • f).ne_bot := λ h, h.map _
-
-@[to_additive]
-protected lemma smul_filter_le_smul_filter (hf : f₁ ≤ f₂) : a • f₁ ≤ a • f₂ := map_mono hf
+@[to_additive] lemma smul_filter_le_smul_filter (hf : f₁ ≤ f₂) : a • f₁ ≤ a • f₂ :=
+map_mono hf
 
 @[to_additive] instance covariant_smul_filter : covariant_class α (filter β) (•) (≤) :=
 ⟨λ f, map_mono⟩

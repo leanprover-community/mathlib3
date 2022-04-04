@@ -597,13 +597,20 @@ lemma continuous_within_at.mem_closure {f : α → β} {s : set α} {x : α} {A 
   (h : continuous_within_at f s x) (hx : x ∈ closure s) (hA : maps_to f s A) : f x ∈ closure A :=
 closure_mono (image_subset_iff.2 hA) (h.mem_closure_image hx)
 
+lemma set.maps_to.closure_of_continuous_within_at {f : α → β} {s : set α} {t : set β}
+  (h : maps_to f s t) (hc : ∀ x ∈ closure s, continuous_within_at f s x) :
+  maps_to f (closure s) (closure t) :=
+λ x hx, (hc x hx).mem_closure hx h
+
+lemma set.maps_to.closure_of_continuous_on {f : α → β} {s : set α} {t : set β}
+  (h : maps_to f s t) (hc : continuous_on f (closure s)) :
+  maps_to f (closure s) (closure t) :=
+h.closure_of_continuous_within_at $ λ x hx, (hc x hx).mono subset_closure
+
 lemma continuous_within_at.image_closure {f : α → β} {s : set α}
   (hf : ∀ x ∈ closure s, continuous_within_at f s x) :
   f '' (closure s) ⊆ closure (f '' s) :=
-begin
-  rintros _ ⟨x, hx, rfl⟩,
-  exact (hf x hx).mem_closure_image hx
-end
+maps_to'.1 $ (maps_to_image f s).closure_of_continuous_within_at hf
 
 lemma continuous_on.image_closure {f : α → β} {s : set α} (hf : continuous_on f (closure s)) :
   f '' (closure s) ⊆ closure (f '' s) :=
@@ -1018,6 +1025,11 @@ lemma continuous.if {p : α → Prop} {f g : α → β} [∀ a, decidable (p a)]
   (hp : ∀ a ∈ frontier {x | p x}, f a = g a) (hf : continuous f) (hg : continuous g) :
   continuous (λ a, if p a then f a else g a) :=
 continuous_if hp hf.continuous_on hg.continuous_on
+
+lemma continuous.if_const (p : Prop) {f g : α → β} [decidable p]
+  (hf : continuous f) (hg : continuous g) :
+  continuous (λ a, if p then f a else g a) :=
+continuous_if (if h : p then by simp [h] else by simp [h]) hf.continuous_on hg.continuous_on
 
 lemma continuous_piecewise {s : set α} {f g : α → β} [∀ a, decidable (a ∈ s)]
   (hs : ∀ a ∈ frontier s, f a = g a) (hf : continuous_on f (closure s))

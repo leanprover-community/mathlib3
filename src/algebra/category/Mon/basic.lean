@@ -64,6 +64,9 @@ add_decl_doc AddMon.of
 /-- Typecheck a `add_monoid_hom` as a morphism in `AddMon`. -/
 add_decl_doc AddMon.of_hom
 
+@[simp] lemma of_hom_apply {X Y : Type u} [monoid X] [monoid Y] (f : X →* Y)
+  (x : X) : of_hom f x = f x := rfl
+
 @[to_additive]
 instance : inhabited Mon :=
 -- The default instance for `monoid punit` is derived via `punit.comm_ring`,

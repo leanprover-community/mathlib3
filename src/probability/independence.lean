@@ -342,4 +342,33 @@ lemma indep_sets.indep_set_of_mem (hs : s ∈ S) (ht : t ∈ T) (hs_meas : measu
 
 end indep_set
 
+section indep_fun
+
+variables {α β β' γ γ' : Type*} {mα : measurable_space α} {μ : measure α}
+
+lemma indep_fun.ae_eq {mβ : measurable_space β} {f g f' g' : α → β}
+  (hfg : indep_fun f g μ) (hf : f =ᵐ[μ] f') (hg : g =ᵐ[μ] g') :
+  indep_fun f' g' μ :=
+begin
+  rintro _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
+  have h1 : f ⁻¹' A =ᵐ[μ] f' ⁻¹' A := hf.fun_comp A,
+  have h2 : g ⁻¹' B =ᵐ[μ] g' ⁻¹' B := hg.fun_comp B,
+  rw [←measure_congr h1, ←measure_congr h2, ←measure_congr (h1.inter h2)],
+  exact hfg _ _ ⟨_, hA, rfl⟩ ⟨_, hB, rfl⟩
+end
+
+lemma indep_fun.comp {mβ : measurable_space β} {mβ' : measurable_space β'}
+  {mγ : measurable_space γ} {mγ' : measurable_space γ'}
+  {f : α → β} {g : α → β'} {φ : β → γ} {ψ : β' → γ'}
+  (hfg : indep_fun f g μ) (hφ : measurable φ) (hψ : measurable ψ) :
+  indep_fun (φ ∘ f) (ψ ∘ g) μ :=
+begin
+  rintro _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
+  apply hfg,
+  { exact ⟨φ ⁻¹' A, hφ hA, set.preimage_comp.symm⟩ },
+  { exact ⟨ψ ⁻¹' B, hψ hB, set.preimage_comp.symm⟩ }
+end
+
+end indep_fun
+
 end probability_theory

@@ -149,7 +149,7 @@ instance : has_add (continuous_multilinear_map R M₁ M₂) :=
 rfl
 
 instance add_comm_monoid : add_comm_monoid (continuous_multilinear_map R M₁ M₂) :=
-to_multilinear_map_inj.add_comm_monoid _ rfl (λ _ _, rfl)
+to_multilinear_map_inj.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- Evaluation of a `continuous_multilinear_map` at a vector as an `add_monoid_hom`. -/
 def apply_add_hom (m : Π i, M₁ i) : continuous_multilinear_map R M₁ M₂ →+ M₂ :=
@@ -330,7 +330,8 @@ instance : has_sub (continuous_multilinear_map R M₁ M₂) :=
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - f') m = f m - f' m := rfl
 
 instance : add_comm_group (continuous_multilinear_map R M₁ M₂) :=
-to_multilinear_map_inj.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+to_multilinear_map_inj.add_comm_group _
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end topological_add_group
 

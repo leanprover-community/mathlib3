@@ -157,9 +157,18 @@ by tidy
 
 end has_one
 
-@[to_additive] lemma mul_support_mul [monoid M] (f g : α → M) :
+@[to_additive] lemma mul_support_mul [mul_one_class M] (f g : α → M) :
   mul_support (λ x, f x * g x) ⊆ mul_support f ∪ mul_support g :=
 mul_support_binop_subset (*) (one_mul _) f g
+
+@[to_additive] lemma mul_support_pow [monoid M] (f : α → M) (n : ℕ) :
+  mul_support (λ x, f x ^ n) ⊆ mul_support f :=
+begin
+  induction n with n hfn,
+  { simpa only [pow_zero, mul_support_one] using empty_subset _ },
+  { simpa only [pow_succ]
+      using subset_trans (mul_support_mul f _) (union_subset (subset.refl _) hfn) }
+end
 
 @[simp, to_additive] lemma mul_support_inv [group G] (f : α → G) :
   mul_support (λ x, (f x)⁻¹) = mul_support f :=

@@ -27,6 +27,63 @@ variables {R : Type u} {S : Type v} {k : Type y} {A : Type z} {a b : R} {n : ℕ
 section is_domain
 variables [comm_ring R] [is_domain R]
 
+lemma prod_multiset_root_eq_finset_root {p : R[X]} :
+  (multiset.map (λ (a : R), X - C a) p.roots).prod =
+  ∏ a in p.roots.to_finset, (X - C a) ^ root_multiplicity a p :=
+by simp only [count_roots, finset.prod_multiset_map_count]
+
+lemma roots_C_mul (p : R[X]) {a : R} (hzero : a ≠ 0) : (C a * p).roots = p.roots :=
+begin
+  by_cases hpzero : p = 0,
+  { simp only [hpzero, mul_zero] },
+  rw multiset.ext,
+  intro b,
+  have prodzero : C a * p ≠ 0,
+  { simp only [hpzero, or_false, ne.def, mul_eq_zero, C_eq_zero, hzero, not_false_iff] },
+  rw [count_roots, count_roots, root_multiplicity_mul prodzero],
+  have mulzero : root_multiplicity b (C a) = 0,
+  { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
+  simp only [mulzero, zero_add]
+end
+
+lemma derivative_root_multiplicity_of_root [char_zero R] {p : R[X]} {t : R} (hpt : p.is_root t) :
+  p.derivative.root_multiplicity t = p.root_multiplicity t - 1 :=
+begin
+  rcases eq_or_ne p 0 with rfl | hp,
+  { simp },
+  nth_rewrite 0 [←p.div_by_monic_mul_pow_root_multiplicity_eq t],
+  simp only [derivative_pow, derivative_mul, derivative_sub, derivative_X,
+             derivative_C, sub_zero, mul_one],
+  set n := p.root_multiplicity t - 1,
+  have hn : n + 1 = _ := tsub_add_cancel_of_le ((root_multiplicity_pos hp).mpr hpt),
+  rw ←hn,
+  set q := p /ₘ (X - C t) ^ (n + 1) with hq,
+  convert_to root_multiplicity t ((X - C t) ^ n * (derivative q * (X - C t) + q * ↑(n + 1))) = n,
+  { congr,
+    rw [mul_add, mul_left_comm $ (X - C t) ^ n, ←pow_succ'],
+    congr' 1,
+    rw [mul_left_comm $ (X - C t) ^ n, mul_comm $ (X - C t) ^ n] },
+  have h : (derivative q * (X - C t) + q * ↑(n + 1)).eval t ≠ 0,
+  { suffices : eval t q * ↑(n + 1) ≠ 0,
+    { simpa },
+    refine mul_ne_zero _ (nat.cast_ne_zero.mpr n.succ_ne_zero),
+    convert eval_div_by_monic_pow_root_multiplicity_ne_zero t hp,
+    exact hn ▸ hq },
+  rw [root_multiplicity_mul, root_multiplicity_X_sub_C_pow, root_multiplicity_eq_zero h, add_zero],
+  refine mul_ne_zero (pow_ne_zero n $ X_sub_C_ne_zero t) _,
+  contrapose! h,
+  rw [h, eval_zero]
+end
+
+lemma root_multiplicity_sub_one_le_derivative_root_multiplicity [char_zero R] (p : R[X]) (t : R) :
+  p.root_multiplicity t - 1 ≤ p.derivative.root_multiplicity t :=
+begin
+  by_cases p.is_root t,
+  { exact (derivative_root_multiplicity_of_root h).symm.le },
+  { rw [root_multiplicity_eq_zero h, zero_tsub],
+    exact zero_le _ }
+end
+
 section normalization_monoid
 variables [normalization_monoid R]
 
@@ -60,30 +117,11 @@ lemma monic.normalize_eq_self {p : R[X]} (hp : p.monic) :
 by simp only [polynomial.coe_norm_unit, normalize_apply, hp.leading_coeff, norm_unit_one,
   units.coe_one, polynomial.C.map_one, mul_one]
 
-end normalization_monoid
-
-lemma prod_multiset_root_eq_finset_root {p : R[X]} :
-  (multiset.map (λ (a : R), X - C a) p.roots).prod =
-  ∏ a in p.roots.to_finset, (X - C a) ^ root_multiplicity a p :=
-by simp only [count_roots, finset.prod_multiset_map_count]
-
-lemma roots_C_mul (p : R[X]) {a : R} (hzero : a ≠ 0) : (C a * p).roots = p.roots :=
-begin
-  by_cases hpzero : p = 0,
-  { simp only [hpzero, mul_zero] },
-  rw multiset.ext,
-  intro b,
-  have prodzero : C a * p ≠ 0,
-  { simp only [hpzero, or_false, ne.def, mul_eq_zero, C_eq_zero, hzero, not_false_iff] },
-  rw [count_roots, count_roots, root_multiplicity_mul prodzero],
-  have mulzero : root_multiplicity b (C a) = 0,
-  { simp only [hzero, root_multiplicity_eq_zero, eval_C, is_root.def, not_false_iff] },
-  simp only [mulzero, zero_add]
-end
-
-lemma roots_normalize [normalization_monoid R] {p : R[X]} : (normalize p).roots = p.roots :=
+lemma roots_normalize {p : R[X]} : (normalize p).roots = p.roots :=
 by rw [normalize_apply, mul_comm, coe_norm_unit,
   roots_C_mul _ (norm_unit (leading_coeff p)).ne_zero]
+
+end normalization_monoid
 
 end is_domain
 
@@ -94,7 +132,7 @@ lemma degree_pos_of_ne_zero_of_nonunit (hp0 : p ≠ 0) (hp : ¬is_unit p) :
   0 < degree p :=
 lt_of_not_ge (λ h, begin
   rw [eq_C_of_degree_le_zero h] at hp0 hp,
-  exact hp (is_unit.map (C.to_monoid_hom : R →* _)
+  exact hp (is_unit.map C
     (is_unit.mk0 (coeff p 0) (mt C_inj.2 (by simpa using hp0)))),
 end)
 
@@ -139,12 +177,11 @@ hp3 (f * C f.leading_coeff⁻¹) (g * C g.leading_coeff⁻¹)
 by rw [mul_assoc, mul_left_comm _ g, ← mul_assoc, ← C_mul, ← mul_inv₀, ← leading_coeff_mul,
     ← hp, monic.def.1 hp1, inv_one, C_1, mul_one]⟩⟩
 
-/-- Division of polynomials. See polynomial.div_by_monic for more details.-/
+/-- Division of polynomials. See `polynomial.div_by_monic` for more details.-/
 def div (p q : R[X]) :=
 C (leading_coeff q)⁻¹ * (p /ₘ (q * C (leading_coeff q)⁻¹))
 
-/-- Remainder of polynomial division, see the lemma `quotient_mul_add_remainder_eq_aux`.
-See polynomial.mod_by_monic for more details. -/
+/-- Remainder of polynomial division. See `polynomial.mod_by_monic` for more details. -/
 def mod (p q : R[X]) :=
 p %ₘ (q * C (leading_coeff q)⁻¹)
 

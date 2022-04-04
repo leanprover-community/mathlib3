@@ -3,7 +3,7 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import algebra.pointwise
+import data.set.pointwise
 import order.antichain
 import order.order_iso_nat
 import order.well_founded
@@ -471,35 +471,13 @@ eq_of_mem_singleton (is_wf.min_mem hs hn)
 
 end set
 
-@[simp]
 theorem finset.is_wf_sup {ι : Type*} [partial_order α] (f : finset ι) (g : ι → set α)
   (hf : ∀ i : ι, i ∈ f → (g i).is_wf) : (f.sup g).is_wf :=
-begin
-  classical,
-  revert hf,
-  apply f.induction_on,
-  { intro h,
-    simp [set.is_pwo_empty.is_wf], },
-  { intros s f sf hf hsf,
-    rw finset.sup_insert,
-    exact (hsf s (finset.mem_insert_self _ _)).union  (hf (λ s' s'f, hsf _
-      (finset.mem_insert_of_mem s'f))) }
-end
+finset.sup_induction set.is_pwo_empty.is_wf (λ a ha b hb, ha.union hb) hf
 
-@[simp]
 theorem finset.is_pwo_sup {ι : Type*} [partial_order α] (f : finset ι) (g : ι → set α)
   (hf : ∀ i : ι, i ∈ f → (g i).is_pwo) : (f.sup g).is_pwo :=
-begin
-  classical,
-  revert hf,
-  apply f.induction_on,
-  { intro h,
-    simp [set.is_pwo_empty.is_wf], },
-  { intros s f sf hf hsf,
-    rw finset.sup_insert,
-    exact (hsf s (finset.mem_insert_self _ _)).union  (hf (λ s' s'f, hsf _
-      (finset.mem_insert_of_mem s'f))) }
-end
+finset.sup_induction set.is_pwo_empty (λ a ha b hb, ha.union hb) hf
 
 namespace set
 variables [linear_order α] {s t : set α} {a : α}

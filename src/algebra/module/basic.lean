@@ -249,11 +249,17 @@ end module
 
 /-- A module over a `subsingleton` semiring is a `subsingleton`. We cannot register this
 as an instance because Lean has no way to guess `R`. -/
-protected
-theorem module.subsingleton (R M : Type*) [semiring R] [subsingleton R] [add_comm_monoid M]
-  [module R M] :
+protected theorem module.subsingleton (R M : Type*) [semiring R] [subsingleton R]
+  [add_comm_monoid M] [module R M] :
   subsingleton M :=
 ⟨λ x y, by rw [← one_smul R x, ← one_smul R y, subsingleton.elim (1:R) 0, zero_smul, zero_smul]⟩
+
+/-- A semiring is `nontrivial` provided that there exists a nontrivial module over this semiring. -/
+protected theorem module.nontrivial (R M : Type*) [semiring R] [nontrivial M] [add_comm_monoid M]
+  [module R M] :
+  nontrivial R :=
+(subsingleton_or_nontrivial R).resolve_left $ λ hR, not_subsingleton M $
+  by exactI module.subsingleton R M
 
 @[priority 910] -- see Note [lower instance priority]
 instance semiring.to_module [semiring R] : module R R :=
@@ -365,11 +371,11 @@ end add_comm_group
 
 namespace add_monoid_hom
 
-lemma map_nat_module_smul [add_comm_monoid M] [add_comm_monoid M₂]
+lemma map_nat_module_smul [add_monoid M] [add_monoid M₂]
   (f : M →+ M₂) (x : ℕ) (a : M) : f (x • a) = x • f a :=
 f.map_nsmul a x
 
-lemma map_int_module_smul [add_comm_group M] [add_comm_group M₂]
+lemma map_int_module_smul [add_group M] [add_group M₂]
   (f : M →+ M₂) (x : ℤ) (a : M) : f (x • a) = x • f a :=
 f.map_zsmul a x
 

@@ -752,6 +752,18 @@ by rw [direction_eq_vector_span, bot_coe, vector_span_def, vsub_empty, submodule
 
 variables {k V P}
 
+@[simp] lemma coe_eq_bot_iff (Q : affine_subspace k P) : (Q : set P) = ∅ ↔ Q = ⊥ :=
+coe_injective.eq_iff' (bot_coe _ _ _)
+
+@[simp] lemma coe_eq_univ_iff (Q : affine_subspace k P) : (Q : set P) = univ ↔ Q = ⊤ :=
+coe_injective.eq_iff' (top_coe _ _ _)
+
+lemma nonempty_iff_ne_bot (Q : affine_subspace k P) : (Q : set P).nonempty ↔ Q ≠ ⊥ :=
+by { rw ← ne_empty_iff_nonempty, exact not_congr Q.coe_eq_bot_iff }
+
+lemma eq_bot_or_nonempty (Q : affine_subspace k P) : Q = ⊥ ∨ (Q : set P).nonempty :=
+by { rw nonempty_iff_ne_bot, apply eq_or_ne }
+
 lemma subsingleton_of_subsingleton_span_eq_top {s : set P} (h₁ : s.subsingleton)
   (h₂ : affine_span k s = ⊤) : subsingleton P :=
 begin
@@ -1217,7 +1229,7 @@ def map (s : affine_subspace k P₁) : affine_subspace k P₂ :=
     begin
       rintros t - - - ⟨p₁, h₁, rfl⟩ ⟨p₂, h₂, rfl⟩ ⟨p₃, h₃, rfl⟩,
       use t • (p₁ -ᵥ p₂) +ᵥ p₃,
-      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { by simp [this], },
+      suffices : t • (p₁ -ᵥ p₂) +ᵥ p₃ ∈ s, { simp [this], },
       exact s.smul_vsub_vadd_mem t h₁ h₂ h₃,
     end }
 

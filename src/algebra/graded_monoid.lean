@@ -5,7 +5,6 @@ Authors: Eric Wieser
 -/
 import algebra.group.inj_surj
 import data.list.big_operators
-import data.list.prod_monoid
 import data.list.range
 import group_theory.group_action.defs
 import group_theory.submonoid.basic
@@ -245,9 +244,19 @@ end mul
 section monoid
 variables [add_monoid ι] [gmonoid A]
 
+instance : has_pow (A 0) ℕ :=
+{ pow := λ x n, (nsmul_zero n).rec (gmonoid.gnpow n x : A (n • 0)) }
+
+variables {A}
+
+@[simp] lemma mk_zero_pow (a : A 0) (n : ℕ) : mk _ (a ^ n) = mk _ a ^ n :=
+sigma.ext (nsmul_zero n).symm $ eq_rec_heq _ _
+
+variables (A)
+
 /-- The `monoid` structure derived from `gmonoid A`. -/
 instance grade_zero.monoid : monoid (A 0) :=
-function.injective.monoid (mk 0) sigma_mk_injective rfl mk_zero_smul
+function.injective.monoid (mk 0) sigma_mk_injective rfl mk_zero_smul mk_zero_pow
 
 end monoid
 
@@ -256,7 +265,7 @@ variables [add_comm_monoid ι] [gcomm_monoid A]
 
 /-- The `comm_monoid` structure derived from `gcomm_monoid A`. -/
 instance grade_zero.comm_monoid : comm_monoid (A 0) :=
-function.injective.comm_monoid (mk 0) sigma_mk_injective rfl mk_zero_smul
+function.injective.comm_monoid (mk 0) sigma_mk_injective rfl mk_zero_smul mk_zero_pow
 
 end monoid
 

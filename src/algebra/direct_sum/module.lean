@@ -274,6 +274,14 @@ lemma submodule_is_internal.collected_basis_mem
   h.collected_basis v a ∈ A a.1 :=
 by simp
 
+/-- When indexed by only two distinct elements, `direct_sum.submodule_is_internal` implies
+the two submodules are complementary. Over a `ring R`, this is true as an iff, as
+`direct_sum.submodule_is_internal_iff_is_compl`. --/
+lemma submodule_is_internal.is_compl {A : ι → submodule R M} {i j : ι} (hij : i ≠ j)
+  (h : (set.univ : set ι) = {i, j}) (hi : submodule_is_internal A) : is_compl (A i) (A j) :=
+⟨hi.independent.pairwise_disjoint _ _ hij, eq.le $ hi.supr_eq_top.symm.trans $
+  by rw [←Sup_pair, supr, ←set.image_univ, h, set.image_insert_eq, set.image_singleton]⟩
+
 end semiring
 
 section ring
@@ -300,6 +308,19 @@ lemma submodule_is_internal_iff_independent_and_supr_eq_top (A : ι → submodul
     submodule_is_internal A ↔ complete_lattice.independent A ∧ supr A = ⊤ :=
 ⟨λ i, ⟨i.independent, i.supr_eq_top⟩,
  and.rec submodule_is_internal_of_independent_of_supr_eq_top⟩
+
+/-- If a collection of submodules has just two indices, `i` and `j`, then
+`direct_sum.submodule_is_internal` is equivalent to `is_compl`. -/
+lemma submodule_is_internal_iff_is_compl (A : ι → submodule R M) {i j : ι} (hij : i ≠ j)
+  (h : (set.univ : set ι) = {i, j}) :
+  submodule_is_internal A ↔ is_compl (A i) (A j) :=
+begin
+  have : ∀ k, k = i ∨ k = j := λ k, by simpa using set.ext_iff.mp h k,
+  rw [submodule_is_internal_iff_independent_and_supr_eq_top,
+    supr, ←set.image_univ, h, set.image_insert_eq, set.image_singleton, Sup_pair,
+    complete_lattice.independent_pair hij this],
+  exact ⟨λ ⟨hd, ht⟩, ⟨hd, ht.ge⟩, λ ⟨hd, ht⟩, ⟨hd, eq_top_iff.mpr ht⟩⟩,
+end
 
 /-! Now copy the lemmas for subgroup and submonoids. -/
 

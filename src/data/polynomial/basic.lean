@@ -30,8 +30,10 @@ the polynomials. For instance,
 
 ## Implementation
 
-Polynomials are defined using `add_monoid_algebra R ℕ`, where `R` is a commutative semiring, but
-through a structure to make them irreducible from the point of view of the kernel. Most operations
+Polynomials are defined using `add_monoid_algebra R ℕ`, where `R` is a semiring.
+The variable `X` commutes with every polynomial `p`: lemma `X_mul` proves the identity
+`X * p = `p * X`.  The relationship to `add_monoid_algebra R ℕ` is through a structure
+to make polynomials irreducible from the point of view of the kernel. Most operations
 are irreducible since Lean can not compute anyway with `add_monoid_algebra`. There are two
 exceptions that we make semireducible:
 * The zero polynomial, so that its coefficients are definitionally equal to `0`.
@@ -173,7 +175,8 @@ def to_finsupp_iso : R[X] ≃+* add_monoid_algebra R ℕ :=
   map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_finsupp] },
   map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_finsupp] } }
 
-/-- Ring isomorphism between `R[X]ᵐᵒᵖ` and `R[X]ᵐᵒᵖ`. -/
+/-- Ring isomorphism between `R[X]ᵐᵒᵖ` and `Rᵐᵒᵖ[X]` sending each coefficient of a polynomial
+to the corresponding element of the opposite ring. -/
 @[simps]
 def op_ring_equiv : R[X]ᵐᵒᵖ ≃+* Rᵐᵒᵖ[X] :=
 ((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
@@ -397,8 +400,8 @@ lemma coeff_C_ne_zero (h : n ≠ 0) : (C a).coeff n = 0 :=
 by rw [coeff_C, if_neg h]
 
 theorem nontrivial.of_polynomial_ne (h : p ≠ q) : nontrivial R :=
-⟨⟨0, 1, λ h01 : 0 = 1, h $
-    by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero] ⟩⟩
+nontrivial_of_ne 0 1 $ λ h01, h $
+  by rw [← mul_one p, ← mul_one q, ← C_1, ← h01, C_0, mul_zero, mul_zero]
 
 lemma monomial_eq_C_mul_X : ∀{n}, monomial n a = C a * X^n
 | 0     := (mul_one _).symm
@@ -685,6 +688,10 @@ by rw [eq_neg_iff_add_eq_zero, ←monomial_add, neg_add_self, monomial_zero_righ
 @[simp] lemma support_neg {p : R[X]} : (-p).support = p.support :=
 by { rcases p, simp [support, neg_to_finsupp] }
 
+@[simp]
+lemma C_eq_int_cast (n : ℤ) : C (n : R) = n :=
+(C : R →+* _).map_int_cast n
+
 end ring
 
 instance [comm_ring R] : comm_ring R[X] :=
@@ -705,6 +712,10 @@ lemma X_ne_zero : (X : R[X]) ≠ 0 :=
 mt (congr_arg (λ p, coeff p 1)) (by simp)
 
 end nonzero_semiring
+
+@[simp] lemma nontrivial_iff [semiring R] : nontrivial R[X] ↔ nontrivial R :=
+⟨λ h, let ⟨r, s, hrs⟩ := @exists_pair_ne _ h in nontrivial.of_polynomial_ne hrs,
+  λ h, @polynomial.nontrivial _ _ h⟩
 
 section repr
 variables [semiring R]

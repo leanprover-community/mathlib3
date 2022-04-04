@@ -24,7 +24,6 @@ namespace polynomial
 
 /-- Ring isomorphism between `R[X]ᵐᵒᵖ` and `Rᵐᵒᵖ[X]` sending each coefficient of a polynomial
 to the corresponding element of the opposite ring. -/
-@[simps]
 def op_ring_equiv (R : Type*) [semiring R] : R[X]ᵐᵒᵖ ≃+* Rᵐᵒᵖ[X] :=
 ((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
 
@@ -51,17 +50,17 @@ by simp only [X_pow_mul, op_mul, op_pow, map_mul, map_pow, op_ring_equiv_op_X, o
 @[simp] lemma coeff_op_ring_equiv (p : R[X]ᵐᵒᵖ) (n : ℕ) :
   (op_ring_equiv R p).coeff n = op ((unop p).coeff n) :=
 begin
-  nth_rewrite 0 ← op_unop p,
-  generalize' hp' : unop p = p',
-  apply p'.induction_on,
+  induction p using mul_opposite.rec,
+  apply p.induction_on,
   { intros a,
     by_cases n0 : n = 0,
-    { simp only [coeff_C, n0, op_ring_equiv_op_C, eq_self_iff_true, if_true] },
-    { simp only [coeff_C, n0, op_ring_equiv_op_C, if_false, op_zero] } },
+    { simp only [coeff_C, n0, op_ring_equiv_op_C, eq_self_iff_true, if_true, unop_op] },
+    { simp only [coeff_C, n0, op_ring_equiv_op_C, if_false, op_zero, unop_op] } },
   { intros f g hf hg,
-    simp only [hf, hg, op_add, _root_.map_add, coeff_add] },
+    simp only [hf, hg, op_add, _root_.map_add, coeff_add, unop_add] },
   { intros m r hm,
-    rw [op_ring_equiv_op_C_mul_X_pow, coeff_C_mul, coeff_C_mul, op_mul, coeff_X_pow, coeff_X_pow],
+    rw [op_ring_equiv_op_C_mul_X_pow, coeff_C_mul, op_mul, unop_mul, unop_op, coeff_C_mul, op_mul,
+      unop_op, coeff_X_pow, coeff_X_pow],
     split_ifs;
     simp }
 end

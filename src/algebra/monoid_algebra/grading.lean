@@ -276,6 +276,6 @@ lemma grade_by.is_internal : direct_sum.submodule_is_internal (grade_by R f) :=
 
 /-- `add_monoid_algebra.grades` describe an internally graded algebra -/
 lemma grade.is_internal : direct_sum.submodule_is_internal (grade R : ι → submodule R _) :=
-grade_by.is_internal (add_monoid_hom.id ι)
+by simpa only [grade_by_id] using grade_by.is_internal (add_monoid_hom.id ι)
 
 end add_monoid_algebra

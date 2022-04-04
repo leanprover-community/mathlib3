@@ -179,9 +179,8 @@ begin
   rwa [← principal_singleton, le_principal_iff]
 end
 
-lemma eq_of_ne_bot_le_pure {α : Type*} {f : filter α} [ne_bot f] {a : α} (h : f ≤ pure a) :
-  f = pure a :=
-ultrafilter.unique (pure a) h
+@[simp] lemma le_pure_iff {f : filter α} [ne_bot f] {a : α} : f ≤ pure a ↔ f = pure a :=
+⟨ultrafilter.unique (pure a), le_of_eq⟩
 
 /-- Monadic bind for ultrafilters, coming from the one on filters
 defined in terms of map and join.-/

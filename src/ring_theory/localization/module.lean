@@ -27,9 +27,11 @@ section localization
 
 variables {R : Type*} (Rₛ : Type*) [comm_ring R] [comm_ring Rₛ] [algebra R Rₛ]
 variables (S : submonoid R) [hT : is_localization S Rₛ]
-variables {M : Type*} [add_comm_monoid M] [module R M] [module Rₛ M] [is_scalar_tower R Rₛ M]
 
 include hT
+
+section add_comm_monoid
+variables {M : Type*} [add_comm_monoid M] [module R M] [module Rₛ M] [is_scalar_tower R Rₛ M]
 
 lemma linear_independent.localization {ι : Type*} {b : ι → M} (hli : linear_independent R b) :
   linear_independent Rₛ b :=
@@ -48,6 +50,18 @@ begin
   rw [← algebra.smul_def, ← map_zero (algebra_map R Rₛ), ← hli],
   simp [hi, hg']
 end
+end add_comm_monoid
+
+section add_comm_group
+variables {M : Type*} [add_comm_group M] [module R M] [module Rₛ M] [is_scalar_tower R Rₛ M]
+
+/-- Promote a basis for `M` over `R` to a basis for `M` over the localization `Rₛ` -/
+noncomputable def basis.localization {ι : Type*} (b : basis ι R M) : basis ι Rₛ M :=
+basis.mk (b.linear_independent.localization Rₛ S) $
+by { rw [← @submodule.restrict_scalars_eq_top_iff Rₛ R, eq_top_iff, ← b.span_eq],
+     apply submodule.span_le_restrict_scalars }
+
+end add_comm_group
 
 end localization
 

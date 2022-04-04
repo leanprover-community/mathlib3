@@ -126,13 +126,9 @@ _root_.cast (by rw cons_self_tail) $ h (x 0) (tail x)
   (h : Π x₀ x, P (fin.cons x₀ x)) (x₀ : α 0) (x : Π i : fin n, α i.succ) :
   @cons_induction _ _ _ h (cons x₀ x) = h x₀ x :=
 begin
-  suffices : ∀ y (hy : y = cons x₀ x), _root_.cast (by rw hy) (@cons_induction _ _ _ h y) = h x₀ x,
-  { convert this _ rfl },
-  rintro y rfl,
-  dunfold cons_induction,
-  simp_rw [cast_cast, cast_eq],
-  congr,
-  rw tail_cons,
+  rw [cons_induction, cast_eq],
+  congr',
+  exact tail_cons _ _
 end
 
 /-- Updating the first element of a tuple does not change the tail. -/

@@ -210,4 +210,11 @@ begin
   exact le_trans (le_mul_congr h le_rfl) ih
 end
 
+lemma epsilon_mem_star (l : language α) : [] ∈ l.star :=
+begin
+  rw [star_def],
+  use [[]],
+  tauto
+end
+
 end language

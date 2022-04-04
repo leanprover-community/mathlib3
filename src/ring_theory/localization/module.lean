@@ -16,6 +16,7 @@ This file contains some results about vector spaces over the field of fractions 
 
  * `linear_independent.localization`: `b` is linear independent over a localization of `R`
    if it is linear independent over `R` itself
+ * `basis.localization`: promote an `R`-basis `b` to an `Rₛ`-basis, where `Rₛ` is a localization of `R`
  * `linear_independent.iff_fraction_ring`: `b` is linear independent over `R` iff it is
    linear independent over `Frac(R)`
 -/

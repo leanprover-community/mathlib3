@@ -218,17 +218,33 @@ begin
   field_simp [this]
 end
 
-lemma exp_ne_zero_of_mem_ball [char_zero 𝕂] [nontrivial 𝔸] {x : 𝔸}
-  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) : exp 𝕂 𝔸 x ≠ 0 :=
-begin
-  have hnx : -x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius,
-  { rw [emetric.mem_ball, ←neg_zero, edist_neg_neg],
-    exact hx },
-  apply_fun ((*) (exp 𝕂 𝔸 (-x))),
-  rw [←exp_add_of_commute_of_mem_ball (commute.neg_left $ commute.refl x) hnx hx, neg_add_self,
-    exp_zero, mul_zero],
-  exact one_ne_zero,
-end
+/-- `exp 𝕂 𝔸 x` has explicit two-sided inverse `exp 𝕂 𝔸 (-x)`. -/
+noncomputable def invertible_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) : invertible (exp 𝕂 𝔸 x) :=
+{ inv_of := exp 𝕂 𝔸 (-x),
+  inv_of_mul_self := begin
+    have hnx : -x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius,
+    { rw [emetric.mem_ball, ←neg_zero, edist_neg_neg],
+      exact hx },
+    rw [←exp_add_of_commute_of_mem_ball (commute.neg_left $ commute.refl x) hnx hx, neg_add_self,
+      exp_zero],
+  end,
+  mul_inv_of_self := begin
+    have hnx : -x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius,
+    { rw [emetric.mem_ball, ←neg_zero, edist_neg_neg],
+      exact hx },
+    rw [←exp_add_of_commute_of_mem_ball (commute.neg_right $ commute.refl x) hx hnx, add_neg_self,
+      exp_zero],
+  end }
+
+lemma is_unit_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) : is_unit (exp 𝕂 𝔸 x) :=
+@is_unit_of_invertible _ _ _ (invertible_exp_of_mem_ball hx)
+
+lemma inv_of_exp_of_mem_ball [char_zero 𝕂] {x : 𝔸}
+  (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) [invertible (exp 𝕂 𝔸 x)] :
+  ⅟(exp 𝕂 𝔸 x) = exp 𝕂 𝔸 (-x) :=
+by { letI := invertible_exp_of_mem_ball hx, convert (rfl : ⅟(exp 𝕂 𝔸 x) = _) }
 
 end complete_algebra
 
@@ -253,13 +269,8 @@ lemma exp_neg_of_mem_ball [char_zero 𝕂] [complete_space 𝔸] {x : 𝔸}
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   exp 𝕂 𝔸 (-x) = (exp 𝕂 𝔸 x)⁻¹ :=
 begin
-  have hnx : -x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius,
-  { rw [emetric.mem_ball, ←neg_zero, edist_neg_neg],
-    exact hx },
-  apply mul_right_injective₀ (exp_ne_zero_of_mem_ball hx),
-  rw [mul_inv_cancel (exp_ne_zero_of_mem_ball hx),
-    ←exp_add_of_commute_of_mem_ball (commute.refl x).neg_right hx hnx,
-    add_neg_self, exp_zero],
+  letI := invertible_exp_of_mem_ball hx,
+  exact inv_of_eq_inv (exp 𝕂 𝔸 x),
 end
 
 end any_field_division_algebra
@@ -372,8 +383,22 @@ exp_add_of_commute_of_mem_ball hxy ((exp_series_radius_eq_top 𝕂 𝔸).symm �
 section
 variables (𝕂)
 
-lemma exp_ne_zero [nontrivial 𝔸] (x : 𝔸) : exp 𝕂 𝔸 x ≠ 0 :=
-exp_ne_zero_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
+/-- `exp 𝕂 𝔸 x` has explicit two-sided inverse `exp 𝕂 𝔸 (-x)`. -/
+noncomputable def invertible_exp [char_zero 𝕂] (x : 𝔸) : invertible (exp 𝕂 𝔸 x) :=
+invertible_exp_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
+
+lemma is_unit_exp [char_zero 𝕂] (x : 𝔸) : is_unit (exp 𝕂 𝔸 x) :=
+is_unit_exp_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
+
+lemma inv_of_exp [char_zero 𝕂] (x : 𝔸) [invertible (exp 𝕂 𝔸 x)] :
+  ⅟(exp 𝕂 𝔸 x) = exp 𝕂 𝔸 (-x) :=
+inv_of_exp_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
+
+lemma ring.inverse_exp [char_zero 𝕂] (x : 𝔸) : ring.inverse (exp 𝕂 𝔸 x) = exp 𝕂 𝔸 (-x) :=
+begin
+  letI := invertible_exp 𝕂 x,
+  exact ring.inverse_invertible _,
+end
 
 lemma commute.exp {x y : 𝔸} (h : commute x y) :
   commute (exp 𝕂 𝔸 x) (exp 𝕂 𝔸 y) :=

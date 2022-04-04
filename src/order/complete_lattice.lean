@@ -653,11 +653,11 @@ lemma monotone.map_Inf_le [complete_lattice β] {s : set α} {f : α → β} (hf
   f (Inf s) ≤ ⨅ a∈s, f a :=
 by rw [Inf_eq_infi]; exact hf.map_infi₂_le _
 
-lemma antitone.map_supr [complete_lattice β] {f : α → β} (hf : antitone f) :
+lemma antitone.map_supr_le [complete_lattice β] {f : α → β} (hf : antitone f) :
   f (supr s) ≤ ⨅ i, f (s i) :=
 hf.dual_left.map_infi_le
 
-lemma antitone.map_supr₂ [complete_lattice β] {f : α → β} (hf : antitone f) (s : Π i, κ i → α) :
+lemma antitone.map_supr₂_le [complete_lattice β] {f : α → β} (hf : antitone f) (s : Π i, κ i → α) :
   f (⨆ i j, s i j) ≤ ⨅ i j, f (s i j) :=
 hf.dual_left.map_infi₂_le _
 
@@ -813,12 +813,8 @@ infi_subtype
 
 theorem infi_inf_eq {f g : ι → α} : (⨅ x, f x ⊓ g x) = (⨅ x, f x) ⊓ (⨅ x, g x) :=
 le_antisymm
-  (le_inf
-    (le_infi $ λ i, infi_le_of_le i inf_le_left)
-    (le_infi $ λ i, infi_le_of_le i inf_le_right))
-  (le_infi $ λ i, le_inf
-    (inf_le_of_left_le $ infi_le _ _)
-    (inf_le_of_right_le $ infi_le _ _))
+  (le_inf (infi_mono $ λ i, inf_le_left) $ infi_mono $ λ i, inf_le_right)
+  (le_infi $ λ i, inf_le_inf (infi_le _ _) $ infi_le _ _)
 
 /- TODO: here is another example where more flexible pattern matching
    might help.
@@ -836,12 +832,12 @@ lemma inf_infi [nonempty ι] {f : ι → α} {a : α} : a ⊓ (⨅x, f x) = (⨅
 by rw [inf_comm, infi_inf]; simp [inf_comm]
 
 lemma binfi_inf {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i, p i) :
-  (⨅ i (h : p i), f i h) ⊓ a = (⨅ i (h : p i), f i h ⊓ a) :=
+  (⨅ i (h : p i), f i h) ⊓ a = ⨅ i (h : p i), f i h ⊓ a :=
 by haveI : nonempty {i // p i} := (let ⟨i, hi⟩ := h in ⟨⟨i, hi⟩⟩);
   rw [infi_subtype', infi_subtype', infi_inf]
 
 lemma inf_binfi {p : ι → Prop} {f : Π i (hi : p i), α} {a : α} (h : ∃ i, p i) :
-  a ⊓ (⨅ i (h : p i), f i h) = (⨅ i (h : p i), a ⊓ f i h) :=
+  a ⊓ (⨅ i (h : p i), f i h) = ⨅ i (h : p i), a ⊓ f i h :=
 by simpa only [inf_comm] using binfi_inf h
 
 theorem supr_sup_eq {f g : ι → α} : (⨆ x, f x ⊔ g x) = (⨆ x, f x) ⊔ (⨆ x, g x) :=
@@ -926,16 +922,16 @@ infi_dite _ _ _
 
 end
 
-lemma infi_range {g : β → α} {f : ι → β} : (⨅b∈range f, g b) = (⨅ i, g (f i)) :=
+lemma infi_range {g : β → α} {f : ι → β} : (⨅ b ∈ range f, g b) = ⨅ i, g (f i) :=
 by rw [← infi_subtype'', infi_range']
 
-lemma supr_range {g : β → α} {f : ι → β} : (⨆b∈range f, g b) = (⨆ i, g (f i)) :=
+lemma supr_range {g : β → α} {f : ι → β} : (⨆ b ∈ range f, g b) = ⨆ i, g (f i) :=
 @infi_range (order_dual α) _ _ _ _ _
 
-theorem Inf_image {s : set β} {f : β → α} : Inf (f '' s) = (⨅ a ∈ s, f a) :=
+theorem Inf_image {s : set β} {f : β → α} : Inf (f '' s) = ⨅ a ∈ s, f a :=
 by rw [← infi_subtype'', Inf_image']
 
-theorem Sup_image {s : set β} {f : β → α} : Sup (f '' s) = (⨆ a ∈ s, f a) :=
+theorem Sup_image {s : set β} {f : β → α} : Sup (f '' s) = ⨆ a ∈ s, f a :=
 @Inf_image (order_dual α) _ _ _ _
 
 /-
@@ -1222,7 +1218,7 @@ rfl
 
 @[simp] lemma infi_apply {α : Type*} {β : α → Type*} {ι : Sort*} [Π i, has_Inf (β i)]
   {f : ι → Πa, β a} {a : α} :
-  (⨅ i, f i) a = (⨅ i, f i a) :=
+  (⨅ i, f i) a = ⨅ i, f i a :=
 by rw [infi, Inf_apply, infi, infi, ← image_eq_range (λ f : Π i, β i, f a) (range f), ← range_comp]
 
 lemma Sup_apply {α : Type*} {β : α → Type*} [Π i, has_Sup (β i)] {s : set (Πa, β a)} {a : α} :
@@ -1246,10 +1242,10 @@ section complete_lattice
 variables [preorder α] [complete_lattice β]
 
 theorem monotone_Sup_of_monotone {s : set (α → β)} (m_s : ∀f∈s, monotone f) : monotone (Sup s) :=
-λ x y h, supr_le $ λ f, le_supr_of_le f $ m_s f f.2 h
+λ x y h, supr_mono $ λ f, m_s f f.2 h
 
 theorem monotone_Inf_of_monotone {s : set (α → β)} (m_s : ∀f∈s, monotone f) : monotone (Inf s) :=
-λ x y h, le_infi $ λ f, infi_le_of_le f $ m_s f f.2 h
+λ x y h, infi_mono $ λ f, m_s f f.2 h
 
 end complete_lattice
 

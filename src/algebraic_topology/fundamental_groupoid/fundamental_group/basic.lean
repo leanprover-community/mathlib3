@@ -51,7 +51,7 @@ fundamental_group_mul_equiv_of_path (path_connected_space.some_path x₀ x₁)
 a topological space back to an arrow in the fundamental groupoid. -/
 @[reducible]
 def to_arrow {X : Top} {x : X} (p : fundamental_group X x) : x ⟶ x :=
-sorry
+p.hom
 
 /-- Help the typechecker by converting an element in the fundamental group of
 a topological space back to a path in that space (i.e. `path.homotopic.quotient`). -/
@@ -63,7 +63,7 @@ def to_path {X : Top} {x : X} (p : fundamental_group X x) :
 element of the fundamental group. -/
 @[reducible]
 def from_arrow {X : Top} {x : X} (p : x ⟶ x) : fundamental_group X x :=
-sorry
+⟨p, category_theory.groupoid.inv p⟩
 
 /-- Help the typechecker by convering a path in a topological space to an element of the
 fundamental group of that space. -/

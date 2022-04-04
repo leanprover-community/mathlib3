@@ -18,6 +18,8 @@ variables {C : Type*} [bicategory C]
 @[derive category]
 def End_monoidal (X : C) := X ⟶ X
 
+instance (X : C) : inhabited (End_monoidal X) := ⟨𝟙 X⟩
+
 open_locale bicategory
 
 open monoidal_category

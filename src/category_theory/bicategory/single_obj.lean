@@ -35,7 +35,8 @@ Promote a monoidal category to a bicategory with a single object.
 with composition given by tensor product,
 and the morphisms of the monoidal category become the 2-morphisms.)
 -/
-def monoidal_single_obj (C : Type*) := punit
+@[nolint unused_arguments, derive inhabited]
+def monoidal_single_obj (C : Type*) [category C] [monoidal_category C] := punit
 
 open monoidal_category
 
@@ -57,6 +58,8 @@ instance : bicategory (monoidal_single_obj C) :=
 
 namespace monoidal_single_obj
 
+/-- The unique object in the bicategory obtained by "promoting" a monoidal category. -/
+@[nolint unused_arguments]
 protected def star : monoidal_single_obj C := punit.star
 
 /--

@@ -430,6 +430,7 @@ def monoidal_adjoint (F : monoidal_functor C D) {G : D ⥤ C} (h : F.to_functor 
   end }.
 
 /-- If a monoidal functor `F` is an equivalence of categories then its inverse is also monoidal. -/
+@[simps]
 noncomputable
 def monoidal_inverse (F : monoidal_functor C D) [is_equivalence F.to_functor] :
   monoidal_functor D C :=

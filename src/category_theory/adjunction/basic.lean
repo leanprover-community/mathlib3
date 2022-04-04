@@ -474,6 +474,14 @@ mk_of_unit_counit ⟨e.unit, e.counit,
   by { ext, dsimp, simp only [id_comp], exact e.functor_unit_comp _, },
   by { ext, dsimp, simp only [id_comp], exact e.unit_inverse_comp _, }⟩
 
+@[simp] lemma as_equivalence_to_adjunction_unit {e : C ≌ D} :
+  e.functor.as_equivalence.to_adjunction.unit = e.unit :=
+rfl
+
+@[simp] lemma as_equivalence_to_adjunction_counit {e : C ≌ D} :
+  e.functor.as_equivalence.to_adjunction.counit = e.counit :=
+rfl
+
 end equivalence
 
 namespace functor

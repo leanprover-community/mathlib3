@@ -130,9 +130,6 @@ by rw [← nnreal.coe_one, nnreal.coe_eq]
 
 lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by norm_cast
 
-lemma eq_zero_or_pos (r : ℝ≥0) : r = 0 ∨ 0 < r :=
-by { rw eq_comm, exact eq_or_lt_of_le r.2 }
-
 example : comm_semiring ℝ≥0 := by apply_instance
 
 /-- Coercion `ℝ≥0 → ℝ` as a `ring_hom`. -/

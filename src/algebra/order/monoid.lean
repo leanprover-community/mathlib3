@@ -587,6 +587,9 @@ iff.intro
 @[to_additive] lemma one_lt_iff_ne_one : 1 < a ↔ a ≠ 1 :=
 iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (one_le _) hne.symm
 
+@[to_additive] lemma eq_one_or_one_lt : a = 1 ∨ 1 < a :=
+(one_le a).eq_or_lt.imp_left eq.symm
+
 @[to_additive] lemma exists_pos_mul_of_lt (h : a < b) : ∃ c > 1, a * c = b :=
 begin
   obtain ⟨c, hc⟩ := le_iff_exists_mul.1 h.le,

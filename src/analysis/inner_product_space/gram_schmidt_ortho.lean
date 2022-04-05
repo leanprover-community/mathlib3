@@ -28,6 +28,9 @@ and outputs a set of orthogonal vectors which have the same span.
   Normalized "Gram-Schmidt" (i.e each vector in this system has unit length)
 - `gram_schmidt_process_orthornormal` :
   the proof that "gram_schmidt_process_normed" produces an orthornormal system of vectors
+
+## TODO
+  Construct a version with an orthonormal basis from the Gram-Schmidt process.
 -/
 
 open_locale big_operators

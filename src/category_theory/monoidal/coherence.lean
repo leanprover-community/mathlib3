@@ -188,6 +188,7 @@ setup_tactic_parser
 /-- Coherence tactic for monoidal categories. -/
 meta def monoidal_coherence : tactic unit :=
 do
+  try `[dsimp],
   `(%%lhs = %%rhs) ← target,
   to_expr  ``(project_map id _ _ (lift_hom.lift %%lhs) = project_map id _ _ (lift_hom.lift %%rhs))
     >>= tactic.change,

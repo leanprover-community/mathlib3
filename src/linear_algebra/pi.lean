@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric Wieser
 -/
 import linear_algebra.basic
-import data.equiv.fin
+import logic.equiv.fin
 
 /-!
 # Pi types of modules
@@ -380,3 +380,91 @@ noncomputable def function.extend_by_zero.linear_map : (ι → R) →ₗ[R] (η 
   ..function.extend_by_zero.hom R s }
 
 end extend
+
+
+/-! ### Bundled versions of `matrix.vec_cons` and `matrix.vec_empty`
+
+The idea of these definitions is to be able to define a map as `x ↦ ![f₁ x, f₂ x, f₃ x]`, where
+`f₁ f₂ f₃` are already linear maps, as `f₁.vec_cons $ f₂.vec_cons $ f₃.vec_cons $ vec_empty`.
+
+While the same thing could be achieved using `linear_map.pi ![f₁, f₂, f₃]`, this is not
+definitionally equal to the result using `linear_map.vec_cons`, as `fin.cases` and function
+application do not commute definitionally.
+
+Versions for when `f₁ f₂ f₃` are bilinear maps are also provided.
+
+-/
+section fin
+
+section semiring
+
+variables [semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M] [module R M₂] [module R M₃]
+
+/-- The linear map defeq to `matrix.vec_empty` -/
+def linear_map.vec_empty : M →ₗ[R] (fin 0 → M₃) :=
+{ to_fun := λ m, matrix.vec_empty,
+  map_add' := λ x y, subsingleton.elim _ _,
+  map_smul' := λ r x, subsingleton.elim _ _ }
+
+@[simp]
+lemma linear_map.vec_empty_apply (m : M) :
+  (linear_map.vec_empty : M →ₗ[R] (fin 0 → M₃)) m = ![] := rfl
+
+/-- A linear map into `fin n.succ → M₃` can be built out of a map into `M₃` and a map into
+`fin n → M₃`. -/
+def linear_map.vec_cons {n} (f : M →ₗ[R] M₂) (g : M →ₗ[R] (fin n → M₂)) :
+  M →ₗ[R] (fin n.succ → M₂) :=
+{ to_fun := λ m, matrix.vec_cons (f m) (g m),
+  map_add' := λ x y, begin
+    rw [f.map_add, g.map_add, matrix.cons_add_cons (f x)]
+  end,
+  map_smul' := λ c x, by rw [f.map_smul, g.map_smul, ring_hom.id_apply, matrix.smul_cons c (f x)] }
+
+@[simp]
+lemma linear_map.vec_cons_apply {n} (f : M →ₗ[R] M₂) (g : M →ₗ[R] (fin n → M₂)) (m : M) :
+  f.vec_cons g m = matrix.vec_cons (f m) (g m) := rfl
+
+end semiring
+
+/-- Non-dependent version of `pi.has_scalar`. Lean gets confused by the dependent instance if this
+is not present. -/
+@[to_additive function.has_vadd]
+instance function.has_scalar {ι R M : Type*} [has_scalar R M] :
+  has_scalar R (ι → M) :=
+pi.has_scalar
+
+/-- Non-dependent version of `pi.smul_comm_class`. Lean gets confused by the dependent instance if
+this is not present. -/
+@[to_additive]
+instance function.smul_comm_class {ι α β M : Type*}
+  [has_scalar α M] [has_scalar β M] [smul_comm_class α β M]:
+  smul_comm_class α β (ι → M) :=
+pi.smul_comm_class
+
+section comm_semiring
+
+variables [comm_semiring R] [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M] [module R M₂] [module R M₃]
+
+/-- The empty bilinear map defeq to `matrix.vec_empty` -/
+@[simps]
+def linear_map.vec_empty₂ : M →ₗ[R] M₂ →ₗ[R] (fin 0 → M₃) :=
+{ to_fun := λ m, linear_map.vec_empty,
+  map_add' := λ x y, linear_map.ext $ λ z, subsingleton.elim _ _,
+  map_smul' := λ r x, linear_map.ext $ λ z, subsingleton.elim _ _, }
+
+/-- A bilinear map into `fin n.succ → M₃` can be built out of a map into `M₃` and a map into
+`fin n → M₃` -/
+@[simps]
+def linear_map.vec_cons₂ {n} (f : M →ₗ[R] M₂ →ₗ[R] M₃) (g : M →ₗ[R] M₂ →ₗ[R] (fin n → M₃)) :
+  M →ₗ[R] M₂ →ₗ[R] (fin n.succ → M₃) :=
+{ to_fun := λ m, linear_map.vec_cons (f m) (g m),
+  map_add' := λ x y, linear_map.ext $ λ z, by
+    simp only [f.map_add, g.map_add, linear_map.add_apply, linear_map.vec_cons_apply,
+      matrix.cons_add_cons (f x z)],
+  map_smul' := λ r x, linear_map.ext $ λ z, by simp [matrix.smul_cons r (f x z)], }
+
+end comm_semiring
+
+end fin

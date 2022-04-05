@@ -62,7 +62,7 @@ See https://stacks.math.columbia.edu/tag/0145
 -/
 class pretriangulated :=
 (distinguished_triangles [] : set (triangle C))
-(isomorphic_distinguished : Π (T₁ ∈ distinguished_triangles) (T₂ : triangle C) (T₁ ≅ T₂),
+(isomorphic_distinguished : Π (T₁ ∈ distinguished_triangles) (T₂ ≅ T₁),
   T₂ ∈ distinguished_triangles)
 (contractible_distinguished : Π (X : C), (contractible_triangle C X) ∈ distinguished_triangles)
 (distinguished_cocone_triangle : Π (X Y : C) (f : X ⟶ Y), (∃ (Z : C) (g : Y ⟶ Z)
@@ -90,7 +90,7 @@ Given any distinguished triangle `T`, then we know `T.inv_rotate` is also distin
 -/
 lemma inv_rot_of_dist_triangle (T ∈ dist_triang C) : (T.inv_rotate ∈ dist_triang C) :=
 (rotate_distinguished_triangle (T.inv_rotate)).mpr
-  (isomorphic_distinguished T H (T.inv_rotate.rotate) T (inv_rot_comp_rot.symm.app T))
+  (isomorphic_distinguished T H T.inv_rotate.rotate (inv_rot_comp_rot.app T))
 
 /--
 Given any distinguished triangle

@@ -20,17 +20,13 @@ This file lifts order structures on the `α i` to `Π₀ i, α i`.
 Add `is_well_order (Π₀ i, α i) (<)`.
 -/
 
-noncomputable theory
-open_locale classical big_operators
+open_locale big_operators
 
 open finset
 
 variables {ι : Type*} {α : ι → Type*}
 
 namespace dfinsupp
-
-lemma not_mem_support_iff [Π i, has_zero (α i)] {f : Π₀ i, α i} {i : ι} : i ∉ f.support ↔ f i = 0 :=
-by rw [mem_support_iff, not_ne_iff]
 
 /-! ### Order structures -/
 
@@ -140,11 +136,14 @@ protected lemma bot_eq_zero : (⊥ : Π₀ i, α i) = 0 := rfl
 @[simp] lemma add_eq_zero_iff (f g : Π₀ i, α i) : f + g = 0 ↔ f = 0 ∧ g = 0 :=
 by simp [ext_iff, forall_and_distrib]
 
-lemma le_iff' {f g : Π₀ i, α i} {s : finset ι} (hf : f.support ⊆ s) : f ≤ g ↔ ∀ i ∈ s, f i ≤ g i :=
+section le
+variables [decidable_eq ι] [Π i (x : α i), decidable (x ≠ 0)] {f g : Π₀ i, α i} {s : finset ι}
+
+lemma le_iff' (hf : f.support ⊆ s) : f ≤ g ↔ ∀ i ∈ s, f i ≤ g i :=
 ⟨λ h s hs, h s,
 λ h s, if H : s ∈ f.support then h s (hf H) else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
 
-lemma le_iff {f g : Π₀ i, α i} : f ≤ g ↔ ∀ i ∈ f.support, f i ≤ g i := le_iff' $ subset.refl _
+lemma le_iff : f ≤ g ↔ ∀ i ∈ f.support, f i ≤ g i := le_iff' $ subset.refl _
 
 variables (α)
 
@@ -154,8 +153,10 @@ instance decidable_le [Π i, decidable_rel (@has_le.le (α i) _)] :
 
 variables {α}
 
-@[simp] lemma single_le_iff {i : ι} {a : α i} {f : Π₀ i, α i} : single i a ≤ f ↔ a ≤ f i :=
+@[simp] lemma single_le_iff {i : ι} {a : α i} : single i a ≤ f ↔ a ≤ f i :=
 (le_iff' support_single_subset).trans $ by simp
+
+end le
 
 variables (α) [Π i, has_sub (α i)] [Π i, has_ordered_sub (α i)] {f g : Π₀ i, α i} {i : ι}
   {a b : α i}
@@ -188,7 +189,7 @@ instance : canonically_ordered_add_monoid (Π₀ i, α i) :=
  .. dfinsupp.order_bot α,
  .. dfinsupp.ordered_add_comm_monoid α }
 
-variables {α}
+variables {α} [decidable_eq ι]
 
 @[simp] lemma single_tsub : single i (a - b) = single i a - single i b :=
 begin
@@ -197,6 +198,8 @@ begin
   { rw [tsub_apply, single_eq_same, single_eq_same, single_eq_same] },
   { rw [tsub_apply, single_eq_of_ne h, single_eq_of_ne h, single_eq_of_ne h, tsub_self] }
 end
+
+variables [Π i (x : α i), decidable (x ≠ 0)]
 
 lemma support_tsub : (f - g).support ⊆ f.support :=
 by simp only [subset_iff, tsub_eq_zero_iff_le, mem_support_iff, ne.def, coe_tsub, pi.sub_apply,

@@ -3,8 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Yury G. Kudryashov
 -/
-import logic.function.basic
-import tactic.protected
+import data.option.basic
 
 /-!
 # Disjoint union of types
@@ -77,6 +76,14 @@ section get
 | (inl _) := ff
 | (inr _) := tt
 
+variables {x y : α ⊕ β}
+
+lemma get_left_eq_none_iff : x.get_left = none ↔ x.is_right :=
+by cases x; simp only [get_left, is_right, coe_sort_tt, coe_sort_ff, eq_self_iff_true]
+
+lemma get_right_eq_none_iff : x.get_right = none ↔ x.is_left :=
+by cases x; simp only [get_right, is_left, coe_sort_tt, coe_sort_ff, eq_self_iff_true]
+
 end get
 
 /-- Map `α ⊕ β` to `α' ⊕ β'` sending `α` to `α'` and `β` to `β'`. -/
@@ -136,6 +143,14 @@ funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
   sum.elim (f ∘ inl) (f ∘ inr) = f :=
 funext $ λ x, sum.cases_on x (λ _, rfl) (λ _, rfl)
 
+lemma elim_comp_map {α β γ δ ε : Sort*} {f₁ : α → β} {f₂ : β → ε} {g₁ : γ → δ} {g₂ : δ → ε} :
+  sum.elim f₂ g₂ ∘ sum.map f₁ g₁ = sum.elim (f₂ ∘ f₁) (g₂ ∘ g₁) :=
+begin
+  ext (_|_),
+  { rw [function.comp_app, map_inl, elim_inl, elim_inl] },
+  { rw [function.comp_app, map_inr, elim_inr, elim_inr] },
+end
+
 open function (update update_eq_iff update_comp_eq_of_injective update_comp_eq_of_forall_ne)
 
 @[simp] lemma update_elim_inl [decidable_eq α] [decidable_eq (α ⊕ β)] {f : α → γ} {g : β → γ}
@@ -194,6 +209,56 @@ by rw ← update_inr_comp_inr
 @[simp] lemma swap_left_inverse : function.left_inverse (@swap α β) swap := swap_swap
 @[simp] lemma swap_right_inverse : function.right_inverse (@swap α β) swap := swap_swap
 
+section lift_rel
+
+/-- Lifts pointwise two relations between `α` and `γ` and between `β` and `δ` to a relation between
+`α ⊕ β` and `γ ⊕ δ`. -/
+inductive lift_rel (r : α → γ → Prop) (s : β → δ → Prop) : α ⊕ β → γ ⊕ δ → Prop
+| inl {a c} : r a c → lift_rel (inl a) (inl c)
+| inr {b d} : s b d → lift_rel (inr b) (inr d)
+
+attribute [protected] lift_rel.inl lift_rel.inr
+
+variables {r r₁ r₂ : α → γ → Prop} {s s₁ s₂ : β → δ → Prop} {a : α} {b : β} {c : γ} {d : δ}
+  {x : α ⊕ β} {y : γ ⊕ δ}
+
+@[simp] lemma lift_rel_inl_inl : lift_rel r s (inl a) (inl c) ↔ r a c :=
+⟨λ h, by { cases h, assumption }, lift_rel.inl⟩
+
+@[simp] lemma not_lift_rel_inl_inr : ¬ lift_rel r s (inl a) (inr d) .
+@[simp] lemma not_lift_rel_inr_inl : ¬ lift_rel r s (inr b) (inl c) .
+
+@[simp] lemma lift_rel_inr_inr : lift_rel r s (inr b) (inr d) ↔ s b d :=
+⟨λ h, by { cases h, assumption }, lift_rel.inr⟩
+
+instance [Π a c, decidable (r a c)] [Π b d, decidable (s b d)] :
+  Π (ab : α ⊕ β) (cd : γ ⊕ δ), decidable (lift_rel r s ab cd)
+| (inl a) (inl c) := decidable_of_iff' _ lift_rel_inl_inl
+| (inl a) (inr d) := decidable.is_false not_lift_rel_inl_inr
+| (inr b) (inl c) := decidable.is_false not_lift_rel_inr_inl
+| (inr b) (inr d) := decidable_of_iff' _ lift_rel_inr_inr
+
+lemma lift_rel.mono (hr : ∀ a b, r₁ a b → r₂ a b) (hs : ∀ a b, s₁ a b → s₂ a b)
+  (h : lift_rel r₁ s₁ x y) :
+  lift_rel r₂ s₂ x y :=
+by { cases h, exacts [lift_rel.inl (hr _ _ ‹_›), lift_rel.inr (hs _ _ ‹_›)] }
+
+lemma lift_rel.mono_left (hr : ∀ a b, r₁ a b → r₂ a b) (h : lift_rel r₁ s x y) :
+  lift_rel r₂ s x y :=
+h.mono hr $ λ _ _, id
+
+lemma lift_rel.mono_right (hs : ∀ a b, s₁ a b → s₂ a b)  (h : lift_rel r s₁ x y) :
+  lift_rel r s₂ x y :=
+h.mono (λ _ _, id) hs
+
+protected lemma lift_rel.swap (h : lift_rel r s x y) : lift_rel s r x.swap y.swap :=
+by { cases h, exacts [lift_rel.inr ‹_›, lift_rel.inl ‹_›] }
+
+@[simp] lemma lift_rel_swap_iff : lift_rel s r x.swap y.swap ↔ lift_rel r s x y :=
+⟨λ h, by { rw [←swap_swap x, ←swap_swap y], exact h.swap }, lift_rel.swap⟩
+
+end lift_rel
+
 section lex
 
 /-- Lexicographic order for sum. Sort all the `inl a` before the `inr b`, otherwise use the
@@ -216,6 +281,15 @@ variables {r r₁ r₂ : α → α → Prop} {s s₁ s₂ : β → β → Prop} 
 ⟨λ h, by { cases h, assumption }, lex.inr⟩
 
 @[simp] lemma lex_inr_inl : ¬ lex r s (inr b) (inl a) .
+
+instance [decidable_rel r] [decidable_rel s] : decidable_rel (lex r s)
+| (inl a) (inl c) := decidable_of_iff' _ lex_inl_inl
+| (inl a) (inr d) := decidable.is_true (lex.sep _ _)
+| (inr b) (inl c) := decidable.is_false lex_inr_inl
+| (inr b) (inr d) := decidable_of_iff' _ lex_inr_inr
+
+protected lemma lift_rel.lex {a b : α ⊕ β} (h : lift_rel r s a b) : lex r s a b :=
+by { cases h, exacts [lex.inl ‹_›, lex.inr ‹_›] }
 
 lemma lex.mono (hr : ∀ a b, r₁ a b → r₂ a b) (hs : ∀ a b, s₁ a b → s₂ a b) (h : lex r₁ s₁ x y) :
   lex r₂ s₂ x y :=

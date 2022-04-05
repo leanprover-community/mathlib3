@@ -191,7 +191,7 @@ begin
      ... ↔ ∀ ε > 0, (∃ x ∈ S, x ∈ metric.ball m ε) : by simp [dist_eq_norm, ← sub_eq_add_neg,
                                                               norm_sub_rev]
      ... ↔ m ∈ closure ↑S : by simp [metric.mem_closure_iff, dist_comm],
-    apply forall_congr, intro ε, apply forall_congr, intro  ε_pos,
+    refine forall₂_congr (λ ε ε_pos, _),
     rw [← S.exists_neg_mem_iff_exists_mem],
     simp },
   { use 0,
@@ -413,7 +413,7 @@ end
 lemma norm_trivial_quotient_mk (S : add_subgroup M)
   (h : (S.topological_closure : set M) = set.univ) : ∥S.normed_mk∥ = 0 :=
 begin
-  refine le_antisymm (op_norm_le_bound _ (le_refl _) (λ x, _)) (norm_nonneg _),
+  refine le_antisymm (op_norm_le_bound _ le_rfl (λ x, _)) (norm_nonneg _),
   have hker : x ∈ (S.normed_mk).ker.topological_closure,
   { rw [S.ker_normed_mk],
     exact set.mem_of_eq_of_mem h trivial },

@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.group.hom
-import data.equiv.basic
+import algebra.hom.group
+import logic.equiv.basic
 /-!
 # Type tags that turn additive structures into multiplicative, and vice versa
 
@@ -62,8 +62,8 @@ end multiplicative
 @[simp] lemma to_mul_of_mul (x : α) : (additive.of_mul x).to_mul = x := rfl
 @[simp] lemma of_mul_to_mul (x : additive α) : additive.of_mul x.to_mul = x := rfl
 
-instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul (default α)⟩
-instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add (default α)⟩
+instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul default⟩
+instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add default⟩
 
 instance [nontrivial α] : nontrivial (additive α) :=
 additive.of_mul.injective.nontrivial

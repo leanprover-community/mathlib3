@@ -77,7 +77,7 @@ lemma closure.is_submonoid : is_submonoid (closure S) :=
           is_submonoid.mul_mem ring.closure.is_subring.to_is_submonoid hp hr,
           q * s,
           is_submonoid.mul_mem ring.closure.is_subring.to_is_submonoid hq hs,
-          (div_mul_div _ _ _ _).symm⟩,
+          (div_mul_div_comm₀ _ _ _ _).symm⟩,
   one_mem := ring_closure_subset $ is_submonoid.one_mem ring.closure.is_subring.to_is_submonoid }
 
 lemma closure.is_subfield : is_subfield (closure S) :=

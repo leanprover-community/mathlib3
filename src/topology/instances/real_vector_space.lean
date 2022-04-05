@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import topology.algebra.module.basic
 import topology.instances.real
+import topology.instances.rat
 
 /-!
 # Continuous additive maps are `ℝ`-linear

@@ -52,6 +52,9 @@ variables {a}
 @[ext] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
 submodule.ext h
 
+lemma sum_mem (I : ideal α) {ι : Type*} {t : finset ι} {f : ι → α} :
+  (∀c∈t, f c ∈ I) → (∑ i in t, f i) ∈ I := submodule.sum_mem I
+
 theorem eq_top_of_unit_mem
   (x y : α) (hx : x ∈ I) (h : y * x = 1) : I = ⊤ :=
 eq_top_iff.2 $ λ z _, calc
@@ -84,6 +87,19 @@ def span (s : set α) : ideal α := submodule.span α s
 @[simp] lemma submodule_span_eq {s : set α} :
   submodule.span α s = ideal.span s :=
 rfl
+
+@[simp] lemma span_empty : span (∅ : set α) = ⊥ := submodule.span_empty
+
+@[simp] lemma span_univ : span (set.univ : set α) = ⊤ := submodule.span_univ
+
+lemma span_union (s t : set α) : span (s ∪ t) = span s ⊔ span t :=
+submodule.span_union _ _
+
+lemma span_Union {ι} (s : ι → set α) : span (⋃ i, s i) = ⨆ i, span (s i) :=
+submodule.span_Union _
+
+lemma mem_span {s : set α} (x) : x ∈ span s ↔ ∀ p : ideal α, s ⊆ p → x ∈ p :=
+mem_Inter₂
 
 lemma subset_span {s : set α} : s ⊆ span s := submodule.subset_span
 

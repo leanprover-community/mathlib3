@@ -6,7 +6,7 @@ Authors: Johan Commelin
 
 import algebraic_geometry.ringed_space
 import algebraic_geometry.stalks
-import data.equiv.transfer_instance
+import logic.equiv.transfer_instance
 
 /-!
 # The category of locally ringed spaces
@@ -179,6 +179,10 @@ instance : reflects_isomorphisms forget_to_SheafedSpace :=
   { out := by exactI
     ⟨hom_of_SheafedSpace_hom_of_is_iso (category_theory.inv (forget_to_SheafedSpace.map f)),
       hom_ext _ _ (is_iso.hom_inv_id _), hom_ext _ _ (is_iso.inv_hom_id _)⟩ } }
+
+instance is_SheafedSpace_iso {X Y : LocallyRingedSpace} (f : X ⟶ Y) [is_iso f] :
+  is_iso f.1 :=
+LocallyRingedSpace.forget_to_SheafedSpace.map_is_iso f
 
 /--
 The restriction of a locally ringed space along an open embedding.

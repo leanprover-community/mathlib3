@@ -519,7 +519,7 @@ begin
     rwa ← (equiv.vadd_const p).subset_image' b s, },
   { rw [equiv.coe_vadd_const_symm, ← vector_span_eq_span_vsub_set_right k hp] at hb₂,
     apply affine_subspace.ext_of_direction_eq,
-    { have : submodule.span k b = submodule.span k (insert 0 b), { by simp, },
+    { have : submodule.span k b = submodule.span k (insert 0 b), { simp, },
       simp only [direction_affine_span, ← hb₂, equiv.coe_vadd_const, set.singleton_union,
         vector_span_eq_span_vsub_set_right k (set.mem_insert p _), this],
       congr,
@@ -544,8 +544,8 @@ begin
     fin_cases i,
     { simpa using hi } },
   haveI : unique {x // x ≠ (0 : fin 2)} := ⟨⟨i₁⟩, he'⟩,
-  have hz : (![p₁, p₂] ↑(default {x // x ≠ (0 : fin 2)}) -ᵥ ![p₁, p₂] 0 : V) ≠ 0,
-  { rw he' (default _), simp, cc },
+  have hz : (![p₁, p₂] ↑default -ᵥ ![p₁, p₂] 0 : V) ≠ 0,
+  { rw he' default, simpa using h.symm },
   exact linear_independent_unique _ hz
 end
 
@@ -579,7 +579,7 @@ def mk_of_point (p : P) : simplex k P 0 :=
 rfl
 
 instance [inhabited P] : inhabited (simplex k P 0) :=
-⟨mk_of_point k $ default P⟩
+⟨mk_of_point k default⟩
 
 instance nonempty : nonempty (simplex k P 0) :=
 ⟨mk_of_point k $ add_torsor.nonempty.some⟩

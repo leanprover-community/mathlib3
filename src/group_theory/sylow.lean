@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Thomas Browning
 -/
 
+import data.nat.factorization
 import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
+import group_theory.noncomm_pi_coprod
 
 /-!
 # Sylow theorems
@@ -65,17 +67,22 @@ instance : set_like (sylow p G) G :=
 { coe := coe,
   coe_injective' := λ P Q h, ext (set_like.coe_injective h) }
 
+instance : subgroup_class (sylow p G) G :=
+{ mul_mem := λ s, s.mul_mem',
+  one_mem := λ s, s.one_mem',
+  inv_mem := λ s, s.inv_mem' }
+
 end sylow
 
 /-- A generalization of **Sylow's first theorem**.
   Every `p`-subgroup is contained in a Sylow `p`-subgroup. -/
 lemma is_p_group.exists_le_sylow {P : subgroup G} (hP : is_p_group p P) :
   ∃ Q : sylow p G, P ≤ Q :=
-exists.elim (zorn.zorn_nonempty_partial_order₀ {Q : subgroup G | is_p_group p Q} (λ c hc1 hc2 Q hQ,
+exists.elim (zorn_nonempty_partial_order₀ {Q : subgroup G | is_p_group p Q} (λ c hc1 hc2 Q hQ,
 ⟨ { carrier := ⋃ (R : c), R,
     one_mem' := ⟨Q, ⟨⟨Q, hQ⟩, rfl⟩, Q.one_mem⟩,
     inv_mem' := λ g ⟨_, ⟨R, rfl⟩, hg⟩, ⟨R, ⟨R, rfl⟩, R.1.inv_mem hg⟩,
-    mul_mem' := λ g h ⟨_, ⟨R, rfl⟩, hg⟩ ⟨_, ⟨S, rfl⟩, hh⟩, (hc2.total_of_refl R.2 S.2).elim
+    mul_mem' := λ g h ⟨_, ⟨R, rfl⟩, hg⟩ ⟨_, ⟨S, rfl⟩, hh⟩, (hc2.total R.2 S.2).elim
       (λ T, ⟨S, ⟨S, rfl⟩, S.1.mul_mem (T hg) hh⟩) (λ T, ⟨R, ⟨R, rfl⟩, R.1.mul_mem hg (T hh)⟩) },
   λ ⟨g, _, ⟨S, rfl⟩, hg⟩, by
   { refine exists_imp_exists (λ k hk, _) (hc1 S.2 ⟨g, hg⟩),
@@ -87,6 +94,37 @@ nonempty_of_exists is_p_group.of_bot.exists_le_sylow
 
 noncomputable instance sylow.inhabited : inhabited (sylow p G) :=
 classical.inhabited_of_nonempty sylow.nonempty
+
+lemma sylow.exists_comap_eq_of_ker_is_p_group {H : Type*} [group H] (P : sylow p H)
+  {f : H →* G} (hf : is_p_group p f.ker) : ∃ Q : sylow p G, Q.1.comap f = P :=
+exists_imp_exists (λ Q hQ, P.3 (Q.2.comap_of_ker_is_p_group f hf) (map_le_iff_le_comap.mp hQ))
+  (P.2.map f).exists_le_sylow
+
+lemma sylow.exists_comap_eq_of_injective {H : Type*} [group H] (P : sylow p H)
+  {f : H →* G} (hf : function.injective f) : ∃ Q : sylow p G, Q.1.comap f = P :=
+P.exists_comap_eq_of_ker_is_p_group (is_p_group.ker_is_p_group_of_injective hf)
+
+lemma sylow.exists_comap_subtype_eq {H : subgroup G} (P : sylow p H) :
+  ∃ Q : sylow p G, Q.1.comap H.subtype = P :=
+P.exists_comap_eq_of_injective subtype.coe_injective
+
+/-- If the kernel of `f : H →* G` is a `p`-group,
+  then `fintype (sylow p G)` implies `fintype (sylow p H)`. -/
+noncomputable def sylow.fintype_of_ker_is_p_group {H : Type*} [group H]
+  {f : H →* G} (hf : is_p_group p f.ker) [fintype (sylow p G)] : fintype (sylow p H) :=
+let h_exists := λ P : sylow p H, P.exists_comap_eq_of_ker_is_p_group hf,
+  g : sylow p H → sylow p G := λ P, classical.some (h_exists P),
+  hg : ∀ P : sylow p H, (g P).1.comap f = P := λ P, classical.some_spec (h_exists P) in
+fintype.of_injective g (λ P Q h, sylow.ext (by simp only [←hg, h]))
+
+/-- If `f : H →* G` is injective, then `fintype (sylow p G)` implies `fintype (sylow p H)`. -/
+noncomputable def sylow.fintype_of_injective {H : Type*} [group H]
+  {f : H →* G} (hf : function.injective f) [fintype (sylow p G)] : fintype (sylow p H) :=
+sylow.fintype_of_ker_is_p_group (is_p_group.ker_is_p_group_of_injective hf)
+
+/-- If `H` is a subgroup of `G`, then `fintype (sylow p G)` implies `fintype (sylow p H)`. -/
+noncomputable instance (H : subgroup G) [fintype (sylow p G)] : fintype (sylow p H) :=
+sylow.fintype_of_injective (show function.injective H.subtype, from subtype.coe_injective)
 
 open_locale pointwise
 
@@ -114,7 +152,7 @@ lemma sylow.coe_smul {g : G} {P : sylow p G} :
   ↑(g • P) = mul_aut.conj g • (P : set G) := rfl
 
 lemma sylow.smul_eq_iff_mem_normalizer {g : G} {P : sylow p G} :
-  g • P = P ↔ g ∈ P.1.normalizer :=
+  g • P = P ↔ g ∈ (P : subgroup G).normalizer :=
 begin
   rw [eq_comm, set_like.ext_iff, ←inv_mem_iff, mem_normalizer_iff, inv_inv],
   exact forall_congr (λ h, iff_congr iff.rfl ⟨λ ⟨a, b, c⟩, (congr_arg _ c).mp
@@ -122,12 +160,16 @@ begin
     λ hh, ⟨(mul_aut.conj g)⁻¹ h, hh, mul_aut.apply_inv_self G (mul_aut.conj g) h⟩⟩),
 end
 
+lemma sylow.smul_eq_of_normal {g : G} {P : sylow p G} [h : (P : subgroup G).normal] :
+  g • P = P :=
+by simp only [sylow.smul_eq_iff_mem_normalizer, normalizer_eq_top.mpr h, mem_top]
+
 lemma subgroup.sylow_mem_fixed_points_iff (H : subgroup G) {P : sylow p G} :
-  P ∈ fixed_points H (sylow p G) ↔ H ≤ P.1.normalizer :=
+  P ∈ fixed_points H (sylow p G) ↔ H ≤ (P : subgroup G).normalizer :=
 by simp_rw [set_like.le_def, ←sylow.smul_eq_iff_mem_normalizer]; exact subtype.forall
 
 lemma is_p_group.inf_normalizer_sylow {P : subgroup G} (hP : is_p_group p P) (Q : sylow p G) :
-  P ⊓ Q.1.normalizer = P ⊓ Q :=
+  P ⊓ (Q : subgroup G).normalizer = P ⊓ Q :=
 le_antisymm (le_inf inf_le_left (sup_eq_right.mp (Q.3 (hP.to_inf_left.to_sup_of_normal_right'
   Q.2 inf_le_right) le_sup_right))) (inf_le_inf_left P le_normalizer)
 
@@ -153,8 +195,10 @@ instance [hp : fact p.prime] [fintype (sylow p G)] : is_pretransitive G (sylow p
   calc 1 = card (fixed_points P (orbit G P)) : _
      ... ≡ card (orbit G P) [MOD p] : (P.2.card_modeq_card_fixed_points (orbit G P)).symm
      ... ≡ 0 [MOD p] : nat.modeq_zero_iff_dvd.mpr h,
-  convert (set.card_singleton (⟨P, mem_orbit_self P⟩ : orbit G P)).symm,
-  exact set.eq_singleton_iff_unique_mem.mpr ⟨H.mpr rfl, λ R h, subtype.ext (sylow.ext (H.mp h))⟩ }⟩
+  rw ← set.card_singleton (⟨P, mem_orbit_self P⟩ : orbit G P),
+  refine card_congr' (congr_arg _ (eq.symm _)),
+  rw set.eq_singleton_iff_unique_mem,
+  exact ⟨H.mpr rfl, λ R h, subtype.ext (sylow.ext (H.mp h))⟩ }⟩
 
 variables (p) (G)
 
@@ -163,12 +207,13 @@ variables (p) (G)
 lemma card_sylow_modeq_one [fact p.prime] [fintype (sylow p G)] : card (sylow p G) ≡ 1 [MOD p] :=
 begin
   refine sylow.nonempty.elim (λ P : sylow p G, _),
-  have := set.ext (λ Q : sylow p G, calc Q ∈ fixed_points P (sylow p G)
+  have : fixed_points P.1 (sylow p G) = {P} :=
+  set.ext (λ Q : sylow p G, calc Q ∈ fixed_points P (sylow p G)
       ↔ P.1 ≤ Q : P.2.sylow_mem_fixed_points_iff
   ... ↔ Q.1 = P.1 : ⟨P.3 Q.2, ge_of_eq⟩
   ... ↔ Q ∈ {P} : sylow.ext_iff.symm.trans set.mem_singleton_iff.symm),
-  haveI : fintype (fixed_points P.1 (sylow p G)) := by convert set.fintype_singleton P,
-  have : card (fixed_points P.1 (sylow p G)) = 1 := by convert set.card_singleton P,
+  haveI : fintype (fixed_points P.1 (sylow p G)), { rw this, apply_instance },
+  have : card (fixed_points P.1 (sylow p G)) = 1, { simp [this] },
   exact (P.2.card_modeq_card_fixed_points (sylow p G)).trans (by rw this),
 end
 
@@ -427,6 +472,181 @@ begin
   refine λ h, hp.out.not_dvd_one _,
   have key : p ∣ card (P : subgroup G) := P.dvd_card_of_dvd_card hdvd,
   rwa [h, card_bot] at key,
+end
+
+/-- The cardinality of a Sylow group is `p ^ n`
+ where `n` is the multiplicity of `p` in the group order. -/
+lemma card_eq_multiplicity [fintype G] {p : ℕ} [hp : fact p.prime] (P : sylow p G) :
+  card P = p ^ nat.factorization (card G) p :=
+begin
+  obtain ⟨n, heq : card P = _⟩ := is_p_group.iff_card.mp (P.is_p_group'),
+  refine nat.dvd_antisymm _ (P.pow_dvd_card_of_pow_dvd_card (nat.pow_factorization_dvd _ p)),
+  rw [heq, ←hp.out.pow_dvd_iff_dvd_pow_factorization (show card G ≠ 0, from card_ne_zero), ←heq],
+  exact P.1.card_subgroup_dvd_card,
+end
+
+lemma subsingleton_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+  (h : (P : subgroup G).normal) : subsingleton (sylow p G) :=
+begin
+  apply subsingleton.intro,
+  intros Q R,
+  obtain ⟨x, h1⟩ := exists_smul_eq G P Q,
+  obtain ⟨x, h2⟩ := exists_smul_eq G P R,
+  rw sylow.smul_eq_of_normal at h1 h2,
+  rw [← h1, ← h2],
+end
+
+section pointwise
+
+open_locale pointwise
+
+lemma characteristic_of_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G)
+  (h : (P : subgroup G).normal) :
+  (P : subgroup G).characteristic :=
+begin
+  haveI := sylow.subsingleton_of_normal P h,
+  rw characteristic_iff_map_eq,
+  intros Φ,
+  show (Φ • P).to_subgroup = P.to_subgroup,
+  congr,
+end
+
+end pointwise
+
+/-- The preimage of a Sylow subgroup under a homomorphism with p-group-kernel is a Sylow subgroup -/
+def comap_of_ker_is_p_group {p : ℕ} (P : sylow p G)
+  {K : Type*} [group K] (ϕ : K →* G) (hϕ : is_p_group p ϕ.ker) (h : P.1 ≤ ϕ.range) :
+  sylow p K :=
+{ P.1.comap ϕ with
+  is_p_group' := P.2.comap_of_ker_is_p_group ϕ hϕ,
+  is_maximal' := λ Q hQ hle, by
+  { rw ← P.3 (hQ.map ϕ) (le_trans (ge_of_eq (map_comap_eq_self h)) (map_mono hle)),
+    exact (comap_map_eq_self ((P.1.ker_le_comap ϕ).trans hle)).symm }, }
+
+@[simp]
+lemma coe_comap_of_ker_is_p_group {p : ℕ} {P : sylow p G}
+  {K : Type*} [group K] (ϕ : K →* G) (hϕ : is_p_group p ϕ.ker) (h : P.1 ≤ ϕ.range) :
+  ↑(P.comap_of_ker_is_p_group ϕ hϕ h) = subgroup.comap ϕ ↑P := rfl
+
+/-- The preimage of a Sylow subgroup under an injective homomorphism is a Sylow subgroup -/
+def comap_of_injective {p : ℕ} (P : sylow p G)
+  {K : Type*} [group K] (ϕ : K →* G) (hϕ : function.injective ϕ) (h : P.1 ≤ ϕ.range) :
+  sylow p K :=
+P.comap_of_ker_is_p_group ϕ (is_p_group.ker_is_p_group_of_injective hϕ) h
+
+@[simp]
+lemma coe_comap_of_injective {p : ℕ} {P : sylow p G}
+  {K : Type*} [group K] (ϕ : K →* G) (hϕ : function.injective ϕ) (h : P.1 ≤ ϕ.range)  :
+  ↑(P.comap_of_injective ϕ hϕ h) = subgroup.comap ϕ ↑P := rfl
+
+/-- A sylow subgroup in G is also a sylow subgroup in a subgroup of G. -/
+def subtype {p : ℕ} (P : sylow p G) (N : subgroup G) (h : ↑P ≤ N) : sylow p N :=
+P.comap_of_injective N.subtype subtype.coe_injective (by simp [h])
+
+@[simp]
+lemma coe_subtype {p : ℕ} {P : sylow p G} {N : subgroup G} {h : P.1 ≤ N} :
+  ↑(P.subtype N h) = subgroup.comap N.subtype ↑P := rfl
+
+lemma normal_of_normalizer_normal {p : ℕ} [fact p.prime] [fintype (sylow p G)]
+  (P : sylow p G) (hn : (↑P : subgroup G).normalizer.normal) :
+  (↑P : subgroup G).normal :=
+by rw [←normalizer_eq_top, ←normalizer_sup_eq_top (P.subtype _ le_normalizer), coe_subtype,
+  map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))), sup_idem]
+
+@[simp] lemma normalizer_normalizer {p : ℕ} [fact p.prime] [fintype (sylow p G)]
+ (P : sylow p G) :
+ (↑P : subgroup G).normalizer.normalizer = (↑P : subgroup G).normalizer :=
+begin
+  have := normal_of_normalizer_normal (P.subtype _ (le_normalizer.trans le_normalizer)),
+  simp_rw [←normalizer_eq_top, coe_subtype, ←comap_subtype_normalizer_eq le_normalizer,
+    ←comap_subtype_normalizer_eq le_rfl, comap_subtype_self_eq_top] at this,
+  rw [←subtype_range (P : subgroup G).normalizer.normalizer, monoid_hom.range_eq_map, ←this rfl],
+  exact map_comap_eq_self (le_normalizer.trans (ge_of_eq (subtype_range _))),
+end
+
+lemma normal_of_all_max_subgroups_normal [fintype G]
+  (hnc : ∀ (H : subgroup G), is_coatom H → H.normal)
+  {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+  (↑P : subgroup G).normal :=
+normalizer_eq_top.mp begin
+  rcases eq_top_or_exists_le_coatom ((↑P : subgroup G).normalizer) with heq | ⟨K, hK, hNK⟩,
+  { exact heq },
+  { haveI := hnc _ hK,
+    have hPK := le_trans le_normalizer hNK,
+    let P' := P.subtype K hPK,
+    exfalso,
+    apply hK.1,
+    calc K = (↑P : subgroup G).normalizer ⊔ K : by { rw sup_eq_right.mpr, exact hNK }
+    ... = (map K.subtype (↑P' : subgroup K)).normalizer ⊔ K : by simp [map_comap_eq_self, hPK]
+    ... = ⊤ : normalizer_sup_eq_top P' },
+end
+
+lemma normal_of_normalizer_condition (hnc : normalizer_condition G)
+ {p : ℕ} [fact p.prime] [fintype (sylow p G)] (P : sylow p G) :
+ (↑P : subgroup G).normal :=
+normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing.mp hnc _ $
+  normalizer_normalizer _
+
+open_locale big_operators
+
+/-- If all its sylow groups are normal, then a finite group is isomorphic to the direct product
+of these sylow groups.
+-/
+noncomputable
+def direct_product_of_normal [fintype G]
+  (hn : ∀ {p : ℕ} [fact p.prime] (P : sylow p G), (↑P : subgroup G).normal) :
+  (Π p : (card G).factorization.support, Π P : sylow p G, (↑P : subgroup G)) ≃* G :=
+begin
+  set ps := (fintype.card G).factorization.support,
+
+  -- “The” sylow group for p
+  let P : Π p, sylow p G := λ _, default,
+
+  have hcomm : pairwise (λ (p₁ p₂ : ps), ∀ (x y : G), x ∈ P p₁ → y ∈ P p₂ → commute x y),
+  { rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
+    haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
+    haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
+    have hne' : p₁ ≠ p₂, by simpa using hne,
+    apply subgroup.commute_of_normal_of_disjoint _ _ (hn (P p₁)) (hn (P p₂)),
+    apply is_p_group.disjoint_of_ne p₁ p₂ hne' _ _ (P p₁).is_p_group' (P p₂).is_p_group', },
+
+  refine mul_equiv.trans _ _,
+  -- There is only one sylow group for each p, so the inner product is trivial
+  show (Π p : ps, Π P : sylow p G, P) ≃* (Π p : ps, P p),
+  { -- here we need to help the elaborator with an explicit instantiation
+    apply @mul_equiv.Pi_congr_right ps (λ p, (Π P : sylow p G, P)) (λ p, P p) _ _ ,
+    rintro ⟨p, hp⟩,
+    haveI hp' := fact.mk (nat.prime_of_mem_factorization hp),
+    haveI := subsingleton_of_normal _ (hn (P p)),
+    change (Π (P : sylow p G), P) ≃* P p,
+    exact mul_equiv.Pi_subsingleton _ _, },
+
+  show (Π p : ps, P p) ≃* G,
+  apply mul_equiv.of_bijective (subgroup.noncomm_pi_coprod hcomm),
+  apply (bijective_iff_injective_and_card _).mpr,
+  split,
+
+  show injective _,
+  { apply subgroup.injective_noncomm_pi_coprod_of_independent,
+    apply independent_of_coprime_order hcomm,
+    rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
+    haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
+    haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
+    have hne' : p₁ ≠ p₂, by simpa using hne,
+    apply is_p_group.coprime_card_of_ne p₁ p₂ hne' _ _ (P p₁).is_p_group' (P p₂).is_p_group', },
+
+  show card (Π (p : ps), P p) = card G,
+  { calc card (Π (p : ps), P p)
+        = ∏ (p : ps), card ↥(P p) : fintype.card_pi
+    ... = ∏ (p : ps), p.1 ^ (card G).factorization p.1 :
+      begin
+        congr' 1 with ⟨p, hp⟩,
+        exact @card_eq_multiplicity _ _ _ p ⟨nat.prime_of_mem_factorization hp⟩ (P p)
+      end
+    ... = ∏ p in ps, p ^ (card G).factorization p :
+      finset.prod_finset_coe (λ p, p ^ (card G).factorization p) _
+    ... = (card G).factorization.prod pow : rfl
+    ... = card G : nat.factorization_prod_pow_eq_self fintype.card_ne_zero }
 end
 
 end sylow

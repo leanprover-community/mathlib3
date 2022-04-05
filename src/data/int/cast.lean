@@ -224,7 +224,7 @@ variables {A : Type*}
 /-- Two additive monoid homomorphisms `f`, `g` from `ℤ` to an additive monoid are equal
 if `f 1 = g 1`. -/
 @[ext] theorem ext_int [add_monoid A] {f g : ℤ →+ A} (h1 : f 1 = g 1) : f = g :=
-have f.comp (int.of_nat_hom : ℕ →+ ℤ) = g.comp (int.of_nat_hom : ℕ →+ ℤ) := ext_nat h1,
+have f.comp (int.of_nat_hom : ℕ →+ ℤ) = g.comp (int.of_nat_hom : ℕ →+ ℤ) := ext_nat' _ _ h1,
 have ∀ n : ℕ, f n = g n := ext_iff.1 this,
 ext $ λ n, int.cases_on n this $ λ n, eq_on_neg (this $ n + 1)
 
@@ -237,6 +237,9 @@ theorem eq_int_cast (f : ℤ →+ A) (h1 : f 1 = 1) : ∀ n : ℤ, f n = n :=
 ext_iff.1 (f.eq_int_cast_hom h1)
 
 end add_monoid_hom
+
+@[simp] lemma int.cast_add_hom_int : int.cast_add_hom ℤ = add_monoid_hom.id ℤ :=
+((add_monoid_hom.id ℤ).eq_int_cast_hom rfl).symm
 
 namespace monoid_hom
 variables {M : Type*} [monoid M]
@@ -266,16 +269,15 @@ namespace monoid_with_zero_hom
 variables {M : Type*} [monoid_with_zero M]
 
 /-- If two `monoid_with_zero_hom`s agree on `-1` and the naturals then they are equal. -/
-@[ext] theorem ext_int {f g : monoid_with_zero_hom ℤ M}
-  (h_neg_one : f (-1) = g (-1))
+@[ext] lemma ext_int {f g : ℤ →*₀ M} (h_neg_one : f (-1) = g (-1))
   (h_nat : f.comp int.of_nat_hom.to_monoid_with_zero_hom =
            g.comp int.of_nat_hom.to_monoid_with_zero_hom) :
   f = g :=
 to_monoid_hom_injective $ monoid_hom.ext_int h_neg_one $ monoid_hom.ext (congr_fun h_nat : _)
 
 /-- If two `monoid_with_zero_hom`s agree on `-1` and the _positive_ naturals then they are equal. -/
-theorem ext_int' {φ₁ φ₂ : monoid_with_zero_hom ℤ M}
-  (h_neg_one : φ₁ (-1) = φ₂ (-1)) (h_pos : ∀ n : ℕ, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
+lemma ext_int' {φ₁ φ₂ : ℤ →*₀ M} (h_neg_one : φ₁ (-1) = φ₂ (-1))
+  (h_pos : ∀ n : ℕ, 0 < n → φ₁ n = φ₂ n) : φ₁ = φ₂ :=
 ext_int h_neg_one $ ext_nat h_pos
 
 end monoid_with_zero_hom
@@ -304,6 +306,9 @@ end ring_hom
 @[simp, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=
 ((ring_hom.id ℤ).eq_int_cast n).symm
 
+@[simp] lemma int.cast_ring_hom_int : int.cast_ring_hom ℤ = ring_hom.id ℤ :=
+(ring_hom.id ℤ).eq_int_cast'.symm
+
 namespace pi
 
 variables {α β : Type*}
@@ -319,3 +324,17 @@ by rw [cast_neg_succ_of_nat, cast_neg_succ_of_nat, neg_apply, add_apply, one_app
 by { ext, rw pi.int_apply }
 
 end pi
+
+namespace mul_opposite
+
+variables {α : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
+
+@[simp, norm_cast] lemma op_int_cast : ∀ z : ℤ, op (z : α) = z
+| (n:ℕ) := op_nat_cast n
+| -[1+n] := congr_arg (λ a : αᵐᵒᵖ, -(a + 1)) $ op_nat_cast n
+
+@[simp, norm_cast] lemma unop_int_cast : ∀ n : ℤ, unop (n : αᵐᵒᵖ) = n
+| (n:ℕ) := unop_nat_cast n
+| -[1+n] := congr_arg (λ a : α, -(a + 1)) $ unop_nat_cast n
+
+end mul_opposite

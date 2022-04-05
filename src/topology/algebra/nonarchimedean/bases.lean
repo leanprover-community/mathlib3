@@ -62,7 +62,7 @@ lemma of_comm {A ι : Type*} [comm_ring A] (B : ι → add_subgroup A)
 def to_ring_filter_basis [nonempty ι] {B : ι → add_subgroup A}
   (hB : ring_subgroups_basis B) : ring_filter_basis A :=
 { sets := {U | ∃ i, U = B i},
-  nonempty := by { inhabit ι, exact ⟨B (default ι), default ι, rfl⟩ },
+  nonempty := by { inhabit ι, exact ⟨B default, default, rfl⟩ },
   inter_sets := begin
     rintros _ _ ⟨i, rfl⟩ ⟨j, rfl⟩,
     cases hB.inter i j with k hk,
@@ -230,7 +230,7 @@ include hB
 /-- The image of a submodules basis is a module filter basis. -/
 def to_module_filter_basis : module_filter_basis R M :=
 { sets := {U | ∃ i, U = B i},
-  nonempty := by { inhabit ι, exact ⟨B (default ι), default ι, rfl⟩ },
+  nonempty := by { inhabit ι, exact ⟨B default, default, rfl⟩ },
   inter_sets := begin
     rintros _ _ ⟨i, rfl⟩ ⟨j, rfl⟩,
     cases hB.inter i j with k hk,

@@ -122,19 +122,19 @@ begin
     rw ← hb, exact ⟨b, rfl⟩ },
   let σ₁' := subtype_perm_of_fintype σ h1,
   let σ₂' := subtype_perm_of_fintype σ h3,
-  let σ₁ := perm_congr (equiv.of_injective (@sum.inl m n) sum.inl_injective).symm σ₁',
-  let σ₂ := perm_congr (equiv.of_injective (@sum.inr m n) sum.inr_injective).symm σ₂',
+  let σ₁ := perm_congr (equiv.of_injective _ sum.inl_injective).symm σ₁',
+  let σ₂ := perm_congr (equiv.of_injective _ sum.inr_injective).symm σ₂',
   rw [monoid_hom.mem_range, prod.exists],
   use [σ₁, σ₂],
   rw [perm.sum_congr_hom_apply],
   ext,
   cases x with a b,
   { rw [equiv.sum_congr_apply, sum.map_inl, perm_congr_apply, equiv.symm_symm,
-        apply_of_injective_symm (@sum.inl m n)],
+        apply_of_injective_symm sum.inl_injective],
     erw subtype_perm_apply,
     rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] },
   { rw [equiv.sum_congr_apply, sum.map_inr, perm_congr_apply, equiv.symm_symm,
-        apply_of_injective_symm (@sum.inr m n)],
+        apply_of_injective_symm sum.inr_injective],
     erw subtype_perm_apply,
     rw [of_injective_apply, subtype.coe_mk, subtype.coe_mk] }
 end
@@ -419,7 +419,7 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans_self, ← one_def,
       by ext; simp [← equiv.symm_trans_swap_trans, mul_def],
     have hefx : e x ≠ e (f x), from mt e.injective.eq_iff.1 hfx,
     rw [if_neg hfx, ← sign_aux_eq_sign_aux2 _ _ e hy, this, sign_aux_mul, sign_aux_swap hefx],
-    simp only [units.neg_neg, one_mul, units.neg_mul]}
+    simp only [neg_neg, one_mul, neg_mul]}
 end
 
 /-- When the multiset `s : multiset α` contains all nonfixed points of the permutation `f : perm α`,

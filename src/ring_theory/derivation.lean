@@ -25,6 +25,7 @@ definitive definition of derivation will be implemented.
 -/
 
 open algebra
+open_locale big_operators
 
 /-- `D : derivation R A M` is an `R`-linear map from `A` to `M` that satisfies the `leibniz`
 equality. We also require that `D 1 = 0`. See `derivation.mk'` for a constructor that deduces this
@@ -56,7 +57,8 @@ instance : add_monoid_hom_class (derivation R A M) A M :=
   map_add := λ D, D.to_linear_map.map_add',
   map_zero := λ D, D.to_linear_map.map_zero }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly. -/
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly. -/
 instance : has_coe_to_fun (derivation R A M) (λ _, A → M) := ⟨λ D, D.to_linear_map.to_fun⟩
 
 -- Not a simp lemma because it can be proved via `coe_fn_coe` + `to_linear_map_eq_coe`
@@ -85,6 +87,9 @@ protected lemma map_add : D (a + b) = D a + D b := map_add D a b
 protected lemma map_zero : D 0 = 0 := map_zero D
 @[simp] lemma map_smul : D (r • a) = r • D a := D.to_linear_map.map_smul r a
 @[simp] lemma leibniz : D (a * b) = a • D b + b • D a := D.leibniz' _ _
+
+lemma map_sum {ι : Type*} (s : finset ι) (f : ι → A) : D (∑ i in s, f i) = ∑ i in s, D (f i) :=
+D.to_linear_map.map_sum
 
 @[simp, priority 900] lemma map_smul_of_tower {S : Type*} [has_scalar S A] [has_scalar S M]
   [linear_map.compatible_smul A M S R] (D : derivation R A M) (r : S) (a : A) :
@@ -147,13 +152,6 @@ lemma add_apply : (D1 + D2) a = D1 a + D2 a := rfl
 
 instance : inhabited (derivation R A M) := ⟨0⟩
 
-instance : add_comm_monoid (derivation R A M) :=
-coe_injective.add_comm_monoid _ coe_zero coe_add
-
-/-- `coe_fn` as an `add_monoid_hom`. -/
-def coe_fn_add_monoid_hom : derivation R A M →+ (A → M) :=
-{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
-
 section scalar
 
 variables {S : Type*} [monoid S] [distrib_mul_action S M] [smul_comm_class R S M]
@@ -172,9 +170,20 @@ instance : has_scalar S (derivation R A M) :=
   ↑(r • D) = (r • D : A →ₗ[R] M) := rfl
 lemma smul_apply (r : S) (D : derivation R A M) : (r • D) a = r • D a := rfl
 
+instance : add_comm_monoid (derivation R A M) :=
+coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, rfl)
+
+/-- `coe_fn` as an `add_monoid_hom`. -/
+def coe_fn_add_monoid_hom : derivation R A M →+ (A → M) :=
+{ to_fun := coe_fn, map_zero' := coe_zero, map_add' := coe_add }
+
 @[priority 100]
 instance : distrib_mul_action S (derivation R A M) :=
 function.injective.distrib_mul_action coe_fn_add_monoid_hom coe_injective coe_smul
+
+instance [distrib_mul_action Sᵐᵒᵖ M] [is_central_scalar S M] :
+  is_central_scalar S (derivation R A M) :=
+{ op_smul_eq_smul := λ _ _, ext $ λ _, op_smul_eq_smul _ _}
 
 end scalar
 
@@ -287,7 +296,7 @@ rfl
 lemma sub_apply : (D1 - D2) a = D1 a - D2 a := rfl
 
 instance : add_comm_group (derivation R A M) :=
-coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub
+coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 end
 

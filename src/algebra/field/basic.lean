@@ -79,7 +79,7 @@ calc
   1 / (- a) = 1 / ((-1) * a)        : by rw neg_eq_neg_one_mul
         ... = (1 / a) * (1 / (- 1)) : by rw one_div_mul_one_div_rev
         ... = (1 / a) * (-1)        : by rw one_div_neg_one_eq_neg_one
-        ... = - (1 / a)             : by rw [mul_neg_eq_neg_mul_symm, mul_one]
+        ... = - (1 / a)             : by rw [mul_neg, mul_one]
 
 lemma div_neg_eq_neg_div (a b : K) : b / (- a) = - (b / a) :=
 calc
@@ -96,6 +96,12 @@ by simp [neg_div]
 
 lemma neg_div_neg_eq (a b : K) : (-a) / (-b) = a / b :=
 by rw [div_neg_eq_neg_div, neg_div, neg_neg]
+
+@[simp] lemma div_neg_self {a : K} (h : a ≠ 0) : a / -a = -1 :=
+by rw [div_neg_eq_neg_div, div_self h]
+
+@[simp] lemma neg_div_self {a : K} (h : a ≠ 0) : (-a) / a = -1 :=
+by rw [neg_div, div_self h]
 
 @[field_simps] lemma div_add_div_same (a b c : K) : a / c + b / c = (a + b) / c :=
 by simpa only [div_eq_mul_inv] using (right_distrib a b (c⁻¹)).symm
@@ -237,10 +243,16 @@ lemma field.to_is_field (R : Type u) [field R] : is_field R :=
 { mul_inv_cancel := λ a ha, ⟨a⁻¹, field.mul_inv_cancel ha⟩,
   ..‹field R› }
 
+@[simp] lemma is_field.nontrivial {R : Type u} [ring R] (h : is_field R) : nontrivial R :=
+⟨h.exists_pair_ne⟩
+
+@[simp] lemma not_is_field_of_subsingleton (R : Type u) [ring R] [subsingleton R] : ¬is_field R :=
+λ h, let ⟨x, y, h⟩ := h.exists_pair_ne in h (subsingleton.elim _ _)
+
 open_locale classical
 
 /-- Transferring from is_field to field -/
-noncomputable def is_field.to_field (R : Type u) [ring R] (h : is_field R) : field R :=
+noncomputable def is_field.to_field {R : Type u} [ring R] (h : is_field R) : field R :=
 { inv := λ a, if ha : a = 0 then 0 else classical.some (is_field.mul_inv_cancel h ha),
   inv_zero := dif_pos rfl,
   mul_inv_cancel := λ a ha,
@@ -324,25 +336,29 @@ See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.division_ring [division_ring K] {K'}
   [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
-  [has_div K']
+  [has_div K'] [has_scalar ℕ K'] [has_scalar ℤ K'] [has_pow K' ℕ] [has_pow K' ℤ]
   (f : K' → K) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
-  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   division_ring K' :=
-{ .. hf.group_with_zero f zero one mul inv div,
-  .. hf.ring f zero one add mul neg sub }
+{ .. hf.group_with_zero f zero one mul inv div npow zpow,
+  .. hf.ring f zero one add mul neg sub nsmul zsmul npow }
 
 /-- Pullback a `field` along an injective function.
 See note [reducible non-instances]. -/
 @[reducible]
 protected def function.injective.field [field K] {K'}
   [has_zero K'] [has_mul K'] [has_add K'] [has_neg K'] [has_sub K'] [has_one K'] [has_inv K']
-  [has_div K']
+  [has_div K'] [has_scalar ℕ K'] [has_scalar ℤ K'] [has_pow K' ℕ] [has_pow K' ℤ]
   (f : K' → K) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
   (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
-  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y) :
+  (inv : ∀ x, f (x⁻¹) = (f x)⁻¹) (div : ∀ x y, f (x / y) = f x / f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) (zpow : ∀ x (n : ℤ), f (x ^ n) = f x ^ n) :
   field K' :=
-{ .. hf.comm_group_with_zero f zero one mul inv div,
-  .. hf.comm_ring f zero one add mul neg sub }
+{ .. hf.comm_group_with_zero f zero one mul inv div npow zpow,
+  .. hf.comm_ring f zero one add mul neg sub nsmul zsmul npow }

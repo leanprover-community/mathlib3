@@ -46,6 +46,7 @@ namespace module
 namespace End
 
 open module principal_ideal_ring polynomial finite_dimensional
+open_locale polynomial
 
 variables {K R : Type v} {V M : Type w}
   [comm_ring R] [add_comm_group M] [module R M] [field K] [add_comm_group V] [module K V]
@@ -98,6 +99,11 @@ begin
   rw [hv.apply_eq_smul, sub_self]
 end
 
+lemma has_eigenvalue_iff_mem_spectrum [finite_dimensional K V] {f : End K V} {μ : K} :
+  f.has_eigenvalue μ ↔ μ ∈ spectrum K f :=
+iff.intro mem_spectrum_of_has_eigenvalue
+  (λ h, by rwa [spectrum.mem_iff, is_unit.sub_iff, linear_map.is_unit_iff_ker_eq_bot] at h)
+
 lemma eigenspace_div (f : End K V) (a b : K) (hb : b ≠ 0) :
   eigenspace f (a / b) = (b • f - algebra_map K (End K V) a).ker :=
 calc
@@ -109,7 +115,7 @@ calc
   ... = (b • f - algebra_map K (End K V) a).ker : by rw [smul_sub, smul_inv_smul₀ hb]
 
 lemma eigenspace_aeval_polynomial_degree_1
-  (f : End K V) (q : polynomial K) (hq : degree q = 1) :
+  (f : End K V) (q : K[X]) (hq : degree q = 1) :
   eigenspace f (- q.coeff 0 / q.leading_coeff) = (aeval f q).ker :=
 calc
   eigenspace f (- q.coeff 0 / q.leading_coeff)
@@ -121,8 +127,8 @@ calc
      : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
 
 lemma ker_aeval_ring_hom'_unit_polynomial
-  (f : End K V) (c : (polynomial K)ˣ) :
-  (aeval f (c : polynomial K)).ker = ⊥ :=
+  (f : End K V) (c : (K[X])ˣ) :
+  (aeval f (c : K[X])).ker = ⊥ :=
 begin
   rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
   simp only [aeval_def, eval₂_C],
@@ -131,7 +137,7 @@ begin
 end
 
 theorem aeval_apply_of_has_eigenvector {f : End K V}
-  {p : polynomial K} {μ : K} {x : V} (h : f.has_eigenvector μ x) :
+  {p : K[X]} {μ : K} {x : V} (h : f.has_eigenvector μ x) :
   aeval f p x = (p.eval μ) • x :=
 begin
   apply p.induction_on,
@@ -200,12 +206,8 @@ end minpoly
 -- This is Lemma 5.21 of [axler2015], although we are no longer following that proof.
 lemma exists_eigenvalue [is_alg_closed K] [finite_dimensional K V] [nontrivial V] (f : End K V) :
   ∃ (c : K), f.has_eigenvalue c :=
-begin
-  obtain ⟨c, nu⟩ := spectrum.nonempty_of_is_alg_closed_of_finite_dimensional K f,
-  use c,
-  rw [spectrum.mem_iff, is_unit.sub_iff, linear_map.is_unit_iff_ker_eq_bot] at nu,
-  exact has_eigenvalue_of_has_eigenvector (submodule.exists_mem_ne_zero_of_ne_bot nu).some_spec,
-end
+by { simp_rw has_eigenvalue_iff_mem_spectrum,
+     exact spectrum.nonempty_of_is_alg_closed_of_finite_dimensional K f }
 
 noncomputable instance [is_alg_closed K] [finite_dimensional K V] [nontrivial V] (f : End K V) :
   inhabited f.eigenvalues :=
@@ -464,7 +466,7 @@ begin
   { rw [pow_zero, pow_zero, linear_map.one_eq_id],
     apply (submodule.ker_subtype _).symm },
   { erw [pow_succ', pow_succ', linear_map.ker_comp, linear_map.ker_comp, ih,
-      ← linear_map.ker_comp, ← linear_map.ker_comp, linear_map.comp_assoc] },
+      ← linear_map.ker_comp, linear_map.comp_assoc] },
 end
 
 /-- If `p` is an invariant submodule of an endomorphism `f`, then the `μ`-eigenspace of the
@@ -531,9 +533,9 @@ calc submodule.map f (f.generalized_eigenrange μ n)
 lemma supr_generalized_eigenspace_eq_top [is_alg_closed K] [finite_dimensional K V] (f : End K V) :
   (⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k) = ⊤ :=
 begin
-  tactic.unfreeze_local_instances,
   -- We prove the claim by strong induction on the dimension of the vector space.
-  induction h_dim : finrank K V using nat.strong_induction_on with n ih generalizing V,
+  unfreezingI { induction h_dim : finrank K V using nat.strong_induction_on
+  with n ih generalizing V },
   cases n,
   -- If the vector space is 0-dimensional, the result is trivial.
   { rw ←top_le_iff,
@@ -578,8 +580,7 @@ begin
     -- It follows that `ER` is contained in the span of all generalized eigenvectors.
     have hER : ER ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
     { rw ← ih_ER',
-      apply supr_le_supr _,
-      exact λ μ, supr_le_supr (λ k, hff' μ k), },
+      exact supr₂_mono hff' },
     -- `ES` is contained in this span by definition.
     have hES : ES ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
       from le_trans

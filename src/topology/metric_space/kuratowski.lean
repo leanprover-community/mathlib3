@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.lp_space
-import topology.compacts
+import topology.sets.compacts
 
 /-!
 # The Kuratowski embedding
@@ -17,8 +17,6 @@ noncomputable theory
 open set metric topological_space
 open_locale ennreal
 local notation `ℓ_infty_ℝ`:= lp (λ n : ℕ, ℝ) ∞
-
-local attribute [instance] fact_one_le_top_ennreal
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -114,5 +112,6 @@ classical.some_spec (exists_isometric_embedding α)
 def nonempty_compacts.Kuratowski_embedding (α : Type u) [metric_space α] [compact_space α]
   [nonempty α] :
   nonempty_compacts ℓ_infty_ℝ :=
-⟨range (Kuratowski_embedding α), range_nonempty _,
-  is_compact_range (Kuratowski_embedding.isometry α).continuous⟩
+{ carrier := range (Kuratowski_embedding α),
+  compact' := is_compact_range (Kuratowski_embedding.isometry α).continuous,
+  nonempty' := range_nonempty _ }

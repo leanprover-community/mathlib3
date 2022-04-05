@@ -6,6 +6,7 @@ Authors: Robert Y. Lewis, Chris Hughes
 import algebra.associated
 import algebra.big_operators.basic
 import ring_theory.valuation.basic
+import data.nat.factorization
 
 /-!
 # Multiplicity of a divisor
@@ -236,6 +237,8 @@ begin
           (lt_pow_self ha_gt_one b))),
     λ h, by cases h; simp *⟩
 end
+
+alias dvd_iff_multiplicity_pos ↔ _ has_dvd.dvd.multiplicity_pos
 
 end comm_monoid
 
@@ -484,5 +487,9 @@ begin
   rw [coprime.gcd_eq_one hab, nat.dvd_one, pow_one] at this,
   exact hp this
 end
+
+lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
+  multiplicity p n = n.factorization p :=
+multiplicity.eq_coe_iff.mpr ⟨pow_factorization_dvd n p, pow_succ_factorization_not_dvd hn pp⟩
 
 end nat

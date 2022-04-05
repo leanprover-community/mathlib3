@@ -5,8 +5,10 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.big_operators.basic
+import algebra.module.basic
 import data.nat.interval
 import tactic.linarith
+import tactic.abel
 
 /-!
 # Results about big operators over intervals
@@ -20,25 +22,30 @@ open_locale big_operators nat
 
 namespace finset
 
+section generic
+
 variables {α : Type u} {β : Type v} {γ : Type w} {s₂ s₁ s : finset α} {a : α}
   {g f : α → β}
 
-lemma sum_Ico_add [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
-  [locally_finite_order α] [add_comm_monoid β] (f : α → β) (a b c : α) :
-  (∑ x in Ico a b, f (c + x)) = (∑ x in Ico (a + c) (b + c), f x) :=
+variables [comm_monoid β]
+
+@[to_additive]
+lemma prod_Ico_add' [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
+  [locally_finite_order α] (f : α → β) (a b c : α) :
+  (∏ x in Ico a b, f (x + c)) = (∏ x in Ico (a + c) (b + c), f x) :=
 begin
   classical,
-  rw [←image_add_right_Ico, sum_image (λ x hx y hy h, add_right_cancel h)],
-  simp_rw add_comm,
+  rw [←image_add_right_Ico, prod_image (λ x hx y hy h, add_right_cancel h)],
 end
 
 @[to_additive]
 lemma prod_Ico_add [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α]
-  [locally_finite_order α] [comm_monoid β] (f : α → β) (a b c : α) :
+  [locally_finite_order α] (f : α → β) (a b c : α) :
   (∏ x in Ico a b, f (c + x)) = (∏ x in Ico (a + c) (b + c), f x) :=
-@sum_Ico_add _ (additive β) _ _ _ _ f a b c
-
-variables [comm_monoid β]
+begin
+  convert prod_Ico_add' f a b c,
+  simp_rw add_comm,
+end
 
 lemma sum_Ico_succ_top {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a ≤ b) (f : ℕ → δ) : (∑ k in Ico a (b + 1), f k) = (∑ k in Ico a b, f k) + f b :=
@@ -163,5 +170,74 @@ lemma sum_range_id (n : ℕ) : (∑ i in range n, i) = (n * (n - 1)) / 2 :=
 by rw [← sum_range_id_mul_two n, nat.mul_div_cancel]; exact dec_trivial
 
 end gauss_sum
+
+end generic
+
+section nat
+
+variable {β : Type*}
+variables (f g : ℕ → β) {m n : ℕ}
+
+section group
+
+variable [comm_group β]
+
+@[to_additive]
+lemma prod_range_succ_div_prod : (∏ i in range (n+1), f i) / ∏ i in range n, f i = f n :=
+div_eq_iff_eq_mul'.mpr $ prod_range_succ f n
+
+@[to_additive]
+lemma prod_range_succ_div_top : (∏ i in range (n+1), f i) / f n = ∏ i in range n, f i :=
+div_eq_iff_eq_mul.mpr $ prod_range_succ f n
+
+@[to_additive]
+lemma prod_Ico_div_bot (hmn : m < n) : (∏ i in Ico m n, f i) / f m = ∏ i in Ico (m+1) n, f i :=
+div_eq_iff_eq_mul'.mpr $ prod_eq_prod_Ico_succ_bot hmn _
+
+@[to_additive]
+lemma prod_Ico_succ_div_top (hmn : m ≤ n) : (∏ i in Ico m (n+1), f i) / f n = ∏ i in Ico m n, f i :=
+div_eq_iff_eq_mul.mpr $ prod_Ico_succ_top hmn _
+
+end group
+
+end nat
+
+section module
+
+variables {R M : Type*} [ring R] [add_comm_group M] [module R M] (f : ℕ → R) (g : ℕ → M) {m n : ℕ}
+open finset
+-- The partial sum of `g`, starting from zero
+local notation `G` n:80 := ∑ i in range n, g i
+
+/-- **Summation by parts**, also known as **Abel's lemma** or an **Abel transformation** -/
+theorem sum_Ico_by_parts (hmn : m < n) :
+  ∑ i in Ico m n, f i • g i =
+  f (n-1) • G n - f m • G m - ∑ i in Ico m (n-1), (f (i+1) - f i) • G (i+1) :=
+begin
+  have h₁ : ∑ i in Ico (m+1) n, (f i • G i) = ∑ i in Ico m (n-1), (f (i+1) • G (i+1)),
+  { conv in n { rw ←nat.sub_add_cancel (nat.one_le_of_lt hmn) },
+    rw ←sum_Ico_add' },
+  have h₂ : ∑ i in Ico (m+1) n, (f i • G (i+1))
+          = ∑ i in Ico m (n-1), (f i • G (i+1)) + f (n-1) • G n - f m • G (m+1) :=
+  by rw [←sum_Ico_sub_bot _ hmn, ←sum_Ico_succ_sub_top _ (nat.le_pred_of_lt hmn),
+         nat.sub_add_cancel (pos_of_gt hmn), sub_add_cancel],
+  rw sum_eq_sum_Ico_succ_bot hmn,
+  conv { for (f _ • g _) [2] { rw ← sum_range_succ_sub_sum g } },
+  simp_rw [smul_sub, sum_sub_distrib, h₂, h₁],
+  conv_lhs { congr, skip, rw [←add_sub, add_comm, ←add_sub, ←sum_sub_distrib] },
+  have : ∀ i, f i • G (i+1) - f (i+1) • G (i+1) = -((f (i+1) - f i) • G (i+1)),
+  { intro i,
+    rw sub_smul,
+    abel },
+  simp_rw [this, sum_neg_distrib, sum_range_succ, smul_add],
+  abel,
+end
+
+/-- **Summation by parts** for ranges -/
+lemma sum_range_by_parts (hn : 0 < n) :
+  ∑ i in range n, (f i • g i) = f (n-1) • G n - ∑ i in range (n-1), (f (i+1) - f i) • G (i+1) :=
+by rw [range_eq_Ico, sum_Ico_by_parts f g hn, sum_range_zero, smul_zero, sub_zero, range_eq_Ico]
+
+end module
 
 end finset

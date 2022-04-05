@@ -8,12 +8,12 @@ import data.finset.option
 import data.finset.prod
 import data.multiset.lattice
 import order.complete_lattice
-
+import order.lexicographic
 /-!
 # Lattice operations on finsets
 -/
 
-variables {α β γ : Type*}
+variables {α β γ ι : Type*}
 
 namespace finset
 open multiset order_dual
@@ -85,6 +85,11 @@ begin
   { exact sup_empty },
   { exact sup_const hs _ }
 end
+
+lemma sup_ite (p : β → Prop) [decidable_pred p] :
+  s.sup (λ i, ite (p i) (f i) (g i)) =
+    (s.filter p).sup f ⊔ (s.filter (λ i, ¬ p i)).sup g :=
+fold_ite _
 
 lemma sup_le {a : α} : (∀b ∈ s, f b ≤ a) → s.sup f ≤ a :=
 sup_le_iff.2
@@ -185,7 +190,7 @@ theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
 theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
 ⟨_, s.subset_range_sup_succ⟩
 
-lemma sup_induction {p : α → Prop} (hb : p ⊥) (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊔ a₂))
+lemma sup_induction {p : α → Prop} (hb : p ⊥) (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊔ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.sup f) :=
 begin
   induction s using finset.cons_induction with c s hc ih,
@@ -236,14 +241,6 @@ end
 
 end sup
 
-lemma disjoint_sup_right [distrib_lattice α] [order_bot α] {a : α} {s : finset β} {f : β → α} :
-  disjoint a (s.sup f) ↔ ∀ i ∈ s, disjoint a (f i) :=
-⟨λ h i hi, h.mono_right (le_sup hi), sup_induction disjoint_bot_right (λ b c, disjoint.sup_right)⟩
-
-lemma disjoint_sup_left [distrib_lattice α] [order_bot α] {a : α} {s : finset β} {f : β → α} :
-  disjoint (s.sup f) a ↔ ∀ i ∈ s, disjoint (f i) a :=
-by { simp_rw @disjoint.comm _ _ _ _ a, exact disjoint_sup_right }
-
 lemma sup_eq_supr [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = (⨆a∈s, f a) :=
 le_antisymm
   (finset.sup_le $ assume a ha, le_supr_of_le a $ le_supr _ ha)
@@ -251,6 +248,12 @@ le_antisymm
 
 lemma sup_id_eq_Sup [complete_lattice α] (s : finset α) : s.sup id = Sup s :=
 by simp [Sup_eq_supr, sup_eq_supr]
+
+lemma sup_id_set_eq_sUnion (s : finset (set α)) : s.sup id = ⋃₀(↑s) :=
+sup_id_eq_Sup _
+
+@[simp] lemma sup_set_eq_bUnion (s : finset α) (f : α → set β) : s.sup f = ⋃ x ∈ s, f x :=
+sup_eq_supr _ _
 
 lemma sup_eq_Sup_image [complete_lattice β] (s : finset α) (f : α → β) : s.sup f = Sup (f '' s) :=
 begin
@@ -362,7 +365,7 @@ lemma inf_sdiff_left {α β : Type*} [boolean_algebra α] {s : finset β} (hs : 
   (a : α) :
   s.inf (λ b, a \ f b) = a \ s.sup f :=
 begin
-  refine hs.cons_induction (λ b, _) (λ b t _ h, _),
+  induction hs using finset.nonempty.cons_induction with b b t _ _ h,
   { rw [sup_singleton, inf_singleton] },
   { rw [sup_cons, inf_cons, h, sdiff_sup] }
 end
@@ -371,7 +374,7 @@ lemma inf_sdiff_right {α β : Type*} [boolean_algebra α] {s : finset β} (hs :
   (a : α) :
   s.inf (λ b, f b \ a) = s.inf f \ a :=
 begin
-  refine hs.cons_induction (λ b, _) (λ b t _ h, _),
+  induction hs using finset.nonempty.cons_induction with b b t _ _ h,
   { rw [inf_singleton, inf_singleton] },
   { rw [inf_cons, inf_cons, h, inf_sdiff] }
 end
@@ -392,7 +395,7 @@ lemma inf_coe {P : α → Prop}
   (@inf _ _ (subtype.semilattice_inf Pinf) (subtype.order_top Ptop) t f : α) = t.inf (λ x, f x) :=
 @sup_coe (order_dual α) _ _ _ _ Ptop Pinf t f
 
-lemma inf_induction {p : α → Prop} (ht : p ⊤) (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊓ a₂))
+lemma inf_induction {p : α → Prop} (ht : p ⊤) (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊓ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf f) :=
 @sup_induction (order_dual α) _ _ _ _ _ _ ht hp hs
 
@@ -409,11 +412,57 @@ lemma inf_eq_top_iff (f : β → α)
 
 end inf
 
+section distrib_lattice
+variables [distrib_lattice α]
+
+section order_bot
+variables [order_bot α] {s : finset β} {f : β → α} {a : α}
+
+lemma sup_inf_distrib_left (s : finset ι) (f : ι → α) (a : α) :
+  a ⊓ s.sup f = s.sup (λ i, a ⊓ f i) :=
+begin
+  induction s using finset.cons_induction with i s hi h,
+  { simp_rw [finset.sup_empty, inf_bot_eq] },
+  { rw [sup_cons, sup_cons, inf_sup_left, h] }
+end
+
+lemma sup_inf_distrib_right (s : finset ι) (f : ι → α) (a : α) :
+  s.sup f ⊓ a = s.sup (λ i, f i ⊓ a) :=
+by { rw [_root_.inf_comm, s.sup_inf_distrib_left], simp_rw _root_.inf_comm }
+
+lemma disjoint_sup_right : disjoint a (s.sup f) ↔ ∀ i ∈ s, disjoint a (f i) :=
+by simp only [disjoint_iff, sup_inf_distrib_left, sup_eq_bot_iff]
+
+lemma disjoint_sup_left : disjoint (s.sup f) a ↔ ∀ i ∈ s, disjoint (f i) a :=
+by simp only [disjoint_iff, sup_inf_distrib_right, sup_eq_bot_iff]
+
+end order_bot
+
+section order_top
+variables [order_top α]
+
+lemma inf_sup_distrib_left (s : finset ι) (f : ι → α) (a : α) :
+  a ⊔ s.inf f = s.inf (λ i, a ⊔ f i) :=
+@sup_inf_distrib_left (order_dual α) _ _ _ _ _ _
+
+lemma inf_sup_distrib_right (s : finset ι) (f : ι → α) (a : α) :
+  s.inf f ⊔ a = s.inf (λ i, f i ⊔ a) :=
+@sup_inf_distrib_right (order_dual α) _ _ _ _ _ _
+
+end order_top
+end distrib_lattice
+
 lemma inf_eq_infi [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = (⨅a∈s, f a) :=
 @sup_eq_supr _ (order_dual β) _ _ _
 
 lemma inf_id_eq_Inf [complete_lattice α] (s : finset α) : s.inf id = Inf s :=
 @sup_id_eq_Sup (order_dual α) _ _
+
+lemma inf_id_set_eq_sInter (s : finset (set α)) : s.inf id = ⋂₀(↑s) :=
+inf_id_eq_Inf _
+
+@[simp] lemma inf_set_eq_bInter (s : finset α) (f : α → set β) : s.inf f = ⋂ x ∈ s, f x :=
+inf_eq_infi _ _
 
 lemma inf_eq_Inf_image [complete_lattice β] (s : finset α) (f : α → β) : s.inf f = Inf (f '' s) :=
 @sup_eq_Sup_image _ (order_dual β) _ _ _
@@ -456,7 +505,7 @@ by { rw [←with_bot.coe_le_coe, coe_sup'], exact le_sup h, }
 @[simp] lemma sup'_const (a : α) : s.sup' H (λ b, a) = a :=
 begin
   apply le_antisymm,
-  { apply sup'_le, intros, apply le_refl, },
+  { apply sup'_le, intros, exact le_rfl, },
   { apply le_sup' (λ b, a) H.some_spec, }
 end
 
@@ -502,36 +551,33 @@ begin
     exact congr_arg coe (g_sup f₁ f₂), },
 end
 
-lemma sup'_induction {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊔ a₂))
+lemma sup'_induction {p : α → Prop} (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊔ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.sup' H f) :=
 begin
   show @with_bot.rec_bot_coe α (λ _, Prop) true p ↑(s.sup' H f),
   rw coe_sup',
   refine sup_induction trivial _ hs,
-  intros a₁ a₂ h₁ h₂,
-  cases a₁,
-  { rw [with_bot.none_eq_bot, bot_sup_eq], exact h₂, },
-  { cases a₂, exact h₁, exact hp a₁ a₂ h₁ h₂, },
+  rintro (_|a₁) h₁ a₂ h₂,
+  { rw [with_bot.none_eq_bot, bot_sup_eq], exact h₂ },
+  cases a₂,
+  exacts [h₁, hp a₁ h₁ a₂ h₂]
 end
 
 lemma exists_mem_eq_sup' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.sup' H f = f b :=
 begin
-  induction s using finset.cons_induction with c s hc ih,
-  { exact false.elim (not_nonempty_empty H), },
-  { rcases s.eq_empty_or_nonempty with rfl | hs,
-    { exact ⟨c, mem_singleton_self c, rfl⟩, },
-    { rcases ih hs with ⟨b, hb, h'⟩,
-      rw [sup'_cons hs, h'],
-      cases total_of (≤) (f b) (f c) with h h,
-      { exact ⟨c, mem_cons.2 (or.inl rfl), sup_eq_left.2 h⟩, },
-      { exact ⟨b, mem_cons.2 (or.inr hb), sup_eq_right.2 h⟩, }, }, },
+  refine H.cons_induction (λ c, _) (λ c s hc hs ih, _),
+  { exact ⟨c, mem_singleton_self c, rfl⟩, },
+  { rcases ih with ⟨b, hb, h'⟩,
+    rw [sup'_cons hs, h'],
+    cases total_of (≤) (f b) (f c) with h h,
+    { exact ⟨c, mem_cons.2 (or.inl rfl), sup_eq_left.2 h⟩, },
+    { exact ⟨b, mem_cons.2 (or.inr hb), sup_eq_right.2 h⟩, }, },
 end
 
 lemma sup'_mem
   (s : set α) (w : ∀ x y ∈ s, x ⊔ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
-  t.sup' H p ∈ s :=
-sup'_induction H p w h
+  t.sup' H p ∈ s := sup'_induction H p w h
 
 @[congr] lemma sup'_congr {t : finset β} {f g : β → α} (h₁ : s = t) (h₂ : ∀ x ∈ s, f x = g x) :
   s.sup' H f = t.sup' (h₁ ▸ H) g :=
@@ -603,7 +649,7 @@ lemma comp_inf'_eq_inf'_comp [semilattice_inf γ] {s : finset β} (H : s.nonempt
   g (s.inf' H f) = s.inf' H (g ∘ f) :=
 @comp_sup'_eq_sup'_comp (order_dual α) _ (order_dual γ) _ _ _ H f g g_inf
 
-lemma inf'_induction {p : α → Prop} (hp : ∀ (a₁ a₂ : α), p a₁ → p a₂ → p (a₁ ⊓ a₂))
+lemma inf'_induction {p : α → Prop} (hp : ∀ a₁, p a₁ → ∀ a₂, p a₂ → p (a₁ ⊓ a₂))
   (hs : ∀ b ∈ s, p (f b)) : p (s.inf' H f) :=
 @sup'_induction (order_dual α) _ _ _ H f _ hp hs
 
@@ -612,8 +658,7 @@ lemma exists_mem_eq_inf' [is_total α (≤)] : ∃ b, b ∈ s ∧ s.inf' H f = f
 
 lemma inf'_mem (s : set α) (w : ∀ x y ∈ s, x ⊓ y ∈ s)
   {ι : Type*} (t : finset ι) (H : t.nonempty) (p : ι → α) (h : ∀ i ∈ t, p i ∈ s) :
-  t.inf' H p ∈ s :=
-inf'_induction H p w h
+  t.inf' H p ∈ s := inf'_induction H p w h
 
 @[congr] lemma inf'_congr {t : finset β} {f g : β → α} (h₁ : s = t) (h₂ : ∀ x ∈ s, f x = g x) :
   s.inf' H f = t.inf' (h₁ ▸ H) g :=
@@ -628,7 +673,7 @@ lemma sup'_eq_sup {s : finset β} (H : s.nonempty) (f : β → α) : s.sup' H f 
 le_antisymm (sup'_le H f (λ b, le_sup)) (sup_le (λ b, le_sup' f))
 
 lemma sup_closed_of_sup_closed {s : set α} (t : finset α) (htne : t.nonempty) (h_subset : ↑t ⊆ s)
-  (h : ∀⦃a b⦄, a ∈ s → b ∈ s → a ⊔ b ∈ s) : t.sup id ∈ s :=
+  (h : ∀ a b ∈ s, a ⊔ b ∈ s) : t.sup id ∈ s :=
 sup'_eq_sup htne id ▸ sup'_induction _ _ h h_subset
 
 lemma exists_mem_eq_sup [is_total α (≤)] (s : finset β) (h : s.nonempty) (f : β → α) :
@@ -648,7 +693,7 @@ lemma inf'_eq_inf {s : finset β} (H : s.nonempty) (f : β → α) : s.inf' H f 
 @sup'_eq_sup (order_dual α) _ _ _ _ H f
 
 lemma inf_closed_of_inf_closed {s : set α} (t : finset α) (htne : t.nonempty) (h_subset : ↑t ⊆ s)
-  (h : ∀⦃a b⦄, a ∈ s → b ∈ s → a ⊓ b ∈ s) : t.inf id ∈ s :=
+  (h : ∀ a b ∈ s, a ⊓ b ∈ s) : t.inf id ∈ s :=
 @sup_closed_of_sup_closed (order_dual α) _ _ _ t htne h_subset h
 
 lemma exists_mem_eq_inf [is_total α (≤)] (s : finset β) (h : s.nonempty) (f : β → α) :
@@ -962,6 +1007,48 @@ lemma induction_on_min [decidable_eq α] {p : finset α → Prop} (s : finset α
 
 end max_min
 
+section max_min_induction_value
+
+variables [linear_order α] [linear_order β]
+
+/-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
+ordered type : a predicate is true on all `s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` such that for elements of `s` denoted by `x` we have
+  `f x ≤ f a`, `p s` implies `p (insert a s)`. -/
+@[elab_as_eliminator]
+lemma induction_on_max_value [decidable_eq ι] (f : ι → α)
+  {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
+  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f x ≤ f a) → p s → p (insert a s)) : p s :=
+begin
+  induction s using finset.strong_induction_on with s ihs,
+  rcases (s.image f).eq_empty_or_nonempty with hne|hne,
+  { simp only [image_eq_empty] at hne,
+    simp only [hne, h0] },
+  { have H : (s.image f).max' hne ∈ (s.image f), from max'_mem (s.image f) hne,
+    simp only [mem_image, exists_prop] at H,
+    rcases H with ⟨a, has, hfa⟩,
+    rw ← insert_erase has,
+    refine step _ _ (not_mem_erase a s) (λ x hx, _) (ihs _ $ erase_ssubset has),
+    rw hfa,
+    exact le_max' _ _ (mem_image_of_mem _ $ mem_of_mem_erase hx) }
+end
+
+/-- Induction principle for `finset`s in any type from which a given function `f` maps to a linearly
+ordered type : a predicate is true on all `s : finset α` provided that:
+
+* it is true on the empty `finset`,
+* for every `s : finset α` and an element `a` such that for elements of `s` denoted by `x` we have
+  `f a ≤ f x`, `p s` implies `p (insert a s)`. -/
+@[elab_as_eliminator]
+lemma induction_on_min_value [decidable_eq ι] (f : ι → α)
+  {p : finset ι → Prop} (s : finset ι) (h0 : p ∅)
+  (step : ∀ a s, a ∉ s → (∀ x ∈ s, f a ≤ f x) → p s → p (insert a s)) : p s :=
+@induction_on_max_value (order_dual α) ι _ _ _ _ s h0 step
+
+end max_min_induction_value
+
 section exists_max_min
 
 variables [linear_order α]
@@ -1047,7 +1134,7 @@ by { ext a, rw [mem_sup, mem_image], simp only [mem_singleton, eq_comm] }
 end finset
 
 section lattice
-variables {ι : Type*} {ι' : Sort*} [complete_lattice α]
+variables {ι' : Sort*} [complete_lattice α]
 
 /-- Supremum of `s i`, `i : ι`, is equal to the supremum over `t : finset ι` of suprema
 `⨆ i ∈ t, s i`. This version assumes `ι` is a `Type*`. See `supr_eq_supr_finset'` for a version
@@ -1058,7 +1145,7 @@ begin
   classical,
   exact le_antisymm
     (supr_le $ assume b, le_supr_of_le {b} $ le_supr_of_le b $ le_supr_of_le
-      (by simp) $ le_refl _)
+      (by simp) $ le_rfl)
     (supr_le $ assume t, supr_le $ assume b, supr_le $ assume hb, le_supr _ _)
 end
 
@@ -1086,7 +1173,7 @@ lemma infi_eq_infi_finset' (s : ι' → α) :
 end lattice
 
 namespace set
-variables {ι : Type*} {ι' : Sort*}
+variables {ι' : Sort*}
 
 /-- Union of an indexed family of sets `s : ι → set α` is equal to the union of the unions
 of finite subfamilies. This version assumes `ι : Type*`. See also `Union_eq_Union_finset'` for

@@ -464,6 +464,30 @@ lemma strict_anti.comp_strict_mono_on (hg : strict_anti g) (hf : strict_mono_on 
 
 end composition
 
+namespace list
+
+section fold
+
+theorem foldl_monotone [preorder α] {f : α → β → α} (H : ∀ b, monotone (λ a, f a b)) (l : list β) :
+  monotone (λ a, l.foldl f a) :=
+list.rec_on l (λ _ _, id) (λ i l hl _ _ h, hl (H _ h))
+
+theorem foldr_monotone [preorder β] {f : α → β → β} (H : ∀ a, monotone (f a)) (l : list α) :
+  monotone (λ b, l.foldr f b) :=
+λ _ _ h, list.rec_on l h (λ i l hl, H i hl)
+
+theorem foldl_strict_mono [preorder α] {f : α → β → α} (H : ∀ b, strict_mono (λ a, f a b))
+  (l : list β) : strict_mono (λ a, l.foldl f a) :=
+list.rec_on l (λ _ _, id) (λ i l hl _ _ h, hl (H _ h))
+
+theorem foldr_strict_mono [preorder β] {f : α → β → β} (H : ∀ a, strict_mono (f a)) (l : list α) :
+  strict_mono (λ b, l.foldr f b) :=
+λ _ _ h, list.rec_on l h (λ i l hl, H i hl)
+
+end fold
+
+end list
+
 /-! ### Monotonicity in linear orders  -/
 
 section linear_order
@@ -493,7 +517,7 @@ lt_of_not_ge $ λ h', h.not_le $ hf ha hb h'
 lemma strict_mono_on.le_iff_le (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   f a ≤ f b ↔ a ≤ b :=
 ⟨λ h, le_of_not_gt $ λ h', (hf hb ha h').not_le h,
- λ h, h.lt_or_eq_dec.elim (λ h', (hf ha hb h').le) (λ h', h' ▸ le_refl _)⟩
+ λ h, h.lt_or_eq_dec.elim (λ h', (hf ha hb h').le) (λ h', h' ▸ le_rfl)⟩
 
 lemma strict_anti_on.le_iff_le (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   f a ≤ f b ↔ b ≤ a :=

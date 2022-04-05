@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.deriv
 import measure_theory.constructions.borel_space
+import measure_theory.function.strongly_measurable
 import tactic.ring_exp
 
 /-!
@@ -119,8 +120,8 @@ begin
   have : s ∈ Ioc (r/2) r := ⟨s_gt, le_of_lt (s_lt.trans_le r'_mem.2)⟩,
   refine ⟨r' - s, by linarith, λ x' hx', ⟨s, this, _⟩⟩,
   have B : ball x' s ⊆ ball x r' := ball_subset (le_of_lt hx'),
-  assume y z hy hz,
-  exact hr' y z (B hy) (B hz)
+  assume y hy z hz,
+  exact hr' y (B hy) z (B hz)
 end
 
 lemma is_open_B {K : set (E →L[𝕜] F)} {r s ε : ℝ} : is_open (B f K r s ε) :=
@@ -130,9 +131,7 @@ lemma A_mono (L : E →L[𝕜] F) (r : ℝ) {ε δ : ℝ} (h : ε ≤ δ) :
   A f L r ε ⊆ A f L r δ :=
 begin
   rintros x ⟨r', r'r, hr'⟩,
-  refine ⟨r', r'r, λ y z hy hz, _⟩,
-  apply le_trans (hr' y z hy hz),
-  apply mul_le_mul_of_nonneg_right h,
+  refine ⟨r', r'r, λ y hy z hz, (hr' y hy z hz).trans (mul_le_mul_of_nonneg_right h _)⟩,
   linarith [mem_ball.1 hy, r'r.2, @dist_nonneg _ _ y x],
 end
 
@@ -141,8 +140,7 @@ lemma le_of_mem_A {r ε : ℝ} {L : E →L[𝕜] F} {x : E} (hx : x ∈ A f L r 
   ∥f z - f y - L (z-y)∥ ≤ ε * r :=
 begin
   rcases hx with ⟨r', r'mem, hr'⟩,
-  exact hr' _ _ (lt_of_le_of_lt (mem_closed_ball.1 hy) r'mem.1)
-    (lt_of_le_of_lt (mem_closed_ball.1 hz) r'mem.1)
+  exact hr' _ ((mem_closed_ball.1 hy).trans_lt r'mem.1) _ ((mem_closed_ball.1 hz).trans_lt r'mem.1)
 end
 
 lemma mem_A_of_differentiable {ε : ℝ} (hε : 0 < ε) {x : E} (hx : differentiable_at 𝕜 f x) :
@@ -152,8 +150,8 @@ begin
   simp only [has_fderiv_at, has_fderiv_at_filter, is_o_iff] at this,
   rcases eventually_nhds_iff_ball.1 (this (half_pos hε)) with ⟨R, R_pos, hR⟩,
   refine ⟨R, R_pos, λ r hr, _⟩,
-  have : r ∈ Ioc (r/2) r := ⟨half_lt_self hr.1, le_refl _⟩,
-  refine ⟨r, this, λ y z hy hz, _⟩,
+  have : r ∈ Ioc (r/2) r := ⟨half_lt_self hr.1, le_rfl⟩,
+  refine ⟨r, this, λ y hy z hz, _⟩,
   calc  ∥f z - f y - (fderiv 𝕜 f x) (z - y)∥
       = ∥(f z - f x - (fderiv 𝕜 f x) (z - x)) - (f y - f x - (fderiv 𝕜 f x) (y - x))∥ :
     by { congr' 1, simp only [continuous_linear_map.map_sub], abel }
@@ -281,18 +279,18 @@ begin
     refine ⟨e, λ e' he', _⟩,
     rw [dist_comm, dist_eq_norm],
     calc ∥L0 e - L0 e'∥
-          ≤ 12 * ∥c∥ * (1/2)^e : M _ _ _ _ _ _ (le_refl _) (le_refl _) (le_refl _) (le_refl _) he'
+          ≤ 12 * ∥c∥ * (1/2)^e : M _ _ _ _ _ _ le_rfl le_rfl le_rfl le_rfl he'
       ... < 12 * ∥c∥ * (ε / (12 * ∥c∥)) :
-        mul_lt_mul' (le_refl _) he (le_of_lt P) (mul_pos (by norm_num) cpos)
+        mul_lt_mul' le_rfl he (le_of_lt P) (mul_pos (by norm_num) cpos)
       ... = ε : by { field_simp [(by norm_num : (12 : ℝ) ≠ 0), ne_of_gt cpos], ring } },
   /- As it is Cauchy, the sequence `L0` converges, to a limit `f'` in `K`.-/
   obtain ⟨f', f'K, hf'⟩ : ∃ f' ∈ K, tendsto L0 at_top (𝓝 f') :=
-    cauchy_seq_tendsto_of_is_complete hK (λ e, (hn e (n e) (n e) (le_refl _) (le_refl _)).1) this,
+    cauchy_seq_tendsto_of_is_complete hK (λ e, (hn e (n e) (n e) le_rfl le_rfl).1) this,
   have Lf' : ∀ e p, n e ≤ p → ∥L e (n e) p - f'∥ ≤ 12 * ∥c∥ * (1/2)^e,
   { assume e p hp,
     apply le_of_tendsto (tendsto_const_nhds.sub hf').norm,
     rw eventually_at_top,
-    exact ⟨e, λ e' he', M _ _ _ _ _ _ (le_refl _) hp (le_refl _) (le_refl _) he'⟩ },
+    exact ⟨e, λ e' he', M _ _ _ _ _ _ le_rfl hp le_rfl le_rfl he'⟩ },
   /- Let us show that `f` has derivative `f'` at `x`. -/
   have : has_fderiv_at f f' x,
   { simp only [has_fderiv_at_iff_is_o_nhds_zero, is_o_iff],
@@ -330,7 +328,7 @@ begin
     -- `f` is well approximated by `L e (n e) k` at the relevant scale
     -- (in fact, we use `m = k - 1` instead of `k` because of the precise definition of `A`).
     have J1 : ∥f (x + y) - f x - L e (n e) m ((x + y) - x)∥ ≤ (1/2) ^ e * (1/2) ^ m,
-    { apply le_of_mem_A (hn e (n e) m (le_refl _) m_ge).2.2,
+    { apply le_of_mem_A (hn e (n e) m le_rfl m_ge).2.2,
       { simp only [mem_closed_ball, dist_self],
         exact div_nonneg (le_of_lt P) (zero_le_two) },
       { simpa only [dist_eq_norm, add_sub_cancel', mem_closed_ball, pow_succ', mul_one_div]
@@ -410,6 +408,16 @@ variable {𝕜}
   [measurable_space F] [borel_space F] (f : 𝕜 → F) : measurable (deriv f) :=
 by simpa only [fderiv_deriv] using measurable_fderiv_apply_const 𝕜 f 1
 
+lemma strongly_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  [second_countable_topology F] (f : 𝕜 → F) :
+  strongly_measurable (deriv f) :=
+by { borelize F, exact (measurable_deriv f).strongly_measurable }
+
 lemma ae_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜] [measurable_space F]
   [borel_space F] (f : 𝕜 → F) (μ : measure 𝕜) : ae_measurable (deriv f) μ :=
 (measurable_deriv f).ae_measurable
+
+lemma ae_strongly_measurable_deriv [measurable_space 𝕜] [opens_measurable_space 𝕜]
+  [second_countable_topology F] (f : 𝕜 → F) (μ : measure 𝕜) :
+  ae_strongly_measurable (deriv f) μ :=
+(strongly_measurable_deriv f).ae_strongly_measurable

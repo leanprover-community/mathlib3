@@ -299,7 +299,7 @@ begin
   refine le_of_forall_pos_le_add (λ ε ε0, op_norm_le_of_nhds_zero _ _),
   exact add_nonneg hC₀ ε0.le,
   rw [← map_add_left_nhds_zero x₀, eventually_map] at hlip,
-  filter_upwards [is_o_iff.1 (has_fderiv_at_iff_is_o_nhds_zero.1 hf) ε0, hlip], intros y hy hyC,
+  filter_upwards [is_o_iff.1 (has_fderiv_at_iff_is_o_nhds_zero.1 hf) ε0, hlip] with y hy hyC,
   rw add_sub_cancel' at hyC,
   calc ∥f' y∥ ≤ ∥f (x₀ + y) - f x₀∥ + ∥f (x₀ + y) - f x₀ - f' y∥ : norm_le_insert _ _
           ... ≤ C * ∥y∥ + ε * ∥y∥                                : add_le_add hyC hy
@@ -312,8 +312,7 @@ lemma has_fderiv_at.le_of_lip {f : E → F} {f' : E →L[𝕜] F} {x₀ : E} (hf
   {s : set E} (hs : s ∈ 𝓝 x₀) {C : ℝ≥0} (hlip : lipschitz_on_with C f s) : ∥f'∥ ≤ C :=
 begin
   refine hf.le_of_lip' C.coe_nonneg _,
-  filter_upwards [hs],
-  exact λ x hx, hlip.norm_sub_le hx (mem_of_mem_nhds hs)
+  filter_upwards [hs] with x hx using hlip.norm_sub_le hx (mem_of_mem_nhds hs),
 end
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
@@ -379,7 +378,7 @@ neighborhood of `x`. See also `has_strict_fderiv_at.exists_lipschitz_on_with_of_
 more precise statement. -/
 lemma has_strict_fderiv_at.exists_lipschitz_on_with (hf : has_strict_fderiv_at f f' x) :
   ∃ K (s ∈ 𝓝 x), lipschitz_on_with K f s :=
-(no_top _).imp hf.exists_lipschitz_on_with_of_nnnorm_lt
+(exists_gt _).imp hf.exists_lipschitz_on_with_of_nnnorm_lt
 
 /-- Directional derivative agrees with `has_fderiv`. -/
 lemma has_fderiv_at.lim (hf : has_fderiv_at f f' x) (v : E) {α : Type*} {c : α → 𝕜}
@@ -461,6 +460,9 @@ lemma differentiable_on.eventually_differentiable_at (h : differentiable_on 𝕜
 
 lemma has_fderiv_at.fderiv (h : has_fderiv_at f f' x) : fderiv 𝕜 f x = f' :=
 by { ext, rw h.unique h.differentiable_at.has_fderiv_at }
+
+lemma fderiv_eq {f' : E → E →L[𝕜] F} (h : ∀ x, has_fderiv_at f (f' x) x) : fderiv 𝕜 f = f' :=
+funext $ λ x, (h x).fderiv
 
 /-- Converse to the mean value inequality: if `f` is differentiable at `x₀` and `C`-lipschitz
 on a neighborhood of `x₀` then it its derivative at `x₀` has norm bounded by `C`.
@@ -626,7 +628,7 @@ has_fderiv_at_filter.tendsto_nhds inf_le_left h
 
 theorem has_fderiv_at.continuous_at (h : has_fderiv_at f f' x) :
   continuous_at f x :=
-has_fderiv_at_filter.tendsto_nhds (le_refl _) h
+has_fderiv_at_filter.tendsto_nhds le_rfl h
 
 lemma differentiable_within_at.continuous_within_at (h : differentiable_within_at 𝕜 f s x) :
   continuous_within_at f s x :=
@@ -685,6 +687,32 @@ lemma has_fderiv_at_filter.congr_of_eventually_eq (h : has_fderiv_at_filter f f'
   (hL : f₁ =ᶠ[L] f) (hx : f₁ x = f x) : has_fderiv_at_filter f₁ f' x L :=
 (hL.has_fderiv_at_filter_iff hx $ λ _, rfl).2 h
 
+theorem filter.eventually_eq.has_fderiv_at_iff (h : f₀ =ᶠ[𝓝 x] f₁) :
+  has_fderiv_at f₀ f' x ↔ has_fderiv_at f₁ f' x :=
+h.has_fderiv_at_filter_iff h.eq_of_nhds (λ _, rfl)
+
+theorem filter.eventually_eq.differentiable_at_iff (h : f₀ =ᶠ[𝓝 x] f₁) :
+  differentiable_at 𝕜 f₀ x ↔ differentiable_at 𝕜 f₁ x :=
+exists_congr $ λ f', h.has_fderiv_at_iff
+
+theorem filter.eventually_eq.has_fderiv_within_at_iff (h : f₀ =ᶠ[𝓝[s] x] f₁) (hx : f₀ x = f₁ x) :
+  has_fderiv_within_at f₀ f' s x ↔ has_fderiv_within_at f₁ f' s x :=
+h.has_fderiv_at_filter_iff hx (λ _, rfl)
+
+theorem filter.eventually_eq.has_fderiv_within_at_iff_of_mem (h : f₀ =ᶠ[𝓝[s] x] f₁) (hx : x ∈ s) :
+  has_fderiv_within_at f₀ f' s x ↔ has_fderiv_within_at f₁ f' s x :=
+h.has_fderiv_within_at_iff (h.eq_of_nhds_within hx)
+
+theorem filter.eventually_eq.differentiable_within_at_iff (h : f₀ =ᶠ[𝓝[s] x] f₁)
+  (hx : f₀ x = f₁ x) :
+  differentiable_within_at 𝕜 f₀ s x ↔ differentiable_within_at 𝕜 f₁ s x :=
+exists_congr $ λ f', h.has_fderiv_within_at_iff hx
+
+theorem filter.eventually_eq.differentiable_within_at_iff_of_mem (h : f₀ =ᶠ[𝓝[s] x] f₁)
+  (hx : x ∈ s) :
+  differentiable_within_at 𝕜 f₀ s x ↔ differentiable_within_at 𝕜 f₁ s x :=
+h.differentiable_within_at_iff (h.eq_of_nhds_within hx)
+
 lemma has_fderiv_within_at.congr_mono (h : has_fderiv_within_at f f' s x) (ht : ∀x ∈ t, f₁ x = f x)
   (hx : f₁ x = f x) (h₁ : t ⊆ s) : has_fderiv_within_at f₁ f' t x :=
 has_fderiv_at_filter.congr_of_eventually_eq (h.mono h₁) (filter.mem_inf_of_right ht) hx
@@ -733,8 +761,7 @@ lemma differentiable_on_congr (h' : ∀x ∈ s, f₁ x = f x) :
 
 lemma differentiable_at.congr_of_eventually_eq (h : differentiable_at 𝕜 f x) (hL : f₁ =ᶠ[𝓝 x] f) :
   differentiable_at 𝕜 f₁ x :=
-has_fderiv_at.differentiable_at
-  (has_fderiv_at_filter.congr_of_eventually_eq h.has_fderiv_at hL (mem_of_mem_nhds hL : _))
+hL.differentiable_at_iff.2 h
 
 lemma differentiable_within_at.fderiv_within_congr_mono (h : differentiable_within_at 𝕜 f s x)
   (hs : ∀x ∈ t, f₁ x = f x) (hx : f₁ x = f x) (hxt : unique_diff_within_at 𝕜 t x) (h₁ : t ⊆ s) :
@@ -875,15 +902,25 @@ end
 lemma differentiable_on_const (c : F) : differentiable_on 𝕜 (λx, c) s :=
 (differentiable_const _).differentiable_on
 
-lemma has_fderiv_at_of_subsingleton {R X Y : Type*} [nondiscrete_normed_field R]
-  [normed_group X] [normed_group Y] [normed_space R X] [normed_space R Y] [h : subsingleton X]
-  (f : X → Y) (x : X) :
-  has_fderiv_at f (0 : X →L[R] Y) x :=
+lemma has_fderiv_within_at_singleton (f : E → F) (x : E) :
+  has_fderiv_within_at f (0 : E →L[𝕜] F) {x} x :=
+by simp only [has_fderiv_within_at, nhds_within_singleton, has_fderiv_at_filter, is_o_pure,
+  continuous_linear_map.zero_apply, sub_self]
+
+lemma has_fderiv_at_of_subsingleton [h : subsingleton E] (f : E → F) (x : E) :
+  has_fderiv_at f (0 : E →L[𝕜] F) x :=
 begin
-  rw subsingleton_iff at h,
-  have key : function.const X (f 0) = f := by ext x'; rw h x' 0,
-  exact key ▸ (has_fderiv_at_const (f 0) _),
+  rw [← has_fderiv_within_at_univ, subsingleton_univ.eq_singleton_of_mem (mem_univ x)],
+  exact has_fderiv_within_at_singleton f x
 end
+
+lemma differentiable_on_empty : differentiable_on 𝕜 f ∅ := λ x, false.elim
+
+lemma differentiable_on_singleton : differentiable_on 𝕜 f {x} :=
+forall_eq.2 (has_fderiv_within_at_singleton f x).differentiable_within_at
+
+lemma set.subsingleton.differentiable_on (hs : s.subsingleton) : differentiable_on 𝕜 f s :=
+hs.induction_on differentiable_on_empty (λ x, differentiable_on_singleton)
 
 end const
 
@@ -999,7 +1036,7 @@ example {g : F → G} {g' : F →L[𝕜] G}
 begin
   unfold has_fderiv_at_filter at hg,
   have : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', f x' - f x) L,
-    from hg.comp_tendsto (le_refl _),
+    from hg.comp_tendsto le_rfl,
   have eq₁ : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', x' - x) L,
     from this.trans_is_O hf.is_O_sub,
   have eq₂ : is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L,
@@ -1069,7 +1106,7 @@ lemma fderiv.comp_fderiv_within {g : F → G}
 (hg.has_fderiv_at.comp_has_fderiv_within_at x hf.has_fderiv_within_at).fderiv_within hxs
 
 lemma differentiable_on.comp {g : F → G} {t : set F}
-  (hg : differentiable_on 𝕜 g t) (hf : differentiable_on 𝕜 f s) (st : s ⊆ f ⁻¹' t) :
+  (hg : differentiable_on 𝕜 g t) (hf : differentiable_on 𝕜 f s) (st : maps_to f s t) :
   differentiable_on 𝕜 (g ∘ f) s :=
 λx hx, differentiable_within_at.comp x (hg (f x) (st hx)) (hf x hx) st
 
@@ -1080,7 +1117,7 @@ lemma differentiable.comp {g : F → G} (hg : differentiable 𝕜 g) (hf : diffe
 lemma differentiable.comp_differentiable_on {g : F → G} (hg : differentiable 𝕜 g)
   (hf : differentiable_on 𝕜 f s) :
   differentiable_on 𝕜 (g ∘ f) s :=
-(differentiable_on_univ.2 hg).comp hf (by simp)
+hg.differentiable_on.comp hf (maps_to_univ _ _)
 
 /-- The chain rule for derivatives in the sense of strict differentiability. -/
 protected lemma has_strict_fderiv_at.comp {g : F → G} {g' : F →L[𝕜] G}
@@ -1391,8 +1428,8 @@ end cartesian_product
 
 section const_smul
 
-variables {R : Type*} [semiring R] [module R F] [topological_space R] [smul_comm_class 𝕜 R F]
-  [has_continuous_smul R F]
+variables {R : Type*} [semiring R] [module R F] [smul_comm_class 𝕜 R F]
+  [has_continuous_const_smul R F]
 
 /-! ### Derivative of a function multiplied by a constant -/
 theorem has_strict_fderiv_at.const_smul (h : has_strict_fderiv_at f f' x) (c : R) :
@@ -2477,7 +2514,7 @@ begin
   have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
     (λ (t : R), t) (𝓝 0),
   { refine (inverse_add_norm_diff_second_order x).trans_is_o ((is_o_norm_norm).mp _),
-    simp only [normed_field.norm_pow, norm_norm],
+    simp only [norm_pow, norm_norm],
     have h12 : 1 < 2 := by norm_num,
     convert (asymptotics.is_o_pow_pow h12).comp_tendsto tendsto_norm_zero,
     ext, simp },
@@ -2963,3 +3000,25 @@ begin
 end
 
 end restrict_scalars
+
+/-! ### Support of derivatives -/
+
+section support
+
+open function
+variables (𝕜 : Type*) {E F : Type*} [nondiscrete_normed_field 𝕜]
+variables [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F] {f : E → F}
+
+lemma support_fderiv_subset : support (fderiv 𝕜 f) ⊆ tsupport f :=
+begin
+  intros x,
+  rw [← not_imp_not],
+  intro h2x,
+  rw [not_mem_closure_support_iff_eventually_eq] at h2x,
+  exact nmem_support.mpr (h2x.fderiv_eq.trans $ fderiv_const_apply 0),
+end
+
+lemma has_compact_support.fderiv (hf : has_compact_support f) : has_compact_support (fderiv 𝕜 f) :=
+hf.mono' $ support_fderiv_subset 𝕜
+
+end support

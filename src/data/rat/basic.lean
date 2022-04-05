@@ -3,10 +3,10 @@ Copyright (c) 2019 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import data.equiv.encodable.basic
 import algebra.euclidean_domain
-import data.nat.gcd
 import data.int.cast
+import data.nat.gcd
+import logic.encodable.basic
 
 /-!
 # Basics for the Rational Numbers
@@ -307,7 +307,7 @@ begin
   show rat.mk' _ _ _ _ = _, rw num_denom',
   have d0 := ne_of_gt (int.coe_nat_lt.2 h₁),
   apply (mk_eq d0 b0).2, have h₁ := (mk_eq b0 d0).1 ha,
-  simp only [neg_mul_eq_neg_mul_symm, congr_arg has_neg.neg h₁]
+  simp only [neg_mul, congr_arg has_neg.neg h₁]
 end
 
 @[simp] lemma mk_neg_denom (n d : ℤ) : n /. -d = -n /. d :=

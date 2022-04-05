@@ -69,6 +69,10 @@ by apply_instance
 def forget_to_PresheafedSpace : (SheafedSpace C) ⥤ (PresheafedSpace C) :=
 induced_functor _
 
+instance is_PresheafedSpace_iso {X Y : SheafedSpace C} (f : X ⟶ Y) [is_iso f] :
+  @is_iso (PresheafedSpace C) _ _ _ f :=
+SheafedSpace.forget_to_PresheafedSpace.map_is_iso f
+
 variables {C}
 
 section

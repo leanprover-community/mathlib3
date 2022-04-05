@@ -91,7 +91,7 @@ matrix.induction_on' M
 begin
   inhabit m,
   inhabit n,
-  simpa using h_std_basis (default m) (default n) 0,
+  simpa using h_std_basis default default 0
 end
 h_add h_std_basis
 

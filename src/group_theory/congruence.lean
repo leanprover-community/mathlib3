@@ -3,10 +3,10 @@ Copyright (c) 2019 Amelia Livingston. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
-import group_theory.submonoid.operations
-import data.equiv.mul_add
-import data.setoid.basic
 import algebra.group.prod
+import algebra.hom.equiv
+import data.setoid.basic
+import group_theory.submonoid.operations
 
 /-!
 # Congruence relations
@@ -476,7 +476,7 @@ variables (M)
     binary relations on `M`. -/
 @[to_additive "There is a Galois insertion of additive congruence relations on a type with
 an addition `M` into binary relations on `M`."]
-protected noncomputable def gi :
+protected def gi :
   @galois_insertion (M → M → Prop) (con M) _ _ con_gen coe_fn :=
 { choice := λ r h, con_gen r,
   gc := λ r c, ⟨λ H _ _ h, H $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,
@@ -907,14 +907,14 @@ function.surjective.comm_semigroup _ quotient.surjective_quotient_mk' (λ _ _, r
 @[to_additive "The quotient of an `add_monoid` by an additive congruence relation is
 an `add_monoid`."]
 instance monoid {M : Type*} [monoid M] (c : con M) : monoid c.quotient :=
-function.surjective.monoid_pow _ quotient.surjective_quotient_mk' rfl (λ _ _, rfl) (λ _ _, rfl)
+function.surjective.monoid _ quotient.surjective_quotient_mk' rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- The quotient of a `comm_monoid` by a congruence relation is a `comm_monoid`. -/
 @[to_additive "The quotient of an `add_comm_monoid` by an additive congruence
 relation is an `add_comm_monoid`."]
 instance comm_monoid {M : Type*} [comm_monoid M] (c : con M) :
   comm_monoid c.quotient :=
-{ ..c.comm_semigroup, ..c.monoid}
+function.surjective.comm_monoid _ quotient.surjective_quotient_mk' rfl (λ _ _, rfl) (λ _ _, rfl)
 
 end monoids
 
@@ -972,7 +972,7 @@ instance has_zpow : has_pow c.quotient ℤ :=
 @[to_additive "The quotient of an `add_group` by an additive congruence relation is
 an `add_group`."]
 instance group : group c.quotient :=
-function.surjective.group_pow _ quotient.surjective_quotient_mk' rfl
+function.surjective.group _ quotient.surjective_quotient_mk' rfl
   (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end groups
@@ -985,7 +985,7 @@ variables {α : Type*} [monoid M] {c : con M}
 where `c : con M` is a multiplicative congruence on a monoid, it suffices to define a function `f`
 that takes elements `x y : M` with proofs of `c (x * y) 1` and `c (y * x) 1`, and returns an element
 of `α` provided that `f x y _ _ = f x' y' _ _` whenever `c x x'` and `c y y'`. -/
-@[to_additive lift_on_add_units] def lift_on_units (u : units c.quotient)
+@[to_additive] def lift_on_units (u : units c.quotient)
   (f : Π (x y : M), c (x * y) 1 → c (y * x) 1 → α)
   (Hf : ∀ x y hxy hyx x' y' hxy' hyx', c x x' → c y y' → f x y hxy hyx = f x' y' hxy' hyx') :
   α :=
@@ -1014,7 +1014,7 @@ lemma lift_on_units_mk (f : Π (x y : M), c (x * y) 1 → c (y * x) 1 → α)
   lift_on_units ⟨(x : c.quotient), y, hxy, hyx⟩ f Hf = f x y (c.eq.1 hxy) (c.eq.1 hyx) :=
 rfl
 
-@[elab_as_eliminator, to_additive induction_on_add_units]
+@[elab_as_eliminator, to_additive]
 lemma induction_on_units {p : units c.quotient → Prop} (u : units c.quotient)
   (H : ∀ (x y : M) (hxy : c (x * y) 1) (hyx : c (y * x) 1), p ⟨x, y, c.eq.2 hxy, c.eq.2 hyx⟩) :
   p u :=

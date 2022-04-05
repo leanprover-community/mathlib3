@@ -5,7 +5,7 @@ Authors: Simon Hudon
 -/
 import control.monad.basic
 import data.part
-import order.hom.lattice
+import order.hom.order
 import tactic.monotonicity
 import tactic.wlog
 
@@ -97,7 +97,7 @@ variables [preorder α] [preorder β] [preorder γ]
 instance : has_coe_to_fun (chain α) (λ _, ℕ → α) := order_hom.has_coe_to_fun
 
 instance [inhabited α] : inhabited (chain α) :=
-⟨ ⟨ λ _, default _, λ _ _ _, le_refl _ ⟩ ⟩
+⟨ ⟨ λ _, default, λ _ _ _, le_rfl ⟩ ⟩
 
 instance : has_mem α (chain α) :=
 ⟨λa (c : ℕ →o α), ∃ i, a = c i⟩
@@ -342,7 +342,7 @@ open omega_complete_partial_order omega_complete_partial_order.chain
 instance [∀a, omega_complete_partial_order (β a)] : omega_complete_partial_order (Πa, β a) :=
 { ωSup    := λc a, ωSup (c.map (pi.eval_order_hom a)),
   ωSup_le := assume c f hf a, ωSup_le _ _ $ by { rintro i, apply hf },
-  le_ωSup := assume c i x, le_ωSup_of_le _ $ le_refl _ }
+  le_ωSup := assume c i x, le_ωSup_of_le _ $ le_rfl }
 
 namespace omega_complete_partial_order
 
@@ -642,7 +642,7 @@ of_mono (order_hom.const _ x) (continuous_const x)
 @[simp] theorem const_apply (f : β) (a : α) : const f a = f := rfl
 
 instance [inhabited β] : inhabited (α →𝒄 β) :=
-⟨ const (default β) ⟩
+⟨ const default ⟩
 
 namespace prod
 

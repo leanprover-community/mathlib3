@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
-import measure_theory.measure.measure_space_def
+import measure_theory.measure.ae_disjoint
 
 /-!
 # Null measurable sets and complete measures
@@ -212,6 +212,22 @@ lemma exists_measurable_subset_ae_eq (h : null_measurable_set s μ) :
 
 end null_measurable_set
 
+/-- If `sᵢ` is a countable family of (null) measurable pairwise `μ`-a.e. disjoint sets, then there
+exists a subordinate family `tᵢ ⊆ sᵢ` of measurable pairwise disjoint sets such that
+`tᵢ =ᵐ[μ] sᵢ`. -/
+lemma exists_subordinate_pairwise_disjoint [encodable ι] {s : ι → set α}
+  (h : ∀ i, null_measurable_set (s i) μ) (hd : pairwise (ae_disjoint μ on s)) :
+  ∃ t : ι → set α, (∀ i, t i ⊆ s i) ∧ (∀ i, s i =ᵐ[μ] t i) ∧ (∀ i, measurable_set (t i)) ∧
+    pairwise (disjoint on t) :=
+begin
+  choose t ht_sub htm ht_eq using λ i, (h i).exists_measurable_subset_ae_eq,
+  rcases exists_null_pairwise_disjoint_diff hd with ⟨u, hum, hu₀, hud⟩,
+  exact ⟨λ i, t i \ u i, λ i, (diff_subset _ _).trans (ht_sub _),
+    λ i, (ht_eq _).symm.trans (diff_null_ae_eq_self (hu₀ i)).symm,
+    λ i, (htm i).diff (hum i), hud.mono $
+      λ i j h, h.mono (diff_subset_diff_left (ht_sub i)) (diff_subset_diff_left (ht_sub j))⟩
+end
+
 lemma measure_Union {m0 : measurable_space α} {μ : measure α} [encodable ι] {f : ι → set α}
   (hn : pairwise (disjoint on f)) (h : ∀ i, measurable_set (f i)) :
   μ (⋃ i, f i) = ∑' i, μ (f i) :=
@@ -224,23 +240,59 @@ begin
 end
 
 lemma measure_Union₀ [encodable ι] {f : ι → set α}
-  (hn : pairwise (disjoint on f)) (h : ∀ i, null_measurable_set (f i) μ) :
+  (hd : pairwise (ae_disjoint μ on f)) (h : ∀ i, null_measurable_set (f i) μ) :
   μ (⋃ i, f i) = ∑' i, μ (f i) :=
 begin
-  refine (measure_Union_le _).antisymm _,
-  choose s hsf hsm hs_eq using λ i, (h i).exists_measurable_subset_ae_eq,
-  have hsd : pairwise (disjoint on s), from hn.mono (λ i j h, h.mono (hsf i) (hsf j)),
-  simp only [← measure_congr (hs_eq _), ← measure_Union hsd hsm],
-  exact measure_mono (Union_subset_Union hsf)
+  rcases exists_subordinate_pairwise_disjoint h hd with ⟨t, ht_sub, ht_eq, htm, htd⟩,
+  calc μ (⋃ i, f i) = μ (⋃ i, t i) : measure_congr (eventually_eq.countable_Union ht_eq)
+  ... = ∑' i, μ (t i) : measure_Union htd htm
+  ... = ∑' i, μ (f i) : tsum_congr (λ i, measure_congr (ht_eq _).symm)
 end
 
-lemma measure_union₀ (hs : null_measurable_set s μ) (ht : null_measurable_set t μ)
-  (hd : disjoint s t) :
+lemma measure_union₀_aux (hs : null_measurable_set s μ) (ht : null_measurable_set t μ)
+  (hd : ae_disjoint μ s t) :
   μ (s ∪ t) = μ s + μ t :=
 begin
   rw [union_eq_Union, measure_Union₀, tsum_fintype, fintype.sum_bool, cond, cond],
-  exacts [pairwise_disjoint_on_bool.2 hd, λ b, bool.cases_on b ht hs]
+  exacts [(pairwise_on_bool ae_disjoint.symmetric).2 hd, λ b, bool.cases_on b ht hs]
 end
+
+/-- A null measurable set `t` is Carathéodory measurable: for any `s`, we have
+`μ (s ∩ t) + μ (s \ t) = μ s`. -/
+lemma measure_inter_add_diff₀ (s : set α) (ht : null_measurable_set t μ) :
+  μ (s ∩ t) + μ (s \ t) = μ s :=
+begin
+  refine le_antisymm _ _,
+  { rcases exists_measurable_superset μ s with ⟨s', hsub, hs'm, hs'⟩,
+    replace hs'm : null_measurable_set s' μ := hs'm.null_measurable_set,
+    calc μ (s ∩ t) + μ (s \ t) ≤ μ (s' ∩ t) + μ (s' \ t) :
+      add_le_add (measure_mono $ inter_subset_inter_left _ hsub)
+        (measure_mono $ diff_subset_diff_left hsub)
+    ... = μ (s' ∩ t ∪ s' \ t) :
+      (measure_union₀_aux (hs'm.inter ht) (hs'm.diff ht) $
+        (@disjoint_inf_sdiff _ s' t _).ae_disjoint).symm
+    ... = μ s' : congr_arg μ (inter_union_diff _ _)
+    ... = μ s : hs' },
+  { calc μ s = μ (s ∩ t ∪ s \ t) : by rw inter_union_diff
+    ... ≤ μ (s ∩ t) + μ (s \ t) : measure_union_le _ _ }
+end
+
+lemma measure_union_add_inter₀ (s : set α) (ht : null_measurable_set t μ) :
+  μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
+by rw [← measure_inter_add_diff₀ (s ∪ t) ht, union_inter_cancel_right, union_diff_right,
+  ← measure_inter_add_diff₀ s ht, add_comm, ← add_assoc, add_right_comm]
+
+lemma measure_union_add_inter₀' (hs : null_measurable_set s μ) (t : set α) :
+  μ (s ∪ t) + μ (s ∩ t) = μ s + μ t :=
+by rw [union_comm, inter_comm, measure_union_add_inter₀ t hs, add_comm]
+
+lemma measure_union₀ (ht : null_measurable_set t μ) (hd : ae_disjoint μ s t) :
+  μ (s ∪ t) = μ s + μ t :=
+by rw [← measure_union_add_inter₀ s ht, hd.eq, add_zero]
+
+lemma measure_union₀' (hs : null_measurable_set s μ) (hd : ae_disjoint μ s t) :
+  μ (s ∪ t) = μ s + μ t :=
+by rw [union_comm, measure_union₀ hs hd.symm, add_comm]
 
 section measurable_singleton_class
 
@@ -362,12 +414,12 @@ namespace measure
 def completion {_ : measurable_space α} (μ : measure α) :
   @measure_theory.measure (null_measurable_space α μ) _ :=
 { to_outer_measure := μ.to_outer_measure,
-  m_Union := λ s hs hd, measure_Union₀ hd hs,
+  m_Union := λ s hs hd, measure_Union₀ (hd.mono $ λ i j h, h.ae_disjoint) hs,
   trimmed := begin
     refine le_antisymm (λ s, _) (outer_measure.le_trim _),
     rw outer_measure.trim_eq_infi, simp only [to_outer_measure_apply],
-    refine (binfi_le_binfi _).trans_eq (measure_eq_infi _).symm,
-    exact λ t ht, infi_le_infi2 (λ h, ⟨h.null_measurable_set, le_rfl⟩)
+    refine (infi₂_mono _).trans_eq (measure_eq_infi _).symm,
+    exact λ t ht, infi_mono' (λ h, ⟨h.null_measurable_set, le_rfl⟩)
   end }
 
 instance completion.is_complete {m : measurable_space α} (μ : measure α) :

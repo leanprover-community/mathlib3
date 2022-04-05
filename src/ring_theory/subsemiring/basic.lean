@@ -4,12 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import algebra.ring.prod
 import algebra.module.basic
-import group_theory.submonoid.membership
-import group_theory.submonoid.center
+import algebra.ring.equiv
+import algebra.ring.prod
 import data.set.finite
-import data.equiv.ring
+import group_theory.submonoid.centralizer
+import group_theory.submonoid.membership
 
 /-!
 # Bundled subsemirings
@@ -23,9 +23,98 @@ open_locale big_operators
 
 universes u v w
 
-variables {R : Type u} {S : Type v} {T : Type w}
-  [non_assoc_semiring R] [non_assoc_semiring S] [non_assoc_semiring T]
-  (M : submonoid R)
+variables {R : Type u} {S : Type v} {T : Type w} [non_assoc_semiring R] (M : submonoid R)
+
+section subsemiring_class
+
+/-- `subsemiring_class S R` states that `S` is a type of subsets `s ⊆ R` that
+are both a multiplicative and an additive submonoid. -/
+class subsemiring_class (S : Type*) (R : out_param $ Type u) [non_assoc_semiring R] [set_like S R]
+  extends submonoid_class S R :=
+(add_mem : ∀ {s : S} {a b : R}, a ∈ s → b ∈ s → a + b ∈ s)
+(zero_mem : ∀ (s : S), (0 : R) ∈ s)
+
+@[priority 100] -- See note [lower instance priority]
+instance subsemiring_class.add_submonoid_class (S : Type*) (R : out_param $ Type u)
+  [non_assoc_semiring R] [set_like S R] [h : subsemiring_class S R] :
+  add_submonoid_class S R :=
+{ .. h }
+
+variables [set_like S R] [hSR : subsemiring_class S R] (s : S)
+include hSR
+
+open one_mem_class add_submonoid_class
+
+namespace subsemiring_class
+
+lemma coe_nat_mem (n : ℕ) : (n : R) ∈ s :=
+by simp only [← nsmul_one, nsmul_mem, one_mem]
+
+/-- A subsemiring of a `non_assoc_semiring` inherits a `non_assoc_semiring` structure -/
+@[priority 75] -- Prefer subclasses of `non_assoc_semiring` over subclasses of `subsemiring_class`.
+instance to_non_assoc_semiring : non_assoc_semiring s :=
+subtype.coe_injective.non_assoc_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+instance nontrivial [nontrivial R] : nontrivial s :=
+nontrivial_of_ne 0 1 $ λ H, zero_ne_one (congr_arg subtype.val H)
+
+instance no_zero_divisors [no_zero_divisors R] : no_zero_divisors s :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := λ x y h,
+  or.cases_on (eq_zero_or_eq_zero_of_mul_eq_zero $ subtype.ext_iff.mp h)
+    (λ h, or.inl $ subtype.eq h) (λ h, or.inr $ subtype.eq h) }
+
+/-- The natural ring hom from a subsemiring of semiring `R` to `R`. -/
+def subtype : s →+* R :=
+{ to_fun := coe, .. submonoid_class.subtype s, .. add_submonoid_class.subtype s }
+
+@[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
+
+omit hSR
+
+/-- A subsemiring of a `semiring` is a `semiring`. -/
+@[priority 75] -- Prefer subclasses of `semiring` over subclasses of `subsemiring_class`.
+instance to_semiring {R} [semiring R] [set_like S R] [subsemiring_class S R] : semiring s :=
+subtype.coe_injective.semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+@[simp, norm_cast] lemma coe_pow {R} [semiring R] [set_like S R] [subsemiring_class S R]
+  (x : s) (n : ℕ) :
+  ((x^n : s) : R) = (x^n : R) :=
+begin
+  induction n with n ih,
+  { simp, },
+  { simp [pow_succ, ih], },
+end
+
+/-- A subsemiring of a `comm_semiring` is a `comm_semiring`. -/
+instance to_comm_semiring {R} [comm_semiring R] [set_like S R] [subsemiring_class S R] :
+  comm_semiring s :=
+subtype.coe_injective.comm_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subsemiring of an `ordered_semiring` is an `ordered_semiring`. -/
+instance to_ordered_semiring {R} [ordered_semiring R] [set_like S R] [subsemiring_class S R] :
+  ordered_semiring s :=
+subtype.coe_injective.ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
+
+/-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
+instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] [set_like S R]
+  [subsemiring_class S R] : ordered_comm_semiring s :=
+subtype.coe_injective.ordered_comm_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
+
+/-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
+instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] [set_like S R]
+  [subsemiring_class S R] : linear_ordered_semiring s :=
+subtype.coe_injective.linear_ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl)
+
+/-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
+
+end subsemiring_class
+
+end subsemiring_class
+
+variables [non_assoc_semiring S] [non_assoc_semiring T]
 
 set_option old_structure_cmd true
 
@@ -42,7 +131,14 @@ add_decl_doc subsemiring.to_add_submonoid
 namespace subsemiring
 
 instance : set_like (subsemiring R) R :=
-⟨subsemiring.carrier, λ p q h, by cases p; cases q; congr'⟩
+{ coe := subsemiring.carrier,
+  coe_injective' := λ p q h, by cases p; cases q; congr' }
+
+instance : subsemiring_class (subsemiring R) R :=
+{ zero_mem := zero_mem',
+  add_mem := add_mem',
+  one_mem := one_mem',
+  mul_mem := mul_mem' }
 
 @[simp]
 lemma mem_carrier {s : subsemiring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -220,17 +316,20 @@ def subtype : s →+* R :=
 
 /-- A subsemiring of an `ordered_semiring` is an `ordered_semiring`. -/
 instance to_ordered_semiring {R} [ordered_semiring R] (s : subsemiring R) : ordered_semiring s :=
-subtype.coe_injective.ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subsemiring of an `ordered_comm_semiring` is an `ordered_comm_semiring`. -/
 instance to_ordered_comm_semiring {R} [ordered_comm_semiring R] (s : subsemiring R) :
   ordered_comm_semiring s :=
-subtype.coe_injective.ordered_comm_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_comm_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subsemiring of a `linear_ordered_semiring` is a `linear_ordered_semiring`. -/
 instance to_linear_ordered_semiring {R} [linear_ordered_semiring R] (s : subsemiring R) :
   linear_ordered_semiring s :=
-subtype.coe_injective.linear_ordered_semiring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_semiring coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-! Note: currently, there is no `linear_ordered_comm_semiring`. -/
 
@@ -359,7 +458,7 @@ instance : has_Inf (subsemiring R) :=
 @[simp, norm_cast] lemma coe_Inf (S : set (subsemiring R)) :
   ((Inf S : subsemiring R) : set R) = ⋂ s ∈ S, ↑s := rfl
 
-lemma mem_Inf {S : set (subsemiring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_bInter_iff
+lemma mem_Inf {S : set (subsemiring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈ p := set.mem_Inter₂
 
 @[simp] lemma Inf_to_submonoid (s : set (subsemiring R)) :
   (Inf s).to_submonoid = ⨅ t ∈ s, subsemiring.to_submonoid t :=
@@ -386,7 +485,7 @@ instance : complete_lattice (subsemiring R) :=
 lemma eq_top_iff' (A : subsemiring R) : A = ⊤ ↔ ∀ x : R, x ∈ A :=
 eq_top_iff.trans ⟨λ h m, h $ mem_top m, λ h m _, h m⟩
 
-section
+section center
 
 /-- The center of a semiring `R` is the set of elements that commute with everything in `R` -/
 def center (R) [semiring R] : subsemiring R :=
@@ -415,7 +514,36 @@ instance {R} [semiring R] : comm_semiring (center R) :=
 { ..submonoid.center.comm_monoid,
   ..(center R).to_semiring}
 
-end
+end center
+
+section centralizer
+
+/-- The centralizer of a set as subsemiring. -/
+def centralizer {R} [semiring R] (s : set R) : subsemiring R :=
+{ carrier := s.centralizer,
+  zero_mem' := set.zero_mem_centralizer _,
+  add_mem' := λ x y hx hy, set.add_mem_centralizer hx hy,
+  ..submonoid.centralizer s }
+
+@[simp, norm_cast]
+lemma coe_centralizer {R} [semiring R] (s : set R) : (centralizer s : set R) = s.centralizer := rfl
+
+lemma centralizer_to_submonoid {R} [semiring R] (s : set R) :
+  (centralizer s).to_submonoid = submonoid.centralizer s := rfl
+
+lemma mem_centralizer_iff {R} [semiring R] {s : set R} {z : R} :
+  z ∈ centralizer s ↔ ∀ g ∈ s, g * z = z * g :=
+iff.rfl
+
+lemma centralizer_le {R} [semiring R] (s t : set R) (h : s ⊆ t) :
+  centralizer t ≤ centralizer s :=
+set.centralizer_subset h
+
+@[simp]
+lemma centralizer_univ {R} [semiring R] : centralizer set.univ = center R :=
+set_like.ext' (set.centralizer_univ R)
+
+end centralizer
 
 /-- The `subsemiring` generated by a set. -/
 def closure (s : set R) : subsemiring R := Inf {S | s ⊆ S}
@@ -522,7 +650,26 @@ of the closure of `s`. -/
 lemma closure_induction {s : set R} {p : R → Prop} {x} (h : x ∈ closure s)
   (Hs : ∀ x ∈ s, p x) (H0 : p 0) (H1 : p 1)
   (Hadd : ∀ x y, p x → p y → p (x + y)) (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@closure_le _ _ _ ⟨p, H1, Hmul, H0, Hadd⟩).2 Hs h
+(@closure_le _ _ _ ⟨p, Hmul, H1, Hadd, H0⟩).2 Hs h
+
+/-- An induction principle for closure membership for predicates with two arguments. -/
+@[elab_as_eliminator]
+lemma closure_induction₂ {s : set R} {p : R → R → Prop} {x} {y : R} (hx : x ∈ closure s)
+  (hy : y ∈ closure s)
+  (Hs : ∀ (x ∈ s) (y ∈ s), p x y)
+  (H0_left : ∀ x, p 0 x)
+  (H0_right : ∀ x, p x 0)
+  (H1_left : ∀ x, p 1 x)
+  (H1_right : ∀ x, p x 1)
+  (Hadd_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ + x₂) y)
+  (Hadd_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ + y₂))
+  (Hmul_left : ∀ x₁ x₂ y, p x₁ y → p x₂ y → p (x₁ * x₂) y)
+  (Hmul_right : ∀ x y₁ y₂, p x y₁ → p x y₂ → p x (y₁ * y₂))
+  : p x y :=
+closure_induction hx
+  (λ x₁ x₁s, closure_induction hy (Hs x₁ x₁s) (H0_right x₁) (H1_right x₁) (Hadd_right x₁)
+                                                                                (Hmul_right x₁))
+  (H0_left y) (H1_left y) (λ z z', Hadd_left z z' y) (λ z z', Hmul_left z z' y)
 
 lemma mem_closure_iff_exists_list {R} [semiring R] {s : set R} {x} : x ∈ closure s ↔
   ∃ L : list (list R), (∀ t ∈ L, ∀ y ∈ t, y ∈ s) ∧ (L.map list.prod).sum = x :=
@@ -591,12 +738,12 @@ lemma comap_infi {ι : Sort*} (f : R →+* S) (s : ι → subsemiring S) :
 /-- Given `subsemiring`s `s`, `t` of semirings `R`, `S` respectively, `s.prod t` is `s × t`
 as a subsemiring of `R × S`. -/
 def prod (s : subsemiring R) (t : subsemiring S) : subsemiring (R × S) :=
-{ carrier := (s : set R).prod t,
+{ carrier := (s : set R) ×ˢ (t : set S),
   .. s.to_submonoid.prod t.to_submonoid, .. s.to_add_submonoid.prod t.to_add_submonoid}
 
 @[norm_cast]
 lemma coe_prod (s : subsemiring R) (t : subsemiring S) :
-  (s.prod t : set (R × S)) = (s : set R).prod (t : set S) :=
+  (s.prod t : set (R × S)) = (s : set R) ×ˢ (t : set S) :=
 rfl
 
 lemma mem_prod {s : subsemiring R} {t : subsemiring S} {p : R × S} :
@@ -787,6 +934,13 @@ def sof_left_inverse {g : S → R} {f : R →+* S} (h : function.left_inverse g 
   {g : S → R} {f : R →+* S} (h : function.left_inverse g f) (x : f.srange) :
   (sof_left_inverse h).symm x = g x := rfl
 
+/-- Given an equivalence `e : R ≃+* S` of semirings and a subsemiring `s` of `R`,
+`subsemiring_map e s` is the induced equivalence between `s` and `s.map e` -/
+@[simps] def subsemiring_map (e : R ≃+* S) (s : subsemiring R) :
+  s ≃+* s.map e.to_ring_hom :=
+{ ..e.to_add_equiv.add_submonoid_map s.to_add_submonoid,
+  ..e.to_mul_equiv.submonoid_map s.to_submonoid }
+
 end ring_equiv
 
 /-! ### Actions by `subsemiring`s
@@ -801,34 +955,47 @@ section actions
 
 namespace subsemiring
 
-variables {R' α β : Type*} [semiring R']
+variables {R' α β : Type*}
+
+section non_assoc_semiring
+variables [non_assoc_semiring R']
 
 /-- The action by a subsemiring is the action by the underlying semiring. -/
-instance [mul_action R' α] (S : subsemiring R') : mul_action S α :=
-S.to_submonoid.mul_action
+instance [has_scalar R' α] (S : subsemiring R') : has_scalar S α := S.to_submonoid.has_scalar
 
-lemma smul_def [mul_action R' α] {S : subsemiring R'} (g : S) (m : α) : g • m = (g : R') • m := rfl
+lemma smul_def [has_scalar R' α] {S : subsemiring R'} (g : S) (m : α) : g • m = (g : R') • m := rfl
 
 instance smul_comm_class_left
-  [mul_action R' β] [has_scalar α β] [smul_comm_class R' α β] (S : subsemiring R') :
+  [has_scalar R' β] [has_scalar α β] [smul_comm_class R' α β] (S : subsemiring R') :
   smul_comm_class S α β :=
 S.to_submonoid.smul_comm_class_left
 
 instance smul_comm_class_right
-  [has_scalar α β] [mul_action R' β] [smul_comm_class α R' β] (S : subsemiring R') :
+  [has_scalar α β] [has_scalar R' β] [smul_comm_class α R' β] (S : subsemiring R') :
   smul_comm_class α S β :=
 S.to_submonoid.smul_comm_class_right
 
 /-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
-instance
-  [has_scalar α β] [mul_action R' α] [mul_action R' β] [is_scalar_tower R' α β]
+instance [has_scalar α β] [has_scalar R' α] [has_scalar R' β] [is_scalar_tower R' α β]
   (S : subsemiring R') :
   is_scalar_tower S α β :=
 S.to_submonoid.is_scalar_tower
 
-instance [mul_action R' α] [has_faithful_scalar R' α] (S : subsemiring R') :
+instance [has_scalar R' α] [has_faithful_scalar R' α] (S : subsemiring R') :
   has_faithful_scalar S α :=
 S.to_submonoid.has_faithful_scalar
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [has_zero α] [smul_with_zero R' α] (S : subsemiring R') : smul_with_zero S α :=
+smul_with_zero.comp_hom _ S.subtype.to_monoid_with_zero_hom.to_zero_hom
+
+end non_assoc_semiring
+
+variables [semiring R']
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [mul_action R' α] (S : subsemiring R') : mul_action S α :=
+S.to_submonoid.mul_action
 
 /-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_monoid α] [distrib_mul_action R' α] (S : subsemiring R') : distrib_mul_action S α :=
@@ -840,8 +1007,31 @@ instance [monoid α] [mul_distrib_mul_action R' α] (S : subsemiring R') :
 S.to_submonoid.mul_distrib_mul_action
 
 /-- The action by a subsemiring is the action by the underlying semiring. -/
+instance [has_zero α] [mul_action_with_zero R' α] (S : subsemiring R') : mul_action_with_zero S α :=
+mul_action_with_zero.comp_hom _ S.subtype.to_monoid_with_zero_hom
+
+/-- The action by a subsemiring is the action by the underlying semiring. -/
 instance [add_comm_monoid α] [module R' α] (S : subsemiring R') : module S α :=
 { smul := (•), .. module.comp_hom _ S.subtype }
+
+/-- If all the elements of a set `s` commute, then `closure s` is a commutative monoid. -/
+def closure_comm_semiring_of_comm {s : set R'} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
+  comm_semiring (closure s) :=
+{ mul_comm := λ x y,
+  begin
+    ext,
+    simp only [subsemiring.coe_mul],
+    refine closure_induction₂ x.prop y.prop hcomm
+    (λ x, by simp only [zero_mul, mul_zero])
+    (λ x, by simp only [zero_mul, mul_zero])
+    (λ x, by simp only [one_mul, mul_one])
+    (λ x, by simp only [one_mul, mul_one])
+    (λ x y z h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
+    (λ x y z h₁ h₂, by simp only [add_mul, mul_add, h₁, h₂])
+    (λ x y z h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc, h₁, mul_assoc])
+    (λ x y z h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc])
+  end,
+  ..(closure s).to_semiring }
 
 end subsemiring
 

@@ -5,7 +5,6 @@ Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.basic
 import category_theory.adjunction.basic
-import category_theory.reflects_isomorphisms
 
 /-!
 # Eilenberg-Moore (co)algebras for a (co)monad
@@ -117,7 +116,7 @@ variables (T : monad C)
     h' := T.μ.naturality _ } }
 
 instance [inhabited C] : inhabited (algebra T) :=
-⟨(free T).obj (default C)⟩
+⟨(free T).obj default⟩
 
 /-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for
   a monad. cf Lemma 5.2.8 of [Riehl][riehl2017]. -/

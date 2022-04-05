@@ -307,9 +307,8 @@ begin
       split; linarith },
 end
 
-/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which vary together,
-is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
-cardinality of the index set. -/
+/-- **Chebyshev Inequality**: When `f` and `g` vary together, the scalar product of their sum is
+less than the size of the set times their scalar product. -/
 lemma monovary_on.sum_smul_sum_le_card_smul_sum (hfg : monovary_on f g s) :
   (∑ i in s, f i) • (∑ i in s, g i) ≤ s.card • (∑ i in s, f i • g i) :=
 begin
@@ -388,25 +387,22 @@ begin
     apply_instance }
 end
 
-/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which antivary together,
-is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
-cardinality of the index set. -/
+/-- **Chebyshev Inequality**: When `f` and `g` antivary together, the scalar product of their sum is
+less than the size of the set times their scalar product. -/
 lemma antivary_on.card_smul_sum_le_sum_smul_sum (hfg : antivary_on f g s) :
   s.card • (∑ i in s, f i • g i) ≤ (∑ i in s, f i) • (∑ i in s, g i) :=
 by convert hfg.dual_right.sum_smul_sum_le_card_smul_sum
 
 variables [fintype ι]
 
-/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which vary together,
-is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
-cardinality of the index set. -/
+/-- **Chebyshev Inequality**: When `f` and `g` vary together, the scalar product of their sum is
+less than the size of the set times their scalar product. -/
 lemma monovary.sum_smul_sum_le_card_smul_sum (hfg : monovary f g) :
   (∑ i, f i) • (∑ i, g i) ≤ fintype.card ι • (∑ i, f i • g i) :=
 (hfg.monovary_on _).sum_smul_sum_le_card_smul_sum
 
-/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which antivary together,
-is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
-cardinality of the index set. -/
+/-- **Chebyshev Inequality**: When `f` and `g` antivary together, the scalar product of their sum is
+less than the size of the set times their scalar product. -/
 lemma antivary.card_smul_sum_le_sum_smul_sum (hfg : antivary f g) :
   fintype.card ι • (∑ i, f i • g i) ≤ (∑ i, f i) • (∑ i, g i) :=
 by convert (hfg.dual_right.monovary_on _).sum_smul_sum_le_card_smul_sum
@@ -421,32 +417,28 @@ Special cases of the above when scalar multiplication is actually multiplication
 section mul
 variables [linear_ordered_ring α] [decidable_eq ι] {s : finset ι} {σ : perm ι} {f g : ι → α}
 
-/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which vary together,
-is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
-cardinality of the index set. -/
+/-- **Chebyshev Inequality**: When `f` and `g` vary together, the scalar product of their sum is
+less than the size of the set times their scalar product. -/
 lemma monovary_on.sum_mul_sum_le_card_mul_sum (hfg : monovary_on f g s) :
   (∑ i in s, f i) * (∑ i in s, g i) ≤ s.card * (∑ i in s, f i * g i) :=
 by { convert hfg.sum_smul_sum_le_card_smul_sum; simp }
 
-/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which antivary together,
-is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
-cardinality of the index set. -/
+/-- **Chebyshev Inequality**: When `f` and `g` antivary together, the scalar product of their sum is
+less than the size of the set times their scalar product. -/
 lemma antivary_on.card_mul_sum_le_sum_mul_sum (hfg : antivary_on f g s) :
   (s.card : α) * (∑ i in s, f i * g i) ≤ (∑ i in s, f i) * (∑ i in s, g i) :=
 by convert (hfg.dual_right).sum_mul_sum_le_card_mul_sum -- what's the problem here?
 
 variables [fintype ι]
 
-/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which vary together,
-is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
-cardinality of the index set. -/
+/-- **Chebyshev Inequality**: When `f` and `g` vary together, the scalar product of their sum is
+less than the size of the set times their scalar product. -/
 lemma monovary.sum_mul_sum_le_card_mul_sum (hfg : monovary f g) :
   (∑ i, f i) * (∑ i, g i) ≤ fintype.card ι * (∑ i, f i * g i) :=
 (hfg.monovary_on _).sum_mul_sum_le_card_mul_sum
 
-/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which antivary together,
-is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
-cardinality of the index set. -/
+/-- **Chebyshev Inequality**: When `f` and `g` antivary together, the scalar product of their sum is
+less than the size of the set times their scalar product. -/
 lemma antivary.card_mul_sum_le_sum_mul_sum (hfg : antivary f g) :
  (fintype.card ι : α) * (∑ i in s, f i * g i) ≤ (∑ i in s, f i) * (∑ i in s, g i) :=
 by convert (hfg.dual_right.monovary_on _).sum_mul_sum_le_card_mul_sum -- same problem here as above

@@ -65,6 +65,8 @@ instance : has_one (filter α) := ⟨principal 1⟩
 @[simp, to_additive] lemma le_one_iff : f ≤ 1 ↔ (1 : set α) ∈ f := le_principal_iff
 @[simp, to_additive] lemma eventually_one {p : α → Prop} : (∀ᶠ x in 1, p x) ↔ p 1 :=
 by rw [←pure_one, eventually_pure]
+@[simp, to_additive] lemma tendsto_one {g : α → β} : tendsto g f 1 ↔ ∀ᶠ x in f, g x = 1 :=
+by rw [←pure_one, tendsto_pure]
 
 @[simp, to_additive]
 protected lemma map_one [one_hom_class F α β] (φ : F) : map φ 1 = 1 :=

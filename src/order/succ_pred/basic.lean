@@ -754,10 +754,6 @@ variables [preorder α]
 
 section succ_order
 
-lemma is_succ_archimedean.of_dual [succ_order α] [is_pred_archimedean (order_dual α)] :
-  is_succ_archimedean α :=
-⟨λ a b h, by convert exists_pred_iterate_of_le h.dual⟩
-
 variables [succ_order α] [is_succ_archimedean α] {a b : α}
 
 instance : is_pred_archimedean (order_dual α) :=

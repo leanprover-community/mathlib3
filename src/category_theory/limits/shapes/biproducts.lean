@@ -1530,9 +1530,10 @@ by apply biprod.hom_ext; apply biprod.hom_ext'; simp
 
 /-- 
 Every split mono with a cokernel induces a binary bicone with `f` as its `inl` and
-the cokernel map as its `snd`. -/
+the cokernel map as its `snd`.
+We will show in TODO that this binary bicone is in fact already a biproduct. -/
 @[simps]
-def binary_bicone_of_split_mono_of_cokernel {X Y : C} (f : X ⟶ Y) [split_mono f]
+def binary_bicone_of_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [split_mono f]
   {c : cokernel_cofork f} (i : is_colimit c) : binary_bicone X c.X :=
 { X := Y,
   fst := retraction f,
@@ -1562,6 +1563,22 @@ def binary_bicone_of_split_mono_of_cokernel {X Y : C} (f : X ⟶ Y) [split_mono 
       apply category.id_comp
     end,
   inr_snd' := by apply split_epi.id }
+
+/-- The bicone constructed in `binary_bicone_of_split_mono_of_cokernel` is a bilimit. -/
+def is_bilimit_binary_bicone_of_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [split_mono f]
+  {c : cokernel_cofork f} (i : is_colimit c) :
+  (binary_bicone_of_split_mono_of_cokernel i).is_bilimit :=
+is_binary_bilimit_of_total _
+begin
+  simp only [binary_bicone_of_split_mono_of_cokernel_fst,
+    binary_bicone_of_split_mono_of_cokernel_inl,
+    binary_bicone_of_split_mono_of_cokernel_snd, 
+    binary_bicone_of_split_mono_of_cokernel_inr,
+    split_epi_of_idempotent_of_is_colimit_cofork_section_],
+  change _ = 𝟙 Y,
+  erw cofork.is_colimit.π_desc_of_π,
+  simp [cokernel_cofork_of_cofork_π, cofork.π_of_π],
+end
 
 end
 

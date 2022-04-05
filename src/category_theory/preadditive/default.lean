@@ -269,6 +269,9 @@ cofork.of_π c.π $ by rw [← sub_eq_zero, ← sub_comp, c.condition]
 def cokernel_cofork_of_cofork (c : cofork f g) : cokernel_cofork (f - g) :=
 cofork.of_π c.π $ by rw [sub_comp, zero_comp, sub_eq_zero, c.condition]
 
+@[simp] lemma cokernel_cofork_of_cofork_π (c : cofork f g) :
+  (cokernel_cofork_of_cofork c).π = c.π := rfl
+
 /-- A cokernel of `f - g` is a coequalizer of `f` and `g`. -/
 def is_colimit_cofork_of_cokernel_cofork {c : cokernel_cofork (f - g)} (i : is_colimit c) :
   is_colimit (cofork_of_cokernel_cofork c) :=

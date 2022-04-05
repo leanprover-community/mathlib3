@@ -1571,13 +1571,12 @@ def is_bilimit_binary_bicone_of_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [
 is_binary_bilimit_of_total _
 begin
   simp only [binary_bicone_of_split_mono_of_cokernel_fst,
-    binary_bicone_of_split_mono_of_cokernel_inl,
-    binary_bicone_of_split_mono_of_cokernel_snd, 
-    binary_bicone_of_split_mono_of_cokernel_inr,
+    binary_bicone_of_split_mono_of_cokernel_inr, binary_bicone_of_split_mono_of_cokernel_snd,
     split_epi_of_idempotent_of_is_colimit_cofork_section_],
   change _ = 𝟙 Y,
-  erw cofork.is_colimit.π_desc_of_π,
-  simp [cokernel_cofork_of_cofork_π, cofork.π_of_π],
+  erw cofork.is_colimit.π_desc_of_π, -- TODO remove the `erw` here
+  simp only [cofork.is_colimit.π_desc_of_π, cokernel_cofork_of_cofork_π, 
+    cofork.π_of_π, binary_bicone_of_split_mono_of_cokernel_inl, add_sub_cancel'_right],
 end
 
 end

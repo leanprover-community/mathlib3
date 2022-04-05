@@ -78,11 +78,11 @@ end
 
 lemma symm_diff_le_sup : a Δ b ≤ a ⊔ b := by { rw symm_diff_eq_sup_sdiff_inf, exact sdiff_le }
 
-lemma inf_symm_diff_distrib_left : a ⊓ b Δ c = (a ⊓ b) Δ (a ⊓ c) :=
+lemma inf_symm_diff_distrib_left : a ⊓ (b Δ c) = (a ⊓ b) Δ (a ⊓ c) :=
 by rw [symm_diff_eq_sup_sdiff_inf, inf_sdiff_distrib_left, inf_sup_left, inf_inf_distrib_left,
   symm_diff_eq_sup_sdiff_inf]
 
-lemma inf_symm_diff_distrib_right : a Δ b ⊓ c = (a ⊓ c) Δ (b ⊓ c) :=
+lemma inf_symm_diff_distrib_right : (a Δ b) ⊓ c = (a ⊓ c) Δ (b ⊓ c) :=
 by simp_rw [@inf_comm _ _ _ c, inf_symm_diff_distrib_left]
 
 lemma sdiff_symm_diff : c \ (a Δ b) = (c ⊓ a ⊓ b) ⊔ ((c \ a) ⊓ (c \ b)) :=
@@ -180,6 +180,9 @@ calc a Δ b = ⊥ ↔ a Δ b = a Δ a : by rw symm_diff_self
 
 @[simp] lemma symm_diff_symm_diff_inf : a Δ b Δ (a ⊓ b) = a ⊔ b :=
 by rw [symm_diff_eq_iff_sdiff_eq (symm_diff_le_sup _ _), sup_sdiff_symm_diff]
+
+@[simp] lemma inf_symm_diff_symm_diff : (a ⊓ b) Δ (a Δ b) = a ⊔ b :=
+by rw [symm_diff_comm, symm_diff_symm_diff_inf]
 
 variables {a b c}
 

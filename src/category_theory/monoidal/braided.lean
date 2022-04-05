@@ -516,23 +516,8 @@ begin
   slice_lhs 10 12 { rw [←tensor_comp, ←tensor_comp,
                         ←tensor_μ_def₂,
                         tensor_comp, tensor_comp] },
-  -- It should be possible to close the goal by `coherence` here, but if fails with "Something went
-  -- wrong in the `coherence` tactic: is the target an equation in a monoidal category?",
-  have :
-      ((α_ X₁ X₂ (Y₁ ⊗ Y₂)).hom ⊗ 𝟙 (Z₁ ⊗ Z₂)) ≫
-      ((𝟙 X₁ ⊗ (α_ X₂ Y₁ Y₂).inv) ⊗ 𝟙 (Z₁ ⊗ Z₂)) ≫
-      (α_ (X₁ ⊗ (X₂ ⊗ Y₁) ⊗ Y₂) Z₁ Z₂).inv ≫
-      ((α_ X₁ ((X₂ ⊗ Y₁) ⊗ Y₂) Z₁).hom ⊗ 𝟙 Z₂) ≫
-      ((𝟙 X₁ ⊗ (α_ (X₂ ⊗ Y₁) Y₂ Z₁).hom) ⊗ 𝟙 Z₂) ≫
-      (α_ X₁ ((X₂ ⊗ Y₁) ⊗ Y₂ ⊗ Z₁) Z₂).hom ≫
-      (𝟙 X₁ ⊗ (α_ (X₂ ⊗ Y₁) (Y₂ ⊗ Z₁) Z₂).hom) ≫
-      (𝟙 X₁ ⊗ (α_ X₂ Y₁ ((Y₂ ⊗ Z₁) ⊗ Z₂)).hom) ≫
-      (α_ X₁ X₂ (Y₁ ⊗ (Y₂ ⊗ Z₁) ⊗ Z₂)).inv ≫
-      ((𝟙 X₁ ⊗ 𝟙 X₂) ⊗ 𝟙 Y₁ ⊗ (α_ Y₂ Z₁ Z₂).hom) ≫
-      (𝟙 (X₁ ⊗ X₂) ⊗ (α_ Y₁ Y₂ (Z₁ ⊗ Z₂)).inv)
-    = (α_ (X₁ ⊗ X₂) (Y₁ ⊗ Y₂) (Z₁ ⊗ Z₂)).hom := by pure_coherence,
-  slice_lhs 1 11 { rw this },
-  simp only [assoc],
+  dsimp,
+  coherence,
 end
 
 /-- The tensor product functor from `C × C` to `C` as a monoidal functor. -/

@@ -546,7 +546,7 @@ lemma mem_coclosed_compact' : s ∈ coclosed_compact α ↔ ∃ t, is_closed t �
 by simp only [mem_coclosed_compact, compl_subset_comm]
 
 lemma cocompact_le_coclosed_compact : cocompact α ≤ coclosed_compact α :=
-infi_le_infi $ λ s, le_infi $ λ _, le_rfl
+infi_mono $ λ s, le_infi $ λ _, le_rfl
 
 lemma _root_.is_compact.compl_mem_coclosed_compact_of_is_closed (hs : is_compact s)
   (hs' : is_closed s) :

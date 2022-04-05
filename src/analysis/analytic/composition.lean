@@ -425,9 +425,6 @@ end
 /-! ### Summability properties of the composition of formal power series-/
 section
 
--- this speeds up the proof below a lot, related to leanprover-community/lean#521
-local attribute [-instance] unique.subsingleton
-
 /-- If two formal multilinear series have positive radius of convergence, then the terms appearing
 in the definition of their composition are also summable (when multiplied by a suitable positive
 geometric term). -/
@@ -470,13 +467,13 @@ begin
         ≤ (nnnorm (q c.length) * ∏ i, nnnorm (p (c.blocks_fun i))) * r ^ n :
           mul_le_mul' (q.comp_along_composition_nnnorm p c) le_rfl
     ... = (nnnorm (q c.length) * rq ^ n) * ((∏ i, nnnorm (p (c.blocks_fun i))) * rp ^ n) * r0 ^ n :
-          by { simp only [r, mul_pow], ac_refl }
+          by { simp only [r, mul_pow], ring }
     ... ≤ Cq * Cp ^ n * r0 ^ n : mul_le_mul' (mul_le_mul' A B) le_rfl
     ... = Cq / 4 ^ n :
       begin
         simp only [r0],
         field_simp [mul_pow, (zero_lt_one.trans_le hCp1).ne'],
-        ac_refl
+        ring
       end },
   refine ⟨r, r_pos, nnreal.summable_of_le I _⟩,
   simp_rw div_eq_mul_inv,

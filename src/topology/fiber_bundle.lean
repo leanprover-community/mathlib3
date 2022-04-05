@@ -1136,7 +1136,7 @@ lemma continuous_symm_of_mem_pretrivialization_atlas (he : e ∈ a.pretrivializa
 begin
   refine id (λ z H, id (λ U h, preimage_nhds_within_coinduced' H
     e.open_target (le_def.1 (nhds_mono _) U h))),
-  exact le_bsupr e he,
+  exact le_supr₂ e he,
 end
 
 lemma is_open_source (e : pretrivialization F proj) : @is_open _ a.total_space_topology e.source :=

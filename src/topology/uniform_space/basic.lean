@@ -207,6 +207,17 @@ def uniform_space.core.mk' {α : Type u} (U : filter (α × α))
     apply monotone_comp_rel; exact monotone_id,
   end⟩
 
+/-- Defining an `uniform_space.core` from a filter basis satisfying some uniformity-like axioms. -/
+def uniform_space.core.mk_of_basis {α : Type u} (B : filter_basis (α × α))
+  (refl : ∀ (r ∈ B) x, (x, x) ∈ r)
+  (symm : ∀ r ∈ B, ∃ t ∈ B, t ⊆ prod.swap ⁻¹' r)
+  (comp : ∀ r ∈ B, ∃ t ∈ B, t ○ t ⊆ r) : uniform_space.core α :=
+{ uniformity := B.filter,
+  refl := B.has_basis.ge_iff.mpr (λ r ru, id_rel_subset.2 $ refl _ ru),
+  symm := (B.has_basis.tendsto_iff B.has_basis).mpr symm,
+  comp := (has_basis.le_basis_iff (B.has_basis.lift' (monotone_comp_rel monotone_id monotone_id))
+    B.has_basis).mpr comp }
+
 /-- A uniform space generates a topological space -/
 def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.core α) :
   topological_space α :=

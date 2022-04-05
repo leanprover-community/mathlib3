@@ -506,6 +506,20 @@ lemma differentiable_within_at_inter' (ht : t ∈ 𝓝[s] x) :
 by simp only [differentiable_within_at, has_fderiv_within_at, has_fderiv_at_filter,
     nhds_within_restrict'' s ht]
 
+lemma differentiable_within_at.antimono (h : differentiable_within_at 𝕜 f s x) (hst : s ⊆ t)
+  (hx : s ∈ 𝓝[t] x) :
+  differentiable_within_at 𝕜 f t x :=
+by rwa [← differentiable_within_at_inter' hx, inter_eq_self_of_subset_right hst]
+
+lemma has_fderiv_within_at.antimono (h : has_fderiv_within_at f f' s x) (hst : s ⊆ t)
+  (hs : unique_diff_within_at 𝕜 s x) (hx : s ∈ 𝓝[t] x) :
+  has_fderiv_within_at f f' t x :=
+begin
+  have h' : has_fderiv_within_at f _ t x :=
+    (h.differentiable_within_at.antimono hst hx).has_fderiv_within_at,
+  rwa hs.eq h (h'.mono hst),
+end
+
 lemma differentiable_at.differentiable_within_at
   (h : differentiable_at 𝕜 f x) : differentiable_within_at 𝕜 f s x :=
 (differentiable_within_at_univ.2 h).mono (subset_univ _)
@@ -545,6 +559,11 @@ lemma fderiv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
   (h : differentiable_within_at 𝕜 f t x) :
   fderiv_within 𝕜 f s x = fderiv_within 𝕜 f t x :=
 ((differentiable_within_at.has_fderiv_within_at h).mono st).fderiv_within ht
+
+lemma fderiv_within_subset' (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x) (hx : s ∈ 𝓝[t] x)
+  (h : differentiable_within_at 𝕜 f s x) :
+  fderiv_within 𝕜 f s x = fderiv_within 𝕜 f t x :=
+fderiv_within_subset st ht (h.antimono st hx)
 
 @[simp] lemma fderiv_within_univ : fderiv_within 𝕜 f univ = fderiv 𝕜 f :=
 begin

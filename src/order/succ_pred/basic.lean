@@ -843,39 +843,41 @@ lemma pred.rec_linear {p : α → Prop} (hsucc : ∀ a, p a ↔ p (pred a)) (a b
 end pred_order
 end linear_order
 
-/-- A strictly monotonous function from `no_max_order` to `is_succ_archimedean` is unbounded. -/
-lemma unbounded_of_strict_mono
-  [preorder α] [preorder β]
-  [no_max_order α] [nonempty α]
-  [succ_order β] [is_succ_archimedean β]
-  (f : α → β) (Hmono : strict_mono f) :
+instance is_empty.to_no_max_order [has_lt α] [is_empty α] : no_max_order α := ⟨is_empty_elim⟩
+instance is_empty.to_no_min_order [has_lt α] [is_empty α] : no_min_order α := ⟨is_empty_elim⟩
+
+section
+variables [preorder α] [preorder β] {f : α → β} {a : α}
+
+lemma strict_mono.is_max_of_apply (hf : strict_mono f) (ha : is_max (f a)) : is_max a :=
+by { by_contra, obtain ⟨b, hb⟩ := not_is_max_iff.1 h, exact (hf hb).not_is_max ha }
+
+lemma strict_mono.is_min_of_apply (hf : strict_mono f) (ha : is_min (f a)) : is_min a :=
+by { by_contra, obtain ⟨b, hb⟩ := not_is_min_iff.1 h, exact (hf hb).not_is_min ha }
+
+lemma strict_anti.is_max_of_apply (hf : strict_anti f) (ha : is_min (f a)) : is_max a :=
+by { by_contra, obtain ⟨b, hb⟩ := not_is_max_iff.1 h, exact (hf hb).not_is_min ha }
+
+lemma strict_anti.is_min_of_apply (hf : strict_anti f) (ha : is_max (f a)) : is_min a :=
+by { by_contra, obtain ⟨b, hb⟩ := not_is_min_iff.1 h, exact (hf hb).not_is_max ha }
+
+end
+
+lemma strict_mono.not_bdd_above_range [preorder α] [no_max_order α] [nonempty α] [preorder β]
+  [succ_order β] [is_succ_archimedean β] {f : α → β} (hf : strict_mono f) :
   ¬ bdd_above (set.range f) :=
 begin
-  assume bounded : bdd_above (set.range f),
-  obtain ⟨m, Hm⟩ : ∃ m, ∀ v ∈ set.range f, v ≤ m := bounded,
-  have Hm' : ∀ a, f a ≤ m := λ a, Hm (f a) (set.mem_range_self _),
+  rintro ⟨m, hm⟩,
+  have hm' : ∀ a, f a ≤ m := λ a, hm (set.mem_range_self _),
   let a₀ := classical.arbitrary α,
-  let v₀ := f a₀,
-  have next_arg : ∀ a, ∃ a', f a < f a',
-  { intro a,
-    obtain ⟨a', Ha'⟩ : ∃ a', a < a' := exists_gt a,
-    use a', show f a < f a', from Hmono Ha' },
-  have succ_mem_range : ∀ b, v₀ ≤ b → ∃ a, b < f a,
-  { apply succ.rec,
-    { exact next_arg a₀ },
-    { assume (b : β) (h : v₀ ≤ b) (IH : ∃ a, b < f a),
-      obtain ⟨a, Ha⟩ := IH,
-      obtain ⟨a', Ha'⟩ : ∃ a', f a < f a' := next_arg a,
-      have Hsucc_le : succ (f a) ≤ f a' := succ_le_of_lt Ha',
-      have not_max : ¬ is_max (f a),
-      { rw not_is_max_iff, use (f a'), assumption },
-      use a',
-      calc succ b < succ (f a) : succ_lt_succ_of_not_is_max not_max Ha
-      ...         ≤ f a'       : Hsucc_le } },
-  obtain ⟨a, Ha⟩ : ∃ a, m < f a := succ_mem_range m (Hm' a₀),
-  have : f a ≤ m := Hm' a,
-  have : ¬ f a ≤ m := not_le_of_lt Ha,
-  tauto
+  suffices : ∀ b, f a₀ ≤ b → ∃ a, b < f a,
+  { obtain ⟨a, ha⟩ : ∃ a, m < f a := this m (hm' a₀),
+    exact ha.not_le (hm' a) },
+  have h : ∀ a, ∃ a', f a < f a' := λ a, (exists_gt a).imp (λ a' h, hf h),
+  apply succ.rec,
+  { exact h a₀ },
+  rintro b hab ⟨a, hba⟩,
+  exact (h a).imp (λ a', (succ_le_of_lt hba).trans_lt),
 end
 
 /-- The range of a function with a `is_succ_archimedean` domain partitions the number line
@@ -891,13 +893,9 @@ end
       numbers that can be expressed as `2k - 1/l.succ`, for `k l : ℕ`. Then `5/2` doesn't lie in any
       interval.
     -/
-lemma ex_le_lt_of_mono_of_unbounded
-  [linear_order α] [linear_order β]
-  [succ_order α] [is_succ_archimedean α]
-  (f : α → β) (Hmono : monotone f)
-  (Hunbounded : ¬ bdd_above (set.range f))
-  (b : β)
-  {a₀ : α} (Hlow: f a₀ ≤ b):
+lemma ex_le_lt_of_mono_of_unbounded [linear_order α] [linear_order β] [succ_order α]
+  [is_succ_archimedean α] (f : α → β) (hf : monotone f) (Hunbounded : ¬ bdd_above (set.range f))
+  (b : β) {a₀ : α} (Hlow: f a₀ ≤ b) :
   ∃ a : α, f a ≤ b ∧ b < f (succ a) :=
 begin
   by_contra' next : ∀ {a}, f a ≤ b → f (succ a) ≤ b,
@@ -906,18 +904,10 @@ begin
     { exact Hlow },
     { assume (a : α) (a₀_le_a : a₀ ≤ a) (fa_le_b : f a ≤ b),
       show f (succ a) ≤ b, from next fa_le_b } },
-  have all_bounded : ∀ {a}, f a ≤ b,
-  { intro a, by_cases h : a₀ ≤ a,
-    { exact ge_bounded h },
-    { have : a ≤ a₀ := le_of_not_le h,
-      calc f a ≤ f a₀ : Hmono this
-      ...      ≤ b    : Hlow } },
-  apply Hunbounded,
-  show bdd_above (set.range f),
-  { use b,
-    assume (x : β) (Hx : x ∈ set.range f),
-    obtain ⟨a, Ha⟩ : ∃ a, f a = x := Hx,
-    show x ≤ b, rw ← Ha, from all_bounded },
+  refine Hunbounded ⟨b, forall_range_iff.2 $ λ a, _⟩,
+  obtain h | h := le_total a₀ a,
+  { exact ge_bounded h },
+  { exact (hf h).trans Hlow },
 end
 
 section order_bot

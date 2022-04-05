@@ -34,6 +34,7 @@ def fundamental_group (X : Type u) [topological_space X] (x : X) :=
 namespace fundamental_group
 
 local attribute [instance] path.homotopic.setoid
+local attribute [instance] fundamental_groupoid 
 
 /-- Get an isomorphism between the fundamental groups at two points given a path -/
 def fundamental_group_mul_equiv_of_path (p : path x₀ x₁) :
@@ -45,5 +46,29 @@ variables (x₀ x₁)
 def fundamental_group_mul_equiv_of_path_connected [path_connected_space X] :
   (fundamental_group X x₀) ≃* (fundamental_group X x₁) :=
 fundamental_group_mul_equiv_of_path (path_connected_space.some_path x₀ x₁)
+
+/-- Help the typechecker by converting an element in the fundamental group of
+a topological space back to an arrow in the fundamental groupoid. -/
+@[reducible]
+def to_arrow {X : Top} {x : X} (p : fundamental_group X x) : x ⟶ x :=
+p.hom
+
+/-- Help the typechecker by converting an element in the fundamental group of
+a topological space back to a path in that space (i.e. `path.homotopic.quotient`). -/
+@[reducible]
+def to_path {X : Top} {x : X} (p : fundamental_group X x) :
+  path.homotopic.quotient x x := to_arrow p
+
+/-- Help the typechecker by convering an arrow loop in the fundamental groupoid to an
+element of the fundamental group. -/
+@[reducible]
+def from_arrow {X : Top} {x : X} (p : x ⟶ x) : fundamental_group X x :=
+⟨p, category_theory.groupoid.inv p⟩
+
+/-- Help the typechecker by convering a path in a topological space to an element of the
+fundamental group of that space. -/
+@[reducible]
+def from_path {X : Top} {x : X} (p : path.homotopic.quotient x x) :
+  fundamental_group X x := from_arrow p
 
 end fundamental_group

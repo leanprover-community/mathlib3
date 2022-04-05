@@ -50,7 +50,11 @@ lemma is_square_mul_self [has_mul α] (m : α) : is_square (m * m) := ⟨m, rfl�
 @[to_additive even_iff_exists_two_nsmul]
 lemma is_square_iff_exists_sq [monoid α] (m : α) : is_square m ↔ ∃ c, m = c ^ 2 :=
 by simp [is_square, pow_two]
+
 alias is_square_iff_exists_sq ↔ is_square.exists_sq is_square_of_exists_sq
+attribute [to_additive even.exists_two_mul] is_square.exists_sq
+attribute [to_additive even_of_exists_two_nsmul] is_square_of_exists_sq
+
 
 @[simp, to_additive even_two_nsmul]
 lemma is_square_sq [monoid α] (a : α) : is_square (a ^ 2) := ⟨a, pow_two _⟩

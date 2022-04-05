@@ -466,11 +466,15 @@ bounded_formula.realize_iff
   (φ.relabel g).realize v ↔ φ.realize (v ∘ g) :=
 begin
   rw [realize, realize, relabel, bounded_formula.realize_relabel,
-    iff_eq_eq],
-  refine congr (congr rfl _) (funext fin_zero_elim),
-  ext,
-  simp,
+    iff_eq_eq, fin.cast_add_zero],
+  exact congr rfl (funext fin_zero_elim),
 end
+
+lemma realize_relabel_sum_inr (φ : L.formula (fin n)) {v : empty → M} {x : fin n → M} :
+  (bounded_formula.relabel sum.inr φ).realize v x ↔ φ.realize x :=
+by rw [bounded_formula.realize_relabel, formula.realize, sum.elim_comp_inr, fin.cast_add_zero,
+    cast_refl, order_iso.coe_refl, function.comp.right_id,
+    subsingleton.elim (x ∘ (nat_add n : fin 0 → fin n)) default]
 
 @[simp]
 lemma realize_equal {t₁ t₂ : L.term α} {x : α → M} :
@@ -518,6 +522,8 @@ infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \mo
 
 variables {M} (T : L.Theory)
 
+@[simp] lemma Theory.model_iff : M ⊨ T ↔ ∀ φ ∈ T, M ⊨ φ := ⟨λ h, h.realize_of_mem, λ h, ⟨h⟩⟩
+
 lemma Theory.realize_sentence_of_mem [M ⊨ T] {φ : L.sentence} (h : φ ∈ T) :
   M ⊨ φ :=
 Theory.model.realize_of_mem φ h
@@ -541,6 +547,10 @@ instance model_empty : M ⊨ (∅ : L.Theory) := ⟨λ φ hφ, (set.not_mem_empt
 lemma Theory.model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
   M ⊨ T :=
 ⟨λ φ hφ, T'.realize_sentence_of_mem (hs hφ)⟩
+
+lemma Theory.model_singleton_iff {φ : L.sentence} :
+  M ⊨ ({φ} : L.Theory) ↔ M ⊨ φ :=
+by simp
 
 namespace bounded_formula
 
@@ -598,6 +608,44 @@ begin
     iff_eq_eq],
   exact congr rfl (funext fin_zero_elim),
 end
+
+namespace relations
+open bounded_formula
+
+variable {r : L.relations 2}
+
+@[simp]
+lemma realize_reflexive :
+  M ⊨ r.reflexive ↔ reflexive (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, realize_rel₂)
+
+@[simp]
+lemma realize_irreflexive :
+  M ⊨ r.irreflexive ↔ irreflexive (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, not_congr realize_rel₂)
+
+@[simp]
+lemma realize_symmetric :
+  M ⊨ r.symmetric ↔ symmetric (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, forall_congr (λ _, imp_congr realize_rel₂ realize_rel₂))
+
+@[simp]
+lemma realize_antisymmetric :
+  M ⊨ r.antisymmetric ↔ anti_symmetric (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, forall_congr (λ _, imp_congr realize_rel₂ (imp_congr realize_rel₂ iff.rfl)))
+
+@[simp]
+lemma realize_transitive :
+  M ⊨ r.transitive ↔ transitive (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, forall_congr (λ _, forall_congr
+  (λ _, imp_congr realize_rel₂ (imp_congr realize_rel₂ realize_rel₂))))
+
+@[simp]
+lemma realize_total :
+  M ⊨ r.total ↔ total (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, forall_congr (λ _, realize_sup.trans (or_congr realize_rel₂ realize_rel₂)))
+
+end relations
 
 end language
 end first_order

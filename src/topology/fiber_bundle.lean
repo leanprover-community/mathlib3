@@ -1087,76 +1087,80 @@ topology in such a way that there is a fiber bundle structure for which the loca
 are also local homeomorphism and hence local trivializations. -/
 @[nolint has_inhabited_instance]
 structure topological_fiber_prebundle (proj : Z → B) :=
+(pretrivialization_atlas : set (pretrivialization F proj))
 (pretrivialization_at : B → pretrivialization F proj)
 (mem_base_pretrivialization_at : ∀ x : B, x ∈ (pretrivialization_at x).base_set)
-(continuous_triv_change : ∀ x y : B, continuous_on ((pretrivialization_at x) ∘
-  (pretrivialization_at y).to_local_equiv.symm) ((pretrivialization_at y).target ∩
-  ((pretrivialization_at y).to_local_equiv.symm ⁻¹' (pretrivialization_at x).source)))
+(pretrivialization_mem_atlas : ∀ x : B, pretrivialization_at x ∈ pretrivialization_atlas)
+(continuous_triv_change : ∀ e e' ∈ pretrivialization_atlas,
+  continuous_on (e ∘ e'.to_local_equiv.symm) (e'.target ∩ (e'.to_local_equiv.symm ⁻¹' e.source)))
 
 namespace topological_fiber_prebundle
 
-variables {F} (a : topological_fiber_prebundle F proj) (x : B)
+variables {F} (a : topological_fiber_prebundle F proj) {e : pretrivialization F proj}
 
 /-- Topology on the total space that will make the prebundle into a bundle. -/
 def total_space_topology (a : topological_fiber_prebundle F proj) : topological_space Z :=
-⨆ x : B, coinduced (a.pretrivialization_at x).set_symm (subtype.topological_space)
+⨆ (e : pretrivialization F proj) (he : e ∈ a.pretrivialization_atlas),
+  coinduced e.set_symm (subtype.topological_space)
 
-lemma continuous_symm_pretrivialization_at : @continuous_on _ _ _ a.total_space_topology
-  (a.pretrivialization_at x).to_local_equiv.symm (a.pretrivialization_at x).target :=
+lemma continuous_symm_of_mem_pretrivialization_atlas (he : e ∈ a.pretrivialization_atlas) :
+  @continuous_on _ _ _ a.total_space_topology
+  e.to_local_equiv.symm e.target :=
 begin
   refine id (λ z H, id (λ U h, preimage_nhds_within_coinduced' H
-    (a.pretrivialization_at x).open_target (le_def.1 (nhds_mono _) U h))),
-  exact le_supr _ x,
+    e.open_target (le_def.1 (nhds_mono _) U h))),
+  exact le_bsupr e he,
 end
 
-lemma is_open_source_pretrivialization_at :
-  @is_open _ a.total_space_topology (a.pretrivialization_at x).source :=
+lemma is_open_source (e : pretrivialization F proj) : @is_open _ a.total_space_topology e.source :=
 begin
   letI := a.total_space_topology,
-  refine is_open_supr_iff.mpr (λ y, is_open_coinduced.mpr (is_open_induced_iff.mpr
-    ⟨(a.pretrivialization_at x).target, (a.pretrivialization_at x).open_target, _⟩)),
-  rw [pretrivialization.set_symm, restrict, (a.pretrivialization_at x).target_eq,
-    (a.pretrivialization_at x).source_eq, preimage_comp, subtype.preimage_coe_eq_preimage_coe_iff,
-    (a.pretrivialization_at y).target_eq, prod_inter_prod, inter_univ,
+  refine is_open_supr_iff.mpr (λ e', _),
+  refine is_open_supr_iff.mpr (λ he', _),
+  refine is_open_coinduced.mpr (is_open_induced_iff.mpr ⟨e.target, e.open_target, _⟩),
+  rw [pretrivialization.set_symm, restrict, e.target_eq,
+    e.source_eq, preimage_comp, subtype.preimage_coe_eq_preimage_coe_iff,
+    e'.target_eq, prod_inter_prod, inter_univ,
     pretrivialization.preimage_symm_proj_inter],
 end
 
-lemma is_open_target_pretrivialization_at_inter (x y : B) :
-  is_open ((a.pretrivialization_at y).to_local_equiv.target ∩
-  (a.pretrivialization_at y).to_local_equiv.symm ⁻¹' (a.pretrivialization_at x).source) :=
+lemma is_open_target_of_mem_pretrivialization_atlas_inter (e e' : pretrivialization F proj)
+  (he' : e' ∈ a.pretrivialization_atlas) :
+  is_open (e'.to_local_equiv.target ∩ e'.to_local_equiv.symm ⁻¹' e.source) :=
 begin
   letI := a.total_space_topology,
-  obtain ⟨u, hu1, hu2⟩ := continuous_on_iff'.mp (a.continuous_symm_pretrivialization_at y)
-    (a.pretrivialization_at x).source (a.is_open_source_pretrivialization_at x),
+  obtain ⟨u, hu1, hu2⟩ := continuous_on_iff'.mp (a.continuous_symm_of_mem_pretrivialization_atlas
+    he') e.source (a.is_open_source e),
   rw [inter_comm, hu2],
-  exact hu1.inter (a.pretrivialization_at y).open_target,
+  exact hu1.inter e'.open_target,
 end
 
 /-- Promotion from a `pretrivialization` to a `trivialization`. -/
-def trivialization_at (a : topological_fiber_prebundle F proj) (x : B) :
+def trivialization_of_mem_pretrivialization_atlas (he : e ∈ a.pretrivialization_atlas) :
   @trivialization B F Z _ _ a.total_space_topology proj :=
-{ open_source := a.is_open_source_pretrivialization_at x,
+{ open_source := a.is_open_source e,
   continuous_to_fun := begin
     letI := a.total_space_topology,
-    refine continuous_on_iff'.mpr (λ s hs, ⟨(a.pretrivialization_at x) ⁻¹' s ∩
-      (a.pretrivialization_at x).source, (is_open_supr_iff.mpr (λ y, _)),
+    refine continuous_on_iff'.mpr (λ s hs, ⟨e ⁻¹' s ∩ e.source, (is_open_supr_iff.mpr (λ e', _)),
       by { rw [inter_assoc, inter_self], refl }⟩),
+    refine (is_open_supr_iff.mpr (λ he', _)),
     rw [is_open_coinduced, is_open_induced_iff],
-    obtain ⟨u, hu1, hu2⟩ := continuous_on_iff'.mp (a.continuous_triv_change x y) s hs,
-    have hu3 := congr_arg (λ s, (λ x : (a.pretrivialization_at y).target, (x : B × F)) ⁻¹' s) hu2,
+    obtain ⟨u, hu1, hu2⟩ := continuous_on_iff'.mp (a.continuous_triv_change _ he _ he') s hs,
+    have hu3 := congr_arg (λ s, (λ x : e'.target, (x : B × F)) ⁻¹' s) hu2,
     simp only [subtype.coe_preimage_self, preimage_inter, univ_inter] at hu3,
-    refine ⟨u ∩ (a.pretrivialization_at y).to_local_equiv.target ∩
-      ((a.pretrivialization_at y).to_local_equiv.symm ⁻¹' (a.pretrivialization_at x).source), _, by
+    refine ⟨u ∩ e'.to_local_equiv.target ∩
+      (e'.to_local_equiv.symm ⁻¹' e.source), _, by
       { simp only [preimage_inter, inter_univ, subtype.coe_preimage_self, hu3.symm], refl }⟩,
     rw inter_assoc,
-    exact hu1.inter (a.is_open_target_pretrivialization_at_inter x y),
+    exact hu1.inter (a.is_open_target_of_mem_pretrivialization_atlas_inter e e' he'),
   end,
-  continuous_inv_fun := a.continuous_symm_pretrivialization_at x,
-  ..(a.pretrivialization_at x) }
+  continuous_inv_fun := a.continuous_symm_of_mem_pretrivialization_atlas he,
+  .. e }
 
 lemma is_topological_fiber_bundle :
   @is_topological_fiber_bundle B F Z _ _ a.total_space_topology proj :=
-λ x, ⟨a.trivialization_at x, a.mem_base_pretrivialization_at x ⟩
+λ x, ⟨a.trivialization_of_mem_pretrivialization_atlas (a.pretrivialization_mem_atlas x),
+  a.mem_base_pretrivialization_at x ⟩
 
 lemma continuous_proj : @continuous _ _ a.total_space_topology _ proj :=
 by { letI := a.total_space_topology, exact a.is_topological_fiber_bundle.continuous_proj, }

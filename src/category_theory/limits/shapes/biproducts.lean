@@ -1528,26 +1528,40 @@ lemma biprod.map_eq [has_binary_biproducts C] {W X Y Z : C} {f : W ⟶ Y} {g : X
   biprod.map f g = biprod.fst ≫ f ≫ biprod.inl + biprod.snd ≫ g ≫ biprod.inr :=
 by apply biprod.hom_ext; apply biprod.hom_ext'; simp
 
-lemma binary_bicone_of_split_mono {X Y : C} (f : X ⟶ Y) [split_mono f] 
+/-- 
+Every split mono with a cokernel induces a binary bicone with `f` as its `inl` and
+the cokernel map as its `snd`. -/
+@[simps]
+def binary_bicone_of_split_mono_of_cokernel {X Y : C} (f : X ⟶ Y) [split_mono f]
   {c : cokernel_cofork f} (i : is_colimit c) : binary_bicone X c.X :=
 { X := Y,
   fst := retraction f,
   snd := c.π,
   inl := f,
-  inr := 
+  inr :=
     begin
       let c' : cokernel_cofork (𝟙 Y - (𝟙 Y - retraction f ≫ f)) :=
         cokernel_cofork.of_π (cofork.π c) (by simp),
       let i' : is_colimit c' :=
         is_cokernel_epi_comp i (retraction f) (by simp),
       have i'' := is_colimit_cofork_of_cokernel_cofork i',
-      have hf : (𝟙 Y - retraction f ≫ f) ≫ (𝟙 Y - retraction f ≫ f) = 𝟙 Y - retraction f ≫ f, { simp },
+      have hf : (𝟙 Y - retraction f ≫ f) ≫ (𝟙 Y - retraction f ≫ f) = 𝟙 Y - retraction f ≫ f,
+      { simp },
       exact (split_epi_of_idempotent_of_is_colimit_cofork C hf i'').section_,
     end,
   inl_fst' := by simp,
   inl_snd' := by simp,
-  inr_fst' := by { simp [is_colimit_cofork_of_cokernel_cofork],  },
-  inr_snd' := by { dsimp, } }
+  inr_fst' := 
+    begin
+      change i.desc (cofork.of_π (𝟙 Y - retraction f ≫ f) _) ≫ _ = _,
+      letI := epi_of_is_colimit_parallel_pair i,
+      apply zero_of_epi_comp c.π,
+      simp only [sub_comp, category.comp_id, category.assoc, split_mono.id, is_colimit.fac_assoc,
+        cofork.of_π_ι_app, category.id_comp],
+      apply sub_eq_zero_of_eq,
+      apply category.id_comp
+    end,
+  inr_snd' := by apply split_epi.id }
 
 end
 

@@ -492,6 +492,13 @@ variables {h0} {h1} {hadd} {hmul} {r : R}
 @[simp]
 theorem of_apply : (of f h0 h1 hadd hmul) r = f r := rfl
 
+/-- The `valuation` associated to an `add_valuation` (useful if the latter is constructed using
+`add_valuation.of`). -/
+def valuation : valuation R (multiplicative (order_dual Γ₀)) := v
+
+@[simp] lemma valuation_apply (r : R) :
+  v.valuation r = multiplicative.of_add (order_dual.to_dual (v r)) := rfl
+
 end
 
 @[simp] lemma map_zero : v 0 = ⊤ := v.map_zero

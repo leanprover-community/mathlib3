@@ -2539,6 +2539,13 @@ lemma mem_sup' : x ∈ s ⊔ t ↔ ∃ (y : s) (z : t), (y:C) * z = x :=
 mem_sup.trans $ by simp only [set_like.exists, coe_mk]
 
 @[to_additive]
+lemma mem_closure_pair {x y z : C} : z ∈ closure ({x, y} : set C) ↔ ∃ m n : ℤ, x ^ m * y ^ n = z :=
+begin
+  rw [←set.singleton_union, subgroup.closure_union, mem_sup],
+  simp_rw [exists_prop, mem_closure_singleton, exists_exists_eq_and],
+end
+
+@[to_additive]
 instance : is_modular_lattice (subgroup C) :=
 ⟨λ x y z xz a ha, begin
   rw [mem_inf, mem_sup] at ha,
@@ -2813,7 +2820,7 @@ begin
     have hmem_bsupr: s.noncomm_prod f (λ x hx, (comm.2 x hx).2) ∈ ⨆ (i ∈ (s : set ι)), K i,
     { refine subgroup.noncomm_prod_mem _ _ _,
       intros x hx,
-      have : K x ≤ ⨆ (i ∈ (s : set ι)), K i := le_bsupr x hx,
+      have : K x ≤ ⨆ (i ∈ (s : set ι)), K i := le_supr₂ x hx,
       exact this (hmem.2 x hx), },
     intro heq1,
     rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem at heq1,

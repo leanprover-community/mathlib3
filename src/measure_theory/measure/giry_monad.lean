@@ -50,7 +50,7 @@ measurable.of_comap_le $ le_supr_of_le s $ le_supr_of_le hs $ le_rfl
 lemma measurable_of_measurable_coe (f : β → measure α)
   (h : ∀(s : set α) (hs : measurable_set s), measurable (λb, f b s)) :
   measurable f :=
-measurable.of_le_map $ bsupr_le $ assume s hs, measurable_space.comap_le_iff_le_map.2 $
+measurable.of_le_map $ supr₂_le $ assume s hs, measurable_space.comap_le_iff_le_map.2 $
   by rw [measurable_space.map_comp]; exact h s hs
 
 lemma measurable_measure {μ : α → measure β} :

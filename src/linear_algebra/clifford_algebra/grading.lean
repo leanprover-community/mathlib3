@@ -122,7 +122,14 @@ begin
   dunfold even_odd,
   calc    (⨆ (i : zmod 2) (j : {n // ↑n = i}), (ι Q).range ^ ↑j)
         = (⨆ (i : Σ i : zmod 2, {n : ℕ // ↑n = i}), (ι Q).range ^ (i.2 : ℕ)) : by rw supr_sigma
-    ... = (⨆ (i : ℕ), (ι Q).range ^ i) : supr_congr (λ i, i.2) (λ i, ⟨⟨_, i, rfl⟩, rfl⟩) (λ _, rfl),
+    ... = (⨆ (i : ℕ), (ι Q).range ^ i)
+        : function.surjective.supr_congr (λ i, i.2) (λ i, ⟨⟨_, i, rfl⟩, rfl⟩) (λ _, rfl),
+end
+
+lemma even_odd_is_compl : is_compl (even_odd Q 0) (even_odd Q 1) :=
+(graded_algebra.is_internal (even_odd Q)).is_compl zero_ne_one $ begin
+  have : (finset.univ : finset (zmod 2)) = {0, 1} := rfl,
+  simpa using congr_arg (coe : finset (zmod 2) → set (zmod 2)) this,
 end
 
 /-- To show a property is true on the even or odd part, it suffices to show it is true on the

@@ -744,42 +744,23 @@ variables {X : Type*} [topological_space X]
 
 lemma _root_.continuous.prod_mapL {f : X → M₁ →L[𝕜] M₂} {g : X → M₃ →L[𝕜] M₄}
   (hf : continuous f) (hg : continuous g) : continuous (λ x, (f x).prod_map (g x)) :=
-begin
-  rw show (λ x, (f x).prod_map (g x)) = ((prod_mapL 𝕜 M₁ M₂ M₃ M₄) ∘ (λ x : X, (f x, g x))),
-     by ext ; simp only [function.comp_app, prod_mapL_apply],
-  exact (prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp (hf.prod_mk hg)
-end
+(prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp (hf.prod_mk hg)
 
 lemma _root_.continuous.prod_map_equivL {f : X → M₁ ≃L[𝕜] M₂} {g : X → M₃ ≃L[𝕜] M₄}
   (hf : continuous (λ x, (f x : M₁ →L[𝕜] M₂))) (hg : continuous (λ x, (g x : M₃ →L[𝕜] M₄))) :
   continuous (λ x, ((f x).prod (g x) : M₁ × M₃ →L[𝕜] M₂ × M₄)) :=
-begin
-  rw show (λ x, ((f x).prod (g x) : M₁ × M₃ →L[𝕜] M₂ × M₄)) =
-    ((prod_mapL 𝕜 M₁ M₂ M₃ M₄) ∘ (λ x : X, (f x, g x))),
-  by ext ; simp only [function.comp_app, prod_mapL_apply, continuous_linear_equiv.coe_prod],
-  exact (prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp (hf.prod_mk hg)
-end
+(prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp (hf.prod_mk hg)
 
 lemma _root_.continuous_on.prod_mapL {f : X → M₁ →L[𝕜] M₂} {g : X → M₃ →L[𝕜] M₄} {s : set X}
   (hf : continuous_on f s) (hg : continuous_on g s) :
   continuous_on (λ x, (f x).prod_map (g x)) s :=
-begin
-  rw show (λ x, (f x).prod_map (g x)) =
-          ((prod_mapL 𝕜 M₁ M₂ M₃ M₄) ∘ (λ x : X, (f x, g x))),
-  by ext ; simp only [function.comp_app, prod_mapL_apply],
-  exact (prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp_continuous_on (hf.prod hg)
-end
+((prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp_continuous_on (hf.prod hg) : _)
 
 lemma _root_.continuous_on.prod_map_equivL {f : X → M₁ ≃L[𝕜] M₂} {g : X → M₃ ≃L[𝕜] M₄} {s : set X}
   (hf : continuous_on (λ x, (f x : M₁ →L[𝕜] M₂)) s)
   (hg : continuous_on (λ x, (g x : M₃ →L[𝕜] M₄)) s) :
   continuous_on (λ x, ((f x).prod (g x) : M₁ × M₃ →L[𝕜] M₂ × M₄)) s :=
-begin
-  rw show (λ x, ((f x).prod (g x) : M₁ × M₃ →L[𝕜] M₂ × M₄)) =
-          ((prod_mapL 𝕜 M₁ M₂ M₃ M₄) ∘ (λ x : X, (f x, g x))),
-  by ext ; simp only [function.comp_app, prod_mapL_apply, continuous_linear_equiv.coe_prod],
-  exact (prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp_continuous_on (hf.prod hg)
-end
+(prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp_continuous_on (hf.prod hg)
 
 variables {𝕜 E Fₗ Gₗ}
 

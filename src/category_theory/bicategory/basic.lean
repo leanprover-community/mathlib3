@@ -108,6 +108,7 @@ class bicategory (B : Type u) extends category_struct.{v} B :=
 (triangle' : ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c),
   (α_ f (𝟙 b) g).hom ≫ f ◁ (λ_ g).hom = (ρ_ f).hom ▷ g . obviously)
 
+-- The precedence of the whiskerings is higher than that of the composition `≫`.
 localized "infixr ` ◁ `:81 := bicategory.whisker_left" in bicategory
 localized "infixl ` ▷ `:81 := bicategory.whisker_right" in bicategory
 localized "notation `α_` := bicategory.associator" in bicategory
@@ -267,21 +268,27 @@ by simp [←cancel_mono ((ρ_ f).hom ▷ g)]
 section simp_lemmas
 
 /-!
-### Simp normal form for 2-morphisms
+### Simp-normal form for 2-morphisms
 
-A 2-morphism is of simp normal form if
+Rewriting involving associators and unitors could be very complicated. We try to ease this
+complexity by putting carefully chosen simp lemmas that rewrite any 2-morphisms into simp-normal
+form defined below. Rewriting into simp-normal form is also useful when applying (forthcoming)
+`coherence` tactic.
+
+The simp-normal form of 2-morphisms is defined to be an expression that has the minimal number of
+parentheses. More precisely,
 1. it is a composition of 2-morphisms like `η₁ ≫ η₂ ≫ η₃ ≫ η₄ ≫ η₅` such that each `ηᵢ` is
   either a structural 2-morphisms (2-morphisms made up only of identities, associators, unitors)
   or non-structural 2-morphisms, and
 2. each non-structural 2-morphism in the composition is of the form `f₁ ◁ f₂ ◁ f₃ ◁ η ▷ f₄ ▷ f₅`,
   where each `fᵢ` is a 1-morphism that is not identities, and `η` is a non-structural 2-morphisms.
 
-Note that `f₁ ◁ f₂ ◁ f₃ ◁ η ▷ f₄ ▷ f₅` is acturally `f₁ ◁ (f₂ ◁ (f₃ ◁ ((η ▷ f₄) ▷ f₅)))`.
+Note that `f₁ ◁ f₂ ◁ f₃ ◁ η ▷ f₄ ▷ f₅` is actually `f₁ ◁ (f₂ ◁ (f₃ ◁ ((η ▷ f₄) ▷ f₅)))`.
 
 The following five lemmas are provided to rewrite any 2-morphisms into normal forms. There are
 associators and uniters in the RHS in these lemma, which at first glance looks complicated than
-the LHS, but they are reduced by the pentagon or triangle identities, and more generally,
-(forthcoming) `coherence` tactic.
+the LHS, but they will be eventually reduced by the pentagon or triangle identities, and more
+generally, (forthcoming) `coherence` tactic.
 -/
 
 @[reassoc, simp]

@@ -24,7 +24,7 @@ minimise the shadow.
   It is the compressions of the elements of `s` whose compression is not already in `s` along with
   the element whose compression is already in `s`. This way of splitting into what moves and what
   does not ensures the compression doesn't squash the set family, which is proved by
-  `uv.card_compress`.
+  `uv.card_compression`.
 * `uv.card_shadow_compression_le`: Compressing reduces the size of the shadow. This is a key fact in
   the proof of Kruskal-Katona.
 
@@ -148,6 +148,12 @@ def is_compressed (u v : α) (s : finset α) := 𝓒 u v s = s
 lemma compress_of_disjoint_of_le (hua : disjoint u a) (hva : v ≤ a) :
   compress u v a = (a ⊔ u) \ v :=
 if_pos ⟨hua, hva⟩
+
+lemma compress_of_disjoint_of_le' (hva : disjoint v a) (hua : u ≤ a) :
+  compress u v ((a ⊔ v) \ u) = a :=
+by rw [compress_of_disjoint_of_le disjoint_sdiff_self_right
+  ((hva.mono_right hua).le_sdiff_of_sup_le_left $ sup_le_sup_right hua _),
+  sdiff_sup_cancel (le_sup_of_le_left hua), hva.symm.sup_sdiff_cancel_right]
 
 /-- `a` is in the UV-compressed family iff it's in the original and its compression is in the
 original, or it's not in the original but it's the compression of something in the original. -/
@@ -335,15 +341,46 @@ begin
   unfold compress,
   split_ifs,
   { rw [card_sdiff (h.2.trans le_sup_left), sup_eq_union, card_disjoint_union h.1.symm, hUV,
-    add_tsub_cancel_right] },
+      add_tsub_cancel_right] },
   { refl }
 end
 
 /-- UV-compression will reduce the size of the shadow of `𝒜` if, for all `x ∈ u` there is `y ∈ v`
 such that `𝒜` is `(u.erase x, v.erase y)`-compressed. This is the key fact about compression for
 Kruskal-Katona -/
+lemma shadow_compression_subset_compression_shadow (u v : finset α)
+  (huv : ∀ x ∈ u, ∃ y ∈ v, is_compressed (u.erase x) (v.erase y) 𝒜) :
+  ∂ (𝓒 u v 𝒜) ⊆ 𝓒 u v (∂ 𝒜) :=
+begin
+  set 𝒜' := 𝓒 u v 𝒜,
+  suffices h : ∀ s, s ∈ ∂ 𝒜' → s ∉ ∂ 𝒜 → u ⊆ s ∧ disjoint v s ∧ (s ∪ v) \ u ∈ ∂ 𝒜 ∧ u ∉ ∂ 𝒜',
+  { rintro s hs',
+    rw mem_compression,
+    by_cases hs : s ∈ 𝒜.shadow,
+    { refine or.inl ⟨hs, _⟩,
+      rw compress,
+      split_ifs with h,
+      { sorry },
+      { exact hs } },
+    { obtain ⟨hus, hvs, h, _⟩ := h _ hs' hs,
+      exact or.inr ⟨hs, _, h, compress_of_disjoint_of_le' hvs hus⟩ } },
+  sorry,
+end
+
+/-- UV-compression will reduce the size of the shadow of `𝒜` if, for all `x ∈ u` there is `y ∈ v`
+such that `𝒜` is `(u.erase x, v.erase y)`-compressed. This is the key fact about compression for
+Kruskal-Katona -/
+lemma card_shadow_compression_le' (u v : finset α)
+  (huv : ∀ x ∈ u, ∃ y ∈ v, is_compressed (u.erase x) (v.erase y) 𝒜) :
+  (∂ (𝓒 u v 𝒜)).card ≤ (∂ 𝒜).card :=
+(card_le_of_subset $ shadow_compression_subset_compression_shadow _ _ huv).trans
+  (card_compression _ _ _).le
+
+/-- UV-compression will reduce the size of the shadow of `𝒜` if, for all `x ∈ u` there is `y ∈ v`
+such that `𝒜` is `(u.erase x, v.erase y)`-compressed. This is the key fact about compression for
+Kruskal-Katona -/
 lemma card_shadow_compression_le (u v : finset α)
-  (h₁ : ∀ x ∈ u, ∃ y ∈ v, is_compressed (u.erase x) (v.erase y) 𝒜) :
+  (huv : ∀ x ∈ u, ∃ y ∈ v, is_compressed (u.erase x) (v.erase y) 𝒜) :
   (∂ (𝓒 u v 𝒜)).card ≤ (∂ 𝒜).card :=
 begin
   set 𝒜' := 𝓒 u v 𝒜,
@@ -373,7 +410,7 @@ begin
   -- The first key part is that `x ∉ u`
   have : x ∉ u,
   { intro a,
-    obtain ⟨y, hyv, hxy⟩ := h₁ x ‹x ∈ u›,
+    obtain ⟨y, hyv, hxy⟩ := huv x ‹x ∈ u›,
     -- If `x ∈ u`, we can get `y ∈ v` so that `𝒜` is `(u.erase x, v.erase y)`-compressed
     apply m y (disjoint_right.1 hsv hyv),
     -- and we will use this `y` to contradict `m`, so we would like to show `insert y s ∈ 𝒜`.
@@ -405,13 +442,13 @@ begin
     union_subset_union hus subset.rfl).trans (subset_insert _ _),
   by_cases hwu : w ∈ u,
     -- If `w ∈ u`, we find `z ∈ v`, and contradict `m` again
-  { obtain ⟨z, hz, hxy⟩ := h₁ w ‹w ∈ u›,
+  { obtain ⟨z, hz, hxy⟩ := huv w ‹w ∈ u›,
     apply m z (disjoint_right.1 hsv hz),
     have : insert w ((s ∪ v) \ u) ∈ 𝒜,
     { refine mem_of_mem_compression hw𝒜' ‹_› _,
       rintro rfl,
       refine eq_empty_of_forall_not_mem (λ a ha, _),
-      obtain ⟨b, hb, -⟩ := h₁ a ha,
+      obtain ⟨b, hb, -⟩ := huv a ha,
       exact hb },
     have : (insert w ((s ∪ v) \ u) ∪ erase u w) \ erase v z ∈ 𝒜,
     { refine sup_sdiff_mem_of_mem_compression (by rwa hxy.eq) ((erase_subset _ _).trans ‹_›) _,

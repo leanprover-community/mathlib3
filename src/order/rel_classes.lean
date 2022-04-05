@@ -457,3 +457,6 @@ instance nat.lt.is_well_order : is_well_order ℕ (<) := ⟨nat.lt_wf⟩
 
 instance [linear_order α] [h : is_well_order α (<)] : is_well_order (order_dual α) (>) :=
 ⟨h.wf⟩
+
+instance [linear_order α] [h : is_well_order α (>)] : is_well_order (order_dual α) (<) :=
+⟨h.wf⟩

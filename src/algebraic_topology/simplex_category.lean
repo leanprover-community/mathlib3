@@ -31,6 +31,8 @@ We provide the following functions to work with these objects:
 
 -/
 
+universe v
+
 open category_theory
 
 /-- The simplex category:
@@ -308,7 +310,7 @@ section skeleton
 /-- The functor that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
 @[simps obj map]
-def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd :=
+def skeletal_functor : simplex_category ⥤ NonemptyFinLinOrd.{v} :=
 { obj := λ a, NonemptyFinLinOrd.of $ ulift (fin (a.len + 1)),
   map := λ a b f,
     ⟨λ i, ulift.up (f.to_order_hom i.down), λ i j h, f.to_order_hom.monotone h⟩,
@@ -327,11 +329,11 @@ end
 
 namespace skeletal_functor
 
-instance : full skeletal_functor :=
+instance : full skeletal_functor.{v} :=
 { preimage := λ a b f, simplex_category.hom.mk ⟨λ i, (f (ulift.up i)).down, λ i j h, f.monotone h⟩,
   witness' := by { intros m n f, dsimp at *, ext1 ⟨i⟩, ext1, ext1, cases x, simp, } }
 
-instance : faithful skeletal_functor :=
+instance : faithful skeletal_functor.{v} :=
 { map_injective' := λ m n f g h,
   begin
     ext1, ext1, ext1 i, apply ulift.up.inj,
@@ -339,7 +341,7 @@ instance : faithful skeletal_functor :=
     rw h,
   end }
 
-instance : ess_surj skeletal_functor :=
+instance : ess_surj skeletal_functor.{v} :=
 { mem_ess_image := λ X, ⟨mk (fintype.card X - 1 : ℕ), ⟨begin
     have aux : fintype.card X = fintype.card X - 1 + 1,
     { exact (nat.succ_pred_eq_of_pos $ fintype.card_pos_iff.mpr ⟨⊥⟩).symm, },
@@ -357,14 +359,14 @@ instance : ess_surj skeletal_functor :=
     { ext1, ext1 i, exact f.apply_symm_apply i },
   end⟩⟩, }
 
-noncomputable instance is_equivalence : is_equivalence skeletal_functor :=
+noncomputable instance is_equivalence : is_equivalence (skeletal_functor.{v}) :=
 equivalence.of_fully_faithfully_ess_surj skeletal_functor
 
 end skeletal_functor
 
 /-- The equivalence that exhibits `simplex_category` as skeleton
 of `NonemptyFinLinOrd` -/
-noncomputable def skeletal_equivalence : simplex_category ≌ NonemptyFinLinOrd :=
+noncomputable def skeletal_equivalence : simplex_category ≌ NonemptyFinLinOrd.{v} :=
 functor.as_equivalence skeletal_functor
 
 end skeleton
@@ -373,7 +375,7 @@ end skeleton
 `simplex_category` is a skeleton of `NonemptyFinLinOrd`.
 -/
 noncomputable
-def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd simplex_category skeletal_functor :=
+def is_skeleton_of : is_skeleton_of NonemptyFinLinOrd simplex_category skeletal_functor.{v} :=
 { skel := skeletal,
   eqv := skeletal_functor.is_equivalence }
 

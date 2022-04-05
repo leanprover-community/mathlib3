@@ -223,13 +223,9 @@ hfg.sum_smul_le_sum_comp_perm_smul
 
 end mul
 
-/-! ### Chebyshev inequality -/
-
-/-! ### Scalar multiplication versions -/
-
-section smul
-variables [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β] [decidable_eq ι]
-  [ordered_smul α β] {s : finset ι} {σ : perm ι} {f : ι → α} {g : ι → β}
+section to_move
+variables [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β] {s : finset ι}
+  {σ : perm ι} {f : ι → α} {g : ι → β}
 
 -- where to move?
 lemma finset.product_self_eq_range_bUnion_perm [decidable_eq ι] (π : perm s) (hπ : π.is_cycle)
@@ -307,6 +303,18 @@ begin
       split; linarith },
 end
 
+end to_move
+
+/-! ### Chebyshev inequality -/
+
+/-! ### Scalar multiplication versions -/
+
+section smul
+variables [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β]
+  [ordered_smul α β] {s : finset ι} {σ : perm ι} {f : ι → α} {g : ι → β}
+
+
+
 /-- **Chebyshev Inequality**: When `f` and `g` vary together, the scalar product of their sum is
 less than the size of the set times their scalar product. -/
 lemma monovary_on.sum_smul_sum_le_card_smul_sum (hfg : monovary_on f g s) :
@@ -317,7 +325,8 @@ begin
     { simp only [finset.card_eq_zero.mp h, finset.sum_empty, smul_zero] },
     { cases (card_eq_one.mp h) with a ha,
       simp only [ha, sum_singleton, card_singleton, one_smul] }},
-  { set π : perm s :=
+  { classical,
+    set π : perm s :=
     begin
       refine equiv.perm.subtype_perm (s.to_list.form_perm) _,
       simp_rw ← finset.mem_to_list,
@@ -367,7 +376,7 @@ begin
             exact ⟨y, hsy⟩ },
           simp only [finset.length_to_list] at hsy,
           linarith } } },
-    rw (sum_mul_sum_eq_sum_perm s π hπc hπs),
+    rw (sum_mul_sum_eq_sum_perm s π hπc (by convert hπs)),
     have : ∑ (k : ℕ) in range s.card,
     ∑ (i : ι) in s, f i • g (((π ^ k).subtype_congr (equiv.refl _)) i) ≤
       ∑ (k : ℕ) in range s.card, ∑ (i : ι) in s, f i • g i,
@@ -381,10 +390,12 @@ begin
       simp only [coe_refl, id.def, subtype.coe_mk],
       contrapose! hx,
       exact mem_coe.mpr hx },
-    apply le_trans this,
-    apply le_of_eq,
-    simp only [sum_const, card_range, mul_smul, smul_sum, smul_assoc],
-    apply_instance }
+    convert le_trans this _,
+    { ext,
+      apply finset.sum_congr rfl,
+      intros y hy,
+      congr },
+    simp only [le_of_eq, sum_const, card_range, mul_smul, smul_sum, smul_assoc] }
 end
 
 /-- **Chebyshev Inequality**: When `f` and `g` antivary together, the scalar product of their sum is
@@ -415,7 +426,7 @@ Special cases of the above when scalar multiplication is actually multiplication
 -/
 
 section mul
-variables [linear_ordered_ring α] [decidable_eq ι] {s : finset ι} {σ : perm ι} {f g : ι → α}
+variables [linear_ordered_ring α] {s : finset ι} {σ : perm ι} {f g : ι → α}
 
 /-- **Chebyshev Inequality**: When `f` and `g` vary together, the scalar product of their sum is
 less than the size of the set times their scalar product. -/

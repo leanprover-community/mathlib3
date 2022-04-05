@@ -86,8 +86,10 @@ is a vector bundle. -/
 -- TODO For more serious applications, we would need the stronger condition
 -- `(coord_change_smooth :`
 --   `∀ i j, cont_diff_on 𝕜 ∞ ((coord_change i j) ∘ I.symm) (I '' (i.1.symm.trans j.1).source))`
--- which subsumes both `coord_change_smooth` and `coord_change_continuous`.  But this increases the
--- difficulty of proving that the tangent bundle is a `basic_smooth_vector_bundle_core`.
+-- which subsumes both `coord_change_smooth` and `coord_change_continuous`.  But the implication
+-- from the stronger `coord_change_smooth` to the current `coord_change_smooth` is not trivial, and
+-- the difficulty of proving that the tangent bundle is a `basic_smooth_vector_bundle_core` is also
+-- increased by this change.
 structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
@@ -271,42 +273,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
-
--- move this
-lemma has_fderiv_within_at.antimono
-  {f : E → E}
-  {f' : E →L[𝕜] E}
-  {t₁ t₂ : set E}
-  (ht : t₁ ⊆ t₂)
-  {y : E}
-  (hy : t₁ ∈ 𝓝[t₂] y)
-  (hyt₁ : unique_diff_within_at 𝕜 t₁ y)
-  (hf : has_fderiv_within_at f f' t₁ y) :
-  has_fderiv_within_at f f' t₂ y :=
-begin
-  have hf₂ : differentiable_within_at 𝕜 f t₂ y,
-  { rw [← differentiable_within_at_inter' hy, inter_eq_self_of_subset_right ht],
-    exact hf.differentiable_within_at },
-  rw hyt₁.eq hf (hf₂.has_fderiv_within_at.mono ht),
-  exact hf₂.has_fderiv_within_at,
-end
-
--- move this
-lemma fderiv_within_subset'
-  {f : E → E}
-  {t₁ t₂ : set E}
-  (ht : t₁ ⊆ t₂)
-  {y : E}
-  (hy : t₁ ∈ 𝓝[t₂] y)
-  (hyt₁ : unique_diff_within_at 𝕜 t₁ y)
-  (hf : differentiable_within_at 𝕜 f t₁ y) :
-  fderiv_within 𝕜 f t₁ y = fderiv_within 𝕜 f t₂ y :=
-begin
-  have hf₂ : differentiable_within_at 𝕜 f t₂ y,
-  { rw [← differentiable_within_at_inter' hy, inter_eq_self_of_subset_right ht],
-    exact hf },
-  exact fderiv_within_subset ht hyt₁ hf₂,
-end
 
 /-- Basic smooth bundle core version of the tangent bundle of a smooth manifold `M` modelled over a
 model with corners `I` on `(E, H)`. The fibers are equal to `E`, and the coordinate change in the

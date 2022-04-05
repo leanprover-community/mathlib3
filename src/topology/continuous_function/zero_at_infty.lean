@@ -46,8 +46,8 @@ localized "notation α ` →C₀ ` β := zero_at_infty_continuous_map α β" in 
 vanish at infinity.
 
 You should also extend this typeclass when you extend `zero_at_infty_continuous_map`. -/
-class zero_at_infty_continuous_map_class (F α β : Type*) [topological_space α] [has_zero β]
-  [topological_space β] extends continuous_map_class F α β :=
+class zero_at_infty_continuous_map_class (F : Type*) (α β : out_param $ Type*) [topological_space α]
+  [has_zero β] [topological_space β] extends continuous_map_class F α β :=
 (zero_at_infty (f : F) : tendsto f (cocompact α) (𝓝 0))
 
 export zero_at_infty_continuous_map_class (zero_at_infty)
@@ -119,8 +119,7 @@ instance [has_zero β] : inhabited C₀(α, β) := ⟨0⟩
 lemma zero_apply [has_zero β] : (0 : C₀(α, β)) x = 0 := rfl
 
 instance [mul_zero_class β] [has_continuous_mul β] : has_mul C₀(α, β) :=
-⟨λ f g, ⟨f * g, by simpa only [mul_zero] using ((zero_at_infty f).mul (zero_at_infty g) :
-  tendsto (λ x : α, f x * g x) (cocompact α) (𝓝 (0 * 0)))⟩⟩
+⟨λ f g, ⟨f * g, by simpa only [mul_zero] using (zero_at_infty f).mul (zero_at_infty g)⟩⟩
 
 @[simp] lemma coe_mul [mul_zero_class β] [has_continuous_mul β] (f g : C₀(α, β)) :
   ⇑(f * g) = f * g := rfl
@@ -134,8 +133,7 @@ instance [semigroup_with_zero β] [has_continuous_mul β] : semigroup_with_zero 
 fun_like.coe_injective.semigroup_with_zero _ coe_zero coe_mul
 
 instance [add_zero_class β] [has_continuous_add β] : has_add C₀(α, β) :=
-⟨λ f g, ⟨f + g, by simpa only [add_zero] using ((zero_at_infty f).add (zero_at_infty g) :
-  tendsto (λ x : α, f x + g x) (cocompact α) (𝓝 (0 + 0)))⟩⟩
+⟨λ f g, ⟨f + g, by simpa only [add_zero] using (zero_at_infty f).add (zero_at_infty g)⟩⟩
 
 @[simp] lemma coe_add [add_zero_class β] [has_continuous_add β] (f g : C₀(α, β)) :
   ⇑(f + g) = f + g := rfl
@@ -154,7 +152,7 @@ variables [add_monoid β] [has_continuous_add β] (f g : C₀(α, β))
 | (n + 1) := by rw [nsmul_rec, succ_nsmul, coe_add, coe_nsmul_rec]
 
 instance has_nat_scalar : has_scalar ℕ C₀(α, β) :=
-⟨λ n f, ⟨n • f, by simpa [coe_nsmul_rec] using (nsmul_rec n f).zero_at_infty'⟩⟩
+⟨λ n f, ⟨n • f, by simpa [coe_nsmul_rec] using zero_at_infty (nsmul_rec n f)⟩⟩
 
 instance : add_monoid C₀(α, β) :=
 fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, rfl)
@@ -169,18 +167,13 @@ section add_group
 variables [add_group β] [topological_add_group β] (f g : C₀(α, β))
 
 instance : has_neg C₀(α, β) :=
-⟨λ f, ⟨-f, by simpa only [neg_zero] using (zero_at_infty f : tendsto f (cocompact α) (𝓝 0)).neg⟩⟩
+⟨λ f, ⟨-f, by simpa only [neg_zero] using (zero_at_infty f).neg⟩⟩
 
 @[simp] lemma coe_neg : ⇑(-f) = -f := rfl
 lemma neg_apply : (-f) x = -f x := rfl
 
 instance : has_sub C₀(α, β) :=
-⟨λ f g, ⟨f - g,
-begin
-  rw sub_eq_add_neg,
-  simpa only [add_zero] using ((zero_at_infty f).add (zero_at_infty (-g)) :
-    tendsto (λ x, f x + (-g) x) (cocompact α) (𝓝 (0 + 0))),
-end⟩⟩
+⟨λ f g, ⟨f - g, by simpa only [sub_zero] using (zero_at_infty f).sub (zero_at_infty g)⟩⟩
 
 @[simp] lemma coe_sub : ⇑(f - g) = f - g := rfl
 lemma sub_apply : (f - g) x = f x - g x := rfl
@@ -190,7 +183,7 @@ lemma sub_apply : (f - g) x = f x - g x := rfl
 | -[1+ n] := by rw [zsmul_rec, zsmul_neg_succ_of_nat, coe_neg, coe_nsmul_rec]
 
 instance has_int_scalar : has_scalar ℤ C₀(α, β) :=
-⟨λ n f, ⟨n • f, by simpa using (zsmul_rec n f).zero_at_infty'⟩⟩
+⟨λ n f, ⟨n • f, by simpa using zero_at_infty (zsmul_rec n f)⟩⟩
 
 instance : add_group C₀(α, β) :=
 fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
@@ -202,8 +195,7 @@ fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _
 
 instance [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
   [has_continuous_const_smul R β] : has_scalar R C₀(α, β) :=
-⟨λ r f, ⟨r • f, by simpa [smul_zero] using
-  (zero_at_infty f : tendsto f (cocompact α) (𝓝 0)).const_smul r⟩⟩
+⟨λ r f, ⟨r • f, by simpa [smul_zero] using (zero_at_infty f).const_smul r⟩⟩
 
 @[simp] lemma coe_smul [has_zero β] {R : Type*} [has_zero R] [smul_with_zero R β]
   [has_continuous_const_smul R β] (r : R) (f : C₀(α, β)) : ⇑(r • f) = r • f := rfl
@@ -302,7 +294,7 @@ begin
   have : tendsto f (cocompact α) (𝓝 0),
   { refine metric.tendsto_nhds.mpr (λ ε hε, _),
     obtain ⟨_, hg, g, rfl⟩ := hf (ball f (ε / 2)) (ball_mem_nhds f $ half_pos hε),
-    refine (metric.tendsto_nhds.mp (zero_at_infty g : tendsto g (cocompact α) (𝓝 0)) (ε / 2)
+    refine (metric.tendsto_nhds.mp (zero_at_infty g) (ε / 2)
       (half_pos hε)).mp (eventually_of_forall $ λ x hx, _),
     calc dist (f x) 0 ≤ dist (g.to_bcf x) (f x) + dist (g x) 0 : dist_triangle_left _ _ _
     ...               < dist g.to_bcf f + ε / 2 : add_lt_add_of_le_of_lt (dist_coe_le_dist x) hx

@@ -70,7 +70,7 @@ generate_open.basic s hs
 lemma nhds_generate_from {g : set (set α)} {a : α} :
   @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, 𝓟 s) :=
 by rw nhds_def; exact le_antisymm
-  (infi_le_infi $ assume s, infi_le_infi_const $ assume ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
+  (binfi_mono $ λ s ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
   (le_infi $ assume s, le_infi $ assume ⟨as, hs⟩,
     begin
       revert as, clear_, induction hs,

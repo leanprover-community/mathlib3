@@ -161,7 +161,7 @@ lemma compact_open_eq_Inf_induced :
     topological_space.induced (continuous_map.restrict s) continuous_map.compact_open :=
 begin
   refine le_antisymm _ _,
-  { refine le_binfi _,
+  { refine le_infi₂ _,
     exact λ s hs, compact_open_le_induced s },
   simp only [← generate_from_Union, induced_generate_from_eq, continuous_map.compact_open],
   apply generate_from_mono,

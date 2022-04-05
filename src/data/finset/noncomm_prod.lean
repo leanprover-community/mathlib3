@@ -199,14 +199,14 @@ begin
   simp
 end
 
-@[to_additive]
+@[to_additive noncomm_sum_add_commute]
 lemma noncomm_prod_commute (s : multiset α)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute x y)
   (y : α) (h : ∀ (x : α), x ∈ s → commute y x) : commute y (s.noncomm_prod comm) :=
 begin
   induction s using quotient.induction_on,
   simp only [quot_mk_to_coe, noncomm_prod_coe],
-  exact list.prod_commute _ _ h,
+  exact commute.list_prod_right _ _ h,
 end
 
 end multiset
@@ -282,7 +282,7 @@ begin
   simpa using h,
 end
 
-@[to_additive]
+@[to_additive noncomm_sum_add_commute]
 lemma noncomm_prod_commute (s : finset α) (f : α → β)
   (comm : ∀ (x : α), x ∈ s → ∀ (y : α), y ∈ s → commute (f x) (f y))
   (y : β) (h : ∀ (x : α), x ∈ s → commute y (f x)) : commute y (s.noncomm_prod f comm) :=

@@ -217,7 +217,8 @@ variables [has_div α] {f f₁ f₂ g g₁ g₂ h : filter α} {s t : set α}
 @[simp, to_additive] lemma div_eq_bot_iff : f / g = ⊥ ↔ f = ⊥ ∨ g = ⊥ := map₂_eq_bot_iff
 @[simp, to_additive] lemma div_ne_bot_iff : (f / g).ne_bot ↔ f.ne_bot ∧ g.ne_bot := map₂_ne_bot_iff
 @[to_additive] lemma ne_bot.div : ne_bot f → ne_bot g → ne_bot (f / g) := ne_bot.map₂
-@[simp,to_additive] lemma le_div_iff : h ≤ f / g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s / t ∈ h :=
+@[simp, to_additive] protected lemma le_div_iff :
+  h ≤ f / g ↔ ∀ ⦃s⦄, s ∈ f → ∀ ⦃t⦄, t ∈ g → s / t ∈ h :=
 le_map₂_iff
 @[to_additive] protected lemma div_le_div : f₁ ≤ f₂ → g₁ ≤ g₂ → f₁ / g₁ ≤ f₂ / g₂ := map₂_mono
 @[to_additive] protected lemma div_le_div_left : g₁ ≤ g₂ → f / g₁ ≤ f / g₂ := map₂_mono_left

@@ -20,7 +20,7 @@ various theorems about these spaces later.
 universes u v
 local attribute [instance] path.homotopic.setoid
 
-variable (n : ℕ)
+variables (n : ℕ) {hn_nonneg : n > 0}
 local notation `ℝⁿ` := fin n → ℝ
 local notation `ℝⁿ⁺¹` := fin (n + 1) → ℝ
 
@@ -32,7 +32,6 @@ instance has_scalar.ℝⁿ : has_scalar unit_interval ℝⁿ :=
 ⟨λ(k : unit_interval) (x : ℝⁿ),
   λ(i : fin n), (x i) * k⟩
 
-set_option trace.simplify.rewrite true
 /-- In a convex subset X ⊆ ℝⁿ, any two paths are homotopic via straight line homotopy. -/
 noncomputable def path_homotopic_of_convex (p₀ p₁ : path x₀ x₁) (h_convex : convex ℝ X) :
   p₀.homotopy p₁ :=
@@ -59,8 +58,12 @@ noncomputable lemma trivial_fundamental_group_of_convex (h_convex : convex ℝ X
   fundamental_group X x₀ ≃* Group.of unit :=
 {
   to_fun := λ_, unit.star,
-  inv_fun := λ_, fundamental_group.from_path _,
-  left_inv := sorry,
+  inv_fun := λs, @fundamental_group.from_path (Top.of X) x₀ (⟦path.refl x₀⟧),
+  left_inv :=
+    begin
+      rw function.left_inverse,
+      sorry,
+    end,
   right_inv := sorry,
   map_mul' := sorry,
 }
@@ -73,15 +76,22 @@ section unit_disk
 /-- The unit disk Dⁿ ⊆ ℝⁿ. -/
 def unit_disk := metric.closed_ball (0 : ℝⁿ) 1
 
+set_option trace.simplify.rewrite true
 lemma convex_of_unit_disk : convex ℝ (unit_disk n) :=
-sorry
+begin
+  rw convex,
+  intros x y hx hy a b ha hb hab,
+  rw [unit_disk, metric.closed_ball, set.mem_set_of_eq, dist_zero_right],
+  sorry,
+end
 
 /-- A convenient basepoint for computing the fundamental group, namely (1, 0 ...). -/
-def unit_disk_basepoint : unit_disk n := sorry --⟨(1, 0), by simp [unit_disk, norm]⟩
+def unit_disk_basepoint : unit_disk n :=
+⟨λi, if i = ⟨0, hn_nonneg⟩ then 1 else 0, sorry⟩
 
 /-- The fundamental group of the disk is isomorphic to the trivial group. -/
 noncomputable lemma fundamental_group_trivial :
-  fundamental_group (unit_disk n) (unit_disk_basepoint n) ≃* Group.of unit :=
+  fundamental_group (unit_disk n) (@unit_disk_basepoint n hn_nonneg) ≃* Group.of unit :=
 trivial_fundamental_group_of_convex n (unit_disk n) (convex_of_unit_disk n)
 
 end unit_disk

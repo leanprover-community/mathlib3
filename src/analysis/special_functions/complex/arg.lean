@@ -268,6 +268,24 @@ begin
   { exact arg_real_mul (conj x) (by simp [hx]) }
 end
 
+lemma arg_mem_Icc_neg_pi_div_two_pi_div_two {x : ℂ} :
+  arg x ∈ Icc (-(π / 2)) (π / 2) ↔ 0 ≤ x.re :=
+begin
+  cases le_or_lt 0 x.re with hre hre,
+  { simp only [hre, arg_of_re_nonneg hre, real.arcsin_mem_Icc] },
+  simp only [hre.not_le, iff_false],
+  cases le_or_lt 0 x.im with him him,
+  { refine mt and.right (not_le.2 _),
+    rw [arg_of_re_neg_of_im_nonneg hre him, ← sub_lt_iff_lt_add, half_sub,
+      real.neg_pi_div_two_lt_arcsin, neg_im, neg_div, neg_lt_neg_iff, div_lt_one, ←
+      _root_.abs_of_nonneg him, abs_im_lt_abs],
+    exacts [hre.ne, abs_pos.2 $ ne_of_apply_ne re hre.ne] },
+  { refine mt and.left (not_le.2 _),
+    rw [arg_of_re_neg_of_im_neg hre him, sub_lt_iff_lt_add', ← sub_eq_add_neg, sub_half,
+      real.arcsin_lt_pi_div_two, div_lt_one, neg_im, ← abs_of_neg him, abs_im_lt_abs],
+    exacts [hre.ne, abs_pos.2 $ ne_of_apply_ne re hre.ne] }
+end
+
 @[simp] lemma arg_conj_coe_angle (x : ℂ) : (arg (conj x) : real.angle) = -arg x :=
 begin
   by_cases h : arg x = π;

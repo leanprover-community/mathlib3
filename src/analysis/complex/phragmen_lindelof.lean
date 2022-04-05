@@ -8,7 +8,7 @@ import analysis.complex.abs_max
 /-!
 -/
 
-open set filter asymptotics complex metric
+open set function filter asymptotics complex metric
 open_locale topological_space filter real
 
 local notation `expR` := real.exp
@@ -180,5 +180,107 @@ lemma eq_zero_on_horizontal_strip {a b : ℝ} {f : ℂ → E}
   (h₀ : ∀ z : ℂ, (z.im = a ∨ z.im = b) → f z = 0) {z : ℂ} (hz : z.im ∈ Icc a b) :
   f z = 0 :=
 norm_le_zero_iff.1 $ horizontal_strip hd hB (λ z hz, norm_le_zero_iff.2 $ h₀ z hz) hz
+
+lemma quadrant_I {C : ℝ} {f : ℂ → E} (hd : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Ioi 0))
+  (hB : ∃ (c ∈ Ico (0 : ℝ) 2) A, ∀ z : ℂ, 0 < z.re → 0 < z.im → ∥f z∥ ≤ expR (A * (abs z) ^ c))
+  (hre : ∀ x : ℝ, 0 ≤ x → ∥f x∥ ≤ C) (him : ∀ x : ℝ, 0 ≤ x → ∥f (x * I)∥ ≤ C) {z : ℂ}
+  (hz : 0 ≤ z.re ∧ 0 ≤ z.im) :
+  ∥f z∥ ≤ C :=
+begin
+  rcases eq_or_ne z 0 with rfl|hzne, { exact hre 0 le_rfl },
+  obtain ⟨z, hz, rfl⟩ : ∃ ζ : ℂ, ζ.im ∈ Icc 0 (π / 2) ∧ exp ζ = z,
+  { refine ⟨log z, _, exp_log hzne⟩,
+    rw log_im,
+    exact ⟨arg_nonneg_iff.2 hz.2, (arg_mem_Icc_neg_pi_div_two_pi_div_two.2 hz.1).2⟩ },
+  clear hz hzne,
+  change ∥(f ∘ exp) z∥ ≤ C,
+  have : maps_to exp (im ⁻¹' Ioo 0 (π / 2)) (Ioi 0 ×ℂ Ioi 0),
+  { intros z hz,
+    rw [mem_re_prod_im, exp_re, exp_im, mem_Ioi, mem_Ioi],
+    refine ⟨mul_pos (real.exp_pos _)
+      (real.cos_pos_of_mem_Ioo ⟨(neg_lt_zero.2 $ div_pos real.pi_pos two_pos).trans hz.1, hz.2⟩),
+      mul_pos (real.exp_pos _)
+        (real.sin_pos_of_mem_Ioo ⟨hz.1, hz.2.trans (half_lt_self real.pi_pos)⟩)⟩ },
+  refine horizontal_strip (hd.comp differentiable_exp.diff_cont_on_cl this) _ (λ w hw, _) hz,
+  { rw [sub_zero, div_div_cancel' real.pi_pos.ne'],
+    rcases hB with ⟨c, hc, A, Hle⟩,
+    refine ⟨c, hc, max A 0, λ w hw, (Hle _ (this hw).1 (this hw).2).trans _⟩,
+    rw [abs_exp, ← real.exp_mul, real.exp_le_exp, mul_comm _ c],
+    exact mul_le_mul (le_max_left _ _)
+      (real.exp_le_exp.2 $ mul_le_mul_of_nonneg_left (le_abs_self _) hc.1)
+      (real.exp_pos _).le (le_max_right _ _) },
+  { cases w with x y, rcases hw with (rfl : y = 0)|(rfl : y = π / 2),
+    { rw [← of_real_def, comp_app, ← of_real_exp],
+      exact hre _ (real.exp_pos _).le },
+    { rw [mk_eq_add_mul_I, comp_app, exp_add_mul_I, ← of_real_cos, ← of_real_sin,
+        real.cos_pi_div_two, real.sin_pi_div_two, of_real_zero, of_real_one, one_mul, zero_add,
+        ← of_real_exp],
+      exact him _ (real.exp_pos _).le } }
+end
+
+lemma quadrant_II {C : ℝ} {f : ℂ → E} (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Ioi 0))
+  (hB : ∃ (c ∈ Ico (0 : ℝ) 2) A, ∀ z : ℂ, z.re < 0 → 0 < z.im → ∥f z∥ ≤ expR (A * (abs z) ^ c))
+  (hre : ∀ x : ℝ, x ≤ 0 → ∥f x∥ ≤ C) (him : ∀ x : ℝ, 0 ≤ x → ∥f (x * I)∥ ≤ C) {z : ℂ}
+  (hz : z.re ≤ 0 ∧ 0 ≤ z.im) :
+  ∥f z∥ ≤ C :=
+begin
+  obtain ⟨z, rfl⟩ : ∃ z', z' * I = z, from ⟨z / I, div_mul_cancel _ I_ne_zero⟩,
+  rw [mul_I_re, mul_I_im, neg_nonpos] at hz,
+  change ∥(f ∘ (* I)) z∥ ≤ C,
+  have H : maps_to (* I) (Ioi 0 ×ℂ Ioi 0) (Iio 0 ×ℂ Ioi 0),
+  { intros w hw,
+    simpa only [mem_re_prod_im, mul_I_re, mul_I_im, neg_lt_zero, mem_Iio] using hw.symm },
+  refine quadrant_I (hd.comp (differentiable_id.mul_const _).diff_cont_on_cl H)
+    _ him (λ x hx, _) hz.symm,
+  { rcases hB with ⟨c, hc, A, Hle⟩,
+    refine ⟨c, hc, A, λ w h₁ h₂, _⟩,
+    simpa only [complex.abs_mul, abs_I, mul_one] using Hle _ (H ⟨h₁, h₂⟩).1 (H ⟨h₁, h₂⟩).2 },
+  { rw [comp_app, mul_assoc, I_mul_I, mul_neg_one, ← of_real_neg],
+    exact hre _ (neg_nonpos.2 hx) }
+end
+
+lemma quadrant_III {C : ℝ} {f : ℂ → E} (hd : diff_cont_on_cl ℂ f (Iio 0 ×ℂ Iio 0))
+  (hB : ∃ (c ∈ Ico (0 : ℝ) 2) A, ∀ z : ℂ, z.re < 0 → z.im < 0 → ∥f z∥ ≤ expR (A * (abs z) ^ c))
+  (hre : ∀ x : ℝ, x ≤ 0 → ∥f x∥ ≤ C) (him : ∀ x : ℝ, x ≤ 0 → ∥f (x * I)∥ ≤ C) {z : ℂ}
+  (hz : z.re ≤ 0 ∧ z.im ≤ 0) :
+  ∥f z∥ ≤ C :=
+begin
+  obtain ⟨z, rfl⟩ : ∃ z', -z' = z, from ⟨-z, neg_neg z⟩,
+  rw [neg_re, neg_im, neg_nonpos, neg_nonpos] at hz,
+  change ∥(f ∘ has_neg.neg) z∥ ≤ C,
+  have H : maps_to has_neg.neg (Ioi 0 ×ℂ Ioi 0) (Iio 0 ×ℂ Iio 0),
+  { intros w hw,
+    simpa only [mem_re_prod_im, neg_re, neg_im, neg_lt_zero, mem_Iio] using hw },
+  refine quadrant_I (hd.comp differentiable_neg.diff_cont_on_cl H) _ (λ x hx, _) (λ x hx, _) hz,
+  { rcases hB with ⟨c, hc, A, Hle⟩,
+    refine ⟨c, hc, A, λ w h₁ h₂, _⟩,
+    simpa only [comp_app, complex.abs_neg] using Hle _ (H ⟨h₁, h₂⟩).1 (H ⟨h₁, h₂⟩).2 },
+  { rw [comp_app, ← of_real_neg],
+    exact hre (-x) (neg_nonpos.2 hx) },
+  { rw [comp_app, ← neg_mul, ← of_real_neg],
+    exact him (-x) (neg_nonpos.2 hx) }
+end
+
+lemma quadrant_IV {C : ℝ} {f : ℂ → E} (hd : diff_cont_on_cl ℂ f (Ioi 0 ×ℂ Iio 0))
+  (hB : ∃ (c ∈ Ico (0 : ℝ) 2) A, ∀ z : ℂ, 0 < z.re → z.im < 0 → ∥f z∥ ≤ expR (A * (abs z) ^ c))
+  (hre : ∀ x : ℝ, 0 ≤ x → ∥f x∥ ≤ C) (him : ∀ x : ℝ, x ≤ 0 → ∥f (x * I)∥ ≤ C) {z : ℂ}
+  (hz : 0 ≤ z.re ∧ z.im ≤ 0) :
+  ∥f z∥ ≤ C :=
+begin
+  obtain ⟨z, rfl⟩ : ∃ z', -z' = z, from ⟨-z, neg_neg z⟩,
+  rw [neg_re, neg_im, neg_nonpos, neg_nonneg] at hz,
+  change ∥(f ∘ has_neg.neg) z∥ ≤ C,
+  have H : maps_to has_neg.neg (Iio 0 ×ℂ Ioi 0) (Ioi 0 ×ℂ Iio 0),
+  { intros w hw,
+    simpa only [mem_re_prod_im, neg_re, neg_im, neg_lt_zero, neg_pos, mem_Ioi, mem_Iio] using hw },
+  refine quadrant_II (hd.comp differentiable_neg.diff_cont_on_cl H) _ (λ x hx, _) (λ x hx, _) hz,
+  { rcases hB with ⟨c, hc, A, Hle⟩,
+    refine ⟨c, hc, A, λ w h₁ h₂, _⟩,
+    simpa only [comp_app, complex.abs_neg] using Hle _ (H ⟨h₁, h₂⟩).1 (H ⟨h₁, h₂⟩).2 },
+  { rw [comp_app, ← of_real_neg],
+    exact hre (-x) (neg_nonneg.2 hx) },
+  { rw [comp_app, ← neg_mul, ← of_real_neg],
+    exact him (-x) (neg_nonpos.2 hx) }
+end
 
 end phragmen_lindelof

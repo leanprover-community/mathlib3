@@ -148,6 +148,9 @@ ext_iff.2 $ by simp
 @[simp] lemma re_add_im (z : ℂ) : (z.re : ℂ) + z.im * I = z :=
 ext_iff.2 $ by simp
 
+lemma mul_I_re (z : ℂ) : (z * I).re = -z.im := by simp
+lemma mul_I_im (z : ℂ) : (z * I).im = z.re := by simp
+
 /-! ### Commutative ring instance and lemmas -/
 
 /- We use a nonstandard formula for the `ℕ` and `ℤ` actions to make sure there is no
@@ -504,6 +507,13 @@ lemma re_le_abs (z : ℂ) : z.re ≤ abs z :=
 
 lemma im_le_abs (z : ℂ) : z.im ≤ abs z :=
 (abs_le.1 (abs_im_le_abs _)).2
+
+@[simp] lemma abs_re_lt_abs {z : ℂ} : |z.re| < abs z ↔ z.im ≠ 0 :=
+by rw [abs, real.lt_sqrt (_root_.abs_nonneg _) (norm_sq_nonneg z), norm_sq_apply,
+  _root_.sq_abs, ← sq, lt_add_iff_pos_right, mul_self_pos]
+
+@[simp] lemma abs_im_lt_abs {z : ℂ} : |z.im| < abs z ↔ z.re ≠ 0 :=
+by simpa using @abs_re_lt_abs (z * I)
 
 /--
 The **triangle inequality** for complex numbers.

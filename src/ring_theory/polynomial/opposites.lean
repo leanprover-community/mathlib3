@@ -34,8 +34,8 @@ def op_ring_equiv (R : Type*) [semiring R] : R[X]ᵐᵒᵖ ≃+* Rᵐᵒᵖ[X] :
 by simp only [op_ring_equiv, ring_equiv.trans_apply, ring_equiv.op_apply_apply,
     ring_equiv.to_add_equiv_eq_coe, add_equiv.mul_op_apply, add_equiv.to_fun_eq_coe,
     add_equiv.coe_trans, op_add_equiv_apply, ring_equiv.coe_to_add_equiv, op_add_equiv_symm_apply,
-    function.comp_app, unop_op, to_finsupp_iso_monomial, add_monoid_algebra.op_ring_equiv_single,
-    to_finsupp_iso_symm_single]
+    function.comp_app, unop_op, to_finsupp_iso_apply, to_finsupp_monomial,
+    add_monoid_algebra.op_ring_equiv_single, to_finsupp_iso_symm_apply, of_finsupp_single]
 
 @[simp] lemma op_ring_equiv_op_C (a : R) :
   op_ring_equiv R (op (C a)) = C (op a) :=
@@ -51,21 +51,21 @@ by simp only [X_pow_mul, op_mul, op_pow, map_mul, map_pow, op_ring_equiv_op_X, o
 
 /-!  Lemmas to get started, using `(op_ring_equiv R).symm` on the various expressions of
 `finsupp.single`: `monomial`, `C a`, `X`, `C a * X ^ n`. -/
-@[simp] lemma op_ring_equiv_symm_op_monomial (n : ℕ) (r : Rᵐᵒᵖ) :
+@[simp] lemma op_ring_equiv_symm_monomial (n : ℕ) (r : Rᵐᵒᵖ) :
   (op_ring_equiv R).symm (monomial n r) = op (monomial n (unop r)) :=
 (op_ring_equiv R).injective (by simp)
 
-@[simp] lemma op_ring_equiv_symm_op_C (a : Rᵐᵒᵖ) :
+@[simp] lemma op_ring_equiv_symm_C (a : Rᵐᵒᵖ) :
   (op_ring_equiv R).symm (C a) = op (C (unop a)) :=
-op_ring_equiv_symm_op_monomial 0 a
+op_ring_equiv_symm_monomial 0 a
 
-@[simp] lemma op_ring_equiv_symm_op_X :
+@[simp] lemma op_ring_equiv_symm_X :
   (op_ring_equiv R).symm (X : Rᵐᵒᵖ[X]) = op X :=
-op_ring_equiv_symm_op_monomial 1 1
+op_ring_equiv_symm_monomial 1 1
 
-lemma op_ring_equiv_symm_op_C_mul_X_pow (r : Rᵐᵒᵖ) (n : ℕ) :
+lemma op_ring_equiv_symm_C_mul_X_pow (r : Rᵐᵒᵖ) (n : ℕ) :
   (op_ring_equiv R).symm (C r * X ^ n : Rᵐᵒᵖ[X]) = op (C (unop r) * X ^ n) :=
-by rw [← monomial_eq_C_mul_X, op_ring_equiv_symm_op_monomial, monomial_eq_C_mul_X]
+by rw [← monomial_eq_C_mul_X, op_ring_equiv_symm_monomial, monomial_eq_C_mul_X]
 
 /-!  Lemmas about more global properties of polynomials and opposites. -/
 @[simp] lemma coeff_op_ring_equiv (p : R[X]ᵐᵒᵖ) (n : ℕ) :

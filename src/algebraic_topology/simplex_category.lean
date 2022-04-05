@@ -31,8 +31,6 @@ We provide the following functions to work with these objects:
 
 -/
 
---universes u v
-
 open category_theory
 
 /-- The simplex category:

@@ -849,8 +849,7 @@ instance is_well_order.to_is_pred_archimedean : is_pred_archimedean α :=
   rcases hab with rfl | hab,
   { exact ⟨0, rfl⟩ },
   cases le_or_lt b (pred b) with hb hb,
-  { have : ∀ {a : α}, ¬ a < b := minimal_of_le_pred hb,
-    exact (this hab).elim },
+  { cases (min_of_le_pred hb).not_lt hab },
   obtain ⟨k, hk⟩ := ih (pred b) hb (le_pred_of_lt hab),
   refine ⟨k + 1, _⟩,
   rw [iterate_add_apply, iterate_one, hk],
@@ -864,12 +863,11 @@ instance is_well_order.to_is_succ_archimedean [succ_order α] : is_succ_archimed
   rcases hab with rfl | hab,
   { exact ⟨0, rfl⟩ },
   cases le_or_lt b (pred b) with hb hb,
-  { have : ∀ {a : α}, ¬ a < b := minimal_of_le_pred hb,
-    exact (this hab).elim },
+  { cases (min_of_le_pred hb).not_lt hab },
   obtain ⟨k, hk⟩ := ih (pred b) hb (le_pred_of_lt hab),
   refine ⟨k + 1, _⟩,
   rw [add_comm, iterate_add_apply, hk, iterate_one],
-  exact hab.succ_pred
+  exact succ_pred_of_not_is_min (not_is_min_of_lt hb),
 end⟩
 
 end is_well_order
@@ -905,14 +903,15 @@ instance : ∀ {n : ℕ}, succ_order (fin n)
       exact (a : ℕ).le_succ },
     { exact le_rfl }
    end,
-  maximal_of_succ_le := λ a,
+  max_of_succ_le := λ a,
   begin
     split_ifs,
     { rw [le_iff_coe_le_coe, coe_add_one_of_lt h],
       intro h,
-      have := antisymm (a : ℕ).le_succ h,
-      exact absurd this (lt_add_one _).ne },
-    { simp [eq_last_of_not_lt h, le_last] }
+      cases (lt_add_one _).ne (antisymm (a : ℕ).le_succ h) },
+    { rintro -,
+      rw [eq_last_of_not_lt h],
+      exact is_max_top }
   end,
   succ_le_of_lt := λ a b h', let h := h'.trans_le (le_last _) in
                              by rwa [if_pos h, le_iff_coe_le_coe, coe_add_one_of_lt h],
@@ -938,13 +937,13 @@ instance : ∀ {n : ℕ}, pred_order (fin n)
     rw [le_iff_coe_le_coe, coe_sub_one, if_neg h],
     exact tsub_le_self
   end,
-  minimal_of_le_pred := λ a,
+  min_of_le_pred := λ a,
   begin
     split_ifs,
-    { rintro - b,
-      simp [h, zero_le] },
-    contrapose!,
-    rintro -,
+    { subst h,
+      exact λ _, is_min_bot },
+    intro ha,
+    contrapose! ha,
     rw [lt_iff_coe_lt_coe, coe_sub_one, if_neg h],
     refine nat.sub_lt_of_pos_le _ _ nat.zero_lt_one (nat.one_le_iff_ne_zero.mpr _),
     rwa subtype.ext_iff at h,

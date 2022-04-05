@@ -23,7 +23,7 @@ In this file we define Galois extensions as extensions which are both separable 
 
 ## Main results
 
-- `fixing_subgroup_fixed_field` : If `E/F` is finite dimensional (but not necessarily Galois)
+- `intermediate_field.fixing_subgroup_fixed_field` : If `E/F` is finite dimensional (but not necessarily Galois)
   then `fixing_subgroup (fixed_field H) = H`
 - `fixed_field_fixing_subgroup`: If `E/F` is finite dimensional and Galois
   then `fixed_field (fixing_subgroup K) = K`

@@ -258,8 +258,8 @@ begin
     have hint' : ∀ (k : ℕ), (k < m + n) → interval_integrable f μ (a k) (a $ k+1),
     { intros k hk,
       refine hint k _,
-      rw add_succ m n,
-      exact lt_trans hk (lt_succ_self $ m + n), },
+      rw m.add_succ n,
+      exact lt_trans hk (nat.lt_succ_self $ m + n), },
     exact interval_integrable.trans (hn hint') this, },
 end
 

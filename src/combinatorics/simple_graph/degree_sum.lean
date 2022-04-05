@@ -145,7 +145,7 @@ begin
   simp only [hc, filter_congr_decidable],
   rw [←filter_filter, filter_ne', card_erase_of_mem],
   { refine ⟨k - 1, tsub_eq_of_eq_add $ hg.trans _⟩,
-    rw [add_assoc, one_add_one_eq_two,  ←nat.mul_succ, ← two_mul],
+    rw [add_assoc, one_add_one_eq_two, ←nat.mul_succ, ← two_mul],
     congr,
     exact (tsub_add_cancel_of_le $ nat.succ_le_iff.2 hk).symm },
   { simpa only [true_and, mem_filter, mem_univ] },

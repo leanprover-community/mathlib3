@@ -23,6 +23,8 @@ even a ↔ ∃ r, a = r + r
 
 Odd elements are not unified with a multiplicative notion.
 
+## Future work
+
 * TODO: Try to generalize further the typeclass assumptions on `is_square/even`.
   For instance, in some cases, there are `semiring` assumptions that I (DT) am not convinced are
   necessary.
@@ -56,8 +58,8 @@ lemma is_square_sq [monoid α] (a : α) : is_square (a ^ 2) := ⟨a, pow_two _�
 lemma is_square_one [mul_one_class α] : is_square (1 : α) := ⟨1, (mul_one _).symm⟩
 
 @[to_additive]
-lemma monoid_hom.is_square [mul_one_class α] [mul_one_class β] {m : α}
-  (f : α →* β) (hm : is_square m) :
+lemma is_square.map {F : Type*} [mul_one_class α] [mul_one_class β] [monoid_hom_class F α β]
+  {m : α} (f : F) (hm : is_square m) :
   is_square (f m) :=
 begin
   rcases hm with ⟨m, rfl⟩,
@@ -193,7 +195,6 @@ variables [ring α] {m n : α}
 
 @[simp] lemma even_neg_two : even (- 2 : α) := by simp only [even_neg, even_two]
 
--- from src/algebra/order/ring.lean
 lemma even_abs [linear_order α] {a : α} : even (|a|) ↔ even a :=
 begin
   rcases abs_choice a with h | h; rw h,
@@ -222,7 +223,6 @@ by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
 lemma odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
 
--- from src/algebra/order/ring.lean
 lemma odd_abs [linear_order α] {a : α} : odd (abs a) ↔ odd a :=
 by { cases abs_choice a with h h; simp only [h, odd_neg] }
 

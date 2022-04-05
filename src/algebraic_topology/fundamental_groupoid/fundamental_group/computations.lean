@@ -28,16 +28,38 @@ section convex_space
 
 variables (X : set ℝⁿ) {x₀ x₁ : X}
 
-/-- In a convex subset X ⊆ ℝⁿ, any two paths are homotopic. -/
-def path_homotopic_of_convex (p₀ p₁ : path x₀ x₁) :
-  convex ℝ X → path.homotopy p₀ p₁ := sorry
+instance has_scalar.ℝⁿ : has_scalar unit_interval ℝⁿ :=
+⟨λ(k : unit_interval) (x : ℝⁿ),
+  λ(i : fin n), (x i) * k⟩
+
+set_option trace.simplify.rewrite true
+/-- In a convex subset X ⊆ ℝⁿ, any two paths are homotopic via straight line homotopy. -/
+noncomputable def path_homotopic_of_convex (p₀ p₁ : path x₀ x₁) (h_convex : convex ℝ X) :
+  p₀.homotopy p₁ :=
+{ to_fun := λii, ⟨ii.fst.val • (p₁ ii.snd).val + (unit_interval.symm ii.fst).val • (p₀ ii.snd).val,
+                  begin
+                    apply h_convex,
+                    { apply subtype.coe_prop },
+                    { apply subtype.coe_prop },
+                    { rw subtype.val_eq_coe,
+                      exact unit_interval.nonneg ii.fst },
+                    { rw [subtype.val_eq_coe, unit_interval.coe_symm_eq, sub_nonneg],
+                      exact unit_interval.le_one ii.fst },
+                    { rw [subtype.val_eq_coe, subtype.val_eq_coe, unit_interval.coe_symm_eq,
+                          add_sub_cancel'_right], }
+                  end⟩,
+  continuous_to_fun := sorry, --by simp,
+  map_zero_left' := sorry, --by simp,
+  map_one_left' := sorry, --by simp,
+  prop' := sorry,
+}
 
 /-- The fundamental group of a convex subset X ⊆ ℝⁿ is isomorphic to the trivial group. -/
 noncomputable lemma trivial_fundamental_group_of_convex (h_convex : convex ℝ X):
   fundamental_group X x₀ ≃* Group.of unit :=
 {
   to_fun := λ_, unit.star,
-  inv_fun := λ_, sorry, --fundamental_group.from_path ⟦path.refl x₀⟧,
+  inv_fun := λ_, fundamental_group.from_path _,
   left_inv := sorry,
   right_inv := sorry,
   map_mul' := sorry,

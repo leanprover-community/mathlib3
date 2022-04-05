@@ -833,7 +833,7 @@ lemma linear_independent_powers_iff_aeval
 begin
   rw linear_independent_iff,
   simp only [finsupp.total_apply, aeval_endomorphism, forall_iff_forall_finsupp, sum, support,
-    coeff, ← zero_to_finsupp],
+    coeff, of_finsupp_eq_zero],
   exact iff.rfl,
 end
 

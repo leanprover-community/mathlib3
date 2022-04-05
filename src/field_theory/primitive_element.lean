@@ -208,8 +208,6 @@ by { classical, letI : fintype X := set.finite.fintype hX, exact pi.fintype}
 
 variables (K : Type*) [field K] [algebra F K]
 
-variable [finite_dimensional F E]
-
 variables (E F)
 
 /-- Function from Hom_K(E,L) to pi type Π (x : basis), roots of min poly of x -/

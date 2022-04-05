@@ -235,7 +235,7 @@ begin
   apply is_Lprojection.Lcomplement h₂,
 end
 
-instance : has_compl(subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
+instance : has_compl { f : X →L[𝕜] X // is_Lprojection f } :=
 ⟨λ P, ⟨1-P, P.prop.Lcomplement⟩⟩
 
 @[simp] lemma coe_compl (P : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :

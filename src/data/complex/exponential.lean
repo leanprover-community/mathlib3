@@ -945,6 +945,9 @@ by rw [← of_real_inj]; simp [sin, sin_add]
 @[simp] lemma cos_neg : cos (-x) = cos x :=
 by simp [cos, exp_neg]
 
+@[simp] lemma cos_abs : cos (|x|) = cos x :=
+by cases le_total x 0; simp only [*, _root_.abs_of_nonneg, abs_of_nonpos, cos_neg]
+
 lemma cos_add : cos (x + y) = cos x * cos y - sin x * sin y :=
 by rw ← of_real_inj; simp [cos, cos_add]
 

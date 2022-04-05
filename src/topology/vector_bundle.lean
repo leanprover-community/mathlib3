@@ -857,7 +857,11 @@ section pullback
 
 open topological_space topological_vector_bundle
 
-variables {R F E} {B' : Type*} [topological_space B'] [topological_space (total_space E)]
+variables {R F E} {B' : Type*}
+variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+  [normed_group F] [normed_space R F] [topological_space B] [topological_space B']
+  [topological_space (total_space E)] [∀ x, topological_space (E x)]
+
 
 section
 
@@ -1031,7 +1035,8 @@ instance pullback [∀ x, topological_space (E x)] [topological_vector_bundle R 
   trivialization_at := λ x, (topological_vector_bundle.trivialization_at R F E (f x)).pullback f,
   mem_base_set_trivialization_at :=
     λ x, topological_vector_bundle.mem_base_set_trivialization_at R F E (f x),
-  trivialization_mem_atlas := λ x, ⟨topological_vector_bundle.trivialization_at R F E (f x), rfl⟩ }
+  trivialization_mem_atlas := λ x, ⟨topological_vector_bundle.trivialization_at R F E (f x), rfl⟩,
+  continuous_coord_change := sorry }
 
 end pullback
 

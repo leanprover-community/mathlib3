@@ -211,6 +211,12 @@ lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set �
   is_closed {x ∈ s | f x ≤ g x} :=
 (hf.prod hg).preimage_closed_of_closed hs order_closed_topology.is_closed_le'
 
+lemma le_on_closure [topological_space β] {f g : β → α} {s : set β} (h : ∀ x ∈ s, f x ≤ g x)
+  (hf : continuous_on f (closure s)) (hg : continuous_on g (closure s)) ⦃x⦄ (hx : x ∈ closure s) :
+  f x ≤ g x :=
+have s ⊆ {y ∈ closure s | f y ≤ g y}, from λ y hy, ⟨subset_closure hy, h y hy⟩,
+(closure_minimal this (is_closed_closure.is_closed_le hf hg) hx).2
+
 lemma is_closed.epigraph [topological_space β] {f : β → α} {s : set β}
   (hs : is_closed s) (hf : continuous_on f s) :
   is_closed {p : β × α | p.1 ∈ s ∧ f p.1 ≤ p.2} :=

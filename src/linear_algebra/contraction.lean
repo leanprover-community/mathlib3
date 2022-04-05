@@ -44,14 +44,6 @@ def dual_tensor_hom : (module.dual R M) ⊗ N →ₗ[R] M →ₗ[R] N :=
   let M' := module.dual R M in
   (uncurry R M' N (M →ₗ[R] N) : _ → M' ⊗ N →ₗ[R] M →ₗ[R] N) linear_map.smul_rightₗ
 
-/-- An explicit inverse of `dual_tensor_hom` given a basis. -/
-noncomputable def hom_dual_tensor : (M →ₗ[R] N) →ₗ[R] (module.dual R M) ⊗[R] N :=
-∑ i, (tensor_product.mk R _ N (b.dual_basis i)) ∘ₗ linear_map.applyₗ (b i)
-
-lemma hom_dual_tensor_apply (f : M →ₗ[R] N) :
-  hom_dual_tensor R M N b f = ∑ i, b.dual_basis i ⊗ₜ f (b i) :=
-linear_map.sum_apply _ _ _
-
 variables {R M N}
 
 @[simp] lemma contract_left_apply (f : module.dual R M) (m : M) :
@@ -77,37 +69,29 @@ begin
   rw [and_iff_not_or_not, not_not] at hij, cases hij; simp [hij],
 end
 
-/-- `hom_dual_tensor` is right inverse to `dual_tensor_hom` -/
-@[simp]
-lemma dual_tensor_hom_hom_dual_tensor_apply (f : M →ₗ[R] N):
-  (dual_tensor_hom R M N) ((hom_dual_tensor R M N b) f) = f :=
-begin
-  ext m, nth_rewrite_rhs 0 ←basis.sum_repr b m,
-  simp [hom_dual_tensor],
-end
-
-/-- `hom_dual_tensor` is right inverse to `dual_tensor_hom` -/
-lemma dual_tensor_hom_hom_dual_tensor :
-  (dual_tensor_hom R M N) ∘ₗ (hom_dual_tensor R M N b) = id :=
-by { ext f, simp }
-
 local attribute [ext] tensor_product.ext
-
-lemma hom_dual_tensor_dual_tensor_hom :
-  hom_dual_tensor R M N b ∘ₗ dual_tensor_hom R M N = linear_map.id :=
-begin
-  ext f m,
-  show hom_dual_tensor R M N b (dual_tensor_hom R M N (f ⊗ₜ[R] m)) = f ⊗ₜ[R] m,
-  simp_rw [hom_dual_tensor_apply, dual_tensor_hom_apply f _ m, ←smul_tmul, ←sum_tmul,
-    basis.coe_dual_basis, basis.sum_dual_apply_smul_coord],
-end
 
 /-- If `M` is free, the natural linear map $M^* ⊗ N → Hom(M, N)$ is an equivalence. This function
 provides this equivalence in return for a basis of `M`. -/
-@[simps] noncomputable def dual_tensor_hom_equiv_of_basis :
+
+noncomputable def dual_tensor_hom_equiv_of_basis
+  {ι : Type*} [decidable_eq ι] [fintype ι] (b : basis ι R M) :
   (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
-linear_equiv.of_linear (dual_tensor_hom R M N) (hom_dual_tensor R M N b)
-  (dual_tensor_hom_hom_dual_tensor b) (hom_dual_tensor_dual_tensor_hom b)
+linear_equiv.of_linear
+  (dual_tensor_hom R M N)
+  (∑ i, (tensor_product.mk R _ N (b.dual_basis i)) ∘ₗ linear_map.applyₗ (b i))
+  (begin
+    ext f m,
+    simp only [applyₗ_apply_apply, coe_fn_sum, dual_tensor_hom_apply, mk_apply, id_coe, id.def,
+      fintype.sum_apply, function.comp_app, basis.coe_dual_basis, coe_comp,
+      basis.coord_apply, ← f.map_smul, (dual_tensor_hom R M N).map_sum, ← f.map_sum, b.sum_repr],
+  end)
+  (begin
+    ext f m,
+    simp only [applyₗ_apply_apply, coe_fn_sum, dual_tensor_hom_apply, mk_apply, id_coe, id.def,
+      fintype.sum_apply, function.comp_app, basis.coe_dual_basis, coe_comp,
+      compr₂_apply, tmul_smul, smul_tmul', ← sum_tmul, basis.sum_dual_apply_smul_coord],
+end)
 
 @[simp] lemma dual_tensor_hom_equiv_of_basis_to_linear_map :
   (dual_tensor_hom_equiv_of_basis b : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N).to_linear_map =

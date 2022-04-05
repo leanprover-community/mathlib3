@@ -495,12 +495,8 @@ lemma haar_content_outer_measure_self_pos {K₀ : positive_compacts G} :
 begin
   apply ennreal.zero_lt_one.trans_le,
   rw [content.outer_measure_eq_infi],
-  refine le_binfi _,
-  intros U hU,
-  refine le_infi _,
-  intros h2U,
-  refine le_trans (le_of_eq _) (le_bsupr K₀.to_compacts h2U),
-  exact haar_content_self.symm
+  refine le_infi₂ (λ U hU, le_infi $ λ hK₀, le_trans _ $ le_supr₂ K₀.to_compacts hK₀),
+  exact haar_content_self.ge,
 end
 
 end haar

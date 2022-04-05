@@ -30,8 +30,10 @@ the polynomials. For instance,
 
 ## Implementation
 
-Polynomials are defined using `add_monoid_algebra R ℕ`, where `R` is a commutative semiring, but
-through a structure to make them irreducible from the point of view of the kernel. Most operations
+Polynomials are defined using `add_monoid_algebra R ℕ`, where `R` is a semiring.
+The variable `X` commutes with every polynomial `p`: lemma `X_mul` proves the identity
+`X * p = `p * X`.  The relationship to `add_monoid_algebra R ℕ` is through a structure
+to make polynomials irreducible from the point of view of the kernel. Most operations
 are irreducible since Lean can not compute anyway with `add_monoid_algebra`. There are two
 exceptions that we make semireducible:
 * The zero polynomial, so that its coefficients are definitionally equal to `0`.
@@ -173,7 +175,8 @@ def to_finsupp_iso : R[X] ≃+* add_monoid_algebra R ℕ :=
   map_mul' := by { rintros ⟨⟩ ⟨⟩, simp [mul_to_finsupp] },
   map_add' := by { rintros ⟨⟩ ⟨⟩, simp [add_to_finsupp] } }
 
-/-- Ring isomorphism between `R[X]ᵐᵒᵖ` and `R[X]ᵐᵒᵖ`. -/
+/-- Ring isomorphism between `R[X]ᵐᵒᵖ` and `Rᵐᵒᵖ[X]` sending each coefficient of a polynomial
+to the corresponding element of the opposite ring. -/
 @[simps]
 def op_ring_equiv : R[X]ᵐᵒᵖ ≃+* Rᵐᵒᵖ[X] :=
 ((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm

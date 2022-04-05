@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import model_theory.ultraproducts
+import model_theory.bundled
 
 /-!
 # First-Order Satisfiability
@@ -40,8 +41,7 @@ namespace Theory
 variable (T)
 
 /-- A theory is satisfiable if a structure models it. -/
-def is_satisfiable : Prop :=
-∃ (M : Type (max u v)) [nonempty M] [str : L.Structure M], @Theory.model L M str T
+def is_satisfiable : Prop := nonempty (Model.{u v (max u v)} T)
 
 /-- A theory is finitely satisfiable if all of its finite subtheories are satisfiable. -/
 def is_finitely_satisfiable : Prop :=
@@ -49,32 +49,13 @@ def is_finitely_satisfiable : Prop :=
 
 variables {T} {T' : L.Theory}
 
-/-- Given that a theory is satisfiable, selects a model using choice. -/
-def is_satisfiable.some_model (h : T.is_satisfiable) : Type* := classical.some h
-
-instance is_satisfiable.nonempty_some_model (h : T.is_satisfiable) :
-  nonempty (h.some_model) :=
-classical.some (classical.some_spec h)
-
-noncomputable instance is_satisfiable.inhabited_some_model (h : T.is_satisfiable) :
-  inhabited (h.some_model) := classical.inhabited_of_nonempty'
-
-noncomputable instance is_satisfiable.some_model_structure (h : T.is_satisfiable) :
-  L.Structure (h.some_model) :=
-classical.some (classical.some_spec (classical.some_spec h))
-
-instance is_satisfiable.some_model_models (h : T.is_satisfiable) :
-  h.some_model ⊨ T :=
-classical.some_spec (classical.some_spec (classical.some_spec h))
-
 lemma model.is_satisfiable (M : Type (max u v)) [n : nonempty M]
-  [S : L.Structure M] (h : T.model M) : T.is_satisfiable :=
-⟨M, n, S, h⟩
+  [S : L.Structure M] [M ⊨ T] : T.is_satisfiable :=
+⟨Model.of T M⟩
 
 lemma is_satisfiable.mono (h : T'.is_satisfiable) (hs : T ⊆ T') :
   T.is_satisfiable :=
-⟨h.some_model, h.nonempty_some_model, h.some_model_structure,
-  h.some_model_models.mono hs⟩
+⟨(Theory.model.mono (Model.is_model h.some) hs).bundled⟩
 
 lemma is_satisfiable.is_finitely_satisfiable (h : T.is_satisfiable) :
   T.is_finitely_satisfiable :=
@@ -88,18 +69,18 @@ theorem is_satisfiable_iff_is_finitely_satisfiable {T : L.Theory} :
   classical,
   set M : Π (T0 : finset T), Type (max u v) :=
     λ T0, (h (T0.map (function.embedding.subtype (λ x, x ∈ T)))
-      T0.map_subtype_subset).some_model with hM,
-  letI : Π (T0 : finset T), L.Structure (M T0) := λ T0, is_satisfiable.some_model_structure _,
-  haveI : (filter.at_top : filter (finset T)).ne_bot := filter.at_top_ne_bot,
-  refine ⟨(↑(ultrafilter.of filter.at_top) : filter _).product M, infer_instance,
-    ultraproduct.Structure, ⟨_⟩⟩,
-  intros φ hφ,
-  rw ultraproduct.sentence_realize,
-  refine filter.eventually.filter_mono (ultrafilter.of_le _) (filter.eventually_at_top.2 ⟨{⟨φ, hφ⟩},
-    λ s h', Theory.realize_sentence_of_mem (s.map (function.embedding.subtype (λ x, x ∈ T))) _⟩),
-  simp only [finset.coe_map, function.embedding.coe_subtype, set.mem_image, finset.mem_coe,
-    subtype.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right],
-  exact ⟨hφ, h' (finset.mem_singleton_self _)⟩,
+      T0.map_subtype_subset).some with hM,
+  let M' := filter.product ↑(ultrafilter.of (filter.at_top : filter (finset T))) M,
+  haveI h' : M' ⊨ T,
+  { refine ⟨λ φ hφ, _⟩,
+    rw ultraproduct.sentence_realize,
+    refine filter.eventually.filter_mono (ultrafilter.of_le _)
+      (filter.eventually_at_top.2 ⟨{⟨φ, hφ⟩},
+      λ s h', Theory.realize_sentence_of_mem (s.map (function.embedding.subtype (λ x, x ∈ T))) _⟩),
+    simp only [finset.coe_map, function.embedding.coe_subtype, set.mem_image, finset.mem_coe,
+      subtype.exists, subtype.coe_mk, exists_and_distrib_right, exists_eq_right],
+    exact ⟨hφ, h' (finset.mem_singleton_self _)⟩ },
+  exact ⟨Model.of T M'⟩,
 end⟩
 
 variable (T)
@@ -107,25 +88,19 @@ variable (T)
 /-- A theory models a (bounded) formula when any of its nonempty models realizes that formula on all
   inputs.-/
 def models_bounded_formula (φ : L.bounded_formula α n) : Prop :=
-  ∀ (M : Type (max u v)) [nonempty M] [str : L.Structure M] (v : α → M) (xs : fin n → M),
-    @Theory.model L M str T → @bounded_formula.realize L M str α n φ v xs
+  ∀ (M : Model.{u v (max u v)} T) (v : α → M) (xs : fin n → M), φ.realize v xs
 
 infix ` ⊨ `:51 := models_bounded_formula -- input using \|= or \vDash, but not using \models
 
 variable {T}
 
 lemma models_formula_iff {φ : L.formula α} :
-  T ⊨ φ ↔ ∀ (M : Type (max u v)) [nonempty M] [str : L.Structure M] (v : α → M),
-    @Theory.model L M str T → @formula.realize L M str α φ v :=
-forall_congr (λ M, forall_congr (λ ne, forall_congr (λ str, forall_congr (λ v, unique.forall_iff))))
+  T ⊨ φ ↔ ∀ (M : Model.{u v (max u v)} T) (v : α → M), φ.realize v :=
+forall_congr (λ M, forall_congr (λ v, unique.forall_iff))
 
 lemma models_sentence_iff {φ : L.sentence} :
-  T ⊨ φ ↔ ∀ (M : Type (max u v)) [nonempty M] [str : L.Structure M],
-    @Theory.model L M str T → @sentence.realize L M str φ :=
-begin
-  rw [models_formula_iff],
-  exact forall_congr (λ M, forall_congr (λ ne, forall_congr (λ str, unique.forall_iff)))
-end
+  T ⊨ φ ↔ ∀ (M : Model.{u v (max u v)} T), M ⊨ φ :=
+models_formula_iff.trans (forall_congr (λ M, unique.forall_iff))
 
 /-- Two (bounded) formulas are semantically equivalent over a theory `T` when they have the same
 interpretation in every model of `T`. (This is also known as logical equivalence, which also has a
@@ -135,7 +110,7 @@ T ⊨ φ.iff ψ
 
 @[refl] lemma semantically_equivalent.refl (φ : L.bounded_formula α n) :
   T.semantically_equivalent φ φ :=
-λ M ne str v xs hM, by rw bounded_formula.realize_iff
+λ M v xs, by rw bounded_formula.realize_iff
 
 instance : is_refl (L.bounded_formula α n) T.semantically_equivalent :=
 ⟨semantically_equivalent.refl⟩
@@ -143,45 +118,32 @@ instance : is_refl (L.bounded_formula α n) T.semantically_equivalent :=
 @[symm] lemma semantically_equivalent.symm {φ ψ : L.bounded_formula α n}
   (h : T.semantically_equivalent φ ψ) :
   T.semantically_equivalent ψ φ :=
-λ M ne str v xs hM, begin
-  haveI := ne,
+λ M v xs, begin
   rw [bounded_formula.realize_iff, iff.comm, ← bounded_formula.realize_iff],
-  exact h M v xs hM,
+  exact h M v xs,
 end
 
 @[trans] lemma semantically_equivalent.trans {φ ψ θ : L.bounded_formula α n}
   (h1 : T.semantically_equivalent φ ψ) (h2 : T.semantically_equivalent ψ θ) :
   T.semantically_equivalent φ θ :=
-λ M ne str v xs hM, begin
-  haveI := ne,
-  have h1' := h1 M v xs hM,
-  have h2' := h2 M v xs hM,
+λ M v xs, begin
+  have h1' := h1 M v xs,
+  have h2' := h2 M v xs,
   rw [bounded_formula.realize_iff] at *,
   exact ⟨h2'.1 ∘ h1'.1, h1'.2 ∘ h2'.2⟩,
 end
 
 lemma semantically_equivalent.realize_bd_iff {φ ψ : L.bounded_formula α n}
-  {M : Type (max u v)} [ne : nonempty M] [str : L.Structure M] (hM : T.model M)
+  {M : Type (max u v)} [ne : nonempty M] [str : L.Structure M] [hM : T.model M]
   (h : T.semantically_equivalent φ ψ) {v : α → M} {xs : (fin n → M)} :
   φ.realize v xs ↔ ψ.realize v xs :=
-bounded_formula.realize_iff.1 (h M v xs hM)
-
-lemma semantically_equivalent.some_model_realize_bd_iff {φ ψ : L.bounded_formula α n}
-  (hsat : T.is_satisfiable) (h : T.semantically_equivalent φ ψ)
-  {v : α → (hsat.some_model)} {xs : (fin n → (hsat.some_model))} :
-  φ.realize v xs ↔ ψ.realize v xs :=
-h.realize_bd_iff hsat.some_model_models
+bounded_formula.realize_iff.1 (h (Model.of T M) v xs)
 
 lemma semantically_equivalent.realize_iff {φ ψ : L.formula α}
   {M : Type (max u v)} [ne : nonempty M] [str : L.Structure M] (hM : T.model M)
   (h : T.semantically_equivalent φ ψ) {v : α → M} :
   φ.realize v ↔ ψ.realize v :=
-h.realize_bd_iff hM
-
-lemma semantically_equivalent.some_model_realize_iff {φ ψ : L.formula α}
-  (hsat : T.is_satisfiable) (h : T.semantically_equivalent φ ψ) {v : α → (hsat.some_model)} :
-  φ.realize v ↔ ψ.realize v :=
-h.realize_iff hsat.some_model_models
+h.realize_bd_iff
 
 /-- Semantic equivalence forms an equivalence relation on formulas. -/
 def semantically_equivalent_setoid (T : L.Theory) : setoid (L.bounded_formula α n) :=
@@ -191,34 +153,34 @@ def semantically_equivalent_setoid (T : L.Theory) : setoid (L.bounded_formula α
 protected lemma semantically_equivalent.all {φ ψ : L.bounded_formula α (n + 1)}
   (h : T.semantically_equivalent φ ψ) : T.semantically_equivalent φ.all ψ.all :=
 begin
-  rw [semantically_equivalent, models_bounded_formula],
-  introsI M ne str v xs hM,
-  simp [h.realize_bd_iff hM],
+  simp_rw [semantically_equivalent, models_bounded_formula, bounded_formula.realize_iff,
+    bounded_formula.realize_all],
+  exact λ M v xs, forall_congr (λ a, h.realize_bd_iff),
 end
 
 protected lemma semantically_equivalent.ex {φ ψ : L.bounded_formula α (n + 1)}
   (h : T.semantically_equivalent φ ψ) : T.semantically_equivalent φ.ex ψ.ex :=
 begin
-  rw [semantically_equivalent, models_bounded_formula],
-  introsI M ne str v xs hM,
-  simp [h.realize_bd_iff hM],
+  simp_rw [semantically_equivalent, models_bounded_formula, bounded_formula.realize_iff,
+    bounded_formula.realize_ex],
+  exact λ M v xs, exists_congr (λ a, h.realize_bd_iff),
 end
 
 protected lemma semantically_equivalent.not {φ ψ : L.bounded_formula α n}
   (h : T.semantically_equivalent φ ψ) : T.semantically_equivalent φ.not ψ.not :=
 begin
-  rw [semantically_equivalent, models_bounded_formula],
-  introsI M ne str v xs hM,
-  simp [h.realize_bd_iff hM],
+  simp_rw [semantically_equivalent, models_bounded_formula, bounded_formula.realize_iff,
+    bounded_formula.realize_not],
+  exact λ M v xs, not_congr h.realize_bd_iff,
 end
 
 protected lemma semantically_equivalent.imp {φ ψ φ' ψ' : L.bounded_formula α n}
   (h : T.semantically_equivalent φ ψ) (h' : T.semantically_equivalent φ' ψ') :
   T.semantically_equivalent (φ.imp φ') (ψ.imp ψ') :=
 begin
-  rw [semantically_equivalent, models_bounded_formula],
-  introsI M ne str v xs hM,
-  simp [h.realize_bd_iff hM, h'.realize_bd_iff hM],
+  simp_rw [semantically_equivalent, models_bounded_formula, bounded_formula.realize_iff,
+    bounded_formula.realize_imp],
+  exact λ M v xs, imp_congr h.realize_bd_iff h'.realize_bd_iff,
 end
 
 end Theory
@@ -228,31 +190,31 @@ variables (φ ψ : L.bounded_formula α n)
 
 lemma semantically_equivalent_not_not :
   T.semantically_equivalent φ φ.not.not :=
-λ M ne str v xs hM, by simp
+λ M v xs, by simp
 
 lemma imp_semantically_equivalent_not_sup :
   T.semantically_equivalent (φ.imp ψ) (φ.not ⊔ ψ) :=
-λ M ne str v xs hM, by simp [imp_iff_not_or]
+λ M v xs, by simp [imp_iff_not_or]
 
 lemma sup_semantically_equivalent_not_inf_not :
   T.semantically_equivalent (φ ⊔ ψ) (φ.not ⊓ ψ.not).not :=
-λ M ne str v xs hM, by simp [imp_iff_not_or]
+λ M v xs, by simp [imp_iff_not_or]
 
 lemma inf_semantically_equivalent_not_sup_not :
   T.semantically_equivalent (φ ⊓ ψ) (φ.not ⊔ ψ.not).not :=
-λ M ne str v xs hM, by simp [and_iff_not_or_not]
+λ M v xs, by simp [and_iff_not_or_not]
 
 lemma all_semantically_equivalent_not_ex_not (φ : L.bounded_formula α (n + 1)) :
   T.semantically_equivalent φ.all φ.not.ex.not :=
-λ M ne str v xs hM, by simp
+λ M v xs, by simp
 
 lemma ex_semantically_equivalent_not_all_not (φ : L.bounded_formula α (n + 1)) :
   T.semantically_equivalent φ.ex φ.not.all.not :=
-λ M ne str v xs hM, by simp
+λ M v xs, by simp
 
 lemma semantically_equivalent_all_lift_at :
   T.semantically_equivalent φ (φ.lift_at 1 n).all :=
-λ M ne str v xs hM, by { resetI, rw [realize_iff, realize_all_lift_at_one_self] }
+λ M v xs, by { resetI, rw [realize_iff, realize_all_lift_at_one_self] }
 
 end bounded_formula
 
@@ -305,10 +267,7 @@ h.induction_on_sup_not hf ha (λ φ₁ φ₂ h1 h2,
 
 lemma semantically_equivalent_to_prenex (φ : L.bounded_formula α n) :
   (∅ : L.Theory).semantically_equivalent φ φ.to_prenex :=
-λ M nM str v xs hM, begin
-  resetI,
-  simp,
-end
+λ M v xs, by rw [realize_iff, realize_to_prenex]
 
 lemma induction_on_all_ex {P : Π {m}, L.bounded_formula α m → Prop} (φ : L.bounded_formula α n)
   (hqf : ∀ {m} {ψ : L.bounded_formula α m}, is_qf ψ → P ψ)

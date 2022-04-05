@@ -181,7 +181,7 @@ begin
             exact h₅ h₄ },
           exact smul_mem (span 𝕜 (f '' Iic (c + 1)))
             ((⟪gram_schmidt 𝕜 f c₁, f (c + 1)⟫
-              / ∥gram_schmidt 𝕜 f c₁∥ ^ 2) : 𝕜) hc₃ }}},
+              / ∥gram_schmidt 𝕜 f c₁∥ ^ 2) : 𝕜) hc₃ } } },
     have h₁ : gram_schmidt 𝕜 f '' Iic c.succ ⊆ span 𝕜 (f '' Iic c.succ) := h₀,
     rwa ← span_le at h₁ },
   { have h₀ : ∀ x ∈ f '' Iic c.succ,

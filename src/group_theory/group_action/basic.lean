@@ -530,6 +530,10 @@ lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
   r • ∑ x in s, f x = ∑ x in s, r • f x :=
 (distrib_mul_action.to_add_monoid_hom β r).map_sum f s
 
+lemma finset.sum_smul_sum {α : Type*} [semiring α] [module α β] {f : γ → α} {g : γ → β}
+  {s t : finset γ} : (∑ i in s, f i) • (∑ i in t, g i) = ∑ p in s.product t, (f p.fst) • g p.snd :=
+by { rw [finset.sum_product, finset.sum_smul, finset.sum_congr rfl], intros, rw finset.smul_sum }
+
 end
 
 section

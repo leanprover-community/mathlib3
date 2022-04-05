@@ -516,6 +516,44 @@ begin
       rw [pow_mul, pow_order_of_eq_one, one_pow] } }
 end
 
+lemma is_cycle.pow_eq_pow_iff [fintype β] [decidable_eq β] {f : perm β} (hf : is_cycle f)
+  {a b : ℕ} : f ^ a = f ^ b ↔ ∃ (x ∈ f.support), (f ^ a) x = (f ^ b) x :=
+begin
+  split,
+  { intro h,
+    obtain ⟨x, hx, -⟩ := id hf,
+    exact ⟨x, mem_support.mpr hx, by simp [h]⟩ },
+  { rintro ⟨x, hx, hx'⟩,
+    obtain hab | rfl | hab := lt_trichotomy a b,
+    { suffices : f ^ (b - a) = 1,
+      { rw [pow_sub _ (le_of_lt hab), mul_inv_eq_one] at this,
+        rw this },
+      rw hf.pow_eq_one_iff,
+      by_cases hfa : (f ^ a) x ∈ f.support,
+      { refine ⟨(f ^ a) x, hfa, _⟩,
+        simp only [pow_sub _ (le_of_lt hab), equiv.perm.coe_mul, function.comp_app,
+          inv_apply_self, ← hx'] },
+      { have h := @equiv.perm.zpow_apply_comm _ f 1 a x,
+        simp only [zpow_one, zpow_coe_nat] at h,
+        rw [not_mem_support, h, function.injective.eq_iff (f ^ a).injective] at hfa,
+        exfalso,
+        exact (mem_support.mp hx) hfa }},
+    { refl },
+    { suffices : f ^ (a - b) = 1,
+      { rw [pow_sub _ (le_of_lt hab), mul_inv_eq_one] at this,
+        rw this },
+      rw hf.pow_eq_one_iff,
+      by_cases hfa : (f ^ b) x ∈ f.support,
+      { refine ⟨(f ^ b) x, hfa, _⟩,
+        simp only [pow_sub _ (le_of_lt hab), equiv.perm.coe_mul, function.comp_app,
+          inv_apply_self, hx'] },
+      { have h := @equiv.perm.zpow_apply_comm _ f 1 b x,
+        simp only [zpow_one, zpow_coe_nat] at h,
+        rw [not_mem_support, h, function.injective.eq_iff (f ^ b).injective] at hfa,
+        exfalso,
+        exact (mem_support.mp hx) hfa }}}
+end
+
 lemma is_cycle.mem_support_pos_pow_iff_of_lt_order_of [fintype α] {f : perm α} (hf : is_cycle f)
   {n : ℕ} (npos : 0 < n) (hn : n < order_of f) {x : α} :
   x ∈ (f ^ n).support ↔ x ∈ f.support :=

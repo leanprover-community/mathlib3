@@ -7,6 +7,7 @@ import algebra.big_operators.basic
 import algebra.smul_with_zero
 import group_theory.group_action.group
 import tactic.norm_num
+import group_theory.group_action.basic
 
 /-!
 # Modules over a ring
@@ -162,6 +163,10 @@ lemma multiset.sum_smul {l : multiset R} {x : M} : l.sum • x = (l.map (λ r, r
 lemma finset.sum_smul {f : ι → R} {s : finset ι} {x : M} :
   (∑ i in s, f i) • x = (∑ i in s, (f i) • x) :=
 ((smul_add_hom R M).flip x).map_sum f s
+
+theorem finset.sum_smul_sum {f : ι → R} {g : ι → M} {s t : finset ι} :
+(∑ i in s, f i) • (∑ i in t, g i) = ∑ p in s.product t, (f p.fst) • g p.snd :=
+by { rw [finset.sum_product, finset.sum_smul, finset.sum_congr rfl], intros, rw finset.smul_sum }
 
 end add_comm_monoid
 

@@ -32,6 +32,14 @@ convenience.
 
 The case for `monotone`/`antitone` pairs of functions over a `linear_order` is not deduced in this
 file because it is easily deducible from the `monovary` API.
+
+# Chebyshev inequality
+
+As a corollary of the rearrangement inequality, this file proves Chebyshev inequality
+
+Chebyshev inequality states that for two functions `f g : ι → α`, which monovary, the inequality
+`(∑ i in s, f i) * (∑ i in s, g i) ≤ s.card * (∑ i in s, f i * g i)` holds and the reverse
+inequality holds, when the functions `f` and `g` antivary
 -/
 
 open equiv equiv.perm finset order_dual
@@ -39,55 +47,7 @@ open_locale big_operators
 
 variables {ι α β : Type*}
 
--- move to `group_theory.perm.list`
-theorem list.form_perm_mem_of_apply_mem {α : Type*} [decidable_eq α] (x : α) (l : list α)
-  (h : l.form_perm x ∈ l) : x ∈ l :=
-begin
-  cases l with y l,
-  { simpa },
-  induction l with z l IH generalizing x y,
-  { simpa using h },
-  { by_cases hx : (z :: l).form_perm x ∈ z :: l,
-    { rw [list.form_perm_cons_cons, mul_apply, swap_apply_def] at h,
-      split_ifs at h;
-      simp [IH _ _ hx] },
-    { replace hx := (function.injective.eq_iff (equiv.injective _)).mp
-        (list.form_perm_apply_of_not_mem _ _ hx),
-      simp only [list.form_perm_cons_cons, hx, equiv.perm.coe_mul, function.comp_app,
-        list.mem_cons_iff, swap_apply_def, ite_eq_left_iff] at h,
-      simp only [list.mem_cons_iff],
-      obtain h | h | h := h;
-      { split_ifs at h;
-        cc }}}
-end
-
--- move to `group_theory.perm.list`
-theorem list.form_perm_mem_iff_mem {α : Type*} [decidable_eq α] (x : α) (l : list α) :
-  x ∈ l ↔ l.form_perm x ∈ l :=
-by exact ⟨λ h, l.form_perm_apply_mem_of_mem x h, λ h, l.form_perm_mem_of_apply_mem x h⟩
-
--- move to `group_theory.perm.list`
-theorem list.form_perm_mem_of_apply_ne {α : Type*} [decidable_eq α] (x : α) (l : list α)
-  (h : l.form_perm x ≠ x) : x ∈ l :=
-begin
-  contrapose! h,
-  exact list.form_perm_apply_of_not_mem _ _ h
-end
-
--- move to `group_theory.perm.basic`
-lemma subtype_perm_support_eq (f : perm α) {p : α → Prop} (h : ∀ x, p x ↔ p (f x)) :
-  {x | (subtype_perm f h) x ≠ x} = {x | f x ≠ x} :=
-begin
-  ext y,
-  simp only [subtype_perm_apply, ne.def, set.mem_set_of_eq],
-  refine ⟨λ hy, _, λ hy, _⟩,
-  { contrapose! hy,
-    cases subtype.coe_eq_iff.mp (eq.symm hy) with z hz,
-    conv_rhs { rw hz }},
-  { contrapose! hy,
-    exact (subtype.coe_inj.mpr hy) }
-end
-
+/-! ### Rearrangement inequality -/
 /-! ### Scalar multiplication versions -/
 
 section smul
@@ -151,205 +111,6 @@ begin
     refine swap_apply_of_ne_of_ne hx.1 (σ.injective.ne _),
     rintro rfl,
     exact has hx.2 }
-end
-
--- to put into `algebra.module.basic`
-theorem finset.sum_smul_sum {R : Type*} {M : Type*} {ι : Type*} [semiring R] [add_comm_monoid M]
-  [module R M] {f : ι → R} {g : ι → M} {s t : finset ι} :
-(∑ i in s, f i) • (∑ i in t, g i) = ∑ p in s.product t, (f p.fst) • g p.snd :=
-by { rw [sum_product, sum_smul, sum_congr rfl], intros, rw smul_sum }
-
-lemma finset.product_self_eq_range_bUnion_perm [decidable_eq ι] (π : perm s) (hπ : π.is_cycle)
-  (hπs : π.support = univ) : s.product s =
-  (finset.range s.card).bUnion (λ k, s.bUnion $ λ i, {(i, (π^k).subtype_congr (equiv.refl _) i)}) :=
-begin
-  ext,
-  obtain hs | hs := eq_or_ne s.card 0,
-  { simp only [finset.card_eq_zero.mp hs, mem_product, not_mem_empty, and_self, card_empty,
-      range_zero, bUnion_empty] },
-  { simp only [mem_bUnion, mem_range, mem_singleton, exists_prop, mem_product],
-    refine ⟨λ h, _, λ h, _⟩,
-    { have hπ1 : π ⟨a.1, h.1⟩ ≠ ⟨a.1, h.1⟩,
-      { simp only [← equiv.perm.mem_support, hπs, mem_univ] },
-      have hπ2 : π ⟨a.2, h.2⟩ ≠ ⟨a.2, h.2⟩,
-      { simp only [← equiv.perm.mem_support, hπs, mem_univ] },
-      cases hπ.exists_pow_eq hπ1 hπ2 with i hi,
-      replace hi : (π ^ (i % s.card)) ⟨a.fst, _⟩ = ⟨a.snd, _⟩,
-      { convert hi using 2,
-        convert (eq.symm pow_eq_mod_order_of),
-        simp only [equiv.perm.order_of_is_cycle hπ, hπs, univ_eq_attach, card_attach] },
-      refine ⟨i % s.card, _, a.1, h.1, _⟩,
-      { exact nat.mod_lt _ (pos_iff_ne_zero.mpr hs) },
-      { ext, refl,
-        rw equiv.perm.subtype_congr.left_apply,
-        { simp only [hi, subtype.coe_mk] },
-        { exact h.1 }}},
-    { rcases h with ⟨k, hk, b, hbs, h⟩,
-      rw h,
-      refine ⟨by simpa using hbs, _⟩,
-      rw equiv.perm.subtype_congr.left_apply,
-      simp only [coe_mem],
-      exact hbs }}
-end
-
--- to move to `group_theory.perm.cycles`
-lemma is_cycle.pow_eq_pow_iff [fintype ι] [decidable_eq ι] {f : perm ι} (hf : is_cycle f)
-  {a b : ℕ} : f ^ a = f ^ b ↔ ∃ (x ∈ f.support), (f ^ a) x = (f ^ b) x :=
-begin
-  split,
-  { intro h,
-    obtain ⟨x, hx, -⟩ := id hf,
-    exact ⟨x, mem_support.mpr hx, by simp [h]⟩ },
-  { rintro ⟨x, hx, hx'⟩,
-    obtain hab | rfl | hab := lt_trichotomy a b,
-    { suffices : f ^ (b - a) = 1,
-      { rw [pow_sub _ (le_of_lt hab), mul_inv_eq_one] at this,
-        rw this },
-      rw hf.pow_eq_one_iff,
-      by_cases hfa : (f ^ a) x ∈ f.support,
-      { refine ⟨(f ^ a) x, hfa, _⟩,
-        simp only [pow_sub _ (le_of_lt hab), equiv.perm.coe_mul, function.comp_app,
-          inv_apply_self, ← hx'] },
-      { have h := @equiv.perm.zpow_apply_comm _ f 1 a x,
-        simp only [zpow_one, zpow_coe_nat] at h,
-        rw [not_mem_support, h, function.injective.eq_iff (f ^ a).injective] at hfa,
-        exfalso,
-        exact (mem_support.mp hx) hfa }},
-    { refl },
-    { suffices : f ^ (a - b) = 1,
-      { rw [pow_sub _ (le_of_lt hab), mul_inv_eq_one] at this,
-        rw this },
-      rw hf.pow_eq_one_iff,
-      by_cases hfa : (f ^ b) x ∈ f.support,
-      { refine ⟨(f ^ b) x, hfa, _⟩,
-        simp only [pow_sub _ (le_of_lt hab), equiv.perm.coe_mul, function.comp_app,
-          inv_apply_self, hx'] },
-      { have h := @equiv.perm.zpow_apply_comm _ f 1 b x,
-        simp only [zpow_one, zpow_coe_nat] at h,
-        rw [not_mem_support, h, function.injective.eq_iff (f ^ b).injective] at hfa,
-        exfalso,
-        exact (mem_support.mp hx) hfa }}}
-end
-
--- where to move?
-lemma sum_mul_sum_eq_sum_perm [decidable_eq ι] (s : finset ι) (π : perm s) (hπ : π.is_cycle)
-  (hπs : π.support = univ) : (∑ i in s, f i) • (∑ i in s, g i) =
-    ∑ k in finset.range s.card, (∑ i in s, f i • g ((π^k).subtype_congr (equiv.refl _) i)) :=
-begin
-  rw [finset.sum_smul_sum, finset.product_self_eq_range_bUnion_perm π hπ hπs, finset.sum_bUnion _],
-  { apply finset.sum_congr rfl,
-    intros x hx,
-    rw finset.sum_bUnion _,
-    { apply finset.sum_congr rfl,
-      exact λ y hy, sum_singleton },
-    { rintros a ha b hb hab ⟨c, d⟩ h,
-      simp only [inf_eq_inter, mem_inter, mem_singleton, prod.mk.inj_iff] at h,
-      exfalso, apply hab,
-      rw [← h.1.1, h.2.1] }},
-    { rintros a ha b hb hab ⟨c, d⟩ h,
-      simp only [inf_eq_inter, mem_inter, mem_bUnion, mem_singleton, prod.mk.inj_iff,
-        exists_prop] at h,
-      rcases h with ⟨⟨e, he⟩, ⟨f, hf⟩⟩,
-      have h : ((π ^ a).subtype_congr (equiv.refl {a // a ∉ s})) c =
-        ((π ^ b).subtype_congr (equiv.refl {a // a ∉ s})) c,
-      { conv_lhs { rw [he.2.1, ← he.2.2, hf.2.2, ← hf.2.1] }},
-      have hc : c ∈ s := by simp only [he.2.1, he.1],
-      replace h : (π ^ a) ⟨c, hc⟩ = (π ^ b) ⟨c, hc⟩,
-      { rw [equiv.perm.subtype_congr.left_apply _] at h,
-        swap, exact hc,
-        rw [equiv.perm.subtype_congr.left_apply _] at h,
-        swap, exact hc,
-        simp only [← @subtype.coe_inj ι _ _, h] },
-      replace h : π ^ a = π ^ b,
-      { rw is_cycle.pow_eq_pow_iff hπ,
-        exact ⟨⟨c, hc⟩, by simp only [hπs, mem_univ], h⟩ },
-      simp only [pow_eq_pow_iff_modeq, equiv.perm.order_of_is_cycle hπ, hπs,
-        univ_eq_attach, card_attach] at h,
-      exfalso,
-      apply hab,
-      rw [nat.modeq.eq_of_modeq_of_abs_lt h _],
-      rw abs_sub_lt_iff,
-      simp only [mem_coe, mem_range] at *,
-      split; linarith },
-end
-
-
-
-/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which vary together,
-is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
-cardinality of the index set. -/
-lemma chebyshev_inequality [decidable_eq ι] (hfg : monovary_on f g s) :
-  (∑ i in s, f i) • (∑ i in s, g i) ≤ (∑ i in s, (s.card • f i) • g i) :=
-begin
-  -- condition on cases of size of `s`, as we can for cycles only when `2 ≤ s.card`
-  obtain hs | hs := lt_or_ge s.card 2,
-  { interval_cases s.card,
-    { simp only [card_eq_zero.mp h, finset.sum_empty, zero_smul] },
-    { cases (card_eq_one.mp h) with a ha,
-      simp only [ha, sum_singleton, card_singleton, nsmul_eq_mul, nat.cast_one, one_mul] }},
-  { set π : perm s :=
-    begin
-      refine equiv.perm.subtype_perm (s.to_list.form_perm) _,
-      simp_rw ← finset.mem_to_list,
-      exact λ x, (s.to_list).form_perm_mem_iff_mem x
-    end with hπ,
-    have hπc : π.is_cycle,
-    { replace hs : 2 ≤ s.to_list.length := by simpa using hs,
-      have h := list.is_cycle_form_perm (nodup_to_list s) hs,
-      rcases h with ⟨x, hx, h⟩,
-      have hxs := s.mem_to_list.mp (list.form_perm_mem_of_apply_ne _ _ hx),
-      refine ⟨⟨x, hxs⟩, _, λ y hy, _⟩,
-      { simpa using hx },
-      { replace hy : (s.to_list.form_perm) y ≠ y,
-        { contrapose! hy,
-          cases subtype.coe_eq_iff.mp (eq.symm hy) with z hz,
-          simp only [subtype_perm_apply],
-          conv_rhs { rw hz } },
-        cases (h y hy) with i hi,
-        use i,
-        cases subtype.coe_eq_iff.mp (eq.symm hi) with z hz,
-        conv_rhs { rw hz },
-        rw [← subtype.coe_inj, ← of_subtype_apply_of_mem (π ^ i)],
-        sorry -- what power lemmas do I want here?
-         }},
-    have hπs : π.support = univ,
-    -- here, I tried proving `subtype_perm_support_eq` above to help but it doesn't seem to typecheck,
-    -- any suggestions how this proof could go?
-    { suffices h1 : {x | (s.to_list).form_perm x ≠ x} = s,
-      { suffices h2 : (π.support : set s) = set.univ,
-        { ext x,
-          replace h2 := (set.ext_iff.mp h2) x,
-          simp only [mem_coe] at h2,
-          convert h2 using 1; simp },
-        { simp only [coe_support_eq_set_support, hπ],
-          sorry }},
-      { rw list.support_form_perm_of_nodup' s.to_list (nodup_to_list s),
-        { simp only [to_list_to_finset]},
-        { simp only [ne.def],
-          intros y hsy,
-          replace hsy : s.to_list.length = 1,
-          { rw list.length_eq_one,
-            exact ⟨y, hsy⟩ },
-          simp only [finset.length_to_list] at hsy,
-          linarith }}},
-    rw (sum_mul_sum_eq_sum_perm s π hπc hπs),
-    have : ∑ (k : ℕ) in range s.card,
-    ∑ (i : ι) in s, f i • g (((π ^ k).subtype_congr (equiv.refl _)) i) ≤
-      ∑ (k : ℕ) in range s.card, ∑ (i : ι) in s, f i • g i,
-    { apply finset.sum_le_sum,
-      intros k hk,
-      convert monovary_on.sum_smul_comp_perm_le_sum_smul hfg _,
-      intros x hx,
-      contrapose! hx,
-      simp only [set.mem_set_of_eq, not_not],
-      rw equiv.perm.subtype_congr.right_apply,
-      simp only [coe_refl, id.def, subtype.coe_mk],
-      contrapose! hx,
-      exact mem_coe.mpr hx },
-    apply le_trans this,
-    apply le_of_eq,
-    simp only [sum_const, card_range, mul_smul, smul_sum, smul_assoc],
-    apply_instance}
 end
 
 /-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is maximized when
@@ -463,5 +224,235 @@ hfg.sum_smul_le_sum_smul_comp_perm
 lemma antivary.sum_mul_le_sum_comp_perm_mul (hfg : antivary f g) :
   ∑ i, f i * g i ≤ ∑ i, f (σ i) * g i :=
 hfg.sum_smul_le_sum_comp_perm_smul
+
+end mul
+
+/-! ### Chebyshev inequality -/
+
+/-! ### Scalar multiplication versions -/
+
+section smul
+variables [linear_ordered_ring α] [linear_ordered_add_comm_group β] [module α β] [decidable_eq ι]
+  [ordered_smul α β] {s : finset ι} {σ : perm ι} {f : ι → α} {g : ι → β}
+
+-- where to move?
+lemma finset.product_self_eq_range_bUnion_perm [decidable_eq ι] (π : perm s) (hπ : π.is_cycle)
+  (hπs : π.support = univ) : s.product s =
+  (finset.range s.card).bUnion (λ k, s.bUnion $ λ i, {(i, (π^k).subtype_congr (equiv.refl _) i)}) :=
+begin
+  ext,
+  obtain hs | hs := eq_or_ne s.card 0,
+  { simp only [finset.card_eq_zero.mp hs, mem_product, not_mem_empty, and_self, card_empty,
+      range_zero, bUnion_empty] },
+  { simp only [mem_bUnion, mem_range, mem_singleton, exists_prop, mem_product],
+    refine ⟨λ h, _, λ h, _⟩,
+    { have hπ1 : π ⟨a.1, h.1⟩ ≠ ⟨a.1, h.1⟩,
+      { simp only [← equiv.perm.mem_support, hπs, mem_univ] },
+      have hπ2 : π ⟨a.2, h.2⟩ ≠ ⟨a.2, h.2⟩,
+      { simp only [← equiv.perm.mem_support, hπs, mem_univ] },
+      cases hπ.exists_pow_eq hπ1 hπ2 with i hi,
+      replace hi : (π ^ (i % s.card)) ⟨a.fst, _⟩ = ⟨a.snd, _⟩,
+      { convert hi using 2,
+        convert (eq.symm pow_eq_mod_order_of),
+        simp only [equiv.perm.order_of_is_cycle hπ, hπs, univ_eq_attach, card_attach] },
+      refine ⟨i % s.card, _, a.1, h.1, _⟩,
+      { exact nat.mod_lt _ (pos_iff_ne_zero.mpr hs) },
+      { ext, refl,
+        rw equiv.perm.subtype_congr.left_apply,
+        { simp only [hi, subtype.coe_mk] },
+        { exact h.1 }}},
+    { rcases h with ⟨k, hk, b, hbs, h⟩,
+      rw h,
+      refine ⟨by simpa using hbs, _⟩,
+      rw equiv.perm.subtype_congr.left_apply,
+      simp only [coe_mem],
+      exact hbs }}
+end
+
+-- where to move?
+lemma sum_mul_sum_eq_sum_perm [decidable_eq ι] (s : finset ι) (π : perm s) (hπ : π.is_cycle)
+  (hπs : π.support = univ) : (∑ i in s, f i) • (∑ i in s, g i) =
+    ∑ k in finset.range s.card, (∑ i in s, f i • g ((π^k).subtype_congr (equiv.refl _) i)) :=
+begin
+  rw [finset.sum_smul_sum, finset.product_self_eq_range_bUnion_perm π hπ hπs, finset.sum_bUnion _],
+  { apply finset.sum_congr rfl,
+    intros x hx,
+    rw finset.sum_bUnion _,
+    { apply finset.sum_congr rfl,
+      exact λ y hy, sum_singleton },
+    { rintros a ha b hb hab ⟨c, d⟩ h,
+      simp only [inf_eq_inter, mem_inter, mem_singleton, prod.mk.inj_iff] at h,
+      exfalso, apply hab,
+      rw [← h.1.1, h.2.1] }},
+    { rintros a ha b hb hab ⟨c, d⟩ h,
+      simp only [inf_eq_inter, mem_inter, mem_bUnion, mem_singleton, prod.mk.inj_iff,
+        exists_prop] at h,
+      rcases h with ⟨⟨e, he⟩, ⟨f, hf⟩⟩,
+      have h : ((π ^ a).subtype_congr (equiv.refl {a // a ∉ s})) c =
+        ((π ^ b).subtype_congr (equiv.refl {a // a ∉ s})) c,
+      { conv_lhs { rw [he.2.1, ← he.2.2, hf.2.2, ← hf.2.1] }},
+      have hc : c ∈ s := by simp only [he.2.1, he.1],
+      replace h : (π ^ a) ⟨c, hc⟩ = (π ^ b) ⟨c, hc⟩,
+      { rw [equiv.perm.subtype_congr.left_apply _] at h,
+        swap, exact hc,
+        rw [equiv.perm.subtype_congr.left_apply _] at h,
+        swap, exact hc,
+        simp only [← @subtype.coe_inj ι _ _, h] },
+      replace h : π ^ a = π ^ b,
+      { rw is_cycle.pow_eq_pow_iff hπ,
+        exact ⟨⟨c, hc⟩, by simp only [hπs, mem_univ], h⟩ },
+      simp only [pow_eq_pow_iff_modeq, equiv.perm.order_of_is_cycle hπ, hπs,
+        univ_eq_attach, card_attach] at h,
+      exfalso,
+      apply hab,
+      rw [nat.modeq.eq_of_modeq_of_abs_lt h _],
+      rw abs_sub_lt_iff,
+      simp only [mem_coe, mem_range] at *,
+      split; linarith },
+end
+
+/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which vary together,
+is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
+cardinality of the index set. -/
+lemma monovary_on.sum_smul_sum_le_card_smul_sum (hfg : monovary_on f g s) :
+  (∑ i in s, f i) • (∑ i in s, g i) ≤ s.card • (∑ i in s, f i • g i) :=
+begin
+  obtain hs | hs := lt_or_ge s.card 2,
+  { interval_cases s.card,
+    { simp only [finset.card_eq_zero.mp h, finset.sum_empty, smul_zero] },
+    { cases (card_eq_one.mp h) with a ha,
+      simp only [ha, sum_singleton, card_singleton, one_smul] }},
+  { set π : perm s :=
+    begin
+      refine equiv.perm.subtype_perm (s.to_list.form_perm) _,
+      simp_rw ← finset.mem_to_list,
+      exact λ x, (s.to_list).form_perm_mem_iff_mem x
+    end with hπ,
+    have hπc : π.is_cycle,
+    { replace hs : 2 ≤ s.to_list.length := by simpa using hs,
+      have h := list.is_cycle_form_perm (nodup_to_list s) hs,
+      rcases h with ⟨x, hx, h⟩,
+      have hxs := s.mem_to_list.mp (list.form_perm_mem_of_apply_ne _ _ hx),
+      refine ⟨⟨x, hxs⟩, _, λ y hy, _⟩,
+      { simpa using hx },
+      { replace hy : (s.to_list.form_perm) y ≠ y,
+        { contrapose! hy,
+          cases subtype.coe_eq_iff.mp (eq.symm hy) with z hz,
+          simp only [subtype_perm_apply],
+          conv_rhs { rw hz } },
+        cases (h y hy) with i hi,
+        use i,
+        cases subtype.coe_eq_iff.mp (eq.symm hi) with z hz,
+        conv_rhs { rw hz },
+        rw [← subtype.coe_inj, ← of_subtype_apply_of_mem (π ^ i), map_zpow, subtype.coe_mk],
+        congr',
+        refine of_subtype_subtype_perm _ _,
+        intros x hx,
+        simp only [← s.mem_to_list, (s.to_list).form_perm_mem_of_apply_ne _ hx] }},
+    have hπs : π.support = univ,
+    { suffices h1 : {x | (s.to_list).form_perm x ≠ x} = s,
+      { suffices h2 : (π.support : set s) = set.univ,
+        { ext x,
+          replace h2 := (set.ext_iff.mp h2) x,
+          simp only [mem_coe] at h2,
+          convert h2 using 1; simp },
+        { simp only [coe_support_eq_set_support, hπ, subtype_perm_apply],
+          ext y,
+          replace h1 := set.ext_iff.mp h1 y,
+          simp only [ne.def, set.mem_set_of_eq, mem_coe, coe_mem, iff_true, set.mem_univ,
+            eq_self_iff_true] at *,
+          contrapose! h1,
+          conv_rhs { rw ← h1, simp only [subtype.coe_mk] }}},
+      { rw list.support_form_perm_of_nodup' s.to_list (nodup_to_list s),
+        { simp only [to_list_to_finset]},
+        { simp only [ne.def],
+          intros y hsy,
+          replace hsy : s.to_list.length = 1,
+          { rw list.length_eq_one,
+            exact ⟨y, hsy⟩ },
+          simp only [finset.length_to_list] at hsy,
+          linarith }}},
+    rw (sum_mul_sum_eq_sum_perm s π hπc hπs),
+    have : ∑ (k : ℕ) in range s.card,
+    ∑ (i : ι) in s, f i • g (((π ^ k).subtype_congr (equiv.refl _)) i) ≤
+      ∑ (k : ℕ) in range s.card, ∑ (i : ι) in s, f i • g i,
+    { apply finset.sum_le_sum,
+      intros k hk,
+      convert monovary_on.sum_smul_comp_perm_le_sum_smul hfg _,
+      intros x hx,
+      contrapose! hx,
+      simp only [set.mem_set_of_eq, not_not],
+      rw equiv.perm.subtype_congr.right_apply,
+      simp only [coe_refl, id.def, subtype.coe_mk],
+      contrapose! hx,
+      exact mem_coe.mpr hx },
+    apply le_trans this,
+    apply le_of_eq,
+    simp only [sum_const, card_range, mul_smul, smul_sum, smul_assoc],
+    apply_instance }
+end
+
+/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which antivary together,
+is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
+cardinality of the index set. -/
+lemma antivary_on.card_smul_sum_le_sum_smul_sum (hfg : antivary_on f g s) :
+  s.card • (∑ i in s, f i • g i) ≤ (∑ i in s, f i) • (∑ i in s, g i) :=
+by convert hfg.dual_right.sum_smul_sum_le_card_smul_sum
+
+variables [fintype ι]
+
+/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which vary together,
+is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
+cardinality of the index set. -/
+lemma monovary.sum_smul_sum_le_card_smul_sum (hfg : monovary f g) :
+  (∑ i, f i) • (∑ i, g i) ≤ fintype.card ι • (∑ i, f i • g i) :=
+(hfg.monovary_on _).sum_smul_sum_le_card_smul_sum
+
+/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which antivary together,
+is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
+cardinality of the index set. -/
+lemma antivary.card_smul_sum_le_sum_smul_sum (hfg : antivary f g) :
+  fintype.card ι • (∑ i, f i • g i) ≤ (∑ i, f i) • (∑ i, g i) :=
+by convert (hfg.dual_right.monovary_on _).sum_smul_sum_le_card_smul_sum
+
+end smul
+
+/-! ### Multiplication versions
+
+Special cases of the above when scalar multiplication is actually multiplication.
+-/
+
+section mul
+variables [linear_ordered_ring α] [decidable_eq ι] {s : finset ι} {σ : perm ι} {f g : ι → α}
+
+/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which vary together,
+is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
+cardinality of the index set. -/
+lemma monovary_on.sum_mul_sum_le_card_mul_sum (hfg : monovary_on f g s) :
+  (∑ i in s, f i) * (∑ i in s, g i) ≤ s.card * (∑ i in s, f i * g i) :=
+by { convert hfg.sum_smul_sum_le_card_smul_sum; simp }
+
+/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which antivary together,
+is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
+cardinality of the index set. -/
+lemma antivary_on.card_mul_sum_le_sum_mul_sum (hfg : antivary_on f g s) :
+  (s.card : α) * (∑ i in s, f i * g i) ≤ (∑ i in s, f i) * (∑ i in s, g i) :=
+by convert (hfg.dual_right).sum_mul_sum_le_card_mul_sum -- what's the problem here?
+
+variables [fintype ι]
+
+/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which vary together,
+is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
+cardinality of the index set. -/
+lemma monovary.sum_mul_sum_le_card_mul_sum (hfg : monovary f g) :
+  (∑ i, f i) * (∑ i, g i) ≤ fintype.card ι * (∑ i, f i * g i) :=
+(hfg.monovary_on _).sum_mul_sum_le_card_mul_sum
+
+/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which antivary together,
+is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
+cardinality of the index set. -/
+lemma antivary.card_mul_sum_le_sum_mul_sum (hfg : antivary f g) :
+ (fintype.card ι : α) * (∑ i in s, f i * g i) ≤ (∑ i in s, f i) * (∑ i in s, g i) :=
+by convert (hfg.dual_right.monovary_on _).sum_mul_sum_le_card_mul_sum -- same problem here as above
 
 end mul

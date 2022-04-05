@@ -281,13 +281,14 @@ parentheses. More precisely,
   either a structural 2-morphisms (2-morphisms made up only of identities, associators, unitors)
   or non-structural 2-morphisms, and
 2. each non-structural 2-morphism in the composition is of the form `f₁ ◁ f₂ ◁ f₃ ◁ η ▷ f₄ ▷ f₅`,
-  where each `fᵢ` is a 1-morphism that is not identities, and `η` is a non-structural 2-morphisms.
+  where each `fᵢ` is a 1-morphism that is not the identity or a composite and `η` is a
+  non-structural 2-morphisms that is also not the identity or a composite.
 
 Note that `f₁ ◁ f₂ ◁ f₃ ◁ η ▷ f₄ ▷ f₅` is actually `f₁ ◁ (f₂ ◁ (f₃ ◁ ((η ▷ f₄) ▷ f₅)))`.
 
 The following five lemmas are provided to rewrite any 2-morphisms into normal forms. There are
-associators and uniters in the RHS in these lemma, which at first glance looks complicated than
-the LHS, but they will be eventually reduced by the pentagon or triangle identities, and more
+associators and uniters in the RHS in these lemmas, which at first glance looks complicated than
+the LHS, but they will be eventually reduced by the pentagon or the triangle identities, and more
 generally, (forthcoming) `coherence` tactic.
 -/
 

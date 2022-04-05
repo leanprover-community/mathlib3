@@ -1048,56 +1048,60 @@ section equiv
 open finset
 variables [Π i, has_zero (β i)]
 
-variables {κ : Type*} [decidable_eq κ] [Π i (x : β i), decidable (x ≠ 0)]
+variables {κ : Type*} --[decidable_eq κ] --[Π i (x : β i), decidable (x ≠ 0)]
 /--Reindexing (and possibly removing) terms of a dfinsupp.-/
-noncomputable def congr_left (h : κ → ι) (hh : function.injective h) (f : Π₀ i, β i) :
-(Π₀ k, β (h k)) := mk (f.support.preimage h $ hh.inj_on _) (λ i, f (h i))
-
-@[simp] lemma congr_left_apply (h : κ → ι) (hh : function.injective h) (f : Π₀ i, β i) (k : κ) :
-congr_left h hh f k = f (h k) :=
+noncomputable def comap_domain (h : κ → ι) (hh : function.injective h) :
+(Π₀ i, β i) → Π₀ k, β (h k) :=
 begin
-  dunfold congr_left, by_cases h0 : f (h k) = 0,
-  { rw [h0, mk_of_not_mem], rw [mem_preimage, mem_support_to_fun, not_ne_iff, h0] },
-  { apply mk_of_mem, rw [mem_preimage, mem_support_to_fun], exact h0 }
+  refine quotient.lift (λ f, ⟦_⟧) (λ f f' h, _),
+  exact {
+    to_fun := λ x, f.to_fun (h x),
+    pre_support := (f.pre_support.to_finset.preimage h (hh.inj_on _)).val,
+    zero := λ x, (f.zero (h x)).imp_left $ λ hx, mem_preimage.mpr $ multiset.mem_to_finset.mpr hx },
+  exact quot.sound (λ x, h _)
 end
+@[simp] lemma comap_domain_apply (h : κ → ι) (hh : function.injective h) (f : Π₀ i, β i) (k : κ) :
+comap_domain h hh f k = f (h k) :=
+by { rcases f, refl }
 
-/--A computable version of congr_left when an explicit left inverse is provided.-/
-@[nolint unused_arguments] /-the definition doesn't need h' to be a left inverse of h but is
-pointless otherwise-/
-def congr_left' (h : κ → ι) {h' : ι → κ} (hh' : function.left_inverse h' h) (f : Π₀ i, β i) :
-(Π₀ k, β (h k)) := mk (f.support.image h') (λ i, f (h i))
-
-@[simp] lemma congr_left'_apply (h : κ → ι) {h' : ι → κ} (hh' : function.left_inverse h' h)
-(f : Π₀ i, β i) (k : κ) : congr_left' h hh' f k = f (h k) :=
+omit dec
+/--A computable version of comap_domain when an explicit left inverse is provided.-/
+def comap_domain' (h : κ → ι) {h' : ι → κ} (hh' : function.left_inverse h' h) :
+  (Π₀ i, β i) → (Π₀ k, β (h k)) :=
 begin
-  dunfold congr_left', by_cases h0 : f (h k) = 0,
-  { rw mk_apply, split_ifs, { refl }, { exact h0.symm } },
-  { apply mk_of_mem, rw mem_image, refine ⟨_, _, hh' k⟩, rw mem_support_to_fun, exact h0 }
+  refine quotient.lift (λ f, ⟦_⟧) (λ f f' h, _),
+  exact {
+    to_fun := λ x, f.to_fun (h x),
+    pre_support := f.pre_support.map h',
+    zero := λ x, (f.zero (h x)).imp_left $ λ hx, multiset.mem_map.mpr ⟨_, hx, hh' _⟩ },
+  exact quot.sound (λ x, h _),
 end
+@[simp] lemma comap_domain'_apply (h : κ → ι) {h' : ι → κ} (hh' : function.left_inverse h' h)
+(f : Π₀ i, β i) (k : κ) : comap_domain' h hh' f k = f (h k) :=
+by { rcases f, refl }
 
 /--Reindexing terms of a dfinsupp.-/
-def congr_left_equiv (h : ι ≃ κ) : (Π₀ i, β i) ≃ (Π₀ k, β (h.symm k)) :=
-⟨congr_left' h.symm h.right_inv,
+def equiv_congr_left (h : ι ≃ κ) : (Π₀ i, β i) ≃ (Π₀ k, β (h.symm k)) :=
+⟨comap_domain' h.symm h.right_inv,
 λ f, map_range (λ i, equiv.cast $ congr_arg β $ h.symm_apply_apply i)
   (λ i, (equiv.cast_eq_iff_heq _).mpr $
     by { convert heq.rfl, repeat { exact (h.symm_apply_apply i).symm } })
-  (@congr_left' _ _ _ _ _ _ _ h _ h.left_inv f),
-λ f, by { ext i, rw [map_range_apply, congr_left'_apply, congr_left'_apply,
+  (@comap_domain' _ _ _ _ h _ h.left_inv f),
+λ f, by { ext i, rw [map_range_apply, comap_domain'_apply, comap_domain'_apply,
   equiv.cast_eq_iff_heq, h.symm_apply_apply] },
-λ f, by { ext k, rw [congr_left'_apply, map_range_apply, congr_left'_apply,
+λ f, by { ext k, rw [comap_domain'_apply, map_range_apply, comap_domain'_apply,
   equiv.cast_eq_iff_heq, h.apply_symm_apply] }⟩
 
-@[simp] lemma congr_left_equiv_apply (h : ι ≃ κ) (f : Π₀ i, β i) (k : κ) :
-congr_left_equiv h f k = f (h.symm k) := congr_left'_apply h.symm h.right_inv f k
+@[simp] lemma equiv_congr_left_apply (h : ι ≃ κ) (f : Π₀ i, β i) (k : κ) :
+equiv_congr_left h f k = f (h.symm k) := comap_domain'_apply h.symm h.right_inv f k
 
 section curry
 variables {α : ι → Type*} {δ : (Σ i, α i) → Type v} [Π i, has_zero (δ i)]
-[Π i, decidable_eq (α i)] [Π i (x : δ i), decidable (x ≠ 0)]
 
 /--The natural map between `Π₀ (i : Σ i, α i), δ i` and `Π₀ i (j : α i), δ ⟨i, j⟩`.-/
-noncomputable def curry (f : Π₀ i, δ i) : Π₀ i j, δ ⟨i, j⟩ :=
+noncomputable def curry (f : Π₀ i, δ i) : Π₀ i j, δ ⟨i, j⟩ := by { classical, exact
 mk (f.support.image $ λ i, i.1)
-  (λ i, mk (f.support.preimage (sigma.mk i) $ sigma_mk_injective.inj_on _) $ λ j, f ⟨i, j⟩)
+  (λ i, mk (f.support.preimage (sigma.mk i) $ sigma_mk_injective.inj_on _) $ λ j, f ⟨i, j⟩) }
 
 @[simp] lemma curry_apply (f : Π₀ i, δ i) (i : ι) (j : α i) : curry f i j = f ⟨i, j⟩ :=
 begin
@@ -1108,11 +1112,10 @@ begin
     { rw mem_image, refine ⟨⟨i, j⟩, _, rfl⟩, rw mem_support_to_fun, exact h } }
 end
 
-variables [Π (i : ι) (f : Π₀ (j : α i), δ ⟨i, j⟩), decidable (f ≠ 0)]
 /--The natural map between `Π₀ i (j : α i), δ ⟨i, j⟩` and `Π₀ (i : Σ i, α i), δ i`, inverse of
 `curry`.-/
-def uncurry (f : Π₀ i j, δ ⟨i, j⟩) : Π₀ i, δ i :=
-mk (f.support.bUnion $ λ i, (f i).support.image $ sigma.mk i) (λ ⟨⟨i, j⟩, _⟩, f i j)
+noncomputable def uncurry (f : Π₀ i j, δ ⟨i, j⟩) : Π₀ i, δ i := by { classical, exact
+mk (f.support.bUnion $ λ i, (f i).support.image $ sigma.mk i) (λ ⟨⟨i, j⟩, _⟩, f i j) }
 
 @[simp] lemma uncurry_apply (f : Π₀ i j, δ ⟨i, j⟩) (i : ι) (j : α i) : uncurry f ⟨i, j⟩ = f i j :=
 begin
@@ -1130,28 +1133,32 @@ noncomputable def curry_equiv : (Π₀ i, δ i) ≃ Π₀ i j, δ ⟨i, j⟩ := 
 
 end curry
 
-variables {α : option ι → Type v} [Π i, has_zero (α i)] [Π i (x : α i), decidable (x ≠ 0)]
+variables {α : option ι → Type v} [Π i, has_zero (α i)] --[Π i (x : α i), decidable (x ≠ 0)]
 
 /--Adds a term to a dfinsupp, making a dfinsupp indexed by an `option`.-/
-def extend_with (f : Π₀ i, α (some i)) (a : α none) : Π₀ i, α i :=
-mk (insert none $ f.support.image some) $ λ i, option.rec a f (i : option ι)
+def extend_with (a : α none) : (Π₀ i, α (some i)) → Π₀ i, α i :=
+begin
+  refine quotient.lift (λ f, ⟦_⟧) (λ f f' h, _),
+  exact {
+    to_fun := option.rec a f.to_fun,
+    pre_support := none ::ₘ (f.pre_support.map some),
+    zero := λ i, option.rec (or.inl $ multiset.mem_cons_self _ _)
+      (λ i, (f.zero i).imp_left $ λ h, multiset.mem_cons_of_mem $ multiset.mem_map_of_mem _ h) i },
+  { refine quot.sound (option.rec _ $ λ x, _), refl, exact h x },
+end
 @[simp] lemma extend_with_none (f : Π₀ i, α (some i)) (a : α none) : f.extend_with a none = a :=
-mk_of_mem $ mem_insert_self _ _
+by { rcases f, refl }
 @[simp] lemma extend_with_some (f : Π₀ i, α (some i)) (a : α none) (i : ι) :
 f.extend_with a (some i) = f i :=
-begin
-  by_cases h : f i = 0,
-  { rw h, apply mk_of_not_mem, simp only [mem_insert, mem_image, mem_support_to_fun, exists_prop,
-    exists_eq_right, false_or, not_not], exact h },
-  { exact (mk_of_mem $ mem_insert_of_mem $ mem_image_of_mem _ $ (mem_support_to_fun _ _).mpr h) }
-end
+by { rcases f, refl }
 
+include dec
 /--Bijection obtained by separating the term of index `none` of a dfinsupp over `option ι`.-/
 @[simps] noncomputable def equiv_prod_dfinsupp : (Π₀ i, α i) ≃ α none × Π₀ i, α (some i) :=
-⟨λ f, (f none, congr_left some (option.some_injective _) f), λ f, f.2.extend_with f.1,
+⟨λ f, (f none, comap_domain some (option.some_injective _) f), λ f, f.2.extend_with f.1,
 λ f, begin ext i, cases i with i,
-  { rw extend_with_none }, { rw [extend_with_some, congr_left_apply] } end,
-λ _, begin ext, { exact extend_with_none _ _ }, { rw [congr_left_apply, extend_with_some] } end⟩
+  { rw extend_with_none }, { rw [extend_with_some, comap_domain_apply] } end,
+λ _, begin ext, { exact extend_with_none _ _ }, { rw [comap_domain_apply, extend_with_some] } end⟩
 
 end equiv
 

@@ -193,36 +193,36 @@ protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique 
   right_inv := λ x, to_add_monoid_of _ _ _,
   ..direct_sum.to_add_monoid (λ _, add_monoid_hom.id M) }
 
-include dec_ι
+--include dec_ι
 section congr_left
-variables {κ : Type*} [decidable_eq κ] [Π i (x : β i), decidable (x ≠ 0)]
+variables {κ : Type*} --[decidable_eq κ] [Π i (x : β i), decidable (x ≠ 0)]
 
 /--Reindexing terms of a direct sum.-/
-def congr_left_equiv (h : ι ≃ κ) : (⨁ i, β i) ≃+ ⨁ k, β (h.symm k) :=
+def equiv_congr_left (h : ι ≃ κ) : (⨁ i, β i) ≃+ ⨁ k, β (h.symm k) :=
 { map_add' := λ f g,
-    by { ext i, simp only [equiv.to_fun_as_coe, dfinsupp.congr_left_equiv_apply, add_apply] },
-  ..dfinsupp.congr_left_equiv h }
+    by { ext i, simp only [equiv.to_fun_as_coe, dfinsupp.equiv_congr_left_apply, add_apply] },
+  ..dfinsupp.equiv_congr_left h }
 
-@[simp] lemma congr_left_equiv_apply (h : ι ≃ κ) (f : ⨁ i, β i) (k : κ) :
-congr_left_equiv h f k = f (h.symm k) := dfinsupp.congr_left_equiv_apply _ _ _
+@[simp] lemma equiv_congr_left_apply (h : ι ≃ κ) (f : ⨁ i, β i) (k : κ) :
+equiv_congr_left h f k = f (h.symm k) := dfinsupp.equiv_congr_left_apply _ _ _
 
 end congr_left
 
 section option
-variables {α : option ι → Type w} [Π i, add_comm_monoid (α i)] [Π i (x : α i), decidable (x ≠ 0)]
+variables {α : option ι → Type w} [Π i, add_comm_monoid (α i)]
+include dec_ι
 
-/--Isomorphism obtained by separating the term of index `none` of a dfinsupp over `option ι`.-/
+/--Isomorphism obtained by separating the term of index `none` of a direct sum over `option ι`.-/
 @[simps] noncomputable def add_equiv_prod_direct_sum : (⨁ i, α i) ≃+ α none × ⨁ i, α (some i) :=
 { map_add' := λ f g, begin
     simp only [equiv.to_fun_as_coe, dfinsupp.equiv_prod_dfinsupp_apply, add_apply, prod.mk_add_mk,
       prod.mk.inj_iff, eq_self_iff_true, true_and],
-    ext i, simp only [dfinsupp.congr_left_apply, add_apply]
+    ext i, simp only [dfinsupp.comap_domain_apply, add_apply]
   end, ..dfinsupp.equiv_prod_dfinsupp }
 end option
 
 section sigma
 variables {α : ι → Type u} {δ : (Σ i, α i) → Type w} [Π i, add_comm_monoid (δ i)]
-variables [Π i, decidable_eq (α i)] [Π i (x : δ i), decidable (x ≠ 0)]
 
 /--The natural map between `⨁ (i : Σ i, α i), δ i` and `⨁ i (j : α i), δ ⟨i, j⟩`.-/
 noncomputable def curry : (⨁ i, δ i) →+ ⨁ i j, δ ⟨i, j⟩ :=
@@ -233,12 +233,10 @@ noncomputable def curry : (⨁ i, δ i) →+ ⨁ i j, δ ⟨i, j⟩ :=
 @[simp] lemma curry_apply (f : ⨁ i, δ i) (i : ι) (j : α i) : curry f i j = f ⟨i, j⟩ :=
 dfinsupp.curry_apply f i j
 
-variables [Π i (f : ⨁ j, δ ⟨i, j⟩), decidable (f ≠ 0)]
-
 /--The natural map between `⨁ i (j : α i), δ ⟨i, j⟩` and `Π₀ (i : Σ i, α i), δ i`, inverse of
 `curry`.-/
-def uncurry : (⨁ i j, δ ⟨i, j⟩) →+ ⨁ i, δ i :=
-⟨@dfinsupp.uncurry _ _ _ δ _ _ _ _, by { ext ⟨i, j⟩, rw dfinsupp.uncurry_apply, refl },
+noncomputable def uncurry : (⨁ i j, δ ⟨i, j⟩) →+ ⨁ i, δ i :=
+⟨@dfinsupp.uncurry _ _ δ _, by { ext ⟨i, j⟩, rw dfinsupp.uncurry_apply, refl },
 λ f g, by { ext ⟨i, j⟩, rw [dfinsupp.add_apply, dfinsupp.uncurry_apply, dfinsupp.uncurry_apply,
   dfinsupp.uncurry_apply, add_apply, add_apply] }⟩
 
@@ -250,7 +248,6 @@ noncomputable def curry_equiv : (⨁ i, δ i) ≃+ ⨁ i j, δ ⟨i, j⟩ :=
 { inv_fun := uncurry, ..dfinsupp.curry_equiv, ..curry }
 
 end sigma
-omit dec_ι
 
 /-- The canonical embedding from `⨁ i, A i` to `M` where `A` is a collection of `add_submonoid M`
 indexed by `ι`-/

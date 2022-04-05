@@ -194,28 +194,26 @@ lemma component.of (i j : ι) (b : M j) :
   if h : j = i then eq.rec_on h b else 0 :=
 dfinsupp.single_apply
 
+omit dec_ι
 section congr_left
-variables {κ : Type*} [decidable_eq κ] [Π i (x : M i), decidable (x ≠ 0)]
+variables {κ : Type*}
 
 /--Reindexing terms of a direct sum is linear.-/
-def congr_left_lequiv (h : ι ≃ κ) : (⨁ i, M i) ≃ₗ[R] ⨁ k, M (h.symm k) :=
+def lequiv_congr_left (h : ι ≃ κ) : (⨁ i, M i) ≃ₗ[R] ⨁ k, M (h.symm k) :=
 { map_smul' := λ a f,
-    by { ext i, simp only [add_equiv.to_fun_eq_coe, congr_left_equiv_apply, dfinsupp.coe_smul,
+    by { ext i, simp only [add_equiv.to_fun_eq_coe, equiv_congr_left_apply, dfinsupp.coe_smul,
       pi.smul_apply, ring_hom.id_apply] },
-  ..congr_left_equiv h }
+  ..equiv_congr_left h }
 
-@[simp] lemma congr_left_lequiv_apply (h : ι ≃ κ) (f : ⨁ i, M i) (k : κ) :
-congr_left_lequiv R h f k = f (h.symm k) := congr_left_equiv_apply _ _ _
+@[simp] lemma lequiv_congr_left_apply (h : ι ≃ κ) (f : ⨁ i, M i) (k : κ) :
+lequiv_congr_left R h f k = f (h.symm k) := equiv_congr_left_apply _ _ _
 
 end congr_left
 
 section sigma
 variables {α : ι → Type u} {δ : (Σ i, α i) → Type w}
 variables [Π i, add_comm_monoid (δ i)] [Π i, module R (δ i)]
-omit dec_ι
 instance inst : module R (⨁ i j, δ ⟨i, j⟩) := by apply_instance
-include dec_ι
-variables [Π i, decidable_eq (α i)] [Π i (x : δ i), decidable (x ≠ 0)]
 
 /--`curry` as a linear map.-/
 noncomputable def lcurry : (⨁ i, δ i) →ₗ[R] ⨁ i j, δ ⟨i, j⟩ :=
@@ -226,10 +224,8 @@ noncomputable def lcurry : (⨁ i, δ i) →ₗ[R] ⨁ i j, δ ⟨i, j⟩ :=
 @[simp] lemma lcurry_apply (f : ⨁ i, δ i) (i : ι) (j : α i) : lcurry R f i j = f ⟨i, j⟩ :=
 curry_apply f i j
 
-variables [Π i (f : ⨁ j, δ ⟨i, j⟩), decidable (f ≠ 0)]
-
 /--`uncurry` as a linear map.-/
-def luncurry : (⨁ i j, δ ⟨i, j⟩) →ₗ[R] ⨁ i, δ i :=
+noncomputable def luncurry : (⨁ i j, δ ⟨i, j⟩) →ₗ[R] ⨁ i, δ i :=
 { map_smul' := λ a f, by { ext ⟨i, j⟩, change uncurry (a • f) ⟨i, j⟩ = (a • uncurry f) ⟨i, j⟩,
     rw [uncurry_apply, smul_apply, smul_apply, smul_apply, uncurry_apply] },
   ..uncurry }
@@ -244,16 +240,16 @@ end sigma
 
 section option
 variables {α : option ι → Type w} [Π i, add_comm_monoid (α i)] [Π i, module R (α i)]
-variables [Π i (x : α i), decidable (x ≠ 0)]
+include dec_ι
 
-/--Linear isomorphism obtained by separating the term of index `none` of a dfinsupp over
+/--Linear isomorphism obtained by separating the term of index `none` of a direct sum over
 `option ι`.-/
 @[simps] noncomputable def lequiv_prod_direct_sum : (⨁ i, α i) ≃ₗ[R] α none × ⨁ i, α (some i) :=
 { map_smul' := λ a f, begin
     simp only [add_equiv.to_fun_eq_coe, add_equiv_prod_direct_sum_apply, equiv.to_fun_as_coe,
       dfinsupp.equiv_prod_dfinsupp_apply, dfinsupp.coe_smul, pi.smul_apply, ring_hom.id_apply,
       prod.smul_mk, prod.mk.inj_iff, eq_self_iff_true, true_and],
-    ext i, simp only [dfinsupp.congr_left_apply, dfinsupp.coe_smul, pi.smul_apply],
+    ext i, simp only [dfinsupp.comap_domain_apply, dfinsupp.coe_smul, pi.smul_apply],
   end, ..add_equiv_prod_direct_sum }
 end option
 

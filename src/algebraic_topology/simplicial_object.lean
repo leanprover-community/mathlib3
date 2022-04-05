@@ -23,7 +23,7 @@ open opposite
 open category_theory
 open category_theory.limits
 
-universes v u
+universes v u v' u'
 
 namespace category_theory
 
@@ -218,7 +218,7 @@ def whiskering_obj (D : Type*) [category D] (F : C ⥤ D) :
 
 /-- Functor composition induces a functor on augmented simplicial objects. -/
 @[simps]
-def whiskering (D : Type*) [category D] :
+def whiskering (D : Type u') [category.{v'} D] :
   (C ⥤ D) ⥤ augmented C ⥤ augmented D :=
 { obj := whiskering_obj _ _,
   map := λ X Y η,
@@ -449,7 +449,7 @@ def whiskering_obj (D : Type*) [category D] (F : C ⥤ D) :
 
 /-- Functor composition induces a functor on augmented cosimplicial objects. -/
 @[simps]
-def whiskering (D : Type*) [category D] :
+def whiskering (D : Type u') [category.{v'} D] :
   (C ⥤ D) ⥤ augmented C ⥤ augmented D :=
 { obj := whiskering_obj _ _,
   map := λ X Y η,

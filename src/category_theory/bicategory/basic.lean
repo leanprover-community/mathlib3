@@ -61,45 +61,43 @@ class bicategory (B : Type u) extends category_struct.{v} B :=
 -- left whiskering:
 (whisker_left {a b c : B} (f : a ⟶ b) {g h : b ⟶ c} (η : g ⟶ h) : f ≫ g ⟶ f ≫ h)
 (infixr ` ◁ `:81 := whisker_left)
--- functoriality of left whiskering:
-(whisker_left_id' : ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c), f ◁ 𝟙 g = 𝟙 (f ≫ g) . obviously)
-(whisker_left_comp' :
-  ∀ {a b c} (f : a ⟶ b) {g h i : b ⟶ c} (η : g ⟶ h) (θ : h ⟶ i),
-  f ◁ (η ≫ θ) = f ◁ η ≫ f ◁ θ . obviously)
 -- right whiskering:
 (whisker_right {a b c : B} {f g : a ⟶ b} (η : f ⟶ g) (h : b ⟶ c) : f ≫ h ⟶ g ≫ h)
 (infixl ` ▷ `:81 := whisker_right)
--- functoriality of right whiskering:
-(id_whisker_right' : ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c), 𝟙 f ▷ g = 𝟙 (f ≫ g) . obviously)
-(comp_whisker_right' :
-  ∀ {a b c} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h) (i : b ⟶ c),
-  (η ≫ θ) ▷ i = η ▷ i ≫ θ ▷ i . obviously)
--- exchange law of left and right whiskerings:
-(whisker_exchange' : ∀ {a b c} {f g : a ⟶ b} {h i : b ⟶ c} (η : f ⟶ g) (θ : h ⟶ i),
-  f ◁ θ ≫ η ▷ i = η ▷ h ≫ g ◁ θ . obviously)
 -- associator:
 (associator {a b c d : B} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) :
   (f ≫ g) ≫ h ≅ f ≫ (g ≫ h))
 (notation `α_` := associator)
-(associator_naturality_left' :
-  ∀ {a b c d} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d),
-  (η ▷ g) ▷ h ≫ (α_ f' g h).hom = (α_ f g h).hom ≫ η ▷ (g ≫ h) . obviously)
-(associator_naturality_middle' :
-  ∀ {a b c d} (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d),
-  (f ◁ η) ▷ h ≫ (α_ f g' h).hom = (α_ f g h).hom ≫ f ◁ (η ▷ h) . obviously)
-(associator_naturality_right' :
-  ∀ {a b c d} (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h'),
-  (f ≫ g) ◁ η ≫ (α_ f g h').hom = (α_ f g h).hom ≫ f ◁ (g ◁ η) . obviously)
 --left unitor:
 (left_unitor {a b : B} (f : a ⟶ b) : 𝟙 a ≫ f ≅ f)
 (notation `λ_` := left_unitor)
-(left_unitor_naturality' : ∀ {a b} {f g : a ⟶ b} (η : f ⟶ g),
-  𝟙 a ◁ η ≫ (λ_ g).hom = (λ_ f).hom ≫ η . obviously)
 -- right unitor:
 (right_unitor {a b : B} (f : a ⟶ b) : f ≫ 𝟙 b ≅ f)
 (notation `ρ_` := right_unitor)
-(right_unitor_naturality' : ∀ {a b} {f g : a ⟶ b} (η : f ⟶ g),
-  η ▷ 𝟙 b ≫ (ρ_ g).hom = (ρ_ f).hom ≫ η . obviously)
+-- axioms for left whiskering:
+(whisker_left_id' : ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c),
+  f ◁ 𝟙 g = 𝟙 (f ≫ g) . obviously)
+(whisker_left_comp' : ∀ {a b c} (f : a ⟶ b) {g h i : b ⟶ c} (η : g ⟶ h) (θ : h ⟶ i),
+  f ◁ (η ≫ θ) = f ◁ η ≫ f ◁ θ . obviously)
+(id_whisker_left' : ∀ {a b} {f g : a ⟶ b} (η : f ⟶ g),
+  𝟙 a ◁ η = (λ_ f).hom ≫ η ≫ (λ_ g).inv . obviously)
+(comp_whisker_left' : ∀ {a b c d} (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h'),
+  (f ≫ g) ◁ η = (α_ f g h).hom ≫ f ◁ g ◁ η ≫ (α_ f g h').inv . obviously)
+-- axioms for right whiskering:
+(id_whisker_right' : ∀ {a b c} (f : a ⟶ b) (g : b ⟶ c),
+  𝟙 f ▷ g = 𝟙 (f ≫ g) . obviously)
+(comp_whisker_right' : ∀ {a b c} {f g h : a ⟶ b} (η : f ⟶ g) (θ : g ⟶ h) (i : b ⟶ c),
+  (η ≫ θ) ▷ i = η ▷ i ≫ θ ▷ i . obviously)
+(whisker_right_id' : ∀ {a b} {f g : a ⟶ b} (η : f ⟶ g),
+  η ▷ 𝟙 b = (ρ_ f).hom ≫ η ≫ (ρ_ g).inv . obviously)
+(whisker_right_comp' : ∀ {a b c d} {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d),
+  η ▷ (g ≫ h) = (α_ f g h).inv ≫ η ▷ g ▷ h ≫ (α_ f' g h).hom . obviously)
+-- associativity of whiskerings:
+(whisker_assoc' : ∀ {a b c d} (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d),
+  (f ◁ η) ▷ h = (α_ f g h).hom ≫ f ◁ (η ▷ h) ≫ (α_ f g' h).inv . obviously)
+-- exchange law of left and right whiskerings:
+(whisker_exchange' : ∀ {a b c} {f g : a ⟶ b} {h i : b ⟶ c} (η : f ⟶ g) (θ : h ⟶ i),
+  f ◁ θ ≫ η ▷ i = η ▷ h ≫ g ◁ θ . obviously)
 -- pentagon identity:
 (pentagon' : ∀ {a b c d e} (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e),
   (α_ f g h).hom ▷ i ≫ (α_ f (g ≫ h) i).hom ≫ f ◁ (α_ g h i).hom =
@@ -117,25 +115,54 @@ localized "notation `ρ_` := bicategory.right_unitor" in bicategory
 
 namespace bicategory
 
+/-!
+### Simp-normal form for 2-morphisms
+
+Rewriting involving associators and unitors could be very complicated. We try to ease this
+complexity by putting carefully chosen simp lemmas that rewrite any 2-morphisms into simp-normal
+form defined below. Rewriting into simp-normal form is also useful when applying (forthcoming)
+`coherence` tactic.
+
+The simp-normal form of 2-morphisms is defined to be an expression that has the minimal number of
+parentheses. More precisely,
+1. it is a composition of 2-morphisms like `η₁ ≫ η₂ ≫ η₃ ≫ η₄ ≫ η₅` such that each `ηᵢ` is
+  either a structural 2-morphisms (2-morphisms made up only of identities, associators, unitors)
+  or non-structural 2-morphisms, and
+2. each non-structural 2-morphism in the composition is of the form `f₁ ◁ f₂ ◁ f₃ ◁ η ▷ f₄ ▷ f₅`,
+  where each `fᵢ` is a 1-morphism that is not the identity or a composite and `η` is a
+  non-structural 2-morphisms that is also not the identity or a composite.
+
+Note that `f₁ ◁ f₂ ◁ f₃ ◁ η ▷ f₄ ▷ f₅` is actually `f₁ ◁ (f₂ ◁ (f₃ ◁ ((η ▷ f₄) ▷ f₅)))`.
+-/
+
 restate_axiom whisker_left_id'
 restate_axiom whisker_left_comp'
+restate_axiom id_whisker_left'
+restate_axiom comp_whisker_left'
 restate_axiom id_whisker_right'
 restate_axiom comp_whisker_right'
+restate_axiom whisker_right_id'
+restate_axiom whisker_right_comp'
+restate_axiom whisker_assoc'
 restate_axiom whisker_exchange'
-restate_axiom associator_naturality_left'
-restate_axiom associator_naturality_middle'
-restate_axiom associator_naturality_right'
-restate_axiom left_unitor_naturality'
-restate_axiom right_unitor_naturality'
 restate_axiom pentagon'
 restate_axiom triangle'
-attribute [simp] whisker_left_id id_whisker_right pentagon triangle
+
+attribute [simp]  pentagon triangle
 attribute [reassoc]
-  whisker_left_comp comp_whisker_right whisker_exchange
-  associator_naturality_left associator_naturality_middle associator_naturality_right
-  left_unitor_naturality right_unitor_naturality
-  pentagon triangle
-attribute [simp] whisker_left_comp comp_whisker_right
+  whisker_left_comp id_whisker_left comp_whisker_left
+  comp_whisker_right whisker_right_id whisker_right_comp
+  whisker_assoc whisker_exchange pentagon triangle
+/-
+The following simp attributes are put in order to rewrite any 2-morphisms into normal forms. There
+are associators and uniters in the RHS in the several simp lemmas here (e.g. `id_whisker_left`),
+which at first glance looks complicated than the LHS, but they will be eventually reduced by the
+pentagon or the triangle identities, and more generally, (forthcoming) `coherence` tactic.
+-/
+attribute [simp]
+  whisker_left_id whisker_left_comp id_whisker_left comp_whisker_left
+  id_whisker_right comp_whisker_right whisker_right_id whisker_right_comp
+  whisker_assoc
 attribute [instance] hom_category
 
 variables {B : Type u} [bicategory.{w v} B] {a b c d e : B}
@@ -265,63 +292,19 @@ lemma triangle_assoc_comp_left_inv (f : a ⟶ b) (g : b ⟶ c) :
   f ◁ (λ_ g).inv ≫ (α_ f (𝟙 b) g).inv = (ρ_ f).inv ▷ g :=
 by simp [←cancel_mono ((ρ_ f).hom ▷ g)]
 
-section simp_lemmas
-
-/-!
-### Simp-normal form for 2-morphisms
-
-Rewriting involving associators and unitors could be very complicated. We try to ease this
-complexity by putting carefully chosen simp lemmas that rewrite any 2-morphisms into simp-normal
-form defined below. Rewriting into simp-normal form is also useful when applying (forthcoming)
-`coherence` tactic.
-
-The simp-normal form of 2-morphisms is defined to be an expression that has the minimal number of
-parentheses. More precisely,
-1. it is a composition of 2-morphisms like `η₁ ≫ η₂ ≫ η₃ ≫ η₄ ≫ η₅` such that each `ηᵢ` is
-  either a structural 2-morphisms (2-morphisms made up only of identities, associators, unitors)
-  or non-structural 2-morphisms, and
-2. each non-structural 2-morphism in the composition is of the form `f₁ ◁ f₂ ◁ f₃ ◁ η ▷ f₄ ▷ f₅`,
-  where each `fᵢ` is a 1-morphism that is not the identity or a composite and `η` is a
-  non-structural 2-morphisms that is also not the identity or a composite.
-
-Note that `f₁ ◁ f₂ ◁ f₃ ◁ η ▷ f₄ ▷ f₅` is actually `f₁ ◁ (f₂ ◁ (f₃ ◁ ((η ▷ f₄) ▷ f₅)))`.
-
-The following five lemmas are provided to rewrite any 2-morphisms into normal forms. There are
-associators and uniters in the RHS in these lemmas, which at first glance looks complicated than
-the LHS, but they will be eventually reduced by the pentagon or the triangle identities, and more
-generally, (forthcoming) `coherence` tactic.
--/
-
-@[reassoc, simp]
-lemma id_whisker_left {f g : a ⟶ b} (η : f ⟶ g) :
-  𝟙 a ◁ η = (λ_ f).hom ≫ η ≫ (λ_ g).inv :=
-by simp [←cancel_mono (λ_ g).hom, left_unitor_naturality]
-
-@[reassoc, simp]
-lemma comp_whisker_left (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
-  (f ≫ g) ◁ η = (α_ f g h).hom ≫ f ◁ g ◁ η ≫ (α_ f g h').inv :=
-by simp [←associator_naturality_right_assoc]
-
-@[reassoc, simp]
-lemma whisker_right_id {f g : a ⟶ b} (η : f ⟶ g) :
-  η ▷ 𝟙 b = (ρ_ f).hom ≫ η ≫ (ρ_ g).inv :=
-by simp [←cancel_mono (ρ_ g).hom, right_unitor_naturality]
-
-@[reassoc, simp]
-lemma whisker_right_comp {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
-  η ▷ (g ≫ h) = (α_ f g h).inv ≫ η ▷ g ▷ h ≫ (α_ f' g h).hom :=
-by simp [associator_naturality_left]
-
-@[reassoc, simp]
-lemma whisker_assoc (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
-  (f ◁ η) ▷ h = (α_ f g h).hom ≫ f ◁ (η ▷ h) ≫ (α_ f g' h).inv :=
-by simp [←associator_naturality_middle_assoc]
-
-end simp_lemmas
+@[reassoc]
+lemma associator_naturality_left {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
+  (η ▷ g) ▷ h ≫ (α_ f' g h).hom = (α_ f g h).hom ≫ η ▷ (g ≫ h) :=
+by simp
 
 @[reassoc]
 lemma associator_inv_naturality_left {f f' : a ⟶ b} (η : f ⟶ f') (g : b ⟶ c) (h : c ⟶ d) :
   η ▷ (g ≫ h) ≫ (α_ f' g h).inv = (α_ f g h).inv ≫ (η ▷ g) ▷ h :=
+by simp
+
+@[reassoc]
+lemma associator_naturality_middle (f : a ⟶ b) {g g' : b ⟶ c} (η : g ⟶ g') (h : c ⟶ d) :
+  (f ◁ η) ▷ h ≫ (α_ f g' h).hom = (α_ f g h).hom ≫ f ◁ (η ▷ h) :=
 by simp
 
 @[reassoc]
@@ -330,13 +313,28 @@ lemma associator_inv_naturality_middle (f : a ⟶ b) {g g' : b ⟶ c} (η : g �
 by simp
 
 @[reassoc]
+lemma associator_naturality_right (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
+  (f ≫ g) ◁ η ≫ (α_ f g h').hom = (α_ f g h).hom ≫ f ◁ (g ◁ η) :=
+by simp
+
+@[reassoc]
 lemma associator_inv_naturality_right (f : a ⟶ b) (g : b ⟶ c) {h h' : c ⟶ d} (η : h ⟶ h') :
   f ◁ (g ◁ η) ≫ (α_ f g h').inv = (α_ f g h).inv ≫ (f ≫ g) ◁ η :=
 by simp
 
 @[reassoc]
+lemma left_unitor_naturality {f g : a ⟶ b} (η : f ⟶ g) :
+  𝟙 a ◁ η ≫ (λ_ g).hom = (λ_ f).hom ≫ η :=
+by simp
+
+@[reassoc]
 lemma left_unitor_inv_naturality {f g : a ⟶ b} (η : f ⟶ g) :
   η ≫ (λ_ g).inv = (λ_ f).inv ≫ 𝟙 a ◁ η :=
+by simp
+
+@[reassoc]
+lemma right_unitor_naturality {f g : a ⟶ b} (η : f ⟶ g) :
+  η ▷ 𝟙 b ≫ (ρ_ g).hom = (ρ_ f).hom ≫ η :=
 by simp
 
 @[reassoc]

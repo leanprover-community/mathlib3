@@ -49,9 +49,16 @@ namespace lie_submodule
 
 variables {R L M} (N N' : lie_submodule R L M)
 
+open neg_mem_class
+
 instance : set_like (lie_submodule R L M) M :=
 { coe := carrier,
   coe_injective' := λ N O h, by cases N; cases O; congr' }
+
+instance : add_subgroup_class (lie_submodule R L M) M :=
+{ add_mem := λ N, N.add_mem',
+  zero_mem := λ N, N.zero_mem',
+  neg_mem := λ N x hx, show -x ∈ N.to_submodule, from neg_mem hx }
 
 /-- The zero module is a Lie submodule of any Lie module. -/
 instance : has_zero (lie_submodule R L M) :=

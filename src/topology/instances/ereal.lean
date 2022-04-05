@@ -196,7 +196,7 @@ lemma nhds_top' : 𝓝 (⊤ : ereal) = ⨅ a : ℝ, 𝓟 (Ioi a) :=
 begin
   rw [nhds_top],
   apply le_antisymm,
-  { exact infi_le_infi2 (λ x, ⟨x, by simp⟩) },
+  { exact infi_mono' (λ x, ⟨x, by simp⟩) },
   { refine le_infi (λ r, le_infi (λ hr, _)),
     induction r using ereal.rec,
     { exact (infi_le _ 0).trans (by simp) },
@@ -223,7 +223,7 @@ lemma nhds_bot' : 𝓝 (⊥ : ereal) = ⨅ a : ℝ, 𝓟 (Iio a) :=
 begin
   rw [nhds_bot],
   apply le_antisymm,
-  { exact infi_le_infi2 (λ x, ⟨x, by simp⟩) },
+  { exact infi_mono' (λ x, ⟨x, by simp⟩) },
   { refine le_infi (λ r, le_infi (λ hr, _)),
     induction r using ereal.rec,
     { simpa using hr },

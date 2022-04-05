@@ -96,6 +96,9 @@ variables [partial_order α] [order_top α] {a b : α}
 @[simp] lemma is_top_iff_eq_top : is_top a ↔ a = ⊤ :=
 ⟨λ h, h.is_max.eq_of_le le_top, λ h b, h.symm ▸ le_top⟩
 
+lemma not_is_max_iff_ne_top : ¬ is_max a ↔ a ≠ ⊤ := is_max_iff_eq_top.not
+lemma not_is_top_iff_ne_top : ¬ is_top a ↔ a ≠ ⊤ := is_top_iff_eq_top.not
+
 alias is_max_iff_eq_top ↔ _ is_max.eq_top
 alias is_top_iff_eq_top ↔ _ is_top.eq_top
 
@@ -111,6 +114,11 @@ lemma ne_top_of_le_ne_top (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ := (hab.t
 
 lemma eq_top_of_maximal (h : ∀ b, ¬ a < b) : a = ⊤ :=
 or.elim (lt_or_eq_of_le le_top) (λ hlt, absurd hlt (h ⊤)) (λ he, he)
+
+variables [nontrivial α]
+
+lemma not_is_min_top : ¬ is_min (⊤ : α) :=
+λ h, let ⟨a, ha⟩ := exists_ne (⊤ : α) in ha $ top_le_iff.1 $ h le_top
 
 end order_top
 
@@ -168,6 +176,9 @@ variables [partial_order α] [order_bot α] {a b : α}
 @[simp] lemma is_bot_iff_eq_bot : is_bot a ↔ a = ⊥ :=
 ⟨λ h, h.is_min.eq_of_ge bot_le, λ h b, h.symm ▸ bot_le⟩
 
+lemma not_is_min_iff_ne_bot : ¬ is_min a ↔ a ≠ ⊥ := is_min_iff_eq_bot.not
+lemma not_is_bot_iff_ne_bot : ¬ is_bot a ↔ a ≠ ⊥ := is_bot_iff_eq_bot.not
+
 alias is_min_iff_eq_bot ↔ _ is_min.eq_bot
 alias is_bot_iff_eq_bot ↔ _ is_bot.eq_bot
 
@@ -181,6 +192,11 @@ lemma eq_bot_of_minimal (h : ∀ b, ¬ b < a) : a = ⊥ := (eq_bot_or_bot_lt a).
 lemma ne.bot_lt (h : a ≠ ⊥) : ⊥ < a := bot_lt_iff_ne_bot.mpr h
 lemma ne.bot_lt' (h : ⊥ ≠ a) : ⊥ < a := h.symm.bot_lt
 lemma ne_bot_of_le_ne_bot (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ := (hb.bot_lt.trans_le hab).ne'
+
+variables [nontrivial α]
+
+lemma not_is_max_bot : ¬ is_max (⊥ : α) :=
+λ h, let ⟨a, ha⟩ := exists_ne (⊥ : α) in ha $ le_bot_iff.1 $ h bot_le
 
 end order_bot
 
@@ -580,6 +596,7 @@ theorem coe_le [has_le α] {a b : α} :
 
 @[norm_cast]
 lemma coe_lt_coe [has_lt α] {a b : α} : (a : with_bot α) < b ↔ a < b := some_lt_some
+lemma not_coe_le_bot [preorder α] (a : α) : ¬ (a : with_bot α) ≤ ⊥ := (bot_lt_coe a).not_le
 
 lemma le_coe_get_or_else [preorder α] : ∀ (a : with_bot α) (b : α), a ≤ a.get_or_else b
 | (some a) b := le_refl a
@@ -712,6 +729,10 @@ instance [has_lt α] [no_max_order α] [nonempty α] : no_max_order (with_bot α
     obtain ⟨b, ha⟩ := exists_gt a,
     exact ⟨b, with_bot.coe_lt_coe.mpr ha⟩, }
 end⟩
+
+protected lemma _root_.is_max.with_bot [has_le α] {a : α} (h : is_max a) : is_max (a : with_bot α)
+| none _ := bot_le
+| (some b) hb := some_le_some.2 $ h $ some_le_some.1 hb
 
 end with_bot
 
@@ -860,8 +881,7 @@ theorem coe_lt_iff [preorder α] {a : α} : ∀{x : with_top α}, ↑a < x ↔ (
 | (some b) := by simp [some_eq_coe, coe_eq_coe, coe_lt_coe]
 | none     := by simp [none_eq_top, coe_lt_top]
 
-lemma not_top_le_coe [preorder α] (a : α) : ¬ (⊤:with_top α) ≤ ↑a :=
-λ h, (lt_irrefl ⊤ (lt_of_le_of_lt h (coe_lt_top a))).elim
+lemma not_top_le_coe [preorder α] (a : α) : ¬ (⊤ : with_top α) ≤ ↑a := (coe_lt_top a).not_le
 
 instance decidable_le [has_le α] [@decidable_rel α (≤)] : @decidable_rel (with_top α) (≤) :=
 λ x y, @with_bot.decidable_le (order_dual α) _ _ y x
@@ -977,6 +997,10 @@ instance [has_lt α] [no_min_order α] [nonempty α] : no_min_order (with_top α
     obtain ⟨b, ha⟩ := exists_lt a,
     exact ⟨b, with_top.coe_lt_coe.mpr ha⟩, }
 end⟩
+
+protected lemma _root_.is_min.with_top [has_le α] {a : α} (h : is_min a) : is_min (a : with_top α)
+| none _ := le_top
+| (some b) hb := some_le_some.2 $ h $ some_le_some.1 hb
 
 end with_top
 

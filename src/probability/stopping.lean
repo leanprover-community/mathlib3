@@ -45,7 +45,7 @@ filtration, stopping time, stochastic process
 
 -/
 
-open topological_space filter
+open filter order topological_space
 open_locale classical measure_theory nnreal ennreal topological_space big_operators
 
 namespace measure_theory
@@ -358,10 +358,10 @@ of σ-algebras such that that sequence of functions is measurable with respect t
 the filtration. -/
 def natural (u : ι → α → β) (hum : ∀ i, strongly_measurable (u i)) : filtration ι m :=
 { seq   := λ i, ⨆ j ≤ i, measurable_space.comap (u j) mβ,
-  mono' := λ i j hij, bsupr_le_bsupr' $ λ k hk, le_trans hk hij,
+  mono' := λ i j hij, bsupr_mono $ λ k, ge_trans hij,
   le'   := λ i,
   begin
-    refine bsupr_le _,
+    refine supr₂_le _,
     rintros j hj s ⟨t, ht, rfl⟩,
     exact (hum j).measurable ht,
   end }
@@ -370,7 +370,7 @@ lemma adapted_natural {u : ι → α → β} (hum : ∀ i, strongly_measurable[m
   adapted (natural u hum) u :=
 begin
   assume i,
-  refine strongly_measurable.mono _ (le_bsupr_of_le i (le_refl i) le_rfl),
+  refine strongly_measurable.mono _ (le_supr₂_of_le i (le_refl i) le_rfl),
   rw strongly_measurable_iff_measurable_separable,
   exact ⟨measurable_iff_comap_le.2 le_rfl, (hum i).is_separable_range⟩
 end
@@ -411,13 +411,9 @@ begin
     simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
     rw is_min_iff_forall_not_lt at hi_min,
     exact hi_min (τ x), },
-  have : {x : α | τ x < i} = τ ⁻¹' (set.Iio i),
-  { ext1 x, simp only [set.mem_set_of_eq, set.mem_preimage, set.mem_Iio], },
-  rw [this, pred_order.Iio_eq_Iic_pred' hi_min],
-  have : τ ⁻¹' set.Iic (pred_order.pred i) = {x : α | τ x ≤ pred_order.pred i},
-  { ext1 x, simp only [set.mem_preimage, set.mem_Iic, set.mem_set_of_eq], },
-  rw this,
-  exact f.mono (pred_order.pred_le i) _ (hτ.measurable_set_le (pred_order.pred i)),
+  have : {x : α | τ x < i} = τ ⁻¹' (set.Iio i) := rfl,
+  rw [this, ←Iic_pred_of_not_is_min hi_min],
+  exact f.mono (pred_le i) _ (hτ.measurable_set_le $ pred i),
 end
 
 end preorder

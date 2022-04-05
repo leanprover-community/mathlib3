@@ -17,8 +17,61 @@ For instance, there is a computation of the coefficients "just before" the `lead
 open_locale polynomial
 namespace polynomial
 
-lemma pow_coeff_mul_sub_one {R : Type*} [comm_semiring R] (p : R[X]) (n : ℕ) (n0 : n ≠ 0)
-  (p0 : p.nat_degree ≠ 0) :
+variables {R : Type*}
+
+section semiring
+variables [semiring R] {p q : R[X]}
+
+lemma coeff_erase_lead_nat_degree_pred (p0 : p.nat_degree ≠ 0) :
+  p.erase_lead.coeff (p.nat_degree - 1) = p.coeff (p.nat_degree - 1) :=
+begin
+  convert (@erase_lead_coeff R _ p (p.nat_degree - 1)),
+  rw if_neg,
+  exact (nat.pred_lt p0).ne,
+end
+
+lemma coeff_mul_sub_one_new (hp : p.nat_degree ≠ 0) (hq : q.nat_degree ≠ 0) :
+  (p * q).coeff (p.nat_degree + q.nat_degree - 1) =
+    p.leading_coeff * q.coeff (q.nat_degree - 1) + p.coeff (p.nat_degree - 1) * q.leading_coeff :=
+begin
+  -- express the polynomial `p` in the form `p = a X ^ n + (p-lower order terms)`
+  nth_rewrite 0 ← p.erase_lead_add_C_mul_X_pow,
+  -- express the polynomial `q` in the form `q = a X ^ m + (q-lower order terms)`
+  nth_rewrite 0 ← q.erase_lead_add_C_mul_X_pow,
+  rw [mul_add, add_mul, add_mul, coeff_add],
+  -- after partial expansion, the two summands match on each side
+  congr,
+  rw [nat.add_sub_assoc (nat.one_le_iff_ne_zero.mpr hq), coeff_add],
+  { -- one of the contribution is zero, since its degree is wrong
+    convert zero_add _,
+    -- show that the contribution is really zero
+    { refine coeff_eq_zero_of_nat_degree_lt _,
+      refine nat_degree_mul_le.trans_lt _,
+      refine add_lt_add_of_lt_of_le _ (erase_lead_nat_degree_le _),
+      exact (erase_lead_nat_degree_le _).trans_lt (nat.pred_lt hp) },
+    -- show that the other contribution matches one of the summands in the statement
+    { rw [mul_assoc, coeff_C_mul, X_pow_mul, add_comm, coeff_mul_X_pow,
+        coeff_erase_lead_nat_degree_pred hq] } },
+  { rw coeff_add,
+    -- one of the contribution is zero, since its degree is wrong
+    convert add_zero _,
+    -- show that the first contribution matches one of the summands in the statement
+    { rw [mul_assoc, X_pow_mul, mul_assoc, ← pow_add, ← mul_assoc, ← C_mul, coeff_C_mul_X_pow,
+        add_comm],
+      exact if_neg (nat.pred_lt ((nat.add_pos_left (nat.pos_of_ne_zero hq) _).ne')).ne },
+    -- show that the second contribution is really zero
+    { rw [← X_pow_mul, ← mul_assoc, coeff_mul_C, add_comm, nat.add_sub_assoc, add_comm,
+        coeff_mul_X_pow, erase_lead_coeff, if_neg],
+      { exact (nat.pred_lt hp).ne },
+      { exact nat.add_one_le_iff.mpr (nat.pos_of_ne_zero hp) } } }
+end
+
+end semiring
+
+section comm_semiring
+variables [comm_semiring R] {p q : R[X]} {n : ℕ}
+
+lemma pow_coeff_mul_sub_one (n0 : n ≠ 0) (p0 : p.nat_degree ≠ 0) :
   (p ^ n).coeff (n * p.nat_degree - 1) =
     p.leading_coeff ^ (n - 1) * n * p.coeff (p.nat_degree - 1) :=
 begin
@@ -64,5 +117,7 @@ begin
       exact le_trans aux (nat.le_add_right _ _) } },
   { simp {contextual := tt} }
 end
+
+end comm_semiring
 
 end polynomial

@@ -1031,11 +1031,13 @@ instance pullback [∀ x, topological_space (E x)] [topological_vector_bundle R 
 { total_space_mk_inducing := λ x, inducing_of_inducing_compose
     (pullback.continuous_total_space_mk R F) pullback.continuous_lift
     (topological_vector_bundle.total_space_mk_inducing R F E (f x)),
-  trivialization_atlas := {e | ∃ e' : trivialization R F E, e = e'.pullback f},
+  trivialization_atlas := {e | ∃ e' ∈ trivialization_atlas R F E,
+    e = topological_vector_bundle.trivialization.pullback e' f},
   trivialization_at := λ x, (topological_vector_bundle.trivialization_at R F E (f x)).pullback f,
   mem_base_set_trivialization_at :=
     λ x, topological_vector_bundle.mem_base_set_trivialization_at R F E (f x),
-  trivialization_mem_atlas := λ x, ⟨topological_vector_bundle.trivialization_at R F E (f x), rfl⟩,
+  trivialization_mem_atlas := λ x, ⟨topological_vector_bundle.trivialization_at R F E (f x),
+    topological_vector_bundle.trivialization_mem_atlas R F E (f x), rfl⟩,
   continuous_coord_change := sorry }
 
 end pullback

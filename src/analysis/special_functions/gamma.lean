@@ -18,7 +18,7 @@ We show that this integral satisfies `Γ(1) = 1` and `Γ(s + 1) = s * Γ(s)`; he
 `Γ(s)` for all `s` as the unique function satisfying this recurrence and agreeing with Euler's
 integral in the convergence range.
 
-Holomorpy in `s` (away from the poles at `-n : n ∈ ℕ`) will be added in a future PR.
+TODO: Holomorpy in `s` (away from the poles at `-n : n ∈ ℕ`) will be added in a future PR.
 
 ## Tags
 
@@ -366,7 +366,7 @@ begin
   refine Gamma_eq_Gamma_aux s 0 (_ : _ ≤ 0), linarith
 end
 
-theorem Gamma_integer_eq_factorial (n : ℕ) : Gamma (n+1) = nat.factorial n :=
+theorem Gamma_nat_eq_factorial (n : ℕ) : Gamma (n+1) = nat.factorial n :=
 begin
   induction n with n hn,
   { rw [nat.cast_zero, zero_add], rw Gamma_eq_integral,

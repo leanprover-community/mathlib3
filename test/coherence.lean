@@ -56,8 +56,6 @@ example (X Y : C) (f : 𝟙_ C ⟶ X) (g : X ⟶ Y) (w : false) :
   (λ_ (𝟙_ C)).hom ≫ f ≫ 𝟙 X ≫ g = (ρ_ (𝟙_ C)).hom ≫ f ≫ g :=
 by coherence
 
-set_option class.instance_max_depth 52
-
 example (X₁ Y₁ X₂ Y₂ : C) :
   (α_ (𝟙_ C) (𝟙_ C) (X₁ ⊗ X₂)).hom ≫
     (𝟙 (𝟙_ C) ⊗ (α_ (𝟙_ C) X₁ X₂).inv) ≫

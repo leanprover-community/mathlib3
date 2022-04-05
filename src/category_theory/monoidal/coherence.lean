@@ -188,6 +188,7 @@ setup_tactic_parser
 /-- Coherence tactic for monoidal categories. -/
 meta def monoidal_coherence : tactic unit :=
 do
+  o ← get_options, set_options $ o.set_nat `class.instance_max_depth 128,
   try `[dsimp],
   `(%%lhs = %%rhs) ← target,
   to_expr  ``(project_map id _ _ (lift_hom.lift %%lhs) = project_map id _ _ (lift_hom.lift %%rhs))
@@ -196,7 +197,7 @@ do
 
 /--
 `pure_coherence` uses the coherence theorem for monoidal categories to prove the goal.
-It can prove any equality made up only of associators and unitors.
+It can prove any equality made up only of associators, unitors, and identities.
 ```lean
 example {C : Type} [category C] [monoidal_category C] :
   (λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ C)).hom :=
@@ -257,8 +258,9 @@ open coherence
 
 /--
 Use the coherence theorem for monoidal categories to solve equations in a monoidal equation,
-where the two sides only differ by replacing strings of "structural" morphisms with
-different strings with the same source and target.
+where the two sides only differ by replacing strings of monoidal structural morphisms
+(that is, associators, unitors, and identities)
+with different strings of structural morphisms with the same source and target.
 
 That is, `coherence` can handle goals of the form
 `a ≫ f ≫ b ≫ g ≫ c = a' ≫ f ≫ b' ≫ g ≫ c'`
@@ -266,7 +268,7 @@ where `a = a'`, `b = b'`, and `c = c'` can be proved using `pure_coherence`.
 
 (If you have very large equations on which `coherence` is unexpectedly failing,
 you may need to increase the typeclass search depth,
-using e.g. `set_option class.instance_max_depth 100`.)
+using e.g. `set_option class.instance_max_depth 500`.)
 -/
 meta def coherence : tactic unit :=
 do

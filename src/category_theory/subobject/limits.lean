@@ -229,7 +229,6 @@ lemma image_subobject_arrow' :
 by simp [image_subobject_iso]
 
 /-- A factorisation of `f : X ⟶ Y` through `image_subobject f`. -/
-
 def factor_thru_image_subobject : X ⟶ image_subobject f :=
 factor_thru_image f ≫ (image_subobject_iso f).inv
 

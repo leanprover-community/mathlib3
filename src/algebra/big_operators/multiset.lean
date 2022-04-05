@@ -233,7 +233,7 @@ by { convert (m.map f).prod_hom (zpow_group_hom₀ _ : α →* α), rw map_map, 
 
 end comm_group_with_zero
 
-section semiring
+section non_unital_non_assoc_semiring
 variables [non_unital_non_assoc_semiring α] {a : α} {s : multiset ι} {f : ι → α}
 
 lemma _root_.commute.multiset_sum_right (s : multiset α) (a : α) (h : ∀ b ∈ s, commute a b) :
@@ -254,17 +254,17 @@ multiset.induction_on s (by simp) (λ i s ih, by simp [ih, mul_add])
 lemma sum_map_mul_right : sum (s.map (λ i, f i * a)) = sum (s.map f) * a :=
 multiset.induction_on s (by simp) (λ a s ih, by simp [ih, add_mul])
 
-end semiring
+end non_unital_non_assoc_semiring
 
-section comm_semiring
-variables [comm_semiring α]
+section semiring
+variables [semiring α]
 
 lemma dvd_sum {a : α} {s : multiset α} : (∀ x ∈ s, a ∣ x) → a ∣ s.sum :=
 multiset.induction_on s (λ _, dvd_zero _)
   (λ x s ih h, by { rw sum_cons, exact dvd_add
     (h _ (mem_cons_self _ _)) (ih $ λ y hy, h _ $ mem_cons.2 $ or.inr hy) })
 
-end comm_semiring
+end semiring
 
 /-! ### Order -/
 

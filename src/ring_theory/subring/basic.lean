@@ -911,7 +911,7 @@ end subring
 
 namespace ring_hom
 
-variables [ring T] {s : subring R}
+variables {s : subring R}
 
 open subring
 

@@ -753,6 +753,11 @@ section preorder
 variables [preorder α]
 
 section succ_order
+
+lemma is_succ_archimedean.of_dual [succ_order α] [is_pred_archimedean (order_dual α)] :
+  is_succ_archimedean α :=
+⟨λ a b h, by convert exists_pred_iterate_of_le h.dual⟩
+
 variables [succ_order α] [is_succ_archimedean α] {a b : α}
 
 instance : is_pred_archimedean (order_dual α) :=
@@ -788,6 +793,11 @@ end
 end succ_order
 
 section pred_order
+
+lemma is_pred_archimedean.of_dual [pred_order α] [is_succ_archimedean (order_dual α)] :
+  is_pred_archimedean α :=
+⟨λ a b h, by convert exists_succ_iterate_of_le h.dual⟩
+
 variables [pred_order α] [is_pred_archimedean α] {a b : α}
 
 instance : is_succ_archimedean (order_dual α) :=
@@ -838,11 +848,11 @@ end pred_order
 end linear_order
 
 section is_well_order
-variables [linear_order α] [h : is_well_order α (<)] [pred_order α]
-include h
+variables [linear_order α]
 
 @[priority 100]
-instance is_well_order.to_is_pred_archimedean : is_pred_archimedean α :=
+instance is_well_order.to_is_pred_archimedean [h : is_well_order α (<)] [pred_order α] :
+  is_pred_archimedean α :=
 ⟨λ a, begin
   refine well_founded.fix h.wf (λ b ih hab, _),
   replace hab := hab.eq_or_lt,
@@ -856,19 +866,9 @@ instance is_well_order.to_is_pred_archimedean : is_pred_archimedean α :=
 end⟩
 
 @[priority 100]
-instance is_well_order.to_is_succ_archimedean [succ_order α] : is_succ_archimedean α :=
-⟨λ a, begin
-  refine well_founded.fix h.wf (λ b ih hab, _),
-  replace hab := hab.eq_or_lt,
-  rcases hab with rfl | hab,
-  { exact ⟨0, rfl⟩ },
-  cases le_or_lt b (pred b) with hb hb,
-  { cases (min_of_le_pred hb).not_lt hab },
-  obtain ⟨k, hk⟩ := ih (pred b) hb (le_pred_of_lt hab),
-  refine ⟨k + 1, _⟩,
-  rw [add_comm, iterate_add_apply, hk, iterate_one],
-  exact succ_pred_of_not_is_min (not_is_min_of_lt hb),
-end⟩
+instance is_well_order.to_is_succ_archimedean [h : is_well_order α (>)] [succ_order α] :
+  is_succ_archimedean α :=
+@is_succ_archimedean.of_dual _ _ _ (@is_well_order.to_is_pred_archimedean (order_dual α) _ h _)
 
 end is_well_order
 

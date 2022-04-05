@@ -1722,9 +1722,16 @@ subrelation.wf this (measure_wf _)
 lemma preorder.well_founded [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=
 well_founded_of_trans_of_irrefl _
 
+lemma preorder.well_founded' [fintype α] [preorder α] : well_founded ((>) : α → α → Prop) :=
+well_founded_of_trans_of_irrefl _
+
 @[instance, priority 10] lemma linear_order.is_well_order [fintype α] [linear_order α] :
   is_well_order α (<) :=
 { wf := preorder.well_founded }
+
+@[instance, priority 10] lemma linear_order.is_well_order' [fintype α] [linear_order α] :
+  is_well_order α (>) :=
+{ wf := preorder.well_founded' }
 
 end fintype
 

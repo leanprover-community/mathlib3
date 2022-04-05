@@ -339,7 +339,7 @@ def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
       have H₂ : I '' e.source ∈ 𝓝[range I] (I x),
       { exact I.image_mem_nhds_within (e.open_source.mem_nhds hx) },
       symmetry,
-      exact fderiv_within_subset' (image_subset_range I _) H₂ H₁ (hf _ (mem_image_of_mem I hx)) },
+      exact fderiv_within_subset' (image_subset_range I _) H₁ H₂ (hf _ (mem_image_of_mem I hx)) },
     intros x hx,
     refine ((hf' (I x) (mem_image_of_mem I hx)).comp I.continuous_within_at _).congr key _,
     { exact maps_to_image I e.source },

@@ -438,8 +438,4 @@ def monoidal_inverse (F : monoidal_functor C D) [is_equivalence F.to_functor] :
   ε_is_iso := by { dsimp [equivalence.to_adjunction], apply_instance },
   μ_is_iso := λ X Y, by { dsimp [equivalence.to_adjunction], apply_instance } }
 
-@[simp]
-lemma monoidal_inverse_to_functor (F : monoidal_functor C D) [is_equivalence F.to_functor] :
-  (monoidal_inverse F).to_functor = F.to_functor.inv := rfl
-
 end category_theory

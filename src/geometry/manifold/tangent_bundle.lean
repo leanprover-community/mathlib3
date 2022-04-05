@@ -272,55 +272,40 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
 (M : Type*) [topological_space M] [charted_space H M] [smooth_manifold_with_corners I M]
 
+-- move this
 lemma has_fderiv_within_at.antimono
-  (f : E → E)
-  (f' : E →L[𝕜] E)
-  {s : set H}
-  (hs : is_open s)
-  {x : H}
-  (hx : x ∈ s)
-  (hf : has_fderiv_within_at f f' (I '' s) (I x)) :
-  has_fderiv_within_at f f' (range I) (I x) :=
+  {f : E → E}
+  {f' : E →L[𝕜] E}
+  {t₁ t₂ : set E}
+  (ht : t₁ ⊆ t₂)
+  {y : E}
+  (hy : t₁ ∈ 𝓝[t₂] y)
+  (hyt₁ : unique_diff_within_at 𝕜 t₁ y)
+  (hf : has_fderiv_within_at f f' t₁ y) :
+  has_fderiv_within_at f f' t₂ y :=
 begin
-  have h₁ : I '' s ∈ 𝓝[range I] (I x),
-  { apply I.image_mem_nhds_within,
-    apply hs.mem_nhds,
-    exact hx },
-  have h₂ : differentiable_within_at 𝕜 f (range I) (I x),
-  { rw ← differentiable_within_at_inter' h₁,
-    convert hf.differentiable_within_at,
-    rw inter_eq_self_of_subset_right,
-    exact image_subset_range I s },
-  have hf' := h₂.has_fderiv_within_at.mono (image_subset_range I s),
-  have := I.unique_diff_preimage hs,
-  rw ← I.image_eq at this,
-  rw this.eq (mem_image_of_mem I hx) hf hf',
-  exact h₂.has_fderiv_within_at,
+  have hf₂ : differentiable_within_at 𝕜 f t₂ y,
+  { rw [← differentiable_within_at_inter' hy, inter_eq_self_of_subset_right ht],
+    exact hf.differentiable_within_at },
+  rw hyt₁.eq hf (hf₂.has_fderiv_within_at.mono ht),
+  exact hf₂.has_fderiv_within_at,
 end
 
+-- move this
 lemma fderiv_within_subset'
-  (f : E → E)
-  {s : set H}
-  (hs : is_open s)
-  {x : H}
-  (hx : x ∈ s)
-  (hf : differentiable_within_at 𝕜 f (I '' s) (I x)) :
-  fderiv_within 𝕜 f (I '' s) (I x) = fderiv_within 𝕜 f (range I) (I x) :=
+  {f : E → E}
+  {t₁ t₂ : set E}
+  (ht : t₁ ⊆ t₂)
+  {y : E}
+  (hy : t₁ ∈ 𝓝[t₂] y)
+  (hyt₁ : unique_diff_within_at 𝕜 t₁ y)
+  (hf : differentiable_within_at 𝕜 f t₁ y) :
+  fderiv_within 𝕜 f t₁ y = fderiv_within 𝕜 f t₂ y :=
 begin
-  have h₁ : I '' s ∈ 𝓝[range I] (I x),
-  { apply I.image_mem_nhds_within,
-    apply hs.mem_nhds,
-    exact hx },
-  have h₂ : differentiable_within_at 𝕜 f (range I) (I x),
-  { rw ← differentiable_within_at_inter' h₁,
-    convert hf,
-    rw inter_eq_self_of_subset_right,
-    exact image_subset_range I s },
-  apply fderiv_within_subset (image_subset_range I s) _ h₂,
-  rw I.image_eq,
-  apply I.unique_diff_preimage hs (I x),
-  rw ← I.image_eq,
-  exact mem_image_of_mem I hx,
+  have hf₂ : differentiable_within_at 𝕜 f t₂ y,
+  { rw [← differentiable_within_at_inter' hy, inter_eq_self_of_subset_right ht],
+    exact hf },
+  exact fderiv_within_subset ht hyt₁ hf₂,
 end
 
 /-- Basic smooth bundle core version of the tangent bundle of a smooth manifold `M` modelled over a
@@ -377,14 +362,22 @@ def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
       ∧ continuous_on (λ (y : E), fderiv_within 𝕜 f (I '' e.source) y) (I '' e.source),
     { rw [← @cont_diff_on_zero 𝕜, I.image_eq],
       rwa cont_diff_on_succ_iff_fderiv_within (I.unique_diff_preimage e.open_source) at hij },
-    intros x hx,
-    refine ((hf' (I x) (mem_image_of_mem I hx)).comp I.continuous_within_at _).congr _ _,
-    { exact maps_to_image I e.source },
-    { intros y hy,
+    have key : ∀ x ∈ e.source,
+      fderiv_within 𝕜 f (range I) (I x) = fderiv_within 𝕜 f (I '' e.source) (I x),
+    { intros x hx,
+      have H₁ : unique_diff_within_at 𝕜 (I '' e.source) (I x),
+      { rw I.image_eq,
+        apply I.unique_diff_preimage e.open_source,
+        rw ← I.image_eq,
+        exact mem_image_of_mem I hx },
+      have H₂ : I '' e.source ∈ 𝓝[range I] (I x),
+      { exact I.image_mem_nhds_within (e.open_source.mem_nhds hx) },
       symmetry,
-      exact fderiv_within_subset' I f e.open_source hy (hf (I y) (mem_image_of_mem I hy)) },
-    { symmetry,
-      exact fderiv_within_subset' I f e.open_source hx (hf (I x) (mem_image_of_mem I hx)) },
+      exact fderiv_within_subset' (image_subset_range I _) H₂ H₁ (hf _ (mem_image_of_mem I hx)) },
+    intros x hx,
+    refine ((hf' (I x) (mem_image_of_mem I hx)).comp I.continuous_within_at _).congr key _,
+    { exact maps_to_image I e.source },
+    { exact key _ hx },
   end,
   coord_change_self := λ i x hx v, begin
     /- Locally, a self-change of coordinate is just the identity, thus its derivative is the

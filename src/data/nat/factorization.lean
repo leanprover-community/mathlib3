@@ -137,6 +137,11 @@ lemma prime.factorization_pow {p k : ℕ} (hp : prime p) :
   factorization (p ^ k) = single p k :=
 by simp [hp]
 
+/-- If the factorization of `n` contains just one number `p` then `n` is a power of `p` -/
+lemma eq_pow_of_factorization_eq_single {n p k : ℕ} (hn : n ≠ 0)
+  (h : n.factorization = finsupp.single p k) : n = p ^ k :=
+by { rw [←nat.factorization_prod_pow_eq_self hn, h], simp }
+
 /-- If a product over `n.factorization` doesn't use the multiplicities of the prime factors
 then it's equal to the corresponding product over `n.factors.to_finset` -/
 lemma prod_factorization_eq_prod_factors {n : ℕ} {β : Type*} [comm_monoid β] (f : ℕ → β) :

@@ -83,7 +83,8 @@ begin
         kernel.lift (cokernel.π f) u _ ≫ (image_iso_image f).hom ≫ (image_subobject_iso _).inv,
       rw [←kernel.lift_ι g u hu, category.assoc, h.2, has_zero_morphisms.comp_zero] },
     { tidy },
-    { intros, rw [←cancel_mono (image_subobject f).arrow, w], simp, } }
+    { intros, rw [←cancel_mono (image_subobject f).arrow, w],
+      simp, } }
 end
 
 theorem exact_iff' {cg : kernel_fork g} (hg : is_limit cg)
@@ -123,7 +124,7 @@ end
 /-- If `(f, g)` is exact, then `images.image.ι f` is a kernel of `g`. -/
 def is_limit_image [h : exact f g] :
   is_limit
-    (kernel_fork.of_ι (images.image.ι f) (images.image_ι_comp_eq_zero h.1) : kernel_fork g) :=
+    (kernel_fork.of_ι (abelian.image.ι f) (image_ι_comp_eq_zero h.1) : kernel_fork g) :=
 begin
   rw exact_iff at h,
   refine is_limit.of_ι _ _ _ _ _,
@@ -134,12 +135,12 @@ end
 
 /-- If `(f, g)` is exact, then `image.ι f` is a kernel of `g`. -/
 def is_limit_image' [h : exact f g] :
-  is_limit (kernel_fork.of_ι (image.ι f) (image_ι_comp_eq_zero h.1)) :=
+  is_limit (kernel_fork.of_ι (limits.image.ι f) (limits.image_ι_comp_eq_zero h.1)) :=
 is_kernel.iso_kernel _ _ (is_limit_image f g) (image_iso_image f).symm $ is_image.lift_fac _ _
 
 /-- If `(f, g)` is exact, then `coimages.coimage.π g` is a cokernel of `f`. -/
-def is_colimit_coimage [h : exact f g] : is_colimit (cokernel_cofork.of_π (coimages.coimage.π g)
-  (coimages.comp_coimage_π_eq_zero h.1) : cokernel_cofork f) :=
+def is_colimit_coimage [h : exact f g] : is_colimit (cokernel_cofork.of_π (abelian.coimage.π g)
+  (abelian.comp_coimage_π_eq_zero h.1) : cokernel_cofork f) :=
 begin
   rw exact_iff at h,
   refine is_colimit.of_π _ _ _ _ _,
@@ -149,10 +150,10 @@ begin
 end
 
 /-- If `(f, g)` is exact, then `factor_thru_image g` is a cokernel of `f`. -/
-def is_colimit_image [h : exact f g] :
-  is_colimit (cokernel_cofork.of_π (factor_thru_image g) (comp_factor_thru_image_eq_zero h.1)) :=
+def is_colimit_image [h : exact f g] : is_colimit
+  (cokernel_cofork.of_π (limits.factor_thru_image g) (comp_factor_thru_image_eq_zero h.1)) :=
 is_cokernel.cokernel_iso _ _ (is_colimit_coimage f g) (coimage_iso_image' g) $
-  (cancel_mono (image.ι g)).1 $ by simp
+  (cancel_mono (limits.image.ι g)).1 $ by simp
 
 lemma exact_cokernel : exact f (cokernel.π f) :=
 by { rw exact_iff, tidy }
@@ -160,8 +161,25 @@ by { rw exact_iff, tidy }
 instance [exact f g] : mono (cokernel.desc f g (by simp)) :=
 suffices h : cokernel.desc f g (by simp) =
   (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _) (is_colimit_image f g)).hom
-    ≫ image.ι g, by { rw h, apply mono_comp },
+    ≫ limits.image.ι g, by { rw h, apply mono_comp },
 (cancel_epi (cokernel.π f)).1 $ by simp
+
+/-- If `ex : exact f g` and `epi g`, then `cokernel.desc _ _ ex.w` is an isomorphism. -/
+instance [ex : exact f g] [epi g] : is_iso (cokernel.desc f g ex.w) :=
+is_iso_of_mono_of_epi (limits.cokernel.desc f g exact.w)
+
+@[simp, reassoc]
+lemma cokernel.desc.inv [epi g] (ex : exact f g) :
+  g ≫ inv (cokernel.desc _ _ ex.w) = cokernel.π _ :=
+by simp
+
+instance [ex : exact f g] [mono f] : is_iso (kernel.lift g f ex.w) :=
+  is_iso_of_mono_of_epi (limits.kernel.lift g f exact.w)
+
+@[simp, reassoc]
+lemma kernel.lift.inv [mono f] (ex : exact f g) :
+  inv (kernel.lift _ _ ex.w) ≫ f = kernel.ι g :=
+by simp
 
 /-- If `X ⟶ Y ⟶ Z ⟶ 0` is exact, then the second map is a cokernel of the first. -/
 def is_colimit_of_exact_of_epi [epi g] (h : exact f g) :

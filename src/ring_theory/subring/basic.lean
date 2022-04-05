@@ -1008,38 +1008,49 @@ namespace subring
 variables {α β : Type*}
 
 /-- The action by a subring is the action by the underlying ring. -/
-instance [mul_action R α] (S : subring R) : mul_action S α :=
-S.to_subsemiring.mul_action
+instance [has_scalar R α] (S : subring R) : has_scalar S α := S.to_subsemiring.has_scalar
 
-lemma smul_def [mul_action R α] {S : subring R} (g : S) (m : α) : g • m = (g : R) • m := rfl
+lemma smul_def [has_scalar R α] {S : subring R} (g : S) (m : α) : g • m = (g : R) • m := rfl
 
 instance smul_comm_class_left
-  [mul_action R β] [has_scalar α β] [smul_comm_class R α β] (S : subring R) :
+  [has_scalar R β] [has_scalar α β] [smul_comm_class R α β] (S : subring R) :
   smul_comm_class S α β :=
 S.to_subsemiring.smul_comm_class_left
 
 instance smul_comm_class_right
-  [has_scalar α β] [mul_action R β] [smul_comm_class α R β] (S : subring R) :
+  [has_scalar α β] [has_scalar R β] [smul_comm_class α R β] (S : subring R) :
   smul_comm_class α S β :=
 S.to_subsemiring.smul_comm_class_right
 
 /-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
 instance
-  [has_scalar α β] [mul_action R α] [mul_action R β] [is_scalar_tower R α β] (S : subring R) :
+  [has_scalar α β] [has_scalar R α] [has_scalar R β] [is_scalar_tower R α β] (S : subring R) :
   is_scalar_tower S α β :=
 S.to_subsemiring.is_scalar_tower
 
-instance [mul_action R α] [has_faithful_scalar R α] (S : subring R) :
+instance [has_scalar R α] [has_faithful_scalar R α] (S : subring R) :
   has_faithful_scalar S α :=
 S.to_subsemiring.has_faithful_scalar
+
+/-- The action by a subring is the action by the underlying ring. -/
+instance [mul_action R α] (S : subring R) : mul_action S α :=
+S.to_subsemiring.mul_action
 
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_monoid α] [distrib_mul_action R α] (S : subring R) : distrib_mul_action S α :=
 S.to_subsemiring.distrib_mul_action
 
-/-- The action by a subsemiring is the action by the underlying semiring. -/
+/-- The action by a subring is the action by the underlying ring. -/
 instance [monoid α] [mul_distrib_mul_action R α] (S : subring R) : mul_distrib_mul_action S α :=
 S.to_subsemiring.mul_distrib_mul_action
+
+/-- The action by a subring is the action by the underlying ring. -/
+instance [has_zero α] [smul_with_zero R α] (S : subring R) : smul_with_zero S α :=
+S.to_subsemiring.smul_with_zero
+
+/-- The action by a subring is the action by the underlying ring. -/
+instance [has_zero α] [mul_action_with_zero R α] (S : subring R) : mul_action_with_zero S α :=
+S.to_subsemiring.mul_action_with_zero
 
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_comm_monoid α] [module R α] (S : subring R) : module S α :=

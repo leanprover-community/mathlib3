@@ -70,7 +70,7 @@ generate_open.basic s hs
 lemma nhds_generate_from {g : set (set α)} {a : α} :
   @nhds α (generate_from g) a = (⨅s∈{s | a ∈ s ∧ s ∈ g}, 𝓟 s) :=
 by rw nhds_def; exact le_antisymm
-  (infi_le_infi $ assume s, infi_le_infi_const $ assume ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
+  (binfi_mono $ λ s ⟨as, sg⟩, ⟨as, generate_open.basic _ sg⟩)
   (le_infi $ assume s, le_infi $ assume ⟨as, hs⟩,
     begin
       revert as, clear_, induction hs,
@@ -234,7 +234,7 @@ instance : complete_lattice (topological_space α) :=
 
 lemma is_open_implies_is_open_iff {a b : topological_space α} :
   (∀ s, a.is_open s → b.is_open s) ↔ b ≤ a :=
-@galois_insertion.u_le_u_iff _ (order_dual (topological_space α)) _ _ _ _ (gi_generate_from α) a b
+iff.rfl
 
 /-- A topological space is discrete if every set is open, that is,
   its topology equals the discrete topology `⊥`. -/
@@ -267,6 +267,10 @@ end
 
 lemma nhds_discrete (α : Type*) [topological_space α] [discrete_topology α] : (@nhds α _) = pure :=
 (discrete_topology.eq_bot α).symm ▸ nhds_bot α
+
+lemma mem_nhds_discrete [topological_space α] [discrete_topology α] {x : α} {s : set α} :
+  s ∈ 𝓝 x ↔ x ∈ s :=
+by rw [nhds_discrete, mem_pure]
 
 lemma le_of_nhds_le_nhds {t₁ t₂ : topological_space α} (h : ∀x, @nhds α t₁ x ≤ @nhds α t₂ x) :
   t₁ ≤ t₂ :=

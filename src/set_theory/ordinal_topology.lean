@@ -126,7 +126,7 @@ begin
         rw set.mem_singleton_iff.1 hb at *,
         exact (has hb').elim },
       refine ⟨_, out_nonempty_iff_ne_zero.2 (ordinal.pos_iff_ne_zero.1 ha₀), f,
-        λ i, (hf i).2, le_antisymm (sup_le.2 (λ i, lt_succ.1 (hf i).1.2)) _⟩,
+        λ i, (hf i).2, le_antisymm (sup_le (λ i, lt_succ.1 (hf i).1.2)) _⟩,
       by_contra' h,
       cases H _ h with b hb,
       rcases eq_or_lt_of_le (lt_succ.1 hb.1.2) with rfl | hba,
@@ -240,7 +240,7 @@ begin
     change ((enum_ord_order_iso hS) _).val = f x,
     rw order_iso.apply_symm_apply },
   { rw is_closed_iff_bsup at h,
-    suffices : enum_ord S a ≤ bsup.{u u} a (λ b < a, enum_ord S b), from this.trans (bsup_le.2 H),
+    suffices : enum_ord S a ≤ bsup.{u u} a (λ b < a, enum_ord S b), from this.trans (bsup_le H),
     cases enum_ord_surjective hS _ (h ha.1 (λ b hb, enum_ord S b) (λ b hb, enum_ord_mem hS b))
       with b hb,
     rw ←hb,

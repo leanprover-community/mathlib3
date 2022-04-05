@@ -21,7 +21,7 @@ When the underlying category is abelian:
 * `category_theory.injective_resolutions`: If every object admits an injective resolution, we can
   construct a functor `injective_resolutions C : C ⥤ homotopy_category C`.
 
-* `category_theory.injective.exact_d_f`: `f` and `injective.d f` are exact.
+* `category_theory.exact_f_d`: `f` and `injective.d f` are exact.
 * `category_theory.InjectiveResolution.of`: Hence, starting from a monomorphism `X ⟶ J`, where `J`
   is injective, we can apply `injective.d` repeatedly to obtain an injective resolution of `X`.
 -/
@@ -177,6 +177,103 @@ by simp [homotopy_equiv]
 by simp [homotopy_equiv]
 
 end abelian
+
+end InjectiveResolution
+
+section
+variables [abelian C]
+
+/-- An arbitrarily chosen injective resolution of an object. -/
+abbreviation injective_resolution (Z : C) [has_injective_resolution Z] : cochain_complex C ℕ :=
+(has_injective_resolution.out Z).some.cocomplex
+
+/-- The cochain map from cochain complex consisting of `Z` supported in degree `0`
+back to the arbitrarily chosen injective resolution `injective_resolution Z`. -/
+abbreviation injective_resolution.ι (Z : C) [has_injective_resolution Z] :
+  (cochain_complex.single₀ C).obj Z ⟶ injective_resolution Z :=
+(has_injective_resolution.out Z).some.ι
+
+/-- The descent of a morphism to a cochain map between the arbitrarily chosen injective resolutions.
+-/
+abbreviation injective_resolution.desc {X Y : C} (f : X ⟶ Y)
+  [has_injective_resolution X] [has_injective_resolution Y] :
+  injective_resolution X ⟶ injective_resolution Y :=
+InjectiveResolution.desc f _ _
+
+variables (C) [has_injective_resolutions C]
+
+/--
+Taking injective resolutions is functorial,
+if considered with target the homotopy category
+(`ℕ`-indexed cochain complexes and chain maps up to homotopy).
+-/
+def injective_resolutions : C ⥤ homotopy_category C (complex_shape.up ℕ) :=
+{ obj := λ X, (homotopy_category.quotient _ _).obj (injective_resolution X),
+  map := λ X Y f, (homotopy_category.quotient _ _).map (injective_resolution.desc f),
+  map_id' := λ X, begin
+    rw ←(homotopy_category.quotient _ _).map_id,
+    apply homotopy_category.eq_of_homotopy,
+    apply InjectiveResolution.desc_id_homotopy,
+  end,
+  map_comp' := λ X Y Z f g, begin
+    rw ←(homotopy_category.quotient _ _).map_comp,
+    apply homotopy_category.eq_of_homotopy,
+    apply InjectiveResolution.desc_comp_homotopy,
+  end, }
+
+end
+
+section
+
+variables [abelian C] [enough_injectives C]
+
+lemma exact_f_d {X Y : C} (f : X ⟶ Y) : exact f (d f) :=
+(abelian.exact_iff _ _).2 $
+  ⟨by simp, zero_of_comp_mono (ι _) $ by rw [category.assoc, kernel.condition]⟩
+
+end
+
+namespace InjectiveResolution
+/-!
+Our goal is to define `InjectiveResolution.of Z : InjectiveResolution Z`.
+The `0`-th object in this resolution will just be `injective.under Z`,
+i.e. an arbitrarily chosen injective object with a map from `Z`.
+After that, we build the `n+1`-st object as `injective.syzygies`
+applied to the previously constructed morphism,
+and the map from the `n`-th object as `injective.d`.
+-/
+
+variables [abelian C] [enough_injectives C]
+
+/-- Auxiliary definition for `InjectiveResolution.of`. -/
+@[simps]
+def of_cocomplex (Z : C) : cochain_complex C ℕ :=
+cochain_complex.mk'
+  (injective.under Z) (injective.syzygies (injective.ι Z)) (injective.d (injective.ι Z))
+  (λ ⟨X, Y, f⟩, ⟨injective.syzygies f, injective.d f, (exact_f_d f).w⟩)
+
+/--
+In any abelian category with enough injectives,
+`InjectiveResolution.of Z` constructs an injective resolution of the object `Z`.
+-/
+@[irreducible] def of (Z : C) : InjectiveResolution Z :=
+{ cocomplex := of_cocomplex Z,
+  ι := cochain_complex.mk_hom _ _ (injective.ι Z) 0
+    (by { simp only [of_cocomplex_d, eq_self_iff_true, eq_to_hom_refl, category.comp_id,
+      dite_eq_ite, if_true, exact.w],
+      exact (exact_f_d (injective.ι Z)).w, } ) (λ n _, ⟨0, by ext⟩),
+  injective := by { rintros (_|_|_|n); { apply injective.injective_under, } },
+  exact₀ := by simpa using exact_f_d (injective.ι Z),
+  exact := by { rintros (_|n); { simp, apply exact_f_d } },
+  mono := injective.ι_mono Z }
+
+@[priority 100]
+instance (Z : C) : has_injective_resolution Z :=
+{ out := ⟨of Z⟩ }
+
+@[priority 100]
+instance : has_injective_resolutions C :=
+{ out := λ _, infer_instance }
 
 end InjectiveResolution
 

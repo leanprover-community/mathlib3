@@ -314,6 +314,26 @@ theorem unique_factorization_monoid.iff_exists_prime_factors [cancel_comm_monoid
 ⟨λ h, @unique_factorization_monoid.exists_prime_factors _ _ h,
   unique_factorization_monoid.of_exists_prime_factors⟩
 
+section
+variables {β : Type*} [cancel_comm_monoid_with_zero α] [cancel_comm_monoid_with_zero β]
+
+lemma mul_equiv.unique_factorization_monoid (e : α ≃* β)
+  (hα : unique_factorization_monoid α) : unique_factorization_monoid β :=
+begin
+  rw unique_factorization_monoid.iff_exists_prime_factors at hα ⊢, intros a ha,
+  obtain ⟨w,hp,u,h⟩ := hα (e.symm a) (λ h, ha $ by { convert ← map_zero e, simp [← h] }),
+  exact ⟨ w.map e,
+    λ b hb, let ⟨c,hc,he⟩ := multiset.mem_map.1 hb in he ▸ e.prime_iff.1 (hp c hc),
+    units.map e.to_monoid_hom u,
+    by { erw [multiset.prod_hom, ← e.map_mul, h], simp } ⟩,
+end
+
+lemma mul_equiv.unique_factorization_monoid_iff (e : α ≃* β) :
+  unique_factorization_monoid α ↔ unique_factorization_monoid β :=
+⟨ e.unique_factorization_monoid, e.symm.unique_factorization_monoid ⟩
+
+end
+
 theorem irreducible_iff_prime_of_exists_unique_irreducible_factors [cancel_comm_monoid_with_zero α]
   (eif : ∀ (a : α), a ≠ 0 → ∃ f : multiset α, (∀b ∈ f, irreducible b) ∧ f.prod ~ᵤ a)
   (uif : ∀ (f g : multiset α),
@@ -538,6 +558,10 @@ begin
     apply multiset.prod_dvd_prod_of_le }
 end
 
+theorem normalized_factors_of_irreducible_pow {p : α} (hp : irreducible p) (k : ℕ) :
+  normalized_factors (p ^ k) = multiset.repeat (normalize p) k :=
+by rw [normalized_factors_pow, normalized_factors_irreducible hp, multiset.nsmul_singleton]
+
 lemma zero_not_mem_normalized_factors (x : α) : (0 : α) ∉ normalized_factors x :=
 λ h, prime.ne_zero (prime_of_normalized_factor _ h) rfl
 
@@ -547,6 +571,14 @@ begin
   { rw hcases,
     exact dvd_zero p },
   { exact dvd_trans (multiset.dvd_prod H) (associated.dvd (normalized_factors_prod hcases)) },
+end
+
+lemma exists_associated_prime_pow_of_unique_normalized_factor {p r : α}
+  (h : ∀ {m}, m ∈ normalized_factors r → m = p) (hr : r ≠ 0) : ∃ (i : ℕ), associated (p ^ i) r :=
+begin
+  use (normalized_factors r).card,
+  have := unique_factorization_monoid.normalized_factors_prod hr,
+  rwa [multiset.eq_repeat_of_mem (λ b, h), multiset.prod_repeat] at this
 end
 
 end unique_factorization_monoid

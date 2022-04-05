@@ -6,6 +6,7 @@ Authors: Kenny Lau
 import algebra.algebra.bilinear
 import algebra.module.submodule_pointwise
 import algebra.module.opposites
+import data.finset.pointwise
 
 /-!
 # Multiplication and division of submodules of an algebra.
@@ -26,7 +27,7 @@ It is proved that `submodule R A` is a semiring, and also an algebra over `set A
 
 ## Tags
 
-multiplication of submodules, division of subodules, submodule semiring
+multiplication of submodules, division of submodules, submodule semiring
 -/
 
 universes uι u v

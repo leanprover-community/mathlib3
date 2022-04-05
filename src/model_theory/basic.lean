@@ -3,7 +3,12 @@ Copyright (c) 2021 Aaron Anderson, Jesse Michael Han, Floris van Doorn. All righ
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
+import data.fin.vec_notation
 import data.fin.tuple.basic
+import logic.encodable.basic
+import set_theory.cardinal
+import category_theory.concrete_category.bundled
+
 
 /-!
 # Basics on First-Order Structures
@@ -28,11 +33,6 @@ structures.
 * A `first_order.language.equiv`, denoted `M ≃[L] N`, is an equivalence from the `L`-structure `M`
   to the `L`-structure `N` that commutes with the interpretations of functions, and which preserves
   the interpretations of relations in both directions.
-* A `first_order.language.Lhom`, denoted `L →ᴸ L'`, is a map between languages, sending the symbols
-  of one to symbols of the same kind and arity in the other.
-* `first_order.language.with_constants` is defined so that if `M` is an `L.Structure` and
-  `A : set M`, `L.with_constants A`, denoted `L[[A]]`, is a language which adds constant symbols for
-  elements of `A` to `L`.
 
 ## References
 For the Flypitch project:
@@ -44,6 +44,9 @@ the continuum hypothesis*][flypitch_itp]
 -/
 universes u v u' v' w
 
+open_locale cardinal
+open cardinal
+
 namespace first_order
 
 /-! ### Languages and Structures -/
@@ -54,7 +57,21 @@ namespace first_order
 structure language :=
 (functions : ℕ → Type u) (relations : ℕ → Type v)
 
+/-- Used to define `first_order.language₂`. -/
+def sequence₂ (a₀ a₁ a₂ : Type u) : ℕ → Type u
+| 0 := a₀
+| 1 := a₁
+| 2 := a₂
+| _ := pempty
+
+instance {a₀ a₁ a₂ : Type u} [h : inhabited a₀] : inhabited (sequence₂ a₀ a₁ a₂ 0) := h
+
 namespace language
+
+/-- A constructor for languages with only constants, unary and binary functions, and
+unary and binary relations. -/
+protected def mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) : language :=
+⟨sequence₂ c f₁ f₂, sequence₂ pempty r₁ r₂⟩
 
 /-- The empty language has no symbols. -/
 protected def empty : language := ⟨λ _, pempty, λ _, pempty⟩
@@ -73,6 +90,14 @@ variable (L : language.{u v})
 /-- The type of symbols in a given language. -/
 @[nolint has_inhabited_instance] def symbols := (Σl, L.functions l) ⊕ (Σl, L.relations l)
 
+/-- The cardinality of a language is the cardinality of its type of symbols. -/
+def card : cardinal := # L.symbols
+
+/-- A language is countable when it has countably many symbols. -/
+class countable : Prop := (card_le_omega' : L.card ≤ ω)
+
+lemma card_le_omega [L.countable] : L.card ≤ ω := countable.card_le_omega'
+
 /-- A language is relational when it has no function symbols. -/
 class is_relational : Prop :=
 (empty_functions : ∀ n, is_empty (L.functions n))
@@ -81,7 +106,19 @@ class is_relational : Prop :=
 class is_algebraic : Prop :=
 (empty_relations : ∀ n, is_empty (L.relations n))
 
+/-- A language is countable when it has countably many symbols. -/
+class countable_functions : Prop := (card_functions_le_omega' : # (Σl, L.functions l) ≤ ω)
+
+lemma card_functions_le_omega [L.countable_functions] :
+  # (Σl, L.functions l) ≤ ω :=
+countable_functions.card_functions_le_omega'
+
 variables {L} {L' : language.{u' v'}}
+
+lemma card_eq_card_functions_add_card_relations :
+  L.card = cardinal.lift.{v} (# (Σl, L.functions l)) +
+    cardinal.lift.{u} (# (Σl, L.relations l)) :=
+by rw [card, symbols, mk_sum]
 
 instance [L.is_relational] {n : ℕ} : is_empty (L.functions n) := is_relational.empty_functions n
 
@@ -105,6 +142,55 @@ instance is_relational_sum [L.is_relational] [L'.is_relational] : is_relational 
 instance is_algebraic_sum [L.is_algebraic] [L'.is_algebraic] : is_algebraic (L.sum L') :=
 ⟨λ n, sum.is_empty⟩
 
+instance is_relational_mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  [h0 : is_empty c] [h1 : is_empty f₁] [h2 : is_empty f₂] :
+  is_relational (language.mk₂ c f₁ f₂ r₁ r₂) :=
+⟨λ n, nat.cases_on n h0 (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ _, pempty.is_empty)))⟩
+
+instance is_algebraic_mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  [h1 : is_empty r₁] [h2 : is_empty r₂] :
+  is_algebraic (language.mk₂ c f₁ f₂ r₁ r₂) :=
+⟨λ n, nat.cases_on n pempty.is_empty
+  (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ _, pempty.is_empty)))⟩
+
+instance subsingleton_mk₂_functions {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  [h0 : subsingleton c] [h1 : subsingleton f₁] [h2 : subsingleton f₂] {n : ℕ} :
+  subsingleton ((language.mk₂ c f₁ f₂ r₁ r₂).functions n) :=
+nat.cases_on n h0 (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ n, ⟨λ x, pempty.elim x⟩)))
+
+instance subsingleton_mk₂_relations {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  [h1 : subsingleton r₁] [h2 : subsingleton r₂] {n : ℕ} :
+  subsingleton ((language.mk₂ c f₁ f₂ r₁ r₂).relations n) :=
+nat.cases_on n ⟨λ x, pempty.elim x⟩
+  (λ n, nat.cases_on n h1 (λ n, nat.cases_on n h2 (λ n, ⟨λ x, pempty.elim x⟩)))
+
+lemma encodable.countable [h : encodable L.symbols] :
+  L.countable :=
+⟨cardinal.encodable_iff.1 ⟨h⟩⟩
+
+instance countable_empty : language.empty.countable :=
+⟨begin
+  rw [card_eq_card_functions_add_card_relations, add_le_omega, lift_le_omega, lift_le_omega,
+    ← cardinal.encodable_iff, ← cardinal.encodable_iff],
+  exact ⟨⟨encodable.sigma⟩, ⟨encodable.sigma⟩⟩,
+end⟩
+
+@[priority 100] instance countable.countable_functions [L.countable] :
+  L.countable_functions :=
+⟨begin
+  refine lift_le_omega.1 (trans _ L.card_le_omega),
+  rw [card, symbols, mk_sum],
+  exact le_self_add,
+end⟩
+
+lemma encodable.countable_functions [h : encodable (Σl, L.functions l)] :
+  L.countable_functions :=
+⟨cardinal.encodable_iff.1 ⟨h⟩⟩
+
+@[priority 100] instance is_relational.countable_functions [L.is_relational] :
+  L.countable_functions :=
+encodable.countable_functions
+
 variables (L) (M : Type w)
 
 /-- A first-order structure on a type `M` consists of interpretations of all the symbols in a given
@@ -119,6 +205,9 @@ variables (N : Type*) [L.Structure M] [L.Structure N]
 
 open Structure
 
+/-- Used for defining `first_order.language.Theory.Model.inhabited`. -/
+def trivial_unit_structure : L.Structure unit := ⟨default, default⟩
+
 /-! ### Maps -/
 
 /-- A homomorphism between first-order structures is a function that commutes with the
@@ -129,7 +218,7 @@ structure hom :=
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r x → rel_map r (to_fun ∘ x) . obviously)
 
-localized "notation A ` →[`:25 L `] ` B := L.hom A B" in first_order
+localized "notation A ` →[`:25 L `] ` B := first_order.language.hom L A B" in first_order
 
 /-- An embedding of first-order structures is an embedding that commutes with the
   interpretations of functions and relations. -/
@@ -137,7 +226,7 @@ localized "notation A ` →[`:25 L `] ` B := L.hom A B" in first_order
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x . obviously)
 
-localized "notation A ` ↪[`:25 L `] ` B := L.embedding A B" in first_order
+localized "notation A ` ↪[`:25 L `] ` B := first_order.language.embedding L A B" in first_order
 
 /-- An equivalence of first-order structures is an equivalence that commutes with the
   interpretations of functions and relations. -/
@@ -145,7 +234,7 @@ structure equiv extends M ≃ N :=
 (map_fun' : ∀{n} (f : L.functions n) x, to_fun (fun_map f x) = fun_map f (to_fun ∘ x) . obviously)
 (map_rel' : ∀{n} (r : L.relations n) x, rel_map r (to_fun ∘ x) ↔ rel_map r x . obviously)
 
-localized "notation A ` ≃[`:25 L `] ` B := L.equiv A B" in first_order
+localized "notation A ` ≃[`:25 L `] ` B := first_order.language.equiv L A B" in first_order
 
 variables {L M N} {P : Type*} [L.Structure P] {Q : Type*} [L.Structure Q]
 
@@ -159,6 +248,55 @@ lemma fun_map_eq_coe_constants {c : L.constants} {x : fin 0 → M} :
   be a global instance, because `L` becomes a metavariable. -/
 lemma nonempty_of_nonempty_constants [h : nonempty L.constants] : nonempty M :=
 h.map coe
+
+/-- The function map for `first_order.language.Structure₂`. -/
+def fun_map₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  (c' : c → M) (f₁' : f₁ → M → M) (f₂' : f₂ → M → M → M) :
+  ∀{n}, (language.mk₂ c f₁ f₂ r₁ r₂).functions n → (fin n → M) → M
+| 0 f _ := c' f
+| 1 f x := f₁' f (x 0)
+| 2 f x := f₂' f (x 0) (x 1)
+| (n + 3) f _ := pempty.elim f
+
+/-- The relation map for `first_order.language.Structure₂`. -/
+def rel_map₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  (r₁' : r₁ → set M) (r₂' : r₂ → M → M → Prop) :
+  ∀{n}, (language.mk₂ c f₁ f₂ r₁ r₂).relations n → (fin n → M) → Prop
+| 0 r _ := pempty.elim r
+| 1 r x := (x 0) ∈ r₁' r
+| 2 r x := r₂' r (x 0) (x 1)
+| (n + 3) r _ := pempty.elim r
+
+/-- A structure constructor to match `first_order.language₂`. -/
+protected def Structure.mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  (c' : c → M) (f₁' : f₁ → M → M) (f₂' : f₂ → M → M → M)
+  (r₁' : r₁ → set M) (r₂' : r₂ → M → M → Prop) :
+  (language.mk₂ c f₁ f₂ r₁ r₂).Structure M :=
+⟨λ _, fun_map₂ c' f₁' f₂', λ _, rel_map₂ r₁' r₂'⟩
+
+namespace Structure
+
+variables {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+variables {c' : c → M} {f₁' : f₁ → M → M} {f₂' : f₂ → M → M → M}
+variables {r₁' : r₁ → set M} {r₂' : r₂ → M → M → Prop}
+
+@[simp] lemma fun_map_apply₀ (c₀ : c) {x : fin 0 → M} :
+  @Structure.fun_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 0 c₀ x = c' c₀ := rfl
+
+@[simp] lemma fun_map_apply₁ (f : f₁) (x : M) :
+  @Structure.fun_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 1 f (![x]) = f₁' f x := rfl
+
+@[simp] lemma fun_map_apply₂ (f : f₂) (x y : M) :
+  @Structure.fun_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 2 f (![x,y]) = f₂' f x y := rfl
+
+@[simp] lemma rel_map_apply₁ (r : r₁) (x : M) :
+  @Structure.rel_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 1 r (![x]) = (x ∈ r₁' r) := rfl
+
+@[simp] lemma rel_map_apply₂ (r : r₂) (x y : M) :
+  @Structure.rel_map _ M (Structure.mk₂ c' f₁' f₂' r₁' r₂') 2 r (![x,y]) = r₂' r x y := rfl
+
+end Structure
+
 
 /-- `hom_class L F M N` states that `F` is a type of `L`-homomorphisms. You should extend this
   typeclass when you extend `first_order.language.hom`. -/
@@ -487,227 +625,6 @@ variables {L₁ L₂ S}
   @rel_map (L₁.sum L₂) S _ n (sum.inr R) = rel_map R := rfl
 
 end sum_Structure
-
-/-- A language homomorphism maps the symbols of one language to symbols of another. -/
-structure Lhom (L L' : language) :=
-(on_function : ∀{n}, L.functions n → L'.functions n)
-(on_relation : ∀{n}, L.relations n → L'.relations n)
-
-infix ` →ᴸ `:10 := Lhom -- \^L
-
-namespace Lhom
-
-variables (ϕ : L →ᴸ L')
-
-/-- The identity language homomorphism. -/
-protected def id (L : language) : L →ᴸ L :=
-⟨λn, id, λ n, id⟩
-
-instance : inhabited (L →ᴸ L) := ⟨Lhom.id L⟩
-
-/-- The inclusion of the left factor into the sum of two languages. -/
-protected def sum_inl : L →ᴸ L.sum L' :=
-⟨λn, sum.inl, λ n, sum.inl⟩
-
-/-- The inclusion of the right factor into the sum of two languages. -/
-protected def sum_inr : L' →ᴸ L.sum L' :=
-⟨λn, sum.inr, λ n, sum.inr⟩
-
-variables (L L')
-
-/-- The inclusion of an empty language into any other language. -/
-protected def of_is_empty [L.is_algebraic] [L.is_relational] : L →ᴸ L' :=
-⟨λ n, (is_relational.empty_functions n).elim, λ n, (is_algebraic.empty_relations n).elim⟩
-
-variables {L L'}
-
-/-- The composition of two language homomorphisms. -/
-@[reducible] def comp {L1} {L2} {L3} (g : L2 →ᴸ L3) (f : L1 →ᴸ L2) : L1 →ᴸ L3 :=
-⟨λ n F, g.1 (f.1 F), λ _ R, g.2 (f.2 R)⟩
-
-@[ext] protected lemma funext {L1} {L2} {F G : L1 →ᴸ L2} (h_fun : F.on_function = G.on_function )
-  (h_rel : F.on_relation = G.on_relation ) : F = G :=
-by {cases F with Ff Fr, cases G with Gf Gr, simp only *, exact and.intro h_fun h_rel}
-
-local infix ` ∘ `:60 := Lhom.comp
-
-@[simp] lemma id_comp {L1 L2} {F : L1 →ᴸ L2} : (Lhom.id L2) ∘ F = F :=
-by {cases F, refl}
-
-@[simp] lemma comp_id {L1 L2} {F : L1 →ᴸ L2} : F ∘ (Lhom.id L1) = F :=
-by {cases F, refl}
-
-/-- A language map defined on two factors of a sum. -/
-@[simps] def sum_elim {L'' : language} (ψ : L'' →ᴸ L') : L.sum L'' →ᴸ L' :=
-{ on_function := λ n, sum.elim (λ f, ϕ.on_function f) (λ f, ψ.on_function f),
-  on_relation := λ n, sum.elim (λ f, ϕ.on_relation f) (λ f, ψ.on_relation f) }
-
-/-- The map between two sum-languages induced by maps on the two factors. -/
-@[simps] def sum_map {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) : L.sum L₁ →ᴸ L'.sum L₂ :=
-{ on_function := λ n, sum.map (λ f, ϕ.on_function f) (λ f, ψ.on_function f),
-  on_relation := λ n, sum.map (λ f, ϕ.on_relation f) (λ f, ψ.on_relation f) }
-
-/-- A language homomorphism is injective when all the maps between symbol types are. -/
-protected structure injective : Prop :=
-(on_function {n} : function.injective (on_function ϕ : L.functions n → L'.functions n))
-(on_relation {n} : function.injective (on_relation ϕ : L.relations n → L'.relations n))
-
-/-- A language homomorphism is an expansion on a structure if it commutes with the interpretation of
-all symbols on that structure. -/
-class is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M] : Prop :=
-(map_on_function : ∀ {n} (f : L.functions n) (x : fin n → M),
-  fun_map (ϕ.on_function f) x = fun_map f x)
-(map_on_relation : ∀ {n} (R : L.relations n) (x : fin n → M),
-  rel_map (ϕ.on_relation R) x = rel_map R x)
-
-attribute [simp] is_expansion_on.map_on_function is_expansion_on.map_on_relation
-
-instance id_is_expansion_on (M : Type*) [L.Structure M] : is_expansion_on (Lhom.id L) M :=
-⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
-
-instance of_is_empty_is_expansion_on (M : Type*) [L.Structure M] [L'.Structure M]
-  [L.is_algebraic] [L.is_relational] :
-  is_expansion_on (Lhom.of_is_empty L L') M :=
-⟨λ n, (is_relational.empty_functions n).elim, λ n, (is_algebraic.empty_relations n).elim⟩
-
-instance sum_elim_is_expansion_on {L'' : language} (ψ : L'' →ᴸ L') (M : Type*)
-  [L.Structure M] [L'.Structure M] [L''.Structure M]
-  [ϕ.is_expansion_on M] [ψ.is_expansion_on M] :
-  (ϕ.sum_elim ψ).is_expansion_on M :=
-⟨λ _ f _, sum.cases_on f (by simp) (by simp), λ _ R _, sum.cases_on R (by simp) (by simp)⟩
-
-instance sum_map_is_expansion_on {L₁ L₂ : language} (ψ : L₁ →ᴸ L₂) (M : Type*)
-  [L.Structure M] [L'.Structure M] [L₁.Structure M] [L₂.Structure M]
-  [ϕ.is_expansion_on M] [ψ.is_expansion_on M] :
-  (ϕ.sum_map ψ).is_expansion_on M :=
-⟨λ _ f _, sum.cases_on f (by simp) (by simp), λ _ R _, sum.cases_on R (by simp) (by simp)⟩
-
-end Lhom
-
-section constants_on
-variables (α : Type u')
-
-/-- The function symbols of a language with constants indexed by a type. -/
-def constants_on_functions : ℕ → Type u'
-| 0 := α
-| _ := pempty
-
-instance [h : inhabited α] : inhabited (constants_on_functions α 0) := h
-
-/-- A language with constants indexed by a type. -/
-def constants_on : language.{u' 0} := ⟨constants_on_functions α, λ _, pempty⟩
-
-variables {α}
-
-@[simp] lemma constants_on_constants : (constants_on α).constants = α := rfl
-
-instance is_algebraic_constants_on : is_algebraic (constants_on α) :=
-language.is_algebraic_of_empty_relations
-
-instance is_relational_constants_on [ie : is_empty α] : is_relational (constants_on α) :=
-⟨λ n, nat.cases_on n ie (λ _, pempty.is_empty)⟩
-
-/-- Gives a `constants_on α` structure to a type by assigning each constant a value. -/
-def constants_on.Structure (f : α → M) : (constants_on α).Structure M :=
-{ fun_map := λ n, nat.cases_on n (λ a _, f a) (λ _, pempty.elim),
-  rel_map := λ _, pempty.elim }
-
-variables {β : Type v'}
-
-/-- A map between index types induces a map between constant languages. -/
-def Lhom.constants_on_map (f : α → β) : (constants_on α) →ᴸ (constants_on β) :=
-⟨λ n, nat.cases_on n f (λ _, pempty.elim), λ n, pempty.elim⟩
-
-lemma constants_on_map_is_expansion_on {f : α → β} {fα : α → M} {fβ : β → M}
-  (h : fβ ∘ f = fα) :
-  @Lhom.is_expansion_on _ _ (Lhom.constants_on_map f) M
-    (constants_on.Structure fα) (constants_on.Structure fβ) :=
-begin
-  letI := constants_on.Structure fα,
-  letI := constants_on.Structure fβ,
-  exact ⟨λ n, nat.cases_on n (λ F x, (congr_fun h F : _)) (λ n F, pempty.elim F),
-    λ _ R, pempty.elim R⟩,
-end
-
-end constants_on
-
-section with_constants
-
-variable (L)
-
-section
-variables (α : Type w)
-
-/-- Extends a language with a constant for each element of a parameter set in `M`. -/
-def with_constants : language.{(max u w) v} := L.sum (constants_on α)
-
-localized "notation L`[[`:95 α`]]`:90 := L.with_constants α" in first_order
-
-/-- The language map adding constants.  -/
-def Lhom_with_constants : L →ᴸ L[[α]] := Lhom.sum_inl
-
-variables {α}
-
-/-- The constant symbol indexed by a particular element. -/
-protected def con (a : α) : L[[α]].constants := sum.inr a
-
-variables {L} (α)
-
-/-- Adds constants to a language map.  -/
-def Lhom.add_constants {L' : language} (φ : L →ᴸ L') :
-  L[[α]] →ᴸ L'[[α]] := φ.sum_map (Lhom.id _)
-
-instance params_Structure (A : set α) : (constants_on A).Structure α := constants_on.Structure coe
-
-variables (L) (α)
-
-/-- The language map removing an empty constant set.  -/
-def Lhom_trim_empty_constants [is_empty α] : L[[α]] →ᴸ L :=
-Lhom.sum_elim (Lhom.id L) (Lhom.of_is_empty (constants_on α) L)
-
-variables {α} {β : Type*}
-
-/-- The language map extending the constant set.  -/
-def Lhom_with_constants_map (f : α → β) : L[[α]] →ᴸ L[[β]] :=
-Lhom.sum_map (Lhom.id L) (Lhom.constants_on_map f)
-
-@[simp] lemma Lhom.map_constants_comp_with_constants {f : α → β} :
-  (L.Lhom_with_constants_map f).comp (L.Lhom_with_constants α) = L.Lhom_with_constants β :=
-by ext n f R; refl
-
-end
-
-open_locale first_order
-variables (A : set M)
-
-instance with_constants_Structure : L[[A]].Structure M :=
-language.sum_Structure _ _ _
-
-instance trim_empty_constants_is_expansion_on :
-  (L.Lhom_trim_empty_constants (∅ : set M)).is_expansion_on M :=
-Lhom.sum_elim_is_expansion_on _ _ _
-
-instance with_constants_expansion : (L.Lhom_with_constants A).is_expansion_on M :=
-⟨λ _ _ _, rfl, λ _ _ _, rfl⟩
-
-instance add_constants_expansion {L' : language} [L'.Structure M] (φ : L →ᴸ L')
-  [φ.is_expansion_on M] :
-  (φ.add_constants A).is_expansion_on M :=
-Lhom.sum_map_is_expansion_on _ _ M
-
-@[simp] lemma coe_con {a : A} : ((L.con a) : M) = a := rfl
-
-variables {A} {B : set M} (h : A ⊆ B)
-
-instance constants_on_map_inclusion_is_expansion_on :
-  (Lhom.constants_on_map (set.inclusion h)).is_expansion_on M :=
-constants_on_map_is_expansion_on rfl
-
-instance map_constants_inclusion_is_expansion_on :
-  (L.Lhom_with_constants_map (set.inclusion h)).is_expansion_on M :=
-Lhom.sum_map_is_expansion_on _ _ _
-
-end with_constants
 
 end language
 end first_order

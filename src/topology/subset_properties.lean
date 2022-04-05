@@ -8,6 +8,7 @@ import topology.bases
 import data.finset.order
 import data.set.accumulate
 import tactic.tfae
+import topology.bornology.basic
 
 /-!
 # Properties of subsets of topological spaces
@@ -545,9 +546,36 @@ lemma mem_coclosed_compact' : s ∈ coclosed_compact α ↔ ∃ t, is_closed t �
 by simp only [mem_coclosed_compact, compl_subset_comm]
 
 lemma cocompact_le_coclosed_compact : cocompact α ≤ coclosed_compact α :=
-infi_le_infi $ λ s, le_infi $ λ _, le_rfl
+infi_mono $ λ s, le_infi $ λ _, le_rfl
+
+lemma _root_.is_compact.compl_mem_coclosed_compact_of_is_closed (hs : is_compact s)
+  (hs' : is_closed s) :
+  sᶜ ∈ filter.coclosed_compact α :=
+has_basis_coclosed_compact.mem_of_mem ⟨hs', hs⟩
 
 end filter
+
+namespace bornology
+
+variable (α)
+
+/-- Sets that are contained in a compact set form a bornology. Its `cobounded` filter is
+`filter.cocompact`. See also `bornology.relatively_compact` the bornology of sets with compact
+closure. -/
+def in_compact : bornology α :=
+{ cobounded := filter.cocompact α,
+  le_cofinite := filter.cocompact_le_cofinite }
+
+variable {α}
+
+lemma in_compact.is_bounded_iff : @is_bounded _ (in_compact α) s ↔ ∃ t, is_compact t ∧ s ⊆ t :=
+begin
+  change sᶜ ∈ filter.cocompact α ↔ _,
+  rw filter.mem_cocompact,
+  simp
+end
+
+end bornology
 
 section tube_lemma
 
@@ -1062,7 +1090,7 @@ theorem is_closed.exists_minimal_nonempty_closed_subset [compact_space α]
       (∀ (V' : set α), V' ⊆ V → V'.nonempty → is_closed V' → V' = V) :=
 begin
   let opens := {U : set α | Sᶜ ⊆ U ∧ is_open U ∧ Uᶜ.nonempty},
-  obtain ⟨U, ⟨Uc, Uo, Ucne⟩, h⟩ := zorn.zorn_subset opens (λ c hc hz, begin
+  obtain ⟨U, ⟨Uc, Uo, Ucne⟩, h⟩ := zorn_subset opens (λ c hc hz, begin
     by_cases hcne : c.nonempty,
     { obtain ⟨U₀, hU₀⟩ := hcne,
       haveI : nonempty {U // U ∈ c} := ⟨⟨U₀, hU₀⟩⟩,
@@ -1078,7 +1106,7 @@ begin
           refl, },
         apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed,
         { rintros ⟨U, hU⟩ ⟨U', hU'⟩,
-          obtain ⟨V, hVc, hVU, hVU'⟩ := zorn.chain.directed_on hz U hU U' hU',
+          obtain ⟨V, hVc, hVU, hVU'⟩ := hz.directed_on U hU U' hU',
           exact ⟨⟨V, hVc⟩, set.compl_subset_compl.mpr hVU, set.compl_subset_compl.mpr hVU'⟩, },
         { exact λ U, (hc U.2).2.2, },
         { exact λ U, (is_closed_compl_iff.mpr (hc U.2).2.1).is_compact, },
@@ -1287,6 +1315,16 @@ is_open s ∧ is_closed s
 protected lemma is_clopen.is_open (hs : is_clopen s) : is_open s := hs.1
 protected lemma is_clopen.is_closed (hs : is_clopen s) : is_closed s := hs.2
 
+lemma is_clopen_iff_frontier_eq_empty {s : set α} : is_clopen s ↔ frontier s = ∅ :=
+begin
+  rw [is_clopen, ← closure_eq_iff_is_closed, ← interior_eq_iff_open, frontier, diff_eq_empty],
+  refine ⟨λ h, (h.2.trans h.1.symm).subset, λ h, _⟩,
+  exact ⟨interior_subset.antisymm (subset_closure.trans h),
+    (h.trans interior_subset).antisymm subset_closure⟩
+end
+
+alias is_clopen_iff_frontier_eq_empty ↔ is_clopen.frontier_eq _
+
 theorem is_clopen.union {s t : set α} (hs : is_clopen s) (ht : is_clopen t) : is_clopen (s ∪ t) :=
 ⟨hs.1.union ht.1, hs.2.union ht.2⟩
 
@@ -1405,12 +1443,12 @@ lemma is_irreducible.closure {s : set α} (h : is_irreducible s) :
 
 theorem exists_preirreducible (s : set α) (H : is_preirreducible s) :
   ∃ t : set α, is_preirreducible t ∧ s ⊆ t ∧ ∀ u, is_preirreducible u → t ⊆ u → u = t :=
-let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset_nonempty {t : set α | is_preirreducible t}
+let ⟨m, hm, hsm, hmm⟩ := zorn_subset_nonempty {t : set α | is_preirreducible t}
   (λ c hc hcc hcn, let ⟨t, htc⟩ := hcn in
     ⟨⋃₀ c, λ u v hu hv ⟨y, hy, hyu⟩ ⟨z, hz, hzv⟩,
       let ⟨p, hpc, hyp⟩ := mem_sUnion.1 hy,
           ⟨q, hqc, hzq⟩ := mem_sUnion.1 hz in
-      or.cases_on (zorn.chain.total hcc hpc hqc)
+      or.cases_on (hcc.total hpc hqc)
         (assume hpq : p ⊆ q, let ⟨x, hxp, hxuv⟩ := hc hqc u v hu hv
             ⟨y, hpq hyp, hyu⟩ ⟨z, hzq, hzv⟩ in
           ⟨x, mem_sUnion_of_mem hxp hqc, hxuv⟩)

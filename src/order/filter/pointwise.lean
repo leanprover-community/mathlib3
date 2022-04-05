@@ -63,6 +63,8 @@ instance : has_one (filter α) := ⟨principal 1⟩
 @[simp, to_additive] lemma principal_one : 𝓟 1 = (1 : filter α) := rfl
 @[simp, to_additive] lemma pure_one : pure 1 = (1 : filter α) := (principal_singleton _).symm
 @[simp, to_additive] lemma le_one_iff : f ≤ 1 ↔ (1 : set α) ∈ f := le_principal_iff
+@[simp, to_additive] lemma eventually_one {p : α → Prop} : (∀ᶠ x in 1, p x) ↔ p 1 :=
+by rw [←pure_one, eventually_pure]
 
 @[simp, to_additive]
 protected lemma map_one [one_hom_class F α β] (φ : F) : map φ 1 = 1 :=

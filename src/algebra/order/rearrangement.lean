@@ -427,7 +427,7 @@ by { convert hfg.sum_smul_sum_le_card_smul_sum; simp }
 less than the size of the set times their scalar product. -/
 lemma antivary_on.card_mul_sum_le_sum_mul_sum (hfg : antivary_on f g s) :
   (s.card : α) * (∑ i in s, f i * g i) ≤ (∑ i in s, f i) * (∑ i in s, g i) :=
-by convert (hfg.dual_right).sum_mul_sum_le_card_mul_sum -- what's the problem here?
+by { convert hfg.card_smul_sum_le_sum_smul_sum; simp }
 
 variables [fintype ι]
 
@@ -440,7 +440,7 @@ lemma monovary.sum_mul_sum_le_card_mul_sum (hfg : monovary f g) :
 /-- **Chebyshev Inequality**: When `f` and `g` antivary together, the scalar product of their sum is
 less than the size of the set times their scalar product. -/
 lemma antivary.card_mul_sum_le_sum_mul_sum (hfg : antivary f g) :
- (fintype.card ι : α) * (∑ i in s, f i * g i) ≤ (∑ i in s, f i) * (∑ i in s, g i) :=
-by convert (hfg.dual_right.monovary_on _).sum_mul_sum_le_card_mul_sum -- same problem here as above
+ (fintype.card ι : α) * (∑ i, f i * g i) ≤ (∑ i, f i) * (∑ i, g i) :=
+(hfg.antivary_on _).card_mul_sum_le_sum_mul_sum
 
 end mul

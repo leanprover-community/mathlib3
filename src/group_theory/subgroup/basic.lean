@@ -2820,7 +2820,7 @@ begin
     have hmem_bsupr: s.noncomm_prod f (λ x hx, (comm.2 x hx).2) ∈ ⨆ (i ∈ (s : set ι)), K i,
     { refine subgroup.noncomm_prod_mem _ _ _,
       intros x hx,
-      have : K x ≤ ⨆ (i ∈ (s : set ι)), K i := le_bsupr x hx,
+      have : K x ≤ ⨆ (i ∈ (s : set ι)), K i := le_supr₂ x hx,
       exact this (hmem.2 x hx), },
     intro heq1,
     rw finset.noncomm_prod_insert_of_not_mem _ _ _ _ hnmem at heq1,

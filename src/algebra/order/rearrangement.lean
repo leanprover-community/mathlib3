@@ -3,14 +3,10 @@ Copyright (c) 2022 Mantas Bakšys. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys
 -/
-import algebra.order.module
-import group_theory.perm.support
-import order.monovary
-import tactic.abel
-import group_theory.perm.list
-import group_theory.perm.cycles
 import algebra.big_operators.order
+import algebra.order.module
 import group_theory.perm.concrete_cycle
+import order.monovary
 import tactic.interval_cases
 
 /-!
@@ -58,7 +54,7 @@ begin
       simp only [list.mem_cons_iff],
       obtain h | h | h := h;
       { split_ifs at h;
-        cc }}}
+        cc } } }
 end
 
 -- move to `group_theory.perm.list`
@@ -83,7 +79,7 @@ begin
   refine ⟨λ hy, _, λ hy, _⟩,
   { contrapose! hy,
     cases subtype.coe_eq_iff.mp (eq.symm hy) with z hz,
-    conv_rhs { rw hz }},
+    conv_rhs { rw hz } },
   { contrapose! hy,
     exact (subtype.coe_inj.mpr hy) }
 end
@@ -183,13 +179,13 @@ begin
       { ext, refl,
         rw equiv.perm.subtype_congr.left_apply,
         { simp only [hi, subtype.coe_mk] },
-        { exact h.1 }}},
+        { exact h.1 } } },
     { rcases h with ⟨k, hk, b, hbs, h⟩,
       rw h,
       refine ⟨by simpa using hbs, _⟩,
       rw equiv.perm.subtype_congr.left_apply,
       simp only [coe_mem],
-      exact hbs }}
+      exact hbs } }
 end
 
 -- to move to `group_theory.perm.cycles`
@@ -214,7 +210,7 @@ begin
         simp only [zpow_one, zpow_coe_nat] at h,
         rw [not_mem_support, h, function.injective.eq_iff (f ^ a).injective] at hfa,
         exfalso,
-        exact (mem_support.mp hx) hfa }},
+        exact (mem_support.mp hx) hfa } },
     { refl },
     { suffices : f ^ (a - b) = 1,
       { rw [pow_sub _ (le_of_lt hab), mul_inv_eq_one] at this,
@@ -228,7 +224,7 @@ begin
         simp only [zpow_one, zpow_coe_nat] at h,
         rw [not_mem_support, h, function.injective.eq_iff (f ^ b).injective] at hfa,
         exfalso,
-        exact (mem_support.mp hx) hfa }}}
+        exact (mem_support.mp hx) hfa } } }
 end
 
 -- where to move?
@@ -245,14 +241,14 @@ begin
     { rintros a ha b hb hab ⟨c, d⟩ h,
       simp only [inf_eq_inter, mem_inter, mem_singleton, prod.mk.inj_iff] at h,
       exfalso, apply hab,
-      rw [← h.1.1, h.2.1] }},
+      rw [← h.1.1, h.2.1] } },
     { rintros a ha b hb hab ⟨c, d⟩ h,
       simp only [inf_eq_inter, mem_inter, mem_bUnion, mem_singleton, prod.mk.inj_iff,
         exists_prop] at h,
       rcases h with ⟨⟨e, he⟩, ⟨f, hf⟩⟩,
       have h : ((π ^ a).subtype_congr (equiv.refl {a // a ∉ s})) c =
         ((π ^ b).subtype_congr (equiv.refl {a // a ∉ s})) c,
-      { conv_lhs { rw [he.2.1, ← he.2.2, hf.2.2, ← hf.2.1] }},
+      { conv_lhs { rw [he.2.1, ← he.2.2, hf.2.2, ← hf.2.1] } },
       have hc : c ∈ s := by simp only [he.2.1, he.1],
       replace h : (π ^ a) ⟨c, hc⟩ = (π ^ b) ⟨c, hc⟩,
       { rw [equiv.perm.subtype_congr.left_apply _] at h,
@@ -273,12 +269,13 @@ begin
       split; linarith },
 end
 
+@[simp] lemma image_set_of {α β : Type*} (p : α → Prop) (f : α → β) :
+  f '' {a | p a} = {b | ∃ a, p a ∧ f a = b} :=
+set.ext $ set.mem_image _ _
 
-
-/-- **Chebyshev Inequality**: Scalar multiplication of sums of `f` and `g`, which vary together,
-is less than or equal to the pointwise scalar multiplication of `f` and `g` multiplied by the
-cardinality of the index set. -/
-lemma chebyshev_inequality [decidable_eq ι] (hfg : monovary_on f g s) :
+/-- **Chebyshev Inequality**: When `f` and `g` vary together, the scalar product of their sum is
+less than the size of the set times their scalar product. -/
+lemma monovary.sum_smul_sum_le_card_smul_sum [decidable_eq ι] (hfg : monovary_on f g s) :
   (∑ i in s, f i) • (∑ i in s, g i) ≤ (∑ i in s, (s.card • f i) • g i) :=
 begin
   -- condition on cases of size of `s`, as we can for cycles only when `2 ≤ s.card`
@@ -286,7 +283,7 @@ begin
   { interval_cases s.card,
     { simp only [card_eq_zero.mp h, finset.sum_empty, zero_smul] },
     { cases (card_eq_one.mp h) with a ha,
-      simp only [ha, sum_singleton, card_singleton, nsmul_eq_mul, nat.cast_one, one_mul] }},
+      simp only [ha, sum_singleton, card_singleton, nsmul_eq_mul, nat.cast_one, one_mul] } },
   { set π : perm s :=
     begin
       refine equiv.perm.subtype_perm (s.to_list.form_perm) _,
@@ -311,7 +308,7 @@ begin
         conv_rhs { rw hz },
         rw [← subtype.coe_inj, ← of_subtype_apply_of_mem (π ^ i)],
         sorry -- what power lemmas do I want here?
-         }},
+         } },
     have hπs : π.support = univ,
     -- here, I tried proving `subtype_perm_support_eq` above to help but it doesn't seem to typecheck,
     -- any suggestions how this proof could go?
@@ -322,7 +319,7 @@ begin
           simp only [mem_coe] at h2,
           convert h2 using 1; simp },
         { simp only [coe_support_eq_set_support, hπ],
-          sorry }},
+          sorry } },
       { rw list.support_form_perm_of_nodup' s.to_list (nodup_to_list s),
         { simp only [to_list_to_finset]},
         { simp only [ne.def],
@@ -331,7 +328,7 @@ begin
           { rw list.length_eq_one,
             exact ⟨y, hsy⟩ },
           simp only [finset.length_to_list] at hsy,
-          linarith }}},
+          linarith } } },
     rw (sum_mul_sum_eq_sum_perm s π hπc hπs),
     have : ∑ (k : ℕ) in range s.card,
     ∑ (i : ι) in s, f i • g (((π ^ k).subtype_congr (equiv.refl _)) i) ≤

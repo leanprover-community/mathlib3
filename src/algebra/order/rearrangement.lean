@@ -3,14 +3,10 @@ Copyright (c) 2022 Mantas Bakšys. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mantas Bakšys
 -/
-import algebra.order.module
-import group_theory.perm.support
-import order.monovary
-import tactic.abel
-import group_theory.perm.list
-import group_theory.perm.cycles
 import algebra.big_operators.order
+import algebra.order.module
 import group_theory.perm.concrete_cycle
+import order.monovary
 import tactic.interval_cases
 
 /-!
@@ -260,13 +256,13 @@ begin
       { ext, refl,
         rw equiv.perm.subtype_congr.left_apply,
         { simp only [hi, subtype.coe_mk] },
-        { exact h.1 }}},
+        { exact h.1 } } },
     { rcases h with ⟨k, hk, b, hbs, h⟩,
       rw h,
       refine ⟨by simpa using hbs, _⟩,
       rw equiv.perm.subtype_congr.left_apply,
       simp only [coe_mem],
-      exact hbs }}
+      exact hbs } }
 end
 
 -- where to move?
@@ -283,14 +279,14 @@ begin
     { rintros a ha b hb hab ⟨c, d⟩ h,
       simp only [inf_eq_inter, mem_inter, mem_singleton, prod.mk.inj_iff] at h,
       exfalso, apply hab,
-      rw [← h.1.1, h.2.1] }},
+      rw [← h.1.1, h.2.1] } },
     { rintros a ha b hb hab ⟨c, d⟩ h,
       simp only [inf_eq_inter, mem_inter, mem_bUnion, mem_singleton, prod.mk.inj_iff,
         exists_prop] at h,
       rcases h with ⟨⟨e, he⟩, ⟨f, hf⟩⟩,
       have h : ((π ^ a).subtype_congr (equiv.refl {a // a ∉ s})) c =
         ((π ^ b).subtype_congr (equiv.refl {a // a ∉ s})) c,
-      { conv_lhs { rw [he.2.1, ← he.2.2, hf.2.2, ← hf.2.1] }},
+      { conv_lhs { rw [he.2.1, ← he.2.2, hf.2.2, ← hf.2.1] } },
       have hc : c ∈ s := by simp only [he.2.1, he.1],
       replace h : (π ^ a) ⟨c, hc⟩ = (π ^ b) ⟨c, hc⟩,
       { rw [equiv.perm.subtype_congr.left_apply _] at h,
@@ -371,7 +367,7 @@ begin
           { rw list.length_eq_one,
             exact ⟨y, hsy⟩ },
           simp only [finset.length_to_list] at hsy,
-          linarith }}},
+          linarith } } },
     rw (sum_mul_sum_eq_sum_perm s π hπc hπs),
     have : ∑ (k : ℕ) in range s.card,
     ∑ (i : ι) in s, f i • g (((π ^ k).subtype_congr (equiv.refl _)) i) ≤

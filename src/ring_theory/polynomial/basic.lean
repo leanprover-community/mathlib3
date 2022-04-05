@@ -101,7 +101,7 @@ begin
 end
 
 /-- The first `n` coefficients on `degree_lt n` form a linear equivalence with `fin n → R`. -/
-def degree_lt_equiv (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n → R) :=
+def degree_lt_equiv (R : Type u) [comm_ring R] (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n → R) :=
 { to_fun := λ p n, (↑p : R[X]).coeff n,
   inv_fun := λ f, ⟨∑ i : fin n, monomial i (f i),
     (degree_lt R n).sum_mem (λ i _, mem_degree_lt.mpr (lt_of_le_of_lt

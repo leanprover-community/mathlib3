@@ -48,8 +48,7 @@ begin
     intros y hy hy' hf,
     cases lt_or_eq_of_le hy',
     { exfalso, rw nat.floor_eq_on_Ico x y ⟨le_of_lt hy, h⟩ at hf, exact hf rfl, },
-    { exact h, },
-  },
+    { exact h, }, },
   { intros k hk,
     rw [interval_integrable_iff, set.interval_oc_of_le (calc (k : ℝ) ≤ ↑(k + 1) : by simp)],
     have : measure_theory.integrable_on (λ x : ℝ, f ↑k) (set.Ioc (k : ℝ) (↑k + 1))

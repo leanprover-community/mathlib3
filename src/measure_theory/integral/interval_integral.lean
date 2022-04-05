@@ -798,10 +798,10 @@ begin
       (hint n n.lt_succ_self) }
 end
 
-lemma sum_integral_adjacent_intervals'
-  {a : ℕ → ℝ} {m n : ℕ}
+lemma sum_integral_adjacent_intervals' {a : ℕ → ℝ} {m n : ℕ}
   (hint : ∀ (k : ℕ), (k < m + n) → interval_integrable f μ (a k) (a $ k+1)) :
-  ∑ (k : ℕ) in finset.Ico m (m + n), ∫ x in (a k)..(a $ k+1), f x ∂μ = ∫ x in (a m)..(a (m + n)), f x ∂μ :=
+  ∑ (k : ℕ) in finset.Ico m (m + n), ∫ x in (a k)..(a $ k+1), f x ∂μ =
+  ∫ x in (a m)..(a (m + n)), f x ∂μ :=
 begin
   induction n with n hn,
   { simp, },

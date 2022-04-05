@@ -27,6 +27,8 @@ to the corresponding element of the opposite ring. -/
 def op_ring_equiv (R : Type*) [semiring R] : R[X]ᵐᵒᵖ ≃+* Rᵐᵒᵖ[X] :=
 ((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
 
+/-!  Lemmas to get started, using `op_ring_equiv R` on the various expressions of
+`finsupp.single`: `monomial`, `C a`, `X`, `C a * X ^ n`. -/
 @[simp] lemma op_ring_equiv_op_monomial (n : ℕ) (r : R) :
   op_ring_equiv R (op (monomial n r : R[X])) = monomial n (op r) :=
 by simp only [op_ring_equiv, ring_equiv.trans_apply, ring_equiv.op_apply_apply,
@@ -47,6 +49,25 @@ lemma op_ring_equiv_op_C_mul_X_pow (r : R) (n : ℕ) :
   op_ring_equiv R (op (C r * X ^ n : R[X])) = C (op r) * X ^ n :=
 by simp only [X_pow_mul, op_mul, op_pow, map_mul, map_pow, op_ring_equiv_op_X, op_ring_equiv_op_C]
 
+/-!  Lemmas to get started, using `(op_ring_equiv R).symm` on the various expressions of
+`finsupp.single`: `monomial`, `C a`, `X`, `C a * X ^ n`. -/
+@[simp] lemma op_ring_equiv_symm_op_monomial (n : ℕ) (r : Rᵐᵒᵖ) :
+  (op_ring_equiv R).symm (monomial n r) = op (monomial n (unop r)) :=
+(op_ring_equiv R).injective (by simp)
+
+@[simp] lemma op_ring_equiv_symm_op_C (a : Rᵐᵒᵖ) :
+  (op_ring_equiv R).symm (C a) = op (C (unop a)) :=
+op_ring_equiv_symm_op_monomial 0 a
+
+@[simp] lemma op_ring_equiv_symm_op_X :
+  (op_ring_equiv R).symm (X : Rᵐᵒᵖ[X]) = op X :=
+op_ring_equiv_symm_op_monomial 1 1
+
+lemma op_ring_equiv_symm_op_C_mul_X_pow (r : Rᵐᵒᵖ) (n : ℕ) :
+  (op_ring_equiv R).symm (C r * X ^ n : Rᵐᵒᵖ[X]) = op (C (unop r) * X ^ n) :=
+by rw [← monomial_eq_C_mul_X, op_ring_equiv_symm_op_monomial, monomial_eq_C_mul_X]
+
+/-!  Lemmas about more global properties of polynomials and opposites. -/
 @[simp] lemma coeff_op_ring_equiv (p : R[X]ᵐᵒᵖ) (n : ℕ) :
   (op_ring_equiv R p).coeff n = op ((unop p).coeff n) :=
 begin

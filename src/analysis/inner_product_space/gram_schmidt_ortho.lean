@@ -62,48 +62,28 @@ end
 theorem gram_schmidt_orthogonal' (f : ℕ → E) (a b : ℕ) (h₀ : a < b) :
   ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0 :=
 begin
-  have hc : ∃ c, b ≤ c := ⟨b + 1, by linarith⟩,
-  cases hc with c h₁,
-  induction c with c hc generalizing a b,
-  { simp only [nat.nat_zero_eq_zero, le_zero_iff] at h₁,
-    simp only [h₁, not_lt_zero'] at h₀,
-    contradiction },
-  { rw nat.le_add_one_iff at h₁,
-    cases h₁ with hb₁ hb₂,
-    { exact hc _ _ h₀ hb₁ },
-    { simp only [gram_schmidt_def 𝕜 f (c + 1), hb₂, inner_sub_right, inner_sum],
-      have h₂ : ∀ x ∈ finset.range(c + 1), x ≠ a →
-        ⟪gram_schmidt 𝕜 f a,
-          (orthogonal_projection (𝕜 ∙ (gram_schmidt 𝕜 f x)) (f (c + 1)) : E)⟫ = 0,
-      { intros x hx₁ hx₂,
-        simp only [orthogonal_projection_singleton],
-        rw inner_smul_right,
-        cases hx₂.lt_or_lt with hxa₁ hxa₂,
-        { have ha₂ : a ≤ c,
-          { rw hb₂ at h₀,
-            exact nat.lt_succ_iff.mp h₀ },
-          specialize hc x a,
-          simp only [hxa₁, ha₂, forall_true_left] at hc,
-          simp only [mul_eq_zero, div_eq_zero_iff, inner_self_eq_zero],
-          right,
-          rwa inner_eq_zero_sym at hc },
-        { rw [finset.mem_range, nat.lt_succ_iff] at hx₁,
-          specialize hc a x,
-          simp only [hxa₂, hx₁, forall_true_left] at hc,
-          simp only [mul_eq_zero, div_eq_zero_iff, inner_self_eq_zero],
-          right,
-          exact hc } },
-      rw hb₂ at h₀,
-      have ha₂ : a ∈ finset.range(c + 1) := finset.mem_range.mpr h₀,
-      rw finset.sum_eq_single_of_mem a ha₂ h₂,
-      simp only [orthogonal_projection_singleton],
-      rw inner_smul_right,
-      by_cases ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f a⟫ = 0,
-      { simp only [inner_self_eq_zero] at h,
-        repeat {rw h},
-        simp only [inner_zero_left, mul_zero, sub_zero] },
-      { rw ← inner_self_eq_norm_sq_to_K,
-        simp only [h, div_mul_cancel, ne.def, not_false_iff, sub_self] } } }
+  obtain ⟨c, hbc⟩ : ∃ c, b ≤ c := ⟨b, le_rfl⟩,
+  revert a b,
+  apply nat.strong_induction_on c; clear c,
+  intros c hc a b h₀ hbc,
+  rw le_iff_lt_or_eq at hbc,
+  rcases hbc with (hbc | rfl),
+  { exact hc b hbc a b h₀ le_rfl, },
+  simp only [gram_schmidt_def 𝕜 f b, inner_sub_right, inner_sum,
+    orthogonal_projection_singleton, inner_smul_right],
+  rw finset.sum_eq_single_of_mem a (finset.mem_range.mpr h₀),
+  { by_cases h : gram_schmidt 𝕜 f a = 0,
+    { simp only [h, inner_zero_left, zero_div, zero_mul, sub_zero], },
+    { rw [← inner_self_eq_norm_sq_to_K, div_mul_cancel, sub_self],
+      rwa [ne.def, inner_self_eq_zero], }, },
+  intros i hi hia,
+  simp only [mul_eq_zero, div_eq_zero_iff, inner_self_eq_zero],
+  right,
+  rw finset.mem_range at hi,
+  cases hia.lt_or_lt with hia₁ hia₂,
+  { rw inner_eq_zero_sym,
+    exact hc a h₀ i a hia₁ le_rfl, },
+  { exact hc i hi a i hia₂ le_rfl, },
 end
 
 /-- **Gram-Schmidt Orthogonalisation**
@@ -239,8 +219,8 @@ begin
     rwa ← span_le at h₁ }
 end
 
-/-- If the input of first n vectors of gram_schmidt are linearly independent
-,then output of first n vectors are non-zero -/
+/-- If the input of first n + 1 vectors of gram_schmidt are linearly independent
+,then output of first n + 1 vectors are non-zero -/
 lemma gram_schmidt_ne_zero (f : ℕ → E) (n : ℕ)
   (h₀ : linear_independent 𝕜 (f ∘ (coe : fin n.succ → ℕ))) :
     gram_schmidt 𝕜 f n ≠ 0 :=

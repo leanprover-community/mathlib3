@@ -50,6 +50,7 @@ lemma is_square_mul_self [has_mul α] (m : α) : is_square (m * m) := ⟨m, rfl�
 @[to_additive even_iff_exists_two_nsmul]
 lemma is_square_iff_exists_sq [monoid α] (m : α) : is_square m ↔ ∃ c, m = c ^ 2 :=
 by simp [is_square, pow_two]
+alias is_square_iff_exists_sq ↔ is_square.exists_sq is_square_of_exists_sq
 
 @[simp, to_additive even_two_nsmul]
 lemma is_square_sq [monoid α] (a : α) : is_square (a ^ 2) := ⟨a, pow_two _⟩
@@ -86,8 +87,8 @@ lemma is_square_op_iff (a : α) : is_square (op a) ↔ is_square a :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [← is_square_op_iff, ← inv_inv a],
-    exact (mul_equiv.inv' α).to_monoid_hom.is_square h },
-  { exact (mul_equiv.inv' α).symm.to_monoid_hom.is_square ((is_square_op_iff a).mpr h) }
+    exact is_square.map (mul_equiv.inv' α) h },
+  { exact is_square.map (mul_equiv.inv' α).symm ((is_square_op_iff a).mpr h) }
 end
 
 end group
@@ -119,10 +120,10 @@ by { ext x, simp [eq_comm, two_mul, even] }
 @[simp] lemma even_two : even (2 : α) := ⟨1, rfl⟩
 
 @[simp] lemma even.mul_left (hm : even m) (n) : even (n * m) :=
-(add_monoid_hom.mul_left n).even hm
+even.map (add_monoid_hom.mul_left n) hm
 
 @[simp] lemma even.mul_right (hm : even m) (n) : even (m * n) :=
-(add_monoid_hom.mul_right n).even hm
+even.map (add_monoid_hom.mul_right n) hm
 
 lemma even_two_mul (m : α) : even (2 * m) := ⟨m, two_mul _⟩
 
@@ -228,8 +229,6 @@ by { cases abs_choice a with h h; simp only [h, odd_neg] }
 
 end ring
 
-
--- from src/algebra/group_power/lemmas.lean
 section powers
 variables {R : Type*}
   {a : R} {n : ℕ} [linear_ordered_ring R]
@@ -274,13 +273,11 @@ by cases hn with k hk; simpa only [hk, two_mul] using strict_mono_pow_bit1 _
 
 end powers
 
--- from src/data/fintype/basic.lean
 /-- The cardinality of `fin (bit0 k)` is even, `fact` version.
 This `fact` is needed as an instance by `matrix.special_linear_group.has_neg`. -/
 lemma fintype.card_fin_even {k : ℕ} : fact (even (fintype.card (fin (bit0 k)))) :=
 ⟨by { rw [fintype.card_fin], exact even_bit0 k }⟩
 
--- from src/algebra/field_power.lean
 section field_power
 variable {K : Type*}
 

@@ -246,15 +246,15 @@ begin
   { exact (hn (λ k hk, hint k (hk.trans n.lt_succ_self))).trans (hint n n.lt_succ_self) }
 end
 
-lemma interval_integrable.trans_iterate'
+lemma trans_iterate'
   {a : ℕ → ℝ} {m n : ℕ}
   (hint : ∀ (k : ℕ), (k < m + n) → interval_integrable f μ (a k) (a $ k+1)) :
   interval_integrable f μ (a m) (a (m + n)) :=
 begin
   induction n with n hn,
   { simp },
-  { have : interval_integrable f ν (a $ m + n) (a $ m + n.succ),
-    { exact hint (m + n) (add_lt_add_left (lt_succ_self n) m), },
+  { have : interval_integrable f μ (a $ m + n) (a $ m + n.succ),
+    { exact hint (m + n) (add_lt_add_left n.lt_succ_self m), },
     have hint' : ∀ (k : ℕ), (k < m + n) → interval_integrable f μ (a k) (a $ k+1),
     { intros k hk,
       refine hint k _,
@@ -805,19 +805,18 @@ lemma sum_integral_adjacent_intervals'
 begin
   induction n with n hn,
   { simp, },
-  rw add_succ m n,
-  rw finset.sum_Ico_succ_top (calc m ≤ m + n : by linarith),
-  have hint': ∀ (k : ℕ), (k < m + n) → interval_integrable f ν (a k) (a $ k+1),
-  { exact λ k hk, hint k (lt_trans hk (add_lt_add_left (lt_succ_self n) m)), },
-  rw hn hint',
-  apply interval_integral.integral_add_adjacent_intervals,
-  have : ∀ (k : ℕ), k < m + n → interval_integrable f ν (a k) (a (k + 1)),
-  { intros k hk,
-    have : k < m + n.succ, calc k < m + n : hk ... < m + n.succ : nat.add_lt_add_left (lt_succ_self n) m,
-    exact hint k this, },
-  apply interval_integrable.trans_iterate',
-  intros k hk, exact this k hk,
-  exact hint (m + n) (nat.add_lt_add_left (lt_succ_self n) m),
+  { rw nat.add_succ m n,
+    rw finset.sum_Ico_succ_top (calc m ≤ m + n : by linarith),
+    have hint': ∀ (k : ℕ), (k < m + n) → interval_integrable f μ (a k) (a $ k+1),
+    { exact λ k hk, hint k (lt_trans hk (add_lt_add_left n.lt_succ_self m)), },
+    rw hn hint',
+    apply interval_integral.integral_add_adjacent_intervals,
+    { have : ∀ (k : ℕ), k < m + n → interval_integrable f μ (a k) (a (k + 1)),
+      { intros k hk,
+        exact hint k (lt_trans hk (add_lt_add_left n.lt_succ_self m)), },
+      apply interval_integrable.trans_iterate',
+      intros k hk, exact this k hk, },
+    { exact hint (m + n) (nat.add_lt_add_left n.lt_succ_self m), }, },
 end
 
 lemma integral_interval_sub_left (hab : interval_integrable f μ a b)

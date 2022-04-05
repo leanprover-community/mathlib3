@@ -56,7 +56,8 @@ begin
 end
 
 @[simp] lemma gram_schmidt_zero (f : ℕ → E) :
-  gram_schmidt 𝕜 f 0 = f 0 := by simp [gram_schmidt]
+  gram_schmidt 𝕜 f 0 = f 0 :=
+by simp only [gram_schmidt, fintype.univ_of_is_empty, finset.sum_empty, sub_zero]
 
 /-- Gram-Schmidt process produces an orthogonal system of vectors. -/
 theorem gram_schmidt_orthogonal' (f : ℕ → E) (a b : ℕ) (h₀ : a < b) :

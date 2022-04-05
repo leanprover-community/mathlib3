@@ -1,7 +1,30 @@
+/-
+Copyright (c) 2022 Kevin H. Wilson. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Kevin H. Wilson
+-/
 import measure_theory.integral.interval_integral
 import algebra.order.floor
 
 open_locale big_operators
+
+/-!
+# Comparing sums and integrals
+
+## Summary
+
+It is often the case that error terms in analysis can be computed by converting the
+an infinite sum to the improper integral of an antitone function. This file enables that.
+
+## Main Results
+
+* `antitone_integral_le_sum`: The integral of an antitone function is at most the sum of its values
+  integer points (left hand side)
+
+## Tags
+
+analysis, comparison, asymptotics
+-/
 
 lemma convert_finite_sum_to_interval_integral {m n : ℕ} {f : ℝ → ℝ} (hmn : m ≤ n) :
   ∑ (i : ℕ) in finset.Ico m n, ∫ (x : ℝ) in ↑i..↑i + 1, f ↑i =

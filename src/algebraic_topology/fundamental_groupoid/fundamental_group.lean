@@ -34,7 +34,7 @@ def fundamental_group (X : Type u) [topological_space X] (x : X) :=
 namespace fundamental_group
 
 local attribute [instance] path.homotopic.setoid
-local attribute [instance] fundamental_groupoid 
+local attribute [reducible] fundamental_groupoid
 
 /-- Get an isomorphism between the fundamental groups at two points given a path -/
 def fundamental_group_mul_equiv_of_path (p : path x₀ x₁) :

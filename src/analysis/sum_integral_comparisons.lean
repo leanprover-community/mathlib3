@@ -6,8 +6,6 @@ Authors: Kevin H. Wilson
 import measure_theory.integral.interval_integral
 import algebra.order.floor
 
-open_locale big_operators
-
 /-!
 # Comparing sums and integrals
 
@@ -25,6 +23,8 @@ an infinite sum to the improper integral of an antitone function. This file enab
 
 analysis, comparison, asymptotics
 -/
+
+open_locale big_operators
 
 lemma convert_finite_sum_to_interval_integral {m n : ℕ} {f : ℝ → ℝ} (hmn : m ≤ n) :
   ∑ (i : ℕ) in finset.Ico m n, ∫ (x : ℝ) in ↑i..↑i + 1, f ↑i =

@@ -57,7 +57,7 @@ A continuous linear map `P` on a normed space `X` is said to be a projection if 
 -/
 def is_projection (x : M) : Prop := x^2 = x
 
-lemma projection_def {P: M} (h: is_projection P) : P^2 = P := by exact h
+lemma projection_def {P : M} (h : is_projection P) : P^2 = P := by exact h
 
 namespace is_projection
 

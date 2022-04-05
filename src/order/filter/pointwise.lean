@@ -50,7 +50,7 @@ namespace filter
 /-! ### `0`/`1` as filters -/
 
 section one
-variables [has_one α] [has_one β] {f : filter α} {s : set α}
+variables [has_one α] {f : filter α} {s : set α}
 
 /-- `1 : filter α` is the set of sets containing `1 : α`. -/
 @[to_additive "`0 : filter α` is the set of sets containing `0 : α`."]
@@ -65,8 +65,11 @@ instance : has_one (filter α) := ⟨principal 1⟩
 @[simp, to_additive] lemma le_one_iff : f ≤ 1 ↔ (1 : set α) ∈ f := le_principal_iff
 @[simp, to_additive] lemma eventually_one {p : α → Prop} : (∀ᶠ x in 1, p x) ↔ p 1 :=
 by rw [←pure_one, eventually_pure]
-@[simp, to_additive] lemma tendsto_one {g : α → β} : tendsto g f 1 ↔ ∀ᶠ x in f, g x = 1 :=
+@[simp, to_additive] lemma tendsto_one {a : filter β} {f : β → α} :
+   tendsto f a 1 ↔ ∀ᶠ x in a, f x = 1 :=
 by rw [←pure_one, tendsto_pure]
+
+variables [has_one β]
 
 @[simp, to_additive]
 protected lemma map_one [one_hom_class F α β] (φ : F) : map φ 1 = 1 :=
@@ -163,8 +166,6 @@ end map
 section has_inv
 variables [has_inv α] {f g : filter α} {s : set α}
 
-@[simp, to_additive] lemma preimage_inv (s : set α) : has_inv.inv ⁻¹' s = s⁻¹ := rfl
-
 /-- The inverse of a filter is the pointwise preimage under `⁻¹` of its sets. -/
 @[to_additive "The negation of a filter is the pointwise preimage under `-` of its sets."]
 instance : has_inv (filter α) := ⟨map has_inv.inv⟩
@@ -180,7 +181,7 @@ end has_inv
 section has_involutive_inv
 variables [has_involutive_inv α] {f : filter α} {s : set α}
 
-@[to_additive] lemma inv_mem_inv (hs : s ∈ f) : s⁻¹ ∈ f⁻¹ := by rwa [mem_inv, preimage_inv, inv_inv]
+@[to_additive] lemma inv_mem_inv (hs : s ∈ f) : s⁻¹ ∈ f⁻¹ := by rwa [mem_inv, inv_preimage, inv_inv]
 
 instance : has_involutive_inv (filter α) :=
 { inv_inv := λ f, map_map.trans $ by rw [inv_involutive.comp_self, map_id],

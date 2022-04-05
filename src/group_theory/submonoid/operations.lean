@@ -385,8 +385,6 @@ namespace submonoid_class
 variables {A : Type*} [set_like A M] [hA : submonoid_class A M] (S' : A)
 include hA
 
-open mul_mem_class
-
 /-- A submonoid of a monoid inherits a multiplication. -/
 @[to_additive "An `add_submonoid` of an `add_monoid` inherits an addition."]
 instance has_mul : has_mul S' := ⟨λ a b, ⟨a.1 * b.1, mul_mem a.2 b.2⟩⟩
@@ -685,7 +683,7 @@ ext $ λ p, ⟨λ ⟨x, hx, hp⟩, hp ▸ ⟨set.mem_singleton 1, hx⟩,
 lemma prod_bot_sup_bot_prod (s : submonoid M) (t : submonoid N) :
   (s.prod ⊥) ⊔ (prod ⊥ t) = s.prod t :=
 le_antisymm (sup_le (prod_mono (le_refl s) bot_le) (prod_mono bot_le (le_refl t))) $
-assume p hp, prod.fst_mul_snd p ▸ mul_mem _
+assume p hp, prod.fst_mul_snd p ▸ mul_mem
   ((le_sup_left : s.prod ⊥ ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨hp.1, set.mem_singleton 1⟩)
   ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨set.mem_singleton 1, hp.2⟩)
 

@@ -51,7 +51,7 @@ def absorbs (A B : set E) := ∃ r, 0 < r ∧ ∀ a : 𝕜, r ≤ ∥a∥ → B 
 
 variables {𝕜} {s t u v A B : set E}
 
-lemma absorbs_empty {s : set E}: absorbs 𝕜 s (∅ : set E) :=
+@[simp] lemma absorbs_empty {s : set E}: absorbs 𝕜 s (∅ : set E) :=
 ⟨1, one_pos, λ a ha, set.empty_subset _⟩
 
 lemma absorbs.mono (hs : absorbs 𝕜 s u) (hst : s ⊆ t) (hvu : v ⊆ u) : absorbs 𝕜 t v :=

@@ -17,6 +17,8 @@ Note that this definition allows for Automaton with infinite states, a `fintype`
 supplied for true NFA's.
 -/
 
+open set
+
 universes u v
 
 /-- An NFA is a set of states (`σ`), a transition function from state to state labelled by the
@@ -35,12 +37,10 @@ namespace NFA
 instance : inhabited (NFA α σ) := ⟨ NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
 
 /-- `M.step_set S a` is the union of `M.step s a` for all `s ∈ S`. -/
-def step_set : set σ → α → set σ :=
-λ Ss a, Ss >>= (λ S, (M.step S a))
+def step_set (S : set σ) (a : α) : set σ := ⋃ s ∈ S, M.step s a
 
-lemma mem_step_set (s : σ) (S : set σ) (a : α) :
-  s ∈ M.step_set S a ↔ ∃ t ∈ S, s ∈ M.step t a :=
-by simp only [step_set, set.mem_Union, set.bind_def]
+lemma mem_step_set (s : σ) (S : set σ) (a : α) : s ∈ M.step_set S a ↔ ∃ t ∈ S, s ∈ M.step t a :=
+mem_Union₂
 
 @[simp] lemma step_set_empty (a : α) : M.step_set ∅ a = ∅ :=
 by simp_rw [step_set, Union_false, Union_empty]

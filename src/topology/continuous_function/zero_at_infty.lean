@@ -250,12 +250,9 @@ f.bounded_range.mono $ image_subset_range _ _
 
 @[priority 100]
 instance : bounded_continuous_map_class F α β :=
-{ coe := λ f, f,
-  coe_injective' := λ f g h, fun_like.coe_fn_eq.mp h,
-  map_continuous := λ f, map_continuous f,
-  map_bounded := λ f, zero_at_infty_continuous_map.bounded f }
+{ map_bounded := λ f, zero_at_infty_continuous_map.bounded f }
 
-/-- Construct a bounded continuous function from a continuous function vanshing at infinity. -/
+/-- Construct a bounded continuous function from a continuous function vanishing at infinity. -/
 @[simps]
 def to_bcf (f : C₀(α, β)) : α →ᵇ β :=
 ⟨f, map_bounded f⟩
@@ -279,7 +276,7 @@ lemma dist_to_bcf_eq_dist {f g : C₀(α, β)} : dist f.to_bcf g.to_bcf = dist f
 
 open bounded_continuous_function
 
-/-- Convergence in the metric on `C₀(α, β)` is uniform convegence. -/
+/-- Convergence in the metric on `C₀(α, β)` is uniform convergence. -/
 lemma tendsto_iff_tendsto_uniformly {ι : Type*} {F : ι → C₀(α, β)} {f : C₀(α, β)} {l : filter ι} :
   tendsto F l (𝓝 f) ↔ tendsto_uniformly (λ i, F i) f l :=
 by simpa only [metric.tendsto_nhds] using @bounded_continuous_function.tendsto_iff_tendsto_uniformly

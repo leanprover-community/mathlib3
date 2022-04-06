@@ -363,6 +363,162 @@ lemma is_compl_span_singleton_orthogonal {B : V →ₗ[K] V →ₗ[K] K}
 
 end orthogonal
 
+/-! ### Adjoint pairs -/
+
+section adjoint_pair
+
+section add_comm_monoid
+
+variables [comm_semiring R]
+variables [add_comm_monoid M] [module R M]
+variables [add_comm_monoid M₁] [module R M₁]
+variables [add_comm_monoid M₂] [module R M₂]
+variables (B F : M →ₗ[R] M →ₗ[R] R) (B' : M₁ →ₗ[R] M₁ →ₗ[R] R) (B'' : M₂ →ₗ[R] M₂ →ₗ[R] R)
+variables (f f' : M →ₗ[R] M₁) (g g' : M₁ →ₗ[R] M)
+
+/-- Given a pair of modules equipped with bilinear forms, this is the condition for a pair of
+maps between them to be mutually adjoint. -/
+def is_adjoint_pair := ∀ ⦃x y⦄, B' (f x) y = B x (g y)
+
+variables {B B' f f' g g'}
+
+protected lemma is_adjoint_pair.eq (h : is_adjoint_pair B B' f g) :
+  ∀ {x y}, B' (f x) y = B x (g y) := h
+
+lemma is_adjoint_pair_iff_comp_eq_compl₂ :
+  is_adjoint_pair B B' f g ↔ B'.comp f = B.compl₂ g :=
+begin
+  split; intros h,
+  { ext x y, rw [comp_apply, compl₂_apply], exact h.eq },
+  { intros x y, rw [←compl₂_apply, ←comp_apply, h] },
+end
+
+lemma is_adjoint_pair_zero : is_adjoint_pair B B' 0 0 :=
+λ _ _, by simp only [zero_apply, map_zero]
+
+lemma is_adjoint_pair_id : is_adjoint_pair B B 1 1 := λ x y, rfl
+
+lemma is_adjoint_pair.add (h : is_adjoint_pair B B' f g) (h' : is_adjoint_pair B B' f' g') :
+  is_adjoint_pair B B' (f + f') (g + g') :=
+λ x _, by rw [f.add_apply, g.add_apply, B'.map_add₂, (B x).map_add, h, h']
+
+lemma is_adjoint_pair.comp {f' : M₁ →ₗ[R] M₂} {g' : M₂ →ₗ[R] M₁}
+  (h : is_adjoint_pair B B' f g) (h' : is_adjoint_pair B' B'' f' g') :
+  is_adjoint_pair B B'' (f'.comp f) (g.comp g') :=
+λ x y, by rw [linear_map.comp_apply, linear_map.comp_apply, h', h]
+
+lemma is_adjoint_pair.mul
+  {f g f' g' : module.End R M} (h : is_adjoint_pair B B f g) (h' : is_adjoint_pair B B f' g') :
+  is_adjoint_pair B B (f * f') (g' * g) :=
+λ x y, by rw [linear_map.mul_apply, linear_map.mul_apply, h, h']
+
+end add_comm_monoid
+
+section add_comm_group
+
+variables [comm_ring R]
+variables [add_comm_group M] [module R M]
+variables [add_comm_group M₁] [module R M₁]
+variables {B F : M →ₗ[R] M →ₗ[R] R} {B' : M₁ →ₗ[R] M₁ →ₗ[R] R}
+variables {f f' : M →ₗ[R] M₁} {g g' : M₁ →ₗ[R] M}
+
+lemma is_adjoint_pair.sub (h : is_adjoint_pair B B' f g) (h' : is_adjoint_pair B B' f' g') :
+  is_adjoint_pair B B' (f - f') (g - g') :=
+λ x _, by rw [f.sub_apply, g.sub_apply, B'.map_sub₂, (B x).map_sub, h, h']
+
+lemma is_adjoint_pair.smul (c : R) (h : is_adjoint_pair B B' f g) :
+  is_adjoint_pair B B' (c • f) (c • g) :=
+λ x y, by simp only [smul_apply, map_smul, algebra.id.smul_eq_mul, h.eq]
+
+end add_comm_group
+
+end adjoint_pair
+
+/-! ### Self-adjoint pairs-/
+
+section selfadjoint_pair
+
+section add_comm_monoid
+
+variables [comm_semiring R]
+variables [add_comm_monoid M] [module R M]
+variables (B F : M →ₗ[R] M →ₗ[R] R)
+
+/-- The condition for an endomorphism to be "self-adjoint" with respect to a pair of bilinear forms
+on the underlying module. In the case that these two forms are identical, this is the usual concept
+of self adjointness. In the case that one of the forms is the negation of the other, this is the
+usual concept of skew adjointness. -/
+def is_pair_self_adjoint (f : module.End R M) := is_adjoint_pair B F f f
+
+/-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an
+adjoint for itself. -/
+def is_self_adjoint (f : module.End R M) := is_adjoint_pair B B f f
+
+end add_comm_monoid
+
+section add_comm_group
+
+variables [comm_ring R]
+variables [add_comm_group M] [module R M]
+variables [add_comm_group M₁] [module R M₁]
+(B F : M →ₗ[R] M →ₗ[R] R)
+
+/-- The set of pair-self-adjoint endomorphisms are a submodule of the type of all endomorphisms. -/
+def is_pair_self_adjoint_submodule : submodule R (module.End R M) :=
+{ carrier   := { f | is_pair_self_adjoint B F f },
+  zero_mem' := is_adjoint_pair_zero,
+  add_mem'  := λ f g hf hg, hf.add hg,
+  smul_mem' := λ c f h, h.smul c, }
+
+@[simp] lemma mem_is_pair_self_adjoint_submodule (f : module.End R M) :
+  f ∈ is_pair_self_adjoint_submodule B F ↔ is_pair_self_adjoint B F f :=
+by refl
+
+lemma is_pair_self_adjoint_equiv (e : M₁ ≃ₗ[R] M) (f : module.End R M) :
+  is_pair_self_adjoint B F f ↔
+    is_pair_self_adjoint (B.compl₁₂ ↑e ↑e) (F.compl₁₂ ↑e ↑e) (e.symm.conj f) :=
+begin
+  have hₗ : (F₃.comp ↑e ↑e).comp_left (e.symm.conj f) = (F₃.comp_left f).comp ↑e ↑e :=
+    by { ext, simp [linear_equiv.symm_conj_apply], },
+  have hᵣ : (B₃.comp ↑e ↑e).comp_right (e.symm.conj f) = (B₃.comp_right f).comp ↑e ↑e :=
+    by { ext, simp [linear_equiv.conj_apply], },
+  have he : function.surjective (⇑(↑e : M₃' →ₗ[R₃] M₃) : M₃' → M₃) := e.surjective,
+  show bilin_form.is_adjoint_pair _ _ _ _  ↔ bilin_form.is_adjoint_pair _ _ _ _,
+  rw [is_adjoint_pair_iff_comp_left_eq_comp_right, is_adjoint_pair_iff_comp_left_eq_comp_right,
+      hᵣ, hₗ, comp_injective _ _ he he],
+end
+
+/-- An endomorphism of a module is skew-adjoint with respect to a bilinear form if its negation
+serves as an adjoint. -/
+def is_skew_adjoint (f : module.End R M) := is_adjoint_pair B B f (-f)
+
+lemma is_skew_adjoint_iff_neg_self_adjoint (f : module.End R M) :
+  B.is_skew_adjoint f ↔ is_adjoint_pair (-B) B f f :=
+show (∀ x y, B (f x) y = B x ((-f) y)) ↔ ∀ x y, B (f x) y = (-B) x (f y),
+by simp
+
+/-- The set of self-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact
+it is a Jordan subalgebra.) -/
+def self_adjoint_submodule := is_pair_self_adjoint_submodule B B
+
+@[simp] lemma mem_self_adjoint_submodule (f : module.End R M) :
+  f ∈ B.self_adjoint_submodule ↔ B.is_self_adjoint f := iff.rfl
+
+/-- The set of skew-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact
+it is a Lie subalgebra.) -/
+def skew_adjoint_submodule := is_pair_self_adjoint_submodule (-B) B
+
+@[simp] lemma mem_skew_adjoint_submodule (f : module.End R M) :
+  f ∈ B.skew_adjoint_submodule ↔ B.is_skew_adjoint f :=
+by { rw is_skew_adjoint_iff_neg_self_adjoint, exact iff.rfl, }
+
+end add_comm_group
+
+end selfadjoint_pair
+
+#exit
+
+
 /-! ### Nondegenerate bilinear forms -/
 
 section nondegenerate

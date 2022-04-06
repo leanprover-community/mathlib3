@@ -67,7 +67,8 @@ begin
   rw is_projection at h₁,
   rw is_projection at h₂,
   rw [commute, semiconj_by] at h,
-  rw [is_projection, sq, mul_assoc, ← mul_assoc Q, ←h, mul_assoc P, ← sq, h₂, ← mul_assoc, ← sq, h₁],
+  rw [is_projection, sq, mul_assoc, ← mul_assoc Q, ←h, mul_assoc P, ← sq, h₂, ← mul_assoc, ← sq,
+    h₁],
 end
 
 variables {R : Type*} [ring R]

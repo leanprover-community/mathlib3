@@ -100,6 +100,8 @@ structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_fie
 (coord_change_comp : ∀ i j k : atlas H M,
   ∀ x ∈ ((i.1.symm.trans j.1).trans (j.1.symm.trans k.1)).source, ∀ v,
   (coord_change j k ((i.1.symm.trans j.1) x)) (coord_change i j x v) = coord_change i k x v)
+(coord_change_smooth' : ∀ i j : atlas H M,
+  cont_diff_on 𝕜 ∞ ((coord_change i j) ∘ I.symm) (I '' (i.1.symm.trans j.1).source))
 (coord_change_smooth : ∀ i j : atlas H M,
   cont_diff_on 𝕜 ∞ (λp : E × F, coord_change i j (I.symm p.1) p.2)
   ((I '' (i.1.symm.trans j.1).source) ×ˢ (univ : set F)))
@@ -115,6 +117,7 @@ def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_f
 { coord_change := λ i j x, continuous_linear_map.id 𝕜 F,
   coord_change_self := λ i x hx v, rfl,
   coord_change_comp := λ i j k x hx v, rfl,
+  coord_change_smooth' := λ i j, by { dsimp, exact cont_diff_on_const },
   coord_change_smooth := λ i j, cont_diff_snd.cont_diff_on,
   coord_change_continuous := λ i j, continuous_on_const }
 
@@ -279,6 +282,37 @@ model with corners `I` on `(E, H)`. The fibers are equal to `E`, and the coordin
 fiber corresponds to the derivative of the coordinate change in `M`. -/
 def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
 { coord_change := λ i j x, (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm) (range I) (I x)),
+  coord_change_smooth' := λ i j,
+  begin
+    rw I.image_eq,
+    have A : cont_diff_on 𝕜 ∞
+      (I ∘ (i.1.symm.trans j.1) ∘ I.symm)
+      (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
+      (has_groupoid.compatible (cont_diff_groupoid ∞ I) i.2 j.2).1,
+    have B : unique_diff_on 𝕜 (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) :=
+      I.unique_diff_preimage_source,
+    have C : cont_diff_on 𝕜 ∞
+      (λ (p : E × E), (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
+            (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) p.1 : E → E) p.2)
+      ((I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) ×ˢ (univ : set E)) :=
+      cont_diff_on_fderiv_within_apply A B le_top,
+    have D : ∀ x ∈ (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I),
+      fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
+            (range I) x =
+      fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm)
+            (I.symm ⁻¹' (i.1.symm.trans j.1).source ∩ range I) x,
+    { assume x hx,
+      have N : I.symm ⁻¹' (i.1.symm.trans j.1).source ∈ nhds x :=
+        I.continuous_symm.continuous_at.preimage_mem_nhds
+          (is_open.mem_nhds (local_homeomorph.open_source _) hx.1),
+      symmetry,
+      rw inter_comm,
+      exact fderiv_within_inter N (I.unique_diff _ hx.2) },
+    apply (A.fderiv_within B le_top).congr,
+    assume x hx,
+    simp only with mfld_simps at hx,
+    simp only [hx, D] with mfld_simps,
+  end,
   coord_change_smooth := λ i j, begin
     /- To check that the coordinate change of the bundle is smooth, one should just use the
     smoothness of the charts, and thus the smoothness of their derivatives. -/
@@ -578,8 +612,6 @@ begin
   show ((chart_at (model_prod H E) p).to_local_equiv).source = univ,
     by simp only [chart_at] with mfld_simps,
 end
-
-
 
 @[simp, mfld_simps] lemma tangent_bundle_model_space_coe_chart_at (p : tangent_bundle I H) :
   ⇑(chart_at (model_prod H E) p) = equiv.sigma_equiv_prod H E :=

@@ -255,6 +255,7 @@ begin
       },
       left,
       have thing := sub_one_dvd_pow_sub_one p α one_le_p,
+      rw dvd_iff_exists_eq_mul_left at thing,
       -- TODO(Sean): this should now be solvable with only sub_one_dvd_pow_sub_one, hfoo, and dvd_iff_exists_eq_mul_left.
 
       sorry,
@@ -341,8 +342,12 @@ begin
   rcases subgroup.card_subgroup_dvd_card H with ⟨index, hindex⟩,
   by_cases h0 : index = 0,
   { exfalso,
-    -- TODO(Sean): try to prove 0 < fintype.card G, with library search, and if that works you should be able to prove a contradiction using h0 and hindex
-    sorry,
+    rw h0 at hindex,
+    simp at hindex,
+    have thing2 : 0 < fintype.card G,
+    exact fintype.card_pos,
+    rw hindex at thing2,
+    exact nat.lt_asymm thing2 thing2,
   },
   by_cases h1 : index = 1,
   {

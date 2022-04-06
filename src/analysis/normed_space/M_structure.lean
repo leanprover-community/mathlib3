@@ -261,15 +261,10 @@ instance : partial_order (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop))
     apply subtype.eq e₃,
   end, }
 
-instance : has_zero (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop))  :=
-⟨⟨0, begin
-  unfold is_Lprojection,
-  split,
-  { unfold is_projection,
-    rw [sq, zero_mul], },
-  { intro, simp only [continuous_linear_map.zero_apply, norm_zero, sub_zero,
-      continuous_linear_map.one_apply, zero_add], },
-end⟩⟩
+instance : has_zero {P : X →L[𝕜] X // is_Lprojection P}  :=
+⟨⟨0, ⟨by rw [is_projection, sq, zero_mul],
+     λ x, by simp only [continuous_linear_map.zero_apply, norm_zero, sub_zero,
+                        continuous_linear_map.one_apply, zero_add]⟩⟩⟩
 
 @[simp] lemma coe_zero : ↑(0 : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) = (0 : X →L[𝕜] X) :=
 rfl

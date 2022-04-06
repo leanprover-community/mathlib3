@@ -36,6 +36,17 @@ instance {n : ℕ} {a : zmod n} : decidable (strong_probable_prime n a) := or.de
 def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
 a^(n-1) = 1
 
+def fast_two_multiplicity : ℕ → ℕ :=
+nat.binary_rec 0 (λ b _ ih, cond b 0 (ih+1))
+
+#eval fast_two_multiplicity 10000
+
+lemma fast_two_multiplicity_eq_padic_val_nat_two (n : ℕ) :
+  padic_val_nat 2 n = fast_two_multiplicity n :=
+begin
+  sorry,
+end
+
 lemma square_roots_of_one {p : ℕ} [fact (p.prime)] {x : zmod p} (root : x^2 = 1) :
   x = 1 ∨ x = -1 :=
 begin
@@ -322,6 +333,28 @@ begin
     exact hn0,
     exact hn1,
   }
+end
+
+lemma card_le_half_of_proper_subgroup {G : Type} [fintype G] [group G] {H : subgroup G} [fintype H]
+  (x : G) (proper : x ∉ H) : (fintype.card H) * 2 ≤ (fintype.card G) :=
+begin
+  rcases subgroup.card_subgroup_dvd_card H with ⟨index, hindex⟩,
+  by_cases h0 : index = 0,
+  { exfalso,
+    -- TODO(Sean): try to prove 0 < fintype.card G, with library search, and if that works you should be able to prove a contradiction using h0 and hindex
+    sorry,
+  },
+  by_cases h1 : index = 1,
+  {
+    -- TODO(Sean): try to prove 0 < fintype.card G, then again prove a contradiction using h1 and hindex
+    sorry,
+  },
+  have two_le_index : 2 ≤ index,
+  { -- TODO(Sean): Try this one too. Below there's a lemma which is proved using the interval_cases tactic. This lemma is a little different but that tactic might still come in handy. You could also try seeing if theres a lemma in mathlib which proves that 1 ≤ index ↔ 2 ≤ index ∨ index = 1
+    sorry,
+  },
+  -- TODO(Sean): This should now be possible using two_le_index and hindex, though you might have to search for a lemma at some point.
+  sorry,
 end
 
 lemma unlikely_strong_probable_prime_of_coprime_mul (n : ℕ) [hn_pos : fact (0 < n)]

@@ -4,7 +4,32 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Johan Commelin, Bhavik Mehta
 -/
 import category_theory.equivalence
-import data.equiv.basic
+
+/-!
+# Adjunctions between functors
+
+`F ⊣ G` represents the data of an adjunction between two functors
+`F : C ⥤ D` and `G : D ⥤ C`. `F` is the left adjoint and `G` is the right adjoint.
+
+We provide various useful constructors:
+* `mk_of_hom_equiv`
+* `mk_of_unit_counit`
+* `left_adjoint_of_equiv` / `right_adjoint_of equiv`
+  construct a left/right adjoint of a given functor given the action on objects and
+  the relevant equivalence of morphism spaces.
+* `adjunction_of_equiv_left` / `adjunction_of_equiv_right` witness that these constructions
+  give adjunctions.
+
+There are also typeclasses `is_left_adjoint` / `is_right_adjoint`, carrying data witnessing
+that a given functor is a left or right adjoint.
+Given `[is_left_adjoint F]`, a right adjoint of `F` can be constructed as `right_adjoint F`.
+
+`adjunction.comp` composes adjunctions.
+
+`to_equivalence` upgrades an adjunction to an equivalence,
+given witnesses that the unit and counit are pointwise isomorphisms.
+Conversely `equivalence.to_adjunction` recovers the underlying adjunction from an equivalence.
+-/
 
 namespace category_theory
 open category
@@ -73,6 +98,10 @@ attribute [simp, priority 10] hom_equiv_unit hom_equiv_counit
 section
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G) {X' X : C} {Y Y' : D}
+
+lemma hom_equiv_id (X : C) : adj.hom_equiv X _ (𝟙 _) = adj.unit.app X := by simp
+
+lemma hom_equiv_symm_id (X : D) : (adj.hom_equiv _ X).symm (𝟙 _) = adj.counit.app X := by simp
 
 @[simp, priority 10] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
   (adj.hom_equiv X' Y).symm (f ≫ g) = F.map f ≫ (adj.hom_equiv X Y).symm g :=
@@ -169,7 +198,7 @@ end core_hom_equiv
 
 /--
 This is an auxiliary data structure useful for constructing adjunctions.
-See `adjunction.mk_of_hom_equiv`.
+See `adjunction.mk_of_unit_counit`.
 This structure won't typically be used anywhere else.
 -/
 @[nolint has_inhabited_instance]
@@ -201,7 +230,7 @@ def mk_of_hom_equiv (adj : core_hom_equiv F G) : F ⊣ G :=
     begin
       intros,
       erw [← adj.hom_equiv_naturality_left, ← adj.hom_equiv_naturality_right],
-      dsimp, simp  -- See note [dsimp, simp].
+      dsimp, simp -- See note [dsimp, simp].
     end },
   counit :=
   { app := λ Y, (adj.hom_equiv _ _).inv_fun (𝟙 (G.obj Y)),
@@ -412,6 +441,7 @@ If the unit and counit of a given adjunction are (pointwise) isomorphisms, then 
 adjunction to an equivalence.
 -/
 @[simps]
+noncomputable
 def to_equivalence (adj : F ⊣ G) [∀ X, is_iso (adj.unit.app X)] [∀ Y, is_iso (adj.counit.app Y)] :
   C ≌ D :=
 { functor := F,
@@ -424,6 +454,7 @@ If the unit and counit for the adjunction corresponding to a right adjoint funct
 isomorphisms, then the functor is an equivalence of categories.
 -/
 @[simps]
+noncomputable
 def is_right_adjoint_to_is_equivalence [is_right_adjoint G]
   [∀ X, is_iso ((adjunction.of_right_adjoint G).unit.app X)]
   [∀ Y, is_iso ((adjunction.of_right_adjoint G).counit.app Y)] :

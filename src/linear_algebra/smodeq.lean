@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 
-import linear_algebra.basic
+import data.polynomial.eval
+import ring_theory.ideal.quotient
 
 /-!
 # modular equivalence for submodule
 -/
 
 open submodule
+open_locale polynomial
 
 variables {R : Type*} [ring R]
 variables {M : Type*} [add_comm_group M] [module R M] (U U₁ U₂ : submodule R M)
@@ -19,16 +21,19 @@ variables {N : Type*} [add_comm_group N] [module R N] (V V₁ V₂ : submodule R
 
 /-- A predicate saying two elements of a module are equivalent modulo a submodule. -/
 def smodeq (x y : M) : Prop :=
-(submodule.quotient.mk x : U.quotient) = submodule.quotient.mk y
+(submodule.quotient.mk x : M ⧸ U) = submodule.quotient.mk y
 
 notation x ` ≡ `:50 y ` [SMOD `:50 N `]`:0 := smodeq N x y
 
 variables {U U₁ U₂}
 
 protected lemma smodeq.def : x ≡ y [SMOD U] ↔
-  (submodule.quotient.mk x : U.quotient) = submodule.quotient.mk y := iff.rfl
+  (submodule.quotient.mk x : M ⧸ U) = submodule.quotient.mk y := iff.rfl
 
 namespace smodeq
+
+lemma sub_mem : x ≡ y [SMOD U] ↔ x - y ∈ U :=
+by rw [smodeq.def, submodule.quotient.eq]
 
 @[simp] theorem top : x ≡ y [SMOD (⊤ : submodule R M)] :=
 (submodule.quotient.eq ⊤).2 mem_top
@@ -61,5 +66,14 @@ theorem map (hxy : x ≡ y [SMOD U]) (f : M →ₗ[R] N) : f x ≡ f y [SMOD U.m
 theorem comap {f : M →ₗ[R] N} (hxy : f x ≡ f y [SMOD V]) : x ≡ y [SMOD V.comap f] :=
 (submodule.quotient.eq _).2 $ show f (x - y) ∈ V,
 from (f.map_sub x y).symm ▸ (submodule.quotient.eq _).1 hxy
+
+lemma eval {R : Type*} [comm_ring R] {I : ideal R} {x y : R} (h : x ≡ y [SMOD I])
+  (f : R[X]) : f.eval x ≡ f.eval y [SMOD I] :=
+begin
+  rw [smodeq.def] at h ⊢,
+  show ideal.quotient.mk I (f.eval x) = ideal.quotient.mk I (f.eval y),
+  change ideal.quotient.mk I x = ideal.quotient.mk I y at h,
+  rw [← polynomial.eval₂_at_apply, ← polynomial.eval₂_at_apply, h],
+end
 
 end smodeq

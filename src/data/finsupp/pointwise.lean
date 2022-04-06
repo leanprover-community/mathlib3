@@ -8,14 +8,13 @@ import data.finsupp.basic
 /-!
 # The pointwise product on `finsupp`.
 
-TODO per issue #1864:
-We intend to remove the convolution product on finsupp, and define
-it only on a type synonym `add_monoid_algebra`. After we've done this,
-it would be good to make this the default product on `finsupp`.
+For the convolution product on `finsupp` when the domain has a binary operation,
+see the type synonyms `add_monoid_algebra`
+(which is in turn used to define `polynomial` and `mv_polynomial`)
+and `monoid_algebra`.
 -/
 
 noncomputable theory
-open_locale classical
 
 open finset
 
@@ -33,10 +32,12 @@ variables [mul_zero_class β]
   whose value at `a` is `f a * g a`. -/
 instance : has_mul (α →₀ β) := ⟨zip_with (*) (mul_zero 0)⟩
 
+lemma coe_mul (g₁ g₂ : α →₀ β) : ⇑(g₁ * g₂) = g₁ * g₂ := rfl
+
 @[simp] lemma mul_apply {g₁ g₂ : α →₀ β} {a : α} : (g₁ * g₂) a = g₁ a * g₂ a :=
 rfl
 
-lemma support_mul {g₁ g₂ : α →₀ β} : (g₁ * g₂).support ⊆ g₁.support ∩ g₂.support :=
+lemma support_mul [decidable_eq α] {g₁ g₂ : α →₀ β} : (g₁ * g₂).support ⊆ g₁.support ∩ g₂.support :=
 begin
   intros a h,
   simp only [mul_apply, mem_support_iff] at h,
@@ -46,18 +47,48 @@ begin
   apply h,
   cases w; { rw w, simp },
 end
+
+instance : mul_zero_class (α →₀ β) :=
+finsupp.coe_fn_injective.mul_zero_class _ coe_zero coe_mul
+
 end
 
-instance [semiring β] : semigroup (α →₀ β) :=
-{ mul       := (*),
-  mul_assoc := λ f g h, by { ext, simp only [mul_apply, mul_assoc], }, }
+instance [semigroup_with_zero β] : semigroup_with_zero (α →₀ β) :=
+finsupp.coe_fn_injective.semigroup_with_zero _ coe_zero coe_mul
 
-instance [semiring β] : distrib (α →₀ β) :=
-{ left_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, left_distrib] {proj := ff} },
-  right_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, right_distrib] {proj := ff} },
-  ..(infer_instance : semigroup (α →₀ β)),
-  ..(infer_instance : add_comm_monoid (α →₀ β)) }
+instance [non_unital_non_assoc_semiring β] : non_unital_non_assoc_semiring (α →₀ β) :=
+finsupp.coe_fn_injective.non_unital_non_assoc_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
 
--- If `non_unital_semiring` existed in the algebraic hierarchy, we could produce one here.
+instance [non_unital_semiring β] : non_unital_semiring (α →₀ β) :=
+finsupp.coe_fn_injective.non_unital_semiring _ coe_zero coe_add coe_mul (λ _ _, rfl)
+
+instance [non_unital_non_assoc_ring β] : non_unital_non_assoc_ring (α →₀ β) :=
+finsupp.coe_fn_injective.non_unital_non_assoc_ring _
+  coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
+
+instance [non_unital_ring β] : non_unital_ring (α →₀ β) :=
+finsupp.coe_fn_injective.non_unital_ring _
+  coe_zero coe_add coe_mul coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
+
+-- TODO can this be generalized in the direction of `pi.has_scalar'`
+-- (i.e. dependent functions and finsupps)
+-- TODO in theory this could be generalised, we only really need `smul_zero` for the definition
+instance pointwise_scalar [semiring β] : has_scalar (α → β) (α →₀ β) :=
+{ smul := λ f g, finsupp.of_support_finite (λ a, f a • g a) begin
+    apply set.finite.subset g.finite_support,
+    simp only [function.support_subset_iff, finsupp.mem_support_iff, ne.def,
+      finsupp.fun_support_eq, finset.mem_coe],
+    intros x hx h,
+    apply hx,
+    rw [h, smul_zero],
+  end }
+
+@[simp]
+lemma coe_pointwise_smul [semiring β] (f : α → β) (g : α →₀ β) :
+  ⇑(f • g) = f • g := rfl
+
+/-- The pointwise multiplicative action of functions on finitely supported functions -/
+instance pointwise_module [semiring β] : module (α → β) (α →₀ β) :=
+function.injective.module _ coe_fn_add_hom coe_fn_injective coe_pointwise_smul
 
 end finsupp

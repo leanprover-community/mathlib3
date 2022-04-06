@@ -423,6 +423,7 @@ begin
 end
 
 /-! ### Summability properties of the composition of formal power series-/
+section
 
 /-- If two formal multilinear series have positive radius of convergence, then the terms appearing
 in the definition of their composition are also summable (when multiplied by a suitable positive
@@ -457,7 +458,7 @@ begin
     ... ≤ Cq : hCq _,
     have B,
     calc ((∏ i, nnnorm (p (c.blocks_fun i))) * rp ^ n)
-        ≤ ∏ i, nnnorm (p (c.blocks_fun i)) * rp ^ c.blocks_fun i :
+        = ∏ i, nnnorm (p (c.blocks_fun i)) * rp ^ c.blocks_fun i :
       by simp only [finset.prod_mul_distrib, finset.prod_pow_eq_pow_sum, c.sum_blocks_fun]
     ... ≤ ∏ i : fin c.length, Cp : finset.prod_le_prod' (λ i _, hCp _)
     ... = Cp ^ c.length : by simp
@@ -466,16 +467,17 @@ begin
         ≤ (nnnorm (q c.length) * ∏ i, nnnorm (p (c.blocks_fun i))) * r ^ n :
           mul_le_mul' (q.comp_along_composition_nnnorm p c) le_rfl
     ... = (nnnorm (q c.length) * rq ^ n) * ((∏ i, nnnorm (p (c.blocks_fun i))) * rp ^ n) * r0 ^ n :
-          by { simp only [r, mul_pow], ac_refl }
+          by { simp only [r, mul_pow], ring }
     ... ≤ Cq * Cp ^ n * r0 ^ n : mul_le_mul' (mul_le_mul' A B) le_rfl
     ... = Cq / 4 ^ n :
       begin
         simp only [r0],
         field_simp [mul_pow, (zero_lt_one.trans_le hCp1).ne'],
-        ac_refl
+        ring
       end },
-  refine ⟨r, r_pos, nnreal.summable_of_le I (summable.mul_left _ _)⟩,
-  have h4 : ∀ n : ℕ, 0 < (4 ^ n : ℝ≥0)⁻¹ := λ n, nnreal.inv_pos.2 (pow_pos zero_lt_four _),
+  refine ⟨r, r_pos, nnreal.summable_of_le I _⟩,
+  simp_rw div_eq_mul_inv,
+  refine summable.mul_left _ _,
   have : ∀ n : ℕ, has_sum (λ c : composition n, (4 ^ n : ℝ≥0)⁻¹) (2 ^ (n - 1) / 4 ^ n),
   { intro n,
     convert has_sum_fintype (λ c : composition n, (4 ^ n : ℝ≥0)⁻¹),
@@ -483,9 +485,11 @@ begin
   refine nnreal.summable_sigma.2 ⟨λ n, (this n).summable, (nnreal.summable_nat_add_iff 1).1 _⟩,
   convert (nnreal.summable_geometric (nnreal.div_lt_one_of_lt one_lt_two)).mul_left (1 / 4),
   ext1 n,
-  rw [(this _).tsum_eq, nat.add_sub_cancel],
+  rw [(this _).tsum_eq, add_tsub_cancel_right],
   field_simp [← mul_assoc, pow_succ', mul_pow, show (4 : ℝ≥0) = 2 * 2, from (two_mul 2).symm,
     mul_right_comm]
+end
+
 end
 
 /-- Bounding below the radius of the composition of two formal multilinear series assuming
@@ -530,7 +534,7 @@ finset.sigma (finset.Ico m M) (λ (n : ℕ), fintype.pi_finset (λ (i : fin n), 
 @[simp] lemma mem_comp_partial_sum_source_iff (m M N : ℕ) (i : Σ n, (fin n) → ℕ) :
   i ∈ comp_partial_sum_source m M N ↔
     (m ≤ i.1 ∧ i.1 < M) ∧ ∀ (a : fin i.1), 1 ≤ i.2 a ∧ i.2 a < N :=
-by simp only [comp_partial_sum_source, finset.Ico.mem, fintype.mem_pi_finset, finset.mem_sigma,
+by simp only [comp_partial_sum_source, finset.mem_Ico, fintype.mem_pi_finset, finset.mem_sigma,
   iff_self]
 
 /-- Change of variables appearing to compute the composition of partial sums of formal
@@ -590,8 +594,8 @@ end
 power series, here given a a finset.
 See also `comp_partial_sum`. -/
 def comp_partial_sum_target (m M N : ℕ) : finset (Σ n, composition n) :=
-set.finite.to_finset $ (finset.finite_to_set _).dependent_image
-  (comp_partial_sum_target_subset_image_comp_partial_sum_source m M N)
+set.finite.to_finset $ ((finset.finite_to_set _).dependent_image _).subset $
+  comp_partial_sum_target_subset_image_comp_partial_sum_source m M N
 
 @[simp] lemma mem_comp_partial_sum_target_iff {m M N : ℕ} {a : Σ n, composition n} :
   a ∈ comp_partial_sum_target m M N ↔
@@ -605,7 +609,8 @@ that it is a bijection is not directly possible, but the consequence on sums can
 more easily. -/
 lemma comp_change_of_variables_sum {α : Type*} [add_comm_monoid α] (m M N : ℕ)
   (f : (Σ (n : ℕ), fin n → ℕ) → α) (g : (Σ n, composition n) → α)
-  (h : ∀ e (he : e ∈ comp_partial_sum_source m M N), f e = g (comp_change_of_variables m M N e he)) :
+  (h : ∀ e (he : e ∈ comp_partial_sum_source m M N),
+    f e = g (comp_change_of_variables m M N e he)) :
   ∑ e in comp_partial_sum_source m M N, f e = ∑ e in comp_partial_sum_target m M N, g e :=
 begin
   apply finset.sum_bij (comp_change_of_variables m M N),
@@ -758,10 +763,10 @@ begin
     have B₁ : continuous_at (λ (z : F), g (f x + z)) (f (x + y) - f x),
     { refine continuous_at.comp _ (continuous_const.add continuous_id).continuous_at,
       simp only [add_sub_cancel'_right, id.def],
-      exact Hg.continuous_on.continuous_at (mem_nhds_sets (emetric.is_open_ball) fy_mem) },
+      exact Hg.continuous_on.continuous_at (is_open.mem_nhds (emetric.is_open_ball) fy_mem) },
     have B₂ : f (x + y) - f x ∈ emetric.ball (0 : F) rg,
       by simpa [edist_eq_coe_nnnorm, edist_eq_coe_nnnorm_sub] using fy_mem,
-    rw [← nhds_within_eq_of_open B₂ emetric.is_open_ball] at A,
+    rw [← emetric.is_open_ball.nhds_within_eq B₂] at A,
     convert Hg.tendsto_locally_uniformly_on.tendsto_comp B₁.continuous_within_at B₂ A,
     simp only [add_sub_cancel'_right] },
   -- Third step: the sum over all compositions in `comp_partial_sum_target 0 n n` converges to
@@ -819,7 +824,7 @@ let ⟨q, hq⟩ := hg, ⟨p, hp⟩ := hf in (hq.comp hp).analytic_at
 /-!
 ### Associativity of the composition of formal multilinear series
 
-In this paragraph, we us prove the associativity of the composition of formal power series.
+In this paragraph, we prove the associativity of the composition of formal power series.
 By definition,
 ```
 (r.comp q).comp p n v
@@ -1036,7 +1041,7 @@ def sigma_equiv_sigma_pi (n : ℕ) :
     { blocks := (of_fn (λ j, (i.2 j).blocks)).join,
       blocks_pos :=
       begin
-        simp only [and_imp, mem_join, exists_imp_distrib, forall_mem_of_fn_iff],
+        simp only [and_imp, list.mem_join, exists_imp_distrib, forall_mem_of_fn_iff],
         exact λ i j hj, composition.blocks_pos _ hj
       end,
       blocks_sum := by simp [sum_of_fn, composition.blocks_sum, composition.sum_blocks_fun] },

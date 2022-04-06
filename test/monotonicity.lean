@@ -1,14 +1,16 @@
 /-
 Copyright (c) 2019 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Simon Hudon
+Authors: Simon Hudon
 -/
 import tactic.monotonicity
 import tactic.norm_num
-import algebra.ordered_ring
+import algebra.order.ring
+import measure_theory.measure.lebesgue
+import measure_theory.function.locally_integrable
 import data.list.defs
 
-open list tactic tactic.interactive
+open list tactic tactic.interactive set
 
 example
   (h : 3 + 6 ≤ 4 + 5)
@@ -87,7 +89,7 @@ begin
   induction xs with x xs,
   { trivial },
   { simp [has_le.le,list.le],
-    split, apply le_refl, apply xs_ih }
+    split, exact le_rfl, apply xs_ih }
 end
 
 -- @[trans]
@@ -130,7 +132,7 @@ lemma list_le_mono_right {α : Type*} [preorder α] {xs ys zs : list α}
 begin
   revert ys zs,
   induction xs with x xs ; intros ys zs h,
-  { cases ys, { simp, apply list.le_refl }, cases h  },
+  { cases ys, { simp, apply list.le_refl }, cases h },
   { cases ys with y ys, cases h, simp [has_le.le,list.le] at *,
     suffices : list.le' ((zs ++ [x]) ++ xs) ((zs ++ [y]) ++ ys),
     { refine cast _ this, simp, },
@@ -138,7 +140,7 @@ begin
     { apply list_le_mono_left,
       induction zs with z zs,
       { simp [has_le.le,list.le], apply h.left },
-      { simp [has_le.le,list.le], split, apply le_refl,
+      { simp [has_le.le,list.le], split, exact le_rfl,
         apply zs_ih, } },
     { apply xs_ih h.right, } }
 end
@@ -231,7 +233,7 @@ example (x y z k m n : ℕ)
   (h₀ : z ≥ 0)
   (h₁ : x ≤ y)
 : (m + x + n) * z + k ≤ z * (y + n + m) + k :=
-by {  ac_mono* := h₁ }
+by { ac_mono* := h₁ }
 
 example (x y z k m n : ℕ)
   (h₀ : z ≥ 0)
@@ -417,4 +419,16 @@ begin
   mono,
   mono,
   mono,
+end
+
+example : ∫ x in Icc 0 1, real.exp x ≤ ∫ x in Icc 0 1, real.exp (x+1) :=
+begin
+  mono,
+  { exact real.continuous_exp.locally_integrable is_compact_Icc },
+  { exact (real.continuous_exp.comp $ continuous_add_right 1).locally_integrable
+      is_compact_Icc },
+  intro x,
+  dsimp only,
+  mono,
+  linarith
 end

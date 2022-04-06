@@ -3,11 +3,26 @@ Copyright (c) 2020 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import algebra.lie.basic
-import linear_algebra.bilinear_form
+import algebra.lie.matrix
+import linear_algebra.matrix.bilinear_form
 
 /-!
 # Lie algebras of skew-adjoint endomorphisms of a bilinear form
+
+When a module carries a bilinear form, the Lie algebra of endomorphisms of the module contains a
+distinguished Lie subalgebra: the skew-adjoint endomorphisms. Such subalgebras are important
+because they provide a simple, explicit construction of the so-called classical Lie algebras.
+
+This file defines the Lie subalgebra of skew-adjoint endomorphims cut out by a bilinear form on
+a module and proves some basic related results. It also provides the corresponding definitions and
+results for the Lie algebra of square matrices.
+
+## Main definitions
+
+  * `skew_adjoint_lie_subalgebra`
+  * `skew_adjoint_lie_subalgebra_equiv`
+  * `skew_adjoint_matrices_lie_subalgebra`
+  * `skew_adjoint_matrices_lie_subalgebra_equiv`
 
 ## Tags
 
@@ -45,7 +60,7 @@ endomorphisms. -/
 def skew_adjoint_lie_subalgebra_equiv :
   skew_adjoint_lie_subalgebra (B.comp (↑e : N →ₗ[R] M) ↑e) ≃ₗ⁅R⁆ skew_adjoint_lie_subalgebra B :=
 begin
-  apply lie_algebra.equiv.of_subalgebras _ _ e.lie_conj,
+  apply lie_equiv.of_subalgebras _ _ e.lie_conj,
   ext f,
   simp only [lie_subalgebra.mem_coe, submodule.mem_map_equiv, lie_subalgebra.mem_map_submodule,
     coe_coe],
@@ -95,20 +110,20 @@ iff.rfl
 
 /-- An invertible matrix `P` gives a Lie algebra equivalence between those endomorphisms that are
 skew-adjoint with respect to a square matrix `J` and those with respect to `PᵀJP`. -/
-noncomputable def skew_adjoint_matrices_lie_subalgebra_equiv (P : matrix n n R) (h : is_unit P) :
+def skew_adjoint_matrices_lie_subalgebra_equiv (P : matrix n n R) (h : invertible P) :
   skew_adjoint_matrices_lie_subalgebra J ≃ₗ⁅R⁆ skew_adjoint_matrices_lie_subalgebra (Pᵀ ⬝ J ⬝ P) :=
-lie_algebra.equiv.of_subalgebras _ _ (P.lie_conj h).symm
+lie_equiv.of_subalgebras _ _ (P.lie_conj h).symm
 begin
   ext A,
   suffices : P.lie_conj h A ∈ skew_adjoint_matrices_submodule J ↔
     A ∈ skew_adjoint_matrices_submodule (Pᵀ ⬝ J ⬝ P),
   { simp only [lie_subalgebra.mem_coe, submodule.mem_map_equiv, lie_subalgebra.mem_map_submodule,
       coe_coe], exact this, },
-  simp [matrix.is_skew_adjoint, J.is_adjoint_pair_equiv _ _ P h],
+  simp [matrix.is_skew_adjoint, J.is_adjoint_pair_equiv _ _ P (is_unit_of_invertible P)],
 end
 
 lemma skew_adjoint_matrices_lie_subalgebra_equiv_apply
-  (P : matrix n n R) (h : is_unit P) (A : skew_adjoint_matrices_lie_subalgebra J) :
+  (P : matrix n n R) (h : invertible P) (A : skew_adjoint_matrices_lie_subalgebra J) :
   ↑(skew_adjoint_matrices_lie_subalgebra_equiv J P h A) = P⁻¹ ⬝ ↑A ⬝ P :=
 by simp [skew_adjoint_matrices_lie_subalgebra_equiv]
 
@@ -117,7 +132,7 @@ equivalence of Lie algebras of skew-adjoint matrices. -/
 def skew_adjoint_matrices_lie_subalgebra_equiv_transpose {m : Type w} [decidable_eq m] [fintype m]
   (e : matrix n n R ≃ₐ[R] matrix m m R) (h : ∀ A, (e A)ᵀ = e (Aᵀ)) :
   skew_adjoint_matrices_lie_subalgebra J ≃ₗ⁅R⁆ skew_adjoint_matrices_lie_subalgebra (e J) :=
-lie_algebra.equiv.of_subalgebras _ _ e.to_lie_equiv
+lie_equiv.of_subalgebras _ _ e.to_lie_equiv
 begin
   ext A,
   suffices : J.is_skew_adjoint (e.symm A) ↔ (e J).is_skew_adjoint A, by simpa [this],
@@ -132,14 +147,14 @@ end
   (skew_adjoint_matrices_lie_subalgebra_equiv_transpose J e h A : matrix m m R) = e A :=
 rfl
 
-lemma mem_skew_adjoint_matrices_lie_subalgebra_unit_smul (u : units R) (J A : matrix n n R) :
-  A ∈ skew_adjoint_matrices_lie_subalgebra ((u : R) • J) ↔
+lemma mem_skew_adjoint_matrices_lie_subalgebra_unit_smul (u : Rˣ) (J A : matrix n n R) :
+  A ∈ skew_adjoint_matrices_lie_subalgebra (u • J) ↔
   A ∈ skew_adjoint_matrices_lie_subalgebra J :=
 begin
-  change A ∈ skew_adjoint_matrices_submodule ((u : R) • J) ↔  A ∈ skew_adjoint_matrices_submodule J,
+  change A ∈ skew_adjoint_matrices_submodule (u • J) ↔ A ∈ skew_adjoint_matrices_submodule J,
   simp only [mem_skew_adjoint_matrices_submodule, matrix.is_skew_adjoint, matrix.is_adjoint_pair],
   split; intros h,
-  { simpa using congr_arg (λ B, (↑u⁻¹ : R) • B) h, },
+  { simpa using congr_arg (λ B, u⁻¹ • B) h, },
   { simp [h], },
 end
 

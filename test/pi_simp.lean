@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import algebra.group.pi
 
@@ -13,7 +13,7 @@ variables {I : Type*} {f : Π i : I, Type*}
 
 namespace test
 
-def eval_default [inhabited I] (F : Π i, f i) : f (default I) := F (default I)
+def eval_default [inhabited I] (F : Π i, f i) : f default := F default
 
 @[simp] lemma eval_default_one [inhabited I] [Π i, has_one (f i)] :
   eval_default (1 : Π i, f i) = 1 := rfl

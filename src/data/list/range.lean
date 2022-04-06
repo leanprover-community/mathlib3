@@ -8,13 +8,22 @@ import data.list.nodup
 import data.list.of_fn
 import data.list.zip
 
-open nat
+/-!
+# Ranges of naturals as lists
 
-namespace list
-/- iota and range(') -/
+This file shows basic results about `list.iota`, `list.range`, `list.range'` (all defined in
+`data.list.defs`) and defines `list.fin_range`.
+`fin_range n` is the list of elements of `fin n`.
+`iota n = [1, ..., n]` and `range n = [0, ..., n - 1]` are basic list constructions used for
+tactics. `range' a b = [a, ..., a + b - 1]` is there to help prove properties about them.
+Actual maths should use `list.Ico` instead.
+-/
 
 universe u
 
+open nat
+
+namespace list
 variables {α : Type u}
 
 @[simp] theorem length_range' : ∀ (s n : ℕ), length (range' s n) = n
@@ -28,9 +37,9 @@ by rw [← length_eq_zero, length_range']
 | s 0     := (false_iff _).2 $ λ ⟨H1, H2⟩, not_le_of_lt H2 H1
 | s (succ n) :=
   have m = s → m < s + n + 1,
-    from λ e, e ▸ lt_succ_of_le (le_add_right _ _),
+    from λ e, e ▸ lt_succ_of_le (nat.le_add_right _ _),
   have l : m = s ∨ s + 1 ≤ m ↔ s ≤ m,
-    by simpa only [eq_comm] using (@le_iff_eq_or_lt _ _ s m).symm,
+    by simpa only [eq_comm] using (@decidable.le_iff_eq_or_lt _ _ _ s m).symm,
   (mem_cons_iff _ _ _).trans $ by simp only [mem_range',
     or_and_distrib_left, or_iff_right_of_imp this, l, add_right_comm]; refl
 
@@ -69,11 +78,11 @@ theorem nodup_range' (s n : ℕ) : nodup (range' s n) :=
 
 theorem range'_sublist_right {s m n : ℕ} : range' s m <+ range' s n ↔ m ≤ n :=
 ⟨λ h, by simpa only [length_range'] using length_le_of_sublist h,
- λ h, by rw [← nat.sub_add_cancel h, ← range'_append]; apply sublist_append_left⟩
+ λ h, by rw [← tsub_add_cancel_of_le h, ← range'_append]; apply sublist_append_left⟩
 
 theorem range'_subset_right {s m n : ℕ} : range' s m ⊆ range' s n ↔ m ≤ n :=
 ⟨λ h, le_of_not_lt $ λ hn, lt_irrefl (s+n) $
-  (mem_range'.1 $ h $ mem_range'.2 ⟨le_add_right _ _, nat.add_lt_add_left hn s⟩).2,
+  (mem_range'.1 $ h $ mem_range'.2 ⟨nat.le_add_right _ _, nat.add_lt_add_left hn s⟩).2,
  λ h, (range'_sublist_right.2 h).subset⟩
 
 theorem nth_range' : ∀ s {m n : ℕ}, m < n → nth (range' s n) m = some (s + m)
@@ -139,6 +148,12 @@ by simp only [range_eq_range', range'_concat, zero_add]
 
 @[simp] lemma range_zero : range 0 = [] := rfl
 
+lemma range_add (a : ℕ) :
+  ∀ b, range (a + b) = range a ++ (range b).map (λ x, a + x)
+| 0 := by rw [add_zero, range_zero, map_nil, append_nil]
+| (b + 1) := by rw [nat.add_succ, range_succ, range_add b, range_succ,
+  map_append, map_singleton, append_assoc]
+
 theorem iota_eq_reverse_range' : ∀ n : ℕ, iota n = reverse (range' 1 n)
 | 0     := rfl
 | (n+1) := by simp only [iota, range'_concat, iota_eq_reverse_range' n,
@@ -162,7 +177,7 @@ theorem reverse_range' : ∀ s n : ℕ,
 | s (n+1) := by rw [range'_concat, reverse_append, range_succ_eq_map];
   simpa only [show s + (n + 1) - 1 = s + n, from rfl, (∘),
     λ a i, show a - 1 - i = a - succ i, from pred_sub _ _,
-    reverse_singleton, map_cons, nat.sub_zero, cons_append,
+    reverse_singleton, map_cons, tsub_zero, cons_append,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 
@@ -176,13 +191,29 @@ def fin_range (n : ℕ) : list (fin n) :=
 mem_pmap.2 ⟨a.1, mem_range.2 a.2, fin.eta _ _⟩
 
 lemma nodup_fin_range (n : ℕ) : (fin_range n).nodup :=
-nodup_pmap (λ _ _ _ _, fin.veq_of_eq) (nodup_range _)
+(nodup_range _).pmap $ λ _ _ _ _, fin.veq_of_eq
 
 @[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
 by rw [fin_range, length_pmap, length_range]
 
 @[simp] lemma fin_range_eq_nil {n : ℕ} : fin_range n = [] ↔ n = 0 :=
 by rw [← length_eq_zero, length_fin_range]
+
+@[simp] lemma map_coe_fin_range (n : ℕ) : (fin_range n).map coe = list.range n :=
+begin
+  simp_rw [fin_range, map_pmap, fin.mk, subtype.coe_mk, pmap_eq_map],
+  exact list.map_id _
+end
+
+lemma fin_range_succ_eq_map (n : ℕ) :
+  fin_range n.succ = 0 :: (fin_range n).map fin.succ :=
+begin
+  apply map_injective_iff.mpr subtype.coe_injective,
+  rw [map_cons, map_coe_fin_range, range_succ_eq_map, fin.coe_zero, ←map_coe_fin_range, map_map,
+    map_map, function.comp, function.comp],
+  congr' 2 with x,
+  exact (fin.coe_succ _).symm,
+end
 
 @[to_additive]
 theorem prod_range_succ {α : Type u} [monoid α] (f : ℕ → α) (n : ℕ) :
@@ -246,7 +277,6 @@ by rw [← of_fn_id, map_of_fn, function.right_id]
 
 theorem nodup_of_fn {α n} {f : fin n → α} (hf : function.injective f) :
   nodup (of_fn f) :=
-by rw of_fn_eq_pmap; from nodup_pmap
-  (λ _ _ _ _ H, fin.veq_of_eq $ hf H) (nodup_range n)
+by { rw of_fn_eq_pmap, exact (nodup_range n).pmap (λ _ _ _ _ H, fin.veq_of_eq $ hf H) }
 
 end list

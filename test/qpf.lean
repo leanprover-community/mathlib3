@@ -70,7 +70,7 @@ end
 def foo (α : Type) :=
 quot $ foo.R α
 
-instance {α} [inhabited α] : inhabited (foo α) := ⟨ quot.mk _ (default _) ⟩
+instance {α} [inhabited α] : inhabited (foo α) := ⟨ quot.mk _ default ⟩
 
 /-- functor operation of `foo` -/
 def foo.map {α β} (f : α → β) (x : foo α) : foo β :=
@@ -102,8 +102,8 @@ by simp only [foo.mk, foo.map_mk]; refl
 lemma foo.map_tt {α : Type} (x y : α) :
   foo.mk tt x = foo.mk tt y ↔ x = y :=
 by simp [foo.mk]; split; intro h; [replace h := quot.exact _ h, rw h];
-   rw relation.eqv_gen_iff_of_equivalence at h;
-   [exact h.2 rfl, apply equivalence_foo.R]
+   rw (equivalence_foo.R _).eqv_gen_iff at h;
+   exact h.2 rfl
 
 /-- consequence of original definition of `supp`. If there exists more than
 one value of type `α`, then the support of `foo.mk ff x` is empty -/
@@ -157,7 +157,7 @@ begin
   { introv hp, simp [functor.liftp] at hp,
     rcases hp with ⟨⟨z,z',hz⟩,hp⟩,
     simp at hp, replace hp := quot.exact _ hp,
-    rw relation.eqv_gen_iff_of_equivalence (equivalence_foo.R _) at hp,
+    rw (equivalence_foo.R _).eqv_gen_iff at hp,
     rcases hp with ⟨⟨⟩,hp⟩, subst y,
     replace hp := hp rfl, cases hp,
     exact hz }
@@ -175,14 +175,15 @@ end
 lemma supp_mk_tt' {α} (x : α) : qpf.supp' (foo.mk tt x) = {x} :=
 begin
   dsimp [qpf.supp'], ext, simp, dsimp [qpf.box], split; intro h,
-  { specialize h {x} _, { simp at h, assumption },
-    clear h, introv hfg, simp, rw hfg, simp },
+  { specialize h {x} _,
+    { clear h, introv hfg, simp, rw hfg, simp },
+    { simp at h, assumption }, },
   { introv hfg, subst x_1, classical,
     let f : α → α ⊕ bool := λ x, if x ∈ i then sum.inl x else sum.inr tt,
     let g : α → α ⊕ bool := λ x, if x ∈ i then sum.inl x else sum.inr ff,
     specialize hfg _ f g _,
+    { intros, simp [*,f,g,if_pos] },
     { simp [f,g] at hfg, split_ifs at hfg,
-      assumption, cases hfg },
-    { intros, simp [*,f,g,if_pos] } }
+      assumption, cases hfg } }
 end
 end ex

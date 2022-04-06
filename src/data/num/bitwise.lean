@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2014 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
 import data.num.basic
 import data.bitvec.core
@@ -204,7 +204,7 @@ namespace nzsnum
   @[pattern] def not : nzsnum → nzsnum
   | (msb b) := msb (bnot b)
   | (b :: p) := bnot b :: not p
-  prefix ~ := not
+  prefix `~`:100 := not
 
   /-- Add an inactive bit at the end of a `nzsnum`. This mimics `pos_num.bit0`. -/
   def bit0 : nzsnum → nzsnum := bit ff

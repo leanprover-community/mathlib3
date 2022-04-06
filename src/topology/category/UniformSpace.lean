@@ -3,9 +3,12 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Patrick Massot, Scott Morrison
 -/
+import category_theory.adjunction.reflective
+import category_theory.concrete_category.unbundled_hom
 import category_theory.monad.limits
-import topology.uniform_space.completion
+import category_theory.limits.has_limits
 import topology.category.Top.basic
+import topology.uniform_space.completion
 
 /-!
 # The category of uniform spaces
@@ -29,7 +32,9 @@ namespace UniformSpace
 instance : unbundled_hom @uniform_continuous :=
 ⟨@uniform_continuous_id, @uniform_continuous.comp⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] UniformSpace
+attribute [derive [large_category, concrete_category]] UniformSpace
+
+instance : has_coe_to_sort UniformSpace Type* := bundled.has_coe_to_sort
 
 instance (x : UniformSpace) : uniform_space x := x.str
 
@@ -40,8 +45,8 @@ instance : inhabited UniformSpace := ⟨UniformSpace.of empty⟩
 
 @[simp] lemma coe_of (X : Type u) [uniform_space X] : (of X : Type u) = X := rfl
 
-instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) :=
-{ F := λ _, X → Y, coe := category_theory.functor.map (forget UniformSpace) }
+instance (X Y : UniformSpace) : has_coe_to_fun (X ⟶ Y) (λ _, X → Y) :=
+⟨category_theory.functor.map (forget UniformSpace)⟩
 
 @[simp] lemma coe_comp {X Y Z : UniformSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g : X → Z) = g ∘ f := rfl
@@ -55,7 +60,8 @@ lemma hom_ext {X Y : UniformSpace} {f g : X ⟶ Y} : (f : X → Y) = g → f = g
 instance has_forget_to_Top : has_forget₂ UniformSpace.{u} Top.{u} :=
 { forget₂ :=
   { obj := λ X, Top.of X,
-    map := λ X Y f, { to_fun := f, continuous_to_fun := uniform_continuous.continuous f.property }, }, }
+    map := λ X Y f, { to_fun := f,
+                      continuous_to_fun := uniform_continuous.continuous f.property }, }, }
 
 end UniformSpace
 
@@ -68,11 +74,11 @@ structure CpltSepUniformSpace :=
 
 namespace CpltSepUniformSpace
 
-instance : has_coe_to_sort CpltSepUniformSpace :=
-{ S := Type u, coe := CpltSepUniformSpace.α }
+instance : has_coe_to_sort CpltSepUniformSpace (Type u) := ⟨CpltSepUniformSpace.α⟩
 
 attribute [instance] is_uniform_space is_complete_space is_separated
 
+/-- The function forgetting that a complete separated uniform spaces is complete and separated. -/
 def to_UniformSpace (X : CpltSepUniformSpace) : UniformSpace :=
 UniformSpace.of X
 
@@ -83,7 +89,8 @@ instance separated_space (X : CpltSepUniformSpace) : separated_space ((to_Unifor
 CpltSepUniformSpace.is_separated X
 
 /-- Construct a bundled `UniformSpace` from the underlying type and the appropriate typeclasses. -/
-def of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] : CpltSepUniformSpace := ⟨X⟩
+def of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] :
+CpltSepUniformSpace := ⟨X⟩
 
 @[simp] lemma coe_of (X : Type u) [uniform_space X] [complete_space X] [separated_space X] :
   (of X : Type u) = X := rfl

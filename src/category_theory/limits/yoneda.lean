@@ -3,7 +3,6 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Bhavik Mehta
 -/
-import category_theory.limits.limits
 import category_theory.limits.functor_category
 
 /-!
@@ -64,13 +63,13 @@ instance yoneda_preserves_limits (X : C) : preserves_limits (yoneda.obj X) :=
 { preserves_limits_of_shape := λ J 𝒥, by exactI
   { preserves_limit := λ K,
     { preserves := λ c t,
-      { lift := λ s x, has_hom.hom.unop (t.lift ⟨op X, λ j, (s.π.app j x).op, λ j₁ j₂ α, _⟩),
-        fac' := λ s j, funext $ λ x, has_hom.hom.op_inj (t.fac _ _),
+      { lift := λ s x, quiver.hom.unop (t.lift ⟨op X, λ j, (s.π.app j x).op, λ j₁ j₂ α, _⟩),
+        fac' := λ s j, funext $ λ x, quiver.hom.op_inj (t.fac _ _),
         uniq' := λ s m w, funext $ λ x,
         begin
-          refine has_hom.hom.op_inj (t.uniq ⟨op X, _, _⟩ _ (λ j, _)),
+          refine quiver.hom.op_inj (t.uniq ⟨op X, _, _⟩ _ (λ j, _)),
           { dsimp, simp [← s.w α] }, -- See library note [dsimp, simp]
-          { exact has_hom.hom.unop_inj (congr_fun (w j) x) },
+          { exact quiver.hom.unop_inj (congr_fun (w j) x) },
         end } } } }
 
 /-- The coyoneda embedding `coyoneda.obj X : C ⥤ Type v` for `X : Cᵒᵖ` preserves limits. -/
@@ -91,18 +90,18 @@ instance coyoneda_preserves_limits (X : Cᵒᵖ) : preserves_limits (coyoneda.ob
 def yoneda_jointly_reflects_limits (J : Type v) [small_category J] (K : J ⥤ Cᵒᵖ) (c : cone K)
   (t : Π (X : C), is_limit ((yoneda.obj X).map_cone c)) : is_limit c :=
 let s' : Π (s : cone K), cone (K ⋙ yoneda.obj s.X.unop) :=
-  λ s, ⟨punit, λ j _, (s.π.app j).unop, λ j₁ j₂ α, funext $ λ _, has_hom.hom.op_inj (s.w α).symm⟩
+  λ s, ⟨punit, λ j _, (s.π.app j).unop, λ j₁ j₂ α, funext $ λ _, quiver.hom.op_inj (s.w α).symm⟩
 in
 { lift := λ s, ((t s.X.unop).lift (s' s) punit.star).op,
-  fac' := λ s j, has_hom.hom.unop_inj (congr_fun ((t s.X.unop).fac (s' s) j) punit.star),
+  fac' := λ s j, quiver.hom.unop_inj (congr_fun ((t s.X.unop).fac (s' s) j) punit.star),
   uniq' := λ s m w,
   begin
-    apply has_hom.hom.unop_inj,
+    apply quiver.hom.unop_inj,
     suffices : (λ (x : punit), m.unop) = (t s.X.unop).lift (s' s),
     { apply congr_fun this punit.star },
     apply (t _).uniq (s' s) _ (λ j, _),
     ext,
-    exact has_hom.hom.op_inj (w j),
+    exact quiver.hom.op_inj (w j),
   end }
 
 /-- The coyoneda embeddings jointly reflect limits. -/
@@ -121,5 +120,29 @@ in
     ext,
     exact (w j),
   end }
+
+variables {D : Type u} [small_category D]
+
+instance yoneda_functor_preserves_limits : preserves_limits (@yoneda D _) :=
+begin
+  apply preserves_limits_of_evaluation,
+  intro K,
+  change preserves_limits (coyoneda.obj K),
+  apply_instance
+end
+
+instance coyoneda_functor_preserves_limits : preserves_limits (@coyoneda D _) :=
+begin
+  apply preserves_limits_of_evaluation,
+  intro K,
+  change preserves_limits (yoneda.obj K),
+  apply_instance
+end
+
+instance yoneda_functor_reflects_limits : reflects_limits (@yoneda D _) :=
+limits.fully_faithful_reflects_limits _
+
+instance coyoneda_functor_reflects_limits : reflects_limits (@coyoneda D _) :=
+limits.fully_faithful_reflects_limits _
 
 end category_theory

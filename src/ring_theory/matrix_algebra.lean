@@ -3,11 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
+import data.matrix.basis
 import ring_theory.tensor_product
 
 /-!
-We provide the `R`-algebra structure on `matrix n n A` when `A` is an `R`-algebra,
-and show `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)`.
+We show `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)`.
 -/
 
 universes u v w
@@ -21,24 +21,8 @@ open matrix
 
 variables {R : Type u} [comm_semiring R]
 variables {A : Type v} [semiring A] [algebra R A]
-variables {n : Type w} [fintype n]
+variables {n : Type w}
 
-section
-variables [decidable_eq n]
-
-instance : algebra R (matrix n n A) :=
-{ commutes' := λ r x,
-  begin ext, simp [matrix.scalar, matrix.mul_apply, matrix.one_apply, algebra.commutes], end,
-  smul_def' := λ r x, begin ext, simp [matrix.scalar, algebra.smul_def'' r], end,
-  ..((matrix.scalar n).comp (algebra_map R A)) }
-
-lemma algebra_map_matrix_apply {r : R} {i j : n} :
-  algebra_map R (matrix n n A) r i j = if i = j then algebra_map R A r else 0 :=
-begin
-  dsimp [algebra_map, algebra.to_ring_hom, matrix.scalar],
-  split_ifs with h; simp [h, matrix.one_apply_ne],
-end
-end
 
 variables (R A n)
 namespace matrix_equiv_tensor
@@ -62,8 +46,8 @@ def to_fun_right_linear (a : A) : matrix n n R →ₗ[R] matrix n n A :=
   begin
     dsimp only [to_fun],
     ext,
-    simp only [matrix.smul_apply, pi.smul_apply, ring_hom.map_mul,
-      algebra.id.smul_eq_mul, ring_hom.map_mul],
+    simp only [pi.smul_apply, ring_hom.map_mul, algebra.id.smul_eq_mul],
+    dsimp,
     rw [algebra.smul_def r, ←_root_.mul_assoc, ←_root_.mul_assoc, algebra.commutes],
   end, }
 
@@ -85,7 +69,7 @@ as an `R`-linear map.
 def to_fun_linear : A ⊗[R] matrix n n R →ₗ[R] matrix n n A :=
 tensor_product.lift (to_fun_bilinear R A n)
 
-variables [decidable_eq n]
+variables [decidable_eq n] [fintype n]
 
 /--
 The function `(A ⊗[R] matrix n n R) →ₐ[R] matrix n n A`, as an algebra homomorphism.
@@ -99,7 +83,7 @@ begin
   dsimp,
   simp_rw [to_fun_right_linear],
   dsimp,
-  simp_rw [to_fun, matrix.mul_mul_left, matrix.smul_apply, matrix.mul_apply,
+  simp_rw [to_fun, matrix.mul_mul_left, pi.smul_apply, smul_eq_mul, matrix.mul_apply,
     ←_root_.mul_assoc _ a₂ _, algebra.commutes, _root_.mul_assoc a₂ _ _, ←finset.mul_sum,
     ring_hom.map_sum, ring_hom.map_mul, _root_.mul_assoc],
 end
@@ -175,7 +159,7 @@ def equiv : (A ⊗[R] matrix n n R) ≃ matrix n n A :=
 
 end matrix_equiv_tensor
 
-variables [decidable_eq n]
+variables [fintype n] [decidable_eq n]
 
 /--
 The `R`-algebra isomorphism `matrix n n A ≃ₐ[R] (A ⊗[R] matrix n n R)`.
@@ -194,7 +178,7 @@ rfl
   matrix_equiv_tensor R A n (std_basis_matrix i j x) =
     x ⊗ₜ (std_basis_matrix i j 1) :=
 begin
-  have t : ∀ (p : n × n), (p.1 = i ∧ p.2 = j) ↔ (p = (i, j)) := by tidy,
+  have t : ∀ (p : n × n), (i = p.1 ∧ j = p.2) ↔ (p = (i, j)) := by tidy,
   simp [ite_tmul, t, std_basis_matrix],
 end
 

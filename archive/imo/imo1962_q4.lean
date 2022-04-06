@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Lacker, Heather Macbeth
 -/
 
-import analysis.special_functions.trigonometric
+import analysis.special_functions.trigonometric.complex
 
 /-!
 # IMO 1962 Q4
@@ -63,7 +63,7 @@ Now we can solve for `x` using basic-ish trigonometry.
 
 lemma solve_cos2_half {x : ℝ} : cos x ^ 2 = 1/2 ↔ ∃ k : ℤ, x = (2 * ↑k + 1) * π / 4 :=
 begin
-  rw cos_square,
+  rw cos_sq,
   simp only [add_right_eq_self, div_eq_zero_iff],
   norm_num,
   rw cos_eq_zero_iff,
@@ -99,7 +99,7 @@ terms, `a ^ 2 * (2 * a ^ 2 - 1) * (4 * a ^ 2 - 3)`, being equal to zero.
 
 /-- Someday, when there is a Grobner basis tactic, try to automate this proof. (A little tricky --
 the ideals are not the same but their Jacobson radicals are.) -/
-lemma formula {R : Type*} [integral_domain R] [char_zero R] (a : R) :
+lemma formula {R : Type*} [comm_ring R] [is_domain R] [char_zero R] (a : R) :
   a ^ 2 + (2 * a ^ 2 - 1) ^ 2 + (4 * a ^ 3 - 3 * a) ^ 2 = 1
   ↔ (2 * a ^ 2 - 1) * (4 * a ^ 3 - 3 * a) = 0 :=
 calc a ^ 2 + (2 * a ^ 2 - 1) ^ 2 + (4 * a ^ 3 - 3 * a) ^ 2 = 1

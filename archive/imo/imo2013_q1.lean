@@ -75,10 +75,9 @@ begin
                                                              ring }
     ... = (1 + 1 / (2 * t + 2^pk.succ)) *
           (1 + (2 ^ pk - 1) / t_succ)                 : by norm_cast
-    ... = (1 + 1 / ↑(m pk)) *
-          ∏ (i : ℕ) in finset.range pk, (1 + 1 / m i) : by rw [hpm, prod_lemma, ←hmpk]
-    ... = ∏ (i : ℕ) in finset.range pk.succ,
-                                        (1 + 1 / m i) : (finset.prod_range_succ _ pk).symm },
+    ... = (∏ i in finset.range pk, (1 + 1 / m i)) *
+          (1 + 1 / (m pk))                            : by rw [prod_lemma, hpm, ←hmpk, mul_comm]
+    ... = ∏ i in finset.range pk.succ, (1 + 1 / m i)  : by rw ← finset.prod_range_succ _ pk },
   { -- odd case
     let t_succ : ℕ+ := ⟨t + 1, t.succ_pos⟩,
     obtain ⟨pm, hpm⟩ := hpk t_succ,
@@ -97,8 +96,7 @@ begin
                                                              ring }
     ... = (1 + 1 / (2 * t + 1)) *
           (1 + (2^pk - 1) / t_succ)                   : by norm_cast
-    ... = (1 + 1 / ↑(m pk)) *
-          ∏ (i : ℕ) in finset.range pk, (1 + 1 / m i) : by rw [hpm, prod_lemma, ←hmpk]
-    ... = ∏ (i : ℕ) in finset.range pk.succ,
-                                        (1 + 1 / m i) : (finset.prod_range_succ _ pk).symm }
+    ... = (∏ i in finset.range pk, (1 + 1 / m i)) *
+          (1 + 1 / ↑(m pk))                           : by rw [prod_lemma, hpm, ←hmpk, mul_comm]
+    ... = ∏ i in finset.range pk.succ, (1 + 1 / m i)  : by rw ← finset.prod_range_succ _ pk }
 end

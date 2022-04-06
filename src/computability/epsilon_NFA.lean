@@ -8,20 +8,22 @@ import computability.NFA
 
 /-!
 # Epsilon Nondeterministic Finite Automata
-This file contains the definition of an epsilon Nondeterministic Finite Automaton (ε_NFA), a state
+This file contains the definition of an epsilon Nondeterministic Finite Automaton (`ε_NFA`), a state
 machine which determines whether a string (implemented as a list over an arbitrary alphabet) is in a
 regular set by evaluating the string over every possible path, also having access to ε-transitons,
 which can be followed without reading a character.
-Note that this definition allows for Automaton with infinite states, a `fintype` instance must be
-supplied for true ε_NFA's.
+Since this definition allows for automata with infinite states, a `fintype` instance must be
+supplied for true `ε_NFA`'s.
 -/
 
 universes u v
 
-/-- An ε_NFA is a set of states (`σ`), a transition function from state to state labelled by the
+/-- An `ε_NFA` is a set of states (`σ`), a transition function from state to state labelled by the
   alphabet (`step`), a starting state (`start`) and a set of acceptance states (`accept`).
   Note the transition function sends a state to a `set` of states and can make ε-transitions by
-  inputing `none`. -/
+  inputing `none`.
+  Since this definition allows for Automata with infinite states, a `fintype` instance must be
+  supplied for true `ε_NFA`'s.-/
 structure ε_NFA (α : Type u) (σ : Type v) :=
 (step : σ → option α → set σ)
 (start : set σ)
@@ -33,8 +35,8 @@ namespace ε_NFA
 
 instance : inhabited (ε_NFA α σ) := ⟨ ε_NFA.mk (λ _ _, ∅) ∅ ∅ ⟩
 
-/-- The ε_closure of a set is the set of states which can be reached by taking a finite string of
-  ε-transitions from an element of the the set -/
+/-- The `ε_closure` of a set is the set of states which can be reached by taking a finite string of
+  ε-transitions from an element of the set -/
 inductive ε_closure : set σ → set σ
 | base : ∀ S (s ∈ S), ε_closure S s
 | step : ∀ S s (t ∈ M.step s none), ε_closure S s → ε_closure S t
@@ -62,26 +64,22 @@ def to_NFA : NFA α σ :=
   start := M.ε_closure M.start,
   accept := M.accept }
 
-lemma to_NFA_eval_from_match (start : set σ) :
-  M.to_NFA.eval_from (M.ε_closure start) = M.eval_from start := rfl
-
-@[simp] lemma to_NFA_correct :
-  M.to_NFA.accepts = M.accepts :=
-begin
-  ext x,
-  rw [accepts, NFA.accepts, eval, NFA.eval, ←to_NFA_eval_from_match],
-  refl
-end
-
-def zero : ε_NFA α pempty :=
+@[simp] lemma to_NFA_eval_from_match (start : set σ) :
 { step := λ _ _, ∅,
-  start := ∅,
   accept := ∅ }
+
+lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
+  (hlen : fintype.card (set σ) ≤ list.length x) :
+  ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) ∧ b ≠ [] ∧
+  {a} * language.star {b} * {c} ≤ M.accepts :=
+begin
+  rw ←to_NFA_correct at hx ⊢,
+  exact M.to_NFA.pumping_lemma hx hlen
+end
 
 def epsilon : ε_NFA α punit :=
 { step := λ _ _, ∅,
   start := {punit.star},
-  accept := {punit.star} }
 
 def char (a₁ : α) [decidable_eq α] : ε_NFA α (ulift bool) :=
 { step := λ b a₂, if some a₁ = a₂ then (if ↑(ulift.down b) then {⟨ff⟩} else ∅) else ∅,
@@ -112,6 +110,7 @@ def star (M : ε_NFA α σ) [decidable_pred M.accept] : ε_NFA α σ :=
   accept := M.accept }
 
 lemma zero_accepts : (@zero α).accepts = 0 := by tidy
+
 lemma epsilon_accepts : (@epsilon α).accepts = 1 :=
 begin
   ext x,
@@ -119,6 +118,7 @@ begin
   split,
   { rintro ⟨ S, hs, h ⟩, }
 end
+
 lemma char_accepts (a : α) [decidable_eq α] : (char a).accepts = {[a]} := by tidy
 
 end ε_NFA
@@ -132,7 +132,7 @@ def to_ε_NFA (M : NFA α σ) : ε_NFA α σ :=
   start := M.start,
   accept := M.accept }
 
-lemma to_ε_NFA_ε_closure (M : NFA α σ) (S : set σ) : M.to_ε_NFA.ε_closure S = S :=
+@[simp] lemma to_ε_NFA_ε_closure (M : NFA α σ) (S : set σ) : M.to_ε_NFA.ε_closure S = S :=
 begin
   ext a,
   split,
@@ -144,7 +144,7 @@ begin
     exact h }
 end
 
-lemma to_ε_NFA_eval_from_match (M : NFA α σ) (start : set σ) :
+@[simp] lemma to_ε_NFA_eval_from_match (M : NFA α σ) (start : set σ) :
   M.to_ε_NFA.eval_from start = M.eval_from start :=
 begin
   rw [eval_from, ε_NFA.eval_from, step_set, ε_NFA.step_set, to_ε_NFA_ε_closure],

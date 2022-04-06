@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury Kudryashov
+Authors: Yury Kudryashov
 -/
 import logic.function.conjugate
 
@@ -18,7 +18,7 @@ In this file we prove simple properties of `nat.iterate f n` a.k.a. `f^[n]`:
 * `injective.iterate`, `surjective.iterate`, `bijective.iterate` :
   iterates of an injective/surjective/bijective function belong to the same class;
 
-* `left_inverse.iterate`, `right_inverse.iterate`, `commute.iterate_left`, `comute.iterate_right`,
+* `left_inverse.iterate`, `right_inverse.iterate`, `commute.iterate_left`, `commute.iterate_right`,
   `commute.iterate_iterate`:
   some properties of pairs of functions survive under iterations
 
@@ -47,7 +47,7 @@ nat.rec_on n rfl $ λ n ihn, by rw [iterate_succ, ihn, comp.left_id]
 
 theorem iterate_add : ∀ (m n : ℕ), f^[m + n] = (f^[m]) ∘ (f^[n])
 | m 0 := rfl
-| m (nat.succ n) := by rw [iterate_succ, iterate_succ, iterate_add]
+| m (nat.succ n) := by rw [nat.add_succ, iterate_succ, iterate_succ, iterate_add]
 
 theorem iterate_add_apply (m n : ℕ) (x : α) : f^[m + n] x = (f^[m] (f^[n] x)) :=
 by rw iterate_add
@@ -139,6 +139,15 @@ by rw [← iterate_succ, nat.succ_pred_eq_of_pos hn]
 theorem comp_iterate_pred_of_pos {n : ℕ} (hn : 0 < n) : f ∘ (f^[n.pred]) = (f^[n]) :=
 by rw [← iterate_succ', nat.succ_pred_eq_of_pos hn]
 
+/-- A recursor for the iterate of a function. -/
+def iterate.rec (p : α → Sort*) {f : α → α} (h : ∀ a, p a → p (f a)) {a : α} (ha : p a) (n : ℕ) :
+  p (f^[n] a) :=
+nat.rec ha (λ m, by { rw iterate_succ', exact h _ }) n
+
+lemma iterate.rec_zero (p : α → Sort*) {f : α → α} (h : ∀ a, p a → p (f a)) {a : α} (ha : p a) :
+  iterate.rec p h ha 0 = ha :=
+rfl
+
 variable {f}
 
 theorem left_inverse.iterate {g : α → α} (hg : left_inverse g f) (n : ℕ) :
@@ -149,4 +158,26 @@ theorem right_inverse.iterate {g : α → α} (hg : right_inverse g f) (n : ℕ)
   right_inverse (g^[n]) (f^[n]) :=
 hg.iterate n
 
+lemma iterate_comm (f : α → α) (m n : ℕ) : f^[n]^[m] = (f^[m]^[n]) :=
+(iterate_mul _ _ _).symm.trans (eq.trans (by rw nat.mul_comm) (iterate_mul _ _ _))
+
+lemma iterate_commute (m n : ℕ) : commute (λ f : α → α, f^[m]) (λ f, f^[n]) :=
+λ f, iterate_comm f m n
+
 end function
+
+namespace list
+open function
+
+theorem foldl_const (f : α → α) (a : α) (l : list β) : l.foldl (λ b _, f b) a = (f^[l.length]) a :=
+begin
+  induction l with b l H generalizing a,
+  { refl },
+  { rw [length_cons, foldl, iterate_succ_apply, H] }
+end
+
+theorem foldr_const (f : β → β) (b : β) : Π l : list α, l.foldr (λ _, f) b = (f^[l.length]) b
+| []     := rfl
+| (a::l) := by rw [length_cons, foldr, foldr_const l, iterate_succ_apply']
+
+end list

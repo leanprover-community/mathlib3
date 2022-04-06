@@ -3,9 +3,11 @@
 ![](https://github.com/leanprover-community/mathlib/workflows/continuous%20integration/badge.svg?branch=master)
 [![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/24316)
 [![project chat](https://img.shields.io/badge/zulip-join_chat-brightgreen.svg)](https://leanprover.zulipchat.com)
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/leanprover-community/mathlib)
 
 [Mathlib](https://leanprover-community.github.io) is a user maintained library for the [Lean theorem prover](https://leanprover.github.io).
-It contains both programming infrastructure and mathematics, as well as tactics that use the former and allow to develop the latter.
+It contains both programming infrastructure and mathematics,
+as well as tactics that use the former and allow to develop the latter.
 
 ## Installation
 
@@ -47,19 +49,32 @@ welcomed.
 
 ## Maintainers:
 
-* Jeremy Avigad (@avigad): analysis
 * Anne Baanen (@Vierkantor): algebra, number theory, tactics
 * Reid Barton (@rwbarton): category theory, topology
-* Mario Carneiro (@digama0): all
+* Riccardo Brasca (@riccardobrasca): algebra, number theory, algebraic geometry, category theory
+* Mario Carneiro (@digama0): lean formalization, tactics, type theory, proof engineering
 * Bryan Gin-ge Chen (@bryangingechen): documentation, infrastructure
-* Johan Commelin (@jcommelin): algebra
-* Floris van Doorn (@fpvandoorn): all
-* Gabriel Ebner (@gebner): all
-* Sébastien Gouëzel (@sgouezel): topology, calculus
-* Simon Hudon (@cipher1024): all
-* Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
-* Yury G. Kudryashov (@urkud): analysis, topology
-* Robert Y. Lewis (@robertylewis): all
+* Johan Commelin (@jcommelin): algebra, number theory, category theory, algebraic geometry
+* Rémy Degenne (@RemyDegenne): probability, measure theory, analysis
+* Floris van Doorn (@fpvandoorn): measure theory, model theory, tactics
+* Frédéric Dupuis (@dupuisf): linear algebra, functional analysis
+* Gabriel Ebner (@gebner): tactics, infrastructure, core, formal languages
+* Sébastien Gouëzel (@sgouezel): topology, calculus, geometry, analysis, measure theory
+* Markus Himmel (@TwoFX): category theory
+* Chris Hughes (@ChrisHughes24): algebra
+* Yury G. Kudryashov (@urkud): analysis, topology, measure theory
+* Robert Y. Lewis (@robertylewis): tactics, documentation
 * Heather Macbeth (@hrmacbeth): geometry, analysis
-* Patrick Massot (@patrickmassot): documentation, topology
-* Scott Morrison (@semorrison): category theory
+* Patrick Massot (@patrickmassot): documentation, topology, geometry
+* Bhavik Mehta (@b-mehta): category theory, combinatorics
+* Kyle Miller (@kmill): combinatorics, documentation
+* Scott Morrison (@semorrison): category theory, tactics
+* Oliver Nash (@ocfnash): algebra, geometry, topology
+* Adam Topaz (@adamtopaz): algebra, category theory, algebraic geometry
+* Eric Wieser (@eric-wieser): algebra, infrastructure
+
+## Emeritus maintainers:
+
+* Jeremy Avigad (@avigad): analysis
+* Johannes Hölzl (@johoelzl): measure theory, topology
+* Simon Hudon (@cipher1024): tactics

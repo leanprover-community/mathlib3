@@ -3,7 +3,8 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
-import category_theory.fully_faithful
+import category_theory.functor.fully_faithful
+import category_theory.full_subcategory
 import category_theory.whiskering
 import category_theory.essential_image
 import tactic.slice
@@ -43,7 +44,9 @@ if it is full, faithful and essentially surjective.
 ## Main results
 
 * `equivalence.mk`: upgrade an equivalence to a (half-)adjoint equivalence
-* `equivalence_of_fully_faithfully_ess_surj`: a fully faithful essentially surjective functor is an
+* `is_equivalence.equiv_of_iso`: when `F` and `G` are isomorphic functors, `F` is an equivalence
+iff `G` is.
+* `equivalence.of_fully_faithfully_ess_surj`: a fully faithful essentially surjective functor is an
   equivalence.
 
 ## Notations
@@ -355,19 +358,22 @@ section
 -- but let's not encourage using it.
 -- The power structure is nevertheless useful.
 
-/-- Powers of an auto-equivalence. -/
+/-- Natural number powers of an auto-equivalence.  Use `(^)` instead. -/
+def pow_nat (e : C ≌ C) : ℕ → (C ≌ C)
+| 0 := equivalence.refl
+| 1 := e
+| (n+2) := e.trans (pow_nat (n+1))
+
+/-- Powers of an auto-equivalence.  Use `(^)` instead. -/
 def pow (e : C ≌ C) : ℤ → (C ≌ C)
-| (int.of_nat 0) := equivalence.refl
-| (int.of_nat 1) := e
-| (int.of_nat (n+2)) := e.trans (pow (int.of_nat (n+1)))
-| (int.neg_succ_of_nat 0) := e.symm
-| (int.neg_succ_of_nat (n+1)) := e.symm.trans (pow (int.neg_succ_of_nat n))
+| (int.of_nat n) := e.pow_nat n
+| (int.neg_succ_of_nat n) := e.symm.pow_nat (n+1)
 
 instance : has_pow (C ≌ C) ℤ := ⟨pow⟩
 
 @[simp] lemma pow_zero (e : C ≌ C) : e^(0 : ℤ) = equivalence.refl := rfl
 @[simp] lemma pow_one (e : C ≌ C) : e^(1 : ℤ) = e := rfl
-@[simp] lemma pow_minus_one (e : C ≌ C) : e^(-1 : ℤ) = e.symm := rfl
+@[simp] lemma pow_neg_one (e : C ≌ C) : e^(-1 : ℤ) = e.symm := rfl
 
 -- TODO as necessary, add the natural isomorphisms `(e^a).trans e^b ≅ e^(a+b)`.
 -- At this point, we haven't even defined the category of equivalences.
@@ -387,6 +393,8 @@ mk' ::
   counit_iso.hom.app (F.obj X) = 𝟙 (F.obj X) . obviously)
 
 restate_axiom is_equivalence.functor_unit_iso_comp'
+
+attribute [simp, reassoc] is_equivalence.functor_unit_iso_comp
 
 namespace is_equivalence
 
@@ -429,18 +437,14 @@ is_equivalence.of_equivalence F.as_equivalence.symm
 @[simp] lemma as_equivalence_inverse (F : C ⥤ D) [is_equivalence F] :
   F.as_equivalence.inverse = inv F := rfl
 
+@[simp] lemma as_equivalence_unit {F : C ⥤ D} [h : is_equivalence F] :
+  F.as_equivalence.unit_iso = @@is_equivalence.unit_iso _ _ h := rfl
+
+@[simp] lemma as_equivalence_counit {F : C ⥤ D} [is_equivalence F] :
+  F.as_equivalence.counit_iso = is_equivalence.counit_iso := rfl
+
 @[simp] lemma inv_inv (F : C ⥤ D) [is_equivalence F] :
   inv (inv F) = F := rfl
-
-/-- The composition of functor that is an equivalence with its inverse is naturally isomorphic to
-    the identity functor. -/
-def fun_inv_id (F : C ⥤ D) [is_equivalence F] : F ⋙ F.inv ≅ 𝟭 C :=
-is_equivalence.unit_iso.symm
-
-/-- The composition of functor that is an equivalence with its inverse is naturally isomorphic to
-    the identity functor. -/
-def inv_fun_id (F : C ⥤ D) [is_equivalence F] : F.inv ⋙ F ≅ 𝟭 D :=
-is_equivalence.counit_iso
 
 variables {E : Type u₃} [category.{v₃} E]
 
@@ -471,27 +475,80 @@ end equivalence
 namespace is_equivalence
 
 @[simp] lemma fun_inv_map (F : C ⥤ D) [is_equivalence F] (X Y : D) (f : X ⟶ Y) :
-  F.map (F.inv.map f) = F.inv_fun_id.hom.app X ≫ f ≫ F.inv_fun_id.inv.app Y :=
+  F.map (F.inv.map f) = F.as_equivalence.counit.app X ≫ f ≫ F.as_equivalence.counit_inv.app Y :=
 begin
   erw [nat_iso.naturality_2],
   refl
 end
 @[simp] lemma inv_fun_map (F : C ⥤ D) [is_equivalence F] (X Y : C) (f : X ⟶ Y) :
-  F.inv.map (F.map f) = F.fun_inv_id.hom.app X ≫ f ≫ F.fun_inv_id.inv.app Y :=
+  F.inv.map (F.map f) = F.as_equivalence.unit_inv.app X ≫ f ≫ F.as_equivalence.unit.app Y :=
 begin
-  erw [nat_iso.naturality_2],
+  erw [nat_iso.naturality_1],
   refl
 end
 
--- We should probably restate many of the lemmas about `equivalence` for `is_equivalence`,
--- but these are the only ones I need for now.
-@[simp] lemma functor_unit_comp (E : C ⥤ D) [is_equivalence E] (Y) :
-  E.map (E.fun_inv_id.inv.app Y) ≫ E.inv_fun_id.hom.app (E.obj Y) = 𝟙 _ :=
-equivalence.functor_unit_comp E.as_equivalence Y
+/-- When a functor `F` is an equivalence of categories, and `G` is isomorphic to `F`, then
+`G` is also an equivalence of categories. -/
+@[simps]
+def of_iso {F G : C ⥤ D} (e : F ≅ G) (hF : is_equivalence F) : is_equivalence G :=
+{ inverse := hF.inverse,
+  unit_iso := hF.unit_iso ≪≫ nat_iso.hcomp e (iso.refl hF.inverse),
+  counit_iso := nat_iso.hcomp (iso.refl hF.inverse) e.symm ≪≫ hF.counit_iso,
+  functor_unit_iso_comp' := λ X, begin
+    dsimp [nat_iso.hcomp],
+    erw [id_comp, F.map_id, comp_id],
+    apply (cancel_epi (e.hom.app X)).mp,
+    slice_lhs 1 2 { rw ← e.hom.naturality, },
+    slice_lhs 2 3 { rw [← nat_trans.vcomp_app', e.hom_inv_id], },
+    simp only [nat_trans.id_app, id_comp, comp_id, F.map_comp, assoc],
+    erw hF.counit_iso.hom.naturality,
+    slice_lhs 1 2 { rw functor_unit_iso_comp, },
+    simp only [functor.id_map, id_comp],
+  end }
 
-@[simp] lemma inv_fun_id_inv_comp (E : C ⥤ D) [is_equivalence E] (Y) :
-  E.inv_fun_id.inv.app (E.obj Y) ≫ E.map (E.fun_inv_id.hom.app Y) = 𝟙 _ :=
-eq_of_inv_eq_inv (functor_unit_comp _ _)
+/-- Compatibility of `of_iso` with the composition of isomorphisms of functors -/
+lemma of_iso_trans {F G H : C ⥤ D} (e : F ≅ G) (e' : G ≅ H) (hF : is_equivalence F) :
+  (of_iso e' (of_iso e hF)) = of_iso (e ≪≫ e') hF :=
+begin
+  dsimp [of_iso],
+  congr' 1; ext X; dsimp [nat_iso.hcomp],
+  { simp only [id_comp, assoc, functor.map_comp], },
+  { simp only [functor.map_id, comp_id, id_comp, assoc], },
+end
+
+/-- Compatibility of `of_iso` with identity isomorphisms of functors -/
+lemma of_iso_refl (F : C ⥤ D) (hF : is_equivalence F) : of_iso (iso.refl F) hF = hF :=
+begin
+  unfreezingI { rcases hF with ⟨Finv, Funit, Fcounit, Fcomp⟩, },
+  dsimp [of_iso],
+  congr' 1; ext X; dsimp [nat_iso.hcomp],
+  { simp only [comp_id, map_id], },
+  { simp only [id_comp, map_id], },
+end
+
+/-- When `F` and `G` are two isomorphic functors, then `F` is an equivalence iff `G` is. -/
+@[simps]
+def equiv_of_iso {F G : C ⥤ D} (e : F ≅ G) : is_equivalence F ≃ is_equivalence G :=
+{ to_fun := of_iso e,
+  inv_fun := of_iso e.symm,
+  left_inv := λ hF, by rw [of_iso_trans, iso.self_symm_id, of_iso_refl],
+  right_inv := λ hF, by rw [of_iso_trans, iso.symm_self_id, of_iso_refl], }
+
+/-- If `G` and `F ⋙ G` are equivalence of categories, then `F` is also an equivalence. -/
+@[simp]
+def cancel_comp_right {E : Type*} [category E]
+  (F : C ⥤ D) (G : D ⥤ E) (hG : is_equivalence G) (hGF : is_equivalence (F ⋙ G)) :
+  is_equivalence F :=
+of_iso ((functor.associator F G G.inv) ≪≫ nat_iso.hcomp (iso.refl F) hG.unit_iso.symm ≪≫
+  right_unitor F) (functor.is_equivalence_trans (F ⋙ G) (G.inv))
+
+/-- If `F` and `F ⋙ G` are equivalence of categories, then `G` is also an equivalence. -/
+@[simp]
+def cancel_comp_left {E : Type*} [category E]
+  (F : C ⥤ D) (G : D ⥤ E) (hF : is_equivalence F) (hGF : is_equivalence (F ⋙ G)) :
+  is_equivalence G :=
+of_iso ((functor.associator F.inv F G).symm ≪≫ nat_iso.hcomp hF.counit_iso (iso.refl G) ≪≫
+  left_unitor G) (functor.is_equivalence_trans F.inv (F ⋙ G))
 
 end is_equivalence
 
@@ -503,7 +560,7 @@ An equivalence is essentially surjective.
 See https://stacks.math.columbia.edu/tag/02C3.
 -/
 lemma ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
-⟨λ Y, ⟨F.inv.obj Y, ⟨F.inv_fun_id.app Y⟩⟩⟩
+⟨λ Y, ⟨F.inv.obj Y, ⟨F.as_equivalence.counit_iso.app Y⟩⟩⟩
 
 /--
 An equivalence is faithful.
@@ -525,9 +582,9 @@ See https://stacks.math.columbia.edu/tag/02C3.
 -/
 @[priority 100] -- see Note [lower instance priority]
 instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
-{ preimage := λ X Y f, F.fun_inv_id.inv.app X ≫ F.inv.map f ≫ F.fun_inv_id.hom.app Y,
+{ preimage := λ X Y f, F.as_equivalence.unit.app X ≫ F.inv.map f ≫ F.as_equivalence.unit_inv.app Y,
   witness' := λ X Y f, F.inv.map_injective $
-  by simpa only [is_equivalence.inv_fun_map, assoc, iso.hom_inv_id_app_assoc, iso.hom_inv_id_app]
+  by simpa only [is_equivalence.inv_fun_map, assoc, iso.inv_hom_id_app_assoc, iso.inv_hom_id_app]
     using comp_id _ }
 
 @[simps] private noncomputable def equivalence_inverse (F : C ⥤ D) [full F] [faithful F]
@@ -542,7 +599,7 @@ A functor which is full, faithful, and essentially surjective is an equivalence.
 
 See https://stacks.math.columbia.edu/tag/02C3.
 -/
-noncomputable def equivalence_of_fully_faithfully_ess_surj
+noncomputable def of_fully_faithfully_ess_surj
   (F : C ⥤ D) [full F] [faithful F] [ess_surj F] : is_equivalence F :=
 is_equivalence.mk (equivalence_inverse F)
   (nat_iso.of_components
@@ -557,6 +614,18 @@ is_equivalence.mk (equivalence_inverse F)
 @[simp] lemma inverse_map_inj_iff (e : C ≌ D) {X Y : D} (f g : X ⟶ Y) :
   e.inverse.map f = e.inverse.map g ↔ f = g :=
 functor_map_inj_iff e.symm f g
+
+instance ess_surj_induced_functor {C' : Type*} (e : C' ≃ D) : ess_surj (induced_functor e) :=
+{ mem_ess_image := λ Y, ⟨e.symm Y, by simp⟩, }
+
+noncomputable
+instance induced_functor_of_equiv {C' : Type*} (e : C' ≃ D) : is_equivalence (induced_functor e) :=
+equivalence.of_fully_faithfully_ess_surj _
+
+noncomputable
+instance fully_faithful_to_ess_image (F : C ⥤ D) [full F] [faithful F] :
+  is_equivalence F.to_ess_image :=
+of_fully_faithfully_ess_surj F.to_ess_image
 
 end equivalence
 

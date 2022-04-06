@@ -5,14 +5,14 @@ Authors: Scott Morrison
 -/
 
 import category_theory.punit
-import category_theory.limits.limits
+import category_theory.limits.has_limits
 
 /-!
 # `discrete punit` has limits and colimits
 
-Mostly for the sake of constructing trivial examples,
-we show all (co)cones into `discrete punit` are (co)limit (co)cones,
-and `discrete punit` has all (co)limits.
+Mostly for the sake of constructing trivial examples, we show all (co)cones into `discrete punit`
+are (co)limit (co)cones. We also show that such (co)cones exist, and that `discrete punit` has all
+(co)limits.
 -/
 
 universe v
@@ -20,8 +20,15 @@ universe v
 open category_theory
 namespace category_theory.limits
 
-
 variables {J : Type v} [small_category J] {F : J ⥤ discrete punit.{v+1}}
+
+/-- A trivial cone for a functor into `punit`. `punit_cone_is_limit` shows it is a limit. -/
+def punit_cone : cone F :=
+⟨punit.star, (functor.punit_ext _ _).hom⟩
+
+/-- A trivial cocone for a functor into `punit`. `punit_cocone_is_limit` shows it is a colimit. -/
+def punit_cocone : cocone F :=
+⟨punit.star, (functor.punit_ext _ _).hom⟩
 
 /--
 Any cone over a functor into `punit` is a limit cone.
@@ -40,6 +47,5 @@ by tidy
 
 instance : has_colimits (discrete punit) :=
 by tidy
-
 
 end category_theory.limits

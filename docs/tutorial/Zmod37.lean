@@ -167,7 +167,7 @@ instance : add_comm_group (Zmod37)  :=
       rw add_assoc, -- done :-) because after a rw a goal is closed if it's of the form x ≈ x,
                     -- as ≈ is known by Lean to be reflexive.
     end),
-  add_zero     := -- I will intrroduce some more sneaky stuff now now
+  add_zero     := -- I will introduce some more sneaky stuff now
                   -- add_zero for Zmod37 follows from add_zero on Z.
                   -- Note use of $ instead of the brackets
     λ abar, quotient.induction_on abar $ λ a, quotient.sound $ by rw add_zero,

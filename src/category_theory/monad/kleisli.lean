@@ -1,11 +1,10 @@
 /-
 Copyright (c) 2020 Wojciech Nawrocki. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Wojciech Nawrocki, Bhavik Mehta
+Authors: Wojciech Nawrocki, Bhavik Mehta
 -/
 
-import category_theory.adjunction
-import category_theory.monad.adjunction
+import category_theory.adjunction.basic
 import category_theory.monad.basic
 
 /-! # Kleisli category on a monad
@@ -18,7 +17,7 @@ adjunction which gives rise to the monad `(T, η_ T, μ_ T)`.
 -/
 namespace category_theory
 
-universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
+universes v u -- morphism levels before object levels. See note [category_theory universes].
 
 variables {C : Type u} [category.{v} C]
 
@@ -33,7 +32,7 @@ namespace kleisli
 
 variables (T : monad C)
 
-instance [inhabited C] (T : monad C) : inhabited (kleisli T) := ⟨(default _ : C)⟩
+instance [inhabited C] (T : monad C) : inhabited (kleisli T) := ⟨(default : C)⟩
 
 /-- The Kleisli category on a monad `T`.
     cf Definition 5.2.9 in [Riehl][riehl2017]. -/

@@ -118,8 +118,8 @@ lemma is_square_op_iff (a : α) : is_square (op a) ↔ is_square a :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [← is_square_op_iff, ← inv_inv a],
-    exact (mul_equiv.inv' α).to_monoid_hom.is_square h },
-  { exact (mul_equiv.inv' α).symm.to_monoid_hom.is_square ((is_square_op_iff a).mpr h) }
+    exact h.map (mul_equiv.inv' α) },
+   { exact ((is_square_op_iff a).mpr h).map (mul_equiv.inv' α).symm }
 end
 
 end group

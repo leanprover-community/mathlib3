@@ -27,7 +27,9 @@ namespace SemiNormedGroup
 instance bundled_hom : bundled_hom @normed_group_hom :=
 ⟨@normed_group_hom.to_fun, @normed_group_hom.id, @normed_group_hom.comp, @normed_group_hom.coe_inj⟩
 
-attribute [derive [has_coe_to_sort, large_category, concrete_category]] SemiNormedGroup
+attribute [derive [large_category, concrete_category]] SemiNormedGroup
+
+instance : has_coe_to_sort SemiNormedGroup (Type u) := bundled.has_coe_to_sort
 
 /-- Construct a bundled `SemiNormedGroup` from the underlying type and typeclass. -/
 def of (M : Type u) [semi_normed_group M] : SemiNormedGroup := bundled.of M
@@ -72,10 +74,11 @@ end SemiNormedGroup
 `SemiNormedGroup₁` is a type synonym for `SemiNormedGroup`,
 which we shall equip with the category structure consisting only of the norm non-increasing maps.
 -/
-@[derive has_coe_to_sort]
 def SemiNormedGroup₁ : Type (u+1) := bundled semi_normed_group
 
 namespace SemiNormedGroup₁
+
+instance : has_coe_to_sort SemiNormedGroup₁ (Type u) := bundled.has_coe_to_sort
 
 instance : large_category.{u} SemiNormedGroup₁ :=
 { hom := λ X Y, { f : normed_group_hom X Y // f.norm_noninc },
@@ -124,6 +127,9 @@ rfl
 @[simp] lemma coe_id (V : SemiNormedGroup₁) : ⇑(𝟙 V) = id := rfl
 @[simp] lemma coe_comp {M N K : SemiNormedGroup₁} (f : M ⟶ N) (g : N ⟶ K) :
   ((f ≫ g) : M → K) = g ∘ f := rfl
+-- If `coe_fn_coe_base` fires before `coe_comp`, `coe_comp'` puts us back in normal form.
+@[simp] lemma coe_comp' {M N K : SemiNormedGroup₁} (f : M ⟶ N) (g : N ⟶ K) :
+  ((f ≫ g) : normed_group_hom M K) = (↑g : normed_group_hom N K).comp ↑f := rfl
 
 instance : has_zero SemiNormedGroup₁ := ⟨of punit⟩
 instance : inhabited SemiNormedGroup₁ := ⟨0⟩
@@ -131,7 +137,7 @@ instance : inhabited SemiNormedGroup₁ := ⟨0⟩
 instance : limits.has_zero_morphisms.{u (u+1)} SemiNormedGroup₁ :=
 { has_zero := λ X Y, { zero := ⟨0, normed_group_hom.norm_noninc.zero⟩, },
   comp_zero' := λ X Y f Z, by { ext, refl, },
-  zero_comp' := λ X Y Z f, by { ext, simp, }, }
+  zero_comp' := λ X Y Z f, by { ext, simp [coe_fn_coe_base'] } }
 
 @[simp] lemma zero_apply {V W : SemiNormedGroup₁} (x : V) : (0 : V ⟶ W) x = 0 := rfl
 

@@ -74,7 +74,7 @@ def walking_pair.equiv_bool : walking_pair ≃ bool :=
 variables {C : Type u} [category.{v} C]
 
 /-- The diagram on the walking pair, sending the two points to `X` and `Y`. -/
-def pair (X Y : C) : discrete walking_pair ⥤ C :=
+def pair (X Y : C) : discrete walking_pair.{v} ⥤ C :=
 discrete.functor (λ j, walking_pair.cases_on j X Y)
 
 @[simp] lemma pair_obj_left (X Y : C) : (pair X Y).obj left = X := rfl
@@ -374,7 +374,7 @@ by { ext; simp }
 -- TODO: is it necessary to weaken the assumption here?
 @[reassoc]
 lemma prod.map_swap {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y)
-  [has_limits_of_shape (discrete walking_pair) C] :
+  [has_limits_of_shape (discrete walking_pair.{v}) C] :
   prod.map (𝟙 X) f ≫ prod.map g (𝟙 B) = prod.map g (𝟙 A) ≫ prod.map (𝟙 Y) f :=
 by simp
 
@@ -400,6 +400,14 @@ instance is_iso_prod {W X Y Z : C} [has_binary_product W X] [has_binary_product 
   (f : W ⟶ Y) (g : X ⟶ Z) [is_iso f] [is_iso g] : is_iso (prod.map f g) :=
 is_iso.of_iso (prod.map_iso (as_iso f) (as_iso g))
 
+instance prod.map_mono {C : Type*} [category C] {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [mono f]
+  [mono g] [has_binary_product W X] [has_binary_product Y Z] : mono (prod.map f g) :=
+⟨λ A i₁ i₂ h, begin
+  ext,
+  { rw ← cancel_mono f, simpa using congr_arg (λ f, f ≫ prod.fst) h },
+  { rw ← cancel_mono g, simpa using congr_arg (λ f, f ≫ prod.snd) h }
+end⟩
+
 @[simp, reassoc]
 lemma prod.diag_map {X Y : C} (f : X ⟶ Y) [has_binary_product X X] [has_binary_product Y Y] :
   diag X ≫ prod.map f f = f ≫ diag Y :=
@@ -412,7 +420,7 @@ lemma prod.diag_map_fst_snd {X Y : C} [has_binary_product X Y]
 by simp
 
 @[simp, reassoc]
-lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair) C]
+lemma prod.diag_map_fst_snd_comp  [has_limits_of_shape (discrete walking_pair.{v}) C]
   {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
   diag (X ⨯ X') ≫ prod.map (prod.fst ≫ g) (prod.snd ≫ g') = prod.map g g' :=
 by simp
@@ -481,7 +489,7 @@ by { ext; simp }
 -- I don't think it's a good idea to make any of the following three simp lemmas.
 @[reassoc]
 lemma coprod.map_swap {A B X Y : C} (f : A ⟶ B) (g : X ⟶ Y)
-  [has_colimits_of_shape (discrete walking_pair) C] :
+  [has_colimits_of_shape (discrete walking_pair.{v}) C] :
   coprod.map (𝟙 X) f ≫ coprod.map g (𝟙 B) = coprod.map g (𝟙 A) ≫ coprod.map (𝟙 Y) f :=
 by simp
 
@@ -507,6 +515,15 @@ instance is_iso_coprod {W X Y Z : C} [has_binary_coproduct W X] [has_binary_copr
   (f : W ⟶ Y) (g : X ⟶ Z) [is_iso f] [is_iso g] : is_iso (coprod.map f g) :=
 is_iso.of_iso (coprod.map_iso (as_iso f) (as_iso g))
 
+instance coprod.map_epi {C : Type*} [category C] {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) [epi f]
+  [epi g] [has_binary_coproduct W X] [has_binary_coproduct Y Z] : epi (coprod.map f g) :=
+⟨λ A i₁ i₂ h, begin
+  ext,
+  { rw ← cancel_epi f, simpa using congr_arg (λ f, coprod.inl ≫ f) h },
+  { rw ← cancel_epi g, simpa using congr_arg (λ f, coprod.inr ≫ f) h }
+end⟩
+
+
 -- The simp linter says simp can prove the reassoc version of this lemma.
 @[reassoc, simp]
 lemma coprod.map_codiag {X Y : C} (f : X ⟶ Y) [has_binary_coproduct X X]
@@ -523,7 +540,7 @@ by simp
 
 -- The simp linter says simp can prove the reassoc version of this lemma.
 @[reassoc, simp]
-lemma coprod.map_comp_inl_inr_codiag [has_colimits_of_shape (discrete walking_pair) C]
+lemma coprod.map_comp_inl_inr_codiag [has_colimits_of_shape (discrete walking_pair.{v}) C]
   {X X' Y Y' : C} (g : X ⟶ Y) (g' : X' ⟶ Y') :
   coprod.map (g ≫ coprod.inl) (g' ≫ coprod.inr) ≫ codiag (Y ⨿ Y') = coprod.map g g' :=
 by simp
@@ -537,14 +554,14 @@ variables (C)
 
 See https://stacks.math.columbia.edu/tag/001T.
 -/
-abbreviation has_binary_products := has_limits_of_shape (discrete walking_pair) C
+abbreviation has_binary_products := has_limits_of_shape (discrete walking_pair.{v}) C
 
 /--
 `has_binary_coproducts` represents a choice of coproduct for every pair of objects.
 
 See https://stacks.math.columbia.edu/tag/04AP.
 -/
-abbreviation has_binary_coproducts := has_colimits_of_shape (discrete walking_pair) C
+abbreviation has_binary_coproducts := has_colimits_of_shape (discrete walking_pair.{v}) C
 
 /-- If `C` has all limits of diagrams `pair X Y`, then it has all binary products -/
 lemma has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)] :

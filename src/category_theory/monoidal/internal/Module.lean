@@ -95,23 +95,28 @@ def inverse_obj (A : Algebra.{u} R) : Mon_ (Module.{u} R) :=
   one_mul' :=
   begin
     ext x,
-    dsimp,
-    rw [algebra.lmul'_apply, monoidal_category.left_unitor_hom_apply, algebra.smul_def],
-    refl,
+    dsimp only [Algebra.id_apply, tensor_product.mk_apply,
+      algebra.linear_map_apply, linear_map.compr₂_apply, function.comp_app,
+      ring_hom.map_one, Module.monoidal_category.hom_apply, Algebra.coe_comp,
+      Module.monoidal_category.left_unitor_hom_apply],
+    rw [algebra.lmul'_apply, monoidal_category.left_unitor_hom_apply, ← algebra.smul_def]
   end,
   mul_one' :=
   begin
     ext x,
-    dsimp,
-    rw [algebra.lmul'_apply, monoidal_category.right_unitor_hom_apply,
-      ←algebra.commutes, algebra.smul_def],
-    refl,
+    dsimp only [Algebra.id_apply, tensor_product.mk_apply, algebra.linear_map_apply,
+      linear_map.compr₂_apply, function.comp_app, Module.monoidal_category.hom_apply,
+      Algebra.coe_comp],
+    rw [algebra.lmul'_apply, Module.monoidal_category.right_unitor_hom_apply,
+        ← algebra.commutes, ← algebra.smul_def]
   end,
   mul_assoc' :=
   begin
     ext x y z,
-    dsimp,
-    simp only [mul_assoc, algebra.lmul'_apply],
+    dsimp only [Algebra.id_apply, tensor_product.mk_apply, linear_map.compr₂_apply,
+      function.comp_app, Module.monoidal_category.hom_apply,
+      Algebra.coe_comp, monoidal_category.associator_hom_apply],
+    simp only [algebra.lmul'_apply, mul_assoc]
   end }
 
 /--
@@ -121,7 +126,11 @@ Converting a bundled algebra to a monoid object in `Module R`.
 def inverse : Algebra.{u} R ⥤ Mon_ (Module.{u} R) :=
 { obj := inverse_obj,
   map := λ A B f,
-  { hom := f.to_linear_map, }, }.
+  { hom := f.to_linear_map,
+    one_hom' :=
+      by { ext, dsimp, simp only [ring_hom.map_one, alg_hom.map_one] },
+    mul_hom' :=
+      by { ext, dsimp, simp only [algebra.lmul'_apply, ring_hom.map_mul, alg_hom.map_mul] } } }.
 
 end Mon_Module_equivalence_Algebra
 

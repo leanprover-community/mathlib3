@@ -215,8 +215,7 @@ add_tactic_doc
 { name := "display name of the tactic",
   category := cat,
   decl_names := [`dcl_1, `dcl_2],
-  tags := ["tag_1", "tag_2"]
-}
+  tags := ["tag_1", "tag_2"] }
 ```
 
 The argument to `add_tactic_doc` is a structure of type `tactic_doc_entry`.
@@ -380,7 +379,7 @@ Inside `conv` blocks, mathlib currently additionally provides
 * `conv` (within another `conv`).
 
 `apply_congr` applies congruence lemmas to step further inside expressions,
-and sometimes gives between results than the automatically generated
+and sometimes gives better results than the automatically generated
 congruence lemmas used by `congr`.
 
 Using `conv` inside a `conv` block allows the user to return to the previous
@@ -389,13 +388,12 @@ editing an expression without having to start a new `conv` block and re-scoping
 everything. For example:
 ```lean
 example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
-by conv {
-  to_lhs,
-  conv {
-    congr, skip,
+by conv
+{ to_lhs,
+  conv
+  { congr, skip,
     rw h₁ },
-  rw h₂,
-}
+  rw h₂, }
 ```
 Without `conv`, the above example would need to be proved using two successive
 `conv` blocks, each beginning with `to_lhs`.

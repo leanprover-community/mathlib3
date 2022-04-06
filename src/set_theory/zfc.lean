@@ -69,7 +69,7 @@ def const {α : Type u} (a : α) : ∀ n, arity α n
 | (n+1) := λ _, const n
 
 instance arity.inhabited {α n} [inhabited α] : inhabited (arity α n) :=
-⟨const (default _) _⟩
+⟨const default _⟩
 
 end arity
 
@@ -263,7 +263,7 @@ lemma arity.equiv_const {a : pSet.{u}} : ∀ n, arity.equiv (arity.const a n) (a
 def resp (n) := {x : arity pSet.{u} n // arity.equiv x x}
 
 instance resp.inhabited {n} : inhabited (resp n) :=
-⟨⟨arity.const (default _) _, arity.equiv_const _⟩⟩
+⟨⟨arity.const default _, arity.equiv_const _⟩⟩
 
 /-- The `n`-ary image of a `(n + 1)`-ary function respecting equivalence as a function respecting
 equivalence. -/
@@ -473,9 +473,9 @@ resp.eval 1 ⟨powerset, λ ⟨α, A⟩ ⟨β, B⟩ ⟨αβ, βα⟩,
     λ ⟨a, b, qb, ab⟩, ⟨⟨b, qb⟩, ab⟩,
     λ ⟨b, qb⟩, let ⟨a, ab⟩ := βα b in ⟨⟨a, b, qb, ab⟩, ab⟩⟩⟩⟩
 
-@[simp] theorem mem_powerset {x y : Set} : y ∈ powerset x ↔ y ⊆ x :=
-quotient.induction_on₂ x y (λ ⟨α, A⟩ ⟨β, B⟩,
-  show (⟨β, B⟩ : pSet) ∈ (pSet.powerset ⟨α, A⟩) ↔ _,
+@[simp] theorem mem_powerset {x y : Set.{u}} : y ∈ powerset x ↔ y ⊆ x :=
+quotient.induction_on₂ x y ( λ ⟨α, A⟩ ⟨β, B⟩,
+  show (⟨β, B⟩ : pSet.{u}) ∈ (pSet.powerset.{u} ⟨α, A⟩) ↔ _,
     by simp [mem_powerset, subset_iff])
 
 theorem Union_lem {α β : Type u} (A : α → pSet) (B : β → pSet) (αβ : ∀ a, ∃ b, equiv (A a) (B b)) :

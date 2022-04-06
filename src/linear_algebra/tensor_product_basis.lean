@@ -3,6 +3,7 @@ Copyright (c) 2021 Jakob von Raumer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jakob von Raumer
 -/
+import linear_algebra.direct_sum.finsupp
 import linear_algebra.finsupp_vector_space
 
 /-!

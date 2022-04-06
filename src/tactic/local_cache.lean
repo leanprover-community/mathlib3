@@ -29,8 +29,8 @@ do e ← tactic.get_env,
 meta def run_once_under_name {α : Type} [reflected α] [has_reflect α] (t : tactic α)
   (cache_name : name) : tactic α :=
 do load_data cache_name <|>
-   do {
-     a ← t,
+   do
+   { a ← t,
      save_data cache_name a,
      return a }
 

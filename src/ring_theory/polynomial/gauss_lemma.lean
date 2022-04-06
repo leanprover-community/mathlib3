@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
 import ring_theory.int.basic
-import ring_theory.localization
+import ring_theory.localization.integral
 
 /-!
 # Gauss's Lemma
@@ -23,17 +23,17 @@ Gauss's Lemma is one of a few results pertaining to irreducibility of primitive 
 
 -/
 
-open_locale non_zero_divisors
+open_locale non_zero_divisors polynomial
 
-variables {R : Type*} [comm_ring R] [integral_domain R]
+variables {R : Type*} [comm_ring R] [is_domain R]
 
 namespace polynomial
 section normalized_gcd_monoid
 variable [normalized_gcd_monoid R]
 
 section
-variables {S : Type*} [comm_ring S] [integral_domain S] {φ : R →+* S} (hinj : function.injective φ)
-variables {f : polynomial R} (hf : f.is_primitive)
+variables {S : Type*} [comm_ring S] [is_domain S] {φ : R →+* S} (hinj : function.injective φ)
+variables {f : R[X]} (hf : f.is_primitive)
 include hinj hf
 
 lemma is_primitive.is_unit_iff_is_unit_map_of_injective :
@@ -42,7 +42,7 @@ begin
   refine ⟨(map_ring_hom φ).is_unit_map, λ h, _⟩,
   rcases is_unit_iff.1 h with ⟨_, ⟨u, rfl⟩, hu⟩,
   have hdeg := degree_C u.ne_zero,
-  rw [hu, degree_map' hinj] at hdeg,
+  rw [hu, degree_map_eq_of_injective hinj] at hdeg,
   rw [eq_C_of_degree_eq_zero hdeg, is_primitive_iff_content_eq_one,
       content_C, normalize_eq_one] at hf,
   rwa [eq_C_of_degree_eq_zero hdeg, is_unit_C],
@@ -51,7 +51,7 @@ end
 lemma is_primitive.irreducible_of_irreducible_map_of_injective (h_irr : irreducible (map φ f)) :
   irreducible f :=
 begin
-  refine ⟨λ h, h_irr.not_unit (is_unit.map ((map_ring_hom φ).to_monoid_hom) h), _⟩,
+  refine ⟨λ h, h_irr.not_unit (is_unit.map (map_ring_hom φ) h), _⟩,
   intros a b h,
   rcases h_irr.is_unit_or_is_unit (by rw [h, map_mul]) with hu | hu,
   { left,
@@ -65,14 +65,14 @@ end
 section fraction_map
 variables {K : Type*} [field K] [algebra R K] [is_fraction_ring R K]
 
-lemma is_primitive.is_unit_iff_is_unit_map {p : polynomial R} (hp : p.is_primitive) :
+lemma is_primitive.is_unit_iff_is_unit_map {p : R[X]} (hp : p.is_primitive) :
   is_unit p ↔ is_unit (p.map (algebra_map R K)) :=
 hp.is_unit_iff_is_unit_map_of_injective (is_fraction_ring.injective _ _)
 
 open is_localization
 
 lemma is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part
-  {p : polynomial K} (h0 : p ≠ 0) (h : is_unit (integer_normalization R⁰ p).prim_part) :
+  {p : K[X]} (h0 : p ≠ 0) (h : is_unit (integer_normalization R⁰ p).prim_part) :
   is_unit p :=
 begin
   rcases is_unit_iff.1 h with ⟨_, ⟨u, rfl⟩, hu⟩,
@@ -93,7 +93,7 @@ end
 /-- **Gauss's Lemma** states that a primitive polynomial is irreducible iff it is irreducible in the
   fraction field. -/
 theorem is_primitive.irreducible_iff_irreducible_map_fraction_map
-  {p : polynomial R} (hp : p.is_primitive) :
+  {p : R[X]} (hp : p.is_primitive) :
   irreducible p ↔ irreducible (p.map (algebra_map R K)) :=
 begin
   refine ⟨λ hi, ⟨λ h, hi.not_unit (hp.is_unit_iff_is_unit_map.2 h), λ a b hab, _⟩,
@@ -133,7 +133,7 @@ begin
     apply is_unit_or_eq_zero_of_is_unit_integer_normalization_prim_part h0.1 h },
 end
 
-lemma is_primitive.dvd_of_fraction_map_dvd_fraction_map {p q : polynomial R}
+lemma is_primitive.dvd_of_fraction_map_dvd_fraction_map {p q : R[X]}
   (hp : p.is_primitive) (hq : q.is_primitive)
   (h_dvd : p.map (algebra_map R K) ∣ q.map (algebra_map R K)) : p ∣ q :=
 begin
@@ -160,7 +160,7 @@ end
 
 variables (K)
 
-lemma is_primitive.dvd_iff_fraction_map_dvd_fraction_map {p q : polynomial R}
+lemma is_primitive.dvd_iff_fraction_map_dvd_fraction_map {p q : R[X]}
   (hp : p.is_primitive) (hq : q.is_primitive) :
   (p ∣ q) ↔ (p.map (algebra_map R K) ∣ q.map (algebra_map R K)) :=
 ⟨λ ⟨a,b⟩, ⟨a.map (algebra_map R K), b.symm ▸ map_mul (algebra_map R K)⟩,
@@ -171,11 +171,11 @@ end fraction_map
 /-- **Gauss's Lemma** for `ℤ` states that a primitive integer polynomial is irreducible iff it is
   irreducible over `ℚ`. -/
 theorem is_primitive.int.irreducible_iff_irreducible_map_cast
-  {p : polynomial ℤ} (hp : p.is_primitive) :
+  {p : ℤ[X]} (hp : p.is_primitive) :
   irreducible p ↔ irreducible (p.map (int.cast_ring_hom ℚ)) :=
 hp.irreducible_iff_irreducible_map_fraction_map
 
-lemma is_primitive.int.dvd_iff_map_cast_dvd_map_cast (p q : polynomial ℤ)
+lemma is_primitive.int.dvd_iff_map_cast_dvd_map_cast (p q : ℤ[X])
   (hp : p.is_primitive) (hq : q.is_primitive) :
   (p ∣ q) ↔ (p.map (int.cast_ring_hom ℚ) ∣ q.map (int.cast_ring_hom ℚ)) :=
 hp.dvd_iff_fraction_map_dvd_fraction_map ℚ hq

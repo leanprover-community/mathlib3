@@ -114,7 +114,7 @@ begin
   rw [← integral_sum_inf_partition f vol π₁ h₂,
     ← integral_sum_inf_partition f vol π₂ h₁, integral_sum, integral_sum,
     finset.sum_sub_distrib],
-  simp only [inf_prepartition_to_prepartition, inf_comm]
+  simp only [inf_prepartition_to_prepartition, _root_.inf_comm]
 end
 
 @[simp] lemma integral_sum_disj_union (f : ℝⁿ → E) (vol : ι →ᵇᵃ (E →L[ℝ] F))
@@ -205,7 +205,7 @@ lemma integrable_iff_cauchy_basis [complete_space F] :
 begin
   rw [integrable_iff_cauchy, cauchy_map_iff',
     (l.has_basis_to_filter_Union_top _).prod_self.tendsto_iff uniformity_basis_dist_le],
-  refine forall_congr (λ ε, forall_congr $ λ ε0, exists_congr $ λ r, _),
+  refine forall₂_congr (λ ε ε0, exists_congr $ λ r, _),
   simp only [exists_prop, prod.forall, set.mem_Union, exists_imp_distrib,
     prod_mk_mem_set_prod_eq, and_imp, mem_inter_eq, mem_set_of_eq],
   exact and_congr iff.rfl ⟨λ H c₁ c₂ π₁ π₂ h₁ hU₁ h₂ hU₂, H π₁ π₂ c₁ h₁ hU₁ c₂ h₂ hU₂,
@@ -643,7 +643,7 @@ lemma integrable_of_continuous_on [complete_space E] {I : box ι} {f : ℝⁿ �
   (hc : continuous_on f I.Icc) (μ : measure ℝⁿ) [is_locally_finite_measure μ] :
   integrable.{u v v} I l f μ.to_box_additive.to_smul :=
 begin
-  have huc := (is_compact_pi_Icc I.lower I.upper).uniform_continuous_on_of_continuous hc,
+  have huc := I.is_compact_Icc.uniform_continuous_on_of_continuous hc,
   rw metric.uniform_continuous_on_iff_le at huc,
   refine integrable_iff_cauchy_basis.2 (λ ε ε0, _),
   rcases exists_pos_mul_lt ε0 (μ.to_box_additive I) with ⟨ε', ε0', hε⟩,
@@ -658,13 +658,14 @@ begin
     have : 0 ≤ μ.to_box_additive J, from ennreal.to_real_nonneg,
     rw [norm_smul, real.norm_eq_abs, abs_of_nonneg this, ← dist_eq_norm],
     refine mul_le_mul_of_nonneg_left _ this,
-    refine Hδ _ _ (tagged_prepartition.tag_mem_Icc _ _) (tagged_prepartition.tag_mem_Icc _ _) _,
+    refine Hδ _ (tagged_prepartition.tag_mem_Icc _ _) _ (tagged_prepartition.tag_mem_Icc _ _) _,
     rw [← add_halves δ],
     refine (dist_triangle_left _ _ J.upper).trans (add_le_add (h₁.1 _ _ _) (h₂.1 _ _ _)),
     { exact prepartition.bUnion_index_mem _ hJ },
     { exact box.le_iff_Icc.1 (prepartition.le_bUnion_index _ hJ) J.upper_mem_Icc },
-    { rw inf_comm at hJ, exact prepartition.bUnion_index_mem _ hJ, },
-    { rw inf_comm at hJ,
+    { rw _root_.inf_comm at hJ,
+      exact prepartition.bUnion_index_mem _ hJ },
+    { rw _root_.inf_comm at hJ,
       exact box.le_iff_Icc.1 (prepartition.le_bUnion_index _ hJ) J.upper_mem_Icc } },
   refine (norm_sum_le_of_le _ this).trans _,
   rw [← finset.sum_mul, μ.to_box_additive.sum_partition_boxes le_top (h₁p.inf h₂p)],

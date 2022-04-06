@@ -5,6 +5,7 @@ Authors: Rémy Degenne
 -/
 import measure_theory.integral.lebesgue
 import analysis.mean_inequalities
+import analysis.mean_inequalities_pow
 import measure_theory.function.special_functions
 
 /-!
@@ -261,9 +262,9 @@ begin
     have hpp2 : p * p2 = q,
     { symmetry, rw [mul_comm, ←div_eq_iff hp0_ne], },
     have hpq2 : p * q2 = r,
-    { rw [← inv_inv₀ r, ← one_div, ← one_div, h_one_div_r],
+    { rw [← inv_inv r, ← one_div, ← one_div, h_one_div_r],
       field_simp [q2, real.conjugate_exponent, p2, hp0_ne, hq0_ne] },
-    simp_rw [div_mul_div, mul_one, mul_comm p2, mul_comm q2, hpp2, hpq2],
+    simp_rw [div_mul_div_comm₀, mul_one, mul_comm p2, mul_comm q2, hpp2, hpq2],
   end
 end
 
@@ -278,7 +279,6 @@ begin
     exact zero_le _, },
   have hf_top_rpow : (∫⁻ (a : α), (f a) ^ p ∂μ) ^ (1 / p) ≠ ⊤,
   { by_contra h,
-    push_neg at h,
     refine hf_top _,
     have hp_not_neg : ¬ p < 0, by simp [hpq.nonneg],
     simpa [hpq.pos, hp_not_neg] using h, },
@@ -338,7 +338,6 @@ begin
   have hp_not_nonpos : ¬ p ≤ 0, by simp [hpq.pos],
   have htop_rpow : (∫⁻ a, ((f+g) a) ^ p ∂μ)^(1/p) ≠ ⊤,
   { by_contra h,
-    push_neg at h,
     exact h_add_top (@ennreal.rpow_eq_top_of_nonneg _ (1/p) (by simp [hpq.nonneg]) h), },
   have h0_rpow : (∫⁻ a, ((f+g) a) ^ p ∂ μ) ^ (1/p) ≠ 0,
   by simp [h_add_zero, h_add_top, hpq.nonneg, hp_not_nonpos, -pi.add_apply],

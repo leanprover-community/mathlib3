@@ -32,6 +32,7 @@ this file.
 noncomputable theory
 
 open complex continuous_linear_map
+open_locale complex_conjugate
 
 lemma is_conformal_map_conj : is_conformal_map (conj_lie : ℂ →L[ℝ] ℂ) :=
 conj_lie.to_linear_isometry.is_conformal_map
@@ -39,7 +40,7 @@ conj_lie.to_linear_isometry.is_conformal_map
 section conformal_into_complex_normed
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E] [normed_space ℂ E]
-  [is_scalar_tower ℝ ℂ E] {z : ℂ} {g : ℂ →L[ℝ] E} {f : ℂ → E}
+  {z : ℂ} {g : ℂ →L[ℝ] E} {f : ℂ → E}
 
 lemma is_conformal_map_complex_linear
   {map : ℂ →L[ℂ] E} (nonzero : map ≠ 0) : is_conformal_map (map.restrict_scalars ℝ) :=
@@ -52,7 +53,7 @@ begin
     have : x = x • 1 := by rw [smul_eq_mul, mul_one],
     nth_rewrite 0 [this],
     rw [_root_.coe_coe map, linear_map.coe_coe_is_scalar_tower],
-    simp only [map.coe_coe, map.map_smul, norm_smul, normed_field.norm_inv, norm_norm],
+    simp only [map.coe_coe, map.map_smul, norm_smul, norm_inv, norm_norm],
     field_simp [minor₁], },
   { ext1,
     rw [← linear_isometry.coe_to_linear_map],

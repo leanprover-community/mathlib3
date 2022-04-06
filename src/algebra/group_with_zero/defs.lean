@@ -101,10 +101,10 @@ element, and `0` is left and right absorbing. -/
 @[protect_proj]
 class comm_monoid_with_zero (M₀ : Type*) extends comm_monoid M₀, monoid_with_zero M₀.
 
-/-- A type `M` is a `comm_cancel_monoid_with_zero` if it is a commutative monoid with zero element,
+/-- A type `M` is a `cancel_comm_monoid_with_zero` if it is a commutative monoid with zero element,
  `0` is left and right absorbing,
   and left/right multiplication by a non-zero element is injective. -/
-@[protect_proj] class comm_cancel_monoid_with_zero (M₀ : Type*) extends
+@[protect_proj] class cancel_comm_monoid_with_zero (M₀ : Type*) extends
   comm_monoid_with_zero M₀, cancel_monoid_with_zero M₀.
 
 /-- A type `G₀` is a “group with zero” if it is a monoid with zero element (distinct from `1`)

@@ -64,6 +64,10 @@ theorem chain_split {a b : α} {l₁ l₂ : list α} : chain R a (l₁ ++ b :: l
 by induction l₁ with x l₁ IH generalizing a;
 simp only [*, nil_append, cons_append, chain.nil, chain_cons, and_true, and_assoc]
 
+@[simp] theorem chain_append_cons_cons {a b c : α} {l₁ l₂ : list α} :
+  chain R a (l₁ ++ b :: c :: l₂) ↔ chain R a (l₁ ++ [b]) ∧ R b c ∧ chain R c l₂ :=
+by rw [chain_split, chain_cons]
+
 theorem chain_map (f : β → α) {b : β} {l : list β} :
   chain R (f b) (map f l) ↔ chain (λ a b : β, R (f a) (f b)) b l :=
 by induction l generalizing b; simp only [map, chain.nil, chain_cons, *]
@@ -213,6 +217,12 @@ theorem chain'.cons' {x} :
 
 theorem chain'_cons' {x l} : chain' R (x :: l) ↔ (∀ y ∈ head' l, R x y) ∧ chain' R l :=
 ⟨λ h, ⟨h.rel_head', h.tail⟩, λ ⟨h₁, h₂⟩, h₂.cons' h₁⟩
+
+theorem chain'.drop : ∀ (n) {l} (h : chain' R l), chain' R (drop n l)
+| 0       _             h := h
+| _       []            _ := by {rw drop_nil, exact chain'_nil}
+| (n + 1) [a]           _ := by {unfold drop, rw drop_nil, exact chain'_nil}
+| (n + 1) (a :: b :: l) h := chain'.drop n (chain'_cons'.mp h).right
 
 theorem chain'.append : ∀ {l₁ l₂ : list α} (h₁ : chain' R l₁) (h₂ : chain' R l₂)
   (h : ∀ (x ∈ l₁.last') (y ∈ l₂.head'), R x y),

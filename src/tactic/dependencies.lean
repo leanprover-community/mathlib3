@@ -3,6 +3,7 @@ Copyright (c) 2020 Jannis Limperg. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jannis Limperg
 -/
+import meta.rb_map
 import tactic.core
 
 /-!
@@ -289,8 +290,8 @@ meta def hyps_depend_on_local_name_set (hs : list expr) (ns : name_set) :
   if ctx_has_local
     then
       let go : expr → list bool × expr_set → tactic (list bool × expr_set) :=
-      λ h ⟨deps, cache⟩, do {
-        (h_dep, cache) ← hyp_depends_on_local_name_set' cache h ns,
+      λ h ⟨deps, cache⟩, do
+      { (h_dep, cache) ← hyp_depends_on_local_name_set' cache h ns,
         pure (h_dep :: deps, cache) }
       in
       prod.fst <$> hs.mfoldr go ([], mk_expr_map)
@@ -375,8 +376,8 @@ meta def hyps_depend_on_local_name_set_inclusive (hs : list expr) (ns : name_set
   if ctx_has_local
     then
       let go : expr → list bool × expr_set → tactic (list bool × expr_set) :=
-      λ h ⟨deps, cache⟩, do {
-        (h_dep, cache) ← hyp_depends_on_local_name_set_inclusive' cache h ns,
+      λ h ⟨deps, cache⟩, do
+      { (h_dep, cache) ← hyp_depends_on_local_name_set_inclusive' cache h ns,
         pure (h_dep :: deps, cache) }
       in
       prod.fst <$> hs.mfoldr go ([], mk_expr_map)
@@ -422,8 +423,8 @@ meta def dependency_set_of_hyp' : expr_map expr_set → expr →
   | none := do
     direct_deps ← direct_dependency_set_of_hyp h,
     (deps, cache) ←
-      direct_deps.mfold (direct_deps, cache) $ λ h' ⟨deps, cache⟩, do {
-        (deps', cache) ← dependency_set_of_hyp' cache h',
+      direct_deps.mfold (direct_deps, cache) $ λ h' ⟨deps, cache⟩, do
+      { (deps', cache) ← dependency_set_of_hyp' cache h',
         pure (deps.union deps', cache) },
     pure (deps, cache.insert h deps)
   end
@@ -466,8 +467,8 @@ meta def dependency_sets_of_hyps (hs : list expr) : tactic (list expr_set) := do
     then
       let go : expr → list expr_set × expr_map expr_set →
         tactic (list expr_set × expr_map expr_set) := do
-      λ h ⟨deps, cache⟩, do {
-          (h_deps, cache) ← dependency_set_of_hyp' cache h,
+      λ h ⟨deps, cache⟩, do
+        { (h_deps, cache) ← dependency_set_of_hyp' cache h,
           pure (h_deps :: deps, cache) }
       in
       prod.fst <$> hs.mfoldr go ([], mk_expr_map)
@@ -546,8 +547,8 @@ meta def dependency_sets_of_hyps_inclusive (hs : list expr) :
     then
       let go : expr → list expr_set × expr_map expr_set →
         tactic (list expr_set × expr_map expr_set) :=
-      λ h ⟨deps, cache⟩, do {
-        (h_deps, cache) ← dependency_set_of_hyp_inclusive' cache h,
+      λ h ⟨deps, cache⟩, do
+      { (h_deps, cache) ← dependency_set_of_hyp_inclusive' cache h,
         pure (h_deps :: deps, cache) }
       in
       prod.fst <$> hs.mfoldr go ([], mk_expr_map)

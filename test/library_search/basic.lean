@@ -44,10 +44,10 @@ example (a b : ℕ) : a + b = b + a :=
 by library_search -- says: `exact add_comm a b`
 
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search -- says: `exact nat.mul_sub_left_distrib n m k`
+by library_search -- says: `exact mul_tsub n m k`
 
 example (n m k : ℕ) : n * m - n * k = n * (m - k) :=
-by library_search -- says: `exact eq.symm (nat.mul_sub_left_distrib n m k)`
+by library_search -- says: `exact eq.symm (mul_tsub n m k)`
 
 example {α : Type} (x y : α) : x = y ↔ y = x :=
 by library_search -- says: `exact eq_comm`
@@ -149,5 +149,19 @@ begin
   success_if_fail { library_search using P Q R S T, },
   exact []
 end
+
+-- Tests for #3428
+constants (x y w z : ℕ)
+axiom not_axiom : ¬ x = y
+axiom ne_axiom : w ≠ z
+example : x ≠ y := by library_search
+example : ¬ w = z := by library_search
+
+structure foo := (a : nat) (b : nat)
+constants (k l : foo)
+axiom ne_axiom' (h : k.a ≠ 0) : k.b ≠ 0
+axiom not_axiom' (h : l.a ≠ 0) : ¬ l.b = 0
+example (hq : k.a ≠ 0) : k.b ≠ 0 := by library_search
+example (hq : l.a ≠ 0) : ¬ l.b = 0 := by library_search
 
 end test.library_search

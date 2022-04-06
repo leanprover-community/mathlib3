@@ -28,6 +28,7 @@ section block_matrices
 
 /-- We can form a single large matrix by flattening smaller 'block' matrices of compatible
 dimensions. -/
+@[pp_nodot]
 def from_blocks (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   matrix (n ⊕ o) (l ⊕ m) α :=
 sum.elim (λ i, sum.elim (A i) (B i))
@@ -264,8 +265,9 @@ by { ext, simp [block_diagonal_apply] }
   block_diagonal (λ k, diagonal (d k)) = diagonal (λ ik, d ik.2 ik.1) :=
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
-  simp only [block_diagonal_apply, diagonal],
-  split_ifs; finish
+  simp only [block_diagonal_apply, diagonal, prod.mk.inj_iff, ← ite_and],
+  congr' 1,
+  rw and_comm,
 end
 
 @[simp] lemma block_diagonal_one [decidable_eq m] [has_one α] :
@@ -361,13 +363,8 @@ end
   (block_diagonal' M)ᵀ = block_diagonal' (λ k, (M k)ᵀ) :=
 begin
   ext ⟨ii, ix⟩ ⟨ji, jx⟩,
-  simp only [transpose_apply, block_diagonal'_apply, eq_comm],
-  dsimp only,
-  split_ifs with h₁ h₂ h₂,
-  { subst h₁, refl, },
-  { exact (h₂ h₁.symm).elim },
-  { exact (h₁ h₂.symm).elim },
-  { refl }
+  simp only [transpose_apply, block_diagonal'_apply],
+  split_ifs; cc
 end
 
 @[simp] lemma block_diagonal'_conj_transpose {α} [semiring α] [star_ring α]
@@ -387,7 +384,7 @@ by { ext, simp [block_diagonal'_apply] }
 begin
   ext ⟨i, k⟩ ⟨j, k'⟩,
   simp only [block_diagonal'_apply, diagonal],
-  split_ifs; finish
+  split_ifs; cc
 end
 
 @[simp] lemma block_diagonal'_one [∀ i, decidable_eq (m' i)] [has_one α] :

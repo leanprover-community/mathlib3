@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Mario Carneiro, Yaël Dillies
 -/
 import order.compare
 import order.order_dual
+import order.rel_classes
 
 /-!
 # Monotonicity
@@ -28,14 +29,14 @@ to mean "decreasing".
 
 ## Main theorems
 
-* `monotone_nat_of_le_succ`: If `f : ℕ → α` and `f n ≤ f (n + 1)` for all `n`, then `f` is
-  monotone.
-* `antitone_nat_of_succ_le`: If `f : ℕ → α` and `f (n + 1) ≤ f n` for all `n`, then `f` is
-  antitone.
-* `strict_mono_nat_of_lt_succ`: If `f : ℕ → α` and `f n < f (n + 1)` for all `n`, then `f` is
-  strictly monotone.
-* `strict_anti_nat_of_succ_lt`: If `f : ℕ → α` and `f (n + 1) < f n` for all `n`, then `f` is
-  strictly antitone.
+* `monotone_nat_of_le_succ`, `monotone_int_of_le_succ`: If `f : ℕ → α` or `f : ℤ → α` and
+  `f n ≤ f (n + 1)` for all `n`, then `f` is monotone.
+* `antitone_nat_of_succ_le`, `antitone_int_of_succ_le`: If `f : ℕ → α` or `f : ℤ → α` and
+  `f (n + 1) ≤ f n` for all `n`, then `f` is antitone.
+* `strict_mono_nat_of_lt_succ`, `strict_mono_int_of_lt_succ`: If `f : ℕ → α` or `f : ℤ → α` and
+  `f n < f (n + 1)` for all `n`, then `f` is strictly monotone.
+* `strict_anti_nat_of_succ_lt`, `strict_anti_int_of_succ_lt`: If `f : ℕ → α` or `f : ℤ → α` and
+  `f (n + 1) < f n` for all `n`, then `f` is strictly antitone.
 
 ## Implementation notes
 
@@ -46,9 +47,8 @@ https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Order.20dia
 
 ## TODO
 
-The above theorems are also true in `ℤ`, `ℕ+`, `fin n`... To make that work, we need `succ_order α`
-along with another typeclass we don't yet have roughly stating "everything is reachable using
-finitely many `succ`".
+The above theorems are also true in `ℕ+`, `fin n`... To make that work, we need `succ_order α`
+and `succ_archimedean α`.
 
 ## Tags
 
@@ -70,11 +70,11 @@ def monotone (f : α → β) : Prop := ∀ ⦃a b⦄, a ≤ b → f a ≤ f b
 /-- A function `f` is antitone if `a ≤ b` implies `f b ≤ f a`. -/
 def antitone (f : α → β) : Prop := ∀ ⦃a b⦄, a ≤ b → f b ≤ f a
 
-/-- A function `f` is monotone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f b ≤ f a`. -/
+/-- A function `f` is monotone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f a ≤ f b`. -/
 def monotone_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a ≤ b → f a ≤ f b
 
-/-- A function `f` is antitone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f a ≤ f b`. -/
+/-- A function `f` is antitone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f b ≤ f a`. -/
 def antitone_on (f : α → β) (s : set α) : Prop :=
 ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a ≤ b → f b ≤ f a
 
@@ -98,7 +98,7 @@ def strict_anti_on (f : α → β) (s : set α) : Prop :=
 
 end monotone_def
 
-/-! #### Monotonicity on the dual order
+/-! ### Monotonicity on the dual order
 
 Strictly many of the `*_on.dual` lemmas in this section should use `of_dual ⁻¹' s` instead of `s`,
 but right now this is not possible as `set.preimage` is not defined yet, and importing it creates
@@ -189,7 +189,7 @@ protected lemma strict_anti_on.dual_right (hf : strict_anti_on f s) :
 
 end order_dual
 
-/-! #### Monotonicity in function spaces -/
+/-! ### Monotonicity in function spaces -/
 
 section preorder
 variables [preorder α]
@@ -219,7 +219,7 @@ lemma function.monotone_eval {ι : Type u} {α : ι → Type v} [∀ i, preorder
   monotone (function.eval i : (Π i, α i) → α i) :=
 λ f g H, H i
 
-/-! #### Monotonicity hierarchy -/
+/-! ### Monotonicity hierarchy -/
 
 section preorder
 variables [preorder α]
@@ -266,19 +266,63 @@ end partial_order
 end preorder
 
 section partial_order
-variables [partial_order α] [preorder β] {f : α → β}
+variables [partial_order α] [preorder β] {f : α → β} {s : set α}
+
+lemma monotone_iff_forall_lt : monotone f ↔ ∀ ⦃a b⦄, a < b → f a ≤ f b :=
+forall₂_congr $ λ a b, ⟨λ hf h, hf h.le, λ hf h, h.eq_or_lt.elim (λ H, (congr_arg _ H).le) hf⟩
+
+lemma antitone_iff_forall_lt : antitone f ↔ ∀ ⦃a b⦄, a < b → f b ≤ f a :=
+forall₂_congr $ λ a b, ⟨λ hf h, hf h.le, λ hf h, h.eq_or_lt.elim (λ H, (congr_arg _ H).ge) hf⟩
+
+lemma monotone_on_iff_forall_lt :
+  monotone_on f s ↔ ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a < b → f a ≤ f b :=
+⟨λ hf a ha b hb h, hf ha hb h.le,
+  λ hf a ha b hb h, h.eq_or_lt.elim (λ H, (congr_arg _ H).le) (hf ha hb)⟩
+
+lemma antitone_on_iff_forall_lt :
+  antitone_on f s ↔ ∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a < b → f b ≤ f a :=
+⟨λ hf a ha b hb h, hf ha hb h.le,
+  λ hf a ha b hb h, h.eq_or_lt.elim (λ H, (congr_arg _ H).ge) (hf ha hb)⟩
 
 -- `preorder α` isn't strong enough: if the preorder on `α` is an equivalence relation,
 -- then `strict_mono f` is vacuously true.
+protected lemma strict_mono_on.monotone_on (hf : strict_mono_on f s) : monotone_on f s :=
+monotone_on_iff_forall_lt.2 $ λ a ha b hb h, (hf ha hb h).le
+
+protected lemma strict_anti_on.antitone_on (hf : strict_anti_on f s) : antitone_on f s :=
+antitone_on_iff_forall_lt.2 $ λ a ha b hb h, (hf ha hb h).le
+
 protected lemma strict_mono.monotone (hf : strict_mono f) : monotone f :=
-λ a b h, h.eq_or_lt.rec (by { rintro rfl, refl }) (le_of_lt ∘ (@hf _ _))
+monotone_iff_forall_lt.2 $ λ a b h, (hf h).le
 
 protected lemma strict_anti.antitone (hf : strict_anti f) : antitone f :=
-λ a b h, h.eq_or_lt.rec (by { rintro rfl, refl }) (le_of_lt ∘ (@hf _ _))
+antitone_iff_forall_lt.2 $ λ a b h, (hf h).le
 
 end partial_order
 
-/-! #### Miscellaneous monotonicity results -/
+/-! ### Monotonicity from and to subsingletons -/
+
+namespace subsingleton
+variables [preorder α] [preorder β]
+
+protected lemma monotone [subsingleton α] (f : α → β) : monotone f :=
+λ a b _, (congr_arg _ $ subsingleton.elim _ _).le
+
+protected lemma antitone [subsingleton α] (f : α → β) : antitone f :=
+λ a b _, (congr_arg _ $ subsingleton.elim _ _).le
+
+lemma monotone' [subsingleton β] (f : α → β) : monotone f := λ a b _, (subsingleton.elim _ _).le
+lemma antitone' [subsingleton β] (f : α → β) : antitone f := λ a b _, (subsingleton.elim _ _).le
+
+protected lemma strict_mono [subsingleton α] (f : α → β) : strict_mono f :=
+λ a b h, (h.ne $ subsingleton.elim _ _).elim
+
+protected lemma strict_anti [subsingleton α] (f : α → β) : strict_anti f :=
+λ a b h, (h.ne $ subsingleton.elim _ _).elim
+
+end subsingleton
+
+/-! ### Miscellaneous monotonicity results -/
 
 lemma monotone_id [preorder α] : monotone (id : α → α) := λ a b, id
 
@@ -292,17 +336,15 @@ theorem antitone_const [preorder α] [preorder β] {c : β} : antitone (λ (a : 
 
 lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
   (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=
-λ a b, by simp [lt_iff_le_not_le, h] {contextual := tt}
+λ a b, (lt_iff_lt_of_le_iff_le' (h _ _) (h _ _)).1
 
 lemma injective_of_lt_imp_ne [linear_order α] {f : α → β} (h : ∀ x y, x < y → f x ≠ f y) :
   injective f :=
 begin
-  intros x y k,
-  contrapose k,
-  rw [←ne.def, ne_iff_lt_or_gt] at k,
-  cases k,
-  { exact h _ _ k },
-  { exact (h _ _ k).symm }
+  intros x y hxy,
+  contrapose hxy,
+  cases ne.lt_or_lt hxy with hxy hxy,
+  exacts [h _ _ hxy, (h _ _ hxy).symm]
 end
 
 lemma injective_of_le_imp_le [partial_order α] [preorder β] (f : α → β)
@@ -344,7 +386,7 @@ hf.ite' hg hp $ λ x y hx hy h, (hfg y).trans_lt (hf h)
 
 end preorder
 
-/-! #### Monotonicity under composition -/
+/-! ### Monotonicity under composition -/
 
 section composition
 variables [preorder α] [preorder β] [preorder γ] {g : β → γ} {f : α → β} {s : set α}
@@ -422,7 +464,31 @@ lemma strict_anti.comp_strict_mono_on (hg : strict_anti g) (hf : strict_mono_on 
 
 end composition
 
-/-! #### Monotonicity in linear orders  -/
+namespace list
+
+section fold
+
+theorem foldl_monotone [preorder α] {f : α → β → α} (H : ∀ b, monotone (λ a, f a b)) (l : list β) :
+  monotone (λ a, l.foldl f a) :=
+list.rec_on l (λ _ _, id) (λ i l hl _ _ h, hl (H _ h))
+
+theorem foldr_monotone [preorder β] {f : α → β → β} (H : ∀ a, monotone (f a)) (l : list α) :
+  monotone (λ b, l.foldr f b) :=
+λ _ _ h, list.rec_on l h (λ i l hl, H i hl)
+
+theorem foldl_strict_mono [preorder α] {f : α → β → α} (H : ∀ b, strict_mono (λ a, f a b))
+  (l : list β) : strict_mono (λ a, l.foldl f a) :=
+list.rec_on l (λ _ _, id) (λ i l hl _ _ h, hl (H _ h))
+
+theorem foldr_strict_mono [preorder β] {f : α → β → β} (H : ∀ a, strict_mono (f a)) (l : list α) :
+  strict_mono (λ b, l.foldr f b) :=
+λ _ _ h, list.rec_on l h (λ i l hl, H i hl)
+
+end fold
+
+end list
+
+/-! ### Monotonicity in linear orders  -/
 
 section linear_order
 variables [linear_order α]
@@ -438,10 +504,20 @@ lt_of_not_ge (λ h', h.not_le (hf h'))
 lemma antitone.reflect_lt (hf : antitone f) {a b : α} (h : f a < f b) : b < a :=
 lt_of_not_ge (λ h', h.not_le (hf h'))
 
+lemma monotone_on.reflect_lt (hf : monotone_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s)
+  (h : f a < f b) :
+  a < b :=
+lt_of_not_ge $ λ h', h.not_le $ hf hb ha h'
+
+lemma antitone_on.reflect_lt (hf : antitone_on f s) {a b : α}  (ha : a ∈ s) (hb : b ∈ s)
+  (h : f a < f b) :
+  b < a :=
+lt_of_not_ge $ λ h', h.not_le $ hf ha hb h'
+
 lemma strict_mono_on.le_iff_le (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   f a ≤ f b ↔ a ≤ b :=
 ⟨λ h, le_of_not_gt $ λ h', (hf hb ha h').not_le h,
- λ h, h.lt_or_eq_dec.elim (λ h', (hf ha hb h').le) (λ h', h' ▸ le_refl _)⟩
+ λ h, h.lt_or_eq_dec.elim (λ h', (hf ha hb h').le) (λ h', h' ▸ le_rfl)⟩
 
 lemma strict_anti_on.le_iff_le (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   f a ≤ f b ↔ b ≤ a :=
@@ -530,43 +606,75 @@ lemma antitone.strict_anti_iff_injective (hf : antitone f) :
 end partial_order
 end linear_order
 
-/-! #### Monotonicity in `ℕ` and `ℤ` -/
+/-! ### Monotonicity in `ℕ` and `ℤ` -/
 
 section preorder
 variables [preorder α]
 
-lemma monotone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
-  monotone f | n m h :=
+lemma nat.rel_of_forall_rel_succ_of_le_of_lt (r : β → β → Prop) [is_trans β r]
+  {f : ℕ → β} {a : ℕ} (h : ∀ n, a ≤ n → r (f n) (f (n + 1))) ⦃b c : ℕ⦄
+  (hab : a ≤ b) (hbc : b < c) :
+  r (f b) (f c) :=
 begin
-  induction h,
-  { refl },
-  { transitivity, assumption, exact hf _ }
+  induction hbc with k b_lt_k r_b_k,
+  exacts [h _ hab, trans r_b_k (h _ (hab.trans_lt b_lt_k).le)]
 end
+
+lemma nat.rel_of_forall_rel_succ_of_le_of_le (r : β → β → Prop) [is_refl β r] [is_trans β r]
+  {f : ℕ → β} {a : ℕ} (h : ∀ n, a ≤ n → r (f n) (f (n + 1))) ⦃b c : ℕ⦄
+  (hab : a ≤ b) (hbc : b ≤ c) :
+  r (f b) (f c) :=
+hbc.eq_or_lt.elim (λ h, h ▸ refl _) (nat.rel_of_forall_rel_succ_of_le_of_lt r h hab)
+
+lemma nat.rel_of_forall_rel_succ_of_lt (r : β → β → Prop) [is_trans β r]
+  {f : ℕ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℕ⦄ (hab : a < b) : r (f a) (f b) :=
+nat.rel_of_forall_rel_succ_of_le_of_lt r (λ n _, h n) le_rfl hab
+
+lemma nat.rel_of_forall_rel_succ_of_le (r : β → β → Prop) [is_refl β r] [is_trans β r]
+  {f : ℕ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℕ⦄ (hab : a ≤ b) : r (f a) (f b) :=
+nat.rel_of_forall_rel_succ_of_le_of_le r (λ n _, h n) le_rfl hab
+
+lemma monotone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
+  monotone f :=
+nat.rel_of_forall_rel_succ_of_le (≤) hf
 
 lemma antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) :
-  antitone f | n m h :=
-begin
-  induction h,
-  { refl },
-  { transitivity, exact hf _, assumption }
-end
+  antitone f :=
+@monotone_nat_of_le_succ (order_dual α) _ _ hf
 
-lemma strict_mono_nat_of_lt_succ [preorder β] {f : ℕ → β} (hf : ∀ n, f n < f (n + 1)) :
+lemma strict_mono_nat_of_lt_succ {f : ℕ → α} (hf : ∀ n, f n < f (n + 1)) :
   strict_mono f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply hf, exact ih.trans (hf _) }
+nat.rel_of_forall_rel_succ_of_lt (<) hf
 
-lemma strict_anti_nat_of_succ_lt [preorder β] {f : ℕ → β} (hf : ∀ n, f (n + 1) < f n) :
+lemma strict_anti_nat_of_succ_lt {f : ℕ → α} (hf : ∀ n, f (n + 1) < f n) :
   strict_anti f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply hf, exact (hf _).trans ih }
+@strict_mono_nat_of_lt_succ (order_dual α) _ f hf
 
-lemma forall_ge_le_of_forall_le_succ (f : ℕ → α) {a : ℕ} (h : ∀ n, a ≤ n → f n.succ ≤ f n) {b c : ℕ}
-  (hab : a ≤ b) (hbc : b ≤ c) :
-  f c ≤ f b :=
+lemma int.rel_of_forall_rel_succ_of_lt (r : β → β → Prop) [is_trans β r]
+  {f : ℤ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℤ⦄ (hab : a < b) : r (f a) (f b) :=
 begin
-  induction hbc with k hbk hkb,
-  { exact le_rfl },
-  { exact (h _ $ hab.trans hbk).trans hkb }
+  rcases hab.dest with ⟨n, rfl⟩, clear hab,
+  induction n with n ihn,
+  { rw int.coe_nat_one, apply h },
+  { rw [int.coe_nat_succ, ← int.add_assoc],
+    exact trans ihn (h _) }
 end
+
+lemma int.rel_of_forall_rel_succ_of_le (r : β → β → Prop) [is_refl β r] [is_trans β r]
+  {f : ℤ → β} (h : ∀ n, r (f n) (f (n + 1))) ⦃a b : ℤ⦄ (hab : a ≤ b) : r (f a) (f b) :=
+hab.eq_or_lt.elim (λ h, h ▸ refl _) (λ h', int.rel_of_forall_rel_succ_of_lt r h h')
+
+lemma monotone_int_of_le_succ {f : ℤ → α} (hf : ∀ n, f n ≤ f (n + 1)) : monotone f :=
+int.rel_of_forall_rel_succ_of_le (≤) hf
+
+lemma antitone_int_of_succ_le {f : ℤ → α} (hf : ∀ n, f (n + 1) ≤ f n) : antitone f :=
+int.rel_of_forall_rel_succ_of_le (≥) hf
+
+lemma strict_mono_int_of_lt_succ {f : ℤ → α} (hf : ∀ n, f n < f (n + 1)) : strict_mono f :=
+int.rel_of_forall_rel_succ_of_lt (<) hf
+
+lemma strict_anti_int_of_succ_lt {f : ℤ → α} (hf : ∀ n, f (n + 1) < f n) : strict_anti f :=
+int.rel_of_forall_rel_succ_of_lt (>) hf
 
 -- TODO@Yael: Generalize the following four to succ orders
 /-- If `f` is a monotone function from `ℕ` to a preorder such that `x` lies between `f n` and

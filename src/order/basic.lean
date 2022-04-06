@@ -25,9 +25,8 @@ classes and allows to transfer order instances.
 - `partial_order.lift`, `linear_order.lift`: Transfers a partial (resp., linear) order on `β` to a
   partial (resp., linear) order on `α` using an injective function `f`.
 
-### Extra classes
+### Extra class
 
-- `no_top_order`, `no_bot_order`: An order without a maximal/minimal element.
 - `densely_ordered`: An order with no gap, i.e. for any two elements `a < b` there exists `c` such
   that `a < c < b`.
 
@@ -48,10 +47,6 @@ provide many aliases to dot notation-less lemmas. For example, `le_trans` is ali
 - expand module docs
 - automatic construction of dual definitions / theorems
 
-## See also
-
-- `algebra.order.basic` for basic lemmas about orders, and projection notation for orders
-
 ## Tags
 
 preorder, order, partial order, poset, linear order, chain
@@ -62,12 +57,16 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+lemma ge_antisymm [partial_order α] {a b : α} (hab : a ≤ b) (hba : b ≤ a) : b = a :=
+le_antisymm hba hab
+
 attribute [simp] le_refl
 attribute [ext] has_le
 
 alias le_trans        ← has_le.le.trans
 alias lt_of_le_of_lt  ← has_le.le.trans_lt
 alias le_antisymm     ← has_le.le.antisymm
+alias ge_antisymm     ← has_le.le.antisymm'
 alias lt_of_le_of_ne  ← has_le.le.lt_of_ne
 alias lt_of_le_not_le ← has_le.le.lt_of_not_le
 alias lt_or_eq_of_le  ← has_le.le.lt_or_eq
@@ -161,6 +160,9 @@ lemma not_lt_of_le [preorder α] {a b : α} (h : a ≤ b) : ¬ b < a := λ hba, 
 
 alias not_lt_of_le ← has_le.le.not_lt
 
+lemma ne_of_not_le [preorder α] {a b : α} (h : ¬ a ≤ b) : a ≠ b :=
+λ hab, h (le_of_eq hab)
+
 -- See Note [decidable namespace]
 protected lemma decidable.le_iff_eq_or_lt [partial_order α] [@decidable_rel α (≤)]
   {a b : α} : a ≤ b ↔ a = b ∨ a < b := decidable.le_iff_lt_or_eq.trans or.comm
@@ -181,11 +183,23 @@ lemma eq_iff_le_not_lt [partial_order α] {a b : α} : a = b ↔ a ≤ b ∧ ¬ 
 by haveI := classical.dec; exact decidable.eq_iff_le_not_lt
 
 lemma eq_or_lt_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ∨ a < b := h.lt_or_eq.symm
+lemma eq_or_gt_of_le [partial_order α] {a b : α} (h : a ≤ b) : b = a ∨ a < b :=
+h.lt_or_eq.symm.imp eq.symm id
 
 alias decidable.eq_or_lt_of_le ← has_le.le.eq_or_lt_dec
 alias eq_or_lt_of_le ← has_le.le.eq_or_lt
+alias eq_or_gt_of_le ← has_le.le.eq_or_gt
 
 attribute [nolint decidable_classical] has_le.le.eq_or_lt_dec
+
+lemma eq_of_le_of_not_lt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : a = b :=
+hab.eq_or_lt.resolve_right hba
+
+lemma eq_of_ge_of_not_gt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : b = a :=
+(hab.eq_or_lt.resolve_right hba).symm
+
+alias eq_of_le_of_not_lt ← has_le.le.eq_of_not_lt
+alias eq_of_ge_of_not_gt ← has_le.le.eq_of_not_gt
 
 lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a < b :=
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
@@ -204,6 +218,10 @@ lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 lemma lt_iff_not_ge' [linear_order α] {x y : α} : x < y ↔ ¬ y ≤ x := ⟨not_le_of_gt, lt_of_not_ge'⟩
 
 lemma ne.lt_or_lt [linear_order α] {x y : α} (h : x ≠ y) : x < y ∨ y < x := lt_or_gt_of_ne h
+
+/-- A version of `ne_iff_lt_or_gt` with LHS and RHS reversed. -/
+@[simp] lemma lt_or_lt_iff_ne [linear_order α] {x y : α} : x < y ∨ y < x ↔ x ≠ y :=
+ne_iff_lt_or_gt.symm
 
 lemma not_lt_iff_eq_or_lt [linear_order α] {a b : α} : ¬ a < b ↔ a = b ∨ b < a :=
 not_lt.trans $ decidable.le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl
@@ -386,14 +404,17 @@ end order_dual
 
 /-! ### Order instances on the function space -/
 
-instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] : preorder (Π i, α i) :=
-{ le       := λ x y, ∀ i, x i ≤ y i,
-  le_refl  := λ a i, le_refl (a i),
-  le_trans := λ a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
+instance pi.has_le {ι : Type u} {α : ι → Type v} [∀ i, has_le (α i)] : has_le (Π i, α i) :=
+{ le       := λ x y, ∀ i, x i ≤ y i }
 
-lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
+lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀ i, has_le (α i)] {x y : Π i, α i} :
   x ≤ y ↔ ∀ i, x i ≤ y i :=
 iff.rfl
+
+instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] : preorder (Π i, α i) :=
+{ le_refl  := λ a i, le_refl (a i),
+  le_trans := λ a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i),
+  ..pi.has_le }
 
 lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
   x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
@@ -447,7 +468,7 @@ function `f : α → β`. See note [reducible non-instances]. -/
   .. partial_order.lift f inj }
 
 instance subtype.preorder {α} [preorder α] (p : α → Prop) : preorder (subtype p) :=
-preorder.lift subtype.val
+preorder.lift (coe : subtype p → α)
 
 @[simp] lemma subtype.mk_le_mk {α} [preorder α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
   (⟨x, hx⟩ : subtype p) ≤ ⟨y, hy⟩ ↔ x ≤ y :=
@@ -467,22 +488,35 @@ iff.rfl
 
 instance subtype.partial_order {α} [partial_order α] (p : α → Prop) :
   partial_order (subtype p) :=
-partial_order.lift subtype.val subtype.val_injective
+partial_order.lift coe subtype.coe_injective
 
+/-- A subtype of a linear order is a linear order. We explicitly give the proof of decidable
+  equality as the existing instance, in order to not have two instances of decidable equality that
+  are not definitionally equal. -/
 instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
-linear_order.lift subtype.val subtype.val_injective
+{ decidable_eq := subtype.decidable_eq,
+  .. linear_order.lift coe subtype.coe_injective }
+
+/-!
+### Pointwise order on `α × β`
+
+The lexicographic order is defined in `order.lexicographic`, and the instances are available via the
+type synonym `α ×ₗ β = α × β`.
+-/
 
 namespace prod
 
 instance (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λ p q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩
 
-lemma le_def {α β : Type*} [has_le α] [has_le β] {x y : α × β} :
-  x ≤ y ↔ x.1 ≤ y.1 ∧ x.2 ≤ y.2 := iff.rfl
+lemma le_def [has_le α] [has_le β] {x y : α × β} : x ≤ y ↔ x.1 ≤ y.1 ∧ x.2 ≤ y.2 := iff.rfl
 
-@[simp] lemma mk_le_mk {α β : Type*} [has_le α] [has_le β] {x₁ x₂ : α} {y₁ y₂ : β} :
+@[simp] lemma mk_le_mk [has_le α] [has_le β] {x₁ x₂ : α} {y₁ y₂ : β} :
   (x₁, y₁) ≤ (x₂, y₂) ↔ x₁ ≤ x₂ ∧ y₁ ≤ y₂ :=
 iff.rfl
+
+@[simp] lemma swap_le_swap [has_le α] [has_le β] {x y : α × β} : x.swap ≤ y.swap ↔ x ≤ y :=
+and_comm _ _
 
 instance (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α × β) :=
 { le_refl  := λ ⟨a, b⟩, ⟨le_refl a, le_refl b⟩,
@@ -490,9 +524,28 @@ instance (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α 
     ⟨le_trans hac hce, le_trans hbd hdf⟩,
   .. prod.has_le α β }
 
+@[simp] lemma swap_lt_swap [preorder α] [preorder β] {x y : α × β} : x.swap < y.swap ↔ x < y :=
+and_congr swap_le_swap (not_congr swap_le_swap)
+
+lemma lt_iff [preorder α] [preorder β] {a b : α × β} :
+  a < b ↔ a.1 < b.1 ∧ a.2 ≤ b.2 ∨ a.1 ≤ b.1 ∧ a.2 < b.2 :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { by_cases h₁ : b.1 ≤ a.1,
+    { exact or.inr ⟨h.1.1, h.1.2.lt_of_not_le $ λ h₂, h.2 ⟨h₁, h₂⟩⟩ },
+    { exact or.inl ⟨h.1.1.lt_of_not_le h₁, h.1.2⟩ } },
+  { rintro (⟨h₁, h₂⟩ | ⟨h₁, h₂⟩),
+    { exact ⟨⟨h₁.le, h₂⟩, λ h, h₁.not_le h.1⟩ },
+    { exact ⟨⟨h₁, h₂.le⟩, λ h, h₂.not_le h.2⟩ } }
+end
+
+@[simp] lemma mk_lt_mk [preorder α] [preorder β] {x₁ x₂ : α} {y₁ y₂ : β} :
+  (x₁, y₁) < (x₂, y₂) ↔ x₁ < x₂ ∧ y₁ ≤ y₂ ∨ x₁ ≤ x₂ ∧ y₁ < y₂ :=
+lt_iff
+
 /-- The pointwise partial order on a product.
     (The lexicographic ordering is defined in order/lexicographic.lean, and the instances are
-    available via the type synonym `lex α β = α × β`.) -/
+    available via the type synonym `α ×ₗ β = α × β`.) -/
 instance (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
   partial_order (α × β) :=
 { le_antisymm := λ ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,
@@ -503,69 +556,15 @@ end prod
 
 /-! ### Additional order classes -/
 
-/-- Order without a maximal element. Sometimes called cofinal. -/
-class no_top_order (α : Type u) [preorder α] : Prop :=
-(no_top : ∀ a : α, ∃ a', a < a')
-
-lemma no_top [preorder α] [no_top_order α] : ∀ a : α, ∃ a', a < a' :=
-no_top_order.no_top
-
-instance nonempty_gt {α : Type u} [preorder α] [no_top_order α] (a : α) :
-  nonempty {x // a < x} :=
-nonempty_subtype.2 (no_top a)
-
-/-- `a : α` is a top element of `α` if it is greater than or equal to any other element of `α`.
-This predicate is useful, e.g., to make some statements and proofs work in both cases
-`[order_top α]` and `[no_top_order α]`. -/
-def is_top {α : Type u} [has_le α] (a : α) : Prop := ∀ b, b ≤ a
-
-@[simp] lemma not_is_top {α : Type u} [preorder α] [no_top_order α] (a : α) : ¬is_top a :=
-λ h, let ⟨b, hb⟩ := no_top a in hb.not_le (h b)
-
-lemma is_top.unique {α : Type u} [partial_order α] {a b : α} (ha : is_top a) (hb : a ≤ b) :
-  a = b :=
-le_antisymm hb (ha b)
-
-/-- Order without a minimal element. Sometimes called coinitial or dense. -/
-class no_bot_order (α : Type u) [preorder α] : Prop :=
-(no_bot : ∀ a : α, ∃ a', a' < a)
-
-lemma no_bot [preorder α] [no_bot_order α] : ∀ a : α, ∃ a', a' < a :=
-no_bot_order.no_bot
-
-/-- `a : α` is a bottom element of `α` if it is less than or equal to any other element of `α`.
-This predicate is useful, e.g., to make some statements and proofs work in both cases
-`[order_bot α]` and `[no_bot_order α]`. -/
-def is_bot {α : Type u} [has_le α] (a : α) : Prop := ∀ b, a ≤ b
-
-@[simp] lemma not_is_bot {α : Type u} [preorder α] [no_bot_order α] (a : α) : ¬is_bot a :=
-λ h, let ⟨b, hb⟩ := no_bot a in hb.not_le (h b)
-
-lemma is_bot.unique {α : Type u} [partial_order α] {a b : α} (ha : is_bot a) (hb : b ≤ a) :
-  a = b :=
-le_antisymm (ha b) hb
-
-instance order_dual.no_top_order (α : Type u) [preorder α] [no_bot_order α] :
-  no_top_order (order_dual α) :=
-⟨λ a, @no_bot α _ _ a⟩
-
-instance order_dual.no_bot_order (α : Type u) [preorder α] [no_top_order α] :
-  no_bot_order (order_dual α) :=
-⟨λ a, @no_top α _ _ a⟩
-
-instance nonempty_lt {α : Type u} [preorder α] [no_bot_order α] (a : α) :
-  nonempty {x // x < a} :=
-nonempty_subtype.2 (no_bot a)
-
 /-- An order is dense if there is an element between any pair of distinct elements. -/
-class densely_ordered (α : Type u) [preorder α] : Prop :=
+class densely_ordered (α : Type u) [has_lt α] : Prop :=
 (dense : ∀ a₁ a₂ : α, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂)
 
-lemma exists_between [preorder α] [densely_ordered α] :
+lemma exists_between [has_lt α] [densely_ordered α] :
   ∀ {a₁ a₂ : α}, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂ :=
 densely_ordered.dense
 
-instance order_dual.densely_ordered (α : Type u) [preorder α] [densely_ordered α] :
+instance order_dual.densely_ordered (α : Type u) [has_lt α] [densely_ordered α] :
   densely_ordered (order_dual α) :=
 ⟨λ a₁ a₂ ha, (@exists_between α _ _ _ _ ha).imp $ λ a, and.symm⟩
 
@@ -606,7 +605,7 @@ variables {s : β → β → Prop} {t : γ → γ → Prop}
 def as_linear_order (α : Type u) := α
 
 instance {α} [inhabited α] : inhabited (as_linear_order α) :=
-⟨ (default α : α) ⟩
+⟨ (default : α) ⟩
 
 noncomputable instance as_linear_order.linear_order {α} [partial_order α] [is_total α (≤)] :
   linear_order (as_linear_order α) :=

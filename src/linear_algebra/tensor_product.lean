@@ -6,6 +6,7 @@ Authors: Kenny Lau, Mario Carneiro
 
 import group_theory.congruence
 import linear_algebra.bilinear_map
+import linear_algebra.span
 
 /-!
 # Tensor product of modules over commutative semirings.
@@ -273,6 +274,13 @@ instance left_module : module R'' (M ⊗[R] N) :=
   ..tensor_product.left_distrib_mul_action }
 
 instance : module R (M ⊗[R] N) := tensor_product.left_module
+
+instance [module R''ᵐᵒᵖ M] [is_central_scalar R'' M] : is_central_scalar R'' (M ⊗[R] N) :=
+{ op_smul_eq_smul := λ r x,
+  tensor_product.induction_on x
+    (by rw [smul_zero, smul_zero])
+    (λ x y, by rw [smul_tmul', smul_tmul', op_smul_eq_smul])
+    (λ x y hx hy, by rw [smul_add, smul_add, hx, hy]) }
 
 section
 
@@ -643,7 +651,7 @@ lemma map_mul (f₁ f₂ : M →ₗ[R] M) (g₁ g₂ : N →ₗ[R] N) :
   map (f₁ * f₂) (g₁ * g₂) = (map f₁ g₁) * (map f₂ g₂) :=
 map_comp f₁ f₂ g₁ g₂
 
-@[simp] lemma map_pow (f : M →ₗ[R] M) (g : N →ₗ[R] N) (n : ℕ) :
+@[simp] protected lemma map_pow (f : M →ₗ[R] M) (g : N →ₗ[R] N) (n : ℕ) :
   (map f g)^n = map (f^n) (g^n) :=
 begin
   induction n with n ih,
@@ -742,18 +750,18 @@ local attribute [ext] tensor_product.ext
 /-- `ltensor_hom M` is the natural linear map that sends a linear map `f : N →ₗ P` to `M ⊗ f`. -/
 def ltensor_hom : (N →ₗ[R] P) →ₗ[R] (M ⊗[R] N →ₗ[R] M ⊗[R] P) :=
 { to_fun := ltensor M,
-  map_add' := λ f g, by {
-    ext x y, simp only [compr₂_apply, mk_apply, add_apply, ltensor_tmul, tmul_add] },
-  map_smul' := λ r f, by {
-    dsimp, ext x y, simp only [compr₂_apply, mk_apply, tmul_smul, smul_apply, ltensor_tmul] } }
+  map_add' := λ f g, by
+  { ext x y, simp only [compr₂_apply, mk_apply, add_apply, ltensor_tmul, tmul_add] },
+  map_smul' := λ r f, by
+  { dsimp, ext x y, simp only [compr₂_apply, mk_apply, tmul_smul, smul_apply, ltensor_tmul] } }
 
 /-- `rtensor_hom M` is the natural linear map that sends a linear map `f : N →ₗ P` to `M ⊗ f`. -/
 def rtensor_hom : (N →ₗ[R] P) →ₗ[R] (N ⊗[R] M →ₗ[R] P ⊗[R] M) :=
 { to_fun := λ f, f.rtensor M,
-  map_add' := λ f g, by {
-    ext x y, simp only [compr₂_apply, mk_apply, add_apply, rtensor_tmul, add_tmul] },
-  map_smul' := λ r f, by {
-    dsimp, ext x y, simp only [compr₂_apply, mk_apply, smul_tmul, tmul_smul, smul_apply,
+  map_add' := λ f g, by
+  { ext x y, simp only [compr₂_apply, mk_apply, add_apply, rtensor_tmul, add_tmul] },
+  map_smul' := λ r f, by
+  { dsimp, ext x y, simp only [compr₂_apply, mk_apply, smul_tmul, tmul_smul, smul_apply,
     rtensor_tmul] } }
 
 @[simp] lemma coe_ltensor_hom :
@@ -827,10 +835,10 @@ by simp only [ltensor, rtensor, ← map_comp, id_comp, comp_id]
 variables {M}
 
 @[simp] lemma rtensor_pow (f : M →ₗ[R] M) (n : ℕ) : (f.rtensor N)^n = (f^n).rtensor N :=
-by { have h := map_pow f (id : N →ₗ[R] N) n, rwa id_pow at h, }
+by { have h := tensor_product.map_pow f (id : N →ₗ[R] N) n, rwa id_pow at h, }
 
 @[simp] lemma ltensor_pow (f : N →ₗ[R] N) (n : ℕ) : (f.ltensor M)^n = (f^n).ltensor M :=
-by { have h := map_pow (id : M →ₗ[R] M) f n, rwa id_pow at h, }
+by { have h := tensor_product.map_pow (id : M →ₗ[R] M) f n, rwa id_pow at h, }
 
 end linear_map
 
@@ -883,8 +891,8 @@ protected theorem add_left_neg (x : M ⊗[R] N) : -x + x = 0 :=
 tensor_product.induction_on x
   (by { rw [add_zero], apply (neg.aux R).map_zero, })
   (λ x y, by { convert (add_tmul (-x) x y).symm, rw [add_left_neg, zero_tmul], })
-  (λ x y hx hy, by {
-    unfold has_neg.neg sub_neg_monoid.neg,
+  (λ x y hx hy, by
+  { unfold has_neg.neg sub_neg_monoid.neg,
     rw add_monoid_hom.map_add,
     ac_change (-x + x) + (-y + y) = 0,
     rw [hx, hy, add_zero], })
@@ -894,10 +902,10 @@ instance : add_comm_group (M ⊗[R] N) :=
   sub := _,
   sub_eq_add_neg := λ _ _, rfl,
   add_left_neg := λ x, by exact tensor_product.add_left_neg x,
-  gsmul := λ n v, n • v,
-  gsmul_zero' := by simp [tensor_product.zero_smul],
-  gsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
-  gsmul_neg' := λ n x, begin
+  zsmul := λ n v, n • v,
+  zsmul_zero' := by simp [tensor_product.zero_smul],
+  zsmul_succ' := by simp [nat.succ_eq_one_add, tensor_product.one_smul, tensor_product.add_smul],
+  zsmul_neg' := λ n x, begin
     change (- n.succ : ℤ) • x = - (((n : ℤ) + 1) • x),
     rw [← zero_add (-↑(n.succ) • x), ← tensor_product.add_left_neg (↑(n.succ) • x), add_assoc,
       ← add_smul, ← sub_eq_add_neg, sub_self, zero_smul, add_zero],
@@ -932,7 +940,7 @@ instance compatible_smul.int [module ℤ M] [module ℤ N] : compatible_smul R �
 
 instance compatible_smul.unit {S} [monoid S] [distrib_mul_action S M] [distrib_mul_action S N]
   [compatible_smul R S M N] :
-  compatible_smul R (units S) M N :=
+  compatible_smul R Sˣ M N :=
 ⟨λ s m n, (compatible_smul.smul_tmul (s : S) m n : _)⟩
 
 end tensor_product

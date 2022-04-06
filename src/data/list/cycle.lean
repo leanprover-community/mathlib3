@@ -3,9 +3,9 @@ Copyright (c) 2021 Yakov Pechersky. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yakov Pechersky
 -/
-import data.list.rotate
-import data.finset.sort
+import data.multiset.sort
 import data.fintype.list
+import data.list.rotate
 
 /-!
 # Cycles of a list
@@ -271,11 +271,11 @@ begin
         { simp [hn''] },
         { exact hx' },
         { simp [last_eq_nth_le, hn''] },
-        { exact nodup_of_nodup_cons h } },
+        { exact h.of_cons } },
       { have : n < l.length := by simpa [nat.succ_lt_succ_iff] using hn'' ,
         rw [next_ne_head_ne_last _ _ _ _ hx'],
         { simp [nat.mod_eq_of_lt (nat.succ_lt_succ (nat.succ_lt_succ this)),
-                hl _ _ (nodup_of_nodup_cons h), nat.mod_eq_of_lt (nat.succ_lt_succ this)] },
+                hl _ _ h.of_cons, nat.mod_eq_of_lt (nat.succ_lt_succ this)] },
         { rw last_eq_nth_le,
           intro H,
           suffices : n.succ = l.length.succ,
@@ -300,7 +300,7 @@ begin
       push_neg at h,
       simp [add_comm, prev_cons_cons_of_ne, h.left.left.symm] },
     { rw [prev_ne_cons_cons],
-      { convert hl _ _ (nodup_of_nodup_cons h) _ using 1,
+      { convert hl _ _ h.of_cons _ using 1,
         have : ∀ k hk, (y :: l).nth_le k hk = (x :: y :: l).nth_le (k + 1) (nat.succ_lt_succ hk),
         { intros,
           simpa },
@@ -373,17 +373,17 @@ begin
   obtain ⟨k, hk, rfl⟩ := nth_le_of_mem hx,
   have lpos : 0 < l.length := k.zero_le.trans_lt hk,
   have key : l.length - 1 - k < l.length :=
-    (nat.sub_le _ _).trans_lt (sub_lt_self' lpos nat.succ_pos'),
+    (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos'),
   rw ←nth_le_pmap l.next (λ _ h, h) (by simpa using hk),
   simp_rw [←nth_le_reverse l k (key.trans_le (by simp)), pmap_next_eq_rotate_one _ h],
   rw ←nth_le_pmap l.reverse.prev (λ _ h, h),
   { simp_rw [pmap_prev_eq_rotate_length_sub_one _ (nodup_reverse.mpr h), rotate_reverse,
-             length_reverse, nat.mod_eq_of_lt (sub_lt_self' lpos nat.succ_pos'),
-             nat.sub_sub_self (nat.succ_le_of_lt lpos)],
+             length_reverse, nat.mod_eq_of_lt (tsub_lt_self lpos nat.succ_pos'),
+             tsub_tsub_cancel_of_le (nat.succ_le_of_lt lpos)],
     rw ←nth_le_reverse,
-    { simp [nat.sub_sub_self (nat.le_pred_of_lt hk)] },
-    { simpa using (nat.sub_le _ _).trans_lt (sub_lt_self' lpos nat.succ_pos') } },
-  { simpa using (nat.sub_le _ _).trans_lt (sub_lt_self' lpos nat.succ_pos') }
+    { simp [tsub_tsub_cancel_of_le (nat.le_pred_of_lt hk)] },
+    { simpa using (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos') } },
+  { simpa using (nat.sub_le _ _).trans_lt (tsub_lt_self lpos nat.succ_pos') }
 end
 
 lemma next_reverse_eq_prev (l : list α) (h : nodup l) (x : α) (hx : x ∈ l) :
@@ -430,73 +430,91 @@ instance : has_coe (list α) (cycle α) := ⟨quot.mk _⟩
 @[simp] lemma coe_eq_coe {l₁ l₂ : list α} : (l₁ : cycle α) = l₂ ↔ (l₁ ~r l₂) :=
 @quotient.eq _ (is_rotated.setoid _) _ _
 
-@[simp] lemma mk_eq_coe (l : list α) :
-  quot.mk _ l = (l : cycle α) := rfl
+@[simp] lemma mk_eq_coe (l : list α) : quot.mk _ l = (l : cycle α) :=
+rfl
 
-@[simp] lemma mk'_eq_coe (l : list α) :
-  quotient.mk' l = (l : cycle α) := rfl
+@[simp] lemma mk'_eq_coe (l : list α) : quotient.mk' l = (l : cycle α) :=
+rfl
 
-instance : inhabited (cycle α) := ⟨(([] : list α) : cycle α)⟩
+/-- The unique empty cycle. -/
+def nil : cycle α := ↑([] : list α)
 
-/--
-For `x : α`, `s : cycle α`, `x ∈ s` indicates that `x` occurs at least once in `s`.
--/
+@[simp] lemma coe_nil : ↑([] : list α) = @nil α :=
+rfl
+
+@[simp] lemma coe_eq_nil (l : list α) : (l : cycle α) = nil ↔ l = [] :=
+coe_eq_coe.trans is_rotated_nil_iff
+
+instance : has_emptyc (cycle α) := ⟨nil⟩
+
+@[simp] lemma empty_eq : ∅ = @nil α :=
+rfl
+
+instance : inhabited (cycle α) := ⟨nil⟩
+
+/-- An induction principle for `cycle`. Use as `induction s using cycle.induction_on`. -/
+@[elab_as_eliminator] lemma induction_on {C : cycle α → Prop} (s : cycle α) (H0 : C nil)
+  (HI : ∀ a (l : list α), C ↑l → C ↑(a :: l)) : C s :=
+quotient.induction_on' s $ λ l, by { apply list.rec_on l; simp, assumption' }
+
+/-- For `x : α`, `s : cycle α`, `x ∈ s` indicates that `x` occurs at least once in `s`. -/
 def mem (a : α) (s : cycle α) : Prop :=
 quot.lift_on s (λ l, a ∈ l) (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.mem_iff)
 
 instance : has_mem α (cycle α) := ⟨mem⟩
 
-@[simp] lemma mem_coe_iff {a : α} {l : list α} :
-  a ∈ (l : cycle α) ↔ a ∈ l := iff.rfl
+@[simp] lemma mem_coe_iff {a : α} {l : list α} : a ∈ (l : cycle α) ↔ a ∈ l :=
+iff.rfl
+
+@[simp] lemma not_mem_nil : ∀ a, a ∉ @nil α :=
+not_mem_nil
 
 instance [decidable_eq α] : decidable_eq (cycle α) :=
-λ s₁ s₂, quotient.rec_on_subsingleton₂' s₁ s₂ (λ l₁ l₂,
-  decidable_of_iff' _ quotient.eq')
+λ s₁ s₂, quotient.rec_on_subsingleton₂' s₁ s₂ (λ l₁ l₂, decidable_of_iff' _ quotient.eq')
 
 instance [decidable_eq α] (x : α) (s : cycle α) : decidable (x ∈ s) :=
 quotient.rec_on_subsingleton' s (λ l, list.decidable_mem x l)
 
-/--
-Reverse a `s : cycle α` by reversing the underlying `list`.
--/
+/-- Reverse a `s : cycle α` by reversing the underlying `list`. -/
 def reverse (s : cycle α) : cycle α :=
 quot.map reverse (λ l₁ l₂ (e : l₁ ~r l₂), e.reverse) s
 
-@[simp] lemma reverse_coe (l : list α) :
-  (l : cycle α).reverse = l.reverse := rfl
+@[simp] lemma reverse_coe (l : list α) : (l : cycle α).reverse = l.reverse :=
+rfl
 
-@[simp] lemma mem_reverse_iff {a : α} {s : cycle α} :
-  a ∈ s.reverse ↔ a ∈ s :=
+@[simp] lemma mem_reverse_iff {a : α} {s : cycle α} : a ∈ s.reverse ↔ a ∈ s :=
 quot.induction_on s (λ _, mem_reverse)
 
-@[simp] lemma reverse_reverse (s : cycle α) :
-  s.reverse.reverse = s :=
+@[simp] lemma reverse_reverse (s : cycle α) : s.reverse.reverse = s :=
 quot.induction_on s (λ _, by simp)
 
-/--
-The length of the `s : cycle α`, which is the number of elements, counting duplicates.
--/
+@[simp] lemma reverse_nil : nil.reverse = @nil α :=
+rfl
+
+/-- The length of the `s : cycle α`, which is the number of elements, counting duplicates. -/
 def length (s : cycle α) : ℕ :=
 quot.lift_on s length (λ l₁ l₂ (e : l₁ ~r l₂), e.perm.length_eq)
 
-@[simp] lemma length_coe (l : list α) :
-  length (l : cycle α) = l.length := rfl
+@[simp] lemma length_coe (l : list α) : length (l : cycle α) = l.length :=
+rfl
 
-@[simp] lemma length_reverse (s : cycle α) :
-  s.reverse.length = s.length :=
+@[simp] lemma length_nil : length (@nil α) = 0 :=
+rfl
+
+@[simp] lemma length_reverse (s : cycle α) : s.reverse.length = s.length :=
 quot.induction_on s length_reverse
 
-/--
-A `s : cycle α` that is at most one element.
--/
+/-- A `s : cycle α` that is at most one element. -/
 def subsingleton (s : cycle α) : Prop :=
 s.length ≤ 1
 
-lemma length_subsingleton_iff {s : cycle α} :
-  subsingleton s ↔ length s ≤ 1 := iff.rfl
+lemma subsingleton_nil : subsingleton (@nil α) :=
+zero_le_one
 
-@[simp] lemma subsingleton_reverse_iff {s : cycle α} :
-  s.reverse.subsingleton ↔ s.subsingleton :=
+lemma length_subsingleton_iff {s : cycle α} : subsingleton s ↔ length s ≤ 1 :=
+iff.rfl
+
+@[simp] lemma subsingleton_reverse_iff {s : cycle α} : s.reverse.subsingleton ↔ s.subsingleton :=
 by simp [length_subsingleton_iff]
 
 lemma subsingleton.congr {s : cycle α} (h : subsingleton s) :
@@ -509,9 +527,7 @@ begin
   simp
 end
 
-/--
-A `s : cycle α` that is made up of at least two unique elements.
--/
+/-- A `s : cycle α` that is made up of at least two unique elements. -/
 def nontrivial (s : cycle α) : Prop := ∃ (x y : α) (h : x ≠ y), x ∈ s ∧ y ∈ s
 
 @[simp] lemma nontrivial_coe_nodup_iff {l : list α} (hl : l.nodup) :
@@ -528,12 +544,10 @@ begin
     exact hl.left.left }
 end
 
-@[simp] lemma nontrivial_reverse_iff {s : cycle α} :
-  s.reverse.nontrivial ↔ s.nontrivial :=
+@[simp] lemma nontrivial_reverse_iff {s : cycle α} : s.reverse.nontrivial ↔ s.nontrivial :=
 by simp [nontrivial]
 
-lemma length_nontrivial {s : cycle α} (h : nontrivial s) :
-  2 ≤ length s :=
+lemma length_nontrivial {s : cycle α} (h : nontrivial s) : 2 ≤ length s :=
 begin
   obtain ⟨x, y, hxy, hx, hy⟩ := h,
   induction s using quot.induction_on with l,
@@ -544,21 +558,20 @@ begin
   { simp [bit0] }
 end
 
-/--
-The `s : cycle α` contains no duplicates.
--/
+/-- The `s : cycle α` contains no duplicates. -/
 def nodup (s : cycle α) : Prop :=
 quot.lift_on s nodup (λ l₁ l₂ (e : l₁ ~r l₂), propext $ e.nodup_iff)
 
-@[simp] lemma nodup_coe_iff {l : list α} :
-  nodup (l : cycle α) ↔ l.nodup := iff.rfl
+@[simp] lemma nodup_nil : nodup (@nil α) :=
+nodup_nil
 
-@[simp] lemma nodup_reverse_iff {s : cycle α} :
-  s.reverse.nodup ↔ s.nodup :=
+@[simp] lemma nodup_coe_iff {l : list α} : nodup (l : cycle α) ↔ l.nodup :=
+iff.rfl
+
+@[simp] lemma nodup_reverse_iff {s : cycle α} : s.reverse.nodup ↔ s.nodup :=
 quot.induction_on s (λ _, nodup_reverse)
 
-lemma subsingleton.nodup {s : cycle α} (h : subsingleton s) :
-  nodup s :=
+lemma subsingleton.nodup {s : cycle α} (h : subsingleton s) : nodup s :=
 begin
   induction s using quot.induction_on with l,
   cases l with hd tl,
@@ -567,8 +580,7 @@ begin
     simp [this] }
 end
 
-lemma nodup.nontrivial_iff {s : cycle α} (h : nodup s) :
-  nontrivial s ↔ ¬ subsingleton s :=
+lemma nodup.nontrivial_iff {s : cycle α} (h : nodup s) : nontrivial s ↔ ¬ subsingleton s :=
 begin
   rw length_subsingleton_iff,
   induction s using quotient.induction_on',
@@ -582,27 +594,39 @@ The `s : cycle α` as a `multiset α`.
 def to_multiset (s : cycle α) : multiset α :=
 quotient.lift_on' s (λ l, (l : multiset α)) (λ l₁ l₂ (h : l₁ ~r l₂), multiset.coe_eq_coe.mpr h.perm)
 
-/--
-The lift of `list.map`.
--/
+@[simp] lemma coe_to_multiset (l : list α) : (l : cycle α).to_multiset = l :=
+rfl
+
+@[simp] lemma nil_to_multiset : nil.to_multiset = (∅ : multiset α) :=
+rfl
+
+/-- The lift of `list.map`. -/
 def map {β : Type*} (f : α → β) : cycle α → cycle β :=
 quotient.map' (list.map f) $ λ l₁ l₂ h, h.map _
 
-/--
-The `multiset` of lists that can make the cycle.
--/
+@[simp] lemma map_nil {β : Type*} (f : α → β) : map f nil = nil :=
+rfl
+
+@[simp] lemma map_coe {β : Type*} (f : α → β) (l : list α) : map f ↑l = list.map f l :=
+rfl
+
+@[simp] lemma map_eq_nil {β : Type*} (f : α → β) (s : cycle α) : map f s = nil ↔ s = nil :=
+quotient.induction_on' s $ λ l, by simp
+
+/-- The `multiset` of lists that can make the cycle. -/
 def lists (s : cycle α) : multiset (list α) :=
 quotient.lift_on' s
   (λ l, (l.cyclic_permutations : multiset (list α))) $
   λ l₁ l₂ (h : l₁ ~r l₂), by simpa using h.cyclic_permutations.perm
 
-@[simp] lemma mem_lists_iff_coe_eq {s : cycle α} {l : list α} :
-  l ∈ s.lists ↔ (l : cycle α) = s :=
-begin
-  induction s using quotient.induction_on',
-  rw [lists, quotient.lift_on'_mk'],
-  simp
-end
+@[simp] lemma lists_coe (l : list α) : lists (l : cycle α) = ↑l.cyclic_permutations :=
+rfl
+
+@[simp] lemma mem_lists_iff_coe_eq {s : cycle α} {l : list α} : l ∈ s.lists ↔ (l : cycle α) = s :=
+quotient.induction_on' s $ λ l, by { rw [lists, quotient.lift_on'_mk'], simp }
+
+@[simp] lemma lists_nil : lists (@nil α) = [([] : list α)] :=
+by rw [nil, lists_coe, cyclic_permutations_nil]
 
 section decidable
 
@@ -627,11 +651,8 @@ instance {s : cycle α} : decidable (nodup s) :=
 quot.rec_on_subsingleton s (λ (l : list α), list.nodup_decidable l)
 
 instance fintype_nodup_cycle [fintype α] : fintype {s : cycle α // s.nodup} :=
-fintype.of_surjective (λ (l : {l : list α // l.nodup}), ⟨l.val, by simpa using l.prop⟩) (λ ⟨s, hs⟩,
-  begin
-    induction s using quotient.induction_on',
-    exact ⟨⟨s, hs⟩, by simp⟩
-  end)
+fintype.of_surjective (λ (l : {l : list α // l.nodup}), ⟨l.val, by simpa using l.prop⟩)
+  (λ ⟨s, hs⟩, by { induction s using quotient.induction_on', exact ⟨⟨s, hs⟩, by simp⟩ })
 
 instance fintype_nodup_nontrivial_cycle [fintype α] :
   fintype {s : cycle α // s.nodup ∧ s.nontrivial} :=
@@ -639,11 +660,12 @@ fintype.subtype (((finset.univ : finset {s : cycle α // s.nodup}).map
   (function.embedding.subtype _)).filter cycle.nontrivial)
   (by simp)
 
-/--
-The `s : cycle α` as a `finset α`.
--/
+/-- The `s : cycle α` as a `finset α`. -/
 def to_finset (s : cycle α) : finset α :=
 s.to_multiset.to_finset
+
+@[simp] lemma nil_to_finset : (@nil α).to_finset = ∅ :=
+rfl
 
 /-- Given a `s : cycle α` such that `nodup s`, retrieve the next element after `x ∈ s`. -/
 def next : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
@@ -669,16 +691,11 @@ def prev : Π (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s), α :=
   s.reverse.next (nodup_reverse_iff.mpr hs) x (mem_reverse_iff.mpr hx) = s.prev hs x hx :=
 by simp [←prev_reverse_eq_next]
 
-@[simp] lemma next_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
-  s.next hs x hx ∈ s :=
-begin
-  induction s using quot.induction_on,
-  exact next_mem _ _ _
-end
+@[simp] lemma next_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) : s.next hs x hx ∈ s :=
+by { induction s using quot.induction_on, apply next_mem }
 
-lemma prev_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
-  s.prev hs x hx ∈ s :=
-by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], exact next_mem _ _ _ _ }
+lemma prev_mem (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) : s.prev hs x hx ∈ s :=
+by { rw [←next_reverse_eq_prev, ←mem_reverse_iff], apply next_mem }
 
 @[simp] lemma prev_next (s : cycle α) (hs : nodup s) (x : α) (hx : x ∈ s) :
   s.prev hs (s.next hs x hx) (next_mem s hs x hx) = x :=

@@ -3,8 +3,8 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import algebra.order.pi
 import order.well_founded
+import algebra.group.pi
 import order.min_max
 
 
@@ -84,7 +84,7 @@ instance [linear_order ι] [∀ a, ordered_comm_group (β a)] :
   ordered_comm_group (pilex ι β) :=
 { mul_le_mul_left := λ x y hxy z,
     hxy.elim
-      (λ hxyz, hxyz ▸ le_refl _)
+      (λ hxyz, hxyz ▸ le_rfl)
       (λ ⟨i, hi⟩,
         or.inr ⟨i, λ j hji, show z j * x j = z j * y j, by rw hi.1 j hji,
           mul_lt_mul_left' hi.2 _⟩),

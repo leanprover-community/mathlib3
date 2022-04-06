@@ -71,14 +71,14 @@ instance category_lax_monoidal_functor : category (lax_monoidal_functor C D) :=
   id := id,
   comp := λ F G H α β, vcomp α β, }
 
-@[simp] lemma comp_to_nat_trans' {F G H : lax_monoidal_functor C D} {α : F ⟶ G} {β : G ⟶ H} :
+@[simp] lemma comp_to_nat_trans_lax {F G H : lax_monoidal_functor C D} {α : F ⟶ G} {β : G ⟶ H} :
   (α ≫ β).to_nat_trans =
     @category_struct.comp (C ⥤ D) _ _ _ _ (α.to_nat_trans) (β.to_nat_trans) := rfl
 
 instance category_monoidal_functor : category (monoidal_functor C D) :=
 induced_category.category monoidal_functor.to_lax_monoidal_functor
 
-@[simp] lemma comp_to_nat_trans'' {F G H : monoidal_functor C D} {α : F ⟶ G} {β : G ⟶ H} :
+@[simp] lemma comp_to_nat_trans {F G H : monoidal_functor C D} {α : F ⟶ G} {β : G ⟶ H} :
   (α ≫ β).to_nat_trans =
     @category_struct.comp (C ⥤ D) _ _ _ _ (α.to_nat_trans) (β.to_nat_trans) := rfl
 
@@ -102,6 +102,19 @@ def hcomp {F G : lax_monoidal_functor C D} {H K : lax_monoidal_functor D E}
     conv_lhs { rw [←K.to_functor.map_comp, α.tensor, K.to_functor.map_comp], },
   end,
   ..(nat_trans.hcomp α.to_nat_trans β.to_nat_trans) }
+
+section
+
+local attribute [simp] nat_trans.naturality monoidal_nat_trans.unit monoidal_nat_trans.tensor
+
+/-- The cartesian product of two monoidal natural transformations is monoidal. -/
+@[simps]
+def prod {F G : lax_monoidal_functor C D} {H K : lax_monoidal_functor C E}
+  (α : monoidal_nat_trans F G) (β : monoidal_nat_trans H K) :
+  monoidal_nat_trans (F.prod' H) (G.prod' K) :=
+{ app := λ X, (α.app X, β.app X) }
+
+end
 
 end monoidal_nat_trans
 

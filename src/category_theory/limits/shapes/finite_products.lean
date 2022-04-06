@@ -3,11 +3,18 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.limits.shapes.finite_limits
 import category_theory.limits.shapes.binary_products
+import category_theory.limits.shapes.finite_limits
+import category_theory.limits.shapes.products
 import category_theory.limits.shapes.terminal
 
-universes v u
+/-!
+# Categories with finite (co)products
+
+Typeclasses representing categories with (co)products over finite indexing types.
+-/
+
+universes w v u
 
 open category_theory
 namespace category_theory.limits
@@ -32,6 +39,16 @@ by { haveI := @has_finite_products.out C _ _ J (classical.dec_eq _), apply_insta
 @[priority 10]
 instance has_finite_products_of_has_finite_limits [has_finite_limits C] : has_finite_products C :=
 ⟨λ J 𝒥₁ 𝒥₂, by { resetI, apply_instance }⟩
+
+instance has_fintype_products [has_finite_products C] (ι : Type w) [fintype ι] :
+  has_limits_of_shape (discrete ι) C :=
+has_limits_of_shape_of_equivalence
+  (discrete.equivalence
+    ((show ulift.{v} (fin (fintype.card ι)) ≃ fin (fintype.card ι), by tidy).trans
+      (fintype.equiv_fin ι).symm))
+
+/-- We can now write this for powers. -/
+noncomputable example [has_finite_products C] (X : C) : C := ∏ (λ (i : fin 5), X)
 
 /--
 If a category has all products then in particular it has finite products.
@@ -58,6 +75,13 @@ by { haveI := @has_finite_coproducts.out C _ _ J (classical.dec_eq _), apply_ins
 instance has_finite_coproducts_of_has_finite_colimits [has_finite_colimits C] :
   has_finite_coproducts C :=
 ⟨λ J 𝒥₁ 𝒥₂, by { resetI, apply_instance }⟩
+
+instance has_fintype_coproducts [has_finite_coproducts C] (ι : Type w) [fintype ι] :
+  has_colimits_of_shape (discrete ι) C :=
+has_colimits_of_shape_of_equivalence
+  (discrete.equivalence
+    ((show ulift.{v} (fin (fintype.card ι)) ≃ fin (fintype.card ι), by tidy).trans
+      (fintype.equiv_fin ι).symm))
 
 /--
 If a category has all coproducts then in particular it has finite coproducts.

@@ -5,8 +5,8 @@ Authors: Chris Hughes
 -/
 import order.lattice
 import data.list.sort
-import data.equiv.fin
-import data.equiv.functor
+import logic.equiv.fin
+import logic.equiv.functor
 /-!
 # Jordan-Hölder Theorem
 
@@ -142,12 +142,12 @@ namespace composition_series
 
 variables {X : Type u} [lattice X] [jordan_holder_lattice X]
 
-instance : has_coe_to_fun (composition_series X) :=
-{ F := _, coe := composition_series.series }
+instance : has_coe_to_fun (composition_series X) (λ x, fin (x.length + 1) → X) :=
+{ coe := composition_series.series }
 
 instance [inhabited X] : inhabited (composition_series X) :=
 ⟨{ length := 0,
-   series := λ _, default X,
+   series := λ _, default,
    step' := λ x, x.elim0 }⟩
 
 variables {X}
@@ -265,7 +265,7 @@ def of_list (l : list X) (hl : l ≠ []) (hc : list.chain' is_maximal l) :
   composition_series X :=
 { length := l.length - 1,
   series := λ i, l.nth_le i begin
-      conv_rhs { rw ← nat.sub_add_cancel (list.length_pos_of_ne_nil hl) },
+      conv_rhs { rw ← tsub_add_cancel_of_le (nat.succ_le_of_lt (list.length_pos_of_ne_nil hl)) },
       exact i.2
     end,
   step' := λ ⟨i, hi⟩, list.chain'_iff_nth_le.1 hc i hi }
@@ -291,8 +291,8 @@ of_list_to_list s
   to_list (of_list l hl hc) = l :=
 begin
   refine list.ext_le _ _,
-  { rw [length_to_list, length_of_list, nat.sub_add_cancel
-      (list.length_pos_of_ne_nil hl)] },
+  { rw [length_to_list, length_of_list,
+      tsub_add_cancel_of_le (nat.succ_le_of_lt $ list.length_pos_of_ne_nil hl)] },
   { assume i hi hi',
     dsimp [of_list, to_list],
     rw [list.nth_le_of_fn'],
@@ -351,15 +351,15 @@ by_contradiction (λ hxy, pos_iff_ne_zero.1 (length_pos_of_mem_ne hx hy hxy) hs)
 has length zero, then `s.erase_top = s` -/
 @[simps] def erase_top (s : composition_series X) : composition_series X :=
 { length := s.length - 1,
-  series := λ i, s ⟨i, lt_of_lt_of_le i.2 (nat.succ_le_succ sub_le_self')⟩,
+  series := λ i, s ⟨i, lt_of_lt_of_le i.2 (nat.succ_le_succ tsub_le_self)⟩,
   step' := λ i, begin
-    have := s.step ⟨i, lt_of_lt_of_le i.2 sub_le_self'⟩,
+    have := s.step ⟨i, lt_of_lt_of_le i.2 tsub_le_self⟩,
     cases i,
     exact this
   end }
 
 lemma top_erase_top (s : composition_series X) :
-  s.erase_top.top = s ⟨s.length - 1, lt_of_le_of_lt sub_le_self' (nat.lt_succ_self _)⟩ :=
+  s.erase_top.top = s ⟨s.length - 1, lt_of_le_of_lt tsub_le_self (nat.lt_succ_self _)⟩ :=
 show s _ = s _, from congr_arg s
 begin
   ext,
@@ -368,22 +368,22 @@ begin
 end
 
 lemma erase_top_top_le (s : composition_series X) : s.erase_top.top ≤ s.top :=
-by simp [erase_top, top, s.strict_mono.le_iff_le, fin.le_iff_coe_le_coe, sub_le_self']
+by simp [erase_top, top, s.strict_mono.le_iff_le, fin.le_iff_coe_le_coe, tsub_le_self]
 
 @[simp] lemma bot_erase_top (s : composition_series X) : s.erase_top.bot = s.bot := rfl
 
 lemma mem_erase_top_of_ne_of_mem {s : composition_series X} {x : X}
   (hx : x ≠ s.top) (hxs : x ∈ s) : x ∈ s.erase_top :=
 begin
-  { rcases hxs with ⟨i, rfl⟩,
-    have hi : (i : ℕ) < (s.length - 1).succ,
-    { conv_rhs { rw [← nat.succ_sub (length_pos_of_mem_ne ⟨i, rfl⟩ s.top_mem hx),
-        nat.succ_sub_one] },
-      exact lt_of_le_of_ne
-        (nat.le_of_lt_succ i.2)
-        (by simpa [top, s.inj, fin.ext_iff] using hx) },
-    refine ⟨i.cast_succ, _⟩,
-    simp [fin.ext_iff, nat.mod_eq_of_lt hi] }
+  rcases hxs with ⟨i, rfl⟩,
+  have hi : (i : ℕ) < (s.length - 1).succ,
+  { conv_rhs { rw [← nat.succ_sub (length_pos_of_mem_ne ⟨i, rfl⟩ s.top_mem hx),
+      nat.succ_sub_one] },
+    exact lt_of_le_of_ne
+      (nat.le_of_lt_succ i.2)
+      (by simpa [top, s.inj, fin.ext_iff] using hx) },
+  refine ⟨i.cast_succ, _⟩,
+  simp [fin.ext_iff, nat.mod_eq_of_lt hi]
 end
 
 lemma mem_erase_top {s : composition_series X} {x : X}
@@ -451,7 +451,7 @@ lemma append_nat_add_aux
 begin
   cases i,
   simp only [fin.append, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
-    nat.add_sub_cancel_left, dif_neg, fin.cast_succ_mk, not_false_iff, fin.coe_mk]
+    add_tsub_cancel_left, dif_neg, fin.cast_succ_mk, not_false_iff, fin.coe_mk]
 end
 
 lemma append_succ_nat_add_aux
@@ -462,7 +462,7 @@ lemma append_succ_nat_add_aux
 begin
   cases i with i hi,
   simp only [fin.append, add_assoc, nat.not_lt_zero, fin.nat_add_mk, add_lt_iff_neg_left,
-    nat.add_sub_cancel_left, fin.succ_mk, dif_neg, not_false_iff, fin.coe_mk]
+    add_tsub_cancel_left, fin.succ_mk, dif_neg, not_false_iff, fin.coe_mk]
 end
 
 /-- Append two composition series `s₁` and `s₂` such that

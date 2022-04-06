@@ -6,6 +6,7 @@ Authors: Riccardo Brasca
 
 import linear_algebra.direct_sum.finsupp
 import logic.small
+import linear_algebra.std_basis
 
 /-!
 
@@ -89,6 +90,16 @@ noncomputable def constr {S : Type z} [semiring S] [module S N] [smul_comm_class
 @[priority 100]
 instance no_zero_smul_divisors [no_zero_divisors R] : no_zero_smul_divisors R M :=
 let ⟨⟨_, b⟩⟩ := exists_basis R M in b.no_zero_smul_divisors
+
+/-- The product of finitely many free modules is free. -/
+instance pi {ι : Type*} [fintype ι] {M : ι → Type*} [Π (i : ι), add_comm_group (M i)]
+  [Π (i : ι), module R (M i)] [Π (i : ι), module.free R (M i)] : module.free R (Π i, M i) :=
+of_basis $ pi.basis $ λ i, choose_basis R (M i)
+
+/-- The module of finite matrices is free. -/
+instance matrix {n : Type*} [fintype n] {m : Type*} [fintype m] :
+  module.free R (matrix n m R) :=
+of_basis $ matrix.std_basis R n m
 
 variables {R M N}
 

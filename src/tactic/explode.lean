@@ -3,6 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Minchao Wu
 -/
+import meta.rb_map
 import tactic.core
 /-!
 # `#explode` command
@@ -63,8 +64,8 @@ meta def entries.head (es : entries) : option entry := es.l.head'
 
 meta def format_aux : list string → list string → list string → list entry → tactic format
 | (line :: lines) (dep :: deps) (thm :: thms) (en :: es) := do
-  fmt ← do {
-    let margin := string.join (list.repeat " │" en.depth),
+  fmt ← do
+  { let margin := string.join (list.repeat " │" en.depth),
     let margin := match en.status with
       | status.sintro := " ├" ++ margin
       | status.intro := " │" ++ margin ++ " ┌"
@@ -140,7 +141,7 @@ with explode.args : expr → list expr → nat → entries → thm → list nat 
 
 meta def explode_expr (e : expr) (hide_non_prop := tt) : tactic entries :=
 let filter := if hide_non_prop then λ e, may_be_proof e >>= guardb else λ _, skip in
-tactic.explode.core filter e tt 0 (default _)
+tactic.explode.core filter e tt 0 default
 
 meta def explode (n : name) : tactic unit :=
 do const n _ ← resolve_name n | fail "cannot resolve name",
@@ -153,7 +154,7 @@ do const n _ ← resolve_name n | fail "cannot resolve name",
   t ← pp d.type,
   explode_expr v <* trace (to_fmt n ++ " : " ++ t) >>= trace
 
-open interactive lean lean.parser interaction_monad.result
+setup_tactic_parser
 
 /--
 `#explode decl_name` displays a proof term in a line-by-line format somewhat akin to a Fitch-style

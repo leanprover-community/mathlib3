@@ -103,9 +103,9 @@ calc 2 * (∑ i in range (m + 1), choose (2 * m + 1) i) =
     rw [range_eq_Ico, sum_Ico_reflect],
     { congr,
       have A : m + 1 ≤ 2 * m + 1, by linarith,
-      rw [add_comm, nat.add_sub_assoc A, ← add_comm],
+      rw [add_comm, add_tsub_assoc_of_le A, ← add_comm],
       congr,
-      rw nat.sub_eq_iff_eq_add A,
+      rw tsub_eq_iff_eq_add_of_le A,
       ring, },
    { linarith }
   end

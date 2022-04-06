@@ -3,6 +3,8 @@ Copyright (c) 2020 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Robert Y. Lewis
 -/
+import data.bool.basic
+import meta.rb_map
 import tactic.lint.basic
 
 /-!
@@ -130,7 +132,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
   no_errors_found := "No declarations have a duplicate namespace.",
   errors_found := "DUPLICATED NAMESPACES IN NAME:" }
 
-
+attribute [nolint dup_namespace] iff.iff
 
 /-!
 ## Linter for unused arguments
@@ -160,15 +162,17 @@ let l2 := check_unused_arguments_aux [] 1 d.type.pi_arity d.type in
 /-- Check for unused arguments, and print them with their position, variable name, type and whether
 the argument is a duplicate.
 See also `check_unused_arguments`.
-This tactic additionally filters out all unused arguments of type `parse _`. -/
+This tactic additionally filters out all unused arguments of type `parse _`.
+We skip all declarations that contain `sorry` in their value. -/
 private meta def unused_arguments (d : declaration) : tactic (option string) := do
+  ff ← d.to_name.contains_sorry | return none,
   let ns := check_unused_arguments d,
-  if ¬ ns.is_some then return none else do
+  tt ← return ns.is_some | return none,
   let ns := ns.iget,
   (ds, _) ← get_pi_binders d.type,
   let ns := ns.map (λ n, (n, (ds.nth $ n - 1).iget)),
   let ns := ns.filter (λ x, x.2.type.get_app_fn ≠ const `interactive.parse []),
-  if ns = [] then return none else do
+  ff ← return ns.empty | return none,
   ds' ← ds.mmap pp,
   ns ← ns.mmap (λ ⟨n, b⟩, (λ s, to_fmt "argument " ++ to_fmt n ++ ": " ++ s ++
     (if ds.countp (λ b', b.type = b'.type) ≥ 2 then " (duplicate)" else "")) <$> pp b),
@@ -248,8 +252,6 @@ has been used. -/
   auto_decls := ff,
   no_errors_found := "All declarations correctly marked as def/lemma.",
   errors_found := "INCORRECT DEF/LEMMA:" }
-
-attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
 
 /-!
 ## Linter that checks whether declarations are well-typed
@@ -446,3 +448,36 @@ meta def linter.unused_haves_suffices : linter :=
 "`proof_of_goal`, in addition to being ineffectual, they may make unnecessary assumptions in " ++
 "proofs appear as if they are used. ",
   is_fast := ff }
+
+/-!
+## Linter for unprintable interactive tactics
+-/
+
+/--
+Ensures that every interactive tactic has arguments for which `interactive.param_desc` succeeds.
+This is used to generate the parser documentation that appears in hovers on interactive tactics.
+-/
+meta def unprintable_interactive (d : declaration) : tactic (option string) :=
+match d.to_name with
+| name.mk_string _ (name.mk_string "interactive" (name.mk_string _ name.anonymous)) := do
+  (ds, _) ← mk_local_pis d.type,
+  ds ← ds.mfilter $ λ d, bnot <$> succeeds (interactive.param_desc d.local_type),
+  ff ← return ds.empty | return none,
+  ds ← ds.mmap (pp ∘ to_binder),
+  return $ some $ ds.to_string_aux tt
+| _ := return none
+end
+
+/-- A linter for checking that interactive tactics have parser documentation. -/
+@[linter]
+meta def linter.unprintable_interactive : linter :=
+{ test := unprintable_interactive,
+  auto_decls := tt,
+  no_errors_found := "No tactics are unprintable.",
+  errors_found := "THE FOLLOWING TACTICS ARE UNPRINTABLE. " ++
+"This means that an interactive tactic is using `parse p` where `p` does not have " ++
+"an associated description. You can fix this by wrapping `p` as `with_desc \"p\" p`, " ++
+"and provide the description there, or you can stick to \"approved\" tactic combinators " ++
+"like `?` `*>` `<*` `<*>` `<|>` and `<$>` (but not `>>=` or `do` blocks) " ++
+"that automatically generate a description.",
+  is_fast := tt }

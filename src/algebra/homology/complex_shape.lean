@@ -3,10 +3,9 @@ Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Scott Morrison
 -/
-import logic.relation
-import data.option.basic
-import data.subtype
 import algebra.group.defs
+import data.option.basic
+import logic.relation
 
 /-!
 # Shapes of homological complexes

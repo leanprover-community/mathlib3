@@ -132,11 +132,13 @@ def pseudoelement (P : C) : Type (max u v) := quotient (pseudoelement.setoid P)
 namespace pseudoelement
 
 /-- A coercion from an object of an abelian category to its pseudoelements. -/
-def object_to_sort : has_coe_to_sort C :=
-{ S := Type (max u v),
-  coe := λ P, pseudoelement P }
+def object_to_sort : has_coe_to_sort C (Type (max u v)) :=
+⟨λ P, pseudoelement P⟩
 
 local attribute [instance] object_to_sort
+
+localized "attribute [instance] category_theory.abelian.pseudoelement.object_to_sort"
+  in pseudoelement
 
 /-- A coercion from an arrow with codomain `P` to its associated pseudoelement. -/
 def over_to_sort {P : C} : has_coe (over P) (pseudoelement P) :=
@@ -157,9 +159,11 @@ def pseudo_apply {P Q : C} (f : P ⟶ Q) : P → Q :=
 quotient.map (λ (g : over P), app f g) (pseudo_apply_aux f)
 
 /-- A coercion from morphisms to functions on pseudoelements -/
-def hom_to_fun {P Q : C} : has_coe_to_fun (P ⟶ Q) := ⟨_, pseudo_apply⟩
+def hom_to_fun {P Q : C} : has_coe_to_fun (P ⟶ Q) (λ _, P → Q) := ⟨pseudo_apply⟩
 
 local attribute [instance] hom_to_fun
+
+localized "attribute [instance] category_theory.abelian.pseudoelement.hom_to_fun" in pseudoelement
 
 lemma pseudo_apply_mk {P Q : C} (f : P ⟶ Q) (a : over P) : f ⟦a⟧ = ⟦a.hom ≫ f⟧ :=
 rfl
@@ -232,11 +236,14 @@ quotient.induction_on a $ λ a',
   by { rw [pseudo_zero_def, pseudo_apply_mk], simp }
 
 /-- An extensionality lemma for being the zero arrow. -/
-@[ext] theorem zero_morphism_ext {P Q : C} (f : P ⟶ Q) : (∀ a, f a = 0) → f = 0 :=
+theorem zero_morphism_ext {P Q : C} (f : P ⟶ Q) : (∀ a, f a = 0) → f = 0 :=
 λ h, by { rw ←category.id_comp f, exact (pseudo_zero_iff ((𝟙 P ≫ f) : over Q)).1 (h (𝟙 P)) }
 
-@[ext] theorem zero_morphism_ext' {P Q : C} (f : P ⟶ Q) : (∀ a, f a = 0) → 0 = f :=
+theorem zero_morphism_ext' {P Q : C} (f : P ⟶ Q) : (∀ a, f a = 0) → 0 = f :=
 eq.symm ∘ zero_morphism_ext f
+
+localized "attribute [ext] category_theory.abelian.pseudoelement.zero_morphism_ext
+  category_theory.abelian.pseudoelement.zero_morphism_ext'" in pseudoelement
 
 theorem eq_zero_iff {P Q : C} (f : P ⟶ Q) : f = 0 ↔ ∀ a, f a = 0 :=
 ⟨λ h a, by simp [h], zero_morphism_ext _⟩
@@ -283,31 +290,31 @@ end
 section
 
 /-- Two morphisms in an exact sequence are exact on pseudoelements. -/
-theorem pseudo_exact_of_exact {P Q R : C} {f : P ⟶ Q} {g : Q ⟶ R} [exact f g] :
+theorem pseudo_exact_of_exact {P Q R : C} {f : P ⟶ Q} {g : Q ⟶ R} (h : exact f g) :
   (∀ a, g (f a) = 0) ∧ (∀ b, g b = 0 → ∃ a, f a = b) :=
-⟨λ a, by { rw [←comp_apply, exact.w], exact zero_apply _ _ },
+⟨λ a, by { rw [←comp_apply, h.w], exact zero_apply _ _ },
   λ b', quotient.induction_on b' $ λ b hb,
     have hb' : b.hom ≫ g = 0, from (pseudo_zero_iff _).1 hb,
     begin
       -- By exactness, b factors through im f = ker g via some c
-      obtain ⟨c, hc⟩ := kernel_fork.is_limit.lift' (is_limit_image f g) _ hb',
+      obtain ⟨c, hc⟩ := kernel_fork.is_limit.lift' (is_limit_image f g h) _ hb',
 
       -- We compute the pullback of the map into the image and c.
       -- The pseudoelement induced by the first pullback map will be our preimage.
-      use (pullback.fst : pullback (images.factor_thru_image f) c ⟶ P),
+      use (pullback.fst : pullback (abelian.factor_thru_image f) c ⟶ P),
 
       -- It remains to show that the image of this element under f is pseudo-equal to b.
       apply quotient.sound,
 
       -- pullback.snd is an epimorphism because the map onto the image is!
-      refine ⟨pullback (images.factor_thru_image f) c, 𝟙 _, pullback.snd,
+      refine ⟨pullback (abelian.factor_thru_image f) c, 𝟙 _, pullback.snd,
         by apply_instance, by apply_instance, _⟩,
 
       -- Now we can verify that the diagram commutes.
-      calc 𝟙 (pullback (images.factor_thru_image f) c) ≫ pullback.fst ≫ f = pullback.fst ≫ f
+      calc 𝟙 (pullback (abelian.factor_thru_image f) c) ≫ pullback.fst ≫ f = pullback.fst ≫ f
                 : category.id_comp _
-        ... = pullback.fst ≫ images.factor_thru_image f ≫ kernel.ι (cokernel.π f)
-                : by rw images.image.fac
+        ... = pullback.fst ≫ abelian.factor_thru_image f ≫ kernel.ι (cokernel.π f)
+                : by rw abelian.image.fac
         ... = (pullback.snd ≫ c) ≫ kernel.ι (cokernel.π f)
                 : by rw [←category.assoc, pullback.condition]
         ... = pullback.snd ≫ b.hom
@@ -339,8 +346,8 @@ begin
   -- The commutative diagram given by the pseudo-equality f a = b induces
   -- a cone over this pullback, so we get a factorization z.
   obtain ⟨z, hz₁, hz₂⟩ := @pullback.lift' _ _ _ _ _ _ (kernel.ι (cokernel.π f)) (kernel.ι g) _
-    (r ≫ a.hom ≫ images.factor_thru_image f) q
-      (by { simp only [category.assoc, images.image.fac], exact comm }),
+    (r ≫ a.hom ≫ abelian.factor_thru_image f) q
+      (by { simp only [category.assoc, abelian.image.fac], exact comm }),
 
   -- Let's give a name to the second pullback morphism.
   let j : pullback (kernel.ι (cokernel.π f)) (kernel.ι g) ⟶ kernel g := pullback.snd,

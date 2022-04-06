@@ -38,11 +38,11 @@ lemma is_left_regular_iff [has_mul R] {a : R} :
   is_left_regular a ↔ is_smul_regular R a := iff.rfl
 
 lemma is_right_regular.is_smul_regular [has_mul R] {c : R} (h : is_right_regular c) :
-  is_smul_regular R (opposite.op c) := h
+  is_smul_regular R (mul_opposite.op c) := h
 
-/-- Right-regular multiplication on `R` is equivalent to `Rᵒᵖ`-regularity of `R` itself. -/
+/-- Right-regular multiplication on `R` is equivalent to `Rᵐᵒᵖ`-regularity of `R` itself. -/
 lemma is_right_regular_iff [has_mul R] {a : R} :
-  is_right_regular a ↔ is_smul_regular R (opposite.op a) := iff.rfl
+  is_right_regular a ↔ is_smul_regular R (mul_opposite.op a) := iff.rfl
 
 namespace is_smul_regular
 
@@ -73,7 +73,7 @@ is `M`-regular. -/
 lemma is_left_regular [has_mul R] {a : R} (h : is_smul_regular R a) :
   is_left_regular a := h
 
-lemma is_right_regular [has_mul R] {a : R} (h : is_smul_regular R (opposite.op a)) :
+lemma is_right_regular [has_mul R] {a : R} (h : is_smul_regular R (mul_opposite.op a)) :
   is_right_regular a := h
 
 end has_scalar
@@ -205,8 +205,8 @@ end group
 
 variables [monoid_with_zero R] [has_zero M] [mul_action_with_zero R M]
 
-/-- Any element in `units R` is `M`-regular. -/
-lemma units.is_smul_regular (a : units R) : is_smul_regular M (a : R) :=
+/-- Any element in `Rˣ` is `M`-regular. -/
+lemma units.is_smul_regular (a : Rˣ) : is_smul_regular M (a : R) :=
 is_smul_regular.of_mul_eq_one a.inv_val
 
 /-- A unit is `M`-regular. -/

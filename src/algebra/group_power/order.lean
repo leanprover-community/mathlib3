@@ -63,7 +63,7 @@ theorem pow_lt_one' {a : M} (ha : a < 1) {k : ℕ} (hk : k ≠ 0) : a ^ k < 1 :=
 @one_lt_pow' (order_dual M) _ _ _ _ ha k hk
 
 @[to_additive nsmul_lt_nsmul]
-theorem pow_lt_pow'' [covariant_class M M (*) (<)] {a : M} {n m : ℕ} (ha : 1 < a) (h : n < m) :
+theorem pow_lt_pow' [covariant_class M M (*) (<)] {a : M} {n m : ℕ} (ha : 1 < a) (h : n < m) :
   a ^ n < a ^ m :=
 begin
   rcases nat.le.dest h with ⟨k, rfl⟩, clear h,
@@ -81,7 +81,7 @@ variables [monoid M] [linear_order M] [covariant_class M M (*) (≤)]
 lemma one_le_pow_iff {x : M} {n : ℕ} (hn : n ≠ 0) : 1 ≤ x ^ n ↔ 1 ≤ x :=
 ⟨le_imp_le_of_lt_imp_lt $ λ h, pow_lt_one' h hn, λ h, one_le_pow_of_one_le' h n⟩
 
-@[to_additive nsmul_nonpos_iff]
+@[to_additive]
 lemma pow_le_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n ≤ 1 ↔ x ≤ 1 :=
 @one_le_pow_iff (order_dual M) _ _ _ _ _ hn
 
@@ -89,30 +89,30 @@ lemma pow_le_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n ≤ 1 ↔ x ≤ 1 
 lemma one_lt_pow_iff {x : M} {n : ℕ} (hn : n ≠ 0) : 1 < x ^ n ↔ 1 < x :=
 lt_iff_lt_of_le_iff_le (pow_le_one_iff hn)
 
-@[to_additive nsmul_neg_iff]
+@[to_additive]
 lemma pow_lt_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n < 1 ↔ x < 1 :=
 lt_iff_lt_of_le_iff_le (one_le_pow_iff hn)
 
-@[to_additive nsmul_eq_zero_iff]
+@[to_additive]
 lemma pow_eq_one_iff {x : M} {n : ℕ} (hn : n ≠ 0) : x ^ n = 1 ↔ x = 1 :=
 by simp only [le_antisymm_iff, pow_le_one_iff hn, one_le_pow_iff hn]
 
 end linear_order
 
-section group
+section div_inv_monoid
 
-variables [group G] [preorder G] [covariant_class G G (*) (≤)]
+variables [div_inv_monoid G] [preorder G] [covariant_class G G (*) (≤)]
 
-@[to_additive gsmul_nonneg]
-theorem one_le_gpow {x : G} (H : 1 ≤ x) {n : ℤ} (hn : 0 ≤ n) :
+@[to_additive zsmul_nonneg]
+theorem one_le_zpow {x : G} (H : 1 ≤ x) {n : ℤ} (hn : 0 ≤ n) :
   1 ≤ x ^ n :=
 begin
   lift n to ℕ using hn,
-  rw gpow_coe_nat,
+  rw zpow_coe_nat,
   apply one_le_pow_of_one_le' H,
 end
 
-end group
+end div_inv_monoid
 
 namespace canonically_ordered_comm_semiring
 
@@ -124,18 +124,9 @@ pos_iff_ne_zero.2 $ pow_ne_zero _ H.ne'
 end canonically_ordered_comm_semiring
 
 section ordered_semiring
-variable [ordered_semiring R]
+variables [ordered_semiring R] {a x y : R} {n m : ℕ}
 
-@[simp] theorem pow_pos {a : R} (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
-| 0     := by { nontriviality, rw pow_zero, exact zero_lt_one }
-| (n+1) := by { rw pow_succ, exact mul_pos H (pow_pos _) }
-
-@[simp] theorem pow_nonneg {a : R} (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
-| 0     := by { rw pow_zero, exact zero_le_one}
-| (n+1) := by { rw pow_succ, exact mul_nonneg H (pow_nonneg _) }
-
-theorem pow_add_pow_le {x y : R} {n : ℕ} (hx : 0 ≤ x) (hy : 0 ≤ y) (hn : n ≠ 0) :
-  x ^ n + y ^ n ≤ (x + y) ^ n :=
+theorem pow_add_pow_le (hx : 0 ≤ x) (hy : 0 ≤ y) (hn : n ≠ 0) : x ^ n + y ^ n ≤ (x + y) ^ n :=
 begin
   rcases nat.exists_eq_succ_of_ne_zero hn with ⟨k, rfl⟩,
   induction k with k ih, { simp only [pow_one] },
@@ -152,67 +143,96 @@ begin
       by { rw [pow_succ _ n], exact mul_le_mul_of_nonneg_left (ih (nat.succ_ne_zero k)) h2 }
 end
 
-theorem pow_lt_pow_of_lt_left {x y : R} {n : ℕ} (Hxy : x < y) (Hxpos : 0 ≤ x) (Hnpos : 0 < n) :
+theorem pow_lt_pow_of_lt_left (Hxy : x < y) (Hxpos : 0 ≤ x) (Hnpos : 0 < n) :
   x ^ n < y ^ n :=
 begin
   cases lt_or_eq_of_le Hxpos,
-  { rw ←nat.sub_add_cancel Hnpos,
+  { rw ← tsub_add_cancel_of_le (nat.succ_le_of_lt Hnpos),
     induction (n - 1), { simpa only [pow_one] },
     rw [pow_add, pow_add, nat.succ_eq_add_one, pow_one, pow_one],
     apply mul_lt_mul ih (le_of_lt Hxy) h (le_of_lt (pow_pos (lt_trans h Hxy) _)) },
   { rw [←h, zero_pow Hnpos], apply pow_pos (by rwa ←h at Hxy : 0 < y),}
 end
 
-lemma pow_lt_one {a : R} (h₀ : 0 ≤ a) (h₁ : a < 1) {n : ℕ} (hn : n ≠ 0) : a ^ n < 1 :=
+lemma pow_lt_one (h₀ : 0 ≤ a) (h₁ : a < 1) {n : ℕ} (hn : n ≠ 0) : a ^ n < 1 :=
 (one_pow n).subst (pow_lt_pow_of_lt_left h₁ h₀ (nat.pos_of_ne_zero hn))
 
-theorem strict_mono_on_pow {n : ℕ} (hn : 0 < n) :
-  strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
+theorem strict_mono_on_pow (hn : 0 < n) : strict_mono_on (λ x : R, x ^ n) (set.Ici 0) :=
 λ x hx y hy h, pow_lt_pow_of_lt_left h hx hn
 
-theorem one_le_pow_of_one_le {a : R} (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
+theorem one_le_pow_of_one_le (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
 | 0     := by rw [pow_zero]
 | (n+1) := by { rw pow_succ, simpa only [mul_one] using mul_le_mul H (one_le_pow_of_one_le n)
     zero_le_one (le_trans zero_le_one H) }
 
-lemma pow_mono {a : R} (h : 1 ≤ a) : monotone (λ n : ℕ, a ^ n) :=
+lemma pow_mono (h : 1 ≤ a) : monotone (λ n : ℕ, a ^ n) :=
 monotone_nat_of_le_succ $ λ n,
   by { rw pow_succ, exact le_mul_of_one_le_left (pow_nonneg (zero_le_one.trans h) _) h }
 
-theorem pow_le_pow {a : R} {n m : ℕ} (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
+theorem pow_le_pow (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
 pow_mono ha h
 
-lemma strict_mono_pow {a : R} (h : 1 < a) : strict_mono (λ n : ℕ, a ^ n) :=
+theorem le_self_pow (ha : 1 ≤ a) (h : 1 ≤ m) : a ≤ a ^ m :=
+eq.trans_le (pow_one a).symm (pow_le_pow ha h)
+
+lemma strict_mono_pow (h : 1 < a) : strict_mono (λ n : ℕ, a ^ n) :=
 have 0 < a := zero_le_one.trans_lt h,
 strict_mono_nat_of_lt_succ $ λ n, by simpa only [one_mul, pow_succ]
   using mul_lt_mul h (le_refl (a ^ n)) (pow_pos this _) this.le
 
-lemma pow_lt_pow {a : R} {n m : ℕ} (h : 1 < a) (h2 : n < m) : a ^ n < a ^ m :=
+lemma pow_lt_pow (h : 1 < a) (h2 : n < m) : a ^ n < a ^ m :=
 strict_mono_pow h h2
 
-lemma pow_lt_pow_iff {a : R} {n m : ℕ} (h : 1 < a) : a ^ n < a ^ m ↔ n < m :=
+lemma pow_lt_pow_iff (h : 1 < a) : a ^ n < a ^ m ↔ n < m :=
 (strict_mono_pow h).lt_iff_lt
+
+lemma pow_le_pow_iff (h : 1 < a) : a ^ n ≤ a ^ m ↔ n ≤ m :=
+(strict_mono_pow h).le_iff_le
+
+lemma strict_anti_pow (h₀ : 0 < a) (h₁ : a < 1) : strict_anti (λ n : ℕ, a ^ n) :=
+strict_anti_nat_of_succ_lt $ λ n,
+  by simpa only [pow_succ, one_mul] using mul_lt_mul h₁ le_rfl (pow_pos h₀ n) zero_le_one
+
+lemma pow_lt_pow_iff_of_lt_one (h₀ : 0 < a) (h₁ : a < 1) : a ^ m < a ^ n ↔ n < m :=
+(strict_anti_pow h₀ h₁).lt_iff_lt
+
+lemma pow_lt_pow_of_lt_one (h : 0 < a) (ha : a < 1) {i j : ℕ} (hij : i < j) : a ^ j < a ^ i :=
+(pow_lt_pow_iff_of_lt_one h ha).2 hij
 
 @[mono] lemma pow_le_pow_of_le_left {a b : R} (ha : 0 ≤ a) (hab : a ≤ b) : ∀ i : ℕ, a^i ≤ b^i
 | 0     := by simp
 | (k+1) := by { rw [pow_succ, pow_succ],
     exact mul_le_mul hab (pow_le_pow_of_le_left _) (pow_nonneg ha _) (le_trans ha hab) }
 
-lemma one_lt_pow {a : R} (ha : 1 < a) : ∀ {n : ℕ}, n ≠ 0 → 1 < a ^ n
-| 0       h := (h rfl).elim
-| 1       h := (pow_one a).symm.subst ha
-| (n + 2) h :=
-  begin
-    nontriviality R,
-    rw [←one_mul (1 : R), pow_succ],
-    exact mul_lt_mul ha (one_lt_pow (nat.succ_ne_zero _)).le zero_lt_one (zero_lt_one.trans ha).le,
-  end
+lemma one_lt_pow (ha : 1 < a) {n : ℕ} (hn : n ≠ 0) : 1 < a ^ n :=
+pow_zero a ▸ pow_lt_pow ha (pos_iff_ne_zero.2 hn)
 
-lemma pow_le_one {a : R} : ∀ (n : ℕ) (h₀ : 0 ≤ a) (h₁ : a ≤ 1), a ^ n ≤ 1
+lemma pow_le_one : ∀ (n : ℕ) (h₀ : 0 ≤ a) (h₁ : a ≤ 1), a ^ n ≤ 1
 | 0       h₀ h₁ := (pow_zero a).le
 | (n + 1) h₀ h₁ := (pow_succ' a n).le.trans (mul_le_one (pow_le_one n h₀ h₁) h₀ h₁)
 
+lemma sq_pos_of_pos (ha : 0 < a) : 0 < a ^ 2 := by { rw sq, exact mul_pos ha ha }
+
 end ordered_semiring
+
+section ordered_ring
+variables [ordered_ring R] {a : R}
+
+lemma sq_pos_of_neg (ha : a < 0) : 0 < a ^ 2 := by { rw sq, exact mul_pos_of_neg_of_neg ha ha }
+
+lemma pow_bit0_pos_of_neg (ha : a < 0) (n : ℕ) : 0 < a ^ bit0 n :=
+begin
+  rw pow_bit0',
+  exact pow_pos (mul_pos_of_neg_of_neg ha ha) _,
+end
+
+lemma pow_bit1_neg (ha : a < 0) (n : ℕ) : a ^ bit1 n < 0 :=
+begin
+  rw [bit1, pow_succ],
+  exact mul_neg_of_neg_of_pos ha (pow_bit0_pos_of_neg ha n),
+end
+
+end ordered_ring
 
 section linear_ordered_semiring
 variable [linear_ordered_semiring R]
@@ -290,6 +310,17 @@ pow_bit0_pos h 1
 
 alias sq_pos_of_ne_zero ← pow_two_pos_of_ne_zero
 
+theorem pow_bit0_pos_iff (a : R) {n : ℕ} (hn : n ≠ 0) : 0 < a ^ bit0 n ↔ a ≠ 0 :=
+begin
+  refine ⟨λ h, _, λ h, pow_bit0_pos h n⟩,
+  rintro rfl,
+  rw zero_pow (nat.zero_lt_bit0 hn) at h,
+  exact lt_irrefl _ h,
+end
+
+theorem sq_pos_iff (a : R) : 0 < a ^ 2 ↔ a ≠ 0 :=
+pow_bit0_pos_iff a one_ne_zero
+
 variables {x y : R}
 
 theorem sq_abs (x : R) : |x| ^ 2 = x ^ 2 :=
@@ -298,11 +329,11 @@ by simpa only [sq] using abs_mul_abs_self x
 theorem abs_sq (x : R) : |x ^ 2| = x ^ 2 :=
 by simpa only [sq] using abs_mul_self x
 
-theorem sq_lt_sq (h : |x| < y) : x ^ 2 < y ^ 2 :=
+theorem sq_lt_sq (h : |x| < |y|) : x ^ 2 < y ^ 2 :=
 by simpa only [sq_abs] using pow_lt_pow_of_lt_left h (abs_nonneg x) (1:ℕ).succ_pos
 
 theorem sq_lt_sq' (h1 : -y < x) (h2 : x < y) : x ^ 2 < y ^ 2 :=
-sq_lt_sq (abs_lt.mpr ⟨h1, h2⟩)
+sq_lt_sq (lt_of_lt_of_le (abs_lt.2 ⟨h1, h2⟩) (le_abs_self _))
 
 theorem sq_le_sq (h : |x| ≤ |y|) : x ^ 2 ≤ y ^ 2 :=
 by simpa only [sq_abs] using pow_le_pow_of_le_left (abs_nonneg x) h 2
@@ -333,6 +364,28 @@ end
 
 theorem abs_le_of_sq_le_sq' (h : x^2 ≤ y^2) (hy : 0 ≤ y) : -y ≤ x ∧ x ≤ y :=
 abs_le.mp $ abs_le_of_sq_le_sq h hy
+
+lemma sq_eq_sq_iff_abs_eq_abs (x y : R) : x^2 = y^2 ↔ |x| = |y| :=
+⟨λ h, (abs_le_abs_of_sq_le_sq h.le).antisymm (abs_le_abs_of_sq_le_sq h.ge),
+ λ h, by rw [←sq_abs, h, sq_abs]⟩
+
+@[simp] lemma sq_eq_one_iff (x : R) : x^2 = 1 ↔ x = 1 ∨ x = -1 :=
+by rw [←abs_eq_abs, ←sq_eq_sq_iff_abs_eq_abs, one_pow]
+
+lemma sq_ne_one_iff (x : R) : x^2 ≠ 1 ↔ x ≠ 1 ∧ x ≠ -1 :=
+(not_iff_not.2 (sq_eq_one_iff _)).trans not_or_distrib
+
+@[simp] lemma sq_le_one_iff_abs_le_one (x : R) : x^2 ≤ 1 ↔ |x| ≤ 1 :=
+have t : x^2 ≤ 1^2 ↔ |x| ≤ |1| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, by simpa using t
+
+@[simp] lemma sq_lt_one_iff_abs_lt_one (x : R) : x^2 < 1 ↔ |x| < 1 :=
+have t : x^2 < 1^2 ↔ |x| < |1| := ⟨abs_lt_abs_of_sq_lt_sq, sq_lt_sq⟩, by simpa using t
+
+@[simp] lemma one_le_sq_iff_one_le_abs (x : R) : 1 ≤ x^2 ↔ 1 ≤ |x| :=
+have t : 1^2 ≤ x^2 ↔ |1| ≤ |x| := ⟨abs_le_abs_of_sq_le_sq, sq_le_sq⟩, by simpa using t
+
+@[simp] lemma one_lt_sq_iff_one_lt_abs (x : R) : 1 < x^2 ↔ 1 < |x| :=
+have t : 1^2 < x^2 ↔ |1| < |x| := ⟨abs_lt_abs_of_sq_lt_sq, sq_lt_sq⟩, by simpa using t
 
 end linear_ordered_ring
 

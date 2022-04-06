@@ -3,8 +3,9 @@ Copyright (c) 2019 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
+import algebra.module.equiv
 import data.bracket
-import algebra.algebra.basic
+import linear_algebra.basic
 import tactic.noncomm_ring
 
 /-!
@@ -46,6 +47,7 @@ lie bracket, jacobi identity, lie ring, lie algebra, lie module
 -/
 
 universes u v w w₁ w₂
+open function
 
 /-- A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
 Jacobi identity. -/
@@ -132,11 +134,11 @@ add_monoid_hom.map_nsmul ⟨λ (x : L), ⁅x, m⁆, zero_lie m, λ _ _, add_lie 
 @[simp] lemma lie_nsmul (n : ℕ) : ⁅x, n • m⁆ = n • ⁅x, m⁆ :=
 add_monoid_hom.map_nsmul ⟨λ (m : M), ⁅x, m⁆, lie_zero x, λ _ _, lie_add _ _ _⟩ _ _
 
-@[simp] lemma gsmul_lie (a : ℤ) : ⁅a • x, m⁆ = a • ⁅x, m⁆ :=
-add_monoid_hom.map_gsmul ⟨λ (x : L), ⁅x, m⁆, zero_lie m, λ _ _, add_lie _ _ _⟩ _ _
+@[simp] lemma zsmul_lie (a : ℤ) : ⁅a • x, m⁆ = a • ⁅x, m⁆ :=
+add_monoid_hom.map_zsmul ⟨λ (x : L), ⁅x, m⁆, zero_lie m, λ _ _, add_lie _ _ _⟩ _ _
 
-@[simp] lemma lie_gsmul (a : ℤ) : ⁅x, a • m⁆ = a • ⁅x, m⁆ :=
-add_monoid_hom.map_gsmul ⟨λ (m : M), ⁅x, m⁆, lie_zero x, λ _ _, lie_add _ _ _⟩ _ _
+@[simp] lemma lie_zsmul (a : ℤ) : ⁅x, a • m⁆ = a • ⁅x, m⁆ :=
+add_monoid_hom.map_zsmul ⟨λ (m : M), ⁅x, m⁆, lie_zero x, λ _ _, lie_add _ _ _⟩ _ _
 
 @[simp] lemma lie_lie : ⁅⁅x, y⁆, m⁆ = ⁅x, ⁅y, m⁆⁆ - ⁅y, ⁅x, m⁆⁆ :=
 by rw [leibniz_lie, add_sub_cancel]
@@ -145,7 +147,7 @@ lemma lie_jacobi : ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆�
 by { rw [← neg_neg ⁅x, y⁆, lie_neg z, lie_skew y x, ← lie_skew, lie_lie], abel, }
 
 instance lie_ring.int_lie_algebra : lie_algebra ℤ L :=
-{ lie_smul := λ n x y, lie_gsmul x y n, }
+{ lie_smul := λ n x y, lie_zsmul x y n, }
 
 instance : lie_ring_module L (M →ₗ[R] N) :=
 { bracket     := λ x f,
@@ -197,7 +199,7 @@ variables [lie_ring L₃] [lie_algebra R L₃]
 instance : has_coe (L₁ →ₗ⁅R⁆ L₂) (L₁ →ₗ[R] L₂) := ⟨lie_hom.to_linear_map⟩
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) := ⟨_, λ f, f.to_linear_map.to_fun⟩
+instance : has_coe_to_fun (L₁ →ₗ⁅R⁆ L₂) (λ _, L₁ → L₂) := ⟨λ f, f.to_linear_map.to_fun⟩
 
 /-- See Note [custom simps projection]. We need to specify this projection explicitly in this case,
   because it is a composition of multiple projections. -/
@@ -304,6 +306,40 @@ def inverse (f : L₁ →ₗ⁅R⁆ L₂) (g : L₂ → L₁)
 
 end lie_hom
 
+section module_pull_back
+
+variables {R : Type u} {L₁ : Type v} {L₂ : Type w} (M : Type w₁)
+variables [comm_ring R]  [lie_ring L₁] [lie_algebra R L₁] [lie_ring L₂] [lie_algebra R L₂]
+variables [add_comm_group M] [lie_ring_module L₂ M]
+variables (f : L₁ →ₗ⁅R⁆ L₂)
+include f
+
+/-- A Lie ring module may be pulled back along a morphism of Lie algebras.
+
+See note [reducible non-instances]. -/
+@[reducible]
+def lie_ring_module.comp_lie_hom : lie_ring_module L₁ M :=
+{ bracket     := λ x m, ⁅f x, m⁆,
+  lie_add     := λ x, lie_add (f x),
+  add_lie     := λ x y m, by simp only [lie_hom.map_add, add_lie],
+  leibniz_lie := λ x y m, by simp only [lie_lie, sub_add_cancel, lie_hom.map_lie], }
+
+lemma lie_ring_module.comp_lie_hom_apply (x : L₁) (m : M) :
+  by haveI := lie_ring_module.comp_lie_hom M f; exact
+  ⁅x, m⁆ = ⁅f x, m⁆ :=
+rfl
+
+/-- A Lie module may be pulled back along a morphism of Lie algebras.
+
+See note [reducible non-instances]. -/
+@[reducible]
+def lie_module.comp_lie_hom [module R M] [lie_module R L₂ M] :
+  @lie_module R L₁ M _ _ _ _ _ (lie_ring_module.comp_lie_hom M f) :=
+{ smul_lie := λ t x m, by simp only [smul_lie, lie_hom.map_smul],
+  lie_smul := λ t x m, by simp only [lie_smul], }
+
+end module_pull_back
+
 /-- An equivalence of Lie algebras is a morphism which is also a linear equivalence. We could
 instead define an equivalence to be a morphism which is also a (plain) equivalence. However it is
 more convenient to define via linear equivalence to get `.to_linear_equiv` for free. -/
@@ -331,17 +367,30 @@ instance has_coe_to_lie_hom : has_coe (L₁ ≃ₗ⁅R⁆ L₂) (L₁ →ₗ⁅R
 instance has_coe_to_linear_equiv : has_coe (L₁ ≃ₗ⁅R⁆ L₂) (L₁ ≃ₗ[R] L₂) := ⟨to_linear_equiv⟩
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (L₁ ≃ₗ⁅R⁆ L₂) := ⟨_, λ e, e.to_lie_hom.to_fun⟩
+instance : has_coe_to_fun (L₁ ≃ₗ⁅R⁆ L₂) (λ _, L₁ → L₂) := ⟨λ e, e.to_lie_hom.to_fun⟩
 
-@[simp, norm_cast] lemma coe_to_lie_equiv (e : L₁ ≃ₗ⁅R⁆ L₂) : ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = e :=
-  rfl
+@[simp, norm_cast] lemma coe_to_lie_hom (e : L₁ ≃ₗ⁅R⁆ L₂) : ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) = e :=
+rfl
 
 @[simp, norm_cast] lemma coe_to_linear_equiv (e : L₁ ≃ₗ⁅R⁆ L₂) :
   ((e : L₁ ≃ₗ[R] L₂) : L₁ → L₂) = e := rfl
 
+@[simp] lemma to_linear_equiv_mk (f : L₁ →ₗ⁅R⁆ L₂) (g h₁ h₂) :
+  (mk f g h₁ h₂ : L₁ ≃ₗ[R] L₂) = { inv_fun := g, left_inv := h₁, right_inv := h₂, .. f } := rfl
+
+lemma coe_linear_equiv_injective : injective (coe : (L₁ ≃ₗ⁅R⁆ L₂) → (L₁ ≃ₗ[R] L₂)) :=
+begin
+  intros f₁ f₂ h, cases f₁, cases f₂, dsimp at h, simp only at h,
+  congr, exacts [lie_hom.coe_injective h.1, h.2]
+end
+
+lemma coe_injective : @injective (L₁ ≃ₗ⁅R⁆ L₂) (L₁ → L₂) coe_fn :=
+linear_equiv.coe_injective.comp coe_linear_equiv_injective
+
+@[ext] lemma ext {f g : L₁ ≃ₗ⁅R⁆ L₂} (h : ∀ x, f x = g x) : f = g := coe_injective $ funext h
+
 instance : has_one (L₁ ≃ₗ⁅R⁆ L₁) :=
-⟨{ map_lie' := λ x y,
-    by { change ((1 : L₁→ₗ[R] L₁) ⁅x, y⁆) = ⁅(1 : L₁→ₗ[R] L₁) x, (1 : L₁→ₗ[R] L₁) y⁆, simp, },
+⟨{ map_lie' := λ x y, rfl,
   ..(1 : L₁ ≃ₗ[R] L₁)}⟩
 
 @[simp] lemma one_apply (x : L₁) : (1 : (L₁ ≃ₗ⁅R⁆ L₁)) x = x := rfl
@@ -361,7 +410,7 @@ def symm (e : L₁ ≃ₗ⁅R⁆ L₂) : L₂ ≃ₗ⁅R⁆ L₁ :=
   ..e.to_linear_equiv.symm }
 
 @[simp] lemma symm_symm (e : L₁ ≃ₗ⁅R⁆ L₂) : e.symm.symm = e :=
-by { rcases e with ⟨⟨⟨⟩⟩⟩, refl, }
+by { ext, refl }
 
 @[simp] lemma apply_symm_apply (e : L₁ ≃ₗ⁅R⁆ L₂) : ∀ x, e (e.symm x) = x :=
   e.to_linear_equiv.apply_symm_apply
@@ -375,20 +424,33 @@ def trans (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) : L�
 { ..lie_hom.comp e₂.to_lie_hom e₁.to_lie_hom,
   ..linear_equiv.trans e₁.to_linear_equiv e₂.to_linear_equiv }
 
+@[simp] lemma self_trans_symm (e : L₁ ≃ₗ⁅R⁆ L₂) : e.trans e.symm = refl :=
+ext e.symm_apply_apply
+
+@[simp] lemma symm_trans_self (e : L₁ ≃ₗ⁅R⁆ L₂) : e.symm.trans e = refl :=
+e.symm.self_trans_symm
+
 @[simp] lemma trans_apply (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) (x : L₁) :
   (e₁.trans e₂) x = e₂ (e₁ x) := rfl
 
-@[simp] lemma symm_trans_apply (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) (x : L₃) :
-  (e₁.trans e₂).symm x = e₁.symm (e₂.symm x) := rfl
+@[simp] lemma symm_trans (e₁ : L₁ ≃ₗ⁅R⁆ L₂) (e₂ : L₂ ≃ₗ⁅R⁆ L₃) :
+  (e₁.trans e₂).symm = e₂.symm.trans e₁.symm := rfl
 
-lemma bijective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.bijective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
+protected lemma bijective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.bijective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
 e.to_linear_equiv.bijective
 
-lemma injective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.injective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
+protected lemma injective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.injective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
 e.to_linear_equiv.injective
 
-lemma surjective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.surjective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
+protected lemma surjective (e : L₁ ≃ₗ⁅R⁆ L₂) : function.surjective ((e : L₁ →ₗ⁅R⁆ L₂) : L₁ → L₂) :=
 e.to_linear_equiv.surjective
+
+/-- A bijective morphism of Lie algebras yields an equivalence of Lie algebras. -/
+@[simps] noncomputable def of_bijective (f : L₁ →ₗ⁅R⁆ L₂)
+  (h₁ : function.injective f) (h₂ : function.surjective f) : L₁ ≃ₗ⁅R⁆ L₂ :=
+{ to_fun   := f,
+  map_lie' := f.map_lie,
+  .. (linear_equiv.of_bijective (f : L₁ →ₗ[R] L₂) h₁ h₂), }
 
 end lie_equiv
 
@@ -417,7 +479,7 @@ variables {R L M N P}
 instance : has_coe (M →ₗ⁅R,L⁆ N) (M →ₗ[R] N) := ⟨lie_module_hom.to_linear_map⟩
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (M →ₗ⁅R,L⁆ N) := ⟨_, λ f, f.to_linear_map.to_fun⟩
+instance : has_coe_to_fun (M →ₗ⁅R,L⁆ N) (λ _, M → N) := ⟨λ f, f.to_linear_map.to_fun⟩
 
 @[simp, norm_cast] lemma coe_to_linear_map (f : M →ₗ⁅R,L⁆ N) : ((f : M →ₗ[R] N) : M → N) = f :=
 rfl
@@ -444,6 +506,15 @@ by simp only [sub_add_cancel, map_lie, lie_hom.lie_apply]
 @[simp] lemma map_zero (f : M →ₗ⁅R,L⁆ N) : f 0 = 0 :=
 linear_map.map_zero (f : M →ₗ[R] N)
 
+/-- The identity map is a morphism of Lie modules. -/
+def id : M →ₗ⁅R,L⁆ M :=
+{ map_lie' := λ x m, rfl,
+  .. (linear_map.id : M →ₗ[R] M) }
+
+@[simp] lemma coe_id : ((id : M →ₗ⁅R,L⁆ M) : M → M) = _root_.id := rfl
+
+lemma id_apply (x : M) : (id : M →ₗ⁅R,L⁆ M) x = x := rfl
+
 /-- The constant 0 map is a Lie module morphism. -/
 instance : has_zero (M →ₗ⁅R,L⁆ N) := ⟨{ map_lie' := by simp, ..(0 : M →ₗ[R] N) }⟩
 
@@ -452,7 +523,7 @@ instance : has_zero (M →ₗ⁅R,L⁆ N) := ⟨{ map_lie' := by simp, ..(0 : M 
 lemma zero_apply (m : M) : (0 : M →ₗ⁅R,L⁆ N) m = 0 := rfl
 
 /-- The identity map is a Lie module morphism. -/
-instance : has_one (M →ₗ⁅R,L⁆ M) := ⟨{ map_lie' := by simp, ..(1 : M →ₗ[R] M) }⟩
+instance : has_one (M →ₗ⁅R,L⁆ M) := ⟨id⟩
 
 instance : inhabited (M →ₗ⁅R,L⁆ N) := ⟨0⟩
 
@@ -525,16 +596,23 @@ lemma sub_apply (f g : M →ₗ⁅R,L⁆ N) (m : M) : (f - g) m = f m - g m := r
 
 lemma neg_apply (f : M →ₗ⁅R,L⁆ N) (m : M) : (-f) m = -(f m) := rfl
 
+instance has_nsmul : has_scalar ℕ (M →ₗ⁅R,L⁆ N) :=
+{ smul := λ n f, { map_lie' := λ x m, by simp, ..(n • (f : M →ₗ[R] N)) } }
+
+@[norm_cast, simp] lemma coe_nsmul (n : ℕ) (f : M →ₗ⁅R,L⁆ N) : ⇑(n • f) = n • f := rfl
+
+lemma nsmul_apply (n : ℕ) (f : M →ₗ⁅R,L⁆ N) (m : M) : (n • f) m = n • f m := rfl
+
+instance has_zsmul : has_scalar ℤ (M →ₗ⁅R,L⁆ N) :=
+{ smul := λ z f, { map_lie' := λ x m, by simp, ..(z • (f : M →ₗ[R] N)) } }
+
+@[norm_cast, simp] lemma coe_zsmul (z : ℤ) (f : M →ₗ⁅R,L⁆ N) : ⇑(z • f) = z • f := rfl
+
+lemma zsmul_apply (z : ℤ) (f : M →ₗ⁅R,L⁆ N) (m : M) : (z • f) m = z • f m := rfl
+
 instance : add_comm_group (M →ₗ⁅R,L⁆ N) :=
-{ zero           := 0,
-  add            := (+),
-  neg            := has_neg.neg,
-  sub            := has_sub.sub,
-  nsmul          := λ n f, { map_lie' := λ x m, by simp, ..(n • (f : M →ₗ[R] N)) },
-  nsmul_zero'    := λ f, by { ext, simp, },
-  nsmul_succ'    := λ n f, by { ext, simp [nat.succ_eq_one_add, add_nsmul], },
-  ..(coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub :
-    add_comm_group (M →ₗ⁅R,L⁆ N)) }
+coe_injective.add_comm_group _
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
 
 instance : has_scalar R (M →ₗ⁅R,L⁆ N) :=
 { smul := λ t f, { map_lie' := by simp, ..(t • (f : M →ₗ[R] N)) }, }
@@ -576,7 +654,7 @@ instance has_coe_to_lie_module_hom : has_coe (M ≃ₗ⁅R,L⁆ N) (M →ₗ⁅R
 instance has_coe_to_linear_equiv : has_coe (M ≃ₗ⁅R,L⁆ N) (M ≃ₗ[R] N) := ⟨to_linear_equiv⟩
 
 /-- see Note [function coercion] -/
-instance : has_coe_to_fun (M ≃ₗ⁅R,L⁆ N) := ⟨_, λ e, e.to_lie_module_hom.to_fun⟩
+instance : has_coe_to_fun (M ≃ₗ⁅R,L⁆ N) (λ _, M → N) := ⟨λ e, e.to_lie_module_hom.to_fun⟩
 
 lemma injective (e : M ≃ₗ⁅R,L⁆ N) : function.injective e := e.to_equiv.injective
 
@@ -638,8 +716,14 @@ by { ext, apply_fun e.symm using e.symm.injective, simp, }
 @[simp] lemma trans_apply (e₁ : M ≃ₗ⁅R,L⁆ N) (e₂ : N ≃ₗ⁅R,L⁆ P) (m : M) :
   (e₁.trans e₂) m = e₂ (e₁ m) := rfl
 
-@[simp] lemma symm_trans_apply (e₁ : M ≃ₗ⁅R,L⁆ N) (e₂ : N ≃ₗ⁅R,L⁆ P) (p : P) :
-  (e₁.trans e₂).symm p = e₁.symm (e₂.symm p) := rfl
+@[simp] lemma symm_trans (e₁ : M ≃ₗ⁅R,L⁆ N) (e₂ : N ≃ₗ⁅R,L⁆ P) :
+  (e₁.trans e₂).symm = e₂.symm.trans e₁.symm := rfl
+
+@[simp] lemma self_trans_symm (e : M ≃ₗ⁅R,L⁆ N) : e.trans e.symm = refl :=
+ext _ _ e.symm_apply_apply
+
+@[simp] lemma symm_trans_self (e : M ≃ₗ⁅R,L⁆ N) : e.symm.trans e = refl :=
+ext _ _ e.apply_symm_apply
 
 end lie_module_equiv
 

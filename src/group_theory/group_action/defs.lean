@@ -3,29 +3,31 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Yury Kudryashov
 -/
-import algebra.group.defs
-import algebra.group.hom
 import algebra.group.type_tags
+import algebra.hom.group
+import algebra.opposites
 import logic.embedding
 
 /-!
 # Definitions of group actions
 
-This file defines a hierarchy of group action type-classes:
+This file defines a hierarchy of group action type-classes on top of the previously defined
+notation classes `has_scalar` and its additive version `has_vadd`:
 
-* `has_scalar M α` and its additive version `has_vadd G P` are notation typeclasses for
-  `•` and `+ᵥ`, respectively;
 * `mul_action M α` and its additive version `add_action G P` are typeclasses used for
-  actions of multiplicative and additive monoids and groups;
+  actions of multiplicative and additive monoids and groups; they extend notation classes
+  `has_scalar` and `has_vadd` that are defined in `algebra.group.defs`;
 * `distrib_mul_action M A` is a typeclass for an action of a multiplicative monoid on
   an additive monoid such that `a • (b + c) = a • b + a • c` and `a • 0 = 0`.
 
 The hierarchy is extended further by `module`, defined elsewhere.
 
-Also provided are type-classes regarding the interaction of different group actions,
+Also provided are typeclasses for faithful and transitive actions, and typeclasses regarding the
+interaction of different group actions,
 
 * `smul_comm_class M N α` and its additive version `vadd_comm_class M N α`;
 * `is_scalar_tower M N α` (no additive version).
+* `is_central_scalar M α` (no additive version).
 
 ## Notation
 
@@ -44,17 +46,11 @@ group action
 
 variables {M N G A B α β γ : Type*}
 
-open function
+open function (injective surjective)
 
-/-- Type class for the `+ᵥ` notation. -/
-class has_vadd (G : Type*) (P : Type*) := (vadd : G → P → P)
-
-/-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
-@[to_additive has_vadd]
-class has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
-
-infix ` +ᵥ `:65 := has_vadd.vadd
-infixr ` • `:73 := has_scalar.smul
+/-!
+### Faithful actions
+-/
 
 /-- Typeclass for faithful actions. -/
 class has_faithful_vadd (G : Type*) (P : Type*) [has_vadd G P] : Prop :=
@@ -79,15 +75,56 @@ instance has_mul.to_has_scalar (α : Type*) [has_mul α] : has_scalar α α := �
 @[simp, to_additive] lemma smul_eq_mul (α : Type*) [has_mul α] {a a' : α} : a • a' = a * a' := rfl
 
 /-- Type class for additive monoid actions. -/
-@[protect_proj] class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
+@[ext, protect_proj] class add_action (G : Type*) (P : Type*) [add_monoid G] extends has_vadd G P :=
 (zero_vadd : ∀ p : P, (0 : G) +ᵥ p = p)
 (add_vadd : ∀ (g₁ g₂ : G) (p : P), (g₁ + g₂) +ᵥ p = g₁ +ᵥ (g₂ +ᵥ p))
 
 /-- Typeclass for multiplicative actions by monoids. This generalizes group actions. -/
-@[protect_proj, to_additive]
+@[ext, protect_proj, to_additive]
 class mul_action (α : Type*) (β : Type*) [monoid α] extends has_scalar α β :=
 (one_smul : ∀ b : β, (1 : α) • b = b)
 (mul_smul : ∀ (x y : α) (b : β), (x * y) • b = x • y • b)
+
+/-!
+### (Pre)transitive action
+
+`M` acts pretransitively on `α` if for any `x y` there is `g` such that `g • x = y` (or `g +ᵥ x = y`
+for an additive action). A transitive action should furthermore have `α` nonempty.
+
+In this section we define typeclasses `mul_action.is_pretransitive` and
+`add_action.is_pretransitive` and provide `mul_action.exists_smul_eq`/`add_action.exists_vadd_eq`,
+`mul_action.surjective_smul`/`add_action.surjective_vadd` as public interface to access this
+property. We do not provide typeclasses `*_action.is_transitive`; users should assume
+`[mul_action.is_pretransitive M α] [nonempty α]` instead. -/
+
+/-- `M` acts pretransitively on `α` if for any `x y` there is `g` such that `g +ᵥ x = y`.
+  A transitive action should furthermore have `α` nonempty. -/
+class add_action.is_pretransitive (M α : Type*) [has_vadd M α] : Prop :=
+(exists_vadd_eq : ∀ x y : α, ∃ g : M, g +ᵥ x = y)
+
+/-- `M` acts pretransitively on `α` if for any `x y` there is `g` such that `g • x = y`.
+  A transitive action should furthermore have `α` nonempty. -/
+@[to_additive] class mul_action.is_pretransitive (M α : Type*) [has_scalar M α] : Prop :=
+(exists_smul_eq : ∀ x y : α, ∃ g : M, g • x = y)
+
+namespace mul_action
+
+variables (M) {α} [has_scalar M α] [is_pretransitive M α]
+
+@[to_additive] lemma exists_smul_eq (x y : α) : ∃ m : M, m • x = y :=
+is_pretransitive.exists_smul_eq x y
+
+@[to_additive] lemma surjective_smul (x : α) : surjective (λ c : M, c • x) := exists_smul_eq M x
+
+/-- The regular action of a group on itself is transitive. -/
+@[to_additive] instance regular.is_pretransitive [group G] : is_pretransitive G G :=
+⟨λ x y, ⟨y * x⁻¹, inv_mul_cancel_right _ _⟩⟩
+
+end mul_action
+
+/-!
+### Scalar tower and commuting actions
+-/
 
 /-- A typeclass mixin saying that two additive actions on the same space commute. -/
 class vadd_comm_class (M N α : Type*) [has_vadd M α] [has_vadd N α] : Prop :=
@@ -99,11 +136,6 @@ class vadd_comm_class (M N α : Type*) [has_vadd M α] [has_vadd N α] : Prop :=
 
 export mul_action (mul_smul) add_action (add_vadd) smul_comm_class (smul_comm)
   vadd_comm_class (vadd_comm)
-
-attribute [to_additive_reorder 1] has_pow
-attribute [to_additive_reorder 1 4] has_pow.pow
-attribute [to_additive has_scalar] has_pow
-attribute [to_additive has_scalar.smul] has_pow.pow
 
 /--
 Frequently, we find ourselves wanting to express a bilinear map `M →ₗ[R] N →ₗ[R] P` or an
@@ -150,6 +182,44 @@ is_scalar_tower.smul_assoc x y z
 
 instance semigroup.is_scalar_tower [semigroup α] : is_scalar_tower α α α := ⟨mul_assoc⟩
 
+/-- A typeclass indicating that the right (aka `mul_opposite`) and left actions by `M` on `α` are
+equal, that is that `M` acts centrally on `α`. This can be thought of as a version of commutativity
+for `•`. -/
+class is_central_scalar (M α : Type*) [has_scalar M α] [has_scalar Mᵐᵒᵖ α] : Prop :=
+(op_smul_eq_smul : ∀ (m : M) (a : α), mul_opposite.op m • a = m • a)
+
+lemma is_central_scalar.unop_smul_eq_smul {M α : Type*} [has_scalar M α] [has_scalar Mᵐᵒᵖ α]
+  [is_central_scalar M α] (m : Mᵐᵒᵖ) (a : α) : (mul_opposite.unop m) • a = m • a :=
+mul_opposite.rec (by exact λ m, (is_central_scalar.op_smul_eq_smul _ _).symm) m
+
+export is_central_scalar (op_smul_eq_smul unop_smul_eq_smul)
+
+-- these instances are very low priority, as there is usually a faster way to find these instances
+
+@[priority 50]
+instance smul_comm_class.op_left [has_scalar M α] [has_scalar Mᵐᵒᵖ α]
+  [is_central_scalar M α] [has_scalar N α] [smul_comm_class M N α] : smul_comm_class Mᵐᵒᵖ N α :=
+⟨λ m n a, by rw [←unop_smul_eq_smul m (n • a), ←unop_smul_eq_smul m a, smul_comm]⟩
+
+@[priority 50]
+instance smul_comm_class.op_right [has_scalar M α] [has_scalar N α] [has_scalar Nᵐᵒᵖ α]
+  [is_central_scalar N α] [smul_comm_class M N α] : smul_comm_class M Nᵐᵒᵖ α :=
+⟨λ m n a, by rw [←unop_smul_eq_smul n (m • a), ←unop_smul_eq_smul n a, smul_comm]⟩
+
+@[priority 50]
+instance is_scalar_tower.op_left
+  [has_scalar M α] [has_scalar Mᵐᵒᵖ α] [is_central_scalar M α]
+  [has_scalar M N] [has_scalar Mᵐᵒᵖ N] [is_central_scalar M N]
+  [has_scalar N α] [is_scalar_tower M N α] : is_scalar_tower Mᵐᵒᵖ N α :=
+⟨λ m n a, by rw [←unop_smul_eq_smul m (n • a), ←unop_smul_eq_smul m n, smul_assoc]⟩
+
+@[priority 50]
+instance is_scalar_tower.op_right [has_scalar M α] [has_scalar M N]
+  [has_scalar N α] [has_scalar Nᵐᵒᵖ α] [is_central_scalar N α]
+  [is_scalar_tower M N α] : is_scalar_tower M Nᵐᵒᵖ α :=
+⟨λ m n a, by rw [←unop_smul_eq_smul n a, ←unop_smul_eq_smul (m • n) a, mul_opposite.unop_smul,
+                 smul_assoc]⟩
+
 namespace has_scalar
 variables [has_scalar M α]
 
@@ -161,11 +231,11 @@ g n • a
 
 variables (α)
 
-/-- An action of `M` on `α` and a funcion `N → M` induces an action of `N` on `α`.
+/-- An action of `M` on `α` and a function `N → M` induces an action of `N` on `α`.
 
 See note [reducible non-instances]. Since this is reducible, we make sure to go via
 `has_scalar.comp.smul` to prevent typeclass inference unfolding too far. -/
-@[reducible, to_additive /-" An additive action of `M` on `α` and a funcion `N → M` induces
+@[reducible, to_additive /-" An additive action of `M` on `α` and a function `N → M` induces
   an additive action of `N` on `α` "-/]
 def comp (g : N → M) : has_scalar N α :=
 { smul := has_scalar.comp.smul g }
@@ -185,17 +255,54 @@ lemma comp.is_scalar_tower [has_scalar M β] [has_scalar α β] [is_scalar_tower
   (by haveI := comp α g; haveI := comp β g; exact is_scalar_tower N α β) :=
 by exact {smul_assoc := λ n, @smul_assoc _ _ _ _ _ _ _ (g n) }
 
+/--
+This cannot be an instance because it can cause infinite loops whenever the `has_scalar` arguments
+are still metavariables.
+-/
 @[priority 100]
-instance comp.smul_comm_class [has_scalar β α] [smul_comm_class M β α] (g : N → M) :
+lemma comp.smul_comm_class [has_scalar β α] [smul_comm_class M β α] (g : N → M) :
   (by haveI := comp α g; exact smul_comm_class N β α) :=
 by exact {smul_comm := λ n, @smul_comm _ _ _ _ _ _ (g n) }
 
+/--
+This cannot be an instance because it can cause infinite loops whenever the `has_scalar` arguments
+are still metavariables.
+-/
 @[priority 100]
-instance comp.smul_comm_class' [has_scalar β α] [smul_comm_class β M α] (g : N → M) :
+lemma comp.smul_comm_class' [has_scalar β α] [smul_comm_class β M α] (g : N → M) :
   (by haveI := comp α g; exact smul_comm_class β N α) :=
 by exact {smul_comm := λ _ n, @smul_comm _ _ _ _ _ _ _ (g n) }
 
 end has_scalar
+
+section
+
+/-- Note that the `smul_comm_class α β β` typeclass argument is usually satisfied by `algebra α β`.
+-/
+@[to_additive]
+lemma mul_smul_comm [has_mul β] [has_scalar α β] [smul_comm_class α β β] (s : α) (x y : β) :
+  x * (s • y) = s • (x * y) :=
+(smul_comm s x y).symm
+
+/-- Note that the `is_scalar_tower α β β` typeclass argument is usually satisfied by `algebra α β`.
+-/
+lemma smul_mul_assoc [has_mul β] [has_scalar α β] [is_scalar_tower α β β] (r : α) (x y : β)  :
+  (r • x) * y = r • (x * y) :=
+smul_assoc r x y
+
+variables [has_scalar M α]
+
+lemma commute.smul_right [has_mul α] [smul_comm_class M α α] [is_scalar_tower M α α]
+  {a b : α} (h : commute a b) (r : M) :
+  commute a (r • b) :=
+(mul_smul_comm _ _ _).trans ((congr_arg _ h).trans $ (smul_mul_assoc _ _ _).symm)
+
+lemma commute.smul_left [has_mul α] [smul_comm_class M α α] [is_scalar_tower M α α]
+  {a b : α} (h : commute a b) (r : M) :
+  commute (r • a) b :=
+(h.symm.smul_right r).symm
+
+end
 
 section ite
 variables [has_scalar M α] (p : Prop) [decidable p]
@@ -216,6 +323,15 @@ variables [monoid M] [mul_action M α]
 
 variable (M)
 @[simp, to_additive] theorem one_smul (b : α) : (1 : M) • b = b := mul_action.one_smul _
+
+/-- `has_scalar` version of `one_mul_eq_id` -/
+@[to_additive]
+lemma one_smul_eq_id : ((•) (1 : M) : α → α) = id := funext $ one_smul _
+
+/-- `has_scalar` version of `comp_mul_left` -/
+@[to_additive]
+lemma comp_smul_left (a₁ a₂ : M) : (•) a₁ ∘ (•) a₂ = ((•) (a₁ * a₂) : α → α) :=
+funext $ λ _, (mul_smul _ _ _).symm
 
 variables {M}
 
@@ -239,6 +355,20 @@ protected def function.surjective.mul_action [has_scalar M β] (f : α → β) (
   one_smul := λ y, by { rcases hf y with ⟨x, rfl⟩, rw [← smul, one_smul] },
   mul_smul := λ c₁ c₂ y, by { rcases hf y with ⟨x, rfl⟩, simp only [← smul, mul_smul] } }
 
+/-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
+
+See also `function.surjective.distrib_mul_action_left` and `function.surjective.module_left`.
+-/
+@[reducible, to_additive "Push forward the action of `R` on `M` along a compatible
+surjective map `f : R →+ S`."]
+def function.surjective.mul_action_left {R S M : Type*} [monoid R] [mul_action R M]
+  [monoid S] [has_scalar S M]
+  (f : R →* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  mul_action S M :=
+{ smul := (•),
+  one_smul := λ b, by rw [← f.map_one, hsmul, one_smul],
+  mul_smul := hf.forall₂.mpr $ λ a b x, by simp only [← f.map_mul, hsmul, mul_smul] }
+
 section
 
 variables (M)
@@ -261,19 +391,6 @@ instance is_scalar_tower.left : is_scalar_tower M M α :=
 ⟨λ x y z, mul_smul x y z⟩
 
 variables {M}
-
-/-- Note that the `smul_comm_class α β β` typeclass argument is usually satisfied by `algebra α β`.
--/
-@[to_additive]
-lemma mul_smul_comm [has_mul β] [has_scalar α β] [smul_comm_class α β β] (s : α) (x y : β) :
-  x * (s • y) = s • (x * y) :=
-(smul_comm s x y).symm
-
-/-- Note that the `is_scalar_tower α β β` typeclass argument is usually satisfied by `algebra α β`.
--/
-lemma smul_mul_assoc [has_mul β] [has_scalar α β] [is_scalar_tower α β β] (r : α) (x y : β)  :
-  (r • x) * y = r • (x * y) :=
-smul_assoc r x y
 
 /-- Note that the `is_scalar_tower M α α` and `smul_comm_class M α α` typeclass arguments are
 usually satisfied by `algebra M α`. -/
@@ -333,8 +450,8 @@ by rw [smul_assoc, one_smul]
   (y : N) : (x • 1) * y = x • y :=
 smul_one_smul N x y
 
-@[simp, to_additive] lemma mul_smul_one {M N} [monoid N] [has_scalar M N] [smul_comm_class M N N]
-  (x : M) (y : N) :
+@[simp, to_additive] lemma mul_smul_one
+  {M N} [mul_one_class N] [has_scalar M N] [smul_comm_class M N N] (x : M) (y : N) :
   y * (x • 1) = x • y :=
 by rw [← smul_eq_mul, ← smul_comm, smul_eq_mul, mul_one]
 
@@ -350,7 +467,7 @@ lemma is_scalar_tower.of_smul_one_mul {M N} [monoid N] [has_scalar M N]
 end compatible_scalar
 
 /-- Typeclass for multiplicative actions on additive structures. This generalizes group modules. -/
-class distrib_mul_action (M : Type*) (A : Type*) [monoid M] [add_monoid A]
+@[ext] class distrib_mul_action (M : Type*) (A : Type*) [monoid M] [add_monoid A]
   extends mul_action M A :=
 (smul_add : ∀(r : M) (x y : A), r • (x + y) = r • x + r • y)
 (smul_zero : ∀(r : M), r • (0 : A) = 0)
@@ -388,6 +505,20 @@ protected def function.surjective.distrib_mul_action [add_monoid B] [has_scalar 
     simp only [smul_add, ← smul, ← f.map_add] },
   smul_zero := λ c, by simp only [← f.map_zero, ← smul, smul_zero],
   .. hf.mul_action f smul }
+
+/-- Push forward the action of `R` on `M` along a compatible surjective map `f : R →* S`.
+
+See also `function.surjective.mul_action_left` and `function.surjective.module_left`.
+-/
+@[reducible]
+def function.surjective.distrib_mul_action_left {R S M : Type*} [monoid R] [add_monoid M]
+  [distrib_mul_action R M] [monoid S] [has_scalar S M]
+  (f : R →* S) (hf : function.surjective f) (hsmul : ∀ c (x : M), f c • x = c • x) :
+  distrib_mul_action S M :=
+{ smul := (•),
+  smul_zero := hf.forall.mpr $ λ c, by rw [hsmul, smul_zero],
+  smul_add := hf.forall.mpr $ λ c x y, by simp only [hsmul, smul_add],
+  .. hf.mul_action_left f hsmul }
 
 variable (A)
 
@@ -431,7 +562,7 @@ end
 
 /-- Typeclass for multiplicative actions on multiplicative structures. This generalizes
 conjugation actions. -/
-class mul_distrib_mul_action (M : Type*) (A : Type*) [monoid M] [monoid A]
+@[ext] class mul_distrib_mul_action (M : Type*) (A : Type*) [monoid M] [monoid A]
   extends mul_action M A :=
 (smul_mul : ∀ (r : M) (x y : A), r • (x * y) = (r • x) * (r • y))
 (smul_one : ∀ (r : M), r • (1 : A) = 1)

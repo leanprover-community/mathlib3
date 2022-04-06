@@ -52,16 +52,16 @@ def lie_equiv_matrix' : module.End R (n → R) ≃ₗ⁅R⁆ matrix n n R :=
   (@lie_equiv_matrix' R _ n _ _).symm A = A.to_lin' := rfl
 
 /-- An invertible matrix induces a Lie algebra equivalence from the space of matrices to itself. -/
-noncomputable def matrix.lie_conj (P : matrix n n R) (h : is_unit P) :
+def matrix.lie_conj (P : matrix n n R) (h : invertible P) :
   matrix n n R ≃ₗ⁅R⁆ matrix n n R :=
 ((@lie_equiv_matrix' R _ n _ _).symm.trans (P.to_linear_equiv' h).lie_conj).trans lie_equiv_matrix'
 
-@[simp] lemma matrix.lie_conj_apply (P A : matrix n n R) (h : is_unit P) :
+@[simp] lemma matrix.lie_conj_apply (P A : matrix n n R) (h : invertible P) :
   P.lie_conj h A = P ⬝ A ⬝ P⁻¹ :=
 by simp [linear_equiv.conj_apply, matrix.lie_conj, linear_map.to_matrix'_comp,
          linear_map.to_matrix'_to_lin']
 
-@[simp] lemma matrix.lie_conj_symm_apply (P A : matrix n n R) (h : is_unit P) :
+@[simp] lemma matrix.lie_conj_symm_apply (P A : matrix n n R) (h : invertible P) :
   (P.lie_conj h).symm A = P⁻¹ ⬝ A ⬝ P :=
 by simp [linear_equiv.symm_conj_apply, matrix.lie_conj, linear_map.to_matrix'_comp,
          linear_map.to_matrix'_to_lin']
@@ -73,7 +73,7 @@ types, `matrix.reindex`, is an equivalence of Lie algebras. -/
 def matrix.reindex_lie_equiv : matrix n n R ≃ₗ⁅R⁆ matrix m m R :=
 { to_fun := matrix.reindex e e,
   map_lie' := λ M N, by simp only [lie_ring.of_associative_ring_bracket, matrix.reindex_apply,
-    ←matrix.minor_mul_equiv _ _ _ _, matrix.mul_eq_mul, matrix.minor_sub, pi.sub_apply],
+    matrix.minor_mul_equiv, matrix.mul_eq_mul, matrix.minor_sub, pi.sub_apply],
   ..(matrix.reindex_linear_equiv R R e e) }
 
 @[simp] lemma matrix.reindex_lie_equiv_apply (M : matrix n n R) :

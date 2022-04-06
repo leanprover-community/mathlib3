@@ -5,7 +5,7 @@ Authors: Louis Carlin, Mario Carneiro
 -/
 
 import data.int.basic
-import algebra.field
+import algebra.field.basic
 
 /-!
 # Euclidean domains
@@ -60,9 +60,10 @@ Euclidean domain, transfinite Euclidean domain, Bézout's lemma
 
 universe u
 
-/-- A `euclidean_domain` is an `integral_domain` with a division and a remainder, satisfying
-  `b * (a / b) + a % b = a`. The definition of a euclidean domain usually includes a valuation
-  function `R → ℕ`. This definition is slightly generalised to include a well founded relation
+/-- A `euclidean_domain` is an non-trivial commutative ring with a division and a remainder,
+  satisfying `b * (a / b) + a % b = a`.
+  The definition of a euclidean domain usually includes a valuation function `R → ℕ`.
+  This definition is slightly generalised to include a well founded relation
   `r` with the property that `r (a % b) b`, instead of a valuation.  -/
 @[protect_proj without mul_left_not_lt r_well_founded]
 class euclidean_domain (R : Type u) extends comm_ring R, nontrivial R :=
@@ -176,6 +177,31 @@ begin
   { subst hz, rw [div_zero, div_zero, mul_zero] },
   rcases h with ⟨p, rfl⟩,
   rw [mul_div_cancel_left _ hz, mul_left_comm, mul_div_cancel_left _ hz]
+end
+
+@[simp, priority 900] -- This generalizes `int.div_one`, see note [simp-normal form]
+lemma div_one (p : R) : p / 1 = p :=
+(euclidean_domain.eq_div_of_mul_eq_left (@one_ne_zero R _ _) (mul_one p)).symm
+
+lemma div_dvd_of_dvd {p q : R} (hpq : q ∣ p) :
+  p / q ∣ p :=
+begin
+  by_cases hq : q = 0,
+  { rw [hq, zero_dvd_iff] at hpq,
+    rw hpq,
+    exact dvd_zero _ },
+  use q,
+  rw [mul_comm, ← euclidean_domain.mul_div_assoc _ hpq, mul_comm,
+      euclidean_domain.mul_div_cancel _ hq]
+end
+
+lemma dvd_div_of_mul_dvd {a b c : R} (h : a * b ∣ c) : b ∣ c / a :=
+begin
+  rcases eq_or_ne a 0 with rfl | ha,
+  { simp only [div_zero, dvd_zero] },
+  rcases h with ⟨d, rfl⟩,
+  refine ⟨d, _⟩,
+  rw [mul_assoc, mul_div_cancel_left _ ha]
 end
 
 section
@@ -317,7 +343,7 @@ by { have := @xgcd_aux_P _ _ _ a b a b 1 0 0 1
 rwa [xgcd_aux_val, xgcd_val] at this }
 
 @[priority 70] -- see Note [lower instance priority]
-instance (R : Type*) [e : euclidean_domain R] : integral_domain R :=
+instance (R : Type*) [e : euclidean_domain R] : is_domain R :=
 by { haveI := classical.dec_eq R, exact
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
     λ a b h, (or_iff_not_and_not.2 $ λ h0,
@@ -396,6 +422,19 @@ begin
 end
 
 end lcm
+
+section div
+
+lemma mul_div_mul_cancel {a b c : R} (ha : a ≠ 0) (hcb : c ∣ b) :
+  a * b / (a * c) = b / c :=
+begin
+  by_cases hc : c = 0, { simp [hc] },
+  refine eq_div_of_mul_eq_right hc (mul_left_cancel₀ ha _),
+  rw [← mul_assoc, ← mul_div_assoc _ (mul_dvd_mul_left a hcb),
+         mul_div_cancel_left _ (mul_ne_zero ha hc)]
+end
+
+end div
 
 end euclidean_domain
 

@@ -13,11 +13,11 @@ because this would create an `import` cycle. Namely, lemmas in this file can use
 from `data.set.lattice`, including `disjoint`.
 -/
 
-universe u
+universes u v w
 
-variables {α : Type u}
+variables {ι : Sort u} {α : Type v} {β : Type w}
 
-open order_dual (to_dual)
+open set order_dual (to_dual)
 
 namespace set
 
@@ -28,13 +28,19 @@ variables [preorder α] {a b c : α}
 λ x ⟨ha, hb⟩, not_le_of_lt (h.trans_lt hb) ha
 
 @[simp] lemma Iic_disjoint_Ioc (h : a ≤ b) : disjoint (Iic a) (Ioc b c) :=
-(Iic_disjoint_Ioi h).mono (le_refl _) (λ _, and.left)
+(Iic_disjoint_Ioi h).mono le_rfl (λ _, and.left)
 
 @[simp] lemma Ioc_disjoint_Ioc_same {a b c : α} : disjoint (Ioc a b) (Ioc b c) :=
-(Iic_disjoint_Ioc (le_refl b)).mono (λ _, and.right) (le_refl _)
+(Iic_disjoint_Ioc (le_refl b)).mono (λ _, and.right) le_rfl
 
 @[simp] lemma Ico_disjoint_Ico_same {a b c : α} : disjoint (Ico a b) (Ico b c) :=
 λ x hx, not_le_of_lt hx.1.2 hx.2.1
+
+@[simp] lemma Ici_disjoint_Iic : disjoint (Ici a) (Iic b) ↔ ¬(a ≤ b) :=
+by rw [set.disjoint_iff_inter_eq_empty, Ici_inter_Iic, Icc_eq_empty_iff]
+
+@[simp] lemma Iic_disjoint_Ici : disjoint (Iic a) (Ici b) ↔ ¬(b ≤ a) :=
+disjoint.comm.trans Ici_disjoint_Iic
 
 end preorder
 
@@ -60,6 +66,48 @@ begin
   exact h.elim (λ h, absurd hx (not_lt_of_le h)) id
 end
 
+@[simp] lemma Union_Ico_eq_Iio_self_iff {f : ι → α} {a : α} :
+  (⋃ i, Ico (f i) a) = Iio a ↔ ∀ x < a, ∃ i, f i ≤ x :=
+by simp [← Ici_inter_Iio, ← Union_inter, subset_def]
+
+@[simp] lemma Union_Ioc_eq_Ioi_self_iff {f : ι → α} {a : α} :
+  (⋃ i, Ioc a (f i)) = Ioi a ↔ ∀ x, a < x → ∃ i, x ≤ f i :=
+by simp [← Ioi_inter_Iic, ← inter_Union, subset_def]
+
+@[simp] lemma bUnion_Ico_eq_Iio_self_iff {p : ι → Prop} {f : Π i, p i → α} {a : α} :
+  (⋃ i (hi : p i), Ico (f i hi) a) = Iio a ↔ ∀ x < a, ∃ i hi, f i hi ≤ x :=
+by simp [← Ici_inter_Iio, ← Union_inter, subset_def]
+
+@[simp] lemma bUnion_Ioc_eq_Ioi_self_iff {p : ι → Prop} {f : Π i, p i → α} {a : α} :
+  (⋃ i (hi : p i), Ioc a (f i hi)) = Ioi a ↔ ∀ x, a < x → ∃ i hi, x ≤ f i hi :=
+by simp [← Ioi_inter_Iic, ← inter_Union, subset_def]
+
 end linear_order
 
 end set
+
+section Union_Ixx
+
+variables [linear_order α] {s : set α} {a : α} {f : ι → α}
+
+lemma is_glb.bUnion_Ioi_eq (h : is_glb s a) : (⋃ x ∈ s, Ioi x) = Ioi a :=
+begin
+  refine (Union₂_subset $ λ x hx, _).antisymm (λ x hx, _),
+  { exact Ioi_subset_Ioi (h.1 hx) },
+  { rcases h.exists_between hx with ⟨y, hys, hay, hyx⟩,
+    exact mem_bUnion hys hyx }
+end
+
+lemma is_glb.Union_Ioi_eq (h : is_glb (range f) a) :
+  (⋃ x, Ioi (f x)) = Ioi a :=
+bUnion_range.symm.trans h.bUnion_Ioi_eq
+
+lemma is_lub.bUnion_Iio_eq (h : is_lub s a) :
+  (⋃ x ∈ s, Iio x) = Iio a :=
+h.dual.bUnion_Ioi_eq
+
+lemma is_lub.Union_Iio_eq (h : is_lub (range f) a) :
+  (⋃ x, Iio (f x)) = Iio a :=
+h.dual.Union_Ioi_eq
+
+end Union_Ixx

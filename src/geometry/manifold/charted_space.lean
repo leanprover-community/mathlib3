@@ -216,7 +216,7 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
   end,
   symm' := λe he, begin
     cases (mem_union _ _ _).1 he with E E,
-    { finish },
+    { simp [mem_singleton_iff.mp E] },
     { right,
       simpa only [e.to_local_equiv.image_source_eq_target.symm] with mfld_simps using E},
   end,
@@ -268,8 +268,7 @@ instance : order_bot (structure_groupoid H) :=
       assume x hx,
       rw [hf, mem_empty_eq] at hx,
       exact hx.elim }
-  end,
-  ..structure_groupoid.partial_order }
+  end }
 
 instance (H : Type u) [topological_space H] : inhabited (structure_groupoid H) :=
 ⟨id_groupoid H⟩
@@ -362,8 +361,7 @@ pregroupoid.groupoid (continuous_pregroupoid H)
 /-- Every structure groupoid is contained in the groupoid of all local homeomorphisms -/
 instance : order_top (structure_groupoid H) :=
 { top    := continuous_groupoid H,
-  le_top := λ u f hf, by { split; exact dec_trivial },
-  ..structure_groupoid.partial_order }
+  le_top := λ u f hf, by { split; exact dec_trivial } }
 
 /-- A groupoid is closed under restriction if it contains all restrictions of its element local
 homeomorphisms to open subsets of the source. -/
@@ -406,8 +404,7 @@ def id_restr_groupoid : structure_groupoid H :=
   eq_on_source' := begin
     rintros e e' ⟨s, hs, hse⟩ hee',
     exact ⟨s, hs, setoid.trans hee' hse⟩,
-  end
-}
+  end }
 
 lemma id_restr_groupoid_mem {s : set H} (hs : is_open s) :
   of_set s hs ∈ @id_restr_groupoid H _ := ⟨s, hs, by refl⟩
@@ -580,7 +577,7 @@ prod.topological_space
 /- Next lemma shows up often when dealing with derivatives, register it as simp. -/
 @[simp, mfld_simps] lemma model_prod_range_prod_id
   {H : Type*} {H' : Type*} {α : Type*} (f : H → α) :
-  range (λ (p : model_prod H H'), (f p.1, p.2)) = set.prod (range f) univ :=
+  range (λ (p : model_prod H H'), (f p.1, p.2)) = range f ×ˢ (univ : set H') :=
 by rw prod_range_univ_eq
 
 end

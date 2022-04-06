@@ -55,7 +55,7 @@ begin
   obtain ⟨g, gcombo, gsum, gpos⟩ := exists_nontrivial_relation_sum_zero_of_not_affine_ind h,
   replace gpos := exists_pos_of_sum_zero_of_exists_nonzero g gsum gpos,
   clear h,
-  let s := t.filter (λ z : E, 0 < g z),
+  let s := @finset.filter _ (λ z, 0 < g z) (λ _, linear_order.decidable_lt _ _) t,
   obtain ⟨i₀, mem, w⟩ : ∃ i₀ ∈ s, ∀ i ∈ s, f i₀ / g i₀ ≤ f i / g i,
   { apply s.exists_min_image (λ z, f z / g z),
     obtain ⟨x, hx, hgx⟩ : ∃ x ∈ t, 0 < g x := gpos,
@@ -69,7 +69,7 @@ begin
       by conv_rhs { rw [← insert_erase hi₀, sum_insert (not_mem_erase i₀ t), hk, zero_add] }
     ... = ∑ e in t, (f e - f i₀ / g i₀ * g e) : rfl
     ... = 1 : by rw [sum_sub_distrib, fsum, ← mul_sum, gsum, mul_zero, sub_zero] },
-  refine ⟨⟨i₀, hi₀⟩, k, _, ksum, _⟩,
+  refine ⟨⟨i₀, hi₀⟩, k, _, by convert ksum, _⟩,
   { simp only [and_imp, sub_nonneg, mem_erase, ne.def, subtype.coe_mk],
     intros e hei₀ het,
     by_cases hes : e ∈ s,

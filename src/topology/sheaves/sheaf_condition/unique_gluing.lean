@@ -3,10 +3,9 @@ Copyright (c) 2021 Justus Springer. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Justus Springer
 -/
-import algebra.category.CommRing.limits
 import topology.sheaves.forget
-import topology.sheaves.sheaf
 import category_theory.limits.shapes.types
+import topology.sheaves.sheaf
 import category_theory.types
 
 /-!

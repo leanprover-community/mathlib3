@@ -673,8 +673,8 @@ def raised (n m : ℕ) : Prop := m = n ∨ m = n + 1
 theorem raised_iff {n m} : raised n m ↔ n ≤ m ∧ m ≤ n + 1 :=
 begin
   split, rintro (rfl | rfl),
-  { exact ⟨le_refl _, nat.le_succ _⟩ },
-  { exact ⟨nat.le_succ _, le_refl _⟩ },
+  { exact ⟨le_rfl, nat.le_succ _⟩ },
+  { exact ⟨nat.le_succ _, le_rfl⟩ },
   { rintro ⟨h₁, h₂⟩,
     rcases eq_or_lt_of_le h₁ with rfl | h₁,
     { exact or.inl rfl },
@@ -683,7 +683,7 @@ end
 
 theorem raised.dist_le {n m} (H : raised n m) : nat.dist n m ≤ 1 :=
 by cases raised_iff.1 H with H1 H2;
-  rwa [nat.dist_eq_sub_of_le H1, sub_le_iff_left]
+  rwa [nat.dist_eq_sub_of_le H1, tsub_le_iff_left]
 
 theorem raised.dist_le' {n m} (H : raised n m) : nat.dist m n ≤ 1 :=
 by rw nat.dist_comm; exact H.dist_le
@@ -1044,9 +1044,6 @@ begin
     cases nat.eq_zero_or_pos (size ml) with ml0 ml0,
     { rw [ml0, mul_zero, nat.le_zero_iff] at mm₂,
       rw [ml0, mm₂] at mm, cases mm dec_trivial },
-    cases nat.eq_zero_or_pos (size mr) with mr0 mr0,
-    { rw [mr0, mul_zero, nat.le_zero_iff] at mm₁,
-      rw [mr0, mm₁] at mm, cases mm dec_trivial },
     have : 2 * size l ≤ size ml + size mr + 1,
     { have := nat.mul_le_mul_left _ lr₁,
       rw [mul_left_comm, mul_add] at this,
@@ -1115,13 +1112,6 @@ begin
       exact dec_trivial },
     replace H3 := H3p l0,
     rcases hr.3.1.resolve_left (hlp l0) with ⟨hb₁, hb₂⟩,
-    cases nat.eq_zero_or_pos (size rl) with rl0 rl0,
-    { rw rl0 at hb₂, cases not_le_of_gt rr0 hb₂ },
-    cases eq_or_lt_of_le (show 1 ≤ size rr, from rr0) with rr1 rr1,
-    { rw [← rr1] at h H2 ⊢,
-      have : size rl = 1 := le_antisymm (nat.lt_succ_iff.1 h) rl0,
-      rw this at H2,
-      exact absurd (le_trans (nat.mul_le_mul_left _ l0) H2) dec_trivial },
     refine ⟨or.inr ⟨_, _⟩, or.inr ⟨_, _⟩⟩,
     { exact valid'.rotate_l_lemma₁ H2 hb₂ },
     { exact nat.le_of_lt_succ (valid'.rotate_l_lemma₂ H3 h) },
@@ -1420,7 +1410,7 @@ theorem insert_eq_insert_with [@decidable_rel α (≤)]
 theorem insert.valid [is_total α (≤)] [@decidable_rel α (≤)]
   (x : α) {t} (h : valid t) : valid (ordnode.insert x t) :=
 by rw insert_eq_insert_with; exact
-insert_with.valid _ _ (λ _ _, ⟨le_refl _, le_refl _⟩) h
+insert_with.valid _ _ (λ _ _, ⟨le_rfl, le_rfl⟩) h
 
 theorem insert'_eq_insert_with [@decidable_rel α (≤)]
   (x : α) : ∀ t, insert' x t = insert_with id x t

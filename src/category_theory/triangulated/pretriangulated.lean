@@ -3,9 +3,8 @@ Copyright (c) 2021 Luke Kershaw. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Luke Kershaw
 -/
-import category_theory.additive.basic
-import category_theory.shift
 import category_theory.preadditive.additive_functor
+import category_theory.shift
 import category_theory.triangulated.rotate
 
 /-!
@@ -34,10 +33,10 @@ namespace category_theory.triangulated
 open category_theory.category
 
 /-
-We work in an preadditive category `C` equipped with an additive shift.
+We work in a preadditive category `C` equipped with an additive shift.
 -/
-variables (C : Type u) [category.{v} C] [has_zero_object C] [has_shift C] [preadditive C]
-  [functor.additive (shift C).functor]
+variables (C : Type u) [category.{v} C] [has_zero_object C] [has_shift C ℤ] [preadditive C]
+  [∀ n : ℤ, functor.additive (shift_functor C n)]
 
 /--
 A preadditive category `C` with an additive shift, and a class of "distinguished triangles"
@@ -58,14 +57,16 @@ relative to that shift is called pretriangulated if the following hold:
   ```
   where the left square commutes, and whose rows are distinguished triangles,
   there exists a morphism `c : Z ⟶ Z'` such that `(a,b,c)` is a triangle morphism.
+
 See https://stacks.math.columbia.edu/tag/0145
 -/
 class pretriangulated :=
 (distinguished_triangles [] : set (triangle C))
-(isomorphic_distinguished : Π (T₁ ∈ distinguished_triangles) (T₂ : triangle C) (T₁ ≅ T₂),
+(isomorphic_distinguished : Π (T₁ ∈ distinguished_triangles) (T₂ ≅ T₁),
   T₂ ∈ distinguished_triangles)
 (contractible_distinguished : Π (X : C), (contractible_triangle C X) ∈ distinguished_triangles)
-(distinguished_cocone_triangle : Π (X Y : C) (f: X ⟶ Y), (∃ (Z : C) (g : Y ⟶ Z) (h : Z ⟶ X⟦1⟧),
+(distinguished_cocone_triangle : Π (X Y : C) (f : X ⟶ Y), (∃ (Z : C) (g : Y ⟶ Z)
+  (h : Z ⟶ X⟦(1:ℤ)⟧),
   triangle.mk _ f g h ∈ distinguished_triangles))
 (rotate_distinguished_triangle : Π (T : triangle C),
   T ∈ distinguished_triangles ↔ T.rotate ∈ distinguished_triangles)
@@ -89,7 +90,7 @@ Given any distinguished triangle `T`, then we know `T.inv_rotate` is also distin
 -/
 lemma inv_rot_of_dist_triangle (T ∈ dist_triang C) : (T.inv_rotate ∈ dist_triang C) :=
 (rotate_distinguished_triangle (T.inv_rotate)).mpr
-  (isomorphic_distinguished T H (T.inv_rotate.rotate) T (inv_rot_comp_rot.symm.app T))
+  (isomorphic_distinguished T H T.inv_rotate.rotate (inv_rot_comp_rot.app T))
 
 /--
 Given any distinguished triangle
@@ -135,7 +136,7 @@ the composition `h ≫ f⟦1⟧ = 0`.
 See https://stacks.math.columbia.edu/tag/0146
 -/
 lemma comp_dist_triangle_mor_zero₃₁ (T ∈ dist_triang C) :
-  T.mor₃ ≫ ((shift C).functor.map T.mor₁) = 0 :=
+  T.mor₃ ≫ ((shift_equiv C 1).functor.map T.mor₁) = 0 :=
 have H₂ : _ := rot_of_dist_triangle C T.rotate (rot_of_dist_triangle C T H),
 by simpa using comp_dist_triangle_mor_zero₁₂ C (T.rotate.rotate) H₂
 
@@ -149,17 +150,17 @@ end category_theory.triangulated
 namespace category_theory.triangulated
 namespace pretriangulated
 
-variables (C : Type u₁) [category.{v₁} C] [has_zero_object C] [has_shift C] [preadditive C]
-[functor.additive (shift C).functor] [functor.additive (shift C).inverse]
-variables (D : Type u₂) [category.{v₂} D] [has_zero_object D] [has_shift D] [preadditive D]
-[functor.additive (shift D).functor] [functor.additive (shift D).inverse]
+variables (C : Type u₁) [category.{v₁} C] [has_zero_object C] [has_shift C ℤ] [preadditive C]
+  [∀ n : ℤ, functor.additive (shift_functor C n)]
+variables (D : Type u₂) [category.{v₂} D] [has_zero_object D] [has_shift D ℤ] [preadditive D]
+  [∀ n : ℤ, functor.additive (shift_functor D n)]
 
 /--
 The underlying structure of a triangulated functor between pretriangulated categories `C` and `D`
 is a functor `F : C ⥤ D` together with given functorial isomorphisms `ξ X : F(X⟦1⟧) ⟶ F(X)⟦1⟧`.
 -/
 structure triangulated_functor_struct extends (C ⥤ D) :=
-(comm_shift : (shift C).functor ⋙ to_functor ≅ to_functor ⋙ (shift D).functor)
+(comm_shift : shift_functor C (1 : ℤ) ⋙ to_functor ≅ to_functor ⋙ shift_functor D (1 : ℤ))
 
 instance : inhabited (triangulated_functor_struct C C) :=
 ⟨{ obj := λ X, X,

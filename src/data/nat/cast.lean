@@ -82,7 +82,7 @@ by { split_ifs; refl, }
 
 end
 
-@[simp, norm_cast] theorem cast_one [add_monoid α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
+@[simp, norm_cast] theorem cast_one [add_zero_class α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
 
 @[simp, norm_cast] theorem cast_add [add_monoid α] [has_one α] (m) : ∀ n, ((m + n : ℕ) : α) = m + n
 | 0     := (add_zero _).symm
@@ -116,7 +116,8 @@ def cast_add_monoid_hom (α : Type*) [add_monoid α] [has_one α] : ℕ →+ α 
   ((bit1 n : ℕ) : α) = bit1 n :=
 by rw [bit1, cast_add_one, cast_bit0]; refl
 
-lemma cast_two {α : Type*} [add_monoid α] [has_one α] : ((2 : ℕ) : α) = 2 := by simp
+lemma cast_two {α : Type*} [add_zero_class α] [has_one α] : ((2 : ℕ) : α) = 2 :=
+by rw [cast_add_one, cast_one, bit0]
 
 @[simp, norm_cast] theorem cast_pred [add_group α] [has_one α] :
   ∀ {n}, 0 < n → ((n - 1 : ℕ) : α) = n - 1
@@ -124,7 +125,7 @@ lemma cast_two {α : Type*} [add_monoid α] [has_one α] : ((2 : ℕ) : α) = 2 
 
 @[simp, norm_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) :
   ((n - m : ℕ) : α) = n - m :=
-eq_sub_of_add_eq $ by rw [← cast_add, nat.sub_add_cancel h]
+eq_sub_of_add_eq $ by rw [← cast_add, tsub_add_cancel_of_le h]
 
 @[simp, norm_cast] theorem cast_mul [non_assoc_semiring α] (m) : ∀ n, ((m * n : ℕ) : α) = m * n
 | 0     := (mul_zero _).symm
@@ -155,7 +156,7 @@ nat.rec_on n (commute.zero_left x) $ λ n ihn, ihn.add_left $ commute.one_left x
 lemma cast_comm [non_assoc_semiring α] (n : ℕ) (x : α) : (n : α) * x = x * n :=
 (cast_commute n x).eq
 
-lemma commute_cast [semiring α] (x : α) (n : ℕ) : commute x n :=
+lemma commute_cast [non_assoc_semiring α] (x : α) (n : ℕ) : commute x n :=
 (n.cast_commute x).symm
 
 section
@@ -163,7 +164,7 @@ section
 variables [ordered_semiring α]
 
 @[simp] theorem cast_nonneg : ∀ n : ℕ, 0 ≤ (n : α)
-| 0     := le_refl _
+| 0     := le_rfl
 | (n+1) := add_nonneg (cast_nonneg n) zero_le_one
 
 @[mono] theorem mono_cast : monotone (coe : ℕ → α) :=
@@ -173,7 +174,7 @@ variable [nontrivial α]
 
 theorem strict_mono_cast : strict_mono (coe : ℕ → α) :=
 λ m n h, nat.le_induction (lt_add_of_pos_right _ zero_lt_one)
-  (λ n _ h, lt_add_of_lt_of_pos h zero_lt_one) _ h
+  (λ n _ h, lt_add_of_lt_of_pos' h zero_lt_one) _ h
 
 @[simp, norm_cast] theorem cast_le {m n : ℕ} :
   (m : α) ≤ n ↔ m ≤ n :=
@@ -214,14 +215,23 @@ end
   |(a : α)| = a :=
 abs_of_nonneg (cast_nonneg a)
 
-lemma coe_nat_dvd [comm_semiring α] {m n : ℕ} (h : m ∣ n) :
-  (m : α) ∣ (n : α) :=
-ring_hom.map_dvd (nat.cast_ring_hom α) h
+lemma coe_nat_dvd [semiring α] {m n : ℕ} (h : m ∣ n) : (m : α) ∣ (n : α) :=
+(nat.cast_ring_hom α).map_dvd h
 
 alias coe_nat_dvd ← has_dvd.dvd.nat_cast
 
 section linear_ordered_field
 variables [linear_ordered_field α]
+
+/-- Natural division is always less than division in the field. -/
+lemma cast_div_le {m n : ℕ} : ((m / n : ℕ) : α) ≤ m / n :=
+begin
+  cases n,
+  { rw [cast_zero, div_zero, nat.div_zero, cast_zero] },
+  rwa [le_div_iff, ←nat.cast_mul],
+  exact nat.cast_le.2 (nat.div_mul_le_self m n.succ),
+  { exact nat.cast_pos.2 n.succ_pos }
+end
 
 lemma inv_pos_of_nat {n : ℕ} : 0 < ((n : α) + 1)⁻¹ :=
 inv_pos.2 $ add_pos_of_nonneg_of_pos n.cast_nonneg zero_lt_one
@@ -252,73 +262,110 @@ by induction n; simp *
 
 end prod
 
-namespace add_monoid_hom
+section add_monoid_hom_class
 
-variables {A B : Type*} [add_monoid A]
+variables {A B F : Type*} [add_monoid A] [add_monoid B] [has_one B]
 
-@[ext] lemma ext_nat {f g : ℕ →+ A} (h : f 1 = g 1) : f = g :=
-ext $ λ n, nat.rec_on n (f.map_zero.trans g.map_zero.symm) $ λ n ihn,
-by simp only [nat.succ_eq_add_one, *, map_add]
-
-variables [has_one A] [add_monoid B] [has_one B]
-
-lemma eq_nat_cast (f : ℕ →+ A) (h1 : f 1 = 1) :
-  ∀ n : ℕ, f n = n :=
-congr_fun $ show f = nat.cast_add_monoid_hom A, from ext_nat (h1.trans nat.cast_one.symm)
-
-lemma map_nat_cast (f : A →+ B) (h1 : f 1 = 1) (n : ℕ) : f n = n :=
-(f.comp (nat.cast_add_monoid_hom A)).eq_nat_cast (by simp [h1]) _
-
-end add_monoid_hom
-
-namespace monoid_with_zero_hom
-
-variables {A : Type*} [monoid_with_zero A]
-
-/-- If two `monoid_with_zero_hom`s agree on the positive naturals they are equal. -/
-@[ext] theorem ext_nat {f g : monoid_with_zero_hom ℕ A}
-  (h_pos : ∀ {n : ℕ}, 0 < n → f n = g n) : f = g :=
-begin
-  ext (_ | n),
-  { rw [f.map_zero, g.map_zero] },
-  { exact h_pos n.zero_lt_succ, },
+lemma ext_nat' [add_monoid_hom_class F ℕ A] (f g : F) (h : f 1 = g 1) : f = g :=
+fun_like.ext f g $ begin
+  apply nat.rec,
+  { simp only [nat.nat_zero_eq_zero, map_zero] },
+  simp [nat.succ_eq_add_one, h] {contextual := tt}
 end
 
-end monoid_with_zero_hom
+@[ext] lemma add_monoid_hom.ext_nat : ∀ {f g : ℕ →+ A}, ∀ h : f 1 = g 1, f = g := ext_nat'
+
+variable [has_one A]
+
+-- these versions are primed so that the `ring_hom_class` versions aren't
+lemma eq_nat_cast' [add_monoid_hom_class F ℕ A] (f : F) (h1 : f 1 = 1) :
+  ∀ n : ℕ, f n = n
+| 0     := by simp
+| (n+1) := by rw [map_add, h1, eq_nat_cast' n, nat.cast_add_one]
+
+lemma map_nat_cast' [add_monoid_hom_class F A B] (f : F) (h : f 1 = 1) : ∀ (n : ℕ), f n = n
+| 0     := by simp
+| (n+1) := by rw [nat.cast_add, map_add, nat.cast_add, map_nat_cast', nat.cast_one, h, nat.cast_one]
+
+end add_monoid_hom_class
+
+section monoid_with_zero_hom_class
+
+variables {A F : Type*} [monoid_with_zero A]
+
+/-- If two `monoid_with_zero_hom`s agree on the positive naturals they are equal. -/
+theorem ext_nat'' [monoid_with_zero_hom_class F ℕ A] (f g : F)
+  (h_pos : ∀ {n : ℕ}, 0 < n → f n = g n) : f = g :=
+begin
+  apply fun_like.ext,
+  rintro (_|n),
+  { simp },
+  exact h_pos n.succ_pos
+end
+
+@[ext] theorem monoid_with_zero_hom.ext_nat :
+  ∀ {f g : ℕ →*₀ A}, (∀ {n : ℕ}, 0 < n → f n = g n) → f = g := ext_nat''
+
+end monoid_with_zero_hom_class
+
+section ring_hom_class
+
+variables {R S F : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
+
+@[simp] lemma eq_nat_cast [ring_hom_class F ℕ R] (f : F) : ∀ n, f n = n :=
+eq_nat_cast' f $ map_one f
+
+@[simp] lemma map_nat_cast [ring_hom_class F R S] (f : F) : ∀ n : ℕ, f (n : R) = n :=
+map_nat_cast' f $ map_one f
+
+lemma ext_nat [ring_hom_class F ℕ R] (f g : F) : f = g :=
+ext_nat' f g $ by simp only [map_one]
+
+end ring_hom_class
 
 namespace ring_hom
 
-variables {R : Type*} {S : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
-
-@[simp] lemma eq_nat_cast (f : ℕ →+* R) (n : ℕ) : f n = n :=
-f.to_add_monoid_hom.eq_nat_cast f.map_one n
-
-@[simp] lemma map_nat_cast (f : R →+* S) (n : ℕ) :
-  f n = n :=
-(f.comp (nat.cast_ring_hom R)).eq_nat_cast n
-
-lemma ext_nat (f g : ℕ →+* R) : f = g :=
-coe_add_monoid_hom_injective $ add_monoid_hom.ext_nat $ f.map_one.trans g.map_one.symm
+/-- This is primed to match `ring_hom.eq_int_cast'`. -/
+lemma eq_nat_cast' {R} [non_assoc_semiring R] (f : ℕ →+* R) : f = nat.cast_ring_hom R :=
+ring_hom.ext $ eq_nat_cast f
 
 end ring_hom
 
 @[simp, norm_cast] theorem nat.cast_id (n : ℕ) : ↑n = n :=
-((ring_hom.id ℕ).eq_nat_cast n).symm
+(eq_nat_cast (ring_hom.id ℕ) n).symm
+
+@[simp] lemma nat.cast_ring_hom_nat : nat.cast_ring_hom ℕ = ring_hom.id ℕ :=
+((ring_hom.id ℕ).eq_nat_cast').symm
 
 @[simp] theorem nat.cast_with_bot : ∀ (n : ℕ),
   @coe ℕ (with_bot ℕ) (@coe_to_lift _ _ nat.cast_coe) n = n
 | 0     := rfl
 | (n+1) := by rw [with_bot.coe_add, nat.cast_add, nat.cast_with_bot n]; refl
 
-instance nat.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingleton (ℕ →+* R) :=
-⟨ring_hom.ext_nat⟩
+-- I don't think `ring_hom_class` is good here, because of the `subsingleton` TC slowness
+instance nat.unique_ring_hom {R : Type*} [non_assoc_semiring R] : unique (ℕ →+* R) :=
+{ default := nat.cast_ring_hom R, uniq := ring_hom.eq_nat_cast' }
+
+namespace mul_opposite
+
+variables {α : Type*} [has_zero α] [has_one α] [has_add α]
+
+@[simp, norm_cast] lemma op_nat_cast : ∀ n : ℕ, op (n : α) = n
+| 0 := rfl
+| (n + 1) := congr_arg (+ (1 : αᵐᵒᵖ)) $ op_nat_cast n
+
+@[simp, norm_cast] lemma unop_nat_cast : ∀ n : ℕ, unop (n : αᵐᵒᵖ) = n
+| 0 := rfl
+| (n + 1) := congr_arg (+ (1 : α)) $ unop_nat_cast n
+
+end mul_opposite
 
 namespace with_top
 variables {α : Type*}
 
 variables [has_zero α] [has_one α] [has_add α]
 
-@[simp, norm_cast] lemma coe_nat : ∀(n : nat), ((n : α) : with_top α) = n
+@[simp, norm_cast] lemma coe_nat : ∀ (n : ℕ), ((n : α) : with_top α) = n
 | 0     := rfl
 | (n+1) := by { push_cast, rw [coe_nat n] }
 
@@ -336,7 +383,7 @@ begin
 end
 
 lemma one_le_iff_pos {n : with_top ℕ} : 1 ≤ n ↔ 0 < n :=
-⟨λ h, (coe_lt_coe.2 zero_lt_one).trans_le h,
+⟨lt_of_lt_of_le (coe_lt_coe.mpr zero_lt_one),
   λ h, by simpa only [zero_add] using add_one_le_of_lt h⟩
 
 @[elab_as_eliminator]

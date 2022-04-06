@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis, Floris van Doorn
 -/
 import data.string.defs
-import meta.rb_map
 import tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
@@ -17,6 +16,8 @@ This file is mostly for non-tactics. Tactics should generally be placed in `tact
 
 expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
+
+open tactic
 
 attribute [derive has_reflect, derive decidable_eq] binder_info congr_arg_kind
 
@@ -275,7 +276,6 @@ protected meta def to_string (b : binder) : string :=
 let (l, r) := b.info.brackets in
 l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
 
-open tactic
 meta instance : has_to_string binder := ⟨ binder.to_string ⟩
 meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
 meta instance : has_to_tactic_format binder :=
@@ -375,7 +375,6 @@ end expr
 /-! ### Declarations about `expr` -/
 
 namespace expr
-open tactic
 
 /-- List of names removed by `clean`. All these names must resolve to functions defeq `id`. -/
 meta def clean_ids : list name :=
@@ -464,8 +463,8 @@ meta def match_app {elab} : expr elab → option (expr elab × expr elab)
 | _ := none
 
 /-- Match an application of `coe_fn`. -/
-meta def match_app_coe_fn : expr → option (expr × expr × expr × expr)
-| (app `(@coe_fn %%α %%inst %%fexpr) x) := some (α, inst, fexpr, x)
+meta def match_app_coe_fn : expr → option (expr × expr × expr × expr × expr)
+| (app `(@coe_fn %%α %%β %%inst %%fexpr) x) := some (α, β, inst, fexpr, x)
 | _ := none
 
 /-- Match an abstraction. -/
@@ -542,9 +541,14 @@ meta def list_local_const_unique_names (e : expr) : name_set :=
 e.fold mk_name_set
   (λ e' _ es, if e'.is_local_constant then es.insert e'.local_uniq_name else es)
 
-/-- Returns a name_set of all constants in an expression. -/
+/-- Returns a `name_set` of all constants in an expression. -/
 meta def list_constant (e : expr) : name_set :=
 e.fold mk_name_set (λ e' _ es, if e'.is_constant then es.insert e'.const_name else es)
+
+/-- Returns a `list name` containing the constant names of an `expr` in the same order
+  that `expr.fold` traverses it. -/
+meta def list_constant' (e : expr) : list name :=
+(e.fold [] (λ e' _ es, if e'.is_constant then es.insert e'.const_name else es)).reverse
 
 /-- Returns a list of all meta-variables in an expression (without duplicates). -/
 meta def list_meta_vars (e : expr) : list expr :=
@@ -572,7 +576,7 @@ meta def contains_expr_or_mvar (t : expr) (e : expr) : bool :=
 -- We can't use `t.has_meta_var` here, as that detects universe metavariables, too.
 ¬ t.list_meta_vars.empty ∨ e.occurs t
 
-/-- Returns a name_set of all constants in an expression starting with a certain prefix. -/
+/-- Returns a `name_set` of all constants in an expression starting with a certain prefix. -/
 meta def list_names_with_prefix (pre : name) (e : expr) : name_set :=
 e.fold mk_name_set $ λ e' _ l,
   match e' with
@@ -587,6 +591,7 @@ e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
 /--
 Returns true if `e` contains a `sorry`.
+See also `name.contains_sorry`.
 -/
 meta def contains_sorry (e : expr) : bool :=
 e.fold ff (λ e' _ b, if (is_sorry e').is_some then tt else b)
@@ -759,7 +764,7 @@ e.has_local_in $ mk_name_set.insert l.local_uniq_name
 /-- Turns a local constant into a binder -/
 meta def to_binder : expr → binder
 | (local_const _ nm bi t) := ⟨nm, bi, t⟩
-| _                       := default binder
+| _                       := default
 
 /-- Strip-away the context-dependent unique id for the given local const and return: its friendly
 `name`, its `binder_info`, and its `type : expr`. -/
@@ -975,8 +980,6 @@ end environment
 
 namespace expr
 
-open tactic
-
 /-- `is_eta_expansion_of args univs l` checks whether for all elements `(nm, pr)` in `l` we have
   `pr = nm.{univs} args`.
   Used in `is_eta_expansion`, where `l` consists of the projections and the fields of the value we
@@ -1037,7 +1040,6 @@ end expr
 /-! ### Declarations about `declaration` -/
 
 namespace declaration
-open tactic
 
 /--
 `declaration.update_with_fun f test tgt decl`

@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import number_theory.liouville.basic
 import topology.metric_space.baire
+import topology.instances.irrational
 
 /-!
 # Density of Liouville numbers
@@ -33,24 +34,6 @@ begin
   exact is_open_ball.inter is_closed_singleton.is_open_compl
 end
 
-lemma is_Gδ_irrational : is_Gδ {x | irrational x} :=
-begin
-  simp only [irrational, ← compl_set_of, set_of_mem_eq],
-  rw [← bUnion_of_singleton (range _), compl_bUnion, bInter_range],
-  exact is_Gδ_Inter (λ r, is_open_compl_singleton.is_Gδ)
-end
-
-lemma dense_irrational : dense {x : ℝ | irrational x} :=
-begin
-  refine real.is_topological_basis_Ioo_rat.dense_iff.2 _,
-  simp only [mem_Union, mem_singleton_iff],
-  rintro _ ⟨a, b, hlt, rfl⟩ hne, rw inter_comm,
-  exact exists_irrational_btwn (rat.cast_lt.2 hlt)
-end
-
-lemma eventually_residual_irrational : ∀ᶠ x in residual ℝ, irrational x :=
-eventually_residual.2 ⟨_, is_Gδ_irrational, dense_irrational, λ _, id⟩
-
 lemma set_of_liouville_eq_irrational_inter_Inter_Union :
   {x | liouville x} =
     {x | irrational x} ∩ ⋂ n : ℕ, ⋃ (a b : ℤ) (hb : 1 < b), ball (a / b) (1 / b ^ n) :=
@@ -58,11 +41,9 @@ begin
   refine subset.antisymm _ _,
   { refine subset_inter (λ x hx, hx.irrational) _,
     rw set_of_liouville_eq_Inter_Union,
-    exact Inter_subset_Inter (λ n, Union_subset_Union $ λ a, Union_subset_Union $
-      λ b, Union_subset_Union $ λ hb, diff_subset _ _) },
+    exact Inter_mono (λ n, Union₂_mono $ λ a b, Union_mono $ λ hb, diff_subset _ _) },
   { simp only [inter_Inter, inter_Union, set_of_liouville_eq_Inter_Union],
-    refine Inter_subset_Inter (λ n, Union_subset_Union $ λ a, Union_subset_Union $
-      λ b, Union_subset_Union $ λ hb, _),
+    refine Inter_mono (λ n, Union₂_mono $ λ a b, Union_mono $ λ hb, _),
     rw [inter_comm],
     refine diff_subset_diff subset.rfl (singleton_subset_iff.2 ⟨a / b, _⟩),
     norm_cast }

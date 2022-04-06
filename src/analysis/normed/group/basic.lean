@@ -30,12 +30,12 @@ normed group
 
 variables {α ι E F : Type*}
 
-noncomputable theory
 open filter metric
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
 
-/-- Auxiliary class, endowing a type `E` with a function `norm : E → ℝ`. This class is designed to
-be extended in more interesting classes specifying the properties of the norm. -/
+/-- Auxiliary class, endowing a type `E` with a function `norm : E → ℝ` with notation `∥x∥`. This
+class is designed to be extended in more interesting classes specifying the properties of the norm.
+-/
 class has_norm (E : Type*) := (norm : E → ℝ)
 
 export has_norm (norm)
@@ -88,7 +88,7 @@ structure semi_normed_group.core (E : Type*) [add_comm_group E] [has_norm E] : P
 pseudodistance and the pseudometric space structure from the seminorm properties. Note that in most
 cases this instance creates bad definitional equalities (e.g., it does not take into account
 a possibly existing `uniform_space` instance on `E`). -/
-noncomputable def semi_normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
+def semi_normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
   (C : semi_normed_group.core E) : semi_normed_group E :=
 { dist := λ x y, ∥x - y∥,
   dist_eq := assume x y, by refl,
@@ -106,7 +106,7 @@ instance : normed_group punit :=
 
 @[simp] lemma punit.norm_eq_zero (r : punit) : ∥r∥ = 0 := rfl
 
-instance : normed_group ℝ :=
+noncomputable instance : normed_group ℝ :=
 { norm := λ x, |x|,
   dist_eq := assume x y, rfl }
 
@@ -188,6 +188,8 @@ by { rw[←dist_zero_right], exact dist_nonneg }
 
 @[simp] lemma norm_zero : ∥(0 : E)∥ = 0 :=  by rw [← dist_zero_right, dist_self]
 
+lemma ne_zero_of_norm_ne_zero {g : E} : ∥g∥ ≠ 0 → g ≠ 0 := mt $ by { rintro rfl, exact norm_zero }
+
 @[nontriviality] lemma norm_of_subsingleton [subsingleton E] (x : E) : ∥x∥ = 0 :=
 by rw [subsingleton.elim x 0, norm_zero]
 
@@ -229,6 +231,7 @@ le_trans (le_abs_self _) (abs_norm_sub_norm_le g h)
 lemma dist_norm_norm_le (g h : E) : dist ∥g∥ ∥h∥ ≤ ∥g - h∥ :=
 abs_norm_sub_norm_le g h
 
+/-- The direct path from `0` to `v` is shorter than the path with `u` inserted in between. -/
 lemma norm_le_insert (u v : E) : ∥v∥ ≤ ∥u∥ + ∥u - v∥ :=
 calc ∥v∥ = ∥u - (u - v)∥ : by abel
 ... ≤ ∥u∥ + ∥u - v∥ : norm_sub_le u _
@@ -262,6 +265,9 @@ by rw [mem_ball, dist_zero_right]
 lemma mem_closed_ball_iff_norm {g h : E} {r : ℝ} :
   h ∈ closed_ball g r ↔ ∥h - g∥ ≤ r :=
 by rw [mem_closed_ball, dist_eq_norm]
+
+@[simp] lemma mem_closed_ball_zero_iff {ε : ℝ} {x : E} : x ∈ closed_ball (0 : E) ε ↔ ∥x∥ ≤ ε :=
+by rw [mem_closed_ball, dist_zero_right]
 
 lemma add_mem_closed_ball_iff_norm {g h : E} {r : ℝ} :
   g + h ∈ closed_ball g r ↔ ∥h∥ ≤ r :=
@@ -297,14 +303,14 @@ lemma bounded_iff_forall_norm_le {s : set E} : bounded s ↔ ∃ C, ∀ x ∈ s,
 by simpa only [set.subset_def, mem_closed_ball_iff_norm, sub_zero]
   using bounded_iff_subset_ball (0 : E)
 
-lemma preimage_add_ball (x y : E) (r : ℝ) : ((+) y) ⁻¹' (ball x r) = ball (x - y) r :=
+@[simp] lemma preimage_add_ball (x y : E) (r : ℝ) : ((+) y) ⁻¹' (ball x r) = ball (x - y) r :=
 begin
   ext z,
   simp only [dist_eq_norm, set.mem_preimage, mem_ball],
   abel
 end
 
-lemma preimage_add_closed_ball (x y : E) (r : ℝ) :
+@[simp] lemma preimage_add_closed_ball (x y : E) (r : ℝ) :
   ((+) y) ⁻¹' (closed_ball x r) = closed_ball (x - y) r :=
 begin
   ext z,
@@ -329,21 +335,11 @@ begin
   abel
 end
 
-lemma ne_zero_of_norm_pos {g : E} : 0 < ∥ g ∥ → g ≠ 0 :=
-begin
-  intros hpos hzero,
-  rw [hzero, norm_zero] at hpos,
-  exact lt_irrefl 0 hpos,
-end
+lemma ne_zero_of_mem_sphere {r : ℝ} (hr : r ≠ 0) (x : sphere (0 : E) r) : (x : E) ≠ 0 :=
+ne_zero_of_norm_ne_zero $ by rwa norm_eq_of_mem_sphere x
 
-lemma nonzero_of_mem_sphere {r : ℝ} (hr : 0 < r) (x : sphere (0:E) r) : (x:E) ≠ 0 :=
-begin
-  refine ne_zero_of_norm_pos _,
-  rwa norm_eq_of_mem_sphere x,
-end
-
-lemma nonzero_of_mem_unit_sphere (x : sphere (0:E) 1) : (x:E) ≠ 0 :=
-by { apply nonzero_of_mem_sphere, norm_num }
+lemma ne_zero_of_mem_unit_sphere (x : sphere (0:E) 1) : (x:E) ≠ 0 :=
+ne_zero_of_mem_sphere one_ne_zero _
 
 /-- We equip the sphere, in a seminormed group, with a formal operation of negation, namely the
 antipodal map. -/
@@ -414,42 +410,17 @@ lemma normed_group.tendsto_nhds_nhds {f : E → F} {x : E} {y : F} :
 by simp_rw [metric.tendsto_nhds_nhds, dist_eq_norm]
 
 lemma normed_group.cauchy_seq_iff [nonempty α] [semilattice_sup α] {u : α → E} :
-  cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m n, N ≤ m → N ≤ n → ∥u m - u n∥ < ε :=
+  cauchy_seq u ↔ ∀ ε > 0, ∃ N, ∀ m, N ≤ m → ∀ n, N ≤ n → ∥u m - u n∥ < ε :=
 by simp [metric.cauchy_seq_iff, dist_eq_norm]
 
-lemma cauchy_seq.add {u v : ℕ → E} (hu : cauchy_seq u) (hv : cauchy_seq v) : cauchy_seq (u + v) :=
+lemma normed_group.uniformity_basis_dist :
+  (𝓤 E).has_basis (λ (ε : ℝ), 0 < ε) (λ ε, {p : E × E | ∥p.fst - p.snd∥ < ε}) :=
 begin
-  rw normed_group.cauchy_seq_iff at *,
-  intros ε ε_pos,
-  rcases hu (ε/2) (half_pos ε_pos) with ⟨Nu, hNu⟩,
-  rcases hv (ε/2) (half_pos ε_pos) with ⟨Nv, hNv⟩,
-  use max Nu Nv,
-  intros m n hm hn,
-  replace hm := max_le_iff.mp hm,
-  replace hn := max_le_iff.mp hn,
-
-  calc ∥(u + v) m - (u + v) n∥ = ∥u m + v m - (u n + v n)∥ : rfl
-  ... = ∥(u m - u n) + (v m - v n)∥ : by abel
-  ... ≤ ∥u m - u n∥ + ∥v m - v n∥ : norm_add_le _ _
-  ... < ε : by linarith only [hNu m n hm.1 hn.1, hNv m n hm.2 hn.2]
+  convert metric.uniformity_basis_dist,
+  simp [dist_eq_norm]
 end
 
 open finset
-
-lemma cauchy_seq_sum_of_eventually_eq {u v : ℕ → E} {N : ℕ} (huv : ∀ n ≥ N, u n = v n)
-  (hv : cauchy_seq (λ n, ∑ k in range (n+1), v k)) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
-begin
-  let d : ℕ → E := λ n, ∑ k in range (n + 1), (u k - v k),
-  rw show (λ n, ∑ k in range (n + 1), u k) = d + (λ n, ∑ k in range (n + 1), v k),
-    by { ext n, simp [d] },
-  have : ∀ n ≥ N, d n = d N,
-  { intros n hn,
-    dsimp [d],
-    rw eventually_constant_sum _ hn,
-    intros m hm,
-    simp [huv m hm] },
-  exact (tendsto_at_top_of_eventually_const this).cauchy_seq.add hv
-end
 
 /-- A homomorphism `f` of seminormed groups is Lipschitz, if there exists a constant `C` such that
 for all `x`, one has `∥f x∥ ≤ C * ∥x∥`. The analogous condition for a linear map of
@@ -561,7 +532,7 @@ end
 
 section nnnorm
 
-/-- Auxiliary class, endowing a type `α` with a function `nnnorm : α → ℝ≥0`. -/
+/-- Auxiliary class, endowing a type `α` with a function `nnnorm : α → ℝ≥0` with notation `∥x∥₊`. -/
 class has_nnnorm (E : Type*) := (nnnorm : E → ℝ≥0)
 
 export has_nnnorm (nnnorm)
@@ -573,19 +544,25 @@ instance semi_normed_group.to_has_nnnorm : has_nnnorm E := ⟨λ a, ⟨norm a, n
 
 @[simp, norm_cast] lemma coe_nnnorm (a : E) : (∥a∥₊ : ℝ) = norm a := rfl
 
+lemma norm_to_nnreal {a : E} : ∥a∥.to_nnreal = ∥a∥₊ :=
+@real.to_nnreal_coe ∥a∥₊
+
 lemma nndist_eq_nnnorm (a b : E) : nndist a b = ∥a - b∥₊ := nnreal.eq $ dist_eq_norm _ _
 
 @[simp] lemma nnnorm_zero : ∥(0 : E)∥₊ = 0 :=
 nnreal.eq norm_zero
 
+lemma ne_zero_of_nnnorm_ne_zero {g : E} : ∥g∥₊ ≠ 0 → g ≠ 0 :=
+mt $ by { rintro rfl, exact nnnorm_zero }
+
 lemma nnnorm_add_le (g h : E) : ∥g + h∥₊ ≤ ∥g∥₊ + ∥h∥₊ :=
-nnreal.coe_le_coe.2 $ norm_add_le g h
+nnreal.coe_le_coe.1 $ norm_add_le g h
 
 @[simp] lemma nnnorm_neg (g : E) : ∥-g∥₊ = ∥g∥₊ :=
 nnreal.eq $ norm_neg g
 
 lemma nndist_nnnorm_nnnorm_le (g h : E) : nndist ∥g∥₊ ∥h∥₊ ≤ ∥g - h∥₊ :=
-nnreal.coe_le_coe.2 $ dist_norm_norm_le g h
+nnreal.coe_le_coe.1 $ dist_norm_norm_le g h
 
 lemma of_real_norm_eq_coe_nnnorm (x : E) : ennreal.of_real ∥x∥ = (∥x∥₊ : ℝ≥0∞) :=
 ennreal.of_real_eq_coe_nnreal _
@@ -601,7 +578,7 @@ by rw [emetric.mem_ball, edist_eq_coe_nnnorm]
 
 lemma nndist_add_add_le (g₁ g₂ h₁ h₂ : E) :
   nndist (g₁ + g₂) (h₁ + h₂) ≤ nndist g₁ h₁ + nndist g₂ h₂ :=
-nnreal.coe_le_coe.2 $ dist_add_add_le g₁ g₂ h₁ h₂
+nnreal.coe_le_coe.1 $ dist_add_add_le g₁ g₂ h₁ h₂
 
 lemma edist_add_add_le (g₁ g₂ h₁ h₂ : E) :
   edist (g₁ + g₂) (h₁ + h₂) ≤ edist g₁ h₁ + edist g₂ h₂ :=
@@ -650,7 +627,7 @@ begin
   letI : pseudo_metric_space α := pseudo_emetric_space.to_pseudo_metric_space hf.edist_ne_top,
   refine antilipschitz_with.of_le_mul_dist (λ x y, _),
   rw [nnreal.coe_inv, ← div_eq_inv_mul],
-  rw le_div_iff (nnreal.coe_pos.2 $ sub_pos_iff_lt.2 hK),
+  rw le_div_iff (nnreal.coe_pos.2 $ tsub_pos_iff_lt.2 hK),
   rw [mul_comm, nnreal.coe_sub hK.le, sub_mul],
   calc ↑Kf⁻¹ * dist x y - Kg * dist x y ≤ dist (f x) (f y) - dist (g x) (g y) :
     sub_le_sub (hf.mul_le_dist x y) (hg.dist_le_mul x y)
@@ -660,6 +637,10 @@ end
 lemma add_sub_lipschitz_with (hf : antilipschitz_with Kf f) (hg : lipschitz_with Kg (g - f))
   (hK : Kg < Kf⁻¹) : antilipschitz_with (Kf⁻¹ - Kg)⁻¹ g :=
 by simpa only [pi.sub_apply, add_sub_cancel'_right] using hf.add_lipschitz_with hg hK
+
+lemma le_mul_norm_sub {f : E → F} (hf : antilipschitz_with K f) (x y : E) :
+  ∥x - y∥ ≤ K * ∥f x - f y∥ :=
+by simp [← dist_eq_norm, hf.le_mul_dist x y]
 
 end antilipschitz_with
 
@@ -680,8 +661,20 @@ semi_normed_group.induced s.subtype
 
 /-- If `x` is an element of a subgroup `s` of a seminormed group `E`, its norm in `s` is equal to
 its norm in `E`. -/
-@[simp] lemma coe_norm_subgroup {E : Type*} [semi_normed_group E] {s : add_subgroup E} (x : s) :
-  ∥x∥ = ∥(x:E)∥ :=
+@[simp] lemma add_subgroup.coe_norm {E : Type*} [semi_normed_group E]
+  {s : add_subgroup E} (x : s) :
+  ∥(x : s)∥ = ∥(x:E)∥ :=
+rfl
+
+/-- If `x` is an element of a subgroup `s` of a seminormed group `E`, its norm in `s` is equal to
+its norm in `E`.
+
+This is a reversed version of the `simp` lemma `add_subgroup.coe_norm` for use by `norm_cast`.
+-/
+
+@[norm_cast] lemma add_subgroup.norm_coe {E : Type*} [semi_normed_group E] {s : add_subgroup E}
+  (x : s) :
+  ∥(x : E)∥ = ∥(x : s)∥ :=
 rfl
 
 /-- A submodule of a seminormed group is also a seminormed group, with the restriction of the norm.
@@ -692,45 +685,51 @@ instance submodule.semi_normed_group {𝕜 : Type*} {_ : ring 𝕜}
 { norm := λx, norm (x : E),
   dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
 
+/-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `s` is equal to its
+norm in `E`.
+
+See note [implicit instance arguments]. -/
+@[simp] lemma submodule.coe_norm {𝕜 : Type*} {_ : ring 𝕜}
+  {E : Type*} [semi_normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
+  ∥(x : s)∥ = ∥(x : E)∥ :=
+rfl
+
 /-- If `x` is an element of a submodule `s` of a normed group `E`, its norm in `E` is equal to its
 norm in `s`.
 
-See note [implicit instance arguments]. -/
-@[simp, norm_cast] lemma submodule.norm_coe {𝕜 : Type*} {_ : ring 𝕜}
-  {E : Type*} [semi_normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
-  ∥(x : E)∥ = ∥x∥ :=
-rfl
+This is a reversed version of the `simp` lemma `submodule.coe_norm` for use by `norm_cast`.
 
-@[simp] lemma submodule.norm_mk {𝕜 : Type*} {_ : ring 𝕜}
-  {E : Type*} [semi_normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : E) (hx : x ∈ s) :
-  ∥(⟨x, hx⟩ : s)∥ = ∥x∥ :=
+See note [implicit instance arguments]. -/
+@[norm_cast] lemma submodule.norm_coe {𝕜 : Type*} {_ : ring 𝕜}
+  {E : Type*} [semi_normed_group E] {_ : module 𝕜 E} {s : submodule 𝕜 E} (x : s) :
+  ∥(x : E)∥ = ∥(x : s)∥ :=
 rfl
 
 /-- seminormed group instance on the product of two seminormed groups, using the sup norm. -/
-instance prod.semi_normed_group : semi_normed_group (E × F) :=
+noncomputable instance prod.semi_normed_group : semi_normed_group (E × F) :=
 { norm := λx, max ∥x.1∥ ∥x.2∥,
   dist_eq := assume (x y : E × F),
     show max (dist x.1 y.1) (dist x.2 y.2) = (max ∥(x - y).1∥ ∥(x - y).2∥), by simp [dist_eq_norm] }
 
-lemma prod.semi_norm_def (x : E × F) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
+lemma prod.norm_def (x : E × F) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
 
-lemma prod.nnsemi_norm_def (x : E × F) : ∥x∥₊ = max (∥x.1∥₊) (∥x.2∥₊) :=
-by { have := x.semi_norm_def, simp only [← coe_nnnorm] at this, exact_mod_cast this }
+lemma prod.nnnorm_def (x : E × F) : ∥x∥₊ = max (∥x.1∥₊) (∥x.2∥₊) :=
+by { have := x.norm_def, simp only [← coe_nnnorm] at this, exact_mod_cast this }
 
-lemma semi_norm_fst_le (x : E × F) : ∥x.1∥ ≤ ∥x∥ :=
+lemma norm_fst_le (x : E × F) : ∥x.1∥ ≤ ∥x∥ :=
 le_max_left _ _
 
-lemma semi_norm_snd_le (x : E × F) : ∥x.2∥ ≤ ∥x∥ :=
+lemma norm_snd_le (x : E × F) : ∥x.2∥ ≤ ∥x∥ :=
 le_max_right _ _
 
-lemma semi_norm_prod_le_iff {x : E × F} {r : ℝ} :
+lemma norm_prod_le_iff {x : E × F} {r : ℝ} :
   ∥x∥ ≤ r ↔ ∥x.1∥ ≤ r ∧ ∥x.2∥ ≤ r :=
 max_le_iff
 
 /-- seminormed group instance on the product of finitely many seminormed groups,
 using the sup norm. -/
-instance pi.semi_normed_group {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] :
-  semi_normed_group (Πi, π i) :=
+noncomputable instance pi.semi_normed_group {π : ι → Type*} [fintype ι]
+  [Π i, semi_normed_group (π i)] : semi_normed_group (Π i, π i) :=
 { norm := λf, ((finset.sup finset.univ (λ b, ∥f b∥₊) : ℝ≥0) : ℝ),
   dist_eq := assume x y,
     congr_arg (coe : ℝ≥0 → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
@@ -738,26 +737,26 @@ instance pi.semi_normed_group {π : ι → Type*} [fintype ι] [∀i, semi_norme
 
 /-- The seminorm of an element in a product space is `≤ r` if and only if the norm of each
 component is. -/
-lemma pi_semi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ}
+lemma pi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ}
   (hr : 0 ≤ r) {x : Πi, π i} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
 by simp only [← dist_zero_right, dist_pi_le_iff hr, pi.zero_apply]
 
 /-- The seminorm of an element in a product space is `< r` if and only if the norm of each
 component is. -/
-lemma pi_semi_norm_lt_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ}
+lemma pi_norm_lt_iff {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] {r : ℝ}
   (hr : 0 < r) {x : Πi, π i} : ∥x∥ < r ↔ ∀i, ∥x i∥ < r :=
 by simp only [← dist_zero_right, dist_pi_lt_iff hr, pi.zero_apply]
 
-lemma semi_norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] (x : Πi, π i)
+lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, semi_normed_group (π i)] (x : Πi, π i)
   (i : ι) : ∥x i∥ ≤ ∥x∥ :=
-(pi_semi_norm_le_iff (norm_nonneg x)).1 (le_refl _) i
+(pi_norm_le_iff (norm_nonneg x)).1 le_rfl i
 
-@[simp] lemma pi_semi_norm_const [nonempty ι] [fintype ι] (a : E) : ∥(λ i : ι, a)∥ = ∥a∥ :=
+@[simp] lemma pi_norm_const [nonempty ι] [fintype ι] (a : E) : ∥(λ i : ι, a)∥ = ∥a∥ :=
 by simpa only [← dist_zero_right] using dist_pi_const a 0
 
-@[simp] lemma pi_nnsemi_norm_const [nonempty ι] [fintype ι] (a : E) :
+@[simp] lemma pi_nnnorm_const [nonempty ι] [fintype ι] (a : E) :
   ∥(λ i : ι, a)∥₊ = ∥a∥₊ :=
-nnreal.eq $ pi_semi_norm_const a
+nnreal.eq $ pi_norm_const a
 
 lemma tendsto_iff_norm_tendsto_zero {f : α → E} {a : filter α} {b : E} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥f e - b∥) a (𝓝 0) :=
@@ -776,7 +775,7 @@ by { rw [tendsto_iff_norm_tendsto_zero], simp only [sub_zero] }
 /-- Special case of the sandwich theorem: if the norm of `f` is eventually bounded by a real
 function `g` which tends to `0`, then `f` tends to `0`.
 In this pair of lemmas (`squeeze_zero_norm'` and `squeeze_zero_norm`), following a convention of
-similar lemmas in `topology.metric_space.basic` and `topology.algebra.ordered`, the `'` version is
+similar lemmas in `topology.metric_space.basic` and `topology.algebra.order`, the `'` version is
 phrased using "eventually" and the non-`'` version is phrased absolutely. -/
 lemma squeeze_zero_norm' {f : α → E} {g : α → ℝ} {t₀ : filter α}
   (h : ∀ᶠ n in t₀, ∥f n∥ ≤ g n)
@@ -896,22 +895,31 @@ by simp [metric.mem_closure_iff, dist_eq_norm]
 lemma norm_le_zero_iff' [separated_space E] {g : E} :
   ∥g∥ ≤ 0 ↔ g = 0 :=
 begin
-  have : g = 0 ↔ g ∈ closure ({0} : set E),
-  by simpa only [separated_space.out, mem_id_rel, sub_zero] using group_separation_rel g (0 : E),
-  rw [this, semi_normed_group.mem_closure_iff],
-  simp [forall_lt_iff_le']
+  letI : normed_group E := { to_metric_space := of_t2_pseudo_metric_space ‹_›,
+    .. ‹semi_normed_group E› },
+  rw [← dist_zero_right], exact dist_le_zero
 end
 
 lemma norm_eq_zero_iff' [separated_space E] {g : E} : ∥g∥ = 0 ↔ g = 0 :=
-begin
-  conv_rhs { rw ← norm_le_zero_iff' },
-  split ; intro h,
-  { rw h },
-  { exact le_antisymm h (norm_nonneg g) }
-end
+(norm_nonneg g).le_iff_eq.symm.trans norm_le_zero_iff'
 
 lemma norm_pos_iff' [separated_space E] {g : E} : 0 < ∥g∥ ↔ g ≠ 0 :=
 by rw [← not_le, norm_le_zero_iff']
+
+lemma cauchy_seq_sum_of_eventually_eq {u v : ℕ → E} {N : ℕ} (huv : ∀ n ≥ N, u n = v n)
+  (hv : cauchy_seq (λ n, ∑ k in range (n+1), v k)) : cauchy_seq (λ n, ∑ k in range (n + 1), u k) :=
+begin
+  let d : ℕ → E := λ n, ∑ k in range (n + 1), (u k - v k),
+  rw show (λ n, ∑ k in range (n + 1), u k) = d + (λ n, ∑ k in range (n + 1), v k),
+    by { ext n, simp [d] },
+  have : ∀ n ≥ N, d n = d N,
+  { intros n hn,
+    dsimp [d],
+    rw eventually_constant_sum _ hn,
+    intros m hm,
+    simp [huv m hm] },
+  exact (tendsto_at_top_of_eventually_const this).cauchy_seq.add hv
+end
 
 end semi_normed_group
 
@@ -943,7 +951,7 @@ lemma normed_group.core.to_semi_normed_group.core {E : Type*} [add_comm_group E]
 
 /-- Constructing a normed group from core properties of a norm, i.e., registering the distance and
 the metric space structure from the norm properties. -/
-noncomputable def normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
+def normed_group.of_core (E : Type*) [add_comm_group E] [has_norm E]
   (C : normed_group.core E) : normed_group E :=
 { eq_of_dist_eq_zero := λ x y h,
   begin
@@ -954,32 +962,27 @@ noncomputable def normed_group.of_core (E : Type*) [add_comm_group E] [has_norm 
 
 variables [normed_group E] [normed_group F]
 
-@[simp] lemma norm_eq_zero {g : E} : ∥g∥ = 0 ↔ g = 0 :=
-dist_zero_right g ▸ dist_eq_zero
+@[simp] lemma norm_eq_zero {g : E} : ∥g∥ = 0 ↔ g = 0 := norm_eq_zero_iff'
 
-@[simp] lemma norm_pos_iff {g : E} : 0 < ∥ g ∥ ↔ g ≠ 0 :=
-dist_zero_right g ▸ dist_pos
+lemma norm_ne_zero_iff {g : E} : ∥g∥ ≠ 0 ↔ g ≠ 0 := not_congr norm_eq_zero
 
-@[simp] lemma norm_le_zero_iff {g : E} : ∥g∥ ≤ 0 ↔ g = 0 :=
-by { rw [← dist_zero_right], exact dist_le_zero }
+@[simp] lemma norm_pos_iff {g : E} : 0 < ∥ g ∥ ↔ g ≠ 0 := norm_pos_iff'
+
+@[simp] lemma norm_le_zero_iff {g : E} : ∥g∥ ≤ 0 ↔ g = 0 := norm_le_zero_iff'
+
+lemma norm_sub_eq_zero_iff {u v : E} : ∥u - v∥ = 0 ↔ u = v :=
+by rw [norm_eq_zero, sub_eq_zero]
 
 lemma eq_of_norm_sub_le_zero {g h : E} (a : ∥g - h∥ ≤ 0) : g = h :=
 by rwa [← sub_eq_zero, ← norm_le_zero_iff]
 
 lemma eq_of_norm_sub_eq_zero {u v : E} (h : ∥u - v∥ = 0) : u = v :=
-begin
-  apply eq_of_dist_eq_zero,
-  rwa dist_eq_norm
-end
-
-lemma norm_sub_eq_zero_iff {u v : E} : ∥u - v∥ = 0 ↔ u = v :=
-begin
-  convert dist_eq_zero,
-  rwa dist_eq_norm
-end
+norm_sub_eq_zero_iff.1 h
 
 @[simp] lemma nnnorm_eq_zero {a : E} : ∥a∥₊ = 0 ↔ a = 0 :=
-by simp only [nnreal.eq_iff.symm, nnreal.coe_zero, coe_nnnorm, norm_eq_zero]
+by rw [← nnreal.coe_eq_zero, coe_nnnorm, norm_eq_zero]
+
+lemma nnnorm_ne_zero_iff {g : E} : ∥g∥₊ ≠ 0 ↔ g ≠ 0 := not_congr nnnorm_eq_zero
 
 /-- An injective group homomorphism from an `add_comm_group` to a `normed_group` induces a
 `normed_group` structure on the domain.
@@ -1003,52 +1006,30 @@ instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
 { ..submodule.semi_normed_group s }
 
 /-- normed group instance on the product of two normed groups, using the sup norm. -/
-instance prod.normed_group : normed_group (E × F) := { ..prod.semi_normed_group }
-
-lemma prod.norm_def (x : E × F) : ∥x∥ = (max ∥x.1∥ ∥x.2∥) := rfl
-
-lemma prod.nnnorm_def (x : E × F) : ∥x∥₊ = max (∥x.1∥₊) (∥x.2∥₊) :=
-by { have := x.norm_def, simp only [← coe_nnnorm] at this, exact_mod_cast this }
-
-lemma norm_fst_le (x : E × F) : ∥x.1∥ ≤ ∥x∥ :=
-le_max_left _ _
-
-lemma norm_snd_le (x : E × F) : ∥x.2∥ ≤ ∥x∥ :=
-le_max_right _ _
-
-lemma norm_prod_le_iff {x : E × F} {r : ℝ} :
-  ∥x∥ ≤ r ↔ ∥x.1∥ ≤ r ∧ ∥x.2∥ ≤ r :=
-max_le_iff
+noncomputable instance prod.normed_group : normed_group (E × F) := { ..prod.semi_normed_group }
 
 /-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
-instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
+noncomputable instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
   normed_group (Πi, π i) := { ..pi.semi_normed_group }
 
-/-- The norm of an element in a product space is `≤ r` if and only if the norm of each
-component is. -/
-lemma pi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] {r : ℝ} (hr : 0 ≤ r)
-  {x : Πi, π i} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
-by simp only [← dist_zero_right, dist_pi_le_iff hr, pi.zero_apply]
+lemma tendsto_norm_sub_self_punctured_nhds (a : E) : tendsto (λ x, ∥x - a∥) (𝓝[≠] a) (𝓝[>] 0) :=
+(tendsto_norm_sub_self a).inf $ tendsto_principal_principal.2 $ λ x hx,
+  norm_pos_iff.2 $ sub_ne_zero.2 hx
 
-/-- The norm of an element in a product space is `< r` if and only if the norm of each
-component is. -/
-lemma pi_norm_lt_iff {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] {r : ℝ} (hr : 0 < r)
-  {x : Πi, π i} : ∥x∥ < r ↔ ∀i, ∥x i∥ < r :=
-by simp only [← dist_zero_right, dist_pi_lt_iff hr, pi.zero_apply]
+lemma tendsto_norm_nhds_within_zero : tendsto (norm : E → ℝ) (𝓝[≠] 0) (𝓝[>] 0) :=
+tendsto_norm_zero.inf $ tendsto_principal_principal.2 $ λ x, norm_pos_iff.2
 
-lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] (x : Πi, π i) (i : ι) :
-  ∥x i∥ ≤ ∥x∥ :=
-(pi_norm_le_iff (norm_nonneg x)).1 (le_refl _) i
+/-! Some relations with `has_compact_support` -/
 
-@[simp] lemma pi_norm_const [nonempty ι] [fintype ι] (a : E) : ∥(λ i : ι, a)∥ = ∥a∥ :=
-by simpa only [← dist_zero_right] using dist_pi_const a 0
+lemma has_compact_support_norm_iff [topological_space α] {f : α → E} :
+  has_compact_support (λ x, ∥ f x ∥) ↔ has_compact_support f :=
+has_compact_support_comp_left $ λ x, norm_eq_zero
 
-@[simp] lemma pi_nnnorm_const [nonempty ι] [fintype ι] (a : E) :
-  ∥(λ i : ι, a)∥₊ = ∥a∥₊ :=
-nnreal.eq $ pi_norm_const a
+alias has_compact_support_norm_iff ↔ _ has_compact_support.norm
 
-lemma tendsto_norm_nhds_within_zero : tendsto (norm : E → ℝ) (𝓝[{0}ᶜ] 0) (𝓝[set.Ioi 0] 0) :=
-(continuous_norm.tendsto' (0 : E) 0 norm_zero).inf $ tendsto_principal_principal.2 $
-  λ x, norm_pos_iff.2
+lemma continuous.bounded_above_of_compact_support [topological_space α] {f : α → E}
+  (hf : continuous f) (hsupp : has_compact_support f) : ∃ C, ∀ x, ∥f x∥ ≤ C :=
+by simpa [bdd_above_def] using hf.norm.bdd_above_range_of_has_compact_support hsupp.norm
+
 
 end normed_group

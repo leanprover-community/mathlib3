@@ -18,7 +18,7 @@ In this file we prove simple properties of `nat.iterate f n` a.k.a. `f^[n]`:
 * `injective.iterate`, `surjective.iterate`, `bijective.iterate` :
   iterates of an injective/surjective/bijective function belong to the same class;
 
-* `left_inverse.iterate`, `right_inverse.iterate`, `commute.iterate_left`, `comute.iterate_right`,
+* `left_inverse.iterate`, `right_inverse.iterate`, `commute.iterate_left`, `commute.iterate_right`,
   `commute.iterate_iterate`:
   some properties of pairs of functions survive under iterations
 
@@ -165,3 +165,19 @@ lemma iterate_commute (m n : ℕ) : commute (λ f : α → α, f^[m]) (λ f, f^[
 λ f, iterate_comm f m n
 
 end function
+
+namespace list
+open function
+
+theorem foldl_const (f : α → α) (a : α) (l : list β) : l.foldl (λ b _, f b) a = (f^[l.length]) a :=
+begin
+  induction l with b l H generalizing a,
+  { refl },
+  { rw [length_cons, foldl, iterate_succ_apply, H] }
+end
+
+theorem foldr_const (f : β → β) (b : β) : Π l : list α, l.foldr (λ _, f) b = (f^[l.length]) b
+| []     := rfl
+| (a::l) := by rw [length_cons, foldr, foldr_const l, iterate_succ_apply']
+
+end list

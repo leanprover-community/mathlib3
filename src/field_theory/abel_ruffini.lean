@@ -16,16 +16,16 @@ by radicals, then its minimal polynomial has solvable Galois group.
 
 ## Main definitions
 
-* `SBF F E` : the intermediate field of solvable-by-radicals elements
+* `solvable_by_rad F E` : the intermediate field of solvable-by-radicals elements
 
 ## Main results
 
-* `solvable_gal_of_solvable_by_rad` : the minimal polynomial of an element of `SBF F E` has
-solvable Galois group
+* the Abel-Ruffini Theorem `solvable_by_rad.is_solvable'` : An irreducible polynomial with a root
+that is solvable by radicals has a solvable Galois group.
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical polynomial
 
 open polynomial intermediate_field
 
@@ -33,29 +33,29 @@ section abel_ruffini
 
 variables {F : Type*} [field F] {E : Type*} [field E] [algebra F E]
 
-lemma gal_zero_is_solvable : is_solvable (0 : polynomial F).gal :=
+lemma gal_zero_is_solvable : is_solvable (0 : F[X]).gal :=
 by apply_instance
 
-lemma gal_one_is_solvable : is_solvable (1 : polynomial F).gal :=
+lemma gal_one_is_solvable : is_solvable (1 : F[X]).gal :=
 by apply_instance
 
 lemma gal_C_is_solvable (x : F) : is_solvable (C x).gal :=
 by apply_instance
 
-lemma gal_X_is_solvable : is_solvable (X : polynomial F).gal :=
+lemma gal_X_is_solvable : is_solvable (X : F[X]).gal :=
 by apply_instance
 
 lemma gal_X_sub_C_is_solvable (x : F) : is_solvable (X - C x).gal :=
 by apply_instance
 
-lemma gal_X_pow_is_solvable (n : ℕ) : is_solvable (X ^ n : polynomial F).gal :=
+lemma gal_X_pow_is_solvable (n : ℕ) : is_solvable (X ^ n : F[X]).gal :=
 by apply_instance
 
-lemma gal_mul_is_solvable {p q : polynomial F}
+lemma gal_mul_is_solvable {p q : F[X]}
   (hp : is_solvable p.gal) (hq : is_solvable q.gal) : is_solvable (p * q).gal :=
 solvable_of_solvable_injective (gal.restrict_prod_injective p q)
 
-lemma gal_prod_is_solvable {s : multiset (polynomial F)}
+lemma gal_prod_is_solvable {s : multiset F[X]}
   (hs : ∀ p ∈ s, is_solvable (gal p)) : is_solvable s.prod.gal :=
 begin
   apply multiset.induction_on' s,
@@ -65,7 +65,7 @@ begin
     exact gal_mul_is_solvable (hs p hps) ht },
 end
 
-lemma gal_is_solvable_of_splits {p q : polynomial F}
+lemma gal_is_solvable_of_splits {p q : F[X]}
   (hpq : fact (p.splits (algebra_map F q.splitting_field))) (hq : is_solvable q.gal) :
   is_solvable p.gal :=
 begin
@@ -73,7 +73,7 @@ begin
   exact solvable_of_surjective (alg_equiv.restrict_normal_hom_surjective q.splitting_field),
 end
 
-lemma gal_is_solvable_tower (p q : polynomial F)
+lemma gal_is_solvable_tower (p q : F[X])
   (hpq : p.splits (algebra_map F q.splitting_field))
   (hp : is_solvable p.gal)
   (hq : is_solvable (q.map (algebra_map F p.splitting_field)).gal) :
@@ -92,33 +92,32 @@ end
 
 section gal_X_pow_sub_C
 
-lemma gal_X_pow_sub_one_is_solvable (n : ℕ) : is_solvable (X ^ n - 1 : polynomial F).gal :=
+lemma gal_X_pow_sub_one_is_solvable (n : ℕ) : is_solvable (X ^ n - 1 : F[X]).gal :=
 begin
   by_cases hn : n = 0,
   { rw [hn, pow_zero, sub_self],
     exact gal_zero_is_solvable },
   have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
-  have hn'' : (X ^ n - 1 : polynomial F) ≠ 0 :=
+  have hn'' : (X ^ n - 1 : F[X]) ≠ 0 :=
     λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn').symm.trans (congr_arg leading_coeff h)),
   apply is_solvable_of_comm,
   intros σ τ,
   ext a ha,
   rw [mem_root_set hn'', alg_hom.map_sub, aeval_X_pow, aeval_one, sub_eq_zero] at ha,
-  have key : ∀ σ : (X ^ n - 1 : polynomial F).gal, ∃ m : ℕ, σ a = a ^ m,
+  have key : ∀ σ : (X ^ n - 1 : F[X]).gal, ∃ m : ℕ, σ a = a ^ m,
   { intro σ,
-    obtain ⟨m, hm⟩ := σ.to_alg_hom.to_ring_hom.map_root_of_unity_eq_pow_self
+    obtain ⟨m, hm⟩ := map_root_of_unity_eq_pow_self σ.to_alg_hom
       ⟨is_unit.unit (is_unit_of_pow_eq_one a n ha hn'),
       by { ext, rwa [units.coe_pow, is_unit.unit_spec, subtype.coe_mk n hn'] }⟩,
     use m,
-    convert hm,
-    all_goals { exact (is_unit.unit_spec _).symm } },
+    convert hm },
   obtain ⟨c, hc⟩ := key σ,
   obtain ⟨d, hd⟩ := key τ,
   rw [σ.mul_apply, τ.mul_apply, hc, τ.map_pow, hd, σ.map_pow, hc, ←pow_mul, pow_mul'],
 end
 
 lemma gal_X_pow_sub_C_is_solvable_aux (n : ℕ) (a : F)
-  (h : (X ^ n - 1 : polynomial F).splits (ring_hom.id F)) : is_solvable (X ^ n - C a).gal :=
+  (h : (X ^ n - 1 : F[X]).splits (ring_hom.id F)) : is_solvable (X ^ n - C a).gal :=
 begin
   by_cases ha : a = 0,
   { rw [ha, C_0, sub_zero],
@@ -131,7 +130,7 @@ begin
   have hn' : 0 < n := pos_iff_ne_zero.mpr hn,
   have hn'' : X ^ n - C a ≠ 0 :=
     λ h, one_ne_zero ((leading_coeff_X_pow_sub_C hn').symm.trans (congr_arg leading_coeff h)),
-  have hn''' : (X ^ n - 1 : polynomial F) ≠ 0 :=
+  have hn''' : (X ^ n - 1 : F[X]) ≠ 0 :=
     λ h, one_ne_zero ((leading_coeff_X_pow_sub_one hn').symm.trans (congr_arg leading_coeff h)),
   have mem_range : ∀ {c}, c ^ n = 1 → ∃ d, algebra_map F (X ^ n - C a).splitting_field d = c :=
     λ c hc, ring_hom.mem_range.mp (minpoly.mem_range_of_degree_eq_one F c (or.resolve_left h hn'''
@@ -182,9 +181,10 @@ begin
   have C_mul_C : (C (i a⁻¹)) * (C (i a)) = 1,
   { rw [←C_mul, ←i.map_mul, inv_mul_cancel ha, i.map_one, C_1] },
   have key1 : (X ^ n - 1).map i = C (i a⁻¹) * ((X ^ n - C a).map i).comp (C b * X),
-  { rw [map_sub, map_sub, map_pow, map_X, map_C, map_one, sub_comp, pow_comp, X_comp, C_comp,
-        mul_pow, ←C_pow, hb, mul_sub, ←mul_assoc, C_mul_C, one_mul] },
-  have key2 : (λ q : polynomial E, q.comp (C b * X)) ∘ (λ c : E, X - C c) =
+  { rw [polynomial.map_sub, polynomial.map_sub, polynomial.map_pow, map_X, map_C,
+        polynomial.map_one, sub_comp, pow_comp, X_comp, C_comp, mul_pow, ←C_pow, hb, mul_sub,
+        ←mul_assoc, C_mul_C, one_mul] },
+  have key2 : (λ q : E[X], q.comp (C b * X)) ∘ (λ c : E, X - C c) =
     (λ c : E, C b * (X - C (c / b))),
   { ext1 c,
     change (X - C c).comp (C b * X) = C b * (X - C (c / b)),
@@ -202,10 +202,11 @@ begin
   apply gal_is_solvable_tower (X ^ n - 1) (X ^ n - C x),
   { exact splits_X_pow_sub_one_of_X_pow_sub_C _ n hx (splitting_field.splits _) },
   { exact gal_X_pow_sub_one_is_solvable n },
-  { rw [map_sub, map_pow, map_X, map_C],
+  { rw [polynomial.map_sub, polynomial.map_pow, map_X, map_C],
     apply gal_X_pow_sub_C_is_solvable_aux,
-    have key := splitting_field.splits (X ^ n - 1 : polynomial F),
-    rwa [←splits_id_iff_splits, map_sub, map_pow, map_X, map_one] at key },
+    have key := splitting_field.splits (X ^ n - 1 : F[X]),
+    rwa [←splits_id_iff_splits, polynomial.map_sub, polynomial.map_pow, map_X, polynomial.map_one]
+      at key }
 end
 
 end gal_X_pow_sub_C
@@ -284,10 +285,10 @@ begin
   { exact λ _ _, is_integral_mul },
   { exact λ α hα, subalgebra.inv_mem_of_algebraic (integral_closure F (solvable_by_rad F E))
       (show is_algebraic F ↑(⟨α, hα⟩ : integral_closure F (solvable_by_rad F E)),
-        by exact (is_algebraic_iff_is_integral F).mpr hα) },
+        by exact is_algebraic_iff_is_integral.mpr hα) },
   { intros α n hn hα,
-    obtain ⟨p, h1, h2⟩ := (is_algebraic_iff_is_integral F).mpr hα,
-    refine (is_algebraic_iff_is_integral F).mp ⟨p.comp (X ^ n),
+    obtain ⟨p, h1, h2⟩ := is_algebraic_iff_is_integral.mpr hα,
+    refine is_algebraic_iff_is_integral.mp ⟨p.comp (X ^ n),
       ⟨λ h, h1 (leading_coeff_eq_zero.mp _), by rw [aeval_comp, aeval_X_pow, h2]⟩⟩,
     rwa [←leading_coeff_eq_zero, leading_coeff_comp, leading_coeff_X_pow, one_pow, mul_one] at h,
     rwa nat_degree_X_pow }
@@ -311,7 +312,7 @@ begin
   { refine gal_is_solvable_tower p (p.comp (X ^ n)) _ hα _,
     { exact gal.splits_in_splitting_field_of_comp _ _ (by rwa [nat_degree_X_pow]) },
     { obtain ⟨s, hs⟩ := exists_multiset_of_splits _ (splitting_field.splits p),
-      rw [map_comp, map_pow, map_X, hs, mul_comp, C_comp],
+      rw [map_comp, polynomial.map_pow, map_X, hs, mul_comp, C_comp],
       apply gal_mul_is_solvable (gal_C_is_solvable _),
       rw prod_comp,
       apply gal_prod_is_solvable,
@@ -340,7 +341,7 @@ begin
     cases hx,
     exact ⟨is_integral β, hpq.2⟩,
   end),
-  have key : minpoly F γ = minpoly F (f ⟨γ, hγ⟩) := minpoly.unique'
+  have key : minpoly F γ = minpoly F (f ⟨γ, hγ⟩) := minpoly.eq_of_irreducible_of_monic
     (minpoly.irreducible (is_integral γ)) begin
       suffices : aeval (⟨γ, hγ⟩ : F ⟮α, β⟯) (minpoly F γ) = 0,
       { rw [aeval_alg_hom_apply, this, alg_hom.map_zero] },
@@ -374,12 +375,12 @@ end
 
 /-- **Abel-Ruffini Theorem** (one direction): An irreducible polynomial with an
 `is_solvable_by_rad` root has solvable Galois group -/
-lemma is_solvable' {α : E} {q : polynomial F} (q_irred : irreducible q)
+lemma is_solvable' {α : E} {q : F[X]} (q_irred : irreducible q)
   (q_aeval : aeval α q = 0) (hα : is_solvable_by_rad F α) :
   _root_.is_solvable q.gal :=
 begin
   haveI : _root_.is_solvable (q * C q.leading_coeff⁻¹).gal,
-  { rw [minpoly.unique'' q_irred q_aeval,
+  { rw [minpoly.eq_of_irreducible q_irred q_aeval,
         ←show minpoly F (⟨α, hα⟩ : solvable_by_rad F E) = minpoly F α,
         from minpoly.eq_of_algebra_map_eq (ring_hom.injective _) (is_integral ⟨α, hα⟩) rfl],
     exact is_solvable ⟨α, hα⟩ },

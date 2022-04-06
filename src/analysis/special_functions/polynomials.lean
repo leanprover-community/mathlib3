@@ -21,11 +21,11 @@ polynomials.
 -/
 
 open filter finset asymptotics
-open_locale asymptotics topological_space
+open_locale asymptotics polynomial topological_space
 
 namespace polynomial
 
-variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] (P Q : polynomial 𝕜)
+variables {𝕜 : Type*} [normed_linear_ordered_field 𝕜] (P Q : 𝕜[X])
 
 lemma eventually_no_roots (hP : P ≠ 0) : ∀ᶠ x in filter.at_top, ¬ P.is_root x :=
 begin
@@ -45,7 +45,7 @@ begin
   { simp [h] },
   { conv_lhs
     { funext,
-      rw [polynomial.eval_eq_finset_sum, sum_range_succ] },
+      rw [polynomial.eval_eq_sum_range, sum_range_succ] },
     exact is_equivalent.refl.add_is_o (is_o.sum $ λ i hi, is_o.const_mul_left
       (is_o.const_mul_right (λ hz, h $ leading_coeff_eq_zero.mp hz) $
         is_o_pow_pow_at_top_of_lt (mem_range.mp hi)) _) }
@@ -141,7 +141,7 @@ begin
   refine (P.is_equivalent_at_top_lead.symm.div
           Q.is_equivalent_at_top_lead.symm).symm.trans
          (eventually_eq.is_equivalent ((eventually_gt_at_top 0).mono $ λ x hx, _)),
-  simp [← div_mul_div, hP, hQ, fpow_sub hx.ne.symm]
+  simp [← div_mul_div_comm₀, hP, hQ, zpow_sub₀ hx.ne.symm]
 end
 
 lemma div_tendsto_zero_of_degree_lt (hdeg : P.degree < Q.degree) :
@@ -152,7 +152,7 @@ begin
   rw ←  nat_degree_lt_nat_degree_iff hP at hdeg,
   refine (is_equivalent_at_top_div P Q).symm.tendsto_nhds _,
   rw ← mul_zero,
-  refine (tendsto_fpow_at_top_zero _).const_mul _,
+  refine (tendsto_zpow_at_top_zero _).const_mul _,
   linarith
 end
 
@@ -167,7 +167,7 @@ begin
       exact bot_lt_iff_ne_bot.2 (λ hQ', hQ (degree_eq_bot.1 hQ')) },
     { exact absurd (leading_coeff_eq_zero.1 hQ0) hQ } },
   { have := (is_equivalent_at_top_div P Q).tendsto_nhds h,
-    rw tendsto_const_mul_fpow_at_top_zero_iff hPQ at this,
+    rw tendsto_const_mul_zpow_at_top_zero_iff hPQ at this,
     cases this with h h,
     { exact absurd h.2 hPQ },
     { rw [sub_lt_iff_lt_add, zero_add, int.coe_nat_lt] at h,
@@ -190,7 +190,7 @@ begin
   rw ← nat_degree_lt_nat_degree_iff hQ at hdeg,
   refine (is_equivalent_at_top_div P Q).symm.tendsto_at_top _,
   apply tendsto.const_mul_at_top hpos,
-  apply tendsto_fpow_at_top_at_top,
+  apply tendsto_zpow_at_top_at_top,
   linarith
 end
 
@@ -211,7 +211,7 @@ begin
   rw ← nat_degree_lt_nat_degree_iff hQ at hdeg,
   refine (is_equivalent_at_top_div P Q).symm.tendsto_at_bot _,
   apply tendsto.neg_const_mul_at_top hneg,
-  apply tendsto_fpow_at_top_at_top,
+  apply tendsto_zpow_at_top_at_top,
   linarith
 end
 

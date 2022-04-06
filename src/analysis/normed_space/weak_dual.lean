@@ -3,7 +3,7 @@ Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä
 -/
-import topology.algebra.weak_dual_topology
+import topology.algebra.module.weak_dual
 import analysis.normed_space.dual
 import analysis.normed_space.operator_norm
 
@@ -42,7 +42,7 @@ TODOs:
 * Add that in finite dimensions, the weak-* topology and the dual norm topology coincide.
 * Add that in infinite dimensions, the weak-* topology is strictly coarser than the dual norm
   topology.
-* Add Banach-Alaoglu theorem (general version maybe in `topology.algebra.weak_dual_topology`).
+* Add Banach-Alaoglu theorem (general version maybe in `topology.algebra.module.weak_dual`).
 * Add metrizability of the dual unit ball (more generally bounded subsets) of `weak_dual 𝕜 E`
   under the assumption of separability of `E`. Sequential Banach-Alaoglu theorem would then follow
   from the general one.
@@ -53,7 +53,7 @@ No new notation is introduced.
 
 ## Implementation notes
 
-Weak-* topology is defined generally in the file `topology.algebra.weak_dual_topology`.
+Weak-* topology is defined generally in the file `topology.algebra.module.weak_dual`.
 
 When `E` is a normed space, the duals `dual 𝕜 E` and `weak_dual 𝕜 E` are type synonyms with
 different topology instances.
@@ -72,7 +72,6 @@ noncomputable theory
 open filter
 open_locale topological_space
 
-section weak_star_topology_for_duals_of_normed_spaces
 /-!
 ### Weak star topology on duals of normed spaces
 In this section, we prove properties about the weak-* topology on duals of normed spaces.
@@ -113,7 +112,7 @@ weak_dual.to_normed_dual.injective.eq_iff
 theorem to_weak_dual_continuous :
   continuous (λ (x' : dual 𝕜 E), x'.to_weak_dual) :=
 begin
-  apply weak_dual.continuous_of_continuous_eval,
+  apply continuous_of_continuous_eval,
   intros z,
   exact (inclusion_in_double_dual 𝕜 E z).continuous,
 end
@@ -137,4 +136,16 @@ end
 
 end normed_space.dual
 
-end weak_star_topology_for_duals_of_normed_spaces
+namespace weak_dual
+
+lemma to_normed_dual.preimage_closed_unit_ball :
+  (to_normed_dual ⁻¹' metric.closed_ball (0 : dual 𝕜 E) 1) =
+    {x' : weak_dual 𝕜 E | ∥ x'.to_normed_dual ∥ ≤ 1} :=
+begin
+  have eq : metric.closed_ball (0 : dual 𝕜 E) 1 = {x' : dual 𝕜 E | ∥ x' ∥ ≤ 1},
+  { ext x', simp only [dist_zero_right, metric.mem_closed_ball, set.mem_set_of_eq], },
+  rw eq,
+  exact set.preimage_set_of_eq,
+end
+
+end weak_dual

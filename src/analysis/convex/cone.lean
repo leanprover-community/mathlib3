@@ -111,11 +111,10 @@ lemma mem_inf {x} : x ∈ S ⊓ T ↔ x ∈ S ∧ x ∈ T := iff.rfl
 
 instance : has_Inf (convex_cone 𝕜 E) :=
 ⟨λ S, ⟨⋂ s ∈ S, ↑s,
-  λ c hc x hx, mem_bInter $ λ s hs, s.smul_mem hc $ by apply mem_bInter_iff.1 hx s hs,
-  λ x hx y hy, mem_bInter $ λ s hs, s.add_mem (by apply mem_bInter_iff.1 hx s hs)
-    (by apply mem_bInter_iff.1 hy s hs)⟩⟩
+  λ c hc x hx, mem_bInter $ λ s hs, s.smul_mem hc $ mem_Inter₂.1 hx s hs,
+  λ x hx y hy, mem_bInter $ λ s hs, s.add_mem (mem_Inter₂.1 hx s hs) (mem_Inter₂.1 hy s hs)⟩⟩
 
-lemma mem_Inf {x : E} {S : set (convex_cone 𝕜 E)} : x ∈ Inf S ↔ ∀ s ∈ S, x ∈ s := mem_bInter_iff
+lemma mem_Inf {x : E} {S : set (convex_cone 𝕜 E)} : x ∈ Inf S ↔ ∀ s ∈ S, x ∈ s := mem_Inter₂
 
 variables (𝕜)
 
@@ -452,7 +451,8 @@ lemma step (nonneg : ∀ x : f.domain, (x : E) ∈ s → 0 ≤ f x)
   (dense : ∀ y, ∃ x : f.domain, (x : E) + y ∈ s) (hdom : f.domain ≠ ⊤) :
   ∃ g, f < g ∧ ∀ x : g.domain, (x : E) ∈ s → 0 ≤ g x :=
 begin
-  rcases set_like.exists_of_lt (lt_top_iff_ne_top.2 hdom) with ⟨y, hy', hy⟩, clear hy',
+  obtain ⟨y, -, hy⟩ : ∃ (y : E) (h : y ∈ ⊤), y ∉ f.domain,
+    { exact @set_like.exists_of_lt (submodule ℝ E) _ _ _ _ (lt_top_iff_ne_top.2 hdom) },
   obtain ⟨c, le_c, c_le⟩ :
     ∃ c, (∀ x : f.domain, -(x:E) - y ∈ s → f x ≤ c) ∧ (∀ x : f.domain, (x:E) + y ∈ s → c ≤ f x),
   { set Sp := f '' {x : f.domain | (x:E) + y ∈ s},
@@ -485,7 +485,7 @@ begin
         by rwa [← s.smul_mem_iff (neg_pos.2 hr), smul_sub, smul_neg, neg_smul, neg_neg, smul_smul,
           mul_inv_cancel hr.ne, one_smul, sub_eq_add_neg, neg_smul, neg_neg],
       replace := le_c (r⁻¹ • ⟨x, hx⟩) this,
-      rwa [← mul_le_mul_left (neg_pos.2 hr), ← neg_mul_eq_neg_mul, ← neg_mul_eq_neg_mul,
+      rwa [← mul_le_mul_left (neg_pos.2 hr), neg_mul, neg_mul,
         neg_le_neg_iff, f.map_smul, smul_eq_mul, ← mul_assoc, mul_inv_cancel hr.ne,
         one_mul] at this },
     { subst r,
@@ -505,7 +505,7 @@ theorem exists_top (p : linear_pmap ℝ E ℝ)
   ∃ q ≥ p, q.domain = ⊤ ∧ ∀ x : q.domain, (x : E) ∈ s → 0 ≤ q x :=
 begin
   replace hp_nonneg : p ∈ { p | _ }, by { rw mem_set_of_eq, exact hp_nonneg },
-  obtain ⟨q, hqs, hpq, hq⟩ := zorn.zorn_nonempty_partial_order₀ _ _ _ hp_nonneg,
+  obtain ⟨q, hqs, hpq, hq⟩ := zorn_nonempty_partial_order₀ _ _ _ hp_nonneg,
   { refine ⟨q, hpq, _, hqs⟩,
     contrapose! hq,
     rcases step s q hqs _ hq with ⟨r, hqr, hr⟩,
@@ -589,7 +589,7 @@ open_locale real_inner_product_space
 
 /-- The dual cone is the cone consisting of all points `y` such that for
 all points `x` in a given set `0 ≤ ⟪ x, y ⟫`. -/
-noncomputable def set.inner_dual_cone (s : set H) : convex_cone ℝ H :=
+def set.inner_dual_cone (s : set H) : convex_cone ℝ H :=
 { carrier := { y | ∀ x ∈ s, 0 ≤ ⟪ x, y ⟫ },
   smul_mem' := λ c hc y hy x hx,
   begin

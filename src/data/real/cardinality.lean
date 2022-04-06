@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import set_theory.continuum
-import analysis.specific_limits
+import analysis.specific_limits.basic
 import data.rat.denumerable
 import data.set.intervals.image_preimage
 
@@ -127,7 +127,7 @@ begin
       { intros n hn, cases n, contradiction, refl } } },
   rw [cantor_function_succ f (le_of_lt h1) h3, cantor_function_succ g (le_of_lt h1) h3],
   rw [hn 0 $ zero_lt_succ n],
-  apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ succ_lt_succ hk) fn gn
+  apply add_lt_add_left, rw mul_lt_mul_left h1, exact ih (λ k hk, hn _ $ nat.succ_lt_succ hk) fn gn
 end
 
 /-- `cantor_function c` is injective if `0 < c < 1/2`. -/
@@ -164,7 +164,7 @@ by rw [mk_univ, mk_real]
 
 /-- **Non-Denumerability of the Continuum**: The reals are not countable. -/
 lemma not_countable_real : ¬ countable (set.univ : set ℝ) :=
-by { rw [countable_iff, not_le, mk_univ_real], apply cantor }
+by { rw [← mk_set_le_omega, not_le, mk_univ_real], apply cantor }
 
 /-- The cardinality of the interval (a, ∞). -/
 lemma mk_Ioi_real (a : ℝ) : #(Ioi a) = 𝔠 :=

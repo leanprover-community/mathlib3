@@ -5,8 +5,6 @@ Authors: Neil Strickland
 -/
 import data.pnat.prime
 import data.multiset.sort
-import data.int.gcd
-import algebra.group
 
 /-!
 # Prime factors of nonzero naturals
@@ -24,7 +22,7 @@ the multiplicity of `p` in this factors multiset being the p-adic valuation of `
  gives an equivalence between this set and ℕ+, as we will formalize
  below. -/
  @[derive [inhabited, has_repr, canonically_ordered_add_monoid, distrib_lattice,
-  semilattice_sup_bot, has_sub, has_ordered_sub]]
+  semilattice_sup, order_bot, has_sub, has_ordered_sub]]
 def prime_multiset := multiset nat.primes
 
 namespace prime_multiset
@@ -200,7 +198,7 @@ prime_multiset.of_nat_list (nat.factors n) (@nat.prime_of_mem_factors n)
 theorem prod_factor_multiset (n : ℕ+) : (factor_multiset n).prod = n :=
 eq $ by { dsimp [factor_multiset],
           rw [prime_multiset.prod_of_nat_list],
-          exact nat.prod_factors n.pos }
+          exact nat.prod_factors n.ne_zero }
 
 theorem coe_nat_factor_multiset (n : ℕ+) :
   ((factor_multiset n) : (multiset ℕ)) = ((nat.factors n) : multiset ℕ) :=
@@ -284,7 +282,7 @@ begin
     rw [← prod_factor_multiset m, ← prod_factor_multiset m],
     apply dvd.intro (n.factor_multiset - m.factor_multiset).prod,
     rw [← prime_multiset.prod_add, prime_multiset.factor_multiset_prod,
-        add_sub_cancel_of_le h, prod_factor_multiset] },
+        add_tsub_cancel_of_le h, prod_factor_multiset] },
   { intro  h,
     rw [← mul_div_exact h, factor_multiset_mul],
     exact le_self_add }

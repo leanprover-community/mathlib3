@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 import algebra.group.type_tags
-import algebra.group.units_hom
+import algebra.hom.equiv
+import algebra.hom.units
 import algebra.ring.basic
-import data.equiv.mul_add
 
 /-!
 # Unbundled monoid and group homomorphisms
@@ -308,14 +308,14 @@ namespace units
 variables {M : Type*} {N : Type*} [monoid M] [monoid N]
 
 /-- The group homomorphism on units induced by a multiplicative morphism. -/
-@[reducible] def map' {f : M → N} (hf : is_monoid_hom f) : units M →* units N :=
+@[reducible] def map' {f : M → N} (hf : is_monoid_hom f) : Mˣ →* Nˣ :=
   map (monoid_hom.of hf)
 
-@[simp] lemma coe_map' {f : M → N} (hf : is_monoid_hom f) (x : units M) :
-  ↑((map' hf : units M → units N) x) = f x :=
+@[simp] lemma coe_map' {f : M → N} (hf : is_monoid_hom f) (x : Mˣ) :
+  ↑((map' hf : Mˣ → Nˣ) x) = f x :=
 rfl
 
-lemma coe_is_monoid_hom : is_monoid_hom (coe : units M → M) := (coe_hom M).is_monoid_hom_coe
+lemma coe_is_monoid_hom : is_monoid_hom (coe : Mˣ → M) := (coe_hom M).is_monoid_hom_coe
 
 end units
 

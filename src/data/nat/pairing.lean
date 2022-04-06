@@ -38,13 +38,13 @@ if n - s*s < s then (n - s*s, s) else (s, n - s*s - s)
 @[simp] theorem mkpair_unpair (n : ℕ) : mkpair (unpair n).1 (unpair n).2 = n :=
 begin
   dsimp only [unpair], set s := sqrt n,
-  have sm : s * s + (n - s * s) = n := add_sub_cancel_of_le (sqrt_le _),
+  have sm : s * s + (n - s * s) = n := add_tsub_cancel_of_le (sqrt_le _),
   split_ifs,
   { simp [mkpair, h, sm] },
   { have hl : n - s*s - s ≤ s :=
-      sub_le_iff_left.mpr (sub_le_iff_left.mpr $
+      tsub_le_iff_left.mpr (tsub_le_iff_left.mpr $
       by rw ← add_assoc; apply sqrt_le_add),
-    simp [mkpair, hl.not_lt, add_assoc, add_sub_cancel_of_le (le_of_not_gt h), sm] }
+    simp [mkpair, hl.not_lt, add_assoc, add_tsub_cancel_of_le (le_of_not_gt h), sm] }
 end
 
 theorem mkpair_unpair' {n a b} (H : unpair n = (a, b)) : mkpair a b = n :=
@@ -56,15 +56,22 @@ begin
   { show unpair (b * b + a) = (a, b),
     have be : sqrt (b * b + a) = b,
       from sqrt_add_eq _ (le_trans (le_of_lt h) (nat.le_add_left _ _)),
-    simp [unpair, be, nat.add_sub_cancel, h] },
+    simp [unpair, be, add_tsub_cancel_right, h] },
   { show unpair (a * a + a + b) = (a, b),
     have ae : sqrt (a * a + (a + b)) = a,
     { rw sqrt_add_eq, exact add_le_add_left (le_of_not_gt h) _ },
     simp [unpair, ae, nat.not_lt_zero, add_assoc] }
 end
 
+/-- An equivalence between `ℕ × ℕ` and `ℕ`. -/
+@[simps { fully_applied := ff }] def mkpair_equiv : ℕ × ℕ ≃ ℕ :=
+⟨uncurry mkpair, unpair, λ ⟨a, b⟩, unpair_mkpair a b, mkpair_unpair⟩
+
 lemma surjective_unpair : surjective unpair :=
-λ ⟨m, n⟩, ⟨mkpair m n, unpair_mkpair m n⟩
+mkpair_equiv.symm.surjective
+
+@[simp] lemma mkpair_eq_mkpair {a b c d : ℕ} : mkpair a b = mkpair c d ↔ a = c ∧ b = d :=
+mkpair_equiv.injective.eq_iff.trans (@prod.ext_iff ℕ ℕ (a, b) (c, d))
 
 theorem unpair_lt {n : ℕ} (n1 : 1 ≤ n) : (unpair n).1 < n :=
 let s := sqrt n in begin
@@ -73,7 +80,7 @@ let s := sqrt n in begin
   { exact lt_of_lt_of_le h (sqrt_le_self _) },
   { simp at h,
     have s0 : 0 < s := sqrt_pos.2 n1,
-    exact lt_of_le_of_lt h (sub_lt_self' n1 (mul_pos s0 s0)) }
+    exact lt_of_le_of_lt h (tsub_lt_self n1 (mul_pos s0 s0)) }
 end
 
 @[simp] lemma unpair_zero : unpair 0 = 0 :=
@@ -140,7 +147,7 @@ end complete_lattice
 namespace set
 
 lemma Union_unpair_prod {α β} {s : ℕ → set α} {t : ℕ → set β} :
-  (⋃ n : ℕ, (s n.unpair.fst).prod (t n.unpair.snd)) = (⋃ n, s n).prod (⋃ n, t n) :=
+  (⋃ n : ℕ, s n.unpair.fst ×ˢ t n.unpair.snd) = (⋃ n, s n) ×ˢ (⋃ n, t n) :=
 by { rw [← Union_prod], convert surjective_unpair.Union_comp _, refl }
 
 lemma Union_unpair {α} (f : ℕ → ℕ → set α) :

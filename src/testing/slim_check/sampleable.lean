@@ -241,7 +241,7 @@ if h : n > 0 then
      nat.div_lt_of_lt_mul
        (suffices 1 * n < k * n, by simpa,
         nat.mul_lt_mul_of_pos_right hk h),
-  ⟨n/11, this _ (by norm_num)⟩ :: ⟨n/3, this _ (by norm_num)⟩ :: nat.shrink' n n (le_refl _) []
+  ⟨n/11, this _ (by norm_num)⟩ :: ⟨n/3, this _ (by norm_num)⟩ :: nat.shrink' n n le_rfl []
 else
   []
 
@@ -292,7 +292,7 @@ sampleable.lift ℕ fin.of_nat subtype.val $
 
 instance pnat.sampleable : sampleable ℕ+ :=
 sampleable.lift ℕ nat.succ_pnat pnat.nat_pred $ λ a,
-by unfold_wf; simp only [pnat.nat_pred, succ_pnat, pnat.mk_coe, nat.sub_zero, succ_sub_succ_eq_sub]
+by unfold_wf; simp only [pnat.nat_pred, succ_pnat, pnat.mk_coe, tsub_zero, succ_sub_succ_eq_sub]
 
 /-- Redefine `sizeof` for `int` to make it easier to use with `nat` -/
 def int.has_sizeof : has_sizeof ℤ := ⟨ int.nat_abs ⟩
@@ -346,7 +346,7 @@ instance prod.sampleable : sampleable_bifunctor.{u v} prod :=
   p_repr := @prod.has_repr }
 
 instance sigma.sampleable {α β} [sampleable α] [sampleable β] : sampleable (Σ _ : α, β) :=
-sampleable.lift (α × β) (λ ⟨x,y⟩, ⟨x,y⟩) (λ ⟨x,y⟩, ⟨x,y⟩) $ λ ⟨x,y⟩, le_refl _
+sampleable.lift (α × β) (λ ⟨x,y⟩, ⟨x,y⟩) (λ ⟨x,y⟩, ⟨x,y⟩) $ λ ⟨x,y⟩, le_rfl
 
 /-- shrinking function for sum types -/
 def sum.shrink {α β} [has_sizeof α] [has_sizeof β] (shrink_α : shrink_fn α)
@@ -374,7 +374,7 @@ begin
   { rw [← int.coe_nat_le, ← int.abs_eq_nat_abs, ← int.abs_eq_nat_abs],
     apply int.abs_div_le_abs },
   { change _ - 1 ≤ y-1,
-    apply nat.sub_le_sub_right,
+    apply tsub_le_tsub_right,
     apply nat.div_le_of_le_mul,
     suffices : 1 * y ≤ x.nat_abs.gcd y * y, { simpa },
     apply nat.mul_le_mul_right,
@@ -527,7 +527,7 @@ integers being kept as is. -/
 def no_shrink (α : Type*) := α
 
 instance no_shrink.inhabited {α} [inhabited α] : inhabited (no_shrink α) :=
-⟨ (default α : α) ⟩
+⟨ (default : α) ⟩
 
 /-- Introduction of the `no_shrink` type. -/
 def no_shrink.mk {α} (x : α) : no_shrink α := x
@@ -540,7 +540,7 @@ instance no_shrink.sampleable {α} [sampleable α] : sampleable (no_shrink α) :
 
 instance string.sampleable : sampleable string :=
 { sample := do { x ← list_of (sample char), pure x.as_string },
-  .. sampleable.lift (list char) list.as_string string.to_list $ λ _, le_refl _ }
+  .. sampleable.lift (list char) list.as_string string.to_list $ λ _, le_rfl }
 
 /-- implementation of `sampleable (tree α)` -/
 def tree.sample (sample : gen α) : ℕ → gen (tree α) | n :=
@@ -632,8 +632,8 @@ def large.mk {α} (x : α) : large α := x
 
 instance small.functor : functor small := id.monad.to_functor
 instance large.functor : functor large := id.monad.to_functor
-instance small.inhabited [inhabited α] : inhabited (small α) := ⟨ (default α : α) ⟩
-instance large.inhabited [inhabited α] : inhabited (large α) := ⟨ (default α : α) ⟩
+instance small.inhabited [inhabited α] : inhabited (small α) := ⟨ (default : α) ⟩
+instance large.inhabited [inhabited α] : inhabited (large α) := ⟨ (default : α) ⟩
 
 instance small.sampleable_functor : sampleable_functor small :=
 { wf := _,
@@ -680,7 +680,7 @@ instance nat_ge.sampleable {x} : slim_check.sampleable { y : ℕ // x ≤ y } :=
          do { (y : ℕ) ← slim_check.sampleable.sample ℕ,
               pure ⟨x+y, by norm_num⟩ },
   shrink := λ ⟨y, h⟩, (λ a : { y' // sizeof y' < sizeof (y - x) },
-    subtype.rec_on a $ λ δ h', ⟨⟨x + δ, nat.le_add_right _ _⟩, lt_sub_iff_left.mp h'⟩) <$>
+    subtype.rec_on a $ λ δ h', ⟨⟨x + δ, nat.le_add_right _ _⟩, lt_tsub_iff_left.mp h'⟩) <$>
       shrink (y - x) }
 
 /- there is no `nat_lt.sampleable` instance because if `y = 0`, there is no valid choice

@@ -5,8 +5,8 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
 import data.mv_polynomial.rename
-import data.equiv.fin
 import data.polynomial.algebra_map
+import logic.equiv.fin
 
 /-!
 # Equivalences between polynomial rings
@@ -39,7 +39,7 @@ equivalence, isomorphism, morphism, ring hom, hom
 
 noncomputable theory
 
-open_locale classical big_operators
+open_locale classical big_operators polynomial
 
 open set function finsupp add_monoid_algebra
 
@@ -58,14 +58,14 @@ The ring isomorphism between multivariable polynomials in a single variable and
 polynomials over the ground ring.
 -/
 @[simps]
-def punit_alg_equiv : mv_polynomial punit R ≃ₐ[R] polynomial R :=
+def punit_alg_equiv : mv_polynomial punit R ≃ₐ[R] R[X] :=
 { to_fun    := eval₂ polynomial.C (λu:punit, polynomial.X),
   inv_fun   := polynomial.eval₂ mv_polynomial.C (X punit.star),
   left_inv  :=
     begin
-      let f : polynomial R →+* mv_polynomial punit R :=
+      let f : R[X] →+* mv_polynomial punit R :=
         (polynomial.eval₂_ring_hom mv_polynomial.C (X punit.star)),
-      let g : mv_polynomial punit R →+* polynomial R :=
+      let g : mv_polynomial punit R →+* R[X] :=
         (eval₂_hom polynomial.C (λu:punit, polynomial.X)),
       show ∀ p, f.comp g p = p,
       apply is_id,
@@ -91,12 +91,8 @@ def map_equiv [comm_semiring S₁] [comm_semiring S₂] (e : S₁ ≃+* S₂) :
   mv_polynomial σ S₁ ≃+* mv_polynomial σ S₂ :=
 { to_fun    := map (e : S₁ →+* S₂),
   inv_fun   := map (e.symm : S₂ →+* S₁),
-  left_inv  := λ p,
-    have (e.symm : S₂ →+* S₁).comp ↑e = ring_hom.id _ := ring_hom.ext e.symm_apply_apply,
-    by rw [map_map, this, map_id],
-  right_inv := assume p,
-    have (e : S₁ →+* S₂).comp ↑e.symm = ring_hom.id _ := ring_hom.ext e.apply_symm_apply,
-    by rw [map_map, this, map_id],
+  left_inv  := map_left_inverse e.left_inv,
+  right_inv := map_right_inverse e.right_inv,
   ..map (e : S₁ →+* S₂) }
 
 @[simp] lemma map_equiv_refl :
@@ -115,19 +111,12 @@ variables {A₁ A₂ A₃ : Type*} [comm_semiring A₁] [comm_semiring A₂] [co
 variables [algebra R A₁] [algebra R A₂] [algebra R A₃]
 
 /-- If `e : A ≃ₐ[R] B` is an isomorphism of `R`-algebras, then so is `map e`. -/
+@[simps apply]
 def map_alg_equiv (e : A₁ ≃ₐ[R] A₂) :
   mv_polynomial σ A₁ ≃ₐ[R] mv_polynomial σ A₂ :=
-{ commutes' := λ r, begin
-    dsimp,
-    have h₁ : algebra_map R (mv_polynomial σ A₁) r = C (algebra_map R A₁ r) := rfl,
-    have h₂ : algebra_map R (mv_polynomial σ A₂) r = C (algebra_map R A₂ r) := rfl,
-    rw [h₁, h₂, map, eval₂_hom_C, ring_hom.comp_apply,
-      ring_equiv.coe_to_ring_hom, alg_equiv.coe_ring_equiv, alg_equiv.commutes],
-  end,
-  ..(map_equiv σ ↑e) }
-
-@[simp] lemma map_alg_equiv_apply (e : A₁ ≃ₐ[R] A₂) (x : mv_polynomial σ A₁) :
-  map_alg_equiv σ e x = map ↑e x := rfl
+{ to_fun := map (e : A₁ →+* A₂),
+  ..map_alg_hom (e : A₁ →ₐ[R] A₂),
+  ..map_equiv σ (e : A₁ ≃+* A₂) }
 
 @[simp] lemma map_alg_equiv_refl :
   map_alg_equiv σ (alg_equiv.refl : A₁ ≃ₐ[R] A₁) = alg_equiv.refl :=
@@ -281,7 +270,7 @@ end
 The algebra isomorphism between multivariable polynomials in `option S₁` and
 multivariable polynomials with coefficients in polynomials.
 -/
-def option_equiv_right : mv_polynomial (option S₁) R ≃ₐ[R] mv_polynomial S₁ (polynomial R) :=
+def option_equiv_right : mv_polynomial (option S₁) R ≃ₐ[R] mv_polynomial S₁ R[X] :=
 alg_equiv.of_alg_hom
   (mv_polynomial.aeval (λ o, o.elim (C polynomial.X) X))
   (mv_polynomial.aeval_tower (polynomial.aeval (X none)) (λ i, X (option.some i)))
@@ -304,8 +293,8 @@ lemma fin_succ_equiv_eq (n : ℕ) :
 begin
   ext : 2,
   { simp only [fin_succ_equiv, option_equiv_left_apply, aeval_C, alg_equiv.coe_trans,
-      alg_equiv.coe_alg_hom, coe_eval₂_hom, alg_hom.coe_to_ring_hom, comp_app, rename_equiv_apply,
-      eval₂_C, ring_hom.coe_comp, coe_coe, rename_C],
+      ring_hom.coe_coe, coe_eval₂_hom, comp_app, rename_equiv_apply, eval₂_C, ring_hom.coe_comp,
+      rename_C],
     refl },
   { intro i,
     refine fin.cases _ _ i;

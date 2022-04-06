@@ -64,14 +64,13 @@ we replace `equ` with `equ : t = u`.
 -/
 meta def unify_heterogeneous : unification_step :=
 λ equ lhs_type rhs_type lhs rhs _ _ _,
-do {
-  is_def_eq lhs_type rhs_type,
+do
+{ is_def_eq lhs_type rhs_type,
   p ← to_expr ``(@eq_of_heq %%lhs_type %%lhs %%rhs %%equ),
   t ← to_expr ``(@eq %%lhs_type %%lhs %%rhs),
   equ' ← note equ.local_pp_name t p,
   clear equ,
-  pure $ simplified [equ'.local_pp_name]
-} <|>
+  pure $ simplified [equ'.local_pp_name] } <|>
 pure not_simplified
 
 /--
@@ -79,11 +78,10 @@ For `equ : t = u`, if `t` and `u` are defeq, we delete `equ`.
 -/
 meta def unify_defeq : unification_step :=
 λ equ lhs_type _ _ _ lhs_whnf rhs_whnf _,
-do {
-  is_def_eq lhs_whnf rhs_whnf,
+do
+{ is_def_eq lhs_whnf rhs_whnf,
   clear equ,
-  pure $ simplified []
-} <|>
+  pure $ simplified [] } <|>
 pure not_simplified
 
 /--
@@ -92,8 +90,8 @@ substitute `x` with `t` in the goal.
 -/
 meta def unify_var : unification_step :=
 λ equ type _ lhs rhs lhs_whnf rhs_whnf u,
-do {
-  let lhs_is_local := lhs_whnf.is_local_constant,
+do
+{ let lhs_is_local := lhs_whnf.is_local_constant,
   let rhs_is_local := rhs_whnf.is_local_constant,
   guard $ lhs_is_local ∨ rhs_is_local,
   let t :=
@@ -103,8 +101,7 @@ do {
   change_core t (some equ),
   equ ← get_local equ.local_pp_name,
   subst_core equ,
-  pure $ simplified []
-} <|>
+  pure $ simplified [] } <|>
 pure not_simplified
 
 -- TODO This is an improved version of `injection_with` from core
@@ -115,8 +112,8 @@ private meta def injection_with' (h : expr) (ns : list name)
   tactic (option (list expr) × list name) :=
 do
   H ← infer_type h,
-  (lhs, rhs, constructor_left, constructor_right, inj_name) ← do {
-    (lhs, rhs) ← match_eq H,
+  (lhs, rhs, constructor_left, constructor_right, inj_name) ← do
+  { (lhs, rhs) ← match_eq H,
     constructor_left ← get_app_fn_const_whnf lhs semireducible ff,
     constructor_right ← get_app_fn_const_whnf rhs semireducible ff,
     inj_name ← resolve_constant $ constructor_left ++ "inj_arrow",
@@ -149,8 +146,8 @@ do
 
     -- The following filters out 'next' hypotheses of type `true`. The
     -- `inj_arrow` lemmas introduce these for nullary constructors.
-    next ← next.mfilter $ λ h, do {
-      `(true) ← infer_type h | pure tt,
+    next ← next.mfilter $ λ h, do
+    { `(true) ← infer_type h | pure tt,
       (clear h >> pure ff) <|> pure tt },
     pure (some next, ns)
   else do
@@ -176,15 +173,14 @@ same datatype `I`:
 -/
 meta def unify_constructor_headed : unification_step :=
 λ equ _ _ _ _ _ _ _,
-do {
-  (next, _) ← injection_with' equ [] `_ none,
+do
+{ (next, _) ← injection_with' equ [] `_ none,
   try $ clear equ,
   pure $
     match next with
     | none := goal_solved
     | some next := simplified $ next.map expr.local_pp_name
-    end
-} <|>
+    end } <|>
 pure not_simplified
 
 /--
@@ -240,8 +236,8 @@ meta def contradict_n_eq_n_plus_m (md : transparency) (equ lhs rhs : expr) :
   ⟨equ, lhs_n, rhs_n⟩ ←
     if lhs_n > rhs_n
       then pure (equ, lhs_n, rhs_n)
-      else do {
-        equ ← to_expr ``(eq.symm %%equ),
+      else do
+      { equ ← to_expr ``(eq.symm %%equ),
         pure (equ, rhs_n, lhs_n) },
   let diff := lhs_n - rhs_n,
   let rhs_n_expr := reflect rhs_n,
@@ -255,8 +251,8 @@ goal by contradiction.
 -/
 meta def unify_cyclic : unification_step :=
 λ equ type _ _ _ lhs_whnf rhs_whnf _,
-do {
-  -- Establish `sizeof lhs = sizeof rhs`.
+do
+{ -- Establish `sizeof lhs = sizeof rhs`.
   sizeof ← get_sizeof type,
   hyp_lhs ← to_expr ``(%%sizeof %%lhs_whnf),
   hyp_rhs ← to_expr ``(%%sizeof %%rhs_whnf),
@@ -269,8 +265,7 @@ do {
   falso ← contradict_n_eq_n_plus_m semireducible hyp hyp_lhs hyp_rhs,
   exfalso,
   exact falso,
-  pure goal_solved
-} <|>
+  pure goal_solved } <|>
 pure not_simplified
 
 /--

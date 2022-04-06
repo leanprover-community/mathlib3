@@ -3,8 +3,7 @@ Copyright (c) 2020 Benjamin Davidson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Benjamin Davidson
 -/
-import analysis.special_functions.pow
-import analysis.special_functions.trigonometric.arctan
+import analysis.special_functions.trigonometric.arctan_deriv
 
 /-! ### Leibniz's Series for Pi -/
 
@@ -104,7 +103,7 @@ begin
   have f'_bound : ∀ x ∈ Icc (-1:ℝ) 1, |f' x| ≤ |x|^(2*k),
   { intros x hx,
     rw [abs_div, is_absolute_value.abv_pow abs (-x^2) k, abs_neg, is_absolute_value.abv_pow abs x 2,
-       tactic.ring_exp.pow_e_pf_exp rfl rfl],
+        ← pow_mul],
     refine div_le_of_nonneg_of_le_mul (abs_nonneg _) (pow_nonneg (abs_nonneg _) _) _,
     refine le_mul_of_one_le_right (pow_nonneg (abs_nonneg _) _) _,
     rw abs_of_nonneg ((add_nonneg zero_le_one (sq_nonneg x)) : (0 : ℝ) ≤ _),

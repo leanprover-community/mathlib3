@@ -5,6 +5,7 @@ Authors: Bhavik Mehta, Scott Morrison
 -/
 import category_theory.subobject.mono_over
 import category_theory.skeletal
+import tactic.elementwise
 
 /-!
 # Subobjects
@@ -172,7 +173,7 @@ lemma underlying_arrow {X : C} {Y Z : subobject X} (f : Y ⟶ Z) :
   underlying.map f ≫ arrow Z = arrow Y :=
 over.w (representative.map f)
 
-@[simp, reassoc]
+@[simp, reassoc, elementwise]
 lemma underlying_iso_arrow {X Y : C} (f : X ⟶ Y) [mono f] :
   (underlying_iso f).inv ≫ (subobject.mk f).arrow = f :=
 over.w _
@@ -329,11 +330,11 @@ by simp [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp underlying]
 by simp [of_mk_le, of_le_mk, of_le, of_mk_le_mk, ←functor.map_comp_assoc underlying]
 
 @[simp] lemma of_le_refl {B : C} (X : subobject B) :
-  of_le X X (le_refl _) = 𝟙 _ :=
+  of_le X X le_rfl = 𝟙 _ :=
 by { apply (cancel_mono X.arrow).mp, simp }
 
 @[simp] lemma of_mk_le_mk_refl {B A₁ : C} (f : A₁ ⟶ B) [mono f] :
-  of_mk_le_mk f f (le_refl _) = 𝟙 _ :=
+  of_mk_le_mk f f le_rfl = 𝟙 _ :=
 by { apply (cancel_mono f).mp, simp }
 
 /-- An equality of subobjects gives an isomorphism of the corresponding objects.

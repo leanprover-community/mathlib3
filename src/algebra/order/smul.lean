@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Frédéric Dupuis
 -/
 
-import algebra.order.pi
-import algebra.smul_with_zero
 import group_theory.group_action.group
+import algebra.smul_with_zero
 
 /-!
 # Ordered scalar product

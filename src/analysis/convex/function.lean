@@ -133,6 +133,15 @@ lemma convex_on_const (c : β) (hs : convex 𝕜 s) : convex_on 𝕜 s (λ x:E, 
 lemma concave_on_const (c : β) (hs : convex 𝕜 s) : concave_on 𝕜 s (λ x:E, c) :=
 @convex_on_const _ _ (order_dual β) _ _ _ _ _ _ c hs
 
+lemma convex_on_of_convex_epigraph (h : convex 𝕜 {p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2}) :
+  convex_on 𝕜 s f :=
+⟨λ x y hx hy a b ha hb hab, (@h (x, f x) (y, f y) ⟨hx, le_rfl⟩ ⟨hy, le_rfl⟩ a b ha hb hab).1,
+  λ x y hx hy a b ha hb hab, (@h (x, f x) (y, f y) ⟨hx, le_rfl⟩ ⟨hy, le_rfl⟩ a b ha hb hab).2⟩
+
+lemma concave_on_of_convex_hypograph (h : convex 𝕜 {p : E × β | p.1 ∈ s ∧ p.2 ≤ f p.1}) :
+  concave_on 𝕜 s f :=
+@convex_on_of_convex_epigraph 𝕜  E (order_dual β) _ _ _ _ _ _ _ h
+
 end module
 
 section ordered_smul
@@ -167,9 +176,7 @@ hf.dual.convex_epigraph
 
 lemma convex_on_iff_convex_epigraph :
   convex_on 𝕜 s f ↔ convex 𝕜 {p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2} :=
-⟨convex_on.convex_epigraph, λ h,
-  ⟨λ x y hx hy a b ha hb hab, (@h (x, f x) (y, f y) ⟨hx, le_rfl⟩ ⟨hy, le_rfl⟩ a b ha hb hab).1,
-  λ x y hx hy a b ha hb hab, (@h (x, f x) (y, f y) ⟨hx, le_rfl⟩ ⟨hy, le_rfl⟩ a b ha hb hab).2⟩⟩
+⟨convex_on.convex_epigraph, convex_on_of_convex_epigraph⟩
 
 lemma concave_on_iff_convex_hypograph :
   concave_on 𝕜 s f ↔ convex 𝕜 {p : E × β | p.1 ∈ s ∧ p.2 ≤ f p.1} :=
@@ -178,10 +185,10 @@ lemma concave_on_iff_convex_hypograph :
 end ordered_smul
 
 section module
-variables [module 𝕜 E] [has_scalar 𝕜 β] {s : set E} {f : E → β} {c : E}
+variables [module 𝕜 E] [has_scalar 𝕜 β] {s : set E} {f : E → β}
 
 /-- Right translation preserves convexity. -/
-lemma convex_on.translate_right (hf : convex_on 𝕜 s f) :
+lemma convex_on.translate_right (hf : convex_on 𝕜 s f) (c : E) :
   convex_on 𝕜 ((λ z, c + z) ⁻¹' s) (f ∘ (λ z, c + z)) :=
 ⟨hf.1.translate_preimage_right _, λ x y hx hy a b ha hb hab,
   calc
@@ -190,19 +197,19 @@ lemma convex_on.translate_right (hf : convex_on 𝕜 s f) :
     ... ≤ a • f (c + x) + b • f (c + y) : hf.2 hx hy ha hb hab⟩
 
 /-- Right translation preserves concavity. -/
-lemma concave_on.translate_right (hf : concave_on 𝕜 s f) :
+lemma concave_on.translate_right (hf : concave_on 𝕜 s f) (c : E) :
   concave_on 𝕜 ((λ z, c + z) ⁻¹' s) (f ∘ (λ z, c + z)) :=
-hf.dual.translate_right
+hf.dual.translate_right _
 
 /-- Left translation preserves convexity. -/
-lemma convex_on.translate_left (hf : convex_on 𝕜 s f) :
+lemma convex_on.translate_left (hf : convex_on 𝕜 s f) (c : E) :
   convex_on 𝕜 ((λ z, c + z) ⁻¹' s) (f ∘ (λ z, z + c)) :=
-by simpa only [add_comm] using hf.translate_right
+by simpa only [add_comm] using hf.translate_right _
 
-/-- Left translation preserves strict concavity. -/
-lemma concave_on.translate_left (hf : concave_on 𝕜 s f) :
+/-- Left translation preserves concavity. -/
+lemma concave_on.translate_left (hf : concave_on 𝕜 s f) (c : E) :
   concave_on 𝕜 ((λ z, c + z) ⁻¹' s) (f ∘ (λ z, z + c)) :=
-hf.dual.translate_left
+hf.dual.translate_left _
 
 end module
 
@@ -229,9 +236,9 @@ lemma concave_on_iff_forall_pos {s : set E} {f : E → β} :
     → a • f x + b • f y ≤ f (a • x + b • y) :=
 @convex_on_iff_forall_pos 𝕜 E (order_dual β) _ _ _ _ _ _ _
 
-lemma convex_on_iff_pairwise_on_pos {s : set E} {f : E → β} :
+lemma convex_on_iff_pairwise_pos {s : set E} {f : E → β} :
   convex_on 𝕜 s f ↔ convex 𝕜 s ∧
-    s.pairwise_on (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+    s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
     → f (a • x + b • y) ≤ a • f x + b • f y) :=
 begin
   rw convex_on_iff_forall_pos,
@@ -239,14 +246,14 @@ begin
     λ h x y hx hy a b ha hb hab, _⟩,
   obtain rfl | hxy := eq_or_ne x y,
   { rw [convex.combo_self hab, convex.combo_self hab] },
-  exact h x hx y hy hxy ha hb hab,
+  exact h hx hy hxy ha hb hab,
 end
 
-lemma concave_on_iff_pairwise_on_pos {s : set E} {f : E → β} :
+lemma concave_on_iff_pairwise_pos {s : set E} {f : E → β} :
   concave_on 𝕜 s f ↔ convex 𝕜 s ∧
-   s.pairwise_on (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
+   s.pairwise (λ x y, ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1
     → a • f x + b • f y ≤ f (a • x + b • y)) :=
-@convex_on_iff_pairwise_on_pos 𝕜 E (order_dual β) _ _ _ _ _ _ _
+@convex_on_iff_pairwise_pos 𝕜 E (order_dual β) _ _ _ _ _ _ _
 
 /-- A linear map is convex. -/
 lemma linear_map.convex_on (f : E →ₗ[𝕜] β) {s : set E} (hs : convex 𝕜 s) : convex_on 𝕜 s f :=
@@ -258,17 +265,7 @@ lemma linear_map.concave_on (f : E →ₗ[𝕜] β) {s : set E} (hs : convex �
 
 lemma strict_convex_on.convex_on {s : set E} {f : E → β} (hf : strict_convex_on 𝕜 s f) :
   convex_on 𝕜 s f :=
-⟨hf.1, λ x y hx hy a b ha hb hab, begin
-  obtain rfl | hxy := eq_or_ne x y,
-  { rw [convex.combo_self hab, convex.combo_self hab] },
-  obtain rfl | ha' := ha.eq_or_lt,
-  { rw zero_add at hab,
-    rw [hab, zero_smul, zero_smul, one_smul, one_smul, zero_add, zero_add] },
-  obtain rfl | hb' := hb.eq_or_lt,
-  { rw add_zero at hab,
-    rw [hab, zero_smul, zero_smul, one_smul, one_smul, add_zero, add_zero] },
-  exact (hf.2 hx hy hxy ha' hb' hab).le,
-end⟩
+convex_on_iff_pairwise_pos.mpr ⟨hf.1, λ x hx y hy hxy a b ha hb hab, (hf.2 hx hy hxy ha hb hab).le⟩
 
 lemma strict_concave_on.concave_on {s : set E} {f : E → β} (hf : strict_concave_on 𝕜 s f) :
   concave_on 𝕜 s f :=
@@ -279,7 +276,7 @@ variables [ordered_smul 𝕜 β] {s : set E} {f : E → β}
 
 lemma strict_convex_on.convex_lt (hf : strict_convex_on 𝕜 s f) (r : β) :
   convex 𝕜 {x ∈ s | f x < r} :=
-convex_iff_pairwise_on_pos.2 $ λ x hx y hy hxy a b ha hb hab, ⟨hf.1 hx.1 hy.1 ha.le hb.le hab,
+convex_iff_pairwise_pos.2 $ λ x hx y hy hxy a b ha hb hab, ⟨hf.1 hx.1 hy.1 ha.le hb.le hab,
   calc
     f (a • x + b • y) < a • f x + b • f y : hf.2 hx.1 hy.1 hxy ha hb hab
                   ... ≤ a • r + b • r     : add_le_add (smul_lt_smul_of_pos hx.2 ha).le
@@ -304,7 +301,7 @@ lemma linear_order.convex_on_of_lt (hs : convex 𝕜 s)
   (hf : ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → x < y → ∀ ⦃a b : 𝕜⦄, 0 < a → 0 < b → a + b = 1 →
     f (a • x + b • y) ≤ a • f x + b • f y) : convex_on 𝕜 s f :=
 begin
-  refine convex_on_iff_pairwise_on_pos.2 ⟨hs, λ x hx y hy hxy a b ha hb hab, _⟩,
+  refine convex_on_iff_pairwise_pos.2 ⟨hs, λ x hx y hy hxy a b ha hb hab, _⟩,
   wlog h : x ≤ y using [x y a b, y x b a],
   { exact le_total _ _ },
   exact hf hx hy (h.lt_of_ne hxy) ha hb hab,
@@ -399,16 +396,26 @@ convex_iff_forall_pos.2 $ λ x y hx hy a b ha hb hab, ⟨hf.1 hx.1 hy.1 ha.le hb
 lemma concave_on.convex_gt (hf : concave_on 𝕜 s f) (r : β) : convex 𝕜 {x ∈ s | r < f x} :=
 hf.dual.convex_lt r
 
+lemma convex_on.open_segment_subset_strict_epigraph (hf : convex_on 𝕜 s f) (p q : E × β)
+  (hp : p.1 ∈ s ∧ f p.1 < p.2) (hq : q.1 ∈ s ∧ f q.1 ≤ q.2) :
+  open_segment 𝕜 p q ⊆ {p : E × β | p.1 ∈ s ∧ f p.1 < p.2} :=
+begin
+  rintro _ ⟨a, b, ha, hb, hab, rfl⟩,
+  refine ⟨hf.1 hp.1 hq.1 ha.le hb.le hab, _⟩,
+  calc f (a • p.1 + b • q.1) ≤ a • f p.1 + b • f q.1 : hf.2 hp.1 hq.1 ha.le hb.le hab
+  ... < a • p.2 + b • q.2 :
+    add_lt_add_of_lt_of_le (smul_lt_smul_of_pos hp.2 ha) (smul_le_smul_of_nonneg hq.2 hb.le)
+end
+
+lemma concave_on.open_segment_subset_strict_hypograph (hf : concave_on 𝕜 s f) (p q : E × β)
+  (hp : p.1 ∈ s ∧ p.2 < f p.1) (hq : q.1 ∈ s ∧ q.2 ≤ f q.1) :
+  open_segment 𝕜 p q ⊆ {p : E × β | p.1 ∈ s ∧ p.2 < f p.1} :=
+hf.dual.open_segment_subset_strict_epigraph p q hp hq
+
 lemma convex_on.convex_strict_epigraph (hf : convex_on 𝕜 s f) :
   convex 𝕜 {p : E × β | p.1 ∈ s ∧ f p.1 < p.2} :=
-begin
-  rw convex_iff_forall_pos,
-  rintro ⟨x, r⟩ ⟨y, t⟩ ⟨hx, hr⟩ ⟨hy, ht⟩ a b ha hb hab,
-  refine ⟨hf.1 hx hy ha.le hb.le hab, _⟩,
-  calc f (a • x + b • y) ≤ a • f x + b • f y : hf.2 hx hy ha.le hb.le hab
-  ... < a • r + b • t : add_lt_add (smul_lt_smul_of_pos hr ha)
-                            (smul_lt_smul_of_pos ht hb)
-end
+convex_iff_open_segment_subset.mpr $
+  λ p q hp hq, hf.open_segment_subset_strict_epigraph p q hp ⟨hq.1, hq.2.le⟩
 
 lemma concave_on.convex_strict_hypograph (hf : concave_on 𝕜 s f) :
   convex 𝕜 {p : E × β | p.1 ∈ s ∧ p.2 < f p.1} :=
@@ -425,15 +432,15 @@ variables [linear_ordered_add_comm_monoid β] [has_scalar 𝕜 E] [module 𝕜 �
 lemma convex_on.sup (hf : convex_on 𝕜 s f) (hg : convex_on 𝕜 s g) :
   convex_on 𝕜 s (f ⊔ g) :=
 begin
-   refine ⟨hf.left, λ x y hx hy a b ha hb hab, sup_le _ _⟩,
-   { calc f (a • x + b • y) ≤ a • f x + b • f y : hf.right hx hy ha hb hab
-      ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
-      (smul_le_smul_of_nonneg le_sup_left ha)
-      (smul_le_smul_of_nonneg le_sup_left hb) },
-   { calc g (a • x + b • y) ≤ a • g x + b • g y : hg.right hx hy ha hb hab
-      ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
-      (smul_le_smul_of_nonneg le_sup_right ha)
-      (smul_le_smul_of_nonneg le_sup_right hb) }
+  refine ⟨hf.left, λ x y hx hy a b ha hb hab, sup_le _ _⟩,
+  { calc f (a • x + b • y) ≤ a • f x + b • f y : hf.right hx hy ha hb hab
+     ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
+     (smul_le_smul_of_nonneg le_sup_left ha)
+     (smul_le_smul_of_nonneg le_sup_left hb) },
+  { calc g (a • x + b • y) ≤ a • g x + b • g y : hg.right hx hy ha hb hab
+     ...                   ≤ a • (f x ⊔ g x) + b • (f y ⊔ g y) : add_le_add
+     (smul_le_smul_of_nonneg le_sup_right ha)
+     (smul_le_smul_of_nonneg le_sup_right hb) }
 end
 
 /-- The pointwise minimum of concave functions is concave. -/
@@ -710,10 +717,10 @@ end add_comm_monoid
 
 section add_cancel_comm_monoid
 variables [add_cancel_comm_monoid E] [ordered_add_comm_monoid β] [module 𝕜 E] [has_scalar 𝕜 β]
-  {s : set E} {f : E → β} {c : E}
+  {s : set E} {f : E → β}
 
 /-- Right translation preserves strict convexity. -/
-lemma strict_convex_on.translate_right (hf : strict_convex_on 𝕜 s f) :
+lemma strict_convex_on.translate_right (hf : strict_convex_on 𝕜 s f) (c : E) :
   strict_convex_on 𝕜 ((λ z, c + z) ⁻¹' s) (f ∘ (λ z, c + z)) :=
 ⟨hf.1.translate_preimage_right _, λ x y hx hy hxy a b ha hb hab,
   calc
@@ -722,19 +729,19 @@ lemma strict_convex_on.translate_right (hf : strict_convex_on 𝕜 s f) :
     ... < a • f (c + x) + b • f (c + y) : hf.2 hx hy ((add_right_injective c).ne hxy) ha hb hab⟩
 
 /-- Right translation preserves strict concavity. -/
-lemma strict_concave_on.translate_right (hf : strict_concave_on 𝕜 s f) :
+lemma strict_concave_on.translate_right (hf : strict_concave_on 𝕜 s f) (c : E) :
   strict_concave_on 𝕜 ((λ z, c + z) ⁻¹' s) (f ∘ (λ z, c + z)) :=
-hf.dual.translate_right
+hf.dual.translate_right _
 
 /-- Left translation preserves strict convexity. -/
-lemma strict_convex_on.translate_left (hf : strict_convex_on 𝕜 s f) :
+lemma strict_convex_on.translate_left (hf : strict_convex_on 𝕜 s f) (c : E) :
   strict_convex_on 𝕜 ((λ z, c + z) ⁻¹' s) (f ∘ (λ z, z + c)) :=
-by simpa only [add_comm] using hf.translate_right
+by simpa only [add_comm] using hf.translate_right _
 
 /-- Left translation preserves strict concavity. -/
-lemma strict_concave_on.translate_left (hf : strict_concave_on 𝕜 s f) :
+lemma strict_concave_on.translate_left (hf : strict_concave_on 𝕜 s f) (c : E) :
   strict_concave_on 𝕜 ((λ z, c + z) ⁻¹' s) (f ∘ (λ z, z + c)) :=
-by simpa only [add_comm] using hf.translate_right
+by simpa only [add_comm] using hf.translate_right _
 
 end add_cancel_comm_monoid
 end ordered_semiring

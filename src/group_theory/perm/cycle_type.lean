@@ -50,7 +50,7 @@ lemma cycle_type_eq' {σ : perm α} (s : finset (perm α))
   (h1 : ∀ f : perm α, f ∈ s → f.is_cycle) (h2 : ∀ (a ∈ s) (b ∈ s), a ≠ b → disjoint a b)
   (h0 : s.noncomm_prod id
     (λ a ha b hb, (em (a = b)).by_cases (λ h, h ▸ commute.refl a)
-      (set.pairwise_on.mono' (λ _ _, disjoint.commute) h2 a ha b hb)) = σ) :
+      (set.pairwise.mono' (λ _ _, disjoint.commute) h2 ha hb)) = σ) :
   σ.cycle_type = s.1.map (finset.card ∘ support) :=
 begin
   rw cycle_type_def,
@@ -65,10 +65,10 @@ lemma cycle_type_eq {σ : perm α} (l : list (perm α)) (h0 : l.prod = σ)
 begin
   have hl : l.nodup := nodup_of_pairwise_disjoint_cycles h1 h2,
   rw cycle_type_eq' l.to_finset,
-  { simp [list.erase_dup_eq_self.mpr hl] },
+  { simp [list.dedup_eq_self.mpr hl] },
   { simpa using h1 },
   { simpa [hl] using h0 },
-  { simpa [list.erase_dup_eq_self.mpr hl] using list.forall_of_pairwise disjoint.symmetric h2 }
+  { simpa [list.dedup_eq_self.mpr hl] using h2.forall disjoint.symmetric }
 end
 
 lemma cycle_type_one : (1 : perm α).cycle_type = 0 :=
@@ -112,7 +112,7 @@ lemma disjoint.cycle_type {σ τ : perm α} (h : disjoint σ τ) :
   (σ * τ).cycle_type = σ.cycle_type + τ.cycle_type :=
 begin
   rw [cycle_type_def, cycle_type_def, cycle_type_def, h.cycle_factors_finset_mul_eq_union,
-      ←map_add, finset.union_val, multiset.add_eq_union_iff_disjoint.mpr _],
+      ←multiset.map_add, finset.union_val, multiset.add_eq_union_iff_disjoint.mpr _],
   rw [←finset.disjoint_val],
   exact h.disjoint_cycle_factors_finset
 end
@@ -145,13 +145,36 @@ cycle_induction_on (λ τ : perm α, τ.cycle_type.sum = τ.support.card) σ
   (λ σ hσ, by rw [hσ.cycle_type, coe_sum, list.sum_singleton])
   (λ σ τ hστ hc hσ hτ, by rw [hστ.cycle_type, sum_add, hσ, hτ, hστ.card_support_mul])
 
-lemma sign_of_cycle_type (σ : perm α) :
-  sign σ = (σ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod :=
-cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : units ℤ) ^ n)).prod) σ
-  (by rw [sign_one, cycle_type_one, map_zero, prod_zero])
+lemma sign_of_cycle_type' (σ : perm α) :
+  sign σ = (σ.cycle_type.map (λ n, -(-1 : ℤˣ) ^ n)).prod :=
+cycle_induction_on (λ τ : perm α, sign τ = (τ.cycle_type.map (λ n, -(-1 : ℤˣ) ^ n)).prod) σ
+  (by rw [sign_one, cycle_type_one, multiset.map_zero, prod_zero])
   (λ σ hσ, by rw [hσ.sign, hσ.cycle_type, coe_map, coe_prod,
     list.map_singleton, list.prod_singleton])
-  (λ σ τ hστ hc hσ hτ, by rw [sign_mul, hσ, hτ, hστ.cycle_type, map_add, prod_add])
+  (λ σ τ hστ hc hσ hτ, by rw [sign_mul, hσ, hτ, hστ.cycle_type, multiset.map_add, prod_add])
+
+lemma sign_of_cycle_type (f : perm α) :
+  sign f = (-1 : ℤˣ)^(f.cycle_type.sum + f.cycle_type.card) :=
+cycle_induction_on
+  (λ f : perm α, sign f = (-1 : ℤˣ)^(f.cycle_type.sum + f.cycle_type.card))
+  f
+  ( -- base_one
+    by rw [equiv.perm.cycle_type_one, sign_one, multiset.sum_zero, multiset.card_zero, pow_zero] )
+  ( -- base_cycles
+    λ f hf,
+      by rw [equiv.perm.is_cycle.cycle_type hf, hf.sign,
+      coe_sum, list.sum_cons, sum_nil, add_zero, coe_card, length_singleton,
+      pow_add, pow_one, mul_comm, neg_mul, one_mul] )
+  ( -- induction_disjoint
+    λ f g hfg hf Pf Pg,
+    by rw [equiv.perm.disjoint.cycle_type hfg,
+      multiset.sum_add, multiset.card_add,← add_assoc,
+      add_comm f.cycle_type.sum g.cycle_type.sum,
+      add_assoc g.cycle_type.sum _ _,
+      add_comm g.cycle_type.sum _,
+      add_assoc, pow_add,
+      ← Pf, ← Pg,
+      equiv.perm.sign_mul])
 
 lemma lcm_cycle_type (σ : perm α) : σ.cycle_type.lcm = order_of σ :=
 cycle_induction_on (λ τ : perm α, τ.cycle_type.lcm = order_of τ) σ
@@ -188,12 +211,12 @@ lemma cycle_type_prime_order {σ : perm α} (hσ : (order_of σ).prime) :
   ∃ n : ℕ, σ.cycle_type = repeat (order_of σ) (n + 1) :=
 begin
   rw eq_repeat_of_mem (λ n hn, or_iff_not_imp_left.mp
-    (hσ.2 n (dvd_of_mem_cycle_type hn)) (ne_of_gt (one_lt_of_mem_cycle_type hn))),
+    (hσ.eq_one_or_self_of_dvd n (dvd_of_mem_cycle_type hn)) (one_lt_of_mem_cycle_type hn).ne'),
   use σ.cycle_type.card - 1,
-  rw nat.sub_add_cancel,
+  rw tsub_add_cancel_of_le,
   rw [nat.succ_le_iff, pos_iff_ne_zero, ne, card_cycle_type_eq_zero],
-  rintro rfl,
-  rw order_of_one at hσ,
+  intro H,
+  rw [H, order_of_one] at hσ,
   exact hσ.ne_one rfl,
 end
 
@@ -221,10 +244,10 @@ lemma cycle_type_mul_mem_cycle_factors_finset_eq_sub {f g : perm α}
   (g * f⁻¹).cycle_type = g.cycle_type - f.cycle_type :=
 begin
   suffices : (g * f⁻¹).cycle_type + f.cycle_type = g.cycle_type - f.cycle_type + f.cycle_type,
-  { rw sub_add_cancel_of_le (cycle_type_le_of_mem_cycle_factors_finset hf) at this,
+  { rw tsub_add_cancel_of_le (cycle_type_le_of_mem_cycle_factors_finset hf) at this,
     simp [←this] },
   simp [←(disjoint_mul_inv_of_mem_cycle_factors_finset hf).cycle_type,
-    sub_add_cancel_of_le (cycle_type_le_of_mem_cycle_factors_finset hf)]
+    tsub_add_cancel_of_le (cycle_type_le_of_mem_cycle_factors_finset hf)]
 end
 
 theorem is_conj_of_cycle_type_eq {σ τ : perm α} (h : cycle_type σ = cycle_type τ) : is_conj σ τ :=
@@ -256,7 +279,7 @@ begin
         rw [hσ.cycle_type, ←hσ', hσ'l.left.cycle_type] },
       refine hστ.is_conj_mul (h1 hs) (h2 _) _,
       { rw [cycle_type_mul_mem_cycle_factors_finset_eq_sub, ←hπ, add_comm, hs,
-            add_sub_cancel_right],
+            add_tsub_cancel_right],
         rwa finset.mem_def },
       { exact (disjoint_mul_inv_of_mem_cycle_factors_finset hσ'l).symm } } }
 end
@@ -412,7 +435,7 @@ by deleting the last entry of `v`. -/
 def equiv_vector : vectors_prod_eq_one G n ≃ vector G (n - 1) :=
 ((vector_equiv G (n - 1)).trans (if hn : n = 0 then (show vectors_prod_eq_one G (n - 1 + 1) ≃
   vectors_prod_eq_one G n, by { rw hn, exact equiv_of_unique_of_unique })
-  else by rw nat.sub_add_cancel (nat.pos_of_ne_zero hn))).symm
+  else by rw tsub_add_cancel_of_le (nat.pos_of_ne_zero hn).nat_succ_le)).symm
 
 instance [fintype G] : fintype (vectors_prod_eq_one G n) :=
 fintype.of_equiv (vector G (n - 1)) (equiv_vector G n).symm
@@ -441,7 +464,7 @@ end vectors_prod_eq_one
 lemma exists_prime_order_of_dvd_card {G : Type*} [group G] [fintype G] (p : ℕ) [hp : fact p.prime]
   (hdvd : p ∣ fintype.card G) : ∃ x : G, order_of x = p :=
 begin
-  have hp' : p - 1 ≠ 0 := mt nat.sub_eq_zero_iff_le.mp (not_le_of_lt hp.out.one_lt),
+  have hp' : p - 1 ≠ 0 := mt tsub_eq_zero_iff_le.mp (not_le_of_lt hp.out.one_lt),
   have Scard := calc p ∣ fintype.card G ^ (p - 1) : hdvd.trans (dvd_pow (dvd_refl _) hp')
   ... = fintype.card (vectors_prod_eq_one G p) : (vectors_prod_eq_one.card G p).symm,
   let f : ℕ → vectors_prod_eq_one G p → vectors_prod_eq_one G p :=
@@ -450,8 +473,9 @@ begin
   have hf2 : ∀ j k v, f k (f j v) = f (j + k) v :=
   λ j k v, vectors_prod_eq_one.rotate_rotate v j k,
   have hf3 : ∀ v, f p v = v := vectors_prod_eq_one.rotate_length,
-  let σ := equiv.mk (f 1) (f (p - 1)) (λ s, by rw [hf2, add_sub_cancel_of_le hp.out.one_lt.le, hf3])
-    (λ s, by rw [hf2, nat.sub_add_cancel hp.out.pos, hf3]),
+  let σ := equiv.mk (f 1) (f (p - 1))
+    (λ s, by rw [hf2, add_tsub_cancel_of_le hp.out.one_lt.le, hf3])
+    (λ s, by rw [hf2, tsub_add_cancel_of_le hp.out.one_lt.le, hf3]),
   have hσ : ∀ k v, (σ ^ k) v = f k v :=
   λ k v, nat.rec (hf1 v).symm (λ k hk, eq.trans (by exact congr_arg σ hk) (hf2 k 1 v)) k,
   replace hσ : σ ^ (p ^ 1) = 1 := perm.ext (λ v, by rw [pow_one, hσ, hf3, one_apply]),
@@ -497,7 +521,7 @@ def partition (σ : perm α) : (fintype.card α).partition :=
     { exact lt_of_lt_of_le zero_lt_one (ge_of_eq (multiset.eq_of_mem_repeat hn)) },
   end,
   parts_sum := by rw [sum_add, sum_cycle_type, multiset.sum_repeat, nsmul_eq_mul,
-    nat.cast_id, mul_one, add_sub_cancel_of_le σ.support.card_le_univ] }
+    nat.cast_id, mul_one, add_tsub_cancel_of_le σ.support.card_le_univ] }
 
 lemma parts_partition {σ : perm α} :
   σ.partition.parts = σ.cycle_type + repeat 1 (fintype.card α - σ.support.card) := rfl
@@ -559,7 +583,7 @@ by rw [←card_cycle_type_eq_one, h.cycle_type, card_singleton]
 
 lemma sign (h : is_three_cycle σ) : sign σ = 1 :=
 begin
-  rw [sign_of_cycle_type, h.cycle_type],
+  rw [equiv.perm.sign_of_cycle_type, h.cycle_type],
   refl,
 end
 

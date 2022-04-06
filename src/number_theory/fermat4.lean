@@ -126,7 +126,7 @@ begin
       have h1 : 2 ∣ (int.gcd a0 b0 : ℤ),
       { exact int.dvd_gcd (int.dvd_of_mod_eq_zero hap) (int.dvd_of_mod_eq_zero hbp) },
         rw int.gcd_eq_one_iff_coprime.mpr (coprime_of_minimal hf) at h1, revert h1, norm_num },
-      { exact ⟨b0, ⟨a0, ⟨c0, minimal_comm hf, hbp⟩⟩⟩ }},
+    { exact ⟨b0, ⟨a0, ⟨c0, minimal_comm hf, hbp⟩⟩⟩ } },
   exact ⟨a0, ⟨b0, ⟨c0 , hf, hap⟩⟩⟩,
 end
 
@@ -222,7 +222,7 @@ begin
                     ... = 4 * (m * (r * s)) : by ring },
   have hrsz : r * s ≠ 0, -- because b ^ 2 is not zero and (b / 2) ^ 2 = m * (r * s)
   { by_contradiction hrsz,
-    revert hb20, rw [ht2, htt2, mul_assoc, @mul_assoc _ _ _ r s, (not_not.mp hrsz)],
+    revert hb20, rw [ht2, htt2, mul_assoc, @mul_assoc _ _ _ r s, hrsz],
     simp },
   have h2b0 : b' ≠ 0,
   { apply ne_zero_pow (dec_trivial : 2 ≠ 0),

@@ -60,38 +60,34 @@ proofs need two directions, but the proof term is exactly the same (up to types)
 section antitonicity
 
 universes u v
-variables {α : Type u} {β : Type v} [preorder α] [preorder β] {f : α → β}
+variables {α : Type u} {β : Type v} [preorder α] [preorder β] {f : α → β} {s : set α}
 
 open order_dual
 
-lemma monotone.dual_iff : monotone f ↔  monotone (to_dual ∘ f ∘ of_dual) :=
-begin
-  split; exact λ hf a b h, hf h
-end
+lemma forall₂_swap {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₁ → Sort*}
+  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Prop} :
+  (∀ i₁ j₁ i₂ j₂, p i₁ j₁ i₂ j₂) ↔ ∀ i₂ j₂ i₁ j₁, p i₁ j₁ i₂ j₂ :=
+⟨λ h i₂ j₂ i₁ j₁, h i₁ j₁ i₂ j₂, λ h i₁ j₁ i₂ j₂, h i₂ j₂ i₁ j₁⟩
 
-lemma monotone.dual_left_iff : monotone f ↔ antitone (f ∘ of_dual) :=
-begin
-  split; exact λ hf a b h, hf h
-end
+-- It's not better with this
+lemma forall₂_swap' {ι₁ ι₂ ι₃ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₁ → Sort*}
+  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → ι₃ → Prop} :
+  (∀ i₁ j₁ i₂ j₂ i₃, p i₁ j₁ i₂ j₂ i₃) ↔ ∀ i₂ j₂ i₁ j₁ i₃, p i₁ j₁ i₂ j₂ i₃ :=
+⟨λ h i₂ j₂ i₁ j₁ i₃, h i₁ j₁ i₂ j₂ i₃, λ h i₁ j₁ i₂ j₂ i₃, h i₂ j₂ i₁ j₁ i₃⟩
 
-lemma monotone.dual_right_iff : monotone f ↔ antitone (to_dual ∘ f) :=
-begin
-  split; exact λ hf a b h, hf h
-end
+@[simp] lemma antitone_to_dual_comp_iff : antitone (to_dual ∘ f) ↔ monotone f :=
+iff.rfl
 
-lemma antitone.dual_iff : antitone f ↔ antitone (to_dual ∘ f ∘ of_dual) :=
-begin
-  split; exact λ hf a b h, hf h
-end
+@[simp] lemma monotone_comp_of_dual_iff : monotone (f ∘ of_dual) ↔ antitone f :=
+forall_swap
 
-lemma antitone.dual_left_iff : antitone f ↔ monotone (f ∘ of_dual) :=
-begin
-  split; exact λ hf a b h, hf h
-end
+@[simp] lemma antitone_on_to_dual_comp_iff : antitone_on (to_dual ∘ f) s ↔ monotone_on f s :=
+iff.rfl
 
-lemma antitone.dual_right_iff : antitone f ↔ monotone (to_dual ∘ f) :=
+@[simp] lemma monotone_on_comp_of_dual_iff : monotone_on (f ∘ of_dual) s ↔ antitone_on f s :=
+-- forall₂_swap /- Does not work -/
 begin
-  split; exact λ hf a b h, hf h
+split; exact λ hf a ha b hb h, hf hb ha h
 end
 
 end antitonicity
@@ -149,8 +145,7 @@ galois_connection.monotone_l (fixing_submonoid_fixed_points_connection M α)
 lemma fixed_points_is_antitone :
   antitone (λ (P : submonoid M), fixed_points P α) :=
 begin
-  change monotone (order_dual.to_dual ∘ λ (P : submonoid M), mul_action.fixed_points P α),
-  rw [← antitone.dual_right_iff, antitone.dual_left_iff],
+  rw ← monotone_comp_of_dual_iff,
   exact galois_connection.monotone_u (fixing_submonoid_fixed_points_connection M α),
 end
 
@@ -230,8 +225,7 @@ galois_connection.monotone_l (fixing_subgroup_fixed_points_connection M α)
 lemma fixed_points_of_group_is_antitone :
   antitone (λ (P : subgroup M), fixed_points P α) :=
 begin
-  change monotone (order_dual.to_dual ∘ λ (P : subgroup M), mul_action.fixed_points P α),
-  rw [← antitone.dual_right_iff, antitone.dual_left_iff],
+  rw ← monotone_comp_of_dual_iff,
   exact galois_connection.monotone_u (fixing_subgroup_fixed_points_connection M α),
 end
 

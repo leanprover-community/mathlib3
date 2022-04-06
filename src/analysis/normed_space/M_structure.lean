@@ -397,18 +397,12 @@ instance : boolean_algebra {P : X →L[𝕜] X // is_Lprojection P} :=
   end,
   inf_compl_le_bot := λ P,
   eq.le
-  ( subtype.eq
-  begin
-    simp only [subtype.val_eq_coe, coe_inf, coe_compl, coe_bot],
-    rw [← coe_compl, compl_orthog],
-  end ),
+  ( subtype.eq (by rw [subtype.val_eq_coe, coe_inf, coe_compl, subtype.val_eq_coe, coe_bot,
+    ← coe_compl, compl_orthog])),
   top_le_sup_compl := λ P,
   eq.le
-  ( subtype.eq
-  begin
-    simp only [subtype.val_eq_coe, coe_top, coe_sup, coe_compl, add_sub_cancel'_right],
-    rw [← coe_compl, compl_orthog, sub_zero],
-  end ),
+  ( subtype.eq (by rw [subtype.val_eq_coe, coe_top, subtype.val_eq_coe, coe_sup, coe_compl,
+    add_sub_cancel'_right, ← coe_compl, compl_orthog, sub_zero])),
   sdiff_eq := λ P Q,
   subtype.eq
   (by rw [subtype.val_eq_coe, coe_sdiff, ← coe_compl, subtype.val_eq_coe, coe_inf]),

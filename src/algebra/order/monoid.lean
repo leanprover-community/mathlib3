@@ -834,6 +834,26 @@ variable [covariant_class α α (*) (≤)]
 lemma max_mul_mul_left (a b c : α) : max (a * b) (a * c) = a * max b c :=
 (monotone_id.const_mul' a).map_max.symm
 
+@[to_additive]
+lemma lt_or_lt_of_mul_lt_mul [covariant_class α α (function.swap (*)) (≤)]
+  {a b m n : α} (h : m * n < a * b) :
+  m < a ∨ n < b :=
+by { contrapose! h, exact mul_le_mul' h.1 h.2 }
+
+@[to_additive]
+lemma mul_lt_mul_iff_of_le_of_le
+  [covariant_class α α (function.swap (*)) (<)]
+  [covariant_class α α (*) (<)]
+  [covariant_class α α (function.swap (*)) (≤)]
+  {a b c d : α} (ac : a ≤ c) (bd : b ≤ d) :
+  a * b < c * d ↔ (a < c) ∨ (b < d) :=
+begin
+  refine ⟨lt_or_lt_of_mul_lt_mul, λ h, _⟩,
+  cases h with ha hb,
+  { exact mul_lt_mul_of_lt_of_le ha bd },
+  { exact mul_lt_mul_of_le_of_lt ac hb }
+end
+
 end left
 
 section right
@@ -970,9 +990,6 @@ end order_dual
 
 section linear_ordered_cancel_add_comm_monoid
 variables [linear_ordered_cancel_add_comm_monoid α]
-
-lemma lt_or_lt_of_add_lt_add {a b m n : α} (h : m + n < a + b) : m < a ∨ n < b :=
-by { contrapose! h, exact add_le_add h.1 h.2 }
 
 end linear_ordered_cancel_add_comm_monoid
 

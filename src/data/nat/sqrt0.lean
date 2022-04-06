@@ -6,8 +6,6 @@ Authors: Kevin H. Wilson
 import algebra.parity
 import data.nat.factorization
 
-section sqrt0
-
 /-! ### Square root of squares
 
 Throughout mathlib, there are several types `α` for which a notion of `sqrt` has been defined.
@@ -27,6 +25,8 @@ would like `sqrt0 1 = 1` but `(-1 : ℤ) * (-1) = 1` as well. In number theory, 
 consistently make this choice in totally real fields, but it gets tricky in any other instance.
 As such, before having a specific need to address, we leave this for future considerations.
 -/
+
+section sqrt0
 
 namespace nat
 

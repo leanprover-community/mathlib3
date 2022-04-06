@@ -15,9 +15,11 @@ The operations in this file define a [Kleene algebra](https://en.wikipedia.org/w
 over the languages.
 -/
 
-universes u v
+open list set
 
-variables {α : Type u}
+universes v
+
+variables {α β γ : Type*}
 
 /-- A language is a set of strings over an alphabet. -/
 @[derive [has_mem (list α), has_singleton (list α), has_insert (list α), complete_boolean_algebra]]
@@ -80,6 +82,18 @@ instance : semiring (language α) :=
   right_distrib := λ l m n, by simp only [mul_def, add_def, set.image2_union_left] }
 
 @[simp] lemma add_self (l : language α) : l + l = l := sup_idem
+
+/-- Maps the alphabet of a language. -/
+def map (f : α → β) : language α →+* language β :=
+{ to_fun := image (list.map f),
+  map_zero' := image_empty _,
+  map_one' := image_singleton,
+  map_add' := image_union _,
+  map_mul' := λ _ _, image_image2_distrib $ map_append _ }
+
+@[simp] lemma map_id (l : language α) : map id l = l := by simp [map]
+@[simp] lemma map_map (g : β → γ) (f : α → β) (l : language α) : map g (map f l) = map (g ∘ f) l :=
+by simp [map, image_image]
 
 lemma star_def_nonempty (l : language α) :
   l.star = {x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l ∧ y ≠ []} :=
@@ -147,6 +161,13 @@ begin
   split,
   { rintro ⟨S, rfl, hS⟩, exact ⟨_, S, rfl, rfl, hS⟩ },
   { rintro ⟨_, S, rfl, rfl, hS⟩, exact ⟨S, rfl, hS⟩ }
+end
+
+@[simp] lemma map_star (f : α → β) (l : language α) : map f (star l) = star (map f l) :=
+begin
+  rw [star_eq_supr_pow, star_eq_supr_pow],
+  simp_rw ←map_pow,
+  exact image_Union,
 end
 
 lemma mul_self_star_comm (l : language α) : l.star * l = l * l.star :=

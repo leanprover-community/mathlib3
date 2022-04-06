@@ -18,9 +18,11 @@ TODO
 * `attribute [pattern] has_mul.mul` has been added into this file, it could be moved.
 -/
 
+open list set
+
 universe u
 
-variables {α : Type u} [dec : decidable_eq α]
+variables {α β γ : Type*} [dec : decidable_eq α]
 
 /--
 This is the definition of regular expressions. The names used here is to mirror the definition
@@ -58,7 +60,7 @@ attribute [pattern] has_mul.mul
 @[simp] lemma comp_def (P Q : regular_expression α) : comp P Q = P * Q := rfl
 
 /-- `matches P` provides a language which contains all strings that `P` matches -/
-def matches : regular_expression α → language α
+@[simp] def matches : regular_expression α → language α
 | 0 := 0
 | 1 := 1
 | (char a) := {[a]}
@@ -66,13 +68,14 @@ def matches : regular_expression α → language α
 | (P * Q) := P.matches * Q.matches
 | (star P) := P.matches.star
 
-@[simp] lemma matches_zero_def : (0 : regular_expression α).matches = 0 := rfl
-@[simp] lemma matches_epsilon_def : (1 : regular_expression α).matches = 1 := rfl
-@[simp] lemma matches_add_def (P Q : regular_expression α) :
+@[simp] lemma matches_zero : (0 : regular_expression α).matches = 0 := rfl
+@[simp] lemma matches_epsilon : (1 : regular_expression α).matches = 1 := rfl
+@[simp] lemma matches_char (a : α) : (char a).matches = {[a]} := rfl
+@[simp] lemma matches_add (P Q : regular_expression α) :
   (P + Q).matches = P.matches + Q.matches := rfl
-@[simp] lemma matches_mul_def (P Q : regular_expression α) :
+@[simp] lemma matches_mul (P Q : regular_expression α) :
   (P * Q).matches = P.matches * Q.matches := rfl
-@[simp] lemma matches_star_def (P : regular_expression α) : P.star.matches = P.matches.star := rfl
+@[simp] lemma matches_star (P : regular_expression α) : P.star.matches = P.matches.star := rfl
 
 /-- `match_epsilon P` is true if and only if `P` matches the empty string -/
 def match_epsilon : regular_expression α → bool
@@ -300,5 +303,47 @@ begin
   rw ←rmatch_iff_matches,
   exact eq.decidable _ _
 end
+
+omit dec
+
+/-- Map the alphabet of a regular expression. -/
+@[simp] def map (f : α → β) : regular_expression α → regular_expression β
+| 0 := 0
+| 1 := 1
+| (char a) := char (f a)
+| (R + S) := map R + map S
+| (R * S) := map R * map S
+| (star R) := star (map R)
+
+@[simp] lemma map_id : ∀ (P : regular_expression α), P.map id = P
+| 0 := rfl
+| 1 := rfl
+| (char a) := rfl
+| (R + S) := by simp_rw [map, map_id]
+| (R * S) := by simp_rw [map, map_id]
+| (star R) := by simp_rw [map, map_id]
+
+lemma map_comp (g : β → γ) (f : α → β) :
+  ∀ (P : regular_expression α), P.map (g ∘ f) = (P.map f).map g
+| 0 := rfl
+| 1 := rfl
+| (char a) := rfl
+| (R + S) := by simp_rw [map, map_comp]
+| (R * S) := by simp_rw [map, map_comp]
+| (star R) := by simp_rw [map, map_comp]
+
+@[simp] lemma matches_map (f : α → β) :
+  ∀ P : regular_expression α, (P.map f).matches = language.map f P.matches
+| 0 := (map_zero _).symm
+| 1 := (map_one _).symm
+| (char a) := by { rw eq_comm, exact image_singleton }
+| (R + S) := by simp only [matches_map, map, matches_add, map_add]
+| (R * S) := by simp only [matches_map, map, matches_mul, map_mul]
+| (star R) := begin
+    simp_rw [map, matches, matches_map],
+    rw [language.star_eq_supr_pow, language.star_eq_supr_pow],
+    simp_rw ←map_pow,
+    exact image_Union.symm,
+  end
 
 end regular_expression

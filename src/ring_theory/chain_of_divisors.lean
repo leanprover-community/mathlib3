@@ -354,13 +354,36 @@ noncomputable def mk_factor_order_iso_of_factor_dvd_equiv [decidable_eq (associa
     subtype.coe_mk, associates.mk_monoid_equiv_symm_dvd_iff_le]
 }
 
-variables [decidable_eq M] [decidable_eq N]
-
-lemma multiplicity_eq_multiplicity_of_im_factor_dvd_iso [decidable_rel ((∣) : M → M → Prop)]
-  [decidable_rel ((∣) : N → N → Prop)] [decidable_eq (associates M)]
+variables [decidable_eq M] [decidable_eq N] [decidable_eq (associates M)]
   [decidable_eq (associates N)]
-  {m p : M} {n : N} (hm : m ≠ 0) (hn : n ≠ 0) (hp : p ∈ normalized_factors m)
-  (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l',
+
+lemma mem_normalized_factors_factor_dvd_iso_of_mem_normalized_factors {m p : M} {n : N} (hm : m ≠ 0)
+  (hn : n ≠ 0) (hp : p ∈ normalized_factors m) (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n})
+  (hd : ∀ l l', ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)) :
+    ↑(d ⟨p, dvd_of_mem_normalized_factors hp⟩) ∈ normalized_factors n :=
+begin
+  suffices : prime ↑(d ⟨mk_monoid_equiv.symm (mk_monoid_equiv p),
+    by simp [dvd_of_mem_normalized_factors hp]⟩),
+  { simp_rw [mk_monoid_equiv_apply, mk_monoid_equiv_apply_symm_mk] at this,
+    obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd hn (this.irreducible)
+      (d ⟨p, dvd_of_mem_normalized_factors hp⟩).prop,
+    rwa associated_iff_eq.mp hq' },
+  have : associates.mk ↑(d ⟨mk_monoid_equiv.symm (mk_monoid_equiv p), by simp only
+    [dvd_of_mem_normalized_factors hp, mk_monoid_equiv_apply, mk_monoid_equiv_apply_symm_mk]⟩)
+      = ↑(mk_factor_order_iso_of_factor_dvd_equiv d hd ⟨(mk_monoid_equiv p), by
+      rw mk_monoid_equiv_apply ; exact mk_le_mk_of_dvd (dvd_of_mem_normalized_factors hp) ⟩),
+  { rw mk_factor_order_iso_of_factor_dvd_equiv_apply_coe, refl },
+  rw [ ← associates.prime_mk, this],
+  refine map_prime_of_monotone_equiv (mk_ne_zero.mpr hm) (mk_ne_zero.mpr hn) _ _,
+   obtain ⟨q, hq, hq'⟩ := exists_mem_normalized_factors_of_dvd (mk_ne_zero.mpr hm)
+    ((prime_mk p).mpr (prime_of_normalized_factor p hp)).irreducible
+      (mk_le_mk_of_dvd (dvd_of_mem_normalized_factors hp)),
+    rwa [mk_monoid_equiv_apply, associated_iff_eq.mp hq']
+end
+
+lemma multiplicity_eq_multiplicity_factor_dvd_iso [decidable_rel ((∣) : M → M → Prop)]
+  [decidable_rel ((∣) : N → N → Prop)] {m p : M} {n : N} (hm : m ≠ 0) (hn : n ≠ 0)
+  (hp : p ∈ normalized_factors m) (d : {l : M // l ∣ m} ≃ {l : N // l ∣ n}) (hd : ∀ l l',
   ((d l) : N) ∣ (d l') ↔ (l : M) ∣ (l' : M)) :
     multiplicity p m = multiplicity ((d ⟨p, dvd_of_mem_normalized_factors hp⟩) : N) n :=
 begin

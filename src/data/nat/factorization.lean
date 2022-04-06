@@ -420,13 +420,10 @@ begin
     exact hp p n hp' hn },
   refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow (prime.one_lt hp').le (succ_le_iff.mpr hn)))
     _ _ (hp _ _ hp' hn) hPa,
-  { by_contra,
-    simp only [not_lt] at h,
+  { refine lt_of_not_ge (λ (h : a ≤ 1), _),
     interval_cases a,
-    simp only [dvd_zero, not_true] at hpa,
-    assumption,
-    apply ha1,
-    dec_trivial, },
+    { simpa only [dvd_zero, not_true] using hpa },
+    { contradiction } },
   simpa [hn, prime.coprime_iff_not_dvd hp'],
 end
 

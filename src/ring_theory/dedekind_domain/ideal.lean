@@ -855,3 +855,60 @@ end
 end is_dedekind_domain
 
 end height_one_spectrum
+
+section
+
+open ideal
+
+variables {R } {A} [is_domain R] [is_dedekind_domain R] [is_domain A] [is_dedekind_domain A]
+  {I : ideal R} {J : ideal A} (f : R ⧸I ≃+* A ⧸J)
+
+/-- The bijection between ideals of `R` dividing `I` and the ideals of `A` dividing `J` induced by
+  an isomorphism `f : R/I ≅ A/J` -/
+@[simps]
+def ideal_factors_equiv_of_quot_equiv (f : R ⧸I ≃+* A ⧸J) (hI : I ≠ ⊥) (hJ : J ≠ ⊥) :
+  {p : ideal R | p ∣ I} ≃ {p : ideal A | p ∣ J} :=
+{ to_fun := λ X, ⟨comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)),
+    begin
+      have : (J^.quotient.mk).ker ≤ comap J^.quotient.mk (map ↑f (map I^.quotient.mk X)),
+      { exact ker_le_comap J^.quotient.mk },
+      rw mk_ker at this,
+      exact dvd_iff_le.mpr this,
+    end ⟩,
+  inv_fun := λ X, ⟨comap I^.quotient.mk (map ↑(f.symm) (map J^.quotient.mk X)),
+    begin
+      have : (I^.quotient.mk).ker ≤ comap I^.quotient.mk (map ↑(f.symm) (map J^.quotient.mk X)),
+      { exact ker_le_comap I^.quotient.mk },
+      rw mk_ker at this,
+      exact dvd_iff_le.mpr this,
+    end⟩,
+  left_inv := λ ⟨p, hp⟩, by rwa [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk,
+    map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, map_of_equiv _ f, comap_map_of_surjective _
+    quotient.mk_surjective, ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left] ;
+    exact dvd_iff_le.mp hp,
+  right_inv := λ ⟨p, hp⟩, by {
+    rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk, map_comap_of_surjective
+      I^.quotient.mk quotient.mk_surjective],
+    nth_rewrite 0 ← ring_equiv.symm_symm f,
+    rw [map_of_equiv _ f.symm, comap_map_of_surjective _ quotient.mk_surjective,
+        ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left],
+    exact dvd_iff_le.1 hp }
+}
+
+lemma ideal_factors_equiv_of_quot_equiv_le_iff_le (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
+  {X Y : ideal R} (hX : I ≤ X) (hY : I ≤ Y)
+  (h : (ideal_factors_equiv_of_quot_equiv f hI hJ ⟨X, dvd_iff_le.mpr hX⟩ : ideal A) ≤
+  ↑(ideal_factors_equiv_of_quot_equiv f hI hJ ⟨Y, dvd_iff_le.mpr hY⟩)) :
+  X ≤ Y :=
+begin
+  simp only [ideal_factors_equiv_of_quot_equiv_apply_coe, subtype.coe_mk] at h,
+  rw [comap_le_comap_iff_of_surjective J^.quotient.mk quotient.mk_surjective,
+    map_comap_of_equiv _ f, map_comap_of_equiv _ f,
+    comap_le_comap_iff_of_surjective (f.symm : A ⧸ J →+* R ⧸ I) f.symm.surjective,
+    map_le_iff_le_comap, comap_map_of_surjective _ quotient.mk_surjective,
+    ← ring_hom.ker_eq_comap_bot, mk_ker, sup_eq_left.mpr hY] at h,
+  exact h,
+end
+
+
+end

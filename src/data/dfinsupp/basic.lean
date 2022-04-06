@@ -1054,8 +1054,7 @@ noncomputable def comap_domain (h : κ → ι) (hh : function.injective h) :
 (Π₀ i, β i) → Π₀ k, β (h k) :=
 begin
   refine quotient.lift (λ f, ⟦_⟧) (λ f f' h, _),
-  exact {
-    to_fun := λ x, f.to_fun (h x),
+  exact { to_fun := λ x, f.to_fun (h x),
     pre_support := (f.pre_support.to_finset.preimage h (hh.inj_on _)).val,
     zero := λ x, (f.zero (h x)).imp_left $ λ hx, mem_preimage.mpr $ multiset.mem_to_finset.mpr hx },
   exact quot.sound (λ x, h _)
@@ -1070,8 +1069,7 @@ def comap_domain' (h : κ → ι) {h' : ι → κ} (hh' : function.left_inverse 
   (Π₀ i, β i) → (Π₀ k, β (h k)) :=
 begin
   refine quotient.lift (λ f, ⟦_⟧) (λ f f' h, _),
-  exact {
-    to_fun := λ x, f.to_fun (h x),
+  exact { to_fun := λ x, f.to_fun (h x),
     pre_support := f.pre_support.map h',
     zero := λ x, (f.zero (h x)).imp_left $ λ hx, multiset.mem_map.mpr ⟨_, hx, hh' _⟩ },
   exact quot.sound (λ x, h _),
@@ -1139,8 +1137,7 @@ variables {α : option ι → Type v} [Π i, has_zero (α i)] --[Π i (x : α i)
 def extend_with (a : α none) : (Π₀ i, α (some i)) → Π₀ i, α i :=
 begin
   refine quotient.lift (λ f, ⟦_⟧) (λ f f' h, _),
-  exact {
-    to_fun := option.rec a f.to_fun,
+  exact { to_fun := option.rec a f.to_fun,
     pre_support := none ::ₘ (f.pre_support.map some),
     zero := λ i, option.rec (or.inl $ multiset.mem_cons_self _ _)
       (λ i, (f.zero i).imp_left $ λ h, multiset.mem_cons_of_mem $ multiset.mem_map_of_mem _ h) i },

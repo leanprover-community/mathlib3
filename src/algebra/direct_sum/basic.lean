@@ -193,9 +193,8 @@ protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique 
   right_inv := λ x, to_add_monoid_of _ _ _,
   ..direct_sum.to_add_monoid (λ _, add_monoid_hom.id M) }
 
---include dec_ι
 section congr_left
-variables {κ : Type*} --[decidable_eq κ] [Π i (x : β i), decidable (x ≠ 0)]
+variables {κ : Type*}
 
 /--Reindexing terms of a direct sum.-/
 def equiv_congr_left (h : ι ≃ κ) : (⨁ i, β i) ≃+ ⨁ k, β (h.symm k) :=

@@ -170,20 +170,22 @@ begin
   exact H x y,
 end
 
+@[simp] lemma flip_is_refl_iff : B.flip.is_refl ↔ B.is_refl :=
+⟨λ h x y H, h y x ((B.flip_apply _ _).trans H), λ h x y, h y x⟩
+
+lemma ker_flip_eq_bot (H : B.is_refl) (h : B.ker = ⊥) : B.flip.ker = ⊥ :=
+begin
+  refine ker_eq_bot'.mpr (λ _ hx, ker_eq_bot'.mp h _ _),
+  ext,
+  exact H _ _ (linear_map.congr_fun hx _),
+end
+
 lemma ker_eq_bot_iff_ker_flip_eq_bot (H : B.is_refl) : B.ker = ⊥ ↔ B.flip.ker = ⊥ :=
 begin
-  repeat {rw linear_map.ker_eq_bot'},
-  simp_rw fun_like.ext_iff,
-  simp,
-  split;
-  { intros h m hx,
-    apply h,
-    intro x,
-    specialize hx x,
-    rw eq_zero,
-    exact H,
-    exact hx },
+  refine ⟨ker_flip_eq_bot H, λ h, _⟩,
+  exact (congr_arg _ B.flip_flip.symm).trans (ker_flip_eq_bot (flip_is_refl_iff.mpr H) h),
 end
+
 
 end is_refl
 end reflexive

@@ -297,19 +297,6 @@ rfl
   [algebra R A] (S : subalgebra R A) : S.to_subring.subtype = (S.val : S →+* A) :=
 rfl
 
-/-- As submodules, subalgebras are idempotent. -/
-@[simp] theorem mul_self : S.to_submodule * S.to_submodule = S.to_submodule :=
-begin
-  apply le_antisymm,
-  { rw submodule.mul_le,
-    intros y hy z hz,
-    show y * z ∈ S,
-    exact mul_mem hy hz },
-  { intros x hx1,
-    rw ← mul_one x,
-    exact submodule.mul_mem_mul hx1 (show (1 : A) ∈ S, from one_mem S) }
-end
-
 /-- Linear equivalence between `S : submodule R A` and `S`. Though these types are equal,
 we define it as a `linear_equiv` to avoid type equalities. -/
 def to_submodule_equiv (S : subalgebra R A) : S.to_submodule ≃ₗ[R] S :=

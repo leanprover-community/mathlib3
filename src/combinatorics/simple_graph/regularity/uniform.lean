@@ -196,8 +196,8 @@ begin
   exact G.is_uniform_singleton hε,
 end
 
-/-- A finpartition is `ε`-uniform (aka `ε`-regular) iff at most a proportion of `ε` of its pairs of
-parts are not `ε-uniform`. -/
+/-- A finpartition of a graph's vertex set is `ε`-uniform (aka `ε`-regular) iff at most a proportion
+of `ε` of its pairs of parts are not `ε-uniform`. -/
 def is_uniform (ε : 𝕜) : Prop :=
 ((P.non_uniforms G ε).card : 𝕜) ≤ (P.parts.card * (P.parts.card - 1) : ℕ) * ε
 

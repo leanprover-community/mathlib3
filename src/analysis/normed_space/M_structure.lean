@@ -120,15 +120,7 @@ def is_Mprojection (P: X →L[𝕜] X) : Prop :=
 namespace is_Lprojection
 
 lemma Lcomplement {P: X →L[𝕜] X} (h: is_Lprojection P) :  is_Lprojection (1-P) :=
-begin
-  unfold is_Lprojection,
-  rw [← is_projection.complement_iff, sub_sub_cancel],
-  split,
-  { exact h.left, },
-  { intros,
-    rw add_comm,
-    apply h.right, }
-end
+⟨is_projection.complement_iff.mp h.1, λ x, by { rw [add_comm, sub_sub_cancel], exact h.2 x }⟩
 
 lemma Lcomplement_iff (P: X →L[𝕜] X) : is_Lprojection P ↔ is_Lprojection (1-P) := ⟨
   Lcomplement,

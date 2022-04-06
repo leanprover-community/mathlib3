@@ -152,21 +152,17 @@ all norms are equivalent in finite dimension.
 
 This statement is superceded by the fact that every linear map on a finite-dimensional space is
 continuous, in `linear_map.continuous_of_finite_dimensional`. -/
-lemma continuous_equiv_fun_basis {ι : Type v} [fintype ι] (ξ : basis ι 𝕜 E) :
+lemma continuous_equiv_fun_basis {ι : Type x} [fintype ι] (ξ : basis ι 𝕜 F') :
   continuous ξ.equiv_fun :=
 begin
-  unfreezingI { induction hn : fintype.card ι with n IH generalizing ι E },
-  { apply ξ.equiv_fun.to_linear_map.continuous_of_bound 0 (λx, _),
-    have : ξ.equiv_fun x = 0,
-      by { ext i, exact (fintype.card_eq_zero_iff.1 hn).elim i },
-    change ∥ξ.equiv_fun x∥ ≤ 0 * ∥x∥,
-    rw this,
-    simp [norm_nonneg] },
-  { haveI : finite_dimensional 𝕜 E := of_fintype_basis ξ,
+  unfreezingI { induction hn : fintype.card ι with n IH generalizing ι F' },
+  { sorry },
+  { haveI : finite_dimensional 𝕜 F' := of_fintype_basis ξ,
     -- first step: thanks to the inductive assumption, any n-dimensional subspace is equivalent
     -- to a standard space of dimension n, hence it is complete and therefore closed.
-    have H₁ : ∀s : submodule 𝕜 E, finrank 𝕜 s = n → is_closed (s : set E),
+    have H₁ : ∀s : submodule 𝕜 F', finrank 𝕜 s = n → is_closed (s : set F'),
     { assume s s_dim,
+      letI : uniform_space s := topological_add_group.to_uniform_space s,
       let b := basis.of_vector_space 𝕜 s,
       have U : uniform_embedding b.equiv_fun.symm.to_equiv,
       { have : fintype.card (basis.of_vector_space_index 𝕜 s) = n,

@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Martin Zinkevich
 -/
 import measure_theory.integral.bochner
-import measure_theory.integral.lebesgue
-import measure_theory.function.l1_space
 import probability.independence
 
 /-!
@@ -36,10 +34,9 @@ variables {α : Type*}
 
 namespace probability_theory
 
-/-- This (roughly) proves that if a random variable `f` is independent of an event `T`,
-   then if you restrict the random variable to `T`, then
-   `E[f * indicator T c 0]=E[f] * E[indicator T c 0]`. It is useful for
-   `lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space`. -/
+/-- If a random variable `f` in `ℝ≥0∞` is independent of an event `T`, then if you restrict the
+  random variable to `T`, then `E[f * indicator T c 0]=E[f] * E[indicator T c 0]`. It is useful for
+  `lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space`. -/
 lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator
   {Mf : measurable_space α} [M : measurable_space α] {μ : measure α} (hMf : Mf ≤ M)
   (c : ℝ≥0∞) {T : set α} (h_meas_T : measurable_set T)
@@ -75,7 +72,7 @@ begin
     { exact λ m n h_le a, ennreal.mul_le_mul (h_mono_f h_le a) le_rfl, }, },
 end
 
-/-- This (roughly) proves that if `f` and `g` are independent random variables,
+/-- If `f` and `g` are independent random variables with values in `ℝ≥0∞`,
    then `E[f * g] = E[f] * E[g]`. However, instead of directly using the independence
    of the random variables, it uses the independence of measurable spaces for the
    domains of `f` and `g`. This is similar to the sigma-algebra approach to
@@ -110,7 +107,7 @@ begin
     { exact λ n m (h_le : n ≤ m) a, ennreal.mul_le_mul le_rfl (h_mono_f' h_le a), }, }
 end
 
-/-- This proves that if `f` and `g` are independent random variables,
+/-- If `f` and `g` are independent random variables with values in `ℝ≥0∞`,
    then `E[f * g] = E[f] * E[g]`. -/
 lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun [measurable_space α] {μ : measure α}
   {f g : α → ℝ≥0∞} (h_meas_f : measurable f) (h_meas_g : measurable g)
@@ -120,7 +117,7 @@ lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space
   (measurable_iff_comap_le.1 h_meas_f) (measurable_iff_comap_le.1 h_meas_g) h_indep_fun
   (measurable.of_comap_le le_rfl) (measurable.of_comap_le le_rfl)
 
-/-- This proves that if `f` and `g` are independent and almost everywhere measurable,
+/-- If `f` and `g` with values in `ℝ≥0∞` are independent and almost everywhere measurable,
    then `E[f * g] = E[f] * E[g]` (slightly generalizing
    `lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun`). -/
 lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun' [measurable_space α] {μ : measure α}
@@ -128,18 +125,18 @@ lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun' [measurable_space �
   (h_indep_fun : indep_fun f g μ) :
   ∫⁻ a, (f * g) a ∂μ = ∫⁻ a, f a ∂μ * ∫⁻ a, g a ∂μ :=
 begin
-  rcases h_meas_f with ⟨f',f'_meas,f'_ae⟩,
-  rcases h_meas_g with ⟨g',g'_meas,g'_ae⟩,
-  have fg_ae : f * g =ᵐ[μ] f' * g' := f'_ae.mul g'_ae,
-  rw [lintegral_congr_ae f'_ae, lintegral_congr_ae g'_ae, lintegral_congr_ae fg_ae],
-  apply lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun f'_meas g'_meas,
-  exact h_indep_fun.ae_eq f'_ae g'_ae
+  have fg_ae : f * g =ᵐ[μ] (h_meas_f.mk _) * (h_meas_g.mk _),
+    from h_meas_f.ae_eq_mk.mul h_meas_g.ae_eq_mk,
+  rw [lintegral_congr_ae h_meas_f.ae_eq_mk, lintegral_congr_ae h_meas_g.ae_eq_mk,
+    lintegral_congr_ae fg_ae],
+  apply lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun
+    h_meas_f.measurable_mk h_meas_g.measurable_mk,
+  exact h_indep_fun.ae_eq h_meas_f.ae_eq_mk h_meas_g.ae_eq_mk
 end
 
-/-- This shows that the product of two independent, integrable, real_valued random variables
-  is itself integrable. -/
-lemma indep_fun.integrable_mul [measurable_space α] {μ : measure α}
-  {β : Type*} [measurable_space β] [normed_division_ring β] [borel_space β]
+/-- The product of two independent, integrable, real_valued random variables is integrable. -/
+lemma indep_fun.integrable_mul {mα : measurable_space α} {μ : measure α}
+  {β : Type*} {mβ : measurable_space β} [normed_division_ring β] [borel_space β]
   {X Y : α → β} (hXY : indep_fun X Y μ) (hX : integrable X μ) (hY : integrable Y μ) :
   integrable (X * Y) μ :=
 begin
@@ -162,7 +159,7 @@ begin
   exact ennreal.mul_lt_top_iff.mpr (or.inl ⟨hX.2, hY.2⟩)
 end
 
-/-- This shows that the (Bochner) integral of the product of two independent, nonnegative random
+/-- The (Bochner) integral of the product of two independent, nonnegative random
   variables is the product of their integrals. The proof is just plumbing around
   `lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun'`. -/
 lemma indep_fun.integral_mul_of_nonneg [measurable_space α] {μ : measure α} {X Y : α → ℝ}
@@ -176,26 +173,21 @@ begin
     ennreal.measurable_of_real.comp_ae_measurable hYm,
   have h3 : ae_measurable (X * Y) μ := hXm.mul hYm,
 
-  have h4 : 0 ≤ᵐ[μ] X := ae_of_all _ hXp,
-  have h5 : 0 ≤ᵐ[μ] Y := ae_of_all _ hYp,
-  have h6 : 0 ≤ᵐ[μ] (X * Y) := ae_of_all _ (λ ω, mul_nonneg (hXp ω) (hYp ω)),
+  have h4 : 0 ≤ᵐ[μ] (X * Y) := ae_of_all _ (λ ω, mul_nonneg (hXp ω) (hYp ω)),
 
-  have h7 : ae_strongly_measurable X μ := ae_strongly_measurable_iff_ae_measurable.mpr hXm,
-  have h8 : ae_strongly_measurable Y μ := ae_strongly_measurable_iff_ae_measurable.mpr hYm,
-  have h9 : ae_strongly_measurable (X * Y) μ := ae_strongly_measurable_iff_ae_measurable.mpr h3,
-
-  rw [integral_eq_lintegral_of_nonneg_ae h4 h7],
-  rw [integral_eq_lintegral_of_nonneg_ae h5 h8],
-  rw [integral_eq_lintegral_of_nonneg_ae h6 h9],
+  rw [integral_eq_lintegral_of_nonneg_ae (ae_of_all _ hXp) hXm.ae_strongly_measurable,
+    integral_eq_lintegral_of_nonneg_ae (ae_of_all _ hYp) hYm.ae_strongly_measurable,
+    integral_eq_lintegral_of_nonneg_ae h4 h3.ae_strongly_measurable],
   simp_rw [←ennreal.to_real_mul, pi.mul_apply, ennreal.of_real_mul (hXp _)],
   congr,
   apply lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun' h1 h2,
   exact hXY.comp ennreal.measurable_of_real ennreal.measurable_of_real
 end
 
-/-- This shows that the (Bochner) integral of the product of two independent, integrable random
-  variables is the product of their integrals. The proof is pedestrian decomposition into their
-  positive and negative parts in order to apply `indep_fun.integral_mul_of_nonneg` four times. -/
+/-- The (Bochner) integral of the product of two independent, integrable random
+  variables is the product of their integrals. The proof is pedestrian decomposition
+  into their positive and negative parts in order to apply `indep_fun.integral_mul_of_nonneg`
+  four times. -/
 theorem indep_fun.integral_mul_of_integrable [measurable_space α] {μ : measure α} {X Y : α → ℝ}
   (hXY : indep_fun X Y μ) (hX : integrable X μ) (hY : integrable Y μ) :
   integral μ (X * Y) = integral μ X * integral μ Y :=
@@ -241,10 +233,10 @@ begin
   have hl6 : integrable (Xp * Ym - Xm * Ym) μ := hl2.sub hl1,
 
   simp_rw [hXpm, hYpm, mul_sub, sub_mul],
-  rw [integral_sub' hl5 hl6, integral_sub' hl4 hl3, integral_sub' hl2 hl1],
-  rw [integral_sub' hv2 hv1, integral_sub' hv4 hv3],
-  rw [hi1.integral_mul_of_nonneg hp1 hp3 hm1 hm3, hi2.integral_mul_of_nonneg hp2 hp3 hm2 hm3],
-  rw [hi3.integral_mul_of_nonneg hp1 hp4 hm1 hm4, hi4.integral_mul_of_nonneg hp2 hp4 hm2 hm4],
+  rw [integral_sub' hl5 hl6, integral_sub' hl4 hl3, integral_sub' hl2 hl1,
+    integral_sub' hv2 hv1, integral_sub' hv4 hv3, hi1.integral_mul_of_nonneg hp1 hp3 hm1 hm3,
+    hi2.integral_mul_of_nonneg hp2 hp3 hm2 hm3, hi3.integral_mul_of_nonneg hp1 hp4 hm1 hm4,
+    hi4.integral_mul_of_nonneg hp2 hp4 hm2 hm4],
   ring
 end
 

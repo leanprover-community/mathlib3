@@ -48,9 +48,7 @@ that works in both directions.
 
 TODO :
 
-* Adjust names
-
-* Remove the definitions with the same names from the Galois theory file
+* Adjust names as needed
 
 * Decide what needs to be done with the antitonicity section. In particular, the
 proofs need two directions, but the proof term is exactly the same (up to types).
@@ -157,39 +155,6 @@ begin
   rw [← antitone.dual_right_iff, antitone.dual_left_iff],
   exact galois_connection.monotone_u (fixing_submonoid_fixed_points_connection M α),
 end
-
-/-
-lemma fixing_submonoid_is_antitone' : antitone (λ (s : set α), fixing_submonoid M s) :=
-begin
-  intros s t hst,
-  rw set.le_eq_subset at hst,
-  intro m,
-  simp only [mem_fixing_submonoid_iff],
-  refine forall_imp _,
-  intro a,
-  refine imp_imp_imp _ (imp_self.mpr trivial),
-  { intro hs, exact hst hs }
-end
--/
-
-/-
-lemma mem_fixing_submonoid_of_union {s t : set α} :
-  fixing_submonoid M (s ∪ t) = (fixing_submonoid M s) ⊓ (fixing_submonoid M t) :=
-begin
-  apply le_antisymm,
-  { refine le_inf _ _;
-    apply fixing_submonoid_is_antitone,
-    refine le_sup_left,
-    refine le_sup_right },
-  { intros m hm,
-    simp only [submonoid.mem_inf] at hm,
-    simp only [mem_fixing_submonoid_iff] at hm ⊢,
-    intros a ha,
-    cases ha,
-    exact hm.left a ha,
-    exact hm.right a ha }
-end
--/
 
 /-- Fixing submonoid of union is intersection -/
 lemma fixing_submonoid_of_union {s t : set α} :

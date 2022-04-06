@@ -68,6 +68,14 @@ def to_NFA : NFA α σ :=
 { step := λ _ _, ∅,
   accept := ∅ }
 
+@[simp] lemma to_NFA_correct :
+  M.to_NFA.accepts = M.accepts :=
+begin
+  ext x,
+  rw [accepts, NFA.accepts, eval, NFA.eval, ←to_NFA_eval_from_match],
+  refl
+end
+
 lemma pumping_lemma [fintype σ] {x : list α} (hx : x ∈ M.accepts)
   (hlen : fintype.card (set σ) ≤ list.length x) :
   ∃ a b c, x = a ++ b ++ c ∧ a.length + b.length ≤ fintype.card (set σ) ∧ b ≠ [] ∧
@@ -76,6 +84,11 @@ begin
   rw ←to_NFA_correct at hx ⊢,
   exact M.to_NFA.pumping_lemma hx hlen
 end
+
+def zero : ε_NFA α pempty :=
+{ step := λ _ _, ∅,
+  start := ∅,
+  accept := ∅ }
 
 def epsilon : ε_NFA α punit :=
 { step := λ _ _, ∅,

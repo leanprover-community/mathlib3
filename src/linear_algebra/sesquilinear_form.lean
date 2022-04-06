@@ -389,8 +389,8 @@ lemma is_adjoint_pair_iff_comp_eq_compl₂ :
   is_adjoint_pair B B' f g ↔ B'.comp f = B.compl₂ g :=
 begin
   split; intros h,
-  { ext x y, rw [comp_apply, compl₂_apply], exact h.eq },
-  { intros x y, rw [←compl₂_apply, ←comp_apply, h] },
+  { ext _ _, rw [comp_apply, compl₂_apply], exact h.eq },
+  { intros _ _, rw [←compl₂_apply, ←comp_apply, h] },
 end
 
 lemma is_adjoint_pair_zero : is_adjoint_pair B B' 0 0 :=
@@ -405,12 +405,12 @@ lemma is_adjoint_pair.add (h : is_adjoint_pair B B' f g) (h' : is_adjoint_pair B
 lemma is_adjoint_pair.comp {f' : M₁ →ₗ[R] M₂} {g' : M₂ →ₗ[R] M₁}
   (h : is_adjoint_pair B B' f g) (h' : is_adjoint_pair B' B'' f' g') :
   is_adjoint_pair B B'' (f'.comp f) (g.comp g') :=
-λ x y, by rw [linear_map.comp_apply, linear_map.comp_apply, h', h]
+λ _ _, by rw [linear_map.comp_apply, linear_map.comp_apply, h', h]
 
 lemma is_adjoint_pair.mul
   {f g f' g' : module.End R M} (h : is_adjoint_pair B B f g) (h' : is_adjoint_pair B B f' g') :
   is_adjoint_pair B B (f * f') (g' * g) :=
-λ x y, by rw [linear_map.mul_apply, linear_map.mul_apply, h, h']
+λ _ _, by rw [linear_map.mul_apply, linear_map.mul_apply, h, h']
 
 end add_comm_monoid
 
@@ -452,7 +452,7 @@ def is_pair_self_adjoint (f : module.End R M) := is_adjoint_pair B F f f
 
 /-- An endomorphism of a module is self-adjoint with respect to a bilinear form if it serves as an
 adjoint for itself. -/
-def is_self_adjoint (f : module.End R M) := is_adjoint_pair B B f f
+protected def is_self_adjoint (f : module.End R M) := is_adjoint_pair B B f f
 
 end add_comm_monoid
 

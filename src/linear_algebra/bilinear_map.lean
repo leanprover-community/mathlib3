@@ -268,10 +268,9 @@ begin
     ext x y,
     cases hₗ x with x' hx, subst hx,
     cases hᵣ y with y' hy, subst hy,
-    convert linear_map.congr_fun₂ h x' y',
-    },
+    convert linear_map.congr_fun₂ h x' y' },
   { -- B₁ = B₂ → B₁.comp l r = B₂.comp l r
-    subst h, },
+    subst h },
 end
 
 /-- Composing a linear map `P → Q` and a bilinear map `M → N → P` to

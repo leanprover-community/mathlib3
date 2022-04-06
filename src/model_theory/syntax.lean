@@ -161,6 +161,10 @@ begin
   exact ⟨⟨h1, L.card_functions_le_omega⟩, refl _⟩,
 end
 
+instance small [small.{u} α] :
+  small.{u} (L.term α) :=
+small_of_injective list_encode_injective
+
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 

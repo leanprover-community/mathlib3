@@ -203,6 +203,15 @@ cardinal.to_nat_apply_of_omega_le (le_trans (le_of_not_lt (λ h, cardinal.mk_ne_
   ((cardinal.cast_to_nat_of_lt_omega h).symm.trans (cardinal.nat_cast_inj.mpr hHK))))
     (quotient_subgroup_of_embedding_of_le H hKL).cardinal_le)
 
+lemma relindex_le_of_le_left (hHK : H ≤ K) (hHL : H.relindex L ≠ 0) :
+  K.relindex L ≤ H.relindex L :=
+nat.le_of_dvd (nat.pos_of_ne_zero hHL) (relindex_dvd_of_le_left L hHK)
+
+lemma relindex_le_of_le_right (hKL : K ≤ L) (hHL : H.relindex L ≠ 0) :
+  H.relindex K ≤ H.relindex L :=
+cardinal.to_nat_le_of_le_of_lt_omega (lt_of_not_ge (mt cardinal.to_nat_apply_of_omega_le hHL))
+  (cardinal.mk_le_of_injective (quotient_subgroup_of_embedding_of_le H hKL).2)
+
 lemma relindex_ne_zero_trans (hHK : H.relindex K ≠ 0) (hKL : K.relindex L ≠ 0) :
   H.relindex L ≠ 0 :=
 λ h, mul_ne_zero (mt (relindex_eq_zero_of_le_right (show K ⊓ L ≤ K, from inf_le_left)) hHK) hKL
@@ -222,6 +231,18 @@ begin
   rw ← relindex_top_right at hH hK ⊢,
   exact relindex_inf_ne_zero hH hK,
 end
+
+lemma relindex_inf_le : (H ⊓ K).relindex L ≤ H.relindex L * K.relindex L :=
+begin
+  by_cases h : H.relindex L = 0,
+  { exact (le_of_eq (relindex_eq_zero_of_le_left (by exact inf_le_left) h)).trans (zero_le _) },
+  rw [←inf_relindex_right, inf_assoc, ←relindex_mul_relindex _ _ L inf_le_right inf_le_right,
+      inf_relindex_right, inf_relindex_right],
+  exact mul_le_mul_right' (relindex_le_of_le_right inf_le_right h) (K.relindex L),
+end
+
+lemma index_inf_le : (H ⊓ K).index ≤ H.index * K.index :=
+by simp_rw [←relindex_top_right, relindex_inf_le]
 
 @[simp] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,

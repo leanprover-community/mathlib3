@@ -30,18 +30,16 @@ noncomputable theory
 open set measure_theory
 open_locale ennreal
 
-variables {α : Type*}
+variables {α : Type*} {mα : measurable_space α} {μ : measure α} {f g : α → ℝ≥0∞} {X Y : α → ℝ}
 
 namespace probability_theory
 
 /-- If a random variable `f` in `ℝ≥0∞` is independent of an event `T`, then if you restrict the
   random variable to `T`, then `E[f * indicator T c 0]=E[f] * E[indicator T c 0]`. It is useful for
   `lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space`. -/
-lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator
-  {Mf : measurable_space α} [M : measurable_space α] {μ : measure α} (hMf : Mf ≤ M)
-  (c : ℝ≥0∞) {T : set α} (h_meas_T : measurable_set T)
-  (h_ind : indep_sets Mf.measurable_set' {T} μ)
-  {f : α → ℝ≥0∞} (h_meas_f : @measurable α ℝ≥0∞ Mf _ f) :
+lemma lintegral_mul_indicator_eq_lintegral_mul_lintegral_indicator {Mf mα : measurable_space α}
+  {μ : measure α} (hMf : Mf ≤ mα) (c : ℝ≥0∞) {T : set α} (h_meas_T : measurable_set T)
+  (h_ind : indep_sets Mf.measurable_set' {T} μ) (h_meas_f : @measurable α ℝ≥0∞ Mf _ f) :
   ∫⁻ a, f a * T.indicator (λ _, c) a ∂μ = ∫⁻ a, f a ∂μ * ∫⁻ a, T.indicator (λ _, c) a ∂μ :=
 begin
   revert f,
@@ -79,8 +77,8 @@ end
    independence. See `lintegral_mul_eq_lintegral_mul_lintegral_of_independent_fn` for
    a more common variant of the product of independent variables. -/
 lemma lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space
-  {Mf Mg : measurable_space α} [M : measurable_space α] {μ : measure α}
-  (hMf : Mf ≤ M) (hMg : Mg ≤ M) (h_ind : indep Mf Mg μ) {f g : α → ℝ≥0∞}
+  {Mf Mg mα : measurable_space α} {μ : measure α}
+  (hMf : Mf ≤ mα) (hMg : Mg ≤ mα) (h_ind : indep Mf Mg μ)
   (h_meas_f : @measurable α ℝ≥0∞ Mf _ f) (h_meas_g : @measurable α ℝ≥0∞ Mg _ g) :
   ∫⁻ a, f a * g a ∂μ = ∫⁻ a, f a ∂μ * ∫⁻ a, g a ∂μ :=
 begin
@@ -109,9 +107,8 @@ end
 
 /-- If `f` and `g` are independent random variables with values in `ℝ≥0∞`,
    then `E[f * g] = E[f] * E[g]`. -/
-lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun [measurable_space α] {μ : measure α}
-  {f g : α → ℝ≥0∞} (h_meas_f : measurable f) (h_meas_g : measurable g)
-  (h_indep_fun : indep_fun f g μ) :
+lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun
+  (h_meas_f : measurable f) (h_meas_g : measurable g) (h_indep_fun : indep_fun f g μ) :
   ∫⁻ a, (f * g) a ∂μ = ∫⁻ a, f a ∂μ * ∫⁻ a, g a ∂μ :=
 lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space
   (measurable_iff_comap_le.1 h_meas_f) (measurable_iff_comap_le.1 h_meas_g) h_indep_fun
@@ -120,9 +117,8 @@ lintegral_mul_eq_lintegral_mul_lintegral_of_independent_measurable_space
 /-- If `f` and `g` with values in `ℝ≥0∞` are independent and almost everywhere measurable,
    then `E[f * g] = E[f] * E[g]` (slightly generalizing
    `lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun`). -/
-lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun' [measurable_space α] {μ : measure α}
-  {f g : α → ℝ≥0∞} (h_meas_f : ae_measurable f μ) (h_meas_g : ae_measurable g μ)
-  (h_indep_fun : indep_fun f g μ) :
+lemma lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun'
+  (h_meas_f : ae_measurable f μ) (h_meas_g : ae_measurable g μ) (h_indep_fun : indep_fun f g μ) :
   ∫⁻ a, (f * g) a ∂μ = ∫⁻ a, f a ∂μ * ∫⁻ a, g a ∂μ :=
 begin
   have fg_ae : f * g =ᵐ[μ] (h_meas_f.mk _) * (h_meas_g.mk _),
@@ -135,9 +131,9 @@ begin
 end
 
 /-- The product of two independent, integrable, real_valued random variables is integrable. -/
-lemma indep_fun.integrable_mul {mα : measurable_space α} {μ : measure α}
-  {β : Type*} {mβ : measurable_space β} [normed_division_ring β] [borel_space β]
-  {X Y : α → β} (hXY : indep_fun X Y μ) (hX : integrable X μ) (hY : integrable Y μ) :
+lemma indep_fun.integrable_mul {β : Type*} {mβ : measurable_space β} {X Y : α → β}
+  [normed_division_ring β] [borel_space β]
+  (hXY : indep_fun X Y μ) (hX : integrable X μ) (hY : integrable Y μ) :
   integrable (X * Y) μ :=
 begin
   let nX : α → ennreal := λ a, ∥X a∥₊,
@@ -162,8 +158,7 @@ end
 /-- The (Bochner) integral of the product of two independent, nonnegative random
   variables is the product of their integrals. The proof is just plumbing around
   `lintegral_mul_eq_lintegral_mul_lintegral_of_indep_fun'`. -/
-lemma indep_fun.integral_mul_of_nonneg [measurable_space α] {μ : measure α} {X Y : α → ℝ}
-  (hXY : indep_fun X Y μ) (hXp : 0 ≤ X) (hYp : 0 ≤ Y)
+lemma indep_fun.integral_mul_of_nonneg (hXY : indep_fun X Y μ) (hXp : 0 ≤ X) (hYp : 0 ≤ Y)
   (hXm : ae_measurable X μ) (hYm : ae_measurable Y μ) :
   integral μ (X * Y) = integral μ X * integral μ Y :=
 begin
@@ -188,8 +183,8 @@ end
   variables is the product of their integrals. The proof is pedestrian decomposition
   into their positive and negative parts in order to apply `indep_fun.integral_mul_of_nonneg`
   four times. -/
-theorem indep_fun.integral_mul_of_integrable [measurable_space α] {μ : measure α} {X Y : α → ℝ}
-  (hXY : indep_fun X Y μ) (hX : integrable X μ) (hY : integrable Y μ) :
+theorem indep_fun.integral_mul_of_integrable (hXY : indep_fun X Y μ)
+  (hX : integrable X μ) (hY : integrable Y μ) :
   integral μ (X * Y) = integral μ X * integral μ Y :=
 begin
   let pos : ℝ → ℝ := (λ x, max x 0),

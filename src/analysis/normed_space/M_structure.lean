@@ -88,7 +88,7 @@ lemma complement_iff {P: R} : is_projection P ↔ is_projection (1-P) :=
 begin
   intros h,
   rw ← sub_sub_cancel 1 P,
-  apply is_projection.complement h,
+  exact is_projection.complement h,
 end ⟩
 
 instance : has_compl (subtype (is_projection  : R → Prop)) :=
@@ -253,7 +253,7 @@ instance : partial_order {P : X →L[𝕜] X // is_Lprojection P} :=
       nth_rewrite_rhs 0 e₁,
       rw [mul_assoc, ← e₂, ← e₁],
     end,
-    apply e₃,
+    exact e₃,
   end,
   le_antisymm := λ P Q,
   begin
@@ -261,7 +261,7 @@ instance : partial_order {P : X →L[𝕜] X // is_Lprojection P} :=
     have e₁: ↑P = ↑P * ↑Q := h₁,
     have e₂: ↑Q = ↑Q * ↑P := h₂,
     have e₃: (↑P:X →L[𝕜] X) = ↑Q := by rw [e₁, commute.eq (Lproj_commute P.prop Q.prop), ← e₂],
-    apply subtype.eq e₃,
+    exact subtype.eq e₃,
   end, }
 
 instance : has_zero {P : X →L[𝕜] X // is_Lprojection P}  :=
@@ -275,8 +275,7 @@ rfl
 instance : has_one {P : X →L[𝕜] X // is_Lprojection P}  :=
 ⟨⟨1, begin
   rw ← sub_zero (1:X →L[𝕜] X),
-  apply is_Lprojection.Lcomplement,
-  apply (0 : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)).prop,
+  exact is_Lprojection.Lcomplement (0 : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)).prop,
 end⟩⟩
 
 @[simp] lemma coe_one : ↑(1 : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) = (1 : X →L[𝕜] X) :=
@@ -287,7 +286,7 @@ instance : bounded_order {P : X →L[𝕜] X // is_Lprojection P} :=
   le_top := λ P,
   begin
     have e: (↑P:X →L[𝕜] X) = ↑P *  1 := by rw mul_one,
-    apply e,
+    exact e,
   end,
   bot := 0,
   bot_le := λ P, show 0 ≤ P, from zero_mul P, }
@@ -320,7 +319,7 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
   begin
     have e: ↑P = ↑P * ↑(P ⊔ Q) := by rw [coe_sup, ← add_sub, mul_add, mul_sub, ← mul_assoc, ← sq,
       projection_def P.prop.left, sub_self, add_zero],
-    apply e,
+    exact e,
   end,
   le_sup_right := λ P Q,
     begin
@@ -330,7 +329,7 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
         ← mul_assoc, ← sq, projection_def Q.prop.left],
       abel,
     end,
-    apply e,
+    exact e,
   end,
   sup_le := λ P Q R,
   begin
@@ -339,19 +338,19 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
     have e₂: ↑Q = ↑Q * ↑R := h₂,
     have e:  ↑(P ⊔ Q) = ↑(P ⊔ Q) * ↑R := by rw [coe_sup, ← add_sub, add_mul, sub_mul, mul_assoc,
        ← e₂, ← e₁],
-    apply e,
+    exact e,
   end,
   inf_le_left := λ P Q,
   begin
     have e: ↑(P ⊓ Q) = ↑(P ⊓ Q) * ↑P := by rw [coe_inf, mul_assoc,
       commute.eq (Lproj_commute Q.prop P.prop), ← mul_assoc, ← sq, (projection_def P.prop.left)],
-    apply e,
+    exact e,
   end,
   inf_le_right := λ P Q,
   begin
     have e: ↑(P ⊓ Q) = ↑(P ⊓ Q) * ↑Q := by
       rw [coe_inf, mul_assoc,  ← sq, (projection_def Q.prop.left)],
-    apply e,
+    exact e,
   end,
   le_inf := λ P Q R,
   begin
@@ -359,9 +358,9 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
     have e₁: ↑P = ↑P * ↑Q := h₁,
     have e: ↑P =  ↑P * ↑(Q ⊓ R) := begin
       rw [coe_inf, ← mul_assoc, ← e₁],
-      apply h₂,
+      exact h₂,
     end,
-    apply e,
+    exact e,
   end,
   le_sup_inf := λ P Q R,
   begin
@@ -377,7 +376,7 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
       compl_mul_left, commute.eq (Lproj_commute Pᶜ.prop (Q⊓R).prop), coe_inf, mul_assoc,
       distrib_lattice_lemma, commute.eq (Lproj_commute Q.prop R.prop), distrib_lattice_lemma],
     have e: ↑((P ⊔ Q) ⊓ (P ⊔ R)) = ↑((P ⊔ Q) ⊓ (P ⊔ R)) * ↑(P ⊔ Q ⊓ R) := by rw [e₂, e₁],
-    apply e,
+    exact e,
   end,
   .. is_Lprojection.subtype.has_inf,
   .. is_Lprojection.subtype.has_sup,

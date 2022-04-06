@@ -1471,6 +1471,10 @@ multiset.subset_of_le (multiset.monotone_filter_right s.val h)
 @[simp, norm_cast] lemma coe_filter (s : finset α) : ↑(s.filter p) = ({x ∈ ↑s | p x} : set α) :=
 set.ext $ λ _, mem_filter
 
+lemma subset_coe_filter_of_subset_forall (s : finset α) {t : set α}
+  (h₁ : t ⊆ s) (h₂ : ∀ x ∈ t, p x) : t ⊆ s.filter p :=
+λ x hx, (s.coe_filter p).symm ▸ ⟨h₁ hx, h₂ x hx⟩
+
 theorem filter_singleton (a : α) : filter p (singleton a) = if p a then singleton a else ∅ :=
 by { classical, ext x, simp, split_ifs with h; by_cases h' : x = a; simp [h, h'] }
 

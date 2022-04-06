@@ -32,7 +32,8 @@ counterparts in [Chou1994].
 
 ## Main definitions
 
-* `simple_graph.walk`
+* `simple_graph.walk` (with accompanying pattern definitions
+  `simple_graph.walk.nil'` and `simple_graph.walk.cons'`)
 
 * `simple_graph.walk.is_trail`, `simple_graph.walk.is_path`, and `simple_graph.walk.is_cycle`.
 
@@ -62,7 +63,10 @@ variables {V : Type u} (G : simple_graph V)
 the type `walk u v` consists of all walks starting at `u` and ending at `v`.
 
 We say that a walk *visits* the vertices it contains.  The set of vertices a
-walk visits is `simple_graph.walk.support`. -/
+walk visits is `simple_graph.walk.support`.
+
+See `simple_graph.walk.nil'` and `simple_graph.walk.cons'` for patterns that
+can be useful in definitions since they make the vertices explicit. -/
 @[derive decidable_eq]
 inductive walk : V → V → Type u
 | nil {u : V} : walk u u
@@ -74,6 +78,13 @@ instance walk.inhabited (v : V) : inhabited (G.walk v v) := ⟨by refl⟩
 
 namespace walk
 variables {G}
+
+/-- Pattern to get `walk.nil` with the vertex as an explicit argument. -/
+@[pattern] abbreviation nil' (u : V) : G.walk u u := walk.nil
+
+/-- Pattern to get `walk.cons` with the vertices as explicit arguments. -/
+@[pattern] abbreviation cons' (u v w : V) (h : G.adj u v) (p : G.walk v w) : G.walk u w :=
+walk.cons h p
 
 lemma exists_eq_cons_of_ne : Π {u v : V} (hne : u ≠ v) (p : G.walk u v),
   ∃ (w : V) (h : G.adj u w) (p' : G.walk w v), p = cons h p'

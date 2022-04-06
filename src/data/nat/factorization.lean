@@ -400,7 +400,7 @@ def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
     { rw nat.mul_div_cancel' hpt, },
     { rw [nat.dvd_div_iff hpt, ←pow_succ', ht],
       exact pow_succ_factorization_not_dvd (k + 1).succ_ne_zero hp },
-    exact htp,
+    { exact htp },
     { apply hk _ (nat.div_lt_of_lt_mul _),
       simp [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne, hp.one_lt] },
     end
@@ -417,17 +417,13 @@ begin
   intros a p n hp' hpa hn hPa,
   by_cases ha1 : a = 1,
   { rw [ha1, mul_one],
-    apply hp p n hp' hn, },
-  apply h (p^n) a
-    (lt_of_lt_of_le (hp'.one_lt) (le_self_pow (le_of_lt (prime.one_lt hp')) (succ_le_iff.mpr hn)))
+    exact hp p n hp' hn },
+  refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow (prime.one_lt hp').le (succ_le_iff.mpr hn)))
     _ _ (hp _ _ hp' hn) hPa,
-  { by_contra,
-    simp only [not_lt] at h,
+  { refine lt_of_not_ge (λ (h : a ≤ 1), _),
     interval_cases a,
-    simp only [dvd_zero, not_true] at hpa,
-    assumption,
-    apply ha1,
-    dec_trivial, },
+    { simpa only [dvd_zero, not_true] using hpa },
+    { contradiction } },
   simpa [hn, prime.coprime_iff_not_dvd hp'],
 end
 

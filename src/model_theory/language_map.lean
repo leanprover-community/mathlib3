@@ -46,6 +46,15 @@ variables {L L'}
 
 namespace Lhom
 
+/-- Defines a map between languages defined with `language.mk₂`. -/
+protected def mk₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
+  (φ₀ : c → L'.constants) (φ₁ : f₁ → L'.functions 1) (φ₂ : f₂ → L'.functions 2)
+  (φ₁' : r₁ → L'.relations 1) (φ₂' : r₂ → L'.relations 2) :
+  language.mk₂ c f₁ f₂ r₁ r₂ →ᴸ L' :=
+⟨λ n, nat.cases_on n φ₀ (λ n, nat.cases_on n φ₁ (λ n, nat.cases_on n φ₂ (λ _, pempty.elim))),
+  λ n, nat.cases_on n pempty.elim
+    (λ n, nat.cases_on n φ₁' (λ n, nat.cases_on n φ₂' (λ _, pempty.elim)))⟩
+
 variables (ϕ : L →ᴸ L')
 
 /-- The identity language homomorphism. -/
@@ -76,6 +85,18 @@ by {cases F with Ff Fr, cases G with Gf Gr, simp only *, exact and.intro h_fun h
 
 instance [L.is_algebraic] [L.is_relational] : unique (L →ᴸ L') :=
 ⟨⟨Lhom.of_is_empty L L'⟩, λ _, Lhom.funext (subsingleton.elim _ _) (subsingleton.elim _ _)⟩
+
+lemma mk₂_funext {c f₁ f₂ : Type u} {r₁ r₂ : Type v} {F G : language.mk₂ c f₁ f₂ r₁ r₂ →ᴸ L'}
+  (h0 : ∀ (c : (language.mk₂ c f₁ f₂ r₁ r₂).constants), F.on_function c = G.on_function c)
+  (h1 : ∀ (f : (language.mk₂ c f₁ f₂ r₁ r₂).functions 1), F.on_function f = G.on_function f)
+  (h2 : ∀ (f : (language.mk₂ c f₁ f₂ r₁ r₂).functions 2), F.on_function f = G.on_function f)
+  (h1' : ∀ (r : (language.mk₂ c f₁ f₂ r₁ r₂).relations 1), F.on_relation r = G.on_relation r)
+  (h2' : ∀ (r : (language.mk₂ c f₁ f₂ r₁ r₂).relations 2), F.on_relation r = G.on_relation r) :
+  F = G :=
+Lhom.funext (funext (λ n, nat.cases_on n (funext h0) (λ n, nat.cases_on n (funext h1)
+      (λ n, nat.cases_on n (funext h2) (λ n, funext (λ f, pempty.elim f))))))
+      (funext (λ n, nat.cases_on n (funext (λ r, pempty.elim r)) (λ n, nat.cases_on n (funext h1')
+      (λ n, nat.cases_on n (funext h2') (λ n, funext (λ r, pempty.elim r))))))
 
 /-- The composition of two language homomorphisms. -/
 @[simps] def comp (g : L' →ᴸ L'') (f : L →ᴸ L') : L →ᴸ L'' :=

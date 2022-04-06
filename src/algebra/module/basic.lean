@@ -371,11 +371,11 @@ end add_comm_group
 
 namespace add_monoid_hom
 
-lemma map_nat_module_smul [add_comm_monoid M] [add_comm_monoid M₂]
+lemma map_nat_module_smul [add_monoid M] [add_monoid M₂]
   (f : M →+ M₂) (x : ℕ) (a : M) : f (x • a) = x • f a :=
 f.map_nsmul a x
 
-lemma map_int_module_smul [add_comm_group M] [add_comm_group M₂]
+lemma map_int_module_smul [add_group M] [add_group M₂]
   (f : M →+ M₂) (x : ℤ) (a : M) : f (x • a) = x • f a :=
 f.map_zsmul a x
 

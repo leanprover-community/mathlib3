@@ -401,6 +401,23 @@ end
 @[simp] lemma abs_cpow_inv_nat (x : ℂ) (n : ℕ) : abs (x ^ (n⁻¹ : ℂ)) = x.abs ^ (n⁻¹ : ℝ) :=
 by rw ← abs_cpow_real; simp [-abs_cpow_real]
 
+lemma abs_cpow_eq_rpow_re_of_pos {x : ℝ} (hx : 0 < x) (y : ℂ) : abs (x ^ y) = x ^ y.re :=
+begin
+  rw [cpow_def_of_ne_zero (of_real_ne_zero.mpr hx.ne'), abs_exp, ←of_real_log hx.le,
+    of_real_mul_re, real.exp_mul, real.exp_log hx],
+end
+
+lemma abs_cpow_eq_rpow_re_of_nonneg {x : ℝ} (hx : 0 ≤ x) {y : ℂ} (hy : re y ≠ 0) :
+  abs (x ^ y) = x ^ y.re :=
+begin
+  rw cpow_def, split_ifs with j1 j2,
+  { rw j2, simp, },
+  { rw of_real_eq_zero at j1, rw [j1, abs_zero, real.zero_rpow hy] },
+  { have : 0 < x := lt_of_le_of_ne hx (ne_comm.mp $ of_real_ne_zero.mp j1),
+    have t := abs_cpow_eq_rpow_re_of_pos this y,
+    rwa cpow_def_of_ne_zero (of_real_ne_zero.mpr this.ne') at t }
+end
+
 end complex
 
 namespace real
@@ -887,11 +904,11 @@ end
 
 /-- The function `x ^ (1 / x)` tends to `1` at `+∞`. -/
 lemma tendsto_rpow_div : tendsto (λ x, x ^ ((1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, ring_nf }
+by { convert tendsto_rpow_div_mul_add (1:ℝ) _ (0:ℝ) zero_ne_one, funext, congr' 2, ring }
 
 /-- The function `x ^ (-1 / x)` tends to `1` at `+∞`. -/
 lemma tendsto_rpow_neg_div : tendsto (λ x, x ^ (-(1:ℝ) / x)) at_top (𝓝 1) :=
-by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, ring_nf }
+by { convert tendsto_rpow_div_mul_add (-(1:ℝ)) _ (0:ℝ) zero_ne_one, funext, congr' 2, ring }
 
 /-- The function `exp(x) / x ^ s` tends to `+∞` at `+∞`, for any real number `s`. -/
 lemma tendsto_exp_div_rpow_at_top (s : ℝ) : tendsto (λ x : ℝ, exp x / x ^ s) at_top at_top :=

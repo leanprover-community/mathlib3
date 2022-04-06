@@ -227,18 +227,18 @@ lemma is_integral_root' (hg : g.monic) : is_integral R (root g) :=
 /-- `adjoin_root.mod_by_monic_hom` sends the equivalence class of `f` mod `g` to `f %ₘ g`.
 
 This is a well-defined right inverse to `adjoin_root.mk`, see `adjoin_root.mk_left_inverse`. -/
-def mod_by_monic_hom [nontrivial R] (hg : g.monic) :
+def mod_by_monic_hom (hg : g.monic) :
   adjoin_root g →ₗ[R] R[X] :=
-(submodule.liftq _ (polynomial.mod_by_monic_hom hg)
+(submodule.liftq _ (polynomial.mod_by_monic_hom g)
   (λ f (hf : f ∈ (ideal.span {g}).restrict_scalars R),
     (mem_ker_mod_by_monic hg).mpr (ideal.mem_span_singleton.mp hf))).comp $
 (submodule.quotient.restrict_scalars_equiv R (ideal.span {g} : ideal R[X]))
   .symm.to_linear_map
 
-@[simp] lemma mod_by_monic_hom_mk [nontrivial R] (hg : g.monic) (f : R[X]) :
+@[simp] lemma mod_by_monic_hom_mk (hg : g.monic) (f : R[X]) :
   mod_by_monic_hom hg (mk g f) = f %ₘ g := rfl
 
-lemma mk_left_inverse [nontrivial R] (hg : g.monic) :
+lemma mk_left_inverse (hg : g.monic) :
   function.left_inverse (mk g) (mod_by_monic_hom hg) :=
 λ f, induction_on g f $ λ f, begin
   rw [mod_by_monic_hom_mk hg, mk_eq_mk, mod_by_monic_eq_sub_mul_div _ hg,
@@ -246,12 +246,12 @@ lemma mk_left_inverse [nontrivial R] (hg : g.monic) :
   apply dvd_mul_right
 end
 
-lemma mk_surjective [nontrivial R] (hg : g.monic) : function.surjective (mk g) :=
+lemma mk_surjective (hg : g.monic) : function.surjective (mk g) :=
 (mk_left_inverse hg).surjective
 
 /-- The elements `1, root g, ..., root g ^ (d - 1)` form a basis for `adjoin_root g`,
 where `g` is a monic polynomial of degree `d`. -/
-@[simps] def power_basis_aux' [nontrivial R] (hg : g.monic) :
+@[simps] def power_basis_aux' (hg : g.monic) :
   basis (fin g.nat_degree) R (adjoin_root g) :=
 basis.of_equiv_fun
 { to_fun := λ f i, (mod_by_monic_hom hg f).coeff i,
@@ -265,6 +265,7 @@ basis.of_equiv_fun
          rw [mod_by_monic_eq_sub_mul_div _ hg, sub_sub_cancel],
          exact dvd_mul_right _ _ }),
   right_inv := λ x, funext $ λ i, begin
+    nontriviality R,
     simp only [mod_by_monic_hom_mk],
     rw [(mod_by_monic_eq_self_iff hg).mpr, finset_sum_coeff, finset.sum_eq_single i];
       try { simp only [coeff_monomial, eq_self_iff_true, if_true] },
@@ -279,8 +280,7 @@ basis.of_equiv_fun
 
 /-- The power basis `1, root g, ..., root g ^ (d - 1)` for `adjoin_root g`,
 where `g` is a monic polynomial of degree `d`. -/
-@[simps] def power_basis' [nontrivial R] (hg : g.monic) :
-  power_basis R (adjoin_root g) :=
+@[simps] def power_basis' (hg : g.monic) : power_basis R (adjoin_root g) :=
 { gen := root g,
   dim := g.nat_degree,
   basis := power_basis_aux' hg,

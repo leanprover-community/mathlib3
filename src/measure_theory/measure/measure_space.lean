@@ -415,7 +415,7 @@ begin
     ← measure_diff (Inter_subset _ k) (measurable_set.Inter h) (this _ (Inter_subset _ k)),
     diff_Inter, measure_Union_eq_supr],
   { congr' 1,
-    refine le_antisymm (supr_le_supr2 $ λ i, _) (supr_le_supr $ λ i, _),
+    refine le_antisymm (supr_mono' $ λ i, _) (supr_mono $ λ i, _),
     { rcases hd i k with ⟨j, hji, hjk⟩,
       use j,
       rw [← measure_diff hjk (h _) (this _ hjk)],
@@ -837,6 +837,9 @@ instance [measurable_space α] : complete_lattice (measure α) :=
   .. complete_lattice_of_complete_semilattice_Inf (measure α) }
 
 end Inf
+
+@[simp] lemma top_add : ⊤ + μ = ⊤ := top_unique $ measure.le_add_right le_rfl
+@[simp] lemma add_top : μ + ⊤ = ⊤ := top_unique $ measure.le_add_left le_rfl
 
 protected lemma zero_le {m0 : measurable_space α} (μ : measure α) : 0 ≤ μ := bot_le
 

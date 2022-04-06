@@ -353,6 +353,14 @@ subsingleton.elim _ _
   left_inv := λ f, ext _ _ rfl,
   right_inv := λ f, ext _ _ rfl }
 
+@[simp] lemma dual_id : (order_hom.id : α →o α).dual = order_hom.id := rfl
+@[simp] lemma dual_comp (g : β →o γ) (f : α →o β) : (g.comp f).dual = g.dual.comp f.dual := rfl
+
+@[simp] lemma symm_dual_id : order_hom.dual.symm order_hom.id = (order_hom.id : α →o α) := rfl
+@[simp] lemma symm_dual_comp (g : order_dual β →o order_dual γ)
+  (f : order_dual α →o order_dual β) :
+  order_hom.dual.symm (g.comp f) = (order_hom.dual.symm g).comp (order_hom.dual.symm f) := rfl
+
 /-- `order_hom.dual` as an order isomorphism. -/
 def dual_iso (α β : Type*) [preorder α] [preorder β] :
   (α →o β) ≃o order_dual (order_dual α →o order_dual β) :=

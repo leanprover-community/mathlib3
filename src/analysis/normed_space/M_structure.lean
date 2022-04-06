@@ -381,20 +381,14 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
 
 instance : boolean_algebra {P : X →L[𝕜] X // is_Lprojection P} :=
 { sup_inf_sdiff := λ P Q,
-  subtype.eq
-  begin
-    simp only [subtype.val_eq_coe, coe_sup, coe_inf, coe_sdiff],
-    rw [mul_assoc, ← mul_assoc ↑Q, commute.eq (Lproj_commute Q.prop P.prop), mul_assoc ↑P ↑Q,
+  subtype.eq (by rw [subtype.val_eq_coe, coe_sup, coe_inf, coe_sdiff, subtype.val_eq_coe,
+    mul_assoc, ← mul_assoc ↑Q, commute.eq (Lproj_commute Q.prop P.prop), mul_assoc ↑P ↑Q,
       ← coe_compl, compl_orthog, mul_zero, mul_zero, sub_zero, ← mul_add, coe_compl,
-      add_sub_cancel'_right, mul_one],
-  end,
+      add_sub_cancel'_right, mul_one]),
   inf_inf_sdiff := λ P Q,
-  subtype.eq
-  begin
-    simp only [subtype.val_eq_coe, coe_inf, coe_sdiff, coe_bot],
-    rw [mul_assoc, ← mul_assoc ↑Q, commute.eq (Lproj_commute Q.prop P.prop), ← coe_compl, mul_assoc,
-      compl_orthog, mul_zero, mul_zero],
-  end,
+  subtype.eq (by rw [subtype.val_eq_coe, coe_inf, coe_inf, coe_sdiff, subtype.val_eq_coe, coe_bot,
+    mul_assoc, ← mul_assoc ↑Q, commute.eq (Lproj_commute Q.prop P.prop), ← coe_compl, mul_assoc,
+    compl_orthog, mul_zero, mul_zero]),
   inf_compl_le_bot := λ P,
   eq.le
   ( subtype.eq (by rw [subtype.val_eq_coe, coe_inf, coe_compl, subtype.val_eq_coe, coe_bot,

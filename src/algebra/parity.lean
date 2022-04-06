@@ -96,8 +96,8 @@ lemma is_square_op_iff (a : α) : is_square (op a) ↔ is_square a :=
 begin
   refine ⟨λ h, _, λ h, _⟩,
   { rw [← is_square_op_iff, ← inv_inv a],
-    exact is_square.map (mul_equiv.inv' α) h },
-  { exact is_square.map (mul_equiv.inv' α).symm ((is_square_op_iff a).mpr h) }
+    exact h.map (mul_equiv.inv' α) },
+  { exact ((is_square_op_iff a).mpr h).map (mul_equiv.inv' α).symm }
 end
 
 end group
@@ -129,10 +129,10 @@ by { ext x, simp [eq_comm, two_mul, even] }
 @[simp] lemma even_two : even (2 : α) := ⟨1, rfl⟩
 
 @[simp] lemma even.mul_left (hm : even m) (n) : even (n * m) :=
-even.map (add_monoid_hom.mul_left n) hm
+hm.map (add_monoid_hom.mul_left n)
 
 @[simp] lemma even.mul_right (hm : even m) (n) : even (m * n) :=
-even.map (add_monoid_hom.mul_right n) hm
+hm.map (add_monoid_hom.mul_right n)
 
 lemma even_two_mul (m : α) : even (2 * m) := ⟨m, two_mul _⟩
 

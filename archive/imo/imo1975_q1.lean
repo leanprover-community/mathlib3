@@ -38,9 +38,7 @@ begin
   simp only [sub_sq, finset.sum_add_distrib, finset.sum_sub_distrib],
   -- a finite sum is invariant if we permute the order of summation
   have hσy : ∑ (i : ℕ) in finset.Icc 1 n, y i ^ 2 = ∑ (i : ℕ) in finset.Icc 1 n, y (σ i) ^ 2,
-  { conv_lhs { rw ← finset.map_perm hσ },
-    rw finset.sum_map (finset.Icc 1 n) (σ : ℕ ↪ ℕ) _,
-    congr },
+  { rw ← equiv.perm.sum_comp σ (finset.Icc 1 n) _ hσ },
   -- let's cancel terms appearing on both sides
   norm_num [hσy, mul_assoc, ← finset.mul_sum],
   -- what's left to prove is a version of the rearrangement inequality

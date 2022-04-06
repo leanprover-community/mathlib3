@@ -318,7 +318,8 @@ end
   (Wielandt, th. 9.1, 1st part)-/
 theorem stabilizer.is_multiply_pretransitive
   (hα' : is_pretransitive M α)
-  {n : ℕ} (hα : ↑n ≤ #α) (a : α) /- (hα : card_ge α n.succ) -/  :
+  {n : ℕ} (a : α) :
+  -- (hα0 : ↑n ≤ #α) /- (hα : card_ge α n.succ) -/  :
   is_multiply_pretransitive M α n.succ ↔
   is_multiply_pretransitive (stabilizer M a) (sub_mul_action_of_stabilizer M α a) n :=
 begin
@@ -510,6 +511,29 @@ begin
   exact hcx,
 end }
 
+
+
+def example' {s : set α} : mul_action (fixing_subgroup M s) α :=
+infer_instance
+
+#print example'
+#check example'
+
+/- {
+one_smul := λ b, {by infer_instance }
+mul_smul := begin sorry end
+
+
+}
+lemma example {s t : set α} : fixing_subgroup M (s ∪ t) =
+  fixing_subgroup (fixing_subgroup M s) t :=
+begin
+sorry
+end
+
+-/
+
+
 /-
 lemma aux_nat : ∀ {d n i : ℕ} (h : d ≤ n) (hi : i < n) (hi' : ¬(i < n-d)),
   i - (n - d) < d :=
@@ -527,7 +551,8 @@ end
 /-- The fixator of a subset of cardinal d in a k-transitive action
 acts (k-d) transitively on the remaining -/
 lemma remaining_transitivity (d : ℕ) (s : set α) (hs : ↑d = #s)
-  (n : ℕ) (hα : ↑n ≤ #α) (h : is_multiply_pretransitive M α n) :
+  (n : ℕ) -- (hα : ↑n ≤ #α)
+  (h : is_multiply_pretransitive M α n) :
   is_multiply_pretransitive (fixing_subgroup M s) (sub_mul_action_of_fixing_subgroup M α s) (n-d) :=
 begin
   cases le_total d n with hdn hnd,
@@ -683,6 +708,29 @@ begin
   exact embedding_like.injective x,
 end
 
+lemma unnamed_iff {G : Type*} [G : subgroup (equiv.perm α)]
+  (hmt : is_multiply_pretransitive ↥G α (fintype.card α)) :
+  G = ⊤ :=
+begin
+  rw eq_top_iff, intros k _,
+  obtain ⟨x⟩ := gimme_some (le_of_eq (cardinal.mk_fintype α).symm),
+  let hmt_eq := hmt.exists_smul_eq,
+  obtain ⟨g, hg⟩ := hmt_eq x (k • x),
+  suffices : k = g, { rw this, exact set_like.coe_mem g },
+  apply equiv.perm.ext, intro a,
+  suffices : ∃ i, a = x i,
+  { obtain ⟨i, hi⟩ := this, rw hi,
+    have : (g • x) i = (k • x) i, { exact congr_fun (congr_arg coe_fn hg) i, },
+    simp only [function.embedding.smul_apply, equiv.perm.smul_def] at this,
+    rw ← this,
+    refl },
+  suffices : function.surjective x.to_fun,
+  { obtain ⟨i,hi⟩ := this a, exact ⟨i, hi.symm⟩ },
+  suffices : function.bijective x.to_fun, exact this.right,
+  rw fintype.bijective_iff_injective_and_card,
+  exact ⟨embedding_like.injective x, fintype.card_fin (fintype.card α)⟩
+end
+
 lemma unnamed' [fintype α] :
   mul_action.is_multiply_pretransitive (alternating_group α) α (fintype.card α - 2) :=
 begin
@@ -766,6 +814,71 @@ begin
 end
 
 end finite_groups
+
+section MultiplePrimitivity
+
+namespace mul_action
+
+variables (M α : Type*) [group M] [mul_action M α]
+
+def is_multiply_preprimitive (n : ℕ) :=
+  is_multiply_pretransitive M α n ∧
+  (∀ (s : set α) (hs : #s = ↑(n - 1)),
+    is_preprimitive (fixing_subgroup M s)
+      (sub_mul_action_of_fixing_subgroup M α s))
+
+/-- The fixator of a subset of cardinal d in a k-primitive action
+acts (k-d) primitively on the remaining -/
+lemma remaining_primitivity (d : ℕ) (s : set α) (hs : ↑d = #s)
+  (n : ℕ)
+  (h : is_multiply_preprimitive M α n) :
+  is_multiply_preprimitive (fixing_subgroup M s) (sub_mul_action_of_fixing_subgroup M α s) (n-d) :=
+sorry
+
+lemma is_multiply_preprimitive_of_higher {n : ℕ}
+  {m : ℕ} (hmn : m ≤ n) (hα : ↑n ≤ #α)
+  (hn : is_multiply_preprimitive M α n) :
+  is_multiply_preprimitive M α m :=
+begin
+--  is_preprimitive (mul_action.stabilizer M a) (sub_mul_action_of_stabilizer M α a)
+  split,
+  apply is_multiply_pretransitive_of_higher M α hn.left hmn hα,
+  intros s hs,
+
+  sorry
+end
+
+theorem stabilizer.is_multiply_preprimitive'
+  (hα' : is_preprimitive M α)
+  {n : ℕ} (a : α) :
+  -- (hα0 : ↑n ≤ #α) /- (hα : card_ge α n.succ) -/  :
+  is_multiply_preprimitive M α n.succ ↔
+  is_multiply_preprimitive (stabilizer M a) (sub_mul_action_of_stabilizer M α a) n :=
+begin
+  split,
+  { intros h,
+    split,
+    rw ← stabilizer.is_multiply_pretransitive M α hα'.to_is_pretransitive,
+    exact h.left,
+    intros s hs,
+
+
+
+   sorry, },
+  sorry,
+
+end
+
+lemma is_multiply_preprimitive_of_higher  {n : ℕ}
+  (hn : is_multiply_preprimitive M α n) {m : ℕ} (hmn : m ≤ n)
+  (hα : ↑n ≤ #α) :
+  is_multiply_preprimitive M α m := sorry
+
+lemma is_preprimitive_iff_is_one_preprimitive :
+  is_preprimitive M α ↔ is_multiply_preprimitive M α 1 :=
+
+theorem is_multiply_preprimitive_of_fixator {n d : ℕ} {s : finset α} (hs : fintype.card s = d)
+  (hα : is_multiply_preprimitive M α n) : is_multiply_preprimitive (fixed_by M s)
 
 #exit
 

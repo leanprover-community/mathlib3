@@ -33,34 +33,28 @@ p.coeff m * q.coeff (n - 1) + p.coeff (m - 1) * q.coeff n
 
 namespace ptl
 
-@[simp] lemma zero_left :
-  ptl m n 0 q = 0 :=
+@[simp] lemma zero_left : ptl m n 0 q = 0 :=
 by simp [ptl]
 
-@[simp] lemma zero_right :
-  ptl m n p 0 = 0 :=
+@[simp] lemma zero_right : ptl m n p 0 = 0 :=
 by simp [ptl]
 
-@[simp] lemma add_left :
-  ptl m n (p + r) q = ptl m n p q + ptl m n r q :=
+@[simp] lemma add_left : ptl m n (p + r) q = ptl m n p q + ptl m n r q :=
 begin
   rw [ptl, ptl, ptl, coeff_add, coeff_add, add_mul, add_mul],
   abel
 end
 
-@[simp] lemma add_right :
-  ptl m n p (q + r) = ptl m n p q + ptl m n p r :=
+@[simp] lemma add_right : ptl m n p (q + r) = ptl m n p q + ptl m n p r :=
 begin
   rw [ptl, ptl, ptl, coeff_add, coeff_add, mul_add, mul_add],
   abel
 end
 
-@[simp] lemma C_mul_left :
-  ptl m n (C a * p) q = a * ptl m n p q :=
+@[simp] lemma C_mul_left : ptl m n (C a * p) q = a * ptl m n p q :=
 by simp only [ptl, mul_add, mul_assoc, coeff_C_mul]
 
-@[simp] lemma C_mul_right :
-  ptl m n p (q * C a) = ptl m n p q * a:=
+@[simp] lemma C_mul_right : ptl m n p (q * C a) = ptl m n p q * a:=
 by simp only [ptl, add_mul, mul_assoc, coeff_mul_C]
 
 @[simp] lemma mul_X_left (p : R[X]) (m0 : m ≠ 0) :
@@ -78,15 +72,15 @@ begin
   repeat { exact nat.one_le_iff_ne_zero.mpr n0 }
 end
 
-@[simp] lemma mul_X_pow_left (m0 : m ≠ 0) : ∀ a : ℕ,
-  ptl (m + a) n (p * X ^ a) q = ptl m n p q
+@[simp] lemma mul_X_pow_left (m0 : m ≠ 0) :
+  ∀ a : ℕ, ptl (m + a) n (p * X ^ a) q = ptl m n p q
 | 0       := by rw [add_zero, pow_zero, mul_one]
 | (a + 1) := by { rw [pow_add, ← mul_assoc, pow_one, ← add_assoc, mul_X_left],
                   { exact mul_X_pow_left _ },
                   { exact (nat.add_pos_left (nat.one_le_iff_ne_zero.mpr m0) _).ne' } }
 
-@[simp] lemma mul_X_pow_right (n0 : n ≠ 0) : ∀ a : ℕ,
-  ptl m (n + a) p (q * X ^ a) = ptl m n p q
+@[simp] lemma mul_X_pow_right (n0 : n ≠ 0) :
+  ∀ a : ℕ, ptl m (n + a) p (q * X ^ a) = ptl m n p q
 | 0       := by rw [add_zero, pow_zero, mul_one]
 | (a + 1) := by { rw [pow_add, ← mul_assoc, pow_one, ← add_assoc, mul_X_right],
                   { exact mul_X_pow_right _ },

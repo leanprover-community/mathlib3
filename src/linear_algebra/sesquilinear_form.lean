@@ -478,8 +478,6 @@ lemma is_pair_self_adjoint_equiv (e : M₁ ≃ₗ[R] M) (f : module.End R M) :
   is_pair_self_adjoint B F f ↔
     is_pair_self_adjoint (B.compl₁₂ ↑e ↑e) (F.compl₁₂ ↑e ↑e) (e.symm.conj f) :=
 begin
-  --dunfold is_pair_self_adjoint,
-  --simp_rw is_adjoint_pair_iff_comp_eq_compl₂,
   have hₗ : (F.compl₁₂ (↑e : M₁ →ₗ[R] M) (↑e : M₁ →ₗ[R] M)).comp (e.symm.conj f) =
     (F.comp f).compl₁₂ (↑e : M₁ →ₗ[R] M) (↑e : M₁ →ₗ[R] M) :=
   by { ext, simp only [linear_equiv.symm_conj_apply, coe_comp, linear_equiv.coe_coe, compl₁₂_apply,
@@ -488,20 +486,9 @@ begin
     (B.compl₂ f).compl₁₂ (↑e : M₁ →ₗ[R] M) (↑e : M₁ →ₗ[R] M) :=
   by { ext, simp only [linear_equiv.symm_conj_apply, compl₂_apply, coe_comp, linear_equiv.coe_coe,
       compl₁₂_apply, linear_equiv.apply_symm_apply] },
+  have he : function.surjective (⇑(↑e : M₁ →ₗ[R] M) : M₁ → M) := e.surjective,
   simp_rw [is_pair_self_adjoint, is_adjoint_pair_iff_comp_eq_compl₂, hₗ, hᵣ,
     compl₁₂_injective he he],
-  --by { ext, squeeze_simp [linear_equiv.conj_apply], },
-  /-
-  have hₗ : (F.compl₁₂ (↑e : M₁ →ₗ[R] M) (↑e : M₁ →ₗ[R] M)).comp (e.symm.conj f) =
-    (F.comp f).compl₁₂ (↑e : M₁ →ₗ[R] M) (↑e : M₁ →ₗ[R] M) :=
-  by { ext, simp only [linear_equiv.symm_conj_apply, coe_comp, linear_equiv.coe_coe, compl₁₂_apply,
-    linear_equiv.apply_symm_apply], },-/
-  --have he : function.surjective (⇑(↑e : M₁ →ₗ[R] M) : M₁ → M) := e.surjective,
-  --rw hₗ,
-  /-show linear_map.is_adjoint_pair _ _ _ _  ↔ linear_map.is_adjoint_pair _ _ _ _,
-  rw [is_adjoint_pair_iff_comp_left_eq_comp_right, is_adjoint_pair_iff_comp_left_eq_comp_right,
-      hᵣ, hₗ, comp_injective _ _ he he],-/
-  sorry,
 end
 
 /-- An endomorphism of a module is skew-adjoint with respect to a bilinear form if its negation
@@ -531,9 +518,6 @@ by { rw is_skew_adjoint_iff_neg_self_adjoint, exact iff.rfl, }
 end add_comm_group
 
 end selfadjoint_pair
-
-#exit
-
 
 /-! ### Nondegenerate bilinear forms -/
 

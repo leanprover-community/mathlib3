@@ -158,10 +158,8 @@ begin
   nth_rewrite_rhs 0 ← add_zero (∥Q x∥) at e1,
   rw [add_le_add_iff_left, two_smul,  ← two_mul]  at e1,
   rw le_antisymm_iff,
-  split,
-  { rw ← mul_zero (2:ℝ) at e1,
-    rw mul_le_mul_left at e1, exact e1, norm_num, },
-  { apply norm_nonneg, }
+  refine ⟨_, norm_nonneg _⟩,
+  rwa [←mul_zero (2:ℝ), mul_le_mul_left (show (0:ℝ) < 2, by norm_num)] at e1
 end
 
 lemma QP_eq_QPQ (P Q : X →L[𝕜] X) (h₁: is_Lprojection P) (h₂: is_Lprojection Q) : Q * P = Q * P * Q

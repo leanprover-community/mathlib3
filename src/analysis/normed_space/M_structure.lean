@@ -381,25 +381,23 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
 
 instance : boolean_algebra {P : X →L[𝕜] X // is_Lprojection P} :=
 { sup_inf_sdiff := λ P Q,
-  subtype.eq (by rw [subtype.val_eq_coe, coe_sup, coe_inf, coe_sdiff, subtype.val_eq_coe,
-    mul_assoc, ← mul_assoc ↑Q, commute.eq (Lproj_commute Q.prop P.prop), mul_assoc ↑P ↑Q,
-      ← coe_compl, compl_orthog, mul_zero, mul_zero, sub_zero, ← mul_add, coe_compl,
-      add_sub_cancel'_right, mul_one]),
+  subtype.ext (by rw [coe_sup, coe_inf, coe_sdiff, mul_assoc, ← mul_assoc ↑Q,
+    commute.eq (Lproj_commute Q.prop P.prop), mul_assoc ↑P ↑Q, ← coe_compl, compl_orthog, mul_zero,
+    mul_zero, sub_zero, ← mul_add, coe_compl, add_sub_cancel'_right, mul_one]),
   inf_inf_sdiff := λ P Q,
-  subtype.eq (by rw [subtype.val_eq_coe, coe_inf, coe_inf, coe_sdiff, subtype.val_eq_coe, coe_bot,
-    mul_assoc, ← mul_assoc ↑Q, commute.eq (Lproj_commute Q.prop P.prop), ← coe_compl, mul_assoc,
-    compl_orthog, mul_zero, mul_zero]),
+  subtype.ext (by rw [coe_inf, coe_inf, coe_sdiff, coe_bot, mul_assoc, ← mul_assoc ↑Q,
+    commute.eq (Lproj_commute Q.prop P.prop), ← coe_compl, mul_assoc, compl_orthog, mul_zero,
+    mul_zero]),
   inf_compl_le_bot := λ P,
   eq.le
-  ( subtype.eq (by rw [subtype.val_eq_coe, coe_inf, coe_compl, subtype.val_eq_coe, coe_bot,
-    ← coe_compl, compl_orthog])),
+  ( subtype.ext (by rw [coe_inf, coe_compl, coe_bot, ← coe_compl, compl_orthog])),
   top_le_sup_compl := λ P,
   eq.le
-  ( subtype.eq (by rw [subtype.val_eq_coe, coe_top, subtype.val_eq_coe, coe_sup, coe_compl,
+  ( subtype.ext (by rw [coe_top, coe_sup, coe_compl,
     add_sub_cancel'_right, ← coe_compl, compl_orthog, sub_zero])),
   sdiff_eq := λ P Q,
-  subtype.eq
-  (by rw [subtype.val_eq_coe, coe_sdiff, ← coe_compl, subtype.val_eq_coe, coe_inf]),
+  subtype.ext
+  (by rw [coe_sdiff, ← coe_compl, coe_inf]),
   .. is_Lprojection.subtype.has_compl,
   .. is_Lprojection.subtype.has_sdiff,
   .. is_Lprojection.subtype.bounded_order,

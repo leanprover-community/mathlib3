@@ -96,6 +96,11 @@ lemma tendsto_uniformly_iff_tendsto {F : ι → α → β} {f : α → β} {p : 
   tendsto_uniformly F f p ↔ tendsto (λ q : ι × α, (f q.2, F q.1 q.2)) (p ×ᶠ ⊤) (𝓤 β) :=
 forall₂_congr $ λ u u_in, by simp [mem_map, filter.eventually, mem_prod_top]
 
+/-- Uniform converence implies pointwise convergence. -/
+lemma tendsto_uniformly.tendsto_at (h : tendsto_uniformly F f p) (x : α) :
+  tendsto (λ n, F n x) p $ 𝓝 (f x) :=
+uniform.tendsto_nhds_right.mpr $ λ u hu, mem_map.mpr $ by { filter_upwards [h u hu], tauto, }
+
 lemma tendsto_uniformly_on_univ :
   tendsto_uniformly_on F f p univ ↔ tendsto_uniformly F f p :=
 by simp [tendsto_uniformly_on, tendsto_uniformly]
@@ -226,6 +231,19 @@ begin
     exact ⟨u ∩ s,
            mem_nhds_within_iff_exists_mem_nhds_inter.mpr ⟨u, hu₁, rfl.subset⟩,
            ht₂.mono (λ i hi y hy, hi y hy.2 (hu₂ (by simp [hy.1])))⟩, },
+end
+
+lemma tendsto_locally_uniformly_iff_forall_tendsto :
+  tendsto_locally_uniformly F f p ↔
+  ∀ x, tendsto (λ (y : ι × α), (f y.2, F y.1 y.2)) (p ×ᶠ (𝓝 x)) (𝓤 β) :=
+begin
+  simp only [tendsto_locally_uniformly, filter.forall_in_swap, tendsto_def, mem_prod_iff,
+    set.prod_subset_iff],
+  refine forall₃_congr (λ x u hu, ⟨_, _⟩),
+  { rintros ⟨n, hn, hp⟩,
+    exact ⟨_, hp, n, hn, λ i hi a ha, hi a ha⟩, },
+  { rintros ⟨I, hI, n, hn, hu⟩,
+    exact ⟨n, hn, by filter_upwards [hI] using hu⟩, },
 end
 
 protected lemma tendsto_uniformly_on.tendsto_locally_uniformly_on

@@ -963,6 +963,15 @@ theorem exists_swap {p : α → β → Prop} : (∃ x y, p x y) ↔ ∃ y x, p x
 theorem exists_imp_distrib : ((∃ x, p x) → b) ↔ ∀ x, p x → b :=
 forall_exists_index
 
+section dependent
+
+lemma forall₂_swap {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₁ → Sort*}
+  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Prop} :
+  (∀ i₁ j₁ i₂ j₂, p i₁ j₁ i₂ j₂) ↔ ∀ i₂ j₂ i₁ j₁, p i₁ j₁ i₂ j₂ :=
+⟨λ h i₂ j₂ i₁ j₁, h i₁ j₁ i₂ j₂, λ h i₁ j₁ i₂ j₂, h i₂ j₂ i₁ j₁⟩
+
+end dependent
+
 /--
 Extract an element from a existential statement, using `classical.some`.
 -/

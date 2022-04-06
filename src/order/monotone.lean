@@ -127,6 +127,18 @@ protected lemma antitone.dual_left (hf : antitone f) : monotone (f ∘ of_dual) 
 protected lemma antitone.dual_right (hf : antitone f) : monotone (to_dual ∘ f) :=
 λ a b h, hf h
 
+@[simp] lemma antitone_to_dual_comp_iff : antitone (to_dual ∘ f) ↔ monotone f :=
+iff.rfl
+
+@[simp] lemma monotone_comp_of_dual_iff : monotone (f ∘ of_dual) ↔ antitone f :=
+forall_swap
+
+@[simp] lemma monotone_to_dual_comp_iff : monotone (to_dual ∘ f) ↔ antitone f :=
+iff.rfl
+
+@[simp] lemma antitone_comp_of_dual_iff : antitone (f ∘ of_dual) ↔ monotone f :=
+forall_swap
+
 protected theorem monotone_on.dual (hf : monotone_on f s) : monotone_on (to_dual ∘ f ∘ of_dual) s :=
 λ a ha b hb, hf hb ha
 
@@ -145,6 +157,24 @@ protected lemma antitone_on.dual_left (hf : antitone_on f s) : monotone_on (f �
 protected lemma antitone_on.dual_right (hf : antitone_on f s) : monotone_on (to_dual ∘ f) s :=
 λ a ha b hb, hf ha hb
 
+@[simp] lemma antitone_on_to_dual_comp_iff : antitone_on (to_dual ∘ f) s ↔ monotone_on f s :=
+iff.rfl
+
+@[simp] lemma monotone_on_comp_of_dual_iff : monotone_on (f ∘ of_dual) s ↔ antitone_on f s :=
+-- forall₂_swap
+begin
+split; exact λ hf a ha b hb h, hf hb ha h
+end
+
+@[simp] lemma monotone_on_to_dual_comp_iff : monotone_on (to_dual ∘ f) s ↔ antitone_on f s :=
+iff.rfl
+
+@[simp] lemma antitone_on_comp_of_dual_iff : antitone_on (f ∘ of_dual) s ↔ monotone_on f s :=
+-- forall₂_swap
+begin
+split; exact λ hf a ha b hb h, hf hb ha h
+end
+
 protected theorem strict_mono.dual (hf : strict_mono f) : strict_mono (to_dual ∘ f ∘ of_dual) :=
 λ a b h, hf h
 
@@ -162,6 +192,18 @@ protected lemma strict_anti.dual_left (hf : strict_anti f) : strict_mono (f ∘ 
 
 protected lemma strict_anti.dual_right (hf : strict_anti f) : strict_mono (to_dual ∘ f) :=
 λ a b h, hf h
+
+@[simp] lemma strict_anti_to_dual_comp_iff : strict_anti (to_dual ∘ f) ↔ strict_mono f :=
+iff.rfl
+
+@[simp] lemma strict_mono_comp_of_dual_iff : strict_mono (f ∘ of_dual) ↔ strict_anti f :=
+forall_swap
+
+@[simp] lemma strict_mono_to_dual_comp_iff : strict_mono (to_dual ∘ f) ↔ strict_anti f :=
+iff.rfl
+
+@[simp] lemma strict_anti_comp_of_dual_iff : strict_anti (f ∘ of_dual) ↔ strict_mono f :=
+forall_swap
 
 protected theorem strict_mono_on.dual (hf : strict_mono_on f s) :
   strict_mono_on (to_dual ∘ f ∘ of_dual) s :=
@@ -186,6 +228,24 @@ protected lemma strict_anti_on.dual_left (hf : strict_anti_on f s) :
 protected lemma strict_anti_on.dual_right (hf : strict_anti_on f s) :
   strict_mono_on (to_dual ∘ f) s :=
 λ a ha b hb, hf ha hb
+
+@[simp] lemma strict_anti_on_to_dual_comp_iff : strict_anti_on (to_dual ∘ f) s ↔ strict_mono_on f s :=
+iff.rfl
+
+@[simp] lemma strict_mono_on_comp_of_dual_iff : strict_mono_on (f ∘ of_dual) s ↔ strict_anti_on f s :=
+-- forall₂_swap
+begin
+split; exact λ hf a ha b hb h, hf hb ha h
+end
+
+@[simp] lemma strict_mono_on_to_dual_comp_iff : strict_mono_on (to_dual ∘ f) s ↔ strict_anti_on f s :=
+iff.rfl
+
+@[simp] lemma strict_anti_on_comp_of_dual_iff : strict_anti_on (f ∘ of_dual) s ↔ strict_mono_on f s :=
+-- forall₂_swap
+begin
+split; exact λ hf a ha b hb h, hf hb ha h
+end
 
 end order_dual
 

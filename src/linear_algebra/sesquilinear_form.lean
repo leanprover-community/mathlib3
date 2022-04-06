@@ -163,6 +163,28 @@ lemma eq_zero : ∀ {x y}, B x y = 0 → B y x = 0 := λ x y, H x y
 
 lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
 
+lemma dom_restrict_refl (H : B.is_refl) (p : submodule R₁ M₁) : (B.dom_restrict₁₂ p p).is_refl :=
+begin
+  intros x y,
+  simp_rw dom_restrict₁₂_apply,
+  exact H x y,
+end
+
+lemma ker_eq_bot_iff_ker_flip_eq_bot (H : B.is_refl) : B.ker = ⊥ ↔ B.flip.ker = ⊥ :=
+begin
+  repeat {rw linear_map.ker_eq_bot'},
+  simp_rw fun_like.ext_iff,
+  simp,
+  split;
+  { intros h m hx,
+    apply h,
+    intro x,
+    specialize hx x,
+    rw eq_zero,
+    exact H,
+    exact hx },
+end
+
 end is_refl
 end reflexive
 
@@ -428,31 +450,31 @@ section comm_ring
 variables [comm_ring R] [add_comm_group M] [module R M]
   {I I' : R →+* R}
 
-lemma is_symm.nondegenerate_of_separating_left {B : M →ₗ[R] M →ₗ[R] R}
-  (hB : B.is_symm) (hB' : B.separating_left) : B.nondegenerate :=
+lemma is_refl.nondegenerate_of_separating_left {B : M →ₗ[R] M →ₗ[R] R}
+  (hB : B.is_refl) (hB' : B.separating_left) : B.nondegenerate :=
 begin
   refine ⟨hB', _⟩,
-  rw [is_symm_iff_eq_flip.mp hB, flip_separating_right],
-  exact hB',
+  rw [separating_right_iff_flip_ker_eq_bot, hB.ker_eq_bot_iff_ker_flip_eq_bot.mp],
+  rwa ←separating_left_iff_ker_eq_bot,
 end
 
-lemma is_symm.nondegenerate_of_separating_right {B : M →ₗ[R] M →ₗ[R] R}
-  (hB : B.is_symm) (hB' : B.separating_right) : B.nondegenerate :=
+lemma is_refl.nondegenerate_of_separating_right {B : M →ₗ[R] M →ₗ[R] R}
+  (hB : B.is_refl) (hB' : B.separating_right) : B.nondegenerate :=
 begin
   refine ⟨_, hB'⟩,
-  rw [is_symm_iff_eq_flip.mp hB, flip_separating_left],
-  exact hB',
+  rw [separating_left_iff_ker_eq_bot, hB.ker_eq_bot_iff_ker_flip_eq_bot.mpr],
+  rwa ←separating_right_iff_flip_ker_eq_bot,
 end
 
-/-- The restriction of a symmetric bilinear form `B` onto a submodule `W` is
+/-- The restriction of a reflexive bilinear form `B` onto a submodule `W` is
 nondegenerate if `W` has trivial intersection with its orthogonal complement,
 that is `disjoint W (W.orthogonal_bilin B)`. -/
 lemma nondegenerate_restrict_of_disjoint_orthogonal
-  {B : M →ₗ[R] M →ₗ[R] R} (hB : B.is_symm)
+  {B : M →ₗ[R] M →ₗ[R] R} (hB : B.is_refl)
   {W : submodule R M} (hW : disjoint W (W.orthogonal_bilin B)) :
   (B.dom_restrict₁₂ W W).nondegenerate :=
 begin
-  refine (hB.dom_restrict_symm W).nondegenerate_of_separating_left  _,
+  refine (hB.dom_restrict_refl W).nondegenerate_of_separating_left  _,
   rintro ⟨x, hx⟩ b₁,
   rw [submodule.mk_eq_zero, ← submodule.mem_bot R],
   refine hW ⟨hx, λ y hy, _⟩,

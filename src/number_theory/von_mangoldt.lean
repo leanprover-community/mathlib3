@@ -93,7 +93,7 @@ begin
   simp only [von_mangoldt_apply, ←sum_filter] at ha hb ⊢,
   rw [mul_divisors_filter_prime_pow hab, filter_union,
     sum_union (disjoint_divisors_filter_prime_pow hab), ha, hb, nat.cast_mul,
-    real.log_mul (nat.cast_ne_zero.2  (pos_of_gt ha').ne')
+    real.log_mul (nat.cast_ne_zero.2 (pos_of_gt ha').ne')
       (nat.cast_ne_zero.2 (pos_of_gt hb').ne')],
 end
 

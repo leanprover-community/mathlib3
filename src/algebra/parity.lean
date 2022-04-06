@@ -52,9 +52,14 @@ lemma is_square_iff_exists_sq [monoid α] (m : α) : is_square m ↔ ∃ c, m = 
 by simp [is_square, pow_two]
 
 alias is_square_iff_exists_sq ↔ is_square.exists_sq is_square_of_exists_sq
-attribute [to_additive even.exists_two_nsmul] is_square.exists_sq
-attribute [to_additive even_of_exists_two_nsmul] is_square_of_exists_sq
 
+attribute [to_additive even.exists_two_nsmul] is_square.exists_sq
+/-- Alias of the forwards direction of `even_iff_exists_two_nsmul`. -/
+add_decl_doc even.exists_two_nsmul
+
+attribute [to_additive even_of_exists_two_nsmul] is_square_of_exists_sq
+/-- Alias of the backwards direction of `even_iff_exists_two_nsmul`. -/
+add_decl_doc even_of_exists_two_nsmul
 
 @[simp, to_additive even_two_nsmul]
 lemma is_square_sq [monoid α] (a : α) : is_square (a ^ 2) := ⟨a, pow_two _⟩

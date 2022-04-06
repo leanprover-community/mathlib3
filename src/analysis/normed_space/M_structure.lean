@@ -64,22 +64,18 @@ namespace is_projection
 lemma mul_of_commute {P Q : M} (h : commute P Q) (h₁ : is_projection P) (h₂ : is_projection Q) :
   is_projection (P*Q)  :=
 begin
-  unfold is_projection,
-  unfold is_projection at h₁,
-  unfold is_projection at h₂,
-  unfold commute at h,
-  unfold semiconj_by at h,
-  rw [sq, mul_assoc, ← mul_assoc Q, ←h, mul_assoc P, ← sq, h₂, ← mul_assoc, ← sq, h₁],
+  rw is_projection at h₁,
+  rw is_projection at h₂,
+  rw [commute, semiconj_by] at h,
+  rw [is_projection, sq, mul_assoc, ← mul_assoc Q, ←h, mul_assoc P, ← sq, h₂, ← mul_assoc, ← sq, h₁],
 end
 
 variables {R : Type*} [ring R]
 
 lemma complement {P: R} (h: is_projection P) : is_projection (1-P) :=
 begin
-  unfold is_projection,
-  unfold is_projection at h,
-  rw sq at h,
-  rw [sq, mul_sub_left_distrib, mul_one, sub_mul, one_mul, h, sub_self, sub_zero],
+  rw [is_projection, sq] at h,
+  rw [is_projection, sq, mul_sub_left_distrib, mul_one, sub_mul, one_mul, h, sub_self, sub_zero],
 end
 
 

@@ -333,6 +333,8 @@ lemma le_span_singleton_iff {s : submodule R M} {v₀ : M} :
   s ≤ (R ∙ v₀) ↔ ∀ v ∈ s, ∃ r : R, r • v₀ = v :=
 by simp_rw [set_like.le_def, mem_span_singleton]
 
+variables (R)
+
 lemma span_singleton_eq_top_iff (x : M) : (R ∙ x) = ⊤ ↔ ∀ v, ∃ r : R, r • x = v :=
 by { rw [eq_top_iff, le_span_singleton_iff], tauto }
 
@@ -342,18 +344,28 @@ by { ext, simp [mem_span_singleton, eq_comm] }
 lemma span_singleton_eq_range (y : M) : ↑(R ∙ y) = range ((• y) : R → M) :=
 set.ext $ λ x, mem_span_singleton
 
-lemma span_singleton_smul_le (r : R) (x : M) : (R ∙ (r • x)) ≤ R ∙ x :=
+lemma span_singleton_smul_le {S} [monoid S] [has_scalar S R] [mul_action S M]
+  [is_scalar_tower S R M] (r : S) (x : M) : (R ∙ (r • x)) ≤ R ∙ x :=
 begin
   rw [span_le, set.singleton_subset_iff, set_like.mem_coe],
-  exact smul_mem _ _ (mem_span_singleton_self _)
+  exact smul_of_tower_mem _ _ (mem_span_singleton_self _)
 end
 
-lemma span_singleton_smul_eq {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
-  {r : K} (x : E) (hr : r ≠ 0) : (K ∙ (r • x)) = K ∙ x :=
+lemma span_singleton_group_smul_eq {G} [group G] [has_scalar G R] [mul_action G M]
+  [is_scalar_tower G R M] (g : G) (x : M) : (R ∙ (g • x)) = R ∙ x :=
 begin
-  refine le_antisymm (span_singleton_smul_le r x) _,
-  convert span_singleton_smul_le r⁻¹ (r • x),
-  exact (inv_smul_smul₀ hr _).symm
+  refine le_antisymm (span_singleton_smul_le R g x) _,
+  convert span_singleton_smul_le R (g⁻¹) (g • x),
+  exact (inv_smul_smul g x).symm
+end
+
+variables {R}
+
+lemma span_singleton_smul_eq {r : R} (hr : is_unit r) (x : M) : (R ∙ (r • x)) = R ∙ x :=
+begin
+  lift r to Rˣ using hr,
+  rw ←units.smul_def,
+  exact span_singleton_group_smul_eq R r x,
 end
 
 lemma disjoint_span_singleton {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
@@ -362,11 +374,11 @@ lemma disjoint_span_singleton {K E : Type*} [division_ring K] [add_comm_group E]
 begin
   refine disjoint_def.trans ⟨λ H hx, H x hx $ subset_span $ mem_singleton x, _⟩,
   assume H y hy hyx,
-  obtain ⟨c, hc⟩ := mem_span_singleton.1 hyx,
-  subst y,
-  classical, by_cases hc : c = 0, by simp only [hc, zero_smul],
-  rw [s.smul_mem_iff hc] at hy,
-  rw [H hy, smul_zero]
+  obtain ⟨c, rfl⟩ := mem_span_singleton.1 hyx,
+  by_cases hc : c = 0,
+  { rw [hc, zero_smul] },
+  { rw [s.smul_mem_iff hc] at hy,
+    rw [H hy, smul_zero] }
 end
 
 lemma disjoint_span_singleton' {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
@@ -445,11 +457,8 @@ begin
     have iv : i * v = 1 :=
     by { rw [← one_smul R x, ← hv, smul_smul] at hi, exact smul_left_injective R hx hi },
     exact ⟨⟨v, i, vi, iv⟩, hv⟩ },
-  { rintro ⟨⟨v, i, _, iv⟩, hxy : v • x = y⟩,
-    ext,
-    rw [mem_span_singleton, mem_span_singleton],
-    exact ⟨λ ⟨z, hz⟩, ⟨z * i, by rw [← smul_smul, ← hxy, smul_smul i v, iv, one_smul, ← hz]⟩,
-           λ ⟨z, hz⟩, ⟨z * v, by rw [← smul_smul, ← hz, ← hxy]⟩⟩ }
+  { rintro ⟨v, rfl⟩,
+    rw span_singleton_group_smul_eq }
 end
 
 @[simp] lemma span_image [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) :

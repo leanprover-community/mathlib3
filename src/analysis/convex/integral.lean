@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
 import analysis.convex.function
-import analysis.convex.strict
+import analysis.convex.strict_convex_space
 import measure_theory.function.ae_eq_of_integral
 import measure_theory.integral.average
 
@@ -21,7 +21,7 @@ In this file we prove several forms of Jensen's inequality for integrals.
 - for strictly convex sets: `strict_convex.ae_eq_const_or_average_mem_interior`;
 
 - for a closed ball in a strictly convex normed space:
-  `strict_convex.ae_eq_const_or_norm_integral_lt_of_norm_le_const`
+  `ae_eq_const_or_norm_integral_lt_of_norm_le_const`;
 
 - for strictly convex functions: `strict_convex_on.ae_eq_const_or_map_average_lt`.
 
@@ -309,12 +309,11 @@ lemma strict_concave_on.ae_eq_const_or_lt_map_average [is_finite_measure μ] {s 
 by simpa only [pi.neg_apply, average_neg, neg_lt_neg_iff]
   using hg.neg.ae_eq_const_or_map_average_lt hgc.neg hsc hfs hfi hgi.neg
 
-/-- If the closed ball of radius `C` in a normed space `E` is strictly convex and `f : α → E` is
-a function such that `∥f x∥ ≤ C` a.e., then either either this function is a.e. equal to its
-average value, or the norm of its integral is strictly less than `(μ univ).to_real * C`. -/
-lemma strict_convex.ae_eq_const_or_norm_integral_lt_of_norm_le_const [is_finite_measure μ]
-  {f : α → E} {C : ℝ} (h_convex : strict_convex ℝ (closed_ball (0 : E) C))
-  (h_le : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
+/-- If `E` is a strictly normed space and `f : α → E` is a function such that `∥f x∥ ≤ C` a.e., then
+either either this function is a.e. equal to its average value, or the norm of its integral is
+strictly less than `(μ univ).to_real * C`. -/
+lemma ae_eq_const_or_norm_integral_lt_of_norm_le_const [strict_convex_space ℝ E]
+  [is_finite_measure μ] {f : α → E} {C : ℝ} (h_le : ∀ᵐ x ∂μ, ∥f x∥ ≤ C) :
   (f =ᵐ[μ] const α ⨍ x, f x ∂μ) ∨ ∥∫ x, f x ∂μ∥ < (μ univ).to_real * C :=
 begin
   cases le_or_lt C 0 with hC0 hC0,
@@ -332,5 +331,6 @@ begin
     from ennreal.to_real_pos (mt measure_univ_eq_zero.1 hμ) (measure_ne_top _ _),
   simpa only [interior_closed_ball _ hC0.ne', mem_ball_zero_iff, average_def', norm_smul,
     real.norm_eq_abs, abs_inv, abs_of_pos hμ', ← div_eq_inv_mul, div_lt_iff' hμ']
-    using h_convex.ae_eq_const_or_average_mem_interior is_closed_ball h_le hfi,
+    using (strict_convex_closed_ball ℝ (0 : E) C).ae_eq_const_or_average_mem_interior
+      is_closed_ball h_le hfi
 end

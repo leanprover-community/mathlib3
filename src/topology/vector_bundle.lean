@@ -678,7 +678,7 @@ def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
   end,
   right_inv' := λ ⟨x, w₁, w₂⟩ ⟨h, _⟩,
   begin
-    dsimp [prod.to_fun', prod.inv_fun'],
+    dsimp only [prod.to_fun', prod.inv_fun'],
     simp only [prod.mk.inj_iff, eq_self_iff_true, true_and],
     split,
     { rw [dif_pos, ← e₁.continuous_linear_equiv_at_apply x h.1,
@@ -727,7 +727,7 @@ def prod : trivialization R (F₁ × F₂) (E₁ ×ᵇ E₂) :=
       (continuous_id.prod_map continuous_fst).prod_mk (continuous_id.prod_map continuous_snd),
     have H₂ := e₁.to_local_homeomorph.symm.continuous_on.prod_map
       e₂.to_local_homeomorph.symm.continuous_on,
-    convert H₂.comp H₁.continuous_on (λ x h, ⟨_, _⟩),
+    refine H₂.comp H₁.continuous_on (λ x h, ⟨_, _⟩),
     { dsimp,
       rw e₁.target_eq,
       exact ⟨h.1.1, mem_univ _⟩ },

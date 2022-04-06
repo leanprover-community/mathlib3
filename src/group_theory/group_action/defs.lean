@@ -3,9 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Yury Kudryashov
 -/
-import algebra.group.defs
-import algebra.group.hom
 import algebra.group.type_tags
+import algebra.hom.group
 import algebra.opposites
 import logic.embedding
 
@@ -47,7 +46,7 @@ group action
 
 variables {M N G A B α β γ : Type*}
 
-open function
+open function (injective surjective)
 
 /-!
 ### Faithful actions
@@ -383,6 +382,16 @@ lemma smul_mul_smul [has_mul α] (r s : M) (x y : α)
   [is_scalar_tower M α α] [smul_comm_class M α α] :
   (r • x) * (s • y) = (r * s) • (x * y) :=
 by rw [smul_mul_assoc, mul_smul_comm, ← smul_assoc, smul_eq_mul]
+
+lemma commute.smul_right [has_mul α] [smul_comm_class M α α] [is_scalar_tower M α α]
+  {a b : α} (h : commute a b) (r : M) :
+  commute a (r • b) :=
+(mul_smul_comm _ _ _).trans ((congr_arg _ h).trans $ (smul_mul_assoc _ _ _).symm)
+
+lemma commute.smul_left [has_mul α] [smul_comm_class M α α] [is_scalar_tower M α α]
+  {a b : α} (h : commute a b) (r : M) :
+  commute (r • a) b :=
+(h.symm.smul_right r).symm
 
 end
 

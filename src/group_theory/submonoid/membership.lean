@@ -24,8 +24,9 @@ In this file we prove various facts about membership in a submonoid:
   `coe_Sup_of_directed_on`: the supremum of a directed collection of submonoid is their union.
 * `sup_eq_range`, `mem_sup`: supremum of two submonoids `S`, `T` of a commutative monoid is the set
   of products;
-* `closure_singleton_eq`, `mem_closure_singleton`: the multiplicative (resp., additive) closure
-  of `{x}` consists of powers (resp., natural multiples) of `x`.
+* `closure_singleton_eq`, `mem_closure_singleton`, `mem_closure_pair`: the multiplicative (resp.,
+  additive) closure of `{x}` consists of powers (resp., natural multiples) of `x`, and a similar
+  result holds for the closure of `{x, y}`.
 
 ## Tags
 submonoid, submonoids
@@ -446,6 +447,17 @@ submonoid `S` is contained in the additive closure of `S`. -/
 lemma mul_left_mem_add_closure (ha : a ∈ S) (hb : b ∈ add_submonoid.closure (S : set R)) :
   a * b ∈ add_submonoid.closure (S : set R) :=
 S.mul_mem_add_closure (add_submonoid.mem_closure.mpr (λ sT hT, hT ha)) hb
+
+/-- An element is in the closure of a two-element set if it is a linear combination of those two
+elements. -/
+@[to_additive "An element is in the closure of a two-element set if it is a linear combination of
+those two elements."]
+lemma mem_closure_pair {A : Type*} [comm_monoid A] (a b c : A) :
+  c ∈ submonoid.closure ({a, b} : set A) ↔ ∃ m n : ℕ, a ^ m * b ^ n = c :=
+begin
+  rw [←set.singleton_union, submonoid.closure_union, mem_sup],
+  simp_rw [exists_prop, mem_closure_singleton, exists_exists_eq_and],
+end
 
 end submonoid
 

@@ -79,7 +79,10 @@ See also `monoid.to_opposite_mul_action` and `monoid_with_zero.to_opposite_mul_a
 @[to_additive] instance has_mul.to_has_opposite_scalar [has_mul α] : has_scalar αᵐᵒᵖ α :=
 { smul := λ c x, x * c.unop }
 
-@[simp, to_additive] lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
+@[to_additive] lemma op_smul_eq_mul [has_mul α] {a a' : α} : op a • a' = a' * a := rfl
+
+@[simp, to_additive] lemma mul_opposite.smul_eq_mul_unop [has_mul α] {a : αᵐᵒᵖ} {a' : α} :
+  a • a' = a' * a.unop := rfl
 
 /-- The right regular action of a group on itself is transitive. -/
 @[to_additive] instance mul_action.opposite_regular.is_pretransitive {G : Type*} [group G] :

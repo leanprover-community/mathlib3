@@ -28,7 +28,7 @@ to form the Dirichlet ring.
  * `id` is the identity arithmetic function on `ℕ`.
  * `ω n` is the number of distinct prime factors of `n`.
  * `Ω n` is the number of prime factors of `n` counted with multiplicity.
- * `μ` is the Möbius function.
+ * `μ` is the Möbius function (spelled `moebius` in code).
 
 ## Main Results
  * Several forms of Möbius inversion:
@@ -564,6 +564,19 @@ lemma multiplicative_factorization [comm_monoid_with_zero R] (f : arithmetic_fun
   ∀ {n : ℕ}, n ≠ 0 → f n = n.factorization.prod (λ p k, f (p ^ k)) :=
 λ n hn, multiplicative_factorization f hf.2 hf.1 hn
 
+/-- A recapitulation of the definition of multiplicative that is simpler for proofs -/
+lemma iff_ne_zero [monoid_with_zero R] {f : arithmetic_function R} :
+  is_multiplicative f ↔
+    f 1 = 1 ∧ (∀ {m n : ℕ}, m ≠ 0 → n ≠ 0 → m.coprime n → f (m * n) = f m * f n) :=
+begin
+  refine and_congr_right' (forall₂_congr (λ m n, ⟨λ h _ _, h, λ h hmn, _⟩)),
+  rcases eq_or_ne m 0 with rfl | hm,
+  { simp },
+  rcases eq_or_ne n 0 with rfl | hn,
+  { simp },
+  exact h hm hn hmn,
+end
+
 /-- Two multiplicative functions `f` and `g` are equal if and only if
 they agree on prime powers -/
 lemma eq_iff_eq_on_prime_powers [comm_monoid_with_zero R]
@@ -750,6 +763,14 @@ begin
     rw moebius_apply_of_squarefree h,
     apply neg_one_pow_eq_or },
   { rcases h with h | h; simp [h] }
+end
+
+lemma is_multiplicative_moebius : is_multiplicative μ :=
+begin
+  rw is_multiplicative.iff_ne_zero,
+  refine ⟨by simp, λ n m hn hm hnm, _⟩,
+  simp only [moebius, zero_hom.coe_mk, squarefree_mul hnm, ite_and, card_factors_mul hn hm],
+  rw [pow_add, mul_comm, ite_mul_zero_left, ite_mul_zero_right, mul_comm],
 end
 
 open unique_factorization_monoid

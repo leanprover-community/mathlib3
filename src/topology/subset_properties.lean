@@ -1062,7 +1062,7 @@ theorem is_closed.exists_minimal_nonempty_closed_subset [compact_space α]
       (∀ (V' : set α), V' ⊆ V → V'.nonempty → is_closed V' → V' = V) :=
 begin
   let opens := {U : set α | Sᶜ ⊆ U ∧ is_open U ∧ Uᶜ.nonempty},
-  obtain ⟨U, ⟨Uc, Uo, Ucne⟩, h⟩ := zorn.zorn_subset opens (λ c hc hz, begin
+  obtain ⟨U, ⟨Uc, Uo, Ucne⟩, h⟩ := zorn_subset opens (λ c hc hz, begin
     by_cases hcne : c.nonempty,
     { obtain ⟨U₀, hU₀⟩ := hcne,
       haveI : nonempty {U // U ∈ c} := ⟨⟨U₀, hU₀⟩⟩,
@@ -1078,7 +1078,7 @@ begin
           refl, },
         apply is_compact.nonempty_Inter_of_directed_nonempty_compact_closed,
         { rintros ⟨U, hU⟩ ⟨U', hU'⟩,
-          obtain ⟨V, hVc, hVU, hVU'⟩ := zorn.chain.directed_on hz U hU U' hU',
+          obtain ⟨V, hVc, hVU, hVU'⟩ := hz.directed_on U hU U' hU',
           exact ⟨⟨V, hVc⟩, set.compl_subset_compl.mpr hVU, set.compl_subset_compl.mpr hVU'⟩, },
         { exact λ U, (hc U.2).2.2, },
         { exact λ U, (is_closed_compl_iff.mpr (hc U.2).2.1).is_compact, },
@@ -1405,12 +1405,12 @@ lemma is_irreducible.closure {s : set α} (h : is_irreducible s) :
 
 theorem exists_preirreducible (s : set α) (H : is_preirreducible s) :
   ∃ t : set α, is_preirreducible t ∧ s ⊆ t ∧ ∀ u, is_preirreducible u → t ⊆ u → u = t :=
-let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset_nonempty {t : set α | is_preirreducible t}
+let ⟨m, hm, hsm, hmm⟩ := zorn_subset_nonempty {t : set α | is_preirreducible t}
   (λ c hc hcc hcn, let ⟨t, htc⟩ := hcn in
     ⟨⋃₀ c, λ u v hu hv ⟨y, hy, hyu⟩ ⟨z, hz, hzv⟩,
       let ⟨p, hpc, hyp⟩ := mem_sUnion.1 hy,
           ⟨q, hqc, hzq⟩ := mem_sUnion.1 hz in
-      or.cases_on (zorn.chain.total hcc hpc hqc)
+      or.cases_on (hcc.total hpc hqc)
         (assume hpq : p ⊆ q, let ⟨x, hxp, hxuv⟩ := hc hqc u v hu hv
             ⟨y, hpq hyp, hyu⟩ ⟨z, hzq, hzv⟩ in
           ⟨x, mem_sUnion_of_mem hxp hqc, hxuv⟩)

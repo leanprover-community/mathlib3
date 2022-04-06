@@ -5,8 +5,8 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.group.pi
+import algebra.hom.equiv
 import algebra.ring.opposite
-import data.equiv.mul_add
 import data.finset.fold
 import data.fintype.basic
 import data.set.pairwise

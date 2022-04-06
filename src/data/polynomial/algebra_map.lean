@@ -264,7 +264,7 @@ lemma aeval_eq_sum_range [algebra R S] {p : R[X]} (x : S) :
 by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range (algebra_map R S) x }
 
 lemma aeval_eq_sum_range' [algebra R S] {p : R[X]} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
-aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
+  aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
 by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
 
 lemma aeval_sum {ι : Type*} [algebra R S] (s : finset ι) (f : ι → R[X])
@@ -401,7 +401,7 @@ lemma aeval_endomorphism {M : Type*}
   aeval f p v = p.sum (λ n b, b • (f ^ n) v) :=
 begin
   rw [aeval_def, eval₂],
-  exact (linear_map.applyₗ v).map_sum ,
+  exact (linear_map.applyₗ v).map_sum,
 end
 
 end polynomial

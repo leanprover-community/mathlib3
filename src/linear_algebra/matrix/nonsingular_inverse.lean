@@ -212,6 +212,15 @@ begin
   rw [inv_def, ring.inverse_invertible, inv_of_eq],
 end
 
+/-- Coercing the result of `units.has_inv` is the same as coercing first and applying the
+nonsingular inverse. -/
+@[simp, norm_cast] lemma coe_units_inv (A : (matrix n n α)ˣ) :
+  ↑(A⁻¹) = (A⁻¹ : matrix n n α) :=
+begin
+  letI := A.invertible,
+  rw [←inv_of_eq_nonsing_inv, inv_of_units],
+end
+
 /-- The nonsingular inverse is the same as the general `ring.inverse`. -/
 lemma nonsing_inv_eq_ring_inverse : A⁻¹ = ring.inverse A :=
 begin
@@ -407,6 +416,16 @@ by rw [← (A⁻¹).transpose_transpose, vec_mul_transpose, transpose_nonsing_in
     Aᵀ.det_smul_inv_mul_vec_eq_cramer _ (is_unit_det_transpose A h)]
 
 /-! ### More results about determinants -/
+
+/-- A variant of `matrix.det_units_conj`. -/
+lemma det_conj {M : matrix m m α} (h : is_unit M) (N : matrix m m α) :
+  det (M ⬝ N ⬝ M⁻¹) = det N :=
+by rw [←h.unit_spec, ←coe_units_inv, det_units_conj]
+
+/-- A variant of `matrix.det_units_conj'`. -/
+lemma det_conj' {M : matrix m m α} (h : is_unit M) (N : matrix m m α) :
+  det (M⁻¹ ⬝ N ⬝ M) = det N :=
+by rw [←h.unit_spec, ←coe_units_inv, det_units_conj']
 
 /-- Determinant of a 2×2 block matrix, expanded around an invertible top left element in terms of
 the Schur complement. -/

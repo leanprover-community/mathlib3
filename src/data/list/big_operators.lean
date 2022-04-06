@@ -118,7 +118,19 @@ lemma prod_take_succ :
 /-- A list with product not one must have positive length. -/
 @[to_additive "A list with sum not zero must have positive length."]
 lemma length_pos_of_prod_ne_one (L : list M) (h : L.prod ≠ 1) : 0 < L.length :=
-by { cases L, { simp at h, cases h }, { simp } }
+by { cases L, { contrapose h, simp }, { simp } }
+
+/-- A list with product greater than one must have positive length. -/
+@[to_additive length_pos_of_sum_pos "A list with positive sum must have positive length."]
+lemma length_pos_of_one_lt_prod [preorder M] (L : list M) (h : 1 < L.prod) :
+  0 < L.length :=
+length_pos_of_prod_ne_one L h.ne'
+
+/-- A list with product less than one must have positive length. -/
+@[to_additive "A list with negative sum must have positive length."]
+lemma length_pos_of_prod_lt_one [preorder M] (L : list M) (h : L.prod < 1) :
+  0 < L.length :=
+length_pos_of_prod_ne_one L h.ne
 
 @[to_additive]
 lemma prod_update_nth : ∀ (L : list M) (n : ℕ) (a : M),
@@ -383,12 +395,6 @@ begin
   rw [sum_cons, length, add_comm],
   exact add_le_add (h _ (set.mem_insert _ _)) (IH (λ i hi, h i (set.mem_union_right _ hi)))
 end
-
-/-- A list with positive sum must have positive length. -/
--- This is an easy consequence of `length_pos_of_sum_ne_zero`, but often useful in applications.
-lemma length_pos_of_sum_pos [ordered_cancel_add_comm_monoid M] (L : list M) (h : 0 < L.sum) :
-  0 < L.length :=
-length_pos_of_sum_ne_zero L h.ne'
 
 -- TODO: develop theory of tropical rings
 lemma sum_le_foldr_max [add_monoid M] [add_monoid N] [linear_order N] (f : M → N)

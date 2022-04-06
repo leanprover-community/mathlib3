@@ -549,6 +549,9 @@ H3.symm ▸ (quotient.induction_on κ (λ α H1, nat.rec_on n
       exact mul_le_mul_right' ih _ })
     (mul_eq_self H1))) H1)
 
+theorem pow_eq {κ μ : cardinal.{u}} (H1 : ω ≤ κ) (H2 : 1 ≤ μ) (H3 : μ < ω) : κ ^ μ = κ :=
+(pow_le H1 H3).antisymm $ self_le_power κ H2
+
 lemma power_self_eq {c : cardinal} (h : ω ≤ c) : c ^ c = 2 ^ c :=
 begin
   apply le_antisymm,
@@ -578,8 +581,11 @@ lemma nat_power_eq {c : cardinal.{u}} (h : ω ≤ c) {n : ℕ} (hn : 2 ≤ n) :
   (n : cardinal.{u}) ^ c = 2 ^ c :=
 power_eq_two_power h (by assumption_mod_cast) ((nat_lt_omega n).le.trans h)
 
-lemma power_nat_le {c : cardinal.{u}} {n : ℕ} (h  : ω ≤ c) : c ^ (n : cardinal.{u}) ≤ c :=
+lemma power_nat_le {c : cardinal.{u}} {n : ℕ} (h : ω ≤ c) : c ^ n ≤ c :=
 pow_le h (nat_lt_omega n)
+
+lemma power_nat_eq {c : cardinal.{u}} {n : ℕ} (h1 : ω ≤ c) (h2 : 1 ≤ n) : c ^ n = c :=
+pow_eq h1 (by exact_mod_cast h2) (nat_lt_omega n)
 
 lemma power_nat_le_max {c : cardinal.{u}} {n : ℕ} : c ^ (n : cardinal.{u}) ≤ max c ω :=
 begin
@@ -604,9 +610,6 @@ begin
 end
 
 /-! ### Computing cardinality of various types -/
-
-@[simp] theorem mk_ordinal_out (o : ordinal.{u}) : #(o.out.α) = o.card :=
-by { convert (ordinal.card_type (<)).symm, exact (ordinal.type_lt o).symm }
 
 theorem mk_list_eq_mk (α : Type u) [infinite α] : #(list α) = #α :=
 have H1 : ω ≤ #α := omega_le_mk α,

@@ -5,8 +5,8 @@ Authors: Kenny Lau
 -/
 import algebra.group.inj_surj
 import algebra.group.commute
+import algebra.hom.equiv
 import algebra.opposites
-import data.equiv.mul_add
 
 /-!
 # Group structures on the multiplicative and additive opposites

@@ -5,7 +5,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 import analysis.calculus.formal_multilinear_series
 import analysis.specific_limits.normed
-import data.equiv.fin
+import logic.equiv.fin
 
 /-!
 # Analytic functions
@@ -666,9 +666,9 @@ protected lemma formal_multilinear_series.has_fpower_series_on_ball [complete_sp
   r_pos   := h,
   has_sum := λ y hy, by { rw zero_add, exact p.has_sum hy } }
 
-lemma has_fpower_series_on_ball.sum [complete_space F] (h : has_fpower_series_on_ball f p x r)
+lemma has_fpower_series_on_ball.sum (h : has_fpower_series_on_ball f p x r)
   {y : E} (hy : y ∈ emetric.ball (0 : E) r) : f (x + y) = p.sum y :=
-(h.has_sum hy).unique (p.has_sum (lt_of_lt_of_le hy h.r_le))
+(h.has_sum hy).tsum_eq.symm
 
 /-- The sum of a converging power series is continuous in its disk of convergence. -/
 protected lemma formal_multilinear_series.continuous_on [complete_space F] :

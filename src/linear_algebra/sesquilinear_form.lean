@@ -363,4 +363,179 @@ lemma is_compl_span_singleton_orthogonal {B : V →ₗ[K] V →ₗ[K] K}
 
 end orthogonal
 
+/-! ### Nondegenerate bilinear forms -/
+
+section nondegenerate
+
+section comm_semiring
+variables [comm_semiring R] [comm_semiring R₁] [add_comm_monoid M₁] [module R₁ M₁]
+  [comm_semiring R₂] [add_comm_monoid M₂] [module R₂ M₂]
+  {I₁ : R₁ →+* R} {I₂ : R₂ →+* R} {I₁' : R₁ →+* R}
+
+/-- A bilinear form is called left-separating if
+the only element that is left-orthogonal to every other element is `0`; i.e.,
+for every nonzero `x` in `M₁`, there exists `y` in `M₂` with `B x y ≠ 0`.-/
+def separating_left (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop :=
+∀ x : M₁, (∀ y : M₂, B x y = 0) → x = 0
+
+/-- A bilinear form is called right-separating if
+the only element that is right-orthogonal to every other element is `0`; i.e.,
+for every nonzero `y` in `M₂`, there exists `x` in `M₁` with `B x y ≠ 0`.-/
+def separating_right (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop :=
+∀ y : M₂, (∀ x : M₁, B x y = 0) → y = 0
+
+/-- A bilinear form is called non-degenerate if it is left-separating and right-separating. -/
+def nondegenerate (B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R) : Prop := separating_left B ∧ separating_right B
+
+@[simp] lemma flip_separating_right {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
+  B.flip.separating_right ↔ B.separating_left := ⟨λ hB x hy, hB x hy, λ hB x hy, hB x hy⟩
+
+@[simp] lemma flip_separating_left {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
+  B.flip.separating_left ↔ separating_right B := by rw [←flip_separating_right, flip_flip]
+
+@[simp] lemma flip_nondegenerate {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
+  B.flip.nondegenerate ↔ B.nondegenerate :=
+iff.trans and.comm (and_congr flip_separating_right flip_separating_left)
+
+lemma separating_left_iff_linear_nontrivial {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
+  B.separating_left ↔ ∀ x : M₁, B x = 0 → x = 0 :=
+begin
+  split; intros h x hB,
+  { let h' := h x,
+    simp only [hB, zero_apply, eq_self_iff_true, forall_const] at h',
+    exact h' },
+  have h' : B x = 0 := by { ext, rw [zero_apply], exact hB _ },
+  exact h x h',
+end
+
+lemma separating_right_iff_linear_flip_nontrivial {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
+  B.separating_right ↔ ∀ y : M₂, B.flip y = 0 → y = 0 :=
+by rw [←flip_separating_left, separating_left_iff_linear_nontrivial]
+
+/-- A bilinear form is left-separating if and only if it has a trivial kernel. -/
+theorem separating_left_iff_ker_eq_bot {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
+  B.separating_left ↔ B.ker = ⊥ :=
+iff.trans separating_left_iff_linear_nontrivial linear_map.ker_eq_bot'.symm
+
+/-- A bilinear form is right-separating if and only if its flip has a trivial kernel. -/
+theorem separating_right_iff_flip_ker_eq_bot {B : M₁ →ₛₗ[I₁] M₂ →ₛₗ[I₂] R} :
+  B.separating_right ↔ B.flip.ker = ⊥ :=
+by rw [←flip_separating_left, separating_left_iff_ker_eq_bot]
+
+end comm_semiring
+
+section comm_ring
+
+variables [comm_ring R] [add_comm_group M] [module R M]
+  {I I' : R →+* R}
+
+lemma is_symm.nondegenerate_of_separating_left {B : M →ₗ[R] M →ₗ[R] R}
+  (hB : B.is_symm) (hB' : B.separating_left) : B.nondegenerate :=
+begin
+  refine ⟨hB', _⟩,
+  rw [is_symm_iff_eq_flip.mp hB, flip_separating_right],
+  exact hB',
+end
+
+lemma is_symm.nondegenerate_of_separating_right {B : M →ₗ[R] M →ₗ[R] R}
+  (hB : B.is_symm) (hB' : B.separating_right) : B.nondegenerate :=
+begin
+  refine ⟨_, hB'⟩,
+  rw [is_symm_iff_eq_flip.mp hB, flip_separating_left],
+  exact hB',
+end
+
+/-- The restriction of a symmetric bilinear form `B` onto a submodule `W` is
+nondegenerate if `W` has trivial intersection with its orthogonal complement,
+that is `disjoint W (W.orthogonal_bilin B)`. -/
+lemma nondegenerate_restrict_of_disjoint_orthogonal
+  {B : M →ₗ[R] M →ₗ[R] R} (hB : B.is_symm)
+  {W : submodule R M} (hW : disjoint W (W.orthogonal_bilin B)) :
+  (B.dom_restrict₁₂ W W).nondegenerate :=
+begin
+  refine (hB.dom_restrict_symm W).nondegenerate_of_separating_left  _,
+  rintro ⟨x, hx⟩ b₁,
+  rw [submodule.mk_eq_zero, ← submodule.mem_bot R],
+  refine hW ⟨hx, λ y hy, _⟩,
+  specialize b₁ ⟨y, hy⟩,
+  simp_rw [dom_restrict₁₂_apply, submodule.coe_mk] at b₁,
+  rw hB.ortho_comm,
+  exact b₁,
+end
+
+/-- An orthogonal basis with respect to a left-separating bilinear form has no self-orthogonal
+elements. -/
+lemma is_Ortho.not_is_ortho_basis_self_of_separating_left [nontrivial R]
+  {B : M →ₛₗ[I] M →ₛₗ[I'] R} {v : basis n R M} (h : B.is_Ortho v) (hB : B.separating_left)
+  (i : n) : ¬B.is_ortho (v i) (v i) :=
+begin
+  intro ho,
+  refine v.ne_zero i (hB (v i) $ λ m, _),
+  obtain ⟨vi, rfl⟩ := v.repr.symm.surjective m,
+  rw [basis.repr_symm_apply, finsupp.total_apply, finsupp.sum, map_sum],
+  apply finset.sum_eq_zero,
+  rintros j -,
+  rw map_smulₛₗ,
+  convert mul_zero _ using 2,
+  obtain rfl | hij := eq_or_ne i j,
+  { exact ho },
+  { exact h i j hij },
+end
+
+/-- An orthogonal basis with respect to a right-separating bilinear form has no self-orthogonal
+elements. -/
+lemma is_Ortho.not_is_ortho_basis_self_of_separating_right [nontrivial R]
+  {B : M →ₛₗ[I] M →ₛₗ[I'] R} {v : basis n R M} (h : B.is_Ortho v) (hB : B.separating_right)
+  (i : n) : ¬B.is_ortho (v i) (v i) :=
+begin
+  rw is_Ortho_flip at h,
+  rw is_ortho_flip,
+  exact h.not_is_ortho_basis_self_of_separating_left (flip_separating_left.mpr hB) i,
+end
+
+/-- Given an orthogonal basis with respect to a bilinear form, the bilinear form is left-separating
+if the basis has no elements which are self-orthogonal. -/
+lemma is_Ortho.separating_left_of_not_is_ortho_basis_self [no_zero_divisors R]
+  {B : M →ₗ[R] M →ₗ[R] R} (v : basis n R M) (hO : B.is_Ortho v) (h : ∀ i, ¬B.is_ortho (v i) (v i)) :
+  B.separating_left :=
+begin
+  intros m hB,
+  obtain ⟨vi, rfl⟩ := v.repr.symm.surjective m,
+  rw linear_equiv.map_eq_zero_iff,
+  ext i,
+  rw [finsupp.zero_apply],
+  specialize hB (v i),
+  simp_rw [basis.repr_symm_apply, finsupp.total_apply, finsupp.sum, map_sum₂, map_smulₛₗ₂,
+    smul_eq_mul] at hB,
+  rw finset.sum_eq_single i at hB,
+  { exact eq_zero_of_ne_zero_of_mul_right_eq_zero (h i) hB, },
+  { intros j hj hij, convert mul_zero _ using 2, exact hO j i hij, },
+  { intros hi, convert zero_mul _ using 2, exact finsupp.not_mem_support_iff.mp hi }
+end
+
+/-- Given an orthogonal basis with respect to a bilinear form, the bilinear form is right-separating
+if the basis has no elements which are self-orthogonal. -/
+lemma is_Ortho.separating_right_iff_not_is_ortho_basis_self [no_zero_divisors R]
+  {B : M →ₗ[R] M →ₗ[R] R} (v : basis n R M) (hO : B.is_Ortho v) (h : ∀ i, ¬B.is_ortho (v i) (v i)) :
+  B.separating_right :=
+begin
+  rw is_Ortho_flip at hO,
+  rw [←flip_separating_left],
+  refine is_Ortho.separating_left_of_not_is_ortho_basis_self v hO (λ i, _),
+  rw is_ortho_flip,
+  exact h i,
+end
+
+/-- Given an orthogonal basis with respect to a bilinear form, the bilinear form is nondegenerate
+if the basis has no elements which are self-orthogonal. -/
+lemma is_Ortho.nondegenerate_of_not_is_ortho_basis_self [no_zero_divisors R]
+  {B : M →ₗ[R] M →ₗ[R] R} (v : basis n R M) (hO : B.is_Ortho v) (h : ∀ i, ¬B.is_ortho (v i) (v i)) :
+  B.nondegenerate :=
+⟨is_Ortho.separating_left_of_not_is_ortho_basis_self v hO h,
+  is_Ortho.separating_right_iff_not_is_ortho_basis_self v hO h⟩
+
+end comm_ring
+
+end nondegenerate
+
 end linear_map

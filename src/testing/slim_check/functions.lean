@@ -381,7 +381,7 @@ def perm.slice [decidable_eq α] (n m : ℕ) :
   let xs' := list.slice n m xs in
   have h₀ : xs' ~ ys.inter xs',
     from perm.slice_inter _ _ h h',
-  ⟨xs', ys.inter xs', h₀, nodup_inter_of_nodup _ h'⟩
+  ⟨xs', ys.inter xs', h₀, h'.inter _⟩
 
 /--
 A lazy list, in decreasing order, of sizes that should be
@@ -474,7 +474,7 @@ instance pi_injective.sampleable_ext : sampleable_ext { f : ℤ → ℤ // funct
     have Hinj : injective (λ (r : ℕ), -(2*sz + 2 : ℤ) + ↑r),
       from λ x y h, int.coe_nat_inj (add_right_injective _ h),
     let r : injective_function ℤ :=
-      injective_function.mk.{0} xs' ys.1 ys.2 (ys.2.nodup_iff.1 $ nodup_map Hinj (nodup_range _)) in
+      injective_function.mk.{0} xs' ys.1 ys.2 (ys.2.nodup_iff.1 $ (nodup_range _).map Hinj) in
     pure r },
   shrink := @injective_function.shrink ℤ _ _ }
 

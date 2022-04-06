@@ -198,6 +198,63 @@ mem_left_transversals_iff_exists_unique_quotient_mk'_eq.trans
 mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 
+namespace mem_left_transversals
+
+/-- A left transversal is in bijection with left cosets. -/
+@[to_additive "A left transversal is in bijection with left cosets."]
+noncomputable def to_equiv (hS : S ∈ subgroup.left_transversals (H : set G)) : G ⧸ H ≃ S :=
+(equiv.of_bijective _ (subgroup.mem_left_transversals_iff_bijective.mp hS)).symm
+
+@[to_additive] lemma mk'_to_equiv (hS : S ∈ subgroup.left_transversals (H : set G)) (q : G ⧸ H) :
+  quotient.mk' (to_equiv hS q : G) = q :=
+(to_equiv hS).symm_apply_apply q
+
+/-- A left transversal can be viewed as a function mapping each element of the group
+  to the chosen representative from that left coset. -/
+@[to_additive "A left transversal can be viewed as a function mapping each element of the group
+  to the chosen representative from that left coset."]
+noncomputable def to_fun (hS : S ∈ subgroup.left_transversals (H : set G)) : G → S :=
+to_equiv hS ∘ quotient.mk'
+
+@[to_additive] lemma inv_to_fun_mul_mem (hS : S ∈ subgroup.left_transversals (H : set G))
+  (g : G) : (to_fun hS g : G)⁻¹ * g ∈ H :=
+quotient.exact' (mk'_to_equiv hS g)
+
+@[to_additive] lemma inv_mul_to_fun_mem (hS : S ∈ subgroup.left_transversals (H : set G))
+  (g : G) : g⁻¹ * to_fun hS g ∈ H :=
+(congr_arg (∈ H) (by rw [mul_inv_rev, inv_inv])).mp (H.inv_mem (inv_to_fun_mul_mem hS g))
+
+end mem_left_transversals
+
+namespace mem_right_transversals
+
+/-- A right transversal is in bijection with right cosets. -/
+@[to_additive "A right transversal is in bijection with right cosets."]
+noncomputable def to_equiv (hS : S ∈ subgroup.right_transversals (H : set G)) :
+  quotient (quotient_group.right_rel H) ≃ S :=
+(equiv.of_bijective _ (subgroup.mem_right_transversals_iff_bijective.mp hS)).symm
+
+@[to_additive] lemma mk'_to_equiv (hS : S ∈ subgroup.right_transversals (H : set G))
+  (q : quotient (quotient_group.right_rel H)) : quotient.mk' (to_equiv hS q : G) = q :=
+(to_equiv hS).symm_apply_apply q
+
+/-- A right transversal can be viewed as a function mapping each element of the group
+  to the chosen representative from that right coset. -/
+@[to_additive "A right transversal can be viewed as a function mapping each element of the group
+  to the chosen representative from that right coset."]
+noncomputable def to_fun (hS : S ∈ subgroup.right_transversals (H : set G)) : G → S :=
+to_equiv hS ∘ quotient.mk'
+
+@[to_additive] lemma mul_inv_to_fun_mem (hS : S ∈ subgroup.right_transversals (H : set G))
+  (g : G) : g * (to_fun hS g : G)⁻¹ ∈ H :=
+quotient.exact' (mk'_to_equiv hS _)
+
+@[to_additive] lemma to_fun_mul_inv_mem (hS : S ∈ subgroup.right_transversals (H : set G))
+  (g : G) : (to_fun hS g : G) * g⁻¹ ∈ H :=
+(congr_arg (∈ H) (by rw [mul_inv_rev, inv_inv])).mp (H.inv_mem (mul_inv_to_fun_mem hS g))
+
+end mem_right_transversals
+
 @[to_additive] instance : inhabited (left_transversals (H : set G)) :=
 ⟨⟨set.range quotient.out', mem_left_transversals_iff_bijective.mpr ⟨by
 { rintros ⟨_, q₁, rfl⟩ ⟨_, q₂, rfl⟩ hg,

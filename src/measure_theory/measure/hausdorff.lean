@@ -3,12 +3,12 @@ Copyright (c) 2021 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import topology.metric_space.metric_separated
+import analysis.special_functions.pow
+import logic.equiv.list
 import measure_theory.constructions.borel_space
 import measure_theory.measure.lebesgue
-import analysis.special_functions.pow
 import topology.metric_space.holder
-import data.equiv.list
+import topology.metric_space.metric_separated
 
 /-!
 # Hausdorff measure and metric (outer) measures

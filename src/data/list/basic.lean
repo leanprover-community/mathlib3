@@ -1231,8 +1231,8 @@ lemma nth_le_append_right_aux {l₁ l₂ : list α} {n : ℕ}
   (h₁ : l₁.length ≤ n) (h₂ : n < (l₁ ++ l₂).length) : n - l₁.length < l₂.length :=
 begin
   rw list.length_append at h₂,
-  convert (tsub_lt_tsub_iff_right h₁).mpr h₂,
-  simp,
+  apply lt_of_add_lt_add_right,
+  rwa [nat.sub_add_cancel h₁, nat.add_comm],
 end
 
 lemma nth_le_append_right : ∀ {l₁ l₂ : list α} {n : ℕ} (h₁ : l₁.length ≤ n) (h₂),
@@ -1241,8 +1241,7 @@ lemma nth_le_append_right : ∀ {l₁ l₂ : list α} {n : ℕ} (h₁ : l₁.len
 | (a :: l) _ (n+1) h₁ h₂ :=
   begin
     dsimp,
-    conv { to_rhs, congr, skip,
-      rw [tsub_add_eq_tsub_tsub, tsub_right_comm, add_tsub_cancel_right], },
+    conv { to_rhs, congr, skip, rw [nat.add_sub_add_right], },
     rw nth_le_append_right (nat.lt_succ_iff.mp h₁),
   end
 
@@ -1694,6 +1693,10 @@ theorem bind_ret_eq_map (f : α → β) (l : list α) :
   l.bind (list.ret ∘ f) = map f l :=
 by unfold list.bind; induction l; simp only [map, join, list.ret, cons_append, nil_append, *];
   split; refl
+
+lemma bind_congr {l : list α} {f g : α → list β} (h : ∀ x ∈ l, f x = g x) :
+  list.bind l f = list.bind l g :=
+(congr_arg list.join $ map_congr h : _)
 
 @[simp] theorem map_eq_map {α β} (f : α → β) (l : list α) : f <$> l = map f l := rfl
 

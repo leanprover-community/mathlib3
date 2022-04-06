@@ -28,12 +28,6 @@ such that `λ z, ∥f z∥` takes it maximum value on `K` at `z`.
 Finally, if the codomain is a strictly convex space, then the function cannot have a local maximum
 of the norm unless the function (not only its norm) is a constant. This version is not formalized
 yet.
-
-## TODO
-
-All theorems in this file assume that the codomain is a normed space with second countable
-topology. The latter assumption can and should be removed, either during the planned refactor of the
-Bochner integral, or by applying current version to the span of the range of `f`.
 -/
 
 open topological_space metric set filter asymptotics function measure_theory affine_map
@@ -41,7 +35,7 @@ open_locale topological_space filter nnreal real
 
 universes u v w
 variables {E : Type u} [normed_group E] [normed_space ℂ E]
-  {F : Type v} [normed_group F] [normed_space ℂ F] [second_countable_topology F]
+  {F : Type v} [normed_group F] [normed_space ℂ F]
 
 local postfix `̂`:100 := uniform_space.completion
 
@@ -63,7 +57,6 @@ lemma norm_max_aux₁ [complete_space F] {f : ℂ → F} {z w : ℂ}
   (hz : is_max_on (norm ∘ f) (closed_ball z (dist w z)) z) :
   ∥f w∥ = ∥f z∥ :=
 begin
-  borelize F,
   /- Consider a circle of radius `r = dist w z`. -/
   set r : ℝ := dist w z,
   have hw : w ∈ closed_ball z r, from mem_closed_ball.2 le_rfl,
@@ -103,7 +96,6 @@ lemma norm_max_aux₂ {f : ℂ → F} {z w : ℂ} (hd : diff_on_int_cont ℂ f (
   (hz : is_max_on (norm ∘ f) (closed_ball z (dist w z)) z) :
   ∥f w∥ = ∥f z∥ :=
 begin
-  haveI : second_countable_topology (F̂) := uniform_space.second_countable_of_separable _,
   set e : F →L[ℂ] F̂ := uniform_space.completion.to_complL,
   have he : ∀ x, ∥e x∥ = ∥x∥, from uniform_space.completion.norm_coe,
   replace hz : is_max_on (norm ∘ (e ∘ f)) (closed_ball z (dist w z)) z,

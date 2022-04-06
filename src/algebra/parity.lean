@@ -24,6 +24,8 @@ even a ↔ ∃ r, a = r + r
 
 Odd elements are not unified with a multiplicative notion.
 
+## Future work
+
 * TODO: Try to generalize further the typeclass assumptions on `is_square/even`.
   For instance, in some cases, there are `semiring` assumptions that I (DT) am not convinced are
   necessary.
@@ -50,6 +52,16 @@ lemma is_square_mul_self [has_mul α] (m : α) : is_square (m * m) := ⟨m, rfl�
 lemma is_square_iff_exists_sq [monoid α] (m : α) : is_square m ↔ ∃ c, m = c ^ 2 :=
 by simp [is_square, pow_two]
 
+alias is_square_iff_exists_sq ↔ is_square.exists_sq is_square_of_exists_sq
+
+attribute [to_additive even.exists_two_nsmul] is_square.exists_sq
+/-- Alias of the forwards direction of `even_iff_exists_two_nsmul`. -/
+add_decl_doc even.exists_two_nsmul
+
+attribute [to_additive even_of_exists_two_nsmul] is_square_of_exists_sq
+/-- Alias of the backwards direction of `even_iff_exists_two_nsmul`. -/
+add_decl_doc even_of_exists_two_nsmul
+
 @[simp, to_additive even_two_nsmul]
 lemma is_square_sq [monoid α] (a : α) : is_square (a ^ 2) := ⟨a, pow_two _⟩
 
@@ -57,8 +69,8 @@ lemma is_square_sq [monoid α] (a : α) : is_square (a ^ 2) := ⟨a, pow_two _�
 lemma is_square_one [mul_one_class α] : is_square (1 : α) := ⟨1, (mul_one _).symm⟩
 
 @[to_additive]
-lemma monoid_hom.is_square [mul_one_class α] [mul_one_class β] {m : α}
-  (f : α →* β) (hm : is_square m) :
+lemma is_square.map {F : Type*} [mul_one_class α] [mul_one_class β] [monoid_hom_class F α β]
+  {m : α} (f : F) (hm : is_square m) :
   is_square (f m) :=
 begin
   rcases hm with ⟨m, rfl⟩,
@@ -139,10 +151,10 @@ by { ext x, simp [eq_comm, two_mul, even] }
 @[simp] lemma even_two : even (2 : α) := ⟨1, rfl⟩
 
 @[simp] lemma even.mul_left (hm : even m) (n) : even (n * m) :=
-(add_monoid_hom.mul_left n).even hm
+hm.map (add_monoid_hom.mul_left n)
 
 @[simp] lemma even.mul_right (hm : even m) (n) : even (m * n) :=
-(add_monoid_hom.mul_right n).even hm
+hm.map (add_monoid_hom.mul_right n)
 
 lemma even_two_mul (m : α) : even (2 * m) := ⟨m, two_mul _⟩
 
@@ -215,7 +227,6 @@ variables [ring α] {m n : α}
 
 @[simp] lemma even_neg_two : even (- 2 : α) := by simp only [even_neg, even_two]
 
--- from src/algebra/order/ring.lean
 lemma even_abs [linear_order α] {a : α} : even (|a|) ↔ even a :=
 begin
   rcases abs_choice a with h | h; rw h,
@@ -244,14 +255,11 @@ by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
 lemma odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
 by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
 
--- from src/algebra/order/ring.lean
 lemma odd_abs [linear_order α] {a : α} : odd (abs a) ↔ odd a :=
 by { cases abs_choice a with h h; simp only [h, odd_neg] }
 
 end ring
 
-
--- from src/algebra/group_power/lemmas.lean
 section powers
 variables {R : Type*}
   {a : R} {n : ℕ} [linear_ordered_ring R]
@@ -296,13 +304,11 @@ by cases hn with k hk; simpa only [hk, two_mul] using strict_mono_pow_bit1 _
 
 end powers
 
--- from src/data/fintype/basic.lean
 /-- The cardinality of `fin (bit0 k)` is even, `fact` version.
 This `fact` is needed as an instance by `matrix.special_linear_group.has_neg`. -/
 lemma fintype.card_fin_even {k : ℕ} : fact (even (fintype.card (fin (bit0 k)))) :=
 ⟨by { rw [fintype.card_fin], exact even_bit0 k }⟩
 
--- from src/algebra/field_power.lean
 section field_power
 variable {K : Type*}
 
@@ -388,7 +394,7 @@ begin
   ext,
   split,
   { intros h, simp [h], },
-  { intros h, simp [h],},
+  { intros h, simp [h], },
 end
 
 end int

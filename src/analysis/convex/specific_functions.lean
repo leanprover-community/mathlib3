@@ -53,9 +53,14 @@ begin
   apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
   { intro x,
+<<<<<<< HEAD
     rcases nat.even.sub_even hn (even_bit0 1) with ⟨k, hk⟩,
     rw ← two_mul at hk,
     rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, pow_mul'],
+=======
+    rcases (nat.even.sub_even hn (even_bit0 1)).exists_two_nsmul _ with ⟨k, hk⟩,
+    rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, nsmul_eq_mul, pow_mul'],
+>>>>>>> master
     exact mul_nonneg (nat.cast_nonneg _) (pow_two_nonneg _) }
 end
 

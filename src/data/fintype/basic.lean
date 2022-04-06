@@ -1138,8 +1138,8 @@ instance finset.subtype.fintype (s : finset α) : fintype {x // x ∈ s} :=
 instance finset_coe.fintype (s : finset α) : fintype (↑s : set α) :=
 finset.subtype.fintype s
 
-@[simp] lemma fintype.card_coe (s : finset α) :
-  fintype.card s = s.card := card_attach
+@[simp] lemma fintype.card_coe (s : finset α) [fintype s] :
+  fintype.card s = s.card := fintype.card_of_finset' s (λ _, iff.rfl)
 
 lemma finset.attach_eq_univ {s : finset α} : s.attach = finset.univ := rfl
 

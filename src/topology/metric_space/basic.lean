@@ -1572,8 +1572,8 @@ begin
   let g : f ⁻¹' s → s := cod_restrict (f ∘ coe) s (λ x, x.2),
   have : inducing g := (hf.comp inducing_coe).cod_restrict _,
   haveI : second_countable_topology (f ⁻¹' s) := this.second_countable_topology,
-  rw show f ⁻¹' s = coe '' (univ : set (f ⁻¹' s)), 
-     by simpa only [image_univ, subtype.range_coe_subtype, mem_preimage],
+  rw show f ⁻¹' s = coe '' (univ : set (f ⁻¹' s)),
+     by simpa only [image_univ, subtype.range_coe_subtype],
   exact (is_separable_of_separable_space _).image continuous_subtype_coe
 end
 
@@ -1588,7 +1588,7 @@ lemma _root_.continuous_on.is_separable_image [topological_space β] {f : α →
   is_separable (f '' s) :=
 begin
   rw show f '' s = s.restrict f '' univ, by ext ; simp,
-  exact (is_separable_univ_iff.2 hs.separable_space).image 
+  exact (is_separable_univ_iff.2 hs.separable_space).image
     (continuous_on_iff_continuous_restrict.1 hf),
 end
 

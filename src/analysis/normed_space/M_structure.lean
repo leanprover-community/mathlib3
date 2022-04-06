@@ -206,11 +206,8 @@ begin
   calc 1 - (1 - P) * (1 - Q) = 1 -(1 - Q - P * (1 - Q)) : by rw [sub_mul, one_mul]
   ... = Q + P * (1 - Q) : by rw [sub_sub, sub_sub_self]
   ... = P + Q - P * Q : by rw [mul_sub, mul_one, add_sub, add_comm],
-  rw ← e1,
-  rw ← is_Lprojection.Lcomplement_iff,
-  apply is_Lprojection.mul,
-  apply is_Lprojection.Lcomplement h₁,
-  apply is_Lprojection.Lcomplement h₂,
+  rw [← e1, ← is_Lprojection.Lcomplement_iff],
+  exact is_Lprojection.mul (is_Lprojection.Lcomplement h₁) (is_Lprojection.Lcomplement h₂)
 end
 
 instance : has_compl { f : X →L[𝕜] X // is_Lprojection f } :=

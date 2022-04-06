@@ -232,6 +232,18 @@ begin
   exact relindex_inf_ne_zero hH hK,
 end
 
+lemma relindex_inf_le : (H ⊓ K).relindex L ≤ H.relindex L * K.relindex L :=
+begin
+  by_cases h : H.relindex L = 0,
+  { exact (le_of_eq (relindex_eq_zero_of_le_left (by exact inf_le_left) h)).trans (zero_le _) },
+  rw [←inf_relindex_right, inf_assoc, ←relindex_mul_relindex _ _ L inf_le_right inf_le_right,
+      inf_relindex_right, inf_relindex_right],
+  exact mul_le_mul_right' (relindex_le_of_le_right inf_le_right h) (K.relindex L),
+end
+
+lemma index_inf_le : (H ⊓ K).index ≤ H.index * K.index :=
+by simp_rw [←relindex_top_right, relindex_inf_le]
+
 @[simp] lemma index_eq_one : H.index = 1 ↔ H = ⊤ :=
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,
   λ h, (congr_arg index h).trans index_top⟩

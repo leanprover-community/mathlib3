@@ -462,6 +462,14 @@ lemma trivial_topological_vector_bundle.trivialization_source :
 lemma trivial_topological_vector_bundle.trivialization_target :
   (trivial_topological_vector_bundle.trivialization R B F).target = univ := rfl
 
+@[simp]
+lemma trivial_topological_vector_bundle.trivialization_source :
+  (trivial_topological_vector_bundle.trivialization R B F).source = univ := rfl
+
+@[simp]
+lemma trivial_topological_vector_bundle.trivialization_target :
+  (trivial_topological_vector_bundle.trivialization R B F).target = univ := rfl
+
 instance trivial_bundle.topological_vector_bundle :
   topological_vector_bundle R F (bundle.trivial B F) :=
 { trivialization_atlas := {trivial_topological_vector_bundle.trivialization R B F},

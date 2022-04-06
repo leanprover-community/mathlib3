@@ -171,8 +171,7 @@ begin
   ... = P * (1 - Q) - Q * (P * (1 - Q)) : by rw one_mul
   ... = P * (1 - Q) - Q * (P - P * Q) : by rw [mul_sub, mul_one]
   ... = P * (1 - Q) - (Q * P - Q * P * Q) : by rw [mul_sub Q, mul_assoc],
-  rw [eq_sub_iff_add_eq, add_right_eq_self, sub_eq_zero] at e1,
-  exact e1,
+  rwa [eq_sub_iff_add_eq, add_right_eq_self, sub_eq_zero] at e1
 end
 
 lemma Lproj_commute {P Q: X →L[𝕜] X} (h₁: is_Lprojection P) (h₂ : is_Lprojection Q) : commute P Q :=

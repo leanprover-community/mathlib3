@@ -42,6 +42,7 @@ inductive palindrome : list α → Prop
 | cons_concat : ∀ x {l}, palindrome l → palindrome (x :: (l ++ [x]))
 
 namespace palindrome
+variables {l : list α}
 
 lemma reverse_eq {l : list α} (p : palindrome l) : reverse l = l :=
 palindrome.rec_on p rfl (λ _, rfl) (λ x l p h, by simp [h])
@@ -62,8 +63,8 @@ iff.intro reverse_eq of_reverse_eq
 lemma append_reverse (l : list α) : palindrome (l ++ reverse l) :=
 by { apply of_reverse_eq, rw [reverse_append, reverse_reverse] }
 
-lemma map {l : list α} (f : α → β) (p : palindrome l) : palindrome (map f l) :=
-by { apply of_reverse_eq, rw [← map_reverse, p.reverse_eq] }
+lemma map (f : α → β) (p : palindrome l) : palindrome (map f l) :=
+of_reverse_eq $ by rw [← map_reverse, p.reverse_eq]
 
 instance [decidable_eq α] (l : list α) : decidable (palindrome l) :=
 decidable_of_iff' _ iff_reverse_eq

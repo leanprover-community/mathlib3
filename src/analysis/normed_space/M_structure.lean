@@ -242,18 +242,21 @@ instance : partial_order {P : X →L[𝕜] X // is_Lprojection P} :=
     rw [← sq, projection_def],
     exact P.prop.left,
   end,
-  le_trans := λ P Q R, begin
+  le_trans := λ P Q R,
+  begin
     intros h₁ h₂,
     simp only [coe_inf],
     have e₁: ↑P = ↑P * ↑Q := h₁,
     have e₂: ↑Q = ↑Q * ↑R := h₂,
-    have e₃: (↑P:X →L[𝕜] X) = ↑P * ↑R := begin
+    have e₃: (↑P:X →L[𝕜] X) = ↑P * ↑R :=
+    begin
       nth_rewrite_rhs 0 e₁,
       rw [mul_assoc, ← e₂, ← e₁],
     end,
     apply e₃,
   end,
-  le_antisymm := λ P Q, begin
+  le_antisymm := λ P Q,
+  begin
     intros h₁ h₂,
     have e₁: ↑P = ↑P * ↑Q := h₁,
     have e₂: ↑Q = ↑Q * ↑P := h₂,
@@ -281,7 +284,8 @@ rfl
 
 instance : bounded_order {P : X →L[𝕜] X // is_Lprojection P} :=
 { top := 1,
-  le_top := λ P, begin
+  le_top := λ P,
+  begin
     have e: (↑P:X →L[𝕜] X) = ↑P *  1 := by rw mul_one,
     apply e,
   end,
@@ -312,12 +316,14 @@ by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ)
     commute.eq (Lproj_commute (Q⊓R).prop Pᶜ.prop), ← mul_assoc, ← sq, projection_def Pᶜ.prop.left]
 
 instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
-{ le_sup_left := λ P Q, begin
+{ le_sup_left := λ P Q,
+  begin
     have e: ↑P = ↑P * ↑(P ⊔ Q) := by rw [coe_sup, ← add_sub, mul_add, mul_sub, ← mul_assoc, ← sq,
       projection_def P.prop.left, sub_self, add_zero],
     apply e,
   end,
-  le_sup_right := λ P Q, begin
+  le_sup_right := λ P Q,
+    begin
     have e: (↑Q: X →L[𝕜] X) = ↑Q * ↑(P ⊔ Q) :=
     begin
       rw [coe_sup, ← add_sub, mul_add, mul_sub, commute.eq (Lproj_commute P.prop Q.prop),
@@ -326,7 +332,8 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
     end,
     apply e,
   end,
-  sup_le := λ P Q R, begin
+  sup_le := λ P Q R,
+  begin
     intros h₁ h₂,
     have e₁: ↑P = ↑P * ↑R := h₁,
     have e₂: ↑Q = ↑Q * ↑R := h₂,
@@ -334,17 +341,20 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
        ← e₂, ← e₁],
     apply e,
   end,
-  inf_le_left := λ P Q, begin
+  inf_le_left := λ P Q,
+  begin
     have e: ↑(P ⊓ Q) = ↑(P ⊓ Q) * ↑P := by rw [coe_inf, mul_assoc,
       commute.eq (Lproj_commute Q.prop P.prop), ← mul_assoc, ← sq, (projection_def P.prop.left)],
     apply e,
   end,
-  inf_le_right := λ P Q, begin
+  inf_le_right := λ P Q,
+  begin
     have e: ↑(P ⊓ Q) = ↑(P ⊓ Q) * ↑Q := by
       rw [coe_inf, mul_assoc,  ← sq, (projection_def Q.prop.left)],
     apply e,
   end,
-  le_inf := λ P Q R, begin
+  le_inf := λ P Q R,
+  begin
     intros h₁ h₂,
     have e₁: ↑P = ↑P * ↑Q := h₁,
     have e: ↑P =  ↑P * ↑(Q ⊓ R) := begin
@@ -353,7 +363,8 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
     end,
     apply e,
   end,
-  le_sup_inf := λ P Q R, begin
+  le_sup_inf := λ P Q R,
+  begin
     have e₁: ↑((P ⊔ Q) ⊓ (P ⊔ R)) = ↑P + ↑Q * ↑R * ↑Pᶜ := by rw [coe_inf, coe_sup, coe_sup,
       ← add_sub, ← add_sub, compl_mul_left, compl_mul_left, add_mul,
       mul_add, commute.eq (Lproj_commute Pᶜ.prop Q.prop), mul_add, ← mul_assoc, mul_assoc ↑Q,
@@ -373,32 +384,37 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
   .. is_Lprojection.subtype.partial_order }
 
 instance : boolean_algebra {P : X →L[𝕜] X // is_Lprojection P} :=
-{ sup_inf_sdiff := λ P Q, begin
+{ sup_inf_sdiff := λ P Q,
+  begin
     apply subtype.eq,
     simp only [subtype.val_eq_coe, coe_sup, coe_inf, coe_sdiff],
     rw [mul_assoc, ← mul_assoc ↑Q, commute.eq (Lproj_commute Q.prop P.prop), mul_assoc ↑P ↑Q,
       ← coe_compl, compl_orthog, mul_zero, mul_zero, sub_zero, ← mul_add, coe_compl,
       add_sub_cancel'_right, mul_one],
   end,
-  inf_inf_sdiff := λ P Q, begin
+  inf_inf_sdiff := λ P Q,
+  begin
     apply subtype.eq,
     simp only [subtype.val_eq_coe, coe_inf, coe_sdiff, coe_bot],
     rw [mul_assoc, ← mul_assoc ↑Q, commute.eq (Lproj_commute Q.prop P.prop), ← coe_compl, mul_assoc,
       compl_orthog, mul_zero, mul_zero],
   end,
-  inf_compl_le_bot := λ P, begin
+  inf_compl_le_bot := λ P,
+  begin
     apply eq.le,
     apply subtype.eq,
     simp only [subtype.val_eq_coe, coe_inf, coe_compl, coe_bot],
     rw [← coe_compl, compl_orthog],
   end,
-  top_le_sup_compl := λ P, begin
+  top_le_sup_compl := λ P,
+  begin
     apply eq.le,
     apply subtype.eq,
     simp only [subtype.val_eq_coe, coe_top, coe_sup, coe_compl, add_sub_cancel'_right],
     rw [← coe_compl, compl_orthog, sub_zero],
   end,
-  sdiff_eq := λ P Q, begin
+  sdiff_eq := λ P Q,
+  begin
     apply subtype.eq,
     simp only [subtype.val_eq_coe, coe_inf, coe_sdiff, coe_compl],
   end,

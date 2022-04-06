@@ -84,7 +84,7 @@ of `M`. This structure registers the changes in the fibers when one changes coor
 base. We require the change of coordinates of the fibers to be linear, so that the resulting bundle
 is a vector bundle. -/
 -- TODO For more serious applications, we would need the stronger condition
--- `(coord_change_smooth :`
+-- `(coord_change_smooth_clm :`
 --   `∀ i j, cont_diff_on 𝕜 ∞ ((coord_change i j) ∘ I.symm) (I '' (i.1.symm.trans j.1).source))`
 -- which subsumes both `coord_change_smooth` and `coord_change_continuous`.  But the implication
 -- from the stronger `coord_change_smooth` to the current `coord_change_smooth` is not trivial, and
@@ -100,12 +100,11 @@ structure basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_fie
 (coord_change_comp : ∀ i j k : atlas H M,
   ∀ x ∈ ((i.1.symm.trans j.1).trans (j.1.symm.trans k.1)).source, ∀ v,
   (coord_change j k ((i.1.symm.trans j.1) x)) (coord_change i j x v) = coord_change i k x v)
-(coord_change_smooth' : ∀ i j : atlas H M,
+(coord_change_smooth_clm : ∀ i j : atlas H M,
   cont_diff_on 𝕜 ∞ ((coord_change i j) ∘ I.symm) (I '' (i.1.symm.trans j.1).source))
 (coord_change_smooth : ∀ i j : atlas H M,
   cont_diff_on 𝕜 ∞ (λp : E × F, coord_change i j (I.symm p.1) p.2)
   ((I '' (i.1.symm.trans j.1).source) ×ˢ (univ : set F)))
-(coord_change_continuous : ∀ i j, continuous_on (coord_change i j) (i.1.symm.trans j.1).source)
 
 /-- The trivial basic smooth bundle core, in which all the changes of coordinates are the
 identity. -/
@@ -117,9 +116,8 @@ def trivial_basic_smooth_vector_bundle_core {𝕜 : Type*} [nondiscrete_normed_f
 { coord_change := λ i j x, continuous_linear_map.id 𝕜 F,
   coord_change_self := λ i x hx v, rfl,
   coord_change_comp := λ i j k x hx v, rfl,
-  coord_change_smooth' := λ i j, by { dsimp, exact cont_diff_on_const },
-  coord_change_smooth := λ i j, cont_diff_snd.cont_diff_on,
-  coord_change_continuous := λ i j, continuous_on_const }
+  coord_change_smooth_clm := λ i j, by { dsimp, exact cont_diff_on_const },
+  coord_change_smooth := λ i j, cont_diff_snd.cont_diff_on }
 
 namespace basic_smooth_vector_bundle_core
 
@@ -132,6 +130,18 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 instance : inhabited (basic_smooth_vector_bundle_core I M F) :=
 ⟨trivial_basic_smooth_vector_bundle_core I M F⟩
+
+lemma coord_change_continuous (i j : atlas H M) :
+  continuous_on (Z.coord_change i j) (i.1.symm.trans j.1).source :=
+begin
+  assume x hx,
+  apply (((Z.coord_change_smooth_clm i j).continuous_on.continuous_within_at
+    (mem_image_of_mem I hx)).comp I.continuous_within_at _).congr,
+  { assume y hy,
+    simp only with mfld_simps },
+  { simp only with mfld_simps },
+  { exact maps_to_image I _ },
+end
 
 /-- Vector bundle core associated to a basic smooth bundle core -/
 def to_topological_vector_bundle_core : topological_vector_bundle_core 𝕜 M F (atlas H M) :=
@@ -282,7 +292,7 @@ model with corners `I` on `(E, H)`. The fibers are equal to `E`, and the coordin
 fiber corresponds to the derivative of the coordinate change in `M`. -/
 def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
 { coord_change := λ i j x, (fderiv_within 𝕜 (I ∘ j.1 ∘ i.1.symm ∘ I.symm) (range I) (I x)),
-  coord_change_smooth' := λ i j,
+  coord_change_smooth_clm := λ i j,
   begin
     rw I.image_eq,
     have A : cont_diff_on 𝕜 ∞
@@ -348,36 +358,6 @@ def tangent_bundle_core : basic_smooth_vector_bundle_core I M E :=
     dsimp [-subtype.val_eq_coe],
     rw [this, D x E],
     refl
-  end,
-  coord_change_continuous := λ i j, begin
-    /- The co-ordinate changes in the tangent bundle (an element of `E ≃L[𝕜] E` at each point) are
-    precisely the differential of the co-ordinate changes of the charts.  Since the charts are
-    smooth and hence `C¹`, these co-ordinate changes are continuous. -/
-    let e : local_homeomorph H H := i.val.symm ≫ₕ j.val,
-    let f : E → E := I ∘ e ∘ I.symm,
-    have hij : cont_diff_on 𝕜 ↑(1:ℕ) f ((I.symm) ⁻¹' e.source ∩ range I),
-    { apply cont_diff_on.of_le _ le_top,
-      exact ((cont_diff_groupoid ∞ I).compatible i.2 j.2).1 },
-    obtain ⟨hf, hf'⟩ : differentiable_on 𝕜 f (I '' e.source)
-      ∧ continuous_on (λ (y : E), fderiv_within 𝕜 f (I '' e.source) y) (I '' e.source),
-    { rw [← @cont_diff_on_zero 𝕜, I.image_eq],
-      rwa cont_diff_on_succ_iff_fderiv_within (I.unique_diff_preimage e.open_source) at hij },
-    have key : ∀ x ∈ e.source,
-      fderiv_within 𝕜 f (range I) (I x) = fderiv_within 𝕜 f (I '' e.source) (I x),
-    { intros x hx,
-      have H₁ : unique_diff_within_at 𝕜 (I '' e.source) (I x),
-      { rw I.image_eq,
-        apply I.unique_diff_preimage e.open_source,
-        rw ← I.image_eq,
-        exact mem_image_of_mem I hx },
-      have H₂ : I '' e.source ∈ 𝓝[range I] (I x),
-      { exact I.image_mem_nhds_within (e.open_source.mem_nhds hx) },
-      symmetry,
-      exact fderiv_within_subset' (image_subset_range I _) H₁ H₂ (hf _ (mem_image_of_mem I hx)) },
-    intros x hx,
-    refine ((hf' (I x) (mem_image_of_mem I hx)).comp I.continuous_within_at _).congr key _,
-    { exact maps_to_image I e.source },
-    { exact key _ hx },
   end,
   coord_change_self := λ i x hx v, begin
     /- Locally, a self-change of coordinate is just the identity, thus its derivative is the

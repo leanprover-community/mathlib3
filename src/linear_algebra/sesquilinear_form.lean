@@ -164,11 +164,7 @@ lemma eq_zero : ∀ {x y}, B x y = 0 → B y x = 0 := λ x y, H x y
 lemma ortho_comm {x y} : is_ortho B x y ↔ is_ortho B y x := ⟨eq_zero H, eq_zero H⟩
 
 lemma dom_restrict_refl (H : B.is_refl) (p : submodule R₁ M₁) : (B.dom_restrict₁₂ p p).is_refl :=
-begin
-  intros x y,
-  simp_rw dom_restrict₁₂_apply,
-  exact H x y,
-end
+λ _ _, by { simp_rw dom_restrict₁₂_apply, exact H _ _}
 
 @[simp] lemma flip_is_refl_iff : B.flip.is_refl ↔ B.is_refl :=
 ⟨λ h x y H, h y x ((B.flip_apply _ _).trans H), λ h x y, h y x⟩

@@ -66,10 +66,6 @@ end
 
 namespace contractible_space
 
-/-- Contractible spaces are nonempty; we do not make this an instance to speed up instance search -/
-protected lemma nonempty : nonempty X :=
-nonempty.map (λ h, homotopy_equiv.inv_fun h ()) (hequiv_unit X)
-
 @[priority 100]
 instance : path_connected_space X :=
 begin

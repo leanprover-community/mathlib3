@@ -206,11 +206,7 @@ lemma is_refl (H : B.is_symm) : B.is_refl := λ x y H1, by { rw ←H.eq, simp [H
 lemma ortho_comm (H : B.is_symm) {x y} : is_ortho B x y ↔ is_ortho B y x := H.is_refl.ortho_comm
 
 lemma dom_restrict_symm (H : B.is_symm) (p : submodule R M) : (B.dom_restrict₁₂ p p).is_symm :=
-begin
-  intros x y,
-  simp_rw dom_restrict₁₂_apply,
-  exact H x y,
-end
+λ _ _, by { simp_rw dom_restrict₁₂_apply, exact H _ _}
 
 end is_symm
 

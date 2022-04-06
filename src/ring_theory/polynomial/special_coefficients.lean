@@ -73,7 +73,8 @@ end
 @[simp] lemma mul_X_right (p : R[X]) (n0 : n ≠ 0) :
   ptl m (n + 1) p (q * X) = ptl m n p q :=
 begin
-  rw [ptl, nat.add_sub_cancel, ← nat.sub_add_cancel (_ : 1 ≤ n), coeff_mul_X, coeff_mul_X, nat.sub_add_cancel, ← ptl],
+  rw [ptl, nat.add_sub_cancel, ← nat.sub_add_cancel (_ : 1 ≤ n), coeff_mul_X, coeff_mul_X,
+    nat.sub_add_cancel, ← ptl],
   repeat { exact nat.one_le_iff_ne_zero.mpr n0 }
 end
 

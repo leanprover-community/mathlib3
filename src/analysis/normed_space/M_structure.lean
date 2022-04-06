@@ -210,25 +210,25 @@ end
 instance : has_compl { f : X →L[𝕜] X // is_Lprojection f } :=
 ⟨λ P, ⟨1-P, P.prop.Lcomplement⟩⟩
 
-@[simp] lemma coe_compl (P : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :
+@[simp] lemma coe_compl (P : {P : X →L[𝕜] X // is_Lprojection P}) :
   ↑(Pᶜ) = (1:X →L[𝕜] X) - ↑P := rfl
 
 instance : has_inf {P : X →L[𝕜] X // is_Lprojection P} :=
 ⟨λ P Q, ⟨P * Q, P.prop.mul Q.prop⟩ ⟩
 
-@[simp] lemma coe_inf (P Q : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :
+@[simp] lemma coe_inf (P Q : {P : X →L[𝕜] X // is_Lprojection P}) :
   ↑(P ⊓ Q) = ((↑P : (X →L[𝕜] X)) * ↑Q) := rfl
 
 instance : has_sup {P : X →L[𝕜] X // is_Lprojection P} :=
 ⟨λ P Q, ⟨P + Q - P * Q, P.prop.join Q.prop⟩ ⟩
 
-@[simp] lemma coe_sup (P Q : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :
+@[simp] lemma coe_sup (P Q : {P : X →L[𝕜] X // is_Lprojection P}) :
   ↑(P ⊔ Q) = ((↑P:X →L[𝕜] X) + ↑Q - ↑P * ↑Q) := rfl
 
 instance : has_sdiff {P : X →L[𝕜] X // is_Lprojection P} :=
 ⟨λ P Q, ⟨P * (1-Q), by exact is_Lprojection.mul P.prop (is_Lprojection.Lcomplement Q.prop) ⟩⟩
 
-@[simp] lemma coe_sdiff (P Q : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :
+@[simp] lemma coe_sdiff (P Q : {P : X →L[𝕜] X // is_Lprojection P}) :
   ↑(P \ Q) = (↑P:X →L[𝕜] X) * (1-↑Q) := rfl
 
 instance : partial_order {P : X →L[𝕜] X // is_Lprojection P} :=
@@ -266,16 +266,16 @@ instance : has_zero {P : X →L[𝕜] X // is_Lprojection P}  :=
      λ x, by simp only [continuous_linear_map.zero_apply, norm_zero, sub_zero,
                         continuous_linear_map.one_apply, zero_add]⟩⟩⟩
 
-@[simp] lemma coe_zero : ↑(0 : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) = (0 : X →L[𝕜] X) :=
+@[simp] lemma coe_zero : ↑(0 : {P : X →L[𝕜] X // is_Lprojection P}) = (0 : X →L[𝕜] X) :=
 rfl
 
 instance : has_one {P : X →L[𝕜] X // is_Lprojection P}  :=
 ⟨⟨1, begin
   rw ← sub_zero (1:X →L[𝕜] X),
-  exact is_Lprojection.Lcomplement (0 : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)).prop,
+  exact is_Lprojection.Lcomplement (0 : {P : X →L[𝕜] X // is_Lprojection P}).prop,
 end⟩⟩
 
-@[simp] lemma coe_one : ↑(1 : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) = (1 : X →L[𝕜] X) :=
+@[simp] lemma coe_one : ↑(1 : {P : X →L[𝕜] X // is_Lprojection P}) = (1 : X →L[𝕜] X) :=
 rfl
 
 instance : bounded_order {P : X →L[𝕜] X // is_Lprojection P} :=
@@ -288,20 +288,20 @@ instance : bounded_order {P : X →L[𝕜] X // is_Lprojection P} :=
   bot := 0,
   bot_le := λ P, show 0 ≤ P, from zero_mul P, }
 
-@[simp] lemma coe_bot : ↑(bounded_order.bot : subtype (is_Lprojection  :
-  (X →L[𝕜] X) → Prop)) = (0: X →L[𝕜] X) := rfl
+@[simp] lemma coe_bot : ↑(bounded_order.bot : {P : X →L[𝕜] X // is_Lprojection P}) = (0: X →L[𝕜] X)
+  := rfl
 
-@[simp] lemma coe_top : ↑(bounded_order.top : subtype (is_Lprojection  :
-  (X →L[𝕜] X) → Prop)) = (1: X →L[𝕜] X) := rfl
+@[simp] lemma coe_top : ↑(bounded_order.top : {P : X →L[𝕜] X // is_Lprojection P}) = (1: X →L[𝕜] X)
+  := rfl
 
-lemma compl_mul_left {P : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)} {Q: X →L[𝕜] X} :
+lemma compl_mul_left {P : {P : X →L[𝕜] X // is_Lprojection P}} {Q: X →L[𝕜] X} :
   Q - ↑P * Q = ↑Pᶜ * Q := by rw [coe_compl, sub_mul, one_mul]
 
-lemma compl_orthog {P : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)} :
+lemma compl_orthog {P : {P : X →L[𝕜] X // is_Lprojection P}} :
   (↑P: X →L[𝕜] X) * (↑ Pᶜ) = 0 :=
 by rw [coe_compl, mul_sub, ← sq, mul_one, projection_def P.prop.left, sub_self]
 
-lemma distrib_lattice_lemma {P Q R : subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)} :
+lemma distrib_lattice_lemma {P Q R : {P : X →L[𝕜] X // is_Lprojection P}} :
   ((↑P:X →L[𝕜] X) + ↑Pᶜ * R) * (↑P + ↑Q * ↑R * ↑Pᶜ) = (↑P + ↑Q * ↑R * ↑Pᶜ) :=
 by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ), ← mul_assoc ↑R (↑Q*↑R)  ↑Pᶜ,
     ← coe_inf Q, commute.eq (Lproj_commute Pᶜ.prop R.prop),

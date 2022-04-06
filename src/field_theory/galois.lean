@@ -23,11 +23,12 @@ In this file we define Galois extensions as extensions which are both separable 
 
 ## Main results
 
-- `intermediate_field.fixing_subgroup_fixed_field` : If `E/F` is finite dimensional (but not necessarily Galois)
-  then `fixing_subgroup (fixed_field H) = H`
+- `intermediate_field.fixing_subgroup_fixed_field` : If `E/F` is finite dimensional (but not
+  necessarily Galois) then `fixing_subgroup (fixed_field H) = H`
 - `intermediate_field.fixed_field_fixing_subgroup`: If `E/F` is finite dimensional and Galois
   then `fixed_field (fixing_subgroup K) = K`
-Together, these two result prove the Galois correspondence
+
+Together, these two result prove the Galois correspondence.
 
 - `is_galois.tfae` : Equivalent characterizations of a Galois extension of finite degree
 -/

@@ -417,7 +417,7 @@ begin
   intros a p n hp' hpa hn hPa,
   by_cases ha1 : a = 1,
   { rw [ha1, mul_one],
-    apply hp p n hp' hn, },
+    exact hp p n hp' hn },
   apply h (p^n) a
     (lt_of_lt_of_le (hp'.one_lt) (le_self_pow (le_of_lt (prime.one_lt hp')) (succ_le_iff.mpr hn)))
     _ _ (hp _ _ hp' hn) hPa,

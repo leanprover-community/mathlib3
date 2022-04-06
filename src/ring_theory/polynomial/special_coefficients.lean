@@ -12,6 +12,12 @@ import data.polynomial.degree.lemmas
 This file contains computations of certain, hopefully meaningful, coefficients of polynomials.
 
 For instance, there is a computation of the coefficients "just before" the `leading_coeff`.
+
+We introduce the "previous-to-last" coefficient `ptl`, taking two natural numbers and two
+polynomials as inputs.  This is intended simply as a helper definition to prove results without
+being constantly required to prove that some coefficient is non-zero or that some polynomial has
+precisely some degree.  We develop enough API for `ptl` to essentially prove that it is linear
+in either one of its polynomial inputs.
 -/
 
 open_locale polynomial
@@ -31,6 +37,7 @@ also fails.  -/
 def ptl (m n : ℕ) (p q : R[X]) : R :=
 p.coeff m * q.coeff (n - 1) + p.coeff (m - 1) * q.coeff n
 
+/-!  We prove lemmas showing linearity of `ptl` in its polynomial variables. -/
 namespace ptl
 
 @[simp] lemma zero_left : ptl m n 0 q = 0 :=

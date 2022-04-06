@@ -236,7 +236,8 @@ instance : has_sdiff (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
 
 instance : partial_order (subtype (is_Lprojection  : (X →L[𝕜] X) → Prop)) :=
 { le := λ P Q, (↑P:X →L[𝕜] X) = ↑(P ⊓ Q),
-  le_refl := λ P, begin
+  le_refl := λ P, 
+  begin
     simp only [coe_inf],
     rw [← sq, projection_def],
     exact P.prop.left,

@@ -67,9 +67,7 @@ variables (R : Type*) {B : Type*} (F : Type*) (E : B → Type*)
 
 section topological_vector_space
 variables [semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-  [topological_space F] [add_comm_monoid F] [topological_space B] [module R F]
-
-section trivialization
+  [topological_space F] [add_comm_monoid F] [module R F] [topological_space B]
 
 /-- Local pretrivialization for vector prebundles. -/
 @[nolint has_inhabited_instance]
@@ -117,8 +115,6 @@ topological_fiber_bundle.trivialization.mem_source e
   (ex : x ∈ e.source) : (e x).1 = (proj E) x := e.proj_to_fun x ex
 
 end topological_vector_bundle
-
-end trivialization
 
 end topological_vector_space
 
@@ -320,8 +316,6 @@ begin
   refl,
 end
 
-end trivialization
-
 @[simp] lemma continuous_linear_equiv_apply {g : bundle_section E} {b : B}
   {e : trivialization R F E} (hb : b ∈ e.base_set) :
   e.continuous_linear_equiv_at b (right_inv.mem_base_set_right_inv_fst ↑g hb) (g b) =
@@ -345,6 +339,22 @@ lemma trivialization.snd_map_smul {g : bundle_section E} {e : trivialization R F
 begin
   rw [(continuous_linear_equiv_apply hb).symm, pi.smul_apply, continuous_linear_equiv.map_smul],
   refl,
+end
+
+end trivialization
+
+section
+local attribute [reducible] bundle.trivial
+
+instance {B : Type*} {F : Type*} [add_comm_monoid F] (b : B) :
+  add_comm_monoid (bundle.trivial B F b) := ‹add_comm_monoid F›
+
+instance {B : Type*} {F : Type*} [add_comm_group F] (b : B) :
+  add_comm_group (bundle.trivial B F b) := ‹add_comm_group F›
+
+instance {B : Type*} {F : Type*} [add_comm_monoid F] [module R F] (b : B) :
+  module R (bundle.trivial B F b) := ‹module R F›
+
 end
 
 variables (R B F)

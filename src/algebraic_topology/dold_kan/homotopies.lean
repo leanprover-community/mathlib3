@@ -73,9 +73,7 @@ namespace algebraic_topology
 
 namespace dold_kan
 
-universe v
-
-variables {C : Type*} [category.{v} C] [preadditive C]
+variables {C : Type*} [category C] [preadditive C]
 variables {X : simplicial_object C}
 
 /-- As we are using chain complexes indexed by `ℕ`, we shall need the relation
@@ -175,7 +173,7 @@ def nat_trans_Hσ (q : ℕ) :
   end, }
 
 /-- The maps `hσ' q n m hnm` are compatible with the application of additive functors. -/
-lemma map_hσ' {D : Type*} [category.{v} D] [preadditive D]
+lemma map_hσ' {D : Type*} [category D] [preadditive D]
   (G : C ⥤ D) [G.additive] (X : simplicial_object C)
   (q n m : ℕ) (hnm : c.rel m n) :
   (hσ' q n m hnm : K[((whiskering _ _).obj G).obj X].X n ⟶ _) =
@@ -188,7 +186,7 @@ begin
 end
 
 /-- The null homotopic maps `Hσ` are compatible with the application of additive functors. -/
-lemma map_Hσ {D : Type*} [category.{v} D] [preadditive D]
+lemma map_Hσ {D : Type*} [category D] [preadditive D]
   (G : C ⥤ D) [G.additive] (X : simplicial_object C) (q n : ℕ) :
   (Hσ q : K[((whiskering C D).obj G).obj X] ⟶ _).f n =
   G.map ((Hσ q : K[X] ⟶ _).f n) :=

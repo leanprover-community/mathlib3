@@ -418,8 +418,7 @@ begin
   by_cases ha1 : a = 1,
   { rw [ha1, mul_one],
     exact hp p n hp' hn },
-  apply h (p^n) a
-    (lt_of_lt_of_le (hp'.one_lt) (le_self_pow (le_of_lt (prime.one_lt hp')) (succ_le_iff.mpr hn)))
+  refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow (prime.one_lt hp').le (succ_le_iff.mpr hn)))
     _ _ (hp _ _ hp' hn) hPa,
   { by_contra,
     simp only [not_lt] at h,

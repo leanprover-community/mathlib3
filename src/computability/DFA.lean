@@ -37,8 +37,20 @@ instance [inhabited σ] : inhabited (DFA α σ) :=
 def eval_from (start : σ) : list α → σ :=
 list.foldl M.step start
 
+@[simp] lemma eval_from_nil (S : set σ) : M.eval_from S [] = S := rfl
+@[simp] lemma eval_from_singleton (S : set σ) (a : α) : M.eval_from S [a] = M.step S a := rfl
+@[simp] lemma eval_from_append_singleton (S : set σ) (x : list α) (a : α) :
+  M.eval_from S (x ++ [a]) = M.step (M.eval_from S x) a :=
+by simp only [eval_from, list.foldl_append, list.foldl_cons, list.foldl_nil]
+
 /-- `M.eval x` evaluates `M` with input `x` starting from the state `M.start`. -/
-def eval := M.eval_from M.start
+def eval : list α → σ := M.eval_from M.start
+
+@[simp] lemma eval_nil : M.eval [] = M.start := rfl
+@[simp] lemma eval_singleton (a : α) : M.eval [a] = M.step_set M.start a := rfl
+@[simp] lemma eval_append_singleton (x : list α) (a : α) :
+  M.eval (x ++ [a]) = M.step (M.eval x) a :=
+eval_from_append_singleton _ _ _ _
 
 /-- `M.accepts` is the language of `x` such that `M.eval x` is an accept state. -/
 def accepts : language α :=

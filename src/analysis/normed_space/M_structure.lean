@@ -176,10 +176,8 @@ end
 
 lemma Lproj_commute {P Q: X →L[𝕜] X} (h₁: is_Lprojection P) (h₂ : is_Lprojection Q) : commute P Q :=
 begin
-  unfold commute,
-  unfold semiconj_by,
-  rw PQ_eq_QPQ P Q h₁ h₂,
-  nth_rewrite_rhs 0 QP_eq_QPQ P Q h₁ h₂,
+  rw [commute, semiconj_by, PQ_eq_QPQ P Q h₁ h₂],
+  nth_rewrite_rhs 0 QP_eq_QPQ P Q h₁ h₂
 end
 
 lemma mul {P Q : X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :

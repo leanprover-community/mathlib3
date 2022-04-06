@@ -400,7 +400,7 @@ def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
     { rw nat.mul_div_cancel' hpt, },
     { rw [nat.dvd_div_iff hpt, ←pow_succ', ht],
       exact pow_succ_factorization_not_dvd (k + 1).succ_ne_zero hp },
-    exact htp,
+    { exact htp },
     { apply hk _ (nat.div_lt_of_lt_mul _),
       simp [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne, hp.one_lt] },
     end

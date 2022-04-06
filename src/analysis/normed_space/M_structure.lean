@@ -183,24 +183,20 @@ end
 lemma mul {P Q : X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :
   is_Lprojection (P*Q) :=
 begin
-  unfold is_Lprojection,
-  split,
-  { apply is_projection.mul_of_commute (Lproj_commute h₁ h₂) h₁.left h₂.left, },
-  { intro x,
-    rw le_antisymm_iff,
-    split,
-    -- rw map_sub, apply norm_add_le,
-    { calc ∥ x ∥ = ∥(P * Q) x + (x - (P * Q) x)∥ : by abel
-      ... ≤ ∥(P * Q) x∥ + ∥ x - (P * Q) x ∥ : by apply norm_add_le
-      ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : rfl },
-    { calc ∥x∥ = ∥Q x∥ + ∥(1-Q) x∥ : by rw h₂.right x
-      ... = ∥P(Q x)∥ + ∥(1-P)(Q x)∥ + ∥(1-Q) x∥ : by rw h₁.right (Q x)
-      ... = ∥P(Q x)∥ + ∥Q x - P (Q x)∥ + ∥x - Q x∥ : rfl
-      ... = ∥P(Q x)∥ + (∥Q x - P (Q x)∥ + ∥x - Q x∥) : by rw add_assoc
-      ... ≥ ∥P(Q x)∥ + ∥(Q x - P (Q x)) + (x - Q x)∥ :
-        by apply (add_le_add_iff_left (∥P(Q x)∥)).mpr (norm_add_le (Q x - P (Q x)) (x - Q x))
-      ... = ∥P(Q x)∥ + ∥x - P (Q x)∥ : by rw sub_add_sub_cancel'
-      ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : rfl }, }
+  refine ⟨is_projection.mul_of_commute (Lproj_commute h₁ h₂) h₁.left h₂.left, _⟩,
+  intro x,
+  refine le_antisymm _ _,
+  { calc ∥ x ∥ = ∥(P * Q) x + (x - (P * Q) x)∥ : by abel
+    ... ≤ ∥(P * Q) x∥ + ∥ x - (P * Q) x ∥ : by apply norm_add_le
+    ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : rfl },
+  { calc ∥x∥ = ∥Q x∥ + ∥(1-Q) x∥ : by rw h₂.right x
+    ... = ∥P(Q x)∥ + ∥(1-P)(Q x)∥ + ∥(1-Q) x∥ : by rw h₁.right (Q x)
+    ... = ∥P(Q x)∥ + ∥Q x - P (Q x)∥ + ∥x - Q x∥ : rfl
+    ... = ∥P(Q x)∥ + (∥Q x - P (Q x)∥ + ∥x - Q x∥) : by rw add_assoc
+    ... ≥ ∥P(Q x)∥ + ∥(Q x - P (Q x)) + (x - Q x)∥ :
+      by apply (add_le_add_iff_left (∥P(Q x)∥)).mpr (norm_add_le (Q x - P (Q x)) (x - Q x))
+    ... = ∥P(Q x)∥ + ∥x - P (Q x)∥ : by rw sub_add_sub_cancel'
+    ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : rfl }
 end
 
 lemma join {P Q: X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :

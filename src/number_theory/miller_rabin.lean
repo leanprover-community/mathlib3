@@ -33,31 +33,6 @@ a^(odd_part (n-1)) = 1 ∨ (∃ r : ℕ, r < padic_val_nat 2 (n-1) ∧ a^(2^r * 
 
 instance {n : ℕ} {a : zmod n} : decidable (strong_probable_prime n a) := or.decidable
 
-def binpow {M} [has_one M] [has_mul M] (m : M) : ℕ → M :=
-nat.binary_rec 1 (λ b _ ih, let ih2 := ih * ih in cond b (m * ih2) ih2)
-
-def fast_strong_probable_prime (n : nat) (a : zmod n) : Prop :=
-binpow a (odd_part (n-1)) = 1
-∨ (∃ r : ℕ, r < padic_val_nat 2 (n-1) ∧ binpow a (2^r * odd_part(n-1)) = -1)
-
-instance {n : ℕ} {a : zmod n} : decidable (fast_strong_probable_prime n a) := or.decidable
-
-lemma strong_probable_prime_iff_fast_strong_probable_prime (n : nat) (a : zmod n) :
-  strong_probable_prime n a ↔ fast_strong_probable_prime n a :=
-begin
-  unfold strong_probable_prime,
-  unfold fast_strong_probable_prime,
-  sorry,
-end
-
--- TODO(Bolton): Find a way of making modular exponentiation faster
--- set_option profiler true
--- #eval to_bool (fast_strong_probable_prime 100003 2)
--- #eval to_bool (fast_strong_probable_prime 1000003 2)
--- #eval to_bool (nat.prime 1000003)
--- #eval to_bool (fast_strong_probable_prime 99999997 4)
--- #eval to_bool (nat.prime 104)
-
 def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
 a^(n-1) = 1
 
@@ -263,14 +238,13 @@ begin
       { have stuff : order_of (a ^ odd_part (p - 1)) = 1,
         rw hj,
         rw h,
-        simp,
-        rw ← stuff,
-        -- TODO(Sean): I think you'll need the lemma order_of_eq_one_iff as well
-        -- as h and hj
-        sorry,
+        rw pow_zero,
+        rw order_of_eq_one_iff at stuff,
+        rw stuff,
       },
       left,
-      -- TODO(Sean): This is probably a hard one: this should now be solvable with only sub_one_dvd_pow_sub_one, hfoo, and dvd_iff_exists_eq_mul_left.
+      have thing := sub_one_dvd_pow_sub_one p α one_le_p,
+      -- TODO(Sean): this should now be solvable with only sub_one_dvd_pow_sub_one, hfoo, and dvd_iff_exists_eq_mul_left.
 
       sorry,
     },
@@ -287,8 +261,7 @@ def pow_eq_one_subgroup (n e : ℕ) [fact (0 < n)] : subgroup ((zmod n)ˣ) :=
   mul_mem' := begin
     simp,
     intros a b ha hb,
-    -- TODO(Sean) this lemma is similar to the one below in pow_alt_subgroup below. Try to solve it using the lemmas you used there
-    sorry,
+    rw [mul_pow, ha, hb, mul_one],
   end,
   inv_mem' := begin
     simp,

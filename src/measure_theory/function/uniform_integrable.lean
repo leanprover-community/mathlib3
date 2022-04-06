@@ -731,7 +731,6 @@ of function `(fₙ)` satisfies for all `ε > 0`, there exists some `C ≥ 0` suc
 
 In this section, we will develope some API for `uniform_integrable` and prove that
 `uniform_integrable` is equivalent to this definition of uniform integrability.
-(Currently we only have the forward direction.)
 -/
 
 variables {p : ℝ≥0∞} {f : ι → α → β}

@@ -47,7 +47,7 @@ quotient.lift_on₂' x y (λ a b, ∃ c : A, c • b = a)
 begin
   rintros _ _ a b ⟨c,rfl⟩ ⟨d,rfl⟩, ext,
   split,
-  { rintros ⟨e,he⟩, dsimp at he, use ((c⁻¹ : Aˣ) * e * d),
+  { rintros ⟨e,he⟩, use ((c⁻¹ : Aˣ) * e * d),
     apply_fun (λ t, c⁻¹ • t) at he,
     simpa [mul_smul] using he },
   { rintros ⟨e,he⟩, dsimp,

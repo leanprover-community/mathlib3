@@ -179,7 +179,7 @@ omit hSM
 /-- An additive subgroup of an `add_group` inherits an integer scaling. -/
 instance _root_.add_subgroup_class.has_zsmul {M S} [sub_neg_monoid M] [set_like S M]
   [add_subgroup_class S M] {H : S} : has_scalar ℤ H :=
-⟨λ n a, ⟨n • a, add_subgroup_class.zsmul_mem a.2 n⟩⟩
+⟨λ n a, ⟨n • a, zsmul_mem a.2 n⟩⟩
 include hSM
 
 /-- A subgroup of a group inherits an integer power. -/
@@ -1431,9 +1431,9 @@ lemma pi_mem_of_mul_single_mem_aux [decidable_eq η] (I : finset η) {H : subgro
   x ∈ H :=
 begin
   induction I using finset.induction_on with i I hnmem ih generalizing x,
-  { have : x = 1,
-    { ext i, refine (h1 i (not_mem_empty i)), },
-    simp [this, one_mem], },
+  { convert one_mem H,
+    ext i,
+    exact (h1 i (not_mem_empty i)) },
   { have : x = function.update x i 1 * pi.mul_single i (x i),
     { ext j,
       by_cases heq : j = i,

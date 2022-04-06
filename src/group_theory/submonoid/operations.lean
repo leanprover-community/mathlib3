@@ -526,17 +526,9 @@ structure."]
 instance to_mul_one_class {M : Type*} [mul_one_class M] (S : submonoid M) : mul_one_class S :=
 subtype.coe_injective.mul_one_class coe rfl (λ _ _, rfl)
 
-@[to_additive] lemma pow_mem {M : Type*} [monoid M] (S : submonoid M) {x : M}
+@[to_additive] protected lemma pow_mem {M : Type*} [monoid M] (S : submonoid M) {x : M}
   (hx : x ∈ S) (n : ℕ) : x ^ n ∈ S :=
 pow_mem hx n
-
-instance _root_.add_submonoid.has_nsmul {M : Type*} [add_monoid M] (S : add_submonoid M) :
-  has_scalar ℕ S :=
-⟨λ n x, ⟨n • x, S.nsmul_mem x.prop _⟩⟩
-
-@[to_additive]
-instance has_pow {M : Type*} [monoid M] (S : submonoid M) : has_pow S ℕ :=
-⟨λ x n, ⟨x ^ n, S.pow_mem x.prop _⟩⟩
 
 @[simp, norm_cast, to_additive] theorem coe_pow  {M : Type*} [monoid M] {S : submonoid M}
   (x : S) (n : ℕ) : ↑(x ^ n) = (x ^ n : M) :=

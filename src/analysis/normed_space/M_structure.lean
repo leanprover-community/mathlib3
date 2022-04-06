@@ -381,39 +381,37 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
 
 instance : boolean_algebra {P : X →L[𝕜] X // is_Lprojection P} :=
 { sup_inf_sdiff := λ P Q,
+  subtype.eq
   begin
-    apply subtype.eq,
     simp only [subtype.val_eq_coe, coe_sup, coe_inf, coe_sdiff],
     rw [mul_assoc, ← mul_assoc ↑Q, commute.eq (Lproj_commute Q.prop P.prop), mul_assoc ↑P ↑Q,
       ← coe_compl, compl_orthog, mul_zero, mul_zero, sub_zero, ← mul_add, coe_compl,
       add_sub_cancel'_right, mul_one],
   end,
   inf_inf_sdiff := λ P Q,
+  subtype.eq
   begin
-    apply subtype.eq,
     simp only [subtype.val_eq_coe, coe_inf, coe_sdiff, coe_bot],
     rw [mul_assoc, ← mul_assoc ↑Q, commute.eq (Lproj_commute Q.prop P.prop), ← coe_compl, mul_assoc,
       compl_orthog, mul_zero, mul_zero],
   end,
   inf_compl_le_bot := λ P,
+  eq.le
+  ( subtype.eq
   begin
-    apply eq.le,
-    apply subtype.eq,
     simp only [subtype.val_eq_coe, coe_inf, coe_compl, coe_bot],
     rw [← coe_compl, compl_orthog],
-  end,
+  end ),
   top_le_sup_compl := λ P,
+  eq.le
+  ( subtype.eq
   begin
-    apply eq.le,
-    apply subtype.eq,
     simp only [subtype.val_eq_coe, coe_top, coe_sup, coe_compl, add_sub_cancel'_right],
     rw [← coe_compl, compl_orthog, sub_zero],
-  end,
+  end ),
   sdiff_eq := λ P Q,
-  begin
-    apply subtype.eq,
-    simp only [subtype.val_eq_coe, coe_inf, coe_sdiff, coe_compl],
-  end,
+  subtype.eq
+  (by rw [subtype.val_eq_coe, coe_sdiff, ← coe_compl, subtype.val_eq_coe, coe_inf]),
   .. is_Lprojection.subtype.has_compl,
   .. is_Lprojection.subtype.has_sdiff,
   .. is_Lprojection.subtype.bounded_order,

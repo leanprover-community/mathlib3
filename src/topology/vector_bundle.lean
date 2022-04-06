@@ -64,13 +64,10 @@ noncomputable theory
 open bundle set
 
 variables (R : Type*) {B : Type*} (F : Type*) (E : B → Type*)
+
 section topological_vector_space
-  [topological_space F] [topological_space B]
-
-section monoid
-
 variables [semiring R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
-  [add_comm_monoid F] [module R F]
+  [topological_space F] [add_comm_monoid F] [topological_space B] [module R F]
 
 section trivialization
 
@@ -421,8 +418,6 @@ end
 
 end topological_vector_bundle
 
-end topological_vector_bundle
-
 section topological_vector_bundle_core
 
 /-! ### Constructing topological vector bundles -/
@@ -635,8 +630,6 @@ topological_fiber_bundle_core.is_open_map_proj Z
 
 end topological_vector_bundle_core
 
-end topological_vector_bundle_core
-
 /-! ### Topological vector prebundle -/
 
 section
@@ -767,8 +760,6 @@ def to_topological_vector_bundle :
     rintros _ ⟨e, he, rfl⟩ _ ⟨e', he', rfl⟩,
     exact a.continuous_coord_change e' he' e he,
   end }
-
-end topological_vector_prebundle
 
 end topological_vector_prebundle
 
@@ -1142,8 +1133,6 @@ continuous_iff_continuous_at.mpr (λ b, hg.continuous_at.smul_section F r)
 end
 
 end sections
-
-end monoid
 
 section group
 

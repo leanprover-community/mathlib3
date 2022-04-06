@@ -89,7 +89,7 @@ end
 section monoid
 
 @[simp]
-lemma is_square_zero [monoid_with_zero α] : is_square (0 : α) := ⟨0, (mul_zero _).symm⟩
+lemma is_square_zero [mul_zero_class α] : is_square (0 : α) := ⟨0, (mul_zero _).symm⟩
 
 @[simp]
 lemma irreducible.not_square [comm_monoid α] {x : α} (h : irreducible x) :

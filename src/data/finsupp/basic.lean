@@ -2305,9 +2305,9 @@ end sum
 section
 variables [has_zero M] [monoid_with_zero R] [mul_action_with_zero R M]
 
-@[simp] lemma single_one_smul (a b : α) (f : α → M) :
-  (single a (1:R) b) • (f a) = single a (f b) b :=
-by { by_cases a = b; simp [h] }
+@[simp] lemma single_smul (a b : α) (f : α → M) (r : R) :
+  (single a r b) • (f a) = single a (r • f b) b :=
+by by_cases a = b; simp [h]
 
 end
 

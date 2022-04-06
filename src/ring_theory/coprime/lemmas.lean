@@ -18,6 +18,31 @@ lemmas about `has_pow` since these are easiest to prove via `finset.prod`.
 
 -/
 
+namespace finset
+variables {α β : Type*} {s : finset α}
+
+lemma pairwise_subtype_iff_pairwise_finset' (r : β → β → Prop) (f : α → β) :
+  pairwise (r on λ x : s, f x) ↔ (s : set α).pairwise (r on f) :=
+begin
+  refine ⟨λ h x hx y hy hxy, h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]), _⟩,
+  rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+  exact h hx hy (subtype.mk_eq_mk.not.mp hxy)
+end
+
+lemma pairwise_subtype_iff_pairwise_finset (r : α → α → Prop) :
+  pairwise (r on λ x : s, x) ↔ (s : set α).pairwise r :=
+pairwise_subtype_iff_pairwise_finset' r id
+
+lemma pairwise_cons' {a : α} (ha : a ∉ s) (r : β → β → Prop) (f : α → β) :
+  pairwise (r on λ a : s.cons a ha, f a) ↔
+  pairwise (r on λ a : s, f a) ∧ ∀ b ∈ s, r (f a) (f b) ∧ r (f b) (f a) :=
+begin
+  simp only [pairwise_subtype_iff_pairwise_finset', finset.coe_cons, set.pairwise_insert,
+             finset.mem_coe, and.congr_right_iff],
+  exact λ hsr, ⟨λ h b hb, h b hb $ by { rintro rfl, contradiction }, λ h b hb _, h b hb⟩,
+end
+end finset
+
 universes u v
 
 variables {R : Type u} {I : Type v} [comm_semiring R] {x y z : R} {s : I → R} {t : finset I}
@@ -83,10 +108,7 @@ begin
     rw finset.mem_singleton at hi hj,
     simpa [hi, hj] using h },
   intros a t hat h ih,
-  have : ∀ t : finset I,
-        (is_coprime on λ i : t, s i) = ((λ x y, is_coprime (s x) (s y)) on λ i : t, i),
-  { simp [function.on_fun] },
-  rw [this, pairwise_cons, ←this],
+  rw pairwise_cons',
   have mem : ∀ x ∈ t, a ∈ insert a t \ {x} := λ x hx, by
     { rw [mem_sdiff, mem_singleton], exact ⟨mem_insert_self _ _, λ ha, hat (ha.symm.cases_on hx)⟩ },
   split,
@@ -122,23 +144,23 @@ begin
 end
 
 lemma exists_sum_eq_one_iff_pairwise_coprime' [fintype I] [nonempty I] :
-  (∃ μ : I → R, ∑ (i : I), μ i * ∏ j in {i}ᶜ, s j = 1) ↔ pairwise (is_coprime on s) := begin
-convert exists_sum_eq_one_iff_pairwise_coprime finset.univ_nonempty using 1, ext, split,
-{ rintro hp ⟨i, _⟩ ⟨j, _⟩ h, apply hp, intro h', apply h, ext, exact h' },
-{ intros hp i j h, apply hp ⟨i, finset.mem_univ i⟩ ⟨j, finset.mem_univ j⟩,
-  rintro ⟨h'⟩, exact h rfl },
-by apply_instance end
+  (∃ μ : I → R, ∑ (i : I), μ i * ∏ j in {i}ᶜ, s j = 1) ↔ pairwise (is_coprime on s) :=
+begin
+  convert exists_sum_eq_one_iff_pairwise_coprime finset.univ_nonempty using 1,
+  simp only [function.on_fun, pairwise_subtype_iff_pairwise_finset', coe_univ, set.pairwise_univ],
+  assumption
+end
 
 lemma pairwise_coprime_iff_coprime_prod :
   pairwise (is_coprime on λ i : t, s i) ↔ ∀ i ∈ t, is_coprime (s i) (∏ j in t \ {i}, (s j)) :=
 begin
-  split; intro hp,
-  { intros i hi, rw is_coprime.prod_right_iff, intros j hj,
-    rw [finset.mem_sdiff, finset.mem_singleton] at hj, obtain ⟨hj, ji⟩ := hj,
-    apply hp ⟨i, hi⟩ ⟨j, hj⟩, rintro ⟨f⟩, exact ji rfl },
-  { rintro ⟨i, hi⟩ ⟨j, hj⟩ h, specialize hp i hi, rw is_coprime.prod_right_iff at hp, apply hp,
-    rw [finset.mem_sdiff, finset.mem_singleton],
-    refine ⟨hj, λ f, h _⟩, ext, symmetry, exact f }
+  refine ⟨λ hp i hi, is_coprime.prod_right_iff.mpr (λ j hj, _), λ hp, _⟩,
+  { rw [finset.mem_sdiff, finset.mem_singleton] at hj,
+    obtain ⟨hj, ji⟩ := hj,
+    exact hp ⟨i, hi⟩ ⟨j, hj⟩ (λ h, ji (congr_arg coe h).symm) },
+  { rintro ⟨i, hi⟩ ⟨j, hj⟩ h,
+    apply is_coprime.prod_right_iff.mp (hp i hi),
+    exact finset.mem_sdiff.mpr ⟨hj, λ f, h $ subtype.ext (finset.mem_singleton.mp f).symm⟩ }
 end
 
 variables {m n : ℕ}

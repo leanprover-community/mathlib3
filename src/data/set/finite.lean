@@ -912,26 +912,3 @@ begin
   { dsimp only [x, y] at this, exact key₁ (f.injective $ subtype.coe_injective this) },
   { dsimp only [y, z] at this, exact key₂ (f.injective $ subtype.coe_injective this) }
 end
-
-namespace finset
-variables {s : finset α}
-
-lemma pairwise_cons {a : α} (ha : a ∉ s) (r : α → α → Prop) :
-  pairwise (r on λ a : s.cons a ha, a) ↔ pairwise (r on λ a : s, a) ∧ ∀ b ∈ s, r a b ∧ r b a :=
-begin
-  have : ∀ {s : finset α} {b c : α} {hb : b ∈ s} {hc : c ∈ s}, (⟨b, hb⟩ : s) = ⟨c, hc⟩ → b = c :=
-    λ s b c hb hc eq, congr_arg coe eq,
-  refine ⟨λ h, ⟨λ ⟨b, hb⟩ ⟨c, hc⟩ ne, h ⟨b, subset_cons ha hb⟩ ⟨c, subset_cons ha hc⟩
-    (λ eq, ne $ subtype.ext $ this eq),
-  λ b hb, ⟨h ⟨a, mem_cons_self _ _⟩ ⟨b, subset_cons ha hb⟩ (λ eq, ha $ (this eq).symm.cases_on hb),
-    h ⟨b, subset_cons ha hb⟩ ⟨a, mem_cons_self _ _⟩ (λ eq, ha $ (this eq).cases_on hb)⟩⟩,
-  λ h b c ne, _⟩,
-  obtain ⟨b, hb⟩ := b, obtain ⟨c, hc⟩ := c, change r b c, rw mem_cons at hb hc,
-  cases hb with hb hb; cases hc with hc hc,
-  { exfalso, apply ne, ext, change b = c, rw [hb, hc] },
-  { rw hb, exact (h.right c hc).left },
-  { rw hc, exact (h.right b hb).right },
-  { exact h.left ⟨b, hb⟩ ⟨c, hc⟩ (λ eq, ne $ subtype.ext $ this eq) }
-end
-
-end finset

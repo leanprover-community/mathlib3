@@ -240,25 +240,22 @@ instance : partial_order {P : X →L[𝕜] X // is_Lprojection P} :=
     exact P.prop.left,
   end,
   le_trans := λ P Q R,
-  begin
-    intros h₁ h₂,
+  λ h₁ h₂, begin
     simp only [coe_inf],
     have e₁: ↑P = ↑P * ↑Q := h₁,
     have e₂: ↑Q = ↑Q * ↑R := h₂,
-    have e₃: (↑P:X →L[𝕜] X) = ↑P * ↑R :=
-    begin
+    exact
+    ( begin
       nth_rewrite_rhs 0 e₁,
       rw [mul_assoc, ← e₂, ← e₁],
-    end,
-    exact e₃,
+    end : (↑P:X →L[𝕜] X) = ↑P * ↑R)
   end,
   le_antisymm := λ P Q,
-  begin
-    intros h₁ h₂,
+  λ h₁ h₂, begin
     have e₁: ↑P = ↑P * ↑Q := h₁,
     have e₂: ↑Q = ↑Q * ↑P := h₂,
-    have e₃: (↑P:X →L[𝕜] X) = ↑Q := by rw [e₁, commute.eq (Lproj_commute P.prop Q.prop), ← e₂],
-    exact subtype.eq e₃,
+    exact subtype.eq (by rw [e₁, commute.eq (Lproj_commute P.prop Q.prop), ← e₂] :
+      (↑P:X →L[𝕜] X) = ↑Q),
   end, }
 
 instance : has_zero {P : X →L[𝕜] X // is_Lprojection P}  :=
@@ -280,11 +277,7 @@ rfl
 
 instance : bounded_order {P : X →L[𝕜] X // is_Lprojection P} :=
 { top := 1,
-  le_top := λ P,
-  begin
-    have e: (↑P:X →L[𝕜] X) = ↑P *  1 := by rw mul_one,
-    exact e,
-  end,
+  le_top := λ P, (by rw mul_one : (↑P:X →L[𝕜] X) = ↑P * 1),
   bot := 0,
   bot_le := λ P, show 0 ≤ P, from zero_mul P, }
 
@@ -312,52 +305,34 @@ by rw [add_mul, mul_add, mul_add, mul_assoc ↑Pᶜ ↑R (↑Q * ↑R * ↑Pᶜ)
     commute.eq (Lproj_commute (Q⊓R).prop Pᶜ.prop), ← mul_assoc, ← sq, projection_def Pᶜ.prop.left]
 
 instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
-{ le_sup_left := λ P Q,
-  begin
-    have e: ↑P = ↑P * ↑(P ⊔ Q) := by rw [coe_sup, ← add_sub, mul_add, mul_sub, ← mul_assoc, ← sq,
-      projection_def P.prop.left, sub_self, add_zero],
-    exact e,
-  end,
-  le_sup_right := λ P Q,
-    begin
-    have e: (↑Q: X →L[𝕜] X) = ↑Q * ↑(P ⊔ Q) :=
-    begin
+{ le_sup_left := λ P Q, (by rw [coe_sup, ← add_sub, mul_add, mul_sub, ← mul_assoc, ← sq,
+      projection_def P.prop.left, sub_self, add_zero] : ↑P = ↑P * ↑(P ⊔ Q)),
+  le_sup_right := λ P Q, by exact
+    ( begin
       rw [coe_sup, ← add_sub, mul_add, mul_sub, commute.eq (Lproj_commute P.prop Q.prop),
         ← mul_assoc, ← sq, projection_def Q.prop.left],
       abel,
-    end,
-    exact e,
-  end,
+    end : (↑Q: X →L[𝕜] X) = ↑Q * ↑(P ⊔ Q)),
   sup_le := λ P Q R,
   begin
     intros h₁ h₂,
     have e₁: ↑P = ↑P * ↑R := h₁,
     have e₂: ↑Q = ↑Q * ↑R := h₂,
-    have e:  ↑(P ⊔ Q) = ↑(P ⊔ Q) * ↑R := by rw [coe_sup, ← add_sub, add_mul, sub_mul, mul_assoc,
-       ← e₂, ← e₁],
-    exact e,
+    exact (by rw [coe_sup, ← add_sub, add_mul, sub_mul, mul_assoc, ← e₂, ← e₁] :
+      ↑(P ⊔ Q) = ↑(P ⊔ Q) * ↑R)
   end,
-  inf_le_left := λ P Q,
-  begin
-    have e: ↑(P ⊓ Q) = ↑(P ⊓ Q) * ↑P := by rw [coe_inf, mul_assoc,
-      commute.eq (Lproj_commute Q.prop P.prop), ← mul_assoc, ← sq, (projection_def P.prop.left)],
-    exact e,
-  end,
-  inf_le_right := λ P Q,
-  begin
-    have e: ↑(P ⊓ Q) = ↑(P ⊓ Q) * ↑Q := by
-      rw [coe_inf, mul_assoc,  ← sq, (projection_def Q.prop.left)],
-    exact e,
-  end,
+  inf_le_left := λ P Q, (by rw [coe_inf, mul_assoc, commute.eq (Lproj_commute Q.prop P.prop),
+    ← mul_assoc, ← sq, (projection_def P.prop.left)] : ↑(P ⊓ Q) = ↑(P ⊓ Q) * ↑P),
+  inf_le_right := λ P Q, (by rw [coe_inf, mul_assoc,  ← sq, (projection_def Q.prop.left)] :
+    ↑(P ⊓ Q) = ↑(P ⊓ Q) * ↑Q),
   le_inf := λ P Q R,
   begin
     intros h₁ h₂,
     have e₁: ↑P = ↑P * ↑Q := h₁,
-    have e: ↑P =  ↑P * ↑(Q ⊓ R) := begin
+    exact (begin
       rw [coe_inf, ← mul_assoc, ← e₁],
       exact h₂,
-    end,
-    exact e,
+    end : ↑P =  ↑P * ↑(Q ⊓ R))
   end,
   le_sup_inf := λ P Q R,
   begin
@@ -372,8 +347,7 @@ instance : distrib_lattice {P : X →L[𝕜] X // is_Lprojection P} :=
       coe_sup, coe_sup, ← add_sub, ← add_sub, ← add_sub, compl_mul_left, compl_mul_left,
       compl_mul_left, commute.eq (Lproj_commute Pᶜ.prop (Q⊓R).prop), coe_inf, mul_assoc,
       distrib_lattice_lemma, commute.eq (Lproj_commute Q.prop R.prop), distrib_lattice_lemma],
-    have e: ↑((P ⊔ Q) ⊓ (P ⊔ R)) = ↑((P ⊔ Q) ⊓ (P ⊔ R)) * ↑(P ⊔ Q ⊓ R) := by rw [e₂, e₁],
-    exact e,
+    exact (by rw [e₂, e₁] : ↑((P ⊔ Q) ⊓ (P ⊔ R)) = ↑((P ⊔ Q) ⊓ (P ⊔ R)) * ↑(P ⊔ Q ⊓ R)),
   end,
   .. is_Lprojection.subtype.has_inf,
   .. is_Lprojection.subtype.has_sup,

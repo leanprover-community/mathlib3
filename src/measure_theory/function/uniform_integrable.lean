@@ -838,19 +838,7 @@ lemma uniform_integrable.spec (hp : p ≠ 0) (hp' : p ≠ ∞)
   ∃ C : ℝ≥0, ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε :=
 begin
   obtain ⟨hf₀, hfu, M, hM⟩ := hfu,
-  by_cases hMzero : M = 0,
-  { subst hMzero,
-    have : ∀ i, f i =ᵐ[μ] 0,
-    { intro i,
-      rw [← snorm_eq_zero_iff (hf₀ i).ae_strongly_measurable hp,
-        ← nonpos_iff_eq_zero, ← ennreal.coe_zero],
-      exact hM i },
-    refine ⟨0, λ i, _⟩,
-    rw (snorm_eq_zero_iff
-      ((hf₀ i).indicator (measurable_set_le measurable_const
-      (hf₀ i).nnnorm.measurable)).ae_strongly_measurable hp).2
-      (indicator_ae_eq_zero_of_ae_eq_zero (this i)),
-    exact bot_le },
+  replace hM : ∀ (i : ι), snorm (f i) p μ ≤ max M 1 := λ i, le_trans (hM i) (le_max_left _ _),
   obtain ⟨δ, hδpos, hδ⟩ := hfu hε,
   obtain ⟨C, hC⟩ : ∃ C : ℝ≥0, ∀ i, μ {x | C ≤ ∥f i x∥₊} ≤ ennreal.of_real δ,
   { by_contra hcon, push_neg at hcon,
@@ -873,16 +861,15 @@ begin
         rwa [nnnorm_indicator_eq_indicator_nnnorm, indicator_of_mem hx],
       end
       ... ≤ snorm (f (ℐ C)) p μ : snorm_indicator_le _ },
-    specialize hM (ℐ (2 * M * (δ⁻¹ ^ (1 / p.to_real)))),
-    specialize this ((2 * M * (δ⁻¹ ^ (1 / p.to_real)))),
+    specialize hM (ℐ (2 * (max M 1) * (δ⁻¹ ^ (1 / p.to_real)))),
+    specialize this ((2 * (max M 1) * (δ⁻¹ ^ (1 / p.to_real)))),
     rw [ennreal.coe_rpow_of_nonneg _ (one_div_nonneg.2 ennreal.to_real_nonneg),
       ← ennreal.coe_smul, smul_eq_mul, mul_assoc, nnreal.inv_rpow,
       inv_mul_cancel (nnreal.rpow_pos (nnreal.coe_pos.1 hδpos)).ne.symm, mul_one,
       ennreal.coe_mul, ← nnreal.inv_rpow] at this,
     refine (lt_of_le_of_lt hM (lt_of_lt_of_le _ this)).ne rfl,
-    conv_lhs { rw [← one_mul M, ennreal.coe_mul] },
-    exact (ennreal.mul_lt_mul_right (ennreal.coe_ne_zero.2 hMzero) ennreal.coe_ne_top).2
-      (by norm_num) },
+    rw [← ennreal.coe_one, ← with_top.coe_max, ← ennreal.coe_mul, ennreal.coe_lt_coe],
+    exact nnreal.lt_mul_two_self (ne.symm $ ne_of_lt $ lt_max_of_lt_right one_pos) },
   exact ⟨C, λ i, hδ i _ (measurable_set_le measurable_const (hf₀ i).nnnorm.measurable) (hC i)⟩,
 end
 

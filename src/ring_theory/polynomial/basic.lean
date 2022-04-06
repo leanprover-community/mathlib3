@@ -526,7 +526,8 @@ begin
   obtain ⟨x, hx'⟩ := x,
   obtain ⟨y, rfl⟩ := (ring_hom.mem_range).1 hx',
   refine subtype.eq _,
-  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, subring.coe_zero, subtype.val_eq_coe],
+  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, add_submonoid_class.coe_zero,
+    subtype.val_eq_coe],
   suffices : C (i y) ∈ (I.map (polynomial.map_ring_hom i)),
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)
       (polynomial.map_surjective _ (((quotient.mk I).comp C).range_restrict_surjective)) this,
@@ -833,7 +834,7 @@ lemma linear_independent_powers_iff_aeval
 begin
   rw linear_independent_iff,
   simp only [finsupp.total_apply, aeval_endomorphism, forall_iff_forall_finsupp, sum, support,
-    coeff, ← zero_to_finsupp],
+    coeff, of_finsupp_eq_zero],
   exact iff.rfl,
 end
 

@@ -54,7 +54,7 @@ and showing that they satisfy the appropriate conditions. -/
 @[simps]
 def bornology.of_bounded {α : Type*} (B : set (set α))
   (empty_mem : ∅ ∈ B) (subset_mem : ∀ s₁ ∈ B, ∀ s₂ : set α, s₂ ⊆ s₁ → s₂ ∈ B)
-  (union_mem : ∀ s₁ s₂ ∈ B, s₁ ∪ s₂ ∈ B) (sUnion_univ : ⋃₀ B = univ) :
+  (union_mem : ∀ s₁ s₂ ∈ B, s₁ ∪ s₂ ∈ B) (singleton_mem : ∀ x, {x} ∈ B) :
   bornology α :=
 { cobounded :=
   { sets := {s : set α | sᶜ ∈ B},
@@ -63,16 +63,27 @@ def bornology.of_bounded {α : Type*} (B : set (set α))
     inter_sets := λ x y hx hy, by simpa [compl_inter] using union_mem xᶜ hx yᶜ hy, },
   le_cofinite :=
   begin
-    refine le_def.mpr (λ s, _),
-    simp only [mem_set_of_eq, mem_cofinite, filter.mem_mk],
-    generalize : sᶜ = s',
-    refine λ h, h.dinduction_on _ (λ x t hx ht h, _),
-    { exact empty_mem, },
-    { refine insert_eq x t ▸ union_mem _ _ _ h,
-      obtain ⟨b, hb : b ∈ B, hxb : x ∈ b⟩ :=
-        mem_sUnion.mp (by simpa [←sUnion_univ] using mem_univ x),
-      exact subset_mem _ hb _ (singleton_subset_iff.mpr hxb) },
+    rw le_cofinite_iff_compl_singleton_mem,
+    intros x,
+    change {x}ᶜᶜ ∈ B,
+    rw compl_compl,
+    exact singleton_mem x
   end }
+
+/-- A constructor for bornologies by specifying the bounded sets,
+and showing that they satisfy the appropriate conditions. -/
+@[simps]
+def bornology.of_bounded' {α : Type*} (B : set (set α))
+  (empty_mem : ∅ ∈ B) (subset_mem : ∀ s₁ ∈ B, ∀ s₂ : set α, s₂ ⊆ s₁ → s₂ ∈ B)
+  (union_mem : ∀ s₁ s₂ ∈ B, s₁ ∪ s₂ ∈ B) (sUnion_univ : ⋃₀ B = univ) :
+  bornology α :=
+bornology.of_bounded B empty_mem subset_mem union_mem
+  begin
+    rw eq_univ_iff_forall at sUnion_univ,
+    intros x,
+    rcases sUnion_univ x with ⟨s, hs, hxs⟩,
+    exact subset_mem s hs {x} (singleton_subset_iff.mpr hxs)
+  end
 
 namespace bornology
 
@@ -100,6 +111,9 @@ alias is_cobounded_compl_iff ↔ bornology.is_cobounded.of_compl bornology.is_bo
 
 @[simp] lemma is_bounded_empty : is_bounded (∅ : set α) :=
 by { rw [is_bounded_def, compl_empty], exact univ_mem}
+
+@[simp] lemma is_bounded_singleton {x : α} : is_bounded ({x} : set α) :=
+by {rw [is_bounded_def], exact le_cofinite _ (finite_singleton x).compl_mem_cofinite}
 
 lemma is_bounded.union (h₁ : is_bounded s₁) (h₂ : is_bounded s₂) : is_bounded (s₁ ∪ s₂) :=
 by { rw [is_bounded_def, compl_union], exact (cobounded α).inter_sets h₁ h₂ }

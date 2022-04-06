@@ -103,6 +103,20 @@ def stabilizer.submonoid (b : β) : submonoid α :=
   orbit α x = set.univ :=
 (surjective_smul α x).range_eq
 
+variables {α} {β}
+
+@[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
+  [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
+begin
+  rw [fintype.card_eq_one_iff, mem_fixed_points],
+  split,
+  { exact λ h, ⟨⟨a, mem_orbit_self _⟩, λ ⟨b, ⟨x, hx⟩⟩, subtype.eq $ by simp [h x, hx.symm]⟩ },
+  { assume h x,
+    rcases h with ⟨⟨z, hz⟩, hz₁⟩,
+    calc x • a = z : subtype.mk.inj (hz₁ ⟨x • a, mem_orbit _ _⟩)
+      ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
+end
+
 end mul_action
 
 namespace mul_action
@@ -141,18 +155,6 @@ instance (x : β) : is_pretransitive α (orbit α x) :=
 @[to_additive] lemma orbit_eq_iff {a b : β} :
    orbit α a = orbit α b ↔ a ∈ orbit α b:=
 ⟨λ h, h ▸ mem_orbit_self _, λ ⟨c, hc⟩, hc ▸ orbit_smul _ _⟩
-
-@[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
-  [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
-begin
-  rw [fintype.card_eq_one_iff, mem_fixed_points],
-  split,
-  { exact λ h, ⟨⟨a, mem_orbit_self _⟩, λ ⟨b, ⟨x, hx⟩⟩, subtype.eq $ by simp [h x, hx.symm]⟩ },
-  { assume h x,
-    rcases h with ⟨⟨z, hz⟩, hz₁⟩,
-    calc x • a = z : subtype.mk.inj (hz₁ ⟨x • a, mem_orbit _ _⟩)
-      ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
-end
 
 variables (α) {β}
 

@@ -145,7 +145,7 @@ than the expected `nat_degree` of a power of a polynomial.  If
 then the lemmas shows that `p₀ ^ (n - 1) * n * q₁` equals `r₁ : R`  in
 
 `p ^ n = r₀ * x ^ (n * m) + r₁ * x ^ (n * m - 1) + (...)`. -/
-lemma pow_coeff_mul_sub_one {R : Type*} [comm_semiring R] (p : R[X]) (n : ℕ) (n0 : n ≠ 0)
+lemma pow_coeff_mul_sub_one {R : Type*} [comm_semiring R] (p : R[X]) {n : ℕ} (n0 : n ≠ 0)
   (p0 : p.nat_degree ≠ 0) :
   (p ^ n).coeff (n * p.nat_degree - 1) =
     p.leading_coeff ^ (n - 1) * n * p.coeff (p.nat_degree - 1) :=

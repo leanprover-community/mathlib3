@@ -229,19 +229,23 @@ protected lemma strict_anti_on.dual_right (hf : strict_anti_on f s) :
   strict_mono_on (to_dual ∘ f) s :=
 λ a ha b hb, hf ha hb
 
-@[simp] lemma strict_anti_on_to_dual_comp_iff : strict_anti_on (to_dual ∘ f) s ↔ strict_mono_on f s :=
+@[simp] lemma strict_anti_on_to_dual_comp_iff :
+  strict_anti_on (to_dual ∘ f) s ↔ strict_mono_on f s :=
 iff.rfl
 
-@[simp] lemma strict_mono_on_comp_of_dual_iff : strict_mono_on (f ∘ of_dual) s ↔ strict_anti_on f s :=
+@[simp] lemma strict_mono_on_comp_of_dual_iff :
+  strict_mono_on (f ∘ of_dual) s ↔ strict_anti_on f s :=
 -- forall₂_swap
 begin
 split; exact λ hf a ha b hb h, hf hb ha h
 end
 
-@[simp] lemma strict_mono_on_to_dual_comp_iff : strict_mono_on (to_dual ∘ f) s ↔ strict_anti_on f s :=
+@[simp] lemma strict_mono_on_to_dual_comp_iff :
+  strict_mono_on (to_dual ∘ f) s ↔ strict_anti_on f s :=
 iff.rfl
 
-@[simp] lemma strict_anti_on_comp_of_dual_iff : strict_anti_on (f ∘ of_dual) s ↔ strict_mono_on f s :=
+@[simp] lemma strict_anti_on_comp_of_dual_iff :
+  strict_anti_on (f ∘ of_dual) s ↔ strict_mono_on f s :=
 -- forall₂_swap
 begin
 split; exact λ hf a ha b hb h, hf hb ha h

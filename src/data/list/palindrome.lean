@@ -25,9 +25,9 @@ principle. Also provided are conversions to and from other equivalent definition
 palindrome, reverse, induction
 -/
 
-open list
-
 variables {α β : Type*}
+
+namespace list
 
 /--
 `palindrome l` asserts that `l` is a palindrome. This is defined inductively:
@@ -70,3 +70,4 @@ instance [decidable_eq α] (l : list α) : decidable (palindrome l) :=
 decidable_of_iff' _ iff_reverse_eq
 
 end palindrome
+end list

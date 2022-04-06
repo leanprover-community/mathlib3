@@ -322,18 +322,18 @@ end
   (e ↑(g b)).snd :=
 by { simp only [trivialization.continuous_linear_equiv_at_apply, sigma.eta], refl, }
 
-lemma trivialization.snd_map_add {g h : bundle_section E} {e : trivialization R F E} {b : B}
+lemma snd_map_add {g h : bundle_section E} {e : trivialization R F E} {b : B}
   (hb : b ∈ e.base_set) : (e ((g + h) b)).snd = (e (g b)).snd + (e (h b)).snd :=
 begin
   rw [(continuous_linear_equiv_apply hb).symm, pi.add_apply, continuous_linear_equiv.map_add],
   refl,
 end
 
-lemma trivialization.snd_map_zero {e : trivialization R F E} {b : B} (hb : b ∈ e.base_set) :
+lemma snd_map_zero {e : trivialization R F E} {b : B} (hb : b ∈ e.base_set) :
   (e ((0 : bundle_section E) b)).snd = 0 :=
 by rw [(continuous_linear_equiv_apply hb).symm, pi.zero_apply, continuous_linear_equiv.map_zero]
 
-lemma trivialization.snd_map_smul {g : bundle_section E} {e : trivialization R F E} {r : R}
+lemma snd_map_smul {g : bundle_section E} {e : trivialization R F E} {r : R}
   {b : B} (hb : b ∈ e.base_set) :
   (e ((r • g) b)).snd = r • (e (g b)).snd :=
 begin
@@ -358,7 +358,6 @@ instance {B : Type*} {F : Type*} [add_comm_monoid F] [module R F] (b : B) :
 end
 
 variables (R B F)
-
 /-- Local trivialization for trivial bundle. -/
 def trivial_topological_vector_bundle.trivialization : trivialization R F (bundle.trivial B F) :=
 { to_fun := λ x, (x.fst, x.snd),
@@ -427,8 +426,6 @@ begin
 end
 
 end topological_vector_bundle
-
-section topological_vector_bundle_core
 
 /-! ### Constructing topological vector bundles -/
 
@@ -640,6 +637,8 @@ topological_fiber_bundle_core.is_open_map_proj Z
 
 end topological_vector_bundle_core
 
+end
+
 /-! ### Topological vector prebundle -/
 
 section
@@ -772,6 +771,8 @@ def to_topological_vector_bundle :
   end }
 
 end topological_vector_prebundle
+
+end
 
 /-! ### Direct sum of two vector bundles over the same base -/
 
@@ -1148,9 +1149,11 @@ section group
 
 open topological_vector_bundle
 
-variables {E R F} [ring R] [∀ x, add_comm_group (E x)] [∀ x, module R (E x)]
-  [add_comm_group F] [module R F] [topological_space (total_space E)]
-  [∀ x, topological_space (E x)] [topological_vector_bundle R F E]
+variables {E R F}
+variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+  [normed_group F] [normed_space R F] [topological_space B]
+  [topological_space (total_space E)] [∀ x, topological_space (E x)]
+  [topological_vector_bundle R F E]
 
 lemma trivialization.map_neg {g : bundle_section E}
   {e : trivialization R F E} {b : B} (hb : b ∈ e.base_set) :

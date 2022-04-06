@@ -7,10 +7,8 @@ Without loss of generality tactic.
 -/
 import data.list.perm
 
-open expr tactic lean lean.parser
-
-local postfix `?`:9001 := optional
-local postfix *:9001 := many
+open expr
+setup_tactic_parser
 
 namespace tactic
 
@@ -46,17 +44,6 @@ private meta def match_perms (pat : pattern) : expr → tactic (list $ list expr
     rs ← match_perms r,
     return (m.2 :: rs))
 
-private meta def update_type : expr → expr → expr
-| (local_const n pp bi d) t := local_const n pp bi t
-| e t := e
-
-private meta def intron' : ℕ → tactic (list expr)
-| 0       := return []
-| (i + 1) := do
-  n ← intro1,
-  ls ← intron' i,
-  return (n :: ls)
-
 meta def wlog (vars' : list expr) (h_cases fst_case : expr) (perms : list (list expr)) :
   tactic unit := do
   guard h_cases.is_local_constant,
@@ -73,7 +60,7 @@ meta def wlog (vars' : list expr) (h_cases fst_case : expr) (perms : list (list 
   ((), pr) ← solve_aux cases (repeat $ exact h_fst_case <|> left >> skip),
 
   t ← target,
-  fixed_vars ← vars.mmap (λv, do t ← infer_type v, return (update_type v t) ),
+  fixed_vars ← vars.mmap update_type,
   let t' := (instantiate_local h_cases.local_uniq_name pr t).pis (fixed_vars ++ [h_fst_case]),
 
   (h, [g]) ← local_proof `this t' (do
@@ -102,10 +89,11 @@ private meta def parse_permutations : option (list (list name)) → tactic (list
 | none                    := return []
 | (some [])               := return []
 | (some perms@(p₀ :: ps)) := do
-  (guard p₀.nodup <|>
-    fail "No permutation `xs_i` in `using [xs_1, …, xs_n]` should contain the same variable twice."),
+  (guard p₀.nodup <|> fail
+    "No permutation `xs_i` in `using [xs_1, …, xs_n]` should contain the same variable twice."),
   (guard (perms.all $ λp, p.perm p₀) <|>
-    fail "The permutations `xs_i` in `using [xs_1, …, xs_n]` must be permutations of the same variables."),
+    fail ("The permutations `xs_i` in `using [xs_1, …, xs_n]` must be permutations of the same" ++
+      " variables.")),
   perms.mmap (λp, p.mmap get_local)
 
 /-- Without loss of generality: reduces to one goal under variables permutations.
@@ -189,7 +177,8 @@ perms ← parse_permutations perms,
     fail "Cases contains variables not declared in `using x y z`",
   perms ← (if perms.length = 1
     then do
-      return (perms'.map $ λp, p ++ vars.filter (λv, p.all (λv', v'.local_uniq_name ≠ v.local_uniq_name)))
+      return (perms'.map $ λ p,
+        p ++ vars.filter (λ v, p.all (λ v', v'.local_uniq_name ≠ v.local_uniq_name)))
     else do
       guard (perms.length = perms'.length) <|>
         fail "The provided permutation list has a different length then the provided cases.",
@@ -206,7 +195,8 @@ perms ← parse_permutations perms,
     | [l] := return l
     | _   := failed
     end,
-    let cases := mk_or_lst [pat, pat.instantiate_locals [(x.local_uniq_name, y), (y.local_uniq_name, x)]],
+    let cases := mk_or_lst
+      [pat, pat.instantiate_locals [(x.local_uniq_name, y), (y.local_uniq_name, x)]],
     (do
       `(%%x' ≤ %%y') ← return pat,
       (cases_pr, []) ← local_proof name_h cases (exact ``(le_total %%x' %%y')),
@@ -225,8 +215,8 @@ perms ← parse_permutations perms,
     (cases_pr, [g]) ← local_proof name_h cases skip,
     return (pat, cases_pr, some g, vars, perms))
 end),
-let name_fn :=
-  (if perms.length = 2 then λi, `invariant else λi, mk_simple_name ("invariant_" ++ to_string (i + 1))),
+let name_fn := if perms.length = 2 then λ _, `invariant else
+  λ i, mk_simple_name ("invariant_" ++ to_string (i + 1)),
 with_enable_tags $ tactic.focus1 $ do
   t ← get_main_tag,
   tactic.wlog vars cases_pr pat perms,

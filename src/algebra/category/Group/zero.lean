@@ -9,8 +9,8 @@ import category_theory.limits.shapes.zero
 /-!
 # The category of (commutative) (additive) groups has a zero object.
 
-`AddCommGroup` also has zero morphisms. For definitional reasons, we infer this from preadditivity rather than
-from the existence of a zero object.
+`AddCommGroup` also has zero morphisms. For definitional reasons, we infer this from preadditivity
+rather than from the existence of a zero object.
 -/
 
 open category_theory

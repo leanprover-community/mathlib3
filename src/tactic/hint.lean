@@ -12,10 +12,9 @@ namespace hint
 
 /-- An attribute marking a `tactic unit` or `tactic string` which should be used by the `hint`
 tactic. -/
-@[user_attribute] meta def hint_tactic_attribute : user_attribute := {
-  name := `hint_tactic,
-  descr := "A tactic that should be tried by `hint`."
-}
+@[user_attribute] meta def hint_tactic_attribute : user_attribute :=
+{ name := `hint_tactic,
+  descr := "A tactic that should be tried by `hint`." }
 
 add_tactic_doc
 { name                     := "hint_tactic",
@@ -23,7 +22,7 @@ add_tactic_doc
   decl_names               := [`tactic.hint.hint_tactic_attribute],
   tags                     := ["rewrite", "search"] }
 
-open lean lean.parser interactive
+setup_tactic_parser
 
 private meta def add_tactic_hint (n : name) (t : expr) : tactic unit :=
 do
@@ -54,7 +53,9 @@ add_tactic_doc
 add_hint_tactic "refl"
 add_hint_tactic "exact dec_trivial"
 add_hint_tactic "assumption"
-add_hint_tactic "intro" -- tidy does something better here: it suggests the actual "intros X Y f" string; perhaps add a wrapper?
+-- tidy does something better here: it suggests the actual "intros X Y f" string.
+-- perhaps add a wrapper?
+add_hint_tactic "intro"
 add_hint_tactic "apply_auto_param"
 add_hint_tactic "dsimp at *"
 add_hint_tactic "simp at *" -- TODO hook up to squeeze_simp?

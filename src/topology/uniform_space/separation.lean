@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Patrick Massot
 -/
 
-import topology.uniform_space.basic
 import tactic.apply_fun
+import data.set.pairwise
+import topology.uniform_space.basic
+import topology.separation
 
 /-!
 # Hausdorff properties of uniform spaces. Separation quotient.
@@ -43,7 +45,8 @@ is equivalent to asking that the uniform structure induced on `s` is separated.
 
 ## Main results
 
-* `separated_iff_t2`: the equivalence between being separated and being Hausdorff for uniform spaces.
+* `separated_iff_t2`: the equivalence between being separated and being Hausdorff for uniform
+  spaces.
 * `separation_quotient.uniform_continuous_lift`: factoring a uniformly continuous map through the
   separation quotient gives a uniformly continuous map.
 * `separation_quotient.uniform_continuous_map`: maps induced between separation quotients are
@@ -100,18 +103,33 @@ lemma separated_equiv : equivalence (λx y, (x, y) ∈ 𝓢 α) :=
 
 /-- A uniform space is separated if its separation relation is trivial (each point
 is related only to itself). -/
-@[class] def separated_space (α : Type u) [uniform_space α] :=
-𝓢 α = id_rel
+class separated_space (α : Type u) [uniform_space α] : Prop := (out : 𝓢 α = id_rel)
+
+theorem separated_space_iff {α : Type u} [uniform_space α] :
+  separated_space α ↔ 𝓢 α = id_rel :=
+⟨λ h, h.1, λ h, ⟨h⟩⟩
 
 theorem separated_def {α : Type u} [uniform_space α] :
   separated_space α ↔ ∀ x y, (∀ r ∈ 𝓤 α, (x, y) ∈ r) → x = y :=
-by simp [separated_space, id_rel_subset.2 separated_equiv.1, subset.antisymm_iff];
+by simp [separated_space_iff, id_rel_subset.2 separated_equiv.1, subset.antisymm_iff];
    simp [subset_def, separation_rel]
 
 theorem separated_def' {α : Type u} [uniform_space α] :
   separated_space α ↔ ∀ x y, x ≠ y → ∃ r ∈ 𝓤 α, (x, y) ∉ r :=
-separated_def.trans $ forall_congr $ λ x, forall_congr $ λ y,
-by rw ← not_imp_not; simp [not_forall]
+separated_def.trans $ forall₂_congr $ λ x y, by rw ← not_imp_not; simp [not_forall]
+
+lemma eq_of_uniformity {α : Type*} [uniform_space α] [separated_space α] {x y : α}
+  (h : ∀ {V}, V ∈ 𝓤 α → (x, y) ∈ V) : x = y :=
+separated_def.mp ‹separated_space α› x y (λ _, h)
+
+lemma eq_of_uniformity_basis {α : Type*} [uniform_space α] [separated_space α] {ι : Type*}
+  {p : ι → Prop} {s : ι → set (α × α)} (hs : (𝓤 α).has_basis p s) {x y : α}
+  (h : ∀ {i}, p i → (x, y) ∈ s i) : x = y :=
+eq_of_uniformity (λ V V_in, let ⟨i, hi, H⟩ := hs.mem_iff.mp V_in in H (h hi))
+
+lemma eq_of_forall_symmetric {α : Type*} [uniform_space α] [separated_space α] {x y : α}
+  (h : ∀ {V}, V ∈ 𝓤 α → symmetric_rel V → (x, y) ∈ V) : x = y :=
+eq_of_uniformity_basis has_basis_symmetric (by simpa [and_imp] using λ _, h)
 
 lemma id_rel_sub_separation_relation (α : Type*) [uniform_space α] : id_rel ⊆ 𝓢 α :=
 begin
@@ -122,22 +140,23 @@ begin
   exact λ t, refl_mem_uniformity,
 end
 
-lemma separation_rel_comap  {f : α → β} (h : ‹uniform_space α› = uniform_space.comap f ‹uniform_space β›) :
+lemma separation_rel_comap  {f : α → β}
+  (h : ‹uniform_space α› = uniform_space.comap f ‹uniform_space β›) :
   𝓢 α = (prod.map f f) ⁻¹' 𝓢 β :=
 begin
   dsimp [separation_rel],
-  rw [uniformity_comap h, (filter.comap_has_basis (prod.map f f) (𝓤 β)).sInter_sets,
-      ← preimage_bInter, sInter_eq_bInter],
+  simp_rw [uniformity_comap h, (filter.comap_has_basis (prod.map f f) (𝓤 β)).sInter_sets,
+      ← preimage_Inter, sInter_eq_bInter],
   refl,
 end
 
-protected lemma filter.has_basis.separation_rel {ι : Type*} {p : ι → Prop} {s : ι → set (α × α)}
+protected lemma filter.has_basis.separation_rel {ι : Sort*} {p : ι → Prop} {s : ι → set (α × α)}
   (h : has_basis (𝓤 α) p s) :
-  𝓢 α = ⋂ i ∈ set_of p, s i :=
+  𝓢 α = ⋂ i (hi : p i), s i :=
 by { unfold separation_rel, rw h.sInter_sets }
 
 lemma separation_rel_eq_inter_closure : 𝓢 α = ⋂₀ (closure '' (𝓤 α).sets) :=
-by simpa [uniformity_has_basis_closure.separation_rel]
+by simp [uniformity_has_basis_closure.separation_rel]
 
 lemma is_closed_separation_rel : is_closed (𝓢 α) :=
 begin
@@ -150,39 +169,32 @@ end
 lemma separated_iff_t2 : separated_space α ↔ t2_space α :=
 begin
   classical,
-  split ; intro h,
-  { rw [t2_iff_is_closed_diagonal, ← show 𝓢 α = diagonal α, from h],
+  split ; introI h,
+  { rw [t2_iff_is_closed_diagonal, ← show 𝓢 α = diagonal α, from h.1],
     exact is_closed_separation_rel },
   { rw separated_def',
     intros x y hxy,
-    have : 𝓝 x ⊓ 𝓝 y = ⊥,
-    { rw t2_iff_nhds at h,
-      by_contra H,
-      exact hxy (h H) },
-    rcases inf_eq_bot_iff.mp this with ⟨U, V, U_in, V_in, H⟩,
-    rcases mem_nhds_iff_symm.mp U_in with ⟨S, S_in, S_symm, S_sub⟩,
-    use [S, S_in],
-    change y ∉ ball x S,
-    intro y_in,
-    have : y ∈ U ∩ V := ⟨S_sub y_in, mem_of_nhds V_in⟩,
-    rwa H at this },
+    rcases t2_separation hxy with ⟨u, v, uo, vo, hx, hy, h⟩,
+    rcases is_open_iff_ball_subset.1 uo x hx with ⟨r, hrU, hr⟩,
+    exact ⟨r, hrU, λ H, disjoint_iff.2 h ⟨hr H, hy⟩⟩ }
 end
 
 @[priority 100] -- see Note [lower instance priority]
 instance separated_regular [separated_space α] : regular_space α :=
-{ regular := λs a hs ha,
+{ t0 := by { haveI := separated_iff_t2.mp ‹_›, exact t1_space.t0_space.t0 },
+  regular := λs a hs ha,
     have sᶜ ∈ 𝓝 a,
-      from mem_nhds_sets hs ha,
+      from is_open.mem_nhds hs.is_open_compl ha,
     have {p : α × α | p.1 = a → p.2 ∈ sᶜ} ∈ 𝓤 α,
       from mem_nhds_uniformity_iff_right.mp this,
     let ⟨d, hd, h⟩ := comp_mem_uniformity_sets this in
     let e := {y:α| (a, y) ∈ d} in
     have hae : a ∈ closure e, from subset_closure $ refl_mem_uniformity hd,
-    have set.prod (closure e) (closure e) ⊆ comp_rel d (comp_rel (set.prod e e) d),
+    have closure e ×ˢ closure e ⊆ comp_rel d (comp_rel (e ×ˢ e) d),
     begin
       rw [←closure_prod_eq, closure_eq_inter_uniformity],
       change (⨅d' ∈ 𝓤 α, _) ≤ comp_rel d (comp_rel _ d),
-      exact (infi_le_of_le d $ infi_le_of_le hd $ le_refl _)
+      exact (infi_le_of_le d $ infi_le_of_le hd $ le_rfl)
     end,
     have e_subset : closure e ⊆ sᶜ,
       from assume a' ha',
@@ -191,10 +203,32 @@ instance separated_regular [separated_space α] : regular_space α :=
         h this rfl,
     have closure e ∈ 𝓝 a, from (𝓝 a).sets_of_superset (mem_nhds_left a hd) subset_closure,
     have 𝓝 a ⊓ 𝓟 (closure e)ᶜ = ⊥,
-      from (@inf_eq_bot_iff_le_compl _ _ _ (𝓟 (closure e)ᶜ) (𝓟 (closure e))
-        (by simp [principal_univ, union_comm]) (by simp)).mpr (by simp [this]),
-    ⟨(closure e)ᶜ, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
+      from (is_compl_principal (closure e)).inf_right_eq_bot_iff.2 (le_principal_iff.2 this),
+    ⟨(closure e)ᶜ, is_closed_closure.is_open_compl, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
     ..@t2_space.t1_space _ _ (separated_iff_t2.mp ‹_›) }
+
+lemma is_closed_of_spaced_out [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
+  {s : set α} (hs : s.pairwise (λ x y, (x, y) ∉ V₀)) : is_closed s :=
+begin
+  rcases comp_symm_mem_uniformity_sets V₀_in with ⟨V₁, V₁_in, V₁_symm, h_comp⟩,
+  apply is_closed_of_closure_subset,
+  intros x hx,
+  rw mem_closure_iff_ball at hx,
+  rcases hx V₁_in with ⟨y, hy, hy'⟩,
+  suffices : x = y, by rwa this,
+  apply eq_of_forall_symmetric,
+  intros V V_in V_symm,
+  rcases hx (inter_mem V₁_in V_in) with ⟨z, hz, hz'⟩,
+  obtain rfl : z = y,
+  { by_contra hzy,
+    exact hs hz' hy' hzy (h_comp $ mem_comp_of_mem_ball V₁_symm (ball_inter_left x _ _ hz) hy) },
+  exact ball_inter_right x _ _ hz
+end
+
+lemma is_closed_range_of_spaced_out {ι} [separated_space α] {V₀ : set (α × α)} (V₀_in : V₀ ∈ 𝓤 α)
+  {f : ι → α} (hf : pairwise (λ x y, (f x, f y) ∉ V₀)) : is_closed (range f) :=
+is_closed_of_spaced_out V₀_in $
+  by { rintro _ ⟨x, rfl⟩ _ ⟨y, rfl⟩ h, exact hf x y (ne_of_apply_ne f h) }
 
 /-!
 ### Separated sets
@@ -207,21 +241,23 @@ def is_separated (s : set α) : Prop := ∀ x y ∈ s, (x, y) ∈ 𝓢 α → x 
 lemma is_separated_def (s : set α) : is_separated s ↔ ∀ x y ∈ s, (x, y) ∈ 𝓢 α → x = y :=
 iff.rfl
 
-lemma is_separated_def' (s : set α) : is_separated s ↔ (s.prod s) ∩ 𝓢 α ⊆ id_rel :=
+lemma is_separated_def' (s : set α) : is_separated s ↔ (s ×ˢ s) ∩ 𝓢 α ⊆ id_rel :=
 begin
   rw is_separated_def,
   split,
   { rintros h ⟨x, y⟩ ⟨⟨x_in, y_in⟩, H⟩,
-    simp [h x y x_in y_in H] },
-  { intros h x y x_in y_in xy_in,
+    simp [h x x_in y y_in H] },
+  { intros h x x_in y y_in xy_in,
     rw ← mem_id_rel,
     exact h ⟨mk_mem_prod x_in y_in, xy_in⟩ }
 end
 
+lemma is_separated.mono {s t : set α} (hs : is_separated s) (hts : t ⊆ s) : is_separated t :=
+λ x hx y hy, hs x (hts hx) y (hts hy)
 
 lemma univ_separated_iff : is_separated (univ : set α) ↔ separated_space α :=
 begin
-  simp only [is_separated, mem_univ, true_implies_iff, separated_space],
+  simp only [is_separated, mem_univ, true_implies_iff, separated_space_iff],
   split,
   { intro h,
     exact subset.antisymm (λ ⟨x, y⟩ xy_in, h x y xy_in) (id_rel_sub_separation_relation α), },
@@ -229,43 +265,27 @@ begin
     rwa h at xy_in },
 end
 
-
 lemma is_separated_of_separated_space [separated_space α] (s : set α) : is_separated s :=
 begin
-  rw [is_separated, show 𝓢 α = diagonal α, from  ‹separated_space α›],
+  rw [is_separated, separated_space.out],
   tauto,
 end
 
 lemma is_separated_iff_induced {s : set α} : is_separated s ↔ separated_space s :=
 begin
-  change _ ↔ 𝓢 ({x // x ∈ s}) = _,
+  rw separated_space_iff,
+  change _ ↔ 𝓢 {x // x ∈ s} = _,
   rw [separation_rel_comap rfl, is_separated_def'],
   split; intro h,
   { ext ⟨⟨x, x_in⟩, ⟨y, y_in⟩⟩,
     suffices : (x, y) ∈ 𝓢 α ↔ x = y, by simpa only [mem_id_rel],
     refine ⟨λ H, h ⟨mk_mem_prod x_in y_in, H⟩, _⟩,
     rintro rfl,
-    apply id_rel_sub_separation_relation α,
-    rw mem_id_rel },
-  { -- For legibility purpose, let's have explicit coercion C s : ↥s → α  for every α and s : set α
-    let C : Π {β : Type*} (s : set β) (x : s), β := λ _ _, subtype.val,
-    let Δ := diagonal,
-    change _ ⊆ Δ _,
-    change (prod.map (C s) (C s)) ⁻¹' (𝓢 α) = Δ _ at h,
-    rw [inter_comm, ← subtype.image_preimage_coe,  image_subset_iff],
-    change (C _) ⁻¹' _ ⊆ (C _) ⁻¹' _,
-
-    let φ : ↥s × ↥s → (s.prod s)  := (λ x : s × s, ⟨(x.1.1, x.2.1), mk_mem_prod x.1.2 x.2.2⟩),
-    have φ_surj : surjective φ :=
-      λ ⟨⟨x, y⟩, ⟨x_in, y_in⟩⟩, ⟨(⟨x, x_in⟩, ⟨y, y_in⟩), rfl⟩,
-
-    have CCCφ: prod.map (C s) (C s) = C (s.prod s) ∘ φ, by ext ; refl,
-
-    have ΔΔ: (prod.map (C s) (C s)) ⁻¹' (Δ α) = Δ s := set.preimage_coe_coe_diagonal s,
-    apply_fun (image φ) at h,
-    rw [ ← ΔΔ, CCCφ, preimage_comp, preimage_comp,
-        image_preimage_eq φ_surj, image_preimage_eq φ_surj] at h,
-    rw h },
+    exact id_rel_sub_separation_relation α rfl },
+  { rintros ⟨x, y⟩ ⟨⟨x_in, y_in⟩, hS⟩,
+    have A : (⟨⟨x, x_in⟩, ⟨y, y_in⟩⟩ : ↥s × ↥s) ∈ prod.map (coe : s → α) (coe : s → α) ⁻¹' 𝓢 α,
+      from hS,
+    simpa using h.subset A }
 end
 
 lemma eq_of_uniformity_inf_nhds_of_is_separated {s : set α} (hs : is_separated s) :
@@ -277,11 +297,12 @@ begin
     rw mem_closure_iff_cluster_pt,
     have : 𝓤 α ≤ 𝓟 V, by rwa le_principal_iff,
     exact H.mono this },
-  apply hs x y x_in y_in,
+  apply hs x x_in y y_in,
   simpa [separation_rel_eq_inter_closure],
 end
 
-lemma eq_of_uniformity_inf_nhds [separated_space α] : ∀ {x y : α}, cluster_pt (x, y) (𝓤 α) → x = y :=
+lemma eq_of_uniformity_inf_nhds [separated_space α] :
+  ∀ {x y : α}, cluster_pt (x, y) (𝓤 α) → x = y :=
 begin
   have : is_separated (univ : set α),
   { rw univ_separated_iff,
@@ -311,7 +332,8 @@ instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
   comp := calc (map (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) u.uniformity).lift' (λs, comp_rel s s) =
           u.uniformity.lift' ((λs, comp_rel s s) ∘ image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧))) :
       map_lift'_eq2 $ monotone_comp_rel monotone_id monotone_id
-    ... ≤ u.uniformity.lift' (image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) ∘ (λs:set (α×α), comp_rel s (comp_rel s s))) :
+    ... ≤ u.uniformity.lift' (image (λ (p : α × α), (⟦p.fst⟧, ⟦p.snd⟧)) ∘
+            (λs:set (α×α), comp_rel s (comp_rel s s))) :
       lift'_mono' $ assume s hs ⟨a, b⟩ ⟨c, ⟨⟨a₁, a₂⟩, ha, a_eq⟩, ⟨⟨b₁, b₂⟩, hb, b_eq⟩⟩,
       begin
         simp at a_eq,
@@ -321,7 +343,8 @@ instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
         simp [function.comp, set.image, comp_rel, and.comm, and.left_comm, and.assoc],
         exact ⟨a₁, a_eq.left, b₂, b_eq.right, a₂, ha, b₁, h s hs, hb⟩
       end
-    ... = map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) (u.uniformity.lift' (λs:set (α×α), comp_rel s (comp_rel s s))) :
+    ... = map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧))
+            (u.uniformity.lift' (λs:set (α×α), comp_rel s (comp_rel s s))) :
       by rw [map_lift'_eq];
         exact monotone_comp_rel monotone_id (monotone_comp_rel monotone_id monotone_id)
     ... ≤ map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) u.uniformity :
@@ -350,7 +373,7 @@ rfl
 
 lemma uniform_continuous_quotient_mk :
   uniform_continuous (quotient.mk : α → quotient (separation_setoid α)) :=
-le_refl _
+le_rfl
 
 lemma uniform_continuous_quotient {f : quotient (separation_setoid α) → β}
   (hf : uniform_continuous (λx, f ⟦x⟧)) : uniform_continuous f :=
@@ -392,7 +415,7 @@ le_antisymm comap_quotient_le_uniformity le_comap_map
 
 
 instance separated_separation : separated_space (quotient (separation_setoid α)) :=
-set.ext $ assume ⟨a, b⟩, quotient.induction_on₂ a b $ assume a b,
+⟨set.ext $ assume ⟨a, b⟩, quotient.induction_on₂ a b $ assume a b,
   ⟨assume h,
     have a ≈ b, from assume s hs,
       have s ∈ (𝓤 $ quotient $ separation_setoid α).comap (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)),
@@ -402,7 +425,7 @@ set.ext $ assume ⟨a, b⟩, quotient.induction_on₂ a b $ assume a b,
     show ⟦a⟧ = ⟦b⟧, from quotient.sound this,
 
   assume heq : ⟦a⟧ = ⟦b⟧, assume h hs,
-  heq ▸ refl_mem_uniformity hs⟩
+  heq ▸ refl_mem_uniformity hs⟩⟩
 
 lemma separated_of_uniform_continuous {f : α → β} {x y : α}
   (H : uniform_continuous f) (h : x ≈ y) : f x ≈ f y :=
@@ -412,23 +435,29 @@ lemma eq_of_separated_of_uniform_continuous [separated_space β] {f : α → β}
   (H : uniform_continuous f) (h : x ≈ y) : f x = f y :=
 separated_def.1 (by apply_instance) _ _ $ separated_of_uniform_continuous H h
 
+lemma _root_.is_separated.eq_of_uniform_continuous {f : α → β} {x y : α} {s : set β}
+  (hs : is_separated s) (hxs : f x ∈ s) (hys : f y ∈ s) (H : uniform_continuous f) (h : x ≈ y) :
+  f x = f y :=
+(is_separated_def _).mp hs _ hxs _ hys $ λ _ h', h _ (H h')
+
 /-- The maximal separated quotient of a uniform space `α`. -/
 def separation_quotient (α : Type*) [uniform_space α] := quotient (separation_setoid α)
 
 namespace separation_quotient
-instance : uniform_space (separation_quotient α) := by dunfold separation_quotient ; apply_instance
-instance : separated_space (separation_quotient α) := by dunfold separation_quotient ; apply_instance
+instance : uniform_space (separation_quotient α) := separation_setoid.uniform_space
+instance : separated_space (separation_quotient α) := uniform_space.separated_separation
 instance [inhabited α] : inhabited (separation_quotient α) :=
-by unfold separation_quotient; apply_instance
+quotient.inhabited (separation_setoid α)
 
 /-- Factoring functions to a separated space through the separation quotient. -/
 def lift [separated_space β] (f : α → β) : (separation_quotient α → β) :=
 if h : uniform_continuous f then
   quotient.lift f (λ x y, eq_of_separated_of_uniform_continuous h)
 else
-  λ x, f (classical.inhabited_of_nonempty $ (nonempty_quotient_iff $ separation_setoid α).1 ⟨x⟩).default
+  λ x, f (nonempty.some ⟨x.out⟩)
 
-lemma lift_mk [separated_space β] {f : α → β} (h : uniform_continuous f) (a : α) : lift f ⟦a⟧ = f a :=
+lemma lift_mk [separated_space β] {f : α → β} (h : uniform_continuous f) (a : α) :
+  lift f ⟦a⟧ = f a :=
 by rw [lift, dif_pos h]; refl
 
 lemma uniform_continuous_lift [separated_space β] (f : α → β) : uniform_continuous (lift f) :=
@@ -472,17 +501,23 @@ begin
            separated_of_uniform_continuous uniform_continuous_snd h⟩ },
   { rintros ⟨eqv_α, eqv_β⟩ r r_in,
     rw uniformity_prod at r_in,
-    rcases r_in with ⟨t_α, ⟨r_α, r_α_in, h_α⟩, t_β, ⟨r_β, r_β_in, h_β⟩, H⟩,
-
+    rcases r_in with ⟨t_α, ⟨r_α, r_α_in, h_α⟩, t_β, ⟨r_β, r_β_in, h_β⟩, rfl⟩,
     let p_α := λ(p : (α × β) × (α × β)), (p.1.1, p.2.1),
     let p_β := λ(p : (α × β) × (α × β)), (p.1.2, p.2.2),
     have key_α : p_α ((a₁, b₁), (a₂, b₂)) ∈ r_α, { simp [p_α, eqv_α r_α r_α_in] },
     have key_β : p_β ((a₁, b₁), (a₂, b₂)) ∈ r_β, { simp [p_β, eqv_β r_β r_β_in] },
-    exact H ⟨h_α key_α, h_β key_β⟩ },
+    exact ⟨h_α key_α, h_β key_β⟩ },
 end
 
 instance separated.prod [separated_space α] [separated_space β] : separated_space (α × β) :=
 separated_def.2 $ assume x y H, prod.ext
   (eq_of_separated_of_uniform_continuous uniform_continuous_fst H)
   (eq_of_separated_of_uniform_continuous uniform_continuous_snd H)
+
+lemma _root_.is_separated.prod {s : set α} {t : set β} (hs : is_separated s) (ht : is_separated t) :
+  is_separated (s ×ˢ t) :=
+(is_separated_def _).mpr $ λ x hx y hy H, prod.ext
+  (hs.eq_of_uniform_continuous hx.1 hy.1 uniform_continuous_fst H)
+  (ht.eq_of_uniform_continuous hx.2 hy.2 uniform_continuous_snd H)
+
 end uniform_space

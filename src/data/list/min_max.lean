@@ -19,7 +19,7 @@ The main definitions are `argmax`, `argmin`, `minimum` and `maximum` for lists.
 `[]`
 -/
 namespace list
-variables {α : Type*} {β : Type*} [decidable_linear_order β]
+variables {α : Type*} {β : Type*} [linear_order β]
 
 /-- Auxiliary definition to define `argmax` -/
 def argmax₂ (f : α → β) (a : option α) (b : α) : option α :=
@@ -38,7 +38,7 @@ def argmin (f : α → β) (l : list α) :=
 @argmax _ (order_dual β) _ f l
 
 @[simp] lemma argmax_two_self (f : α → β) (a : α) : argmax₂ f (some a) a = a :=
-if_pos (le_refl _)
+if_pos le_rfl
 
 @[simp] lemma argmax_nil (f : α → β) : argmax f [] = none := rfl
 
@@ -85,7 +85,11 @@ list.reverse_rec_on l (by simp [eq_comm])
     cases hf : foldl (argmax₂ f) (some a) tl,
     { simp {contextual := tt} },
     { dsimp only, split_ifs,
-      { finish [ih _ _ hf] },
+      { -- `finish [ih _ _ hf]` closes this goal
+        rcases ih _ _ hf with rfl | H,
+        { simp only [mem_cons_iff, mem_append, mem_singleton, option.mem_def], tauto },
+        { apply λ hm, or.inr (list.mem_append.mpr $ or.inl _),
+          exact (option.mem_some_iff.mp hm ▸ H)} },
       { simp {contextual := tt} } }
   end
 
@@ -193,7 +197,7 @@ theorem argmin_eq_some_iff [decidable_eq α] {f : α → β} {m : α} {l : list 
   argmin f l = some m ↔ m ∈ l ∧ (∀ a ∈ l, f m ≤ f a) ∧
     (∀ a ∈ l, f a ≤ f m → l.index_of m ≤ l.index_of a) := mem_argmin_iff
 
-variable [decidable_linear_order α]
+variable [linear_order α]
 
 /-- `maximum l` returns an `with_bot α`, the largest element of `l` for nonempty lists, and `⊥` for
 `[]`  -/
@@ -242,7 +246,7 @@ begin
   { rw [max_eq_left], refl, exact bot_le },
   change (coe : α → with_bot α) with some,
   rw [max_comm],
-  simp [max]
+  simp [max_def]
 end
 
 theorem minimum_concat (a : α) (l : list α) : minimum (l ++ [a]) = min (minimum l) a :=
@@ -270,5 +274,53 @@ end
 theorem minimum_eq_coe_iff {m : α} {l : list α} :
   minimum l = m ↔ m ∈ l ∧ (∀ a ∈ l, m ≤ a) :=
 @maximum_eq_coe_iff (order_dual α) _ _ _
+
+section fold
+
+variables {M : Type*} [canonically_linear_ordered_add_monoid M]
+
+/-! Note: since there is no typeclass typeclass dual
+to `canonically_linear_ordered_add_monoid α` we cannot express these lemmas generally for
+`minimum`; instead we are limited to doing so on `order_dual α`. -/
+
+lemma maximum_eq_coe_foldr_max_of_ne_nil (l : list M) (h : l ≠ []) :
+  l.maximum = (l.foldr max ⊥ : M) :=
+begin
+  induction l with hd tl IH,
+  { contradiction },
+  { rw [maximum_cons, foldr, with_bot.coe_max],
+    by_cases h : tl = [],
+    { simp [h, -with_top.coe_zero] },
+    { simp [IH h] } }
+end
+
+lemma minimum_eq_coe_foldr_min_of_ne_nil (l : list (order_dual M)) (h : l ≠ []) :
+  l.minimum = (l.foldr min ⊤ : order_dual M) :=
+maximum_eq_coe_foldr_max_of_ne_nil l h
+
+lemma maximum_nat_eq_coe_foldr_max_of_ne_nil (l : list ℕ) (h : l ≠ []) :
+  l.maximum = (l.foldr max 0 : ℕ) :=
+maximum_eq_coe_foldr_max_of_ne_nil l h
+
+lemma max_le_of_forall_le (l : list M) (n : M) (h : ∀ (x ∈ l), x ≤ n) :
+  l.foldr max ⊥ ≤ n :=
+begin
+  induction l with y l IH,
+  { simp },
+  { specialize IH (λ x hx, h x (mem_cons_of_mem _ hx)),
+    have hy : y ≤ n := h y (mem_cons_self _ _),
+    simpa [hy] using IH }
+end
+
+lemma le_min_of_le_forall (l : list (order_dual M)) (n : (order_dual M))
+  (h : ∀ (x ∈ l), n ≤ x) :
+  n ≤ l.foldr min ⊤ :=
+max_le_of_forall_le l n h
+
+lemma max_nat_le_of_forall_le (l : list ℕ) (n : ℕ) (h : ∀ (x ∈ l), x ≤ n) :
+  l.foldr max 0 ≤ n :=
+max_le_of_forall_le l n h
+
+end fold
 
 end list

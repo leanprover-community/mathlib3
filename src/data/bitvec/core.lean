@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Joe Hendrix, Sebastian Ullrich
 -/
 
-import data.vector
+import data.vector.basic
 import data.nat.basic
 
 /-!
@@ -12,7 +12,8 @@ import data.nat.basic
 
 This is a work-in-progress, and contains additions to other theories.
 
-This file was moved to mathlib from core Lean in the switch to Lean 3.20.0c. It is not fully in compliance with mathlib style standards.
+This file was moved to mathlib from core Lean in the switch to Lean 3.20.0c.
+It is not fully in compliance with mathlib style standards.
 -/
 
 /-- `bitvec n` is a `vector` of `bool` with length `n`. -/
@@ -30,7 +31,7 @@ local infix `++ₜ`:65 := vector.append
 /-- Create a bitvector of length `n` whose `n-1`st entry is 1 and other entries are 0. -/
 @[reducible] protected def one : Π (n : ℕ), bitvec n
 | 0        := nil
-| (succ n) := repeat ff n ++ₜ tt::nil
+| (succ n) := repeat ff n ++ₜ tt::ᵥnil
 
 /-- Create a bitvector from another with a provably equal length. -/
 protected def cong {a b : ℕ} (h : a = b) : bitvec a → bitvec b
@@ -57,10 +58,11 @@ def fill_shr (x : bitvec n) (i : ℕ) (fill : bool) : bitvec n :=
 bitvec.cong
   begin
     by_cases (i ≤ n),
-    { have h₁ := sub_le n i,
-      rw [min_eq_right h], rw [min_eq_left h₁, ← nat.add_sub_assoc h, nat.add_comm, nat.add_sub_cancel] },
+    { have h₁ := nat.sub_le n i,
+      rw [min_eq_right h],
+      rw [min_eq_left h₁, ← add_tsub_assoc_of_le h, nat.add_comm, add_tsub_cancel_right] },
     { have h₁ := le_of_not_ge h,
-      rw [min_eq_left h₁, sub_eq_zero_of_le h₁, zero_min, nat.add_zero] }
+      rw [min_eq_left h₁, tsub_eq_zero_iff_le.mpr h₁, zero_min, nat.add_zero] }
   end $
   repeat fill (min n i) ++ₜ take (n-i) x
 
@@ -71,7 +73,7 @@ fill_shr x i ff
 /-- signed shift right -/
 def sshr : Π {m : ℕ}, bitvec m → ℕ → bitvec m
 | 0        _ _ := nil
-| (succ m) x i := head x :: fill_shr (tail x) i (head x)
+| (succ m) x i := head x ::ᵥ fill_shr (tail x) i (head x)
 
 end shift
 
@@ -109,7 +111,7 @@ prod.snd (map_accumr f x ff)
 def adc (x y : bitvec n) (c : bool) : bitvec (n+1) :=
 let f := λ x y c, (bitvec.carry x y c, bitvec.xor3 x y c) in
 let ⟨c, z⟩ := vector.map_accumr₂ f x y c in
-c :: z
+c ::ᵥ z
 
 /-- The sum of two bitvectors -/
 protected def add (x y : bitvec n) : bitvec n := tail (adc x y ff)
@@ -182,12 +184,12 @@ variable {α : Type}
 /-- Create a bitvector from a `nat` -/
 protected def of_nat : Π (n : ℕ), nat → bitvec n
 | 0        x := nil
-| (succ n) x := of_nat n (x / 2) ++ₜ to_bool (x % 2 = 1) :: nil
+| (succ n) x := of_nat n (x / 2) ++ₜ to_bool (x % 2 = 1) ::ᵥ nil
 
 /-- Create a bitvector in the two's complement representation from an `int` -/
 protected def of_int : Π (n : ℕ), int → bitvec (succ n)
-| n (int.of_nat m)          := ff :: bitvec.of_nat n m
-| n (int.neg_succ_of_nat m) := tt :: not (bitvec.of_nat n m)
+| n (int.of_nat m)          := ff ::ᵥ bitvec.of_nat n m
+| n (int.neg_succ_of_nat m) := tt ::ᵥ not (bitvec.of_nat n m)
 
 /-- `add_lsb r b` is `r + r + 1` if `b` is `tt` and `r + r` otherwise. -/
 def add_lsb (r : ℕ) (b : bool) := r + r + cond b 1 0
@@ -208,7 +210,7 @@ local attribute [simp] nat.zero_add nat.add_zero nat.one_mul nat.mul_one nat.zer
 -- mul_left_comm
 
 theorem to_nat_append {m : ℕ} (xs : bitvec m) (b : bool) :
-bitvec.to_nat (xs ++ₜ b::nil) = bitvec.to_nat xs * 2 + bitvec.to_nat (b::nil) :=
+bitvec.to_nat (xs ++ₜ b::ᵥnil) = bitvec.to_nat xs * 2 + bitvec.to_nat (b::ᵥnil) :=
 begin
   cases xs with xs P,
   simp [bits_to_nat_to_list], clear P,
@@ -222,7 +224,7 @@ begin
 end
 
 theorem bits_to_nat_to_bool (n : ℕ)
-: bitvec.to_nat (to_bool (n % 2 = 1) :: nil) = n % 2 :=
+: bitvec.to_nat (to_bool (n % 2 = 1) ::ᵥ nil) = n % 2 :=
 begin
   simp [bits_to_nat_to_list],
   unfold bits_to_nat add_lsb list.foldl cond,
@@ -230,7 +232,7 @@ begin
 end
 
 theorem of_nat_succ {k n : ℕ}
-:  bitvec.of_nat (succ k) n = bitvec.of_nat k (n / 2) ++ₜ to_bool (n % 2 = 1) :: nil :=
+:  bitvec.of_nat (succ k) n = bitvec.of_nat k (n / 2) ++ₜ to_bool (n % 2 = 1) ::ᵥ nil :=
 rfl
 
 theorem to_nat_of_nat {k n : ℕ}
@@ -238,8 +240,7 @@ theorem to_nat_of_nat {k n : ℕ}
 begin
   induction k with k ih generalizing n,
   { simp [nat.mod_one], refl },
-  { have h : 0 < 2, { apply le_succ },
-    rw [of_nat_succ, to_nat_append, ih, bits_to_nat_to_bool, mod_pow_succ h, nat.mul_comm] }
+  { rw [of_nat_succ, to_nat_append, ih, bits_to_nat_to_bool, mod_pow_succ, nat.mul_comm] }
 end
 
 /-- Return the integer encoded by the input bitvector -/

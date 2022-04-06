@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Yury G. Kudryashov
+Authors: Yury G. Kudryashov
 -/
 import analysis.normed_space.basic
 
@@ -30,25 +30,27 @@ We do not define extended normed groups. They can be added to the chain once som
 normed space, extended norm
 -/
 
+noncomputable theory
 local attribute [instance, priority 1001] classical.prop_decidable
+open_locale ennreal
 
 /-- Extended norm on a vector space. As in the case of normed spaces, we require only
 `∥c • x∥ ≤ ∥c∥ * ∥x∥` in the definition, then prove an equality in `map_smul`. -/
-structure enorm (𝕜 : Type*) (V : Type*) [normed_field 𝕜] [add_comm_group V] [vector_space 𝕜 V] :=
-(to_fun : V → ennreal)
+structure enorm (𝕜 : Type*) (V : Type*) [normed_field 𝕜] [add_comm_group V] [module 𝕜 V] :=
+(to_fun : V → ℝ≥0∞)
 (eq_zero' : ∀ x, to_fun x = 0 → x = 0)
 (map_add_le' : ∀ x y : V, to_fun (x + y) ≤ to_fun x + to_fun y)
 (map_smul_le' : ∀ (c : 𝕜) (x : V), to_fun (c • x) ≤ nnnorm c * to_fun x)
 
 namespace enorm
 
-variables {𝕜 : Type*} {V : Type*} [normed_field 𝕜] [add_comm_group V] [vector_space 𝕜 V]
+variables {𝕜 : Type*} {V : Type*} [normed_field 𝕜] [add_comm_group V] [module 𝕜 V]
   (e : enorm 𝕜 V)
 
-instance : has_coe_to_fun (enorm 𝕜 V) := ⟨_, enorm.to_fun⟩
+instance : has_coe_to_fun (enorm 𝕜 V) (λ _, V → ℝ≥0∞) := ⟨enorm.to_fun⟩
 
-lemma coe_fn_injective ⦃e₁ e₂ : enorm 𝕜 V⦄ (h : ⇑e₁ = e₂) : e₁ = e₂ :=
-by cases e₁; cases e₂; congr; exact h
+lemma coe_fn_injective : function.injective (coe_fn : enorm 𝕜 V → (V → ℝ≥0∞)) :=
+λ e₁ e₂ h, by cases e₁; cases e₂; congr; exact h
 
 @[ext] lemma ext {e₁ e₂ : enorm 𝕜 V} (h : ∀ x, e₁ x = e₂ x) : e₁ = e₂ :=
 coe_fn_injective $ funext h
@@ -56,15 +58,18 @@ coe_fn_injective $ funext h
 lemma ext_iff {e₁ e₂ : enorm 𝕜 V} : e₁ = e₂ ↔ ∀ x, e₁ x = e₂ x :=
 ⟨λ h x, h ▸ rfl, ext⟩
 
+@[simp, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : (e₁ : V → ℝ≥0∞) = e₂ ↔ e₁ = e₂ :=
+coe_fn_injective.eq_iff
+
 @[simp] lemma map_smul (c : 𝕜) (x : V) : e (c • x) = nnnorm c * e x :=
 le_antisymm (e.map_smul_le' c x) $
 begin
   by_cases hc : c = 0, { simp [hc] },
-  calc (nnnorm c : ennreal) * e x = nnnorm c * e (c⁻¹ • c • x) : by rw [inv_smul_smul' hc]
+  calc (nnnorm c : ℝ≥0∞) * e x = nnnorm c * e (c⁻¹ • c • x) : by rw [inv_smul_smul₀ hc]
   ... ≤ nnnorm c * (nnnorm (c⁻¹) * e (c • x)) : _
   ... = e (c • x) : _,
-  { exact ennreal.mul_le_mul (le_refl _) (e.map_smul_le' _ _) },
-  { rw [← mul_assoc, normed_field.nnnorm_inv, ennreal.coe_inv,
+  { exact ennreal.mul_le_mul le_rfl (e.map_smul_le' _ _) },
+  { rw [← mul_assoc, nnnorm_inv, ennreal.coe_inv,
      ennreal.mul_inv_cancel _ ennreal.coe_ne_top, one_mul]; simp [hc] }
 end
 
@@ -84,12 +89,13 @@ by rw [← neg_sub, e.map_neg]
 lemma map_add_le (x y : V) : e (x + y) ≤ e x + e y := e.map_add_le' x y
 
 lemma map_sub_le (x y : V) : e (x - y) ≤ e x + e y :=
-calc e (x - y) ≤ e x + e (-y) : e.map_add_le x (-y)
+calc e (x - y) = e (x + -y)   : by rw sub_eq_add_neg
+           ... ≤ e x + e (-y) : e.map_add_le x (-y)
            ... = e x + e y    : by rw [e.map_neg]
 
 instance : partial_order (enorm 𝕜 V) :=
 { le := λ e₁ e₂, ∀ x, e₁ x ≤ e₂ x,
-  le_refl := λ e x, le_refl _,
+  le_refl := λ e x, le_rfl,
   le_trans := λ e₁ e₂ e₃ h₁₂ h₂₃ x, le_trans (h₁₂ x) (h₂₃ x),
   le_antisymm := λ e₁ e₂ h₁₂ h₂₁, ext $ λ x, le_antisymm (h₁₂ x) (h₂₁ x) }
 
@@ -116,11 +122,13 @@ noncomputable instance : inhabited (enorm 𝕜 V) := ⟨⊤⟩
 
 lemma top_map {x : V} (hx : x ≠ 0) : (⊤ : enorm 𝕜 V) x = ⊤ := if_neg hx
 
-noncomputable instance : semilattice_sup_top (enorm 𝕜 V) :=
+noncomputable instance : order_top (enorm 𝕜 V) :=
+{ top := ⊤,
+  le_top := λ e x, if h : x = 0 then by simp [h] else by simp [top_map h] }
+
+noncomputable instance : semilattice_sup (enorm 𝕜 V) :=
 { le := (≤),
   lt := (<),
-  top := ⊤,
-  le_top := λ e x, if h : x = 0 then by simp [h] else by simp [top_map h],
   sup := λ e₁ e₂,
   { to_fun := λ x, max (e₁ x) (e₂ x),
     eq_zero' := λ x h, e₁.eq_zero_iff.1 (ennreal.max_eq_zero_iff.1 h).1,
@@ -153,9 +161,9 @@ def finite_subspace : subspace 𝕜 V :=
 { carrier   := {x | e x < ⊤},
   zero_mem' := by simp,
   add_mem'  := λ x y hx hy, lt_of_le_of_lt (e.map_add_le x y) (ennreal.add_lt_top.2 ⟨hx, hy⟩),
-  smul_mem' := λ c x hx,
+  smul_mem' := λ c x (hx : _ < _),
     calc e (c • x) = nnnorm c * e x : e.map_smul c x
-               ... < ⊤              : ennreal.mul_lt_top ennreal.coe_lt_top hx }
+               ... < ⊤              : ennreal.mul_lt_top ennreal.coe_ne_top hx.ne }
 
 /-- Metric space structure on `e.finite_subspace`. We use `emetric_space.to_metric_space_of_dist`
 to ensure that this definition agrees with `e.emetric_space`. -/
@@ -164,8 +172,7 @@ begin
   letI := e.emetric_space,
   refine emetric_space.to_metric_space_of_dist _ (λ x y, _) (λ x y, rfl),
   change e (x - y) ≠ ⊤,
-  rw [← ennreal.lt_top_iff_ne_top],
-  exact lt_of_le_of_lt (e.map_sub_le x y) (ennreal.add_lt_top.2 ⟨x.2, y.2⟩)
+  exact ne_top_of_le_ne_top (ennreal.add_lt_top.2 ⟨x.2, y.2⟩).ne (e.map_sub_le x y)
 end
 
 lemma finite_dist_eq (x y : e.finite_subspace) : dist x y = (e (x - y)).to_real := rfl
@@ -181,6 +188,6 @@ lemma finite_norm_eq (x : e.finite_subspace) : ∥x∥ = (e x).to_real := rfl
 
 /-- Normed space instance on `e.finite_subspace`. -/
 instance : normed_space 𝕜 e.finite_subspace :=
-{ norm_smul_le := λ c x, le_of_eq $ by simp [finite_norm_eq, ← ennreal.to_real_mul_to_real] }
+{ norm_smul_le := λ c x, le_of_eq $ by simp [finite_norm_eq, ennreal.to_real_mul] }
 
 end enorm

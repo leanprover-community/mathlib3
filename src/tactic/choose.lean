@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Floris van Doorn, Mario Carneiro
 -/
 
+import logic.function.basic
 import tactic.core
 
 /-!
@@ -67,7 +68,8 @@ meta def choose1 (nondep : bool) (h : expr) (data : name) (spec : name) :
           b ← is_proof e,
           monad.unlessb b $
             (mk_app ``nonempty.intro [e] >>= note_anon none) $> ()),
-        unfreeze_local_instances >> apply_instance,
+        reset_instance_cache,
+        apply_instance,
         instantiate_mvars m)),
       pure (some (option.guard (λ _, nonemp.is_none) ne), nonemp)
     else pure (none, none),
@@ -169,7 +171,8 @@ tgt ← match tgt with
   | some e := tactic.i_to_expr_strict e
   end,
 tactic.choose nondep.is_some tgt (first :: names),
-try (interactive.simp none tt [simp_arg_type.expr ``(exists_prop)] [] (loc.ns $ some <$> names)),
+try (interactive.simp none none tt [simp_arg_type.expr
+  ``(exists_prop)] [] (loc.ns $ some <$> names)),
 try (tactic.clear tgt)
 
 add_tactic_doc

@@ -1,8 +1,13 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
+-/
 
-Linear integer arithmetic terms in pre-normalized form. -/
+/-
+Linear integer arithmetic terms in pre-normalized form.
+-/
+
 import tactic.omega.term
 
 namespace omega
@@ -78,7 +83,7 @@ open_locale list.func -- get notation for list.func.set
       preterm.val, zero_add, term.val],
     split_ifs with h1 h2,
     { simp only [one_mul, h1] },
-    { simp only [neg_mul_eq_neg_mul_symm, one_mul, h2] },
+    { simp only [neg_mul, one_mul, h2] },
     { rw mul_comm }
   end
 | (t +* s) :=

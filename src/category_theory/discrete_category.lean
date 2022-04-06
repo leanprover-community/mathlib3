@@ -4,10 +4,36 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
 import category_theory.eq_to_hom
+import data.ulift
+
+/-!
+# Discrete categories
+
+We define `discrete α := α` for any type `α`, and use this type alias
+to provide a `small_category` instance whose only morphisms are the identities.
+
+There is an annoying technical difficulty that it has turned out to be inconvenient
+to allow categories with morphisms living in `Prop`,
+so instead of defining `X ⟶ Y` in `discrete α` as `X = Y`,
+one might define it as `plift (X = Y)`.
+In fact, to allow `discrete α` to be a `small_category`
+(i.e. with morphisms in the same universe as the objects),
+we actually define the hom type `X ⟶ Y` as `ulift (plift (X = Y))`.
+
+`discrete.functor` promotes a function `f : I → C` (for any category `C`) to a functor
+`discrete.functor f : discrete I ⥤ C`.
+
+Similarly, `discrete.nat_trans` and `discrete.nat_iso` promote `I`-indexed families of morphisms,
+or `I`-indexed families of isomorphisms to natural transformations or natural isomorphism.
+
+We show equivalences of types are the same as (categorical) equivalences of the corresponding
+discrete categories.
+-/
 
 namespace category_theory
 
-universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
+-- morphism levels before object levels. See note [category_theory universes].
+universes v₁ v₂ v₃ u₁ u₂ u₃
 
 /--
 A type synonym for promoting any type to a category,
@@ -46,7 +72,7 @@ lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X = Y := i.down.down
 variables {C : Type u₂} [category.{v₂} C]
 
 instance {I : Type u₁} {i j : discrete I} (f : i ⟶ j) : is_iso f :=
-{ inv := eq_to_hom (eq_of_hom f).symm, }
+⟨⟨eq_to_hom (eq_of_hom f).symm, by tidy⟩⟩
 
 /--
 Any function `I → C` gives a functor `discrete I ⥤ C`.
@@ -104,7 +130,14 @@ by tidy
 
 /-- Every functor `F` from a discrete category is naturally isomorphic (actually, equal) to
   `discrete.functor (F.obj)`. -/
+@[simp]
 def nat_iso_functor {I : Type u₁} {F : discrete I ⥤ C} : F ≅ discrete.functor (F.obj) :=
+nat_iso $ λ i, iso.refl _
+
+/-- Composing `discrete.functor F` with another functor `G` amounts to composing `F` with `G.obj` -/
+@[simp]
+def comp_nat_iso_discrete {I : Type u₁} {D : Type u₃} [category.{v₃} D]
+ (F : I → C) (G : C ⥤ D) : discrete.functor F ⋙ G ≅ discrete.functor (G.obj ∘ F) :=
 nat_iso $ λ i, iso.refl _
 
 /--
@@ -112,7 +145,7 @@ We can promote a type-level `equiv` to
 an equivalence between the corresponding `discrete` categories.
 -/
 @[simps]
-def equivalence {I J : Type u₁} (e : I ≃ J) : discrete I ≌ discrete J :=
+def equivalence {I : Type u₁} {J : Type u₂} (e : I ≃ J) : discrete I ≌ discrete J :=
 { functor := discrete.functor (e : I → J),
   inverse := discrete.functor (e.symm : J → I),
   unit_iso := discrete.nat_iso (λ i, eq_to_iso (by simp)),
@@ -120,7 +153,7 @@ def equivalence {I J : Type u₁} (e : I ≃ J) : discrete I ≌ discrete J :=
 
 /-- We can convert an equivalence of `discrete` categories to a type-level `equiv`. -/
 @[simps]
-def equiv_of_equivalence {α β : Type u₁} (h : discrete α ≌ discrete β) : α ≃ β :=
+def equiv_of_equivalence {α : Type u₁} {β : Type u₂} (h : discrete α ≌ discrete β) : α ≃ β :=
 { to_fun := h.functor.obj,
   inv_fun := h.inverse.obj,
   left_inv := λ a, eq_of_hom (h.unit_iso.app a).2,

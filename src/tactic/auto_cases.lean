@@ -18,7 +18,7 @@ meta structure auto_cases_tac :=
 /-- The `auto_cases_tac` for `tactic.cases`. -/
 meta def tac_cases : auto_cases_tac := ⟨"cases", cases⟩
 
-/-- The `auto_cases_tac` for `tactic.induction⟩`. -/
+/-- The `auto_cases_tac` for `tactic.induction`. -/
 meta def tac_induction : auto_cases_tac := ⟨"induction", induction⟩
 
 /-- Find an `auto_cases_tac` which matches the given `type : expr`. -/

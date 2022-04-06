@@ -3,7 +3,7 @@ Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
-import data.real.basic
+import data.real.ennreal
 
 /-!
 # Real conjugate exponents
@@ -65,7 +65,7 @@ ne_of_gt (h.one_div_pos)
 lemma conj_eq : q = p/(p-1) :=
 begin
   have := h.inv_add_inv_conj,
-  rw [← eq_sub_iff_add_eq', one_div, inv_eq_iff] at this,
+  rw [← eq_sub_iff_add_eq', one_div, inv_eq_iff_inv_eq] at this,
   field_simp [← this, h.ne_zero]
 end
 
@@ -80,6 +80,27 @@ by simpa only [sub_mul, sub_eq_iff_eq_add, one_mul] using h.sub_one_mul_conj
 @[symm] protected lemma symm : q.is_conjugate_exponent p :=
 { one_lt := by { rw [h.conj_eq], exact (one_lt_div h.sub_one_pos).mpr (sub_one_lt p) },
   inv_add_inv_conj := by simpa [add_comm] using h.inv_add_inv_conj }
+
+lemma div_conj_eq_sub_one : p / q = p - 1 :=
+begin
+  field_simp [h.symm.ne_zero],
+  rw h.sub_one_mul_conj
+end
+
+lemma one_lt_nnreal : 1 < real.to_nnreal p :=
+begin
+  rw [←real.to_nnreal_one, real.to_nnreal_lt_to_nnreal_iff h.pos],
+  exact h.one_lt,
+end
+
+lemma inv_add_inv_conj_nnreal : 1 / real.to_nnreal p + 1 / real.to_nnreal q = 1 :=
+by rw [← real.to_nnreal_one, ← real.to_nnreal_div' h.nonneg, ← real.to_nnreal_div' h.symm.nonneg,
+  ← real.to_nnreal_add h.one_div_nonneg h.symm.one_div_nonneg, h.inv_add_inv_conj]
+
+lemma inv_add_inv_conj_ennreal : 1 / ennreal.of_real p + 1 / ennreal.of_real q = 1 :=
+by rw [← ennreal.of_real_one, ← ennreal.of_real_div_of_pos h.pos,
+  ← ennreal.of_real_div_of_pos h.symm.pos,
+  ← ennreal.of_real_add h.one_div_nonneg h.symm.one_div_nonneg, h.inv_add_inv_conj]
 
 end is_conjugate_exponent
 

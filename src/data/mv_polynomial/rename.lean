@@ -15,6 +15,7 @@ which modifies the set of variables.
 ## Main declarations
 
 * `mv_polynomial.rename`
+* `mv_polynomial.rename_equiv`
 
 ## Notation
 
@@ -90,14 +91,9 @@ end
 lemma rename_eq (f : σ → τ) (p : mv_polynomial σ R) :
   rename f p = finsupp.map_domain (finsupp.map_domain f) p :=
 begin
-  simp only [rename, aeval_def, eval₂, finsupp.map_domain, ring_hom.coe_of],
-  congr' with s a : 2,
-  rw [← monomial, monomial_eq, finsupp.prod_sum_index],
-  congr' with n i : 2,
-  rw [finsupp.prod_single_index],
-  exact pow_zero _,
-  exact assume a, pow_zero _,
-  exact assume a b c, pow_add _ _ _
+  simp only [rename, aeval_def, eval₂, finsupp.map_domain, algebra_map_eq, X_pow_eq_monomial,
+     ← monomial_finsupp_sum_index],
+  refl
 end
 
 lemma rename_injective (f : σ → τ) (hf : function.injective f) :
@@ -107,6 +103,49 @@ have (rename f : mv_polynomial σ R → mv_polynomial τ R) =
 begin
   rw this,
   exact finsupp.map_domain_injective (finsupp.map_domain_injective hf)
+end
+
+section
+variables {f : σ → τ} (hf : function.injective f)
+open_locale classical
+
+/-- Given a function between sets of variables `f : σ → τ` that is injective with proof `hf`,
+  `kill_compl hf` is the `alg_hom` from `R[τ]` to `R[σ]` that is left inverse to
+  `rename f : R[σ] → R[τ]` and sends the variables in the complement of the range of `f` to `0`. -/
+def kill_compl : mv_polynomial τ R →ₐ[R] mv_polynomial σ R :=
+aeval (λ i, if h : i ∈ set.range f then X $ (equiv.of_injective f hf).symm ⟨i,h⟩ else 0)
+
+lemma kill_compl_comp_rename : (kill_compl hf).comp (rename f) = alg_hom.id R _ := alg_hom_ext $
+λ i, by { dsimp, rw [rename, kill_compl, aeval_X, aeval_X, dif_pos, equiv.of_injective_symm_apply] }
+
+@[simp] lemma kill_compl_rename_app (p : mv_polynomial σ R) : kill_compl hf (rename f p) = p :=
+alg_hom.congr_fun (kill_compl_comp_rename hf) p
+
+end
+
+section
+variables (R)
+
+/-- `mv_polynomial.rename e` is an equivalence when `e` is. -/
+@[simps apply]
+def rename_equiv (f : σ ≃ τ) : mv_polynomial σ R ≃ₐ[R] mv_polynomial τ R :=
+{ to_fun := rename f,
+  inv_fun := rename f.symm,
+  left_inv := λ p, by rw [rename_rename, f.symm_comp_self, rename_id],
+  right_inv := λ p, by rw [rename_rename, f.self_comp_symm, rename_id],
+  ..rename f}
+
+@[simp] lemma rename_equiv_refl :
+  rename_equiv R (equiv.refl σ) = alg_equiv.refl :=
+alg_equiv.ext rename_id
+
+@[simp] lemma rename_equiv_symm (f : σ ≃ τ) :
+  (rename_equiv R f).symm = rename_equiv R f.symm := rfl
+
+@[simp] lemma rename_equiv_trans (e : σ ≃ τ) (f : τ ≃ α):
+  (rename_equiv R e).trans (rename_equiv R f) = rename_equiv R (e.trans f) :=
+alg_equiv.ext (rename_rename e f)
+
 end
 
 section
@@ -152,9 +191,24 @@ begin
     { simp only [rename_rename, alg_hom.map_add], refl, }, },
   { rintro p n ⟨s, p, rfl⟩,
     refine ⟨insert n s, ⟨_, _⟩⟩,
-  { refine rename (subtype.map id _) p * X ⟨n, s.mem_insert_self n⟩,
-    simp only [id.def, or_true, finset.mem_insert, forall_true_iff] {contextual := tt}, },
+    { refine rename (subtype.map id _) p * X ⟨n, s.mem_insert_self n⟩,
+      simp only [id.def, or_true, finset.mem_insert, forall_true_iff] {contextual := tt}, },
     { simp only [rename_rename, rename_X, subtype.coe_mk, alg_hom.map_mul], refl, }, },
+end
+
+/-- `exists_finset_rename` for two polyonomials at once: for any two polynomials `p₁`, `p₂` in a
+  polynomial semiring `R[σ]` of possibly infinitely many variables, `exists_finset_rename₂` yields
+  a finite subset `s` of `σ` such that both `p₁` and `p₂` are contained in the polynomial semiring
+  `R[s]` of finitely many variables. -/
+lemma exists_finset_rename₂ (p₁ p₂ : mv_polynomial σ R) :
+  ∃ (s : finset σ) (q₁ q₂ : mv_polynomial s R), p₁ = rename coe q₁ ∧ p₂ = rename coe q₂ :=
+begin
+  obtain ⟨s₁,q₁,rfl⟩ := exists_finset_rename p₁,
+  obtain ⟨s₂,q₂,rfl⟩ := exists_finset_rename p₂,
+  classical, use s₁ ∪ s₂,
+  use rename (set.inclusion $ s₁.subset_union_left s₂) q₁,
+  use rename (set.inclusion $ s₁.subset_union_right s₂) q₂,
+  split; simpa,
 end
 
 /-- Every polynomial is a polynomial in finitely many variables. -/
@@ -162,7 +216,8 @@ theorem exists_fin_rename (p : mv_polynomial σ R) :
   ∃ (n : ℕ) (f : fin n → σ) (hf : injective f) (q : mv_polynomial (fin n) R), p = rename f q :=
 begin
   obtain ⟨s, q, rfl⟩ := exists_finset_rename p,
-  obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin {x // x ∈ s},
+  let n := fintype.card {x // x ∈ s},
+  let e := fintype.equiv_fin {x // x ∈ s},
   refine ⟨n, coe ∘ e.symm, subtype.val_injective.comp e.symm.injective, rename e q, _⟩,
   rw [← rename_rename, rename_rename e],
   simp only [function.comp, equiv.symm_apply_apply, rename_rename]
@@ -186,8 +241,7 @@ begin
   apply induction_on' φ,
   { intros u r,
     rw [rename_monomial, coeff_monomial, coeff_monomial],
-    simp only [(finsupp.map_domain_injective hf).eq_iff],
-    split_ifs; refl, },
+    simp only [(finsupp.map_domain_injective hf).eq_iff] },
   { intros, simp only [*, alg_hom.map_add, coeff_add], }
 end
 
@@ -195,13 +249,13 @@ lemma coeff_rename_eq_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →
   (h : ∀ u : σ →₀ ℕ, u.map_domain f = d → φ.coeff u = 0) :
   (rename f φ).coeff d = 0 :=
 begin
-  rw [rename_eq, coeff, ← not_mem_support_iff],
+  rw [rename_eq, ← not_mem_support_iff],
   intro H,
   replace H := map_domain_support H,
   rw [finset.mem_image] at H,
   obtain ⟨u, hu, rfl⟩ := H,
   specialize h u rfl,
-  simp [mem_support_iff, coeff] at h hu,
+  simp at h hu,
   contradiction
 end
 
@@ -210,6 +264,26 @@ lemma coeff_rename_ne_zero (f : σ → τ) (φ : mv_polynomial σ R) (d : τ →
   ∃ u : σ →₀ ℕ, u.map_domain f = d ∧ φ.coeff u ≠ 0 :=
 by { contrapose! h, apply coeff_rename_eq_zero _ _ _ h }
 
+@[simp] lemma constant_coeff_rename {τ : Type*} (f : σ → τ) (φ : mv_polynomial σ R) :
+  constant_coeff (rename f φ) = constant_coeff φ :=
+begin
+  apply φ.induction_on,
+  { intro a, simp only [constant_coeff_C, rename_C]},
+  { intros p q hp hq, simp only [hp, hq, ring_hom.map_add, alg_hom.map_add] },
+  { intros p n hp, simp only [hp, rename_X, constant_coeff_X, ring_hom.map_mul, alg_hom.map_mul] }
+end
+
 end coeff
+
+section support
+
+lemma support_rename_of_injective {p : mv_polynomial σ R} {f : σ → τ} (h : function.injective f) :
+  (rename f p).support = finset.image (map_domain f) p.support :=
+begin
+  rw rename_eq,
+  exact finsupp.map_domain_support_of_injective (map_domain_injective h) _,
+end
+
+end support
 
 end mv_polynomial

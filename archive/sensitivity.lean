@@ -1,8 +1,8 @@
 /-
-Copyright (c) 2019 Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis, and
+Copyright (c) 2019 Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis,
 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis, and Patrick Massot
+Authors: Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis, Patrick Massot
 -/
 
 import tactic.fin_cases
@@ -10,6 +10,7 @@ import tactic.apply_fun
 import linear_algebra.finite_dimensional
 import linear_algebra.dual
 import analysis.normed_space.basic
+import data.real.sqrt
 
 /-!
 # Huang's sensitivity theorem
@@ -28,8 +29,8 @@ by Leonardo de Moura at Microsoft Research, and his collaborators
 and using Lean's user maintained mathematics library
 (https://github.com/leanprover-community/mathlib).
 
-The project was developed at https://github.com/leanprover-community/lean-sensitivity
-and is now archived at https://github.com/leanprover-community/mathlib/blob/master/archive/sensitivity.lean
+The project was developed at https://github.com/leanprover-community/lean-sensitivity and is now
+archived at https://github.com/leanprover-community/mathlib/blob/master/archive/sensitivity.lean
 -/
 
 /-! The next two lines assert we do not want to give a constructive proof,
@@ -40,7 +41,6 @@ open_locale classical
 /-! We also want to use the notation `∑` for sums. -/
 open_locale big_operators
 
-notation `|`x`|` := abs x
 notation `√` := real.sqrt
 
 open function bool linear_map fintype finite_dimensional dual_pair
@@ -163,7 +163,7 @@ by { induction n ; { dunfold V, resetI, apply_instance } }
 instance : add_comm_group (V n) :=
 by { induction n ; { dunfold V, resetI, apply_instance } }
 
-instance : vector_space ℝ (V n) :=
+instance : module ℝ (V n) :=
 by { induction n ; { dunfold V, resetI, apply_instance } }
 end V
 
@@ -177,7 +177,8 @@ noncomputable def e : Π {n}, Q n → V n
 /-- The dual basis to `e`, defined inductively. -/
 noncomputable def ε : Π {n : ℕ} (p : Q n), V n →ₗ[ℝ] ℝ
 | 0 _ := linear_map.id
-| (n+1) p := cond (p 0) ((ε $ π p).comp $ linear_map.fst _ _ _) ((ε $ π p).comp $ linear_map.snd _ _ _)
+| (n+1) p := cond (p 0) ((ε $ π p).comp $ linear_map.fst _ _ _)
+               ((ε $ π p).comp $ linear_map.snd _ _ _)
 
 variable {n : ℕ}
 
@@ -189,13 +190,13 @@ begin
     simp },
   { dsimp [ε, e],
     cases hp : p 0 ; cases hq : q 0,
-    all_goals {
-      repeat {rw cond_tt},
+    all_goals
+    { repeat {rw cond_tt},
       repeat {rw cond_ff},
       simp only [linear_map.fst_apply, linear_map.snd_apply, linear_map.comp_apply, IH],
       try { congr' 1, rw Q.succ_n_eq, finish },
-      try {
-        erw (ε _).map_zero,
+      try
+      { erw (ε _).map_zero,
         have : p ≠ q, { intro h, rw p.succ_n_eq q at h, finish },
         simp [this] } } }
 end
@@ -209,9 +210,10 @@ begin
     ext ; change _ = (0 : V n) ; simp only ; apply ih ; intro p ;
     [ let q : Q (n+1) := λ i, if h : i = 0 then tt else p (i.pred h),
       let q : Q (n+1) := λ i, if h : i = 0 then ff else p (i.pred h)],
-    all_goals {
-      specialize h q,
-      rw [ε, show q 0 = tt, from rfl, cond_tt] at h <|> rw [ε, show q 0 = ff, from rfl, cond_ff] at h,
+    all_goals
+    { specialize h q,
+      rw [ε, show q 0 = tt, from rfl, cond_tt] at h <|>
+        rw [ε, show q 0 = ff, from rfl, cond_ff] at h,
       rwa show p = π q, by { ext, simp [q, fin.succ_ne_zero, π] } } }
 end
 
@@ -222,19 +224,19 @@ def dual_pair_e_ε (n : ℕ) : dual_pair (@e n) (@ε n) :=
   total := @epsilon_total _ }
 
 /-! We will now derive the dimension of `V`, first as a cardinal in `dim_V` and,
-since this cardinal is finite, as a natural number in `findim_V` -/
+since this cardinal is finite, as a natural number in `finrank_V` -/
 
-lemma dim_V : vector_space.dim ℝ (V n) = 2^n :=
-have vector_space.dim ℝ (V n) = (2^n : ℕ),
-  by { rw [dim_eq_card_basis (dual_pair_e_ε _).is_basis, Q.card]; apply_instance },
+lemma dim_V : module.rank ℝ (V n) = 2^n :=
+have module.rank ℝ (V n) = (2^n : ℕ),
+  by { rw [dim_eq_card_basis (dual_pair_e_ε _).basis, Q.card]; apply_instance },
 by assumption_mod_cast
 
 instance : finite_dimensional ℝ (V n) :=
-finite_dimensional.of_finite_basis (dual_pair_e_ε _).is_basis
+finite_dimensional.of_fintype_basis (dual_pair_e_ε _).basis
 
-lemma findim_V : findim ℝ (V n) = 2^n :=
+lemma finrank_V : finrank ℝ (V n) = 2^n :=
 have _ := @dim_V n,
-by rw ←findim_eq_dim at this; assumption_mod_cast
+by rw ←finrank_eq_dim at this; assumption_mod_cast
 
 /-! ### The linear map -/
 
@@ -257,7 +259,7 @@ lemma f_succ_apply (v : V (n+1)) :
 begin
   cases v,
   rw f,
-  simp only [linear_map.id_apply, linear_map.prod_apply, prod.mk.inj_iff,
+  simp only [linear_map.id_apply, linear_map.prod_apply, pi.prod, prod.mk.inj_iff,
     linear_map.neg_apply, sub_eq_add_neg, linear_map.coprod_apply],
   exact ⟨rfl, rfl⟩
 end
@@ -286,7 +288,7 @@ begin
   { intros p q,
     have ite_nonneg : ite (π q = π p) (1 : ℝ) 0 ≥ 0,
     { split_ifs ; norm_num },
-    have f_map_zero := (show linear_map ℝ (V (n+0)) (V n), from f n).map_zero,
+    have f_map_zero := (show (V (n+0)) →ₗ[ℝ] (V n), from f n).map_zero,
     dsimp [e, ε, f], cases hp : p 0 ; cases hq : q 0,
     all_goals
     { repeat {rw cond_tt}, repeat {rw cond_ff},
@@ -309,7 +311,7 @@ lemma g_injective : injective (g m) :=
 begin
   rw g,
   intros x₁ x₂ h,
-  simp only [linear_map.prod_apply, linear_map.id_apply, prod.mk.inj_iff] at h,
+  simp only [linear_map.prod_apply, linear_map.id_apply, prod.mk.inj_iff, pi.prod] at h,
   exact h.right
 end
 
@@ -330,9 +332,9 @@ In this section, in order to enforce that `n` is positive, we write it as
 `m + 1` for some natural number `m`. -/
 
 /-! `dim X` will denote the dimension of a subspace `X` as a cardinal. -/
-notation `dim` X:70 := vector_space.dim ℝ ↥X
+notation `dim` X:70 := module.rank ℝ ↥X
 /-! `fdim X` will denote the (finite) dimension of a subspace `X` as a natural number. -/
-notation `fdim` := findim ℝ
+notation `fdim` := finrank ℝ
 
 /-! `Span S` will denote the ℝ-subspace spanned by `S`. -/
 notation `Span` := submodule.span ℝ
@@ -364,20 +366,23 @@ begin
     rw ← dim_eq_of_injective (g m) g_injective,
     apply dim_V },
   have dimW : dim W = card H,
-  { have li : linear_independent ℝ (set.restrict e H) :=
-      linear_independent.comp (dual_pair_e_ε _).is_basis.1 _ subtype.val_injective,
+  { have li : linear_independent ℝ (H.restrict e),
+    { convert (dual_pair_e_ε _).basis.linear_independent.comp _ subtype.val_injective,
+      rw (dual_pair_e_ε _).coe_basis },
     have hdW := dim_span li,
     rw set.range_restrict at hdW,
     convert hdW,
-    rw [cardinal.mk_image_eq (dual_pair_e_ε _).is_basis.injective, cardinal.fintype_card] },
-  rw ← findim_eq_dim ℝ at ⊢ dim_le dim_add dimW,
-  rw [← findim_eq_dim ℝ, ← findim_eq_dim ℝ] at dim_add,
+    rw [← (dual_pair_e_ε _).coe_basis, cardinal.mk_image_eq (dual_pair_e_ε _).basis.injective,
+        cardinal.mk_fintype] },
+  rw ← finrank_eq_dim ℝ at ⊢ dim_le dim_add dimW,
+  rw [← finrank_eq_dim ℝ, ← finrank_eq_dim ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,
   rw pow_succ' at dim_le,
   rw set.to_finset_card at hH,
   linarith
 end
 
+/-- **Huang sensitivity theorem** also known as the **Huang degree theorem** -/
 theorem huang_degree_theorem (H : set (Q (m + 1))) (hH : Card H ≥ 2^m + 1) :
   ∃ q, q ∈ H ∧ √(m + 1) ≤ Card (H ∩ q.adjacent) :=
 begin
@@ -392,27 +397,39 @@ begin
   have H_q_pos : 0 < |ε q y|,
   { contrapose! y_ne,
     exact epsilon_total (λ p, abs_nonpos_iff.mp (le_trans (H_max p) y_ne)) },
-  refine ⟨q, (dual_pair_e_ε _).mem_of_mem_span y_mem_H q (abs_pos_iff.mp H_q_pos), _⟩,
+  refine ⟨q, (dual_pair_e_ε _).mem_of_mem_span y_mem_H q (abs_pos.mp H_q_pos), _⟩,
   let s := √(m+1),
   suffices : s * |ε q y| ≤ ↑(_) * |ε q y|,
     from (mul_le_mul_right H_q_pos).mp ‹_›,
 
   let coeffs := (dual_pair_e_ε (m+1)).coeffs,
   calc
-    s * (abs (ε q y))
-        = abs (ε q (s • y)) : by rw [map_smul, smul_eq_mul, abs_mul, abs_of_nonneg (real.sqrt_nonneg _)]
-    ... = abs (ε q (f (m+1) y)) : by rw [← f_image_g y (by simpa using y_mem_g)]
-    ... = abs (ε q (f (m+1) (lc _ (coeffs y)))) : by rw (dual_pair_e_ε _).decomposition y
-    ... = abs ((coeffs y).sum (λ (i : Q (m + 1)) (a : ℝ), a • ((ε q) ∘ (f (m + 1)) ∘ λ (i : Q (m + 1)), e i) i)): by
-                  { erw [(f $ m+1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply] ; apply_instance }
-    ... ≤ ∑ p in (coeffs y).support, |(coeffs y p) * (ε q $ f (m+1) $ e p)| : norm_sum_le _ $ λ p, coeffs y p * _
-    ... = ∑ p in (coeffs y).support, |coeffs y p| * ite (q.adjacent p) 1 0  : by simp only [abs_mul, f_matrix]
-    ... = ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y p|     : by simp [finset.sum_filter]
-    ... ≤ ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y q|     : finset.sum_le_sum (λ p _, H_max p)
-    ... = (finset.card ((coeffs y).support.filter (Q.adjacent q)): ℝ) * |coeffs y q| : by rw [finset.sum_const, nsmul_eq_mul]
-    ... = (finset.card ((coeffs y).support ∩ (Q.adjacent q).to_finset): ℝ) * |coeffs y q| : by { congr' with x, simp, refl }
+    s * |ε q y|
+        = |ε q (s • y)| :
+      by rw [map_smul, smul_eq_mul, abs_mul, abs_of_nonneg (real.sqrt_nonneg _)]
+    ... = |ε q (f (m+1) y)| : by rw [← f_image_g y (by simpa using y_mem_g)]
+    ... = |ε q (f (m+1) (lc _ (coeffs y)))| : by rw (dual_pair_e_ε _).lc_coeffs y
+    ... = |(coeffs y).sum (λ (i : Q (m + 1)) (a : ℝ), a • ((ε q) ∘ (f (m + 1)) ∘
+            λ (i : Q (m + 1)), e i) i)| :
+      by erw [(f $ m + 1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply]
+    ... ≤ ∑ p in (coeffs y).support, |(coeffs y p) * (ε q $ f (m+1) $ e p)| :
+      norm_sum_le _ $ λ p, coeffs y p * _
+    ... = ∑ p in (coeffs y).support, |coeffs y p| * ite (q.adjacent p) 1 0 :
+      by simp only [abs_mul, f_matrix]
+    ... = ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y p| :
+      by simp [finset.sum_filter]
+    ... ≤ ∑ p in (coeffs y).support.filter (Q.adjacent q), |coeffs y q| :
+      finset.sum_le_sum (λ p _, H_max p)
+    ... = (((coeffs y).support.filter (Q.adjacent q)).card : ℝ) * |coeffs y q| :
+      by rw [finset.sum_const, nsmul_eq_mul]
+    ... = (((coeffs y).support ∩ (Q.adjacent q).to_finset).card : ℝ) * |coeffs y q| :
+      by { congr' with x, simp, refl }
     ... ≤ (finset.card ((H ∩ Q.adjacent q).to_finset )) * |ε q y| :
-     (mul_le_mul_right H_q_pos).mpr (by {
-             norm_cast,
-             exact finset.card_le_of_subset (by rw set.to_finset_inter; convert finset.inter_subset_inter_right coeffs_support) })
+      begin
+        refine (mul_le_mul_right H_q_pos).2 _,
+        norm_cast,
+        apply finset.card_le_of_subset,
+        rw set.to_finset_inter,
+        convert finset.inter_subset_inter_right coeffs_support
+      end
 end

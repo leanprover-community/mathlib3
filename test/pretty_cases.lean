@@ -9,11 +9,11 @@ begin
 "Try this:
   case list.perm.nil
   { admit },
-  case list.perm.cons : h_x h_l₁ h_l₂ h_a h_ih
+  case list.perm.cons : h_x h_l₁ h_l₂ h_ᾰ h_ih
   { admit },
   case list.perm.swap : h_x h_y h_l
   { admit },
-  case list.perm.trans : h_l₁ h_l₂ h_l₃ h_a h_a_1 h_ih_a h_ih_a_1
+  case list.perm.trans : h_l₁ h_l₂ h_l₃ h_ᾰ h_ᾰ_1 h_ih_ᾰ h_ih_ᾰ_1
   { admit }"
 ) <|> fail!"expecting: {repr x}" },
   all_goals { trivial }
@@ -27,12 +27,11 @@ begin
 "Try this:
   case list.perm.nil
   { admit },
-  case list.perm.cons : h_x h_l₁ h_l₂ h_a
+  case list.perm.cons : h_x h_l₁ h_l₂ h_ᾰ
   { admit },
   case list.perm.swap : h_x h_y h_l
   { admit },
-  case list.perm.trans : xs h_l₂ ys h_a h_a_1
-  { admit }"
-) <|> fail!"expecting: {repr x}" },
+  case list.perm.trans : xs h_l₂ ys h_ᾰ h_ᾰ_1
+  { admit }") },
   all_goals { trivial }
 end

@@ -2,11 +2,13 @@
 Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
-
-Topology on lists and vectors.
 -/
-import topology.constructions topology.algebra.group
+import topology.constructions
+import topology.algebra.monoid
+/-!
+# Topology on lists and vectors
 
+-/
 open topological_space set filter
 open_locale topological_space filter
 
@@ -19,24 +21,25 @@ lemma nhds_list (as : list α) : 𝓝 as = traverse 𝓝 as :=
 begin
   refine nhds_mk_of_nhds _ _ _ _,
   { assume l, induction l,
-    case list.nil { exact le_refl _ },
-    case list.cons : a l ih {
-      suffices : list.cons <$> pure a <*> pure l ≤ list.cons <$> 𝓝 a <*> traverse 𝓝 l,
+    case list.nil { exact le_rfl },
+    case list.cons : a l ih
+    { suffices : list.cons <$> pure a <*> pure l ≤ list.cons <$> 𝓝 a <*> traverse 𝓝 l,
       { simpa only [] with functor_norm using this },
       exact filter.seq_mono (filter.map_mono $ pure_le_nhds a) ih } },
   { assume l s hs,
-    rcases (mem_traverse_sets_iff _ _).1 hs with ⟨u, hu, hus⟩, clear as hs,
+    rcases (mem_traverse_iff _ _).1 hs with ⟨u, hu, hus⟩, clear as hs,
     have : ∃v:list (set α), l.forall₂ (λa s, is_open s ∧ a ∈ s) v ∧ sequence v ⊆ s,
     { induction hu generalizing s,
-      case list.forall₂.nil : hs this { existsi [], simpa only [list.forall₂_nil_left_iff, exists_eq_left] },
-      case list.forall₂.cons : a s as ss ht h ih t hts {
-        rcases mem_nhds_sets_iff.1 ht with ⟨u, hut, hu⟩,
+      case list.forall₂.nil : hs this
+        { existsi [], simpa only [list.forall₂_nil_left_iff, exists_eq_left] },
+      case list.forall₂.cons : a s as ss ht h ih t hts
+      { rcases mem_nhds_iff.1 ht with ⟨u, hut, hu⟩,
         rcases ih (subset.refl _) with ⟨v, hv, hvss⟩,
         exact ⟨u::v, list.forall₂.cons hu hv,
           subset.trans (set.seq_mono (set.image_subset _ hut) hvss) hts⟩ } },
     rcases this with ⟨v, hv, hvs⟩,
-    refine ⟨sequence v, mem_traverse_sets _ _ _, hvs, _⟩,
-    { exact hv.imp (assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) },
+    refine ⟨sequence v, mem_traverse _ _ _, hvs, _⟩,
+    { exact hv.imp (assume a s ⟨hs, ha⟩, is_open.mem_nhds hs ha) },
     { assume u hu,
       have hu := (list.mem_traverse _ _).1 hu,
       have : list.forall₂ (λa s, is_open s ∧ a ∈ s) u v,
@@ -44,11 +47,11 @@ begin
         replace hv := hv.flip,
         simp only [list.forall₂_and_left, flip] at ⊢ hv,
         exact ⟨hv.1, hu.flip⟩ },
-      refine mem_sets_of_superset _ hvs,
-      exact mem_traverse_sets _ _ (this.imp $ assume a s ⟨hs, ha⟩, mem_nhds_sets hs ha) } }
+      refine mem_of_superset _ hvs,
+      exact mem_traverse _ _ (this.imp $ assume a s ⟨hs, ha⟩, is_open.mem_nhds hs ha) } }
 end
 
-lemma nhds_nil : 𝓝 ([] : list α) = pure [] :=
+@[simp] lemma nhds_nil : 𝓝 ([] : list α) = pure [] :=
 by rw [nhds_list, list.traverse_nil _]; apply_instance
 
 lemma nhds_cons (a : α) (l : list α) :
@@ -57,7 +60,7 @@ by rw [nhds_list, list.traverse_cons _, ← nhds_list]; apply_instance
 
 lemma list.tendsto_cons {a : α} {l : list α} :
   tendsto (λp:α×list α, list.cons p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (a :: l)) :=
-by rw [nhds_cons, tendsto, map_prod]; exact le_refl _
+by rw [nhds_cons, tendsto, filter.map_prod]; exact le_rfl
 
 lemma filter.tendsto.cons {α : Type*} {f : α → β} {g : α → list β}
   {a : _root_.filter α} {b : β} {l : list β} (hf : tendsto f a (𝓝 b)) (hg : tendsto g a (𝓝 l)) :
@@ -81,7 +84,8 @@ continuous_iff_continuous_at.mpr $ λ ⟨x, y⟩, continuous_at_fst.cons continu
 
 lemma tendsto_nhds {β : Type*} {f : list α → β} {r : list α → _root_.filter β}
   (h_nil : tendsto f (pure []) (r []))
-  (h_cons : ∀l a, tendsto f (𝓝 l) (r l) → tendsto (λp:α×list α, f (p.1 :: p.2)) (𝓝 a ×ᶠ 𝓝 l) (r (a::l))) :
+  (h_cons : ∀l a, tendsto f (𝓝 l) (r l) →
+    tendsto (λp:α×list α, f (p.1 :: p.2)) (𝓝 a ×ᶠ 𝓝 l) (r (a::l))) :
   ∀l, tendsto f (𝓝 l) (r l)
 | []     := by rwa [nhds_nil]
 | (a::l) := by rw [tendsto_cons_iff]; exact h_cons l a (tendsto_nhds l)
@@ -101,16 +105,12 @@ end
 lemma tendsto_insert_nth' {a : α} : ∀{n : ℕ} {l : list α},
   tendsto (λp:α×list α, insert_nth n p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (insert_nth n a l))
 | 0     l  := tendsto_cons
-| (n+1) [] :=
-  suffices tendsto (λa, []) (𝓝 a) (𝓝 ([] : list α)),
-    by simpa [nhds_nil, tendsto, map_prod, (∘), insert_nth],
-  tendsto_const_nhds
+| (n+1) [] := by simp
 | (n+1) (a'::l) :=
   have 𝓝 a ×ᶠ 𝓝 (a' :: l) =
     (𝓝 a ×ᶠ (𝓝 a' ×ᶠ 𝓝 l)).map (λp:α×α×list α, (p.1, p.2.1 :: p.2.2)),
   begin
-    simp only
-      [nhds_cons, filter.prod_eq, (filter.map_def _ _).symm, (filter.seq_eq_filter_seq _ _).symm],
+    simp only [nhds_cons, filter.prod_eq, ← filter.map_def, ← filter.seq_eq_filter_seq],
     simp [-filter.seq_eq_filter_seq, -filter.map_def, (∘)] with functor_norm
   end,
   begin
@@ -146,7 +146,8 @@ continuous_iff_continuous_at.mpr $ assume a, tendsto_remove_nth
 lemma tendsto_prod [monoid α] [has_continuous_mul α] {l : list α} :
   tendsto list.prod (𝓝 l) (𝓝 l.prod) :=
 begin
-  induction l with x l ih, { simp [nhds_nil, mem_of_nhds, tendsto_pure_left] {contextual := tt} },
+  induction l with x l ih,
+  { simp [nhds_nil, mem_of_mem_nhds, tendsto_pure_left] {contextual := tt} },
   simp_rw [tendsto_cons_iff, prod_cons],
   have := continuous_iff_continuous_at.mp continuous_mul (x, l.prod),
   rw [continuous_at, nhds_prod_eq] at this,
@@ -166,7 +167,7 @@ instance (n : ℕ) : topological_space (vector α n) :=
 by unfold vector; apply_instance
 
 lemma tendsto_cons {n : ℕ} {a : α} {l : vector α n}:
-  tendsto (λp:α×vector α n, vector.cons p.1 p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (a :: l)) :=
+  tendsto (λp:α×vector α n, p.1 ::ᵥ p.2) (𝓝 a ×ᶠ 𝓝 l) (𝓝 (a ::ᵥ l)) :=
 by { simp [tendsto_subtype_rng, ←subtype.val_eq_coe, cons_val],
   exact tendsto_fst.cons (tendsto.comp continuous_at_subtype_coe tendsto_snd) }
 
@@ -189,7 +190,7 @@ continuous_iff_continuous_at.mpr $ assume ⟨a, l⟩,
 lemma continuous_insert_nth {n : ℕ} {i : fin (n+1)}
   {f : β → α} {g : β → vector α n} (hf : continuous f) (hg : continuous g) :
   continuous (λb, insert_nth (f b) i (g b)) :=
-continuous_insert_nth'.comp (continuous.prod_mk hf hg)
+continuous_insert_nth'.comp (hf.prod_mk hg : _)
 
 lemma continuous_at_remove_nth {n : ℕ} {i : fin (n+1)} :
   ∀{l:vector α (n+1)}, continuous_at (remove_nth i) l

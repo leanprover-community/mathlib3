@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 import order.filter.ultrafilter
 import order.filter.partial
+import algebra.support
 
 /-!
 # Basic theory of topological spaces.
@@ -12,7 +13,7 @@ import order.filter.partial
 The main definition is the type class `topological space α` which endows a type `α` with a topology.
 Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `closure` and
 `frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`. A filter `F` on `α` has
-`x` as a cluster point if `is_cluster_pt x F : 𝓝 x ⊓ F ≠ ⊥`. A map `f : ι → α` clusters at `x`
+`x` as a cluster point if `cluster_pt x F : 𝓝 x ⊓ F ≠ ⊥`. A map `f : ι → α` clusters at `x`
 along `F : filter ι` if `map_cluster_pt x F f : cluster_pt x (map f F)`. In particular
 the notion of cluster point of a sequence `u` is `map_cluster_pt x at_top u`.
 
@@ -25,8 +26,14 @@ partially defined functions.
 
 ## Notation
 
-* `𝓝 x`: the filter of neighborhoods of a point `x`;
+* `𝓝 x`: the filter `nhds x` of neighborhoods of a point `x`;
 * `𝓟 s`: the principal filter of a set `s`;
+* `𝓝[s] x`: the filter `nhds_within x s` of neighborhoods of a point `x` within a set `s`;
+* `𝓝[≤] x`: the filter `nhds_within x (set.Iic x)` of left-neighborhoods of `x`;
+* `𝓝[≥] x`: the filter `nhds_within x (set.Ici x)` of right-neighborhoods of `x`;
+* `𝓝[<] x`: the filter `nhds_within x (set.Iio x)` of punctured left-neighborhoods of `x`;
+* `𝓝[>] x`: the filter `nhds_within x (set.Ioi x)` of punctured right-neighborhoods of `x`;
+* `𝓝[≠] x`: the filter `nhds_within x {x}ᶜ` of punctured neighborhoods of `x`.
 
 ## Implementation notes
 
@@ -43,6 +50,7 @@ Topology in mathlib heavily uses filters (even more than in Bourbaki). See expla
 topological space, interior, closure, frontier, neighborhood, continuity, continuous function
 -/
 
+noncomputable theory
 open set filter classical
 open_locale classical filter
 
@@ -68,7 +76,7 @@ def topological_space.of_closed {α : Type u} (T : set (set α))
   topological_space α :=
 { is_open := λ X, Xᶜ ∈ T,
   is_open_univ := by simp [empty_mem],
-  is_open_inter := λ s t hs ht, by simpa [set.compl_inter] using union_mem sᶜ tᶜ hs ht,
+  is_open_inter := λ s t hs ht, by simpa [set.compl_inter] using union_mem sᶜ hs tᶜ ht,
   is_open_sUnion := λ s hs,
     by rw set.compl_sUnion; exact sInter_mem (set.compl '' s)
     (λ z ⟨y, hy, hz⟩, by simpa [hz.symm] using hs y hy) }
@@ -91,13 +99,17 @@ def is_open (s : set α) : Prop := topological_space.is_open t s
 @[simp]
 lemma is_open_univ : is_open (univ : set α) := topological_space.is_open_univ t
 
-lemma is_open_inter (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∩ s₂) :=
+lemma is_open.inter (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∩ s₂) :=
 topological_space.is_open_inter t s₁ s₂ h₁ h₂
 
 lemma is_open_sUnion {s : set (set α)} (h : ∀t ∈ s, is_open t) : is_open (⋃₀ s) :=
 topological_space.is_open_sUnion t s h
 
 end
+
+lemma topological_space_eq_iff {t t' : topological_space α} :
+  t = t' ↔ ∀ s, @is_open α t s ↔ @is_open α t' s :=
+⟨λ h s, h ▸ iff.rfl, λ h, by { ext, exact h _ }⟩
 
 lemma is_open_fold {s : set α} {t : topological_space α} : t.is_open s = @is_open α t s :=
 rfl
@@ -111,7 +123,7 @@ lemma is_open_bUnion {s : set β} {f : β → set α} (h : ∀i∈s, is_open (f 
   is_open (⋃i∈s, f i) :=
 is_open_Union $ assume i, is_open_Union $ assume hi, h i hi
 
-lemma is_open_union (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∪ s₂) :=
+lemma is_open.union (h₁ : is_open s₁) (h₂ : is_open s₂) : is_open (s₁ ∪ s₂) :=
 by rw union_eq_Union; exact is_open_Union (bool.forall_bool.2 ⟨h₂, h₁⟩)
 
 @[simp] lemma is_open_empty : is_open (∅ : set α) :=
@@ -120,14 +132,14 @@ by rw ← sUnion_empty; exact is_open_sUnion (assume a, false.elim)
 lemma is_open_sInter {s : set (set α)} (hs : finite s) : (∀t ∈ s, is_open t) → is_open (⋂₀ s) :=
 finite.induction_on hs (λ _, by rw sInter_empty; exact is_open_univ) $
 λ a s has hs ih h, by rw sInter_insert; exact
-is_open_inter (h _ $ mem_insert _ _) (ih $ λ t, h t ∘ mem_insert_of_mem _)
+is_open.inter (h _ $ mem_insert _ _) (ih $ λ t, h t ∘ mem_insert_of_mem _)
 
 lemma is_open_bInter {s : set β} {f : β → set α} (hs : finite s) :
   (∀i∈s, is_open (f i)) → is_open (⋂i∈s, f i) :=
 finite.induction_on hs
   (λ _, by rw bInter_empty; exact is_open_univ)
   (λ a s has hs ih h, by rw bInter_insert; exact
-    is_open_inter (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
+    is_open.inter (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
 lemma is_open_Inter [fintype β] {s : β → set α}
   (h : ∀ i, is_open (s i)) : is_open (⋂ i, s i) :=
@@ -143,44 +155,56 @@ by_cases
   (assume : p, begin simp only [this]; exact is_open_univ end)
   (assume : ¬ p, begin simp only [this]; exact is_open_empty end)
 
-lemma is_open_and : is_open {a | p₁ a} → is_open {a | p₂ a} → is_open {a | p₁ a ∧ p₂ a} :=
-is_open_inter
+lemma is_open.and : is_open {a | p₁ a} → is_open {a | p₂ a} → is_open {a | p₁ a ∧ p₂ a} :=
+is_open.inter
 
 /-- A set is closed if its complement is open -/
-def is_closed (s : set α) : Prop := is_open sᶜ
+class is_closed (s : set α) : Prop :=
+(is_open_compl : is_open sᶜ)
+
+@[simp] lemma is_open_compl_iff {s : set α} : is_open sᶜ ↔ is_closed s :=
+⟨λ h, ⟨h⟩, λ h, h.is_open_compl⟩
 
 @[simp] lemma is_closed_empty : is_closed (∅ : set α) :=
-by unfold is_closed; rw compl_empty; exact is_open_univ
+by { rw [← is_open_compl_iff, compl_empty], exact is_open_univ }
 
 @[simp] lemma is_closed_univ : is_closed (univ : set α) :=
-by unfold is_closed; rw compl_univ; exact is_open_empty
+by { rw [← is_open_compl_iff, compl_univ], exact is_open_empty }
 
-lemma is_closed_union : is_closed s₁ → is_closed s₂ → is_closed (s₁ ∪ s₂) :=
-λ h₁ h₂, by unfold is_closed; rw compl_union; exact is_open_inter h₁ h₂
+lemma is_closed.union : is_closed s₁ → is_closed s₂ → is_closed (s₁ ∪ s₂) :=
+λ h₁ h₂, by { rw [← is_open_compl_iff] at *, rw compl_union, exact is_open.inter h₁ h₂ }
 
 lemma is_closed_sInter {s : set (set α)} : (∀t ∈ s, is_closed t) → is_closed (⋂₀ s) :=
-by simp only [is_closed, compl_sInter, sUnion_image]; exact assume h, is_open_Union $ assume t, is_open_Union $ assume ht, h t ht
+by simpa only [← is_open_compl_iff, compl_sInter, sUnion_image] using is_open_bUnion
 
 lemma is_closed_Inter {f : ι → set α} (h : ∀i, is_closed (f i)) : is_closed (⋂i, f i ) :=
 is_closed_sInter $ assume t ⟨i, (heq : f i = t)⟩, heq ▸ h i
 
-@[simp] lemma is_open_compl_iff {s : set α} : is_open sᶜ ↔ is_closed s := iff.rfl
+lemma is_closed_bInter {s : set β} {f : β → set α} (h : ∀ i ∈ s, is_closed (f i)) :
+  is_closed (⋂ i ∈ s, f i) :=
+is_closed_Inter $ λ i, is_closed_Inter $ h i
 
 @[simp] lemma is_closed_compl_iff {s : set α} : is_closed sᶜ ↔ is_open s :=
 by rw [←is_open_compl_iff, compl_compl]
 
-lemma is_open_diff {s t : set α} (h₁ : is_open s) (h₂ : is_closed t) : is_open (s \ t) :=
-is_open_inter h₁ $ is_open_compl_iff.mpr h₂
+lemma is_open.is_closed_compl {s : set α} (hs : is_open s) : is_closed sᶜ :=
+is_closed_compl_iff.2 hs
 
-lemma is_closed_inter (h₁ : is_closed s₁) (h₂ : is_closed s₂) : is_closed (s₁ ∩ s₂) :=
-by rw [is_closed, compl_inter]; exact is_open_union h₁ h₂
+lemma is_open.sdiff {s t : set α} (h₁ : is_open s) (h₂ : is_closed t) : is_open (s \ t) :=
+is_open.inter h₁ $ is_open_compl_iff.mpr h₂
+
+lemma is_closed.inter (h₁ : is_closed s₁) (h₂ : is_closed s₂) : is_closed (s₁ ∩ s₂) :=
+by { rw [← is_open_compl_iff] at *, rw compl_inter, exact is_open.union h₁ h₂ }
+
+lemma is_closed.sdiff {s t : set α} (h₁ : is_closed s) (h₂ : is_open t) : is_closed (s \ t) :=
+is_closed.inter h₁ (is_closed_compl_iff.mpr h₂)
 
 lemma is_closed_bUnion {s : set β} {f : β → set α} (hs : finite s) :
   (∀i∈s, is_closed (f i)) → is_closed (⋃i∈s, f i) :=
 finite.induction_on hs
   (λ _, by rw bUnion_empty; exact is_closed_empty)
   (λ a s has hs ih h, by rw bUnion_insert; exact
-    is_closed_union (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
+    is_closed.union (h a (mem_insert _ _)) (ih (λ i hi, h i (mem_insert_of_mem _ hi))))
 
 lemma is_closed_Union [fintype β] {s : β → set α}
   (h : ∀ i, is_closed (s i)) : is_closed (Union s) :=
@@ -195,9 +219,9 @@ by by_cases p; simp *
 lemma is_closed_imp {p q : α → Prop} (hp : is_open {x | p x})
   (hq : is_closed {x | q x}) : is_closed {x | p x → q x} :=
 have {x | p x → q x} = {x | p x}ᶜ ∪ {x | q x}, from set.ext $ λ x, imp_iff_not_or,
-by rw [this]; exact is_closed_union (is_closed_compl_iff.mpr hp) hq
+by rw [this]; exact is_closed.union (is_closed_compl_iff.mpr hp) hq
 
-lemma is_open_neg : is_closed {a | p a} → is_open {a | ¬ p a} :=
+lemma is_closed.not : is_closed {a | p a} → is_open {a | ¬ p a} :=
 is_open_compl_iff.mpr
 
 /-!
@@ -233,7 +257,11 @@ lemma subset_interior_iff_subset_of_open {s t : set α} (h₁ : is_open s) :
   s ⊆ interior t ↔ s ⊆ t :=
 ⟨assume h, subset.trans h interior_subset, assume h₂, interior_maximal h₂ h₁⟩
 
-lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
+lemma subset_interior_iff {s t : set α} : t ⊆ interior s ↔ ∃ U, is_open U ∧ t ⊆ U ∧ U ⊆ s :=
+⟨λ h, ⟨interior s, is_open_interior, h, interior_subset⟩,
+  λ ⟨U, hU, htU, hUs⟩, htU.trans (interior_maximal hUs hU)⟩
+
+@[mono] lemma interior_mono {s t : set α} (h : s ⊆ t) : interior s ⊆ interior t :=
 interior_maximal (subset.trans interior_subset h) is_open_interior
 
 @[simp] lemma interior_empty : interior (∅ : set α) = ∅ :=
@@ -242,15 +270,33 @@ is_open_empty.interior_eq
 @[simp] lemma interior_univ : interior (univ : set α) = univ :=
 is_open_univ.interior_eq
 
+@[simp] lemma interior_eq_univ {s : set α} : interior s = univ ↔ s = univ :=
+⟨λ h, univ_subset_iff.mp $ h.symm.trans_le interior_subset, λ h, h.symm ▸ interior_univ⟩
+
 @[simp] lemma interior_interior {s : set α} : interior (interior s) = interior s :=
 is_open_interior.interior_eq
 
 @[simp] lemma interior_inter {s t : set α} : interior (s ∩ t) = interior s ∩ interior t :=
 subset.antisymm
   (subset_inter (interior_mono $ inter_subset_left s t) (interior_mono $ inter_subset_right s t))
-  (interior_maximal (inter_subset_inter interior_subset interior_subset) $ is_open_inter is_open_interior is_open_interior)
+  (interior_maximal (inter_subset_inter interior_subset interior_subset) $
+    is_open.inter is_open_interior is_open_interior)
 
-lemma interior_union_is_closed_of_interior_empty {s t : set α} (h₁ : is_closed s) (h₂ : interior t = ∅) :
+@[simp] lemma finset.interior_Inter {ι : Type*} (s : finset ι) (f : ι → set α) :
+  interior (⋂ i ∈ s, f i) = ⋂ i ∈ s, interior (f i) :=
+begin
+  classical,
+  refine s.induction_on (by simp) _,
+  intros i s h₁ h₂,
+  simp [h₂],
+end
+
+@[simp] lemma interior_Inter_of_fintype {ι : Type*} [fintype ι] (f : ι → set α) :
+  interior (⋂ i, f i) = ⋂ i, interior (f i) :=
+by { convert finset.univ.interior_Inter f; simp, }
+
+lemma interior_union_is_closed_of_interior_empty {s t : set α} (h₁ : is_closed s)
+  (h₂ : interior t = ∅) :
   interior (s ∪ t) = interior s :=
 have interior (s ∪ t) ⊆ s, from
   assume x ⟨u, ⟨(hu₁ : is_open u), (hu₂ : u ⊆ s ∪ t)⟩, (hx₁ : x ∈ u)⟩,
@@ -258,7 +304,7 @@ have interior (s ∪ t) ⊆ s, from
     have u \ s ⊆ t,
       from assume x ⟨h₁, h₂⟩, or.resolve_left (hu₂ h₁) h₂,
     have u \ s ⊆ interior t,
-      by rwa subset_interior_iff_subset_of_open (is_open_diff hu₁ h₁),
+      by rwa subset_interior_iff_subset_of_open (is_open.sdiff hu₁ h₁),
     have u \ s ⊆ ∅,
       by rwa h₂ at this,
     this ⟨hx₁, hx₂⟩,
@@ -269,8 +315,19 @@ subset.antisymm
 lemma is_open_iff_forall_mem_open : is_open s ↔ ∀ x ∈ s, ∃ t ⊆ s, is_open t ∧ x ∈ t :=
 by rw ← subset_interior_iff_open; simp only [subset_def, mem_interior]
 
+lemma interior_Inter_subset (s : ι → set α) : interior (⋂ i, s i) ⊆ ⋂ i, interior (s i) :=
+subset_Inter $ λ i, interior_mono $ Inter_subset _ _
+
+lemma interior_Inter₂_subset (p : ι → Sort*) (s : Π i, p i → set α) :
+  interior (⋂ i j, s i j) ⊆ ⋂ i j, interior (s i j) :=
+(interior_Inter_subset _).trans $ Inter_mono $ λ i, interior_Inter_subset _
+
+lemma interior_sInter_subset (S : set (set α)) : interior (⋂₀ S) ⊆ ⋂ s ∈ S, interior s :=
+calc interior (⋂₀ S) = interior (⋂ s ∈ S, s) : by rw sInter_eq_bInter
+                 ... ⊆ ⋂ s ∈ S, interior s  : interior_Inter₂_subset _ _
+
 /-!
-### Closure of a set
+### Closure of a set
 -/
 
 /-- The closure of `s` is the smallest closed set containing `s`. -/
@@ -282,8 +339,20 @@ is_closed_sInter $ assume t ⟨h₁, h₂⟩, h₁
 lemma subset_closure {s : set α} : s ⊆ closure s :=
 subset_sInter $ assume t ⟨h₁, h₂⟩, h₂
 
+lemma not_mem_of_not_mem_closure {s : set α} {P : α} (hP : P ∉ closure s) : P ∉ s :=
+λ h, hP (subset_closure h)
+
 lemma closure_minimal {s t : set α} (h₁ : s ⊆ t) (h₂ : is_closed t) : closure s ⊆ t :=
 sInter_subset_of_mem ⟨h₂, h₁⟩
+
+lemma disjoint.closure_left {s t : set α} (hd : disjoint s t) (ht : is_open t) :
+  disjoint (closure s) t :=
+disjoint_compl_left.mono_left $ closure_minimal (disjoint_iff_subset_compl_right.1 hd)
+  ht.is_closed_compl
+
+lemma disjoint.closure_right {s t : set α} (hd : disjoint s t) (hs : is_open s) :
+  disjoint s (closure t) :=
+(hd.symm.closure_left hs).symm
 
 lemma is_closed.closure_eq {s : set α} (h : is_closed s) : closure s = s :=
 subset.antisymm (closure_minimal (subset.refl s) h) subset_closure
@@ -295,11 +364,19 @@ lemma is_closed.closure_subset_iff {s t : set α} (h₁ : is_closed t) :
   closure s ⊆ t ↔ s ⊆ t :=
 ⟨subset.trans subset_closure, assume h, closure_minimal h h₁⟩
 
-lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
+lemma is_closed.mem_iff_closure_subset {α : Type*} [topological_space α] {U : set α}
+  (hU : is_closed U) {x : α} : x ∈ U ↔ closure ({x} : set α) ⊆ U :=
+(hU.closure_subset_iff.trans set.singleton_subset_iff).symm
+
+@[mono] lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_minimal (subset.trans h subset_closure) is_closed_closure
 
 lemma monotone_closure (α : Type*) [topological_space α] : monotone (@closure α _) :=
 λ _ _, closure_mono
+
+lemma diff_subset_closure_iff {s t : set α} :
+  s \ t ⊆ closure t ↔ s ⊆ closure t :=
+by rw [diff_subset_iff, union_eq_self_of_subset_left subset_closure]
 
 lemma closure_inter_subset_inter_closure (s t : set α) :
   closure (s ∩ t) ⊆ closure s ∩ closure t :=
@@ -320,9 +397,10 @@ is_closed_empty.closure_eq
 @[simp] lemma closure_empty_iff (s : set α) : closure s = ∅ ↔ s = ∅ :=
 ⟨subset_eq_empty subset_closure, λ h, h.symm ▸ closure_empty⟩
 
-lemma set.nonempty.closure {s : set α} (h : s.nonempty) :
-  set.nonempty (closure s) :=
-let ⟨x, hx⟩ := h in ⟨x, subset_closure hx⟩
+@[simp] lemma closure_nonempty_iff {s : set α} : (closure s).nonempty ↔ s.nonempty :=
+by simp only [← ne_empty_iff_nonempty, ne.def, closure_empty_iff]
+
+alias closure_nonempty_iff ↔ set.nonempty.of_closure set.nonempty.closure
 
 @[simp] lemma closure_univ : closure (univ : set α) = univ :=
 is_closed_univ.closure_eq
@@ -332,17 +410,30 @@ is_closed_closure.closure_eq
 
 @[simp] lemma closure_union {s t : set α} : closure (s ∪ t) = closure s ∪ closure t :=
 subset.antisymm
-  (closure_minimal (union_subset_union subset_closure subset_closure) $ is_closed_union is_closed_closure is_closed_closure)
+  (closure_minimal (union_subset_union subset_closure subset_closure) $
+    is_closed.union is_closed_closure is_closed_closure)
   ((monotone_closure α).le_map_sup s t)
+
+@[simp] lemma finset.closure_bUnion {ι : Type*} (s : finset ι) (f : ι → set α) :
+  closure (⋃ i ∈ s, f i) = ⋃ i ∈ s, closure (f i) :=
+begin
+  classical,
+  refine s.induction_on (by simp) _,
+  intros i s h₁ h₂,
+  simp [h₂],
+end
+
+@[simp] lemma closure_Union_of_fintype {ι : Type*} [fintype ι] (f : ι → set α) :
+  closure (⋃ i, f i) = ⋃ i, closure (f i) :=
+by { convert finset.univ.closure_bUnion f; simp, }
 
 lemma interior_subset_closure {s : set α} : interior s ⊆ closure s :=
 subset.trans interior_subset subset_closure
 
 lemma closure_eq_compl_interior_compl {s : set α} : closure s = (interior sᶜ)ᶜ :=
 begin
-  unfold interior closure is_closed,
-  rw [compl_sUnion, compl_image_set_of],
-  simp only [compl_subset_compl]
+  rw [interior, closure, compl_sUnion, compl_image_set_of],
+  simp only [compl_subset_compl, is_open_compl_iff],
 end
 
 @[simp] lemma interior_compl {s : set α} : interior sᶜ = (closure s)ᶜ :=
@@ -357,23 +448,73 @@ theorem mem_closure_iff {s : set α} {a : α} :
   have s ⊆ oᶜ, from λ x xs xo, os ⟨x, xo, xs⟩,
   closure_minimal this (is_closed_compl_iff.2 oo) h ao,
 λ H c ⟨h₁, h₂⟩, classical.by_contradiction $ λ nc,
-  let ⟨x, hc, hs⟩ := (H _ h₁ nc) in hc (h₂ hs)⟩
+  let ⟨x, hc, hs⟩ := (H _ h₁.is_open_compl nc) in hc (h₂ hs)⟩
 
+/-- A set is dense in a topological space if every point belongs to its closure. -/
+def dense (s : set α) : Prop := ∀ x, x ∈ closure s
+
+lemma dense_iff_closure_eq {s : set α} : dense s ↔ closure s = univ :=
+eq_univ_iff_forall.symm
+
+lemma dense.closure_eq {s : set α} (h : dense s) : closure s = univ :=
+dense_iff_closure_eq.mp h
+
+lemma interior_eq_empty_iff_dense_compl {s : set α} : interior s = ∅ ↔ dense sᶜ :=
+by rw [dense_iff_closure_eq, closure_compl, compl_univ_iff]
+
+lemma dense.interior_compl {s : set α} (h : dense s) : interior sᶜ = ∅ :=
+interior_eq_empty_iff_dense_compl.2 $ by rwa compl_compl
+
+/-- The closure of a set `s` is dense if and only if `s` is dense. -/
+@[simp] lemma dense_closure {s : set α} : dense (closure s) ↔ dense s :=
+by rw [dense, dense, closure_closure]
+
+alias dense_closure ↔ dense.of_closure dense.closure
+
+@[simp] lemma dense_univ : dense (univ : set α) := λ x, subset_closure trivial
+
+/-- A set is dense if and only if it has a nonempty intersection with each nonempty open set. -/
 lemma dense_iff_inter_open {s : set α} :
-  closure s = univ ↔ ∀ U, is_open U → U.nonempty → (U ∩ s).nonempty :=
+  dense s ↔ ∀ U, is_open U → U.nonempty → (U ∩ s).nonempty :=
 begin
   split ; intro h,
   { rintros U U_op ⟨x, x_in⟩,
-    exact mem_closure_iff.1 (by simp only [h]) U U_op x_in },
-  { apply eq_univ_of_forall, intro x,
+    exact mem_closure_iff.1 (by simp only [h.closure_eq]) U U_op x_in },
+  { intro x,
     rw mem_closure_iff,
     intros U U_op x_in,
     exact h U U_op ⟨_, x_in⟩ },
 end
 
-lemma dense_of_subset_dense {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : closure s₁ = univ) :
-  closure s₂ = univ :=
-by { rw [← univ_subset_iff, ← hd], exact closure_mono h }
+alias dense_iff_inter_open ↔ dense.inter_open_nonempty _
+
+lemma dense.exists_mem_open {s : set α} (hs : dense s) {U : set α} (ho : is_open U)
+  (hne : U.nonempty) :
+  ∃ x ∈ s, x ∈ U :=
+let ⟨x, hx⟩ := hs.inter_open_nonempty U ho hne in ⟨x, hx.2, hx.1⟩
+
+lemma dense.nonempty_iff {s : set α} (hs : dense s) :
+  s.nonempty ↔ nonempty α :=
+⟨λ ⟨x, hx⟩, ⟨x⟩, λ ⟨x⟩,
+  let ⟨y, hy⟩ := hs.inter_open_nonempty _ is_open_univ ⟨x, trivial⟩ in ⟨y, hy.2⟩⟩
+
+lemma dense.nonempty [h : nonempty α] {s : set α} (hs : dense s) : s.nonempty :=
+hs.nonempty_iff.2 h
+
+@[mono]
+lemma dense.mono {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : dense s₁) : dense s₂ :=
+λ x, closure_mono h (hd x)
+
+/-- Complement to a singleton is dense if and only if the singleton is not an open set. -/
+lemma dense_compl_singleton_iff_not_open {x : α} : dense ({x}ᶜ : set α) ↔ ¬is_open ({x} : set α) :=
+begin
+  fsplit,
+  { intros hd ho,
+    exact (hd.inter_open_nonempty _ ho (singleton_nonempty _)).ne_empty (inter_compl_self _) },
+  { refine λ ho, dense_iff_inter_open.2 (λ U hU hne, inter_compl_nonempty_iff.2 $ λ hUx, _),
+    obtain rfl : U = {x}, from eq_singleton_iff_nonempty_unique_mem.2 ⟨hne, hUx⟩,
+    exact ho hU }
+end
 
 /-!
 ### Frontier of a set
@@ -386,9 +527,21 @@ lemma frontier_eq_closure_inter_closure {s : set α} :
   frontier s = closure s ∩ closure sᶜ :=
 by rw [closure_compl, frontier, diff_eq]
 
+lemma frontier_subset_closure {s : set α} : frontier s ⊆ closure s := diff_subset _ _
+
+lemma frontier_closure_subset {s : set α} : frontier (closure s) ⊆ frontier s :=
+diff_subset_diff closure_closure.subset $ interior_mono subset_closure
+
+lemma frontier_interior_subset {s : set α} : frontier (interior s) ⊆ frontier s :=
+diff_subset_diff (closure_mono interior_subset) interior_interior.symm.subset
+
 /-- The complement of a set has the same frontier as the original set. -/
 @[simp] lemma frontier_compl (s : set α) : frontier sᶜ = frontier s :=
 by simp only [frontier_eq_closure_inter_closure, compl_compl, inter_comm]
+
+@[simp] lemma frontier_univ : frontier (univ : set α) = ∅ := by simp [frontier]
+
+@[simp] lemma frontier_empty : frontier (∅ : set α) = ∅ := by simp [frontier]
 
 lemma frontier_inter_subset (s t : set α) :
   frontier (s ∩ t) ⊆ (frontier s ∩ closure t) ∪ (closure s ∩ frontier t) :=
@@ -411,9 +564,12 @@ by rw [frontier, hs.closure_eq]
 lemma is_open.frontier_eq {s : set α} (hs : is_open s) : frontier s = closure s \ s :=
 by rw [frontier, hs.interior_eq]
 
+lemma is_open.inter_frontier_eq {s : set α} (hs : is_open s) : s ∩ frontier s = ∅ :=
+by rw [hs.frontier_eq, inter_diff_self]
+
 /-- The frontier of a set is closed. -/
 lemma is_closed_frontier {s : set α} : is_closed (frontier s) :=
-by rw frontier_eq_closure_inter_closure; exact is_closed_inter is_closed_closure is_closed_closure
+by rw frontier_eq_closure_inter_closure; exact is_closed.inter is_closed_closure is_closed_closure
 
 /-- The frontier of a closed set has no interior point. -/
 lemma interior_frontier {s : set α} (h : is_closed s) : interior (frontier s) = ∅ :=
@@ -432,6 +588,26 @@ lemma closure_eq_interior_union_frontier (s : set α) : closure s = interior s �
 lemma closure_eq_self_union_frontier (s : set α) : closure s = s ∪ frontier s :=
 (union_diff_cancel' interior_subset subset_closure).symm
 
+lemma is_open.inter_frontier_eq_empty_of_disjoint {s t : set α} (ht : is_open t)
+  (hd : disjoint s t) :
+  t ∩ frontier s = ∅ :=
+begin
+  rw [inter_comm, ← subset_compl_iff_disjoint],
+  exact subset.trans frontier_subset_closure (closure_minimal (λ _, disjoint_left.1 hd)
+    (is_closed_compl_iff.2 ht))
+end
+
+lemma frontier_eq_inter_compl_interior {s : set α} :
+  frontier s = (interior s)ᶜ ∩ (interior (sᶜ))ᶜ :=
+by { rw [←frontier_compl, ←closure_compl], refl }
+
+lemma compl_frontier_eq_union_interior {s : set α} :
+  (frontier s)ᶜ = interior s ∪ interior sᶜ :=
+begin
+  rw frontier_eq_inter_compl_interior,
+  simp only [compl_inter, compl_compl],
+end
+
 /-!
 ### Neighborhoods
 -/
@@ -439,19 +615,33 @@ lemma closure_eq_self_union_frontier (s : set α) : closure s = s ∪ frontier s
 /-- A set is called a neighborhood of `a` if it contains an open set around `a`. The set of all
 neighborhoods of `a` forms a filter, the neighborhood filter at `a`, is here defined as the
 infimum over the principal filters of all open sets containing `a`. -/
-def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s)
+@[irreducible] def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s)
 
 localized "notation `𝓝` := nhds" in topological_space
 
-lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := rfl
+/-- The "neighborhood within" filter. Elements of `𝓝[s] a` are sets containing the
+intersection of `s` and a neighborhood of `a`. -/
+def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ 𝓟 s
+
+localized "notation `𝓝[` s `] ` x:100 := nhds_within x s" in topological_space
+localized "notation `𝓝[≠] ` x:100 := nhds_within x {x}ᶜ" in topological_space
+localized "notation `𝓝[≥] ` x:100 := nhds_within x (set.Ici x)" in topological_space
+localized "notation `𝓝[≤] ` x:100 := nhds_within x (set.Iic x)" in topological_space
+localized "notation `𝓝[>] ` x:100 := nhds_within x (set.Ioi x)" in topological_space
+localized "notation `𝓝[<] ` x:100 := nhds_within x (set.Iio x)" in topological_space
+
+lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 s) := by rw nhds
 
 /-- The open sets containing `a` are a basis for the neighborhood filter. See `nhds_basis_opens'`
 for a variant using open neighborhoods instead. -/
 lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) (λ x, x) :=
-has_basis_binfi_principal
-  (λ s ⟨has, hs⟩ t ⟨hat, ht⟩, ⟨s ∩ t, ⟨⟨has, hat⟩, is_open_inter hs ht⟩,
-    ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
-  ⟨univ, ⟨mem_univ a, is_open_univ⟩⟩
+begin
+  rw nhds_def,
+  exact has_basis_binfi_principal
+    (λ s ⟨has, hs⟩ t ⟨hat, ht⟩, ⟨s ∩ t, ⟨⟨has, hat⟩, is_open.inter hs ht⟩,
+      ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
+    ⟨univ, ⟨mem_univ a, is_open_univ⟩⟩
+end
 
 /-- A filter lies below the neighborhood filter at `a` iff it contains every open set around `a`. -/
 lemma le_nhds_iff {f a} : f ≤ 𝓝 a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
@@ -462,8 +652,8 @@ the principal filter of some open set `s` containing `a`. -/
 lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : 𝓟 s ≤ f) : 𝓝 a ≤ f :=
 by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
 
-lemma mem_nhds_sets_iff {a : α} {s : set α} :
-  s ∈ 𝓝 a ↔ ∃t⊆s, is_open t ∧ a ∈ t :=
+lemma mem_nhds_iff {a : α} {s : set α} :
+  s ∈ 𝓝 a ↔ ∃ t ⊆ s, is_open t ∧ a ∈ t :=
 (nhds_basis_opens a).mem_iff.trans
   ⟨λ ⟨t, ⟨hat, ht⟩, hts⟩, ⟨t, hts, ht, hat⟩, λ ⟨t, hts, ht, hat⟩, ⟨t, ⟨hat, ht⟩, hts⟩⟩
 
@@ -471,25 +661,33 @@ lemma mem_nhds_sets_iff {a : α} {s : set α} :
 containing `a`. -/
 lemma eventually_nhds_iff {a : α} {p : α → Prop} :
   (∀ᶠ x in 𝓝 a, p x) ↔ ∃ (t : set α), (∀ x ∈ t, p x) ∧ is_open t ∧ a ∈ t :=
-mem_nhds_sets_iff.trans $ by simp only [subset_def, exists_prop, mem_set_of_eq]
+mem_nhds_iff.trans $ by simp only [subset_def, exists_prop, mem_set_of_eq]
 
 lemma map_nhds {a : α} {f : α → β} :
   map f (𝓝 a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, 𝓟 (image f s)) :=
 ((nhds_basis_opens a).map f).eq_binfi
 
-attribute [irreducible] nhds
-
-lemma mem_of_nhds {a : α} {s : set α} : s ∈ 𝓝 a → a ∈ s :=
-λ H, let ⟨t, ht, _, hs⟩ := mem_nhds_sets_iff.1 H in ht hs
+lemma mem_of_mem_nhds {a : α} {s : set α} : s ∈ 𝓝 a → a ∈ s :=
+λ H, let ⟨t, ht, _, hs⟩ := mem_nhds_iff.1 H in ht hs
 
 /-- If a predicate is true in a neighborhood of `a`, then it is true for `a`. -/
 lemma filter.eventually.self_of_nhds {p : α → Prop} {a : α}
   (h : ∀ᶠ y in 𝓝 a, p y) : p a :=
-mem_of_nhds h
+mem_of_mem_nhds h
 
-lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
+lemma is_open.mem_nhds {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
   s ∈ 𝓝 a :=
-mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
+mem_nhds_iff.2 ⟨s, subset.refl _, hs, ha⟩
+
+lemma is_open.mem_nhds_iff {a : α} {s : set α} (hs : is_open s) : s ∈ 𝓝 a ↔ a ∈ s :=
+⟨mem_of_mem_nhds, λ ha, mem_nhds_iff.2 ⟨s, subset.refl _, hs, ha⟩⟩
+
+lemma is_closed.compl_mem_nhds {a : α} {s : set α} (hs : is_closed s) (ha : a ∉ s) : sᶜ ∈ 𝓝 a :=
+hs.is_open_compl.mem_nhds (mem_compl ha)
+
+lemma is_open.eventually_mem {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
+  ∀ᶠ x in 𝓝 a, x ∈ s :=
+is_open.mem_nhds hs ha
 
 /-- The open neighborhoods of `a` are a basis for the neighborhood filter. See `nhds_basis_opens`
 for a variant using open sets around `a` instead. -/
@@ -499,10 +697,29 @@ begin
   ext s,
   split,
   { rintros ⟨s_in, s_op⟩,
-    exact ⟨mem_of_nhds s_in, s_op⟩ },
+    exact ⟨mem_of_mem_nhds s_in, s_op⟩ },
   { rintros ⟨a_in, s_op⟩,
-    exact ⟨mem_nhds_sets s_op a_in, s_op⟩ },
+    exact ⟨is_open.mem_nhds s_op a_in, s_op⟩ },
 end
+
+/-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of `s`:
+it contains an open set containing `s`. -/
+lemma exists_open_set_nhds {s U : set α} (h : ∀ x ∈ s, U ∈ 𝓝 x) :
+  ∃ V : set α, s ⊆ V ∧ is_open V ∧ V ⊆ U :=
+begin
+  have := λ x hx, (nhds_basis_opens x).mem_iff.1 (h x hx),
+  choose! Z hZ hZ' using this,
+  refine ⟨⋃ x ∈ s, Z x, λ x hx, mem_bUnion hx (hZ x hx).1, is_open_Union _, Union₂_subset hZ'⟩,
+  intro x,
+  by_cases hx : x ∈ s ; simp [hx],
+  exact (hZ x hx).2,
+end
+
+/-- If `U` is a neighborhood of each point of a set `s` then it is a neighborhood of s:
+it contains an open set containing `s`. -/
+lemma exists_open_set_nhds' {s U : set α} (h : U ∈ ⨆ x ∈ s, 𝓝 x) :
+  ∃ V : set α, s ⊆ V ∧ is_open V ∧ V ⊆ U :=
+exists_open_set_nhds (by simpa using h)
 
 /-- If a predicate is true in a neighbourhood of `a`, then for `y` sufficiently close
 to `a` this predicate is true in a neighbourhood of `y`. -/
@@ -514,6 +731,10 @@ eventually_nhds_iff.2 ⟨t, λ x hx, eventually_nhds_iff.2 ⟨t, htp, hto, hx⟩
 @[simp] lemma eventually_eventually_nhds {p : α → Prop} {a : α} :
   (∀ᶠ y in 𝓝 a, ∀ᶠ x in 𝓝 y, p x) ↔ ∀ᶠ x in 𝓝 a, p x :=
 ⟨λ h, h.self_of_nhds, λ h, h.eventually_nhds⟩
+
+@[simp] lemma eventually_mem_nhds {s : set α} {a : α} :
+  (∀ᶠ x in 𝓝 a, s ∈ 𝓝 x) ↔ s ∈ 𝓝 a :=
+eventually_eventually_nhds
 
 @[simp] lemma nhds_bind_nhds : (𝓝 a).bind 𝓝 = 𝓝 a := filter.ext $ λ s, eventually_eventually_nhds
 
@@ -547,7 +768,7 @@ theorem all_mem_nhds (x : α) (P : set α → Prop) (hP : ∀ s t, s ⊆ t → P
 theorem all_mem_nhds_filter (x : α) (f : set α → set β) (hf : ∀ s t, s ⊆ t → f s ⊆ f t)
     (l : filter β) :
   (∀ s ∈ 𝓝 x, f s ∈ l) ↔ (∀ s, is_open s → x ∈ s → f s ∈ l) :=
-all_mem_nhds _ _ (λ s t ssubt h, mem_sets_of_superset h (hf s t ssubt))
+all_mem_nhds _ _ (λ s t ssubt h, mem_of_superset h (hf s t ssubt))
 
 theorem rtendsto_nhds {r : rel β α} {l : filter β} {a : α} :
   rtendsto r l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → r.core s ∈ l) :=
@@ -570,17 +791,25 @@ theorem tendsto_nhds {f : β → α} {l : filter β} {a : α} :
 all_mem_nhds_filter _ _ (λ s t h, preimage_mono h) _
 
 lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (𝓝 a) :=
-tendsto_nhds.mpr $ assume s hs ha, univ_mem_sets' $ assume _, ha
+tendsto_nhds.mpr $ assume s hs ha, univ_mem' $ assume _, ha
+
+lemma tendsto_at_top_of_eventually_const {ι : Type*} [semilattice_sup ι] [nonempty ι]
+  {x : α} {u : ι → α} {i₀ : ι} (h : ∀ i ≥ i₀, u i = x) : tendsto u at_top (𝓝 x) :=
+tendsto.congr' (eventually_eq.symm (eventually_at_top.mpr ⟨i₀, h⟩)) tendsto_const_nhds
+
+lemma tendsto_at_bot_of_eventually_const {ι : Type*} [semilattice_inf ι] [nonempty ι]
+  {x : α} {u : ι → α} {i₀ : ι} (h : ∀ i ≤ i₀, u i = x) : tendsto u at_bot (𝓝 x) :=
+tendsto.congr' (eventually_eq.symm (eventually_at_bot.mpr ⟨i₀, h⟩)) tendsto_const_nhds
 
 lemma pure_le_nhds : pure ≤ (𝓝 : α → filter α) :=
-assume a s hs, mem_pure_sets.2 $ mem_of_nhds hs
+assume a s hs, mem_pure.2 $ mem_of_mem_nhds hs
 
 lemma tendsto_pure_nhds {α : Type*} [topological_space β] (f : α → β) (a : α) :
   tendsto f (pure a) (𝓝 (f a)) :=
 (tendsto_pure_pure f a).mono_right (pure_le_nhds _)
 
-lemma order_top.tendsto_at_top_nhds {α : Type*} [order_top α] [topological_space β] (f : α → β) :
-  tendsto f at_top (𝓝 $ f ⊤) :=
+lemma order_top.tendsto_at_top_nhds {α : Type*} [partial_order α] [order_top α]
+  [topological_space β] (f : α → β) : tendsto f at_top (𝓝 $ f ⊤) :=
 (tendsto_at_top_pure f).mono_right (pure_le_nhds _)
 
 @[simp] instance nhds_ne_bot {a : α} : ne_bot (𝓝 a) :=
@@ -599,8 +828,14 @@ def cluster_pt (x : α) (F : filter α) : Prop := ne_bot (𝓝 x ⊓ F)
 
 lemma cluster_pt.ne_bot {x : α} {F : filter α} (h : cluster_pt x F) : ne_bot (𝓝 x ⊓ F) := h
 
+lemma filter.has_basis.cluster_pt_iff {ιa ιF} {pa : ιa → Prop} {sa : ιa → set α}
+  {pF : ιF → Prop} {sF : ιF → set α} {F : filter α}
+  (ha : (𝓝 a).has_basis pa sa) (hF : F.has_basis pF sF) :
+  cluster_pt a F ↔ ∀ ⦃i⦄ (hi : pa i) ⦃j⦄ (hj : pF j), (sa i ∩ sF j).nonempty :=
+ha.inf_basis_ne_bot_iff hF
+
 lemma cluster_pt_iff {x : α} {F : filter α} :
-  cluster_pt x F ↔ ∀ {U V : set α}, U ∈ 𝓝 x → V ∈ F → (U ∩ V).nonempty :=
+  cluster_pt x F ↔ ∀ ⦃U : set α⦄ (hU : U ∈ 𝓝 x) ⦃V⦄ (hV : V ∈ F), (U ∩ V).nonempty :=
 inf_ne_bot_iff
 
 /-- `x` is a cluster point of a set `s` if every neighbourhood of `x` meets `s` on a nonempty
@@ -625,7 +860,7 @@ by simp only [cluster_pt, inf_eq_left.mpr H, nhds_ne_bot]
 
 lemma cluster_pt.mono {x : α} {f g : filter α} (H : cluster_pt x f) (h : f ≤ g) :
   cluster_pt x g :=
-ne_bot_of_le_ne_bot H $ inf_le_inf_left _ h
+⟨ne_bot_of_le_ne_bot H.ne $ inf_le_inf_left _ h⟩
 
 lemma cluster_pt.of_inf_left {x : α} {f g : filter α} (H : cluster_pt x $ f ⊓ g) :
   cluster_pt x f :=
@@ -634,6 +869,9 @@ H.mono inf_le_left
 lemma cluster_pt.of_inf_right {x : α} {f g : filter α} (H : cluster_pt x $ f ⊓ g) :
   cluster_pt x g :=
 H.mono inf_le_right
+
+lemma ultrafilter.cluster_pt_iff {x : α} {f : ultrafilter α} : cluster_pt x f ↔ ↑f ≤ 𝓝 x :=
+⟨f.le_of_inf_ne_bot', λ h, cluster_pt.of_le_nhds h⟩
 
 /-- A point `x` is a cluster point of a sequence `u` along a filter `F` if it is a cluster point
 of `map u F`. -/
@@ -659,12 +897,28 @@ end
 ### Interior, closure and frontier in terms of neighborhoods
 -/
 
+lemma interior_eq_nhds' {s : set α} : interior s = {a | s ∈ 𝓝 a} :=
+set.ext $ λ x, by simp only [mem_interior, mem_nhds_iff, mem_set_of_eq]
+
 lemma interior_eq_nhds {s : set α} : interior s = {a | 𝓝 a ≤ 𝓟 s} :=
-set.ext $ λ x, by simp only [mem_interior, le_principal_iff, mem_nhds_sets_iff]; refl
+interior_eq_nhds'.trans $ by simp only [le_principal_iff]
 
 lemma mem_interior_iff_mem_nhds {s : set α} {a : α} :
   a ∈ interior s ↔ s ∈ 𝓝 a :=
-by simp only [interior_eq_nhds, le_principal_iff]; refl
+by rw [interior_eq_nhds', mem_set_of_eq]
+
+@[simp] lemma interior_mem_nhds {s : set α} {a : α} :
+  interior s ∈ 𝓝 a ↔ s ∈ 𝓝 a :=
+⟨λ h, mem_of_superset h interior_subset,
+  λ h, is_open.mem_nhds is_open_interior (mem_interior_iff_mem_nhds.2 h)⟩
+
+lemma interior_set_of_eq {p : α → Prop} :
+  interior {x | p x} = {x | ∀ᶠ y in 𝓝 x, p y} :=
+interior_eq_nhds'
+
+lemma is_open_set_of_eventually_nhds {p : α → Prop} :
+  is_open {x | ∀ᶠ y in 𝓝 x, p y} :=
+by simp only [← interior_set_of_eq, is_open_interior]
 
 lemma subset_interior_iff_nhds {s V : set α} : s ⊆ interior V ↔ ∀ x ∈ s, V ∈ 𝓝 x :=
 show (∀ x, x ∈ s →  x ∈ _) ↔ _, by simp_rw mem_interior_iff_mem_nhds
@@ -676,14 +930,67 @@ calc is_open s ↔ s ⊆ interior s : subset_interior_iff_open.symm
 lemma is_open_iff_mem_nhds {s : set α} : is_open s ↔ ∀a∈s, s ∈ 𝓝 a :=
 is_open_iff_nhds.trans $ forall_congr $ λ _, imp_congr_right $ λ _, le_principal_iff
 
+theorem is_open_iff_ultrafilter {s : set α} :
+  is_open s ↔ (∀ (x ∈ s) (l : ultrafilter α), ↑l ≤ 𝓝 x → s ∈ l) :=
+by simp_rw [is_open_iff_mem_nhds, ← mem_iff_ultrafilter]
+
+lemma is_open_singleton_iff_nhds_eq_pure {α : Type*} [topological_space α] (a : α) :
+  is_open ({a} : set α) ↔ 𝓝 a = pure a :=
+begin
+  split,
+  { intros h,
+    apply le_antisymm _ (pure_le_nhds a),
+    rw le_pure_iff,
+    exact h.mem_nhds (mem_singleton a) },
+  { intros h,
+    simp [is_open_iff_nhds, h] }
+end
+
 lemma mem_closure_iff_frequently {s : set α} {a : α} : a ∈ closure s ↔ ∃ᶠ x in 𝓝 a, x ∈ s :=
 by rw [filter.frequently, filter.eventually, ← mem_interior_iff_mem_nhds,
   closure_eq_compl_interior_compl]; refl
 
 alias mem_closure_iff_frequently ↔ _ filter.frequently.mem_closure
 
+/-- The set of cluster points of a filter is closed. In particular, the set of limit points
+of a sequence is closed. -/
+lemma is_closed_set_of_cluster_pt {f : filter α} : is_closed {x | cluster_pt x f} :=
+begin
+  simp only [cluster_pt, inf_ne_bot_iff_frequently_left, set_of_forall, imp_iff_not_or],
+  refine is_closed_Inter (λ p, is_closed.union _ _); apply is_closed_compl_iff.2,
+  exacts [is_open_set_of_eventually_nhds, is_open_const]
+end
+
 theorem mem_closure_iff_cluster_pt {s : set α} {a : α} : a ∈ closure s ↔ cluster_pt a (𝓟 s) :=
 mem_closure_iff_frequently.trans cluster_pt_principal_iff_frequently.symm
+
+lemma mem_closure_iff_nhds_ne_bot {s : set α} : a ∈ closure s ↔ 𝓝 a ⊓ 𝓟 s ≠ ⊥ :=
+mem_closure_iff_cluster_pt.trans ne_bot_iff
+
+lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
+  x ∈ closure s ↔ ne_bot (𝓝[s] x) :=
+mem_closure_iff_cluster_pt
+
+/-- If `x` is not an isolated point of a topological space, then `{x}ᶜ` is dense in the whole
+space. -/
+lemma dense_compl_singleton (x : α) [ne_bot (𝓝[≠] x)] : dense ({x}ᶜ : set α) :=
+begin
+  intro y,
+  unfreezingI { rcases eq_or_ne y x with rfl|hne },
+  { rwa mem_closure_iff_nhds_within_ne_bot },
+  { exact subset_closure hne }
+end
+
+/-- If `x` is not an isolated point of a topological space, then the closure of `{x}ᶜ` is the whole
+space. -/
+@[simp] lemma closure_compl_singleton (x : α) [ne_bot (𝓝[≠] x)] :
+  closure {x}ᶜ = (univ : set α) :=
+(dense_compl_singleton x).closure_eq
+
+/-- If `x` is not an isolated point of a topological space, then the interior of `{x}` is empty. -/
+@[simp] lemma interior_singleton (x : α) [ne_bot (𝓝[≠] x)] :
+  interior {x} = (∅ : set α) :=
+interior_eq_empty_iff_dense_compl.2 (dense_compl_singleton x)
 
 lemma closure_eq_cluster_pts {s : set α} : closure s = {a | cluster_pt a (𝓟 s)} :=
 set.ext $ λ x, mem_closure_iff_cluster_pt
@@ -700,23 +1007,23 @@ theorem mem_closure_iff_comap_ne_bot {A : set α} {x : α} :
   x ∈ closure A ↔ ne_bot (comap (coe : A → α) (𝓝 x)) :=
 by simp_rw [mem_closure_iff_nhds, comap_ne_bot_iff, set.nonempty_inter_iff_exists_right]
 
-theorem mem_closure_iff_nhds_basis {a : α} {p : β → Prop} {s : β → set α} (h : (𝓝 a).has_basis p s)
+theorem mem_closure_iff_nhds_basis' {a : α} {p : ι → Prop} {s : ι → set α} (h : (𝓝 a).has_basis p s)
+  {t : set α} :
+  a ∈ closure t ↔ ∀ i, p i → (s i ∩ t).nonempty :=
+mem_closure_iff_cluster_pt.trans $ (h.cluster_pt_iff (has_basis_principal _)).trans $
+  by simp only [exists_prop, forall_const]
+
+theorem mem_closure_iff_nhds_basis {a : α} {p : ι → Prop} {s : ι → set α} (h : (𝓝 a).has_basis p s)
   {t : set α} :
   a ∈ closure t ↔ ∀ i, p i → ∃ y ∈ t, y ∈ s i :=
-mem_closure_iff_nhds.trans
-  ⟨λ H i hi, let ⟨x, hx⟩ := (H _ $ h.mem_of_mem hi) in ⟨x, hx.2, hx.1⟩,
-    λ H t' ht', let ⟨i, hi, hit⟩ := h.mem_iff.1 ht', ⟨x, xt, hx⟩ := H i hi in
-    ⟨x, hit hx, xt⟩⟩
+(mem_closure_iff_nhds_basis' h).trans $
+  by simp only [set.nonempty, mem_inter_eq, exists_prop, and_comm]
 
 /-- `x` belongs to the closure of `s` if and only if some ultrafilter
   supported on `s` converges to `x`. -/
 lemma mem_closure_iff_ultrafilter {s : set α} {x : α} :
-  x ∈ closure s ↔ ∃ (u : ultrafilter α), s ∈ u.val ∧ u.val ≤ 𝓝 x :=
-begin
-  rw closure_eq_cluster_pts, change cluster_pt x (𝓟 s) ↔ _, symmetry,
-  convert exists_ultrafilter_iff _, ext u,
-  rw [←le_principal_iff, inf_comm, le_inf_iff]
-end
+  x ∈ closure s ↔ ∃ (u : ultrafilter α), s ∈ u ∧ ↑u ≤ 𝓝 x :=
+by simp [closure_eq_cluster_pts, cluster_pt, ← exists_ultrafilter_iff, and.comm]
 
 lemma is_closed_iff_cluster_pt {s : set α} : is_closed s ↔ ∀a, cluster_pt a (𝓟 s) → a ∈ s :=
 calc is_closed s ↔ closure s ⊆ s : closure_subset_iff_is_closed.symm
@@ -726,25 +1033,47 @@ lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀ x, (∀ U ∈ 𝓝 x
 by simp_rw [is_closed_iff_cluster_pt, cluster_pt, inf_principal_ne_bot_iff]
 
 lemma closure_inter_open {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
-assume a ⟨hs, ht⟩,
-have s ∈ 𝓝 a, from mem_nhds_sets h hs,
-have 𝓝 a ⊓ 𝓟 s = 𝓝 a, by rwa [inf_eq_left, le_principal_iff],
-have cluster_pt a (𝓟 (s ∩ t)),
-  from calc 𝓝 a ⊓ 𝓟 (s ∩ t) = 𝓝 a ⊓ (𝓟 s ⊓ 𝓟 t) : by rw inf_principal
-    ... = 𝓝 a ⊓ 𝓟 t : by rw [←inf_assoc, this]
-    ... ≠ ⊥ : by rw [closure_eq_cluster_pts] at ht; assumption,
-by rwa [closure_eq_cluster_pts]
+begin
+  rintro a ⟨hs, ht⟩,
+  have : s ∈ 𝓝 a := is_open.mem_nhds h hs,
+  rw mem_closure_iff_nhds_ne_bot at ht ⊢,
+  rwa [← inf_principal, ← inf_assoc, inf_eq_left.2 (le_principal_iff.2 this)],
+end
 
-lemma dense_inter_of_open_left {s t : set α} (hs : closure s = univ) (ht : closure t = univ)
-  (hso : is_open s) :
-  closure (s ∩ t) = univ :=
-eq_univ_of_subset (closure_minimal (closure_inter_open hso) is_closed_closure) $
-  by simp only [*, inter_univ]
+lemma closure_inter_open' {s t : set α} (h : is_open t) : closure s ∩ t ⊆ closure (s ∩ t) :=
+by simpa only [inter_comm] using closure_inter_open h
 
-lemma dense_inter_of_open_right {s t : set α} (hs : closure s = univ) (ht : closure t = univ)
-  (hto : is_open t) :
-  closure (s ∩ t) = univ :=
-inter_comm t s ▸ dense_inter_of_open_left ht hs hto
+lemma dense.open_subset_closure_inter {s t : set α} (hs : dense s) (ht : is_open t) :
+  t ⊆ closure (t ∩ s) :=
+calc t = t ∩ closure s   : by rw [hs.closure_eq, inter_univ]
+   ... ⊆ closure (t ∩ s) : closure_inter_open ht
+
+lemma mem_closure_of_mem_closure_union {s₁ s₂ : set α} {x : α} (h : x ∈ closure (s₁ ∪ s₂))
+  (h₁ : s₁ᶜ ∈ 𝓝 x) : x ∈ closure s₂ :=
+begin
+  rw mem_closure_iff_nhds_ne_bot at *,
+  rwa ← calc
+    𝓝 x ⊓ principal (s₁ ∪ s₂) = 𝓝 x ⊓ (principal s₁ ⊔ principal s₂) : by rw sup_principal
+    ... = (𝓝 x ⊓ principal s₁) ⊔ (𝓝 x ⊓ principal s₂) : inf_sup_left
+    ... = ⊥ ⊔ 𝓝 x ⊓ principal s₂ : by rw inf_principal_eq_bot.mpr h₁
+    ... = 𝓝 x ⊓ principal s₂ : bot_sup_eq
+end
+
+/-- The intersection of an open dense set with a dense set is a dense set. -/
+lemma dense.inter_of_open_left {s t : set α} (hs : dense s) (ht : dense t) (hso : is_open s) :
+  dense (s ∩ t) :=
+λ x, (closure_minimal (closure_inter_open hso) is_closed_closure) $
+  by simp [hs.closure_eq, ht.closure_eq]
+
+/-- The intersection of a dense set with an open dense set is a dense set. -/
+lemma dense.inter_of_open_right {s t : set α} (hs : dense s) (ht : dense t) (hto : is_open t) :
+  dense (s ∩ t) :=
+inter_comm t s ▸ ht.inter_of_open_left hs hto
+
+lemma dense.inter_nhds_nonempty {s t : set α} (hs : dense s) {x : α} (ht : t ∈ 𝓝 x) :
+  (s ∩ t).nonempty :=
+let ⟨U, hsub, ho, hx⟩ := mem_nhds_iff.1 ht in
+  (hs.inter_open_nonempty U ho ⟨x, hx⟩).mono $ λ y hy, ⟨hy.2, hsub hy.1⟩
 
 lemma closure_diff {s t : set α} : closure s \ closure t ⊆ closure (s \ t) :=
 calc closure s \ closure t = (closure t)ᶜ ∩ closure s : by simp only [diff_eq, inter_comm]
@@ -777,7 +1106,7 @@ begin
   rw [tendsto_iff_comap, tendsto_iff_comap],
   replace h : 𝓟 sᶜ ≤ comap f (𝓝 a),
   { rintros U ⟨t, ht, htU⟩ x hx,
-    have : f x ∈ t, from (h x hx).symm ▸ mem_of_nhds ht,
+    have : f x ∈ t, from (h x hx).symm ▸ mem_of_mem_nhds ht,
     exact htU this },
   refine ⟨λ h', _, le_trans inf_le_left⟩,
   have := sup_le h' h,
@@ -795,6 +1124,17 @@ section lim
 /-- If `f` is a filter, then `Lim f` is a limit of the filter, if it exists. -/
 noncomputable def Lim [nonempty α] (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a
 
+/--
+If `f` is a filter satisfying `ne_bot f`, then `Lim' f` is a limit of the filter, if it exists.
+-/
+def Lim' (f : filter α) [ne_bot f] : α := @Lim _ _ (nonempty_of_ne_bot f) f
+
+/--
+If `F` is an ultrafilter, then `filter.ultrafilter.Lim F` is a limit of the filter, if it exists.
+Note that dot notation `F.Lim` can be used for `F : ultrafilter α`.
+-/
+def ultrafilter.Lim : ultrafilter α → α := λ F, Lim' F
+
 /-- If `f` is a filter in `β` and `g : β → α` is a function, then `lim f` is a limit of `g` at `f`,
 if it exists. -/
 noncomputable def lim [nonempty α] (f : filter β) (g : β → α) : α :=
@@ -804,21 +1144,21 @@ Lim (f.map g)
 this lemma with a `[nonempty α]` argument of `Lim` derived from `h` to make it useful for types
 without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
 this instance with any other instance. -/
-lemma Lim_spec {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (@Lim _ _ (nonempty_of_exists h) f) :=
+lemma le_nhds_Lim {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (@Lim _ _ (nonempty_of_exists h) f) :=
 epsilon_spec h
 
 /-- If `g` tends to some `𝓝 a` along `f`, then it tends to `𝓝 (lim f g)`. We formulate
 this lemma with a `[nonempty α]` argument of `lim` derived from `h` to make it useful for types
 without a `[nonempty α]` instance. Because of the built-in proof irrelevance, Lean will unify
 this instance with any other instance. -/
-lemma lim_spec {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
+lemma tendsto_nhds_lim {f : filter β} {g : β → α} (h : ∃ a, tendsto g f (𝓝 a)) :
   tendsto g f (𝓝 $ @lim _ _ _ (nonempty_of_exists h) f g) :=
-Lim_spec h
+le_nhds_Lim h
 
 end lim
 
 /-!
-### Locally finite families
+### Locally finite families
 -/
 
 /- locally finite family [General Topology (Bourbaki, 1995)] -/
@@ -829,38 +1169,54 @@ section locally_finite
 def locally_finite (f : β → set α) :=
 ∀x:α, ∃t ∈ 𝓝 x, finite {i | (f i ∩ t).nonempty }
 
-lemma locally_finite_of_finite {f : β → set α} (h : finite (univ : set β)) : locally_finite f :=
-assume x, ⟨univ, univ_mem_sets, h.subset $ subset_univ _⟩
+lemma locally_finite.point_finite {f : β → set α} (hf : locally_finite f) (x : α) :
+  finite {b | x ∈ f b} :=
+let ⟨t, hxt, ht⟩ := hf x in ht.subset $ λ b hb, ⟨x, hb, mem_of_mem_nhds hxt⟩
 
-lemma locally_finite_subset
+lemma locally_finite_of_fintype [fintype β] (f : β → set α) : locally_finite f :=
+assume x, ⟨univ, univ_mem, finite.of_fintype _⟩
+
+lemma locally_finite.subset
   {f₁ f₂ : β → set α} (hf₂ : locally_finite f₂) (hf : ∀b, f₁ b ⊆ f₂ b) : locally_finite f₁ :=
 assume a,
 let ⟨t, ht₁, ht₂⟩ := hf₂ a in
 ⟨t, ht₁, ht₂.subset $ assume i hi, hi.mono $ inter_subset_inter (hf i) $ subset.refl _⟩
 
-lemma is_closed_Union_of_locally_finite {f : β → set α}
-  (h₁ : locally_finite f) (h₂ : ∀i, is_closed (f i)) : is_closed (⋃i, f i) :=
-is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
-  have ∀i, a ∈ (f i)ᶜ,
-    from assume i hi, h $ mem_Union.2 ⟨i, hi⟩,
-  have ∀i, (f i)ᶜ ∈ (𝓝 a),
-    by simp only [mem_nhds_sets_iff]; exact assume i, ⟨(f i)ᶜ, subset.refl _, h₂ i, this i⟩,
-  let ⟨t, h_sets, (h_fin : finite {i | (f i ∩ t).nonempty })⟩ := h₁ a in
+lemma locally_finite.comp_injective {ι} {f : β → set α} {g : ι → β} (hf : locally_finite f)
+  (hg : function.injective g) : locally_finite (f ∘ g) :=
+λ x, let ⟨t, htx, htf⟩ := hf x in ⟨t, htx, htf.preimage (hg.inj_on _)⟩
 
-  calc 𝓝 a ≤ 𝓟 (t ∩ (⋂ i∈{i | (f i ∩ t).nonempty }, (f i)ᶜ)) :
-  begin
-    rw [le_principal_iff],
-    apply @filter.inter_mem_sets _ (𝓝 a) _ _ h_sets,
-    apply @filter.Inter_mem_sets _ (𝓝 a) _ _ _ h_fin,
-    exact assume i h, this i
-  end
-  ... ≤ 𝓟 (⋃i, f i)ᶜ :
-  begin
-    simp only [principal_mono, subset_def, mem_compl_eq, mem_inter_eq,
-      mem_Inter, mem_set_of_eq, mem_Union, and_imp, not_exists,
-      exists_imp_distrib, ne_empty_iff_nonempty, set.nonempty],
-    exact assume x xt ht i xfi, ht i x xfi xt xfi
-  end
+lemma locally_finite.closure {f : β → set α} (hf : locally_finite f) :
+  locally_finite (λ i, closure (f i)) :=
+begin
+  intro x,
+  rcases hf x with ⟨s, hsx, hsf⟩,
+  refine ⟨interior s, interior_mem_nhds.2 hsx, hsf.subset $ λ i hi, _⟩,
+  exact (hi.mono (closure_inter_open' is_open_interior)).of_closure.mono
+    (inter_subset_inter_right _ interior_subset)
+end
+
+lemma locally_finite.is_closed_Union {f : β → set α}
+  (h₁ : locally_finite f) (h₂ : ∀i, is_closed (f i)) : is_closed (⋃i, f i) :=
+begin
+  simp only [← is_open_compl_iff, compl_Union, is_open_iff_mem_nhds, mem_Inter],
+  intros a ha,
+  replace ha : ∀ i, (f i)ᶜ ∈ 𝓝 a := λ i, (h₂ i).is_open_compl.mem_nhds (ha i),
+  rcases h₁ a with ⟨t, h_nhds, h_fin⟩,
+  have : t ∩ (⋂ i ∈ {i | (f i ∩ t).nonempty}, (f i)ᶜ) ∈ 𝓝 a,
+    from inter_mem h_nhds ((bInter_mem h_fin).2 (λ i _, ha i)),
+  filter_upwards [this],
+  simp only [mem_inter_eq, mem_Inter],
+  rintros b ⟨hbt, hn⟩ i hfb,
+  exact hn i ⟨b, hfb, hbt⟩ hfb,
+end
+
+lemma locally_finite.closure_Union {f : β → set α} (h : locally_finite f) :
+  closure (⋃ i, f i) = ⋃ i, closure (f i) :=
+subset.antisymm
+  (closure_minimal (Union_mono $ λ _, subset_closure) $
+    h.closure.is_closed_Union $ λ _, is_closed_closure)
+  (Union_subset $ λ i, closure_mono $ subset_Union _ _)
 
 end locally_finite
 
@@ -876,12 +1232,19 @@ variables [topological_space α] [topological_space β] [topological_space γ]
 open_locale topological_space
 
 /-- A function between topological spaces is continuous if the preimage
-  of every open set is open. -/
-def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
+  of every open set is open. Registered as a structure to make sure it is not unfolded by Lean. -/
+structure continuous (f : α → β) : Prop :=
+(is_open_preimage : ∀s, is_open s → is_open (f ⁻¹' s))
+
+lemma continuous_def {f : α → β} : continuous f ↔ (∀s, is_open s → is_open (f ⁻¹' s)) :=
+⟨λ hf s hs, hf.is_open_preimage s hs, λ h, ⟨h⟩⟩
 
 lemma is_open.preimage {f : α → β} (hf : continuous f) {s : set β} (h : is_open s) :
   is_open (f ⁻¹' s) :=
-hf s h
+hf.is_open_preimage s h
+
+lemma continuous.congr {f g : α → β} (h : continuous f) (h' : ∀ x, f x = g x) : continuous g :=
+by { convert h, ext, rw h' }
 
 /-- A function between topological spaces is continuous at a point `x₀`
 if `f x` tends to `f x₀` when `x` tends to `x₀`. -/
@@ -891,20 +1254,41 @@ lemma continuous_at.tendsto {f : α → β} {x : α} (h : continuous_at f x) :
   tendsto f (𝓝 x) (𝓝 (f x)) :=
 h
 
+lemma continuous_at_def {f : α → β} {x : α} : continuous_at f x ↔ ∀ A ∈ 𝓝 (f x), f ⁻¹' A ∈ 𝓝 x :=
+iff.rfl
+
+lemma continuous_at_congr {f g : α → β} {x : α} (h : f =ᶠ[𝓝 x] g) :
+  continuous_at f x ↔ continuous_at g x :=
+by simp only [continuous_at, tendsto_congr' h, h.eq_of_nhds]
+
+lemma continuous_at.congr {f g : α → β} {x : α} (hf : continuous_at f x) (h : f =ᶠ[𝓝 x] g) :
+  continuous_at g x :=
+(continuous_at_congr h).1 hf
+
 lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h : continuous_at f x)
   (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ 𝓝 x :=
 h ht
 
+lemma eventually_eq_zero_nhds {M₀} [has_zero M₀] {a : α} {f : α → M₀} :
+  f =ᶠ[𝓝 a] 0 ↔ a ∉ closure (function.support f) :=
+by rw [← mem_compl_eq, ← interior_compl, mem_interior_iff_mem_nhds, function.compl_support]; refl
+
+lemma cluster_pt.map {x : α} {la : filter α} {lb : filter β} (H : cluster_pt x la)
+  {f : α → β} (hfc : continuous_at f x) (hf : tendsto f la lb) :
+  cluster_pt (f x) lb :=
+⟨ne_bot_of_le_ne_bot ((map_ne_bot_iff f).2 H).ne $ hfc.tendsto.inf hf⟩
+
+/-- See also `interior_preimage_subset_preimage_interior`. -/
 lemma preimage_interior_subset_interior_preimage {f : α → β} {s : set β}
   (hf : continuous f) : f⁻¹' (interior s) ⊆ interior (f⁻¹' s) :=
-interior_maximal (preimage_mono interior_subset) (hf _ is_open_interior)
+interior_maximal (preimage_mono interior_subset) (is_open_interior.preimage hf)
 
 lemma continuous_id : continuous (id : α → α) :=
-assume s h, h
+continuous_def.2 $ assume s h, h
 
 lemma continuous.comp {g : β → γ} {f : α → β} (hg : continuous g) (hf : continuous f) :
   continuous (g ∘ f) :=
-assume s h, hf _ (hg s h)
+continuous_def.2 $ assume s h, (h.preimage hg).preimage hf
 
 lemma continuous.iterate {f : α → α} (h : continuous f) (n : ℕ) : continuous (f^[n]) :=
 nat.rec_on n continuous_id (λ n ihn, ihn.comp h)
@@ -917,7 +1301,13 @@ hg.comp hf
 lemma continuous.tendsto {f : α → β} (hf : continuous f) (x) :
   tendsto f (𝓝 x) (𝓝 (f x)) :=
 ((nhds_basis_opens x).tendsto_iff $ nhds_basis_opens $ f x).2 $
-  λ t ⟨hxt, ht⟩, ⟨f ⁻¹' t, ⟨hxt, hf _ ht⟩, subset.refl _⟩
+  λ t ⟨hxt, ht⟩, ⟨f ⁻¹' t, ⟨hxt, ht.preimage hf⟩, subset.refl _⟩
+
+/-- A version of `continuous.tendsto` that allows one to specify a simpler form of the limit.
+E.g., one can write `continuous_exp.tendsto' 0 1 exp_zero`. -/
+lemma continuous.tendsto' {f : α → β} (hf : continuous f) (x : α) (y : β) (h : f x = y) :
+  tendsto f (𝓝 x) (𝓝 y) :=
+h ▸ hf.tendsto x
 
 lemma continuous.continuous_at {f : α → β} {x : α} (h : continuous f) :
   continuous_at f x :=
@@ -926,17 +1316,26 @@ h.tendsto x
 lemma continuous_iff_continuous_at {f : α → β} : continuous f ↔ ∀ x, continuous_at f x :=
 ⟨continuous.tendsto,
   assume hf : ∀x, tendsto f (𝓝 x) (𝓝 (f x)),
+  continuous_def.2 $
   assume s, assume hs : is_open s,
   have ∀a, f a ∈ s → s ∈ 𝓝 (f a),
-    from λ a ha, mem_nhds_sets hs ha,
+    from λ a ha, is_open.mem_nhds hs ha,
   show is_open (f ⁻¹' s),
     from is_open_iff_nhds.2 $ λ a ha, le_principal_iff.2 $ hf _ (this a ha)⟩
 
-lemma continuous_const {b : β} : continuous (λa:α, b) :=
-continuous_iff_continuous_at.mpr $ assume a, tendsto_const_nhds
-
 lemma continuous_at_const {x : α} {b : β} : continuous_at (λ a:α, b) x :=
-continuous_const.continuous_at
+tendsto_const_nhds
+
+lemma continuous_const {b : β} : continuous (λa:α, b) :=
+continuous_iff_continuous_at.mpr $ assume a, continuous_at_const
+
+lemma filter.eventually_eq.continuous_at {x : α} {f : α → β} {y : β} (h : f =ᶠ[𝓝 x] (λ _, y)) :
+  continuous_at f x :=
+(continuous_at_congr h).2 tendsto_const_nhds
+
+lemma continuous_of_const {f : α → β} (h : ∀ x y, f x = f y) : continuous f :=
+continuous_iff_continuous_at.mpr $ λ x, filter.eventually_eq.continuous_at $
+  eventually_of_forall (λ y, h y x)
 
 lemma continuous_at_id {x : α} : continuous_at id x :=
 continuous_id.continuous_at
@@ -949,59 +1348,49 @@ from continuous_at.comp (hx.symm ▸ ihn) hf
 
 lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=
-⟨assume hf s hs, hf sᶜ hs,
-  assume hf s, by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
+⟨assume hf s hs, by simpa using (continuous_def.1 hf sᶜ hs.is_open_compl).is_closed_compl,
+  assume hf, continuous_def.2 $ assume s,
+    by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
 
 lemma is_closed.preimage {f : α → β} (hf : continuous f) {s : set β} (h : is_closed s) :
   is_closed (f ⁻¹' s) :=
 continuous_iff_is_closed.mp hf s h
 
-lemma continuous_at_iff_ultrafilter {f : α → β} (x) : continuous_at f x ↔
-  ∀ g, is_ultrafilter g → g ≤ 𝓝 x → g.map f ≤ 𝓝 (f x) :=
+lemma mem_closure_image {f : α → β} {x : α} {s : set α} (hf : continuous_at f x)
+  (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
+begin
+  rw [mem_closure_iff_nhds_ne_bot] at hx ⊢,
+  rw ← bot_lt_iff_ne_bot,
+  haveI : ne_bot _ := ⟨hx⟩,
+  calc
+    ⊥   < map f (𝓝 x ⊓ principal s) : bot_lt_iff_ne_bot.mpr ne_bot.ne'
+    ... ≤ (map f $ 𝓝 x) ⊓ (map f $ principal s) : map_inf_le
+    ... = (map f $ 𝓝 x) ⊓ (principal $ f '' s) : by rw map_principal
+    ... ≤ 𝓝 (f x) ⊓ (principal $ f '' s) : inf_le_inf hf le_rfl
+end
+
+lemma continuous_at_iff_ultrafilter {f : α → β} {x} : continuous_at f x ↔
+  ∀ g : ultrafilter α, ↑g ≤ 𝓝 x → tendsto f g (𝓝 (f x)) :=
 tendsto_iff_ultrafilter f (𝓝 x) (𝓝 (f x))
 
 lemma continuous_iff_ultrafilter {f : α → β} :
-  continuous f ↔ ∀ x g, is_ultrafilter g → g ≤ 𝓝 x → g.map f ≤ 𝓝 (f x) :=
+  continuous f ↔ ∀ x (g : ultrafilter α), ↑g ≤ 𝓝 x → tendsto f g (𝓝 (f x)) :=
 by simp only [continuous_iff_continuous_at, continuous_at_iff_ultrafilter]
 
-/-- A piecewise defined function `if p then f else g` is continuous, if both `f` and `g`
-are continuous, and they coincide on the frontier (boundary) of the set `{a | p a}`. -/
-lemma continuous_if {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
-  (hp : ∀a∈frontier {a | p a}, f a = g a) (hf : continuous f) (hg : continuous g) :
-  continuous (λa, @ite (p a) (h a) β (f a) (g a)) :=
-continuous_iff_is_closed.mpr $
-assume s hs,
-have (λa, ite (p a) (f a) (g a)) ⁻¹' s =
-    (closure {a | p a} ∩  f ⁻¹' s) ∪ (closure {a | ¬ p a} ∩ g ⁻¹' s),
-  from set.ext $ assume a,
-  classical.by_cases
-    (assume : a ∈ frontier {a | p a},
-      have hac : a ∈ closure {a | p a}, from this.left,
-      have hai : a ∈ closure {a | ¬ p a},
-        from have a ∈ (interior {a | p a})ᶜ, from this.right, by rwa [←closure_compl] at this,
-      by by_cases p a; simp [h, hp a this, hac, hai, iff_def] {contextual := tt})
-    (assume hf : a ∈ (frontier {a | p a})ᶜ,
-      classical.by_cases
-        (assume : p a,
-          have hc : a ∈ closure {a | p a}, from subset_closure this,
-          have hnc : a ∉ closure {a | ¬ p a},
-            by show a ∉ closure {a | p a}ᶜ; rw [closure_compl]; simpa [frontier, hc] using hf,
-          by simp [this, hc, hnc])
-        (assume : ¬ p a,
-          have hc : a ∈ closure {a | ¬ p a}, from subset_closure this,
-          have hnc : a ∉ closure {a | p a},
-            begin
-              have hc : a ∈ closure {a | p a}ᶜ, from hc,
-              simp [closure_compl] at hc,
-              simpa [frontier, hc] using hf
-            end,
-          by simp [this, hc, hnc])),
-by rw [this]; exact is_closed_union
-  (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hf s hs)
-  (is_closed_inter is_closed_closure $ continuous_iff_is_closed.mp hg s hs)
+lemma continuous.closure_preimage_subset {f : α → β}
+  (hf : continuous f) (t : set β) :
+  closure (f ⁻¹' t) ⊆ f ⁻¹' (closure t) :=
+begin
+  rw ← (is_closed_closure.preimage hf).closure_eq,
+  exact closure_mono (preimage_mono subset_closure),
+end
 
+lemma continuous.frontier_preimage_subset
+  {f : α → β} (hf : continuous f) (t : set β) :
+  frontier (f ⁻¹' t) ⊆ f ⁻¹' (frontier t) :=
+diff_subset_diff (hf.closure_preimage_subset t) (preimage_interior_subset_interior_preimage hf)
 
-/- Continuity and partial functions -/
+/-! ### Continuity and partial functions -/
 
 /-- Continuity of a partial function -/
 def pcontinuous (f : α →. β) := ∀ s, is_open s → is_open (f.preimage s)
@@ -1014,42 +1403,221 @@ lemma pcontinuous_iff' {f : α →. β} :
 begin
   split,
   { intros h x y h',
-    simp only [ptendsto'_def, mem_nhds_sets_iff],
+    simp only [ptendsto'_def, mem_nhds_iff],
     rintros s ⟨t, tsubs, opent, yt⟩,
-    exact ⟨f.preimage t, pfun.preimage_mono _ tsubs, h _ opent, ⟨y, yt, h'⟩⟩
-  },
+    exact ⟨f.preimage t, pfun.preimage_mono _ tsubs, h _ opent, ⟨y, yt, h'⟩⟩ },
   intros hf s os,
   rw is_open_iff_nhds,
   rintros x ⟨y, ys, fxy⟩ t,
-  rw [mem_principal_sets],
+  rw [mem_principal],
   assume h : f.preimage s ⊆ t,
   change t ∈ 𝓝 x,
-  apply mem_sets_of_superset _ h,
+  apply mem_of_superset _ h,
   have h' : ∀ s ∈ 𝓝 y, f.preimage s ∈ 𝓝 x,
   { intros s hs,
      have : ptendsto' f (𝓝 x) (𝓝 y) := hf fxy,
      rw ptendsto'_def at this,
      exact this s hs },
   show f.preimage s ∈ 𝓝 x,
-  apply h', rw mem_nhds_sets_iff, exact ⟨s, set.subset.refl _, os, ys⟩
+  apply h', rw mem_nhds_iff, exact ⟨s, set.subset.refl _, os, ys⟩
+end
+
+/-- If a continuous map `f` maps `s` to `t`, then it maps `closure s` to `closure t`. -/
+lemma set.maps_to.closure {s : set α} {t : set β} {f : α → β} (h : maps_to f s t)
+  (hc : continuous f) : maps_to f (closure s) (closure t) :=
+begin
+  simp only [maps_to, mem_closure_iff_cluster_pt],
+  exact λ x hx, hx.map hc.continuous_at (tendsto_principal_principal.2 h)
 end
 
 lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : continuous f) :
   f '' closure s ⊆ closure (f '' s) :=
-have ∀ (a : α), cluster_pt a (𝓟 s) → cluster_pt (f a) (𝓟 (f '' s)),
-  from assume a ha,
-  have h₁ : ¬ map f (𝓝 a ⊓ 𝓟 s) = ⊥,
-    by rwa[map_eq_bot_iff],
-  have h₂ : map f (𝓝 a ⊓ 𝓟 s) ≤ 𝓝 (f a) ⊓ 𝓟 (f '' s),
-    from le_inf
-      (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_continuous_at] at h; exact h a)
-      (le_trans (map_mono inf_le_right) $ by simp [subset_preimage_image] ),
-  ne_bot_of_le_ne_bot h₁ h₂,
-by simp [image_subset_iff, closure_eq_cluster_pts]; assumption
+((maps_to_image f s).closure h).image_subset
 
-lemma mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
+lemma closure_subset_preimage_closure_image {f : α → β} {s : set α} (h : continuous f) :
+  closure s ⊆ f ⁻¹' (closure (f '' s)) :=
+by { rw ← set.image_subset_iff, exact image_closure_subset_closure_image h }
+
+lemma map_mem_closure {s : set α} {t : set β} {f : α → β} {a : α}
   (hf : continuous f) (ha : a ∈ closure s) (ht : ∀a∈s, f a ∈ t) : f a ∈ closure t :=
-subset.trans (image_closure_subset_closure_image hf) (closure_mono $ image_subset_iff.2 ht) $
-  (mem_image_of_mem f ha)
+set.maps_to.closure ht hf ha
+
+/-!
+### Function with dense range
+-/
+
+section dense_range
+variables {κ ι : Type*} (f : κ → β) (g : β → γ)
+
+/-- `f : ι → β` has dense range if its range (image) is a dense subset of β. -/
+def dense_range := dense (range f)
+
+variables {f}
+
+/-- A surjective map has dense range. -/
+lemma function.surjective.dense_range (hf : function.surjective f) : dense_range f :=
+λ x, by simp [hf.range_eq]
+
+lemma dense_range_iff_closure_range : dense_range f ↔ closure (range f) = univ :=
+dense_iff_closure_eq
+
+lemma dense_range.closure_range (h : dense_range f) : closure (range f) = univ :=
+h.closure_eq
+
+lemma dense.dense_range_coe {s : set α} (h : dense s) : dense_range (coe : s → α) :=
+by simpa only [dense_range, subtype.range_coe_subtype]
+
+lemma continuous.range_subset_closure_image_dense {f : α → β} (hf : continuous f)
+  {s : set α} (hs : dense s) :
+  range f ⊆ closure (f '' s) :=
+by { rw [← image_univ, ← hs.closure_eq], exact image_closure_subset_closure_image hf }
+
+/-- The image of a dense set under a continuous map with dense range is a dense set. -/
+lemma dense_range.dense_image {f : α → β} (hf' : dense_range f) (hf : continuous f)
+  {s : set α} (hs : dense s) :
+  dense (f '' s)  :=
+(hf'.mono $ hf.range_subset_closure_image_dense hs).of_closure
+
+/-- If `f` has dense range and `s` is an open set in the codomain of `f`, then the image of the
+preimage of `s` under `f` is dense in `s`. -/
+lemma dense_range.subset_closure_image_preimage_of_is_open (hf : dense_range f) {s : set β}
+  (hs : is_open s) : s ⊆ closure (f '' (f ⁻¹' s)) :=
+by { rw image_preimage_eq_inter_range, exact hf.open_subset_closure_inter hs }
+
+/-- If a continuous map with dense range maps a dense set to a subset of `t`, then `t` is a dense
+set. -/
+lemma dense_range.dense_of_maps_to {f : α → β} (hf' : dense_range f) (hf : continuous f)
+  {s : set α} (hs : dense s) {t : set β} (ht : maps_to f s t) :
+  dense t :=
+(hf'.dense_image hf hs).mono ht.image_subset
+
+/-- Composition of a continuous map with dense range and a function with dense range has dense
+range. -/
+lemma dense_range.comp {g : β → γ} {f : κ → β} (hg : dense_range g) (hf : dense_range f)
+  (cg : continuous g) :
+  dense_range (g ∘ f) :=
+by { rw [dense_range, range_comp], exact hg.dense_image cg hf }
+
+lemma dense_range.nonempty_iff (hf : dense_range f) : nonempty κ ↔ nonempty β :=
+range_nonempty_iff_nonempty.symm.trans hf.nonempty_iff
+
+lemma dense_range.nonempty [h : nonempty β] (hf : dense_range f) : nonempty κ :=
+hf.nonempty_iff.mpr h
+
+/-- Given a function `f : α → β` with dense range and `b : β`, returns some `a : α`. -/
+def dense_range.some (hf : dense_range f) (b : β) : κ :=
+classical.choice $ hf.nonempty_iff.mpr ⟨b⟩
+
+lemma dense_range.exists_mem_open (hf : dense_range f) {s : set β} (ho : is_open s)
+  (hs : s.nonempty) :
+  ∃ a, f a ∈ s :=
+exists_range_iff.1 $ hf.exists_mem_open ho hs
+
+lemma dense_range.mem_nhds {f : κ → β} (h : dense_range f) {b : β} {U : set β}
+  (U_in : U ∈ nhds b) : ∃ a, f a ∈ U :=
+begin
+  rcases (mem_closure_iff_nhds.mp
+    ((dense_range_iff_closure_range.mp h).symm ▸ mem_univ b : b ∈ closure (range f)) U U_in)
+    with ⟨_, h, a, rfl⟩,
+  exact ⟨a, h⟩
+end
+
+end dense_range
 
 end continuous
+
+/--
+The library contains many lemmas stating that functions/operations are continuous. There are many
+ways to formulate the continuity of operations. Some are more convenient than others.
+Note: for the most part this note also applies to other properties
+(`measurable`, `differentiable`, `continuous_on`, ...).
+
+### The traditional way
+As an example, let's look at addition `(+) : M → M → M`. We can state that this is continuous
+in different definitionally equal ways (omitting some typing information)
+* `continuous (λ p, p.1 + p.2)`;
+* `continuous (function.uncurry (+))`;
+* `continuous ↿(+)`. (`↿` is notation for recursively uncurrying a function)
+
+However, lemmas with this conclusion are not nice to use in practice because
+1. They confuse the elaborator. The following two examples fail, because of limitations in the
+  elaboration process.
+  ```
+  variables {M : Type*} [has_mul M] [topological_space M] [has_continuous_mul M]
+  example : continuous (λ x : M, x + x) :=
+  continuous_add.comp _
+
+  example : continuous (λ x : M, x + x) :=
+  continuous_add.comp (continuous_id.prod_mk continuous_id)
+  ```
+  The second is a valid proof, which is accepted if you write it as
+  `continuous_add.comp (continuous_id.prod_mk continuous_id : _)`
+
+2. If the operation has more than 2 arguments, they are impractical to use, because in your
+  application the arguments in the domain might be in a different order or associated differently.
+
+### The convenient way
+A much more convenient way to write continuity lemmas is like `continuous.add`:
+```
+continuous.add {f g : X → M} (hf : continuous f) (hg : continuous g) : continuous (λ x, f x + g x)
+```
+The conclusion can be `continuous (f + g)`, which is definitionally equal.
+This has the following advantages
+* It supports projection notation, so is shorter to write.
+* `continuous.add _ _` is recognized correctly by the elaborator and gives useful new goals.
+* It works generally, since the domain is a variable.
+
+As an example for an unary operation, we have `continuous.neg`.
+```
+continuous.neg {f : α → G} (hf : continuous f) : continuous (λ x, -f x)
+```
+For unary functions, the elaborator is not confused when applying the traditional lemma
+(like `continuous_neg`), but it's still convenient to have the short version available (compare
+`hf.neg.neg.neg` with `continuous_neg.comp $ continuous_neg.comp $ continuous_neg.comp hf`).
+
+As a harder example, consider an operation of the following type:
+```
+def strans {x : F} (γ γ' : path x x) (t₀ : I) : path x x
+```
+The precise definition is not important, only its type.
+The correct continuity principle for this operation is something like this:
+```
+{f : X → F} {γ γ' : ∀ x, path (f x) (f x)} {t₀ s : X → I}
+  (hγ : continuous ↿γ) (hγ' : continuous ↿γ')
+  (ht : continuous t₀) (hs : continuous s) :
+  continuous (λ x, strans (γ x) (γ' x) (t x) (s x))
+```
+Note that *all* arguments of `strans` are indexed over `X`, even the basepoint `x`, and the last
+argument `s` that arises since `path x x` has a coercion to `I → F`. The paths `γ` and `γ'` (which
+are unary functions from `I`) become binary functions in the continuity lemma.
+
+### Summary
+* Make sure that your continuity lemmas are stated in the most general way, and in a convenient
+  form. That means that:
+  - The conclusion has a variable `X` as domain (not something like `Y × Z`);
+  - Wherever possible, all point arguments `c : Y` are replaced by functions `c : X → Y`;
+  - All `n`-ary function arguments are replaced by `n+1`-ary functions
+    (`f : Y → Z` becomes `f : X → Y → Z`);
+  - All (relevant) arguments have continuity assumptions, and perhaps there are additional
+    assumptions needed to make the operation continuous;
+  - The function in the conclusion is fully applied.
+* These remarks are mostly about the format of the *conclusion* of a continuity lemma.
+  In assumptions it's fine to state that a function with more than 1 argument is continuous using
+  `↿` or `function.uncurry`.
+
+### Functions with discontinuities
+
+In some cases, you want to work with discontinuous functions, and in certain expressions they are
+still continuous. For example, consider the fractional part of a number, `fract : ℝ → ℝ`.
+In this case, you want to add conditions to when a function involving `fract` is continuous, so you
+get something like this: (assumption `hf` could be weakened, but the important thing is the shape
+of the conclusion)
+```
+lemma continuous_on.comp_fract {X Y : Type*} [topological_space X] [topological_space Y]
+  {f : X → ℝ → Y} {g : X → ℝ} (hf : continuous ↿f) (hg : continuous g) (h : ∀ s, f s 0 = f s 1) :
+  continuous (λ x, f x (fract (g x)))
+```
+With `continuous_at` you can be even more precise about what to prove in case of discontinuities,
+see e.g. `continuous_at.comp_div_cases`.
+-/
+library_note "continuity lemma statement"

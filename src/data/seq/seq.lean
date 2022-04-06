@@ -1,11 +1,11 @@
 /-
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carneiro
+Authors: Mario Carneiro
 -/
-import data.list.basic
-import data.stream
 import data.lazy_list
+import data.nat.basic
+import data.stream.init
 import data.seq.computation
 
 universes u v w
@@ -129,8 +129,7 @@ begin
   dsimp [destruct],
   induction f0 : nth s 0 with a'; intro h,
   { contradiction },
-  { unfold functor.map at h,
-    cases s with f al,
+  { cases s with f al,
     injections with _ h1 h2,
     rw ←h2, apply subtype.eq, dsimp [tail, cons],
     rw h1 at f0, rw ←f0,
@@ -210,7 +209,7 @@ end
 begin
   dsimp [corec, destruct, nth],
   change stream.corec' (corec.F f) (some b) 0 with (corec.F f (some b)).1,
-  unfold functor.map, dsimp [corec.F],
+  dsimp [corec.F],
   induction h : f b with s, { refl },
   cases s with a b', dsimp [corec.F],
   apply congr_arg (λ b', some (a, b')),
@@ -234,7 +233,7 @@ instance coe_list : has_coe (list α) (seq α) := ⟨of_list⟩
 section bisim
   variable (R : seq α → seq α → Prop)
 
-  local infix ~ := R
+  local infix ` ~ `:50 := R
 
   def bisim_o : option (seq1 α) → option (seq1 α) → Prop
   | none          none            := true
@@ -592,10 +591,7 @@ end
 
 @[simp] theorem of_list_cons (a : α) (l) :
   of_list (a :: l) = cons a (of_list l) :=
-begin
-  apply subtype.eq, simp [of_list, cons],
-  ext ⟨⟩; simp [list.nth, stream.cons]
-end
+by ext (_|n) : 2; simp [of_list, cons, stream.nth, stream.cons]
 
 @[simp] theorem of_stream_cons (a : α) (s) :
   of_stream (a :: s) = cons a (of_stream s) :=
@@ -715,7 +711,7 @@ by dsimp [join]; rw [destruct_cons]; refl
   which produces a singleton sequence. -/
 def ret (a : α) : seq1 α := (a, nil)
 
-instance [inhabited α] : inhabited (seq1 α) := ⟨ret (default _)⟩
+instance [inhabited α] : inhabited (seq1 α) := ⟨ret default⟩
 
 /-- The `bind` operator for the `seq1` monad,
   which maps `f` on each element of `s` and appends the results together.

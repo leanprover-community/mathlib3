@@ -68,7 +68,8 @@ do fr ← parser.ident,
 output. -/
 @[user_attribute] meta def library_note_attr : user_attribute :=
 { name := `library_note,
-  descr := "Notes about library features to be included in documentation" }
+  descr := "Notes about library features to be included in documentation",
+  parser := failed }
 
 /--
 `mk_reflected_definition name val` constructs a definition declaration by reflection.
@@ -138,15 +139,18 @@ structure tactic_doc_entry :=
 (description : string := "")
 (inherit_description_from : option _root_.name := none)
 
-/-- format a `tactic_doc_entry` -/
-meta def tactic_doc_entry.to_string : tactic_doc_entry → string
-| ⟨name, category, decl_names, tags, description, _⟩ :=
-let decl_names := decl_names.map (repr ∘ to_string),
-    tags := tags.map repr in
-"{" ++ to_string (format!"\"name\": {repr name}, \"category\": \"{category}\", \"decl_names\":{decl_names}, \"tags\": {tags}, \"description\": {repr description}") ++ "}"
+/-- Turns a `tactic_doc_entry` into a JSON representation. -/
+meta def tactic_doc_entry.to_json (d : tactic_doc_entry) : json :=
+json.object [
+  ("name", d.name),
+  ("category", d.category.to_string),
+  ("decl_names", d.decl_names.map (json.of_string ∘ to_string)),
+  ("tags", d.tags.map json.of_string),
+  ("description", d.description)
+]
 
 meta instance : has_to_string tactic_doc_entry :=
-⟨tactic_doc_entry.to_string⟩
+⟨json.unparse ∘ tactic_doc_entry.to_json⟩
 
 /-- `update_description_from tde inh_id` replaces the `description` field of `tde` with the
     doc string of the declaration named `inh_id`. -/
@@ -173,7 +177,8 @@ end
 for use in doc output -/
 @[user_attribute] meta def tactic_doc_entry_attr : user_attribute :=
 { name := `tactic_doc,
-  descr := "Information about a tactic to be included in documentation" }
+  descr := "Information about a tactic to be included in documentation",
+  parser := failed }
 
 /-- Collects everything in the environment tagged with the attribute `tactic_doc`. -/
 meta def tactic.get_tactic_doc_entries : tactic (list tactic_doc_entry) :=
@@ -187,11 +192,11 @@ if `tde.description` is the empty string, `add_tactic_doc` uses the doc
 string of `decl` as the description. -/
 meta def tactic.add_tactic_doc (tde : tactic_doc_entry) : tactic unit :=
 do when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
-     fail
-     ("A tactic doc entry must either:\n" ++
-     " 1. have a description written as a doc-string for the `add_tactic_doc` invocation, or\n" ++
-     " 2. have a single declaration in the `decl_names` field, to inherit a description from, or\n" ++
-     " 3. explicitly indicate the declaration to inherit the description from using `inherit_description_from`."),
+     fail "A tactic doc entry must either:
+ 1. have a description written as a doc-string for the `add_tactic_doc` invocation, or
+ 2. have a single declaration in the `decl_names` field, to inherit a description from, or
+ 3. explicitly indicate the declaration to inherit the description from using
+    `inherit_description_from`.",
    tde ← if tde.description = "" then tde.update_description else return tde,
    let decl_name := (tde.name ++ tde.category.to_string).mk_hashed_name `tactic_doc,
    add_decl $ mk_definition decl_name [] `(tactic_doc_entry) (reflect tde),
@@ -210,8 +215,7 @@ add_tactic_doc
 { name := "display name of the tactic",
   category := cat,
   decl_names := [`dcl_1, `dcl_2],
-  tags := ["tag_1", "tag_2"]
-}
+  tags := ["tag_1", "tag_2"] }
 ```
 
 The argument to `add_tactic_doc` is a structure of type `tactic_doc_entry`.
@@ -375,7 +379,7 @@ Inside `conv` blocks, mathlib currently additionally provides
 * `conv` (within another `conv`).
 
 `apply_congr` applies congruence lemmas to step further inside expressions,
-and sometimes gives between results than the automatically generated
+and sometimes gives better results than the automatically generated
 congruence lemmas used by `congr`.
 
 Using `conv` inside a `conv` block allows the user to return to the previous
@@ -384,14 +388,12 @@ editing an expression without having to start a new `conv` block and re-scoping
 everything. For example:
 ```lean
 example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
-by conv {
-  to_lhs,
-  conv {
-    congr, skip,
-    rw h₁,
-  },
-  rw h₂,
-}
+by conv
+{ to_lhs,
+  conv
+  { congr, skip,
+    rw h₁ },
+  rw h₂, }
 ```
 Without `conv`, the above example would need to be proved using two successive
 `conv` blocks, each beginning with `to_lhs`.

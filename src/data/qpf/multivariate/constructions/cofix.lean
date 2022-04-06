@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Simon Hudon
+Authors: Jeremy Avigad, Simon Hudon
 -/
 
 import control.functor.multivariate
@@ -35,7 +35,8 @@ We define the relation `Mcongr` and take its quotient as the definition of `cofi
 
 ## Reference
 
- * [Jeremy Avigad, Mario M. Carneiro and Simon Hudon, *Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
+ * Jeremy Avigad, Mario M. Carneiro and Simon Hudon.
+   [*Data Types as Quotients of Polynomial Functors*][avigad-carneiro-hudon2019]
 -/
 
 universe u
@@ -79,7 +80,7 @@ def cofix (F : typevec (n + 1) → Type u) [mvfunctor F] [q : mvqpf F] (α : typ
 quot (@Mcongr _ F _ q α)
 
 instance {α : typevec n} [inhabited q.P.A] [Π (i : fin2 n), inhabited (α i)] :
-  inhabited (cofix F α) := ⟨ quot.mk _ (default _) ⟩
+  inhabited (cofix F α) := ⟨ quot.mk _ default ⟩
 
 /-- maps every element of the W type to a canonical representative -/
 def Mrepr {α : typevec n} : q.P.M α → q.P.M α := corecF (abs ∘ M.dest q.P)
@@ -139,7 +140,8 @@ cofix.corec (λ x, g id) x
 
 /-- More flexible corecursor for `cofix F`. Allows the return of a fully formed
 value instead of making a recursive call -/
-def cofix.corec' {α : typevec n} {β : Type u} (g : β → F (α.append1 (cofix F α ⊕ β))) (x : β) : cofix F α :=
+def cofix.corec' {α : typevec n} {β : Type u} (g : β → F (α.append1 (cofix F α ⊕ β))) (x : β) :
+  cofix F α :=
 let f : α ::: cofix F α ⟹ α ::: (cofix F α ⊕ β) := id ::: sum.inl in
 cofix.corec
 (sum.elim (mvfunctor.map f ∘ cofix.dest) g)
@@ -296,13 +298,15 @@ end
 lemma cofix.dest_mk {α : typevec n} (x : F (α.append1 $ cofix F α)) : cofix.dest (cofix.mk x) = x :=
 begin
   have : cofix.mk ∘ cofix.dest = @_root_.id (cofix F α) := funext cofix.mk_dest,
-  rw [cofix.mk, cofix.dest_corec, ←comp_map, ←cofix.mk, ← append_fun_comp, this, id_comp, append_fun_id_id, mvfunctor.id_map]
+  rw [cofix.mk, cofix.dest_corec, ←comp_map, ←cofix.mk, ← append_fun_comp, this, id_comp,
+    append_fun_id_id, mvfunctor.id_map]
 end
 
 lemma cofix.ext {α : typevec n} (x y : cofix F α) (h : x.dest = y.dest) : x = y :=
 by rw [← cofix.mk_dest x,h,cofix.mk_dest]
 
-lemma cofix.ext_mk {α : typevec n} (x y : F (α ::: cofix F α)) (h : cofix.mk x = cofix.mk  y) : x = y :=
+lemma cofix.ext_mk {α : typevec n} (x y : F (α ::: cofix F α)) (h : cofix.mk x = cofix.mk  y) :
+  x = y :=
 by rw [← cofix.dest_mk x,h,cofix.dest_mk]
 
 /-!
@@ -385,8 +389,7 @@ begin
   { simp only [←append_prod_append_fun, prod_map_id],
     apply eq_of_drop_last_eq,
     { dsimp, simp only [drop_fun_diag],
-      erw subtype_val_diag_sub,
-    },
+      erw subtype_val_diag_sub },
     ext1,
     simp only [cofix.abs, prod.mk.inj_iff, prod_map, function.comp_app, last_fun_append_fun,
                last_fun_subtype_val, last_fun_comp, last_fun_split_fun],
@@ -405,8 +408,8 @@ omit q
 /-- tactic for proof by bisimulation -/
 meta def mv_bisim (e : parse texpr) (ids : parse with_ident_list) : tactic unit :=
 do e ← to_expr e,
-   (expr.pi n bi d b) ← retrieve $ do {
-     generalize e,
+   (expr.pi n bi d b) ← retrieve $ do
+   { generalize e,
      target },
    `(@eq %%t %%l %%r) ← pure b,
    x ← mk_local_def `n d,
@@ -468,7 +471,6 @@ instance mvqpf_cofix : mvqpf (cofix F) :=
   abs       := λ α, quot.mk Mcongr,
   repr      := λ α, cofix.repr,
   abs_repr  := λ α, cofix.abs_repr,
-  abs_map   := λ α β g x, rfl
-}
+  abs_map   := λ α β g x, rfl }
 
 end mvqpf

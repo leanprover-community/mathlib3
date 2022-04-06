@@ -1,0 +1,9 @@
+image:
+  file: .docker/gitpod/mathlib/Dockerfile
+
+vscode:
+  extensions:
+    - jroesch.lean
+
+tasks:
+  - command: . /home/gitpod/.profile && leanproject get-cache --fallback=download-all

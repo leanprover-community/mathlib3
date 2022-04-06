@@ -3,10 +3,11 @@ Copyright (c) 2020 Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
-import category_theory.limits.shapes.pullbacks
+import category_theory.limits.shapes.binary_products
 import category_theory.limits.shapes.equalizers
-import category_theory.limits.preserves.basic
+import category_theory.limits.shapes.wide_pullbacks
 import category_theory.is_connected
+import category_theory.limits.preserves.basic
 
 /-!
 # Connected limits
@@ -30,18 +31,18 @@ section examples
 instance wide_pullback_shape_connected (J : Type v₁) : is_connected (wide_pullback_shape J) :=
 begin
   apply is_connected.of_induct,
-  introv _ t,
+  introv hp t,
   cases j,
-  { exact a },
+  { exact hp },
   { rwa t (wide_pullback_shape.hom.term j) }
 end
 
 instance wide_pushout_shape_connected (J : Type v₁) : is_connected (wide_pushout_shape J) :=
 begin
   apply is_connected.of_induct,
-  introv _ t,
+  introv hp t,
   cases j,
-  { exact a },
+  { exact hp },
   { rwa ← t (wide_pushout_shape.hom.init j) }
 end
 
@@ -69,17 +70,18 @@ namespace prod_preserves_connected_limits
 
 /-- (Impl). The obvious natural transformation from (X × K -) to K. -/
 @[simps]
-def γ₂ {K : J ⥤ C} (X : C) : K ⋙ prod_functor.obj X ⟶ K :=
+def γ₂ {K : J ⥤ C} (X : C) : K ⋙ prod.functor.obj X ⟶ K :=
 { app := λ Y, limits.prod.snd }
 
 /-- (Impl). The obvious natural transformation from (X × K -) to X -/
 @[simps]
-def γ₁ {K : J ⥤ C} (X : C) : K ⋙ prod_functor.obj X ⟶ (functor.const J).obj X :=
+def γ₁ {K : J ⥤ C} (X : C) : K ⋙ prod.functor.obj X ⟶ (functor.const J).obj X :=
 { app := λ Y, limits.prod.fst }
 
-/-- (Impl). Given a cone for (X × K -), produce a cone for K using the natural transformation `γ₂` -/
+/-- (Impl).
+Given a cone for (X × K -), produce a cone for K using the natural transformation `γ₂` -/
 @[simps]
-def forget_cone {X : C} {K : J ⥤ C} (s : cone (K ⋙ prod_functor.obj X)) : cone K :=
+def forget_cone {X : C} {K : J ⥤ C} (s : cone (K ⋙ prod.functor.obj X)) : cone K :=
 { X := s.X,
   π := s.π ≫ γ₂ X }
 
@@ -95,21 +97,23 @@ Note that this functor does not preserve the two most obvious disconnected limit
 -/
 noncomputable
 def prod_preserves_connected_limits [is_connected J] (X : C) :
-  preserves_limits_of_shape J (prod_functor.obj X) :=
+  preserves_limits_of_shape J (prod.functor.obj X) :=
 { preserves_limit := λ K,
   { preserves := λ c l,
-    { lift := λ s, prod.lift (s.π.app (classical.arbitrary _) ≫ limits.prod.fst) (l.lift (forget_cone s)),
+    { lift := λ s, prod.lift
+        (s.π.app (classical.arbitrary _) ≫ limits.prod.fst)
+        (l.lift (forget_cone s)),
       fac' := λ s j,
       begin
         apply prod.hom_ext,
-        { erw [assoc, limit.map_π, comp_id, limit.lift_π],
+        { erw [assoc, lim_map_π, comp_id, limit.lift_π],
           exact (nat_trans_from_is_connected (s.π ≫ γ₁ X) j (classical.arbitrary _)).symm },
         { simp [← l.fac (forget_cone s) j] }
       end,
       uniq' := λ s m L,
       begin
         apply prod.hom_ext,
-        { erw [limit.lift_π, ← L (classical.arbitrary J), assoc, limit.map_π, comp_id],
+        { erw [limit.lift_π, ← L (classical.arbitrary J), assoc, lim_map_π, comp_id],
           refl },
         { rw limit.lift_π,
           apply l.uniq (forget_cone s),

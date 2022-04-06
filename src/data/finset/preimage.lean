@@ -28,11 +28,35 @@ noncomputable def preimage (s : finset β) (f : α → β)
 
 @[simp] lemma mem_preimage {f : α → β} {s : finset β} {hf : set.inj_on f (f ⁻¹' ↑s)} {x : α} :
   x ∈ preimage s f hf ↔ f x ∈ s :=
-set.finite.mem_to_finset
+set.finite.mem_to_finset _
 
 @[simp, norm_cast] lemma coe_preimage {f : α → β} (s : finset β)
   (hf : set.inj_on f (f ⁻¹' ↑s)) : (↑(preimage s f hf) : set α) = f ⁻¹' ↑s :=
 set.finite.coe_to_finset _
+
+@[simp] lemma preimage_empty {f : α → β} : preimage ∅ f (by simp [inj_on]) = ∅ :=
+finset.coe_injective (by simp)
+
+@[simp] lemma preimage_univ {f : α → β} [fintype α] [fintype β] (hf) :
+  preimage univ f hf = univ :=
+finset.coe_injective (by simp)
+
+@[simp] lemma preimage_inter [decidable_eq α] [decidable_eq β] {f : α → β} {s t : finset β}
+  (hs : set.inj_on f (f ⁻¹' ↑s)) (ht : set.inj_on f (f ⁻¹' ↑t)) :
+  preimage (s ∩ t) f (λ x₁ hx₁ x₂ hx₂, hs (mem_of_mem_inter_left hx₁) (mem_of_mem_inter_left hx₂))
+    = preimage s f hs ∩ preimage t f ht :=
+finset.coe_injective (by simp)
+
+@[simp] lemma preimage_union [decidable_eq α] [decidable_eq β] {f : α → β} {s t : finset β} (hst) :
+  preimage (s ∪ t) f hst
+    = preimage s f (λ x₁ hx₁ x₂ hx₂, hst (mem_union_left _ hx₁) (mem_union_left _ hx₂))
+    ∪ preimage t f (λ x₁ hx₁ x₂ hx₂, hst (mem_union_right _ hx₁) (mem_union_right _ hx₂)) :=
+finset.coe_injective (by simp)
+
+@[simp] lemma preimage_compl [decidable_eq α] [decidable_eq β] [fintype α] [fintype β]
+  {f : α → β} (s : finset β) (hf : function.injective f) :
+  preimage sᶜ f (hf.inj_on _) = (preimage s f (hf.inj_on _))ᶜ :=
+finset.coe_injective (by simp)
 
 lemma monotone_preimage {f : α → β} (h : injective f) :
   monotone (λ s, preimage s f (h.inj_on _)) :=
@@ -57,6 +81,21 @@ lemma image_preimage_of_bij [decidable_eq β] (f : α → β) (s : finset β)
   (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) :
   image f (preimage s f hf.inj_on) = s :=
 finset.coe_inj.1 $ by simpa using hf.image_eq
+
+lemma preimage_subset {f : α ↪ β} {s : finset β} {t : finset α} (hs : s ⊆ t.map f) :
+  s.preimage f (f.injective.inj_on _) ⊆ t :=
+λ x hx, (mem_map' f).1 (hs (mem_preimage.1 hx))
+
+lemma subset_map_iff {f : α ↪ β} {s : finset β} {t : finset α} :
+  s ⊆ t.map f ↔ ∃ u ⊆ t, s = u.map f :=
+begin
+  classical,
+  refine ⟨λ h, ⟨_, preimage_subset h, _⟩, _⟩,
+  { rw [map_eq_image, image_preimage, filter_true_of_mem (λ x hx, _)],
+    exact coe_map_subset_range _ _ (h hx) },
+  { rintro ⟨u, hut, rfl⟩,
+    exact map_subset_map.2 hut }
+end
 
 lemma sigma_preimage_mk {β : α → Type*} [decidable_eq α] (s : finset (Σ a, β a)) (t : finset α) :
   t.sigma (λ a, s.preimage (sigma.mk a) $ sigma_mk_injective.inj_on _) = s.filter (λ a, a.1 ∈ t) :=

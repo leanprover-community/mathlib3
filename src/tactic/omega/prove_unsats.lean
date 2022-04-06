@@ -1,9 +1,14 @@
-/- Copyright (c) 2019 Seul Baek. All rights reserved.
+/-
+Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Seul Baek
+Authors: Seul Baek
+-/
 
+/-
 A tactic which constructs exprs to discharge
-goals of the form `clauses.unsat cs`. -/
+goals of the form `clauses.unsat cs`.
+-/
+
 import tactic.omega.find_ees
 import tactic.omega.find_scalars
 import tactic.omega.lin_comb

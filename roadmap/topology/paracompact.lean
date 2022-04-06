@@ -23,6 +23,8 @@ open set filter
 
 universe u
 
+namespace roadmap
+
 class paracompact_space (X : Type u) [topological_space X] : Prop :=
 (locally_finite_refinement :
   ∀ {α : Type u} (u : α → set X) (uo : ∀ a, is_open (u a)) (uc : Union u = univ),
@@ -57,7 +59,7 @@ begin
   refine ⟨s, λ b, u b.val, λ b, uo b.val, _, _, λ b, ⟨b.val, subset.refl _⟩⟩,
   { todo },
   { intro x,
-    refine ⟨univ, univ_mem_sets, _⟩,
+    refine ⟨univ, univ_mem, _⟩,
     todo },
 end
 
@@ -80,3 +82,4 @@ todo
 See Mary Ellen Rudin, A new proof that metric spaces are paracompact.
 https://www.ams.org/journals/proc/1969-020-02/S0002-9939-1969-0236876-3/S0002-9939-1969-0236876-3.pdf
 -/
+end roadmap

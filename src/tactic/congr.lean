@@ -51,6 +51,15 @@ do tgt ← target,
    rewrite_target h,
    swap
 
+/-- Attempts to prove the goal by proof irrelevance, but avoids unifying universe metavariables
+to do so. -/
+meta def by_proof_irrel : tactic unit :=
+do tgt ← target,
+  @expr.const tt n [level.zero] ← pure tgt.get_app_fn,
+  if n = ``eq then `[apply proof_irrel] else
+  if n = ``heq then `[apply proof_irrel_heq] else
+  failed
+
 /--
 Same as the `congr` tactic, but takes an optional argument which gives
 the depth of recursive applications.
@@ -60,11 +69,11 @@ the depth of recursive applications.
 * If, at any point, a subgoal matches a hypothesis then the subgoal will be closed.
 -/
 meta def congr' : option ℕ → tactic unit
-| (some 0) := failed
-| o        := focus1 (assumption <|> (congr_core' >>
-  all_goals' (reflexivity <|> `[apply proof_irrel_heq] <|>
-              `[apply proof_irrel] <|> try (congr' (nat.pred <$> o)))))
-
+| o := focus1 $
+  assumption <|> reflexivity transparency.none <|> by_proof_irrel <|>
+  (guard (o ≠ some 0) >> congr_core' >>
+    all_goals' (try (congr' (nat.pred <$> o)))) <|>
+  reflexivity
 
 namespace interactive
 
@@ -80,13 +89,13 @@ the depth of recursive applications.
   `x : α ⊢ f x = g x`.
 -/
 meta def congr' (n : parse (with_desc "n" small_nat)?) :
-  parse (tk "with" *> prod.mk <$> (rcases_patt_parse tt)* <*> (tk ":" *> small_nat)?)? →
+  parse (tk "with" *> prod.mk <$> rintro_patt_parse_hi* <*> (tk ":" *> small_nat)?)? →
   tactic unit
 | none         := tactic.congr' n
-| (some ⟨p, m⟩) := focus1 (tactic.congr' n >> all_goals' (ext p m))
+| (some ⟨p, m⟩) := focus1 (tactic.congr' n >> all_goals' (tactic.ext p.join m $> ()))
 
 /--
-Repeatedly and apply `congr'` and `ext`, using the the given patterns as arguments for `ext`.
+Repeatedly and apply `congr'` and `ext`, using the given patterns as arguments for `ext`.
 
 There are two ways this tactic stops:
 * `congr'` fails (makes no progress), after having already applied `ext`.
@@ -112,13 +121,13 @@ and `congr' with x` (or `congr', ext x`) would produce
 x : α ⊢ f x + 3 = g x + 3
 ```
 -/
-meta def rcongr : parse (rcases_patt_parse tt)* → tactic unit
+meta def rcongr : parse (list.join <$> rintro_patt_parse_hi*) → tactic unit
 | ps := do
   t ← target,
   qs ← try_core (tactic.ext ps none),
   some () ← try_core (tactic.congr' none >>
     (done <|> do s ← target, guard $ ¬ s =ₐ t)) | skip,
-  done <|> rcongr (qs.lhoare ps)
+  done <|> rcongr (qs.get_or_else ps)
 
 add_tactic_doc
 { name       := "congr'",
@@ -129,8 +138,8 @@ add_tactic_doc
 
 /--
 The `exact e` and `refine e` tactics require a term `e` whose type is
-definitionally equal to the goal. `convert e` is similar to `refine
-e`, but the type of `e` is not required to exactly match the
+definitionally equal to the goal. `convert e` is similar to `refine e`,
+but the type of `e` is not required to exactly match the
 goal. Instead, new goals are created for differences between the type
 of `e` and the goal. For example, in the proof state
 
@@ -148,6 +157,14 @@ the tactic `convert e` will change the goal to
 
 In this example, the new goal can be solved using `ring`.
 
+The `convert` tactic applies congruence lemmas eagerly before reducing,
+therefore it can fail in cases where `exact` succeeds:
+```lean
+def p (n : ℕ) := true
+example (h : p 0) : p 1 := by exact h -- succeeds
+example (h : p 0) : p 1 := by convert h -- fails, with leftover goal `1 = 0`
+```
+
 If `x y : t`, and an instance `subsingleton t` is in scope, then any goals of the form
 `x = y` are solved automatically.
 
@@ -162,15 +179,18 @@ depth of matching (like `congr' n`). In the example, `convert e using
 -/
 meta def convert (sym : parse (with_desc "←" (tk "<-")?)) (r : parse texpr)
   (n : parse (tk "using" *> small_nat)?) : tactic unit :=
-do v ← mk_mvar,
-   if sym.is_some
-     then refine ``(eq.mp %%v %%r)
-     else refine ``(eq.mpr %%v %%r),
-   gs ← get_goals,
-   set_goals [v],
-   try (tactic.congr' n),
-   gs' ← get_goals,
-   set_goals $ gs' ++ gs
+do tgt ← target,
+  u ← infer_type tgt,
+  r ← i_to_expr ``(%%r : (_ : %%u)),
+  src ← infer_type r,
+  src ← simp_lemmas.mk.dsimplify [] src {fail_if_unchanged := ff},
+  v ← to_expr (if sym.is_some then ``(%%src = %%tgt) else ``(%%tgt = %%src)) tt ff >>= mk_meta_var,
+  (if sym.is_some then mk_eq_mp v r else mk_eq_mpr v r) >>= tactic.exact,
+  gs ← get_goals,
+  set_goals [v],
+  try (tactic.congr' n),
+  gs' ← get_goals,
+  set_goals $ gs' ++ gs
 
 add_tactic_doc
 { name       := "convert",
@@ -183,15 +203,9 @@ add_tactic_doc
 it will generate equality proof obligations using `congr' n` to resolve discrepancies.
 `convert_to g` defaults to using `congr' 1`.
 
-`ac_change` is `convert_to` followed by `ac_refl`. It is useful for rearranging/reassociating
-e.g. sums:
-```lean
-example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ N :=
-begin
-  ac_change a + d + e + f + c + g + b ≤ _,
--- ⊢ a + d + e + f + c + g + b ≤ N
-end
-```
+`convert_to` is similar to `convert`, but `convert_to` takes a type (the desired subgoal) while
+`convert` takes a proof term.
+That is, `convert_to g using n` is equivalent to `convert (_ : g) using n`.
 -/
 meta def convert_to (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 match n with
@@ -200,7 +214,17 @@ match n with
   | (some o) := convert_to_core r >> tactic.congr' o
 end
 
-/-- `ac_change g using n` is `convert_to g using n; try {ac_refl}`. -/
+/--
+`ac_change g using n` is `convert_to g using n` followed by `ac_refl`. It is useful for
+rearranging/reassociating e.g. sums:
+```lean
+example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ N :=
+begin
+  ac_change a + d + e + f + c + g + b ≤ _,
+-- ⊢ a + d + e + f + c + g + b ≤ N
+end
+```
+-/
 meta def ac_change (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 convert_to r n; try ac_refl
 

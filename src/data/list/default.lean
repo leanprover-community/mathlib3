@@ -1,17 +1,17 @@
 /-
 Copyright (c) 2014 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad
+Authors: Jeremy Avigad
 -/
 import data.list.alist
-import data.list.bag_inter
 import data.list.basic
 import data.list.chain
 import data.list.defs
-import data.list.erase_dup
+import data.list.dedup
 import data.list.forall2
 import data.list.func
 import data.list.intervals
+import data.list.lattice
 import data.list.min_max
 import data.list.indexes
 import data.list.nat_antidiagonal

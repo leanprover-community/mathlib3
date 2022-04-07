@@ -975,7 +975,7 @@ end
 
 section
 
-variables {D : Type u₂} [category.{v} D] (G : C ⥤ D)
+variables (G : C ⥤ D)
 
 /--
 The comparison morphism for the pullback of `f,g`.

@@ -67,6 +67,9 @@ instance symm_diff_is_comm : is_commutative α (Δ) := ⟨symm_diff_comm⟩
 lemma symm_diff_eq_sup_sdiff_inf : a Δ b = (a ⊔ b) \ (a ⊓ b) :=
 by simp [sup_sdiff, sdiff_inf, sup_comm, (Δ)]
 
+@[simp] lemma sup_sdiff_symm_diff : (a ⊔ b) \ (a Δ b) = a ⊓ b :=
+sdiff_eq_symm inf_le_sup (by rw symm_diff_eq_sup_sdiff_inf)
+
 lemma disjoint_symm_diff_inf : disjoint (a Δ b) (a ⊓ b) :=
 begin
   rw [symm_diff_eq_sup_sdiff_inf],
@@ -74,6 +77,13 @@ begin
 end
 
 lemma symm_diff_le_sup : a Δ b ≤ a ⊔ b := by { rw symm_diff_eq_sup_sdiff_inf, exact sdiff_le }
+
+lemma inf_symm_diff_distrib_left : a ⊓ (b Δ c) = (a ⊓ b) Δ (a ⊓ c) :=
+by rw [symm_diff_eq_sup_sdiff_inf, inf_sdiff_distrib_left, inf_sup_left, inf_inf_distrib_left,
+  symm_diff_eq_sup_sdiff_inf]
+
+lemma inf_symm_diff_distrib_right : (a Δ b) ⊓ c = (a ⊓ c) Δ (b ⊓ c) :=
+by simp_rw [@inf_comm _ _ _ c, inf_symm_diff_distrib_left]
 
 lemma sdiff_symm_diff : c \ (a Δ b) = (c ⊓ a ⊓ b) ⊔ ((c \ a) ⊓ (c \ b)) :=
 by simp only [(Δ), sdiff_sdiff_sup_sdiff']
@@ -168,12 +178,21 @@ calc a Δ b = a ↔ a Δ b = a Δ ⊥ : by rw symm_diff_bot
 calc a Δ b = ⊥ ↔ a Δ b = a Δ a : by rw symm_diff_self
            ... ↔     a = b     : by rw [symm_diff_right_inj, eq_comm]
 
-lemma disjoint.disjoint_symm_diff_of_disjoint {a b c : α} (ha : disjoint a c) (hb : disjoint b c) :
+@[simp] lemma symm_diff_symm_diff_inf : a Δ b Δ (a ⊓ b) = a ⊔ b :=
+by rw [symm_diff_eq_iff_sdiff_eq (symm_diff_le_sup _ _), sup_sdiff_symm_diff]
+
+@[simp] lemma inf_symm_diff_symm_diff : (a ⊓ b) Δ (a Δ b) = a ⊔ b :=
+by rw [symm_diff_comm, symm_diff_symm_diff_inf]
+
+variables {a b c}
+
+protected lemma disjoint.symm_diff_left (ha : disjoint a c) (hb : disjoint b c) :
   disjoint (a Δ b) c :=
-begin
-  rw symm_diff_eq_sup_sdiff_inf,
-  exact (ha.sup_left hb).disjoint_sdiff_left,
-end
+by { rw symm_diff_eq_sup_sdiff_inf, exact (ha.sup_left hb).disjoint_sdiff_left }
+
+protected lemma disjoint.symm_diff_right (ha : disjoint a b) (hb : disjoint a c) :
+  disjoint a (b Δ c) :=
+(ha.symm.symm_diff_left hb.symm).symm
 
 end generalized_boolean_algebra
 

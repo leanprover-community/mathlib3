@@ -133,12 +133,12 @@ galois_connection.l_supr (fixing_submonoid_fixed_points_gc M α)
 
 /-- Fixed points of sup of submonoids is intersection -/
 lemma fixed_points_submonoid_sup {P Q : submonoid M} :
-  fixed_points (P ⊔ Q : submonoid M) α = fixed_points P α ∩ fixed_points Q α :=
+  fixed_points ↥(P ⊔ Q) α = fixed_points P α ∩ fixed_points Q α :=
 galois_connection.u_inf (fixing_submonoid_fixed_points_gc M α)
 
 /-- Fixed points of supr of submonoids is intersection -/
 lemma fixed_points_submonoid_supr {ι : Sort*} {P : ι → submonoid M} :
-  fixed_points (supr P : submonoid M) α = ⋂ i, fixed_points (P i) α :=
+  fixed_points ↥(supr P) α = ⋂ i, fixed_points (P i) α :=
 galois_connection.u_infi (fixing_submonoid_fixed_points_gc M α)
 
 end monoid
@@ -187,12 +187,12 @@ galois_connection.l_supr (fixing_subgroup_fixed_points_gc M α)
 
 /-- Fixed points of sup of subgroups is intersection -/
 lemma fixed_points_subgroup_sup {P Q : subgroup M} :
-  fixed_points (P ⊔ Q : subgroup M) α = fixed_points P α ∩ fixed_points Q α :=
+  fixed_points ↥(P ⊔ Q) α = fixed_points P α ∩ fixed_points Q α :=
 galois_connection.u_inf (fixing_subgroup_fixed_points_gc M α)
 
 /-- Fixed points of supr of subgroups is intersection -/
 lemma fixed_points_subgroup_supr {ι : Sort*} {P : ι → subgroup M} :
-  fixed_points (supr P : subgroup M) α = ⋂ i, fixed_points (P i) α :=
+  fixed_points ↥(supr P) α = ⋂ i, fixed_points (P i) α :=
 galois_connection.u_infi (fixing_subgroup_fixed_points_gc M α)
 
 end group

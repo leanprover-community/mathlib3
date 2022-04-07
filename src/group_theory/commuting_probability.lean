@@ -56,12 +56,36 @@ begin
   exact ge_of_eq (closure_mul_eq hR hR1 hS),
 end
 
+lemma fintype_of_index_ne_zero {G : Type*} [group G] {H : subgroup G} (hH : H.index ≠ 0) :
+  fintype (G ⧸ H) :=
+(cardinal.lt_omega_iff_fintype.mp (lt_of_not_ge (mt cardinal.to_nat_apply_of_omega_le hH))).some
+
+instance tada {G : Type*} [group G] (H : subgroup G) [fintype (G ⧸ H)] :
+  fintype (quotient (quotient_group.right_rel H)) :=
+fintype.of_equiv (G ⧸ H)
+{ to_fun := quotient.map' (λ g, g⁻¹) (λ a b h, (congr_arg (∈ H) (by group)).mp (H.inv_mem h)),
+  inv_fun := quotient.map' (λ g, g⁻¹) (λ a b h, (congr_arg (∈ H) (by group)).mp (H.inv_mem h)),
+  left_inv := begin
+    refine λ g, quotient.induction_on' g (λ g, quotient.sound' _),
+    simp only [inv_inv],
+    refine quotient.exact' rfl,
+  end,
+  right_inv := begin
+    refine λ g, quotient.induction_on' g (λ g, quotient.sound' _),
+    simp only [inv_inv],
+    refine quotient.exact' rfl,
+  end, }
+
+lemma card_quotient_right_rel_eq {G : Type*} [group G] (H : subgroup G) [fintype (G ⧸ H)] :
+  fintype.card (quotient (quotient_group.right_rel H)) = fintype.card (G ⧸ H) :=
+fintype.of_equiv_card _
+
 lemma fg_of_index_ne_zero {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
   (hH : H.index ≠ 0) : group.fg H :=
 begin
   obtain ⟨S, hS⟩ := hG.1,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
-  haveI : fintype (quotient (quotient_group.right_rel H)) := sorry,
+  haveI : fintype (G ⧸ H) := fintype_of_index_ne_zero hH,
   haveI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
   let R : finset G := set.to_finset R₀,
   replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
@@ -74,7 +98,7 @@ lemma schreier_aux3 {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
 begin
   obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
-  haveI : fintype (quotient (quotient_group.right_rel H)) := sorry,
+  haveI : fintype (G ⧸ H) := fintype_of_index_ne_zero hH,
   haveI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
   let R : finset G := set.to_finset R₀,
   replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
@@ -86,6 +110,10 @@ begin
   ... ≤ (R.product S).card : finset.card_image_le
   ... = R.card * S.card : R.card_product S
   ... = H.index * group.rank G : congr_arg2 (*) _ hS₀,
+  calc R.card = fintype.card R : (fintype.card_coe R).symm
+  ... = _ : (fintype.card_congr (mem_right_transversals.to_equiv hR)).symm
+  ... = fintype.card (G ⧸ H) : H.card_quotient_right_rel_eq
+  ... = H.index : H.index_eq_card.symm,
 end
 
 end subgroup

@@ -59,12 +59,12 @@ instance has_faithful_scalar_right [nonempty α] [has_faithful_scalar M β] :
 end
 
 @[to_additive]
-instance smul_comm_class_both [monoid N] [monoid P] [has_scalar M N] [has_scalar M P]
+instance smul_comm_class_both [has_mul N] [has_mul P] [has_scalar M N] [has_scalar M P]
   [smul_comm_class M N N] [smul_comm_class M P P] :
   smul_comm_class M (N × P) (N × P) :=
 ⟨λ c x y, by simp [smul_def, mul_def, mul_smul_comm]⟩
 
-instance is_scalar_tower_both [monoid N] [monoid P] [has_scalar M N] [has_scalar M P]
+instance is_scalar_tower_both [has_mul N] [has_mul P] [has_scalar M N] [has_scalar M P]
   [is_scalar_tower M N N] [is_scalar_tower M P P] :
   is_scalar_tower M (N × P) (N × P) :=
 ⟨λ c x y, by simp [smul_def, mul_def, smul_mul_assoc]⟩

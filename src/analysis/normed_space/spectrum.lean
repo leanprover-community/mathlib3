@@ -36,8 +36,6 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 
 ## TODO
 
-* after we have Liouville's theorem, prove that the spectrum is nonempty when the
-  scalar field is ℂ.
 * compute all derivatives of `resolvent a`.
 
 -/
@@ -67,7 +65,7 @@ local notation `↑ₐ` := algebra_map 𝕜 A
 
 lemma mem_resolvent_set_of_spectral_radius_lt {a : A} {k : 𝕜} (h : spectral_radius 𝕜 a < ∥k∥₊) :
   k ∈ ρ a :=
-not_not.mp (λ hn, (lt_self_iff_false _).mp (lt_of_le_of_lt (le_bsupr k hn) h))
+not_not.mp $ λ hn, h.not_le $ le_supr₂ k hn
 
 variable [complete_space A]
 
@@ -103,7 +101,7 @@ metric.is_compact_of_is_closed_bounded (is_closed a) (is_bounded a)
 
 theorem spectral_radius_le_nnnorm (a : A) :
   spectral_radius 𝕜 a ≤ ∥a∥₊ :=
-by { refine bsupr_le (λ k hk, _), exact_mod_cast norm_le_norm_of_mem hk }
+by { refine supr₂_le (λ k hk, _), exact_mod_cast norm_le_norm_of_mem hk }
 
 open ennreal polynomial
 
@@ -111,7 +109,7 @@ variable (𝕜)
 theorem spectral_radius_le_pow_nnnorm_pow_one_div (a : A) (n : ℕ) :
   spectral_radius 𝕜 a ≤ ∥a ^ (n + 1)∥₊ ^ (1 / (n + 1) : ℝ) :=
 begin
-  refine bsupr_le (λ k hk, _),
+  refine supr₂_le (λ k hk, _),
   /- apply easy direction of the spectral mapping theorem for polynomials -/
   have pow_mem : k ^ (n + 1) ∈ σ (a ^ (n + 1)),
     by simpa only [one_mul, algebra.algebra_map_eq_smul_one, one_smul, aeval_monomial, one_mul,
@@ -261,12 +259,8 @@ section gelfand_formula
 open filter ennreal continuous_multilinear_map
 open_locale topological_space
 
-/- the assumption below that `A` be second countable is a technical limitation due to
-the current implementation of Bochner integrals in mathlib. Once this is changed, we
-will be able to remove that hypothesis. -/
 variables
 [normed_ring A] [normed_algebra ℂ A] [complete_space A]
-[measurable_space A] [borel_space A] [topological_space.second_countable_topology A]
 
 /-- The `limsup` relationship for the spectral radius used to prove `spectrum.gelfand_formula`. -/
 lemma limsup_pow_nnnorm_pow_one_div_le_spectral_radius (a : A) :
@@ -294,7 +288,7 @@ begin
   refine tendsto_of_le_liminf_of_limsup_le _ _ (by apply_auto_param) (by apply_auto_param),
   { rw [←liminf_nat_add _ 1, liminf_eq_supr_infi_of_nat],
     refine le_trans _ (le_supr _ 0),
-    exact le_binfi (λ i hi, spectral_radius_le_pow_nnnorm_pow_one_div ℂ a i) },
+    exact le_infi₂ (λ i hi, spectral_radius_le_pow_nnnorm_pow_one_div ℂ a i) },
   { exact limsup_pow_nnnorm_pow_one_div_le_spectral_radius a },
 end
 
@@ -315,7 +309,7 @@ end gelfand_formula
 
 /-- In a (nontrivial) complex Banach algebra, every element has nonempty spectrum. -/
 theorem nonempty {A : Type*} [normed_ring A] [normed_algebra ℂ A] [complete_space A]
-  [nontrivial A] [topological_space.second_countable_topology A]
+  [nontrivial A]
   (a : A) : (spectrum ℂ a).nonempty :=
 begin
   /- Suppose `σ a = ∅`, then resolvent set is `ℂ`, any `(z • 1 - a)` is a unit, and `resolvent`
@@ -364,7 +358,7 @@ is an algebra isomorphism whose inverse is given by selecting the (unique) eleme
 `spectrum ℂ a`. In addition, `algebra_map_isometry` guarantees this map is an isometry. -/
 @[simps]
 noncomputable def _root_.normed_division_ring.alg_equiv_complex_of_complete
-  [complete_space A] [topological_space.second_countable_topology A] : ℂ ≃ₐ[ℂ] A :=
+  [complete_space A] : ℂ ≃ₐ[ℂ] A :=
 { to_fun := algebra_map ℂ A,
   inv_fun := λ a, (spectrum.nonempty a).some,
   left_inv := λ z, by simpa only [scalar_eq] using (spectrum.nonempty $ algebra_map ℂ A z).some_mem,

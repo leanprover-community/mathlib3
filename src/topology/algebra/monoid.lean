@@ -429,8 +429,8 @@ end has_continuous_mul
 namespace mul_opposite
 
 /-- If multiplication is continuous in `α`, then it also is in `αᵐᵒᵖ`. -/
-@[to_additive] instance [topological_space α] [has_mul α] [has_continuous_mul α] :
-  has_continuous_mul αᵐᵒᵖ :=
+@[to_additive "If addition is continuous in `α`, then it also is in `αᵃᵒᵖ`."]
+instance [topological_space α] [has_mul α] [has_continuous_mul α] : has_continuous_mul αᵐᵒᵖ :=
 ⟨ let h₁ := @continuous_mul α _ _ _ in
   let h₂ : continuous (λ p : α × α, _) := continuous_snd.prod_mk continuous_fst in
   continuous_induced_rng $ (h₁.comp h₂).comp (continuous_unop.prod_map continuous_unop) ⟩
@@ -448,7 +448,12 @@ with respect to the induced topology, is continuous.
 
 Inversion is also continuous, but we register this in a later file, `topology.algebra.group`,
 because the predicate `has_continuous_inv` has not yet been defined. -/
-@[to_additive] instance : has_continuous_mul αˣ :=
+@[to_additive "If addition on an additive monoid is continuous, then addition on the additive units
+of the monoid, with respect to the induced topology, is continuous.
+
+Negation is also continuous, but we register this in a later file, `topology.algebra.group`, because
+the predicate `has_continuous_neg` has not yet been defined."]
+instance : has_continuous_mul αˣ :=
 ⟨ let h := @continuous_mul (α × αᵐᵒᵖ) _ _ _ in
   continuous_induced_rng $ h.comp $ continuous_embed_product.prod_map continuous_embed_product ⟩
 
@@ -488,18 +493,31 @@ continuous_multiset_prod _
 
 open function
 
+@[to_additive]
+lemma locally_finite.exists_finset_mul_support {M : Type*} [comm_monoid M] {f : ι → X → M}
+  (hf : locally_finite (λ i, mul_support $ f i)) (x₀ : X) :
+  ∃ I : finset ι, ∀ᶠ x in 𝓝 x₀, mul_support (λ i, f i x) ⊆ I :=
+begin
+  rcases hf x₀ with ⟨U, hxU, hUf⟩,
+  refine ⟨hUf.to_finset, mem_of_superset hxU $ λ y hy i hi, _⟩,
+  rw [hUf.coe_to_finset],
+  exact ⟨y, hi, hy⟩
+end
+
+@[to_additive] lemma finprod_eventually_eq_prod {M : Type*} [comm_monoid M]
+  {f : ι → X → M} (hf : locally_finite (λ i, mul_support (f i))) (x : X) :
+  ∃ s : finset ι, ∀ᶠ y in 𝓝 x, (∏ᶠ i, f i y) = ∏ i in s, f i y :=
+let ⟨I, hI⟩ := hf.exists_finset_mul_support x in
+  ⟨I, hI.mono (λ y hy, finprod_eq_prod_of_mul_support_subset _ $ λ i hi, hy hi)⟩
+
 @[to_additive] lemma continuous_finprod {f : ι → X → M} (hc : ∀ i, continuous (f i))
   (hf : locally_finite (λ i, mul_support (f i))) :
   continuous (λ x, ∏ᶠ i, f i x) :=
 begin
   refine continuous_iff_continuous_at.2 (λ x, _),
-  rcases hf x with ⟨U, hxU, hUf⟩,
-  have : continuous_at (λ x, ∏ i in hUf.to_finset, f i x) x,
-    from tendsto_finset_prod _ (λ i hi, (hc i).continuous_at),
-  refine this.congr (mem_of_superset hxU $ λ y hy, _),
-  refine (finprod_eq_prod_of_mul_support_subset _ (λ i hi, _)).symm,
-  rw [hUf.coe_to_finset],
-  exact ⟨y, hi, hy⟩
+  rcases finprod_eventually_eq_prod hf x with ⟨s, hs⟩,
+  refine continuous_at.congr _ (eventually_eq.symm hs),
+  exact tendsto_finset_prod _ (λ i hi, (hc i).continuous_at),
 end
 
 @[to_additive] lemma continuous_finprod_cond {f : ι → X → M} {p : ι → Prop}

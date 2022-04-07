@@ -83,6 +83,23 @@ realize_relabel
   c.term.realize v = c :=
 fun_map_eq_coe_constants
 
+@[simp] lemma realize_functions_apply₁ {f : L.functions 1} {t : L.term α} {v : α → M} :
+  (f.apply₁ t).realize v = fun_map f ![t.realize v] :=
+begin
+  rw [functions.apply₁, term.realize],
+  refine congr rfl (funext (λ i, _)),
+  simp only [matrix.cons_val_fin_one],
+end
+
+@[simp] lemma realize_functions_apply₂ {f : L.functions 2} {t₁ t₂ : L.term α} {v : α → M} :
+  (f.apply₂ t₁ t₂).realize v = fun_map f ![t₁.realize v, t₂.realize v] :=
+begin
+  rw [functions.apply₂, term.realize],
+  refine congr rfl (funext (fin.cases _ _)),
+  { simp only [matrix.cons_val_zero], },
+  { simp only [matrix.cons_val_succ, matrix.cons_val_fin_one, forall_const] }
+end
+
 lemma realize_con {A : set M} {a : A} {v : α → M} :
   (L.con a).term.realize v = a := rfl
 
@@ -165,6 +182,24 @@ by simp only [realize]
 @[simp] lemma realize_rel {k : ℕ} {R : L.relations k} {ts : fin k → L.term _} :
   (R.bounded_formula ts).realize v xs ↔ rel_map R (λ i, (ts i).realize (sum.elim v xs)) :=
 iff.rfl
+
+@[simp] lemma realize_rel₁ {R : L.relations 1} {t : L.term _} :
+  (R.bounded_formula₁ t).realize v xs ↔ rel_map R ![t.realize (sum.elim v xs)] :=
+begin
+  rw [relations.bounded_formula₁, realize_rel, iff_eq_eq],
+  refine congr rfl (funext (λ _, _)),
+  simp only [matrix.cons_val_fin_one],
+end
+
+@[simp] lemma realize_rel₂ {R : L.relations 2} {t₁ t₂ : L.term _} :
+  (R.bounded_formula₂ t₁ t₂).realize v xs ↔
+    rel_map R ![t₁.realize (sum.elim v xs), t₂.realize (sum.elim v xs)] :=
+begin
+  rw [relations.bounded_formula₂, realize_rel, iff_eq_eq],
+  refine congr rfl (funext (fin.cases _ _)),
+  { simp only [matrix.cons_val_zero]},
+  { simp only [matrix.cons_val_succ, matrix.cons_val_fin_one, forall_const] }
+end
 
 @[simp] lemma realize_sup : (φ ⊔ ψ).realize v xs ↔ (φ.realize v xs ∨ ψ.realize v xs) :=
 begin
@@ -403,6 +438,24 @@ bounded_formula.realize_imp
   (R.formula ts).realize v ↔ rel_map R (λ i, (ts i).realize v) :=
 bounded_formula.realize_rel.trans (by simp)
 
+@[simp] lemma realize_rel₁ {R : L.relations 1} {t : L.term _} :
+  (R.formula₁ t).realize v ↔ rel_map R ![t.realize v] :=
+begin
+  rw [relations.formula₁, realize_rel, iff_eq_eq],
+  refine congr rfl (funext (λ _, _)),
+  simp only [matrix.cons_val_fin_one],
+end
+
+@[simp] lemma realize_rel₂ {R : L.relations 2} {t₁ t₂ : L.term _} :
+  (R.formula₂ t₁ t₂).realize v ↔
+    rel_map R ![t₁.realize v, t₂.realize v] :=
+begin
+  rw [relations.formula₂, realize_rel, iff_eq_eq],
+  refine congr rfl (funext (fin.cases _ _)),
+  { simp only [matrix.cons_val_zero]},
+  { simp only [matrix.cons_val_succ, matrix.cons_val_fin_one, forall_const] }
+end
+
 @[simp] lemma realize_sup : (φ ⊔ ψ).realize v ↔ (φ.realize v ∨ ψ.realize v) :=
 bounded_formula.realize_sup
 
@@ -413,11 +466,15 @@ bounded_formula.realize_iff
   (φ.relabel g).realize v ↔ φ.realize (v ∘ g) :=
 begin
   rw [realize, realize, relabel, bounded_formula.realize_relabel,
-    iff_eq_eq],
-  refine congr (congr rfl _) (funext fin_zero_elim),
-  ext,
-  simp,
+    iff_eq_eq, fin.cast_add_zero],
+  exact congr rfl (funext fin_zero_elim),
 end
+
+lemma realize_relabel_sum_inr (φ : L.formula (fin n)) {v : empty → M} {x : fin n → M} :
+  (bounded_formula.relabel sum.inr φ).realize v x ↔ φ.realize x :=
+by rw [bounded_formula.realize_relabel, formula.realize, sum.elim_comp_inr, fin.cast_add_zero,
+    cast_refl, order_iso.coe_refl, function.comp.right_id,
+    subsingleton.elim (x ∘ (nat_add n : fin 0 → fin n)) default]
 
 @[simp]
 lemma realize_equal {t₁ t₂ : L.term α} {x : α → M} :
@@ -465,6 +522,8 @@ infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \mo
 
 variables {M} (T : L.Theory)
 
+@[simp] lemma Theory.model_iff : M ⊨ T ↔ ∀ φ ∈ T, M ⊨ φ := ⟨λ h, h.realize_of_mem, λ h, ⟨h⟩⟩
+
 lemma Theory.realize_sentence_of_mem [M ⊨ T] {φ : L.sentence} (h : φ ∈ T) :
   M ⊨ φ :=
 Theory.model.realize_of_mem φ h
@@ -483,9 +542,15 @@ end
 
 variables {M} {T}
 
+instance model_empty : M ⊨ (∅ : L.Theory) := ⟨λ φ hφ, (set.not_mem_empty φ hφ).elim⟩
+
 lemma Theory.model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
   M ⊨ T :=
 ⟨λ φ hφ, T'.realize_sentence_of_mem (hs hφ)⟩
+
+lemma Theory.model_singleton_iff {φ : L.sentence} :
+  M ⊨ ({φ} : L.Theory) ↔ M ⊨ φ :=
+by simp
 
 namespace bounded_formula
 
@@ -543,6 +608,44 @@ begin
     iff_eq_eq],
   exact congr rfl (funext fin_zero_elim),
 end
+
+namespace relations
+open bounded_formula
+
+variable {r : L.relations 2}
+
+@[simp]
+lemma realize_reflexive :
+  M ⊨ r.reflexive ↔ reflexive (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, realize_rel₂)
+
+@[simp]
+lemma realize_irreflexive :
+  M ⊨ r.irreflexive ↔ irreflexive (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, not_congr realize_rel₂)
+
+@[simp]
+lemma realize_symmetric :
+  M ⊨ r.symmetric ↔ symmetric (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, forall_congr (λ _, imp_congr realize_rel₂ realize_rel₂))
+
+@[simp]
+lemma realize_antisymmetric :
+  M ⊨ r.antisymmetric ↔ anti_symmetric (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, forall_congr (λ _, imp_congr realize_rel₂ (imp_congr realize_rel₂ iff.rfl)))
+
+@[simp]
+lemma realize_transitive :
+  M ⊨ r.transitive ↔ transitive (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, forall_congr (λ _, forall_congr
+  (λ _, imp_congr realize_rel₂ (imp_congr realize_rel₂ realize_rel₂))))
+
+@[simp]
+lemma realize_total :
+  M ⊨ r.total ↔ total (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, forall_congr (λ _, realize_sup.trans (or_congr realize_rel₂ realize_rel₂)))
+
+end relations
 
 end language
 end first_order

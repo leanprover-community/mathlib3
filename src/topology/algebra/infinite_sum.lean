@@ -224,11 +224,11 @@ begin
   exact hf.has_sum
 end
 
-lemma equiv.summable_iff_of_has_sum_iff {α' : Type*} [add_comm_monoid α']
-  [topological_space α'] (e : α' ≃ α) {f : β → α} {g : γ → α'}
+lemma function.surjective.summable_iff_of_has_sum_iff {α' : Type*} [add_comm_monoid α']
+  [topological_space α'] {e : α' → α} (hes : function.surjective e) {f : β → α} {g : γ → α'}
   (he : ∀ {a}, has_sum f (e a) ↔ has_sum g a) :
   summable f ↔ summable g :=
-⟨λ ⟨a, ha⟩, ⟨e.symm a, he.1 $ by rwa [e.apply_symm_apply]⟩, λ ⟨a, ha⟩, ⟨e a, he.2 ha⟩⟩
+hes.exists.trans $ exists_congr $ @he
 
 variable [has_continuous_add α]
 
@@ -394,20 +394,21 @@ lemma tsum_dite_left (P : Prop) [decidable P] (x : β → P → α) :
   ∑' (b : β), (if h : P then x b h else 0) = if h : P then (∑' (b : β), x b h) else 0 :=
 by by_cases hP : P; simp [hP]
 
-lemma equiv.tsum_eq_tsum_of_has_sum_iff_has_sum {α' : Type*} [add_comm_monoid α']
-  [topological_space α'] (e : α' ≃ α) (h0 : e 0 = 0) {f : β → α} {g : γ → α'}
+lemma function.surjective.tsum_eq_tsum_of_has_sum_iff_has_sum {α' : Type*} [add_comm_monoid α']
+  [topological_space α'] {e : α' → α} (hes : function.surjective e) (h0 : e 0 = 0)
+  {f : β → α} {g : γ → α'}
   (h : ∀ {a}, has_sum f (e a) ↔ has_sum g a) :
   ∑' b, f b = e (∑' c, g c) :=
 by_cases
   (assume : summable g, (h.mpr this.has_sum).tsum_eq)
   (assume hg : ¬ summable g,
-    have hf : ¬ summable f, from mt (e.summable_iff_of_has_sum_iff @h).1 hg,
+    have hf : ¬ summable f, from mt (hes.summable_iff_of_has_sum_iff @h).1 hg,
     by simp [tsum, hf, hg, h0])
 
 lemma tsum_eq_tsum_of_has_sum_iff_has_sum {f : β → α} {g : γ → α}
   (h : ∀{a}, has_sum f a ↔ has_sum g a) :
   ∑'b, f b = ∑'c, g c :=
-(equiv.refl α).tsum_eq_tsum_of_has_sum_iff_has_sum rfl @h
+surjective_id.tsum_eq_tsum_of_has_sum_iff_has_sum rfl @h
 
 lemma equiv.tsum_eq (j : γ ≃ β) (f : β → α) : ∑'c, f (j c) = ∑'b, f b :=
 tsum_eq_tsum_of_has_sum_iff_has_sum $ λ a, j.has_sum_iff
@@ -699,7 +700,7 @@ begin
 end
 
 lemma summable_nat_add_iff {f : ℕ → α} (k : ℕ) : summable (λ n, f (n + k)) ↔ summable f :=
-iff.symm $ (equiv.add_right (∑ i in range k, f i)).summable_iff_of_has_sum_iff $
+iff.symm $ (equiv.add_right (∑ i in range k, f i)).surjective.summable_iff_of_has_sum_iff $
   λ a, (has_sum_nat_add_iff k).symm
 
 lemma has_sum_nat_add_iff' {f : ℕ → α} (k : ℕ) {a : α} :
@@ -736,8 +737,8 @@ end subtype
 
 end topological_group
 
-section topological_ring
-variables [semiring α] [topological_space α] [topological_ring α]
+section topological_semiring
+variables [non_unital_non_assoc_semiring α] [topological_space α] [topological_semiring α]
 variables {f g : β → α} {a a₁ a₂ : α}
 lemma has_sum.mul_left (a₂) (h : has_sum f a₁) : has_sum (λb, a₂ * f b) (a₂ * a₁) :=
 by simpa only using h.map (add_monoid_hom.mul_left a₂) (continuous_const.mul continuous_id)
@@ -762,7 +763,7 @@ lemma summable.tsum_mul_right (a) (hf : summable f) : (∑'b, f b * a) = (∑'b,
 
 end tsum
 
-end topological_ring
+end topological_semiring
 
 section const_smul
 variables {R : Type*}
@@ -1345,8 +1346,8 @@ We first establish results about arbitrary index types, `β` and `γ`, and then 
 
 section tsum_mul_tsum
 
-variables [topological_space α] [regular_space α] [semiring α] [topological_ring α]
-  {f : β → α} {g : γ → α} {s t u : α}
+variables [topological_space α] [regular_space α] [non_unital_non_assoc_semiring α]
+  [topological_semiring α] {f : β → α} {g : γ → α} {s t u : α}
 
 lemma has_sum.mul_eq (hf : has_sum f s) (hg : has_sum g t)
   (hfg : has_sum (λ (x : β × γ), f x.1 * g x.2) u) :
@@ -1389,7 +1390,7 @@ variables {f : ℕ → α} {g : ℕ → α}
 
 open finset
 
-variables [topological_space α] [semiring α]
+variables [topological_space α] [non_unital_non_assoc_semiring α]
 
 /- The family `(k, l) : ℕ × ℕ ↦ f k * g l` is summable if and only if the family
 `(n, k, l) : Σ (n : ℕ), nat.antidiagonal n ↦ f k * g l` is summable. -/
@@ -1398,7 +1399,7 @@ lemma summable_mul_prod_iff_summable_mul_sigma_antidiagonal {f g : ℕ → α} :
   summable (λ x : (Σ (n : ℕ), nat.antidiagonal n), f (x.2 : ℕ × ℕ).1 * g (x.2 : ℕ × ℕ).2) :=
 nat.sigma_antidiagonal_equiv_prod.summable_iff.symm
 
-variables [regular_space α] [topological_ring α]
+variables [regular_space α] [topological_semiring α]
 
 lemma summable_sum_mul_antidiagonal_of_summable_mul {f g : ℕ → α}
   (h : summable (λ x : ℕ × ℕ, f x.1 * g x.2)) :

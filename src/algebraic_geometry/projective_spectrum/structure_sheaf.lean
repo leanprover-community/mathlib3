@@ -22,7 +22,7 @@ this file we will construct a sheaf on `projective_spectrum 𝒜`.
 
 ## Main definitions and results
 * `projective_spectrum.Top`: the topological space of `projective_spectrum 𝒜` endowed with the
-  zariski topology
+  Zariski topology
 
 Then we define the structure sheaf as the subsheaf of all dependent function
 `f : Π x : U, homogeneous_localization 𝒜 x` such that `f` is locally expressible as ratio of two

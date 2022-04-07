@@ -25,8 +25,6 @@ This file defines first-order terms, formulas, sentences, and theories in a styl
 above a particular index.
 * Language maps can act on syntactic objects with functions such as
 `first_order.language.Lhom.on_formula`.
-* Terms can be encoded as lists with `first_order.language.term.list_encode` and
-`first_order.language.term.list_decode`.
 
 ## Implementation Notes
 * Formulas use a modified version of de Bruijn variables. Specifically, a `L.bounded_formula α n`

@@ -94,12 +94,12 @@ begin
   have xt_mem : ∀ t ∈ Icc (0 : ℝ) 1, x + h • v + (t * h) • w ∈ interior s,
   { assume t ht,
     have : x + h • v ∈ interior s :=
-      s_conv.add_smul_mem_interior (subset_closure xs) hv ⟨hpos, h_lt_1.le⟩,
+      s_conv.add_smul_mem_interior xs hv ⟨hpos, h_lt_1.le⟩,
     rw [← smul_smul],
     apply s_conv.interior.add_smul_mem this _ ht,
     rw add_assoc at hw,
     rw [add_assoc, ← smul_add],
-    exact s_conv.add_smul_mem_interior (subset_closure xs) hw ⟨hpos, h_lt_1.le⟩ },
+    exact s_conv.add_smul_mem_interior xs hw ⟨hpos, h_lt_1.le⟩ },
   -- define a function `g` on `[0,1]` (identified with `[v, v + w]`) such that `g 1 - g 0` is the
   -- quantity to be estimated. We will check that its derivative is given by an explicit
   -- expression `g'`, that we can bound. Then the desired bound for `g 1 - g 0` follows from the
@@ -206,15 +206,15 @@ begin
     simp only [two_smul],
     abel },
   have h2v : x + (2 : ℝ) • v ∈ interior s,
-  { convert s_conv.add_smul_sub_mem_interior (subset_closure xs) h4v A using 1,
+  { convert s_conv.add_smul_sub_mem_interior xs h4v A using 1,
     simp only [smul_smul, one_div, add_sub_cancel', add_right_inj],
     norm_num },
   have h2w : x + (2 : ℝ) • w ∈ interior s,
-  { convert s_conv.add_smul_sub_mem_interior (subset_closure xs) h4w A using 1,
+  { convert s_conv.add_smul_sub_mem_interior xs h4w A using 1,
     simp only [smul_smul, one_div, add_sub_cancel', add_right_inj],
     norm_num },
   have hvw : x + (v + w) ∈ interior s,
-  { convert s_conv.add_smul_sub_mem_interior (subset_closure xs) h2v2w A using 1,
+  { convert s_conv.add_smul_sub_mem_interior xs h2v2w A using 1,
     simp only [smul_smul, one_div, add_sub_cancel', add_right_inj, smul_add, smul_sub],
     norm_num,
     abel },

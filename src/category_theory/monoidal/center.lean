@@ -115,25 +115,22 @@ def tensor_obj (X Y : center C) : center C :=
       ≪≫ (X.2.β U ⊗ iso.refl Y.1) ≪≫ α_ _ _ _,
     monoidal' := λ U U',
     begin
-      dsimp,
-      simp only [comp_tensor_id, id_tensor_comp, category.assoc, half_braiding.monoidal],
-      rw [pentagon_assoc, pentagon_inv_assoc, iso.eq_inv_comp, ←pentagon_assoc,
-        ←id_tensor_comp_assoc, iso.hom_inv_id, tensor_id, category.id_comp,
-        ←associator_naturality_assoc, cancel_epi, cancel_epi,
-        ←associator_inv_naturality_assoc (X.2.β U).hom,
-        associator_inv_naturality_assoc _ _ (Y.2.β U').hom, tensor_id, tensor_id,
-        id_tensor_comp_tensor_id_assoc, associator_naturality_assoc (X.2.β U).hom,
-        ←associator_naturality_assoc _ _ (Y.2.β U').hom, tensor_id, tensor_id,
-        tensor_id_comp_id_tensor_assoc, ←id_tensor_comp_tensor_id, tensor_id, category.comp_id,
-        ←is_iso.inv_comp_eq, inv_tensor, is_iso.inv_id, is_iso.iso.inv_inv, pentagon_assoc,
-        iso.hom_inv_id_assoc, cancel_epi, cancel_epi, ←is_iso.inv_comp_eq, is_iso.iso.inv_hom,
-        ←pentagon_inv_assoc, ←comp_tensor_id_assoc, iso.inv_hom_id, tensor_id, category.id_comp,
-        ←associator_inv_naturality_assoc, cancel_epi, cancel_epi, ←is_iso.inv_comp_eq, inv_tensor,
-        is_iso.iso.inv_hom, is_iso.inv_id, pentagon_inv_assoc, iso.inv_hom_id, category.comp_id],
+      calc _ = _ ≫
+      (𝟙 X.fst ⊗ (Y.snd.β U).hom ⊗ 𝟙 U') ≫ _ ≫
+        ((X.snd.β U).hom ⊗ (Y.snd.β U').hom) ≫ _ ≫
+          (𝟙 U ⊗ (X.snd.β U').hom ⊗ 𝟙 Y.fst) ≫ _ : _
+      ... = _ : _,
+      exact (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (α_ _ _ _).inv),
+      exact (𝟙 _ ⊗ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv,
+      exact (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (α_ _ _ _).inv),
+      exact (𝟙 _ ⊗ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv,
+      { rw [←id_tensor_comp_tensor_id_assoc (Y.snd.β U').hom (X.snd.β U).hom], simp },
+      { rw [←tensor_id_comp_id_tensor (Y.snd.β U').hom (X.snd.β U).hom], simp },
     end,
     naturality' := λ U U' f,
     begin
       dsimp,
+      simp,
       rw [category.assoc, category.assoc, category.assoc, category.assoc,
         id_tensor_associator_naturality_assoc, ←id_tensor_comp_assoc, half_braiding.naturality,
         id_tensor_comp_assoc, associator_inv_naturality_assoc, ←comp_tensor_id_assoc,
@@ -170,34 +167,15 @@ def tensor_unit : center C :=
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 def associator (X Y Z : center C) : tensor_obj (tensor_obj X Y) Z ≅ tensor_obj X (tensor_obj Y Z) :=
-iso_mk ⟨(α_ X.1 Y.1 Z.1).hom, λ U, begin
-  dsimp,
-  simp only [category.assoc, comp_tensor_id, id_tensor_comp],
-  rw [pentagon, pentagon_assoc, ←associator_naturality_assoc (𝟙 X.1) (𝟙 Y.1), tensor_id, cancel_epi,
-    cancel_epi, iso.eq_inv_comp, ←pentagon_assoc, ←id_tensor_comp_assoc, iso.hom_inv_id, tensor_id,
-    category.id_comp, ←associator_naturality_assoc, cancel_epi, cancel_epi, ←is_iso.inv_comp_eq,
-    inv_tensor, is_iso.inv_id, is_iso.iso.inv_inv, pentagon_assoc, iso.hom_inv_id_assoc, ←tensor_id,
-    ←associator_naturality_assoc],
-end⟩
+iso_mk ⟨(α_ X.1 Y.1 Z.1).hom, by tidy⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 def left_unitor (X : center C) : tensor_obj tensor_unit X ≅ X :=
-iso_mk ⟨(λ_ X.1).hom, λ U, begin
-  dsimp,
-  simp only [category.comp_id, category.assoc, tensor_inv_hom_id, comp_tensor_id,
-    tensor_id_comp_id_tensor, triangle_assoc_comp_right_inv],
-  rw [←left_unitor_tensor, left_unitor_naturality, left_unitor_tensor'_assoc],
-end⟩
+iso_mk ⟨(λ_ X.1).hom, by tidy⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 def right_unitor (X : center C) : tensor_obj X tensor_unit ≅ X :=
-iso_mk ⟨(ρ_ X.1).hom, λ U, begin
-  dsimp,
-  simp only [tensor_id_comp_id_tensor_assoc, triangle_assoc, id_tensor_comp, category.assoc],
-  rw [←tensor_id_comp_id_tensor_assoc (ρ_ U).inv, cancel_epi, ←right_unitor_tensor_inv_assoc,
-    ←right_unitor_inv_naturality_assoc],
-  simp,
-end⟩
+iso_mk ⟨(ρ_ X.1).hom, {}⟩
 
 section
 local attribute [simp] associator_naturality left_unitor_naturality right_unitor_naturality

@@ -217,7 +217,7 @@ lemma pick_submodule_mem_image {c : set (extension_of hi f)} (hchain : chain (�
   (directed_on_of_chain hchain)).mp y.2).some_spec.some
 
 /--The submodule picked by `pick_submodule` is the underlying submodule of an element in the chain,
-i.e. underlying submodule of some `extension_of` f, `pick_extension_of` picks that extension.
+i.e. underlying submodule of some `extension_of f`, `pick_extension_of` picks that extension.
 -/
 def pick_extension_of {c : set (extension_of hi f)} (hchain : chain (≤) c)
   (hnonempty : c.nonempty) (y : Sup ((λ x : extension_of hi f, x.to_submodule) '' c)) :

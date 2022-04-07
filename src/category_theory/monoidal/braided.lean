@@ -79,12 +79,7 @@ I couldn't find a detailed proof in print, but this is discussed in:
 
 variables (C : Type u₁) [category.{v₁} C] [monoidal_category C] [braided_category C]
 
-lemma braiding_left_unitor_aux₁ (X : C) :
-  (α_ (𝟙_ C) (𝟙_ C) X).hom ≫ (𝟙 _ ⊗ (β_ X (𝟙_ C)).inv) ≫ (α_ _ X _).inv ≫ ((λ_ X).hom ⊗ 𝟙 _) =
-  ((λ_ _).hom ⊗ 𝟙 X) ≫ (β_ X _).inv :=
-by { rw [←left_unitor_tensor, left_unitor_naturality], simp, }
-
-lemma braiding_left_unitor_aux₂ (X : C) :
+lemma braiding_left_unitor_aux (X : C) :
   ((β_ X (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫ ((λ_ X).hom ⊗ (𝟙 (𝟙_ C))) = (ρ_ X).hom ⊗ (𝟙 (𝟙_ C)) :=
 calc ((β_ X (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫ ((λ_ X).hom ⊗ (𝟙 (𝟙_ C)))
     = ((β_ X (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫ (α_ _ _ _).hom ≫ (α_ _ _ _).inv ≫
@@ -97,7 +92,7 @@ calc ((β_ X (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫ ((λ_ X).hom ⊗ (𝟙 (�
         (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (β_ X _).inv) ≫ (α_ _ _ _).inv ≫ ((λ_ X).hom ⊗ (𝟙 (𝟙_ C)))
          : by { slice_lhs 1 3 { rw ←hexagon_forward }, simp only [assoc], }
 ... = (α_ _ _ _).hom ≫ (β_ _ _).hom ≫ ((λ_ _).hom ⊗ 𝟙 X) ≫ (β_ X _).inv
-         : by rw braiding_left_unitor_aux₁
+         : by simp
 ... = (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (λ_ _).hom) ≫ (β_ _ _).hom ≫ (β_ X _).inv
          : by { slice_lhs 2 3 { rw [←braiding_naturality] }, simp only [assoc], }
 ... = (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (λ_ _).hom)
@@ -107,14 +102,9 @@ calc ((β_ X (𝟙_ C)).hom ⊗ (𝟙 (𝟙_ C))) ≫ ((λ_ X).hom ⊗ (𝟙 (�
 
 @[simp]
 lemma braiding_left_unitor (X : C) : (β_ X (𝟙_ C)).hom ≫ (λ_ X).hom = (ρ_ X).hom :=
-by rw [←tensor_right_iff, comp_tensor_id, braiding_left_unitor_aux₂]
+by rw [←tensor_right_iff, comp_tensor_id, braiding_left_unitor_aux]
 
-lemma braiding_right_unitor_aux₁ (X : C) :
-  (α_ X (𝟙_ C) (𝟙_ C)).inv ≫ ((β_ (𝟙_ C) X).inv ⊗ 𝟙 _) ≫ (α_ _ X _).hom ≫ (𝟙 _ ⊗ (ρ_ X).hom) =
-  (𝟙 X ⊗ (ρ_ _).hom) ≫ (β_ _ X).inv :=
-by { rw [←right_unitor_tensor, right_unitor_naturality], simp, }
-
-lemma braiding_right_unitor_aux₂ (X : C) :
+lemma braiding_right_unitor_aux (X : C) :
   ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_ X).hom) = (𝟙 (𝟙_ C)) ⊗ (λ_ X).hom :=
 calc ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_ X).hom)
     = ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ (α_ _ _ _).inv ≫ (α_ _ _ _).hom ≫
@@ -127,7 +117,7 @@ calc ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_
         (α_ _ _ _).inv ≫ ((β_ _ X).inv ⊗ 𝟙 _) ≫ (α_ _ _ _).hom ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_ X).hom)
          : by { slice_lhs 1 3 { rw ←hexagon_reverse }, simp only [assoc], }
 ... = (α_ _ _ _).inv ≫ (β_ _ _).hom ≫ (𝟙 X ⊗ (ρ_ _).hom) ≫ (β_ _ X).inv
-         : by rw braiding_right_unitor_aux₁
+         : by simp
 ... = (α_ _ _ _).inv ≫ ((ρ_ _).hom ⊗ 𝟙 _) ≫ (β_ _ X).hom ≫ (β_ _ _).inv
          : by { slice_lhs 2 3 { rw [←braiding_naturality] }, simp only [assoc], }
 ... = (α_ _ _ _).inv ≫ ((ρ_ _).hom ⊗ 𝟙 _)
@@ -137,7 +127,7 @@ calc ((𝟙 (𝟙_ C)) ⊗ (β_ (𝟙_ C) X).hom) ≫ ((𝟙 (𝟙_ C)) ⊗ (ρ_
 
 @[simp]
 lemma braiding_right_unitor (X : C) : (β_ (𝟙_ C) X).hom ≫ (ρ_ X).hom = (λ_ X).hom :=
-by rw [←tensor_left_iff, id_tensor_comp, braiding_right_unitor_aux₂]
+by rw [←tensor_left_iff, id_tensor_comp, braiding_right_unitor_aux]
 
 end
 

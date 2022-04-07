@@ -119,7 +119,7 @@ restate_axiom monoidal_category.right_unitor_naturality'
 attribute [reassoc] monoidal_category.right_unitor_naturality
 restate_axiom monoidal_category.pentagon'
 restate_axiom monoidal_category.triangle'
-attribute [reassoc] monoidal_category.pentagon
+attribute [simp, reassoc] monoidal_category.pentagon
 attribute [simp, reassoc] monoidal_category.triangle
 
 open monoidal_category
@@ -206,58 +206,48 @@ by { split_ifs; refl }
 
 @[reassoc, simp] lemma comp_tensor_id (f : W ⟶ X) (g : X ⟶ Y) :
   (f ≫ g) ⊗ (𝟙 Z) = (f ⊗ 𝟙 Z) ≫ (g ⊗ 𝟙 Z) :=
-by { rw ←tensor_comp, simp }
+by rw [←tensor_comp, comp_id]
 
 @[reassoc, simp] lemma id_tensor_comp (f : W ⟶ X) (g : X ⟶ Y) :
   (𝟙 Z) ⊗ (f ≫ g) = (𝟙 Z ⊗ f) ≫ (𝟙 Z ⊗ g) :=
-by { rw ←tensor_comp, simp }
+by rw [←tensor_comp, comp_id]
 
 @[reassoc] lemma id_tensor_comp_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
   (𝟙 Y ⊗ f) ≫ (g ⊗ 𝟙 X) = g ⊗ f :=
-by { rw ←tensor_comp, simp }
+by rw [←tensor_comp, id_comp, comp_id]
 
 @[reassoc] lemma tensor_id_comp_id_tensor (f : W ⟶ X) (g : Y ⟶ Z) :
   (g ⊗ 𝟙 W) ≫ (𝟙 Z ⊗ f) = g ⊗ f :=
-by { rw ←tensor_comp, simp }
+by rw [←tensor_comp, id_comp, comp_id]
 
 @[reassoc] lemma tensor_exchange (f : W ⟶ X) (g : Y ⟶ Z) :
   (𝟙 Y ⊗ f) ≫ (g ⊗ 𝟙 X) = (g ⊗ 𝟙 W) ≫ (𝟙 Z ⊗ f) :=
 by rw [id_tensor_comp_tensor_id, tensor_id_comp_id_tensor]
 
-@[reassoc]
-lemma associator_naturality {X Y Z X' Y' Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
-  ((f ⊗ g) ⊗ h) ≫ (α_ X' Y' Z').hom = (α_ X Y Z).hom ≫ (f ⊗ (g ⊗ h)) :=
-by simp
+@[reassoc, simp]
+lemma tensor_hom_assoc {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :
+  ((f₁ ⊗ f₂) ⊗ f₃) = (α_ X₁ X₂ X₃).hom ≫ (f₁ ⊗ (f₂ ⊗ f₃)) ≫ (α_ Y₁ Y₂ Y₃).inv :=
+by { rw [←associator_naturality_assoc], simp }
 
 @[reassoc]
 lemma associator_inv_naturality {X Y Z X' Y' Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
   (f ⊗ (g ⊗ h)) ≫ (α_ X' Y' Z').inv = (α_ X Y Z).inv ≫ ((f ⊗ g) ⊗ h) :=
 by simp
 
-/--
-
-(tensor_hom_assoc'   :
-  ∀ {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃),
-  ((f₁ ⊗' f₂) ⊗' f₃) = (α_ X₁ X₂ X₃).hom ≫ (f₁ ⊗' (f₂ ⊗' f₃)) ≫ (α_ Y₁ Y₂ Y₃).inv . obviously)
-(id_unit_tensor'  :
-  ∀ {X Y : C} (f : X ⟶ Y), ((𝟙 𝟙_) ⊗' f) = (λ_ X).hom ≫ f ≫ (λ_ Y).inv . obviously)
-(tensor_id_unit' :
-  ∀ {X Y : C} (f : X ⟶ Y), (f ⊗' (𝟙 𝟙_)) = (ρ_ X).hom ≫ f ≫ (ρ_ Y).inv . obviously)
--/
-@[reassoc, simp]
+@[reassoc]
 lemma id_tensor_associator_naturality {X Y Z Z' : C} (h : Z ⟶ Z') :
   (𝟙 (X ⊗ Y) ⊗ h) ≫ (α_ X Y Z').hom = (α_ X Y Z).hom ≫ (𝟙 X ⊗ (𝟙 Y ⊗ h)) :=
-by { rw [←tensor_id, associator_naturality], }
+by rw [←tensor_id, associator_naturality]
+
+@[reassoc, simp]
+lemma id_tensor_tensor {X Y Z Z' : C} (h : Z ⟶ Z') :
+  (𝟙 (X ⊗ Y) ⊗ h) = (α_ X Y Z).hom ≫ (𝟙 X ⊗ (𝟙 Y ⊗ h)) ≫ (α_ X Y Z').inv  :=
+by rw [←tensor_id, tensor_hom_assoc]
 
 @[reassoc]
 lemma id_tensor_associator_inv_naturality {X Y Z X' : C} (f : X ⟶ X')  :
   (f ⊗ 𝟙 (Y ⊗ Z)) ≫ (α_ X' Y Z).inv = (α_ X Y Z).inv ≫ ((f ⊗ 𝟙 Y) ⊗ 𝟙 Z) :=
-by { rw [←tensor_id, associator_inv_naturality] }
-
-@[reassoc, simp]
-lemma id_tensor_associator_naturality' {X Y Z Z' : C} (h : Z ⟶ Z') :
-  (𝟙 (X ⊗ Y) ⊗ h) = (α_ X Y Z).hom ≫ (𝟙 X ⊗ (𝟙 Y ⊗ h)) ≫ (α_ X Y Z').inv  :=
-by { rw [←tensor_id, tensor_hom_assoc] }
+by rw [←tensor_id, associator_inv_naturality]
 
 @[reassoc]
 lemma associator_conjugation {X X' Y Y' Z Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
@@ -269,10 +259,13 @@ lemma associator_inv_conjugation {X X' Y Y' Z Z' : C} (f : X ⟶ X') (g : Y ⟶ 
   (α_ X Y Z).inv ≫ ((f ⊗ g) ⊗ h) ≫ (α_ X' Y' Z').hom = f ⊗ g ⊗ h :=
 by rw [associator_naturality, inv_hom_id_assoc]
 
-@[reassoc]
-lemma left_unitor_naturality {X X' : C} (f : X ⟶ X') :
-  (𝟙 _ ⊗ f) ≫ (λ_ X').hom = (λ_ X).hom ≫ f :=
-by simp
+@[reassoc, simp]
+lemma id_unit_tensor {X Y : C} (f : X ⟶ Y) : (𝟙 (𝟙_ C) ⊗ f) = (λ_ X).hom ≫ f ≫ (λ_ Y).inv :=
+by { rw [←left_unitor_naturality_assoc], simp }
+
+@[reassoc, simp]
+lemma tensor_id_unit {X Y : C} (f : X ⟶ Y) : (f ⊗ 𝟙 (𝟙_ C)) = (ρ_ X).hom ≫ f ≫ (ρ_ Y).inv :=
+by { rw [←right_unitor_naturality_assoc], simp }
 
 @[reassoc]
 lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
@@ -280,31 +273,24 @@ lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
 by simp
 
 @[reassoc]
-lemma right_unitor_naturality {X X' : C} (f : X ⟶ X') :
-  (f ⊗ 𝟙 _) ≫ (ρ_ X').hom = (ρ_ X).hom ≫ f :=
-by simp
-
-@[reassoc]
 lemma right_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
   f ≫ (ρ_ X').inv = (ρ_ X).inv ≫ (f ⊗ 𝟙 _) :=
 by simp
 
-@[simp]
 lemma right_unitor_conjugation {X Y : C} (f : X ⟶ Y) :
   (ρ_ X).inv ≫ (f ⊗ (𝟙 (𝟙_ C))) ≫ (ρ_ Y).hom = f :=
 by simp
 
-@[simp]
 lemma left_unitor_conjugation {X Y : C} (f : X ⟶ Y) :
   (λ_ X).inv ≫ ((𝟙 (𝟙_ C)) ⊗ f) ≫ (λ_ Y).hom = f :=
 by simp
 
-@[simp] lemma tensor_left_iff
+lemma tensor_left_iff
   {X Y : C} (f g : X ⟶ Y) :
   ((𝟙 (𝟙_ C)) ⊗ f = (𝟙 (𝟙_ C)) ⊗ g) ↔ (f = g) :=
 by simp
 
-@[simp] lemma tensor_right_iff
+lemma tensor_right_iff
   {X Y : C} (f g : X ⟶ Y) :
   (f ⊗ (𝟙 (𝟙_ C)) = g ⊗ (𝟙 (𝟙_ C))) ↔ (f = g) :=
 by simp
@@ -318,21 +304,21 @@ by
     ←cancel_epi ((α_ (𝟙_ C) (𝟙_ C) X).hom ⊗ 𝟙 Y), pentagon_assoc, triangle, ←associator_naturality,
     ←comp_tensor_id_assoc, triangle, associator_naturality, tensor_id]
 
-@[reassoc, simp]
+@[reassoc]
 lemma left_unitor_tensor (X Y : C) :
   ((λ_ (X ⊗ Y)).hom) = ((α_ (𝟙_ C) X Y).inv) ≫ ((λ_ X).hom ⊗ (𝟙 Y)) :=
 by { rw [←left_unitor_tensor'], simp }
 
 lemma left_unitor_tensor_inv' (X Y : C) :
   ((λ_ (X ⊗ Y)).inv) ≫ ((α_ (𝟙_ C) X Y).inv) = ((λ_ X).inv ⊗ (𝟙 Y)) :=
-eq_of_inv_eq_inv (by simp)
+eq_of_inv_eq_inv (by simp [left_unitor_tensor])
 
-@[reassoc, simp]
+@[reassoc]
 lemma left_unitor_tensor_inv (X Y : C) :
   (λ_ (X ⊗ Y)).inv = ((λ_ X).inv ⊗ (𝟙 Y)) ≫ (α_ (𝟙_ C) X Y).hom :=
 by { rw [←left_unitor_tensor_inv'], simp }
 
-@[reassoc, simp]
+@[reassoc]
 lemma right_unitor_tensor (X Y : C) :
   (ρ_ (X ⊗ Y)).hom = (α_ X Y (𝟙_ C)).hom ≫ ((𝟙 X) ⊗ (ρ_ Y).hom) :=
 by
@@ -340,23 +326,31 @@ by
       associator_naturality, ←triangle_assoc, ←triangle, id_tensor_comp, pentagon_assoc,
       ←associator_naturality, tensor_id]
 
-@[reassoc, simp]
+@[reassoc]
 lemma right_unitor_tensor_inv (X Y : C) :
   ((ρ_ (X ⊗ Y)).inv) = ((𝟙 X) ⊗ (ρ_ Y).inv) ≫ (α_ X Y (𝟙_ C)).inv :=
-eq_of_inv_eq_inv (by simp)
+eq_of_inv_eq_inv (by simp [right_unitor_tensor])
 
-@[reassoc]
+@[reassoc, simp]
+lemma id_tensor_right_unitor (X Y : C) : 𝟙 X ⊗ (ρ_ Y).hom = (α_ _ _ _).inv ≫ (ρ_ _).hom :=
+by simp [right_unitor_tensor]
+
+@[reassoc, simp]
 lemma id_tensor_right_unitor_inv (X Y : C) : 𝟙 X ⊗ (ρ_ Y).inv = (ρ_ _).inv ≫ (α_ _ _ _).hom :=
 by simp only [right_unitor_tensor_inv, category.comp_id, iso.inv_hom_id, category.assoc]
 
-@[reassoc]
+@[reassoc, simp]
+lemma left_unitor_tensor_id (X Y : C) : (λ_ X).hom ⊗ 𝟙 Y = (α_ _ _ _).hom ≫ (λ_ _).hom  :=
+by simp [left_unitor_tensor]
+
+@[reassoc, simp]
 lemma left_unitor_inv_tensor_id (X Y : C) : (λ_ X).inv ⊗ 𝟙 Y = (λ_ _).inv ≫ (α_ _ _ _).inv :=
 by simp only [left_unitor_tensor_inv, assoc, comp_id, hom_inv_id]
 
 @[simp, reassoc]
 lemma pentagon_inv (W X Y Z : C) :
-  (𝟙 W ⊗ (α_ X Y Z).inv) ≫ (α_ W (X ⊗ Y) Z).inv ≫ ((α_ W X Y).inv ⊗ 𝟙 Z)
-    = (α_ W X (Y ⊗ Z)).inv ≫ (α_ (W ⊗ X) Y Z).inv :=
+  (𝟙 W ⊗ (α_ X Y Z).inv) ≫ (α_ W (X ⊗ Y) Z).inv ≫ ((α_ W X Y).inv ⊗ 𝟙 Z) =
+    (α_ W X (Y ⊗ Z)).inv ≫ (α_ (W ⊗ X) Y Z).inv :=
 eq_of_inv_eq_inv (by simp [pentagon])
 
 @[simp, reassoc]
@@ -439,6 +433,14 @@ by rw [←tensor_left_iff, ←cancel_epi (α_ (𝟙_ C) (𝟙_ _) (𝟙_ _)).hom
 @[simp]
 lemma unitors_inv_equal : (λ_ (𝟙_ C)).inv = (ρ_ (𝟙_ C)).inv :=
 by simp [iso.inv_eq_inv]
+
+@[reassoc, simp]
+lemma right_unitor_unit_tensor_id : (ρ_ (𝟙_ _)).hom ⊗ 𝟙 Y = (α_ _ _ _).hom ≫ (λ_ _).hom  :=
+by rw [←unitors_equal, left_unitor_tensor_id]
+
+@[reassoc, simp]
+lemma right_unitor_unit_inv_tensor_id : (ρ_ (𝟙_ _)).inv ⊗ 𝟙 Y = (λ_ _).inv ≫ (α_ _ _ _).inv :=
+by rw [←unitors_inv_equal, left_unitor_inv_tensor_id]
 
 @[reassoc]
 lemma right_unitor_inv_comp_tensor (f : W ⟶ X) (g : 𝟙_ C ⟶ Z) :

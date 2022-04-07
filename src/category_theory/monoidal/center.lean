@@ -130,7 +130,6 @@ def tensor_obj (X Y : center C) : center C :=
     naturality' := λ U U' f,
     begin
       dsimp,
-      simp,
       rw [category.assoc, category.assoc, category.assoc, category.assoc,
         id_tensor_associator_naturality_assoc, ←id_tensor_comp_assoc, half_braiding.naturality,
         id_tensor_comp_assoc, associator_inv_naturality_assoc, ←comp_tensor_id_assoc,
@@ -175,7 +174,13 @@ iso_mk ⟨(λ_ X.1).hom, by tidy⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/
 def right_unitor (X : center C) : tensor_obj X tensor_unit ≅ X :=
-iso_mk ⟨(ρ_ X.1).hom, {}⟩
+iso_mk ⟨(ρ_ X.1).hom, λ U, begin
+  dsimp,
+  simp only [tensor_id_comp_id_tensor_assoc, triangle_assoc, id_tensor_comp, category.assoc],
+  rw [←tensor_id_comp_id_tensor_assoc (ρ_ U).inv, cancel_epi, ←right_unitor_tensor_inv_assoc,
+    ←right_unitor_inv_naturality_assoc],
+  simp,
+end⟩
 
 section
 local attribute [simp] associator_naturality left_unitor_naturality right_unitor_naturality

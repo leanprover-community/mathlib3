@@ -50,7 +50,7 @@ def tensoring_right_monoidal [monoidal_category.{v} C] : monoidal_functor C (C �
   μ := λ X Y,
   { app := λ Z, (α_ Z X Y).hom,
     naturality' := λ Z Z' f, by { dsimp, rw associator_naturality, simp, } },
-  μ_natural' := λ X Y X' Y' f g, by { ext Z, dsimp, simp [associator_naturality], },
+  μ_natural' := λ X Y X' Y' f g, by { ext Z, dsimp, simp [←id_tensor_comp_tensor_id g f] },
   associativity' := λ X Y Z, by { ext W, dsimp, simp [pentagon], },
   left_unitality' := λ X, by { ext Y, dsimp, rw [category.id_comp, triangle, ←tensor_comp], simp, },
   right_unitality' := λ X,

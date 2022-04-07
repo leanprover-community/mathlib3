@@ -135,12 +135,12 @@ lemma fixing_submonoid_Union {ι : Sort*} {s : ι → set α} :
 galois_connection.l_supr (fixing_submonoid_fixed_points_connection M α)
 
 /-- Fixed points of sup of submonoids is intersection -/
-lemma fixed_points_sup {P Q : submonoid M} :
+lemma fixed_points_of_submonoid_sup {P Q : submonoid M} :
   fixed_points (P ⊔ Q : submonoid M) α = fixed_points P α ∩ fixed_points Q α :=
   galois_connection.u_inf (fixing_submonoid_fixed_points_connection M α)
 
 /-- Fixed points of supr of submonoids is intersection -/
-lemma fixed_points_supr {ι : Sort*} {P : ι → submonoid M} :
+lemma fixed_points_of_submonoid_supr {ι : Sort*} {P : ι → submonoid M} :
   fixed_points (supr P : submonoid M) α = ⋂ i, fixed_points (P i) α :=
   galois_connection.u_infi (fixing_submonoid_fixed_points_connection M α)
 

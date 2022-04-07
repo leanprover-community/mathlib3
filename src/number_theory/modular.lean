@@ -56,11 +56,6 @@ existence of `g` maximizing `(g•z).im` (see `modular_group.exists_max_im`), an
 those, to minimize `|(g•z).re|` (see `modular_group.exists_row_one_eq_and_min_re`).
 -/
 
-/- Disable these instances as they are not the simp-normal form, and having them disabled ensures
-we state lemmas in this file without spurious `coe_fn` terms. -/
-local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
-local attribute [-instance] matrix.general_linear_group.has_coe_to_fun
-
 open complex matrix matrix.special_linear_group upper_half_plane
 noncomputable theory
 
@@ -346,7 +341,7 @@ localized "notation `𝒟` := fundamental_domain" in modular
 
 localized "notation `𝒟ᵒ` := fundamental_domain_open" in modular
 
-/-- If `|z|<1`, then applying `S` strictly decreases `im` -/
+/-- If `|z| < 1`, then applying `S` strictly decreases `im` -/
 lemma im_lt_im_S_smul {z : ℍ} (h: norm_sq z < 1) : z.im < (S • z).im :=
 begin
   have : z.im < z.im / norm_sq (z:ℂ),
@@ -401,9 +396,9 @@ begin
 end
 
 
-/-- Crucial lemma showing that if `c≠0`, then `3/4 < 4/(3c^4)` -/
-lemma ineq_1 (z : ℍ) (g: SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg: g • z ∈ 𝒟ᵒ) (c_ne_z : g 1 0 ≠ 0) :
-  (3 : ℝ)/4 < 4/ (3* (g 1 0)^4) :=
+/-- Crucial lemma showing that if `c ≠ 0`, then `3/4 < 4/(3 c^4)` -/
+lemma ineq_1 (z : ℍ) (g : SL(2,ℤ)) (hz : z ∈ 𝒟ᵒ) (hg : g • z ∈ 𝒟ᵒ) (c_ne_z : g 1 0 ≠ 0) :
+  (3 : ℝ) / 4 < 4 / (3 * (g 1 0) ^ 4) :=
 begin
   have z_im := z.im_ne_zero,
   have c_4_pos : (0 : ℝ) < (g 1 0)^4,
@@ -440,8 +435,7 @@ begin
     repeat {nlinarith}, },
 end
 
-
-/-- Knowing that `3/4<4/(3c^4)` from `ineq_1`, and `c≠0`, we conclude that `c=1` or `c=-1`. -/
+/-- Knowing that `3/4 < 4/(3c^4)` from `ineq_1`, and `c≠0`, we conclude that `c = ±1`. -/
 lemma ineq_2 (c : ℤ) (hc₁ : (3 : ℝ)/4 < 4/ (3* c^4)) (hc₂ : c ≠ 0) : c = 1 ∨ c = -1 :=
 begin
   rcases le_or_gt (|c|) 1 with h | (h : 2 ≤ |c|),
@@ -480,7 +474,7 @@ begin
     fin_cases i; fin_cases j; simp [matrix.mul, dot_product, fin.sum_univ_succ]; ring, },
 end
 
-/- If c=1, then `g=[[1,a],[0,1]] * S * [[1,d],[0,1]]`. -/
+/- If `c = 1`, then `g = [[1,a],[0,1]] * S * [[1,d],[0,1]]`. -/
 lemma g_eq_of_c_eq_one (g : SL(2,ℤ)) (hc : ↑ₘg 1 0 = 1) :
   g = T^(g 0 0) * S * T^(g 1 1) :=
 begin
@@ -498,17 +492,11 @@ begin
   { simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ], },
 end
 
-lemma cast_one_le_of_pos {n : ℤ} (hn : 0 < n) : (1 : ℝ) ≤ n :=
-begin
-  rw ← cast_one,
-  exact cast_le.mpr (add_one_le_of_lt hn),
-end
+lemma cast_one_le_of_pos {n : ℤ} (hn : 0 < n) : (1 : ℝ) ≤ n := by exact_mod_cast
+  int.add_one_le_of_lt hn
 
-lemma cast_le_neg_one_of_neg {n : ℤ} (hn : n < 0) : (n : ℝ) ≤ -1 :=
-begin
-  rw ← cast_one,
-  exact cast_le.mpr (le_sub_one_of_lt hn),
-end
+lemma cast_le_neg_one_of_neg {n : ℤ} (hn : n < 0) : (n : ℝ) ≤ -1 := by exact_mod_cast
+  int.le_sub_one_of_lt hn
 
 lemma nneg_mul_add_sq_of_abs_le_one (n : ℤ) (x : ℝ) (hx : |x| ≤ 1) : (0 : ℝ) ≤ n * x + n * n :=
 begin
@@ -520,55 +508,19 @@ begin
     rw add_right_neg, },
   rw [← mul_add, mul_nonneg_iff],
   rcases lt_trichotomy n 0 with h | rfl | h,
-  { exact or.inr ⟨cast_nonpos.mpr h.le, hnx' h⟩, },
+  { exact or.inr ⟨by exact_mod_cast h.le, hnx' h⟩, },
   { simp [le_total 0 x], },
-  { exact or.inl ⟨cast_nonneg.mpr h.le, hnx h⟩, },
+  { exact or.inl ⟨by exact_mod_cast h.le, hnx h⟩, },
 end
 
-/-- Nontrivial lemma: if `|x|<1/2` and `n:ℤ`, then `2nx+n^2≥0`. (False for `n:ℝ`!) -/
+/-- Nontrivial lemma: if `|x|<1/2` and `n : ℤ`, then `2nx+n^2 ≥ 0`. (False for `n : ℝ`!) -/
 lemma _root_.int.non_neg_of_lt_half (n : ℤ) (x : ℝ) (hx : |x| < 1/2) : (0:ℝ) ≤ 2 * n * x + n * n :=
 begin
-  rw abs_lt at hx,
-  have : (0:ℝ) ≤ n*n := by nlinarith,
-  cases n,
-  { -- n ≥ 0
-    have : (n:ℝ) = (int.of_nat n) := by simp,
-    have : (0:ℝ) ≤ n := by simp,
-    cases lt_or_ge x 0,
-    {  -- x < 0
-      cases n,
-      { simp, },
-      { -- n ≥ 1
-        have eq1 : (1:ℝ) ≤ int.of_nat n.succ := by simp,
-        have eq2 : (1:ℝ) ≤ (int.of_nat n.succ) * (int.of_nat n.succ) := by nlinarith,
-        have eq3 : (-1:ℝ) ≤ 2 * x := by nlinarith,
-        have eq4 : (0:ℝ) ≤ 2 * x + int.of_nat n.succ := by linarith,
-        have eq5 : (0:ℝ) ≤ (2 * x + int.of_nat n.succ)*(int.of_nat n.succ) := by nlinarith,
-        convert eq5 using 1,
-        ring, }, },
-    { -- x ≥ 0
-      have : (0:ℝ) ≤ 2*n*x := by nlinarith,
-      nlinarith, }, },
-  { -- n ≤ -1
-    have := int.neg_succ_of_nat_coe n,
-    set k := int.neg_succ_of_nat n,
-    have eq1 : k ≤ -1,
-    { have : 1 ≤ 1 + n := by simp,
-      have :  -((1:ℤ) + n) ≤ -1,
-      { have : 0 ≤ n := by simp,
-        linarith, },
-      convert this using 1,
-      simp [this_1],
-      ring, },
-    have eq1' : (k:ℝ) ≤ -1 := by exact_mod_cast eq1,
-    cases lt_or_ge x 0,
-    { -- x < 0
-      have : (0:ℝ) ≤ 2*k*x := by nlinarith,
-      have eq2 : 1 ≤ k*k  := by nlinarith,
-      linarith, },
-    { -- x ≥ 0
-      have eq2 : (2:ℝ) * x + k ≤ 0 := by nlinarith,
-      nlinarith, }, },
+  convert nneg_mul_add_sq_of_abs_le_one n (2*x) _ using 1,
+  { ring, },
+  rw _root_.abs_mul,
+  norm_num,
+  nlinarith,
 end
 
 /-- If `z∈𝒟ᵒ`, and `n:ℤ`, then `|z+n|>1`. -/

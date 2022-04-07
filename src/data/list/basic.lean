@@ -460,6 +460,10 @@ begin
   apply nat.le_add_right
 end
 
+@[simp] lemma append_singleton_eq_iff {α : Type*} (st₁ st₂ : list α) (lt₁ lt₂ : α) :
+  st₁ ++ [lt₁] = st₂ ++ [lt₂] ↔ st₁ = st₂ ∧ lt₁ = lt₂ :=
+⟨λ h, by simpa using append_inj' h rfl, by cc⟩
+
 /-! ### repeat -/
 
 @[simp] theorem repeat_succ (a : α) (n) : repeat a (n + 1) = a :: repeat a n := rfl
@@ -902,10 +906,6 @@ for constructing data as well. -/
 def reverse_cases_on {α : Type*} {C : list α → Sort*} (l : list α) (h₀ : C [])
   (case : ∀ st lt, C (st ++ [lt])) : C l :=
 by { induction l using list.reverse_rec_on, { exact h₀, }, { apply case, } }
-
-@[simp] lemma append_singleton_eq_iff {α : Type*} (st₁ st₂ : list α) (lt₁ lt₂ : α) :
-  st₁ ++ [lt₁] = st₂ ++ [lt₂] ↔ st₁ = st₂ ∧ lt₁ = lt₂ :=
-⟨λ h, by { rw and_comm, simpa using congr_arg reverse h, }, by cc⟩
 
 /-- Bidirectional induction principle for lists: if a property holds for the empty list, the
 singleton list, and `a :: (l ++ [b])` from `l`, then it holds for all lists. This can be used to

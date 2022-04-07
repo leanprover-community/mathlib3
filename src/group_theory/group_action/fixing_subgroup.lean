@@ -113,7 +113,7 @@ variable (α)
 
 /-- The Galois connection between fixing submonoids and fixed points of a monoid action -/
 theorem fixing_submonoid_fixed_points_connection : galois_connection
-  (order_dual.to_dual ∘ (λ s : set α, fixing_submonoid M s))
+  (order_dual.to_dual ∘ (fixing_submonoid M))
   ((λ P : submonoid M, (fixed_points P α)) ∘ order_dual.of_dual) :=
 λ s P, ⟨λ h s hs p, h p.2 ⟨s, hs⟩, λ h p hp s, h s.2 ⟨p, hp⟩⟩
 
@@ -166,7 +166,7 @@ variable (α)
 
 /-- The Galois connection between fixing subgroups and fixed points of a group action -/
 lemma fixing_subgroup_fixed_points_connection : galois_connection
-  (order_dual.to_dual ∘ (λ s : set α, fixing_subgroup M s))
+  (order_dual.to_dual ∘ (fixing_subgroup M))
   ((λ P : subgroup M, (fixed_points P α)) ∘ order_dual.of_dual) :=
 λ s P, ⟨λ h s hs p, h p.2 ⟨s, hs⟩, λ h p hp s, h s.2 ⟨p, hp⟩⟩
 

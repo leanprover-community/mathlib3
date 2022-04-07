@@ -8,6 +8,7 @@ import group_theory.complement
 import group_theory.finiteness
 import group_theory.group_action.conj_act
 import group_theory.index
+import group_theory.schreier
 import group_theory.solvable
 
 /-!
@@ -43,102 +44,8 @@ section technical
 
 namespace subgroup
 
-lemma exists_left_transversal {G : Type*} [group G] {H : subgroup G} (g : G) :
-  ∃ S ∈ left_transversals (H : set G), g ∈ S :=
-begin
-  let f : quotient (quotient_group.left_rel H) → G :=
-  function.update quotient.out' (quotient.mk' g) g,
-  have hf : ∀ q : quotient (quotient_group.left_rel H), quotient.mk' (f q) = q,
-  { intro q,
-    by_cases hq : q = quotient.mk' g,
-    { exact hq.symm ▸ congr_arg _ (function.update_same (quotient.mk' g) g quotient.out') },
-    { exact eq.trans (congr_arg _ (function.update_noteq hq g quotient.out')) q.out_eq' } },
-  refine ⟨set.range f, mem_left_transversals_iff_bijective.mpr ⟨_, λ q, ⟨⟨f q, q, rfl⟩, hf q⟩⟩,
-    ⟨quotient.mk' g, function.update_same (quotient.mk' g) g quotient.out'⟩⟩,
-  rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ hg,
-  exact congr_arg _ (((hf q₁).symm.trans hg).trans (hf q₂)),
-end
-
-lemma exists_right_transversal {G : Type*} [group G] {H : subgroup G} (g : G) :
-  ∃ S ∈ right_transversals (H : set G), g ∈ S :=
-begin
-  let f : quotient (quotient_group.right_rel H) → G :=
-  function.update quotient.out' (quotient.mk' g) g,
-  have hf : ∀ q : quotient (quotient_group.right_rel H), quotient.mk' (f q) = q,
-  { intro q,
-    by_cases hq : q = quotient.mk' g,
-    { exact hq.symm ▸ congr_arg _ (function.update_same (quotient.mk' g) g quotient.out') },
-    { exact eq.trans (congr_arg _ (function.update_noteq hq g quotient.out')) q.out_eq' } },
-  refine ⟨set.range f, mem_right_transversals_iff_bijective.mpr ⟨_, λ q, ⟨⟨f q, q, rfl⟩, hf q⟩⟩,
-    ⟨quotient.mk' g, function.update_same (quotient.mk' g) g quotient.out'⟩⟩,
-  rintros ⟨-, q₁, rfl⟩ ⟨-, q₂, rfl⟩ hg,
-  exact congr_arg _ (((hf q₁).symm.trans hg).trans (hf q₂)),
-end
-
-lemma schreier' {G : Type*} [group G] {H : subgroup G} {R S : set G}
-  (hR : R ∈ right_transversals (H : set G)) (hR1 : (1 : G) ∈ R) (hS : closure S = ⊤) :
-  (closure ((R * S).image (λ g, g * (mem_right_transversals.to_fun hR g)⁻¹)) : set G) * R = ⊤ :=
-begin
-  let f : G → R := λ g, mem_right_transversals.to_fun hR g,
-  let U : set G := (R * S).image (λ g, g * (f g)⁻¹),
-  change (closure U : set G) * R = ⊤,
-  refine top_le_iff.mp (λ g hg, _),
-  apply closure_induction_right (eq_top_iff.mp hS (mem_top g)),
-  { exact ⟨1, 1, (closure U).one_mem, hR1, one_mul 1⟩ },
-  { rintros - s hs ⟨u, r, hu, hr, rfl⟩,
-    rw show u * r * s = u * ((r * s) * (f (r * s))⁻¹) * f (r * s), by group,
-    refine set.mul_mem_mul ((closure U).mul_mem hu _) (f (r * s)).coe_prop,
-    exact subset_closure ⟨r * s, set.mul_mem_mul hr hs, rfl⟩ },
-  { rintros - s hs ⟨u, r, hu, hr, rfl⟩,
-    rw show u * r * s⁻¹ = u * (f (r * s⁻¹) * s * r⁻¹)⁻¹ * f (r * s⁻¹), by group,
-    refine set.mul_mem_mul ((closure U).mul_mem hu ((closure U).inv_mem _)) (f (r * s⁻¹)).2,
-    refine subset_closure ⟨f (r * s⁻¹) * s, set.mul_mem_mul (f (r * s⁻¹)).2 hs, _⟩,
-    rw [mul_right_inj, inv_inj],
-    have key : (f (r * s⁻¹) : G) * (r * s⁻¹)⁻¹ ∈ H :=
-    mem_right_transversals.to_fun_mul_inv_mem hR (r * s⁻¹),
-    rw [mul_inv_rev, inv_inv, ←mul_assoc] at key,
-    have key : f (f (r * s⁻¹) * s) = ⟨r, hr⟩,
-    exact (mem_right_transversals_iff_exists_unique_mul_inv_mem.mp hR (f (r * s⁻¹) * s)).unique
-      (mem_right_transversals.mul_inv_to_fun_mem hR (f (r * s⁻¹) * s)) key,
-    exact subtype.ext_iff.mp key },
-end
-
 /-- **Schreier's Lemma** -/
-lemma schreier {G : Type*} [group G] {H : subgroup G} {R S : set G}
-  (hR : R ∈ right_transversals (H : set G)) (hR1 : (1 : G) ∈ R) (hS : closure S = ⊤) :
-  closure ((R * S).image (λ g, g * (mem_right_transversals.to_fun hR g)⁻¹)) = H :=
-begin
-  let U : set G := (R * S).image (λ g, g * (mem_right_transversals.to_fun hR g)⁻¹),
-  change closure U = H,
-  have hU : closure U ≤ H,
-  { rw closure_le,
-    rintros - ⟨g, -, rfl⟩,
-    exact mem_right_transversals.mul_inv_to_fun_mem hR g },
-  refine le_antisymm hU (λ h hh, _),
-  have h_mem : h ∈ (closure U : set G) * R := eq_top_iff.mp (schreier' hR hR1 hS) (mem_top h),
-  obtain ⟨g, r, hg, hr, rfl⟩ := h_mem,
-  have h_eq : (⟨r, hr⟩ : R) = (⟨1, hR1⟩ : R),
-  { refine (mem_right_transversals_iff_exists_unique_mul_inv_mem.mp hR r).unique _ _,
-    { rw [subtype.coe_mk, mul_inv_self],
-      exact H.one_mem },
-    { rw [subtype.coe_mk, one_inv, mul_one],
-      exact (H.mul_mem_cancel_left (hU hg)).mp hh } },
-  replace h_eq : r = 1 := subtype.ext_iff.mp h_eq,
-  rwa [h_eq, mul_one],
-end
-
-/-- **Schreier's Lemma** -/
-lemma schreier_aux1 {G : Type*} [group G] {H : subgroup G} {R S : finset G}
-  (hR : (R : set G) ∈ right_transversals (H : set G)) (hR1 : (1 : G) ∈ R)
-  (hS : closure (S : set G) = ⊤) :
-  closure ((((R * S).image (λ g, g * (mem_right_transversals.to_fun hR g)⁻¹)) : finset G) : set G) = H :=
-begin
-  rw [finset.coe_image, finset.coe_mul],
-  exact schreier hR hR1 hS,
-end
-
-/-- **Schreier's Lemma** -/
-lemma schreier_aux4 {G : Type*} [group G] {H : subgroup G} {R S : finset G}
+lemma closure_mul_eq_top' {G : Type*} [group G] {H : subgroup G} {R S : finset G}
   (hR : (R : set G) ∈ right_transversals (H : set G)) (hR1 : (1 : G) ∈ R)
   (hS : closure (S : set G) = ⊤) :
   closure ((((R * S).image (λ g, ⟨g * (mem_right_transversals.to_fun hR g)⁻¹,
@@ -146,10 +53,10 @@ lemma schreier_aux4 {G : Type*} [group G] {H : subgroup G} {R S : finset G}
 begin
   rw [finset.coe_image, finset.coe_mul, eq_top_iff, ←map_subtype_le_map_subtype,
       ←monoid_hom.range_eq_map, subtype_range, monoid_hom.map_closure, set.image_image],
-  exact ge_of_eq (schreier hR hR1 hS),
+  exact ge_of_eq (closure_mul_eq hR hR1 hS),
 end
 
-lemma schreier_aux2 {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
+lemma fg_of_index_ne_zero {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
   (hH : H.index ≠ 0) : group.fg H :=
 begin
   obtain ⟨S, hS⟩ := hG.1,
@@ -159,26 +66,26 @@ begin
   let R : finset G := set.to_finset R₀,
   replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
   replace hR1 : (1 : G) ∈ R := by rwa set.mem_to_finset,
-  exact ⟨⟨_, schreier_aux4 hR hR1 hS⟩⟩,
+  exact ⟨⟨_, closure_mul_eq_top' hR hR1 hS⟩⟩,
 end
 
 lemma schreier_aux3 {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
-  (hH : H.index ≠ 0) : @group.rank H _ (schreier_aux2 hH) _ ≤ H.index * group.rank G :=
+  (hH : H.index ≠ 0) : @group.rank H _ (fg_of_index_ne_zero hH) _ ≤ H.index * group.rank G :=
 begin
-  obtain ⟨S, hS⟩ := hG.1,
+  obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
   haveI : fintype (quotient (quotient_group.right_rel H)) := sorry,
   haveI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
   let R : finset G := set.to_finset R₀,
   replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
   replace hR1 : (1 : G) ∈ R := by rwa set.mem_to_finset,
-  letI hH' : group.fg H := ⟨⟨_, schreier_aux4 hR hR1 hS⟩⟩,
-  convert (show @group.rank H _ hH' _ ≤ H.index * group.rank G, from _),
-  calc group.rank H ≤ _ : group.rank_le H (schreier_aux4 hR hR1 hS)
+  letI hH' : group.fg H := ⟨⟨_, closure_mul_eq_top' hR hR1 hS⟩⟩,
+  change @group.rank H _ hH' _ ≤ H.index * group.rank G,
+  calc group.rank H ≤ _ : group.rank_le H (closure_mul_eq_top' hR hR1 hS)
   ... ≤ (R * S).card : finset.card_image_le
   ... ≤ (R.product S).card : finset.card_image_le
   ... = R.card * S.card : R.card_product S
-  ... = H.index * group.rank G : _,
+  ... = H.index * group.rank G : congr_arg2 (*) _ hS₀,
 end
 
 end subgroup

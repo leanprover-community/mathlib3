@@ -3,10 +3,26 @@ Copyright (c) 2022 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import computability.encoding
-import model_theory.syntax
 
-/-!
+import model_theory.syntax
+import set_theory.cardinal_ordinal
+import computability.encoding
+
+/-! # Encodings and Cardinality of First-Order Syntax
+
+## Main Definitions
+* Terms can be encoded as lists with `first_order.language.term.list_encode` and
+`first_order.language.term.list_decode`.
+
+## Main Results
+* `first_order.language.term.card_le` shows that the number of terms in `L.term α` is at most
+`# (α ⊕ Σ i, L.functions i) + ω`.
+
+## TODO
+* An encoding for formulas
+* `fin_encoding`s for terms and formulas, based on the `encoding`s
+* Computability facts about these `fin_encoding`s, to set up a computability approach to
+incompleteness
 
 -/
 

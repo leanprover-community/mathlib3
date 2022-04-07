@@ -5,7 +5,6 @@ Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 -/
 import logic.equiv.fin
 import model_theory.language_map
-import set_theory.cardinal_ordinal
 
 /-!
 # Basics on First-Order Syntax
@@ -53,8 +52,8 @@ namespace language
 variables (L : language.{u v}) {L' : language}
 variables {M : Type w} {N P : Type*} [L.Structure M] [L.Structure N] [L.Structure P]
 variables {α : Type u'} {β : Type v'}
-open_locale first_order cardinal
-open Structure cardinal fin
+open_locale first_order
+open Structure fin
 
 /-- A term on `α` is either a variable indexed by an element of `α`
   or a function symbol applied to simpler terms. -/

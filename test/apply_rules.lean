@@ -30,3 +30,21 @@ example (P : ℕ → Type) (f : Π {n : ℕ}, P n → P (n + 1)) (g : P 0) : P 2
 begin
   apply_rules [f, g],
 end
+
+/-
+Test that there are no conflicts between attribute and declaration names.
+-/
+
+@[user_attribute]
+meta def p_rules_attr : user_attribute :=
+{ name := `p_rules,
+  descr := "testing" }
+
+constant P : ℕ → Prop
+
+axiom p_rules : P 0
+
+@[p_rules] axiom foo : P 10
+
+example : P 0 := by apply_rules p_rules
+example : P 10 := by apply_rules p_rules

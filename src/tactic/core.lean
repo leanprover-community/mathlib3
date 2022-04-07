@@ -970,26 +970,34 @@ meta def apply_list_expr (opt : apply_cfg) : list (tactic expr) → tactic unit
 | (h::t) := (do e ← h, interactive.concat_tags (apply e opt)) <|> apply_list_expr t
 
 /--
+Given the name of a user attribute, produces a list of `tactic expr`s, each of which is the
+application of `i_to_expr_for_apply` to a declaration with that attribute. If the name of the
+attribute is also a declaration itself, that declaration is included in the list, regardless of
+whether it is tagged with the attribute.
+-/
+meta def resolve_attribute_expr_list (attr_name : name) : tactic (list (tactic expr)) := do
+  l ← attribute.get_instances attr_name,
+  m ← list.map i_to_expr_for_apply <$> list.reverse <$> l.mmap resolve_name,
+  extra ← try_core $ resolve_name attr_name,
+  return $ (extra.elim [] (λ p, return (i_to_expr_for_apply p))) ++ m
+
+/--
 Constructs a list of `tactic expr` given a list of p-expressions, as follows:
-- if the p-expression is the name of a theorem, use `i_to_expr_for_apply` on it
 - if the p-expression is a user attribute, add all the theorems with this attribute
-  to the list.
+  to the list, using `resolve_attribute_expr_list`. This includes the case where the p-expression
+  is also the name of a theorem.
+- if the p-expression is the name of a theorem, use `i_to_expr_for_apply` on it.
 
 We need to return a list of `tactic expr`, rather than just `expr`, because these expressions
 will be repeatedly applied against goals, and we need to ensure that metavariables don't get stuck.
 -/
-meta def build_list_expr_for_apply : list pexpr → tactic (list (tactic expr))
-| [] := return []
-| (h::t) := do
-  tail ← build_list_expr_for_apply t,
-  a ← i_to_expr_for_apply h,
-  (do l ← attribute.get_instances (expr.const_name a),
-      m ← l.mmap (λ n, _root_.to_pexpr <$> mk_const n),
-      -- We reverse the list of lemmas marked with an attribute,
-      -- on the assumption that lemmas proved earlier are more often applicable
-      -- than lemmas proved later. This is a performance optimization.
-      build_list_expr_for_apply (m.reverse ++ t))
-  <|> return ((i_to_expr_for_apply h) :: tail)
+meta def build_list_expr_for_apply (inputs : list pexpr) : tactic (list (tactic expr)) :=
+inputs.mfoldl (λ l h, do
+  nl ← resolve_attribute_expr_list h.local_pp_name
+       <|> return [i_to_expr_for_apply h]
+       <|> fail format!"{h} is not a valid input",
+  return $ nl ++ l)
+  []
 
 /--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the
 first goal and the resulting subgoals, iteratively, at most `n` times.

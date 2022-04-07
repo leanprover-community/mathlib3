@@ -131,7 +131,7 @@ galois_connection.l_sup (fixing_submonoid_fixed_points_connection M α)
 
 /-- Fixing submonoid of Union is intersection -/
 lemma fixing_submonoid_of_Union {ι : Type*} {s : ι → set α} :
-  fixing_submonoid M (⋃ (i : ι), s i) = infi (λ i, (fixing_submonoid M (s i))) :=
+  fixing_submonoid M (⋃ i, s i) = ⨅ i, fixing_submonoid M (s i) :=
 galois_connection.l_supr (fixing_submonoid_fixed_points_connection M α)
 
 /-- Fixed points of sup of submonoids is intersection -/

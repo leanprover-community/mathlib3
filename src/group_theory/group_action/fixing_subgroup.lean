@@ -34,7 +34,7 @@ and relates it to the set of fixed points via a Galois connection.
   that relates `fixing_subgroup` with `fixed_points`.
 
 * `fixing_subgroup_union` and `fixing_subgroup_Union` are consequences
-  of the Galois connection, as well as `fixed_points_group_sup` and `fixed_points_group_supr`.
+  of the Galois connection, as well as `fixed_points_subgroup_sup` and `fixed_points_subgroup_supr`.
 
 * The file starts with some lemmas that allow to rewrite `antitone` into `monotone`
   in various cases.
@@ -170,7 +170,7 @@ lemma fixing_subgroup_fixed_points_gc : galois_connection
 lemma fixing_subgroup_antitone : antitone (λ (s : set α), fixing_subgroup M s) :=
 galois_connection.monotone_l (fixing_subgroup_fixed_points_gc M α)
 
-lemma fixed_points_group_antitone :
+lemma fixed_points_subgroup_antitone :
   antitone (λ (P : subgroup M), fixed_points P α) :=
 (fixing_subgroup_fixed_points_gc M α).monotone_u.dual_left
 
@@ -182,17 +182,17 @@ galois_connection.l_sup (fixing_subgroup_fixed_points_gc M α)
 
 /-- Fixing subgroup of Union is intersection -/
 lemma fixing_subgroup_Union {ι : Sort*} {s : ι → set α} :
-  fixing_subgroup M (⋃ (i : ι), s i) = infi (λ i, (fixing_subgroup M (s i))) :=
+  fixing_subgroup M (⋃ (i : ι), s i) = ⨅ i, (fixing_subgroup M (s i)) :=
 galois_connection.l_supr (fixing_subgroup_fixed_points_gc M α)
 
 /-- Fixed points of sup of subgroups is intersection -/
-lemma fixed_points_group_sup {P Q : subgroup M} :
+lemma fixed_points_subgroup_sup {P Q : subgroup M} :
   fixed_points (P ⊔ Q : subgroup M) α = fixed_points P α ∩ fixed_points Q α :=
 galois_connection.u_inf (fixing_subgroup_fixed_points_gc M α)
 
 /-- Fixed points of supr of subgroups is intersection -/
 lemma fixed_points_subgroup_supr {ι : Sort*} {P : ι → subgroup M} :
-  fixed_points (supr P : subgroup M) α = infi (λ i, (fixed_points (P i) α)) :=
+  fixed_points (supr P : subgroup M) α = ⋂ i, (fixed_points (P i) α) :=
 galois_connection.u_infi (fixing_subgroup_fixed_points_gc M α)
 
 end group

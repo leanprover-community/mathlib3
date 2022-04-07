@@ -184,7 +184,7 @@ lemma fixing_subgroup_of_union {s t : set α} :
 galois_connection.l_sup (fixing_subgroup_fixed_points_connection M α)
 
 /-- Fixing subgroup of Union is intersection -/
-lemma fixing_subgroup_of_Union {ι : Type*} {s : ι → set α} :
+lemma fixing_subgroup_of_Union {ι : Sort*} {s : ι → set α} :
   fixing_subgroup M (⋃ (i : ι), s i) = infi (λ i, (fixing_subgroup M (s i))) :=
 galois_connection.l_supr (fixing_subgroup_fixed_points_connection M α)
 
@@ -194,7 +194,7 @@ lemma fixed_points_of_group_of_sup {P Q : subgroup M} :
 galois_connection.u_inf (fixing_subgroup_fixed_points_connection M α)
 
 /-- Fixed points of supr of subgroups is intersection -/
-lemma fixed_points_of_group_of_supr {ι : Type*} {P : ι → subgroup M} :
+lemma fixed_points_of_group_of_supr {ι : Sort*} {P : ι → subgroup M} :
   fixed_points (supr P : subgroup M) α = infi (λ i, (fixed_points (P i) α)) :=
 galois_connection.u_infi (fixing_subgroup_fixed_points_connection M α)
 

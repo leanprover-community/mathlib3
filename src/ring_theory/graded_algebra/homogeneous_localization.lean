@@ -50,6 +50,8 @@ circumvent this, we quotient `num_denom_same_deg 𝒜 x` by the kernel of `c ↦
 * `homogeneous_localization.eq_num_div_denom`: if `f : homogeneous_localization 𝒜 x`, then
   `f.val : Aₓ` is equal to `f.num / f.denom`.
 
+* `homogeneous_localization.local_ring`: `homogeneous_localization 𝒜 x` is a local ring.
+
 ## References
 
 * [Robin Hartshorne, *Algebraic Geometry*][Har77]
@@ -228,7 +230,7 @@ quotient.lift_on' y (num_denom_same_deg.embedding 𝒜 x) $ λ _ _, id
 
 @[simp] lemma val_mk' (i : num_denom_same_deg 𝒜 x) :
   val (quotient.mk' i) = localization.mk i.num ⟨i.denom, i.denom_not_mem⟩ :=
-by simp only [val, embedding, quotient.lift_on'_mk']
+rfl
 
 variable (x)
 lemma val_injective :
@@ -452,66 +454,44 @@ lemma is_unit_iff_is_unit_val (f : homogeneous_localization 𝒜 x) :
   simp only [← subtype.val_eq_coe] at eq1,
   change a * f.num * 1 * c = _ at eq1,
   simp only [one_mul, mul_one] at eq1,
-  have mem1 : a * f.num * c ∈ x.prime_compl,
-  { rw eq1,
-    intro rid,
-    rcases ideal.is_prime.mem_or_mem infer_instance rid with h1|h2,
-    { exact b_f_denom_not_mem h1, },
-    { exact hc h2, }, },
+  have mem1 : a * f.num * c ∈ x.prime_compl :=
+    eq1.symm ▸ λ r, or.elim (ideal.is_prime.mem_or_mem infer_instance r) (by tauto)(by tauto),
   have mem2 : f.num ∉ x,
   { contrapose! mem1,
     erw [not_not],
-    apply ideal.mul_mem_right,
-    apply ideal.mul_mem_left,
-    assumption, },
+    exact ideal.mul_mem_right _ _ (ideal.mul_mem_left _ _ mem1), },
   refine ⟨⟨f, quotient.mk' ⟨f.deg, ⟨f.denom, f.denom_mem⟩, ⟨f.num, f.num_mem⟩, mem2⟩, _, _⟩, rfl⟩;
   simp only [ext_iff_val, mul_val, val_mk', ← subtype.val_eq_coe, f.eq_num_div_denom,
     localization.mk_mul, one_val];
   convert localization.mk_self _;
-  rw mul_comm;
-  refl,
+  simpa only [mul_comm]
 end, λ ⟨⟨_, b, eq1, eq2⟩, rfl⟩, begin
   simp only [ext_iff_val, mul_val, one_val] at eq1 eq2,
   exact ⟨⟨f.val, b.val, eq1, eq2⟩, rfl⟩
 end⟩
 
 instance : local_ring (homogeneous_localization 𝒜 x) :=
-{ exists_pair_ne := ⟨0, 1, λ rid, begin
-    rw [homogeneous_localization.ext_iff_val, homogeneous_localization.zero_val,
-      homogeneous_localization.one_val] at rid,
-    simpa only [localization.mk_eq_mk', is_localization.mk'_eq_iff_eq, mul_one, map_one,
-      submonoid.coe_one, zero_ne_one, map_zero] using rid,
-  end⟩,
+{ exists_pair_ne := ⟨0, 1, λ r, by simpa [ext_iff_val, zero_val, one_val, zero_ne_one] using r⟩,
   is_local := λ a, begin
-    rw [← homogeneous_localization.is_unit_iff_is_unit_val,
-      ← homogeneous_localization.is_unit_iff_is_unit_val,
-      homogeneous_localization.sub_val,
-      homogeneous_localization.one_val],
+    simp only [← is_unit_iff_is_unit_val, sub_val, one_val],
     induction a using quotient.induction_on',
     simp only [homogeneous_localization.val_mk', ← subtype.val_eq_coe],
     by_cases mem1 : a.num.1 ∈ x,
     { right,
-      have : a.denom.1 - a.num.1 ∈ x.prime_compl,
-      { intro h,
-        apply a.denom_not_mem,
-        convert submodule.add_mem' _ h mem1,
-        rw sub_add_cancel,
-        refl, },
-      apply is_unit_of_mul_eq_one _
-        (localization.mk a.denom.1 ⟨a.denom.1 - a.num.1, this⟩),
+      have : a.denom.1 - a.num.1 ∈ x.prime_compl := λ h, a.denom_not_mem
+        ((sub_add_cancel a.denom.val a.num.val) ▸ ideal.add_mem _ h mem1 : a.denom.1 ∈ x),
+      apply is_unit_of_mul_eq_one _ (localization.mk a.denom.1 ⟨a.denom.1 - a.num.1, this⟩),
       simp only [sub_mul, localization.mk_mul, one_mul, localization.sub_mk, ← subtype.val_eq_coe,
-        show ∀ (z z' : x.prime_compl), (z * z').1 = z.1 * z'.1, from λ _ _, rfl],
+        submonoid.coe_mul],
       convert localization.mk_self _,
-      simp only [← subtype.val_eq_coe,
-        show ∀ (z z' : x.prime_compl), (z * z').1 = z.1 * z'.1, from λ _ _, rfl],
+      simp only [← subtype.val_eq_coe, submonoid.coe_mul],
       ring, },
     { left,
       change _ ∈ x.prime_compl at mem1,
       apply is_unit_of_mul_eq_one _ (localization.mk a.denom.1 ⟨a.num.1, mem1⟩),
       rw [localization.mk_mul],
       convert localization.mk_self _,
-      rw mul_comm,
-      refl },
-end}
+      simpa only [mul_comm], },
+end }
 
 end homogeneous_localization

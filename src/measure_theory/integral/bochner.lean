@@ -627,10 +627,10 @@ lemma integral_add (f g : α →₁[μ] E) : integral (f + g) = integral f + int
 map_add integral_clm f g
 
 lemma integral_neg (f : α →₁[μ] E) : integral (-f) = - integral f :=
-integral_clm.map_neg f
+map_neg integral_clm f
 
 lemma integral_sub (f g : α →₁[μ] E) : integral (f - g) = integral f - integral g :=
-integral_clm.map_sub f g
+map_sub integral_clm f g
 
 lemma integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f :=
 map_smul (integral_clm' 𝕜) c f

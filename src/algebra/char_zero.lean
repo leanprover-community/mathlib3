@@ -34,7 +34,15 @@ from the natural numbers into it is injective.
 -/
 
 /-- Typeclass for monoids with characteristic zero.
-  (This is usually stated on fields but it makes sense for any additive monoid with 1.) -/
+  (This is usually stated on fields but it makes sense for any additive monoid with 1.)
+
+*Warning*: for a semiring `R`, `char_zero R` and `char_p R 0` need not coincide.
+* `char_zero R` requires an injection `ℕ ↪ R`;
+* `char_p R 0` asks that only `0 : ℕ` maps to `0 : R` under the map `ℕ → R`.
+
+For instance, endowing `{0, 1}` with addition given by `max` (i.e. `1` is absorbing), shows that
+`char_zero {0, 1}` does not hold and yet `char_p {0, 1} 0` does.
+ -/
 class char_zero (R : Type*) [add_monoid R] [has_one R] : Prop :=
 (cast_injective : function.injective (coe : ℕ → R))
 
@@ -120,7 +128,7 @@ by rwa [nat.cast_two] at this
 end
 
 section
-variables {R : Type*} [semiring R] [no_zero_divisors R] [char_zero R]
+variables {R : Type*} [non_assoc_semiring R] [no_zero_divisors R] [char_zero R]
 
 @[simp]
 lemma add_self_eq_zero {a : R} : a + a = 0 ↔ a = 0 :=
@@ -134,7 +142,7 @@ by { rw [eq_comm], exact bit0_eq_zero }
 end
 
 section
-variables {R : Type*} [ring R] [no_zero_divisors R] [char_zero R]
+variables {R : Type*} [non_assoc_ring R] [no_zero_divisors R] [char_zero R]
 
 lemma neg_eq_self_iff {a : R} : -a = a ↔ a = 0 :=
 neg_eq_iff_add_eq_zero.trans add_self_eq_zero
@@ -207,7 +215,7 @@ end with_top
 
 section ring_hom
 
-variables {R S : Type*} [semiring R] [semiring S]
+variables {R S : Type*} [non_assoc_semiring R] [non_assoc_semiring S]
 
 lemma ring_hom.char_zero (ϕ : R →+* S) [hS : char_zero S] : char_zero R :=
 ⟨λ a b h, char_zero.cast_injective (by rw [←map_nat_cast ϕ, ←map_nat_cast ϕ, h])⟩

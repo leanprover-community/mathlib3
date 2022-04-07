@@ -161,6 +161,10 @@ begin
   exact ⟨⟨h1, L.card_functions_le_omega⟩, refl _⟩,
 end
 
+instance small [small.{u} α] :
+  small.{u} (L.term α) :=
+small_of_injective list_encode_injective
+
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 
@@ -169,6 +173,12 @@ end term
 /-- The representation of a constant symbol as a term. -/
 def constants.term (c : L.constants) : (L.term α) :=
 func c default
+
+/-- Applies a unary function to a term. -/
+def functions.apply₁ (f : L.functions 1) (t : L.term α) : L.term α := func f ![t]
+
+/-- Applies a binary function to two terms. -/
+def functions.apply₂ (f : L.functions 2) (t₁ t₂ : L.term α) : L.term α := func f ![t₁, t₂]
 
 namespace term
 
@@ -246,6 +256,16 @@ variables {L} {α} {n : ℕ}
 def relations.bounded_formula {l : ℕ} (R : L.relations n) (ts : fin n → L.term (α ⊕ fin l)) :
   L.bounded_formula α l := bounded_formula.rel R ts
 
+/-- Applies a unary relation to a term as a bounded formula. -/
+def relations.bounded_formula₁ (r : L.relations 1) (t : L.term (α ⊕ fin n)) :
+  L.bounded_formula α n :=
+r.bounded_formula ![t]
+
+/-- Applies a binary relation to two terms as a bounded formula. -/
+def relations.bounded_formula₂ (r : L.relations 2) (t₁ t₂ : L.term (α ⊕ fin n)) :
+  L.bounded_formula α n :=
+r.bounded_formula ![t₁, t₂]
+
 /-- The equality of two terms as a bounded formula. -/
 def term.bd_equal (t₁ t₂ : L.term (α ⊕ fin n)) : (L.bounded_formula α n) :=
 bounded_formula.equal t₁ t₂
@@ -253,6 +273,16 @@ bounded_formula.equal t₁ t₂
 /-- Applies a relation to terms as a bounded formula. -/
 def relations.formula (R : L.relations n) (ts : fin n → L.term α) :
   L.formula α := R.bounded_formula (λ i, (ts i).relabel sum.inl)
+
+/-- Applies a unary relation to a term as a formula. -/
+def relations.formula₁ (r : L.relations 1) (t : L.term α) :
+  L.formula α :=
+r.formula ![t]
+
+/-- Applies a binary relation to two terms as a formula. -/
+def relations.formula₂ (r : L.relations 2) (t₁ t₂ : L.term α) :
+  L.formula α :=
+r.formula ![t₁, t₂]
 
 /-- The equality of two terms as a first-order formula. -/
 def term.equal (t₁ t₂ : L.term α) : (L.formula α) :=
@@ -657,6 +687,33 @@ lemma is_atomic_graph (f : L.functions n) : (graph f).is_atomic :=
 bounded_formula.is_atomic.equal _ _
 
 end formula
+
+namespace relations
+
+variable (r : L.relations 2)
+
+/-- The sentence indicating that a basic relation symbol is reflexive. -/
+protected def reflexive : L.sentence := ∀' r.bounded_formula₂ &0 &0
+
+/-- The sentence indicating that a basic relation symbol is irreflexive. -/
+protected def irreflexive : L.sentence := ∀' ∼ (r.bounded_formula₂ &0 &0)
+
+/-- The sentence indicating that a basic relation symbol is symmetric. -/
+protected def symmetric : L.sentence := ∀' ∀' (r.bounded_formula₂ &0 &1 ⟹ r.bounded_formula₂ &1 &0)
+
+/-- The sentence indicating that a basic relation symbol is antisymmetric. -/
+protected def antisymmetric : L.sentence :=
+  ∀' ∀' (r.bounded_formula₂ &0 &1 ⟹ (r.bounded_formula₂ &1 &0 ⟹ term.bd_equal &0 &1))
+
+/-- The sentence indicating that a basic relation symbol is transitive. -/
+protected def transitive : L.sentence :=
+  ∀' ∀' ∀' (r.bounded_formula₂ &0 &1 ⟹ r.bounded_formula₂ &1 &2 ⟹ r.bounded_formula₂ &0 &2)
+
+/-- The sentence indicating that a basic relation symbol is total. -/
+protected def total : L.sentence :=
+  ∀' ∀' (r.bounded_formula₂ &0 &1 ⊔ r.bounded_formula₂ &1 &0)
+
+end relations
 
 end language
 end first_order

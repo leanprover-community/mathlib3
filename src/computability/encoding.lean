@@ -44,7 +44,7 @@ begin
 end
 
 /-- An encoding plus a guarantee of finiteness of the alphabet. -/
-structure fin_encoding (α : Type u) extends encoding α :=
+structure fin_encoding (α : Type u) extends encoding.{u 0} α :=
 (Γ_fin : fintype Γ)
 
 instance {α : Type u} (e : fin_encoding α) :
@@ -204,7 +204,7 @@ begin
   { rw cardinal.mk_list_eq_omega },
 end
 
-lemma fin_encoding.card_le_omega {α : Type u} (e : fin_encoding.{u v} α) :
+lemma fin_encoding.card_le_omega {α : Type u} (e : fin_encoding α) :
   (# α) ≤ ω :=
 begin
   haveI : encodable e.Γ := fintype.encodable _,

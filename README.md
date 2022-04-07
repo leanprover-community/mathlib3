@@ -73,7 +73,7 @@ Running the ``leanproject get -b mathlib:shiny_lemma`` command will create a new
 with a local branch called ``shiny_lemma`` which has a copy of mathlib to work on.
 
 ``leanproject build`` will check that nothing broke.
-Be warned that this will take some time as its likely a fundamental file will be changed.
+Be warned that this will take some time if a fundamental file was changed.
 
 ## Maintainers:
 

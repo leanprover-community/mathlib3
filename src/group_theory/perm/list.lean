@@ -90,7 +90,7 @@ begin
       simp [form_perm_apply_of_not_mem _ _ hx, ←h] } }
 end
 
-theorem form_perm_mem_of_apply_mem (x : α) (l : list α) (h : l.form_perm x ∈ l) :
+theorem mem_of_form_perm_apply_mem (x : α) (l : list α) (h : l.form_perm x ∈ l) :
   x ∈ l :=
 begin
   cases l with y l,

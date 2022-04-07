@@ -876,31 +876,95 @@ if hf : measurable f then
     le_to_outer_measure_caratheodory μ _ (hf hs) (f ⁻¹' t)
 else 0
 
-/-- The pushforward of a measure. It is defined to be `0` if `f` is not a measurable function. -/
-@[reducible]
-def map [measurable_space α] (f : α → β) (μ : measure α) : measure β := mapₗ f μ
+lemma mapₗ_congr {f g : α → β} (hf : measurable f) (hg : measurable g) (h : f =ᵐ[μ] g) :
+  mapₗ f μ = mapₗ g μ :=
+begin
+  ext1 s hs,
+  simp only [mapₗ, hf, hg, hs, dif_pos, lift_linear_apply, outer_measure.map_apply,
+    coe_to_outer_measure],
+  have : f ⁻¹' s =ᵐ[μ] g⁻¹' s,
+  { filter_upwards [h] with x hx,
+    change (f x ∈ s) = (g x ∈ s),
+    rw hx },
+  exact measure_congr this
+end
 
-@[simp] lemma mapₗ_apply [measurable_space α] (f : α → β) (μ : measure α) :
+/-- The pushforward of a measure. It is defined to be `0` if `f` is not an almost everywhere
+measurable function. -/
+@[irreducible] def map [measurable_space α] (f : α → β) (μ : measure α) : measure β :=
+if hf : ae_measurable f μ then mapₗ (hf.mk f) μ else 0
+
+include m0
+
+lemma mapₗ_mk_apply_of_ae_measurable {f : α → β} (hf : ae_measurable f μ) :
+  mapₗ (hf.mk f) μ = map f μ :=
+by simp [map, hf]
+
+lemma mapₗ_apply_of_measurable {f : α → β} (hf : measurable f) (μ : measure α) :
   mapₗ f μ = map f μ :=
-rfl
+begin
+  simp only [← mapₗ_mk_apply_of_ae_measurable hf.ae_measurable],
+  exact mapₗ_congr hf hf.ae_measurable.measurable_mk hf.ae_measurable.ae_eq_mk
+end
 
-@[simp] lemma map_add {m0 : measurable_space α} (μ ν : measure α) (f : α → β) :
+@[simp] lemma map_add (μ ν : measure α) {f : α → β} (hf : measurable f) :
   (μ + ν).map f = μ.map f + ν.map f :=
-(mapₗ f).map_add μ ν
+by simp [← mapₗ_apply_of_measurable hf]
 
-@[simp] lemma map_zero {m0 : measurable_space α} (f : α → β) :
+@[simp] lemma map_zero (f : α → β) :
   (0 : measure α).map f = 0 :=
-(mapₗ f).map_zero
+begin
+  by_cases hf : ae_measurable f (0 : measure α);
+  simp [map, hf],
+end
 
-@[simp] lemma map_smul {m0 : measurable_space α} (c : ℝ≥0∞) (μ : measure α) (f : α → β) :
+theorem map_of_not_ae_measurable {f : α → β} (μ : measure α) (hf : ¬ ae_measurable f μ) :
+  μ.map f = 0 :=
+by simp [map, hf]
+
+lemma map_congr {f g : α → β} (h : f =ᵐ[μ] g) : measure.map f μ = measure.map g μ :=
+begin
+  by_cases hf : ae_measurable f μ,
+  { have hg : ae_measurable g μ := hf.congr h,
+    simp only [← mapₗ_mk_apply_of_ae_measurable hf, ← mapₗ_mk_apply_of_ae_measurable hg],
+    exact mapₗ_congr hf.measurable_mk hg.measurable_mk
+      (hf.ae_eq_mk.symm.trans (h.trans hg.ae_eq_mk)) },
+  { have hg : ¬ (ae_measurable g μ), by simpa [← ae_measurable_congr h] using hf,
+    simp [map_of_not_ae_measurable, hf, hg] }
+end
+
+lemma ae_smul_measure_iff {p : α → Prop} {c : ℝ≥0∞} (hc : c ≠ 0) :
+  (∀ᵐ x ∂(c • μ), p x) ↔ ∀ᵐ x ∂μ, p x :=
+by simp [ae_iff, hc]
+⁻¹'
+#check eventually_eq
+
+@[simp] lemma map_smul (c : ℝ≥0∞) (μ : measure α) (f : α → β) :
   (c • μ).map f = c • μ.map f :=
-(mapₗ f).map_smul c μ
+begin
+  rcases eq_or_ne c 0 with rfl|hc, { simp },
+  by_cases hf : ae_measurable f μ,
+  { have hfc : ae_measurable f (c • μ) :=
+      ⟨hf.mk f, hf.measurable_mk, (ae_smul_measure_iff hc).2 hf.ae_eq_mk⟩,
+    simp only [←mapₗ_mk_apply_of_ae_measurable hf, ←mapₗ_mk_apply_of_ae_measurable hfc,
+      linear_map.map_smulₛₗ, ring_hom.id_apply],
+    congr' 1,
+    apply mapₗ_congr hfc.measurable_mk hf.measurable_mk,
+    exact eventually_eq.trans ((ae_smul_measure_iff hc).1 hfc.ae_eq_mk.symm) hf.ae_eq_mk },
+  { have hfc : ¬ (ae_measurable f (c • μ)),
+    { assume hfc,
+      exact hf ⟨hfc.mk f, hfc.measurable_mk, (ae_smul_measure_iff hc).1 hfc.ae_eq_mk⟩ },
+    simp [map_of_not_ae_measurable μ hf, map_of_not_ae_measurable _ hfc] }
+end
 
 /-- We can evaluate the pushforward on measurable sets. For non-measurable sets, see
   `measure_theory.measure.le_map_apply` and `measurable_equiv.map_apply`. -/
-@[simp] theorem map_apply {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
+@[simp] theorem map_apply {f : α → β} (hf : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
   μ.map f s = μ (f ⁻¹' s) :=
-by {rw [map, mapₗ], simp [dif_pos hf, hs]}
+begin
+  simp only [mapₗ, hf.measurable_mk, hs, dif_pos, lift_linear_apply, outer_measure.map_apply,
+    coe_to_outer_measure, ← mapₗ_mk_apply_of_ae_measurable hf],
+end
 
 lemma map_to_outer_measure {f : α → β} (hf : measurable f) :
   (μ.map f).to_outer_measure = (outer_measure.map f μ.to_outer_measure).trim :=
@@ -909,10 +973,6 @@ begin
   intros s hs,
   rw [coe_to_outer_measure, map_apply hf hs, outer_measure.map_apply, coe_to_outer_measure]
 end
-
-theorem map_of_not_measurable {f : α → β} (hf : ¬measurable f) :
-  μ.map f = 0 :=
-by rw [map, mapₗ, dif_neg hf, linear_map.zero_apply]
 
 @[simp] lemma map_id : map id μ = μ :=
 ext $ λ s, map_apply measurable_id
@@ -964,6 +1024,8 @@ begin
   rw [comap, dif_pos, lift_linear_apply _ hs, outer_measure.comap_apply, coe_to_outer_measure],
   exact ⟨hfi, hf⟩
 end
+
+#exit
 
 /-! ### Restricting a measure -/
 

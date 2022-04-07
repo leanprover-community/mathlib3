@@ -1297,6 +1297,10 @@ lemma eventually_eq.inf [has_inf β] {l : filter α} {f f' g g' : α → β}
   (λ x, f x ⊓ g x) =ᶠ[l] λ x, f' x ⊓ g' x :=
 hf.comp₂ (⊓) hg
 
+lemma eventually_eq.preimage {l : filter α} {f g : α → β}
+  (h : f =ᶠ[l] g) (s : set β) : f ⁻¹' s =ᶠ[l] g ⁻¹' s :=
+h.fun_comp s
+
 lemma eventually_eq.inter {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
   (s ∩ s' : set α) =ᶠ[l] (t ∩ t' : set α) :=
 h.comp₂ (∧) h'

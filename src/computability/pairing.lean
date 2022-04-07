@@ -65,12 +65,16 @@ by { simp only [after], split_ifs, { refl, }, { apply after_sublist, } }
 
 lemma after_length_lt {α : Type*} (p : α → Prop) [decidable_pred p] {xs : list α} :
   (xs.after p).length < xs.length ↔ 0 < xs.length :=
-⟨pos_of_gt, by { cases xs, { simp, },
-  intro, simpa [nat.lt_succ_iff] using length_le_of_sublist (after_sublist_strict p _ _), }⟩
+⟨pos_of_gt, begin
+  cases xs, { simp, },
+  intro, simpa [nat.lt_succ_iff] using length_le_of_sublist (after_sublist_strict p _ _),
+end⟩
 
-lemma last'_eq_head'_reverse {α : Type*} (xs : list α) :
-  xs.last' = xs.reverse.head' :=
-by apply reverse_cases_on xs; simp
+@[simp] lemma last'_reverse {α : Type*} (xs : list α) : xs.reverse.last' = xs.head' :=
+by cases xs; simp
+
+lemma last'_eq_head'_reverse {α : Type*} (xs : list α) : xs.last' = xs.reverse.head' :=
+by simpa using xs.reverse.last'_reverse
 
 /-- A preliminary pairing function.
 This encodes (a, b) as a unary encoding of the length of `a` followed by `a ++ b`. -/
@@ -83,12 +87,11 @@ def unpair' (x : list bool) : list bool × list bool :=
 
 @[simp] lemma unpair'_mkpair' (a b : list bool) : unpair' (mkpair' a b) = (a, b) :=
 begin
-  simp only [unpair'],
   have h₁ : (mkpair' a b).after (=tt) = a ++ b,
   { apply after_spec, { simp [mem_repeat], }, { refl, }, },
   have h₂ : ((mkpair' a b).take_while (=ff)).length = a.length,
   { erw take_while_spec, { apply length_repeat, }, { simp [mem_repeat], }, trivial, },
-  simp [h₁, h₂],
+  simp [unpair', h₁, h₂],
 end
 
 /-- Size bound for `mkpair'`: `|(a, b)| = O(|a|) + |b|` -/
@@ -191,7 +194,7 @@ begin
 end
 
 /-- Size bound for `mkpair'`: `log₂ (mkpair' a b) = log₂ a + log₂ b + O(log log a) `-/
-lemma mkpair'_le (a b : ℕ) : nat.log 2 (mkpair' a b) ≤
+lemma mkpair'_le (a b : ℕ) : log 2 (mkpair' a b) ≤
   log 2 a + log 2 b + 2 * log 2 (log 2 a + 1) + 5 :=
 calc log 2 (decode_num (list.mkpair (encode_num a) (encode_num b)))
     ≤ log 2 (2^((list.mkpair (encode_num a) (encode_num b)).length) - 1) :

@@ -197,9 +197,8 @@ galois_connection.l_supr (fixing_subgroup_fixed_points_connection M α)
 
 /-- Fixed points of sup of subgroups is intersection -/
 lemma fixed_points_of_group_of_sup {P Q : subgroup M} :
-  fixed_points (P ⊔ Q : subgroup M) α =
-    (fixed_points P α) ⊓ (fixed_points Q α) :=
-  galois_connection.u_inf (fixing_subgroup_fixed_points_connection M α)
+  fixed_points (P ⊔ Q : subgroup M) α = (fixed_points P α) ⊓ (fixed_points Q α) :=
+galois_connection.u_inf (fixing_subgroup_fixed_points_connection M α)
 
 /-- Fixed points of supr of subgroups is intersection -/
 lemma fixed_points_of_group_of_supr {ι : Type*} {P : ι → subgroup M} :

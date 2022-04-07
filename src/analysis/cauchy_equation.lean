@@ -22,7 +22,9 @@ variables {ι : Type*} [fintype ι]
 
 local notation `ℝⁿ` := ι → ℝ
 
-theorem cauchy_rational_add (f : ℝ →+ ℝ) :
+/-- **Cauchy's functional equation**. An additive monoid homomorphism automatically preserves `ℚ`.
+-/
+theorem add_monoid_hom.is_linear_map_rat (f : ℝ →+ ℝ) :
   is_linear_map ℚ f := by exact ⟨map_add f, λ c x, add_monoid_hom.map_rat_cast_smul f ℝ ℝ c x⟩
 
 -- should this one get generalised?
@@ -49,8 +51,8 @@ begin
   exact htop
 end
 
-lemma exists_zero_nbhd_bounded (f : ℝ →+ ℝ)
-  (h : @measurable ℝ ℝ (real.measurable_space) (borel ℝ) f) :
+lemma exists_zero_nhds_bounded (f : ℝ →+ ℝ)
+  (h : measurable f) :
   ∃ (U : set ℝ), U ∈ nhds (0 : ℝ) ∧ metric.bounded (f '' U) :=
 begin
   rcases (exists_real_preimage_ball_pos_volume f) with ⟨r, z, hr⟩,
@@ -75,7 +77,7 @@ begin
     ... ≤ 2 * r : by linarith }
 end
 
-lemma additive_continuous_at_zero_of_bounded_nbhd_zero (f : ℝ →+ ℝ) {U : set ℝ}
+lemma additive_continuous_at_zero_of_bounded_nhds_zero (f : ℝ →+ ℝ) {U : set ℝ}
   (hU : U ∈ nhds (0 : ℝ)) (hbounded : metric.bounded (f '' U)) : continuous_at f 0 :=
 begin
   rcases (metric.mem_nhds_iff.mp hU) with ⟨δ, hδ, hUε⟩,
@@ -122,32 +124,19 @@ begin
 end
 
 lemma additive_continuous_at_zero (f : ℝ →+ ℝ)
-  (h : @measurable ℝ ℝ (real.measurable_space) (borel ℝ) f) : continuous_at f 0 :=
+  (h : measurable f) : continuous_at f 0 :=
 begin
-  rcases (exists_zero_nbhd_bounded f h) with ⟨U, hU, hbounded⟩,
-  exact additive_continuous_at_zero_of_bounded_nbhd_zero f hU hbounded
+  rcases (exists_zero_nhds_bounded f h) with ⟨U, hU, hbounded⟩,
+  exact additive_continuous_at_zero_of_bounded_nhds_zero f hU hbounded
 end
 
 lemma continuous_of_measurable (f : ℝ →+ ℝ)
-  (h : @measurable ℝ ℝ (borel ℝ) (borel ℝ) f) : continuous f :=
+  (h : measurable f) : continuous f :=
   by exact uniform_continuous.continuous
     (uniform_continuous_of_continuous_at_zero f (additive_continuous_at_zero f h))
 
-
-lemma real_eq_forall_pos_lt {a b : ℝ} : (∀ (ε : ℝ), 0 < ε → ∥ a - b ∥ < ε) → a = b :=
-begin
-  intro h,
-  contrapose h,
-  push_neg,
-  use ∥ a - b ∥ / 2,
-  split,
-  { rw lt_div_iff (show 0 < (2 : ℝ), by norm_num),
-    norm_num [sub_eq_zero, h] },
-  { rw div_le_iff (show 0 < (2 : ℝ), by norm_num),
-    simp only [mul_two, le_add_iff_nonneg_left, norm_nonneg] }
-end
-
-lemma is_linear_map_api_lemma {M : Type*} [comm_semiring M] (f : M →+ M) :
+-- do we want this one and where would it go?
+lemma is_linear_map_iff_apply_eq_apply_one_mul {M : Type*} [comm_semiring M] (f : M →+ M) :
   is_linear_map M f ↔ ∀ x : M, f x = f 1 * x :=
 begin
   split,
@@ -195,12 +184,13 @@ begin
       simpa [mem_ball, dist_self] }}
 end
 
-lemma is_linear_real_of_continuous (f : ℝ →+ ℝ) (h : continuous f) : is_linear_map ℝ f :=
+lemma continuous.is_linear_real  (f : ℝ →+ ℝ) (h : continuous f) : is_linear_map ℝ f :=
 begin
-  rw is_linear_map_api_lemma,
+  rw is_linear_map_iff_apply_eq_apply_one_mul,
   have h1 := is_linear_rat f,
   intro x,
-  apply real_eq_forall_pos_lt,
+  apply eq_of_norm_sub_le_zero,
+  apply le_of_forall_pos_lt_add,
   by_contra hf,
   push_neg at hf,
   rcases hf with ⟨ε, hε, hf⟩,
@@ -241,7 +231,8 @@ begin
     abel }
 end
 
-lemma additive_continuous_at_iff_continuos_at_zero (f : ℝ →+ ℝ) {x : ℝ} :
+-- to generalize
+lemma add_monoid_hom.continuous_at_iff_continuos_at_zero (f : ℝ →+ ℝ) {x : ℝ} :
   continuous_at f x ↔ continuous_at f 0 :=
 begin
   split,
@@ -263,25 +254,25 @@ begin
 end
 
 lemma is_linear_real_of_continuous_at (f : ℝ →+ ℝ) {y : ℝ} (h : continuous_at f y) :
-  is_linear_map ℝ f := by exact is_linear_real_of_continuous f
+  is_linear_map ℝ f := by exact continuous.is_linear_real f
     (uniform_continuous.continuous (uniform_continuous_of_continuous_at_zero f
-    ((additive_continuous_at_iff_continuos_at_zero f).mp h)))
+    ((f.continuous_at_iff_continuos_at_zero).mp h)))
 
 
-lemma is_linear_of_bounded_nhd (f : ℝ →+ ℝ) {a : ℝ} {U : set ℝ} (hU : U ∈ 𝓝 a)
+lemma is_linear_real_of_bounded_nhds (f : ℝ →+ ℝ) {a : ℝ} {U : set ℝ} (hU : U ∈ 𝓝 a)
   (hf : metric.bounded (f '' U)) : is_linear_map ℝ f :=
 begin
   rcases (additive_is_bounded_of_bounded_on_interval f hU hf) with ⟨V, hV0, hVb⟩,
   exact is_linear_real_of_continuous_at f
-    (additive_continuous_at_zero_of_bounded_nbhd_zero f hV0 hVb)
+    (additive_continuous_at_zero_of_bounded_nhds_zero f hV0 hVb)
 end
 
-lemma is_linear_of_monotone_nhd (f : ℝ →+ ℝ) {a : ℝ} {U : set ℝ} (hU : U ∈ 𝓝 a)
+lemma monotone_on.is_linear_map_real (f : ℝ →+ ℝ) {a : ℝ} {U : set ℝ} (hU : U ∈ 𝓝 a)
   (hf : monotone_on f U) : is_linear_map ℝ f :=
 begin
   rcases (metric.mem_nhds_iff.mp hU) with ⟨t, ht, h⟩,
   replace h := subset.trans (metric.closed_ball_subset_ball (show t / 2 < t, by linarith)) h,
-  apply is_linear_of_bounded_nhd f
+  apply is_linear_real_of_bounded_nhds f
     (metric.closed_ball_mem_nhds a $ show (0 : ℝ) < t / 2, by linarith) _,
   apply bounded_of_bdd_above_of_bdd_below,
   { apply hf.map_bdd_above h _,

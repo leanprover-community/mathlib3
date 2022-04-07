@@ -21,10 +21,7 @@ this file we will construct a sheaf on `projective_spectrum 𝒜`.
 - `U` is opposite object of some open subset of `projective_spectrum.Top`.
 
 ## Main definitions and results
-* `projective_spectrum.Top`: the topological space of `projective_spectrum 𝒜` endowed with the
-  Zariski topology
-
-Then we define the structure sheaf as the subsheaf of all dependent function
+We define the structure sheaf as the subsheaf of all dependent function
 `f : Π x : U, homogeneous_localization 𝒜 x` such that `f` is locally expressible as ratio of two
 elements of the *same grading*, i.e. `∀ y ∈ U, ∃ (V ⊆ U) (i : ℕ) (a b ∈ 𝒜 i), ∀ z ∈ V, f z = a / b`.
 
@@ -37,8 +34,6 @@ elements of the *same grading*, i.e. `∀ y ∈ U, ∃ (V ⊆ U) (i : ℕ) (a b 
   restriction map.
 
 Then we establish that `Proj 𝒜` is a `LocallyRingedSpace`:
-* `algebraic_geometry.homogeneous_localization.is_local`: for any `x : projective_spectrum 𝒜`,
-  `homogeneous_localization 𝒜 x` is a local ring.
 * `algebraic_geometry.Proj.stalk_iso'`: for any `x : projective_spectrum 𝒜`, the stalk of
   `Proj.structure_sheaf` at `x` is isomorphic to `homogeneous_localization 𝒜 x`.
 * `algebraic_geometry.Proj.to_LocallyRingedSpace`: `Proj` as a locally ringed space.
@@ -55,20 +50,13 @@ noncomputable theory
 namespace algebraic_geometry
 
 open_locale direct_sum big_operators pointwise
-open direct_sum set_like localization
+open direct_sum set_like localization Top topological_space category_theory opposite
 
 variables {R A: Type*}
 variables [comm_ring R] [comm_ring A] [algebra R A]
 variables (𝒜 : ℕ → submodule R A) [graded_algebra 𝒜]
 
 local notation `at ` x := homogeneous_localization 𝒜 x.as_homogeneous_ideal.to_ideal
-
-open Top topological_space category_theory opposite
-
-/--
-The underlying topology of `Proj` is the projective spectrum of graded ring `A`.
--/
-def projective_spectrum.Top : Top := Top.of (projective_spectrum 𝒜)
 
 namespace projective_spectrum.structure_sheaf
 
@@ -94,9 +82,9 @@ def is_fraction_prelocal : prelocal_predicate (λ (x : projective_spectrum.Top �
   res := by rintros V U i f ⟨j, r, s, w⟩; exact ⟨j, r, s, λ y, w (i y)⟩ }
 
 /--
-We will define the structure sheaf as
-the subsheaf of all dependent functions in `Π x : U, homogeneous_localization 𝒜 x`
-consisting of those functions which can locally be expressed as a ratio of `A` of same grading.-/
+We will define the structure sheaf as the subsheaf of all dependent functions in
+`Π x : U, homogeneous_localization 𝒜 x` consisting of those functions which can locally be expressed
+as a ratio of `A` of same grading.-/
 def is_locally_fraction : local_predicate (λ (x : projective_spectrum.Top 𝒜), at x) :=
 (is_fraction_prelocal 𝒜).sheafify
 
@@ -158,10 +146,8 @@ begin
     ⟨ra * rb, set_like.graded_monoid.mul_mem ra_mem rb_mem⟩,
     ⟨sa * sb, set_like.graded_monoid.mul_mem sa_mem sb_mem⟩, λ y, ⟨λ h, _, _⟩⟩,
   { cases (y : projective_spectrum.Top 𝒜).is_prime.mem_or_mem h with h h,
-    { choose nin hy using wa ⟨y, (opens.inf_le_left Va Vb y).2⟩,
-      exact nin h },
-    { choose nin hy using wb ⟨y, (opens.inf_le_right Va Vb y).2⟩,
-      exact nin h }, },
+    { choose nin hy using wa ⟨y, (opens.inf_le_left Va Vb y).2⟩, exact nin h },
+    { choose nin hy using wb ⟨y, (opens.inf_le_right Va Vb y).2⟩, exact nin h }, },
   { simp only [pi.mul_apply, ring_hom.map_mul],
     choose nin1 hy1 using wa (opens.inf_le_left Va Vb y),
     choose nin2 hy2 using wb (opens.inf_le_right Va Vb y),

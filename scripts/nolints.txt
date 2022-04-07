@@ -479,7 +479,6 @@ apply_nolint mul_action.to_perm_injective to_additive_doc
 apply_nolint has_mul.to_has_opposite_scalar to_additive_doc
 apply_nolint left_cancel_monoid.to_has_faithful_opposite_scalar to_additive_doc
 apply_nolint monoid.to_opposite_mul_action to_additive_doc
-apply_nolint mul_action.opposite_regular.is_pretransitive to_additive_doc
 
 -- group_theory/group_action/pi.lean
 apply_nolint pi.has_faithful_scalar_at to_additive_doc

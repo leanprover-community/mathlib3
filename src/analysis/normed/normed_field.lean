@@ -543,6 +543,13 @@ nnreal.eq $ calc ((n.nat_abs : ℝ≥0) : ℝ)
            ... = |n|           : by simp only [← int.abs_eq_nat_abs, int.cast_abs]
            ... = ∥n∥              : rfl
 
+lemma int.abs_le_floor_nnreal_iff (z : ℤ) (c : ℝ≥0) : |z| ≤ ⌊c⌋₊ ↔ ∥z∥₊ ≤ c :=
+begin
+  rw [int.abs_eq_nat_abs, int.coe_nat_le, nat.le_floor_iff (zero_le c)],
+  congr',
+  exact nnreal.coe_nat_abs z,
+end
+
 instance : norm_one_class ℤ :=
 ⟨by simp [← int.norm_cast_real]⟩
 

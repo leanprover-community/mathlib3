@@ -28,7 +28,7 @@ In this file we define Galois extensions as extensions which are both separable 
 - `intermediate_field.fixed_field_fixing_subgroup`: If `E/F` is finite dimensional and Galois
   then `fixed_field (fixing_subgroup K) = K`
 
-Together, these two result prove the Galois correspondence.
+Together, these two results prove the Galois correspondence.
 
 - `is_galois.tfae` : Equivalent characterizations of a Galois extension of finite degree
 -/

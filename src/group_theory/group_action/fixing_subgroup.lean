@@ -177,7 +177,7 @@ lemma fixed_points_subgroup_antitone :
 
 /-- Fixing subgroup of union is intersection -/
 lemma fixing_subgroup_union {s t : set α} :
-  fixing_subgroup M (s ∪ t) = (fixing_subgroup M s) ⊓ (fixing_subgroup M t) :=
+  fixing_subgroup M (s ∪ t) = fixing_subgroup M s ⊓ fixing_subgroup M t :=
 galois_connection.l_sup (fixing_subgroup_fixed_points_gc M α)
 
 /-- Fixing subgroup of Union is intersection -/

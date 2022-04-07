@@ -18,6 +18,12 @@ open_locale classical big_operators filter topological_space nnreal uniformity
 
 section move_me
 
+@[to_additive]
+instance subgroup.uniform_group {G : Type*} [group G] [uniform_space G] [uniform_group G]
+  (S : subgroup G) : uniform_group S :=
+{ uniform_continuous_div := uniform_continuous_comap' (uniform_continuous_div.comp $
+    uniform_continuous_subtype_val.prod_map uniform_continuous_subtype_val) }
+
 lemma induced_symm {α β : Type*} {e : α ≃ β} : induced e.symm = coinduced e :=
 begin
   ext t U,
@@ -140,14 +146,6 @@ lemma unique_topology_of_t2 [hnorm : nondiscrete_normed_field 𝕜] {t : topolog
 t = hnorm.to_uniform_space.to_topological_space :=
 sorry
 
-#check linear_equiv.of_bijective
-#check submodule.liftq
-#check continuous_iff_le_induced
-#check submodule.quotient.add_comm_group
-#check submodule.quotient_quotient_equiv_quotient_aux
-#check topological_add_group_quotient
-#check function.injective.ne
-
 lemma linear_map.continuous_of_is_closed_ker (l : E →ₗ[𝕜] 𝕜) (hl : is_closed (l.ker : set E)) :
   continuous l :=
 begin
@@ -194,11 +192,11 @@ begin
   { rw fintype.card_eq_zero_iff at hn,
     exact continuous_of_const (λ x y, funext hn.elim) },
   { haveI : finite_dimensional 𝕜 E := of_fintype_basis ξ,
-    -- first step: thanks to the inductive assumption, any n-dimensional subspace is equivalent
+    -- first step: thanks to the induction hypothesis, any n-dimensional subspace is equivalent
     -- to a standard space of dimension n, hence it is complete and therefore closed.
     have H₁ : ∀s : submodule 𝕜 E, finrank 𝕜 s = n → is_closed (s : set E),
     { assume s s_dim,
-      letI : uniform_add_group s := sorry,
+      letI : uniform_add_group s := s.to_add_subgroup.uniform_add_group,
       let b := basis.of_vector_space 𝕜 s,
       have U : uniform_embedding b.equiv_fun.symm.to_equiv,
       { have : fintype.card (basis.of_vector_space_index 𝕜 s) = n,

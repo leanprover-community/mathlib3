@@ -122,10 +122,7 @@ galois_connection.monotone_l (fixing_submonoid_fixed_points_connection M α)
 
 lemma fixed_points_is_antitone :
   antitone (λ (P : submonoid M), fixed_points P α) :=
-begin
-  rw ← monotone_comp_of_dual_iff,
-  exact galois_connection.monotone_u (fixing_submonoid_fixed_points_connection M α),
-end
+(fixing_submonoid_fixed_points_connection M α).monotone_u.dual_left
 
 /-- Fixing submonoid of union is intersection -/
 lemma fixing_submonoid_of_union {s t : set α} :
@@ -180,10 +177,8 @@ galois_connection.monotone_l (fixing_subgroup_fixed_points_connection M α)
 
 lemma fixed_points_of_group_is_antitone :
   antitone (λ (P : subgroup M), fixed_points P α) :=
-begin
-  rw ← monotone_comp_of_dual_iff,
-  exact galois_connection.monotone_u (fixing_subgroup_fixed_points_connection M α),
-end
+(fixing_subgroup_fixed_points_connection M α).monotone_u.dual_left
+
 
 /-- Fixing subgroup of union is intersection -/
 lemma fixing_subgroup_of_union {s t : set α} :

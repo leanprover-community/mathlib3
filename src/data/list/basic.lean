@@ -663,6 +663,8 @@ list.cases_on l (by simp) (by simp)
 
 /-! ### init -/
 
+@[simp] lemma init_singleton {α : Type*} (x : α) : [x].init = [] := rfl
+
 @[simp] theorem length_init : ∀ (l : list α), length (init l) = length l - 1
 | [] := rfl
 | [a] := rfl
@@ -894,6 +896,16 @@ begin
   { exact H0 },
   { rw reverse_cons, exact H1 _ _ ih }
 end
+
+/-- Take cases on the last element of the list. Like `reverse_rec_on`, this can be used
+for constructing data as well. -/
+def reverse_cases_on {α : Type*} {C : list α → Sort*} (l : list α) (h₀ : C [])
+  (case : ∀ st lt, C (st ++ [lt])) : C l :=
+by { induction l using list.reverse_rec_on, { exact h₀, }, { apply case, } }
+
+@[simp] lemma append_singleton_eq_iff {α : Type*} (st₁ st₂ : list α) (lt₁ lt₂ : α) :
+  st₁ ++ [lt₁] = st₂ ++ [lt₂] ↔ st₁ = st₂ ∧ lt₁ = lt₂ :=
+⟨λ h, by { rw and_comm, simpa using congr_arg reverse h, }, by cc⟩
 
 /-- Bidirectional induction principle for lists: if a property holds for the empty list, the
 singleton list, and `a :: (l ++ [b])` from `l`, then it holds for all lists. This can be used to

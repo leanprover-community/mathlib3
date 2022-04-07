@@ -98,8 +98,6 @@ lemma linear_map.continuous_of_is_closed_ker (l : E →ₗ[𝕜] 𝕜) (hl : is_
   continuous l :=
 sorry
 
-set_option profiler true
-
 /-- In finite dimension over a complete field, the canonical identification (in terms of a basis)
 with `𝕜^n` together with its sup norm is continuous. This is the nontrivial part in the fact that
 all norms are equivalent in finite dimension.

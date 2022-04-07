@@ -4,68 +4,50 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import combinatorics.szemeredi.behrend
+import combinatorics.szemeredi.triangle
 
 /-!
 # The Ruzsa-Szemerédi problem
 
-This file
-
+This file proves the lower bound of the Ruzsa-Szemerédi problem. The problem is to find the maximum
+number of edges that a graph on `n` vertices can have if all edges belong to a most one triangle.
+The lower bound comes from turning the big Salem-Spencer set from Behrend's lower bound on Roth
+numbers into a graph which has the property that every triangle gives a (possibly trivial)
+arithmetic progression on the original set.
 -/
 
+open finset sum₃
 open_locale pointwise
 
-variables {α : Type*}
+variables {α : Type*} [fintype α] [decidable_eq α]
 
-/-- A multiplicative Ruzsa-Szemerédi set in a graph is a set such that each edge belongs to at most
-one triangle in it. -/
-def mul_ruzsa_szemeredi (G : simple_graph α) (s : set α) : Prop := sorry
+/-- A Ruzsa-Szemerédi graph is a graph such that each edge belongs to at most one triangle. -/
+def ruzsa_szemeredi (G : simple_graph α) [G.decidable] : Prop :=
+(G.triangle_finset : set (finset α)).pairwise $ λ x y, (x ∩ y).card ≤ 1
 
-/-- Whether a given finset is Ruzsa-Szemerédi is decidable. -/
-instance (G : simple_graph α) (s : finset α) : decidable (mul_ruzsa_szemeredi G (s : set α)) :=
+/-- Whether a given graph is Ruzsa-Szemerédi is decidable. -/
+instance (G : simple_graph α) [G.decidable] : decidable (ruzsa_szemeredi G) :=
 sorry
 
-/-- The multiplicative Ruzsa-Szemerédi number of a finset is the cardinality of its biggest
-multiplicative Ruzsa-Szemerédi subset. -/
-def mul_ruzsa_szemeredi_number (G : simple_graph α) (s : finset α) : ℕ :=
-s.card.find_greatest $ λ m, ∃ t ⊆ s, t.card = m ∧ mul_ruzsa_szemeredi G (t : set α)
-
 namespace ruzsa_szemeredi
-variables [decidable_eq α]
 
 /-- The vertices of the Ruzsa-Szemerédi graph. -/
-@[derive inhabited] inductive vertices (α : Type*)
-| inl : α → vertices
-| inm : α → vertices
-| inr : α → vertices
-
--- inductive ruzsa_szemeredi_vertices (n : ℕ)
--- | inl : fin n → ruzsa_szemeredi_vertices
--- | inm : fin (2 * n) → ruzsa_szemeredi_vertices
--- | inr : fin (3 * n) → ruzsa_szemeredi_vertices
-
-open vertices
-
-/-- The set of vertices of the Ruzsa-Szemerédi graph corresponding to a set in the original monoid.
--/
-inductive vertex_set (s : set α) : set (vertices α)
-| inl {a : α} : a ∈ s → vertex_set (inl a)
-| inm {b : α} : b ∈ s → vertex_set (inm b)
-| inr {c : α} : c ∈ s → vertex_set (inr c)
+@[nolint inhabited_instance] abbreviation vertices {α : Type*} (s : set α) := sum₃ s s s
 
 section monoid
 variables [monoid α]
 
 section edges
-variables {s : set α} {a b c : α}
+variables {s : set α} {a b c : s}
 
 /-- The edges of the Ruzsa-Szemerédi graph. -/
-inductive edges (s : set α) : vertices α → vertices α → Prop
-| lm {a b : α} : b ∈ a • s            → edges (inl a) (inm b)
-| ml {a b : α} : b ∈ a • s            → edges (inm b) (inl a)
-| mr {b c : α} : c ∈ b • s            → edges (inm b) (inr c)
-| rm {b c : α} : c ∈ b • s            → edges (inr c) (inm b)
-| rl {c a : α} : a ∈ c • s.image (^2) → edges (inr c) (inl a)
-| lr {c a : α} : a ∈ c • s.image (^2) → edges (inl a) (inr c)
+inductive edges (s : set α) : vertices s → vertices s → Prop
+| lm {a b : s} : ↑b ∈ (a : α) • s            → edges (inl a) (inm b)
+| ml {a b : s} : ↑b ∈ (a : α) • s            → edges (inm b) (inl a)
+| mr {b c : s} : ↑c ∈ (b : α) • s            → edges (inm b) (inr c)
+| rm {b c : s} : ↑c ∈ (b : α) • s            → edges (inr c) (inm b)
+| rl {c a : s} : ↑c ∈ (a : α) • s.image (^2) → edges (inr c) (inl a)
+| lr {c a : s} : ↑c ∈ (a : α) • s.image (^2) → edges (inl a) (inr c)
 
 open edges
 
@@ -77,26 +59,66 @@ lemma edges_symm : symmetric (edges s)
 | _ _ (rl h) := lr h
 | _ _ (lr h) := rl h
 
-lemma edges_irrefl : ∀ x : vertices α, ¬ edges s x x.
+lemma edges_irrefl : ∀ x : vertices s, ¬ edges s x x.
 
-@[simp] lemma edges_inl_inm_iff : edges s (inl a) (inm b) ↔ b ∈ a • s :=
+@[simp] lemma edges_inl_inm_iff : edges s (inl a) (inm b) ↔ ↑b ∈ (a : α) • s :=
 ⟨by { rintro ⟨⟩, assumption }, lm⟩
 
-@[simp] lemma edges_inm_inr_iff : edges s (inm b) (inr c) ↔ c ∈ b • s :=
+@[simp] lemma edges_inm_inr_iff : edges s (inm b) (inr c) ↔ ↑c ∈ (b : α) • s :=
 ⟨by { rintro ⟨⟩, assumption }, mr⟩
 
-@[simp] lemma edges_inr_inl_iff : edges s (inr c) (inl a) ↔ a ∈ c • s.image (^2) :=
+@[simp] lemma edges_inr_inl_iff : edges s (inr c) (inl a) ↔ ↑c ∈ (a : α) • s.image (^2) :=
 ⟨by { rintro ⟨⟩, assumption }, rl⟩
 
 /-- The Ruzsa-Szemerédi graph. -/
-def graph (s : set α) : simple_graph (vertices α) :=
+@[simps] def graph (s : set α) : simple_graph (vertices s) :=
 { adj := edges s,
   symm := edges_symm,
   loopless := edges_irrefl }
 
-protected lemma mul_salem_spencer.mul_ruzsa_szemeredi (h : mul_salem_spencer s) :
-  mul_ruzsa_szemeredi (graph s) (vertex_set s) :=
+open_locale classical
+
+/-- Throwaway tactic. -/
+meta def sets_simp : tactic unit :=
+`[ext] >> `[simp only [finset.mem_insert, finset.mem_singleton]] >> `[try {tauto}]
+
+lemma graph_triple :
+  ∀ x y z, (graph s).adj x y → (graph s).adj y z → (graph s).adj z x →
+    ∃ a b c, ({inl a, inm b, inr c} : finset (vertices s)) = {x, y, z} ∧
+      (graph s).adj (inl a) (inm b) ∧
+      (graph s).adj (inm b) (inr c) ∧
+      (graph s).adj (inr c) (inl a)
+| _ _ _ (lm h₁) (mr h₂) (rl h₃) := ⟨_, _, _, by sets_simp, lm h₁, mr h₂, rl h₃⟩
+| _ _ _ (ml h₁) (lr h₂) (rm h₃) := ⟨_, _, _, by sets_simp, lm h₁, mr h₃, rl h₂⟩
+| _ _ _ (mr h₁) (rl h₂) (lm h₃) := ⟨_, _, _, by sets_simp, lm h₃, mr h₁, rl h₂⟩
+| _ _ _ (rm h₁) (ml h₂) (lr h₃) := ⟨_, _, _, by sets_simp, lm h₂, mr h₁, rl h₃⟩
+| _ _ _ (rl h₁) (lm h₂) (mr h₃) := ⟨_, _, _, by sets_simp, lm h₂, mr h₃, rl h₁⟩
+| _ _ _ (lr h₁) (rm h₂) (ml h₃) := ⟨_, _, _, by sets_simp, lm h₃, mr h₂, rl h₁⟩
+
+lemma triangle_iff {a b c : s} :
+  (graph s).adj (inl a) (inm b) ∧ (graph s).adj (inm b) (inr c) ∧ (graph s).adj (inr c) (inl a) ↔
+    (a : α) * c = b * b  :=
 begin
+  split,
+  {
+    rintro ⟨hab, hbc, hca⟩,
+    simp at hab hbc hca,
+    change _ ∈ _ at hab,
+    sorry
+  },
+  sorry
+end
+
+protected lemma _root_.mul_salem_spencer.ruzsa_szemeredi {s : finset α}
+  (h : mul_salem_spencer (s : set α)) :
+  ruzsa_szemeredi (graph (s : set α)) :=
+begin
+  rintro t ht u hu htu,
+  rw [←nat.lt_succ_iff, lt_iff_not_ge'],
+  rintro h,
+  obtain ⟨v, hvtu, hv⟩ := exists_smaller_set _ _ h,
+  obtain ⟨a, b, hab, rfl⟩ := card_eq_two.1 hv,
+  simp only [insert_subset, mem_inter, singleton_subset_iff] at hvtu,
   sorry
 end
 

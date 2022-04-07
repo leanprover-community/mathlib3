@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Copyright (c) 2022 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
@@ -164,8 +164,8 @@ begin
   have hz' : ∀ i, z i < d := bound_of_mem_sphere (mem_filter.1 hz).1,
   rw [←from_digits_two_add hx' hz', ←from_digits_two_add hy' hy'],
   rintro (t : from_digits (2 * d - 1) (x + z) = from_digits (2 * d - 1) (y + y)),
-  rw sphere_to_nat_inj_on.eq_iff (λ i, (hx' i).trans_le weird_thing)
-    (λ i, (hz' i).trans_le weird_thing),
+  rw sphere_to_nat_inj_on.eq_iff (λ i, (hx' i).trans_le $ le_succ_mul_neg _ _)
+    (λ i, (hz' i).trans_le $ le_succ_mul_neg _ _),
   rw sphere_to_nat_inj_on.eq_iff (sum_bound hx' hz') (sum_bound hy' hy') at t,
   exact add_salem_spencer_sphere_slice n d hx hz hy t,
 end
@@ -201,7 +201,7 @@ begin
     apply ((from_digits_le_of_mem_sphere x hx).trans_lt (digits_sum_le hd)).trans_le hN },
   refine set.inj_on.mono (λ x, _) sphere_to_nat_inj_on,
   simp only [mem_coe, sphere_slice, mem_filter, mem_sphere, and_imp, set.mem_set_of_eq],
-  exact λ h₁ h₂ i, (h₁ i).trans_le weird_thing,
+  exact λ h₁ h₂ i, (h₁ i).trans_le (le_succ_mul_neg _ _),
 end
 
 lemma large_slice_aux (n d : ℕ) :

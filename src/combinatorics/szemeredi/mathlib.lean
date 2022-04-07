@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
+Copyright (c) 2022 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
@@ -14,13 +14,50 @@ import data.real.basic
 open_locale big_operators nat
 open finset fintype function
 
-variables {α β ι ι' : Type*}
+variables {α β γ ι ι' : Type*}
+
+section sum₃
+variables (α β γ)
+
+/-- Ternary sum of types. This is equivalent to a nested binary sum (see `sum₃_equiv_sum`), but has
+better pattern-matching properties. -/
+inductive sum₃
+| inl : α → sum₃
+| inm : β → sum₃
+| inr : γ → sum₃
+
+open sum₃
+
+instance [inhabited α] : inhabited (sum₃ α β γ) := ⟨inl default⟩
+
+/-- A ternary sum is equivalent to a nested binary sum. -/
+def sum₃_equiv_sum : sum₃ α β γ ≃ α ⊕ β ⊕ γ :=
+{ to_fun := λ x, match x with
+    | inl a := sum.inl a
+    | inm b := sum.inr (sum.inl b)
+    | inr c := sum.inr (sum.inr c)
+  end,
+  inv_fun := λ x, match x with
+    | sum.inl a           := inl a
+    | sum.inr (sum.inl b) := inm b
+    | sum.inr (sum.inr c) := inr c
+  end,
+  left_inv := λ x, by cases x; refl,
+  right_inv := λ x, by obtain (_ | _ | _) := x; refl }
+
+instance (α β γ : Type*) [fintype α] [fintype β] [fintype γ] : fintype (sum₃ α β γ) :=
+fintype.of_equiv _ (sum₃_equiv_sum _ _ _).symm
+
+end sum₃
 
 namespace nat
 
-lemma weird_thing : ∀ {d : ℕ}, d ≤ 2 * d - 1
-| 0 := by simp
-| (n+1) := by simp [mul_add, two_mul]
+lemma le_succ_mul_neg (n : ℕ) : ∀ d, d ≤ (n + 1) * d - n
+| 0       := by simp
+| (d + 1) := begin
+    rw [mul_add, mul_one, add_tsub_assoc_of_le (n.le_add_right _), add_tsub_cancel_left],
+    exact add_le_add_right (le_mul_of_one_le_left d.zero_le $ nat.le_add_left _ _) 1,
+  end
 
 lemma thing2 (i j : ℕ) (hj : 0 < j) : j * (j - 1) * (i / j + 1) ^ 2 < (i + j) ^ 2 :=
 begin
@@ -95,7 +132,8 @@ lemma digits_sum_le {n d : ℕ} (hd : 0 < d) :
   ∑ (i : fin n), (d - 1) * (2 * d - 1)^(i : ℕ) < (2 * d - 1)^n :=
 begin
   rw digits_sum_eq,
-  apply (nat.div_le_self _ _).trans_lt (nat.pred_lt (pow_pos (hd.trans_le weird_thing) _).ne'),
+  exact (nat.div_le_self _ _).trans_lt
+    (nat.pred_lt (pow_pos (hd.trans_le $ le_succ_mul_neg _ _) _).ne'),
 end
 
 end nat
@@ -169,6 +207,10 @@ by { fin_cases i; fin_cases j; finish }
 
 lemma lt_of_not_le [linear_order α] {a b : α} (h : ¬ a ≤ b) : b < a := lt_of_not_ge' h
 
+protected lemma set.pairwise_disjoint.disjoint [semilattice_inf α] [order_bot α] {s : set α}
+  (h : s.pairwise_disjoint id) :
+  ∀ ⦃x⦄, x ∈ s → ∀ ⦃y⦄, y ∈ s → x ≠ y → disjoint x y := h
+
 section linear_ordered_field
 variables [linear_ordered_field α] {x y z : α}
 
@@ -235,6 +277,9 @@ end
 
 namespace simple_graph
 variables {G G' : simple_graph α} {s : finset α}
+
+/-- Abbreviation for a graph relation to be decidable. -/
+protected abbreviation decidable {α : Type*} (G : simple_graph α) := decidable_rel G.adj
 
 instance {r : α → α → Prop} [h : decidable_rel r] : decidable_pred (uncurry r) := λ x, h x.1 x.2
 

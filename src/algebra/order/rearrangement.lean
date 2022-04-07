@@ -29,7 +29,7 @@ convenience.
 The case for `monotone`/`antitone` pairs of functions over a `linear_order` is not deduced in this
 file because it is easily deducible from the `monovary` API.
 
-# Chebyshev inequality
+## Chebyshev inequality
 
 As a corollary of the rearrangement inequality, this file proves Chebyshev inequality
 

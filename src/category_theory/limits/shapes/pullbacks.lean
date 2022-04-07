@@ -204,6 +204,95 @@ def diagram_iso_span (F : walking_span ⥤ C) :
   F ≅ span (F.map fst) (F.map snd) :=
 nat_iso.of_components (λ j, eq_to_iso (by tidy)) (by tidy)
 
+variables {D : Type*} [category.{v} D]
+
+/-- A functor applied to a cospan is a cospan. -/
+def cospan_comp_iso (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  cospan f g ⋙ F ≅ cospan (F.map f) (F.map g) :=
+nat_iso.of_components (by rintros (⟨⟩|⟨⟨⟩⟩); exact iso.refl _)
+  (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp, })
+
+@[simp] lemma cospan_comp_iso_app_left (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  (cospan_comp_iso F f g).app walking_cospan.left = iso.refl _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_app_right (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  (cospan_comp_iso F f g).app walking_cospan.right = iso.refl _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_app_one (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  (cospan_comp_iso F f g).app walking_cospan.one = iso.refl _ :=
+rfl
+
+/-- A functor applied to a span is a span. -/
+def span_comp_iso (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
+  span f g ⋙ F ≅ span (F.map f) (F.map g) :=
+nat_iso.of_components (by rintros (⟨⟩|⟨⟨⟩⟩); exact iso.refl _)
+  (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp, })
+
+@[simp] lemma span_comp_iso_app_left (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
+  (span_comp_iso F f g).app walking_span.left = iso.refl _ :=
+rfl
+
+@[simp] lemma span_comp_iso_app_right (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
+  (span_comp_iso F f g).app walking_span.right = iso.refl _ :=
+rfl
+
+@[simp] lemma span_comp_iso_app_zero (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
+  (span_comp_iso F f g).app walking_span.zero = iso.refl _ :=
+rfl
+
+section
+variables {X Y Z X' Y' Z' : C} (iX : X ≅ X') (iY : Y ≅ Y') (iZ : Z ≅ Z')
+
+section
+variables {f : X ⟶ Z} {g : Y ⟶ Z} {f' : X' ⟶ Z'} {g' : Y' ⟶ Z'}
+
+/-- Construct an isomorphism of cospans from components. -/
+def cospan_ext (wf : iX.hom ≫ f' = f ≫ iZ.hom) (wg : iY.hom ≫ g' = g ≫ iZ.hom) :
+  cospan f g ≅ cospan f' g' :=
+nat_iso.of_components (by { rintros (⟨⟩|⟨⟨⟩⟩), exacts [iZ, iX, iY], })
+  (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp [wf, wg], })
+
+@[simp] lemma cospan_ext_app_left (wf : iX.hom ≫ f' = f ≫ iZ.hom) (wg : iY.hom ≫ g' = g ≫ iZ.hom) :
+  (cospan_ext iX iY iZ wf wg).app walking_cospan.left = iX :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_app_right (wf : iX.hom ≫ f' = f ≫ iZ.hom) (wg : iY.hom ≫ g' = g ≫ iZ.hom) :
+  (cospan_ext iX iY iZ wf wg).app walking_cospan.right = iY :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_app_one (wf : iX.hom ≫ f' = f ≫ iZ.hom) (wg : iY.hom ≫ g' = g ≫ iZ.hom) :
+  (cospan_ext iX iY iZ wf wg).app walking_cospan.one = iZ :=
+by { dsimp [cospan_ext], simp, }
+
+end
+
+section
+variables {f : X ⟶ Y} {g : X ⟶ Z} {f' : X' ⟶ Y'} {g' : X' ⟶ Z'}
+
+/-- Construct an isomorphism of spans from components. -/
+def span_ext (wf : iX.hom ≫ f' = f ≫ iY.hom) (wg : iX.hom ≫ g' = g ≫ iZ.hom) :
+  span f g ≅ span f' g' :=
+nat_iso.of_components (by { rintros (⟨⟩|⟨⟨⟩⟩), exacts [iX, iY, iZ], })
+  (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp [wf, wg], })
+
+@[simp] lemma span_ext_app_left (wf : iX.hom ≫ f' = f ≫ iY.hom) (wg : iX.hom ≫ g' = g ≫ iZ.hom) :
+  (span_ext iX iY iZ wf wg).app walking_span.left = iY :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_app_right (wf : iX.hom ≫ f' = f ≫ iY.hom) (wg : iX.hom ≫ g' = g ≫ iZ.hom) :
+  (span_ext iX iY iZ wf wg).app walking_span.right = iZ :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_app_one (wf : iX.hom ≫ f' = f ≫ iY.hom) (wg : iX.hom ≫ g' = g ≫ iZ.hom) :
+  (span_ext iX iY iZ wf wg).app walking_span.zero = iX :=
+by { dsimp [span_ext], simp, }
+
+end
+
+end
+
 variables {W X Y Z : C}
 
 /-- A pullback cone is just a cone on the cospan formed by two morphisms `f : X ⟶ Z` and

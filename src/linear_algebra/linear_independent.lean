@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp, Anne Baanen
 -/
 import linear_algebra.finsupp
 import linear_algebra.prod
-import data.equiv.fin
+import logic.equiv.fin
 import set_theory.cardinal
 
 /-!
@@ -662,10 +662,8 @@ begin
     simp },
   { rw [finset.set_bUnion_insert],
     refine (hl _).union ih _,
-    refine (hd i s s.finite_to_set his).mono_right _,
-    simp only [(span_Union _).symm],
-    refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
-    exact λ i, ⟨i, le_rfl⟩ }
+    rw span_Union₂,
+    exact hd i s s.finite_to_set his }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}

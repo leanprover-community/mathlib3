@@ -184,6 +184,28 @@ example : (9 * 9 * 9) * (12 : α) / 27 = 81 * (2 + 2) := by norm_num
 example : (-2 : α) * 4 / 3 = -8 / 3 := by norm_num
 example : - (-4 / 3) = 1 / (3 / (4 : α)) := by norm_num
 
+-- user command
+
+set_option trace.silence_norm_num_if_true true
+#norm_num 1 = 1
+example : 1 = 1 := by norm_num
+#norm_num 2^4-1 ∣ 2^16-1
+example : 2^4-1 ∣ 2^16-1 := by norm_num
+#norm_num (3 : real) ^ (-2 : ℤ) = 1/9
+example : (3 : real) ^ (-2 : ℤ) = 1/9 := by norm_num
+
+section norm_num_cmd_variable
+variables (x y : ℕ)
+
+#norm_num bit0 x < bit0 (y + x) ↔ 0 < y
+example : bit0 x < bit0 (y + x) ↔ 0 < y := by norm_num
+#norm_num bit0 x < bit0 (y + (2^10%11 - 1) + x) ↔ 0 < y
+example : bit0 x < bit0 (y + (2^10%11 - 1) + x) ↔ 0 < y := by norm_num
+#norm_num bit0 x < bit0 (y + (2^10%11 - 1) + x) + 3*2-6 ↔ 0 < y
+example : bit0 x < bit0 (y + (2^10%11 - 1) + x) + 3*2-6 ↔ 0 < y := by norm_num
+
+end norm_num_cmd_variable
+
 -- auto gen tests
 example : ((25 * (1 / 1)) + (30 - 16)) = (39 : α) := by norm_num
 example : ((19 * (- 2 - 3)) / 6) = (-95/6 : α) := by norm_num

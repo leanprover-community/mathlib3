@@ -3,11 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import order.symm_diff
-import order.disjointed
-import order.conditionally_complete_lattice
-import data.equiv.encodable.lattice
 import data.set.countable
+import logic.encodable.lattice
+import order.conditionally_complete_lattice
+import order.disjointed
+import order.symm_diff
 
 /-!
 # Measurable spaces and measurable functions

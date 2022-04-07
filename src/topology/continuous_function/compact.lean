@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import topology.continuous_function.bounded
 import topology.uniform_space.compact_separated
 import topology.compact_open
+import topology.sets.compacts
 
 /-!
 # Continuous functions on a compact space
@@ -23,7 +24,7 @@ you should restate it here. You can also use
 -/
 
 noncomputable theory
-open_locale topological_space classical nnreal bounded_continuous_function
+open_locale topological_space classical nnreal bounded_continuous_function big_operators
 
 open set filter metric
 
@@ -405,5 +406,25 @@ begin
 end
 
 end comp_right
+
+section weierstrass
+
+open topological_space
+
+variables {X : Type*} [topological_space X] [t2_space X] [locally_compact_space X]
+variables {E : Type*} [normed_group E] [complete_space E]
+
+lemma summable_of_locally_summable_norm {ι : Type*} {F : ι → C(X, E)}
+  (hF : ∀ K : compacts X, summable (λ i, ∥(F i).restrict K∥)) :
+  summable F :=
+begin
+  refine (continuous_map.exists_tendsto_compact_open_iff_forall _).2 (λ K hK, _),
+  lift K to compacts X using hK,
+  have A : ∀ s : finset ι, restrict ↑K (∑ i in s, F i) = ∑ i in s, restrict K (F i),
+  { intro s, ext1 x, simp },
+  simpa only [has_sum, A] using summable_of_summable_norm (hF K)
+end
+
+end weierstrass
 
 end continuous_map

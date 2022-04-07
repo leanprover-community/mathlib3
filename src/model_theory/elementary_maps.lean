@@ -5,7 +5,6 @@ Authors: Aaron Anderson
 -/
 import data.fintype.basic
 import model_theory.substructures
-import model_theory.terms_and_formulas
 
 /-!
 # Elementary Maps Between First-Order Structures
@@ -14,7 +13,14 @@ import model_theory.terms_and_formulas
 * A `first_order.language.elementary_embedding` is an embedding that commutes with the
   realizations of formulas.
 * A `first_order.language.elementary_substructure` is a substructure where the realization of each
-  formula agrees with the realization in the larger model. -/
+  formula agrees with the realization in the larger model.
+
+## Main Results
+* The Tarski-Vaught Test for embeddings: `first_order.language.embedding.is_elementary_of_exists`
+gives a simple criterion for an embedding to be elementary.
+* The Tarski-Vaught Test for substructures: `first_order.language.embedding.is_elementary_of_exists`
+gives a simple criterion for a substructure to be elementary.
+ -/
 
 open_locale first_order
 namespace first_order
@@ -31,7 +37,8 @@ structure elementary_embedding :=
 (map_formula' : ∀{n} (φ : L.formula (fin n)) (x : fin n → M),
   φ.realize (to_fun ∘ x) ↔ φ.realize x . obviously)
 
-localized "notation A ` ↪ₑ[`:25 L `] ` B := L.elementary_embedding A B" in first_order
+localized "notation A ` ↪ₑ[`:25 L `] ` B := first_order.language.elementary_embedding L A B"
+  in first_order
 
 variables {L} {M} {N}
 
@@ -149,6 +156,51 @@ lemma comp_assoc (f : M ↪ₑ[L] N) (g : N ↪ₑ[L] P) (h : P ↪ₑ[L] Q) :
 
 end elementary_embedding
 
+namespace embedding
+
+/-- The Tarski-Vaught test for elementarity of an embedding. -/
+theorem is_elementary_of_exists (f : M ↪[L] N)
+  (htv : ∀ (n : ℕ) (φ : L.bounded_formula empty (n + 1)) (x : fin n → M) (a : N),
+    φ.realize default (fin.snoc (f ∘ x) a : _ → N) →
+    ∃ b : M, φ.realize default (fin.snoc (f ∘ x) (f b) : _ → N)) :
+  ∀{n} (φ : L.formula (fin n)) (x : fin n → M), φ.realize (f ∘ x) ↔ φ.realize x :=
+begin
+  suffices h : ∀ (n : ℕ) (φ : L.bounded_formula empty n) (xs : fin n → M),
+    φ.realize (f ∘ default) (f ∘ xs) ↔ φ.realize default xs,
+  { intros n φ x,
+    refine φ.realize_relabel_sum_inr.symm.trans (trans (h n _ _) φ.realize_relabel_sum_inr), },
+  refine λ n φ, φ.rec_on _ _ _ _ _,
+  { exact λ _ _, iff.rfl },
+  { intros,
+    simp [bounded_formula.realize, ← sum.comp_elim, embedding.realize_term] },
+  { intros,
+    simp [bounded_formula.realize, ← sum.comp_elim, embedding.realize_term] },
+  { intros _ _ _ ih1 ih2 _,
+    simp [ih1, ih2] },
+  { intros n φ ih xs,
+    simp only [bounded_formula.realize_all],
+    refine ⟨λ h a, _, _⟩,
+    { rw [← ih, fin.comp_snoc],
+      exact h (f a) },
+    { contrapose!,
+      rintro ⟨a, ha⟩,
+      obtain ⟨b, hb⟩ := htv n φ.not xs a _,
+      { refine ⟨b, λ h, hb (eq.mp _ ((ih _).2 h))⟩,
+        rw [unique.eq_default (f ∘ default), fin.comp_snoc], },
+      { rw [bounded_formula.realize_not, ← unique.eq_default (f ∘ default)],
+        exact ha } } },
+end
+
+/-- Bundles an embedding satisfying the Tarski-Vaught test as an elementary embedding. -/
+@[simps] def to_elementary_embedding (f : M ↪[L] N)
+  (htv : ∀ (n : ℕ) (φ : L.bounded_formula empty (n + 1)) (x : fin n → M) (a : N),
+    φ.realize default (fin.snoc (f ∘ x) a : _ → N) →
+    ∃ b : M, φ.realize default (fin.snoc (f ∘ x) (f b) : _ → N)) :
+  M ↪ₑ[L] N :=
+⟨f, λ _, f.is_elementary_of_exists htv⟩
+
+end embedding
+
 namespace equiv
 
 /-- A first-order equivalence is also an elementary embedding. -/
@@ -233,6 +285,26 @@ instance : inhabited (L.elementary_substructure M) := ⟨⊤⟩
 @[simp] lemma coe_top : ((⊤ : L.elementary_substructure M) : set M) = set.univ := rfl
 
 end elementary_substructure
+
+namespace substructure
+
+/-- The Tarski-Vaught test for elementarity of a substructure. -/
+theorem is_elementary_of_exists (S : L.substructure M)
+  (htv : ∀ (n : ℕ) (φ : L.bounded_formula empty (n + 1)) (x : fin n → S) (a : M),
+    φ.realize default (fin.snoc (coe ∘ x) a : _ → M) →
+    ∃ b : S, φ.realize default (fin.snoc (coe ∘ x) b : _ → M)) :
+  S.is_elementary :=
+λ n, S.subtype.is_elementary_of_exists htv
+
+/-- Bundles a substructure satisfying the Tarski-Vaught test as an elementary substructure. -/
+@[simps] def to_elementary_substructure (S : L.substructure M)
+  (htv : ∀ (n : ℕ) (φ : L.bounded_formula empty (n + 1)) (x : fin n → S) (a : M),
+    φ.realize default (fin.snoc (coe ∘ x) a : _ → M) →
+    ∃ b : S, φ.realize default (fin.snoc (coe ∘ x) b : _ → M)) :
+  L.elementary_substructure M :=
+⟨S, λ _, S.is_elementary_of_exists htv⟩
+
+end substructure
 
 end language
 end first_order

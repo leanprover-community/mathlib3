@@ -8,9 +8,10 @@ import order.filter.pointwise
 import topology.algebra.monoid
 import topology.compact_open
 import topology.sets.compacts
+import topology.algebra.constructions
 
 /-!
-# Theory of topological groups
+# Topological groups
 
 This file defines the following typeclasses:
 
@@ -329,7 +330,11 @@ class topological_add_group (G : Type u) [topological_space G] [add_group G]
   extends has_continuous_add G, has_continuous_neg G : Prop
 
 /-- A topological group is a group in which the multiplication and inversion operations are
-continuous. -/
+continuous.
+
+When you declare an instance that does not already have a `uniform_space` instance,
+you should also provide an instance of `uniform_space` and `uniform_group` using
+`topological_group.to_uniform_space` and `topological_group_is_uniform`. -/
 @[to_additive]
 class topological_group (G : Type*) [topological_space G] [group G]
   extends has_continuous_mul G, has_continuous_inv G : Prop
@@ -376,6 +381,10 @@ lemma continuous_zpow : ∀ z : ℤ, continuous (λ a : G, a ^ z)
 
 instance add_group.has_continuous_const_smul_int {A} [add_group A] [topological_space A]
   [topological_add_group A] : has_continuous_const_smul ℤ A := ⟨continuous_zsmul⟩
+
+instance add_group.has_continuous_smul_int {A} [add_group A] [topological_space A]
+  [topological_add_group A] : has_continuous_smul ℤ A :=
+⟨continuous_uncurry_of_discrete_topology continuous_zsmul⟩
 
 @[continuity, to_additive]
 lemma continuous.zpow {f : α → G} (h : continuous f) (z : ℤ) :
@@ -460,6 +469,17 @@ instance pi.topological_group {C : β → Type*} [∀ b, topological_space (C b)
   [∀ b, group (C b)] [∀ b, topological_group (C b)] : topological_group (Π b, C b) :=
 { continuous_inv := continuous_pi (λ i, (continuous_apply i).inv) }
 
+open mul_opposite
+
+@[to_additive]
+instance [group α] [has_continuous_inv α] : has_continuous_inv αᵐᵒᵖ :=
+{ continuous_inv := continuous_induced_rng $ (@continuous_inv α _ _ _).comp continuous_unop }
+
+/-- If multiplication is continuous in `α`, then it also is in `αᵐᵒᵖ`. -/
+@[to_additive "If addition is continuous in `α`, then it also is in `αᵃᵒᵖ`."]
+instance [group α] [topological_group α] :
+  topological_group αᵐᵒᵖ := { }
+
 variable (G)
 
 /-- Inversion in a topological group as a homeomorphism. -/
@@ -499,6 +519,27 @@ lemma is_open.inv {s : set G} (hs : is_open s) : is_open s⁻¹ := hs.preimage c
 @[to_additive]
 lemma is_closed.inv {s : set G} (hs : is_closed s) : is_closed s⁻¹ := hs.preimage continuous_inv
 
+@[to_additive]
+lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
+(homeomorph.inv G).preimage_closure s
+
+@[to_additive] lemma is_open.mul_closure {U : set G} (hU : is_open U) (s : set G) :
+  U * closure s = U * s :=
+begin
+  refine subset.antisymm _ (mul_subset_mul subset.rfl subset_closure),
+  rintro _ ⟨a, b, ha, hb, rfl⟩,
+  rw mem_closure_iff at hb,
+  have hbU : b ∈ U⁻¹ * {a * b},
+    from ⟨a⁻¹, a * b, inv_mem_inv.2 ha, rfl, inv_mul_cancel_left _ _⟩,
+  rcases hb _ hU.inv.mul_right hbU with ⟨_, ⟨c, d, hc, (rfl : d = _), rfl⟩, hcs⟩,
+  exact ⟨c⁻¹, _, hc, hcs, inv_mul_cancel_left _ _⟩
+end
+
+@[to_additive] lemma is_open.closure_mul {U : set G} (hU : is_open U) (s : set G) :
+  closure s * U = s * U :=
+by rw [← inv_inv (closure s * U), set.mul_inv_rev, inv_closure, hU.inv.mul_closure,
+  set.mul_inv_rev, inv_inv, inv_inv]
+
 namespace subgroup
 
 @[to_additive] instance (S : subgroup G) :
@@ -511,10 +552,6 @@ namespace subgroup
   ..S.to_submonoid.has_continuous_mul }
 
 end subgroup
-
-@[to_additive]
-lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
-(homeomorph.inv G).preimage_closure s
 
 /-- The (topological-space) closure of a subgroup of a space `M` with `has_continuous_mul` is
 itself a subgroup. -/
@@ -912,27 +949,43 @@ section
 variables [topological_space G] [group G] [topological_group G]
 
 /-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`
-  such that `KV ⊆ U`. -/
+  such that `K * V ⊆ U`. -/
 @[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of
 `0` such that `K + V ⊆ U`."]
-lemma compact_open_separated_mul {K U : set G} (hK : is_compact K) (hU : is_open U) (hKU : K ⊆ U) :
-  ∃ V : set G, is_open V ∧ (1 : G) ∈ V ∧ K * V ⊆ U :=
+lemma compact_open_separated_mul_right {K U : set G} (hK : is_compact K) (hU : is_open U)
+  (hKU : K ⊆ U) : ∃ V ∈ 𝓝 (1 : G), K * V ⊆ U :=
 begin
-  let W : G → set G := λ x, (λ y, x * y) ⁻¹' U,
-  have h1W : ∀ x, is_open (W x) := λ x, hU.preimage (continuous_mul_left x),
-  have h2W : ∀ x ∈ K, (1 : G) ∈ W x := λ x hx, by simp only [mem_preimage, mul_one, hKU hx],
-  choose V hV using λ x : K, exists_open_nhds_one_mul_subset ((h1W x).mem_nhds (h2W x.1 x.2)),
-  let X : K → set G := λ x, (λ y, (x : G)⁻¹ * y) ⁻¹' (V x),
-  obtain ⟨t, ht⟩ : ∃ t : finset ↥K, K ⊆ ⋃ i ∈ t, X i,
-  { refine hK.elim_finite_subcover X (λ x, (hV x).1.preimage (continuous_mul_left x⁻¹)) _,
-    intros x hx, rw [mem_Union], use ⟨x, hx⟩, rw [mem_preimage], convert (hV _).2.1,
-    simp only [mul_left_inv, subtype.coe_mk] },
-  refine ⟨⋂ x ∈ t, V x, is_open_bInter (finite_mem_finset _) (λ x hx, (hV x).1), _, _⟩,
-  { simp only [mem_Inter], intros x hx, exact (hV x).2.1 },
-  rintro _ ⟨x, y, hx, hy, rfl⟩, simp only [mem_Inter] at hy,
-  have := ht hx, simp only [mem_Union, mem_preimage] at this, rcases this with ⟨z, h1z, h2z⟩,
-  have : (z : G)⁻¹ * x * y ∈ W z := (hV z).2.2 (mul_mem_mul h2z (hy z h1z)),
-  rw [mem_preimage] at this, convert this using 1, simp only [mul_assoc, mul_inv_cancel_left]
+  apply hK.induction_on,
+  { exact ⟨univ, by simp⟩ },
+  { rintros s t hst ⟨V, hV, hV'⟩,
+    exact ⟨V, hV, (mul_subset_mul_right hst).trans hV'⟩ },
+  { rintros s t  ⟨V, V_in, hV'⟩ ⟨W, W_in, hW'⟩,
+    use [V ∩ W, inter_mem V_in W_in],
+    rw union_mul,
+    exact union_subset ((mul_subset_mul_left (V.inter_subset_left W)).trans hV')
+                       ((mul_subset_mul_left (V.inter_subset_right W)).trans hW') },
+  { intros x hx,
+    have := tendsto_mul (show U ∈ 𝓝 (x * 1), by simpa using hU.mem_nhds (hKU hx)),
+    rw [nhds_prod_eq, mem_map, mem_prod_iff] at this,
+    rcases this with ⟨t, ht, s, hs, h⟩,
+    rw [← image_subset_iff, image_mul_prod] at h,
+    exact ⟨t, mem_nhds_within_of_mem_nhds ht, s, hs, h⟩ }
+end
+
+open mul_opposite
+
+/-- Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of `1`
+  such that `V * K ⊆ U`. -/
+@[to_additive "Given a compact set `K` inside an open set `U`, there is a open neighborhood `V` of
+`0` such that `V + K ⊆ U`."]
+lemma compact_open_separated_mul_left {K U : set G} (hK : is_compact K) (hU : is_open U)
+  (hKU : K ⊆ U) : ∃ V ∈ 𝓝 (1 : G), V * K ⊆ U :=
+begin
+  rcases compact_open_separated_mul_right (hK.image continuous_op) (op_homeomorph.is_open_map U hU)
+    (image_subset op hKU) with ⟨V, (hV : V ∈ 𝓝 (op (1 : G))), hV' : op '' K * V ⊆ op '' U⟩,
+  refine ⟨op ⁻¹' V, continuous_op.continuous_at hV, _⟩,
+  rwa [← image_preimage_eq V op_surjective, ← image_op_mul, image_subset_iff,
+    preimage_image_eq _ op_injective] at hV'
 end
 
 /-- A compact set is covered by finitely many left multiplicative translates of a set

@@ -794,6 +794,12 @@ theorem last'_append {l₁ l₂ : list α} {x : α} (h : x ∈ l₂.last') :
   x ∈ (l₁ ++ l₂).last' :=
 by { cases l₂, { contradiction, }, { rw list.last'_append_cons, exact h } }
 
+@[simp] lemma last'_reverse {α : Type*} (xs : list α) : xs.reverse.last' = xs.head' :=
+by cases xs; simp
+
+lemma last'_eq_head'_reverse {α : Type*} (xs : list α) : xs.last' = xs.reverse.head' :=
+by simpa using xs.reverse.last'_reverse
+
 /-! ### head(') and tail -/
 
 theorem head_eq_head' [inhabited α] (l : list α) : head l = (head' l).iget :=
@@ -3128,6 +3134,51 @@ by convert filter_eq_nil.2 (λ _ _, id)
     else by rw [take_while, drop_while, if_neg pa, if_neg pa, nil_append]
 
 end filter
+
+/-! ### after -/
+section after
+
+lemma after_spec {α : Type*} (p : α → Prop) [decidable_pred p]
+  (as : list α) (x : α) (xs : list α) (has : ∀ a ∈ as, ¬p a) (hx : p x) :
+  (as ++ x :: xs).after p = xs :=
+begin
+  induction as with hd tl ih, { simp [after, hx], },
+  simp [after, has hd, ih (λ a ha, has a (or.inr ha))],
+end
+
+lemma after_sublist {α : Type*} (p : α → Prop) [decidable_pred p] (xs : list α) :
+  xs.after p <+ xs :=
+begin
+  induction xs, { refl, },
+  simp only [after], split_ifs; apply sublist.cons, { refl, }, { assumption, }
+end
+
+lemma after_sublist_strict {α : Type*} (p : α → Prop) [decidable_pred p] (x : α) (xs : list α) :
+  (x :: xs).after p <+ xs :=
+by { simp only [after], split_ifs, { refl, }, { apply after_sublist, } }
+
+lemma after_length_lt {α : Type*} (p : α → Prop) [decidable_pred p] {xs : list α} :
+  (xs.after p).length < xs.length ↔ 0 < xs.length :=
+⟨pos_of_gt, begin
+  cases xs, { simp, },
+  intro, simpa [nat.lt_succ_iff] using length_le_of_sublist (after_sublist_strict p _ _),
+end⟩
+
+
+end after
+
+/-! ### take_while -/
+section take_while
+
+lemma take_while_spec {α : Type*} (p : α → Prop) [decidable_pred p]
+  (as : list α) (x : α) (xs : list α) (has : ∀ a ∈ as, p a) (hx : ¬ p x) :
+  (as ++ x :: xs).take_while p = as :=
+begin
+  induction as with hd tl ih, { simp [take_while, hx], },
+  simp [take_while, has hd, ih (λ a ha, has a (or.inr ha))],
+end
+
+end take_while
 
 /-! ### erasep -/
 section erasep

@@ -34,48 +34,6 @@ argument). We then extend this to `nat`'s using `encode_num`.
 
 namespace list
 
--- TODO: move this to `list.basic`
-
-lemma after_spec {α : Type*} (p : α → Prop) [decidable_pred p]
-  (as : list α) (x : α) (xs : list α) (has : ∀ a ∈ as, ¬ p a) (hx : p x) :
-  (as ++ x :: xs).after p = xs :=
-begin
-  induction as with hd tl ih, { simp [after, hx], },
-  simp [after, has hd, ih (λ a ha, has a (or.inr ha))],
-end
-
-lemma take_while_spec {α : Type*} (p : α → Prop) [decidable_pred p]
-  (as : list α) (x : α) (xs : list α) (has : ∀ a ∈ as, p a) (hx : ¬ p x) :
-  (as ++ x :: xs).take_while p = as :=
-begin
-  induction as with hd tl ih, { simp [take_while, hx], },
-  simp [take_while, has hd, ih (λ a ha, has a (or.inr ha))],
-end
-
-lemma after_sublist {α : Type*} (p : α → Prop) [decidable_pred p] (xs : list α) :
-  xs.after p <+ xs :=
-begin
-  induction xs, { refl, },
-  simp only [after], split_ifs; apply sublist.cons, { refl, }, { assumption, }
-end
-
-lemma after_sublist_strict {α : Type*} (p : α → Prop) [decidable_pred p] (x : α) (xs : list α) :
-  (x :: xs).after p <+ xs :=
-by { simp only [after], split_ifs, { refl, }, { apply after_sublist, } }
-
-lemma after_length_lt {α : Type*} (p : α → Prop) [decidable_pred p] {xs : list α} :
-  (xs.after p).length < xs.length ↔ 0 < xs.length :=
-⟨pos_of_gt, begin
-  cases xs, { simp, },
-  intro, simpa [nat.lt_succ_iff] using length_le_of_sublist (after_sublist_strict p _ _),
-end⟩
-
-@[simp] lemma last'_reverse {α : Type*} (xs : list α) : xs.reverse.last' = xs.head' :=
-by cases xs; simp
-
-lemma last'_eq_head'_reverse {α : Type*} (xs : list α) : xs.last' = xs.reverse.head' :=
-by simpa using xs.reverse.last'_reverse
-
 /-- A preliminary pairing function.
 This encodes (a, b) as a unary encoding of the length of `a` followed by `a ++ b`. -/
 def mkpair' (a b : list bool) : list bool :=

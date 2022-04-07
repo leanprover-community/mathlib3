@@ -697,15 +697,12 @@ section ping_pong_lemma
 open_locale pointwise
 open_locale cardinal
 
-variables [nonempty ι]
 variables [nontrivial ι]
-variables {G : Type u_1} [group G]
-variables (a : ι → G)
+variables {G : Type u_1} [group G] (a : ι → G)
 
 -- A group action on α, and the ping-pong sets
 variables {α : Type*} [mul_action G α]
-variables (X : ι → set α)
-variables (Y : ι → set α)
+variables (X Y : ι → set α)
 variables (hXnonempty : ∀ i, (X i).nonempty)
 variables (hXdisj : pairwise (λ i j, disjoint (X i) (X j)))
 variables (hYdisj : pairwise (λ i j, disjoint (Y i) (Y j)))
@@ -748,7 +745,8 @@ begin
   apply lift_injective_of_ping_pong f _ X',
 
   show _ ∨ ∃ i, 3 ≤ # (H i),
-  { right, use classical.arbitrary ι,
+  { inhabit ι,
+    right, use arbitrary ι,
     simp only [H],
     rw [free_group.free_group_unit_equiv_int.cardinal_eq, cardinal.mk_denumerable],
     apply le_of_lt,

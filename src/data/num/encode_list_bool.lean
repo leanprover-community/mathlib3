@@ -19,11 +19,13 @@ encoding.
 
 namespace pos_num
 
+/-- Convert a `pos_num` to a `list bool`. This is an equivalence, so the msb is omitted -/
 def to_list_bool : pos_num → list bool
 | 1 := []
 | (bit0 xs) := ff :: xs.to_list_bool
 | (bit1 xs) := tt :: xs.to_list_bool
 
+/-- Equivalence between `pos_num` and `list bool` with lsb at the head and msb omitted -/
 def equiv_list_bool : pos_num ≃ list bool :=
 { to_fun := to_list_bool,
   inv_fun := λ l, l.foldr (λ b n, (cond b bit1 bit0) n) 1,
@@ -98,13 +100,13 @@ begin
   symmetry, simpa [encode_num] using h,
 end
 
-@[simp] lemma encode_decode_list_bool_valid (l : list bool) :
+lemma encode_decode_list_bool_valid (l : list bool) :
   encode_num (decode_num l) = l ↔ l = [] ∨ tt ∈ l.last' :=
 by { rw ← mem_encode_range_iff, split, { intro h, rw ← h, simp, }, rintro ⟨n, hn⟩, rw ← hn, simp, }
 
 @[simp] lemma encode_decode_list_bool_invalid (l : list bool) :
   decode_num (l ++ [ff]) = decode_num (l ++ [tt]) :=
-by simp [decode_num, list.init]
+by simp [decode_num]
 
 lemma encode_num_len (n : num) : (encode_num n).length = if n = 0 then 0 else nat.log 2 n + 1 :=
 begin
@@ -115,7 +117,7 @@ end
 lemma decode_num_lt (l : list bool) : (decode_num l : ℕ) < 2^l.length :=
 begin
   apply list.reverse_cases_on l, { simp [decode_num], },
-  intros st tl, cases tl; simpa [decode_num, list.init] using pos_num.decode_pos_num_lt _,
+  intros st tl, cases tl; simpa [decode_num] using pos_num.decode_pos_num_lt _,
 end
 
 lemma le_decode_num (l : list bool) (hl : l ≠ []) : 2^(l.length - 1) ≤ (decode_num l : ℕ) :=
@@ -129,5 +131,11 @@ begin
   refine trans _ (nat.le_succ _),
   simpa [pow_add, mul_comm] using ih,
 end
+
+lemma decode_num_strict_mono (l₁ l₂ : list bool) (h : l₁.length < l₂.length) :
+  (decode_num l₁ : ℕ) < decode_num l₂ :=
+calc (decode_num l₁ : ℕ) < 2^l₁.length : decode_num_lt l₁
+                    ...  ≤ 2^(l₂.length - 1) : pow_mono (show 1 ≤ 2, by simp) (nat.le_pred_of_lt h)
+                    ...  ≤ decode_num l₂ : le_decode_num l₂ (λ H, by { subst H, simpa using h, })
 
 end num

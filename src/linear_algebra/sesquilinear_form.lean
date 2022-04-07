@@ -373,23 +373,22 @@ variables [comm_semiring R]
 variables [add_comm_monoid M] [module R M]
 variables [add_comm_monoid M₁] [module R M₁]
 variables [add_comm_monoid M₂] [module R M₂]
-variables (B F : M →ₗ[R] M →ₗ[R] R) (B' : M₁ →ₗ[R] M₁ →ₗ[R] R) (B'' : M₂ →ₗ[R] M₂ →ₗ[R] R)
-variables (f f' : M →ₗ[R] M₁) (g g' : M₁ →ₗ[R] M)
+variables {B F : M →ₗ[R] M →ₗ[R] R} {B' : M₁ →ₗ[R] M₁ →ₗ[R] R} {B'' : M₂ →ₗ[R] M₂ →ₗ[R] R}
+variables {f f' : M →ₗ[R] M₁} {g g' : M₁ →ₗ[R] M}
+
+variables (B B' f g)
 
 /-- Given a pair of modules equipped with bilinear forms, this is the condition for a pair of
 maps between them to be mutually adjoint. -/
-def is_adjoint_pair := ∀ ⦃x y⦄, B' (f x) y = B x (g y)
+def is_adjoint_pair := ∀ x y, B' (f x) y = B x (g y)
 
-variables {B B' f f' g g'}
-
-protected lemma is_adjoint_pair.eq (h : is_adjoint_pair B B' f g) :
-  ∀ {x y}, B' (f x) y = B x (g y) := h
+variables {B B' f g}
 
 lemma is_adjoint_pair_iff_comp_eq_compl₂ :
   is_adjoint_pair B B' f g ↔ B'.comp f = B.compl₂ g :=
 begin
   split; intros h,
-  { ext _ _, rw [comp_apply, compl₂_apply], exact h.eq },
+  { ext x y, rw [comp_apply, compl₂_apply], exact h x y },
   { intros _ _, rw [←compl₂_apply, ←comp_apply, h] },
 end
 
@@ -410,7 +409,7 @@ lemma is_adjoint_pair.comp {f' : M₁ →ₗ[R] M₂} {g' : M₂ →ₗ[R] M₁}
 lemma is_adjoint_pair.mul
   {f g f' g' : module.End R M} (h : is_adjoint_pair B B f g) (h' : is_adjoint_pair B B f' g') :
   is_adjoint_pair B B (f * f') (g' * g) :=
-λ _ _, by rw [linear_map.mul_apply, linear_map.mul_apply, h, h']
+h'.comp h
 
 end add_comm_monoid
 
@@ -428,7 +427,7 @@ lemma is_adjoint_pair.sub (h : is_adjoint_pair B B' f g) (h' : is_adjoint_pair B
 
 lemma is_adjoint_pair.smul (c : R) (h : is_adjoint_pair B B' f g) :
   is_adjoint_pair B B' (c • f) (c • g) :=
-λ x y, by simp only [smul_apply, map_smul, algebra.id.smul_eq_mul, h.eq]
+λ _ _, by simp only [smul_apply, map_smul, smul_eq_mul, h _ _]
 
 end add_comm_group
 
@@ -470,6 +469,20 @@ def is_pair_self_adjoint_submodule : submodule R (module.End R M) :=
   add_mem'  := λ f g hf hg, hf.add hg,
   smul_mem' := λ c f h, h.smul c, }
 
+/-- An endomorphism of a module is skew-adjoint with respect to a bilinear form if its negation
+serves as an adjoint. -/
+def is_skew_adjoint (f : module.End R M) := is_adjoint_pair B B f (-f)
+
+/-- The set of self-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact
+it is a Jordan subalgebra.) -/
+def self_adjoint_submodule := is_pair_self_adjoint_submodule B B
+
+/-- The set of skew-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact
+it is a Lie subalgebra.) -/
+def skew_adjoint_submodule := is_pair_self_adjoint_submodule (-B) B
+
+variables {B F}
+
 @[simp] lemma mem_is_pair_self_adjoint_submodule (f : module.End R M) :
   f ∈ is_pair_self_adjoint_submodule B F ↔ is_pair_self_adjoint B F f :=
 by refl
@@ -488,28 +501,16 @@ begin
       compl₁₂_apply, linear_equiv.apply_symm_apply] },
   have he : function.surjective (⇑(↑e : M₁ →ₗ[R] M) : M₁ → M) := e.surjective,
   simp_rw [is_pair_self_adjoint, is_adjoint_pair_iff_comp_eq_compl₂, hₗ, hᵣ,
-    compl₁₂_injective he he],
+    compl₁₂_inj he he],
 end
-
-/-- An endomorphism of a module is skew-adjoint with respect to a bilinear form if its negation
-serves as an adjoint. -/
-def is_skew_adjoint (f : module.End R M) := is_adjoint_pair B B f (-f)
 
 lemma is_skew_adjoint_iff_neg_self_adjoint (f : module.End R M) :
   B.is_skew_adjoint f ↔ is_adjoint_pair (-B) B f f :=
 show (∀ x y, B (f x) y = B x ((-f) y)) ↔ ∀ x y, B (f x) y = (-B) x (f y),
 by simp
 
-/-- The set of self-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact
-it is a Jordan subalgebra.) -/
-def self_adjoint_submodule := is_pair_self_adjoint_submodule B B
-
 @[simp] lemma mem_self_adjoint_submodule (f : module.End R M) :
   f ∈ B.self_adjoint_submodule ↔ B.is_self_adjoint f := iff.rfl
-
-/-- The set of skew-adjoint endomorphisms of a module with bilinear form is a submodule. (In fact
-it is a Lie subalgebra.) -/
-def skew_adjoint_submodule := is_pair_self_adjoint_submodule (-B) B
 
 @[simp] lemma mem_skew_adjoint_submodule (f : module.End R M) :
   f ∈ B.skew_adjoint_submodule ↔ B.is_skew_adjoint f :=

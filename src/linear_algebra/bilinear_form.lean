@@ -444,7 +444,7 @@ by { ext, refl }
   B.comp linear_map.id linear_map.id = B :=
 by { ext, refl }
 
-lemma comp_injective (B₁ B₂ : bilin_form R M') {l r : M →ₗ[R] M'}
+lemma comp_inj (B₁ B₂ : bilin_form R M') {l r : M →ₗ[R] M'}
   (hₗ : function.surjective l) (hᵣ : function.surjective r) :
   B₁.comp l r = B₂.comp l r ↔ B₁ = B₂ :=
 begin

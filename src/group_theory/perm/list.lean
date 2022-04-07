@@ -68,7 +68,7 @@ begin
     simp [IH, swap_apply_of_ne_of_ne, h] }
 end
 
-theorem form_perm_mem_of_apply_ne (x : α) (l : list α)
+theorem mem_of_form_perm_apply_ne (x : α) (l : list α)
   (h : l.form_perm x ≠ x) : x ∈ l :=
 begin
   contrapose! h,

@@ -22,7 +22,6 @@ variables {ι : Type*} [fintype ι]
 
 local notation `ℝⁿ` := ι → ℝ
 
-
 theorem cauchy_rational_add (f : ℝ →+ ℝ) :
   is_linear_map ℚ f := by exact ⟨map_add f, λ c x, add_monoid_hom.map_rat_cast_smul f ℝ ℝ c x⟩
 
@@ -269,7 +268,7 @@ lemma is_linear_real_of_continuous_at (f : ℝ →+ ℝ) {y : ℝ} (h : continuo
     ((additive_continuous_at_iff_continuos_at_zero f).mp h)))
 
 
-lemma is_linear_of_bounded_nbhd (f : ℝ →+ ℝ) {a : ℝ} {U : set ℝ} (hU : U ∈ 𝓝 a)
+lemma is_linear_of_bounded_nhd (f : ℝ →+ ℝ) {a : ℝ} {U : set ℝ} (hU : U ∈ 𝓝 a)
   (hf : metric.bounded (f '' U)) : is_linear_map ℝ f :=
 begin
   rcases (additive_is_bounded_of_bounded_on_interval f hU hf) with ⟨V, hV0, hVb⟩,
@@ -277,8 +276,30 @@ begin
     (additive_continuous_at_zero_of_bounded_nbhd_zero f hV0 hVb)
 end
 
-lemma is_linear_of_monotone_nbhd (f : ℝ →+ ℝ) {a : ℝ} {U : set ℝ} (hU : U ∈ 𝓝 a)
-  (hf : monotone_on f U) : ∀ (x : ℝ), is_linear_map ℝ f :=
+lemma is_linear_of_monotone_nhd (f : ℝ →+ ℝ) {a : ℝ} {U : set ℝ} (hU : U ∈ 𝓝 a)
+  (hf : monotone_on f U) : is_linear_map ℝ f :=
 begin
-  sorry
+  rcases (metric.mem_nhds_iff.mp hU) with ⟨t, ht, h⟩,
+  replace h := subset.trans (metric.closed_ball_subset_ball (show t / 2 < t, by linarith)) h,
+  apply is_linear_of_bounded_nhd f
+    (metric.closed_ball_mem_nhds a $ show (0 : ℝ) < t / 2, by linarith) _,
+  apply bounded_of_bdd_above_of_bdd_below,
+  { apply hf.map_bdd_above h _,
+    use a + t / 2,
+    simp only [real.closed_ball_eq_Icc, mem_inter_eq],
+    refine ⟨_, h _⟩,
+    { rw upper_bounds_Icc,
+      { exact left_mem_Ici },
+      { linarith } },
+    { rw [add_mem_closed_ball_iff_norm, real.norm_of_nonneg],
+      linarith }},
+  { apply hf.map_bdd_below h _,
+    use a - t / 2,
+    simp only [real.closed_ball_eq_Icc, mem_inter_eq],
+    refine ⟨_, h _⟩,
+    { rw lower_bounds_Icc,
+      { exact right_mem_Iic },
+      { linarith } },
+    { rw [sub_eq_add_neg, add_mem_closed_ball_iff_norm, real.norm_of_nonpos];
+      linarith }}
 end

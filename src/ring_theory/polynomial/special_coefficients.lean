@@ -50,16 +50,10 @@ by simp [ptl]
 by simp [ptl]
 
 @[simp] lemma add_left : ptl a b c d (f + h) g = ptl a b c d f g + ptl a b c d h g :=
-begin
-  rw [ptl, ptl, ptl, coeff_add, coeff_add, add_mul, add_mul],
-  exact add_add_add_comm _ _ _ _,
-end
+by simp [ptl, add_mul, add_add_add_comm]
 
 @[simp] lemma add_right : ptl a b c d f (g + h) = ptl a b c d f g + ptl a b c d f h :=
-begin
-  rw [ptl, ptl, ptl, coeff_add, mul_add, coeff_add, mul_add],
-  exact add_add_add_comm _ _ _ _,
-end
+by simp [ptl, mul_add, add_add_add_comm]
 
 @[simp] lemma C_mul_left : ptl a b c d (C r * f) g = r * ptl a b c d f g :=
 by simp only [ptl, mul_add, mul_assoc, coeff_C_mul]
@@ -89,7 +83,6 @@ lemma eq_right
   (f0 : f.nat_degree ≠ 0) (g0 : g.nat_degree ≠ 0) (fa : f.nat_degree ≤ a) (gb : g.nat_degree ≤ b) :
   (f * g).coeff (a + b - 1) = ptl a (b - 1) (a - 1) b f g :=
 begin
-  unfold ptl,
   refine induction_with_nat_degree_le
     (λ q, (f * q).coeff (a + b - 1) = ptl a (b - 1) (a - 1) b f q) b _ _ _ _ gb,
   { simp only [mul_zero, coeff_zero, zero_right] },

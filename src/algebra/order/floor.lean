@@ -214,8 +214,8 @@ ext $ λ x, ceil_eq_iff hn
 
 /-! #### Intervals -/
 
-lemma floor_mem_Icc_of_Icc {a b : ℕ} {x : α} (hx : x ∈ set.Icc (a : α) ↑b) :
-  ↑⌊x⌋₊ ∈ set.Icc (a : α) ↑b :=
+lemma floor_mem_Icc_of_mem_Icc {a b : ℕ} {x : α} (hx : x ∈ set.Icc (a : α) (b : α)) :
+  ↑⌊x⌋₊ ∈ set.Icc (a : α) (b : α) :=
 begin
   rw set.mem_Icc,
   norm_cast,
@@ -224,17 +224,17 @@ begin
   rwa floor_coe at this,
 end
 
-lemma floor_mem_Icc_of_Ico {a b : ℕ} {x : α} (hx : x ∈ set.Ico (a : α) ↑b) :
-  ↑⌊x⌋₊ ∈ set.Icc (a : α) ↑b := floor_mem_Icc_of_Icc (mem_Icc_of_Ico hx)
+lemma floor_mem_Icc_of_mem_Ico {a b : ℕ} {x : α} (hx : x ∈ set.Ico (a : α) (b : α)) :
+  ↑⌊x⌋₊ ∈ set.Icc (a : α) (b : α) := floor_mem_Icc_of_mem_Icc (mem_Icc_of_Ico hx)
 
-lemma floor_mem_Icc_of_Ioo {a b : ℕ} {x : α} (hx : x ∈ set.Ioo (a : α) ↑b) :
-  ↑⌊x⌋₊ ∈ set.Icc (a : α) ↑b := floor_mem_Icc_of_Icc (mem_Icc_of_Ioo hx)
+lemma floor_mem_Icc_of_mem_Ioo {a b : ℕ} {x : α} (hx : x ∈ set.Ioo (a : α) (b : α)) :
+  ↑⌊x⌋₊ ∈ set.Icc (a : α) (b : α) := floor_mem_Icc_of_mem_Icc (mem_Icc_of_Ioo hx)
 
-lemma floor_mem_Icc_of_Ioc {a b : ℕ} {x : α} (hx : x ∈ set.Ioc (a : α) ↑b) :
-  ↑⌊x⌋₊ ∈ set.Icc (a : α) ↑b := floor_mem_Icc_of_Icc (mem_Icc_of_Ioc hx)
+lemma floor_mem_Icc_of_mem_Ioc {a b : ℕ} {x : α} (hx : x ∈ set.Ioc (a : α) (b : α)) :
+  ↑⌊x⌋₊ ∈ set.Icc (a : α) (b : α) := floor_mem_Icc_of_mem_Icc (mem_Icc_of_Ioc hx)
 
-lemma floor_mem_Ico_of_Ico {a b : ℕ} {x : α} (hx : x ∈ set.Ico (a : α) ↑b) :
-  ↑⌊x⌋₊ ∈ set.Ico (a : α) ↑b :=
+lemma floor_mem_Ico_of_mem_Ico {a b : ℕ} {x : α} (hx : x ∈ set.Ico (a : α) (b : α)) :
+  ↑⌊x⌋₊ ∈ set.Ico (a : α) (b : α) :=
 begin
   rw set.mem_Ico,
   norm_cast,
@@ -243,11 +243,11 @@ begin
   exact le_trans (cast_nonneg a) hx.left,
 end
 
-lemma floor_mem_Ico_of_Ioo {a b : ℕ} {x : α} (hx : x ∈ set.Ioo (a : α) ↑b) :
-  ↑⌊x⌋₊ ∈ set.Ico (a : α) ↑b := floor_mem_Ico_of_Ico (mem_Ico_of_Ioo hx)
+lemma floor_mem_Ico_of_mem_Ioo {a b : ℕ} {x : α} (hx : x ∈ set.Ioo (a : α) (b : α)) :
+  ↑⌊x⌋₊ ∈ set.Ico (a : α) (b : α) := floor_mem_Ico_of_mem_Ico (mem_Ico_of_Ioo hx)
 
-lemma ceil_mem_Icc_of_Icc {a b : ℕ} {x : α} (hx : x ∈ set.Icc (a : α) ↑b) :
-  ↑⌈x⌉₊ ∈ set.Icc (a : α) ↑b :=
+lemma ceil_mem_Icc_of_mem_Icc {a b : ℕ} {x : α} (hx : x ∈ set.Icc (a : α) (b : α)) :
+  ↑⌈x⌉₊ ∈ set.Icc (a : α) (b : α) :=
 begin
   rw set.mem_Icc,
   norm_cast,
@@ -256,25 +256,25 @@ begin
   rwa ceil_coe at this,
 end
 
-lemma ceil_mem_Icc_of_Ico {a b : ℕ} {x : α} (hx : x ∈ set.Ico (a : α) ↑b) :
-  ↑⌈x⌉₊ ∈ set.Icc (a : α) ↑b := ceil_mem_Icc_of_Icc (mem_Icc_of_Ico hx)
+lemma ceil_mem_Icc_of_mem_Ico {a b : ℕ} {x : α} (hx : x ∈ set.Ico (a : α) (b : α)) :
+  ↑⌈x⌉₊ ∈ set.Icc (a : α) (b : α) := ceil_mem_Icc_of_mem_Icc (mem_Icc_of_Ico hx)
 
-lemma ceil_mem_Icc_of_Ioo {a b : ℕ} {x : α} (hx : x ∈ set.Ioo (a : α) ↑b) :
-  ↑⌈x⌉₊ ∈ set.Icc (a : α) ↑b := ceil_mem_Icc_of_Icc (mem_Icc_of_Ioo hx)
+lemma ceil_mem_Icc_of_mem_Ioo {a b : ℕ} {x : α} (hx : x ∈ set.Ioo (a : α) (b : α)) :
+  ↑⌈x⌉₊ ∈ set.Icc (a : α) (b : α) := ceil_mem_Icc_of_mem_Icc (mem_Icc_of_Ioo hx)
 
-lemma ceil_mem_Icc_of_Ioc {a b : ℕ} {x : α} (hx : x ∈ set.Ioc (a : α) ↑b) :
-  ↑⌈x⌉₊ ∈ set.Icc (a : α) ↑b := ceil_mem_Icc_of_Icc (mem_Icc_of_Ioc hx)
+lemma ceil_mem_Icc_of_mem_Ioc {a b : ℕ} {x : α} (hx : x ∈ set.Ioc (a : α) (b : α)) :
+  ↑⌈x⌉₊ ∈ set.Icc (a : α) (b : α) := ceil_mem_Icc_of_mem_Icc (mem_Icc_of_Ioc hx)
 
-lemma ceil_mem_Ioc_of_Ioc {a b : ℕ} {x : α} (hx : x ∈ set.Ioc (a : α) ↑b) :
-  ↑⌈x⌉₊ ∈ set.Ioc (a : α) ↑b :=
+lemma ceil_mem_Ioc_of_mem_Ioc {a b : ℕ} {x : α} (hx : x ∈ set.Ioc (a : α) (b : α)) :
+  ↑⌈x⌉₊ ∈ set.Ioc (a : α) (b : α) :=
 begin
   rw set.mem_Ioc,
   norm_cast,
   refine ⟨lt_ceil.mpr hx.left, ceil_le.mpr hx.right⟩,
 end
 
-lemma ceil_mem_Ioc_of_Ioo {a b : ℕ} {x : α} (hx : x ∈ set.Ioo (a : α) ↑b) :
-  ↑⌈x⌉₊ ∈ set.Ioc (a : α) ↑b := ceil_mem_Ioc_of_Ioc (mem_Ioc_of_Ioo hx)
+lemma ceil_mem_Ioc_of_mem_Ioo {a b : ℕ} {x : α} (hx : x ∈ set.Ioo (a : α) (b : α)) :
+  ↑⌈x⌉₊ ∈ set.Ioc (a : α) (b : α) := ceil_mem_Ioc_of_mem_Ioc (mem_Ioc_of_Ioo hx)
 
 @[simp] lemma preimage_Ioo {a b : α} (ha : 0 ≤ a) :
   ((coe : ℕ → α) ⁻¹' (set.Ioo a b)) = set.Ioo ⌊a⌋₊ ⌈b⌉₊ :=

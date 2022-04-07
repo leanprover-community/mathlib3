@@ -14,11 +14,16 @@ import analysis.special_functions.integrals
 ## Summary
 
 It is often the case that error terms in analysis can be computed by converting the
-an infinite sum to the improper integral of an antitone function. This file enables that.
+an infinite sum to the improper integral of an antitone function. This file will eventually enable
+that.
+
+At the moment it contains one lemma in this direction: `antitone_on.integral_le_sum` which can
+be paired with a `filter.tendsto` to estimate some errors. Several more lemmas will be added to the
+API to directly address these issues forthwith.
 
 ## Main Results
 
-* `antitone_integral_le_sum`: The integral of an antitone function is at most the sum of its values
+* `antitone_on.integral_le_sum`: The integral of an antitone function is at most the sum of its values
   integer points (left hand side)
 
 ## Tags
@@ -65,12 +70,12 @@ begin
     { exact h, }, },
 end
 
-lemma antitone_integral_le_sum {a b : ℕ} {f : ℝ → ℝ} (hab : a ≤ b)
+lemma antitone_on.integral_le_sum {a b : ℕ} {f : ℝ → ℝ} (hab : a ≤ b)
   (hf : antitone_on f (set.Icc a b)) : ∫ x in a..b, f x ≤ ∑ x in finset.Ico a b, f x :=
 begin
   have : ∀ (x : ℝ), x ∈ set.Icc (a : ℝ) ↑b → f x ≤ f ⌊x⌋₊,
   { intros x hx,
-    apply hf (nat.floor_mem_Icc_of_Icc hx) hx,
+    apply hf (nat.floor_mem_Icc_of_mem_Icc hx) hx,
     exact nat.floor_le (calc (0 : ℝ) ≤ ↑a : by simp ... ≤ x : hx.left), },
   transitivity,
   refine interval_integral.integral_mono_on (nat.cast_le.mpr hab) _ _ this,
@@ -79,7 +84,7 @@ begin
   apply antitone_on.interval_integrable,
   rwa set.interval_of_le (calc (a : ℝ) ≤ b : nat.cast_le.mpr hab),
   intros c hc d hd hcd,
-  exact hf (nat.floor_mem_Icc_of_Icc hc) (nat.floor_mem_Icc_of_Icc hd)
+  exact hf (nat.floor_mem_Icc_of_mem_Icc hc) (nat.floor_mem_Icc_of_mem_Icc hd)
     (nat.cast_le.mpr $ nat.floor_mono hcd),
   conv
   { to_rhs, congr, skip, funext, rw ← @integral_const_on_unit_interval x (f ↑x), },

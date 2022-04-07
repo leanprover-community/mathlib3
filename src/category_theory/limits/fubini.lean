@@ -213,6 +213,22 @@ end
 end
 
 section
+
+variables (F) [has_limits_of_shape J C] [has_limits_of_shape K C]
+-- With only moderate effort these could be derived if needed:
+variables [has_limits_of_shape (J × K) C] [has_limits_of_shape (K × J) C]
+
+/-- The limit of `F.flip ⋙ lim` is isomorphic to the limit of `F ⋙ lim`. -/
+@[simps] noncomputable
+def limit_flip_comp_lim_iso_limit_comp_lim : limit (F.flip ⋙ lim) ≅ limit (F ⋙ lim) :=
+(limit_uncurry_iso_limit_comp_lim _).symm ≪≫
+  has_limit.iso_of_nat_iso (uncurry_obj_flip _) ≪≫
+  (has_limit.iso_of_equivalence (prod.braiding _ _) (iso.refl _)) ≪≫
+  limit_uncurry_iso_limit_comp_lim _
+
+end
+
+section
 variables (G : J × K ⥤ C)
 
 section

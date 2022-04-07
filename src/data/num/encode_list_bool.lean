@@ -5,7 +5,6 @@ Authors: Praneeth Kolichala
 -/
 import data.num.lemmas
 import data.nat.log
-import tactic.linarith
 
 
 /-!

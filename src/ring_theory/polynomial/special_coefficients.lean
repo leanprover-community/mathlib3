@@ -13,12 +13,16 @@ This file contains computations of certain, hopefully meaningful, coefficients o
 
 For instance, there is a computation of the coefficients "just before" the `leading_coeff`.
 
-We introduce the "previous-to-last" coefficient `ptl`, taking two natural numbers and two
-polynomials as inputs.  This is intended simply as a helper definition to prove results without
-being constantly required to prove that some coefficient is non-zero or that some polynomial has
-precisely some degree.  We develop enough API for `ptl` to essentially prove that it is linear
-in either one of its polynomial inputs.
--/
+Let `R` be a (semi)ring.
+We introduce the "previous-to-last" coefficient `ptl`, taking four natural numbers `a b c d : ℕ`
+and two polynomials `f g : R[X]` as inputs.  We define
+```lean
+ptl a b c d f g = f.coeff a * g.coeff b + f.coeff c * g.coeff d.
+```
+This is intended simply as a helper definition to prove results without being constantly required
+to prove that some natural number is positive, that some coefficient is non-zero, that some
+polynomial has precisely some degree...  We develop enough API for `ptl` to essentially prove that
+it is linear in either one of its polynomial inputs. -/
 
 open_locale polynomial
 namespace polynomial
@@ -26,97 +30,86 @@ namespace polynomial
 open polynomial nat
 open_locale polynomial
 
-variables {R : Type*} [semiring R] {a : R} {p q r : R[X]} {m n : ℕ}
+variables {R : Type*} [semiring R] {r : R} {f g h : R[X]} {a b c d : ℕ}
 
-/-- `ptl` is an auxilliary definition whose only purpose is to prove
-lemma `coeff_mul_nat_degree_add_sub_one`.  Intuitively, if `p q : R[X]` are polynomials of
-respecitve degrees `m` and `n`, then `plt m n p q` is the coefficient of the monomial
-`X ^ (m + n - 1)` in the product `p * q`.  We have the extra flexibility of allowing arbitrary
-`m` and `n`.  Moreover, in the edge cases where `m` or `n` equal `0` the intuitive interpretation
-also fails.  -/
-def ptl (m n : ℕ) (p q : R[X]) : R :=
-p.coeff m * q.coeff (n - 1) + p.coeff (m - 1) * q.coeff n
+/-- `ptl (a : ℕ) (b : ℕ) (c : ℕ) (d : ℕ) (f : R[X]) (g : R[X]) = f_a * g_b + f_c * g_d`,
+where `p_i` is the `i`th coefficient of the polynomial `p`.
+`ptl` is an auxilliary definition whose main purpose is to prove
+lemma `coeff_mul_nat_degree_add_sub_one`.  The intended application is to compute
+`(f * g)_(deg f + deg g - 1)`, the coefficient just before the top one of `f * g`.  -/
+def ptl (a b c d : ℕ) (f g : R[X]) : R :=
+f.coeff a * g.coeff b + f.coeff c * g.coeff d
 
 /-!  We prove lemmas showing linearity of `ptl` in its polynomial variables. -/
 namespace ptl
 
-@[simp] lemma zero_left : ptl m n 0 q = 0 :=
+@[simp] lemma zero_left : ptl a b c d 0 g = 0 :=
 by simp [ptl]
 
-@[simp] lemma zero_right : ptl m n p 0 = 0 :=
+@[simp] lemma zero_right : ptl a b c d f 0 = 0 :=
 by simp [ptl]
 
-@[simp] lemma add_left : ptl m n (p + r) q = ptl m n p q + ptl m n r q :=
+@[simp] lemma add_left : ptl a b c d (f + h) g = ptl a b c d f g + ptl a b c d h g :=
 begin
   rw [ptl, ptl, ptl, coeff_add, coeff_add, add_mul, add_mul],
-  abel
+  exact add_add_add_comm _ _ _ _,
 end
 
-@[simp] lemma add_right : ptl m n p (q + r) = ptl m n p q + ptl m n p r :=
+@[simp] lemma add_right : ptl a b c d f (g + h) = ptl a b c d f g + ptl a b c d f h :=
 begin
-  rw [ptl, ptl, ptl, coeff_add, coeff_add, mul_add, mul_add],
-  abel
+  rw [ptl, ptl, ptl, coeff_add, mul_add, coeff_add, mul_add],
+  exact add_add_add_comm _ _ _ _,
 end
 
-@[simp] lemma C_mul_left : ptl m n (C a * p) q = a * ptl m n p q :=
+@[simp] lemma C_mul_left : ptl a b c d (C r * f) g = r * ptl a b c d f g :=
 by simp only [ptl, mul_add, mul_assoc, coeff_C_mul]
 
-@[simp] lemma C_mul_right : ptl m n p (q * C a) = ptl m n p q * a:=
+@[simp] lemma C_mul_right : ptl a b c d f (g * C r) = ptl a b c d f g * r:=
 by simp only [ptl, add_mul, mul_assoc, coeff_mul_C]
 
-@[simp] lemma mul_X_left (p : R[X]) (m0 : m ≠ 0) :
-  ptl (m + 1) n (p * X) q = ptl m n p q :=
-begin
-  rw [ptl, coeff_mul_X, add_comm m, nat.add_sub_assoc, add_comm 1, coeff_mul_X, ptl],
-  exact nat.one_le_iff_ne_zero.mpr m0
-end
+@[simp] lemma mul_X_left (f : R[X]) :
+  ptl (a + 1) b (c + 1) d (f * X) g = ptl a b c d f g :=
+by rw [ptl, coeff_mul_X, coeff_mul_X, ptl]
 
-@[simp] lemma mul_X_right (p : R[X]) (n0 : n ≠ 0) :
-  ptl m (n + 1) p (q * X) = ptl m n p q :=
-begin
-  rw [ptl, nat.add_sub_cancel, ← nat.sub_add_cancel (_ : 1 ≤ n), coeff_mul_X, coeff_mul_X,
-    nat.sub_add_cancel, ← ptl],
-  repeat { exact nat.one_le_iff_ne_zero.mpr n0 }
-end
+@[simp] lemma mul_X_right (f : R[X]) :
+  ptl a (b + 1) c (d + 1) f (g * X) = ptl a b c d f g :=
+by rw [ptl, coeff_mul_X, coeff_mul_X, ← ptl]
 
-@[simp] lemma mul_X_pow_left (m0 : m ≠ 0) :
-  ∀ a : ℕ, ptl (m + a) n (p * X ^ a) q = ptl m n p q
-| 0       := by rw [add_zero, pow_zero, mul_one]
-| (a + 1) := by { rw [pow_add, ← mul_assoc, pow_one, ← add_assoc, mul_X_left],
-                  { exact mul_X_pow_left _ },
-                  { exact (nat.add_pos_left (nat.one_le_iff_ne_zero.mpr m0) _).ne' } }
+@[simp] lemma mul_X_pow_left :
+  ∀ n : ℕ, ptl (a + n) b (c + n) d (f * X ^ n) g = ptl a b c d f g
+| 0       := by rw [add_zero, add_zero, pow_zero, mul_one]
+| (n + 1) := by simp [pow_add, ← mul_assoc, ← add_assoc, mul_X_pow_left]
 
-@[simp] lemma mul_X_pow_right (n0 : n ≠ 0) :
-  ∀ a : ℕ, ptl m (n + a) p (q * X ^ a) = ptl m n p q
-| 0       := by rw [add_zero, pow_zero, mul_one]
-| (a + 1) := by { rw [pow_add, ← mul_assoc, pow_one, ← add_assoc, mul_X_right],
-                  { exact mul_X_pow_right _ },
-                  { exact (nat.add_pos_left (nat.one_le_iff_ne_zero.mpr n0) _).ne' } }
+@[simp] lemma mul_X_pow_right :
+  ∀ n : ℕ, ptl a (b + n) c (d + n) f (g * X ^ n) = ptl a b c d f g
+| 0       := by rw [add_zero, add_zero, pow_zero, mul_one]
+| (a + 1) := by simp [pow_add, ← mul_assoc, ← add_assoc, mul_X_pow_right]
 
 lemma eq_right
-  (hp : p.nat_degree ≠ 0) (hq : q.nat_degree ≠ 0) (pm : p.nat_degree ≤ m) (qn : q.nat_degree ≤ n) :
-  (p * q).coeff (m + n - 1) = ptl m n p q :=
+  (f0 : f.nat_degree ≠ 0) (g0 : g.nat_degree ≠ 0) (fa : f.nat_degree ≤ a) (gb : g.nat_degree ≤ b) :
+  (f * g).coeff (a + b - 1) = ptl a (b - 1) (a - 1) b f g :=
 begin
   unfold ptl,
-  refine induction_with_nat_degree_le (λ q, (p * q).coeff (m + n - 1) = ptl m n p q) n _ _ _ _ qn,
+  refine induction_with_nat_degree_le
+    (λ q, (f * q).coeff (a + b - 1) = ptl a (b - 1) (a - 1) b f q) b _ _ _ _ gb,
   { simp only [mul_zero, coeff_zero, zero_right] },
-  { intros a r r0 an,
-    have n1 : 1 ≤ n := (nat.one_le_iff_ne_zero.mpr hq).trans qn,
-    have : n - 1 ≠ n := (nat.pred_lt (nat.one_le_iff_ne_zero.mp (n1))).ne,
+  { intros n r r0 nb,
+    have b1 : 1 ≤ b := (nat.one_le_iff_ne_zero.mpr g0).trans gb,
+    have : b - 1 ≠ b := (nat.pred_lt (nat.one_le_iff_ne_zero.mp b1)).ne,
     rw [← X_pow_mul, ← mul_assoc, coeff_mul_C, C_mul_right, ptl],
     apply congr_arg (* r),
-    by_cases ae : a = n,
-    { rw [ae, coeff_X_pow, if_neg this, coeff_X_pow, if_pos rfl, mul_zero, zero_add, mul_one],
+    by_cases bn : b = n,
+    { rw [← bn, coeff_X_pow, if_neg this, coeff_X_pow, if_pos rfl, mul_zero, zero_add, mul_one],
       convert coeff_mul_X_pow _ _ _,
       rw [add_comm, nat.add_sub_assoc, add_comm],
-      exact le_trans (nat.add_one_le_iff.mpr (nat.pos_of_ne_zero hp)) pm },
-    by_cases a1 : a = n - 1,
-    { simp [coeff_X_pow, a1, this.symm, nat.add_sub_assoc n1] },
-    { suffices : (p * X ^ a).coeff (m + n - 1) = 0, { simpa [coeff_X_pow, ne.symm a1, ne.symm ae] },
+      exact le_trans (nat.add_one_le_iff.mpr (nat.pos_of_ne_zero f0)) fa },
+    by_cases a1 : n = b - 1,
+    { simp [coeff_X_pow, a1, this.symm, nat.add_sub_assoc b1] },
+    { suffices : (f * X ^ n).coeff (a + b - 1) = 0, { simpa [coeff_X_pow, ne.symm a1, bn] },
       refine coeff_eq_zero_of_nat_degree_lt (nat_degree_mul_le.trans_lt _),
-      rw nat.add_sub_assoc n1,
-      refine add_lt_add_of_le_of_lt pm (nat_degree_pow_le.trans_lt (mul_lt_of_lt_of_le_one _ _)),
-      { exact (le_pred_of_lt (an.lt_of_ne ae)).lt_of_ne a1 },
+      rw nat.add_sub_assoc b1,
+      refine add_lt_add_of_le_of_lt fa (nat_degree_pow_le.trans_lt (mul_lt_of_lt_of_le_one _ _)),
+      { exact (le_pred_of_lt (nb.lt_of_ne (ne.symm bn))).lt_of_ne a1 },
       { exact nat_degree_X_le } } },
   { exact λ f g fg gn hf hg, by simp [mul_add, hf, hg] }
 end
@@ -126,16 +119,16 @@ end ptl
 /--  `coeff_mul_nat_degree_add_sub_one` computes the coefficient of the term of degree one less
 than the expected `nat_degree` of a product of polynomials.  If
 
-* `p = p₀ * x ^ m + p₁ * x ^ (m - 1) + (...) : R[X]` and
-* `q = q₀ * x ^ n + q₁ * x ^ (m - 1) + (...)`,
+* `f = f₀ * x ^ m + f₁ * x ^ (m - 1) + (...) : R[X]` and
+* `g = g₀ * x ^ n + g₁ * x ^ (m - 1) + (...)`,
 
-then the lemmas shows that `p₀ * q₁ + p₁ * q₀` equals `r₁ : R`  in
+then the lemmas shows that `f₀ * g₁ + f₁ * g₀` equals `r₁ : R`  in
 
-`p * q = r₀ * x ^ (m + n) + r₁ * x ^ (m + n - 1) + (...)`.   -/
-lemma coeff_mul_nat_degree_add_sub_one (hp : p.nat_degree ≠ 0) (hq : q.nat_degree ≠ 0) :
-  (p * q).coeff (p.nat_degree + q.nat_degree - 1) =
-    p.leading_coeff * q.coeff (q.nat_degree - 1) + p.coeff (p.nat_degree - 1) * q.leading_coeff :=
-ptl.eq_right hp hq rfl.le rfl.le
+`f * g = r₀ * x ^ (m + n) + r₁ * x ^ (m + n - 1) + (...)`.   -/
+lemma coeff_mul_nat_degree_add_sub_one (f0 : f.nat_degree ≠ 0) (g0 : g.nat_degree ≠ 0) :
+  (f * g).coeff (f.nat_degree + g.nat_degree - 1) =
+    f.leading_coeff * g.coeff (g.nat_degree - 1) + f.coeff (f.nat_degree - 1) * g.leading_coeff :=
+ptl.eq_right f0 g0 rfl.le rfl.le
 
 /--  `pow_coeff_mul_sub_one` computes the coefficient of the term of degree one less
 than the expected `nat_degree` of a power of a polynomial.  If

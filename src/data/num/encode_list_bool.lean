@@ -19,18 +19,19 @@ encoding.
 
 namespace pos_num
 
-/-- Convert a `pos_num` to a `list bool`. This is an equivalence, so the msb is omitted -/
-def to_list_bool : pos_num → list bool
+/-- Convert a `pos_num` to a `list bool` in little-endian form (with LSB at the head).
+This is an equivalence, so the msb (which is always present for positive numbers) is omitted. -/
+def to_trailing_bits : pos_num → list bool
 | 1 := []
-| (bit0 xs) := ff :: xs.to_list_bool
-| (bit1 xs) := tt :: xs.to_list_bool
+| (bit0 xs) := ff :: xs.to_trailing_bits
+| (bit1 xs) := tt :: xs.to_trailing_bits
 
 /-- Equivalence between `pos_num` and `list bool` with lsb at the head and msb omitted -/
 def equiv_list_bool : pos_num ≃ list bool :=
-{ to_fun := to_list_bool,
+{ to_fun := to_trailing_bits,
   inv_fun := λ l, l.foldr (λ b n, (cond b bit1 bit0) n) 1,
-  left_inv := λ n, by induction n; simpa [to_list_bool],
-  right_inv := λ l, by { induction l with hd, { refl, }, cases hd; simpa [to_list_bool], } }
+  left_inv := λ n, by induction n; simpa [to_trailing_bits],
+  right_inv := λ l, by { induction l with hd, { refl, }, cases hd; simpa [to_trailing_bits], } }
 
 @[simp] lemma equiv_list_bool_one : equiv_list_bool 1 = [] := rfl
 @[simp] lemma equiv_list_bool_bit0 (n : pos_num) :
@@ -105,7 +106,7 @@ end
 @[simp] lemma encode_decode_list_bool_valid {l : list bool} (h : l ∈ set.range encode_num) :
   encode_num (decode_num l) = l := decode_encode_left_inv.right_inv_on_range h
 
-@[simp] lemma encode_decode_list_bool_invalid (l : list bool) :
+@[simp] lemma decode_list_bool_invalid (l : list bool) :
   decode_num (l ++ [ff]) = decode_num (l ++ [tt]) := by simp [decode_num]
 
 lemma encode_num_len (n : num) : (encode_num n).length = if n = 0 then 0 else nat.log 2 n + 1 :=

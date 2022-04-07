@@ -27,6 +27,7 @@ to the corresponding element of the opposite ring. -/
 def op_ring_equiv (R : Type*) [semiring R] : R[X]ᵐᵒᵖ ≃+* Rᵐᵒᵖ[X] :=
 ((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
 
+-- for maintenance purposes: `by simp [op_ring_equiv]` proves this lemma
 /-!  Lemmas to get started, using `op_ring_equiv R` on the various expressions of
 `finsupp.single`: `monomial`, `C a`, `X`, `C a * X ^ n`. -/
 @[simp] lemma op_ring_equiv_op_monomial (n : ℕ) (r : R) :

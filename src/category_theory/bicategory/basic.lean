@@ -156,7 +156,7 @@ attribute [reassoc]
 /-
 The following simp attributes are put in order to rewrite any 2-morphisms into normal forms. There
 are associators and unitors in the RHS in the several simp lemmas here (e.g. `id_whisker_left`),
-which at first glance looks complicated than the LHS, but they will be eventually reduced by the
+which at first glance look more complicated than the LHS, but they will be eventually reduced by the
 pentagon or the triangle identities, and more generally, (forthcoming) `coherence` tactic.
 -/
 attribute [simp]

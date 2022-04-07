@@ -423,6 +423,10 @@ theorem append_inj' {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ 
 append_inj h $ @nat.add_right_cancel _ (length t₁) _ $
 let hap := congr_arg length h in by simp only [length_append] at hap; rwa [← hl] at hap
 
+@[simp] theorem append_inj'_iff (s₁ s₂ : list α) {t₁ t₂ : list α} (hl : length t₁ = length t₂) :
+  s₁ ++ t₁ = s₂ ++ t₂ ↔ s₁ = s₂ ∧ t₁ = t₂ :=
+⟨λ h, append_inj' h hl, by cc⟩
+
 theorem append_inj_right' {s₁ s₂ t₁ t₂ : list α} (h : s₁ ++ t₁ = s₂ ++ t₂)
   (hl : length t₁ = length t₂) : t₁ = t₂ :=
 (append_inj' h hl).right
@@ -663,7 +667,9 @@ list.cases_on l (by simp) (by simp)
 
 /-! ### init -/
 
-@[simp] lemma init_singleton {α : Type*} (x : α) : [x].init = [] := rfl
+@[simp] theorem init_nil : (@list.nil α).init = [] := rfl
+
+@[simp] theorem init_singleton (x : α) : [x].init = [] := rfl
 
 @[simp] theorem length_init : ∀ (l : list α), length (init l) = length l - 1
 | [] := rfl
@@ -902,10 +908,6 @@ for constructing data as well. -/
 def reverse_cases_on {α : Type*} {C : list α → Sort*} (l : list α) (h₀ : C [])
   (case : ∀ st lt, C (st ++ [lt])) : C l :=
 by { induction l using list.reverse_rec_on, { exact h₀, }, { apply case, } }
-
-@[simp] lemma append_singleton_eq_iff {α : Type*} (st₁ st₂ : list α) (lt₁ lt₂ : α) :
-  st₁ ++ [lt₁] = st₂ ++ [lt₂] ↔ st₁ = st₂ ∧ lt₁ = lt₂ :=
-⟨λ h, by { rw and_comm, simpa using congr_arg reverse h, }, by cc⟩
 
 /-- Bidirectional induction principle for lists: if a property holds for the empty list, the
 singleton list, and `a :: (l ++ [b])` from `l`, then it holds for all lists. This can be used to

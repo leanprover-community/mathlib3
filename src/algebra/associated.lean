@@ -884,7 +884,7 @@ begin
 end
 
 lemma dvd_not_unit_of_dvd_not_unit_associated [comm_monoid_with_zero α]
-[nontrivial α] {p q r : α} (h : dvd_not_unit p q) (h' : associated q r) : dvd_not_unit p r :=
+  [nontrivial α] {p q r : α} (h : dvd_not_unit p q) (h' : associated q r) : dvd_not_unit p r :=
 begin
   obtain ⟨u, rfl⟩ := associated.symm h',
   obtain ⟨hp, x, hx⟩ := h,

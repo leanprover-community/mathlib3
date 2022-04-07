@@ -115,29 +115,7 @@ variable (α)
 theorem fixing_submonoid_fixed_points_connection : galois_connection
   (order_dual.to_dual ∘ (λ s : set α, fixing_submonoid M s))
   ((λ P : submonoid M, (fixed_points P α)) ∘ order_dual.of_dual) :=
-begin
-  unfold galois_connection,
-  intros s P,
-  split,
-  { intro hMs,
-    change P.of_dual ≤ fixing_submonoid M s at hMs,
-    intros a has,
-    simp only [mem_fixed_points],
-    rintro ⟨p, hp⟩,
-    have : p ∈ fixing_submonoid M s := hMs hp,
-    rw mem_fixing_submonoid_iff at this,
-    exact this a has },
-  { intro hsP,
-    intros p hp,
-    change p ∈ fixing_submonoid M s,
-    rw mem_fixing_submonoid_iff,
-    intros a ha,
-    have : a ∈ fixed_points _ α := hsP ha,
-    rw mem_fixed_points at this,
-    specialize this ⟨p, hp⟩,
-    conv_rhs { rw ← this },
-    refl }
-end
+λ s P, ⟨λ h s hs p, h p.2 ⟨s, hs⟩, λ h p hp s, h s.2 ⟨p, hp⟩⟩
 
 lemma fixing_submonoid_is_antitone : antitone (λ (s : set α), fixing_submonoid M s) :=
 galois_connection.monotone_l (fixing_submonoid_fixed_points_connection M α)

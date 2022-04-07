@@ -90,6 +90,8 @@ by { cases l, { refl, }, simp [decode_num, num.bit1], }
 @[simp] lemma decode_encode_num (n : num) : decode_num (encode_num n) = n :=
 by { cases n, { refl, }, simp [decode_num, encode_num], }
 
+lemma decode_encode_left_inv : function.left_inverse decode_num encode_num := decode_encode_num
+
 lemma mem_encode_range_iff (l : list bool) :
   l ∈ set.range encode_num ↔ l = [] ∨ tt ∈ l.last' :=
 begin
@@ -100,19 +102,20 @@ begin
   symmetry, simpa [encode_num] using h,
 end
 
-lemma encode_decode_list_bool_valid (l : list bool) :
-  encode_num (decode_num l) = l ↔ l = [] ∨ tt ∈ l.last' :=
-by { rw ← mem_encode_range_iff, split, { intro h, rw ← h, simp, }, rintro ⟨n, hn⟩, rw ← hn, simp, }
+@[simp] lemma encode_decode_list_bool_valid {l : list bool} (h : l ∈ set.range encode_num) :
+  encode_num (decode_num l) = l := decode_encode_left_inv.right_inv_on_range h
 
 @[simp] lemma encode_decode_list_bool_invalid (l : list bool) :
-  decode_num (l ++ [ff]) = decode_num (l ++ [tt]) :=
-by simp [decode_num]
+  decode_num (l ++ [ff]) = decode_num (l ++ [tt]) := by simp [decode_num]
 
 lemma encode_num_len (n : num) : (encode_num n).length = if n = 0 then 0 else nat.log 2 n + 1 :=
 begin
   cases n, { refl, },
   simp [(show pos n ≠ 0, by trivial), encode_num, pos_num.encode_pos_num_len],
 end
+
+lemma encode_num_len_le (n : num) : (encode_num n).length ≤ nat.log 2 n + 1 :=
+by { rw encode_num_len, split_ifs; linarith, }
 
 lemma decode_num_lt (l : list bool) : (decode_num l : ℕ) < 2^l.length :=
 begin
@@ -137,5 +140,11 @@ lemma decode_num_strict_mono (l₁ l₂ : list bool) (h : l₁.length < l₂.len
 calc (decode_num l₁ : ℕ) < 2^l₁.length : decode_num_lt l₁
                     ...  ≤ 2^(l₂.length - 1) : pow_mono (show 1 ≤ 2, by simp) (nat.le_pred_of_lt h)
                     ...  ≤ decode_num l₂ : le_decode_num l₂ (λ H, by { subst H, simpa using h, })
+
+@[simp] lemma encode_num_nil_iff (n : num) : encode_num n = [] ↔ n = 0 :=
+⟨λ h, by simpa using congr_arg decode_num h, λ h, by { rw h, refl, }⟩
+
+@[simp] lemma decode_list_zero_iff (l : list bool) : decode_num l = 0 ↔ l = [] :=
+⟨λ h, by { by_contra H, simp [decode_num, H] at h, contradiction, }, λ h, by { rw h, refl, }⟩
 
 end num

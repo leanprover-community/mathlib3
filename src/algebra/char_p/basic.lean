@@ -328,7 +328,7 @@ namespace char_p
 section
 variables [ring R]
 
-lemma char_p_to_char_zero {R : Type*} [add_left_cancel_monoid R] [has_one R] [char_p R 0] :
+lemma char_p_to_char_zero (R : Type*) [add_left_cancel_monoid R] [has_one R] [char_p R 0] :
   char_zero R :=
 char_zero_of_inj_zero $
   λ n h0, eq_zero_of_zero_dvd ((cast_eq_zero_iff R 0 n).mp h0)

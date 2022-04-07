@@ -21,7 +21,7 @@ and relates it to the set of fixed points via a Galois connection.
 * `fixing_submonoid M s` : in the presence of `mul_action M α` (with `monoid M`)
   it is the `submonoid M` consisting of elements which fix `s : set α` pointwise.
 
-* `fixing_submonoid_fixed_points_connection M α` is the `galois_connection`
+* `fixing_submonoid_fixed_points_gc M α` is the `galois_connection`
   that relates `fixing_submonoid` with `fixed_points`.
 
 * `fixing_submonoid_union` and `fixing_submonoid_Union` are consequences
@@ -30,7 +30,7 @@ and relates it to the set of fixed points via a Galois connection.
 * `fixing_subgroup M s` : in the presence of `mul_action M α` (with `group M`)
   it is the `subgroup M` consisting of elements which fix `s : set α` pointwise.
 
-* `fixing_subgroup_fixed_points_connection M α` is the `galois_connection`
+* `fixing_subgroup_fixed_points_gc M α` is the `galois_connection`
   that relates `fixing_subgroup` with `fixed_points`.
 
 * `fixing_subgroup_union` and `fixing_subgroup_Union` are consequences
@@ -109,37 +109,37 @@ lemma mem_fixing_submonoid_iff {s : set α} {m : M} :
 variable (α)
 
 /-- The Galois connection between fixing submonoids and fixed points of a monoid action -/
-theorem fixing_submonoid_fixed_points_connection : galois_connection
+theorem fixing_submonoid_fixed_points_gc : galois_connection
   (order_dual.to_dual ∘ (fixing_submonoid M))
   ((λ P : submonoid M, (fixed_points P α)) ∘ order_dual.of_dual) :=
 λ s P, ⟨λ h s hs p, h p.2 ⟨s, hs⟩, λ h p hp s, h s.2 ⟨p, hp⟩⟩
 
-lemma fixing_submonoid_is_antitone : antitone (λ (s : set α), fixing_submonoid M s) :=
-galois_connection.monotone_l (fixing_submonoid_fixed_points_connection M α)
+lemma fixing_submonoid_antitone : antitone (λ (s : set α), fixing_submonoid M s) :=
+galois_connection.monotone_l (fixing_submonoid_fixed_points_gc M α)
 
-lemma fixed_points_is_antitone :
+lemma fixed_points_antitone :
   antitone (λ (P : submonoid M), fixed_points P α) :=
-(fixing_submonoid_fixed_points_connection M α).monotone_u.dual_left
+(fixing_submonoid_fixed_points_gc M α).monotone_u.dual_left
 
 /-- Fixing submonoid of union is intersection -/
 lemma fixing_submonoid_union {s t : set α} :
   fixing_submonoid M (s ∪ t) = (fixing_submonoid M s) ⊓ (fixing_submonoid M t) :=
-galois_connection.l_sup (fixing_submonoid_fixed_points_connection M α)
+galois_connection.l_sup (fixing_submonoid_fixed_points_gc M α)
 
 /-- Fixing submonoid of Union is intersection -/
 lemma fixing_submonoid_Union {ι : Sort*} {s : ι → set α} :
   fixing_submonoid M (⋃ i, s i) = ⨅ i, fixing_submonoid M (s i) :=
-galois_connection.l_supr (fixing_submonoid_fixed_points_connection M α)
+galois_connection.l_supr (fixing_submonoid_fixed_points_gc M α)
 
 /-- Fixed points of sup of submonoids is intersection -/
 lemma fixed_points_submonoid_sup {P Q : submonoid M} :
   fixed_points (P ⊔ Q : submonoid M) α = fixed_points P α ∩ fixed_points Q α :=
-galois_connection.u_inf (fixing_submonoid_fixed_points_connection M α)
+galois_connection.u_inf (fixing_submonoid_fixed_points_gc M α)
 
 /-- Fixed points of supr of submonoids is intersection -/
 lemma fixed_points_submonoid_supr {ι : Sort*} {P : ι → submonoid M} :
   fixed_points (supr P : submonoid M) α = ⋂ i, fixed_points (P i) α :=
-galois_connection.u_infi (fixing_submonoid_fixed_points_connection M α)
+galois_connection.u_infi (fixing_submonoid_fixed_points_gc M α)
 
 end monoid
 
@@ -162,37 +162,37 @@ lemma mem_fixing_subgroup_iff {s : set α} {m : M} :
 variable (α)
 
 /-- The Galois connection between fixing subgroups and fixed points of a group action -/
-lemma fixing_subgroup_fixed_points_connection : galois_connection
+lemma fixing_subgroup_fixed_points_gc : galois_connection
   (order_dual.to_dual ∘ (fixing_subgroup M))
   ((λ P : subgroup M, (fixed_points P α)) ∘ order_dual.of_dual) :=
 λ s P, ⟨λ h s hs p, h p.2 ⟨s, hs⟩, λ h p hp s, h s.2 ⟨p, hp⟩⟩
 
-lemma fixing_subgroup_is_antitone : antitone (λ (s : set α), fixing_subgroup M s) :=
-galois_connection.monotone_l (fixing_subgroup_fixed_points_connection M α)
+lemma fixing_subgroup_antitone : antitone (λ (s : set α), fixing_subgroup M s) :=
+galois_connection.monotone_l (fixing_subgroup_fixed_points_gc M α)
 
-lemma fixed_points_group_is_antitone :
+lemma fixed_points_group_antitone :
   antitone (λ (P : subgroup M), fixed_points P α) :=
-(fixing_subgroup_fixed_points_connection M α).monotone_u.dual_left
+(fixing_subgroup_fixed_points_gc M α).monotone_u.dual_left
 
 
 /-- Fixing subgroup of union is intersection -/
 lemma fixing_subgroup_union {s t : set α} :
   fixing_subgroup M (s ∪ t) = (fixing_subgroup M s) ⊓ (fixing_subgroup M t) :=
-galois_connection.l_sup (fixing_subgroup_fixed_points_connection M α)
+galois_connection.l_sup (fixing_subgroup_fixed_points_gc M α)
 
 /-- Fixing subgroup of Union is intersection -/
 lemma fixing_subgroup_Union {ι : Sort*} {s : ι → set α} :
   fixing_subgroup M (⋃ (i : ι), s i) = infi (λ i, (fixing_subgroup M (s i))) :=
-galois_connection.l_supr (fixing_subgroup_fixed_points_connection M α)
+galois_connection.l_supr (fixing_subgroup_fixed_points_gc M α)
 
 /-- Fixed points of sup of subgroups is intersection -/
 lemma fixed_points_group_sup {P Q : subgroup M} :
   fixed_points (P ⊔ Q : subgroup M) α = fixed_points P α ∩ fixed_points Q α :=
-galois_connection.u_inf (fixing_subgroup_fixed_points_connection M α)
+galois_connection.u_inf (fixing_subgroup_fixed_points_gc M α)
 
 /-- Fixed points of supr of subgroups is intersection -/
 lemma fixed_points_subgroup_supr {ι : Sort*} {P : ι → subgroup M} :
   fixed_points (supr P : subgroup M) α = infi (λ i, (fixed_points (P i) α)) :=
-galois_connection.u_infi (fixing_subgroup_fixed_points_connection M α)
+galois_connection.u_infi (fixing_subgroup_fixed_points_gc M α)
 
 end group

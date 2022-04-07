@@ -147,7 +147,6 @@ inductive list_symbols : Type (max u v u')
 
 variables {L} {α}
 
-section
 open list_symbols
 
 /-- Encodes a bounded formula as a list of symbols. -/
@@ -220,8 +219,6 @@ begin
   exact trans (list_decode_sizeof _) (nat.le_succ _),
 end
 
-open list
-
 @[simp] theorem list_decode_encode_list (l : list (Σ n, L.bounded_formula α n)) :
   list_decode (l.bind (λ φ, φ.2.list_encode)) = ⟨l.head, l.tail.bind (λ φ, φ.2.list_encode)⟩ :=
 begin
@@ -240,8 +237,6 @@ begin
         dif_pos rfl],
       refl, },
     { rw [list_encode, cons_append, list_decode, ih, sigma_all] } }
-end
-
 end
 
 end bounded_formula

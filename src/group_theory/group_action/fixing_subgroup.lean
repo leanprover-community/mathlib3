@@ -36,58 +36,13 @@ and relates it to the set of fixed points via a Galois connection.
 * `fixing_subgroup_union` and `fixing_subgroup_Union` are consequences
   of the Galois connection, as well as `fixed_points_subgroup_sup` and `fixed_points_subgroup_supr`.
 
-* The file starts with some lemmas that allow to rewrite `antitone` into `monotone`
-  in various cases.
-  Apparently the `monotone.dual` (and analogues) were not sufficient, so I wrote `monotone.dual_iff`
-  that works in both directions.
-
 TODO :
-
-* Adjust names as needed
-
-* Decide what needs to be done with the antitonicity section. In particular, the
-  proofs need two directions, but the proof term is exactly the same (up to types).
 
 * Maybe other lemmas are useful
 
 * Treat semigroups ?
 
 -/
-
-section antitonicity
-
-universes u v
-variables {α : Type u} {β : Type v} [preorder α] [preorder β] {f : α → β} {s : set α}
-
-open order_dual
-
-lemma forall₂_swap {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₁ → Sort*}
-  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Prop} :
-  (∀ i₁ j₁ i₂ j₂, p i₁ j₁ i₂ j₂) ↔ ∀ i₂ j₂ i₁ j₁, p i₁ j₁ i₂ j₂ :=
-⟨λ h i₂ j₂ i₁ j₁, h i₁ j₁ i₂ j₂, λ h i₁ j₁ i₂ j₂, h i₂ j₂ i₁ j₁⟩
-
--- It's not better with this
-lemma forall₂_swap' {ι₁ ι₂ ι₃ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₁ → Sort*}
-  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → ι₃ → Prop} :
-  (∀ i₁ j₁ i₂ j₂ i₃, p i₁ j₁ i₂ j₂ i₃) ↔ ∀ i₂ j₂ i₁ j₁ i₃, p i₁ j₁ i₂ j₂ i₃ :=
-⟨λ h i₂ j₂ i₁ j₁ i₃, h i₁ j₁ i₂ j₂ i₃, λ h i₁ j₁ i₂ j₂ i₃, h i₂ j₂ i₁ j₁ i₃⟩
-
-@[simp] lemma antitone_to_dual_comp_iff : antitone (to_dual ∘ f) ↔ monotone f :=
-iff.rfl
-
-@[simp] lemma monotone_comp_of_dual_iff : monotone (f ∘ of_dual) ↔ antitone f :=
-forall_swap
-
-@[simp] lemma antitone_on_to_dual_comp_iff : antitone_on (to_dual ∘ f) s ↔ monotone_on f s :=
-iff.rfl
-
-@[simp] lemma monotone_on_comp_of_dual_iff : monotone_on (f ∘ of_dual) s ↔ antitone_on f s :=
--- forall₂_swap /- Does not work -/
-begin
-split; exact λ hf a ha b hb h, hf hb ha h
-end
-
-end antitonicity
 
 section monoid
 

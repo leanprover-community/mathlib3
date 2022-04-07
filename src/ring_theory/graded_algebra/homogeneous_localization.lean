@@ -492,6 +492,6 @@ instance : local_ring (homogeneous_localization 𝒜 x) :=
       rw [localization.mk_mul],
       convert localization.mk_self _,
       simpa only [mul_comm], },
-end}
+end }
 
 end homogeneous_localization

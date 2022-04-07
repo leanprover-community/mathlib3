@@ -32,11 +32,13 @@ open_locale polynomial
 
 variables {R : Type*} [semiring R] {r : R} {f g h : R[X]} {a b c d : ℕ}
 
-/-- `ptl (a : ℕ) (b : ℕ) (c : ℕ) (d : ℕ) (f : R[X]) (g : R[X]) = f_a * g_b + f_c * g_d`,
+/-- "Previous-To-Last coefficient":
+
+`ptl (a : ℕ) (b : ℕ) (c : ℕ) (d : ℕ) (f : R[X]) (g : R[X]) = f_a * g_b + f_c * g_d`,
 where `p_i` is the `i`th coefficient of the polynomial `p`.
 `ptl` is an auxilliary definition whose main purpose is to prove
 lemma `coeff_mul_nat_degree_add_sub_one`.  The intended application is to compute
-`(f * g)_(deg f + deg g - 1)`, the coefficient just before the top one of `f * g`.  -/
+`(f * g)_(deg f + deg g - 1)`, the coefficient of `f * g` just before the top.  -/
 def ptl (a b c d : ℕ) (f g : R[X]) : R :=
 f.coeff a * g.coeff b + f.coeff c * g.coeff d
 

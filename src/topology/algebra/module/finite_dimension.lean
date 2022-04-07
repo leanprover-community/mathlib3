@@ -18,6 +18,21 @@ open_locale classical big_operators filter topological_space nnreal uniformity
 
 section move_me
 
+lemma induced_symm {α β : Type*} {e : α ≃ β} : induced e.symm = coinduced e :=
+begin
+  ext t U,
+  split,
+  { rintros ⟨V, hV, rfl⟩,
+    change t.is_open (e ⁻¹' _),
+    rwa [← preimage_comp, ← equiv.coe_trans, equiv.self_trans_symm] },
+  { intros hU,
+    refine ⟨e ⁻¹' U, hU, _⟩,
+    rw [← preimage_comp, ← equiv.coe_trans, equiv.symm_trans_self, equiv.coe_refl, preimage_id] }
+end
+
+lemma coinduced_symm {α β : Type*} {e : α ≃ β} : coinduced e.symm = induced e :=
+by rw [← induced_symm, equiv.symm_symm]
+
 lemma equiv.uniform_embedding {α β : Type*} [uniform_space α] [uniform_space β] (f : α ≃ β)
   (h₁ : uniform_continuous f) (h₂ : uniform_continuous f.symm) : uniform_embedding f :=
 { comap_uniformity :=
@@ -31,13 +46,37 @@ lemma equiv.uniform_embedding {α β : Type*} [uniform_space α] [uniform_space 
   end,
   inj := f.injective }
 
+--#check
+--
+--example {α₁ α₂ β₁ β₂ : Type*} {t₁ : topological_space β₁} {t₂ : topological_space β₂}
+--  {f₁ : α₁ → β₁} {f₂ : α₂ → β₂} : topological_space.prod
+--
+--instance submodule.topological_add_group_quotient {𝕜 E : Type*} [ring 𝕜] [add_comm_group E]
+--  [module 𝕜 E] [topological_space E] [topological_add_group E] (N : submodule 𝕜 E) :
+--    topological_add_group (E ⧸ N) :=
+--{ continuous_add := begin
+--    have cont : continuous ((N.mkq : E → E ⧸ N) ∘ (λ (p : E × E), p.fst + p.snd)) :=
+--      continuous_quot_mk.comp continuous_add,
+--    have quot : quotient_map (λ p : E × E, (N.mkq p.1, N.mkq p.2)),
+--    { apply is_open_map.to_quotient_map,
+--      { exact (quotient_add_group.is_open_map_coe N).prod (quotient_group.is_open_map_coe N) },
+--      { exact continuous_quot_mk.prod_map continuous_quot_mk },
+--      { exact (surjective_quot_mk _).prod_map (surjective_quot_mk _) } },
+--    exact (quotient_map.continuous_iff quot).2 cont,
+--  end,
+--  continuous_neg := begin
+--    have : continuous ((coe : G → G ⧸ N) ∘ (λ (a : G), a⁻¹)) :=
+--      continuous_quot_mk.comp continuous_inv,
+--    convert continuous_quotient_lift _ this,
+--  end }
+
 variables {𝕜 𝕜₂ E F : Type*} [semiring 𝕜] [semiring 𝕜₂]
   [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜₂ F]
   [uniform_space E] [uniform_space F] [uniform_add_group E] [uniform_add_group F]
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜}
 
 lemma continuous_linear_map.uniform_continuous (f : E →SL[σ₁₂] F) : uniform_continuous f :=
-(f : E →+ F).uniform_continuous_of_continuous_at_zero f.continuous.continuous_at
+uniform_continuous_of_continuous_at_zero f f.continuous.continuous_at
 
 lemma continuous_linear_equiv.uniform_embedding
   [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] (e : E ≃SL[σ₁₂] F) :
@@ -94,9 +133,50 @@ variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 [topological_add_group F'] [has_continuous_smul 𝕜 F']
 [complete_space 𝕜]
 
+lemma unique_topology_of_t2 [hnorm : nondiscrete_normed_field 𝕜] {t : topological_space 𝕜}
+  (h₁ : @topological_add_group 𝕜 t _)
+  (h₂ : @has_continuous_smul 𝕜 𝕜 _ hnorm.to_uniform_space.to_topological_space t)
+  (h₃ : @t2_space 𝕜 t) :
+t = hnorm.to_uniform_space.to_topological_space :=
+sorry
+
+#check linear_equiv.of_bijective
+#check submodule.liftq
+#check continuous_iff_le_induced
+#check submodule.quotient.add_comm_group
+#check submodule.quotient_quotient_equiv_quotient_aux
+#check topological_add_group_quotient
+#check function.injective.ne
+
 lemma linear_map.continuous_of_is_closed_ker (l : E →ₗ[𝕜] 𝕜) (hl : is_closed (l.ker : set E)) :
   continuous l :=
-sorry
+begin
+  by_cases H : finrank 𝕜 l.range = 0,
+  { rw [finrank_eq_zero, linear_map.range_eq_bot] at H,
+    rw H,
+    exact continuous_zero },
+  { letI : topological_add_group (E ⧸ l.ker) := sorry,
+    letI : has_continuous_smul 𝕜 (E ⧸ l.ker) := sorry,
+    letI : t2_space (E ⧸ l.ker) := sorry,
+    have : finrank 𝕜 l.range = 1,
+      from le_antisymm (finrank_self 𝕜 ▸ l.range.finrank_le) (zero_lt_iff.mpr H),
+    have hi : function.injective (l.ker.liftq l (le_refl _)),
+    { sorry },
+    have hs : function.surjective (l.ker.liftq l (le_refl _)),
+    { sorry },
+    let φ : (E ⧸ l.ker) ≃ₗ[𝕜] 𝕜 := linear_equiv.of_bijective (l.ker.liftq l (le_refl _)) hi hs,
+    have hlφ : (l : E → 𝕜) = φ ∘ l.ker.mkq,
+      by ext; refl,
+    suffices : continuous φ.to_equiv,
+    { rw hlφ,
+      exact this.comp continuous_quot_mk },
+    rw [continuous_iff_coinduced_le, ← induced_symm],
+    refine le_of_eq (unique_topology_of_t2 (topological_add_group_induced φ.symm.to_linear_map)
+      (has_continuous_smul_induced φ.symm.to_linear_map) _),
+    rw t2_space_iff,
+    exact λ x y hxy, @separated_by_continuous _ _ (induced _ _) _ _ _
+      continuous_induced_dom _ _ (φ.to_equiv.symm.injective.ne hxy) }
+end
 
 /-- In finite dimension over a complete field, the canonical identification (in terms of a basis)
 with `𝕜^n` together with its sup norm is continuous. This is the nontrivial part in the fact that
@@ -132,25 +212,20 @@ begin
     -- second step: any linear form is continuous, as its kernel is closed by the first step
     have H₂ : ∀f : E →ₗ[𝕜] 𝕜, continuous f,
     { assume f,
-      have : finrank 𝕜 f.ker = n ∨ finrank 𝕜 f.ker = n.succ,
-      { have Z := f.finrank_range_add_finrank_ker,
-        rw [finrank_eq_card_basis ξ, hn] at Z,
-        by_cases H : finrank 𝕜 f.range = 0,
-        { right,
-          rwa [H, zero_add] at Z },
-        { left,
+      by_cases H : finrank 𝕜 f.range = 0,
+      { rw [finrank_eq_zero, linear_map.range_eq_bot] at H,
+        rw H,
+        exact continuous_zero },
+      { have : finrank 𝕜 f.ker = n,
+        { have Z := f.finrank_range_add_finrank_ker,
+          rw [finrank_eq_card_basis ξ, hn] at Z,
           have : finrank 𝕜 f.range = 1,
             from le_antisymm (finrank_self 𝕜 ▸ f.range.finrank_le) (zero_lt_iff.mpr H),
           rw [this, add_comm, nat.add_one] at Z,
-          exact nat.succ.inj Z } },
-      have : is_closed (f.ker : set E),
-      { cases this,
-        { exact H₁ _ this },
-        { have : f.ker = ⊤,
-            by { apply eq_top_of_finrank_eq, rw [finrank_eq_card_basis ξ, hn, this] },
-          rw [this]
-          exact is_closed_univ } },
-      exact linear_map.continuous_of_is_closed_ker f this },
+          exact nat.succ.inj Z },
+        have : is_closed (f.ker : set E),
+          from H₁ _ this,
+        exact linear_map.continuous_of_is_closed_ker f this } },
     rw continuous_pi_iff,
     intros i,
     change continuous (ξ.coord i),
@@ -158,7 +233,8 @@ begin
 end
 
 /-- Any linear map on a finite dimensional space over a complete field is continuous. -/
-theorem linear_map.continuous_of_finite_dimensional [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F') :
+theorem linear_map.continuous_of_finite_dimensional [t2_space E] [finite_dimensional 𝕜 E]
+  (f : E →ₗ[𝕜] F') :
   continuous f :=
 begin
   -- for the proof, go to a model vector space `b → 𝕜` thanks to `continuous_equiv_fun_basis`, and

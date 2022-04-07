@@ -412,7 +412,7 @@ begin
   refine ⟨Aᶜ, hA₁.compl, _, (compl_compl A).symm ▸ hA₂⟩,
   rw restrict_le_restrict_iff _ _ hA₁.compl,
   intros C hC hC₁,
-  by_contra' hC₂, 
+  by_contra' hC₂,
   rcases exists_subset_restrict_nonpos hC₂ with ⟨D, hD₁, hD, hD₂, hD₃⟩,
   have : s (A ∪ D) < Inf s.measure_of_negatives,
   { rw [← hA₃, of_union (set.disjoint_of_subset_right (set.subset.trans hD hC₁)
@@ -435,7 +435,7 @@ let ⟨i, hi₁, hi₂, hi₃⟩ := exists_compl_positive_negative s in
 lemma of_symm_diff_compl_positive_negative {s : signed_measure α}
   {i j : set α} (hi : measurable_set i) (hj : measurable_set j)
   (hi' : 0 ≤[i] s ∧ s ≤[iᶜ] 0) (hj' : 0 ≤[j] s ∧ s ≤[jᶜ] 0) :
-  s (i Δ j) = 0 ∧ s (iᶜ Δ jᶜ) = 0 :=
+  s (i ∆ j) = 0 ∧ s (iᶜ ∆ jᶜ) = 0 :=
 begin
   rw [restrict_le_restrict_iff s 0, restrict_le_restrict_iff 0 s] at hi' hj',
   split,

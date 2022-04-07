@@ -241,6 +241,9 @@ begin
     apply nat.gcd_zero_left }
 end
 
+theorem gcd_pos_iff {i j : ℤ} : 0 < gcd i j ↔ i ≠ 0 ∨ j ≠ 0 :=
+pos_iff_ne_zero.trans $ gcd_eq_zero_iff.not.trans not_and_distrib
+
 theorem gcd_div {i j k : ℤ} (H1 : k ∣ i) (H2 : k ∣ j) :
   gcd (i / k) (j / k) = gcd i j / nat_abs k :=
 by rw [gcd, nat_abs_div i k H1, nat_abs_div j k H2];

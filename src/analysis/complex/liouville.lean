@@ -38,20 +38,17 @@ TODO: add a version for `w ∈ metric.ball c R`.
 
 TODO: add a version for higher derivatives. -/
 lemma deriv_eq_smul_circle_integral [measurable_space F] [borel_space F] [complete_space F]
-  {R : ℝ} {c : ℂ} {f : ℂ → F} (hR : 0 < R)
-  (hc : continuous_on f (closed_ball c R)) (hd : differentiable_on ℂ f (ball c R)) :
+  {R : ℝ} {c : ℂ} {f : ℂ → F} (hR : 0 < R) (hf : diff_on_int_cont ℂ f (closed_ball c R)) :
   deriv f c = (2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z :=
 begin
   lift R to ℝ≥0 using hR.le,
-  refine (has_fpower_series_on_ball_of_continuous_on_of_differentiable_on
-    hc hd hR).has_fpower_series_at.deriv.trans _,
+  refine (hf.has_fpower_series_on_ball hR).has_fpower_series_at.deriv.trans _,
   simp only [cauchy_power_series_apply, one_div, zpow_neg₀, pow_one, smul_smul,
     zpow_two, mul_inv₀]
 end
 
 lemma norm_deriv_le_aux [complete_space F] {c : ℂ} {R C : ℝ} {f : ℂ → F} (hR : 0 < R)
-  (hc : continuous_on f (closed_ball c R)) (hd : differentiable_on ℂ f (ball c R))
-  (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
+  (hf : diff_on_int_cont ℂ f (closed_ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
   ∥deriv f c∥ ≤ C / R :=
 begin
   letI : measurable_space F := borel F, haveI : borel_space F := ⟨rfl⟩,
@@ -59,7 +56,7 @@ begin
     from λ z (hz : abs (z - c) = R), by simpa [norm_smul, hz, zpow_two, ← div_eq_inv_mul]
       using (div_le_div_right (mul_pos hR hR)).2 (hC z hz),
   calc ∥deriv f c∥ = ∥(2 * π * I : ℂ)⁻¹ • ∮ z in C(c, R), (z - c) ^ (-2 : ℤ) • f z∥ :
-    congr_arg norm (deriv_eq_smul_circle_integral hR hc hd)
+    congr_arg norm (deriv_eq_smul_circle_integral hR hf)
   ... ≤ R * (C / (R * R)) :
     circle_integral.norm_two_pi_I_inv_smul_integral_le_of_norm_le_const hR.le this
   ... = C / R : by rw [mul_div_comm, div_self_mul_self', div_eq_mul_inv]
@@ -71,19 +68,18 @@ its derivative at the center is at most `C / R`.
 
 TODO: drop unneeded assumption `[second_countable_topology F]`.  -/
 lemma norm_deriv_le_of_forall_mem_sphere_norm_le {c : ℂ} {R C : ℝ} {f : ℂ → F} (hR : 0 < R)
-  (hc : continuous_on f (closed_ball c R)) (hd : differentiable_on ℂ f (ball c R))
-  (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
+  (hd : diff_on_int_cont ℂ f (closed_ball c R)) (hC : ∀ z ∈ sphere c R, ∥f z∥ ≤ C) :
   ∥deriv f c∥ ≤ C / R :=
 begin
   haveI : second_countable_topology (F̂) := uniform_space.second_countable_of_separable _,
   set e : F →L[ℂ] F̂ := uniform_space.completion.to_complL,
   have : has_deriv_at (e ∘ f) (e (deriv f c)) c,
-    from e.has_fderiv_at.comp_has_deriv_at c (hd.has_deriv_at $ ball_mem_nhds _ hR),
+    from e.has_fderiv_at.comp_has_deriv_at c
+      (hd.differentiable_at' $ closed_ball_mem_nhds _ hR).has_deriv_at,
   calc ∥deriv f c∥ = ∥deriv (e ∘ f) c∥ :
     by { rw this.deriv, exact (uniform_space.completion.norm_coe _).symm }
   ... ≤ C / R :
-    norm_deriv_le_aux hR (e.continuous.comp_continuous_on hc)
-      (e.differentiable.comp_differentiable_on hd)
+    norm_deriv_le_aux hR (e.differentiable.comp_diff_on_int_cont hd)
       (λ z hz, (uniform_space.completion.norm_coe _).trans_le (hC z hz))
 end
 
@@ -99,8 +95,7 @@ begin
       λ z, (hC (f z) (mem_range_self _)).trans (le_max_left _ _)⟩ },
   refine norm_le_zero_iff.1 (le_of_forall_le_of_dense $ λ ε ε₀, _),
   calc ∥deriv f c∥ ≤ C / (C / ε) :
-    norm_deriv_le_of_forall_mem_sphere_norm_le (div_pos C₀ ε₀) hf.continuous.continuous_on
-      hf.differentiable_on (λ z _, hC z)
+    norm_deriv_le_of_forall_mem_sphere_norm_le (div_pos C₀ ε₀) hf.diff_on_int_cont (λ z _, hC z)
   ... = ε : div_div_cancel' C₀.lt.ne'
 end
 

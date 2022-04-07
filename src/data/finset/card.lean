@@ -33,7 +33,7 @@ open function multiset nat
 variables {α β : Type*}
 
 namespace finset
-variables {s t : finset α} {a : α}
+variables {s t : finset α} {a b : α}
 
 /-- `s.card` is the number of elements of `s`, aka its cardinality. -/
 def card (s : finset α) : ℕ := s.1.card
@@ -87,6 +87,9 @@ begin
   { rw [card_insert_of_mem h, if_pos h] },
   { rw [card_insert_of_not_mem h, if_neg h] }
 end
+
+@[simp] lemma card_doubleton (h : a ≠ b) : ({a, b} : finset α).card = 2 :=
+by rw [card_insert_of_not_mem (not_mem_singleton.2 h), card_singleton]
 
 @[simp] lemma card_erase_of_mem : a ∈ s → (s.erase a).card = s.card - 1 := card_erase_of_mem
 @[simp] lemma card_erase_add_one : a ∈ s → (s.erase a).card + 1 = s.card := card_erase_add_one
@@ -308,6 +311,9 @@ lemma card_sdiff (h : s ⊆ t) : card (t \ s) = t.card - s.card :=
 suffices card (t \ s) = card ((t \ s) ∪ s) - s.card, by rwa sdiff_union_of_subset h at this,
 by rw [card_disjoint_union sdiff_disjoint, add_tsub_cancel_right]
 
+lemma card_sdiff_add_card_eq_card {s t : finset α} (h : s ⊆ t) : card (t \ s) + card s = card t :=
+((nat.sub_eq_iff_eq_add (card_le_of_subset h)).mp (card_sdiff h).symm).symm
+
 lemma le_card_sdiff (s t : finset α) : t.card - s.card ≤ card (t \ s) :=
 calc card t - card s
       ≤ card t - card (s ∩ t) : tsub_le_tsub_left (card_le_of_subset (inter_subset_left s t)) _
@@ -460,8 +466,8 @@ begin
     simp_rw [card_eq_one],
     rintro ⟨a, _, hab, rfl, b, rfl⟩,
     exact ⟨a, b, not_mem_singleton.1 hab, rfl⟩ },
-  { rintro ⟨x, y, hxy, rfl⟩,
-    simp only [hxy, card_insert_of_not_mem, not_false_iff, mem_singleton, card_singleton] }
+  { rintro ⟨x, y, h, rfl⟩,
+    exact card_doubleton h }
 end
 
 lemma card_eq_three [decidable_eq α] :

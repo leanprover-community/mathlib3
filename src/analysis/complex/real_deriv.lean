@@ -122,8 +122,6 @@ section conformality
 open complex continuous_linear_map
 open_locale complex_conjugate
 
-variables
-
 /-- A real differentiable function of the complex plane into some complex normed space `E` is
     conformal at a point `z` if it is holomorphic at that point with a nonvanishing differential.
     This is a version of the Cauchy-Riemann equations. -/

@@ -101,9 +101,11 @@ end
   function.mul_support (s.mul_indicator f) = s ∩ function.mul_support f :=
 ext $ λ x, by simp [function.mem_mul_support, mul_indicator_apply_eq_one]
 
-/-- If a multiplicative indicator function is not equal to one at a point, then that
-point is in the set. -/
-@[to_additive] lemma mem_of_mul_indicator_ne_one (h : mul_indicator s f a ≠ 1) : a ∈ s :=
+/-- If a multiplicative indicator function is not equal to `1` at a point, then that point is in the
+set. -/
+@[to_additive "If an additive indicator function is not equal to `0` at a point, then that point is
+in the set."]
+lemma mem_of_mul_indicator_ne_one (h : mul_indicator s f a ≠ 1) : a ∈ s :=
 not_imp_comm.1 (λ hn, mul_indicator_of_not_mem hn f) h
 
 @[to_additive] lemma eq_on_mul_indicator : eq_on (mul_indicator s f) f s :=
@@ -352,7 +354,7 @@ begin
     exact mul_indicator_of_not_mem hn _ }
 end
 
-/-- Consider a sum of `g i (f i)` over a `finset`.  Suppose `g` is a
+/-- Consider a sum of `g i (f i)` over a `finset`. Suppose `g` is a
 function such as multiplication, which maps a second argument of 0 to
 0.  (A typical use case would be a weighted sum of `f i * h i` or `f i
 • h i`, where `f` gives the weights that are multiplied by some other
@@ -361,14 +363,13 @@ function, the `finset` may be replaced by a possibly larger `finset`
 without changing the value of the sum. -/
 add_decl_doc set.sum_indicator_subset_of_eq_zero
 
-@[to_additive] lemma prod_mul_indicator_subset (f : α → M) {s t : finset α} (h : s ⊆ t) :
+/-- Taking the product of an indicator function over a possibly larger `finset` is the same as
+taking the original function over the original `finset`. -/
+@[to_additive "Summing an indicator function over a possibly larger `finset` is the same as summing
+the original function over the original `finset`."]
+lemma prod_mul_indicator_subset (f : α → M) {s t : finset α} (h : s ⊆ t) :
   ∏ i in s, f i = ∏ i in t, mul_indicator ↑s f i :=
 prod_mul_indicator_subset_of_eq_one _ (λ a b, b) h (λ _, rfl)
-
-/-- Summing an indicator function over a possibly larger `finset` is
-the same as summing the original function over the original
-`finset`. -/
-add_decl_doc sum_indicator_subset
 
 @[to_additive] lemma _root_.finset.prod_mul_indicator_eq_prod_filter
   (s : finset ι) (f : ι → α → M) (t : ι → set α) (g : ι → α) :

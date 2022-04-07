@@ -34,6 +34,8 @@ attribute [instance] BoundedLattice.is_bounded_order
 /-- Construct a bundled `BoundedLattice` from `lattice` + `bounded_order`. -/
 def of (α : Type*) [lattice α] [bounded_order α] : BoundedLattice := ⟨⟨α⟩⟩
 
+@[simp] lemma coe_of (α : Type*) [lattice α] [bounded_order α] : ↥(of α) = α := rfl
+
 instance : inhabited BoundedLattice := ⟨of punit⟩
 
 instance : large_category.{u} BoundedLattice :=

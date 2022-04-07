@@ -8,6 +8,7 @@ import data.nat.factorization
 import data.set_like.fintype
 import group_theory.group_action.conj_act
 import group_theory.p_group
+import group_theory.noncomm_pi_coprod
 
 /-!
 # Sylow theorems
@@ -72,11 +73,11 @@ end sylow
   Every `p`-subgroup is contained in a Sylow `p`-subgroup. -/
 lemma is_p_group.exists_le_sylow {P : subgroup G} (hP : is_p_group p P) :
   ∃ Q : sylow p G, P ≤ Q :=
-exists.elim (zorn.zorn_nonempty_partial_order₀ {Q : subgroup G | is_p_group p Q} (λ c hc1 hc2 Q hQ,
+exists.elim (zorn_nonempty_partial_order₀ {Q : subgroup G | is_p_group p Q} (λ c hc1 hc2 Q hQ,
 ⟨ { carrier := ⋃ (R : c), R,
     one_mem' := ⟨Q, ⟨⟨Q, hQ⟩, rfl⟩, Q.one_mem⟩,
     inv_mem' := λ g ⟨_, ⟨R, rfl⟩, hg⟩, ⟨R, ⟨R, rfl⟩, R.1.inv_mem hg⟩,
-    mul_mem' := λ g h ⟨_, ⟨R, rfl⟩, hg⟩ ⟨_, ⟨S, rfl⟩, hh⟩, (hc2.total_of_refl R.2 S.2).elim
+    mul_mem' := λ g h ⟨_, ⟨R, rfl⟩, hg⟩ ⟨_, ⟨S, rfl⟩, hh⟩, (hc2.total R.2 S.2).elim
       (λ T, ⟨S, ⟨S, rfl⟩, S.1.mul_mem (T hg) hh⟩) (λ T, ⟨R, ⟨R, rfl⟩, R.1.mul_mem hg (T hh)⟩) },
   λ ⟨g, _, ⟨S, rfl⟩, hg⟩, by
   { refine exists_imp_exists (λ k hk, _) (hc1 S.2 ⟨g, hg⟩),
@@ -580,5 +581,67 @@ lemma normal_of_normalizer_condition (hnc : normalizer_condition G)
  (↑P : subgroup G).normal :=
 normalizer_eq_top.mp $ normalizer_condition_iff_only_full_group_self_normalizing.mp hnc _ $
   normalizer_normalizer _
+
+open_locale big_operators
+
+/-- If all its sylow groups are normal, then a finite group is isomorphic to the direct product
+of these sylow groups.
+-/
+noncomputable
+def direct_product_of_normal [fintype G]
+  (hn : ∀ {p : ℕ} [fact p.prime] (P : sylow p G), (↑P : subgroup G).normal) :
+  (Π p : (card G).factorization.support, Π P : sylow p G, (↑P : subgroup G)) ≃* G :=
+begin
+  set ps := (fintype.card G).factorization.support,
+
+  -- “The” sylow group for p
+  let P : Π p, sylow p G := λ _, default,
+
+  have hcomm : pairwise (λ (p₁ p₂ : ps), ∀ (x y : G), x ∈ P p₁ → y ∈ P p₂ → commute x y),
+  { rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
+    haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
+    haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
+    have hne' : p₁ ≠ p₂, by simpa using hne,
+    apply subgroup.commute_of_normal_of_disjoint _ _ (hn (P p₁)) (hn (P p₂)),
+    apply is_p_group.disjoint_of_ne p₁ p₂ hne' _ _ (P p₁).is_p_group' (P p₂).is_p_group', },
+
+  refine mul_equiv.trans _ _,
+  -- There is only one sylow group for each p, so the inner product is trivial
+  show (Π p : ps, Π P : sylow p G, P) ≃* (Π p : ps, P p),
+  { -- here we need to help the elaborator with an explicit instantiation
+    apply @mul_equiv.Pi_congr_right ps (λ p, (Π P : sylow p G, P)) (λ p, P p) _ _ ,
+    rintro ⟨p, hp⟩,
+    haveI hp' := fact.mk (nat.prime_of_mem_factorization hp),
+    haveI := subsingleton_of_normal _ (hn (P p)),
+    change (Π (P : sylow p G), P) ≃* P p,
+    exact mul_equiv.Pi_subsingleton _ _, },
+
+  show (Π p : ps, P p) ≃* G,
+  apply mul_equiv.of_bijective (subgroup.noncomm_pi_coprod hcomm),
+  apply (bijective_iff_injective_and_card _).mpr,
+  split,
+
+  show injective _,
+  { apply subgroup.injective_noncomm_pi_coprod_of_independent,
+    apply independent_of_coprime_order hcomm,
+    rintros ⟨p₁, hp₁⟩ ⟨p₂, hp₂⟩ hne,
+    haveI hp₁' := fact.mk (nat.prime_of_mem_factorization hp₁),
+    haveI hp₂' := fact.mk (nat.prime_of_mem_factorization hp₂),
+    have hne' : p₁ ≠ p₂, by simpa using hne,
+    apply is_p_group.coprime_card_of_ne p₁ p₂ hne' _ _ (P p₁).is_p_group' (P p₂).is_p_group', },
+
+  show card (Π (p : ps), P p) = card G,
+  { calc card (Π (p : ps), P p)
+        = ∏ (p : ps), card ↥(P p) : fintype.card_pi
+    ... = ∏ (p : ps), p.1 ^ (card G).factorization p.1 :
+      begin
+        congr' 1 with ⟨p, hp⟩,
+        exact @card_eq_multiplicity _ _ _ p ⟨nat.prime_of_mem_factorization hp⟩ (P p)
+      end
+    ... = ∏ p in ps, p ^ (card G).factorization p :
+      finset.prod_finset_coe (λ p, p ^ (card G).factorization p) _
+    ... = (card G).factorization.prod pow : rfl
+    ... = card G : nat.factorization_prod_pow_eq_self fintype.card_ne_zero }
+end
 
 end sylow

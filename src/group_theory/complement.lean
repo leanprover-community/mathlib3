@@ -194,7 +194,7 @@ mem_left_transversals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 
 @[to_additive] lemma mem_right_transversals_iff_bijective : S ∈ right_transversals (H : set G) ↔
-  function.bijective (set.restrict (quotient.mk' : G → quotient (quotient_group.right_rel H)) S) :=
+  function.bijective (S.restrict (quotient.mk' : G → quotient (quotient_group.right_rel H))) :=
 mem_right_transversals_iff_exists_unique_quotient_mk'_eq.trans
   (function.bijective_iff_exists_unique (S.restrict quotient.mk')).symm
 

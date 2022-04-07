@@ -165,15 +165,15 @@ The following facts are true more generally in a (linearly) ordered commutative 
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_comm_monoid_with_zero {β : Type*}
-  [has_zero β] [has_one β] [has_mul β]
+  [has_zero β] [has_one β] [has_mul β] [has_pow β ℕ]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (mul : ∀ x y, f (x * y) = f x * f y) :
+  (mul : ∀ x y, f (x * y) = f x * f y) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   linear_ordered_comm_monoid_with_zero β :=
 { zero_le_one := show f 0 ≤ f 1, by simp only [zero, one,
     linear_ordered_comm_monoid_with_zero.zero_le_one],
   ..linear_order.lift f hf,
-  ..hf.ordered_comm_monoid f one mul,
-  ..hf.comm_monoid_with_zero f zero one mul }
+  ..hf.ordered_comm_monoid f one mul npow,
+  ..hf.comm_monoid_with_zero f zero one mul npow }
 
 lemma zero_le_one' : (0 : α) ≤ 1 :=
 linear_ordered_comm_monoid_with_zero.zero_le_one

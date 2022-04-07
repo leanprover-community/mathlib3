@@ -44,17 +44,8 @@ open function
 open_locale classical big_operators
 
 /-- `ℤ` with its usual ring structure is not a field. -/
-lemma int.not_is_field : ¬ is_field ℤ :=
-begin
-  intro hf,
-  cases hf.mul_inv_cancel two_ne_zero with inv2 hinv2,
-  have not_even_2 : ¬ even (2 : ℤ),
-  { rw ← int.odd_iff_not_even,
-    apply int.odd.of_mul_left,
-    rw [hinv2, int.odd_iff_not_even],
-    exact int.not_even_one, },
-  exact not_even_2 (even_bit0 1),
-end
+lemma int.not_is_field : ¬ is_field ℤ := 
+λ h, int.not_even_one $ (h.mul_inv_cancel two_ne_zero).imp $ λ a, eq.symm
 
 namespace number_field
 

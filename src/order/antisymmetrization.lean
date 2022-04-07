@@ -186,8 +186,3 @@ def order_iso.dual_antisymmetrization :
     to_dual (to_antisymmetrization _ a) := rfl
 
 end preorder
-
-section partial_order
-variables
-
-end partial_order

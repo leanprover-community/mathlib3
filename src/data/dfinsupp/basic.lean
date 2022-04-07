@@ -152,17 +152,22 @@ zip_with_apply _ _ g₁ g₂ i
 funext $ add_apply g₁ g₂
 
 instance [Π i, add_zero_class (β i)] : add_zero_class (Π₀ i, β i) :=
-{ zero      := 0,
-  add       := (+),
-  zero_add  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, zero_add],
-  add_zero  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, add_zero] }
+fun_like.coe_injective.add_zero_class _ coe_zero coe_add
+
+/-- Note the general `dfinsupp.has_scalar` instance doesn't apply as `ℕ` is not distributive
+unless `β i`'s addition is commutative. -/
+instance has_nat_scalar [Π i, add_monoid (β i)] : has_scalar ℕ (Π₀ i, β i) :=
+⟨λc v, v.map_range (λ _, (•) c) (λ _, nsmul_zero _)⟩
+
+lemma nsmul_apply [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) (i : ι) :
+  (b • v) i = b • (v i) :=
+map_range_apply _ _ v i
+
+@[simp] lemma coe_nsmul [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
+funext $ nsmul_apply b v
 
 instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
-{ add_monoid .
-  zero      := 0,
-  add       := (+),
-  add_assoc := λ f g h, ext $ λ i, by simp only [add_apply, add_assoc],
-  .. dfinsupp.add_zero_class }
+fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
 
 /-- Coercion from a `dfinsupp` to a pi type is an `add_monoid_hom`. -/
 def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (Π i, β i) :=
@@ -174,12 +179,7 @@ def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i)
 (pi.eval_add_monoid_hom β i).comp coe_fn_add_monoid_hom
 
 instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
-{ add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
-  nsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
-  nsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
-  nsmul_succ' := λ n z, ext $ λ i, by simp only [map_range_apply, add_apply,
-    nat.succ_eq_one_add, add_smul, one_smul],
-  .. dfinsupp.add_monoid }
+fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
 
 @[simp] lemma coe_finset_sum {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i) :
   ⇑(∑ a in s, g a) = ∑ a in s, g a :=
@@ -210,23 +210,24 @@ zip_with_apply _ _ g₁ g₂ i
   ⇑(g₁ - g₂) = g₁ - g₂ :=
 funext $ sub_apply g₁ g₂
 
+/-- Note the general `dfinsupp.has_scalar` instance doesn't apply as `ℤ` is not distributive
+unless `β i`'s addition is commutative. -/
+instance has_int_scalar [Π i, add_group (β i)] : has_scalar ℤ (Π₀ i, β i) :=
+⟨λc v, v.map_range (λ _, (•) c) (λ _, zsmul_zero _)⟩
+
+lemma zsmul_apply [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) (i : ι) : (b • v) i = b • (v i) :=
+map_range_apply _ _ v i
+
+@[simp] lemma coe_zsmul [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
+funext $ zsmul_apply b v
+
 instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
-{ add_left_neg := λ f, ext $ λ i, by simp only [add_apply, neg_apply, zero_apply, add_left_neg],
-  sub_eq_add_neg := λ f g, ext $ λ i,
-    by simp only [sub_apply, add_apply, neg_apply, sub_eq_add_neg],
-  .. dfinsupp.add_monoid,
-  .. dfinsupp.has_sub,
-  .. dfinsupp.has_neg }
+fun_like.coe_injective.add_group _
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
 
 instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
-{ zsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
-  zsmul_neg' := λ n f, ext $ λ i, by
-    rw [neg_apply, map_range_apply, map_range_apply, zsmul_neg_succ_of_nat, nsmul_eq_smul_cast ℤ,
-      int.nat_cast_eq_coe_nat],
-  zsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
-  zsmul_succ' := λ n f, ext $ λ i, by simp [map_range_apply, add_smul, add_comm],
-  ..@dfinsupp.add_comm_monoid _ β _,
-  ..dfinsupp.add_group }
+fun_like.coe_injective.add_comm_group _
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
 coordinate. -/
@@ -265,11 +266,7 @@ instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β 
 structure on each coordinate. -/
 instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
   distrib_mul_action γ (Π₀ i, β i) :=
-{ smul_zero := λ c, ext $ λ i, by simp only [smul_apply, smul_zero, zero_apply],
-  smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
-  one_smul := λ x, ext $ λ i, by simp only [smul_apply, one_smul],
-  mul_smul := λ r s x, ext $ λ i, by simp only [smul_apply, smul_smul],
-  ..dfinsupp.has_scalar }
+function.injective.distrib_mul_action coe_fn_add_monoid_hom fun_like.coe_injective coe_smul
 
 /-- Dependent functions with finite support inherit a module structure from such a structure on
 each coordinate. -/

@@ -5,7 +5,7 @@ Authors: Rémy Degenne
 -/
 
 import analysis.normed_space.dual
-import measure_theory.function.strongly_measurable
+import measure_theory.function.strongly_measurable_lp
 import measure_theory.integral.set_integral
 
 /-! # From equality of integrals to equality of functions

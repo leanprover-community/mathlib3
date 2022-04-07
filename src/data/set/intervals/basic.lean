@@ -484,32 +484,17 @@ begin
     apply_rules [subset_diff_singleton] }
 end
 
-lemma mem_Ioo_or_eq_endpoints_of_mem_Icc {x : α} (hmem : x ∈ Icc a b) :
-  x = a ∨ x = b ∨ x ∈ Ioo a b :=
-begin
-  rw [mem_Icc, le_iff_lt_or_eq, le_iff_lt_or_eq] at hmem,
-  rcases hmem with ⟨hxa | hxa, hxb | hxb⟩,
-  { exact or.inr (or.inr ⟨hxa, hxb⟩) },
-  { exact or.inr (or.inl hxb) },
-  all_goals { exact or.inl hxa.symm }
-end
-
-lemma mem_Ioo_or_eq_left_of_mem_Ico {x : α} (hmem : x ∈ Ico a b) :
+lemma eq_left_or_mem_Ioo_of_mem_Ico {x : α} (hmem : x ∈ Ico a b) :
   x = a ∨ x ∈ Ioo a b :=
-begin
-  rw [mem_Ico, le_iff_lt_or_eq] at hmem,
-  rcases hmem with ⟨hxa | hxa, hxb⟩,
-  { exact or.inr ⟨hxa, hxb⟩ },
-  { exact or.inl hxa.symm }
-end
+hmem.1.eq_or_gt.imp_right $ λ h, ⟨h, hmem.2⟩
 
-lemma mem_Ioo_or_eq_right_of_mem_Ioc {x : α} (hmem : x ∈ Ioc a b) :
+lemma eq_right_or_mem_Ioo_of_mem_Ioc {x : α} (hmem : x ∈ Ioc a b) :
   x = b ∨ x ∈ Ioo a b :=
-begin
-  have := @mem_Ioo_or_eq_left_of_mem_Ico _ _ (to_dual b) (to_dual a) (to_dual x),
-  rw [dual_Ioo, dual_Ico] at this,
-  exact this hmem
-end
+hmem.2.eq_or_lt.imp_right $ and.intro hmem.1
+
+lemma eq_endpoints_or_mem_Ioo_of_mem_Icc {x : α} (hmem : x ∈ Icc a b) :
+  x = a ∨ x = b ∨ x ∈ Ioo a b :=
+hmem.1.eq_or_gt.imp_right $ λ h, eq_right_or_mem_Ioo_of_mem_Ioc ⟨h, hmem.2⟩
 
 lemma _root_.is_max.Ici_eq (h : is_max a) : Ici a = {a} :=
 eq_singleton_iff_unique_mem.2 ⟨left_mem_Ici, λ b, h.eq_of_ge⟩

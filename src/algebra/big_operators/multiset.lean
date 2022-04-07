@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import algebra.group_with_zero.power
-import data.list.prod_monoid
+import data.list.big_operators
 import data.multiset.basic
 
 /-!
@@ -70,7 +70,7 @@ lemma prod_nsmul (m : multiset α) : ∀ (n : ℕ), (n • m).prod = m.prod ^ n
 @[simp, to_additive] lemma prod_repeat (a : α) (n : ℕ) : (repeat a n).prod = a ^ n :=
 by simp [repeat, list.prod_repeat]
 
-@[to_additive nsmul_count]
+@[to_additive]
 lemma pow_count [decidable_eq α] (a : α) : a ^ s.count a = (s.filter (eq a)).prod :=
 by rw [filter_eq, prod_repeat]
 
@@ -105,7 +105,7 @@ lemma prod_map_one : prod (m.map (λ i, (1 : α))) = 1 := by rw [map_const, prod
 lemma prod_map_mul : (m.map $ λ i, f i * g i).prod = (m.map f).prod * (m.map g).prod :=
 m.prod_hom₂ (*) mul_mul_mul_comm (mul_one _) _ _
 
-@[to_additive sum_map_nsmul]
+@[to_additive]
 lemma prod_map_pow {n : ℕ} : (m.map $ λ i, f i ^ n).prod = (m.map f).prod ^ n :=
 m.prod_hom' (pow_monoid_hom n : α →* α) f
 
@@ -267,11 +267,11 @@ quotient.induction_on s $ λ l hl, by simpa using list.one_le_prod_of_one_le hl
 lemma single_le_prod : (∀ x ∈ s, (1 : α) ≤ x) → ∀ x ∈ s, x ≤ s.prod :=
 quotient.induction_on s $ λ l hl x hx, by simpa using list.single_le_prod hl x hx
 
-@[to_additive]
-lemma prod_le_of_forall_le (s : multiset α) (n : α) (h : ∀ x ∈ s, x ≤ n) : s.prod ≤ n ^ s.card :=
+@[to_additive sum_le_card_nsmul]
+lemma prod_le_pow_card (s : multiset α) (n : α) (h : ∀ x ∈ s, x ≤ n) : s.prod ≤ n ^ s.card :=
 begin
   induction s using quotient.induction_on,
-  simpa using list.prod_le_of_forall_le _ _ h,
+  simpa using list.prod_le_pow_card _ _ h,
 end
 
 @[to_additive all_zero_of_le_zero_le_of_sum_eq_zero]
@@ -303,10 +303,6 @@ lemma prod_le_sum_prod (f : α → α) (h : ∀ x, x ∈ s → x ≤ f x) : s.pr
 @[to_additive card_nsmul_le_sum]
 lemma pow_card_le_prod (h : ∀ x ∈ s, a ≤ x) : a ^ s.card ≤ s.prod :=
 by { rw [←multiset.prod_repeat, ←multiset.map_const], exact prod_map_le_prod _ h }
-
-@[to_additive sum_le_card_nsmul]
-lemma prod_le_pow_card (h : ∀ x ∈ s, x ≤ a) : s.prod ≤ a ^ s.card :=
-@pow_card_le_prod (order_dual α) _ _ _ h
 
 end ordered_comm_monoid
 

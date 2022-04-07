@@ -191,7 +191,7 @@ lemma mk_proj_snd' (ex : proj x ∈ e.base_set) : (proj x, (e x).2) = e x :=
 prod.ext (e.coe_fst' ex).symm rfl
 
 /-- Composition of inverse and coercion from the subtype of the target. -/
-def set_symm : e.target → Z := set.restrict e.to_local_equiv.symm e.target
+def set_symm : e.target → Z := e.target.restrict e.to_local_equiv.symm
 
 lemma mem_target {x : B × F} : x ∈ e.target ↔ x.1 ∈ e.base_set :=
 by rw [e.target_eq, prod_univ, mem_preimage]

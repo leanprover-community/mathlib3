@@ -169,6 +169,17 @@ theorem mul_X_pow_eq_zero {p : R[X]} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=
 ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 
+lemma mul_X_pow_injective (n : ℕ) : function.injective (λ P : R[X], X ^ n * P) :=
+begin
+  intros P Q hPQ,
+  simp only at hPQ,
+  ext i,
+  rw [← coeff_X_pow_mul P n i, hPQ, coeff_X_pow_mul Q n i]
+end
+
+lemma mul_X_injective : function.injective (λ P : R[X], X * P) :=
+by simpa only [pow_one] using mul_X_pow_injective 1
+
 lemma C_mul_X_pow_eq_monomial (c : R) (n : ℕ) : C c * X^n = monomial n c :=
 by { ext1, rw [monomial_eq_smul_X, coeff_smul, coeff_C_mul, smul_eq_mul] }
 

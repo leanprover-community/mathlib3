@@ -3,10 +3,10 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import tactic.ring_exp
 import algebra.algebra.basic
+import algebra.ring.equiv
 import algebra.ring.opposite
-import data.equiv.ring
+import tactic.ring_exp
 
 /-!
 # Quaternions

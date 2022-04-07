@@ -355,7 +355,7 @@ of_zero_smul A a b
 
 instance grade_zero.non_unital_non_assoc_semiring : non_unital_non_assoc_semiring (A 0) :=
 function.injective.non_unital_non_assoc_semiring (of A 0) dfinsupp.single_injective
-  (of A 0).map_zero (of A 0).map_add (of_zero_mul A)
+  (of A 0).map_zero (of A 0).map_add (of_zero_mul A) (λ x n, dfinsupp.single_smul n x)
 
 instance grade_zero.smul_with_zero (i : ι) : smul_with_zero (A 0) (A i) :=
 begin
@@ -368,10 +368,15 @@ end mul
 section semiring
 variables [Π i, add_comm_monoid (A i)] [add_monoid ι] [gsemiring A]
 
+@[simp] lemma of_zero_pow (a : A 0) : ∀ n : ℕ, of _ 0 (a ^ n) = of _ 0 a ^ n
+| 0 := by rw [pow_zero, pow_zero, direct_sum.of_zero_one]
+| (n + 1) := by rw [pow_succ, pow_succ, of_zero_mul, of_zero_pow]
+
 /-- The `semiring` structure derived from `gsemiring A`. -/
 instance grade_zero.semiring : semiring (A 0) :=
 function.injective.semiring (of A 0) dfinsupp.single_injective
   (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
+  (λ x n, dfinsupp.single_smul n x) (λ x n, of_zero_pow _ _ _)
 
 /-- `of A 0` is a `ring_hom`, using the `direct_sum.grade_zero.semiring` structure. -/
 def of_zero_ring_hom : A 0 →+* (⨁ i, A i) :=
@@ -396,6 +401,7 @@ variables [Π i, add_comm_monoid (A i)] [add_comm_monoid ι] [gcomm_semiring A]
 instance grade_zero.comm_semiring : comm_semiring (A 0) :=
 function.injective.comm_semiring (of A 0) dfinsupp.single_injective
   (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
+  (λ x n, dfinsupp.single_smul n x) (λ x n, of_zero_pow _ _ _)
 
 end comm_semiring
 
@@ -407,6 +413,14 @@ instance grade_zero.non_unital_non_assoc_ring : non_unital_non_assoc_ring (A 0) 
 function.injective.non_unital_non_assoc_ring (of A 0) dfinsupp.single_injective
   (of A 0).map_zero (of A 0).map_add (of_zero_mul A)
   (of A 0).map_neg (of A 0).map_sub
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℕ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end)
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℤ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end)
 
 end ring
 
@@ -418,6 +432,14 @@ instance grade_zero.ring : ring (A 0) :=
 function.injective.ring (of A 0) dfinsupp.single_injective
   (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
   (of A 0).map_neg (of A 0).map_sub
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℕ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end)
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℤ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end) (λ x n, of_zero_pow _ _ _)
 
 end ring
 
@@ -429,6 +451,14 @@ instance grade_zero.comm_ring : comm_ring (A 0) :=
 function.injective.comm_ring (of A 0) dfinsupp.single_injective
   (of A 0).map_zero (of_zero_one A) (of A 0).map_add (of_zero_mul A)
   (of A 0).map_neg (of A 0).map_sub
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℕ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end)
+  (λ x n, begin
+    letI : Π i, distrib_mul_action ℤ (A i) := λ i, infer_instance,
+    exact dfinsupp.single_smul n x
+  end) (λ x n, of_zero_pow _ _ _)
 
 end comm_ring
 

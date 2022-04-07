@@ -262,6 +262,9 @@ quotient.fintype (left_rel s)
 abbreviation mk (a : α) : α ⧸ s :=
 quotient.mk' a
 
+@[to_additive]
+lemma mk_surjective : function.surjective $ @mk _ _ s := quotient.surjective_quotient_mk'
+
 @[elab_as_eliminator, to_additive]
 lemma induction_on {C : α ⧸ s → Prop} (x : α ⧸ s)
   (H : ∀ z, C (quotient_group.mk z)) : C x :=

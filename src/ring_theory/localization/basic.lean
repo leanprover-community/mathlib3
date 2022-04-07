@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin, Amelia Livingston, Anne Baanen
 -/
 import algebra.algebra.basic
-import data.equiv.ring
+import algebra.ring.equiv
 import group_theory.monoid_localization
 import ring_theory.ideal.basic
 import ring_theory.non_zero_divisors
@@ -806,6 +806,13 @@ instance : comm_ring (localization M) :=
   right_distrib  := λ m n k, localization.induction_on₃ m n k (by tac),
    ..localization.comm_monoid M }
 
+lemma sub_mk (a c) (b d) : (mk a b : localization M) - mk c d = mk (d * a - b * c) (b * d) :=
+calc  mk a b - mk c d
+    = mk a b + (- mk c d) : sub_eq_add_neg _ _
+... = mk a b + (mk (-c) d) : by rw neg_mk
+... = mk (b * (-c) + d * a) (b * d) : add_mk _ _ _ _
+... = mk (d * a - b * c) (b * d) : by congr'; ring
+
 instance {S : Type*} [monoid S] [distrib_mul_action S R] [is_scalar_tower S R R] :
   distrib_mul_action S (localization M) :=
 { smul_zero := λ s, by simp only [←localization.mk_zero 1, localization.smul_mk, smul_zero],
@@ -867,6 +874,15 @@ by rw [mk_eq_monoid_of_mk'_apply, mk', to_localization_map_eq_monoid_of]
 
 @[simp] lemma mk_eq_mk' : (mk : R → M → localization M) = is_localization.mk' (localization M) :=
 mk_eq_monoid_of_mk'
+
+lemma mk_algebra_map {A : Type*} [comm_semiring A] [algebra A R] (m : A) :
+  mk (algebra_map A R m) 1 = algebra_map A (localization M) m :=
+by rw [mk_eq_mk', mk'_eq_iff_eq_mul, submonoid.coe_one, map_one, mul_one]; refl
+
+lemma mk_int_cast (m : ℤ) : (mk m 1 : localization M) = m :=
+by simpa using @mk_algebra_map R _ M ℤ _ _ m
+
+lemma mk_nat_cast (m : ℕ) : (mk m 1 : localization M) = m := mk_int_cast m
 
 variables [is_localization M S]
 
@@ -995,7 +1011,7 @@ lemma is_field.localization_map_bijective
   {M : submonoid R} (hM : (0 : R) ∉ M) (hR : is_field R)
   [algebra R Rₘ] [is_localization M Rₘ] : function.bijective (algebra_map R Rₘ) :=
 begin
-  letI := hR.to_field R,
+  letI := hR.to_field,
   replace hM := le_non_zero_divisors_of_no_zero_divisors hM,
   refine ⟨is_localization.injective _ hM, λ x, _⟩,
   obtain ⟨r, ⟨m, hm⟩, rfl⟩ := mk'_surjective M x,

@@ -6,7 +6,7 @@ Authors: Hanting Zhang, Johan Commelin
 import data.fintype.card
 import data.mv_polynomial.rename
 import data.mv_polynomial.comm_ring
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
 
 /-!
 # Symmetric Polynomials and Elementary Symmetric Polynomials

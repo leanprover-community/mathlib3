@@ -33,24 +33,16 @@ useful.
 -/
 universes u
 
-/-- `ordinal.out` and `ordinal.type_out'` are required to make the definition of nim computable.
- `ordinal.out` performs the same job as `quotient.out` but is specific to ordinals. -/
-def ordinal.out (o : ordinal) : Well_order :=
-⟨o.out.α, λ x y, o.out.r x y, o.out.wo⟩
-
-/-- This is the same as `ordinal.type_out` but defined to use `ordinal.out`. -/
-theorem ordinal.type_out' : ∀ (o : ordinal), ordinal.type (ordinal.out o).r = o := ordinal.type_out
+/-- `ordinal.out'` has the sole purpose of making `nim` computable. It performs the same job as
+  `quotient.out` but is specific to ordinals. -/
+def ordinal.out' (o : ordinal) : Well_order :=
+⟨o.out.α, (<), o.out.wo⟩
 
 /-- The definition of single-heap nim, which can be viewed as a pile of stones where each player can
- take a positive number of stones from it on their turn. -/
+  take a positive number of stones from it on their turn. -/
 def nim : ordinal → pgame
-| O₁ := ⟨ O₁.out.α, O₁.out.α,
-  λ O₂, have hwf : (ordinal.typein O₁.out.r O₂) < O₁,
-    from begin nth_rewrite_rhs 0 ←ordinal.type_out' O₁, exact ordinal.typein_lt_type _ _ end,
-    nim (ordinal.typein O₁.out.r O₂),
-  λ O₂, have hwf : (ordinal.typein O₁.out.r O₂) < O₁,
-    from begin nth_rewrite_rhs 0 ←ordinal.type_out' O₁, exact ordinal.typein_lt_type _ _ end,
-    nim (ordinal.typein O₁.out.r O₂)⟩
+| O₁ := let f := λ O₂, have hwf : ordinal.typein O₁.out'.r O₂ < O₁ := ordinal.typein_lt_self O₂,
+          nim (ordinal.typein O₁.out'.r O₂) in ⟨O₁.out'.α, O₁.out'.α, f, f⟩
 using_well_founded { dec_tac := tactic.assumption }
 
 namespace pgame
@@ -62,66 +54,40 @@ namespace nim
 open ordinal
 
 lemma nim_def (O : ordinal) : nim O = pgame.mk O.out.α O.out.α
-  (λ O₂, nim (ordinal.typein O.out.r O₂))
-  (λ O₂, nim (ordinal.typein O.out.r O₂)) :=
-by rw nim
-
-lemma nim_wf_lemma {O₁ : ordinal} (O₂ : O₁.out.α) : (ordinal.typein O₁.out.r O₂) < O₁ :=
-begin
-  nth_rewrite_rhs 0 ← ordinal.type_out O₁,
-  exact ordinal.typein_lt_type _ _
-end
+  (λ O₂, nim (ordinal.typein (<) O₂))
+  (λ O₂, nim (ordinal.typein (<) O₂)) :=
+by { rw nim, refl }
 
 instance nim_impartial : ∀ (O : ordinal), impartial (nim O)
 | O :=
 begin
   rw [impartial_def, nim_def, neg_def],
-  split,
-  split,
-  { rw pgame.le_def,
-    split,
-    { intro i,
-      let hwf : (typein O.out.r i) < O := nim_wf_lemma i,
-      exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein O.out.r i).1⟩ },
-    { intro j,
-      let hwf : (typein O.out.r j) < O := nim_wf_lemma j,
-      exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein O.out.r j).1⟩ } },
-  { rw pgame.le_def,
-    split,
-    { intro i,
-      let hwf : (typein O.out.r i) < O := nim_wf_lemma i,
-      exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein O.out.r i).2⟩ },
-    { intro j,
-      let hwf : (typein O.out.r j) < O := nim_wf_lemma j,
-      exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein O.out.r j).2⟩ } },
-  split,
-  { intro i,
-    let hwf : (typein O.out.r i) < O := nim_wf_lemma i,
-    simpa using nim_impartial (typein O.out.r i) },
-  { intro j,
-    let hwf : (typein O.out.r j) < O := nim_wf_lemma j,
-    simpa using nim_impartial (typein O.out.r j) }
+  split, split;
+  rw pgame.le_def,
+  all_goals { refine ⟨λ i, let hwf := ordinal.typein_lt_self i in _,
+    λ j, let hwf := ordinal.typein_lt_self j in _⟩ },
+  { exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).1⟩ },
+  { exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).1⟩ },
+  { exact or.inl ⟨i, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) i).2⟩ },
+  { exact or.inr ⟨j, (@impartial.neg_equiv_self _ $ nim_impartial $ typein (<) j).2⟩ },
+  { exact nim_impartial (typein (<) i) },
+  { exact nim_impartial (typein (<) j) }
 end
 using_well_founded { dec_tac := tactic.assumption }
 
 lemma exists_ordinal_move_left_eq (O : ordinal) : ∀ i, ∃ O' < O, (nim O).move_left i = nim O' :=
-by { rw nim_def, exact λ i, ⟨ordinal.typein O.out.r i, ⟨nim_wf_lemma _, rfl⟩⟩ }
+by { rw nim_def, exact λ i, ⟨_, ⟨ordinal.typein_lt_self i, rfl⟩⟩ }
 
-lemma exists_move_left_eq (O : ordinal) : ∀ O' < O, ∃ i, (nim O).move_left i = nim O' :=
+lemma exists_move_left_eq {O : ordinal} : ∀ O' < O, ∃ i, (nim O).move_left i = nim O' :=
 by { rw nim_def, exact λ _ h, ⟨(ordinal.principal_seg_out h).top, by simp⟩ }
 
 lemma zero_first_loses : (nim (0 : ordinal)).first_loses :=
 begin
   rw [impartial.first_loses_symm, nim_def, le_def_lt],
-  split,
-  { rintro (i : (0 : ordinal).out.α),
-    have h := ordinal.typein_lt_type _ i,
-    rw ordinal.type_out at h,
-    exact false.elim (not_le_of_lt h (ordinal.zero_le (ordinal.typein _ i))) },
-  { tidy }
+  exact ⟨@is_empty_elim (0 : ordinal).out.α _ _, @is_empty_elim pempty _ _⟩
 end
 
-lemma non_zero_first_wins (O : ordinal) (hO : O ≠ 0) : (nim O).first_wins :=
+lemma non_zero_first_wins {O : ordinal} (hO : O ≠ 0) : (nim O).first_wins :=
 begin
   rw [impartial.first_wins_symm, nim_def, lt_def_le],
   rw ←ordinal.pos_iff_ne_zero at hO,
@@ -161,29 +127,10 @@ end nim
   the image of the function. It is guaranteed that the smallest ordinal not in the image will be
   in the set, i.e. we can use this to find the mex. -/
 def nonmoves {α : Type u} (M : α → ordinal.{u}) : set ordinal.{u} :=
-  { O : ordinal | ¬ ∃ a : α, M a = O }
+(set.range M)ᶜ
 
-lemma nonmoves_nonempty {α : Type u} (M : α → ordinal.{u}) : ∃ O : ordinal, O ∈ nonmoves M :=
-begin
-  classical,
-  by_contra h,
-  simp only [nonmoves, not_exists, not_forall, set.mem_set_of_eq, not_not] at h,
-
-  have hle : cardinal.univ.{u (u+1)} ≤ cardinal.lift.{(u+1)} (cardinal.mk α),
-  { refine ⟨⟨λ ⟨O⟩, ⟨classical.some (h O)⟩, _⟩⟩,
-    rintros ⟨O₁⟩ ⟨O₂⟩ heq,
-    ext,
-    refine eq.trans (classical.some_spec (h O₁)).symm _,
-    injection heq with heq,
-    rw heq,
-    exact classical.some_spec (h O₂) },
-
-  have hlt : cardinal.lift.{(u+1)} (cardinal.mk α) < cardinal.univ.{u (u+1)} :=
-    cardinal.lt_univ.2 ⟨cardinal.mk α, rfl⟩,
-
-  cases hlt,
-  contradiction
-end
+lemma nonmoves_nonempty {α : Type u} (M : α → ordinal.{u}) : set.nonempty (nonmoves M) :=
+⟨_, ordinal.lsub_nmem_range.{u u} M⟩
 
 /-- The Grundy value of an impartial game, the ordinal which corresponds to the game of nim that the
  game is equivalent to -/
@@ -200,7 +147,6 @@ by rw grundy_value
 theorem equiv_nim_grundy_value : ∀ (G : pgame.{u}) [G.impartial], by exactI G ≈ nim (grundy_value G)
 | G :=
 begin
-  classical,
   introI hG,
   rw [impartial.equiv_iff_sum_first_loses, ←impartial.no_good_left_moves_iff_first_loses],
   intro i,
@@ -225,18 +171,10 @@ begin
 
     have h' : ∃ i : G.left_moves, (grundy_value (G.move_left i)) =
       ordinal.typein (quotient.out (grundy_value G)).r i₂,
-    { have hlt : ordinal.typein (quotient.out (grundy_value G)).r i₂ <
-        ordinal.type (quotient.out (grundy_value G)).r := ordinal.typein_lt_type _ _,
-      rw ordinal.type_out at hlt,
-      revert i₂ hlt,
+    { revert i₂,
       rw grundy_value_def,
-      intros i₂ hlt,
-      have hnotin : ordinal.typein (Inf (nonmoves (λ i, grundy_value (G.move_left i)))).out.r i₂ ∉
-        (nonmoves (λ (i : G.left_moves), grundy_value (G.move_left i))),
-      { intro hin,
-        have hge := cInf_le' hin,
-        have hcontra := (le_not_le_of_lt hlt).2,
-        contradiction },
+      intros i₂,
+      have hnotin : _ ∉ _ := λ hin, (le_not_le_of_lt (ordinal.typein_lt_self i₂)).2 (cInf_le' hin),
       simpa [nonmoves] using hnotin },
 
     cases h' with i hi,
@@ -280,7 +218,7 @@ begin
   have h₀ : (nat.lxor n m : ordinal) ∈ nonmoves (λ i, grundy_value ((nim n + nim m).move_left i)),
   { -- To show that `n xor m` is unreachable, we show that every move produces a Grundy number
     -- different from `n xor m`.
-    simp only [nonmoves, not_exists, set.mem_set_of_eq],
+    rw [nonmoves, set.mem_compl_eq, set.mem_range, not_exists],
     equiv_rw left_moves_add _ _,
 
     -- The move operates either on the left pile or on the right pile.
@@ -302,7 +240,7 @@ begin
       intro h,
       rw ordinal.nat_cast_inj at h,
       try { rw [nat.lxor_comm n k, nat.lxor_comm n m] at h },
-      exact _root_.ne_of_lt hk (nat.lxor_left_inj h) } },
+      exact hk.ne (nat.lxor_left_inj h) } },
 
   have h₁ : ∀ (u : ordinal), u < nat.lxor n m →
     u ∉ nonmoves (λ i, grundy_value ((nim n + nim m).move_left i)),
@@ -312,7 +250,7 @@ begin
     replace hu := ordinal.nat_cast_lt.1 hu,
 
     -- Our goal is to produce a move that gives the Grundy value `u`.
-    simp only [nonmoves, not_exists, not_not, set.mem_set_of_eq, not_forall],
+    rw [nonmoves, set.mem_compl_eq, set.mem_range, not_not],
 
     -- By a lemma about xor, either `u xor m < n` or `u xor n < m`.
     have : nat.lxor u (nat.lxor n m) ≠ 0,
@@ -322,17 +260,17 @@ begin
 
     -- Therefore, we can play the corresponding move, and by the inductive hypothesis the new state
     -- is `(u xor m) xor m = u` or `n xor (u xor n) = u` as required.
-    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ _ (ordinal.nat_cast_lt.2 h),
+    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ (ordinal.nat_cast_lt.2 h),
       refine ⟨(left_moves_add _ _).symm (sum.inl i), _⟩,
       simp only [hi, add_move_left_inl],
       rw [hn _ h, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] },
-    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ _ (ordinal.nat_cast_lt.2 h),
+    { obtain ⟨i, hi⟩ := nim.exists_move_left_eq _ (ordinal.nat_cast_lt.2 h),
       refine ⟨(left_moves_add _ _).symm (sum.inr i), _⟩,
       simp only [hi, add_move_left_inr],
       rw [hm _ h, nat.lxor_comm, nat.lxor_assoc, nat.lxor_self, nat.lxor_zero] } },
 
   -- We are done!
-  apply le_antisymm (cInf_le' h₀),
+  apply (cInf_le' h₀).antisymm,
   contrapose! h₁,
   exact ⟨_, ⟨h₁, Inf_mem (nonmoves_nonempty _)⟩⟩
 end

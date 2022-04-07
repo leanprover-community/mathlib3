@@ -212,7 +212,7 @@ is_local_ring_hom.map_nonunit a h
 
 theorem of_irreducible_map [semiring R] [semiring S] (f : R →+* S) [h : is_local_ring_hom f] {x : R}
   (hfx : irreducible (f x)) : irreducible x :=
-⟨λ h, hfx.not_unit $ is_unit.map f.to_monoid_hom h, λ p q hx, let ⟨H⟩ := h in
+⟨λ h, hfx.not_unit $ is_unit.map f h, λ p q hx, let ⟨H⟩ := h in
 or.imp (H p) (H q) $ hfx.is_unit_or_is_unit $ f.map_mul p q ▸ congr_arg f hx⟩
 
 section

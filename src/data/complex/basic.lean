@@ -661,7 +661,7 @@ theorem equiv_lim_aux (f : cau_seq ℂ abs) : f ≈ cau_seq.const abs (lim_aux f
   rwa add_halves at this,
 end
 
-noncomputable instance : cau_seq.is_complete ℂ abs :=
+instance : cau_seq.is_complete ℂ abs :=
 ⟨λ f, ⟨lim_aux f, equiv_lim_aux f⟩⟩
 
 open cau_seq

@@ -47,7 +47,7 @@ begin
     rw [← mul_one 2, ← nat.div_mul_div_comm (even_iff_two_dvd.1 h) (one_dvd _), nat.div_one,
       mul_one, mul_comm, pow_mul],
     congr' 1,
-    exact neg_one_pow_of_odd (even.sub_odd (one_le_iff_ne_zero.2 hpos.ne.symm) h (odd_iff.2 rfl)) },
+    exact neg_one_pow_of_odd (nat.even.sub_odd (one_le_iff_ne_zero.2 hpos.ne') h (odd_iff.2 rfl)) },
   { have H := congr_arg derivative (cyclotomic_prime_mul_X_sub_one K p),
     rw [derivative_mul, derivative_sub, derivative_one, derivative_X, sub_zero, mul_one,
       derivative_sub, derivative_one, sub_zero, derivative_X_pow] at H,

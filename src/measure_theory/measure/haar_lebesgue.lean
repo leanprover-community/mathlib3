@@ -39,7 +39,7 @@ open topological_space set filter metric
 open_locale ennreal pointwise topological_space
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
-noncomputable def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
+def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
 { carrier := Icc 0 1,
   compact' := is_compact_Icc,
   interior_nonempty' := by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one] }
@@ -47,7 +47,7 @@ noncomputable def topological_space.positive_compacts.Icc01 : positive_compacts 
 universe u
 
 /-- The set `[0,1]^ι` as a compact set with non-empty interior. -/
-noncomputable def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
+def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
 { carrier := pi univ (λ i, Icc 0 1),
   compact' := is_compact_univ_pi (λ i, is_compact_Icc),

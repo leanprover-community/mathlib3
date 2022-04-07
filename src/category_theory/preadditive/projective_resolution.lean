@@ -156,26 +156,18 @@ def lift_f_succ {Y Z : C} (P : ProjectiveResolution Y) (Q : ProjectiveResolution
 /-- A morphism in `C` lifts to a chain map between projective resolutions. -/
 def lift {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
   P.complex ⟶ Q.complex :=
-begin
-  fapply chain_complex.mk_hom,
-  apply lift_f_zero f,
-  apply lift_f_one f,
-  apply lift_f_one_zero_comm f,
-  rintro n ⟨g, g', w⟩,
-  exact lift_f_succ P Q n g g' w,
-end
+chain_complex.mk_hom _ _ (lift_f_zero f _ _) (lift_f_one f _ _) (lift_f_one_zero_comm f _ _)
+  (λ n ⟨g, g', w⟩, lift_f_succ P Q n g g' w)
 
-/-- The resolution maps interwine the lift of a morphism and that morphism. -/
+/-- The resolution maps intertwine the lift of a morphism and that morphism. -/
 @[simp, reassoc]
 lemma lift_commutes
   {Y Z : C} (f : Y ⟶ Z) (P : ProjectiveResolution Y) (Q : ProjectiveResolution Z) :
   lift f P Q ≫ Q.π = P.π ≫ (chain_complex.single₀ C).map f :=
 begin
   ext n,
-  rcases n with (_|_|n),
-  { dsimp [lift, lift_f_zero], simp, },
-  { dsimp [lift, lift_f_one], simp, },
-  { dsimp, simp, },
+  rcases n with (_|_|n);
+  { dsimp [lift, lift_f_zero, lift_f_one], simp, }
 end
 
 -- Now that we've checked this property of the lift,
@@ -220,17 +212,9 @@ def lift_homotopy_zero {Y Z : C} {P : ProjectiveResolution Y} {Q : ProjectiveRes
   (f : P.complex ⟶ Q.complex)
   (comm : f ≫ Q.π = 0) :
   homotopy f 0 :=
-begin
-  fapply homotopy.mk_inductive,
-  { exact lift_homotopy_zero_zero f comm, },
-  { simp [lift_homotopy_zero_zero], },
-  { exact lift_homotopy_zero_one f comm, },
-  { simp [lift_homotopy_zero_one], },
-  { rintro n ⟨g, g', w⟩,
-    fsplit,
-    { exact lift_homotopy_zero_succ f n g g' w, },
-    { simp [lift_homotopy_zero_succ, w], }, }
-end
+homotopy.mk_inductive _ (lift_homotopy_zero_zero f comm) (by simp [lift_homotopy_zero_zero])
+  (lift_homotopy_zero_one f comm) (by simp [lift_homotopy_zero_one])
+  (λ n ⟨g, g', w⟩, ⟨lift_homotopy_zero_succ f n g g' w, by simp [lift_homotopy_zero_succ, w]⟩)
 
 /-- Two lifts of the same morphism are homotopic. -/
 def lift_homotopy {Y Z : C} (f : Y ⟶ Z) {P : ProjectiveResolution Y} {Q : ProjectiveResolution Z}
@@ -238,11 +222,7 @@ def lift_homotopy {Y Z : C} (f : Y ⟶ Z) {P : ProjectiveResolution Y} {Q : Proj
   (g_comm : g ≫ Q.π = P.π ≫ (chain_complex.single₀ C).map f)
   (h_comm : h ≫ Q.π = P.π ≫ (chain_complex.single₀ C).map f) :
   homotopy g h :=
-begin
-  apply homotopy.equiv_sub_zero.inv_fun,
-  apply lift_homotopy_zero,
-  simp [g_comm, h_comm],
-end
+homotopy.equiv_sub_zero.inv_fun (lift_homotopy_zero _ (by simp [g_comm, h_comm]))
 
 /-- The lift of the identity morphism is homotopic to the identity chain map. -/
 def lift_id_homotopy (X : C) (P : ProjectiveResolution X) :

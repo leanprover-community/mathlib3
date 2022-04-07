@@ -3,7 +3,7 @@ Copyright (c) 2021 Rémy Degenne. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
-import measure_theory.function.simple_func_dense
+import measure_theory.function.simple_func_dense_lp
 
 /-!
 # Extension of a linear function from indicators to L1
@@ -501,7 +501,7 @@ begin
   rw integrable_iff at hg ⊢,
   intros x hx_ne,
   change μ ((has_neg.neg ∘ g) ⁻¹' {x}) < ∞,
-  rw [preimage_comp, neg_preimage, neg_singleton],
+  rw [preimage_comp, neg_preimage, set.neg_singleton],
   refine hg (-x) _,
   simp [hx_ne],
 end

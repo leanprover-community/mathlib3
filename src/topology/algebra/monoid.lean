@@ -3,13 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import topology.continuous_on
-import topology.separation
-import topology.algebra.mul_action
-import group_theory.submonoid.operations
-import algebra.group.prod
-import algebra.pointwise
 import algebra.big_operators.finprod
+import data.set.pointwise
+import topology.algebra.mul_action
 
 /-!
 # Theory of topological monoids
@@ -93,6 +89,17 @@ tendsto_const_nhds.mul h
 lemma filter.tendsto.mul_const (b : M) {c : M} {f : α → M} {l : filter α}
   (h : tendsto (λ (k:α), f k) l (𝓝 c)) : tendsto (λ (k:α), f k * b) l (𝓝 (c * b)) :=
 h.mul tendsto_const_nhds
+
+/-- Construct a unit from limits of units and their inverses. -/
+@[to_additive filter.tendsto.add_units "Construct an additive unit from limits of additive units
+and their negatives.", simps]
+def filter.tendsto.units [topological_space N] [monoid N] [has_continuous_mul N] [t2_space N]
+  {f : ι → Nˣ} {r₁ r₂ : N} {l : filter ι} [l.ne_bot]
+  (h₁ : tendsto (λ x, ↑(f x)) l (𝓝 r₁)) (h₂ : tendsto (λ x, ↑(f x)⁻¹) l (𝓝 r₂)) : Nˣ :=
+{ val := r₁,
+  inv := r₂,
+  val_inv := tendsto_nhds_unique (by simpa using h₁.mul h₂) tendsto_const_nhds,
+  inv_val := tendsto_nhds_unique (by simpa using h₂.mul h₁) tendsto_const_nhds }
 
 @[to_additive]
 lemma continuous_at.mul {f g : X → M} {x : X} (hf : continuous_at f x) (hg : continuous_at g x) :
@@ -372,7 +379,7 @@ lemma continuous_list_prod {f : ι → X → M} (l : list ι)
 continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
   continuous_iff_continuous_at.1 (h c hc) x
 
-@[continuity, to_additive continuous_nsmul]
+@[continuity, to_additive]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 | 0 := by simpa using continuous_const
 | (k+1) := by { simp only [pow_succ], exact continuous_id.mul (continuous_pow _) }
@@ -380,16 +387,20 @@ lemma continuous_pow : ∀ n : ℕ, continuous (λ a : M, a ^ n)
 instance add_monoid.has_continuous_const_smul_nat {A} [add_monoid A] [topological_space A]
   [has_continuous_add A] : has_continuous_const_smul ℕ A := ⟨continuous_nsmul⟩
 
+instance add_monoid.has_continuous_smul_nat {A} [add_monoid A] [topological_space A]
+  [has_continuous_add A] : has_continuous_smul ℕ A :=
+⟨continuous_uncurry_of_discrete_topology continuous_nsmul⟩
+
 @[continuity, to_additive continuous.nsmul]
 lemma continuous.pow {f : X → M} (h : continuous f) (n : ℕ) :
   continuous (λ b, (f b) ^ n) :=
 (continuous_pow n).comp h
 
-@[to_additive continuous_on_nsmul]
+@[to_additive]
 lemma continuous_on_pow {s : set M} (n : ℕ) : continuous_on (λ x, x ^ n) s :=
 (continuous_pow n).continuous_on
 
-@[to_additive continuous_at_nsmul]
+@[to_additive]
 lemma continuous_at_pow (x : M) (n : ℕ) : continuous_at (λ x, x ^ n) x :=
 (continuous_pow n).continuous_at
 

@@ -1101,6 +1101,22 @@ begin
     exact ht.is_preconnected.subsingleton.image _ }
 end
 
+/-- Let `X` be a topological space, and suppose that for all distinct `x,y ∈ X`, there
+  is some clopen set `U` such that `x ∈ U` and `y ∉ U`. Then `X` is totally disconnected. -/
+lemma is_totally_disconnected_of_clopen_set {X : Type*} [topological_space X]
+  (hX : ∀ {x y : X} (h_diff : x ≠ y), ∃ (U : set X) (h_clopen : is_clopen U), x ∈ U ∧ y ∉ U) :
+  is_totally_disconnected (set.univ : set X) :=
+begin
+  rintro S - hS,
+  unfold set.subsingleton,
+  by_contra' h_contra,
+  rcases h_contra with ⟨x, hx, y, hy, hxy⟩,
+  obtain ⟨U, h_clopen, hxU, hyU⟩ := hX hxy,
+  specialize hS U Uᶜ h_clopen.1 h_clopen.compl.1 (λ a ha, em (a ∈ U)) ⟨x, hx, hxU⟩ ⟨y, hy, hyU⟩,
+  rw [inter_compl_self, set.inter_empty] at hS,
+  exact set.not_nonempty_empty hS,
+end
+
 /-- A space is totally disconnected iff its connected components are subsingletons. -/
 lemma totally_disconnected_space_iff_connected_component_subsingleton :
   totally_disconnected_space α ↔ ∀ x : α, (connected_component x).subsingleton :=

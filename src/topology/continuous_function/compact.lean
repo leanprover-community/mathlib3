@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import topology.continuous_function.bounded
 import topology.uniform_space.compact_separated
+import topology.compact_open
 
 /-!
 # Continuous functions on a compact space
@@ -124,14 +125,17 @@ end
 instance [complete_space β] : complete_space (C(α, β)) :=
 (isometric_bounded_of_compact α β).complete_space
 
+/-- See also `continuous_map.continuous_eval'` -/
 @[continuity] lemma continuous_eval : continuous (λ p : C(α, β) × α, p.1 p.2) :=
 continuous_eval.comp ((isometric_bounded_of_compact α β).continuous.prod_map continuous_id)
 
-@[continuity] lemma continuous_evalx (x : α) : continuous (λ f : C(α, β), f x) :=
+/-- See also `continuous_map.continuous_eval_const` -/
+@[continuity] lemma continuous_eval_const (x : α) : continuous (λ f : C(α, β), f x) :=
 continuous_eval.comp (continuous_id.prod_mk continuous_const)
 
+/-- See also `continuous_map.continuous_coe'` -/
 lemma continuous_coe : @continuous (C(α, β)) (α → β) _ _ coe_fn :=
-continuous_pi continuous_evalx
+continuous_pi continuous_eval_const
 
 -- TODO at some point we will need lemmas characterising this norm!
 -- At the moment the only way to reason about it is to transfer `f : C(α,E)` back to `α →ᵇ E`.

@@ -215,7 +215,7 @@ lemma power_basis.trace_gen_eq_sum_roots [nontrivial S] (pb : power_basis K S)
 begin
   rw [power_basis.trace_gen_eq_next_coeff_minpoly, ring_hom.map_neg, ← next_coeff_map
     (algebra_map K F).injective, sum_roots_eq_next_coeff_of_monic_of_split
-      (monic_map _ (minpoly.monic (power_basis.is_integral_gen _)))
+      ((minpoly.monic (power_basis.is_integral_gen _)).map _)
       ((splits_id_iff_splits _).2 hf), neg_neg]
 end
 

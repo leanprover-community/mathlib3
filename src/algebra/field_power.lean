@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 import algebra.group_with_zero.power
+import algebra.ring.equiv
 import tactic.linarith
-import data.equiv.ring
 
 /-!
 # Integer power operation on fields and division rings
@@ -27,13 +27,6 @@ f.to_ring_hom.map_zpow
 @[simp] lemma zpow_bit0_neg {K : Type*} [division_ring K] (x : K) (n : ℤ) :
   (-x) ^ (bit0 n) = x ^ bit0 n :=
 by rw [zpow_bit0', zpow_bit0', neg_mul_neg]
-
-lemma even.zpow_neg {K : Type*} [division_ring K] {n : ℤ} (h : even n) (a : K) :
-  (-a) ^ n = a ^ n :=
-begin
-  obtain ⟨k, rfl⟩ := h,
-  rw [←bit0_eq_two_mul, zpow_bit0_neg],
-end
 
 @[simp] lemma zpow_bit1_neg {K : Type*} [division_ring K] (x : K) (n : ℤ) :
   (-x) ^ (bit1 n) = - x ^ bit1 n :=
@@ -134,48 +127,6 @@ end
 
 @[simp] theorem zpow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le zpow_bit1_nonpos_iff
-
-lemma even.zpow_nonneg {n : ℤ} (hn : even n) (a : K) :
-  0 ≤ a ^ n :=
-begin
-  cases le_or_lt 0 a with h h,
-  { exact zpow_nonneg h _ },
-  { exact (hn.zpow_neg a).subst (zpow_nonneg (neg_nonneg_of_nonpos h.le) _) }
-end
-
-theorem even.zpow_pos (hn : even n) (ha : a ≠ 0) : 0 < a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit0_pos ha k
-
-theorem odd.zpow_nonneg (hn : odd n) (ha : 0 ≤ a) : 0 ≤ a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonneg_iff.mpr ha
-
-theorem odd.zpow_pos (hn : odd n) (ha : 0 < a) : 0 < a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_pos_iff.mpr ha
-
-theorem odd.zpow_nonpos (hn : odd n) (ha : a ≤ 0) : a ^ n ≤ 0:=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonpos_iff.mpr ha
-
-theorem odd.zpow_neg (hn : odd n) (ha : a < 0) : a ^ n < 0:=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_neg_iff.mpr ha
-
-lemma even.zpow_abs {p : ℤ} (hp : even p) (a : K) : |a| ^ p = a ^ p :=
-begin
-  cases abs_choice a with h h;
-  simp only [h, hp.zpow_neg _],
-end
-
-@[simp] lemma zpow_bit0_abs (a : K) (p : ℤ) : |a| ^ bit0 p = a ^ bit0 p :=
-(even_bit0 _).zpow_abs _
-
-lemma even.abs_zpow {p : ℤ} (hp : even p) (a : K) : |a ^ p| = a ^ p :=
-begin
-  rw [abs_eq_self],
-  exact hp.zpow_nonneg _
-end
-
-@[simp] lemma abs_zpow_bit0 (a : K) (p : ℤ) :
-  |a ^ bit0 p| = a ^ bit0 p :=
-(even_bit0 _).abs_zpow _
 
 end ordered_field_power
 

@@ -64,7 +64,7 @@ covariant_swap_mul_le_of_covariant_mul_le M
 `left_cancel_semigroup` with a `partial_order`, assuming `covariant_class M M (*) (≤)`
 implies `covariant_class M M (*) (<)` . -/
 @[to_additive] lemma has_mul.to_covariant_class_left
-  (M : Type*) [has_mul M] [linear_order M] [covariant_class M M (*) (<)] :
+  (M : Type*) [has_mul M] [partial_order M] [covariant_class M M (*) (<)] :
   covariant_class M M (*) (≤) :=
 { elim := λ a b c bc, by
   { rcases eq_or_lt_of_le bc with rfl | bc,
@@ -75,7 +75,7 @@ implies `covariant_class M M (*) (<)` . -/
 `right_cancel_semigroup` with a `partial_order`, assuming `covariant_class M M (swap (*)) (<)`
 implies `covariant_class M M (swap (*)) (≤)` . -/
 @[to_additive] lemma has_mul.to_covariant_class_right
-  (M : Type*) [has_mul M] [linear_order M] [covariant_class M M (swap (*)) (<)] :
+  (M : Type*) [has_mul M] [partial_order M] [covariant_class M M (swap (*)) (<)] :
   covariant_class M M (swap (*)) (≤) :=
 { elim := λ a b c bc, by
   { rcases eq_or_lt_of_le bc with rfl | bc,
@@ -213,16 +213,16 @@ instance [preorder α] : preorder (with_zero α) := with_bot.preorder
 
 instance [partial_order α] : partial_order (with_zero α) := with_bot.partial_order
 
-instance [partial_order α] : order_bot (with_zero α) := with_bot.order_bot
+instance [preorder α] : order_bot (with_zero α) := with_bot.order_bot
 
 lemma zero_le [partial_order α] (a : with_zero α) : 0 ≤ a := order_bot.bot_le a
 
 lemma zero_lt_coe [preorder α] (a : α) : (0 : with_zero α) < a := with_bot.bot_lt_coe a
 
-@[simp, norm_cast] lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_zero α) < b ↔ a < b :=
+@[simp, norm_cast] lemma coe_lt_coe [preorder α] {a b : α} : (a : with_zero α) < b ↔ a < b :=
 with_bot.coe_lt_coe
 
-@[simp, norm_cast] lemma coe_le_coe [partial_order α] {a b : α} : (a : with_zero α) ≤ b ↔ a ≤ b :=
+@[simp, norm_cast] lemma coe_le_coe [preorder α] {a b : α} : (a : with_zero α) ≤ b ↔ a ≤ b :=
 with_bot.coe_le_coe
 
 instance [lattice α] : lattice (with_zero α) := with_bot.lattice
@@ -479,21 +479,21 @@ with_top.coe_eq_one
   (1 : with_bot α).map f = (f 1 : with_bot β) := rfl
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
-lemma coe_add [add_semigroup α] (a b : α) : ((a + b : α) : with_bot α) = a + b := by norm_cast
+lemma coe_add [has_add α] (a b : α) : ((a + b : α) : with_bot α) = a + b := by norm_cast
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
-lemma coe_bit0 [add_semigroup α] {a : α} : ((bit0 a : α) : with_bot α) = bit0 a :=
+lemma coe_bit0 [has_add α] {a : α} : ((bit0 a : α) : with_bot α) = bit0 a :=
 by norm_cast
 
 -- `by norm_cast` proves this lemma, so I did not tag it with `norm_cast`
-lemma coe_bit1 [add_semigroup α] [has_one α] {a : α} : ((bit1 a : α) : with_bot α) = bit1 a :=
+lemma coe_bit1 [has_add α] [has_one α] {a : α} : ((bit1 a : α) : with_bot α) = bit1 a :=
 by norm_cast
 
-@[simp] lemma bot_add [add_semigroup α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
+@[simp] lemma bot_add [has_add α] (a : with_bot α) : ⊥ + a = ⊥ := rfl
 
-@[simp] lemma add_bot [add_semigroup α] (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
+@[simp] lemma add_bot [has_add α] (a : with_bot α) : a + ⊥ = ⊥ := by cases a; refl
 
-@[simp] lemma add_eq_bot [add_semigroup α] {m n : with_bot α} :
+@[simp] lemma add_eq_bot [has_add α] {m n : with_bot α} :
   m + n = ⊥ ↔ m = ⊥ ∨ n = ⊥ :=
 with_top.add_eq_top
 
@@ -586,6 +586,9 @@ iff.intro
 
 @[to_additive] lemma one_lt_iff_ne_one : 1 < a ↔ a ≠ 1 :=
 iff.intro ne_of_gt $ assume hne, lt_of_le_of_ne (one_le _) hne.symm
+
+@[to_additive] lemma eq_one_or_one_lt : a = 1 ∨ 1 < a :=
+(one_le a).eq_or_lt.imp_left eq.symm
 
 @[to_additive] lemma exists_pos_mul_of_lt (h : a < b) : ∃ c > 1, a * c = b :=
 begin
@@ -851,7 +854,7 @@ end right
 
 end has_mul
 
-variable [monoid α]
+variable [mul_one_class α]
 
 @[to_additive]
 lemma min_le_mul_of_one_le_right [covariant_class α α (*) (≤)] {a b : α} (hb : 1 ≤ b) :

@@ -88,7 +88,7 @@ instance [preorder α] : order_top (Iic a) :=
 { top := ⟨a, le_refl a⟩,
   le_top := λ x, x.prop }
 
-@[simp] lemma coe_top [partial_order α] {a : α} : ↑(⊤ : Iic a) = a := rfl
+@[simp] lemma coe_top [preorder α] {a : α} : ↑(⊤ : Iic a) = a := rfl
 
 instance [preorder α] [order_bot α] : order_bot (Iic a) :=
 { bot := ⟨⊥, bot_le⟩,
@@ -123,7 +123,7 @@ instance [preorder α] : order_bot (Ici a) :=
 { bot := ⟨a, le_refl a⟩,
   bot_le := λ x, x.prop }
 
-@[simp] lemma coe_bot [partial_order α] {a : α} : ↑(⊥ : Ici a) = a := rfl
+@[simp] lemma coe_bot [preorder α] {a : α} : ↑(⊥ : Ici a) = a := rfl
 
 instance [preorder α] [order_top α] : order_top (Ici a) :=
 { top := ⟨⊤, le_top⟩,

@@ -11,7 +11,7 @@ import topology.sets.compacts
 import topology.algebra.constructions
 
 /-!
-# Theory of topological groups
+# Topological groups
 
 This file defines the following typeclasses:
 
@@ -330,7 +330,11 @@ class topological_add_group (G : Type u) [topological_space G] [add_group G]
   extends has_continuous_add G, has_continuous_neg G : Prop
 
 /-- A topological group is a group in which the multiplication and inversion operations are
-continuous. -/
+continuous.
+
+When you declare an instance that does not already have a `uniform_space` instance,
+you should also provide an instance of `uniform_space` and `uniform_group` using
+`topological_group.to_uniform_space` and `topological_group_is_uniform`. -/
 @[to_additive]
 class topological_group (G : Type*) [topological_space G] [group G]
   extends has_continuous_mul G, has_continuous_inv G : Prop

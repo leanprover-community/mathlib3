@@ -161,6 +161,10 @@ begin
   exact ⟨⟨h1, L.card_functions_le_omega⟩, refl _⟩,
 end
 
+instance small [small.{u} α] :
+  small.{u} (L.term α) :=
+small_of_injective list_encode_injective
+
 instance inhabited_of_var [inhabited α] : inhabited (L.term α) :=
 ⟨var default⟩
 
@@ -683,6 +687,33 @@ lemma is_atomic_graph (f : L.functions n) : (graph f).is_atomic :=
 bounded_formula.is_atomic.equal _ _
 
 end formula
+
+namespace relations
+
+variable (r : L.relations 2)
+
+/-- The sentence indicating that a basic relation symbol is reflexive. -/
+protected def reflexive : L.sentence := ∀' r.bounded_formula₂ &0 &0
+
+/-- The sentence indicating that a basic relation symbol is irreflexive. -/
+protected def irreflexive : L.sentence := ∀' ∼ (r.bounded_formula₂ &0 &0)
+
+/-- The sentence indicating that a basic relation symbol is symmetric. -/
+protected def symmetric : L.sentence := ∀' ∀' (r.bounded_formula₂ &0 &1 ⟹ r.bounded_formula₂ &1 &0)
+
+/-- The sentence indicating that a basic relation symbol is antisymmetric. -/
+protected def antisymmetric : L.sentence :=
+  ∀' ∀' (r.bounded_formula₂ &0 &1 ⟹ (r.bounded_formula₂ &1 &0 ⟹ term.bd_equal &0 &1))
+
+/-- The sentence indicating that a basic relation symbol is transitive. -/
+protected def transitive : L.sentence :=
+  ∀' ∀' ∀' (r.bounded_formula₂ &0 &1 ⟹ r.bounded_formula₂ &1 &2 ⟹ r.bounded_formula₂ &0 &2)
+
+/-- The sentence indicating that a basic relation symbol is total. -/
+protected def total : L.sentence :=
+  ∀' ∀' (r.bounded_formula₂ &0 &1 ⊔ r.bounded_formula₂ &1 &0)
+
+end relations
 
 end language
 end first_order

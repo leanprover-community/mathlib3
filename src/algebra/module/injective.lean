@@ -55,15 +55,16 @@ class module.injective : Prop :=
   (f : X →ₗ[R] Y) (hf : function.injective f) (g : X →ₗ[R] Q),
   ∃ (h : Y →ₗ[R] Q), ∀ x, h (f x) = g x)
 
-lemma module.injective_object_of_injective_module [module.injective R Q] :
-  category_theory.injective (⟨Q⟩ : Module R) :=
+lemma module.injective_object_of_injective_module [module.injective.{u v} R Q] :
+  category_theory.injective.{max u v} (⟨Q⟩ : Module.{max u v} R) :=
 { factors := λ X Y g f mn, begin
     rcases module.injective.out X Y f ((Module.mono_iff_injective f).mp mn) g with ⟨h, eq1⟩,
     exact ⟨h, linear_map.ext eq1⟩,
   end }
 
-lemma module.injective_module_of_injective_object [category_theory.injective (⟨Q⟩ : Module R)] :
-  module.injective R Q :=
+lemma module.injective_module_of_injective_object
+  [category_theory.injective.{max u v} (⟨Q⟩ : Module.{max u v} R)] :
+  module.injective.{u v} R Q :=
 { out := λ X Y ins1 ins2 ins3 ins4 f hf g, begin
     resetI,
     rcases @category_theory.injective.factors (Module R) _ ⟨Q⟩ _ ⟨X⟩ ⟨Y⟩ g f

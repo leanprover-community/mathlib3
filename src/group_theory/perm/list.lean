@@ -112,7 +112,7 @@ begin
 end
 
 theorem form_perm_mem_iff_mem (x : α) (l : list α) :
-  x ∈ l ↔ l.form_perm x ∈ l :=
+  l.form_perm x ∈ l ↔ x ∈ l :=
 by exact ⟨λ h, l.form_perm_apply_mem_of_mem x h, λ h, l.form_perm_mem_of_apply_mem x h⟩
 
 @[simp] lemma form_perm_cons_concat_apply_last (x y : α) (xs : list α) :

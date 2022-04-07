@@ -117,7 +117,8 @@ begin
   exact (continuous_apply i).smul continuous_const
 end
 
---/-- The space of continuous linear maps between finite-dimensional spaces is finite-dimensional. -/
+--/-- The space of continuous linear maps between finite-dimensional spaces is finite-dimensional.
+---/
 --instance {𝕜 E F : Type*} [field 𝕜] [topological_space 𝕜]
 --  [topological_space E] [add_comm_group E] [module 𝕜 E] [finite_dimensional 𝕜 E]
 --  [topological_space F] [add_comm_group F] [module 𝕜 F] [topological_add_group F]

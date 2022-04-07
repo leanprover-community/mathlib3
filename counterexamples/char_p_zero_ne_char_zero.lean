@@ -7,6 +7,12 @@ import algebra.char_p.basic
 
 /-! # `char_p R 0` and `char_zero R` need not coincide for semirings
 
+For rings, the two notions coincide.
+
+In fact, `char_p.of_char_zero` shows that `char_zero R` implies `char_p R 0` for any `char_zero`
+`add_monoid R` with `1`.
+The reverse implication holds for any `add_left_cancel_monoid R` with `1`, by `char_p_to_char_zero`.
+
 This file shows that there are semiring `R` for which `char_p R 0` holds and `char_zero R` does not.
 
 The example is `{0, 1}` with saturating addition.

@@ -90,10 +90,9 @@ variables [module R M] [module R N] {i : M →ₗ[R] N} (hi : function.injective
 variable {Q}
 include hi
 
-/--We view `M` as an submodule of `N` via the injective linear map `i : M ↪ N` then a submodule
+/-- If we view `M` as a submodule of `N` via the injective linear map `i : M ↪ N`, then a submodule
 between `M` and `N` is a submodule `N'` of `N`. To prove Baer's criterion, we need to consider
-pair of `(N', f')` such that `M ≤ N' ≤ N` and `f'` extends `f`.
--/
+pairs of `(N', f')` such that `M ≤ N' ≤ N` and `f'` extends `f`. -/
 structure extension_of extends submodule R N :=
 (le : i.range ≤ to_submodule)
 (extension : to_submodule →ₗ[R] Q)

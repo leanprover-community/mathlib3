@@ -694,8 +694,7 @@ end
 
 section ping_pong_lemma
 
-open_locale pointwise
-open_locale cardinal
+open_locale pointwise cardinal
 
 variables [nontrivial ι]
 variables {G : Type u_1} [group G] (a : ι → G)

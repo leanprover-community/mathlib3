@@ -103,6 +103,14 @@ frequently_cofinite_iff_infinite.symm
 lemma filter.eventually_cofinite_ne (x : α) : ∀ᶠ a in cofinite, a ≠ x :=
 (set.finite_singleton x).eventually_cofinite_nmem
 
+lemma filter.le_cofinite_iff_compl_singleton_mem {l : filter α} :
+  l ≤ cofinite ↔ ∀ x, {x}ᶜ ∈ l :=
+begin
+  refine ⟨λ h x, h (finite_singleton x).compl_mem_cofinite, λ h s (hs : sᶜ.finite), _⟩,
+  rw [← compl_compl s, ← bUnion_of_singleton sᶜ, compl_Union₂,filter.bInter_mem hs],
+  exact λ x _, h x
+end
+
 /-- If `α` is a sup-semilattice with no maximal element, then `at_top ≤ cofinite`. -/
 lemma at_top_le_cofinite [semilattice_sup α] [no_max_order α] : (at_top : filter α) ≤ cofinite :=
 begin
@@ -170,4 +178,3 @@ lemma function.injective.tendsto_cofinite {α β : Type*} {f : α → β} (hf : 
 lemma function.injective.nat_tendsto_at_top {f : ℕ → ℕ} (hf : injective f) :
   tendsto f at_top at_top :=
 nat.cofinite_eq_at_top ▸ hf.tendsto_cofinite
-

@@ -1572,8 +1572,8 @@ begin
   let g : f ⁻¹' s → s := cod_restrict (f ∘ coe) s (λ x, x.2),
   have : inducing g := (hf.comp inducing_coe).cod_restrict _,
   haveI : second_countable_topology (f ⁻¹' s) := this.second_countable_topology,
-  rw show f ⁻¹' s = coe '' (univ : set (f ⁻¹' s)), 
-     by simpa only [image_univ, subtype.range_coe_subtype, mem_preimage],
+  rw show f ⁻¹' s = coe '' (univ : set (f ⁻¹' s)),
+     by simpa only [image_univ, subtype.range_coe_subtype],
   exact (is_separable_of_separable_space _).image continuous_subtype_coe
 end
 
@@ -1588,7 +1588,7 @@ lemma _root_.continuous_on.is_separable_image [topological_space β] {f : α →
   is_separable (f '' s) :=
 begin
   rw show f '' s = s.restrict f '' univ, by ext ; simp,
-  exact (is_separable_univ_iff.2 hs.separable_space).image 
+  exact (is_separable_univ_iff.2 hs.separable_space).image
     (continuous_on_iff_continuous_restrict.1 hf),
 end
 
@@ -1980,6 +1980,19 @@ lemma bounded_bUnion {I : set β} {s : β → set α} (H : finite I) :
   bounded (⋃i∈I, s i) ↔ ∀i ∈ I, bounded (s i) :=
 finite.induction_on H (by simp) $ λ x I _ _ IH,
 by simp [or_imp_distrib, forall_and_distrib, IH]
+
+protected lemma bounded.prod [pseudo_metric_space β] {s : set α} {t : set β}
+  (hs : bounded s) (ht : bounded t) : bounded (s ×ˢ t) :=
+begin
+  refine bounded_iff_mem_bounded.mpr (λ x hx, _),
+  rcases hs.subset_ball x.1 with ⟨rs, hrs⟩,
+  rcases ht.subset_ball x.2 with ⟨rt, hrt⟩,
+  suffices : s ×ˢ t ⊆ closed_ball x (max rs rt),
+    from bounded_closed_ball.mono this,
+  rw [← @prod.mk.eta _ _ x, ← closed_ball_prod_same],
+  exact prod_mono (hrs.trans $ closed_ball_subset_closed_ball $ le_max_left _ _)
+    (hrt.trans $ closed_ball_subset_closed_ball $ le_max_right _ _)
+end
 
 /-- A totally bounded set is bounded -/
 lemma _root_.totally_bounded.bounded {s : set α} (h : totally_bounded s) : bounded s :=

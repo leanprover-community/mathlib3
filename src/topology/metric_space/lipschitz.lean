@@ -389,6 +389,29 @@ protected lemma proj_Icc {a b : ℝ} (h : a ≤ b) :
 
 end lipschitz_with
 
+namespace metric
+
+variables [pseudo_metric_space α] [pseudo_metric_space β] {s : set α} {t : set β}
+
+lemma bounded.left_of_prod (h : bounded (s ×ˢ t)) (ht : t.nonempty) : bounded s :=
+by simpa only [fst_image_prod s ht] using (@lipschitz_with.prod_fst α β _ _).bounded_image h
+
+lemma bounded.right_of_prod (h : bounded (s ×ˢ t)) (hs : s.nonempty) : bounded t :=
+by simpa only [snd_image_prod hs t] using (@lipschitz_with.prod_snd α β _ _).bounded_image h
+
+lemma bounded_prod_of_nonempty (hs : s.nonempty) (ht : t.nonempty) :
+  bounded (s ×ˢ t) ↔ bounded s ∧ bounded t :=
+⟨λ h, ⟨h.left_of_prod ht, h.right_of_prod hs⟩, λ h, h.1.prod h.2⟩
+
+lemma bounded_prod : bounded (s ×ˢ t) ↔ s = ∅ ∨ t = ∅ ∨ bounded s ∧ bounded t :=
+begin
+  rcases s.eq_empty_or_nonempty with rfl|hs, { simp },
+  rcases t.eq_empty_or_nonempty with rfl|ht, { simp },
+  simp only [bounded_prod_of_nonempty hs ht, hs.ne_empty, ht.ne_empty, false_or]
+end
+
+end metric
+
 namespace lipschitz_on_with
 
 section emetric

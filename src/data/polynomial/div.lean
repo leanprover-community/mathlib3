@@ -413,6 +413,13 @@ begin
     (sum_monomial_eq _)
 end
 
+lemma sub_dvd_eval_sub (a b : R) (p : R[X]) : a - b ∣ p.eval a - p.eval b :=
+begin
+  suffices : X - C b ∣ p - C (p.eval b),
+  { simpa only [coe_eval_ring_hom, eval_sub, eval_X, eval_C] using (eval_ring_hom a).map_dvd this },
+  simp [dvd_iff_is_root]
+end
+
 variable (R)
 
 lemma not_is_field : ¬ is_field R[X] :=

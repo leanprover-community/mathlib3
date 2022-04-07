@@ -84,7 +84,7 @@ begin
     simp at h hx ⊢,
     rcases hx with ⟨i, ⟨hi, rfl⟩⟩,
     have h1 : a i + a (fin.last m - k) ≤ n,
-    { linarith only [h, a.monotone hi.2] },
+    { linarith only [h, a.monotone hi] },
     have h2 : a i + a (fin.last m - k) ∈ A := hadd _ (ha _) _ (ha _) h1,
     rw [←mem_coe, ←range_order_emb_of_fin A hm, set.mem_range] at h2,
     cases h2 with j hj,

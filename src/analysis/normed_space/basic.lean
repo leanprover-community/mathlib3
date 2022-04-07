@@ -284,23 +284,6 @@ lemma rescale_to_shell {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {
   ∃d:α, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
 rescale_to_shell_semi_normed hc εpos (ne_of_lt (norm_pos_iff.2 hx)).symm
 
-section
-local attribute [instance] matrix.normed_group
-
-/-- Normed space instance (using sup norm of sup norm) for matrices over a normed field.  Not
-declared as an instance because there are several natural choices for defining the norm of a
-matrix. -/
-def matrix.normed_space {α : Type*} [normed_field α] {n m : Type*} [fintype n] [fintype m] :
-  normed_space α (matrix n m α) :=
-pi.normed_space
-
-lemma matrix.norm_entry_le_entrywise_sup_norm {α : Type*} [normed_ring α] {n m : Type*} [fintype n]
-  [fintype m] (M : (matrix n m α)) {i : n} {j : m} :
-  ∥M i j∥ ≤ ∥M∥ :=
-(norm_le_pi_norm (M i) j).trans (norm_le_pi_norm M i)
-
-end
-
 end normed_group
 
 section normed_space_nondiscrete

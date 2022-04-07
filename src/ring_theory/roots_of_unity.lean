@@ -219,7 +219,7 @@ variables {k R}
 lemma map_root_of_unity_eq_pow_self [ring_hom_class F R R] (σ : F) (ζ : roots_of_unity k R) :
   ∃ m : ℕ, σ ζ = ζ ^ m :=
 begin
-  obtain ⟨m, hm⟩ := (restrict_roots_of_unity σ k).map_cyclic,
+  obtain ⟨m, hm⟩ := monoid_hom.map_cyclic (restrict_roots_of_unity σ k),
   rw [←restrict_roots_of_unity_coe_apply, hm, zpow_eq_mod_order_of, ←int.to_nat_of_nonneg
       (m.mod_nonneg (int.coe_nat_ne_zero.mpr (pos_iff_ne_zero.mp (order_of_pos ζ)))),
       zpow_coe_nat, roots_of_unity.coe_pow],

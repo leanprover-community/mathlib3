@@ -37,14 +37,6 @@ open int
 
 variables {K : Type u} [linear_ordered_field K] {a : K} {n : ℤ}
 
-lemma zpow_eq_zero_iff (hn : 0 < n) :
-  a ^ n = 0 ↔ a = 0 :=
-begin
-  refine ⟨zpow_eq_zero, _⟩,
-  rintros rfl,
-  exact zero_zpow _ hn.ne'
-end
-
 lemma zpow_nonneg {a : K} (ha : 0 ≤ a) : ∀ (z : ℤ), 0 ≤ a ^ z
 | (n : ℕ) := by { rw zpow_coe_nat, exact pow_nonneg ha _ }
 | -[1+n]  := by { rw zpow_neg_succ_of_nat, exact inv_nonneg.2 (pow_nonneg ha _) }
@@ -96,14 +88,14 @@ calc p ^ z ≥ p ^ 0 : zpow_le_of_le hp hz
 theorem zpow_bit0_nonneg (a : K) (n : ℤ) : 0 ≤ a ^ bit0 n :=
 by { rw zpow_bit0₀, exact mul_self_nonneg _ }
 
-theorem zpow_two_nonneg (a : K) : 0 ≤ a ^ 2 :=
-pow_bit0_nonneg a 1
+theorem zpow_two_nonneg (a : K) : 0 ≤ a ^ (2 : ℤ) :=
+zpow_bit0_nonneg a 1
 
 theorem zpow_bit0_pos {a : K} (h : a ≠ 0) (n : ℤ) : 0 < a ^ bit0 n :=
 (zpow_bit0_nonneg a n).lt_of_ne (zpow_ne_zero _ h).symm
 
-theorem zpow_two_pos_of_ne_zero (a : K) (h : a ≠ 0) : 0 < a ^ 2 :=
-pow_bit0_pos h 1
+theorem zpow_two_pos_of_ne_zero (a : K) (h : a ≠ 0) : 0 < a ^ (2 : ℤ) :=
+zpow_bit0_pos h 1
 
 @[simp] theorem zpow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
 ⟨λ h, not_le.1 $ λ h', not_le.2 h $ zpow_nonneg h' _,
@@ -165,6 +157,14 @@ calc x ^ (n + 1) = x ^ n * x : zpow_add_one₀ h₀.ne' _
   x ^ m ≤ x ^ n ↔ m ≤ n :=
 (zpow_strict_mono hx).le_iff_le
 
+lemma min_le_of_zpow_le_max {x : K} (hx : 1 < x) {a b c : ℤ}
+  (h_max : x ^ (-c) ≤ max (x ^ (-a)) (x ^ (-b)) ) : min a b ≤ c :=
+begin
+  rw min_le_iff,
+  refine or.imp (λ h, _) (λ h, _) (le_max_iff.mp h_max);
+  rwa [zpow_le_iff_le hx, neg_le_neg_iff] at h
+end
+
 @[simp] lemma pos_div_pow_pos {a b : K} (ha : 0 < a) (hb : 0 < b) (k : ℕ) : 0 < a/b^k :=
 div_pos ha (pow_pos hb k)
 
@@ -192,7 +192,7 @@ end
 end ordered
 
 section
-variables {K : Type*} [field K]
+variables {K : Type*} [division_ring K]
 
 @[simp, norm_cast] theorem rat.cast_zpow [char_zero K] (q : ℚ) (n : ℤ) :
   ((q ^ n : ℚ) : K) = q ^ n :=

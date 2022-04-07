@@ -33,7 +33,7 @@ open set
 open order_dual (to_dual of_dual)
 
 section preorder
-variables {α : Type u} [preorder α] {a a₁ a₂ b b₁ b₂ x : α}
+variables {α : Type u} [preorder α] {a a₁ a₂ b b₁ b₂ c x : α}
 
 /-- Left-open right-open interval -/
 def Ioo (a b : α) := {x | a < x ∧ x < b}
@@ -375,6 +375,9 @@ lemma _root_.is_bot.Ici_eq (h : is_bot a) : Ici a = univ := eq_univ_of_forall h
 lemma _root_.is_max.Ioi_eq (h : is_max a) : Ioi a = ∅ := eq_empty_of_subset_empty $ λ b, h.not_lt
 lemma _root_.is_min.Iio_eq (h : is_min a) : Iio a = ∅ := eq_empty_of_subset_empty $ λ b, h.not_lt
 
+lemma Iic_inter_Ioc_of_le (h : a ≤ c) : Iic a ∩ Ioc b c = Ioc b a :=
+ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
+
 end preorder
 
 section partial_order
@@ -500,9 +503,6 @@ lemma _root_.is_max.Ici_eq (h : is_max a) : Ici a = {a} :=
 eq_singleton_iff_unique_mem.2 ⟨left_mem_Ici, λ b, h.eq_of_ge⟩
 
 lemma _root_.is_min.Iic_eq (h : is_min a) : Iic a = {a} := h.to_dual.Ici_eq
-
-lemma Iic_inter_Ioc_of_le (h : a ≤ c) : Iic a ∩ Ioc b c = Ioc b a :=
-ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
 
 end partial_order
 

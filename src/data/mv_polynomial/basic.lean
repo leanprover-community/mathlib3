@@ -543,7 +543,7 @@ begin
 end
 
 lemma support_symm_diff_support_subset_support_add [decidable_eq σ] (p q : mv_polynomial σ R) :
-  p.support Δ q.support ⊆ (p + q).support :=
+  p.support ∆ q.support ⊆ (p + q).support :=
 begin
   rw [symm_diff_def, finset.sup_eq_union],
   apply finset.union_subset,

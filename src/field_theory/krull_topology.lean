@@ -281,7 +281,8 @@ begin
   refine ⟨left_coset σ E.fixing_subgroup,
     ⟨E.fixing_subgroup_is_open.left_coset σ, E.fixing_subgroup_is_closed.left_coset σ⟩,
     ⟨1, E.fixing_subgroup.one_mem', by simp⟩, _⟩,
-  simp only [mem_left_coset_iff, set_like.mem_coe, intermediate_field.mem_fixing_subgroup_iff, not_forall],
+  simp only [mem_left_coset_iff, set_like.mem_coe, intermediate_field.mem_fixing_subgroup_iff,
+    not_forall],
   exact ⟨x, intermediate_field.mem_adjoin_simple_self K x, hx⟩,
 end
 

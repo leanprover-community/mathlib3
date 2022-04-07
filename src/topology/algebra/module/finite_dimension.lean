@@ -98,20 +98,23 @@ lemma linear_map.continuous_of_is_closed_ker (l : E →ₗ[𝕜] 𝕜) (hl : is_
   continuous l :=
 sorry
 
+set_option profiler true
+
 /-- In finite dimension over a complete field, the canonical identification (in terms of a basis)
 with `𝕜^n` together with its sup norm is continuous. This is the nontrivial part in the fact that
 all norms are equivalent in finite dimension.
 
 This statement is superceded by the fact that every linear map on a finite-dimensional space is
 continuous, in `linear_map.continuous_of_finite_dimensional`. -/
-lemma continuous_equiv_fun_basis [t2_space E] {ι : Type v} [fintype ι] (ξ : basis ι 𝕜 E) :
+lemma continuous_equiv_fun_basis [ht2 : t2_space E] {ι : Type v} [fintype ι] (ξ : basis ι 𝕜 E) :
   continuous ξ.equiv_fun :=
 begin
   letI : uniform_space E := topological_add_group.to_uniform_space E,
   letI : uniform_add_group E := topological_add_group_is_uniform,
-  letI : separated_space E := separated_iff_t2.mpr _,
+  letI : separated_space E := separated_iff_t2.mpr ht2,
   unfreezingI { induction hn : fintype.card ι with n IH generalizing ι E },
-  { sorry },
+  { rw fintype.card_eq_zero_iff at hn,
+    exact continuous_of_const (λ x y, funext hn.elim) },
   { haveI : finite_dimensional 𝕜 E := of_fintype_basis ξ,
     -- first step: thanks to the inductive assumption, any n-dimensional subspace is equivalent
     -- to a standard space of dimension n, hence it is complete and therefore closed.
@@ -136,12 +139,10 @@ begin
         rw [finrank_eq_card_basis ξ, hn] at Z,
         by_cases H : finrank 𝕜 f.range = 0,
         { right,
-          rw H at Z,
-          simpa using Z },
+          rwa [H, zero_add] at Z },
         { left,
           have : finrank 𝕜 f.range = 1,
-          { refine le_antisymm _ (zero_lt_iff.mpr H),
-            simpa [finrank_self] using f.range.finrank_le },
+            from le_antisymm (finrank_self 𝕜 ▸ f.range.finrank_le) (zero_lt_iff.mpr H),
           rw [this, add_comm, nat.add_one] at Z,
           exact nat.succ.inj Z } },
       have : is_closed (f.ker : set E),
@@ -149,12 +150,13 @@ begin
         { exact H₁ _ this },
         { have : f.ker = ⊤,
             by { apply eq_top_of_finrank_eq, rw [finrank_eq_card_basis ξ, hn, this] },
-          simp [this] } },
+          rw [this]
+          exact is_closed_univ } },
       exact linear_map.continuous_of_is_closed_ker f this },
     rw continuous_pi_iff,
     intros i,
-    conv { congr, funext, rw [basis.equiv_fun_apply] },
-    sorry },
+    change continuous (ξ.coord i),
+    exact H₂ (ξ.coord i) },
 end
 
 /-- Any linear map on a finite dimensional space over a complete field is continuous. -/

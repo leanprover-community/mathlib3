@@ -176,41 +176,49 @@ begin
   simp [mem_closure_iff_nhds, inter_singleton_nonempty, sub_eq_add_neg, add_assoc]
 end
 
-@[to_additive] lemma uniform_continuous_of_tendsto_one
-  [uniform_space β] [group β] [uniform_group β] {f : α →* β} (h : tendsto f (𝓝 1) (𝓝 1)) :
+@[to_additive] lemma uniform_continuous_of_tendsto_one {hom : Type*} [uniform_space β] [group β]
+  [uniform_group β] [monoid_hom_class hom α β] {f : hom} (h : tendsto f (𝓝 1) (𝓝 1)) :
   uniform_continuous f :=
 begin
   have : ((λx:β×β, x.2 / x.1) ∘ (λx:α×α, (f x.1, f x.2))) = (λx:α×α, f (x.2 / x.1)),
-  { simp only [f.map_div] },
+  { simp only [map_div] },
   rw [uniform_continuous, uniformity_eq_comap_nhds_one α, uniformity_eq_comap_nhds_one β,
     tendsto_comap_iff, this],
   exact tendsto.comp h tendsto_comap
 end
 
+@[to_additive] lemma uniform_continuous_of_continuous_at_one {hom : Type*}
+  [uniform_space β] [group β] [uniform_group β] [monoid_hom_class hom α β]
+  (f : hom) (hf : continuous_at f 1) :
+  uniform_continuous f :=
+uniform_continuous_of_tendsto_one (by simpa using hf.tendsto)
+
 @[to_additive] lemma monoid_hom.uniform_continuous_of_continuous_at_one
   [uniform_space β] [group β] [uniform_group β]
   (f : α →* β) (hf : continuous_at f 1) :
   uniform_continuous f :=
-uniform_continuous_of_tendsto_one (by simpa using hf.tendsto)
+uniform_continuous_of_continuous_at_one f hf
 
 /-- A homomorphism from a uniform group to a discrete uniform group is continuous if and only if
 its kernel is open. -/
 @[to_additive "A homomorphism from a uniform additive group to a discrete uniform additive group is
 continuous if and only if its kernel is open."]
-lemma uniform_group.uniform_continuous_iff_open_ker [uniform_space β] [discrete_topology β]
-  [group β] [uniform_group β] {f : α →* β} : uniform_continuous f ↔ is_open (f.ker : set α) :=
+lemma uniform_group.uniform_continuous_iff_open_ker {hom : Type*} [uniform_space β]
+  [discrete_topology β] [group β] [uniform_group β] [monoid_hom_class hom α β] {f : hom} :
+  uniform_continuous f ↔ is_open ((f : α →* β).ker : set α) :=
 begin
   refine ⟨λ hf, _, λ hf, _⟩,
   { apply (is_open_discrete ({1} : set β)).preimage (uniform_continuous.continuous hf) },
-  { apply monoid_hom.uniform_continuous_of_continuous_at_one,
+  { apply uniform_continuous_of_continuous_at_one,
     rw [continuous_at, nhds_discrete β, map_one, tendsto_pure],
     exact hf.mem_nhds (map_one f) }
 end
 
-@[to_additive] lemma uniform_continuous_monoid_hom_of_continuous [uniform_space β]
-  [group β] [uniform_group β] {f : α →* β} (h : continuous f) : uniform_continuous f :=
+@[to_additive] lemma uniform_continuous_monoid_hom_of_continuous {hom : Type*} [uniform_space β]
+  [group β] [uniform_group β] [monoid_hom_class hom α β] {f : hom} (h : continuous f) :
+  uniform_continuous f :=
 uniform_continuous_of_tendsto_one $
-  suffices tendsto f (𝓝 1) (𝓝 (f 1)), by rwa f.map_one at this,
+  suffices tendsto f (𝓝 1) (𝓝 (f 1)), by rwa map_one at this,
   h.tendsto 1
 
 @[to_additive] lemma cauchy_seq.mul {ι : Type*} [semilattice_sup ι] {u v : ι → α}
@@ -400,12 +408,12 @@ end topological_comm_group
 open comm_group filter set function
 
 section
-variables {α : Type*} {β : Type*}
+variables {α : Type*} {β : Type*} {hom : Type*}
 variables [topological_space α] [comm_group α] [topological_group α]
 
 -- β is a dense subgroup of α, inclusion is denoted by e
 variables [topological_space β] [comm_group β]
-variables {e : β →* α} (de : dense_inducing e)
+variables [monoid_hom_class hom β α] {e : hom} (de : dense_inducing e)
 include de
 
 @[to_additive] lemma tendsto_div_comap_self (x₀ : α) :
@@ -414,7 +422,7 @@ begin
   have comm : (λx:α×α, x.2/x.1) ∘ (λt:β×β, (e t.1, e t.2)) = e ∘ (λt:β×β, t.2 / t.1),
   { ext t,
     change e t.2 / e t.1 = e (t.2 / t.1),
-    rwa ← e.map_div t.2 t.1 },
+    rwa ← map_div e t.2 t.1 },
   have lim : tendsto (λ x : α × α, x.2/x.1) (𝓝 (x₀, x₀)) (𝓝 (e 1)),
   { simpa using (continuous_div'.comp (@continuous_swap α α _ _)).tendsto (x₀, x₀) },
   simpa using de.tendsto_comap_nhds_nhds lim comm

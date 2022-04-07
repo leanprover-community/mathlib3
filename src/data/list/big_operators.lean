@@ -161,7 +161,8 @@ lemma head_mul_tail_prod_of_ne_nil [inhabited M] (l : list M) (h : l ≠ []) :
 by cases l; [contradiction, simp]
 
 @[to_additive]
-lemma prod_commute (l : list M) (y : M) (h : ∀ (x ∈ l), commute y x) : commute y l.prod :=
+lemma _root_.commute.list_prod_right (l : list M) (y : M) (h : ∀ (x ∈ l), commute y x) :
+  commute y l.prod :=
 begin
   induction l with z l IH,
   { simp },
@@ -169,6 +170,26 @@ begin
     rw list.prod_cons,
     exact commute.mul_right h.1 (IH h.2), }
 end
+
+@[to_additive]
+lemma _root_.commute.list_prod_left (l : list M) (y : M) (h : ∀ (x ∈ l), commute x y) :
+  commute l.prod y  :=
+(commute.list_prod_right _ _ $ λ x hx, (h _ hx).symm).symm
+
+lemma _root_.commute.list_sum_right [non_unital_non_assoc_semiring R] (a : R) (l : list R)
+  (h : ∀ b ∈ l, commute a b) :
+  commute a l.sum :=
+begin
+  induction l with x xs ih,
+  { exact commute.zero_right _, },
+  { rw sum_cons,
+    exact (h _ $ mem_cons_self _ _).add_right (ih $ λ j hj, h _ $ mem_cons_of_mem _ hj) }
+end
+
+lemma _root_.commute.list_sum_left [non_unital_non_assoc_semiring R] (b : R) (l : list R)
+  (h : ∀ a ∈ l, commute a b) :
+  commute l.sum b :=
+(commute.list_sum_right _ _ $ λ x hx, (h _ hx).symm).symm
 
 @[to_additive sum_le_sum] lemma prod_le_prod' [preorder M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]

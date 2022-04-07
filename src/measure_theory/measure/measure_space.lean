@@ -415,7 +415,7 @@ begin
     ← measure_diff (Inter_subset _ k) (measurable_set.Inter h) (this _ (Inter_subset _ k)),
     diff_Inter, measure_Union_eq_supr],
   { congr' 1,
-    refine le_antisymm (supr_le_supr2 $ λ i, _) (supr_le_supr $ λ i, _),
+    refine le_antisymm (supr_mono' $ λ i, _) (supr_mono $ λ i, _),
     { rcases hd i k with ⟨j, hji, hjk⟩,
       use j,
       rw [← measure_diff hjk (h _) (this _ hjk)],

@@ -73,7 +73,7 @@ lemma module.injective_module_of_injective_object
   end }
 
 lemma module.injective_iff_injective_object :
-  module.injective R Q ↔ category_theory.injective (⟨Q⟩ : Module R) :=
+  module.injective.{u v} R Q ↔ category_theory.injective.{max u v} (⟨Q⟩ : Module.{max u v} R) :=
 ⟨λ h, @@module.injective_object_of_injective_module R _ Q _ _ h,
   λ h, @@module.injective_module_of_injective_object R _ Q _ _ h⟩
 

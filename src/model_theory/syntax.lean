@@ -293,6 +293,109 @@ namespace bounded_formula
 instance : inhabited (L.bounded_formula α n) :=
 ⟨falsum⟩
 
+variables (L) (α)
+
+inductive list_symbols : Type (max u v u')
+| f (n : ℕ)
+| e (n : ℕ) (t₁ t₂ : L.term (α ⊕ fin n))
+| r (k n : ℕ) (R : L.relations n) (ts : fin n → L.term (α ⊕ fin k))
+| i
+| a
+
+variables {L} {α}
+
+section
+open list_symbols
+
+def list_encode : ∀ {n : ℕ}, L.bounded_formula α n →
+  list (list_symbols L α)
+| n falsum := [list_symbols.f n]
+| n (equal t₁ t₂) := [list_symbols.e n t₁ t₂]
+| n (rel R ts) := [list_symbols.r _ _ R ts]
+| n (imp φ₁ φ₂) := list_symbols.i :: φ₁.list_encode ++ φ₂.list_encode
+| n (all φ) := list_symbols.a :: φ.list_encode
+
+def sigma_all : (Σ n, L.bounded_formula α n) → Σ n, L.bounded_formula α n
+| ⟨(n + 1), φ⟩ := ⟨n, φ.all⟩
+| _ := default
+
+def sigma_imp :
+  (Σ n, L.bounded_formula α n) → (Σ n, L.bounded_formula α n) → (Σ n, L.bounded_formula α n)
+| ⟨m, φ⟩ ⟨n, ψ⟩ := if h : m = n then ⟨m, φ.imp (eq.mp (by rw h) ψ)⟩ else default
+
+/-- Decodes a list of variables and function symbols as a list of terms. -/
+def list_decode :
+  list (list_symbols L α) → (Σ n, L.bounded_formula α n) × list (list_symbols L α)
+| (f n :: l) := ⟨⟨n, falsum⟩, l⟩
+| (e n t₁ t₂ :: l) := ⟨⟨n, equal t₁ t₂⟩, l⟩
+| (r k n R ts :: l) := ⟨⟨k, rel R ts⟩, l⟩
+| (i :: l) := if h : (list_decode l).2.sizeof < 1 + 1 + l.sizeof
+  then ⟨sigma_imp (list_decode l).1 (list_decode (list_decode l).2).1, (list_decode (list_decode l).2).2⟩
+  else ⟨default, []⟩
+| (a :: l) := ⟨sigma_all (list_decode l).1, (list_decode l).2⟩
+| _ := ⟨default, []⟩
+
+lemma list_decode_sizeof (l : list (list_symbols L α)) : (list_decode l).2.sizeof ≤ l.sizeof :=
+begin
+  suffices h : ∀ n (l : list (list_symbols L α)),
+    l.sizeof ≤ n → (list_decode l).2.sizeof ≤ l.sizeof,
+  { exact h _ l le_rfl },
+  intro n,
+  induction n with n ih; intros l h,
+  { cases l,
+    { simp [list_decode, list.sizeof] },
+    { contrapose! h,
+      rw [list.sizeof, add_assoc, add_comm],
+      exact nat.succ_pos' } },
+  { cases l with s t,
+    { simp [list_decode, list.sizeof] },
+    { rw [list.sizeof, add_assoc, add_comm, add_le_add_iff_right 1] at h,
+      cases s,
+      { simp [list_decode, list.sizeof] },
+      { simp [list_decode, list.sizeof] },
+      { simp [list_decode, list.sizeof] },
+      { have h' := ih t ((nat.le_add_left _ _).trans h),
+        rw [list_decode, list.sizeof, if_pos (lt_of_le_of_lt h' _)],
+        { exact trans (ih (list_decode t).snd (h'.trans (trans (nat.le_add_left _ _) h)))
+            (h'.trans (nat.le_add_left _ _)), },
+        { simp only [lt_add_iff_pos_left, nat.succ_pos'] } },
+      { simp [list_decode, list.sizeof],
+        exact (ih t ((nat.le_add_left _ _).trans h)).trans (nat.le_add_left _ _) } } }
+end
+
+lemma list_decode_imp (l : list (list_symbols L α)) :
+  list_decode (i :: l) = ⟨sigma_imp (list_decode l).1 (list_decode (list_decode l).2).1,
+    (list_decode (list_decode l).2).2⟩ :=
+begin
+  rw [list_decode, if_pos],
+  rw [add_comm, ← add_assoc, nat.lt_succ_iff],
+  exact trans (list_decode_sizeof _) (nat.le_succ _),
+end
+
+open list
+
+@[simp] theorem list_decode_encode_list (l : list (Σ n, L.bounded_formula α n)) :
+  list_decode (l.bind (λ φ, φ.2.list_encode)) = ⟨l.head, l.tail.bind (λ φ, φ.2.list_encode)⟩ :=
+begin
+  suffices h : ∀ (φ : (Σ n, L.bounded_formula α n)) (l : list (list_symbols L α)),
+    list_decode (list_encode φ.2 ++ l) = ⟨φ, l⟩,
+  { induction l with φ l lih,
+    { simp [list_decode] },
+    { rw [cons_bind, h φ _],
+      refl } },
+  { rintro ⟨n, φ⟩,
+    induction φ with _ _ _ _ _ _ _ _ _ _ _ ih1 ih2 _ _ ih; intro l,
+    { rw [list_encode, singleton_append, list_decode] },
+    { rw [list_encode, singleton_append, list_decode] },
+    { rw [list_encode, singleton_append, list_decode] },
+    { rw [list_encode, append_assoc, cons_append, list_decode_imp, ih1, ih2, sigma_imp,
+        dif_pos rfl],
+      refl, },
+    { rw [list_encode, cons_append, list_decode, ih, sigma_all] } }
+end
+
+end
+
 instance : has_bot (L.bounded_formula α n) := ⟨falsum⟩
 
 /-- The negation of a bounded formula is also a bounded formula. -/

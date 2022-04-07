@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov, Patrick Massot
 -/
 import order.filter.bases
 import data.finset.preimage
+import data.set.intervals.disjoint
 
 /-!
 # `at_top` and `at_bot` filters on preorded sets, monoids and groups.
@@ -46,8 +47,24 @@ let ⟨z, hz⟩ := exists_gt x in mem_of_superset (mem_at_top z) $ λ y h,  lt_o
 lemma mem_at_bot [preorder α] (a : α) : {b : α | b ≤ a} ∈ @at_bot α _ :=
 mem_infi_of_mem a $ subset.refl _
 
+lemma Iic_mem_at_bot [preorder α] (a : α) : Iic a ∈ (at_bot : filter α) := mem_at_bot a
+
 lemma Iio_mem_at_bot [preorder α] [no_min_order α] (x : α) : Iio x ∈ (at_bot : filter α) :=
 let ⟨z, hz⟩ := exists_lt x in mem_of_superset (mem_at_bot z) $ λ y h, lt_of_le_of_lt h hz
+
+lemma disjoint_at_bot_principal_Ioi [preorder α] (x : α) : disjoint at_bot (𝓟 (Ioi x)) :=
+disjoint_of_disjoint_of_mem (Iic_disjoint_Ioi le_rfl) (Iic_mem_at_bot x) (mem_principal_self _)
+
+lemma disjoint_at_top_principal_Iio [preorder α] (x : α) : disjoint at_top (𝓟 (Iio x)) :=
+@disjoint_at_bot_principal_Ioi (order_dual α) _ _
+
+lemma disjoint_at_top_principal_Iic [preorder α] [no_max_order α] (x : α) :
+  disjoint at_top (𝓟 (Iic x)) :=
+disjoint_of_disjoint_of_mem (Iic_disjoint_Ioi le_rfl).symm (Ioi_mem_at_top x) (mem_principal_self _)
+
+lemma disjoint_at_bot_principal_Ici [preorder α] [no_min_order α] (x : α) :
+  disjoint at_bot (𝓟 (Ici x)) :=
+@disjoint_at_top_principal_Iic (order_dual α) _ _ _
 
 lemma at_top_basis [nonempty α] [semilattice_sup α] :
   (@at_top α _).has_basis (λ _, true) Ici :=

@@ -150,6 +150,8 @@ ext_iff.2 $ by simp
 
 lemma mul_I_re (z : ℂ) : (z * I).re = -z.im := by simp
 lemma mul_I_im (z : ℂ) : (z * I).im = z.re := by simp
+lemma I_mul_re (z : ℂ) : (I * z).re = -z.im := by simp
+lemma I_mul_im (z : ℂ) : (I * z).im = z.re := by simp
 
 /-! ### Commutative ring instance and lemmas -/
 

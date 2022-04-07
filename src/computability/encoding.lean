@@ -194,15 +194,21 @@ lemma encoding.card_le_card_list {α : Type u} (e : encoding.{u v} α) :
   cardinal.lift.{v} (# α) ≤ cardinal.lift.{u} (# (list e.Γ)) :=
 (cardinal.lift_mk_le').2 ⟨⟨e.encode, e.encode_injective⟩⟩
 
-lemma fin_encoding.card_le_omega {α : Type u} [nonempty α] (e : fin_encoding.{u v} α) :
+lemma encoding.card_le_omega {α : Type u} (e : encoding.{u v} α) [encodable e.Γ] :
   (# α) ≤ ω :=
 begin
-  refine cardinal.lift_le.1 (e.to_encoding.card_le_card_list.trans _),
+  refine cardinal.lift_le.1 (e.card_le_card_list.trans _),
   simp only [cardinal.lift_omega, cardinal.lift_le_omega],
-  haveI : encodable e.Γ := fintype.encodable _,
   casesI is_empty_or_nonempty e.Γ with h h,
   { simp only [cardinal.mk_le_omega], },
   { rw cardinal.mk_list_eq_omega },
+end
+
+lemma fin_encoding.card_le_omega {α : Type u} (e : fin_encoding.{u v} α) :
+  (# α) ≤ ω :=
+begin
+  haveI : encodable e.Γ := fintype.encodable _,
+  exact e.to_encoding.card_le_omega,
 end
 
 end computability

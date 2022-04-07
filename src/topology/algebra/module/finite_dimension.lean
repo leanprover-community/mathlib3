@@ -252,36 +252,9 @@ begin
   rw [basis.equiv_fun_symm_apply, basis.sum_repr]
 end
 
-theorem affine_map.continuous_of_finite_dimensional {PE PF : Type*}
-  [metric_space PE] [normed_add_torsor E PE] [metric_space PF] [normed_add_torsor F PF]
-  [finite_dimensional 𝕜 E] (f : PE →ᵃ[𝕜] PF) : continuous f :=
-affine_map.continuous_linear_iff.1 f.linear.continuous_of_finite_dimensional
-
-lemma continuous_linear_map.continuous_det :
-  continuous (λ (f : E →L[𝕜] E), f.det) :=
-begin
-  change continuous (λ (f : E →L[𝕜] E), (f : E →ₗ[𝕜] E).det),
-  classical,
-  by_cases h : ∃ (s : finset E), nonempty (basis ↥s 𝕜 E),
-  { rcases h with ⟨s, ⟨b⟩⟩,
-    haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finset_basis b,
-    letI : normed_group (matrix s s 𝕜) := matrix.normed_group,
-    letI : normed_space 𝕜 (matrix s s 𝕜) := matrix.normed_space,
-    simp_rw linear_map.det_eq_det_to_matrix_of_finset b,
-    have A : continuous (λ (f : E →L[𝕜] E), linear_map.to_matrix b b f),
-    { change continuous ((linear_map.to_matrix b b).to_linear_map.comp
-        (continuous_linear_map.coe_lm 𝕜)),
-      exact linear_map.continuous_of_finite_dimensional _ },
-    convert A.matrix_det,
-    ext f,
-    congr },
-  { unfold linear_map.det,
-    simpa only [h, monoid_hom.one_apply, dif_neg, not_false_iff] using continuous_const }
-end
-
 namespace linear_map
 
-variables [finite_dimensional 𝕜 E]
+variables [t2_space E] [finite_dimensional 𝕜 E]
 
 /-- The continuous linear map induced by a linear map on a finite dimensional space -/
 def to_continuous_linear_map : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F' :=
@@ -305,7 +278,7 @@ end linear_map
 
 namespace linear_equiv
 
-variables [finite_dimensional 𝕜 E]
+variables [t2_space E] [t2_space F] [finite_dimensional 𝕜 E]
 
 /-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional
 space. -/
@@ -341,7 +314,7 @@ end linear_equiv
 
 namespace continuous_linear_map
 
-variable [finite_dimensional 𝕜 E]
+variables [t2_space E] [finite_dimensional 𝕜 E]
 
 /-- Builds a continuous linear equivalence from a continuous linear map on a finite-dimensional
 vector space whose determinant is nonzero. -/

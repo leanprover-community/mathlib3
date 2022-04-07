@@ -93,12 +93,8 @@ begin
   have hx' := hx, have hy' := hy,
   rw [← closure_closed_ball, closure_eq_interior_union_frontier,
     frontier_closed_ball (0 : E) one_ne_zero] at hx hy,
-  cases hx,
-  { exact (convex_closed_ball _ _).combo_interior_closure_mem_interior hx
-      (subset_closure hy') ha hb.le hab },
-  cases hy,
-  { exact (convex_closed_ball _ _).combo_closure_interior_mem_interior
-      (subset_closure hx') hy ha.le hb hab },
+  cases hx, { exact (convex_closed_ball _ _).combo_interior_self_mem_interior hx hy' ha hb.le hab },
+  cases hy, { exact (convex_closed_ball _ _).combo_self_interior_mem_interior hx' hy ha.le hb hab },
   rw [interior_closed_ball (0 : E) one_ne_zero, mem_ball_zero_iff],
   have hx₁ : ∥x∥ = 1, from mem_sphere_zero_iff_norm.1 hx,
   have hy₁ : ∥y∥ = 1, from mem_sphere_zero_iff_norm.1 hy,

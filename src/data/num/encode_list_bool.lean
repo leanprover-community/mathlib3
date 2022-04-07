@@ -5,7 +5,6 @@ Authors: Praneeth Kolichala
 -/
 import data.num.lemmas
 import data.nat.log
-import tactic.linarith
 
 
 /-!
@@ -116,7 +115,7 @@ begin
 end
 
 lemma encode_num_len_le (n : num) : (encode_num n).length ≤ nat.log 2 n + 1 :=
-by { rw encode_num_len, split_ifs; linarith, }
+by { rw encode_num_len, split_ifs with h; simp [h],  }
 
 lemma decode_num_lt (l : list bool) : (decode_num l : ℕ) < 2^l.length :=
 begin

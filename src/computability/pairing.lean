@@ -195,12 +195,12 @@ lemma mkpair'_le (a b : ℕ) : nat.log 2 (mkpair' a b) ≤
   log 2 a + log 2 b + 2 * log 2 (log 2 a + 1) + 5 :=
 calc log 2 (decode_num (list.mkpair (encode_num a) (encode_num b)))
     ≤ log 2 (2^((list.mkpair (encode_num a) (encode_num b)).length) - 1) :
-        by { apply log_monotone, apply le_pred_of_lt, apply num.decode_num_lt, }
+      by { apply log_monotone, apply le_pred_of_lt, apply num.decode_num_lt, }
 ... ≤ (list.mkpair (encode_num a) (encode_num b)).length :
-        by { conv_rhs { rw ← log_pow (show 1 < 2, by norm_num) (list.mkpair _ _).length },
-             apply log_monotone, exact tsub_le_self, }
+      by { conv_rhs { rw ← log_pow (show 1 < 2, by norm_num) (list.mkpair _ _).length },
+           apply log_monotone, exact tsub_le_self, }
 ... ≤ 2*(log 2 (encode_num a).length) + (encode_num a).length + (encode_num b).length + 3 :
-        list.mkpair_length_le _ _
+      list.mkpair_length_le _ _
 ... ≤ 2*(log 2 (log 2 a + 1)) + (log 2 a + 1) + (log 2 b + 1) + 3 :
       by { mono*, all_goals { try { apply log_monotone }, try { exact zero_le _, }, },
            all_goals { convert num.encode_num_len_le _, simp, }, }

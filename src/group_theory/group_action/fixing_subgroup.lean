@@ -123,7 +123,7 @@ lemma fixed_points_antitone :
 
 /-- Fixing submonoid of union is intersection -/
 lemma fixing_submonoid_union {s t : set α} :
-  fixing_submonoid M (s ∪ t) = (fixing_submonoid M s) ⊓ (fixing_submonoid M t) :=
+  fixing_submonoid M (s ∪ t) = fixing_submonoid M s ⊓ fixing_submonoid M t :=
 galois_connection.l_sup (fixing_submonoid_fixed_points_gc M α)
 
 /-- Fixing submonoid of Union is intersection -/
@@ -177,12 +177,12 @@ lemma fixed_points_subgroup_antitone :
 
 /-- Fixing subgroup of union is intersection -/
 lemma fixing_subgroup_union {s t : set α} :
-  fixing_subgroup M (s ∪ t) = (fixing_subgroup M s) ⊓ (fixing_subgroup M t) :=
+  fixing_subgroup M (s ∪ t) = fixing_subgroup M s ⊓ fixing_subgroup M t :=
 galois_connection.l_sup (fixing_subgroup_fixed_points_gc M α)
 
 /-- Fixing subgroup of Union is intersection -/
 lemma fixing_subgroup_Union {ι : Sort*} {s : ι → set α} :
-  fixing_subgroup M (⋃ (i : ι), s i) = ⨅ i, (fixing_subgroup M (s i)) :=
+  fixing_subgroup M (⋃ i, s i) = ⨅ i, (fixing_subgroup M (s i)) :=
 galois_connection.l_supr (fixing_subgroup_fixed_points_gc M α)
 
 /-- Fixed points of sup of subgroups is intersection -/

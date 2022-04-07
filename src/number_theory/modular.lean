@@ -337,7 +337,7 @@ def fundamental_domain : set ℍ :=
 def fundamental_domain_open : set ℍ :=
 {z | 1 < (z : ℂ).norm_sq ∧ |z.re| < (1 : ℝ) / 2}
 
-localized "notation `𝒟` := fundamental_domain" in modular
+localized "notation `𝒟` := modular_group.fundamental_domain" in modular
 
 localized "notation `𝒟ᵒ` := fundamental_domain_open" in modular
 

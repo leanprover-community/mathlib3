@@ -25,7 +25,7 @@ namespace subgroup
 
 variables {G : Type*} [group G] {H : subgroup G} {R S : set G}
 
-lemma closure_mul_eq_top
+lemma closure_mul_image_mul_eq_top
   (hR : R ∈ right_transversals (H : set G)) (hR1 : (1 : G) ∈ R) (hS : closure S = ⊤) :
   (closure ((R * S).image (λ g, g * (mem_right_transversals.to_fun hR g)⁻¹)) : set G) * R = ⊤ :=
 begin
@@ -63,7 +63,7 @@ begin
     exact mem_right_transversals.mul_inv_to_fun_mem hR g },
   refine le_antisymm hU (λ h hh, _),
   obtain ⟨g, r, hg, hr, rfl⟩ :=
-  show h ∈ _, from eq_top_iff.mp (closure_mul_eq_top hR hR1 hS) (mem_top h),
+  show h ∈ _, from eq_top_iff.mp (closure_mul_image_mul_eq_top hR hR1 hS) (mem_top h),
   suffices : (⟨r, hr⟩ : R) = (⟨1, hR1⟩ : R),
   { rwa [show r = 1, from subtype.ext_iff.mp this, mul_one] },
   apply (mem_right_transversals_iff_exists_unique_mul_inv_mem.mp hR r).unique,

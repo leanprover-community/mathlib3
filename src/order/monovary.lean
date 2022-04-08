@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies
 -/
 import order.monotone
-
+import data.set.basic
 /-!
 # Monovariance of functions
 
@@ -43,6 +43,10 @@ def monovary_on (f : ι → α) (g : ι → β) (s : set ι) : Prop :=
 /--  `f` antivaries with `g` on `s` if `g i < g j` implies `f j ≤ f i` for all `i, j ∈ s`. -/
 def antivary_on (f : ι → α) (g : ι → β) (s : set ι) : Prop :=
 ∀ ⦃i⦄ (hi : i ∈ s) ⦃j⦄ (hj : j ∈ s), g i < g j → f j ≤ f i
+
+@[simp] lemma monovary_on.empty : monovary_on f g ∅ := λ i hi, by cases hi
+
+@[simp] lemma antivary_on.empty : antivary_on f g ∅ := λ i hi, by cases hi
 
 protected lemma monovary.monovary_on (h : monovary f g) (s : set ι) : monovary_on f g s :=
 λ i j _ _ hij, h hij
@@ -99,8 +103,16 @@ lemma antivary_on_const_right (f : ι → α) (b : β) (s : set ι) : antivary_o
 lemma monovary.comp_right (h : monovary f g) (k : ι' → ι) : monovary (f ∘ k) (g ∘ k) :=
 λ i j hij, h hij
 
+lemma monovary_on.comp_right (h : monovary_on f g s) (k : ι' → ι) :
+  monovary_on (f ∘ k) (g ∘ k) (k ⁻¹' s) :=
+λ i hi j hj hij, h hi hj hij
+
 lemma antivary.comp_right (h : antivary f g) (k : ι' → ι) : antivary (f ∘ k) (g ∘ k) :=
 λ i j hij, h hij
+
+lemma antivary_on.comp_right (h : monovary_on f g s) (k : ι' → ι) :
+  monovary_on (f ∘ k) (g ∘ k) (k ⁻¹' s) :=
+λ i hi j hj hij, h hi hj hij
 
 section order_dual
 open order_dual

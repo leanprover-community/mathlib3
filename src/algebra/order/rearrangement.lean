@@ -185,10 +185,10 @@ lemma monovary_on.sum_comp_perm_smul_eq_sum_smul_iff (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f (σ i) • g i = ∑ i in s, f i • g i ↔ monovary_on (f ∘ σ) g s :=
 begin
-  convert hfg.sum_smul_comp_perm_eq_sum_smul_iff
-    (show {x | σ⁻¹ x ≠ x} ⊆ s, by simp only [set_support_inv_eq, hσ]) using 1,
+  have hσinv := {x | σ⁻¹ x ≠ x} ⊆ s := by simp only [set_support_inv_eq, hσ],
+  convert hfg.sum_smul_comp_perm_eq_sum_smul_iff hσinv using 1,
   { simpa [σ.sum_comp' s (λ i j, f i • g j) hσ, eq_iff_iff] },
-  { sorry } -- missing API lemma to PR
+  { sorry }
 end
 
 /-- **Strict inequality case of Rearrangement Inequality**: Pointwise scalar multiplication of

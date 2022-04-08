@@ -116,7 +116,7 @@ lemma fixing_subgroup_fixed_points_gc : galois_connection
   ((λ P : subgroup M, fixed_points P α) ∘ order_dual.of_dual) :=
 λ s P, ⟨λ h s hs p, h p.2 ⟨s, hs⟩, λ h p hp s, h s.2 ⟨p, hp⟩⟩
 
-lemma fixing_subgroup_antitone : antitone (λ (s : set α), fixing_subgroup M s) :=
+lemma fixing_subgroup_antitone : antitone (fixing_subgroup M : set α → subgroup M) :=
 (fixing_subgroup_fixed_points_gc M α).monotone_l
 
 lemma fixed_points_subgroup_antitone :

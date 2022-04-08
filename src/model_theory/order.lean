@@ -15,12 +15,15 @@ This file defines ordered first-order languages and structures, as well as their
 representing `≤` to the actual relation `≤`.
 * `first_order.language.is_ordered` points out a specific symbol in a language as representing `≤`.
 * `first_order.language.is_ordered_structure` indicates that a structure over a
-* `first_order.language.linear_order` and similar define the theories of preorders, partial orders,
-and linear orders.
+* `first_order.language.Theory.linear_order` and similar define the theories of preorders,
+partial orders, and linear orders.
+* `first_order.language.Theory.DLO` defines the theory of dense linear orders without endpoints, a
+particularly useful example in model theory.
+
 
 ## Main Results
-* `partial_order`s model the theory of partial orders, and `linear_order`s model the theory of
-linear orders.
+* `partial_order`s model the theory of partial orders, `linear_order`s model the theory of
+linear orders, and dense linear orders without endpoints model `Theory.DLO`.
 
 -/
 

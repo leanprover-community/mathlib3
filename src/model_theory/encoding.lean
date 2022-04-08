@@ -157,6 +157,18 @@ end
 
 instance : inhabited (list_symbols L α) := ⟨a⟩
 
+def list_symbols_fun : list_symbols L α →
+  ℕ ⊕
+  Σ n, (L.term (α ⊕ fin n) × L.term (α ⊕ fin n)) ⊕
+  Σ k n, (L.relations n × (fin n → L.term (α ⊕ fin k))) ⊕
+  unit ⊕
+  unit
+| (f n) := sum.inl n
+| (e n t₁ t₂) := sum.inr (sum.inl ⟨n, ⟨t₁, t₂⟩⟩)
+| (r k n R ts) := sum.inr (sum.inl (sum.inl ⟨k, ⟨n, ⟨R, ts⟩⟩⟩))
+| i := sum.inr (sum.inr (sum.inr (sum.inl unit.star)))
+| a := sum.inr (sum.inr (sum.inr (sum.inr unit.star)))
+
 variables {L} {α}
 
 /-- Encodes a bounded formula as a list of symbols. -/

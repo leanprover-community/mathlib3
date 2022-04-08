@@ -19,7 +19,7 @@ multiplication of bounded sets remain bounded.
 open metric set
 open_locale pointwise topological_space
 
-variables {𝕜 E : Type*} [normed_field 𝕜]
+variables {𝕜 E : Type*} [valued_field 𝕜]
 
 section semi_normed_group
 variables [semi_normed_group E] [normed_space 𝕜 E]

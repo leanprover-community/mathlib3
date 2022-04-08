@@ -59,7 +59,7 @@ pi.normed_group
 section normed_space
 local attribute [instance] matrix.semi_normed_group
 
-variables [normed_field R] [semi_normed_group α] [normed_space R α]
+variables [valued_field R] [semi_normed_group α] [normed_space R α]
 
 /-- Normed space instance (using sup norm of sup norm) for matrices over a normed field.  Not
 declared as an instance because there are several natural choices for defining the norm of a

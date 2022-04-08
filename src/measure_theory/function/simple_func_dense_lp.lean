@@ -417,7 +417,7 @@ unnecessary.  But instead, `Lp.simple_func E p μ` is defined as an `add_subgrou
 which does not permit this (but has the advantage of working when `E` itself is a normed group,
 i.e. has no scalar action). -/
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [valued_field 𝕜] [normed_space 𝕜 E]
 
 /-- If `E` is a normed space, `Lp.simple_func E p μ` is a `has_scalar`. Not declared as an
 instance as it is (as of writing) used only in the construction of the Bochner integral. -/
@@ -480,7 +480,7 @@ lemma to_Lp_sub (f g : α →ₛ E) (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ
   to_Lp (f - g) (hf.sub hg) = to_Lp f hf - to_Lp g hg :=
 by { simp only [sub_eq_add_neg, ← to_Lp_neg, ← to_Lp_add], refl }
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [valued_field 𝕜] [normed_space 𝕜 E]
 
 lemma to_Lp_smul (f : α →ₛ E) (hf : mem_ℒp f p μ) (c : 𝕜) :
   to_Lp (c • f) (hf.const_smul c) = c • to_Lp f hf := rfl
@@ -573,7 +573,7 @@ begin
   repeat { assume h, rw h, },
 end
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [valued_field 𝕜] [normed_space 𝕜 E]
 
 lemma smul_to_simple_func (k : 𝕜) (f : Lp.simple_func E p μ) :
   to_simple_func (k • f) =ᵐ[μ] k • to_simple_func f :=
@@ -684,7 +684,7 @@ protected lemma dense_range (hp_ne_top : p ≠ ∞) :
   dense_range (coe : (Lp.simple_func E p μ) → (Lp E p μ)) :=
 (simple_func.dense_inducing hp_ne_top).dense
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [valued_field 𝕜] [normed_space 𝕜 E]
 variables (α E 𝕜)
 
 /-- The embedding of Lp simple functions into Lp functions, as a continuous linear map. -/

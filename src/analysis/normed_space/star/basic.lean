@@ -20,7 +20,7 @@ condition `∥x⋆ * x∥ = ∥x∥^2` for all `x`.  If a C⋆-ring is also a st
 C⋆-algebra.
 
 To get a C⋆-algebra `E` over field `𝕜`, use
-`[normed_field 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E] [cstar_ring E]
+`[valued_field 𝕜] [star_ring 𝕜] [normed_ring E] [star_ring E] [cstar_ring E]
  [normed_algebra 𝕜 E] [star_module 𝕜 E]`.
 
 ## TODO

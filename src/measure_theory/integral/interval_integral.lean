@@ -296,7 +296,7 @@ end
 
 variables {f g : ℝ → E} {a b : ℝ} {μ : measure ℝ}
 
-lemma smul [normed_field 𝕜] [normed_space 𝕜 E]
+lemma smul [valued_field 𝕜] [normed_space 𝕜 E]
   {f : ℝ → E} {a b : ℝ} {μ : measure ℝ} (h : interval_integrable f μ a b) (r : 𝕜) :
   interval_integrable (r • f) μ a b :=
 ⟨h.1.smul r, h.2.smul r⟩
@@ -534,7 +534,7 @@ by { simp only [interval_integral, integral_neg], abel }
   ∫ x in a..b, f x - g x ∂μ = ∫ x in a..b, f x ∂μ - ∫ x in a..b, g x ∂μ :=
 by simpa only [sub_eq_add_neg] using (integral_add hf hg.neg).trans (congr_arg _ integral_neg)
 
-@[simp] lemma integral_smul {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+@[simp] lemma integral_smul {𝕜 : Type*} [nondiscrete_valued_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E]
   (r : 𝕜) (f : ℝ → E) : ∫ x in a..b, r • f x ∂μ = r • ∫ x in a..b, f x ∂μ :=
 by simp only [interval_integral, integral_smul, smul_sub]

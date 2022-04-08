@@ -76,7 +76,7 @@ open_locale topological_space
 
 namespace continuous_linear_map
 
-variables {𝕜 E F : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 E F : Type*} [nondiscrete_valued_field 𝕜]
   [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F]
 
 lemma measurable_apply₂ [measurable_space E] [opens_measurable_space E]
@@ -87,7 +87,7 @@ is_bounded_bilinear_map_apply.continuous.measurable
 
 end continuous_linear_map
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nondiscrete_valued_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {f : E → F} (K : set (E →L[𝕜] F))
@@ -216,7 +216,7 @@ lemma D_subset_differentiable_set {K : set (E →L[𝕜] F)} (hK : is_complete K
   D f K ⊆ {x | differentiable_at 𝕜 f x ∧ fderiv 𝕜 f x ∈ K} :=
 begin
   have P : ∀ {n : ℕ}, (0 : ℝ) < (1/2) ^ n := pow_pos (by norm_num),
-  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases valued_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   have cpos : 0 < ∥c∥ := lt_trans zero_lt_one hc,
   assume x hx,
   have : ∀ (e : ℕ), ∃ (n : ℕ), ∀ p q, n ≤ p → n ≤ q → ∃ L ∈ K,

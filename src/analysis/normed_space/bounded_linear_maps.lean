@@ -53,7 +53,7 @@ open_locale classical big_operators topological_space
 
 open filter (tendsto) metric
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nondiscrete_valued_field 𝕜]
           {E : Type*} [normed_group E] [normed_space 𝕜 E]
           {F : Type*} [normed_group F] [normed_space 𝕜 F]
           {G : Type*} [normed_group G] [normed_space 𝕜 G]
@@ -61,7 +61,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 /-- A function `f` satisfies `is_bounded_linear_map 𝕜 f` if it is linear and satisfies the
 inequality `∥f x∥ ≤ M * ∥x∥` for some positive constant `M`. -/
-structure is_bounded_linear_map (𝕜 : Type*) [normed_field 𝕜]
+structure is_bounded_linear_map (𝕜 : Type*) [valued_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {F : Type*} [normed_group F] [normed_space 𝕜 F] (f : E → F)
   extends is_linear_map 𝕜 f : Prop :=
@@ -346,7 +346,7 @@ lemma is_bounded_bilinear_map.is_bounded_linear_map_right
                       le_of_lt C_pos]
   end }
 
-lemma is_bounded_bilinear_map_smul {𝕜' : Type*} [normed_field 𝕜']
+lemma is_bounded_bilinear_map_smul {𝕜' : Type*} [valued_field 𝕜']
   [normed_algebra 𝕜 𝕜'] {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
   [is_scalar_tower 𝕜 𝕜' E] :
   is_bounded_bilinear_map 𝕜 (λ (p : 𝕜' × E), p.1 • p.2) :=

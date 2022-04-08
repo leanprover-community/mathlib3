@@ -369,7 +369,7 @@ field `𝕜` whenever `β` is as well.
 
 section normed_space
 
-variables [normed_group β] {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables [normed_group β] {𝕜 : Type*} [valued_field 𝕜] [normed_space 𝕜 β]
 
 /-- The natural inclusion `to_bcf : C₀(α, β) → (α →ᵇ β)` realized as an additive monoid
 homomorphism. -/

@@ -47,12 +47,12 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 
 -/
 
-open filter is_R_or_C continuous_multilinear_map normed_field asymptotics
+open filter is_R_or_C continuous_multilinear_map valued_field asymptotics
 open_locale nat topological_space big_operators ennreal
 
 section any_field_any_algebra
 
-variables (𝕂 𝔸 : Type*) [nondiscrete_normed_field 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables (𝕂 𝔸 : Type*) [nondiscrete_valued_field 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
 
 /-- In a Banach algebra `𝔸` over a normed field `𝕂`, `exp_series 𝕂 𝔸` is the
 `formal_multilinear_series` whose `n`-th term is the map `(xᵢ) : 𝔸ⁿ ↦ (1/n! : 𝕂) • ∏ xᵢ`.
@@ -225,7 +225,7 @@ end any_field_any_algebra
 
 section any_field_comm_algebra
 
-variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables {𝕂 𝔸 : Type*} [nondiscrete_valued_field 𝕂] [normed_comm_ring 𝔸] [normed_algebra 𝕂 𝔸]
   [complete_space 𝔸]
 
 /-- In a commutative Banach-algebra `𝔸` over a normed field `𝕂` of characteristic zero,
@@ -351,7 +351,7 @@ end is_R_or_C
 
 section scalar_tower
 
-variables (𝕂 𝕂' 𝔸 : Type*) [nondiscrete_normed_field 𝕂] [nondiscrete_normed_field 𝕂']
+variables (𝕂 𝕂' 𝔸 : Type*) [nondiscrete_valued_field 𝕂] [nondiscrete_valued_field 𝕂']
   [normed_ring 𝔸] [normed_algebra 𝕂 𝔸] [normed_algebra 𝕂' 𝔸]
 
 /-- If a normed ring `𝔸` is a normed algebra over two fields, then they define the same

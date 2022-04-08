@@ -29,7 +29,7 @@ This file contains the basic theory for the resolvent and spectrum of a Banach a
 * `spectrum.pow_nnnorm_pow_one_div_tendsto_nhds_spectral_radius`: Gelfand's formula for the
   spectral radius in Banach algebras over `ℂ`.
 * `spectrum.nonempty`: the spectrum of any element in a complex Banach algebra is nonempty.
-* `normed_division_ring.alg_equiv_complex_of_complete`: **Gelfand-Mazur theorem** For a complex
+* `valued_division_ring.alg_equiv_complex_of_complete`: **Gelfand-Mazur theorem** For a complex
   Banach division algebra, the natural `algebra_map ℂ A` is an algebra isomorphism whose inverse
   is given by selecting the (unique) element of `spectrum ℂ a`
 
@@ -47,7 +47,7 @@ open_locale ennreal
     case, `spectral_radius a = 0`.  It is also possible that `spectrum 𝕜 a` be unbounded (though
     not for Banach algebras, see `spectrum.is_bounded`, below).  In this case,
     `spectral_radius a = ∞`. -/
-noncomputable def spectral_radius (𝕜 : Type*) {A : Type*} [normed_field 𝕜] [ring A]
+noncomputable def spectral_radius (𝕜 : Type*) {A : Type*} [valued_field 𝕜] [ring A]
   [algebra 𝕜 A] (a : A) : ℝ≥0∞ :=
 ⨆ k ∈ spectrum 𝕜 a, ∥k∥₊
 
@@ -57,7 +57,7 @@ namespace spectrum
 
 section spectrum_compact
 
-variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
+variables [valued_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 local notation `σ` := spectrum 𝕜
 local notation `ρ` := resolvent_set 𝕜
@@ -130,7 +130,7 @@ section resolvent
 
 open filter asymptotics
 
-variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+variables [nondiscrete_valued_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 
 local notation `ρ` := resolvent_set 𝕜
 local notation `↑ₐ` := algebra_map 𝕜 A
@@ -185,7 +185,7 @@ open continuous_multilinear_map ennreal formal_multilinear_series
 open_locale nnreal ennreal
 
 variables
-[nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
+[nondiscrete_valued_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A]
 
 variable (𝕜)
 /-- In a Banach algebra `A` over a nondiscrete normed field `𝕜`, for any `a : A` the
@@ -346,7 +346,7 @@ end
 
 section gelfand_mazur_isomorphism
 
-variables [normed_division_ring A] [normed_algebra ℂ A]
+variables [valued_division_ring A] [normed_algebra ℂ A]
 
 local notation `σ` := spectrum ℂ
 
@@ -357,7 +357,7 @@ by rwa [mem_iff, is_unit_iff_ne_zero, not_not, sub_eq_zero] at h
 is an algebra isomorphism whose inverse is given by selecting the (unique) element of
 `spectrum ℂ a`. In addition, `algebra_map_isometry` guarantees this map is an isometry. -/
 @[simps]
-noncomputable def _root_.normed_division_ring.alg_equiv_complex_of_complete
+noncomputable def _root_.valued_division_ring.alg_equiv_complex_of_complete
   [complete_space A] : ℂ ≃ₐ[ℂ] A :=
 { to_fun := algebra_map ℂ A,
   inv_fun := λ a, (spectrum.nonempty a).some,
@@ -408,8 +408,8 @@ end spectrum
 
 namespace alg_hom
 
-section normed_field
-variables [normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+section valued_field
+variables [valued_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 local notation `↑ₐ` := algebra_map 𝕜 A
 
 /-- An algebra homomorphism into the base field, as a continuous linear map (since it is
@@ -420,10 +420,10 @@ automatically bounded). -/
 
 lemma continuous (φ : A →ₐ[𝕜] 𝕜) : continuous φ := φ.to_continuous_linear_map.continuous
 
-end normed_field
+end valued_field
 
-section nondiscrete_normed_field
-variables [nondiscrete_normed_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
+section nondiscrete_valued_field
+variables [nondiscrete_valued_field 𝕜] [normed_ring A] [normed_algebra 𝕜 A] [complete_space A]
 local notation `↑ₐ` := algebra_map 𝕜 A
 
 @[simp] lemma to_continuous_linear_map_norm [norm_one_class A] (φ : A →ₐ[𝕜] 𝕜) :
@@ -432,6 +432,6 @@ continuous_linear_map.op_norm_eq_of_bounds zero_le_one
   (λ a, (one_mul ∥a∥).symm ▸ spectrum.norm_le_norm_of_mem (φ.apply_mem_spectrum _))
   (λ _ _ h, by simpa only [to_continuous_linear_map_apply, mul_one, map_one, norm_one] using h 1)
 
-end nondiscrete_normed_field
+end nondiscrete_valued_field
 
 end alg_hom

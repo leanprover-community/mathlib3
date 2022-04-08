@@ -25,15 +25,15 @@ extends linear_ordered_add_comm_group α, has_norm α, metric_space α :=
   [normed_linear_ordered_group α] : normed_group α :=
 ⟨normed_linear_ordered_group.dist_eq⟩
 
-/-- A `normed_linear_ordered_field` is a field that is both a `normed_field` and a
+/-- A `normed_linear_ordered_field` is a field that is both a `valued_field` and a
     `linear_ordered_field`. This class is necessary to avoid diamonds. -/
 class normed_linear_ordered_field (α : Type*)
 extends linear_ordered_field α, has_norm α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
 
-@[priority 100] instance normed_linear_ordered_field.to_normed_field (α : Type*)
-  [normed_linear_ordered_field α] : normed_field α :=
+@[priority 100] instance normed_linear_ordered_field.to_valued_field (α : Type*)
+  [normed_linear_ordered_field α] : valued_field α :=
 { dist_eq := normed_linear_ordered_field.dist_eq,
   norm_mul' := normed_linear_ordered_field.norm_mul' }
 

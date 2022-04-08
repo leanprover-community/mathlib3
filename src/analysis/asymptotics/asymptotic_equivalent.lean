@@ -14,7 +14,7 @@ In this file, we define the relation `is_equivalent u v l`, which means that `u-
 
 Unlike `is_[oO]` relations, this one requires `u` and `v` to have the same codomain `β`. While the
 definition only requires `β` to be a `normed_group`, most interesting properties require it to be a
-`normed_field`.
+`valued_field`.
 
 ## Notations
 
@@ -30,7 +30,7 @@ If `β` is a `normed_group` :
   - If `c ≠ 0`, this is true iff `tendsto u l (𝓝 c)` (see `is_equivalent_const_iff_tendsto`)
   - For `c = 0`, this is true iff `u =ᶠ[l] 0` (see `is_equivalent_zero_iff_eventually_zero`)
 
-If `β` is a `normed_field` :
+If `β` is a `valued_field` :
 
 - Alternative characterization of the relation (see `is_equivalent_iff_exists_eq_mul`) :
 
@@ -162,9 +162,9 @@ end normed_group
 
 open_locale asymptotics
 
-section normed_field
+section valued_field
 
-variables {α β : Type*} [normed_field β] {t u v w : α → β} {l : filter α}
+variables {α β : Type*} [valued_field β] {t u v w : α → β} {l : filter α}
 
 lemma is_equivalent_iff_exists_eq_mul : u ~[l] v ↔
   ∃ (φ : α → β) (hφ : tendsto φ l (𝓝 1)), u =ᶠ[l] φ * v :=
@@ -209,11 +209,11 @@ begin
   { exact is_equivalent_of_tendsto_one (hz.mono $ λ x hnvz hz, (hnvz hz).elim) }
 end
 
-end normed_field
+end valued_field
 
 section smul
 
-lemma is_equivalent.smul {α E 𝕜 : Type*} [normed_field 𝕜] [normed_group E]
+lemma is_equivalent.smul {α E 𝕜 : Type*} [valued_field 𝕜] [normed_group E]
   [normed_space 𝕜 E] {a b : α → 𝕜} {u v : α → E} {l : filter α} (hab : a ~[l] b) (huv : u ~[l] v) :
   (λ x, a x • u x) ~[l] (λ x, b x • v x) :=
 begin
@@ -253,7 +253,7 @@ end smul
 
 section mul_inv
 
-variables {α β : Type*} [normed_field β] {t u v w : α → β} {l : filter α}
+variables {α β : Type*} [valued_field β] {t u v w : α → β} {l : filter α}
 
 lemma is_equivalent.mul (htu : t ~[l] u) (hvw : v ~[l] w) : t * v ~[l] u * w :=
 htu.smul hvw

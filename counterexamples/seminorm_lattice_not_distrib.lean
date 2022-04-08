@@ -20,7 +20,7 @@ This proves the lattice `seminorm ℝ (ℝ × ℝ)` is not distributive.
 namespace seminorm_not_distrib
 open_locale nnreal
 
-private lemma bdd_below_range_add {𝕜 E : Type*} [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+private lemma bdd_below_range_add {𝕜 E : Type*} [valued_field 𝕜] [add_comm_group E] [module 𝕜 E]
   (x : E) (p q : seminorm 𝕜 E) :
   bdd_below (set.range (λ (u : E), p u + q (x - u))) :=
 by { use 0, rintro _ ⟨x, rfl⟩, exact add_nonneg (p.nonneg _) (q.nonneg _) }

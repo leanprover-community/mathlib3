@@ -253,7 +253,7 @@ end
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
+variables {𝕜 : Type*} [valued_field 𝕜] [Π i, normed_space 𝕜 (E i)]
 
 lemma const_smul {f : Π i, E i} (hf : mem_ℓp f p) (c : 𝕜) : mem_ℓp (c • f) p :=
 begin
@@ -565,7 +565,7 @@ end compare_pointwise
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
+variables {𝕜 : Type*} [valued_field 𝕜] [Π i, normed_space 𝕜 (E i)]
 
 instance : module 𝕜 (pre_lp E) := pi.module α E 𝕜
 
@@ -616,7 +616,7 @@ instance [fact (1 ≤ p)] : normed_space 𝕜 (lp E p) :=
     simp [norm_const_smul hp.ne']
   end }
 
-variables {𝕜' : Type*} [normed_field 𝕜']
+variables {𝕜' : Type*} [valued_field 𝕜']
 
 instance [Π i, normed_space 𝕜' (E i)] [has_scalar 𝕜' 𝕜] [Π i, is_scalar_tower 𝕜' 𝕜 (E i)] :
   is_scalar_tower 𝕜' 𝕜 (lp E p) :=
@@ -629,7 +629,7 @@ end
 end normed_space
 
 section single
-variables {𝕜 : Type*} [normed_field 𝕜] [Π i, normed_space 𝕜 (E i)]
+variables {𝕜 : Type*} [valued_field 𝕜] [Π i, normed_space 𝕜 (E i)]
 variables [decidable_eq α]
 
 /-- The element of `lp E p` which is `a : E i` at the index `i`, and zero elsewhere. -/

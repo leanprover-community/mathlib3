@@ -52,7 +52,7 @@ variables {α : Type*} {β : Type*} {E : Type*} {F : Type*} {G : Type*}
   {E' : Type*} {F' : Type*} {G' : Type*} {R : Type*} {R' : Type*} {𝕜 : Type*} {𝕜' : Type*}
 
 variables [has_norm E] [has_norm F] [has_norm G] [normed_group E'] [normed_group F']
-  [normed_group G'] [normed_ring R] [normed_ring R'] [normed_field 𝕜] [normed_field 𝕜']
+  [normed_group G'] [normed_ring R] [normed_ring R'] [valued_field 𝕜] [valued_field 𝕜']
   {c c' : ℝ} {f : α → E} {g : α → F} {k : α → G} {f' : α → E'} {g' : α → F'} {k' : α → G'}
   {l l' : filter α}
 
@@ -1257,7 +1257,7 @@ lemma is_o.eventually_mul_div_cancel (h : is_o u v l) : (u / v) * v =ᶠ[l] u :=
 
 end eventually_mul_div_cancel
 
-/-! ### Equivalent definitions of the form `∃ φ, u =ᶠ[l] φ * v` in a `normed_field`. -/
+/-! ### Equivalent definitions of the form `∃ φ, u =ᶠ[l] φ * v` in a `valued_field`. -/
 
 section exists_mul_eq
 
@@ -1354,7 +1354,7 @@ theorem is_O_of_div_tendsto_nhds {α : Type*} {l : filter α}
   is_O f g l :=
 (is_O_iff_div_is_bounded_under hgf).2 $ is_bounded_under_of_tendsto H
 
-lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [normed_field 𝕜] {u : α → E}
+lemma is_o.tendsto_zero_of_tendsto {α E 𝕜 : Type*} [normed_group E] [valued_field 𝕜] {u : α → E}
   {v : α → 𝕜} {l : filter α} {y : 𝕜} (huv : is_o u v l) (hv : tendsto v l (𝓝 y)) :
   tendsto u l (𝓝 0) :=
 begin

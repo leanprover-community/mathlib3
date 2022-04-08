@@ -291,7 +291,7 @@ lemma norm_eq_of_nat {p : ℝ} [fact (1 ≤ p)] {β : ι → Type*}
 by simp [norm_eq, h, real.sqrt_eq_rpow, ←real.rpow_nat_cast]
 include fact_one_le_p
 
-variables (𝕜 : Type*) [normed_field 𝕜]
+variables (𝕜 : Type*) [valued_field 𝕜]
 
 /-- The product of finitely many normed spaces is a normed space, with the `L^p` norm. -/
 instance normed_space [∀i, semi_normed_group (β i)] [∀i, normed_space 𝕜 (β i)] :

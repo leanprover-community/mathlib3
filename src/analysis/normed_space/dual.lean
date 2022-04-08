@@ -40,7 +40,7 @@ universes u v
 namespace normed_space
 
 section general
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type*) [nondiscrete_valued_field 𝕜]
 variables (E : Type*) [semi_normed_group E] [normed_space 𝕜 E]
 variables (F : Type*) [normed_group F] [normed_space 𝕜 F]
 
@@ -141,11 +141,11 @@ open metric set normed_space
 /-- Given a subset `s` in a normed space `E` (over a field `𝕜`), the polar
 `polar 𝕜 s` is the subset of `dual 𝕜 E` consisting of those functionals which
 evaluate to something of norm at most one at all points `z ∈ s`. -/
-def polar (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+def polar (𝕜 : Type*) [nondiscrete_valued_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] : set E → set (dual 𝕜 E) :=
 (dual_pairing 𝕜 E).flip.polar
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type*) [nondiscrete_valued_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 lemma mem_polar_iff {x' : dual 𝕜 E} (s : set E) : x' ∈ polar 𝕜 s ↔ ∀ z ∈ s, ∥x' z∥ ≤ 1 := iff.rfl
@@ -230,7 +230,7 @@ of all elements of the polar `polar 𝕜 s` are bounded by a constant. -/
 lemma bounded_polar_of_mem_nhds_zero {s : set E} (s_nhd : s ∈ 𝓝 (0 : E)) :
   bounded (polar 𝕜 s) :=
 begin
-  obtain ⟨a, ha⟩ : ∃ a : 𝕜, 1 < ∥a∥ := normed_field.exists_one_lt_norm 𝕜,
+  obtain ⟨a, ha⟩ : ∃ a : 𝕜, 1 < ∥a∥ := valued_field.exists_one_lt_norm 𝕜,
   obtain ⟨r, r_pos, r_ball⟩ : ∃ (r : ℝ) (hr : 0 < r), ball 0 r ⊆ s :=
     metric.mem_nhds_iff.1 s_nhd,
   exact bounded_closed_ball.mono (((dual_pairing 𝕜 E).flip.polar_antitone r_ball).trans $

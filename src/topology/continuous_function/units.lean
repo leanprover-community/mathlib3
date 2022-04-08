@@ -75,9 +75,9 @@ iff.intro (λ h, λ x, ⟨units_lift.symm h.unit x, rfl⟩)
 
 end normed_ring
 
-section normed_field
+section valued_field
 
-variables [normed_field 𝕜] [complete_space 𝕜]
+variables [valued_field 𝕜] [complete_space 𝕜]
 
 lemma is_unit_iff_forall_ne_zero (f : C(X, 𝕜)) :
   is_unit f ↔ ∀ x, f x ≠ 0 :=
@@ -92,6 +92,6 @@ begin
     sub_eq_zero, @eq_comm _ x _]
 end
 
-end normed_field
+end valued_field
 
 end continuous_map

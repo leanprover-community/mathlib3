@@ -16,7 +16,7 @@ this property and prove basic facts about this predicate.
 open set filter metric
 open_locale topological_space
 
-variables (𝕜 : Type*) {E F G : Type*} [nondiscrete_normed_field 𝕜] [normed_group E]
+variables (𝕜 : Type*) {E F G : Type*} [nondiscrete_valued_field 𝕜] [normed_group E]
   [normed_group F] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_group G] [normed_space 𝕜 G]
   {f g : E → F} {s t : set E} {x : E}
 
@@ -117,13 +117,13 @@ lemma const_smul {R : Type*} [semiring R] [module R F] [smul_comm_class 𝕜 R F
   diff_on_int_cont 𝕜 (c • f) s :=
 ⟨hf.1.const_smul c, hf.2.const_smul c⟩
 
-lemma smul {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+lemma smul {𝕜' : Type*} [nondiscrete_valued_field 𝕜'] [normed_algebra 𝕜 𝕜']
   [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F] {c : E → 𝕜'} {f : E → F} {s : set E}
   (hc : diff_on_int_cont 𝕜 c s) (hf : diff_on_int_cont 𝕜 f s) :
   diff_on_int_cont 𝕜 (λ x, c x • f x) s :=
 ⟨hc.1.smul hf.1, hc.2.smul hf.2⟩
 
-lemma smul_const {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+lemma smul_const {𝕜' : Type*} [nondiscrete_valued_field 𝕜'] [normed_algebra 𝕜 𝕜']
   [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F] {c : E → 𝕜'} {s : set E}
   (hc : diff_on_int_cont 𝕜 c s) (y : F) :
   diff_on_int_cont 𝕜 (λ x, c x • y) s :=

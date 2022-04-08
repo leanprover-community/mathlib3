@@ -34,7 +34,7 @@ For a module over a normed ring:
 seminorm, locally convex, LCTVS
 -/
 
-open normed_field set
+open valued_field set
 open_locale big_operators nnreal pointwise topological_space
 
 variables {R R' 𝕜 E F G ι : Type*}
@@ -337,8 +337,8 @@ lemma comp_smul_apply (p : seminorm 𝕜 F) (f : E →ₗ[𝕜] F) (c : 𝕜) (x
 
 end semi_normed_comm_ring
 
-section normed_field
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+section valued_field
+variables [valued_field 𝕜] [add_comm_group E] [module 𝕜 E]
 
 private lemma bdd_below_range_add (x : E) (p q : seminorm 𝕜 E) :
   bdd_below (range (λ (u : E), p u + q (x - u))) :=
@@ -391,7 +391,7 @@ begin
     smul_eq_mul, real.mul_infi_of_nonneg (subtype.prop _), mul_add],
 end
 
-end normed_field
+end valued_field
 
 /-! ### Seminorm ball -/
 
@@ -520,8 +520,8 @@ end module
 end add_comm_group
 end semi_normed_ring
 
-section normed_field
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) {A B : set E}
+section valued_field
+variables [valued_field 𝕜] [add_comm_group E] [module 𝕜 E] (p : seminorm 𝕜 E) {A B : set E}
   {a : 𝕜} {r : ℝ} {x : E}
 
 lemma smul_ball_zero {p : seminorm 𝕜 E} {k : 𝕜} {r : ℝ} (hk : 0 < ∥k∥) :
@@ -592,10 +592,10 @@ lemma smul_ball_preimage (p : seminorm 𝕜 E) (y : E) (r : ℝ) (a : 𝕜) (ha 
 set.ext $ λ _, by rw [mem_preimage, mem_ball, mem_ball,
   lt_div_iff (norm_pos_iff.mpr ha), mul_comm, ←p.smul, smul_sub, smul_inv_smul₀ ha]
 
-end normed_field
+end valued_field
 
 section convex
-variables [normed_field 𝕜] [add_comm_group E] [normed_space ℝ 𝕜] [module 𝕜 E]
+variables [valued_field 𝕜] [add_comm_group E] [normed_space ℝ 𝕜] [module 𝕜 E]
 
 section has_scalar
 variables [has_scalar ℝ E] [is_scalar_tower ℝ 𝕜 E] (p : seminorm 𝕜 E)
@@ -633,7 +633,7 @@ end seminorm
 /-! ### The norm as a seminorm -/
 
 section norm_seminorm
-variables (𝕜 E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] {r : ℝ}
+variables (𝕜 E) [valued_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] {r : ℝ}
 
 /-- The norm of a seminormed group as a seminorm. -/
 def norm_seminorm : seminorm 𝕜 E := ⟨norm, norm_smul, norm_add_le⟩

@@ -151,8 +151,8 @@ end
 
 end normed_comm_ring
 
-section normed_field
-variables [normed_field 𝕜] [normed_ring 𝕝] [normed_space 𝕜 𝕝] [add_comm_group E] [module 𝕜 E]
+section valued_field
+variables [valued_field 𝕜] [normed_ring 𝕝] [normed_space 𝕜 𝕝] [add_comm_group E] [module 𝕜 E]
   [smul_with_zero 𝕝 E] [is_scalar_tower 𝕜 𝕝 E] {s t u v A B : set E} {a b : 𝕜}
 
 /-- Scalar multiplication (by possibly different types) of a balanced set is monotone. -/
@@ -261,10 +261,10 @@ lemma balanced.closure (hA : balanced 𝕜 A) : balanced 𝕜 (closure A) :=
 λ a ha,
   (image_closure_subset_closure_image $ continuous_id.const_smul _).trans $ closure_mono $ hA _ ha
 
-end normed_field
+end valued_field
 
-section nondiscrete_normed_field
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
+section nondiscrete_valued_field
+variables [nondiscrete_valued_field 𝕜] [add_comm_group E] [module 𝕜 E] {s : set E}
 
 lemma absorbs_zero_iff : absorbs 𝕜 s 0 ↔ (0 : E) ∈ s :=
 begin
@@ -279,4 +279,4 @@ end
 lemma absorbent.zero_mem (hs : absorbent 𝕜 s) : (0 : E) ∈ s :=
 absorbs_zero_iff.1 $ absorbent_iff_forall_absorbs_singleton.1 hs _
 
-end nondiscrete_normed_field
+end nondiscrete_valued_field

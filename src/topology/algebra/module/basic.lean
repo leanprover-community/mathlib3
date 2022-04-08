@@ -104,7 +104,7 @@ end
 variables (R M)
 
 /-- Let `R` be a topological ring such that zero is not an isolated point (e.g., a nondiscrete
-normed field, see `normed_field.punctured_nhds_ne_bot`). Let `M` be a nontrivial module over `R`
+normed field, see `valued_field.punctured_nhds_ne_bot`). Let `M` be a nontrivial module over `R`
 such that `c • x = 0` implies `c = 0 ∨ x = 0`. Then `M` has no isolated points. We formulate this
 using `ne_bot (𝓝[≠] x)`.
 

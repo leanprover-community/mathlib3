@@ -132,7 +132,7 @@ end
 
 /-- The product of two independent, integrable, real_valued random variables is integrable. -/
 lemma indep_fun.integrable_mul {β : Type*} {mβ : measurable_space β} {X Y : α → β}
-  [normed_division_ring β] [borel_space β]
+  [valued_division_ring β] [borel_space β]
   (hXY : indep_fun X Y μ) (hX : integrable X μ) (hY : integrable Y μ) :
   integrable (X * Y) μ :=
 begin

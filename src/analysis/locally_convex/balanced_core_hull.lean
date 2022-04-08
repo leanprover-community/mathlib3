@@ -175,9 +175,9 @@ end add_comm_monoid
 
 end semi_normed_ring
 
-section normed_field
+section valued_field
 
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables [valued_field 𝕜] [add_comm_group E] [module 𝕜 E]
 
 @[simp] lemma balanced_core_aux_empty : balanced_core_aux 𝕜 (∅ : set E) = ∅ :=
 begin
@@ -258,7 +258,7 @@ begin
   exact inv_le_one ha,
 end
 
-end normed_field
+end valued_field
 
 end balanced_hull
 
@@ -266,7 +266,7 @@ end balanced_hull
 
 section topology
 
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
+variables [nondiscrete_valued_field 𝕜] [add_comm_group E] [module 𝕜 E] [topological_space E]
   [has_continuous_smul 𝕜 E]
 
 lemma balanced_core_is_closed {U : set E} (hU : is_closed U) : is_closed (balanced_core 𝕜 U) :=
@@ -294,7 +294,7 @@ begin
   simp_rw [←nhds_prod_eq, id.def] at h',
   have h'' := filter.tendsto.basis_left h h' U hU,
   rcases h'' with ⟨x, hx, h''⟩,
-  cases normed_field.exists_norm_lt 𝕜 hx.left with y hy,
+  cases valued_field.exists_norm_lt 𝕜 hx.left with y hy,
   have hy' : y ≠ 0 := norm_pos_iff.mp hy.1,
   let W := y • x.snd,
   rw ←filter.exists_mem_subset_iff,

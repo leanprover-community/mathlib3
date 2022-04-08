@@ -165,7 +165,7 @@ end
 
 end measure_theory.Lp
 
-variables (𝕜 : Type*) [normed_field 𝕜] [normed_algebra ℝ 𝕜] [normed_space 𝕜 E]
+variables (𝕜 : Type*) [valued_field 𝕜] [normed_algebra ℝ 𝕜] [normed_space 𝕜 E]
 
 namespace bounded_continuous_function
 

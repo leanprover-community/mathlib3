@@ -350,7 +350,7 @@ hf.mono $ eventually_of_forall $ λ x,
 end pos_part
 
 section normed_space
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables {𝕜 : Type*} [valued_field 𝕜] [normed_space 𝕜 β]
 
 lemma has_finite_integral.smul (c : 𝕜) {f : α → β} : has_finite_integral f μ →
   has_finite_integral (c • f) μ :=
@@ -811,7 +811,7 @@ lemma integrable.min_zero {f : α → ℝ} (hf : integrable f μ) : integrable (
 end pos_part
 
 section normed_space
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables {𝕜 : Type*} [valued_field 𝕜] [normed_space 𝕜 β]
 
 lemma integrable.smul (c : 𝕜) {f : α → β}
   (hf : integrable f μ) : integrable (c • f) μ :=
@@ -832,7 +832,7 @@ by simp_rw [mul_comm, h.const_mul _]
 end normed_space
 
 section normed_space_over_complete_field
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜]
+variables {𝕜 : Type*} [nondiscrete_valued_field 𝕜] [complete_space 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
 lemma integrable_smul_const {f : α → 𝕜} {c : E} (hc : c ≠ 0) :
@@ -972,7 +972,7 @@ lemma integrable.sub {f g : α →ₘ[μ] β} (hf : integrable f) (hg : integrab
 end
 
 section normed_space
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables {𝕜 : Type*} [valued_field 𝕜] [normed_space 𝕜 β]
 
 lemma integrable.smul {c : 𝕜} {f : α →ₘ[μ] β} : integrable f → integrable (c • f) :=
 induction_on f $ λ f hfm hfi, (integrable_mk _).2 $ ((integrable_mk hfm).1 hfi).smul _
@@ -1098,7 +1098,7 @@ by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm_sub] }
   edist (hf.to_L1 f) 0 = ∫⁻ a, edist (f a) 0 ∂μ :=
 by { simp [integrable.to_L1, snorm, snorm'], simp [edist_eq_coe_nnnorm] }
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
+variables {𝕜 : Type*} [valued_field 𝕜] [normed_space 𝕜 β]
 
 lemma to_L1_smul (f : α → β) (hf : integrable f μ) (k : 𝕜) :
   to_L1 (λ a, k • f a) (hf.smul k) = k • to_L1 f hf := rfl
@@ -1113,7 +1113,7 @@ end measure_theory
 open measure_theory
 
 variables {E : Type*} [normed_group E]
-          {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+          {𝕜 : Type*} [nondiscrete_valued_field 𝕜] [normed_space 𝕜 E]
           {H : Type*} [normed_group H] [normed_space 𝕜 H]
 
 lemma measure_theory.integrable.apply_continuous_linear_map {φ : α → H →L[𝕜] E}

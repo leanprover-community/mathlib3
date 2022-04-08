@@ -216,7 +216,7 @@ lemma weighted_smul_union (s t : set α) (hs : measurable_set s) (ht : measurabl
   (weighted_smul μ (s ∪ t) : F →L[ℝ] F) = weighted_smul μ s + weighted_smul μ t :=
 weighted_smul_union' s t ht hs_finite ht_finite h_inter
 
-lemma weighted_smul_smul [normed_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
+lemma weighted_smul_smul [valued_field 𝕜] [normed_space 𝕜 F] [smul_comm_class ℝ 𝕜 F]
   (c : 𝕜) (s : set α) (x : F) :
   weighted_smul μ s (c • x) = c • weighted_smul μ s x :=
 by { simp_rw [weighted_smul_apply, smul_comm], }
@@ -355,7 +355,7 @@ begin
   { simp [hg0] }
 end
 
-variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
+variables [valued_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
 
 lemma integral_congr {f g : α →ₛ E} (hf : integrable f μ) (h : f =ᵐ[μ] g) :
   f.integral μ = g.integral μ :=
@@ -462,7 +462,7 @@ section simple_func_integral
 Define the Bochner integral on `α →₁ₛ[μ] E` by extension from the simple functions `α →₁ₛ[μ] E`,
 and prove basic properties of this integral. -/
 
-variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
+variables [valued_field 𝕜] [normed_space 𝕜 E] [normed_space ℝ E] [smul_comm_class ℝ 𝕜 E]
   {F' : Type*} [normed_group F'] [normed_space ℝ F']
 
 local attribute [instance] simple_func.normed_space
@@ -584,7 +584,7 @@ open simple_func
 local notation `Integral` := @integral_clm α E _ _ _ _ _ μ _
 
 
-variables [normed_space ℝ E] [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+variables [normed_space ℝ E] [nondiscrete_valued_field 𝕜] [normed_space 𝕜 E]
   [smul_comm_class ℝ 𝕜 E] [normed_space ℝ F] [complete_space E]
 
 section integration_in_L1
@@ -684,7 +684,7 @@ functions, and 0 otherwise; prove its basic properties.
 -/
 
 variables [normed_group E] [normed_space ℝ E] [complete_space E]
-          [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
+          [nondiscrete_valued_field 𝕜] [normed_space 𝕜 E] [smul_comm_class ℝ 𝕜 E]
           [normed_group F] [normed_space ℝ F] [complete_space F]
 
 /-- The Bochner integral -/

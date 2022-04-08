@@ -30,7 +30,7 @@ property of uniqueness of the derivative is therefore proved in `fderiv.lean`, b
 properties of the tangent cone we prove here.
 -/
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type*) [nondiscrete_valued_field 𝕜]
 
 open filter set
 open_locale topological_space
@@ -71,7 +71,7 @@ variables {𝕜} {x y : E} {s t : set E}
 section tangent_cone
 /- This section is devoted to the properties of the tangent cone. -/
 
-open normed_field
+open valued_field
 
 lemma tangent_cone_univ : tangent_cone_at 𝕜 univ x = univ :=
 begin

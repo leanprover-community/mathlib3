@@ -36,14 +36,14 @@ variables [semi_normed_group E] [semi_normed_group F] [semi_normed_group Fₗ] [
 
 open metric continuous_linear_map
 
-section normed_field
+section valued_field
 /-! Most statements in this file require the field to be non-discrete,
 as this is necessary to deduce an inequality `∥f x∥ ≤ C ∥x∥` from the continuity of f.
 However, the other direction always holds.
 In this section, we just assume that `𝕜` is a normed field.
 In the remainder of the file, it will be non-discrete. -/
 
-variables [normed_field 𝕜] [normed_field 𝕜₂] [normed_space 𝕜 E] [normed_space 𝕜₂ F]
+variables [valued_field 𝕜] [valued_field 𝕜₂] [normed_space 𝕜 E] [normed_space 𝕜₂ F]
 variables [normed_space 𝕜 G] {σ : 𝕜 →+* 𝕜₂} (f : E →ₛₗ[σ] F)
 
 lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
@@ -123,9 +123,9 @@ rfl
   f.to_continuous_linear_map₁ x = f x :=
 rfl
 
-end normed_field
+end valued_field
 
-variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
+variables [nondiscrete_valued_field 𝕜] [nondiscrete_valued_field 𝕜₂] [nondiscrete_valued_field 𝕜₃]
   [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜 Fₗ]
   [normed_space 𝕜₃ G] [normed_space 𝕜 Gₗ]
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃} {σ₁₃ : 𝕜 →+* 𝕜₃}
@@ -167,7 +167,7 @@ lemma linear_map.bound_of_continuous (f : E →ₛₗ[σ₁₂] F) (hf : continu
 begin
   rcases normed_group.tendsto_nhds_nhds.1 (hf.tendsto 0) 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
   simp only [sub_zero, f.map_zero] at hε,
-  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases valued_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   have : 0 < ∥c∥ / ε, from div_pos (zero_lt_one.trans hc) ε_pos,
   refine ⟨∥c∥ / ε, this, λ x, _⟩,
   by_cases hx : ∥x∥ = 0,
@@ -215,7 +215,7 @@ lemma to_span_singleton_add (x y : E) :
   to_span_singleton 𝕜 (x + y) = to_span_singleton 𝕜 x + to_span_singleton 𝕜 y :=
 by { ext1, simp [to_span_singleton_apply], }
 
-lemma to_span_singleton_smul' (𝕜') [nondiscrete_normed_field 𝕜'] [normed_space 𝕜' E]
+lemma to_span_singleton_smul' (𝕜') [nondiscrete_valued_field 𝕜'] [normed_space 𝕜' E]
   [smul_comm_class 𝕜 𝕜' E] (c : 𝕜') (x : E) :
   to_span_singleton 𝕜 (c • x) = c • to_span_singleton 𝕜 x :=
 by { ext1, rw [to_span_singleton_apply, smul_apply, to_span_singleton_apply, smul_comm], }
@@ -334,7 +334,7 @@ end
 lemma op_norm_le_of_ball {f : E →SL[σ₁₂] F} {ε : ℝ} {C : ℝ} (ε_pos : 0 < ε) (hC : 0 ≤ C)
   (hf : ∀ x ∈ ball (0 : E) ε, ∥f x∥ ≤ C * ∥x∥) : ∥f∥ ≤ C :=
 begin
-  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases valued_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine op_norm_le_of_shell ε_pos hC hc (λ x _ hx, hf x _),
   rwa ball_zero_eq
 end
@@ -380,7 +380,7 @@ le_antisymm norm_id_le $ let ⟨x, hx⟩ := h in
 have _ := (id 𝕜 E).ratio_le_op_norm x,
 by rwa [id_apply, div_self hx] at this
 
-lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
+lemma op_norm_smul_le {𝕜' : Type*} [valued_field 𝕜'] [normed_space 𝕜' F]
   [smul_comm_class 𝕜₂ 𝕜' F] (c : 𝕜') (f : E →SL[σ₁₂] F) : ∥c • f∥ ≤ ∥c∥ * ∥f∥ :=
 ((c • f).op_norm_le_bound
   (mul_nonneg (norm_nonneg _) (op_norm_nonneg _)) (λ _,
@@ -394,7 +394,7 @@ lemma op_norm_smul_le {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F
 instance to_semi_normed_group : semi_normed_group (E →SL[σ₁₂] F) :=
 semi_normed_group.of_core _ ⟨op_norm_zero, λ x y, op_norm_add_le x y, op_norm_neg⟩
 
-instance to_normed_space {𝕜' : Type*} [normed_field 𝕜'] [normed_space 𝕜' F]
+instance to_normed_space {𝕜' : Type*} [valued_field 𝕜'] [normed_space 𝕜' F]
   [smul_comm_class 𝕜₂ 𝕜' F] : normed_space 𝕜' (E →SL[σ₁₂] F) :=
 ⟨op_norm_smul_le⟩
 
@@ -831,7 +831,7 @@ end multiplication_linear
 
 section smul_linear
 
-variables (𝕜) (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜) (𝕜' : Type*) [valued_field 𝕜'] [normed_algebra 𝕜 𝕜']
   [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
 
 /-- Scalar multiplication as a continuous bilinear map. -/
@@ -856,7 +856,7 @@ end smul_linear
 
 section restrict_scalars
 
-variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜' 𝕜]
+variables {𝕜' : Type*} [nondiscrete_valued_field 𝕜'] [normed_algebra 𝕜' 𝕜]
 variables [normed_space 𝕜' E] [is_scalar_tower 𝕜' 𝕜 E]
 variables [normed_space 𝕜' Fₗ] [is_scalar_tower 𝕜' 𝕜 Fₗ]
 
@@ -1045,7 +1045,7 @@ omit σ₂₁
 namespace continuous_linear_map
 variables {E' F' : Type*} [semi_normed_group E'] [semi_normed_group F']
 
-variables {𝕜₁' : Type*} {𝕜₂' : Type*} [nondiscrete_normed_field 𝕜₁'] [nondiscrete_normed_field 𝕜₂']
+variables {𝕜₁' : Type*} {𝕜₂' : Type*} [nondiscrete_valued_field 𝕜₁'] [nondiscrete_valued_field 𝕜₂']
   [normed_space 𝕜₁' E'] [normed_space 𝕜₂' F']
   {σ₁' : 𝕜₁' →+* 𝕜} {σ₁₃' : 𝕜₁' →+* 𝕜₃} {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂₃' : 𝕜₂' →+* 𝕜₃}
   [ring_hom_comp_triple σ₁' σ₁₃ σ₁₃'] [ring_hom_comp_triple σ₂' σ₂₃ σ₂₃']
@@ -1089,9 +1089,9 @@ variables [normed_group E] [normed_group F] [normed_group G] [normed_group Fₗ]
 
 open metric continuous_linear_map
 
-section normed_field
+section valued_field
 
-variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
+variables [valued_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
 
 lemma linear_map.continuous_iff_is_closed_ker {f : E →ₗ[𝕜] 𝕜} :
   continuous f ↔ is_closed (f.ker : set E) :=
@@ -1147,10 +1147,10 @@ begin
     exact linear_map.continuous_of_bound f _ this }
 end
 
-end normed_field
+end valued_field
 
 section
-variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
+variables [nondiscrete_valued_field 𝕜] [nondiscrete_valued_field 𝕜₂] [nondiscrete_valued_field 𝕜₃]
   [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜₃ G] [normed_space 𝕜 Fₗ] (c : 𝕜)
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃}
   [ring_hom_isometric σ₁₂] (f g : E →SL[σ₁₂] F) (x y z : E)
@@ -1171,7 +1171,7 @@ lemma linear_map.bound_of_ball_bound {r : ℝ} (r_pos : 0 < r) (c : ℝ) (f : E 
   (h : ∀ z ∈ metric.ball (0 : E) r, ∥f z∥ ≤ c) :
   ∃ C, ∀ (z : E), ∥f z∥ ≤ C * ∥z∥ :=
 begin
-  cases @nondiscrete_normed_field.non_trivial 𝕜 _ with k hk,
+  cases @nondiscrete_valued_field.non_trivial 𝕜 _ with k hk,
   use c * (∥k∥ / r),
   intro z,
   refine linear_map.bound_of_shell _ r_pos hk (λ x hko hxo, _) _,
@@ -1262,7 +1262,7 @@ begin
       rw [f.map_zero, dist_zero_right],
       exact hx.trans_lt (half_lt_self εpos) },
     simpa using this },
-  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases valued_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine ⟨⟨δ⁻¹, _⟩ * nnnorm c, f.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
   exact inv_nonneg.2 (le_of_lt δ_pos),
   by_cases hx : f x = 0,
@@ -1467,11 +1467,11 @@ end
 
 namespace continuous_linear_map
 
-variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
+variables [nondiscrete_valued_field 𝕜] [nondiscrete_valued_field 𝕜₂] [nondiscrete_valued_field 𝕜₃]
   [normed_space 𝕜 E] [normed_space 𝕜₂ F] [normed_space 𝕜₃ G] [normed_space 𝕜 Fₗ] (c : 𝕜)
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃}
 
-variables {𝕜₂' : Type*} [nondiscrete_normed_field 𝕜₂'] {F' : Type*} [normed_group F']
+variables {𝕜₂' : Type*} [nondiscrete_valued_field 𝕜₂'] {F' : Type*} [normed_group F']
   [normed_space 𝕜₂' F'] {σ₂' : 𝕜₂' →+* 𝕜₂} {σ₂'' : 𝕜₂ →+* 𝕜₂'}
   {σ₂₃' : 𝕜₂' →+* 𝕜₃}
   [ring_hom_inv_pair σ₂' σ₂''] [ring_hom_inv_pair σ₂'' σ₂']
@@ -1563,7 +1563,7 @@ by haveI := normed_algebra.nontrivial 𝕜 𝕜'; exact (lmulₗᵢ 𝕜 𝕜').
 end continuous_linear_map
 
 namespace submodule
-variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
+variables [nondiscrete_valued_field 𝕜] [nondiscrete_valued_field 𝕜₂] [nondiscrete_valued_field 𝕜₃]
   [normed_space 𝕜 E] [normed_space 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂}
 
 lemma norm_subtypeL (K : submodule 𝕜 E) [nontrivial K] : ∥K.subtypeL∥ = 1 :=
@@ -1572,7 +1572,7 @@ K.subtypeₗᵢ.norm_to_continuous_linear_map
 end submodule
 
 namespace continuous_linear_equiv
-variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [nondiscrete_normed_field 𝕜₃]
+variables [nondiscrete_valued_field 𝕜] [nondiscrete_valued_field 𝕜₂] [nondiscrete_valued_field 𝕜₃]
   [normed_space 𝕜 E] [normed_space 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜}
   [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
 
@@ -1665,7 +1665,7 @@ end
 
 end continuous_linear_equiv
 
-variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂]
+variables [nondiscrete_valued_field 𝕜] [nondiscrete_valued_field 𝕜₂]
   [normed_space 𝕜 E] [normed_space 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜}
   [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
   [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₁]

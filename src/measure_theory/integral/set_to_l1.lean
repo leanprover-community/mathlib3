@@ -220,7 +220,7 @@ begin
   exact (norm_add_le _ _).trans (add_le_add (hT.2 s hs hμs) (hT'.2 s hs hμs)),
 end
 
-lemma smul [normed_field 𝕜] [normed_space 𝕜 β] (hT : dominated_fin_meas_additive μ T C)
+lemma smul [valued_field 𝕜] [normed_space 𝕜 β] (hT : dominated_fin_meas_additive μ T C)
   (c : 𝕜) :
   dominated_fin_meas_additive μ (λ s, c • (T s)) (∥c∥ * C) :=
 begin
@@ -511,7 +511,7 @@ calc set_to_simple_func T (c • f) = ∑ x in f.range, T (f ⁻¹' {x}) (c • 
 ... = c • set_to_simple_func T f :
 by simp only [set_to_simple_func, smul_sum, smul_smul, mul_comm]
 
-lemma set_to_simple_func_smul {E} [normed_group E] [normed_field 𝕜]
+lemma set_to_simple_func_smul {E} [normed_group E] [valued_field 𝕜]
   [normed_space 𝕜 E] [normed_space ℝ E] [normed_space 𝕜 F] (T : set α → E →L[ℝ] F)
   (h_add : fin_meas_additive μ T) (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x)
   (c : 𝕜) {f : α →ₛ E} (hf : integrable f μ) :
@@ -713,7 +713,7 @@ end
 
 section set_to_L1s
 
-variables [normed_field 𝕜] [normed_space 𝕜 E]
+variables [valued_field 𝕜] [normed_space 𝕜 E]
 
 local attribute [instance] Lp.simple_func.module
 local attribute [instance] Lp.simple_func.normed_space
@@ -1034,7 +1034,7 @@ section set_to_L1
 local attribute [instance] Lp.simple_func.module
 local attribute [instance] Lp.simple_func.normed_space
 
-variables (𝕜) [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E]
+variables (𝕜) [nondiscrete_valued_field 𝕜] [normed_space 𝕜 E]
   [normed_space 𝕜 F] [complete_space F]
   {T T' T'' : set α → E →L[ℝ] F} {C C' C'' : ℝ}
 
@@ -1459,7 +1459,7 @@ lemma set_to_fun_sub (hT : dominated_fin_meas_additive μ T C)
   set_to_fun μ T hT (f - g) = set_to_fun μ T hT f - set_to_fun μ T hT g :=
 by rw [sub_eq_add_neg, sub_eq_add_neg, set_to_fun_add hT hf hg.neg, set_to_fun_neg hT g]
 
-lemma set_to_fun_smul [nondiscrete_normed_field 𝕜]
+lemma set_to_fun_smul [nondiscrete_valued_field 𝕜]
   [normed_space 𝕜 E] [normed_space 𝕜 F] (hT : dominated_fin_meas_additive μ T C)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) (c : 𝕜) (f : α → E) :
   set_to_fun μ T hT (c • f) = c • set_to_fun μ T hT f :=

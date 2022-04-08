@@ -43,16 +43,16 @@ normed_group.of_core ℂ
   triangle := abs_add,
   norm_neg := abs_neg }
 
-instance : normed_field ℂ :=
+instance : valued_field ℂ :=
 { norm := abs,
   dist_eq := λ _ _, rfl,
   norm_mul' := abs_mul,
   .. complex.field }
 
-instance : nondiscrete_normed_field ℂ :=
+instance : nondiscrete_valued_field ℂ :=
 { non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
 
-instance {R : Type*} [normed_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=
+instance {R : Type*} [valued_field R] [normed_algebra R ℝ] : normed_algebra R ℂ :=
 { norm_algebra_map_eq := λ x, (abs_of_real $ algebra_map R ℝ x).trans (norm_algebra_map_eq ℝ x),
   to_algebra := complex.algebra }
 

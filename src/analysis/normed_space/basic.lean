@@ -34,12 +34,12 @@ equality `∥c • x∥ = ∥c∥ ∥x∥`. We require only `∥c • x∥ ≤ �
 
 Note that since this requires `semi_normed_group` and not `normed_group`, this typeclass can be
 used for "semi normed spaces" too, just as `module` can be used for "semi modules". -/
-class normed_space (α : Type*) (β : Type*) [normed_field α] [semi_normed_group β]
+class normed_space (α : Type*) (β : Type*) [valued_field α] [semi_normed_group β]
   extends module α β :=
 (norm_smul_le : ∀ (a:α) (b:β), ∥a • b∥ ≤ ∥a∥ * ∥b∥)
 end prio
 
-variables [normed_field α] [semi_normed_group β]
+variables [valued_field α] [semi_normed_group β]
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_space.has_bounded_smul [normed_space α β] : has_bounded_smul α β :=
@@ -48,7 +48,7 @@ instance normed_space.has_bounded_smul [normed_space α β] : has_bounded_smul �
   dist_pair_smul' := λ x₁ x₂ y,
     by simpa [dist_eq_norm, sub_smul] using normed_space.norm_smul_le (x₁ - x₂) y }
 
-instance normed_field.to_normed_space : normed_space α α :=
+instance valued_field.to_normed_space : normed_space α α :=
 { norm_smul_le := λ a b, le_of_eq (norm_mul a b) }
 
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
@@ -187,7 +187,7 @@ ne_neg_of_mem_sphere α one_ne_zero x
 
 variables {α}
 
-open normed_field
+open valued_field
 
 /-- The product of two normed spaces is a normed space, with the sup norm. -/
 instance prod.normed_space : normed_space α (E × F) :=
@@ -204,7 +204,7 @@ instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, semi_normed_grou
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
 /-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
-instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [normed_field 𝕜] [ring R]
+instance submodule.normed_space {𝕜 R : Type*} [has_scalar 𝕜 R] [valued_field 𝕜] [ring R]
   {E : Type*} [semi_normed_group E] [normed_space 𝕜 E] [module R E]
   [is_scalar_tower 𝕜 R E] (s : submodule R E) :
   normed_space 𝕜 s :=
@@ -241,11 +241,11 @@ end semi_normed_group
 
 section normed_group
 
-variables [normed_field α]
+variables [valued_field α]
 variables {E : Type*} [normed_group E] [normed_space α E]
 variables {F : Type*} [normed_group F] [normed_space α F]
 
-open normed_field
+open valued_field
 
 /-- While this may appear identical to `normed_space.to_module`, it contains an implicit argument
 involving `normed_group.to_semi_normed_group` that typeclass inference has trouble inferring.
@@ -254,7 +254,7 @@ Specifically, the following instance cannot be found without this `normed_space.
 ```lean
 example
   (𝕜 ι : Type*) (E : ι → Type*)
-  [normed_field 𝕜] [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)] :
+  [valued_field 𝕜] [Π i, normed_group (E i)] [Π i, normed_space 𝕜 (E i)] :
   Π i, module 𝕜 (E i) := by apply_instance
 ```
 
@@ -288,7 +288,7 @@ end normed_group
 
 section normed_space_nondiscrete
 
-variables (𝕜 E : Type*) [nondiscrete_normed_field 𝕜] [normed_group E] [normed_space 𝕜 E]
+variables (𝕜 E : Type*) [nondiscrete_valued_field 𝕜] [normed_group E] [normed_space 𝕜 E]
   [nontrivial E]
 
 include 𝕜
@@ -298,7 +298,7 @@ for any `c : ℝ`, there exists a vector `x : E` with norm strictly greater than
 lemma normed_space.exists_lt_norm (c : ℝ) : ∃ x : E, c < ∥x∥ :=
 begin
   rcases exists_ne (0 : E) with ⟨x, hx⟩,
-  rcases normed_field.exists_lt_norm 𝕜 (c / ∥x∥) with ⟨r, hr⟩,
+  rcases valued_field.exists_lt_norm 𝕜 (c / ∥x∥) with ⟨r, hr⟩,
   use r • x,
   rwa [norm_smul, ← div_lt_iff],
   rwa norm_pos_iff
@@ -315,7 +315,7 @@ protected lemma normed_space.noncompact_space : noncompact_space E :=
 ⟨λ h, normed_space.unbounded_univ 𝕜 _ h.bounded⟩
 
 @[priority 100]
-instance nondiscrete_normed_field.noncompact_space : noncompact_space 𝕜 :=
+instance nondiscrete_valued_field.noncompact_space : noncompact_space 𝕜 :=
 normed_space.noncompact_space 𝕜 𝕜
 
 omit 𝕜
@@ -330,23 +330,23 @@ section normed_algebra
 
 /-- A normed algebra `𝕜'` over `𝕜` is an algebra endowed with a norm for which the
 embedding of `𝕜` in `𝕜'` is an isometry. -/
-class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [semi_normed_ring 𝕜']
+class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [valued_field 𝕜] [semi_normed_ring 𝕜']
   extends algebra 𝕜 𝕜' :=
 (norm_algebra_map_eq : ∀x:𝕜, ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥)
 
-@[simp] lemma norm_algebra_map_eq {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜] [semi_normed_ring 𝕜']
+@[simp] lemma norm_algebra_map_eq {𝕜 : Type*} (𝕜' : Type*) [valued_field 𝕜] [semi_normed_ring 𝕜']
   [h : normed_algebra 𝕜 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜 𝕜' x∥ = ∥x∥ :=
 normed_algebra.norm_algebra_map_eq _
 
 /-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
-lemma algebra_map_isometry (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [semi_normed_ring 𝕜']
+lemma algebra_map_isometry (𝕜 : Type*) (𝕜' : Type*) [valued_field 𝕜] [semi_normed_ring 𝕜']
   [normed_algebra 𝕜 𝕜'] : isometry (algebra_map 𝕜 𝕜') :=
 begin
   refine isometry_emetric_iff_metric.2 (λx y, _),
   rw [dist_eq_norm, dist_eq_norm, ← ring_hom.map_sub, norm_algebra_map_eq],
 end
 
-variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜]
+variables (𝕜 : Type*) (𝕜' : Type*) [valued_field 𝕜]
 
 /-- The inclusion of the base field in a normed algebra as a continuous linear map. -/
 @[simps]
@@ -378,7 +378,7 @@ Specifically, the following instance cannot be found without this `normed_space.
 ```lean
 example
   (𝕜 ι : Type*) (E : ι → Type*)
-  [normed_field 𝕜] [Π i, normed_ring (E i)] [Π i, normed_algebra 𝕜 (E i)] :
+  [valued_field 𝕜] [Π i, normed_ring (E i)] [Π i, normed_algebra 𝕜 (E i)] :
   Π i, module 𝕜 (E i) := by apply_instance
 ```
 
@@ -413,7 +413,7 @@ end normed_algebra
 
 section restrict_scalars
 
-variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜 : Type*) (𝕜' : Type*) [valued_field 𝕜] [valued_field 𝕜'] [normed_algebra 𝕜 𝕜']
 (E : Type*) [semi_normed_group E] [normed_space 𝕜' E]
 
 /-- Warning: This declaration should be used judiciously.
@@ -438,7 +438,7 @@ instance {𝕜 : Type*} {𝕜' : Type*} {E : Type*} [I : normed_group E] :
   normed_group (restrict_scalars 𝕜 𝕜' E) := I
 
 instance module.restrict_scalars.normed_space_orig {𝕜 : Type*} {𝕜' : Type*} {E : Type*}
-  [normed_field 𝕜'] [semi_normed_group E] [I : normed_space 𝕜' E] :
+  [valued_field 𝕜'] [semi_normed_group E] [I : normed_space 𝕜' E] :
   normed_space 𝕜' (restrict_scalars 𝕜 𝕜' E) := I
 
 instance : normed_space 𝕜 (restrict_scalars 𝕜 𝕜' E) :=

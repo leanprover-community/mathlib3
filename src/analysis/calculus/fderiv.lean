@@ -121,7 +121,7 @@ noncomputable theory
 
 section
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nondiscrete_valued_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
@@ -2073,7 +2073,7 @@ section bilinear_map
 
 variables {b : E × F → G} {u : set (E × F) }
 
-open normed_field
+open valued_field
 
 lemma is_bounded_bilinear_map.has_strict_fderiv_at (h : is_bounded_bilinear_map 𝕜 b) (p : E × F) :
   has_strict_fderiv_at b (h.deriv p) p :=
@@ -2254,7 +2254,7 @@ field: e.g., they work for `c : E → ℂ` and `f : E → F` provided that `F` i
 normed vector space.
 -/
 
-variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables {𝕜' : Type*} [nondiscrete_valued_field 𝕜'] [normed_algebra 𝕜 𝕜']
   [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
 variables {c : E → 𝕜'} {c' : E →L[𝕜] 𝕜'}
 
@@ -2884,7 +2884,7 @@ end
 
 section tangent_cone
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nondiscrete_valued_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {f : E → F} {s : set E} {f' : E →L[𝕜] F}
@@ -2949,8 +2949,8 @@ we give variants of this statement, in the general situation where `ℂ` and `�
 respectively by `𝕜'` and `𝕜` where `𝕜'` is a normed algebra over `𝕜`.
 -/
 
-variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-variables {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜 : Type*) [nondiscrete_valued_field 𝕜]
+variables {𝕜' : Type*} [nondiscrete_valued_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [normed_space 𝕜' E]
 variables [is_scalar_tower 𝕜 𝕜' E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [normed_space 𝕜' F]
@@ -3025,7 +3025,7 @@ end restrict_scalars
 section support
 
 open function
-variables (𝕜 : Type*) {E F : Type*} [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type*) {E F : Type*} [nondiscrete_valued_field 𝕜]
 variables [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F] {f : E → F}
 
 lemma support_fderiv_subset : support (fderiv 𝕜 f) ⊆ tsupport f :=

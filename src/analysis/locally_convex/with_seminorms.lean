@@ -32,14 +32,14 @@ Show that for any locally convex space there exist seminorms that induce the top
 seminorm, locally convex
 -/
 
-open normed_field set seminorm
+open valued_field set seminorm
 open_locale big_operators nnreal pointwise topological_space
 
 variables {𝕜 E F G ι ι' : Type*}
 
 section filter_basis
 
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables [valued_field 𝕜] [add_comm_group E] [module 𝕜 E]
 
 variables (𝕜 E ι)
 
@@ -180,7 +180,7 @@ section bounded
 
 namespace seminorm
 
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
+variables [valued_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
 
 -- Todo: This should be phrased entirely in terms of the von Neumann bornology.
 
@@ -239,7 +239,7 @@ end bounded
 
 section topology
 
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι]
+variables [valued_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι]
 
 /-- The proposition that the topology of `E` is induced by a family of seminorms `p`. -/
 class with_seminorms (p : seminorm_family 𝕜 E ι) [t : topological_space E] : Prop :=
@@ -262,7 +262,7 @@ end topology
 
 section topological_add_group
 
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables [valued_field 𝕜] [add_comm_group E] [module 𝕜 E]
 variables [topological_space E] [topological_add_group E]
 variables [nonempty ι]
 
@@ -288,7 +288,7 @@ end topological_add_group
 section normed_space
 
 /-- The topology of a `normed_space 𝕜 E` is induced by the seminorm `norm_seminorm 𝕜 E`. -/
-instance norm_with_seminorms (𝕜 E) [normed_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] :
+instance norm_with_seminorms (𝕜 E) [valued_field 𝕜] [semi_normed_group E] [normed_space 𝕜 E] :
   with_seminorms (λ (_ : fin 1), norm_seminorm 𝕜 E) :=
 begin
   let p : seminorm_family 𝕜 E (fin 1) := λ _, norm_seminorm 𝕜 E,
@@ -310,9 +310,9 @@ end
 
 end normed_space
 
-section nondiscrete_normed_field
+section nondiscrete_valued_field
 
-variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι]
+variables [nondiscrete_valued_field 𝕜] [add_comm_group E] [module 𝕜 E] [nonempty ι]
 variables (p : seminorm_family 𝕜 E ι)
 variables [topological_space E] [with_seminorms p]
 
@@ -325,7 +325,7 @@ begin
     simp only [id.def] at h,
     specialize h ((I.sup p).ball 0 1) (p.basis_sets_mem I zero_lt_one),
     rcases h with ⟨r, hr, h⟩,
-    cases normed_field.exists_lt_norm 𝕜 r with a ha,
+    cases valued_field.exists_lt_norm 𝕜 r with a ha,
     specialize h a (le_of_lt ha),
     rw [seminorm.smul_ball_zero (lt_trans hr ha), mul_one] at h,
     refine ⟨∥a∥, lt_trans hr ha, _⟩,
@@ -363,12 +363,12 @@ begin
   exact ⟨1, zero_lt_one, λ _ _, zero_lt_one⟩,
 end
 
-end nondiscrete_normed_field
+end nondiscrete_valued_field
 section continuous_bounded
 
 namespace seminorm
 
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
+variables [valued_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
 variables [nonempty ι] [nonempty ι']
 
 lemma continuous_from_bounded (p : seminorm_family 𝕜 E ι) (q : seminorm_family 𝕜 F ι')
@@ -420,7 +420,7 @@ section locally_convex_space
 
 open locally_convex_space
 
-variables [nonempty ι] [normed_field 𝕜] [normed_space ℝ 𝕜]
+variables [nonempty ι] [valued_field 𝕜] [normed_space ℝ 𝕜]
   [add_comm_group E] [module 𝕜 E] [module ℝ E] [is_scalar_tower ℝ 𝕜 E] [topological_space E]
   [topological_add_group E]
 
@@ -441,7 +441,7 @@ end locally_convex_space
 
 section normed_space
 
-variables (𝕜) [normed_field 𝕜] [normed_space ℝ 𝕜] [semi_normed_group E]
+variables (𝕜) [valued_field 𝕜] [normed_space ℝ 𝕜] [semi_normed_group E]
 
 /-- Not an instance since `𝕜` can't be inferred. See `normed_space.to_locally_convex_space` for a
 slightly weaker instance version. -/

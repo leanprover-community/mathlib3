@@ -34,7 +34,7 @@ For a real vector space,
 Minkowski functional, gauge
 -/
 
-open normed_field set
+open valued_field set
 open_locale pointwise
 
 noncomputable theory

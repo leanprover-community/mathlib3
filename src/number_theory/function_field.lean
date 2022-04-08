@@ -255,7 +255,7 @@ lemma completable_top_field : @completable_top_field (ratfunc Fq) _ (uniform_spa
 @valued.completable (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq)
 
 lemma separated_space : @separated_space (ratfunc Fq) (uniform_space Fq) :=
-@valued_ring.separated (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq)
+@valued.separated (ratfunc Fq) _ _ _ (infty_valued_Fqt Fq)
 
 end infty_valued_Fqt
 

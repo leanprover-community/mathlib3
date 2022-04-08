@@ -102,7 +102,7 @@ instance valued.topological_division_ring [valued K Γ₀] : topological_divisio
 
 /-- A valued division ring is separated. -/
 @[priority 100]
-instance valued_ring.separated [valued K Γ₀] : separated_space K :=
+instance valued.separated [valued K Γ₀] : separated_space K :=
 begin
   apply topological_add_group.separated_of_zero_sep,
   intros x x_ne,
@@ -198,7 +198,7 @@ instance valued.completable : completable_top_field K :=
         rw units.coe_mul,
         exact mul_le_mul_left' this γ } }
   end,
-  ..valued_ring.separated }
+  ..valued.separated }
 
 local attribute [instance] linear_ordered_comm_group_with_zero.topological_space
 

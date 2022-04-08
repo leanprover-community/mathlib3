@@ -59,14 +59,14 @@ class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 
 /-- A normed division ring is a division ring endowed with a seminorm which satisfies the equality
 `∥x y∥ = ∥x∥ ∥y∥`. -/
-class normed_division_ring (α : Type*) extends has_norm α, division_ring α, metric_space α :=
+class valued_division_ring (α : Type*) extends has_norm α, division_ring α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
 
 /-- A normed division ring is a normed ring. -/
 @[priority 100] -- see Note [lower instance priority]
-instance normed_division_ring.to_normed_ring [β : normed_division_ring α] : normed_ring α :=
-{ norm_mul := λ a b, (normed_division_ring.norm_mul' a b).le,
+instance valued_division_ring.to_normed_ring [β : valued_division_ring α] : normed_ring α :=
+{ norm_mul := λ a b, (valued_division_ring.norm_mul' a b).le,
   ..β }
 
 /-- A normed ring is a seminormed ring. -/
@@ -99,7 +99,7 @@ instance : normed_comm_ring punit :=
   ..punit.normed_group,
   ..punit.comm_ring, }
 
-/-- A mixin class with the axiom `∥1∥ = 1`. Many `normed_ring`s and all `normed_field`s satisfy this
+/-- A mixin class with the axiom `∥1∥ = 1`. Many `normed_ring`s and all `valued_field`s satisfy this
 axiom. -/
 class norm_one_class (α : Type*) [has_norm α] [has_one α] : Prop :=
 (norm_one : ∥(1:α)∥ = 1)
@@ -296,15 +296,15 @@ instance semi_normed_ring_top_monoid [non_unital_semi_normed_ring α] : has_cont
 @[priority 100] -- see Note [lower instance priority]
 instance semi_normed_top_ring [non_unital_semi_normed_ring α] : topological_ring α := { }
 
-section normed_division_ring
+section valued_division_ring
 
-variables [normed_division_ring α]
+variables [valued_division_ring α]
 
 @[simp] lemma norm_mul (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
-normed_division_ring.norm_mul' a b
+valued_division_ring.norm_mul' a b
 
 @[priority 900]
-instance normed_division_ring.to_norm_one_class : norm_one_class α :=
+instance valued_division_ring.to_norm_one_class : norm_one_class α :=
 ⟨mul_left_cancel₀ (mt norm_eq_zero.1 (@one_ne_zero α _ _)) $
   by rw [← norm_mul, mul_one, mul_one]⟩
 
@@ -346,7 +346,7 @@ nnreal.eq $ by simp
 (nnnorm_hom : α →*₀ ℝ≥0).map_zpow
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_division_ring.to_has_continuous_inv₀ : has_continuous_inv₀ α :=
+instance valued_division_ring.to_has_continuous_inv₀ : has_continuous_inv₀ α :=
 begin
   refine ⟨λ r r0, tendsto_iff_norm_tendsto_zero.2 _⟩,
   have r0' : 0 < ∥r∥ := norm_pos_iff.2 r0,
@@ -365,30 +365,30 @@ begin
   simp,
 end
 
-end normed_division_ring
+end valued_division_ring
 
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
-class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
+class valued_field (α : Type*) extends has_norm α, field α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
 
 /-- A nondiscrete normed field is a normed field in which there is an element of norm different from
 `0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by multiplication
 by the powers of any element, and thus to relate algebra and topology. -/
-class nondiscrete_normed_field (α : Type*) extends normed_field α :=
+class nondiscrete_valued_field (α : Type*) extends valued_field α :=
 (non_trivial : ∃ x : α, 1 < ∥x∥)
 
-section normed_field
+section valued_field
 
-variables [normed_field α]
-
-@[priority 100] -- see Note [lower instance priority]
-instance normed_field.to_normed_division_ring : normed_division_ring α :=
-{ ..‹normed_field α› }
+variables [valued_field α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance normed_field.to_normed_comm_ring : normed_comm_ring α :=
-{ norm_mul := λ a b, (norm_mul a b).le, ..‹normed_field α› }
+instance valued_field.to_valued_division_ring : valued_division_ring α :=
+{ ..‹valued_field α› }
+
+@[priority 100] -- see Note [lower instance priority]
+instance valued_field.to_normed_comm_ring : normed_comm_ring α :=
+{ norm_mul := λ a b, (norm_mul a b).le, ..‹valued_field α› }
 
 @[simp] lemma norm_prod (s : finset β) (f : β → α) :
   ∥∏ b in s, f b∥ = ∏ b in s, ∥f b∥ :=
@@ -398,13 +398,13 @@ instance normed_field.to_normed_comm_ring : normed_comm_ring α :=
   ∥∏ b in s, f b∥₊ = ∏ b in s, ∥f b∥₊ :=
 (nnnorm_hom.to_monoid_hom : α →* ℝ≥0).map_prod f s
 
-end normed_field
+end valued_field
 
-namespace normed_field
+namespace valued_field
 
-variables (α) [nondiscrete_normed_field α]
+variables (α) [nondiscrete_valued_field α]
 
-lemma exists_one_lt_norm : ∃x : α, 1 < ∥x∥ := ‹nondiscrete_normed_field α›.non_trivial
+lemma exists_one_lt_norm : ∃x : α, 1 < ∥x∥ := ‹nondiscrete_valued_field α›.non_trivial
 
 lemma exists_norm_lt_one : ∃x : α, 0 < ∥x∥ ∧ ∥x∥ < 1 :=
 begin
@@ -444,13 +444,13 @@ end
 lemma nhds_within_is_unit_ne_bot : ne_bot (𝓝[{x : α | is_unit x}] 0) :=
 by simpa only [is_unit_iff_ne_zero] using punctured_nhds_ne_bot (0:α)
 
-end normed_field
+end valued_field
 
-instance : normed_field ℝ :=
+instance : valued_field ℝ :=
 { norm_mul' := abs_mul,
   .. real.normed_group }
 
-instance : nondiscrete_normed_field ℝ :=
+instance : nondiscrete_valued_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 
 namespace real
@@ -553,12 +553,12 @@ end
 instance : norm_one_class ℤ :=
 ⟨by simp [← int.norm_cast_real]⟩
 
-instance : normed_field ℚ :=
+instance : valued_field ℚ :=
 { norm := λ r, ∥(r : ℝ)∥,
   norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
   dist_eq := λ r₁ r₂, by simp only [rat.dist_eq, norm, rat.cast_sub] }
 
-instance : nondiscrete_normed_field ℚ :=
+instance : nondiscrete_valued_field ℚ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 
 @[norm_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ∥(r : ℝ)∥ = ∥r∥ := rfl

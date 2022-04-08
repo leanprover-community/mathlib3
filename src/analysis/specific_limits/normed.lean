@@ -40,24 +40,24 @@ lemma tendsto_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
   tendsto (norm : 𝕜 → ℝ) (𝓝[≠] 0) (𝓝[>] 0) :=
 tendsto_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, norm_pos_iff.2 hx
 
-namespace normed_field
+namespace valued_field
 
-lemma tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
+lemma tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [valued_field 𝕜] :
   tendsto (λ x:𝕜, ∥x⁻¹∥) (𝓝[≠] 0) at_top :=
 (tendsto_inv_zero_at_top.comp tendsto_norm_zero').congr $ λ x, (norm_inv x).symm
 
-lemma tendsto_norm_zpow_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] {m : ℤ}
+lemma tendsto_norm_zpow_nhds_within_0_at_top {𝕜 : Type*} [valued_field 𝕜] {m : ℤ}
   (hm : m < 0) :
   tendsto (λ x : 𝕜, ∥x ^ m∥) (𝓝[≠] 0) at_top :=
 begin
   rcases neg_surjective m with ⟨m, rfl⟩,
   rw neg_lt_zero at hm, lift m to ℕ using hm.le, rw int.coe_nat_pos at hm,
   simp only [norm_pow, zpow_neg₀, zpow_coe_nat, ← inv_pow₀],
-  exact (tendsto_pow_at_top hm).comp normed_field.tendsto_norm_inverse_nhds_within_0_at_top
+  exact (tendsto_pow_at_top hm).comp valued_field.tendsto_norm_inverse_nhds_within_0_at_top
 end
 
 /-- The (scalar) product of a sequence that tends to zero with a bounded one also tends to zero. -/
-lemma tendsto_zero_smul_of_tendsto_zero_of_bounded {ι 𝕜 𝔸 : Type*} [normed_field 𝕜]
+lemma tendsto_zero_smul_of_tendsto_zero_of_bounded {ι 𝕜 𝔸 : Type*} [valued_field 𝕜]
   [normed_group 𝔸] [normed_space 𝕜 𝔸] {l : filter ι} {ε : ι → 𝕜} {f : ι → 𝔸}
   (hε : tendsto ε l (𝓝 0)) (hf : filter.is_bounded_under (≤) l (norm ∘ f)) :
   tendsto (ε • f) l (𝓝 0) :=
@@ -66,7 +66,7 @@ begin
   simpa using is_o.smul_is_O hε (hf.is_O_const (one_ne_zero : (1 : 𝕜) ≠ 0))
 end
 
-@[simp] lemma continuous_at_zpow {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {m : ℤ} {x : 𝕜} :
+@[simp] lemma continuous_at_zpow {𝕜 : Type*} [nondiscrete_valued_field 𝕜] {m : ℤ} {x : 𝕜} :
   continuous_at (λ x, x ^ m) x ↔ x ≠ 0 ∨ 0 ≤ m :=
 begin
   refine ⟨_, continuous_at_zpow₀ _ _⟩,
@@ -75,11 +75,11 @@ begin
       (tendsto_norm_zpow_nhds_within_0_at_top hm)
 end
 
-@[simp] lemma continuous_at_inv {𝕜 : Type*} [nondiscrete_normed_field 𝕜] {x : 𝕜} :
+@[simp] lemma continuous_at_inv {𝕜 : Type*} [nondiscrete_valued_field 𝕜] {x : 𝕜} :
   continuous_at has_inv.inv x ↔ x ≠ 0 :=
 by simpa [(@zero_lt_one ℤ _ _).not_le] using @continuous_at_zpow _ _ (-1) x
 
-end normed_field
+end valued_field
 
 lemma is_o_pow_pow_of_lt_left {r₁ r₂ : ℝ} (h₁ : 0 ≤ r₁) (h₂ : r₁ < r₂) :
   is_o (λ n : ℕ, r₁ ^ n) (λ n, r₂ ^ n) at_top :=
@@ -255,7 +255,7 @@ tendsto_pow_at_top_nhds_0_of_norm_lt_1 h
 /-! ### Geometric series-/
 section geometric
 
-variables {K : Type*} [normed_field K] {ξ : K}
+variables {K : Type*} [valued_field K] {ξ : K}
 
 lemma has_sum_geometric_of_norm_lt_1 (h : ∥ξ∥ < 1) : has_sum (λn:ℕ, ξ ^ n) (1 - ξ)⁻¹ :=
 begin
@@ -312,7 +312,7 @@ lemma summable_pow_mul_geometric_of_norm_lt_1 {R : Type*} [normed_ring R] [compl
 summable_of_summable_norm $ summable_norm_pow_mul_geometric_of_norm_lt_1 _ hr
 
 /-- If `∥r∥ < 1`, then `∑' n : ℕ, n * r ^ n = r / (1 - r) ^ 2`, `has_sum` version. -/
-lemma has_sum_coe_mul_geometric_of_norm_lt_1 {𝕜 : Type*} [normed_field 𝕜] [complete_space 𝕜]
+lemma has_sum_coe_mul_geometric_of_norm_lt_1 {𝕜 : Type*} [valued_field 𝕜] [complete_space 𝕜]
   {r : 𝕜} (hr : ∥r∥ < 1) : has_sum (λ n, n * r ^ n : ℕ → 𝕜) (r / (1 - r) ^ 2) :=
 begin
   have A : summable (λ n, n * r ^ n : ℕ → 𝕜),
@@ -333,7 +333,7 @@ begin
 end
 
 /-- If `∥r∥ < 1`, then `∑' n : ℕ, n * r ^ n = r / (1 - r) ^ 2`. -/
-lemma tsum_coe_mul_geometric_of_norm_lt_1 {𝕜 : Type*} [normed_field 𝕜] [complete_space 𝕜]
+lemma tsum_coe_mul_geometric_of_norm_lt_1 {𝕜 : Type*} [valued_field 𝕜] [complete_space 𝕜]
   {r : 𝕜} (hr : ∥r∥ < 1) :
   (∑' n : ℕ, n * r ^ n : 𝕜) = (r / (1 - r) ^ 2) :=
 (has_sum_coe_mul_geometric_of_norm_lt_1 hr).tsum_eq
@@ -555,7 +555,7 @@ theorem monotone.cauchy_seq_series_mul_of_tendsto_zero_of_bounded
 begin
   simp_rw [finset.sum_range_by_parts _ _ (nat.succ_pos _), sub_eq_add_neg,
            nat.succ_sub_succ_eq_sub, tsub_zero],
-  apply (normed_field.tendsto_zero_smul_of_tendsto_zero_of_bounded hf0
+  apply (valued_field.tendsto_zero_smul_of_tendsto_zero_of_bounded hf0
     ⟨b, eventually_map.mpr $ eventually_of_forall $ λ n, hgb $ n+1⟩).cauchy_seq.add,
   apply (cauchy_seq_range_of_norm_bounded _ _ (_ : ∀ n, _ ≤ b * |f(n+1) - f(n)|)).neg,
   { exact normed_uniform_group },

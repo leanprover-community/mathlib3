@@ -91,9 +91,9 @@ lemma is_vonN_bounded.of_topological_space_le {t t' : topological_space E} (h : 
 
 end multiple_topologies
 
-section normed_field
+section valued_field
 
-variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables [valued_field 𝕜] [add_comm_group E] [module 𝕜 E]
 variables [topological_space E] [has_continuous_smul 𝕜 E]
 
 /-- Singletons are bounded. -/
@@ -122,6 +122,6 @@ variables {E}
   @is_bounded _ (vonN_bornology 𝕜 E) s ↔ is_vonN_bounded 𝕜 s :=
 is_bounded_of_bounded_iff _
 
-end normed_field
+end valued_field
 
 end bornology

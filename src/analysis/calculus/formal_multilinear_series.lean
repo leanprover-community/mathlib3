@@ -27,7 +27,7 @@ noncomputable theory
 open set fin
 open_locale topological_space
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nondiscrete_valued_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
@@ -36,7 +36,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 multilinear maps from `E^n` to `F` for all `n`. -/
 @[derive add_comm_group]
 def formal_multilinear_series
-  (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+  (𝕜 : Type*) [nondiscrete_valued_field 𝕜]
   (E : Type*) [normed_group E] [normed_space 𝕜 E]
   (F : Type*) [normed_group F] [normed_space 𝕜 F] :=
 Π (n : ℕ), (E [×n]→L[𝕜] F)
@@ -104,7 +104,7 @@ def comp_continuous_linear_map (p : formal_multilinear_series 𝕜 F G) (u : E �
   (p : formal_multilinear_series 𝕜 F G) (u : E →L[𝕜] F) (n : ℕ) (v : fin n → E) :
   (p.comp_continuous_linear_map u) n v = p n (u ∘ v) := rfl
 
-variables (𝕜) {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜) {𝕜' : Type*} [nondiscrete_valued_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
 variables [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
 

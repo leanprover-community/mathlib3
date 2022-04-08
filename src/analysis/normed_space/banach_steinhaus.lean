@@ -24,7 +24,7 @@ open set
 variables
 {E F 𝕜 𝕜₂ : Type*}
 [semi_normed_group E] [semi_normed_group F]
-[nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂]
+[nondiscrete_valued_field 𝕜] [nondiscrete_valued_field 𝕜₂]
 [normed_space 𝕜 E] [normed_space 𝕜₂ F]
 {σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
 
@@ -50,7 +50,7 @@ begin
   /- apply the Baire category theorem to conclude that for some `m : ℕ`, `e m` contains some `x` -/
   rcases nonempty_interior_of_Union_of_closed hc hU with ⟨m, x, hx⟩,
   rcases metric.is_open_iff.mp is_open_interior x hx with ⟨ε, ε_pos, hε⟩,
-  obtain ⟨k, hk⟩ := normed_field.exists_one_lt_norm 𝕜,
+  obtain ⟨k, hk⟩ := valued_field.exists_one_lt_norm 𝕜,
   /- show all elements in the ball have norm bounded by `m` after applying any `g i` -/
   have real_norm_le : ∀ z : E, z ∈ metric.ball x ε → ∀ i : ι, ∥g i z∥ ≤ m,
   { intros z hz i,

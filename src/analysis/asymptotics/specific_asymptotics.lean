@@ -16,11 +16,11 @@ theory developped in `analysis.asymptotics.asymptotics`.
 open filter asymptotics
 open_locale topological_space
 
-section normed_field
+section valued_field
 
 /-- If `f : 𝕜 → E` is bounded in a punctured neighborhood of `a`, then `f(x) = o((x - a)⁻¹)` as
 `x → a`, `x ≠ a`. -/
-lemma filter.is_bounded_under.is_o_sub_self_inv {𝕜 E : Type*} [normed_field 𝕜] [has_norm E]
+lemma filter.is_bounded_under.is_o_sub_self_inv {𝕜 E : Type*} [valued_field 𝕜] [has_norm E]
   {a : 𝕜} {f : 𝕜 → E} (h : is_bounded_under (≤) (𝓝[≠] a) (norm ∘ f)) :
   is_o f (λ x, (x - a)⁻¹) (𝓝[≠] a) :=
 begin
@@ -29,7 +29,7 @@ begin
   exact (tendsto_norm_sub_self_punctured_nhds a).inv_tendsto_zero
 end
 
-end normed_field
+end valued_field
 
 section linear_ordered_field
 

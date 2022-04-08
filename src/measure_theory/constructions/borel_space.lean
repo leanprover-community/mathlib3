@@ -1996,7 +1996,7 @@ end limits
 
 namespace continuous_linear_map
 
-variables {𝕜 : Type*} [normed_field 𝕜]
+variables {𝕜 : Type*} [valued_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E]
 variables [opens_measurable_space E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F] [measurable_space F] [borel_space F]
@@ -2013,7 +2013,7 @@ end continuous_linear_map
 
 namespace continuous_linear_map
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nondiscrete_valued_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
           {F : Type*} [normed_group F] [normed_space 𝕜 F]
 
@@ -2039,9 +2039,9 @@ measurable_pi_lambda _ measurable_apply
 
 end continuous_linear_map
 
-section continuous_linear_map_nondiscrete_normed_field
+section continuous_linear_map_nondiscrete_valued_field
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nondiscrete_valued_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 
@@ -2055,10 +2055,10 @@ lemma ae_measurable.apply_continuous_linear_map {φ : α → F →L[𝕜] E} {μ
   (hφ : ae_measurable φ μ) (v : F) : ae_measurable (λ a, φ a v) μ :=
 (continuous_linear_map.apply 𝕜 E v).measurable.comp_ae_measurable hφ
 
-end continuous_linear_map_nondiscrete_normed_field
+end continuous_linear_map_nondiscrete_valued_field
 
 section normed_space
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜] [complete_space 𝕜] [measurable_space 𝕜]
+variables {𝕜 : Type*} [nondiscrete_valued_field 𝕜] [complete_space 𝕜] [measurable_space 𝕜]
 variables [borel_space 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E] [measurable_space E] [borel_space E]
 

@@ -20,7 +20,7 @@ differentiability.
 open_locale classical topological_space filter
 open function set filter
 
-variables {𝕜 E : Type*} [nondiscrete_normed_field 𝕜] [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 E : Type*} [nondiscrete_valued_field 𝕜] [normed_group E] [normed_space 𝕜 E]
 
 /-- `dslope f a b` is defined as `slope f a b = (b - a)⁻¹ • (f b - f a)` for `a ≠ b` and
 `deriv f a` for `a = b`. -/

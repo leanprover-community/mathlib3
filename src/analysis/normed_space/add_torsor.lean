@@ -25,7 +25,7 @@ include V
 
 section normed_space
 
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 V]
+variables {𝕜 : Type*} [valued_field 𝕜] [normed_space 𝕜 V]
 
 open affine_map
 

@@ -85,7 +85,7 @@ namespace affine_isometry
 open affine_map
 
 variables {𝕜 : Type*} {V₁ V₂  : Type*} {P₁ P₂ : Type*}
-  [normed_field 𝕜]
+  [valued_field 𝕜]
   [normed_group V₁] [semi_normed_group V₂]
   [normed_space 𝕜 V₁] [normed_space 𝕜 V₂]
   [metric_space P₁] [pseudo_metric_space P₂]
@@ -111,7 +111,7 @@ affine_isometry_equiv.mk' li (li.linear_isometry.to_linear_isometry_equiv h) (ar
 end affine_isometry
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
-lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
+lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [valued_field 𝕜]
   {E : Type v}  [add_comm_group E] [module 𝕜 E] [topological_space E]
   [topological_add_group E] [has_continuous_smul 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
 begin
@@ -139,7 +139,7 @@ end
 
 section complete_field
 
-variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type u} [nondiscrete_valued_field 𝕜]
 {E : Type v} [normed_group E] [normed_space 𝕜 E]
 {F : Type w} [normed_group F] [normed_space 𝕜 F]
 {F' : Type x} [add_comm_group F'] [module 𝕜 F'] [topological_space F']
@@ -637,7 +637,7 @@ end
 theorem exists_seq_norm_le_one_le_norm_sub (h : ¬ (finite_dimensional 𝕜 E)) :
   ∃ (R : ℝ) (f : ℕ → E), (1 < R) ∧ (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
 begin
-  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 1 < ∥c∥ := normed_field.exists_one_lt_norm 𝕜,
+  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 1 < ∥c∥ := valued_field.exists_one_lt_norm 𝕜,
   have A : ∥c∥ < ∥c∥ + 1, by linarith,
   rcases exists_seq_norm_le_one_le_norm_sub' hc A h with ⟨f, hf⟩,
   exact ⟨∥c∥ + 1, f, hc.trans A, hf.1, hf.2⟩
@@ -655,7 +655,7 @@ begin
     ∃ (R : ℝ) (f : ℕ → E), (1 < R) ∧ (∀ n, ∥f n∥ ≤ R) ∧ (∀ m n, m ≠ n → 1 ≤ ∥f m - f n∥) :=
       exists_seq_norm_le_one_le_norm_sub hfin,
   have rRpos : 0 < r / R := div_pos rpos (zero_lt_one.trans Rgt),
-  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 0 < ∥c∥ ∧ ∥c∥ < (r / R) := normed_field.exists_norm_lt _ rRpos,
+  obtain ⟨c, hc⟩ : ∃ (c : 𝕜), 0 < ∥c∥ ∧ ∥c∥ < (r / R) := valued_field.exists_norm_lt _ rRpos,
   let g := λ (n : ℕ), c • f n,
   have A : ∀ n, g n ∈ metric.closed_ball (0 : E) r,
   { assume n,
@@ -720,7 +720,7 @@ end
 end complete_field
 
 section proper_field
-variables (𝕜 : Type u) [nondiscrete_normed_field 𝕜]
+variables (𝕜 : Type u) [nondiscrete_valued_field 𝕜]
 (E : Type v) [normed_group E] [normed_space 𝕜 E] [proper_space 𝕜]
 
 /-- Any finite-dimensional vector space over a proper field is proper.

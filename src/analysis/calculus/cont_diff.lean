@@ -169,7 +169,7 @@ normed_group.to_add_comm_group normed_space.to_module' add_comm_group.to_add_com
 open set fin filter
 open_locale topological_space
 
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {𝕜 : Type*} [nondiscrete_valued_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
 {G : Type*} [normed_group G] [normed_space 𝕜 G]
@@ -2527,7 +2527,7 @@ begin
   { exact cont_diff_at_top.mpr Itop }
 end
 
-variables (𝕜) {𝕜' : Type*} [normed_field 𝕜'] [normed_algebra 𝕜 𝕜'] [complete_space 𝕜']
+variables (𝕜) {𝕜' : Type*} [valued_field 𝕜'] [normed_algebra 𝕜 𝕜'] [complete_space 𝕜']
 
 lemma cont_diff_at_inv {x : 𝕜'} (hx : x ≠ 0) {n} :
   cont_diff_at 𝕜 n has_inv.inv x :=
@@ -2974,7 +2974,7 @@ situation where `ℂ` and `ℝ` are replaced respectively by `𝕜'` and `𝕜` 
 over `𝕜`.
 -/
 
-variables (𝕜) {𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+variables (𝕜) {𝕜' : Type*} [nondiscrete_valued_field 𝕜'] [normed_algebra 𝕜 𝕜']
 variables [normed_space 𝕜' E] [is_scalar_tower 𝕜 𝕜' E]
 variables [normed_space 𝕜' F] [is_scalar_tower 𝕜 𝕜' F]
 variables {p' : E → formal_multilinear_series 𝕜' E F} {n : with_top ℕ}

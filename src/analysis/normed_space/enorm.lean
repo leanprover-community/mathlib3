@@ -36,7 +36,7 @@ open_locale ennreal
 
 /-- Extended norm on a vector space. As in the case of normed spaces, we require only
 `∥c • x∥ ≤ ∥c∥ * ∥x∥` in the definition, then prove an equality in `map_smul`. -/
-structure enorm (𝕜 : Type*) (V : Type*) [normed_field 𝕜] [add_comm_group V] [module 𝕜 V] :=
+structure enorm (𝕜 : Type*) (V : Type*) [valued_field 𝕜] [add_comm_group V] [module 𝕜 V] :=
 (to_fun : V → ℝ≥0∞)
 (eq_zero' : ∀ x, to_fun x = 0 → x = 0)
 (map_add_le' : ∀ x y : V, to_fun (x + y) ≤ to_fun x + to_fun y)
@@ -44,7 +44,7 @@ structure enorm (𝕜 : Type*) (V : Type*) [normed_field 𝕜] [add_comm_group V
 
 namespace enorm
 
-variables {𝕜 : Type*} {V : Type*} [normed_field 𝕜] [add_comm_group V] [module 𝕜 V]
+variables {𝕜 : Type*} {V : Type*} [valued_field 𝕜] [add_comm_group V] [module 𝕜 V]
   (e : enorm 𝕜 V)
 
 instance : has_coe_to_fun (enorm 𝕜 V) (λ _, V → ℝ≥0∞) := ⟨enorm.to_fun⟩

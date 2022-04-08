@@ -951,12 +951,12 @@ variables {𝕜 : Type*}
 variables [topological_space α] [normed_group β]
 variables {f g : α →ᵇ β} {x : α} {C : ℝ}
 
-instance [normed_field 𝕜] [normed_space 𝕜 β] : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, begin
+instance [valued_field 𝕜] [normed_space 𝕜 β] : normed_space 𝕜 (α →ᵇ β) := ⟨λ c f, begin
   refine norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
   exact (λ x, trans_rel_right _ (norm_smul _ _)
     (mul_le_mul_of_nonneg_left (f.norm_coe_le_norm _) (norm_nonneg _))) end⟩
 
-variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 β]
+variables [nondiscrete_valued_field 𝕜] [normed_space 𝕜 β]
 variables [normed_group γ] [normed_space 𝕜 γ]
 
 variables (α)
@@ -1070,7 +1070,7 @@ In this section, if `γ` is a normed algebra, then we show that the space of bou
 continuous functions from `α` to `γ` inherits a normed algebra structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables {𝕜 : Type*} [normed_field 𝕜]
+variables {𝕜 : Type*} [valued_field 𝕜]
 variables [topological_space α] [normed_group β] [normed_space 𝕜 β]
 variables [normed_ring γ] [normed_algebra 𝕜 γ]
 variables {f g : α →ᵇ γ} {x : α} {c : 𝕜}
@@ -1161,7 +1161,7 @@ completeness is guaranteed when `β` is complete (see
 
 section normed_group
 
-variables {𝕜 : Type*} [normed_field 𝕜] [star_ring 𝕜]
+variables {𝕜 : Type*} [valued_field 𝕜] [star_ring 𝕜]
 variables [topological_space α] [normed_group β] [star_add_monoid β] [normed_star_group β]
 variables [normed_space 𝕜 β] [star_module 𝕜 β]
 

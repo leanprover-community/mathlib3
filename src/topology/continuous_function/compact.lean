@@ -204,7 +204,7 @@ instance : normed_ring C(α,R) :=
 end
 
 section
-variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [valued_field 𝕜] [normed_space 𝕜 E]
 
 instance : normed_space 𝕜 C(α,E) :=
 { norm_smul_le := λ c f, le_of_eq (norm_smul c (mk_of_compact f)) }
@@ -256,7 +256,7 @@ rfl
 end
 
 section
-variables {𝕜 : Type*} {γ : Type*} [normed_field 𝕜] [normed_ring γ] [normed_algebra 𝕜 γ]
+variables {𝕜 : Type*} {γ : Type*} [valued_field 𝕜] [normed_ring γ] [normed_algebra 𝕜 γ]
 
 instance [nonempty α] : normed_algebra 𝕜 C(α, γ) :=
 { norm_algebra_map_eq := λ c, (norm_algebra_map_eq (α →ᵇ γ) c : _), }
@@ -304,7 +304,7 @@ end continuous_map
 
 section comp_left
 variables (X : Type*) {𝕜 β γ : Type*} [topological_space X] [compact_space X]
-  [nondiscrete_normed_field 𝕜]
+  [nondiscrete_valued_field 𝕜]
 variables [normed_group β] [normed_space 𝕜 β] [normed_group γ] [normed_space 𝕜 γ]
 
 open continuous_map

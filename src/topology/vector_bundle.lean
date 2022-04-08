@@ -115,7 +115,7 @@ section
 open topological_vector_bundle
 
 variables (B)
-variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+variables [nondiscrete_valued_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
   [normed_group F] [normed_space R F] [topological_space B]
   [topological_space (total_space E)] [∀ x, topological_space (E x)]
 
@@ -610,7 +610,7 @@ end
 /-! ### Topological vector prebundle -/
 
 section
-variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+variables [nondiscrete_valued_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
   [normed_group F] [normed_space R F] [topological_space B]
   [∀ x, topological_space (E x)]
 
@@ -767,7 +767,7 @@ lemma prod.inducing_diag : inducing
 
 end defs
 
-variables [nondiscrete_normed_field R] [topological_space B]
+variables [nondiscrete_valued_field R] [topological_space B]
 
 variables (F₁ : Type*) [normed_group F₁] [normed_space R F₁]
   (E₁ : B → Type*) [topological_space (total_space E₁)]

@@ -111,9 +111,9 @@ end
 
 end normed_ring
 
-section nondiscrete_normed_field
+section nondiscrete_valued_field
 
-variables [nondiscrete_normed_field 𝕜] [add_comm_monoid E] [add_comm_monoid F]
+variables [nondiscrete_valued_field 𝕜] [add_comm_monoid E] [add_comm_monoid F]
 variables [module 𝕜 E] [module 𝕜 F]
 variables (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜)
 
@@ -123,7 +123,7 @@ begin
   rw set.eq_singleton_iff_unique_mem,
   refine ⟨by simp only [zero_mem_polar], λ y hy, h _ (λ x, _)⟩,
   refine norm_le_zero_iff.mp (le_of_forall_le_of_dense $ λ ε hε, _),
-  rcases normed_field.exists_norm_lt 𝕜 hε with ⟨c, hc, hcε⟩,
+  rcases valued_field.exists_norm_lt 𝕜 hε with ⟨c, hc, hcε⟩,
   calc ∥B x y∥ = ∥c∥ * ∥B (c⁻¹ • x) y∥ :
     by rw [B.map_smul, linear_map.smul_apply, algebra.id.smul_eq_mul, norm_mul, norm_inv,
       mul_inv_cancel_left₀ hc.ne']
@@ -131,6 +131,6 @@ begin
   ... = ε : mul_one _
 end
 
-end nondiscrete_normed_field
+end nondiscrete_valued_field
 
 end linear_map

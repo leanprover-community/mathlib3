@@ -761,7 +761,7 @@ instance : metric_space ℚ_[p] :=
 
 instance : has_norm ℚ_[p] := ⟨λ x, padic_norm_e x⟩
 
-instance : normed_field ℚ_[p] :=
+instance : valued_field ℚ_[p] :=
 { dist_eq := λ _ _, rfl,
   norm_mul' := by simp [has_norm.norm, padic_norm_e.mul'] }
 
@@ -829,7 +829,7 @@ end
 @[simp] lemma norm_p_pow (n : ℤ) : ∥(p^n : ℚ_[p])∥ = p^-n :=
 by rw [norm_zpow, norm_p]; field_simp
 
-instance : nondiscrete_normed_field ℚ_[p] :=
+instance : nondiscrete_valued_field ℚ_[p] :=
 { non_trivial := ⟨p⁻¹, begin
     rw [norm_inv, norm_p, inv_inv],
     exact_mod_cast hp.1.one_lt

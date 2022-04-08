@@ -65,7 +65,7 @@ instance limit_lax_monoidal : lax_monoidal (λ F : J ⥤ C, limit F) :=
     conv_lhs { rw [associator_naturality], },
     conv_rhs { rw [←id_tensor_comp_tensor_id (limit.π (Y ⊗ Z) j)], },
     slice_rhs 2 3 { rw [←id_tensor_comp, limit.lift_π], dsimp, },
-    dsimp, simp,
+    dsimp, simp [id_tensor_comp_tensor_id],
   end,
   left_unitality' := λ X,
   begin

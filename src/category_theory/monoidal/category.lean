@@ -206,11 +206,11 @@ by { split_ifs; refl }
 
 @[reassoc, simp] lemma comp_tensor_id (f : W ⟶ X) (g : X ⟶ Y) :
   (f ≫ g) ⊗ (𝟙 Z) = (f ⊗ 𝟙 Z) ≫ (g ⊗ 𝟙 Z) :=
-by rw [←tensor_comp, comp_id]
+by { rw ←tensor_comp, simp }
 
 @[reassoc, simp] lemma id_tensor_comp (f : W ⟶ X) (g : X ⟶ Y) :
   (𝟙 Z) ⊗ (f ≫ g) = (𝟙 Z ⊗ f) ≫ (𝟙 Z ⊗ g) :=
-by rw [←tensor_comp, comp_id]
+by { rw ←tensor_comp, simp }
 
 @[reassoc] lemma id_tensor_comp_tensor_id (f : W ⟶ X) (g : Y ⟶ Z) :
   (𝟙 Y ⊗ f) ≫ (g ⊗ 𝟙 X) = g ⊗ f :=

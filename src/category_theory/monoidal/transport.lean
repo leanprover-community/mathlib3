@@ -170,8 +170,8 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
     conv_rhs { rw [←id_tensor_comp_tensor_id _ (e.unit_inv.app X)], },
     dsimp only [functor.comp_obj],
     slice_rhs 3 4 { rw [←id_tensor_comp, iso.hom_inv_id_app], dsimp, rw [tensor_id] },
-    simp only [id_comp],
-    simp [associator_naturality],
+    rw [tensor_id_comp_id_tensor_assoc],
+    simp [id_tensor_comp_tensor_id],
   end,
   left_unitality' := λ X,
   begin
@@ -180,7 +180,8 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
     rw equivalence.counit_app_functor,
     simp only [←e.functor.map_comp],
     congr' 1,
-    rw [←left_unitor_naturality],
+    rw [←tensor_id_comp_id_tensor (e.unit_inv.app X)],
+    dsimp,
     simp,
   end,
   right_unitality' := λ X,
@@ -190,7 +191,8 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
     rw equivalence.counit_app_functor,
     simp only [←e.functor.map_comp],
     congr' 1,
-    rw [←right_unitor_naturality],
+    rw [←id_tensor_comp_tensor_id _ (e.unit_inv.app X)],
+    dsimp,
     simp,
   end, }.
 

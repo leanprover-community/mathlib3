@@ -32,27 +32,8 @@ instance (X : C) : monoidal_category (End_monoidal X) :=
   associator := λ X Y Z, α_ X Y Z,
   left_unitor := λ X, λ_ X,
   right_unitor := λ X, ρ_ X,
-  associator_naturality' := begin
-    intros,
-    rw category.assoc, rw associator_naturality_right,
-    rw bicategory.whisker_right_comp,
-    slice_lhs 2 3 { rw associator_naturality_middle, },
-    slice_lhs 1 2 { rw associator_naturality_left, },
-    rw bicategory.whisker_left_comp,
-    simp only [category.assoc],
-  end,
-  left_unitor_naturality' := begin
-    intros,
-    rw [bicategory.whisker_right_id, category.id_comp, bicategory.left_unitor_naturality],
-  end,
-  right_unitor_naturality' := begin
-    intros,
-    rw [bicategory.whisker_left_id, category.comp_id, bicategory.right_unitor_naturality],
-  end,
-  pentagon' := begin
-    intros,
-    simp only [bicategory.whisker_left_id, bicategory.whisker_right_id, category.id_comp,
-      category.comp_id, bicategory.pentagon],
-  end, }
+  tensor_comp' := λ X₁ Y₁ Z₁ X₂ Y₂ Z₂ f₁ f₂ g₁ g₂,
+    by rw [bicategory.whisker_left_comp, bicategory.comp_whisker_right, category.assoc,
+      category.assoc, bicategory.whisker_exchange_assoc], }
 
 end category_theory

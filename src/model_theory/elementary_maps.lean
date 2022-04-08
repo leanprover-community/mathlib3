@@ -284,6 +284,25 @@ instance : inhabited (L.elementary_substructure M) := ⟨⊤⟩
 
 @[simp] lemma coe_top : ((⊤ : L.elementary_substructure M) : set M) = set.univ := rfl
 
+@[simp] lemma realize_sentence (S : L.elementary_substructure M) (φ : L.sentence)  :
+  S ⊨ φ ↔ M ⊨ φ :=
+begin
+  have h := S.is_elementary (φ.relabel (empty.elim : empty → fin 0)) default,
+  rw [formula.realize_relabel, formula.realize_relabel] at h,
+  exact (congr (congr rfl (congr rfl (unique.eq_default _))) (congr rfl (unique.eq_default _))).mp
+    h.symm,
+end
+
+@[simp] lemma Theory_model_iff (S : L.elementary_substructure M) (T : L.Theory) :
+  S ⊨ T ↔ M ⊨ T :=
+by simp only [Theory.model_iff, realize_sentence]
+
+instance Theory_model {T : L.Theory} [h : M ⊨ T] {S : L.elementary_substructure M} : S ⊨ T :=
+(Theory_model_iff S T).2 h
+
+instance [h : nonempty M] {S : L.elementary_substructure M} : nonempty S :=
+(Theory.model_nonempty_iff L).1 infer_instance
+
 end elementary_substructure
 
 namespace substructure

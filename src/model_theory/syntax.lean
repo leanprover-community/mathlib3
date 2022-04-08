@@ -715,5 +715,17 @@ protected def total : L.sentence :=
 
 end relations
 
+section nonempty
+
+variable (L)
+
+/-- A sentence that indicates a structure is nonempty. -/
+protected def sentence.nonempty : L.sentence := ∃' (&0 =' &0)
+
+/-- A theory that indicates a structure is nonempty. -/
+protected def Theory.nonempty : L.Theory := {sentence.nonempty L}
+
+end nonempty
+
 end language
 end first_order

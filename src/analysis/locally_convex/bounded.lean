@@ -152,8 +152,7 @@ begin
   begin
     intros z hz,
     rcases set.mem_add.mp hz with ⟨z1, z2, hz1, hz2, hz⟩,
-    have hz' : (z1,z2) ∈ x.fst ×ˢ x.snd :=
-    by { rw [set.prod_mk_mem_set_prod_eq], exact ⟨hz1, hz2⟩ },
+    have hz' : (z1, z2) ∈ x.fst ×ˢ x.snd := ⟨hz1, hz2⟩,
     specialize h'' hz',
     simp only [hz] at h'',
     exact h'',

@@ -71,7 +71,7 @@ instance [preorder β] [order_top β] : order_top (α →o β) :=
   le_top := λ a x, le_top }
 
 instance [complete_lattice β] : has_Inf (α →o β) :=
-{ Inf := λ s, ⟨λ x, ⨅ f ∈ s, (f : _) x, λ x y h, binfi_le_binfi (λ f _, f.mono h)⟩ }
+{ Inf := λ s, ⟨λ x, ⨅ f ∈ s, (f : _) x, λ x y h, infi₂_mono $ λ f _, f.mono h⟩ }
 
 @[simp] lemma Inf_apply [complete_lattice β] (s : set (α →o β)) (x : α) :
   Inf s x = ⨅ f ∈ s, (f : _) x := rfl
@@ -85,7 +85,7 @@ lemma infi_apply {ι : Sort*} [complete_lattice β] (f : ι → α →o β) (x :
 funext $ λ x, (infi_apply f x).trans (@_root_.infi_apply _ _ _ _ (λ i, f i) _).symm
 
 instance [complete_lattice β] : has_Sup (α →o β) :=
-{ Sup := λ s, ⟨λ x, ⨆ f ∈ s, (f : _) x, λ x y h, bsupr_le_bsupr (λ f _, f.mono h)⟩ }
+{ Sup := λ s, ⟨λ x, ⨆ f ∈ s, (f : _) x, λ x y h, supr₂_mono (λ f _, f.mono h)⟩ }
 
 @[simp] lemma Sup_apply [complete_lattice β] (s : set (α →o β)) (x : α) :
   Sup s x = ⨆ f ∈ s, (f : _) x := rfl
@@ -101,9 +101,9 @@ funext $ λ x, (supr_apply f x).trans (@_root_.supr_apply _ _ _ _ (λ i, f i) _)
 instance [complete_lattice β] : complete_lattice (α →o β) :=
 { Sup := Sup,
   le_Sup := λ s f hf x, le_supr_of_le f (le_supr _ hf),
-  Sup_le := λ s f hf x, bsupr_le (λ g hg, hf g hg x),
+  Sup_le := λ s f hf x, supr₂_le (λ g hg, hf g hg x),
   Inf := Inf,
-  le_Inf := λ s f hf x, le_binfi (λ g hg, hf g hg x),
+  le_Inf := λ s f hf x, le_infi₂ (λ g hg, hf g hg x),
   Inf_le := λ s f hf x, infi_le_of_le f (infi_le _ hf),
   .. (_ : lattice (α →o β)),
   .. order_hom.order_top,

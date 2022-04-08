@@ -32,9 +32,7 @@ open_locale topological_space big_operators ennreal convex
 
 variables {α E F : Type*} {m0 : measurable_space α}
   [normed_group E] [normed_space ℝ E] [complete_space E]
-  [second_countable_topology E] [measurable_space E] [borel_space E]
   [normed_group F] [normed_space ℝ F] [complete_space F]
-  [second_countable_topology F] [measurable_space F] [borel_space F]
   {μ : measure α} {s : set E}
 
 /-!

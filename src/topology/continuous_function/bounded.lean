@@ -994,15 +994,31 @@ In this section, if `R` is a normed ring, then we show that the space of bounded
 continuous functions from `α` to `R` inherits a normed ring structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables [topological_space α] {R : Type*} [normed_ring R]
+variables [topological_space α] {R : Type*}
+
+section non_unital
+
+variables [non_unital_normed_ring R]
 
 instance : has_mul (α →ᵇ R) :=
 { mul := λ f g, of_normed_group (f * g) (f.continuous.mul g.continuous) (∥f∥ * ∥g∥) $ λ x,
-    le_trans (normed_ring.norm_mul (f x) (g x)) $
+    le_trans (non_unital_normed_ring.norm_mul (f x) (g x)) $
       mul_le_mul (f.norm_coe_le_norm x) (g.norm_coe_le_norm x) (norm_nonneg _) (norm_nonneg _) }
 
 @[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
 lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
+
+instance : non_unital_ring (α →ᵇ R) :=
+fun_like.coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub
+  (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
+
+instance : non_unital_normed_ring (α →ᵇ R) :=
+{ norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
+  .. bounded_continuous_function.normed_group }
+
+end non_unital
+
+variables [normed_ring R]
 
 @[simp] lemma coe_npow_rec (f : α →ᵇ R) : ∀ n, ⇑(npow_rec n f) = f ^ n
 | 0 := by rw [npow_rec, pow_zero, coe_one]
@@ -1023,8 +1039,7 @@ fun_like.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
   (λ _ _, coe_pow _ _)
 
 instance : normed_ring (α →ᵇ R) :=
-{ norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
-  .. bounded_continuous_function.normed_group }
+{ ..bounded_continuous_function.non_unital_normed_ring }
 
 end normed_ring
 
@@ -1173,7 +1188,7 @@ end normed_group
 section cstar_ring
 
 variables [topological_space α]
-variables [normed_ring β] [star_ring β]
+variables [non_unital_normed_ring β] [star_ring β]
 
 instance [normed_star_group β] : star_ring (α →ᵇ β) :=
 { star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),

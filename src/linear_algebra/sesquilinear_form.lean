@@ -6,7 +6,6 @@ Authors: Andreas Swerdlow
 import algebra.module.linear_map
 import linear_algebra.bilinear_map
 import linear_algebra.matrix.basis
-import linear_algebra.dual
 import linear_algebra.linear_pmap
 
 /-!

@@ -246,6 +246,33 @@ end semiring
 
 end subalgebra
 
+namespace algebra
+
+variables {R A} [comm_semiring R] [semiring A] [algebra R A]
+variables {M} [add_comm_monoid M] [module A M] [module R M] [is_scalar_tower R A M]
+
+lemma span_restrict_scalars_eq_span_of_surjective
+  (h : function.surjective (algebra_map R A)) (s : set M) :
+  (submodule.span A s).restrict_scalars R = submodule.span R s :=
+begin
+  refine le_antisymm (λ x hx, _) (submodule.span_subset_span _ _ _),
+  refine submodule.span_induction hx _ _ _ _,
+  { exact λ x hx, submodule.subset_span hx },
+  { exact submodule.zero_mem _ },
+  { exact λ x y, submodule.add_mem _ },
+  { intros c x hx,
+    obtain ⟨c', rfl⟩ := h c,
+    rw is_scalar_tower.algebra_map_smul,
+    exact submodule.smul_mem _ _ hx },
+end
+
+lemma coe_span_eq_span_of_surjective
+  (h : function.surjective (algebra_map R A)) (s : set M) :
+  (submodule.span A s : set M) = submodule.span R s :=
+congr_arg coe (algebra.span_restrict_scalars_eq_span_of_surjective h s)
+
+end algebra
+
 namespace is_scalar_tower
 
 open subalgebra

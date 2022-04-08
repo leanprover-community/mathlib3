@@ -194,7 +194,7 @@ h₁.inter h₂.compl
 
 @[simp] lemma measurable_set.symm_diff {s₁ s₂ : set α}
   (h₁ : measurable_set s₁) (h₂ : measurable_set s₂) :
-  measurable_set (s₁ Δ s₂) :=
+  measurable_set (s₁ ∆ s₂) :=
 (h₁.diff h₂).union (h₂.diff h₁)
 
 @[simp] lemma measurable_set.ite {t s₁ s₂ : set α} (ht : measurable_set t) (h₁ : measurable_set s₁)

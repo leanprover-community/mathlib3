@@ -162,12 +162,12 @@ Note that the expression `λ q n, f (g q) n` is simply `monoid_hom.comp`. -/
 Note that the expression `λ q n, f (g q) n` is simply `add_monoid_hom.comp`.
 
 This also exists as a `linear_map` version, `linear_map.compl₂`"]
-def compl₂ [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
+def compl₂ [mul_one_class M] [mul_one_class N] [comm_monoid P] [mul_one_class Q]
   (f : M →* N →* P) (g : Q →* N) : M →* Q →* P :=
 (comp_hom' g).comp f
 
 @[simp, to_additive]
-lemma compl₂_apply [mul_one_class M] [mul_one_class N] [comm_monoid P] [comm_monoid Q]
+lemma compl₂_apply [mul_one_class M] [mul_one_class N] [comm_monoid P] [mul_one_class Q]
   (f : M →* N →* P) (g : Q →* N) (m : M) (q : Q) :
   (compl₂ f g) m q = f m (g q) := rfl
 

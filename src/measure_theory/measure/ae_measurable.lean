@@ -228,13 +228,13 @@ lemma ae_measurable_restrict_of_measurable_subtype {s : set α}
   (hs : measurable_set s) (hf : measurable (λ x : s, f x)) : ae_measurable f (μ.restrict s) :=
 (ae_measurable_restrict_iff_comap_subtype hs).2 hf.ae_measurable
 
-lemma ae_measurable_map_equiv_iff [measurable_space γ] (e : α ≃ᵐ β) {f : β → γ} :
+lemma ae_measurable_map_equiv_iff (e : α ≃ᵐ β) {f : β → γ} :
   ae_measurable f (μ.map e) ↔ ae_measurable (f ∘ e) μ :=
 e.measurable_embedding.ae_measurable_map_iff
 
 end
 
-lemma ae_measurable.restrict [measurable_space β] (hfm : ae_measurable f μ) {s} :
+lemma ae_measurable.restrict (hfm : ae_measurable f μ) {s} :
   ae_measurable f (μ.restrict s) :=
 ⟨ae_measurable.mk f hfm, hfm.measurable_mk, ae_restrict_of_ae hfm.ae_eq_mk⟩
 

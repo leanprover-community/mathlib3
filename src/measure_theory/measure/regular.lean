@@ -151,7 +151,7 @@ variables {α : Type*} {m : measurable_space α} {μ : measure α} {p q : set α
 
 lemma measure_eq_supr (H : inner_regular μ p q) (hU : q U) : μ U = ⨆ (K ⊆ U) (hK : p K), μ K :=
 begin
-  refine le_antisymm (le_of_forall_lt (λ r hr, _)) (bsupr_le $ λ K hK, supr_le $ λ _, μ.mono hK),
+  refine le_antisymm (le_of_forall_lt $ λ r hr, _) (supr₂_le $ λ K hK, supr_le $ λ _, μ.mono hK),
   simpa only [lt_supr_iff, exists_prop] using H hU r hr
 end
 
@@ -247,7 +247,7 @@ containing it. -/
 lemma _root_.set.measure_eq_infi_is_open (A : set α) (μ : measure α) [outer_regular μ] :
   μ A = (⨅ (U : set α) (h : A ⊆ U) (h2 : is_open U), μ U) :=
 begin
-  refine le_antisymm (le_binfi $ λ s hs, le_infi $ λ h2s, μ.mono hs) _,
+  refine le_antisymm (le_infi₂ $ λ s hs, le_infi $ λ h2s, μ.mono hs) _,
   refine le_of_forall_lt' (λ r hr, _),
   simpa only [infi_lt_iff, exists_prop] using A.exists_is_open_lt_of_lt r hr
 end

@@ -1310,7 +1310,7 @@ begin
       have h0 : r' ≠ 0,
       { rintro rfl,
         simpa using hw0 },
-      rwa span_singleton_smul_eq _ h0 },
+      rwa span_singleton_smul_eq (is_unit.mk0 _ h0) _ },
     { push_neg at hw,
       rw ←submodule.eq_bot_iff at hw,
       simp [hw] } }

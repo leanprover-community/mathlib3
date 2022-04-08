@@ -699,9 +699,70 @@ variables (𝕜 E Fₗ Gₗ)
 def compL : (Fₗ →L[𝕜] Gₗ) →L[𝕜] (E →L[𝕜] Fₗ) →L[𝕜] (E →L[𝕜] Gₗ) :=
   compSL E Fₗ Gₗ (ring_hom.id 𝕜) (ring_hom.id 𝕜)
 
-variables {𝕜 E Fₗ Gₗ}
-
 @[simp] lemma compL_apply (f : Fₗ →L[𝕜] Gₗ) (g : E →L[𝕜] Fₗ) : compL 𝕜 E Fₗ Gₗ f g = f.comp g := rfl
+
+universes u₁ u₂ u₃ u₄
+variables (M₁ : Type u₁) [normed_group M₁] [normed_space 𝕜 M₁]
+          (M₂ : Type u₂) [normed_group M₂] [normed_space 𝕜 M₂]
+          (M₃ : Type u₃) [normed_group M₃] [normed_space 𝕜 M₃]
+          (M₄ : Type u₄) [normed_group M₄] [normed_space 𝕜 M₄]
+
+/-- `continuous_linear_map.prod_map` as a continuous linear map. -/
+def prod_mapL : ((M₁ →L[𝕜] M₂) × (M₃ →L[𝕜] M₄)) →L[𝕜] ((M₁ × M₃) →L[𝕜] (M₂ × M₄)) :=
+continuous_linear_map.copy
+(have Φ₁ : (M₁ →L[𝕜] M₂) →L[𝕜] (M₁ →L[𝕜] M₂ × M₄), from
+  continuous_linear_map.compL 𝕜 M₁ M₂ (M₂ × M₄) (continuous_linear_map.inl 𝕜 M₂ M₄),
+have Φ₂ : (M₃ →L[𝕜] M₄) →L[𝕜] (M₃ →L[𝕜] M₂ × M₄), from
+  continuous_linear_map.compL 𝕜 M₃ M₄ (M₂ × M₄) (continuous_linear_map.inr 𝕜 M₂ M₄),
+have Φ₁' : _, from (continuous_linear_map.compL 𝕜 (M₁ × M₃) M₁ (M₂ × M₄)).flip
+  (continuous_linear_map.fst 𝕜 M₁ M₃),
+have Φ₂' : _ , from (continuous_linear_map.compL 𝕜 (M₁ × M₃) M₃ (M₂ × M₄)).flip
+  (continuous_linear_map.snd 𝕜 M₁ M₃),
+have Ψ₁ : ((M₁ →L[𝕜] M₂) × (M₃ →L[𝕜] M₄)) →L[𝕜] (M₁ →L[𝕜] M₂), from
+  continuous_linear_map.fst 𝕜 (M₁ →L[𝕜] M₂) (M₃ →L[𝕜] M₄),
+have Ψ₂ : ((M₁ →L[𝕜] M₂) × (M₃ →L[𝕜] M₄)) →L[𝕜] (M₃ →L[𝕜] M₄), from
+    continuous_linear_map.snd 𝕜 (M₁ →L[𝕜] M₂) (M₃ →L[𝕜] M₄),
+Φ₁' ∘L Φ₁ ∘L Ψ₁ + Φ₂' ∘L Φ₂ ∘L Ψ₂)
+(λ p : (M₁ →L[𝕜] M₂) × (M₃ →L[𝕜] M₄), p.1.prod_map p.2)
+(begin
+  apply funext,
+  rintros ⟨φ, ψ⟩,
+  apply continuous_linear_map.ext (λ x, _),
+  simp only [add_apply, coe_comp', coe_fst', function.comp_app,
+             compL_apply, flip_apply, coe_snd', inl_apply, inr_apply, prod.mk_add_mk, add_zero,
+             zero_add, coe_prod_map', prod_map, prod.mk.inj_iff, eq_self_iff_true, and_self],
+  refl
+end)
+
+variables {M₁ M₂ M₃ M₄}
+
+@[simp] lemma prod_mapL_apply (p : (M₁ →L[𝕜] M₂) × (M₃ →L[𝕜] M₄)) :
+  continuous_linear_map.prod_mapL 𝕜 M₁ M₂ M₃ M₄ p = p.1.prod_map p.2 :=
+rfl
+
+variables {X : Type*} [topological_space X]
+
+lemma _root_.continuous.prod_mapL {f : X → M₁ →L[𝕜] M₂} {g : X → M₃ →L[𝕜] M₄}
+  (hf : continuous f) (hg : continuous g) : continuous (λ x, (f x).prod_map (g x)) :=
+(prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp (hf.prod_mk hg)
+
+lemma _root_.continuous.prod_map_equivL {f : X → M₁ ≃L[𝕜] M₂} {g : X → M₃ ≃L[𝕜] M₄}
+  (hf : continuous (λ x, (f x : M₁ →L[𝕜] M₂))) (hg : continuous (λ x, (g x : M₃ →L[𝕜] M₄))) :
+  continuous (λ x, ((f x).prod (g x) : M₁ × M₃ →L[𝕜] M₂ × M₄)) :=
+(prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp (hf.prod_mk hg)
+
+lemma _root_.continuous_on.prod_mapL {f : X → M₁ →L[𝕜] M₂} {g : X → M₃ →L[𝕜] M₄} {s : set X}
+  (hf : continuous_on f s) (hg : continuous_on g s) :
+  continuous_on (λ x, (f x).prod_map (g x)) s :=
+((prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp_continuous_on (hf.prod hg) : _)
+
+lemma _root_.continuous_on.prod_map_equivL {f : X → M₁ ≃L[𝕜] M₂} {g : X → M₃ ≃L[𝕜] M₄} {s : set X}
+  (hf : continuous_on (λ x, (f x : M₁ →L[𝕜] M₂)) s)
+  (hg : continuous_on (λ x, (g x : M₃ →L[𝕜] M₄)) s) :
+  continuous_on (λ x, ((f x).prod (g x) : M₁ × M₃ →L[𝕜] M₂ × M₄)) s :=
+(prod_mapL 𝕜 M₁ M₂ M₃ M₄).continuous.comp_continuous_on (hf.prod hg)
+
+variables {𝕜 E Fₗ Gₗ}
 
 section multiplication_linear
 variables (𝕜) (𝕜' : Type*) [normed_ring 𝕜'] [normed_algebra 𝕜 𝕜']

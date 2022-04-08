@@ -522,6 +522,8 @@ infix ` ⊨ `:51 := Theory.model -- input using \|= or \vDash, but not using \mo
 
 variables {M} (T : L.Theory)
 
+@[simp] lemma Theory.model_iff : M ⊨ T ↔ ∀ φ ∈ T, M ⊨ φ := ⟨λ h, h.realize_of_mem, λ h, ⟨h⟩⟩
+
 lemma Theory.realize_sentence_of_mem [M ⊨ T] {φ : L.sentence} (h : φ ∈ T) :
   M ⊨ φ :=
 Theory.model.realize_of_mem φ h
@@ -545,6 +547,10 @@ instance model_empty : M ⊨ (∅ : L.Theory) := ⟨λ φ hφ, (set.not_mem_empt
 lemma Theory.model.mono {T' : L.Theory} (h : M ⊨ T') (hs : T ⊆ T') :
   M ⊨ T :=
 ⟨λ φ hφ, T'.realize_sentence_of_mem (hs hφ)⟩
+
+lemma Theory.model_singleton_iff {φ : L.sentence} :
+  M ⊨ ({φ} : L.Theory) ↔ M ⊨ φ :=
+by simp
 
 namespace bounded_formula
 
@@ -574,7 +580,9 @@ end
 
 end bounded_formula
 
-@[simp] lemma equiv.realize_bounded_formula (g : M ≃[L] N) (φ : L.bounded_formula α n)
+namespace equiv
+
+@[simp] lemma realize_bounded_formula (g : M ≃[L] N) (φ : L.bounded_formula α n)
   {v : α → M} {xs : fin n → M} :
   φ.realize (g ∘ v) (g ∘ xs) ↔ φ.realize v xs :=
 begin
@@ -595,13 +603,75 @@ begin
       exact h' }}
 end
 
-@[simp] lemma equiv.realize_formula (g : M ≃[L] N) (φ : L.formula α) {v : α → M}  :
+@[simp] lemma realize_formula (g : M ≃[L] N) (φ : L.formula α) {v : α → M} :
   φ.realize (g ∘ v) ↔ φ.realize v :=
-begin
-  rw [formula.realize, formula.realize, ← g.realize_bounded_formula φ,
-    iff_eq_eq],
-  exact congr rfl (funext fin_zero_elim),
-end
+by rw [formula.realize, formula.realize, ← g.realize_bounded_formula φ,
+    iff_eq_eq, unique.eq_default (g ∘ default)]
+
+lemma realize_sentence (g : M ≃[L] N) (φ : L.sentence) :
+  M ⊨ φ ↔ N ⊨ φ :=
+by rw [sentence.realize, sentence.realize, ← g.realize_formula, unique.eq_default (g ∘ default)]
+
+lemma Theory_model (g : M ≃[L] N) [M ⊨ T] : N ⊨ T :=
+⟨λ φ hφ, (g.realize_sentence φ).1 (Theory.realize_sentence_of_mem T hφ)⟩
+
+end equiv
+
+namespace relations
+open bounded_formula
+
+variable {r : L.relations 2}
+
+@[simp]
+lemma realize_reflexive :
+  M ⊨ r.reflexive ↔ reflexive (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, realize_rel₂)
+
+@[simp]
+lemma realize_irreflexive :
+  M ⊨ r.irreflexive ↔ irreflexive (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, not_congr realize_rel₂)
+
+@[simp]
+lemma realize_symmetric :
+  M ⊨ r.symmetric ↔ symmetric (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, forall_congr (λ _, imp_congr realize_rel₂ realize_rel₂))
+
+@[simp]
+lemma realize_antisymmetric :
+  M ⊨ r.antisymmetric ↔ anti_symmetric (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, forall_congr (λ _, imp_congr realize_rel₂ (imp_congr realize_rel₂ iff.rfl)))
+
+@[simp]
+lemma realize_transitive :
+  M ⊨ r.transitive ↔ transitive (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, forall_congr (λ _, forall_congr
+  (λ _, imp_congr realize_rel₂ (imp_congr realize_rel₂ realize_rel₂))))
+
+@[simp]
+lemma realize_total :
+  M ⊨ r.total ↔ total (λ (x y : M), rel_map r ![x,y]) :=
+forall_congr (λ _, forall_congr (λ _, realize_sup.trans (or_congr realize_rel₂ realize_rel₂)))
+
+end relations
+
+section nonempty
+
+variable (L)
+
+@[simp] lemma sentence.realize_nonempty :
+  M ⊨ (sentence.nonempty L) ↔ nonempty M :=
+bounded_formula.realize_ex.trans (trans (exists_congr eq_self_iff_true) exists_true_iff_nonempty)
+
+@[simp] lemma Theory.model_nonempty_iff :
+  M ⊨ (Theory.nonempty L) ↔ nonempty M :=
+Theory.model_singleton_iff.trans (sentence.realize_nonempty L)
+
+instance Theory.model_nonempty [h : nonempty M] :
+  M ⊨ (Theory.nonempty L) :=
+(Theory.model_nonempty_iff L).2 h
+
+end nonempty
 
 end language
 end first_order

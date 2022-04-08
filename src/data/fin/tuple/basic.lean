@@ -78,6 +78,20 @@ begin
       rw [update_noteq h', update_noteq this, cons_succ] } }
 end
 
+/-- As a binary function, `fin.cons` is injective. -/
+lemma cons_injective2 : function.injective2 (@cons n α) :=
+λ x₀ y₀ x y h, ⟨congr_fun h 0, funext $ λ i, by simpa using congr_fun h (fin.succ i)⟩
+
+@[simp] lemma cons_eq_cons {x₀ y₀ : α 0} {x y : Π i : fin n, α (i.succ)} :
+  cons x₀ x = cons y₀ y ↔ x₀ = y₀ ∧ x = y :=
+cons_injective2.eq_iff
+
+lemma cons_left_injective (x : Π i : fin n, α (i.succ)) : function.injective (λ x₀, cons x₀ x) :=
+cons_injective2.left _
+
+lemma cons_right_injective (x₀ : α 0) : function.injective (cons x₀) :=
+cons_injective2.right _
+
 /-- Adding an element at the beginning of a tuple and then updating it amounts to adding it
 directly. -/
 lemma update_cons_zero : update (cons x p) 0 z = cons z p :=
@@ -100,6 +114,21 @@ begin
   { let j' := pred j h,
     have : j'.succ = j := succ_pred j h,
     rw [← this, tail, cons_succ] }
+end
+
+/-- Recurse on an `n+1`-tuple by splitting it into a single element and an `n`-tuple. -/
+@[elab_as_eliminator]
+def cons_induction {P : (Π i : fin n.succ, α i) → Sort v}
+  (h : ∀ x₀ x, P (fin.cons x₀ x)) (x : (Π i : fin n.succ, α i)) : P x :=
+_root_.cast (by rw cons_self_tail) $ h (x 0) (tail x)
+
+@[simp] lemma cons_induction_cons {P : (Π i : fin n.succ, α i) → Sort v}
+  (h : Π x₀ x, P (fin.cons x₀ x)) (x₀ : α 0) (x : Π i : fin n, α i.succ) :
+  @cons_induction _ _ _ h (cons x₀ x) = h x₀ x :=
+begin
+  rw [cons_induction, cast_eq],
+  congr',
+  exact tail_cons _ _
 end
 
 /-- Updating the first element of a tuple does not change the tail. -/

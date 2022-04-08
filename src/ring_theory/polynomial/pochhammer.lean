@@ -92,7 +92,7 @@ begin
     refl, },
 end
 
-lemma pochhammer_succ_eval (n : ℕ) (k : S) :
+lemma pochhammer_succ_eval {S : Type*} [semiring S] (n : ℕ) (k : S) :
   (pochhammer S (n + 1)).eval k = (pochhammer S n).eval k * (k + n) :=
 by rw [pochhammer_succ_right, mul_add, eval_add, eval_mul_X, ← nat.cast_comm, ← C_eq_nat_cast,
     eval_C_mul, nat.cast_comm, ← mul_add]

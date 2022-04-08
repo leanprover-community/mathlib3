@@ -47,7 +47,12 @@ namespace submodule
 variables [semiring R] [add_comm_monoid M] [module R M]
 
 instance : set_like (submodule R M) M :=
-⟨submodule.carrier, λ p q h, by cases p; cases q; congr'⟩
+{ coe := submodule.carrier,
+  coe_injective' := λ p q h, by cases p; cases q; congr' }
+
+instance : add_submonoid_class (submodule R M) M :=
+{ zero_mem := zero_mem',
+  add_mem := add_mem' }
 
 @[simp] theorem mem_to_add_submonoid (p : submodule R M) (x : M) : x ∈ p.to_add_submonoid ↔ x ∈ p :=
 iff.rfl
@@ -282,7 +287,11 @@ variables {module_M : module R M}
 variables (p p' : submodule R M)
 variables {r : R} {x y : M}
 
-lemma neg_mem (hx : x ∈ p) : -x ∈ p := p.to_sub_mul_action.neg_mem hx
+instance [module R M] : add_subgroup_class (submodule R M) M :=
+{ neg_mem := λ p x, p.to_sub_mul_action.neg_mem,
+  .. submodule.add_submonoid_class }
+
+lemma neg_mem (hx : x ∈ p) : -x ∈ p := neg_mem_class.neg_mem hx
 
 /-- Reinterpret a submodule as an additive subgroup. -/
 def to_add_subgroup : add_subgroup M :=

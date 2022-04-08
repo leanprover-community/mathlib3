@@ -238,5 +238,16 @@ theorem age_fraisse_limit [h : is_fraisse K] : L.age (fraisse_limit K) = K :=
 (classical.some_spec (exists_cg_is_age_of h.is_nonempty h.is_equiv_invariant
   h.is_essentially_countable h.fg h.hereditary h.joint_embedding)).2
 
+variable {K}
+
+section empty
+
+def finite_empty_structures :
+  set (bundled language.empty.Structure) :=
+{ s | nonempty (fintype s) }
+
+
+end empty
+
 end language
 end first_order

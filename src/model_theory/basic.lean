@@ -250,6 +250,9 @@ lemma fun_map_eq_coe_constants {c : L.constants} {x : fin 0 → M} :
 lemma nonempty_of_nonempty_constants [h : nonempty L.constants] : nonempty M :=
 h.map coe
 
+instance empty_Structure : language.empty.Structure M :=
+⟨λ _, pempty.elim, λ _, pempty.elim⟩
+
 /-- The function map for `first_order.language.Structure₂`. -/
 def fun_map₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
   (c' : c → M) (f₁' : f₁ → M → M) (f₂' : f₂ → M → M → M) :
@@ -331,6 +334,10 @@ lemma hom_class.map_constants {F M N} [L.Structure M] [L.Structure N] [fun_like 
   (φ : F) (c : L.constants) : φ (c) = c :=
 (hom_class.map_fun φ c default).trans (congr rfl (funext default))
 
+instance strong_hom_class_empty {F M N} [fun_like F M (λ _, N)] :
+  strong_hom_class language.empty F M N :=
+⟨λ _ _ f, pempty.elim f, λ _ _ r, pempty.elim r⟩
+
 namespace hom
 
 instance fun_like : fun_like (M →[L] N) M (λ _, N) :=
@@ -392,6 +399,12 @@ lemma comp_assoc (f : M →[L] N) (g : N →[L] P) (h : P →[L] Q) :
 
 end hom
 
+/-- Any element of a `hom_class` can be realized as a first_order homomorphism. -/
+def hom_class.to_hom {F M N} [L.Structure M] [L.Structure N]
+  [fun_like F M (λ _, N)] [hom_class L F M N] :
+  F → (M →[L] N) :=
+λ φ, ⟨φ, λ _, hom_class.map_fun φ, λ _, hom_class.map_rel φ⟩
+
 namespace embedding
 
 instance embedding_like : embedding_like (M ↪[L] N) M N :=
@@ -423,8 +436,7 @@ hom_class.map_constants φ c
 strong_hom_class.map_rel φ r x
 
 /-- A first-order embedding is also a first-order homomorphism. -/
-def to_hom (f : M ↪[L] N) : M →[L] N :=
-{ to_fun := f }
+def to_hom : (M ↪[L] N) → M →[L] N := hom_class.to_hom
 
 @[simp]
 lemma coe_to_hom {f : M ↪[L] N} : (f.to_hom : M → N) = f := rfl
@@ -491,6 +503,13 @@ by { ext, simp only [coe_to_hom, comp_apply, hom.comp_apply] }
 
 end embedding
 
+/-- Any element of an injective `strong_hom_class` can be realized as a first_order embedding. -/
+def strong_hom_class.to_embedding {F M N} [L.Structure M] [L.Structure N]
+  [embedding_like F M N] [strong_hom_class L F M N] :
+  F → (M ↪[L] N) :=
+λ φ, ⟨⟨φ, embedding_like.injective φ⟩,
+  λ _, strong_hom_class.map_fun φ, λ _, strong_hom_class.map_rel φ⟩
+
 namespace equiv
 
 instance : equiv_like (M ≃[L] N) M N :=
@@ -546,13 +565,11 @@ hom_class.map_constants φ c
 strong_hom_class.map_rel φ r x
 
 /-- A first-order equivalence is also a first-order embedding. -/
-def to_embedding (f : M ≃[L] N) : M ↪[L] N :=
-{ to_fun := f,
-  inj' := f.to_equiv.injective }
+def to_embedding : (M ≃[L] N) → M ↪[L] N :=
+strong_hom_class.to_embedding
 
 /-- A first-order equivalence is also a first-order homomorphism. -/
-def to_hom (f : M ≃[L] N) : M →[L] N :=
-{ to_fun := f }
+def to_hom : (M ≃[L] N) → M →[L] N := hom_class.to_hom
 
 @[simp] lemma to_embedding_to_hom (f : M ≃[L] N) : f.to_embedding.to_hom = f.to_hom := rfl
 
@@ -602,6 +619,13 @@ lemma comp_assoc (f : M ≃[L] N) (g : N ≃[L] P) (h : P ≃[L] Q) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
 
 end equiv
+
+/-- Any element of a bijective `strong_hom_class` can be realized as a first_order isomorphism. -/
+def strong_hom_class.to_equiv {F M N} [L.Structure M] [L.Structure N]
+  [equiv_like F M N] [strong_hom_class L F M N] :
+  F → (M ≃[L] N) :=
+λ φ, ⟨⟨φ, equiv_like.inv φ, equiv_like.left_inv φ, equiv_like.right_inv φ⟩,
+  λ _, hom_class.map_fun φ, λ _, strong_hom_class.map_rel φ⟩
 
 section sum_Structure
 variables (L₁ L₂ : language) (S : Type*) [L₁.Structure S] [L₂.Structure S]

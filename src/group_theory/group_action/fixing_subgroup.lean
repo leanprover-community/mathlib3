@@ -123,7 +123,6 @@ lemma fixed_points_subgroup_antitone :
   antitone (λ (P : subgroup M), fixed_points P α) :=
 (fixing_subgroup_fixed_points_gc M α).monotone_u.dual_left
 
-
 /-- Fixing subgroup of union is intersection -/
 lemma fixing_subgroup_union {s t : set α} :
   fixing_subgroup M (s ∪ t) = fixing_subgroup M s ⊓ fixing_subgroup M t :=

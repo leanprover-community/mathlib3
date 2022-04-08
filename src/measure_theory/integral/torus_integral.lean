@@ -52,21 +52,11 @@ it to every n axis. -/
 def torus_map (c : ℂⁿ) (R : ℝⁿ) : ℝⁿ → ℂⁿ :=
   λ θ i, c i + R i * exp(θ i * I)
 
-lemma periodic_torus_map (c : ℂⁿ) (R : ℝⁿ) : periodic (torus_map c R) (λ _, 2 * π) :=
-begin
-  intro θ,
-  rw torus_map,
-  simp [add_mul, exp_periodic _],
-end
-
 lemma torus_map_sub_center (c : ℂⁿ) (R : ℝⁿ) (θ : ℝⁿ) :
   torus_map c R θ - c = torus_map 0 R θ :=
 begin
-  rw [torus_map, torus_map],
-  dsimp,
-  ext i,
-  simp,
-  simp,
+  ext1 i,
+  simp [torus_map],
 end
 
 lemma torus_map_eq_center_iff {c : ℂⁿ} {R : ℝⁿ} {θ : ℝⁿ} :
@@ -77,8 +67,8 @@ end
 
 @[simp] lemma torus_map_zero_radius (c : ℂⁿ) : torus_map c 0 = const ℝⁿ c :=
 begin
-  ext θ i,
-  repeat {conv_lhs {rw torus_map_eq_center_iff.2}},
+  ext θ i : 2,
+  rw torus_map_eq_center_iff.2 rfl
 end
 
 /-!

@@ -71,7 +71,7 @@ lemma colex.eq_iff (A B : finset α) :
 
 /--
 `A` is less than `B` in the colex ordering if the largest thing that's not in both sets is in B.
-In other words, max (A Δ B) ∈ B (if the maximum exists).
+In other words, `max (A ∆ B) ∈ B` (if the maximum exists).
 -/
 instance [has_lt α] : has_lt (finset.colex α) :=
 ⟨λ (A B : finset α), ∃ (k : α), (∀ {x}, k < x → (x ∈ A ↔ x ∈ B)) ∧ k ∉ A ∧ k ∈ B⟩

@@ -3,9 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
-import data.finset.preimage
+import algebra.hom.group_action
 import algebra.indicator_function
-import algebra.group_action_hom
+import data.finset.preimage
 
 /-!
 # Type of functions with finite support

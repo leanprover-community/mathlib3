@@ -37,7 +37,14 @@ variables [semiring A] [algebra R A] [semiring B] [algebra R B] [semiring C] [al
 include R
 
 instance : set_like (subalgebra R A) A :=
-⟨subalgebra.carrier, λ p q h, by cases p; cases q; congr'⟩
+{ coe := subalgebra.carrier,
+  coe_injective' := λ p q h, by cases p; cases q; congr' }
+
+instance : subsemiring_class (subalgebra R A) A :=
+{ add_mem := add_mem',
+  mul_mem := mul_mem',
+  one_mem := one_mem',
+  zero_mem := zero_mem' }
 
 @[simp]
 lemma mem_carrier {s : subalgebra R A} {x : A} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -100,6 +107,10 @@ S.to_subsemiring.zero_mem
 
 theorem add_mem {x y : A} (hx : x ∈ S) (hy : y ∈ S) : x + y ∈ S :=
 S.to_subsemiring.add_mem hx hy
+
+instance {R A : Type*} [comm_ring R] [ring A] [algebra R A] : subring_class (subalgebra R A) A :=
+{ neg_mem := λ S x hx, neg_one_smul R x ▸ S.smul_mem hx _,
+  .. subalgebra.subsemiring_class }
 
 theorem neg_mem {R : Type u} {A : Type v} [comm_ring R] [ring A]
   [algebra R A] (S : subalgebra R A) {x : A} (hx : x ∈ S) : -x ∈ S :=
@@ -933,35 +944,46 @@ section actions
 
 variables {α β : Type*}
 
-/-- The action by a subalgebra is the action by the underlying ring. -/
-instance [mul_action A α] (S : subalgebra R A) : mul_action S α :=
-S.to_subsemiring.mul_action
+/-- The action by a subalgebra is the action by the underlying algebra. -/
+instance [has_scalar A α] (S : subalgebra R A) : has_scalar S α := S.to_subsemiring.has_scalar
 
-lemma smul_def [mul_action A α] {S : subalgebra R A} (g : S) (m : α) : g • m = (g : A) • m := rfl
+lemma smul_def [has_scalar A α] {S : subalgebra R A} (g : S) (m : α) : g • m = (g : A) • m := rfl
 
 instance smul_comm_class_left
-  [mul_action A β] [has_scalar α β] [smul_comm_class A α β] (S : subalgebra R A) :
+  [has_scalar A β] [has_scalar α β] [smul_comm_class A α β] (S : subalgebra R A) :
   smul_comm_class S α β :=
 S.to_subsemiring.smul_comm_class_left
 
 instance smul_comm_class_right
-  [has_scalar α β] [mul_action A β] [smul_comm_class α A β] (S : subalgebra R A) :
+  [has_scalar α β] [has_scalar A β] [smul_comm_class α A β] (S : subalgebra R A) :
   smul_comm_class α S β :=
 S.to_subsemiring.smul_comm_class_right
 
 /-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
 instance is_scalar_tower_left
-  [has_scalar α β] [mul_action A α] [mul_action A β] [is_scalar_tower A α β] (S : subalgebra R A) :
+  [has_scalar α β] [has_scalar A α] [has_scalar A β] [is_scalar_tower A α β] (S : subalgebra R A) :
   is_scalar_tower S α β :=
 S.to_subsemiring.is_scalar_tower
 
-instance [mul_action A α] [has_faithful_scalar A α] (S : subalgebra R A) :
+instance [has_scalar A α] [has_faithful_scalar A α] (S : subalgebra R A) :
   has_faithful_scalar S α :=
 S.to_subsemiring.has_faithful_scalar
 
 /-- The action by a subalgebra is the action by the underlying algebra. -/
+instance [mul_action A α] (S : subalgebra R A) : mul_action S α :=
+S.to_subsemiring.mul_action
+
+/-- The action by a subalgebra is the action by the underlying algebra. -/
 instance [add_monoid α] [distrib_mul_action A α] (S : subalgebra R A) : distrib_mul_action S α :=
 S.to_subsemiring.distrib_mul_action
+
+/-- The action by a subalgebra is the action by the underlying algebra. -/
+instance [has_zero α] [smul_with_zero A α] (S : subalgebra R A) : smul_with_zero S α :=
+S.to_subsemiring.smul_with_zero
+
+/-- The action by a subalgebra is the action by the underlying algebra. -/
+instance [has_zero α] [mul_action_with_zero A α] (S : subalgebra R A) : mul_action_with_zero S α :=
+S.to_subsemiring.mul_action_with_zero
 
 /-- The action by a subalgebra is the action by the underlying algebra. -/
 instance module_left [add_comm_monoid α] [module A α] (S : subalgebra R A) : module S α :=
@@ -1032,6 +1054,37 @@ instance {A : Type*} [ring A] [algebra R A] : comm_ring (center R A) := subring.
 lemma mem_center_iff {a : A} : a ∈ center R A ↔ ∀ (b : A), b*a = a*b := iff.rfl
 
 end center
+
+section centralizer
+
+@[simp]
+lemma _root_.set.algebra_map_mem_centralizer
+  {s : set A} (r : R) : algebra_map R A r ∈ s.centralizer :=
+λ a h, (algebra.commutes _ _).symm
+
+variables (R)
+
+/-- The centralizer of a set as a subalgebra. -/
+def centralizer (s : set A) : subalgebra R A :=
+{ algebra_map_mem' := set.algebra_map_mem_centralizer,
+  ..subsemiring.centralizer s, }
+
+@[simp, norm_cast]
+lemma coe_centralizer (s : set A) : (centralizer R s : set A) = s.centralizer := rfl
+
+lemma mem_centralizer_iff {s : set A} {z : A} :
+  z ∈ centralizer R s ↔ ∀ g ∈ s, g * z = z * g :=
+iff.rfl
+
+lemma centralizer_le (s t : set A) (h : s ⊆ t) :
+  centralizer R t ≤ centralizer R s :=
+set.centralizer_subset h
+
+@[simp]
+lemma centralizer_univ : centralizer R set.univ = center R A :=
+set_like.ext' (set.centralizer_univ A)
+
+end centralizer
 
 end subalgebra
 

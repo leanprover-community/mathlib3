@@ -103,16 +103,16 @@ lemma antivary_on_const_right (f : ι → α) (b : β) (s : set ι) : antivary_o
 lemma monovary.comp_right (h : monovary f g) (k : ι' → ι) : monovary (f ∘ k) (g ∘ k) :=
 λ i j hij, h hij
 
-lemma monovary_on.comp_right (h : monovary_on f g s) (k : ι' → ι) :
-  monovary_on (f ∘ k) (g ∘ k) (k ⁻¹' s) :=
-λ i hi j hj hij, h hi hj hij
-
 lemma antivary.comp_right (h : antivary f g) (k : ι' → ι) : antivary (f ∘ k) (g ∘ k) :=
 λ i j hij, h hij
 
+lemma monovary_on.comp_right (h : monovary_on f g s) (k : ι' → ι) :
+  monovary_on (f ∘ k) (g ∘ k) (k ⁻¹' s) :=
+λ i hi j hj, h hi hj
+
 lemma antivary_on.comp_right (h : antivary_on f g s) (k : ι' → ι) :
   antivary_on (f ∘ k) (g ∘ k) (k ⁻¹' s) :=
-λ i hi j hj hij, h hi hj hij
+λ i hi j hj, h hi hj
 
 lemma monovary.comp_monotone_left (h : monovary f g) (hf : monotone f') : monovary (f' ∘ f) g :=
 λ i j hij, hf $ h hij

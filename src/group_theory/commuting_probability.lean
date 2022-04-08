@@ -25,11 +25,18 @@ This file introduces the commuting probability of finite groups.
 section for_mathlib
 
 @[to_additive] instance subgroup.centralizer.characteristic
-  {G : Type*} [group G] (H : subgroup G) [H.characteristic] :
-  H.centralizer.characteristic := sorry
+  {G : Type*} [group G] (H : subgroup G) [hH : H.characteristic] :
+  H.centralizer.characteristic :=
+begin
+  refine subgroup.characteristic_iff_comap_le.mpr (λ ϕ g hg h hh, ϕ.injective _),
+  rw [map_mul, map_mul],
+  exact hg (ϕ h) (subgroup.characteristic_iff_le_comap.mp hH ϕ hh),
+end
 
-instance subgroup.commutator.characteristic (G : Type*) [group G] :
-  (commutator G).characteristic := sorry
+instance subgroup.commutator.characteristic (G : Type*) [group G] : (commutator G).characteristic :=
+subgroup.characteristic_iff_le_map.mpr (λ ϕ, commutator_le_map_commutator
+  (ge_of_eq (subgroup.map_top_of_surjective ϕ.to_monoid_hom ϕ.surjective))
+  (ge_of_eq (subgroup.map_top_of_surjective ϕ.to_monoid_hom ϕ.surjective)))
 
 end for_mathlib
 

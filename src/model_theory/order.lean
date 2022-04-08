@@ -69,7 +69,7 @@ end is_ordered
 instance : is_ordered language.order := ⟨unit.star⟩
 
 @[simp]
-lemma order_Lhom_order : order_Lhom (language.order) = Lhom.id language.order :=
+lemma order_Lhom_order : order_Lhom language.order = Lhom.id language.order :=
 Lhom.funext (subsingleton.elim _ _) (subsingleton.elim _ _)
 
 instance : is_ordered (L.sum language.order) := ⟨sum.inr is_ordered.le_symb⟩

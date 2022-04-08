@@ -105,18 +105,26 @@ def fin3_equiv : sign_type ≃* fin 3 :=
   end,
   map_mul' := λ x y, by casesm* _; refl }
 
+section cast
+
+variables {α : Type*} [has_zero α] [has_one α] [has_neg α]
+
 /-- Turn a `sign_type` into zero, one, or minus one. This is a coercion instance, but note it is
 only a `has_coe_t` instance: see note [use has_coe_t]. -/
-def cast {α} [has_zero α] [has_one α] [has_neg α] : sign_type → α
+def cast : sign_type → α
 | zero :=  0
 | pos  :=  1
 | neg  := -1
 
-@[simp] lemma cast_zero    {α} [has_zero α] [has_one α] [has_neg α] : cast 0 = (0 : α) := rfl
-@[simp] lemma cast_one     {α} [has_zero α] [has_one α] [has_neg α] : cast 1 = (1 : α) := rfl
-@[simp] lemma cast_neg_one {α} [has_zero α] [has_one α] [has_neg α] : cast (-1) = (-1 : α) := rfl
+instance : has_coe_t sign_type α := ⟨cast⟩
 
-instance {α} [has_zero α] [has_one α] [has_neg α] : has_coe_t sign_type α := ⟨cast⟩
+@[simp] lemma cast_eq_coe (a : sign_type) : (cast a : α) = a := rfl
+
+@[simp] lemma coe_zero : ↑(0 : sign_type) = (0 : α) := rfl
+@[simp] lemma coe_one  : ↑(1 : sign_type) = (1 : α) := rfl
+@[simp] lemma coe_neg_one : ↑(-1 : sign_type) = (-1 : α) := rfl
+
+end cast
 
 /-- `sign_type.cast` as a `mul_with_zero_hom`. -/
 @[simps] def cast_hom {α} [mul_zero_one_class α] [has_distrib_neg α] : sign_type →*₀ α :=
@@ -157,15 +165,16 @@ section linear_order
 
 variables [has_zero α] [linear_order α] {a : α}
 
-lemma sign_ne_zero (h : a ≠ 0) : sign a ≠ 0 :=
+@[simp] lemma sign_eq_zero_iff : sign a = 0 ↔ a = 0 :=
 begin
-  contrapose! h,
-  rw sign_apply at h,
-  split_ifs at h,
-  { cases h },
-  { cases h },
-  exact ((lt_trichotomy a 0).resolve_left h_2).resolve_right h_1
+  refine ⟨λ h, _, λ h, h.symm ▸ sign_zero⟩,
+  rw [sign_apply] at h,
+  split_ifs at h; cases h,
+  exact (le_of_not_lt h_1).eq_of_not_lt h_2
 end
+
+lemma sign_ne_zero : sign a ≠ 0 ↔ a ≠ 0 :=
+sign_eq_zero_iff.not
 
 end linear_order
 

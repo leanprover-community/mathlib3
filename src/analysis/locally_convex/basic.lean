@@ -81,8 +81,8 @@ begin
     forall_false_left, implies_true_iff] },
   rw [finset.set_bUnion_insert, absorbs_union, hi],
   split; intro h,
-  { refine λ i' hi', or.elim (finset.mem_insert.mp hi') _ (λ hi'', h.2 i' hi''),
-    exact (λ hi'', by { rw hi'', exact h.1 }), },
+  { refine λ _ hi', (finset.mem_insert.mp hi').elim _ (h.2 _),
+    exact (λ hi'', by { rw hi'', exact h.1 }) },
   exact ⟨h i (finset.mem_insert_self i t), λ i' hi', h i' (finset.mem_insert_of_mem hi')⟩,
 end
 
@@ -122,7 +122,7 @@ lemma absorbent.absorbs_finite {s : set E} (hs : absorbent 𝕜 s) {v : set E} (
   absorbs 𝕜 s v :=
 begin
   rw ←set.bUnion_of_singleton v,
-  refine hv.absorbs_Union.mpr (λ _ _, hs.absorbs),
+  exact hv.absorbs_Union.mpr (λ _ _, hs.absorbs),
 end
 
 variables (𝕜)

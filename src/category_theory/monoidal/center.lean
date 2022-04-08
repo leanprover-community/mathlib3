@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.monoidal.braided
 import category_theory.functor.reflects_isomorphisms
+import category_theory.monoidal.coherence
 
 /-!
 # Half braidings and the Drinfeld center of a monoidal category
@@ -115,25 +116,31 @@ def tensor_obj (X Y : center C) : center C :=
       ≪≫ (X.2.β U ⊗ iso.refl Y.1) ≪≫ α_ _ _ _,
     monoidal' := λ U U',
     begin
-      calc _ = _ ≫
-      (𝟙 X.fst ⊗ (Y.snd.β U).hom ⊗ 𝟙 U') ≫ _ ≫
-        ((X.snd.β U).hom ⊗ (Y.snd.β U').hom) ≫ _ ≫
-          (𝟙 U ⊗ (X.snd.β U').hom ⊗ 𝟙 Y.fst) ≫ _ : _
+      dsimp,
+      calc _ =
+      𝟙 _ ⊗≫ (𝟙 X.fst ⊗ (Y.snd.β U).hom ⊗ 𝟙 U') ⊗≫ ((𝟙 (X.fst ⊗ U) ⊗ (Y.snd.β U').hom) ≫
+        ((X.snd.β U).hom ⊗ 𝟙 (U' ⊗ Y.fst))) ⊗≫ (𝟙 U ⊗ (X.snd.β U').hom ⊗ 𝟙 Y.fst) ⊗≫ 𝟙 _ : _
       ... = _ : _,
-      exact (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (α_ _ _ _).inv),
-      exact (𝟙 _ ⊗ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv,
-      exact (α_ _ _ _).hom ≫ (𝟙 _ ⊗ (α_ _ _ _).inv),
-      exact (𝟙 _ ⊗ (α_ _ _ _).hom) ≫ (α_ _ _ _).inv,
-      { rw [←id_tensor_comp_tensor_id_assoc (Y.snd.β U').hom (X.snd.β U).hom], simp },
-      { rw [←tensor_id_comp_id_tensor (Y.snd.β U').hom (X.snd.β U).hom], simp },
+      { simp only [half_braiding.monoidal], coherence },
+      { rw tensor_exchange, coherence }
     end,
     naturality' := λ U U' f,
     begin
       dsimp,
-      rw [category.assoc, category.assoc, category.assoc, category.assoc,
-        id_tensor_associator_naturality_assoc, ←id_tensor_comp_assoc, half_braiding.naturality,
-        id_tensor_comp_assoc, associator_inv_naturality_assoc, ←comp_tensor_id_assoc,
-        half_braiding.naturality, comp_tensor_id_assoc, associator_naturality, ←tensor_id],
+      calc _ =
+      𝟙 _ ⊗≫ (𝟙 X.fst ⊗ ((𝟙 Y.fst ⊗ f) ≫ (Y.snd.β U').hom)) ⊗≫
+        ((X.snd.β U').hom ⊗ 𝟙 Y.fst) ⊗≫ 𝟙 _ : _
+      ... =
+      𝟙 _ ⊗≫ (𝟙 X.fst ⊗ (Y.snd.β U).hom) ⊗≫
+        (((𝟙 X.fst ⊗ f) ≫ (X.snd.β U').hom) ⊗ 𝟙 Y.fst) ⊗≫ 𝟙 _ : _
+      ... =
+      𝟙 _ ⊗≫ (𝟙 X.fst ⊗ (Y.snd.β U).hom) ⊗≫ ((X.snd.β U).hom ⊗ 𝟙 Y.fst) ⊗≫
+        (f ⊗ 𝟙 (X.fst ⊗ Y.fst)) ≫ 𝟙 _ : _
+      ... = _ : _,
+      { coherence },
+      { rw half_braiding.naturality, coherence },
+      { rw half_braiding.naturality, coherence },
+      { rw category.comp_id, coherence }
     end, }⟩
 
 /-- Auxiliary definition for the `monoidal_category` instance on `center C`. -/

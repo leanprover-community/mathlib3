@@ -580,7 +580,9 @@ end
 
 end bounded_formula
 
-@[simp] lemma equiv.realize_bounded_formula (g : M ≃[L] N) (φ : L.bounded_formula α n)
+namespace equiv
+
+@[simp] lemma realize_bounded_formula (g : M ≃[L] N) (φ : L.bounded_formula α n)
   {v : α → M} {xs : fin n → M} :
   φ.realize (g ∘ v) (g ∘ xs) ↔ φ.realize v xs :=
 begin
@@ -601,13 +603,19 @@ begin
       exact h' }}
 end
 
-@[simp] lemma equiv.realize_formula (g : M ≃[L] N) (φ : L.formula α) {v : α → M}  :
+@[simp] lemma realize_formula (g : M ≃[L] N) (φ : L.formula α) {v : α → M} :
   φ.realize (g ∘ v) ↔ φ.realize v :=
-begin
-  rw [formula.realize, formula.realize, ← g.realize_bounded_formula φ,
-    iff_eq_eq],
-  exact congr rfl (funext fin_zero_elim),
-end
+by rw [formula.realize, formula.realize, ← g.realize_bounded_formula φ,
+    iff_eq_eq, unique.eq_default (g ∘ default)]
+
+lemma realize_sentence (g : M ≃[L] N) (φ : L.sentence) :
+  M ⊨ φ ↔ N ⊨ φ :=
+by rw [sentence.realize, sentence.realize, ← g.realize_formula, unique.eq_default (g ∘ default)]
+
+lemma Theory_model (g : M ≃[L] N) [M ⊨ T] : N ⊨ T :=
+⟨λ φ hφ, (g.realize_sentence φ).1 (Theory.realize_sentence_of_mem T hφ)⟩
+
+end equiv
 
 namespace relations
 open bounded_formula

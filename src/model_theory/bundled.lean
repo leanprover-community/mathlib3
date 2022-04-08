@@ -18,7 +18,7 @@ This file bundles types together with their first-order structure.
 
 -/
 
-universes u v w
+universes u v w w'
 
 variables {L : first_order.language.{u v}}
 
@@ -72,6 +72,24 @@ instance : inhabited (Model (∅ : L.Theory)) :=
 ⟨Model.of _ unit⟩
 
 end inhabited
+
+variable {T}
+
+/-- Maps a bundled model along a bijection. -/
+def equiv_induced {M : Model.{u v w} T} {N : Type w'} (e : M ≃ N) :
+  Model.{u v w'} T :=
+{ carrier := N,
+  struc := e.induced_Structure,
+  is_model := @equiv.Theory_model L M N _ e.induced_Structure T e.induced_Structure_equiv _,
+  nonempty' := e.symm.nonempty }
+
+/-- Shrinks a small model to a particular universe. -/
+noncomputable def shrink (M : Model.{u v w} T) [small.{w'} M] :
+  Model.{u v w'} T := equiv_induced (equiv_shrink M)
+
+/-- Lifts a model to a particular universe. -/
+def ulift (M : Model.{u v w} T) : Model.{u v (max w w')} T :=
+  equiv_induced (equiv.ulift.symm : M ≃ _)
 
 end Model
 

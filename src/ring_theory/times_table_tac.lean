@@ -498,3 +498,112 @@ end
 -/
 
 end sqrt_2_sqrt_3
+
+-- TODO: could generalize to infinite ι
+noncomputable def has_mul_of_table {ι R S : Type*} [fintype ι] [semiring R]
+  [hS : add_comm_monoid S] [module R S] (b : basis ι R S) (table : ι → ι → ι → R) :
+    has_mul S :=
+{ mul := λ x y, b.equiv_fun.symm (λ k, ∑ i j, b.repr x i * b.repr y j * table i j k) }
+
+lemma mul_def' {ι R S : Type*} [fintype ι] [semiring R]
+  [hS : add_comm_monoid S] [module R S] (b : basis ι R S) (table : ι → ι → ι → R)
+  (x y : S) (k : ι) :
+  b.repr (by { letI := has_mul_of_table b table; exact x * y }) k = ∑ i j, b.repr x i * b.repr y j * table i j k :=
+show b.repr (b.equiv_fun.symm (λ k, ∑ i j, b.repr x i * b.repr y j * table i j k)) k =
+  ∑ i j, b.repr x i * b.repr y j * table i j k,
+by simp only [← b.equiv_fun_apply, b.equiv_fun.apply_symm_apply]
+
+lemma mul_def {ι R S : Type*} [fintype ι] [semiring R]
+  [hS : add_comm_monoid S] [module R S] (b : basis ι R S) (table : ι → ι → ι → R)
+  (i j k : ι) :
+  b.repr (by { letI := has_mul_of_table b table; exact b i * b j }) k = table i j k :=
+begin
+  letI := classical.dec_eq ι,
+  rw [mul_def', fintype.sum_eq_single i, fintype.sum_eq_single j],
+  { simp },
+  { intros k hk, simp [finsupp.single_eq_of_ne hk.symm] },
+  { intros k hk, simp [finsupp.single_eq_of_ne hk.symm] },
+end
+
+-- TODO: could generalize to infinite ι
+-- See note [reducible non-instances]
+@[reducible]
+noncomputable def non_unital_non_assoc_semiring_of_table {ι R S : Type*} [fintype ι] [semiring R]
+  [hS : add_comm_monoid S] [module R S] (b : basis ι R S) (table : ι → ι → ι → R) :
+    non_unital_non_assoc_semiring S :=
+{ zero := 0,
+  add := (+),
+  mul := λ x y, b.equiv_fun.symm (λ k, ∑ i j, b.repr x i * b.repr y j * table i j k),
+  zero_mul := λ x, b.ext_elem (λ k, by { rw mul_def', simp only [_root_.map_zero, finsupp.zero_apply, zero_mul, finset.sum_const_zero] }),
+  mul_zero := λ x, b.ext_elem (λ k, by { rw mul_def', simp only [_root_.map_zero, finsupp.zero_apply, mul_zero, zero_mul, finset.sum_const_zero] }),
+  left_distrib := λ x y z, b.ext_elem (λ k, by { rw mul_def', simp only [_root_.map_add, finsupp.add_apply, mul_add, add_mul, finset.sum_add_distrib, ← b.equiv_fun_apply, b.equiv_fun.apply_symm_apply] }),
+  right_distrib := λ x y z, b.ext_elem (λ k, by { rw mul_def', simp only [_root_.map_add, finsupp.add_apply, mul_add, add_mul, finset.sum_add_distrib, ← b.equiv_fun_apply, b.equiv_fun.apply_symm_apply] }),
+  .. hS }
+
+namespace sqrt_d
+
+variables (d : ℚ)
+
+def table : fin 2 → fin 2 → fin 2 → ℚ :=
+![![![1, 0], ![0, 1]],
+  ![![1, 0], ![0, d]]]
+
+-- @[irreducible]
+def sqrt_d (d : ℚ) := fin 2 → ℚ
+
+section
+
+local attribute [semireducible] sqrt_d
+
+variables {d}
+
+def mk (a b : ℚ) : sqrt_d d := ![a, b]
+
+variables (d)
+
+def sqrt : sqrt_d d := ![0, 1]
+
+instance : add_comm_group (sqrt_d d) := pi.add_comm_group
+
+noncomputable instance : non_unital_non_assoc_semiring (sqrt_d d) :=
+non_unital_non_assoc_semiring_of_table (pi.basis_fun ℚ (fin 2)) (table d)
+
+instance : module ℚ (sqrt_d d) := pi.module _ _ _
+
+noncomputable abbreviation basis : basis (fin 2) ℚ (sqrt_d d) := pi.basis_fun ℚ (fin 2)
+
+instance : smul_comm_class ℚ (sqrt_d d) (sqrt_d d) :=
+⟨λ m n a, (basis d).ext_elem (λ k, by { rw [smul_eq_mul, smul_eq_mul, linear_equiv.map_smul, finsupp.smul_apply, mul_def', mul_def'], simp [finset.mul_sum], refine finset.sum_congr rfl (λ i _, finset.sum_congr rfl (λ j _, _)), ring })⟩
+instance : is_scalar_tower ℚ (sqrt_d d) (sqrt_d d) :=
+⟨λ m n a, (basis d).ext_elem (λ k, by { rw [smul_eq_mul, smul_eq_mul, linear_equiv.map_smul, finsupp.smul_apply, mul_def', mul_def'], simp [finset.mul_sum], refine finset.sum_congr rfl (λ i _, finset.sum_congr rfl (λ j _, _)), ring })⟩
+
+noncomputable def times_table : times_table (fin 2) ℚ (sqrt_d d) :=
+{ basis := by convert pi.basis_fun ℚ (fin 2),
+  table := table d,
+  mul_def := mul_def _ _ }
+
+@[elab_as_eliminator]
+lemma cases (x : sqrt_d d) (p : sqrt_d d → Prop) (h : p (mk (x 0) (x 1))) :
+  p x :=
+sorry
+
+end
+
+@[times_table_simps] lemma table_apply (i j k : fin 2) :
+  (sqrt_d.times_table d).table i j k =
+  ![![![1, 0], ![0, 1]],
+    ![![1, 0], ![0, d]]] i j k := rfl
+
+@[times_table_simps] lemma repr_mk (a b : ℚ) (i : fin 2) :
+  (sqrt_d.times_table d).basis.repr (mk a b) i = ![a, b] i :=
+rfl
+
+example (x y : sqrt_d d) : x * y = y * x :=
+begin
+  refine cases _ x _ _, refine cases _ y _ _,
+  apply (sqrt_d.times_table d).basis.ext_elem (λ k, _),
+  do { (new_t, pr) ← tactic.target >>= (tactic.times_table.conv_subexpressions tactic.times_table.norm),
+        tactic.replace_target new_t pr },
+end
+
+end sqrt_d

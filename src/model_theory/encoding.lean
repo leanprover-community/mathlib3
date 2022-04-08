@@ -148,6 +148,13 @@ inductive list_symbols : Type (max u v u')
 
 open list_symbols
 
+instance : infinite (list_symbols L α) :=
+infinite.of_injective f begin
+  intros m n h,
+  simp only at h,
+  exact h,
+end
+
 instance : inhabited (list_symbols L α) := ⟨a⟩
 
 variables {L} {α}
@@ -241,6 +248,32 @@ begin
         dif_pos rfl],
       refl, },
     { rw [list_encode, cons_append, list_decode, ih, sigma_all] } }
+end
+
+/-- An encoding of bounded formulas as lists. -/
+@[simps] protected def encoding : encoding (Σ n, L.bounded_formula α n) :=
+{ Γ := list_symbols L α,
+  encode := λ φ, φ.2.list_encode,
+  decode := λ l, (list_decode l).1,
+  decode_encode := λ φ, begin
+    have h := list_decode_encode_list [φ],
+    simp only [bind_singleton, head_cons, list.tail_cons, nil_bind] at h,
+    simp only [h],
+    refl,
+  end }
+
+lemma list_encode_sigma_injective :
+  function.injective (λ (φ : Σ n, L.bounded_formula α n), φ.2.list_encode) :=
+bounded_formula.encoding.encode_injective
+
+lemma list_encode_injective (n) :
+  function.injective (list_encode : L.bounded_formula α n → list (list_symbols L α)) :=
+λ φ₁ φ₂ h, begin
+  have h' : (sigma.mk n φ₁).2.list_encode = (sigma.mk n φ₂).2.list_encode,
+  { rw h },
+  have h'' := list_encode_sigma_injective h',
+  simp only [eq_self_iff_true, heq_iff_eq, true_and] at h'',
+  exact h'',
 end
 
 end bounded_formula

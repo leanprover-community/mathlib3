@@ -138,6 +138,7 @@ namespace bounded_formula
 
 variables (L) (α)
 
+/-- A type of symbols used to encode formulas as lists. -/
 inductive list_symbols : Type (max u v u')
 | f (n : ℕ)
 | e (n : ℕ) (t₁ t₂ : L.term (α ⊕ fin n))
@@ -145,9 +146,11 @@ inductive list_symbols : Type (max u v u')
 | i
 | a
 
-variables {L} {α}
-
 open list_symbols
+
+instance : inhabited (list_symbols L α) := ⟨a⟩
+
+variables {L} {α}
 
 /-- Encodes a bounded formula as a list of symbols. -/
 def list_encode : ∀ {n : ℕ}, L.bounded_formula α n →

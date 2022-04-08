@@ -179,7 +179,7 @@ variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_
 variables [complete_space E'] [complete_space F']
 
 -- Todo: Generalize this to `is_R_or_C`.
-lemma is_adjoint_pair (A : E' →L[ℝ] F') :
+lemma is_adjoint_pair_inner (A : E' →L[ℝ] F') :
   linear_map.is_adjoint_pair (sesq_form_of_inner : E' →ₗ[ℝ] E' →ₗ[ℝ] ℝ)
   (sesq_form_of_inner : F' →ₗ[ℝ] F' →ₗ[ℝ] ℝ) A (A†) :=
 λ x y, by simp only [sesq_form_of_inner_apply_apply, adjoint_inner_left, to_linear_map_eq_coe,
@@ -293,7 +293,7 @@ variables {E' : Type*} {F' : Type*} [inner_product_space ℝ E'] [inner_product_
 variables [finite_dimensional ℝ E'] [finite_dimensional ℝ F']
 
 -- Todo: Generalize this to `is_R_or_C`.
-lemma is_adjoint_pair' (A : E' →ₗ[ℝ] F') :
+lemma is_adjoint_pair_inner (A : E' →ₗ[ℝ] F') :
   is_adjoint_pair (sesq_form_of_inner : E' →ₗ[ℝ] E' →ₗ[ℝ] ℝ)
   (sesq_form_of_inner : F' →ₗ[ℝ] F' →ₗ[ℝ] ℝ) A A.adjoint :=
 λ x y, by simp only [sesq_form_of_inner_apply_apply, adjoint_inner_left]

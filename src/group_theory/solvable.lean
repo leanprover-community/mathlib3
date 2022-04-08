@@ -75,7 +75,7 @@ begin
   induction n with n ih,
   { rwa [derived_series_zero, derived_series_zero, top_le_iff, ← monoid_hom.range_eq_map,
     ← monoid_hom.range_top_iff_surjective.mpr], },
-  { simp only [*, derived_series_succ, commutator_le_map_commutator], }
+  { exact commutator_le_map_commutator₂ ih }
 end
 
 lemma map_derived_series_eq (hf : function.surjective f) (n : ℕ) :
@@ -170,7 +170,7 @@ begin
     rw [←map_eq_bot_iff, eq_bot_iff, ←hn],
     exact map_derived_series_le_derived_series g n },
   { rw [nat.add_succ, derived_series_succ, derived_series_succ],
-    exact commutator_le_map_commutator hk hk },
+    exact commutator_le_map_commutator₂ hk },
 end
 
 instance solvable_prod {G' : Type*} [group G'] [h : is_solvable G] [h' : is_solvable G'] :

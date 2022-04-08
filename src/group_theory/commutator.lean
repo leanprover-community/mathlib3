@@ -165,6 +165,10 @@ lemma commutator_le_map_commutator {f : G →* G'} {K₁ K₂ : subgroup G'}
   (h₁ : K₁ ≤ H₁.map f) (h₂ : K₂ ≤ H₂.map f) : ⁅K₁, K₂⁆ ≤ ⁅H₁, H₂⁆.map f :=
 (commutator_mono h₁ h₂).trans (ge_of_eq (map_commutator H₁ H₂ f))
 
+lemma commutator_le_map_commutator₂ {f : G →* G'} {K₁ : subgroup G'} (h₁ : K₁ ≤ H₁.map f) :
+  ⁅K₁, K₁⁆ ≤ ⁅H₁, H₁⁆.map f :=
+commutator_le_map_commutator h₁ h₁
+
 /-- The commutator of direct product is contained in the direct product of the commutators.
 
 See `commutator_pi_pi_of_fintype` for equality given `fintype η`.

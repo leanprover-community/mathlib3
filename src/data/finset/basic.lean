@@ -1888,6 +1888,8 @@ order_embedding.of_map_le_iff (map f) (λ _ _, map_subset_map)
 @[simp] theorem map_inj {s₁ s₂ : finset α} : s₁.map f = s₂.map f ↔ s₁ = s₂ :=
 (map_embedding f).injective.eq_iff
 
+lemma map_injective (f : α ↪ β) : injective (map f) := (map_embedding f).injective
+
 @[simp] theorem map_embedding_apply : map_embedding f s = map f s := rfl
 
 theorem map_filter {p : β → Prop} [decidable_pred p] :
@@ -2547,6 +2549,24 @@ rfl
 @[simp] lemma finset_congr_trans (e : α ≃ β) (e' : β ≃ γ) :
   e.finset_congr.trans (e'.finset_congr) = (e.trans e').finset_congr :=
 by { ext, simp [-finset.mem_map, -equiv.trans_to_embedding] }
+
+/--
+Inhabited types are equivalent to `option β` for some `β` by identifying `default α` with `none`.
+-/
+def sigma_equiv_option_of_inhabited (α : Type u) [inhabited α] [decidable_eq α] :
+  Σ (β : Type u), α ≃ option β :=
+⟨{x : α // x ≠ default},
+{ to_fun := λ (x : α), if h : x = default then none else some ⟨x, h⟩,
+  inv_fun := λ o, option.elim o (default) coe,
+  left_inv := λ x, by { dsimp only, split_ifs; simp [*] },
+  right_inv := begin
+    rintro (_|⟨x,h⟩),
+    { simp },
+    { dsimp only,
+      split_ifs with hi,
+      { simpa [h] using hi },
+      { simp } }
+  end }⟩
 
 end equiv
 

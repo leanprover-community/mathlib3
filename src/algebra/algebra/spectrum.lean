@@ -39,7 +39,6 @@ This theory will serve as the foundation for spectral theory in Banach algebras.
 
 universes u v
 
-
 section defs
 
 variables (R : Type u) {A : Type v}
@@ -79,11 +78,6 @@ noncomputable def is_unit.sub_inv_smul {r : Rˣ} {s : R} {a : A}
   inv := r • ↑h.unit⁻¹,
   val_inv := by rw [mul_smul_comm, ←smul_mul_assoc, smul_sub, smul_inv_smul, h.mul_coe_inv],
   inv_val := by rw [smul_mul_assoc, ←mul_smul_comm, smul_sub, smul_inv_smul, h.coe_inv_mul], }
-
--- products of scalar units and algebra units
-lemma is_unit.smul_sub_iff_sub_inv_smul {r : Rˣ} {a : A} :
-  is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
-by rw [←@is_unit_smul_iff _ _ _ _ _ _ _ r (1 - r⁻¹ • a), smul_sub, smul_inv_smul]
 
 end defs
 

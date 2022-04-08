@@ -34,7 +34,7 @@ The main goal will be
 -/
 
 variable {n : ℕ+}
-variables {E : Type*} [measurable_space E] [normed_group E]
+variables {E : Type*} [normed_group E]
 
 noncomputable theory
 
@@ -87,25 +87,27 @@ end
 ### Integrability of a function on a generalized torus
 -/
 
-/--A function `f : ℂⁿ → E` is integrable on the generalized torus if the function
+/-- A function `f : ℂⁿ → E` is integrable on the generalized torus if the function
 `f ∘ torus_map c R θ` is integrable on `Icc (0 : ℝⁿ) (λ _, 2 * π)`-/
 def torus_integrable (f : ℂⁿ → E) (c : ℂⁿ) (R : ℝⁿ) : Prop :=
   integrable_on (λ (θ : ℝⁿ), f (torus_map c R θ)) (Icc (0 : ℝⁿ) (λ _, 2 * π)) volume
 
---Constant functions are torus integrable
+namespace torus_integrable
+
+/-- Constant functions are torus integrable -/
 lemma torus_integrable_const (a : E) (c : ℂⁿ) (R : ℝⁿ) :
   torus_integrable (λ _, a) c R :=
 begin
   simp [torus_integrable, measure_Icc_lt_top],
 end
 
---If `f` is torus integrable then `-f` is torus integrable
-lemma neg [borel_space E] {f : ℂⁿ → E} {c : ℂⁿ} {R : ℝⁿ} (hf : torus_integrable f c R) :
+/-- If `f` is torus integrable then `-f` is torus integrable. -/
+lemma neg {f : ℂⁿ → E} {c : ℂⁿ} {R : ℝⁿ} (hf : torus_integrable f c R) :
   torus_integrable (-f) c R := hf.neg
 
---Addition `f + g` of two torus integrable functions `f, g` is torus integrable
-lemma add [borel_space E] [second_countable_topology E]
-  {f g : ℂⁿ → E} {c : ℂⁿ} {R : ℝⁿ} (hf : torus_integrable f c R) (hg : torus_integrable g c R) :
+/-- Addition `f + g` of two torus integrable functions `f, g` is torus integrable. -/
+lemma add {f g : ℂⁿ → E} {c : ℂⁿ} {R : ℝⁿ} (hf : torus_integrable f c R)
+  (hg : torus_integrable g c R) :
   torus_integrable (f + g) c R := hf.add hg
 
 lemma torus_integrable_zero_radius {f : ℂⁿ → E} {c : ℂⁿ} :
@@ -116,24 +118,20 @@ begin
 end
 
 /--The function given in the definition of `torus_integral` is integrable-/
-lemma function_integrable [borel_space E] [normed_space ℂ E] [second_countable_topology E]
-  (f : ℂⁿ → E) (c : ℂⁿ) (R : ℝⁿ) (hf : torus_integrable f c R) :
+lemma function_integrable [normed_space ℂ E] {f : ℂⁿ → E} {c : ℂⁿ} {R : ℝⁿ} (hf : torus_integrable f c R) :
   integrable_on (λ (θ : ℝⁿ), (∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ))
                 (Icc (0 : ℝⁿ) (λ _, 2 * π)) volume :=
 begin
   refine (hf.norm.const_mul (∏ i, |R i|)).mono' _ _,
-  { apply ae_measurable.smul,
-    { apply continuous.ae_measurable,
-    exact continuous_finset_prod finset.univ
-    (λ (i : fin ↑n) (H : i ∈ finset.univ),
-    continuous_const.mul
-      (continuous_exp.comp
-        ((is_R_or_C.continuous_of_real.comp (continuous_apply i)).mul continuous_const))) },
-  exact hf.1 },
+  { refine (continuous.ae_strongly_measurable _).smul hf.1,
+    exact continuous_finset_prod finset.univ (λ i hi, continuous_const.mul
+      (((continuous_of_real.comp (continuous_apply i)).mul continuous_const).cexp)) },
   simp [norm_smul, map_prod],
 end
 
-variables [borel_space E] [normed_space ℂ E] [second_countable_topology E] [complete_space E]
+end torus_integrable
+
+variables [normed_space ℂ E] [complete_space E]
 
 /--The definition of the integral over a generalized torus with center `c ∈ ℂⁿ` and radius `R ∈ ℝⁿ`
 as the `•`-product of the derivative of `torus_map` and `f (torus_map c R θ)`-/
@@ -142,54 +140,22 @@ def torus_integral (f : ℂⁿ → E) (c : ℂⁿ) (R : ℝⁿ) :=
 
 lemma torus_integral_radius_zero (f : ℂⁿ → E) (c : ℂⁿ) :
   torus_integral f c 0 = 0 :=
-begin
-  simp [torus_integral],
-end
+by simp [torus_integral]
 
 lemma torus_integral_neg {f : ℂⁿ → E} {c : ℂⁿ} {R : ℝⁿ} :
   -torus_integral f c R = torus_integral (-f) c R :=
-begin
-  repeat {rw torus_integral},
-  simp,
-  rw ← integral_neg,
-end
+by simp [torus_integral, integral_neg]
 
 lemma torus_integral_add {f g : ℂⁿ → E} {c : ℂⁿ} {R : ℝⁿ}
   (hf : torus_integrable f c R) (hg : torus_integrable g c R) :
-  ∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π),
-    (∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ)
-    + (∏ i, I * R i * exp(θ i * I)) • g (torus_map c R θ)
-  = (∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), (∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ))
-  + (∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), (∏ i, I * R i * exp(θ i * I)) • g (torus_map c R θ))
-    :=
-begin
-  apply integral_add _ _,
-  exact function_integrable f c R hf,
-  exact function_integrable _ _ _ hg,
-end
-
-lemma torus_integral_add' {f g : ℂⁿ → E} {c : ℂⁿ} {R : ℝⁿ}
-  (hf : torus_integrable f c R) (hg : torus_integrable g c R) :
   torus_integral (f + g) c R = torus_integral f c R + torus_integral g c R :=
-begin
-  repeat {rw torus_integral},
-  simp [mul_add],
-  exact torus_integral_add hf hg,
-end
+by simpa only [torus_integral, smul_add, pi.add_apply]
+  using integral_add hf.function_integrable hg.function_integrable
 
 lemma torus_integral_sub {f g : ℂⁿ → E} {c : ℂⁿ} {R : ℝⁿ}
   (hf : torus_integrable f c R) (hg : torus_integrable g c R) :
-  ∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π),
-    (∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ)
-    - (∏ i, I * R i * exp(θ i * I)) • g (torus_map c R θ)
-  = (∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), (∏ i, I * R i * exp(θ i * I)) • f (torus_map c R θ))
-  - (∫ (θ : ℝⁿ) in Icc (0 : ℝⁿ) (λ _, 2 * π), (∏ i, I * R i * exp(θ i * I)) • g (torus_map c R θ))
-    :=
-begin
-  rw [sub_eq_add_neg, ← torus_integral, ← torus_integral,
-      torus_integral_neg, ← torus_integral_add' hf (neg hg), torus_integral],
-  simp [smul_add, sub_eq_add_neg],
-end
+  torus_integral (f - g) c R = torus_integral f c R - torus_integral g c R :=
+by simp only [sub_eq_add_neg, torus_integral_add hf hg.neg, torus_integral_neg]
 
 lemma torus_integral_smul {𝕜 : Type*} [is_R_or_C 𝕜] [normed_space 𝕜 E]
   (a : 𝕜) (f : ℂⁿ → E) (c : ℂⁿ) (R : ℝⁿ) :

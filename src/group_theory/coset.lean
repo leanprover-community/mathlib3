@@ -6,6 +6,7 @@ Authors: Mitchell Rowett, Scott Morrison
 
 import algebra.quotient
 import group_theory.subgroup.basic
+import tactic.group
 
 /-!
 # Cosets
@@ -245,6 +246,18 @@ by { ext, exact (right_coset_eq_iff s).symm }
 @[to_additive]
 instance right_rel_decidable [decidable_pred (∈ s)] :
   decidable_rel (right_rel s).r := λ x y, ‹decidable_pred (∈ s)› _
+
+/-- Right cosets are in bijection with left cosets. -/
+@[to_additive "Right cosets are in bijection with left cosets."]
+def quotient_right_rel_equiv_quotient_left_rel : quotient (quotient_group.right_rel s) ≃ α ⧸ s :=
+{ to_fun := quotient.map' (λ g, g⁻¹) (λ a b h, (congr_arg (∈ s) (by group)).mp (s.inv_mem h)),
+  inv_fun := quotient.map' (λ g, g⁻¹) (λ a b h, (congr_arg (∈ s) (by group)).mp (s.inv_mem h)),
+  left_inv := λ g, quotient.induction_on' g (λ g, quotient.sound' (by
+  { simp only [inv_inv],
+    exact quotient.exact' rfl })),
+  right_inv := λ g, quotient.induction_on' g (λ g, quotient.sound' (by
+  { simp only [inv_inv],
+    exact quotient.exact' rfl })) }
 
 end quotient_group
 

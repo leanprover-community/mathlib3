@@ -185,10 +185,18 @@ lemma monovary_on.sum_comp_perm_smul_eq_sum_smul_iff (hfg : monovary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f (σ i) • g i = ∑ i in s, f i • g i ↔ monovary_on (f ∘ σ) g s :=
 begin
-  have hσinv := {x | σ⁻¹ x ≠ x} ⊆ s := by simp only [set_support_inv_eq, hσ],
+  have hσinv : {x | σ⁻¹ x ≠ x} ⊆ s := by simp only [set_support_inv_eq, hσ],
   convert hfg.sum_smul_comp_perm_eq_sum_smul_iff hσinv using 1,
   { simpa [σ.sum_comp' s (λ i j, f i • g j) hσ, eq_iff_iff] },
-  { sorry }
+  { refine eq_iff_iff.mpr ⟨λ h, _, λ h, _⟩,
+    { convert h.comp_right (σ.symm),
+      { ext, simp only [function.comp_app, apply_symm_apply]},
+      { rw [set.eq_preimage_iff_image_eq (equiv.symm σ).bijective],
+        exact set.image_perm hσinv }},
+    { convert h.comp_right σ,
+      { ext, simp only [function.comp_app, inv_apply_self]},
+      { rw [set.eq_preimage_iff_image_eq σ.bijective],
+        exact set.image_perm hσ }}}
 end
 
 /-- **Strict inequality case of Rearrangement Inequality**: Pointwise scalar multiplication of
@@ -243,10 +251,18 @@ lemma antivary_on.sum_smul_eq_sum_comp_perm_smul_iff (hfg : antivary_on f g s)
   (hσ : {x | σ x ≠ x} ⊆ s) :
   ∑ i in s, f i • g i = ∑ i in s, f (σ i) • g i ↔ antivary_on (f ∘ σ) g s :=
 begin
-  convert hfg.sum_smul_eq_sum_smul_comp_perm_iff
-    (show {x | σ⁻¹ x ≠ x} ⊆ s, by simp only [set_support_inv_eq, hσ]) using 1,
+  have hσinv : {x | σ⁻¹ x ≠ x} ⊆ s := by simp only [set_support_inv_eq, hσ],
+  convert hfg.sum_smul_eq_sum_smul_comp_perm_iff hσinv using 1,
   { simpa [σ.sum_comp' s (λ i j, f i • g j) hσ, eq_iff_iff] },
-  { sorry } -- missing API lemma to PR
+  { refine eq_iff_iff.mpr ⟨λ h, _, λ h, _⟩,
+    { convert h.comp_right (σ.symm),
+      { ext, simp only [function.comp_app, apply_symm_apply]},
+      { rw [set.eq_preimage_iff_image_eq (equiv.symm σ).bijective],
+        exact set.image_perm hσinv }},
+    { convert h.comp_right σ,
+      { ext, simp only [function.comp_app, inv_apply_self]},
+      { rw [set.eq_preimage_iff_image_eq σ.bijective],
+        exact set.image_perm hσ }}}
 end
 
 /-- **Strict inequality case of Rearrangement Inequality**: Pointwise scalar multiplication of

@@ -30,7 +30,7 @@ lemma exp_bound_sq (x z : ℂ) (hz : ∥z∥ ≤ 1) :
   ∥exp (x + z) - exp x - z • exp x∥ ≤ ∥exp x∥ * ∥z∥ ^ 2 :=
 calc ∥exp (x + z) - exp x - z * exp x∥
     = ∥exp x * (exp z - 1 - z)∥ : by { congr, rw [exp_add], ring }
-... = ∥exp x∥ * ∥exp z - 1 - z∥ : normed_field.norm_mul _ _
+... = ∥exp x∥ * ∥exp z - 1 - z∥ : norm_mul _ _
 ... ≤ ∥exp x∥ * ∥z∥^2 : mul_le_mul_of_nonneg_left (abs_exp_sub_one_sub_id_le hz) (norm_nonneg _)
 
 lemma locally_lipschitz_exp {r : ℝ} (hr_nonneg : 0 ≤ r) (hr_le : r ≤ 1) (x y : ℂ)
@@ -154,7 +154,7 @@ lemma tendsto_exp_at_bot : tendsto exp at_bot (𝓝 0) :=
 (tendsto_exp_neg_at_top_nhds_0.comp tendsto_neg_at_bot_at_top).congr $
   λ x, congr_arg exp $ neg_neg x
 
-lemma tendsto_exp_at_bot_nhds_within : tendsto exp at_bot (𝓝[Ioi 0] 0) :=
+lemma tendsto_exp_at_bot_nhds_within : tendsto exp at_bot (𝓝[>] 0) :=
 tendsto_inf.2 ⟨tendsto_exp_at_bot, tendsto_principal.2 $ eventually_of_forall exp_pos⟩
 
 /-- The function `exp(x)/x^n` tends to `+∞` at `+∞`, for any natural number `n` -/
@@ -182,11 +182,14 @@ lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp 
 (tendsto_inv_at_top_zero.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
   by rw [comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_eq_mul_inv, exp_neg]
 
-/-- The function `(b * exp x + c) / (x ^ n)` tends to `+∞` at `+∞`, for any positive natural number
+/-- The function `(b * exp x + c) / (x ^ n)` tends to `+∞` at `+∞`, for any natural number
 `n` and any real numbers `b` and `c` such that `b` is positive. -/
-lemma tendsto_mul_exp_add_div_pow_at_top (b c : ℝ) (n : ℕ) (hb : 0 < b) (hn : 1 ≤ n) :
-  tendsto (λ x, (b * (exp x) + c) / (x^n)) at_top at_top :=
+lemma tendsto_mul_exp_add_div_pow_at_top (b c : ℝ) (n : ℕ) (hb : 0 < b) :
+  tendsto (λ x, (b * exp x + c) / x ^ n) at_top at_top :=
 begin
+  rcases n.eq_zero_or_pos with rfl | hn,
+  { simp only [pow_zero, div_one],
+    exact (tendsto_exp_at_top.const_mul_at_top hb).at_top_add tendsto_const_nhds },
   refine tendsto.congr' (eventually_eq_of_mem (Ioi_mem_at_top 0) _)
     (((tendsto_exp_div_pow_at_top n).const_mul_at_top hb).at_top_add
       ((tendsto_pow_neg_at_top hn).mul (@tendsto_const_nhds _ _ _ c _))),
@@ -195,14 +198,14 @@ begin
   ring,
 end
 
-/-- The function `(x ^ n) / (b * exp x + c)` tends to `0` at `+∞`, for any positive natural number
+/-- The function `(x ^ n) / (b * exp x + c)` tends to `0` at `+∞`, for any natural number
 `n` and any real numbers `b` and `c` such that `b` is nonzero. -/
-lemma tendsto_div_pow_mul_exp_add_at_top (b c : ℝ) (n : ℕ) (hb : 0 ≠ b) (hn : 1 ≤ n) :
-  tendsto (λ x, x^n / (b * (exp x) + c)) at_top (𝓝 0) :=
+lemma tendsto_div_pow_mul_exp_add_at_top (b c : ℝ) (n : ℕ) (hb : 0 ≠ b) :
+  tendsto (λ x, x ^ n / (b * exp x + c)) at_top (𝓝 0) :=
 begin
   have H : ∀ d e, 0 < d → tendsto (λ (x:ℝ), x^n / (d * (exp x) + e)) at_top (𝓝 0),
   { intros b' c' h,
-    convert (tendsto_mul_exp_add_div_pow_at_top b' c' n h hn).inv_tendsto_at_top ,
+    convert (tendsto_mul_exp_add_div_pow_at_top b' c' n h).inv_tendsto_at_top ,
     ext x,
     simpa only [pi.inv_apply] using inv_div.symm },
   cases lt_or_gt_of_ne hb,
@@ -242,14 +245,18 @@ lemma tendsto_comp_exp_at_top {α : Type*} {l : filter α} {f : ℝ → α} :
   tendsto (λ x, f (exp x)) at_top l ↔ tendsto f at_top l :=
 by rw [← tendsto_map'_iff, map_exp_at_top]
 
-@[simp] lemma map_exp_at_bot : map exp at_bot = 𝓝[Ioi 0] 0 :=
+@[simp] lemma map_exp_at_bot : map exp at_bot = 𝓝[>] 0 :=
 by rw [← coe_comp_exp_order_iso, ← filter.map_map, exp_order_iso.map_at_bot, ← map_coe_Ioi_at_bot]
 
-lemma comap_exp_nhds_within_Ioi_zero : comap exp (𝓝[Ioi 0] 0) = at_bot :=
+lemma comap_exp_nhds_within_Ioi_zero : comap exp (𝓝[>] 0) = at_bot :=
 by rw [← map_exp_at_bot, comap_map exp_injective]
 
 lemma tendsto_comp_exp_at_bot {α : Type*} {l : filter α} {f : ℝ → α} :
-  tendsto (λ x, f (exp x)) at_bot l ↔ tendsto f (𝓝[Ioi 0] 0) l :=
+  tendsto (λ x, f (exp x)) at_bot l ↔ tendsto f (𝓝[>] 0) l :=
 by rw [← map_exp_at_bot, tendsto_map'_iff]
+
+lemma is_o_pow_exp_at_top {n : ℕ} : is_o (λ x, x^n) real.exp at_top :=
+by simpa [is_o_iff_tendsto (λ x hx, ((exp_pos x).ne' hx).elim)]
+  using tendsto_div_pow_mul_exp_add_at_top 1 0 n zero_ne_one
 
 end real

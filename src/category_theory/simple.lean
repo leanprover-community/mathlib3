@@ -51,7 +51,7 @@ lemma kernel_zero_of_nonzero_from_simple
   kernel.ι f = 0 :=
 begin
   classical,
-  by_contradiction h,
+  by_contra,
   haveI := is_iso_of_mono_of_nonzero h,
   exact w (eq_zero_of_epi_kernel f),
 end
@@ -60,9 +60,8 @@ lemma mono_to_simple_zero_of_not_iso
   {X Y : C} [simple Y] {f : X ⟶ Y} [mono f] (w : is_iso f → false) : f = 0 :=
 begin
   classical,
-  by_contradiction h,
-  apply w,
-  exact is_iso_of_mono_of_nonzero h,
+  by_contra,
+  exact w (is_iso_of_mono_of_nonzero h)
 end
 
 lemma id_nonzero (X : C) [simple.{v} X] : 𝟙 X ≠ 0 :=
@@ -96,14 +95,14 @@ lemma simple_of_cosimple (X : C) (h : ∀ {Z : C} (f : X ⟶ Z) [epi f], is_iso 
   fsplit,
   { introsI,
     have hx := cokernel.π_of_epi f,
-    by_contradiction h,
+    by_contra,
     substI h,
     exact (h _).mp (cokernel.π_of_zero _ _) hx },
   { intro hf,
     suffices : epi f,
-    { resetI, apply abelian.is_iso_of_mono_of_epi },
+    { exactI is_iso_of_mono_of_epi _ },
     apply preadditive.epi_of_cokernel_zero,
-    by_contradiction h',
+    by_contra h',
     exact cokernel_not_iso_of_nonzero hf ((h _).mpr h') }
  end⟩
 
@@ -114,7 +113,7 @@ begin
   -- `f ≠ 0` means that `kernel.ι f` is not an iso, and hence zero, and hence `f` is a mono.
   haveI : mono f :=
     preadditive.mono_of_kernel_zero (mono_to_simple_zero_of_not_iso (kernel_not_iso_of_nonzero w)),
-  exact abelian.is_iso_of_mono_of_epi f,
+  exact is_iso_of_mono_of_epi f,
 end
 
 lemma cokernel_zero_of_nonzero_to_simple
@@ -131,9 +130,8 @@ lemma epi_from_simple_zero_of_not_iso
   {X Y : C} [simple X] {f : X ⟶ Y} [epi f] (w : is_iso f → false) : f = 0 :=
 begin
   classical,
-  by_contradiction h,
-  apply w,
-  exact is_iso_of_epi_of_nonzero h,
+  by_contra,
+  exact w (is_iso_of_epi_of_nonzero h),
 end
 
 end abelian

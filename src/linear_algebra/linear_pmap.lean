@@ -113,6 +113,15 @@ This version works for modules over division rings. -/
 mk_span_singleton' x y $ λ c hc, (smul_eq_zero.1 hc).elim
   (λ hc, by rw [hc, zero_smul]) (λ hx', absurd hx' hx)
 
+lemma mk_span_singleton_apply' (K : Type*) {E F : Type*} [division_ring K]
+  [add_comm_group E] [module K E] [add_comm_group F] [module K F] {x : E} (hx : x ≠ 0) (y : F):
+  (mk_span_singleton x y hx).to_fun
+  ⟨x, (submodule.mem_span_singleton_self x : x ∈ submodule.span K {x})⟩ = y :=
+begin
+  convert linear_pmap.mk_span_singleton_apply x y _ (1 : K) _;
+  simp [submodule.mem_span_singleton_self],
+end
+
 /-- Projection to the first coordinate as a `linear_pmap` -/
 protected def fst (p : submodule R E) (p' : submodule R F) : linear_pmap R (E × F) E :=
 { domain := p.prod p',

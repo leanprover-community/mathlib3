@@ -13,11 +13,10 @@ This file defines the factorial, along with the ascending and descending variant
 
 ## Main declarations
 
-* `factorial`: The factorial.
-* `asc_factorial`: The ascending factorial. Note that it runs from `n + 1` to `n + k` and *not*
-  from`n`
-  to `n + k - 1`. We might want to change that in the future.
-* `desc_factorial`: The descending factorial. It runs from `n - k` to `n`.
+* `nat.factorial`: The factorial.
+* `nat.asc_factorial`: The ascending factorial. Note that it runs from `n + 1` to `n + k`
+  and *not* from `n` to `n + k - 1`. We might want to change that in the future.
+* `nat.desc_factorial`: The descending factorial. It runs from `n - k` to `n`.
 -/
 
 namespace nat
@@ -257,7 +256,7 @@ lemma asc_factorial_lt_pow_add (n : ℕ) : ∀ {k : ℕ}, 2 ≤ k → n.asc_fact
 | 1 := by rintro (_ | ⟨_, ⟨⟩⟩)
 | (k + 2) := λ _, begin
   rw [asc_factorial_succ, pow_succ],
-  refine nat.mul_lt_mul' (le_refl _) ((asc_factorial_le_pow_add n _).trans_lt
+  refine nat.mul_lt_mul' le_rfl ((asc_factorial_le_pow_add n _).trans_lt
     (pow_lt_pow_of_lt_left (lt_add_one _) (succ_pos _))) (succ_pos _),
 end
 

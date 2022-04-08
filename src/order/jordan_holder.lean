@@ -5,8 +5,8 @@ Authors: Chris Hughes
 -/
 import order.lattice
 import data.list.sort
-import data.equiv.fin
-import data.equiv.functor
+import logic.equiv.fin
+import logic.equiv.functor
 /-!
 # Jordan-Hölder Theorem
 
@@ -147,7 +147,7 @@ instance : has_coe_to_fun (composition_series X) (λ x, fin (x.length + 1) → X
 
 instance [inhabited X] : inhabited (composition_series X) :=
 ⟨{ length := 0,
-   series := λ _, default X,
+   series := λ _, default,
    step' := λ x, x.elim0 }⟩
 
 variables {X}
@@ -375,15 +375,15 @@ by simp [erase_top, top, s.strict_mono.le_iff_le, fin.le_iff_coe_le_coe, tsub_le
 lemma mem_erase_top_of_ne_of_mem {s : composition_series X} {x : X}
   (hx : x ≠ s.top) (hxs : x ∈ s) : x ∈ s.erase_top :=
 begin
-  { rcases hxs with ⟨i, rfl⟩,
-    have hi : (i : ℕ) < (s.length - 1).succ,
-    { conv_rhs { rw [← nat.succ_sub (length_pos_of_mem_ne ⟨i, rfl⟩ s.top_mem hx),
-        nat.succ_sub_one] },
-      exact lt_of_le_of_ne
-        (nat.le_of_lt_succ i.2)
-        (by simpa [top, s.inj, fin.ext_iff] using hx) },
-    refine ⟨i.cast_succ, _⟩,
-    simp [fin.ext_iff, nat.mod_eq_of_lt hi] }
+  rcases hxs with ⟨i, rfl⟩,
+  have hi : (i : ℕ) < (s.length - 1).succ,
+  { conv_rhs { rw [← nat.succ_sub (length_pos_of_mem_ne ⟨i, rfl⟩ s.top_mem hx),
+      nat.succ_sub_one] },
+    exact lt_of_le_of_ne
+      (nat.le_of_lt_succ i.2)
+      (by simpa [top, s.inj, fin.ext_iff] using hx) },
+  refine ⟨i.cast_succ, _⟩,
+  simp [fin.ext_iff, nat.mod_eq_of_lt hi]
 end
 
 lemma mem_erase_top {s : composition_series X} {x : X}

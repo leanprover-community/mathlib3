@@ -37,8 +37,8 @@ A `subalgebra` is closed under all operations except `⁻¹`,
 intermediate field, field extension
 -/
 
-open finite_dimensional
-open_locale big_operators
+open finite_dimensional polynomial
+open_locale big_operators polynomial
 
 variables (K L : Type*) [field K] [field L] [algebra K L]
 
@@ -60,6 +60,14 @@ def to_subfield : subfield L := { ..S.to_subalgebra, ..S }
 
 instance : set_like (intermediate_field K L) L :=
 ⟨λ S, S.to_subalgebra.carrier, by { rintros ⟨⟨⟩⟩ ⟨⟨⟩⟩ ⟨h⟩, congr, }⟩
+
+instance : subfield_class (intermediate_field K L) L :=
+{ add_mem := λ s, s.add_mem',
+  zero_mem := λ s, s.zero_mem',
+  neg_mem := neg_mem',
+  mul_mem := λ s, s.mul_mem',
+  one_mem := λ s, s.one_mem',
+  inv_mem := inv_mem' }
 
 @[simp]
 lemma mem_carrier {s : intermediate_field K L} {x : L} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -114,6 +122,24 @@ theorem inv_mem : ∀ {x : L}, x ∈ S → x⁻¹ ∈ S := S.inv_mem'
 /-- An intermediate field is closed under division. -/
 theorem div_mem {x y : L} (hx : x ∈ S) (hy : y ∈ S) : x / y ∈ S :=
 S.to_subfield.div_mem hx hy
+
+/-- Copy of an intermediate field with a new `carrier` equal to the old one. Useful to fix
+definitional equalities. -/
+protected def copy (S : intermediate_field K L) (s : set L) (hs : s = ↑S) :
+  intermediate_field K L :=
+{ to_subalgebra := S.to_subalgebra.copy s (hs : s = (S.to_subalgebra).carrier),
+  neg_mem' :=
+    have hs' : (S.to_subalgebra.copy s hs).carrier = (S.to_subalgebra).carrier := hs,
+    hs'.symm ▸ S.neg_mem',
+  inv_mem' :=
+    have hs' : (S.to_subalgebra.copy s hs).carrier = (S.to_subalgebra).carrier := hs,
+    hs'.symm ▸ S.inv_mem' }
+
+@[simp] lemma coe_copy (S : intermediate_field K L) (s : set L) (hs : s = ↑S) :
+  (S.copy s hs : set L) = s := rfl
+
+lemma copy_eq (S : intermediate_field K L) (s : set L) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
 
 /-- Product of a list of elements in an intermediate_field is in the intermediate_field. -/
 lemma list_prod_mem {l : list L} : (∀ x ∈ l, x ∈ S) → l.prod ∈ S :=
@@ -202,6 +228,24 @@ begin
   { simp [pow_succ, ih] }
 end
 
+@[simp, norm_cast]
+lemma coe_sum {ι : Type*} [fintype ι] (f : ι → S) : (↑∑ i, f i : L) = ∑ i, (f i : L) :=
+begin
+  classical,
+  induction finset.univ using finset.induction_on with i s hi H,
+  { simp },
+  { rw [finset.sum_insert hi, coe_add, H, finset.sum_insert hi] }
+end
+
+@[simp, norm_cast]
+lemma coe_prod {ι : Type*} [fintype ι] (f : ι → S) : (↑∏ i, f i : L) = ∏ i, (f i : L) :=
+begin
+  classical,
+  induction finset.univ using finset.induction_on with i s hi H,
+  { simp },
+  { rw [finset.prod_insert hi, coe_mul, H, finset.prod_insert hi] }
+end
+
 /-! `intermediate_field`s inherit structure from their `subalgebra` coercions. -/
 
 instance module' {R} [semiring R] [has_scalar R K] [module R L] [is_scalar_tower R K L] :
@@ -248,6 +292,19 @@ def map (f : L →ₐ[K] L') : intermediate_field K L' :=
   neg_mem' := λ x hx, (S.to_subalgebra.map f).neg_mem hx,
   .. S.to_subalgebra.map f}
 
+lemma map_map {K L₁ L₂ L₃ : Type*} [field K] [field L₁] [algebra K L₁]
+  [field L₂] [algebra K L₂] [field L₃] [algebra K L₃]
+  (E : intermediate_field K L₁) (f : L₁ →ₐ[K] L₂) (g : L₂ →ₐ[K] L₃) :
+  (E.map f).map g = E.map (g.comp f) :=
+set_like.coe_injective $ set.image_image _ _ _
+
+/-- Given an equivalence `e : L ≃ₐ[K] L'` of `K`-field extensions and an intermediate
+field `E` of `L/K`, `intermediate_field_equiv_map e E` is the induced equivalence
+between `E` and `E.map e` -/
+@[simps] def intermediate_field_map (e : L ≃ₐ[K] L') (E : intermediate_field K L) :
+  E ≃ₐ[K] (E.map e.to_alg_hom) :=
+e.subalgebra_map E.to_subalgebra
+
 /-- The embedding from an intermediate field of `L / K` to `L`. -/
 def val : S →ₐ[K] L :=
 S.to_subalgebra.val
@@ -255,6 +312,32 @@ S.to_subalgebra.val
 @[simp] theorem coe_val : ⇑S.val = coe := rfl
 
 @[simp] lemma val_mk {x : L} (hx : x ∈ S) : S.val ⟨x, hx⟩ = x := rfl
+
+lemma range_val : S.val.range = S.to_subalgebra :=
+S.to_subalgebra.range_val
+
+lemma aeval_coe {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
+  [is_scalar_tower R K L] (x : S) (P : R[X]) : aeval (x : L) P = aeval x P :=
+begin
+  refine polynomial.induction_on' P (λ f g hf hg, _) (λ n r, _),
+  { rw [aeval_add, aeval_add, coe_add, hf, hg] },
+  { simp only [coe_mul, aeval_monomial, coe_pow, mul_eq_mul_right_iff],
+    left, refl }
+end
+
+lemma coe_is_integral_iff {R : Type*} [comm_ring R] [algebra R K] [algebra R L]
+  [is_scalar_tower R K L] {x : S} : is_integral R (x : L) ↔ _root_.is_integral R x :=
+begin
+  refine ⟨λ h, _, λ h, _⟩,
+  { obtain ⟨P, hPmo, hProot⟩ := h,
+    refine ⟨P, hPmo, (ring_hom.injective_iff _).1 (algebra_map ↥S L).injective _ _⟩,
+    letI : is_scalar_tower R S L := is_scalar_tower.of_algebra_map_eq (congr_fun rfl),
+    rwa [eval₂_eq_eval_map, ← eval₂_at_apply, eval₂_eq_eval_map, polynomial.map_map,
+      ← is_scalar_tower.algebra_map_eq, ← eval₂_eq_eval_map] },
+  { obtain ⟨P, hPmo, hProot⟩ := h,
+    refine ⟨P, hPmo, _⟩,
+    rw [← aeval_def, aeval_coe, aeval_def, hProot, coe_zero] },
+end
 
 variables {S}
 

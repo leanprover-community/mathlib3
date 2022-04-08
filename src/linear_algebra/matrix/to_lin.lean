@@ -270,7 +270,7 @@ def matrix.to_lin : matrix m n R ≃ₗ[R] (M₁ →ₗ[R] M₂) :=
 /-- `matrix.to_lin'` is a particular case of `matrix.to_lin`, for the standard basis
 `pi.basis_fun R n`. -/
 lemma matrix.to_lin_eq_to_lin' :
-  matrix.to_lin (pi.basis_fun R n) (pi.basis_fun R n) = matrix.to_lin' :=
+  matrix.to_lin (pi.basis_fun R n) (pi.basis_fun R m) = matrix.to_lin' :=
 rfl
 
 @[simp] lemma linear_map.to_matrix_symm :

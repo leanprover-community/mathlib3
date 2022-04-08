@@ -3,7 +3,7 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import data.dfinsupp
+import data.dfinsupp.basic
 import group_theory.submonoid.operations
 import group_theory.subgroup.basic
 
@@ -183,7 +183,7 @@ omit dec_ι
 protected def id (M : Type v) (ι : Type* := punit) [add_comm_monoid M] [unique ι] :
   (⨁ (_ : ι), M) ≃+ M :=
 { to_fun := direct_sum.to_add_monoid (λ _, add_monoid_hom.id M),
-  inv_fun := of (λ _, M) (default ι),
+  inv_fun := of (λ _, M) default,
   left_inv := λ x, direct_sum.induction_on x
     (by rw [add_monoid_hom.map_zero, add_monoid_hom.map_zero])
     (λ p x, by rw [unique.default_eq p, to_add_monoid_of]; refl)

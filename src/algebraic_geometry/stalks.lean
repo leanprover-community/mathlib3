@@ -36,7 +36,7 @@ namespace algebraic_geometry.PresheafedSpace
 /--
 The stalk at `x` of a `PresheafedSpace`.
 -/
-def stalk (X : PresheafedSpace C) (x : X) : C := X.presheaf.stalk x
+abbreviation stalk (X : PresheafedSpace C) (x : X) : C := X.presheaf.stalk x
 
 /--
 A morphism of presheafed spaces induces a morphism of stalks.
@@ -187,6 +187,12 @@ An isomorphism between presheafed spaces induces an isomorphism of stalks.
 def stalk_iso {X Y : PresheafedSpace C} (α : X ≅ Y) (x : X) :
   Y.stalk (α.hom.base x) ≅ X.stalk x :=
 as_iso (stalk_map α.hom x)
+
+@[simp, reassoc, elementwise]
+lemma stalk_specializes_stalk_map {X Y : PresheafedSpace C} (f : X ⟶ Y) {x y : X} (h : x ⤳ y) :
+  Y.presheaf.stalk_specializes (f.base.map_specialization h) ≫ stalk_map f x =
+    stalk_map f y ≫ X.presheaf.stalk_specializes h :=
+by { delta PresheafedSpace.stalk_map, simp [stalk_map] }
 
 end stalk_map
 

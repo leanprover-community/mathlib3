@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser, Zhangir Azerbayev
 -/
 
-import linear_algebra.multilinear.basis
-import linear_algebra.multilinear.tensor_product
-import linear_algebra.linear_independent
 import group_theory.perm.sign
 import group_theory.perm.subgroup
-import data.equiv.fin
 import group_theory.quotient_group
+import linear_algebra.linear_independent
+import linear_algebra.multilinear.basis
+import linear_algebra.multilinear.tensor_product
+import logic.equiv.fin
 
 /-!
 # Alternating Maps
@@ -172,6 +172,26 @@ end
 as `multilinear_map`
 -/
 
+section has_scalar
+
+variables {S : Type*} [monoid S] [distrib_mul_action S N] [smul_comm_class R S N]
+
+instance : has_scalar S (alternating_map R M N ι) :=
+⟨λ c f,
+  { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
+    ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
+
+@[simp] lemma smul_apply (c : S) (m : ι → M) :
+  (c • f) m = c • f m := rfl
+
+@[norm_cast] lemma coe_smul (c : S):
+  ((c • f : alternating_map R M N ι) : multilinear_map R (λ i : ι, M) N) = c • f := rfl
+
+lemma coe_fn_smul (c : S) (f : alternating_map R M N ι) : ⇑(c • f) = c • f :=
+rfl
+
+end has_scalar
+
 instance : has_add (alternating_map R M N ι) :=
 ⟨λ a b,
   { map_eq_zero_of_eq' :=
@@ -194,16 +214,7 @@ instance : has_zero (alternating_map R M N ι) :=
 instance : inhabited (alternating_map R M N ι) := ⟨0⟩
 
 instance : add_comm_monoid (alternating_map R M N ι) :=
-{ zero := 0,
-  add := (+),
-  zero_add := by intros; ext; simp [add_comm, add_left_comm],
-  add_zero := by intros; ext; simp [add_comm, add_left_comm],
-  add_comm := by intros; ext; simp [add_comm, add_left_comm],
-  add_assoc := by intros; ext; simp [add_comm, add_left_comm],
-  nsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
-    .. ((n • f : multilinear_map R (λ i : ι, M) N)) },
-  nsmul_zero' := by { intros, ext, simp [add_smul], },
-  nsmul_succ' := by { intros, ext, simp [add_smul, nat.succ_eq_one_add], } }
+coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, coe_fn_smul _ _)
 
 instance : has_neg (alternating_map R M N' ι) :=
 ⟨λ f,
@@ -226,40 +237,12 @@ instance : has_sub (alternating_map R M N' ι) :=
 @[norm_cast] lemma coe_sub : (↑(g - g₂) : multilinear_map R (λ i : ι, M) N') = g - g₂ := rfl
 
 instance : add_comm_group (alternating_map R M N' ι) :=
-by refine
-{ zero := 0,
-  add := (+),
-  neg := has_neg.neg,
-  sub := has_sub.sub,
-  sub_eq_add_neg := _,
-  nsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
-    .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
-  zsmul := λ n f, { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
-    .. ((n • f : multilinear_map R (λ i : ι, M) N')) },
-  zsmul_zero' := _,
-  zsmul_succ' := _,
-  zsmul_neg' := _,
-  .. alternating_map.add_comm_monoid, .. };
-intros; ext;
-simp [add_comm, add_left_comm, sub_eq_add_neg, add_smul, nat.succ_eq_add_one, coe_nat_zsmul]
+coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, coe_fn_smul _ _) (λ _ _, coe_fn_smul _ _)
 
 section distrib_mul_action
 
 variables {S : Type*} [monoid S] [distrib_mul_action S N] [smul_comm_class R S N]
-
-instance : has_scalar S (alternating_map R M N ι) :=
-⟨λ c f,
-  { map_eq_zero_of_eq' := λ v i j h hij, by simp [f.map_eq_zero_of_eq v h hij],
-    ..((c • f : multilinear_map R (λ i : ι, M) N)) }⟩
-
-@[simp] lemma smul_apply (c : S) (m : ι → M) :
-  (c • f) m = c • f m := rfl
-
-@[norm_cast] lemma coe_smul (c : S):
-  ((c • f : alternating_map R M N ι) : multilinear_map R (λ i : ι, M) N) = c • f := rfl
-
-lemma coe_fn_smul (c : S) (f : alternating_map R M N ι) : ⇑(c • f) = c • f :=
-rfl
 
 instance : distrib_mul_action S (alternating_map R M N ι) :=
 { one_smul := λ f, ext $ λ x, one_smul _ _,
@@ -376,14 +359,39 @@ lemma comp_linear_map_inj (f : M₂ →ₗ[R] M) (hf : function.surjective f)
   (g₁ g₂ : alternating_map R M N ι) : g₁.comp_linear_map f = g₂.comp_linear_map f ↔ g₁ = g₂ :=
 (comp_linear_map_injective _ hf).eq_iff
 
+section dom_lcongr
+
+variables (ι R N) (S : Type*) [semiring S] [module S N] [smul_comm_class R S N]
+
+/-- Construct a linear equivalence between maps from a linear equivalence between domains. -/
+@[simps apply]
+def dom_lcongr (e : M ≃ₗ[R] M₂) : alternating_map R M N ι ≃ₗ[S] alternating_map R M₂ N ι :=
+{ to_fun := λ f, f.comp_linear_map e.symm,
+  inv_fun := λ g, g.comp_linear_map e,
+  map_add' := λ _ _, rfl,
+  map_smul' := λ _ _, rfl,
+  left_inv := λ f, alternating_map.ext $ λ v, f.congr_arg $ funext $ λ i, e.symm_apply_apply _,
+  right_inv := λ f, alternating_map.ext $ λ v, f.congr_arg $ funext $ λ i, e.apply_symm_apply _ }
+
+@[simp] lemma dom_lcongr_refl :
+  dom_lcongr R N ι S (linear_equiv.refl R M) = linear_equiv.refl S _ :=
+linear_equiv.ext $ λ _, alternating_map.ext $ λ v, rfl
+
+@[simp] lemma dom_lcongr_symm (e : M ≃ₗ[R] M₂) :
+  (dom_lcongr R N ι S e).symm = dom_lcongr R N ι S e.symm :=
+rfl
+
+lemma dom_lcongr_trans (e : M ≃ₗ[R] M₂) (f : M₂ ≃ₗ[R] M₃):
+  (dom_lcongr R N ι S e).trans (dom_lcongr R N ι S f) = dom_lcongr R N ι S (e.trans f) :=
+rfl
+
+end dom_lcongr
+
 /-- Composing an alternating map with the same linear equiv on each argument gives the zero map
 if and only if the alternating map is the zero map. -/
-@[simp] lemma comp_linear_equiv_eq_zero_iff (f : alternating_map R M N ι) (g : M ≃ₗ[R] M) :
-  f.comp_linear_map (g : M →ₗ[R] M) = 0 ↔ f = 0 :=
-begin
-  simp_rw ←alternating_map.coe_multilinear_map_injective.eq_iff,
-  exact multilinear_map.comp_linear_equiv_eq_zero_iff _ _
-end
+@[simp] lemma comp_linear_equiv_eq_zero_iff (f : alternating_map R M N ι) (g : M₂ ≃ₗ[R] M) :
+  f.comp_linear_map (g : M₂ →ₗ[R] M) = 0 ↔ f = 0 :=
+(dom_lcongr R N ι ℕ g.symm).map_eq_zero_iff
 
 variables (f f' : alternating_map R M N ι)
 variables (g g₂ : alternating_map R M N' ι)
@@ -637,7 +645,7 @@ begin
   dsimp only [quotient.lift_on'_mk', quotient.map'_mk', mul_action.quotient.smul_mk,
     dom_coprod.summand],
   rw [perm.sign_mul, perm.sign_swap hij],
-  simp only [one_mul, units.neg_mul, function.comp_app, units.neg_smul, perm.coe_mul,
+  simp only [one_mul, neg_mul, function.comp_app, units.neg_smul, perm.coe_mul,
     units.coe_neg, multilinear_map.smul_apply, multilinear_map.neg_apply,
     multilinear_map.dom_dom_congr_apply, multilinear_map.dom_coprod_apply],
   convert add_right_neg _;
@@ -664,16 +672,16 @@ begin
   case [sum.inl sum.inr : i' j', sum.inr sum.inl : i' j']
   { -- the term pairs with and cancels another term
     all_goals { obtain ⟨⟨sl, sr⟩, hσ⟩ := quotient.exact' hσ, },
-    work_on_goal 0 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
-    work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
+    work_on_goal 1 { replace hσ := equiv.congr_fun hσ (sum.inl i'), },
+    work_on_goal 2 { replace hσ := equiv.congr_fun hσ (sum.inr i'), },
     all_goals
     { rw [←equiv.mul_swap_eq_swap_mul, mul_inv_rev, equiv.swap_inv, inv_mul_cancel_right] at hσ,
       simpa using hσ, }, },
   case [sum.inr sum.inr : i' j', sum.inl sum.inl : i' j']
   { -- the term does not pair but is zero
     all_goals { convert smul_zero _, },
-    work_on_goal 0 { convert tensor_product.tmul_zero _ _, },
-    work_on_goal 1 { convert tensor_product.zero_tmul _ _, },
+    work_on_goal 1 { convert tensor_product.tmul_zero _ _, },
+    work_on_goal 2 { convert tensor_product.zero_tmul _ _, },
     all_goals { exact alternating_map.map_eq_zero_of_eq _ _ hv (λ hij', hij (hij' ▸ rfl)), } },
 end
 

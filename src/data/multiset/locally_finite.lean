@@ -115,6 +115,18 @@ lemma Ico_filter_le_left {a b : α} [decidable_pred (≤ a)] (hab : a < b) :
   (Ico a b).filter (λ x, x ≤ a) = {a} :=
 by { rw [Ico, ←finset.filter_val, finset.Ico_filter_le_left hab], refl }
 
+lemma card_Ico_eq_card_Icc_sub_one (a b : α) : (Ico a b).card = (Icc a b).card - 1 :=
+finset.card_Ico_eq_card_Icc_sub_one _ _
+
+lemma card_Ioc_eq_card_Icc_sub_one (a b : α) : (Ioc a b).card = (Icc a b).card - 1 :=
+finset.card_Ioc_eq_card_Icc_sub_one _ _
+
+lemma card_Ioo_eq_card_Ico_sub_one (a b : α) : (Ioo a b).card = (Ico a b).card - 1 :=
+finset.card_Ioo_eq_card_Ico_sub_one _ _
+
+lemma card_Ioo_eq_card_Icc_sub_two (a b : α) : (Ioo a b).card = (Icc a b).card - 2 :=
+finset.card_Ioo_eq_card_Icc_sub_two _ _
+
 end partial_order
 
 section linear_order
@@ -151,19 +163,19 @@ variables [ordered_cancel_add_comm_monoid α] [has_exists_add_of_le α] [locally
 
 lemma map_add_left_Icc (a b c : α) : (Icc a b).map ((+) c) = Icc (c + a) (c + b) :=
 by { classical, rw [Icc, Icc, ←finset.image_add_left_Icc, finset.image_val,
-    (multiset.nodup_map (add_right_injective c) $ finset.nodup _).erase_dup] }
+    ((finset.nodup _).map $ add_right_injective c).dedup] }
 
 lemma map_add_left_Ico (a b c : α) : (Ico a b).map ((+) c) = Ico (c + a) (c + b) :=
 by { classical, rw [Ico, Ico, ←finset.image_add_left_Ico, finset.image_val,
-    (multiset.nodup_map (add_right_injective c) $ finset.nodup _).erase_dup] }
+    ((finset.nodup _).map $ add_right_injective c).dedup] }
 
 lemma map_add_left_Ioc (a b c : α) : (Ioc a b).map ((+) c) = Ioc (c + a) (c + b) :=
 by { classical, rw [Ioc, Ioc, ←finset.image_add_left_Ioc, finset.image_val,
-    (multiset.nodup_map (add_right_injective c) $ finset.nodup _).erase_dup] }
+    ((finset.nodup _).map $ add_right_injective c).dedup] }
 
 lemma map_add_left_Ioo (a b c : α) : (Ioo a b).map ((+) c) = Ioo (c + a) (c + b) :=
 by { classical, rw [Ioo, Ioo, ←finset.image_add_left_Ioo, finset.image_val,
-    (multiset.nodup_map (add_right_injective c) $ finset.nodup _).erase_dup] }
+    ((finset.nodup _).map $ add_right_injective c).dedup] }
 
 lemma map_add_right_Icc (a b c : α) : (Icc a b).map (λ x, x + c) = Icc (a + c) (b + c) :=
 by { simp_rw add_comm _ c, exact map_add_left_Icc _ _ _ }

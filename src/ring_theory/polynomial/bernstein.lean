@@ -15,7 +15,7 @@ import data.mv_polynomial.pderiv
 
 The definition of the Bernstein polynomials
 ```
-bernstein_polynomial (R : Type*) [comm_ring R] (n ν : ℕ) : polynomial R :=
+bernstein_polynomial (R : Type*) [comm_ring R] (n ν : ℕ) : R[X] :=
 (choose n ν) * X^ν * (1 - X)^(n - ν)
 ```
 and the fact that for `ν : fin (n+1)` these are linearly independent over `ℚ`.
@@ -36,6 +36,7 @@ noncomputable theory
 
 open nat (choose)
 open polynomial (X)
+open_locale big_operators polynomial
 
 variables (R : Type*) [comm_ring R]
 
@@ -44,7 +45,7 @@ variables (R : Type*) [comm_ring R]
 
 Although the coefficients are integers, it is convenient to work over an arbitrary commutative ring.
 -/
-def bernstein_polynomial (n ν : ℕ) : polynomial R := choose n ν * X^ν * (1 - X)^(n - ν)
+def bernstein_polynomial (n ν : ℕ) : R[X] := choose n ν * X^ν * (1 - X)^(n - ν)
 
 example : bernstein_polynomial ℤ 3 2 = 3 * X^2 - 3 * X^3 :=
 begin
@@ -115,7 +116,7 @@ begin
   { simp only [←mul_assoc],
     refine congr (congr_arg (*) (congr (congr_arg (*) _) rfl)) rfl,
     -- Now it's just about binomial coefficients
-    exact_mod_cast congr_arg (λ m : ℕ, (m : polynomial R)) (nat.succ_mul_choose_eq n ν).symm, },
+    exact_mod_cast congr_arg (λ m : ℕ, (m : R[X])) (nat.succ_mul_choose_eq n ν).symm, },
   { rw [← tsub_add_eq_tsub_tsub, ← mul_assoc, ← mul_assoc], congr' 1,
     rw mul_comm , rw [←mul_assoc,←mul_assoc],  congr' 1,
     norm_cast,
@@ -259,11 +260,11 @@ begin
       simp only [nat.succ_eq_add_one, add_le_add_iff_right] at h,
       simp only [fin.coe_last, fin.init_def],
       dsimp,
-      apply not_mem_span_of_apply_not_mem_span_image ((polynomial.derivative_lhom ℚ)^(n-k)),
+      apply not_mem_span_of_apply_not_mem_span_image ((@polynomial.derivative ℚ _)^(n-k)),
       simp only [not_exists, not_and, submodule.mem_map, submodule.span_image],
       intros p m,
       apply_fun (polynomial.eval (1 : ℚ)),
-      simp only [polynomial.derivative_lhom_coe, linear_map.pow_apply],
+      simp only [linear_map.pow_apply],
       -- The right hand side is nonzero,
       -- so it will suffice to show the left hand side is always zero.
       suffices : (polynomial.derivative^[n-k] p).eval 1 = 0,
@@ -289,22 +290,18 @@ annihilates `bernstein_polynomial n ν` for `ν < k`, but has a nonzero value at
 
 lemma linear_independent (n : ℕ) :
   linear_independent ℚ (λ ν : fin (n+1), bernstein_polynomial ℚ n ν) :=
-linear_independent_aux n (n+1) (le_refl _)
+linear_independent_aux n (n+1) le_rfl
 
-lemma sum (n : ℕ) : (finset.range (n + 1)).sum (λ ν, bernstein_polynomial R n ν) = 1 :=
-begin
-  -- We calculate `(x + (1-x))^n` in two different ways.
-  conv { congr, congr, skip, funext, dsimp [bernstein_polynomial], rw [mul_assoc, mul_comm], },
-  rw ←add_pow,
-  simp,
-end
-
+lemma sum (n : ℕ) : ∑ ν in finset.range (n + 1), bernstein_polynomial R n ν = 1 :=
+calc ∑ ν in finset.range (n + 1), bernstein_polynomial R n ν = (X + (1 - X)) ^ n :
+  by { rw add_pow, simp only [bernstein_polynomial, mul_comm, mul_assoc, mul_left_comm] }
+... = 1 : by simp
 
 open polynomial
 open mv_polynomial
 
 lemma sum_smul (n : ℕ) :
-  (finset.range (n + 1)).sum (λ ν, ν • bernstein_polynomial R n ν) = n • X :=
+  ∑ ν in finset.range (n + 1), ν • bernstein_polynomial R n ν = n • X :=
 begin
   -- We calculate the `x`-derivative of `(x+y)^n`, evaluated at `y=(1-x)`,
   -- either directly or by using the binomial theorem.
@@ -316,7 +313,7 @@ begin
   have pderiv_tt_x : pderiv tt x = 1, { simp [x], },
   have pderiv_tt_y : pderiv tt y = 0, { simp [pderiv_X, y], },
 
-  let e : bool → polynomial R := λ i, cond i X (1-X),
+  let e : bool → R[X] := λ i, cond i X (1-X),
 
   -- Start with `(x+y)^n = (x+y)^n`,
   -- take the `x`-derivative, evaluate at `x=X, y=1-X`, and multiply by `X`:
@@ -347,14 +344,13 @@ begin
   -- On the right hand side, we'll just simplify.
   conv at h
   { to_rhs,
-    rw [pderiv_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
+    rw [(pderiv tt).leibniz_pow, (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
     simp [e] },
   simpa using h,
 end
 
 lemma sum_mul_smul (n : ℕ) :
-  (finset.range (n + 1)).sum (λ ν, (ν * (ν-1)) • bernstein_polynomial R n ν) =
-    (n * (n-1)) • X^2 :=
+  ∑ ν in finset.range (n + 1), (ν * (ν-1)) • bernstein_polynomial R n ν = (n * (n-1)) • X^2 :=
 begin
   -- We calculate the second `x`-derivative of `(x+y)^n`, evaluated at `y=(1-x)`,
   -- either directly or by using the binomial theorem.
@@ -366,7 +362,7 @@ begin
   have pderiv_tt_x : pderiv tt x = 1, { simp [x], },
   have pderiv_tt_y : pderiv tt y = 0, { simp [pderiv_X, y], },
 
-  let e : bool → polynomial R := λ i, cond i X (1-X),
+  let e : bool → R[X] := λ i, cond i X (1-X),
 
   -- Start with `(x+y)^n = (x+y)^n`,
   -- take the second `x`-derivative, evaluate at `x=X, y=1-X`, and multiply by `X`:
@@ -402,8 +398,8 @@ begin
   -- On the right hand side, we'll just simplify.
   conv at h
   { to_rhs,
-    simp only [pderiv_one, pderiv_mul, pderiv_pow, pderiv_nat_cast, (pderiv tt).map_add,
-      pderiv_tt_x, pderiv_tt_y],
+    simp only [pderiv_one, pderiv_mul, (pderiv _).leibniz_pow, (pderiv _).map_coe_nat,
+      (pderiv tt).map_add, pderiv_tt_x, pderiv_tt_y],
     simp [e, smul_smul] },
   simpa using h,
 end
@@ -413,7 +409,7 @@ A certain linear combination of the previous three identities,
 which we'll want later.
 -/
 lemma variance (n : ℕ) :
-  (finset.range (n+1)).sum (λ ν, (n • polynomial.X - ν)^2 * bernstein_polynomial R n ν) =
+  ∑ ν in finset.range (n+1), (n • polynomial.X - ν)^2 * bernstein_polynomial R n ν =
     n • polynomial.X * (1 - polynomial.X) :=
 begin
   have p :

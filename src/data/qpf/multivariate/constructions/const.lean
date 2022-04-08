@@ -30,7 +30,7 @@ def const (A : Type*) (v : typevec.{u} n) : Type* :=
 A
 
 instance const.inhabited {A α} [inhabited A] : inhabited (const n A α) :=
-⟨ (default A : A) ⟩
+⟨ (default : A) ⟩
 
 namespace const
 open mvfunctor mvpfunctor

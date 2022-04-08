@@ -285,7 +285,7 @@ else by simp [h, of_subtype_apply_of_not_mem f h]
 equiv.ext $ λ ⟨x, hx⟩, by { dsimp [subtype_perm, of_subtype],
   simp only [show p x, from hx, dif_pos, subtype.coe_eta] }
 
-@[simp] lemma default_perm {n : Type*} : default (equiv.perm n) = 1 := rfl
+@[simp] lemma default_perm {n : Type*} : (default : perm n) = 1 := rfl
 
 /-- Permutations on a subtype are equivalent to permutations on the original type that fix pointwise
 the rest. -/

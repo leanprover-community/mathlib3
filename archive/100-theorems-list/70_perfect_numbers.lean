@@ -53,8 +53,8 @@ end
 lemma ne_zero_of_prime_mersenne (k : ℕ) (pr : (mersenne (k + 1)).prime) :
   k ≠ 0 :=
 begin
-  rintro rfl,
-  simpa [mersenne, not_prime_one] using pr,
+  intro H,
+  simpa [H, mersenne, not_prime_one] using pr,
 end
 
 theorem even_two_pow_mul_mersenne_of_prime (k : ℕ) (pr : (mersenne (k + 1)).prime) :
@@ -84,6 +84,7 @@ begin
   have hpos := perf.2,
   rcases eq_two_pow_mul_odd hpos with ⟨k, m, rfl, hm⟩,
   use k,
+  rw even_iff_two_dvd at hm,
   rw [perfect_iff_sum_divisors_eq_two_mul hpos, ← sigma_one_apply,
     is_multiplicative_sigma.map_mul_of_coprime (nat.prime_two.coprime_pow_of_not_dvd hm).symm,
     sigma_two_pow_eq_mersenne_succ, ← mul_assoc, ← pow_succ] at perf,
@@ -106,7 +107,7 @@ begin
       { apply hm,
         rw [← jcon2, pow_zero, one_mul, one_mul] at ev,
         rw [← jcon2, one_mul],
-        exact ev },
+        exact even_iff_two_dvd.mp ev },
       apply ne_of_lt _ jcon2,
       rw [mersenne, ← nat.pred_eq_sub_one, lt_pred_iff, ← pow_one (nat.succ 1)],
       apply pow_lt_pow (nat.lt_succ_self 1) (nat.succ_lt_succ (nat.succ_pos k)) },

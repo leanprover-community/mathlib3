@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
 -/
 
-import field_theory.is_alg_closed.basic
+import linear_algebra.charpoly.basic
 import linear_algebra.finsupp
 import linear_algebra.matrix.to_lin
-import order.order_hom
-import linear_algebra.charpoly.basic
+import algebra.algebra.spectrum
+import order.hom.basic
 
 /-!
 # Eigenvectors and eigenvalues
@@ -46,6 +46,7 @@ namespace module
 namespace End
 
 open module principal_ideal_ring polynomial finite_dimensional
+open_locale polynomial
 
 variables {K R : Type v} {V M : Type w}
   [comm_ring R] [add_comm_group M] [module R M] [field K] [add_comm_group V] [module K V]
@@ -80,9 +81,28 @@ lemma mem_eigenspace_iff {f : End R M} {μ : R} {x : M} : x ∈ eigenspace f μ 
 by rw [eigenspace, linear_map.mem_ker, linear_map.sub_apply, algebra_map_End_apply,
   sub_eq_zero]
 
+lemma has_eigenvector.apply_eq_smul {f : End R M} {μ : R} {x : M} (hx : f.has_eigenvector μ x) :
+  f x = μ • x :=
+mem_eigenspace_iff.mp hx.1
+
 lemma has_eigenvalue.exists_has_eigenvector {f : End R M} {μ : R} (hμ : f.has_eigenvalue μ) :
   ∃ v, f.has_eigenvector μ v :=
 submodule.exists_mem_ne_zero_of_ne_bot hμ
+
+lemma mem_spectrum_of_has_eigenvalue {f : End R M} {μ : R} (hμ : has_eigenvalue f μ) :
+  μ ∈ spectrum R f :=
+begin
+  refine spectrum.mem_iff.mpr (λ h_unit, _),
+  set f' := linear_map.general_linear_group.to_linear_equiv h_unit.unit,
+  rcases hμ.exists_has_eigenvector with ⟨v, hv⟩,
+  refine hv.2 ((linear_map.ker_eq_bot'.mp f'.ker) v (_ : μ • v - f v = 0)),
+  rw [hv.apply_eq_smul, sub_self]
+end
+
+lemma has_eigenvalue_iff_mem_spectrum [finite_dimensional K V] {f : End K V} {μ : K} :
+  f.has_eigenvalue μ ↔ μ ∈ spectrum K f :=
+iff.intro mem_spectrum_of_has_eigenvalue
+  (λ h, by rwa [spectrum.mem_iff, is_unit.sub_iff, linear_map.is_unit_iff_ker_eq_bot] at h)
 
 lemma eigenspace_div (f : End K V) (a b : K) (hb : b ≠ 0) :
   eigenspace f (a / b) = (b • f - algebra_map K (End K V) a).ker :=
@@ -95,7 +115,7 @@ calc
   ... = (b • f - algebra_map K (End K V) a).ker : by rw [smul_sub, smul_inv_smul₀ hb]
 
 lemma eigenspace_aeval_polynomial_degree_1
-  (f : End K V) (q : polynomial K) (hq : degree q = 1) :
+  (f : End K V) (q : K[X]) (hq : degree q = 1) :
   eigenspace f (- q.coeff 0 / q.leading_coeff) = (aeval f q).ker :=
 calc
   eigenspace f (- q.coeff 0 / q.leading_coeff)
@@ -107,8 +127,8 @@ calc
      : by { congr, apply (eq_X_add_C_of_degree_eq_one hq).symm }
 
 lemma ker_aeval_ring_hom'_unit_polynomial
-  (f : End K V) (c : units (polynomial K)) :
-  (aeval f (c : polynomial K)).ker = ⊥ :=
+  (f : End K V) (c : (K[X])ˣ) :
+  (aeval f (c : K[X])).ker = ⊥ :=
 begin
   rw polynomial.eq_C_of_degree_eq_zero (degree_coe_units c),
   simp only [aeval_def, eval₂_C],
@@ -117,7 +137,7 @@ begin
 end
 
 theorem aeval_apply_of_has_eigenvector {f : End K V}
-  {p : polynomial K} {μ : K} {x : V} (h : f.has_eigenvector μ x) :
+  {p : K[X]} {μ : K} {x : V} (h : f.has_eigenvector μ x) :
   aeval f p x = (p.eval μ) • x :=
 begin
   apply p.induction_on,
@@ -125,7 +145,8 @@ begin
   { intros p q hp hq, simp [hp, hq, add_smul] },
   { intros n a hna,
     rw [mul_comm, pow_succ, mul_assoc, alg_hom.map_mul, linear_map.mul_apply, mul_comm, hna],
-    simp [algebra_map_End_apply, mem_eigenspace_iff.1 h.1, smul_smul, mul_comm] }
+    simp only [mem_eigenspace_iff.1 h.1, smul_smul, aeval_X, eval_mul, eval_C, eval_pow, eval_X,
+      linear_map.map_smulₛₗ, ring_hom.id_apply, mul_comm] }
 end
 
 section minpoly
@@ -148,7 +169,7 @@ begin
   cases dvd_iff_is_root.2 h with p hp,
   rw [has_eigenvalue, eigenspace],
   intro con,
-  cases (linear_map.is_unit_iff _).2 con with u hu,
+  cases (linear_map.is_unit_iff_ker_eq_bot _).2 con with u hu,
   have p_ne_0 : p ≠ 0,
   { intro con,
     apply minpoly.ne_zero f.is_integral,
@@ -186,12 +207,8 @@ end minpoly
 -- This is Lemma 5.21 of [axler2015], although we are no longer following that proof.
 lemma exists_eigenvalue [is_alg_closed K] [finite_dimensional K V] [nontrivial V] (f : End K V) :
   ∃ (c : K), f.has_eigenvalue c :=
-begin
-  obtain ⟨c, nu⟩ := exists_spectrum_of_is_alg_closed_of_finite_dimensional K f,
-  use c,
-  rw linear_map.is_unit_iff at nu,
-  exact has_eigenvalue_of_has_eigenvector (submodule.exists_mem_ne_zero_of_ne_bot nu).some_spec,
-end
+by { simp_rw has_eigenvalue_iff_mem_spectrum,
+     exact spectrum.nonempty_of_is_alg_closed_of_finite_dimensional K f }
 
 noncomputable instance [is_alg_closed K] [finite_dimensional K V] [nontrivial V] (f : End K V) :
   inhabited f.eigenvalues :=
@@ -232,11 +249,9 @@ begin
       (λ μ, (μ - μ₀) • @linear_map.id K (f.eigenspace μ) _ _ _) l,
     -- The support of `l'` is the support of `l` without `μ₀`.
     have h_l_support' : l'.support = l_support',
-    { have : l_support' = finset.erase l.support μ₀,
-      { rw [h_l_support, finset.erase_insert hμ₀] },
-      rw this,
+    { rw [← finset.erase_insert hμ₀, ← h_l_support],
       ext a,
-      have : ¬(a = μ₀ ∨ l a = 0) ↔ ¬a = μ₀ ∧ ¬l a = 0 := by tauto,
+      have : ¬(a = μ₀ ∨ l a = 0) ↔ ¬a = μ₀ ∧ ¬l a = 0 := not_or_distrib,
       simp only [l', dfinsupp.map_range.linear_map_apply, dfinsupp.map_range_apply,
         dfinsupp.mem_support_iff, finset.mem_erase, id.def, linear_map.id_coe,
         linear_map.smul_apply, ne.def, smul_eq_zero, sub_eq_zero, this] },
@@ -251,7 +266,7 @@ begin
       ... = g (dfinsupp.lsum ℕ (λ μ, (linear_map.id : V →ₗ[K] V)) a) : _
       ... = g (S l) : _
       ... = 0 : by rw [hl, g.map_zero],
-      { rw dfinsupp.sum_map_range_index.linear_map },
+      { exact dfinsupp.sum_map_range_index.linear_map },
       { congr,
         ext μ v,
         simp only [g, eq_self_iff_true, function.comp_app, id.def, linear_map.coe_comp,
@@ -281,24 +296,21 @@ begin
     { rw ←finset.sum_const_zero,
       apply finset.sum_congr rfl,
       intros μ hμ,
-      norm_cast,
-      rw h_lμ_eq_0,
-      intro h,
-      rw h at hμ,
-      contradiction },
+      rw [submodule.coe_eq_zero, h_lμ_eq_0],
+      rintro rfl,
+      exact hμ₀ hμ },
     -- The only potentially nonzero eigenspace-representative in `l` is the one corresponding to
     -- `μ₀`. But since the overall sum is `0` by assumption, this representative must also be `0`.
     have : l μ₀ = 0,
     { simp only [S, dfinsupp.lsum_apply_apply, dfinsupp.sum_add_hom_apply,
         linear_map.to_add_monoid_hom_coe, dfinsupp.sum, h_l_support, submodule.subtype_apply,
         submodule.coe_eq_zero, finset.sum_insert hμ₀, h_sum_l_support'_eq_0, add_zero] at hl,
-      exact_mod_cast hl },
+      exact hl },
     -- Thus, all coefficients in `l` are `0`.
     show l = 0,
     { ext μ,
       by_cases h_cases : μ = μ₀,
-      { rw h_cases,
-        exact_mod_cast this },
+      { rwa [h_cases, set_like.coe_eq_coe, dfinsupp.coe_zero, pi.zero_apply] },
       exact congr_arg (coe : _ → V) (h_lμ_eq_0 μ h_cases) }}
 end
 
@@ -317,7 +329,7 @@ complete_lattice.independent.linear_independent _
 /-- The generalized eigenspace for a linear map `f`, a scalar `μ`, and an exponent `k ∈ ℕ` is the
 kernel of `(f - μ • id) ^ k`. (Def 8.10 of [axler2015]). Furthermore, a generalized eigenspace for
 some exponent `k` is contained in the generalized eigenspace for exponents larger than `k`. -/
-def generalized_eigenspace (f : End R M) (μ : R) : ℕ →ₘ submodule R M :=
+def generalized_eigenspace (f : End R M) (μ : R) : ℕ →o submodule R M :=
 { to_fun    := λ k, ((f - algebra_map R (End R M) μ) ^ k).ker,
   monotone' := λ k m hm,
   begin
@@ -450,7 +462,7 @@ begin
   { rw [pow_zero, pow_zero, linear_map.one_eq_id],
     apply (submodule.ker_subtype _).symm },
   { erw [pow_succ', pow_succ', linear_map.ker_comp, linear_map.ker_comp, ih,
-      ← linear_map.ker_comp, ← linear_map.ker_comp, linear_map.comp_assoc] },
+      ← linear_map.ker_comp, linear_map.comp_assoc] },
 end
 
 /-- If `p` is an invariant submodule of an endomorphism `f`, then the `μ`-eigenspace of the
@@ -517,9 +529,9 @@ calc submodule.map f (f.generalized_eigenrange μ n)
 lemma supr_generalized_eigenspace_eq_top [is_alg_closed K] [finite_dimensional K V] (f : End K V) :
   (⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k) = ⊤ :=
 begin
-  tactic.unfreeze_local_instances,
   -- We prove the claim by strong induction on the dimension of the vector space.
-  induction h_dim : finrank K V using nat.strong_induction_on with n ih generalizing V,
+  unfreezingI { induction h_dim : finrank K V using nat.strong_induction_on
+  with n ih generalizing V },
   cases n,
   -- If the vector space is 0-dimensional, the result is trivial.
   { rw ←top_le_iff,
@@ -564,8 +576,7 @@ begin
     -- It follows that `ER` is contained in the span of all generalized eigenvectors.
     have hER : ER ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
     { rw ← ih_ER',
-      apply supr_le_supr _,
-      exact λ μ, supr_le_supr (λ k, hff' μ k), },
+      exact supr₂_mono hff' },
     -- `ES` is contained in this span by definition.
     have hES : ES ≤ ⨆ (μ : K) (k : ℕ), f.generalized_eigenspace μ k,
       from le_trans

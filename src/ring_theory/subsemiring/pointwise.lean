@@ -3,9 +3,8 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
-import ring_theory.subsemiring.basic
 import algebra.group_ring_action
-import algebra.pointwise
+import ring_theory.subsemiring.basic
 
 /-! # Pointwise instances on `subsemiring`s
 
@@ -50,6 +49,10 @@ lemma pointwise_smul_def {a : M} (S : subsemiring R) :
 
 lemma smul_mem_pointwise_smul (m : M) (r : R) (S : subsemiring R) : r ∈ S → m • r ∈ m • S :=
 (set.smul_mem_smul_set : _ → _ ∈ m • (S : set R))
+
+lemma mem_smul_pointwise_iff_exists (m : M) (r : R) (S : subsemiring R) :
+  r ∈ m • S ↔ ∃ (s : R), s ∈ S ∧ m • s = r :=
+(set.mem_smul_set : r ∈ m • (S : set R) ↔ _)
 
 instance pointwise_central_scalar [mul_semiring_action Mᵐᵒᵖ R] [is_central_scalar M R] :
   is_central_scalar M (subsemiring R) :=

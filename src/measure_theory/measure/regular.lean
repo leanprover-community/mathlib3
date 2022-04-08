@@ -151,7 +151,7 @@ variables {α : Type*} {m : measurable_space α} {μ : measure α} {p q : set α
 
 lemma measure_eq_supr (H : inner_regular μ p q) (hU : q U) : μ U = ⨆ (K ⊆ U) (hK : p K), μ K :=
 begin
-  refine le_antisymm (le_of_forall_lt (λ r hr, _)) (bsupr_le $ λ K hK, supr_le $ λ _, μ.mono hK),
+  refine le_antisymm (le_of_forall_lt $ λ r hr, _) (supr₂_le $ λ K hK, supr_le $ λ _, μ.mono hK),
   simpa only [lt_supr_iff, exists_prop] using H hU r hr
 end
 
@@ -182,7 +182,7 @@ end
 lemma smul (H : inner_regular μ p q) (c : ℝ≥0∞) : inner_regular (c • μ) p q :=
 begin
   intros U hU r hr,
-  rw [smul_apply, H.measure_eq_supr hU] at hr,
+  rw [smul_apply, H.measure_eq_supr hU, smul_eq_mul] at hr,
   simpa only [ennreal.mul_supr, lt_supr_iff, exists_prop] using hr
 end
 
@@ -210,12 +210,12 @@ This definition implies the same equality for any (not necessarily measurable) s
   - it is outer regular: `μ(A) = inf {μ(U) | A ⊆ U open}` for `A` measurable;
   - it is inner regular for open sets, using compact sets:
     `μ(U) = sup {μ(K) | K ⊆ U compact}` for `U` open. -/
-@[protect_proj] class regular (μ : measure α) extends outer_regular μ : Prop :=
-(lt_top_of_is_compact : ∀ ⦃K : set α⦄, is_compact K → μ K < ∞)
+@[protect_proj] class regular (μ : measure α)
+  extends is_finite_measure_on_compacts μ, outer_regular μ : Prop :=
 (inner_regular : inner_regular μ is_compact is_open)
 
 /-- A measure `μ` is weakly regular if
-  - it is outer regular: `μ(A) = inf { μ(U) | A ⊆ U open }` for `A` measurable;
+  - it is outer regular: `μ(A) = inf {μ(U) | A ⊆ U open}` for `A` measurable;
   - it is inner regular for open sets, using closed sets:
     `μ(U) = sup {μ(F) | F ⊆ U compact}` for `U` open. -/
 @[protect_proj] class weakly_regular (μ : measure α) extends outer_regular μ : Prop :=
@@ -247,7 +247,7 @@ containing it. -/
 lemma _root_.set.measure_eq_infi_is_open (A : set α) (μ : measure α) [outer_regular μ] :
   μ A = (⨅ (U : set α) (h : A ⊆ U) (h2 : is_open U), μ U) :=
 begin
-  refine le_antisymm (le_binfi $ λ s hs, le_infi $ λ h2s, μ.mono hs) _,
+  refine le_antisymm (le_infi₂ $ λ s hs, le_infi $ λ h2s, μ.mono hs) _,
   refine le_of_forall_lt' (λ r hr, _),
   simpa only [infi_lt_iff, exists_prop] using A.exists_is_open_lt_of_lt r hr
 end
@@ -268,14 +268,13 @@ begin
     exact ⟨U, AU, U_open, hU.le⟩ }
 end
 
-lemma _root_.measurable_set.exists_is_open_diff_lt [opens_measurable_space α]
-  [outer_regular μ] {A : set α} (hA : measurable_set A)
-  (hA' : μ A ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+lemma _root_.measurable_set.exists_is_open_diff_lt [outer_regular μ] {A : set α}
+  (hA : measurable_set A) (hA' : μ A ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ U ⊇ A, is_open U ∧ μ U < ∞ ∧ μ (U \ A) < ε :=
 begin
   rcases A.exists_is_open_lt_add hA' hε with ⟨U, hAU, hUo, hU⟩,
   use [U, hAU, hUo, hU.trans_le le_top],
-  exact measure_diff_lt_of_lt_add hA hUo.measurable_set hAU hA' hU,
+  exact measure_diff_lt_of_lt_add hA hAU hA' hU,
 end
 
 protected lemma map [opens_measurable_space α] [measurable_space β] [topological_space β]
@@ -296,7 +295,7 @@ begin
   rcases eq_or_ne x 0 with rfl|h0,
   { rw zero_smul, exact outer_regular.zero },
   { refine ⟨λ A hA r hr, _⟩,
-    rw [smul_apply, A.measure_eq_infi_is_open] at hr,
+    rw [smul_apply, A.measure_eq_infi_is_open, smul_eq_mul] at hr,
     simpa only [ennreal.mul_infi_of_ne h0 hx, gt_iff_lt, infi_lt_iff, exists_prop] using hr }
 end
 
@@ -329,7 +328,7 @@ begin
     rw [H₁, H₁, inter_eq_self_of_subset_left (hAs _)] at hU,
     exact ⟨U ∩ s.set n, subset_inter hAU (hAs _), hUo.inter (s.set_mem n).1, hU⟩ },
   choose U hAU hUo hU,
-  refine ⟨⋃ n, U n, Union_subset_Union hAU, is_open_Union hUo, _⟩,
+  refine ⟨⋃ n, U n, Union_mono hAU, is_open_Union hUo, _⟩,
   calc μ (⋃ n, U n) ≤ ∑' n, μ (U n)             : measure_Union_le _
                 ... ≤ ∑' n, (μ (A n) + δ n)     : ennreal.tsum_le_tsum (λ n, (hU n).le)
                 ... = ∑' n, μ (A n) + ∑' n, δ n : ennreal.tsum_add
@@ -343,7 +342,7 @@ variables {p q : set α → Prop} {U s : set α} {ε r : ℝ≥0∞}
 
 /-- If a measure is inner regular (using closed or compact sets), then every measurable set of
 finite measure can by approximated by a (closed or compact) subset. -/
-lemma measurable_set_of_open [opens_measurable_space α] [outer_regular μ]
+lemma measurable_set_of_open [outer_regular μ]
   (H : inner_regular μ p is_open) (h0 : p ∅) (hd : ∀ ⦃s U⦄, p s → is_open U → p (s \ U)) :
   inner_regular μ p (λ s, measurable_set s ∧ μ s ≠ ∞) :=
 begin
@@ -405,8 +404,8 @@ begin
     rcases (this.eventually $ lt_mem_nhds $ ennreal.lt_add_right hfin ε0').exists with ⟨t, ht⟩,
     -- the approximating open set is constructed by taking for each `s n` an approximating open set
     -- `U n` with measure at most `μ (s n) + δ n` for a summable `δ`, and taking the union of these.
-    refine ⟨⋃ k ∈ t, F k, Union_subset_Union $ λ k, Union_subset $ λ _, hFs _,
-      ⋃ n, U n, Union_subset_Union hsU, is_closed_bUnion t.finite_to_set $ λ k _, hFc k,
+    refine ⟨⋃ k ∈ t, F k, Union_mono $ λ k, Union_subset $ λ _, hFs _,
+      ⋃ n, U n, Union_mono hsU, is_closed_bUnion t.finite_to_set $ λ k _, hFc k,
       is_open_Union hUo, ht.le.trans _, _⟩,
     { calc ∑ k in t, μ (s k) + ε / 2 ≤ ∑ k in t, μ (F k) + ∑ k in t, δ k + ε / 2 :
         by { rw ← sum_add_distrib, exact add_le_add_right (sum_le_sum $ λ k hk, hF k) _ }
@@ -423,20 +422,20 @@ end
 
 /-- In a metric space (or even a pseudo emetric space), an open set can be approximated from inside
 by closed sets. -/
-lemma of_pseudo_emetric_space {X : Type*} [pseudo_emetric_space X] [measurable_space X]
-  [opens_measurable_space X] (μ : measure X) :
+lemma of_pseudo_emetric_space {X : Type*} [pseudo_emetric_space X]
+  [measurable_space X] (μ : measure X) :
   inner_regular μ is_closed is_open :=
 begin
   intros U hU r hr,
   rcases hU.exists_Union_is_closed with ⟨F, F_closed, -, rfl, F_mono⟩,
-  rw measure_Union_eq_supr (λ n, (F_closed n).measurable_set) F_mono.directed_le at hr,
+  rw measure_Union_eq_supr F_mono.directed_le at hr,
   rcases lt_supr_iff.1 hr with ⟨n, hn⟩,
   exact ⟨F n, subset_Union _ _, F_closed n, hn⟩
 end
 
 /-- In a `σ`-compact space, any closed set can be approximated by a compact subset. -/
-lemma is_compact_is_closed {X : Type*} [topological_space X] [t2_space X]
-  [sigma_compact_space X] [measurable_space X] [opens_measurable_space X] (μ : measure X) :
+lemma is_compact_is_closed {X : Type*} [topological_space X]
+  [sigma_compact_space X] [measurable_space X] (μ : measure X) :
   inner_regular μ is_compact is_closed :=
 begin
   intros F hF r hr,
@@ -445,8 +444,8 @@ begin
   have hBU : (⋃ n, F ∩ B n) = F, by rw [← inter_Union, Union_compact_covering, set.inter_univ],
   have : μ F = ⨆ n, μ (F ∩ B n),
   { rw [← measure_Union_eq_supr, hBU],
-    exacts [λ n, (hBc n).measurable_set, monotone.directed_le $
-      λ m n h, inter_subset_inter_right _ (compact_covering_subset _ h)] },
+    exact monotone.directed_le
+      (λ m n h, inter_subset_inter_right _ (compact_covering_subset _ h)) },
   rw this at hr, rcases lt_supr_iff.1 hr with ⟨n, hn⟩,
   exact ⟨_, inter_subset_left _ _, hBc n, hn⟩
 end
@@ -456,7 +455,7 @@ end inner_regular
 namespace regular
 
 instance zero : regular (0 : measure α) :=
-⟨λ K hK, ennreal.coe_lt_top, λ U hU r hr, ⟨∅, empty_subset _, is_compact_empty, hr⟩⟩
+⟨λ U hU r hr, ⟨∅, empty_subset _, is_compact_empty, hr⟩⟩
 
 /-- If `μ` is a regular measure, then any open set can be approximated by a compact subset. -/
 lemma _root_.is_open.exists_lt_is_compact [regular μ] ⦃U : set α⦄ (hU : is_open U)
@@ -477,13 +476,13 @@ by simp_rw [ne.def, ← measure_univ_eq_zero, is_open_univ.measure_eq_supr_is_co
 /-- If `μ` is a regular measure, then any measurable set of finite measure can be approximated by a
 compact subset. See also `measurable_set.exists_is_compact_lt_add` and
 `measurable_set.exists_lt_is_compact_of_ne_top`. -/
-lemma inner_regular_measurable [opens_measurable_space α] [regular μ] :
+lemma inner_regular_measurable [regular μ] :
   inner_regular μ is_compact (λ s, measurable_set s ∧ μ s ≠ ∞) :=
 regular.inner_regular.measurable_set_of_open is_compact_empty (λ _ _, is_compact.diff)
 
 /-- If `μ` is a regular measure, then any measurable set of finite measure can be approximated by a
 compact subset. See also `measurable_set.exists_lt_is_compact_of_ne_top`. -/
-lemma _root_.measurable_set.exists_is_compact_lt_add [opens_measurable_space α]
+lemma _root_.measurable_set.exists_is_compact_lt_add
   [regular μ] ⦃A : set α⦄ (hA : measurable_set A) (h'A : μ A ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ K ⊆ A, is_compact K ∧ μ A < μ K + ε :=
 regular.inner_regular_measurable.exists_subset_lt_add is_compact_empty ⟨hA, h'A⟩ h'A hε
@@ -496,22 +495,20 @@ lemma _root_.measurable_set.exists_is_compact_diff_lt [opens_measurable_space α
   ∃ K ⊆ A, is_compact K ∧ μ (A \ K) < ε :=
 begin
   rcases hA.exists_is_compact_lt_add h'A hε with ⟨K, hKA, hKc, hK⟩,
-  exact ⟨K, hKA, hKc, measure_diff_lt_of_lt_add hKc.measurable_set hA hKA
+  exact ⟨K, hKA, hKc, measure_diff_lt_of_lt_add hKc.measurable_set hKA
     (ne_top_of_le_ne_top h'A $ measure_mono hKA) hK⟩
 end
 
 /-- If `μ` is a regular measure, then any measurable set of finite measure can be approximated by a
 compact subset. See also `measurable_set.exists_is_compact_lt_add`. -/
-lemma _root_.measurable_set.exists_lt_is_compact_of_ne_top [regular μ]
-  [opens_measurable_space α] ⦃A : set α⦄ (hA : measurable_set A) (h'A : μ A ≠ ∞)
-  {r : ℝ≥0∞} (hr : r < μ A) :
+lemma _root_.measurable_set.exists_lt_is_compact_of_ne_top [regular μ] ⦃A : set α⦄
+  (hA : measurable_set A) (h'A : μ A ≠ ∞) {r : ℝ≥0∞} (hr : r < μ A) :
   ∃ K ⊆ A, is_compact K ∧ r < μ K :=
 regular.inner_regular_measurable ⟨hA, h'A⟩ _ hr
 
 /-- Given a regular measure, any measurable set of finite mass can be approximated from
 inside by compact sets. -/
-lemma _root_.measurable_set.measure_eq_supr_is_compact_of_ne_top
-  [opens_measurable_space α] [regular μ]
+lemma _root_.measurable_set.measure_eq_supr_is_compact_of_ne_top [regular μ]
   ⦃A : set α⦄ (hA : measurable_set A) (h'A : μ A ≠ ∞) :
   μ A = (⨆ (K ⊆ A) (h : is_compact K), μ K) :=
 regular.inner_regular_measurable.measure_eq_supr ⟨hA, h'A⟩
@@ -521,20 +518,17 @@ protected lemma map [opens_measurable_space α] [measurable_space β] [topologic
   (measure.map f μ).regular :=
 begin
   haveI := outer_regular.map f μ,
-  split,
-  { intros K hK, rw [map_apply f.measurable hK.measurable_set],
-    apply regular.lt_top_of_is_compact,
-    rwa f.compact_preimage },
-  { exact regular.inner_regular.map f.to_equiv f.measurable (λ U hU, hU.preimage f.continuous)
-      (λ K hK, hK.image f.continuous) (λ K hK, hK.measurable_set) (λ U hU, hU.measurable_set) }
+  haveI := is_finite_measure_on_compacts.map μ f,
+  exact ⟨regular.inner_regular.map f.to_equiv f.measurable (λ U hU, hU.preimage f.continuous)
+      (λ K hK, hK.image f.continuous) (λ K hK, hK.measurable_set) (λ U hU, hU.measurable_set)⟩
 end
 
 protected lemma smul [regular μ] {x : ℝ≥0∞} (hx : x ≠ ∞) :
   (x • μ).regular :=
 begin
   haveI := outer_regular.smul μ hx,
-  exact ⟨λ K hK, ennreal.mul_lt_top hx (regular.lt_top_of_is_compact hK).ne,
-    regular.inner_regular.smul x⟩
+  haveI := is_finite_measure_on_compacts.smul μ hx,
+  exact ⟨regular.inner_regular.smul x⟩
 end
 
 /-- A regular measure in a σ-compact space is σ-finite. -/
@@ -542,7 +536,7 @@ end
 instance sigma_finite [sigma_compact_space α] [regular μ] : sigma_finite μ :=
 ⟨⟨{ set := compact_covering α,
   set_mem := λ n, trivial,
-  finite := λ n, regular.lt_top_of_is_compact $ is_compact_compact_covering α n,
+  finite := λ n, (is_compact_compact_covering α n).measure_lt_top,
   spanning := Union_compact_covering α }⟩⟩
 
 end regular
@@ -561,16 +555,15 @@ lemma _root_.is_open.measure_eq_supr_is_closed ⦃U : set α⦄ (hU : is_open U)
   μ U = (⨆ (F ⊆ U) (h : is_closed F), μ F) :=
 weakly_regular.inner_regular.measure_eq_supr hU
 
-lemma inner_regular_measurable [opens_measurable_space α] [weakly_regular μ] :
+lemma inner_regular_measurable [weakly_regular μ] :
   inner_regular μ is_closed (λ s, measurable_set s ∧ μ s ≠ ∞) :=
 weakly_regular.inner_regular.measurable_set_of_open is_closed_empty
   (λ _ _ h₁ h₂, h₁.inter h₂.is_closed_compl)
 
 /-- If `s` is a measurable set, a weakly regular measure `μ` is finite on `s`, and `ε` is a positive
 number, then there exist a closed set `K ⊆ s` such that `μ s < μ K + ε`. -/
-lemma _root_.measurable_set.exists_is_closed_lt_add [weakly_regular μ]
-  [opens_measurable_space α] {s : set α} (hs : measurable_set s) (hμs : μ s ≠ ∞)
-  {ε : ℝ≥0∞} (hε : ε ≠ 0) :
+lemma _root_.measurable_set.exists_is_closed_lt_add [weakly_regular μ] {s : set α}
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) {ε : ℝ≥0∞} (hε : ε ≠ 0) :
   ∃ K ⊆ s, is_closed K ∧ μ s < μ K + ε :=
 inner_regular_measurable.exists_subset_lt_add is_closed_empty ⟨hs, hμs⟩ hμs hε
 
@@ -579,22 +572,21 @@ lemma _root_.measurable_set.exists_is_closed_diff_lt [opens_measurable_space α]
   ∃ F ⊆ A, is_closed F ∧ μ (A \ F) < ε :=
 begin
   rcases hA.exists_is_closed_lt_add h'A hε with ⟨F, hFA, hFc, hF⟩,
-  exact ⟨F, hFA, hFc, measure_diff_lt_of_lt_add hFc.measurable_set hA hFA
+  exact ⟨F, hFA, hFc, measure_diff_lt_of_lt_add hFc.measurable_set hFA
     (ne_top_of_le_ne_top h'A $ measure_mono hFA) hF⟩
 end
 
 /-- Given a weakly regular measure, any measurable set of finite mass can be approximated from
 inside by closed sets. -/
 lemma _root_.measurable_set.exists_lt_is_closed_of_ne_top [weakly_regular μ]
-  [opens_measurable_space α] ⦃A : set α⦄ (hA : measurable_set A) (h'A : μ A ≠ ∞)
-  {r : ℝ≥0∞} (hr : r < μ A) :
+  ⦃A : set α⦄ (hA : measurable_set A) (h'A : μ A ≠ ∞) {r : ℝ≥0∞} (hr : r < μ A) :
   ∃ K ⊆ A, is_closed K ∧ r < μ K :=
 inner_regular_measurable ⟨hA, h'A⟩ _ hr
 
 /-- Given a weakly regular measure, any measurable set of finite mass can be approximated from
 inside by closed sets. -/
-lemma _root_.measurable_set.measure_eq_supr_is_closed_of_ne_top [opens_measurable_space α]
-  [weakly_regular μ] ⦃A : set α⦄ (hA : measurable_set A) (h'A : μ A ≠ ∞) :
+lemma _root_.measurable_set.measure_eq_supr_is_closed_of_ne_top [weakly_regular μ] ⦃A : set α⦄
+  (hA : measurable_set A) (h'A : μ A ≠ ∞) :
   μ A = (⨆ (K ⊆ A) (h : is_closed K), μ K) :=
 inner_regular_measurable.measure_eq_supr ⟨hA, h'A⟩
 

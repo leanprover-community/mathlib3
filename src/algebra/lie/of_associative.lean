@@ -5,7 +5,8 @@ Authors: Oliver Nash
 -/
 import algebra.lie.basic
 import algebra.lie.subalgebra
-import algebra.algebra.subalgebra
+import algebra.lie.submodule
+import algebra.algebra.subalgebra.basic
 
 /-!
 # Lie algebras of associative algebras
@@ -66,6 +67,34 @@ lemma of_associative_ring_bracket (x y : A) : ⁅x, y⁆ = x*y - y*x := rfl
 
 end lie_ring
 
+section associative_module
+
+variables {M : Type w} [add_comm_group M] [module A M]
+
+/-- We can regard a module over an associative ring `A` as a Lie ring module over `A` with Lie
+bracket equal to its ring commutator.
+
+Note that this cannot be a global instance because it would create a diamond when `M = A`,
+specifically we can build two mathematically-different `has_bracket A A`s:
+ 1. `@ring.has_bracket A _` which says `⁅a, b⁆ = a * b - b * a`
+ 2. `(@lie_ring_module.of_associative_module A _ A _ _).to_has_bracket` which says `⁅a, b⁆ = a • b`
+    (and thus `⁅a, b⁆ = a * b`)
+
+See note [reducible non-instances] -/
+@[reducible]
+def lie_ring_module.of_associative_module : lie_ring_module A M :=
+{ bracket     := (•),
+  add_lie     := add_smul,
+  lie_add     := smul_add,
+  leibniz_lie :=
+    by simp [lie_ring.of_associative_ring_bracket, sub_smul, mul_smul, sub_add_cancel], }
+
+local attribute [instance] lie_ring_module.of_associative_module
+
+lemma lie_eq_smul (a : A) (m : M) : ⁅a, m⁆ = a • m := rfl
+
+end associative_module
+
 section lie_algebra
 
 variables {R : Type u} [comm_ring R] [algebra R A]
@@ -77,6 +106,29 @@ instance lie_algebra.of_associative_algebra : lie_algebra R A :=
 { lie_smul := λ t x y,
     by rw [lie_ring.of_associative_ring_bracket, lie_ring.of_associative_ring_bracket,
            algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub], }
+
+local attribute [instance] lie_ring_module.of_associative_module
+
+section associative_representation
+
+variables {M : Type w} [add_comm_group M] [module R M] [module A M] [is_scalar_tower R A M]
+
+/-- A representation of an associative algebra `A` is also a representation of `A`, regarded as a
+Lie algebra via the ring commutator.
+
+See the comment at `lie_ring_module.of_associative_module` for why the possibility `M = A` means
+this cannot be a global instance. -/
+def lie_module.of_associative_module : lie_module R A M :=
+{ smul_lie := smul_assoc,
+  lie_smul := smul_algebra_smul_comm }
+
+instance module.End.lie_ring_module : lie_ring_module (module.End R M) M :=
+lie_ring_module.of_associative_module
+
+instance module.End.lie_module : lie_module R (module.End R M) M :=
+lie_module.of_associative_module
+
+end associative_representation
 
 namespace alg_hom
 
@@ -135,13 +187,32 @@ def lie_algebra.ad : L →ₗ⁅R⁆ module.End R L := lie_module.to_endomorphis
 
 @[simp] lemma lie_algebra.ad_apply (x y : L) : lie_algebra.ad R L x y = ⁅x, y⁆ := rfl
 
+@[simp] lemma lie_module.to_endomorphism_module_End :
+  lie_module.to_endomorphism R (module.End R M) M = lie_hom.id :=
+by { ext g m, simp [lie_eq_smul], }
+
+lemma lie_subalgebra.to_endomorphism_eq (K : lie_subalgebra R L) {x : K} :
+  lie_module.to_endomorphism R K M x = lie_module.to_endomorphism R L M x :=
+rfl
+
+@[simp] lemma lie_subalgebra.to_endomorphism_mk (K : lie_subalgebra R L) {x : L} (hx : x ∈ K) :
+  lie_module.to_endomorphism R K M ⟨x, hx⟩ = lie_module.to_endomorphism R L M x :=
+rfl
+
+variables {R L M}
+
+lemma lie_submodule.coe_map_to_endomorphism_le {N : lie_submodule R L M} {x : L} :
+  (N : submodule R M).map (lie_module.to_endomorphism R L M x) ≤ N :=
+begin
+  rintros n ⟨m, hm, rfl⟩,
+  exact N.lie_mem hm,
+end
+
 open lie_algebra
 
 lemma lie_algebra.ad_eq_lmul_left_sub_lmul_right (A : Type v) [ring A] [algebra R A] :
   (ad R A : A → module.End R A) = algebra.lmul_left R - algebra.lmul_right R :=
 by { ext a b, simp [lie_ring.of_associative_ring_bracket], }
-
-variables {R L}
 
 lemma lie_subalgebra.ad_comp_incl_eq (K : lie_subalgebra R L) (x : K) :
   (ad R L ↑x).comp (K.incl : K →ₗ[R] L) = (K.incl : K →ₗ[R] L).comp (ad R K x) :=

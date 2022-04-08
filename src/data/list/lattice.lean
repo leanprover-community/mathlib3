@@ -5,6 +5,7 @@ Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, M
 Scott Morrison
 -/
 import data.list.count
+import data.list.infix
 
 /-!
 # Lattice structure of lists
@@ -196,7 +197,7 @@ lemma forall_mem_inter_of_forall_right (l₁ : list α)
 ball.imp_left (λ x, mem_of_mem_inter_right) h
 
 @[simp] lemma inter_reverse {xs ys : list α} : xs.inter ys.reverse = xs.inter ys :=
-by { simp only [list.inter, mem_reverse], congr }
+by simp only [list.inter, mem_reverse]
 
 end inter
 

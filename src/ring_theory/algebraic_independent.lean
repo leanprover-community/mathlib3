@@ -305,7 +305,7 @@ begin
   refine algebraic_independent_of_finite (⋃ i, s i) (λ t ht ft, _),
   rcases finite_subset_Union ft ht with ⟨I, fi, hI⟩,
   rcases hs.finset_le fi.to_finset with ⟨i, hi⟩,
-  exact (h i).mono (subset.trans hI $ bUnion_subset $
+  exact (h i).mono (subset.trans hI $ Union₂_subset $
     λ j hj, hi j (fi.mem_to_finset.2 hj))
 end
 
@@ -325,7 +325,7 @@ lemma exists_maximal_algebraic_independent
     ∀ x : set A, algebraic_independent R (coe : x → A) →
       u ⊆ x → x ⊆ t → x = u :=
 begin
-  rcases zorn.zorn_subset_nonempty
+  rcases zorn_subset_nonempty
       { u : set A | algebraic_independent R (coe : u → A) ∧ s ⊆ u ∧ u ⊆ t }
     (λ c hc chainc hcn, ⟨⋃₀ c, begin
       refine ⟨⟨algebraic_independent_sUnion_of_directed hcn
@@ -417,7 +417,7 @@ begin
     @polynomial.is_scalar_tower (mv_polynomial ι R) _ R _ _ _ _ _ _ _,
   rw [algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_apply, aeval_C,
     @is_scalar_tower.algebra_map_apply _ _ _ _ _ _ _ _ _ h, ← polynomial.C_eq_algebra_map,
-    polynomial.map_C, coe_coe, alg_hom.coe_to_ring_hom, alg_equiv.coe_alg_hom, alg_equiv.commutes]
+    polynomial.map_C, ring_hom.coe_coe, alg_equiv.commutes]
 end
 
 @[simp]
@@ -433,7 +433,7 @@ lemma algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_X_some
   hx.mv_polynomial_option_equiv_polynomial_adjoin (X (some i)) =
     polynomial.C (hx.aeval_equiv (X i)) :=
 by rw [algebraic_independent.mv_polynomial_option_equiv_polynomial_adjoin_apply, aeval_X,
-      option.elim, polynomial.map_C, coe_coe, alg_hom.coe_to_ring_hom, alg_equiv.coe_alg_hom]
+      option.elim, polynomial.map_C, ring_hom.coe_coe]
 
 lemma algebraic_independent.aeval_comp_mv_polynomial_option_equiv_polynomial_adjoin
   (hx : algebraic_independent R x) (a : A) :

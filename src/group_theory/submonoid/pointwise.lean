@@ -3,8 +3,8 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
+import data.set.pointwise
 import group_theory.submonoid.operations
-import algebra.pointwise
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s
 
@@ -22,6 +22,9 @@ which matches the action of `mul_action_set`.
 
 These are all available in the `pointwise` locale.
 
+Additionally, it provides `add_submonoid.has_mul`, which is available globally to match
+`submodule.has_mul`.
+
 ## Implementation notes
 
 Most of the lemmas in this file are direct copies of lemmas from `algebra/pointwise.lean`.
@@ -31,7 +34,8 @@ on `set`s.
 
 -/
 
-variables {α : Type*} {M : Type*} {G : Type*} {A : Type*} [monoid M] [add_monoid A]
+variables {α : Type*} {G : Type*} {M : Type*} {R : Type*} {A : Type*}
+variables [monoid M] [add_monoid A]
 
 namespace submonoid
 
@@ -55,8 +59,10 @@ open_locale pointwise
 
 @[simp, to_additive] lemma mem_inv {g : G} {S : submonoid G} : g ∈ S⁻¹ ↔ g⁻¹ ∈ S := iff.rfl
 
-@[simp, to_additive] protected lemma inv_inv (S : submonoid G) : S⁻¹⁻¹ = S :=
-set_like.coe_injective set.inv_inv
+@[to_additive]
+instance : has_involutive_inv (submonoid G) :=
+{ inv := has_inv.inv,
+  inv_inv := λ S, set_like.coe_injective $ inv_inv _ }
 
 @[simp, to_additive] lemma inv_le_inv (S T : submonoid G) : S⁻¹ ≤ T⁻¹ ↔ S ≤ T :=
 set_like.coe_subset_coe.symm.trans set.inv_subset_inv
@@ -67,16 +73,13 @@ set_like.coe_subset_coe.symm.trans set.inv_subset
 /-- `submonoid.has_inv` as an order isomorphism. -/
 @[to_additive /-" `add_submonoid.has_neg` as an order isomorphism "-/, simps]
 def inv_order_iso : submonoid G ≃o submonoid G :=
-{ to_fun := has_inv.inv,
-  inv_fun := has_inv.inv,
-  left_inv := submonoid.inv_inv,
-  right_inv := submonoid.inv_inv,
+{ to_equiv := equiv.inv _,
   map_rel_iff' := inv_le_inv }
 
 @[to_additive] lemma closure_inv (s : set G) : closure s⁻¹ = (closure s)⁻¹ :=
 begin
   apply le_antisymm,
-  { rw [closure_le, coe_inv, ←set.inv_subset, set.inv_inv],
+  { rw [closure_le, coe_inv, ←set.inv_subset, inv_inv],
     exact subset_closure },
   { rw [inv_le, closure_le, coe_inv, ←set.inv_subset],
     exact subset_closure }
@@ -129,6 +132,10 @@ open_locale pointwise
 
 lemma smul_mem_pointwise_smul (m : M) (a : α) (S : submonoid M) : m ∈ S → a • m ∈ a • S :=
 (set.smul_mem_smul_set : _ → _ ∈ a • (S : set M))
+
+lemma mem_smul_pointwise_iff_exists (m : M) (a : α) (S : submonoid M) :
+  m ∈ a • S ↔ ∃ (s : M), s ∈ S ∧ a • s = m :=
+(set.mem_smul_set : m ∈ a • (S : set M) ↔ _)
 
 instance pointwise_central_scalar [mul_distrib_mul_action αᵐᵒᵖ M] [is_central_scalar α M] :
   is_central_scalar α (submonoid M) :=
@@ -243,6 +250,10 @@ lemma mem_pointwise_smul_iff_inv_smul_mem {a : α} {S : add_submonoid A} {x : A}
   x ∈ a • S ↔ a⁻¹ • x ∈ S :=
 mem_smul_set_iff_inv_smul_mem
 
+lemma mem_smul_pointwise_iff_exists (m : A) (a : α) (S : add_submonoid A) :
+  m ∈ a • S ↔ ∃ (s : A), s ∈ S ∧ a • s = m :=
+(set.mem_smul_set : m ∈ a • (S : set A) ↔ _)
+
 lemma mem_inv_pointwise_smul_iff {a : α} {S : add_submonoid A} {x : A} : x ∈ a⁻¹ • S ↔ a • x ∈ S :=
 mem_inv_smul_set_iff
 
@@ -290,5 +301,72 @@ subset_set_smul_iff₀ ha
 end group_with_zero
 
 open_locale pointwise
+
+end add_submonoid
+
+/-! ### Elementwise multiplication of two additive submonoids
+
+These definitions are a cut-down versions of the ones around `submodule.has_mul`, as that API is
+usually more useful. -/
+namespace add_submonoid
+
+variables [non_unital_non_assoc_semiring R]
+
+/-- Multiplication of additive submonoids of a semiring R. The additive submonoid `S * T` is the
+smallest R-submodule of `R` containing the elements `s * t` for `s ∈ S` and `t ∈ T`. -/
+instance : has_mul (add_submonoid R) :=
+⟨λ M N, ⨆ s : M, N.map $ add_monoid_hom.mul s.1⟩
+
+theorem mul_mem_mul {M N : add_submonoid R} {m n : R} (hm : m ∈ M) (hn : n ∈ N) : m * n ∈ M * N :=
+(le_supr _ ⟨m, hm⟩ : _ ≤ M * N) ⟨n, hn, rfl⟩
+
+theorem mul_le {M N P : add_submonoid R} : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ N), m * n ∈ P :=
+⟨λ H m hm n hn, H $ mul_mem_mul hm hn,
+λ H, supr_le $ λ ⟨m, hm⟩, map_le_iff_le_comap.2 $ λ n hn, H m hm n hn⟩
+
+@[elab_as_eliminator] protected theorem mul_induction_on
+  {M N : add_submonoid R}
+  {C : R → Prop} {r : R} (hr : r ∈ M * N)
+  (hm : ∀ (m ∈ M) (n ∈ N), C (m * n))
+  (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
+(@mul_le _ _ _ _ ⟨C, ha, by simpa only [zero_mul] using hm _ (zero_mem _) _ (zero_mem _)⟩).2 hm hr
+
+open_locale pointwise
+
+variables R
+-- this proof is copied directly from `submodule.span_mul_span`
+theorem closure_mul_closure (S T : set R) : closure S * closure T = closure (S * T) :=
+begin
+  apply le_antisymm,
+  { rw mul_le, intros a ha b hb,
+    apply closure_induction ha,
+    work_on_goal 1 { intros, apply closure_induction hb,
+      work_on_goal 1 { intros, exact subset_closure ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
+    all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
+        left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
+      try {apply add_mem _ _ _}, try {apply smul_mem _ _ _} }, assumption' },
+  { rw closure_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
+    exact mul_mem_mul (subset_closure ha) (subset_closure hb) }
+end
+variables {R}
+
+@[simp] theorem mul_bot (S : add_submonoid R) : S * ⊥ = ⊥ :=
+eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [add_submonoid.mem_bot] at hn ⊢; rw [hn, mul_zero]
+
+@[simp] theorem bot_mul (S : add_submonoid R) : ⊥ * S = ⊥ :=
+eq_bot_iff.2 $ mul_le.2 $ λ m hm n hn, by rw [add_submonoid.mem_bot] at hm ⊢; rw [hm, zero_mul]
+
+@[mono] theorem mul_le_mul {M N P Q : add_submonoid R} (hmp : M ≤ P) (hnq : N ≤ Q) :
+  M * N ≤ P * Q :=
+mul_le.2 $ λ m hm n hn, mul_mem_mul (hmp hm) (hnq hn)
+
+theorem mul_le_mul_left {M N P : add_submonoid R} (h : M ≤ N) : M * P ≤ N * P :=
+mul_le_mul h (le_refl P)
+
+theorem mul_le_mul_right {M N P : add_submonoid R} (h : N ≤ P) : M * N ≤ M * P :=
+mul_le_mul (le_refl M) h
+
+lemma mul_subset_mul {M N : add_submonoid R} : (↑M : set R) * (↑N : set R) ⊆ (↑(M * N) : set R) :=
+by { rintros _ ⟨i, j, hi, hj, rfl⟩, exact mul_mem_mul hi hj }
 
 end add_submonoid

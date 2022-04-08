@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.eq_to_hom
+import combinatorics.quiver.path
 
 /-!
 # The category paths on a quiver.
@@ -20,7 +21,7 @@ A type synonym for the category of paths in a quiver.
 -/
 def paths (V : Type u₁) : Type u₁ := V
 
-instance (V : Type u₁) [inhabited V] : inhabited (paths V) := ⟨(default V : V)⟩
+instance (V : Type u₁) [inhabited V] : inhabited (paths V) := ⟨(default : V)⟩
 
 variables (V : Type u₁) [quiver.{v₁+1} V]
 

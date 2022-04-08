@@ -3,11 +3,11 @@ Copyright (c) 2019 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
-import data.equiv.functor
 import data.mv_polynomial.equiv
 import data.mv_polynomial.comm_ring
-import ring_theory.free_ring
 import deprecated.ring
+import logic.equiv.functor
+import ring_theory.free_ring
 
 /-!
 # Free commutative rings
@@ -49,7 +49,7 @@ free commutative ring, free ring
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical polynomial
 
 universes u v
 
@@ -194,7 +194,7 @@ suffices is_supported (of p) s → p ∈ s, from ⟨this, λ hps, subring.subset
 assume hps : is_supported (of p) s, begin
   haveI := classical.dec_pred s,
   have : ∀ x, is_supported x s →
-    ∃ (n : ℤ), lift (λ a, if a ∈ s then (0 : polynomial ℤ) else polynomial.X) x = n,
+    ∃ (n : ℤ), lift (λ a, if a ∈ s then (0 : ℤ[X]) else polynomial.X) x = n,
   { intros x hx, refine subring.in_closure.rec_on hx _ _ _ _,
     { use 1, rw [ring_hom.map_one], norm_cast },
     { use -1, rw [ring_hom.map_neg, ring_hom.map_one], norm_cast },
@@ -307,7 +307,7 @@ def subsingleton_equiv_free_comm_ring [subsingleton α] :
   begin
     delta functor.map_equiv,
     rw congr_arg is_ring_hom _,
-    work_on_goal 2 { symmetry, exact coe_eq α },
+    work_on_goal 3 { symmetry, exact coe_eq α },
     exact (coe_ring_hom _).to_is_ring_hom,
   end
 

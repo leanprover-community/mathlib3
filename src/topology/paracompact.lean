@@ -113,7 +113,7 @@ begin
   have := hT, simp only [subset_def, mem_Union] at this,
   choose i hiT hi using λ x, this x (mem_univ x),
   refine ⟨(T : set ι), λ t, s t, λ t, ho _, _, locally_finite_of_fintype _, λ t, ⟨t, subset.rfl⟩⟩,
-  rwa [Union_coe_set, finset.set_bUnion_coe, ← univ_subset_iff],
+  simpa only [Union_coe_set, ← univ_subset_iff]
 end
 
 /-- Let `X` be a locally compact sigma compact Hausdorff topological space, let `s` be a closed set
@@ -170,7 +170,7 @@ begin
   refine ⟨Σ n, T' n, λ a, a.2, λ a, r a.1 a.2, _, _, _⟩,
   { rintro ⟨n, x, hx⟩, exact ⟨x.2.2, hrp _ _⟩ },
   { refine (λ x hx, mem_Union.2 _),
-    rcases mem_bUnion_iff.1 (hT _ ⟨hKcov x, hx⟩) with ⟨⟨c, hc⟩, hcT, hcx⟩,
+    rcases mem_Union₂.1 (hT _ ⟨hKcov x, hx⟩) with ⟨⟨c, hc⟩, hcT, hcx⟩,
     exact ⟨⟨_, ⟨c, hc⟩, hcT⟩, hcx⟩ },
   { intro x,
     refine ⟨interior (K (K'.find x + 3)),

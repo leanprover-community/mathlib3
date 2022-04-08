@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 import algebra.group_with_zero.power
+import algebra.ring.equiv
 import tactic.linarith
-import data.equiv.ring
 
 /-!
 # Integer power operation on fields and division rings
@@ -28,13 +28,6 @@ f.to_ring_hom.map_zpow
   (-x) ^ (bit0 n) = x ^ bit0 n :=
 by rw [zpow_bit0', zpow_bit0', neg_mul_neg]
 
-lemma even.zpow_neg {K : Type*} [division_ring K] {n : ℤ} (h : even n) (a : K) :
-  (-a) ^ n = a ^ n :=
-begin
-  obtain ⟨k, rfl⟩ := h,
-  rw [←bit0_eq_two_mul, zpow_bit0_neg],
-end
-
 @[simp] lemma zpow_bit1_neg {K : Type*} [division_ring K] (x : K) (n : ℤ) :
   (-x) ^ (bit1 n) = - x ^ bit1 n :=
 by rw [zpow_bit1', zpow_bit1', neg_mul_neg, neg_mul_eq_mul_neg]
@@ -43,14 +36,6 @@ section ordered_field_power
 open int
 
 variables {K : Type u} [linear_ordered_field K] {a : K} {n : ℤ}
-
-lemma zpow_eq_zero_iff (hn : 0 < n) :
-  a ^ n = 0 ↔ a = 0 :=
-begin
-  refine ⟨zpow_eq_zero, _⟩,
-  rintros rfl,
-  exact zero_zpow _ hn.ne'
-end
 
 lemma zpow_nonneg {a : K} (ha : 0 ≤ a) : ∀ (z : ℤ), 0 ≤ a ^ z
 | (n : ℕ) := by { rw zpow_coe_nat, exact pow_nonneg ha _ }
@@ -103,14 +88,14 @@ calc p ^ z ≥ p ^ 0 : zpow_le_of_le hp hz
 theorem zpow_bit0_nonneg (a : K) (n : ℤ) : 0 ≤ a ^ bit0 n :=
 by { rw zpow_bit0₀, exact mul_self_nonneg _ }
 
-theorem zpow_two_nonneg (a : K) : 0 ≤ a ^ 2 :=
-pow_bit0_nonneg a 1
+theorem zpow_two_nonneg (a : K) : 0 ≤ a ^ (2 : ℤ) :=
+zpow_bit0_nonneg a 1
 
 theorem zpow_bit0_pos {a : K} (h : a ≠ 0) (n : ℤ) : 0 < a ^ bit0 n :=
 (zpow_bit0_nonneg a n).lt_of_ne (zpow_ne_zero _ h).symm
 
-theorem zpow_two_pos_of_ne_zero (a : K) (h : a ≠ 0) : 0 < a ^ 2 :=
-pow_bit0_pos h 1
+theorem zpow_two_pos_of_ne_zero (a : K) (h : a ≠ 0) : 0 < a ^ (2 : ℤ) :=
+zpow_bit0_pos h 1
 
 @[simp] theorem zpow_bit1_neg_iff : a ^ bit1 n < 0 ↔ a < 0 :=
 ⟨λ h, not_le.1 $ λ h', not_le.2 h $ zpow_nonneg h' _,
@@ -135,48 +120,6 @@ end
 @[simp] theorem zpow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le zpow_bit1_nonpos_iff
 
-lemma even.zpow_nonneg {n : ℤ} (hn : even n) (a : K) :
-  0 ≤ a ^ n :=
-begin
-  cases le_or_lt 0 a with h h,
-  { exact zpow_nonneg h _ },
-  { exact (hn.zpow_neg a).subst (zpow_nonneg (neg_nonneg_of_nonpos h.le) _) }
-end
-
-theorem even.zpow_pos (hn : even n) (ha : a ≠ 0) : 0 < a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit0_pos ha k
-
-theorem odd.zpow_nonneg (hn : odd n) (ha : 0 ≤ a) : 0 ≤ a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonneg_iff.mpr ha
-
-theorem odd.zpow_pos (hn : odd n) (ha : 0 < a) : 0 < a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_pos_iff.mpr ha
-
-theorem odd.zpow_nonpos (hn : odd n) (ha : a ≤ 0) : a ^ n ≤ 0:=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_nonpos_iff.mpr ha
-
-theorem odd.zpow_neg (hn : odd n) (ha : a < 0) : a ^ n < 0:=
-by cases hn with k hk; simpa only [hk, two_mul] using zpow_bit1_neg_iff.mpr ha
-
-lemma even.zpow_abs {p : ℤ} (hp : even p) (a : K) : |a| ^ p = a ^ p :=
-begin
-  cases abs_choice a with h h;
-  simp only [h, hp.zpow_neg _],
-end
-
-@[simp] lemma zpow_bit0_abs (a : K) (p : ℤ) : |a| ^ bit0 p = a ^ bit0 p :=
-(even_bit0 _).zpow_abs _
-
-lemma even.abs_zpow {p : ℤ} (hp : even p) (a : K) : |a ^ p| = a ^ p :=
-begin
-  rw [abs_eq_self],
-  exact hp.zpow_nonneg _
-end
-
-@[simp] lemma abs_zpow_bit0 (a : K) (p : ℤ) :
-  |a ^ bit0 p| = a ^ bit0 p :=
-(even_bit0 _).abs_zpow _
-
 end ordered_field_power
 
 lemma one_lt_zpow {K} [linear_ordered_field K] {p : K} (hp : 1 < p) :
@@ -195,15 +138,16 @@ ne_of_gt (nat.zpow_pos_of_pos h n)
 
 lemma zpow_strict_mono {x : K} (hx : 1 < x) :
   strict_mono (λ n:ℤ, x ^ n) :=
-λ m n h, show x ^ m < x ^ n,
-begin
-  have xpos : 0 < x := zero_lt_one.trans hx,
-  have h₀ : x ≠ 0 := xpos.ne',
-  have hxm : 0 < x^m := zpow_pos_of_pos xpos m,
-  have h : 1 < x ^ (n - m) := one_lt_zpow hx _ (sub_pos_of_lt h),
-  replace h := mul_lt_mul_of_pos_right h hxm,
-  rwa [sub_eq_add_neg, zpow_add₀ h₀, mul_assoc, zpow_neg_mul_zpow_self _ h₀, one_mul, mul_one] at h,
-end
+strict_mono_int_of_lt_succ $ λ n,
+have xpos : 0 < x, from zero_lt_one.trans hx,
+calc x ^ n < x ^ n * x : lt_mul_of_one_lt_right (zpow_pos_of_pos xpos _) hx
+... = x ^ (n + 1) : (zpow_add_one₀ xpos.ne' _).symm
+
+lemma zpow_strict_anti {x : K} (h₀ : 0 < x) (h₁ : x < 1) : strict_anti (λ n : ℤ, x ^ n) :=
+strict_anti_int_of_succ_lt $ λ n,
+calc x ^ (n + 1) = x ^ n * x : zpow_add_one₀ h₀.ne' _
+... < x ^ n * 1 : (mul_lt_mul_left $ zpow_pos_of_pos h₀ _).2 h₁
+... = x ^ n : mul_one _
 
 @[simp] lemma zpow_lt_iff_lt {x : K} (hx : 1 < x) {m n : ℤ} :
   x ^ m < x ^ n ↔ m < n :=
@@ -212,6 +156,14 @@ end
 @[simp] lemma zpow_le_iff_le {x : K} (hx : 1 < x) {m n : ℤ} :
   x ^ m ≤ x ^ n ↔ m ≤ n :=
 (zpow_strict_mono hx).le_iff_le
+
+lemma min_le_of_zpow_le_max {x : K} (hx : 1 < x) {a b c : ℤ}
+  (h_max : x ^ (-c) ≤ max (x ^ (-a)) (x ^ (-b)) ) : min a b ≤ c :=
+begin
+  rw min_le_iff,
+  refine or.imp (λ h, _) (λ h, _) (le_max_iff.mp h_max);
+  rwa [zpow_le_iff_le hx, neg_le_neg_iff] at h
+end
 
 @[simp] lemma pos_div_pow_pos {a b : K} (ha : 0 < a) (hb : 0 < b) (k : ℕ) : 0 < a/b^k :=
 div_pos ha (pow_pos hb k)
@@ -228,7 +180,7 @@ begin
   rcases h₁.lt_or_lt with H|H,
   { apply (zpow_strict_mono (one_lt_inv h₀ H)).injective,
     show x⁻¹ ^ m = x⁻¹ ^ n,
-    rw [← zpow_neg_one₀, ← zpow_mul₀, ← zpow_mul₀, mul_comm _ m, mul_comm _ n, zpow_mul₀, zpow_mul₀,
+    rw [← zpow_neg_one, ← zpow_mul₀, ← zpow_mul₀, mul_comm _ m, mul_comm _ n, zpow_mul₀, zpow_mul₀,
       h], },
   { exact (zpow_strict_mono H).injective h, },
 end
@@ -240,7 +192,7 @@ end
 end ordered
 
 section
-variables {K : Type*} [field K]
+variables {K : Type*} [division_ring K]
 
 @[simp, norm_cast] theorem rat.cast_zpow [char_zero K] (q : ℚ) (n : ℤ) :
   ((q ^ n : ℚ) : K) = q ^ n :=

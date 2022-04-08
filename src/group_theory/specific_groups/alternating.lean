@@ -138,6 +138,7 @@ closure_eq_of_le _ (λ σ hσ, mem_alternating_group.2 hσ.sign) $ λ σ hσ, be
     (hn : l.length = 2 * n), l.prod ∈ closure {σ : perm α | is_three_cycle σ},
   { obtain ⟨l, rfl, hl⟩ := trunc_swap_factors σ,
     obtain ⟨n, hn⟩ := (prod_list_swap_mem_alternating_group_iff_even_length hl).1 hσ,
+    rw ← two_mul at hn,
     exact hind n l hl hn },
   intro n,
   induction n with n ih; intros l hl hn,
@@ -262,8 +263,10 @@ begin
   rw [← multiset.eq_repeat'] at h2,
   have h56 : 5 ≤ 3 * 2 := nat.le_succ 5,
   have h := le_of_mul_le_mul_right (le_trans h h56) dec_trivial,
-  rw [mem_alternating_group, sign_of_cycle_type, h2, multiset.map_repeat, multiset.prod_repeat,
-    int.units_pow_two, units.ext_iff, units.coe_one, units.coe_pow, units.coe_neg_one,
+  rw [mem_alternating_group, sign_of_cycle_type, h2] at ha,
+  norm_num at ha,
+  rw [pow_add, pow_mul, int.units_pow_two,one_mul,
+      units.ext_iff, units.coe_one, units.coe_pow, units.coe_neg_one,
       nat.neg_one_pow_eq_one_iff_even _] at ha,
   swap, { dec_trivial },
   rw [is_conj_iff_cycle_type_eq, h2],
@@ -309,7 +312,7 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
   -- We check that `2 < n ≤ 5`, so that `interval_cases` has a precise range to check.
   swap, { obtain ⟨m, hm⟩ := multiset.exists_cons_of_mem ng,
     rw [← sum_cycle_type, hm, multiset.sum_cons],
-    exact le_add_right (le_refl _) },
+    exact le_add_right le_rfl },
   interval_cases n, -- This breaks into cases `n = 3`, `n = 4`, `n = 5`.
   { -- If `n = 3`, then `g` has a 3-cycle in its decomposition, so `g^2` is a 3-cycle.
     -- `g^2` is in the normal closure of `g`, so that normal closure must be $A_5$.
@@ -322,8 +325,8 @@ instance is_simple_group_five : is_simple_group (alternating_group (fin 5)) :=
   { -- The case `n = 4` leads to contradiction, as no element of $A_5$ includes a 4-cycle.
     have con := mem_alternating_group.1 gA,
     contrapose! con,
-    rw [sign_of_cycle_type, cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng,
-      multiset.map_singleton, multiset.prod_singleton],
+    rw [sign_of_cycle_type,
+      cycle_type_of_card_le_mem_cycle_type_add_two dec_trivial ng],
     dec_trivial },
   { -- If `n = 5`, then `g` is itself a 5-cycle, conjugate to `fin_rotate 5`.
     refine (is_conj_iff_cycle_type_eq.2 _).normal_closure_eq_top_of

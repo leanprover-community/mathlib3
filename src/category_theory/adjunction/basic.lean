@@ -99,6 +99,10 @@ section
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G) {X' X : C} {Y Y' : D}
 
+lemma hom_equiv_id (X : C) : adj.hom_equiv X _ (𝟙 _) = adj.unit.app X := by simp
+
+lemma hom_equiv_symm_id (X : D) : (adj.hom_equiv _ X).symm (𝟙 _) = adj.counit.app X := by simp
+
 @[simp, priority 10] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
   (adj.hom_equiv X' Y).symm (f ≫ g) = F.map f ≫ (adj.hom_equiv X Y).symm g :=
 by rw [hom_equiv_counit, F.map_comp, assoc, adj.hom_equiv_counit.symm]
@@ -469,6 +473,14 @@ def to_adjunction (e : C ≌ D) : e.functor ⊣ e.inverse :=
 mk_of_unit_counit ⟨e.unit, e.counit,
   by { ext, dsimp, simp only [id_comp], exact e.functor_unit_comp _, },
   by { ext, dsimp, simp only [id_comp], exact e.unit_inverse_comp _, }⟩
+
+@[simp] lemma as_equivalence_to_adjunction_unit {e : C ≌ D} :
+  e.functor.as_equivalence.to_adjunction.unit = e.unit :=
+rfl
+
+@[simp] lemma as_equivalence_to_adjunction_counit {e : C ≌ D} :
+  e.functor.as_equivalence.to_adjunction.counit = e.counit :=
+rfl
 
 end equivalence
 

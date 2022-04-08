@@ -190,6 +190,17 @@ lemma mk_mem_periodic_pts (hn : 0 < n) (hx : is_periodic_pt f n x) :
 
 lemma mem_periodic_pts : x ∈ periodic_pts f ↔ ∃ n > 0, is_periodic_pt f n x := iff.rfl
 
+lemma is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate (hx : x ∈ periodic_pts f)
+  (hm : is_periodic_pt f m (f^[n] x)) : is_periodic_pt f m x :=
+begin
+  rcases hx with ⟨r, hr, hr'⟩,
+  convert (hm.apply_iterate ((n / r + 1) * r - n)).eq,
+  suffices : n ≤ (n / r + 1) * r,
+  { rw [←iterate_add_apply, nat.sub_add_cancel this, iterate_mul, (hr'.iterate _).eq] },
+  rw [add_mul, one_mul],
+  exact (nat.lt_div_mul_add hr).le
+end
+
 variable (f)
 
 lemma bUnion_pts_of_period : (⋃ n > 0, pts_of_period f n) = periodic_pts f :=
@@ -295,7 +306,7 @@ by simp_rw [is_periodic_pt_iff_minimal_period_dvd, dvd_right_iff_eq]
 
 lemma minimal_period_eq_prime {p : ℕ} [hp : fact p.prime] (hper : is_periodic_pt f p x)
   (hfix : ¬ is_fixed_pt f x) : minimal_period f x = p :=
-(hp.out.2 _ (hper.minimal_period_dvd)).resolve_left
+(hp.out.eq_one_or_self_of_dvd _ (hper.minimal_period_dvd)).resolve_left
   (mt is_fixed_point_iff_minimal_period_eq_one.1 hfix)
 
 lemma minimal_period_eq_prime_pow {p k : ℕ} [hp : fact p.prime] (hk : ¬ is_periodic_pt f (p ^ k) x)

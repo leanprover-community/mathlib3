@@ -53,8 +53,8 @@ begin
   apply convex_on_univ_of_deriv2_nonneg differentiable_pow,
   { simp only [deriv_pow', differentiable.mul, differentiable_const, differentiable_pow] },
   { intro x,
-    rcases nat.even.sub_even hn (nat.even_bit0 1) with ⟨k, hk⟩,
-    rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, pow_mul'],
+    rcases (nat.even.sub_even hn (even_bit0 1)).exists_two_nsmul _ with ⟨k, hk⟩,
+    rw [iter_deriv_pow, finset.prod_range_cast_nat_sub, hk, nsmul_eq_mul, pow_mul'],
     exact mul_nonneg (nat.cast_nonneg _) (pow_two_nonneg _) }
 end
 
@@ -106,7 +106,8 @@ lemma int_prod_range_nonneg (m : ℤ) (n : ℕ) (hn : even n) :
 begin
   rcases hn with ⟨n, rfl⟩,
   induction n with n ihn, { simp },
-  rw [nat.succ_eq_add_one, mul_add, mul_one, bit0, ← add_assoc, finset.prod_range_succ,
+  rw ← two_mul at ihn,
+  rw [← two_mul, nat.succ_eq_add_one, mul_add, mul_one, bit0, ← add_assoc, finset.prod_range_succ,
     finset.prod_range_succ, mul_assoc],
   refine mul_nonneg ihn _, generalize : (1 + 1) * n = k,
   cases le_or_lt m k with hmk hmk,
@@ -138,7 +139,7 @@ begin
   { intros x hx,
     simp only [iter_deriv_zpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
     refine mul_nonneg (int.cast_nonneg.2 _) (zpow_nonneg (le_of_lt hx) _),
-    exact int_prod_range_nonneg _ _ (nat.even_bit0 1) }
+    exact int_prod_range_nonneg _ _ (even_bit0 1) }
 end
 
 /-- `x^m`, `m : ℤ` is convex on `(0, +∞)` for all `m` except `0` and `1`. -/
@@ -154,7 +155,7 @@ begin
   intros x hx,
   simp only [iter_deriv_zpow, ← int.cast_coe_nat, ← int.cast_sub, ← int.cast_prod],
   refine mul_pos (int.cast_pos.2 _) (zpow_pos_of_pos hx _),
-  refine int_prod_range_pos (nat.even_bit0 1) (λ hm, _),
+  refine int_prod_range_pos (even_bit0 1) (λ hm, _),
   norm_cast at hm,
   rw ←finset.coe_Ico at hm,
   fin_cases hm,
@@ -213,4 +214,22 @@ begin
   change (deriv (deriv log)) x < 0,
   rw [deriv_log', deriv_inv],
   exact neg_neg_of_pos (inv_pos.2 $ sq_pos_of_ne_zero _ hx.ne),
+end
+
+open_locale real
+
+lemma strict_concave_on_sin_Icc : strict_concave_on ℝ (Icc 0 π) sin :=
+begin
+  apply strict_concave_on_of_deriv2_neg (convex_Icc _ _) continuous_on_sin
+    differentiable_sin.differentiable_on (λ x hx, _),
+  rw interior_Icc at hx,
+  simp [sin_pos_of_mem_Ioo hx],
+end
+
+lemma strict_concave_on_cos_Icc : strict_concave_on ℝ (Icc (-(π/2)) (π/2)) cos :=
+begin
+  apply strict_concave_on_of_deriv2_neg (convex_Icc _ _) continuous_on_cos
+    differentiable_cos.differentiable_on (λ x hx, _),
+  rw interior_Icc at hx,
+  simp [cos_pos_of_mem_Ioo hx],
 end

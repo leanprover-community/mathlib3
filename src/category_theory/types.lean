@@ -3,8 +3,9 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl
 -/
-import category_theory.fully_faithful
-import data.equiv.basic
+import category_theory.epi_mono
+import category_theory.functor.fully_faithful
+import logic.equiv.basic
 
 /-!
 # The category `Type`.
@@ -62,7 +63,8 @@ congr_fun f.inv_hom_id y
 -- Unfortunately without this wrapper we can't use `category_theory` idioms, such as `is_iso f`.
 abbreviation as_hom {α β : Type u} (f : α → β) : α ⟶ β := f
 -- If you don't mind some notation you can use fewer keystrokes:
-localized "notation  `↾` f : 200 := as_hom f" in category_theory.Type -- type as \upr in VScode
+localized "notation  `↾` f : 200 := category_theory.as_hom f"
+  in category_theory.Type -- type as \upr in VScode
 
 section -- We verify the expected type checking behaviour of `as_hom`.
 variables (α β γ : Type u) (f : α → β) (g : β → γ)
@@ -173,6 +175,9 @@ begin
   { exact λ H, ⟨λ Z, H.comp_left⟩ }
 end
 
+lemma injective_of_mono {X Y : Type u} (f : X ⟶ Y) [hf : mono f] : function.injective f :=
+(mono_iff_injective f).1 hf
+
 /--
 A morphism in `Type` is an epimorphism if and only if it is surjective.
 
@@ -189,6 +194,9 @@ begin
     rw hg },
   { exact λ H, ⟨λ Z, H.injective_comp_right⟩ }
 end
+
+lemma surjective_of_epi {X Y : Type u} (f : X ⟶ Y) [hf : epi f] : function.surjective f :=
+(epi_iff_surjective f).1 hf
 
 section
 
@@ -269,6 +277,11 @@ lemma is_iso_iff_bijective {X Y : Type u} (f : X ⟶ Y) : is_iso f ↔ function.
 iff.intro
   (λ i, (by exactI as_iso f : X ≅ Y).to_equiv.bijective)
   (λ b, is_iso.of_iso (equiv.of_bijective f b).to_iso)
+
+noncomputable instance : split_epi_category (Type u) :=
+{ split_epi_of_epi := λ X Y f hf,
+  { section_ := function.surj_inv $ (epi_iff_surjective f).1 hf,
+    id' := funext $ function.right_inverse_surj_inv $ (epi_iff_surjective f).1 hf } }
 
 end category_theory
 

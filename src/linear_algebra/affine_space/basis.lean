@@ -268,8 +268,7 @@ begin
     rw [b.coord_apply, finset.univ.map_affine_combination _ _ hAi,
       finset.univ.affine_combination_eq_linear_combination _ _ hAi],
     change _ = (A ⬝ b.to_matrix p) i j,
-    simp_rw [hA, matrix.one_apply, @eq_comm _ i j],
-    congr, },
+    simp_rw [hA, matrix.one_apply, @eq_comm _ i j] },
   rw hbi,
   exact affine_combination_mem_affine_span hAi p,
 end

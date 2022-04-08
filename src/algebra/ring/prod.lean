@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Chris Hughes, Mario Carneiro, Yury Kudryashov
 -/
 import algebra.group.prod
 import algebra.ring.basic
-import data.equiv.ring
+import algebra.ring.equiv
 
 /-!
 # Semiring, ring etc structures on `R × S`
@@ -52,6 +52,18 @@ instance [semiring R] [semiring S] : semiring (R × S) :=
 /-- Product of two commutative semirings is a commutative semiring. -/
 instance [comm_semiring R] [comm_semiring S] : comm_semiring (R × S) :=
 { .. prod.semiring, .. prod.comm_monoid }
+
+instance [non_unital_non_assoc_ring R] [non_unital_non_assoc_ring S] :
+  non_unital_non_assoc_ring (R × S) :=
+{ .. prod.add_comm_group, .. prod.non_unital_non_assoc_semiring }
+
+instance [non_unital_ring R] [non_unital_ring S] :
+  non_unital_ring (R × S) :=
+{ .. prod.add_comm_group, .. prod.non_unital_semiring }
+
+instance [non_assoc_ring R] [non_assoc_ring S] :
+  non_assoc_ring (R × S) :=
+{ .. prod.add_comm_group, .. prod.non_assoc_semiring }
 
 /-- Product of two rings is a ring. -/
 instance [ring R] [ring S] : ring (R × S) :=

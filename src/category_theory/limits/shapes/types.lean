@@ -249,6 +249,28 @@ def coequalizer_colimit : limits.colimit_cocone (parallel_pair f g) :=
       rfl,
       λ m hm, funext $ λ x, quot.induction_on x (congr_fun hm : _) ⟩ }
 
+/-- If `π : Y ⟶ Z` is an equalizer for `(f, g)`, and `U ⊆ Y` such that `f ⁻¹' U = g ⁻¹' U`,
+then `π ⁻¹' (π '' U) = U`.
+-/
+lemma coequalizer_preimage_image_eq_of_preimage_eq (π : Y ⟶ Z)
+  (e : f ≫ π = g ≫ π) (h : is_colimit (cofork.of_π π e)) (U : set Y) (H : f ⁻¹' U = g ⁻¹' U) :
+    π ⁻¹' (π '' U) = U :=
+begin
+  have lem : ∀ x y, (coequalizer_rel f g x y) → (x ∈ U ↔ y ∈ U),
+  { rintros _ _ ⟨x⟩, change x ∈ f ⁻¹' U ↔ x ∈ g ⁻¹' U, congr' 2 },
+  have eqv : _root_.equivalence (λ x y, x ∈ U ↔ y ∈ U) := by tidy,
+  ext,
+  split,
+  { rw ← (show _ = π, from h.comp_cocone_point_unique_up_to_iso_inv
+      (coequalizer_colimit f g).2 walking_parallel_pair.one),
+    rintro ⟨y, hy, e'⟩,
+    dsimp at e',
+    replace e' := (mono_iff_injective (h.cocone_point_unique_up_to_iso
+      (coequalizer_colimit f g).is_colimit).inv).mp infer_instance e',
+    exact (eqv.eqv_gen_iff.mp (eqv_gen.mono lem (quot.exact _ e'))).mp hy },
+  { exact λ hx, ⟨x, hx, rfl⟩ }
+end
+
 end cofork
 
 section pullback

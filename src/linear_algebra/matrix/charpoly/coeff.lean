@@ -36,7 +36,7 @@ noncomputable theory
 universes u v w z
 
 open polynomial matrix
-open_locale big_operators
+open_locale big_operators polynomial
 
 variables {R : Type u} [comm_ring R]
 variables {n G : Type v} [decidable_eq n] [fintype n]
@@ -127,7 +127,7 @@ begin
 end
 
 -- I feel like this should use polynomial.alg_hom_eval₂_algebra_map
-lemma mat_poly_equiv_eval (M : matrix n n (polynomial R)) (r : R) (i j : n) :
+lemma mat_poly_equiv_eval (M : matrix n n R[X]) (r : R) (i j : n) :
   (mat_poly_equiv M).eval ((scalar n) r) i j = (M i j).eval r :=
 begin
   unfold polynomial.eval, unfold eval₂,
@@ -145,7 +145,7 @@ begin
     simp only [h'n, zero_mul] }
 end
 
-lemma eval_det (M : matrix n n (polynomial R)) (r : R) :
+lemma eval_det (M : matrix n n R[X]) (r : R) :
   polynomial.eval r M.det = (polynomial.eval (scalar n r) (mat_poly_equiv M)).det :=
 begin
   rw [polynomial.eval, ← coe_eval₂_ring_hom, ring_hom.map_det],
@@ -165,7 +165,7 @@ variables {p : ℕ} [fact p.prime]
 
 lemma mat_poly_equiv_eq_X_pow_sub_C {K : Type*} (k : ℕ) [field K] (M : matrix n n K) :
   mat_poly_equiv
-      ((expand K (k) : polynomial K →+* polynomial K).map_matrix (charmatrix (M ^ k))) =
+      ((expand K (k) : K[X] →+* K[X]).map_matrix (charmatrix (M ^ k))) =
     X ^ k - C (M ^ k) :=
 begin
   ext m,
@@ -190,11 +190,11 @@ begin
     rcases finite_field.card K p with ⟨⟨k, kpos⟩, ⟨hp, hk⟩⟩,
     haveI : fact p.prime := ⟨hp⟩,
     dsimp at hk, rw hk at *,
-    apply (frobenius_inj (polynomial K) p).iterate k,
+    apply (frobenius_inj K[X] p).iterate k,
     repeat { rw iterate_frobenius, rw ← hk },
     rw ← finite_field.expand_card,
     unfold charpoly, rw [alg_hom.map_det, ← coe_det_monoid_hom,
-      ← (det_monoid_hom : matrix n n (polynomial K) →* polynomial K).map_pow],
+      ← (det_monoid_hom : matrix n n K[X] →* K[X]).map_pow],
     apply congr_arg det,
     refine mat_poly_equiv.injective _,
     rw [alg_equiv.map_pow, mat_poly_equiv_charmatrix, hk, sub_pow_char_pow_of_commute, ← C_pow],
@@ -225,6 +225,18 @@ theorem is_integral : is_integral R M := ⟨M.charpoly, ⟨charpoly_monic M, aev
 theorem minpoly_dvd_charpoly {K : Type*} [field K] (M : matrix n n K) :
   (minpoly K M) ∣ M.charpoly :=
 minpoly.dvd _ _ (aeval_self_charpoly M)
+
+/-- Any matrix polynomial `p` is equivalent under evaluation to `p %ₘ M.charpoly`; that is, `p`
+is equivalent to a polynomial with degree less than the dimension of the matrix. -/
+lemma aeval_eq_aeval_mod_charpoly (M : matrix n n R) (p : R[X]) :
+  aeval M p = aeval M (p %ₘ M.charpoly) :=
+(aeval_mod_by_monic_eq_self_of_root M.charpoly_monic M.aeval_self_charpoly).symm
+
+/-- Any matrix power can be computed as the sum of matrix powers less than `fintype.card n`.
+
+TODO: add the statement for negative powers phrased with `zpow`. -/
+lemma pow_eq_aeval_mod_charpoly (M : matrix n n R) (k : ℕ) : M^k = aeval M (X^k %ₘ M.charpoly) :=
+by rw [←aeval_eq_aeval_mod_charpoly, map_pow, aeval_X]
 
 end matrix
 

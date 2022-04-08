@@ -1790,6 +1790,14 @@ by simp only [mem_centralizer_iff, mul_inv_eq_iff_eq_mul, one_mul]
 @[to_additive] lemma centralizer_top : centralizer ⊤ = center G :=
 set_like.ext' (set.centralizer_univ G)
 
+@[to_additive] instance subgroup.centralizer.characteristic [hH : H.characteristic] :
+  H.centralizer.characteristic :=
+begin
+  refine subgroup.characteristic_iff_comap_le.mpr (λ ϕ g hg h hh, ϕ.injective _),
+  rw [map_mul, map_mul],
+  exact hg (ϕ h) (subgroup.characteristic_iff_le_comap.mp hH ϕ hh),
+end
+
 end centralizer
 
 /-- Commutivity of a subgroup -/

@@ -1,11 +1,11 @@
 import tactic.ring
 import tactic.tidy
-import group_theory.group_action
+import group_theory.group_action.basic
 import linear_algebra.special_linear_group
 import linear_algebra.determinant
 import data.matrix.notation
 import group_theory.group_action.basic
-import algebra.group_action_hom
+import algebra.hom.group_action
 import linear_algebra.matrix
 import linear_algebra.general_linear_group
 import data.complex.basic

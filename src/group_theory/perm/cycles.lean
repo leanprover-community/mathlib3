@@ -500,9 +500,10 @@ begin
     exact support_pow_le _ n hx }
 end
 
-lemma is_cycle.pow_eq_one_iff [fintype α] {f : perm α} (hf : is_cycle f) {n : ℕ} :
+lemma is_cycle.pow_eq_one_iff [fintype β] {f : perm β} (hf : is_cycle f) {n : ℕ} :
   f ^ n = 1 ↔ ∃ x, f x ≠ x ∧ (f ^ n) x = x :=
 begin
+  classical,
   split,
   { intro h,
     obtain ⟨x, hx, -⟩ := id hf,
@@ -516,9 +517,10 @@ begin
       rw [pow_mul, pow_order_of_eq_one, one_pow] } }
 end
 
-lemma is_cycle.pow_eq_pow_iff [fintype β] [decidable_eq β] {f : perm β} (hf : is_cycle f)
-  {a b : ℕ} : f ^ a = f ^ b ↔ ∃ x, f x ≠ x ∧ (f ^ a) x = (f ^ b) x :=
+lemma is_cycle.pow_eq_pow_iff [fintype β] {f : perm β} (hf : is_cycle f) {a b : ℕ} :
+  f ^ a = f ^ b ↔ ∃ x, f x ≠ x ∧ (f ^ a) x = (f ^ b) x :=
 begin
+  classical,
   split,
   { intro h,
     obtain ⟨x, hx, -⟩ := id hf,

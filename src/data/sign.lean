@@ -22,7 +22,7 @@ inductive sign_type
 namespace sign_type
 
 instance : has_zero sign_type := ⟨zero⟩
-instance :  has_one sign_type := ⟨pos⟩
+instance : has_one  sign_type := ⟨pos⟩
 
 instance : has_neg sign_type :=
 ⟨λ s, match s with
@@ -177,8 +177,6 @@ variables [linear_ordered_ring α] {a b : α}
 113488-general/topic/type.20class.20inference.20issues/near/276937942 -/
 local attribute [instance] linear_ordered_ring.decidable_lt
 
--- TODO: determine whether `ring` is required. Current thinking is that it is, for the implication
--- a < 0 → b < 0 → 0 < a * b.
 /-- `sign` as a `monoid_with_zero_hom` for a nontrivial ordered semiring. Note that linearity
 is required; consider ℂ with the order `z ≤ w` iff they have the same imaginary part and
 `z - w ≤ 0` in the reals; then `1 + i` and `1 - i` are incomparable to zero, and thus we have:

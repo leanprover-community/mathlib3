@@ -203,7 +203,7 @@ variables (R)
 
 @[simp] lemma coe_zero [has_zero R] [has_zero A] : ↑(0 : A) = (0 : unitization R A) := rfl
 
-@[simp] lemma coe_add [add_zero_class R] [add_zero_class A] (m₁ m₂ : A) :
+@[simp] lemma coe_add [add_zero_class R] [has_add A] (m₁ m₂ : A) :
   (↑(m₁ + m₂) : unitization R A)  = m₁ + m₂ :=
 ext (add_zero 0).symm rfl
 
@@ -289,7 +289,7 @@ end
 section
 variables (R)
 
-@[simp] lemma coe_mul [semiring R] [non_unital_non_assoc_semiring A] [module R A] (a₁ a₂ : A) :
+@[simp] lemma coe_mul [semiring R] [add_comm_monoid A] [has_mul A] [module R A] (a₁ a₂ : A) :
   (↑(a₁ * a₂) : unitization R A) = a₁ * a₂ :=
 ext (mul_zero _).symm $ show a₁ * a₂ = (0 : R) • a₂ + (0 : R) • a₁ + a₁ * a₂,
   by simp only [zero_smul, zero_add]
@@ -481,7 +481,7 @@ section alg_hom
 variables {S R A : Type*}
   [comm_semiring S] [comm_semiring R] [non_unital_semiring A]
   [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
-  {B : Type*} [ring B] [algebra S B]
+  {B : Type*} [semiring B] [algebra S B]
   [algebra S R] [distrib_mul_action S A] [is_scalar_tower S R A]
   {C : Type*} [ring C] [algebra R C]
 

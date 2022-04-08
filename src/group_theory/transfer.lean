@@ -187,22 +187,42 @@ let T : left_transversals (H : set G) := left_transversals.inhabited.default in
 @[to_additive] lemma transfer_def (g : G) : transfer ϕ g = diff ϕ T (g • T) :=
 by rw [transfer, ←diff_mul_diff, ←smul_diff_smul, mul_comm, diff_mul_diff]; refl
 
+section explicit_computation
+
 @[to_additive] lemma _root_.subgroup.pow_index_mem
-  {G : Type*} [group G] (H : subgroup G) [H.normal] [fintype (G ⧸ H)] (g : G) :
+  {G : Type*} [group G] (H : subgroup G) [H.normal] (hH : H.index ≠ 0) (g : G) :
   g ^ H.index ∈ H :=
 begin
+  haveI : fintype (G ⧸ H) := sorry,
   rw [←quotient_group.eq_one_iff, quotient_group.coe_pow, index_eq_card, pow_card_eq_one],
 end
 
-@[to_additive] noncomputable def transfer_pow [H.normal] (hH : H ≤ center G) : G →* H :=
-{ to_fun := λ g, ⟨g ^ H.index, H.pow_index_mem g⟩,
-  map_one' := subtype.ext (one_pow H.index),
-  map_mul' := sorry }
-
-@[to_additive] lemma transfer_eq_pow (hH : H ≤ center G) [H.is_commutative] (g : G) :
-  ↑(transfer (monoid_hom.id H) g) = g ^ H.index :=
+@[to_additive] lemma _root_.subgroup.pow_index_mem_of_le_center
+  {G : Type*} [group G] {H : subgroup G} (hH : H ≤ center G) (g : G) :
+  g ^ H.index ∈ H :=
 begin
-  sorry
+  sorry,
 end
+
+lemma transfer_eq_pow (hH : H ≤ center G) (g : G) : transfer ϕ g = ϕ ⟨g ^ H.index, sorry⟩ :=
+begin
+
+end
+
+@[to_additive] noncomputable def transfer_pow (hH : H ≤ center G) : G →* H :=
+{ to_fun := λ g, ⟨g ^ H.index, subgroup.pow_index_mem_of_le_center hH g⟩,
+  map_one' := subtype.ext (one_pow H.index),
+  map_mul' := λ a b, begin
+    letI : is_commutative H := sorry,
+    let ϕ : G →* H := transfer (monoid_hom.id H),
+    let ψ : H →* G := H.subtype,
+    simp_rw ← show ∀ g : G, ϕ g = ⟨g ^ H.index, _⟩, from transfer_eq_pow (monoid_hom.id H) hH,
+    exact ϕ.map_mul a b,
+  end }
+
+@[to_additive] noncomputable def transfer_pow' (h : (center G).index ≠ 0) : G →* H :=
+transfer_pow h
+
+end explicit_computation
 
 end monoid_hom

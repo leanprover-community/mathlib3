@@ -26,7 +26,7 @@ the Rearrangement Inequality
 
 open_locale big_operators
 
-/-- Let `n` be a natural number, `x` and `y` be as in the problem statement and `σ` be the
+/- Let `n` be a natural number, `x` and `y` be as in the problem statement and `σ` be the
 permutation of natural numbers such that `z = y ∘ σ` -/
 variables (n : ℕ) (x y : ℕ → ℝ) (σ : equiv.perm ℕ) (hx : antitone_on x (finset.Icc 1 n))
   (hy : antitone_on y (finset.Icc 1 n)) (hσ : {x | σ x ≠ x} ⊆ finset.Icc 1 n)

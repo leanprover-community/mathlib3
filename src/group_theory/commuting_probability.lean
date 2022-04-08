@@ -24,17 +24,8 @@ This file introduces the commuting probability of finite groups.
 
 section for_mathlib
 
-@[to_additive] instance subgroup.centralizer.characteristic
-  {G : Type*} [group G] (H : subgroup G) [hH : H.characteristic] :
-  H.centralizer.characteristic :=
-begin
-  refine subgroup.characteristic_iff_comap_le.mpr (λ ϕ g hg h hh, ϕ.injective _),
-  rw [map_mul, map_mul],
-  exact hg (ϕ h) (subgroup.characteristic_iff_le_comap.mp hH ϕ hh),
-end
-
 instance subgroup.commutator.characteristic (G : Type*) [group G] : (commutator G).characteristic :=
-subgroup.characteristic_iff_le_map.mpr (λ ϕ, commutator_le_map_commutator
+subgroup.characteristic_iff_le_map.mpr (λ ϕ, subgroup.commutator_le_map_commutator
   (ge_of_eq (subgroup.map_top_of_surjective ϕ.to_monoid_hom ϕ.surjective))
   (ge_of_eq (subgroup.map_top_of_surjective ϕ.to_monoid_hom ϕ.surjective)))
 
@@ -72,29 +63,13 @@ begin
   exact closure_set_image_eq_top hR hR1 hS,
 end
 
-lemma fintype_of_index_ne_zero {G : Type*} [group G] {H : subgroup G} (hH : H.index ≠ 0) :
-  fintype (G ⧸ H) :=
-(cardinal.lt_omega_iff_fintype.mp (lt_of_not_ge (mt cardinal.to_nat_apply_of_omega_le hH))).some
-
 instance tada {G : Type*} [group G] (H : subgroup G) [fintype (G ⧸ H)] :
   fintype (quotient (quotient_group.right_rel H)) :=
-fintype.of_equiv (G ⧸ H)
-{ to_fun := quotient.map' (λ g, g⁻¹) (λ a b h, (congr_arg (∈ H) (by group)).mp (H.inv_mem h)),
-  inv_fun := quotient.map' (λ g, g⁻¹) (λ a b h, (congr_arg (∈ H) (by group)).mp (H.inv_mem h)),
-  left_inv := begin
-    refine λ g, quotient.induction_on' g (λ g, quotient.sound' _),
-    simp only [inv_inv],
-    refine quotient.exact' rfl,
-  end,
-  right_inv := begin
-    refine λ g, quotient.induction_on' g (λ g, quotient.sound' _),
-    simp only [inv_inv],
-    refine quotient.exact' rfl,
-  end, }
+fintype.of_equiv (G ⧸ H) (quotient_group.quotient_right_rel_equiv_quotient_left_rel H).symm
 
 lemma card_quotient_right_rel_eq {G : Type*} [group G] (H : subgroup G) [fintype (G ⧸ H)] :
   fintype.card (quotient (quotient_group.right_rel H)) = fintype.card (G ⧸ H) :=
-fintype.of_equiv_card _
+fintype.of_equiv_card (quotient_group.quotient_right_rel_equiv_quotient_left_rel H).symm
 
 lemma fg_of_index_ne_zero {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
   (hH : H.index ≠ 0) : group.fg H :=

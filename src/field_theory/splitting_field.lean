@@ -243,7 +243,7 @@ have h2 : (0 : L[X]) ∉ m.map (λ r, X - C (i r)),
 begin
   rw map_id at hm, rw hm at hf0 hmf0 ⊢, rw map_mul at hmf0 ⊢,
   rw [roots_mul hf0, roots_mul hmf0, map_C, roots_C, zero_add, roots_C, zero_add,
-      map_multiset_prod, multiset.map_map], simp_rw [(∘), map_sub, map_X, map_C],
+      polynomial.map_multiset_prod, multiset.map_map], simp_rw [(∘), map_sub, map_X, map_C],
   rw [roots_multiset_prod _ h2, multiset.bind_map,
       roots_multiset_prod _ h1, multiset.bind_map],
   simp_rw roots_X_sub_C,
@@ -381,7 +381,7 @@ private lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq_of_field {p : K[X]
 begin
   have hprodmonic : (multiset.map (λ (a : K), X - C a) p.roots).prod.monic,
   { simp only [prod_multiset_root_eq_finset_root,
-      monic_prod_of_monic, monic_X_sub_C, monic_pow, forall_true_iff] },
+      monic_prod_of_monic, monic_X_sub_C, monic.pow, forall_true_iff] },
   have hdegree : (multiset.map (λ (a : K), X - C a) p.roots).prod.nat_degree = p.nat_degree,
   { rw [← hroots, nat_degree_multiset_prod _ (zero_nmem_multiset_map_X_sub_C _ (λ a : K, a))],
     simp only [eq_self_iff_true, mul_one, nat.cast_id, nsmul_eq_mul, multiset.sum_repeat,
@@ -392,7 +392,7 @@ begin
   have degp :
     p.nat_degree = (multiset.map (λ (a : K), X - C a) p.roots).prod.nat_degree + q.nat_degree,
   { nth_rewrite 0 [hq],
-    simp only [nat_degree_mul (ne_zero_of_monic hprodmonic) qzero] },
+    simp only [nat_degree_mul hprodmonic.ne_zero qzero] },
   have degq : q.nat_degree = 0,
   { rw hdegree at degp,
     rw [← add_right_inj p.nat_degree, ← degp, add_zero], },
@@ -407,14 +407,14 @@ lemma prod_multiset_X_sub_C_of_monic_of_roots_card_eq {K : Type*} [comm_ring K] 
   (multiset.map (λ (a : K), X - C a) p.roots).prod = p :=
 begin
   apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
-  rw map_multiset_prod,
+  rw polynomial.map_multiset_prod,
   simp only [map_C, function.comp_app, map_X, multiset.map_map, map_sub],
   have : p.roots.map (algebra_map K (fraction_ring K)) =
     (map (algebra_map K (fraction_ring K)) p).roots :=
     roots_map_of_injective_card_eq_total_degree
       (is_fraction_ring.injective K (fraction_ring K)) hroots,
   rw ← prod_multiset_X_sub_C_of_monic_of_roots_card_eq_of_field
-    (monic_map (algebra_map K (fraction_ring K)) hmonic),
+    (hmonic.map (algebra_map K (fraction_ring K))),
   { simp only [map_C, function.comp_app, map_X, map_sub],
     congr' 1,
     rw ← this,
@@ -458,7 +458,7 @@ begin
   have hcoeff : p.leading_coeff ≠ 0,
   { intro h, exact hzero (leading_coeff_eq_zero.1 h) },
   apply map_injective _ (is_fraction_ring.injective K (fraction_ring K)),
-  rw [map_mul, map_multiset_prod],
+  rw [map_mul, polynomial.map_multiset_prod],
   simp only [map_C, function.comp_app, map_X, multiset.map_map, map_sub],
   have h : p.roots.map (algebra_map K (fraction_ring K)) =
     (map (algebra_map K (fraction_ring K)) p).roots :=
@@ -496,7 +496,7 @@ lemma aeval_root_derivative_of_splits [algebra K L] {P : K[X]} (hmo : P.monic)
   aeval r P.derivative =
   (multiset.map (λ a, r - a) ((P.map (algebra_map K L)).roots.erase r)).prod :=
 begin
-  replace hmo := monic_map (algebra_map K L) hmo,
+  replace hmo := hmo.map (algebra_map K L),
   replace hP := (splits_id_iff_splits (algebra_map K L)).2 hP,
   rw [aeval_def, ← eval_map, ← derivative_map],
   nth_rewrite 0 [eq_prod_roots_of_monic_of_splits_id hmo hP],

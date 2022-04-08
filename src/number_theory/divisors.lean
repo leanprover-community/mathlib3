@@ -376,7 +376,7 @@ lemma prod_proper_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {
   (h : p.prime) : ∏ x in (p ^ k).proper_divisors, f x = ∏ x in range k, f (p ^ x) :=
 by simp [h, proper_divisors_prime_pow]
 
-@[simp, to_additive]
+@[simp, to_additive sum_divisors_prime_pow]
 lemma prod_divisors_prime_pow {α : Type*} [comm_monoid α] {k p : ℕ} {f : ℕ → α} (h : p.prime) :
   ∏ x in (p ^ k).divisors, f x = ∏ x in range (k + 1), f (p ^ x) :=
 by simp [h, divisors_prime_pow]

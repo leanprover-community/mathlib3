@@ -12,8 +12,8 @@ import category_theory.limits.preserves.basic
 Constructions to relate the notions of preserving (co)equalizers and reflecting (co)equalizers
 to concrete (co)forks.
 
-In particular, we show that `equalizer_comparison G f` is an isomorphism iff `G` preserves
-the limit of `f` as well as the dual.
+In particular, we show that `equalizer_comparison f g G` is an isomorphism iff `G` preserves
+the limit of the parallel pair `f,g`, as well as the dual result.
 -/
 
 noncomputable theory

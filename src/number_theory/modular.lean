@@ -6,6 +6,7 @@ Authors: Alex Kontorovich, Heather Macbeth, Marc Masdeu
 
 import analysis.complex.upper_half_plane
 import linear_algebra.general_linear_group
+import analysis.matrix
 
 /-!
 # The action of the modular group SL(2, ℤ) on the upper half-plane
@@ -35,6 +36,11 @@ instead using abstract theory on the properness of certain maps (phrased in term
 existence of `g` maximizing `(g•z).im` (see `modular_group.exists_max_im`), and then among
 those, to minimize `|(g•z).re|` (see `modular_group.exists_row_one_eq_and_min_re`).
 -/
+
+/- Disable these instances as they are not the simp-normal form, and having them disabled ensures
+we state lemmas in this file without spurious `coe_fn` terms. -/
+local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
+local attribute [-instance] matrix.general_linear_group.has_coe_to_fun
 
 open complex matrix matrix.special_linear_group upper_half_plane
 noncomputable theory
@@ -179,7 +185,8 @@ linear_equiv.Pi_congr_right
 /-- The map `lc_row0` is proper, that is, preimages of cocompact sets are finite in
 `[[* , *], [c, d]]`.-/
 theorem tendsto_lc_row0 {cd : fin 2 → ℤ} (hcd : is_coprime (cd 0) (cd 1)) :
-  tendsto (λ g : {g : SL(2, ℤ) // g 1 = cd}, lc_row0 cd ↑(↑g : SL(2, ℝ))) cofinite (cocompact ℝ) :=
+  tendsto (λ g : {g : SL(2, ℤ) // ↑ₘg 1 = cd}, lc_row0 cd ↑(↑g : SL(2, ℝ)))
+    cofinite (cocompact ℝ) :=
 begin
   let mB : ℝ → (matrix (fin 2) (fin 2)  ℝ) := λ t, ![![t, (-(1:ℤ):ℝ)], coe ∘ cd],
   have hmB : continuous mB,
@@ -199,18 +206,22 @@ begin
   have hf₂ : closed_embedding (lc_row0_extend hcd) :=
     (lc_row0_extend hcd).to_continuous_linear_equiv.to_homeomorph.closed_embedding,
   convert hf₂.tendsto_cocompact.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
-  funext g,
-  obtain ⟨g, hg⟩ := g,
-  funext j,
-  fin_cases j,
-  { ext i,
-    fin_cases i,
-    { simp [mB, f₁, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ], },
-    { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
-      simp [f₁, ← hg, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ, matrix.det_fin_two,
-        -special_linear_group.det_coe],
-      ring } },
-  { exact congr_arg (λ p, (coe : ℤ → ℝ) ∘ p) hg.symm }
+  ext ⟨g, rfl⟩ i j : 3,
+  fin_cases i; [fin_cases j, skip],
+  -- the following are proved by `simp`, but it is replaced by `simp only` to avoid timeouts.
+  { simp only [mB, mul_vec, dot_product, fin.sum_univ_two, _root_.coe_coe, coe_matrix_coe,
+      int.coe_cast_ring_hom, lc_row0_apply, function.comp_app, cons_val_zero, lc_row0_extend_apply,
+      linear_map.general_linear_group.coe_fn_general_linear_equiv,
+      general_linear_group.to_linear_apply, coe_plane_conformal_matrix, neg_neg, mul_vec_lin_apply,
+      cons_val_one, head_cons] },
+  { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
+    simp only [f₁, mul_vec, dot_product, fin.sum_univ_two, matrix.det_fin_two, function.comp_app,
+      subtype.coe_mk, lc_row0_extend_apply, cons_val_zero,
+      linear_map.general_linear_group.coe_fn_general_linear_equiv,
+      general_linear_group.to_linear_apply, coe_plane_conformal_matrix, mul_vec_lin_apply,
+      cons_val_one, head_cons, map_apply, neg_mul, int.cast_sub, int.cast_mul, neg_sub],
+    ring },
+  { refl }
 end
 
 /-- This replaces `(g•z).re = a/c + *` in the standard theory with the following novel identity:
@@ -235,10 +246,10 @@ begin
 end
 
 lemma tendsto_abs_re_smul (z:ℍ) {p : fin 2 → ℤ} (hp : is_coprime (p 0) (p 1)) :
-  tendsto (λ g : {g : SL(2, ℤ) // g 1 = p}, |((g : SL(2, ℤ)) • z).re|)
+  tendsto (λ g : {g : SL(2, ℤ) // ↑ₘg 1 = p}, |((g : SL(2, ℤ)) • z).re|)
     cofinite at_top :=
 begin
-  suffices : tendsto (λ g : (λ g : SL(2, ℤ), g 1) ⁻¹' {p}, (((g : SL(2, ℤ)) • z).re))
+  suffices : tendsto (λ g : (λ g : SL(2, ℤ), ↑ₘg 1) ⁻¹' {p}, (((g : SL(2, ℤ)) • z).re))
     cofinite (cocompact ℝ),
   { exact tendsto_norm_cocompact_at_top.comp this },
   have : ((p 0 : ℝ) ^ 2 + p 1 ^ 2)⁻¹ ≠ 0,
@@ -271,7 +282,7 @@ begin
   obtain ⟨g, -, hg⟩ := bottom_row_surj hp_coprime,
   refine ⟨g, λ g', _⟩,
   rw [im_smul_eq_div_norm_sq, im_smul_eq_div_norm_sq, div_le_div_left],
-  { simpa [← hg] using hp (g' 1) (bottom_row_coprime g') },
+  { simpa [← hg] using hp (↑ₘg' 1) (bottom_row_coprime g') },
   { exact z.im_pos },
   { exact norm_sq_denom_pos g' z },
   { exact norm_sq_denom_pos g z },
@@ -283,11 +294,12 @@ lemma exists_row_one_eq_and_min_re (z:ℍ) {cd : fin 2 → ℤ} (hcd : is_coprim
   ∃ g : SL(2,ℤ), ↑ₘg 1 = cd ∧ (∀ g' : SL(2,ℤ), ↑ₘg 1 = ↑ₘg' 1 →
   |(g • z).re| ≤ |(g' • z).re|) :=
 begin
-  haveI : nonempty {g : SL(2, ℤ) // g 1 = cd} := let ⟨x, hx⟩ := bottom_row_surj hcd in ⟨⟨x, hx.2⟩⟩,
+  haveI : nonempty {g : SL(2, ℤ) // ↑ₘg 1 = cd} :=
+    let ⟨x, hx⟩ := bottom_row_surj hcd in ⟨⟨x, hx.2⟩⟩,
   obtain ⟨g, hg⟩ := filter.tendsto.exists_forall_le (tendsto_abs_re_smul z hcd),
   refine ⟨g, g.2, _⟩,
   { intros g1 hg1,
-    have : g1 ∈ ((λ g : SL(2, ℤ), g 1) ⁻¹' {cd}),
+    have : g1 ∈ ((λ g : SL(2, ℤ), ↑ₘg 1) ⁻¹' {cd}),
     { rw [set.mem_preimage, set.mem_singleton_iff],
       exact eq.trans hg1.symm (set.mem_singleton_iff.mp (set.mem_preimage.mp g.2)) },
     exact hg ⟨g1, this⟩ },

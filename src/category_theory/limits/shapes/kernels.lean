@@ -46,7 +46,7 @@ general limits can be used.
 
 noncomputable theory
 
-universes v u u'
+universes v u u' u₂
 
 open category_theory
 open category_theory.limits.walking_parallel_pair
@@ -135,6 +135,14 @@ def is_limit.of_ι {W : C} (g : W ⟶ X) (eq : g ≫ f = 0)
   is_limit (kernel_fork.of_ι g eq) :=
 is_limit_aux _ (λ s, lift s.ι s.condition) (λ s, fac s.ι s.condition) (λ s, uniq s.ι s.condition)
 
+/-- Every kernel of `f` induces a kernel of `f ≫ g` if `g` is mono. -/
+def is_kernel_comp_mono  {c : kernel_fork f} (i : is_limit c) {Z} (g : Y ⟶ Z) [hg : mono g] :
+  is_limit (kernel_fork.of_ι c.ι (by simp) : kernel_fork (f ≫ g)) :=
+fork.is_limit.mk' _ $ λ s,
+  let s' : kernel_fork f := fork.of_ι s.ι (by apply hg.right_cancellation; simp [s.condition]) in
+  let l := kernel_fork.is_limit.lift' i s'.ι s'.condition in
+  ⟨l.1, l.2, λ m hm, by apply fork.is_limit.hom_ext i; rw fork.ι_of_ι at hm; rw hm; exact l.2.symm⟩
+
 end
 
 section
@@ -150,6 +158,11 @@ abbreviation kernel.ι : kernel f ⟶ X := equalizer.ι f 0
 
 @[simp, reassoc] lemma kernel.condition : kernel.ι f ≫ f = 0 :=
 kernel_fork.condition _
+
+/-- The kernel built from `kernel.ι f` is limiting. -/
+def kernel_is_kernel :
+  is_limit (fork.of_ι (kernel.ι f) ((kernel.condition f).trans (comp_zero.symm))) :=
+is_limit.of_iso_limit (limit.is_limit _) (fork.ext (iso.refl _) (by tidy))
 
 /-- Given any morphism `k : W ⟶ X` satisfying `k ≫ f = 0`, `k` factors through `kernel.ι f`
     via `kernel.lift : W ⟶ kernel f`. -/
@@ -268,14 +281,9 @@ lemma kernel_not_epi_of_nonzero (w : f ≠ 0) : ¬epi (kernel.ι f) :=
 lemma kernel_not_iso_of_nonzero (w : f ≠ 0) : (is_iso (kernel.ι f)) → false :=
 λ I, kernel_not_epi_of_nonzero w $ by { resetI, apply_instance }
 
--- TODO the remainder of this section has obvious generalizations to `has_equalizer f g`.
-
 instance has_kernel_comp_mono {X Y Z : C} (f : X ⟶ Y) [has_kernel f] (g : Y ⟶ Z) [mono g] :
   has_kernel (f ≫ g) :=
-{ exists_limit :=
-  ⟨{ cone := kernel_fork.of_ι (kernel.ι f) (by simp),
-     is_limit := is_limit_aux _ (λ s, kernel.lift _ s.ι ((cancel_mono g).mp (by simp)))
-      (by tidy) (by tidy) }⟩ }
+⟨⟨{ cone := _, is_limit := is_kernel_comp_mono (limit.is_limit _) g }⟩⟩
 
 /--
 When `g` is a monomorphism, the kernel of `f ≫ g` is isomorphic to the kernel of `f`.
@@ -330,6 +338,14 @@ functor.map_iso (cones.forget _) $ is_limit.unique_up_to_iso
 /-- The kernel morphism of a monomorphism is a zero morphism -/
 lemma kernel.ι_of_mono [has_kernel f] [mono f] : kernel.ι f = 0 :=
 zero_of_source_iso_zero _ (kernel.of_mono f)
+
+/-- If `g ≫ f = 0` implies `g = 0` for all `g`, then `0 : 0 ⟶ X` is a kernel of `f`. -/
+def zero_kernel_of_cancel_zero {X Y : C} (f : X ⟶ Y)
+  (hf : ∀ (Z : C) (g : Z ⟶ X) (hgf : g ≫ f = 0), g = 0) :
+    is_limit (kernel_fork.of_ι (0 : 0 ⟶ X) (show 0 ≫ f = 0, by simp)) :=
+fork.is_limit.mk _ (λ s, 0)
+  (λ s, by rw [hf _ _ (kernel_fork.condition s), zero_comp])
+  (λ s m h, by ext)
 
 end has_zero_object
 
@@ -435,6 +451,16 @@ def is_colimit.of_π {Z : C} (g : Y ⟶ Z) (eq : f ≫ g = 0)
   is_colimit (cokernel_cofork.of_π g eq) :=
 is_colimit_aux _ (λ s, desc s.π s.condition) (λ s, fac s.π s.condition) (λ s, uniq s.π s.condition)
 
+/-- Every cokernel of `f` induces a cokernel of `g ≫ f` if `g` is epi. -/
+def is_cokernel_epi_comp  {c : cokernel_cofork f} (i : is_colimit c) {W} (g : W ⟶ X) [hg : epi g] :
+  is_colimit (cokernel_cofork.of_π c.π (by simp) : cokernel_cofork (g ≫ f)) :=
+cofork.is_colimit.mk' _ $ λ s,
+  let s' : cokernel_cofork f := cofork.of_π s.π
+    (by apply hg.left_cancellation; simp [←category.assoc, s.condition]) in
+  let l := cokernel_cofork.is_colimit.desc' i s'.π s'.condition in
+  ⟨l.1, l.2,
+    λ m hm, by apply cofork.is_colimit.hom_ext i; rw cofork.π_of_π at hm; rw hm; exact l.2.symm⟩
+
 end
 
 section
@@ -450,6 +476,11 @@ abbreviation cokernel.π : Y ⟶ cokernel f := coequalizer.π f 0
 
 @[simp, reassoc] lemma cokernel.condition : f ≫ cokernel.π f = 0 :=
 cokernel_cofork.condition _
+
+/-- The cokernel built from `cokernel.π f` is colimiting. -/
+def cokernel_is_cokernel :
+  is_colimit (cofork.of_π (cokernel.π f) ((cokernel.condition f).trans (zero_comp.symm))) :=
+is_colimit.of_iso_colimit (colimit.is_colimit _) (cofork.ext (iso.refl _) (by tidy))
 
 /-- Given any morphism `k : Y ⟶ W` such that `f ≫ k = 0`, `k` factors through `cokernel.π f`
     via `cokernel.desc : cokernel f ⟶ W`. -/
@@ -592,13 +623,9 @@ def cokernel_comp_is_iso {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [has_cokernel f
 { hom := cokernel.desc _ (inv g ≫ cokernel.π f) (by simp),
   inv := cokernel.desc _ (g ≫ cokernel.π (f ≫ g)) (by rw [←category.assoc, cokernel.condition]), }
 
-instance has_cokernel_epi_comp {X Y Z : C} (f : X ⟶ Y) [epi f] (g : Y ⟶ Z) [has_cokernel g] :
-  has_cokernel (f ≫ g) :=
-{ exists_colimit :=
-  ⟨{ cocone := cokernel_cofork.of_π (cokernel.π g) (by simp),
-     is_colimit := is_colimit_aux _
-      (λ s, cokernel.desc _ s.π ((cancel_epi f).mp (by { rw ← category.assoc, simp })))
-      (by tidy) (by tidy) }⟩ }
+instance has_cokernel_epi_comp {X Y : C} (f : X ⟶ Y) [has_cokernel f] {W} (g : W ⟶ X) [epi g] :
+  has_cokernel (g ≫ f) :=
+⟨⟨{ cocone := _, is_colimit := is_cokernel_epi_comp (colimit.is_colimit _) g }⟩⟩
 
 /--
 When `f` is an epimorphism, the cokernel of `f ≫ g` is isomorphic to the cokernel of `g`.
@@ -640,6 +667,15 @@ lemma cokernel.π_of_epi [has_cokernel f] [epi f] : cokernel.π f = 0 :=
 zero_of_target_iso_zero _ (cokernel.of_epi f)
 
 end has_zero_object
+
+section mono_factorisation
+variables {f}
+
+@[simp] lemma mono_factorisation.kernel_ι_comp [has_kernel f] (F : mono_factorisation f) :
+  kernel.ι f ≫ F.e = 0 :=
+by rw [← cancel_mono F.m, zero_comp, category.assoc, F.fac, kernel.condition]
+
+end mono_factorisation
 
 section has_image
 
@@ -695,6 +731,14 @@ instance cokernel.of_kernel_of_mono [has_kernel f]
   [has_cokernel (kernel.ι f)] [mono f] : is_iso (cokernel.π (kernel.ι f)) :=
 coequalizer.π_of_eq $ kernel.ι_of_mono f
 
+/-- If `f ≫ g = 0` implies `g = 0` for all `g`, then `0 : Y ⟶ 0` is a cokernel of `f`. -/
+def zero_cokernel_of_zero_cancel {X Y : C} (f : X ⟶ Y)
+  (hf : ∀ (Z : C) (g : Y ⟶ Z) (hgf : f ≫ g = 0), g = 0) :
+    is_colimit (cokernel_cofork.of_π (0 : Y ⟶ 0) (show f ≫ 0 = 0, by simp)) :=
+cofork.is_colimit.mk _ (λ s, 0)
+  (λ s, by rw [hf _ _ (cokernel_cofork.condition s), comp_zero])
+  (λ s m h, by ext)
+
 end has_zero_object
 
 section transport
@@ -731,6 +775,52 @@ def cokernel.cokernel_iso [has_cokernel f]
 is_cokernel.cokernel_iso f l (colimit.is_colimit _) i h
 
 end transport
+
+section comparison
+
+variables {D : Type u₂} [category.{v} D] [has_zero_morphisms D]
+variables (G : C ⥤ D) [functor.preserves_zero_morphisms G]
+
+/--
+The comparison morphism for the kernel of `f`.
+This is an isomorphism iff `G` preserves the kernel of `f`; see
+`category_theory/limits/preserves/shapes/kernels.lean`
+-/
+def kernel_comparison [has_kernel f] [has_kernel (G.map f)] :
+  G.obj (kernel f) ⟶ kernel (G.map f) :=
+kernel.lift _ (G.map (kernel.ι f)) (by simp only [←G.map_comp, kernel.condition, functor.map_zero])
+
+@[simp, reassoc]
+lemma kernel_comparison_comp_ι [has_kernel f] [has_kernel (G.map f)] :
+  kernel_comparison f G ≫ kernel.ι (G.map f) = G.map (kernel.ι f) :=
+kernel.lift_ι _ _ _
+
+@[simp, reassoc]
+lemma map_lift_kernel_comparison [has_kernel f] [has_kernel (G.map f)]
+  {Z : C} {h : Z ⟶ X} (w : h ≫ f = 0) :
+    G.map (kernel.lift _ h w) ≫ kernel_comparison f G =
+      kernel.lift _ (G.map h) (by simp only [←G.map_comp, w, functor.map_zero]) :=
+by { ext, simp [← G.map_comp] }
+
+/-- The comparison morphism for the cokernel of `f`. -/
+def cokernel_comparison [has_cokernel f] [has_cokernel (G.map f)] :
+  cokernel (G.map f) ⟶ G.obj (cokernel f) :=
+cokernel.desc _ (G.map (coequalizer.π _ _))
+  (by simp only [←G.map_comp, cokernel.condition, functor.map_zero])
+
+@[simp, reassoc]
+lemma π_comp_cokernel_comparison [has_cokernel f] [has_cokernel (G.map f)] :
+  cokernel.π (G.map f) ≫ cokernel_comparison f G = G.map (cokernel.π _) :=
+cokernel.π_desc _ _ _
+
+@[simp, reassoc]
+lemma cokernel_comparison_map_desc [has_cokernel f] [has_cokernel (G.map f)]
+  {Z : C} {h : Y ⟶ Z} (w : f ≫ h = 0) :
+  cokernel_comparison f G ≫ G.map (cokernel.desc _ h w) =
+    cokernel.desc _ (G.map h) (by simp only [←G.map_comp, w, functor.map_zero]) :=
+by { ext, simp [← G.map_comp] }
+
+end comparison
 
 end category_theory.limits
 

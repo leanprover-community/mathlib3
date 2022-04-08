@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 import algebra.covariant_and_contravariant
+import algebra.group_with_zero.defs
 
 /-!
 # Multiplication by ·positive· elements is monotonic
@@ -158,4 +159,62 @@ lemma mul_lt_mul_iff_right [mul_pos_strict_mono α] [mul_pos_reflect_lt α]
 
 end has_mul_zero_lt
 
+section has_mul_zero_le
+variables [has_mul α] [has_zero α] [preorder α]
+
+lemma mul_le_mul_left' [pos_mul_mono α] {a b c : α} (bc : b ≤ c) (a0 : 0 < a) :
+  a * b ≤ a * c :=
+@covariant_class.elim α>0 α (λ x y, x * y) (≤) _ ⟨a, a0⟩ _ _ bc
+
+lemma mul_le_mul_right' [mul_pos_mono α]
+  {a b c : α} (bc : b ≤ c) (a0 : 0 < a) :
+  b * a ≤ c * a :=
+@covariant_class.elim α>0 α (λ x y, y * x) (≤) _ ⟨a, a0⟩ _ _ bc
+
+lemma le_of_mul_le_mul_left' [pos_mul_mono_rev α]
+  {a b c : α} (bc : a * b ≤ a * c) (a0 : 0 < a) :
+  b ≤ c :=
+@contravariant_class.elim α>0 α (λ x y, x * y) (≤) _ ⟨a, a0⟩ _ _ bc
+
+lemma le_of_mul_le_mul_right' [mul_pos_mono_rev α]
+  {a b c : α} (bc : b * a ≤ c * a) (a0 : 0 < a) :
+  b ≤ c :=
+@contravariant_class.elim α>0 α (λ x y, y * x) (≤) _ ⟨a, a0⟩ _ _ bc
+
+@[simp]
+lemma mul_le_mul_iff_left [pos_mul_mono α] [pos_mul_mono_rev α]
+  {a b c : α} (a0 : 0 < a) :
+  a * b ≤ a * c ↔ b ≤ c :=
+@rel_iff_cov α>0 α (λ x y, x * y) (≤) _ _ ⟨a, a0⟩ _ _
+
+@[simp]
+lemma mul_le_mul_iff_right [mul_pos_mono α] [mul_pos_mono_rev α]
+  {a b c : α} (a0 : 0 < a) :
+  b * a ≤ c * a ↔ b ≤ c :=
+@rel_iff_cov α>0 α (λ x y, y * x) (≤) _ _ ⟨a, a0⟩ _ _
+
+end has_mul_zero_le
+
+section mul_zero_class_partial_order
+variables [mul_zero_class α] [partial_order α]
+
+lemma lt_of_mul_lt_mul_left'' [pos_mul_reflect_lt α]
+  {a b c : α} (bc : a * b < a * c) (a0 : 0 ≤ a) :
+  b < c :=
+begin
+  by_cases a₀ : a = 0,
+  { exact (lt_irrefl (0 : α) (by simpa only [a₀, zero_mul] using bc)).elim },
+  { exact lt_of_mul_lt_mul_left' bc ((ne.symm a₀).le_iff_lt.mp a0) }
+end
+
+lemma lt_of_mul_lt_mul_right'' [mul_pos_reflect_lt α]
+  {a b c : α} (bc : b * a < c * a) (a0 : 0 ≤ a) :
+  b < c :=
+begin
+  by_cases a₀ : a = 0,
+  { exact (lt_irrefl (0 : α) (by simpa only [a₀, mul_zero] using bc)).elim },
+  { exact lt_of_mul_lt_mul_right' bc ((ne.symm a₀).le_iff_lt.mp a0) }
+end
+
+end mul_zero_class_partial_order
 end zero_lt

@@ -39,7 +39,7 @@ open topological_space set filter metric
 open_locale ennreal pointwise topological_space
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
-noncomputable def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
+def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
 { carrier := Icc 0 1,
   compact' := is_compact_Icc,
   interior_nonempty' := by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one] }
@@ -47,7 +47,7 @@ noncomputable def topological_space.positive_compacts.Icc01 : positive_compacts 
 universe u
 
 /-- The set `[0,1]^ι` as a compact set with non-empty interior. -/
-noncomputable def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
+def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
 { carrier := pi univ (λ i, Icc 0 1),
   compact' := is_compact_univ_pi (λ i, is_compact_Icc),
@@ -163,6 +163,21 @@ begin
   exact hx this
 end
 
+/-- A strict affine subspace has measure zero. -/
+lemma add_haar_affine_subspace
+  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
+  (s : affine_subspace ℝ E) (hs : s ≠ ⊤) : μ s = 0 :=
+begin
+  rcases s.eq_bot_or_nonempty with rfl|hne,
+  { rw [affine_subspace.bot_coe, measure_empty] },
+  rw [ne.def, ← affine_subspace.direction_eq_top_iff_of_nonempty hne] at hs,
+  rcases hne with ⟨x, hx : x ∈ s⟩,
+  simpa only [affine_subspace.coe_direction_eq_vsub_set_right hx, vsub_eq_sub,
+    sub_eq_add_neg, image_add_right, neg_neg, measure_preimage_add_right]
+    using add_haar_submodule μ s.direction hs
+end
+
 /-!
 ### Applying a linear map rescales Haar measure by the determinant
 
@@ -214,7 +229,7 @@ begin
   haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
-  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), linear_map.map_smul,
+  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), map_smul,
     map_map Cesymm.measurable Ce.measurable, ecomp, measure.map_id]
 end
 
@@ -345,6 +360,13 @@ begin
     simp only [h, zero_mul, ennreal.of_real_zero, abs_zero, ne.def, not_false_iff, zero_pow',
       measure_singleton] }
 end
+
+@[simp] lemma add_haar_image_homothety (x : E) (r : ℝ) (s : set E) :
+  μ (affine_map.homothety x r '' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
+calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y + (-x)) '' s))) :
+  by { simp only [← image_smul, image_image, ← sub_eq_add_neg], refl }
+... = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :
+  by simp only [image_add_right, measure_preimage_add_right, add_haar_smul]
 
 /-! We don't need to state `map_add_haar_neg` here, because it has already been proved for
 general Haar measures on general commutative groups. -/

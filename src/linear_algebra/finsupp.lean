@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import data.finsupp.basic
 import linear_algebra.pi
+import linear_algebra.span
 
 /-!
 # Properties of the module `α →₀ M`
@@ -156,12 +157,12 @@ variables (M R)
 def supported (s : set α) : submodule R (α →₀ M) :=
 begin
   refine ⟨ {p | ↑p.support ⊆ s }, _, _, _ ⟩,
-  { simp only [subset_def, finset.mem_coe, set.mem_set_of_eq, mem_support_iff, zero_apply],
-    assume h ha, exact (ha rfl).elim },
   { assume p q hp hq,
     refine subset.trans
       (subset.trans (finset.coe_subset.2 support_add) _) (union_subset hp hq),
     rw [finset.coe_union] },
+  { simp only [subset_def, finset.mem_coe, set.mem_set_of_eq, mem_support_iff, zero_apply],
+    assume h ha, exact (ha rfl).elim },
   { assume a p hp,
     refine subset.trans (finset.coe_subset.2 support_smul) hp }
 end
@@ -884,7 +885,7 @@ lemma submodule.mem_supr_iff_exists_finset
   {ι : Sort*} {p : ι → submodule R M} {m : M} :
   (m ∈ ⨆ i, p i) ↔ ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
 ⟨submodule.exists_finset_of_mem_supr p,
- λ ⟨_, hs⟩, supr_le_supr (λ i, (supr_const_le : _ ≤ p i)) hs⟩
+ λ ⟨_, hs⟩, supr_mono (λ i, (supr_const_le : _ ≤ p i)) hs⟩
 
 lemma mem_span_finset {s : finset M} {x : M} :
   x ∈ span R (↑s : set M) ↔ ∃ f : M → R, ∑ i in s, f i • i = x :=

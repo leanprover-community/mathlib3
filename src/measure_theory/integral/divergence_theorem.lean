@@ -14,7 +14,7 @@ import data.set.intervals.monotone
 In this file we prove the Divergence theorem for Bochner integral on a box in
 `ℝⁿ⁺¹ = fin (n + 1) → ℝ`. More precisely, we prove the following theorem.
 
-Let `E` be a complete normed space with second countably topology. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is
+Let `E` be a complete normed space. If `f : ℝⁿ⁺¹ → Eⁿ⁺¹` is
 continuous on a rectangular box `[a, b] : set ℝⁿ⁺¹`, `a ≤ b`, differentiable on its interior with
 derivative `f' : ℝⁿ⁺¹ → ℝⁿ⁺¹ →L[ℝ] Eⁿ⁺¹`, and the divergence `λ x, ∑ i, f' x eᵢ i` is integrable on
 `[a, b]`, where `eᵢ = pi.single i 1` is the `i`-th basis vector, then its integral is equal to the
@@ -56,8 +56,7 @@ universes u
 
 namespace measure_theory
 
-variables {E : Type u} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [second_countable_topology E] [complete_space E]
+variables {E : Type u} [normed_group E] [normed_space ℝ E] [complete_space E]
 
 section
 variables {n : ℕ}

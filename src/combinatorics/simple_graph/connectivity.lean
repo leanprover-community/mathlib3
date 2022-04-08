@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kyle Miller
 -/
 import combinatorics.simple_graph.basic
+import combinatorics.simple_graph.subgraph
 import data.list
 /-!
 
@@ -31,11 +32,22 @@ counterparts in [Chou1994].
 
 ## Main definitions
 
-* `simple_graph.walk`
+* `simple_graph.walk` (with accompanying pattern definitions
+  `simple_graph.walk.nil'` and `simple_graph.walk.cons'`)
 
 * `simple_graph.walk.is_trail`, `simple_graph.walk.is_path`, and `simple_graph.walk.is_cycle`.
 
 * `simple_graph.path`
+
+* `simple_graph.reachable` for the relation of whether there exists
+  a walk between a given pair of vertices
+
+* `simple_graph.preconnected` and `simple_graph.connected` are predicates
+  on simple graphs for whether every vertex can be reached from every other,
+  and in the latter case, whether the vertex type is nonempty.
+
+* `simple_graph.subgraph.connected` gives subgraphs the connectivity
+  predicate via `simple_graph.subgraph.coe`.
 
 ## Tags
 walks, trails, paths, circuits, cycles
@@ -51,7 +63,10 @@ variables {V : Type u} (G : simple_graph V)
 the type `walk u v` consists of all walks starting at `u` and ending at `v`.
 
 We say that a walk *visits* the vertices it contains.  The set of vertices a
-walk visits is `simple_graph.walk.support`. -/
+walk visits is `simple_graph.walk.support`.
+
+See `simple_graph.walk.nil'` and `simple_graph.walk.cons'` for patterns that
+can be useful in definitions since they make the vertices explicit. -/
 @[derive decidable_eq]
 inductive walk : V → V → Type u
 | nil {u : V} : walk u u
@@ -64,12 +79,19 @@ instance walk.inhabited (v : V) : inhabited (G.walk v v) := ⟨by refl⟩
 namespace walk
 variables {G}
 
+/-- Pattern to get `walk.nil` with the vertex as an explicit argument. -/
+@[pattern] abbreviation nil' (u : V) : G.walk u u := walk.nil
+
+/-- Pattern to get `walk.cons` with the vertices as explicit arguments. -/
+@[pattern] abbreviation cons' (u v w : V) (h : G.adj u v) (p : G.walk v w) : G.walk u w :=
+walk.cons h p
+
 lemma exists_eq_cons_of_ne : Π {u v : V} (hne : u ≠ v) (p : G.walk u v),
   ∃ (w : V) (h : G.adj u w) (p' : G.walk w v), p = cons h p'
 | _ _ hne nil := (hne rfl).elim
 | _ _ _ (cons h p') := ⟨_, h, p', rfl⟩
 
-/-- The length of a walk is the number of edges along it. -/
+/-- The length of a walk is the number of edges/darts along it. -/
 def length : Π {u v : V}, G.walk u v → ℕ
 | _ _ nil := 0
 | _ _ (cons _ q) := q.length.succ
@@ -96,6 +118,32 @@ def get_vert : Π {u v : V} (p : G.walk u v) (n : ℕ), V
 | u v nil _ := u
 | u v (cons _ _) 0 := u
 | u v (cons _ q) (n+1) := q.get_vert n
+
+@[simp] lemma get_vert_zero {u v} (w : G.walk u v) : w.get_vert 0 = u :=
+by { cases w; refl }
+
+lemma get_vert_of_length_le {u v} (w : G.walk u v) {i : ℕ} (hi : w.length ≤ i) :
+  w.get_vert i = v :=
+begin
+  induction w with _ x y z hxy wyz IH generalizing i,
+  { refl },
+  { cases i,
+    { cases hi, },
+    { exact IH (nat.succ_le_succ_iff.1 hi) } }
+end
+
+@[simp] lemma get_vert_length {u v} (w : G.walk u v) : w.get_vert w.length = v :=
+w.get_vert_of_length_le rfl.le
+
+lemma adj_get_vert_succ {u v} (w : G.walk u v) {i : ℕ} (hi : i < w.length) :
+  G.adj (w.get_vert i) (w.get_vert (i+1)) :=
+begin
+  induction w with _ x y z hxy wyz IH generalizing i,
+  { cases hi, },
+  { cases i,
+    { simp [get_vert, hxy] },
+    { exact IH (nat.succ_lt_succ_iff.1 hi) } },
+end
 
 @[simp] lemma cons_append {u v w x : V} (h : G.adj u v) (p : G.walk v w) (q : G.walk w x) :
   (cons h p).append q = cons h (p.append q) := rfl
@@ -168,15 +216,31 @@ by simp [reverse]
 @[simp] lemma length_reverse {u v : V} (p : G.walk u v) : p.reverse.length = p.length :=
 by simp [reverse]
 
+lemma eq_of_length_eq_zero : Π {u v : V} {p : G.walk u v}, p.length = 0 → u = v
+| _ _ nil _ := rfl
+
+@[simp] lemma exists_length_eq_zero_iff {u v : V} : (∃ (p : G.walk u v), p.length = 0) ↔ u = v :=
+begin
+  split,
+  { rintro ⟨p, hp⟩,
+    exact eq_of_length_eq_zero hp, },
+  { rintro rfl,
+    exact ⟨nil, rfl⟩, },
+end
+
 /-- The `support` of a walk is the list of vertices it visits in order. -/
 def support : Π {u v : V}, G.walk u v → list V
 | u v nil := [u]
 | u v (cons h p) := u :: p.support
 
-/-- The `edges` of a walk is the list of edges it visits in order. -/
-def edges : Π {u v : V}, G.walk u v → list (sym2 V)
+/-- The `darts` of a walk is the list of darts it visits in order. -/
+def darts : Π {u v : V}, G.walk u v → list G.dart
 | u v nil := []
-| u v (@cons _ _ _ x _ h p) := ⟦(u, x)⟧ :: p.edges
+| u v (cons h p) := ⟨(u, _), h⟩ :: p.darts
+
+/-- The `edges` of a walk is the list of edges it visits in order.
+This is defined to be the list of edges underlying `simple_graph.walk.darts`. -/
+def edges {u v : V} (p : G.walk u v) : list (sym2 V) := p.darts.map dart.edge
 
 @[simp] lemma support_nil {u : V} : (nil : G.walk u u).support = [u] := rfl
 
@@ -250,20 +314,58 @@ begin
   simp only [← add_assoc, add_tsub_cancel_right],
 end
 
-lemma chain_adj_support_aux : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
+lemma chain_adj_support : Π {u v w : V} (h : G.adj u v) (p : G.walk v w),
   list.chain G.adj u p.support
 | _ _ _ h nil := list.chain.cons h list.chain.nil
-| _ _ _ h (cons h' p) := list.chain.cons h (chain_adj_support_aux h' p)
+| _ _ _ h (cons h' p) := list.chain.cons h (chain_adj_support h' p)
 
-lemma chain_adj_support : Π {u v : V} (p : G.walk u v), list.chain' G.adj p.support
+lemma chain'_adj_support : Π {u v : V} (p : G.walk u v), list.chain' G.adj p.support
 | _ _ nil := list.chain.nil
-| _ _ (cons h p) := chain_adj_support_aux h p
+| _ _ (cons h p) := chain_adj_support h p
+
+lemma chain_dart_adj_darts : Π {d : G.dart} {v w : V} (h : d.snd = v) (p : G.walk v w),
+  list.chain G.dart_adj d p.darts
+| _ _ _ h nil := list.chain.nil
+| _ _ _ h (cons h' p) := list.chain.cons h (chain_dart_adj_darts (by exact rfl) p)
+
+lemma chain'_dart_adj_darts : Π {u v : V} (p : G.walk u v), list.chain' G.dart_adj p.darts
+| _ _ nil := trivial
+| _ _ (cons h p) := chain_dart_adj_darts rfl p
 
 /-- Every edge in a walk's edge list is an edge of the graph.
-It is written in this form to avoid unsightly coercions. -/
-lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) {e : sym2 V}
+It is written in this form (rather than using `⊆`) to avoid unsightly coercions. -/
+lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) ⦃e : sym2 V⦄
   (h : e ∈ p.edges), e ∈ G.edge_set
 | _ _ (cons h' p') e h := by rcases h with ⟨rfl, h⟩; solve_by_elim
+
+@[simp] lemma darts_nil {u : V} : (nil : G.walk u u).darts = [] := rfl
+
+@[simp] lemma darts_cons {u v w : V} (h : G.adj u v) (p : G.walk v w) :
+  (cons h p).darts = ⟨(u, v), h⟩ :: p.darts := rfl
+
+@[simp] lemma darts_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
+  (p.append p').darts = p.darts ++ p'.darts :=
+by induction p; simp [*]
+
+@[simp] lemma darts_reverse {u v : V} (p : G.walk u v) :
+  p.reverse.darts = (p.darts.map dart.symm).reverse :=
+by induction p; simp [*, sym2.eq_swap]
+
+lemma cons_map_snd_darts {u v : V} (p : G.walk u v) :
+  u :: p.darts.map dart.snd = p.support :=
+by induction p; simp! [*]
+
+lemma map_snd_darts {u v : V} (p : G.walk u v) :
+  p.darts.map dart.snd = p.support.tail :=
+by simpa using congr_arg list.tail (cons_map_snd_darts p)
+
+lemma map_fst_darts_append {u v : V} (p : G.walk u v) :
+  p.darts.map dart.fst ++ [v] = p.support :=
+by induction p; simp! [*]
+
+lemma map_fst_darts {u v : V} (p : G.walk u v) :
+  p.darts.map dart.fst = p.support.init :=
+by simpa! using congr_arg list.init (map_fst_darts_append p)
 
 @[simp] lemma edges_nil {u : V} : (nil : G.walk u u).edges = [] := rfl
 
@@ -272,25 +374,55 @@ lemma edges_subset_edge_set : Π {u v : V} (p : G.walk u v) {e : sym2 V}
 
 @[simp] lemma edges_append {u v w : V} (p : G.walk u v) (p' : G.walk v w) :
   (p.append p').edges = p.edges ++ p'.edges :=
-by induction p; simp [*]
+by simp [edges]
 
 @[simp] lemma edges_reverse {u v : V} (p : G.walk u v) : p.reverse.edges = p.edges.reverse :=
-by induction p; simp [*, sym2.eq_swap]
+by simp [edges]
 
 @[simp] lemma length_support {u v : V} (p : G.walk u v) : p.support.length = p.length + 1 :=
 by induction p; simp *
 
-@[simp] lemma length_edges {u v : V} (p : G.walk u v) : p.edges.length = p.length :=
+@[simp] lemma length_darts {u v : V} (p : G.walk u v) : p.darts.length = p.length :=
 by induction p; simp *
 
-lemma mem_support_of_mem_edges : Π {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges),
-  t ∈ p.support
-| t u v w (cons h p') he := begin
-  simp only [support_cons, edges_cons, list.mem_cons_iff, quotient.eq] at he ⊢,
-  rcases he with ((he|he)|he),
-  { exact or.inl rfl },
-  { exact or.inr (start_mem_support _) },
-  { exact or.inr (mem_support_of_mem_edges _ he), }
+@[simp] lemma length_edges {u v : V} (p : G.walk u v) : p.edges.length = p.length :=
+by simp [edges]
+
+lemma dart_fst_mem_support_of_mem_darts :
+  Π {u v : V} (p : G.walk u v) {d : G.dart}, d ∈ p.darts → d.fst ∈ p.support
+| u v (cons h p') d hd := begin
+  simp only [support_cons, darts_cons, list.mem_cons_iff] at hd ⊢,
+  rcases hd with (rfl|hd),
+  { exact or.inl rfl, },
+  { exact or.inr (dart_fst_mem_support_of_mem_darts _ hd), },
+end
+
+lemma dart_snd_mem_support_of_mem_darts :
+  Π {u v : V} (p : G.walk u v) {d : G.dart}, d ∈ p.darts → d.snd ∈ p.support
+| u v (cons h p') d hd := begin
+  simp only [support_cons, darts_cons, list.mem_cons_iff] at hd ⊢,
+  rcases hd with (rfl|hd),
+  { simp },
+  { exact or.inr (dart_snd_mem_support_of_mem_darts _ hd), },
+end
+
+lemma mem_support_of_mem_edges {t u v w : V} (p : G.walk v w) (he : ⟦(t, u)⟧ ∈ p.edges) :
+  t ∈ p.support :=
+begin
+  obtain ⟨d, hd, he⟩ := list.mem_map.mp he,
+  rw dart_edge_eq_mk_iff' at he,
+  rcases he with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩,
+  { exact dart_fst_mem_support_of_mem_darts _ hd, },
+  { exact dart_snd_mem_support_of_mem_darts _ hd, },
+end
+
+lemma darts_nodup_of_support_nodup {u v : V} {p : G.walk u v} (h : p.support.nodup) :
+  p.darts.nodup :=
+begin
+  induction p,
+  { simp, },
+  { simp only [darts_cons, support_cons, list.nodup_cons] at h ⊢,
+    refine ⟨λ h', h.1 (dart_fst_mem_support_of_mem_darts p_p h'), p_ih h.2⟩, }
 end
 
 lemma edges_nodup_of_support_nodup {u v : V} {p : G.walk u v} (h : p.support.nodup) :
@@ -319,7 +451,7 @@ structure is_circuit {u : V} (p : G.walk u u) extends to_trail : is_trail p : Pr
 
 /-- A *cycle* at `u : V` is a circuit at `u` whose only repeating vertex
 is `u` (which appears exactly twice). -/
-structure is_cycle [decidable_eq V] {u : V} (p : G.walk u u)
+structure is_cycle {u : V} (p : G.walk u u)
   extends to_circuit : is_circuit p : Prop :=
 (support_nodup : p.support.tail.nodup)
 
@@ -332,7 +464,7 @@ lemma is_path.mk' {u v : V} {p : G.walk u v} (h : p.support.nodup) : is_path p :
 lemma is_path_def {u v : V} (p : G.walk u v) : p.is_path ↔ p.support.nodup :=
 ⟨is_path.support_nodup, is_path.mk'⟩
 
-lemma is_cycle_def [decidable_eq V] {u : V} (p : G.walk u u) :
+lemma is_cycle_def {u : V} (p : G.walk u u) :
   p.is_cycle ↔ is_trail p ∧ p ≠ nil ∧ p.support.tail.nodup :=
 iff.intro (λ h, ⟨h.1.1, h.1.2, h.2⟩) (λ h, ⟨⟨h.1, h.2.1⟩, h.2.2⟩)
 
@@ -389,7 +521,7 @@ by split; intro h; convert h.reverse; simp
 
 lemma is_path.of_append_left {u v w : V} {p : G.walk u v} {q : G.walk v w} :
   (p.append q).is_path → p.is_path :=
-by { simp only [is_path_def, support_append], exact list.nodup_of_nodup_append_left }
+by { simp only [is_path_def, support_append], exact list.nodup.of_append_left }
 
 lemma is_path.of_append_right {u v w : V} {p : G.walk u v} {q : G.walk v w}
   (h : (p.append q).is_path) : q.is_path :=
@@ -482,13 +614,21 @@ lemma support_drop_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.suppor
   (p.drop_until u h).support ⊆ p.support :=
 λ x hx, by { rw [← take_spec p h, mem_support_append_iff], exact or.inr hx }
 
+lemma darts_take_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
+  (p.take_until u h).darts ⊆ p.darts :=
+λ x hx, by { rw [← take_spec p h, darts_append, list.mem_append], exact or.inl hx }
+
+lemma darts_drop_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
+  (p.drop_until u h).darts ⊆ p.darts :=
+λ x hx, by { rw [← take_spec p h, darts_append, list.mem_append], exact or.inr hx }
+
 lemma edges_take_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
   (p.take_until u h).edges ⊆ p.edges :=
-λ x hx, by { rw [← take_spec p h, edges_append, list.mem_append], exact or.inl hx }
+list.map_subset _ (p.darts_take_until_subset h)
 
 lemma edges_drop_until_subset {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
   (p.drop_until u h).edges ⊆ p.edges :=
-λ x hx, by { rw [← take_spec p h, edges_append, list.mem_append], exact or.inr hx }
+list.map_subset _ (p.darts_drop_until_subset h)
 
 lemma length_take_until_le {u v w : V} (p : G.walk v w) (h : u ∈ p.support) :
   (p.take_until u h).length ≤ p.length :=
@@ -539,13 +679,17 @@ begin
   rw [←tail_support_append, take_spec],
 end
 
+lemma rotate_darts {u v : V} (c : G.walk v v) (h : u ∈ c.support) :
+  (c.rotate h).darts ~r c.darts :=
+begin
+  simp only [rotate, darts_append],
+  apply list.is_rotated.trans list.is_rotated_append,
+  rw [←darts_append, take_spec],
+end
+
 lemma rotate_edges {u v : V} (c : G.walk v v) (h : u ∈ c.support) :
   (c.rotate h).edges ~r c.edges :=
-begin
-  simp only [rotate, edges_append],
-  apply list.is_rotated.trans list.is_rotated_append,
-  rw [←edges_append, take_spec],
-end
+(rotate_darts c h).map _
 
 protected
 lemma is_trail.rotate {u v : V} {c : G.walk v v} (hc : c.is_trail) (h : u ∈ c.support) :
@@ -646,22 +790,114 @@ lemma support_to_path_subset {u v : V} (p : G.walk u v) :
   (p.to_path : G.walk u v).support ⊆ p.support :=
 support_bypass_subset _
 
-lemma edges_bypass_subset {u v : V} (p : G.walk u v) : p.bypass.edges ⊆ p.edges :=
+lemma darts_bypass_subset {u v : V} (p : G.walk u v) : p.bypass.darts ⊆ p.darts :=
 begin
   induction p,
   { simp!, },
   { simp! only,
     split_ifs,
-    { apply list.subset.trans (edges_drop_until_subset _ _),
+    { apply list.subset.trans (darts_drop_until_subset _ _),
       apply list.subset_cons_of_subset _ p_ih, },
-    { rw edges_cons,
+    { rw darts_cons,
       exact list.cons_subset_cons _ p_ih, }, },
 end
+
+lemma edges_bypass_subset {u v : V} (p : G.walk u v) : p.bypass.edges ⊆ p.edges :=
+list.map_subset _ p.darts_bypass_subset
+
+lemma darts_to_path_subset {u v : V} (p : G.walk u v) :
+  (p.to_path : G.walk u v).darts ⊆ p.darts :=
+darts_bypass_subset _
 
 lemma edges_to_path_subset {u v : V} (p : G.walk u v) :
   (p.to_path : G.walk u v).edges ⊆ p.edges :=
 edges_bypass_subset _
 
 end walk
+
+/-! ## `reachable` and `connected` -/
+
+/-- Two vertices are *reachable* if there is a walk between them.
+This is equivalent to `relation.refl_trans_gen` of `G.adj`.
+See `simple_graph.reachable_iff_refl_trans_gen`. -/
+def reachable (u v : V) : Prop := nonempty (G.walk u v)
+
+variables {G}
+
+lemma reachable_iff_nonempty_univ {u v : V} :
+  G.reachable u v ↔ (set.univ : set (G.walk u v)).nonempty :=
+set.nonempty_iff_univ_nonempty
+
+protected lemma reachable.elim {p : Prop} {u v : V}
+  (h : G.reachable u v) (hp : G.walk u v → p) : p :=
+nonempty.elim h hp
+
+protected lemma reachable.elim_path {p : Prop} {u v : V}
+  (h : G.reachable u v) (hp : G.path u v → p) : p :=
+begin
+  classical,
+  exact h.elim (λ q, hp q.to_path),
+end
+
+@[refl] protected lemma reachable.refl {u : V} : G.reachable u u := by { fsplit, refl }
+
+@[symm] protected lemma reachable.symm {u v : V} (huv : G.reachable u v) : G.reachable v u :=
+huv.elim (λ p, ⟨p.reverse⟩)
+
+@[trans] protected lemma reachable.trans {u v w : V}
+  (huv : G.reachable u v) (hvw : G.reachable v w) :
+  G.reachable u w :=
+huv.elim (λ puv, hvw.elim (λ pvw, ⟨puv.append pvw⟩))
+
+lemma reachable_iff_refl_trans_gen (u v : V) :
+  G.reachable u v ↔ relation.refl_trans_gen G.adj u v :=
+begin
+  split,
+  { rintro ⟨h⟩,
+    induction h,
+    { refl, },
+    { exact (relation.refl_trans_gen.single h_h).trans h_ih, }, },
+  { intro h,
+    induction h with _ _ _ ha hr,
+    { refl, },
+    { exact reachable.trans hr ⟨walk.cons ha walk.nil⟩, }, },
+end
+
+variables (G)
+
+lemma reachable_is_equivalence : equivalence G.reachable :=
+mk_equivalence _ (@reachable.refl _ G) (@reachable.symm _ G) (@reachable.trans _ G)
+
+/-- The equivalence relation on vertices given by `simple_graph.reachable`. -/
+def reachable_setoid : setoid V := setoid.mk _ G.reachable_is_equivalence
+
+/-- A graph is preconnected if every pair of vertices is reachable from one another. -/
+def preconnected : Prop := ∀ (u v : V), G.reachable u v
+
+/-- A graph is connected if it's preconnected and contains at least one vertex.
+This follows the convention observed by mathlib that something is connected iff it has
+exactly one connected component.
+
+There is a `has_coe_to_fun` instance so that `h u v` can be used instead
+of `h.preconnected u v`. -/
+@[protect_proj]
+structure connected : Prop :=
+(preconnected : G.preconnected)
+(nonempty : nonempty V)
+
+instance : has_coe_to_fun G.connected (λ _, Π (u v : V), G.reachable u v) :=
+⟨λ h, h.preconnected⟩
+
+/-- A subgraph is connected if it is connected as a simple graph. -/
+abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := H.coe.connected
+
+variables {G}
+
+lemma preconnected.set_univ_walk_nonempty (hconn : G.preconnected) (u v : V) :
+  (set.univ : set (G.walk u v)).nonempty :=
+by { rw ← set.nonempty_iff_univ_nonempty, exact hconn u v }
+
+lemma connected.set_univ_walk_nonempty (hconn : G.connected) (u v : V) :
+  (set.univ : set (G.walk u v)).nonempty := hconn.preconnected.set_univ_walk_nonempty u v
 
 end simple_graph

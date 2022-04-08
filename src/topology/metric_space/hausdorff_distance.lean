@@ -3,9 +3,9 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
+import analysis.specific_limits.basic
 import topology.metric_space.isometry
 import topology.instances.ennreal
-import analysis.specific_limits
 
 /-!
 # Hausdorff distance
@@ -58,8 +58,7 @@ infi_union
 infi_singleton
 
 /-- The edist to a set is bounded above by the edist to any of its points -/
-lemma inf_edist_le_edist_of_mem (h : y ∈ s) : inf_edist x s ≤ edist x y :=
-binfi_le _ h
+lemma inf_edist_le_edist_of_mem (h : y ∈ s) : inf_edist x s ≤ edist x y := infi₂_le _ h
 
 /-- If a point `x` belongs to `s`, then its edist to `s` vanishes -/
 lemma inf_edist_zero_of_mem (h : x ∈ s) : inf_edist x s = 0 :=
@@ -77,7 +76,7 @@ by simp_rw [inf_edist, infi_lt_iff]
 the edist from `x` to `y` -/
 lemma inf_edist_le_inf_edist_add_edist : inf_edist x s ≤ inf_edist y s + edist x y :=
 calc (⨅ z ∈ s, edist x z) ≤ ⨅ z ∈ s, edist y z + edist x y :
-  binfi_le_binfi $ λ z hz, (edist_triangle _ _ _).trans_eq (add_comm _ _)
+  infi₂_mono $ λ z hz, (edist_triangle _ _ _).trans_eq (add_comm _ _)
 ... = (⨅ z ∈ s, edist y z) + edist x y : by simp only [ennreal.infi_add]
 
 /-- The edist to a set depends continuously on the point -/
@@ -227,7 +226,7 @@ lemma inf_edist_le_Hausdorff_edist_of_mem (h : x ∈ s) : inf_edist x t ≤ Haus
 begin
   rw Hausdorff_edist_def,
   refine le_trans _ le_sup_left,
-  exact le_bsupr x h
+  exact le_supr₂ x h
 end
 
 /-- If the Hausdorff distance is `<r`, then any point in one of the sets has
@@ -538,31 +537,6 @@ end
 lemma exists_mem_closure_inf_dist_eq_dist [proper_space α] (hne : s.nonempty) (x : α) :
   ∃ y ∈ closure s, inf_dist x s = dist x y :=
 by simpa only [inf_dist_eq_closure] using is_closed_closure.exists_inf_dist_eq_dist hne.closure x
-
-lemma closed_ball_inf_dist_compl_subset_closure' {E : Type*} [semi_normed_group E]
-  [normed_space ℝ E] {x : E} {s : set E} (hx : s ∈ 𝓝 x) (hs : s ≠ univ) :
-  closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
-begin
-  have hne : sᶜ.nonempty, from nonempty_compl.2 hs,
-  have hpos : 0 < inf_dist x sᶜ,
-  { rwa [← inf_dist_eq_closure, ← is_closed_closure.not_mem_iff_inf_dist_pos hne.closure,
-      closure_compl, mem_compl_iff, not_not, mem_interior_iff_mem_nhds] },
-  rw ← closure_ball x hpos,
-  apply closure_mono,
-  rw [← le_eq_subset, ← is_compl_compl.disjoint_right_iff],
-  exact disjoint_ball_inf_dist
-end
-
-lemma closed_ball_inf_dist_compl_subset_closure {E : Type*} [normed_group E] [normed_space ℝ E]
-  {x : E} {s : set E} (hx : x ∈ s) (hs : s ≠ univ) :
-  closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
-begin
-  by_cases hx' : x ∈ closure sᶜ,
-  { rw [mem_closure_iff_inf_dist_zero (nonempty_compl.2 hs)] at hx',
-    simpa [hx'] using subset_closure hx },
-  { rw [closure_compl, mem_compl_iff, not_not, mem_interior_iff_mem_nhds] at hx',
-    exact closed_ball_inf_dist_compl_subset_closure' hx' hs }
-end
 
 /-! ### Distance of a point to a set as a function into `ℝ≥0`. -/
 

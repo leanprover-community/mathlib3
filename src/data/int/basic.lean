@@ -233,21 +233,24 @@ begin
 end
 
 /-- Inductively define a function on `ℤ` by defining it at `b`, for the `succ` of a number greater
-  than `b`, and the `pred` of a number less than `b`. -/
-protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ) :
-  C b → (∀ k, b ≤ k → C k → C (k + 1)) → (∀ k ≤ b, C k → C (k - 1)) → C z :=
-λ H0 Hs Hp,
+than `b`, and the `pred` of a number less than `b`. -/
+protected def induction_on' {C : ℤ → Sort*} (z : ℤ) (b : ℤ)
+  (H0 : C b) (Hs : ∀ k, b ≤ k → C k → C (k + 1)) (Hp : ∀ k ≤ b, C k → C (k - 1)) : C z :=
 begin
+  -- Note that we use `convert` here where possible as we are constructing data, and this reduces
+  -- the number of times `eq.mpr` appears in the term.
   rw ←sub_add_cancel z b,
   induction (z - b) with n n,
-  { induction n with n ih, { rwa [of_nat_zero, zero_add] },
-    rw [of_nat_succ, add_assoc, add_comm 1 b, ←add_assoc],
-    exact Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih },
   { induction n with n ih,
-    { rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub],
-      exact Hp _ le_rfl H0 },
-    { rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub],
-      exact Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) le_rfl)) ih } }
+    { convert H0 using 1,
+      rw [of_nat_zero, zero_add] },
+    convert Hs _ (le_add_of_nonneg_left (of_nat_nonneg _)) ih using 1,
+    rw [of_nat_succ, add_assoc, add_comm 1 b, ←add_assoc] },
+  { induction n with n ih,
+    { convert Hp _ le_rfl H0 using 1,
+      rw [neg_succ_of_nat_eq, ←of_nat_eq_coe, of_nat_zero, zero_add, neg_add_eq_sub] },
+    { convert Hp _ (le_of_lt (add_lt_of_neg_of_le (neg_succ_lt_zero _) le_rfl)) ih using 1,
+      rw [neg_succ_of_nat_coe', nat.succ_eq_add_one, ←neg_succ_of_nat_coe, sub_add_eq_add_sub] } }
 end
 
 /-! ### nat abs -/
@@ -1160,6 +1163,11 @@ le_iff_le_iff_lt_iff_lt.1 to_nat_le
 @[simp]lemma le_to_nat_iff {n : ℕ} {z : ℤ} (h : 0 ≤ z) : n ≤ z.to_nat ↔ (n : ℤ) ≤ z :=
 by rw [←int.coe_nat_le_coe_nat_iff, int.to_nat_of_nonneg h]
 
+@[simp]
+lemma coe_nat_nonpos_iff {n : ℕ} : (n : ℤ) ≤ 0 ↔ n = 0 :=
+⟨ λ h, le_antisymm (int.coe_nat_le.mp (h.trans int.coe_nat_zero.le)) n.zero_le,
+  λ h, (coe_nat_eq_zero.mpr h).le⟩
+
 theorem to_nat_le_to_nat {a b : ℤ} (h : a ≤ b) : to_nat a ≤ to_nat b :=
 by rw to_nat_le; exact le_trans h (le_to_nat b)
 
@@ -1215,9 +1223,22 @@ theorem mem_to_nat' : ∀ (a : ℤ) (n : ℕ), n ∈ to_nat' a ↔ a = n
 | -[1+ m] n := by split; intro h; cases h
 
 lemma to_nat_of_nonpos : ∀ {z : ℤ}, z ≤ 0 → z.to_nat = 0
-| (0 : ℕ)     := λ _, rfl
-| (n + 1 : ℕ) := λ h, (h.not_lt (by { exact_mod_cast nat.succ_pos n })).elim
-| (-[1+ n])  := λ _, rfl
+| 0           _ := rfl
+| (n + 1 : ℕ) h := (h.not_lt (coe_nat_succ_pos _)).elim
+| -[1+ n]     _ := rfl
+
+@[simp]
+lemma to_nat_neg_nat : ∀ (n : ℕ), (-(n : ℤ)).to_nat = 0
+| 0       := rfl
+| (n + 1) := rfl
+
+@[simp]
+lemma to_nat_eq_zero : ∀ {n : ℤ}, n.to_nat = 0 ↔ n ≤ 0
+| (n : ℕ) := calc _ ↔ (n = 0) : ⟨(to_nat_coe_nat n).symm.trans, (to_nat_coe_nat n).trans⟩
+                ... ↔ _       : coe_nat_nonpos_iff.symm
+| -[1+ n] := show ((-((n : ℤ) + 1)).to_nat = 0) ↔ (-(n + 1) : ℤ) ≤ 0, from
+calc _ ↔ true : ⟨λ _, trivial, λ h, to_nat_neg_nat _⟩
+   ... ↔ _    : ⟨λ h, neg_nonpos_of_nonneg (coe_zero_le _), λ _, trivial⟩
 
 /-! ### units -/
 

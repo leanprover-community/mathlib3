@@ -323,8 +323,19 @@ ext_nat' f g $ by simp only [map_one]
 
 end ring_hom_class
 
+namespace ring_hom
+
+/-- This is primed to match `ring_hom.eq_int_cast'`. -/
+lemma eq_nat_cast' {R} [non_assoc_semiring R] (f : ℕ →+* R) : f = nat.cast_ring_hom R :=
+ring_hom.ext $ eq_nat_cast f
+
+end ring_hom
+
 @[simp, norm_cast] theorem nat.cast_id (n : ℕ) : ↑n = n :=
 (eq_nat_cast (ring_hom.id ℕ) n).symm
+
+@[simp] lemma nat.cast_ring_hom_nat : nat.cast_ring_hom ℕ = ring_hom.id ℕ :=
+((ring_hom.id ℕ).eq_nat_cast').symm
 
 @[simp] theorem nat.cast_with_bot : ∀ (n : ℕ),
   @coe ℕ (with_bot ℕ) (@coe_to_lift _ _ nat.cast_coe) n = n
@@ -332,8 +343,22 @@ end ring_hom_class
 | (n+1) := by rw [with_bot.coe_add, nat.cast_add, nat.cast_with_bot n]; refl
 
 -- I don't think `ring_hom_class` is good here, because of the `subsingleton` TC slowness
-instance nat.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingleton (ℕ →+* R) :=
-⟨ext_nat⟩
+instance nat.unique_ring_hom {R : Type*} [non_assoc_semiring R] : unique (ℕ →+* R) :=
+{ default := nat.cast_ring_hom R, uniq := ring_hom.eq_nat_cast' }
+
+namespace mul_opposite
+
+variables {α : Type*} [has_zero α] [has_one α] [has_add α]
+
+@[simp, norm_cast] lemma op_nat_cast : ∀ n : ℕ, op (n : α) = n
+| 0 := rfl
+| (n + 1) := congr_arg (+ (1 : αᵐᵒᵖ)) $ op_nat_cast n
+
+@[simp, norm_cast] lemma unop_nat_cast : ∀ n : ℕ, unop (n : αᵐᵒᵖ) = n
+| 0 := rfl
+| (n + 1) := congr_arg (+ (1 : α)) $ unop_nat_cast n
+
+end mul_opposite
 
 namespace with_top
 variables {α : Type*}

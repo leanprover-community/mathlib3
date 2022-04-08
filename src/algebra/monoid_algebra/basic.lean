@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury G. Kudryashov, Scott Morrison
 -/
 import algebra.big_operators.finsupp
+import algebra.hom.non_unital_alg
 import linear_algebra.finsupp
-import algebra.non_unital_alg_hom
 
 /-!
 # Monoid algebras
@@ -231,6 +231,14 @@ finsupp.add_comm_group
 instance [ring k] [has_mul G] : non_unital_non_assoc_ring (monoid_algebra k G) :=
 { .. monoid_algebra.add_comm_group,
   .. monoid_algebra.non_unital_non_assoc_semiring }
+
+instance [ring k] [semigroup G] : non_unital_ring (monoid_algebra k G) :=
+{ .. monoid_algebra.add_comm_group,
+  .. monoid_algebra.non_unital_semiring }
+
+instance [ring k] [mul_one_class G] : non_assoc_ring (monoid_algebra k G) :=
+{ .. monoid_algebra.add_comm_group,
+  .. monoid_algebra.non_assoc_semiring }
 
 instance [ring k] [monoid G] : ring (monoid_algebra k G) :=
 { .. monoid_algebra.non_unital_non_assoc_ring,
@@ -986,6 +994,14 @@ finsupp.add_comm_group
 instance [ring k] [has_add G] : non_unital_non_assoc_ring (add_monoid_algebra k G) :=
 { .. add_monoid_algebra.add_comm_group,
   .. add_monoid_algebra.non_unital_non_assoc_semiring }
+
+instance [ring k] [add_semigroup G] : non_unital_ring (add_monoid_algebra k G) :=
+{ .. add_monoid_algebra.add_comm_group,
+  .. add_monoid_algebra.non_unital_semiring }
+
+instance [ring k] [add_zero_class G] : non_assoc_ring (add_monoid_algebra k G) :=
+{ .. add_monoid_algebra.add_comm_group,
+  .. add_monoid_algebra.non_assoc_semiring }
 
 instance [ring k] [add_monoid G] : ring (add_monoid_algebra k G) :=
 { .. add_monoid_algebra.non_unital_non_assoc_ring,

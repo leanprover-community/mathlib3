@@ -64,7 +64,7 @@ def id (a : B) : 𝟙 a ⊣ 𝟙 a :=
 
 instance : inhabited (adjunction (𝟙 a) (𝟙 a)) := ⟨id a⟩
 
-set_option class.instance_max_depth 50
+set_option class.instance_max_depth 90
 
 lemma right_adjoint_uniq_aux {f : a ⟶ b} {g₁ g₂ : b ⟶ a} (adj₁ : f ⊣ g₁) (adj₂ : f ⊣ g₂) :
   (𝟙 g₁ ⊗≫ g₁ ◁ adj₂.unit ⊗≫ adj₁.counit ▷ g₂ ⊗≫ 𝟙 g₂) ≫
@@ -294,9 +294,16 @@ begin
   ... =
   ε.inv ≫ ε.hom : _
   ... = _ : _ ,
-  { coherence },
-  { rw [whisker_exchange], coherence },
-  { rw [whisker_exchange, whisker_exchange], coherence },
+  sorry; { coherence },
+  sorry; { rw [whisker_exchange], coherence },
+  { rw [whisker_exchange, whisker_exchange],
+    tactic.coherence.assoc_simps,
+    tactic.coherence.liftable_prefixes,
+    congr' 3, pure_coherence,
+    congr' 2, pure_coherence,
+    congr' 2, pure_coherence,
+    congr' 2, pure_coherence,
+    congr' 2, pure_coherence },
   { rw [whisker_exchange], coherence },
   { rw [iso.inv_hom_id], coherence },
   { rw [←whisker_exchange], coherence },

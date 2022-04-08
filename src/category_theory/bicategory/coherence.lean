@@ -5,6 +5,7 @@ Authors: Yuma Mizuno, Junyan Xu
 -/
 import category_theory.path_category
 import category_theory.functor.fully_faithful
+import category_theory.groupoid
 import category_theory.bicategory.free
 import category_theory.bicategory.locally_discrete
 /-!
@@ -225,6 +226,29 @@ def inclusion (B : Type u) [quiver.{v+1} B] :
   map_comp  := λ a b c f g, inclusion_map_comp_aux f g,
   -- All the conditions for 2-morphisms are trivial thanks to the coherence theorem!
   .. preinclusion B }
+
+section groupoid
+open free_bicategory.hom₂
+
+/-- Auxiliary construction for showing that the free monoidal category is a groupoid. Do not use
+    this, use `is_iso.inv` instead. -/
+def inverse_aux : Π {a b : free_bicategory B} {f g : a ⟶ b}, hom₂ f g → hom₂ g f
+| _ _ _ _ (id X) := id X
+| _ _ _ _ (associator _ _ _)        := associator_inv _ _ _
+| _ _ _ _ (associator_inv _ _ _)    := associator _ _ _
+| _ _ _ _ (right_unitor _)          := right_unitor_inv _
+| _ _ _ _ (right_unitor_inv _)      := right_unitor _
+| _ _ _ _ (left_unitor _)           := left_unitor_inv _
+| _ _ _ _ (left_unitor_inv _)       := left_unitor _
+| _ _ _ _ (vcomp η θ)               := (inverse_aux θ).vcomp (inverse_aux η)
+| _ _ _ _ (hom₂.whisker_left f η)   := hom₂.whisker_left f (inverse_aux η)
+| _ _ _ _ (hom₂.whisker_right f η)  := hom₂.whisker_right f (inverse_aux η)
+
+instance {a b : free_bicategory B}: groupoid.{max u v} (a ⟶ b) :=
+{ inv := λ f g, quot.lift (λ η, quot.mk _ $ inverse_aux η) (by tidy),
+  ..(infer_instance : category (a ⟶ b)) }
+
+end groupoid
 
 end free_bicategory
 

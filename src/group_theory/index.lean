@@ -252,10 +252,12 @@ by simp_rw [←relindex_top_right, relindex_inf_le]
 ⟨λ h, quotient_group.subgroup_eq_top_of_subsingleton H (cardinal.to_nat_eq_one_iff_unique.mp h).1,
   λ h, (congr_arg index h).trans index_top⟩
 
-@[to_additive] def index_ne_zero_of_fintype [hH : fintype (G ⧸ H)] : H.index ≠ 0 :=
+@[to_additive] lemma index_ne_zero_of_fintype [hH : fintype (G ⧸ H)] : H.index ≠ 0 :=
 by { rw index_eq_card, exact fintype.card_ne_zero }
 
-@[to_additive] noncomputable lemma fintype_of_index_ne_zero (hH : H.index ≠ 0) : fintype (G ⧸ H) :=
+/-- Finite index implies finite quotient. -/
+@[to_additive "Finite index implies finite quotient."]
+noncomputable def fintype_of_index_ne_zero (hH : H.index ≠ 0) : fintype (G ⧸ H) :=
 (cardinal.lt_omega_iff_fintype.mp (lt_of_not_ge (mt cardinal.to_nat_apply_of_omega_le hH))).some
 
 @[to_additive one_lt_index_of_ne_top]

@@ -14,7 +14,12 @@ Let `R` be a (semi)ring, let `f : R[X]` be a polynomial and let `n : ℤ` be an 
 
 This file defines `f.zcoeff n : R`, the coefficient of a polynomial in degree `n : ℤ`,
 where we assign coefficient `0` to every negative degree.  Thus, `p.zcoeff n` coincides with
-`p.coeff n`, when `0 ≤ n` and equals `0` otherwise. -/
+`p.coeff n`, when `0 ≤ n` and equals `0` otherwise.
+
+## Future work
+
+At the moment, the lemmas in this file are the ones that I needed.  Feel free to add more lemmas
+converting statements involving `coeff` to analogous statements involving `zcoeff`. -/
 
 open_locale polynomial
 
@@ -77,7 +82,8 @@ begin
   { refl }
 end
 
-@[simp] lemma zcoeff_mul_X_pow (p : R[X]) : ∀ (a : ℕ) (n : ℤ), (p * X ^ a).zcoeff n = p.zcoeff (n - a)
+@[simp] lemma zcoeff_mul_X_pow (p : R[X]) :
+  ∀ (a : ℕ) (n : ℤ), (p * X ^ a).zcoeff n = p.zcoeff (n - a)
 | 0 n       := by simp
 | (a + 1) n := by simp [pow_succ', ← mul_assoc, sub_sub, add_comm, *]
 

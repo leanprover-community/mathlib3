@@ -73,7 +73,7 @@ end
   λ h, h.1.union h.2⟩
 
 lemma absorbs_Union_finset {s : set E} {t : finset ι} {f : ι → set E} :
-  absorbs 𝕜 s (⋃ (i : ι) (hy : i ∈ t), f i) ↔ ∀ i ∈ t, absorbs 𝕜 s (f i) :=
+  absorbs 𝕜 s (⋃ (i ∈ t), f i) ↔ ∀ i ∈ t, absorbs 𝕜 s (f i) :=
 begin
   classical,
   induction t using finset.induction_on with i t ht hi,
@@ -154,16 +154,15 @@ end
 end has_scalar
 
 section add_comm_monoid
-variables [add_comm_monoid E] [module 𝕜 E] {s t u v A B : set E}
+variables [add_comm_monoid E] [module 𝕜 E] {s s' t t' u v A B : set E}
 
-lemma absorbs.add {s1 s2 t1 t2 : set E} (h1 : absorbs 𝕜 s1 t1) (h2 : absorbs 𝕜 s2 t2) :
-  absorbs 𝕜 (s1 + s2) (t1 + t2) :=
+lemma absorbs.add (h : absorbs 𝕜 s t) (h' : absorbs 𝕜 s' t') : absorbs 𝕜 (s + s') (t + t') :=
 begin
-  rcases h1 with ⟨r1, hr1, h1⟩,
-  rcases h2 with ⟨r2, hr2, h2⟩,
-  refine ⟨max r1 r2, lt_max_of_lt_left hr1, λ a ha, _⟩,
+  rcases h with ⟨r, hr, h⟩,
+  rcases h' with ⟨r', hr', h'⟩,
+  refine ⟨max r r', lt_max_of_lt_left hr, λ a ha, _⟩,
   rw smul_add,
-  exact set.add_subset_add (h1 a (le_of_max_le_left ha)) (h2 a (le_of_max_le_right ha)),
+  exact set.add_subset_add (h a (le_of_max_le_left ha)) (h' a (le_of_max_le_right ha)),
 end
 
 lemma balanced.add (hA₁ : balanced 𝕜 A) (hA₂ : balanced 𝕜 B) : balanced 𝕜 (A + B) :=

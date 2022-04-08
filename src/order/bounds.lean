@@ -877,10 +877,7 @@ end
 /-- The image under a monotone function on a set `t` of a subset which has a lower bound in `t`
   is bounded below. -/
 lemma map_bdd_below : (lower_bounds s ∩ t).nonempty → bdd_below (f '' s) :=
-begin
-  rintro ⟨C, hC⟩,
-  exact ⟨f C, Hf.mem_lower_bounds_image Hst (mem_of_mem_inter_left hC) (mem_of_mem_inter_right hC)⟩
-end
+λ ⟨C, hs, ht⟩, ⟨f C, Hf.mem_lower_bounds_image Hst hs ht⟩
 
 /-- A monotone map sends a least element of a set to a least element of its image. -/
 lemma map_is_least (Ha : is_least s a) : is_least (f '' s) (f a) :=

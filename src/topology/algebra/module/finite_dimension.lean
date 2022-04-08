@@ -147,11 +147,33 @@ lemma unique_topology_of_t2 [hnorm : nondiscrete_normed_field 𝕜] {t : topolog
   (h₃ : @t2_space 𝕜 t) :
 t = hnorm.to_uniform_space.to_topological_space :=
 begin
-  refine topological_add_group.ext h₁ infer_instance _,
-  refine (@nhds_basis_closed_balanced 𝕜 𝕜 _ _ _ t h₂ sorry).ext metric.nhds_basis_closed_ball _ _,
-  { sorry },
-  { intros ε hε,
-    exact ⟨metric.closed_ball (0 : 𝕜) ε, sorry, subset_refl _⟩ }
+  refine topological_add_group.ext h₁ infer_instance (le_antisymm _ _),
+  { rw metric.nhds_basis_closed_ball.ge_iff,
+    intros ε hε,
+    rcases normed_field.exists_norm_lt 𝕜 hε with ⟨ξ₀, hξ₀, hξ₀ε⟩,
+    have : {ξ₀}ᶜ ∈ @nhds 𝕜 t 0 :=
+      is_open.mem_nhds is_open_compl_singleton (ne.symm $ norm_ne_zero_iff.mp hξ₀.ne.symm),
+    have : balanced_core 𝕜 {ξ₀}ᶜ ∈ @nhds 𝕜 t 0 := balanced_core_mem_nhds_zero this,
+    refine mem_of_superset this (λ ξ hξ, _),
+    by_cases hξ0 : ξ = 0,
+    { rw hξ0,
+      exact metric.mem_closed_ball_self hε.le },
+    { rw [mem_closed_ball_zero_iff],
+      by_contra' h,
+      suffices : (ξ₀ * ξ⁻¹) • ξ ∈ balanced_core 𝕜 {ξ₀}ᶜ,
+      { rw [smul_eq_mul 𝕜, mul_assoc, inv_mul_cancel hξ0, mul_one] at this,
+        exact not_mem_compl_iff.mpr (mem_singleton ξ₀) ((balanced_core_subset _) this) },
+      refine balanced_mem (balanced_core_balanced _) hξ _,
+      rw [norm_mul, norm_inv, mul_inv_le_iff (norm_pos_iff.mpr hξ0), mul_one],
+      exact (hξ₀ε.trans h).le } },
+  { calc (@nhds 𝕜 hnorm.to_uniform_space.to_topological_space 0)
+        = map id (@nhds 𝕜 hnorm.to_uniform_space.to_topological_space 0) : map_id.symm
+    ... = map (λ x, id x • 1) (@nhds 𝕜 hnorm.to_uniform_space.to_topological_space 0) :
+        by conv_rhs {congr, funext, rw [smul_eq_mul, mul_one]}; refl
+    ... ≤ (@nhds 𝕜 t ((0 : 𝕜) • 1)) :
+        @tendsto.smul_const _ _ _ hnorm.to_uniform_space.to_topological_space t _ _ _ _ _
+          tendsto_id (1 : 𝕜)
+    ... = (@nhds 𝕜 t 0) : by rw zero_smul }
 end
 
 lemma linear_map.continuous_of_is_closed_ker (l : E →ₗ[𝕜] 𝕜) (hl : is_closed (l.ker : set E)) :
@@ -167,9 +189,11 @@ begin
     have : finrank 𝕜 l.range = 1,
       from le_antisymm (finrank_self 𝕜 ▸ l.range.finrank_le) (zero_lt_iff.mpr H),
     have hi : function.injective (l.ker.liftq l (le_refl _)),
-    { sorry },
+    { rw [← linear_map.ker_eq_bot],
+      exact submodule.ker_liftq_eq_bot _ _ _ (le_refl _) },
     have hs : function.surjective (l.ker.liftq l (le_refl _)),
-    { sorry },
+    { rw [← linear_map.range_eq_top, submodule.range_liftq],
+      exact eq_top_of_finrank_eq ((finrank_self 𝕜).symm ▸ this) },
     let φ : (E ⧸ l.ker) ≃ₗ[𝕜] 𝕜 := linear_equiv.of_bijective (l.ker.liftq l (le_refl _)) hi hs,
     have hlφ : (l : E → 𝕜) = φ ∘ l.ker.mkq,
       by ext; refl,

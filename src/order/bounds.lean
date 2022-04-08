@@ -907,7 +907,7 @@ lemma mem_upper_bounds_image (Has : a ∈ lower_bounds s) (Hat : a ∈ t) :
   f a ∈ upper_bounds (f '' s) :=
 Hf.dual_right.mem_lower_bounds_image Hst Has Hat
 
-lemma mem_lower_bounds_image (Has : a ∈ upper_bounds s) (Hat : a ∈ t):
+lemma mem_lower_bounds_image (Has : a ∈ upper_bounds s) (Hat : a ∈ t) :
   f a ∈ lower_bounds (f '' s) :=
 Hf.dual_right.mem_upper_bounds_image Hst Has Hat
 

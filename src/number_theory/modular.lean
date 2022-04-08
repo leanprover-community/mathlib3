@@ -265,8 +265,8 @@ begin
   field_simp [nonZ1, nonZ2, denom_ne_zero, -upper_half_plane.denom, -denom_apply],
   rw (by simp : (p 1 : ℂ) * z - p 0 = ((p 1) * z - p 0) * ↑(det (↑g : matrix (fin 2) (fin 2) ℤ))),
   rw [←hg, det_fin_two],
-  simp only [int.coe_cast_ring_hom, coe_matrix_coe, coe_fn_eq_coe,
-    int.cast_mul, of_real_int_cast, map_apply, denom, int.cast_sub],
+  simp only [int.coe_cast_ring_hom, coe_matrix_coe, int.cast_mul, of_real_int_cast, map_apply,
+  denom, int.cast_sub, _root_.coe_coe,coe_GL_pos_coe_GL_coe_matrix],
   ring,
 end
 

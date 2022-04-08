@@ -12,8 +12,6 @@ open_locale classical topological_space manifold
 /--The upper half space as a subset of `ℂ` which is convenient sometimes.-/
 def upper_half_space := {z : ℂ | 0 <  z.im}
 
-instance: metric_space upper_half_plane:=infer_instance
-
 lemma hcoe : upper_half_space = coe '' (set.univ : set upper_half_plane) :=
 begin
 simp, refl,
@@ -30,7 +28,6 @@ local notation `ℍ'`:=(⟨upper_half_space , upper_half_plane_is_open⟩: open_
 
 local notation `ℍ`:=upper_half_plane
 
-instance : topological_space ℍ := infer_instance
 
 variable (f : ℍ' → ℂ)
 

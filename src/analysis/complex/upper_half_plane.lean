@@ -30,10 +30,6 @@ open_locale classical big_operators matrix_groups
 
 local attribute [instance] fintype.card_fin_even
 
-/- Disable this instances as it is not the simp-normal form, and having them disabled ensures
-we state lemmas in this file without spurious `coe_fn` terms. -/
-local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
-
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
 /-- The open upper half plane -/
@@ -69,10 +65,10 @@ by { rw complex.norm_sq_pos, exact z.ne_zero }
 lemma norm_sq_ne_zero (z : ℍ) : complex.norm_sq (z : ℂ) ≠ 0 := (norm_sq_pos z).ne'
 
 /-- Numerator of the formula for a fractional linear transformation -/
-@[simp] def num (g : GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := (g 0 0) * z + (g 0 1)
+@[simp] def num (g : GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := (↑ₘg 0 0 : ℝ) * z + (↑ₘg 0 1 : ℝ)
 
 /-- Denominator of the formula for a fractional linear transformation -/
-@[simp] def denom (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := (g 1 0) * z + (g 1 1)
+@[simp] def denom (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := (↑ₘg 1 0 : ℝ) * z + (↑ₘg 1 1 : ℝ)
 
 lemma linear_ne_zero (cd : fin 2 → ℝ) (z : ℍ) (h : cd ≠ 0) : (cd 0 : ℂ) * z + cd 1 ≠ 0 :=
 begin
@@ -92,15 +88,14 @@ begin
   have DET:= (mem_GL_pos _).1 g.property,
   have hz:=z.property,
   simp only [subtype.val_eq_coe, general_linear_group.coe_det_apply] at DET,
-  have H1 : g.1 1 0 = 0 ∨ z.im = 0, by simpa using congr_arg complex.im H,
-  simp only [subtype.val_eq_coe, general_linear_group.coe_fn_eq_coe] at H1,
+  have H1 : (↑ₘg 1 0 : ℝ) = 0 ∨ z.im = 0, by simpa using congr_arg complex.im H,
   cases H1,
-  {simp only [H1, complex.of_real_zero, denom, matrix.coe_fn_eq_coe, zero_mul, zero_add,
+  {simp [H1, complex.of_real_zero, denom, coe_fn_eq_coe, zero_mul, zero_add,
     complex.of_real_eq_zero] at H,
   have:= matrix.det_fin_two g,
-  simp only [coe_fn_coe_base', subtype.val_eq_coe, coe_im, general_linear_group.coe_fn_eq_coe] at *,
+  simp  [coe_fn_coe_base', subtype.val_eq_coe, coe_im, general_linear_group.coe_fn_eq_coe] at *,
   rw this at DET,
-  simp only [H, H1, mul_zero, sub_zero, lt_self_iff_false] at DET,
+  simp  [H, H1, mul_zero, sub_zero, lt_self_iff_false] at DET,
   exact DET,},
   change z.im > 0 at hz,
   linarith,
@@ -116,13 +111,19 @@ ne_of_gt (norm_sq_denom_pos g z)
 def smul_aux' (g :  GL_pos (fin 2) ℝ) (z : ℍ) : ℂ := num g z / denom g z
 
 lemma smul_aux'_im (g :  GL_pos (fin 2) ℝ) (z : ℍ) :
-  (smul_aux' g z).im = ((det g)*z.im) / (denom g z).norm_sq :=
+  (smul_aux' g z).im = ((det ↑ₘg) * z.im) / (denom g z).norm_sq :=
 begin
   rw [smul_aux', complex.div_im],
   set NsqBot := (denom g z).norm_sq,
   have : NsqBot ≠ 0,
   { simp only [denom_ne_zero g z, monoid_with_zero_hom.map_eq_zero, ne.def, not_false_iff], },
-  field_simp [smul_aux'], ring_nf, have:= matrix.det_fin_two  g, simp at this, rw this, ring,
+  field_simp [smul_aux'],
+  ring_nf,
+  have:= matrix.det_fin_two(g : GL (fin 2) ℝ),
+  simp at this,
+  rw this,
+  ring,
+  exact real.comm_ring,
 end
 
 /-- Fractional linear transformation,  also known as the Moebius transformation -/
@@ -180,16 +181,16 @@ instance SL_on_GL_pos : has_scalar SL(2,ℤ) (GL_pos (fin 2) ℝ) := ⟨λ s g, 
 lemma SL_on_GL_pos_smul_apply (s : SL(2,ℤ)) (g : (GL_pos (fin 2) ℝ) ) (z : ℍ) :
   (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := rfl
 
-instance SL_to_GL_tower : is_scalar_tower SL(2,ℤ) (GL_pos (fin 2) ℝ) ℍ :={
-  smul_assoc := by {intros s g z, rw SL_on_GL_pos_smul_apply, simp, apply mul_smul',},}
+instance SL_to_GL_tower : is_scalar_tower SL(2,ℤ) (GL_pos (fin 2) ℝ) ℍ :=
+ {smul_assoc := by {intros s g z, rw SL_on_GL_pos_smul_apply, simp, apply mul_smul',},}
 
-instance subgroup_GL_pos : has_scalar Γ (GL_pos (fin 2) ℝ) :=⟨λ s g, s * g⟩
+instance subgroup_GL_pos : has_scalar Γ (GL_pos (fin 2) ℝ) := ⟨λ s g, s * g⟩
 
 lemma subgroup_on_GL_pos_smul_apply (s : Γ) (g : (GL_pos (fin 2) ℝ) ) (z : ℍ) :
   (s • g) • z = ( (s : GL_pos (fin 2) ℝ) * g) • z := rfl
 
-instance subgroup_on_GL_pos : is_scalar_tower Γ (GL_pos (fin 2) ℝ) ℍ :={
-  smul_assoc :=
+instance subgroup_on_GL_pos : is_scalar_tower Γ (GL_pos (fin 2) ℝ) ℍ :=
+ {smul_assoc :=
   by {intros s g z, rw subgroup_on_GL_pos_smul_apply, simp only [coe_coe], apply mul_smul',},}
 
 instance subgroup_SL : has_scalar Γ SL(2,ℤ) :=⟨λ s g, s * g⟩
@@ -197,8 +198,8 @@ instance subgroup_SL : has_scalar Γ SL(2,ℤ) :=⟨λ s g, s * g⟩
 lemma subgroup_on_SL_apply (s : Γ) (g : SL(2,ℤ) ) (z : ℍ) :
   (s • g) • z = ( (s : SL(2, ℤ)) * g) • z := rfl
 
-instance subgroup_to_SL_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :={
-  smul_assoc := by {intros s g z, rw subgroup_on_SL_apply, apply upper_half_plane.SL_action.3,},}
+instance subgroup_to_SL_tower : is_scalar_tower Γ SL(2,ℤ) ℍ :=
+ {smul_assoc := by {intros s g z, rw subgroup_on_SL_apply, apply upper_half_plane.SL_action.3,},}
 
 end modular_scalar_towers
 
@@ -208,7 +209,7 @@ end modular_scalar_towers
 lemma im_smul (g : GL_pos (fin 2) ℝ) (z : ℍ) : (g • z).im = (num g z / denom g z).im := rfl
 
 lemma im_smul_eq_div_norm_sq (g : GL_pos (fin 2) ℝ) (z : ℍ) :
-  (g • z).im = (det g * z.im) / (complex.norm_sq (denom g z)) :=
+  (g • z).im = (det ↑ₘg * z.im) / (complex.norm_sq (denom g z)) :=
 smul_aux'_im g z
 
 @[simp] lemma neg_smul (g :  GL_pos (fin 2) ℝ) (z : ℍ) : -g • z = g • z :=
@@ -216,12 +217,8 @@ begin
   ext1,
   change _ / _ = _ / _,
   field_simp [denom_ne_zero, -denom, -num],
-  simp [GL_pos_coe_neg, coe_fn_coe_base'],
+  simp [coe_GL_pos_neg, coe_fn_coe_base'],
   ring_nf,
-  simp_rw ← coe_coe,
-  simp only [GL_pos_coe_neg, GL_pos_neg_elt],
-  simp [coe_fn_coe_base', general_linear_group.coe_fn_eq_coe, coe_coe,  complex.of_real_neg],
-  ring,
   end
 
 variable (Γ : subgroup (special_linear_group (fin 2) ℤ))
@@ -229,5 +226,10 @@ variable (Γ : subgroup (special_linear_group (fin 2) ℤ))
 @[simp]lemma sl_moeb (A: SL(2,ℤ)) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := rfl
 @[simp]lemma subgroup_moeb (A: Γ) (z : ℍ) : A • z = (A : (GL_pos (fin 2) ℝ)) • z := rfl
 @[simp]lemma subgroup_to_sl_moeb (A: Γ) (z : ℍ) : A • z = (A : SL(2,ℤ)) • z := rfl
+
+@[simp] lemma SL_neg_smul (g : SL(2,ℤ)) (z : ℍ) : -g • z = g • z :=
+begin
+simp [coe_GL_pos_neg],
+end
 
 end upper_half_plane

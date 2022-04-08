@@ -219,9 +219,6 @@ begin
   field_simp [denom_ne_zero, -denom, -num],
   simp [coe_GL_pos_neg, coe_fn_coe_base'],
   ring_nf,
-  simp_rw ← coe_coe,
-  simp  [coe_GL_pos_neg, GL_pos.coe_neg_apply],
-  ring,
   end
 
 variable (Γ : subgroup (special_linear_group (fin 2) ℤ))

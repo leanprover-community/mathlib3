@@ -3,7 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Julian Kuelshammer
 -/
-import algebra.iterate_hom
+import algebra.hom.iterate
 import data.nat.modeq
 import data.set.pointwise
 import dynamics.periodic_pts
@@ -126,6 +126,12 @@ by rwa [order_of, minimal_period, dif_neg]
 @[to_additive add_order_of_eq_zero_iff'] lemma order_of_eq_zero_iff' :
   order_of x = 0 ↔ ∀ n : ℕ, 0 < n → x ^ n ≠ 1 :=
 by simp_rw [order_of_eq_zero_iff, is_of_fin_order_iff_pow_eq_one, not_exists, not_and]
+
+/-- A group element has finite order iff its order is positive. -/
+@[to_additive add_order_of_pos_iff
+  "A group element has finite additive order iff its order is positive."]
+lemma order_of_pos_iff : 0 < order_of x ↔ is_of_fin_order x :=
+by rwa [iff_not_comm.mp order_of_eq_zero_iff, pos_iff_ne_zero]
 
 @[to_additive nsmul_ne_zero_of_lt_add_order_of']
 lemma pow_ne_one_of_lt_order_of' (n0 : n ≠ 0) (h : n < order_of x) : x ^ n ≠ 1 :=
@@ -262,6 +268,14 @@ begin
   simp only [order_of, comp_mul_left],
 end
 
+/-- Commuting elements of finite order are closed under multiplication. -/
+@[to_additive "Commuting elements of finite additive order are closed under addition."]
+lemma commute.is_of_fin_order_mul
+  {x} (h : commute x y) (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
+  is_of_fin_order (x * y) :=
+order_of_pos_iff.mp $
+  pos_of_dvd_of_pos h.order_of_mul_dvd_mul_order_of $ mul_pos (order_of_pos' hx) (order_of_pos' hy)
+
 section p_prime
 
 variables {a x n} {p : ℕ} [hp : fact p.prime]
@@ -335,8 +349,8 @@ variables [group G] [add_group A] {x a} {i : ℤ}
 
 /-- Inverses of elements of finite order have finite order. -/
 @[to_additive "Inverses of elements of finite additive order have finite additive order."]
-lemma is_of_fin_order_inv (x : G) : is_of_fin_order x → is_of_fin_order x⁻¹ :=
-λ hx, (is_of_fin_order_iff_pow_eq_one _).mpr $ begin
+lemma is_of_fin_order.inv {x : G} (hx : is_of_fin_order x) : is_of_fin_order x⁻¹ :=
+(is_of_fin_order_iff_pow_eq_one _).mpr $ begin
   rcases (is_of_fin_order_iff_pow_eq_one x).mp hx with ⟨n, npos, hn⟩,
   refine ⟨n, npos, by simp_rw [inv_pow, hn, one_inv]⟩,
 end
@@ -344,7 +358,7 @@ end
 /-- Inverses of elements of finite order have finite order. -/
 @[simp, to_additive "Inverses of elements of finite additive order have finite additive order."]
 lemma is_of_fin_order_inv_iff {x : G} : is_of_fin_order x⁻¹ ↔ is_of_fin_order x :=
-⟨λ h, by rw [←inv_inv x]; exact (is_of_fin_order_inv x⁻¹) h, is_of_fin_order_inv x⟩
+⟨λ h, inv_inv x ▸ h.inv, is_of_fin_order.inv⟩
 
 @[to_additive add_order_of_dvd_iff_zsmul_eq_zero]
 lemma order_of_dvd_iff_zpow_eq_one : (order_of x : ℤ) ∣ i ↔ x ^ i = 1 :=
@@ -396,8 +410,19 @@ begin
   exact ⟨pow_injective_of_lt_order_of _ (nat.mod_lt _ hx) (nat.mod_lt _ hx), λ h, congr_arg _ h⟩
 end
 
-
 end group
+
+section comm_monoid
+
+variables [comm_monoid G]
+
+/-- Elements of finite order are closed under multiplication. -/
+@[to_additive "Elements of finite additive order are closed under addition."]
+lemma is_of_fin_order.mul (hx : is_of_fin_order x) (hy : is_of_fin_order y) :
+  is_of_fin_order (x * y) :=
+(commute.all x y).is_of_fin_order_mul hx hy
+
+end comm_monoid
 
 section fintype
 variables [fintype G] [fintype A]

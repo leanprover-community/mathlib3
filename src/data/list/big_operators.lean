@@ -118,7 +118,19 @@ lemma prod_take_succ :
 /-- A list with product not one must have positive length. -/
 @[to_additive "A list with sum not zero must have positive length."]
 lemma length_pos_of_prod_ne_one (L : list M) (h : L.prod ≠ 1) : 0 < L.length :=
-by { cases L, { simp at h, cases h }, { simp } }
+by { cases L, { contrapose h, simp }, { simp } }
+
+/-- A list with product greater than one must have positive length. -/
+@[to_additive length_pos_of_sum_pos "A list with positive sum must have positive length."]
+lemma length_pos_of_one_lt_prod [preorder M] (L : list M) (h : 1 < L.prod) :
+  0 < L.length :=
+length_pos_of_prod_ne_one L h.ne'
+
+/-- A list with product less than one must have positive length. -/
+@[to_additive "A list with negative sum must have positive length."]
+lemma length_pos_of_prod_lt_one [preorder M] (L : list M) (h : L.prod < 1) :
+  0 < L.length :=
+length_pos_of_prod_ne_one L h.ne
 
 @[to_additive]
 lemma prod_update_nth : ∀ (L : list M) (n : ℕ) (a : M),
@@ -149,7 +161,8 @@ lemma head_mul_tail_prod_of_ne_nil [inhabited M] (l : list M) (h : l ≠ []) :
 by cases l; [contradiction, simp]
 
 @[to_additive]
-lemma prod_commute (l : list M) (y : M) (h : ∀ (x ∈ l), commute y x) : commute y l.prod :=
+lemma _root_.commute.list_prod_right (l : list M) (y : M) (h : ∀ (x ∈ l), commute y x) :
+  commute y l.prod :=
 begin
   induction l with z l IH,
   { simp },
@@ -157,6 +170,26 @@ begin
     rw list.prod_cons,
     exact commute.mul_right h.1 (IH h.2), }
 end
+
+@[to_additive]
+lemma _root_.commute.list_prod_left (l : list M) (y : M) (h : ∀ (x ∈ l), commute x y) :
+  commute l.prod y  :=
+(commute.list_prod_right _ _ $ λ x hx, (h _ hx).symm).symm
+
+lemma _root_.commute.list_sum_right [non_unital_non_assoc_semiring R] (a : R) (l : list R)
+  (h : ∀ b ∈ l, commute a b) :
+  commute a l.sum :=
+begin
+  induction l with x xs ih,
+  { exact commute.zero_right _, },
+  { rw sum_cons,
+    exact (h _ $ mem_cons_self _ _).add_right (ih $ λ j hj, h _ $ mem_cons_of_mem _ hj) }
+end
+
+lemma _root_.commute.list_sum_left [non_unital_non_assoc_semiring R] (b : R) (l : list R)
+  (h : ∀ a ∈ l, commute a b) :
+  commute l.sum b :=
+(commute.list_sum_right _ _ $ λ x hx, (h _ hx).symm).symm
 
 @[to_additive sum_le_sum] lemma prod_le_prod' [preorder M]
   [covariant_class M M (function.swap (*)) (≤)] [covariant_class M M (*) (≤)]
@@ -383,12 +416,6 @@ begin
   rw [sum_cons, length, add_comm],
   exact add_le_add (h _ (set.mem_insert _ _)) (IH (λ i hi, h i (set.mem_union_right _ hi)))
 end
-
-/-- A list with positive sum must have positive length. -/
--- This is an easy consequence of `length_pos_of_sum_ne_zero`, but often useful in applications.
-lemma length_pos_of_sum_pos [ordered_cancel_add_comm_monoid M] (L : list M) (h : 0 < L.sum) :
-  0 < L.length :=
-length_pos_of_sum_ne_zero L h.ne'
 
 -- TODO: develop theory of tropical rings
 lemma sum_le_foldr_max [add_monoid M] [add_monoid N] [linear_order N] (f : M → N)

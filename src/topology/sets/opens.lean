@@ -179,7 +179,8 @@ def comap (f : C(α, β)) : frame_hom (opens β) (opens α) :=
 { to_fun := λ s, ⟨f ⁻¹' s, s.2.preimage f.continuous⟩,
   map_Sup' := λ s, ext $ by simp only [coe_Sup, preimage_Union, coe_mk, mem_image, Union_exists,
     bUnion_and', Union_Union_eq_right],
-  map_inf' := λ a b, rfl }
+  map_inf' := λ a b, rfl,
+  map_top' := rfl }
 
 @[simp] lemma comap_id : comap (continuous_map.id α) = frame_hom.id _ :=
 frame_hom.ext $ λ a, ext rfl

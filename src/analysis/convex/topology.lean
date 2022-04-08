@@ -5,6 +5,7 @@ Authors: Alexander Bentkamp, Yury Kudriashov
 -/
 import analysis.convex.jensen
 import analysis.normed_space.finite_dimension
+import analysis.normed_space.ray
 import topology.path_connected
 import topology.algebra.affine
 
@@ -29,7 +30,7 @@ We prove the following facts:
 variables {ι : Type*} {E : Type*}
 
 open set
-open_locale pointwise
+open_locale pointwise convex
 
 lemma real.convex_iff_is_preconnected {s : set ℝ} : convex ℝ s ↔ is_preconnected s :=
 convex_iff_ord_connected.trans is_preconnected_iff_ord_connected.symm
@@ -290,5 +291,12 @@ topological_add_group.path_connected
 instance normed_space.loc_path_connected : loc_path_connected_space E :=
 loc_path_connected_of_bases (λ x, metric.nhds_basis_ball)
   (λ x r r_pos, (convex_ball x r).is_path_connected $ by simp [r_pos])
+
+lemma dist_add_dist_of_mem_segment {x y z : E} (h : y ∈ [x -[ℝ] z]) :
+  dist x y + dist y z = dist x z :=
+begin
+  simp only [dist_eq_norm, mem_segment_iff_same_ray] at *,
+  simpa only [sub_add_sub_cancel', norm_sub_rev] using h.norm_add.symm
+end
 
 end normed_space

@@ -24,8 +24,9 @@ In this file we prove various facts about membership in a submonoid:
   `coe_Sup_of_directed_on`: the supremum of a directed collection of submonoid is their union.
 * `sup_eq_range`, `mem_sup`: supremum of two submonoids `S`, `T` of a commutative monoid is the set
   of products;
-* `closure_singleton_eq`, `mem_closure_singleton`: the multiplicative (resp., additive) closure
-  of `{x}` consists of powers (resp., natural multiples) of `x`.
+* `closure_singleton_eq`, `mem_closure_singleton`, `mem_closure_pair`: the multiplicative (resp.,
+  additive) closure of `{x}` consists of powers (resp., natural multiples) of `x`, and a similar
+  result holds for the closure of `{x, y}`.
 
 ## Tags
 submonoid, submonoids
@@ -33,17 +34,56 @@ submonoid, submonoids
 
 open_locale big_operators
 
-variables {M : Type*}
-variables {A : Type*}
-
-namespace submonoid
+variables {M A B : Type*}
 
 section assoc
-variables [monoid M] (S : submonoid M)
+variables [monoid M] [set_like B M] [submonoid_class B M] {S : B}
+
+namespace submonoid_class
 
 @[simp, norm_cast, to_additive] theorem coe_list_prod (l : list S) :
   (l.prod : M) = (l.map coe).prod :=
-S.subtype.map_list_prod l
+(submonoid_class.subtype S : _ →* M).map_list_prod l
+
+@[simp, norm_cast, to_additive] theorem coe_multiset_prod {M} [comm_monoid M] [set_like B M]
+  [submonoid_class B M] (m : multiset S) : (m.prod : M) = (m.map coe).prod :=
+(submonoid_class.subtype S : _ →* M).map_multiset_prod m
+
+@[simp, norm_cast, to_additive] theorem coe_finset_prod {ι M} [comm_monoid M] [set_like B M]
+  [submonoid_class B M] (f : ι → S) (s : finset ι) :
+  ↑(∏ i in s, f i) = (∏ i in s, f i : M) :=
+(submonoid_class.subtype S : _ →* M).map_prod f s
+
+/-- Product of a list of elements in a submonoid is in the submonoid. -/
+@[to_additive "Sum of a list of elements in an `add_submonoid` is in the `add_submonoid`."]
+lemma list_prod_mem {l : list M} (hl : ∀ x ∈ l, x ∈ S) : l.prod ∈ S :=
+by { lift l to list S using hl, rw ← coe_list_prod, exact l.prod.coe_prop }
+
+/-- Product of a multiset of elements in a submonoid of a `comm_monoid` is in the submonoid. -/
+@[to_additive "Sum of a multiset of elements in an `add_submonoid` of an `add_comm_monoid` is
+in the `add_submonoid`."]
+lemma multiset_prod_mem {M} [comm_monoid M] [set_like B M] [submonoid_class B M] (m : multiset M)
+  (hm : ∀ a ∈ m, a ∈ S) : m.prod ∈ S :=
+by { lift m to multiset S using hm, rw ← coe_multiset_prod, exact m.prod.coe_prop }
+
+/-- Product of elements of a submonoid of a `comm_monoid` indexed by a `finset` is in the
+    submonoid. -/
+@[to_additive "Sum of elements in an `add_submonoid` of an `add_comm_monoid` indexed by a `finset`
+is in the `add_submonoid`."]
+lemma prod_mem {M : Type*} [comm_monoid M] [set_like B M] [submonoid_class B M]
+  {ι : Type*} {t : finset ι} {f : ι → M} (h : ∀c ∈ t, f c ∈ S) :
+  ∏ c in t, f c ∈ S :=
+multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
+
+end submonoid_class
+
+namespace submonoid
+
+variables (s : submonoid M)
+
+@[simp, norm_cast, to_additive] theorem coe_list_prod (l : list s) :
+  (l.prod : M) = (l.map coe).prod :=
+s.subtype.map_list_prod l
 
 @[simp, norm_cast, to_additive] theorem coe_multiset_prod {M} [comm_monoid M] (S : submonoid M)
   (m : multiset S) : (m.prod : M) = (m.map coe).prod :=
@@ -56,8 +96,8 @@ S.subtype.map_prod f s
 
 /-- Product of a list of elements in a submonoid is in the submonoid. -/
 @[to_additive "Sum of a list of elements in an `add_submonoid` is in the `add_submonoid`."]
-lemma list_prod_mem {l : list M} (hl : ∀ x ∈ l, x ∈ S) : l.prod ∈ S :=
-by { lift l to list S using hl, rw ← coe_list_prod, exact l.prod.coe_prop }
+lemma list_prod_mem {l : list M} (hl : ∀ x ∈ l, x ∈ s) : l.prod ∈ s :=
+by { lift l to list s using hl, rw ← coe_list_prod, exact l.prod.coe_prop }
 
 /-- Product of a multiset of elements in a submonoid of a `comm_monoid` is in the submonoid. -/
 @[to_additive "Sum of a multiset of elements in an `add_submonoid` of an `add_comm_monoid` is
@@ -97,12 +137,19 @@ begin
   exact h x hx,
 end
 
+end submonoid
+
 end assoc
 
 section non_assoc
-variables [mul_one_class M] (S : submonoid M)
+variables [mul_one_class M]
 
 open set
+
+namespace submonoid
+
+-- TODO: this section can be generalized to `[submonoid_class B M] [complete_lattice B]`
+-- such that `complete_lattice.le` coincides with `set_like.le`
 
 @[to_additive]
 lemma mem_supr_of_directed {ι} [hι : nonempty ι] {S : ι → submonoid M} (hS : directed (≤) S)
@@ -193,9 +240,9 @@ begin
     refine ⟨_, hmul _ _ _ _ Cx Cy⟩ },
 end
 
-end non_assoc
-
 end submonoid
+
+end non_assoc
 
 namespace free_monoid
 
@@ -218,7 +265,7 @@ open monoid_hom
 
 lemma closure_singleton_eq (x : M) : closure ({x} : set M) = (powers_hom M x).mrange :=
 closure_eq_of_le (set.singleton_subset_iff.2 ⟨multiplicative.of_add 1, pow_one x⟩) $
-  λ x ⟨n, hn⟩, hn ▸ pow_mem _ (subset_closure $ set.mem_singleton _) _
+  λ x ⟨n, hn⟩, hn ▸ submonoid.pow_mem _ (subset_closure $ set.mem_singleton _) _
 
 /-- The submonoid generated by an element of a monoid equals the set of natural number powers of
     the element. -/
@@ -446,6 +493,17 @@ submonoid `S` is contained in the additive closure of `S`. -/
 lemma mul_left_mem_add_closure (ha : a ∈ S) (hb : b ∈ add_submonoid.closure (S : set R)) :
   a * b ∈ add_submonoid.closure (S : set R) :=
 S.mul_mem_add_closure (add_submonoid.mem_closure.mpr (λ sT hT, hT ha)) hb
+
+/-- An element is in the closure of a two-element set if it is a linear combination of those two
+elements. -/
+@[to_additive "An element is in the closure of a two-element set if it is a linear combination of
+those two elements."]
+lemma mem_closure_pair {A : Type*} [comm_monoid A] (a b c : A) :
+  c ∈ submonoid.closure ({a, b} : set A) ↔ ∃ m n : ℕ, a ^ m * b ^ n = c :=
+begin
+  rw [←set.singleton_union, submonoid.closure_union, mem_sup],
+  simp_rw [exists_prop, mem_closure_singleton, exists_exists_eq_and],
+end
 
 end submonoid
 

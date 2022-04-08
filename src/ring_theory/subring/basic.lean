@@ -65,7 +65,97 @@ subring, subrings
 open_locale big_operators
 universes u v w
 
-variables {R : Type u} {S : Type v} {T : Type w} [ring R] [ring S] [ring T]
+variables {R : Type u} {S : Type v} {T : Type w} [ring R]
+
+section subring_class
+
+/-- `subring_class S R` states that `S` is a type of subsets `s ⊆ R` that
+are both a multiplicative submonoid and an additive subgroup. -/
+class subring_class (S : Type*) (R : out_param $ Type u) [ring R] [set_like S R]
+  extends subsemiring_class S R :=
+(neg_mem : ∀ {s : S} {a : R}, a ∈ s → -a ∈ s)
+
+@[priority 100] -- See note [lower instance priority]
+instance subring_class.add_subgroup_class (S : Type*) (R : out_param $ Type u) [set_like S R]
+  [ring R] [h : subring_class S R] : add_subgroup_class S R :=
+{ .. h }
+
+variables [set_like S R] [hSR : subring_class S R] (s : S)
+include hSR
+
+namespace subring_class
+
+open one_mem_class add_subgroup_class
+
+lemma coe_int_mem (n : ℤ) : (n : R) ∈ s :=
+by simp only [← zsmul_one, zsmul_mem, one_mem]
+
+/-- A subring of a ring inherits a ring structure -/
+@[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
+instance to_ring : ring s :=
+{ right_distrib := λ x y z, subtype.eq $ right_distrib x y z,
+  left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
+  .. submonoid_class.to_monoid s, .. add_subgroup_class.to_add_comm_group s }
+
+omit hSR
+/-- A subring of a `comm_ring` is a `comm_ring`. -/
+@[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
+instance to_comm_ring {R} [comm_ring R] [set_like S R] [subring_class S R] : comm_ring s :=
+subtype.coe_injective.comm_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subring of a domain is a domain. -/
+@[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
+instance {R} [ring R] [is_domain R] [set_like S R] [subring_class S R] : is_domain s :=
+{ .. subsemiring_class.nontrivial s, .. subsemiring_class.no_zero_divisors s }
+
+/-- A subring of an `ordered_ring` is an `ordered_ring`. -/
+@[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
+instance to_ordered_ring {R} [ordered_ring R] [set_like S R] [subring_class S R] :
+  ordered_ring s :=
+subtype.coe_injective.ordered_ring coe rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subring of an `ordered_comm_ring` is an `ordered_comm_ring`. -/
+@[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
+instance to_ordered_comm_ring {R} [ordered_comm_ring R] [set_like S R] [subring_class S R] :
+  ordered_comm_ring s :=
+subtype.coe_injective.ordered_comm_ring coe rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subring of a `linear_ordered_ring` is a `linear_ordered_ring`. -/
+@[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
+instance to_linear_ordered_ring {R} [linear_ordered_ring R] [set_like S R] [subring_class S R] :
+  linear_ordered_ring s :=
+subtype.coe_injective.linear_ordered_ring coe rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+/-- A subring of a `linear_ordered_comm_ring` is a `linear_ordered_comm_ring`. -/
+@[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
+instance to_linear_ordered_comm_ring {R} [linear_ordered_comm_ring R] [set_like S R]
+  [subring_class S R] : linear_ordered_comm_ring s :=
+subtype.coe_injective.linear_ordered_comm_ring coe rfl rfl
+  (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+include hSR
+
+/-- The natural ring hom from a subring of ring `R` to `R`. -/
+def subtype (s : S) : s →+* R :=
+{ to_fun := coe,
+ .. submonoid_class.subtype s,
+ .. add_subgroup_class.subtype s }
+
+@[simp] theorem coe_subtype : (subtype s : s → R) = coe := rfl
+@[simp, norm_cast] lemma coe_nat_cast (n : ℕ) : ((n : s) : R) = n :=
+map_nat_cast (subtype s) n
+@[simp, norm_cast] lemma coe_int_cast (n : ℤ) : ((n : s) : R) = n :=
+(subtype s : s →+* R).map_int_cast n
+
+end subring_class
+
+end subring_class
+
+variables [ring S] [ring T]
 
 set_option old_structure_cmd true
 
@@ -88,7 +178,15 @@ def to_submonoid (s : subring R) : submonoid R :=
   ..s.to_subsemiring.to_submonoid }
 
 instance : set_like (subring R) R :=
-⟨subring.carrier, λ p q h, by cases p; cases q; congr'⟩
+{ coe := subring.carrier,
+  coe_injective' := λ p q h, by cases p; cases q; congr' }
+
+instance : subring_class (subring R) R :=
+{ zero_mem := zero_mem',
+  add_mem := add_mem',
+  one_mem := one_mem',
+  mul_mem := mul_mem',
+  neg_mem := neg_mem' }
 
 @[simp]
 lemma mem_carrier {s : subring R} {x : R} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
@@ -813,7 +911,7 @@ end subring
 
 namespace ring_hom
 
-variables [ring T] {s : subring R}
+variables {s : subring R}
 
 open subring
 
@@ -1008,38 +1106,49 @@ namespace subring
 variables {α β : Type*}
 
 /-- The action by a subring is the action by the underlying ring. -/
-instance [mul_action R α] (S : subring R) : mul_action S α :=
-S.to_subsemiring.mul_action
+instance [has_scalar R α] (S : subring R) : has_scalar S α := S.to_subsemiring.has_scalar
 
-lemma smul_def [mul_action R α] {S : subring R} (g : S) (m : α) : g • m = (g : R) • m := rfl
+lemma smul_def [has_scalar R α] {S : subring R} (g : S) (m : α) : g • m = (g : R) • m := rfl
 
 instance smul_comm_class_left
-  [mul_action R β] [has_scalar α β] [smul_comm_class R α β] (S : subring R) :
+  [has_scalar R β] [has_scalar α β] [smul_comm_class R α β] (S : subring R) :
   smul_comm_class S α β :=
 S.to_subsemiring.smul_comm_class_left
 
 instance smul_comm_class_right
-  [has_scalar α β] [mul_action R β] [smul_comm_class α R β] (S : subring R) :
+  [has_scalar α β] [has_scalar R β] [smul_comm_class α R β] (S : subring R) :
   smul_comm_class α S β :=
 S.to_subsemiring.smul_comm_class_right
 
 /-- Note that this provides `is_scalar_tower S R R` which is needed by `smul_mul_assoc`. -/
 instance
-  [has_scalar α β] [mul_action R α] [mul_action R β] [is_scalar_tower R α β] (S : subring R) :
+  [has_scalar α β] [has_scalar R α] [has_scalar R β] [is_scalar_tower R α β] (S : subring R) :
   is_scalar_tower S α β :=
 S.to_subsemiring.is_scalar_tower
 
-instance [mul_action R α] [has_faithful_scalar R α] (S : subring R) :
+instance [has_scalar R α] [has_faithful_scalar R α] (S : subring R) :
   has_faithful_scalar S α :=
 S.to_subsemiring.has_faithful_scalar
+
+/-- The action by a subring is the action by the underlying ring. -/
+instance [mul_action R α] (S : subring R) : mul_action S α :=
+S.to_subsemiring.mul_action
 
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_monoid α] [distrib_mul_action R α] (S : subring R) : distrib_mul_action S α :=
 S.to_subsemiring.distrib_mul_action
 
-/-- The action by a subsemiring is the action by the underlying semiring. -/
+/-- The action by a subring is the action by the underlying ring. -/
 instance [monoid α] [mul_distrib_mul_action R α] (S : subring R) : mul_distrib_mul_action S α :=
 S.to_subsemiring.mul_distrib_mul_action
+
+/-- The action by a subring is the action by the underlying ring. -/
+instance [has_zero α] [smul_with_zero R α] (S : subring R) : smul_with_zero S α :=
+S.to_subsemiring.smul_with_zero
+
+/-- The action by a subring is the action by the underlying ring. -/
+instance [has_zero α] [mul_action_with_zero R α] (S : subring R) : mul_action_with_zero S α :=
+S.to_subsemiring.mul_action_with_zero
 
 /-- The action by a subring is the action by the underlying ring. -/
 instance [add_comm_monoid α] [module R α] (S : subring R) : module S α :=

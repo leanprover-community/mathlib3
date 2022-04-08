@@ -673,16 +673,16 @@ noncomputable instance : inhabited (lifts F E K) := ⟨⊥⟩
 lemma lifts.eq_of_le {x y : lifts F E K} (hxy : x ≤ y) (s : x.1) :
   x.2 s = y.2 ⟨s, hxy.1 s.mem⟩ := hxy.2 s ⟨s, hxy.1 s.mem⟩ rfl
 
-lemma lifts.exists_max_two {c : set (lifts F E K)} {x y : lifts F E K} (hc : zorn.chain (≤) c)
+lemma lifts.exists_max_two {c : set (lifts F E K)} {x y : lifts F E K} (hc : is_chain (≤) c)
   (hx : x ∈ set.insert ⊥ c) (hy : y ∈ set.insert ⊥ c) :
   ∃ z : lifts F E K, z ∈ set.insert ⊥ c ∧ x ≤ z ∧ y ≤ z :=
 begin
-  cases (zorn.chain_insert hc (λ _ _ _, or.inl bot_le)).total_of_refl hx hy with hxy hyx,
+  cases (hc.insert $ λ _ _ _, or.inl bot_le).total hx hy with hxy hyx,
   { exact ⟨y, hy, hxy, le_refl y⟩ },
   { exact ⟨x, hx, le_refl x, hyx⟩ },
 end
 
-lemma lifts.exists_max_three {c : set (lifts F E K)} {x y z : lifts F E K} (hc : zorn.chain (≤) c)
+lemma lifts.exists_max_three {c : set (lifts F E K)} {x y z : lifts F E K} (hc : is_chain (≤) c)
   (hx : x ∈ set.insert ⊥ c) (hy : y ∈ set.insert ⊥ c) (hz : z ∈ set.insert ⊥ c) :
   ∃ w  : lifts F E K, w ∈ set.insert ⊥ c ∧ x ≤ w ∧ y ≤ w ∧ z ≤ w :=
 begin
@@ -692,7 +692,7 @@ begin
 end
 
 /-- An upper bound on a chain of lifts -/
-def lifts.upper_bound_intermediate_field {c : set (lifts F E K)} (hc : zorn.chain (≤) c) :
+def lifts.upper_bound_intermediate_field {c : set (lifts F E K)} (hc : is_chain (≤) c) :
   intermediate_field F E :=
 { carrier := λ s, ∃ x : (lifts F E K), x ∈ set.insert ⊥ c ∧ (s ∈ x.1 : Prop),
   zero_mem' := ⟨⊥, set.mem_insert ⊥ c, zero_mem ⊥⟩,
@@ -710,7 +710,7 @@ def lifts.upper_bound_intermediate_field {c : set (lifts F E K)} (hc : zorn.chai
   algebra_map_mem' := λ s, ⟨⊥, set.mem_insert ⊥ c, algebra_map_mem ⊥ s⟩ }
 
 /-- The lift on the upper bound on a chain of lifts -/
-noncomputable def lifts.upper_bound_alg_hom {c : set (lifts F E K)} (hc : zorn.chain (≤) c) :
+noncomputable def lifts.upper_bound_alg_hom {c : set (lifts F E K)} (hc : is_chain (≤) c) :
   lifts.upper_bound_intermediate_field hc →ₐ[F] K :=
 { to_fun := λ s, (classical.some s.mem).2 ⟨s, (classical.some_spec s.mem).2⟩,
   map_zero' := alg_hom.map_zero _,
@@ -732,11 +732,11 @@ noncomputable def lifts.upper_bound_alg_hom {c : set (lifts F E K)} (hc : zorn.c
   commutes' := λ _, alg_hom.commutes _ _ }
 
 /-- An upper bound on a chain of lifts -/
-noncomputable def lifts.upper_bound {c : set (lifts F E K)} (hc : zorn.chain (≤) c) :
+noncomputable def lifts.upper_bound {c : set (lifts F E K)} (hc : is_chain (≤) c) :
   lifts F E K :=
 ⟨lifts.upper_bound_intermediate_field hc, lifts.upper_bound_alg_hom hc⟩
 
-lemma lifts.exists_upper_bound (c : set (lifts F E K)) (hc : zorn.chain (≤) c) :
+lemma lifts.exists_upper_bound (c : set (lifts F E K)) (hc : is_chain (≤) c) :
   ∃ ub, ∀ a ∈ c, a ≤ ub :=
 ⟨lifts.upper_bound hc,
 begin
@@ -786,7 +786,7 @@ lemma alg_hom_mk_adjoin_splits
   (hK : ∀ s ∈ S, is_integral F (s : E) ∧ (minpoly F s).splits (algebra_map F K)) :
   nonempty (adjoin F S →ₐ[F] K) :=
 begin
-  obtain ⟨x : lifts F E K, hx⟩ := zorn.zorn_partial_order lifts.exists_upper_bound,
+  obtain ⟨x : lifts F E K, hx⟩ := zorn_partial_order lifts.exists_upper_bound,
   refine ⟨alg_hom.mk (λ s, x.2 ⟨s, adjoin_le_iff.mpr (λ s hs, _) s.mem⟩) x.2.map_one (λ s t,
     x.2.map_mul ⟨s, _⟩ ⟨t, _⟩) x.2.map_zero (λ s t, x.2.map_add ⟨s, _⟩ ⟨t, _⟩) x.2.commutes⟩,
   rcases (x.exists_lift_of_splits (hK s hs).1 (hK s hs).2) with ⟨y, h1, h2⟩,

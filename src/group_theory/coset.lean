@@ -259,6 +259,14 @@ def quotient_right_rel_equiv_quotient_left_rel : quotient (quotient_group.right_
   { simp only [inv_inv],
     exact quotient.exact' rfl })) }
 
+@[to_additive] instance fintype_quotint_right_rel [fintype (α ⧸ s)] :
+  fintype (quotient (quotient_group.right_rel s)) :=
+fintype.of_equiv (α ⧸ s) (quotient_group.quotient_right_rel_equiv_quotient_left_rel s).symm
+
+@[to_additive] lemma card_quotient_right_rel [fintype (α ⧸ s)] :
+  fintype.card (quotient (quotient_group.right_rel s)) = fintype.card (α ⧸ s) :=
+fintype.of_equiv_card (quotient_group.quotient_right_rel_equiv_quotient_left_rel s).symm
+
 end quotient_group
 
 namespace quotient_group

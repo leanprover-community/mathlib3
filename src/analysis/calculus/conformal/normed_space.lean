@@ -3,6 +3,7 @@ Copyright (c) 2021 Yourong Zang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang
 -/
+import analysis.normed_space.banach
 import analysis.normed_space.conformal_linear_map
 import analysis.calculus.fderiv
 
@@ -21,6 +22,8 @@ if it is real differentiable at that point and its differential `is_conformal_li
 ## Main results
 * The conformality of the composition of two conformal maps, the identity map
   and multiplications by nonzero constants
+* The conformality of the local inverse of a conformal local homeomorphism between Banach spaces
+  with a surjective differential
 * `conformal_at_iff_is_conformal_map_fderiv`: an equivalent definition of the conformality of a map
 
 In `analysis.calculus.conformal.inner_product`:
@@ -102,6 +105,27 @@ end
 lemma const_smul {f : X → Y} {x : X} {c : ℝ} (hc : c ≠ 0) (hf : conformal_at f x) :
   conformal_at (c • f) x :=
 (conformal_at_const_smul hc $ f x).comp x hf
+
+/-- The local inverse of a conformal local homeomorphism `f` between Banach spaces `X`, `Y` with
+    surjective differential is also conformal. -/
+lemma symm [complete_space X] [complete_space Y]
+  {f : local_homeomorph X Y} {x : X} (hx : x ∈ f.to_local_equiv.source)
+  (hf : conformal_at f x) (hf' : function.surjective (fderiv ℝ f x)) :
+  conformal_at f.symm (f x) :=
+begin
+  have A : f x ∈ f.to_local_equiv.target := f.map_source hx,
+  have hf'' := conformal_at_iff_is_conformal_map_fderiv.mp hf,
+  let f' : X ≃L[ℝ] Y := continuous_linear_equiv.of_bijective (fderiv ℝ f x)
+    (linear_map.ker_eq_bot.mpr hf''.injective) (linear_map.range_eq_top.mpr hf'),
+  have B : fderiv ℝ f x = ↑f' := (continuous_linear_equiv.coe_of_bijective _
+    (linear_map.ker_eq_bot.mpr hf''.injective) $ linear_map.range_eq_top.mpr hf').symm,
+  have C : has_fderiv_at f ↑f' (f.symm $ f x),
+  { rw [← B, f.left_inv hx],
+    exact hf.differentiable_at.has_fderiv_at },
+  refine ⟨↑f'.symm, f.has_fderiv_at_symm A C, _⟩,
+  rw B at hf'',
+  exact hf''.symm
+end
 
 end conformal_at
 

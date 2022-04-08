@@ -20,6 +20,7 @@ a nonzero multiple of a linear isometry.
 
 * The conformality of the composition of two conformal linear maps, the identity map
   and multiplications by nonzero constants as continuous linear maps
+* The conformality of the inverse of a conformal linear equivalence
 * `is_conformal_map_of_subsingleton`: all continuous linear maps on singleton spaces are conformal
 * `is_conformal_map.preserves_angle`: if a continuous linear map is conformal, then it
                                       preserves all angles in the normed space
@@ -86,6 +87,32 @@ begin
   refine ⟨cg * cf, mul_ne_zero hcg hcf, lig.comp lif, funext (λ x, _)⟩,
   simp only [coe_comp', linear_isometry.coe_comp, hlif, hlig, pi.smul_apply,
              function.comp_app, linear_isometry.map_smul, smul_smul],
+end
+
+/-- The inverse of a conformal, continuous linear equivalence `f'` between two semi normed spaces
+    `M'` and `N` is a continuous linear map. -/
+lemma symm {f' : M' ≃L[R] N} (hf' : is_conformal_map (f' : M' →L[R] N)) :
+  is_conformal_map (f'.symm : N →L[R] M') :=
+begin
+  rcases hf' with ⟨c, hc, li, hli⟩,
+  simp only [f'.coe_coe] at hli,
+  have surj : function.surjective li :=
+  λ y, begin
+    refine ⟨c • f'.symm y, _⟩,
+    simp only [li.coe_to_linear_map, li.map_smul],
+    have : c • li (f'.symm y) = f' (f'.symm y) := by simp only [hli, pi.smul_apply],
+    rw [this, f'.apply_symm_apply]
+  end,
+  refine ⟨c⁻¹, inv_ne_zero hc, (⟨linear_equiv.of_bijective li.to_linear_map li.injective surj,
+    by simp⟩ : M' ≃ₗᵢ[R] N).symm.to_linear_isometry, _⟩,
+  ext1 y,
+  rw [f'.symm.coe_coe, f'.symm_apply_eq, hli],
+  simp only [pi.smul_apply, function.comp_app, li.map_smul,
+    linear_isometry_equiv.coe_to_linear_isometry, linear_isometry_equiv.symm],
+  rw [linear_isometry_equiv.coe_mk, smul_smul, mul_inv_cancel hc, one_smul],
+  have : (li : M' → N) = linear_equiv.of_bijective li.to_linear_map li.injective surj :=
+    by funext x; exact (linear_equiv.of_bijective_apply li.to_linear_map _).symm,
+  rw [this, linear_equiv.apply_symm_apply]
 end
 
 lemma injective {f' : M' →L[R] N} (h : is_conformal_map f') : function.injective f' :=

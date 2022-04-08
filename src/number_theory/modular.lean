@@ -218,9 +218,18 @@ begin
   convert hf₂.tendsto_cocompact.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
   ext ⟨g, rfl⟩ i j : 3,
   fin_cases i; [fin_cases j, skip],
-  { simp [mB, f₁, mul_vec, dot_product, fin.sum_univ_two] },
+  -- the following are proved by `simp`, but it is replaced by `simp only` to avoid timeouts.
+  { simp only [mB, mul_vec, dot_product, fin.sum_univ_two, _root_.coe_coe, coe_matrix_coe,
+      int.coe_cast_ring_hom, lc_row0_apply, function.comp_app, cons_val_zero, lc_row0_extend_apply,
+      linear_map.general_linear_group.coe_fn_general_linear_equiv,
+      general_linear_group.to_linear_apply, coe_plane_conformal_matrix, neg_neg, mul_vec_lin_apply,
+      cons_val_one, head_cons] },
   { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
-    simp [f₁, mul_vec, dot_product, mB, fin.sum_univ_two, matrix.det_fin_two],
+    simp only [f₁, mul_vec, dot_product, fin.sum_univ_two, matrix.det_fin_two, function.comp_app,
+      subtype.coe_mk, lc_row0_extend_apply, cons_val_zero,
+      linear_map.general_linear_group.coe_fn_general_linear_equiv,
+      general_linear_group.to_linear_apply, coe_plane_conformal_matrix, mul_vec_lin_apply,
+      cons_val_one, head_cons, map_apply, neg_mul, int.cast_sub, int.cast_mul, neg_sub],
     ring },
   { refl }
 end

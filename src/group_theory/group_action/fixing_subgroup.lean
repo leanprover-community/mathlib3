@@ -24,17 +24,11 @@ and relates it to the set of fixed points via a Galois connection.
 * `fixing_submonoid_fixed_points_gc M α` is the `galois_connection`
   that relates `fixing_submonoid` with `fixed_points`.
 
-* `fixing_submonoid_union` and `fixing_submonoid_Union` are consequences
-  of the Galois connection, as well as `fixed_points_sup` and `fixed_points_supr`.
-
 * `fixing_subgroup M s` : in the presence of `mul_action M α` (with `group M`)
   it is the `subgroup M` consisting of elements which fix `s : set α` pointwise.
 
 * `fixing_subgroup_fixed_points_gc M α` is the `galois_connection`
   that relates `fixing_subgroup` with `fixed_points`.
-
-* `fixing_subgroup_union` and `fixing_subgroup_Union` are consequences
-  of the Galois connection, as well as `fixed_points_subgroup_sup` and `fixed_points_subgroup_supr`.
 
 TODO :
 
@@ -70,7 +64,7 @@ theorem fixing_submonoid_fixed_points_gc : galois_connection
 λ s P, ⟨λ h s hs p, h p.2 ⟨s, hs⟩, λ h p hp s, h s.2 ⟨p, hp⟩⟩
 
 lemma fixing_submonoid_antitone : antitone (λ (s : set α), fixing_submonoid M s) :=
-galois_connection.monotone_l (fixing_submonoid_fixed_points_gc M α)
+(fixing_submonoid_fixed_points_gc M α).monotone_l
 
 lemma fixed_points_antitone :
   antitone (λ (P : submonoid M), fixed_points P α) :=
@@ -79,22 +73,22 @@ lemma fixed_points_antitone :
 /-- Fixing submonoid of union is intersection -/
 lemma fixing_submonoid_union {s t : set α} :
   fixing_submonoid M (s ∪ t) = fixing_submonoid M s ⊓ fixing_submonoid M t :=
-galois_connection.l_sup (fixing_submonoid_fixed_points_gc M α)
+(fixing_submonoid_fixed_points_gc M α).l_sup
 
 /-- Fixing submonoid of Union is intersection -/
 lemma fixing_submonoid_Union {ι : Sort*} {s : ι → set α} :
   fixing_submonoid M (⋃ i, s i) = ⨅ i, fixing_submonoid M (s i) :=
-galois_connection.l_supr (fixing_submonoid_fixed_points_gc M α)
+(fixing_submonoid_fixed_points_gc M α).l_supr
 
 /-- Fixed points of sup of submonoids is intersection -/
 lemma fixed_points_submonoid_sup {P Q : submonoid M} :
   fixed_points ↥(P ⊔ Q) α = fixed_points P α ∩ fixed_points Q α :=
-galois_connection.u_inf (fixing_submonoid_fixed_points_gc M α)
+(fixing_submonoid_fixed_points_gc M α).u_inf
 
 /-- Fixed points of supr of submonoids is intersection -/
 lemma fixed_points_submonoid_supr {ι : Sort*} {P : ι → submonoid M} :
   fixed_points ↥(supr P) α = ⋂ i, fixed_points (P i) α :=
-galois_connection.u_infi (fixing_submonoid_fixed_points_gc M α)
+(fixing_submonoid_fixed_points_gc M α).u_infi
 
 end monoid
 
@@ -123,7 +117,7 @@ lemma fixing_subgroup_fixed_points_gc : galois_connection
 λ s P, ⟨λ h s hs p, h p.2 ⟨s, hs⟩, λ h p hp s, h s.2 ⟨p, hp⟩⟩
 
 lemma fixing_subgroup_antitone : antitone (λ (s : set α), fixing_subgroup M s) :=
-galois_connection.monotone_l (fixing_subgroup_fixed_points_gc M α)
+(fixing_subgroup_fixed_points_gc M α).monotone_l
 
 lemma fixed_points_subgroup_antitone :
   antitone (λ (P : subgroup M), fixed_points P α) :=
@@ -133,21 +127,21 @@ lemma fixed_points_subgroup_antitone :
 /-- Fixing subgroup of union is intersection -/
 lemma fixing_subgroup_union {s t : set α} :
   fixing_subgroup M (s ∪ t) = fixing_subgroup M s ⊓ fixing_subgroup M t :=
-galois_connection.l_sup (fixing_subgroup_fixed_points_gc M α)
+(fixing_subgroup_fixed_points_gc M α).l_sup
 
 /-- Fixing subgroup of Union is intersection -/
 lemma fixing_subgroup_Union {ι : Sort*} {s : ι → set α} :
   fixing_subgroup M (⋃ i, s i) = ⨅ i, fixing_subgroup M (s i) :=
-galois_connection.l_supr (fixing_subgroup_fixed_points_gc M α)
+(fixing_subgroup_fixed_points_gc M α).l_supr
 
 /-- Fixed points of sup of subgroups is intersection -/
 lemma fixed_points_subgroup_sup {P Q : subgroup M} :
   fixed_points ↥(P ⊔ Q) α = fixed_points P α ∩ fixed_points Q α :=
-galois_connection.u_inf (fixing_subgroup_fixed_points_gc M α)
+(fixing_subgroup_fixed_points_gc M α).u_inf
 
 /-- Fixed points of supr of subgroups is intersection -/
 lemma fixed_points_subgroup_supr {ι : Sort*} {P : ι → subgroup M} :
   fixed_points ↥(supr P) α = ⋂ i, fixed_points (P i) α :=
-galois_connection.u_infi (fixing_subgroup_fixed_points_gc M α)
+(fixing_subgroup_fixed_points_gc M α).u_infi
 
 end group

@@ -52,7 +52,7 @@ def fixing_submonoid (s : set α) : submonoid M :=
   mul_mem' := λ x y hx hy z, by rw [mul_smul, hy z, hx z], }
 
 lemma mem_fixing_submonoid_iff {s : set α} {m : M} :
-  m ∈ fixing_submonoid M s ↔ ∀ (y : α) (hy : y ∈ s), m • y = y :=
+  m ∈ fixing_submonoid M s ↔ ∀ y ∈ s, m • y = y :=
 ⟨λ hg y hy, hg ⟨y, hy⟩, λ h ⟨y, hy⟩, h y hy⟩
 
 variable (α)
@@ -105,7 +105,7 @@ def fixing_subgroup (s : set α) : subgroup M :=
   ..fixing_submonoid M s, }
 
 lemma mem_fixing_subgroup_iff {s : set α} {m : M} :
-  m ∈ fixing_subgroup M s ↔ ∀ (y : α) (hy : y ∈ s), m • y = y :=
+  m ∈ fixing_subgroup M s ↔ ∀ y ∈ s, m • y = y :=
 ⟨λ hg y hy, hg ⟨y, hy⟩, λ h ⟨y, hy⟩, h y hy⟩
 
 variable (α)

@@ -75,7 +75,7 @@ begin
   transitivity ∀ g, map ((*) g) μ = μ,
   { simp_rw [measure.ext_iff],
     refine forall_congr (λ g, forall_congr $ λ A, forall_congr $ λ hA, _),
-    rw [map_apply (measurable_const_mul g).ae_measurable hA] },
+    rw [map_apply (measurable_const_mul g) hA] },
   exact ⟨λ h, ⟨h⟩, λ h, h.1⟩
 end
 
@@ -88,7 +88,7 @@ begin
   transitivity ∀ g, map (* g) μ = μ,
   { simp_rw [measure.ext_iff],
     refine forall_congr (λ g, forall_congr $ λ A, forall_congr $ λ hA, _),
-    rw [map_apply (measurable_mul_const g).ae_measurable hA] },
+    rw [map_apply (measurable_mul_const g) hA] },
   exact ⟨λ h, ⟨h⟩, λ h, h.1⟩
 end
 
@@ -416,7 +416,7 @@ lemma is_haar_measure_map [borel_space G] [topological_group G] {H : Type*} [gro
   end,
   lt_top_of_is_compact := begin
     assume K hK,
-    rw map_apply hf.measurable.ae_measurable hK.measurable_set,
+    rw map_apply hf.measurable hK.measurable_set,
     have : f.symm '' K = f ⁻¹' K := equiv.image_eq_preimage _ _,
     rw ← this,
     exact is_compact.measure_lt_top (hK.image hfsymm)

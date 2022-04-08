@@ -852,7 +852,7 @@ by { simp only [preimage, eq], exact (h (g ⁻¹' {y}) (g.measurable_set_preimag
 
 lemma lintegral_map {β} [measurable_space β] (g : β →ₛ ℝ≥0∞) {f : α → β} (hf : measurable f) :
   g.lintegral (measure.map f μ) = (g.comp f hf).lintegral μ :=
-eq.symm $ lintegral_map' _ _ f (λ a, rfl) (λ s hs, measure.map_apply hf.ae_measurable hs)
+eq.symm $ lintegral_map' _ _ f (λ a, rfl) (λ s hs, measure.map_apply hf hs)
 
 end measure
 

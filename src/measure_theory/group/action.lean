@@ -88,8 +88,8 @@ variables (G) {m : measurable_space α} [group G] [mul_action G α] [measurable_
     ∀ c : G, measure_preserving ((•) c) μ μ] :=
 begin
   tfae_have : 1 ↔ 2, from ⟨λ h, h.1, λ h, ⟨h⟩⟩,
-  tfae_have : 2 → 6, from λ H c,
-    ext (λ s hs, by rw [map_apply (measurable_const_smul c).ae_measurable hs, H _ _ hs]),
+  tfae_have : 2 → 6,
+    from λ H c, ext (λ s hs, by rw [map_apply (measurable_const_smul c) hs, H _ _ hs]),
   tfae_have : 6 → 7, from λ H c, ⟨measurable_const_smul c, H c⟩,
   tfae_have : 7 → 4, from λ H c, (H c).measure_preimage_emb (measurable_embedding_const_smul c),
   tfae_have : 4 → 5, from λ H c s, by { rw [← preimage_smul_inv], apply H },

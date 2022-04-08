@@ -739,7 +739,7 @@ hf.borel_measurable.mono opens_measurable_space.borel_le
 
 /-- A continuous function from an `opens_measurable_space` to a `borel_space`
 is ae-measurable. -/
-lemma continuous.ae_measurable {f : α → γ} (h : continuous f) (μ : measure α) : ae_measurable f μ :=
+lemma continuous.ae_measurable {f : α → γ} (h : continuous f) {μ : measure α} : ae_measurable f μ :=
 h.measurable.ae_measurable
 
 lemma closed_embedding.measurable {f : α → γ} (hf : closed_embedding f) :
@@ -751,7 +751,7 @@ lemma continuous.is_open_pos_measure_map {f : β → γ} (hf : continuous f)
   (measure.map f μ).is_open_pos_measure :=
 begin
   refine ⟨λ U hUo hUne, _⟩,
-  rw [measure.map_apply (hf.ae_measurable _) hUo.measurable_set],
+  rw [measure.map_apply hf.measurable hUo.measurable_set],
   exact (hUo.preimage hf).measure_ne_zero μ (hf_surj.nonempty_preimage.mpr hUne)
 end
 
@@ -1263,7 +1263,7 @@ protected lemma is_finite_measure_on_compacts.map
   is_finite_measure_on_compacts (measure.map f μ) :=
 ⟨begin
   assume K hK,
-  rw [measure.map_apply f.measurable.ae_measurable hK.measurable_set],
+  rw [measure.map_apply f.measurable hK.measurable_set],
   apply is_compact.measure_lt_top,
   rwa f.compact_preimage
 end⟩

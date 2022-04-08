@@ -274,11 +274,13 @@ calc ∫ a, indicator_const_Lp p ht hμt x a ∂μ
 ... = (μ t).to_real • x : by rw inter_univ
 
 lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E} {s : set β}
-  (hs : measurable_set s) (hf : ae_strongly_measurable f (measure.map g μ)) (hg : ae_measurable g μ) :
+  (hs : measurable_set s)
+  (hf : ae_strongly_measurable f (measure.map g μ)) (hg : ae_measurable g μ) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
 begin
-  rw [measure.restrict_map hg hs, integral_map hg (hf.mono_measure _)],
-  exact measure.map_mono g measure.restrict_le_self
+  rw [measure.restrict_map hg hs,
+      integral_map (hg.mono_measure measure.restrict_le_self) (hf.mono_measure _)],
+  exact measure.map_mono_of_ae_measurable measure.restrict_le_self hg
 end
 
 lemma _root_.measurable_embedding.set_integral_map {β} {_ : measurable_space β} {f : α → β}

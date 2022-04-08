@@ -173,10 +173,10 @@ lemma map {α β} [measurable_space α] [measurable_space β] {μ : measure α} 
   inner_regular (map f μ) pb qb :=
 begin
   intros U hU r hr,
-  rw [map_apply hf (hB₂ _ hU)] at hr,
+  rw [map_apply_of_ae_measurable hf (hB₂ _ hU)] at hr,
   rcases H (hAB U hU) r hr with ⟨K, hKU, hKc, hK⟩,
   refine ⟨f '' K, image_subset_iff.2 hKU, hAB' _ hKc, _⟩,
-  rwa [map_apply hf (hB₁ _ $ hAB' _ hKc), f.preimage_image]
+  rwa [map_apply_of_ae_measurable hf (hB₁ _ $ hAB' _ hKc), f.preimage_image]
 end
 
 lemma smul (H : inner_regular μ p q) (c : ℝ≥0∞) : inner_regular (c • μ) p q :=
@@ -282,11 +282,11 @@ protected lemma map [opens_measurable_space α] [measurable_space β] [topologic
   (measure.map f μ).outer_regular :=
 begin
   refine ⟨λ A hA r hr, _⟩,
-  rw [map_apply f.measurable.ae_measurable hA, ← f.image_symm] at hr,
+  rw [map_apply f.measurable hA, ← f.image_symm] at hr,
   rcases set.exists_is_open_lt_of_lt _ r hr with ⟨U, hAU, hUo, hU⟩,
   have : is_open (f.symm ⁻¹' U), from hUo.preimage f.symm.continuous,
   refine ⟨f.symm ⁻¹' U, image_subset_iff.1 hAU, this, _⟩,
-  rwa [map_apply f.measurable.ae_measurable this.measurable_set, f.preimage_symm, f.preimage_image],
+  rwa [map_apply f.measurable this.measurable_set, f.preimage_symm, f.preimage_image],
 end
 
 protected lemma smul (μ : measure α) [outer_regular μ] {x : ℝ≥0∞} (hx : x ≠ ∞) :

@@ -952,28 +952,29 @@ end
 
 /-- We can evaluate the pushforward on measurable sets. For non-measurable sets, see
   `measure_theory.measure.le_map_apply` and `measurable_equiv.map_apply`. -/
-@[simp] theorem map_apply {f : α → β} (hf : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
+@[simp] theorem map_apply_of_ae_measurable
+  {f : α → β} (hf : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
   μ.map f s = μ (f ⁻¹' s) :=
 by simpa only [mapₗ, hf.measurable_mk, hs, dif_pos, lift_linear_apply, outer_measure.map_apply,
   coe_to_outer_measure, ← mapₗ_mk_apply_of_ae_measurable hf]
   using measure_congr (hf.ae_eq_mk.symm.preimage s)
 
-@[simp] theorem map_apply_of_measurable
+@[simp] theorem map_apply
   {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   μ.map f s = μ (f ⁻¹' s) :=
-map_apply hf.ae_measurable hs
+map_apply_of_ae_measurable hf.ae_measurable hs
 
 lemma map_to_outer_measure {f : α → β} (hf : ae_measurable f μ) :
   (μ.map f).to_outer_measure = (outer_measure.map f μ.to_outer_measure).trim :=
 begin
   rw [← trimmed, outer_measure.trim_eq_trim_iff],
   intros s hs,
-  rw [coe_to_outer_measure, map_apply hf hs, outer_measure.map_apply,
+  rw [coe_to_outer_measure, map_apply_of_ae_measurable hf hs, outer_measure.map_apply,
     coe_to_outer_measure]
 end
 
 @[simp] lemma map_id : map id μ = μ :=
-ext $ λ s, map_apply ae_measurable_id
+ext $ λ s, map_apply measurable_id
 
 @[simp] lemma map_id' : map (λ x, x) μ = μ := map_id
 
@@ -990,7 +991,7 @@ theorem le_map_apply {f : α → β} (hf : ae_measurable f μ) (s : set β) : μ
 calc μ (f ⁻¹' s) ≤ μ (f ⁻¹' (to_measurable (μ.map f) s)) :
   measure_mono $ preimage_mono $ subset_to_measurable _ _
 ... = μ.map f (to_measurable (μ.map f) s) :
-  (map_apply hf $ measurable_set_to_measurable _ _).symm
+  (map_apply_of_ae_measurable hf $ measurable_set_to_measurable _ _).symm
 ... = μ.map f s : measure_to_measurable _
 
 /-- Even if `s` is not measurable, `map f μ s = 0` implies that `μ (f ⁻¹' s) = 0`. -/
@@ -1469,7 +1470,7 @@ end
 
 lemma map_dirac {f : α → β} (hf : measurable f) (a : α) :
   (dirac a).map f  = dirac (f a) :=
-ext $ λ s hs, by simp [hs, map_apply hf.ae_measurable hs, hf hs, indicator_apply]
+ext $ λ s hs, by simp [hs, map_apply hf hs, hf hs, indicator_apply]
 
 @[simp] lemma restrict_singleton (μ : measure α) (a : α) : μ.restrict {a} = μ {a} • dirac a :=
 begin
@@ -1832,7 +1833,7 @@ ne_bot_iff.trans (not_congr ae_eq_bot)
 
 lemma mem_ae_map_iff {f : α → β} (hf : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
   s ∈ (μ.map f).ae ↔ (f ⁻¹' s) ∈ μ.ae :=
-by simp only [mem_ae_iff, map_apply hf hs.compl, preimage_compl]
+by simp only [mem_ae_iff, map_apply_of_ae_measurable hf hs.compl, preimage_compl]
 
 lemma mem_ae_of_mem_ae_map
   {f : α → β} (hf : ae_measurable f μ) {s : set β} (hs : s ∈ (μ.map f).ae) :
@@ -2146,7 +2147,7 @@ lemma is_finite_measure_of_le (μ : measure α) [is_finite_measure μ] (h : ν �
   is_finite_measure (μ.map f) :=
 begin
   by_cases hf : ae_measurable f μ,
-  { constructor, rw map_apply hf measurable_set.univ, exact measure_lt_top μ _ },
+  { constructor, rw map_apply_of_ae_measurable hf measurable_set.univ, exact measure_lt_top μ _ },
   { rw map_of_not_ae_measurable hf, exact measure_theory.is_finite_measure_zero }
 end
 
@@ -2626,7 +2627,8 @@ lemma sigma_finite.of_map (μ : measure α) {f : α → β} (hf : ae_measurable 
   sigma_finite μ :=
 ⟨⟨⟨λ n, f ⁻¹' (spanning_sets (μ.map f) n),
    λ n, trivial,
-   λ n, by simp only [← map_apply hf, measurable_spanning_sets, measure_spanning_sets_lt_top],
+   λ n, by simp only [← map_apply_of_ae_measurable hf, measurable_spanning_sets,
+     measure_spanning_sets_lt_top],
    by rw [← preimage_Union, Union_spanning_sets, preimage_univ]⟩⟩⟩
 
 lemma _root_.measurable_equiv.sigma_finite_map {μ : measure α} (f : α ≃ᵐ β) (h : sigma_finite μ) :
@@ -2927,7 +2929,7 @@ begin
       hf.injective.preimage_image],
   calc μ.map f s ≤ μ.map f t : measure_mono hst
             ... = μ (f ⁻¹' s) :
-    by rw [map_apply hf.measurable.ae_measurable htm, hft, measure_to_measurable]
+    by rw [map_apply hf.measurable htm, hft, measure_to_measurable]
 end
 
 lemma map_comap (μ : measure β) : (comap f μ).map f  = μ.restrict (range f) :=
@@ -3345,6 +3347,11 @@ begin
   apply measure_congr,
   apply (eventually_eq.refl _ _).inter (hf.ae_eq_mk.symm.preimage s)
 end
+
+lemma measure_theory.measure.map_mono_of_ae_measurable
+  {f : α → β} (h : μ ≤ ν) (hf : ae_measurable f ν) :
+  μ.map f ≤ ν.map f :=
+λ s hs, by simpa [hf, hs, hf.mono_measure h] using measure.le_iff'.1 h (f ⁻¹' s)
 
 end
 

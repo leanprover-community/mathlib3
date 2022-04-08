@@ -90,12 +90,12 @@ lemma comp {g : β → γ} {f : α → β} (hg : measure_preserving g μb μc)
 
 protected lemma sigma_finite {f : α → β} (hf : measure_preserving f μa μb) [sigma_finite μb] :
   sigma_finite μa :=
-sigma_finite.of_map μa hf.1.ae_measurable (by rwa hf.map_eq)
+sigma_finite.of_map μa hf.ae_measurable (by rwa hf.map_eq)
 
 lemma measure_preimage {f : α → β} (hf : measure_preserving f μa μb)
   {s : set β} (hs : measurable_set s) :
   μa (f ⁻¹' s) = μb s :=
-by rw [← hf.map_eq, map_apply hf.1.ae_measurable hs]
+by rw [← hf.map_eq, map_apply hf.1 hs]
 
 lemma measure_preimage_emb {f : α → β} (hf : measure_preserving f μa μb)
   (hfe : measurable_embedding f) (s : set β) :

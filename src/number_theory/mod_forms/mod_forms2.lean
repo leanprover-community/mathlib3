@@ -1,5 +1,4 @@
 import algebra.module.submodule
-import .holomorphic_functions
 import analysis.complex.upper_half_plane
 import linear_algebra.general_linear_group
 import linear_algebra.special_linear_group

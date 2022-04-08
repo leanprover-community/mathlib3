@@ -1258,9 +1258,8 @@ begin
 end
 
 /-- The restriction of the pushforward measure is the pushforward of the restriction. For a version
-assuming only `ae_measurable`, see `restrict_map`. -/
-lemma restrict_map_of_measurable
-  {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
+assuming only `ae_measurable`, see `restrict_map_of_ae_measurable`. -/
+lemma restrict_map {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   (μ.map f).restrict s = (μ.restrict $ f ⁻¹' s).map f  :=
 ext $ λ t ht, by simp [*, hf ht]
 
@@ -3329,14 +3328,14 @@ lemma ae_measurable_map_equiv_iff [measurable_space γ] (e : α ≃ᵐ β) {f : 
   ae_measurable f (μ.map e) ↔ ae_measurable (f ∘ e) μ :=
 e.measurable_embedding.ae_measurable_map_iff
 
-lemma measure_theory.measure.restrict_map
+lemma measure_theory.measure.restrict_map_of_ae_measurable
   {f : α → β} (hf : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
   (μ.map f).restrict s = (μ.restrict $ f ⁻¹' s).map f :=
 calc
 (μ.map f).restrict s = (μ.map (hf.mk f)).restrict s :
   by { congr' 1, apply measure.map_congr hf.ae_eq_mk }
 ... = (μ.restrict $ (hf.mk f) ⁻¹' s).map (hf.mk f) :
-  measure.restrict_map_of_measurable hf.measurable_mk hs
+  measure.restrict_map hf.measurable_mk hs
 ... = (μ.restrict $ (hf.mk f) ⁻¹' s).map f :
   measure.map_congr (ae_restrict_of_ae (hf.ae_eq_mk.symm))
 ... = (μ.restrict $ f ⁻¹' s).map f :

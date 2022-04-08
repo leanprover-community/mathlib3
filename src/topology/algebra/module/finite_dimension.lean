@@ -25,6 +25,60 @@ instance subgroup.uniform_group {G : Type*} [group G] [uniform_space G] [uniform
 { uniform_continuous_div := uniform_continuous_comap' (uniform_continuous_div.comp $
     uniform_continuous_subtype_val.prod_map uniform_continuous_subtype_val) }
 
+lemma linear_map.ker_subgroup_eq_group_hom_ker {R M M' : Type*} [ring R] [add_comm_group M]
+  [add_comm_monoid M'] [module R M] [module R M'] (f : M →ₗ[R] M') :
+f.ker.to_add_subgroup = f.to_add_monoid_hom.ker := rfl
+
+def submodule.quotient_equiv_quotient_group {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  (S : submodule R M) : M ⧸ S ≃+ M ⧸ S.to_add_subgroup :=
+let φ₁ : M ⧸ S.to_add_subgroup ≃+ M ⧸ S.mkq.to_add_monoid_hom.ker :=
+      quotient_add_group.equiv_quotient_of_eq
+      (by rw [← S.mkq.ker_subgroup_eq_group_hom_ker, S.ker_mkq]),
+    φ₂ : M ⧸ S.mkq.to_add_monoid_hom.ker ≃+ M ⧸ S :=
+      quotient_add_group.quotient_ker_equiv_of_surjective S.mkq.to_add_monoid_hom
+      (submodule.quotient.mk_surjective S)
+in (φ₁.trans φ₂).symm
+
+lemma submodule.quotient_equiv_quotient_group_symm_apply {R M : Type*} [ring R] [add_comm_group M]
+  [module R M] (S : submodule R M) {x : M} :
+  S.quotient_equiv_quotient_group.symm (quotient_add_group.mk x) = (S.mkq x) := rfl
+
+lemma submodule.quotient_equiv_quotient_group_symm_comp_mk {R M : Type*} [ring R] [add_comm_group M]
+  [module R M] (S : submodule R M) :
+  S.quotient_equiv_quotient_group.symm ∘ quotient_add_group.mk = S.mkq := rfl
+
+lemma submodule.quotient_equiv_quotient_group_apply {R M : Type*} [ring R] [add_comm_group M]
+  [module R M] (S : submodule R M) {x : M} :
+  S.quotient_equiv_quotient_group (S.mkq x) = (quotient_add_group.mk x) :=
+by rw [add_equiv.apply_eq_iff_symm_apply]; refl
+
+lemma submodule.quotient_equiv_quotient_group_comp_mkq {R M : Type*} [ring R] [add_comm_group M]
+  [module R M] (S : submodule R M) :
+  S.quotient_equiv_quotient_group ∘ S.mkq = quotient_add_group.mk :=
+by funext; exact S.quotient_equiv_quotient_group_apply
+
+def submodule.quotient_homeomorph_quotient_group {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  (S : submodule R M) [topological_space M] : M ⧸ S ≃ₜ M ⧸ S.to_add_subgroup :=
+{ continuous_to_fun :=
+  begin
+    refine continuous_coinduced_dom _,
+    change continuous (S.quotient_equiv_quotient_group ∘ S.mkq),
+    rw S.quotient_equiv_quotient_group_comp_mkq,
+    exact continuous_quot_mk
+  end,
+  continuous_inv_fun := continuous_coinduced_dom continuous_quot_mk,
+  .. S.quotient_equiv_quotient_group }
+
+instance submodule.topological_add_group_quotient {R M : Type*} [ring R] [add_comm_group M]
+  [module R M] [topological_space M] [topological_add_group M] (S : submodule R M) :
+    topological_add_group (M ⧸ S) :=
+begin
+  have : inducing S.quotient_equiv_quotient_group :=
+    S.quotient_homeomorph_quotient_group.inducing,
+  rw this.1,
+  exact topological_add_group_induced _
+end
+
 lemma induced_symm {α β : Type*} {e : α ≃ β} : induced e.symm = coinduced e :=
 begin
   ext t U,
@@ -183,7 +237,7 @@ begin
   { rw [finrank_eq_zero, linear_map.range_eq_bot] at H,
     rw H,
     exact continuous_zero },
-  { letI : topological_add_group (E ⧸ l.ker) := sorry,
+  { letI : topological_add_group (E ⧸ l.ker) := l.ker.topological_add_group_quotient,
     letI : has_continuous_smul 𝕜 (E ⧸ l.ker) := sorry,
     letI : t2_space (E ⧸ l.ker) := sorry,
     have : finrank 𝕜 l.range = 1,

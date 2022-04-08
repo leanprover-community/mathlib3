@@ -21,7 +21,7 @@ universes v u
 open_locale classical
 noncomputable theory
 
-open category_theory category_theory.limits homological_complex
+open category_theory category_theory.category category_theory.limits homological_complex
 
 variables {ι : Type*}
 variables {V : Type u} [category.{v} V] [preadditive V]
@@ -139,6 +139,28 @@ by tidy
 by tidy
 
 end category_theory
+
+namespace chain_complex
+
+variables {W : Type*} [category W] [preadditive W]
+variables {α : Type*} [add_right_cancel_semigroup α] [has_one α] [decidable_eq α]
+
+lemma map_chain_complex_of (F : V ⥤ W) [F.additive] (X : α → V) (d : Π n, X (n+1) ⟶ X n)
+  (sq : ∀ n, d (n+1) ≫ d n = 0) :
+  (F.map_homological_complex _).obj (chain_complex.of X d sq) =
+  chain_complex.of (λ n, F.obj (X n))
+    (λ n, F.map (d n)) (λ n, by rw [ ← F.map_comp, sq n, functor.map_zero]) :=
+begin
+  apply homological_complex.ext,
+  intros i j hij,
+  { have h : j+1=i := hij,
+    subst h,
+    simp only [category_theory.functor.map_homological_complex_obj_d, of_d,
+      eq_to_hom_refl, comp_id, id_comp], },
+  { refl, }
+end
+
+end chain_complex
 
 variables [has_zero_object V] {W : Type*} [category W] [preadditive W] [has_zero_object W]
 

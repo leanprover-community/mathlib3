@@ -28,6 +28,8 @@ namespace subgroup
 
 section schur_zassenhaus_abelian
 
+open mem_left_transversals
+
 variables {G : Type*} [group G] {H : subgroup G}
 
 variables [is_commutative H] [fintype (G ⧸ H)]

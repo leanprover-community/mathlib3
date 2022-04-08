@@ -24,15 +24,6 @@ open subgroup
 
 variables (α : Type*) {β : Type*} [monoid α] [mul_action α β] [group β] (H : subgroup β)
 
-/-- A typeclass for when a `mul_action α β` descends to the quotient `β ⧸ H`. -/
-class quotient_action : Prop :=
-(inv_mul_mem : ∀ (a : α) {b c : β}, b⁻¹ * c ∈ H → (a • b)⁻¹ * (a • c) ∈ H)
-
-/-- A typeclass for when an `add_action α β` descends to the quotient `β ⧸ H`. -/
-class _root_.add_action.quotient_action (α : Type*) {β : Type*} [add_monoid α] [add_action α β]
-  [add_group β] (H : add_subgroup β) : Prop :=
-(inv_mul_mem : ∀ (a : α) {b c : β}, -b + c ∈ H → -(a +ᵥ b) + (a +ᵥ c) ∈ H)
-
 attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 
 @[to_additive] instance left_quotient_action : quotient_action β H :=
@@ -206,7 +197,7 @@ end
 
 lemma transfer_eq_pow (hH : H ≤ center G) (g : G) : transfer ϕ g = ϕ ⟨g ^ H.index, sorry⟩ :=
 begin
-
+  sorry,
 end
 
 @[to_additive] noncomputable def transfer_pow (hH : H ≤ center G) : G →* H :=

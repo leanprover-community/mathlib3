@@ -1227,6 +1227,9 @@ end ordinal
 namespace cardinal
 open ordinal
 
+@[simp] theorem mk_ordinal_out (o : ordinal.{u}) : #(o.out.α) = o.card :=
+by { convert (ordinal.card_type (<)).symm, exact (ordinal.type_lt o).symm }
+
 /-- The ordinal corresponding to a cardinal `c` is the least ordinal
   whose cardinal is `c`. For the order-embedding version, see `ord.order_embedding`. -/
 def ord (c : cardinal) : ordinal :=

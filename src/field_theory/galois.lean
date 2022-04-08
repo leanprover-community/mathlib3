@@ -150,7 +150,7 @@ lemma alg_equiv.transfer_galois (f : E ≃ₐ[F] E') : is_galois F E ↔ is_galo
 ⟨λ h, by exactI is_galois.of_alg_equiv f, λ h, by exactI is_galois.of_alg_equiv f.symm⟩
 
 lemma is_galois_iff_is_galois_top : is_galois F (⊤ : intermediate_field F E) ↔ is_galois F E :=
-(intermediate_field.top_equiv).transfer_galois
+(intermediate_field.top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E).transfer_galois
 
 instance is_galois_bot : is_galois F (⊥ : intermediate_field F E) :=
 (intermediate_field.bot_equiv F E).transfer_galois.mpr (is_galois.self F)
@@ -401,7 +401,8 @@ begin
   simp only [P] at *,
   rw [of_separable_splitting_field_aux hp K (multiset.mem_to_finset.mp hx),
     hK, finrank_mul_finrank],
-  exact (linear_equiv.finrank_eq (intermediate_field.lift2_alg_equiv K⟮x⟯).to_linear_equiv).symm,
+  symmetry,
+  exact linear_equiv.finrank_eq (alg_equiv.to_linear_equiv (intermediate_field.lift2_alg_equiv _))
 end
 
 /--Equivalent characterizations of a Galois extension of finite degree-/

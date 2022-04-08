@@ -991,11 +991,13 @@ Constructs a list of `tactic expr` given a list of p-expressions, as follows:
 We need to return a list of `tactic expr`, rather than just `expr`, because these expressions
 will be repeatedly applied against goals, and we need to ensure that metavariables don't get stuck.
 -/
-meta def build_list_expr_for_apply (inputs : list pexpr) : tactic (list (tactic expr)) :=
+meta def build_list_expr_for_apply (inputs : list (name ⊕ pexpr)) : tactic (list (tactic expr)) :=
 inputs.mfoldl (λ l h, do
-  nl ← resolve_attribute_expr_list h.local_pp_name
-       <|> return [i_to_expr_for_apply h]
-       <|> fail format!"{h} is not a valid input",
+  nl ← match h with
+  | sum.inl n := resolve_attribute_expr_list n <|> do
+    h ← pexpr.mk_explicit <$> resolve_name n, return [i_to_expr h]
+  | sum.inr h := return [i_to_expr_for_apply h]
+  end,
   return $ nl ++ l)
   []
 
@@ -1005,7 +1007,7 @@ first goal and the resulting subgoals, iteratively, at most `n` times.
 Unlike `solve_by_elim`, `apply_rules` does not do any backtracking, and just greedily applies
 a lemma from the list until it can't.
  -/
-meta def apply_rules (hs : list pexpr) (n : nat) (opt : apply_cfg) : tactic unit :=
+meta def apply_rules (hs : list (name ⊕ pexpr)) (n : nat) (opt : apply_cfg) : tactic unit :=
 do l ← lock_tactic_state $ build_list_expr_for_apply hs,
    iterate_at_most_on_subgoals n (assumption <|> apply_list_expr opt l)
 

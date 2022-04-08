@@ -505,6 +505,14 @@ add_tactic_doc
   tags       := ["structures"],
   inherit_description_from := `tactic.interactive.refine_struct }
 
+/-- Parses either an identifier or a pexpr -/
+meta def parser.ident_or_pexpr : lean.parser (name ⊕ pexpr) :=
+sum.inl <$> ident <|> sum.inr <$> parser.pexpr
+
+/-- Parses an identifier, a pexpr, or a list of identifiers or pexprs. -/
+meta def apply_rules_parser : lean.parser (list (name ⊕ pexpr)) :=
+list_of parser.ident_or_pexpr <|> list.ret <$> parser.ident_or_pexpr
+
 /--
 `apply_rules hs n` applies the list of lemmas `hs` and `assumption` on the
 first goal and the resulting subgoals, iteratively, at most `n` times.
@@ -536,7 +544,7 @@ by apply_rules [mono_rules]
 by apply_rules mono_rules
 ```
 -/
-meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) (opt : apply_cfg := {}) :
+meta def apply_rules (hs : parse apply_rules_parser) (n : nat := 50) (opt : apply_cfg := {}) :
   tactic unit :=
 tactic.apply_rules hs n opt
 

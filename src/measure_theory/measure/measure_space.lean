@@ -986,19 +986,19 @@ ext $ λ s hs, by simp [hf, hg, hs, hg hs, hg.comp hf, ← preimage_comp]
 
 /-- Even if `s` is not measurable, we can bound `map f μ s` from below.
   See also `measurable_equiv.map_apply`. -/
-theorem le_map_apply {f : α → β} (hf : measurable f) (s : set β) : μ (f ⁻¹' s) ≤ μ.map f s :=
+theorem le_map_apply {f : α → β} (hf : ae_measurable f μ) (s : set β) : μ (f ⁻¹' s) ≤ μ.map f s :=
 calc μ (f ⁻¹' s) ≤ μ (f ⁻¹' (to_measurable (μ.map f) s)) :
   measure_mono $ preimage_mono $ subset_to_measurable _ _
 ... = μ.map f (to_measurable (μ.map f) s) :
-  (map_apply hf.ae_measurable $ measurable_set_to_measurable _ _).symm
+  (map_apply hf $ measurable_set_to_measurable _ _).symm
 ... = μ.map f s : measure_to_measurable _
 
 /-- Even if `s` is not measurable, `map f μ s = 0` implies that `μ (f ⁻¹' s) = 0`. -/
-lemma preimage_null_of_map_null {f : α → β} (hf : measurable f) {s : set β}
+lemma preimage_null_of_map_null {f : α → β} (hf : ae_measurable f μ) {s : set β}
   (hs : μ.map f s = 0) : μ (f ⁻¹' s) = 0 :=
 nonpos_iff_eq_zero.mp $ (le_map_apply hf s).trans_eq hs
 
-lemma tendsto_ae_map {f : α → β} (hf : measurable f) : tendsto f μ.ae (μ.map f).ae :=
+lemma tendsto_ae_map {f : α → β} (hf : ae_measurable f μ) : tendsto f μ.ae (μ.map f).ae :=
 λ s hs, preimage_null_of_map_null hf hs
 
 omit m0
@@ -1750,11 +1750,14 @@ protected lemma iterate {f : α → α} (hf : quasi_measure_preserving f μa μa
 | 0 := quasi_measure_preserving.id μa
 | (n + 1) := (iterate n).comp hf
 
+protected lemma ae_measurable (hf : quasi_measure_preserving f μa μb) : ae_measurable f μa :=
+hf.1.ae_measurable
+
 lemma ae_map_le (h : quasi_measure_preserving f μa μb) : (μa.map f).ae ≤ μb.ae :=
 h.2.ae_le
 
 lemma tendsto_ae (h : quasi_measure_preserving f μa μb) : tendsto f μa.ae μb.ae :=
-(tendsto_ae_map h.1).mono_right h.ae_map_le
+(tendsto_ae_map h.ae_measurable).mono_right h.ae_map_le
 
 lemma ae (h : quasi_measure_preserving f μa μb) {p : β → Prop} (hg : ∀ᵐ x ∂μb, p x) :
   ∀ᵐ x ∂μa, p (f x) :=
@@ -1766,7 +1769,7 @@ h.ae hg
 
 lemma preimage_null (h : quasi_measure_preserving f μa μb) {s : set β} (hs : μb s = 0) :
   μa (f ⁻¹' s) = 0 :=
-preimage_null_of_map_null h.1 (h.2 hs)
+preimage_null_of_map_null h.ae_measurable (h.2 hs)
 
 end quasi_measure_preserving
 
@@ -1828,7 +1831,8 @@ lemma mem_ae_map_iff {f : α → β} (hf : ae_measurable f μ) {s : set β} (hs 
   s ∈ (μ.map f).ae ↔ (f ⁻¹' s) ∈ μ.ae :=
 by simp only [mem_ae_iff, map_apply hf hs.compl, preimage_compl]
 
-lemma mem_ae_of_mem_ae_map {f : α → β} (hf : measurable f) {s : set β} (hs : s ∈ (μ.map f).ae) :
+lemma mem_ae_of_mem_ae_map
+  {f : α → β} (hf : ae_measurable f μ) {s : set β} (hs : s ∈ (μ.map f).ae) :
   f ⁻¹' s ∈ μ.ae :=
 (tendsto_ae_map hf).eventually hs
 
@@ -1837,7 +1841,7 @@ lemma ae_map_iff
   (∀ᵐ y ∂ (μ.map f), p y) ↔ ∀ᵐ x ∂ μ, p (f x) :=
 mem_ae_map_iff hf hp
 
-lemma ae_of_ae_map {f : α → β} (hf : measurable f) {p : β → Prop} (h : ∀ᵐ y ∂ (μ.map f), p y) :
+lemma ae_of_ae_map {f : α → β} (hf : ae_measurable f μ) {p : β → Prop} (h : ∀ᵐ y ∂ (μ.map f), p y) :
   ∀ᵐ x ∂ μ, p (f x) :=
 mem_ae_of_mem_ae_map hf h
 
@@ -2907,7 +2911,7 @@ include hf
 
 theorem map_apply (μ : measure α) (s : set β) : μ.map f s = μ (f ⁻¹' s) :=
 begin
-  refine le_antisymm _ (le_map_apply hf.measurable s),
+  refine le_antisymm _ (le_map_apply hf.measurable.ae_measurable s),
   set t := f '' (to_measurable μ (f ⁻¹' s)) ∪ (range f)ᶜ,
   have htm : measurable_set t,
     from (hf.measurable_set_image.2 $ measurable_set_to_measurable _ _).union

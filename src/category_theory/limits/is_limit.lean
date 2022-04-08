@@ -342,7 +342,7 @@ let w' : e.inverse ⋙ F ≅ G := (iso_whisker_left e.inverse w).symm ≪≫ inv
     simp only [limits.cone.whisker_π, limits.cones.postcompose_obj_π, fac, whisker_left_app,
       assoc, id_comp, inv_fun_id_assoc_hom_app, fac_assoc, nat_trans.comp_app],
     rw [counit_app_functor, ←functor.comp_map, w.hom.naturality],
-    simp?,
+    simp,
   end,
   inv_hom_id' := by { apply hom_ext Q, tidy, }, }
 

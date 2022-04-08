@@ -289,20 +289,20 @@ end
 section
 variables (R)
 
-@[simp] lemma coe_mul [semiring R] [add_comm_monoid A] [has_mul A] [module R A] (a₁ a₂ : A) :
-  (↑(a₁ * a₂) : unitization R A) = a₁ * a₂ :=
+@[simp] lemma coe_mul [semiring R] [add_comm_monoid A] [has_mul A] [smul_with_zero R A]
+  (a₁ a₂ : A) : (↑(a₁ * a₂) : unitization R A) = a₁ * a₂ :=
 ext (mul_zero _).symm $ show a₁ * a₂ = (0 : R) • a₂ + (0 : R) • a₁ + a₁ * a₂,
   by simp only [zero_smul, zero_add]
 
 end
 
-lemma inl_mul_coe [semiring R] [non_unital_non_assoc_semiring A] [module R A] (r : R) (a : A) :
-  (inl r * a : unitization R A) = ↑(r • a) :=
+lemma inl_mul_coe [semiring R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
+  (r : R) (a : A) : (inl r * a : unitization R A) = ↑(r • a) :=
 ext (mul_zero r) $ show r • a + (0 : R) • 0 + 0 * a = r • a,
   by rw [smul_zero, add_zero, zero_mul, add_zero]
 
-lemma coe_mul_inl [semiring R] [non_unital_non_assoc_semiring A] [module R A] (r : R) (a : A) :
-  (a * inl r : unitization R A) = ↑(r • a) :=
+lemma coe_mul_inl [semiring R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
+  (r : R) (a : A) : (a * inl r : unitization R A) = ↑(r • a) :=
 ext (zero_mul r) $ show (0 : R) • 0 + r • a + a * 0 = r • a,
   by rw [smul_zero, zero_add, mul_zero, add_zero]
 

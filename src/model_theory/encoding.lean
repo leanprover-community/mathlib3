@@ -180,7 +180,8 @@ def list_decode :
 | (e n t₁ t₂ :: l) := ⟨⟨n, equal t₁ t₂⟩, l⟩
 | (r k n R ts :: l) := ⟨⟨k, rel R ts⟩, l⟩
 | (i :: l) := if h : (list_decode l).2.sizeof < 1 + 1 + l.sizeof
-  then ⟨sigma_imp (list_decode l).1 (list_decode (list_decode l).2).1, (list_decode (list_decode l).2).2⟩
+  then ⟨sigma_imp (list_decode l).1 (list_decode (list_decode l).2).1,
+    (list_decode (list_decode l).2).2⟩
   else ⟨default, []⟩
 | (a :: l) := ⟨sigma_all (list_decode l).1, (list_decode l).2⟩
 | _ := ⟨default, []⟩

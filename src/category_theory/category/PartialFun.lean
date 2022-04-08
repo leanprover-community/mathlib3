@@ -41,6 +41,8 @@ instance : has_coe_to_sort PartialFun Type* := ⟨id⟩
 /-- Turns a type into a `PartialFun`. -/
 @[nolint has_inhabited_instance] def of : Type* → PartialFun := id
 
+@[simp] lemma coe_of (X : Type*) : ↥(of X) = X := rfl
+
 instance : inhabited PartialFun := ⟨Type*⟩
 
 instance large_category : large_category.{u} PartialFun :=

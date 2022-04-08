@@ -191,7 +191,7 @@ def fin_range (n : ℕ) : list (fin n) :=
 mem_pmap.2 ⟨a.1, mem_range.2 a.2, fin.eta _ _⟩
 
 lemma nodup_fin_range (n : ℕ) : (fin_range n).nodup :=
-nodup_pmap (λ _ _ _ _, fin.veq_of_eq) (nodup_range _)
+(nodup_range _).pmap $ λ _ _ _ _, fin.veq_of_eq
 
 @[simp] lemma length_fin_range (n : ℕ) : (fin_range n).length = n :=
 by rw [fin_range, length_pmap, length_range]
@@ -277,7 +277,6 @@ by rw [← of_fn_id, map_of_fn, function.right_id]
 
 theorem nodup_of_fn {α n} {f : fin n → α} (hf : function.injective f) :
   nodup (of_fn f) :=
-by rw of_fn_eq_pmap; from nodup_pmap
-  (λ _ _ _ _ H, fin.veq_of_eq $ hf H) (nodup_range n)
+by { rw of_fn_eq_pmap, exact (nodup_range n).pmap (λ _ _ _ _ H, fin.veq_of_eq $ hf H) }
 
 end list

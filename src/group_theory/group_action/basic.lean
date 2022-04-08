@@ -103,6 +103,20 @@ def stabilizer.submonoid (b : β) : submonoid α :=
   orbit α x = set.univ :=
 (surjective_smul α x).range_eq
 
+variables {α} {β}
+
+@[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
+  [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
+begin
+  rw [fintype.card_eq_one_iff, mem_fixed_points],
+  split,
+  { exact λ h, ⟨⟨a, mem_orbit_self _⟩, λ ⟨b, ⟨x, hx⟩⟩, subtype.eq $ by simp [h x, hx.symm]⟩ },
+  { assume h x,
+    rcases h with ⟨⟨z, hz⟩, hz₁⟩,
+    calc x • a = z : subtype.mk.inj (hz₁ ⟨x • a, mem_orbit _ _⟩)
+      ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
+end
+
 end mul_action
 
 namespace mul_action
@@ -141,18 +155,6 @@ instance (x : β) : is_pretransitive α (orbit α x) :=
 @[to_additive] lemma orbit_eq_iff {a b : β} :
    orbit α a = orbit α b ↔ a ∈ orbit α b:=
 ⟨λ h, h ▸ mem_orbit_self _, λ ⟨c, hc⟩, hc ▸ orbit_smul _ _⟩
-
-@[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
-  [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
-begin
-  rw [fintype.card_eq_one_iff, mem_fixed_points],
-  split,
-  { exact λ h, ⟨⟨a, mem_orbit_self _⟩, λ ⟨b, ⟨x, hx⟩⟩, subtype.eq $ by simp [h x, hx.symm]⟩ },
-  { assume h x,
-    rcases h with ⟨⟨z, hz⟩, hz₁⟩,
-    calc x • a = z : subtype.mk.inj (hz₁ ⟨x • a, mem_orbit _ _⟩)
-      ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
-end
 
 variables (α) {β}
 
@@ -294,20 +296,11 @@ variables [group α] [mul_action α β]
 
 open quotient_group
 
-/-- Action on left cosets. -/
-@[to_additive "Action on left cosets."]
-def mul_left_cosets (H : subgroup α)
-  (x : α) (y : α ⧸ H) : α ⧸ H :=
-quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
-  (λ a b (hab : _ ∈ H), quotient_group.eq.2
-    (by rwa [mul_inv_rev, ← mul_assoc, mul_assoc (a⁻¹), inv_mul_self, mul_one]))
-
 @[to_additive] instance quotient (H : subgroup α) : mul_action α (α ⧸ H) :=
-{ smul := mul_left_cosets H,
-  one_smul := λ a, quotient.induction_on' a (λ a, quotient_group.eq.2
-    (by simp [subgroup.one_mem])),
-  mul_smul := λ x y a, quotient.induction_on' a (λ a, quotient_group.eq.2
-    (by simp [mul_inv_rev, subgroup.one_mem, mul_assoc])) }
+{ smul := λ g, quotient.map' ((*) g)
+    (λ a b, (congr_arg (∈ H) (by rw [mul_inv_rev, mul_assoc, inv_mul_cancel_left])).mp),
+  one_smul := λ a, quotient.induction_on' a (λ a, congr_arg quotient.mk' (one_mul a)),
+  mul_smul := λ x y a, quotient.induction_on' a (λ a, congr_arg quotient.mk' (mul_assoc x y a)) }
 
 @[simp, to_additive] lemma quotient.smul_mk (H : subgroup α) (a x : α) :
   (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (a * x) := rfl
@@ -318,6 +311,19 @@ quotient.lift_on' y (λ y, quotient_group.mk ((x : α) * y))
 @[to_additive] instance mul_left_cosets_comp_subtype_val (H I : subgroup α) :
   mul_action I (α ⧸ H) :=
 mul_action.comp_hom (α ⧸ H) (subgroup.subtype I)
+
+@[to_additive] instance quotient' (H : subgroup α) : mul_action H.normalizerᵐᵒᵖ (α ⧸ H) :=
+{ smul := λ g, quotient.map' (* g.unop) (λ a b, (congr_arg (∈ H) (by rw [subtype.val_eq_coe,
+    subgroup.coe_inv, inv_inv, ←mul_assoc, ←mul_inv_rev, mul_assoc])).mp ∘ (g.unop⁻¹.2 _).mp),
+  one_smul := λ a, quotient.induction_on' a (λ a, congr_arg quotient.mk' (mul_one a)),
+  mul_smul := λ x y a, quotient.induction_on' a
+    (λ a, congr_arg quotient.mk' (mul_assoc a y.unop x.unop).symm) }
+
+@[simp, to_additive] lemma quotient'.smul_mk (H : subgroup α) (a : H.normalizerᵐᵒᵖ) (x : α) :
+  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (x * a.unop) := rfl
+
+@[simp, to_additive] lemma quotient'.smul_coe (H : subgroup α) (a : H.normalizerᵐᵒᵖ) (x : α) :
+  (a • x : α ⧸ H) = ↑(x * a.unop) := rfl
 
 variables (α) {β} (x : β)
 

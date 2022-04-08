@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yourong Zang, Yury Kudryashov
 -/
 import topology.separation
-import topology.opens
+import topology.sets.opens
 
 /-!
 # The Alexandroff Compactification
@@ -42,12 +42,16 @@ In this section we define `alexandroff X` to be the disjoint union of `X` and `�
 `option X`. Then we restate some lemmas about `option X` for `alexandroff X`.
 -/
 
+variables {X : Type*}
+
 /-- The Alexandroff extension of an arbitrary topological space `X` -/
 def alexandroff (X : Type*) := option X
 
-namespace alexandroff
+/-- The repr uses the notation from the `alexandroff` locale. -/
+instance [has_repr X] : has_repr (alexandroff X) :=
+⟨λ o, match o with | none := "∞" | (some a) := "↑" ++ repr a end⟩
 
-variables {X : Type*}
+namespace alexandroff
 
 /-- The point at infinity -/
 def infty : alexandroff X := none

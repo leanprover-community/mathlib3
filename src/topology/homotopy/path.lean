@@ -33,7 +33,7 @@ In this file, we define a `homotopy` between two `path`s. In addition, we define
 universes u v
 
 variables {X : Type u} {Y : Type v} [topological_space X] [topological_space Y]
-variables {x₀ x₁ x₂ : X}
+variables {x₀ x₁ x₂ x₃ : X}
 
 noncomputable theory
 
@@ -309,6 +309,29 @@ quotient.map (λ (q : path x₀ x₁), q.map f.continuous) (λ p₀ p₁ h, path
 lemma map_lift (P₀ : path x₀ x₁) (f : C(X, Y)) :
   ⟦P₀.map f.continuous⟧ = quotient.map_fn ⟦P₀⟧ f := rfl
 
+lemma hpath_hext {p₁ : path x₀ x₁} {p₂ : path x₂ x₃} (hp : ∀ t, p₁ t = p₂ t) : ⟦p₁⟧ == ⟦p₂⟧ :=
+begin
+  have : x₀ = x₂ := by { convert hp 0; simp, }, subst this,
+  have : x₁ = x₃ := by { convert hp 1; simp, }, subst this,
+  rw heq_iff_eq, congr, ext t, exact hp t,
+end
+
+
 end homotopic
 
 end path
+
+
+namespace continuous_map.homotopy
+
+/--
+Given a homotopy H: f ∼ g, get the path traced by the point `x` as it moves from
+`f x` to `g x`
+-/
+def eval_at {X : Type*} {Y : Type*} [topological_space X] [topological_space Y] {f g : C(X, Y)}
+  (H : continuous_map.homotopy f g) (x : X) : path (f x) (g x) :=
+{ to_fun := λ t, H (t, x),
+  source' := H.apply_zero x,
+  target' := H.apply_one x, }
+
+end continuous_map.homotopy

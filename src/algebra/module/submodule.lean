@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 -/
 import algebra.module.linear_map
-import data.equiv.module
+import algebra.module.equiv
 import group_theory.group_action.sub_mul_action
 /-!
 
@@ -47,7 +47,12 @@ namespace submodule
 variables [semiring R] [add_comm_monoid M] [module R M]
 
 instance : set_like (submodule R M) M :=
-⟨submodule.carrier, λ p q h, by cases p; cases q; congr'⟩
+{ coe := submodule.carrier,
+  coe_injective' := λ p q h, by cases p; cases q; congr' }
+
+instance : add_submonoid_class (submodule R M) M :=
+{ zero_mem := zero_mem',
+  add_mem := add_mem' }
 
 @[simp] theorem mem_to_add_submonoid (p : submodule R M) (x : M) : x ∈ p.to_add_submonoid ↔ x ∈ p :=
 iff.rfl
@@ -282,7 +287,11 @@ variables {module_M : module R M}
 variables (p p' : submodule R M)
 variables {r : R} {x y : M}
 
-lemma neg_mem (hx : x ∈ p) : -x ∈ p := p.to_sub_mul_action.neg_mem hx
+instance [module R M] : add_subgroup_class (submodule R M) M :=
+{ neg_mem := λ p x, p.to_sub_mul_action.neg_mem,
+  .. submodule.add_submonoid_class }
+
+lemma neg_mem (hx : x ∈ p) : -x ∈ p := neg_mem_class.neg_mem hx
 
 /-- Reinterpret a submodule as an additive subgroup. -/
 def to_add_subgroup : add_subgroup M :=
@@ -317,6 +326,12 @@ lemma sub_mem : x ∈ p → y ∈ p → x - y ∈ p := p.to_add_subgroup.sub_mem
 lemma add_mem_iff_left : y ∈ p → (x + y ∈ p ↔ x ∈ p) := p.to_add_subgroup.add_mem_cancel_right
 
 lemma add_mem_iff_right : x ∈ p → (x + y ∈ p ↔ y ∈ p) := p.to_add_subgroup.add_mem_cancel_left
+
+lemma sub_mem_iff_left (hy : y ∈ p) : (x - y) ∈ p ↔ x ∈ p :=
+by rw [sub_eq_add_neg, p.add_mem_iff_left (p.neg_mem hy)]
+
+lemma sub_mem_iff_right (hx : x ∈ p) : (x - y) ∈ p ↔ y ∈ p :=
+by rw [sub_eq_add_neg, p.add_mem_iff_right hx, p.neg_mem_iff]
 
 instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 
@@ -354,26 +369,26 @@ variables [semiring R]
 instance to_ordered_add_comm_monoid
   {M} [ordered_add_comm_monoid M] [module R M] (S : submodule R M) :
   ordered_add_comm_monoid S :=
-subtype.coe_injective.ordered_add_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.ordered_add_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submodule of a `linear_ordered_add_comm_monoid` is a `linear_ordered_add_comm_monoid`. -/
 instance to_linear_ordered_add_comm_monoid
   {M} [linear_ordered_add_comm_monoid M] [module R M] (S : submodule R M) :
   linear_ordered_add_comm_monoid S :=
-subtype.coe_injective.linear_ordered_add_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_add_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submodule of an `ordered_cancel_add_comm_monoid` is an `ordered_cancel_add_comm_monoid`. -/
 instance to_ordered_cancel_add_comm_monoid
   {M} [ordered_cancel_add_comm_monoid M] [module R M] (S : submodule R M) :
   ordered_cancel_add_comm_monoid S :=
-subtype.coe_injective.ordered_cancel_add_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.ordered_cancel_add_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submodule of a `linear_ordered_cancel_add_comm_monoid` is a
 `linear_ordered_cancel_add_comm_monoid`. -/
 instance to_linear_ordered_cancel_add_comm_monoid
   {M} [linear_ordered_cancel_add_comm_monoid M] [module R M] (S : submodule R M) :
   linear_ordered_cancel_add_comm_monoid S :=
-subtype.coe_injective.linear_ordered_cancel_add_comm_monoid coe rfl (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_cancel_add_comm_monoid coe rfl (λ _ _, rfl) (λ _ _, rfl)
 
 end ordered_monoid
 
@@ -385,14 +400,16 @@ variables [ring R]
 instance to_ordered_add_comm_group
   {M} [ordered_add_comm_group M] [module R M] (S : submodule R M) :
   ordered_add_comm_group S :=
-subtype.coe_injective.ordered_add_comm_group coe rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.ordered_add_comm_group coe
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A submodule of a `linear_ordered_add_comm_group` is a
 `linear_ordered_add_comm_group`. -/
 instance to_linear_ordered_add_comm_group
   {M} [linear_ordered_add_comm_group M] [module R M] (S : submodule R M) :
   linear_ordered_add_comm_group S :=
-subtype.coe_injective.linear_ordered_add_comm_group coe rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+subtype.coe_injective.linear_ordered_add_comm_group coe
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 end ordered_group
 

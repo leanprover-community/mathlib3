@@ -224,7 +224,6 @@ end
 protected lemma range_linear_isometry [Π i, complete_space (G i)] :
   hV.linear_isometry.to_linear_map.range = (⨆ i, (V i).to_linear_map.range).topological_closure :=
 begin
-  classical,
   refine le_antisymm _ _,
   { rintros x ⟨f, rfl⟩,
     refine mem_closure_of_tendsto (hV.has_sum_linear_isometry f) (eventually_of_forall _),
@@ -237,7 +236,7 @@ begin
     { refine supr_le _,
       rintros i x ⟨x, rfl⟩,
       use lp.single 2 i x,
-      convert hV.linear_isometry_apply_single _ },
+      exact hV.linear_isometry_apply_single x },
     exact hV.linear_isometry.isometry.uniform_inducing.is_complete_range.is_closed }
 end
 

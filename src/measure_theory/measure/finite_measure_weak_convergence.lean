@@ -132,14 +132,17 @@ instance : inhabited (finite_measure α) := ⟨0⟩
 instance : has_add (finite_measure α) :=
 { add := λ μ ν, ⟨μ + ν, measure_theory.is_finite_measure_add⟩ }
 
-instance : has_scalar ℝ≥0 (finite_measure α) :=
-{ smul := λ (c : ℝ≥0) μ, ⟨c • μ, measure_theory.is_finite_measure_smul_nnreal⟩, }
+variables {R : Type*} [has_scalar R ℝ≥0] [has_scalar R ℝ≥0∞] [is_scalar_tower R ℝ≥0 ℝ≥0∞]
+  [is_scalar_tower R ℝ≥0∞ ℝ≥0∞]
+
+instance : has_scalar R (finite_measure α) :=
+{ smul := λ (c : R) μ, ⟨c • μ, measure_theory.is_finite_measure_smul_of_nnreal_tower⟩, }
 
 @[simp, norm_cast] lemma coe_zero : (coe : finite_measure α → measure α) 0 = 0 := rfl
 
 @[simp, norm_cast] lemma coe_add (μ ν : finite_measure α) : ↑(μ + ν) = (↑μ + ↑ν : measure α) := rfl
 
-@[simp, norm_cast] lemma coe_smul (c : ℝ≥0) (μ : finite_measure α) :
+@[simp, norm_cast] lemma coe_smul (c : R) (μ : finite_measure α) :
   ↑(c • μ) = (c • ↑μ : measure α) := rfl
 
 @[simp, norm_cast] lemma coe_fn_zero :
@@ -149,13 +152,12 @@ instance : has_scalar ℝ≥0 (finite_measure α) :=
   (⇑(μ + ν) : set α → ℝ≥0) = (⇑μ + ⇑ν : set α → ℝ≥0) :=
 by { funext, simp [← ennreal.coe_eq_coe], }
 
-@[simp, norm_cast] lemma coe_fn_smul (c : ℝ≥0) (μ : finite_measure α) :
+@[simp, norm_cast] lemma coe_fn_smul [is_scalar_tower R ℝ≥0 ℝ≥0] (c : R) (μ : finite_measure α) :
   (⇑(c • μ) : set α → ℝ≥0) = c • (⇑μ : set α → ℝ≥0) :=
-by { funext, simp [← ennreal.coe_eq_coe], }
+by { funext, simp [← ennreal.coe_eq_coe, ennreal.coe_smul], }
 
 instance : add_comm_monoid (finite_measure α) :=
-finite_measure.coe_injective.add_comm_monoid
-  (coe : finite_measure α → measure α) finite_measure.coe_zero finite_measure.coe_add
+finite_measure.coe_injective.add_comm_monoid coe coe_zero coe_add (λ _ _, coe_smul _ _)
 
 /-- Coercion is an `add_monoid_hom`. -/
 @[simps]
@@ -220,12 +222,16 @@ begin
   exact bounded_continuous_function.nnreal.to_ennreal_comp_measurable _,
 end
 
-lemma test_against_nn_smul (μ : finite_measure α) (c : ℝ≥0) (f : α →ᵇ ℝ≥0) :
-  μ.test_against_nn (c • f) = c * μ.test_against_nn f :=
+lemma test_against_nn_smul [is_scalar_tower R ℝ≥0 ℝ≥0] [pseudo_metric_space R] [has_zero R]
+  [has_bounded_smul R ℝ≥0]
+  (μ : finite_measure α) (c : R) (f : α →ᵇ ℝ≥0) :
+  μ.test_against_nn (c • f) = c • μ.test_against_nn f :=
 begin
-  simp only [←ennreal.coe_eq_coe, algebra.id.smul_eq_mul, bounded_continuous_function.coe_smul,
-             test_against_nn_coe_eq, ennreal.coe_mul],
-  exact @lintegral_const_mul _ _ (μ : measure α) c _
+  simp only [←ennreal.coe_eq_coe, bounded_continuous_function.coe_smul,
+             test_against_nn_coe_eq, ennreal.coe_smul],
+  simp_rw [←smul_one_smul ℝ≥0∞ c (f _ : ℝ≥0∞), ←smul_one_smul ℝ≥0∞ c (lintegral _ _ : ℝ≥0∞),
+    smul_eq_mul],
+  exact @lintegral_const_mul _ _ (μ : measure α) (c • 1)  _
                    (bounded_continuous_function.nnreal.to_ennreal_comp_measurable f),
 end
 

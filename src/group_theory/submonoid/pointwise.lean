@@ -3,8 +3,8 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
+import data.set.pointwise
 import group_theory.submonoid.operations
-import algebra.pointwise
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s
 
@@ -329,7 +329,7 @@ theorem mul_le {M N P : add_submonoid R} : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ 
   {C : R → Prop} {r : R} (hr : r ∈ M * N)
   (hm : ∀ (m ∈ M) (n ∈ N), C (m * n))
   (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
-(@mul_le _ _ _ _ ⟨C, by simpa only [zero_mul] using hm _ (zero_mem _) _ (zero_mem _), ha⟩).2 hm hr
+(@mul_le _ _ _ _ ⟨C, ha, by simpa only [zero_mul] using hm _ (zero_mem _) _ (zero_mem _)⟩).2 hm hr
 
 open_locale pointwise
 

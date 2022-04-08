@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 David Wärn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: David Wärn
+Authors: David Wärn, Joachim Breitner
 -/
 import algebra.free_monoid
 import group_theory.congruence
@@ -136,7 +136,7 @@ lemma induction_on {C : free_product M → Prop}
   (h_mul : ∀ (x y), C x → C y → C (x * y)) :
   C m :=
 begin
-  let S : submonoid (free_product M) := ⟨set_of C, h_one, h_mul⟩,
+  let S : submonoid (free_product M) := submonoid.mk (set_of C) h_mul h_one,
   convert subtype.prop (lift (λ i, of.cod_mrestrict S (h_of i)) m),
   change monoid_hom.id _ m = S.subtype.comp _ m,
   congr,
@@ -150,6 +150,25 @@ lemma of_left_inverse [decidable_eq ι] (i : ι) :
 
 lemma of_injective (i : ι) : function.injective ⇑(of : M i →* _) :=
 by { classical, exact (of_left_inverse i).injective }
+
+lemma lift_mrange_le {N} [monoid N] (f : Π i, M i →* N) {s : submonoid N}
+  (h : ∀ i, (f i).mrange ≤ s) : (lift f).mrange ≤ s :=
+begin
+  rintros _ ⟨x, rfl⟩,
+  induction x using free_product.induction_on with i x x y hx hy,
+  { exact s.one_mem, },
+  { simp only [lift_of, set_like.mem_coe], exact h i (set.mem_range_self x), },
+  { simp only [map_mul, set_like.mem_coe], exact s.mul_mem hx hy, },
+end
+
+lemma mrange_eq_supr {N} [monoid N] (f : Π i, M i →* N) :
+  (lift f).mrange = ⨆ i, (f i).mrange :=
+begin
+  apply le_antisymm (lift_mrange_le f (λ i, le_supr _ i)),
+  apply supr_le _,
+  rintros i _ ⟨x, rfl⟩,
+  exact ⟨of x, by simp only [lift_of]⟩
+end
 
 section group
 
@@ -175,6 +194,25 @@ instance : group (free_product G) :=
   end,
   ..free_product.has_inv G,
   ..free_product.monoid G }
+
+lemma lift_range_le {N} [group N] (f : Π i, G i →* N) {s : subgroup N}
+  (h : ∀ i, (f i).range ≤ s) : (lift f).range ≤ s :=
+begin
+  rintros _ ⟨x, rfl⟩,
+  induction x using free_product.induction_on with i x x y hx hy,
+  { exact s.one_mem, },
+  { simp only [lift_of, set_like.mem_coe], exact h i (set.mem_range_self x), },
+  { simp only [map_mul, set_like.mem_coe], exact s.mul_mem hx hy, },
+end
+
+lemma range_eq_supr {N} [group N] (f : Π i, G i →* N) :
+  (lift f).range = ⨆ i, (f i).range :=
+begin
+  apply le_antisymm (lift_range_le _ f (λ i, le_supr _ i)),
+  apply supr_le _,
+  rintros i _ ⟨x, rfl⟩,
+  exact ⟨of x, by simp only [lift_of]⟩
+end
 
 end group
 

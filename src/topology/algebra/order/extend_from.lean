@@ -25,7 +25,7 @@ begin
   apply continuous_on_extend_from,
   { rw closure_Ioo hab },
   { intros x x_in,
-    rcases mem_Ioo_or_eq_endpoints_of_mem_Icc x_in with rfl | rfl | h,
+    rcases eq_endpoints_or_mem_Ioo_of_mem_Icc x_in with rfl | rfl | h,
     { exact ⟨la, ha.mono_left $ nhds_within_mono _ Ioo_subset_Ioi_self⟩ },
     { exact ⟨lb, hb.mono_left $ nhds_within_mono _ Ioo_subset_Iio_self⟩ },
     { use [f x, hf x h] } }
@@ -62,7 +62,7 @@ begin
   apply continuous_on_extend_from,
   { rw [closure_Ioo hab.ne], exact Ico_subset_Icc_self, },
   { intros x x_in,
-    rcases mem_Ioo_or_eq_left_of_mem_Ico x_in with rfl | h,
+    rcases eq_left_or_mem_Ioo_of_mem_Ico x_in with rfl | h,
     { use la,
       simpa [hab] },
     { use [f x, hf x h] } }

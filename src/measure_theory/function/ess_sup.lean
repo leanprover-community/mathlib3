@@ -50,6 +50,20 @@ lemma ess_inf_congr_ae {f g : α → β} (hfg : f =ᵐ[μ] g) :  ess_inf f μ = 
 
 end conditionally_complete_lattice
 
+section conditionally_complete_linear_order
+variable [conditionally_complete_linear_order β]
+
+lemma ess_sup_eq_Inf {m : measurable_space α} (μ : measure α) (f : α → β) :
+  ess_sup f μ = Inf {a | μ {x | a < f x} = 0} :=
+begin
+  dsimp [ess_sup, limsup, Limsup],
+  congr,
+  ext a,
+  simp [eventually_map, ae_iff],
+end
+
+end conditionally_complete_linear_order
+
 section complete_lattice
 variable [complete_lattice β]
 
@@ -111,6 +125,10 @@ begin
   refine limsup_le_limsup_of_le (measure.ae_le_iff_absolutely_continuous.mpr hμν) _ _,
   all_goals { is_bounded_default, },
 end
+
+lemma ess_sup_mono_measure' {α : Type*} {β : Type*} {m : measurable_space α}
+  {μ ν : measure_theory.measure α} [complete_lattice β] {f : α → β} (hμν : ν ≤ μ) :
+  ess_sup f ν ≤ ess_sup f μ := ess_sup_mono_measure (measure.absolutely_continuous_of_le hμν)
 
 lemma ess_inf_antitone_measure {f : α → β} (hμν : μ ≪ ν) : ess_inf f ν ≤ ess_inf f μ :=
 begin

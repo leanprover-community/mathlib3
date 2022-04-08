@@ -245,6 +245,9 @@ by rw [← cast_zero, cast_lt]
 @[simp, norm_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
 | ⟨n, d, h, c⟩ := by rw [num_denom', cast_mk, mk_eq_div]
 
+@[simp] lemma cast_hom_rat : cast_hom ℚ = ring_hom.id ℚ :=
+ring_hom.ext cast_id
+
 @[simp, norm_cast] theorem cast_min [linear_ordered_field α] {a b : ℚ} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min_def]

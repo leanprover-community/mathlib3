@@ -519,7 +519,7 @@ begin
     rwa ← (equiv.vadd_const p).subset_image' b s, },
   { rw [equiv.coe_vadd_const_symm, ← vector_span_eq_span_vsub_set_right k hp] at hb₂,
     apply affine_subspace.ext_of_direction_eq,
-    { have : submodule.span k b = submodule.span k (insert 0 b), { by simp, },
+    { have : submodule.span k b = submodule.span k (insert 0 b), { simp, },
       simp only [direction_affine_span, ← hb₂, equiv.coe_vadd_const, set.singleton_union,
         vector_span_eq_span_vsub_set_right k (set.mem_insert p _), this],
       congr,

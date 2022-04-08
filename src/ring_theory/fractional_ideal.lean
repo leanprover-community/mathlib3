@@ -370,6 +370,24 @@ lemma coe_add (I J : fractional_ideal S P) : (↑(I + J) : submodule R P) = I + 
 lemma coe_ideal_sup (I J : ideal R) : ↑(I ⊔ J) = (I + J : fractional_ideal S P) :=
 coe_to_submodule_injective $ coe_submodule_sup _ _ _
 
+lemma _root_.is_fractional.nsmul {I : submodule R P} :
+  Π n : ℕ, is_fractional S I → is_fractional S (n • I : submodule R P)
+| 0 _ := begin
+    rw [zero_smul],
+    convert ((0 : ideal R) : fractional_ideal S P).is_fractional,
+    simp,
+  end
+| (n + 1) h := begin
+  rw succ_nsmul,
+  exact h.sup (_root_.is_fractional.nsmul n h)
+end
+
+instance : has_scalar ℕ (fractional_ideal S P) :=
+{ smul := λ n I, ⟨n • I, I.is_fractional.nsmul n⟩}
+
+@[norm_cast]
+lemma coe_nsmul (n : ℕ) (I : fractional_ideal S P) : (↑(n • I) : submodule R P) = n • I := rfl
+
 lemma _root_.is_fractional.mul {I J : submodule R P} :
   is_fractional S I → is_fractional S J → is_fractional S (I * J : submodule R P)
 | ⟨aI, haI, hI⟩ ⟨aJ, haJ, hJ⟩ := ⟨aI * aJ, S.mul_mem haI haJ, λ b hb, begin
@@ -439,15 +457,9 @@ lemma coe_pow (I : fractional_ideal S P) (n : ℕ) : ↑(I ^ n) = (I ^ n : submo
   (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
 submodule.mul_induction_on hr hm ha
 
--- There is no `function.injective.comm_semiring_pow` so we need to do this in three parts to keep
--- our custom power operator.
 instance : comm_semiring (fractional_ideal S P) :=
-{ ..(function.injective.monoid_pow _ subtype.coe_injective
-      coe_one coe_mul coe_pow : monoid (fractional_ideal S P)),
-  ..(function.injective.comm_semigroup _ subtype.coe_injective
-      coe_mul : comm_semigroup (fractional_ideal S P)),
-  ..(function.injective.non_unital_non_assoc_semiring _ subtype.coe_injective
-      coe_zero coe_add coe_mul : non_unital_non_assoc_semiring (fractional_ideal S P)) }
+function.injective.comm_semiring _ subtype.coe_injective
+  coe_zero coe_one coe_add coe_mul (λ _ _, coe_nsmul _ _) coe_pow
 
 section order
 
@@ -481,11 +493,11 @@ begin
   split,
   { intro hJ,
     refine ⟨⟨{x : R | algebra_map R P x ∈ J}, _, _, _⟩, _⟩,
-    { rw [mem_set_of_eq, ring_hom.map_zero],
-      exact J.val.zero_mem },
     { intros a b ha hb,
       rw [mem_set_of_eq, ring_hom.map_add],
       exact J.val.add_mem ha hb },
+    { rw [mem_set_of_eq, ring_hom.map_zero],
+      exact J.val.zero_mem },
     { intros c x hx,
       rw [smul_eq_mul, mem_set_of_eq, ring_hom.map_mul, ← algebra.smul_def],
       exact J.val.smul_mem c hx },
@@ -756,25 +768,22 @@ begin
 end
 
 @[simp] lemma map_eq_zero_iff [nontrivial R] : I.map h = 0 ↔ I = 0 :=
-⟨imp_of_not_imp_not _ _ (map_ne_zero _),
- λ hI, hI.symm ▸ map_zero h⟩
+⟨imp_of_not_imp_not _ _ (map_ne_zero _), λ hI, hI.symm ▸ map_zero h⟩
 
-lemma coe_ideal_injective :
-  function.injective (coe : ideal R → fractional_ideal R⁰ K) :=
+lemma coe_ideal_injective : function.injective (coe : ideal R → fractional_ideal R⁰ K) :=
 injective_of_le_imp_le _ (λ _ _, (coe_ideal_le_coe_ideal _).mp)
 
-@[simp]
-lemma coe_ideal_eq_zero_iff
-  {I : ideal R} : (I : fractional_ideal R⁰ K) = 0 ↔ I = ⊥ :=
-by { rw ← coe_to_fractional_ideal_bot, exact coe_ideal_injective.eq_iff }
+@[simp] lemma coe_ideal_eq_zero_iff {I : ideal R} : (I : fractional_ideal R⁰ K) = 0 ↔ I = ⊥ :=
+coe_ideal_injective.eq_iff
 
-lemma coe_ideal_ne_zero_iff
-  {I : ideal R} : (I : fractional_ideal R⁰ K) ≠ 0 ↔ I ≠ ⊥ :=
+lemma coe_ideal_ne_zero_iff {I : ideal R} : (I : fractional_ideal R⁰ K) ≠ 0 ↔ I ≠ ⊥ :=
 not_iff_not.mpr coe_ideal_eq_zero_iff
 
-lemma coe_ideal_ne_zero
-  {I : ideal R} (hI : I ≠ ⊥) : (I : fractional_ideal R⁰ K) ≠ 0 :=
+lemma coe_ideal_ne_zero {I : ideal R} (hI : I ≠ ⊥) : (I : fractional_ideal R⁰ K) ≠ 0 :=
 coe_ideal_ne_zero_iff.mpr hI
+
+@[simp] lemma coe_ideal_eq_one_iff {I : ideal R} : (I : fractional_ideal R⁰ K) = 1 ↔ I = 1 :=
+by simpa only [ideal.one_eq_top] using coe_ideal_injective.eq_iff
 
 end is_fraction_ring
 
@@ -969,7 +978,7 @@ end
 
 lemma eq_zero_or_one_of_is_field (hF : is_field R₁) (I : fractional_ideal R₁⁰ K) : I = 0 ∨ I = 1 :=
 begin
-  letI : field R₁ := hF.to_field R₁,
+  letI : field R₁ := hF.to_field,
   -- TODO can this be less ugly?
   exact @eq_zero_or_one R₁ K _ _ _ (by { unfreezingI {cases _inst_4}, convert _inst_9 }) I
 end
@@ -1038,6 +1047,10 @@ lemma mem_span_singleton_self (x : P) :
 
 variables {S}
 
+lemma span_singleton_eq_span_singleton [no_zero_smul_divisors R P] {x y : P} :
+  span_singleton S x = span_singleton S y ↔ ∃ z : Rˣ, z • x = y :=
+by { rw [← submodule.span_singleton_eq_span_singleton], exact subtype.mk_eq_mk }
+
 lemma eq_span_singleton_of_principal (I : fractional_ideal S P)
   [is_principal (I : submodule R P)] :
   I = span_singleton S (generator (I : submodule R P)) :=
@@ -1072,6 +1085,14 @@ lemma span_singleton_mul_span_singleton (x y : P) :
 begin
   apply coe_to_submodule_injective,
   simp only [coe_mul, coe_span_singleton, span_mul_span, singleton_mul_singleton],
+end
+
+@[simp]
+lemma span_singleton_pow (x : P) (n : ℕ) : span_singleton S x ^ n = span_singleton S (x ^ n) :=
+begin
+  induction n with n hn,
+  { rw [pow_zero, pow_zero, span_singleton_one] },
+  { rw [pow_succ, hn, span_singleton_mul_span_singleton, pow_succ] }
 end
 
 @[simp]

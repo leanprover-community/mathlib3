@@ -28,10 +28,14 @@ instance (X : BoolAlg) : boolean_algebra X := X.str
 /-- Construct a bundled `BoolAlg` from a `boolean_algebra`. -/
 def of (α : Type*) [boolean_algebra α] : BoolAlg := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [boolean_algebra α] : ↥(of α) = α := rfl
+
 instance : inhabited BoolAlg := ⟨of punit⟩
 
 /-- Turn a `BoolAlg` into a `BoundedDistribLattice` by forgetting its complement operation. -/
 def to_BoundedDistribLattice (X : BoolAlg) : BoundedDistribLattice := BoundedDistribLattice.of X
+
+@[simp] lemma coe_to_BoundedDistribLattice (X : BoolAlg) : ↥X.to_BoundedDistribLattice = ↥X := rfl
 
 instance : large_category.{u} BoolAlg := induced_category.category to_BoundedDistribLattice
 instance : concrete_category BoolAlg := induced_category.concrete_category to_BoundedDistribLattice

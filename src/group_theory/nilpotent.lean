@@ -9,6 +9,7 @@ import group_theory.solvable
 import group_theory.p_group
 import group_theory.sylow
 import data.nat.factorization
+import tactic.tfae
 
 /-!
 
@@ -312,19 +313,14 @@ theorem lower_central_series_is_descending_central_series :
 begin
   split, refl,
   intros x n hxn g,
-  exact commutator_containment _ _ hxn (mem_top g),
+  exact commutator_mem_commutator hxn (mem_top g),
 end
 
 /-- Any descending central series for a group is bounded below by the lower central series. -/
 lemma descending_central_series_ge_lower (H : ℕ → subgroup G)
   (hH : is_descending_central_series H) : ∀ n : ℕ, lower_central_series G n ≤ H n
 | 0 := hH.1.symm ▸ le_refl ⊤
-| (n + 1) := begin
-  specialize descending_central_series_ge_lower n,
-  apply (commutator_le _ _ _).2,
-  intros x hx q _,
-  exact hH.2 x n (descending_central_series_ge_lower hx) q,
-end
+| (n + 1) := commutator_le.mpr (λ x hx q _, hH.2 x n (descending_central_series_ge_lower n hx) q)
 
 /-- A group is nilpotent if and only if its lower central series eventually reaches
   the trivial subgroup. -/
@@ -858,7 +854,7 @@ end with_group
 
 section with_finite_group
 
-open group
+open group fintype
 
 variables {G : Type*} [hG : group G] [hf : fintype G]
 include hG hf
@@ -894,6 +890,24 @@ begin
     haveI : fact (nat.prime ↑p) := fact.mk (nat.prime_of_mem_factorization (finset.coe_mem p)),
     exact P.is_p_group'.is_nilpotent, },
   exact nilpotent_of_mul_equiv e,
+end
+
+/-- A finite group is nilpotent iff the normalizer condition holds, and iff all maximal groups are
+normal and iff all sylow groups are normal and iff the group is the direct product of its sylow
+groups. -/
+theorem is_nilpotent_of_finite_tfae : tfae
+  [ is_nilpotent G,
+    normalizer_condition G,
+    ∀ (H : subgroup G), is_coatom H → H.normal,
+    ∀ (p : ℕ) (hp : fact p.prime) (P : sylow p G), (↑P : subgroup G).normal,
+    nonempty ((Π p : (card G).factorization.support, Π P : sylow p G, (↑P : subgroup G)) ≃* G) ] :=
+begin
+  tfae_have : 1 → 2, { exact @normalizer_condition_of_is_nilpotent _ _ },
+  tfae_have : 2 → 3, { exact λ h H, normalizer_condition.normal_of_coatom H h },
+  tfae_have : 3 → 4, { introsI h p _ P, exact sylow.normal_of_all_max_subgroups_normal h _ },
+  tfae_have : 4 → 5, { exact λ h, nonempty.intro (sylow.direct_product_of_normal h) },
+  tfae_have : 5 → 1, { rintros ⟨e⟩, exact is_nilpotent_of_product_of_sylow_group e },
+  tfae_finish,
 end
 
 end with_finite_group

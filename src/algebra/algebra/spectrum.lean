@@ -90,10 +90,10 @@ end defs
 namespace spectrum
 open_locale polynomial
 
-section scalar_ring
+section scalar_semiring
 
 variables {R : Type u} {A : Type v}
-variables [comm_ring R] [ring A] [algebra R A]
+variables [comm_semiring R] [ring A] [algebra R A]
 
 local notation `σ` := spectrum R
 local notation `↑ₐ` := algebra_map R A
@@ -206,11 +206,6 @@ begin
     { rintros ⟨_, _, x'_eq⟩, simpa [←x'_eq],}
 end
 
-theorem left_add_coset_eq (a : A) (r : R) :
-  left_add_coset r (σ a) = σ (↑ₐr + a) :=
-by { ext, rw [mem_left_add_coset_iff, neg_add_eq_sub, add_mem_iff],
-     nth_rewrite 1 ←sub_add_cancel x r, }
-
 -- `r ∈ σ(a*b) ↔ r ∈ σ(b*a)` for any `r : Rˣ`
 theorem unit_mem_mul_iff_mem_swap_mul {a b : A} {r : Rˣ} :
   ↑r ∈ σ (a * b) ↔ ↑r ∈ σ (b * a) :=
@@ -245,7 +240,7 @@ by { ext, exact unit_mem_mul_iff_mem_swap_mul, }
 
 section star
 
-variables [star_add_monoid R] [star_ring A] [star_module R A]
+variables [has_involutive_star R] [star_ring A] [star_module R A]
 
 lemma star_mem_resolvent_set_iff {r : R} {a : A} :
   star r ∈ resolvent_set R a ↔ r ∈ resolvent_set R (star a) :=
@@ -257,6 +252,35 @@ protected lemma map_star (a : A) : σ (star a) = star (σ a) :=
 by { ext, simpa only [set.mem_star, mem_iff, not_iff_not] using star_mem_resolvent_set_iff.symm }
 
 end star
+
+end scalar_semiring
+
+section scalar_ring
+
+variables {R : Type u} {A : Type v}
+variables [comm_ring R] [ring A] [algebra R A]
+
+local notation `σ` := spectrum R
+local notation `↑ₐ` := algebra_map R A
+
+theorem left_add_coset_eq (a : A) (r : R) :
+  left_add_coset r (σ a) = σ (↑ₐr + a) :=
+by { ext, rw [mem_left_add_coset_iff, neg_add_eq_sub, add_mem_iff],
+     nth_rewrite 1 ←sub_add_cancel x r, }
+
+open polynomial
+
+lemma exists_mem_of_not_is_unit_aeval_prod [is_domain R] {p : R[X]} {a : A} (hp : p ≠ 0)
+  (h : ¬is_unit (aeval a (multiset.map (λ (x : R), X - C x) p.roots).prod)) :
+  ∃ k : R, k ∈ σ a ∧ eval k p = 0 :=
+begin
+  rw [←multiset.prod_to_list, alg_hom.map_list_prod] at h,
+  replace h := mt list.prod_is_unit h,
+  simp only [not_forall, exists_prop, aeval_C, multiset.mem_to_list,
+    list.mem_map, aeval_X, exists_exists_and_eq_and, multiset.mem_map, alg_hom.map_sub] at h,
+  rcases h with ⟨r, r_mem, r_nu⟩,
+  exact ⟨r, by rwa [mem_iff, ←is_unit.sub_iff], by rwa [←is_root.def, ←mem_roots hp]⟩
+end
 
 end scalar_ring
 
@@ -348,18 +372,6 @@ begin
   simpa only [aeval_X, aeval_C, alg_hom.map_sub] using hk,
 end
 
-lemma exists_mem_of_not_is_unit_aeval_prod {p : 𝕜[X]} {a : A} (hp : p ≠ 0)
-  (h : ¬is_unit (aeval a (multiset.map (λ (x : 𝕜), X - C x) p.roots).prod)) :
-  ∃ k : 𝕜, k ∈ σ a ∧ eval k p = 0 :=
-begin
-  rw [←multiset.prod_to_list, alg_hom.map_list_prod] at h,
-  replace h := mt list.prod_is_unit h,
-  simp only [not_forall, exists_prop, aeval_C, multiset.mem_to_list,
-    list.mem_map, aeval_X, exists_exists_and_eq_and, multiset.mem_map, alg_hom.map_sub] at h,
-  rcases h with ⟨r, r_mem, r_nu⟩,
-  exact ⟨r, by rwa [mem_iff, ←is_unit.sub_iff], by rwa [←is_root.def, ←mem_roots hp]⟩
-end
-
 /-- The *spectral mapping theorem* for polynomials.  Note: the assumption `degree p > 0`
 is necessary in case `σ a = ∅`, for then the left-hand side is `∅` and the right-hand side,
 assuming `[nontrivial A]`, is `{k}` where `p = polynomial.C k`. -/
@@ -418,6 +430,23 @@ end spectrum
 
 namespace alg_hom
 
+section comm_semiring
+
+variables {R : Type*} {A B : Type*} [comm_ring R] [ring A] [algebra R A] [ring B] [algebra R B]
+local notation `σ` := spectrum R
+local notation `↑ₐ` := algebra_map R A
+
+lemma mem_resolvent_set_apply (φ : A →ₐ[R] B) {a : A} {r : R} (h : r ∈ resolvent_set R a) :
+  r ∈ resolvent_set R (φ a) :=
+by simpa only [map_sub, commutes] using h.map φ
+
+lemma spectrum_apply_subset (φ : A →ₐ[R] B) (a : A) : σ (φ a) ⊆ σ a :=
+λ _, mt (mem_resolvent_set_apply φ)
+
+end comm_semiring
+
+section comm_ring
+
 variables {R : Type*} {A B : Type*} [comm_ring R] [ring A] [algebra R A] [ring B] [algebra R B]
 local notation `σ` := spectrum R
 local notation `↑ₐ` := algebra_map R A
@@ -431,11 +460,6 @@ begin
              coe_subset_nonunits (φ.to_ring_hom.ker_ne_top) h],
 end
 
-lemma mem_resolvent_set_apply (φ : A →ₐ[R] B) {a : A} {r : R} (h : r ∈ resolvent_set R a) :
-  r ∈ resolvent_set R (φ a) :=
-by simpa only [map_sub, commutes] using h.map φ
-
-lemma spectrum_apply_subset (φ : A →ₐ[R] B) (a : A) : σ (φ a) ⊆ σ a :=
-λ _, mt (mem_resolvent_set_apply φ)
+end comm_ring
 
 end alg_hom

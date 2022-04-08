@@ -355,7 +355,7 @@ def algebra_map_submonoid (S : Type*) [semiring S] [algebra R S]
   (M : submonoid R) : (submonoid S) :=
 submonoid.map (algebra_map R S : R →* S) M
 
-lemma mem_algebra_map_submonoid_of_mem (S : Type*) [semiring S] [algebra R S] {M : submonoid R}
+lemma mem_algebra_map_submonoid_of_mem {S : Type*} [semiring S] [algebra R S] {M : submonoid R}
   (x : M) : (algebra_map R S x) ∈ algebra_map_submonoid S M :=
 set.mem_image_of_mem (algebra_map R S) x.2
 

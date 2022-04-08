@@ -63,7 +63,7 @@ lemma symm {e : α ≃ᵐ β} {μa : measure α} {μb : measure β} (h : measure
 
 lemma restrict_preimage {f : α → β} (hf : measure_preserving f μa μb) {s : set β}
   (hs : measurable_set s) : measure_preserving f (μa.restrict (f ⁻¹' s)) (μb.restrict s) :=
-⟨hf.measurable, by rw [← hf.map_eq, restrict_map hf.ae_measurable hs]⟩
+⟨hf.measurable, by rw [← hf.map_eq, restrict_map hf.measurable hs]⟩
 
 lemma restrict_preimage_emb {f : α → β} (hf : measure_preserving f μa μb)
   (h₂ : measurable_embedding f) (s : set β) :

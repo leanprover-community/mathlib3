@@ -429,7 +429,7 @@ begin
   have ht: f = f+b*h , {rw ←  hn2, rw hn,    },
   simp only [self_eq_add_right, mul_eq_zero] at ht,
   rw lt_iff_le_not_le at h4,
-  cases h4, cases ht, work_on_goal 0 { assumption },
+  cases h4, cases ht, work_on_goal 1 { assumption },
   dsimp at *,
   simp at *,
   solve_by_elim,
@@ -446,11 +446,11 @@ lemma one_time' (a b : ℤ) (h1 : 0 <  a ) (h2 : (a = 1 ∧ b=1) ∨ (a=-1 ∧ b
 begin
   by_contra h,
   cases h2,
-  work_on_goal 0 { cases h2, simp at *, solve_by_elim },
+  work_on_goal 1 { cases h2, simp at *, solve_by_elim },
   cases h2,
   simp at *,
   rw h2_left at h1, have h4 : 0 < (-1: ℤ) ↔ false, simp only [neg_nonpos, not_lt, iff_false],
-  work_on_goal 0 { exact dec_trivial },
+  work_on_goal 1 { exact dec_trivial },
   cases h4,
   simp at *,
   solve_by_elim,
@@ -777,8 +777,8 @@ by letI := (orbit_rel''' m ); from
   left_inv := λ x, by {
     simp only [subtype.val_eq_coe],
     induction x,
-    work_on_goal 0 { cases x, dsimp at *, simp at * },
-    work_on_goal 1 { refl },
+    work_on_goal 1 { cases x, dsimp at *, simp at * },
+    work_on_goal 2 { refl },
     apply quotient.sound,
     apply reduce_spec m ⟨ x_val, x_property⟩},
   right_inv := λ A, subtype.eq $

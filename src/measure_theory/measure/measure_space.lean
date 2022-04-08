@@ -1256,7 +1256,10 @@ begin
   exacts [hd.mono_comp _ (λ s₁ s₂, inter_subset_inter_right _)]
 end
 
-lemma restrict_map {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
+/-- The restriction of the pushforward measure is the pushforward of the restriction. For a version
+assuming only `ae_measurable`, see `restrict_map`. -/
+lemma restrict_map_of_measurable
+  {f : α → β} (hf : measurable f) {s : set β} (hs : measurable_set s) :
   (μ.map f).restrict s = (μ.restrict $ f ⁻¹' s).map f  :=
 ext $ λ t ht, by simp [*, hf ht]
 
@@ -1948,11 +1951,11 @@ ae_iff.2 $ by rw [smul_apply, ae_iff.1 h, smul_zero]
 lemma ae_add_measure_iff {p : α → Prop} {ν} : (∀ᵐ x ∂μ + ν, p x) ↔ (∀ᵐ x ∂μ, p x) ∧ ∀ᵐ x ∂ν, p x :=
 add_eq_zero_iff
 
-lemma ae_eq_comp' {ν : measure β} {f : α → β} {g g' : β → δ} (hf : measurable f)
+lemma ae_eq_comp' {ν : measure β} {f : α → β} {g g' : β → δ} (hf : ae_measurable f μ)
   (h : g =ᵐ[ν] g') (h2 : μ.map f ≪ ν) : g ∘ f =ᵐ[μ] g' ∘ f :=
-(quasi_measure_preserving.mk hf h2).ae_eq h
+(tendsto_ae_map hf).mono_right h2.ae_le h
 
-lemma ae_eq_comp {f : α → β} {g g' : β → δ} (hf : measurable f)
+lemma ae_eq_comp {f : α → β} {g g' : β → δ} (hf : ae_measurable f μ)
   (h : g =ᵐ[μ.map f] g') : g ∘ f =ᵐ[μ] g' ∘ f :=
 ae_eq_comp' hf h absolutely_continuous.rfl
 
@@ -3206,9 +3209,14 @@ lemma smul_measure [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower
   ae_measurable f (c • μ) :=
 ⟨h.mk f, h.measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
 
+lemma comp_ae_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
+  (hg : ae_measurable g (μ.map f)) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
+⟨hg.mk g ∘ hf.mk f, hg.measurable_mk.comp hf.measurable_mk,
+  (ae_eq_comp hf hg.ae_eq_mk).trans ((hf.ae_eq_mk).fun_comp (mk g hg))⟩
+
 lemma comp_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (μ.map f)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
-⟨hg.mk g ∘ f, hg.measurable_mk.comp hf, ae_eq_comp hf hg.ae_eq_mk⟩
+hg.comp_ae_measurable hf.ae_measurable
 
 lemma comp_measurable' {δ} [measurable_space δ] {ν : measure δ} {f : α → δ} {g : δ → β}
   (hg : ae_measurable g ν) (hf : measurable f) (h : μ.map f ≪ ν) : ae_measurable (g ∘ f) μ :=
@@ -3318,6 +3326,25 @@ lemma ae_measurable_restrict_of_measurable_subtype {s : set α}
 lemma ae_measurable_map_equiv_iff [measurable_space γ] (e : α ≃ᵐ β) {f : β → γ} :
   ae_measurable f (μ.map e) ↔ ae_measurable (f ∘ e) μ :=
 e.measurable_embedding.ae_measurable_map_iff
+
+lemma measure_theory.measure.restrict_map
+  {f : α → β} (hf : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
+  (μ.map f).restrict s = (μ.restrict $ f ⁻¹' s).map f :=
+calc
+(μ.map f).restrict s = (μ.map (hf.mk f)).restrict s :
+  by { congr' 1, apply measure.map_congr hf.ae_eq_mk }
+... = (μ.restrict $ (hf.mk f) ⁻¹' s).map (hf.mk f) :
+  measure.restrict_map_of_measurable hf.measurable_mk hs
+... = (μ.restrict $ (hf.mk f) ⁻¹' s).map f :
+  measure.map_congr (ae_restrict_of_ae (hf.ae_eq_mk.symm))
+... = (μ.restrict $ f ⁻¹' s).map f :
+begin
+  apply congr_arg,
+  ext1 t ht,
+  simp only [ht, measure.restrict_apply],
+  apply measure_congr,
+  apply (eventually_eq.refl _ _).inter (hf.ae_eq_mk.symm.preimage s)
+end
 
 end
 

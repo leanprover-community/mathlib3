@@ -52,6 +52,10 @@ namespace measure_preserving
 protected lemma id (μ : measure α) : measure_preserving id μ μ :=
 ⟨measurable_id, map_id⟩
 
+protected lemma ae_measurable {f : α → β} (hf : measure_preserving f μa μb) :
+  ae_measurable f μa :=
+hf.1.ae_measurable
+
 lemma symm {e : α ≃ᵐ β} {μa : measure α} {μb : measure β} (h : measure_preserving e μa μb) :
   measure_preserving e.symm μb μa :=
 ⟨e.symm.measurable,
@@ -59,7 +63,7 @@ lemma symm {e : α ≃ᵐ β} {μa : measure α} {μb : measure β} (h : measure
 
 lemma restrict_preimage {f : α → β} (hf : measure_preserving f μa μb) {s : set β}
   (hs : measurable_set s) : measure_preserving f (μa.restrict (f ⁻¹' s)) (μb.restrict s) :=
-⟨hf.measurable, by rw [← hf.map_eq, restrict_map hf.measurable hs]⟩
+⟨hf.measurable, by rw [← hf.map_eq, restrict_map hf.ae_measurable hs]⟩
 
 lemma restrict_preimage_emb {f : α → β} (hf : measure_preserving f μa μb)
   (h₂ : measurable_embedding f) (s : set β) :

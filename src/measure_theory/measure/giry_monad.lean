@@ -209,9 +209,9 @@ lemma join_map_map {f : α → β} (hf : measurable f) (μ : measure (measure α
   join (map (map f) μ) = map f (join μ) :=
 measure.ext $ assume s hs,
   begin
-    rw [join_apply hs, map_apply hf hs, join_apply,
+    rw [join_apply hs, map_apply hf.ae_measurable hs, join_apply,
       lintegral_map (measurable_coe hs) (measurable_map f hf)],
-    { congr, funext ν, exact map_apply hf hs },
+    { congr, funext ν, exact map_apply hf.ae_measurable hs },
     exact hf hs
   end
 

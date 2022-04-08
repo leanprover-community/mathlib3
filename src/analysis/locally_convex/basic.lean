@@ -37,7 +37,7 @@ absorbent, balanced, locally convex, LCTVS
 open set
 open_locale pointwise topological_space
 
-variables {𝕜 𝕝 E : Type*}
+variables {𝕜 𝕝 E ι : Type*}
 
 section semi_normed_ring
 variables [semi_normed_ring 𝕜]
@@ -72,6 +72,28 @@ end
 ⟨λ h, ⟨h.mono_right $ subset_union_left _ _, h.mono_right $ subset_union_right _ _⟩,
   λ h, h.1.union h.2⟩
 
+lemma absorbs_Union_finset {s : set E} {t : finset ι} {f : ι → set E} :
+  absorbs 𝕜 s (⋃ (i : ι) (hy : i ∈ t), f i) ↔ ∀ i ∈ t, absorbs 𝕜 s (f i) :=
+begin
+  classical,
+  induction t using finset.induction_on with i t ht hi,
+  { simp only [finset.not_mem_empty, set.Union_false, set.Union_empty, absorbs_empty,
+    forall_false_left, implies_true_iff] },
+  rw [finset.set_bUnion_insert, absorbs_union, hi],
+  split; intro h,
+  { refine λ i' hi', or.elim (finset.mem_insert.mp hi') _ (λ hi'', h.2 i' hi''),
+    exact (λ hi'', by { rw hi'', exact h.1 }), },
+  exact ⟨h i (finset.mem_insert_self i t), λ i' hi', h i' (finset.mem_insert_of_mem hi')⟩,
+end
+
+lemma set.finite.absorbs_Union {s : set E} {t : set ι} {f : ι → set E} (hi : t.finite) :
+  absorbs 𝕜 s (⋃ (i : ι) (hy : i ∈ t), f i) ↔ ∀ i ∈ t, absorbs 𝕜 s (f i) :=
+begin
+  lift t to finset ι using hi,
+  simp only [finset.mem_coe],
+  exact absorbs_Union_finset,
+end
+
 variables (𝕜)
 
 /-- A set is absorbent if it absorbs every singleton. -/
@@ -95,6 +117,13 @@ lemma absorbent_iff_nonneg_lt : absorbent 𝕜 A ↔ ∀ x, ∃ r, 0 ≤ r ∧ �
 forall_congr $ λ x, ⟨λ ⟨r, hr, hx⟩, ⟨r, hr.le, λ a ha, hx a ha.le⟩, λ ⟨r, hr, hx⟩,
   ⟨r + 1, add_pos_of_nonneg_of_pos hr zero_lt_one,
     λ a ha, hx ((lt_add_of_pos_right r zero_lt_one).trans_le ha)⟩⟩
+
+lemma absorbent.absorbs_finite {s : set E} (hs : absorbent 𝕜 s) {v : set E} (hv : v.finite) :
+  absorbs 𝕜 s v :=
+begin
+  rw ←set.bUnion_of_singleton v,
+  refine hv.absorbs_Union.mpr (λ _ _, hs.absorbs),
+end
 
 variables (𝕜)
 
@@ -126,6 +155,16 @@ end has_scalar
 
 section add_comm_monoid
 variables [add_comm_monoid E] [module 𝕜 E] {s t u v A B : set E}
+
+lemma absorbs.add {s1 s2 t1 t2 : set E} (h1 : absorbs 𝕜 s1 t1) (h2 : absorbs 𝕜 s2 t2) :
+  absorbs 𝕜 (s1 + s2) (t1 + t2) :=
+begin
+  rcases h1 with ⟨r1, hr1, h1⟩,
+  rcases h2 with ⟨r2, hr2, h2⟩,
+  refine ⟨max r1 r2, lt_max_of_lt_left hr1, λ a ha, _⟩,
+  rw smul_add,
+  exact set.add_subset_add (h1 a (le_of_max_le_left ha)) (h2 a (le_of_max_le_right ha)),
+end
 
 lemma balanced.add (hA₁ : balanced 𝕜 A) (hA₂ : balanced 𝕜 B) : balanced 𝕜 (A + B) :=
 begin

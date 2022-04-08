@@ -110,8 +110,8 @@ lemma monovary_on.comp_right (h : monovary_on f g s) (k : ι' → ι) :
 lemma antivary.comp_right (h : antivary f g) (k : ι' → ι) : antivary (f ∘ k) (g ∘ k) :=
 λ i j hij, h hij
 
-lemma antivary_on.comp_right (h : monovary_on f g s) (k : ι' → ι) :
-  monovary_on (f ∘ k) (g ∘ k) (k ⁻¹' s) :=
+lemma antivary_on.comp_right (h : antivary_on f g s) (k : ι' → ι) :
+  antivary_on (f ∘ k) (g ∘ k) (k ⁻¹' s) :=
 λ i hi j hj hij, h hi hj hij
 
 section order_dual

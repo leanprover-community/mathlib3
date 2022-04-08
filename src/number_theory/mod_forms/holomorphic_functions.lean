@@ -50,19 +50,6 @@ lemma extend_by_zero_neg [add_group β] (f : s → β) :
 extend_by_zero (-f) = -extend_by_zero f :=
 by ext z; by_cases h : z ∈ s; simp [extend_by_zero, h]
 
-lemma extend_by_zero_sub [add_group β] (f g : s → β) :
-extend_by_zero (f - g) = extend_by_zero f - extend_by_zero g :=
-begin
-  have h1:= extend_by_zero_add f (-g),
-  have h2:= extend_by_zero_neg g,
-  rw h2 at h1,
-  convert h1,
-  ring_nf,
-  ext z,
-  simp only [pi.add_apply, pi.neg_apply, pi.sub_apply],
-  ring_nf,
-end
-
 lemma extend_by_zero_smul [ring β] (c : β) (f : s → β) :
   extend_by_zero (c • f) = c • extend_by_zero f :=
   by ext z; by_cases h : z ∈ s; simp [extend_by_zero, h]
@@ -77,15 +64,10 @@ def open_subs:=topological_space.opens ℂ
 there is a neibourhood around the point containing the derivative of the function. In order to make it work
 with has_deriv_within_at, we first extend the function by zero to the entire complex plane. -/
 
-def analytic_on {D : open_subs} (f : D.1 → ℂ): Prop :=
-∀ z : D.1, analytic_at ℂ (extend_by_zero f) (z : ℂ)
-
 
 def is_holomorphic_on {D : open_subs} (f : D.1 → ℂ) : Prop :=
   ∀ z : D.1, ∃ f', has_deriv_within_at (extend_by_zero f) (f') D.1 z
 
-def is_entire  (f : ℂ → ℂ) : Prop :=
-  ∀ (S : open_subs), is_holomorphic_on (set.restrict f S.1)
 
 lemma is_holomorphic_on_iff_differentiable_on  (D : open_subs) (f : D.1 → ℂ):
   differentiable_on ℂ  (extend_by_zero f) D.1 ↔ is_holomorphic_on f:=
@@ -112,12 +94,6 @@ begin
   have h1:= hz ⟨x, hx⟩,
   have h2:= classical.some_spec h1,
   apply has_deriv_within_at.differentiable_within_at  h2,
-end
-
-lemma res_ext'  (D: open_subs) (f : ℂ → ℂ) (x : D.1):
-  extend_by_zero ( (set.restrict f D.1)) x = f x :=
-begin
-  rw extend_by_zero, simp,
 end
 
 variable {D : open_subs}

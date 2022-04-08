@@ -495,7 +495,7 @@ variables [has_one α] [has_mul α] [has_inv α]
 
 end
 
-@[to_additive] lemma alternating_prod_cons_cons [group α] (a b : α) (l : list α) :
+@[to_additive] lemma alternating_prod_cons_cons [div_inv_monoid α] (a b : α) (l : list α) :
   alternating_prod (a :: b :: l) = a / b * alternating_prod l :=
 by rw [div_eq_mul_inv, alternating_prod_cons_cons']
 
@@ -512,16 +512,15 @@ by rw [alternating_prod_cons_cons', alternating_prod_cons' b l, mul_inv, inv_inv
 by rw [div_eq_mul_inv, alternating_prod_cons']
 
 @[to_additive]
-lemma alternating_prod_append :
-  ∀ (l₁ l₂ : list α), alternating_prod (l₁ ++ l₂)
-    = alternating_prod l₁ * alternating_prod l₂ ^ (-1 : ℤ) ^ length l₁
+lemma alternating_prod_append : ∀ l₁ l₂ : list α,
+  alternating_prod (l₁ ++ l₂) = alternating_prod l₁ * alternating_prod l₂ ^ (-1 : ℤ) ^ length l₁
 | [] l₂ := by simp
 | (a :: l₁) l₂ := by simp_rw [cons_append, alternating_prod_cons, alternating_prod_append,
   length_cons, pow_succ, neg_mul, one_mul, zpow_neg, ←div_eq_mul_inv, div_div]
 
 @[to_additive]
 lemma alternating_prod_reverse :
-  ∀ (l : list α), alternating_prod (reverse l) = alternating_prod l ^ (-1 : ℤ) ^ (length l + 1)
+  ∀ l : list α, alternating_prod (reverse l) = alternating_prod l ^ (-1 : ℤ) ^ (length l + 1)
 | [] := by simp only [alternating_prod_nil, one_zpow, reverse_nil]
 | (a :: l) :=
 begin

@@ -63,7 +63,7 @@ iff.intro reverse_eq of_reverse_eq
 lemma append_reverse (l : list α) : palindrome (l ++ reverse l) :=
 by { apply of_reverse_eq, rw [reverse_append, reverse_reverse] }
 
-lemma map (f : α → β) (p : palindrome l) : palindrome (map f l) :=
+protected lemma map (f : α → β) (p : palindrome l) : palindrome (map f l) :=
 of_reverse_eq $ by rw [← map_reverse, p.reverse_eq]
 
 instance [decidable_eq α] (l : list α) : decidable (palindrome l) :=

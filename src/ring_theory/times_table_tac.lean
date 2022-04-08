@@ -7,8 +7,10 @@ import ring_theory.power_basis
 
 open_locale big_operators
 
+-- TODO: generalize this so we don't assume a multiplication on `S`
+-- or even no structure on `S` at all
 structure times_table (ι R S : Type*)
-  [comm_semiring R] [semiring S] [algebra R S] :=
+  [semiring R] [add_comm_monoid S] [module R S] [has_mul S] :=
 (basis : basis ι R S)
 (table : ι → ι → ι → R)
 (mul_def : ∀ i j k, basis.repr (basis i * basis j) k = table i j k)
@@ -17,7 +19,8 @@ mk_simp_attribute times_table_simps "The simpset `times_table_simps` is used by 
 `times_table` to reduce an expression of the form `(t : times_table).basis.repr x k` to a numeral."
 
 section semiring
-variables {ι R S : Type*} [comm_ring R] [comm_ring S] [algebra R S]
+variables {ι R S : Type*} [comm_semiring R] [non_unital_non_assoc_semiring S] [module R S]
+variables [smul_comm_class R S S] [is_scalar_tower R S S]
 
 lemma times_table.coeff_mul_coeff [fintype ι] (t : times_table ι R S) (x y : ι → R) :
   t.basis.equiv_fun.symm x * t.basis.equiv_fun.symm y =
@@ -40,7 +43,9 @@ begin
     by simp only [basis.equiv_fun_symm_apply, finset.sum_smul, t.mul_def],
   refine finset.sum_congr rfl (λ i _, finset.sum_congr rfl (λ j _, _)),
   simp only [finset.smul_sum, mul_smul, t.basis.sum_repr],
-  simp only [algebra.smul_def, mul_assoc, mul_left_comm],
+  simp only [← @smul_eq_mul S],
+  rw [smul_comm (y j) (t.basis i) (t.basis j)],
+  simp only [smul_assoc],
 end
 
 lemma times_table.unfold_mul [fintype ι] (t : times_table ι R S) (x y : S) (k : ι) :
@@ -69,6 +74,7 @@ noncomputable def times_table.reindex {ι' : Type*} (t : times_table ι R S) (e 
 
 end semiring
 
+/-
 section ring
 variables {ι R S : Type*} [comm_ring R] [comm_ring S] [algebra R S]
 
@@ -112,6 +118,7 @@ end
 end adjoin_root
 
 end ring
+-/
 
 open polynomial
 
@@ -197,7 +204,8 @@ rfl
   sqrt_2_sqrt_3.times_table.basis.repr 1 i = ![1, 0, 0, 0] i := rfl
 
 
-@[simp] lemma repr_mk (a b c d : ℚ) (i : fin 4) : sqrt_2_sqrt_3.basis.repr ⟨a, b, c, d⟩ i = ![a, b, c, d] i := rfl
+@[simp, times_table_simps] lemma repr_mk (a b c d : ℚ) (i : fin 4) :
+  sqrt_2_sqrt_3.times_table.basis.repr ⟨a, b, c, d⟩ i = ![a, b, c, d] i := rfl
 
 def sqrt_2 : sqrt_2_sqrt_3 := ⟨0, 1, 0, 0⟩
 @[times_table_simps] lemma repr_sqrt_2 (i : fin 4) :
@@ -216,9 +224,10 @@ namespace tactic.times_table
 
 open tactic
 
-section semiring
+section add_comm_monoid
 
-variables {R S ι : Type*} [comm_semiring R] [semiring S] [algebra R S]
+variables {R S ι : Type*} [comm_semiring R] [add_comm_monoid S] [module R S]
+variables [has_mul S]
 
 protected lemma eval_repr_zero (t : times_table ι R S) (k : ι) :
   t.basis.repr 0 k = 0 :=
@@ -229,7 +238,7 @@ protected lemma eval_repr_bit0 (t : times_table ι R S) (k : ι) {e₁ : S} {e�
   t.basis.repr (bit0 e₁) k = e' :=
 by rw [bit0, _root_.map_add, finsupp.add_apply, e₁_eq, e_eq]
 
-protected lemma eval_repr_bit1 (t : times_table ι R S) (k : ι) {e₁ : S} {e₁' e' o : R}
+protected lemma eval_repr_bit1 [has_one S] (t : times_table ι R S) (k : ι) {e₁ : S} {e₁' e' o : R}
   (e₁_eq : t.basis.repr e₁ k = e₁') (one_eq : t.basis.repr 1 k = o) (e_eq : e₁' + e₁' + o = e') :
   t.basis.repr (bit1 e₁) k = e' :=
 by simp only [bit1, bit0, _root_.map_add, finsupp.add_apply, e₁_eq, one_eq, e_eq]
@@ -238,6 +247,25 @@ protected lemma eval_repr_add (t : times_table ι R S) (k : ι) {e₁ e₂ : S} 
   (e₁_eq : t.basis.repr e₁ k = e₁') (e₂_eq : t.basis.repr e₂ k = e₂') (e_eq : e₁' + e₂' = e') :
   t.basis.repr (e₁ + e₂) k = e' :=
 by rw [_root_.map_add, finsupp.add_apply, e₁_eq, e₂_eq, e_eq]
+
+
+end add_comm_monoid
+
+section non_assoc_non_unital_semiring
+
+variables {R S ι : Type*} [comm_semiring R] [non_unital_non_assoc_semiring S] [module R S]
+variables [smul_comm_class R S S] [is_scalar_tower R S S]
+
+protected lemma eval_repr_mul [fintype ι] (t : times_table ι R S) (k : ι) (e₁ e₂ : S) (e' : R)
+  (eq : ∑ i j : ι, t.basis.repr e₁ i * t.basis.repr e₂ j * t.table i j k = e') :
+  t.basis.repr (e₁ * e₂) k = e' :=
+by rw [times_table.unfold_mul t, eq]
+
+end non_assoc_non_unital_semiring
+
+section semiring
+
+variables {R S ι : Type*} [comm_semiring R] [semiring S] [algebra R S]
 
 protected lemma eval_pow_zero (t : times_table ι R S) (k : ι) (e₁ : S) {e' : R}
   (e_eq : t.basis.repr 1 k = e') :
@@ -275,12 +303,6 @@ end ring
 section comm_ring
 
 variables {R S ι : Type*} [comm_ring R] [comm_ring S] [algebra R S]
-
-protected lemma eval_repr_mul [fintype ι] (t : times_table ι R S) (k : ι) (e₁ e₂ : S) (e' : R)
-  (eq : ∑ i j : ι, t.basis.repr e₁ i * t.basis.repr e₂ j * t.table i j k = e'): 
-  t.basis.repr (e₁ * e₂) k = e' :=
-by rw [times_table.unfold_mul, eq]
-
 end comm_ring
 
 /-- Simplify expressions of the form `(t : times_table).basis.repr x k` using lemmas tagged
@@ -327,8 +349,11 @@ protected meta def eval (ι R S t k : expr) : expr → tactic (expr × expr)
     -- then use `norm_num.derive` to expand the sum.
     -- TODO: expand the sum here so we don't switch so much between tactics.
     e ← i_to_expr ``(∑ (i j : %%ι), (%%t).basis.repr %%e₁ i * (%%t).basis.repr %%e₂ j * (%%t).table i j %%k),
+    trace "multiplication becomes " >> trace e,
     (e', e_eq) ← or_refl_conv norm_num.derive e,
+    trace "derives to " >> infer_type e_eq >>= trace,
     eq ← trace_error "eval_repr_mul" $ mk_app `tactic.times_table.eval_repr_mul [t, k, e₁, e₂, e', e_eq],
+    trace "proved " >> infer_type eq >>= trace,
     pure (e', eq)
 | `(%%e₁ ^ %%n) := trace_error "pow" $ do
   match norm_num.match_numeral n with
@@ -355,8 +380,11 @@ protected meta def eval (ι R S t k : expr) : expr → tactic (expr × expr)
   | _ := failed
   end
 | e := do
+  trace "fallback: simping",
   full_e ← i_to_expr ``(basis.repr (times_table.basis %%t) %%e %%k),
-  simp_times_table full_e
+  (e', pr) ← simp_times_table full_e,
+  trace "managed to simp to ", infer_type pr >>= trace,
+  pure (e', pr)
 
 /-- `norm_num` extension for expressions of the form `basis.repr (times_table.basis _) _` -/
 @[norm_num]
@@ -382,7 +410,7 @@ do e ← instantiate_mvars e,
    (_, e', pr) ←
     ext_simplify_core () {} simp_lemmas.mk (λ _, trace "no discharger" >> failed) (λ _ _ _ _ _, failed)
       (λ _ _ _ _ e,
-        do (new_e, pr) ← step e,
+        do trace e, (new_e, pr) ← step e,
            guard (¬ new_e =ₐ e) <|> (trace "rewriting was idempotent: " >> trace e >> trace " → " >> trace new_e >> failure),
            return ((), new_e, some pr, tt))
       `eq e,
@@ -420,17 +448,44 @@ namespace sqrt_2_sqrt_3
 
 set_option profiler true
 
+example (x y : sqrt_2_sqrt_3) : x * y = y * x :=
+begin
+  cases x, cases y,
+  apply sqrt_2_sqrt_3.times_table.basis.ext_elem (λ k, _),
+  do { (new_t, pr) ← tactic.target >>= (tactic.times_table.conv_subexpressions tactic.times_table.norm),
+        tactic.replace_target new_t pr },
+  /-
+  norm_num,
+  -/
+  /-
+  fin_cases k; ring
+  -/
+end
+
+example (x y z : sqrt_2_sqrt_3) : x * y * z = x * (y * z) :=
+begin
+  cases x, cases y, cases z,
+  apply sqrt_2_sqrt_3.times_table.basis.ext_elem (λ k, _),
+  norm_num,
+
+  fin_cases k; norm_num; ring
+end
+
 -- Bottom-up: should compute efficiently.
 example : (sqrt_2 + sqrt_3)^3 - 9 * (sqrt_2 + sqrt_3) = 2 * sqrt_2 :=
 begin
   -- Work coefficient-wise.
   apply sqrt_2_sqrt_3.times_table.basis.ext_elem (λ k, _),
+  /-
+  do { (new_t, pr) ← tactic.target >>= (tactic.times_table.conv_subexpressions tactic.times_table.norm),
+        tactic.replace_target new_t pr },
+  -/
   norm_num,
   -- Finish the proof coefficientwise.
   fin_cases k; norm_num,
-  /- fin_cases k; norm_num, -/
 end
 
+/-
 -- Top-down: easier to do with `simp`, but produces huge terms
 example : (sqrt_2 + sqrt_3)^3 - 9 * (sqrt_2 + sqrt_3) = 2 * sqrt_2 :=
 begin
@@ -440,5 +495,6 @@ begin
   -- Finish the proof coefficientwise.
   fin_cases k; norm_num,
 end
+-/
 
 end sqrt_2_sqrt_3

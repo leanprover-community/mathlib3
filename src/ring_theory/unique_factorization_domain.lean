@@ -695,9 +695,10 @@ in ⟨a', b', c', λ _ hpb hpa, no_factor hpa hpb, ha, hb⟩
 
 section multiplicity
 variables [nontrivial R] [normalization_monoid R] [decidable_eq R]
-variables [decidable_rel (has_dvd.dvd : R → R → Prop)]
+variables [dec_dvd : decidable_rel (has_dvd.dvd : R → R → Prop)]
 open multiplicity multiset
 
+include dec_dvd
 lemma le_multiplicity_iff_repeat_le_normalized_factors {a b : R} {n : ℕ}
   (ha : irreducible a) (hb : b ≠ 0) :
   ↑n ≤ multiplicity a b ↔ repeat (normalize a) n ≤ normalized_factors b :=
@@ -718,6 +719,12 @@ begin
     exact (associated.pow_pow $ associated_normalize a).dvd.trans (dvd.intro u.prod rfl) }
 end
 
+/-- The multiplicity of an irreducible factor of a nonzero element is exactly the number of times
+the normalized factor occurs in the `normalized_factors`.
+
+See also `count_normalized_factors_eq` which expands the definition of `multiplicity`
+to produce a specification for `count (normalized_factors _) _`..
+-/
 lemma multiplicity_eq_count_normalized_factors {a b : R} (ha : irreducible a) (hb : b ≠ 0) :
   multiplicity a b = (normalized_factors b).count (normalize a) :=
 begin
@@ -727,6 +734,25 @@ begin
       le_multiplicity_iff_repeat_le_normalized_factors ha hb, ← le_count_iff_repeat_le],
     simp },
   rw [le_multiplicity_iff_repeat_le_normalized_factors ha hb, ← le_count_iff_repeat_le],
+end
+
+omit dec_dvd
+/-- The number of times an irreducible factor `p` appears in `normalized_factors x` is defined by
+the number of times it divides `x`.
+
+See also `multiplicity_eq_count_normalized_factors` if `n` is given by `multiplicity p x`.
+-/
+lemma count_normalized_factors_eq {p x : R} (hp : irreducible p) (hnorm : normalize p = p) {n : ℕ}
+  (hle : p^n ∣ x) (hlt : ¬ (p^(n+1) ∣ x)) :
+  (normalized_factors x).count p = n :=
+begin
+  letI : decidable_rel ((∣) : R → R → Prop) := λ _ _, classical.prop_decidable _,
+  by_cases hx0 : x = 0,
+  { simp [hx0] at hlt, contradiction },
+  rw [← enat.coe_inj],
+  convert (multiplicity_eq_count_normalized_factors hp hx0).symm,
+  { exact hnorm.symm },
+  exact (multiplicity.eq_coe_iff.mpr ⟨hle, hlt⟩).symm
 end
 
 end multiplicity
@@ -1033,6 +1059,16 @@ theorem eq_of_eq_counts {a b : associates α} (ha : a ≠ 0) (hb  : b ≠ 0)
   (h : ∀ (p : associates α), irreducible p → p.count a.factors = p.count b.factors) : a = b :=
 eq_of_factors_eq_factors (eq_factors_of_eq_counts ha hb h)
 
+lemma count_le_count_of_factors_le {a b p : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+  (hp : irreducible p) (h : a.factors ≤ b.factors) : p.count a.factors ≤ p.count b.factors :=
+begin
+  obtain ⟨sa, h_sa⟩ := factors_eq_some_iff_ne_zero.mpr ha,
+  obtain ⟨sb, h_sb⟩ := factors_eq_some_iff_ne_zero.mpr hb,
+  rw [h_sa, h_sb] at h ⊢,
+  rw [count_some hp, count_some hp], rw with_top.some_le_some at h,
+  exact multiset.count_le_of_le _ h
+end
+
 omit dec_irr
 
 @[simp] theorem factors_mul [nontrivial α] (a b : associates α) :
@@ -1049,7 +1085,13 @@ iff.intro
     by rwa [factors_prod, factors_prod] at this)
   factors_mono
 
-omit dec dec'
+include dec_irr
+
+lemma count_le_count_of_le [nontrivial α] {a b p : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+  (hp : irreducible p) (h : a ≤ b) : p.count a.factors ≤ p.count b.factors :=
+count_le_count_of_factors_le ha hb hp $ factors_mono h
+
+omit dec dec' dec_irr
 
 theorem prod_le [nontrivial α] {a b : factor_set α} : a.prod ≤ b.prod ↔ a ≤ b :=
 begin
@@ -1235,6 +1277,11 @@ theorem count_self [nontrivial α] {p : associates α} (hp : irreducible p) :
   p.count p.factors = 1 :=
 by simp [factors_self hp, associates.count_some hp]
 
+lemma count_eq_zero_of_ne {p q : associates α} (hp : irreducible p) (hq : irreducible q)
+  (h : p ≠ q) : p.count q.factors = 0 :=
+not_ne_iff.mp $ λ h', h $ associated_iff_eq.mp $ hp.associated_of_dvd hq $
+by { nontriviality α, exact le_of_count_ne_zero hq.ne_zero hp h' }
+
 theorem count_mul [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) :
   count p (factors (a * b)) = count p a.factors + count p b.factors :=
@@ -1342,6 +1389,39 @@ begin
   exact with_bot.coe_nsmul u k
 end
 
+/-- The only divisors of prime powers are prime powers. See `eq_pow_find_of_dvd_irreducible_pow`
+for an explicit expression as a p-power (without using `count`). -/
+theorem eq_pow_count_factors_of_dvd_pow {p a : associates α} (hp : irreducible p)
+  {n : ℕ} (h : a ∣ p ^ n) : a = p ^ p.count a.factors :=
+begin
+  nontriviality α,
+  have hph := pow_ne_zero n hp.ne_zero,
+  have ha := ne_zero_of_dvd_ne_zero hph h,
+  apply eq_of_eq_counts ha (pow_ne_zero _ hp.ne_zero),
+  have eq_zero_of_ne : ∀ (q : associates α), irreducible q → q ≠ p → _ = 0 :=
+  λ q hq h', nat.eq_zero_of_le_zero $ by
+  { convert count_le_count_of_le ha hph hq h, symmetry,
+    rw [count_pow hp.ne_zero hq, count_eq_zero_of_ne hq hp h', mul_zero] },
+  intros q hq,
+  rw count_pow hp.ne_zero hq,
+  by_cases h : q = p,
+  { rw [h, count_self hp, mul_one] },
+  { rw [count_eq_zero_of_ne hq hp h, mul_zero, eq_zero_of_ne q hq h] }
+end
+
+lemma count_factors_eq_find_of_dvd_pow {a p : associates α} (hp : irreducible p)
+  [∀ n : ℕ, decidable (a ∣ p ^ n)] {n : ℕ} (h : a ∣ p ^ n) : nat.find ⟨n, h⟩ = p.count a.factors :=
+begin
+  apply le_antisymm,
+  { refine nat.find_le ⟨1, _⟩, rw mul_one, symmetry, exact eq_pow_count_factors_of_dvd_pow hp h },
+  { have hph := pow_ne_zero (nat.find ⟨n, h⟩) hp.ne_zero,
+    have ha := ne_zero_of_dvd_ne_zero hph (nat.find_spec ⟨n, h⟩),
+    cases (subsingleton_or_nontrivial α) with hα hα; haveI := hα,
+    { exfalso, apply ha, simp only [eq_iff_true_of_subsingleton] },
+    convert count_le_count_of_le ha hph hp (nat.find_spec ⟨n, h⟩),
+    rw [count_pow hp.ne_zero hp, count_self hp, mul_one] }
+end
+
 omit dec
 omit dec_irr
 omit dec'
@@ -1364,6 +1444,11 @@ begin
     rw zero_pow' _ hk0 at h,
     cases mul_eq_zero.mp h; contradiction }
 end
+
+/-- The only divisors of prime powers are prime powers. -/
+theorem eq_pow_find_of_dvd_irreducible_pow {a p : associates α} (hp : irreducible p)
+  [∀ n : ℕ, decidable (a ∣ p ^ n)] {n : ℕ} (h : a ∣ p ^ n) : a = p ^ nat.find ⟨n, h⟩ :=
+by { classical, rw [count_factors_eq_find_of_dvd_pow hp, ← eq_pow_count_factors_of_dvd_pow hp h] }
 
 end associates
 

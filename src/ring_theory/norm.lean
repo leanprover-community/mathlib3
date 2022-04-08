@@ -202,7 +202,7 @@ lemma _root_.intermediate_field.adjoin_simple.norm_gen_eq_prod_roots (x : L)
   (algebra_map K F) (norm K (adjoin_simple.gen K x)) =
     ((minpoly K x).map (algebra_map K F)).roots.prod :=
 begin
-  have injKxL : function.injective (algebra_map K⟮x⟯ L) := ring_hom.injective _,
+  have injKxL := (algebra_map K⟮x⟯ L).injective,
   by_cases hx : _root_.is_integral K x, swap,
   { simp [minpoly.eq_zero hx, intermediate_field.adjoin_simple.norm_gen_eq_one hx] },
   have hx' : _root_.is_integral K (adjoin_simple.gen K x),

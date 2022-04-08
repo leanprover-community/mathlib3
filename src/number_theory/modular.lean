@@ -232,18 +232,22 @@ begin
   have hf₂ : closed_embedding (lc_row0_extend hcd) :=
     (lc_row0_extend hcd).to_continuous_linear_equiv.to_homeomorph.closed_embedding,
   convert hf₂.tendsto_cocompact.comp (hf₁.comp subtype.coe_injective.tendsto_cofinite) using 1,
-  funext g,
-  obtain ⟨g, hg⟩ := g,
-  funext j,
-  fin_cases j,
-  { ext i,
-    fin_cases i,
-    { simp [mB, f₁, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ], },
-    { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
-      simp [f₁, ← hg, matrix.mul_vec, matrix.dot_product, fin.sum_univ_succ, matrix.det_fin_two,
-        -special_linear_group.det_coe],
-      ring } },
-  { exact congr_arg (λ p, (coe : ℤ → ℝ) ∘ p) hg.symm }
+  ext ⟨g, rfl⟩ i j : 3,
+  fin_cases i; [fin_cases j, skip],
+  -- the following are proved by `simp`, but it is replaced by `simp only` to avoid timeouts.
+  { simp only [mB, mul_vec, dot_product, fin.sum_univ_two, _root_.coe_coe, coe_matrix_coe,
+      int.coe_cast_ring_hom, lc_row0_apply, function.comp_app, cons_val_zero, lc_row0_extend_apply,
+      linear_map.general_linear_group.coe_fn_general_linear_equiv,
+      general_linear_group.to_linear_apply, coe_plane_conformal_matrix, neg_neg, mul_vec_lin_apply,
+      cons_val_one, head_cons] },
+  { convert congr_arg (λ n : ℤ, (-n:ℝ)) g.det_coe.symm using 1,
+    simp only [f₁, mul_vec, dot_product, fin.sum_univ_two, matrix.det_fin_two, function.comp_app,
+      subtype.coe_mk, lc_row0_extend_apply, cons_val_zero,
+      linear_map.general_linear_group.coe_fn_general_linear_equiv,
+      general_linear_group.to_linear_apply, coe_plane_conformal_matrix, mul_vec_lin_apply,
+      cons_val_one, head_cons, map_apply, neg_mul, int.cast_sub, int.cast_mul, neg_sub],
+    ring },
+  { refl }
 end
 
 /-- This replaces `(g•z).re = a/c + *` in the standard theory with the following novel identity:

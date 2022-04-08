@@ -427,18 +427,22 @@ by { rw [← set.indicator_indicator], simp [indicator] }
 
 end mul_zero_class
 
-section monoid_with_zero
+section mul_zero_one_class
 
-variables [monoid_with_zero M]
+variables [mul_zero_one_class M]
 
 lemma indicator_prod_one {s : set α} {t : set β} {x : α} {y : β} :
   (s ×ˢ t : set _).indicator (1 : _ → M) (x, y) = s.indicator 1 x * t.indicator 1 y :=
 by simp [indicator, ← ite_and]
 
-end monoid_with_zero
+end mul_zero_one_class
 
 section order
-variables [has_one M] [preorder M] {s t : set α} {f g : α → M} {a : α} {y : M}
+
+variables [has_one M] {s t : set α} {f g : α → M} {a : α} {y : M}
+
+section
+variables [has_le M]
 
 @[to_additive] lemma mul_indicator_apply_le' (hfg : a ∈ s → f a ≤ y) (hg : a ∉ s → 1 ≤ y) :
   mul_indicator s f a ≤ y :=
@@ -455,6 +459,10 @@ if ha : a ∈ s then by simpa [ha] using hfg ha else by simpa [ha] using hg ha
 @[to_additive] lemma le_mul_indicator (hfg : ∀ a ∈ s, f a ≤ g a) (hf : ∀ a ∉ s, f a ≤ 1) :
   f ≤ mul_indicator s g :=
 λ a, le_mul_indicator_apply (hfg _) (hf _)
+
+end
+
+variables [preorder M]
 
 @[to_additive indicator_apply_nonneg]
 lemma one_le_mul_indicator_apply (h : a ∈ s → 1 ≤ f a) : 1 ≤ mul_indicator s f a :=
@@ -540,7 +548,8 @@ lemma indicator_nonpos_le_indicator {β} [linear_order β] [has_zero β] (s : se
 
 end set
 
-@[to_additive] lemma monoid_hom.map_mul_indicator {M N : Type*} [monoid M] [monoid N] (f : M →* N)
+@[to_additive] lemma monoid_hom.map_mul_indicator
+  {M N : Type*} [mul_one_class M] [mul_one_class N] (f : M →* N)
   (s : set α) (g : α → M) (x : α) :
   f (s.mul_indicator g x) = s.mul_indicator (f ∘ g) x :=
 congr_fun (set.mul_indicator_comp_of_one f.map_one).symm x

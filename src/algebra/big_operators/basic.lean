@@ -1305,6 +1305,19 @@ begin
   simp [finset.sum_range_succ', add_comm]
 end
 
+lemma _root_.commute.sum_right [non_unital_non_assoc_semiring β] (s : finset α)
+  (f : α → β) (b : β) (h : ∀ i ∈ s, commute b (f i)) :
+  commute b (∑ i in s, f i) :=
+commute.multiset_sum_right _ _ $ λ b hb, begin
+  obtain ⟨i, hi, rfl⟩ := multiset.mem_map.mp hb,
+  exact h _ hi
+end
+
+lemma _root_.commute.sum_left [non_unital_non_assoc_semiring β] (s : finset α)
+  (f : α → β) (b : β) (h : ∀ i ∈ s, commute (f i) b) :
+  commute (∑ i in s, f i) b :=
+(commute.sum_right _ _ _ $ λ i hi, (h _ hi).symm).symm
+
 section opposite
 
 open mul_opposite

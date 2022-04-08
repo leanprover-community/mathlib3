@@ -74,21 +74,66 @@ instance lift_hom₂_whisker_right {f g : a ⟶ b} (η : f ⟶ g) [lift_hom f] [
 
 -- We could likely turn this into a `Prop` valued existential if that proves useful.
 class bicategorical_coherence (f g : a ⟶ b) [lift_hom f] [lift_hom g] :=
-(hom [] : f ⟶ g)
-[is_iso : is_iso hom . tactic.apply_instance]
+(lift_nonempty [] : nonempty (lift_hom.lift f ⟶ lift_hom.lift g))
+--[is_iso : is_iso hom . tactic.apply_instance]
 
-attribute [instance] bicategorical_coherence.is_iso
+def bicategorical_coherence.lift (f g : a ⟶ b) [lift_hom f] [lift_hom g]
+  [bicategorical_coherence f g] : lift_hom.lift f ⟶ lift_hom.lift g :=
+classical.choice (bicategorical_coherence.lift_nonempty f g)
+
+@[simp]
+lemma lift_of_eq_self (f : a ⟶ b) : (free_bicategory.lift (prefunctor.id B)).map (lift_hom.lift f) = f :=
+rfl
+
+def bicategorical_coherence.hom (f g : a ⟶ b) [lift_hom f] [lift_hom g]
+  [bicategorical_coherence f g] : f ⟶ g :=
+begin
+  sorry
+end
+-- eq_to_hom (lift_of_eq_self f).symm ≫
+--   (free_bicategory.lift (prefunctor.id B)).map₂ (bicategorical_coherence.lift f g) ≫
+--     eq_to_hom (lift_of_eq_self g)
+
+instance is_iso (f g : a ⟶ b) [lift_hom f] [lift_hom g]
+  [bicategorical_coherence f g] : is_iso (bicategorical_coherence.hom f g) :=
+{ out := begin
+  fsplit,
+  refine eq_to_hom (lift_of_eq_self g).symm ≫
+  (free_bicategory.lift (prefunctor.id B)).map₂ _ ≫
+    eq_to_hom (lift_of_eq_self f),
+  refine groupoid.inv _,
+  refine bicategorical_coherence.lift f g,
+  fsplit,
+  dsimp only [eq_to_hom_refl, bicategorical_coherence.hom],
+  simp only [category.comp_id, category.id_comp],
+  change ((free_bicategory.lift (prefunctor.id B)).map_functor _ _).map (bicategorical_coherence.lift f g) ≫
+    ((free_bicategory.lift (prefunctor.id B)).map_functor _ _).map (groupoid.inv $ bicategorical_coherence.lift f g) = 𝟙 f,
+  rw [←functor.map_comp],
+  rw groupoid.comp_inv,
+  rw [category_theory.functor.map_id],
+  refl,
+  dsimp only [eq_to_hom_refl, bicategorical_coherence.hom],
+  simp only [category.comp_id, category.id_comp],
+  change ((free_bicategory.lift (prefunctor.id B)).map_functor _ _).map (groupoid.inv $ bicategorical_coherence.lift f g) ≫
+    ((free_bicategory.lift (prefunctor.id B)).map_functor _ _).map (bicategorical_coherence.lift f g) = 𝟙 g,
+  rw [←functor.map_comp],
+  rw groupoid.inv_comp,
+  rw [category_theory.functor.map_id],
+  refl,
+end }
+
+--attribute [instance] bicategorical_coherence.is_iso
 
 namespace bicategorical_coherence
 
 @[simps]
-instance refl (f : a ⟶ b) [lift_hom f] : bicategorical_coherence f f := ⟨𝟙 _⟩
+instance refl (f : a ⟶ b) [lift_hom f] : bicategorical_coherence f f := ⟨⟨𝟙 _⟩⟩
 
 @[simps]
 instance whisker_left
-  (f : a ⟶ b) (g h : b ⟶ c) [lift_hom f][lift_hom g] [lift_hom h] [bicategorical_coherence g h] :
+  (f : a ⟶ b) (g h : b ⟶ c) [lift_hom f] [lift_hom g] [lift_hom h] [bicategorical_coherence g h] :
   bicategorical_coherence (f ≫ g) (f ≫ h) :=
-⟨f ◁ bicategorical_coherence.hom g h⟩
+⟨⟨lift_hom.lift f ◁ bicategorical_coherence.lift g h⟩⟩
 
 @[simps]
 instance whisker_right

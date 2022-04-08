@@ -288,6 +288,12 @@ lemma lift_comp_cone_points_iso_of_nat_iso_hom {F G : J ⥤ C} {r s : cone F} {t
   P.lift r ≫ (cone_points_iso_of_nat_iso P Q w).hom = Q.map r w.hom :=
 Q.hom_ext (by simp)
 
+@[reassoc]
+lemma lift_comp_cone_points_iso_of_nat_iso_inv {F G : J ⥤ C} {r s : cone G} {t : cone F}
+  (P : is_limit t) (Q : is_limit s) (w : F ≅ G) :
+  Q.lift r ≫ (cone_points_iso_of_nat_iso P Q w).inv = P.map r w.inv :=
+P.hom_ext (by simp)
+
 section equivalence
 open category_theory.equivalence
 
@@ -314,7 +320,7 @@ def whisker_equivalence_equiv {s : cone F} (e : K ≌ J) :
 ⟨λ h, h.whisker_equivalence e, of_whisker_equivalence e, by tidy, by tidy⟩
 
 /--
-We can prove two cone points `(s : cone F).X` and `(t.cone F).X` are isomorphic if
+We can prove two cone points `(s : cone F).X` and `(t.cone G).X` are isomorphic if
 * both cones are limit cones
 * their indexing categories are equivalent via some `e : J ≌ K`,
 * the triangle of functors commutes up to a natural isomorphism: `e.functor ⋙ G ≅ F`.
@@ -738,6 +744,12 @@ lemma cocone_points_iso_of_nat_iso_hom_desc {F G : J ⥤ C} {s : cocone F} {r t 
   (cocone_points_iso_of_nat_iso P Q w).hom ≫ Q.desc r = P.map _ w.hom :=
 P.hom_ext (by simp)
 
+@[reassoc]
+lemma cocone_points_iso_of_nat_iso_inv_desc {F G : J ⥤ C} {s : cocone G} {r t : cocone F}
+  (P : is_colimit t) (Q : is_colimit s) (w : F ≅ G) :
+  (cocone_points_iso_of_nat_iso P Q w).inv ≫ P.desc r = Q.map _ w.inv :=
+Q.hom_ext (by simp)
+
 section equivalence
 open category_theory.equivalence
 
@@ -764,8 +776,8 @@ def whisker_equivalence_equiv {s : cocone F} (e : K ≌ J) :
 ⟨λ h, h.whisker_equivalence e, of_whisker_equivalence e, by tidy, by tidy⟩
 
 /--
-We can prove two cocone points `(s : cocone F).X` and `(t.cocone F).X` are isomorphic if
-* both cocones are colimit ccoones
+We can prove two cocone points `(s : cocone F).X` and `(t.cocone G).X` are isomorphic if
+* both cocones are colimit cocones
 * their indexing categories are equivalent via some `e : J ≌ K`,
 * the triangle of functors commutes up to a natural isomorphism: `e.functor ⋙ G ≅ F`.
 

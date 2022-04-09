@@ -16,6 +16,11 @@ connected.
 
 * `simple_graph.is_clique`: Predicate for a set of vertices to be a clique.
 * `simple_graph.is_n_clique`: Predicate for a set of vertices to be a `n`-clique.
+
+## Todo
+
+* Clique numbers
+* Going back and forth between cliques and complete subgraphs or embeddings of complete graphs.
 -/
 
 open finset fintype

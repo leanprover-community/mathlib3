@@ -328,17 +328,18 @@ namespace char_p
 section
 variables [ring R]
 
-lemma char_p_to_char_zero [char_p R 0] : char_zero R :=
+lemma char_p_to_char_zero (R : Type*) [add_left_cancel_monoid R] [has_one R] [char_p R 0] :
+  char_zero R :=
 char_zero_of_inj_zero $
   λ n h0, eq_zero_of_zero_dvd ((cast_eq_zero_iff R 0 n).mp h0)
 
 lemma cast_eq_mod (p : ℕ) [char_p R p] (k : ℕ) : (k : R) = (k % p : ℕ) :=
 calc (k : R) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
-         ... = ↑(k % p)               : by simp[cast_eq_zero]
+         ... = ↑(k % p)               : by simp [cast_eq_zero]
 
 theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p R p] [fintype R] : p ≠ 0 :=
 assume h : p = 0,
-have char_zero R := @char_p_to_char_zero R _ (h ▸ hc),
+have char_zero R := @char_p_to_char_zero R _ _ (h ▸ hc),
 absurd (@nat.cast_injective R _ _ this) (not_injective_infinite_fintype coe)
 
 end

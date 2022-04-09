@@ -83,14 +83,14 @@ structure shift_mk_core :=
 (μ : Π n m : A, F n ⋙ F m ≅ F (n + m))
 (associativity : ∀ (m₁ m₂ m₃ : A) (X : C),
   (F m₃).map ((μ m₁ m₂).hom.app X) ≫ (μ (m₁ + m₂) m₃).hom.app X ≫
-    (nat_trans.app ((discrete.functor F).map (eq_to_hom (add_assoc m₁ m₂ m₃))) X) =
+    eq_to_hom (by { congr' 2, exact add_assoc _ _ _ }) =
     (μ m₂ m₃).hom.app ((F m₁).obj X) ≫ (μ m₁ (m₂ + m₃)).hom.app X . obviously)
 (left_unitality : ∀ (n : A) (X : C),
   (F n).map (ε.hom.app X) ≫ (μ 0 n).hom.app X =
-    (nat_trans.app ((discrete.functor F).map (eq_to_hom (zero_add n).symm)) X) . obviously)
+    eq_to_hom (by { dsimp, rw zero_add }) . obviously)
 (right_unitality : ∀ (n : A) (X : C),
   ε.hom.app ((F n).obj X) ≫ (μ n 0).hom.app X =
-    (nat_trans.app ((discrete.functor F).map (eq_to_hom (add_zero n).symm)) X) . obviously)
+    eq_to_hom (by { dsimp, rw add_zero }) . obviously)
 
 /-- Constructs a `has_shift C A` instance from `shift_mk_core`. -/
 @[simps]

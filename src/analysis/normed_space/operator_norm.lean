@@ -468,10 +468,6 @@ f.to_linear_map.to_add_monoid_hom.isometry_iff_norm
 
 variables [ring_hom_isometric σ₁₂] (f : E →SL[σ₁₂] F)
 
-/-- A continuous linear map is automatically uniformly continuous. -/
-protected theorem uniform_continuous : uniform_continuous f :=
-f.lipschitz.uniform_continuous
-
 @[simp, nontriviality] lemma op_norm_subsingleton [subsingleton E] : ∥f∥ = 0 :=
 begin
   refine le_antisymm _ (norm_nonneg _),
@@ -1583,12 +1579,6 @@ protected lemma antilipschitz (e : E ≃SL[σ₁₂] F) :
   antilipschitz_with (nnnorm (e.symm : F →SL[σ₂₁] E)) e :=
 e.symm.lipschitz.to_right_inverse e.left_inv
 
-include σ₂₁
-/-- A continuous linear equiv is a uniform embedding. -/
-lemma uniform_embedding [ring_hom_isometric σ₁₂] (e : E ≃SL[σ₁₂] F) : uniform_embedding e :=
-e.antilipschitz.uniform_embedding e.lipschitz.uniform_continuous
-omit σ₂₁
-
 lemma one_le_norm_mul_norm_symm [ring_hom_isometric σ₁₂] [nontrivial E] (e : E ≃SL[σ₁₂] F) :
   1 ≤ ∥(e : E →SL[σ₁₂] F)∥ * ∥(e.symm : F →SL[σ₂₁] E)∥ :=
 begin
@@ -1664,21 +1654,6 @@ linear_equiv.coord_self 𝕜 E x h
 end
 
 end continuous_linear_equiv
-
-variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂]
-  [normed_space 𝕜 E] [normed_space 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜}
-  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  [ring_hom_isometric σ₁₂] [ring_hom_isometric σ₂₁]
-
-include σ₂₁
-lemma linear_equiv.uniform_embedding (e : E ≃ₛₗ[σ₁₂] F) (h₁ : continuous e)
-  (h₂ : continuous e.symm) : uniform_embedding e :=
-continuous_linear_equiv.uniform_embedding
-({ continuous_to_fun := h₁,
-  continuous_inv_fun := h₂,
-  .. e } : E ≃SL[σ₁₂] F)
-
-omit σ₂₁
 
 end normed
 

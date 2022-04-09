@@ -161,7 +161,7 @@ variables {𝕜 𝕜₂ E F : Type*} [semiring 𝕜] [semiring 𝕜₂]
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜}
 
 lemma continuous_linear_map.uniform_continuous' (f : E →SL[σ₁₂] F) : uniform_continuous f :=
-uniform_continuous_of_continuous_at_zero f f.continuous.continuous_at
+uniform_continuous_add_monoid_hom_of_continuous f.continuous
 
 lemma continuous_linear_equiv.uniform_embedding'
   [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] (e : E ≃SL[σ₁₂] F) :
@@ -253,6 +253,8 @@ begin
           tendsto_id (1 : 𝕜)
     ... = (@nhds 𝕜 t 0) : by rw zero_smul }
 end
+
+#check prod.uniform_group
 
 lemma linear_map.continuous_of_is_closed_ker (l : E →ₗ[𝕜] 𝕜) (hl : is_closed (l.ker : set E)) :
   continuous l :=

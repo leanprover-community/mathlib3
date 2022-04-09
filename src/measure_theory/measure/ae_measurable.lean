@@ -120,12 +120,12 @@ lemma smul_measure [monoid R] [distrib_mul_action R ℝ≥0∞] [is_scalar_tower
   ae_measurable f (c • μ) :=
 ⟨h.mk f, h.measurable_mk, ae_smul_measure h.ae_eq_mk c⟩
 
-lemma comp_ae_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
+lemma comp_ae_measurable {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (μ.map f)) (hf : ae_measurable f μ) : ae_measurable (g ∘ f) μ :=
 ⟨hg.mk g ∘ hf.mk f, hg.measurable_mk.comp hf.measurable_mk,
   (ae_eq_comp hf hg.ae_eq_mk).trans ((hf.ae_eq_mk).fun_comp (mk g hg))⟩
 
-lemma comp_measurable [measurable_space δ] {f : α → δ} {g : δ → β}
+lemma comp_measurable {f : α → δ} {g : δ → β}
   (hg : ae_measurable g (μ.map f)) (hf : measurable f) : ae_measurable (g ∘ f) μ :=
 hg.comp_ae_measurable hf.ae_measurable
 
@@ -266,7 +266,7 @@ lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_se
 (ae_measurable_indicator_iff hs).mpr hfm.restrict
 
 lemma measure_theory.measure.restrict_map_of_ae_measurable
-  {f : α → β} (hf : ae_measurable f μ) {s : set β} (hs : measurable_set s) :
+  {f : α → δ} (hf : ae_measurable f μ) {s : set δ} (hs : measurable_set s) :
   (μ.map f).restrict s = (μ.restrict $ f ⁻¹' s).map f :=
 calc
 (μ.map f).restrict s = (μ.map (hf.mk f)).restrict s :
@@ -285,6 +285,6 @@ begin
 end
 
 lemma measure_theory.measure.map_mono_of_ae_measurable
-  {f : α → β} (h : μ ≤ ν) (hf : ae_measurable f ν) :
+  {f : α → δ} (h : μ ≤ ν) (hf : ae_measurable f ν) :
   μ.map f ≤ ν.map f :=
 λ s hs, by simpa [hf, hs, hf.mono_measure h] using measure.le_iff'.1 h (f ⁻¹' s)

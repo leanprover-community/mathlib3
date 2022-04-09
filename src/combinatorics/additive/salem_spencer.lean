@@ -3,6 +3,7 @@ Copyright (c) 2021 Yaël Dillies, Bhavik Mehta. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
+import algebra.hom.freiman
 import analysis.asymptotics.asymptotics
 
 /-!
@@ -35,11 +36,15 @@ Can `add_salem_spencer_iff_eq_right` be made more general?
 Salem-Spencer, Roth, arithmetic progression, average, three-free
 -/
 
-open finset nat
+open function nat
+open_locale pointwise
 
-variables {α β : Type*}
+variables {F α β : Type*}
 
 section salem_spencer
+
+open set
+
 section monoid
 variables [monoid α] [monoid β] (s t : set α)
 
@@ -71,7 +76,7 @@ lemma set.subsingleton.mul_salem_spencer (hs : s.subsingleton) : mul_salem_spenc
 
 @[simp, to_additive]
 lemma mul_salem_spencer_singleton (a : α) : mul_salem_spencer ({a} : set α) :=
-set.subsingleton_singleton.mul_salem_spencer
+subsingleton_singleton.mul_salem_spencer
 
 @[to_additive]
 lemma mul_salem_spencer.prod {t : set β} (hs : mul_salem_spencer s) (ht : mul_salem_spencer t) :
@@ -82,10 +87,32 @@ lemma mul_salem_spencer.prod {t : set β} (hs : mul_salem_spencer s) (ht : mul_s
 @[to_additive]
 lemma mul_salem_spencer_pi {ι : Type*} {α : ι → Type*} [Π i, monoid (α i)] {s : Π i, set (α i)}
   (hs : ∀ i, mul_salem_spencer (s i)) :
-  mul_salem_spencer ((set.univ : set ι).pi s) :=
+  mul_salem_spencer ((univ : set ι).pi s) :=
 λ a b c ha hb hc h, funext $ λ i, hs i (ha i trivial) (hb i trivial) (hc i trivial) $ congr_fun h i
 
 end monoid
+
+section comm_monoid
+variables [comm_monoid α] [comm_monoid β] {s : set α} {a : α}
+
+@[to_additive]
+lemma mul_salem_spencer.of_image [fun_like F α (λ _, β)] [freiman_hom_class F s β 2] (f : F)
+  (hf : injective f) (h : mul_salem_spencer (f '' s)) :
+  mul_salem_spencer s :=
+λ a b c ha hb hc habc, hf $ h (mem_image_of_mem _ ha) (mem_image_of_mem _ hb)
+  (mem_image_of_mem _ hc) $ map_mul_map_eq_map_mul_map f ha hb hc hc habc
+
+-- TODO: Generalize to Freiman homs
+@[to_additive]
+lemma mul_salem_spencer.image [mul_hom_class F α β] (f : F) (hf : (s * s).inj_on f)
+  (h : mul_salem_spencer s) :
+  mul_salem_spencer (f '' s) :=
+begin
+  rintro _ _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩ ⟨c, hc, rfl⟩ habc,
+  rw h ha hb hc (hf (mul_mem_mul ha hb) (mul_mem_mul hc hc) $ by rwa [map_mul, map_mul]),
+end
+
+end comm_monoid
 
 section cancel_comm_monoid
 variables [cancel_comm_monoid α] {s : set α} {a : α}
@@ -96,11 +123,11 @@ lemma mul_salem_spencer_insert :
     (∀ ⦃b c⦄, b ∈ s → c ∈ s → a * b = c * c → a = b) ∧
     ∀ ⦃b c⦄, b ∈ s → c ∈ s → b * c = a * a → b = c :=
 begin
-  refine ⟨λ hs, ⟨hs.mono (set.subset_insert _ _),
+  refine ⟨λ hs, ⟨hs.mono (subset_insert _ _),
     λ b c hb hc, hs (or.inl rfl) (or.inr hb) (or.inr hc),
     λ b c hb hc, hs (or.inr hb) (or.inr hc) (or.inl rfl)⟩, _⟩,
   rintro ⟨hs, ha, ha'⟩ b c d hb hc hd h,
-  rw set.mem_insert_iff at hb hc hd,
+  rw mem_insert_iff at hb hc hd,
   obtain rfl | hb := hb;
   obtain rfl | hc := hc,
   { refl },
@@ -142,8 +169,8 @@ end
 
 @[to_additive]
 lemma mul_salem_spencer_mul_left_iff : mul_salem_spencer ((*) a '' s) ↔ mul_salem_spencer s :=
-⟨λ hs b c d hb hc hd h, mul_left_cancel (hs (set.mem_image_of_mem _ hb) (set.mem_image_of_mem _ hc)
-  (set.mem_image_of_mem _ hd) $ by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),
+⟨λ hs b c d hb hc hd h, mul_left_cancel (hs (mem_image_of_mem _ hb) (mem_image_of_mem _ hc)
+  (mem_image_of_mem _ hd) $ by rw [mul_mul_mul_comm, h, mul_mul_mul_comm]),
   mul_salem_spencer.mul_left⟩
 
 @[to_additive]
@@ -220,6 +247,8 @@ end
 
 end nat
 end salem_spencer
+
+open finset
 
 section roth_number
 variables [decidable_eq α]

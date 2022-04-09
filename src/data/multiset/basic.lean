@@ -493,6 +493,9 @@ quot.induction_on s $ λ l, rfl
 @[simp] theorem card_singleton (a : α) : card ({a} : multiset α) = 1 :=
 by simp only [singleton_eq_cons, card_zero, eq_self_iff_true, zero_add, card_cons]
 
+lemma card_pair (a b : α) : ({a, b} : multiset α).card = 2 :=
+by rw [insert_eq_cons, card_cons, card_singleton]
+
 theorem card_eq_one {s : multiset α} : card s = 1 ↔ ∃ a, s = {a} :=
 ⟨quot.induction_on s $ λ l h,
   (list.length_eq_one.1 h).imp $ λ a, congr_arg coe,

@@ -6,6 +6,7 @@ Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo, Yury Kudryashov, Fréd
 -/
 import topology.algebra.ring
 import topology.algebra.mul_action
+import topology.algebra.uniform_group
 import topology.uniform_space.uniform_embedding
 import algebra.algebra.basic
 import linear_algebra.projection
@@ -359,6 +360,12 @@ instance to_fun : has_coe_to_fun (M₁ →SL[σ₁₂] M₂) (λ _, M₁ → M�
 
 @[continuity]
 protected lemma continuous (f : M₁ →SL[σ₁₂] M₂) : continuous f := f.2
+
+protected lemma uniform_continuous {E₁ E₂ : Type*} [uniform_space E₁] [uniform_space E₂]
+  [add_comm_group E₁] [add_comm_group E₂] [module R₁ E₁] [module R₂ E₂]
+  [uniform_add_group E₁] [uniform_add_group E₂] (f : E₁ →SL[σ₁₂] E₂) :
+  uniform_continuous f :=
+uniform_continuous_add_monoid_hom_of_continuous f.continuous
 
 @[simp, norm_cast] lemma coe_inj {f g : M₁ →SL[σ₁₂] M₂} :
   (f : M₁ →ₛₗ[σ₁₂] M₂) = g ↔ f = g :=
@@ -1324,6 +1331,15 @@ e.continuous.continuous_at
 protected lemma continuous_within_at (e : M₁ ≃SL[σ₁₂] M₂) {s : set M₁} {x : M₁} :
   continuous_within_at (e : M₁ → M₂) s x :=
 e.continuous.continuous_within_at
+
+lemma uniform_embedding {E₁ E₂ : Type*} [uniform_space E₁] [uniform_space E₂]
+  [add_comm_group E₁] [add_comm_group E₂] [module R₁ E₁] [module R₂ E₂]
+  [uniform_add_group E₁] [uniform_add_group E₂] [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+  (e : E₁ ≃SL[σ₁₂] E₂) :
+  uniform_embedding e :=
+e.to_linear_equiv.to_equiv.uniform_embedding
+  e.to_continuous_linear_map.uniform_continuous'
+  e.symm.to_continuous_linear_map.uniform_continuous'
 
 lemma comp_continuous_on_iff
   {α : Type*} [topological_space α] (e : M₁ ≃SL[σ₁₂] M₂) {f : α → M₁} {s : set α} :

@@ -63,7 +63,7 @@ lemma map_derived_series_le_derived_series (n : ℕ) :
   (derived_series G n).map f ≤ derived_series G' n :=
 begin
   induction n with n ih,
-  { simp only [derived_series_zero, le_top], },
+  { exact le_top },
   { simp only [derived_series_succ, map_commutator, commutator_mono, ih] }
 end
 
@@ -73,9 +73,8 @@ lemma derived_series_le_map_derived_series (hf : function.surjective f) (n : ℕ
   derived_series G' n ≤ (derived_series G n).map f :=
 begin
   induction n with n ih,
-  { rwa [derived_series_zero, derived_series_zero, top_le_iff, ← monoid_hom.range_eq_map,
-    ← monoid_hom.range_top_iff_surjective.mpr], },
-  { simp only [*, derived_series_succ, commutator_le_map_commutator], }
+  { exact (map_top_of_surjective f hf).ge },
+  { exact commutator_le_map_commutator ih ih }
 end
 
 lemma map_derived_series_eq (hf : function.surjective f) (n : ℕ) :
@@ -99,12 +98,7 @@ lemma is_solvable_def : is_solvable G ↔ ∃ n : ℕ, derived_series G n = ⊥ 
 
 @[priority 100]
 instance comm_group.is_solvable {G : Type*} [comm_group G] : is_solvable G :=
-begin
-  use 1,
-  rw [eq_bot_iff, derived_series_one],
-  calc commutator G ≤ (monoid_hom.id G).ker : abelianization.commutator_subset_ker (monoid_hom.id G)
-  ... = ⊥ : rfl,
-end
+⟨⟨1, le_bot_iff.mp (abelianization.commutator_subset_ker (monoid_hom.id G))⟩⟩
 
 lemma is_solvable_of_comm {G : Type*} [hG : group G]
   (h : ∀ a b : G, a * b = b * a) : is_solvable G :=
@@ -198,8 +192,7 @@ lemma is_simple_group.comm_iff_is_solvable :
   (∀ a b : G, a * b = b * a) ↔ is_solvable G :=
 ⟨is_solvable_of_comm, λ ⟨⟨n, hn⟩⟩, begin
   cases n,
-  { rw derived_series_zero at hn,
-    intros a b,
+  { intros a b,
     refine (mem_bot.1 _).trans (mem_bot.1 _).symm;
     { rw ← hn,
       exact mem_top _ } },

@@ -105,18 +105,20 @@ lemma is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
   ⟨F.map_injective (by simp), F.map_injective (by simp)⟩⟩⟩
 
 /-- If `F` is fully faithful, we have an equivalence of hom-sets `X ⟶ Y` and `F X ⟶ F Y`. -/
+@[simps]
 def equiv_of_fully_faithful {X Y} : (X ⟶ Y) ≃ (F.obj X ⟶ F.obj Y) :=
 { to_fun := λ f, F.map f,
   inv_fun := λ f, F.preimage f,
   left_inv := λ f, by simp,
   right_inv := λ f, by simp }
 
-@[simp]
-lemma equiv_of_fully_faithful_apply {X Y : C} (f : X ⟶ Y) :
-  equiv_of_fully_faithful F f = F.map f := rfl
-@[simp]
-lemma equiv_of_fully_faithful_symm_apply {X Y} (f : F.obj X ⟶ F.obj Y) :
-  (equiv_of_fully_faithful F).symm f = F.preimage f := rfl
+/-- If `F` is fully faithful, we have an equivalence of hom-sets `X ≅ Y` and `F X ≅ F Y`. -/
+@[simps]
+def iso_equiv_of_fully_faithful {X Y} : (X ≅ Y) ≃ (F.obj X ≅ F.obj Y) :=
+{ to_fun := λ f, F.map_iso f,
+  inv_fun := λ f, preimage_iso f,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by { ext, simp, } }
 
 end category_theory
 

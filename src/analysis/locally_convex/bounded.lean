@@ -140,7 +140,7 @@ begin
   rw totally_bounded_iff_subset_finite_Union_nhds_zero at hs,
   intros U hU,
   have h : filter.tendsto (λ (x : E × E), x.fst + x.snd) (𝓝 (0,0)) (𝓝 ((0 : E) + (0 : E))) :=
-  continuous_iff_continuous_at.mp has_continuous_add.continuous_add (0,0),
+    tendsto_add,
   rw add_zero at h,
   have h' := (nhds_basis_closed_balanced 𝕜 E).prod (nhds_basis_closed_balanced 𝕜 E),
   simp_rw [←nhds_prod_eq, id.def] at h',
@@ -148,15 +148,11 @@ begin
   rcases hs x.snd hx.2.1 with ⟨t, ht, hs⟩,
   refine absorbs.mono_right _ hs,
   rw ht.absorbs_Union,
-  have hx_fstsnd : x.fst + x.snd ⊆ U :=
-  begin
-    intros z hz,
+  have hx_fstsnd : x.fst + x.snd ⊆ U,
+  { intros z hz,
     rcases set.mem_add.mp hz with ⟨z1, z2, hz1, hz2, hz⟩,
     have hz' : (z1, z2) ∈ x.fst ×ˢ x.snd := ⟨hz1, hz2⟩,
-    specialize h'' hz',
-    simp only [hz] at h'',
-    exact h'',
-  end,
+    simpa only [hz] using h'' hz' },
   refine λ y hy, absorbs.mono_left _ hx_fstsnd,
   rw [←set.singleton_vadd, vadd_eq_add],
   exact (absorbent_nhds_zero hx.1.1).absorbs.add hx.2.2.2.absorbs_self,

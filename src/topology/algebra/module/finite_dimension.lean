@@ -25,6 +25,21 @@ instance subgroup.uniform_group {G : Type*} [group G] [uniform_space G] [uniform
 { uniform_continuous_div := uniform_continuous_comap' (uniform_continuous_div.comp $
     uniform_continuous_subtype_val.prod_map uniform_continuous_subtype_val) }
 
+@[to_additive]
+lemma subgroup.t1_quotient_of_is_closed {G : Type*} [group G] [topological_space G]
+  [topological_group G] (S : subgroup G) [S.normal] (hS : is_closed (S : set G)) :
+  t1_space (G ⧸ S) :=
+begin
+  rw ← quotient_group.ker_mk S at hS,
+  exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS)
+end
+
+@[to_additive]
+lemma subgroup.t2_quotient_of_is_closed {G : Type*} [group G] [topological_space G]
+  [topological_group G] (S : subgroup G) [S.normal] (hS : is_closed (S : set G)) :
+  t2_space (G ⧸ S) :=
+@topological_group.t2_space (G ⧸ S) _ _ _ (S.t1_quotient_of_is_closed hS)
+
 lemma linear_map.ker_subgroup_eq_group_hom_ker {R M M' : Type*} [ring R] [add_comm_group M]
   [add_comm_monoid M'] [module R M] [module R M'] (f : M →ₗ[R] M') :
 f.ker.to_add_subgroup = f.to_add_monoid_hom.ker := rfl
@@ -77,6 +92,15 @@ begin
     S.quotient_homeomorph_quotient_group.inducing,
   rw this.1,
   exact topological_add_group_induced _
+end
+
+lemma submodule.t2_quotient_of_is_closed {R M : Type*} [ring R] [add_comm_group M]
+  [module R M] [topological_space M] [topological_add_group M] (S : submodule R M)
+  (hS : is_closed (S : set M)) :
+  t2_space (M ⧸ S) :=
+begin
+  letI : t2_space (M ⧸ S.to_add_subgroup) := S.to_add_subgroup.t2_quotient_of_is_closed hS,
+  exact S.quotient_homeomorph_quotient_group.symm.t2_space
 end
 
 lemma induced_symm {α β : Type*} {e : α ≃ β} : induced e.symm = coinduced e :=
@@ -239,7 +263,7 @@ begin
     exact continuous_zero },
   { letI : topological_add_group (E ⧸ l.ker) := l.ker.topological_add_group_quotient,
     letI : has_continuous_smul 𝕜 (E ⧸ l.ker) := sorry,
-    letI : t2_space (E ⧸ l.ker) := sorry,
+    letI : t2_space (E ⧸ l.ker) := l.ker.t2_quotient_of_is_closed hl,
     have : finrank 𝕜 l.range = 1,
       from le_antisymm (finrank_self 𝕜 ▸ l.range.finrank_le) (zero_lt_iff.mpr H),
     have hi : function.injective (l.ker.liftq l (le_refl _)),

@@ -1513,8 +1513,8 @@ e.to_linear_equiv.to_equiv.uniform_embedding
   e.to_continuous_linear_map.uniform_continuous
   e.symm.to_continuous_linear_map.uniform_continuous
 
-protected lemma _root_.linear_equiv.uniform_embedding {E₁ E₂ : Type*} [uniform_space E₁] [uniform_space E₂]
-  [add_comm_group E₁] [add_comm_group E₂] [module R₁ E₁] [module R₂ E₂]
+protected lemma _root_.linear_equiv.uniform_embedding {E₁ E₂ : Type*} [uniform_space E₁]
+  [uniform_space E₂] [add_comm_group E₁] [add_comm_group E₂] [module R₁ E₁] [module R₂ E₂]
   [uniform_add_group E₁] [uniform_add_group E₂]
   [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
   (e : E₁ ≃ₛₗ[σ₁₂] E₂) (h₁ : continuous e) (h₂ : continuous e.symm) :

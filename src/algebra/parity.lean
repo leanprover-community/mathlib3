@@ -75,7 +75,7 @@ variables [monoid α]
 @[simp, to_additive even_two_nsmul]
 lemma is_square_sq (a : α) : is_square (a ^ 2) := ⟨a, pow_two _⟩
 
-variables [has_distrib_neg α]
+variables [has_distrib_neg α] {n : ℕ}
 
 lemma even.neg_pow : even n → ∀ a : α, (-a) ^ n = a ^ n :=
 by { rintro ⟨c, rfl⟩ a, simp_rw [←two_mul, pow_mul, neg_sq] }

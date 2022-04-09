@@ -180,15 +180,6 @@ begin
   { exact continuous_at_const_cpow ha, },
 end
 
-lemma continuous_at_cpow_const {a b : ℂ} (ha : 0 < a.re ∨ a.im ≠ 0) :
-  continuous_at (λ x, cpow x b) a :=
-begin
-  have ha_ne_zero : a ≠ 0, by { intro h, cases ha; { rw h at ha, simpa using ha, }, },
-  rw continuous_at_congr (cpow_eq_nhds ha_ne_zero),
-  refine continuous_exp.continuous_at.comp _,
-  exact continuous_at.mul (continuous_at_clog ha) continuous_at_const,
-end
-
 lemma continuous_at_cpow {p : ℂ × ℂ} (hp_fst : 0 < p.fst.re ∨ p.fst.im ≠ 0) :
   continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) p :=
 begin
@@ -200,6 +191,10 @@ begin
     continuous_snd.continuous_at,
   exact continuous_at_clog hp_fst,
 end
+
+lemma continuous_at_cpow_const {a b : ℂ} (ha : 0 < a.re ∨ a.im ≠ 0) :
+  continuous_at (λ x, cpow x b) a :=
+tendsto.comp (@continuous_at_cpow (a, b) ha) (continuous_at_id.prod continuous_at_const)
 
 lemma filter.tendsto.cpow {l : filter α} {f g : α → ℂ} {a b : ℂ} (hf : tendsto f l (𝓝 a))
   (hg : tendsto g l (𝓝 b)) (ha : 0 < a.re ∨ a.im ≠ 0) :

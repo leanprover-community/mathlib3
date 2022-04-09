@@ -295,12 +295,12 @@ end is_scalar_tower
 section semiring
 
 variables {R S A}
-variables [comm_semiring R] [semiring S] [add_comm_monoid A]
 
 namespace submodule
 
 section module
 
+variables [semiring R] [semiring S] [add_comm_monoid A]
 variables [module R S] [module S A] [module R A] [is_scalar_tower R S A]
 
 open is_scalar_tower
@@ -344,6 +344,7 @@ end module
 
 section algebra
 
+variables [comm_semiring R] [semiring S] [add_comm_monoid A]
 variables [algebra R S] [module S A] [module R A] [is_scalar_tower R S A]
 
 /-- A variant of `submodule.span_image` for `algebra_map`. -/

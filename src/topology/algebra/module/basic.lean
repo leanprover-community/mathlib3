@@ -1332,16 +1332,6 @@ protected lemma continuous_within_at (e : M₁ ≃SL[σ₁₂] M₂) {s : set M�
   continuous_within_at (e : M₁ → M₂) s x :=
 e.continuous.continuous_within_at
 
-lemma uniform_embedding {E₁ E₂ : Type*} [uniform_space E₁] [uniform_space E₂]
-  [add_comm_group E₁] [add_comm_group E₂] [module R₁ E₁] [module R₂ E₂]
-  [uniform_add_group E₁] [uniform_add_group E₂]
-  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  (e : E₁ ≃SL[σ₁₂] E₂) :
-  uniform_embedding e :=
-e.to_linear_equiv.to_equiv.uniform_embedding
-  e.to_continuous_linear_map.uniform_continuous'
-  e.symm.to_continuous_linear_map.uniform_continuous'
-
 lemma comp_continuous_on_iff
   {α : Type*} [topological_space α] (e : M₁ ≃SL[σ₁₂] M₂) {f : α → M₁} {s : set α} :
   continuous_on (e ∘ f) s ↔ continuous_on f s :=
@@ -1512,6 +1502,27 @@ by rw [e.symm.image_eq_preimage, e.symm_symm]
 
 @[simp] protected lemma preimage_symm_preimage (e : M₁ ≃SL[σ₁₂] M₂) (s : set M₁) :
   e ⁻¹' (e.symm ⁻¹' s) = s := e.symm.symm_preimage_preimage s
+
+protected lemma uniform_embedding {E₁ E₂ : Type*} [uniform_space E₁] [uniform_space E₂]
+  [add_comm_group E₁] [add_comm_group E₂] [module R₁ E₁] [module R₂ E₂]
+  [uniform_add_group E₁] [uniform_add_group E₂]
+  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+  (e : E₁ ≃SL[σ₁₂] E₂) :
+  uniform_embedding e :=
+e.to_linear_equiv.to_equiv.uniform_embedding
+  e.to_continuous_linear_map.uniform_continuous
+  e.symm.to_continuous_linear_map.uniform_continuous
+
+protected lemma _root_.linear_equiv.uniform_embedding {E₁ E₂ : Type*} [uniform_space E₁] [uniform_space E₂]
+  [add_comm_group E₁] [add_comm_group E₂] [module R₁ E₁] [module R₂ E₂]
+  [uniform_add_group E₁] [uniform_add_group E₂]
+  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
+  (e : E₁ ≃ₛₗ[σ₁₂] E₂) (h₁ : continuous e) (h₂ : continuous e.symm) :
+  uniform_embedding e :=
+continuous_linear_equiv.uniform_embedding
+({ continuous_to_fun := h₁,
+  continuous_inv_fun := h₂,
+  .. e } : E₁ ≃SL[σ₁₂] E₂)
 
 omit σ₂₁
 

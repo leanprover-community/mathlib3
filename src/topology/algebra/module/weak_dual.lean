@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä, Moritz Doll
 -/
 import topology.algebra.module.basic
+import topology.algebra.uniform_group
 
 /-!
 # Weak dual topology
@@ -152,6 +153,12 @@ instance [has_continuous_add 𝕜] : topological_add_group (weak_bilin B) :=
     ext,
     simp only [map_neg, function.comp_app, linear_map.neg_apply],
   end }
+
+instance [has_continuous_add 𝕜] : uniform_space (weak_bilin B) :=
+topological_add_group.to_uniform_space (weak_bilin B)
+
+instance [has_continuous_add 𝕜] : uniform_add_group (weak_bilin B) :=
+topological_add_group_is_uniform
 
 end ring
 

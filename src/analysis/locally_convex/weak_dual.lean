@@ -37,7 +37,7 @@ family of seminorm `B.to_seminorm_family`.
 weak dual, seminorm
 -/
 
-variables {𝕜 E F ι : Type*}
+variables {𝕜 E F : Type*}
 
 open_locale topological_space
 
@@ -82,7 +82,6 @@ end bilin_form
 section topology
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
-variables [nonempty ι]
 variables {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜}
 
 lemma linear_map.has_basis_weak_bilin (B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜) :
@@ -137,7 +136,7 @@ end topology
 section locally_convex
 
 variables [normed_field 𝕜] [add_comm_group E] [module 𝕜 E] [add_comm_group F] [module 𝕜 F]
-variables [nonempty ι] [normed_space ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
+variables [normed_space ℝ 𝕜] [module ℝ E] [is_scalar_tower ℝ 𝕜 E]
 
 instance {B : E →ₗ[𝕜] F →ₗ[𝕜] 𝕜} : locally_convex_space ℝ (weak_bilin B) :=
 seminorm_family.to_locally_convex_space B.to_seminorm_family

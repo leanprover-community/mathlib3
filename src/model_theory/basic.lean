@@ -43,7 +43,7 @@ For the Flypitch project:
 the continuum hypothesis*][flypitch_itp]
 
 -/
-universes u v u' v' w
+universes u v u' v' w w'
 
 open_locale cardinal
 open cardinal
@@ -202,7 +202,7 @@ class Structure :=
 (fun_map : ∀{n}, L.functions n → (fin n → M) → M)
 (rel_map : ∀{n}, L.relations n → (fin n → M) → Prop)
 
-variables (N : Type*) [L.Structure M] [L.Structure N]
+variables (N : Type w') [L.Structure M] [L.Structure N]
 
 open Structure
 
@@ -249,9 +249,6 @@ lemma fun_map_eq_coe_constants {c : L.constants} {x : fin 0 → M} :
   be a global instance, because `L` becomes a metavariable. -/
 lemma nonempty_of_nonempty_constants [h : nonempty L.constants] : nonempty M :=
 h.map coe
-
-instance empty_Structure : language.empty.Structure M :=
-⟨λ _, pempty.elim, λ _, pempty.elim⟩
 
 /-- The function map for `first_order.language.Structure₂`. -/
 def fun_map₂ {c f₁ f₂ : Type u} {r₁ r₂ : Type v}
@@ -333,10 +330,6 @@ lemma hom_class.map_constants {F M N} [L.Structure M] [L.Structure N] [fun_like 
   [hom_class L F M N]
   (φ : F) (c : L.constants) : φ (c) = c :=
 (hom_class.map_fun φ c default).trans (congr rfl (funext default))
-
-instance strong_hom_class_empty {F M N} [fun_like F M (λ _, N)] :
-  strong_hom_class language.empty F M N :=
-⟨λ _ _ f, pempty.elim f, λ _ _ r, pempty.elim r⟩
 
 namespace hom
 
@@ -565,8 +558,7 @@ hom_class.map_constants φ c
 strong_hom_class.map_rel φ r x
 
 /-- A first-order equivalence is also a first-order embedding. -/
-def to_embedding : (M ≃[L] N) → M ↪[L] N :=
-strong_hom_class.to_embedding
+def to_embedding : (M ≃[L] N) → M ↪[L] N := strong_hom_class.to_embedding
 
 /-- A first-order equivalence is also a first-order homomorphism. -/
 def to_hom : (M ≃[L] N) → M →[L] N := hom_class.to_hom
@@ -650,6 +642,37 @@ variables {L₁ L₂ S}
   @rel_map (L₁.sum L₂) S _ n (sum.inr R) = rel_map R := rfl
 
 end sum_Structure
+
+section empty
+
+instance empty_Structure : language.empty.Structure M :=
+⟨λ _, pempty.elim, λ _, pempty.elim⟩
+
+@[priority 100] instance strong_hom_class_empty {F M N} [fun_like F M (λ _, N)] :
+  strong_hom_class language.empty F M N :=
+⟨λ _ _ f, pempty.elim f, λ _ _ r, pempty.elim r⟩
+
+/-- Makes a `language.empty.hom` out of any function. -/
+@[simps] def _root_.function.empty_hom (f : M → N) : (M →[language.empty] N) :=
+{ to_fun := f }
+
+/-- Makes a `language.empty.embedding` out of any function. -/
+@[simps] def _root_.embedding.empty (f : M ↪ N) : (M ↪[language.empty] N) :=
+{ to_embedding := f }
+
+@[simp] lemma empty.nonempty_embedding_iff :
+  nonempty (M ↪[language.empty] N) ↔ cardinal.lift.{w'} (# M) ≤ cardinal.lift.{w} (# N) :=
+trans ⟨nonempty.map (λ f, f.to_embedding), nonempty.map embedding.empty⟩ cardinal.lift_mk_le'.symm
+
+/-- Makes a `language.empty.equiv` out of any function. -/
+@[simps] def _root_.equiv.empty (f : M ≃ N) : (M ≃[language.empty] N) :=
+{ to_equiv := f }
+
+@[simp] lemma empty.nonempty_equiv_iff :
+  nonempty (M ≃[language.empty] N) ↔ cardinal.lift.{w'} (# M) = cardinal.lift.{w} (# N) :=
+trans ⟨nonempty.map (λ f, f.to_equiv), nonempty.map equiv.empty⟩ cardinal.lift_mk_eq'.symm
+
+end empty
 
 end language
 end first_order

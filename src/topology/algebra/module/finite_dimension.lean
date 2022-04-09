@@ -84,6 +84,14 @@ def submodule.quotient_homeomorph_quotient_group {R M : Type*} [ring R] [add_com
   continuous_inv_fun := continuous_coinduced_dom continuous_quot_mk,
   .. S.quotient_equiv_quotient_group }
 
+lemma submodule.is_open_map_mkq {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  (S : submodule R M) [topological_space M] [topological_add_group M] : is_open_map S.mkq :=
+begin
+  rw ← S.quotient_equiv_quotient_group_symm_comp_mk,
+  exact S.quotient_homeomorph_quotient_group.symm.is_open_map.comp
+    (quotient_add_group.is_open_map_coe _)
+end
+
 instance submodule.topological_add_group_quotient {R M : Type*} [ring R] [add_comm_group M]
   [module R M] [topological_space M] [topological_add_group M] (S : submodule R M) :
     topological_add_group (M ⧸ S) :=
@@ -92,6 +100,21 @@ begin
     S.quotient_homeomorph_quotient_group.inducing,
   rw this.1,
   exact topological_add_group_induced _
+end
+
+instance submodule.has_continuous_smul_quotient {R M : Type*} [ring R] [add_comm_group M]
+  [module R M] [topological_space R] [topological_space M] [topological_add_group M]
+  [has_continuous_smul R M] (S : submodule R M) :
+  has_continuous_smul R (M ⧸ S) :=
+begin
+  split,
+  have quot : quotient_map (λ au : R × M, (au.1, S.mkq au.2)),
+    from is_open_map.to_quotient_map
+      (is_open_map.id.prod S.is_open_map_mkq)
+      (continuous_id.prod_map continuous_quot_mk)
+      (function.surjective_id.prod_map $ surjective_quot_mk _),
+  rw quot.continuous_iff,
+  exact continuous_quot_mk.comp continuous_smul
 end
 
 lemma submodule.t2_quotient_of_is_closed {R M : Type*} [ring R] [add_comm_group M]
@@ -254,8 +277,6 @@ begin
     ... = (@nhds 𝕜 t 0) : by rw zero_smul }
 end
 
-#check prod.uniform_group
-
 lemma linear_map.continuous_of_is_closed_ker (l : E →ₗ[𝕜] 𝕜) (hl : is_closed (l.ker : set E)) :
   continuous l :=
 begin
@@ -263,9 +284,7 @@ begin
   { rw [finrank_eq_zero, linear_map.range_eq_bot] at H,
     rw H,
     exact continuous_zero },
-  { letI : topological_add_group (E ⧸ l.ker) := l.ker.topological_add_group_quotient,
-    letI : has_continuous_smul 𝕜 (E ⧸ l.ker) := sorry,
-    letI : t2_space (E ⧸ l.ker) := l.ker.t2_quotient_of_is_closed hl,
+  { letI : t2_space (E ⧸ l.ker) := l.ker.t2_quotient_of_is_closed hl,
     have : finrank 𝕜 l.range = 1,
       from le_antisymm (finrank_self 𝕜 ▸ l.range.finrank_le) (zero_lt_iff.mpr H),
     have hi : function.injective (l.ker.liftq l (le_refl _)),

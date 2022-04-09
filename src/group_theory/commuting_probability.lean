@@ -22,15 +22,6 @@ This file introduces the commuting probability of finite groups.
 * Neumann's theorem.
 -/
 
-section for_mathlib
-
-instance subgroup.commutator.characteristic (G : Type*) [group G] : (commutator G).characteristic :=
-subgroup.characteristic_iff_le_map.mpr (λ ϕ, subgroup.commutator_le_map_commutator
-  (ge_of_eq (subgroup.map_top_of_surjective ϕ.to_monoid_hom ϕ.surjective))
-  (ge_of_eq (subgroup.map_top_of_surjective ϕ.to_monoid_hom ϕ.surjective)))
-
-end for_mathlib
-
 noncomputable theory
 open_locale classical
 open_locale big_operators
@@ -43,24 +34,14 @@ section technical
 namespace subgroup
 
 /-- **Schreier's Lemma** -/
-lemma closure_set_image_eq_top {G : Type*} [group G] {H : subgroup G} {R S : set G}
-  (hR : R ∈ right_transversals (H : set G)) (hR1 : (1 : G) ∈ R) (hS : closure S = ⊤) :
-  closure ((R * S).image (λ g, ⟨g * (mem_right_transversals.to_fun hR g)⁻¹,
-    mem_right_transversals.mul_inv_to_fun_mem hR g⟩) : set H) = ⊤ :=
-begin
-  rw [eq_top_iff, ←map_subtype_le_map_subtype, monoid_hom.map_closure, set.image_image],
-  exact (map_subtype_le ⊤).trans (ge_of_eq (closure_mul_eq hR hR1 hS)),
-end
-
-/-- **Schreier's Lemma** -/
-lemma closure_finset_image_eq_top {G : Type*} [group G] {H : subgroup G} {R S : finset G}
+lemma closure_mul_image_eq_top' {G : Type*} [group G] {H : subgroup G} {R S : finset G}
   (hR : (R : set G) ∈ right_transversals (H : set G)) (hR1 : (1 : G) ∈ R)
   (hS : closure (S : set G) = ⊤) :
   closure ((((R * S).image (λ g, ⟨g * (mem_right_transversals.to_fun hR g)⁻¹,
     mem_right_transversals.mul_inv_to_fun_mem hR g⟩)) : finset H) : set H) = ⊤ :=
 begin
   rw [finset.coe_image, finset.coe_mul],
-  exact closure_set_image_eq_top hR hR1 hS,
+  exact closure_mul_image_eq_top hR hR1 hS,
 end
 
 instance tada {G : Type*} [group G] (H : subgroup G) [fintype (G ⧸ H)] :
@@ -81,7 +62,7 @@ begin
   let R : finset G := set.to_finset R₀,
   replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
   replace hR1 : (1 : G) ∈ R := by rwa set.mem_to_finset,
-  exact ⟨⟨_, closure_finset_image_eq_top hR hR1 hS⟩⟩,
+  exact ⟨⟨_, closure_mul_image_eq_top' hR hR1 hS⟩⟩,
 end
 
 lemma schreier_aux3 {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
@@ -94,9 +75,9 @@ begin
   let R : finset G := set.to_finset R₀,
   replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
   replace hR1 : (1 : G) ∈ R := by rwa set.mem_to_finset,
-  letI hH' : group.fg H := ⟨⟨_, closure_finset_image_eq_top hR hR1 hS⟩⟩,
+  letI hH' : group.fg H := ⟨⟨_, closure_mul_image_eq_top' hR hR1 hS⟩⟩,
   change @group.rank H _ hH' _ ≤ H.index * group.rank G,
-  calc group.rank H ≤ _ : group.rank_le H (closure_finset_image_eq_top hR hR1 hS)
+  calc group.rank H ≤ _ : group.rank_le H (closure_mul_image_eq_top' hR hR1 hS)
   ... ≤ (R * S).card : finset.card_image_le
   ... ≤ (R.product S).card : finset.card_image_le
   ... = R.card * S.card : R.card_product S

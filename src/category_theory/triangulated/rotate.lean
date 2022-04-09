@@ -346,13 +346,9 @@ def triangle_rotation : equivalence (triangle C) (triangle C) :=
 
 variables {C}
 
-instance : faithful (rotate C) :=
-by { change faithful (triangle_rotation C).functor, apply_instance, }
-instance : full (rotate C) :=
- by { change full (triangle_rotation C).functor, apply_instance, }
-instance : faithful (inv_rotate C) :=
-by { change faithful (triangle_rotation C).inverse, apply_instance, }
-instance : full (inv_rotate C) :=
-by { change full (triangle_rotation C).inverse, apply_instance, }
+instance : is_equivalence (rotate C) :=
+by { change is_equivalence (triangle_rotation C).functor, apply_instance, }
+instance : is_equivalence (inv_rotate C) :=
+by { change is_equivalence (triangle_rotation C).inverse, apply_instance, }
 
 end category_theory.triangulated

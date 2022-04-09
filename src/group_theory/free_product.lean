@@ -714,7 +714,7 @@ include hXnonempty hXdisj hYdisj hXYdisj hX hY
 /--
 The Ping-Pong-Lemma.
 
-Given a group action of `G` on `X` so that the generators of the free groups act in specifict
+Given a group action of `G` on `X` so that the generators of the free groups act in specific
 ways on disjoint subsets `X i` and `Y i` we can prove that `lift f` is injective, and thus the image
 of `lift f` is isomorphic to the free group.
 

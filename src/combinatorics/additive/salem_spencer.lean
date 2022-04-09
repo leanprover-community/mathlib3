@@ -97,10 +97,10 @@ variables [comm_monoid α] [comm_monoid β] {s : set α} {a : α}
 
 @[to_additive]
 lemma mul_salem_spencer.of_image [fun_like F α (λ _, β)] [freiman_hom_class F s β 2] (f : F)
-  (hf : injective f) (h : mul_salem_spencer (f '' s)) :
+  (hf : (s * s).inj_on f) (h : mul_salem_spencer (f '' s)) :
   mul_salem_spencer s :=
-λ a b c ha hb hc habc, hf $ h (mem_image_of_mem _ ha) (mem_image_of_mem _ hb)
-  (mem_image_of_mem _ hc) $ map_mul_map_eq_map_mul_map f ha hb hc hc habc
+λ a b c ha hb hc habc, hf (mul_mem_mul ha hb) (mul_mem_mul hc hc) $ h (mem_image_of_mem _ ha)
+  (mem_image_of_mem _ hb) (mem_image_of_mem _ hc) $ map_mul_map_eq_map_mul_map f ha hb hc hc habc
 
 -- TODO: Generalize to Freiman homs
 @[to_additive]

@@ -78,7 +78,7 @@ class pretriangulated :=
 namespace pretriangulated
 variables [pretriangulated C]
 
-notation `dist_triang`:20 C := distinguished_triangles C
+notation `dist_triang `:20 C := distinguished_triangles C
 /--
 Given any distinguished triangle `T`, then we know `T.rotate` is also distinguished.
 -/
@@ -162,20 +162,38 @@ is a functor `F : C ⥤ D` together with given functorial isomorphisms `ξ X : F
 structure triangulated_functor_struct extends (C ⥤ D) :=
 (comm_shift : shift_functor C (1 : ℤ) ⋙ to_functor ≅ to_functor ⋙ shift_functor D (1 : ℤ))
 
-instance : inhabited (triangulated_functor_struct C C) :=
-⟨{ obj := λ X, X,
+namespace triangulated_functor_struct
+
+/-- The identity `triangulated_functor_struct`. -/
+def id : triangulated_functor_struct C C :=
+{ obj := λ X, X,
   map := λ _ _ f, f,
-  comm_shift := by refl }⟩
+  comm_shift := by refl }
+
+instance : inhabited (triangulated_functor_struct C C) := ⟨id C⟩
 
 variables {C D}
 /--
-Given a `triangulated_functor_struct` we can define a function from triangles of `C` to
+Given a `triangulated_functor_struct` we can define a functor from triangles of `C` to
 triangles of `D`.
 -/
-@[simp]
-def triangulated_functor_struct.map_triangle (F : triangulated_functor_struct C D)
-  (T : triangle C) : triangle D :=
-triangle.mk _ (F.map T.mor₁) (F.map T.mor₂) (F.map T.mor₃ ≫ F.comm_shift.hom.app T.obj₁)
+@[simps]
+def map_triangle (F : triangulated_functor_struct C D) : triangle C ⥤ triangle D :=
+{ obj := λ T, triangle.mk _ (F.map T.mor₁) (F.map T.mor₂)
+    (F.map T.mor₃ ≫ F.comm_shift.hom.app T.obj₁),
+  map := λ S T f,
+  { hom₁ := F.map f.hom₁,
+    hom₂ := F.map f.hom₂,
+    hom₃ := F.map f.hom₃,
+    comm₁' := by { dsimp, simp only [←F.to_functor.map_comp, f.comm₁], },
+    comm₂' := by { dsimp, simp only [←F.to_functor.map_comp, f.comm₂], },
+    comm₃' := begin
+      dsimp,
+      erw [category.assoc, ←F.comm_shift.hom.naturality],
+      simp only [functor.comp_map, ←F.to_functor.map_comp_assoc, f.comm₃],
+    end, }, }
+
+end triangulated_functor_struct
 
 variables (C D)
 /--
@@ -187,8 +205,8 @@ See https://stacks.math.columbia.edu/tag/014V
 -/
 structure triangulated_functor [pretriangulated C] [pretriangulated D] extends
   triangulated_functor_struct C D :=
-(map_distinguished' : Π (T: triangle C), (T ∈ dist_triang C) →
-  (to_triangulated_functor_struct.map_triangle T ∈ dist_triang D) )
+(map_distinguished' : Π (T : triangle C), (T ∈ dist_triang C) →
+  (to_triangulated_functor_struct.map_triangle.obj T ∈ dist_triang D) )
 
 instance [pretriangulated C] : inhabited (triangulated_functor C C) :=
 ⟨{obj := λ X, X,
@@ -202,19 +220,19 @@ instance [pretriangulated C] : inhabited (triangulated_functor C C) :=
 
 variables {C D} [pretriangulated C] [pretriangulated D]
 /--
-Given a `triangulated_functor` we can define a function from triangles of `C` to triangles of `D`.
+Given a `triangulated_functor` we can define a functor from triangles of `C` to triangles of `D`.
 -/
-@[simp]
-def triangulated_functor.map_triangle (F : triangulated_functor C D) (T : triangle C) :
-  triangle D :=
-triangle.mk _ (F.map T.mor₁) (F.map T.mor₂) (F.map T.mor₃ ≫ F.comm_shift.hom.app T.obj₁)
+@[simps]
+def triangulated_functor.map_triangle (F : triangulated_functor C D) :
+  triangle C ⥤ triangle D :=
+F.to_triangulated_functor_struct.map_triangle
 
 /--
 Given a `triangulated_functor` and a distinguished triangle `T` of `C`, then the triangle it
 maps onto in `D` is also distinguished.
 -/
 lemma triangulated_functor.map_distinguished (F : triangulated_functor C D) (T : triangle C)
-  (h : T ∈ dist_triang C) : (F.map_triangle T) ∈ dist_triang D := F.map_distinguished' T h
+  (h : T ∈ dist_triang C) : (F.map_triangle.obj T) ∈ dist_triang D := F.map_distinguished' T h
 
 
 end pretriangulated

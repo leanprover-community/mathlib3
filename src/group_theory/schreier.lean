@@ -100,5 +100,3 @@ begin
 end
 
 end subgroup
-
-#lint

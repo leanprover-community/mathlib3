@@ -117,6 +117,20 @@ is_solvable_of_top_eq_bot G (by ext; simp at *)
 
 variables {G}
 
+lemma solvable_of_ker_le_range {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)
+  (g : G →* G'') (hfg : g.ker ≤ f.range) [hG' : is_solvable G'] [hG'' : is_solvable G''] :
+  is_solvable G :=
+begin
+  obtain ⟨n, hn⟩ := id hG'',
+  obtain ⟨m, hm⟩ := id hG',
+  refine ⟨⟨n + m, le_bot_iff.mp (map_bot f ▸ (hm ▸ _))⟩⟩,
+  clear hm,
+  induction m with m hm,
+  { exact f.range_eq_map ▸ ((derived_series G n).map_eq_bot_iff.mp (le_bot_iff.mp
+      ((map_derived_series_le_derived_series g n).trans hn.le))).trans hfg },
+  { exact commutator_le_map_commutator hm hm },
+end
+
 lemma solvable_of_solvable_injective (hf : function.injective f) [h : is_solvable G'] :
   is_solvable G :=
 begin
@@ -146,26 +160,6 @@ end
 instance solvable_quotient_of_solvable (H : subgroup G) [H.normal] [h : is_solvable G] :
   is_solvable (G ⧸ H) :=
 solvable_of_surjective (show function.surjective (quotient_group.mk' H), by tidy)
-
-lemma solvable_of_ker_le_range {G' G'' : Type*} [group G'] [group G''] (f : G' →* G)
-  (g : G →* G'') (hfg : g.ker ≤ f.range) [hG' : is_solvable G'] [hG'' : is_solvable G''] :
-  is_solvable G :=
-begin
-  obtain ⟨n, hn⟩ := id hG'',
-  suffices : ∀ k : ℕ, derived_series G (n + k) ≤ (derived_series G' k).map f,
-  { obtain ⟨m, hm⟩ := id hG',
-    use n + m,
-    specialize this m,
-    rwa [hm, map_bot, le_bot_iff] at this },
-  intro k,
-  induction k with k hk,
-  { rw [add_zero, derived_series_zero, ←monoid_hom.range_eq_map],
-    refine le_trans _ hfg,
-    rw [←map_eq_bot_iff, eq_bot_iff, ←hn],
-    exact map_derived_series_le_derived_series g n },
-  { rw [nat.add_succ, derived_series_succ, derived_series_succ],
-    exact commutator_le_map_commutator hk hk },
-end
 
 instance solvable_prod {G' : Type*} [group G'] [h : is_solvable G] [h' : is_solvable G'] :
   is_solvable (G × G') :=

@@ -211,7 +211,7 @@ by simp
 
 end nat
 
-variables {R : Type*} [ring R] {n : ℕ}
+variables {R : Type*} [monoid R] [has_distrib_neg R] {n : ℕ}
 
 theorem neg_one_pow_eq_one_iff_even (h : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
 begin

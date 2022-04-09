@@ -278,7 +278,7 @@ lemma set_integral_map {β} [measurable_space β] {g : α → β} {f : β → E}
   (hf : ae_strongly_measurable f (measure.map g μ)) (hg : ae_measurable g μ) :
   ∫ y in s, f y ∂(measure.map g μ) = ∫ x in g ⁻¹' s, f (g x) ∂μ :=
 begin
-  rw [measure.restrict_map hg hs,
+  rw [measure.restrict_map_of_ae_measurable hg hs,
       integral_map (hg.mono_measure measure.restrict_le_self) (hf.mono_measure _)],
   exact measure.map_mono_of_ae_measurable measure.restrict_le_self hg
 end

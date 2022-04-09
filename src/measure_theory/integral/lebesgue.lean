@@ -1974,7 +1974,7 @@ lemma lintegral_comp [measurable_space β] {f : β → ℝ≥0∞} {g : α → �
 lemma set_lintegral_map [measurable_space β] {f : β → ℝ≥0∞} {g : α → β}
   {s : set β} (hs : measurable_set s) (hf : measurable f) (hg : measurable g) :
   ∫⁻ y in s, f y ∂(map g μ) = ∫⁻ x in g ⁻¹' s, f (g x) ∂μ :=
-by rw [restrict_map hg.ae_measurable hs, lintegral_map hf hg]
+by rw [restrict_map hg hs, lintegral_map hf hg]
 
 /-- If `g : α → β` is a measurable embedding and `f : β → ℝ≥0∞` is any function (not necessarily
 measurable), then `∫⁻ a, f a ∂(map g μ) = ∫⁻ a, f (g a) ∂μ`. Compare with `lintegral_map` wich

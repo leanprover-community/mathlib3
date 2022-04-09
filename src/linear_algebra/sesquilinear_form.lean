@@ -485,7 +485,7 @@ variables {B F}
 
 @[simp] lemma mem_is_pair_self_adjoint_submodule (f : module.End R M) :
   f ∈ is_pair_self_adjoint_submodule B F ↔ is_pair_self_adjoint B F f :=
-by refl
+iff.rfl
 
 lemma is_pair_self_adjoint_equiv (e : M₁ ≃ₗ[R] M) (f : module.End R M) :
   is_pair_self_adjoint B F f ↔
@@ -514,7 +514,7 @@ by simp
 
 @[simp] lemma mem_skew_adjoint_submodule (f : module.End R M) :
   f ∈ B.skew_adjoint_submodule ↔ B.is_skew_adjoint f :=
-by { rw is_skew_adjoint_iff_neg_self_adjoint, exact iff.rfl, }
+by { rw is_skew_adjoint_iff_neg_self_adjoint, exact iff.rfl }
 
 end add_comm_group
 

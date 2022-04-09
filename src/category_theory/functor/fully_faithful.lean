@@ -120,6 +120,13 @@ def iso_equiv_of_fully_faithful {X Y} : (X ≅ Y) ≃ (F.obj X ≅ F.obj Y) :=
   left_inv := λ f, by simp,
   right_inv := λ f, by { ext, simp, } }
 
+@[simps]
+def nat_iso_of_comp_fully_faithful {E : Type*} [category E]
+  {F G : C ⥤ D} (H : D ⥤ E) [full H] [faithful H] (i : F ⋙ H ≅ G ⋙ H) : F ≅ G :=
+nat_iso.of_components
+  (λ X, (iso_equiv_of_fully_faithful H).symm (i.app X))
+  (λ X Y f, by { dsimp, apply H.map_injective, simpa using i.hom.naturality f, })
+
 end category_theory
 
 namespace category_theory

@@ -112,7 +112,7 @@ def equiv_of_fully_faithful {X Y} : (X ⟶ Y) ≃ (F.obj X ⟶ F.obj Y) :=
   left_inv := λ f, by simp,
   right_inv := λ f, by simp }
 
-/-- If `F` is fully faithful, we have an equivalence of hom-sets `X ≅ Y` and `F X ≅ F Y`. -/
+/-- If `F` is fully faithful, we have an equivalence of iso-sets `X ≅ Y` and `F X ≅ F Y`. -/
 @[simps]
 def iso_equiv_of_fully_faithful {X Y} : (X ≅ Y) ≃ (F.obj X ≅ F.obj Y) :=
 { to_fun := λ f, F.map_iso f,

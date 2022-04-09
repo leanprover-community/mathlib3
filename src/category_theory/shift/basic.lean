@@ -415,7 +415,7 @@ has_shift_mk C A
 /-- When we construct shifts on a subcategory from shifts on the ambient category,
 the inclusion functor intertwines the shifts. -/
 def has_shift_of_fully_faithful_comm
-  (s : A → C ⥤ C) (i : ∀ i, s i ⋙ F ≅ F ⋙ shift_functor D i) (m : A) (X : C) :
+  (s : A → C ⥤ C) (i : ∀ i, s i ⋙ F ≅ F ⋙ shift_functor D i) (m : A) :
   begin
     haveI := has_shift_of_fully_faithful F s i,
     exact (shift_functor C m) ⋙ F ≅ F ⋙ shift_functor D m

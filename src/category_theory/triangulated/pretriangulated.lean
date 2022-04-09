@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Luke Kershaw
 -/
 import category_theory.preadditive.additive_functor
-import category_theory.shift.basic
+import category_theory.shift.structure
 import category_theory.triangulated.rotate
 
 /-!
@@ -147,30 +147,14 @@ then `Cᵒᵖ` is pretriangulated with respect to the inverse shift.
 end pretriangulated
 end category_theory.triangulated
 
-namespace category_theory.triangulated
-namespace pretriangulated
+open category_theory.triangulated
 
-variables (C : Type u₁) [category.{v₁} C] [has_zero_object C] [has_shift C ℤ] [preadditive C]
+variables {C : Type u₁} [category.{v₁} C] [has_zero_object C] [has_shift C ℤ] [preadditive C]
   [∀ n : ℤ, functor.additive (shift_functor C n)]
-variables (D : Type u₂) [category.{v₂} D] [has_zero_object D] [has_shift D ℤ] [preadditive D]
+variables {D : Type u₂} [category.{v₂} D] [has_zero_object D] [has_shift D ℤ] [preadditive D]
   [∀ n : ℤ, functor.additive (shift_functor D n)]
 
-/--
-The underlying structure of a triangulated functor between pretriangulated categories `C` and `D`
-is a functor `F : C ⥤ D` together with given functorial isomorphisms `ξ X : F(X⟦1⟧) ⟶ F(X)⟦1⟧`.
--/
-structure triangulated_functor_struct extends (C ⥤ D) :=
-(comm_shift : shift_functor C (1 : ℤ) ⋙ to_functor ≅ to_functor ⋙ shift_functor D (1 : ℤ))
-
-namespace triangulated_functor_struct
-
-/-- The identity `triangulated_functor_struct`. -/
-def id : triangulated_functor_struct C C :=
-{ obj := λ X, X,
-  map := λ _ _ f, f,
-  comm_shift := by refl }
-
-instance : inhabited (triangulated_functor_struct C C) := ⟨id C⟩
+namespace category_theory
 
 variables {C D}
 /--
@@ -178,24 +162,21 @@ Given a `triangulated_functor_struct` we can define a functor from triangles of 
 triangles of `D`.
 -/
 @[simps]
-def map_triangle (F : triangulated_functor_struct C D) : triangle C ⥤ triangle D :=
+def functor.map_triangle (F : C ⥤ D) [weak_shift_structure ℤ F] : triangle C ⥤ triangle D :=
 { obj := λ T, triangle.mk _ (F.map T.mor₁) (F.map T.mor₂)
-    (F.map T.mor₃ ≫ F.comm_shift.hom.app T.obj₁),
+    (F.map T.mor₃ ≫ (F.comm_shift 1).hom.app T.obj₁),
   map := λ S T f,
   { hom₁ := F.map f.hom₁,
     hom₂ := F.map f.hom₂,
     hom₃ := F.map f.hom₃,
-    comm₁' := by { dsimp, simp only [←F.to_functor.map_comp, f.comm₁], },
-    comm₂' := by { dsimp, simp only [←F.to_functor.map_comp, f.comm₂], },
+    comm₁' := by { dsimp, simp only [←F.map_comp, f.comm₁], },
+    comm₂' := by { dsimp, simp only [←F.map_comp, f.comm₂], },
     comm₃' := begin
       dsimp,
-      erw [category.assoc, ←F.comm_shift.hom.naturality],
-      simp only [functor.comp_map, ←F.to_functor.map_comp_assoc, f.comm₃],
+      erw [category.assoc, ←(F.comm_shift (1 : ℤ)).hom.naturality],
+      simp only [functor.comp_map, ←F.map_comp_assoc, f.comm₃],
     end, }, }
 
-end triangulated_functor_struct
-
-variables (C D)
 /--
 A triangulated functor between pretriangulated categories `C` and `D` is a functor `F : C ⥤ D`
 together with given functorial isomorphisms `ξ X : F(X⟦1⟧) ⟶ F(X)⟦1⟧` such that for every
@@ -203,37 +184,26 @@ distinguished triangle `(X,Y,Z,f,g,h)` of `C`, the triangle
 `(F(X), F(Y), F(Z), F(f), F(g), F(h) ≫ (ξ X))` is a distinguished triangle of `D`.
 See https://stacks.math.columbia.edu/tag/014V
 -/
-structure triangulated_functor [pretriangulated C] [pretriangulated D] extends
-  triangulated_functor_struct C D :=
+-- TODO: presumably at some point we are going to need to strengthen this from
+-- `weak_shift_structure` to `shift_structure`.
+class functor.triangulated [pretriangulated C] [pretriangulated D] (F : C ⥤ D) extends
+  weak_shift_structure ℤ F :=
 (map_distinguished' : Π (T : triangle C), (T ∈ dist_triang C) →
-  (to_triangulated_functor_struct.map_triangle.obj T ∈ dist_triang D) )
+  (F.map_triangle.obj T ∈ dist_triang D) )
 
-instance [pretriangulated C] : inhabited (triangulated_functor C C) :=
-⟨{obj := λ X, X,
-  map := λ _ _ f, f,
-  comm_shift := by refl ,
-  map_distinguished' := begin
-    rintros ⟨_,_,_,_⟩ Tdt,
-    dsimp at *,
-    rwa category.comp_id,
-  end }⟩
-
-variables {C D} [pretriangulated C] [pretriangulated D]
-/--
-Given a `triangulated_functor` we can define a functor from triangles of `C` to triangles of `D`.
--/
-@[simps]
-def triangulated_functor.map_triangle (F : triangulated_functor C D) :
-  triangle C ⥤ triangle D :=
-F.to_triangulated_functor_struct.map_triangle
+instance [pretriangulated C] : functor.triangulated (𝟭 C) :=
+{ map_distinguished' := begin
+  rintros ⟨_,_,_,_⟩ Tdt,
+  dsimp at *,
+  simpa using Tdt,
+end }
 
 /--
-Given a `triangulated_functor` and a distinguished triangle `T` of `C`, then the triangle it
+Given a `triangulated` functor and a distinguished triangle `T` of `C`, then the triangle it
 maps onto in `D` is also distinguished.
 -/
-lemma triangulated_functor.map_distinguished (F : triangulated_functor C D) (T : triangle C)
-  (h : T ∈ dist_triang C) : (F.map_triangle.obj T) ∈ dist_triang D := F.map_distinguished' T h
+lemma functor.map_distinguished [pretriangulated C] [pretriangulated D] (F : C ⥤ D) [F.triangulated]
+  {T : triangle C} (h : T ∈ dist_triang C) : (F.map_triangle.obj T) ∈ dist_triang D :=
+functor.triangulated.map_distinguished' T h
 
-
-end pretriangulated
-end category_theory.triangulated
+end category_theory

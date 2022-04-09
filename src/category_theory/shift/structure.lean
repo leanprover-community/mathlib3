@@ -67,6 +67,30 @@ instance comp {E : Type*} [category E] [has_shift E A]
     ... ≅ F ⋙ (G ⋙ shift_functor E a) : iso_whisker_left _ (G.comm_shift a)
     ... ≅ (F ⋙ G) ⋙ shift_functor E a : (functor.associator _ _ _).symm), }
 
+variables {E : Type*} [category E] [has_shift E A]
+  (F : C ⥤ D) [weak_shift_structure A F] (G : D ⥤ E) [weak_shift_structure A G]
+
+@[simp] lemma comp_comm_shift_hom_app (a : A) (X : C) :
+  ((F ⋙ G).comm_shift a).hom.app X =
+    G.map ((F.comm_shift a).hom.app X) ≫ (G.comm_shift a).hom.app (F.obj X) :=
+begin
+  dsimp [weak_shift_structure.comp, functor.comm_shift],
+  simp,
+end
+
+@[simp] lemma comp_comm_shift_inv_app (a : A) (X : C) :
+  ((F ⋙ G).comm_shift a).inv.app X =
+    (G.comm_shift a).inv.app (F.obj X) ≫ G.map ((F.comm_shift a).inv.app X) :=
+begin
+  dsimp [weak_shift_structure.comp, functor.comm_shift],
+  simp,
+end
+
+@[simp] lemma comp_comm_shift_app (a : A) (X : C) :
+  ((F ⋙ G).comm_shift a).app X =
+    G.map_iso ((F.comm_shift a).app X) ≪≫ (G.comm_shift a).app (F.obj X) :=
+by { ext, dsimp, simp, }
+
 end weak_shift_structure
 
 namespace shift_structure
@@ -74,9 +98,17 @@ namespace shift_structure
 instance id : shift_structure A (𝟭 C) :=
 { comm := λ a, functor.right_unitor _ ≪≫ (functor.left_unitor _).symm, }
 
-instance : inhabited (shift_structure A (𝟭 C)) := ⟨shift_structure.id A⟩
+@[simp] lemma id_comm_shift_hom_app (a : A) (X : C) :
+  ((𝟭 C).comm_shift a).hom.app X = 𝟙 ((shift_functor C a).obj X) :=
+category.comp_id _
+@[simp] lemma id_comm_shift_inv_app (a : A) (X : C) :
+  ((𝟭 C).comm_shift a).inv.app X = 𝟙 ((shift_functor C a).obj X) :=
+category.comp_id _
+@[simp] lemma id_comm_shift_app (a : A) (X : C) :
+  ((𝟭 C).comm_shift a).app X = iso.refl ((shift_functor C a).obj X) :=
+by { ext, dsimp, simp, }
 
--- local attribute [instance] endofunctor_monoidal_category
+instance : inhabited (shift_structure A (𝟭 C)) := ⟨shift_structure.id A⟩
 
 instance comp {E : Type*} [category E] [has_shift E A]
   (F : C ⥤ D) [shift_structure A F] (G : D ⥤ E) [shift_structure A G] :

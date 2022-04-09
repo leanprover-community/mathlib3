@@ -212,7 +212,7 @@ variables (E F)
 
 /-- Function from Hom_K(E,L) to pi type Π (x : basis), roots of min poly of x -/
 def roots_of_min_poly_pi_type (φ : E →ₐ[F] K)
-(x : set.range (finite_dimensional.fin_basis F E : _ → E)) :
+  (x : set.range (finite_dimensional.fin_basis F E : _ → E)) :
   {l : K // l ∈ (((minpoly F x.1).map (algebra_map F K)).roots : multiset K)} :=
 ⟨φ x, begin
   rw [polynomial.mem_roots_map (minpoly.ne_zero_of_finite_field_extension F x.val),

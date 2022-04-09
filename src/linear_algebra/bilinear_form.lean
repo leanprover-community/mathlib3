@@ -976,7 +976,7 @@ end
 lemma nondegenerate.ker_eq_bot {B : bilin_form R₂ M₂} (h : B.nondegenerate) :
   B.to_lin.ker = ⊥ := nondegenerate_iff_ker_eq_bot.mp h
 
-/-- The restriction of a nondegenerate reflexive bilinear form `B` onto a submodule `W` is
+/-- The restriction of a reflexive bilinear form `B` onto a submodule `W` is
 nondegenerate if `disjoint W (B.orthogonal W)`. -/
 lemma nondegenerate_restrict_of_disjoint_orthogonal
   (B : bilin_form R₁ M₁) (b : B.is_refl)

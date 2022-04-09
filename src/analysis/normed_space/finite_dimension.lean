@@ -251,7 +251,7 @@ begin
   by_cases h : ∃ (s : finset E), nonempty (basis ↥s 𝕜 E),
   { rcases h with ⟨s, ⟨b⟩⟩,
     haveI : finite_dimensional 𝕜 E := finite_dimensional.of_finset_basis b,
-    letI : normed_group (matrix s s 𝕜) := matrix.normed_group,
+    letI : semi_normed_group (matrix s s 𝕜) := matrix.semi_normed_group,
     letI : normed_space 𝕜 (matrix s s 𝕜) := matrix.normed_space,
     simp_rw linear_map.det_eq_det_to_matrix_of_finset b,
     have A : continuous (λ (f : E →L[𝕜] E), linear_map.to_matrix b b f),

@@ -1529,7 +1529,7 @@ by { ext1 s hs, simp only [sum_apply, finset_sum_apply, hs, tsum_fintype] }
 
 @[simp] lemma sum_coe_finset (s : finset ι) (μ : ι → measure α) :
   sum (λ i : s, μ i) = ∑ i in s, μ i :=
-by simpa only [sum_fintype] using @fintype.sum_finset_coe _ _ s μ _
+by rw [sum_fintype, finset.sum_coe_sort s μ]
 
 @[simp] lemma ae_sum_eq [encodable ι] (μ : ι → measure α) : (sum μ).ae = ⨆ i, (μ i).ae :=
 filter.ext $ λ s, ae_sum_iff.trans mem_supr.symm
@@ -3097,6 +3097,7 @@ end trim
 
 end measure_theory
 
+<<<<<<< HEAD
 open_locale measure_theory
 
 /-!
@@ -3354,6 +3355,8 @@ lemma measure_theory.measure.map_mono_of_ae_measurable
 
 end
 
+=======
+>>>>>>> upstream/master
 namespace is_compact
 
 variables [topological_space α] [measurable_space α] {μ : measure α} {s : set α}
@@ -3498,10 +3501,6 @@ begin
   exact λ h, measure_mono_null ((set.inter_subset_left _ _).trans (set.subset_union_left _ _)) h,
 end
 
-lemma ae_measurable.restrict [measurable_space β] (hfm : ae_measurable f μ) {s} :
-  ae_measurable f (μ.restrict s) :=
-⟨ae_measurable.mk f hfm, hfm.measurable_mk, ae_restrict_of_ae hfm.ae_eq_mk⟩
-
 variables [has_zero β]
 
 lemma indicator_ae_eq_restrict (hs : measurable_set s) : indicator s f =ᵐ[μ.restrict s] f :=
@@ -3517,25 +3516,5 @@ lemma indicator_meas_zero (hs : μ s = 0) : indicator s f =ᵐ[μ] 0 :=
 (indicator_empty' f) ▸ indicator_ae_eq_of_ae_eq_set (ae_eq_empty.2 hs)
 
 variables [measurable_space β]
-
-lemma ae_measurable_indicator_iff {s} (hs : measurable_set s) :
-  ae_measurable (indicator s f) μ ↔ ae_measurable f (μ.restrict s)  :=
-begin
-  split,
-  { intro h,
-    exact (h.mono_measure measure.restrict_le_self).congr (indicator_ae_eq_restrict hs) },
-  { intro h,
-    refine ⟨indicator s (h.mk f), h.measurable_mk.indicator hs, _⟩,
-    have A : s.indicator f =ᵐ[μ.restrict s] s.indicator (ae_measurable.mk f h) :=
-      (indicator_ae_eq_restrict hs).trans (h.ae_eq_mk.trans $ (indicator_ae_eq_restrict hs).symm),
-    have B : s.indicator f =ᵐ[μ.restrict sᶜ] s.indicator (ae_measurable.mk f h) :=
-      (indicator_ae_eq_restrict_compl hs).trans (indicator_ae_eq_restrict_compl hs).symm,
-    exact ae_of_ae_restrict_of_ae_restrict_compl _ A B },
-end
-
-@[measurability]
-lemma ae_measurable.indicator (hfm : ae_measurable f μ) {s} (hs : measurable_set s) :
-  ae_measurable (s.indicator f) μ :=
-(ae_measurable_indicator_iff hs).mpr hfm.restrict
 
 end indicator_function

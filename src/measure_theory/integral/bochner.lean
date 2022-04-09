@@ -1302,7 +1302,7 @@ begin
     (by simp [insert_subset_insert, set.range_comp_subset_range]) using 1,
   ext1 i,
   simp only [simple_func.approx_on_comp, simple_func.integral_eq, measure.map_apply, hφ,
-    simple_func.measurable_set_preimage, ←preimage_comp, simple_func.coe_comp, union_singleton],
+    simple_func.measurable_set_preimage, ← preimage_comp, simple_func.coe_comp],
   refine (finset.sum_subset (simple_func.range_comp_subset_range _ hφ) (λ y _ hy, _)).symm,
   rw [simple_func.mem_range, ← set.preimage_singleton_eq_empty, simple_func.coe_comp] at hy,
   rw [hy],

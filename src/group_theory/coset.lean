@@ -6,6 +6,7 @@ Authors: Mitchell Rowett, Scott Morrison
 
 import algebra.quotient
 import group_theory.subgroup.basic
+import tactic.group
 
 /-!
 # Cosets
@@ -246,6 +247,18 @@ by { ext, exact (right_coset_eq_iff s).symm }
 instance right_rel_decidable [decidable_pred (∈ s)] :
   decidable_rel (right_rel s).r := λ x y, ‹decidable_pred (∈ s)› _
 
+/-- Right cosets are in bijection with left cosets. -/
+@[to_additive "Right cosets are in bijection with left cosets."]
+def quotient_right_rel_equiv_quotient_left_rel : quotient (quotient_group.right_rel s) ≃ α ⧸ s :=
+{ to_fun := quotient.map' (λ g, g⁻¹) (λ a b h, (congr_arg (∈ s) (by group)).mp (s.inv_mem h)),
+  inv_fun := quotient.map' (λ g, g⁻¹) (λ a b h, (congr_arg (∈ s) (by group)).mp (s.inv_mem h)),
+  left_inv := λ g, quotient.induction_on' g (λ g, quotient.sound' (by
+  { simp only [inv_inv],
+    exact quotient.exact' rfl })),
+  right_inv := λ g, quotient.induction_on' g (λ g, quotient.sound' (by
+  { simp only [inv_inv],
+    exact quotient.exact' rfl })) }
+
 end quotient_group
 
 namespace quotient_group
@@ -261,6 +274,9 @@ quotient.fintype (left_rel s)
 @[to_additive "The canonical map from an `add_group` `α` to the quotient `α ⧸ s`."]
 abbreviation mk (a : α) : α ⧸ s :=
 quotient.mk' a
+
+@[to_additive]
+lemma mk_surjective : function.surjective $ @mk _ _ s := quotient.surjective_quotient_mk'
 
 @[elab_as_eliminator, to_additive]
 lemma induction_on {C : α ⧸ s → Prop} (x : α ⧸ s)
@@ -410,6 +426,8 @@ noncomputable def quotient_equiv_prod_of_le (h_le : s ≤ t) :
 quotient_equiv_prod_of_le' h_le quotient.out' quotient.out_eq'
 
 /-- If `K ≤ L`, then there is an embedding `K ⧸ (H.subgroup_of K) ↪ L ⧸ (H.subgroup_of L)`. -/
+@[to_additive "If `K ≤ L`, then there is an embedding
+  `K ⧸ (H.add_subgroup_of K) ↪ L ⧸ (H.add_subgroup_of L)`."]
 def quotient_subgroup_of_embedding_of_le (H : subgroup α) {K L : subgroup α} (h : K ≤ L) :
   K ⧸ (H.subgroup_of K) ↪ L ⧸ (H.subgroup_of L) :=
 { to_fun := quotient.map' (set.inclusion h) (λ a b, id),
@@ -421,7 +439,7 @@ def quotient_subgroup_of_embedding_of_le (H : subgroup α) {K L : subgroup α} (
 by rw ← fintype.card_prod;
   exact fintype.card_congr (subgroup.group_equiv_quotient_times_subgroup)
 
-/-- **Order of a Subgroup** -/
+/-- **Lagrange's Theorem**: The order of a subgroup divides the order of its ambient group. -/
 @[to_additive] lemma card_subgroup_dvd_card [fintype α] (s : subgroup α) [fintype s] :
   fintype.card s ∣ fintype.card α :=
 by classical; simp [card_eq_card_quotient_mul_card_subgroup s, @dvd_mul_left ℕ]

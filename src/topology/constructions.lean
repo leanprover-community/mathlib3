@@ -110,8 +110,19 @@ theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
 nhds_induced coe a
 
 end topα
-/-- The topology whose open sets are the empty set and the sets with finite complements. -/
-def cofinite_topology (α : Type*) : topological_space α :=
+
+/-- A type synonym equiped with the topology whose open sets are the empty set and the sets with
+finite complements. -/
+def cofinite_topology (α : Type*) := α
+
+namespace cofinite_topology
+
+/-- The identity equivalence between `α` and `cofinite_topology α`. -/
+def of : α ≃ cofinite_topology α := equiv.refl α
+instance [inhabited α] : inhabited (cofinite_topology α) :=
+{ default := of default }
+
+instance : topological_space (cofinite_topology α) :=
 { is_open := λ s, s.nonempty → set.finite sᶜ,
   is_open_univ := by simp,
   is_open_inter := λ s t, begin
@@ -129,8 +140,18 @@ def cofinite_topology (α : Type*) : topological_space α :=
     simp [hts]
     end }
 
-lemma nhds_cofinite {α : Type*} (a : α) :
-  @nhds α (cofinite_topology α) a = pure a ⊔ cofinite :=
+lemma is_open_iff {s : set (cofinite_topology α)} :
+  is_open s ↔ (s.nonempty → (sᶜ).finite) := iff.rfl
+
+lemma is_open_iff' {s : set (cofinite_topology α)} :
+  is_open s ↔ (s = ∅ ∨ (sᶜ).finite) :=
+by simp only [is_open_iff, ← ne_empty_iff_nonempty, or_iff_not_imp_left]
+
+lemma is_closed_iff {s : set (cofinite_topology α)} :
+  is_closed s ↔ s = univ ∨ s.finite :=
+by simp [← is_open_compl_iff, is_open_iff']
+
+lemma nhds_eq (a : cofinite_topology α) : 𝓝 a = pure a ⊔ cofinite :=
 begin
   ext U,
   rw mem_nhds_iff,
@@ -141,12 +162,13 @@ begin
     exact ⟨U, subset.rfl, λ h, hU', hU⟩ }
 end
 
-lemma mem_nhds_cofinite {α : Type*} {a : α} {s : set α} :
-  s ∈ @nhds α (cofinite_topology α) a ↔ a ∈ s ∧ sᶜ.finite :=
-by simp [nhds_cofinite]
+lemma mem_nhds_iff {a : cofinite_topology α} {s : set (cofinite_topology α)} :
+  s ∈ 𝓝 a ↔ a ∈ s ∧ sᶜ.finite :=
+by simp [nhds_eq]
+
+end cofinite_topology
 
 end constructions
-
 
 section prod
 variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
@@ -256,18 +278,30 @@ lemma continuous_curry {g : α × β → γ} (a : α)
 show continuous (g ∘ (λ b, (a, b))), from h.comp (by continuity)
 
 lemma is_open.prod {s : set α} {t : set β} (hs : is_open s) (ht : is_open t) :
-  is_open (set.prod s t) :=
+  is_open (s ×ˢ t) :=
 is_open.inter (hs.preimage continuous_fst) (ht.preimage continuous_snd)
 
 lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = 𝓝 a ×ᶠ 𝓝 b :=
 by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
 
+/-- If a function `f x y` is such that `y ↦ f x y` is continuous for all `x`, and `x` lives in a
+discrete space, then `f` is continuous. -/
+lemma continuous_uncurry_of_discrete_topology [discrete_topology α]
+  {f : α → β → γ} (hf : ∀ a, continuous (f a)) : continuous (function.uncurry f) :=
+begin
+  apply continuous_iff_continuous_at.2,
+  rintros ⟨a, x⟩,
+  change map _ _ ≤ _,
+  rw [nhds_prod_eq, nhds_discrete, filter.map_pure_prod],
+  exact (hf a).continuous_at
+end
+
 lemma mem_nhds_prod_iff {a : α} {b : β} {s : set (α × β)} :
-  s ∈ 𝓝 (a, b) ↔ ∃ (u ∈ 𝓝 a) (v ∈ 𝓝 b), set.prod u v ⊆ s :=
+  s ∈ 𝓝 (a, b) ↔ ∃ (u ∈ 𝓝 a) (v ∈ 𝓝 b), u ×ˢ v ⊆ s :=
 by rw [nhds_prod_eq, mem_prod_iff]
 
 lemma mem_nhds_prod_iff' {a : α} {b : β} {s : set (α × β)} :
-  s ∈ 𝓝 (a, b) ↔ ∃ u v, is_open u ∧ a ∈ u ∧ is_open v ∧ b ∈ v ∧ set.prod u v ⊆ s :=
+  s ∈ 𝓝 (a, b) ↔ ∃ (u : set α) (v : set β), is_open u ∧ a ∈ u ∧ is_open v ∧ b ∈ v ∧ u ×ˢ v ⊆ s :=
 begin
   rw mem_nhds_prod_iff,
   split,
@@ -279,16 +313,21 @@ begin
     exact ⟨u, u_open.mem_nhds au, v, v_open.mem_nhds bv, huv⟩ }
 end
 
+lemma _root_.prod.tendsto_iff {α} (seq : α → β × γ) {f : filter α} (x : β × γ) :
+  tendsto seq f (𝓝 x)
+    ↔ tendsto (λ n, (seq n).fst) f (𝓝 x.fst) ∧ tendsto (λ n, (seq n).snd) f (𝓝 x.snd) :=
+by { cases x, rw [nhds_prod_eq, filter.tendsto_prod_iff'], }
+
 lemma filter.has_basis.prod_nhds {ιa ιb : Type*} {pa : ιa → Prop} {pb : ιb → Prop}
   {sa : ιa → set α} {sb : ιb → set β} {a : α} {b : β} (ha : (𝓝 a).has_basis pa sa)
   (hb : (𝓝 b).has_basis pb sb) :
-  (𝓝 (a, b)).has_basis (λ i : ιa × ιb, pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
+  (𝓝 (a, b)).has_basis (λ i : ιa × ιb, pa i.1 ∧ pb i.2) (λ i, sa i.1 ×ˢ sb i.2) :=
 by { rw nhds_prod_eq, exact ha.prod hb }
 
 lemma filter.has_basis.prod_nhds' {ιa ιb : Type*} {pa : ιa → Prop} {pb : ιb → Prop}
   {sa : ιa → set α} {sb : ιb → set β} {ab : α × β} (ha : (𝓝 ab.1).has_basis pa sa)
   (hb : (𝓝 ab.2).has_basis pb sb) :
-  (𝓝 ab).has_basis (λ i : ιa × ιb, pa i.1 ∧ pb i.2) (λ i, (sa i.1).prod (sb i.2)) :=
+  (𝓝 ab).has_basis (λ i : ιa × ιb, pa i.1 ∧ pb i.2) (λ i, sa i.1 ×ˢ sb i.2) :=
 by { cases ab, exact ha.prod_nhds hb }
 
 instance [discrete_topology α] [discrete_topology β] : discrete_topology (α × β) :=
@@ -296,11 +335,11 @@ instance [discrete_topology α] [discrete_topology β] : discrete_topology (α �
   by rw [nhds_prod_eq, nhds_discrete α, nhds_discrete β, nhds_bot, filter.prod_pure_pure]⟩
 
 lemma prod_mem_nhds_iff {s : set α} {t : set β} {a : α} {b : β} :
-  s.prod t ∈ 𝓝 (a, b) ↔ s ∈ 𝓝 a ∧ t ∈ 𝓝 b :=
+  s ×ˢ t ∈ 𝓝 (a, b) ↔ s ∈ 𝓝 a ∧ t ∈ 𝓝 b :=
 by rw [nhds_prod_eq, prod_mem_prod_iff]
 
 lemma prod_is_open.mem_nhds {s : set α} {t : set β} {a : α} {b : β}
-  (ha : s ∈ 𝓝 a) (hb : t ∈ 𝓝 b) : set.prod s t ∈ 𝓝 (a, b) :=
+  (ha : s ∈ 𝓝 a) (hb : t ∈ 𝓝 b) : s ×ˢ t ∈ 𝓝 (a, b) :=
 prod_mem_nhds_iff.2 ⟨ha, hb⟩
 
 lemma nhds_swap (a : α) (b : β) : 𝓝 (a, b) = (𝓝 (b, a)).map prod.swap :=
@@ -334,41 +373,42 @@ hf.prod_map hg
 lemma prod_generate_from_generate_from_eq {α β : Type*} {s : set (set α)} {t : set (set β)}
   (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :
   @prod.topological_space α β (generate_from s) (generate_from t) =
-  generate_from {g | ∃u∈s, ∃v∈t, g = set.prod u v} :=
-let G := generate_from {g | ∃u∈s, ∃v∈t, g = set.prod u v} in
+  generate_from {g | ∃u∈s, ∃v∈t, g = u ×ˢ v} :=
+let G := generate_from {g | ∃u∈s, ∃v∈t, g = u ×ˢ v} in
 le_antisymm
   (le_generate_from $ assume g ⟨u, hu, v, hv, g_eq⟩, g_eq.symm ▸
     @is_open.prod _ _ (generate_from s) (generate_from t) _ _
       (generate_open.basic _ hu) (generate_open.basic _ hv))
   (le_inf
     (coinduced_le_iff_le_induced.mp $ le_generate_from $ assume u hu,
-      have (⋃v∈t, set.prod u v) = prod.fst ⁻¹' u,
-        from calc (⋃v∈t, set.prod u v) = set.prod u univ :
+      have (⋃v∈t, u ×ˢ v) = prod.fst ⁻¹' u,
+        from calc (⋃v∈t, u ×ˢ v) = u ×ˢ (univ : set β) :
             set.ext $ assume ⟨a, b⟩, by rw ← ht; simp [and.left_comm] {contextual:=tt}
-          ... = prod.fst ⁻¹' u : by simp [set.prod, preimage],
+          ... = prod.fst ⁻¹' u : set.prod_univ,
       show G.is_open (prod.fst ⁻¹' u),
         from this ▸ @is_open_Union _ _ G _ $ assume v, @is_open_Union _ _ G _ $ assume hv,
           generate_open.basic _ ⟨_, hu, _, hv, rfl⟩)
     (coinduced_le_iff_le_induced.mp $ le_generate_from $ assume v hv,
-      have (⋃u∈s, set.prod u v) = prod.snd ⁻¹' v,
-        from calc (⋃u∈s, set.prod u v) = set.prod univ v:
+      have (⋃u∈s, u ×ˢ v) = prod.snd ⁻¹' v,
+        from calc (⋃u∈s, u ×ˢ v) = (univ : set α) ×ˢ v:
             set.ext $ assume ⟨a, b⟩, by rw [←hs]; by_cases b ∈ v; simp [h] {contextual:=tt}
-          ... = prod.snd ⁻¹' v : by simp [set.prod, preimage],
+          ... = prod.snd ⁻¹' v : set.univ_prod,
       show G.is_open (prod.snd ⁻¹' v),
         from this ▸ @is_open_Union _ _ G _ $ assume u, @is_open_Union _ _ G _ $ assume hu,
           generate_open.basic _ ⟨_, hu, _, hv, rfl⟩))
 
 lemma prod_eq_generate_from :
   prod.topological_space =
-  generate_from {g | ∃(s:set α) (t:set β), is_open s ∧ is_open t ∧ g = set.prod s t} :=
+  generate_from {g | ∃(s:set α) (t:set β), is_open s ∧ is_open t ∧ g = s ×ˢ t} :=
 le_antisymm
   (le_generate_from $ assume g ⟨s, t, hs, ht, g_eq⟩, g_eq.symm ▸ hs.prod ht)
   (le_inf
     (ball_image_of_ball $ λt ht, generate_open.basic _ ⟨t, univ, by simpa [set.prod_eq] using ht⟩)
     (ball_image_of_ball $ λt ht, generate_open.basic _ ⟨univ, t, by simpa [set.prod_eq] using ht⟩))
 
-lemma is_open_prod_iff {s : set (α×β)} : is_open s ↔
-  (∀a b, (a, b) ∈ s → ∃u v, is_open u ∧ is_open v ∧ a ∈ u ∧ b ∈ v ∧ set.prod u v ⊆ s) :=
+lemma is_open_prod_iff {s : set (α × β)} : is_open s ↔
+  (∀a b, (a, b) ∈ s →
+    ∃ (u : set α) (v : set β), is_open u ∧ is_open v ∧ a ∈ u ∧ b ∈ v ∧ u ×ˢ v ⊆ s) :=
 begin
   rw [is_open_iff_nhds],
   simp_rw [le_principal_iff, prod.forall,
@@ -400,7 +440,7 @@ continuous_iff_continuous_at.2 $ λ ⟨a, b⟩,
 /-- Given a neighborhood `s` of `(x, x)`, then `(x, x)` has a square open neighborhood
   that is a subset of `s`. -/
 lemma exists_nhds_square {s : set (α × α)} {x : α} (hx : s ∈ 𝓝 (x, x)) :
-  ∃U, is_open U ∧ x ∈ U ∧ set.prod U U ⊆ s :=
+  ∃ U : set α, is_open U ∧ x ∈ U ∧ U ×ˢ U ⊆ s :=
 by simpa [nhds_prod_eq, (nhds_basis_opens x).prod_self.mem_iff, and.assoc, and.left_comm] using hx
 
 /-- `prod.fst` maps neighborhood of `x : α × β` within the section `prod.snd ⁻¹' {x.2}`
@@ -444,13 +484,13 @@ is_open_map_iff_nhds_le.2 $ λ x, (map_snd_nhds x).ge
 /-- A product set is open in a product space if and only if each factor is open, or one of them is
 empty -/
 lemma is_open_prod_iff' {s : set α} {t : set β} :
-  is_open (set.prod s t) ↔ (is_open s ∧ is_open t) ∨ (s = ∅) ∨ (t = ∅) :=
+  is_open (s ×ˢ t) ↔ (is_open s ∧ is_open t) ∨ (s = ∅) ∨ (t = ∅) :=
 begin
-  cases (set.prod s t).eq_empty_or_nonempty with h h,
+  cases (s ×ˢ t : set _).eq_empty_or_nonempty with h h,
   { simp [h, prod_eq_empty_iff.1 h] },
   { have st : s.nonempty ∧ t.nonempty, from prod_nonempty_iff.1 h,
     split,
-    { assume H : is_open (set.prod s t),
+    { assume H : is_open (s ×ˢ t),
       refine or.inl ⟨_, _⟩,
       show is_open s,
       { rw ← fst_image_prod s st.2,
@@ -464,43 +504,43 @@ begin
 end
 
 lemma closure_prod_eq {s : set α} {t : set β} :
-  closure (set.prod s t) = set.prod (closure s) (closure t) :=
+  closure (s ×ˢ t) = closure s ×ˢ closure t :=
 set.ext $ assume ⟨a, b⟩,
-have (𝓝 a ×ᶠ 𝓝 b) ⊓ 𝓟 (set.prod s t) = (𝓝 a ⊓ 𝓟 s) ×ᶠ (𝓝 b ⊓ 𝓟 t),
+have (𝓝 a ×ᶠ 𝓝 b) ⊓ 𝓟 (s ×ˢ t) = (𝓝 a ⊓ 𝓟 s) ×ᶠ (𝓝 b ⊓ 𝓟 t),
   by rw [←prod_inf_prod, prod_principal_principal],
 by simp [closure_eq_cluster_pts, cluster_pt, nhds_prod_eq, this]; exact prod_ne_bot
 
 lemma interior_prod_eq (s : set α) (t : set β) :
-  interior (s.prod t) = (interior s).prod (interior t) :=
+  interior (s ×ˢ t) = interior s ×ˢ interior t :=
 set.ext $ λ ⟨a, b⟩, by simp only [mem_interior_iff_mem_nhds, mem_prod, prod_mem_nhds_iff]
 
 lemma frontier_prod_eq (s : set α) (t : set β) :
-  frontier (s.prod t) = (closure s).prod (frontier t) ∪ (frontier s).prod (closure t) :=
+  frontier (s ×ˢ t) = closure s ×ˢ frontier t ∪ frontier s ×ˢ closure t :=
 by simp only [frontier, closure_prod_eq, interior_prod_eq, prod_diff_prod]
 
 @[simp] lemma frontier_prod_univ_eq (s : set α) :
-  frontier (s.prod (univ : set β)) = (frontier s).prod univ :=
+  frontier (s ×ˢ (univ : set β)) = frontier s ×ˢ (univ : set β) :=
 by simp [frontier_prod_eq]
 
 @[simp] lemma frontier_univ_prod_eq (s : set β) :
-  frontier ((univ : set α).prod s) = (univ : set α).prod (frontier s) :=
+  frontier ((univ : set α) ×ˢ s) = (univ : set α) ×ˢ (frontier s) :=
 by simp [frontier_prod_eq]
 
 lemma map_mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
   (hf : continuous (λp:α×β, f p.1 p.2)) (ha : a ∈ closure s) (hb : b ∈ closure t)
   (hu : ∀a b, a ∈ s → b ∈ t → f a b ∈ u) :
   f a b ∈ closure u :=
-have (a, b) ∈ closure (set.prod s t), by rw [closure_prod_eq]; from ⟨ha, hb⟩,
+have (a, b) ∈ closure (s ×ˢ t), by rw [closure_prod_eq]; from ⟨ha, hb⟩,
 show (λp:α×β, f p.1 p.2) (a, b) ∈ closure u, from
   map_mem_closure hf this $ assume ⟨a, b⟩ ⟨ha, hb⟩, hu a b ha hb
 
 lemma is_closed.prod {s₁ : set α} {s₂ : set β} (h₁ : is_closed s₁) (h₂ : is_closed s₂) :
-  is_closed (set.prod s₁ s₂) :=
+  is_closed (s₁ ×ˢ s₂) :=
 closure_eq_iff_is_closed.mp $ by simp only [h₁.closure_eq, h₂.closure_eq, closure_prod_eq]
 
 /-- The product of two dense sets is a dense set. -/
 lemma dense.prod {s : set α} {t : set β} (hs : dense s) (ht : dense t) :
-  dense (s.prod t) :=
+  dense (s ×ˢ t) :=
 λ x, by { rw closure_prod_eq, exact ⟨hs x.1, ht x.2⟩ }
 
 /-- If `f` and `g` are maps with dense range, then `prod.map f g` has dense range. -/
@@ -614,6 +654,12 @@ is_open_sum_iff.2 $ by simp
 lemma is_open_range_inr : is_open (range (inr : β → α ⊕ β)) :=
 is_open_sum_iff.2 $ by simp
 
+lemma is_closed_range_inl : is_closed (range (inl : α → α ⊕ β)) :=
+by { rw [← is_open_compl_iff, compl_range_inl], exact is_open_range_inr }
+
+lemma is_closed_range_inr : is_closed (range (inr : β → α ⊕ β)) :=
+by { rw [← is_open_compl_iff, compl_range_inr], exact is_open_range_inl }
+
 lemma open_embedding_inl : open_embedding (inl : α → α ⊕ β) :=
 { open_range := is_open_range_inl,
   .. embedding_inl }
@@ -622,10 +668,23 @@ lemma open_embedding_inr : open_embedding (inr : β → α ⊕ β) :=
 { open_range := is_open_range_inr,
   .. embedding_inr }
 
+lemma closed_embedding_inl : closed_embedding (inl : α → α ⊕ β) :=
+{ closed_range := is_closed_range_inl,
+  .. embedding_inl }
+
+lemma closed_embedding_inr : closed_embedding (inr : β → α ⊕ β) :=
+{ closed_range := is_closed_range_inr,
+  .. embedding_inr }
+
 end sum
 
 section subtype
 variables [topological_space α] [topological_space β] [topological_space γ] {p : α → Prop}
+
+lemma inducing_coe {b : set β} : inducing (coe : b → β) := ⟨rfl⟩
+
+lemma inducing.of_cod_restrict {f : α → β} {b : set β} (hb : ∀ a, f a ∈ b)
+  (h : inducing (b.cod_restrict f hb)) : inducing f := inducing_coe.comp h
 
 lemma embedding_subtype_coe : embedding (coe : subtype p → α) :=
 ⟨⟨rfl⟩, subtype.coe_injective⟩
@@ -639,6 +698,10 @@ continuous_induced_dom
 
 lemma continuous_subtype_coe : continuous (coe : subtype p → α) :=
 continuous_subtype_val
+
+lemma continuous.subtype_coe {f : β → subtype p} (hf : continuous f) :
+  continuous (λ x, (f x : α)) :=
+continuous_subtype_coe.comp hf
 
 lemma is_open.open_embedding_subtype_coe {s : set α} (hs : is_open s) :
   open_embedding (coe : s → α) :=
@@ -724,6 +787,17 @@ lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
   x ∈ closure s ↔ (x : α) ∈ closure ((coe : _ → α) '' s) :=
 closure_induced
 
+@[continuity] lemma continuous.cod_restrict {f : α → β} {s : set β} (hf : continuous f)
+  (hs : ∀ a, f a ∈ s) : continuous (s.cod_restrict f hs) := continuous_subtype_mk hs hf
+
+lemma inducing.cod_restrict {e : α → β} (he : inducing e) {s : set β} (hs : ∀ x, e x ∈ s) :
+  inducing (cod_restrict e s hs) :=
+inducing_of_inducing_compose (he.continuous.cod_restrict hs) continuous_subtype_coe he
+
+lemma embedding.cod_restrict {e : α → β} (he : embedding e) (s : set β) (hs : ∀ x, e x ∈ s) :
+  embedding (cod_restrict e s hs) :=
+embedding_of_embedding_compose (he.continuous.cod_restrict hs) continuous_subtype_coe he
+
 end subtype
 
 section quotient
@@ -748,6 +822,10 @@ continuous_coinduced_rng
 
 lemma continuous_quotient_lift {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
   (h : continuous f) : continuous (quotient.lift f hs : quotient s → β) :=
+continuous_coinduced_dom h
+
+lemma continuous_quotient_lift_on' {f : α → β} (hs : ∀ a b, a ≈ b → f a = f b)
+  (h : continuous f) : continuous (λ x, quotient.lift_on' x f hs : quotient s → β) :=
 continuous_coinduced_dom h
 
 end quotient
@@ -963,19 +1041,6 @@ by simp only [is_open_supr_iff, is_open_coinduced]
 lemma is_closed_sigma_iff {s : set (sigma σ)} : is_closed s ↔ ∀ i, is_closed (sigma.mk i ⁻¹' s) :=
 by simp only [← is_open_compl_iff, is_open_sigma_iff, preimage_compl]
 
-lemma is_open_sigma_fst_preimage (s : set ι) :  is_open (sigma.fst ⁻¹' s : set (Σ a, σ a)) :=
-begin
-  rw is_open_sigma_iff,
-  intros a,
-  by_cases h : a ∈ s,
-  { convert is_open_univ,
-    ext x,
-    simp only [h, set.mem_preimage, set.mem_univ] },
-  { convert is_open_empty,
-    ext x,
-    simp only [h, set.mem_empty_eq, set.mem_preimage] }
-end
-
 lemma is_open_map_sigma_mk {i : ι} : is_open_map (@sigma.mk ι σ i) :=
 begin
   intros s hs,
@@ -1020,6 +1085,13 @@ closed_embedding_of_continuous_injective_closed
 
 lemma embedding_sigma_mk {i : ι} : embedding (@sigma.mk ι σ i) :=
 closed_embedding_sigma_mk.1
+
+lemma is_open_sigma_fst_preimage (s : set ι) :  is_open (sigma.fst ⁻¹' s : set (Σ a, σ a)) :=
+begin
+  rw [← bUnion_of_singleton s, preimage_Union₂],
+  simp only [← range_sigma_mk],
+  exact is_open_bUnion (λ _ _, is_open_range_sigma_mk)
+end
 
 /-- A map out of a sum type is continuous if its restriction to each summand is. -/
 @[continuity]
@@ -1108,7 +1180,7 @@ lemma mem_closure_of_continuous2 [topological_space α] [topological_space β] [
   (hf : continuous (λp:α×β, f p.1 p.2)) (ha : a ∈ closure s) (hb : b ∈ closure t)
   (h : ∀a∈s, ∀b∈t, f a b ∈ closure u) :
   f a b ∈ closure u :=
-have (a,b) ∈ closure (set.prod s t),
+have (a,b) ∈ closure (s ×ˢ t),
   by simp [closure_prod_eq, ha, hb],
 show f (a, b).1 (a, b).2 ∈ closure u,
   from @mem_closure_of_continuous (α×β) _ _ _ (λp:α×β, f p.1 p.2) (a,b) _ u hf this $

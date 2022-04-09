@@ -6,7 +6,7 @@ Authors: Johan Commelin
 
 import algebraic_geometry.ringed_space
 import algebraic_geometry.stalks
-import data.equiv.transfer_instance
+import logic.equiv.transfer_instance
 
 /-!
 # The category of locally ringed spaces
@@ -135,6 +135,13 @@ forget_to_SheafedSpace ⋙ SheafedSpace.forget _
 @[simp] lemma comp_val {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
   (f ≫ g).val = f.val ≫ g.val := rfl
 
+@[simp] lemma comp_val_c {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) :
+  (f ≫ g).val.c = g.val.c ≫ (presheaf.pushforward _ g.val.base).map f.val.c := rfl
+
+lemma comp_val_c_app {X Y Z : LocallyRingedSpace} (f : X ⟶ Y) (g : Y ⟶ Z) (U : (opens Z)ᵒᵖ) :
+  (f ≫ g).val.c.app U = g.val.c.app U ≫ f.val.c.app (op $ (opens.map g.val.base).obj U.unop) :=
+rfl
+
 /--
 Given two locally ringed spaces `X` and `Y`, an isomorphism between `X` and `Y` as _sheafed_
 spaces can be lifted to a morphism `X ⟶ Y` as locally ringed spaces.
@@ -172,6 +179,10 @@ instance : reflects_isomorphisms forget_to_SheafedSpace :=
   { out := by exactI
     ⟨hom_of_SheafedSpace_hom_of_is_iso (category_theory.inv (forget_to_SheafedSpace.map f)),
       hom_ext _ _ (is_iso.hom_inv_id _), hom_ext _ _ (is_iso.inv_hom_id _)⟩ } }
+
+instance is_SheafedSpace_iso {X Y : LocallyRingedSpace} (f : X ⟶ Y) [is_iso f] :
+  is_iso f.1 :=
+LocallyRingedSpace.forget_to_SheafedSpace.map_is_iso f
 
 /--
 The restriction of a locally ringed space along an open embedding.

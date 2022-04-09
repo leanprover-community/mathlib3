@@ -157,7 +157,7 @@ end
 
 @[to_additive bot.is_add_cyclic]
 instance bot.is_cyclic {α : Type u} [group α] : is_cyclic (⊥ : subgroup α) :=
-⟨⟨1, λ x, ⟨0, subtype.eq $ eq.symm (subgroup.mem_bot.1 x.2)⟩⟩⟩
+⟨⟨1, λ x, ⟨0, subtype.eq $ (zpow_zero (1 : α)).trans $ eq.symm (subgroup.mem_bot.1 x.2)⟩⟩⟩
 
 @[to_additive add_subgroup.is_add_cyclic]
 instance subgroup.is_cyclic {α : Type u} [group α] [is_cyclic α] (H : subgroup α) : is_cyclic H :=
@@ -257,8 +257,7 @@ lemma is_cyclic.image_range_order_of (ha : ∀ x : α, x ∈ zpowers a) :
   finset.image (λ i, a ^ i) (range (order_of a)) = univ :=
 begin
   simp_rw [←set_like.mem_coe] at ha,
-  simp only [image_range_order_of, set.eq_univ_iff_forall.mpr ha],
-  convert set.to_finset_univ
+  simp only [image_range_order_of, set.eq_univ_iff_forall.mpr ha, set.to_finset_univ],
 end
 
 @[to_additive]

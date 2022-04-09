@@ -180,7 +180,7 @@ end
 lemma is_field.is_principal_ideal_ring
   {R : Type*} [comm_ring R] (h : is_field R) :
   is_principal_ideal_ring R :=
-@euclidean_domain.to_principal_ideal_domain R (@field.to_euclidean_domain R (h.to_field R))
+@euclidean_domain.to_principal_ideal_domain R (@field.to_euclidean_domain R h.to_field)
 
 namespace principal_ideal_ring
 open is_principal_ideal_ring
@@ -235,7 +235,7 @@ lemma ne_zero_of_mem_factors
   (ha : a ≠ 0) (hb : b ∈ factors a) : b ≠ 0 := irreducible.ne_zero ((factors_spec a ha).1 b hb)
 
 lemma mem_submonoid_of_factors_subset_of_units_subset (s : submonoid R)
-  {a : R} (ha : a ≠ 0) (hfac : ∀ b ∈ factors a, b ∈ s) (hunit : ∀ c : units R, (c : R) ∈ s) :
+  {a : R} (ha : a ≠ 0) (hfac : ∀ b ∈ factors a, b ∈ s) (hunit : ∀ c : Rˣ, (c : R) ∈ s) :
   a ∈ s :=
 begin
   rcases ((factors_spec a ha).2) with ⟨c, hc⟩,
@@ -248,7 +248,7 @@ also maps `a` into that submonoid. -/
 lemma ring_hom_mem_submonoid_of_factors_subset_of_units_subset {R S : Type*}
   [comm_ring R] [is_domain R] [is_principal_ideal_ring R] [semiring S]
   (f : R →+* S) (s : submonoid S) (a : R) (ha : a ≠ 0)
-  (h : ∀ b ∈ factors a, f b ∈ s) (hf: ∀ c : units R, f c ∈ s) :
+  (h : ∀ b ∈ factors a, f b ∈ s) (hf: ∀ c : Rˣ, f c ∈ s) :
   f a ∈ s :=
 mem_submonoid_of_factors_subset_of_units_subset (s.comap f.to_monoid_hom) ha h hf
 
@@ -388,6 +388,17 @@ end
 
 theorem prime.coprime_iff_not_dvd {p n : R} (pp : prime p) : is_coprime p n ↔ ¬ p ∣ n :=
 pp.irreducible.coprime_iff_not_dvd
+
+theorem irreducible.dvd_iff_not_coprime {p n : R} (hp : irreducible p) : p ∣ n ↔ ¬ is_coprime p n :=
+iff_not_comm.2 hp.coprime_iff_not_dvd
+
+theorem irreducible.coprime_pow_of_not_dvd {p a : R} (m : ℕ) (hp : irreducible p) (h : ¬ p ∣ a) :
+  is_coprime a (p ^ m) :=
+(hp.coprime_iff_not_dvd.2 h).symm.pow_right
+
+theorem irreducible.coprime_or_dvd {p : R} (hp : irreducible p) (i : R) :
+  is_coprime p i ∨ p ∣ i :=
+(em _).imp_right hp.dvd_iff_not_coprime.2
 
 theorem exists_associated_pow_of_mul_eq_pow' {a b c : R}
   (hab : is_coprime a b) {k : ℕ} (h : a * b = c ^ k) : ∃ d, associated (d ^ k) a :=

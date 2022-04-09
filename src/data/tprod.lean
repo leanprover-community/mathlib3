@@ -57,7 +57,7 @@ protected def mk : ∀ (l : list ι) (f : Π i, α i), tprod α l
 | (i :: is) := λ f, (f i, mk is f)
 
 instance [∀ i, inhabited (α i)] : inhabited (tprod α l) :=
-⟨tprod.mk l (λ i, default (α i))⟩
+⟨tprod.mk l (λ _, default)⟩
 
 @[simp] lemma fst_mk (i : ι) (l : list ι) (f : Π i, α i) : (tprod.mk (i::l) f).1 = f i := rfl
 
@@ -81,7 +81,7 @@ by simp [tprod.elim, hji]
 
 @[simp] lemma elim_of_mem (hl : (i :: l).nodup) (hj : j ∈ l) (v : tprod α (i :: l)) :
   v.elim (mem_cons_of_mem _ hj) = tprod.elim v.2 hj :=
-by { apply elim_of_ne, rintro rfl, exact not_mem_of_nodup_cons hl hj }
+by { apply elim_of_ne, rintro rfl, exact hl.not_mem hj }
 
 lemma elim_mk : ∀ (l : list ι) (f : Π i, α i) {i : ι} (hi : i ∈ l),
   (tprod.mk l f).elim hi = f i
@@ -122,7 +122,7 @@ open list
 /-- A product of sets in `tprod α l`. -/
 @[simp] protected def tprod : ∀ (l : list ι) (t : Π i, set (α i)), set (tprod α l)
 | []        t := univ
-| (i :: is) t := (t i).prod (tprod is t)
+| (i :: is) t := t i ×ˢ tprod is t
 
 lemma mk_preimage_tprod : ∀ (l : list ι) (t : Π i, set (α i)),
   tprod.mk l ⁻¹' set.tprod l t = {i | i ∈ l}.pi t

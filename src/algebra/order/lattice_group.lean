@@ -144,10 +144,10 @@ instance has_one_lattice_has_neg_part : has_neg_part (α) := ⟨λ a, a⁻¹ ⊔
 @[to_additive neg_part_def]
 lemma m_neg_part_def (a : α) : a⁻ = a⁻¹ ⊔ 1 := rfl
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma pos_one : (1 : α)⁺ = 1 := sup_idem
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma neg_one : (1 : α)⁻ = 1 := by rw [m_neg_part_def, one_inv, sup_idem]
 
 -- a⁻ = -(a ⊓ 0)
@@ -219,7 +219,7 @@ end
 
 -- Bourbaki A.VI.12  Prop 9 a)
 -- a = a⁺ - a⁻
-@[to_additive, simp]
+@[simp, to_additive]
 lemma pos_div_neg [covariant_class α α (*) (≤)] (a : α) : a⁺ / a⁻ = a :=
 begin
   symmetry,
@@ -382,7 +382,7 @@ begin
     rw [sup_right_idem, sup_assoc, inf_assoc],
     nth_rewrite 3 inf_comm,
     rw [inf_right_idem, inf_assoc], }
-  ... = (b ⊔ a ⊔ c) * ((b ⊔ a) ⊓ c) /(((b ⊓ a) ⊔ c) * (b ⊓ a ⊓ c)) : by rw div_mul_comm
+  ... = (b ⊔ a ⊔ c) * ((b ⊔ a) ⊓ c) /(((b ⊓ a) ⊔ c) * (b ⊓ a ⊓ c)) : by rw div_mul_div_comm
   ... = (b ⊔ a) * c / ((b ⊓ a) * c) :
     by rw [mul_comm, inf_mul_sup, mul_comm (b ⊓ a ⊔ c), inf_mul_sup]
   ... = (b ⊔ a) / (b ⊓ a) : by rw [div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_inv_cancel_left,
@@ -390,11 +390,8 @@ begin
   ... = |a / b|           : by rw sup_div_inf_eq_abs_div
 end
 
-/--
-Let `α` be a lattice ordered commutative group and let `a` be a positive element in `α`. Then `a` is
-equal to its positive component `a⁺`.
--/
-@[to_additive] -- pos_of_nonneg
+/-- If `a` is positive, then it is equal to its positive component `a⁺`. -/ -- pos_of_nonneg
+@[to_additive "If `a` is positive, then it is equal to its positive component `a⁺`."]
 lemma pos_of_one_le (a : α) (h : 1 ≤ a) : a⁺ = a :=
 by { rw m_pos_part_def, exact sup_of_le_left h, }
 
@@ -430,11 +427,9 @@ begin
   apply one_le_mul h h,
 end
 
-/--
-The unary operation of taking the absolute value is idempotent.
--/
-@[to_additive abs_abs, simp]
-lemma m_abs_abs [covariant_class α α (*) (≤)] (a : α) : | |a| | = |a| :=
+/-- The unary operation of taking the absolute value is idempotent. -/
+@[simp, to_additive abs_abs "The unary operation of taking the absolute value is idempotent."]
+lemma mabs_mabs [covariant_class α α (*) (≤)] (a : α) : | |a| | = |a| :=
 mabs_of_one_le _ (one_le_abs _)
 
 @[to_additive abs_sup_sub_sup_le_abs]

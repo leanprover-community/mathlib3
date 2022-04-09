@@ -3,7 +3,7 @@ Copyright (c) Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import data.complex.module
+import data.complex.determinant
 import data.complex.is_R_or_C
 
 /-!
@@ -66,25 +66,50 @@ normed_space.restrict_scalars ℝ ℂ E
 
 lemma dist_eq (z w : ℂ) : dist z w = abs (z - w) := rfl
 
+lemma dist_self_conj (z : ℂ) : dist z (conj z) = 2 * |z.im| :=
+by simp only [dist_eq, sub_conj, of_real_mul, of_real_bit0, of_real_one, abs_mul, abs_two,
+  abs_of_real, abs_I, mul_one]
+
+lemma dist_conj_self (z : ℂ) : dist (conj z) z = 2 * |z.im| :=
+by rw [dist_comm, dist_self_conj]
+
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 
 @[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = |(r : ℝ)| :=
-suffices ∥((r : ℝ) : ℂ)∥ = |r|, by simpa,
-by rw [norm_real, real.norm_eq_abs]
+by { rw ← of_real_rat_cast, exact norm_real _ }
 
 @[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := abs_of_nat _
 
 @[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = |n| :=
-suffices ∥((n : ℝ) : ℂ)∥ = |n|, by simpa,
-by rw [norm_real, real.norm_eq_abs]
+by simp [← rat.cast_coe_int] {single_pass := tt}
 
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
-by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
+by simp [hn]
 
 @[continuity] lemma continuous_abs : continuous abs := continuous_norm
 
 @[continuity] lemma continuous_norm_sq : continuous norm_sq :=
 by simpa [← norm_sq_eq_abs] using continuous_abs.pow 2
+
+@[simp, norm_cast] lemma nnnorm_real (r : ℝ) : ∥(r : ℂ)∥₊ = ∥r∥₊ :=
+subtype.ext $ norm_real r
+
+@[simp, norm_cast] lemma nnnorm_nat (n : ℕ) : ∥(n : ℂ)∥₊ = n :=
+subtype.ext $ by simp
+
+@[simp, norm_cast] lemma nnnorm_int (n : ℤ) : ∥(n : ℂ)∥₊ = ∥n∥₊ :=
+subtype.ext $ by simp only [coe_nnnorm, norm_int, int.norm_eq_abs]
+
+lemma nnnorm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :
+  ∥ζ∥₊ = 1 :=
+begin
+  refine (@pow_left_inj nnreal _ _ _ _ zero_le' zero_le' hn.bot_lt).mp _,
+  rw [←nnnorm_pow, h, nnnorm_one, one_pow],
+end
+
+lemma norm_eq_one_of_pow_eq_one {ζ : ℂ} {n : ℕ} (h : ζ ^ n = 1) (hn : n ≠ 0) :
+  ∥ζ∥ = 1 :=
+congr_arg coe (nnnorm_eq_one_of_pow_eq_one h hn)
 
 /-- The `abs` function on `ℂ` is proper. -/
 lemma tendsto_abs_cocompact_at_top : filter.tendsto abs (filter.cocompact ℂ) filter.at_top :=
@@ -140,7 +165,23 @@ def conj_lie : ℂ ≃ₗᵢ[ℝ] ℂ := ⟨conj_ae.to_linear_equiv, abs_conj⟩
 
 @[simp] lemma conj_lie_apply (z : ℂ) : conj_lie z = conj z := rfl
 
+@[simp] lemma conj_lie_symm : conj_lie.symm = conj_lie := rfl
+
 lemma isometry_conj : isometry (conj : ℂ → ℂ) := conj_lie.isometry
+
+@[simp] lemma dist_conj_conj (z w : ℂ) : dist (conj z) (conj w) = dist z w :=
+isometry_conj.dist_eq z w
+
+lemma dist_conj_comm (z w : ℂ) : dist (conj z) w = dist z (conj w) :=
+by rw [← dist_conj_conj, conj_conj]
+
+/-- The determinant of `conj_lie`, as a linear map. -/
+@[simp] lemma det_conj_lie : (conj_lie.to_linear_equiv : ℂ →ₗ[ℝ] ℂ).det = -1 :=
+det_conj_ae
+
+/-- The determinant of `conj_lie`, as a linear equiv. -/
+@[simp] lemma linear_equiv_det_conj_lie : conj_lie.to_linear_equiv.det = -1 :=
+linear_equiv_det_conj_ae
 
 @[continuity] lemma continuous_conj : continuous (conj : ℂ → ℂ) := conj_lie.continuous
 
@@ -194,20 +235,26 @@ noncomputable instance : is_R_or_C ℂ :=
     complex.of_real_eq_coe, complex.norm_eq_abs],
   div_I_ax := complex.div_I }
 
+lemma _root_.is_R_or_C.re_eq_complex_re : ⇑(is_R_or_C.re : ℂ →+ ℝ) = complex.re := rfl
+lemma _root_.is_R_or_C.im_eq_complex_im : ⇑(is_R_or_C.im : ℂ →+ ℝ) = complex.im := rfl
+
 section
 
 variables {α β γ : Type*}
   [add_comm_monoid α] [topological_space α] [add_comm_monoid γ] [topological_space γ]
 
 /-- The natural `add_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
 def equiv_real_prod_add_hom : ℂ ≃+ ℝ × ℝ :=
 { map_add' := by simp, .. equiv_real_prod }
 
 /-- The natural `linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
 def equiv_real_prod_add_hom_lm : ℂ ≃ₗ[ℝ] ℝ × ℝ :=
 { map_smul' := by simp [equiv_real_prod_add_hom], .. equiv_real_prod_add_hom }
 
 /-- The natural `continuous_linear_equiv` from `ℂ` to `ℝ × ℝ`. -/
+@[simps apply symm_apply_re symm_apply_im { simp_rhs := tt }]
 def equiv_real_prodₗ : ℂ ≃L[ℝ] ℝ × ℝ :=
 equiv_real_prod_add_hom_lm.to_continuous_linear_equiv
 

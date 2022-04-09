@@ -6,6 +6,7 @@ Authors: Robert Y. Lewis, Chris Hughes
 import algebra.associated
 import algebra.big_operators.basic
 import ring_theory.valuation.basic
+import data.nat.factorization
 
 /-!
 # Multiplicity of a divisor
@@ -149,10 +150,10 @@ begin
   simpa [is_unit_iff_dvd_one.symm] using not_unit_of_finite ha,
 end
 
-@[simp] lemma unit_left (a : α) (u : units α) : multiplicity (u : α) a = ⊤ :=
+@[simp] lemma unit_left (a : α) (u : αˣ) : multiplicity (u : α) a = ⊤ :=
 is_unit_left a u.is_unit
 
-lemma unit_right {a : α} (ha : ¬is_unit a) (u : units α) : multiplicity a u = 0 :=
+lemma unit_right {a : α} (ha : ¬is_unit a) (u : αˣ) : multiplicity a u = 0 :=
 is_unit_right ha u.is_unit
 
 lemma multiplicity_eq_zero_of_not_dvd {a b : α} (ha : ¬a ∣ b) : multiplicity a b = 0 :=
@@ -236,6 +237,8 @@ begin
           (lt_pow_self ha_gt_one b))),
     λ h, by cases h; simp *⟩
 end
+
+alias dvd_iff_multiplicity_pos ↔ _ has_dvd.dvd.multiplicity_pos
 
 end comm_monoid
 
@@ -484,5 +487,9 @@ begin
   rw [coprime.gcd_eq_one hab, nat.dvd_one, pow_one] at this,
   exact hp this
 end
+
+lemma multiplicity_eq_factorization {n p : ℕ} (pp : p.prime) (hn : n ≠ 0) :
+  multiplicity p n = n.factorization p :=
+multiplicity.eq_coe_iff.mpr ⟨pow_factorization_dvd n p, pow_succ_factorization_not_dvd hn pp⟩
 
 end nat

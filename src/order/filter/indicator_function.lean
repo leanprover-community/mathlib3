@@ -47,7 +47,7 @@ variables [has_zero β] [preorder β] {s t : set α} {f g : α → β} {a : α} 
 lemma indicator_eventually_le_indicator (h : f ≤ᶠ[l ⊓ 𝓟 s] g) :
   indicator s f ≤ᶠ[l] indicator s g :=
 (eventually_inf_principal.1 h).mono $ assume a h,
-indicator_rel_indicator (le_refl _) h
+indicator_rel_indicator le_rfl h
 
 end order
 

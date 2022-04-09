@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.convex.basic
-import analysis.specific_limits
+import analysis.normed_space.basic
+import analysis.specific_limits.basic
 
 /-!
 # Tangent cone
@@ -141,7 +142,7 @@ tangent_cone_congr (nhds_within_restrict' _ ht).symm
 
 /-- The tangent cone of a product contains the tangent cone of its left factor. -/
 lemma subset_tangent_cone_prod_left {t : set F} {y : F} (ht : y ∈ closure t) :
-  linear_map.inl 𝕜 E F '' (tangent_cone_at 𝕜 s x) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
+  linear_map.inl 𝕜 E F '' (tangent_cone_at 𝕜 s x) ⊆ tangent_cone_at 𝕜 (s ×ˢ t) (x, y) :=
 begin
   rintros _ ⟨v, ⟨c, d, hd, hc, hy⟩, rfl⟩,
   have : ∀n, ∃d', y + d' ∈ t ∧ ∥c n • d'∥ < ((1:ℝ)/2)^n,
@@ -151,9 +152,8 @@ begin
     exact ⟨z - y, by simpa using hzt, by simpa using hz⟩ },
   choose d' hd' using this,
   refine ⟨c, λn, (d n, d' n), _, hc, _⟩,
-  show ∀ᶠ n in at_top, (x, y) + (d n, d' n) ∈ set.prod s t,
-  { filter_upwards [hd],
-    assume n hn,
+  show ∀ᶠ n in at_top, (x, y) + (d n, d' n) ∈ s ×ˢ t,
+  { filter_upwards [hd] with n hn,
     simp [hn, (hd' n).1] },
   { apply tendsto.prod_mk_nhds hy _,
     refine squeeze_zero_norm (λn, (hd' n).2.le) _,
@@ -163,7 +163,7 @@ end
 /-- The tangent cone of a product contains the tangent cone of its right factor. -/
 lemma subset_tangent_cone_prod_right {t : set F} {y : F}
   (hs : x ∈ closure s) :
-  linear_map.inr 𝕜 E F '' (tangent_cone_at 𝕜 t y) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
+  linear_map.inr 𝕜 E F '' (tangent_cone_at 𝕜 t y) ⊆ tangent_cone_at 𝕜 (s ×ˢ t) (x, y) :=
 begin
   rintros _ ⟨w, ⟨c, d, hd, hc, hy⟩, rfl⟩,
   have : ∀n, ∃d', x + d' ∈ s ∧ ∥c n • d'∥ < ((1:ℝ)/2)^n,
@@ -173,9 +173,8 @@ begin
     exact ⟨z - x, by simpa using hzs, by simpa using hz⟩ },
   choose d' hd' using this,
   refine ⟨c, λn, (d' n, d n), _, hc, _⟩,
-  show ∀ᶠ n in at_top, (x, y) + (d' n, d n) ∈ set.prod s t,
-  { filter_upwards [hd],
-    assume n hn,
+  show ∀ᶠ n in at_top, (x, y) + (d' n, d n) ∈ s ×ˢ t,
+  { filter_upwards [hd] with n hn,
     simp [hn, (hd' n).1] },
   { apply tendsto.prod_mk_nhds _ hy,
     refine squeeze_zero_norm (λn, (hd' n).2.le) _,
@@ -307,12 +306,12 @@ lemma is_open.unique_diff_on (hs : is_open s) : unique_diff_on 𝕜 s :=
 differentiability at `(x, y)`. -/
 lemma unique_diff_within_at.prod {t : set F} {y : F}
   (hs : unique_diff_within_at 𝕜 s x) (ht : unique_diff_within_at 𝕜 t y) :
-  unique_diff_within_at 𝕜 (set.prod s t) (x, y) :=
+  unique_diff_within_at 𝕜 (s ×ˢ t) (x, y) :=
 begin
   rw [unique_diff_within_at_iff] at ⊢ hs ht,
   rw [closure_prod_eq],
   refine ⟨_, hs.2, ht.2⟩,
-  have : _ ≤ submodule.span 𝕜 (tangent_cone_at 𝕜 (s.prod t) (x, y)) :=
+  have : _ ≤ submodule.span 𝕜 (tangent_cone_at 𝕜 (s ×ˢ t) (x, y)) :=
     submodule.span_mono (union_subset (subset_tangent_cone_prod_left ht.2)
       (subset_tangent_cone_prod_right hs.2)),
   rw [linear_map.span_inl_union_inr, set_like.le_def] at this,
@@ -347,7 +346,7 @@ end
 
 /-- The product of two sets of unique differentiability is a set of unique differentiability. -/
 lemma unique_diff_on.prod {t : set F} (hs : unique_diff_on 𝕜 s) (ht : unique_diff_on 𝕜 t) :
-  unique_diff_on 𝕜 (set.prod s t) :=
+  unique_diff_on 𝕜 (s ×ˢ t) :=
 λ ⟨x, y⟩ h, unique_diff_within_at.prod (hs x h.1) (ht y h.2)
 
 /-- The finite product of a family of sets of unique differentiability is a set of unique

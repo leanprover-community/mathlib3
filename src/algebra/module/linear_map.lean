@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne Baanen,
   Frédéric Dupuis, Heather Macbeth
 -/
-import algebra.group.hom
+import algebra.hom.group
+import algebra.hom.group_action
 import algebra.module.basic
 import algebra.module.pi
-import algebra.group_action_hom
 import algebra.ring.comp_typeclasses
+import algebra.star.basic
 
 /-!
 # (Semi)linear maps
@@ -94,7 +95,7 @@ add_decl_doc linear_map.to_add_hom
 
 notation M ` →ₛₗ[`:25 σ:25 `] `:0 M₂:0 := linear_map σ M M₂
 notation M ` →ₗ[`:25 R:25 `] `:0 M₂:0 := linear_map (ring_hom.id R) M M₂
-notation M ` →ₗ⋆[`:25 R:25 `] `:0 M₂:0 := linear_map (@star_ring_aut R _ _ : R →+* R) M M₂
+notation M ` →ₗ⋆[`:25 R:25 `] `:0 M₂:0 := linear_map (star_ring_end R) M M₂
 
 namespace linear_map
 
@@ -118,7 +119,8 @@ instance : add_monoid_hom_class (M →ₛₗ[σ] M₃) M M₃ :=
 def to_distrib_mul_action_hom (f : M →ₗ[R] M₂) : distrib_mul_action_hom R M M₂ :=
 { map_zero' := show f 0 = 0, from map_zero f, ..f }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly.
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly.
 -/
 instance : has_coe_to_fun (M →ₛₗ[σ] M₃) (λ _, M → M₃) := ⟨linear_map.to_fun⟩
 
@@ -145,8 +147,7 @@ def id : M →ₗ[R] M :=
 lemma id_apply (x : M) :
   @id R M _ _ _ x = x := rfl
 
-@[simp, norm_cast] lemma id_coe : ((linear_map.id : M →ₗ[R] M) : M → M) = _root_.id :=
-by { ext x, refl }
+@[simp, norm_cast] lemma id_coe : ((linear_map.id : M →ₗ[R] M) : M → M) = _root_.id := rfl
 
 end
 
@@ -274,11 +275,16 @@ are defined by an action of `R` on `S` (formally, we have two scalar towers), th
 map from `M` to `M₂` is `R`-linear.
 
 See also `linear_map.map_smul_of_tower`. -/
-@[simps]
 def restrict_scalars (fₗ : M →ₗ[S] M₂) : M →ₗ[R] M₂ :=
 { to_fun := fₗ,
   map_add' := fₗ.map_add,
   map_smul' := fₗ.map_smul_of_tower }
+
+@[simp] lemma coe_restrict_scalars (fₗ : M →ₗ[S] M₂) : ⇑(restrict_scalars R fₗ) = fₗ :=
+rfl
+
+lemma restrict_scalars_apply (fₗ : M →ₗ[S] M₂) (x) : restrict_scalars R fₗ x = fₗ x :=
+rfl
 
 lemma restrict_scalars_injective :
   function.injective (restrict_scalars R : (M →ₗ[S] M₂) → (M →ₗ[R] M₂)) :=
@@ -388,7 +394,7 @@ end⟩
 instance compatible_smul.units {R S : Type*}
   [monoid R] [mul_action R M] [mul_action R M₂] [semiring S] [module S M] [module S M₂]
   [compatible_smul M M₂ R S] :
-  compatible_smul M M₂ (units R) S :=
+  compatible_smul M M₂ Rˣ S :=
 ⟨λ fₗ c x, (compatible_smul.map_smul fₗ (c : R) x : _)⟩
 
 end add_comm_group
@@ -530,6 +536,39 @@ by { intros f g h, ext, exact linear_map.congr_fun h x }
 
 namespace linear_map
 
+section has_scalar
+
+variables [semiring R] [semiring R₂] [semiring R₃]
+variables [add_comm_monoid M] [add_comm_monoid M₂] [add_comm_monoid M₃]
+variables [module R M] [module R₂ M₂] [module R₃ M₃]
+variables {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃} [ring_hom_comp_triple σ₁₂ σ₂₃ σ₁₃]
+variables [monoid S] [distrib_mul_action S M₂] [smul_comm_class R₂ S M₂]
+variables [monoid S₃] [distrib_mul_action S₃ M₃] [smul_comm_class R₃ S₃ M₃]
+variables [monoid T] [distrib_mul_action T M₂] [smul_comm_class R₂ T M₂]
+
+instance : has_scalar S (M →ₛₗ[σ₁₂] M₂) :=
+⟨λ a f, { to_fun := a • f,
+          map_add' := λ x y, by simp only [pi.smul_apply, f.map_add, smul_add],
+          map_smul' := λ c x, by simp [pi.smul_apply, smul_comm (σ₁₂ c)] }⟩
+
+@[simp] lemma smul_apply (a : S) (f : M →ₛₗ[σ₁₂] M₂) (x : M) : (a • f) x = a • f x := rfl
+
+lemma coe_smul (a : S) (f : M →ₛₗ[σ₁₂] M₂) : ⇑(a • f) = a • f := rfl
+
+instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₛₗ[σ₁₂] M₂) :=
+⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
+
+-- example application of this instance: if S -> T -> R are homomorphisms of commutative rings and
+-- M and M₂ are R-modules then the S-module and T-module structures on Hom_R(M,M₂) are compatible.
+instance [has_scalar S T] [is_scalar_tower S T M₂] : is_scalar_tower S T (M →ₛₗ[σ₁₂] M₂) :=
+{ smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
+
+instance [distrib_mul_action Sᵐᵒᵖ M₂] [smul_comm_class R₂ Sᵐᵒᵖ M₂] [is_central_scalar S M₂] :
+  is_central_scalar S (M →ₛₗ[σ₁₂] M₂) :=
+{ op_smul_eq_smul := λ a b, ext $ λ x, op_smul_eq_smul _ _ }
+
+end has_scalar
+
 /-! ### Arithmetic on the codomain -/
 section arithmetic
 
@@ -554,7 +593,7 @@ rfl
 
 instance : inhabited (M →ₛₗ[σ₁₂] M₂) := ⟨0⟩
 
-@[simp] lemma default_def : default (M →ₛₗ[σ₁₂] M₂) = 0 := rfl
+@[simp] lemma default_def : (default : (M →ₛₗ[σ₁₂] M₂)) = 0 := rfl
 
 /-- The sum of two linear maps is linear. -/
 instance : has_add (M →ₛₗ[σ₁₂] M₂) :=
@@ -572,22 +611,7 @@ ext $ λ _, h.map_add _ _
 
 /-- The type of linear maps is an additive monoid. -/
 instance : add_comm_monoid (M →ₛₗ[σ₁₂] M₂) :=
-{ zero := 0,
-  add := (+),
-  add_assoc := λ f g h, linear_map.ext $ λ x, add_assoc _ _ _,
-  zero_add := λ f, linear_map.ext $ λ x, zero_add _,
-  add_zero := λ f, linear_map.ext $ λ x, add_zero _,
-  add_comm := λ f g, linear_map.ext $ λ x, add_comm _ _,
-  nsmul := λ n f,
-  { to_fun := λ x, n • (f x),
-    map_add' := λ x y, by rw [f.map_add, smul_add],
-    map_smul' := λ c x,
-    begin
-      rw [f.map_smulₛₗ],
-      simp [smul_comm n (σ₁₂ c) (f x)],
-    end },
-  nsmul_zero' := λ f, linear_map.ext $ λ x, add_comm_monoid.nsmul_zero' _,
-  nsmul_succ' := λ n f, linear_map.ext $ λ x, add_comm_monoid.nsmul_succ' _ _ }
+fun_like.coe_injective.add_comm_monoid _ rfl (λ _ _, rfl) (λ _ _, rfl)
 
 /-- The negation of a linear map is linear. -/
 instance : has_neg (M →ₛₗ[σ₁₂] N₂) :=
@@ -621,24 +645,8 @@ omit σ₁₃
 
 /-- The type of linear maps is an additive group. -/
 instance : add_comm_group (M →ₛₗ[σ₁₂] N₂) :=
-{ zero := 0,
-  add := (+),
-  neg := has_neg.neg,
-  sub := has_sub.sub,
-  sub_eq_add_neg := λ f g, linear_map.ext $ λ m, sub_eq_add_neg _ _,
-  add_left_neg := λ f, linear_map.ext $ λ m, add_left_neg _,
-  nsmul := λ n f,
-  { to_fun := λ x, n • (f x),
-    map_add' := λ x y, by rw [f.map_add, smul_add],
-    map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
-  zsmul := λ n f,
-  { to_fun := λ x, n • (f x),
-    map_add' := λ x y, by rw [f.map_add, smul_add],
-    map_smul' := λ c x, by rw [f.map_smulₛₗ, smul_comm n (σ₁₂ c) (f x)] },
-  zsmul_zero' := λ a, linear_map.ext $ λ m, zero_smul _ _,
-  zsmul_succ' := λ n a, linear_map.ext $ λ m, add_comm_group.zsmul_succ' n _,
-  zsmul_neg' := λ n a, linear_map.ext $ λ m, add_comm_group.zsmul_neg' n _,
-  .. linear_map.add_comm_monoid }
+fun_like.coe_injective.add_comm_group _
+  rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)  (λ _ _, rfl)
 
 end arithmetic
 
@@ -653,27 +661,6 @@ section has_scalar
 variables [monoid S] [distrib_mul_action S M₂] [smul_comm_class R₂ S M₂]
 variables [monoid S₃] [distrib_mul_action S₃ M₃] [smul_comm_class R₃ S₃ M₃]
 variables [monoid T] [distrib_mul_action T M₂] [smul_comm_class R₂ T M₂]
-
-instance : has_scalar S (M →ₛₗ[σ₁₂] M₂) :=
-⟨λ a f, { to_fun := a • f,
-          map_add' := λ x y, by simp only [pi.smul_apply, f.map_add, smul_add],
-          map_smul' := λ c x, by simp [pi.smul_apply, smul_comm (σ₁₂ c)] }⟩
-
-@[simp] lemma smul_apply (a : S) (f : M →ₛₗ[σ₁₂] M₂) (x : M) : (a • f) x = a • f x := rfl
-
-lemma coe_smul (a : S) (f : M →ₛₗ[σ₁₂] M₂) : ⇑(a • f) = a • f := rfl
-
-instance [smul_comm_class S T M₂] : smul_comm_class S T (M →ₛₗ[σ₁₂] M₂) :=
-⟨λ a b f, ext $ λ x, smul_comm _ _ _⟩
-
--- example application of this instance: if S -> T -> R are homomorphisms of commutative rings and
--- M and M₂ are R-modules then the S-module and T-module structures on Hom_R(M,M₂) are compatible.
-instance [has_scalar S T] [is_scalar_tower S T M₂] : is_scalar_tower S T (M →ₛₗ[σ₁₂] M₂) :=
-{ smul_assoc := λ _ _ _, ext $ λ _, smul_assoc _ _ _ }
-
-instance [distrib_mul_action Sᵐᵒᵖ M₂] [smul_comm_class R₂ Sᵐᵒᵖ M₂] [is_central_scalar S M₂] :
-  is_central_scalar S (M →ₛₗ[σ₁₂] M₂) :=
-{ op_smul_eq_smul := λ a b, ext $ λ x, op_smul_eq_smul _ _ }
 
 instance : distrib_mul_action S (M →ₛₗ[σ₁₂] M₂) :=
 { one_smul := λ f, ext $ λ _, one_smul _ _,
@@ -793,6 +780,10 @@ instance apply_smul_comm_class : smul_comm_class R (module.End R M) M :=
 
 instance apply_smul_comm_class' : smul_comm_class (module.End R M) R M :=
 { smul_comm := linear_map.map_smul }
+
+instance apply_is_scalar_tower {R M : Type*} [comm_semiring R] [add_comm_monoid M] [module R M] :
+  is_scalar_tower R (module.End R M) M :=
+⟨λ t f m, rfl⟩
 
 end endomorphisms
 

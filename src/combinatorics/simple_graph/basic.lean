@@ -20,19 +20,23 @@ finitely many vertices.
 
 * `simple_graph` is a structure for symmetric, irreflexive relations
 
-* `neighbor_set` is the `set` of vertices adjacent to a given vertex
+* `simple_graph.neighbor_set` is the `set` of vertices adjacent to a given vertex
 
-* `common_neighbors` is the intersection of the neighbor sets of two given vertices
+* `simple_graph.common_neighbors` is the intersection of the neighbor sets of two given vertices
 
-* `neighbor_finset` is the `finset` of vertices adjacent to a given vertex,
+* `simple_graph.neighbor_finset` is the `finset` of vertices adjacent to a given vertex,
    if `neighbor_set` is finite
 
-* `incidence_set` is the `set` of edges containing a given vertex
+* `simple_graph.incidence_set` is the `set` of edges containing a given vertex
 
-* `incidence_finset` is the `finset` of edges containing a given vertex,
+* `simple_graph.incidence_finset` is the `finset` of edges containing a given vertex,
    if `incidence_set` is finite
 
-* `homo`, `embedding`, and `iso` for graph homomorphisms, graph embeddings, and
+* `simple_graph.dart` is an ordered pair of adjacent vertices, thought of as being an
+  orientated edge.
+
+* `simple_graph.hom`, `simple_graph.embedding`, and `simple_graph.iso` for graph
+  homomorphisms, graph embeddings, and
   graph isomorphisms. Note that a graph embedding is a stronger notion than an
   injective graph homomorphism, since its image is an induced subgraph.
 
@@ -75,7 +79,7 @@ universes u v w
 /--
 A simple graph is an irreflexive symmetric relation `adj` on a vertex type `V`.
 The relation describes which pairs of vertices are adjacent.
-There is exactly one edge for every pair of adjacent edges;
+There is exactly one edge for every pair of adjacent vertices;
 see `simple_graph.edge_set` for the corresponding edge set.
 -/
 @[ext]
@@ -139,11 +143,16 @@ lemma adj_comm (u v : V) : G.adj u v ↔ G.adj v u := ⟨λ x, G.symm x, λ x, G
 
 @[symm] lemma adj_symm (h : G.adj u v) : G.adj v u := G.symm h
 
+lemma adj.symm {G : simple_graph V} {u v : V} (h : G.adj u v) : G.adj v u := G.symm h
+
 lemma ne_of_adj (h : G.adj a b) : a ≠ b := by { rintro rfl, exact G.irrefl h }
 
 protected lemma adj.ne {G : simple_graph V} {a b : V} (h : G.adj a b) : a ≠ b := G.ne_of_adj h
 
 protected lemma adj.ne' {G : simple_graph V} {a b : V} (h : G.adj a b) : b ≠ a := h.ne.symm
+
+lemma ne_of_adj_of_not_adj {v w x : V} (h : G.adj v x) (hn : ¬ G.adj w x) : v ≠ w :=
+λ h', hn (h' ▸ h)
 
 section order
 
@@ -278,7 +287,7 @@ def edge_set : set (sym2 V) := sym2.from_rel G.symm
 @[simp] lemma mem_edge_set : ⟦(v, w)⟧ ∈ G.edge_set ↔ G.adj v w := iff.rfl
 
 /--
-Two vertices are adjacent iff there is an edge between them.  The
+Two vertices are adjacent iff there is an edge between them. The
 condition `v ≠ w` ensures they are different endpoints of the edge,
 which is necessary since when `v = w` the existential
 `∃ (e ∈ G.edge_set), v ∈ e ∧ w ∈ e` is satisfied by every edge
@@ -310,6 +319,92 @@ instance decidable_mem_edge_set [decidable_rel G.adj] :
 instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
   fintype G.edge_set := subtype.fintype _
 
+/-! ## Darts -/
+
+/-- A `dart` is an oriented edge, implemented as an ordered pair of adjacent vertices. -/
+@[ext, derive decidable_eq]
+structure dart extends V × V :=
+(is_adj : G.adj fst snd)
+
+section darts
+variables {G}
+
+/-- The first vertex for the dart. -/
+abbreviation dart.fst (d : G.dart) : V := d.fst
+
+/-- The second vertex for the dart. -/
+abbreviation dart.snd (d : G.dart) : V := d.snd
+
+instance dart.fintype [fintype V] [decidable_rel G.adj] : fintype G.dart :=
+fintype.of_equiv (Σ v, G.neighbor_set v)
+{ to_fun := λ s, ⟨(s.fst, s.snd), s.snd.property⟩,
+  inv_fun := λ d, ⟨d.fst, d.snd, d.is_adj⟩,
+  left_inv := λ s, by ext; simp,
+  right_inv := λ d, by ext; simp }
+
+/-- The edge associated to the dart. -/
+def dart.edge (d : G.dart) : sym2 V := ⟦d.to_prod⟧
+
+@[simp] lemma dart.edge_mk {p : V × V} (h : G.adj p.1 p.2) :
+  (dart.mk p h).edge = ⟦p⟧ := rfl
+
+@[simp] lemma dart.edge_mem (d : G.dart) : d.edge ∈ G.edge_set :=
+d.is_adj
+
+/-- The dart with reversed orientation from a given dart. -/
+@[simps] def dart.symm (d : G.dart) : G.dart :=
+⟨d.to_prod.swap, G.symm d.is_adj⟩
+
+@[simp] lemma dart.symm_mk {p : V × V} (h : G.adj p.1 p.2) :
+  (dart.mk p h).symm = dart.mk p.swap h.symm := rfl
+
+@[simp] lemma dart.edge_symm (d : G.dart) : d.symm.edge = d.edge :=
+sym2.mk_prod_swap_eq
+
+@[simp] lemma dart.edge_comp_symm : dart.edge ∘ dart.symm = (dart.edge : G.dart → sym2 V) :=
+funext dart.edge_symm
+
+@[simp] lemma dart.symm_symm (d : G.dart) : d.symm.symm = d :=
+dart.ext _ _ $ prod.swap_swap _
+
+@[simp] lemma dart.symm_involutive : function.involutive (dart.symm : G.dart → G.dart) :=
+dart.symm_symm
+
+lemma dart.symm_ne (d : G.dart) : d.symm ≠ d :=
+ne_of_apply_ne (prod.snd ∘ dart.to_prod) d.is_adj.ne
+
+lemma dart_edge_eq_iff : Π (d₁ d₂ : G.dart),
+  d₁.edge = d₂.edge ↔ d₁ = d₂ ∨ d₁ = d₂.symm :=
+by { rintros ⟨p, hp⟩ ⟨q, hq⟩, simp [sym2.mk_eq_mk_iff] }
+
+lemma dart_edge_eq_mk_iff : Π {d : G.dart} {p : V × V},
+  d.edge = ⟦p⟧ ↔ d.to_prod = p ∨ d.to_prod = p.swap :=
+by { rintro ⟨p, h⟩, apply sym2.mk_eq_mk_iff }
+
+lemma dart_edge_eq_mk_iff' : Π {d : G.dart} {u v : V},
+  d.edge = ⟦(u, v)⟧ ↔ d.fst = u ∧ d.snd = v ∨ d.fst = v ∧ d.snd = u :=
+by { rintro ⟨⟨a, b⟩, h⟩ u v, rw dart_edge_eq_mk_iff, simp }
+
+variables (G)
+
+/-- Two darts are said to be adjacent if they could be consecutive
+darts in a walk -- that is, the first dart's second vertex is equal to
+the second dart's first vertex. -/
+def dart_adj (d d' : G.dart) : Prop := d.snd = d'.fst
+
+/-- For a given vertex `v`, this is the bijective map from the neighbor set at `v`
+to the darts `d` with `d.fst = v`. --/
+@[simps] def dart_of_neighbor_set (v : V) (w : G.neighbor_set v) : G.dart :=
+⟨(v, w), w.property⟩
+
+lemma dart_of_neighbor_set_injective (v : V) : function.injective (G.dart_of_neighbor_set v) :=
+λ e₁ e₂ h, subtype.ext $ by { injection h with h', convert congr_arg prod.snd h' }
+
+instance dart.inhabited [inhabited V] [inhabited (G.neighbor_set default)] :
+  inhabited G.dart := ⟨G.dart_of_neighbor_set default default⟩
+
+end darts
+
 /-! ### Incidence set -/
 
 /-- Set of edges incident to a given vertex, aka incidence set. -/
@@ -333,7 +428,7 @@ lemma incidence_set_inter_incidence_set_subset (h : a ≠ b) :
   G.incidence_set a ∩ G.incidence_set b ⊆ {⟦(a, b)⟧} :=
 λ e he, (sym2.mem_and_mem_iff h).1 ⟨he.1.2, he.2.2⟩
 
-lemma incidence_set_inter_incidence_set (h : G.adj a b) :
+lemma incidence_set_inter_incidence_set_of_adj (h : G.adj a b) :
   G.incidence_set a ∩ G.incidence_set b = {⟦(a, b)⟧} :=
 begin
   refine (G.incidence_set_inter_incidence_set_subset $ h.ne).antisymm _,
@@ -346,6 +441,14 @@ lemma adj_of_mem_incidence_set (h : a ≠ b) (ha : e ∈ G.incidence_set a)
   G.adj a b :=
 by rwa [←mk_mem_incidence_set_left_iff,
   ←set.mem_singleton_iff.1 $ G.incidence_set_inter_incidence_set_subset h ⟨ha, hb⟩]
+
+lemma incidence_set_inter_incidence_set_of_not_adj (h : ¬ G.adj a b) (hn : a ≠ b) :
+  G.incidence_set a ∩ G.incidence_set b = ∅ :=
+begin
+  simp_rw [set.eq_empty_iff_forall_not_mem, set.mem_inter_eq, not_and],
+  intros u ha hb,
+  exact h (G.adj_of_mem_incidence_set hn ha hb),
+end
 
 instance decidable_mem_incidence_set [decidable_eq V] [decidable_rel G.adj] (v : V) :
   decidable_pred (∈ G.incidence_set v) := λ e, and.decidable
@@ -365,6 +468,9 @@ set.mem_to_finset
 fintype.card_of_subtype G.edge_finset (mem_edge_finset _)
 
 @[simp] lemma mem_neighbor_set (v w : V) : w ∈ G.neighbor_set v ↔ G.adj v w :=
+iff.rfl
+
+@[simp] lemma mem_neighbor_set' (v w : V) : G.neighbor_set v w ↔ G.adj v w :=
 iff.rfl
 
 @[simp] lemma mem_incidence_set (v w : V) : ⟦(v, w)⟧ ∈ G.incidence_set v ↔ G.adj v w :=
@@ -449,6 +555,10 @@ set.inter_subset_right _ _
 instance decidable_mem_common_neighbors [decidable_rel G.adj] (v w : V) :
   decidable_pred (∈ G.common_neighbors v w) :=
 λ a, and.decidable
+
+lemma common_neighbors_top_eq {v w : V} :
+  (⊤ : simple_graph V).common_neighbors v w = set.univ \ {v, w} :=
+by { ext u, simp [common_neighbors, eq_comm, not_or_distrib.symm] }
 
 section incidence
 variable [decidable_eq V]
@@ -546,6 +656,8 @@ locally finite at `v`.
 -/
 def neighbor_finset : finset V := (G.neighbor_set v).to_finset
 
+lemma neighbor_finset_def : G.neighbor_finset v = (G.neighbor_set v).to_finset := rfl
+
 @[simp] lemma mem_neighbor_finset (w : V) :
   w ∈ G.neighbor_finset v ↔ G.adj v w :=
 set.mem_to_finset
@@ -584,6 +696,11 @@ lemma card_incidence_set_eq_degree [decidable_eq V] :
 by { rw fintype.card_congr (G.incidence_set_equiv_neighbor_set v), simp }
 
 @[simp]
+lemma card_incidence_finset_eq_degree [decidable_eq V] :
+  (G.incidence_finset v).card = G.degree v :=
+by { rw ← G.card_incidence_set_eq_degree, apply set.to_finset_card }
+
+@[simp]
 lemma mem_incidence_finset [decidable_eq V] (e : sym2 V) :
   e ∈ G.incidence_finset v ↔ e ∈ G.incidence_set v :=
 set.mem_to_finset
@@ -605,11 +722,14 @@ A locally finite simple graph is regular of degree `d` if every vertex has degre
 -/
 def is_regular_of_degree (d : ℕ) : Prop := ∀ (v : V), G.degree v = d
 
-lemma is_regular_of_degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) : G.degree v = d := h v
+variables {G}
 
-lemma is_regular_compl_of_is_regular [fintype V] [decidable_eq V]
-  (G : simple_graph V) [decidable_rel G.adj]
-  (k : ℕ) (h : G.is_regular_of_degree k) :
+lemma is_regular_of_degree.degree_eq {d : ℕ} (h : G.is_regular_of_degree d) (v : V) :
+  G.degree v = d := h v
+
+lemma is_regular_of_degree.compl [fintype V] [decidable_eq V]
+  {G : simple_graph V} [decidable_rel G.adj]
+  {k : ℕ} (h : G.is_regular_of_degree k) :
   Gᶜ.is_regular_of_degree (fintype.card V - 1 - k) :=
 by { intro v, rw [degree_compl, h v] }
 
@@ -626,15 +746,23 @@ lemma neighbor_finset_eq_filter {v : V} [decidable_rel G.adj] :
   G.neighbor_finset v = finset.univ.filter (G.adj v) :=
 by { ext, simp }
 
+lemma neighbor_finset_compl [decidable_eq V] [decidable_rel G.adj] (v : V) :
+  Gᶜ.neighbor_finset v = (G.neighbor_finset v)ᶜ \ {v} :=
+by simp only [neighbor_finset, neighbor_set_compl, set.to_finset_sdiff, set.to_finset_compl,
+    set.to_finset_singleton]
+
 @[simp]
 lemma complete_graph_degree [decidable_eq V] (v : V) :
   (⊤ : simple_graph V).degree v = fintype.card V - 1 :=
+by erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v), card_univ]
+
+lemma bot_degree (v : V) : (⊥ : simple_graph V).degree v = 0 :=
 begin
-  convert univ.card.pred_eq_sub_one,
-  erw [degree, neighbor_finset_eq_filter, filter_ne, card_erase_of_mem (mem_univ v)],
+  erw [degree, neighbor_finset_eq_filter, filter_false],
+  exact finset.card_empty,
 end
 
-lemma complete_graph_is_regular [decidable_eq V] :
+lemma is_regular_of_degree.top [decidable_eq V] :
   (⊤ : simple_graph V).is_regular_of_degree (fintype.card V - 1) :=
 by { intro v, simp }
 
@@ -675,11 +803,7 @@ defined to be a natural.
 lemma le_min_degree_of_forall_le_degree [decidable_rel G.adj] [nonempty V] (k : ℕ)
   (h : ∀ v, k ≤ G.degree v) :
   k ≤ G.min_degree :=
-begin
-  rcases G.exists_minimal_degree_vertex with ⟨v, hv⟩,
-  rw hv,
-  apply h
-end
+by { rcases G.exists_minimal_degree_vertex with ⟨v, hv⟩, rw hv, apply h }
 
 /--
 The maximum degree of all vertices (and `0` if there are no vertices).
@@ -761,10 +885,7 @@ end
 
 lemma card_common_neighbors_le_degree_right [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) ≤ G.degree w :=
-begin
-  convert G.card_common_neighbors_le_degree_left w v using 3,
-  apply common_neighbors_symm,
-end
+by simp_rw [common_neighbors_symm _ v w, card_common_neighbors_le_degree_left]
 
 lemma card_common_neighbors_lt_card_verts [decidable_rel G.adj] (v w : V) :
   fintype.card (G.common_neighbors v w) < fintype.card V :=
@@ -791,6 +912,15 @@ begin
     { simpa, },
     { rw [neighbor_finset, ← set.subset_iff_to_finset_subset],
       exact G.common_neighbors_subset_neighbor_set_left _ _ } }
+end
+
+lemma card_common_neighbors_top [decidable_eq V] {v w : V} (h : v ≠ w) :
+  fintype.card ((⊤ : simple_graph V).common_neighbors v w) = fintype.card V - 2 :=
+begin
+  simp only [common_neighbors_top_eq, ← set.to_finset_card, set.to_finset_sdiff],
+  rw finset.card_sdiff,
+  { simp [finset.card_univ, h], },
+  { simp only [←set.subset_iff_to_finset_subset, set.subset_univ] },
 end
 
 end finite

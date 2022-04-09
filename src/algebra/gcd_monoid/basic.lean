@@ -70,10 +70,10 @@ variables {α : Type*}
 elements. -/
 @[protect_proj] class normalization_monoid (α : Type*)
   [cancel_comm_monoid_with_zero α] :=
-(norm_unit : α → units α)
+(norm_unit : α → αˣ)
 (norm_unit_zero      : norm_unit 0 = 1)
 (norm_unit_mul       : ∀{a b}, a ≠ 0 → b ≠ 0 → norm_unit (a * b) = norm_unit a * norm_unit b)
-(norm_unit_coe_units : ∀(u : units α), norm_unit u = u⁻¹)
+(norm_unit_coe_units : ∀(u : αˣ), norm_unit u = u⁻¹)
 
 export normalization_monoid (norm_unit norm_unit_zero norm_unit_mul norm_unit_coe_units)
 
@@ -86,7 +86,7 @@ variables [cancel_comm_monoid_with_zero α] [normalization_monoid α]
 norm_unit_coe_units 1
 
 /-- Chooses an element of each associate class, by multiplying by `norm_unit` -/
-def normalize : monoid_with_zero_hom α α :=
+def normalize : α →*₀ α :=
 { to_fun := λ x, x * norm_unit x,
   map_zero' := by simp,
   map_one' := by rw [norm_unit_one, units.coe_one, mul_one],
@@ -110,7 +110,7 @@ associates.mk_eq_mk_iff_associated.2 (normalize_associated _)
 
 @[simp] lemma normalize_one : normalize (1 : α) = 1 := normalize.map_one
 
-lemma normalize_coe_units (u : units α) : normalize (u : α) = 1 := by simp
+lemma normalize_coe_units (u : αˣ) : normalize (u : α) = 1 := by simp
 
 lemma normalize_eq_zero {x : α} : normalize x = 0 ↔ x = 0 :=
 ⟨λ hx, (associated_zero_iff_eq_zero x).1 $ hx ▸ associated_normalize _,
@@ -519,7 +519,7 @@ begin
   rw [units.coe_mk_of_mul_eq_one, ha']
 end
 
-theorem exists_eq_pow_of_mul_eq_pow [gcd_monoid α] [unique (units α)] {a b c : α}
+theorem exists_eq_pow_of_mul_eq_pow [gcd_monoid α] [unique αˣ] {a b c : α}
   (hab : is_unit (gcd a b)) {k : ℕ}
   (h : a * b = c ^ k) : ∃ (d : α), a = d ^ k :=
 let ⟨d, hd⟩ := exists_associated_pow_of_mul_eq_pow hab h in ⟨d, (associated_iff_eq.mp hd).symm⟩
@@ -557,9 +557,11 @@ begin
       mul_dvd_mul_iff_left h1, mul_dvd_mul_iff_right h2, and_comm] }
 end
 
-lemma dvd_lcm_left [gcd_monoid α] (a b : α) : a ∣ lcm a b := (lcm_dvd_iff.1 dvd_rfl).1
+lemma dvd_lcm_left [gcd_monoid α] (a b : α) : a ∣ lcm a b :=
+(lcm_dvd_iff.1 (dvd_refl (lcm a b))).1
 
-lemma dvd_lcm_right [gcd_monoid α] (a b : α) : b ∣ lcm a b := (lcm_dvd_iff.1 dvd_rfl).2
+lemma dvd_lcm_right [gcd_monoid α] (a b : α) : b ∣ lcm a b :=
+(lcm_dvd_iff.1 (dvd_refl (lcm a b))).2
 
 lemma lcm_dvd [gcd_monoid α] {a b c : α} (hab : a ∣ b) (hcb : c ∣ b) : lcm a c ∣ b :=
 lcm_dvd_iff.2 ⟨hab, hcb⟩
@@ -615,11 +617,11 @@ theorem lcm_dvd_lcm [gcd_monoid α] {a b c d : α} (hab : a ∣ b) (hcd : c ∣ 
   lcm a c ∣ lcm b d :=
 lcm_dvd (hab.trans (dvd_lcm_left _ _)) (hcd.trans (dvd_lcm_right _ _))
 
-@[simp] theorem lcm_units_coe_left [normalized_gcd_monoid α] (u : units α) (a : α) :
+@[simp] theorem lcm_units_coe_left [normalized_gcd_monoid α] (u : αˣ) (a : α) :
   lcm ↑u a = normalize a :=
 lcm_eq_normalize (lcm_dvd units.coe_dvd dvd_rfl) (dvd_lcm_right _ _)
 
-@[simp] theorem lcm_units_coe_right [normalized_gcd_monoid α] (a : α) (u : units α) :
+@[simp] theorem lcm_units_coe_right [normalized_gcd_monoid α] (a : α) (u : αˣ) :
   lcm a ↑u = normalize a :=
 (lcm_comm a u).trans $ lcm_units_coe_left _ _
 
@@ -716,7 +718,7 @@ end gcd_monoid
 
 section unique_unit
 
-variables [cancel_comm_monoid_with_zero α] [unique (units α)]
+variables [cancel_comm_monoid_with_zero α] [unique αˣ]
 
 @[priority 100] -- see Note [lower instance priority]
 instance normalization_monoid_of_unique_units : normalization_monoid α :=

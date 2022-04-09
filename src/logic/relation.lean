@@ -37,6 +37,8 @@ the bundled version, see `rel`.
   terms of rewriting systems, this means that `a` and `b` can be rewritten to the same term.
 -/
 
+open function
+
 variables {α β γ δ : Type*}
 
 section ne_imp
@@ -170,9 +172,17 @@ attribute [refl] refl_trans_gen.refl
 
 attribute [refl] refl_gen.refl
 
-lemma refl_gen.to_refl_trans_gen : ∀ {a b}, refl_gen r a b → refl_trans_gen r a b
+namespace refl_gen
+
+lemma to_refl_trans_gen : ∀ {a b}, refl_gen r a b → refl_trans_gen r a b
+| a _ refl := by refl
+| a b (single h) := refl_trans_gen.tail refl_trans_gen.refl h
+
+lemma mono {p : α → α → Prop} (hp : ∀ a b, r a b → p a b) : ∀ {a b}, refl_gen r a b → refl_gen p a b
 | a _ refl_gen.refl := by refl
-| a b (refl_gen.single h) := refl_trans_gen.tail refl_trans_gen.refl h
+| a b (single h) := single (hp a b h)
+
+end refl_gen
 
 namespace refl_trans_gen
 
@@ -390,6 +400,16 @@ lemma trans_gen.closed {p : α → α → Prop} :
   (∀ a b, r a b → trans_gen p a b) → trans_gen r a b → trans_gen p a b :=
 trans_gen.lift' id
 
+lemma trans_gen.mono {p : α → α → Prop} :
+  (∀ a b, r a b → p a b) → trans_gen r a b → trans_gen p a b :=
+trans_gen.lift id
+
+lemma trans_gen.swap (h : trans_gen r b a) : trans_gen (swap r) a b :=
+by { induction h with b h b c hab hbc ih, { exact trans_gen.single h }, exact ih.head hbc }
+
+lemma trans_gen_swap : trans_gen (swap r) a b ↔ trans_gen r b a :=
+⟨trans_gen.swap, trans_gen.swap⟩
+
 end trans_gen
 
 section refl_trans_gen
@@ -443,6 +463,12 @@ by simpa [refl_trans_gen_idem] using hab.lift f h
 lemma refl_trans_gen_closed {p : α → α → Prop} :
   (∀ a b, r a b → refl_trans_gen p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
 refl_trans_gen.lift' id
+
+lemma refl_trans_gen.swap (h : refl_trans_gen r b a) : refl_trans_gen (swap r) a b :=
+by { induction h with b c hab hbc ih, { refl }, exact ih.head hbc }
+
+lemma refl_trans_gen_swap : refl_trans_gen (swap r) a b ↔ refl_trans_gen r b a :=
+⟨refl_trans_gen.swap, refl_trans_gen.swap⟩
 
 end refl_trans_gen
 

@@ -3,7 +3,7 @@ Copyright (c) 2021 Kalle Kytölä. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kalle Kytölä, Yury Kudryashov
 -/
-import topology.algebra.weak_dual_topology
+import topology.algebra.module.weak_dual
 import analysis.normed_space.dual
 import analysis.normed_space.operator_norm
 
@@ -53,7 +53,7 @@ TODOs:
 * Add metrizability of the dual unit ball (more generally weak-star compact subsets) of
   `weak_dual 𝕜 E` under the assumption of separability of `E`.
 * Add the sequential Banach-Alaoglu theorem: the dual unit ball of a separable normed space `E`
-  is sequentially compact in the weak-star topology. (Would follow from the metrizability above.)
+  is sequentially compact in the weak-star topology. This would follow from the metrizability above.
 
 ## Notations
 
@@ -61,7 +61,7 @@ No new notation is introduced.
 
 ## Implementation notes
 
-Weak-* topology is defined generally in the file `topology.algebra.weak_dual_topology`.
+Weak-* topology is defined generally in the file `topology.algebra.module.weak_dual`.
 
 When `E` is a normed space, the duals `dual 𝕜 E` and `weak_dual 𝕜 E` are type synonyms with
 different topology instances.
@@ -113,6 +113,10 @@ def to_weak_dual : dual 𝕜 E ≃ₗ[𝕜] weak_dual 𝕜 E := linear_equiv.ref
   x'.to_weak_dual = y'.to_weak_dual ↔ x' = y' :=
 to_weak_dual.injective.eq_iff
 
+@[simp] lemma _root_.weak_dual.to_normed_dual_eq_iff (x' y' : weak_dual 𝕜 E) :
+  x'.to_normed_dual = y'.to_normed_dual ↔ x' = y' :=
+weak_dual.to_normed_dual.injective.eq_iff
+
 theorem to_weak_dual_continuous : continuous (λ (x' : dual 𝕜 E), x'.to_weak_dual) :=
 weak_dual.continuous_of_continuous_eval 𝕜 E $ λ z, (inclusion_in_double_dual 𝕜 E z).continuous
 
@@ -140,10 +144,9 @@ open normed_space
 /-- For normed spaces `E`, there is a canonical map `weak_dual 𝕜 E → dual 𝕜 E` (the "identity"
 mapping). It is a linear equivalence. Here it is implemented as the inverse of the linear
 equivalence `normed_space.dual.to_weak_dual` in the other direction. -/
-def to_normed_dual : weak_dual 𝕜 E ≃ₗ[𝕜] dual 𝕜 E :=
-normed_space.dual.to_weak_dual.symm
+def to_normed_dual : weak_dual 𝕜 E ≃ₗ[𝕜] dual 𝕜 E := normed_space.dual.to_weak_dual.symm
 
-@[simp] lemma coe_to_normed_dual (x' : weak_dual 𝕜 E) : (x'.to_normed_dual : E → 𝕜) = x' := rfl
+@[simp] lemma coe_to_normed_dual (x' : weak_dual 𝕜 E) : ⇑(x'.to_normed_dual) = x' := rfl
 
 @[simp] lemma to_normed_dual_eq_iff (x' y' : weak_dual 𝕜 E) :
   x'.to_normed_dual = y'.to_normed_dual ↔ x' = y' :=

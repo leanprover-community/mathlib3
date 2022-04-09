@@ -476,7 +476,7 @@ begin
     have h2p' : p' ∈ (cs i'').to_set,
     { simp only [to_set, forall_fin_succ, p', cons_succ, cons_zero, mem_set_of_eq],
       refine ⟨_, by simpa [to_set, p] using hi''.2⟩,
-      have : (cs i).b 0 = (cs i'').b 0, { by rw [hi.1, h2i''.1] },
+      have : (cs i).b 0 = (cs i'').b 0, { rw [hi.1, h2i''.1] },
       simp [side, hw', xm, this, h3i''] },
     apply not_disjoint_iff.mpr ⟨p', hp', h2p'⟩,
     apply h.1, rintro rfl, apply (cs i).b_ne_xm, rw [←hi', ←hi''.1, hi.1], refl },

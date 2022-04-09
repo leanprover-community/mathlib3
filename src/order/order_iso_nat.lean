@@ -3,8 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.equiv.denumerable
 import data.nat.lattice
+import logic.denumerable
 import logic.function.iterate
 import order.hom.basic
 
@@ -78,8 +78,9 @@ rel_iso.of_surjective (rel_embedding.order_embedding_of_lt_embedding
 variable {s}
 
 @[simp]
-lemma order_embedding_of_set_apply {n : ℕ} : order_embedding_of_set s n = subtype.of_nat s n :=
-rfl
+lemma coe_order_embedding_of_set : ⇑(order_embedding_of_set s) = coe ∘ subtype.of_nat s := rfl
+
+lemma order_embedding_of_set_apply {n : ℕ} : order_embedding_of_set s n = subtype.of_nat s n := rfl
 
 @[simp]
 lemma subtype.order_iso_of_nat_apply {n : ℕ} :
@@ -88,18 +89,20 @@ by { simp [subtype.order_iso_of_nat] }
 
 variable (s)
 
-@[simp]
 lemma order_embedding_of_set_range : set.range (nat.order_embedding_of_set s) = s :=
+subtype.coe_comp_of_nat_range
+
+theorem exists_subseq_of_forall_mem_union {α : Type*} {s t : set α} (e : ℕ → α)
+  (he : ∀ n, e n ∈ s ∪ t) :
+  ∃ g : ℕ ↪o ℕ, (∀ n, e (g n) ∈ s) ∨ (∀ n, e (g n) ∈ t) :=
 begin
-  ext x,
-  rw [set.mem_range, nat.order_embedding_of_set],
-  split; intro h,
-  { obtain ⟨y, rfl⟩ := h,
-    simp },
-  { refine ⟨(nat.subtype.order_iso_of_nat s).symm ⟨x, h⟩, _⟩,
-    simp only [rel_embedding.coe_trans, rel_embedding.order_embedding_of_lt_embedding_apply,
-      rel_embedding.nat_lt_apply, function.comp_app, order_embedding.subtype_apply],
-    rw [← subtype.order_iso_of_nat_apply, order_iso.apply_symm_apply, subtype.coe_mk] }
+  classical,
+  have : infinite (e ⁻¹' s) ∨ infinite (e ⁻¹' t),
+    by simp only [set.infinite_coe_iff, ← set.infinite_union, ← set.preimage_union,
+      set.eq_univ_of_forall (λ n, set.mem_preimage.2 (he n)), set.infinite_univ],
+  casesI this,
+  exacts [⟨nat.order_embedding_of_set (e ⁻¹' s), or.inl $ λ n, (nat.subtype.of_nat (e ⁻¹' s) _).2⟩,
+    ⟨nat.order_embedding_of_set (e ⁻¹' t), or.inr $ λ n, (nat.subtype.of_nat (e ⁻¹' t) _).2⟩]
 end
 
 end nat
@@ -137,6 +140,8 @@ begin
       or.intro_left _ (λ n, (nat.find_spec (h (g' n))).2)⟩ }
 end
 
+/-- This is the infinitary Erdős–Szekeres theorem, and an important lemma in the usual proof of
+    Bolzano-Weierstrass for `ℝ`. -/
 theorem exists_increasing_or_nonincreasing_subseq
   {α : Type*} (r : α → α → Prop) [is_trans α r] (f : ℕ → α) :
   ∃ (g : ℕ ↪o ℕ), (∀ m n : ℕ, m < n → r (f (g m)) (f (g n))) ∨
@@ -171,12 +176,12 @@ end
 type, `monotonic_sequence_limit_index a` is the least natural number `n` for which `aₙ` reaches the
 constant value. For sequences that are not eventually constant, `monotonic_sequence_limit_index a`
 is defined, but is a junk value. -/
-noncomputable def monotonic_sequence_limit_index {α : Type*} [partial_order α] (a : ℕ →o α) : ℕ :=
+noncomputable def monotonic_sequence_limit_index {α : Type*} [preorder α] (a : ℕ →o α) : ℕ :=
 Inf { n | ∀ m, n ≤ m → a n = a m }
 
 /-- The constant value of an eventually-constant monotone sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a
 partially-ordered type. -/
-noncomputable def monotonic_sequence_limit {α : Type*} [partial_order α] (a : ℕ →o α) :=
+noncomputable def monotonic_sequence_limit {α : Type*} [preorder α] (a : ℕ →o α) :=
 a (monotonic_sequence_limit_index a)
 
 lemma well_founded.supr_eq_monotonic_sequence_limit {α : Type*} [complete_lattice α]

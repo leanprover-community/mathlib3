@@ -228,6 +228,7 @@ section subset
 protected def subset (s t : multiset α) : Prop := ∀ ⦃a : α⦄, a ∈ s → a ∈ t
 
 instance : has_subset (multiset α) := ⟨multiset.subset⟩
+instance : has_ssubset (multiset α) := ⟨λ s t, s ⊆ t ∧ ¬ t ⊆ s⟩
 
 @[simp] theorem coe_subset {l₁ l₂ : list α} : (l₁ : multiset α) ⊆ l₂ ↔ l₁ ⊆ l₂ := iff.rfl
 
@@ -243,8 +244,16 @@ theorem mem_of_subset {s t : multiset α} {a : α} (h : s ⊆ t) : a ∈ s → a
 @[simp] theorem zero_subset (s : multiset α) : 0 ⊆ s :=
 λ a, (not_mem_nil a).elim
 
+lemma subset_cons (s : multiset α) (a : α) : s ⊆ a ::ₘ s := λ _, mem_cons_of_mem
+
+lemma ssubset_cons {s : multiset α} {a : α} (ha : a ∉ s) : s ⊂ a ::ₘ s :=
+⟨subset_cons _ _, λ h, ha $ h $ mem_cons_self _ _⟩
+
 @[simp] theorem cons_subset {a : α} {s t : multiset α} : (a ::ₘ s) ⊆ t ↔ a ∈ t ∧ s ⊆ t :=
 by simp [subset_iff, or_imp_distrib, forall_and_distrib]
+
+lemma cons_subset_cons {a : α} {s t : multiset α} : s ⊆ t → a ::ₘ s ⊆ a ::ₘ t :=
+quotient.induction_on₂ s t $ λ _ _, cons_subset_cons _
 
 theorem eq_zero_of_subset_zero {s : multiset α} (h : s ⊆ 0) : s = 0 :=
 eq_zero_of_forall_not_mem h
@@ -292,11 +301,16 @@ instance : partial_order (multiset α) :=
   le_trans    := by rintros ⟨l₁⟩ ⟨l₂⟩ ⟨l₃⟩; exact @subperm.trans _ _ _ _,
   le_antisymm := by rintros ⟨l₁⟩ ⟨l₂⟩ h₁ h₂; exact quot.sound (subperm.antisymm h₁ h₂) }
 
-theorem subset_of_le {s t : multiset α} : s ≤ t → s ⊆ t :=
-quotient.induction_on₂ s t $ λ l₁ l₂, subperm.subset
+section
+variables {s t : multiset α} {a : α}
 
-theorem mem_of_le {s t : multiset α} {a : α} (h : s ≤ t) : a ∈ s → a ∈ t :=
-mem_of_subset (subset_of_le h)
+lemma subset_of_le : s ≤ t → s ⊆ t := quotient.induction_on₂ s t $ λ l₁ l₂, subperm.subset
+
+alias subset_of_le ← multiset.le.subset
+
+lemma mem_of_le (h : s ≤ t) : a ∈ s → a ∈ t := mem_of_subset (subset_of_le h)
+
+lemma not_mem_mono (h : s ⊆ t) : a ∉ t → a ∉ s := mt $ @h _
 
 @[simp] theorem coe_le {l₁ l₂ : list α} : (l₁ : multiset α) ≤ l₂ ↔ l₁ <+~ l₂ := iff.rfl
 
@@ -309,8 +323,7 @@ quotient.induction_on₂ s t (λ l₁ l₂ ⟨l, p, s⟩,
 theorem zero_le (s : multiset α) : 0 ≤ s :=
 quot.induction_on s $ λ l, (nil_sublist l).subperm
 
-theorem le_zero {s : multiset α} : s ≤ 0 ↔ s = 0 :=
-⟨λ h, le_antisymm h (zero_le _), le_of_eq⟩
+lemma le_zero : s ≤ 0 ↔ s = 0 := ⟨λ h, le_antisymm h (zero_le _), le_of_eq⟩
 
 theorem lt_cons_self (s : multiset α) (a : α) : s < a ::ₘ s :=
 quot.induction_on s $ λ l,
@@ -322,13 +335,12 @@ suffices l <+~ a :: l ∧ (¬l ~ a :: l),
 theorem le_cons_self (s : multiset α) (a : α) : s ≤ a ::ₘ s :=
 le_of_lt $ lt_cons_self _ _
 
-theorem cons_le_cons_iff (a : α) {s t : multiset α} : a ::ₘ s ≤ a ::ₘ t ↔ s ≤ t :=
+lemma cons_le_cons_iff (a : α) : a ::ₘ s ≤ a ::ₘ t ↔ s ≤ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, subperm_cons a
 
-theorem cons_le_cons (a : α) {s t : multiset α} : s ≤ t → a ::ₘ s ≤ a ::ₘ t :=
-(cons_le_cons_iff a).2
+lemma cons_le_cons (a : α) : s ≤ t → a ::ₘ s ≤ a ::ₘ t := (cons_le_cons_iff a).2
 
-theorem le_cons_of_not_mem {a : α} {s t : multiset α} (m : a ∉ s) : s ≤ a ::ₘ t ↔ s ≤ t :=
+lemma le_cons_of_not_mem (m : a ∉ s) : s ≤ a ::ₘ t ↔ s ≤ t :=
 begin
   refine ⟨_, λ h, le_trans h $ le_cons_self _ _⟩,
   suffices : ∀ {t'} (_ : s ≤ t') (_ : a ∈ t'), a ::ₘ s ≤ t',
@@ -338,6 +350,8 @@ begin
   rcases mem_split m₂ with ⟨r₁, r₂, rfl⟩,
   exact perm_middle.subperm_left.2 ((subperm_cons _).2 $
     ((sublist_or_mem_of_sublist s).resolve_right m₁).subperm)
+end
+
 end
 
 /-! ### Singleton -/
@@ -743,6 +757,19 @@ def map (f : α → β) (s : multiset α) : multiset β :=
 quot.lift_on s (λ l : list α, (l.map f : multiset β))
   (λ l₁ l₂ p, quot.sound (p.map f))
 
+@[congr]
+theorem map_congr {f g : α → β} {s t : multiset α} :
+  s = t → (∀ x ∈ t, f x = g x) → map f s = map g t :=
+begin
+  rintros rfl h,
+  induction s using quot.induction_on,
+  exact congr_arg coe (map_congr h)
+end
+
+lemma map_hcongr {β' : Type*} {m : multiset α} {f : α → β} {f' : α → β'}
+  (h : β = β') (hf : ∀a∈m, f a == f' a) : map f m == map f' m :=
+begin subst h, simp at hf, simp [map_congr rfl hf] end
+
 theorem forall_mem_map_iff {f : α → β} {p : β → Prop} {s : multiset α} :
   (∀ y ∈ s.map f, p y) ↔ (∀ x ∈ s, p (f x)) :=
 quotient.induction_on' s $ λ L, list.forall_mem_map_iff
@@ -753,6 +780,9 @@ quotient.induction_on' s $ λ L, list.forall_mem_map_iff
 
 @[simp] theorem map_cons (f : α → β) (a s) : map f (a ::ₘ s) = f a ::ₘ map f s :=
 quot.induction_on s $ λ l, rfl
+
+theorem map_comp_cons (f : α → β) (t) : map f ∘ cons t = cons (f t) ∘ map f :=
+by { ext, simp }
 
 @[simp] theorem map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
 
@@ -823,20 +853,22 @@ quot.induction_on s $ λ l, congr_arg coe $ map_id _
 @[simp] theorem map_const (s : multiset α) (b : β) : map (function.const α b) s = repeat b s.card :=
 quot.induction_on s $ λ l, congr_arg coe $ map_const _ _
 
-@[congr] theorem map_congr {f g : α → β} {s : multiset α} :
-  (∀ x ∈ s, f x = g x) → map f s = map g s :=
-quot.induction_on s $ λ l H, congr_arg coe $ map_congr H
-
-lemma map_hcongr {β' : Type*} {m : multiset α} {f : α → β} {f' : α → β'}
-  (h : β = β') (hf : ∀a∈m, f a == f' a) : map f m == map f' m :=
-begin subst h, simp at hf, simp [map_congr hf] end
-
 theorem eq_of_mem_map_const {b₁ b₂ : β} {l : list α} (h : b₁ ∈ map (function.const α b₂) l) :
   b₁ = b₂ :=
 eq_of_mem_repeat $ by rwa map_const at h
 
 @[simp] theorem map_le_map {f : α → β} {s t : multiset α} (h : s ≤ t) : map f s ≤ map f t :=
 le_induction_on h $ λ l₁ l₂ h, (h.map f).subperm
+
+@[simp] lemma map_lt_map {f : α → β} {s t : multiset α} (h : s < t) : s.map f < t.map f :=
+begin
+  refine (map_le_map h.le).lt_of_not_le (λ H, h.ne $ eq_of_le_of_card_le h.le _),
+  rw [←s.card_map f, ←t.card_map f],
+  exact card_le_of_le H,
+end
+
+lemma map_mono (f : α → β) : monotone (map f) := λ _ _, map_le_map
+lemma map_strict_mono (f : α → β) : strict_mono (map f) := λ _ _, map_lt_map
 
 @[simp] theorem map_subset_map {f : α → β} {s t : multiset α} (H : s ⊆ t) : map f s ⊆ map f t :=
 λ b m, let ⟨a, h, e⟩ := mem_map.1 m in mem_map.2 ⟨a, H h, e⟩
@@ -1275,7 +1307,7 @@ quot.lift_on s (λ l, (filter p l : multiset α))
 
 lemma filter_congr {p q : α → Prop} [decidable_pred p] [decidable_pred q]
   {s : multiset α} : (∀ x ∈ s, p x ↔ q x) → filter p s = filter q s :=
-quot.induction_on s $ λ l h, congr_arg coe $ filter_congr h
+quot.induction_on s $ λ l h, congr_arg coe $ filter_congr' h
 
 @[simp] theorem filter_add (s t : multiset α) : filter p (s + t) = filter p s + filter p t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ filter_append _ _
@@ -1573,7 +1605,7 @@ theorem count_cons (a b : α) (s : multiset α) :
   count a (b ::ₘ s) = count a s + (if a = b then 1 else 0) :=
 by by_cases h : a = b; simp [h]
 
-theorem count_singleton_self (a : α) : count a ({a} : multiset α) = 1 :=
+@[simp] theorem count_singleton_self (a : α) : count a ({a} : multiset α) = 1 :=
 by simp only [count_cons_self, singleton_eq_cons, eq_self_iff_true, count_zero]
 
 theorem count_singleton (a b : α) : count a ({b} : multiset α) = if a = b then 1 else 0 :=
@@ -1742,9 +1774,43 @@ begin
 end
 
 lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
-by { simp_rw [←filter_eq', eq_comm], congr }
+by simp_rw [←filter_eq', eq_comm]
 
 end
+
+section embedding
+
+@[simp] lemma map_le_map_iff {f : α → β} (hf : function.injective f) {s t : multiset α} :
+  s.map f ≤ t.map f ↔ s ≤ t :=
+begin
+  classical,
+  refine ⟨λ h, le_iff_count.mpr (λ a, _), map_le_map⟩,
+  simpa [count_map_eq_count' f _ hf] using le_iff_count.mp h (f a),
+end
+
+/-- Associate to an embedding `f` from `α` to `β` the order embedding that maps a multiset to its
+image under `f`. -/
+@[simps]
+def map_embedding (f : α ↪ β) : multiset α ↪o multiset β :=
+order_embedding.of_map_le_iff (map f) (λ _ _, map_le_map_iff f.inj')
+
+end embedding
+
+lemma count_eq_card_filter_eq [decidable_eq α] (s : multiset α) (a : α) :
+  s.count a = (s.filter (eq a)).card :=
+by rw [count, countp_eq_card_filter]
+
+/--
+Mapping a multiset through a predicate and counting the `true`s yields the cardinality of the set
+filtered by the predicate. Note that this uses the notion of a multiset of `Prop`s - due to the
+decidability requirements of `count`, the decidability instance on the LHS is different from the
+RHS. In particular, the decidability instance on the left leaks `classical.dec_eq`.
+See [here](https://github.com/leanprover-community/mathlib/pull/11306#discussion_r782286812)
+for more discussion.
+-/
+@[simp] lemma map_count_true_eq_filter_card (s : multiset α) (p : α → Prop) [decidable_pred p] :
+  (s.map p).count true = (s.filter p).card :=
+by simp only [count_eq_card_filter_eq, map_filter, card_map, function.comp.left_id, eq_true_eq_id]
 
 /-! ### Lift a relation to `multiset`s -/
 
@@ -1829,8 +1895,7 @@ lemma rel_cons_right {as b bs} :
   rel r as (b ::ₘ bs) ↔ (∃a as', r a b ∧ rel r as' bs ∧ as = a ::ₘ as') :=
 begin
   rw [← rel_flip, rel_cons_left],
-  apply exists_congr, assume a,
-  apply exists_congr, assume as',
+  refine exists₂_congr (λ a as', _),
   rw [rel_flip, flip]
 end
 

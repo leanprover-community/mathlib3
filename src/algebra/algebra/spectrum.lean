@@ -5,6 +5,7 @@ Authors: Jireh Loreaux
 -/
 import tactic.noncomm_ring
 import field_theory.is_alg_closed.basic
+import algebra.star.pointwise
 /-!
 # Spectrum of an element in an algebra
 This file develops the basic theory of the spectrum of an element of an algebra.
@@ -44,13 +45,15 @@ section defs
 variables (R : Type u) {A : Type v}
 variables [comm_semiring R] [ring A] [algebra R A]
 
+local notation `↑ₐ` := algebra_map R A
+
 -- definition and basic properties
 
 /-- Given a commutative ring `R` and an `R`-algebra `A`, the *resolvent set* of `a : A`
 is the `set R` consisting of those `r : R` for which `r•1 - a` is a unit of the
 algebra `A`.  -/
 def resolvent_set (a : A) : set R :=
-{ r : R | is_unit (algebra_map R A r - a) }
+{ r : R | is_unit (↑ₐr - a) }
 
 
 /-- Given a commutative ring `R` and an `R`-algebra `A`, the *spectrum* of `a : A`
@@ -66,25 +69,26 @@ variable {R}
     a map `R → A` which sends `r : R` to `(algebra_map R A r - a)⁻¹` when
     `r ∈ resolvent R A` and `0` when `r ∈ spectrum R A`. -/
 noncomputable def resolvent (a : A) (r : R) : A :=
-ring.inverse (algebra_map R A r - a)
+ring.inverse (↑ₐr - a)
 
+/-- The unit `1 - r⁻¹ • a` constructed from `r • 1 - a` when the latter is a unit. -/
+@[simps]
+noncomputable def is_unit.sub_inv_smul {r : Rˣ} {s : R} {a : A}
+  (h : is_unit $ r • ↑ₐs  - a) : Aˣ :=
+{ val := ↑ₐs - r⁻¹ • a,
+  inv := r • ↑h.unit⁻¹,
+  val_inv := by rw [mul_smul_comm, ←smul_mul_assoc, smul_sub, smul_inv_smul, h.mul_coe_inv],
+  inv_val := by rw [smul_mul_assoc, ←mul_smul_comm, smul_sub, smul_inv_smul, h.coe_inv_mul], }
+
+-- products of scalar units and algebra units
+lemma is_unit.smul_sub_iff_sub_inv_smul {r : Rˣ} {a : A} :
+  is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
+by rw [←@is_unit_smul_iff _ _ _ _ _ _ _ r (1 - r⁻¹ • a), smul_sub, smul_inv_smul]
 
 end defs
 
-
--- products of scalar units and algebra units
-
-
-lemma is_unit.smul_sub_iff_sub_inv_smul {R : Type u} {A : Type v}
-  [comm_ring R] [ring A] [algebra R A] {r : units R} {a : A} :
-  is_unit (r • 1 - a) ↔ is_unit (1 - r⁻¹ • a) :=
-begin
-  have a_eq : a = r•r⁻¹•a, by simp,
-  nth_rewrite 0 a_eq,
-  rw [←smul_sub,is_unit_smul_iff],
-end
-
 namespace spectrum
+open_locale polynomial
 
 section scalar_ring
 
@@ -115,6 +119,60 @@ lemma resolvent_eq {a : A} {r : R} (h : r ∈ resolvent_set R a) :
   resolvent a r = ↑h.unit⁻¹ :=
 ring.inverse_unit h.unit
 
+lemma units_smul_resolvent {r : Rˣ} {s : R} {a : A} :
+  r • resolvent a (s : R) = resolvent (r⁻¹ • a) (r⁻¹ • s : R) :=
+begin
+  by_cases h : s ∈ spectrum R a,
+  { rw [mem_iff] at h,
+    simp only [resolvent, algebra.algebra_map_eq_smul_one] at *,
+    rw [smul_assoc, ←smul_sub],
+    have h' : ¬ is_unit (r⁻¹ • (s • 1 - a)),
+      from λ hu, h (by simpa only [smul_inv_smul] using is_unit.smul r hu),
+    simp only [ring.inverse_non_unit _ h, ring.inverse_non_unit _ h', smul_zero] },
+  { simp only [resolvent],
+    have h' : is_unit (r • (algebra_map R A (r⁻¹ • s)) - a),
+      { simpa [algebra.algebra_map_eq_smul_one, smul_assoc] using not_mem_iff.mp h },
+    rw [←h'.coe_sub_inv_smul, ←(not_mem_iff.mp h).unit_spec, ring.inverse_unit, ring.inverse_unit,
+      h'.coe_inv_sub_inv_smul],
+    simp only [algebra.algebra_map_eq_smul_one, smul_assoc, smul_inv_smul], },
+end
+
+lemma units_smul_resolvent_self {r : Rˣ} {a : A} :
+  r • resolvent a (r : R) = resolvent (r⁻¹ • a) (1 : R) :=
+by simpa only [units.smul_def, algebra.id.smul_eq_mul, units.inv_mul]
+  using @units_smul_resolvent _ _ _ _ _ r r a
+
+/-- The resolvent is a unit when the argument is in the resolvent set. -/
+lemma is_unit_resolvent {r : R} {a : A} :
+  r ∈ resolvent_set R a ↔ is_unit (resolvent a r) :=
+is_unit_ring_inverse.symm
+
+lemma inv_mem_resolvent_set {r : Rˣ} {a : Aˣ} (h : (r : R) ∈ resolvent_set R (a : A)) :
+  (↑r⁻¹ : R) ∈ resolvent_set R (↑a⁻¹ : A) :=
+begin
+  rw [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one, ←units.smul_def] at h ⊢,
+  rw [is_unit.smul_sub_iff_sub_inv_smul, inv_inv, is_unit.sub_iff],
+  have h₁ : (a : A) * (r • (↑a⁻¹ : A) - 1) = r • 1 - a,
+  { rw [mul_sub, mul_smul_comm, a.mul_inv, mul_one], },
+  have h₂ : (r • (↑a⁻¹ : A) - 1) * a = r • 1 - a,
+  { rw [sub_mul, smul_mul_assoc, a.inv_mul, one_mul], },
+  have hcomm : commute (a : A) (r • (↑a⁻¹ : A) - 1), { rwa ←h₂ at h₁ },
+  exact (hcomm.is_unit_mul_iff.mp (h₁.symm ▸ h)).2,
+end
+
+lemma inv_mem_iff {r : Rˣ} {a : Aˣ} :
+  (r : R) ∈ σ (a : A) ↔ (↑r⁻¹ : R) ∈ σ (↑a⁻¹ : A) :=
+begin
+  simp only [mem_iff, not_iff_not, ←mem_resolvent_set_iff],
+  exact ⟨λ h, inv_mem_resolvent_set h, λ h, by simpa using inv_mem_resolvent_set h⟩,
+end
+
+lemma zero_mem_resolvent_set_of_unit (a : Aˣ) : 0 ∈ resolvent_set R (a : A) :=
+by { rw [mem_resolvent_set_iff, is_unit.sub_iff], simp }
+
+lemma ne_zero_of_mem_of_unit {a : Aˣ} {r : R} (hr : r ∈ σ (a : A)) : r ≠ 0 :=
+λ hn, (hn ▸ hr) (zero_mem_resolvent_set_of_unit a)
+
 lemma add_mem_iff {a : A} {r s : R} :
   r ∈ σ a ↔ r + s ∈ σ (↑ₐs + a) :=
 begin
@@ -125,7 +183,7 @@ begin
   rw h_eq,
 end
 
-lemma smul_mem_smul_iff {a : A} {s : R} {r : units R} :
+lemma smul_mem_smul_iff {a : A} {s : R} {r : Rˣ} :
   r • s ∈ σ (r • a) ↔ s ∈ σ a :=
 begin
   apply not_iff_not.mpr,
@@ -134,9 +192,9 @@ begin
   rw [h_eq, ←smul_sub, is_unit_smul_iff],
 end
 
-open_locale pointwise
+open_locale pointwise polynomial
 
-theorem unit_smul_eq_smul (a : A) (r : units R) :
+theorem unit_smul_eq_smul (a : A) (r : Rˣ) :
   σ (r • a) = r • σ a :=
 begin
   ext,
@@ -153,8 +211,8 @@ theorem left_add_coset_eq (a : A) (r : R) :
 by { ext, rw [mem_left_add_coset_iff, neg_add_eq_sub, add_mem_iff],
      nth_rewrite 1 ←sub_add_cancel x r, }
 
--- `r ∈ σ(a*b) ↔ r ∈ σ(b*a)` for any `r : units R`
-theorem unit_mem_mul_iff_mem_swap_mul {a b : A} {r : units R} :
+-- `r ∈ σ(a*b) ↔ r ∈ σ(b*a)` for any `r : Rˣ`
+theorem unit_mem_mul_iff_mem_swap_mul {a b : A} {r : Rˣ} :
   ↑r ∈ σ (a * b) ↔ ↑r ∈ σ (b * a) :=
 begin
   apply not_iff_not.mpr,
@@ -182,8 +240,23 @@ begin
 end
 
 theorem preimage_units_mul_eq_swap_mul {a b : A} :
-  (coe : units R → R) ⁻¹' σ (a * b) = coe ⁻¹'  σ (b * a) :=
+  (coe : Rˣ → R) ⁻¹' σ (a * b) = coe ⁻¹'  σ (b * a) :=
 by { ext, exact unit_mem_mul_iff_mem_swap_mul, }
+
+section star
+
+variables [star_add_monoid R] [star_ring A] [star_module R A]
+
+lemma star_mem_resolvent_set_iff {r : R} {a : A} :
+  star r ∈ resolvent_set R a ↔ r ∈ resolvent_set R (star a) :=
+by refine ⟨λ h, _, λ h, _⟩;
+   simpa only [mem_resolvent_set_iff, algebra.algebra_map_eq_smul_one, star_sub, star_smul,
+     star_star, star_one] using is_unit.star h
+
+protected lemma map_star (a : A) : σ (star a) = star (σ a) :=
+by { ext, simpa only [set.mem_star, mem_iff, not_iff_not] using star_mem_resolvent_set_iff.symm }
+
+end star
 
 end scalar_ring
 
@@ -243,11 +316,24 @@ begin
     exact ⟨unit_mem_mul_iff_mem_swap_mul.mp k_mem, k_neq⟩ },
 end
 
+protected lemma map_inv (a : Aˣ) : (σ (a : A))⁻¹ = σ (↑a⁻¹ : A) :=
+begin
+  refine set.eq_of_subset_of_subset (λ k hk, _) (λ k hk, _),
+  { rw set.mem_inv at hk,
+    have : k ≠ 0,
+    { simpa only [inv_inv] using inv_ne_zero (ne_zero_of_mem_of_unit hk), },
+    lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr this,
+    rw ←units.coe_inv' k at hk,
+    exact inv_mem_iff.mp hk },
+  { lift k to 𝕜ˣ using is_unit_iff_ne_zero.mpr (ne_zero_of_mem_of_unit hk),
+    simpa only [units.coe_inv'] using inv_mem_iff.mp hk, }
+end
+
 open polynomial
 /-- Half of the spectral mapping theorem for polynomials. We prove it separately
 because it holds over any field, whereas `spectrum.map_polynomial_aeval_of_degree_pos` and
 `spectrum.map_polynomial_aeval_of_nonempty` need the field to be algebraically closed. -/
-theorem subset_polynomial_aeval (a : A) (p : polynomial 𝕜) :
+theorem subset_polynomial_aeval (a : A) (p : 𝕜[X]) :
   (λ k, eval k p) '' (σ a) ⊆ σ (aeval a p) :=
 begin
   rintros _ ⟨k, hk, rfl⟩,
@@ -262,7 +348,7 @@ begin
   simpa only [aeval_X, aeval_C, alg_hom.map_sub] using hk,
 end
 
-lemma exists_mem_of_not_is_unit_aeval_prod {p : polynomial 𝕜} {a : A} (hp : p ≠ 0)
+lemma exists_mem_of_not_is_unit_aeval_prod {p : 𝕜[X]} {a : A} (hp : p ≠ 0)
   (h : ¬is_unit (aeval a (multiset.map (λ (x : 𝕜), X - C x) p.roots).prod)) :
   ∃ k : 𝕜, k ∈ σ a ∧ eval k p = 0 :=
 begin
@@ -277,7 +363,7 @@ end
 /-- The *spectral mapping theorem* for polynomials.  Note: the assumption `degree p > 0`
 is necessary in case `σ a = ∅`, for then the left-hand side is `∅` and the right-hand side,
 assuming `[nontrivial A]`, is `{k}` where `p = polynomial.C k`. -/
-theorem map_polynomial_aeval_of_degree_pos [is_alg_closed 𝕜] (a : A) (p : polynomial 𝕜)
+theorem map_polynomial_aeval_of_degree_pos [is_alg_closed 𝕜] (a : A) (p : 𝕜[X])
   (hdeg : 0 < degree p) : σ (aeval a p) = (λ k, eval k p) '' (σ a) :=
 begin
   /- handle the easy direction via `spectrum.subset_polynomial_aeval` -/
@@ -302,7 +388,7 @@ end
 /-- In this version of the spectral mapping theorem, we assume the spectrum
 is nonempty instead of assuming the degree of the polynomial is positive. Note: the
 assumption `[nontrivial A]` is necessary for the same reason as in `spectrum.zero_eq`. -/
-theorem map_polynomial_aeval_of_nonempty [is_alg_closed 𝕜] [nontrivial A] (a : A) (p : polynomial 𝕜)
+theorem map_polynomial_aeval_of_nonempty [is_alg_closed 𝕜] [nontrivial A] (a : A) (p : 𝕜[X])
   (hnon : (σ a).nonempty) : σ (aeval a p) = (λ k, eval k p) '' (σ a) :=
 begin
   refine or.elim (le_or_gt (degree p) 0) (λ h, _) (map_polynomial_aeval_of_degree_pos a p),
@@ -310,6 +396,46 @@ begin
     simp only [set.image_congr, eval_C, aeval_C, scalar_eq, set.nonempty.image_const hnon] },
 end
 
+variable (𝕜)
+/--
+Every element `a` in a nontrivial finite-dimensional algebra `A`
+over an algebraically closed field `𝕜` has non-empty spectrum. -/
+-- We will use this both to show eigenvalues exist, and to prove Schur's lemma.
+lemma nonempty_of_is_alg_closed_of_finite_dimensional [is_alg_closed 𝕜]
+  [nontrivial A] [I : finite_dimensional 𝕜 A] (a : A) :
+  ∃ k : 𝕜, k ∈ σ a :=
+begin
+  obtain ⟨p, ⟨h_mon, h_eval_p⟩⟩ := is_integral_of_noetherian (is_noetherian.iff_fg.2 I) a,
+  have nu : ¬ is_unit (aeval a p), { rw [←aeval_def] at h_eval_p, rw h_eval_p, simp, },
+  rw [eq_prod_roots_of_monic_of_splits_id h_mon (is_alg_closed.splits p)] at nu,
+  obtain ⟨k, hk, _⟩ := exists_mem_of_not_is_unit_aeval_prod (monic.ne_zero h_mon) nu,
+  exact ⟨k, hk⟩
+end
+
 end scalar_field
 
 end spectrum
+
+namespace alg_hom
+
+variables {R : Type*} {A B : Type*} [comm_ring R] [ring A] [algebra R A] [ring B] [algebra R B]
+local notation `σ` := spectrum R
+local notation `↑ₐ` := algebra_map R A
+
+lemma apply_mem_spectrum [nontrivial R] (φ : A →ₐ[R] R) (a : A) : φ a ∈ σ a :=
+begin
+  have h : ↑ₐ(φ a) - a ∈ φ.to_ring_hom.ker,
+  { simp only [ring_hom.mem_ker, coe_to_ring_hom, commutes, algebra.id.map_eq_id,
+               to_ring_hom_eq_coe, ring_hom.id_apply, sub_self, map_sub] },
+  simp only [spectrum.mem_iff, ←mem_nonunits_iff,
+             coe_subset_nonunits (φ.to_ring_hom.ker_ne_top) h],
+end
+
+lemma mem_resolvent_set_apply (φ : A →ₐ[R] B) {a : A} {r : R} (h : r ∈ resolvent_set R a) :
+  r ∈ resolvent_set R (φ a) :=
+by simpa only [map_sub, commutes] using h.map φ
+
+lemma spectrum_apply_subset (φ : A →ₐ[R] B) (a : A) : σ (φ a) ⊆ σ a :=
+λ _, mt (mem_resolvent_set_apply φ)
+
+end alg_hom

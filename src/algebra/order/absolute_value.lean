@@ -95,7 +95,7 @@ variables [nontrivial R]
 by rw [← abv.map_mul, mul_one, mul_one]
 
 /-- Absolute values from a nontrivial `R` to a linear ordered ring preserve `*`, `0` and `1`. -/
-def to_monoid_with_zero_hom : monoid_with_zero_hom R S :=
+def to_monoid_with_zero_hom : R →*₀ S :=
 { to_fun := abv,
   map_zero' := abv.map_zero,
   map_one' := abv.map_one,
@@ -231,8 +231,7 @@ theorem abv_one [nontrivial R] : abv 1 = 1 :=
 by rw [← abv_mul abv, mul_one, mul_one]
 
 /-- `abv` as a `monoid_with_zero_hom`. -/
-def abv_hom [nontrivial R] : monoid_with_zero_hom R S :=
-⟨abv, abv_zero abv, abv_one abv, abv_mul abv⟩
+def abv_hom [nontrivial R] : R →*₀ S := ⟨abv, abv_zero abv, abv_one abv, abv_mul abv⟩
 
 lemma abv_pow [nontrivial R] (abv : R → S) [is_absolute_value abv]
   (a : R) (n : ℕ) : abv (a ^ n) = abv a ^ n :=

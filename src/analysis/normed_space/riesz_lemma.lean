@@ -1,12 +1,13 @@
 /-
 Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jean Lo
+Authors: Jean Lo, Yury Kudryashov
 -/
+import analysis.normed_space.basic
 import topology.metric_space.hausdorff_distance
 
 /-!
-# Riesz's lemma
+# Applications of the Hausdorff distance in normed spaces
 
 Riesz's lemma, stated for a normed space over a normed field: for any
 closed proper subspace `F` of `E`, there is a nonzero `x` such that `∥x - F∥`
@@ -14,10 +15,17 @@ is at least `r * ∥x∥` for any `r < 1`. This is `riesz_lemma`.
 
 In a nondiscrete normed field (with an element `c` of norm `> 1`) and any `R > ∥c∥`, one can
 guarantee `∥x∥ ≤ R` and `∥x - y∥ ≥ 1` for any `y` in `F`. This is `riesz_lemma_of_norm_lt`.
+
+A further lemma, `metric.closed_ball_inf_dist_compl_subset_closure`, finds a *closed* ball within
+the closure of a set `s` of optimal distance from a point in `x` to the frontier of `s`.
 -/
+
+open set metric
+open_locale topological_space
 
 variables {𝕜 : Type*} [normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
+variables {F : Type*} [semi_normed_group F] [normed_space ℝ F]
 
 /-- Riesz's lemma, which usually states that it is possible to find a
 vector with norm 1 whose distance to a closed proper subspace is
@@ -40,8 +48,7 @@ begin
   have hr' : r' < 1, by { simp [r', hr], norm_num },
   have hlt : 0 < r' := lt_of_lt_of_le (by norm_num) (le_max_right r 2⁻¹),
   have hdlt : d < d / r', from (lt_div_iff hlt).mpr ((mul_lt_iff_lt_one_right hdp).2 hr'),
-  obtain ⟨y₀, hy₀F, hxy₀⟩ : ∃ y ∈ F, dist x y < d / r' :=
-    metric.exists_dist_lt_of_inf_dist_lt hdlt hFn,
+  obtain ⟨y₀, hy₀F, hxy₀⟩ : ∃ y ∈ F, dist x y < d / r' := (metric.inf_dist_lt_iff hFn).mp hdlt,
   have x_ne_y₀ : x - y₀ ∉ F,
   { by_contradiction h,
     have : (x - y₀) + y₀ ∈ F, from F.add_mem h hy₀F,
@@ -89,4 +96,16 @@ begin
   ... ≤ ∥d∥ * ∥x - y'∥ :
     mul_le_mul_of_nonneg_left (hx y' (by simp [hy', submodule.smul_mem _ _ hy])) (norm_nonneg _)
   ... = ∥d • x - y∥ : by simp [yy', ← smul_sub, norm_smul],
+end
+
+lemma metric.closed_ball_inf_dist_compl_subset_closure {x : F} {s : set F} (hx : x ∈ s) :
+  closed_ball x (inf_dist x sᶜ) ⊆ closure s :=
+begin
+  cases eq_or_ne (inf_dist x sᶜ) 0 with h₀ h₀,
+  { rw [h₀, closed_ball_zero'],
+    exact closure_mono (singleton_subset_iff.2 hx) },
+  { rw ← closure_ball x h₀,
+    apply closure_mono,
+    calc ball x (inf_dist x sᶜ) ⊆ sᶜᶜ : disjoint_iff_subset_compl_right.1 disjoint_ball_inf_dist
+    ... = s : compl_compl s },
 end

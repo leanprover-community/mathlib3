@@ -41,11 +41,9 @@ begin
   refine subset.antisymm _ _,
   { refine subset_inter (λ x hx, hx.irrational) _,
     rw set_of_liouville_eq_Inter_Union,
-    exact Inter_subset_Inter (λ n, Union_subset_Union $ λ a, Union_subset_Union $
-      λ b, Union_subset_Union $ λ hb, diff_subset _ _) },
+    exact Inter_mono (λ n, Union₂_mono $ λ a b, Union_mono $ λ hb, diff_subset _ _) },
   { simp only [inter_Inter, inter_Union, set_of_liouville_eq_Inter_Union],
-    refine Inter_subset_Inter (λ n, Union_subset_Union $ λ a, Union_subset_Union $
-      λ b, Union_subset_Union $ λ hb, _),
+    refine Inter_mono (λ n, Union₂_mono $ λ a b, Union_mono $ λ hb, _),
     rw [inter_comm],
     refine diff_subset_diff subset.rfl (singleton_subset_iff.2 ⟨a / b, _⟩),
     norm_cast }

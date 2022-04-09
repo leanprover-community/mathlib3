@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import algebra.group.hom
-import data.equiv.basic
+import algebra.hom.group
+import logic.equiv.basic
 /-!
 # Type tags that turn additive structures into multiplicative, and vice versa
 
@@ -62,8 +62,8 @@ end multiplicative
 @[simp] lemma to_mul_of_mul (x : α) : (additive.of_mul x).to_mul = x := rfl
 @[simp] lemma of_mul_to_mul (x : additive α) : additive.of_mul x.to_mul = x := rfl
 
-instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul (default α)⟩
-instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add (default α)⟩
+instance [inhabited α] : inhabited (additive α) := ⟨additive.of_mul default⟩
+instance [inhabited α] : inhabited (multiplicative α) := ⟨multiplicative.of_add default⟩
 
 instance [nontrivial α] : nontrivial (additive α) :=
 additive.of_mul.injective.nontrivial
@@ -174,22 +174,22 @@ instance [h : add_monoid α] : monoid (multiplicative α) :=
   ..multiplicative.semigroup }
 
 instance [left_cancel_monoid α] : add_left_cancel_monoid (additive α) :=
-{ .. additive.add_monoid, .. additive.add_left_cancel_semigroup }
+{ zero := 0, add := (+), .. additive.add_monoid, .. additive.add_left_cancel_semigroup }
 
 instance [add_left_cancel_monoid α] : left_cancel_monoid (multiplicative α) :=
-{ .. multiplicative.monoid, .. multiplicative.left_cancel_semigroup }
+{ one := 1, mul := (*), .. multiplicative.monoid, .. multiplicative.left_cancel_semigroup }
 
 instance [right_cancel_monoid α] : add_right_cancel_monoid (additive α) :=
-{ .. additive.add_monoid, .. additive.add_right_cancel_semigroup }
+{ zero := 0, add := (+), .. additive.add_monoid, .. additive.add_right_cancel_semigroup }
 
 instance [add_right_cancel_monoid α] : right_cancel_monoid (multiplicative α) :=
-{ .. multiplicative.monoid, .. multiplicative.right_cancel_semigroup }
+{ one := 1, mul := (*), .. multiplicative.monoid, .. multiplicative.right_cancel_semigroup }
 
 instance [comm_monoid α] : add_comm_monoid (additive α) :=
-{ .. additive.add_monoid, .. additive.add_comm_semigroup }
+{ zero := 0, add := (+), .. additive.add_monoid, .. additive.add_comm_semigroup }
 
 instance [add_comm_monoid α] : comm_monoid (multiplicative α) :=
-{ ..multiplicative.monoid, .. multiplicative.comm_semigroup }
+{ one := 1, mul := (*), ..multiplicative.monoid, .. multiplicative.comm_semigroup }
 
 instance [has_inv α] : has_neg (additive α) := ⟨λ x, multiplicative.of_add x.to_mul⁻¹⟩
 

@@ -4,39 +4,50 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Minchao Wu
 -/
 import data.sigma.lex
-import order.basic
+import order.lexicographic
 
 /-!
 # Lexicographic order on a sigma type
 
-This file defines the lexicographic order on `Σ' i, α i` as the default order.
+This file defines the lexicographic order on `Σₗ' i, α i`. `a` is less than `b` if its summand is
+strictly less than the summand of `b` or they are in the same summand and `a` is less than `b`
+there.
 
-We mark these as instances because the 'pointwise' partial order `prod.has_le` doesn't make sense
-for dependent pairs. However in the future we will want to make the disjoint order the default
-instead, where `x ≤ y` only if `x.fst = y.fst`.
+## Notation
+
+* `Σₗ' i, α i`: Sigma type equipped with the lexicographic order. A type synonym of `Σ' i, α i`.
 
 ## See also
 
 Related files are:
 * `data.finset.colex`: Colexicographic order on finite sets.
 * `data.list.lex`: Lexicographic order on lists.
-* `data.sigma.order`: Lexicographic order on `Σ i, α i`. Basically a twin of this file.
+* `data.sigma.order`: Lexicographic order on `Σₗ i, α i`. Basically a twin of this file.
 * `order.lexicographic`: Lexicographic order on `α × β`.
+
+## TODO
+
+Define the disjoint order on `Σ' i, α i`, where `x ≤ y` only if `x.fst = y.fst`.
+
+Prove that a sigma type is a `no_max_order`, `no_min_order`, `densely_ordered` when its summands
+are.
 -/
 
 variables {ι : Type*} {α : ι → Type*}
 
 namespace psigma
 
+notation `Σₗ'` binders `, ` r:(scoped p, _root_.lex (psigma p)) := r
+
 /-- The lexicographical `≤` on a sigma type. -/
-instance lex.has_le [has_lt ι] [Π i, has_le (α i)] : has_le (Σ' i, α i) :=
+instance lex.has_le [has_lt ι] [Π i, has_le (α i)] : has_le (Σₗ' i, α i) :=
 { le := lex (<) (λ i, (≤)) }
 
 /-- The lexicographical `<` on a sigma type. -/
-instance lex.has_lt [has_lt ι] [Π i, has_lt (α i)] : has_lt (Σ' i, α i) :=
+instance lex.has_lt [has_lt ι] [Π i, has_lt (α i)] : has_lt (Σₗ' i, α i) :=
 { lt := lex (<) (λ i, (<)) }
 
-instance lex.preorder [preorder ι] [Π i, preorder (α i)] : preorder (Σ' i, α i) :=
+instance lex.preorder [preorder ι] [Π i, preorder (α i)] : preorder (Σₗ' i, α i) :=
 { le_refl := λ ⟨i, a⟩, lex.right _ le_rfl,
   le_trans :=
   begin
@@ -64,7 +75,7 @@ instance lex.preorder [preorder ι] [Π i, preorder (α i)] : preorder (Σ' i, �
 
 /-- Dictionary / lexicographic partial_order for dependent pairs. -/
 instance lex.partial_order [partial_order ι] [Π i, partial_order (α i)] :
-  partial_order (Σ' i, α i) :=
+  partial_order (Σₗ' i, α i) :=
 { le_antisymm :=
   begin
     rintro ⟨a₁, b₁⟩ ⟨a₂, b₂⟩
@@ -77,7 +88,7 @@ instance lex.partial_order [partial_order ι] [Π i, partial_order (α i)] :
   .. lex.preorder }
 
 /-- Dictionary / lexicographic linear_order for pairs. -/
-instance lex.linear_order [linear_order ι] [Π i, linear_order (α i)] : linear_order (Σ' i, α i) :=
+instance lex.linear_order [linear_order ι] [Π i, linear_order (α i)] : linear_order (Σₗ' i, α i) :=
 { le_total :=
   begin
   rintro ⟨i, a⟩ ⟨j, b⟩,

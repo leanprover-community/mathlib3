@@ -26,7 +26,7 @@ In this file we define several notions of finiteness that are common in commutat
 -/
 
 open function (surjective)
-open_locale big_operators
+open_locale big_operators polynomial
 
 section module_and_algebra
 
@@ -382,7 +382,7 @@ begin
     (mv_polynomial.map_surjective f.to_ring_hom hf_surj).comp (alg_equiv.surjective _),
     ideal.fg_ker_comp _ _ _ _ (alg_equiv.surjective _)⟩,
   { convert submodule.fg_bot,
-    exact ring_hom.ker_coe_equiv _, },
+    exact ring_hom.ker_coe_equiv (mv_polynomial.sum_alg_equiv R ι ι').to_ring_equiv },
   { rw [alg_hom.to_ring_hom_eq_coe, mv_polynomial.map_alg_hom_coe_ring_hom, mv_polynomial.ker_map],
     exact hf_ker.map mv_polynomial.C, }
 end
@@ -660,7 +660,7 @@ begin
   have hincl : of' R M '' f.support ⊆
     ⋃ (g : add_monoid_algebra R M) (H : g ∈ S), of' R M '' g.support,
   { intros s hs,
-    exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
+    exact set.mem_Union₂.2 ⟨f, ⟨hf, hs⟩⟩ },
   exact adjoin_mono hincl (mem_adjoin_support f)
 end
 
@@ -816,7 +816,7 @@ begin
   have hincl : (of R M) '' f.support ⊆
     ⋃ (g : monoid_algebra R M) (H : g ∈ S), of R M '' g.support,
   { intros s hs,
-    exact set.mem_bUnion_iff.2 ⟨f, ⟨hf, hs⟩⟩ },
+    exact set.mem_Union₂.2 ⟨f, ⟨hf, hs⟩⟩ },
   exact adjoin_mono hincl (mem_adjoint_support f)
 end
 
@@ -930,11 +930,11 @@ noncomputable theory
 /-- The structure of a module `M` over a ring `R` as a module over `polynomial R` when given a
 choice of how `X` acts by choosing a linear map `f : M →ₗ[R] M` -/
 @[simps]
-def module_polynomial_of_endo : module (polynomial R) M :=
+def module_polynomial_of_endo : module R[X] M :=
 module.comp_hom M (polynomial.aeval f).to_ring_hom
 
 include f
-lemma module_polynomial_of_endo.is_scalar_tower : @is_scalar_tower R (polynomial R) M _
+lemma module_polynomial_of_endo.is_scalar_tower : @is_scalar_tower R R[X] M _
   (by { letI := module_polynomial_of_endo f, apply_instance }) _ :=
 begin
   letI := module_polynomial_of_endo f,
@@ -955,18 +955,18 @@ theorem module.finite.injective_of_surjective_endomorphism [hfg : finite R M]
   (f_surj : function.surjective f) : function.injective f :=
 begin
   letI := module_polynomial_of_endo f,
-  haveI : is_scalar_tower R (polynomial R) M := module_polynomial_of_endo.is_scalar_tower f,
-  have hfgpoly : finite (polynomial R) M, from finite.of_restrict_scalars_finite R _ _,
-  have X_mul : ∀ o, (X : polynomial R) • o = f o,
+  haveI : is_scalar_tower R R[X] M := module_polynomial_of_endo.is_scalar_tower f,
+  have hfgpoly : finite R[X] M, from finite.of_restrict_scalars_finite R _ _,
+  have X_mul : ∀ o, (X : R[X]) • o = f o,
   { intro,
     simp, },
-  have : (⊤ : submodule (polynomial R) M) ≤ ideal.span {X} • ⊤,
+  have : (⊤ : submodule R[X] M) ≤ ideal.span {X} • ⊤,
   { intros a ha,
     obtain ⟨y, rfl⟩ := f_surj a,
     rw [← X_mul y],
     exact submodule.smul_mem_smul (ideal.mem_span_singleton.mpr (dvd_refl _)) trivial, },
   obtain ⟨F, hFa, hFb⟩ := submodule.exists_sub_one_mem_and_smul_eq_zero_of_fg_of_le_smul _
-    (⊤ : submodule (polynomial R) M) (finite_def.mp hfgpoly) this,
+    (⊤ : submodule R[X] M) (finite_def.mp hfgpoly) this,
   rw [← linear_map.ker_eq_bot, linear_map.ker_eq_bot'],
   intros m hm,
   rw ideal.mem_span_singleton' at hFa,

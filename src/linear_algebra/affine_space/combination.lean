@@ -543,8 +543,7 @@ begin
     rw [centroid_def,
         affine_combination_eq_weighted_vsub_of_point_vadd_of_sum_eq_one _ _ _
           (sum_centroid_weights_eq_one_of_cast_card_ne_zero _ hc) (p i₁)],
-    simp [h],
-    norm_num }
+    simp [h] }
 end
 
 /-- The centroid of two points indexed by `fin 2`, expressed directly
@@ -641,7 +640,7 @@ begin
       exact (hf' i).1 },
     { intro hx,
       use [⟨p x, hps.symm ▸ set.mem_image_of_mem _ hx⟩, mem_univ _],
-      refine hi _ _ (hf' _).1 hx _,
+      refine hi _ (hf' _).1 _ hx _,
       rw (hf' _).2,
       refl } },
   rw [←hu, centroid_map],
@@ -802,9 +801,7 @@ begin
   obtain ⟨s, w, hw, rfl⟩ := eq_affine_combination_of_mem_affine_span h,
   refine ⟨(s : set ι).indicator w, _, finset.affine_combination_indicator_subset w p s.subset_univ⟩,
   simp only [finset.mem_coe, set.indicator_apply, ← hw],
-  convert fintype.sum_extend_by_zero s w,
-  ext i,
-  congr,
+  rw fintype.sum_extend_by_zero s w,
 end
 
 variables (k V)

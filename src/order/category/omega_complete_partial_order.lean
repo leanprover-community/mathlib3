@@ -48,6 +48,8 @@ instance : has_coe_to_sort ωCPO Type* := bundled.has_coe_to_sort
 /-- Construct a bundled ωCPO from the underlying type and typeclass. -/
 def of (α : Type*) [omega_complete_partial_order α] : ωCPO := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [omega_complete_partial_order α] : ↥(of α) = α := rfl
+
 instance : inhabited ωCPO := ⟨of punit⟩
 
 instance (α : ωCPO) : omega_complete_partial_order α := α.str

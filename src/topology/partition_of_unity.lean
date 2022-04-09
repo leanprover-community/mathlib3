@@ -60,7 +60,7 @@ partition of unity.
 ## Implementation notes
 
 Most (if not all) books only define a partition of unity of the whole space. However, quite a few
-proofs only deal with `f i` such that `closure (support (f i))` meets a specific closed subset, and
+proofs only deal with `f i` such that `tsupport (f i)` meets a specific closed subset, and
 it is easier to formalize these proofs if we don't have other functions right away.
 
 We use `well_ordering_rel j i` instead of `j < i` in the definition of
@@ -145,8 +145,16 @@ lemma le_one (i : ι) (x : X) : f i x ≤ 1 :=
 
 /-- A partition of unity `f i` is subordinate to a family of sets `U i` indexed by the same type if
 for each `i` the closure of the support of `f i` is a subset of `U i`. -/
-def is_subordinate (f : partition_of_unity ι X s) (U : ι → set X) : Prop :=
-∀ i, closure (support (f i)) ⊆ U i
+def is_subordinate (U : ι → set X) : Prop :=
+∀ i, tsupport (f i) ⊆ U i
+
+variables {f}
+
+lemma exists_finset_nhd_support_subset {U : ι → set X}
+  (hso : f.is_subordinate U) (ho : ∀ i, is_open (U i)) (x : X) :
+  ∃ (is : finset ι) {n : set X} (hn₁ : n ∈ 𝓝 x) (hn₂ : n ⊆ ⋂ i ∈ is, U i), ∀ (z ∈ n),
+    support (λ i, f i z) ⊆ is :=
+f.locally_finite.exists_finset_nhd_support_subset hso ho x
 
 end partition_of_unity
 
@@ -185,12 +193,12 @@ protected def single (i : ι) (s : set X) : bump_covering ι X s :=
 @[simp] lemma coe_single (i : ι) (s : set X) : ⇑(bump_covering.single i s) = pi.single i 1 := rfl
 
 instance [inhabited ι] : inhabited (bump_covering ι X s) :=
-⟨bump_covering.single (default ι) s⟩
+⟨bump_covering.single default s⟩
 
 /-- A collection of bump functions `f i` is subordinate to a family of sets `U i` indexed by the
 same type if for each `i` the closure of the support of `f i` is a subset of `U i`. -/
 def is_subordinate (f : bump_covering ι X s) (U : ι → set X) : Prop :=
-∀ i, closure (support (f i)) ⊆ U i
+∀ i, tsupport (f i) ⊆ U i
 
 lemma is_subordinate.mono {f : bump_covering ι X s} {U V : ι → set X} (hU : f.is_subordinate U)
   (hV : ∀ i, U i ⊆ V i) :
@@ -331,8 +339,7 @@ lemma exists_finset_to_pou_fun_eventually_eq (i : ι) (x : X) :
 begin
   rcases f.locally_finite x with ⟨U, hU, hf⟩,
   use hf.to_finset,
-  filter_upwards [hU],
-  intros y hyU,
+  filter_upwards [hU] with y hyU,
   simp only [pi.mul_apply, finset.prod_apply],
   apply to_pou_fun_eq_mul_prod,
   intros j hji hj,
@@ -411,7 +418,7 @@ namespace partition_of_unity
 variables {s : set X}
 
 instance [inhabited ι] : inhabited (partition_of_unity ι X s) :=
-⟨(default (bump_covering ι X s)).to_partition_of_unity⟩
+⟨bump_covering.to_partition_of_unity default⟩
 
 /-- If `X` is a normal topological space and `U` is a locally finite open covering of a closed set
 `s`, then there exists a `partition_of_unity ι X s` that is subordinate to `U`. If `X` is a

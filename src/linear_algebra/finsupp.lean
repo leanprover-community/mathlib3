@@ -5,6 +5,7 @@ Authors: Johannes Hölzl
 -/
 import data.finsupp.basic
 import linear_algebra.pi
+import linear_algebra.span
 
 /-!
 # Properties of the module `α →₀ M`
@@ -156,12 +157,12 @@ variables (M R)
 def supported (s : set α) : submodule R (α →₀ M) :=
 begin
   refine ⟨ {p | ↑p.support ⊆ s }, _, _, _ ⟩,
-  { simp only [subset_def, finset.mem_coe, set.mem_set_of_eq, mem_support_iff, zero_apply],
-    assume h ha, exact (ha rfl).elim },
   { assume p q hp hq,
     refine subset.trans
       (subset.trans (finset.coe_subset.2 support_add) _) (union_subset hp hq),
     rw [finset.coe_union] },
+  { simp only [subset_def, finset.mem_coe, set.mem_set_of_eq, mem_support_iff, zero_apply],
+    assume h ha, exact (ha rfl).elim },
   { assume a p hp,
     refine subset.trans (finset.coe_subset.2 support_smul) hp }
 end
@@ -402,7 +403,7 @@ begin
   { have : finsupp.sum l (λ a, finsupp.single (f a)) (f x) = 0, {rw h₂, refl},
     rw [finsupp.sum_apply, finsupp.sum, finset.sum_eq_single x] at this,
     { simpa [finsupp.single_apply] },
-    { intros y hy xy, simp [mt (H _ _ (h₁ hy) xs) xy] },
+    { intros y hy xy, simp [mt (H _ (h₁ hy) _ xs) xy] },
     { simp {contextual := tt} } },
   { by_contra h, exact xs (h₁ $ finsupp.mem_support_iff.2 h) }
 end
@@ -437,7 +438,7 @@ theorem apply_total (f : M →ₗ[R] M') (v) (l : α →₀ R) :
 by apply finsupp.induction_linear l; simp { contextual := tt, }
 
 theorem total_unique [unique α] (l : α →₀ R) (v) :
-  finsupp.total α M R v l = l (default α) • v (default α) :=
+  finsupp.total α M R v l = l default • v default :=
 by rw [← total_single, ← unique_single l]
 
 lemma total_surjective (h : function.surjective v) : function.surjective (finsupp.total α M R v) :=
@@ -884,7 +885,7 @@ lemma submodule.mem_supr_iff_exists_finset
   {ι : Sort*} {p : ι → submodule R M} {m : M} :
   (m ∈ ⨆ i, p i) ↔ ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
 ⟨submodule.exists_finset_of_mem_supr p,
- λ ⟨_, hs⟩, supr_le_supr (λ i, (supr_const_le : _ ≤ p i)) hs⟩
+ λ ⟨_, hs⟩, supr_mono (λ i, (supr_const_le : _ ≤ p i)) hs⟩
 
 lemma mem_span_finset {s : finset M} {x : M} :
   x ∈ span R (↑s : set M) ↔ ∃ f : M → R, ∑ i in s, f i • i = x :=
@@ -958,7 +959,6 @@ begin
   ext x y,
   dsimp [splitting_of_fun_on_fintype_surjective],
   rw [linear_equiv_fun_on_fintype_symm_single, finsupp.sum_single_index, one_smul,
-    linear_map.id_coe, id_def,
     (s (finsupp.single x 1)).some_spec, finsupp.single_eq_pi_single],
   rw [zero_smul],
 end

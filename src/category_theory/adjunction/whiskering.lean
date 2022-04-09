@@ -53,7 +53,7 @@ mk_of_unit_counit
   counit :=
   { app := λ X, (functor.associator _ _ _).inv ≫
       whisker_right adj.counit X ≫ (functor.left_unitor _).hom,
-    naturality' := by by { intros, ext, dsimp, simp } },
+    naturality' := by { intros, ext, dsimp, simp } },
   left_triangle' := by { ext x, dsimp,
     simp only [category.id_comp, category.comp_id, ← x.map_comp], simp },
   right_triangle' :=  by { ext x, dsimp,

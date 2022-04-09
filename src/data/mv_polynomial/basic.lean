@@ -125,6 +125,10 @@ instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [distrib_mu
 add_monoid_algebra.is_central_scalar
 instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
 add_monoid_algebra.algebra
+-- Register with high priority to avoid timeout in `data.mv_polynomial.pderiv`
+instance is_scalar_tower' [comm_semiring R] [comm_semiring S₁] [algebra R S₁] :
+  is_scalar_tower R (mv_polynomial σ S₁) (mv_polynomial σ S₁) :=
+is_scalar_tower.right
 -- TODO[gh-6025]: make this an instance once safe to do so
 /-- If `R` is a subsingleton, then `mv_polynomial σ R` has a unique element -/
 protected def unique [comm_semiring R] [subsingleton R] : unique (mv_polynomial σ R) :=
@@ -236,10 +240,13 @@ lemma monomial_eq_C_mul_X {s : σ} {a : R} {n : ℕ} :
   monomial (single s n) a = C a * (X s)^n :=
 by rw [← zero_add (single s n), monomial_add_single, C_apply]
 
-@[simp] lemma monomial_zero {s : σ →₀ ℕ}: monomial s (0 : R) = 0 :=
+@[simp] lemma monomial_zero {s : σ →₀ ℕ} : monomial s (0 : R) = 0 :=
 single_zero
 
 @[simp] lemma monomial_zero' : (monomial (0 : σ →₀ ℕ) : R → mv_polynomial σ R) = C := rfl
+
+@[simp] lemma monomial_eq_zero {s : σ →₀ ℕ} {b : R} : monomial s b = 0 ↔ b = 0 :=
+finsupp.single_eq_zero
 
 @[simp] lemma sum_monomial_eq {A : Type*} [add_comm_monoid A]
   {u : σ →₀ ℕ} {r : R} {b : (σ →₀ ℕ) → R → A} (w : b u 0 = 0) :
@@ -263,6 +270,10 @@ lemma monomial_finsupp_sum_index {α β : Type*} [has_zero β] (f : α →₀ β
   (g : α → β → (σ →₀ ℕ)) (a : R) :
   (monomial (f.sum g) a) = C a * f.prod (λ a b, monomial (g a b) 1) :=
 monomial_sum_index _ _ _
+
+lemma monomial_eq_monomial_iff {α : Type*} (a₁ a₂ : α →₀ ℕ) (b₁ b₂ : R) :
+  monomial a₁ b₁ = monomial a₂ b₂ ↔ a₁ = a₂ ∧ b₁ = b₂ ∨ b₁ = 0 ∧ b₂ = 0 :=
+finsupp.single_eq_single_iff _ _ _ _
 
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ R) :=
 by simp only [X_pow_eq_monomial, ← monomial_finsupp_sum_index, finsupp.sum_single]
@@ -532,7 +543,7 @@ begin
 end
 
 lemma support_symm_diff_support_subset_support_add [decidable_eq σ] (p q : mv_polynomial σ R) :
-  p.support Δ q.support ⊆ (p + q).support :=
+  p.support ∆ q.support ⊆ (p + q).support :=
 begin
   rw [symm_diff_def, finset.sup_eq_union],
   apply finset.union_subset,
@@ -574,7 +585,6 @@ begin
   refine (coeff_mul_monomial' _ _ _ _).trans _,
   simp_rw [finsupp.single_le_iff, finsupp.mem_support_iff, nat.succ_le_iff, pos_iff_ne_zero,
     mul_one],
-  congr,
 end
 
 lemma coeff_X_mul' [decidable_eq σ] (m) (s : σ) (p : mv_polynomial σ R) :
@@ -583,7 +593,6 @@ begin
   refine (coeff_monomial_mul' _ _ _ _).trans _,
   simp_rw [finsupp.single_le_iff, finsupp.mem_support_iff, nat.succ_le_iff, pos_iff_ne_zero,
     one_mul],
-  congr,
 end
 
 lemma eq_zero_iff {p : mv_polynomial σ R} :

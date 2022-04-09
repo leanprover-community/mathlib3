@@ -3,12 +3,13 @@ Copyright (c) 2020 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
-import topology.opens
+import algebra.punit_instances
+import linear_algebra.finsupp
+import ring_theory.nilpotent
+import ring_theory.localization.away
 import ring_theory.ideal.prod
 import ring_theory.ideal.over
-import linear_algebra.finsupp
-import algebra.punit_instances
-import ring_theory.nilpotent
+import topology.sets.opens
 import topology.sober
 
 /-!
@@ -349,7 +350,7 @@ topological_space.of_closed (set.range prime_spectrum.zero_locus)
     simp only [hf],
     exact ⟨_, zero_locus_Union _⟩
   end
-  (by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
+  (by { rintro _ ⟨s, rfl⟩ _ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
 
 lemma is_open_iff (U : set (prime_spectrum R)) :
   is_open U ↔ ∃ s, Uᶜ = zero_locus s :=
@@ -416,7 +417,7 @@ begin
       (is_closed_singleton_iff_is_maximal _).1 (t1_space.t1 ⟨⊥, hbot⟩)) (not_not.2 rfl)) },
   { refine ⟨λ x, (is_closed_singleton_iff_is_maximal x).2 _⟩,
     by_cases hx : x.as_ideal = ⊥,
-    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ $ is_field.to_field R h) },
+    { exact hx.symm ▸ @ideal.bot_is_maximal R (@field.to_division_ring _ h.to_field) },
     { exact absurd h (ring.not_is_field_iff_exists_prime.2 ⟨x.as_ideal, ⟨hx, x.2⟩⟩) } }
 end
 
@@ -502,10 +503,14 @@ variables (f : R →+* S)
   (comap f y).as_ideal = ideal.comap f y.as_ideal :=
 rfl
 
-@[simp] lemma comap_id : comap (ring_hom.id R) = continuous_map.id := by { ext, refl }
+@[simp] lemma comap_id : comap (ring_hom.id R) = continuous_map.id _ := by { ext, refl }
 
 @[simp] lemma comap_comp (f : R →+* S) (g : S →+* S') :
   comap (g.comp f) = (comap f).comp (comap g) :=
+rfl
+
+lemma comap_comp_apply (f : R →+* S) (g : S →+* S') (x : prime_spectrum S') :
+  prime_spectrum.comap (g.comp f) x = (prime_spectrum.comap f) (prime_spectrum.comap g x) :=
 rfl
 
 @[simp] lemma preimage_comap_zero_locus (s : set R) :
@@ -602,7 +607,7 @@ lemma is_open_basic_open {a : R} : is_open ((basic_open a) : set (prime_spectrum
 set.ext $ λ x, by simpa only [set.mem_compl_eq, mem_zero_locus, set.singleton_subset_iff]
 
 @[simp] lemma basic_open_one : basic_open (1 : R) = ⊤ :=
-topological_space.opens.ext $ by {simp, refl}
+topological_space.opens.ext $ by simp
 
 @[simp] lemma basic_open_zero : basic_open (0 : R) = ⊥ :=
 topological_space.opens.ext $ by simp
@@ -713,8 +718,6 @@ section order
 
 We endow `prime_spectrum R` with a partial order,
 where `x ≤ y` if and only if `y ∈ closure {x}`.
-
-TODO: maybe define sober topological spaces, and generalise this instance to those
 -/
 
 instance : partial_order (prime_spectrum R) :=
@@ -733,11 +736,28 @@ lemma le_iff_mem_closure (x y : prime_spectrum R) :
 by rw [← as_ideal_le_as_ideal, ← zero_locus_vanishing_ideal_eq_closure,
     mem_zero_locus, vanishing_ideal_singleton, set_like.coe_subset_coe]
 
+lemma le_iff_specializes (x y : prime_spectrum R) :
+  x ≤ y ↔ x ⤳ y :=
+le_iff_mem_closure x y
+
 instance : t0_space (prime_spectrum R) :=
 by { simp [t0_space_iff_or_not_mem_closure, ← le_iff_mem_closure,
   ← not_and_distrib, ← le_antisymm_iff, eq_comm] }
 
 end order
+
+/-- If `x` specializes to `y`, then there is a natural map from the localization of `y` to
+the localization of `x`. -/
+def localization_map_of_specializes {x y : prime_spectrum R} (h : x ⤳ y) :
+  localization.at_prime y.as_ideal →+* localization.at_prime x.as_ideal :=
+@is_localization.lift _ _ _ _ _ _ _ _
+  localization.is_localization (algebra_map R (localization.at_prime x.as_ideal))
+  begin
+    rintro ⟨a, ha⟩,
+    rw [← prime_spectrum.le_iff_specializes, ← as_ideal_le_as_ideal, ← set_like.coe_subset_coe,
+      ← set.compl_subset_compl] at h,
+    exact (is_localization.map_units _ ⟨a, (show a ∈ x.as_ideal.prime_compl, from h ha)⟩ : _)
+  end
 
 end prime_spectrum
 
@@ -754,8 +774,12 @@ def closed_point : prime_spectrum R :=
 
 variable {R}
 
-lemma local_hom_iff_comap_closed_point {S : Type v} [comm_ring S] [local_ring S]
-  {f : R →+* S} : is_local_ring_hom f ↔ prime_spectrum.comap f (closed_point S) = closed_point R :=
+lemma is_local_ring_hom_iff_comap_closed_point {S : Type v} [comm_ring S] [local_ring S]
+  (f : R →+* S) : is_local_ring_hom f ↔ prime_spectrum.comap f (closed_point S) = closed_point R :=
 by { rw [(local_hom_tfae f).out 0 4, subtype.ext_iff], refl }
+
+@[simp] lemma comap_closed_point {S : Type v} [comm_ring S] [local_ring S] (f : R →+* S)
+  [is_local_ring_hom f] : prime_spectrum.comap f (closed_point S) = closed_point R :=
+(is_local_ring_hom_iff_comap_closed_point f).mp infer_instance
 
 end local_ring

@@ -72,8 +72,8 @@ lemma submodule.quotient_equiv_quotient_group_comp_mkq {R M : Type*} [ring R] [a
   S.quotient_equiv_quotient_group ∘ S.mkq = quotient_add_group.mk :=
 by funext; exact S.quotient_equiv_quotient_group_apply
 
-def submodule.quotient_homeomorph_quotient_group {R M : Type*} [ring R] [add_comm_group M] [module R M]
-  (S : submodule R M) [topological_space M] : M ⧸ S ≃ₜ M ⧸ S.to_add_subgroup :=
+def submodule.quotient_homeomorph_quotient_group {R M : Type*} [ring R] [add_comm_group M]
+  [module R M] (S : submodule R M) [topological_space M] : M ⧸ S ≃ₜ M ⧸ S.to_add_subgroup :=
 { continuous_to_fun :=
   begin
     refine continuous_coinduced_dom _,

@@ -17,7 +17,6 @@ preferred over using `[topological_space α] [topological_group α]` since every
 group naturally induces a uniform structure.
 
 ## Main declarations
-
 * `uniform_group` and `uniform_add_group`: Multiplicative and additive uniform groups, that
   i.e., groups with uniformly continuous `(*)` and `(⁻¹)` / `(+)` and `(-)`.
 

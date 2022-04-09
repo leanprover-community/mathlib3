@@ -112,8 +112,8 @@ begin
   simp only [←map_pow, *, mem_roots_of_unity, set_like.mem_coe, monoid_hom.map_one] at *
 end
 
-@[norm_cast]
-lemma roots_of_unity.coe_pow [comm_monoid R] (ζ : roots_of_unity k R) (m : ℕ) : ↑(ζ ^ m) = (ζ ^ m : R) :=
+@[norm_cast] lemma roots_of_unity.coe_pow [comm_monoid R] (ζ : roots_of_unity k R) (m : ℕ) :
+  ↑(ζ ^ m) = (ζ ^ m : R) :=
 begin
   change ↑(↑(ζ ^ m) : Rˣ) = ↑(ζ : Rˣ) ^ m,
   rw [subgroup.coe_pow, units.coe_pow],

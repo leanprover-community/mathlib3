@@ -24,8 +24,8 @@ would be the degree `i+n`-th term of `C`.
 
 ## Implementation Notes
 
-Most of the definitions in this file is marked as an `abbreviation` so that the simp lemmas in
-`category_theory/monoidal/End` could apply.
+Many of the definitions in this file are marked as an `abbreviation` so that the simp lemmas in
+`category_theory/monoidal/End` can apply.
 
 -/
 namespace category_theory
@@ -354,8 +354,8 @@ has_shift_mk C A
   ε := nat_iso_of_comp_fully_faithful F
     (calc 𝟭 C ⋙ F ≅ F                                   : functor.left_unitor _
       ... ≅ F ⋙ 𝟭 D                                     : (functor.right_unitor _).symm
-      ... ≅ F ⋙ shift_functor D (0 : A)
-        : iso_whisker_left F (shift_functor_zero D A).symm
+      ... ≅ F ⋙ shift_functor D (0 : A)                 :
+              iso_whisker_left F (shift_functor_zero D A).symm
       ... ≅ s 0 ⋙ F                                     : (i 0).symm),
   μ := λ a b, nat_iso_of_comp_fully_faithful F
     (calc (s a ⋙ s b) ⋙ F ≅ s a ⋙ s b ⋙ F             : functor.associator _ _ _
@@ -363,8 +363,8 @@ has_shift_mk C A
      ... ≅ (s a ⋙ F) ⋙ shift_functor D b               : (functor.associator _ _ _).symm
      ... ≅ (F ⋙ shift_functor D a) ⋙ shift_functor D b : iso_whisker_right (i a) _
      ... ≅ F ⋙ shift_functor D a ⋙ shift_functor D b   : functor.associator _ _ _
-     ... ≅ F ⋙ shift_functor D (a + b)
-       : iso_whisker_left _ (shift_functor_add D a b).symm
+     ... ≅ F ⋙ shift_functor D (a + b)                  :
+             iso_whisker_left _ (shift_functor_add D a b).symm
      ... ≅ s (a + b) ⋙ F                                : (i (a + b)).symm),
   associativity := begin
     intros, apply F.map_injective, dsimp,

@@ -788,11 +788,11 @@ variables {β : Type*} {mβ : measurable_space β} {f : α → β} {g : β → E
 include mβ
 
 lemma snorm_ess_sup_map_measure
-  (hg : ae_strongly_measurable g (measure.map f μ)) (hf : measurable f) :
+  (hg : ae_strongly_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
   snorm_ess_sup g (measure.map f μ) = snorm_ess_sup (g ∘ f) μ :=
 ess_sup_map_measure hg.ennnorm hf
 
-lemma snorm_map_measure (hg : ae_strongly_measurable g (measure.map f μ)) (hf : measurable f) :
+lemma snorm_map_measure (hg : ae_strongly_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
   snorm g p (measure.map f μ) = snorm (g ∘ f) p μ :=
 begin
   by_cases hp_zero : p = 0,
@@ -804,9 +804,10 @@ begin
   rw lintegral_map' (hg.ennnorm.pow_const p.to_real) hf,
 end
 
-lemma mem_ℒp_map_measure_iff (hg : ae_strongly_measurable g (measure.map f μ)) (hf : measurable f) :
+lemma mem_ℒp_map_measure_iff
+  (hg : ae_strongly_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
   mem_ℒp g p (measure.map f μ) ↔ mem_ℒp (g ∘ f) p μ :=
-by simp [mem_ℒp, snorm_map_measure hg hf, hg.comp_measurable hf, hg]
+by simp [mem_ℒp, snorm_map_measure hg hf, hg.comp_ae_measurable hf, hg]
 
 lemma _root_.measurable_embedding.snorm_ess_sup_map_measure {g : β → F}
   (hf : measurable_embedding f) :

@@ -57,7 +57,7 @@ instance unique_bot : unique (⊥ : submodule R M) :=
 
 instance : order_bot (submodule R M) :=
 { bot := ⊥,
-  bot_le := λ p x, by simp {contextual := tt} }
+  bot_le := λ p x, by simp [zero_mem] {contextual := tt} }
 
 protected lemma eq_bot_iff (p : submodule R M) : p = ⊥ ↔ ∀ x ∈ p, x = (0 : M) :=
 ⟨ λ h, h.symm ▸ λ x hx, (mem_bot R).mp hx,
@@ -135,7 +135,7 @@ This is the module version of `add_submonoid.top_equiv`. -/
 instance : has_Inf (submodule R M) :=
 ⟨λ S,
 { carrier   := ⋂ s ∈ S, (s : set M),
-  zero_mem' := by simp,
+  zero_mem' := by simp [zero_mem],
   add_mem'  := by simp [add_mem] {contextual := tt},
   smul_mem' := by simp [smul_mem] {contextual := tt} }⟩
 
@@ -148,7 +148,7 @@ set.subset_Inter₂
 instance : has_inf (submodule R M) :=
 ⟨λ p q,
 { carrier   := p ∩ q,
-  zero_mem' := by simp,
+  zero_mem' := by simp [zero_mem],
   add_mem'  := by simp [add_mem] {contextual := tt},
   smul_mem' := by simp [smul_mem] {contextual := tt} }⟩
 
@@ -211,7 +211,7 @@ lemma mem_sup_right {S T : submodule R M} : ∀ {x : M}, x ∈ T → x ∈ S ⊔
 show T ≤ S ⊔ T, from le_sup_right
 
 lemma add_mem_sup {S T : submodule R M} {s t : M} (hs : s ∈ S) (ht : t ∈ T) : s + t ∈ S ⊔ T :=
-add_mem _ (mem_sup_left hs) (mem_sup_right ht)
+add_mem (mem_sup_left hs) (mem_sup_right ht)
 
 lemma mem_supr_of_mem {ι : Sort*} {b : M} {p : ι → submodule R M} (i : ι) (h : b ∈ p i) :
   b ∈ (⨆i, p i) :=
@@ -223,12 +223,12 @@ open_locale big_operators
 lemma sum_mem_supr {ι : Type*} [fintype ι] {f : ι → M} {p : ι → submodule R M}
   (h : ∀ i, f i ∈ p i) :
   ∑ i, f i ∈ ⨆ i, p i :=
-sum_mem _ $ λ i hi, mem_supr_of_mem i (h i)
+sum_mem $ λ i hi, mem_supr_of_mem i (h i)
 
 lemma sum_mem_bsupr {ι : Type*} {s : finset ι} {f : ι → M} {p : ι → submodule R M}
   (h : ∀ i ∈ s, f i ∈ p i) :
   ∑ i in s, f i ∈ ⨆ i ∈ s, p i :=
-sum_mem _ $ λ i hi, mem_supr_of_mem i $ mem_supr_of_mem hi (h i hi)
+sum_mem $ λ i hi, mem_supr_of_mem i $ mem_supr_of_mem hi (h i hi)
 
 /-! Note that `submodule.mem_supr` is provided in `linear_algebra/basic.lean`. -/
 
@@ -256,7 +256,7 @@ section nat_submodule
 /-- An additive submonoid is equivalent to a ℕ-submodule. -/
 def add_submonoid.to_nat_submodule : add_submonoid M ≃o submodule ℕ M :=
 { to_fun := λ S,
-  { smul_mem' := λ r s hs, S.nsmul_mem hs _, ..S },
+  { smul_mem' := λ r s hs, show r • s ∈ S, from nsmul_mem hs _, ..S },
   inv_fun := submodule.to_add_submonoid,
   left_inv := λ ⟨S, _, _⟩, rfl,
   right_inv := λ ⟨S, _, _, _⟩, rfl,

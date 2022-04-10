@@ -34,17 +34,13 @@ variables {G H}
 
 lemma triangle_free_bot : (⊥ : simple_graph α).triangle_free :=
 begin
-  rintro t ⟨ht₁, ht₂⟩,
-  have : 1 < t.card,
-  { rw ht₁,
-    norm_num },
-  rw finset.one_lt_card at this,
-  obtain ⟨a, ha, b, hb, hab⟩ := this,
-  exact ht₂ ha hb hab,
+  rintro t ht,
+  rw is_n_clique_bot_iff at ht,
+  norm_num at ht,
 end
 
-lemma triangle_free.le (h : G ≤ H) : H.triangle_free → G.triangle_free :=
-forall_imp $ λ s, mt $ is_n_clique.le h
+lemma triangle_free.mono (h : G ≤ H) : H.triangle_free → G.triangle_free :=
+forall_imp $ λ s, mt $ is_n_clique.mono h
 
 end triangle_free
 
@@ -61,18 +57,18 @@ by rw [triangle_finset, mem_filter, mem_powerset_len, and_iff_right (subset_univ
 lemma triple_mem_triangle_finset_iff :
   {a, b, c} ∈ G.triangle_finset ↔ G.adj a b ∧ G.adj a c ∧ G.adj b c :=
 begin
-  rw [mem_triangle_finset_iff, is_n_clique_iff],
+  rw [mem_triangle_finset_iff, is_n_clique_iff, is_clique_iff],
   simp only [coe_insert, coe_singleton, set.pairwise_insert_of_symmetric G.symm,
     set.pairwise_singleton, true_and, set.mem_insert_iff, set.mem_singleton_iff,
     forall_eq_or_imp, forall_eq, ne.def],
   split,
-  { rintro ⟨h, hbc, hab, hac⟩,
+  { rintro ⟨⟨hbc, hab, hac⟩, h⟩,
     refine ⟨hab _, hac _, hbc _⟩;
     { rintro rfl,
       simp only [insert_idem, insert_singleton_comm, insert_singleton_self_eq] at h,
       exact h.not_lt (nat.lt_succ_iff.2 $ card_insert_le _ _) } },
   { rintro ⟨hab, hac, hbc⟩,
-    refine ⟨_, λ _, hbc, λ _, hab, λ _, hac⟩,
+    refine ⟨⟨λ _, hbc, λ _, hab, λ _, hac⟩, _⟩,
     rw card_eq_three,
     exact ⟨_, _, _, G.ne_of_adj hab, G.ne_of_adj hac, G.ne_of_adj hbc, rfl⟩ }
 end
@@ -81,7 +77,7 @@ lemma mem_triangle_finset_iff' :
   s ∈ G.triangle_finset ↔ ∃ a b c, G.adj a b ∧ G.adj a c ∧ G.adj b c ∧ s = {a, b, c} :=
 begin
   refine ⟨λ h, _, _⟩,
-  { obtain ⟨a, b, c, -, -, -, rfl⟩ := card_eq_three.1 ((G.mem_triangle_finset_iff s).1 h).1,
+  { obtain ⟨a, b, c, -, -, -, rfl⟩ := card_eq_three.1 ((G.mem_triangle_finset_iff s).1 h).2,
     refine ⟨a, b, c, _⟩,
     rw triple_mem_triangle_finset_iff at h,
     tauto },
@@ -99,7 +95,7 @@ attribute [protected] triangle_free.triangle_finset
 variables {G} [decidable_rel H.adj]
 
 lemma triangle_finset_mono (h : G ≤ H) : G.triangle_finset ⊆ H.triangle_finset :=
-monotone_filter_right _ $ λ _, is_n_clique.le h
+monotone_filter_right _ $ λ _, is_n_clique.mono h
 
 end triangle_finset
 

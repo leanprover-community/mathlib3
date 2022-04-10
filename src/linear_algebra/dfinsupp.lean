@@ -229,12 +229,12 @@ open dfinsupp
 lemma dfinsupp_sum_mem {β : ι → Type*} [Π i, has_zero (β i)]
   [Π i (x : β i), decidable (x ≠ 0)] (S : submodule R N)
   (f : Π₀ i, β i) (g : Π i, β i → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.sum g ∈ S :=
-S.to_add_submonoid.dfinsupp_sum_mem f g h
+dfinsupp_sum_mem S f g h
 
 lemma dfinsupp_sum_add_hom_mem {β : ι → Type*} [Π i, add_zero_class (β i)]
   (S : submodule R N) (f : Π₀ i, β i) (g : Π i, β i →+ N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
   dfinsupp.sum_add_hom g f ∈ S :=
-S.to_add_submonoid.dfinsupp_sum_add_hom_mem f g h
+dfinsupp_sum_add_hom_mem S f g h
 
 /-- The supremum of a family of submodules is equal to the range of `dfinsupp.lsum`; that is
 every element in the `supr` can be produced from taking a finite number of non-zero elements
@@ -260,9 +260,7 @@ lemma bsupr_eq_range_dfinsupp_lsum (p : ι → Prop)
     ((dfinsupp.lsum ℕ (λ i, (S i).subtype)).comp (dfinsupp.filter_linear_map R _ p)).range :=
 begin
   apply le_antisymm,
-  { apply bsupr_le _,
-    intros i hi y hy,
-    refine ⟨dfinsupp.single i ⟨y, hy⟩, _⟩,
+  { refine supr₂_le (λ i hi y hy, ⟨dfinsupp.single i ⟨y, hy⟩, _⟩),
     rw [linear_map.comp_apply, filter_linear_map_apply, filter_single_pos _ _ hi],
     exact dfinsupp.sum_add_hom_single _ _ _, },
   { rintros x ⟨v, rfl⟩,

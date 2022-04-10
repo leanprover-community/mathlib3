@@ -132,7 +132,7 @@ def reserved_notation_check(lines, path):
         return []
     errors = []
     for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
-        if line.startswith('reserve') or line.startswith('precedence'):
+        if line.strip().startswith('reserve') or line.strip().startswith('precedence'):
             errors += [(ERR_RNT, line_nr, path)]
     return errors
 

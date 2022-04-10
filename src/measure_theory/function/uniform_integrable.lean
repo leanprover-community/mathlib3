@@ -868,7 +868,7 @@ begin
     refine (lt_of_le_of_lt (le_trans (hM $ ℐ $ 2 * (max M 1) * (δ⁻¹ ^ (1 / p.to_real)))
       (le_max_left M 1)) (lt_of_lt_of_le _ this)).ne rfl,
     rw [← ennreal.coe_one, ← with_top.coe_max, ← ennreal.coe_mul, ennreal.coe_lt_coe],
-    exact nnreal.lt_mul_two_self (ne.symm $ ne_of_lt $ lt_max_of_lt_right one_pos) },
+    exact lt_two_mul_self (lt_max_of_lt_right one_pos) },
   exact ⟨C, λ i, hδ i _ (measurable_set_le measurable_const (hf₀ i).nnnorm.measurable) (hC i)⟩,
 end
 

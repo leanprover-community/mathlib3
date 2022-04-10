@@ -642,12 +642,6 @@ lemma half_lt_self {a : ℝ≥0} (h : a ≠ 0) : a / 2 < a :=
 by rw [← nnreal.coe_lt_coe, nnreal.coe_div]; exact
 half_lt_self (bot_lt_iff_ne_bot.2 h)
 
-lemma lt_mul_two_self {a : ℝ≥0} (ha : a ≠ 0) : a < 2 * a :=
-begin
-  rw ← nnreal.div_lt_iff' two_ne_zero,
-  exact nnreal.half_lt_self ha,
-end
-
 lemma two_inv_lt_one : (2⁻¹:ℝ≥0) < 1 :=
 by simpa using half_lt_self zero_ne_one.symm
 

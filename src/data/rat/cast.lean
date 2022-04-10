@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 -/
 import data.rat.order
 import data.int.char_zero
+import algebra.field.opposite
 
 /-!
 # Casts for Rational Numbers
@@ -36,6 +37,8 @@ variable [division_ring α]
   division by zero convention. -/
 -- see Note [coercion into rings]
 @[priority 900] instance cast_coe : has_coe_t ℚ α := ⟨λ r, r.1 / r.2⟩
+
+theorem cast_def (r : ℚ) : (r : α) = r.num / r.denom := rfl
 
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
 show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
@@ -114,6 +117,20 @@ by simp [sub_eq_add_neg, (cast_add_of_ne_zero m0 this)]
     { simpa [division_def, mul_inv_rev₀, d₁0, d₂0, mul_assoc] },
     all_goals {simp [d₁0, d₂0]} },
   rw [(d₁.commute_cast (_:α)).inv_right₀.eq]
+end
+
+@[simp] theorem cast_inv_nat (n : ℕ) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
+begin
+  cases n, { simp },
+  simp_rw [coe_nat_eq_mk, inv_def, mk, mk_nat, dif_neg n.succ_ne_zero, mk_pnat],
+  simp [cast_def]
+end
+
+@[simp] theorem cast_inv_int (n : ℤ) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
+begin
+  cases n,
+  { exact cast_inv_nat _ },
+  { simp only [int.cast_neg_succ_of_nat, ← nat.cast_succ, cast_neg, inv_neg, cast_inv_nat] }
 end
 
 @[norm_cast] theorem cast_inv_of_ne_zero : ∀ {n : ℚ},
@@ -228,6 +245,9 @@ by rw [← cast_zero, cast_lt]
 @[simp, norm_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
 | ⟨n, d, h, c⟩ := by rw [num_denom', cast_mk, mk_eq_div]
 
+@[simp] lemma cast_hom_rat : cast_hom ℚ = ring_hom.id ℚ :=
+ring_hom.ext cast_id
+
 @[simp, norm_cast] theorem cast_min [linear_ordered_field α] {a b : ℚ} :
   (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min_def]
@@ -286,7 +306,7 @@ variables {M : Type*} [group_with_zero M]
 
 See note [partially-applied ext lemmas] for why `comp` is used here. -/
 @[ext]
-theorem ext_rat {f g : monoid_with_zero_hom ℚ M}
+theorem ext_rat {f g : ℚ →*₀ M}
   (same_on_int : f.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom =
     g.comp (int.cast_ring_hom ℚ).to_monoid_with_zero_hom) : f = g :=
 begin
@@ -297,8 +317,22 @@ begin
 end
 
 /-- Positive integer values of a morphism `φ` and its value on `-1` completely determine `φ`. -/
-theorem ext_rat_on_pnat {f g : monoid_with_zero_hom ℚ M}
+theorem ext_rat_on_pnat {f g : ℚ →*₀ M}
   (same_on_neg_one : f (-1) = g (-1)) (same_on_pnat : ∀ n : ℕ, 0 < n → f n = g n) : f = g :=
 ext_rat $ ext_int' (by simpa) ‹_›
 
 end monoid_with_zero_hom
+
+namespace mul_opposite
+
+variables {α : Type*} [division_ring α]
+
+@[simp, norm_cast] lemma op_rat_cast (r : ℚ) : op (r : α) = (↑r : αᵐᵒᵖ) :=
+by rw [cast_def, div_eq_mul_inv, op_mul, op_inv, op_nat_cast, op_int_cast,
+    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
+
+@[simp, norm_cast] lemma unop_rat_cast (r : ℚ) : unop (r : αᵐᵒᵖ) = r :=
+by rw [cast_def, div_eq_mul_inv, unop_mul, unop_inv, unop_nat_cast, unop_int_cast,
+    (commute.cast_int_right _ r.num).eq, cast_def, div_eq_mul_inv]
+
+end mul_opposite

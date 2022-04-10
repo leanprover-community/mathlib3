@@ -3,30 +3,20 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import data.subtype
 import data.prod
+import data.subtype
 
 /-!
 # Basic definitions about `≤` and `<`
 
-## Definitions
+This file proves basic results about orders, provides extensive dot notation, defines useful order
+classes and allows to transfer order instances.
 
-- `order_dual α` : A type tag reversing the meaning of all inequalities.
+## Type synonyms
 
-### Predicates on functions
-
-* `monotone f`: A function between two types equipped with `≤` is monotone if `a ≤ b` implies
-  `f a ≤ f b`.
-* `antitone f`: A function between two types equipped with `≤` is antitone if `a ≤ b` implies
-  `f b ≤ f a`.
-* `monotone_on f s`: Same as `monotone f`, but for all `a, b ∈ s`.
-* `antitone_on f s`: Same as `antitone f`, but for all `a, b ∈ s`.
-* `strict_mono f` : A function between two types equipped with `<` is strictly monotone if
-  `a < b` implies `f a < f b`.
-* `strict_anti f` : A function between two types equipped with `<` is strictly antitone if
-  `a < b` implies `f b < f a`.
-* `strict_mono_on f s`: Same as `strict_mono f`, but for all `a, b ∈ s`.
-* `strict_anti_on f s`: Same as `strict_anti f`, but for all `a, b ∈ s`.
+* `order_dual α` : A type synonym reversing the meaning of all inequalities.
+* `as_linear_order α`: A type synonym to promote `partial_order α` to `linear_order α` using
+  `is_total α (≤)`.
 
 ### Transfering orders
 
@@ -35,35 +25,31 @@ import data.prod
 - `partial_order.lift`, `linear_order.lift`: Transfers a partial (resp., linear) order on `β` to a
   partial (resp., linear) order on `α` using an injective function `f`.
 
-### Extra classes
+### Extra class
 
-- `no_top_order`, `no_bot_order`: An order without a maximal/minimal element.
 - `densely_ordered`: An order with no gap, i.e. for any two elements `a < b` there exists `c` such
   that `a < c < b`.
 
-## Main theorems
+## Notes
 
-- `monotone_nat_of_le_succ`: If `f : ℕ → α` and `f n ≤ f (n + 1)` for all `n`, then `f` is
-  monotone.
-- `antitone_nat_of_succ_le`: If `f : ℕ → α` and `f (n + 1) ≤ f n` for all `n`, then `f` is
-  antitone.
-- `strict_mono_nat_of_lt_succ`: If `f : ℕ → α` and `f n < f (n + 1)` for all `n`, then `f` is
-  strictly monotone.
-- `strict_anti_nat_of_succ_lt`: If `f : ℕ → α` and `f (n + 1) < f n` for all `n`, then `f` is
-  strictly antitone.
+`≤` and `<` are highly favored over `≥` and `>` in mathlib. The reason is that we can formulate all
+lemmas using `≤`/`<`, and `rw` has trouble unifying `≤` and `≥`. Hence choosing one direction spares
+us useless duplication. This is enforced by a linter. See Note [nolint_ge] for more infos.
+
+Dot notation is particularly useful on `≤` (`has_le.le`) and `<` (`has_lt.lt`). To that end, we
+provide many aliases to dot notation-less lemmas. For example, `le_trans` is aliased with
+`has_le.le.trans` and can be used to construct `hab.trans hbc : a ≤ c` when `hab : a ≤ b`,
+`hbc : b ≤ c`, `lt_of_le_of_lt` is aliased as `has_le.le.trans_lt` and can be used to construct
+`hab.trans hbc : a < c` when `hab : a ≤ b`, `hbc : b < c`.
 
 ## TODO
 
 - expand module docs
 - automatic construction of dual definitions / theorems
 
-## See also
-
-- `algebra.order.basic` for basic lemmas about orders, and projection notation for orders
-
 ## Tags
 
-preorder, order, partial order, linear order, monotone, strictly monotone
+preorder, order, partial order, poset, linear order, chain
 -/
 
 open function
@@ -71,12 +57,237 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
+lemma ge_antisymm [partial_order α] {a b : α} (hab : a ≤ b) (hba : b ≤ a) : b = a :=
+le_antisymm hba hab
+
 attribute [simp] le_refl
-
-@[simp] lemma lt_self_iff_false [preorder α] (a : α) : a < a ↔ false :=
-⟨lt_irrefl a, false.elim⟩
-
 attribute [ext] has_le
+
+alias le_trans        ← has_le.le.trans
+alias lt_of_le_of_lt  ← has_le.le.trans_lt
+alias le_antisymm     ← has_le.le.antisymm
+alias ge_antisymm     ← has_le.le.antisymm'
+alias lt_of_le_of_ne  ← has_le.le.lt_of_ne
+alias lt_of_le_not_le ← has_le.le.lt_of_not_le
+alias lt_or_eq_of_le  ← has_le.le.lt_or_eq
+alias decidable.lt_or_eq_of_le ← has_le.le.lt_or_eq_dec
+
+alias le_of_lt        ← has_lt.lt.le
+alias lt_trans        ← has_lt.lt.trans
+alias lt_of_lt_of_le  ← has_lt.lt.trans_le
+alias ne_of_lt        ← has_lt.lt.ne
+alias lt_asymm        ← has_lt.lt.asymm has_lt.lt.not_lt
+
+alias le_of_eq        ← eq.le
+
+attribute [nolint decidable_classical] has_le.le.lt_or_eq_dec
+
+/-- A version of `le_refl` where the argument is implicit -/
+lemma le_rfl [preorder α] {x : α} : x ≤ x := le_refl x
+
+@[simp] lemma lt_self_iff_false [preorder α] (x : α) : x < x ↔ false :=
+⟨lt_irrefl x, false.elim⟩
+
+namespace eq
+
+/-- If `x = y` then `y ≤ x`. Note: this lemma uses `y ≤ x` instead of `x ≥ y`, because `le` is used
+almost exclusively in mathlib. -/
+protected lemma ge [preorder α] {x y : α} (h : x = y) : y ≤ x := h.symm.le
+
+lemma trans_le [preorder α] {x y z : α} (h1 : x = y) (h2 : y ≤ z) : x ≤ z := h1.le.trans h2
+
+lemma not_lt [partial_order α] {x y : α} (h : x = y) : ¬(x < y) := λ h', h'.ne h
+
+lemma not_gt [partial_order α] {x y : α} (h : x = y) : ¬(y < x) := h.symm.not_lt
+
+end eq
+
+namespace has_le.le
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+protected lemma ge [has_le α] {x y : α} (h : x ≤ y) : y ≥ x := h
+
+lemma trans_eq [preorder α] {x y z : α} (h1 : x ≤ y) (h2 : y = z) : x ≤ z := h1.trans h2.le
+
+lemma lt_iff_ne [partial_order α] {x y : α} (h : x ≤ y) : x < y ↔ x ≠ y := ⟨λ h, h.ne, h.lt_of_ne⟩
+
+lemma le_iff_eq [partial_order α] {x y : α} (h : x ≤ y) : y ≤ x ↔ y = x :=
+⟨λ h', h'.antisymm h, eq.le⟩
+
+lemma lt_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a < c ∨ c ≤ b :=
+(lt_or_ge a c).imp id $ λ hc, le_trans hc h
+
+lemma le_or_lt [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a ≤ c ∨ c < b :=
+(le_or_gt a c).imp id $ λ hc, lt_of_lt_of_le hc h
+
+lemma le_or_le [linear_order α] {a b : α} (h : a ≤ b) (c : α) : a ≤ c ∨ c ≤ b :=
+(h.le_or_lt c).elim or.inl (λ h, or.inr $ le_of_lt h)
+
+end has_le.le
+
+namespace has_lt.lt
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+protected lemma gt [has_lt α] {x y : α} (h : x < y) : y > x := h
+protected lemma false [preorder α] {x : α} : x < x → false := lt_irrefl x
+
+lemma ne' [preorder α] {x y : α} (h : x < y) : y ≠ x := h.ne.symm
+
+lemma lt_or_lt [linear_order α] {x y : α} (h : x < y) (z : α) : x < z ∨ z < y :=
+(lt_or_ge z y).elim or.inr (λ hz, or.inl $ h.trans_le hz)
+
+end has_lt.lt
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+protected lemma ge.le [has_le α] {x y : α} (h : x ≥ y) : y ≤ x := h
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+protected lemma gt.lt [has_lt α] {x y : α} (h : x > y) : y < x := h
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem ge_of_eq [preorder α] {a b : α} (h : a = b) : a ≥ b := h.ge
+
+@[simp, nolint ge_or_gt] -- see Note [nolint_ge]
+lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
+@[simp, nolint ge_or_gt] -- see Note [nolint_ge]
+lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.rfl
+
+lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a := (le_not_le_of_lt h).right
+
+alias not_le_of_lt ← has_lt.lt.not_le
+
+lemma not_lt_of_le [preorder α] {a b : α} (h : a ≤ b) : ¬ b < a := λ hba, hba.not_le h
+
+alias not_lt_of_le ← has_le.le.not_lt
+
+lemma ne_of_not_le [preorder α] {a b : α} (h : ¬ a ≤ b) : a ≠ b :=
+λ hab, h (le_of_eq hab)
+
+-- See Note [decidable namespace]
+protected lemma decidable.le_iff_eq_or_lt [partial_order α] [@decidable_rel α (≤)]
+  {a b : α} : a ≤ b ↔ a = b ∨ a < b := decidable.le_iff_lt_or_eq.trans or.comm
+
+lemma le_iff_eq_or_lt [partial_order α] {a b : α} : a ≤ b ↔ a = b ∨ a < b :=
+le_iff_lt_or_eq.trans or.comm
+
+lemma lt_iff_le_and_ne [partial_order α] {a b : α} : a < b ↔ a ≤ b ∧ a ≠ b :=
+⟨λ h, ⟨le_of_lt h, ne_of_lt h⟩, λ ⟨h1, h2⟩, h1.lt_of_ne h2⟩
+
+-- See Note [decidable namespace]
+protected lemma decidable.eq_iff_le_not_lt [partial_order α] [@decidable_rel α (≤)]
+  {a b : α} : a = b ↔ a ≤ b ∧ ¬ a < b :=
+⟨λ h, ⟨h.le, h ▸ lt_irrefl _⟩, λ ⟨h₁, h₂⟩, h₁.antisymm $
+  decidable.by_contradiction $ λ h₃, h₂ (h₁.lt_of_not_le h₃)⟩
+
+lemma eq_iff_le_not_lt [partial_order α] {a b : α} : a = b ↔ a ≤ b ∧ ¬ a < b :=
+by haveI := classical.dec; exact decidable.eq_iff_le_not_lt
+
+lemma eq_or_lt_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ∨ a < b := h.lt_or_eq.symm
+lemma eq_or_gt_of_le [partial_order α] {a b : α} (h : a ≤ b) : b = a ∨ a < b :=
+h.lt_or_eq.symm.imp eq.symm id
+
+alias decidable.eq_or_lt_of_le ← has_le.le.eq_or_lt_dec
+alias eq_or_lt_of_le ← has_le.le.eq_or_lt
+alias eq_or_gt_of_le ← has_le.le.eq_or_gt
+
+attribute [nolint decidable_classical] has_le.le.eq_or_lt_dec
+
+lemma eq_of_le_of_not_lt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : a = b :=
+hab.eq_or_lt.resolve_right hba
+
+lemma eq_of_ge_of_not_gt [partial_order α] {a b : α} (hab : a ≤ b) (hba : ¬ a < b) : b = a :=
+(hab.eq_or_lt.resolve_right hba).symm
+
+alias eq_of_le_of_not_lt ← has_le.le.eq_of_not_lt
+alias eq_of_ge_of_not_gt ← has_le.le.eq_of_not_gt
+
+lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a < b :=
+⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
+
+-- See Note [decidable namespace]
+protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [@decidable_rel α (≤)]
+  {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
+⟨λ h, decidable.by_cases le_of_eq (le_of_lt ∘ h.mp), λ h, ⟨lt_of_le_of_ne h, ne_of_lt⟩⟩
+
+@[simp] lemma ne_iff_lt_iff_le [partial_order α] {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
+by haveI := classical.dec; exact decidable.ne_iff_lt_iff_le
+
+lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
+((le_total _ _).resolve_right h).lt_of_not_le h
+
+lemma lt_iff_not_ge' [linear_order α] {x y : α} : x < y ↔ ¬ y ≤ x := ⟨not_le_of_gt, lt_of_not_ge'⟩
+
+lemma ne.lt_or_lt [linear_order α] {x y : α} (h : x ≠ y) : x < y ∨ y < x := lt_or_gt_of_ne h
+
+/-- A version of `ne_iff_lt_or_gt` with LHS and RHS reversed. -/
+@[simp] lemma lt_or_lt_iff_ne [linear_order α] {x y : α} : x < y ∨ y < x ↔ x ≠ y :=
+ne_iff_lt_or_gt.symm
+
+lemma not_lt_iff_eq_or_lt [linear_order α] {a b : α} : ¬ a < b ↔ a = b ∨ b < a :=
+not_lt.trans $ decidable.le_iff_eq_or_lt.trans $ or_congr eq_comm iff.rfl
+
+lemma exists_ge_of_linear [linear_order α] (a b : α) : ∃ c, a ≤ c ∧ b ≤ c :=
+match le_total a b with
+| or.inl h := ⟨_, h, le_rfl⟩
+| or.inr h := ⟨_, le_rfl, h⟩
+end
+
+lemma lt_imp_lt_of_le_imp_le {β} [linear_order α] [preorder β] {a b : α} {c d : β}
+  (H : a ≤ b → c ≤ d) (h : d < c) : b < a :=
+lt_of_not_ge' $ λ h', (H h').not_lt h
+
+lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [linear_order β] {a b : α} {c d : β} :
+  (a ≤ b → c ≤ d) ↔ (d < c → b < a) :=
+⟨lt_imp_lt_of_le_imp_le, le_imp_le_of_lt_imp_lt⟩
+
+lemma lt_iff_lt_of_le_iff_le' {β} [preorder α] [preorder β] {a b : α} {c d : β}
+  (H : a ≤ b ↔ c ≤ d) (H' : b ≤ a ↔ d ≤ c) : b < a ↔ d < c :=
+lt_iff_le_not_le.trans $ (and_congr H' (not_congr H)).trans lt_iff_le_not_le.symm
+
+lemma lt_iff_lt_of_le_iff_le {β} [linear_order α] [linear_order β] {a b : α} {c d : β}
+  (H : a ≤ b ↔ c ≤ d) : b < a ↔ d < c :=
+not_le.symm.trans $ (not_congr H).trans $ not_le
+
+lemma le_iff_le_iff_lt_iff_lt {β} [linear_order α] [linear_order β] {a b : α} {c d : β} :
+  (a ≤ b ↔ c ≤ d) ↔ (b < a ↔ d < c) :=
+⟨lt_iff_lt_of_le_iff_le, λ H, not_lt.symm.trans $ (not_congr H).trans $ not_lt⟩
+
+lemma eq_of_forall_le_iff [partial_order α] {a b : α}
+  (H : ∀ c, c ≤ a ↔ c ≤ b) : a = b :=
+((H _).1 le_rfl).antisymm ((H _).2 le_rfl)
+
+lemma le_of_forall_le [preorder α] {a b : α}
+  (H : ∀ c, c ≤ a → c ≤ b) : a ≤ b :=
+H _ le_rfl
+
+lemma le_of_forall_le' [preorder α] {a b : α}
+  (H : ∀ c, a ≤ c → b ≤ c) : b ≤ a :=
+H _ le_rfl
+
+lemma le_of_forall_lt [linear_order α] {a b : α}
+  (H : ∀ c, c < a → c < b) : a ≤ b :=
+le_of_not_lt $ λ h, lt_irrefl _ (H _ h)
+
+lemma forall_lt_iff_le [linear_order α] {a b : α} :
+  (∀ ⦃c⦄, c < a → c < b) ↔ a ≤ b :=
+⟨le_of_forall_lt, λ h c hca, lt_of_lt_of_le hca h⟩
+
+lemma le_of_forall_lt' [linear_order α] {a b : α}
+  (H : ∀ c, a < c → b < c) : b ≤ a :=
+le_of_not_lt $ λ h, lt_irrefl _ (H _ h)
+
+lemma forall_lt_iff_le' [linear_order α] {a b : α} :
+  (∀ ⦃c⦄, a < c → b < c) ↔ b ≤ a :=
+⟨le_of_forall_lt', λ h c hac, lt_of_le_of_lt h hac⟩
+
+lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
+  (H : ∀ c, a ≤ c ↔ b ≤ c) : a = b :=
+((H _).2 le_rfl).antisymm ((H _).1 le_rfl)
+
+/-- monotonicity of `≤` with respect to `→` -/
+lemma le_implies_le_of_le_of_le {a b c d : α} [preorder α] (hca : c ≤ a) (hbd : b ≤ d) :
+  a ≤ b → c ≤ d :=
+λ hab, (hca.trans hab).trans hbd
 
 @[ext]
 lemma preorder.to_has_le_injective {α : Type*} :
@@ -155,10 +366,6 @@ lemma dual_le [has_le α] {a b : α} :
 lemma dual_lt [has_lt α] {a b : α} :
   @has_lt.lt (order_dual α) _ a b ↔ @has_lt.lt α _ b a := iff.rfl
 
-lemma dual_compares [has_lt α] {a b : α} {o : ordering} :
-  @ordering.compares (order_dual α) _ o a b ↔ @ordering.compares α _ o b a :=
-by { cases o, exacts [iff.rfl, eq_comm, iff.rfl] }
-
 instance (α : Type*) [preorder α] : preorder (order_dual α) :=
 { le_refl          := le_refl,
   le_trans         := λ a b c hab hbc, hbc.trans hab,
@@ -193,21 +400,21 @@ theorem linear_order.dual_dual (α : Type*) [H : linear_order α] :
   order_dual.linear_order (order_dual α) = H :=
 linear_order.ext $ λ _ _, iff.rfl
 
-theorem cmp_le_flip {α} [has_le α] [@decidable_rel α (≤)] (x y : α) :
-  @cmp_le (order_dual α) _ _ x y = cmp_le y x := rfl
-
 end order_dual
 
 /-! ### Order instances on the function space -/
 
-instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] : preorder (Π i, α i) :=
-{ le       := λ x y, ∀ i, x i ≤ y i,
-  le_refl  := λ a i, le_refl (a i),
-  le_trans := λ a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i) }
+instance pi.has_le {ι : Type u} {α : ι → Type v} [∀ i, has_le (α i)] : has_le (Π i, α i) :=
+{ le       := λ x y, ∀ i, x i ≤ y i }
 
-lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
+lemma pi.le_def {ι : Type u} {α : ι → Type v} [∀ i, has_le (α i)] {x y : Π i, α i} :
   x ≤ y ↔ ∀ i, x i ≤ y i :=
 iff.rfl
+
+instance pi.preorder {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] : preorder (Π i, α i) :=
+{ le_refl  := λ a i, le_refl (a i),
+  le_trans := λ a b c h₁ h₂ i, le_trans (h₁ i) (h₂ i),
+  ..pi.has_le }
 
 lemma pi.lt_def {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] {x y : Π i, α i} :
   x < y ↔ x ≤ y ∧ ∃ i, x i < y i :=
@@ -233,568 +440,13 @@ instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀ i, partial_ord
 { le_antisymm := λ f g h1 h2, funext (λ b, (h1 b).antisymm (h2 b)),
   ..pi.preorder }
 
-/-! ### Monotonicity -/
-
-section monotone_def
-variables [preorder α] [preorder β]
-
-/-- A function `f` is monotone if `a ≤ b` implies `f a ≤ f b`. -/
-def monotone (f : α → β) : Prop := ∀ ⦃a b⦄, a ≤ b → f a ≤ f b
-
-/-- A function `f` is antitone if `a ≤ b` implies `f b ≤ f a`. -/
-def antitone (f : α → β) : Prop := ∀ ⦃a b⦄, a ≤ b → f b ≤ f a
-
-/-- A function `f` is antitone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f b ≤ f a`. -/
-def monotone_on (f : α → β) (s : set α) : Prop :=
-∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a ≤ b → f a ≤ f b
-
-/-- A function `f` is monotone on `s` if, for all `a, b ∈ s`, `a ≤ b` implies `f a ≤ f b`. -/
-def antitone_on (f : α → β) (s : set α) : Prop :=
-∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a ≤ b → f b ≤ f a
-
-/-- A function `f` is strictly monotone if `a < b` implies `f a < f b`. -/
-def strict_mono (f : α → β) : Prop :=
-∀ ⦃a b⦄, a < b → f a < f b
-
-/-- A function `f` is strictly antitone if `a < b` implies `f b < f a`. -/
-def strict_anti (f : α → β) : Prop :=
-∀ ⦃a b⦄, a < b → f b < f a
-
-/-- A function `f` is strictly monotone on `s` if, for all `a, b ∈ s`, `a < b` implies
-`f a < f b`. -/
-def strict_mono_on (f : α → β) (s : set α) : Prop :=
-∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a < b → f a < f b
-
-/-- A function `f` is strictly antitone on `s` if, for all `a, b ∈ s`, `a < b` implies
-`f b < f a`. -/
-def strict_anti_on (f : α → β) (s : set α) : Prop :=
-∀ ⦃a⦄ (ha : a ∈ s) ⦃b⦄ (hb : b ∈ s), a < b → f b < f a
-
-end monotone_def
-
-/-! #### Monotonicity on the dual order -/
-
-section order_dual
-open order_dual
-variables [preorder α] [preorder β] {f : α → β} {s : set α}
-
-protected theorem monotone.dual (hf : monotone f) :
-  @monotone (order_dual α) (order_dual β) _ _ f :=
-λ a b h, hf h
-
-protected lemma monotone.dual_left  (hf : monotone f) :
-  @antitone (order_dual α) β _ _ f :=
-λ a b h, hf h
-
-protected lemma monotone.dual_right  (hf : monotone f) :
-  @antitone α (order_dual β) _ _ f :=
-λ a b h, hf h
-
-protected theorem antitone.dual  (hf : antitone f) :
-  @antitone (order_dual α) (order_dual β) _ _ f :=
-λ a b h, hf h
-
-protected lemma antitone.dual_left  (hf : antitone f) :
-  @monotone (order_dual α) β _ _ f :=
-λ a b h, hf h
-
-protected lemma antitone.dual_right  (hf : antitone f) :
-  @monotone α (order_dual β) _ _ f :=
-λ a b h, hf h
-
-protected theorem monotone_on.dual (hf : monotone_on f s) :
-  @monotone_on (order_dual α) (order_dual β) _ _ f s :=
-λ a ha b hb, hf hb ha
-
-protected lemma monotone_on.dual_left (hf : monotone_on f s) :
-  @antitone_on (order_dual α) β _ _ f s :=
-λ a ha b hb, hf hb ha
-
-protected lemma monotone_on.dual_right (hf : monotone_on f s) :
-  @antitone_on α (order_dual β) _ _ f s :=
-λ a ha b hb, hf ha hb
-
-protected theorem antitone_on.dual (hf : antitone_on f s) :
-  @antitone_on (order_dual α) (order_dual β) _ _ f s :=
-λ a ha b hb, hf hb ha
-
-protected lemma antitone_on.dual_left (hf : antitone_on f s) :
-  @monotone_on (order_dual α) β _ _ f s :=
-λ a ha b hb, hf hb ha
-
-protected lemma antitone_on.dual_right (hf : antitone_on f s) :
-  @monotone_on α (order_dual β) _ _ f s :=
-λ a ha b hb, hf ha hb
-
-protected theorem strict_mono.dual (hf : strict_mono f) :
-  @strict_mono (order_dual α) (order_dual β) _ _ f :=
-λ a b h, hf h
-
-protected lemma strict_mono.dual_left  (hf : strict_mono f) :
-  @strict_anti (order_dual α) β _ _ f :=
-λ a b h, hf h
-
-protected lemma strict_mono.dual_right  (hf : strict_mono f) :
-  @strict_anti α (order_dual β) _ _ f :=
-λ a b h, hf h
-
-protected theorem strict_anti.dual  (hf : strict_anti f) :
-  @strict_anti (order_dual α) (order_dual β) _ _ f :=
-λ a b h, hf h
-
-protected lemma strict_anti.dual_left  (hf : strict_anti f) :
-  @strict_mono (order_dual α) β _ _ f :=
-λ a b h, hf h
-
-protected lemma strict_anti.dual_right  (hf : strict_anti f) :
-  @strict_mono α (order_dual β) _ _ f :=
-λ a b h, hf h
-
-protected theorem strict_mono_on.dual (hf : strict_mono_on f s) :
-  @strict_mono_on (order_dual α) (order_dual β) _ _ f s :=
-λ a ha b hb, hf hb ha
-
-protected lemma strict_mono_on.dual_left (hf : strict_mono_on f s) :
-  @strict_anti_on (order_dual α) β _ _ f s :=
-λ a ha b hb, hf hb ha
-
-protected lemma strict_mono_on.dual_right (hf : strict_mono_on f s) :
-  @strict_anti_on α (order_dual β) _ _ f s :=
-λ a ha b hb, hf ha hb
-
-protected theorem strict_anti_on.dual (hf : strict_anti_on f s) :
-  @strict_anti_on (order_dual α) (order_dual β) _ _ f s :=
-λ a ha b hb, hf hb ha
-
-protected lemma strict_anti_on.dual_left (hf : strict_anti_on f s) :
-  @strict_mono_on (order_dual α) β _ _ f s :=
-λ a ha b hb, hf hb ha
-
-protected lemma strict_anti_on.dual_right (hf : strict_anti_on f s) :
-  @strict_mono_on α (order_dual β) _ _ f s :=
-λ a ha b hb, hf ha hb
-
-end order_dual
-
-/-! #### Monotonicity in function spaces -/
-
-section preorder
-variables [preorder α]
-
-theorem monotone.comp_le_comp_left [preorder β]
-  {f : β → α} {g h : γ → β} (hf : monotone f) (le_gh : g ≤ h) :
-  has_le.le.{max w u} (f ∘ g) (f ∘ h) :=
-λ x, hf (le_gh x)
-
-variables [preorder γ]
-
-theorem monotone_lam {f : α → β → γ} (hf : ∀ b, monotone (λ a, f a b)) : monotone f :=
-λ a a' h b, hf b h
-
-theorem monotone_app (f : β → α → γ) (b : β) (hf : monotone (λ a b, f b a)) : monotone (f b) :=
-λ a a' h, hf h b
-
-theorem antitone_lam {f : α → β → γ} (hf : ∀ b, antitone (λ a, f a b)) : antitone f :=
-λ a a' h b, hf b h
-
-theorem antitone_app (f : β → α → γ) (b : β) (hf : antitone (λ a b, f b a)) : antitone (f b) :=
-λ a a' h, hf h b
-
-end preorder
-
-lemma function.monotone_eval {ι : Type u} {α : ι → Type v} [∀ i, preorder (α i)] (i : ι) :
-  monotone (function.eval i : (Π i, α i) → α i) :=
-λ f g H, H i
-
-/-! #### Monotonicity hierarchy -/
-
-section preorder
-variables [preorder α]
-
-section preorder
-variables [preorder β] {f : α → β}
-
-protected lemma monotone.monotone_on (hf : monotone f) (s : set α) : monotone_on f s :=
-λ a _ b _ h, hf h
-
-protected lemma antitone.antitone_on (hf : antitone f) (s : set α) : antitone_on f s :=
-λ a _ b _ h, hf h
-
-lemma monotone_on_univ : monotone_on f set.univ ↔ monotone f :=
-⟨λ h a b, h trivial trivial, λ h, h.monotone_on _⟩
-
-lemma antitone_on_univ : antitone_on f set.univ ↔ antitone f :=
-⟨λ h a b, h trivial trivial, λ h, h.antitone_on _⟩
-
-protected lemma strict_mono.strict_mono_on (hf : strict_mono f) (s : set α) : strict_mono_on f s :=
-λ a _ b _ h, hf h
-
-protected lemma strict_anti.strict_anti_on (hf : strict_anti f) (s : set α) : strict_anti_on f s :=
-λ a _ b _ h, hf h
-
-lemma strict_mono_on_univ : strict_mono_on f set.univ ↔ strict_mono f :=
-⟨λ h a b, h trivial trivial, λ h, h.strict_mono_on _⟩
-
-lemma strict_anti_on_univ : strict_anti_on f set.univ ↔ strict_anti f :=
-⟨λ h a b, h trivial trivial, λ h, h.strict_anti_on _⟩
-
-end preorder
-
-section partial_order
-variables [partial_order β] {f : α → β}
-
-lemma monotone.strict_mono_of_injective (h₁ : monotone f) (h₂ : injective f) : strict_mono f :=
-λ a b h, (h₁ h.le).lt_of_ne (λ H, h.ne $ h₂ H)
-
-lemma antitone.strict_anti_of_injective (h₁ : antitone f) (h₂ : injective f) : strict_anti f :=
-λ a b h, (h₁ h.le).lt_of_ne (λ H, h.ne $ h₂ H.symm)
-
-end partial_order
-end preorder
-
-section partial_order
-variables [partial_order α] [preorder β] {f : α → β}
-
--- `preorder α` isn't strong enough: if the preorder on `α` is an equivalence relation,
--- then `strict_mono f` is vacuously true.
-protected lemma strict_mono.monotone (hf : strict_mono f) : monotone f :=
-λ a b h, h.eq_or_lt.rec (by { rintro rfl, refl }) (le_of_lt ∘ (@hf _ _))
-
-protected lemma strict_anti.antitone (hf : strict_anti f) : antitone f :=
-λ a b h, h.eq_or_lt.rec (by { rintro rfl, refl }) (le_of_lt ∘ (@hf _ _))
-
-end partial_order
-
-/-! #### Miscellaneous monotonicity results -/
-
-lemma monotone_id [preorder α] : monotone (id : α → α) := λ a b, id
-
-lemma strict_mono_id [preorder α] : strict_mono (id : α → α) := λ a b, id
-
-theorem monotone_const [preorder α] [preorder β] {c : β} : monotone (λ (a : α), c) :=
-λ a b _, le_refl c
-
-theorem antitone_const [preorder α] [preorder β] {c : β} : antitone (λ (a : α), c) :=
-λ a b _, le_refl c
-
-lemma strict_mono_of_le_iff_le [preorder α] [preorder β] {f : α → β}
-  (h : ∀ x y, x ≤ y ↔ f x ≤ f y) : strict_mono f :=
-λ a b, by simp [lt_iff_le_not_le, h] {contextual := tt}
-
-lemma injective_of_lt_imp_ne [linear_order α] {f : α → β} (h : ∀ x y, x < y → f x ≠ f y) :
-  injective f :=
-begin
-  intros x y k,
-  contrapose k,
-  rw [←ne.def, ne_iff_lt_or_gt] at k,
-  cases k,
-  { exact h _ _ k },
-  { exact (h _ _ k).symm }
-end
-
-lemma injective_of_le_imp_le [partial_order α] [preorder β] (f : α → β)
-  (h : ∀ {x y}, f x ≤ f y → x ≤ y) : injective f :=
-λ x y hxy, (h hxy.le).antisymm (h hxy.ge)
-
-section preorder
-variables [preorder α] [preorder β] {f g : α → β}
-
-protected lemma strict_mono.ite' (hf : strict_mono f) (hg : strict_mono g) {p : α → Prop}
-  [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
-  (hfg : ∀ ⦃x y⦄, p x → ¬p y → x < y → f x < g y) :
-  strict_mono (λ x, if p x then f x else g x) :=
-begin
-  intros x y h,
-  by_cases hy : p y,
-  { have hx : p x := hp h hy,
-    simpa [hx, hy] using hf h },
-  by_cases hx : p x,
-  { simpa [hx, hy] using hfg hx hy h },
-  { simpa [hx, hy] using hg h}
-end
-
-protected lemma strict_mono.ite (hf : strict_mono f) (hg : strict_mono g) {p : α → Prop}
-  [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x) (hfg : ∀ x, f x ≤ g x) :
-  strict_mono (λ x, if p x then f x else g x) :=
-hf.ite' hg hp $ λ x y hx hy h, (hf h).trans_le (hfg y)
-
-protected lemma strict_anti.ite' (hf : strict_anti f) (hg : strict_anti g) {p : α → Prop}
-  [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x)
-  (hfg : ∀ ⦃x y⦄, p x → ¬p y → x < y → g y < f x) :
-  strict_anti (λ x, if p x then f x else g x) :=
-@strict_mono.ite' α (order_dual β) _ _ f g hf hg p _ hp hfg
-
-protected lemma strict_anti.ite (hf : strict_anti f) (hg : strict_anti g) {p : α → Prop}
-  [decidable_pred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x) (hfg : ∀ x, g x ≤ f x) :
-  strict_anti (λ x, if p x then f x else g x) :=
-hf.ite' hg hp $ λ x y hx hy h, (hfg y).trans_lt (hf h)
-
-end preorder
-
-/-! #### Monotonicity under composition -/
-
-section composition
-variables [preorder α] [preorder β] [preorder γ] {g : β → γ} {f : α → β} {s : set α}
-
-protected lemma monotone.comp (hg : monotone g) (hf : monotone f) :
-  monotone (g ∘ f) :=
-λ a b h, hg (hf h)
-
-lemma monotone.comp_antitone (hg : monotone g) (hf : antitone f) :
-  antitone (g ∘ f) :=
-λ a b h, hg (hf h)
-
-protected lemma antitone.comp (hg : antitone g) (hf : antitone f) :
-  monotone (g ∘ f) :=
-λ a b h, hg (hf h)
-
-lemma antitone.comp_monotone (hg : antitone g) (hf : monotone f) :
-  antitone (g ∘ f) :=
-λ a b h, hg (hf h)
-
-protected lemma monotone.iterate {f : α → α} (hf : monotone f) (n : ℕ) : monotone (f^[n]) :=
-nat.rec_on n monotone_id (λ n h, h.comp hf)
-
-protected lemma monotone.comp_monotone_on (hg : monotone g) (hf : monotone_on f s) :
-  monotone_on (g ∘ f) s :=
-λ a ha b hb h, hg (hf ha hb h)
-
-lemma monotone.comp_antitone_on (hg : monotone g) (hf : antitone_on f s) :
-  antitone_on (g ∘ f) s :=
-λ a ha b hb h, hg (hf ha hb h)
-
-protected lemma antitone.comp_antitone_on (hg : antitone g) (hf : antitone_on f s) :
-  monotone_on (g ∘ f) s :=
-λ a ha b hb h, hg (hf ha hb h)
-
-lemma antitone.comp_monotone_on (hg : antitone g) (hf : monotone_on f s) :
-  antitone_on (g ∘ f) s :=
-λ a ha b hb h, hg (hf ha hb h)
-
-protected lemma strict_mono.comp (hg : strict_mono g) (hf : strict_mono f) :
-  strict_mono (g ∘ f) :=
-λ a b h, hg (hf h)
-
-lemma strict_mono.comp_strict_anti (hg : strict_mono g) (hf : strict_anti f) :
-  strict_anti (g ∘ f) :=
-λ a b h, hg (hf h)
-
-protected lemma strict_anti.comp (hg : strict_anti g) (hf : strict_anti f) :
-  strict_mono (g ∘ f) :=
-λ a b h, hg (hf h)
-
-lemma strict_anti.comp_strict_mono (hg : strict_anti g) (hf : strict_mono f) :
-  strict_anti (g ∘ f) :=
-λ a b h, hg (hf h)
-
-protected lemma strict_mono.iterate {f : α → α} (hf : strict_mono f) (n : ℕ) :
-  strict_mono (f^[n]) :=
-nat.rec_on n strict_mono_id (λ n h, h.comp hf)
-
-protected lemma strict_mono.comp_strict_mono_on (hg : strict_mono g) (hf : strict_mono_on f s) :
-  strict_mono_on (g ∘ f) s :=
-λ a ha b hb h, hg (hf ha hb h)
-
-lemma strict_mono.comp_strict_anti_on (hg : strict_mono g) (hf : strict_anti_on f s) :
-  strict_anti_on (g ∘ f) s :=
-λ a ha b hb h, hg (hf ha hb h)
-
-protected lemma strict_anti.comp_strict_anti_on (hg : strict_anti g) (hf : strict_anti_on f s) :
-  strict_mono_on (g ∘ f) s :=
-λ a ha b hb h, hg (hf ha hb h)
-
-lemma strict_anti.comp_strict_mono_on (hg : strict_anti g) (hf : strict_mono_on f s) :
-  strict_anti_on (g ∘ f) s :=
-λ a ha b hb h, hg (hf ha hb h)
-
-end composition
-
-/-! #### Monotonicity in linear orders  -/
-
-section linear_order
-variables [linear_order α]
-
-section preorder
-variables [preorder β] {f : α → β} {s : set α}
-
-open ordering
-
-lemma monotone.reflect_lt (hf : monotone f) {a b : α} (h : f a < f b) : a < b :=
-lt_of_not_ge (λ h', h.not_le (hf h'))
-
-lemma antitone.reflect_lt (hf : antitone f) {a b : α} (h : f a < f b) : b < a :=
-lt_of_not_ge (λ h', h.not_le (hf h'))
-
-lemma strict_mono_on.le_iff_le (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
-  f a ≤ f b ↔ a ≤ b :=
-⟨λ h, le_of_not_gt $ λ h', (hf hb ha h').not_le h,
- λ h, h.lt_or_eq_dec.elim (λ h', (hf ha hb h').le) (λ h', h' ▸ le_refl _)⟩
-
-lemma strict_anti_on.le_iff_le (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
-  f a ≤ f b ↔ b ≤ a :=
-hf.dual_right.le_iff_le hb ha
-
-lemma strict_mono_on.lt_iff_lt (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
-  f a < f b ↔ a < b :=
-by rw [lt_iff_le_not_le, lt_iff_le_not_le, hf.le_iff_le ha hb, hf.le_iff_le hb ha]
-
-lemma strict_anti_on.lt_iff_lt (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
-  f a < f b ↔ b < a :=
-hf.dual_right.lt_iff_lt hb ha
-
-lemma strict_mono.le_iff_le (hf : strict_mono f) {a b : α} :
-  f a ≤ f b ↔ a ≤ b :=
-(hf.strict_mono_on set.univ).le_iff_le trivial trivial
-
-lemma strict_anti.le_iff_le (hf : strict_anti f) {a b : α} :
-  f a ≤ f b ↔ b ≤ a :=
-(hf.strict_anti_on set.univ).le_iff_le trivial trivial
-
-lemma strict_mono.lt_iff_lt (hf : strict_mono f) {a b : α} :
-  f a < f b ↔ a < b :=
-(hf.strict_mono_on set.univ).lt_iff_lt trivial trivial
-
-lemma strict_anti.lt_iff_lt (hf : strict_anti f) {a b : α} :
-  f a < f b ↔ b < a :=
-(hf.strict_anti_on set.univ).lt_iff_lt trivial trivial
-
-protected theorem strict_mono_on.compares (hf : strict_mono_on f s) {a b : α} (ha : a ∈ s)
-  (hb : b ∈ s) :
-  ∀ {o : ordering}, o.compares (f a) (f b) ↔ o.compares a b
-| ordering.lt := hf.lt_iff_lt ha hb
-| ordering.eq := ⟨λ h, ((hf.le_iff_le ha hb).1 h.le).antisymm ((hf.le_iff_le hb ha).1 h.symm.le),
-                   congr_arg _⟩
-| ordering.gt := hf.lt_iff_lt hb ha
-
-protected theorem strict_anti_on.compares (hf : strict_anti_on f s) {a b : α} (ha : a ∈ s)
-  (hb : b ∈ s) {o : ordering} :
-  o.compares (f a) (f b) ↔ o.compares b a :=
-order_dual.dual_compares.trans $ hf.dual_right.compares hb ha
-
-protected theorem strict_mono.compares (hf : strict_mono f) {a b : α} {o : ordering} :
-  o.compares (f a) (f b) ↔ o.compares a b :=
-(hf.strict_mono_on set.univ).compares trivial trivial
-
-protected theorem strict_anti.compares (hf : strict_anti f) {a b : α} {o : ordering} :
-  o.compares (f a) (f b) ↔ o.compares b a :=
-(hf.strict_anti_on set.univ).compares trivial trivial
-
-lemma strict_mono.injective (hf : strict_mono f) : injective f :=
-λ x y h, show compares eq x y, from hf.compares.1 h
-
-lemma strict_anti.injective (hf : strict_anti f) : injective f :=
-λ x y h, show compares eq x y, from hf.compares.1 h.symm
-
-lemma strict_mono.maximal_of_maximal_image (hf : strict_mono f) {a} (hmax : ∀ p, p ≤ f a) (x : α) :
-  x ≤ a :=
-hf.le_iff_le.mp (hmax (f x))
-
-lemma strict_mono.minimal_of_minimal_image (hf : strict_mono f) {a} (hmin : ∀ p, f a ≤ p) (x : α) :
-  a ≤ x :=
-hf.le_iff_le.mp (hmin (f x))
-
-lemma strict_anti.minimal_of_maximal_image (hf : strict_anti f) {a} (hmax : ∀ p, p ≤ f a) (x : α) :
-  a ≤ x :=
-hf.le_iff_le.mp (hmax (f x))
-
-lemma strict_anti.maximal_of_minimal_image (hf : strict_anti f) {a} (hmin : ∀ p, f a ≤ p) (x : α) :
-  x ≤ a :=
-hf.le_iff_le.mp (hmin (f x))
-
-end preorder
-
-section partial_order
-variables [partial_order β] {f : α → β}
-
-lemma monotone.strict_mono_iff_injective (hf : monotone f) :
-  strict_mono f ↔ injective f :=
-⟨λ h, h.injective, hf.strict_mono_of_injective⟩
-
-lemma antitone.strict_anti_iff_injective (hf : antitone f) :
-  strict_anti f ↔ injective f :=
-⟨λ h, h.injective, hf.strict_anti_of_injective⟩
-
-end partial_order
-end linear_order
-
-/-! #### Monotonicity in `ℕ` and `ℤ` -/
-
-section preorder
-variables [preorder α]
-
-lemma monotone_nat_of_le_succ {f : ℕ → α} (hf : ∀ n, f n ≤ f (n + 1)) :
-  monotone f | n m h :=
-begin
-  induction h,
-  { refl },
-  { transitivity, assumption, exact hf _ }
-end
-
-lemma antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) :
-  antitone f | n m h :=
-begin
-  induction h,
-  { refl },
-  { transitivity, exact hf _, assumption }
-end
-
-lemma strict_mono_nat_of_lt_succ [preorder β] {f : ℕ → β} (hf : ∀ n, f n < f (n + 1)) :
-  strict_mono f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply hf, exact ih.trans (hf _) }
-
-lemma strict_anti_nat_of_succ_lt [preorder β] {f : ℕ → β} (hf : ∀ n, f (n + 1) < f n) :
-  strict_anti f :=
-by { intros n m hnm, induction hnm with m' hnm' ih, apply hf, exact (hf _).trans ih }
-
-lemma forall_ge_le_of_forall_le_succ (f : ℕ → α) {a : ℕ} (h : ∀ n, a ≤ n → f n.succ ≤ f n) {b c : ℕ}
-  (hab : a ≤ b) (hbc : b ≤ c) :
-  f c ≤ f b :=
-begin
-  induction hbc with k hbk hkb,
-  { exact le_rfl },
-  { exact (h _ $ hab.trans hbk).trans hkb }
-end
-
--- TODO@Yael: Generalize the following four to succ orders
-/-- If `f` is a monotone function from `ℕ` to a preorder such that `x` lies between `f n` and
-  `f (n + 1)`, then `x` doesn't lie in the range of `f`. -/
-lemma monotone.ne_of_lt_of_lt_nat {f : ℕ → α} (hf : monotone f) (n : ℕ) {x : α}
-  (h1 : f n < x) (h2 : x < f (n + 1)) (a : ℕ) :
-  f a ≠ x :=
-by { rintro rfl, exact (hf.reflect_lt h1).not_le (nat.le_of_lt_succ $ hf.reflect_lt h2) }
-
-/-- If `f` is an antitone function from `ℕ` to a preorder such that `x` lies between `f (n + 1)` and
-`f n`, then `x` doesn't lie in the range of `f`. -/
-lemma antitone.ne_of_lt_of_lt_nat {f : ℕ → α} (hf : antitone f)
-  (n : ℕ) {x : α} (h1 : f (n + 1) < x) (h2 : x < f n) (a : ℕ) : f a ≠ x :=
-by { rintro rfl, exact (hf.reflect_lt h2).not_le (nat.le_of_lt_succ $ hf.reflect_lt h1) }
-
-/-- If `f` is a monotone function from `ℤ` to a preorder and `x` lies between `f n` and
-  `f (n + 1)`, then `x` doesn't lie in the range of `f`. -/
-lemma monotone.ne_of_lt_of_lt_int {f : ℤ → α} (hf : monotone f) (n : ℤ) {x : α}
-  (h1 : f n < x) (h2 : x < f (n + 1)) (a : ℤ) :
-  f a ≠ x :=
-by { rintro rfl, exact (hf.reflect_lt h1).not_le (int.le_of_lt_add_one $ hf.reflect_lt h2) }
-
-/-- If `f` is an antitone function from `ℤ` to a preorder and `x` lies between `f (n + 1)` and
-`f n`, then `x` doesn't lie in the range of `f`. -/
-lemma antitone.ne_of_lt_of_lt_int {f : ℤ → α} (hf : antitone f)
-  (n : ℤ) {x : α} (h1 : f (n + 1) < x) (h2 : x < f n) (a : ℤ) : f a ≠ x :=
-by { rintro rfl, exact (hf.reflect_lt h2).not_le (int.le_of_lt_add_one $ hf.reflect_lt h1) }
-
-lemma strict_mono.id_le {φ : ℕ → ℕ} (h : strict_mono φ) : ∀ n, n ≤ φ n :=
-λ n, nat.rec_on n (nat.zero_le _)
-  (λ n hn, nat.succ_le_of_lt (hn.trans_lt $ h $ nat.lt_succ_self n))
-
-end preorder
-
 /-! ### Lifts of order instances -/
 
 /-- Transfer a `preorder` on `β` to a `preorder` on `α` using a function `f : α → β`.
 See note [reducible non-instances]. -/
 @[reducible] def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
 { le               := λ x y, f x ≤ f y,
-  le_refl          := λ a, le_refl _,
+  le_refl          := λ a, le_rfl,
   le_trans         := λ a b c, le_trans,
   lt               := λ x y, f x < f y,
   lt_iff_le_not_le := λ a b, lt_iff_le_not_le }
@@ -816,7 +468,7 @@ function `f : α → β`. See note [reducible non-instances]. -/
   .. partial_order.lift f inj }
 
 instance subtype.preorder {α} [preorder α] (p : α → Prop) : preorder (subtype p) :=
-preorder.lift subtype.val
+preorder.lift (coe : subtype p → α)
 
 @[simp] lemma subtype.mk_le_mk {α} [preorder α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
   (⟨x, hx⟩ : subtype p) ≤ ⟨y, hy⟩ ↔ x ≤ y :=
@@ -836,28 +488,35 @@ iff.rfl
 
 instance subtype.partial_order {α} [partial_order α] (p : α → Prop) :
   partial_order (subtype p) :=
-partial_order.lift subtype.val subtype.val_injective
+partial_order.lift coe subtype.coe_injective
 
+/-- A subtype of a linear order is a linear order. We explicitly give the proof of decidable
+  equality as the existing instance, in order to not have two instances of decidable equality that
+  are not definitionally equal. -/
 instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
-linear_order.lift subtype.val subtype.val_injective
+{ decidable_eq := subtype.decidable_eq,
+  .. linear_order.lift coe subtype.coe_injective }
 
-lemma subtype.mono_coe [preorder α] (t : set α) : monotone (coe : (subtype t) → α) :=
-λ x y, id
+/-!
+### Pointwise order on `α × β`
 
-lemma subtype.strict_mono_coe [preorder α] (t : set α) : strict_mono (coe : (subtype t) → α) :=
-λ x y, id
+The lexicographic order is defined in `order.lexicographic`, and the instances are available via the
+type synonym `α ×ₗ β = α × β`.
+-/
 
 namespace prod
 
 instance (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λ p q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩
 
-lemma le_def {α β : Type*} [has_le α] [has_le β] {x y : α × β} :
-  x ≤ y ↔ x.1 ≤ y.1 ∧ x.2 ≤ y.2 := iff.rfl
+lemma le_def [has_le α] [has_le β] {x y : α × β} : x ≤ y ↔ x.1 ≤ y.1 ∧ x.2 ≤ y.2 := iff.rfl
 
-@[simp] lemma mk_le_mk {α β : Type*} [has_le α] [has_le β] {x₁ x₂ : α} {y₁ y₂ : β} :
+@[simp] lemma mk_le_mk [has_le α] [has_le β] {x₁ x₂ : α} {y₁ y₂ : β} :
   (x₁, y₁) ≤ (x₂, y₂) ↔ x₁ ≤ x₂ ∧ y₁ ≤ y₂ :=
 iff.rfl
+
+@[simp] lemma swap_le_swap [has_le α] [has_le β] {x y : α × β} : x.swap ≤ y.swap ↔ x ≤ y :=
+and_comm _ _
 
 instance (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α × β) :=
 { le_refl  := λ ⟨a, b⟩, ⟨le_refl a, le_refl b⟩,
@@ -865,9 +524,28 @@ instance (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α 
     ⟨le_trans hac hce, le_trans hbd hdf⟩,
   .. prod.has_le α β }
 
+@[simp] lemma swap_lt_swap [preorder α] [preorder β] {x y : α × β} : x.swap < y.swap ↔ x < y :=
+and_congr swap_le_swap (not_congr swap_le_swap)
+
+lemma lt_iff [preorder α] [preorder β] {a b : α × β} :
+  a < b ↔ a.1 < b.1 ∧ a.2 ≤ b.2 ∨ a.1 ≤ b.1 ∧ a.2 < b.2 :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { by_cases h₁ : b.1 ≤ a.1,
+    { exact or.inr ⟨h.1.1, h.1.2.lt_of_not_le $ λ h₂, h.2 ⟨h₁, h₂⟩⟩ },
+    { exact or.inl ⟨h.1.1.lt_of_not_le h₁, h.1.2⟩ } },
+  { rintro (⟨h₁, h₂⟩ | ⟨h₁, h₂⟩),
+    { exact ⟨⟨h₁.le, h₂⟩, λ h, h₁.not_le h.1⟩ },
+    { exact ⟨⟨h₁, h₂.le⟩, λ h, h₂.not_le h.2⟩ } }
+end
+
+@[simp] lemma mk_lt_mk [preorder α] [preorder β] {x₁ x₂ : α} {y₁ y₂ : β} :
+  (x₁, y₁) < (x₂, y₂) ↔ x₁ < x₂ ∧ y₁ ≤ y₂ ∨ x₁ ≤ x₂ ∧ y₁ < y₂ :=
+lt_iff
+
 /-- The pointwise partial order on a product.
     (The lexicographic ordering is defined in order/lexicographic.lean, and the instances are
-    available via the type synonym `lex α β = α × β`.) -/
+    available via the type synonym `α ×ₗ β = α × β`.) -/
 instance (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
   partial_order (α × β) :=
 { le_antisymm := λ ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,
@@ -876,53 +554,17 @@ instance (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
 
 end prod
 
-lemma monotone_fst {α β : Type*} [preorder α] [preorder β] : monotone (@prod.fst α β) :=
-λ x y h, h.1
-
-lemma monotone_snd {α β : Type*} [preorder α] [preorder β] : monotone (@prod.snd α β) :=
-λ x y h, h.2
-
 /-! ### Additional order classes -/
 
-/-- Order without a maximal element. Sometimes called cofinal. -/
-class no_top_order (α : Type u) [preorder α] : Prop :=
-(no_top : ∀ a : α, ∃ a', a < a')
-
-lemma no_top [preorder α] [no_top_order α] : ∀ a : α, ∃ a', a < a' :=
-no_top_order.no_top
-
-instance nonempty_gt {α : Type u} [preorder α] [no_top_order α] (a : α) :
-  nonempty {x // a < x} :=
-nonempty_subtype.2 (no_top a)
-
-/-- Order without a minimal element. Sometimes called coinitial or dense. -/
-class no_bot_order (α : Type u) [preorder α] : Prop :=
-(no_bot : ∀ a : α, ∃ a', a' < a)
-
-lemma no_bot [preorder α] [no_bot_order α] : ∀ a : α, ∃ a', a' < a :=
-no_bot_order.no_bot
-
-instance order_dual.no_top_order (α : Type u) [preorder α] [no_bot_order α] :
-  no_top_order (order_dual α) :=
-⟨λ a, @no_bot α _ _ a⟩
-
-instance order_dual.no_bot_order (α : Type u) [preorder α] [no_top_order α] :
-  no_bot_order (order_dual α) :=
-⟨λ a, @no_top α _ _ a⟩
-
-instance nonempty_lt {α : Type u} [preorder α] [no_bot_order α] (a : α) :
-  nonempty {x // x < a} :=
-nonempty_subtype.2 (no_bot a)
-
 /-- An order is dense if there is an element between any pair of distinct elements. -/
-class densely_ordered (α : Type u) [preorder α] : Prop :=
+class densely_ordered (α : Type u) [has_lt α] : Prop :=
 (dense : ∀ a₁ a₂ : α, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂)
 
-lemma exists_between [preorder α] [densely_ordered α] :
+lemma exists_between [has_lt α] [densely_ordered α] :
   ∀ {a₁ a₂ : α}, a₁ < a₂ → ∃ a, a₁ < a ∧ a < a₂ :=
 densely_ordered.dense
 
-instance order_dual.densely_ordered (α : Type u) [preorder α] [densely_ordered α] :
+instance order_dual.densely_ordered (α : Type u) [has_lt α] [densely_ordered α] :
   densely_ordered (order_dual α) :=
 ⟨λ a₁ a₂ ha, (@exists_between α _ _ _ _ ha).imp $ λ a, and.symm⟩
 
@@ -963,7 +605,7 @@ variables {s : β → β → Prop} {t : γ → γ → Prop}
 def as_linear_order (α : Type u) := α
 
 instance {α} [inhabited α] : inhabited (as_linear_order α) :=
-⟨ (default α : α) ⟩
+⟨ (default : α) ⟩
 
 noncomputable instance as_linear_order.linear_order {α} [partial_order α] [is_total α (≤)] :
   linear_order (as_linear_order α) :=

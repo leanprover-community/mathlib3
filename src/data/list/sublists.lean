@@ -49,7 +49,7 @@ begin
   simp only [sublists'_cons, mem_append, IH, mem_map],
   split; intro h, rcases h with h | ⟨s, h, rfl⟩,
   { exact sublist_cons_of_sublist _ h },
-  { exact cons_sublist_cons _ h },
+  { exact h.cons_cons _ },
   { cases h with _ _ _ h s _ _ h,
     { exact or.inl h },
     { exact or.inr ⟨s, h, rfl⟩ } }

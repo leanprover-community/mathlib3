@@ -218,3 +218,18 @@ meta def local_set_to_name_set (lcs : expr_set) : name_set :=
 lcs.fold mk_name_set $ λ h ns, ns.insert h.local_uniq_name
 
 end expr_set
+
+namespace list
+
+/--
+`to_rb_map as` is the map that associates each index `i` of `as` with the
+corresponding element of `as`.
+
+```
+to_rb_map ['a', 'b', 'c'] = rb_map.of_list [(0, 'a'), (1, 'b'), (2, 'c')]
+```
+-/
+meta def to_rb_map {α : Type} : list α → native.rb_map ℕ α :=
+foldl_with_index (λ i mapp a, mapp.insert i a) native.mk_rb_map
+
+end list

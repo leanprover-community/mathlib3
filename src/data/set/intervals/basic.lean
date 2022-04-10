@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov, Rémy Degenne
 -/
 import algebra.order.group
-import data.set.basic
 import order.rel_iso
 
 /-!
@@ -31,9 +30,10 @@ universe u
 namespace set
 
 open set
+open order_dual (to_dual of_dual)
 
-section intervals
-variables {α : Type u} [preorder α] {a a₁ a₂ b b₁ b₂ x : α}
+section preorder
+variables {α : Type u} [preorder α] {a a₁ a₂ b b₁ b₂ c x : α}
 
 /-- Left-open right-open interval -/
 def Ioo (a b : α) := {x | a < x ∧ x < b}
@@ -95,17 +95,17 @@ lemma left_mem_Ici : a ∈ Ici a := by simp
 @[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := by simp [le_refl]
 lemma right_mem_Iic : a ∈ Iic a := by simp
 
-@[simp] lemma dual_Ici : @Ici (order_dual α) _ a = @Iic α _ a := rfl
-@[simp] lemma dual_Iic : @Iic (order_dual α) _ a = @Ici α _ a := rfl
-@[simp] lemma dual_Ioi : @Ioi (order_dual α) _ a = @Iio α _ a := rfl
-@[simp] lemma dual_Iio : @Iio (order_dual α) _ a = @Ioi α _ a := rfl
-@[simp] lemma dual_Icc : @Icc (order_dual α) _ a b = @Icc α _ b a :=
+@[simp] lemma dual_Ici : Ici (to_dual a) = of_dual ⁻¹' Iic a := rfl
+@[simp] lemma dual_Iic : Iic (to_dual a) = of_dual ⁻¹' Ici a := rfl
+@[simp] lemma dual_Ioi : Ioi (to_dual a) = of_dual ⁻¹' Iio a := rfl
+@[simp] lemma dual_Iio : Iio (to_dual a) = of_dual ⁻¹' Ioi a := rfl
+@[simp] lemma dual_Icc : Icc (to_dual a) (to_dual b) = of_dual ⁻¹' Icc b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ioc : @Ioc (order_dual α) _ a b = @Ico α _ b a :=
+@[simp] lemma dual_Ioc : Ioc (to_dual a) (to_dual b) = of_dual ⁻¹' Ico b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ico : @Ico (order_dual α) _ a b = @Ioc α _ b a :=
+@[simp] lemma dual_Ico : Ico (to_dual a) (to_dual b) = of_dual ⁻¹' Ioc b a :=
 set.ext $ λ x, and_comm _ _
-@[simp] lemma dual_Ioo : @Ioo (order_dual α) _ a b = @Ioo α _ b a :=
+@[simp] lemma dual_Ioo : Ioo (to_dual a) (to_dual b) = of_dual ⁻¹' Ioo b a :=
 set.ext $ λ x, and_comm _ _
 
 @[simp] lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=
@@ -124,9 +124,8 @@ set.ext $ λ x, and_comm _ _
 @[simp] lemma nonempty_Ioo [densely_ordered α] : (Ioo a b).nonempty ↔ a < b :=
 ⟨λ ⟨x, ha, hb⟩, ha.trans hb, exists_between⟩
 
-@[simp] lemma nonempty_Ioi [no_top_order α] : (Ioi a).nonempty := no_top a
-
-@[simp] lemma nonempty_Iio [no_bot_order α] : (Iio a).nonempty := no_bot a
+@[simp] lemma nonempty_Ioi [no_max_order α] : (Ioi a).nonempty := exists_gt a
+@[simp] lemma nonempty_Iio [no_min_order α] : (Iio a).nonempty := exists_lt a
 
 lemma nonempty_Icc_subtype (h : a ≤ b) : nonempty (Icc a b) :=
 nonempty.to_subtype (nonempty_Icc.mpr h)
@@ -148,12 +147,12 @@ nonempty.to_subtype nonempty_Iic
 lemma nonempty_Ioo_subtype [densely_ordered α] (h : a < b) : nonempty (Ioo a b) :=
 nonempty.to_subtype (nonempty_Ioo.mpr h)
 
-/-- In a `no_top_order`, the intervals `Ioi` are nonempty. -/
-instance nonempty_Ioi_subtype [no_top_order α] : nonempty (Ioi a) :=
+/-- In an order without maximal elements, the intervals `Ioi` are nonempty. -/
+instance nonempty_Ioi_subtype [no_max_order α] : nonempty (Ioi a) :=
 nonempty.to_subtype nonempty_Ioi
 
-/-- In a `no_bot_order`, the intervals `Iio` are nonempty. -/
-instance nonempty_Iio_subtype [no_bot_order α] : nonempty (Iio a) :=
+/-- In an order without minimal elements, the intervals `Iio` are nonempty. -/
+instance nonempty_Iio_subtype [no_min_order α] : nonempty (Iio a) :=
 nonempty.to_subtype nonempty_Iio
 
 @[simp] lemma Icc_eq_empty (h : ¬a ≤ b) : Icc a b = ∅ :=
@@ -371,13 +370,31 @@ by rw [←not_nonempty_iff_eq_empty, not_iff_not, nonempty_Ioc]
 lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ ¬a < b :=
 by rw [←not_nonempty_iff_eq_empty, not_iff_not, nonempty_Ioo]
 
-end intervals
+lemma _root_.is_top.Iic_eq (h : is_top a) : Iic a = univ := eq_univ_of_forall h
+lemma _root_.is_bot.Ici_eq (h : is_bot a) : Ici a = univ := eq_univ_of_forall h
+lemma _root_.is_max.Ioi_eq (h : is_max a) : Ioi a = ∅ := eq_empty_of_subset_empty $ λ b, h.not_lt
+lemma _root_.is_min.Iio_eq (h : is_min a) : Iio a = ∅ := eq_empty_of_subset_empty $ λ b, h.not_lt
+
+lemma Iic_inter_Ioc_of_le (h : a ≤ c) : Iic a ∩ Ioc b c = Ioc b a :=
+ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
+
+end preorder
 
 section partial_order
-variables {α : Type u} [partial_order α] {a b : α}
+variables {α : Type u} [partial_order α] {a b c : α}
 
 @[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
 set.ext $ by simp [Icc, le_antisymm_iff, and_comm]
+
+@[simp] lemma Icc_eq_singleton_iff : Icc a b = {c} ↔ a = c ∧ b = c :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { have hab : a ≤ b := nonempty_Icc.1 (h.symm.subst $ singleton_nonempty c),
+    exact ⟨eq_of_mem_singleton $ h.subst $ left_mem_Icc.2 hab,
+      eq_of_mem_singleton $ h.subst $ right_mem_Icc.2 hab⟩ },
+  { rintro ⟨rfl, rfl⟩,
+    exact Icc_self _ }
+end
 
 @[simp] lemma Icc_diff_left : Icc a b \ {a} = Ioc a b :=
 ext $ λ x, by simp [lt_iff_le_and_ne, eq_comm, and.right_comm]
@@ -430,14 +447,14 @@ by rw [← Ico_diff_left, diff_union_self,
   union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Ico.2 hab)]
 
 lemma Ioo_union_right (hab : a < b) : Ioo a b ∪ {b} = Ioc a b :=
-by simpa only [dual_Ioo, dual_Ico] using @Ioo_union_left (order_dual α) _ b a hab
+by simpa only [dual_Ioo, dual_Ico] using Ioo_union_left hab.dual
 
 lemma Ioc_union_left (hab : a ≤ b) : Ioc a b ∪ {a} = Icc a b :=
 by rw [← Icc_diff_left, diff_union_self,
   union_eq_self_of_subset_right (singleton_subset_iff.2 $ left_mem_Icc.2 hab)]
 
 lemma Ico_union_right (hab : a ≤ b) : Ico a b ∪ {b} = Icc a b :=
-by simpa only [dual_Ioc, dual_Icc] using @Ioc_union_left (order_dual α) _ b a hab
+by simpa only [dual_Ioc, dual_Icc] using Ioc_union_left hab.dual
 
 lemma mem_Ici_Ioi_of_subset_of_subset {s : set α} (ho : Ioi a ⊆ s) (hc : s ⊆ Ici a) :
   s ∈ ({Ici a, Ioi a} : set (set α)) :=
@@ -470,50 +487,34 @@ begin
     apply_rules [subset_diff_singleton] }
 end
 
-lemma mem_Ioo_or_eq_endpoints_of_mem_Icc {x : α} (hmem : x ∈ Icc a b) :
-  x = a ∨ x = b ∨ x ∈ Ioo a b :=
-begin
-  rw [mem_Icc, le_iff_lt_or_eq, le_iff_lt_or_eq] at hmem,
-  rcases hmem with ⟨hxa | hxa, hxb | hxb⟩,
-  { exact or.inr (or.inr ⟨hxa, hxb⟩) },
-  { exact or.inr (or.inl hxb) },
-  all_goals { exact or.inl hxa.symm }
-end
-
-lemma mem_Ioo_or_eq_left_of_mem_Ico {x : α} (hmem : x ∈ Ico a b) :
+lemma eq_left_or_mem_Ioo_of_mem_Ico {x : α} (hmem : x ∈ Ico a b) :
   x = a ∨ x ∈ Ioo a b :=
-begin
-  rw [mem_Ico, le_iff_lt_or_eq] at hmem,
-  rcases hmem with ⟨hxa | hxa, hxb⟩,
-  { exact or.inr ⟨hxa, hxb⟩ },
-  { exact or.inl hxa.symm }
-end
+hmem.1.eq_or_gt.imp_right $ λ h, ⟨h, hmem.2⟩
 
-lemma mem_Ioo_or_eq_right_of_mem_Ioc {x : α} (hmem : x ∈ Ioc a b) :
+lemma eq_right_or_mem_Ioo_of_mem_Ioc {x : α} (hmem : x ∈ Ioc a b) :
   x = b ∨ x ∈ Ioo a b :=
-begin
-  have := @mem_Ioo_or_eq_left_of_mem_Ico (order_dual α) _ b a x,
-  rw [dual_Ioo, dual_Ico] at this,
-  exact this hmem
-end
+hmem.2.eq_or_lt.imp_right $ and.intro hmem.1
 
-lemma Ici_singleton_of_top {a : α} (h_top : ∀ x, x ≤ a) : Ici a = {a} :=
-begin
-  ext,
-  exact ⟨λ h, (h_top _).antisymm h, λ h, h.ge⟩,
-end
+lemma eq_endpoints_or_mem_Ioo_of_mem_Icc {x : α} (hmem : x ∈ Icc a b) :
+  x = a ∨ x = b ∨ x ∈ Ioo a b :=
+hmem.1.eq_or_gt.imp_right $ λ h, eq_right_or_mem_Ioo_of_mem_Ioc ⟨h, hmem.2⟩
 
-lemma Iic_singleton_of_bot {a : α} (h_bot : ∀ x, a ≤ x) : Iic a = {a} :=
-@Ici_singleton_of_top (order_dual α) _ a h_bot
+lemma _root_.is_max.Ici_eq (h : is_max a) : Ici a = {a} :=
+eq_singleton_iff_unique_mem.2 ⟨left_mem_Ici, λ b, h.eq_of_ge⟩
+
+lemma _root_.is_min.Iic_eq (h : is_min a) : Iic a = {a} := h.to_dual.Ici_eq
 
 end partial_order
 
 section order_top
 
-variables {α : Type u} [order_top α] {a : α}
+@[simp] lemma Ici_top {α : Type u} [partial_order α] [order_top α] : Ici (⊤ : α) = {⊤} :=
+is_max_top.Ici_eq
 
-@[simp] lemma Ici_top : Ici (⊤ : α) = {⊤} := Ici_singleton_of_top (λ _, le_top)
-@[simp] lemma Iic_top : Iic (⊤ : α) = univ := eq_univ_of_forall $ λ x, le_top
+variables {α : Type u} [preorder α] [order_top α] {a : α}
+
+@[simp] lemma Ioi_top : Ioi (⊤ : α) = ∅ := is_max_top.Ioi_eq
+@[simp] lemma Iic_top : Iic (⊤ : α) = univ := is_top_top.Iic_eq
 @[simp] lemma Icc_top : Icc a ⊤ = Ici a := by simp [← Ici_inter_Iic]
 @[simp] lemma Ioc_top : Ioc a ⊤ = Ioi a := by simp [← Ioi_inter_Iic]
 
@@ -521,10 +522,13 @@ end order_top
 
 section order_bot
 
-variables {α : Type u} [order_bot α] {a : α}
+@[simp] lemma Iic_bot {α : Type u} [partial_order α] [order_bot α] : Iic (⊥ : α) = {⊥} :=
+is_min_bot.Iic_eq
 
-@[simp] lemma Iic_bot : Iic (⊥ : α) = {⊥} := Iic_singleton_of_bot (λ _, bot_le)
-@[simp] lemma Ici_bot : Ici (⊥ : α) = univ := @Iic_top (order_dual α) _
+variables {α : Type u} [preorder α] [order_bot α] {a : α}
+
+@[simp] lemma Iio_bot : Iio (⊥ : α) = ∅ := is_min_bot.Iio_eq
+@[simp] lemma Ici_bot : Ici (⊥ : α) = univ := is_bot_bot.Ici_eq
 @[simp] lemma Icc_bot : Icc ⊥ a = Iic a := by simp [← Ici_inter_Iic]
 @[simp] lemma Ico_bot : Ico ⊥ a = Iio a := by simp [← Ici_inter_Iio]
 
@@ -1096,8 +1100,8 @@ begin
   cases le_total a b with hab hab; cases le_total c d with hcd hcd;
     simp only [min_eq_left, min_eq_right, max_eq_left, max_eq_right, hab, hcd] at h₁ h₂,
   { exact Ioo_union_Ioo' h₂ h₁ },
-  all_goals {
-    simp [*, min_eq_left_of_lt, min_eq_right_of_lt, max_eq_left_of_lt, max_eq_right_of_lt,
+  all_goals
+  { simp [*, min_eq_left_of_lt, min_eq_right_of_lt, max_eq_left_of_lt, max_eq_right_of_lt,
       le_of_lt h₂, le_of_lt h₁] },
 end
 
@@ -1115,6 +1119,9 @@ by { ext x, simp [Iic] }
 @[simp] lemma Iio_inter_Iio [is_total α (≤)] {a b : α} : Iio a ∩ Iio b = Iio (a ⊓ b) :=
 by { ext x, simp [Iio] }
 
+@[simp] lemma Ioc_inter_Iic (a b c : α) : Ioc a b ∩ Iic c = Ioc a (b ⊓ c) :=
+by rw [← Ioi_inter_Iic, ← Ioi_inter_Iic, inter_assoc, Iic_inter_Iic]
+
 end inf
 
 section sup
@@ -1123,6 +1130,9 @@ variables {α : Type u} [semilattice_sup α]
 
 @[simp] lemma Ici_inter_Ici {a b : α} : Ici a ∩ Ici b = Ici (a ⊔ b) :=
 by { ext x, simp [Ici] }
+
+@[simp] lemma Ico_inter_Ici (a b c : α) : Ico a b ∩ Ici c = Ico (a ⊔ c) b :=
+by rw [← Ici_inter_Iio, ← Ici_inter_Iio, ← Ici_inter_Ici, inter_right_comm]
 
 @[simp] lemma Ioi_inter_Ioi [is_total α (≤)] {a b : α} : Ioi a ∩ Ioi b = Ioi (a ⊔ b) :=
 by { ext x, simp [Ioi] }
@@ -1157,7 +1167,7 @@ by simp only [Ioi_inter_Iio.symm, Ioi_inter_Ioi.symm, Iio_inter_Iio.symm]; ac_re
 
 end both
 
-lemma Icc_bot_top {α} [bounded_lattice α] : Icc (⊥ : α) ⊤ = univ := by simp
+lemma Icc_bot_top {α} [partial_order α] [bounded_order α] : Icc (⊥ : α) ⊤ = univ := by simp
 
 end lattice
 
@@ -1178,17 +1188,17 @@ by rw [inter_comm, Ioc_inter_Ioo_of_right_le h, max_comm]
 lemma Ioo_inter_Ioc_of_right_lt (h : b₂ < b₁) : Ioo a₁ b₁ ∩ Ioc a₂ b₂ = Ioc (max a₁ a₂) b₂ :=
 by rw [inter_comm, Ioc_inter_Ioo_of_left_lt h, max_comm]
 
-lemma Iic_inter_Ioc_of_le (h : a₂ ≤ a) : Iic a₂ ∩ Ioc a₁ a = Ioc a₁ a₂ :=
-ext $ λ x, ⟨λ H, ⟨H.2.1, H.1⟩, λ H, ⟨H.2, H.1, H.2.trans h⟩⟩
-
 @[simp] lemma Ico_diff_Iio : Ico a b \ Iio c = Ico (max a c) b :=
-ext $ by simp [iff_def] {contextual:=tt}
+by rw [diff_eq, compl_Iio, Ico_inter_Ici, sup_eq_max]
 
 @[simp] lemma Ioc_diff_Ioi : Ioc a b \ Ioi c = Ioc a (min b c) :=
 ext $ by simp [iff_def] {contextual:=tt}
 
 @[simp] lemma Ico_inter_Iio : Ico a b ∩ Iio c = Ico a (min b c) :=
 ext $ by simp [iff_def] {contextual:=tt}
+
+@[simp] lemma Ioc_diff_Iic : Ioc a b \ Iic c = Ioc (max a c) b :=
+by rw [diff_eq, compl_Iic, Ioc_inter_Ioi, sup_eq_max]
 
 @[simp] lemma Ioc_union_Ioc_right : Ioc a b ∪ Ioc a c = Ioc a (max b c) :=
 by rw [Ioc_union_Ioc, min_self]; exact (min_le_left _ _).trans (le_max_left _ _)
@@ -1209,6 +1219,32 @@ begin
 end
 
 end linear_order
+
+/-!
+### Closed intervals in `α × β`
+-/
+
+section prod
+
+variables {α β : Type*} [preorder α] [preorder β]
+
+@[simp] lemma Iic_prod_Iic (a : α) (b : β) : Iic a ×ˢ Iic b = Iic (a, b) := rfl
+
+@[simp] lemma Ici_prod_Ici (a : α) (b : β) : Ici a ×ˢ Ici b = Ici (a, b) := rfl
+
+lemma Ici_prod_eq (a : α × β) : Ici a = Ici a.1 ×ˢ Ici a.2 := rfl
+
+lemma Iic_prod_eq (a : α × β) : Iic a = Iic a.1 ×ˢ Iic a.2 := rfl
+
+@[simp] lemma Icc_prod_Icc (a₁ a₂ : α) (b₁ b₂ : β) :
+  Icc a₁ a₂ ×ˢ Icc b₁ b₂ = Icc (a₁, b₁) (a₂, b₂) :=
+by { ext ⟨x, y⟩, simp [and.assoc, and_comm, and.left_comm] }
+
+lemma Icc_prod_eq (a b : α × β) :
+  Icc a b = Icc a.1 b.1 ×ˢ Icc a.2 b.2 :=
+by simp
+
+end prod
 
 /-! ### Lemmas about membership of arithmetic operations -/
 
@@ -1297,10 +1333,10 @@ end linear_ordered_add_comm_group
 
 end set
 
+open set
+
 namespace order_iso
 variables {α β : Type*}
-
-open set
 
 section preorder
 variables [preorder α] [preorder β]
@@ -1356,13 +1392,57 @@ by rw [e.image_eq_preimage, e.symm.preimage_Icc, e.symm_symm]
 end preorder
 
 /-- Order isomorphism between `Iic (⊤ : α)` and `α` when `α` has a top element -/
-def Iic_top [order_top α] : set.Iic (⊤ : α) ≃o α :=
+def Iic_top [preorder α] [order_top α] : set.Iic (⊤ : α) ≃o α :=
 { map_rel_iff' := λ x y, by refl,
   .. (@equiv.subtype_univ_equiv α (set.Iic (⊤ : α)) (λ x, le_top)), }
 
 /-- Order isomorphism between `Ici (⊥ : α)` and `α` when `α` has a bottom element -/
-def Ici_bot [order_bot α] : set.Ici (⊥ : α) ≃o α :=
+def Ici_bot [preorder α] [order_bot α] : set.Ici (⊥ : α) ≃o α :=
 { map_rel_iff' := λ x y, by refl,
   .. (@equiv.subtype_univ_equiv α (set.Ici (⊥ : α)) (λ x, bot_le)) }
 
 end order_iso
+
+/-! ### Lemmas about intervals in dense orders -/
+
+section dense
+
+variables (α : Type*) [preorder α] [densely_ordered α] {x y : α}
+
+instance : no_min_order (set.Ioo x y) :=
+⟨λ ⟨a, ha₁, ha₂⟩, begin
+  rcases exists_between ha₁ with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, hb₁, hb₂.trans ha₂⟩, hb₂⟩
+end⟩
+
+instance : no_min_order (set.Ioc x y) :=
+⟨λ ⟨a, ha₁, ha₂⟩, begin
+  rcases exists_between ha₁ with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, hb₁, hb₂.le.trans ha₂⟩, hb₂⟩
+end⟩
+
+instance : no_min_order (set.Ioi x) :=
+⟨λ ⟨a, ha⟩, begin
+  rcases exists_between ha with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, hb₁⟩, hb₂⟩
+end⟩
+
+instance : no_max_order (set.Ioo x y) :=
+⟨λ ⟨a, ha₁, ha₂⟩, begin
+  rcases exists_between ha₂ with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, ha₁.trans hb₁, hb₂⟩, hb₁⟩
+end⟩
+
+instance : no_max_order (set.Ico x y) :=
+⟨λ ⟨a, ha₁, ha₂⟩, begin
+  rcases exists_between ha₂ with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, ha₁.trans hb₁.le, hb₂⟩, hb₁⟩
+end⟩
+
+instance : no_max_order (set.Iio x) :=
+⟨λ ⟨a, ha⟩, begin
+  rcases exists_between ha with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, hb₂⟩, hb₁⟩
+end⟩
+
+end dense

@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.char_p.basic
-import data.equiv.ring
 import algebra.group_with_zero.power
-import algebra.iterate_hom
+import algebra.hom.iterate
+import algebra.ring.equiv
 
 /-!
 # The perfect closure of a field
@@ -329,8 +329,8 @@ begin
   { apply this },
   intro p, induction p with p ih,
   case nat.zero { apply r.sound, rw [(frobenius _ _).iterate_map_one, pow_zero] },
-  case nat.succ {
-    rw [pow_succ, ih],
+  case nat.succ
+  { rw [pow_succ, ih],
     symmetry,
     apply r.sound,
     simp only [pow_succ, (frobenius _ _).iterate_map_mul] }
@@ -348,7 +348,7 @@ lemma of_apply (x : K) : of K p x = mk _ _ (0, x) := rfl
 
 end ring
 
-theorem eq_iff [integral_domain K] (p : ℕ) [fact p.prime] [char_p K p]
+theorem eq_iff [comm_ring K] [is_domain K] (p : ℕ) [fact p.prime] [char_p K p]
   (x y : ℕ × K) : quot.mk (r K p) x = quot.mk (r K p) y ↔
     (frobenius K p^[y.1] x.2) = (frobenius K p^[x.1] y.2) :=
 (eq_iff' K p x y).trans ⟨λ ⟨z, H⟩, (frobenius_inj K p).iterate z $
@@ -426,3 +426,11 @@ end
 end field
 
 end perfect_closure
+
+/-- A reduced ring with prime characteristic and surjective frobenius map is perfect. -/
+noncomputable def perfect_ring.of_surjective (k : Type*) [comm_ring k] [is_reduced k] (p : ℕ)
+  [fact p.prime] [char_p k p] (h : function.surjective $ frobenius k p) :
+  perfect_ring k p :=
+{ pth_root' := function.surj_inv h,
+  frobenius_pth_root' := function.surj_inv_eq h,
+  pth_root_frobenius' := λ x, frobenius_inj _ _ $ function.surj_inv_eq h _ }

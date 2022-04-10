@@ -30,6 +30,7 @@ We do not define extended normed groups. They can be added to the chain once som
 normed space, extended norm
 -/
 
+noncomputable theory
 local attribute [instance, priority 1001] classical.prop_decidable
 open_locale ennreal
 
@@ -46,9 +47,9 @@ namespace enorm
 variables {𝕜 : Type*} {V : Type*} [normed_field 𝕜] [add_comm_group V] [module 𝕜 V]
   (e : enorm 𝕜 V)
 
-instance : has_coe_to_fun (enorm 𝕜 V) := ⟨_, enorm.to_fun⟩
+instance : has_coe_to_fun (enorm 𝕜 V) (λ _, V → ℝ≥0∞) := ⟨enorm.to_fun⟩
 
-lemma coe_fn_injective : @function.injective (enorm 𝕜 V) (V → ℝ≥0∞) coe_fn :=
+lemma coe_fn_injective : function.injective (coe_fn : enorm 𝕜 V → (V → ℝ≥0∞)) :=
 λ e₁ e₂ h, by cases e₁; cases e₂; congr; exact h
 
 @[ext] lemma ext {e₁ e₂ : enorm 𝕜 V} (h : ∀ x, e₁ x = e₂ x) : e₁ = e₂ :=
@@ -57,7 +58,7 @@ coe_fn_injective $ funext h
 lemma ext_iff {e₁ e₂ : enorm 𝕜 V} : e₁ = e₂ ↔ ∀ x, e₁ x = e₂ x :=
 ⟨λ h x, h ▸ rfl, ext⟩
 
-@[simp, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : ⇑e₁ = e₂ ↔ e₁ = e₂ :=
+@[simp, norm_cast] lemma coe_inj {e₁ e₂ : enorm 𝕜 V} : (e₁ : V → ℝ≥0∞) = e₂ ↔ e₁ = e₂ :=
 coe_fn_injective.eq_iff
 
 @[simp] lemma map_smul (c : 𝕜) (x : V) : e (c • x) = nnnorm c * e x :=
@@ -67,8 +68,8 @@ begin
   calc (nnnorm c : ℝ≥0∞) * e x = nnnorm c * e (c⁻¹ • c • x) : by rw [inv_smul_smul₀ hc]
   ... ≤ nnnorm c * (nnnorm (c⁻¹) * e (c • x)) : _
   ... = e (c • x) : _,
-  { exact ennreal.mul_le_mul (le_refl _) (e.map_smul_le' _ _) },
-  { rw [← mul_assoc, normed_field.nnnorm_inv, ennreal.coe_inv,
+  { exact ennreal.mul_le_mul le_rfl (e.map_smul_le' _ _) },
+  { rw [← mul_assoc, nnnorm_inv, ennreal.coe_inv,
      ennreal.mul_inv_cancel _ ennreal.coe_ne_top, one_mul]; simp [hc] }
 end
 
@@ -94,7 +95,7 @@ calc e (x - y) = e (x + -y)   : by rw sub_eq_add_neg
 
 instance : partial_order (enorm 𝕜 V) :=
 { le := λ e₁ e₂, ∀ x, e₁ x ≤ e₂ x,
-  le_refl := λ e x, le_refl _,
+  le_refl := λ e x, le_rfl,
   le_trans := λ e₁ e₂ e₃ h₁₂ h₂₃ x, le_trans (h₁₂ x) (h₂₃ x),
   le_antisymm := λ e₁ e₂ h₁₂ h₂₁, ext $ λ x, le_antisymm (h₁₂ x) (h₂₁ x) }
 
@@ -121,11 +122,13 @@ noncomputable instance : inhabited (enorm 𝕜 V) := ⟨⊤⟩
 
 lemma top_map {x : V} (hx : x ≠ 0) : (⊤ : enorm 𝕜 V) x = ⊤ := if_neg hx
 
-noncomputable instance : semilattice_sup_top (enorm 𝕜 V) :=
+noncomputable instance : order_top (enorm 𝕜 V) :=
+{ top := ⊤,
+  le_top := λ e x, if h : x = 0 then by simp [h] else by simp [top_map h] }
+
+noncomputable instance : semilattice_sup (enorm 𝕜 V) :=
 { le := (≤),
   lt := (<),
-  top := ⊤,
-  le_top := λ e x, if h : x = 0 then by simp [h] else by simp [top_map h],
   sup := λ e₁ e₂,
   { to_fun := λ x, max (e₁ x) (e₂ x),
     eq_zero' := λ x h, e₁.eq_zero_iff.1 (ennreal.max_eq_zero_iff.1 h).1,

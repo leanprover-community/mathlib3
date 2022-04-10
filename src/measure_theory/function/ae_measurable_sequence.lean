@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 
-import measure_theory.measure.measure_space
+import measure_theory.measurable_space
 
 /-!
 # Sequence of measurable functions associated to a sequence of a.e.-measurable functions

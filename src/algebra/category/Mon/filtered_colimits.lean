@@ -199,13 +199,13 @@ def cocone_morphism (j : J) : F.obj j ⟶ colimit :=
     rw [F.map_id, id_apply, id_apply], refl,
   end }
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma cocone_naturality {j j' : J} (f : j ⟶ j') :
   F.map f ≫ (cocone_morphism j') = cocone_morphism j :=
 monoid_hom.coe_inj ((types.colimit_cocone (F ⋙ forget Mon)).ι.naturality f)
 
 /-- The cocone over the proposed colimit monoid. -/
-@[to_additive "/-- The cocone over the proposed colimit additive monoid. -/"]
+@[to_additive "The cocone over the proposed colimit additive monoid."]
 def colimit_cocone : cocone F :=
 { X := colimit,
   ι := { app := cocone_morphism } }.

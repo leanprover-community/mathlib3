@@ -141,10 +141,10 @@ lemma is_max_on.is_extr (h : is_max_on f s a) : is_extr_on f s a := h.is_extr
 /-! ### Constant function -/
 
 lemma is_min_filter_const {b : β} : is_min_filter (λ _, b) l a :=
-univ_mem' $ λ _, le_refl _
+univ_mem' $ λ _, le_rfl
 
 lemma is_max_filter_const {b : β} : is_max_filter (λ _, b) l a :=
-univ_mem' $ λ _, le_refl _
+univ_mem' $ λ _, le_rfl
 
 lemma is_extr_filter_const {b : β} : is_extr_filter (λ _, b) l a := is_min_filter_const.is_extr
 
@@ -156,22 +156,24 @@ lemma is_extr_on_const {b : β} : is_extr_on (λ _, b) s a := is_extr_filter_con
 
 /-! ### Order dual -/
 
-lemma is_min_filter_dual_iff : @is_min_filter α (order_dual β) _ f l a ↔ is_max_filter f l a :=
+open order_dual (to_dual)
+
+lemma is_min_filter_dual_iff : is_min_filter (to_dual ∘ f) l a ↔ is_max_filter f l a :=
 iff.rfl
 
-lemma is_max_filter_dual_iff : @is_max_filter α (order_dual β) _ f l a ↔ is_min_filter f l a :=
+lemma is_max_filter_dual_iff : is_max_filter (to_dual ∘ f) l a ↔ is_min_filter f l a :=
 iff.rfl
 
-lemma is_extr_filter_dual_iff : @is_extr_filter α (order_dual β) _ f l a ↔ is_extr_filter f l a :=
+lemma is_extr_filter_dual_iff : is_extr_filter (to_dual ∘ f) l a ↔ is_extr_filter f l a :=
 or_comm _ _
 
 alias is_min_filter_dual_iff ↔ is_min_filter.undual is_max_filter.dual
 alias is_max_filter_dual_iff ↔ is_max_filter.undual is_min_filter.dual
 alias is_extr_filter_dual_iff ↔ is_extr_filter.undual is_extr_filter.dual
 
-lemma is_min_on_dual_iff : @is_min_on α (order_dual β) _ f s a ↔ is_max_on f s a := iff.rfl
-lemma is_max_on_dual_iff : @is_max_on α (order_dual β) _ f s a ↔ is_min_on f s a := iff.rfl
-lemma is_extr_on_dual_iff : @is_extr_on α (order_dual β) _ f s a ↔ is_extr_on f s a := or_comm _ _
+lemma is_min_on_dual_iff : is_min_on (to_dual ∘ f) s a ↔ is_max_on f s a := iff.rfl
+lemma is_max_on_dual_iff : is_max_on (to_dual ∘ f) s a ↔ is_min_on f s a := iff.rfl
+lemma is_extr_on_dual_iff : is_extr_on (to_dual ∘ f) s a ↔ is_extr_on f s a := or_comm _ _
 
 alias is_min_on_dual_iff ↔ is_min_on.undual is_max_on.dual
 alias is_max_on_dual_iff ↔ is_max_on.undual is_min_on.dual
@@ -322,6 +324,21 @@ hf.comp_tendsto (tendsto_principal_principal.mpr $ subset.refl _)
 lemma is_extr_on.on_preimage (g : δ → α) {b : δ} (hf : is_extr_on f s (g b)) :
   is_extr_on (f ∘ g) (g ⁻¹' s) b :=
 hf.elim (λ hf, (hf.on_preimage g).is_extr) (λ hf, (hf.on_preimage g).is_extr)
+
+lemma is_min_on.comp_maps_to {t : set δ} {g : δ → α} {b : δ} (hf : is_min_on f s a)
+  (hg : maps_to g t s) (ha : g b = a) :
+  is_min_on (f ∘ g) t b :=
+λ y hy, by simpa only [mem_set_of_eq, ha, (∘)] using hf (hg hy)
+
+lemma is_max_on.comp_maps_to {t : set δ} {g : δ → α} {b : δ} (hf : is_max_on f s a)
+  (hg : maps_to g t s) (ha : g b = a) :
+  is_max_on (f ∘ g) t b :=
+hf.dual.comp_maps_to hg ha
+
+lemma is_extr_on.comp_maps_to {t : set δ} {g : δ → α} {b : δ} (hf : is_extr_on f s a)
+  (hg : maps_to g t s) (ha : g b = a) :
+  is_extr_on (f ∘ g) t b :=
+hf.elim (λ h, or.inl $ h.comp_maps_to hg ha) (λ h, or.inr $ h.comp_maps_to hg ha)
 
 end preorder
 
@@ -538,3 +555,21 @@ lemma filter.eventually_eq.is_extr_filter_iff {α β : Type*} [preorder β] {f g
 ⟨λ h, h.congr heq hfga, λ h, h.congr heq.symm hfga.symm⟩
 
 end eventually
+
+/-! ### `is_max_on`/`is_min_on` imply `csupr`/`cinfi` -/
+
+section conditionally_complete_linear_order
+variables [conditionally_complete_linear_order α] {f : β → α} {s : set β} {x₀ : β}
+
+lemma is_max_on.supr_eq (hx₀ : x₀ ∈ s) (h : is_max_on f s x₀) :
+  (⨆ x : s, f x) = f x₀ :=
+begin
+  haveI : nonempty s := ⟨⟨x₀, hx₀⟩⟩,
+  exact csupr_eq_of_forall_le_of_forall_lt_exists_gt (λ x, h x.prop) (λ w hw, ⟨⟨x₀, hx₀⟩, hw⟩),
+end
+
+lemma is_min_on.infi_eq (hx₀ : x₀ ∈ s) (h : is_min_on f s x₀) :
+  (⨅ x : s, f x) = f x₀ :=
+@is_max_on.supr_eq (order_dual α) β _ _ _ _ hx₀ h
+
+end conditionally_complete_linear_order

@@ -68,7 +68,7 @@ The morphism from a presheaf to its sheafification,
 sending each section to its germs.
 (This forms the unit of the adjunction.)
 -/
-def to_sheafify : F ⟶ F.sheafify.presheaf :=
+def to_sheafify : F ⟶ F.sheafify.1 :=
 { app := λ U f, ⟨λ x, F.germ x f, prelocal_predicate.sheafify_of ⟨f, λ x, rfl⟩⟩,
   naturality' := λ U U' f, by { ext x ⟨u, m⟩, exact germ_res_apply F f.unop ⟨u, m⟩ x } }
 
@@ -76,7 +76,7 @@ def to_sheafify : F ⟶ F.sheafify.presheaf :=
 The natural morphism from the stalk of the sheafification to the original stalk.
 In `sheafify_stalk_iso` we show this is an isomorphism.
 -/
-def stalk_to_fiber (x : X) : F.sheafify.presheaf.stalk x ⟶ F.stalk x :=
+def stalk_to_fiber (x : X) : F.sheafify.1.stalk x ⟶ F.stalk x :=
 stalk_to_fiber (sheafify.is_locally_germ F) x
 
 lemma stalk_to_fiber_surjective (x : X) : function.surjective (F.stalk_to_fiber x) :=
@@ -121,7 +121,7 @@ end
 /--
 The isomorphism betweeen a stalk of the sheafification and the original stalk.
 -/
-def sheafify_stalk_iso (x : X) : F.sheafify.presheaf.stalk x ≅ F.stalk x :=
+def sheafify_stalk_iso (x : X) : F.sheafify.1.stalk x ≅ F.stalk x :=
 (equiv.of_bijective _ ⟨stalk_to_fiber_injective _ _, stalk_to_fiber_surjective _ _⟩).to_iso
 
 -- PROJECT functoriality, and that sheafification is the left adjoint of the forgetful functor.

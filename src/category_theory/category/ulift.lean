@@ -45,21 +45,21 @@ variables {C : Type u₁} [category.{v₁} C]
 
 /-- The functorial version of `ulift.up`. -/
 @[simps]
-def ulift.up : C ⥤ (ulift.{u₂} C) :=
+def ulift.up_functor : C ⥤ (ulift.{u₂} C) :=
 { obj := ulift.up,
   map := λ X Y f, f }
 
 /-- The functorial version of `ulift.down`. -/
 @[simps]
-def ulift.down : (ulift.{u₂} C) ⥤ C :=
+def ulift.down_functor : (ulift.{u₂} C) ⥤ C :=
 { obj := ulift.down,
   map := λ X Y f, f }
 
 /-- The categorical equivalence between `C` and `ulift C`. -/
 @[simps]
 def ulift.equivalence : C ≌ (ulift.{u₂} C) :=
-{ functor := ulift.up,
-  inverse := ulift.down,
+{ functor := ulift.up_functor,
+  inverse := ulift.down_functor,
   unit_iso :=
   { hom := 𝟙 _,
     inv := 𝟙 _ },
@@ -175,5 +175,10 @@ is_filtered.of_equivalence as_small.equiv
 
 instance [is_cofiltered C] : is_cofiltered (as_small C) :=
 is_cofiltered.of_equivalence as_small.equiv
+
+/-- The equivalence between `C` and `ulift_hom (ulift C)`. -/
+def {v' u' v u} ulift_hom_ulift_category.equiv (C : Type u) [category.{v} C] :
+  C ≌ ulift_hom.{v'} (ulift.{u'} C) :=
+ulift.equivalence.trans ulift_hom.equiv
 
 end category_theory

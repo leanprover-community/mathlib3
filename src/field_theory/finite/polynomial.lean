@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import field_theory.finite.basic
-import field_theory.mv_polynomial
-import data.mv_polynomial.expand
-import linear_algebra.basic
 import linear_algebra.finite_dimensional
+import linear_algebra.basic
+import ring_theory.mv_polynomial.basic
+import data.mv_polynomial.expand
+import field_theory.finite.basic
 
 /-!
 ## Polynomials over finite fields
@@ -61,7 +61,7 @@ lemma eval_indicator_apply_eq_one (a : σ → K) :
   eval a (indicator a) = 1 :=
 have 0 < fintype.card K - 1,
 begin
-  rw [← finite_field.card_units, fintype.card_pos_iff],
+  rw [← fintype.card_units, fintype.card_pos_iff],
   exact ⟨1⟩
 end,
 by { simp only [indicator, (eval a).map_prod, ring_hom.map_sub,
@@ -124,7 +124,7 @@ lemma map_restrict_dom_evalₗ : (restrict_degree σ K (fintype.card K - 1)).map
 begin
   refine top_unique (set_like.le_def.2 $ assume e _, mem_map.2 _),
   refine ⟨∑ n : σ → K, e n • indicator n, _, _⟩,
-  { exact sum_mem _ (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
+  { exact sum_mem (assume c _, smul_mem _ _ (indicator_mem_restrict_degree _)) },
   { ext n,
     simp only [linear_map.map_sum, @finset.sum_apply (σ → K) (λ_, K) _ _ _ _ _,
       pi.smul_apply, linear_map.map_smul],
@@ -163,7 +163,7 @@ calc module.rank K (R σ K) =
   ... = #{s : σ → ℕ | ∀ (n : σ), s n < fintype.card K } :
   begin
     refine quotient.sound ⟨equiv.subtype_equiv finsupp.equiv_fun_on_fintype $ assume f, _⟩,
-    refine forall_congr (assume n, nat.le_sub_right_iff_add_le _),
+    refine forall_congr (assume n, le_tsub_iff_right _),
     exact fintype.card_pos_iff.2 ⟨0⟩
   end
   ... = #(σ → {n // n < fintype.card K}) :
@@ -172,10 +172,10 @@ calc module.rank K (R σ K) =
     (equiv.arrow_congr (equiv.refl σ) (equiv.fin_equiv_subtype _).symm).cardinal_eq
   ... = #(σ → K) :
     (equiv.arrow_congr (equiv.refl σ) (fintype.equiv_fin K).symm).cardinal_eq
-  ... = fintype.card (σ → K) : cardinal.fintype_card _
+  ... = fintype.card (σ → K) : cardinal.mk_fintype _
 
 instance : finite_dimensional K (R σ K) :=
-is_noetherian.iff_dim_lt_omega.mpr
+is_noetherian.iff_fg.1 $ is_noetherian.iff_dim_lt_omega.mpr
   (by simpa only [dim_R] using cardinal.nat_lt_omega (fintype.card (σ → K)))
 
 lemma finrank_R : finite_dimensional.finrank K (R σ K) = fintype.card (σ → K) :=

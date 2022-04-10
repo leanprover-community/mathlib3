@@ -5,6 +5,7 @@ Authors: Patrick Massot, Scott Morrison
 -/
 import topology.instances.real
 import topology.algebra.field
+import data.set.intervals.proj_Icc
 
 /-!
 # The unit interval, as a topological space
@@ -12,7 +13,7 @@ import topology.algebra.field
 Use `open_locale unit_interval` to turn on the notation `I := set.Icc (0 : ℝ) (1 : ℝ)`.
 
 We provide basic instances, as well as a custom tactic for discharging
-`0 ≤ x`, `0 ≤ 1 - x`, `x ≤ 1`, and `1 - x ≤ 1` when `x : I`.
+`0 ≤ ↑x`, `0 ≤ 1 - ↑x`, `↑x ≤ 1`, and `1 - ↑x ≤ 1` when `x : I`.
 
 -/
 
@@ -41,13 +42,40 @@ instance has_zero : has_zero I := ⟨⟨0, by split ; norm_num⟩⟩
 
 @[simp] lemma mk_zero (h : (0 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨0, h⟩ : I) = 0 := rfl
 
+@[simp, norm_cast] lemma coe_eq_zero {x : I} : (x : ℝ) = 0 ↔ x = 0 :=
+by { symmetry, exact subtype.ext_iff }
+
 instance has_one : has_one I := ⟨⟨1, by split ; norm_num⟩⟩
 
 @[simp, norm_cast] lemma coe_one : ((1 : I) : ℝ) = 1 := rfl
 
+lemma coe_ne_zero {x : I} : (x : ℝ) ≠ 0 ↔ x ≠ 0 :=
+not_iff_not.mpr coe_eq_zero
+
 @[simp] lemma mk_one (h : (1 : ℝ) ∈ Icc (0 : ℝ) 1) : (⟨1, h⟩ : I) = 1 := rfl
 
+@[simp, norm_cast] lemma coe_eq_one {x : I} : (x : ℝ) = 1 ↔ x = 1 :=
+by { symmetry, exact subtype.ext_iff }
+
+lemma coe_ne_one {x : I} : (x : ℝ) ≠ 1 ↔ x ≠ 1 :=
+not_iff_not.mpr coe_eq_one
+
 instance : nonempty I := ⟨0⟩
+
+lemma mul_mem (x y : I) : (x : ℝ) * y ∈ I :=
+⟨mul_nonneg x.2.1 y.2.1, (mul_le_mul x.2.2 y.2.2 y.2.1 zero_le_one).trans_eq $ one_mul 1⟩
+
+instance : has_mul I := ⟨λ x y, ⟨x * y, mul_mem x y⟩⟩
+
+@[simp, norm_cast] lemma coe_mul {x y : I} : ((x * y : I) : ℝ) = x * y := rfl
+
+-- todo: we could set up a `linear_ordered_comm_monoid_with_zero I` instance
+
+lemma mul_le_left {x y : I} : x * y ≤ x :=
+subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_left y.2.2 x.2.1).trans_eq $ mul_one x
+
+lemma mul_le_right {x y : I} : x * y ≤ y :=
+subtype.coe_le_coe.mp $ (mul_le_mul_of_nonneg_right x.2.2 y.2.1).trans_eq $ one_mul y
 
 /-- Unit interval central symmetry. -/
 def symm : I → I := λ t, ⟨1 - t.val, mem_iff_one_sub_mem.mp t.property⟩
@@ -80,6 +108,11 @@ lemma one_minus_nonneg (x : I) : 0 ≤ 1 - (x : ℝ) := by simpa using x.2.2
 lemma le_one (x : I) : (x : ℝ) ≤ 1 := x.2.2
 lemma one_minus_le_one (x : I) : 1 - (x : ℝ) ≤ 1 := by simpa using x.2.1
 
+/-- like `unit_interval.nonneg`, but with the inequality in `I`. -/
+lemma nonneg' {t : I} : 0 ≤ t := t.2.1
+/-- like `unit_interval.le_one`, but with the inequality in `I`. -/
+lemma le_one' {t : I} : t ≤ 1 := t.2.2
+
 lemma mul_pos_mem_iff {a t : ℝ} (ha : 0 < a) : a * t ∈ I ↔ t ∈ set.Icc (0 : ℝ) (1/a) :=
 begin
   split; rintros ⟨h₁, h₂⟩; split,
@@ -94,9 +127,15 @@ by split; rintros ⟨h₁, h₂⟩; split; linarith
 
 end unit_interval
 
+@[simp] lemma proj_Icc_eq_zero {x : ℝ} : proj_Icc (0 : ℝ) 1 zero_le_one x = 0 ↔ x ≤ 0 :=
+proj_Icc_eq_left zero_lt_one
+
+@[simp] lemma proj_Icc_eq_one {x : ℝ} : proj_Icc (0 : ℝ) 1 zero_le_one x = 1 ↔ 1 ≤ x :=
+proj_Icc_eq_right zero_lt_one
+
 namespace tactic.interactive
 
-/-- A tactic that solves `0 ≤ x`, `0 ≤ 1 - x`, `x ≤ 1`, and `1 - x ≤ 1` for `x : I`. -/
+/-- A tactic that solves `0 ≤ ↑x`, `0 ≤ 1 - ↑x`, `↑x ≤ 1`, and `1 - ↑x ≤ 1` for `x : I`. -/
 meta def unit_interval : tactic unit :=
 `[apply unit_interval.nonneg] <|> `[apply unit_interval.one_minus_nonneg] <|>
 `[apply unit_interval.le_one] <|> `[apply unit_interval.one_minus_le_one]

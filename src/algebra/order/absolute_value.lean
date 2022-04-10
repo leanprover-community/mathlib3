@@ -19,8 +19,6 @@ This file defines a bundled type of absolute values `absolute_value R S`.
  * `is_absolute_value`: a type class stating that `f : β → α` satisfies the axioms of an abs val
 -/
 
-set_option old_structure_cmd true
-
 /-- `absolute_value R S` is the type of absolute values on `R` mapping to `S`:
 the maps that preserve `*`, are nonnegative, positive definite and satisfy the triangle equality. -/
 structure absolute_value (R S : Type*) [semiring R] [ordered_semiring S]
@@ -33,13 +31,13 @@ namespace absolute_value
 
 attribute [nolint doc_blame] absolute_value.to_mul_hom
 
-initialize_simps_projections absolute_value (to_fun → apply)
+initialize_simps_projections absolute_value (to_mul_hom_to_fun → apply)
 
 section ordered_semiring
 
 variables {R S : Type*} [semiring R] [ordered_semiring S] (abv : absolute_value R S)
 
-instance : has_coe_to_fun (absolute_value R S) := ⟨λ f, R → S, λ f, f.to_fun⟩
+instance : has_coe_to_fun (absolute_value R S) (λ f, R → S) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_to_mul_hom : ⇑abv.to_mul_hom = abv := rfl
 
@@ -97,7 +95,7 @@ variables [nontrivial R]
 by rw [← abv.map_mul, mul_one, mul_one]
 
 /-- Absolute values from a nontrivial `R` to a linear ordered ring preserve `*`, `0` and `1`. -/
-def to_monoid_with_zero_hom : monoid_with_zero_hom R S :=
+def to_monoid_with_zero_hom : R →*₀ S :=
 { to_fun := abv,
   map_zero' := abv.map_zero,
   map_one' := abv.map_one,
@@ -147,7 +145,7 @@ section linear_ordered_field
 
 section field
 
-variables {R S : Type*} [field R] [linear_ordered_field S] (abv : absolute_value R S)
+variables {R S : Type*} [division_ring R] [linear_ordered_field S] (abv : absolute_value R S)
 
 @[simp] protected theorem map_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ :=
 abv.to_monoid_with_zero_hom.map_inv a
@@ -204,6 +202,7 @@ theorem abv_zero : abv 0 = 0 := (abv_eq_zero abv).2 rfl
 theorem abv_pos {a : R} : 0 < abv a ↔ a ≠ 0 :=
 by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [abv_eq_zero abv, abv_nonneg abv]
 
+
 end ordered_semiring
 
 section linear_ordered_ring
@@ -220,9 +219,9 @@ instance abs_is_absolute_value {S} [linear_ordered_ring S] :
 
 end linear_ordered_ring
 
-section linear_ordered_field
+section linear_ordered_comm_ring
 
-variables {S : Type*} [linear_ordered_field S]
+variables {S : Type*} [linear_ordered_comm_ring S]
 
 section semiring
 variables {R : Type*} [semiring R] (abv : R → S) [is_absolute_value abv]
@@ -232,14 +231,18 @@ theorem abv_one [nontrivial R] : abv 1 = 1 :=
 by rw [← abv_mul abv, mul_one, mul_one]
 
 /-- `abv` as a `monoid_with_zero_hom`. -/
-def abv_hom [nontrivial R] : monoid_with_zero_hom R S :=
-⟨abv, abv_zero abv, abv_one abv, abv_mul abv⟩
+def abv_hom [nontrivial R] : R →*₀ S := ⟨abv, abv_zero abv, abv_one abv, abv_mul abv⟩
 
 lemma abv_pow [nontrivial R] (abv : R → S) [is_absolute_value abv]
   (a : R) (n : ℕ) : abv (a ^ n) = abv a ^ n :=
 (abv_hom abv).to_monoid_hom.map_pow a n
 
 end semiring
+
+end linear_ordered_comm_ring
+
+section linear_ordered_field
+variables {S : Type*} [linear_ordered_field S]
 
 section ring
 variables {R : Type*} [ring R] (abv : R → S) [is_absolute_value abv]
@@ -264,7 +267,7 @@ abs_sub_le_iff.2 ⟨sub_abv_le_abv_sub abv _ _,
 end ring
 
 section field
-variables {R : Type*} [field R] (abv : R → S) [is_absolute_value abv]
+variables {R : Type*} [division_ring R] (abv : R → S) [is_absolute_value abv]
 
 theorem abv_inv (a : R) : abv a⁻¹ = (abv a)⁻¹ :=
 (abv_hom abv).map_inv a

@@ -5,6 +5,7 @@ Authors: Mario Carneiro
 -/
 import data.fintype.basic
 import algebra.big_operators.ring
+import algebra.big_operators.option
 
 /-!
 Results about "big operations" over a `fintype`, and consequent
@@ -91,9 +92,7 @@ variables {M : Type*} [fintype α] [comm_monoid M]
 
 @[simp, to_additive]
 lemma fintype.prod_option (f : option α → M) : ∏ i, f i = f none * ∏ i, f (some i) :=
-show ((finset.insert_none _).1.map f).prod = _,
-by simp only [finset.prod, finset.insert_none, multiset.map_cons, multiset.prod_cons,
-  multiset.map_map]
+finset.prod_insert_none f univ
 
 end
 
@@ -154,6 +153,14 @@ is the sum of `f (fin.last n)` plus the remaining sum -/]
 theorem fin.prod_univ_cast_succ [comm_monoid β] {n : ℕ} (f : fin (n + 1) → β) :
   ∏ i, f i = (∏ i : fin n, f i.cast_succ) * f (fin.last n) :=
 by simpa [mul_comm] using fin.prod_univ_succ_above f (fin.last n)
+
+@[to_additive sum_univ_one] theorem fin.prod_univ_one [comm_monoid β] (f : fin 1 → β) :
+  ∏ i, f i = f 0 :=
+by simp
+
+@[to_additive] theorem fin.prod_univ_two [comm_monoid β] (f : fin 2 → β) :
+  ∏ i, f i = f 0 * f 1 :=
+by simp [fin.prod_univ_succ]
 
 open finset
 
@@ -315,6 +322,7 @@ end
 
 namespace list
 
+@[to_additive]
 lemma prod_take_of_fn [comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
   ((of_fn f).take i).prod = ∏ j in finset.univ.filter (λ (j : fin n), j.val < i), f j :=
 begin
@@ -340,14 +348,6 @@ begin
       simp [this, lt_trans this (nat.lt_succ_self _)] },
     simp [← A, B, IH] }
 end
-
--- `to_additive` does not work on `prod_take_of_fn` because of `0 : ℕ` in the proof.
--- Use `multiplicative` instead.
-lemma sum_take_of_fn [add_comm_monoid α] {n : ℕ} (f : fin n → α) (i : ℕ) :
-  ((of_fn f).take i).sum = ∑ j in finset.univ.filter (λ (j : fin n), j.val < i), f j :=
-@prod_take_of_fn (multiplicative α) _ n f i
-
-attribute [to_additive] prod_take_of_fn
 
 @[to_additive]
 lemma prod_of_fn [comm_monoid α] {n : ℕ} {f : fin n → α} :

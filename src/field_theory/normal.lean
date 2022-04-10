@@ -24,7 +24,7 @@ is the same as being a splitting field (`normal.of_is_splitting_field` and
 noncomputable theory
 
 open_locale big_operators
-open_locale classical
+open_locale classical polynomial
 
 open polynomial is_scalar_tower
 
@@ -62,7 +62,7 @@ variables {K}
 variables (K)
 
 theorem normal.exists_is_splitting_field [h : normal F K] [finite_dimensional F K] :
-  ∃ p : polynomial F, is_splitting_field F K p :=
+  ∃ p : F[X], is_splitting_field F K p :=
 begin
   let s := basis.of_vector_space F K,
   refine ⟨∏ x, minpoly F (s x),
@@ -124,7 +124,7 @@ end
 lemma alg_equiv.transfer_normal (f : E ≃ₐ[F] E') : normal F E ↔ normal F E' :=
 ⟨λ h, by exactI normal.of_alg_equiv f, λ h, by exactI normal.of_alg_equiv f.symm⟩
 
-lemma normal.of_is_splitting_field (p : polynomial F) [hFEp : is_splitting_field F E p] :
+lemma normal.of_is_splitting_field (p : F[X]) [hFEp : is_splitting_field F E p] :
   normal F E :=
 begin
   by_cases hp : p = 0,
@@ -133,7 +133,7 @@ begin
       (is_splitting_field.alg_equiv E p).symm)).mp (normal_self F) },
   refine normal_iff.2 (λ x, _),
   haveI hFE : finite_dimensional F E := is_splitting_field.finite_dimensional E p,
-  have Hx : is_integral F x := is_integral_of_noetherian hFE x,
+  have Hx : is_integral F x := is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) x,
   refine ⟨Hx, or.inr _⟩,
   rintros q q_irred ⟨r, hr⟩,
   let D := adjoin_root q,
@@ -158,16 +158,17 @@ begin
       adjoin_root.algebra_map_eq, eval₂_mul, adjoin_root.eval₂_root, zero_mul])),
   letI : algebra C E := ring_hom.to_algebra (adjoin_root.lift
     (algebra_map F E) x (minpoly.aeval F x)),
-  haveI : is_scalar_tower F C D := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
-  haveI : is_scalar_tower F C E := of_algebra_map_eq (λ x, adjoin_root.lift_of.symm),
+  haveI : is_scalar_tower F C D := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
+  haveI : is_scalar_tower F C E := of_algebra_map_eq (λ x, (adjoin_root.lift_of _).symm),
   suffices : nonempty (D →ₐ[C] E),
   { exact nonempty.map (alg_hom.restrict_scalars F) this },
   let S : set D := ((p.map (algebra_map F E)).roots.map (algebra_map E D)).to_finset,
   suffices : ⊤ ≤ intermediate_field.adjoin C S,
   { refine intermediate_field.alg_hom_mk_adjoin_splits' (top_le_iff.mp this) (λ y hy, _),
     rcases multiset.mem_map.mp (multiset.mem_to_finset.mp hy) with ⟨z, hz1, hz2⟩,
-    have Hz : is_integral F z := is_integral_of_noetherian hFE z,
-    use (show is_integral C y, from is_integral_of_noetherian (finite_dimensional.right F C D) y),
+    have Hz : is_integral F z := is_integral_of_noetherian (is_noetherian.iff_fg.2 hFE) z,
+    use (show is_integral C y, from is_integral_of_noetherian
+      (is_noetherian.iff_fg.2 (finite_dimensional.right F C D)) y),
     apply splits_of_splits_of_dvd (algebra_map C E) (map_ne_zero (minpoly.ne_zero Hz)),
     { rw [splits_map_iff, ←algebra_map_eq F C E],
       exact splits_of_splits_of_dvd _ hp hFEp.splits (minpoly.dvd F z
@@ -189,7 +190,7 @@ begin
   rw [set.image_singleton, ring_hom.algebra_map_to_algebra, adjoin_root.lift_root]
 end
 
-instance (p : polynomial F) : normal F p.splitting_field := normal.of_is_splitting_field p
+instance (p : F[X]) : normal F p.splitting_field := normal.of_is_splitting_field p
 
 end normal_tower
 
@@ -263,13 +264,14 @@ variables {F} {K} (E : Type*) [field E] [algebra F E] [algebra K E] [is_scalar_t
   an algebra homomorphism `ϕ : K →ₐ[F] K` to `ϕ.lift_normal E : E →ₐ[F] E`. -/
 noncomputable def alg_hom.lift_normal [h : normal F E] : E →ₐ[F] E :=
 @alg_hom.restrict_scalars F K E E _ _ _ _ _ _
-  ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra _ _ _ _
-  (nonempty.some (@intermediate_field.alg_hom_mk_adjoin_splits' K E E _ _ _ _
-  ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra ⊤ rfl
+  ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra _ _ _ _ $ nonempty.some $
+  @intermediate_field.alg_hom_mk_adjoin_splits' _ _ _ _ _ _ _
+  ((is_scalar_tower.to_alg_hom F K E).comp ϕ).to_ring_hom.to_algebra _
+  (intermediate_field.adjoin_univ _ _)
   (λ x hx, ⟨is_integral_of_is_scalar_tower x (h.out x).1,
-  splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero (h.out x).1))
-  (by { rw [splits_map_iff, ←is_scalar_tower.algebra_map_eq], exact (h.out x).2 })
-  (minpoly.dvd_map_of_is_scalar_tower F K x)⟩)))
+    splits_of_splits_of_dvd _ (map_ne_zero (minpoly.ne_zero (h.out x).1))
+    (by { rw [splits_map_iff, ←is_scalar_tower.algebra_map_eq], exact (h.out x).2 })
+    (minpoly.dvd_map_of_is_scalar_tower F K x)⟩)
 
 @[simp] lemma alg_hom.lift_normal_commutes [normal F E] (x : K) :
   ϕ.lift_normal E (algebra_map K E x) = algebra_map K E (ϕ x) :=

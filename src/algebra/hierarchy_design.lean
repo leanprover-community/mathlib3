@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2021 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Eric Weiser
+Authors: Scott Morrison, Eric Wieser
 -/
 import tactic.doc_commands
 
@@ -67,10 +67,10 @@ when applicable:
   ```
   instance pi.Z [∀ i, Z $ f i] : Z (Π i : I, f i) := ...
   ```
-* Instances transferred to `opposite M`, like `opposite.monoid`.
+* Instances transferred to `mul_opposite M`, like `mul_opposite.monoid`.
   See `algebra.opposites` for more examples.
   ```
-  instance opposite.Z [Z M] : Z (opposite M) := ...
+  instance mul_opposite.Z [Z M] : Z (mul_opposite M) := ...
   ```
 * Instances transferred to `ulift M`, like `ulift.monoid`.
   See `algebra.group.ulift` for more examples.

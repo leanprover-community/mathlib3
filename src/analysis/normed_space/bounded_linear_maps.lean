@@ -31,7 +31,6 @@ is normed) that `∥f x∥` is bounded by a multiple of `∥x∥`. Hence the "bo
 ## Main theorems
 
 * `is_bounded_bilinear_map.continuous`: A bounded bilinear map is continuous.
-* `linear_map.norm_apply_of_isometry`: A linear isometry preserves the norm.
 * `continuous_linear_equiv.is_open`: The continuous linear equivalences are an open subset of the
   set of continuous linear maps between a pair of Banach spaces.  Placed in this file because its
   proof uses `is_bounded_bilinear_map.continuous`.
@@ -43,7 +42,7 @@ already expounds the theory of multilinear maps, but the `2`-variables case is s
 to currently deserve its own treatment.
 
 `is_bounded_linear_map` is effectively an unbundled version of `continuous_linear_map` (defined
-in `topology.algebra.module`, theory over normed spaces developed in
+in `topology.algebra.module.basic`, theory over normed spaces developed in
 `analysis.normed_space.operator_norm`), albeit the name disparity. A bundled
 `continuous_linear_map` is to be preferred over a `is_bounded_linear_map` hypothesis. Historical
 artifact, really.
@@ -89,7 +88,7 @@ def to_linear_map (f : E → F) (h : is_bounded_linear_map 𝕜 f) : E →ₗ[�
 
 /-- Construct a continuous linear map from is_bounded_linear_map -/
 def to_continuous_linear_map {f : E → F} (hf : is_bounded_linear_map 𝕜 f) : E →L[𝕜] F :=
-{ cont := let ⟨C, Cpos, hC⟩ := hf.bound in linear_map.continuous_of_bound _ C hC,
+{ cont := let ⟨C, Cpos, hC⟩ := hf.bound in (to_linear_map f hf).continuous_of_bound C hC,
   ..to_linear_map f hf}
 
 lemma zero : is_bounded_linear_map 𝕜 (λ (x:E), (0:F)) :=
@@ -497,18 +496,6 @@ end
 
 end bilinear_map
 
-/-- A linear isometry preserves the norm. -/
-lemma linear_map.norm_apply_of_isometry (f : E →ₗ[𝕜] F) {x : E} (hf : isometry f) : ∥f x∥ = ∥x∥ :=
-by { simp_rw [←dist_zero_right, ←f.map_zero], exact isometry.dist_eq hf _ _ }
-
-/-- Construct a continuous linear equiv from
-a linear map that is also an isometry with full range. -/
-def continuous_linear_equiv.of_isometry (f : E →ₗ[𝕜] F) (hf : isometry f) (hfr : f.range = ⊤) :
-  E ≃L[𝕜] F :=
-continuous_linear_equiv.of_homothety
-  (linear_equiv.of_bijective f (isometry.injective hf) (linear_map.range_eq_top.mp hfr))
-  1 zero_lt_one (λ _, by simp [one_mul, f.norm_apply_of_isometry hf])
-
 namespace continuous_linear_equiv
 
 open set
@@ -522,7 +509,6 @@ spaces is an open subset of the space of linear maps between them.
 
 protected lemma is_open [complete_space E] : is_open (range (coe : (E ≃L[𝕜] F) → (E →L[𝕜] F))) :=
 begin
-  nontriviality E,
   rw [is_open_iff_mem_nhds, forall_range_iff],
   refine λ e, is_open.mem_nhds _ (mem_range_self _),
   let O : (E →L[𝕜] F) → (E →L[𝕜] E) := λ f, (e.symm : F →L[𝕜] E).comp f,
@@ -535,7 +521,7 @@ begin
   { rintros ⟨w, hw⟩,
     use (units_equiv 𝕜 E w).trans e,
     ext x,
-    simp [hw] }
+    simp [coe_fn_coe_base' w, hw] }
 end
 
 protected lemma nhds [complete_space E] (e : E ≃L[𝕜] F) :

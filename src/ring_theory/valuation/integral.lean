@@ -30,7 +30,7 @@ include hv
 open polynomial
 
 lemma mem_of_integral {x : R} (hx : is_integral O x) : x ∈ v.integer :=
-let ⟨p, hpm, hpx⟩ := hx in le_of_not_lt $ λ hvx, begin
+let ⟨p, hpm, hpx⟩ := hx in le_of_not_lt $ λ (hvx : 1 < v x), begin
   rw [hpm.as_sum, eval₂_add, eval₂_pow, eval₂_X, eval₂_finset_sum, add_eq_zero_iff_eq_neg] at hpx,
   replace hpx := congr_arg v hpx, refine ne_of_gt _ hpx,
   rw [v.map_neg, v.map_pow],
@@ -49,7 +49,8 @@ end comm_ring
 section fraction_field
 
 variables {K : Type u} {Γ₀ : Type v} [field K] [linear_ordered_comm_group_with_zero Γ₀]
-variables {v : valuation K Γ₀} {O : Type w} [integral_domain O] [algebra O K] [is_fraction_ring O K]
+variables {v : valuation K Γ₀} {O : Type w} [comm_ring O] [is_domain O]
+variables [algebra O K] [is_fraction_ring O K]
 variables (hv : integers v O)
 
 lemma integrally_closed : is_integrally_closed O :=

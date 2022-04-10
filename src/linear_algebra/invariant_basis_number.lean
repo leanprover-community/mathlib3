@@ -3,8 +3,8 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
+import ring_theory.ideal.quotient
 import ring_theory.principal_ideal_domain
-import ring_theory.ideal.basic
 
 /-!
 # Invariant basis number property
@@ -34,9 +34,11 @@ We show that every nontrivial left-noetherian ring satisfies the strong rank con
 (and so in particular every division ring or field),
 and then use this to show every nontrivial commutative ring has the invariant basis number property.
 
-## Future work
+More generally, every commutative ring satisfies the strong rank condition. This is proved in
+`linear_algebra/free_module/strong_rank_condition`. We keep
+`invariant_basis_number_of_nontrivial_of_comm_ring` here since it imports fewer files.
 
-We can improve these results: in fact every commutative ring satisfies the strong rank condition.
+## Future work
 
 So far, there is no API at all for the `invariant_basis_number` class. There are several natural
 ways to formulate that a module `M` is finitely generated and free, for example
@@ -234,7 +236,7 @@ variables {R : Type u} [comm_ring R] (I : ideal R) {ι : Type v} [fintype ι] {�
 
 /-- An `R`-linear map `R^n → R^m` induces a function `R^n/I^n → R^m/I^m`. -/
 private def induced_map (I : ideal R) (e : (ι → R) →ₗ[R] (ι' → R)) :
-  (I.pi ι).quotient → (I.pi ι').quotient :=
+  (ι → R) ⧸ (I.pi ι) → (ι' → R) ⧸ I.pi ι' :=
 λ x, quotient.lift_on' x (λ y, ideal.quotient.mk _ (e y))
 begin
   refine λ a b hab, ideal.quotient.eq.2 (λ h, _),
@@ -245,7 +247,7 @@ end
 /-- An isomorphism of `R`-modules `R^n ≃ R^m` induces an isomorphism of `R/I`-modules
     `R^n/I^n ≃ R^m/I^m`. -/
 private def induced_equiv [fintype ι'] (I : ideal R) (e : (ι → R) ≃ₗ[R] (ι' → R)) :
-  (I.pi ι).quotient ≃ₗ[I.quotient] (I.pi ι').quotient :=
+  ((ι → R) ⧸ I.pi ι) ≃ₗ[R ⧸ I] (ι' → R) ⧸ I.pi ι' :=
 begin
   refine { to_fun := induced_map I e, inv_fun := induced_map I e.symm, .. },
   all_goals { rintro ⟨a⟩ ⟨b⟩ <|> rintro ⟨a⟩,
@@ -271,7 +273,7 @@ local attribute [instance] ideal.quotient.field
 instance invariant_basis_number_of_nontrivial_of_comm_ring {R : Type u} [comm_ring R]
   [nontrivial R] : invariant_basis_number R :=
 ⟨λ n m e, let ⟨I, hI⟩ := ideal.exists_maximal R in
-  by exactI eq_of_fin_equiv I.quotient
+  by exactI eq_of_fin_equiv (R ⧸ I)
     ((ideal.pi_quot_equiv _ _).symm ≪≫ₗ ((induced_equiv _ e) ≪≫ₗ (ideal.pi_quot_equiv _ _)))⟩
 
 end

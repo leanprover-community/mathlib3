@@ -9,7 +9,7 @@ Relator for functions, pairs, sums, and lists.
 import logic.basic
 
 namespace relator
-universe variables u₁ u₂ v₁ v₂
+universes u₁ u₂ v₁ v₂
 
 /- TODO(johoelzl):
  * should we introduce relators of datatypes as recursive function or as inductive

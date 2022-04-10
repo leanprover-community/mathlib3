@@ -3,10 +3,11 @@ Copyright (c) 2021 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import topology.paracompact
-import topology.shrinking_lemma
+import geometry.manifold.algebra.structures
 import geometry.manifold.bump_function
+import topology.paracompact
 import topology.partition_of_unity
+import topology.shrinking_lemma
 
 /-!
 # Smooth partition of unity
@@ -31,7 +32,7 @@ functions `f i : C^∞⟮I, M; 𝓘(ℝ), ℝ⟯`, `i : ι`, such that
 * for each `x`, the sum `∑ᶠ i, f i x` is less than or equal to one.
 
 We say that `f : smooth_bump_covering ι I M s` is *subordinate* to a map `U : M → set M` if for each
-index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
+index `i`, we have `tsupport (f i) ⊆ U (f i).c`. This notion is a bit more general than
 being subordinate to an open covering of `M`, because we make no assumption about the way `U x`
 depends on `x`.
 
@@ -122,8 +123,9 @@ namespace smooth_partition_of_unity
 
 variables {s : set M} (f : smooth_partition_of_unity ι I M s)
 
-instance {s : set M} : has_coe_to_fun (smooth_partition_of_unity ι I M s) :=
-⟨λ _, ι → C^∞⟮I, M; 𝓘(ℝ), ℝ⟯, smooth_partition_of_unity.to_fun⟩
+instance {s : set M} : has_coe_to_fun (smooth_partition_of_unity ι I M s)
+  (λ _, ι → C^∞⟮I, M; 𝓘(ℝ), ℝ⟯) :=
+⟨smooth_partition_of_unity.to_fun⟩
 
 protected lemma locally_finite : locally_finite (λ i, support (f i)) :=
 f.locally_finite'
@@ -148,7 +150,7 @@ lemma sum_nonneg (x : M) : 0 ≤ ∑ᶠ i, f i x := f.to_partition_of_unity.sum_
 /-- A smooth partition of unity `f i` is subordinate to a family of sets `U i` indexed by the same
 type if for each `i` the closure of the support of `f i` is a subset of `U i`. -/
 def is_subordinate (f : smooth_partition_of_unity ι I M s) (U : ι → set M) :=
-∀ i, closure (support (f i)) ⊆ U i
+∀ i, tsupport (f i) ⊆ U i
 
 @[simp] lemma is_subordinate_to_partition_of_unity {f : smooth_partition_of_unity ι I M s}
   {U : ι → set M} :
@@ -206,7 +208,9 @@ namespace smooth_bump_covering
 
 variables {s : set M} {U : M → set M} (fs : smooth_bump_covering ι I M s) {I}
 
-instance : has_coe_to_fun (smooth_bump_covering ι I M s) := ⟨_, to_fun⟩
+instance : has_coe_to_fun (smooth_bump_covering ι I M s)
+  (λ x, Π (i : ι), smooth_bump_function I (x.c i)) :=
+⟨to_fun⟩
 
 @[simp] lemma coe_mk (c : ι → M) (to_fun : Π i, smooth_bump_function I (c i))
   (h₁ h₂ h₃) : ⇑(mk c to_fun h₁ h₂ h₃ : smooth_bump_covering ι I M s) = to_fun :=
@@ -214,12 +218,12 @@ rfl
 
 /--
 We say that `f : smooth_bump_covering ι I M s` is *subordinate* to a map `U : M → set M` if for each
-index `i`, we have `closure (support (f i)) ⊆ U (f i).c`. This notion is a bit more general than
+index `i`, we have `tsupport (f i) ⊆ U (f i).c`. This notion is a bit more general than
 being subordinate to an open covering of `M`, because we make no assumption about the way `U x`
 depends on `x`.
 -/
 def is_subordinate {s : set M} (f : smooth_bump_covering ι I M s) (U : M → set M) :=
-∀ i, closure (support $ f i) ⊆ U (f.c i)
+∀ i, tsupport (f i) ⊆ U (f.c i)
 
 lemma is_subordinate.support_subset {fs : smooth_bump_covering ι I M s} {U : M → set M}
   (h : fs.is_subordinate U) (i : ι) :
@@ -253,7 +257,7 @@ begin
   { refine (mem_Union.1 $ hsV hx).imp (λ i hi, _),
     exact ((f i).update_r _ _).eventually_eq_one_of_dist_lt
       ((f i).support_subset_source $ hVf _ hi) (hr i hi).2 },
-  { simpa only [coe_mk, smooth_bump_function.support_update_r] using hfU i }
+  { simpa only [coe_mk, smooth_bump_function.support_update_r, tsupport] using hfU i }
 end
 
 variables {I M}
@@ -365,7 +369,7 @@ begin
   set g := f.to_smooth_partition_of_unity,
   refine ⟨⟨_, g.smooth_sum⟩, λ x hx, _, λ x, g.sum_eq_one, λ x, ⟨g.sum_nonneg x, g.sum_le_one x⟩⟩,
   suffices : ∀ i, g i x = 0,
-    by simp only [this, times_cont_mdiff_map.coe_fn_mk, finsum_zero, pi.zero_apply],
+    by simp only [this, cont_mdiff_map.coe_fn_mk, finsum_zero, pi.zero_apply],
   refine λ i, f.to_smooth_partition_of_unity_zero_of_zero _,
   exact nmem_support.1 (subset_compl_comm.1 (hf.support_subset i) hx)
 end
@@ -386,7 +390,7 @@ def single (i : ι) (s : set M) : smooth_partition_of_unity ι I M s :=
   end
 
 instance [inhabited ι] (s : set M) : inhabited (smooth_partition_of_unity ι I M s) :=
-⟨single (default ι) s⟩
+⟨single default s⟩
 
 variables [t2_space M] [sigma_compact_space M]
 

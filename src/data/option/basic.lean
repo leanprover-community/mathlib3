@@ -3,8 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import tactic.basic
 import logic.is_empty
+import tactic.basic
+import logic.relator
 
 /-!
 # Option of a type
@@ -69,6 +70,9 @@ by cases x; [contradiction, rw get_or_else_some]
 
 theorem mem_unique {o : option α} {a b : α} (ha : a ∈ o) (hb : b ∈ o) : a = b :=
 option.some.inj $ ha.symm.trans hb
+
+theorem eq_of_mem_of_mem {a : α} {o1 o2 : option α} (h1 : a ∈ o1) (h2 : a ∈ o2) : o1 = o2 :=
+h1.trans h2.symm
 
 theorem mem.left_unique : relator.left_unique ((∈) : α → option α → Prop) :=
 λ a o b, mem_unique
@@ -148,9 +152,13 @@ theorem map_none {α β} {f : α → β} : f <$> none = none := rfl
 
 theorem map_some {α β} {a : α} {f : α → β} : f <$> some a = some (f a) := rfl
 
+theorem map_coe {α β} {a : α} {f : α → β} : f <$> (a : option α) = ↑(f a) := rfl
+
 @[simp] theorem map_none' {f : α → β} : option.map f none = none := rfl
 
 @[simp] theorem map_some' {a : α} {f : α → β} : option.map f (some a) = some (f a) := rfl
+
+@[simp] theorem map_coe' {a : α} {f : α → β} : option.map f (a : option α) = ↑(f a) := rfl
 
 theorem map_eq_some {α β} {x : option α} {f : α → β} {b : β} :
   f <$> x = some b ↔ ∃ a, x = some a ∧ f a = b :=
@@ -375,9 +383,11 @@ theorem iget_of_mem [inhabited α] {a : α} : ∀ {o : option α}, a ∈ o → o
   guard p a = some b ↔ a = b ∧ p a :=
 by by_cases p a; simp [option.guard, h]; intro; contradiction
 
-@[simp] theorem guard_eq_some' {p : Prop} [decidable p] :
-  ∀ u, _root_.guard p = some u ↔ p
-| () := by by_cases p; simp [guard, h, pure]; intro; contradiction
+@[simp] theorem guard_eq_some' {p : Prop} [decidable p] (u) : _root_.guard p = some u ↔ p :=
+begin
+  cases u,
+  by_cases p; simp [_root_.guard, h]; refl <|> contradiction,
+end
 
 theorem lift_or_get_choice {f : α → α → α} (h : ∀ a b, f a b = a ∨ f a b = b) :
   ∀ o₁ o₂, lift_or_get f o₁ o₂ = o₁ ∨ lift_or_get f o₁ o₂ = o₂
@@ -414,6 +424,30 @@ by cases o; refl
 @[simp] lemma get_or_else_map (f : α → β) (x : α) (o : option α) :
   get_or_else (o.map f) (f x) = f (get_or_else o x) :=
 by cases o; refl
+
+lemma orelse_eq_some (o o' : option α) (x : α) :
+  (o <|> o') = some x ↔ o = some x ∨ (o = none ∧ o' = some x) :=
+begin
+  cases o,
+  { simp only [true_and, false_or, eq_self_iff_true, none_orelse] },
+  { simp only [some_orelse, or_false, false_and] }
+end
+
+lemma orelse_eq_some' (o o' : option α) (x : α) :
+  o.orelse o' = some x ↔ o = some x ∨ (o = none ∧ o' = some x) :=
+option.orelse_eq_some o o' x
+
+@[simp] lemma orelse_eq_none (o o' : option α) :
+  (o <|> o') = none ↔ (o = none ∧ o' = none) :=
+begin
+  cases o,
+  { simp only [true_and, none_orelse, eq_self_iff_true] },
+  { simp only [some_orelse, false_and], }
+end
+
+@[simp] lemma orelse_eq_none' (o o' : option α) :
+  o.orelse o' = none ↔ (o = none ∧ o' = none) :=
+option.orelse_eq_none o o'
 
 section
 open_locale classical

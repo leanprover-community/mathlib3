@@ -3,10 +3,10 @@ Copyright (c) 2021 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import data.set.finite
-import order.well_founded
+import data.set.pointwise
+import order.antichain
 import order.order_iso_nat
-import algebra.pointwise
+import order.well_founded
 
 /-!
 # Well-founded sets
@@ -38,6 +38,10 @@ A well-founded subset of an ordered type is one on which the relation `<` is wel
  * `set.is_wf.mono` shows that a subset of a well-founded subset is well-founded.
  * `set.is_wf.union` shows that the union of two well-founded subsets is well-founded.
  * `finset.is_wf` shows that all `finset`s are well-founded.
+
+## TODO
+
+Prove that `s` is partial well ordered iff it has no infinite descending chain or antichain.
 
 ## References
  * [Higman, *Ordering by Divisibility in Abstract Algebras*][Higman52]
@@ -130,8 +134,8 @@ variables [partial_order α] {s t : set α} {a : α}
 theorem is_wf_iff_no_descending_seq :
   is_wf s ↔ ∀ (f : (order_dual ℕ) ↪o α), ¬ (range f) ⊆ s :=
 begin
-  haveI : is_strict_order α (λ (a b : α), a < b ∧ a ∈ s ∧ b ∈ s) := {
-    to_is_irrefl := ⟨λ x con, lt_irrefl x con.1⟩,
+  haveI : is_strict_order α (λ (a b : α), a < b ∧ a ∈ s ∧ b ∈ s) :=
+  { to_is_irrefl := ⟨λ x con, lt_irrefl x con.1⟩,
     to_is_trans := ⟨λ a b c ab bc, ⟨lt_trans ab.1 bc.1, ab.2.1, bc.2.2⟩⟩, },
   rw [is_wf, well_founded_on_iff_no_descending_seq],
   exact ⟨λ h f, h f.lt_embedding, λ h f, h (order_embedding.of_strict_mono
@@ -186,6 +190,11 @@ theorem partially_well_ordered_on.mono {s t : set α} {r : α → α → Prop}
   s.partially_well_ordered_on r :=
 λ f hf, ht f (set.subset.trans hf hsub)
 
+theorem is_pwo.mono [preorder α] {s t : set α}
+  (ht : t.is_pwo) (hsub : s ⊆ t) :
+  s.is_pwo :=
+partially_well_ordered_on.mono ht hsub
+
 theorem partially_well_ordered_on.image_of_monotone_on {s : set α}
   {r : α → α → Prop} {β : Type*} {r' : β → β → Prop}
   (hs : s.partially_well_ordered_on r) {f : α → β}
@@ -200,6 +209,53 @@ theorem partially_well_ordered_on.image_of_monotone_on {s : set α}
     exact hf _ _ (classical.some_spec (h m)).1 (classical.some_spec (h n)).1 hmn },
   { rintros _ ⟨n, rfl⟩,
     exact (classical.some_spec (h n)).1 }
+end
+
+lemma _root_.is_antichain.finite_of_partially_well_ordered_on {s : set α} {r : α → α → Prop}
+  (ha : is_antichain r s) (hp : s.partially_well_ordered_on r) :
+  s.finite :=
+begin
+  refine finite_or_infinite.resolve_right (λ hi, _),
+  obtain ⟨m, n, hmn, h⟩ := hp (λ n, hi.nat_embedding _ n) (range_subset_iff.2 $
+    λ n, (hi.nat_embedding _ n).2),
+  exact hmn.ne ((hi.nat_embedding _).injective $ subtype.val_injective $
+    ha.eq (hi.nat_embedding _ m).2 (hi.nat_embedding _ n).2 h),
+end
+
+lemma finite.partially_well_ordered_on {s : set α} {r : α → α → Prop} [is_refl α r]
+  (hs : s.finite) :
+  s.partially_well_ordered_on r :=
+begin
+  intros f hf,
+  obtain ⟨m, n, hmn, h⟩ := hs.exists_lt_map_eq_of_range_subset hf,
+  exact ⟨m, n, hmn, h.subst $ refl (f m)⟩,
+end
+
+lemma _root_.is_antichain.partially_well_ordered_on_iff {s : set α} {r : α → α → Prop} [is_refl α r]
+  (hs : is_antichain r s) :
+  s.partially_well_ordered_on r ↔ s.finite :=
+⟨hs.finite_of_partially_well_ordered_on, finite.partially_well_ordered_on⟩
+
+lemma partially_well_ordered_on_iff_finite_antichains {s : set α} {r : α → α → Prop} [is_refl α r]
+  [is_symm α r] :
+  s.partially_well_ordered_on r ↔ ∀ t ⊆ s, is_antichain r t → t.finite :=
+begin
+  refine ⟨λ h t ht hrt, hrt.finite_of_partially_well_ordered_on (h.mono ht), _⟩,
+  rintro hs f hf,
+  by_contra' H,
+  refine set.infinite_range_of_injective (λ m n hmn, _) (hs _ hf _),
+  { obtain h | h | h := lt_trichotomy m n,
+    { refine (H _ _ h _).elim,
+      rw hmn,
+      exact refl _ },
+    { exact h },
+    { refine (H _ _ h _).elim,
+      rw hmn,
+      exact refl _ } },
+  rintro _ ⟨m, hm, rfl⟩ _ ⟨n, hn, rfl⟩ hmn,
+  obtain h | h  := (ne_of_apply_ne _ hmn).lt_or_lt,
+  { exact H _ _ h },
+  { exact mt symm (H _ _ h) }
 end
 
 section partial_order
@@ -268,7 +324,7 @@ partially_well_ordered_on_iff_exists_monotone_subseq
 
 lemma is_pwo.prod (hs : s.is_pwo)
   (ht : t.is_pwo) :
-  (s.prod t).is_pwo :=
+  (s ×ˢ t : set _).is_pwo :=
 begin
   classical,
   rw is_pwo_iff_exists_monotone_subseq at *,
@@ -350,22 +406,9 @@ end set
 
 namespace finset
 
-@[simp]
-theorem partially_well_ordered_on {r : α → α → Prop} [is_refl α r] (f : finset α) :
-  set.partially_well_ordered_on (↑f : set α) r :=
-begin
-  intros g hg,
-  by_cases hinj : function.injective g,
-  { exact (set.infinite_of_injective_forall_mem hinj (set.range_subset_iff.1 hg)
-      f.finite_to_set).elim },
-  { rw [function.injective] at hinj,
-    push_neg at hinj,
-    obtain ⟨m, n, gmgn, hne⟩ := hinj,
-    cases lt_or_gt_of_ne hne with hlt hlt;
-    { refine ⟨_, _, hlt, _⟩,
-      rw gmgn,
-      exact refl_of r _, } }
-end
+@[simp] lemma partially_well_ordered_on {r : α → α → Prop} [is_refl α r] (s : finset α) :
+  (s : set α).partially_well_ordered_on r :=
+s.finite_to_set.partially_well_ordered_on
 
 @[simp]
 theorem is_pwo [partial_order α] (f : finset α) :
@@ -428,35 +471,13 @@ eq_of_mem_singleton (is_wf.min_mem hs hn)
 
 end set
 
-@[simp]
 theorem finset.is_wf_sup {ι : Type*} [partial_order α] (f : finset ι) (g : ι → set α)
   (hf : ∀ i : ι, i ∈ f → (g i).is_wf) : (f.sup g).is_wf :=
-begin
-  classical,
-  revert hf,
-  apply f.induction_on,
-  { intro h,
-    simp [set.is_pwo_empty.is_wf], },
-  { intros s f sf hf hsf,
-    rw finset.sup_insert,
-    exact (hsf s (finset.mem_insert_self _ _)).union  (hf (λ s' s'f, hsf _
-      (finset.mem_insert_of_mem s'f))) }
-end
+finset.sup_induction set.is_pwo_empty.is_wf (λ a ha b hb, ha.union hb) hf
 
-@[simp]
 theorem finset.is_pwo_sup {ι : Type*} [partial_order α] (f : finset ι) (g : ι → set α)
   (hf : ∀ i : ι, i ∈ f → (g i).is_pwo) : (f.sup g).is_pwo :=
-begin
-  classical,
-  revert hf,
-  apply f.induction_on,
-  { intro h,
-    simp [set.is_pwo_empty.is_wf], },
-  { intros s f sf hf hsf,
-    rw finset.sup_insert,
-    exact (hsf s (finset.mem_insert_self _ _)).union  (hf (λ s' s'f, hsf _
-      (finset.mem_insert_of_mem s'f))) }
-end
+finset.sup_induction set.is_pwo_empty (λ a ha b hb, ha.union hb) hf
 
 namespace set
 variables [linear_order α] {s t : set α} {a : α}
@@ -581,7 +602,7 @@ begin
   { dsimp,
     rw [← subtype.val_eq_coe, h m n (le_of_lt mn)],
     convert (fs n).2.1.2 m n mn },
-  { convert (fs n).2.2 g (λ m mn, eq.trans _ (hg1 m mn)) (lt_of_lt_of_le hg2 (le_refl _)),
+  { convert (fs n).2.2 g (λ m mn, eq.trans _ (hg1 m mn)) (lt_of_lt_of_le hg2 le_rfl),
     rw ← h m n (le_of_lt mn) },
 end
 
@@ -619,7 +640,7 @@ begin
     exact λ n, hf1.1 (set.mem_range_self n) _ (list.head_mem_self (hnil n)) },
   have hf' := hf2 (g 0) (λ n, if n < g 0 then f n else list.tail (f (g (n - g 0))))
     (λ m hm, (if_pos hm).symm) _,
-  swap, { simp only [if_neg (lt_irrefl (g 0)), nat.sub_self],
+  swap, { simp only [if_neg (lt_irrefl (g 0)), tsub_self],
     rw [list.length_tail, ← nat.pred_eq_sub_one],
     exact nat.pred_lt (λ con, hnil _ (list.length_eq_zero.1 con)) },
   rw [is_bad_seq] at hf',
@@ -634,11 +655,11 @@ begin
   { apply hf1.2 m n mn,
     rwa [if_pos hn, if_pos (mn.trans hn)] at hmn },
   { obtain ⟨n', rfl⟩ := le_iff_exists_add.1 (not_lt.1 hn),
-    rw [if_neg hn, add_comm (g 0) n', nat.add_sub_cancel] at hmn,
+    rw [if_neg hn, add_comm (g 0) n', add_tsub_cancel_right] at hmn,
     split_ifs at hmn with hm hm,
     { apply hf1.2 m (g n') (lt_of_lt_of_le hm (g.monotone n'.zero_le)),
       exact trans hmn (list.tail_sublist_forall₂_self _) },
-    { rw [← (nat.sub_lt_left_iff_lt_add (le_of_not_lt hm))] at mn,
+    { rw [← (tsub_lt_iff_left (le_of_not_lt hm))] at mn,
       apply hf1.2 _ _ (g.lt_iff_lt.2 mn),
       rw [← list.cons_head_tail (hnil (g (m - g 0))), ← list.cons_head_tail (hnil (g n'))],
       exact list.sublist_forall₂.cons (hg _ _ (le_of_lt mn)) hmn, } }
@@ -856,3 +877,31 @@ end finset
 lemma well_founded.is_wf [has_lt α] (h : well_founded ((<) : α → α → Prop)) (s : set α) :
   s.is_wf :=
 (set.is_wf_univ_iff.2 h).mono (set.subset_univ s)
+
+/-- A version of **Dickson's lemma** any subset of functions `Π s : σ, α s` is partially well
+ordered, when `σ` is a `fintype` and each `α s` is a linear well order.
+This includes the classical case of Dickson's lemma that `ℕ ^ n` is a well partial order.
+Some generalizations would be possible based on this proof, to include cases where the target
+is partially well ordered, and also to consider the case of `partially_well_ordered_on` instead of
+`is_pwo`. -/
+lemma pi.is_pwo {σ : Type*} {α : σ → Type*} [∀ s, linear_order (α s)] [∀ s, is_well_order (α s) (<)]
+  [fintype σ] (S : set (Π s : σ, α s)) : S.is_pwo :=
+begin
+  classical,
+  refine set.is_pwo.mono _ (set.subset_univ _),
+  rw set.is_pwo_iff_exists_monotone_subseq,
+  simp_rw [monotone, pi.le_def],
+  suffices : ∀ s : finset σ, ∀ (f : ℕ → (Π s, α s)), set.range f ⊆ set.univ → ∃ (g : ℕ ↪o ℕ),
+    ∀ ⦃a b : ℕ⦄, a ≤ b → ∀ (x : σ) (hs : x ∈ s), (f ∘ g) a x ≤ (f ∘ g) b x,
+  { simpa only [forall_true_left, finset.mem_univ] using this finset.univ, },
+  apply' finset.induction,
+  { intros f hf, existsi rel_embedding.refl (≤),
+    simp only [forall_false_left, implies_true_iff, forall_const, finset.not_mem_empty], },
+  { intros x s hx ih f hf,
+    obtain ⟨g, hg⟩ := (is_well_order.wf.is_wf (set.univ : set _)).is_pwo.exists_monotone_subseq
+      ((λ mo : Π s : σ, α s, mo x) ∘ f) (set.subset_univ _),
+    obtain ⟨g', hg'⟩ := ih (f ∘ g) (set.subset_univ _),
+    refine ⟨g'.trans g, λ a b hab, _⟩,
+    simp only [finset.mem_insert, rel_embedding.coe_trans, function.comp_app, forall_eq_or_imp],
+    exact ⟨hg (order_hom_class.mono g' hab), hg' hab⟩, },
+end

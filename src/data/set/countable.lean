@@ -3,8 +3,8 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import data.equiv.list
 import data.set.finite
+import logic.equiv.list
 
 /-!
 # Countable sets
@@ -175,11 +175,26 @@ lemma countable.union
 by rw union_eq_Union; exact
 countable_Union (bool.forall_bool.2 ⟨h₂, h₁⟩)
 
+@[simp] lemma countable_union {s t : set α} : countable (s ∪ t) ↔ countable s ∧ countable t :=
+⟨λ h, ⟨h.mono (subset_union_left s t), h.mono (subset_union_right _ _)⟩, λ h, h.1.union h.2⟩
+
+@[simp] lemma countable_insert {s : set α} {a : α} : countable (insert a s) ↔ countable s :=
+by simp only [insert_eq, countable_union, countable_singleton, true_and]
+
 lemma countable.insert {s : set α} (a : α) (h : countable s) : countable (insert a s) :=
-by { rw [set.insert_eq], exact (countable_singleton _).union h }
+countable_insert.2 h
 
 lemma finite.countable {s : set α} : finite s → countable s
 | ⟨h⟩ := trunc.nonempty (by exactI trunc_encodable_of_fintype s)
+
+lemma subsingleton.countable {s : set α} (hs : s.subsingleton) : countable s :=
+hs.finite.countable
+
+lemma countable_is_top (α : Type*) [partial_order α] : countable {x : α | is_top x} :=
+(finite_is_top α).countable
+
+lemma countable_is_bot (α : Type*) [partial_order α] : countable {x : α | is_bot x} :=
+(finite_is_bot α).countable
 
 /-- The set of finite subsets of a countable set is countable. -/
 lemma countable_set_of_finite_subset {s : set α} : countable s →
@@ -206,15 +221,11 @@ trunc.induction_on this $ assume h,
 @countable_range _ _ h _
 
 protected lemma countable.prod {s : set α} {t : set β} (hs : countable s) (ht : countable t) :
-  countable (set.prod s t) :=
+  countable (s ×ˢ t) :=
 begin
   haveI : encodable s := hs.to_encodable,
   haveI : encodable t := ht.to_encodable,
-  haveI : encodable (s × t), { apply_instance },
-  have : range (prod.map coe coe : s × t → α × β) = set.prod s t,
-    by rw [range_prod_map, subtype.range_coe, subtype.range_coe],
-  rw ← this,
-  exact countable_range _
+  exact ⟨of_equiv (s × t) (equiv.set.prod _ _)⟩
 end
 
 lemma countable.image2 {s : set α} {t : set β} (hs : countable s) (ht : countable t)

@@ -51,11 +51,14 @@ variables {𝕜 s} {t : set E}
 lemma convex_hull_min (hst : s ⊆ t) (ht : convex 𝕜 t) : convex_hull 𝕜 s ⊆ t :=
 closure_operator.closure_le_mk₃_iff (show s ≤ t, from hst) ht
 
-lemma convex_hull_mono (hst : s ⊆ t) : convex_hull 𝕜 s ⊆ convex_hull 𝕜 t :=
+@[mono] lemma convex_hull_mono (hst : s ⊆ t) : convex_hull 𝕜 s ⊆ convex_hull 𝕜 t :=
 (convex_hull 𝕜).monotone hst
 
 lemma convex.convex_hull_eq {s : set E} (hs : convex 𝕜 s) : convex_hull 𝕜 s = s :=
 closure_operator.mem_mk₃_closed hs
+
+@[simp] lemma convex_hull_univ : convex_hull 𝕜 (univ : set E) = univ :=
+closure_operator.closure_top (convex_hull 𝕜)
 
 @[simp] lemma convex_hull_empty : convex_hull 𝕜 (∅ : set E) = ∅ := convex_empty.convex_hull_eq
 
@@ -126,7 +129,7 @@ section ordered_ring
 variables [ordered_ring 𝕜]
 
 section add_comm_group
-variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] {s : set E}
+variables [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜 F] (s : set E)
 
 lemma affine_map.image_convex_hull (f : E →ᵃ[𝕜] F) :
   f '' (convex_hull 𝕜 s) = convex_hull 𝕜 (f '' s) :=
@@ -138,6 +141,16 @@ begin
     exact subset_convex_hull 𝕜 (f '' s) },
   { exact convex_hull_min (set.image_subset _ (subset_convex_hull 𝕜 s))
     ((convex_convex_hull 𝕜 s).affine_image f) }
+end
+
+lemma convex_hull_subset_affine_span : convex_hull 𝕜 s ⊆ (affine_span 𝕜 s : set E) :=
+convex_hull_min (subset_affine_span 𝕜 s) (affine_span 𝕜 s).convex
+
+@[simp] lemma affine_span_convex_hull : affine_span 𝕜 (convex_hull 𝕜 s) = affine_span 𝕜 s :=
+begin
+  refine le_antisymm _ (affine_span_mono 𝕜 (subset_convex_hull 𝕜 s)),
+  rw affine_span_le,
+  exact convex_hull_subset_affine_span s,
 end
 
 end add_comm_group

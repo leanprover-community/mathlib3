@@ -63,6 +63,43 @@ universes u v w
 
 variables {K : Type u} {L : Type v} {M : Type w} [field K] [field L] [field M]
 
+/-- `subfield_class S K` states `S` is a type of subsets `s ⊆ K` closed under field operations. -/
+class subfield_class (S : Type*) (K : out_param $ Type*) [field K] [set_like S K]
+  extends subring_class S K, inv_mem_class S K.
+
+namespace subfield_class
+
+variables (S : Type*) [set_like S K] [h : subfield_class S K]
+include h
+
+/-- A subfield contains `1`, products and inverses.
+
+Be assured that we're not actually proving that subfields are subgroups:
+`subgroup_class` is really an abbreviation of `subgroup_with_or_without_zero_class`.
+ -/
+@[priority 100] -- See note [lower instance priority]
+instance subfield_class.to_subgroup_class : subgroup_class S K := { .. h }
+
+/-- A subfield inherits a field structure -/
+@[priority 75] -- Prefer subclasses of `field` over subclasses of `subfield_class`.
+instance to_field (s : S) : field s :=
+subtype.coe_injective.field (coe : s → K)
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+omit h
+
+/-- A subfield of a `linear_ordered_field` is a `linear_ordered_field`. -/
+@[priority 75] -- Prefer subclasses of `field` over subclasses of `subfield_class`.
+instance to_linear_ordered_field {K} [linear_ordered_field K] [set_like S K]
+  [subfield_class S K] (s : S) :
+  linear_ordered_field s :=
+subtype.coe_injective.linear_ordered_field coe
+  rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
+
+end subfield_class
+
 set_option old_structure_cmd true
 
 /-- `subfield R` is the type of subfields of `R`. A subfield of `R` is a subset `s` that is a
@@ -84,12 +121,32 @@ def to_add_subgroup (s : subfield K) : add_subgroup K :=
 def to_submonoid (s : subfield K) : submonoid K :=
 { ..s.to_subring.to_submonoid }
 
-
 instance : set_like (subfield K) K :=
 ⟨subfield.carrier, λ p q h, by cases p; cases q; congr'⟩
 
+instance : subfield_class (subfield K) K :=
+{ add_mem := add_mem',
+  zero_mem := zero_mem',
+  neg_mem := neg_mem',
+  mul_mem := mul_mem',
+  one_mem := one_mem',
+  inv_mem := inv_mem' }
+
 @[simp]
 lemma mem_carrier {s : subfield K} {x : K} : x ∈ s.carrier ↔ x ∈ s := iff.rfl
+
+@[simp]
+lemma mem_mk {S : set K} {x : K} (h₁ h₂ h₃ h₄ h₅ h₆) :
+  x ∈ (⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) ↔ x ∈ S := iff.rfl
+
+@[simp] lemma coe_set_mk (S : set K) (h₁ h₂ h₃ h₄ h₅ h₆) :
+  ((⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) : set K) = S := rfl
+
+@[simp]
+lemma mk_le_mk {S S' : set K} (h₁ h₂ h₃  h₄ h₅ h₆ h₁' h₂' h₃'  h₄' h₅' h₆') :
+  (⟨S, h₁, h₂, h₃, h₄, h₅, h₆⟩ : subfield K) ≤ (⟨S', h₁', h₂', h₃', h₄', h₅', h₆'⟩ : subfield K) ↔
+  S ⊆ S' :=
+iff.rfl
 
 /-- Two subfields are equal if they have the same elements. -/
 @[ext] theorem ext {S T : subfield K} (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := set_like.ext h
@@ -101,11 +158,14 @@ protected def copy (S : subfield K) (s : set K) (hs : s = ↑S) : subfield K :=
   inv_mem' := hs.symm ▸ S.inv_mem',
   ..S.to_subring.copy s hs }
 
+@[simp] lemma coe_copy (S : subfield K) (s : set K) (hs : s = ↑S) :
+  (S.copy s hs : set K) = s := rfl
+
+lemma copy_eq (S : subfield K) (s : set K) (hs : s = ↑S) : S.copy s hs = S :=
+set_like.coe_injective hs
+
 @[simp] lemma coe_to_subring (s : subfield K) : (s.to_subring : set K) = s :=
 rfl
-
-@[simp] lemma mem_mk (s : set K) (ho hm hz ha hn hi) (x : K) :
-  x ∈ subfield.mk s ho hm hz ha hn hi ↔ x ∈ s := iff.rfl
 
 @[simp] lemma mem_to_subring (s : subfield K) (x : K) :
   x ∈ s.to_subring ↔ x ∈ s := iff.rfl
@@ -121,81 +181,70 @@ namespace subfield
 
 variables (s t : subfield K)
 
-/-- A subfield contains the ring's 1. -/
-theorem one_mem : (1 : K) ∈ s := s.one_mem'
+section derived_from_subfield_class
 
-/-- A subfield contains the ring's 0. -/
-theorem zero_mem : (0 : K) ∈ s := s.zero_mem'
-
+/-- A subfield contains the field's 1. -/
+protected theorem one_mem : (1 : K) ∈ s := one_mem s
+/-- A subfield contains the field's 0. -/
+protected theorem zero_mem : (0 : K) ∈ s := zero_mem s
 /-- A subfield is closed under multiplication. -/
-theorem mul_mem : ∀ {x y : K}, x ∈ s → y ∈ s → x * y ∈ s := s.mul_mem'
-
+protected theorem mul_mem {x y : K} : x ∈ s → y ∈ s → x * y ∈ s := mul_mem
 /-- A subfield is closed under addition. -/
-theorem add_mem : ∀ {x y : K}, x ∈ s → y ∈ s → x + y ∈ s := s.add_mem'
-
+protected theorem add_mem {x y : K} : x ∈ s → y ∈ s → x + y ∈ s := add_mem
 /-- A subfield is closed under negation. -/
-theorem neg_mem : ∀ {x : K}, x ∈ s → -x ∈ s := s.neg_mem'
-
+protected theorem neg_mem {x : K} : x ∈ s → -x ∈ s := neg_mem
 /-- A subfield is closed under subtraction. -/
-theorem sub_mem {x y : K} : x ∈ s → y ∈ s → x - y ∈ s := s.to_subring.sub_mem
-
+protected theorem sub_mem {x y : K} : x ∈ s → y ∈ s → x - y ∈ s := sub_mem
 /-- A subfield is closed under inverses. -/
-theorem inv_mem : ∀ {x : K}, x ∈ s → x⁻¹ ∈ s := s.inv_mem'
-
+protected theorem inv_mem {x : K} : x ∈ s → x⁻¹ ∈ s := inv_mem
 /-- A subfield is closed under division. -/
-theorem div_mem {x y : K} (hx : x ∈ s) (hy : y ∈ s) : x / y ∈ s :=
-by { rw div_eq_mul_inv, exact s.mul_mem hx (s.inv_mem hy) }
-
+protected theorem div_mem {x y : K} : x ∈ s → y ∈ s → x / y ∈ s := div_mem
 /-- Product of a list of elements in a subfield is in the subfield. -/
-lemma list_prod_mem {l : list K} : (∀ x ∈ l, x ∈ s) → l.prod ∈ s :=
-s.to_submonoid.list_prod_mem
-
+protected lemma list_prod_mem {l : list K} : (∀ x ∈ l, x ∈ s) → l.prod ∈ s := list_prod_mem
 /-- Sum of a list of elements in a subfield is in the subfield. -/
-lemma list_sum_mem {l : list K} : (∀ x ∈ l, x ∈ s) → l.sum ∈ s :=
-s.to_add_subgroup.list_sum_mem
-
+protected lemma list_sum_mem {l : list K} : (∀ x ∈ l, x ∈ s) → l.sum ∈ s := list_sum_mem
 /-- Product of a multiset of elements in a subfield is in the subfield. -/
-lemma multiset_prod_mem (m : multiset K) :
-  (∀ a ∈ m, a ∈ s) → m.prod ∈ s :=
-s.to_submonoid.multiset_prod_mem m
-
+protected lemma multiset_prod_mem (m : multiset K) : (∀ a ∈ m, a ∈ s) → m.prod ∈ s :=
+multiset_prod_mem m
 /-- Sum of a multiset of elements in a `subfield` is in the `subfield`. -/
-lemma multiset_sum_mem (m : multiset K) :
-  (∀ a ∈ m, a ∈ s) → m.sum ∈ s :=
-s.to_add_subgroup.multiset_sum_mem m
-
+protected lemma multiset_sum_mem (m : multiset K) : (∀ a ∈ m, a ∈ s) → m.sum ∈ s :=
+multiset_sum_mem m
 /-- Product of elements of a subfield indexed by a `finset` is in the subfield. -/
-lemma prod_mem {ι : Type*} {t : finset ι} {f : ι → K} (h : ∀ c ∈ t, f c ∈ s) :
+protected lemma prod_mem {ι : Type*} {t : finset ι} {f : ι → K} (h : ∀ c ∈ t, f c ∈ s) :
   ∏ i in t, f i ∈ s :=
-s.to_submonoid.prod_mem h
-
+prod_mem h
 /-- Sum of elements in a `subfield` indexed by a `finset` is in the `subfield`. -/
-lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → K} (h : ∀ c ∈ t, f c ∈ s) :
+protected lemma sum_mem {ι : Type*} {t : finset ι} {f : ι → K} (h : ∀ c ∈ t, f c ∈ s) :
   ∑ i in t, f i ∈ s :=
-s.to_add_subgroup.sum_mem h
+sum_mem h
+protected lemma pow_mem {x : K} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem hx n
+protected lemma zsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) : n • x ∈ s := zsmul_mem hx n
+protected lemma coe_int_mem (n : ℤ) : (n : K) ∈ s := coe_int_mem s n
 
-lemma pow_mem {x : K} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
-
-lemma gsmul_mem {x : K} (hx : x ∈ s) (n : ℤ) :
-  n • x ∈ s := s.to_add_subgroup.gsmul_mem hx n
-
-lemma coe_int_mem (n : ℤ) : (n : K) ∈ s :=
-by simp only [← gsmul_one, gsmul_mem, one_mem]
+lemma zpow_mem {x : K} (hx : x ∈ s) (n : ℤ) : x^n ∈ s :=
+begin
+  cases n,
+  { simpa using s.pow_mem hx n },
+  { simpa [pow_succ] using s.inv_mem (s.mul_mem hx (s.pow_mem hx n)) },
+end
 
 instance : ring s := s.to_subring.to_ring
 instance : has_div s := ⟨λ x y, ⟨x / y, s.div_mem x.2 y.2⟩⟩
 instance : has_inv s := ⟨λ x, ⟨x⁻¹, s.inv_mem x.2⟩⟩
+instance : has_pow s ℤ := ⟨λ x z, ⟨x ^ z, s.zpow_mem x.2 z⟩⟩
 
 /-- A subfield inherits a field structure -/
 instance to_field : field s :=
 subtype.coe_injective.field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- A subfield of a `linear_ordered_field` is a `linear_ordered_field`. -/
 instance to_linear_ordered_field {K} [linear_ordered_field K] (s : subfield K) :
   linear_ordered_field s :=
 subtype.coe_injective.linear_ordered_field coe
   rfl rfl (λ _ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+  (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : K) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_sub (x y : s) : (↑(x - y) : K) = ↑x - ↑y := rfl
@@ -205,6 +254,8 @@ subtype.coe_injective.linear_ordered_field coe
 @[simp, norm_cast] lemma coe_inv (x : s) : (↑(x⁻¹) : K) = (↑x)⁻¹ := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : K) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : K) = 1 := rfl
+
+end derived_from_subfield_class
 
 /-- The embedding from a subfield of the field `K` to `K`. -/
 def subtype (s : subfield K) : s →+* K :=
@@ -406,7 +457,7 @@ def closure (s : set K) : subfield K :=
     obtain ⟨ny, hny, dy, hdy, rfl⟩ := id y_mem,
     exact ⟨nx * ny, subring.mul_mem _ hnx hny,
            dx * dy, subring.mul_mem _ hdx hdy,
-           (div_mul_div _ _ _ _).symm⟩
+           (div_mul_div_comm₀ _ _ _ _).symm⟩
   end }
 
 lemma mem_closure_iff {s : set K} {x} :
@@ -418,6 +469,9 @@ lemma subring_closure_le (s : set K) : subring.closure s ≤ (closure s).to_subr
 /-- The subfield generated by a set includes the set. -/
 @[simp] lemma subset_closure {s : set K} : s ⊆ closure s :=
 set.subset.trans subring.subset_closure (subring_closure_le s)
+
+lemma not_mem_of_not_mem_closure {s : set K} {P : K} (hP : P ∉ closure s) : P ∉ s :=
+λ h, hP (subset_closure h)
 
 lemma mem_closure {x : K} {s : set K} : x ∈ closure s ↔ ∀ S : subfield K, s ⊆ S → x ∈ S :=
 ⟨λ ⟨y, hy, z, hz, x_eq⟩ t le, x_eq ▸
@@ -450,8 +504,8 @@ lemma closure_induction {s : set K} {p : K → Prop} {x} (h : x ∈ closure s)
   (Hneg : ∀ x, p x → p (-x))
   (Hinv : ∀ x, p x → p (x⁻¹))
   (Hmul : ∀ x y, p x → p y → p (x * y)) : p x :=
-(@closure_le _ _ _ ⟨p, H1, Hmul,
-  @add_neg_self K _ 1 ▸ Hadd _ _ H1 (Hneg _ H1), Hadd, Hneg, Hinv⟩).2 Hs h
+(@closure_le _ _ _ ⟨p, Hmul, H1,
+  Hadd, @add_neg_self K _ 1 ▸ Hadd _ _ H1 (Hneg _ H1), Hneg, Hinv⟩).2 Hs h
 
 variable (K)
 /-- `closure` forms a Galois insertion with the coercion to set. -/

@@ -41,10 +41,11 @@ This means the infimum of subgroups will be defined to be the intersection of se
 with a proof that intersection of subgroups is a subgroup, rather than the closure of the
 intersection.
 -/
-open function set
+open function order set
 
 universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a a₁ a₂ : α} {b b₁ b₂ : β}
+variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {κ : ι → Sort*} {a a₁ a₂ : α}
+  {b b₁ b₂ : β}
 
 /-- A Galois connection is a pair of functions `l` and `u` satisfying
   `l a ≤ b ↔ a ≤ u b`. They are special cases of adjoint functors in category theory,
@@ -72,6 +73,9 @@ protected lemma dual {l : α → β} {u : β → α} (gc : galois_connection l u
     (order_dual.to_dual ∘ l ∘ order_dual.of_dual) :=
 λ a b, (gc b a).symm
 
+lemma le_iff_le {a : α} {b : β} : l a ≤ b ↔ a ≤ u b :=
+gc _ _
+
 lemma l_le {a : α} {b : β} : a ≤ u b → l a ≤ b :=
 (gc _ _).mpr
 
@@ -79,10 +83,10 @@ lemma le_u {a : α} {b : β} : l a ≤ b → a ≤ u b :=
 (gc _ _).mp
 
 lemma le_u_l (a) : a ≤ u (l a) :=
-gc.le_u $ le_refl _
+gc.le_u $ le_rfl
 
 lemma l_u_le (a) : l (u a) ≤ a :=
-gc.l_le $ le_refl _
+gc.l_le $ le_rfl
 
 lemma monotone_u : monotone u :=
 λ a b H, gc.le_u ((gc.l_u_le a).trans H)
@@ -109,11 +113,27 @@ lemma is_lub_l_image {s : set α} {a : α} (h : is_lub s a) : is_lub (l '' s) (l
 lemma is_glb_u_image {s : set β} {b : β} (h : is_glb s b) : is_glb (u '' s) (u b) :=
 gc.dual.is_lub_l_image h
 
-lemma is_glb_l {a : α} : is_glb { b | a ≤ u b } (l a) :=
-⟨λ b, gc.l_le, λ b h, h $ gc.le_u_l _⟩
+lemma is_least_l {a : α} : is_least {b | a ≤ u b} (l a) :=
+⟨gc.le_u_l _, λ b hb, gc.l_le hb⟩
 
-lemma is_lub_u {b : β} : is_lub { a | l a ≤ b } (u b) :=
-⟨λ b, gc.le_u, λ b h, h $ gc.l_u_le _⟩
+lemma is_greatest_u {b : β} : is_greatest {a | l a ≤ b} (u b) :=
+gc.dual.is_least_l
+
+lemma is_glb_l {a : α} : is_glb {b | a ≤ u b} (l a) := gc.is_least_l.is_glb
+
+lemma is_lub_u {b : β} : is_lub { a | l a ≤ b } (u b) := gc.is_greatest_u.is_lub
+
+/-- If `(l, u)` is a Galois connection, then the relation `x ≤ u (l y)` is a transitive relation.
+If `l` is a closure operator (`submodule.span`, `subgroup.closure`, ...) and `u` is the coercion to
+`set`, this reads as "if `U` is in the closure of `V` and `V` is in the closure of `W` then `U` is
+in the closure of `W`". -/
+lemma le_u_l_trans {x y z : α} (hxy : x ≤ u (l y)) (hyz : y ≤ u (l z)) :
+  x ≤ u (l z) :=
+hxy.trans (gc.monotone_u $ gc.l_le hyz)
+
+lemma l_u_le_trans {x y z : β} (hxy : l (u x) ≤ y) (hyz : l (u y) ≤ z) :
+  l (u x) ≤ z :=
+(gc.monotone_l $ gc.le_u hxy).trans hyz
 
 end
 
@@ -121,13 +141,29 @@ section partial_order
 variables [partial_order α] [preorder β] {l : α → β} {u : β → α} (gc : galois_connection l u)
 include gc
 
-lemma u_l_u_eq_u : u ∘ l ∘ u = u :=
-funext (λ x, (gc.monotone_u (gc.l_u_le _)).antisymm (gc.le_u_l _))
+lemma u_l_u_eq_u (b : β) : u (l (u b)) = u b :=
+(gc.monotone_u (gc.l_u_le _)).antisymm (gc.le_u_l _)
+
+lemma u_l_u_eq_u' : u ∘ l ∘ u = u := funext gc.u_l_u_eq_u
 
 lemma u_unique {l' : α → β} {u' : β → α} (gc' : galois_connection l' u')
   (hl : ∀ a, l a = l' a) {b : β} : u b = u' b :=
 le_antisymm (gc'.le_u $ hl (u b) ▸ gc.l_u_le _)
   (gc.le_u $ (hl (u' b)).symm ▸ gc'.l_u_le _)
+
+/-- If there exists a `b` such that `a = u a`, then `b = l a` is one such element. -/
+lemma exists_eq_u (a : α) : (∃ b : β, a = u b) ↔ a = u (l a) :=
+⟨λ ⟨S, hS⟩, hS.symm ▸ (gc.u_l_u_eq_u _).symm, λ HI, ⟨_, HI⟩ ⟩
+
+lemma u_eq {z : α} {y : β} :
+  u y = z ↔ ∀ x, x ≤ z ↔ l x ≤ y :=
+begin
+  split,
+  { rintros rfl x,
+    exact (gc x y).symm },
+  { intros H,
+    exact ((H $ u y).mpr (gc.l_u_le y)).antisymm ((gc _ _).mp $ (H z).mp le_rfl) }
+end
 
 end partial_order
 
@@ -135,18 +171,35 @@ section partial_order
 variables [preorder α] [partial_order β] {l : α → β} {u : β → α} (gc : galois_connection l u)
 include gc
 
-lemma l_u_l_eq_l : l ∘ u ∘ l = l :=
-funext (λ x, (gc.l_u_le _).antisymm (gc.monotone_l (gc.le_u_l _)))
+lemma l_u_l_eq_l (a : α) : l (u (l a)) = l a :=
+(gc.l_u_le _).antisymm (gc.monotone_l (gc.le_u_l _))
+
+lemma l_u_l_eq_l' : l ∘ u ∘ l = l := funext gc.l_u_l_eq_l
 
 lemma l_unique {l' : α → β} {u' : β → α} (gc' : galois_connection l' u')
   (hu : ∀ b, u b = u' b) {a : α} : l a = l' a :=
 le_antisymm (gc.l_le $ (hu (l' a)).symm ▸ gc'.le_u_l _)
   (gc'.l_le $ hu (l a) ▸ gc.le_u_l _)
 
+/-- If there exists an `a` such that `b = l a`, then `a = u b` is one such element. -/
+lemma exists_eq_l (b : β) : (∃ a : α, b = l a) ↔ b = l (u b) :=
+⟨λ ⟨S, hS⟩, hS.symm ▸ (gc.l_u_l_eq_l _).symm, λ HI, ⟨_, HI⟩ ⟩
+
+lemma l_eq  {x : α} {z : β} :
+  l x = z ↔ ∀ y, z ≤ y ↔ x ≤ u y :=
+begin
+  split,
+  { rintros rfl y,
+    exact gc x y },
+  { intros H,
+    exact ((gc _ _).mpr $ (H z).mp le_rfl).antisymm ((H $ l x).mpr (gc.le_u_l x)) }
+end
+
 end partial_order
 
 section order_top
-variables [order_top α] [order_top β] {l : α → β} {u : β → α} (gc : galois_connection l u)
+variables [partial_order α] [preorder β] [order_top α] [order_top β] {l : α → β} {u : β → α}
+  (gc : galois_connection l u)
 include gc
 
 lemma u_top : u ⊤ = ⊤ := top_unique $ gc.le_u le_top
@@ -154,7 +207,8 @@ lemma u_top : u ⊤ = ⊤ := top_unique $ gc.le_u le_top
 end order_top
 
 section order_bot
-variables [order_bot α] [order_bot β] {l : α → β} {u : β → α} (gc : galois_connection l u)
+variables [preorder α] [partial_order β] [order_bot α] [order_bot β] {l : α → β} {u : β → α}
+  (gc : galois_connection l u)
 include gc
 
 lemma l_bot : l ⊥ = ⊥ := gc.dual.u_top
@@ -185,18 +239,27 @@ variables [complete_lattice α] [complete_lattice β] {l : α → β} {u : β �
   (gc : galois_connection l u)
 include gc
 
-lemma l_supr {f : ι → α} : l (supr f) = (⨆i, l (f i)) :=
+lemma l_supr {f : ι → α} : l (supr f) = ⨆ i, l (f i) :=
 eq.symm $ is_lub.supr_eq $ show is_lub (range (l ∘ f)) (l (supr f)),
   by rw [range_comp, ← Sup_range]; exact gc.is_lub_l_image (is_lub_Sup _)
 
-lemma u_infi {f : ι → β} : u (infi f) = (⨅i, u (f i)) := gc.dual.l_supr
+lemma l_supr₂ {f : Π i, κ i → α} : l (⨆ i j, f i j) = ⨆ i j, l (f i j) := by simp_rw gc.l_supr
 
-lemma l_Sup {s : set α} : l (Sup s) = (⨆a ∈ s, l a) :=
-by simp only [Sup_eq_supr, gc.l_supr]
+lemma u_infi {f : ι → β} : u (infi f) = ⨅ i, u (f i) := gc.dual.l_supr
+lemma u_infi₂ {f : Π i, κ i → β} : u (⨅ i j, f i j) = ⨅ i j, u (f i j) := gc.dual.l_supr₂
 
-lemma u_Inf {s : set β} : u (Inf s) = (⨅a ∈ s, u a) := gc.dual.l_Sup
+lemma l_Sup {s : set α} : l (Sup s) = ⨆ a ∈ s, l a := by simp only [Sup_eq_supr, gc.l_supr]
+lemma u_Inf {s : set β} : u (Inf s) = ⨅ a ∈ s, u a := gc.dual.l_Sup
 
 end complete_lattice
+
+section linear_order
+variables [linear_order α] [linear_order β] {l : α → β} {u : β → α}
+  (gc : galois_connection l u)
+
+lemma lt_iff_lt {a : α} {b : β} : b < l a ↔ u b < a := lt_iff_lt_of_le_iff_le (gc a b)
+
+end linear_order
 
 /- Constructing Galois connections -/
 section constructions
@@ -205,7 +268,7 @@ protected lemma id [pα : preorder α] : @galois_connection α α pα pα id id 
 λ a b, iff.intro (λ x, x) (λ x, x)
 
 protected lemma compose [preorder α] [preorder β] [preorder γ]
-  (l1 : α → β) (u1 : β → α) (l2 : β → γ) (u2 : γ → β)
+  {l1 : α → β} {u1 : β → α} {l2 : β → γ} {u2 : γ → β}
   (gc1 : galois_connection l1 u1) (gc2 : galois_connection l2 u2) :
   galois_connection (l2 ∘ l1) (u1 ∘ u2) :=
 by intros a b; rw [gc2, gc1]
@@ -213,24 +276,46 @@ by intros a b; rw [gc2, gc1]
 protected lemma dfun {ι : Type u} {α : ι → Type v} {β : ι → Type w}
   [∀ i, preorder (α i)] [∀ i, preorder (β i)]
   (l : Πi, α i → β i) (u : Πi, β i → α i) (gc : ∀ i, galois_connection (l i) (u i)) :
-  @galois_connection (Π i, α i) (Π i, β i) _ _ (λ a i, l i (a i)) (λ b i, u i (b i)) :=
+  galois_connection (λ (a : Π i, α i) i, l i (a i)) (λ b i, u i (b i)) :=
 λ a b, forall_congr $ λ i, gc i (a i) (b i)
 
 end constructions
+
+lemma l_comm_of_u_comm
+  {X : Type*} [preorder X] {Y : Type*} [preorder Y]
+  {Z : Type*} [preorder Z] {W : Type*} [partial_order W]
+  {lYX : X → Y} {uXY : Y → X} (hXY : galois_connection lYX uXY)
+  {lWZ : Z → W} {uZW : W → Z} (hZW : galois_connection lWZ uZW)
+  {lWY : Y → W} {uYW : W → Y} (hWY : galois_connection lWY uYW)
+  {lZX : X → Z} {uXZ : Z → X} (hXZ : galois_connection lZX uXZ)
+  (h : ∀ w, uXZ (uZW w) = uXY (uYW w)) {x : X} : lWZ (lZX x) = lWY (lYX x) :=
+(hXZ.compose hZW).l_unique (hXY.compose hWY) h
+
+lemma u_comm_of_l_comm
+  {X : Type*} [partial_order X] {Y : Type*} [preorder Y]
+  {Z : Type*} [preorder Z] {W : Type*} [preorder W]
+  {lYX : X → Y} {uXY : Y → X} (hXY : galois_connection lYX uXY)
+  {lWZ : Z → W} {uZW : W → Z} (hZW : galois_connection lWZ uZW)
+  {lWY : Y → W} {uYW : W → Y} (hWY : galois_connection lWY uYW)
+  {lZX : X → Z} {uXZ : Z → X} (hXZ : galois_connection lZX uXZ)
+  (h : ∀ x, lWZ (lZX x) = lWY (lYX x)) {w : W} : uXZ (uZW w) = uXY (uYW w) :=
+(hXZ.compose hZW).u_unique (hXY.compose hWY) h
+
+lemma l_comm_iff_u_comm
+  {X : Type*} [partial_order X] {Y : Type*} [preorder Y]
+  {Z : Type*} [preorder Z] {W : Type*} [partial_order W]
+  {lYX : X → Y} {uXY : Y → X} (hXY : galois_connection lYX uXY)
+  {lWZ : Z → W} {uZW : W → Z} (hZW : galois_connection lWZ uZW)
+  {lWY : Y → W} {uYW : W → Y} (hWY : galois_connection lWY uYW)
+  {lZX : X → Z} {uXZ : Z → X} (hXZ : galois_connection lZX uXZ) :
+  (∀ w : W, uXZ (uZW w) = uXY (uYW w)) ↔ ∀ x : X, lWZ (lZX x) = lWY (lYX x) :=
+⟨hXY.l_comm_of_u_comm hZW hWY hXZ, hXY.u_comm_of_l_comm hZW hWY hXZ⟩
 
 end galois_connection
 
 namespace order_iso
 
 variables [preorder α] [preorder β]
-
-@[simp] lemma upper_bounds_image (e : α ≃o β) (s : set α) :
-  upper_bounds (e '' s) = e.symm ⁻¹' upper_bounds s :=
-e.to_galois_connection.upper_bounds_l_image s
-
-@[simp] lemma lower_bounds_image (e : α ≃o β) (s : set α) :
-  lower_bounds (e '' s) = e.symm ⁻¹' lower_bounds s :=
-e.dual.upper_bounds_image s
 
 @[simp] lemma bdd_above_image (e : α ≃o β) {s : set α} : bdd_above (e '' s) ↔ bdd_above s :=
 e.to_galois_connection.bdd_above_l_image
@@ -290,12 +375,11 @@ def galois_connection.to_galois_insertion {α β : Type*} [preorder α] [preorde
   choice_eq := λ _ _, rfl }
 
 /-- Lift the bottom along a Galois connection -/
-def galois_connection.lift_order_bot {α β : Type*} [order_bot α] [partial_order β]
+def galois_connection.lift_order_bot {α β : Type*} [preorder α] [order_bot α] [partial_order β]
   {l : α → β} {u : β → α} (gc : galois_connection l u) :
   order_bot β :=
 { bot    := l ⊥,
-  bot_le := λ b, gc.l_le $ bot_le,
-  .. ‹partial_order β› }
+  bot_le := λ b, gc.l_le $ bot_le }
 
 namespace galois_insertion
 
@@ -328,6 +412,15 @@ lemma l_supr_u [complete_lattice α] [complete_lattice β] (gi : galois_insertio
 calc l (⨆ (i : ι), u (f i)) = ⨆ (i : ι), l (u (f i)) : gi.gc.l_supr
                         ... = ⨆ (i : ι), f i : congr_arg _ $ funext $ λ i, gi.l_u_eq (f i)
 
+lemma l_bsupr_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  {ι : Sort x} {p : ι → Prop} (f : Π i (hi : p i), β) :
+  l (⨆ i hi, u (f i hi)) = ⨆ i hi, f i hi :=
+by simp only [supr_subtype', gi.l_supr_u]
+
+lemma l_Sup_u_image [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  (s : set β) : l (Sup (u '' s)) = Sup s :=
+by rw [Sup_image, gi.l_bsupr_u, Sup_eq_supr]
+
 lemma l_inf_u [semilattice_inf α] [semilattice_inf β] (gi : galois_insertion l u) (a b : β) :
   l (u a ⊓ u b) = a ⊓ b :=
 calc l (u a ⊓ u b) = l (u (a ⊓ b)) : congr_arg l gi.gc.u_inf.symm
@@ -335,15 +428,29 @@ calc l (u a ⊓ u b) = l (u (a ⊓ b)) : congr_arg l gi.gc.u_inf.symm
 
 lemma l_infi_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
   {ι : Sort x} (f : ι → β) :
-  l (⨅ i, u (f i)) = ⨅ i, (f i) :=
+  l (⨅ i, u (f i)) = ⨅ i, f i :=
 calc l (⨅ (i : ι), u (f i)) = l (u (⨅ (i : ι), (f i))) : congr_arg l gi.gc.u_infi.symm
                         ... = ⨅ (i : ι), f i : gi.l_u_eq _
 
+lemma l_binfi_u [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  {ι : Sort x} {p : ι → Prop} (f : Π i (hi : p i), β) :
+  l (⨅ i hi, u (f i hi)) = ⨅ i hi, f i hi :=
+by simp only [infi_subtype', gi.l_infi_u]
+
+lemma l_Inf_u_image [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  (s : set β) : l (Inf (u '' s)) = Inf s :=
+by rw [Inf_image, gi.l_binfi_u, Inf_eq_infi]
+
 lemma l_infi_of_ul_eq_self [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
   {ι : Sort x} (f : ι → α) (hf : ∀ i, u (l (f i)) = f i) :
-  l (⨅ i, (f i)) = ⨅ i, l (f i) :=
+  l (⨅ i, f i) = ⨅ i, l (f i) :=
 calc l (⨅ i, (f i)) =  l ⨅ (i : ι), (u (l (f i))) : by simp [hf]
                 ... = ⨅ i, l (f i) : gi.l_infi_u _
+
+lemma l_binfi_of_ul_eq_self [complete_lattice α] [complete_lattice β] (gi : galois_insertion l u)
+  {ι : Sort x} {p : ι → Prop} (f : Π i (hi : p i), α) (hf : ∀ i hi, u (l (f i hi)) = f i hi) :
+  l (⨅ i hi, f i hi) = ⨅ i hi, l (f i hi) :=
+by { rw [infi_subtype', infi_subtype'], exact gi.l_infi_of_ul_eq_self _ (λ _, hf _ _) }
 
 lemma u_le_u_iff [preorder α] [preorder β] (gi : galois_insertion l u) {a b} :
   u a ≤ u b ↔ a ≤ b :=
@@ -369,6 +476,7 @@ section lift
 variables [partial_order β]
 
 /-- Lift the suprema along a Galois insertion -/
+@[reducible] -- See note [reducible non instances]
 def lift_semilattice_sup [semilattice_sup α] (gi : galois_insertion l u) : semilattice_sup β :=
 { sup := λ a b, l (u a ⊔ u b),
   le_sup_left  := λ a b, (gi.le_l_u a).trans $ gi.gc.monotone_l $ le_sup_left,
@@ -378,6 +486,7 @@ def lift_semilattice_sup [semilattice_sup α] (gi : galois_insertion l u) : semi
   .. ‹partial_order β› }
 
 /-- Lift the infima along a Galois insertion -/
+@[reducible] -- See note [reducible non instances]
 def lift_semilattice_inf [semilattice_inf α] (gi : galois_insertion l u) : semilattice_inf β :=
 { inf := λ a b, gi.choice (u a ⊓ u b) $
     (le_inf (gi.gc.monotone_u $ gi.gc.l_le $ inf_le_left)
@@ -389,20 +498,24 @@ def lift_semilattice_inf [semilattice_inf α] (gi : galois_insertion l u) : semi
   .. ‹partial_order β› }
 
 /-- Lift the suprema and infima along a Galois insertion -/
+@[reducible] -- See note [reducible non instances]
 def lift_lattice [lattice α] (gi : galois_insertion l u) : lattice β :=
 { .. gi.lift_semilattice_sup, .. gi.lift_semilattice_inf }
 
 /-- Lift the top along a Galois insertion -/
-def lift_order_top [order_top α] (gi : galois_insertion l u) : order_top β :=
+@[reducible] -- See note [reducible non instances]
+def lift_order_top [preorder α] [order_top α] (gi : galois_insertion l u) : order_top β :=
 { top    := gi.choice ⊤ $ le_top,
-  le_top := by simp only [gi.choice_eq]; exact λ b, (gi.le_l_u b).trans (gi.gc.monotone_l le_top),
-  .. ‹partial_order β› }
+  le_top := by simp only [gi.choice_eq]; exact λ b, (gi.le_l_u b).trans (gi.gc.monotone_l le_top) }
 
 /-- Lift the top, bottom, suprema, and infima along a Galois insertion -/
-def lift_bounded_lattice [bounded_lattice α] (gi : galois_insertion l u) : bounded_lattice β :=
-{ .. gi.lift_lattice, .. gi.lift_order_top, .. gi.gc.lift_order_bot }
+@[reducible] -- See note [reducible non instances]
+def lift_bounded_order [preorder α] [bounded_order α]
+  (gi : galois_insertion l u) : bounded_order β :=
+{ .. gi.lift_order_top, .. gi.gc.lift_order_bot }
 
 /-- Lift all suprema and infima along a Galois insertion -/
+@[reducible] -- See note [reducible non instances]
 def lift_complete_lattice [complete_lattice α] (gi : galois_insertion l u) : complete_lattice β :=
 { Sup := λ s, l (Sup (u '' s)),
   Sup_le := λ s, (gi.is_lub_of_u_image (is_lub_Sup _)).2,
@@ -411,7 +524,8 @@ def lift_complete_lattice [complete_lattice α] (gi : galois_insertion l u) : co
     (gi.is_glb_of_u_image $ is_glb_Inf _) (is_glb_Inf _),
   Inf_le := λ s, by { rw gi.choice_eq, exact (gi.is_glb_of_u_image (is_glb_Inf _)).1 },
   le_Inf := λ s, by { rw gi.choice_eq, exact (gi.is_glb_of_u_image (is_glb_Inf _)).2 },
-  .. gi.lift_bounded_lattice }
+  .. gi.lift_bounded_order,
+  .. gi.lift_lattice }
 
 end lift
 
@@ -472,12 +586,11 @@ def galois_connection.to_galois_coinsertion {α β : Type*} [preorder α] [preor
   choice_eq := λ _ _, rfl }
 
 /-- Lift the top along a Galois connection -/
-def galois_connection.lift_order_top {α β : Type*} [partial_order α] [order_top β]
+def galois_connection.lift_order_top {α β : Type*} [partial_order α] [preorder β] [order_top β]
   {l : α → β} {u : β → α} (gc : galois_connection l u) :
   order_top α :=
 { top    := u ⊤,
-  le_top := λ b, gc.le_u $ le_top,
-  .. ‹partial_order α› }
+  le_top := λ b, gc.le_u $ le_top }
 
 namespace galois_coinsertion
 
@@ -508,6 +621,10 @@ lemma u_infi_l [complete_lattice α] [complete_lattice β] (gi : galois_coinsert
   u (⨅ i, l (f i)) = ⨅ i, (f i) :=
 gi.dual.l_supr_u _
 
+lemma u_Inf_l_image [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u)
+  (s : set α) : u (Inf (l '' s)) = Inf s :=
+gi.dual.l_Sup_u_image _
+
 lemma u_sup_l [semilattice_sup α] [semilattice_sup β] (gi : galois_coinsertion l u) (a b : α) :
   u (l a ⊔ l b) = a ⊔ b :=
 gi.dual.l_inf_u _ _
@@ -517,16 +634,30 @@ lemma u_supr_l [complete_lattice α] [complete_lattice β] (gi : galois_coinsert
   u (⨆ i, l (f i)) = ⨆ i, (f i) :=
 gi.dual.l_infi_u _
 
+lemma u_bsupr_l [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u)
+  {ι : Sort x} {p : ι → Prop} (f : Π i (hi : p i), α) :
+  u (⨆ i hi, l (f i hi)) = ⨆ i hi, f i hi :=
+gi.dual.l_binfi_u _
+
+lemma u_Sup_l_image [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u)
+  (s : set α) : u (Sup (l '' s)) = Sup s :=
+gi.dual.l_Inf_u_image _
+
 lemma u_supr_of_lu_eq_self [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u)
   {ι : Sort x} (f : ι → β) (hf : ∀ i, l (u (f i)) = f i) :
   u (⨆ i, (f i)) = ⨆ i, u (f i) :=
 gi.dual.l_infi_of_ul_eq_self _ hf
 
+lemma u_bsupr_of_lu_eq_self [complete_lattice α] [complete_lattice β] (gi : galois_coinsertion l u)
+  {ι : Sort x} {p : ι → Prop} (f : Π i (hi : p i), β) (hf : ∀ i hi, l (u (f i hi)) = f i hi) :
+  u (⨆ i hi, f i hi) = ⨆ i hi, u (f i hi) :=
+gi.dual.l_binfi_of_ul_eq_self _ hf
+
 lemma l_le_l_iff [preorder α] [preorder β] (gi : galois_coinsertion l u) {a b} :
   l a ≤ l b ↔ a ≤ b :=
 gi.dual.u_le_u_iff
 
-lemma strict_mono_l [partial_order α] [preorder β] (gi : galois_coinsertion l u) : strict_mono l :=
+lemma strict_mono_l [preorder α] [preorder β] (gi : galois_coinsertion l u) : strict_mono l :=
 λ a b h, gi.dual.strict_mono_u h
 
 lemma is_glb_of_l_image [preorder α] [preorder β] (gi : galois_coinsertion l u) {s : set α} {a : β}
@@ -543,11 +674,13 @@ section lift
 variables [partial_order α]
 
 /-- Lift the infima along a Galois coinsertion -/
+@[reducible] -- See note [reducible non instances]
 def lift_semilattice_inf [semilattice_inf β] (gi : galois_coinsertion l u) : semilattice_inf α :=
 { inf := λ a b, u (l a ⊓ l b),
   .. ‹partial_order α›, .. @order_dual.semilattice_inf _ gi.dual.lift_semilattice_sup }
 
 /-- Lift the suprema along a Galois coinsertion -/
+@[reducible] -- See note [reducible non instances]
 def lift_semilattice_sup [semilattice_sup β] (gi : galois_coinsertion l u) : semilattice_sup α :=
 { sup := λ a b, gi.choice (l a ⊔ l b) $
     (sup_le (gi.gc.monotone_l $ gi.gc.le_u $ le_sup_left)
@@ -555,23 +688,28 @@ def lift_semilattice_sup [semilattice_sup β] (gi : galois_coinsertion l u) : se
   .. ‹partial_order α›, .. @order_dual.semilattice_sup _ gi.dual.lift_semilattice_inf }
 
 /-- Lift the suprema and infima along a Galois coinsertion -/
+@[reducible] -- See note [reducible non instances]
 def lift_lattice [lattice β] (gi : galois_coinsertion l u) : lattice α :=
 { .. gi.lift_semilattice_sup, .. gi.lift_semilattice_inf }
 
 /-- Lift the bot along a Galois coinsertion -/
-def lift_order_bot [order_bot β] (gi : galois_coinsertion l u) : order_bot α :=
+@[reducible] -- See note [reducible non instances]
+def lift_order_bot [preorder β] [order_bot β] (gi : galois_coinsertion l u) : order_bot α :=
 { bot    := gi.choice ⊥ $ bot_le,
-  .. ‹partial_order α›, .. @order_dual.order_bot _ gi.dual.lift_order_top }
+  .. @order_dual.order_bot _ _ gi.dual.lift_order_top }
 
 /-- Lift the top, bottom, suprema, and infima along a Galois coinsertion -/
-def lift_bounded_lattice [bounded_lattice β] (gi : galois_coinsertion l u) : bounded_lattice α :=
-{ .. gi.lift_lattice, .. gi.lift_order_bot, .. gi.gc.lift_order_top }
+@[reducible] -- See note [reducible non instances]
+def lift_bounded_order [preorder β] [bounded_order β]
+  (gi : galois_coinsertion l u) : bounded_order α :=
+{ .. gi.lift_order_bot, .. gi.gc.lift_order_top }
 
 /-- Lift all suprema and infima along a Galois coinsertion -/
+@[reducible] -- See note [reducible non instances]
 def lift_complete_lattice [complete_lattice β] (gi : galois_coinsertion l u) : complete_lattice α :=
 { Inf := λ s, u (Inf (l '' s)),
   Sup := λ s, gi.choice (Sup (l '' s)) _,
-  .. gi.lift_bounded_lattice, .. @order_dual.complete_lattice _ gi.dual.lift_complete_lattice }
+  .. @order_dual.complete_lattice _ gi.dual.lift_complete_lattice }
 
 end lift
 
@@ -579,7 +717,7 @@ end galois_coinsertion
 
 /-- If `α` is a partial order with bottom element (e.g., `ℕ`, `ℝ≥0`), then
 `λ o : with_bot α, o.get_or_else ⊥` and coercion form a Galois insertion. -/
-def with_bot.gi_get_or_else_bot [order_bot α] :
+def with_bot.gi_get_or_else_bot [preorder α] [order_bot α] :
   galois_insertion (λ o : with_bot α, o.get_or_else ⊥) coe :=
 { gc := λ a b, with_bot.get_or_else_bot_le_iff,
   le_l_u := λ a, le_rfl,

@@ -4,9 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 import group_theory.congruence
-import group_theory.submonoid
+import group_theory.submonoid.membership
 import algebra.group.units
-import algebra.punit_instances
 
 /-!
 # Localizations of commutative monoids
@@ -63,7 +62,7 @@ about the `localization_map.mk'` induced by any localization map.
 localization, monoid localization, quotient monoid, congruence relation, characteristic predicate,
 commutative monoid
 -/
-set_option old_structure_cmd true
+
 namespace add_submonoid
 variables {M : Type*} [add_comm_monoid M] (S : add_submonoid M) (N : Type*) [add_comm_monoid N]
 
@@ -258,6 +257,7 @@ attribute [irreducible] localization
 
 @[to_additive] lemma mk_mul (a c : M) (b d : S) : mk a b * mk c d = mk (a * c) (b * d) := rfl
 @[to_additive] lemma mk_one : mk 1 (1 : S) = 1 := rfl
+@[to_additive] lemma mk_pow (n : ℕ) (a : M) (b : S) : (mk a b) ^ n = mk (a ^ n) (b ^ n) := rfl
 
 @[simp, to_additive] lemma rec_mk {p : localization S → Sort u}
   (f : ∀ (a : M) (b : S), p (mk a b)) (H) (a : M) (b : S) :
@@ -327,6 +327,74 @@ r_iff_exists.2 ⟨1, by rw h⟩
 @[to_additive] lemma mk_self (a : S) : mk (a : M) a = 1 :=
 by { symmetry, rw [← mk_one, mk_eq_mk_iff], exact one_rel a }
 
+section scalar
+
+variables {R R₁ R₂ : Type*}
+
+/-- Scalar multiplication in a monoid localization is defined as `c • ⟨a, b⟩ = ⟨c • a, b⟩`. -/
+@[irreducible] protected def smul [has_scalar R M] [is_scalar_tower R M M]
+  (c : R) (z : localization S) : localization S :=
+localization.lift_on z (λ a b, mk (c • a) b) $
+  λ a a' b b' h, mk_eq_mk_iff.2
+begin
+  cases b with b hb,
+  cases b' with b' hb',
+  rw r_eq_r' at h ⊢,
+  cases h with t ht,
+  use t,
+  simp only [smul_mul_assoc, ht]
+end
+
+instance [has_scalar R M] [is_scalar_tower R M M] :
+  has_scalar R (localization S) :=
+{ smul := localization.smul }
+
+lemma smul_mk [has_scalar R M] [is_scalar_tower R M M] (c : R) (a b) :
+  c • (mk a b : localization S) = mk (c • a) b :=
+by { unfold has_scalar.smul localization.smul, apply lift_on_mk }
+
+instance [has_scalar R₁ M] [has_scalar R₂ M] [is_scalar_tower R₁ M M] [is_scalar_tower R₂ M M]
+  [smul_comm_class R₁ R₂ M] : smul_comm_class R₁ R₂ (localization S) :=
+{ smul_comm := λ s t, localization.ind $ prod.rec $ by exact λ r x,
+    by simp only [smul_mk, smul_comm s t r] }
+
+instance [has_scalar R₁ M] [has_scalar R₂ M] [is_scalar_tower R₁ M M] [is_scalar_tower R₂ M M]
+  [has_scalar R₁ R₂] [is_scalar_tower R₁ R₂ M] : is_scalar_tower R₁ R₂ (localization S) :=
+{ smul_assoc := λ s t, localization.ind $ prod.rec $ by exact λ r x,
+    by simp only [smul_mk, smul_assoc s t r] }
+
+instance smul_comm_class_right {R : Type*} [has_scalar R M] [is_scalar_tower R M M] :
+  smul_comm_class R (localization S) (localization S) :=
+{ smul_comm := λ s, localization.ind $ prod.rec $ by exact λ r₁ x₁,
+                    localization.ind $ prod.rec $ by exact λ r₂ x₂,
+    by simp only [smul_mk, smul_eq_mul, mk_mul, mul_comm r₁, smul_mul_assoc] }
+
+instance is_scalar_tower_right {R : Type*} [has_scalar R M] [is_scalar_tower R M M] :
+  is_scalar_tower R (localization S) (localization S) :=
+{ smul_assoc := λ s, localization.ind $ prod.rec $ by exact λ r₁ x₁,
+                     localization.ind $ prod.rec $ by exact λ r₂ x₂,
+    by simp only [smul_mk, smul_eq_mul, mk_mul, smul_mul_assoc] }
+
+instance [has_scalar R M] [has_scalar Rᵐᵒᵖ M]  [is_scalar_tower R M M] [is_scalar_tower Rᵐᵒᵖ M M]
+  [is_central_scalar R M] : is_central_scalar R (localization S) :=
+{ op_smul_eq_smul := λ s, localization.ind $ prod.rec $ by exact λ r x,
+    by simp only [smul_mk, op_smul_eq_smul] }
+
+instance [monoid R] [mul_action R M] [is_scalar_tower R M M] : mul_action R (localization S) :=
+{ one_smul := localization.ind $ prod.rec $
+    by { intros, simp only [localization.smul_mk, one_smul] },
+  mul_smul := λ s₁ s₂, localization.ind $ prod.rec $
+    by { intros, simp only [localization.smul_mk, mul_smul] } }
+
+instance [monoid R] [mul_distrib_mul_action R M] [is_scalar_tower R M M] :
+  mul_distrib_mul_action R (localization S) :=
+{ smul_one := λ s, by simp only [←localization.mk_one, localization.smul_mk, smul_one],
+  smul_mul := λ s x y, localization.induction_on₂ x y $
+    prod.rec $ by exact λ r₁ x₁, prod.rec $ by exact λ r₂ x₂,
+      by simp only [localization.smul_mk, localization.mk_mul, smul_mul']}
+
+end scalar
+
 end localization
 
 variables {S N}
@@ -351,11 +419,9 @@ namespace localization_map
 @[to_additive "Short for `to_add_monoid_hom`; used to apply a localization map as a function."]
 abbreviation to_map (f : localization_map S N) := f.to_monoid_hom
 
-@[to_additive, ext] lemma ext {f g : localization_map S N} (h : ∀ x, f.to_map x = g.to_map x) :
+@[ext, to_additive] lemma ext {f g : localization_map S N} (h : ∀ x, f.to_map x = g.to_map x) :
   f = g :=
-by cases f; cases g; simp only; exact funext h
-
-attribute [ext] add_submonoid.localization_map.ext
+by { rcases f with ⟨⟨⟩⟩, rcases g with ⟨⟨⟩⟩, simp only, exact funext h, }
 
 @[to_additive] lemma ext_iff {f g : localization_map S N} :
   f = g ↔ ∀ x, f.to_map x = g.to_map x :=
@@ -366,13 +432,13 @@ attribute [ext] add_submonoid.localization_map.ext
 λ _ _ h, ext $ monoid_hom.ext_iff.1 h
 
 @[to_additive] lemma map_units (f : localization_map S N) (y : S) :
-  is_unit (f.to_map y) := f.4 y
+  is_unit (f.to_map y) := f.2 y
 
 @[to_additive] lemma surj (f : localization_map S N) (z : N) :
-  ∃ x : M × S, z * f.to_map x.2 = f.to_map x.1 := f.5 z
+  ∃ x : M × S, z * f.to_map x.2 = f.to_map x.1 := f.3 z
 
 @[to_additive] lemma eq_iff_exists (f : localization_map S N) {x y} :
-  f.to_map x = f.to_map y ↔ ∃ c : S, x * c = y * c := f.6 x y
+  f.to_map x = f.to_map y ↔ ∃ c : S, x * c = y * c := f.4 x y
 
 /-- Given a localization map `f : M →* N`, a section function sending `z : N` to some
 `(x, y) : M × S` such that `f x * (f y)⁻¹ = z`. -/
@@ -389,7 +455,7 @@ classical.some_spec $ f.surj z
   f.to_map (f.sec z).1 = f.to_map (f.sec z).2 * z :=
 by rw [mul_comm, sec_spec]
 
-/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
+/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ Nˣ`, for all
 `w : M, z : N` and `y ∈ S`, we have `w * (f y)⁻¹ = z ↔ w = f y * z`. -/
 @[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `w : M, z : N` and `y ∈ S`, we have `w - f y = z ↔ w = f y + z`."]
@@ -398,7 +464,7 @@ lemma mul_inv_left {f : M →* N} (h : ∀ y : S, is_unit (f y))
 by rw mul_comm; convert units.inv_mul_eq_iff_eq_mul _;
   exact (is_unit.coe_lift_right (f.mrestrict S) h _).symm
 
-/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
+/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ Nˣ`, for all
 `w : M, z : N` and `y ∈ S`, we have `z = w * (f y)⁻¹ ↔ z * f y = w`. -/
 @[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `w : M, z : N` and `y ∈ S`, we have `z = w - f y ↔ z + f y = w`."]
@@ -407,7 +473,7 @@ lemma mul_inv_right {f : M →* N} (h : ∀ y : S, is_unit (f y))
 by rw [eq_comm, mul_inv_left h, mul_comm, eq_comm]
 
 /-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that
-`f(S) ⊆ units N`, for all `x₁ x₂ : M` and `y₁, y₂ ∈ S`, we have
+`f(S) ⊆ Nˣ`, for all `x₁ x₂ : M` and `y₁, y₂ ∈ S`, we have
 `f x₁ * (f y₁)⁻¹ = f x₂ * (f y₂)⁻¹ ↔ f (x₁ * y₂) = f (x₂ * y₁)`. -/
 @[simp, to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `x₁ x₂ : M` and `y₁, y₂ ∈ S`, we have
@@ -418,7 +484,7 @@ lemma mul_inv {f : M →* N} (h : ∀ y : S, is_unit (f y)) {x₁ x₂} {y₁ y�
 by rw [mul_inv_right h, mul_assoc, mul_comm _ (f y₂), ←mul_assoc, mul_inv_left h, mul_comm x₂,
   f.map_mul, f.map_mul]
 
-/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
+/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ Nˣ`, for all
 `y, z ∈ S`, we have `(f y)⁻¹ = (f z)⁻¹ → f y = f z`. -/
 @[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `y, z ∈ S`, we have `- (f y) = - (f z) → f y = f z`."]
@@ -428,7 +494,7 @@ lemma inv_inj {f : M →* N} (hf : ∀ y : S, is_unit (f y)) {y z}
 by rw [←mul_one (f y), eq_comm, ←mul_inv_left hf y (f z) 1, h];
   convert units.inv_mul _; exact (is_unit.coe_lift_right (f.mrestrict S) hf _).symm
 
-/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ units N`, for all
+/-- Given a monoid hom `f : M →* N` and submonoid `S ⊆ M` such that `f(S) ⊆ Nˣ`, for all
 `y ∈ S`, `(f y)⁻¹` is unique. -/
 @[to_additive "Given an add_monoid hom `f : M →+ N` and submonoid `S ⊆ M` such that
 `f(S) ⊆ add_units N`, for all `y ∈ S`, `- (f y)` is unique."]
@@ -742,12 +808,12 @@ end
   function.surjective (f.lift hg) ↔ ∀ v : P, ∃ x : M × S, v * g x.2 = g x.1 :=
 begin
   split,
-    { intros H v,
-      obtain ⟨z, hz⟩ := H v,
-      obtain ⟨x, hx⟩ := f.surj z,
-      use x,
-      rw [←hz, f.eq_mk'_iff_mul_eq.2 hx, lift_mk', mul_assoc, mul_comm _ (g ↑x.2)],
-      erw [is_unit.mul_lift_right_inv (g.mrestrict S) hg, mul_one] },
+  { intros H v,
+    obtain ⟨z, hz⟩ := H v,
+    obtain ⟨x, hx⟩ := f.surj z,
+    use x,
+    rw [←hz, f.eq_mk'_iff_mul_eq.2 hx, lift_mk', mul_assoc, mul_comm _ (g ↑x.2)],
+    erw [is_unit.mul_lift_right_inv (g.mrestrict S) hg, mul_one] },
   { intros H v,
     obtain ⟨x, hx⟩ := H v,
     use f.mk' x.1 x.2,
@@ -758,12 +824,12 @@ end
   function.injective (f.lift hg) ↔ ∀ x y, f.to_map x = f.to_map y ↔ g x = g y :=
 begin
   split,
-    { intros H x y,
-      split,
-        { exact f.eq_of_eq hg },
-      { intro h,
-        rw [←f.lift_eq hg, ←f.lift_eq hg] at h,
-        exact H h }},
+  { intros H x y,
+    split,
+    { exact f.eq_of_eq hg },
+    { intro h,
+      rw [←f.lift_eq hg, ←f.lift_eq hg] at h,
+      exact H h } },
   { intros H z w h,
     obtain ⟨x, hx⟩ := f.surj z,
     obtain ⟨y, hy⟩ := f.surj w,
@@ -934,7 +1000,7 @@ begin
   rw ← hn,
   dsimp,
   rw [g.map_nsmul],
-  exact is_add_unit.map (nsmul_add_monoid_hom n) hg,
+  exact is_add_unit.map (nsmul_add_monoid_hom n : C →+ C) hg,
 end
 
 @[simp] lemma away_map.lift_eq (hg : is_add_unit (g x)) (a : A) :
@@ -1013,7 +1079,7 @@ lemma mul_equiv_of_localizations_right_inv (k : localization_map S P) :
   f.of_mul_equiv_of_localizations (f.mul_equiv_of_localizations k) = k :=
 to_map_injective $ f.lift_comp k.map_units
 
-@[to_additive add_equiv_of_localizations_right_inv_apply, simp]
+@[simp, to_additive add_equiv_of_localizations_right_inv_apply]
 lemma mul_equiv_of_localizations_right_inv_apply
   {k : localization_map S P} {x} :
   (f.of_mul_equiv_of_localizations (f.mul_equiv_of_localizations k)).to_map x = k.to_map x :=

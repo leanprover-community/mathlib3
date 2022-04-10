@@ -3,13 +3,13 @@ Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Seul Baek
 -/
-
-/-
-DNF transformation.
--/
-
+import data.list.prod_sigma
 import tactic.omega.clause
 import tactic.omega.nat.form
+
+/-!
+# DNF transformation
+-/
 
 namespace omega
 namespace nat

@@ -264,7 +264,7 @@ end prod
 
 section add_monoid_hom_class
 
-variables {A B F : Type*} [add_monoid A] [add_monoid B] [has_one B]
+variables {A B F : Type*} [add_zero_class A] [add_monoid B] [has_one B]
 
 lemma ext_nat' [add_monoid_hom_class F ℕ A] (f g : F) (h : f 1 = g 1) : f = g :=
 fun_like.ext f g $ begin
@@ -283,7 +283,8 @@ lemma eq_nat_cast' [add_monoid_hom_class F ℕ A] (f : F) (h1 : f 1 = 1) :
 | 0     := by simp
 | (n+1) := by rw [map_add, h1, eq_nat_cast' n, nat.cast_add_one]
 
-lemma map_nat_cast' [add_monoid_hom_class F A B] (f : F) (h : f 1 = 1) : ∀ (n : ℕ), f n = n
+lemma map_nat_cast' {A} [add_monoid A] [has_one A] [add_monoid_hom_class F A B]
+                    (f : F) (h : f 1 = 1) : ∀ (n : ℕ), f n = n
 | 0     := by simp
 | (n+1) := by rw [nat.cast_add, map_add, nat.cast_add, map_nat_cast', nat.cast_one, h, nat.cast_one]
 
@@ -291,7 +292,7 @@ end add_monoid_hom_class
 
 section monoid_with_zero_hom_class
 
-variables {A F : Type*} [monoid_with_zero A]
+variables {A F : Type*} [mul_zero_one_class A]
 
 /-- If two `monoid_with_zero_hom`s agree on the positive naturals they are equal. -/
 theorem ext_nat'' [monoid_with_zero_hom_class F ℕ A] (f g : F)

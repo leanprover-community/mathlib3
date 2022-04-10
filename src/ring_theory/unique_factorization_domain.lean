@@ -1466,7 +1466,6 @@ lemma associates.quot_out {α : Type*} [comm_monoid α] (a : associates α):
 associates.mk (quot.out (a)) = a :=
 by rw [←quot_mk_eq_mk, quot.out_eq]
 
-set_option pp.all true
 /-- `to_gcd_monoid` constructs a GCD monoid out of a unique factorization domain. -/
 noncomputable def unique_factorization_monoid.to_gcd_monoid
   (α : Type*) [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]

@@ -141,12 +141,19 @@ by simp only [←category.assoc, cancel_mono]
 end
 
 variables {X Y : C}
-lemma naturality_1 (α : F ≅ G) (f : X ⟶ Y) :
-  (α.inv.app X) ≫ (F.map f) ≫ (α.hom.app Y) = G.map f :=
+@[simp, reassoc] lemma naturality_1 (α : F ≅ G) (f : X ⟶ Y) :
+  α.inv.app X ≫ F.map f ≫ α.hom.app Y = G.map f :=
 by rw [naturality, ←category.assoc, ←nat_trans.comp_app, α.inv_hom_id, id_app, category.id_comp]
-lemma naturality_2 (α : F ≅ G) (f : X ⟶ Y) :
-  (α.hom.app X) ≫ (G.map f) ≫ (α.inv.app Y) = F.map f :=
+@[simp, reassoc] lemma naturality_2 (α : F ≅ G) (f : X ⟶ Y) :
+  α.hom.app X ≫ G.map f ≫ α.inv.app Y = F.map f :=
 by rw [naturality, ←category.assoc, ←nat_trans.comp_app, α.hom_inv_id, id_app, category.id_comp]
+
+@[simp, reassoc] lemma naturality_1' (α : F ⟶ G) (f : X ⟶ Y) [is_iso (α.app X)] :
+  inv (α.app X) ≫ F.map f ≫ α.app Y = G.map f :=
+by rw [naturality, ←category.assoc, is_iso.inv_hom_id, category.id_comp]
+@[simp, reassoc] lemma naturality_2' (α : F ⟶ G) (f : X ⟶ Y) [is_iso (α.app Y)] :
+  α.app X ≫ G.map f ≫ inv (α.app Y) = F.map f :=
+by rw [←category.assoc, ←naturality, category.assoc, is_iso.hom_inv_id, category.comp_id]
 
 /--
 The components of a natural isomorphism are isomorphisms.

@@ -183,7 +183,7 @@ lemma obj_ε_inv_app (n : M) (X : C) :
     (F.μ (𝟙_M) n).app X ≫ (F.map (λ_ n).hom).app X  :=
 begin
   rw [← cancel_mono ((F.obj n).map (F.ε.app X)), ← functor.map_comp],
-  simpa,
+  simp,
 end
 
 @[reassoc]
@@ -213,7 +213,7 @@ lemma ε_inv_app_obj (n : M) (X : C) :
     (F.μ n (𝟙_M)).app X ≫ (F.map (ρ_ n).hom).app X :=
 begin
   rw [← cancel_mono (F.ε.app ((F.obj n).obj X)), ε_inv_hom_app],
-  simpa
+  simp
 end
 
 @[reassoc]
@@ -236,8 +236,6 @@ begin
   rw [← associativity_app_assoc],
   dsimp,
   simp,
-  dsimp,
-  simp,
 end
 
 @[reassoc, simp]
@@ -253,7 +251,7 @@ begin
   { simp only [monoidal_functor.μ_iso_hom, category.assoc, nat_iso.inv_inv_app, is_iso.inv_comp],
     congr,
     { ext, simp },
-    { ext, simpa } }
+    { ext, simp } }
 end
 
 @[simp, reassoc]
@@ -293,10 +291,15 @@ def equiv_of_tensor_iso_unit (m n : M) (h₁ : m ⊗ n ≅ 𝟙_M) (h₂ : n ⊗
   begin
     intro X,
     dsimp,
-    simp only [μ_naturalityᵣ_assoc, μ_naturalityₗ_assoc, ε_inv_app_obj, category.assoc,
-      obj_μ_inv_app, functor.map_comp, μ_inv_hom_app_assoc, obj_ε_app,
+    refine (hom_comp_eq_id _).2 _,
+    symmetry,
+    simp only [ε_app_obj, monoidal_functor.μ_iso_inv, unit_of_tensor_iso_unit_hom_app, has_inv.w,
+      is_iso.inv_id, functor.map_inv, μ_naturalityᵣ_assoc, obj_μ_app, μ_naturalityₗ_assoc,
+      monoidal_category.inv_tensor, category.assoc, is_iso.iso.inv_inv, functor.map_comp,
+      is_iso.inv_inv, obj_ε_app, nat_iso.is_iso_inv_app, is_iso.inv_comp, is_iso.inv_hom_id_assoc,
       unit_of_tensor_iso_unit_inv_app],
-    simp [← nat_trans.comp_app, ← F.to_functor.map_comp, ← H, - functor.map_comp]
+    simp only [←nat_trans.comp_app, ←category_theory.functor.map_comp, H],
+    simp,
   end }
 
 end category_theory

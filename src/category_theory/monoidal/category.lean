@@ -154,6 +154,12 @@ instance tensor_is_iso {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_
   is_iso (f ⊗ g) :=
 is_iso.of_iso (as_iso f ⊗ as_iso g)
 
+@[reducible] noncomputable
+instance tensor_has_inv {W X Y Z : C} (f : W ⟶ X) [has_inv f] (g : Y ⟶ Z) [has_inv g] :
+  has_inv (f ⊗ g) :=
+{ inv := inv f ⊗ inv g,
+  w' := by { ext, simp only [←tensor_comp, is_iso.hom_inv_id, tensor_id], }, }
+
 @[simp] lemma inv_tensor {W X Y Z : C} (f : W ⟶ X) [is_iso f] (g : Y ⟶ Z) [is_iso g] :
   inv (f ⊗ g) = inv f ⊗ inv g :=
 by { ext, simp [←tensor_comp], }

@@ -71,7 +71,7 @@ begin
     { exact h, }, },
 end
 
-lemma antitone_on.integral_le_sum' {x₀ : ℝ} {a : ℕ} {f : ℝ → ℝ}
+lemma antitone_on.integral_le_sum {x₀ : ℝ} {a : ℕ} {f : ℝ → ℝ}
   (hf : antitone_on f (Icc x₀ (x₀ + a))) :
   ∫ x in x₀..(x₀ + a), f x ≤ ∑ i in finset.range a, f (x₀ + i) :=
 begin

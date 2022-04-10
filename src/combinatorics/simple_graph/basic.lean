@@ -33,7 +33,7 @@ finitely many vertices.
    if `incidence_set` is finite
 
 * `simple_graph.dart` is an ordered pair of adjacent vertices, thought of as being an
-  orientated edge.
+  orientated edge. These are also known as "half-edges."
 
 * `simple_graph.hom`, `simple_graph.embedding`, and `simple_graph.iso` for graph
   homomorphisms, graph embeddings, and
@@ -321,7 +321,8 @@ instance edges_fintype [decidable_eq V] [fintype V] [decidable_rel G.adj] :
 
 /-! ## Darts -/
 
-/-- A `dart` is an oriented edge, implemented as an ordered pair of adjacent vertices. -/
+/-- A `dart` is an oriented edge, implemented as an ordered pair of adjacent vertices.
+This terminology comes from combinatorial maps, and they are also known as "half-edges." -/
 @[ext, derive decidable_eq]
 structure dart extends V × V :=
 (is_adj : G.adj fst snd)

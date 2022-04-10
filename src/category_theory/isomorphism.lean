@@ -189,9 +189,11 @@ This means that the simplifier would not be able to cope with `inv (F.map (inv f
 By providing a `has_inv` instance for `inv f` and `inv g`, and then propagating these outwards
 by typeclass inference, the simplifier can "cancel distant pairs" of syntactic inverses.
 
-You should not ever provide a `has_inv f` instance unless `f` *syntactically* contains an inverse.
+You should not provide a `has_inv f` instance unless `f` *syntactically* contains an inverse,
+or `f` contains a subexpression with a `has_inv` instance.
 
-All instances should be `@[reducible]`.
+All instances must be `@[reducible]`, so the simplifier can replace `has_inv.inv` with the
+correct form.
 -/
 class has_inv (f : X ⟶ Y) extends is_iso f :=
 (inv : Y ⟶ X)
@@ -199,7 +201,6 @@ class has_inv (f : X ⟶ Y) extends is_iso f :=
 
 restate_axiom has_inv.w'
 attribute [simp] has_inv.w
-attribute [reducible] has_inv.inv
 
 open is_iso
 

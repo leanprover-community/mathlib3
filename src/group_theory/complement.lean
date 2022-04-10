@@ -343,4 +343,18 @@ lemma is_complement'_of_coprime [fintype G] [fintype H] [fintype K]
   is_complement' H K :=
 is_complement'_of_card_mul_and_disjoint h1 (disjoint_iff.mpr (inf_eq_bot_of_coprime h2))
 
+lemma is_complement'_stabilizer {α : Type*} [mul_action G α] (a : α)
+  (h1 : ∀ (h : H), h • a = a → h = 1) (h2 : ∀ g : G, ∃ h : H, h • (g • a) = a) :
+  is_complement' H (mul_action.stabilizer G a) :=
+begin
+  refine is_complement_iff_exists_unique.mpr (λ g, _),
+  obtain ⟨h, hh⟩ := h2 g,
+  have hh' : (↑h * g) • a = a := by rwa [mul_smul],
+  refine ⟨⟨h⁻¹, h * g, hh'⟩, inv_mul_cancel_left h g, _⟩,
+  rintros ⟨h', g, hg : g • a = a⟩ rfl,
+  specialize h1 (h * h') (by rwa [mul_smul, smul_def h', ←hg, ←mul_smul, hg]),
+  refine prod.ext (eq_inv_of_eq_inv (eq_inv_of_mul_eq_one h1)) (subtype.ext _),
+  rwa [subtype.ext_iff, coe_one, coe_mul, ←self_eq_mul_left, mul_assoc ↑h ↑h' g] at h1,
+end
+
 end subgroup

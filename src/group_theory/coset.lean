@@ -413,6 +413,8 @@ noncomputable def quotient_equiv_prod_of_le (h_le : s ≤ t) :
 quotient_equiv_prod_of_le' h_le quotient.out' quotient.out_eq'
 
 /-- If `K ≤ L`, then there is an embedding `K ⧸ (H.subgroup_of K) ↪ L ⧸ (H.subgroup_of L)`. -/
+@[to_additive "If `K ≤ L`, then there is an embedding
+  `K ⧸ (H.add_subgroup_of K) ↪ L ⧸ (H.add_subgroup_of L)`."]
 def quotient_subgroup_of_embedding_of_le (H : subgroup α) {K L : subgroup α} (h : K ≤ L) :
   K ⧸ (H.subgroup_of K) ↪ L ⧸ (H.subgroup_of L) :=
 { to_fun := quotient.map' (set.inclusion h) (λ a b, id),

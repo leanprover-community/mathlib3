@@ -290,14 +290,14 @@ end
 section
 
 /-- Two morphisms in an exact sequence are exact on pseudoelements. -/
-theorem pseudo_exact_of_exact {P Q R : C} {f : P ⟶ Q} {g : Q ⟶ R} [exact f g] :
+theorem pseudo_exact_of_exact {P Q R : C} {f : P ⟶ Q} {g : Q ⟶ R} (h : exact f g) :
   (∀ a, g (f a) = 0) ∧ (∀ b, g b = 0 → ∃ a, f a = b) :=
-⟨λ a, by { rw [←comp_apply, exact.w], exact zero_apply _ _ },
+⟨λ a, by { rw [←comp_apply, h.w], exact zero_apply _ _ },
   λ b', quotient.induction_on b' $ λ b hb,
     have hb' : b.hom ≫ g = 0, from (pseudo_zero_iff _).1 hb,
     begin
       -- By exactness, b factors through im f = ker g via some c
-      obtain ⟨c, hc⟩ := kernel_fork.is_limit.lift' (is_limit_image f g) _ hb',
+      obtain ⟨c, hc⟩ := kernel_fork.is_limit.lift' (is_limit_image f g h) _ hb',
 
       -- We compute the pullback of the map into the image and c.
       -- The pseudoelement induced by the first pullback map will be our preimage.

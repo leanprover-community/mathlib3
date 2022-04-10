@@ -27,8 +27,7 @@ space is analytic, as well as the inverse on invertible operators.
 Let `p` be a formal multilinear series from `E` to `F`, i.e., `p n` is a multilinear map on `E^n`
 for `n : ℕ`.
 
-* `p.radius`: the largest `r : ℝ≥0∞` such that `∥p n∥ * r^n` grows subexponentially, defined as
-  a liminf.
+* `p.radius`: the largest `r : ℝ≥0∞` such that `∥p n∥ * r^n` grows subexponentially.
 * `p.le_radius_of_bound`, `p.le_radius_of_bound_nnreal`, `p.le_radius_of_is_O`: if `∥p n∥ * r ^ n`
   is bounded above, then `r ≤ p.radius`;
 * `p.is_o_of_lt_radius`, `p.norm_mul_pow_le_mul_pow_of_lt_radius`, `p.is_o_one_of_lt_radius`,
@@ -47,6 +46,7 @@ Additionally, let `f` be a function from `E` to `F`.
   `has_fpower_series_on_ball f p x r`.
 * `analytic_at 𝕜 f x`: there exists a power series `p` such that holds
   `has_fpower_series_at f p x`.
+* `analytic_on 𝕜 f s`: the function `f` is analytic at every point of `s`.
 
 We develop the basic properties of these notions, notably:
 * If a function admits a power series, it is continuous (see
@@ -300,6 +300,18 @@ lemma partial_sum_continuous (p : formal_multilinear_series 𝕜 E F) (n : ℕ) 
   continuous (p.partial_sum n) :=
 by continuity
 
+lemma radius_le_radius_continuous_linear_map_comp
+  (p : formal_multilinear_series 𝕜 E F) (f : F →L[𝕜] G) :
+  p.radius ≤ (f.comp_formal_multilinear_series p).radius :=
+begin
+  refine ennreal.le_of_forall_nnreal_lt (λ r hr, _),
+  apply le_radius_of_is_O,
+  apply (is_O.trans_is_o _ (p.is_o_one_of_lt_radius hr)).is_O,
+  refine is_O.mul (@is_O_with.is_O _ _ _ _ _ (∥f∥) _ _ _ _) (is_O_refl _ _),
+  apply is_O_with.of_bound (eventually_of_forall (λ n, _)),
+  simpa only [norm_norm] using f.norm_comp_continuous_multilinear_map_le (p n)
+end
+
 end formal_multilinear_series
 
 /-! ### Expanding a function as a power series -/
@@ -327,6 +339,11 @@ series expansion around `x`. -/
 def analytic_at (f : E → F) (x : E) :=
 ∃ (p : formal_multilinear_series 𝕜 E F), has_fpower_series_at f p x
 
+/-- Given a function `f : E → F`, we say that `f` is analytic on a set `s` if it is analytic around
+every point of `s`. -/
+def analytic_on (f : E → F) (s : set E) :=
+∀ x, x ∈ s → analytic_at 𝕜 f x
+
 variable {𝕜}
 
 lemma has_fpower_series_on_ball.has_fpower_series_at (hf : has_fpower_series_on_ball f p x r) :
@@ -338,6 +355,26 @@ lemma has_fpower_series_at.analytic_at (hf : has_fpower_series_at f p x) : analy
 lemma has_fpower_series_on_ball.analytic_at (hf : has_fpower_series_on_ball f p x r) :
   analytic_at 𝕜 f x :=
 hf.has_fpower_series_at.analytic_at
+
+lemma has_fpower_series_on_ball.congr (hf : has_fpower_series_on_ball f p x r)
+  (hg : eq_on f g (emetric.ball x r)) :
+  has_fpower_series_on_ball g p x r :=
+{ r_le := hf.r_le,
+  r_pos := hf.r_pos,
+  has_sum := λ y hy,
+  begin
+    convert hf.has_sum hy,
+    apply hg.symm,
+    simpa [edist_eq_coe_nnnorm_sub] using hy,
+  end }
+
+/-- If a function `f` has a power series `p` around `x`, then the function `z ↦ f (z - y)` has the
+same power series around `x + y`. -/
+lemma has_fpower_series_on_ball.comp_sub (hf : has_fpower_series_on_ball f p x r) (y : E) :
+  has_fpower_series_on_ball (λ z, f (z - y)) p (x + y) r :=
+{ r_le := hf.r_le,
+  r_pos := hf.r_pos,
+  has_sum := λ z hz, by { convert hf.has_sum hz, abel } }
 
 lemma has_fpower_series_on_ball.has_sum_sub (hf : has_fpower_series_on_ball f p x r) {y : E}
   (hy : y ∈ emetric.ball x r) :
@@ -427,6 +464,28 @@ lemma has_fpower_series_at.coeff_zero (hf : has_fpower_series_at f pf x) (v : fi
   pf 0 v = f x :=
 let ⟨rf, hrf⟩ := hf in hrf.coeff_zero v
 
+/-- If a function `f` has a power series `p` on a ball and `g` is linear, then `g ∘ f` has the
+power series `g ∘ p` on the same ball. -/
+lemma _root_.continuous_linear_map.comp_has_fpower_series_on_ball
+  (g : F →L[𝕜] G) (h : has_fpower_series_on_ball f p x r) :
+  has_fpower_series_on_ball (g ∘ f) (g.comp_formal_multilinear_series p) x r :=
+{ r_le := h.r_le.trans (p.radius_le_radius_continuous_linear_map_comp _),
+  r_pos := h.r_pos,
+  has_sum := λ y hy, by simpa only [continuous_linear_map.comp_formal_multilinear_series_apply,
+      continuous_linear_map.comp_continuous_multilinear_map_coe, function.comp_app]
+    using g.has_sum (h.has_sum hy) }
+
+/-- If a function `f` is analytic on a set `s` and `g` is linear, then `g ∘ f` is analytic
+on `s`. -/
+lemma _root_.continuous_linear_map.comp_analytic_on {s : set E}
+  (g : F →L[𝕜] G) (h : analytic_on 𝕜 f s) :
+  analytic_on 𝕜 (g ∘ f) s :=
+begin
+  rintros x hx,
+  rcases h x hx with ⟨p, r, hp⟩,
+  exact ⟨g.comp_formal_multilinear_series p, r, g.comp_has_fpower_series_on_ball hp⟩,
+end
+
 /-- If a function admits a power series expansion, then it is exponentially close to the partial
 sums of this power series on strict subdisks of the disk of convergence.
 
@@ -494,9 +553,6 @@ begin
   simpa [mul_pow, mul_div_assoc, mul_assoc, div_mul_eq_mul_div] using hp y hy n,
 end
 
--- hack to speed up simp when dealing with complicated types
-local attribute [-instance] unique.subsingleton pi.subsingleton
-
 /-- If `f` has formal power series `∑ n, pₙ` on a ball of radius `r`, then for `y, z` in any smaller
 ball, the norm of the difference `f y - f z - p 1 (λ _, y - z)` is bounded above by
 `C * (max ∥y - x∥ ∥z - x∥) * ∥y - z∥`. This lemma formulates this property using `is_O` and
@@ -536,7 +592,7 @@ begin
         prod.fst_sub, prod.snd_sub, sub_sub_sub_cancel_right]
         using (p $ n + 2).norm_image_sub_le (λ _, y.1 - x) (λ _, y.2 - x)
     ... = ∥p (n + 2)∥ * ∥y - (x, x)∥ ^ n * (↑(n + 2) * ∥y - (x, x)∥ * ∥y.1 - y.2∥) :
-      by { rw [pow_succ ∥y - (x, x)∥], ac_refl }
+      by { rw [pow_succ ∥y - (x, x)∥], ring }
     ... ≤ (C * a ^ (n + 2) / r' ^ (n + 2)) * r' ^ n * (↑(n + 2) * ∥y - (x, x)∥ * ∥y.1 - y.2∥) :
       by apply_rules [mul_le_mul_of_nonneg_right, mul_le_mul, hp, pow_le_pow_of_le_left,
         hy'.le, norm_nonneg, pow_nonneg, div_nonneg, mul_nonneg, nat.cast_nonneg,
@@ -656,6 +712,10 @@ let ⟨r, hr⟩ := hf in hr.continuous_on.continuous_at (emetric.ball_mem_nhds x
 
 protected lemma analytic_at.continuous_at (hf : analytic_at 𝕜 f x) : continuous_at f x :=
 let ⟨p, hp⟩ := hf in hp.continuous_at
+
+protected lemma analytic_on.continuous_on {s : set E} (hf : analytic_on 𝕜 f s) :
+  continuous_on f s :=
+λ x hx, (hf x hx).continuous_at.continuous_within_at
 
 /-- In a complete space, the sum of a converging power series `p` admits `p` as a power series.
 This is not totally obvious as we need to check the convergence of the series. -/
@@ -826,6 +886,8 @@ Given a formal multilinear series `p` and a point `x` in its ball of convergence
 `p.sum (x+y) = (p.change_origin x).sum y` when this makes sense. Each term of `p.change_origin x`
 is itself an analytic function of `x` given by the series `p.change_origin_series`. Each term in
 `change_origin_series` is the sum of `change_origin_series_term`'s over all `s` of cardinality `l`.
+The definition is such that
+`p.change_origin_series_term k l s hs (λ _, x) (λ _, y) = p (k + l) (s.piecewise (λ _, x) (λ _, y))`
 -/
 def change_origin_series_term (k l : ℕ) (s : finset (fin (k + l))) (hs : s.card = l) :
   E [×l]→L[𝕜] E [×k]→L[𝕜] F :=
@@ -861,7 +923,8 @@ end
 
 Given a formal multilinear series `p` and a point `x` in its ball of convergence,
 `p.change_origin x` is a formal multilinear series such that
-`p.sum (x+y) = (p.change_origin x).sum y` when this makes sense. -/
+`p.sum (x+y) = (p.change_origin x).sum y` when this makes sense. Its `k`-th term is the sum of
+the series `p.change_origin_series k`. -/
 def change_origin_series (k : ℕ) : formal_multilinear_series 𝕜 E (E [×k]→L[𝕜] F) :=
 λ l, ∑ s : {s : finset (fin (k + l)) // finset.card s = l}, p.change_origin_series_term k l s s.2
 
@@ -1088,6 +1151,10 @@ begin
   rw [add_sub_cancel'_right] at this,
   exact this.analytic_at
 end
+
+lemma has_fpower_series_on_ball.analytic_on (hf : has_fpower_series_on_ball f p x r) :
+  analytic_on 𝕜 f (emetric.ball x r) :=
+λ y hy, hf.analytic_at_of_mem hy
 
 variables (𝕜 f)
 

@@ -30,7 +30,7 @@ lemma prod_filter_succ_lt {M : Type*} [comm_monoid M] {n : ℕ} (j : fin n) (v :
 by rw [univ_filter_succ_lt, finset.prod_map, rel_embedding.coe_fn_to_embedding, coe_succ_embedding]
 
 @[to_additive]
-lemma prod_congr {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin b → M) (h : a = b) :
+lemma prod_congr' {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin b → M) (h : a = b) :
   ∏ (i : fin a), f (cast h i) = ∏ (i : fin b), f i :=
 by { subst h, congr, ext, congr, ext, rw coe_cast, }
 
@@ -50,7 +50,7 @@ begin
     refl, },
   { intros a f,
     have eq : (a+1)+b=(a+b).succ := by simpa only [add_assoc, add_comm 1],
-    rw [prod_univ_succ, ← mul_assoc, ← prod_congr f eq,
+    rw [prod_univ_succ, ← mul_assoc, ← prod_congr' f eq,
       hb (λ (i : fin((a+1)+b)), f (cast eq i))],
     congr,
     { rw prod_univ_cast_succ,
@@ -69,7 +69,7 @@ lemma prod_trunc {M : Type*} [comm_monoid M] {n a b : ℕ}
   ∏ (i : fin (n)), f i =
   ∏ (i : fin (a)), f (cast_le (nat.le.intro (h.symm)) i) :=
 begin
-  rw [← prod_congr f h.symm, prod_univ_add, fintype.prod_eq_one _ hf, mul_one],
+  rw [← prod_congr' f h.symm, prod_univ_add, fintype.prod_eq_one _ hf, mul_one],
   congr,
 end
 

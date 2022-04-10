@@ -24,11 +24,6 @@ open subgroup
 
 variables (α : Type*) {β : Type*} [monoid α] [mul_action α β] [group β] (H : subgroup β)
 
-attribute [to_additive add_action.quotient_action] mul_action.quotient_action
-
-@[to_additive] instance left_quotient_action : quotient_action β H :=
-⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
-
 @[to_additive] instance right_quotient_action : quotient_action H.normalizer.opposite H :=
 ⟨λ b c _ _, by rwa [smul_def, smul_def, mul_opposite.smul_eq_mul_unop, mul_inv_rev,
   mul_opposite.smul_eq_mul_unop,

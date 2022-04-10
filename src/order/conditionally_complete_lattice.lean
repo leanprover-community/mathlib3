@@ -222,10 +222,6 @@ cSup_le hs (λ a ha, le_cSup ht (h ha))
 theorem cInf_le_cInf (ht : bdd_below t) (hs : s.nonempty) (h : s ⊆ t) : Inf t ≤ Inf s :=
 le_cInf hs (λ a ha, cInf_le ht (h ha))
 
-theorem le_cSup_iff (h : bdd_above s) (hs : s.nonempty) :
-  a ≤ Sup s ↔ ∀ b, b ∈ upper_bounds s → a ≤ b :=
-⟨λ h b hb, le_trans h (cSup_le hs hb), λ hb, hb _ (λ x, le_cSup h)⟩
-
 lemma is_lub_cSup (ne : s.nonempty) (H : bdd_above s) : is_lub s (Sup s) :=
 ⟨λ x, le_cSup H, λ x, cSup_le ne⟩
 

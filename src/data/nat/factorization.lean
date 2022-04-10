@@ -290,9 +290,20 @@ begin
     lt_self_iff_false] at hp
 end
 
-lemma dvd_iff_prime_pow_dvd_dvd {n d : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
+lemma dvd_iff_prime_pow_dvd_dvd {n d : ℕ} :
   d ∣ n ↔ ∀ p k : ℕ, prime p → p ^ k ∣ d → p ^ k ∣ n :=
 begin
+  by_cases hn : n = 0,
+  { simp [hn], },
+  by_cases hd : d = 0,
+  { simp only [hd, hn, zero_dvd_iff, dvd_zero, forall_true_left, false_iff,
+      not_forall, exists_prop, exists_and_distrib_left],
+    refine ⟨2, prime_two, n, λ h, _⟩,
+    have := le_of_dvd (nat.pos_of_ne_zero hn) h,
+    revert this,
+    change ¬ _,
+    rw [not_le],
+    exact lt_two_pow n, },
   refine ⟨λ h p k _ hpkd, dvd_trans hpkd h, _⟩,
   rw [←factorization_le_iff_dvd hd hn, finsupp.le_def],
   intros h p,

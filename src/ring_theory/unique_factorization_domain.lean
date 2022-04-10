@@ -1059,9 +1059,11 @@ theorem eq_of_eq_counts {a b : associates α} (ha : a ≠ 0) (hb  : b ≠ 0)
   (h : ∀ (p : associates α), irreducible p → p.count a.factors = p.count b.factors) : a = b :=
 eq_of_factors_eq_factors (eq_factors_of_eq_counts ha hb h)
 
-lemma count_le_count_of_factors_le {a b p : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+lemma count_le_count_of_factors_le {a b p : associates α} (hb : b ≠ 0)
   (hp : irreducible p) (h : a.factors ≤ b.factors) : p.count a.factors ≤ p.count b.factors :=
 begin
+  by_cases ha : a = 0,
+  { simp [*] at *, },
   obtain ⟨sa, h_sa⟩ := factors_eq_some_iff_ne_zero.mpr ha,
   obtain ⟨sb, h_sb⟩ := factors_eq_some_iff_ne_zero.mpr hb,
   rw [h_sa, h_sb] at h ⊢,
@@ -1071,15 +1073,19 @@ end
 
 omit dec_irr
 
-@[simp] theorem factors_mul [nontrivial α] (a b : associates α) :
+@[simp] theorem factors_mul (a b : associates α) :
   (a * b).factors = a.factors + b.factors :=
-eq_of_prod_eq_prod $ eq_of_factors_eq_factors $
-  by rw [prod_add, factors_prod, factors_prod, factors_prod]
+begin
+  casesI subsingleton_or_nontrivial α,
+  { simp [subsingleton.elim a 0], },
+  refine (eq_of_prod_eq_prod (eq_of_factors_eq_factors _)),
+  rw [prod_add, factors_prod, factors_prod, factors_prod],
+end
 
-theorem factors_mono [nontrivial α] : ∀{a b : associates α}, a ≤ b → a.factors ≤ b.factors
+theorem factors_mono : ∀{a b : associates α}, a ≤ b → a.factors ≤ b.factors
 | s t ⟨d, rfl⟩ := by rw [factors_mul] ; exact le_add_of_nonneg_right bot_le
 
-theorem factors_le [nontrivial α] {a b : associates α} : a.factors ≤ b.factors ↔ a ≤ b :=
+theorem factors_le {a b : associates α} : a.factors ≤ b.factors ↔ a ≤ b :=
 iff.intro
   (assume h, have a.factors.prod ≤ b.factors.prod, from prod_mono h,
     by rwa [factors_prod, factors_prod] at this)
@@ -1087,9 +1093,9 @@ iff.intro
 
 include dec_irr
 
-lemma count_le_count_of_le [nontrivial α] {a b p : associates α} (ha : a ≠ 0) (hb : b ≠ 0)
+lemma count_le_count_of_le {a b p : associates α} (hb : b ≠ 0)
   (hp : irreducible p) (h : a ≤ b) : p.count a.factors ≤ p.count b.factors :=
-count_le_count_of_factors_le ha hb hp $ factors_mono h
+count_le_count_of_factors_le hb hp $ factors_mono h
 
 omit dec dec' dec_irr
 
@@ -1107,7 +1113,7 @@ include dec dec'
 noncomputable instance : has_sup (associates α) := ⟨λa b, (a.factors ⊔ b.factors).prod⟩
 noncomputable instance : has_inf (associates α) := ⟨λa b, (a.factors ⊓ b.factors).prod⟩
 
-noncomputable instance [nontrivial α] : lattice (associates α) :=
+noncomputable instance : lattice (associates α) :=
 { sup          := (⊔),
   inf          := (⊓),
   sup_le       :=
@@ -1124,9 +1130,10 @@ noncomputable instance [nontrivial α] : lattice (associates α) :=
     le_trans (prod_mono inf_le_right) (le_of_eq (factors_prod b)),
   .. associates.partial_order }
 
-lemma sup_mul_inf [nontrivial α] (a b : associates α) : (a ⊔ b) * (a ⊓ b) = a * b :=
+lemma sup_mul_inf (a b : associates α) : (a ⊔ b) * (a ⊓ b) = a * b :=
 show (a.factors ⊔ b.factors).prod * (a.factors ⊓ b.factors).prod = a * b,
 begin
+  nontriviality α,
   refine eq_of_factors_eq_factors _,
   rw [← prod_add, prod_factors, factors_mul, factor_set.sup_add_inf_eq_add]
 end
@@ -1214,7 +1221,7 @@ begin
     apply hb }
 end
 
-theorem coprime_iff_inf_one [nontrivial α] {a b : α} (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
+theorem coprime_iff_inf_one {a b : α} (ha0 : a ≠ 0) (hb0 : b ≠ 0) :
   (associates.mk a) ⊓ (associates.mk b) = 1 ↔ ∀ {d : α}, d ∣ a → d ∣ b → ¬ prime d :=
 begin
   split,
@@ -1251,9 +1258,10 @@ begin
   exact with_top.coe_le_coe
 end
 
-theorem le_of_count_ne_zero [nontrivial α] {m p : associates α} (h0 : m ≠ 0)
+theorem le_of_count_ne_zero {m p : associates α} (h0 : m ≠ 0)
   (hp : irreducible p) : count p m.factors ≠ 0 → p ≤ m :=
 begin
+  nontriviality α,
   rw [← pos_iff_ne_zero],
   intro h,
   rw [← pow_one p],
@@ -1282,7 +1290,7 @@ lemma count_eq_zero_of_ne {p q : associates α} (hp : irreducible p) (hq : irred
 not_ne_iff.mp $ λ h', h $ associated_iff_eq.mp $ hp.associated_of_dvd hq $
 by { nontriviality α, exact le_of_count_ne_zero hq.ne_zero hp h' }
 
-theorem count_mul [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
+theorem count_mul {a : associates α} (ha : a ≠ 0) {b : associates α} (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) :
   count p (factors (a * b)) = count p a.factors + count p b.factors :=
 begin
@@ -1293,7 +1301,7 @@ begin
       multiset.count_add, count_some hp, count_some hp]
 end
 
-theorem count_of_coprime [nontrivial α] {a : associates α} (ha : a ≠ 0) {b : associates α}
+theorem count_of_coprime {a : associates α} (ha : a ≠ 0) {b : associates α}
   (hb : b ≠ 0)
   (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) {p : associates α} (hp : irreducible p) :
   count p a.factors = 0 ∨ count p b.factors = 0 :=
@@ -1305,7 +1313,7 @@ begin
     (irreducible_iff_prime.mp hp)⟩,
 end
 
-theorem count_mul_of_coprime [nontrivial α] {a : associates α} {b : associates α}
+theorem count_mul_of_coprime {a : associates α} {b : associates α}
   (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) :
   count p a.factors = 0 ∨ count p a.factors = count p (a * b).factors :=
@@ -1317,7 +1325,7 @@ begin
   rw [count_mul ha hb hp, hb0, add_zero]
 end
 
-theorem count_mul_of_coprime' [nontrivial α] {a b : associates α}
+theorem count_mul_of_coprime' {a b : associates α}
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d) :
   count p (a * b).factors = count p a.factors
   ∨ count p (a * b).factors = count p b.factors :=
@@ -1330,7 +1338,7 @@ begin
   { apply or.intro_left, rw [hb0, add_zero] }
 end
 
-theorem dvd_count_of_dvd_count_mul [nontrivial α] {a b : associates α} (hb : b ≠ 0)
+theorem dvd_count_of_dvd_count_mul {a b : associates α} (hb : b ≠ 0)
   {p : associates α} (hp : irreducible p) (hab : ∀ d, d ∣ a → d ∣ b → ¬ prime d)
   {k : ℕ} (habk : k ∣ count p (a * b).factors) : k ∣ count p a.factors :=
 begin
@@ -1400,7 +1408,7 @@ begin
   apply eq_of_eq_counts ha (pow_ne_zero _ hp.ne_zero),
   have eq_zero_of_ne : ∀ (q : associates α), irreducible q → q ≠ p → _ = 0 :=
   λ q hq h', nat.eq_zero_of_le_zero $ by
-  { convert count_le_count_of_le ha hph hq h, symmetry,
+  { convert count_le_count_of_le hph hq h, symmetry,
     rw [count_pow hp.ne_zero hq, count_eq_zero_of_ne hq hp h', mul_zero] },
   intros q hq,
   rw count_pow hp.ne_zero hq,
@@ -1415,10 +1423,9 @@ begin
   apply le_antisymm,
   { refine nat.find_le ⟨1, _⟩, rw mul_one, symmetry, exact eq_pow_count_factors_of_dvd_pow hp h },
   { have hph := pow_ne_zero (nat.find ⟨n, h⟩) hp.ne_zero,
-    have ha := ne_zero_of_dvd_ne_zero hph (nat.find_spec ⟨n, h⟩),
-    cases (subsingleton_or_nontrivial α) with hα hα; haveI := hα,
-    { exfalso, apply ha, simp only [eq_iff_true_of_subsingleton] },
-    convert count_le_count_of_le ha hph hp (nat.find_spec ⟨n, h⟩),
+    casesI (subsingleton_or_nontrivial α) with hα hα,
+    { simpa using hph, },
+    convert count_le_count_of_le hph hp (nat.find_spec ⟨n, h⟩),
     rw [count_pow hp.ne_zero hp, count_self hp, mul_one] }
 end
 
@@ -1459,9 +1466,10 @@ lemma associates.quot_out {α : Type*} [comm_monoid α] (a : associates α):
 associates.mk (quot.out (a)) = a :=
 by rw [←quot_mk_eq_mk, quot.out_eq]
 
+set_option pp.all true
 /-- `to_gcd_monoid` constructs a GCD monoid out of a unique factorization domain. -/
 noncomputable def unique_factorization_monoid.to_gcd_monoid
-  (α : Type*) [cancel_comm_monoid_with_zero α] [nontrivial α] [unique_factorization_monoid α]
+  (α : Type*) [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]
   [decidable_eq (associates α)] [decidable_eq α] : gcd_monoid α :=
 { gcd := λa b, quot.out (associates.mk a ⊓ associates.mk b : associates α),
   lcm := λa b, quot.out (associates.mk a ⊔ associates.mk b : associates α),
@@ -1490,7 +1498,7 @@ noncomputable def unique_factorization_monoid.to_gcd_monoid
 /-- `to_normalized_gcd_monoid` constructs a GCD monoid out of a normalization on a
   unique factorization domain. -/
 noncomputable def unique_factorization_monoid.to_normalized_gcd_monoid
-  (α : Type*) [cancel_comm_monoid_with_zero α] [nontrivial α] [unique_factorization_monoid α]
+  (α : Type*) [cancel_comm_monoid_with_zero α] [unique_factorization_monoid α]
   [normalization_monoid α] [decidable_eq (associates α)] [decidable_eq α] :
   normalized_gcd_monoid α :=
 { gcd := λa b, (associates.mk a ⊓ associates.mk b).out,

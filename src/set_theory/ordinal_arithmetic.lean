@@ -390,6 +390,9 @@ theorem is_normal.strict_mono {f} (H : is_normal f) : strict_mono f :=
   (λ b l IH h, lt_of_lt_of_le (H.1 a)
     ((H.2 _ l _).1 le_rfl _ (l.2 _ h)))
 
+theorem is_normal.monotone {f} (H : is_normal f) : monotone f :=
+H.strict_mono.monotone
+
 theorem is_normal_iff_strict_mono_limit (f : ordinal → ordinal) :
   is_normal f ↔ (strict_mono f ∧ ∀ o, is_limit o → ∀ a, (∀ b < o, f b ≤ a) → f o ≤ a) :=
 ⟨λ hf, ⟨hf.strict_mono, λ a ha c, (hf.2 a ha c).2⟩, λ ⟨hs, hl⟩, ⟨λ a, hs (ordinal.lt_succ_self a),

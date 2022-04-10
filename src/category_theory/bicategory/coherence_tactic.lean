@@ -198,21 +198,58 @@ by { dsimp [bicategorical_comp], simp, }
 
 end category_theory.bicategory
 
-open category_theory.bicategory
-
 namespace tactic
+
+namespace bicategory
+
+open category_theory.bicategory category_theory.free_bicategory
+open_locale bicategory
+
+set_option eqn_compiler.max_steps 3500
+
+/-- Embedding of 1-morphisms in a bicategory into the free bicategory. -/
+meta def free₁ : expr → tactic expr
+| `(%%f ≫ %%g) := do f' ← free₁ f, g' ← free₁ g, to_expr ``(%%f' ≫ %%g')
+| `(𝟙 %%a) := to_expr ``(𝟙 (of.obj %%a))
+| f := to_expr ``(of.map %%f)
+
+/-- Embedding of 2-morphisms in a bicategory into the free bicategory. -/
+meta def free₂ : expr → tactic expr
+| `(%%η ≫ %%θ) := do η' ← free₂ η, θ' ← free₂ θ, to_expr ``(%%η' ≫ %%θ')
+| `(%%f ◁ %%η)  := do f' ← free₁ f, η' ← free₂ η, to_expr ``(%%f' ◁ %%η')
+| `(%%η ▷ %%h)  := do η' ← free₂ η, h' ← free₁ h, to_expr ``(%%η' ▷ %%h')
+| `(iso.hom (α_ %%f %%g %%h)) := do
+    f' ← free₁ f, g' ← free₁ g, h' ← free₁ h,
+    to_expr ``(iso.hom (α_ %%f' %%g' %%h'))
+| `(iso.inv (α_ %%f %%g %%h)) := do
+    f' ← free₁ f, g' ← free₁ g, h' ← free₁ h,
+    to_expr ``(iso.inv (α_ %%f' %%g' %%h'))
+| `(iso.hom (λ_ %%f)) := do f' ← free₁ f, to_expr ``(iso.hom (λ_ %%f'))
+| `(iso.inv (λ_ %%f)) := do f' ← free₁ f, to_expr ``(iso.inv (λ_ %%f'))
+| `(iso.hom (ρ_ %%f)) := do f' ← free₁ f, to_expr ``(iso.hom (ρ_ %%f'))
+| `(iso.inv (ρ_ %%f)) := do f' ← free₁ f, to_expr ``(iso.inv (ρ_ %%f'))
+| `(𝟙 %%f)           := do f' ← free₁ f, to_expr ``(𝟙 %%f')
+| η := to_expr ``(lift_hom₂.lift %%η) <|>
+    fail "expression is not a 2-morphism made up only of associators and unitors."
+
+end bicategory
+
+open category_theory.bicategory
 
 open tactic
 setup_tactic_parser
 
-/-- Coherence tactic for bicategorical categories. -/
+/-- Coherence tactic for bicategories. -/
 meta def bicategorical_coherence : tactic unit :=
+focus1 $
 do
-  `(%%lhs = %%rhs) ← target,
-  to_expr  ``((free_bicategory.lift (prefunctor.id _)).map₂ (lift_hom₂.lift %%lhs) =
-    (free_bicategory.lift (prefunctor.id _)).map₂ (lift_hom₂.lift %%rhs))
-    >>= tactic.change,
-  congr
+  (lhs, rhs) ← get_goal >>= infer_type >>= match_eq,
+  lhs' ← bicategory.free₂ lhs,
+  rhs' ← bicategory.free₂ rhs,
+  n ← get_unused_name,
+  interactive.«have» n ``(%%lhs' = %%rhs') ``(subsingleton.elim _ _),
+  h ← get_local n,
+  interactive.apply ``(congr_arg (λ η, (free_bicategory.lift (prefunctor.id _)).map₂ η) %%h)
 
 /--
 `coherence` uses the coherence theorem for bicategorical categories to prove the goal.
@@ -333,6 +370,7 @@ do
     -- and whose second terms can be identified by recursively called `coherence`.
     coherence_loop)
 
+/-- coherence tactic -/
 meta def coherence : tactic unit :=
 do
   try `[simp only [bicategory.bicategorical_comp]],
@@ -441,21 +479,20 @@ can_iso <|> can_hom
 
 set_option class.instance_max_depth 50
 
-set_option profiler true
+--set_option profiler true
 
 example (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) (j : a ⟶ e)
   (η : f ≫ g ≫ h ≫ i ⟶ j):
   (by can : ((f ≫ g) ≫ h) ≫ i ⟶ f ≫ g ≫ h ≫ i) ≫ η ≫ (λ_ _).inv ≫ (ρ_ _).inv =
     (α_ _ _ _).hom ≫ (α_ _ _ _).hom ≫ η ≫ (λ_ _).inv ≫ (ρ_ _).inv :=
 begin
-  liftable_prefixes,
-  erw comp_id_of_lift (𝟙 (((f ≫ g) ≫ h) ≫ i) ≫ (λ_ (((f ≫ g) ≫ h) ≫ i)).inv),
+  coherence
 end
 
 example (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d) (i : d ⟶ e) (j : a ⟶ e)
   (η : f ≫ g ≫ h ≫ i ⟶ j):
-  (by can : ((f ≫ g) ≫ h) ≫ i ⟶ f ≫ g ≫ h ≫ i) ≫ η ≫ (λ_ _).inv ≫ (ρ_ _).inv =
-    (α_ _ _ _).hom ≫ (α_ _ _ _).hom ≫ η ≫ (λ_ _).inv ≫ (ρ_ _).inv :=
+  (by can : ((f ≫ g) ≫ h) ≫ i ⟶ f ≫ g ≫ h ≫ i) ≫ (λ_ _).inv ≫ (ρ_ _).inv =
+    (α_ _ _ _).hom ≫ (α_ _ _ _).hom  ≫ (λ_ _).inv ≫ (ρ_ _).inv :=
 begin
   coherence
 end

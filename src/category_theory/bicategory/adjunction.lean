@@ -268,7 +268,7 @@ def adjointify_unit (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : 𝟙 a
 def adjointify_counit (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : g ≫ f ≅ 𝟙 b :=
 whisker_left_iso g ((ρ_ f).symm ≪≫ right_zigzag_iso ε.symm η.symm ≪≫ λ_ f) ≪≫ ε
 
-set_option class.instance_max_depth 60
+set_option class.instance_max_depth 40
 
 @[simp]
 lemma adjointify_counit_symm (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
@@ -277,33 +277,35 @@ begin
   apply iso.ext,
   rw [←cancel_mono (adjointify_unit ε.symm η.symm).inv, iso.hom_inv_id],
   dsimp [adjointify_unit, adjointify_counit, bicategorical_iso_comp],
+  rw [←cancel_mono ε.inv, ←cancel_epi ε.hom],
+  simp_rw [assoc, iso.hom_inv_id, iso.hom_inv_id_assoc],
   simp only [id_whisker_right, id_comp, is_iso.iso.inv_inv],
   calc _ =
-  ε.inv ⊗≫ g ◁ η.hom ▷ f ⊗≫ (𝟙 b ◁ (g ≫ f) ◁ ε.hom ≫ ε.inv ▷ ((g ≫ f) ≫ 𝟙 b)) ⊗≫
-    (g ◁ η.inv) ▷ f ⊗≫ ε.hom : _
+  𝟙 _ ⊗≫ g ◁ η.hom ▷ f ⊗≫ (𝟙 b ◁ (g ≫ f) ◁ ε.hom ≫ ε.inv ▷ ((g ≫ f) ≫ 𝟙 b)) ⊗≫
+    (g ◁ η.inv) ▷ f ⊗≫ 𝟙 _ : _
   ... =
-  ε.inv ⊗≫ (𝟙 b ◁ g ◁ η.hom ≫ ε.inv ▷ (g ≫ f ≫ g)) ▷ f ⊗≫ g ◁
-    ((f ≫ g) ◁ f ◁ ε.hom ≫ η.inv ▷ (f ≫ 𝟙 b)) ⊗≫ ε.hom : _
+  𝟙 _ ⊗≫ (𝟙 b ◁ g ◁ η.hom ≫ ε.inv ▷ (g ≫ f ≫ g)) ▷ f ⊗≫ g ◁
+    ((f ≫ g) ◁ f ◁ ε.hom ≫ η.inv ▷ (f ≫ 𝟙 b)) ⊗≫ 𝟙 _ : _
   ...=
-  ε.inv ⊗≫ ε.inv ▷ g ▷ f ⊗≫ g ◁ ((f ≫ g) ◁ η.hom ≫ η.inv ▷ (f ≫ g)) ▷ f ⊗≫
-    g ◁ f ◁ ε.hom ⊗≫ ε.hom : _
+  𝟙 _ ⊗≫ ε.inv ▷ g ▷ f ⊗≫ g ◁ ((f ≫ g) ◁ η.hom ≫ η.inv ▷ (f ≫ g)) ▷ f ⊗≫
+    g ◁ f ◁ ε.hom ⊗≫ 𝟙 _ : _
   ... =
-  ε.inv ⊗≫ ε.inv ▷ g ▷ f ⊗≫ g ◁ (η.inv ≫ η.hom) ▷ f ⊗≫ g ◁ f ◁ ε.hom ⊗≫ ε.hom : _
+  𝟙 _ ⊗≫ ε.inv ▷ g ▷ f ⊗≫ g ◁ (η.inv ≫ η.hom) ▷ f ⊗≫ g ◁ f ◁ ε.hom ⊗≫ 𝟙 _ : _
   ... =
-  ε.inv ⊗≫ (ε.inv ▷ (g ≫ f) ≫ (g ≫ f) ◁ ε.hom) ⊗≫ ε.hom : _
+  𝟙 _ ⊗≫ (ε.inv ▷ (g ≫ f) ≫ (g ≫ f) ◁ ε.hom) ⊗≫ 𝟙 _ : _
   ... =
-  ε.inv ⊗≫ (ε.hom ≫ ε.inv) ⊗≫ ε.hom : _
-  ... =
-  ε.inv ≫ ε.hom : _
+  𝟙 _ ⊗≫ (ε.hom ≫ ε.inv) ⊗≫ 𝟙 _ : _
   ... = _ : _ ,
   { coherence },
   { rw whisker_exchange, coherence },
-  { rw [whisker_exchange, whisker_exchange], coherence,},
-  { rw whisker_exchange, coherence },
+  { rw [whisker_exchange, whisker_exchange], coherence },
+  { rw whisker_exchange,
+    --simp_rw [whisker_right_id, id_whisker_left, unitors_equal, assoc, iso.inv_hom_id_assoc],
+    coherence },
   { rw iso.inv_hom_id, coherence },
   { rw ←whisker_exchange, coherence },
-  { rw iso.hom_inv_id, coherence },
-  { rw iso.inv_hom_id }
+  { simp [bicategorical_comp] }
+--  { rw iso.inv_hom_id }
 end
 
 @[simp]

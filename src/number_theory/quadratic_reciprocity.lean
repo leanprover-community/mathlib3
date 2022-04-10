@@ -13,6 +13,10 @@ import data.nat.parity
 
 This file contains results about quadratic residues modulo a prime number.
 
+We define the Legendre symbol `(a / p)` as `legendre_sym p a`.
+Note the order of arguments! The advantage of this form is that then `legendre_sym p`
+is a multiplicative map.
+
 The main results are the law of quadratic reciprocity, `quadratic_reciprocity`, as well as the
 interpretations in terms of existence of square roots depending on the congruence mod 4,
 `exists_sq_eq_prime_iff_of_mod_four_eq_one`, and
@@ -356,13 +360,13 @@ namespace zmod
 * `-1` otherwise.
 
 -/
-def legendre_sym (a : ℤ) (p : ℕ) : ℤ :=
+def legendre_sym (p : ℕ) (a : ℤ) : ℤ :=
 if      (a : zmod p) = 0           then  0
 else if (a : zmod p) ^ (p / 2) = 1 then  1
                                    else -1
 
-lemma legendre_sym_eq_pow (a p : ℕ) [hp : fact p.prime] :
-  (legendre_sym a p : zmod p) = (a ^ (p / 2)) :=
+lemma legendre_sym_eq_pow (p a : ℕ) [hp : fact p.prime] :
+  (legendre_sym p a : zmod p) = (a ^ (p / 2)) :=
 begin
   rw legendre_sym,
   by_cases ha : (a : zmod p) = 0,
@@ -379,20 +383,20 @@ begin
     { rw [h, if_neg this, int.cast_neg, int.cast_one], } }
 end
 
-lemma legendre_sym_eq_one_or_neg_one (a p : ℕ) (ha : (a : zmod p) ≠ 0) :
-  legendre_sym a p = -1 ∨ legendre_sym a p = 1 :=
+lemma legendre_sym_eq_one_or_neg_one (p a : ℕ) (ha : (a : zmod p) ≠ 0) :
+  legendre_sym p a = -1 ∨ legendre_sym p a = 1 :=
 begin
   unfold legendre_sym,
   split_ifs;
   simp only [*, eq_self_iff_true, or_true, true_or, int.cast_coe_nat] at *,
 end
 
-lemma legendre_sym_eq_zero_iff (a p : ℕ) :
-  legendre_sym a p = 0 ↔ (a : zmod p) = 0 :=
+lemma legendre_sym_eq_zero_iff (p a : ℕ) :
+  legendre_sym p a = 0 ↔ (a : zmod p) = 0 :=
 begin
   split,
   { classical, contrapose,
-    assume ha, cases legendre_sym_eq_one_or_neg_one a p ha with h h,
+    assume ha, cases legendre_sym_eq_one_or_neg_one p a ha with h h,
     all_goals { rw h, norm_num } },
   { assume ha, rw [legendre_sym, int.cast_coe_nat, if_pos ha] }
 end
@@ -400,20 +404,20 @@ end
 /-- Gauss' lemma. The legendre symbol can be computed by considering the number of naturals less
   than `p/2` such that `(a * x) % p > p / 2` -/
 lemma gauss_lemma {a : ℕ} [fact (p % 2 = 1)] (ha0 : (a : zmod p) ≠ 0) :
-  legendre_sym a p = (-1) ^ ((Ico 1 (p / 2).succ).filter
+  legendre_sym p a = (-1) ^ ((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card :=
-have (legendre_sym a p : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
+have (legendre_sym p a : zmod p) = (((-1)^((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card : ℤ) : zmod p),
   by rw [legendre_sym_eq_pow, gauss_lemma_aux₂ p ha0]; simp,
 begin
-  cases legendre_sym_eq_one_or_neg_one a p ha0;
+  cases legendre_sym_eq_one_or_neg_one p a ha0;
   cases neg_one_pow_eq_or ℤ ((Ico 1 (p / 2).succ).filter
     (λ x : ℕ, p / 2 < (a * x : zmod p).val)).card;
   simp [*, ne_neg_self p one_ne_zero, (ne_neg_self p one_ne_zero).symm] at *
 end
 
 lemma legendre_sym_eq_one_iff {a : ℕ} (ha0 : (a : zmod p) ≠ 0) :
-  legendre_sym a p = 1 ↔ (∃ b : zmod p, b ^ 2 = a) :=
+  legendre_sym p a = 1 ↔ (∃ b : zmod p, b ^ 2 = a) :=
 begin
   rw [euler_criterion p ha0, legendre_sym, int.cast_coe_nat, if_neg ha0],
   split_ifs,
@@ -422,19 +426,19 @@ begin
 end
 
 lemma eisenstein_lemma [fact (p % 2 = 1)] {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmod p) ≠ 0) :
-  legendre_sym a p = (-1)^∑ x in Ico 1 (p / 2).succ, (x * a) / p :=
+  legendre_sym p a = (-1)^∑ x in Ico 1 (p / 2).succ, (x * a) / p :=
 by rw [neg_one_pow_eq_pow_mod_two, gauss_lemma p ha0, neg_one_pow_eq_pow_mod_two,
     show _ = _, from eisenstein_lemma_aux₂ p ha1 ha0]
 
 /-- **Quadratic reciprocity theorem** -/
 theorem quadratic_reciprocity [hp1 : fact (p % 2 = 1)] [hq1 : fact (q % 2 = 1)] (hpq : p ≠ q) :
-  legendre_sym p q * legendre_sym q p = (-1) ^ ((p / 2) * (q / 2)) :=
+  legendre_sym q p * legendre_sym p q = (-1) ^ ((p / 2) * (q / 2)) :=
 have hpq0 : (p : zmod q) ≠ 0, from prime_ne_zero q p hpq.symm,
 have hqp0 : (q : zmod p) ≠ 0, from prime_ne_zero p q hpq,
 by rw [eisenstein_lemma q hp1.1 hpq0, eisenstein_lemma p hq1.1 hqp0,
   ← pow_add, sum_mul_div_add_sum_mul_div_eq_mul q p hpq0, mul_comm]
 
-lemma legendre_sym_two [hp1 : fact (p % 2 = 1)] : legendre_sym 2 p = (-1) ^ (p / 4 + p / 2) :=
+lemma legendre_sym_two [hp1 : fact (p % 2 = 1)] : legendre_sym p 2 = (-1) ^ (p / 4 + p / 2) :=
 have hp2 : p ≠ 2, from mt (congr_arg (% 2)) (by simpa using hp1.1),
 have hp22 : p / 2 / 2 = _ := div_eq_filter_card (show 0 < 2, from dec_trivial)
   (nat.div_le_self (p / 2) 2),

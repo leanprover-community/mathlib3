@@ -298,7 +298,7 @@ lemma aeval_prod [algebra R S] {ι : Type*} (s : finset ι) (g : ι → R[X]) (x
 eval₂_finset_prod _ _ _ _
 
 lemma eval_map_eq_aeval [algebra R S] (x : S) : eval x (p.map (algebra_map R S)) = aeval x p :=
-by simp_rw [eval_eq_sum_range' (nat.lt_add_one_iff.mpr (p.nat_degree_map_le _)),
+(eval₂_eq_eval_map _).symm
   aeval_eq_sum_range, coeff_map, algebra.smul_def]
 
 lemma is_root_of_eval₂_map_eq_zero

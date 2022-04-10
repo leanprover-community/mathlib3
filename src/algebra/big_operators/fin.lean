@@ -31,13 +31,13 @@ by rw [univ_filter_succ_lt, finset.prod_map, rel_embedding.coe_fn_to_embedding, 
 
 @[to_additive]
 lemma prod_congr {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin b → M) (h : a = b) :
-  ∏ (i : fin a), f (fin.cast h i) = ∏ (i : fin b), f i :=
-by { subst h, congr, ext, congr, ext, rw fin.coe_cast, }
+  ∏ (i : fin a), f (cast h i) = ∏ (i : fin b), f i :=
+by { subst h, congr, ext, congr, ext, rw coe_cast, }
 
 @[to_additive]
 lemma prod_univ_add {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin (a+b) → M) :
   ∏ (i : fin (a+b)), f i =
-  (∏ (i : fin a), f (fin.cast_le le_self_add i)) * ∏ (i : fin b), f (fin.nat_add a i) :=
+  (∏ (i : fin a), f (cast_add b i)) * ∏ (i : fin b), f (nat_add a i) :=
 begin
   revert f a,
   induction b with b hb,
@@ -47,29 +47,29 @@ begin
     ext i,
     congr,
     ext,
-    rw fin.coe_cast_le, },
+    refl, },
   { intros a f,
     have eq : (a+1)+b=(a+b).succ := by simpa only [add_assoc, add_comm 1],
-    rw [fin.prod_univ_succ, ← mul_assoc, ← fin.prod_congr f eq,
-      hb (λ (i : fin((a+1)+b)), f (fin.cast eq i))],
+    rw [prod_univ_succ, ← mul_assoc, ← prod_congr f eq,
+      hb (λ (i : fin((a+1)+b)), f (cast eq i))],
     congr,
-    { rw fin.prod_univ_cast_succ,
+    { rw prod_univ_cast_succ,
       congr, },
     { ext,
       simp only,
       congr,
       ext,
-      simp only [fin.coe_cast, fin.coe_nat_add, fin.coe_succ, add_assoc, add_comm 1], }, }
+      simp only [coe_cast, coe_nat_add, coe_succ, add_assoc, add_comm 1], }, }
 end
 
 @[to_additive]
 lemma prod_trunc {M : Type*} [comm_monoid M] {n a b : ℕ}
   (h : n=a+b) (f : fin (n) → M)
-  (hf : ∀ (j : fin b), f (fin.cast h.symm (fin.nat_add a j)) = 1) :
+  (hf : ∀ (j : fin b), f (cast h.symm (nat_add a j)) = 1) :
   ∏ (i : fin (n)), f i =
-  ∏ (i : fin (a)), f (fin.cast_le (nat.le.intro (h.symm)) i) :=
+  ∏ (i : fin (a)), f (cast_le (nat.le.intro (h.symm)) i) :=
 begin
-  rw [← fin.prod_congr f h.symm, fin.prod_univ_add, fintype.prod_eq_one _ hf, mul_one],
+  rw [← prod_congr f h.symm, prod_univ_add, fintype.prod_eq_one _ hf, mul_one],
   congr,
 end
 

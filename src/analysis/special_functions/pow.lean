@@ -180,6 +180,9 @@ begin
   { exact continuous_at_const_cpow ha, },
 end
 
+/-- The function `z ^ w` is continuous in `(z, w)` provided that `z` does not belong to the interval
+`(-∞, 0]` on the real line. See also `complex.continuous_at_cpow_zero_of_re_pos` for a version that
+works for `z = 0` but assumes `0 < re w`. -/
 lemma continuous_at_cpow {p : ℂ × ℂ} (hp_fst : 0 < p.fst.re ∨ p.fst.im ≠ 0) :
   continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) p :=
 begin
@@ -939,7 +942,8 @@ end limits
 
 namespace complex
 
-lemma continuous_at_cpow_zero_of_pos_re {z : ℂ} (hz : 0 < z.re) :
+/-- See also `complex.continuous_at_cpow`. -/
+lemma continuous_at_cpow_zero_of_re_pos {z : ℂ} (hz : 0 < z.re) :
   continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) (0, z) :=
 begin
   have hz₀ : z ≠ 0, from ne_of_apply_ne re hz.ne',

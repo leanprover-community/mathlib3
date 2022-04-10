@@ -53,116 +53,6 @@ smul_left_cancel_iff $ units.mk0 _ hg
 
 end smul
 
-section strict_convex
-variables {E : Type*}
-
-lemma is_closed.frontier_subset [topological_space E] {s : set E} (hs : is_closed s) :
-  frontier s ⊆ s :=
-frontier_subset_closure.trans hs.closure_eq.subset
-
-variables [normed_group E] [normed_space ℝ E]
-
-section
-variables {x y : E} {a b : ℝ}
-
-namespace same_ray
-
-protected lemma rfl : same_ray ℝ x x := refl _
-
-lemma exists_pos_left (h : same_ray ℝ x y) (hx : x ≠ 0) (hy : y ≠ 0) : ∃ r : ℝ, 0 < r ∧ r • x = y :=
-let ⟨r₁, r₂, hr₁, hr₂, h⟩ := h.exists_pos hx hy in
-  ⟨r₂⁻¹ * r₁, mul_pos (inv_pos.2 hr₂) hr₁, by rw [mul_smul, h, inv_smul_smul₀ hr₂.ne']⟩
-
-lemma exists_pos_right (h : same_ray ℝ x y) (hx : x ≠ 0) (hy : y ≠ 0) :
-  ∃ r : ℝ, 0 < r ∧ x = r • y :=
-(h.symm.exists_pos_left hy hx).imp $ λ _, and.imp_right eq.symm
-
-lemma exists_nonneg_left (h : same_ray ℝ x y) (hx : x ≠ 0) : ∃ r : ℝ, 0 ≤ r ∧ r • x = y :=
-begin
-  obtain rfl | hy := eq_or_ne y 0,
-  { exact ⟨0, le_rfl, zero_smul _ _⟩ },
-  { exact (h.exists_pos_left hx hy).imp (λ _, and.imp_left le_of_lt) }
-end
-
-lemma exists_nonneg_right (h : same_ray ℝ x y) (hy : y ≠ 0) : ∃ r : ℝ, 0 ≤ r ∧ x = r • y :=
-(h.symm.exists_nonneg_left hy).imp $ λ _, and.imp_right eq.symm
-
-end same_ray
-
-lemma norm_inj_on_ray_left (hx : x ≠ 0) : {y | same_ray ℝ x y}.inj_on norm :=
-begin
-  rintro y hy z hz h,
-  obtain rfl | hz' := eq_or_ne z 0,
-  { rwa [norm_zero, norm_eq_zero] at h },
-  have hy' : y ≠ 0,
-  { rwa [←norm_ne_zero_iff, ←h, norm_ne_zero_iff] at hz' },
-  obtain ⟨r, hr, rfl⟩ := hy.exists_pos_left hx hy',
-  obtain ⟨s, hs, rfl⟩ := hz.exists_pos_left hx hz',
-  simp_rw [norm_smul, mul_left_inj' (norm_ne_zero_iff.2 hx), real.norm_of_nonneg hr.le,
-    real.norm_of_nonneg hs.le] at h,
-  rw h,
-end
-
-lemma norm_inj_on_ray_right (hy : y ≠ 0) : {x | same_ray ℝ x y}.inj_on norm :=
-by simpa only [same_ray_comm] using norm_inj_on_ray_left hy
-
-lemma same_ray_iff_of_norm_eq (h : ∥x∥ = ∥y∥) : same_ray ℝ x y ↔ x = y :=
-begin
-  obtain rfl | hy := eq_or_ne y 0,
-  { rw [norm_zero, norm_eq_zero] at h,
-    exact iff_of_true (same_ray.zero_right _) h },
-  { exact ⟨λ hxy, norm_inj_on_ray_right hy hxy same_ray.rfl h, λ hxy, hxy ▸ same_ray.rfl⟩ }
-end
-
-lemma not_same_ray_iff_of_norm_eq (h : ∥x∥ = ∥y∥) : ¬ same_ray ℝ x y ↔ x ≠ y :=
-(same_ray_iff_of_norm_eq h).not
-
-variables {s : set E}
-
-protected lemma strict_convex.eq (hs : strict_convex ℝ s) (hx : x ∈ s) (hy : y ∈ s) (ha : 0 < a)
-  (hb : 0 < b) (hab : a + b = 1) (h : a • x + b • y ∉ interior s) : x = y :=
-hs.eq hx hy $ λ H, h $ H ha hb hab
-
-/-- The frontier of a closed strictly convex set only contains trivial arithmetic progressions.
-The idea is that an arithmetic progression is contained on a line and the frontier of a strictly
-convex set does not contain lines. -/
-lemma add_salem_spencer_frontier (hs₀ : is_closed s) (hs₁ : strict_convex ℝ s) :
-  add_salem_spencer (frontier s) :=
-begin
-  intros a b c ha hb hc habc,
-  obtain rfl : (1 / 2 : ℝ) • a + (1 / 2 : ℝ) • b = c,
-  { rwa [←smul_add, one_div, inv_smul_eq_iff₀ (show (2 : ℝ) ≠ 0, by norm_num), two_smul] },
-  exact hs₁.eq (hs₀.frontier_subset ha) (hs₀.frontier_subset hb) one_half_pos one_half_pos
-    (add_halves _) hc.2,
-end
-
-end
-
-variables [strict_convex_space ℝ E] {x y z : E}
-
-/-- In a strictly convex space, two vectors `x`, `y` are not in the same ray if and only if the
-triangle inequality for `x` and `y` is strict. -/
-lemma not_same_ray_iff_norm_add_lt : ¬ same_ray ℝ x y ↔ ∥x + y∥ < ∥x∥ + ∥y∥ :=
-same_ray_iff_norm_add.not.trans (norm_add_le _ _).lt_iff_ne.symm
-
-lemma norm_midpoint_lt_iff (h : ∥x∥ = ∥y∥) : ∥(1/2 : ℝ) • (x + y)∥ < ∥x∥ ↔ x ≠ y :=
-by rw [norm_smul, real.norm_of_nonneg (one_div_nonneg.2 zero_le_two), ←inv_eq_one_div,
-    ←div_eq_inv_mul, div_lt_iff (@zero_lt_two ℝ _ _), mul_two, ←not_same_ray_iff_of_norm_eq h,
-    not_same_ray_iff_norm_add_lt, h]
-
-open metric
-
-lemma add_salem_spencer_sphere (x : E) (r : ℝ) : add_salem_spencer (sphere x r) :=
-begin
-  obtain rfl | hr := eq_or_ne r 0,
-  { rw sphere_zero,
-    exact add_salem_spencer_singleton _ },
-  { convert add_salem_spencer_frontier is_closed_ball (strict_convex_closed_ball ℝ x r),
-    exact (frontier_closed_ball _ hr).symm }
-end
-
-end strict_convex
-
 namespace multiset
 variables {α : Type*}
 
@@ -782,7 +672,7 @@ lemma lower_bound_le_one (hN : 1 ≤ N) (hN' : N ≤ 4096) : (N : ℝ) * exp (-4
 begin
   obtain rfl | hN := hN.eq_or_lt,
   { norm_num },
-  exact lower_bound_le_one' hN hN',
+  { exact lower_bound_le_one' hN hN' }
 end
 
 lemma roth_lower_bound : (N : ℝ) * exp (-4 * sqrt (log N)) ≤ roth_number_nat N :=

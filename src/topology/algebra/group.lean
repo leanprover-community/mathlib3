@@ -11,7 +11,7 @@ import topology.sets.compacts
 import topology.algebra.constructions
 
 /-!
-# Theory of topological groups
+# Topological groups
 
 This file defines the following typeclasses:
 
@@ -330,7 +330,11 @@ class topological_add_group (G : Type u) [topological_space G] [add_group G]
   extends has_continuous_add G, has_continuous_neg G : Prop
 
 /-- A topological group is a group in which the multiplication and inversion operations are
-continuous. -/
+continuous.
+
+When you declare an instance that does not already have a `uniform_space` instance,
+you should also provide an instance of `uniform_space` and `uniform_group` using
+`topological_group.to_uniform_space` and `topological_group_is_uniform`. -/
 @[to_additive]
 class topological_group (G : Type*) [topological_space G] [group G]
   extends has_continuous_mul G, has_continuous_inv G : Prop
@@ -515,6 +519,27 @@ lemma is_open.inv {s : set G} (hs : is_open s) : is_open s⁻¹ := hs.preimage c
 @[to_additive]
 lemma is_closed.inv {s : set G} (hs : is_closed s) : is_closed s⁻¹ := hs.preimage continuous_inv
 
+@[to_additive]
+lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
+(homeomorph.inv G).preimage_closure s
+
+@[to_additive] lemma is_open.mul_closure {U : set G} (hU : is_open U) (s : set G) :
+  U * closure s = U * s :=
+begin
+  refine subset.antisymm _ (mul_subset_mul subset.rfl subset_closure),
+  rintro _ ⟨a, b, ha, hb, rfl⟩,
+  rw mem_closure_iff at hb,
+  have hbU : b ∈ U⁻¹ * {a * b},
+    from ⟨a⁻¹, a * b, inv_mem_inv.2 ha, rfl, inv_mul_cancel_left _ _⟩,
+  rcases hb _ hU.inv.mul_right hbU with ⟨_, ⟨c, d, hc, (rfl : d = _), rfl⟩, hcs⟩,
+  exact ⟨c⁻¹, _, hc, hcs, inv_mul_cancel_left _ _⟩
+end
+
+@[to_additive] lemma is_open.closure_mul {U : set G} (hU : is_open U) (s : set G) :
+  closure s * U = s * U :=
+by rw [← inv_inv (closure s * U), set.mul_inv_rev, inv_closure, hU.inv.mul_closure,
+  set.mul_inv_rev, inv_inv, inv_inv]
+
 namespace subgroup
 
 @[to_additive] instance (S : subgroup G) :
@@ -527,10 +552,6 @@ namespace subgroup
   ..S.to_submonoid.has_continuous_mul }
 
 end subgroup
-
-@[to_additive]
-lemma inv_closure (s : set G) : (closure s)⁻¹ = closure s⁻¹ :=
-(homeomorph.inv G).preimage_closure s
 
 /-- The (topological-space) closure of a subgroup of a space `M` with `has_continuous_mul` is
 itself a subgroup. -/

@@ -86,7 +86,7 @@ theorem inf_lt_inf_of_lt_of_sup_le_sup (hxy : x < y) (hinf : y ⊔ z ≤ x ⊔ z
 /-- A generalization of the theorem that if `N` is a submodule of `M` and
   `N` and `M / N` are both Artinian, then `M` is Artinian. -/
 theorem well_founded_lt_exact_sequence
-  {β γ : Type*} [partial_order β] [partial_order γ]
+  {β γ : Type*} [partial_order β] [preorder γ]
   (h₁ : well_founded ((<) : β → β → Prop))
   (h₂ : well_founded ((<) : γ → γ → Prop))
   (K : α) (f₁ : β → α) (f₂ : α → β) (g₁ : γ → α) (g₂ : α → γ)
@@ -110,7 +110,7 @@ subrelation.wf
 /-- A generalization of the theorem that if `N` is a submodule of `M` and
   `N` and `M / N` are both Noetherian, then `M` is Noetherian.  -/
 theorem well_founded_gt_exact_sequence
-  {β γ : Type*} [partial_order β] [partial_order γ]
+  {β γ : Type*} [preorder β] [partial_order γ]
   (h₁ : well_founded ((>) : β → β → Prop))
   (h₂ : well_founded ((>) : γ → γ → Prop))
   (K : α) (f₁ : β → α) (f₂ : α → β) (g₁ : γ → α) (g₂ : α → γ)
@@ -165,7 +165,7 @@ instance [distrib_lattice α] : is_modular_lattice α :=
 end distrib_lattice
 
 theorem disjoint.disjoint_sup_right_of_disjoint_sup_left
-  [lattice α] [bounded_order α] [is_modular_lattice α] {a b c : α}
+  [lattice α] [order_bot α] [is_modular_lattice α] {a b c : α}
   (h : disjoint a b) (hsup : disjoint (a ⊔ b) c) :
   disjoint a (b ⊔ c) :=
 begin
@@ -176,7 +176,7 @@ begin
 end
 
 theorem disjoint.disjoint_sup_left_of_disjoint_sup_right
-  [lattice α] [bounded_order α] [is_modular_lattice α] {a b c : α}
+  [lattice α] [order_bot α] [is_modular_lattice α] {a b c : α}
   (h : disjoint b c) (hsup : disjoint a (b ⊔ c)) :
   disjoint (a ⊔ b) c :=
 begin

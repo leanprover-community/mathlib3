@@ -205,29 +205,33 @@ variables [conditionally_complete_lattice α] {s t : set α} {a b : α}
 theorem le_cSup (h₁ : bdd_above s) (h₂ : a ∈ s) : a ≤ Sup s :=
 conditionally_complete_lattice.le_cSup s a h₁ h₂
 
-theorem cSup_le (h₁ : s.nonempty) (h₂ : ∀b∈s, b ≤ a) : Sup s ≤ a :=
+theorem cSup_le (h₁ : s.nonempty) (h₂ : ∀ b ∈ s, b ≤ a) : Sup s ≤ a :=
 conditionally_complete_lattice.cSup_le s a h₁ h₂
 
 theorem cInf_le (h₁ : bdd_below s) (h₂ : a ∈ s) : Inf s ≤ a :=
 conditionally_complete_lattice.cInf_le s a h₁ h₂
 
-theorem le_cInf (h₁ : s.nonempty) (h₂ : ∀b∈s, a ≤ b) : a ≤ Inf s :=
+theorem le_cInf (h₁ : s.nonempty) (h₂ : ∀ b ∈ s, a ≤ b) : a ≤ Inf s :=
 conditionally_complete_lattice.le_cInf s a h₁ h₂
 
-theorem le_cSup_of_le (_ : bdd_above s) (hb : b ∈ s) (h : a ≤ b) : a ≤ Sup s :=
-le_trans h (le_cSup ‹bdd_above s› hb)
+theorem le_cSup_of_le (hs : bdd_above s) (hb : b ∈ s) (h : a ≤ b) : a ≤ Sup s :=
+le_trans h (le_cSup hs hb)
 
-theorem cInf_le_of_le (_ : bdd_below s) (hb : b ∈ s) (h : b ≤ a) : Inf s ≤ a :=
-le_trans (cInf_le ‹bdd_below s› hb) h
+theorem cInf_le_of_le (hs : bdd_below s) (hb : b ∈ s) (h : b ≤ a) : Inf s ≤ a :=
+le_trans (cInf_le hs hb) h
 
-theorem cSup_le_cSup (_ : bdd_above t) (_ : s.nonempty) (h : s ⊆ t) : Sup s ≤ Sup t :=
-cSup_le ‹_› (assume (a) (ha : a ∈ s), le_cSup ‹bdd_above t› (h ha))
+theorem cSup_le_cSup (ht : bdd_above t) (hs : s.nonempty) (h : s ⊆ t) : Sup s ≤ Sup t :=
+cSup_le hs (λ (a) (ha : a ∈ s), le_cSup ht (h ha))
 
-theorem cInf_le_cInf (_ : bdd_below t) (_ : s.nonempty) (h : s ⊆ t) : Inf t ≤ Inf s :=
-le_cInf ‹_› (assume (a) (ha : a ∈ s), cInf_le ‹bdd_below t› (h ha))
+theorem cInf_le_cInf (ht : bdd_below t) (hs : s.nonempty) (h : s ⊆ t) : Inf t ≤ Inf s :=
+le_cInf hs (λ (a) (ha : a ∈ s), cInf_le ht (h ha))
+
+theorem le_cSup_iff (h : bdd_above s) (hs : s.nonempty) :
+  a ≤ Sup s ↔ ∀ b, b ∈ upper_bounds s → a ≤ b :=
+⟨λ h b hb, le_trans h (cSup_le hs hb), λ hb, hb _ (λ x, le_cSup h)⟩
 
 lemma is_lub_cSup (ne : s.nonempty) (H : bdd_above s) : is_lub s (Sup s) :=
-⟨assume x, le_cSup H, assume x, cSup_le ne⟩
+⟨λ x, le_cSup H, assume x, cSup_le ne⟩
 
 lemma is_lub_csupr [nonempty ι] {f : ι → α} (H : bdd_above (range f)) :
   is_lub (range f) (⨆ i, f i) :=
@@ -286,10 +290,10 @@ lemma subset_Icc_cInf_cSup (hb : bdd_below s) (ha : bdd_above s) :
   s ⊆ Icc (Inf s) (Sup s) :=
 λ x hx, ⟨cInf_le hb hx, le_cSup ha hx⟩
 
-theorem cSup_le_iff (hb : bdd_above s) (ne : s.nonempty) : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
+theorem cSup_le_iff (hb : bdd_above s) (ne : s.nonempty) : Sup s ≤ a ↔ (∀ b ∈ s, b ≤ a) :=
 is_lub_le_iff (is_lub_cSup ne hb)
 
-theorem le_cInf_iff (hb : bdd_below s) (ne : s.nonempty) : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
+theorem le_cInf_iff (hb : bdd_below s) (ne : s.nonempty) : a ≤ Inf s ↔ (∀ b ∈ s, a ≤ b) :=
 le_is_glb_iff (is_glb_cInf ne hb)
 
 lemma cSup_lower_bounds_eq_cInf {s : set α} (h : bdd_below s) (hs : s.nonempty) :

@@ -158,8 +158,8 @@ def invertible_one [monoid α] : invertible (1 : α) :=
 inv_of_eq_right_inv (mul_one _)
 
 /-- `-⅟a` is the inverse of `-a` -/
-def invertible_neg [ring α] (a : α) [invertible a] : invertible (-a) :=
-⟨ -⅟a, by simp, by simp ⟩
+def invertible_neg [has_mul α] [has_one α] [has_distrib_neg α] (a : α) [invertible a] :
+  invertible (-a) := ⟨-⅟a, by simp, by simp ⟩
 
 @[simp] lemma inv_of_neg [monoid α] [has_distrib_neg α] (a : α) [invertible a] [invertible (-a)] :
   ⅟(-a) = -⅟a :=

@@ -180,6 +180,10 @@ theorem ext_iff {s t : set α} : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
 @[trans] theorem mem_of_mem_of_subset {x : α} {s t : set α}
   (hx : x ∈ s) (h : s ⊆ t) : x ∈ t := h hx
 
+lemma forall_in_swap {p : α → β → Prop} :
+  (∀ (a ∈ s) b, p a b) ↔ ∀ b (a ∈ s), p a b :=
+by tauto
+
 /-! ### Lemmas about `mem` and `set_of` -/
 
 @[simp] theorem mem_set_of_eq {a : α} {p : α → Prop} : a ∈ {a | p a} = p a := rfl

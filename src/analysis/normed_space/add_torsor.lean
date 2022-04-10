@@ -81,6 +81,15 @@ lemma lipschitz_with_line_map (p₁ p₂ : P) :
 lipschitz_with.of_dist_le_mul $ λ c₁ c₂,
   ((dist_line_map_line_map p₁ p₂ c₁ c₂).trans (mul_comm _ _)).le
 
+omit V
+
+lemma antilipschitz_with_line_map [normed_space 𝕜 W] {p₁ p₂ : Q} (h : p₁ ≠ p₂) :
+  antilipschitz_with (nndist p₁ p₂)⁻¹ (line_map p₁ p₂ : 𝕜 → Q) :=
+antilipschitz_with.of_le_mul_dist $ λ c₁ c₂, by rw [dist_line_map_line_map, nnreal.coe_inv,
+  ← dist_nndist, mul_left_comm, inv_mul_cancel (dist_ne_zero.2 h), mul_one]
+
+include V
+
 @[simp] lemma dist_line_map_left (p₁ p₂ : P) (c : 𝕜) :
   dist (line_map p₁ p₂ c) p₁ = ∥c∥ * dist p₁ p₂ :=
 by simpa only [line_map_apply_zero, dist_zero_right] using dist_line_map_line_map p₁ p₂ c 0

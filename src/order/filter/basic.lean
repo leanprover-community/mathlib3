@@ -179,6 +179,10 @@ begin
   { rintro ⟨u, huf, hPu, hQu⟩, exact ⟨⟨u, huf, hPu⟩, u, huf, hQu⟩ }
 end
 
+lemma forall_in_swap {β : Type*} {p : set α → β → Prop} :
+  (∀ (a ∈ f) b, p a b) ↔ ∀ b (a ∈ f), p a b :=
+set.forall_in_swap
+
 end filter
 
 namespace tactic.interactive
@@ -1296,6 +1300,10 @@ lemma eventually_eq.inf [has_inf β] {l : filter α} {f f' g g' : α → β}
   (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
   (λ x, f x ⊓ g x) =ᶠ[l] λ x, f' x ⊓ g' x :=
 hf.comp₂ (⊓) hg
+
+lemma eventually_eq.preimage {l : filter α} {f g : α → β}
+  (h : f =ᶠ[l] g) (s : set β) : f ⁻¹' s =ᶠ[l] g ⁻¹' s :=
+h.fun_comp s
 
 lemma eventually_eq.inter {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
   (s ∩ s' : set α) =ᶠ[l] (t ∩ t' : set α) :=

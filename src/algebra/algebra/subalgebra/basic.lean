@@ -393,7 +393,7 @@ iff.rfl
   (S.comap' f : set A) = f ⁻¹' (S : set B) :=
 rfl
 
-instance no_zero_divisors {R A : Type*} [comm_ring R] [semiring A] [no_zero_divisors A]
+instance no_zero_divisors {R A : Type*} [comm_semiring R] [semiring A] [no_zero_divisors A]
   [algebra R A] (S : subalgebra R A) : no_zero_divisors S :=
 S.to_subsemiring.no_zero_divisors
 

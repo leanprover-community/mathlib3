@@ -58,7 +58,7 @@ namespace is_scalar_tower
 section module
 
 variables [comm_semiring R] [semiring A] [algebra R A]
-variables [add_comm_monoid M] [module R M] [module A M] [is_scalar_tower R A M]
+variables [has_scalar R M] [mul_action A M] [is_scalar_tower R A M]
 
 variables {R} (A) {M}
 theorem algebra_map_smul (r : R) (x : M) : algebra_map R A r • x = r • x :=
@@ -295,10 +295,13 @@ end is_scalar_tower
 section semiring
 
 variables {R S A}
-variables [comm_semiring R] [semiring S] [add_comm_monoid A]
-variables [algebra R S] [module S A] [module R A] [is_scalar_tower R S A]
 
 namespace submodule
+
+section module
+
+variables [semiring R] [semiring S] [add_comm_monoid A]
+variables [module R S] [module S A] [module R A] [is_scalar_tower R S A]
 
 open is_scalar_tower
 
@@ -308,6 +311,8 @@ span_induction hks (λ c hc, subset_span $ set.mem_smul.2 ⟨c, x, hc, hx, rfl�
   (by { rw zero_smul, exact zero_mem _ })
   (λ c₁ c₂ ih₁ ih₂, by { rw add_smul, exact add_mem _ ih₁ ih₂ })
   (λ b c hc, by { rw is_scalar_tower.smul_assoc, exact smul_mem _ _ hc })
+
+variables [smul_comm_class R S A]
 
 theorem smul_mem_span_smul {s : set S} (hs : span R s = ⊤) {t : set A} {k : S}
   {x : A} (hx : x ∈ span R t) :
@@ -335,6 +340,13 @@ le_antisymm (span_le.2 $ λ x hx, let ⟨p, q, hps, hqt, hpqx⟩ := set.mem_smul
   (λ _ _, add_mem _)
   (λ k x hx, smul_mem_span_smul' hs hx)
 
+end module
+
+section algebra
+
+variables [comm_semiring R] [semiring S] [add_comm_monoid A]
+variables [algebra R S] [module S A] [module R A] [is_scalar_tower R S A]
+
 /-- A variant of `submodule.span_image` for `algebra_map`. -/
 lemma span_algebra_map_image (a : set R) :
   submodule.span R (algebra_map R S '' a) =
@@ -354,6 +366,8 @@ lemma map_mem_span_algebra_map_image {S T : Type*} [comm_semiring S] [semiring T
   algebra_map S T x ∈ submodule.span R (algebra_map S T '' a) :=
 by { rw [span_algebra_map_image_of_tower, mem_map], exact ⟨x, hx, rfl⟩ }
 
+end algebra
+
 end submodule
 
 end semiring
@@ -362,7 +376,7 @@ section ring
 
 namespace algebra
 
-variables [comm_semiring R] [ring A] [algebra R A]
+variables [comm_semiring R] [semiring A] [algebra R A]
 variables [add_comm_group M] [module A M] [module R M] [is_scalar_tower R A M]
 
 lemma lsmul_injective [no_zero_smul_divisors A M] {x : A} (hx : x ≠ 0) :

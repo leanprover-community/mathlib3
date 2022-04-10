@@ -246,15 +246,14 @@ theorem indep_fun_iff_integral_comp_mul [is_finite_measure μ]
     measurable φ → measurable ψ → integrable (φ ∘ f) μ → integrable (ψ ∘ g) μ →
     integral μ ((φ ∘ f) * (ψ ∘ g)) = integral μ (φ ∘ f) * integral μ (ψ ∘ g) :=
 begin
-  have I : ∀ {A : set α} (hA : measurable_set A), integral μ (A.indicator 1) = (μ A).to_real,
-    from λ _ hA, (integral_indicator_const (1 : ℝ) hA).trans ((smul_eq_mul _).trans (mul_one _)),
   refine ⟨λ hfg _ _ hφ hψ, indep_fun.integral_mul_of_integrable (hfg.comp hφ hψ), _⟩,
   rintro h _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
   specialize h (measurable_one.indicator hA) (measurable_one.indicator hB)
     ((integrable_const 1).indicator (hfm.comp measurable_id hA))
     ((integrable_const 1).indicator (hgm.comp measurable_id hB)),
-  rwa [← ennreal.to_real_eq_to_real (measure_ne_top μ _), ← I ((hfm hA).inter (hgm hB)),
-    set.inter_indicator_one, ennreal.to_real_mul, ← I (hfm hA), ← I (hgm hB)],
+  rwa [← ennreal.to_real_eq_to_real (measure_ne_top μ _), ennreal.to_real_mul,
+    ← integral_indicator_one ((hfm hA).inter (hgm hB)), ← integral_indicator_one (hfm hA),
+    ← integral_indicator_one (hgm hB), set.inter_indicator_one],
   exact ennreal.mul_ne_top (measure_ne_top μ _) (measure_ne_top μ _)
 end
 

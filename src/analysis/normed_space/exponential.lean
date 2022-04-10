@@ -384,17 +384,17 @@ section
 variables (𝕂)
 
 /-- `exp 𝕂 𝔸 x` has explicit two-sided inverse `exp 𝕂 𝔸 (-x)`. -/
-noncomputable def invertible_exp [char_zero 𝕂] (x : 𝔸) : invertible (exp 𝕂 𝔸 x) :=
+noncomputable def invertible_exp (x : 𝔸) : invertible (exp 𝕂 𝔸 x) :=
 invertible_exp_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
 
-lemma is_unit_exp [char_zero 𝕂] (x : 𝔸) : is_unit (exp 𝕂 𝔸 x) :=
+lemma is_unit_exp (x : 𝔸) : is_unit (exp 𝕂 𝔸 x) :=
 is_unit_exp_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
 
-lemma inv_of_exp [char_zero 𝕂] (x : 𝔸) [invertible (exp 𝕂 𝔸 x)] :
+lemma inv_of_exp (x : 𝔸) [invertible (exp 𝕂 𝔸 x)] :
   ⅟(exp 𝕂 𝔸 x) = exp 𝕂 𝔸 (-x) :=
 inv_of_exp_of_mem_ball $ (exp_series_radius_eq_top 𝕂 𝔸).symm ▸ edist_lt_top _ _
 
-lemma ring.inverse_exp [char_zero 𝕂] (x : 𝔸) : ring.inverse (exp 𝕂 𝔸 x) = exp 𝕂 𝔸 (-x) :=
+lemma ring.inverse_exp (x : 𝔸) : ring.inverse (exp 𝕂 𝔸 x) = exp 𝕂 𝔸 (-x) :=
 begin
   letI := invertible_exp 𝕂 x,
   exact ring.inverse_invertible _,

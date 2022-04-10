@@ -283,61 +283,61 @@ end coherence
 
 open coherence
 
-meta def coherence_loop : tactic unit :=
-  pure_coherence <|> do
-  tactic.congr_core',
-  focus1 pure_coherence <|>
-    fail "`coherence` tactic failed, subgoal not true in the free bicategory",
-  reflexivity <|> (do
-    `(_ ≫ _ = _ ≫ _) ← target |
-      fail "`coherence` tactic failed, non-structural morphisms don't match",
-    tactic.congr_core',
-    reflexivity <|> fail "`coherence` tactic failed, non-structural morphisms don't match",
-    coherence_loop)
-
-meta def coherence : tactic unit :=
-do
-  pure_coherence <|> do
-  try `[simp only [←category_theory.bicategory.bicategorical_comp_refl]],
-  try `[simp only [category_theory.bicategory.bicategorical_comp]],
-  try assoc_simps,
-  liftable_prefixes <|>
-    fail ("Something went wrong in the `coherence` tactic: " ++
-      "is the target an equation in a bicategory?"),
-  coherence_loop
-
 -- meta def coherence_loop : tactic unit :=
--- do
---   -- To prove an equality `f = g` in a monoidal category,
---   -- first try the `pure_coherence` tactic on the entire equation:
 --   pure_coherence <|> do
---   -- Otherewise, rearrange so we have a maximal prefix of each side
---   -- that is built out of unitors and associators:
---   liftable_prefixes <|>
---     fail ("Something went wrong in the `coherence` tactic: " ++
---       "is the target an equation in a monoidal category?"),
---   -- The goal should now look like `f₀ ≫ f₁ = g₀ ≫ g₁`,
 --   tactic.congr_core',
---   -- and now we have two goals `f₀ = g₀` and `f₁ = g₁`.
---   -- Discharge the first using `coherence`,
 --   focus1 pure_coherence <|>
---     fail "`coherence` tactic failed, subgoal not true in the free monoidal_category",
---   -- Then check that either `g₀` is identically `g₁`,
+--     fail "`coherence` tactic failed, subgoal not true in the free bicategory",
 --   reflexivity <|> (do
---     -- or that both are compositions,
 --     `(_ ≫ _ = _ ≫ _) ← target |
 --       fail "`coherence` tactic failed, non-structural morphisms don't match",
 --     tactic.congr_core',
---     -- with identical first terms,
 --     reflexivity <|> fail "`coherence` tactic failed, non-structural morphisms don't match",
---     -- and whose second terms can be identified by recursively called `coherence`.
 --     coherence_loop)
 
 -- meta def coherence : tactic unit :=
 -- do
---   try `[simp only [bicategory.bicategorical_comp]],
+--   pure_coherence <|> do
+--   try `[simp only [←category_theory.bicategory.bicategorical_comp_refl]],
+--   try `[simp only [category_theory.bicategory.bicategorical_comp]],
 --   try assoc_simps,
+--   liftable_prefixes <|>
+--     fail ("Something went wrong in the `coherence` tactic: " ++
+--       "is the target an equation in a bicategory?"),
 --   coherence_loop
+
+meta def coherence_loop : tactic unit :=
+do
+  -- To prove an equality `f = g` in a monoidal category,
+  -- first try the `pure_coherence` tactic on the entire equation:
+  pure_coherence <|> do
+  -- Otherewise, rearrange so we have a maximal prefix of each side
+  -- that is built out of unitors and associators:
+  liftable_prefixes <|>
+    fail ("Something went wrong in the `coherence` tactic: " ++
+      "is the target an equation in a monoidal category?"),
+  -- The goal should now look like `f₀ ≫ f₁ = g₀ ≫ g₁`,
+  tactic.congr_core',
+  -- and now we have two goals `f₀ = g₀` and `f₁ = g₁`.
+  -- Discharge the first using `coherence`,
+  focus1 pure_coherence <|>
+    fail "`coherence` tactic failed, subgoal not true in the free monoidal_category",
+  -- Then check that either `g₀` is identically `g₁`,
+  reflexivity <|> (do
+    -- or that both are compositions,
+    `(_ ≫ _ = _ ≫ _) ← target |
+      fail "`coherence` tactic failed, non-structural morphisms don't match",
+    tactic.congr_core',
+    -- with identical first terms,
+    reflexivity <|> fail "`coherence` tactic failed, non-structural morphisms don't match",
+    -- and whose second terms can be identified by recursively called `coherence`.
+    coherence_loop)
+
+meta def coherence : tactic unit :=
+do
+  try `[simp only [bicategory.bicategorical_comp]],
+  try assoc_simps,
+  coherence_loop
 
 run_cmd add_interactive [`pure_coherence, `coherence]
 

@@ -59,12 +59,12 @@ attribute [simp] left_triangle right_triangle
 def id (a : B) : 𝟙 a ⊣ 𝟙 a :=
 { unit            := (ρ_ _).inv,
   counit          := (ρ_ _).hom,
-  left_triangle'  := by { dsimp, tactic.coherence.liftable_prefixes, pure_coherence, },
-  right_triangle' := by { dsimp, tactic.coherence.liftable_prefixes, pure_coherence } }
+  left_triangle'  := by { dsimp, coherence },
+  right_triangle' := by { dsimp, coherence } }
 
 instance : inhabited (adjunction (𝟙 a) (𝟙 a)) := ⟨id a⟩
 
-set_option class.instance_max_depth 90
+set_option class.instance_max_depth 60
 
 lemma right_adjoint_uniq_aux {f : a ⟶ b} {g₁ g₂ : b ⟶ a} (adj₁ : f ⊣ g₁) (adj₂ : f ⊣ g₂) :
   (𝟙 g₁ ⊗≫ g₁ ◁ adj₂.unit ⊗≫ adj₁.counit ▷ g₂ ⊗≫ 𝟙 g₂) ≫
@@ -87,7 +87,7 @@ begin
   { rw ←whisker_exchange, coherence },
   { simp_rw ←whisker_exchange, coherence },
   { rw left_triangle, coherence },
-  { rw right_triangle, coherence },
+  { rw right_triangle, coherence }
 end
 
 lemma left_adjoint_uniq_aux {f₁ f₂ : a ⟶ b} {g : b ⟶ a} (adj₁ : f₁ ⊣ g) (adj₂ : f₂ ⊣ g) :
@@ -111,7 +111,7 @@ begin
   { rw whisker_exchange, coherence },
   { simp_rw whisker_exchange, coherence },
   { rw right_triangle, coherence },
-  { rw left_triangle, coherence },
+  { rw left_triangle, coherence }
 end
 
 /-- If `g₁` and `g₂` are both right adjoint to `f`, then they are isomorphic. -/
@@ -239,16 +239,16 @@ begin
   ... =
   𝟙 _ ⊗≫ g ◁ (η.hom ≫ η.inv) ⊗≫ 𝟙 _ : _
   ... = _ : _,
-  { rw [←comp_id (ε.hom ▷ g)], coherence },
+  { rw ←comp_id (ε.hom ▷ g), coherence },
   { rw [iso.hom_inv_id η, whisker_left_id] },
-  { rw [iso.hom_inv_id ε], coherence },
+  { rw iso.hom_inv_id ε, coherence },
   { coherence },
   { rw ←whisker_exchange, coherence },
   { rw ←whisker_exchange, coherence },
   { rw ←whisker_exchange, coherence },
   { rw H, coherence },
   { rw iso.hom_inv_id ε, coherence },
-  { rw iso.hom_inv_id η, coherence },
+  { rw iso.hom_inv_id η, coherence }
 end
 
 lemma left_triangle_iff_right_triangle {η : 𝟙 a ≅ f ≫ g} {ε : g ≫ f ≅ 𝟙 b} :
@@ -267,6 +267,8 @@ def adjointify_unit (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : 𝟙 a
 
 def adjointify_counit (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : g ≫ f ≅ 𝟙 b :=
 whisker_left_iso g ((ρ_ f).symm ≪≫ right_zigzag_iso ε.symm η.symm ≪≫ λ_ f) ≪≫ ε
+
+set_option class.instance_max_depth 60
 
 @[simp]
 lemma adjointify_counit_symm (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
@@ -294,21 +296,14 @@ begin
   ... =
   ε.inv ≫ ε.hom : _
   ... = _ : _ ,
-  sorry; { coherence },
-  sorry; { rw [whisker_exchange], coherence },
-  { rw [whisker_exchange, whisker_exchange],
-    tactic.coherence.assoc_simps,
-    tactic.coherence.liftable_prefixes,
-    congr' 3, pure_coherence,
-    congr' 2, pure_coherence,
-    congr' 2, pure_coherence,
-    congr' 2, pure_coherence,
-    congr' 2, pure_coherence },
-  { rw [whisker_exchange], coherence },
-  { rw [iso.inv_hom_id], coherence },
-  { rw [←whisker_exchange], coherence },
-  { rw [iso.hom_inv_id], coherence },
-  { rw [iso.inv_hom_id] }
+  { coherence },
+  { rw whisker_exchange, coherence },
+  { rw [whisker_exchange, whisker_exchange], coherence,},
+  { rw whisker_exchange, coherence },
+  { rw iso.inv_hom_id, coherence },
+  { rw ←whisker_exchange, coherence },
+  { rw iso.hom_inv_id, coherence },
+  { rw iso.inv_hom_id }
 end
 
 @[simp]
@@ -319,7 +314,22 @@ iso.symm_eq_iff.mpr (adjointify_counit_symm ε.symm η.symm).symm
 lemma adjointify_counit_left_triangle (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
   left_zigzag_iso η (adjointify_counit η ε) = λ_ f ≪≫ (ρ_ f).symm :=
 begin
-  sorry
+  apply iso.ext,
+  dsimp [adjointify_counit, bicategorical_iso_comp],
+  calc _ =
+  𝟙 _ ⊗≫ (η.hom ▷ (f ≫ 𝟙 b) ≫ (f ≫ g) ◁ f ◁ ε.inv) ⊗≫ f ◁ g ◁ η.inv ▷ f ⊗≫ f ◁ ε.hom : _
+  ... =
+  𝟙 _ ⊗≫ f ◁ ε.inv ⊗≫ (η.hom ▷ (f ≫ g) ≫ (f ≫ g) ◁ η.inv) ▷ f ⊗≫ f ◁ ε.hom : _
+  ... =
+  𝟙 _ ⊗≫ f ◁ ε.inv ⊗≫ (η.inv ≫ η.hom) ▷ f ⊗≫ f ◁ ε.hom : _
+  ... =
+  𝟙 _ ⊗≫ f ◁ (ε.inv ≫ ε.hom) : _
+  ... = _ : _,
+  { coherence },
+  { rw ←whisker_exchange η.hom (f ◁ ε.inv), coherence },
+  { rw ←whisker_exchange η.hom η.inv, coherence },
+  { rw iso.inv_hom_id, coherence },
+  { rw iso.inv_hom_id, coherence }
 end
 
 lemma adjointify_unit_right_triangle (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :

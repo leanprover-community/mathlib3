@@ -97,14 +97,13 @@ begin
   rwa [subtype.ext_iff, coe_one, coe_mul, ←self_eq_mul_left, mul_assoc ↑h ↑h' g] at h1,
 end
 
-lemma is_complement'_stabilizer_of_coprime [fintype G] [H.normal] {α : H.quotient_diff}
+lemma is_complement'_stabilizer_of_coprime [H.normal] {α : H.quotient_diff}
   (hH : nat.coprime (fintype.card H) H.index) : is_complement' H (stabilizer G α) :=
 is_complement'_stabilizer H α (eq_one_of_smul_eq_one hH α) (λ g, exists_smul_eq hH (g • α) α)
 
 /-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
-private lemma exists_right_complement'_of_coprime_aux [fintype G] [H.normal]
-  (hH : nat.coprime (fintype.card H) H.index) :
-  ∃ K : subgroup G, is_complement' H K :=
+private lemma exists_right_complement'_of_coprime_aux [H.normal]
+  (hH : nat.coprime (fintype.card H) H.index) : ∃ K : subgroup G, is_complement' H K :=
 nonempty_of_inhabited.elim (λ α, ⟨stabilizer G α, is_complement'_stabilizer_of_coprime hH⟩)
 
 end schur_zassenhaus_abelian

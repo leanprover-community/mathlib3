@@ -41,7 +41,7 @@ this will be enough to generate all sets in the sigma-algebra.
 
 This construction is very similar to that of the Borel hierarchy. -/
 def generate_measurable_rec (s : set (set α)) : ω₁ → set (set α)
-| i := let S := ⋃ j : {j // j <₁ i}, generate_measurable_rec j.1 in
+| i := let S := ⋃ j : {j // j < i}, generate_measurable_rec j.1 in
     s ∪ {∅} ∪ compl '' S ∪ set.range (λ (f : ℕ → S), ⋃ n, (f n).1)
 using_well_founded {dec_tac := `[exact j.2]}
 
@@ -60,7 +60,7 @@ begin
   exact mem_union_left _ (mem_union_left _ (mem_union_right _ (mem_singleton ∅)))
 end
 
-theorem compl_mem_generate_measurable_rec {s : set (set α)} {i j : ω₁} (h : j <₁ i) {t : set α}
+theorem compl_mem_generate_measurable_rec {s : set (set α)} {i j : ω₁} (h : j < i) {t : set α}
   (ht : t ∈ generate_measurable_rec s j) : tᶜ ∈ generate_measurable_rec s i :=
 begin
   unfold generate_measurable_rec,
@@ -68,7 +68,7 @@ begin
 end
 
 theorem Union_mem_generate_measurable_rec {s : set (set α)} {i : ω₁}
-  {f : ℕ → set α} (hf : ∀ n, ∃ j <₁ i, f n ∈ generate_measurable_rec s j) :
+  {f : ℕ → set α} (hf : ∀ n, ∃ j < i, f n ∈ generate_measurable_rec s j) :
   (⋃ n, f n) ∈ generate_measurable_rec s i :=
 begin
   unfold generate_measurable_rec,
@@ -77,8 +77,8 @@ end
 
 theorem generate_measurable_rec.cases_on {s : set (set α)} {i : ω₁} {t : set α}
   (ht : t ∈ generate_measurable_rec s i) :
-  t ∈ s ∨ t = ∅ ∨ (∃ j <₁ i, tᶜ ∈ generate_measurable_rec s j) ∨
-  ∃ (f : ℕ → set α), (∀ n, ∃ j <₁ i, f n ∈ generate_measurable_rec s j) ∧ t = ⋃ n, f n :=
+  t ∈ s ∨ t = ∅ ∨ (∃ j < i, tᶜ ∈ generate_measurable_rec s j) ∨
+  ∃ (f : ℕ → set α), (∀ n, ∃ j < i, f n ∈ generate_measurable_rec s j) ∧ t = ⋃ n, f n :=
 begin
   unfold generate_measurable_rec at ht,
   rcases ht with (((h | h) | ⟨t, ⟨_, ⟨j, rfl⟩, ht⟩, rfl⟩) | ⟨f, hf⟩),
@@ -92,7 +92,7 @@ begin
     exact ⟨j, j.2, ht⟩ }
 end
 
-theorem generate_measurable_rec_subset (s : set (set α)) {i j : ω₁} (h : i <₁ j) :
+theorem generate_measurable_rec_subset (s : set (set α)) {i j : ω₁} (h : i < j) :
   generate_measurable_rec s i ⊆ generate_measurable_rec s j :=
 λ x hx, begin
   convert Union_mem_generate_measurable_rec (λ n, ⟨i, h, hx⟩),
@@ -111,7 +111,7 @@ begin
   have C : omega.{u} ≤ (max (#s) 2) ^ omega.{u} := A.trans B,
   have J : #(⋃ (j : {j // j < i}), generate_measurable_rec s j.1) ≤ (max (#s) 2) ^ omega.{u},
   { apply (mk_Union_le _).trans,
-    have D : cardinal.sup.{u u} (λ (j : {j // j <₁ i}), #(generate_measurable_rec s j.1)) ≤ _ :=
+    have D : cardinal.sup.{u u} (λ (j : {j // j < i}), #(generate_measurable_rec s j.1)) ≤ _ :=
       cardinal.sup_le.2 (λ ⟨j, hj⟩, IH j hj),
     apply (mul_le_mul' ((mk_subtype_le _).trans (aleph 1).mk_ord_out.le) D).trans,
     rw mul_eq_max A C,
@@ -138,18 +138,18 @@ begin
     { exact mem_Union.2 ⟨default, self_subset_generate_measurable_rec s _ hu⟩ },
     { exact mem_Union.2 ⟨default, empty_mem_generate_measurable_rec s _⟩ },
     { rcases mem_Union.1 IH with ⟨i, hi⟩,
-      obtain ⟨j, hj⟩ : ∃ j, i <₁ j := ordinal.has_succ_of_is_limit
+      obtain ⟨j, hj⟩ : ∃ j, i < j := ordinal.has_succ_of_is_limit
         (by { rw ordinal.type_out, exact ord_aleph_is_limit 1 }) _,
       exact mem_Union.2 ⟨j, compl_mem_generate_measurable_rec hj hi⟩ },
     { have : ∀ n, ∃ i, f n ∈ generate_measurable_rec s i := λ n, by simpa using IH n,
       choose I hI using this,
-      refine mem_Union.2 ⟨ordinal.enum (<₁) (ordinal.lsub (λ n, ordinal.typein.{u} (<₁) (I n))) _,
+      refine mem_Union.2 ⟨ordinal.enum (<) (ordinal.lsub (λ n, ordinal.typein.{u} (<) (I n))) _,
         Union_mem_generate_measurable_rec (λ n, ⟨I n, _, hI n⟩)⟩,
       { rw ordinal.type_out,
         refine ordinal.lsub_lt_ord_lift _ (λ i, ordinal.typein_lt_self _),
         rw [mk_denumerable, lift_omega, is_regular_aleph_one.2],
         exact omega_lt_aleph_one },
-      { rw [←ordinal.typein_lt_typein (<₁), ordinal.typein_enum],
+      { rw [←ordinal.typein_lt_typein (<), ordinal.typein_enum],
         apply ordinal.lt_lsub (λ n : ℕ, _) } } },
   { rcases ht with ⟨t, ⟨i, rfl⟩, hx⟩,
     revert t,

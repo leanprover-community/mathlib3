@@ -207,6 +207,17 @@ def uniform_space.core.mk' {α : Type u} (U : filter (α × α))
     apply monotone_comp_rel; exact monotone_id,
   end⟩
 
+/-- Defining an `uniform_space.core` from a filter basis satisfying some uniformity-like axioms. -/
+def uniform_space.core.mk_of_basis {α : Type u} (B : filter_basis (α × α))
+  (refl : ∀ (r ∈ B) x, (x, x) ∈ r)
+  (symm : ∀ r ∈ B, ∃ t ∈ B, t ⊆ prod.swap ⁻¹' r)
+  (comp : ∀ r ∈ B, ∃ t ∈ B, t ○ t ⊆ r) : uniform_space.core α :=
+{ uniformity := B.filter,
+  refl := B.has_basis.ge_iff.mpr (λ r ru, id_rel_subset.2 $ refl _ ru),
+  symm := (B.has_basis.tendsto_iff B.has_basis).mpr symm,
+  comp := (has_basis.le_basis_iff (B.has_basis.lift' (monotone_comp_rel monotone_id monotone_id))
+    B.has_basis).mpr comp }
+
 /-- A uniform space generates a topological space -/
 def uniform_space.core.to_topological_space {α : Type u} (u : uniform_space.core α) :
   topological_space α :=
@@ -369,6 +380,9 @@ from map_le_iff_le_comap.1 tendsto_swap_uniformity
 
 lemma uniformity_eq_symm : 𝓤 α = (@prod.swap α α) <$> 𝓤 α :=
 le_antisymm uniformity_le_symm symm_le_uniformity
+
+@[simp] lemma comap_swap_uniformity : comap (@prod.swap α α) (𝓤 α) = 𝓤 α :=
+(congr_arg _ uniformity_eq_symm).trans $ comap_map prod.swap_injective
 
 lemma symmetrize_mem_uniformity {V : set (α × α)} (h : V ∈ 𝓤 α) : symmetrize_rel V ∈ 𝓤 α :=
 begin
@@ -1199,6 +1213,10 @@ uniform_space.comap mul_opposite.unop ‹_›
 lemma uniformity_mul_opposite [uniform_space α] :
   𝓤 (αᵐᵒᵖ) = comap (λ q : αᵐᵒᵖ × αᵐᵒᵖ, (q.1.unop, q.2.unop)) (𝓤 α) :=
 rfl
+
+@[simp, to_additive] lemma comap_uniformity_mul_opposite [uniform_space α] :
+  comap (λ p : α × α, (mul_opposite.op p.1, mul_opposite.op p.2)) (𝓤 αᵐᵒᵖ) = 𝓤 α :=
+by simpa [uniformity_mul_opposite, comap_comap, (∘)] using comap_id
 
 namespace mul_opposite
 

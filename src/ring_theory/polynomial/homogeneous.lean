@@ -44,7 +44,7 @@ def is_homogeneous [comm_semiring R] (φ : mv_polynomial σ R) (n : ℕ) :=
 variables (σ R)
 
 /-- The submodule of homogeneous `mv_polynomial`s of degree `n`. -/
-noncomputable def homogeneous_submodule [comm_semiring R] (n : ℕ) :
+def homogeneous_submodule [comm_semiring R] (n : ℕ) :
   submodule R (mv_polynomial σ R) :=
 { carrier := { x | x.is_homogeneous n },
   smul_mem' := λ r a ha c hc, begin

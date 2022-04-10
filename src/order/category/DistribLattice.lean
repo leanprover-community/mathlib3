@@ -30,6 +30,8 @@ instance (X : DistribLattice) : distrib_lattice X := X.str
 /-- Construct a bundled `DistribLattice` from a `distrib_lattice` underlying type and typeclass. -/
 def of (α : Type*) [distrib_lattice α] : DistribLattice := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [distrib_lattice α] : ↥(of α) = α := rfl
+
 instance : inhabited DistribLattice := ⟨of punit⟩
 
 instance : bundled_hom.parent_projection @distrib_lattice.to_lattice := ⟨⟩

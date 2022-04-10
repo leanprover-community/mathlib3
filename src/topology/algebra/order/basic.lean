@@ -163,6 +163,8 @@ have tendsto (λb, (f b, g b)) b (𝓝 (a₁, a₂)),
 show (a₁, a₂) ∈ {p:α×α | p.1 ≤ p.2},
   from t.is_closed_le'.mem_of_tendsto this h
 
+alias le_of_tendsto_of_tendsto ← tendsto_le_of_eventually_le
+
 lemma le_of_tendsto_of_tendsto' {f g : β → α} {b : filter β} {a₁ a₂ : α} [ne_bot b]
   (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) (h : ∀ x, f x ≤ g x) :
   a₁ ≤ a₂ :=
@@ -680,8 +682,8 @@ lemma nhds_eq_order (a : α) :
 by rw [t.topology_eq_generate_intervals, nhds_generate_from];
 from le_antisymm
   (le_inf
-    (le_binfi $ assume b hb, infi_le_of_le {c : α | b < c} $ infi_le _ ⟨hb, b, or.inl rfl⟩)
-    (le_binfi $ assume b hb, infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
+    (le_infi₂ $ assume b hb, infi_le_of_le {c : α | b < c} $ infi_le _ ⟨hb, b, or.inl rfl⟩)
+    (le_infi₂ $ assume b hb, infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
   (le_infi $ assume s, le_infi $ assume ⟨ha, b, hs⟩,
     match s, ha, hs with
     | _, h, (or.inl rfl) := inf_le_of_left_le $ infi_le_of_le b $ infi_le _ h
@@ -2412,7 +2414,7 @@ lemma map_coe_at_top_of_Ioo_subset (hb : s ⊆ Iio b)
   map (coe : s → α) at_top = 𝓝[<] b :=
 begin
   rcases eq_empty_or_nonempty (Iio b) with (hb'|⟨a, ha⟩),
-  { rw [filter_eq_bot_of_is_empty at_top, map_bot, hb', nhds_within_empty],
+  { rw [filter_eq_bot_of_is_empty at_top, filter.map_bot, hb', nhds_within_empty],
     exact ⟨λ x, hb'.subset (hb x.2)⟩ },
   { rw [← comap_coe_nhds_within_Iio_of_Ioo_subset hb (λ _, hs a ha), map_comap_of_mem],
     rw subtype.range_coe,

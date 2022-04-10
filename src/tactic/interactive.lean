@@ -204,6 +204,7 @@ private meta def generalize_arg_p : parser (pexpr × name) :=
 with_desc "expr = id" $ parser.pexpr 0 >>= generalize_arg_p_aux
 
 @[nolint def_lemma]
+noncomputable
 lemma {u} generalize_a_aux {α : Sort u}
   (h : ∀ x : Sort u, (α → x) → x) : α := h α id
 
@@ -412,6 +413,28 @@ do h ← get_local n >>= infer_type >>= instantiate_mvars, guard_expr_strict h p
 meta def guard_hyp_nums (n : ℕ) : tactic unit :=
 do k ← local_context,
    guard (n = k.length) <|> fail format!"{k.length} hypotheses found"
+
+/--
+`guard_hyp_mod_implicit h : t` fails if the type of the hypothesis `h`
+is not definitionally equal to `t` modulo none transparency
+(i.e., unifying the implicit arguments modulo semireducible transparency).
+We use this tactic for writing tests.
+-/
+meta def guard_hyp_mod_implicit (n : parse ident) (p : parse $ tk ":" *> texpr) : tactic unit := do
+h ← get_local n >>= infer_type >>= instantiate_mvars,
+e ← to_expr p,
+is_def_eq h e transparency.none
+
+/--
+`guard_target_mod_implicit t` fails if the target of the main goal
+is not definitionally equal to `t` modulo none transparency
+(i.e., unifying the implicit arguments modulo semireducible transparency).
+We use this tactic for writing tests.
+-/
+meta def guard_target_mod_implicit (p : parse texpr) : tactic unit := do
+tgt ← target,
+e ← to_expr p,
+is_def_eq tgt e transparency.none
 
 /-- Test that `t` is the tag of the main goal. -/
 meta def guard_tags (tags : parse ident*) : tactic unit :=

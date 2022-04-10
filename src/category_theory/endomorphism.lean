@@ -3,9 +3,9 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
 -/
+import algebra.hom.equiv
 import category_theory.groupoid
 import category_theory.opposites
-import data.equiv.mul_add
 import group_theory.group_action.defs
 
 /-!
@@ -117,6 +117,8 @@ intros; try { refl }; ext;
 simp [flip, (*), monoid.mul, mul_one_class.mul, mul_one_class.one, has_one.one, monoid.one,
   has_inv.inv]
 
+lemma Aut_mul_def (f g : Aut X) : f * g = g.trans f := rfl
+
 /--
 Units in the monoid of endomorphisms of an object
 are (multiplicatively) equivalent to automorphisms of that object.
@@ -127,6 +129,14 @@ def units_End_equiv_Aut : (End X)ˣ ≃* Aut X :=
   left_inv := λ ⟨f₁, f₂, f₃, f₄⟩, rfl,
   right_inv := λ ⟨f₁, f₂, f₃, f₄⟩, rfl,
   map_mul' := λ f g, by rcases f; rcases g; refl }
+
+/-- Isomorphisms induce isomorphisms of the automorphism group -/
+def Aut_mul_equiv_of_iso {X Y : C} (h : X ≅ Y) : Aut X ≃* Aut Y :=
+{ to_fun := λ x, ⟨h.inv ≫ x.hom ≫ h.hom, h.inv ≫ x.inv ≫ h.hom⟩,
+  inv_fun := λ y, ⟨h.hom ≫ y.hom ≫ h.inv, h.hom ≫ y.inv ≫ h.inv⟩,
+  left_inv := by tidy,
+  right_inv := by tidy,
+  map_mul' := by simp [Aut_mul_def] }
 
 end Aut
 

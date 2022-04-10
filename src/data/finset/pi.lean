@@ -28,7 +28,7 @@ variables {δ : α → Type*} [decidable_eq α]
 finset `s.pi t` of all functions defined on elements of `s` taking values in `t a` for `a ∈ s`.
 Note that the elements of `s.pi t` are only partially defined, on `s`. -/
 def pi (s : finset α) (t : Πa, finset (δ a)) : finset (Πa∈s, δ a) :=
-⟨s.1.pi (λ a, (t a).1), nodup_pi s.2 (λ a _, (t a).2)⟩
+⟨s.1.pi (λ a, (t a).1), s.nodup.pi $ λ a _, (t a).nodup⟩
 
 @[simp] lemma pi_val (s : finset α) (t : Πa, finset (δ a)) :
   (s.pi t).1 = s.1.pi (λ a, (t a).1) := rfl
@@ -80,8 +80,7 @@ begin
       λ f a' h', multiset.pi.cons s.1 a b f a' (h ▸ h')))) _ (insert_val_of_not_mem ha),
   subst s', rw pi_cons,
   congr, funext b,
-  rw multiset.nodup.dedup,
-  exact multiset.nodup_map (multiset.pi_cons_injective ha) (pi s t).2,
+  exact ((pi s t).nodup.map $ multiset.pi_cons_injective ha).dedup.symm,
 end
 
 lemma pi_singletons {β : Type*} (s : finset α) (f : α → β) :

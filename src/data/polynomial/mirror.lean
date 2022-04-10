@@ -98,7 +98,7 @@ end
 --TODO: Extract `finset.sum_range_rev_at` lemma.
 lemma mirror_eval_one : p.mirror.eval 1 = p.eval 1 :=
 begin
-  simp_rw [eval_eq_finset_sum, one_pow, mul_one, mirror_nat_degree],
+  simp_rw [eval_eq_sum_range, one_pow, mul_one, mirror_nat_degree],
   refine finset.sum_bij_ne_zero _ _ _ _ _,
   { exact λ n hn hp, rev_at (p.nat_degree + p.nat_trailing_degree) n },
   { intros n hn hp,

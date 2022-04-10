@@ -32,7 +32,8 @@ counterparts in [Chou1994].
 
 ## Main definitions
 
-* `simple_graph.walk`
+* `simple_graph.walk` (with accompanying pattern definitions
+  `simple_graph.walk.nil'` and `simple_graph.walk.cons'`)
 
 * `simple_graph.walk.is_trail`, `simple_graph.walk.is_path`, and `simple_graph.walk.is_cycle`.
 
@@ -45,11 +46,11 @@ counterparts in [Chou1994].
   on simple graphs for whether every vertex can be reached from every other,
   and in the latter case, whether the vertex type is nonempty.
 
-* `simple_graph.connected_component` is the type of connected components of
-  a given graph.
-
 * `simple_graph.subgraph.connected` gives subgraphs the connectivity
   predicate via `simple_graph.subgraph.coe`.
+
+* `simple_graph.connected_component` is the type of connected components of
+  a given graph.
 
 ## Tags
 walks, trails, paths, circuits, cycles
@@ -65,7 +66,10 @@ variables {V : Type u} (G : simple_graph V)
 the type `walk u v` consists of all walks starting at `u` and ending at `v`.
 
 We say that a walk *visits* the vertices it contains.  The set of vertices a
-walk visits is `simple_graph.walk.support`. -/
+walk visits is `simple_graph.walk.support`.
+
+See `simple_graph.walk.nil'` and `simple_graph.walk.cons'` for patterns that
+can be useful in definitions since they make the vertices explicit. -/
 @[derive decidable_eq]
 inductive walk : V → V → Type u
 | nil {u : V} : walk u u
@@ -77,6 +81,13 @@ instance walk.inhabited (v : V) : inhabited (G.walk v v) := ⟨by refl⟩
 
 namespace walk
 variables {G}
+
+/-- Pattern to get `walk.nil` with the vertex as an explicit argument. -/
+@[pattern] abbreviation nil' (u : V) : G.walk u u := walk.nil
+
+/-- Pattern to get `walk.cons` with the vertices as explicit arguments. -/
+@[pattern] abbreviation cons' (u v w : V) (h : G.adj u v) (p : G.walk v w) : G.walk u w :=
+walk.cons h p
 
 lemma exists_eq_cons_of_ne : Π {u v : V} (hne : u ≠ v) (p : G.walk u v),
   ∃ (w : V) (h : G.adj u w) (p' : G.walk w v), p = cons h p'
@@ -110,6 +121,32 @@ def get_vert : Π {u v : V} (p : G.walk u v) (n : ℕ), V
 | u v nil _ := u
 | u v (cons _ _) 0 := u
 | u v (cons _ q) (n+1) := q.get_vert n
+
+@[simp] lemma get_vert_zero {u v} (w : G.walk u v) : w.get_vert 0 = u :=
+by { cases w; refl }
+
+lemma get_vert_of_length_le {u v} (w : G.walk u v) {i : ℕ} (hi : w.length ≤ i) :
+  w.get_vert i = v :=
+begin
+  induction w with _ x y z hxy wyz IH generalizing i,
+  { refl },
+  { cases i,
+    { cases hi, },
+    { exact IH (nat.succ_le_succ_iff.1 hi) } }
+end
+
+@[simp] lemma get_vert_length {u v} (w : G.walk u v) : w.get_vert w.length = v :=
+w.get_vert_of_length_le rfl.le
+
+lemma adj_get_vert_succ {u v} (w : G.walk u v) {i : ℕ} (hi : i < w.length) :
+  G.adj (w.get_vert i) (w.get_vert (i+1)) :=
+begin
+  induction w with _ x y z hxy wyz IH generalizing i,
+  { cases hi, },
+  { cases i,
+    { simp [get_vert, hxy] },
+    { exact IH (nat.succ_lt_succ_iff.1 hi) } },
+end
 
 @[simp] lemma cons_append {u v w x : V} (h : G.adj u v) (p : G.walk v w) (q : G.walk w x) :
   (cons h p).append q = cons h (p.append q) := rfl
@@ -487,7 +524,7 @@ by split; intro h; convert h.reverse; simp
 
 lemma is_path.of_append_left {u v w : V} {p : G.walk u v} {q : G.walk v w} :
   (p.append q).is_path → p.is_path :=
-by { simp only [is_path_def, support_append], exact list.nodup_of_nodup_append_left }
+by { simp only [is_path_def, support_append], exact list.nodup.of_append_left }
 
 lemma is_path.of_append_right {u v w : V} {p : G.walk u v} {q : G.walk v w}
   (h : (p.append q).is_path) : q.is_path :=
@@ -883,13 +920,6 @@ quot.lift f (λ v w (h' : G.reachable v w), h'.elim_path (λ hp, h v w hp hp.2))
   connected_component.lift f h (G.connected_component_of v) = f v := rfl
 
 end connected_component
-
-instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
-⟨G.connected_component_of default⟩
-
-lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
-  subsingleton G.connected_component :=
-⟨λ c d, connected_component.ind (λ v, d.ind (λ w, connected_component.sound (h v w))) c⟩
 
 /-- A subgraph is connected if it is connected as a simple graph. -/
 abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := H.coe.connected

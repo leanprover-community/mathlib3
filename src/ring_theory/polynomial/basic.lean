@@ -20,8 +20,9 @@ import ring_theory.unique_factorization_domain
   Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
 * `polynomial.wf_dvd_monoid`:
   If an integral domain is a `wf_dvd_monoid`, then so is its polynomial ring.
-* `polynomial.unique_factorization_monoid`:
-  If an integral domain is a `unique_factorization_monoid`, then so is its polynomial ring.
+* `polynomial.unique_factorization_monoid`, `mv_polynomial.unique_factorization_monoid`:
+  If an integral domain is a `unique_factorization_monoid`, then so is its polynomial ring (of any
+  number of variables).
 -/
 
 noncomputable theory
@@ -99,11 +100,11 @@ begin
   exact lt_of_le_of_lt (degree_X_pow_le _) (with_bot.coe_lt_coe.2 $ finset.mem_range.1 hk)
 end
 
-/-- The first `n` coefficients on `degree_lt n` form a linear equivalence with `fin n → F`. -/
-def degree_lt_equiv (F : Type*) [field F] (n : ℕ) : degree_lt F n ≃ₗ[F] (fin n → F) :=
-{ to_fun := λ p n, (↑p : F[X]).coeff n,
+/-- The first `n` coefficients on `degree_lt n` form a linear equivalence with `fin n → R`. -/
+def degree_lt_equiv (R : Type u) [comm_ring R] (n : ℕ) : degree_lt R n ≃ₗ[R] (fin n → R) :=
+{ to_fun := λ p n, (↑p : R[X]).coeff n,
   inv_fun := λ f, ⟨∑ i : fin n, monomial i (f i),
-    (degree_lt F n).sum_mem (λ i _, mem_degree_lt.mpr (lt_of_le_of_lt
+    (degree_lt R n).sum_mem (λ i _, mem_degree_lt.mpr (lt_of_le_of_lt
       (degree_monomial_le i (f i)) (with_bot.coe_lt_coe.mpr i.is_lt)))⟩,
   map_add' := λ p q, by { ext, rw [submodule.coe_add, coeff_add], refl },
   map_smul' := λ x p, by { ext, rw [submodule.coe_smul, coeff_smul], refl },
@@ -243,14 +244,14 @@ begin
   nontriviality R,
   cases n, { exact (hn rfl).elim },
   rw [geom_sum_succ', geom_sum_def],
-  refine monic_add_of_left (monic_pow hP _) _,
+  refine (hP.pow _).add_of_left _,
   refine lt_of_le_of_lt (degree_sum_le _ _) _,
   rw [finset.sup_lt_iff],
-  { simp only [finset.mem_range, degree_eq_nat_degree (monic_pow hP _).ne_zero,
+  { simp only [finset.mem_range, degree_eq_nat_degree (hP.pow _).ne_zero,
       with_bot.coe_lt_coe, hP.nat_degree_pow],
     intro k, exact nsmul_lt_nsmul hdeg },
   { rw [bot_lt_iff_ne_bot, ne.def, degree_eq_bot],
-    exact (monic_pow hP _).ne_zero }
+    exact (hP.pow _).ne_zero }
 end
 
 lemma monic.geom_sum' {R : Type*} [semiring R] {P : R[X]}
@@ -358,12 +359,12 @@ section mod_by_monic
 
 variables {q : R[X]}
 
-lemma mem_ker_mod_by_monic [nontrivial R] (hq : q.monic) {p : R[X]} :
-  p ∈ (mod_by_monic_hom hq).ker ↔ q ∣ p :=
+lemma mem_ker_mod_by_monic (hq : q.monic) {p : R[X]} :
+  p ∈ (mod_by_monic_hom q).ker ↔ q ∣ p :=
 linear_map.mem_ker.trans (dvd_iff_mod_by_monic_eq_zero hq)
 
-@[simp] lemma ker_mod_by_monic_hom [nontrivial R] (hq : q.monic) :
-  (polynomial.mod_by_monic_hom hq).ker = (ideal.span {q}).restrict_scalars R :=
+@[simp] lemma ker_mod_by_monic_hom (hq : q.monic) :
+  (polynomial.mod_by_monic_hom q).ker = (ideal.span {q}).restrict_scalars R :=
 submodule.ext (λ f, (mem_ker_mod_by_monic hq).trans ideal.mem_span_singleton.symm)
 
 end mod_by_monic
@@ -399,7 +400,7 @@ begin
     { exact λ f g hf hg n, by simp [I.add_mem (hf n) (hg n)] },
     { refine λ f g hg n, _,
       rw [smul_eq_mul, coeff_mul],
-      exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
+      exact I.sum_mem (λ c hc, I.mul_mem_left (f.coeff c.fst) (hg c.snd)) } },
   { intros hf,
     rw ← sum_monomial_eq f,
     refine (I.map C : ideal R[X]).sum_mem (λ n hn, _),
@@ -525,7 +526,8 @@ begin
   obtain ⟨x, hx'⟩ := x,
   obtain ⟨y, rfl⟩ := (ring_hom.mem_range).1 hx',
   refine subtype.eq _,
-  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, subring.coe_zero, subtype.val_eq_coe],
+  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, add_submonoid_class.coe_zero,
+    subtype.val_eq_coe],
   suffices : C (i y) ∈ (I.map (polynomial.map_ring_hom i)),
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)
       (polynomial.map_surjective _ (((quotient.mk I).comp C).range_restrict_surjective)) this,
@@ -558,8 +560,8 @@ lemma eq_zero_of_constant_mem_of_maximal (hR : is_field R)
 begin
   refine classical.by_contradiction (λ hx0, hI.ne_top ((eq_top_iff_one I).2 _)),
   obtain ⟨y, hy⟩ := hR.mul_inv_cancel hx0,
-  convert I.smul_mem (C y) hx,
-  rw [smul_eq_mul, ← C.map_mul, mul_comm y x, hy, ring_hom.map_one],
+  convert I.mul_mem_left (C y) hx,
+  rw [← C.map_mul, mul_comm y x, hy, ring_hom.map_one],
 end
 
 /-- Transport an ideal of `R[X]` to an `R`-submodule of `R[X]`. -/
@@ -651,7 +653,64 @@ is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
 
 end ideal
 
+section prime
+variables (σ) {r : R}
+
 namespace polynomial
+lemma prime_C_iff : prime (C r) ↔ prime r :=
+⟨ comap_prime C (eval_ring_hom (0 : R)) (λ r, eval_C),
+  λ hr, by { have := hr.1,
+    rw ← ideal.span_singleton_prime at hr ⊢,
+    { convert ideal.is_prime_map_C_of_is_prime hr using 1,
+      rw [ideal.map_span, set.image_singleton] },
+    exacts [λ h, this (C_eq_zero.1 h), this] } ⟩
+end polynomial
+
+namespace mv_polynomial
+
+private lemma prime_C_iff_of_fintype [fintype σ] : prime (C r : mv_polynomial σ R) ↔ prime r :=
+begin
+  rw (rename_equiv R (fintype.equiv_fin σ)).to_mul_equiv.prime_iff,
+  convert_to prime (C r) ↔ _, { congr, apply rename_C },
+  { symmetry, induction fintype.card σ with d hd,
+    { exact (is_empty_alg_equiv R (fin 0)).to_mul_equiv.symm.prime_iff },
+    { rw [hd, ← polynomial.prime_C_iff],
+      convert (fin_succ_equiv R d).to_mul_equiv.symm.prime_iff,
+      rw ← fin_succ_equiv_comp_C_eq_C, refl } },
+end
+
+lemma prime_C_iff : prime (C r : mv_polynomial σ R) ↔ prime r :=
+⟨ comap_prime C constant_coeff constant_coeff_C,
+  λ hr, ⟨ λ h, hr.1 $ by { rw [← C_inj, h], simp },
+    λ h, hr.2.1 $ by { rw ← constant_coeff_C r, exact h.map _ },
+    λ a b hd, begin
+      obtain ⟨s,a',b',rfl,rfl⟩ := exists_finset_rename₂ a b,
+      rw ← algebra_map_eq at hd, have : algebra_map R _ r ∣ a' * b',
+      { convert (kill_compl subtype.coe_injective).to_ring_hom.map_dvd hd, simpa, simp },
+      rw ← rename_C (coe : s → σ), let f := (rename (coe : s → σ)).to_ring_hom,
+      exact (((prime_C_iff_of_fintype s).2 hr).2.2 a' b' this).imp f.map_dvd f.map_dvd,
+    end ⟩ ⟩
+
+variable {σ}
+lemma prime_rename_iff (s : set σ) {p : mv_polynomial s R} :
+  prime (rename (coe : s → σ) p) ↔ prime p :=
+begin
+  classical, symmetry, let eqv := (sum_alg_equiv R _ _).symm.trans
+    (rename_equiv R $ (equiv.sum_comm ↥sᶜ s).trans $ equiv.set.sum_compl s),
+  rw [← prime_C_iff ↥sᶜ, eqv.to_mul_equiv.prime_iff], convert iff.rfl,
+  suffices : (rename coe).to_ring_hom = eqv.to_alg_hom.to_ring_hom.comp C,
+  { apply ring_hom.congr_fun this },
+  { apply ring_hom_ext,
+    { intro, dsimp [eqv], erw [iter_to_sum_C_C, rename_C, rename_C] },
+    { intro, dsimp [eqv], erw [iter_to_sum_C_X, rename_X, rename_X], refl } },
+end
+
+end mv_polynomial
+
+end prime
+
+namespace polynomial
+
 @[priority 100]
 instance {R : Type*} [comm_ring R] [is_domain R] [wf_dvd_monoid R] :
   wf_dvd_monoid R[X] :=
@@ -775,7 +834,7 @@ lemma linear_independent_powers_iff_aeval
 begin
   rw linear_independent_iff,
   simp only [finsupp.total_apply, aeval_endomorphism, forall_iff_forall_finsupp, sum, support,
-    coeff, ← zero_to_finsupp],
+    coeff, of_finsupp_eq_zero],
   exact iff.rfl,
 end
 
@@ -982,7 +1041,7 @@ begin
     { exact λ f g hf hg n, by simp [I.add_mem (hf n) (hg n)] },
     { refine λ f g hg n, _,
       rw [smul_eq_mul, coeff_mul],
-      exact I.sum_mem (λ c hc, I.smul_mem (f.coeff c.fst) (hg c.snd)) } },
+      exact I.sum_mem (λ c hc, I.mul_mem_left (f.coeff c.fst) (hg c.snd)) } },
   { intros hf,
     rw as_sum f,
     suffices : ∀ m ∈ f.support, monomial m (coeff m f) ∈
@@ -1062,10 +1121,11 @@ def quotient_equiv_quotient_mv_polynomial (I : ideal R) :
 
 end mv_polynomial
 
-namespace polynomial
+section unique_factorization_domain
+variables {D : Type u} [comm_ring D] [is_domain D] [unique_factorization_monoid D] (σ)
 open unique_factorization_monoid
 
-variables {D : Type u} [comm_ring D] [is_domain D] [unique_factorization_monoid D]
+namespace polynomial
 
 @[priority 100]
 instance unique_factorization_monoid : unique_factorization_monoid (polynomial D) :=
@@ -1076,3 +1136,32 @@ begin
 end
 
 end polynomial
+
+namespace mv_polynomial
+
+private lemma unique_factorization_monoid_of_fintype [fintype σ] :
+  unique_factorization_monoid (mv_polynomial σ D) :=
+(rename_equiv D (fintype.equiv_fin σ)).to_mul_equiv.symm.unique_factorization_monoid $
+begin
+  induction fintype.card σ with d hd,
+  { apply (is_empty_alg_equiv D (fin 0)).to_mul_equiv.symm.unique_factorization_monoid,
+    apply_instance },
+  { apply (fin_succ_equiv D d).to_mul_equiv.symm.unique_factorization_monoid,
+    exactI polynomial.unique_factorization_monoid },
+end
+
+@[priority 100]
+instance : unique_factorization_monoid (mv_polynomial σ D) :=
+begin
+  rw iff_exists_prime_factors,
+  intros a ha, obtain ⟨s,a',rfl⟩ := exists_finset_rename a,
+  obtain ⟨w,h,u,hw⟩ := iff_exists_prime_factors.1
+    (unique_factorization_monoid_of_fintype s) a' (λ h, ha $ by simp [h]),
+  exact ⟨ w.map (rename coe),
+    λ b hb, let ⟨b',hb',he⟩ := multiset.mem_map.1 hb in he ▸ (prime_rename_iff ↑s).2 (h b' hb'),
+    units.map (@rename s σ D _ coe).to_ring_hom.to_monoid_hom u,
+    by erw [multiset.prod_hom, ← map_mul, hw] ⟩,
+end
+
+end mv_polynomial
+end unique_factorization_domain

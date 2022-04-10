@@ -50,6 +50,20 @@ lemma ess_inf_congr_ae {f g : α → β} (hfg : f =ᵐ[μ] g) :  ess_inf f μ = 
 
 end conditionally_complete_lattice
 
+section conditionally_complete_linear_order
+variable [conditionally_complete_linear_order β]
+
+lemma ess_sup_eq_Inf {m : measurable_space α} (μ : measure α) (f : α → β) :
+  ess_sup f μ = Inf {a | μ {x | a < f x} = 0} :=
+begin
+  dsimp [ess_sup, limsup, Limsup],
+  congr,
+  ext a,
+  simp [eventually_map, ae_iff],
+end
+
+end conditionally_complete_linear_order
+
 section complete_lattice
 variable [complete_lattice β]
 
@@ -112,6 +126,10 @@ begin
   all_goals { is_bounded_default, },
 end
 
+lemma ess_sup_mono_measure' {α : Type*} {β : Type*} {m : measurable_space α}
+  {μ ν : measure_theory.measure α} [complete_lattice β] {f : α → β} (hμν : ν ≤ μ) :
+  ess_sup f ν ≤ ess_sup f μ := ess_sup_mono_measure (measure.absolutely_continuous_of_le hμν)
+
 lemma ess_inf_antitone_measure {f : α → β} (hμν : μ ≪ ν) : ess_inf f ν ≤ ess_inf f μ :=
 begin
   refine liminf_le_liminf_of_le (measure.ae_le_iff_absolutely_continuous.mpr hμν) _ _,
@@ -134,7 +152,7 @@ variables {γ : Type*} {mγ : measurable_space γ} {f : α → γ} {g : γ → �
 
 include mγ
 
-lemma ess_sup_comp_le_ess_sup_map_measure (hf : measurable f) :
+lemma ess_sup_comp_le_ess_sup_map_measure (hf : ae_measurable f μ) :
   ess_sup (g ∘ f) μ ≤ ess_sup g (measure.map f μ) :=
 begin
   refine Limsup_le_Limsup_of_le (λ t, _) (by is_bounded_default) (by is_bounded_default),
@@ -147,7 +165,7 @@ end
 lemma _root_.measurable_embedding.ess_sup_map_measure (hf : measurable_embedding f) :
   ess_sup g (measure.map f μ) = ess_sup (g ∘ f) μ :=
 begin
-  refine le_antisymm _ (ess_sup_comp_le_ess_sup_map_measure hf.measurable),
+  refine le_antisymm _ (ess_sup_comp_le_ess_sup_map_measure hf.measurable.ae_measurable),
   refine Limsup_le_Limsup (by is_bounded_default) (by is_bounded_default) (λ c h_le, _),
   rw eventually_map at h_le ⊢,
   exact hf.ae_map_iff.mpr h_le,
@@ -156,7 +174,7 @@ end
 variables [measurable_space β] [topological_space β] [second_countable_topology β]
   [order_closed_topology β] [opens_measurable_space β]
 
-lemma ess_sup_map_measure_of_measurable (hg : measurable g) (hf : measurable f) :
+lemma ess_sup_map_measure_of_measurable (hg : measurable g) (hf : ae_measurable f μ) :
   ess_sup g (measure.map f μ) = ess_sup (g ∘ f) μ :=
 begin
   refine le_antisymm _ (ess_sup_comp_le_ess_sup_map_measure hf),
@@ -166,7 +184,7 @@ begin
   exact h_le,
 end
 
-lemma ess_sup_map_measure (hg : ae_measurable g (measure.map f μ)) (hf : measurable f) :
+lemma ess_sup_map_measure (hg : ae_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
   ess_sup g (measure.map f μ) = ess_sup (g ∘ f) μ :=
 begin
   rw [ess_sup_congr_ae hg.ae_eq_mk, ess_sup_map_measure_of_measurable hg.measurable_mk hf],

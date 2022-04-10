@@ -6,6 +6,7 @@ Authors: Kenny Lau, Mario Carneiro
 
 import group_theory.congruence
 import linear_algebra.bilinear_map
+import linear_algebra.span
 
 /-!
 # Tensor product of modules over commutative semirings.

@@ -167,8 +167,14 @@ eq_empty_of_forall_not_mem $ by simp [mem_mul]
 lemma mul_nonempty_iff (s t : finset α) : (s * t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 (nonempty.image_iff _).trans nonempty_product
 
-@[to_additive, mono] lemma mul_subset_mul  (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ * t₁ ⊆ s₂ * t₂ :=
+@[to_additive, mono] lemma mul_subset_mul (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) : s₁ * t₁ ⊆ s₂ * t₂ :=
 image_subset_image $ product_subset_product hs ht
+
+@[to_additive, mono] lemma mul_subset_mul_left (ht : t₁ ⊆ t₂) : s * t₁ ⊆ s * t₂ :=
+image_subset_image $ product_subset_product_right ht
+
+@[to_additive, mono] lemma mul_subset_mul_right (hs : s₁ ⊆ s₂) : s₁ * t ⊆ s₂ * t :=
+image_subset_image $ product_subset_product_left hs
 
 attribute [mono] add_subset_add
 

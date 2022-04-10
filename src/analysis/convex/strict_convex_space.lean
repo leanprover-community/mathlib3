@@ -151,6 +151,19 @@ begin
     real.norm_of_nonneg (inv_pos.2 hxy).le, ← div_eq_inv_mul, div_lt_one hxy] at this
 end
 
+lemma lt_norm_sub_of_not_same_ray (h : ¬same_ray ℝ x y) : ∥x∥ - ∥y∥ < ∥x - y∥ :=
+begin
+  nth_rewrite 0 ←sub_add_cancel x y at ⊢ h,
+  exact sub_lt_iff_lt_add.2 (norm_add_lt_of_not_same_ray $ λ H', h $ H'.add_left same_ray.rfl),
+end
+
+lemma abs_lt_norm_sub_of_not_same_ray (h : ¬same_ray ℝ x y) : |∥x∥ - ∥y∥| < ∥x - y∥ :=
+begin
+  refine abs_sub_lt_iff.2 ⟨lt_norm_sub_of_not_same_ray h, _⟩,
+  rw norm_sub_rev,
+  exact lt_norm_sub_of_not_same_ray (mt same_ray.symm h),
+end
+
 /-- In a strictly convex space, two vectors `x`, `y` are in the same ray if and only if the triangle
 inequality for `x` and `y` becomes an equality. -/
 lemma same_ray_iff_norm_add : same_ray ℝ x y ↔ ∥x + y∥ = ∥x∥ + ∥y∥ :=
@@ -160,6 +173,12 @@ lemma same_ray_iff_norm_add : same_ray ℝ x y ↔ ∥x + y∥ = ∥x∥ + ∥y�
 triangle inequality for `x` and `y` is strict. -/
 lemma not_same_ray_iff_norm_add_lt : ¬ same_ray ℝ x y ↔ ∥x + y∥ < ∥x∥ + ∥y∥ :=
 same_ray_iff_norm_add.not.trans (norm_add_le _ _).lt_iff_ne.symm
+
+lemma same_ray_iff_norm_sub : same_ray ℝ x y ↔ ∥x - y∥ = |∥x∥ - ∥y∥| :=
+⟨same_ray.norm_sub, λ h, not_not.1 $ λ h', (abs_lt_norm_sub_of_not_same_ray h').ne' h⟩
+
+lemma not_same_ray_iff_abs_lt_norm_sub : ¬ same_ray ℝ x y ↔ |∥x∥ - ∥y∥| < ∥x - y∥ :=
+same_ray_iff_norm_sub.not.trans $ ne_comm.trans (abs_norm_sub_norm_le _ _).lt_iff_ne.symm
 
 /-- In a strictly convex space, the triangle inequality turns into an equality if and only if the
 middle point belongs to the segment joining two other points. -/

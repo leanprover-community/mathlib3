@@ -330,48 +330,52 @@ induction_on a $ λ α r _, induction_on b $ λ β s _ b0, begin
         by injection h with h; congr; injection h } }
 end
 
-/-- A fundamental sequence for `a`, or FS for short, is an increasing sequence of length
-    `o = cof a` that converges at `a`. We provide `o` explicitly in order to avoid type rewrites. -/
-def is_fs (a o : ordinal.{u}) (f : Π b < o, ordinal.{u}) : Prop :=
+/-- A fundamental sequence for `a` is an increasing sequence of length `o = cof a` that converges at
+    `a`. We provide `o` explicitly in order to avoid type rewrites. -/
+def is_fundamental_sequence (a o : ordinal.{u}) (f : Π b < o, ordinal.{u}) : Prop :=
 o ≤ a.cof.ord ∧ (∀ {i j} (hi hj), i < j → f i hi < f j hj) ∧ blsub.{u u} o f = a
 
-section fs
-variables {a o : ordinal.{u}} {f : Π b < o, ordinal.{u}} (hf : is_fs a o f)
+section fundamental_sequence
+variables {a o : ordinal.{u}} {f : Π b < o, ordinal.{u}} (hf : is_fundamental_sequence a o f)
 
-theorem is_fs.cof_eq : a.cof.ord = o :=
+theorem is_fundamental_sequence.cof_eq : a.cof.ord = o :=
 hf.1.antisymm' (by { rw ←hf.2.2, exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o) })
 
-theorem is_fs.strict_mono : ∀ {i j : ordinal} (hi : i < o) (hj : j < o), i < j → f i hi < f j hj :=
+theorem is_fundamental_sequence.strict_mono :
+  ∀ {i j : ordinal} (hi : i < o) (hj : j < o), i < j → f i hi < f j hj :=
 hf.2.1
 
-theorem is_fs.blsub_eq : blsub.{u u} o f = a :=
+theorem is_fundamental_sequence.blsub_eq : blsub.{u u} o f = a :=
 hf.2.2
 
 include hf
-theorem is_fs.monotone {i j : ordinal} (hi : i < o) (hj : j < o) (hij : i ≤ j) : f i hi ≤ f j hj :=
+theorem is_fundamental_sequence.monotone {i j : ordinal} (hi : i < o) (hj : j < o) (hij : i ≤ j) :
+  f i hi ≤ f j hj :=
 begin
   rcases lt_or_eq_of_le hij with hij | rfl,
   { exact le_of_lt (hf.2.1 hi hj hij) },
   { refl }
 end
 
-end fs
+end fundamental_sequence
 
-theorem is_fs.trans {a o o' : ordinal.{u}} {f : Π b < o, ordinal.{u}} (hf : is_fs a o f)
-  {g : Π b < o', ordinal.{u}} (hg : is_fs o o' g) :
-  is_fs a o' (λ i hi, f (g i hi) (by { rw ←hg.2.2, apply lt_blsub })) :=
+theorem is_fundamental_sequence.trans {a o o' : ordinal.{u}} {f : Π b < o, ordinal.{u}}
+  (hf : is_fundamental_sequence a o f) {g : Π b < o', ordinal.{u}}
+  (hg : is_fundamental_sequence o o' g) :
+  is_fundamental_sequence a o' (λ i hi, f (g i hi) (by { rw ←hg.2.2, apply lt_blsub })) :=
 begin
   refine ⟨_, λ i j _ _ h, hf.2.1 _ _ (hg.2.1 _ _ h), _⟩,
   { rw hf.cof_eq,
     exact hg.1.trans (ord_cof_le o) },
-  { rw @blsub_comp.{u u u} o _ f (@is_fs.monotone _ _ f hf),
+  { rw @blsub_comp.{u u u} o _ f (@is_fundamental_sequence.monotone _ _ f hf),
     exact hf.2.2 }
 end
 
 /-- Every ordinal has a fundamental sequence. -/
-theorem exists_fs (a : ordinal.{u}) : ∃ f, is_fs a a.cof.ord f :=
+theorem exists_fundamental_sequence (a : ordinal.{u}) :
+  ∃ f, is_fundamental_sequence a a.cof.ord f :=
 begin
-  suffices : ∃ o f, is_fs a o f,
+  suffices : ∃ o f, is_fundamental_sequence a o f,
   { rcases this with ⟨o, f, hf⟩,
     convert exists.intro f hf;
     rw hf.cof_eq },
@@ -405,8 +409,8 @@ end
 
 @[simp] theorem cof_cof (a : ordinal.{u}) : cof (cof a).ord = cof a :=
 begin
-  cases exists_fs a with f hf,
-  cases exists_fs a.cof.ord with g hg,
+  cases exists_fundamental_sequence a with f hf,
+  cases exists_fundamental_sequence a.cof.ord with g hg,
   exact ord_injective ((hf.trans hg).cof_eq.symm)
 end
 

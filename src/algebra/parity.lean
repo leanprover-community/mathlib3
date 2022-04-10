@@ -80,11 +80,7 @@ variables [has_distrib_neg α] {n : ℕ}
 lemma even.neg_pow : even n → ∀ a : α, (-a) ^ n = a ^ n :=
 by { rintro ⟨c, rfl⟩ a, simp_rw [←two_mul, pow_mul, neg_sq] }
 
-lemma odd.neg_pow : odd n → ∀ a : α, (-a) ^ n = - a ^ n :=
-by { rintro ⟨c, rfl⟩ a, simp_rw [pow_add, pow_mul, neg_sq, pow_one, mul_neg] }
-
 lemma even.neg_one_pow (h : even n) : (-1 : α) ^ n = 1 := by rw [h.neg_pow, one_pow]
-lemma odd.neg_one_pow (h : odd n) : (-1 : α) ^ n = -1 := by rw [h.neg_pow, one_pow]
 
 end monoid
 
@@ -233,7 +229,11 @@ end with_odd
 end semiring
 
 section ring
-variables [ring α] {m n : α}
+variables [ring α] {a b : α} {n : ℕ}
+
+lemma odd.neg_pow : odd n → ∀ a : α, (-a) ^ n = - a ^ n :=
+by { rintro ⟨c, rfl⟩ a, simp_rw [pow_add, pow_mul, neg_sq, pow_one, mul_neg] }
+lemma odd.neg_one_pow (h : odd n) : (-1 : α) ^ n = -1 := by rw [h.neg_pow, one_pow]
 
 @[simp] lemma even_neg_two : even (- 2 : α) := by simp only [even_neg, even_two]
 
@@ -243,7 +243,7 @@ begin
   exact even_neg a,
 end
 
-lemma odd.neg {a : α} (hp : odd a) : odd (-a) :=
+lemma odd.neg (hp : odd a) : odd (-a) :=
 begin
   obtain ⟨k, hk⟩ := hp,
   use -(k + 1),
@@ -256,14 +256,14 @@ end
 
 @[simp] lemma odd_neg_one : odd (- 1 : α) := by simp
 
-theorem odd.sub_even (hm : odd m) (hn : even n) : odd (m - n) :=
-by { rw sub_eq_add_neg, exact hm.add_even ((even_neg n).mpr hn) }
+lemma odd.sub_even (ha : odd a) (hb : even b) : odd (a - b) :=
+by { rw sub_eq_add_neg, exact ha.add_even ((even_neg _).mpr hb) }
 
-theorem even.sub_odd (hm : even m) (hn : odd n) : odd (m - n) :=
-by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
+lemma even.sub_odd (ha : even a) (hb : odd b) : odd (a - b) :=
+by { rw sub_eq_add_neg, exact ha.add_odd ((odd_neg _).mpr hb) }
 
-lemma odd.sub_odd (hm : odd m) (hn : odd n) : even (m - n) :=
-by { rw sub_eq_add_neg, exact hm.add_odd ((odd_neg n).mpr hn) }
+lemma odd.sub_odd (ha : odd a) (hb : odd b) : even (a - b) :=
+by { rw sub_eq_add_neg, exact ha.add_odd ((odd_neg _).mpr hb) }
 
 lemma odd_abs [linear_order α] {a : α} : odd (abs a) ↔ odd a :=
 by { cases abs_choice a with h h; simp only [h, odd_neg] }
@@ -271,7 +271,7 @@ by { cases abs_choice a with h h; simp only [h, odd_neg] }
 end ring
 
 section powers
-variables {R : Type*} [linear_ordered_ring R] {a : R} {n : ℕ}
+variables [linear_ordered_ring R] {a : R} {n : ℕ}
 
 lemma even.pow_nonneg (hn : even n) (a : R) : 0 ≤ a ^ n :=
 by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_nonneg a k

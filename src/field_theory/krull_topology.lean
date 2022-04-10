@@ -391,10 +391,8 @@ lemma function_of_ultrafilter_spec {K L : Type*} [field K] [field L] [algebra K 
 (function_of_ultrafilter h_int f) x = (alg_hom_of_finite_dimensional_of_ultrafilter hE f) x :=
 begin
    have h_le : intermediate_field.adjoin K {(x : L)} ≤ E,
-   {
-     apply intermediate_field.gc.l_le,
-     simp only [set_like.coe_mem, set_like.mem_coe, set.singleton_subset_iff, set.le_eq_subset],
-   },
+   { apply intermediate_field.gc.l_le,
+     simp only [set_like.coe_mem, set_like.mem_coe, set.singleton_subset_iff, set.le_eq_subset] },
    have h_Kx : finite_dimensional K (intermediate_field.adjoin K {(x : L)}) :=
    intermediate_field.adjoin.finite_dimensional (h_int x),
    let h_functor := alg_hom_of_finite_dimensional_of_ultrafilter_functor h_Kx f hE h_le,

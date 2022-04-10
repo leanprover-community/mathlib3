@@ -206,15 +206,15 @@ eval₂_comp (algebra_map R A)
 
 lemma aeval_list_sum (l : list R[X]) (x : A) :
   aeval x l.sum = (l.map (aeval x)).sum :=
-eval₂_list_sum _ _ _
+map_list_sum (aeval x) _
 
 lemma aeval_multiset_sum (s : multiset R[X]) (x : A) :
   aeval x s.sum = (s.map (aeval x)).sum :=
-eval₂_multiset_sum _ _ _
+map_multiset_sum (aeval x) _
 
 lemma aeval_sum {ι : Type*} (s : finset ι) (g : ι → R[X]) (x : A) :
   aeval x (∑ i in s, g i) = ∑ i in s, aeval x (g i) :=
-eval₂_finset_sum _ _ _ _
+map_sum (aeval x) _ _
 
 @[simp] lemma aeval_map {A : Type*} [comm_semiring A] [algebra R A] [algebra A B]
   [is_scalar_tower R A B] (b : B) (p : R[X]) :
@@ -287,15 +287,15 @@ by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn 
 
 lemma aeval_list_prod [algebra R S] (l : list R[X]) (x : S) :
   aeval x l.prod = (l.map (aeval x)).prod :=
-eval₂_list_prod _ _ _
+map_list_prod (aeval x) _
 
 lemma aeval_multiset_prod [algebra R S] (s : multiset R[X]) (x : S) :
   aeval x s.prod = (s.map (aeval x)).prod :=
-eval₂_multiset_prod _ _ _
+map_multiset_prod (aeval x) _
 
 lemma aeval_prod [algebra R S] {ι : Type*} (s : finset ι) (g : ι → R[X]) (x : S) :
   aeval x (∏ i in s, g i) = ∏ i in s, aeval x (g i) :=
-eval₂_finset_prod _ _ _ _
+map_prod (aeval x) _ _
 
 lemma eval_map_eq_aeval [algebra R S] (x : S) : eval x (p.map (algebra_map R S)) = aeval x p :=
 (eval₂_eq_eval_map _).symm

@@ -44,7 +44,10 @@ open_locale big_operators
 
 namespace list.nat
 
-/-- `list.antidiagonal_tuple k n` is a list of `k`-tuples summing to `n`.
+/-- `list.antidiagonal_tuple k n` is a list of all `k`-tuples which sum to `n`.
+
+This list contains no duplicates, and is sorted lexicographically, starting with `![0, ..., n]`
+and ending with `![n, ..., 0]`.
 
 ```
 #eval antidiagonal_tuple 3 2

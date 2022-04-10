@@ -82,11 +82,13 @@ lemma swap_inv [has_inv G] [has_inv H] (p : G × H) : (p⁻¹).swap = p.swap⁻�
 @[to_additive]
 instance [has_div M] [has_div N] : has_div (M × N) := ⟨λ p q, ⟨p.1 / q.1, p.2 / q.2⟩⟩
 
-@[simp, to_additive] lemma fst_div [group G] [group H] (a b : G × H) : (a / b).1 = a.1 / b.1 := rfl
-@[simp, to_additive] lemma snd_div [group G] [group H] (a b : G × H) : (a / b).2 = a.2 / b.2 := rfl
-@[simp, to_additive] lemma mk_div_mk [group G] [group H] (x₁ x₂ : G) (y₁ y₂ : H) :
+@[simp, to_additive] lemma fst_div [has_div G] [has_div H] (a b : G × H) : (a / b).1 = a.1 / b.1 :=
+rfl
+@[simp, to_additive] lemma snd_div [has_div G] [has_div H] (a b : G × H) : (a / b).2 = a.2 / b.2 :=
+rfl
+@[simp, to_additive] lemma mk_div_mk [has_div G] [has_div H] (x₁ x₂ : G) (y₁ y₂ : H) :
   (x₁, y₁) / (x₂, y₂) = (x₁ / x₂, y₁ / y₂) := rfl
-@[simp, to_additive] lemma swap_div [group G] [group H] (a b : G × H) :
+@[simp, to_additive] lemma swap_div [has_div G] [has_div H] (a b : G × H) :
   (a / b).swap = a.swap / b.swap := rfl
 
 instance [mul_zero_class M] [mul_zero_class N] : mul_zero_class (M × N) :=
@@ -502,6 +504,6 @@ def div_monoid_with_zero_hom [comm_group_with_zero α] : α × α →*₀ α :=
 { to_fun := λ a, a.1 / a.2,
   map_zero' := zero_div _,
   map_one' := div_one _,
-  map_mul' := λ a b, (div_mul_div _ _ _ _).symm }
+  map_mul' := λ a b, (div_mul_div_comm₀ _ _ _ _).symm }
 
 end bundled_mul_div

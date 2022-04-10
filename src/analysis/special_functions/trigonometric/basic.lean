@@ -486,39 +486,6 @@ by { rw real.range_cos, exact Icc.infinite (by norm_num) }
 lemma range_sin_infinite : (range real.sin).infinite :=
 by { rw real.range_sin, exact Icc.infinite (by norm_num) }
 
-lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
-begin
-  cases le_or_gt x 1 with h' h',
-  { have hx : |x| = x := abs_of_nonneg (le_of_lt h),
-    have : |x| ≤ 1, rwa [hx],
-    have := sin_bound this, rw [abs_le] at this,
-    have := this.2, rw [sub_le_iff_le_add', hx] at this,
-    apply lt_of_le_of_lt this, rw [sub_add], apply lt_of_lt_of_le _ (le_of_eq (sub_zero x)),
-    apply sub_lt_sub_left, rw [sub_pos, div_eq_mul_inv (x ^ 3)], apply mul_lt_mul',
-    { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
-      rw mul_le_mul_right, exact h', apply pow_pos h },
-    norm_num, norm_num, apply pow_pos h },
-  exact lt_of_le_of_lt (sin_le_one x) h'
-end
-
-/- note 1: this inequality is not tight, the tighter inequality is sin x > x - x ^ 3 / 6.
-   note 2: this is also true for x > 1, but it's nontrivial for x just above 1. -/
-lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : x - x ^ 3 / 4 < sin x :=
-begin
-  have hx : |x| = x := abs_of_nonneg (le_of_lt h),
-  have : |x| ≤ 1, rwa [hx],
-  have := sin_bound this, rw [abs_le] at this,
-  have := this.1, rw [le_sub_iff_add_le, hx] at this,
-  refine lt_of_lt_of_le _ this,
-  rw [add_comm, sub_add, sub_neg_eq_add], apply sub_lt_sub_left,
-  apply add_lt_of_lt_sub_left,
-  rw (show x ^ 3 / 4 - x ^ 3 / 6 = x ^ 3 * 12⁻¹,
-    by simp [div_eq_mul_inv, ← mul_sub]; norm_num),
-  apply mul_lt_mul',
-  { rw [pow_succ x 3], refine le_trans _ (le_of_eq (one_mul _)),
-    rw mul_le_mul_right, exact h', apply pow_pos h },
-  norm_num, norm_num, apply pow_pos h
-end
 
 section cos_div_sq
 

@@ -173,6 +173,34 @@ lemma maps_to_closed_ball (hf : isometry f) (x : α) (r : ℝ) :
 
 end isometry
 
+/-- A uniform embedding from a uniform space to a metric space is an isometry with respect to the
+induced metric space structure on the source space. -/
+lemma uniform_embedding.to_isometry {α β} [uniform_space α] [metric_space β] {f : α → β}
+  (h : uniform_embedding f) :
+  @isometry α β
+    (@pseudo_metric_space.to_pseudo_emetric_space α
+      (@metric_space.to_pseudo_metric_space α (h.comap_metric_space f)))
+    (by apply_instance) f :=
+begin
+  apply isometry_emetric_iff_metric.2,
+  assume x y,
+  refl
+end
+
+/-- An embedding from a topological space to a metric space is an isometry with respect to the
+induced metric space structure on the source space. -/
+lemma embedding.to_isometry {α β} [topological_space α] [metric_space β] {f : α → β}
+  (h : embedding f) :
+  @isometry α β
+    (@pseudo_metric_space.to_pseudo_emetric_space α
+      (@metric_space.to_pseudo_metric_space α (h.comap_metric_space f)))
+    (by apply_instance) f :=
+begin
+  apply isometry_emetric_iff_metric.2,
+  assume x y,
+  refl
+end
+
 /-- `α` and `β` are isometric if there is an isometric bijection between them. -/
 @[nolint has_inhabited_instance] -- such a bijection need not exist
 structure isometric (α : Type*) (β : Type*) [pseudo_emetric_space α] [pseudo_emetric_space β]

@@ -74,6 +74,8 @@ instance : has_coe_to_fun (E →ₛₗᵢ[σ₁₂] E₂) (λ _, E → E₂) := 
 
 @[simp] lemma coe_to_linear_map : ⇑f.to_linear_map = f := rfl
 
+@[simp] lemma coe_mk (f : E →ₛₗ[σ₁₂] E₂) (hf) : ⇑(mk f hf) = f := rfl
+
 lemma coe_injective : @injective (E →ₛₗᵢ[σ₁₂] E₂) (E → E₂) coe_fn :=
 fun_like.coe_injective
 
@@ -168,6 +170,9 @@ def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
 @[simp] lemma id_apply (x : E) : (id : E →ₗᵢ[R] E) x = x := rfl
 
 @[simp] lemma id_to_linear_map : (id.to_linear_map : E →ₗ[R] E) = linear_map.id := rfl
+
+@[simp] lemma id_to_continuous_linear_map :
+  id.to_continuous_linear_map = continuous_linear_map.id R E := rfl
 
 instance : inhabited (E →ₗᵢ[R] E) := ⟨id⟩
 
@@ -556,7 +561,7 @@ variables {R}
 variables (R E E₂ E₃)
 
 /-- The natural equivalence `(E × E₂) × E₃ ≃ E × (E₂ × E₃)` is a linear isometry. -/
-noncomputable def prod_assoc [module R E₂] [module R E₃] : (E × E₂) × E₃ ≃ₗᵢ[R] E × E₂ × E₃ :=
+def prod_assoc [module R E₂] [module R E₃] : (E × E₂) × E₃ ≃ₗᵢ[R] E × E₂ × E₃ :=
 { to_fun    := equiv.prod_assoc E E₂ E₃,
   inv_fun   := (equiv.prod_assoc E E₂ E₃).symm,
   map_add'  := by simp,

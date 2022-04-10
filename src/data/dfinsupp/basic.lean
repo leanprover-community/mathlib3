@@ -152,17 +152,22 @@ zip_with_apply _ _ g₁ g₂ i
 funext $ add_apply g₁ g₂
 
 instance [Π i, add_zero_class (β i)] : add_zero_class (Π₀ i, β i) :=
-{ zero      := 0,
-  add       := (+),
-  zero_add  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, zero_add],
-  add_zero  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, add_zero] }
+fun_like.coe_injective.add_zero_class _ coe_zero coe_add
+
+/-- Note the general `dfinsupp.has_scalar` instance doesn't apply as `ℕ` is not distributive
+unless `β i`'s addition is commutative. -/
+instance has_nat_scalar [Π i, add_monoid (β i)] : has_scalar ℕ (Π₀ i, β i) :=
+⟨λc v, v.map_range (λ _, (•) c) (λ _, nsmul_zero _)⟩
+
+lemma nsmul_apply [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) (i : ι) :
+  (b • v) i = b • (v i) :=
+map_range_apply _ _ v i
+
+@[simp] lemma coe_nsmul [Π i, add_monoid (β i)] (b : ℕ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
+funext $ nsmul_apply b v
 
 instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
-{ add_monoid .
-  zero      := 0,
-  add       := (+),
-  add_assoc := λ f g h, ext $ λ i, by simp only [add_apply, add_assoc],
-  .. dfinsupp.add_zero_class }
+fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
 
 /-- Coercion from a `dfinsupp` to a pi type is an `add_monoid_hom`. -/
 def coe_fn_add_monoid_hom [Π i, add_zero_class (β i)] : (Π₀ i, β i) →+ (Π i, β i) :=
@@ -174,12 +179,7 @@ def eval_add_monoid_hom [Π i, add_zero_class (β i)] (i : ι) : (Π₀ i, β i)
 (pi.eval_add_monoid_hom β i).comp coe_fn_add_monoid_hom
 
 instance [Π i, add_comm_monoid (β i)] : add_comm_monoid (Π₀ i, β i) :=
-{ add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
-  nsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
-  nsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
-  nsmul_succ' := λ n z, ext $ λ i, by simp only [map_range_apply, add_apply,
-    nat.succ_eq_one_add, add_smul, one_smul],
-  .. dfinsupp.add_monoid }
+fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, coe_nsmul _ _)
 
 @[simp] lemma coe_finset_sum {α} [Π i, add_comm_monoid (β i)] (s : finset α) (g : α → Π₀ i, β i) :
   ⇑(∑ a in s, g a) = ∑ a in s, g a :=
@@ -210,23 +210,24 @@ zip_with_apply _ _ g₁ g₂ i
   ⇑(g₁ - g₂) = g₁ - g₂ :=
 funext $ sub_apply g₁ g₂
 
+/-- Note the general `dfinsupp.has_scalar` instance doesn't apply as `ℤ` is not distributive
+unless `β i`'s addition is commutative. -/
+instance has_int_scalar [Π i, add_group (β i)] : has_scalar ℤ (Π₀ i, β i) :=
+⟨λc v, v.map_range (λ _, (•) c) (λ _, zsmul_zero _)⟩
+
+lemma zsmul_apply [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) (i : ι) : (b • v) i = b • (v i) :=
+map_range_apply _ _ v i
+
+@[simp] lemma coe_zsmul [Π i, add_group (β i)] (b : ℤ) (v : Π₀ i, β i) : ⇑(b • v) = b • v :=
+funext $ zsmul_apply b v
+
 instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
-{ add_left_neg := λ f, ext $ λ i, by simp only [add_apply, neg_apply, zero_apply, add_left_neg],
-  sub_eq_add_neg := λ f g, ext $ λ i,
-    by simp only [sub_apply, add_apply, neg_apply, sub_eq_add_neg],
-  .. dfinsupp.add_monoid,
-  .. dfinsupp.has_sub,
-  .. dfinsupp.has_neg }
+fun_like.coe_injective.add_group _
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
 
 instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
-{ zsmul := λ n v, v.map_range (λ _, (•) n) (λ _, smul_zero _),
-  zsmul_neg' := λ n f, ext $ λ i, by
-    rw [neg_apply, map_range_apply, map_range_apply, zsmul_neg_succ_of_nat, nsmul_eq_smul_cast ℤ,
-      int.nat_cast_eq_coe_nat],
-  zsmul_zero' := λ n, ext $ λ i, by simp only [map_range_apply, zero_apply, zero_smul],
-  zsmul_succ' := λ n f, ext $ λ i, by simp [map_range_apply, add_smul, add_comm],
-  ..@dfinsupp.add_comm_monoid _ β _,
-  ..dfinsupp.add_group }
+fun_like.coe_injective.add_comm_group _
+  coe_zero coe_add coe_neg coe_sub (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
 
 /-- Dependent functions with finite support inherit a semiring action from an action on each
 coordinate. -/
@@ -265,11 +266,7 @@ instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β 
 structure on each coordinate. -/
 instance [monoid γ] [Π i, add_monoid (β i)] [Π i, distrib_mul_action γ (β i)] :
   distrib_mul_action γ (Π₀ i, β i) :=
-{ smul_zero := λ c, ext $ λ i, by simp only [smul_apply, smul_zero, zero_apply],
-  smul_add := λ c x y, ext $ λ i, by simp only [add_apply, smul_apply, smul_add],
-  one_smul := λ x, ext $ λ i, by simp only [smul_apply, one_smul],
-  mul_smul := λ r s x, ext $ λ i, by simp only [smul_apply, smul_smul],
-  ..dfinsupp.has_scalar }
+function.injective.distrib_mul_action coe_fn_add_monoid_hom fun_like.coe_injective coe_smul
 
 /-- Dependent functions with finite support inherit a module structure from such a structure on
 each coordinate. -/
@@ -1135,6 +1132,14 @@ finset.prod_mul_distrib
   f.prod (λi b, (h i b)⁻¹) = (f.prod h)⁻¹ :=
 ((comm_group.inv_monoid_hom : γ →* γ).map_prod _ f.support).symm
 
+@[to_additive] lemma prod_eq_one [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [comm_monoid γ] {f : Π₀ i, β i} {h : Π i, β i → γ} (hyp : ∀ i, h i (f i) = 1) :
+  f.prod h = 1 := finset.prod_eq_one $ λ i hi, hyp i
+
+lemma smul_sum {α : Type*} [monoid α] [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [add_comm_monoid γ] [distrib_mul_action α γ] {f : Π₀ i, β i} {h : Π i, β i → γ} {c : α} :
+  c • f.sum h = f.sum (λ a b, c • h a b) := finset.smul_sum
+
 @[to_additive]
 lemma prod_add_index [Π i, add_comm_monoid (β i)] [Π i (x : β i), decidable (x ≠ 0)]
   [comm_monoid γ] {f g : Π₀ i, β i}
@@ -1156,13 +1161,13 @@ calc ∏ i in (f + g).support, h i ((f + g) i) =
   ... = _ : by rw [f_eq, g_eq]
 
 @[to_additive]
-lemma _root_.submonoid.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
-  [comm_monoid γ] (S : submonoid γ)
-  (f : Π₀ i, β i) (g : Π i, β i → γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
-S.prod_mem $ λ i hi, h _ $ mem_support_iff.1 hi
+lemma _root_.dfinsupp_prod_mem [Π i, has_zero (β i)] [Π i (x : β i), decidable (x ≠ 0)]
+  [comm_monoid γ] {S : Type*} [set_like S γ] [submonoid_class S γ] (s : S)
+  (f : Π₀ i, β i) (g : Π i, β i → γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ s) : f.prod g ∈ s :=
+prod_mem $ λ i hi, h _ $ mem_support_iff.1 hi
 
 @[simp, to_additive] lemma prod_eq_prod_fintype [fintype ι] [Π i, has_zero (β i)]
-  [Π (i : ι) (x : β i), decidable (x ≠ 0)] [comm_monoid γ] (v : Π₀ i, β i) {f : Π i, β i → γ}
+  [Π (i : ι) (x : β i), decidable (x ≠ 0)] [comm_monoid γ] (v : Π₀ i, β i) [f : Π i, β i → γ]
   (hf : ∀ i, f i 0 = 1) :
   v.prod f = ∏ i, f i (dfinsupp.equiv_fun_on_fintype v i) :=
 begin
@@ -1239,13 +1244,14 @@ begin
   rw [(not_not.mp h), add_monoid_hom.map_zero],
 end
 
-lemma _root_.add_submonoid.dfinsupp_sum_add_hom_mem [Π i, add_zero_class (β i)] [add_comm_monoid γ]
-  (S : add_submonoid γ) (f : Π₀ i, β i) (g : Π i, β i →+ γ) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) :
-  dfinsupp.sum_add_hom g f ∈ S :=
+lemma _root_.dfinsupp_sum_add_hom_mem [Π i, add_zero_class (β i)] [add_comm_monoid γ] {S : Type*}
+  [set_like S γ] [add_submonoid_class S γ] (s : S) (f : Π₀ i, β i) (g : Π i, β i →+ γ)
+  (h : ∀ c, f c ≠ 0 → g c (f c) ∈ s) : dfinsupp.sum_add_hom g f ∈ s :=
 begin
   classical,
   rw dfinsupp.sum_add_hom_apply,
-  convert S.dfinsupp_sum_mem _ _ _,
+  convert dfinsupp_sum_mem _ _ _ _,
+  { apply_instance },
   exact h
 end
 
@@ -1260,7 +1266,7 @@ begin
     intros i y hy,
     exact ⟨dfinsupp.single i ⟨y, hy⟩, dfinsupp.sum_add_hom_single _ _ _⟩, },
   { rintros x ⟨v, rfl⟩,
-    exact add_submonoid.dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr S i : S i ≤ _) (v i).prop) }
+    exact dfinsupp_sum_add_hom_mem _ v _ (λ i _, (le_supr S i : S i ≤ _) (v i).prop) }
 end
 
 /-- The bounded supremum of a family of commutative additive submonoids is equal to the range of
@@ -1273,13 +1279,11 @@ lemma _root_.add_submonoid.bsupr_eq_mrange_dfinsupp_sum_add_hom (p : ι → Prop
     ((sum_add_hom (λ i, (S i).subtype)).comp (filter_add_monoid_hom _ p)).mrange :=
 begin
   apply le_antisymm,
-  { apply bsupr_le _,
-    intros i hi y hy,
-    refine ⟨dfinsupp.single i ⟨y, hy⟩, _⟩,
+  { refine supr₂_le (λ i hi y hy, ⟨dfinsupp.single i ⟨y, hy⟩, _⟩),
     rw [add_monoid_hom.comp_apply, filter_add_monoid_hom_apply, filter_single_pos _ _ hi],
     exact sum_add_hom_single _ _ _, },
   { rintros x ⟨v, rfl⟩,
-    refine add_submonoid.dfinsupp_sum_add_hom_mem _ _ _ (λ i hi, _),
+    refine dfinsupp_sum_add_hom_mem _ _ _ (λ i hi, _),
     refine add_submonoid.mem_supr_of_mem i _,
     by_cases hp : p i,
     { simp [hp], },

@@ -27,6 +27,8 @@ instance (X : CompleteLattice) : complete_lattice X := X.str
 /-- Construct a bundled `CompleteLattice` from a `complete_lattice`. -/
 def of (α : Type*) [complete_lattice α] : CompleteLattice := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [complete_lattice α] : ↥(of α) = α := rfl
+
 instance : inhabited CompleteLattice := ⟨of punit⟩
 
 instance : bundled_hom @complete_lattice_hom :=

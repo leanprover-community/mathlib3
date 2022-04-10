@@ -329,14 +329,14 @@ def completion := quotient (separation_setoid $ Cauchy α)
 namespace completion
 
 instance [inhabited α] : inhabited (completion α) :=
-by unfold completion; apply_instance
+quotient.inhabited (separation_setoid (Cauchy α))
 
 @[priority 50]
-instance : uniform_space (completion α) := by dunfold completion ; apply_instance
+instance : uniform_space (completion α) := separation_setoid.uniform_space
 
-instance : complete_space (completion α) := by dunfold completion ; apply_instance
+instance : complete_space (completion α) := uniform_space.complete_space_separation (Cauchy α)
 
-instance : separated_space (completion α) := by dunfold completion ; apply_instance
+instance : separated_space (completion α) := uniform_space.separated_separation
 
 instance : regular_space (completion α) := separated_regular
 

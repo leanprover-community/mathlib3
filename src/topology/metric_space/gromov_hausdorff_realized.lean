@@ -227,17 +227,17 @@ equicontinuous. Equicontinuity follows from the Lipschitz control, we check clos
 private lemma closed_candidates_b : is_closed (candidates_b X Y) :=
 begin
   have I1 : ∀ x y, is_closed {f : Cb X Y | f (inl x, inl y) = dist x y} :=
-    λx y, is_closed_eq continuous_evalx continuous_const,
+    λx y, is_closed_eq continuous_eval_const continuous_const,
   have I2 : ∀ x y, is_closed {f : Cb X Y | f (inr x, inr y) = dist x y } :=
-    λx y, is_closed_eq continuous_evalx continuous_const,
+    λx y, is_closed_eq continuous_eval_const continuous_const,
   have I3 : ∀ x y, is_closed {f : Cb X Y | f (x, y) = f (y, x)} :=
-    λx y, is_closed_eq continuous_evalx continuous_evalx,
+    λx y, is_closed_eq continuous_eval_const continuous_eval_const,
   have I4 : ∀ x y z, is_closed {f : Cb X Y | f (x, z) ≤ f (x, y) + f (y, z)} :=
-    λx y z, is_closed_le continuous_evalx (continuous_evalx.add continuous_evalx),
+    λx y z, is_closed_le continuous_eval_const (continuous_eval_const.add continuous_eval_const),
   have I5 : ∀ x, is_closed {f : Cb X Y | f (x, x) = 0} :=
-    λx, is_closed_eq continuous_evalx continuous_const,
+    λx, is_closed_eq continuous_eval_const continuous_const,
   have I6 : ∀ x y, is_closed {f : Cb X Y | f (x, y) ≤ max_var X Y} :=
-    λx y, is_closed_le continuous_evalx continuous_const,
+    λx y, is_closed_le continuous_eval_const continuous_const,
   have : candidates_b X Y = (⋂x y, {f : Cb X Y | f ((@inl X Y x), (@inl X Y y)) = dist x y})
                ∩ (⋂x y, {f : Cb X Y | f ((@inr X Y x), (@inr X Y y)) = dist x y})
                ∩ (⋂x y, {f : Cb X Y | f (x, y) = f (y, x)})
@@ -376,7 +376,7 @@ begin
   have E2 : (⨆ x, ⨅ y, g (inl x, inr y)) + dist f g = ⨆ x, (⨅ y, g (inl x, inr y)) + dist f g,
   { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
-    { by simpa using HD_bound_aux1 _ 0 } },
+    { simpa using HD_bound_aux1 _ 0 } },
   -- deduce the result from the above two steps
   simpa [E2, E1, function.comp]
 end
@@ -405,7 +405,7 @@ begin
   have E2 : (⨆ y, ⨅ x, g (inl x, inr y)) + dist f g = ⨆ y, (⨅ x, g (inl x, inr y)) + dist f g,
   { refine map_csupr_of_continuous_at_of_monotone (continuous_at_id.add continuous_at_const) _ _,
     { assume x y hx, simpa },
-    { by simpa using HD_bound_aux2 _ 0 } },
+    { simpa using HD_bound_aux2 _ 0 } },
   -- deduce the result from the above two steps
   simpa [E2, E1]
 end

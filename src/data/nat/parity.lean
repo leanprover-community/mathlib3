@@ -211,12 +211,10 @@ by simp
 
 end nat
 
+open nat
+
 variables {R : Type*} [monoid R] [has_distrib_neg R] {n : ℕ}
 
 theorem neg_one_pow_eq_one_iff_even (h : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
-begin
-  rcases n.even_or_odd' with ⟨n, rfl | rfl⟩,
-  { simp [neg_one_pow_eq_pow_mod_two, pow_zero] },
-  { rw [← not_iff_not, neg_one_pow_eq_pow_mod_two, not_even_iff, add_mod],
-    simp only [h1, mul_mod_right, one_mod, pow_one, not_false_iff, eq_self_iff_true] }
-end
+⟨λ h', of_not_not $ λ hn, h $ (odd.neg_one_pow $ odd_iff_not_even.mpr hn).symm.trans h',
+  even.neg_one_pow⟩

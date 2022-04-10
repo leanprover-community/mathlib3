@@ -225,15 +225,19 @@ lemma odd.pow (hm : odd m) : ∀ {a : ℕ}, odd (m ^ a)
 | (a + 1) := by { rw pow_succ, exact hm.mul_odd odd.pow }
 
 end with_odd
-
 end semiring
 
-section ring
-variables [ring α] {a b : α} {n : ℕ}
+section monoid
+variables [monoid α] [has_distrib_neg α] {a : α} {n : ℕ}
 
 lemma odd.neg_pow : odd n → ∀ a : α, (-a) ^ n = - a ^ n :=
 by { rintro ⟨c, rfl⟩ a, simp_rw [pow_add, pow_mul, neg_sq, pow_one, mul_neg] }
 lemma odd.neg_one_pow (h : odd n) : (-1 : α) ^ n = -1 := by rw [h.neg_pow, one_pow]
+
+end monoid
+
+section ring
+variables [ring α] {a b : α} {n : ℕ}
 
 @[simp] lemma even_neg_two : even (- 2 : α) := by simp only [even_neg, even_two]
 

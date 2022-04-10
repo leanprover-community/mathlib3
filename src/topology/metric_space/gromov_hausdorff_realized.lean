@@ -364,7 +364,7 @@ begin
   -- supr to supr and infi to infi
   have Z : (⨆ x, ⨅ y, f (inl x, inr y)) ≤ ⨆ x, ⨅ y, g (inl x, inr y) + dist f g :=
     csupr_mono (HD_bound_aux1 _ (dist f g))
-      (λx, cinfi_le_cinfi ⟨cf, forall_range_iff.2(λi, Hcf _)⟩ (λy, coe_le_coe_add_dist)),
+      (λx, cinfi_mono ⟨cf, forall_range_iff.2(λi, Hcf _)⟩ (λy, coe_le_coe_add_dist)),
   -- move the `dist f g` out of the infimum and the supremum, arguing that continuous monotone maps
   -- (here the addition of `dist f g`) preserve infimum and supremum
   have E1 : ∀ x, (⨅ y, g (inl x, inr y)) + dist f g = ⨅ y, g (inl x, inr y) + dist f g,
@@ -393,7 +393,7 @@ begin
   -- supr to supr and infi to infi
   have Z : (⨆ y, ⨅ x, f (inl x, inr y)) ≤ ⨆ y, ⨅ x, g (inl x, inr y) + dist f g :=
     csupr_mono (HD_bound_aux2 _ (dist f g))
-      (λy, cinfi_le_cinfi  ⟨cf, forall_range_iff.2(λi, Hcf _)⟩ (λy, coe_le_coe_add_dist)),
+      (λy, cinfi_mono  ⟨cf, forall_range_iff.2(λi, Hcf _)⟩ (λy, coe_le_coe_add_dist)),
   -- move the `dist f g` out of the infimum and the supremum, arguing that continuous monotone maps
   -- (here the addition of `dist f g`) preserve infimum and supremum
   have E1 : ∀ y, (⨅ x, g (inl x, inr y)) + dist f g = ⨅ x, g (inl x, inr y) + dist f g,

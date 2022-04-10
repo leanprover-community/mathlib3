@@ -589,6 +589,30 @@ lemma le_mul_of_one_le_left' [mul_pos_mono α] (h : 1 ≤ a) (b0 : 0 ≤ b) :
   b ≤ a * b :=
 le_mul_of_one_le_of_le' h le_rfl b0
 
+lemma le_of_mul_le_of_one_le_left' [pos_mul_mono α]
+  (h : a * b ≤ c) (hle : 1 ≤ b) (a0 : 0 ≤ a) :
+  a ≤ c :=
+a0.lt_or_eq.elim (le_of_mul_le_of_one_le_left h hle)
+  (λ ha, by simp only [← ha, zero_mul] at *; exact h)
+
+lemma le_of_le_mul_of_le_one_left' [pos_mul_mono α]
+  (h : a ≤ b * c) (hle : c ≤ 1) (b0 : 0 ≤ b) :
+  a ≤ b :=
+b0.lt_or_eq.elim (le_of_le_mul_of_le_one_left h hle)
+  (λ hb, by simp only [← hb, zero_mul] at *; exact h)
+
+lemma le_of_mul_le_of_one_le_right' [mul_pos_mono α]
+  (h : a * b ≤ c) (hle : 1 ≤ a) (b0 : 0 ≤ b) :
+  b ≤ c :=
+b0.lt_or_eq.elim (le_of_mul_le_of_one_le_right h hle)
+  (λ ha, by simp only [← ha, mul_zero] at *; exact h)
+
+lemma le_of_le_mul_of_le_one_right' [mul_pos_mono α]
+  (h : a ≤ b * c) (hle : b ≤ 1) (c0 : 0 ≤ c) :
+  a ≤ c :=
+c0.lt_or_eq.elim (le_of_le_mul_of_le_one_right h hle)
+  (λ ha, by simp only [← ha, mul_zero] at *; exact h)
+
 end partial_order
 
 section linear_order

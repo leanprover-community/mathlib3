@@ -19,6 +19,11 @@ def two_power_part (n : ℕ) := 2 ^ (padic_val_nat 2 n)
 
 def odd_part (n : ℕ) := n / two_power_part n
 
+lemma mul_odd_part (n m : ℕ) : odd_part(n * m) = odd_part(n) * odd_part(m) :=
+begin
+  sorry,
+end
+
 lemma two_power_part_mul_odd_part (n : ℕ) : (two_power_part n) * (odd_part n) = n :=
 begin
   have : two_power_part n ∣ n,
@@ -247,7 +252,8 @@ begin
       rw dvd_iff_exists_eq_mul_left at thing,
       rcases thing with ⟨c, hc⟩,
       rw hc,
-      -- TODO(Sean): this should now be solvable with only sub_one_dvd_pow_sub_one, hfoo, and dvd_iff_exists_eq_mul_left.
+      rw mul_odd_part,
+      -- TODO(Sean): this should now be solvable with only hfoo.
 
       sorry,
     },
@@ -341,20 +347,25 @@ begin
     exact nat.lt_asymm thing2 thing2,
   },
   by_cases h1 : index = 1,
-  { rw h1 at hindex,
+  { by_contra,
+    rw h1 at hindex,
     simp at hindex,
     have thing2 : 0 < fintype.card G,
     exact fintype.card_pos,
-    rw ← hindex,
+    rw hindex at thing2,
     -- TODO(Sean): try to prove 0 < fintype.card G, then again prove a contradiction using h1 and hindex
+    -- TODO(Bolton): Check the hypotheses here
     sorry,
   },
   have two_le_index : 2 ≤ index,
-  { -- TODO(Sean): Try this one too. Below there's a lemma which is proved using the interval_cases tactic. This lemma is a little different but that tactic might still come in handy. You could also try seeing if theres a lemma in mathlib which proves that 1 ≤ index ↔ 2 ≤ index ∨ index = 1
-    sorry,
+  { by_contra,
+    simp at h,
+    interval_cases index,
+    exact h0 rfl,
+    exact h1 rfl,
   },
-  -- TODO(Sean): This should now be possible using two_le_index and hindex, though you might have to search for a lemma at some point.
-  sorry,
+  rw hindex,
+  exact mul_le_mul_left' two_le_index (fintype.card ↥H),
 end
 
 lemma unlikely_strong_probable_prime_of_coprime_mul (n : ℕ) [hn_pos : fact (0 < n)]
@@ -401,6 +412,7 @@ begin
     simp at h,
     interval_cases k,
     -- TODO(Sean): try to solve these two sorrys, shouldn't need any other lemmas in this file.
+    -- These hypotheses all seem true to me? Is proof by contradiction actually used here?
     { sorry, },
     { apply not_prime,
       sorry, },

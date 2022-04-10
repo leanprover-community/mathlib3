@@ -141,7 +141,7 @@ by rw [real.sqrt, real.to_nnreal_coe]
 
 @[continuity]
 lemma continuous_sqrt : continuous sqrt :=
-nnreal.continuous_coe.comp $ nnreal.sqrt.continuous.comp nnreal.continuous_of_real
+nnreal.continuous_coe.comp $ nnreal.sqrt.continuous.comp continuous_real_to_nnreal
 
 theorem sqrt_eq_zero_of_nonpos (h : x ≤ 0) : sqrt x = 0 :=
 by simp [sqrt, real.to_nnreal_eq_zero.2 h]

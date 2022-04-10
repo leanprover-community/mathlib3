@@ -6,6 +6,7 @@ Authors: Mitchell Rowett, Scott Morrison
 
 import algebra.quotient
 import group_theory.subgroup.basic
+import tactic.group
 
 /-!
 # Cosets
@@ -246,6 +247,26 @@ by { ext, exact (right_coset_eq_iff s).symm }
 instance right_rel_decidable [decidable_pred (∈ s)] :
   decidable_rel (right_rel s).r := λ x y, ‹decidable_pred (∈ s)› _
 
+/-- Right cosets are in bijection with left cosets. -/
+@[to_additive "Right cosets are in bijection with left cosets."]
+def quotient_right_rel_equiv_quotient_left_rel : quotient (quotient_group.right_rel s) ≃ α ⧸ s :=
+{ to_fun := quotient.map' (λ g, g⁻¹) (λ a b h, (congr_arg (∈ s) (by group)).mp (s.inv_mem h)),
+  inv_fun := quotient.map' (λ g, g⁻¹) (λ a b h, (congr_arg (∈ s) (by group)).mp (s.inv_mem h)),
+  left_inv := λ g, quotient.induction_on' g (λ g, quotient.sound' (by
+  { simp only [inv_inv],
+    exact quotient.exact' rfl })),
+  right_inv := λ g, quotient.induction_on' g (λ g, quotient.sound' (by
+  { simp only [inv_inv],
+    exact quotient.exact' rfl })) }
+
+@[to_additive] instance fintype_quotient_right_rel [fintype (α ⧸ s)] :
+  fintype (quotient (quotient_group.right_rel s)) :=
+fintype.of_equiv (α ⧸ s) (quotient_group.quotient_right_rel_equiv_quotient_left_rel s).symm
+
+@[to_additive] lemma card_quotient_right_rel [fintype (α ⧸ s)] :
+  fintype.card (quotient (quotient_group.right_rel s)) = fintype.card (α ⧸ s) :=
+fintype.of_equiv_card (quotient_group.quotient_right_rel_equiv_quotient_left_rel s).symm
+
 end quotient_group
 
 namespace quotient_group
@@ -413,6 +434,8 @@ noncomputable def quotient_equiv_prod_of_le (h_le : s ≤ t) :
 quotient_equiv_prod_of_le' h_le quotient.out' quotient.out_eq'
 
 /-- If `K ≤ L`, then there is an embedding `K ⧸ (H.subgroup_of K) ↪ L ⧸ (H.subgroup_of L)`. -/
+@[to_additive "If `K ≤ L`, then there is an embedding
+  `K ⧸ (H.add_subgroup_of K) ↪ L ⧸ (H.add_subgroup_of L)`."]
 def quotient_subgroup_of_embedding_of_le (H : subgroup α) {K L : subgroup α} (h : K ≤ L) :
   K ⧸ (H.subgroup_of K) ↪ L ⧸ (H.subgroup_of L) :=
 { to_fun := quotient.map' (set.inclusion h) (λ a b, id),

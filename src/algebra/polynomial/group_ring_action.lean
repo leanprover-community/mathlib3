@@ -3,10 +3,10 @@ Copyright (c) 2020 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-import data.polynomial.monic
-import data.polynomial.algebra_map
 import algebra.group_ring_action
-import algebra.group_action_hom
+import algebra.hom.group_action
+import data.polynomial.algebra_map
+import data.polynomial.monic
 
 
 /-!

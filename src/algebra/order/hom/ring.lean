@@ -5,7 +5,7 @@ Authors: Alex J. Best, Yaël Dillies
 -/
 import algebra.order.hom.monoid
 import algebra.order.ring
-import data.equiv.ring
+import algebra.ring.equiv
 
 /-!
 # Ordered ring homomorphisms

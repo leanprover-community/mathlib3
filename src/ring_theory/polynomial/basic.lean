@@ -359,12 +359,12 @@ section mod_by_monic
 
 variables {q : R[X]}
 
-lemma mem_ker_mod_by_monic [nontrivial R] (hq : q.monic) {p : R[X]} :
-  p ∈ (mod_by_monic_hom hq).ker ↔ q ∣ p :=
+lemma mem_ker_mod_by_monic (hq : q.monic) {p : R[X]} :
+  p ∈ (mod_by_monic_hom q).ker ↔ q ∣ p :=
 linear_map.mem_ker.trans (dvd_iff_mod_by_monic_eq_zero hq)
 
-@[simp] lemma ker_mod_by_monic_hom [nontrivial R] (hq : q.monic) :
-  (polynomial.mod_by_monic_hom hq).ker = (ideal.span {q}).restrict_scalars R :=
+@[simp] lemma ker_mod_by_monic_hom (hq : q.monic) :
+  (polynomial.mod_by_monic_hom q).ker = (ideal.span {q}).restrict_scalars R :=
 submodule.ext (λ f, (mem_ker_mod_by_monic hq).trans ideal.mem_span_singleton.symm)
 
 end mod_by_monic
@@ -526,7 +526,8 @@ begin
   obtain ⟨x, hx'⟩ := x,
   obtain ⟨y, rfl⟩ := (ring_hom.mem_range).1 hx',
   refine subtype.eq _,
-  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, subring.coe_zero, subtype.val_eq_coe],
+  simp only [ring_hom.comp_apply, quotient.eq_zero_iff_mem, add_submonoid_class.coe_zero,
+    subtype.val_eq_coe],
   suffices : C (i y) ∈ (I.map (polynomial.map_ring_hom i)),
   { obtain ⟨f, hf⟩ := mem_image_of_mem_map_of_surjective (polynomial.map_ring_hom i)
       (polynomial.map_surjective _ (((quotient.mk I).comp C).range_restrict_surjective)) this,
@@ -833,7 +834,7 @@ lemma linear_independent_powers_iff_aeval
 begin
   rw linear_independent_iff,
   simp only [finsupp.total_apply, aeval_endomorphism, forall_iff_forall_finsupp, sum, support,
-    coeff, ← zero_to_finsupp],
+    coeff, of_finsupp_eq_zero],
   exact iff.rfl,
 end
 

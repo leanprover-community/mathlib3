@@ -103,6 +103,20 @@ def stabilizer.submonoid (b : β) : submonoid α :=
   orbit α x = set.univ :=
 (surjective_smul α x).range_eq
 
+variables {α} {β}
+
+@[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
+  [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
+begin
+  rw [fintype.card_eq_one_iff, mem_fixed_points],
+  split,
+  { exact λ h, ⟨⟨a, mem_orbit_self _⟩, λ ⟨b, ⟨x, hx⟩⟩, subtype.eq $ by simp [h x, hx.symm]⟩ },
+  { assume h x,
+    rcases h with ⟨⟨z, hz⟩, hz₁⟩,
+    calc x • a = z : subtype.mk.inj (hz₁ ⟨x • a, mem_orbit _ _⟩)
+      ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
+end
+
 end mul_action
 
 namespace mul_action
@@ -141,18 +155,6 @@ instance (x : β) : is_pretransitive α (orbit α x) :=
 @[to_additive] lemma orbit_eq_iff {a b : β} :
    orbit α a = orbit α b ↔ a ∈ orbit α b:=
 ⟨λ h, h ▸ mem_orbit_self _, λ ⟨c, hc⟩, hc ▸ orbit_smul _ _⟩
-
-@[to_additive] lemma mem_fixed_points_iff_card_orbit_eq_one {a : β}
-  [fintype (orbit α a)] : a ∈ fixed_points α β ↔ fintype.card (orbit α a) = 1 :=
-begin
-  rw [fintype.card_eq_one_iff, mem_fixed_points],
-  split,
-  { exact λ h, ⟨⟨a, mem_orbit_self _⟩, λ ⟨b, ⟨x, hx⟩⟩, subtype.eq $ by simp [h x, hx.symm]⟩ },
-  { assume h x,
-    rcases h with ⟨⟨z, hz⟩, hz₁⟩,
-    calc x • a = z : subtype.mk.inj (hz₁ ⟨x • a, mem_orbit _ _⟩)
-      ... = a : (subtype.mk.inj (hz₁ ⟨a, mem_orbit_self _⟩)).symm }
-end
 
 variables (α) {β}
 
@@ -290,7 +292,27 @@ end add_action
 
 namespace mul_action
 
-variables [group α] [mul_action α β]
+variables [group α]
+
+section quotient_action
+
+variables (β) [monoid β] [mul_action β α] (H : subgroup α)
+
+/-- A typeclass for when a `mul_action β α` descends to the quotient `α ⧸ H`. -/
+class quotient_action : Prop :=
+(inv_mul_mem : ∀ (b : β) {a a' : α}, a⁻¹ * a' ∈ H → (b • a)⁻¹ * (b • a') ∈ H)
+
+/-- A typeclass for when an `add_action β α` descends to the quotient `α ⧸ H`. -/
+class _root_.add_action.quotient_action {α : Type*} (β : Type*) [add_group α] [add_monoid β]
+  [add_action β α] (H : add_subgroup α) : Prop :=
+(inv_mul_mem : ∀ (b : β) {a a' : α}, -a + a' ∈ H → -(b +ᵥ a) + (b +ᵥ a') ∈ H)
+
+attribute [to_additive add_action.quotient_action] mul_action.quotient_action
+
+@[to_additive] instance left_quotient_action : quotient_action α H :=
+⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
+
+end quotient_action
 
 open quotient_group
 
@@ -323,7 +345,7 @@ mul_action.comp_hom (α ⧸ H) (subgroup.subtype I)
 @[simp, to_additive] lemma quotient'.smul_coe (H : subgroup α) (a : H.normalizerᵐᵒᵖ) (x : α) :
   (a • x : α ⧸ H) = ↑(x * a.unop) := rfl
 
-variables (α) {β} (x : β)
+variables (α) {β} [mul_action α β] (x : β)
 
 /-- The canonical map from the quotient of the stabilizer to the set. -/
 @[to_additive "The canonical map from the quotient of the stabilizer to the set. "]

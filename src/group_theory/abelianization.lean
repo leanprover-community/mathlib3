@@ -43,6 +43,9 @@ lemma commutator_eq_normal_closure :
   commutator G = subgroup.normal_closure {g | ∃ g₁ g₂ : G, ⁅g₁, g₂⁆ = g} :=
 by simp_rw [commutator, subgroup.commutator_def', subgroup.mem_top, exists_true_left]
 
+instance commutator_characteristic : (commutator G).characteristic :=
+subgroup.commutator_characteristic ⊤ ⊤
+
 lemma commutator_centralizer_commutator_le_center :
   ⁅(commutator G).centralizer, (commutator G).centralizer⁆ ≤ subgroup.center G :=
 begin

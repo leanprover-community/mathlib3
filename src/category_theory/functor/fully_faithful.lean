@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.natural_isomorphism
-import data.equiv.basic
+import logic.equiv.basic
 
 /-!
 # Full and faithful functors
@@ -57,6 +57,10 @@ lemma map_injective (F : C ⥤ D) [faithful F] {X Y : C} :
   function.injective $ @functor.map _ _ _ _ F X Y :=
 faithful.map_injective F
 
+lemma map_iso_injective (F : C ⥤ D) [faithful F] {X Y : C} :
+  function.injective $ @functor.map_iso _ _ _ _ F X Y :=
+λ i j h, iso.ext (map_injective F (congr_arg iso.hom h : _))
+
 /-- The specified preimage of a morphism under a full functor. -/
 def preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) : X ⟶ Y :=
 full.preimage.{v₁ v₂} f
@@ -101,18 +105,20 @@ lemma is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
   ⟨F.map_injective (by simp), F.map_injective (by simp)⟩⟩⟩
 
 /-- If `F` is fully faithful, we have an equivalence of hom-sets `X ⟶ Y` and `F X ⟶ F Y`. -/
+@[simps]
 def equiv_of_fully_faithful {X Y} : (X ⟶ Y) ≃ (F.obj X ⟶ F.obj Y) :=
 { to_fun := λ f, F.map f,
   inv_fun := λ f, F.preimage f,
   left_inv := λ f, by simp,
   right_inv := λ f, by simp }
 
-@[simp]
-lemma equiv_of_fully_faithful_apply {X Y : C} (f : X ⟶ Y) :
-  equiv_of_fully_faithful F f = F.map f := rfl
-@[simp]
-lemma equiv_of_fully_faithful_symm_apply {X Y} (f : F.obj X ⟶ F.obj Y) :
-  (equiv_of_fully_faithful F).symm f = F.preimage f := rfl
+/-- If `F` is fully faithful, we have an equivalence of iso-sets `X ≅ Y` and `F X ≅ F Y`. -/
+@[simps]
+def iso_equiv_of_fully_faithful {X Y} : (X ≅ Y) ≃ (F.obj X ≅ F.obj Y) :=
+{ to_fun := λ f, F.map_iso f,
+  inv_fun := λ f, preimage_iso f,
+  left_inv := λ f, by simp,
+  right_inv := λ f, by { ext, simp, } }
 
 end category_theory
 

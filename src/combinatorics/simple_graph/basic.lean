@@ -976,6 +976,11 @@ The underlying map on edges is given by `sym2.map`. -/
 @[simps] def map_neighbor_set (v : V) (w : G.neighbor_set v) : G'.neighbor_set (f v) :=
 ⟨f w, f.apply_mem_neighbor_set w.property⟩
 
+/-- The map between darts induced by a homomorphism. -/
+def map_dart (d : G.dart) : G'.dart := ⟨d.1.map f f, f.map_adj d.2⟩
+
+@[simp] lemma map_dart_apply (d : G.dart) : f.map_dart d = ⟨d.1.map f f, f.map_adj d.2⟩ := rfl
+
 /-- The induced map for spanning subgraphs, which is the identity on vertices. -/
 def map_spanning_subgraphs {G G' : simple_graph V} (h : G ≤ G') : G →g G' :=
 { to_fun := λ x, x,

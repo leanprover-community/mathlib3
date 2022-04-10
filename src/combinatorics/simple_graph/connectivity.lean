@@ -39,6 +39,9 @@ counterparts in [Chou1994].
 
 * `simple_graph.path`
 
+* `simple_graph.walk.map` and `simple_graph.path.map` for the induced map on walks,
+  given an (injective) graph homomorphism.
+
 * `simple_graph.reachable` for the relation of whether there exists
   a walk between a given pair of vertices
 
@@ -57,7 +60,7 @@ walks, trails, paths, circuits, cycles
 universes u
 
 namespace simple_graph
-variables {V : Type u} (G : simple_graph V)
+variables {V V' : Type u} (G G' : simple_graph V)
 
 /-- A walk is a sequence of adjacent vertices.  For vertices `u v : V`,
 the type `walk u v` consists of all walks starting at `u` and ending at `v`.
@@ -814,6 +817,100 @@ lemma edges_to_path_subset {u v : V} (p : G.walk u v) :
 edges_bypass_subset _
 
 end walk
+
+/-! ## Mapping paths -/
+
+namespace walk
+variables {G G'}
+
+/-- Given a graph homomorphism, map walks to walks. -/
+protected def map (f : G →g G') : Π {u v : V}, G.walk u v → G'.walk (f u) (f v)
+| _ _ nil := nil
+| _ _ (cons h p) := cons (f.map_adj h) (map p)
+
+variables (f : G →g G') {u v : V} (p : G.walk u v)
+
+@[simp] lemma map_nil : (nil : G.walk u u).map f = nil := rfl
+
+@[simp] lemma map_cons {w : V} (h : G.adj w u) :
+  (cons h p).map f = cons (f.map_adj h) (p.map f) := rfl
+
+@[simp] lemma length_map : (p.map f).length = p.length :=
+by induction p; simp [*]
+
+lemma map_append {u v w : V} (p : G.walk u v) (q : G.walk v w) :
+  (p.append q).map f = (p.map f).append (q.map f) :=
+by induction p; simp [*]
+
+@[simp] lemma reverse_map : (p.map f).reverse = p.reverse.map f :=
+by induction p; simp [map_append, *]
+
+@[simp] lemma support_map : (p.map f).support = p.support.map f :=
+by induction p; simp [*]
+
+@[simp] lemma darts_map : (p.map f).darts = p.darts.map f.map_dart :=
+by induction p; simp [*]
+
+@[simp] lemma edges_map : (p.map f).edges = p.edges.map (sym2.map f) :=
+by induction p; simp [*]
+
+lemma map_is_path_of_injective (hinj : function.injective f) (hp : p.is_path) :
+  (p.map f).is_path :=
+begin
+  induction p with w u v w huv hvw ih,
+  { simp, },
+  { rw walk.cons_is_path_iff at hp,
+    simp [ih hp.1],
+    intros x hx hf,
+    cases hinj hf,
+    exact hp.2 hx, },
+end
+
+lemma map_injective_of_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
+  function.injective (walk.map f : G.walk u v → G'.walk (f u) (f v)) :=
+begin
+  intros p p' h,
+  induction p with _ _ _ _ _ _ ih generalizing p',
+  { cases p',
+    { refl },
+    simpa using h, },
+  { induction p',
+    { simpa using h, },
+    { simp only [map_cons] at h,
+      cases hinj h.1,
+      simp only [eq_self_iff_true, heq_iff_eq, true_and],
+      apply ih,
+      simpa using h.2, } },
+end
+
+end walk
+
+namespace path
+variables {G G'}
+
+/-- Given an injective graph homomorphism, map paths to paths. -/
+@[simps] protected def map (f : G →g G') (hinj : function.injective f) {u v : V} (p : G.path u v) :
+  G'.path (f u) (f v) :=
+⟨walk.map f p, walk.map_is_path_of_injective f p hinj p.2⟩
+
+lemma map_injective {f : G →g G'} (hinj : function.injective f) (u v : V) :
+  function.injective (path.map f hinj : G.path u v → G'.path (f u) (f v)) :=
+begin
+  rintros ⟨p, hp⟩ ⟨p', hp'⟩ h,
+  simp only [path.map, subtype.coe_mk] at h,
+  simp [walk.map_injective_of_injective hinj u v h],
+end
+
+/-- Given a graph embedding, map paths to paths. -/
+@[simps] protected def map_embedding (f : G ↪g G') {u v : V} (p : G.path u v) :
+  G'.path (f u) (f v) :=
+path.map f.to_hom f.injective p
+
+lemma map_embedding_injective (f : G ↪g G') (u v : V) :
+  function.injective (path.map_embedding f : G.path u v → G'.path (f u) (f v)) :=
+map_injective f.injective u v
+
+end path
 
 /-! ## `reachable` and `connected` -/
 

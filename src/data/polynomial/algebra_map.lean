@@ -204,6 +204,18 @@ lemma aeval_comp {A : Type*} [comm_semiring A] [algebra R A] (x : A) :
   aeval x (p.comp q) = (aeval (aeval x q) p) :=
 eval₂_comp (algebra_map R A)
 
+lemma aeval_list_sum (l : list R[X]) (x : A) :
+  aeval x l.sum = (l.map (aeval x)).sum :=
+eval₂_list_sum _ _ _
+
+lemma aeval_multiset_sum (s : multiset R[X]) (x : A) :
+  aeval x s.sum = (s.map (aeval x)).sum :=
+eval₂_multiset_sum _ _ _
+
+lemma aeval_sum {ι : Type*} (s : finset ι) (g : ι → R[X]) (x : A) :
+  aeval x (∑ i in s, g i) = ∑ i in s, aeval x (g i) :=
+eval₂_finset_sum _ _ _ _
+
 @[simp] lemma aeval_map {A : Type*} [comm_semiring A] [algebra R A] [algebra A B]
   [is_scalar_tower R A B] (b : B) (p : R[X]) :
   aeval b (p.map (algebra_map R A)) = aeval b p :=
@@ -273,14 +285,21 @@ lemma aeval_eq_sum_range' [algebra R S] {p : R[X]} {n : ℕ} (hn : p.nat_degree 
   aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
 by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
 
-lemma aeval_sum {ι : Type*} [algebra R S] (s : finset ι) (f : ι → R[X])
-  (g : S) : aeval g (∑ i in s, f i) = ∑ i in s, aeval g (f i) :=
-(polynomial.aeval g : R[X] →ₐ[_] _).map_sum f s
+lemma aeval_list_prod [algebra R S] (l : list R[X]) (x : S) :
+  aeval x l.prod = (l.map (aeval x)).prod :=
+eval₂_list_prod _ _ _
 
-@[to_additive]
-lemma aeval_prod {ι : Type*} [algebra R S] (s : finset ι)
-  (f : ι → R[X]) (g : S) : aeval g (∏ i in s, f i) = ∏ i in s, aeval g (f i) :=
-(polynomial.aeval g : R[X] →ₐ[_] _).map_prod f s
+lemma aeval_multiset_prod [algebra R S] (s : multiset R[X]) (x : S) :
+  aeval x s.prod = (s.map (aeval x)).prod :=
+eval₂_multiset_prod _ _ _
+
+lemma aeval_prod [algebra R S] {ι : Type*} (s : finset ι) (g : ι → R[X]) (x : S) :
+  aeval x (∏ i in s, g i) = ∏ i in s, aeval x (g i) :=
+eval₂_finset_prod _ _ _ _
+
+lemma eval_map_eq_aeval [algebra R S] (x : S) : eval x (p.map (algebra_map R S)) = aeval x p :=
+by simp_rw [eval_eq_sum_range' (nat.lt_add_one_iff.mpr (p.nat_degree_map_le _)),
+  aeval_eq_sum_range, coeff_map, algebra.smul_def]
 
 lemma is_root_of_eval₂_map_eq_zero
   (hf : function.injective f) {r : R} : eval₂ f (f r) p = 0 → p.is_root r :=

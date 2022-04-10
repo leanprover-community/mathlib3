@@ -215,6 +215,6 @@ open nat
 
 variables {R : Type*} [monoid R] [has_distrib_neg R] {n : ℕ}
 
-theorem neg_one_pow_eq_one_iff_even (h : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
+lemma neg_one_pow_eq_one_iff_even (h : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
 ⟨λ h', of_not_not $ λ hn, h $ (odd.neg_one_pow $ odd_iff_not_even.mpr hn).symm.trans h',
   even.neg_one_pow⟩

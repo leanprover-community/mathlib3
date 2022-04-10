@@ -5,6 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import algebra.hom.freiman
 import analysis.asymptotics.asymptotics
+import analysis.convex.strict_convex_space
 
 /-!
 # Salem-Spencer sets and Roth numbers
@@ -36,10 +37,10 @@ Can `add_salem_spencer_iff_eq_right` be made more general?
 Salem-Spencer, Roth, arithmetic progression, average, three-free
 -/
 
-open function nat
+open finset function metric nat
 open_locale pointwise
 
-variables {F α β : Type*}
+variables {F α β 𝕜 E : Type*}
 
 section salem_spencer
 
@@ -97,10 +98,10 @@ variables [comm_monoid α] [comm_monoid β] {s : set α} {a : α}
 
 @[to_additive]
 lemma mul_salem_spencer.of_image [fun_like F α (λ _, β)] [freiman_hom_class F s β 2] (f : F)
-  (hf : (s * s).inj_on f) (h : mul_salem_spencer (f '' s)) :
+  (hf : s.inj_on f) (h : mul_salem_spencer (f '' s)) :
   mul_salem_spencer s :=
-λ a b c ha hb hc habc, hf (mul_mem_mul ha hb) (mul_mem_mul hc hc) $ h (mem_image_of_mem _ ha)
-  (mem_image_of_mem _ hb) (mem_image_of_mem _ hc) $ map_mul_map_eq_map_mul_map f ha hb hc hc habc
+λ a b c ha hb hc habc, hf ha hb $ h (mem_image_of_mem _ ha) (mem_image_of_mem _ hb)
+  (mem_image_of_mem _ hc) $ map_mul_map_eq_map_mul_map f ha hb hc hc habc
 
 -- TODO: Generalize to Freiman homs
 @[to_additive]
@@ -246,6 +247,31 @@ begin
 end
 
 end nat
+
+/-- The frontier of a closed strictly convex set only contains trivial arithmetic progressions.
+The idea is that an arithmetic progression is contained on a line and the frontier of a strictly
+convex set does not contain lines. -/
+lemma add_salem_spencer_frontier [linear_ordered_field 𝕜] [topological_space E] [add_comm_monoid E]
+  [module 𝕜 E] {s : set E} (hs₀ : is_closed s) (hs₁ : strict_convex 𝕜 s) :
+  add_salem_spencer (frontier s) :=
+begin
+  intros a b c ha hb hc habc,
+  obtain rfl : (1 / 2 : 𝕜) • a + (1 / 2 : 𝕜) • b = c,
+  { rwa [←smul_add, one_div, inv_smul_eq_iff₀ (show (2 : 𝕜) ≠ 0, by norm_num), two_smul] },
+  exact hs₁.eq (hs₀.frontier_subset ha) (hs₀.frontier_subset hb) one_half_pos one_half_pos
+    (add_halves _) hc.2,
+end
+
+lemma add_salem_spencer_sphere [normed_group E] [normed_space ℝ E] [strict_convex_space ℝ E] (x : E)
+  (r : ℝ) : add_salem_spencer (sphere x r) :=
+begin
+  obtain rfl | hr := eq_or_ne r 0,
+  { rw sphere_zero,
+    exact add_salem_spencer_singleton _ },
+  { convert add_salem_spencer_frontier is_closed_ball (strict_convex_closed_ball ℝ x r),
+    exact (frontier_closed_ball _ hr).symm }
+end
+
 end salem_spencer
 
 open finset

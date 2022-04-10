@@ -43,7 +43,7 @@ def normalizer : lie_subalgebra R L :=
 lemma mem_normalizer_iff (x : L) : x ∈ H.normalizer ↔ ∀ (y : L), (y ∈ H) → ⁅x, y⁆ ∈ H := iff.rfl
 
 lemma mem_normalizer_iff' (x : L) : x ∈ H.normalizer ↔ ∀ (y : L), (y ∈ H) → ⁅y, x⁆ ∈ H :=
-forall₂_congr $ λ y hy, by rw [← lie_skew, H.neg_mem_iff]
+forall₂_congr $ λ y hy, by rw [← lie_skew, neg_mem_iff]
 
 lemma le_normalizer : H ≤ H.normalizer :=
 λ x hx, show ∀ (y : L), y ∈ H → ⁅x,y⁆ ∈ H, from λ y, H.lie_mem hx

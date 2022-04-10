@@ -361,7 +361,7 @@ by rw [filter_apply, set.indicator_apply_eq_zero.mpr (λ ha', absurd ha' ha), ze
 @[simp] lemma support_filter : (p.filter s h).support = s ∩ p.support:=
 begin
   refine set.ext (λ a, _),
-  rw [mem_support_iff, filter_apply, mul_ne_zero_iff, set.indicator_eq_zero_iff],
+  rw [mem_support_iff, filter_apply, mul_ne_zero_iff, set.indicator_ne_zero_iff],
   exact ⟨λ ha, ha.1, λ ha, ⟨ha, inv_ne_zero (nnreal.tsum_indicator_ne_zero p.2.summable h)⟩⟩
 end
 

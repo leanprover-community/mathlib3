@@ -397,7 +397,7 @@ begin
   rw [filter.eventually_eq, ae_iff] at h,
   convert h,
   ext a,
-  rw ← set.mul_indicator_eq_one_iff,
+  rw ← set.mul_indicator_ne_one_iff,
   refl
 end
 

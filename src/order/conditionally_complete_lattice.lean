@@ -230,6 +230,10 @@ theorem le_cSup_iff (h : bdd_above s) (hs : s.nonempty) :
   a ≤ Sup s ↔ ∀ b, b ∈ upper_bounds s → a ≤ b :=
 ⟨λ h b hb, le_trans h (cSup_le hs hb), λ hb, hb _ (λ x, le_cSup h)⟩
 
+theorem cInf_le_iff (h : bdd_below s) (hs : s.nonempty) :
+  Inf s ≤ a ↔ ∀ b ∈ lower_bounds s, b ≤ a :=
+⟨λ h b hb, le_trans (le_cInf hs hb) h, λ hb, hb _ (λ x, cInf_le h)⟩
+
 lemma is_lub_cSup (ne : s.nonempty) (H : bdd_above s) : is_lub s (Sup s) :=
 ⟨assume x, le_cSup H, assume x, cSup_le ne⟩
 

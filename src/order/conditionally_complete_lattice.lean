@@ -699,6 +699,10 @@ is_lub_le_iff (is_lub_cSup' hs)
 lemma cSup_le' {s : set α} {a : α} (h : a ∈ upper_bounds s) : Sup s ≤ a :=
 (cSup_le_iff' ⟨a, h⟩).2 h
 
+theorem le_cSup_iff' {s : set α} {a : α} (h : bdd_above s) :
+  a ≤ Sup s ↔ ∀ b, b ∈ upper_bounds s → a ≤ b :=
+⟨λ h b hb, le_trans h (cSup_le' hb), λ hb, hb _ (λ x, le_cSup h)⟩
+
 theorem le_cInf_iff'' {s : set α} {a : α} (ne : s.nonempty) :
   a ≤ Inf s ↔ ∀ (b : α), b ∈ s → a ≤ b :=
 le_cInf_iff ⟨⊥, λ a _, bot_le⟩ ne

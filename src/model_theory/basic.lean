@@ -6,6 +6,7 @@ Authors: Aaron Anderson, Jesse Michael Han, Floris van Doorn
 import data.fin.vec_notation
 import data.fin.tuple.basic
 import logic.encodable.basic
+import logic.small
 import set_theory.cardinal
 import category_theory.concrete_category.bundled
 
@@ -628,3 +629,22 @@ end sum_Structure
 
 end language
 end first_order
+
+namespace equiv
+open first_order first_order.language first_order.language.Structure
+open_locale first_order
+
+variables {L : language} {M : Type*} {N : Type*} [L.Structure M]
+
+/-- A structure induced by a bijection. -/
+@[simps] def induced_Structure (e : M ≃ N) : L.Structure N :=
+⟨λ n f x, e (fun_map f (e.symm ∘ x)), λ n r x, rel_map r (e.symm ∘ x)⟩
+
+/-- A bijection as a first-order isomorphism with the induced structure on the codomain. -/
+@[simps] def induced_Structure_equiv (e : M ≃ N) :
+  @language.equiv L M N _ (induced_Structure e) :=
+{ map_fun' := λ n f x, by simp [← function.comp.assoc e.symm e x],
+  map_rel' := λ n r x, by simp [← function.comp.assoc e.symm e x],
+  .. e }
+
+end equiv

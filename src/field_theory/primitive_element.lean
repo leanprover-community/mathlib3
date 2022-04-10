@@ -57,7 +57,7 @@ begin
     exact F⟮α.val⟯.zero_mem },
   { obtain ⟨n, hn⟩ := set.mem_range.mp (hα (units.mk0 x hx)),
     rw (show x = α^n, by { norm_cast, rw [hn, units.coe_mk0] }),
-    exact pow_mem F⟮↑α⟯ (mem_adjoin_simple_self F ↑α) n, },
+    exact zpow_mem (mem_adjoin_simple_self F ↑α) n, },
 end
 
 /-- Primitive element theorem for finite dimensional extension of a finite field. -/

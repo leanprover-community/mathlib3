@@ -915,9 +915,20 @@ namespace order_dual
 
 @[to_additive] instance [h : has_mul α] : has_mul (order_dual α) := h
 @[to_additive] instance [h : has_one α] : has_one (order_dual α) := h
+@[to_additive] instance [h : semigroup α] : semigroup (order_dual α) := h
+@[to_additive] instance [h : comm_semigroup α] : comm_semigroup (order_dual α) := h
+@[to_additive] instance [h : mul_one_class α] : mul_one_class (order_dual α) := h
 @[to_additive] instance [h : monoid α] : monoid (order_dual α) := h
 @[to_additive] instance [h : comm_monoid α] : comm_monoid (order_dual α) := h
+@[to_additive] instance [h : left_cancel_monoid α] : left_cancel_monoid (order_dual α) := h
+@[to_additive] instance [h : right_cancel_monoid α] : right_cancel_monoid (order_dual α) := h
+@[to_additive] instance [h : cancel_monoid α] : cancel_monoid (order_dual α) := h
 @[to_additive] instance [h : cancel_comm_monoid α] : cancel_comm_monoid (order_dual α) := h
+instance [h : mul_zero_class α] : mul_zero_class (order_dual α) := h
+instance [h : mul_zero_one_class α] : mul_zero_one_class (order_dual α) := h
+instance [h : monoid_with_zero α] : monoid_with_zero (order_dual α) := h
+instance [h : comm_monoid_with_zero α] : comm_monoid_with_zero (order_dual α) := h
+instance [h : cancel_comm_monoid_with_zero α] : cancel_comm_monoid_with_zero (order_dual α) := h
 
 @[to_additive]
 instance contravariant_class_mul_le [has_le α] [has_mul α] [c : contravariant_class α α (*) (≤)] :

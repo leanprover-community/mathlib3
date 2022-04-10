@@ -36,17 +36,6 @@ instance {n : ℕ} {a : zmod n} : decidable (strong_probable_prime n a) := or.de
 def fermat_pseudoprime (n : nat) (a : zmod n) : Prop :=
 a^(n-1) = 1
 
-def fast_two_multiplicity : ℕ → ℕ :=
-nat.binary_rec 0 (λ b _ ih, cond b 0 (ih+1))
-
-#eval fast_two_multiplicity 10000
-
-lemma fast_two_multiplicity_eq_padic_val_nat_two (n : ℕ) :
-  padic_val_nat 2 n = fast_two_multiplicity n :=
-begin
-  sorry,
-end
-
 lemma square_roots_of_one {p : ℕ} [fact (p.prime)] {x : zmod p} (root : x^2 = 1) :
   x = 1 ∨ x = -1 :=
 begin
@@ -350,7 +339,11 @@ begin
     exact nat.lt_asymm thing2 thing2,
   },
   by_cases h1 : index = 1,
-  {
+  { rw h1 at hindex,
+    simp at hindex,
+    have thing2 : 0 < fintype.card G,
+    exact fintype.card_pos,
+    rw ← hindex,
     -- TODO(Sean): try to prove 0 < fintype.card G, then again prove a contradiction using h1 and hindex
     sorry,
   },

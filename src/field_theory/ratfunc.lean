@@ -957,7 +957,7 @@ by { convert num_div (1 : K[X]) 1; simp }
   num (algebra_map _ _ p) = p :=
 by { convert num_div p 1; simp }
 
-@[simp] lemma num_div_dvd (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
+lemma num_div_dvd (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
   num (algebra_map _ _ p / algebra_map _ _ q) ∣ p :=
 begin
   rw [num_div _ q, C_mul_dvd],
@@ -965,6 +965,11 @@ begin
   { simpa only [ne.def, inv_eq_zero, polynomial.leading_coeff_eq_zero]
       using right_div_gcd_ne_zero hq },
 end
+
+/-- A version of `num_div_dvd` with the LHS in simp normal form -/
+@[simp] lemma num_div_dvd' (p : K[X]) {q : K[X]} (hq : q ≠ 0) :
+  C ((q / gcd p q).leading_coeff)⁻¹ * (p / gcd p q) ∣ p :=
+by simpa using num_div_dvd p hq
 
 /-- `ratfunc.denom` is the denominator of a rational function,
 normalized such that it is monic. -/

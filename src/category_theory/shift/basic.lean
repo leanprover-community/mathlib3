@@ -326,7 +326,7 @@ def shift_comm (i j : A) : X⟦i⟧⟦j⟧ ≅ X⟦j⟧⟦i⟧ :=
 
 @[simp] lemma shift_comm_symm (i j : A) : (shift_comm X i j).symm = shift_comm X j i :=
 begin
-  ext, dsimp [shift_comm], simpa
+  ext, dsimp [shift_comm], simp,
 end
 
 variables {X Y}

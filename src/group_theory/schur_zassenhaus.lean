@@ -28,23 +28,15 @@ namespace subgroup
 
 section schur_zassenhaus_abelian
 
-open mem_left_transversals
+open mul_action subgroup.left_transversals mem_left_transversals
 
-variables {G : Type*} [group G] {H : subgroup G}
+variables {G : Type*} [group G] (H : subgroup G) [is_commutative H] [fintype (G ⧸ H)]
+  (α β γ : left_transversals (H : set G))
 
-variables [is_commutative H] [fintype (G ⧸ H)]
-
-variables (α β γ : left_transversals (H : set G))
-
-variables (H)
-
-open subgroup.left_transversals
-
-/-- The quotient of the transversals of an abelian normal `N` by the `diff` relation -/
+/-- The quotient of the transversals of an abelian normal `N` by the `diff` relation. -/
 def quotient_diff :=
-quotient (setoid.mk (λ α β, diff (monoid_hom.id H) α β = 1)
-  ⟨λ α, diff_self (monoid_hom.id H) α, λ α β h₁,
-    by rw [←diff_inv, h₁, one_inv], λ α β γ h₁ h₂, by rw [←diff_mul_diff, h₁, h₂, one_mul]⟩)
+quotient (setoid.mk (λ α β, diff (monoid_hom.id H) α β = 1) ⟨λ α, diff_self (monoid_hom.id H) α,
+  λ α β h, by rw [←diff_inv, h, one_inv], λ α β γ h h', by rw [←diff_mul_diff, h, h', one_mul]⟩)
 
 instance : inhabited H.quotient_diff := quotient.inhabited _
 
@@ -116,29 +108,35 @@ lemma smul_left_injective [H.normal] (α : H.quotient_diff)
   exact (pow_coprime hH).injective hα,
 end
 
+lemma is_complement'_stabilizer
+  {G : Type*} [group G] (H : subgroup G) {α : Type*} [mul_action G α] (a : α)
+  (h1 : ∀ (h : H), h • a = a → h = 1) (h2 : ∀ g : G, ∃ h : H, h • (g • a) = a) :
+  is_complement' H (stabilizer G a) :=
+begin
+  refine is_complement_iff_exists_unique.mpr (λ g, _),
+  obtain ⟨h, hh⟩ := h2 g,
+  have hh' : (↑h * g) • a = a := by rwa [mul_smul],
+  refine ⟨⟨h⁻¹, h * g, hh'⟩, inv_mul_cancel_left h g, _⟩,
+  rintros ⟨h', g, hg : g • a = a⟩ rfl,
+  specialize h1 (h * h') (by rwa [mul_smul, smul_def h', ←hg, ←mul_smul, hg]),
+  refine prod.ext (eq_inv_of_eq_inv (eq_inv_of_mul_eq_one h1)) (subtype.ext _),
+  rwa [subtype.ext_iff, coe_one, coe_mul, ←self_eq_mul_left, mul_assoc ↑h ↑h' g] at h1,
+end
+
 lemma is_complement'_stabilizer_of_coprime [fintype G] [H.normal] {α : H.quotient_diff}
   (hH : nat.coprime (fintype.card H) H.index) :
-  is_complement' H (mul_action.stabilizer G α) :=
+  is_complement' H (stabilizer G α) :=
 begin
-  classical,
-  let ϕ : H ≃ mul_action.orbit G α := equiv.of_bijective (λ h, ⟨h • α, h, rfl⟩)
-    ⟨λ h₁ h₂ hh, smul_left_injective α hH (subtype.ext_iff.mp hh),
-      λ β, exists_imp_exists (λ h hh, subtype.ext hh) (exists_smul_eq α β hH)⟩,
-  have key := card_eq_card_quotient_mul_card_subgroup (mul_action.stabilizer G α),
-  rw ← fintype.card_congr (ϕ.trans (mul_action.orbit_equiv_quotient_stabilizer G α)) at key,
-  apply is_complement'_of_coprime key.symm,
-  rw [card_eq_card_quotient_mul_card_subgroup H, mul_comm, mul_right_inj'] at key,
-  { rwa [←key, ←index_eq_card] },
-  { rw [←pos_iff_ne_zero, fintype.card_pos_iff],
-    apply_instance },
+  refine is_complement'_stabilizer H α _ _,
+  { exact λ h hh, smul_left_injective α hH (hh.trans (one_smul H α).symm) },
+  { exact λ g, exists_smul_eq (g • α) α hH },
 end
 
 /-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma exists_right_complement'_of_coprime_aux [fintype G] [H.normal]
   (hH : nat.coprime (fintype.card H) H.index) :
   ∃ K : subgroup G, is_complement' H K :=
-nonempty_of_inhabited.elim
-  (λ α : H.quotient_diff, ⟨mul_action.stabilizer G α, is_complement'_stabilizer_of_coprime hH⟩)
+nonempty_of_inhabited.elim (λ α, ⟨stabilizer G α, is_complement'_stabilizer_of_coprime hH⟩)
 
 end schur_zassenhaus_abelian
 

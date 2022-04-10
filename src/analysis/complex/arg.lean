@@ -53,4 +53,3 @@ lemma abs_sub_eq (h : x.arg = y.arg) : (x - y).abs = ∥x.abs - y.abs∥ :=
 (same_ray_of_arg_eq h).norm_sub
 
 end complex
-#lint

@@ -9,7 +9,6 @@ import algebra.algebra.basic
 import algebra.group_power.basic
 import algebra.field_power
 import algebra.opposites
-import data.int.sqrt
 
 /-!  # Squares, even and odd elements
 
@@ -102,8 +101,16 @@ begin
 end
 
 @[simp]
+lemma is_square.not_irreducible [comm_monoid α] {x : α} (h : is_square x) : ¬irreducible x :=
+λ h', h'.not_square h
+
+@[simp]
 lemma prime.not_square [cancel_comm_monoid_with_zero α] {x : α} (h : prime x) :
   ¬is_square x := h.irreducible.not_square
+
+@[simp]
+lemma is_square.not_prime [cancel_comm_monoid_with_zero α] {x : α} (h : is_square x) : ¬prime x :=
+λ h', h'.not_square h
 
 end monoid
 
@@ -364,30 +371,3 @@ end
 (even_bit0 _).abs_zpow _
 
 end field_power
-
-section decidability
-
-namespace nat
-
-instance : decidable_pred (is_square : ℕ → Prop)
-| n :=
-begin
-  convert decidable_of_iff' _ (nat.exists_mul_self n),
-  unfold is_square,
-  congr,
-  ext,
-  split,
-  { intros h, simp [h], },
-  { intros h, simp [h],},
-end
-
-end nat
-
-namespace int
-
-instance : decidable_pred (is_square : ℤ → Prop)
-λ n, decidable_of_iff' _ $ (exists_congr $ λ _, eq_comm).trans n.exists_mul_self
-
-end int
-
-end decidability

@@ -229,6 +229,14 @@ by { convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 lemma one_add_div_two_mul_two_of_odd (h : odd n) : 1 + n / 2 * 2 = n :=
 by { rw add_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 
+instance : decidable_pred (is_square : ℕ → Prop) :=
+begin
+  intros n,
+  have : is_square n ↔ ∃ (n' : ℕ), n' * n' = n,
+  { exact exists_congr (λ _, eq_comm), },
+  exact decidable_of_iff' _ (this.trans n.exists_mul_self),
+end
+
 -- Here are examples of how `parity_simps` can be used with `nat`.
 
 example (m n : ℕ) (h : even m) : ¬ even (n + 3) ↔ even (m^2 + m + n) :=

@@ -377,10 +377,10 @@ end
 /-! ### Factorization and `is_square` -/
 
 lemma is_square_iff_factorization_even {m : ℕ} :
-  is_square m ↔ ∀ (p : ℕ), even (m.factorization p) :=
+  is_square m ↔ ∀ p, even (m.factorization p) :=
 begin
   rcases eq_or_ne m 0 with rfl | hm_zero,
-  { simp, },
+  { simp [is_square_zero], },
   { split,
     { rintros ⟨c, hc⟩,
       by_cases hc' : c = 0,
@@ -402,7 +402,7 @@ begin
       rw [←pow_add, ←two_mul], }, },
 end
 
-lemma is_square.of_mul_left {m n : ℕ} (hmn : m.coprime n) :
+lemma is_square.of_coprime_of_mul_left {m n : ℕ} (hmn : m.coprime n) :
   is_square (m * n) → is_square m :=
 begin
   rw [is_square_iff_factorization_even, is_square_iff_factorization_even],
@@ -412,11 +412,11 @@ begin
   { rw [←nat.factors_count_eq, list.count_eq_zero_of_not_mem hp], simp, },
 end
 
-lemma is_square.of_mul_right {m n : ℕ} (hmn : m.coprime n) :
+lemma is_square.of_coprime_of_mul_right {m n : ℕ} (hmn : m.coprime n) :
   is_square (m * n) → is_square n :=
 begin
   rw mul_comm,
-  exact is_square.of_mul_left hmn.symm,
+  exact is_square.of_coprime_of_mul_left hmn.symm,
 end
 
 /-- The property of being a square is multiplicative. The ← direction can be generalized
@@ -428,12 +428,12 @@ lemma is_square_mul {m n : ℕ} (hmn : m.coprime n) :
 begin
   refine ⟨_, λ ⟨hm, hn⟩, hm.mul_is_square hn⟩,
   intros hsquare,
-  exact ⟨is_square.of_mul_left hmn hsquare, is_square.of_mul_right hmn hsquare⟩,
+  exact ⟨is_square.of_coprime_of_mul_left hmn hsquare,
+    is_square.of_coprime_of_mul_right hmn hsquare⟩,
 end
 
-lemma square_prime_pow_iff_pow_even : ∀ (p i : ℕ), nat.prime p → (is_square (p ^ i) ↔ even i) :=
+lemma square_prime_pow_iff_pow_even (p i : ℕ) (hp : p.prime) : (is_square (p ^ i) ↔ even i) :=
 begin
-  intros p i hp,
   split,
   { rintros ⟨s, hs⟩,
     have := dvd_mul_left s s,

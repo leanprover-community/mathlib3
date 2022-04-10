@@ -256,6 +256,8 @@ begin
       left,
       have thing := sub_one_dvd_pow_sub_one p α one_le_p,
       rw dvd_iff_exists_eq_mul_left at thing,
+      rcases thing with ⟨c, hc⟩,
+      rw hc,
       -- TODO(Sean): this should now be solvable with only sub_one_dvd_pow_sub_one, hfoo, and dvd_iff_exists_eq_mul_left.
 
       sorry,

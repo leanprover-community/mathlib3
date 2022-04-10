@@ -96,53 +96,53 @@ by { ext, dsimp, simp, }
 
 end weak_shift_structure
 
--- namespace shift_structure
+namespace shift_structure
 
--- instance id : shift_structure A (𝟭 C) :=
--- { comm := λ a, functor.right_unitor _ ≪≫ (functor.left_unitor _).symm, }
+instance id : shift_structure A (𝟭 C) :=
+{ comm := λ a, functor.right_unitor _ ≪≫ (functor.left_unitor _).symm, }
 
--- @[simp] lemma id_comm_shift_hom_app (a : A) (X : C) :
---   ((𝟭 C).comm_shift a).hom.app X = 𝟙 ((shift_functor C a).obj X) :=
--- category.comp_id _
--- @[simp] lemma id_comm_shift_inv_app (a : A) (X : C) :
---   ((𝟭 C).comm_shift a).inv.app X = 𝟙 ((shift_functor C a).obj X) :=
--- category.comp_id _
--- @[simp] lemma id_comm_shift_app (a : A) (X : C) :
---   ((𝟭 C).comm_shift a).app X = iso.refl ((shift_functor C a).obj X) :=
--- by { ext, dsimp, simp, }
+@[simp] lemma id_comm_shift_hom_app (a : A) (X : C) :
+  ((𝟭 C).comm_shift a).hom.app X = 𝟙 ((shift_functor C a).obj X) :=
+category.comp_id _
+@[simp] lemma id_comm_shift_inv_app (a : A) (X : C) :
+  ((𝟭 C).comm_shift a).inv.app X = 𝟙 ((shift_functor C a).obj X) :=
+category.comp_id _
+@[simp] lemma id_comm_shift_app (a : A) (X : C) :
+  ((𝟭 C).comm_shift a).app X = iso.refl ((shift_functor C a).obj X) :=
+by { ext, dsimp, simp, }
 
--- instance : inhabited (shift_structure A (𝟭 C)) := ⟨shift_structure.id A⟩
+instance : inhabited (shift_structure A (𝟭 C)) := ⟨shift_structure.id A⟩
 
--- instance comp {E : Type*} [category E] [has_shift E A]
---   (F : C ⥤ D) [shift_structure A F] (G : D ⥤ E) [shift_structure A G] :
---   shift_structure A (F ⋙ G) :=
--- { zero := begin
---     dsimp [weak_shift_structure.comp],
---     have := shift_structure.zero A F, change F.comm_shift _ = _ at this, rw this, clear this,
---     have := shift_structure.zero A G, change G.comm_shift _ = _ at this, rw this, clear this,
---     ext,
---     dsimp,
---     simp only [category.comp_id, category.id_comp, category.assoc, ←G.map_comp_assoc,
---       ε_hom_inv_app],
---     erw [category.comp_id],
---   end,
---   add := λ a b, begin
---     dsimp [weak_shift_structure.comp],
---     have := shift_structure.add A F a b, change F.comm_shift _ = _ at this, rw this, clear this,
---     have := shift_structure.add A G a b, change G.comm_shift _ = _ at this, rw this, clear this,
---     ext,
---     dsimp,
---     simp only [category.comp_id, category.id_comp, category.assoc, G.map_comp],
---     congr' 2,
---     slice_lhs 2 3 { simp only [←G.map_comp, μ_hom_inv_app], erw [G.map_id], },
---     simp only [category.id_comp, category.assoc],
---     have := (G.comm_shift b).hom.naturality_assoc, dsimp at this, erw [this], clear this,
---     congr' 1,
---     simp only [←(shift_functor E b).map_comp_assoc],
---     refl,
---   end, }
+instance comp {E : Type*} [category E] [has_shift E A]
+  (F : C ⥤ D) [shift_structure A F] (G : D ⥤ E) [shift_structure A G] :
+  shift_structure A (F ⋙ G) :=
+{ zero := begin
+    dsimp [weak_shift_structure.comp],
+    have := shift_structure.zero A F, change F.comm_shift _ = _ at this, rw this, clear this,
+    have := shift_structure.zero A G, change G.comm_shift _ = _ at this, rw this, clear this,
+    ext,
+    dsimp,
+    simp only [category.comp_id, category.id_comp, category.assoc, ←G.map_comp_assoc,
+      ε_hom_inv_app],
+    erw [category.comp_id],
+  end,
+  add := λ a b, begin
+    dsimp [weak_shift_structure.comp],
+    have := shift_structure.add A F a b, change F.comm_shift _ = _ at this, rw this, clear this,
+    have := shift_structure.add A G a b, change G.comm_shift _ = _ at this, rw this, clear this,
+    ext,
+    dsimp,
+    simp only [category.comp_id, category.id_comp, category.assoc, G.map_comp],
+    congr' 2,
+    slice_lhs 2 3 { simp only [←G.map_comp, μ_hom_inv_app], erw [G.map_id], },
+    simp only [category.id_comp, category.assoc],
+    have := (G.comm_shift b).hom.naturality_assoc, dsimp at this, erw [this], clear this,
+    congr' 1,
+    simp only [←(shift_functor E b).map_comp_assoc],
+    refl,
+  end, }
 
--- end shift_structure
+end shift_structure
 
 section has_shift_of_fully_faithful
 
@@ -163,11 +163,33 @@ begin
   haveI := has_shift_of_fully_faithful F s i, exact
   { comm := i,
     zero := begin
-      dsimp [has_shift_mk, has_shift_of_fully_faithful], ext,
-      dsimp, simp,
-      dsimp [shift_monoidal_functor],
+      ext,
+      simp only [category.id_comp, functor.map_inv,
+        functor.right_unitor_inv_app, functor.left_unitor_hom_app, iso.symm_hom, iso.symm_symm_eq,
+        iso.trans_hom, is_iso.eq_inv_comp, nat_iso.is_iso_inv_app, nat_trans.comp_app,
+        monoidal_functor.ε_iso_inv, monoidal_functor.ε_iso_hom,
+        whisker_left_app, whisker_right_app, iso_whisker_right_hom, iso_whisker_left_hom],
+      dsimp [has_shift_mk, has_shift_of_fully_faithful, shift_monoidal_functor],
+      simp only [category.comp_id, category.id_comp, category.assoc, iso.inv_hom_id_app,
+        functor.image_preimage],
+      dsimp,
+      simp,
     end,
-    add := sorry, }
+    add := λ a b, begin
+      ext,
+      simp only [category.id_comp, functor.map_inv, iso.trans_assoc, iso.symm_hom, iso.symm_symm_eq,
+        iso.trans_hom, is_iso.eq_inv_comp, nat_trans.comp_app, nat_iso.is_iso_inv_app,
+        functor.associator_hom_app, functor.associator_inv_app, monoidal_functor.μ_iso_hom,
+        monoidal_functor.μ_iso_inv, whisker_right_app, whisker_left_app,
+        iso_whisker_right_hom, iso_whisker_left_hom],
+      dsimp [has_shift_mk, has_shift_of_fully_faithful, shift_monoidal_functor],
+      simp only [category.comp_id, category.assoc, functor.map_comp,
+        iso.inv_hom_id_app, preimage_comp, functor.image_preimage],
+      dsimp,
+      simp only [category.comp_id],
+      erw [category.id_comp],
+      refl,
+    end, }
 end
 
 end has_shift_of_fully_faithful

@@ -68,28 +68,13 @@ end
 
 variables [fintype H]
 
-lemma exists_eq_smul [H.normal] (α β : H.quotient_diff)
-  (hH : nat.coprime (fintype.card H) H.index) :
-  ∃ h : H, α = h • β :=
-quotient.induction_on' α (quotient.induction_on' β
-  (λ β α, exists_imp_exists (λ n, quotient.sound')
-    ⟨(pow_coprime hH).symm (diff (monoid_hom.id H) α β), by
-    { change diff _ _ _ = (1 : H),
-      simp only,
-      change diff _ _ ((H.key_map (((pow_coprime hH).symm (diff (monoid_hom.id H) α β))⁻¹)) • β) = (1 : H),
-      have key := smul_diff' α β ((pow_coprime hH).symm (diff (monoid_hom.id H) α β))⁻¹,
-      refine key.trans _,
-      simp only [submonoid.coe_subtype, coe_zpow, mul_opposite.unop_op, coe_mk, inv_pow],
-      change (diff _ α β) * (pow_coprime hH ((pow_coprime hH).symm (diff _ α β)))⁻¹ = 1,
-      rw [equiv.apply_symm_apply, mul_inv_self], }⟩))
-
 lemma exists_smul_eq [H.normal] (α β : H.quotient_diff)
   (hH : nat.coprime (fintype.card H) H.index) :
   ∃ h : H, h • α = β :=
-begin
-  simp_rw [eq_comm],
-  exact exists_eq_smul β α hH,
-end
+quotient.induction_on' α (quotient.induction_on' β (λ β α, exists_imp_exists (λ n, quotient.sound')
+  ⟨(pow_coprime hH).symm (diff (monoid_hom.id H) β α), (diff_inv _ _ _).symm.trans (inv_eq_one.mpr
+  ((smul_diff' β α ((pow_coprime hH).symm (diff (monoid_hom.id H) β α))⁻¹).trans
+  (by rw [inv_pow, ←pow_coprime_apply hH, equiv.apply_symm_apply, mul_inv_self])))⟩))
 
 lemma is_complement'_stabilizer
   {G : Type*} [group G] (H : subgroup G) {α : Type*} [mul_action G α] (a : α)

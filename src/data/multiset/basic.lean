@@ -1778,6 +1778,24 @@ by simp_rw [←filter_eq', eq_comm]
 
 end
 
+section embedding
+
+@[simp] lemma map_le_map_iff {f : α → β} (hf : function.injective f) {s t : multiset α} :
+  s.map f ≤ t.map f ↔ s ≤ t :=
+begin
+  classical,
+  refine ⟨λ h, le_iff_count.mpr (λ a, _), map_le_map⟩,
+  simpa [count_map_eq_count' f _ hf] using le_iff_count.mp h (f a),
+end
+
+/-- Associate to an embedding `f` from `α` to `β` the order embedding that maps a multiset to its
+image under `f`. -/
+@[simps]
+def map_embedding (f : α ↪ β) : multiset α ↪o multiset β :=
+order_embedding.of_map_le_iff (map f) (λ _ _, map_le_map_iff f.inj')
+
+end embedding
+
 lemma count_eq_card_filter_eq [decidable_eq α] (s : multiset α) (a : α) :
   s.count a = (s.filter (eq a)).card :=
 by rw [count, countp_eq_card_filter]

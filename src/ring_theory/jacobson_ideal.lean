@@ -104,7 +104,7 @@ theorem mem_jacobson_iff {x : R} : x ∈ jacobson I ↔ ∀ y, ∃ z, x * y * z 
         ← neg_sub, neg_mul, neg_mul_eq_mul_neg, mul_comm x y, mul_comm _ (- z)],
       rcases hy with ⟨i, hi, df⟩,
       rw [← (sub_eq_iff_eq_add.mpr df.symm), sub_sub, add_comm, ← sub_sub, sub_self, zero_sub],
-      refine M.mul_mem_left (-z) ((neg_mem_iff _).mpr hi) }) (him hz)⟩
+      refine M.mul_mem_left (-z) (neg_mem_iff.mpr hi) }) (him hz)⟩
 
 lemma exists_mul_sub_mem_of_sub_one_mem_jacobson {I : ideal R} (r : R)
   (h : r - 1 ∈ jacobson I) : ∃ s, r * s - 1 ∈ I :=

@@ -1346,6 +1346,17 @@ begin
     exact hx_tendsto hx_freq, },
 end
 
+lemma eventually_iff_seq_eventually {ι : Type*} {l : filter ι} {p : ι → Prop}
+  [hl : l.is_countably_generated] :
+  (∀ᶠ n in l, p n) ↔ ∀ (x : ℕ → ι), tendsto x at_top l → ∀ᶠ (n : ℕ) in at_top, p (x n) :=
+begin
+  have : (∀ᶠ n in l, p n) ↔ ¬ ∃ᶠ n in l, ¬(p n),
+  { rw not_frequently, simp_rw not_not, },
+  rw [this, frequently_iff_seq_frequently],
+  push_neg,
+  simp_rw [not_frequently, not_not],
+end
+
 lemma subseq_forall_of_frequently {ι : Type*} {x : ℕ → ι} {p : ι → Prop} {l : filter ι}
   (h_tendsto : tendsto x at_top l) (h : ∃ᶠ n in at_top, p (x n)) :
   ∃ ns : ℕ → ℕ, tendsto (λ n, x (ns n)) at_top l ∧ ∀ n, p (x (ns n)) :=

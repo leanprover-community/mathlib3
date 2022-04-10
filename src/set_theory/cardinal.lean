@@ -609,6 +609,13 @@ theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f
 ⟨(embedding.refl _).sigma_map $ λ i, classical.choice $
   by have := H i; rwa [← quot.out_eq (f i), ← quot.out_eq (g i)] at this⟩
 
+lemma mk_le_mk_mul_of_mk_preimage_le {c : cardinal} (f : α → β) (hf : ∀ b : β, #(f ⁻¹' {b}) ≤ c) :
+  #α ≤ #β * c :=
+calc #α = #Σ b, f⁻¹' {b} : mk_congr (equiv.sigma_preimage_equiv f).symm
+... = sum (λ b, #(f ⁻¹' {b})) : mk_sigma (λ b, f ⁻¹' {b})
+... ≤ sum (λ b : β, c) : sum_le_sum (λ b, #(f ⁻¹' {b})) (λ b, c) hf
+... = #β * c : sum_const' β c
+
 /-- The indexed supremum of cardinals is the smallest cardinal above
   everything in the family. -/
 def sup {ι : Type u} (f : ι → cardinal.{max u v}) : cardinal :=

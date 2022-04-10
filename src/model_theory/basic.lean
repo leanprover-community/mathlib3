@@ -75,7 +75,7 @@ protected def mk₂ (c f₁ f₂ : Type u) (r₁ r₂ : Type v) : language :=
 ⟨sequence₂ c f₁ f₂, sequence₂ pempty r₁ r₂⟩
 
 /-- The empty language has no symbols. -/
-protected def empty : language := ⟨λ _, pempty, λ _, pempty⟩
+protected def empty : language := ⟨λ _, empty, λ _, empty⟩
 
 instance : inhabited language := ⟨language.empty⟩
 
@@ -125,11 +125,11 @@ instance [L.is_relational] {n : ℕ} : is_empty (L.functions n) := is_relational
 
 instance [L.is_algebraic] {n : ℕ} : is_empty (L.relations n) := is_algebraic.empty_relations n
 
-instance is_relational_of_empty_functions {symb : ℕ → Type*} : is_relational ⟨λ _, pempty, symb⟩ :=
-⟨λ _, pempty.is_empty⟩
+instance is_relational_of_empty_functions {symb : ℕ → Type*} : is_relational ⟨λ _, empty, symb⟩ :=
+⟨λ _, empty.is_empty⟩
 
-instance is_algebraic_of_empty_relations {symb : ℕ → Type*}  : is_algebraic ⟨symb, λ _, pempty⟩ :=
-⟨λ _, pempty.is_empty⟩
+instance is_algebraic_of_empty_relations {symb : ℕ → Type*}  : is_algebraic ⟨symb, λ _, empty⟩ :=
+⟨λ _, empty.is_empty⟩
 
 instance is_relational_empty : is_relational language.empty :=
 language.is_relational_of_empty_functions
@@ -198,7 +198,7 @@ variables (L) (M : Type w)
   language. Each function of arity `n` is interpreted as a function sending tuples of length `n`
   (modeled as `(fin n → M)`) to `M`, and a relation of arity `n` is a function from tuples of length
   `n` to `Prop`. -/
-class Structure :=
+@[ext] class Structure :=
 (fun_map : ∀{n}, L.functions n → (fin n → M) → M)
 (rel_map : ∀{n}, L.relations n → (fin n → M) → Prop)
 
@@ -644,13 +644,34 @@ variables {L₁ L₂ S}
 end sum_Structure
 
 section empty
+section
+variables [language.empty.Structure M] [language.empty.Structure N]
+
+@[simp] lemma empty.nonempty_embedding_iff :
+  nonempty (M ↪[language.empty] N) ↔ cardinal.lift.{w'} (# M) ≤ cardinal.lift.{w} (# N) :=
+trans ⟨nonempty.map (λ f, f.to_embedding), nonempty.map (λ f, {to_embedding := f})⟩
+  cardinal.lift_mk_le'.symm
+
+@[simp] lemma empty.nonempty_equiv_iff :
+  nonempty (M ≃[language.empty] N) ↔ cardinal.lift.{w'} (# M) = cardinal.lift.{w} (# N) :=
+trans ⟨nonempty.map (λ f, f.to_equiv), nonempty.map (λ f, {to_equiv := f})⟩
+  cardinal.lift_mk_eq'.symm
+
+end
 
 instance empty_Structure : language.empty.Structure M :=
-⟨λ _, pempty.elim, λ _, pempty.elim⟩
+⟨λ _, empty.elim, λ _, empty.elim⟩
+
+instance : unique (language.empty.Structure M) :=
+⟨⟨language.empty_Structure⟩, λ a, begin
+  ext n f,
+  { exact empty.elim f },
+  { exact subsingleton.elim _ _ },
+end⟩
 
 @[priority 100] instance strong_hom_class_empty {F M N} [fun_like F M (λ _, N)] :
   strong_hom_class language.empty F M N :=
-⟨λ _ _ f, pempty.elim f, λ _ _ r, pempty.elim r⟩
+⟨λ _ _ f, empty.elim f, λ _ _ r, empty.elim r⟩
 
 /-- Makes a `language.empty.hom` out of any function. -/
 @[simps] def _root_.function.empty_hom (f : M → N) : (M →[language.empty] N) :=
@@ -660,17 +681,9 @@ instance empty_Structure : language.empty.Structure M :=
 @[simps] def _root_.embedding.empty (f : M ↪ N) : (M ↪[language.empty] N) :=
 { to_embedding := f }
 
-@[simp] lemma empty.nonempty_embedding_iff :
-  nonempty (M ↪[language.empty] N) ↔ cardinal.lift.{w'} (# M) ≤ cardinal.lift.{w} (# N) :=
-trans ⟨nonempty.map (λ f, f.to_embedding), nonempty.map embedding.empty⟩ cardinal.lift_mk_le'.symm
-
 /-- Makes a `language.empty.equiv` out of any function. -/
 @[simps] def _root_.equiv.empty (f : M ≃ N) : (M ≃[language.empty] N) :=
 { to_equiv := f }
-
-@[simp] lemma empty.nonempty_equiv_iff :
-  nonempty (M ≃[language.empty] N) ↔ cardinal.lift.{w'} (# M) = cardinal.lift.{w} (# N) :=
-trans ⟨nonempty.map (λ f, f.to_equiv), nonempty.map equiv.empty⟩ cardinal.lift_mk_eq'.symm
 
 end empty
 

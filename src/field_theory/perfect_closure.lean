@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Yury Kudryashov
 -/
 import algebra.char_p.basic
-import data.equiv.ring
 import algebra.group_with_zero.power
-import algebra.iterate_hom
+import algebra.hom.iterate
+import algebra.ring.equiv
 
 /-!
 # The perfect closure of a field

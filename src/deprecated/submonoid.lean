@@ -323,7 +323,7 @@ end monoid
 
 /-- Create a bundled submonoid from a set `s` and `[is_submonoid s]`. -/
 @[to_additive "Create a bundled additive submonoid from a set `s` and `[is_add_submonoid s]`."]
-def submonoid.of {s : set M} (h : is_submonoid s) : submonoid M := ⟨s, h.1, h.2⟩
+def submonoid.of {s : set M} (h : is_submonoid s) : submonoid M := ⟨s, h.2, h.1⟩
 
 @[to_additive]
-lemma submonoid.is_submonoid (S : submonoid M) : is_submonoid (S : set M) := ⟨S.2, S.3⟩
+lemma submonoid.is_submonoid (S : submonoid M) : is_submonoid (S : set M) := ⟨S.3, S.2⟩

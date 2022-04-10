@@ -3,8 +3,8 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov
 -/
-import algebra.iterate_hom
-import analysis.specific_limits
+import algebra.hom.iterate
+import analysis.specific_limits.basic
 import order.iterate
 import order.semiconj_Sup
 import topology.algebra.order.monotone_continuity

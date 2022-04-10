@@ -44,18 +44,15 @@ begin
 end
 
 lemma monic.map [semiring S] (f : R →+* S) (hp : monic p) : monic (p.map f) :=
-if h : (0 : S) = 1 then
-  by haveI := subsingleton_of_zero_eq_one h;
-  exact subsingleton.elim _ _
-else
-have f (leading_coeff p) ≠ 0,
-  by rwa [show _ = _, from hp, f.map_one, ne.def, eq_comm],
-by
 begin
+  nontriviality,
+  have : f (leading_coeff p) ≠ 0,
+  { rw [show _ = _, from hp, f.map_one],
+    exact one_ne_zero, },
   rw [monic, leading_coeff, coeff_map],
-  suffices : p.coeff (map f p).nat_degree = 1, simp [this],
-  suffices : (map f p).nat_degree = p.nat_degree, rw this, exact hp,
-  rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero f _)
+  suffices : p.coeff (map f p).nat_degree = 1,
+  { simp [this], },
+  rwa nat_degree_eq_of_degree_eq (degree_map_eq_of_leading_coeff_ne_zero f this),
 end
 
 lemma monic_C_mul_of_mul_leading_coeff_eq_one {b : R} (hp : b * p.leading_coeff = 1) :

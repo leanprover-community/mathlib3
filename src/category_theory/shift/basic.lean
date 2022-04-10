@@ -345,8 +345,13 @@ end add_comm_monoid
 variables {D : Type*} [category D] [add_monoid A] [has_shift D A]
 variables (F : C ⥤ D) [full F] [faithful F]
 
-/-- Given a family of endomorphisms of `C` which are interwined by a fully faithful `F : C ⥤ D`
-with shift functors on `D`, we can promote that family to shift functors on `C`. -/
+/--
+Given a family of endomorphisms of `C` which are interwined by a fully faithful `F : C ⥤ D`
+with shift functors on `D`, we can promote that family to shift functors on `C`.
+
+See also `category_theory.shift_structure_of_fully_faithful` to construct the `shift_structure F`
+instance.
+-/
 def has_shift_of_fully_faithful
   (s : A → C ⥤ C) (i : ∀ i, s i ⋙ F ≅ F ⋙ shift_functor D i) : has_shift C A :=
 has_shift_mk C A
@@ -411,16 +416,5 @@ has_shift_mk C A
     dsimp at this,
     simp [this],
   end, }
-
-/-- When we construct shifts on a subcategory from shifts on the ambient category,
-the inclusion functor intertwines the shifts. -/
-@[nolint unused_arguments] -- incorrectly reports that `[full F]` and `[faithful F]` are unused.
-def has_shift_of_fully_faithful_comm
-  (s : A → C ⥤ C) (i : ∀ i, s i ⋙ F ≅ F ⋙ shift_functor D i) (m : A) :
-  begin
-    haveI := has_shift_of_fully_faithful F s i,
-    exact (shift_functor C m) ⋙ F ≅ F ⋙ shift_functor D m
-  end :=
-i m
 
 end category_theory

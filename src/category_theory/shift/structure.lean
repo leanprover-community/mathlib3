@@ -11,6 +11,9 @@ import category_theory.shift.basic
 A `shift_structure` on a functor `F : C ⥤ D` between categories with shifts
 consists not just of isomorphisms `shift_functor C a ⋙ F ≅ F ⋙ shift_functor D a`,
 but also some axioms relating these via the monoid structure on `A`.
+
+When we construct shifts on a category `C` by pulling back shifts on `D`
+via a fully faithful functor `F : C ⥤ D`, `F` acquires a `shift_structure`.
 -/
 
 namespace category_theory
@@ -140,5 +143,30 @@ instance comp {E : Type*} [category E] [has_shift E A]
   end, }
 
 end shift_structure
+
+section has_shift_of_fully_faithful
+
+variables (F : C ⥤ D) [full F] [faithful F]
+
+/-- When we construct shifts on a subcategory from shifts on the ambient category,
+the inclusion functor intertwines the shifts. -/
+@[nolint unused_arguments] -- incorrectly reports that `[full F]` and `[faithful F]` are unused.
+def shift_structure_of_fully_faithful
+  (s : A → C ⥤ C) (i : ∀ i, s i ⋙ F ≅ F ⋙ shift_functor D i) (m : A) :
+  begin
+    haveI := has_shift_of_fully_faithful F s i,
+    exact shift_structure A F
+  end :=
+begin
+  haveI := has_shift_of_fully_faithful F s i, exact
+  { comm := i,
+    zero := begin
+      dsimp, ext,
+      dsimp, simp,
+    end,
+    add := sorry, }
+end
+
+end has_shift_of_fully_faithful
 
 end category_theory

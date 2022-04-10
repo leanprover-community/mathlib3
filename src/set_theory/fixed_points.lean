@@ -460,9 +460,9 @@ end
 theorem nfp_add_eq_mul_omega {a b} (hba : b ≤ a * omega) :
   nfp ((+) a) b = a * omega :=
 begin
-  apply le_antisymm (nfp_le_fp (add_is_normal a).strict_mono.monotone hba _),
+  apply le_antisymm (nfp_le_fp (add_is_normal a).monotone hba _),
   { rw ←nfp_add_zero,
-    exact nfp_monotone (add_is_normal a).strict_mono.monotone (ordinal.zero_le b) },
+    exact nfp_monotone (add_is_normal a).monotone (ordinal.zero_le b) },
   { rw [←mul_one_add, one_add_omega] }
 end
 
@@ -472,7 +472,7 @@ begin
   { rw [←nfp_add_zero a, ←deriv_zero],
     cases (add_is_normal a).fp_iff_deriv.1 h with c hc,
     rw ←hc,
-    exact (deriv_is_normal _).strict_mono.monotone (ordinal.zero_le _) },
+    exact (deriv_is_normal _).monotone (ordinal.zero_le _) },
   { have := ordinal.add_sub_cancel_of_le h,
     nth_rewrite 0 ←this,
     rwa [←add_assoc, ←mul_one_add, one_add_omega] }
@@ -537,10 +537,10 @@ begin
     rw [ordinal.le_zero.1 hba, nfp_zero_mul],
     refl },
   apply le_antisymm,
-  { apply nfp_le_fp (mul_is_normal ha).strict_mono.monotone hba,
+  { apply nfp_le_fp (mul_is_normal ha).monotone hba,
     rw [←opow_one_add, one_add_omega] },
   rw ←nfp_mul_one ha,
-  exact nfp_monotone (mul_is_normal ha).strict_mono.monotone (one_le_iff_pos.2 hb)
+  exact nfp_monotone (mul_is_normal ha).monotone (one_le_iff_pos.2 hb)
 end
 
 theorem eq_zero_or_opow_omega_le_of_mul_eq_right {a b : ordinal} (hab : a * b = b) :
@@ -554,7 +554,7 @@ begin
   change b ≠ 0 at hb,
   rw ←nfp_mul_one ha,
   rw ←one_le_iff_ne_zero at hb,
-  exact nfp_le_fp (mul_is_normal ha).strict_mono.monotone hb (le_of_eq hab)
+  exact nfp_le_fp (mul_is_normal ha).monotone hb (le_of_eq hab)
 end
 
 theorem mul_eq_right_iff_opow_omega_dvd {a b : ordinal} : a * b = b ↔ a ^ omega ∣ b :=
@@ -581,7 +581,7 @@ theorem nfp_mul_opow_omega_add {a c : ordinal} (b) (ha : 0 < a) (hc : 0 < c) (hc
   nfp ((*) a) (a ^ omega * b + c) = a ^ omega.{u} * b.succ :=
 begin
   apply le_antisymm,
-  { apply nfp_le_fp (mul_is_normal ha).strict_mono.monotone,
+  { apply nfp_le_fp (mul_is_normal ha).monotone,
     { rw mul_succ,
       apply add_le_add_left hca },
     { rw [←mul_assoc, ←opow_one_add, one_add_omega] } },

@@ -35,7 +35,7 @@ lemma prod_congr {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin b → M) (h : 
 by { subst h, congr, ext, congr, ext, rw fin.coe_cast, }
 
 @[to_additive]
-lemma prod_split {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin (a+b) → M) :
+lemma prod_univ_add {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin (a+b) → M) :
   ∏ (i : fin (a+b)), f i =
   (∏ (i : fin a), f (fin.cast_le le_self_add i)) * ∏ (i : fin b), f (fin.nat_add a i) :=
 begin
@@ -69,7 +69,7 @@ lemma prod_trunc {M : Type*} [comm_monoid M] {n a b : ℕ}
   ∏ (i : fin (n)), f i =
   ∏ (i : fin (a)), f (fin.cast_le (nat.le.intro (h.symm)) i) :=
 begin
-  rw [← fin.prod_congr f h.symm, fin.prod_split, fintype.prod_eq_one _ hf, mul_one],
+  rw [← fin.prod_congr f h.symm, fin.prod_univ_add, fintype.prod_eq_one _ hf, mul_one],
   congr,
 end
 

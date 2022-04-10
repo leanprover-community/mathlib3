@@ -91,23 +91,6 @@ begin
   exact exists_eq_smul β α hH,
 end
 
-lemma _root_.submonoid.subtype_apply {G : Type*} [monoid G] (H : submonoid G) (h : H) :
-  H.subtype h = h := rfl
-
-lemma smul_left_injective [H.normal] (α : H.quotient_diff)
-  (hH : nat.coprime (fintype.card H) H.index) :
-  function.injective (λ h : H, h • α) :=
-λ h₁ h₂, begin
-  refine quotient.induction_on' α (λ α hα, _),
-  replace hα : diff (monoid_hom.id H) _ _ = 1 := quotient.exact' hα,
-  simp only at hα,
-  rw [_root_.submonoid.subtype_apply, _root_.submonoid.subtype_apply] at hα,
-  simp only [←coe_inv] at hα,
-  rw [smul_diff', ←diff_inv, smul_diff', diff_self, one_mul, inv_mul_eq_one] at hα,
-  rw [inv_pow, inv_pow, inv_inj] at hα,
-  exact (pow_coprime hH).injective hα,
-end
-
 lemma is_complement'_stabilizer
   {G : Type*} [group G] (H : subgroup G) {α : Type*} [mul_action G α] (a : α)
   (h1 : ∀ (h : H), h • a = a → h = 1) (h2 : ∀ g : G, ∃ h : H, h • (g • a) = a) :
@@ -127,8 +110,11 @@ lemma is_complement'_stabilizer_of_coprime [fintype G] [H.normal] {α : H.quotie
   (hH : nat.coprime (fintype.card H) H.index) :
   is_complement' H (stabilizer G α) :=
 begin
-  refine is_complement'_stabilizer H α _ _,
-  { exact λ h hh, smul_left_injective α hH (hh.trans (one_smul H α).symm) },
+  refine is_complement'_stabilizer H α (λ h, _) _,
+  { refine quotient.induction_on' α (λ α hα, _),
+    replace hα : diff (monoid_hom.id H) (H.key_map ↑h⁻¹ • α) α = 1 := quotient.exact' hα,
+    rw [←diff_inv, smul_diff', diff_self, one_mul, inv_pow, inv_inv] at hα,
+    exact (pow_coprime hH).injective (hα.trans (one_pow H.index).symm) },
   { exact λ g, exists_smul_eq (g • α) α hH },
 end
 

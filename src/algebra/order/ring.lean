@@ -339,6 +339,9 @@ decidable.mul_lt_mul h le_rfl hb (zero_le_one.trans h.le)
 lemma lt_mul_of_one_lt_left : 0 < b → 1 < a → b < a * b :=
 by classical; exact decidable.lt_mul_of_one_lt_left
 
+lemma lt_two_mul_self [nontrivial α] (ha : 0 < a) : a < 2 * a :=
+lt_mul_of_one_lt_left ha one_lt_two
+
 -- See Note [decidable namespace]
 protected lemma decidable.add_le_mul_two_add [@decidable_rel α (≤)] {a b : α}
   (a2 : 2 ≤ a) (b0 : 0 ≤ b) : a + (2 + b) ≤ a * (2 + b) :=

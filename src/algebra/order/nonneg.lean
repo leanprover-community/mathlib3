@@ -107,22 +107,33 @@ rfl
 protected lemma coe_add [add_zero_class α] [preorder α] [covariant_class α α (+) (≤)]
   (a b : {x : α // 0 ≤ x}) : ((a + b : {x : α // 0 ≤ x}) : α) = a + b := rfl
 
+instance has_nsmul [add_monoid α] [preorder α] [covariant_class α α (+) (≤)] :
+  has_scalar ℕ {x : α // 0 ≤ x} :=
+⟨λ n x, ⟨n • x, nsmul_nonneg x.prop n⟩⟩
+
+@[simp] lemma nsmul_mk [add_monoid α] [preorder α] [covariant_class α α (+) (≤)] (n : ℕ)
+  {x : α} (hx : 0 ≤ x) : (n • ⟨x, hx⟩ : {x : α // 0 ≤ x}) = ⟨n • x, nsmul_nonneg hx n⟩ :=
+rfl
+
+@[simp, norm_cast]
+protected lemma coe_nsmul [add_monoid α] [preorder α] [covariant_class α α (+) (≤)]
+  (n : ℕ) (a : {x : α // 0 ≤ x}) : ((n • a : {x : α // 0 ≤ x}) : α) = n • a := rfl
+
 instance ordered_add_comm_monoid [ordered_add_comm_monoid α] :
   ordered_add_comm_monoid {x : α // 0 ≤ x} :=
-subtype.coe_injective.ordered_add_comm_monoid (coe : {x : α // 0 ≤ x} → α) rfl (λ x y, rfl)
+subtype.coe_injective.ordered_add_comm_monoid _ rfl (λ x y, rfl) (λ _ _, rfl)
 
 instance linear_ordered_add_comm_monoid [linear_ordered_add_comm_monoid α] :
   linear_ordered_add_comm_monoid {x : α // 0 ≤ x} :=
-subtype.coe_injective.linear_ordered_add_comm_monoid (coe : {x : α // 0 ≤ x} → α) rfl (λ x y, rfl)
+subtype.coe_injective.linear_ordered_add_comm_monoid _ rfl (λ x y, rfl) (λ _ _, rfl)
 
 instance ordered_cancel_add_comm_monoid [ordered_cancel_add_comm_monoid α] :
   ordered_cancel_add_comm_monoid {x : α // 0 ≤ x} :=
-subtype.coe_injective.ordered_cancel_add_comm_monoid (coe : {x : α // 0 ≤ x} → α) rfl (λ x y, rfl)
+subtype.coe_injective.ordered_cancel_add_comm_monoid _ rfl (λ x y, rfl) (λ _ _, rfl)
 
 instance linear_ordered_cancel_add_comm_monoid [linear_ordered_cancel_add_comm_monoid α] :
   linear_ordered_cancel_add_comm_monoid {x : α // 0 ≤ x} :=
-subtype.coe_injective.linear_ordered_cancel_add_comm_monoid
-  (coe : {x : α // 0 ≤ x} → α) rfl (λ x y, rfl)
+subtype.coe_injective.linear_ordered_cancel_add_comm_monoid _ rfl (λ x y, rfl) (λ _ _, rfl)
 
 /-- Coercion `{x : α // 0 ≤ x} → α` as a `add_monoid_hom`. -/
 def coe_add_monoid_hom [ordered_add_comm_monoid α] : {x : α // 0 ≤ x} →+ α :=
@@ -159,13 +170,24 @@ protected lemma coe_mul [ordered_semiring α] (a b : {x : α // 0 ≤ x}) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) * ⟨y, hy⟩ = ⟨x * y, mul_nonneg hx hy⟩ :=
 rfl
 
+instance has_pow [ordered_semiring α] : has_pow {x : α // 0 ≤ x} ℕ :=
+{ pow := λ x n, ⟨x ^ n, pow_nonneg x.2 n⟩ }
+
+@[simp, norm_cast]
+protected lemma coe_pow [ordered_semiring α] (a : {x : α // 0 ≤ x}) (n : ℕ) :
+  ((a ^ n: {x : α // 0 ≤ x}) : α) = a ^ n := rfl
+
+@[simp] lemma mk_pow [ordered_semiring α] {x : α} (hx : 0 ≤ x) (n : ℕ) :
+  (⟨x, hx⟩ : {x : α // 0 ≤ x}) ^ n = ⟨x ^ n, pow_nonneg hx n⟩ :=
+rfl
+
 instance ordered_semiring [ordered_semiring α] : ordered_semiring {x : α // 0 ≤ x} :=
-subtype.coe_injective.ordered_semiring
-  (coe : {x : α // 0 ≤ x} → α) rfl rfl (λ x y, rfl) (λ x y, rfl)
+subtype.coe_injective.ordered_semiring _
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance ordered_comm_semiring [ordered_comm_semiring α] : ordered_comm_semiring {x : α // 0 ≤ x} :=
-subtype.coe_injective.ordered_comm_semiring
-  (coe : {x : α // 0 ≤ x} → α) rfl rfl (λ x y, rfl) (λ x y, rfl)
+subtype.coe_injective.ordered_comm_semiring _
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 -- These prevent noncomputable instances being found, as it does not require `linear_order` which
 -- is frequently non-computable.
@@ -180,8 +202,8 @@ instance nontrivial [linear_ordered_semiring α] : nontrivial {x : α // 0 ≤ x
 
 instance linear_ordered_semiring [linear_ordered_semiring α] :
   linear_ordered_semiring {x : α // 0 ≤ x} :=
-subtype.coe_injective.linear_ordered_semiring
-  (coe : {x : α // 0 ≤ x} → α) rfl rfl (λ x y, rfl) (λ x y, rfl)
+subtype.coe_injective.linear_ordered_semiring _
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance linear_ordered_comm_monoid_with_zero [linear_ordered_comm_ring α] :
   linear_ordered_comm_monoid_with_zero {x : α // 0 ≤ x} :=

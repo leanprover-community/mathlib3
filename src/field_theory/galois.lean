@@ -8,6 +8,7 @@ import field_theory.normal
 import field_theory.primitive_element
 import field_theory.fixed
 import ring_theory.power_basis
+import group_theory.group_action.fixing_subgroup
 
 /-!
 # Galois Extensions
@@ -150,7 +151,7 @@ lemma alg_equiv.transfer_galois (f : E ≃ₐ[F] E') : is_galois F E ↔ is_galo
 ⟨λ h, by exactI is_galois.of_alg_equiv f, λ h, by exactI is_galois.of_alg_equiv f.symm⟩
 
 lemma is_galois_iff_is_galois_top : is_galois F (⊤ : intermediate_field F E) ↔ is_galois F E :=
-(intermediate_field.top_equiv).transfer_galois
+(intermediate_field.top_equiv : (⊤ : intermediate_field F E) ≃ₐ[F] E).transfer_galois
 
 instance is_galois_bot : is_galois F (⊥ : intermediate_field F E) :=
 (intermediate_field.bot_equiv F E).transfer_galois.mpr (is_galois.self F)
@@ -169,19 +170,6 @@ def fixed_points.intermediate_field (M : Type*) [monoid M] [mul_semiring_action 
 { carrier := mul_action.fixed_points M E,
   algebra_map_mem' := λ a g, by rw [algebra.algebra_map_eq_smul_one, smul_comm, smul_one],
   ..fixed_points.subfield M E }
-
-/-- The submonoid fixing a set under a `mul_action`. -/
-@[to_additive /-" The additive submonoid fixing a set under an `add_action`. "-/]
-def fixing_submonoid (M : Type*) {α} [monoid M] [mul_action M α] (s : set α) : submonoid M :=
-{ carrier := { ϕ : M | ∀ x : s, ϕ • (x : α) = x },
-  one_mem' := λ _, one_smul _ _,
-  mul_mem' := λ x y hx hy z, by rw [mul_smul, hy z, hx z], }
-
-/-- The subgroup fixing a set under a `mul_action`. -/
-@[to_additive /-" The additive subgroup fixing a set under an `add_action`. "-/]
-def fixing_subgroup (M : Type*) {α} [group M] [mul_action M α] (s : set α) : subgroup M :=
-{ inv_mem' := λ _ hx z, by rw [inv_smul_eq_iff, hx z],
-  ..fixing_submonoid M s, }
 
 namespace intermediate_field
 
@@ -401,7 +389,8 @@ begin
   simp only [P] at *,
   rw [of_separable_splitting_field_aux hp K (multiset.mem_to_finset.mp hx),
     hK, finrank_mul_finrank],
-  exact (linear_equiv.finrank_eq (intermediate_field.lift2_alg_equiv K⟮x⟯).to_linear_equiv).symm,
+  symmetry,
+  exact linear_equiv.finrank_eq (alg_equiv.to_linear_equiv (intermediate_field.lift2_alg_equiv _))
 end
 
 /--Equivalent characterizations of a Galois extension of finite degree-/

@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import analysis.normed_space.basic
-import analysis.specific_limits
-import topology.sequences
+import analysis.specific_limits.normed
 
 /-!
 # Normed groups homomorphisms
@@ -404,11 +402,35 @@ instance [distrib_mul_action Rᵐᵒᵖ V₂] [is_central_scalar R V₂] :
 
 end has_scalar
 
+instance has_nat_scalar : has_scalar ℕ (normed_group_hom V₁ V₂) :=
+{ smul := λ n f,
+  { to_fun := n • f,
+    map_add' := (n • f.to_add_monoid_hom).map_add',
+    bound' := let ⟨b, hb⟩ := f.bound' in ⟨n • b, λ v, begin
+      rw [pi.smul_apply, nsmul_eq_mul, mul_assoc],
+      exact (norm_nsmul_le _ _).trans (mul_le_mul_of_nonneg_left (hb _) (nat.cast_nonneg _)),
+    end⟩ } }
+
+@[simp] lemma coe_nsmul (r : ℕ) (f : normed_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
+@[simp] lemma nsmul_apply (r : ℕ) (f : normed_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
+
+instance has_int_scalar : has_scalar ℤ (normed_group_hom V₁ V₂) :=
+{ smul := λ z f,
+  { to_fun := z • f,
+    map_add' := (z • f.to_add_monoid_hom).map_add',
+    bound' := let ⟨b, hb⟩ := f.bound' in ⟨∥z∥ • b, λ v, begin
+      rw [pi.smul_apply, smul_eq_mul, mul_assoc],
+      exact (norm_zsmul_le _ _).trans  (mul_le_mul_of_nonneg_left (hb _) $ norm_nonneg _),
+    end⟩ } }
+
+@[simp] lemma coe_zsmul (r : ℤ) (f : normed_group_hom V₁ V₂) : ⇑(r • f) = r • f := rfl
+@[simp] lemma zsmul_apply (r : ℤ) (f : normed_group_hom V₁ V₂) (v : V₁) : (r • f) v = r • f v := rfl
+
 /-! ### Normed group structure on normed group homs -/
 
 /-- Homs between two given normed groups form a commutative additive group. -/
 instance : add_comm_group (normed_group_hom V₁ V₂) :=
-coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl)
+coe_injective.add_comm_group _ rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 /-- Normed group homomorphisms themselves form a seminormed group with respect to
     the operator norm. -/

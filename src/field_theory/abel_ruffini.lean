@@ -364,12 +364,12 @@ begin
   revert α,
   apply solvable_by_rad.induction,
   { exact λ α, by { rw minpoly.eq_X_sub_C, exact gal_X_sub_C_is_solvable α } },
-  { exact λ α β, induction2 (add_mem _ (subset_adjoin F _ (set.mem_insert α _))
+  { exact λ α β, induction2 (add_mem (subset_adjoin F _ (set.mem_insert α _))
       (subset_adjoin F _ (set.mem_insert_of_mem α (set.mem_singleton β)))) },
-  { exact λ α, induction1 (neg_mem _ (mem_adjoin_simple_self F α)) },
-  { exact λ α β, induction2 (mul_mem _ (subset_adjoin F _ (set.mem_insert α _))
+  { exact λ α, induction1 (neg_mem (mem_adjoin_simple_self F α)) },
+  { exact λ α β, induction2 (mul_mem (subset_adjoin F _ (set.mem_insert α _))
       (subset_adjoin F _ (set.mem_insert_of_mem α (set.mem_singleton β)))) },
-  { exact λ α, induction1 (inv_mem _ (mem_adjoin_simple_self F α)) },
+  { exact λ α, induction1 (inv_mem (mem_adjoin_simple_self F α)) },
   { exact λ α n, induction3 },
 end
 

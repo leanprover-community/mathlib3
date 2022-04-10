@@ -694,7 +694,7 @@ lemma inv_lt_one {x : ℝ≥0} (hx : 1 < x) : x⁻¹ < 1 :=
 lemma zpow_pos {x : ℝ≥0} (hx : x ≠ 0) (n : ℤ) : 0 < x ^ n :=
 begin
   cases n,
-  { exact pow_pos hx.bot_lt _ },
+  { simp [pow_pos hx.bot_lt _] },
   { simp [pow_pos hx.bot_lt _] }
 end
 

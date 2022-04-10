@@ -109,8 +109,7 @@ instance : category (grothendieck F) :=
       -- We need to turn `F.map_id` (which is an equation between functors)
       -- into a natural isomorphism.
       rw ← nat_iso.naturality_2 (eq_to_iso (F.map_id Y.base)) f.fiber,
-      simp,
-      refl, },
+      simp, },
     { simp, },
   end,
   id_comp' := λ X Y f, by ext; simp,

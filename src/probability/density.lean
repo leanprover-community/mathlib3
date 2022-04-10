@@ -55,8 +55,7 @@ namespace measure_theory
 
 open topological_space measure_theory.measure
 
-variables {α E : Type*} [normed_group E] [measurable_space E] [second_countable_topology E]
-  [normed_space ℝ E] [complete_space E] [borel_space E]
+variables {α E : Type*} [measurable_space E]
 
 /-- A random variable `X : α → E` is said to `has_pdf` with respect to the measure `ℙ` on `α` and
 `μ` on `E` if there exists a measurable function `f` such that the push-forward measure of `ℙ`
@@ -156,7 +155,7 @@ lemma integrable_iff_integrable_mul_pdf [is_finite_measure ℙ] {X : α → E} [
   {f : E → ℝ} (hf : measurable f) :
   integrable (λ x, f (X x)) ℙ ↔ integrable (λ x, f x * (pdf X ℙ μ x).to_real) μ :=
 begin
-  rw [← integrable_map_measure hf.ae_measurable (has_pdf.measurable X ℙ μ),
+  rw [← integrable_map_measure hf.ae_strongly_measurable (has_pdf.measurable X ℙ μ).ae_measurable,
       map_eq_with_density_pdf X ℙ μ,
       integrable_with_density_iff (measurable_pdf _ _ _) ae_lt_top],
   apply_instance
@@ -170,7 +169,7 @@ lemma integral_fun_mul_eq_integral [is_finite_measure ℙ]
   ∫ x, f x * (pdf X ℙ μ x).to_real ∂μ = ∫ x, f (X x) ∂ℙ :=
 begin
   by_cases hpdf : integrable (λ x, f x * (pdf X ℙ μ x).to_real) μ,
-  { rw [← integral_map (has_pdf.measurable X ℙ μ) hf.ae_measurable,
+  { rw [← integral_map (has_pdf.measurable X ℙ μ).ae_measurable hf.ae_strongly_measurable,
         map_eq_with_density_pdf X ℙ μ,
         integral_eq_lintegral_pos_part_sub_lintegral_neg_part hpdf,
         integral_eq_lintegral_pos_part_sub_lintegral_neg_part,
@@ -190,7 +189,7 @@ begin
         simp_rw [this],
         exact lintegral_congr_ae (filter.eventually_eq.mul of_real_to_real_ae_eq
           (ae_eq_refl _)) } },
-    { refine ⟨hf.ae_measurable, _⟩,
+    { refine ⟨hf.ae_strongly_measurable, _⟩,
       rw [has_finite_integral, lintegral_with_density_eq_lintegral_mul _
             (measurable_pdf _ _ _) hf.nnnorm.coe_nnreal_ennreal],
       have : (λ x, (pdf X ℙ μ * λ x, ↑∥f x∥₊) x) =ᵐ[μ] (λ x, ∥f x * (pdf X ℙ μ x).to_real∥₊),
@@ -239,8 +238,7 @@ by { rw has_pdf_iff, simp only [hX, true_and], }
 
 section
 
-variables {F : Type*} [normed_group F] [measurable_space F] [second_countable_topology F]
-  [normed_space ℝ F] [complete_space F] [borel_space F] {ν : measure F}
+variables {F : Type*} [measurable_space F] {ν : measure F}
 
 /-- A random variable that `has_pdf` transformed under a `quasi_measure_preserving`
 map also `has_pdf` if `(map g (map X ℙ)).have_lebesgue_decomposition μ`.
@@ -365,7 +363,8 @@ begin
     rw [(by simp : (λ x, 0 : ℝ → ℝ) = (λ x, x * (0 : ℝ≥0∞).to_real))],
     refine filter.eventually_eq.mul (ae_eq_refl _)
       (filter.eventually_eq.fun_comp this.symm ennreal.to_real) },
-  refine ⟨ae_measurable_id'.mul (measurable_pdf X ℙ).ae_measurable.ennreal_to_real, _⟩,
+  refine ⟨ae_strongly_measurable_id.mul
+    (measurable_pdf X ℙ).ae_measurable.ennreal_to_real.ae_strongly_measurable, _⟩,
   refine has_finite_integral_mul huX _,
   set ind := (volume s)⁻¹ • (1 : ℝ → ℝ≥0∞) with hind,
   have : ∀ x, ↑∥x∥₊ * s.indicator ind x = s.indicator (λ x, ∥x∥₊ * ind x) x :=

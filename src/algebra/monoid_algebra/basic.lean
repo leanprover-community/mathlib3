@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury G. Kudryashov, Scott Morrison
 -/
 import algebra.big_operators.finsupp
+import algebra.hom.non_unital_alg
 import linear_algebra.finsupp
-import algebra.non_unital_alg_hom
 
 /-!
 # Monoid algebras
@@ -367,6 +367,9 @@ variables (k G)
   .. of_magma k G }
 
 end
+
+lemma smul_of [mul_one_class G] (g : G) (r : k) :
+  r • (of k G g) = single g r := by simp
 
 lemma of_injective [mul_one_class G] [nontrivial k] : function.injective (of k G) :=
 λ a b h, by simpa using (single_eq_single_iff _ _ _ _).mp h
@@ -812,6 +815,28 @@ by simp
 by simp
 
 end opposite
+
+section submodule
+
+variables {k G} [comm_semiring k] [monoid G]
+variables {V : Type*} [add_comm_monoid V]
+variables [module k V] [module (monoid_algebra k G) V] [is_scalar_tower k (monoid_algebra k G) V]
+
+/-- A submodule over `k` which is stable under scalar multiplication by elements of `G` is a
+submodule over `monoid_algebra k G`  -/
+def submodule_of_smul_mem (W : submodule k V) (h : ∀ (g : G) (v : V), v ∈ W → (of k G g) • v ∈ W) :
+  submodule (monoid_algebra k G) V :=
+{ carrier := W,
+  zero_mem' := W.zero_mem',
+  add_mem' := W.add_mem',
+  smul_mem' := begin
+    intros f v hv,
+    rw [←finsupp.sum_single f, finsupp.sum, finset.sum_smul],
+    simp_rw [←smul_of, smul_assoc],
+    exact submodule.sum_smul_mem W _ (λ g _, h g v hv)
+  end  }
+
+end submodule
 
 end monoid_algebra
 

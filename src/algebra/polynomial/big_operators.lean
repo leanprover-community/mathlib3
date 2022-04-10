@@ -96,7 +96,7 @@ begin
     have h : nat_degree tl.prod ≤ n * tl.length,
     { refine (nat_degree_list_prod_le _).trans _,
       rw [←tl.length_map nat_degree, mul_comm],
-      refine list.sum_le_of_forall_le _ _ _,
+      refine list.sum_le_card_nsmul _ _ _,
       simpa using hl' },
     have hdn : nat_degree hd ≤ n := hl _ (list.mem_cons_self _ _),
     rcases hdn.eq_or_lt with rfl|hdn',

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
 import group_theory.subgroup.pointwise
-import linear_algebra.basic
+import linear_algebra.span
 
 /-! # Pointwise instances on `submodule`s
 

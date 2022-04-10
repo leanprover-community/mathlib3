@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Violeta Hernández Palacios
 -/
 
-import set_theory.fixed_points
+import set_theory.ordinal_arithmetic
 
 /-!
 ### Principal ordinals
@@ -109,7 +109,7 @@ end
 
 theorem unbounded_principal (op : ordinal → ordinal → ordinal) :
   set.unbounded (<) {o | principal op o} :=
-λ o, ⟨_, principal_nfp_blsub₂ op o, (self_le_nfp _ o).not_lt⟩
+λ o, ⟨_, principal_nfp_blsub₂ op o, (le_nfp_self _ o).not_lt⟩
 
 /-! #### Additive principal ordinals -/
 

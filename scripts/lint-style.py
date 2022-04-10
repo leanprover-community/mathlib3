@@ -139,8 +139,8 @@ def reserved_notation_check(lines, path):
 def set_option_check(lines, path):
     errors = []
     for line_nr, line in skip_string(skip_comments(enumerate(lines, 1))):
-        if line.startswith('set_option'):
-            next_two_chars = line.split(' ')[1][:2]
+        if line.strip().startswith('set_option'):
+            next_two_chars = line.strip().split(' ')[1][:2]
             # forbidden options: pp, profiler, trace
             if next_two_chars == 'pp' or next_two_chars == 'pr' or next_two_chars == 'tr':
                 errors += [(ERR_OPT, line_nr, path)]

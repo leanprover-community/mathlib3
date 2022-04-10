@@ -523,6 +523,15 @@ support_on_finset_subset
   map_range f hf (single a b) = single a (f b) :=
 ext $ λ a', show f (ite _ _ _) = ite _ _ _, by split_ifs; [refl, exact hf]
 
+lemma support_map_range_of_injective
+  {e : M → N} (he0 : e 0 = 0) (f : ι →₀ M) (he : function.injective e) :
+  (finsupp.map_range e he0 f).support = f.support :=
+begin
+  ext,
+  simp only [finsupp.mem_support_iff, ne.def, finsupp.map_range_apply],
+  exact he.ne_iff' he0,
+end
+
 end map_range
 
 /-! ### Declarations about `emb_domain` -/

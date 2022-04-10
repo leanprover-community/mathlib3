@@ -122,9 +122,7 @@ instance comp {E : Type*} [category E] [has_shift E A]
     have := shift_structure.zero A G, change G.comm_shift _ = _ at this, rw this, clear this,
     ext,
     dsimp,
-    simp only [category.comp_id, category.id_comp, category.assoc, ←G.map_comp_assoc,
-      ε_hom_inv_app],
-    erw [category.comp_id],
+    simp,
   end,
   add := λ a b, begin
     dsimp [weak_shift_structure.comp],
@@ -132,13 +130,12 @@ instance comp {E : Type*} [category E] [has_shift E A]
     have := shift_structure.add A G a b, change G.comm_shift _ = _ at this, rw this, clear this,
     ext,
     dsimp,
-    simp only [category.comp_id, category.id_comp, category.assoc, G.map_comp],
+    simp only [category.comp_id, category.id_comp, category.assoc,
+      category_theory.functor.map_comp],
     congr' 2,
-    slice_lhs 2 3 { simp only [←G.map_comp, μ_hom_inv_app], erw [G.map_id], },
-    simp only [category.id_comp, category.assoc],
-    have := (G.comm_shift b).hom.naturality_assoc, dsimp at this, erw [this], clear this,
+    have := (G.comm_shift b).hom.naturality_assoc, dsimp at this, rw [←this], clear this,
     congr' 1,
-    simp only [←(shift_functor E b).map_comp_assoc],
+    simp [←category_theory.functor.map_comp_assoc],
     refl,
   end, }
 

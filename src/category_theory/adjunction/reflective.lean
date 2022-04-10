@@ -61,7 +61,7 @@ begin
   { rw ← comp_hom_eq_id,
     apply (of_right_adjoint i).right_triangle_components },
   rw this,
-  exact is_iso.inv_is_iso,
+  apply_instance,
 end
 
 /--

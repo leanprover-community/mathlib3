@@ -83,10 +83,25 @@ instance inv_app_is_iso (α : F ≅ G) (X : C) : is_iso (α.inv.app X) :=
 ⟨⟨α.hom.app X,
   ⟨by rw [←comp_app, iso.inv_hom_id, ←id_app], by rw [←comp_app, iso.hom_inv_id, ←id_app]⟩⟩⟩
 
+@[simp] lemma inv_hom_app (α : F ≅ G) (X : C) : inv (α.hom.app X) = α.inv.app X :=
+by { ext, rw [←comp_app, iso.hom_inv_id, ←id_app] }
+
+@[simp] lemma inv_inv_app (α : F ≅ G) (X : C) : inv (α.inv.app X) = α.hom.app X :=
+by { ext, rw [←comp_app, iso.inv_hom_id, ←id_app] }
+
+@[reducible] instance inv_app_has_inv (α : F ≅ G) (X : C) : has_inv (α.inv.app X) :=
+{ inv := α.hom.app X, }
+
+example (α : F ≅ G) (X : C) : inv (α.inv.app X) = α.hom.app X := by simp
+-- Verifying that the syntactic typeclass `has_inv` propagates outwards
+-- and allows us to cancel distant inverses.
+example (α : F ≅ G) (H : D ⥤ D) (X : C) : inv (H.map (α.inv.app X)) = H.map (α.hom.app X) :=
+by simp
+
 section
 /-!
 Unfortunately we need a separate set of cancellation lemmas for components of natural isomorphisms,
-because the `simp` normal form is `α.hom.app X`, rather than `α.app.hom X`.
+because the `simp` normal form is `α.hom.app X`, rather than `(α.app X).hom`.
 
 (With the later, the morphism would be visibly part of an isomorphism, so general lemmas about
 isomorphisms would apply.)
@@ -123,9 +138,6 @@ by simp only [←category.assoc, cancel_mono]
   f ≫ g ≫ α.inv.app Y = f' ≫ g' ≫ α.inv.app Y ↔ f ≫ g = f' ≫ g' :=
 by simp only [←category.assoc, cancel_mono]
 
-@[simp] lemma inv_inv_app {F G : C ⥤ D} (e : F ≅ G) (X : C) :
-  inv (e.inv.app X) = e.hom.app X := by { ext, simp }
-
 end
 
 variables {X Y : C}
@@ -146,6 +158,14 @@ instance is_iso_app_of_is_iso (α : F ⟶ G) [is_iso α] (X) : is_iso (α.app X)
 
 @[simp] lemma is_iso_inv_app (α : F ⟶ G) [is_iso α] (X) : (inv α).app X = inv (α.app X) :=
 by { ext, rw ←nat_trans.comp_app, simp, }
+
+@[reducible]
+noncomputable instance has_inv_app_of_has_inv (α : F ⟶ G) [has_inv α] (X) : has_inv (α.app X) :=
+{ inv := (inv α).app X,
+  w' := by { ext, simp only [←nat_trans.comp_app, is_iso.hom_inv_id, nat_trans.id_app], }, }
+
+example (α β : F ⟶ F) [is_iso α] [is_iso β] (X) : inv ((inv α ≫ inv β).app X) = (β ≫ α).app X :=
+by simp
 
 /--
 Construct a natural isomorphism between functors by giving object level isomorphisms,

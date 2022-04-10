@@ -177,6 +177,30 @@ namespace is_iso
 
 end is_iso
 
+/--
+This is a *syntactic* typeclass,
+indicating that a morphism `f` already contains an explicit inverse in its construction,
+which can be cancelled when we compute `inv f`.
+
+As an example, we later define simp lemmas distributing `inv` over `≫`,
+but pulling `inv` out from inside `F.map`.
+This means that the simplifier would not be able to cope with `inv (F.map (inv f ≫ inv g))`.
+
+By providing a `has_inv` instance for `inv f` and `inv g`, and then propagating these outwards
+by typeclass inference, the simplifier can "cancel distant pairs" of syntactic inverses.
+
+You should not ever provide a `has_inv f` instance unless `f` *syntactically* contains an inverse.
+
+All instances should be `@[reducible]`.
+-/
+class has_inv (f : X ⟶ Y) extends is_iso f :=
+(inv : Y ⟶ X)
+(w' : category_theory.inv f = inv . obviously)
+
+restate_axiom has_inv.w'
+attribute [simp] has_inv.w
+attribute [reducible] has_inv.inv
+
 open is_iso
 
 /-- Reinterpret a morphism `f` with an `is_iso f` instance as an `iso`. -/
@@ -233,8 +257,12 @@ is_iso.of_iso f.symm
 
 variables {f g : X ⟶ Y} {h : Y ⟶ Z}
 
-instance inv_is_iso [is_iso f] : is_iso (inv f) :=
-is_iso.of_iso_inv (as_iso f)
+@[reducible] instance iso_inv_has_inv (f : X ≅ Y) : has_inv f.inv :=
+{ inv := f.hom, }
+
+@[reducible] instance inv_has_inv [is_iso f] : has_inv (inv f) :=
+{ inv := f,
+  .. is_iso.of_iso_inv (as_iso f) }
 
 /- The following instance has lower priority for the following reason:
 Suppose we are given `f : X ≅ Y` with `X Y : Type u`.
@@ -249,6 +277,14 @@ is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
 @[simp] lemma inv_inv [is_iso f] : inv (inv f) = f := by { ext, simp, }
 @[simp] lemma iso.inv_inv (f : X ≅ Y) : inv (f.inv) = f.hom := by { ext, simp, }
 @[simp] lemma iso.inv_hom (f : X ≅ Y) : inv (f.hom) = f.inv := by { ext, simp, }
+
+@[reducible] instance id_has_inv (X : C) : has_inv (𝟙 X) :=
+{ inv := 𝟙 X, }
+
+@[priority 900, reducible]
+instance comp_has_inv [has_inv f] [has_inv h] : has_inv (f ≫ h) :=
+{ inv := has_inv.inv h ≫ has_inv.inv f,
+  w' := by { rw [←has_inv.w, ←has_inv.w], simp, }}
 
 @[simp]
 lemma inv_comp_eq (α : X ⟶ Y) [is_iso α] {f : X ⟶ Z} {g : Y ⟶ Z} : inv α ≫ f = g ↔ f = α ≫ g :=
@@ -302,6 +338,9 @@ lemma comp_hom_eq_id (g : X ⟶ Y) [is_iso g] {f : Y ⟶ X} : f ≫ g = 𝟙 Y �
 (as_iso g).comp_hom_eq_id
 
 namespace iso
+
+instance inv_has_inv (f : X ≅ Y) : has_inv f.inv :=
+{ inv := f.hom, }
 
 @[ext] lemma inv_ext {f : X ≅ Y} {g : Y ⟶ X}
   (hom_inv_id : f.hom ≫ g = 𝟙 X) : f.inv = g :=
@@ -393,6 +432,21 @@ iso.ext $ F.map_id X
 
 instance map_is_iso (F : C ⥤ D) (f : X ⟶ Y) [is_iso f] : is_iso (F.map f) :=
 is_iso.of_iso $ F.map_iso (as_iso f)
+
+@[reducible]
+noncomputable instance map_has_inv (F : C ⥤ D) (f : X ⟶ Y) [has_inv f] : has_inv (F.map f) :=
+{ inv := F.map (inv f),
+  w' := by { ext, simp only [←F.map_comp, hom_inv_id, F.map_id], }}
+
+-- Illustrating the example from the `has_inv` doc-comment.
+example (F : C ⥤ C) (f : X ⟶ Y) (g : Y ⟶ Z) [is_iso f] [is_iso g] :
+  inv (F.map (inv g ≫ inv f)) = F.map (f ≫ g) :=
+by simp
+
+-- Observe that even before stating the `@[simp]` lemma that pulls `inv` out through `F.map`,
+-- we can successfully cancel a pair of inverses, using the `map_has_inv` instance.
+example (F : C ⥤ C) (f : X ⟶ Y) [is_iso f] : inv (F.map (F.map (inv f))) = F.map (F.map f) :=
+by simp
 
 @[simp] lemma map_inv (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
   F.map (inv f) = inv (F.map f) :=

@@ -203,7 +203,7 @@ let e := F.to_functor.as_equivalence in
     simp only [category.comp_id, category.assoc, functor.map_inv, functor.map_comp,
       nat_iso.inv_inv_app, is_iso.inv_comp, is_equivalence.fun_inv_map, adjunction.hom_equiv_unit],
     erw [e.counit_app_functor, ←e.functor.map_comp_assoc, iso.hom_inv_id_app],
-    dsimp, simp,
+    dsimp, simp, refl,
   end,
   tensor' := λ X Y, begin
     dsimp,

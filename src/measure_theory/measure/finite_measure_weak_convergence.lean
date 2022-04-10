@@ -40,7 +40,7 @@ TODO:
 
  * Finite measures `μ` on `α` give rise to continuous linear functionals on the space of
    bounded continuous nonnegative functions on `α` via integration:
-   `to_weak_dual_of_bounded_continuous_nnreal : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`.
+   `to_weak_dual_bounded_continuous_nnreal : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`.
 
 TODO:
 * Portmanteau theorem.
@@ -286,35 +286,40 @@ def to_weak_dual_bounded_continuous_nnreal (μ : finite_measure α) :
   map_smul' := test_against_nn_smul μ,
   cont := μ.test_against_nn_lipschitz.continuous, }
 
-lemma to_weak_dual_of_bounded_continuous_nnreal_eval_def (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
-  μ.to_weak_dual_of_bounded_continuous_nnreal f = μ.test_against_nn f := rfl
+lemma to_weak_dual_bounded_continuous_nnreal_eval_def (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+  μ.to_weak_dual_bounded_continuous_nnreal f = μ.test_against_nn f := rfl
 
 /-- The topology of weak convergence on `finite_measures α` is inherited (induced) from the weak-*
-topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function `finite_measures.to_weak_dual_of_bcnn`. -/
+topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function `finite_measures.to_weak_dual_bcnn`. -/
 instance : topological_space (finite_measure α) :=
 topological_space.induced
-  (λ (μ : finite_measure α), μ.to_weak_dual_of_bounded_continuous_nnreal) infer_instance
+  (λ (μ : finite_measure α), μ.to_weak_dual_bounded_continuous_nnreal) infer_instance
 
 /- Integration of (nonnegative bounded continuous) test functions against finite Borel measures
 depends continuously on the measure. -/
 lemma to_weak_dual_continuous :
-  continuous (@finite_measure.to_weak_dual_of_bounded_continuous_nnreal α _ _ _) :=
+  continuous (@finite_measure.to_weak_dual_bounded_continuous_nnreal α _ _ _) :=
 continuous_induced_dom
 
 lemma tendsto_iff_weak_star_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
   tendsto μs F (𝓝 μ) ↔
-    tendsto (λ i, (μs(i)).to_weak_dual_of_bounded_continuous_nnreal)
-      F (𝓝 μ.to_weak_dual_of_bounded_continuous_nnreal) :=
+    tendsto (λ i, (μs(i)).to_weak_dual_bounded_continuous_nnreal)
+      F (𝓝 μ.to_weak_dual_bounded_continuous_nnreal) :=
 by { apply inducing.tendsto_nhds_iff, exact ⟨rfl⟩, }
 
 theorem tendsto_iff_forall_test_against_nn_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
   tendsto μs F (𝓝 μ) ↔
   ∀ (f : α →ᵇ ℝ≥0),
-    tendsto (λ i, (μs(i)).to_weak_dual_of_bounded_continuous_nnreal f)
-      F (𝓝 (μ.to_weak_dual_of_bounded_continuous_nnreal f)) :=
-by rw [tendsto_iff_weak_star_tendsto, weak_dual.tendsto_iff_forall_eval_tendsto]
+    tendsto (λ i, (μs(i)).to_weak_dual_bounded_continuous_nnreal f)
+      F (𝓝 (μ.to_weak_dual_bounded_continuous_nnreal f)) :=
+begin
+  rw [tendsto_iff_weak_star_tendsto, tendsto_iff_forall_eval_tendsto],
+  swap,
+  exact continuous_linear_map.coe_injective,
+  refl,
+end
 
 theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
@@ -323,7 +328,7 @@ theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
     (𝓝 ((∫⁻ x, (f x) ∂(μ : measure α)))) :=
 begin
   rw tendsto_iff_forall_test_against_nn_tendsto,
-  simp_rw [to_weak_dual_of_bounded_continuous_nnreal_eval_def _ _,
+  simp_rw [to_weak_dual_bounded_continuous_nnreal_eval_def _ _,
            ←test_against_nn_coe_eq, ennreal.tendsto_coe],
 end
 
@@ -423,21 +428,21 @@ def to_weak_dual_bounded_continuous_nnreal (μ : probability_measure α) :
   map_smul' := μ.to_finite_measure.test_against_nn_smul,
   cont := μ.test_against_nn_lipschitz.continuous, }
 
-lemma to_weak_dual_of_bounded_continuous_nnreal_eval_def
+lemma to_weak_dual_bounded_continuous_nnreal_eval_def
   (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
-  μ.to_weak_dual_of_bounded_continuous_nnreal f = μ.test_against_nn f := rfl
+  μ.to_weak_dual_bounded_continuous_nnreal f = μ.test_against_nn f := rfl
 
 /-- The topology of weak convergence on `probability_measures α`. This is inherited (induced) from
 the weak-*  topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function
-`probability_measures.to_weak_dual_of_bcnn`. -/
+`probability_measures.to_weak_dual_bcnn`. -/
 instance : topological_space (probability_measure α) :=
 topological_space.induced
-  (λ (μ : probability_measure α), μ.to_weak_dual_of_bounded_continuous_nnreal) infer_instance
+  (λ (μ : probability_measure α), μ.to_weak_dual_bounded_continuous_nnreal) infer_instance
 
 /- Integration of (nonnegative bounded continuous) test functions against Borel probability
 measures depends continuously on the measure. -/
 lemma to_weak_dual_continuous :
-  continuous (@probability_measure.to_weak_dual_of_bounded_continuous_nnreal α _ _ _) :=
+  continuous (@probability_measure.to_weak_dual_bounded_continuous_nnreal α _ _ _) :=
 continuous_induced_dom
 
 /- The canonical mapping from probability measures to finite measures is an embedding. -/
@@ -446,7 +451,7 @@ lemma to_finite_measure_embedding (α : Type*)
   embedding (to_finite_measure : probability_measure α → finite_measure α) :=
 { induced := begin
     have key := @induced_compose (probability_measure α) (finite_measure α) _ _ to_finite_measure
-      (@finite_measure.to_weak_dual_of_bounded_continuous_nnreal α _ _ _),
+      (@finite_measure.to_weak_dual_bounded_continuous_nnreal α _ _ _),
     exact key.symm,
   end,
   inj := begin
@@ -465,8 +470,8 @@ embedding.tendsto_nhds_iff (probability_measure.to_finite_measure_embedding α)
 lemma tendsto_iff_weak_star_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → probability_measure α} {μ : probability_measure α} :
   tendsto μs F (𝓝 μ) ↔
-    tendsto (λ i, (μs(i)).to_weak_dual_of_bounded_continuous_nnreal)
-      F (𝓝 μ.to_weak_dual_of_bounded_continuous_nnreal) :=
+    tendsto (λ i, (μs(i)).to_weak_dual_bounded_continuous_nnreal)
+      F (𝓝 μ.to_weak_dual_bounded_continuous_nnreal) :=
 by { apply inducing.tendsto_nhds_iff, exact ⟨rfl⟩, }
 
 /-- The usual definition of weak convergence of probability measures is given in terms of sequences

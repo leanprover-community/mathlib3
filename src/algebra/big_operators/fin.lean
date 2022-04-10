@@ -63,14 +63,10 @@ begin
 end
 
 @[to_additive]
-lemma prod_trunc {M : Type*} [comm_monoid M] {n a b : ℕ}
-  (h : n=a+b) (f : fin (n) → M)
-  (hf : ∀ (j : fin b), f (cast h.symm (nat_add a j)) = 1) :
-  ∏ (i : fin (n)), f i =
-  ∏ (i : fin (a)), f (cast_le (nat.le.intro (h.symm)) i) :=
-begin
-  rw [← prod_congr' f h.symm, prod_univ_add, fintype.prod_eq_one _ hf, mul_one],
-  congr,
-end
+lemma prod_trunc {M : Type*} [comm_monoid M] {a b : ℕ} (f : fin (a+b) → M)
+  (hf : ∀ (j : fin b), f (nat_add a j) = 1) :
+  ∏ (i : fin (a+b)), f i =
+  ∏ (i : fin a), f (cast_le (nat.le.intro rfl) i) :=
+by simpa only [prod_univ_add, fintype.prod_eq_one _ hf, mul_one]
 
 end fin

@@ -44,14 +44,6 @@ begin
   exact closure_mul_image_eq_top hR hR1 hS,
 end
 
-instance tada {G : Type*} [group G] (H : subgroup G) [fintype (G ⧸ H)] :
-  fintype (quotient (quotient_group.right_rel H)) :=
-fintype.of_equiv (G ⧸ H) (quotient_group.quotient_right_rel_equiv_quotient_left_rel H).symm
-
-lemma card_quotient_right_rel_eq {G : Type*} [group G] (H : subgroup G) [fintype (G ⧸ H)] :
-  fintype.card (quotient (quotient_group.right_rel H)) = fintype.card (G ⧸ H) :=
-fintype.of_equiv_card (quotient_group.quotient_right_rel_equiv_quotient_left_rel H).symm
-
 lemma fg_of_index_ne_zero {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
   (hH : H.index ≠ 0) : group.fg H :=
 begin
@@ -84,7 +76,7 @@ begin
   ... = H.index * group.rank G : congr_arg2 (*) _ hS₀,
   calc R.card = fintype.card R : (fintype.card_coe R).symm
   ... = _ : (fintype.card_congr (mem_right_transversals.to_equiv hR)).symm
-  ... = fintype.card (G ⧸ H) : H.card_quotient_right_rel_eq
+  ... = fintype.card (G ⧸ H) : quotient_group.card_quotient_right_rel H
   ... = H.index : H.index_eq_card.symm,
 end
 

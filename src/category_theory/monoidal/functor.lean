@@ -211,12 +211,14 @@ nat_iso.of_components
   (by { intros, apply F.to_lax_monoidal_functor.μ_natural })
 
 @[simp] lemma μ_iso_hom (X Y : C) : (F.μ_iso X Y).hom = F.μ X Y := rfl
+@[simp] lemma μ_iso_inv (X Y : C) : (F.μ_iso X Y).inv = inv (F.μ X Y) := rfl
 @[simp, reassoc] lemma μ_inv_hom_id (X Y : C) : (F.μ_iso X Y).inv ≫ F.μ X Y = 𝟙 _ :=
 (F.μ_iso X Y).inv_hom_id
 @[simp] lemma μ_hom_inv_id (X Y : C) : F.μ X Y ≫ (F.μ_iso X Y).inv = 𝟙 _ :=
 (F.μ_iso X Y).hom_inv_id
 
 @[simp] lemma ε_iso_hom : F.ε_iso.hom = F.ε := rfl
+@[simp] lemma ε_iso_inv : F.ε_iso.inv = inv F.ε := rfl
 @[simp, reassoc] lemma ε_inv_hom_id : F.ε_iso.inv ≫ F.ε = 𝟙 _ := F.ε_iso.inv_hom_id
 @[simp] lemma ε_hom_inv_id : F.ε ≫ F.ε_iso.inv = 𝟙 _ := F.ε_iso.hom_inv_id
 

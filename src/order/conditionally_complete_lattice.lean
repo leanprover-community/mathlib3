@@ -455,7 +455,7 @@ lemma le_csupr_of_le {f : ι → α} (H : bdd_above (range f)) (c : ι) (h : a �
 le_trans h (le_csupr H c)
 
 /--The indexed supremum of two functions are comparable if the functions are pointwise comparable-/
-lemma csupr_mono {f g : ι → α} (B : bdd_above (range g)) (H : ∀x, f x ≤ g x) :
+lemma csupr_mono {f g : ι → α} (B : bdd_above (range g)) (H : ∀ x, f x ≤ g x) :
   supr f ≤ supr g :=
 begin
   casesI is_empty_or_nonempty ι,

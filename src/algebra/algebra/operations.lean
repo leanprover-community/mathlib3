@@ -288,8 +288,9 @@ section decidable_eq
 
 open_locale classical
 
-lemma mem_span_mul_finite_of_mem_span_mul {S : set A} {S' : set A} {x : A}
-  (hx : x ∈ span R (S * S')) :
+lemma mem_span_mul_finite_of_mem_span_mul
+  {R A} [semiring R] [add_comm_monoid A] [has_mul A] [module R A]
+  {S : set A} {S' : set A} {x : A} (hx : x ∈ span R (S * S')) :
   ∃ (T T' : finset A), ↑T ⊆ S ∧ ↑T' ⊆ S' ∧ x ∈ span R (T * T' : set A) :=
 begin
   obtain ⟨U, h, hU⟩ := mem_span_finite_of_mem_span hx,
@@ -558,7 +559,7 @@ begin
   exact hn m hm,
 end
 
-@[simp] protected lemma map_div {B : Type*} [comm_ring B] [algebra R B]
+@[simp] protected lemma map_div {B : Type*} [comm_semiring B] [algebra R B]
   (I J : submodule R A) (h : A ≃ₐ[R] B) :
   (I / J).map h.to_linear_map = I.map h.to_linear_map / J.map h.to_linear_map :=
 begin

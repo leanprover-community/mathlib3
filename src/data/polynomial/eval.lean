@@ -115,13 +115,17 @@ begin
   rw [sum, T.map_sum, sum]
 end
 
+lemma eval₂_list_sum (l : list R[X]) (x : S) :
+  eval₂ f x l.sum = (l.map (eval₂ f x)).sum :=
+map_list_sum (eval₂_add_monoid_hom f x) l
+
+lemma eval₂_multiset_sum (s : multiset R[X]) (x : S) :
+  eval₂ f x s.sum = (s.map (eval₂ f x)).sum :=
+map_multiset_sum (eval₂_add_monoid_hom f x) s
+
 lemma eval₂_finset_sum (s : finset ι) (g : ι → R[X]) (x : S) :
   (∑ i in s, g i).eval₂ f x = ∑ i in s, (g i).eval₂ f x :=
-begin
-  classical,
-  induction s using finset.induction with p hp s hs, simp,
-  rw [sum_insert, eval₂_add, hs, sum_insert]; assumption,
-end
+map_sum (eval₂_add_monoid_hom f x) _ _
 
 lemma eval₂_of_finsupp {f : R →+* S} {x : S} {p : add_monoid_algebra R ℕ} :
   eval₂ f x (⟨p⟩ : R[X]) = lift_nc ↑f (powers_hom S x) p :=
@@ -230,6 +234,10 @@ lemma eval₂_dvd : p ∣ q → eval₂ f x p ∣ eval₂ f x q :=
 lemma eval₂_eq_zero_of_dvd_of_eval₂_eq_zero (h : p ∣ q) (h0 : eval₂ f x p = 0) :
   eval₂ f x q = 0 :=
 zero_dvd_iff.mp (h0 ▸ eval₂_dvd f x h)
+
+lemma eval₂_list_prod (l : list R[X]) (x : S) :
+  eval₂ f x l.prod = (l.map (eval₂ f x)).prod :=
+_root_.map_list_prod (eval₂_ring_hom f x) l
 
 end eval₂
 
@@ -717,9 +725,9 @@ section comm_semiring
 
 section eval
 
-variables [comm_semiring R] {p q : R[X]} {x : R}
+variables [comm_semiring R] {p q : R[X]} {x : R} [comm_semiring S] (f : R →+* S)
 
-lemma eval₂_comp [comm_semiring S] (f : R →+* S) {x : S} :
+lemma eval₂_comp {x : S} :
   eval₂ f x (p.comp q) = eval₂ f (eval₂ f x q) p :=
 by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
 
@@ -744,7 +752,7 @@ end
 def comp_ring_hom : R[X] → R[X] →+* R[X] :=
 eval₂_ring_hom C
 
-lemma eval₂_hom [comm_semiring S] (f : R →+* S) (x : R) :
+lemma eval₂_hom (x : R) :
   p.eval₂ f (f x) = f (p.eval x) :=
 (ring_hom.comp_id f) ▸ (hom_eval₂ p (ring_hom.id R) f x).symm
 
@@ -755,6 +763,14 @@ lemma root_mul_left_of_is_root (p : R[X]) {q : R[X]} :
 lemma root_mul_right_of_is_root {p : R[X]} (q : R[X]) :
   is_root p a → is_root (p * q) a :=
 λ H, by rw [is_root, eval_mul, is_root.def.1 H, zero_mul]
+
+lemma eval₂_multiset_prod (s : multiset R[X]) (x : S) :
+  eval₂ f x s.prod = (s.map (eval₂ f x)).prod :=
+_root_.map_multiset_prod (eval₂_ring_hom f x) s
+
+lemma eval₂_finset_prod (s : finset ι) (g : ι → R[X]) (x : S) :
+  (∏ i in s, g i).eval₂ f x = ∏ i in s, (g i).eval₂ f x :=
+_root_.map_prod (eval₂_ring_hom f x) _ _
 
 /--
 Polynomial evaluation commutes with `list.prod`

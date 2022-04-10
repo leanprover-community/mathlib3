@@ -386,16 +386,7 @@ end nat
 namespace int
 
 instance : decidable_pred (is_square : ℤ → Prop)
-| n :=
-begin
-  convert decidable_of_iff' _ (int.exists_mul_self n),
-  unfold is_square,
-  congr,
-  ext,
-  split,
-  { intros h, simp [h], },
-  { intros h, simp [h], },
-end
+λ n, decidable_of_iff' _ $ (exists_congr $ λ _, eq_comm).trans n.exists_mul_self
 
 end int
 

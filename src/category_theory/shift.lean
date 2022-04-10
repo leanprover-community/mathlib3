@@ -342,7 +342,7 @@ by rw [shift_comm', ← shift_comm_symm, iso.symm_hom, iso.inv_hom_id_assoc]
 
 end add_comm_monoid
 
-variables [monoid A] {D : Type*} [category D] [add_monoid A] [has_shift D A]
+variables {D : Type*} [category D] [add_monoid A] [has_shift D A]
 variables (F : C ⥤ D) [full F] [faithful F]
 
 /-- Given a family of endomorphisms of `C` which are interwined by a fully faithful `F : C ⥤ D`
@@ -414,6 +414,7 @@ has_shift_mk C A
 
 /-- When we construct shifts on a subcategory from shifts on the ambient category,
 the inclusion functor intertwines the shifts. -/
+@[nolint unused_arguments] -- incorrectly reports that `[full F]` and `[faithful F]` are unused.
 def has_shift_of_fully_faithful_comm
   (s : A → C ⥤ C) (i : ∀ i, s i ⋙ F ≅ F ⋙ shift_functor D i) (m : A) :
   begin

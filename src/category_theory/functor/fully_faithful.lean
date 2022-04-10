@@ -120,6 +120,8 @@ def iso_equiv_of_fully_faithful {X Y} : (X ≅ Y) ≃ (F.obj X ≅ F.obj Y) :=
   left_inv := λ f, by simp,
   right_inv := λ f, by { ext, simp, } }
 
+/-- We can construct a natural isomorphism between functors by constructing a natural isomorphism
+between those functors composed with a fully faithful functor. -/
 @[simps]
 def nat_iso_of_comp_fully_faithful {E : Type*} [category E]
   {F G : C ⥤ D} (H : D ⥤ E) [full H] [faithful H] (i : F ⋙ H ≅ G ⋙ H) : F ≅ G :=

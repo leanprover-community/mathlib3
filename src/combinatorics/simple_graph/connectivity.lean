@@ -970,13 +970,9 @@ end
 
 variables {G}
 
-lemma walk.length_eq_of_mem_finset_walk_length {n : ℕ} {u v : V} (p : G.walk u v)
-  (h : p ∈ G.finset_walk_length n u v) : p.length = n :=
-begin
-  change p ∈ {p : G.walk u v | p.length = n},
-  rw ← coe_finset_walk_length_eq,
-  exact h,
-end
+lemma walk.length_eq_of_mem_finset_walk_length {n : ℕ} {u v : V} (p : G.walk u v) :
+  p ∈ G.finset_walk_length n u v → p.length = n :=
+(set.ext_iff.mp (G.coe_finset_walk_length_eq n u v) p).mp
 
 variables (G)
 

@@ -363,7 +363,7 @@ begin
   -- prove the inequality but with `dist f g` inside, by using inequalities comparing
   -- supr to supr and infi to infi
   have Z : (⨆ x, ⨅ y, f (inl x, inr y)) ≤ ⨆ x, ⨅ y, g (inl x, inr y) + dist f g :=
-    csupr_le_csupr (HD_bound_aux1 _ (dist f g))
+    csupr_mono (HD_bound_aux1 _ (dist f g))
       (λx, cinfi_le_cinfi ⟨cf, forall_range_iff.2(λi, Hcf _)⟩ (λy, coe_le_coe_add_dist)),
   -- move the `dist f g` out of the infimum and the supremum, arguing that continuous monotone maps
   -- (here the addition of `dist f g`) preserve infimum and supremum
@@ -392,7 +392,7 @@ begin
   -- prove the inequality but with `dist f g` inside, by using inequalities comparing
   -- supr to supr and infi to infi
   have Z : (⨆ y, ⨅ x, f (inl x, inr y)) ≤ ⨆ y, ⨅ x, g (inl x, inr y) + dist f g :=
-    csupr_le_csupr (HD_bound_aux2 _ (dist f g))
+    csupr_mono (HD_bound_aux2 _ (dist f g))
       (λy, cinfi_le_cinfi  ⟨cf, forall_range_iff.2(λi, Hcf _)⟩ (λy, coe_le_coe_add_dist)),
   -- move the `dist f g` out of the infimum and the supremum, arguing that continuous monotone maps
   -- (here the addition of `dist f g`) preserve infimum and supremum

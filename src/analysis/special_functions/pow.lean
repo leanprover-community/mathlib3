@@ -384,14 +384,15 @@ namespace complex
 lemma of_real_cpow {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : ((x ^ y : ℝ) : ℂ) = (x : ℂ) ^ (y : ℂ) :=
 by simp [real.rpow_def_of_nonneg hx, complex.cpow_def]; split_ifs; simp [complex.of_real_log hx]
 
-lemma of_real_cpow_of_neg {x : ℝ} (hx : x < 0) (y : ℂ) :
-  (x : ℂ) ^ y = ((-x) : ℂ) ^ y * exp (real.pi * I * y) :=
+lemma of_real_cpow_of_nonpos {x : ℝ} (hx : x ≤ 0) (y : ℂ) :
+  (x : ℂ) ^ y = ((-x) : ℂ) ^ y * exp (π * I * y) :=
 begin
-  rw [cpow_def_of_ne_zero (of_real_ne_zero.mpr hx.ne), cpow_def_of_ne_zero, ←exp_add],
-  swap, { simp only [ne.def, neg_eq_zero, of_real_eq_zero], exact hx.ne, },
-  rw [log, log, abs_of_real, ←of_real_neg, abs_of_real, abs_of_neg hx, abs_of_pos,
-    arg_of_real_of_neg hx, arg_of_real_of_nonneg, of_real_zero],
-  { congr, ring }, { linarith }, { linarith },
+  rcases hx.eq_or_lt with rfl|hlt,
+  { rcases eq_or_ne y 0 with rfl|hy; simp * },
+  have hne : (x : ℂ) ≠ 0, from of_real_ne_zero.mpr hlt.ne,
+  rw [cpow_def_of_ne_zero hne, cpow_def_of_ne_zero (neg_ne_zero.2 hne), ← exp_add, ← add_mul,
+    log, log, abs_neg, arg_of_real_of_neg hlt, ← of_real_neg,
+    arg_of_real_of_nonneg (neg_nonneg.2 hx), of_real_zero, zero_mul, add_zero]
 end
 
 lemma abs_cpow_of_ne_zero {z : ℂ} (hz : z ≠ 0) (w : ℂ) :
@@ -425,23 +426,6 @@ begin
   { rw [of_real_zero, zero_cpow, abs_zero, real.zero_rpow hy],
     exact ne_of_apply_ne re hy },
   { exact abs_cpow_eq_rpow_re_of_pos hlt y }
-end
-
-lemma abs_cpow_le (x y : ℂ)  :
-  abs (x ^ y) ≤ abs x ^ re y * (real.pi * |im y|).exp :=
-begin
-  by_cases hx : x = 0,
-  { by_cases hy : y = 0,
-    { rw [hx, hy], simp, },
-    { rw [hx, zero_cpow hy, abs_zero],
-      exact mul_nonneg (real.zero_rpow_nonneg y.re) (real.exp_pos _).le }, },
-  rw abs_cpow_eq x y hx,
-  refine mul_le_mul_of_nonneg_left _ (real.rpow_nonneg_of_nonneg x.abs_nonneg y.re),
-  rw real.exp_le_exp,
-  refine le_trans (le_abs_self (-x.arg * y.im)) _,
-  rw [_root_.abs_mul, _root_.abs_neg],
-  refine mul_le_mul _ (le_refl _) (_root_.abs_nonneg _) real.pi_pos.le,
-  exact abs_le.mpr ⟨(neg_pi_lt_arg x).le, arg_le_pi x⟩,
 end
 
 end complex
@@ -873,53 +857,6 @@ continuous_iff_continuous_at.2 $ λ x, hf.continuous_at.rpow_const (h x)
 
 end
 
-namespace complex
-
-/- This is placed here because it uses `tendsto.rpow_const`. Differs from `continuous_at_cpow_const`
-because it allows `a = 0`. -/
-lemma continuous_at_cpow_const' {a b : ℂ} (ha: 0 ≤ a.re ∨ a.im ≠ 0) (hb : 0 < b.re) :
-  continuous_at (λ x, x ^ b) a :=
-begin
-  have hb2 : b ≠ 0 := by { contrapose! hb, rw [hb, zero_re], },
-  by_cases ha2 : 0 < a.re ∨ a.im ≠ 0,
-  { exact continuous_at_cpow_const ha2, },
-  have ha2 : a = 0,
-  { simp only [or_iff_not_and_not, not_lt, not_not] at ha2,
-    cases ha,
-    { replace ha : a.re = 0 := by linarith, ext, exacts [ha, ha2.2], },
-    { exfalso, exact ha ha2.2, },  },
-  rw [ha2, continuous_at, zero_cpow hb2, tendsto_zero_iff_norm_tendsto_zero],
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le
-    tendsto_const_nhds _ (λ (z : ℂ), abs_nonneg (z ^ b)) (λ z:ℂ, abs_cpow_le z b),
-  suffices : tendsto (λ (z : ℂ), abs z ^ b.re * real.exp (real.pi * |b.im|))
-    (𝓝 0) (𝓝 (0 * real.exp (real.pi * |b.im|))),
-  { simpa only [zero_mul] using this,} ,
-  apply tendsto.mul_const,
-  conv { congr, skip, skip, rw ←(real.zero_rpow hb.ne'), skip,},
-  refine filter.tendsto.rpow_const _ (or.inr hb.le),
-  convert continuous_abs.tendsto (0:ℂ), simp,
-end
-
-lemma continuous_of_real_cpow_const {y : ℂ} (hs : 0 < y.re) : continuous (λ x, x ^ y : ℝ → ℂ) :=
-begin
-  rw continuous_iff_continuous_at, intro x,
-  by_cases hx : x ≥ 0,
-  { refine (continuous_at_cpow_const' _ hs).comp continuous_of_real.continuous_at,
-    rw complex.of_real_re, exact or.inl hx },
-  { push_neg at hx,
-    suffices : continuous_on (λ x, x ^ y : ℝ → ℂ) (set.Iio 0),
-    { exact continuous_on.continuous_at this (Iio_mem_nhds hx) },
-    have : eq_on (λ x, x ^ y : ℝ → ℂ) (λ x, ((-x) : ℂ) ^ y * exp (real.pi * I * y)) (set.Iio 0),
-    { intros y hy, apply of_real_cpow_of_neg hy },
-    refine continuous_on.congr _ this,
-    refine continuous_on.mul _ continuous_on_const,
-    apply continuous_at.continuous_on, intros y hy,
-    refine continuous_at.cpow (continuous_of_real.continuous_at.neg) continuous_at_const _,
-    left, rw [←of_real_neg, of_real_re], simpa using hy }
-end
-
-end complex
-
 namespace real
 
 variables {z x y : ℝ}
@@ -1031,6 +968,40 @@ begin
     rw _root_.abs_mul,
     exact mul_le_mul (abs_le.2 ⟨(neg_pi_lt_arg _).le, arg_le_pi _⟩) hz.le
       (_root_.abs_nonneg _) real.pi_pos.le }
+end
+
+/-- See also `complex.continuous_at_cpow` for a version that assumes `p.1 ≠ 0` but makes no
+assumptions about `p.2`. -/
+lemma continuous_at_cpow' {p : ℂ × ℂ} (h₁ : 0 ≤ p.1.re ∨ p.1.im ≠ 0) (h₂ : 0 < p.2.re) :
+  continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) p :=
+begin
+  cases p with z w,
+  rw [← not_lt_zero_iff, lt_iff_le_and_ne, not_and_distrib, ne.def, not_not, not_le_zero_iff] at h₁,
+  rcases h₁ with h₁|(rfl : z = 0),
+  exacts [continuous_at_cpow h₁, continuous_at_cpow_zero_of_pos_re h₂]
+end
+
+/-- See also `complex.continuous_at_cpow_const` for a version that assumes `z ≠ 0` but makes no
+assumptions about `w`. -/
+lemma continuous_at_cpow_const' {z w : ℂ} (hz : 0 ≤ re z ∨ im z ≠ 0) (hw : 0 < re w) :
+  continuous_at (λ x, x ^ w) z :=
+tendsto.comp (@continuous_at_cpow' (z, w) hz hw) (continuous_at_id.prod continuous_at_const)
+
+lemma continuous_of_real_cpow_const {y : ℂ} (hs : 0 < y.re) : continuous (λ x, x ^ y : ℝ → ℂ) :=
+begin
+  rw continuous_iff_continuous_at, intro x,
+  cases le_or_lt 0 x with hx hx,
+  { refine (continuous_at_cpow_const' _ hs).comp continuous_of_real.continuous_at,
+    exact or.inl hx },
+  { suffices : continuous_on (λ x, x ^ y : ℝ → ℂ) (set.Iio 0),
+      from continuous_on.continuous_at this (Iio_mem_nhds hx),
+    have : eq_on (λ x, x ^ y : ℝ → ℂ) (λ x, ((-x) : ℂ) ^ y * exp (π * I * y)) (set.Iio 0),
+      from λ y hy, of_real_cpow_of_nonpos (le_of_lt hy) _,
+    refine continuous_on.congr _ this,
+    refine continuous_on.mul _ continuous_on_const,
+    apply continuous_at.continuous_on, intros y hy,
+    refine (continuous_of_real.continuous_at.neg).cpow continuous_at_const _,
+    left, simpa using hy }
 end
 
 end complex

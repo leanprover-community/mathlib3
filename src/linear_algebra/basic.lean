@@ -805,8 +805,8 @@ variables [add_comm_group M₂] [module R M₂]
 @[simp] lemma neg_coe : -(p : set M) = p := set.ext $ λ x, p.neg_mem_iff
 
 @[simp] protected lemma map_neg (f : M →ₗ[R] M₂) : map (-f) p = map f p :=
-ext $ λ y, ⟨λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, neg_mem _ hx, f.map_neg x⟩,
-  λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, neg_mem _ hx, ((-f).map_neg _).trans (neg_neg (f x))⟩⟩
+ext $ λ y, ⟨λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, show -x ∈ p, from neg_mem hx, map_neg f x⟩,
+  λ ⟨x, hx, hy⟩, hy ▸ ⟨-x, show -x ∈ p, from neg_mem hx, (map_neg (-f) _).trans (neg_neg (f x))⟩⟩
 
 end add_comm_group
 
@@ -1118,7 +1118,7 @@ by rw [mem_ker, map_sub, sub_eq_zero]
 theorem disjoint_ker' {p : submodule R M} :
   disjoint p (ker f) ↔ ∀ x y ∈ p, f x = f y → x = y :=
 disjoint_ker.trans
-⟨λ H x hx y hy h, eq_of_sub_eq_zero $ H _ (sub_mem _ hx hy) (by simp [h]),
+⟨λ H x hx y hy h, eq_of_sub_eq_zero $ H _ (sub_mem hx hy) (by simp [h]),
  λ H x h₁ h₂, H x h₁ 0 (zero_mem _) (by simpa using h₂)⟩
 
 theorem inj_of_disjoint_ker {p : submodule R M}
@@ -1403,10 +1403,14 @@ def submodule_map (p : submodule R M) :
 { inv_fun   := λ y, ⟨(e.symm : M₂ →ₛₗ[σ₂₁] M) y, by
   { rcases y with ⟨y', hy⟩, rw submodule.mem_map at hy, rcases hy with ⟨x, hx, hxy⟩, subst hxy,
     simp only [symm_apply_apply, submodule.coe_mk, coe_coe, hx], }⟩,
-  left_inv  := λ x, by simp,
-  right_inv := λ y, by { apply set_coe.ext, simp, },
+  left_inv  := λ x, by simp only [linear_map.dom_restrict_apply, linear_map.cod_restrict_apply,
+    linear_map.to_fun_eq_coe, linear_equiv.coe_coe, linear_equiv.symm_apply_apply, set_like.eta],
+  right_inv := λ y, by { apply set_coe.ext, simp only [linear_map.dom_restrict_apply,
+    linear_map.cod_restrict_apply, linear_map.to_fun_eq_coe, linear_equiv.coe_coe, set_like.coe_mk,
+    linear_equiv.apply_symm_apply] },
   ..((e : M →ₛₗ[σ₁₂] M₂).dom_restrict p).cod_restrict (p.map (e : M →ₛₗ[σ₁₂] M₂))
-  (λ x, ⟨x, by simp⟩) }
+  (λ x, ⟨x, by simp only [linear_map.dom_restrict_apply, eq_self_iff_true, and_true,
+                          set_like.coe_mem, set_like.mem_coe]⟩) }
 
 include σ₂₁
 @[simp] lemma submodule_map_apply (p : submodule R M) (x : p) :

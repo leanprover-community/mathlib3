@@ -309,6 +309,9 @@ class _root_.add_action.quotient_action {α : Type*} (β : Type*) [add_group α]
 
 attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 
+@[to_additive] instance left_quotient_action : quotient_action α H :=
+⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
+
 end quotient_action
 
 open quotient_group

@@ -181,7 +181,7 @@ begin
 end
 
 /-- The function `z ^ w` is continuous in `(z, w)` provided that `z` does not belong to the interval
-`(-∞, 0]` on the real line. See also `complex.continuous_at_cpow_zero_of_re_pos` for a version that
+`(-∞, 0]` on the real line. See also `complex.continuous_at_cpow_of_re_pos` for a version that
 works for `z = 0` but assumes `0 < re w`. -/
 lemma continuous_at_cpow {p : ℂ × ℂ} (hp_fst : 0 < p.fst.re ∨ p.fst.im ≠ 0) :
   continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) p :=
@@ -953,7 +953,7 @@ end limits
 
 namespace complex
 
-/-- See also `complex.continuous_at_cpow`. -/
+/-- See also `complex.continuous_at_cpow` and `complex.continuous_at_cpow_of_re_pos`. -/
 lemma continuous_at_cpow_zero_of_re_pos {z : ℂ} (hz : 0 < z.re) :
   continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) (0, z) :=
 begin
@@ -976,35 +976,34 @@ end
 
 /-- See also `complex.continuous_at_cpow` for a version that assumes `p.1 ≠ 0` but makes no
 assumptions about `p.2`. -/
-lemma continuous_at_cpow' {p : ℂ × ℂ} (h₁ : 0 ≤ p.1.re ∨ p.1.im ≠ 0) (h₂ : 0 < p.2.re) :
+lemma continuous_at_cpow_of_re_pos {p : ℂ × ℂ} (h₁ : 0 ≤ p.1.re ∨ p.1.im ≠ 0) (h₂ : 0 < p.2.re) :
   continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) p :=
 begin
   cases p with z w,
   rw [← not_lt_zero_iff, lt_iff_le_and_ne, not_and_distrib, ne.def, not_not, not_le_zero_iff] at h₁,
   rcases h₁ with h₁|(rfl : z = 0),
-  exacts [continuous_at_cpow h₁, continuous_at_cpow_zero_of_pos_re h₂]
+  exacts [continuous_at_cpow h₁, continuous_at_cpow_zero_of_re_pos h₂]
 end
 
 /-- See also `complex.continuous_at_cpow_const` for a version that assumes `z ≠ 0` but makes no
 assumptions about `w`. -/
-lemma continuous_at_cpow_const' {z w : ℂ} (hz : 0 ≤ re z ∨ im z ≠ 0) (hw : 0 < re w) :
+lemma continuous_at_cpow_const_of_re_pos {z w : ℂ} (hz : 0 ≤ re z ∨ im z ≠ 0) (hw : 0 < re w) :
   continuous_at (λ x, x ^ w) z :=
-tendsto.comp (@continuous_at_cpow' (z, w) hz hw) (continuous_at_id.prod continuous_at_const)
+tendsto.comp (@continuous_at_cpow_of_re_pos (z, w) hz hw)
+  (continuous_at_id.prod continuous_at_const)
 
 lemma continuous_of_real_cpow_const {y : ℂ} (hs : 0 < y.re) : continuous (λ x, x ^ y : ℝ → ℂ) :=
 begin
   rw continuous_iff_continuous_at, intro x,
   cases le_or_lt 0 x with hx hx,
-  { refine (continuous_at_cpow_const' _ hs).comp continuous_of_real.continuous_at,
+  { refine (continuous_at_cpow_const_of_re_pos _ hs).comp continuous_of_real.continuous_at,
     exact or.inl hx },
   { suffices : continuous_on (λ x, x ^ y : ℝ → ℂ) (set.Iio 0),
       from continuous_on.continuous_at this (Iio_mem_nhds hx),
     have : eq_on (λ x, x ^ y : ℝ → ℂ) (λ x, ((-x) : ℂ) ^ y * exp (π * I * y)) (set.Iio 0),
       from λ y hy, of_real_cpow_of_nonpos (le_of_lt hy) _,
-    refine continuous_on.congr _ this,
-    refine continuous_on.mul _ continuous_on_const,
-    apply continuous_at.continuous_on, intros y hy,
-    refine (continuous_of_real.continuous_at.neg).cpow continuous_at_const _,
+    refine (continuous_on.mul (λ y hy, _) continuous_on_const).congr this,
+    refine continuous_of_real.continuous_within_at.neg.cpow continuous_within_at_const _,
     left, simpa using hy }
 end
 

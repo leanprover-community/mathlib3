@@ -105,8 +105,9 @@ end
 
 /-- **Schreier's Lemma**: A finite index subgroup of a finitely generated
   group is finitely generated. -/
-lemma fg_of_index_ne_zero [decidable_eq G] [hG : group.fg G] (hH : H.index ≠ 0) : group.fg H :=
+lemma fg_of_index_ne_zero [hG : group.fg G] (hH : H.index ≠ 0) : group.fg H :=
 begin
+  classical,
   obtain ⟨S, hS⟩ := hG.1,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
   haveI : fintype (G ⧸ H) := fintype_of_index_ne_zero hH,

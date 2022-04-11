@@ -655,5 +655,23 @@ forall_congr (λ _, forall_congr (λ _, realize_sup.trans (or_congr realize_rel�
 
 end relations
 
+section nonempty
+
+variable (L)
+
+@[simp] lemma sentence.realize_nonempty :
+  M ⊨ (sentence.nonempty L) ↔ nonempty M :=
+bounded_formula.realize_ex.trans (trans (exists_congr eq_self_iff_true) exists_true_iff_nonempty)
+
+@[simp] lemma Theory.model_nonempty_iff :
+  M ⊨ (Theory.nonempty L) ↔ nonempty M :=
+Theory.model_singleton_iff.trans (sentence.realize_nonempty L)
+
+instance Theory.model_nonempty [h : nonempty M] :
+  M ⊨ (Theory.nonempty L) :=
+(Theory.model_nonempty_iff L).2 h
+
+end nonempty
+
 end language
 end first_order

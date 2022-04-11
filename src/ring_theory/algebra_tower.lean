@@ -243,7 +243,7 @@ begin
     from mem_image_of_mem _ $ mem_product.2 ⟨mem_union_right _ $ finset.mul_mem_mul hyi hyj, hyk⟩,
   have hxy : ∀ xi ∈ x, xi ∈ span (algebra.adjoin A (↑s : set B))
                (↑(insert 1 y : finset C) : set C) :=
-    λ xi hxi, hf xi ▸ sum_mem _ (λ yj hyj, smul_mem
+    λ xi hxi, hf xi ▸ sum_mem (λ yj hyj, smul_mem
       (span (algebra.adjoin A (↑s : set B)) (↑(insert 1 y : finset C) : set C))
       ⟨f xi yj, algebra.subset_adjoin $ hsx xi hxi yj hyj⟩
       (subset_span $ mem_insert_of_mem hyj)),
@@ -254,7 +254,7 @@ begin
     { rw mul_one, exact subset_span (set.mem_insert _ _) },
     { rw one_mul, exact subset_span (set.mem_insert_of_mem _ hyj) },
     { rw mul_one, exact subset_span (set.mem_insert_of_mem _ hyi) },
-    { rw ← hf (yi * yj), exact set_like.mem_coe.2 (sum_mem _ $ λ yk hyk, smul_mem
+    { rw ← hf (yi * yj), exact set_like.mem_coe.2 (sum_mem $ λ yk hyk, smul_mem
         (span (algebra.adjoin A (↑s : set B)) (insert 1 ↑y : set C))
         ⟨f (yi * yj) yk, algebra.subset_adjoin $ hsy yi hyi yj hyj yk hyk⟩
         (subset_span $ set.mem_insert_of_mem _ hyk : yk ∈ _)) } },

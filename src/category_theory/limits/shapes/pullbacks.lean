@@ -212,17 +212,46 @@ def cospan_comp_iso (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
 nat_iso.of_components (by rintros (⟨⟩|⟨⟨⟩⟩); exact iso.refl _)
   (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp, })
 
-@[simp] lemma cospan_comp_iso_app_left (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
-  (cospan_comp_iso F f g).app walking_cospan.left = iso.refl _ :=
+section
+variables (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z)
+
+@[simp] lemma cospan_comp_iso_app_left :
+(cospan_comp_iso F f g).app walking_cospan.left = iso.refl _ :=
 rfl
 
-@[simp] lemma cospan_comp_iso_app_right (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+@[simp] lemma cospan_comp_iso_app_right :
   (cospan_comp_iso F f g).app walking_cospan.right = iso.refl _ :=
 rfl
 
-@[simp] lemma cospan_comp_iso_app_one (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+@[simp] lemma cospan_comp_iso_app_one :
   (cospan_comp_iso F f g).app walking_cospan.one = iso.refl _ :=
 rfl
+
+@[simp] lemma cospan_comp_iso_hom_app_left :
+  (cospan_comp_iso F f g).hom.app walking_cospan.left = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_hom_app_right :
+  (cospan_comp_iso F f g).hom.app walking_cospan.right = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_hom_app_one :
+  (cospan_comp_iso F f g).hom.app walking_cospan.one = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_inv_app_left :
+  (cospan_comp_iso F f g).inv.app walking_cospan.left = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_inv_app_right :
+  (cospan_comp_iso F f g).inv.app walking_cospan.right = 𝟙 _ :=
+rfl
+
+@[simp] lemma cospan_comp_iso_inv_app_one :
+  (cospan_comp_iso F f g).inv.app walking_cospan.one = 𝟙 _ :=
+rfl
+
+end
 
 /-- A functor applied to a span is a span. -/
 def span_comp_iso (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
@@ -230,17 +259,39 @@ def span_comp_iso (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
 nat_iso.of_components (by rintros (⟨⟩|⟨⟨⟩⟩); exact iso.refl _)
   (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp, })
 
-@[simp] lemma span_comp_iso_app_left (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
-  (span_comp_iso F f g).app walking_span.left = iso.refl _ :=
+section
+variables (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z)
+
+@[simp] lemma span_comp_iso_app_left : (span_comp_iso F f g).app walking_span.left = iso.refl _ :=
 rfl
 
-@[simp] lemma span_comp_iso_app_right (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
-  (span_comp_iso F f g).app walking_span.right = iso.refl _ :=
+@[simp] lemma span_comp_iso_app_right : (span_comp_iso F f g).app walking_span.right = iso.refl _ :=
 rfl
 
-@[simp] lemma span_comp_iso_app_zero (F : C ⥤ D) {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) :
-  (span_comp_iso F f g).app walking_span.zero = iso.refl _ :=
+@[simp] lemma span_comp_iso_app_zero : (span_comp_iso F f g).app walking_span.zero = iso.refl _ :=
 rfl
+
+@[simp] lemma span_comp_iso_hom_app_left : (span_comp_iso F f g).hom.app walking_span.left = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_hom_app_right :
+  (span_comp_iso F f g).hom.app walking_span.right = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_hom_app_zero : (span_comp_iso F f g).hom.app walking_span.zero = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_inv_app_left : (span_comp_iso F f g).inv.app walking_span.left = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_inv_app_right :
+  (span_comp_iso F f g).inv.app walking_span.right = 𝟙 _ :=
+rfl
+
+@[simp] lemma span_comp_iso_inv_app_zero : (span_comp_iso F f g).inv.app walking_span.zero = 𝟙 _ :=
+rfl
+
+end
 
 section
 variables {X Y Z X' Y' Z' : C} (iX : X ≅ X') (iY : Y ≅ Y') (iZ : Z ≅ Z')
@@ -254,16 +305,39 @@ def cospan_ext (wf : iX.hom ≫ f' = f ≫ iZ.hom) (wg : iY.hom ≫ g' = g ≫ i
 nat_iso.of_components (by { rintros (⟨⟩|⟨⟨⟩⟩), exacts [iZ, iX, iY], })
   (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp [wf, wg], })
 
-@[simp] lemma cospan_ext_app_left (wf : iX.hom ≫ f' = f ≫ iZ.hom) (wg : iY.hom ≫ g' = g ≫ iZ.hom) :
-  (cospan_ext iX iY iZ wf wg).app walking_cospan.left = iX :=
+variables (wf : iX.hom ≫ f' = f ≫ iZ.hom) (wg : iY.hom ≫ g' = g ≫ iZ.hom)
+
+@[simp] lemma cospan_ext_app_left : (cospan_ext iX iY iZ wf wg).app walking_cospan.left = iX :=
 by { dsimp [cospan_ext], simp, }
 
-@[simp] lemma cospan_ext_app_right (wf : iX.hom ≫ f' = f ≫ iZ.hom) (wg : iY.hom ≫ g' = g ≫ iZ.hom) :
-  (cospan_ext iX iY iZ wf wg).app walking_cospan.right = iY :=
+@[simp] lemma cospan_ext_app_right : (cospan_ext iX iY iZ wf wg).app walking_cospan.right = iY :=
 by { dsimp [cospan_ext], simp, }
 
-@[simp] lemma cospan_ext_app_one (wf : iX.hom ≫ f' = f ≫ iZ.hom) (wg : iY.hom ≫ g' = g ≫ iZ.hom) :
-  (cospan_ext iX iY iZ wf wg).app walking_cospan.one = iZ :=
+@[simp] lemma cospan_ext_app_one : (cospan_ext iX iY iZ wf wg).app walking_cospan.one = iZ :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_hom_app_left :
+  (cospan_ext iX iY iZ wf wg).hom.app walking_cospan.left = iX.hom :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_hom_app_right :
+  (cospan_ext iX iY iZ wf wg).hom.app walking_cospan.right = iY.hom :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_hom_app_one :
+  (cospan_ext iX iY iZ wf wg).hom.app walking_cospan.one = iZ.hom :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_inv_app_left :
+  (cospan_ext iX iY iZ wf wg).inv.app walking_cospan.left = iX.inv :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_inv_app_right :
+  (cospan_ext iX iY iZ wf wg).inv.app walking_cospan.right = iY.inv :=
+by { dsimp [cospan_ext], simp, }
+
+@[simp] lemma cospan_ext_inv_app_one :
+  (cospan_ext iX iY iZ wf wg).inv.app walking_cospan.one = iZ.inv :=
 by { dsimp [cospan_ext], simp, }
 
 end
@@ -277,16 +351,39 @@ def span_ext (wf : iX.hom ≫ f' = f ≫ iY.hom) (wg : iX.hom ≫ g' = g ≫ iZ.
 nat_iso.of_components (by { rintros (⟨⟩|⟨⟨⟩⟩), exacts [iX, iY, iZ], })
   (by rintros (⟨⟩|⟨⟨⟩⟩) (⟨⟩|⟨⟨⟩⟩) ⟨⟩; repeat { dsimp, simp [wf, wg], })
 
-@[simp] lemma span_ext_app_left (wf : iX.hom ≫ f' = f ≫ iY.hom) (wg : iX.hom ≫ g' = g ≫ iZ.hom) :
-  (span_ext iX iY iZ wf wg).app walking_span.left = iY :=
+variables (wf : iX.hom ≫ f' = f ≫ iY.hom) (wg : iX.hom ≫ g' = g ≫ iZ.hom)
+
+@[simp] lemma span_ext_app_left : (span_ext iX iY iZ wf wg).app walking_span.left = iY :=
 by { dsimp [span_ext], simp, }
 
-@[simp] lemma span_ext_app_right (wf : iX.hom ≫ f' = f ≫ iY.hom) (wg : iX.hom ≫ g' = g ≫ iZ.hom) :
-  (span_ext iX iY iZ wf wg).app walking_span.right = iZ :=
+@[simp] lemma span_ext_app_right : (span_ext iX iY iZ wf wg).app walking_span.right = iZ :=
 by { dsimp [span_ext], simp, }
 
-@[simp] lemma span_ext_app_one (wf : iX.hom ≫ f' = f ≫ iY.hom) (wg : iX.hom ≫ g' = g ≫ iZ.hom) :
-  (span_ext iX iY iZ wf wg).app walking_span.zero = iX :=
+@[simp] lemma span_ext_app_one : (span_ext iX iY iZ wf wg).app walking_span.zero = iX :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_hom_app_left :
+  (span_ext iX iY iZ wf wg).hom.app walking_span.left = iY.hom :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_hom_app_right :
+  (span_ext iX iY iZ wf wg).hom.app walking_span.right = iZ.hom :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_hom_app_zero :
+  (span_ext iX iY iZ wf wg).hom.app walking_span.zero = iX.hom :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_inv_app_left :
+  (span_ext iX iY iZ wf wg).inv.app walking_span.left = iY.inv :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_inv_app_right :
+  (span_ext iX iY iZ wf wg).inv.app walking_span.right = iZ.inv :=
+by { dsimp [span_ext], simp, }
+
+@[simp] lemma span_ext_inv_app_zero :
+  (span_ext iX iY iZ wf wg).inv.app walking_span.zero = iX.inv :=
 by { dsimp [span_ext], simp, }
 
 end

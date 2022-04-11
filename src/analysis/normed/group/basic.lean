@@ -28,7 +28,7 @@ We also prove basic properties of (semi)normed groups and provide some instances
 normed group
 -/
 
-variables {α ι E F : Type*}
+variables {α ι E F G : Type*}
 
 open filter metric
 open_locale topological_space big_operators nnreal ennreal uniformity pointwise
@@ -113,7 +113,7 @@ noncomputable instance : normed_group ℝ :=
 lemma real.norm_eq_abs (r : ℝ) : ∥r∥ = |r| := rfl
 
 section semi_normed_group
-variables [semi_normed_group E] [semi_normed_group F]
+variables [semi_normed_group E] [semi_normed_group F] [semi_normed_group G]
 
 lemma dist_eq_norm (g h : E) : dist g h = ∥g - h∥ :=
 semi_normed_group.dist_eq _ _
@@ -768,12 +768,6 @@ lemma tendsto_iff_norm_tendsto_zero {f : α → E} {a : filter α} {b : E} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥f e - b∥) a (𝓝 0) :=
 by { convert tendsto_iff_dist_tendsto_zero, simp [dist_eq_norm] }
 
-lemma is_bounded_under_of_tendsto {l : filter α} {f : α → E} {c : E}
-  (h : filter.tendsto f l (𝓝 c)) : is_bounded_under (≤) l (λ x, ∥f x∥) :=
-⟨∥c∥ + 1, @tendsto.eventually α E f _ _ (λ k, ∥k∥ ≤ ∥c∥ + 1) h (filter.eventually_iff_exists_mem.mpr
-  ⟨metric.closed_ball c 1, metric.closed_ball_mem_nhds c zero_lt_one,
-    λ y hy, norm_le_norm_add_const_of_dist_le hy⟩)⟩
-
 lemma tendsto_zero_iff_norm_tendsto_zero {f : α → E} {a : filter α} :
   tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥f e∥) a (𝓝 0) :=
 by { rw [tendsto_iff_norm_tendsto_zero], simp only [sub_zero] }
@@ -821,6 +815,41 @@ lipschitz_with_one_norm.uniform_continuous
 
 lemma uniform_continuous_nnnorm : uniform_continuous (λ (a : E), ∥a∥₊) :=
 uniform_continuous_subtype_mk uniform_continuous_norm _
+
+/-- A helper lemma used to prove that the (scalar or usual) product of a function that tends to zero
+and a bounded function tends to zero. This lemma is formulated for any binary operation
+`op : E → F → G` with an estimate `∥op x y∥ ≤ A * ∥x∥ * ∥y∥` for some constant A instead of
+multiplication so that it can be applied to `(*)`, `flip (*)`, `(•)`, and `flip (•)`. -/
+lemma filter.tendsto.op_zero_is_bounded_under_le' {f : α → E} {g : α → F} {l : filter α}
+  (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) (op : E → F → G)
+  (h_op : ∃ A, ∀ x y, ∥op x y∥ ≤ A * ∥x∥ * ∥y∥) :
+  tendsto (λ x, op (f x) (g x)) l (𝓝 0) :=
+begin
+  cases h_op with A h_op,
+  rcases hg with ⟨C, hC⟩, rw eventually_map at hC,
+  rw normed_group.tendsto_nhds_zero at hf ⊢,
+  intros ε ε₀,
+  rcases exists_pos_mul_lt ε₀ (A * C) with ⟨δ, δ₀, hδ⟩,
+  filter_upwards [hf δ δ₀, hC] with i hf hg,
+  refine (h_op _ _).trans_lt _,
+  cases le_total A 0 with hA hA,
+  { exact (mul_nonpos_of_nonpos_of_nonneg (mul_nonpos_of_nonpos_of_nonneg hA (norm_nonneg _))
+      (norm_nonneg _)).trans_lt ε₀ },
+  calc A * ∥f i∥ * ∥g i∥ ≤ A * δ * C :
+    mul_le_mul (mul_le_mul_of_nonneg_left hf.le hA) hg (norm_nonneg _) (mul_nonneg hA δ₀.le)
+  ... = A * C * δ : mul_right_comm _ _ _
+  ... < ε : hδ
+end
+
+/-- A helper lemma used to prove that the (scalar or usual) product of a function that tends to zero
+and a bounded function tends to zero. This lemma is formulated for any binary operation
+`op : E → F → G` with an estimate `∥op x y∥ ≤ ∥x∥ * ∥y∥` instead of multiplication so that it
+can be applied to `(*)`, `flip (*)`, `(•)`, and `flip (•)`. -/
+lemma filter.tendsto.op_zero_is_bounded_under_le {f : α → E} {g : α → F} {l : filter α}
+  (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) (op : E → F → G)
+  (h_op : ∀ x y, ∥op x y∥ ≤ ∥x∥ * ∥y∥) :
+  tendsto (λ x, op (f x) (g x)) l (𝓝 0) :=
+hf.op_zero_is_bounded_under_le' hg op ⟨1, λ x y, (one_mul (∥x∥)).symm ▸ h_op x y⟩
 
 section
 

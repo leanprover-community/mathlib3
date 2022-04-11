@@ -296,6 +296,8 @@ variables [group α]
 
 section quotient_action
 
+open subgroup mul_opposite
+
 variables (β) [monoid β] [mul_action β α] (H : subgroup α)
 
 /-- A typeclass for when a `mul_action β α` descends to the quotient `α ⧸ H`. -/
@@ -311,6 +313,10 @@ attribute [to_additive add_action.quotient_action] mul_action.quotient_action
 
 @[to_additive] instance left_quotient_action : quotient_action α H :=
 ⟨λ _ _ _ _, by rwa [smul_eq_mul, smul_eq_mul, mul_inv_rev, mul_assoc, inv_mul_cancel_left]⟩
+
+@[to_additive] instance right_quotient_action : quotient_action H.normalizer.opposite H :=
+⟨λ b c _ _, by rwa [smul_def, smul_def, smul_eq_mul_unop, smul_eq_mul_unop, mul_inv_rev, ←mul_assoc,
+  ←subtype.val_eq_coe, mem_normalizer_iff'.mp b.2, mul_assoc, mul_inv_cancel_left]⟩
 
 @[to_additive] instance quotient [quotient_action β H] : mul_action β (α ⧸ H) :=
 { smul := λ b, quotient.map' ((•) b) (λ a a' h, quotient_action.inv_mul_mem b h),

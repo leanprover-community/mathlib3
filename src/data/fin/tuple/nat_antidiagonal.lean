@@ -37,7 +37,7 @@ the sequence of elements `x : fin k → ℕ` such that `n = ∑ i, x i`.
 While we could implement this by filtering `(fintype.pi_finset $ λ _, range (n + 1))` or similar,
 this implementation would be much slower.
 
-In future, we could consider generalizing `finset.nat.antidiagonal_tuple` further to
+In the future, we could consider generalizing `finset.nat.antidiagonal_tuple` further to
 support finitely-supported functions, as is done with `cut` in
 `archive/100-theorems-list/45_partition.lean`.
 -/

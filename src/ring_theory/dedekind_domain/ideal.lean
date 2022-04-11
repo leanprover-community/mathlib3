@@ -1006,7 +1006,7 @@ is_dedekind_domain.quotient_equiv_pi_of_prod_eq _ _ _
   (λ i j hij, subtype.coe_injective.ne hij)
   (calc ∏ (P : (factors I).to_finset), (P : ideal R) ^ (factors I).count (P : ideal R)
       = ∏ P in (factors I).to_finset, P ^ (factors I).count P
-    : fintype.prod_coe_sort (factors I).to_finset (λ P, P ^ (factors I).count P)
+    : (factors I).to_finset.prod_coe_sort (λ P, P ^ (factors I).count P)
   ... = ((factors I).map (λ P, P)).prod : (finset.prod_multiset_map_count (factors I) id).symm
   ... = (factors I).prod : by rw multiset.map_id'
   ... = I : (@associated_iff_eq (ideal R) _ ideal.unique_units _ _).mp (factors_prod hI))

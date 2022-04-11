@@ -19,14 +19,6 @@ namespace finset
 
 variables [decidable_eq α]
 
-section has_mul
-variables [has_mul α] {s t : finset α}
-
-lemma card_mul_le (s t : finset α) : (s * t).card ≤ s.card * t.card :=
-card_image_le.trans (card_product _ _).le
-
-end has_mul
-
 section
 variables [left_cancel_semigroup α] {s t : finset α}
 
@@ -71,6 +63,28 @@ variables [group α] {s : finset α}
 let ⟨a, ha⟩ := h in mem_div.2 ⟨a, a, ha, ha, div_self' _⟩
 
 end group
+
+section mul_action
+
+variables [group α] [decidable_eq β] [mul_action α β] (A : finset β) (a : α) (x : β)
+
+@[to_additive]
+instance : mul_action α (finset β) :=
+{ one_smul := λ s, by simp [finset.ext_iff, mem_smul_finset],
+  mul_smul := λ i j s, by simp only [←finset.coe_inj, coe_smul_finset, mul_smul] }
+
+@[simp, to_additive]
+lemma smul_mem_smul_same_iff : a • x ∈ a • A ↔ x ∈ A := by simp [mem_smul_finset]
+
+@[to_additive] lemma mem_smul_finset_iff_inv_smul_mem : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
+by rw [←smul_mem_smul_same_iff _ a⁻¹, inv_smul_smul]
+
+@[to_additive]
+lemma mem_inv_smul_finset_iff : x ∈ a⁻¹ • A ↔ a • x ∈ A :=
+by rw [←smul_mem_smul_same_iff _ a, smul_inv_smul]
+
+end mul_action
+
 end finset
 
 namespace finset
@@ -82,10 +96,10 @@ lemma exists_subset_mul_div (ht : t.nonempty) (h : ↑((s * t).card) ≤ t.card 
   ∃ u : finset α, ↑(u.card) ≤ r ∧ s ⊆ u * t / t :=
 begin
   haveI : Π u, decidable ((u : set α).pairwise_disjoint (• t)) := λ u, classical.dec _,
-  set C := s.powerset.filter (λ u, (u : set α).pairwise_disjoint (• t)) with hC,
+  set C := s.powerset.filter (λ u, (u : set α).pairwise_disjoint (• t)),
   obtain ⟨u, hu, hCmax⟩ := C.exists_maximal
     (filter_nonempty_iff.2 ⟨∅, empty_mem_powerset _, set.pairwise_disjoint_empty⟩),
-  rw [hC, mem_filter, mem_powerset] at hu,
+  rw [mem_filter, mem_powerset] at hu,
   refine ⟨u, _, λ a ha, _⟩,
   { -- TODO: `smul_le_smul_iff_of_pos` ought to be useful here
     refine le_of_mul_le_mul_left _ (cast_pos.2 ht.card_pos),
@@ -96,14 +110,12 @@ begin
   { exact subset_mul_left _ ht.one_mem_div hau },
   by_cases H : ∀ b ∈ u, disjoint (a • t) (b • t),
   { refine (hCmax _ _ $ ssubset_insert hau).elim,
-    rw [hC, mem_filter, mem_powerset, insert_subset, coe_insert],
+    rw [mem_filter, mem_powerset, insert_subset, coe_insert],
     exact ⟨⟨ha, hu.1⟩, hu.2.insert $ λ b hb _, H _ hb⟩ },
   push_neg at H,
-  simp_rw [not_disjoint_iff, mem_smul_finset] at H,
-  obtain ⟨b, hb, c, ⟨d, hd, hdc⟩, e, he, hec⟩ := H,
-  refine mem_mul.2 ⟨_, _, hb, mem_div.2 ⟨_, _, he, hd, _⟩, mul_div_cancel'_right _ _⟩,
-  rw [div_eq_div_iff_mul_eq_mul, mul_comm],
-  exact hec.trans hdc.symm,
+  simp_rw [not_disjoint_iff, mem_smul_finset_iff_inv_smul_mem] at H,
+  obtain ⟨b, hb, c, hc₁, hc₂⟩ := H,
+  exact mem_mul.2 ⟨_, _, hb, mem_div.2 ⟨_, _, hc₂, hc₁, by simp [div_eq_mul_inv a b]⟩, by simp⟩,
 end
 
 end finset

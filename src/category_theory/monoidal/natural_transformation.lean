@@ -158,4 +158,77 @@ instance is_iso_of_is_iso_app (α : F ⟶ G) [∀ X : C, is_iso (α.app X)] : is
 
 end monoidal_nat_iso
 
+noncomputable theory
+
+/-- The unit of a monoidal equivalence can be upgraded to a monoidal natural transformation. -/
+@[simps]
+def monoidal_unit (F : monoidal_functor C D) [is_equivalence F.to_functor] :
+  lax_monoidal_functor.id C ⟶
+    F.to_lax_monoidal_functor ⊗⋙ (monoidal_inverse F).to_lax_monoidal_functor :=
+let e := F.to_functor.as_equivalence in
+{ to_nat_trans := e.unit,
+  tensor' := λ X Y, begin
+    -- This proof is not pretty; golfing welcome!
+    dsimp,
+    simp only [adjunction.hom_equiv_unit, adjunction.hom_equiv_naturality_right,
+      category.id_comp, category.assoc],
+    simp only [←functor.map_comp],
+    erw [e.counit_app_functor, e.counit_app_functor, F.to_lax_monoidal_functor.μ_natural,
+      is_iso.inv_hom_id_assoc],
+    simp only [category_theory.is_equivalence.inv_fun_map],
+    slice_rhs 2 3 { erw iso.hom_inv_id_app, },
+    dsimp,
+    simp only [category_theory.category.id_comp],
+    slice_rhs 1 2 { rw [←tensor_comp, iso.hom_inv_id_app, iso.hom_inv_id_app],
+      dsimp, rw [tensor_id], },
+    simp,
+  end }.
+
+instance (F : monoidal_functor C D) [is_equivalence F.to_functor] : is_iso (monoidal_unit F) :=
+begin
+  haveI : ∀ (X : C), is_iso ((monoidal_unit F).to_nat_trans.app X),
+  { intros, dsimp, apply_instance, },
+  exact monoidal_nat_iso.is_iso_of_is_iso_app _
+end
+
+/-- The counit of a monoidal equivalence can be upgraded to a monoidal natural transformation. -/
+@[simps]
+def monoidal_counit (F : monoidal_functor C D) [is_equivalence F.to_functor] :
+  (monoidal_inverse F).to_lax_monoidal_functor ⊗⋙ F.to_lax_monoidal_functor ⟶
+    lax_monoidal_functor.id D :=
+let e := F.to_functor.as_equivalence in
+{ to_nat_trans := e.counit,
+  unit' := begin
+    dsimp,
+    simp only [category.comp_id, category.assoc, functor.map_inv, functor.map_comp,
+      nat_iso.inv_inv_app, is_iso.inv_comp, is_equivalence.fun_inv_map, adjunction.hom_equiv_unit],
+    erw [e.counit_app_functor, ←e.functor.map_comp_assoc, iso.hom_inv_id_app],
+    dsimp, simp,
+  end,
+  tensor' := λ X Y, begin
+    dsimp,
+    simp only [adjunction.hom_equiv_unit, adjunction.hom_equiv_naturality_right, category.assoc,
+      category.comp_id, functor.map_comp],
+    simp only [is_equivalence.fun_inv_map],
+    erw [e.counit_app_functor],
+    simp only [category.assoc],
+    erw [←e.functor.map_comp_assoc],
+    simp only [category_theory.iso.inv_hom_id_app,
+      category_theory.iso.inv_hom_id_app_assoc],
+    erw [iso.hom_inv_id_app],
+    erw [category_theory.functor.map_id],
+    simp only [category.id_comp],
+    simp only [category_theory.iso.inv_hom_id_app,
+      category_theory.is_iso.hom_inv_id_assoc],
+    erw [iso.inv_hom_id_app],
+    dsimp, simp, refl,
+  end }
+
+instance (F : monoidal_functor C D) [is_equivalence F.to_functor] : is_iso (monoidal_counit F) :=
+begin
+  haveI : ∀ (X : D), is_iso ((monoidal_counit F).to_nat_trans.app X),
+  { intros, dsimp, apply_instance, },
+  exact monoidal_nat_iso.is_iso_of_is_iso_app _
+end
+
 end category_theory

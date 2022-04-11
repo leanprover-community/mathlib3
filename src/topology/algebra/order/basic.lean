@@ -211,6 +211,12 @@ lemma is_closed.is_closed_le [topological_space β] {f g : β → α} {s : set �
   is_closed {x ∈ s | f x ≤ g x} :=
 (hf.prod hg).preimage_closed_of_closed hs order_closed_topology.is_closed_le'
 
+lemma le_on_closure [topological_space β] {f g : β → α} {s : set β} (h : ∀ x ∈ s, f x ≤ g x)
+  (hf : continuous_on f (closure s)) (hg : continuous_on g (closure s)) ⦃x⦄ (hx : x ∈ closure s) :
+  f x ≤ g x :=
+have s ⊆ {y ∈ closure s | f y ≤ g y}, from λ y hy, ⟨subset_closure hy, h y hy⟩,
+(closure_minimal this (is_closed_closure.is_closed_le hf hg) hx).2
+
 lemma is_closed.epigraph [topological_space β] {f : β → α} {s : set β}
   (hs : is_closed s) (hf : continuous_on f s) :
   is_closed {p : β × α | p.1 ∈ s ∧ f p.1 ≤ p.2} :=
@@ -682,8 +688,8 @@ lemma nhds_eq_order (a : α) :
 by rw [t.topology_eq_generate_intervals, nhds_generate_from];
 from le_antisymm
   (le_inf
-    (le_binfi $ assume b hb, infi_le_of_le {c : α | b < c} $ infi_le _ ⟨hb, b, or.inl rfl⟩)
-    (le_binfi $ assume b hb, infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
+    (le_infi₂ $ assume b hb, infi_le_of_le {c : α | b < c} $ infi_le _ ⟨hb, b, or.inl rfl⟩)
+    (le_infi₂ $ assume b hb, infi_le_of_le {c : α | c < b} $ infi_le _ ⟨hb, b, or.inr rfl⟩))
   (le_infi $ assume s, le_infi $ assume ⟨ha, b, hs⟩,
     match s, ha, hs with
     | _, h, (or.inl rfl) := inf_le_of_left_le $ infi_le_of_le b $ infi_le _ h

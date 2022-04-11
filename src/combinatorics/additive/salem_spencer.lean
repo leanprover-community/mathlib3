@@ -30,7 +30,8 @@ the size of the biggest Salem-Spencer subset of `{0, ..., n - 1}`.
 
 ## TODO
 
-Can `add_salem_spencer_iff_eq_right` be made more general?
+* Can `add_salem_spencer_iff_eq_right` be made more general?
+* Generalize `mul_salem_spencer.image` to Freiman homs
 
 ## Tags
 
@@ -285,7 +286,7 @@ variables [monoid α] [decidable_eq β] [monoid β] (s t : finset α)
 /-- The multiplicative Roth number of a finset is the cardinality of its biggest multiplicative
 Salem-Spencer subset. -/
 @[to_additive "The additive Roth number of a finset is the cardinality of its biggest additive
-Salem-Spencer subset. The usual Roth number corresponds to ` add_roth_number (finset.range n)`, see
+Salem-Spencer subset. The usual Roth number corresponds to `add_roth_number (finset.range n)`, see
 `roth_number_nat`. "]
 def mul_roth_number : finset α →o ℕ :=
 ⟨λ s, nat.find_greatest (λ m, ∃ t ⊆ s, t.card = m ∧ mul_salem_spencer (t : set α)) s.card,
@@ -401,11 +402,11 @@ variables {s : finset ℕ} {k n : ℕ}
 
 /-- The Roth number of a natural `N` is the largest integer `m` for which there is a subset of
 `range N` of size `m` with no arithmetic progression of length 3.
-Trivially, ` roth_number_nat N ≤ N`, but Roth's theorem (proved in 1953) shows that
-` roth_number_nat N = o(N)` and the construction by Behrend gives a lower bound of the form
-`N * exp(-C sqrt(log(N))) ≤  roth_number_nat N`.
+Trivially, `roth_number_nat N ≤ N`, but Roth's theorem (proved in 1953) shows that
+`roth_number_nat N = o(N)` and the construction by Behrend gives a lower bound of the form
+`N * exp(-C sqrt(log(N))) ≤ roth_number_nat N`.
 A significant refinement of Roth's theorem by Bloom and Sisask announced in 2020 gives
-` roth_number_nat N = O(N / (log N)^(1+c))` for an absolute constant `c`. -/
+`roth_number_nat N = O(N / (log N)^(1+c))` for an absolute constant `c`. -/
 def roth_number_nat : ℕ →o ℕ :=
 ⟨λ n, add_roth_number (range n), add_roth_number.mono.comp range_mono⟩
 
@@ -426,7 +427,7 @@ lemma add_salem_spencer.le_roth_number_nat (s : finset ℕ) (hs : add_salem_spen
 hsk.ge.trans $ hs.le_add_roth_number $ λ x hx, mem_range.2 $ hsn x hx
 
 /-- The Roth number is a subadditive function. Note that by Fekete's lemma this shows that
-the limit ` roth_number_nat N / N` exists, but Roth's theorem gives the stronger result that this
+the limit `roth_number_nat N / N` exists, but Roth's theorem gives the stronger result that this
 limit is actually `0`. -/
 lemma roth_number_nat_add_le (M N : ℕ) :
   roth_number_nat (M + N) ≤ roth_number_nat M + roth_number_nat N :=
@@ -455,7 +456,7 @@ lemma roth_number_nat_is_O_with_id :
 is_O_with.of_bound $ by simpa only [one_mul, real.norm_coe_nat, nat.cast_le]
   using eventually_of_forall roth_number_nat_le
 
-/-- The Roth number has the trivial bound ` roth_number_nat N = O(N)`. -/
+/-- The Roth number has the trivial bound `roth_number_nat N = O(N)`. -/
 lemma roth_number_nat_is_O_id : is_O (λ N, (roth_number_nat N : ℝ)) (λ N, (N : ℝ)) at_top :=
 roth_number_nat_is_O_with_id.is_O
 

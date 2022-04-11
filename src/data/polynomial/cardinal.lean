@@ -23,7 +23,7 @@ calc #R[X] = #(mv_polynomial punit.{u + 1} R) :
   cardinal.eq.2 ⟨(mv_polynomial.punit_alg_equiv.{u u} R).to_equiv.symm⟩
 ... ≤ _ : mv_polynomial.cardinal_mk_le_max
 ... ≤ _ : begin
-  have : #(punit.{u + 1}) ≤ ω, from (lt_omega_iff_fintype.2 ⟨infer_instance⟩).le,
+  have : #(punit.{u + 1}) ≤ ω, from le_of_lt (lt_omega_iff_fintype.2 ⟨infer_instance⟩),
   rw [max_assoc, max_eq_right this]
 end
 

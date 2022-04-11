@@ -684,6 +684,14 @@ by {induction l; intros, contradiction, reflexivity}
 by induction l;
   [refl, simp only [cons_append, last_cons (λ H, cons_ne_nil _ _ (append_eq_nil.1 H).2), *]]
 
+theorem last_append' (l₁ l₂ : list α) (h : l₂ ≠ []) :
+  last (l₁ ++ l₂) (append_ne_nil_of_ne_nil_right l₁ l₂ h) = last l₂ h :=
+begin
+  induction l₁ with _ _ ih,
+  { simp },
+  { simp only [cons_append], rw list.last_cons, exact ih },
+end
+
 theorem last_concat {a : α} (l : list α) : last (concat l a) (concat_ne_nil a l) = a :=
 by simp only [concat_eq_append, last_append]
 

@@ -327,6 +327,10 @@ begin
   { rintro rfl, exact one }
 end
 
+@[simp] lemma coe_submonoid_class_iff {M B : Type*} [comm_monoid M] [set_like B M]
+  [submonoid_class B M] {N : B} {ζ : N} : is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
+by simp [iff_def, ← submonoid_class.coe_pow]
+
 @[simp] lemma coe_units_iff {ζ : Mˣ} :
   is_primitive_root (ζ : M) k ↔ is_primitive_root ζ k :=
 by simp only [iff_def, units.ext_iff, units.coe_pow, units.coe_one]
@@ -476,10 +480,6 @@ begin
   rw [int.gcd, ← int.nat_abs_neg, ← hi'] at hi,
   exact hi
 end
-
-@[simp] lemma coe_subgroup_iff (H : subgroup G) {ζ : H} :
-  is_primitive_root (ζ : G) k ↔ is_primitive_root ζ k :=
-by simp only [iff_def, ← subgroup.coe_pow, ← H.coe_one, ← subtype.ext_iff]
 
 end comm_group
 

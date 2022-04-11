@@ -383,7 +383,6 @@ calc x ^ i = x ^ (i % order_of x + order_of x * (i / order_of x)) :
     by rw [int.mod_add_div]
        ... = x ^ (i % order_of x) :
     by simp [zpow_add, zpow_mul, pow_order_of_eq_one]
-    set_option pp.all true
 
 @[to_additive nsmul_inj_iff_of_add_order_of_eq_zero]
 lemma pow_inj_iff_of_order_of_eq_zero (h : order_of x = 0) {n m : ℕ} :

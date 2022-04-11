@@ -261,16 +261,6 @@ by rw [← algebra.map_top, ← adjoin_X, alg_hom.map_adjoin, set.image_singleto
 
 variable {R}
 
-section semiring
-
-variables [semiring S]
-
-lemma aeval_sum {ι : Type*} [algebra R S] (s : finset ι) (f : ι → R[X])
-  (g : S) : aeval g (∑ i in s, f i) = ∑ i in s, aeval g (f i) :=
-(polynomial.aeval g : R[X] →ₐ[_] _).map_sum f s
-
-end semiring
-
 section comm_semiring
 
 variables [comm_semiring S] {f : R →+* S}
@@ -282,11 +272,6 @@ by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range (algebra_map R S) x }
 lemma aeval_eq_sum_range' [algebra R S] {p : R[X]} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
   aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
 by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
-
-@[to_additive]
-lemma aeval_prod {ι : Type*} [algebra R S] (s : finset ι)
-  (f : ι → R[X]) (g : S) : aeval g (∏ i in s, f i) = ∏ i in s, aeval g (f i) :=
-(polynomial.aeval g : R[X] →ₐ[_] _).map_prod f s
 
 lemma is_root_of_eval₂_map_eq_zero
   (hf : function.injective f) {r : R} : eval₂ f (f r) p = 0 → p.is_root r :=

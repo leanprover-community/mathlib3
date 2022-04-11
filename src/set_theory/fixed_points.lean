@@ -107,7 +107,7 @@ begin
   { unfreezingI { cases hι with i },
     exact ((H i).self_le b).trans (h i) },
   rw ←nfp_family_fp (H i),
-  exact (H i).strict_mono.monotone h
+  exact (H i).monotone h
 end
 
 theorem nfp_family_eq_self {f : ι → ordinal → ordinal} {a} (h : ∀ i, f i a = a) :
@@ -165,11 +165,11 @@ theorem le_iff_deriv_family (H : ∀ i, is_normal (f i)) {a} :
   from this a ((deriv_family_is_normal _).self_le _),
   refine λ o, limit_rec_on o (λ h₁, ⟨0, le_antisymm _ h₁⟩) (λ o IH h₁, _) (λ o l IH h₁, _),
   { rw deriv_family_zero,
-    exact nfp_family_le_fp (λ i, (H i).strict_mono.monotone) (ordinal.zero_le _) ha },
+    exact nfp_family_le_fp (λ i, (H i).monotone) (ordinal.zero_le _) ha },
   { cases le_or_lt a (deriv_family f o), {exact IH h},
     refine ⟨succ o, le_antisymm _ h₁⟩,
     rw deriv_family_succ,
-    exact nfp_family_le_fp (λ i, (H i).strict_mono.monotone) (succ_le.2 h) ha },
+    exact nfp_family_le_fp (λ i, (H i).monotone) (succ_le.2 h) ha },
   { cases eq_or_lt_of_le h₁, {exact ⟨_, h.symm⟩},
     rw [deriv_family_limit _ l, ← not_le, bsup_le_iff, not_ball] at h,
     exact let ⟨o', h, hl⟩ := h in IH o' h (le_of_not_le hl) }
@@ -262,7 +262,7 @@ begin
   { have ho' : 0 < o := ordinal.pos_iff_ne_zero.2 ho,
     exact ((H 0 ho').self_le b).trans (h 0 ho') },
   rw ←nfp_bfamily_fp (H i hi),
-  exact (H i hi).strict_mono.monotone h
+  exact (H i hi).monotone h
 end
 
 theorem nfp_bfamily_eq_self {a} (h : ∀ i hi, f i hi a = a) : nfp_bfamily o f a = a :=

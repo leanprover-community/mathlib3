@@ -640,6 +640,56 @@ begin
   exact regular.smul ctop,
 end
 
+/-- **Steinhaus Theorem** In any locally compact group `G` with a haar measure `μ`, for any
+  measurable set `E` of positive measure, the set `E / E` is a neighbourhood of `1`. -/
+@[to_additive "**Steinhaus Theorem** In any locally compact group `G` with a haar measure `μ`,
+  for any measurable set `E` of positive measure, the set `E - E` is a neighbourhood of `0`."]
+theorem div_mem_nhds_one_of_haar_pos (μ : measure G) [is_haar_measure μ] [locally_compact_space G]
+  (E : set G) (hE : measurable_set E) (hEpos : 0 < μ E) :
+  E / E ∈ 𝓝 (1 : G) :=
+begin
+  /- For any regular measure `μ` and set `E` of positive measure, we can find a compact set `K` of
+     positive measure inside `E`. Further, for any outer regular measure `μ` there exists an open
+     set `U` containing `K` with measure arbitrarily close to `K` (here `μ U < 2 * μ K` suffices).
+     Then, we can pick an open neighborhood of `1`, say `V` such that such that `V * K` is contained
+     in `U`. Now note that for any `v` in `V`, the sets `K` and `{v} * K` can not be disjoint
+     because they are both of measure `μ K` (since `μ` is left regular) and also contained in `U`,
+     yet we have that `μ U < 2 * μ K`. This show that `K / K` contains the neighborhood `V` of `1`,
+     and therefore that it is itself such a neighborhood. -/
+  obtain ⟨L, hL, hLE, hLpos, hLtop⟩ : ∃ (L : set G), measurable_set L ∧ L ⊆ E ∧ 0 < μ L ∧ μ L < ∞,
+    from exists_subset_measure_lt_top hE hEpos,
+  obtain ⟨K, hKL, hK, hKpos⟩ : ∃ (K : set G) (H : K ⊆ L), is_compact K ∧ 0 < μ K,
+    from measurable_set.exists_lt_is_compact_of_ne_top hL (ne_of_lt hLtop) hLpos,
+  have hKtop : μ K ≠ ∞,
+  { apply ne_top_of_le_ne_top (ne_of_lt hLtop),
+    apply measure_mono hKL },
+  obtain ⟨U, hUK, hU, hμUK⟩ : ∃ (U : set G) (H : U ⊇ K), is_open U ∧ μ U < μ K + μ K,
+   from set.exists_is_open_lt_add K hKtop hKpos.ne',
+  obtain ⟨V, hV1, hVKU⟩ : ∃ (V ∈ 𝓝 (1 : G)), V * K ⊆ U,
+    from compact_open_separated_mul_left hK hU hUK,
+  have hv : ∀ (v : G), v ∈ V → ¬ disjoint ({v}* K) K,
+  { intros v hv hKv,
+    have hKvsub : {v} * K ∪ K ⊆ U,
+    { apply set.union_subset _ hUK,
+      apply subset_trans _ hVKU,
+      apply set.mul_subset_mul _ (set.subset.refl K),
+      simp only [set.singleton_subset_iff, hv] },
+    replace hKvsub := @measure_mono _ _ μ _ _ hKvsub,
+    have hcontr := lt_of_le_of_lt hKvsub hμUK,
+    rw measure_union hKv (is_compact.measurable_set hK) at hcontr,
+    have hKtranslate : μ ({v} * K) = μ K,
+      by simp only [singleton_mul, image_mul_left, measure_preimage_mul],
+    rw [hKtranslate, lt_self_iff_false] at hcontr,
+    assumption },
+  suffices : V ⊆ E / E, from filter.mem_of_superset hV1 this,
+  assume v hvV,
+  obtain ⟨x, hxK, hxvK⟩ : ∃ (x : G), x ∈ {v} * K ∧ x ∈ K, from set.not_disjoint_iff.1 (hv v hvV),
+  refine ⟨x, v⁻¹ * x, hLE (hKL hxvK), _, _⟩,
+  { apply hKL.trans hLE,
+    simpa only [singleton_mul, image_mul_left, mem_preimage] using hxK },
+  { simp only [div_eq_iff_eq_mul, ← mul_assoc, mul_right_inv, one_mul] },
+end
+
 end second_countable
 
 /-- Any Haar measure is invariant under inversion in a commutative group. -/

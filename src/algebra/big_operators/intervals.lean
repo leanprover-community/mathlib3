@@ -233,10 +233,17 @@ begin
   abel,
 end
 
+variable (n)
+
 /-- **Summation by parts** for ranges -/
-lemma sum_range_by_parts (hn : 0 < n) :
+lemma sum_range_by_parts :
   ∑ i in range n, (f i • g i) = f (n-1) • G n - ∑ i in range (n-1), (f (i+1) - f i) • G (i+1) :=
-by rw [range_eq_Ico, sum_Ico_by_parts f g hn, sum_range_zero, smul_zero, sub_zero, range_eq_Ico]
+begin
+  by_cases hn : n = 0,
+  { simp [hn], },
+  { rw [range_eq_Ico, sum_Ico_by_parts f g (nat.pos_of_ne_zero hn), sum_range_zero,
+      smul_zero, sub_zero, range_eq_Ico] },
+end
 
 end module
 

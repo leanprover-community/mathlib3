@@ -236,9 +236,9 @@ local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal 
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
   { dsimp,
-    simp only [obj_μ_app, μ_naturality_assoc, μ_naturalityₗ_assoc, μ_inv_hom_app_assoc,
-      category.assoc, obj_μ_inv_app, functor.map_comp, μ_inv_naturalityᵣ_assoc],
-    simp [opaque_eq_to_iso] },
+    -- Hopefully this can qualify as close enough to a terminal simp.
+    simp,
+    simp [opaque_eq_to_iso], },
   { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end
 
@@ -247,7 +247,7 @@ end
 def shift_ε : 𝟭 (differential_object C) ≅ shift_functor C 0 :=
 begin
   refine nat_iso.of_components (λ X, mk_iso ((shift_monoidal_functor C ℤ).ε_iso.app X.X) _) _,
-  { dsimp, simp, dsimp, simp },
+  { dsimp, simp, },
   { introv, ext, dsimp, simp }
 end
 

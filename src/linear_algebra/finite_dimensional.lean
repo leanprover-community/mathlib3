@@ -212,7 +212,7 @@ lemma finite_dimensional_iff_of_rank_eq_nsmul
   {n : ℕ} (hn : n ≠ 0) (hVW : module.rank K V = n • module.rank K W) :
   finite_dimensional K V ↔ finite_dimensional K W :=
 by simp only [finite_dimensional, ← is_noetherian.iff_fg, is_noetherian.iff_dim_lt_omega, hVW,
-  cardinal.nsmul_lt_omega_iff, hn, false_or]
+  cardinal.nsmul_lt_omega_iff_of_ne_zero hn]
 
 /-- If a vector space has a finite basis, then its dimension is equal to the cardinality of the
 basis. -/

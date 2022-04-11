@@ -988,6 +988,7 @@ lemma add_lt_omega_iff {a b : cardinal} : a + b < ω ↔ a < ω ∧ b < ω :=
 lemma omega_le_add_iff {a b : cardinal} : ω ≤ a + b ↔ ω ≤ a ∨ ω ≤ b :=
 by simp only [← not_lt, add_lt_omega_iff, not_and_distrib]
 
+/-- See also `cardinal.nsmul_lt_omega_iff_of_ne_zero` if you already have `n ≠ 0`. -/
 lemma nsmul_lt_omega_iff {n : ℕ} {a : cardinal} : n • a < ω ↔ n = 0 ∨ a < ω :=
 begin
   cases n,
@@ -997,6 +998,10 @@ begin
   { simp },
   rw [succ_nsmul, add_lt_omega_iff, ih, and_self]
 end
+
+/-- See also `cardinal.nsmul_lt_omega_iff` for a hypothesis-free version. -/
+lemma nsmul_lt_omega_iff_of_ne_zero {n : ℕ} {a : cardinal} (h : n ≠ 0) : n • a < ω ↔ a < ω :=
+by simp only [nsmul_lt_omega_iff, h, false_or]
 
 theorem mul_lt_omega {a b : cardinal} (ha : a < ω) (hb : b < ω) : a * b < ω :=
 match a, b, lt_omega.1 ha, lt_omega.1 hb with

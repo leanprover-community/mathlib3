@@ -211,6 +211,8 @@ lemma is_compact.exists_forall_ge :
   ∃x∈s, ∀y∈s, f y ≤ f x :=
 @is_compact.exists_forall_le (order_dual α) _ _ _ _ _
 
+/-- The **extreme value theorem**: if a function `f` is continuous on a closed set `s` and it is
+larger than a value in its image away from compact sets, then it has a minimum on this set. -/
 lemma continuous_on.exists_forall_le' {s : set β} {f : β → α} (hf : continuous_on f s)
   (hsc : is_closed s) {x₀ : β} (h₀ : x₀ ∈ s) (hc : ∀ᶠ x in cocompact β ⊓ 𝓟 s, f x₀ ≤ f x) :
   ∃ x ∈ s, ∀ y ∈ s, f x ≤ f y :=
@@ -224,6 +226,8 @@ begin
   exacts [hxf _ (or.inr ⟨hyK, hy⟩), (hxf _ (or.inl rfl)).trans (hKf ⟨hyK, hy⟩)]
 end
 
+/-- The **extreme value theorem**: if a function `f` is continuous on a closed set `s` and it is
+smaller than a value in its image away from compact sets, then it has a maximum on this set. -/
 lemma continuous_on.exists_forall_ge' {s : set β} {f : β → α} (hf : continuous_on f s)
   (hsc : is_closed s) {x₀ : β} (h₀ : x₀ ∈ s) (hc : ∀ᶠ x in cocompact β ⊓ 𝓟 s, f x ≤ f x₀) :
   ∃ x ∈ s, ∀ y ∈ s, f y ≤ f x :=

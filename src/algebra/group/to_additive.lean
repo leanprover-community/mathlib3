@@ -552,7 +552,16 @@ protected meta def attr : user_attribute unit value_type :=
           "versions after"),
       match val.doc with
       | some doc := add_doc_string tgt doc
-      | none := skip
+      | none := do
+        alias_opt ← tactic.alias.get_alias_target src,
+        match alias_opt with
+        | some alias_name := match dict.find alias_name with
+          | some add_alias_name :=
+            add_doc_string tgt ("**Alias** of `" ++ to_string add_alias_name ++ "`.")
+          | none := skip
+          end
+        | none := skip
+        end
       end }
 
 add_tactic_doc
@@ -580,9 +589,6 @@ them has one -/
 @[linter] meta def linter.to_additive_doc : linter :=
 { test := (λ d, do
     let mul_name := d.to_name,
-    /- Disable this linter for aliases -/
-    is_alias ← tactic.alias.get_alias_target mul_name,
-    if is_alias.is_some then return none else do
     dict ← to_additive.aux_attr.get_cache,
     match dict.find mul_name with
     | some add_name := do

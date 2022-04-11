@@ -10,14 +10,15 @@ import order.partition.equipartition
 
 This file allows to blow partitions up into parts of controlled size. Given a partition `P` and
 `a b m : ℕ`, we want to find a partition `Q` with `a` parts of size `m` and `b` parts of size
-`m + 1` such that all parts of `P` are as close as possible to unions of parts of `Q`. Assuming the
-ground set is of size `a * m + b * (m + 1)`, this is possible.
+`m + 1` such that all parts of `P` are "as close as possible" to unions of parts of `Q`. By
+"as close as possible", we mean that each part of `P` can be written as the union of some parts of
+`Q` along with at most `m` vertices.
 
 ## Main declarations
 
 * `finpartition.equitabilise`: `P.equitabilise h` where `h : a * m + b * (m + 1)` is a partition
   with `a` parts of size `m` and `b` parts of size `m + 1` which almost refines `P`.
-* `finpartition.exists_dummy_equipartition`: We can find dummy equipartitions of arbitrary size.
+* `finpartition.exists_equipartition_card_eq`: We can find equipartitions of arbitrary size.
 -/
 
 open finset nat
@@ -184,11 +185,11 @@ lemma card_filter_equitabilise_big (P : finpartition s) (h : a * m + b * (m + 1)
   ((P.equitabilise h).parts.filter $ λ u : finset α, u.card = m + 1).card = b :=
 (P.equitabilise_aux h).some_spec.2.2
 
-lemma card_filter_equitabilise_small (P : finpartition s) (hm : 0 < m)
+lemma card_filter_equitabilise_small (P : finpartition s) (hm : m ≠ 0)
   (h : a * m + b * (m + 1) = s.card) :
   ((P.equitabilise h).parts.filter $ λ u : finset α, u.card = m).card = a :=
 begin
-  refine (mul_eq_mul_right_iff.1 $ (add_left_inj (b * (m + 1))).1 _).resolve_right hm.ne',
+  refine (mul_eq_mul_right_iff.1 $ (add_left_inj (b * (m + 1))).1 _).resolve_right hm,
   rw [h, ←(P.equitabilise h).sum_card_parts],
   have hunion : (P.equitabilise h).parts = (P.equitabilise h).parts.filter (λ u, u.card = m) ∪
     (P.equitabilise h).parts.filter (λ u, u.card = m + 1),
@@ -202,7 +203,7 @@ begin
   rw [succ_eq_add_one, ←hx.2.2, hx.1.2],
 end
 
-lemma card_parts_equitabilise (hm : 0 < m) (h : a * m + b * (m + 1) = s.card) :
+lemma card_parts_equitabilise (hm : m ≠ 0) (h : a * m + b * (m + 1) = s.card) :
   (P.equitabilise h).parts.card = a + b :=
 begin
   transitivity ((P.equitabilise h).parts.filter (λ u, u.card = m) ∪
@@ -219,8 +220,8 @@ lemma card_parts_equitabilise_subset_le (h : a * m + b * (m + 1) = s.card) :
 
 variables (s)
 
-/-- An arbitrary equipartition into `n` parts. -/
-lemma exists_dummy_equipartition (hn : 0 < n) (hs : n ≤ s.card) :
+/-- We can find equipartitions of arbitrary size. -/
+lemma exists_equipartition_card_eq (hn : 0 < n) (hs : n ≤ s.card) :
   ∃ P : finpartition s, P.is_equipartition ∧ P.parts.card = n :=
 begin
   have : (n - s.card % n) * (s.card / n) + (s.card % n) * (s.card / n + 1) = s.card,
@@ -229,7 +230,7 @@ begin
     exact nat.mul_le_mul_right _ (mod_lt _ hn).le },
   refine ⟨(indiscrete (card_pos.1 $ hn.trans_le hs).ne_empty).equitabilise this,
     equitabilise_is_equipartition _ _, _⟩,
-  rw [card_parts_equitabilise (nat.div_pos hs hn), tsub_add_cancel_of_le (mod_lt _ hn).le],
+  rw [card_parts_equitabilise (nat.div_pos hs hn).ne', tsub_add_cancel_of_le (mod_lt _ hn).le],
 end
 
 end finpartition

@@ -971,45 +971,28 @@ meta def apply_list_expr (opt : apply_cfg) : list (tactic expr) → tactic unit
 
 /--
 Given the name of a user attribute, produces a list of `tactic expr`s, each of which is the
-application of `i_to_expr_for_apply` to a declaration with that attribute. If the name of the
-attribute is also a declaration itself, that declaration is included in the list, regardless of
-whether it is tagged with the attribute.
+application of `i_to_expr_for_apply` to a declaration with that attribute.
 -/
 meta def resolve_attribute_expr_list (attr_name : name) : tactic (list (tactic expr)) := do
   l ← attribute.get_instances attr_name,
-  m ← list.map i_to_expr_for_apply <$> list.reverse <$> l.mmap resolve_name,
-  extra ← try_core $ resolve_name attr_name,
-  return $ (extra.elim [] (λ p, return (i_to_expr_for_apply p))) ++ m
+  list.map i_to_expr_for_apply <$> list.reverse <$> l.mmap resolve_name
 
-/--
-Constructs a list of `tactic expr` given a list of p-expressions, as follows:
-- if the p-expression is a user attribute, add all the theorems with this attribute
-  to the list, using `resolve_attribute_expr_list`. This includes the case where the p-expression
-  is also the name of a theorem.
-- if the p-expression is the name of a theorem, use `i_to_expr_for_apply` on it.
 
-We need to return a list of `tactic expr`, rather than just `expr`, because these expressions
-will be repeatedly applied against goals, and we need to ensure that metavariables don't get stuck.
--/
-meta def build_list_expr_for_apply (inputs : list (name ⊕ pexpr)) : tactic (list (tactic expr)) :=
-inputs.mfoldl (λ l h, do
-  nl ← match h with
-  | sum.inl n := resolve_attribute_expr_list n <|> do
-    h ← pexpr.mk_explicit <$> resolve_name n, return [i_to_expr h]
-  | sum.inr h := return [i_to_expr_for_apply h]
-  end,
-  return $ nl ++ l)
-  []
-
-/--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the
-first goal and the resulting subgoals, iteratively, at most `n` times.
+/--`apply_rules args attrs n`: apply the lists of rules `args` (given as pexprs) and `attrs` (given
+as names of attributes) and `the tactic assumption` on the first goal and the resulting subgoals,
+iteratively, at most `n` times.
 
 Unlike `solve_by_elim`, `apply_rules` does not do any backtracking, and just greedily applies
 a lemma from the list until it can't.
  -/
-meta def apply_rules (hs : list (name ⊕ pexpr)) (n : nat) (opt : apply_cfg) : tactic unit :=
-do l ← lock_tactic_state $ build_list_expr_for_apply hs,
-   iterate_at_most_on_subgoals n (assumption <|> apply_list_expr opt l)
+meta def apply_rules (args : list pexpr) (attrs : list name) (n : nat) (opt : apply_cfg) :
+  tactic unit := do
+  attr_exprs ← lock_tactic_state $ attrs.mfoldl
+    (λ l n, list.append l <$> resolve_attribute_expr_list n) [],
+  let args_exprs := args.map i_to_expr_for_apply ++ attr_exprs,
+-- `args_exprs` is a list of `tactic expr`, rather than just `expr`, because these expressions will
+-- be repeatedly applied against goals, and we need to ensure that metavariables don't get stuck.
+   iterate_at_most_on_subgoals n (assumption <|> apply_list_expr opt args_exprs)
 
 /-- `replace h p` elaborates the pexpr `p`, clears the existing hypothesis named `h` from the local
 context, and adds a new hypothesis named `h`. The type of this hypothesis is the type of `p`.

@@ -117,6 +117,14 @@ namespace mul_opposite
 
 end mul_opposite
 
+namespace subgroup
+
+@[to_additive] instance (S : subgroup α) : uniform_group S :=
+⟨uniform_continuous_comap' (uniform_continuous_div.comp $
+  uniform_continuous_subtype_val.prod_map uniform_continuous_subtype_val)⟩
+
+end subgroup
+
 section
 variables (α)
 

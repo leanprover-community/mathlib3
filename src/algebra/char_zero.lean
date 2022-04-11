@@ -42,6 +42,7 @@ from the natural numbers into it is injective.
 
 For instance, endowing `{0, 1}` with addition given by `max` (i.e. `1` is absorbing), shows that
 `char_zero {0, 1}` does not hold and yet `char_p {0, 1} 0` does.
+This example is formalized in `counterexamples/char_p_zero_ne_char_zero`.
  -/
 class char_zero (R : Type*) [add_monoid R] [has_one R] : Prop :=
 (cast_injective : function.injective (coe : ℕ → R))

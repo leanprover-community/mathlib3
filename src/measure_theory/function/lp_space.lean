@@ -1249,6 +1249,25 @@ end
 
 end monotonicity
 
+lemma snorm_indicator_ge_of_bdd_below (hp : p ≠ 0) (hp' : p ≠ ∞)
+  {f : α → F} (C : ℝ≥0) {s : set α} (hs : measurable_set s)
+  (hf : ∀ᵐ x ∂μ, x ∈ s → C ≤ ∥s.indicator f x∥₊) :
+  C • μ s ^ (1 / p.to_real) ≤ snorm (s.indicator f) p μ :=
+begin
+  rw [ennreal.smul_def, smul_eq_mul, snorm_eq_lintegral_rpow_nnnorm hp hp',
+    ennreal.le_rpow_one_div_iff (ennreal.to_real_pos hp hp'),
+    ennreal.mul_rpow_of_nonneg _ _ ennreal.to_real_nonneg,
+    ← ennreal.rpow_mul, one_div_mul_cancel (ennreal.to_real_pos hp hp').ne.symm, ennreal.rpow_one,
+    ← set_lintegral_const, ← lintegral_indicator _ hs],
+  refine lintegral_mono_ae _,
+  filter_upwards [hf] with x hx,
+  rw nnnorm_indicator_eq_indicator_nnnorm,
+  by_cases hxs : x ∈ s,
+  { simp only [set.indicator_of_mem hxs] at ⊢ hx,
+    exact ennreal.rpow_le_rpow (ennreal.coe_le_coe.2 (hx hxs)) ennreal.to_real_nonneg },
+  { simp [set.indicator_of_not_mem hxs] },
+end
+
 section is_R_or_C
 variables {𝕜 : Type*} [is_R_or_C 𝕜] {f : α → 𝕜}
 

@@ -212,9 +212,8 @@ protected lemma defn {q : ℚ} {n d : ℤ} (hqz : q ≠ 0) (qdf : q = n /. d) :
     ⟨ne.symm $ ne_of_lt p_prime.1.one_lt, λ hn, by simp * at *⟩) -
   (multiplicity (p : ℤ) d).get (finite_int_iff.2 ⟨ne.symm $ ne_of_lt p_prime.1.one_lt,
     λ hd, by simp * at *⟩) :=
-have hn : n ≠ 0, from rat.mk_num_ne_zero_of_ne_zero hqz qdf,
 have hd : d ≠ 0, from rat.mk_denom_ne_zero_of_ne_zero hqz qdf,
-let ⟨c, hc1, hc2⟩ := rat.num_denom_mk hn hd qdf in
+let ⟨c, hc1, hc2⟩ := rat.num_denom_mk hd qdf in
 by rw [padic_val_rat, dif_pos];
   simp [hc1, hc2, multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime.1),
     (ne.symm (ne_of_lt p_prime.1.one_lt)), hqz]
@@ -246,10 +245,14 @@ by induction k; simp [*, padic_val_rat.mul _ hq (pow_ne_zero _ hq),
 /--
 A rewrite lemma for `padic_val_rat p (q⁻¹)` with condition `q ≠ 0`.
 -/
-protected lemma inv {q : ℚ} (hq : q ≠ 0) :
+protected lemma inv (q : ℚ) :
   padic_val_rat p (q⁻¹) = -padic_val_rat p q :=
-by rw [eq_neg_iff_add_eq_zero, ← padic_val_rat.mul p (inv_ne_zero hq) hq,
-    inv_mul_cancel hq, padic_val_rat.one]
+begin
+  by_cases hq : q = 0,
+  { simp [hq], },
+  { rw [eq_neg_iff_add_eq_zero, ← padic_val_rat.mul p (inv_ne_zero hq) hq,
+      inv_mul_cancel hq, padic_val_rat.one] },
+end
 
 /--
 A rewrite lemma for `padic_val_rat p (q / r)` with conditions `q ≠ 0`, `r ≠ 0`.
@@ -257,7 +260,7 @@ A rewrite lemma for `padic_val_rat p (q / r)` with conditions `q ≠ 0`, `r ≠ 
 protected lemma div {q r : ℚ} (hq : q ≠ 0) (hr : r ≠ 0) :
   padic_val_rat p (q / r) = padic_val_rat p q - padic_val_rat p r :=
 by rw [div_eq_mul_inv, padic_val_rat.mul p hq (inv_ne_zero hr),
-    padic_val_rat.inv p hr, sub_eq_add_neg]
+    padic_val_rat.inv p r, sub_eq_add_neg]
 
 /--
 A condition for `padic_val_rat p (n₁ / d₁) ≤ padic_val_rat p (n₂ / d₂),

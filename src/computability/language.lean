@@ -26,6 +26,7 @@ variables {α : Type u}
 def language (α) := set (list α)
 
 namespace language
+variables {l m : language α} {a b x : list α}
 
 local attribute [reducible] language
 
@@ -58,15 +59,14 @@ lemma star_def (l : language α) :
   l.star = { x | ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l} := rfl
 
 @[simp] lemma not_mem_zero (x : list α) : x ∉ (0 : language α) := id
-lemma nil_mem_one : [] ∈ (1 : language α) := mem_singleton _
-@[simp] lemma mem_one (x : list α) : x ∈ (1 : language α) ↔ x = [] := iff.rfl
-@[simp] lemma mem_add (l m : language α) (x : list α) : x ∈ l + m ↔ x ∈ l ∨ x ∈ m :=
-by simp [add_def]
-lemma mem_mul (l m : language α) (x : list α) : x ∈ l * m ↔ ∃ a b, a ∈ l ∧ b ∈ m ∧ a ++ b = x :=
-by simp [mul_def]
-lemma mem_star (l : language α) (x : list α) :
-  x ∈ l.star ↔ ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l :=
-iff.rfl
+@[simp] lemma mem_one (x : list α) : x ∈ (1 : language α) ↔ x = [] := by refl
+lemma nil_mem_one : [] ∈ (1 : language α) := set.mem_singleton _
+@[simp] lemma mem_add (l m : language α) (x : list α) : x ∈ l + m ↔ x ∈ l ∨ x ∈ m := iff.rfl
+lemma mem_mul : x ∈ l * m ↔ ∃ a b, a ∈ l ∧ b ∈ m ∧ a ++ b = x := mem_image2
+lemma append_mem_mul : a ∈ l → b ∈ m → a ++ b ∈ l * m := mem_image2_of_mem
+lemma mem_star : x ∈ l.star ↔ ∃ S : list (list α), x = S.join ∧ ∀ y ∈ S, y ∈ l := iff.rfl
+lemma join_mem_star {S : list (list α)} (h : ∀ y ∈ S, y ∈ l) : S.join ∈ l.star := ⟨S, rfl, h⟩
+lemma nil_mem_star (l : language α) : [] ∈ l.star := ⟨[], rfl, λ _, false.elim⟩
 
 instance : semiring (language α) :=
 { add := (+),

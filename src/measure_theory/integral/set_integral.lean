@@ -258,6 +258,11 @@ lemma integral_indicator_const (e : E) ⦃s : set α⦄ (s_meas : measurable_set
   ∫ (a : α), s.indicator (λ (x : α), e) a ∂μ = (μ s).to_real • e :=
 by rw [integral_indicator s_meas, ← set_integral_const]
 
+@[simp]
+lemma integral_indicator_one ⦃s : set α⦄ (hs : measurable_set s) :
+  ∫ a, s.indicator 1 a ∂μ = (μ s).to_real :=
+(integral_indicator_const 1 hs).trans ((smul_eq_mul _).trans (mul_one _))
+
 lemma set_integral_indicator_const_Lp {p : ℝ≥0∞} (hs : measurable_set s) (ht : measurable_set t)
   (hμt : μ t ≠ ∞) (x : E) :
   ∫ a in s, indicator_const_Lp p ht hμt x a ∂μ = (μ (t ∩ s)).to_real • x :=

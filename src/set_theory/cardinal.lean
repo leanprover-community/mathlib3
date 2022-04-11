@@ -611,10 +611,8 @@ theorem sum_le_sum {ι} (f g : ι → cardinal) (H : ∀ i, f i ≤ g i) : sum f
 
 lemma mk_le_mk_mul_of_mk_preimage_le {c : cardinal} (f : α → β) (hf : ∀ b : β, #(f ⁻¹' {b}) ≤ c) :
   #α ≤ #β * c :=
-begin
-  rw [←mk_congr (@equiv.sigma_preimage_equiv α β f), mk_sigma, ←sum_const'],
-  exact sum_le_sum _ _ hf
-end
+by simpa only [←mk_congr (@equiv.sigma_preimage_equiv α β f), mk_sigma, ←sum_const']
+  using sum_le_sum _ _ hf
 
 /-- The indexed supremum of cardinals is the smallest cardinal above
   everything in the family. -/

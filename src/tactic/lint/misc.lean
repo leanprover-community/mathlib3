@@ -535,15 +535,16 @@ meta def find_provable_edge_cases (oe : expr) : expr → tactic (list string)
 | _ := return []
 
 /--
-Return a list of unused have and suffices terms in a declaration
+Return a list of theorems with edge case type assumptions that are easily provable without,
+
 -/
 meta def provable_edge_cases : declaration → tactic (list string)
 | (declaration.thm _ _ tp bd) := find_provable_edge_cases tp tp
 | _ := return []
 
 /--
-Checks whether a declaration contains term mode have statements that have no effect on the resulting
-term.
+Checks whether a declaration has assumptions that are easily provable with the negation or
+weakened version
 -/
 meta def has_provable_edge_cases (d : declaration) : tactic (option string) := do
   ns ← provable_edge_cases d,

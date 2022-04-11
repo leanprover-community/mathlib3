@@ -961,7 +961,7 @@ prod_bij (λ x _, x.1) (λ x _, multiset.mem_to_finset.mpr x.2)
 
 @[to_additive]
 lemma prod_list_count [decidable_eq α] [comm_monoid α] (l : list α) :
-  l.prod = ∏ x in l.to_finset, (x ^ (count x l)) :=
+  l.prod = ∏ x in l.to_finset, (x ^ (l.count x)) :=
 by { convert prod_multiset_count (l : multiset α), rw multiset.coe_prod l }
 
 @[to_additive]

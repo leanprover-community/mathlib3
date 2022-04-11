@@ -11,6 +11,18 @@ import data.fintype.card
 
 /-!
 # Basic properties of group actions
+
+This file primarily concerns itselfs with orbits, stabilizers, and other objects defined in terms of
+actions. Despite this file being called `basic`, low-level helper lemmas for algebraic manipulation
+of `•` belong elsewhere.
+
+## Main definitions
+
+* `mul_action.orbit`
+* `mul_action.fixed_points`
+* `mul_action.fixed_by`
+* `mul_action.stabilizer`
+
 -/
 
 universes u v w
@@ -511,60 +523,17 @@ by rw [← fintype.card_prod, ← fintype.card_sigma,
 
 end mul_action
 
-section
-variables [monoid α] [add_monoid β] [distrib_mul_action α β]
-
-lemma list.smul_sum {r : α} {l : list β} :
-  r • l.sum = (l.map ((•) r)).sum :=
-(distrib_mul_action.to_add_monoid_hom β r).map_list_sum l
-
 /-- `smul` by a `k : M` over a ring is injective, if `k` is not a zero divisor.
 The general theory of such `k` is elaborated by `is_smul_regular`.
 The typeclass that restricts all terms of `M` to have this property is `no_zero_smul_divisors`. -/
-lemma smul_cancel_of_non_zero_divisor {M R : Type*} [monoid M] [ring R] [distrib_mul_action M R]
+lemma smul_cancel_of_non_zero_divisor {M R : Type*}
+  [monoid M] [non_unital_non_assoc_ring R] [distrib_mul_action M R]
   (k : M) (h : ∀ (x : R), k • x = 0 → x = 0) {a b : R} (h' : k • a = k • b) :
   a = b :=
 begin
   rw ←sub_eq_zero,
   refine h _ _,
   rw [smul_sub, h', sub_self]
-end
-
-end
-
-section
-variables [monoid α] [monoid β] [mul_distrib_mul_action α β]
-
-lemma list.smul_prod {r : α} {l : list β} :
-  r • l.prod = (l.map ((•) r)).prod :=
-(mul_distrib_mul_action.to_monoid_hom β r).map_list_prod l
-
-end
-
-section
-variables [monoid α] [add_comm_monoid β] [distrib_mul_action α β]
-
-lemma multiset.smul_sum {r : α} {s : multiset β} :
-  r • s.sum = (s.map ((•) r)).sum :=
-(distrib_mul_action.to_add_monoid_hom β r).map_multiset_sum s
-
-lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
-  r • ∑ x in s, f x = ∑ x in s, r • f x :=
-(distrib_mul_action.to_add_monoid_hom β r).map_sum f s
-
-end
-
-section
-variables [monoid α] [comm_monoid β] [mul_distrib_mul_action α β]
-
-lemma multiset.smul_prod {r : α} {s : multiset β} :
-  r • s.prod = (s.map ((•) r)).prod :=
-(mul_distrib_mul_action.to_monoid_hom β r).map_multiset_prod s
-
-lemma finset.smul_prod {r : α} {f : γ → β} {s : finset γ} :
-  r • ∏ x in s, f x = ∏ x in s, r • f x :=
-(mul_distrib_mul_action.to_monoid_hom β r).map_prod f s
-
 end
 
 namespace subgroup

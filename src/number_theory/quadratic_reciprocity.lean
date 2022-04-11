@@ -352,13 +352,15 @@ variables (p q : ℕ) [fact p.prime] [fact q.prime]
 
 namespace zmod
 
-/-- The Legendre symbol of `a` and `p` is an integer defined as
+/-- The Legendre symbol of `a` and `p`, `legendre_sym p a`, is an integer defined as
 
 * `0` if `a` is `0` modulo `p`;
 * `1` if `a ^ (p / 2)` is `1` modulo `p`
    (by `euler_criterion` this is equivalent to “`a` is a square modulo `p`”);
 * `-1` otherwise.
 
+Note the order of the arguments! The advantage of the order chosen here is
+that `legendre_sym p` is a multiplicative function `ℤ → ℤ`.
 -/
 def legendre_sym (p : ℕ) (a : ℤ) : ℤ :=
 if      (a : zmod p) = 0           then  0

@@ -1776,22 +1776,21 @@ end
 lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
 by simp_rw [←filter_eq', eq_comm]
 
-@[simp] lemma repeat_inter [decidable_eq α] (x : α) (n : ℕ) (s : multiset α) :
-  multiset.repeat x n ∩ s = multiset.repeat x (min n (s.count x)) :=
+@[simp] lemma repeat_inter (x : α) (n : ℕ) (s : multiset α) :
+  repeat x n ∩ s = repeat x (min n (s.count x)) :=
 begin
   refine le_antisymm _ _,
-  { simp only [multiset.le_iff_count, multiset.count_inter, multiset.count_repeat],
+  { simp only [le_iff_count, count_inter, count_repeat],
     intro a,
     split_ifs with h,
     { rw h },
     { rw [nat.zero_min] } },
-  simp only [multiset.le_inter_iff, ← multiset.le_count_iff_repeat_le, multiset.count_inter,
-    multiset.count_repeat_self],
+  simp only [le_inter_iff, ← le_count_iff_repeat_le, count_inter, count_repeat_self],
 end
 
-@[simp] lemma inter_repeat [decidable_eq α] (s : multiset α) (x : α) (n : ℕ) :
-  s ∩ multiset.repeat x n = multiset.repeat x (min (s.count x) n) :=
-by rw [multiset.inter_comm, multiset.repeat_inter, min_comm]
+@[simp] lemma inter_repeat (s : multiset α) (x : α) (n : ℕ) :
+  s ∩ repeat x n = repeat x (min (s.count x) n) :=
+by rw [inter_comm, repeat_inter, min_comm]
 
 end
 

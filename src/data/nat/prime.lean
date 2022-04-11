@@ -9,6 +9,7 @@ import data.nat.gcd
 import data.nat.sqrt_norm_num
 import data.set.finite
 import tactic.wlog
+import algebra.parity
 
 /-!
 # Prime numbers

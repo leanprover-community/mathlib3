@@ -5,7 +5,9 @@ Authors: Scott Morrison, Shing Tak Lam, Mario Carneiro
 -/
 import data.int.modeq
 import data.nat.log
+import data.nat.parity
 import data.list.indexes
+import data.list.palindrome
 import tactic.interval_cases
 import tactic.linarith
 
@@ -23,6 +25,7 @@ A basic `norm_digits` tactic is also provided for proving goals of the form
 -/
 
 namespace nat
+variables {n : ℕ}
 
 /-- (Impl.) An auxiliary definition for `digits`, to help get the desired definitional unfolding. -/
 def digits_aux_0 : ℕ → list ℕ
@@ -224,7 +227,7 @@ begin
       { simp, },
       { intros l m, apply w₁, exact list.mem_cons_of_mem _ m, },
       { intro h,
-        { rw [list.last_cons _ h] at w₂,
+        { rw [list.last_cons h] at w₂,
             convert w₂, }}},
     { convert w₁ d (list.mem_cons_self _ _), simp, },
     { by_cases h' : L = [],
@@ -237,7 +240,7 @@ begin
         apply nat.pos_of_ne_zero,
         contrapose! w₂,
         apply digits_zero_of_eq_zero _ w₂,
-        { rw list.last_cons _ h',
+        { rw list.last_cons h',
           exact list.last_mem h', },
         { exact le_of_lt h, }, }, }, },
 end
@@ -585,12 +588,22 @@ begin
     (zmodeq_of_digits_digits b b' c (int.modeq_iff_dvd.2 h).symm _).symm.dvd,
 end
 
-lemma eleven_dvd_iff (n : ℕ) :
-  11 ∣ n ↔ (11 : ℤ) ∣ ((digits 10 n).map (λ n : ℕ, (n : ℤ))).alternating_sum :=
+lemma eleven_dvd_iff : 11 ∣ n ↔ (11 : ℤ) ∣ ((digits 10 n).map (λ n : ℕ, (n : ℤ))).alternating_sum :=
 begin
   have t := dvd_iff_dvd_of_digits 11 10 (-1 : ℤ) (by norm_num) n,
   rw of_digits_neg_one at t,
   exact t,
+end
+
+lemma eleven_dvd_of_palindrome (p : (digits 10 n).palindrome) (h : even (digits 10 n).length) :
+  11 ∣ n :=
+begin
+  let dig := (digits 10 n).map (coe : ℕ → ℤ),
+  replace h : even dig.length := by rwa list.length_map,
+  refine eleven_dvd_iff.2 ⟨0, (_ : dig.alternating_sum = 0)⟩,
+  have := dig.alternating_sum_reverse,
+  rw [(p.map _).reverse_eq, pow_succ, neg_one_pow_of_even h, mul_one, neg_one_zsmul] at this,
+  exact eq_zero_of_neg_eq this.symm,
 end
 
 /-! ### `norm_digits` tactic -/

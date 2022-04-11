@@ -5,8 +5,8 @@ Authors: Patrick Massot, Chris Hughes, Michael Howes
 -/
 import algebra.group.semiconj
 import algebra.group_with_zero.basic
+import algebra.hom.aut
 import algebra.hom.group
-import data.equiv.mul_add_aut
 import data.fintype.basic
 
 /-!
@@ -45,6 +45,20 @@ protected lemma monoid_hom.map_is_conj (f : α →* β) {a b : α} : is_conj a b
 
 end monoid
 
+section cancel_monoid
+variables [cancel_monoid α]
+-- These lemmas hold for either `left_cancel_monoid` or `right_cancel_monoid`,
+-- with slightly different proofs; so far these don't seem necessary.
+
+@[simp] lemma is_conj_one_right {a : α} : is_conj 1 a  ↔ a = 1 :=
+⟨λ ⟨c, hc⟩, mul_right_cancel (hc.symm.trans ((mul_one _).trans (one_mul _).symm)), λ h, by rw [h]⟩
+
+@[simp] lemma is_conj_one_left {a : α} : is_conj a 1 ↔ a = 1 :=
+calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj.symm, is_conj.symm⟩
+... ↔ a = 1 : is_conj_one_right
+
+end cancel_monoid
+
 section group
 
 variables [group α]
@@ -53,13 +67,6 @@ variables [group α]
   is_conj a b ↔ ∃ c : α, c * a * c⁻¹ = b :=
 ⟨λ ⟨c, hc⟩, ⟨c, mul_inv_eq_iff_eq_mul.2 hc⟩, λ ⟨c, hc⟩,
   ⟨⟨c, c⁻¹, mul_inv_self c, inv_mul_self c⟩, mul_inv_eq_iff_eq_mul.1 hc⟩⟩
-
-@[simp] lemma is_conj_one_right {a : α} : is_conj 1 a  ↔ a = 1 :=
-⟨λ ⟨c, hc⟩, mul_right_cancel (hc.symm.trans ((mul_one _).trans (one_mul _).symm)), λ h, by rw [h]⟩
-
-@[simp] lemma is_conj_one_left {a : α} : is_conj a 1 ↔ a = 1 :=
-calc is_conj a 1 ↔ is_conj 1 a : ⟨is_conj.symm, is_conj.symm⟩
-... ↔ a = 1 : is_conj_one_right
 
 @[simp] lemma conj_inv {a b : α} : (b * a * b⁻¹)⁻¹ = b * a⁻¹ * b⁻¹ :=
 ((mul_aut.conj b).map_inv a).symm

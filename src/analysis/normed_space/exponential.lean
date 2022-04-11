@@ -25,10 +25,10 @@ We prove most result for an arbitrary field `𝕂`, and then specialize to `𝕂
 
 ### General case
 
-- `exp_add_of_commute_of_lt_radius` : if `𝕂` has characteristic zero, then given two commuting
+- `exp_add_of_commute_of_mem_ball` : if `𝕂` has characteristic zero, then given two commuting
   elements `x` and `y` in the disk of convergence, we have
   `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
-- `exp_add_of_lt_radius` : if `𝕂` has characteristic zero and `𝔸` is commutative, then given two
+- `exp_add_of_mem_ball` : if `𝕂` has characteristic zero and `𝔸` is commutative, then given two
   elements `x` and `y` in the disk of convergence, we have
   `exp 𝕂 𝔸 (x+y) = (exp 𝕂 𝔸 x) * (exp 𝕂 𝔸 y)`
 

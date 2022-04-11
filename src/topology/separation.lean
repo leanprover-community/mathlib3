@@ -322,6 +322,34 @@ begin
   exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
 end
 
+lemma filter.coclosed_compact_le_cofinite [t1_space α] :
+  filter.coclosed_compact α ≤ filter.cofinite :=
+λ s hs, compl_compl s ▸ hs.is_compact.compl_mem_coclosed_compact_of_is_closed hs.is_closed
+
+variable (α)
+
+/-- In a `t1_space`, relatively compact sets form a bornology. Its cobounded filter is
+`filter.coclosed_compact`. See also `bornology.in_compact` the bornology of sets contained
+in a compact set. -/
+def bornology.relatively_compact [t1_space α] : bornology α :=
+{ cobounded := filter.coclosed_compact α,
+  le_cofinite := filter.coclosed_compact_le_cofinite }
+
+variable {α}
+
+lemma bornology.relatively_compact.is_bounded_iff [t1_space α] {s : set α} :
+  @bornology.is_bounded _ (bornology.relatively_compact α) s ↔ is_compact (closure s) :=
+begin
+  change sᶜ ∈ filter.coclosed_compact α ↔ _,
+  rw filter.mem_coclosed_compact,
+  split,
+  { rintros ⟨t, ht₁, ht₂, hst⟩,
+    rw compl_subset_compl at hst,
+    exact compact_of_is_closed_subset ht₂ is_closed_closure (closure_minimal hst ht₁) },
+  { intros h,
+    exact ⟨closure s, is_closed_closure, h, compl_subset_compl.mpr subset_closure⟩ }
+end
+
 protected lemma finset.is_closed [t1_space α] (s : finset α) : is_closed (s : set α) :=
 s.finite_to_set.is_closed
 
@@ -1046,6 +1074,10 @@ is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
 @[simp] lemma filter.coclosed_compact_eq_cocompact [t2_space α] :
   coclosed_compact α = cocompact α :=
 by simp [coclosed_compact, cocompact, infi_and', and_iff_right_of_imp is_compact.is_closed]
+
+@[simp] lemma bornology.relatively_compact_eq_in_compact [t2_space α] :
+  bornology.relatively_compact α = bornology.in_compact α :=
+by rw bornology.ext_iff; exact filter.coclosed_compact_eq_cocompact
 
 /-- If `V : ι → set α` is a decreasing family of compact sets then any neighborhood of
 `⋂ i, V i` contains some `V i`. This is a version of `exists_subset_nhd_of_compact'` where we

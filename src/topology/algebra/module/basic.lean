@@ -254,7 +254,7 @@ notation M ` →L⋆[`:25 R `] ` M₂ := continuous_linear_map (star_ring_end R)
 
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
 for the definition, although in applications `M` and `M₂` will be topological modules over the
-topological ring `R`. -/
+topological semiring `R`. -/
 @[nolint has_inhabited_instance]
 structure continuous_linear_equiv
   {R : Type*} {S : Type*} [semiring R] [semiring S] (σ : R →+* S)
@@ -382,6 +382,12 @@ fun_like.ext f g h
 
 theorem ext_iff {f g : M₁ →SL[σ₁₂] M₂} : f = g ↔ ∀ x, f x = g x :=
 fun_like.ext_iff
+
+/-- Copy of a `continuous_linear_map` with a new `to_fun` equal to the old one. Useful to fix
+definitional equalities. -/
+protected def copy (f : M₁ →SL[σ₁₂] M₂) (f' : M₁ → M₂) (h : f' = ⇑f) : M₁ →SL[σ₁₂] M₂ :=
+{ to_linear_map := f.to_linear_map.copy f' h,
+  cont := show continuous f', from h.symm ▸ f.continuous }
 
 -- make some straightforward lemmas available to `simp`.
 protected lemma map_zero (f : M₁ →SL[σ₁₂] M₂) : f (0 : M₁) = 0 := map_zero f

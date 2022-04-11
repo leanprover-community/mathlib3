@@ -6,7 +6,7 @@ Authors: Kenny Lau, Yury Kudryashov
 import algebra.char_p.basic
 import algebra.group_with_zero.power
 import algebra.hom.iterate
-import data.equiv.ring
+import algebra.ring.equiv
 
 /-!
 # The perfect closure of a field

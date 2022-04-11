@@ -1080,18 +1080,18 @@ by { rcases f, refl }
 
 /--Reindexing terms of a dfinsupp.-/
 def equiv_congr_left (h : ι ≃ κ) : (Π₀ i, β i) ≃ (Π₀ k, β (h.symm k)) :=
-⟨comap_domain' h.symm h.right_inv,
-λ f, map_range (λ i, equiv.cast $ congr_arg β $ h.symm_apply_apply i)
-  (λ i, (equiv.cast_eq_iff_heq _).mpr $
-    by { convert heq.rfl, repeat { exact (h.symm_apply_apply i).symm } })
-  (@comap_domain' _ _ _ _ h _ h.left_inv f),
-λ f, by { ext i, rw [map_range_apply, comap_domain'_apply, comap_domain'_apply,
-  equiv.cast_eq_iff_heq, h.symm_apply_apply] },
-λ f, by { ext k, rw [comap_domain'_apply, map_range_apply, comap_domain'_apply,
-  equiv.cast_eq_iff_heq, h.apply_symm_apply] }⟩
+{ to_fun := comap_domain' h.symm h.right_inv,
+  inv_fun := λ f, map_range (λ i, equiv.cast $ congr_arg β $ h.symm_apply_apply i)
+    (λ i, (equiv.cast_eq_iff_heq _).mpr $
+      by { convert heq.rfl, repeat { exact (h.symm_apply_apply i).symm } })
+        (@comap_domain' _ _ _ _ h _ h.left_inv f),
+  left_inv := λ f, by { ext i, rw [map_range_apply, comap_domain'_apply, comap_domain'_apply,
+    equiv.cast_eq_iff_heq, h.symm_apply_apply] },
+  right_inv := λ f, by { ext k, rw [comap_domain'_apply, map_range_apply, comap_domain'_apply,
+    equiv.cast_eq_iff_heq, h.apply_symm_apply] } }
 
 @[simp] lemma equiv_congr_left_apply (h : ι ≃ κ) (f : Π₀ i, β i) (k : κ) :
-equiv_congr_left h f k = f (h.symm k) := comap_domain'_apply h.symm h.right_inv f k
+  equiv_congr_left h f k = f (h.symm k) := comap_domain'_apply h.symm h.right_inv f k
 
 section curry
 variables {α : ι → Type*} {δ : Π i, α i → Type v} [Π i j, has_zero (δ i j)]
@@ -1103,7 +1103,7 @@ by { classical,
     (λ i, mk (f.support.preimage (sigma.mk i) $ sigma_mk_injective.inj_on _) $ λ j, f ⟨i, j⟩) }
 
 @[simp] lemma sigma_curry_apply (f : Π₀ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
-sigma_curry f i j = f ⟨i, j⟩ :=
+  sigma_curry f i j = f ⟨i, j⟩ :=
 begin
   dunfold sigma_curry, by_cases h : f ⟨i, j⟩ = 0,
   { rw [h, mk_apply], split_ifs, { rw mk_apply, split_ifs, { exact h }, { refl } }, { refl } },
@@ -1130,9 +1130,10 @@ end
 
 /--The natural bijection between `Π₀ (i : Σ i, α i), δ i.1 i.2` and `Π₀ i (j : α i), δ i j`.-/
 noncomputable def sigma_curry_equiv : (Π₀ (i : Σ i, _), δ i.1 i.2) ≃ Π₀ i j, δ i j :=
-⟨sigma_curry, sigma_uncurry,
-λ f, by { ext ⟨i, j⟩, rw [sigma_uncurry_apply, sigma_curry_apply] },
-λ f, by { ext i j, rw [sigma_curry_apply, sigma_uncurry_apply] }⟩
+{ to_fun := sigma_curry,
+  inv_fun := sigma_uncurry,
+  left_inv := λ f, by { ext ⟨i, j⟩, rw [sigma_uncurry_apply, sigma_curry_apply] },
+  right_inv := λ f, by { ext i j, rw [sigma_curry_apply, sigma_uncurry_apply] } }
 
 end curry
 
@@ -1157,10 +1158,18 @@ by { rcases f, refl }
 include dec
 /--Bijection obtained by separating the term of index `none` of a dfinsupp over `option ι`.-/
 @[simps] noncomputable def equiv_prod_dfinsupp : (Π₀ i, α i) ≃ α none × Π₀ i, α (some i) :=
-⟨λ f, (f none, comap_domain some (option.some_injective _) f), λ f, f.2.extend_with f.1,
-λ f, begin ext i, cases i with i,
-  { rw extend_with_none }, { rw [extend_with_some, comap_domain_apply] } end,
-λ _, begin ext, { exact extend_with_none _ _ }, { rw [comap_domain_apply, extend_with_some] } end⟩
+{ to_fun := λ f, (f none, comap_domain some (option.some_injective _) f),
+  inv_fun := λ f, f.2.extend_with f.1,
+  left_inv := λ f, begin
+    ext i, cases i with i,
+    { rw extend_with_none },
+    { rw [extend_with_some, comap_domain_apply] }
+  end,
+  right_inv := λ _, begin
+    ext,
+    { exact extend_with_none _ _ },
+    { rw [comap_domain_apply, extend_with_some] }
+  end }
 
 end equiv
 

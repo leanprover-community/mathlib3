@@ -495,13 +495,17 @@ begin
 end
 
 lemma integrable_map_measure {f : α → δ} {g : δ → β}
-  (hg : ae_strongly_measurable g (measure.map f μ)) (hf : measurable f) :
+  (hg : ae_strongly_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
   integrable g (measure.map f μ) ↔ integrable (g ∘ f) μ :=
 by { simp_rw ← mem_ℒp_one_iff_integrable, exact mem_ℒp_map_measure_iff hg hf, }
 
+lemma integrable.comp_ae_measurable {f : α → δ} {g : δ → β}
+  (hg : integrable g (measure.map f μ)) (hf : ae_measurable f μ) : integrable (g ∘ f) μ :=
+(integrable_map_measure hg.ae_strongly_measurable hf).mp hg
+
 lemma integrable.comp_measurable {f : α → δ} {g : δ → β}
   (hg : integrable g (measure.map f μ)) (hf : measurable f) : integrable (g ∘ f) μ :=
-(integrable_map_measure hg.ae_strongly_measurable hf).mp hg
+hg.comp_ae_measurable hf.ae_measurable
 
 lemma _root_.measurable_embedding.integrable_map_iff
   {f : α → δ} (hf : measurable_embedding f) {g : δ → β} :
@@ -515,7 +519,7 @@ by { simp_rw ← mem_ℒp_one_iff_integrable, exact f.mem_ℒp_map_measure_iff, 
 lemma measure_preserving.integrable_comp {ν : measure δ} {g : δ → β}
   {f : α → δ} (hf : measure_preserving f μ ν) (hg : ae_strongly_measurable g ν) :
   integrable (g ∘ f) μ ↔ integrable g ν :=
-by { rw ← hf.map_eq at hg ⊢, exact (integrable_map_measure hg hf.measurable).symm }
+by { rw ← hf.map_eq at hg ⊢, exact (integrable_map_measure hg hf.measurable.ae_measurable).symm }
 
 lemma measure_preserving.integrable_comp_emb {f : α → δ} {ν} (h₁ : measure_preserving f μ ν)
   (h₂ : measurable_embedding f) {g : δ → β} :

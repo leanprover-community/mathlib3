@@ -461,7 +461,7 @@ lemma le_csupr_set {f : β → α} {s : set β}
 (le_cSup H $ mem_image_of_mem f hc).trans_eq Sup_image'
 
 /--The indexed infimum of two functions are comparable if the functions are pointwise comparable-/
-lemma cinfi_le_cinfi {f g : ι → α} (B : bdd_below (range f)) (H : ∀ x, f x ≤ g x) :
+lemma cinfi_mono {f g : ι → α} (B : bdd_below (range f)) (H : ∀ x, f x ≤ g x) :
   infi f ≤ infi g :=
 @csupr_mono (order_dual α) _ _ _ _ B H
 

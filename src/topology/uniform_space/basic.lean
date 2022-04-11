@@ -525,24 +525,19 @@ end
 
 lemma mem_nhds_uniformity_iff_right {x : α} {s : set α} :
   s ∈ 𝓝 x ↔ {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α :=
-⟨ begin
-    simp only [mem_nhds_iff, is_open_uniformity, and_imp, exists_imp_distrib],
-    exact assume t ts ht xt, by filter_upwards [ht x xt] using assume ⟨x', y⟩ h eq, ts $ h eq
-  end,
-
-  assume hs,
-  mem_nhds_iff.mpr ⟨{x | {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α},
-    assume x' hx', refl_mem_uniformity hx' rfl,
-    is_open_uniformity.mpr $ assume x' hx',
-      let ⟨t, ht, tr⟩ := comp_mem_uniformity_sets hx' in
-      by filter_upwards [ht] using assume ⟨a, b⟩ hp' (hax' : a = x'),
-      by filter_upwards [ht] using assume ⟨a, b'⟩ hp'' (hab : a = b),
-      have hp : (x', b) ∈ t, from hax' ▸ hp',
-      have (b, b') ∈ t, from hab ▸ hp'',
-      have (x', b') ∈ t ○ t, from ⟨b, hp, this⟩,
-      show b' ∈ s,
-        from tr this rfl,
-    hs⟩⟩
+begin
+  refine ⟨_, λ hs, _⟩,
+  { simp only [mem_nhds_iff, is_open_uniformity, and_imp, exists_imp_distrib],
+    intros t ts ht xt,
+    filter_upwards [ht x xt] using λ y h eq, ts (h eq) },
+  { refine mem_nhds_iff.mpr ⟨{x | {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α}, _, _, hs⟩,
+    { exact λ y hy, refl_mem_uniformity hy rfl },
+    { refine is_open_uniformity.mpr (λ y hy, _),
+      rcases comp_mem_uniformity_sets hy with ⟨t, ht, tr⟩,
+      filter_upwards [ht], rintro ⟨a, b⟩ hp' rfl,
+      filter_upwards [ht], rintro ⟨a', b'⟩ hp'' rfl,
+      exact @tr (a, b') ⟨a', hp', hp''⟩ rfl } }
+end
 
 lemma mem_nhds_uniformity_iff_left {x : α} {s : set α} :
   s ∈ 𝓝 x ↔ {p : α × α | p.2 = x → p.1 ∈ s} ∈ 𝓤 α :=
@@ -554,7 +549,6 @@ by rw mem_comap ; from iff.intro
   (assume hs, ⟨_, hs, assume x hx, hx rfl⟩)
   (assume ⟨t, h, ht⟩, F.sets_of_superset h $
     assume ⟨p₁, p₂⟩ hp (h : p₁ = x), ht $ by simp [h.symm, hp])
-
 
 lemma nhds_eq_comap_uniformity {x : α} : 𝓝 x = (𝓤 α).comap (prod.mk x) :=
 by { ext s, rw [mem_nhds_uniformity_iff_right], exact nhds_eq_comap_uniformity_aux }

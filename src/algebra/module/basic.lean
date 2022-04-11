@@ -331,15 +331,6 @@ instance add_comm_monoid.nat_is_scalar_tower :
     (by simp only [zero_smul])
     (λ n ih, by simp only [nat.succ_eq_add_one, add_smul, one_smul, ih]) }
 
-instance add_comm_monoid.nat_smul_comm_class : smul_comm_class ℕ R M :=
-{ smul_comm := λ n r m, nat.rec_on n
-    (by simp only [zero_smul, smul_zero])
-    (λ n ih, by simp only [nat.succ_eq_add_one, add_smul, one_smul, ←ih, smul_add]) }
-
--- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
-instance add_comm_monoid.nat_smul_comm_class' : smul_comm_class R ℕ M :=
-smul_comm_class.symm _ _ _
-
 end add_comm_monoid
 
 section add_comm_group
@@ -454,16 +445,6 @@ lemma rat_cast_smul_eq {E : Type*} (R S : Type*) [add_comm_group E] [division_ri
 instance add_comm_group.int_is_scalar_tower {R : Type u} {M : Type v} [ring R] [add_comm_group M]
   [module R M]: is_scalar_tower ℤ R M :=
 { smul_assoc := λ n x y, ((smul_add_hom R M).flip y).map_int_module_smul n x }
-
-instance add_comm_group.int_smul_comm_class {S : Type u} {M : Type v} [semiring S]
-  [add_comm_group M] [module S M] :
-  smul_comm_class ℤ S M :=
-{ smul_comm := λ n x y, ((smul_add_hom S M x).map_zsmul y n).symm }
-
--- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
-instance add_comm_group.int_smul_comm_class' {S : Type u} {M : Type v} [semiring S]
-  [add_comm_group M] [module S M] : smul_comm_class S ℤ M :=
-smul_comm_class.symm _ _ _
 
 instance is_scalar_tower.rat {R : Type u} {M : Type v} [ring R] [add_comm_group M]
   [module R M] [module ℚ R] [module ℚ M] : is_scalar_tower ℚ R M :=

@@ -36,6 +36,10 @@ the sequence of elements `x : fin k → ℕ` such that `n = ∑ i, x i`.
 
 While we could implement this by filtering `(fintype.pi_finset $ λ _, range (n + 1))` or similar,
 this implementation would be much slower.
+
+In the future, we could consider generalizing `finset.nat.antidiagonal_tuple` further to
+support finitely-supported functions, as is done with `cut` in
+`archive/100-theorems-list/45_partition.lean`.
 -/
 
 open_locale big_operators
@@ -63,7 +67,7 @@ def antidiagonal_tuple : Π k, ℕ → list (fin k → ℕ)
 @[simp] lemma antidiagonal_tuple_zero_zero : antidiagonal_tuple 0 0 = [![]] := rfl
 @[simp] lemma antidiagonal_tuple_zero_succ (n : ℕ) : antidiagonal_tuple 0 n.succ = [] := rfl
 
-lemma mem_antidiagonal_tuple {n : ℕ} {k : ℕ} (x : fin k → ℕ) :
+lemma mem_antidiagonal_tuple {n : ℕ} {k : ℕ} {x : fin k → ℕ} :
   x ∈ antidiagonal_tuple k n ↔ ∑ i, x i = n :=
 begin
   induction k with k ih generalizing n,
@@ -143,9 +147,9 @@ list.nat.antidiagonal_tuple k n
 @[simp] lemma antidiagonal_tuple_zero_zero : antidiagonal_tuple 0 0 = { ![]} := rfl
 @[simp] lemma antidiagonal_tuple_zero_succ (n : ℕ) : antidiagonal_tuple 0 n.succ = 0 := rfl
 
-lemma mem_antidiagonal_tuple {n : ℕ} {k : ℕ} (x : fin k → ℕ) :
+lemma mem_antidiagonal_tuple {n : ℕ} {k : ℕ} {x : fin k → ℕ} :
   x ∈ antidiagonal_tuple k n ↔ ∑ i, x i = n :=
-list.nat.mem_antidiagonal_tuple _
+list.nat.mem_antidiagonal_tuple
 
 lemma nodup_antidiagonal_tuple (k n : ℕ) : (antidiagonal_tuple k n).nodup :=
 list.nat.nodup_antidiagonal_tuple _ _
@@ -169,9 +173,9 @@ def antidiagonal_tuple (k n : ℕ) : finset (fin k → ℕ) :=
 @[simp] lemma antidiagonal_tuple_zero_zero : antidiagonal_tuple 0 0 = { ![]} := rfl
 @[simp] lemma antidiagonal_tuple_zero_succ (n : ℕ) : antidiagonal_tuple 0 n.succ = ∅ := rfl
 
-lemma mem_antidiagonal_tuple {n : ℕ} {k : ℕ} (x : fin k → ℕ) :
+lemma mem_antidiagonal_tuple {n : ℕ} {k : ℕ} {x : fin k → ℕ} :
   x ∈ antidiagonal_tuple k n ↔ ∑ i, x i = n :=
-list.nat.mem_antidiagonal_tuple _
+list.nat.mem_antidiagonal_tuple
 
 @[simp] lemma antidiagonal_tuple_one (n : ℕ) : antidiagonal_tuple 1 n = { ![n]} :=
 finset.eq_of_veq (multiset.nat.antidiagonal_tuple_one n)
@@ -179,5 +183,20 @@ finset.eq_of_veq (multiset.nat.antidiagonal_tuple_one n)
 lemma antidiagonal_tuple_two (n : ℕ) :
   antidiagonal_tuple 2 n = (antidiagonal n).map (pi_fin_two_equiv (λ _, ℕ)).symm.to_embedding :=
 finset.eq_of_veq (multiset.nat.antidiagonal_tuple_two n)
+
+section equiv_prod
+
+/-- The disjoint union of antidiagonal tuples `Σ n, antidiagonal_tuple k n` is equivalent to the
+`k`-tuple `fin k → ℕ`. This is such an equivalence, obtained by mapping `(n, x)` to `x`.
+
+This is the tuple version of `finset.nat.sigma_antidiagonal_equiv_prod`. -/
+@[simps] def sigma_antidiagonal_tuple_equiv_tuple (k : ℕ) :
+  (Σ n, antidiagonal_tuple k n) ≃ (fin k → ℕ) :=
+{ to_fun := λ x, x.2,
+  inv_fun := λ x, ⟨∑ i, x i, x, mem_antidiagonal_tuple.mpr rfl⟩,
+  left_inv := λ ⟨n, t, h⟩, sigma.subtype_ext (mem_antidiagonal_tuple.mp h) rfl,
+  right_inv := λ x, rfl }
+
+end equiv_prod
 
 end finset.nat

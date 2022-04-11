@@ -27,7 +27,4 @@ calc #R[X] = #(mv_polynomial punit.{u + 1} R) :
   rw [max_assoc, max_eq_right this]
 end
 
-@[simp] lemma cardinal_mk_eq_of_infinite {R : Type u} [comm_semiring R] [infinite R] : #R[X] = #R :=
-le_antisymm (by { convert cardinal_mk_le_max, simp }) (mk_le_of_injective (λ a b h, C_inj.1 h))
-
 end polynomial

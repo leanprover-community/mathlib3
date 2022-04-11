@@ -16,8 +16,10 @@ connected.
 
 * `simple_graph.is_clique`: Predicate for a set of vertices to be a clique.
 * `simple_graph.is_n_clique`: Predicate for a set of vertices to be a `n`-clique.
+* `simple_graph.clique_finset`: Finset of `n`-cliques of a graph.
+* `simple_graph.clique_free`: Predicate for a graph to have no `n`-cliques.
 
-## Todo
+## TODO
 
 * Clique numbers
 * Going back and forth between cliques and complete subgraphs or embeddings of complete graphs.
@@ -27,6 +29,8 @@ open finset fintype
 
 namespace simple_graph
 variables {α : Type*} (G H : simple_graph α)
+
+/-! ### Cliques -/
 
 section clique
 variables {s t : set α}
@@ -52,6 +56,9 @@ set.pairwise_bot_iff
 
 end clique
 
+/-! ### `n`-cliques -/
+
+section n_clique
 variables {n : ℕ} {s : finset α}
 
 /-- A `n`-clique in a graph is a set of `n` vertices which are pairwise connected. -/
@@ -79,4 +86,83 @@ begin
   exact card_le_one.symm,
 end
 
+end n_clique
+
+/-! ### Graphs without cliques -/
+
+section clique_free
+variables {n : ℕ}
+
+/-- `G.clique_free n` means that `G` has no `n`-cliques. -/
+def clique_free (n : ℕ) : Prop := ∀ t, ¬ G.is_n_clique n t
+
+variables {G H}
+
+lemma clique_free_bot (h : 2 ≤ n) : (⊥ : simple_graph α).clique_free n :=
+begin
+  rintro t ht,
+  rw is_n_clique_bot_iff at ht,
+  linarith,
+end
+
+lemma clique_free.mono (h : G ≤ H) : H.clique_free n → G.clique_free n :=
+forall_imp $ λ s, mt $ is_n_clique.mono h
+
+end clique_free
+
+/-! ### Finset of cliques -/
+
+section clique_finset
+variables (G) [fintype α] [decidable_eq α] [decidable_rel G.adj] {n : ℕ} {a b c : α} {s : finset α}
+
+/-- The `n`-cliques in a graph as a finset. -/
+def clique_finset (n : ℕ) : finset (finset α) := univ.filter $ G.is_n_clique n
+
+lemma mem_clique_finset_iff (s : finset α) : s ∈ G.clique_finset n ↔ G.is_n_clique n s :=
+mem_filter.trans $ and_iff_right $ mem_univ _
+
+lemma triple_mem_clique_finset_iff :
+  {a, b, c} ∈ G.clique_finset 3 ↔ G.adj a b ∧ G.adj a c ∧ G.adj b c :=
+begin
+  rw [mem_clique_finset_iff, is_n_clique_iff, is_clique_iff],
+  simp only [coe_insert, coe_singleton, set.pairwise_insert_of_symmetric G.symm,
+    set.pairwise_singleton, true_and, set.mem_insert_iff, set.mem_singleton_iff,
+    forall_eq_or_imp, forall_eq, ne.def],
+  split,
+  { rintro ⟨⟨hbc, hab, hac⟩, h⟩,
+    refine ⟨hab _, hac _, hbc _⟩;
+    { rintro rfl,
+      simp only [insert_idem, insert_singleton_comm, insert_singleton_self_eq] at h,
+      exact h.not_lt (nat.lt_succ_iff.2 $ card_insert_le _ _) } },
+  { rintro ⟨hab, hac, hbc⟩,
+    refine ⟨⟨λ _, hbc, λ _, hab, λ _, hac⟩, _⟩,
+    rw card_eq_three,
+    exact ⟨_, _, _, G.ne_of_adj hab, G.ne_of_adj hac, G.ne_of_adj hbc, rfl⟩ }
+end
+
+lemma mem_clique_finset_iff' :
+  s ∈ G.clique_finset 3 ↔ ∃ a b c, G.adj a b ∧ G.adj a c ∧ G.adj b c ∧ s = {a, b, c} :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { obtain ⟨a, b, c, -, -, -, rfl⟩ := card_eq_three.1 ((G.mem_clique_finset_iff s).1 h).2,
+    refine ⟨a, b, c, _⟩,
+    rw triple_mem_clique_finset_iff at h,
+    tauto },
+  { rintro ⟨a, b, c, hab, hbc, hca, rfl⟩,
+    exact G.triple_mem_clique_finset_iff.2 ⟨hab, hbc, hca⟩ }
+end
+
+@[simp] lemma clique_finset_eq_empty_iff : G.clique_finset n = ∅ ↔ G.clique_free n :=
+by simp_rw [clique_free, eq_empty_iff_forall_not_mem, mem_clique_finset_iff]
+
+alias clique_finset_eq_empty_iff ↔ _ simple_graph.clique_free.clique_finset
+
+attribute [protected] clique_free.clique_finset
+
+variables {G} [decidable_rel H.adj]
+
+lemma clique_finset_mono (h : G ≤ H) : G.clique_finset n ⊆ H.clique_finset n :=
+monotone_filter_right _ $ λ _, is_n_clique.mono h
+
+end clique_finset
 end simple_graph

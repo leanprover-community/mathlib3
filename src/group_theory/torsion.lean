@@ -227,12 +227,12 @@ lemma is_torsion_free.subgroup (tG : is_torsion_free G) (H : subgroup G) : is_to
 λ h hne, (is_of_fin_order_iff_coe _ h).not.mpr $ tG h (by norm_cast; simp [hne, not_false_iff])
 
 /-- Direct products of torsion free groups are torsion free. -/
-@[to_additive add_monoid.is_torsion_free.ext
+@[to_additive add_monoid.is_torsion_free.prod
   "Direct products of additive torsion free groups are torsion free."]
-lemma is_torsion_free.ext
+lemma is_torsion_free.prod
   {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)] (tfGs : ∀ i, is_torsion_free (Gs i)) :
 is_torsion_free $ Π i, Gs i :=
-λ w hne h, hne $ funext $ λ i, not_not.mp $ mt (tfGs i (w i)) $ not_not.mpr $ h.ext i
+λ w hne h, hne $ funext $ λ i, not_not.mp $ mt (tfGs i (w i)) $ not_not.mpr $ h.apply i
 
 end group
 

@@ -86,7 +86,7 @@ end
 
 /-- If a direct product has finite order then so does each component. -/
 @[to_additive "If a direct product has finite additive order then so does each component."]
-lemma is_of_fin_order.ext
+lemma is_of_fin_order.apply
   {η : Type*} {Gs : η → Type*} [∀ i, group (Gs i)] {x : Π i, Gs i} (h : is_of_fin_order x) :
 ∀ i, is_of_fin_order (x i) := begin
   rcases (is_of_fin_order_iff_pow_eq_one _).mp h with ⟨n, npos, hn⟩,

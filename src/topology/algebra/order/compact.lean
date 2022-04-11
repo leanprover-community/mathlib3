@@ -21,7 +21,8 @@ We also prove that the image of a closed interval under a continuous map is a cl
 compact, extreme value theorem
 -/
 
-open classical filter order_dual topological_space function set
+open filter order_dual topological_space function set
+open_locale filter topological_space
 
 /-!
 ### Compactness of a closed interval
@@ -210,19 +211,35 @@ lemma is_compact.exists_forall_ge :
   ∃x∈s, ∀y∈s, f y ≤ f x :=
 @is_compact.exists_forall_le (order_dual α) _ _ _ _ _
 
+/-- The **extreme value theorem**: if a function `f` is continuous on a closed set `s` and it is
+larger than a value in its image away from compact sets, then it has a minimum on this set. -/
+lemma continuous_on.exists_forall_le' {s : set β} {f : β → α} (hf : continuous_on f s)
+  (hsc : is_closed s) {x₀ : β} (h₀ : x₀ ∈ s) (hc : ∀ᶠ x in cocompact β ⊓ 𝓟 s, f x₀ ≤ f x) :
+  ∃ x ∈ s, ∀ y ∈ s, f x ≤ f y :=
+begin
+  rcases (has_basis_cocompact.inf_principal _).eventually_iff.1 hc with ⟨K, hK, hKf⟩,
+  have hsub : insert x₀ (K ∩ s) ⊆ s, from insert_subset.2 ⟨h₀, inter_subset_right _ _⟩,
+  obtain ⟨x, hx, hxf⟩ : ∃ x ∈ insert x₀ (K ∩ s), ∀ y ∈ insert x₀ (K ∩ s), f x ≤ f y :=
+    ((hK.inter_right hsc).insert x₀).exists_forall_le (nonempty_insert _ _) (hf.mono hsub),
+  refine ⟨x, hsub hx, λ y hy, _⟩,
+  by_cases hyK : y ∈ K,
+  exacts [hxf _ (or.inr ⟨hyK, hy⟩), (hxf _ (or.inl rfl)).trans (hKf ⟨hyK, hy⟩)]
+end
+
+/-- The **extreme value theorem**: if a function `f` is continuous on a closed set `s` and it is
+smaller than a value in its image away from compact sets, then it has a maximum on this set. -/
+lemma continuous_on.exists_forall_ge' {s : set β} {f : β → α} (hf : continuous_on f s)
+  (hsc : is_closed s) {x₀ : β} (h₀ : x₀ ∈ s) (hc : ∀ᶠ x in cocompact β ⊓ 𝓟 s, f x ≤ f x₀) :
+  ∃ x ∈ s, ∀ y ∈ s, f y ≤ f x :=
+@continuous_on.exists_forall_le' (order_dual α) _ _ _ _ _ _ _ hf hsc _ h₀ hc
+
 /-- The **extreme value theorem**: if a continuous function `f` is larger than a value in its range
 away from compact sets, then it has a global minimum. -/
 lemma _root_.continuous.exists_forall_le' {f : β → α} (hf : continuous f) (x₀ : β)
   (h : ∀ᶠ x in cocompact β, f x₀ ≤ f x) : ∃ (x : β), ∀ (y : β), f x ≤ f y :=
-begin
-  obtain ⟨K : set β, hK : is_compact K, hKf : ∀ x ∉ K, f x₀ ≤ f x⟩ :=
-  (has_basis_cocompact.eventually_iff).mp h,
-  obtain ⟨x, -, hx⟩ : ∃ x ∈ insert x₀ K, ∀ y ∈ insert x₀ K, f x ≤ f y :=
-  (hK.insert x₀).exists_forall_le (nonempty_insert _ _) hf.continuous_on,
-  refine ⟨x, λ y, _⟩,
-  by_cases hy : y ∈ K,
-  exacts [hx y (or.inr hy), (hx _ (or.inl rfl)).trans (hKf y hy)]
-end
+let ⟨x, _, hx⟩ := hf.continuous_on.exists_forall_le' is_closed_univ (mem_univ x₀)
+  (by rwa [principal_univ, inf_top_eq])
+in ⟨x, λ y, hx y (mem_univ y)⟩
 
 /-- The **extreme value theorem**: if a continuous function `f` is smaller than a value in its range
 away from compact sets, then it has a global maximum. -/
@@ -236,7 +253,6 @@ lemma _root_.continuous.exists_forall_le [nonempty β] {f : β → α}
   (hf : continuous f) (hlim : tendsto f (cocompact β) at_top) :
   ∃ x, ∀ y, f x ≤ f y :=
 by { inhabit β, exact hf.exists_forall_le' default (hlim.eventually $ eventually_ge_at_top _) }
-
 
 /-- The **extreme value theorem**: if a continuous function `f` tends to negative infinity away from
 compact sets, then it has a global maximum. -/

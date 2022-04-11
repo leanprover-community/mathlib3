@@ -455,7 +455,7 @@ lemma le_csupr_of_le {f : ι → α} (H : bdd_above (range f)) (c : ι) (h : a �
 le_trans h (le_csupr H c)
 
 /--The indexed supremum of two functions are comparable if the functions are pointwise comparable-/
-lemma csupr_le_csupr {f g : ι → α} (B : bdd_above (range g)) (H : ∀x, f x ≤ g x) :
+lemma csupr_mono {f g : ι → α} (B : bdd_above (range g)) (H : ∀ x, f x ≤ g x) :
   supr f ≤ supr g :=
 begin
   casesI is_empty_or_nonempty ι,
@@ -468,9 +468,9 @@ lemma le_csupr_set {f : β → α} {s : set β}
 (le_cSup H $ mem_image_of_mem f hc).trans_eq Sup_image'
 
 /--The indexed infimum of two functions are comparable if the functions are pointwise comparable-/
-lemma cinfi_le_cinfi {f g : ι → α} (B : bdd_below (range f)) (H : ∀x, f x ≤ g x) :
+lemma cinfi_mono {f g : ι → α} (B : bdd_below (range f)) (H : ∀ x, f x ≤ g x) :
   infi f ≤ infi g :=
-@csupr_le_csupr (order_dual α) _ _ _ _ B H
+@csupr_mono (order_dual α) _ _ _ _ B H
 
 /--The indexed minimum of a function is bounded below by a uniform lower bound-/
 lemma le_cinfi [nonempty ι] {f : ι → α} {c : α} (H : ∀x, c ≤ f x) : c ≤ infi f :=

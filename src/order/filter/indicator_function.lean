@@ -97,7 +97,7 @@ begin
   { rw [indicator_of_not_mem h, indicator_of_not_mem h] }
 end
 
-lemma filter.eventually_eq.eventually_eq_indicator_zero [has_zero β] {l : filter α}
+lemma filter.eventually_eq.indicator_zero [has_zero β] {l : filter α}
   {f : α → β} {s : set α} (hf : f =ᶠ[l] 0) :
   s.indicator f =ᶠ[l] 0 :=
 begin

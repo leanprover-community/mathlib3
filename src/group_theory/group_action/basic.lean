@@ -339,19 +339,6 @@ open quotient_group
   mul_action I (α ⧸ H) :=
 mul_action.comp_hom (α ⧸ H) (subgroup.subtype I)
 
-@[to_additive] instance quotient' (H : subgroup α) : mul_action H.normalizerᵐᵒᵖ (α ⧸ H) :=
-{ smul := λ g, quotient.map' (* g.unop) (λ a b, (congr_arg (∈ H) (by rw [subtype.val_eq_coe,
-    subgroup.coe_inv, inv_inv, ←mul_assoc, ←mul_inv_rev, mul_assoc])).mp ∘ (g.unop⁻¹.2 _).mp),
-  one_smul := λ a, quotient.induction_on' a (λ a, congr_arg quotient.mk' (mul_one a)),
-  mul_smul := λ x y a, quotient.induction_on' a
-    (λ a, congr_arg quotient.mk' (mul_assoc a y.unop x.unop).symm) }
-
-@[simp, to_additive] lemma quotient'.smul_mk (H : subgroup α) (a : H.normalizerᵐᵒᵖ) (x : α) :
-  (a • quotient_group.mk x : α ⧸ H) = quotient_group.mk (x * a.unop) := rfl
-
-@[simp, to_additive] lemma quotient'.smul_coe (H : subgroup α) (a : H.normalizerᵐᵒᵖ) (x : α) :
-  (a • x : α ⧸ H) = ↑(x * a.unop) := rfl
-
 variables (α) {β} [mul_action α β] (x : β)
 
 /-- The canonical map from the quotient of the stabilizer to the set. -/

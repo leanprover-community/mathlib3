@@ -85,6 +85,18 @@ lemma sum_Ico_eq_sub {δ : Type*} [add_comm_group δ] (f : ℕ → δ) {m n : �
   (∑ k in Ico m n, f k) = (∑ k in range n, f k) - (∑ k in range m, f k) :=
 by simpa only [sub_eq_add_neg] using sum_Ico_eq_add_neg f h
 
+-- TODO move to src/algebra/big_operators/basic.lean, rewrite with comm_group, and make to_additive
+lemma sum_range_sub_sum_range {α : Type*} [add_comm_group α] {f : ℕ → α}
+  {n m : ℕ} (hnm : n ≤ m) : ∑ k in range m, f k - ∑ k in range n, f k =
+  ∑ k in (range m).filter (λ k, n ≤ k), f k :=
+begin
+  rw [← sum_Ico_eq_sub _ hnm],
+  congr,
+  apply finset.ext,
+  simp only [mem_Ico, mem_filter, mem_range, *],
+  tauto,
+end
+
 /-- The two ways of summing over `(i,j)` in the range `a<=i<=j<b` are equal. -/
 lemma sum_Ico_Ico_comm {M : Type*} [add_comm_monoid M]
   (a b : ℕ) (f : ℕ → ℕ → M) :

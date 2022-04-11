@@ -425,7 +425,7 @@ hf.2.2
 
 theorem is_fundamental_sequence_id_of_le_cof (h : o ≤ o.cof.ord) :
   is_fundamental_sequence o o (λ a _, a) :=
-⟨h, λ i j _ _ h, h, blsub_id o⟩
+⟨h, λ _ _ _ _, id, blsub_id o⟩
 
 theorem is_fundamental_sequence_zero {f : Π b < (0 : ordinal), ordinal} :
   is_fundamental_sequence 0 0 f :=

@@ -94,7 +94,10 @@ lemma is_algebraic_one [nontrivial R] : is_algebraic R (1 : A) :=
 by { rw ←_root_.map_one _, exact is_algebraic_algebra_map 1 }
 
 lemma is_algebraic_nat [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
-by { rw ←map_nat_cast _ n, exact is_algebraic_algebra_map n }
+by { rw ←map_nat_cast _, exact is_algebraic_algebra_map n }
+
+lemma is_algebraic_int [nontrivial R] (n : ℤ) : is_algebraic R (n : A) :=
+by { rw ←@ring_hom.map_int_cast R, exact is_algebraic_algebra_map n }
 
 lemma is_algebraic_rat [division_ring R] [char_zero R] : ∀ n : ℚ, is_algebraic ℚ (n : R) :=
 is_algebraic_algebra_map

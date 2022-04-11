@@ -2230,7 +2230,7 @@ begin
 end
 
 lemma foldr_range_subset_of_range_subset {f : α → γ → γ} {g : β → γ → γ}
-  (hfg : set.range f ⊆ set.range g) (a) : set.range (list.foldr f a) ⊆ set.range (list.foldr g a) :=
+  (hfg : set.range f ⊆ set.range g) (a) : set.range (foldr f a) ⊆ set.range (foldr g a) :=
 begin
   rintro _ ⟨l, rfl⟩,
   induction l with b l H,
@@ -2242,9 +2242,8 @@ begin
 end
 
 lemma foldr_range_eq_of_range_eq {f : α → γ → γ} {g : β → γ → γ} (hfg : set.range f = set.range g)
-  (a) : set.range (list.foldr f a) = set.range (list.foldr g a) :=
-(list.foldr_range_subset_of_range_subset hfg.le a).antisymm
-  (list.foldr_range_subset_of_range_subset hfg.ge a)
+  (a) : set.range (foldr f a) = set.range (foldr g a) :=
+(foldr_range_subset_of_range_subset hfg.le a).antisymm (foldr_range_subset_of_range_subset hfg.ge a)
 
 /-- Induction principle for values produced by a `foldr`: if a property holds
 for the seed element `b : β` and for all incremental `op : α → β → β`

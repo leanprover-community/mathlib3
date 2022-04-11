@@ -216,7 +216,7 @@ theorem is_connected.Union_of_refl_trans_gen {ι : Type*} [nonempty ι] {s : ι 
   is_preconnected.Union_of_refl_trans_gen (λ i, (H i).is_preconnected) K⟩
 
 section succ_order
-open succ_order
+open order
 
 variables [linear_order β] [succ_order β] [is_succ_archimedean β]
 

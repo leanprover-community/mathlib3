@@ -1402,3 +1402,47 @@ def Ici_bot [preorder α] [order_bot α] : set.Ici (⊥ : α) ≃o α :=
   .. (@equiv.subtype_univ_equiv α (set.Ici (⊥ : α)) (λ x, bot_le)) }
 
 end order_iso
+
+/-! ### Lemmas about intervals in dense orders -/
+
+section dense
+
+variables (α : Type*) [preorder α] [densely_ordered α] {x y : α}
+
+instance : no_min_order (set.Ioo x y) :=
+⟨λ ⟨a, ha₁, ha₂⟩, begin
+  rcases exists_between ha₁ with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, hb₁, hb₂.trans ha₂⟩, hb₂⟩
+end⟩
+
+instance : no_min_order (set.Ioc x y) :=
+⟨λ ⟨a, ha₁, ha₂⟩, begin
+  rcases exists_between ha₁ with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, hb₁, hb₂.le.trans ha₂⟩, hb₂⟩
+end⟩
+
+instance : no_min_order (set.Ioi x) :=
+⟨λ ⟨a, ha⟩, begin
+  rcases exists_between ha with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, hb₁⟩, hb₂⟩
+end⟩
+
+instance : no_max_order (set.Ioo x y) :=
+⟨λ ⟨a, ha₁, ha₂⟩, begin
+  rcases exists_between ha₂ with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, ha₁.trans hb₁, hb₂⟩, hb₁⟩
+end⟩
+
+instance : no_max_order (set.Ico x y) :=
+⟨λ ⟨a, ha₁, ha₂⟩, begin
+  rcases exists_between ha₂ with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, ha₁.trans hb₁.le, hb₂⟩, hb₁⟩
+end⟩
+
+instance : no_max_order (set.Iio x) :=
+⟨λ ⟨a, ha⟩, begin
+  rcases exists_between ha with ⟨b, hb₁, hb₂⟩,
+  exact ⟨⟨b, hb₂⟩, hb₁⟩
+end⟩
+
+end dense

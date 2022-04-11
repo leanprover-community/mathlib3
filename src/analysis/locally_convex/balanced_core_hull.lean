@@ -314,7 +314,7 @@ begin
   rw [smul_assoc, ←smul_assoc y y⁻¹ z', smul_eq_mul, mul_inv_cancel hy', one_smul],
 end
 
-variables (𝕜)
+variables (𝕜 E)
 
 lemma nhds_basis_closed_balanced [regular_space E] : (𝓝 (0 : E)).has_basis
   (λ (s : set E), s ∈ 𝓝 (0 : E) ∧ is_closed s ∧ balanced 𝕜 s) id :=

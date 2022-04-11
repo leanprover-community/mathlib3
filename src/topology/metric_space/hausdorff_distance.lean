@@ -58,8 +58,7 @@ infi_union
 infi_singleton
 
 /-- The edist to a set is bounded above by the edist to any of its points -/
-lemma inf_edist_le_edist_of_mem (h : y ∈ s) : inf_edist x s ≤ edist x y :=
-binfi_le _ h
+lemma inf_edist_le_edist_of_mem (h : y ∈ s) : inf_edist x s ≤ edist x y := infi₂_le _ h
 
 /-- If a point `x` belongs to `s`, then its edist to `s` vanishes -/
 lemma inf_edist_zero_of_mem (h : x ∈ s) : inf_edist x s = 0 :=
@@ -77,7 +76,7 @@ by simp_rw [inf_edist, infi_lt_iff]
 the edist from `x` to `y` -/
 lemma inf_edist_le_inf_edist_add_edist : inf_edist x s ≤ inf_edist y s + edist x y :=
 calc (⨅ z ∈ s, edist x z) ≤ ⨅ z ∈ s, edist y z + edist x y :
-  binfi_le_binfi $ λ z hz, (edist_triangle _ _ _).trans_eq (add_comm _ _)
+  infi₂_mono $ λ z hz, (edist_triangle _ _ _).trans_eq (add_comm _ _)
 ... = (⨅ z ∈ s, edist y z) + edist x y : by simp only [ennreal.infi_add]
 
 /-- The edist to a set depends continuously on the point -/
@@ -227,7 +226,7 @@ lemma inf_edist_le_Hausdorff_edist_of_mem (h : x ∈ s) : inf_edist x t ≤ Haus
 begin
   rw Hausdorff_edist_def,
   refine le_trans _ le_sup_left,
-  exact le_bsupr x h
+  exact le_supr₂ x h
 end
 
 /-- If the Hausdorff distance is `<r`, then any point in one of the sets has
@@ -448,6 +447,12 @@ lemma disjoint_ball_inf_dist : disjoint (ball x (inf_dist x s)) s :=
 disjoint_left.2 $ λ y hy, not_mem_of_dist_lt_inf_dist $
   calc dist x y = dist y x : dist_comm _ _
   ... < inf_dist x s : hy
+
+lemma ball_inf_dist_subset_compl : ball x (inf_dist x s) ⊆ sᶜ :=
+disjoint_iff_subset_compl_right.1 disjoint_ball_inf_dist
+
+lemma ball_inf_dist_compl_subset : ball x (inf_dist x sᶜ) ⊆ s :=
+ball_inf_dist_subset_compl.trans (compl_compl s).subset
 
 lemma disjoint_closed_ball_of_lt_inf_dist {r : ℝ} (h : r < inf_dist x s) :
   disjoint (closed_ball x r) s :=

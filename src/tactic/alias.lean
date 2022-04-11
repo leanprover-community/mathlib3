@@ -3,7 +3,6 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.buffer.parser
 import tactic.core
 
 /-!
@@ -43,7 +42,7 @@ The `..` notation attempts to generate the 'of'-names automatically when the
 input theorem has the form `A_iff_B` or `A_iff_B_left` etc.
 -/
 
-open lean.parser tactic interactive parser
+open lean.parser tactic interactive --  parser
 
 namespace tactic.alias
 
@@ -81,7 +80,7 @@ meta def alias_iff (d : declaration) (doc : string) (al : name) (iffmp : name) :
 meta def make_left_right : name → tactic (name × name)
 | (name.mk_string s p) := do
   let buf : char_buffer := s.to_char_buffer,
-  sum.inr parts ← pure $ run (sep_by1 (ch '_') (many_char (sat (≠ '_')))) s.to_char_buffer,
+  let parts := s.split_on '_',
   (left, _::right) ← pure $ parts.span (≠ "iff"),
   let pfx (a b : string) := a.to_list.is_prefix_of b.to_list,
   (suffix', right') ← pure $ right.reverse.span (λ s, pfx "left" s ∨ pfx "right" s),

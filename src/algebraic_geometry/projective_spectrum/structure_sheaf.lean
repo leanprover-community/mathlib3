@@ -109,7 +109,7 @@ begin
   rcases ha x with ⟨Va, ma, ia, ja, ⟨ra, ra_mem⟩, ⟨sa, sa_mem⟩, wa⟩,
   rcases hb x with ⟨Vb, mb, ib, jb, ⟨rb, rb_mem⟩, ⟨sb, sb_mem⟩, wb⟩,
   refine ⟨Va ⊓ Vb, ⟨ma, mb⟩, opens.inf_le_left _ _ ≫ ia, ja + jb,
-    ⟨sb * ra + sa * rb, add_mem _ (add_comm jb ja ▸ mul_mem sb_mem ra_mem : sb * ra ∈ 𝒜 (ja + jb))
+    ⟨sb * ra + sa * rb, add_mem (add_comm jb ja ▸ mul_mem sb_mem ra_mem : sb * ra ∈ 𝒜 (ja + jb))
       (mul_mem sa_mem rb_mem)⟩,
     ⟨sa * sb, mul_mem sa_mem sb_mem⟩, λ y, ⟨λ h, _, _⟩⟩,
   { cases (y : projective_spectrum.Top 𝒜).is_prime.mem_or_mem h with h h,

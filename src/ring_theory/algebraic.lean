@@ -96,6 +96,9 @@ by { rw ←_root_.map_one _, exact is_algebraic_algebra_map 1 }
 lemma is_algebraic_nat [nontrivial R] (n : ℕ) : is_algebraic R (n : A) :=
 by { rw ←map_nat_cast _ n, exact is_algebraic_algebra_map n }
 
+lemma is_algebraic_rat [division_ring R] [char_zero R] : ∀ n : ℚ, is_algebraic ℚ (n : R) :=
+is_algebraic_algebra_map
+
 lemma is_algebraic_algebra_map_of_is_algebraic {a : S} :
   is_algebraic R a → is_algebraic R (algebra_map S A a) :=
 λ ⟨f, hf₁, hf₂⟩, ⟨f, hf₁, by rw [← is_scalar_tower.algebra_map_aeval R S A, hf₂, ring_hom.map_zero]⟩

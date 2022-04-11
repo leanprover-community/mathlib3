@@ -1,0 +1,48 @@
+/-
+Copyright (c) 2022 Eric Rodriguez. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Eric Rodriguez
+-/
+
+import analysis.inner_product_space.basic
+import analysis.special_functions.complex.arg
+
+/-!
+# Rays in the complex numbers
+
+This file links the definition `same_ray ℝ x y` with the equality of arguments of complex numbers,
+the usual way this is considered.
+
+## Main statements
+
+* `complex.same_ray_iff` : Two complex numbers are on the same ray iff one of them is zero, or they
+  have the same argument.
+* `complex.abs_add_eq/complex.abs_sub_eq`: If two non zero complex numbers have different argument,
+  then the triangle inequality becomes strict.
+
+-/
+
+variables {x y : ℂ}
+
+lemma complex.same_ray_iff : same_ray ℝ x y ↔ x = 0 ∨ y = 0 ∨ x.arg = y.arg :=
+begin
+  rcases eq_or_ne x 0 with rfl | hx,
+  { simp },
+  rcases eq_or_ne y 0 with rfl | hy,
+  { simp },
+  simp only [hx, hy, false_or, same_ray_iff_norm_smul_eq, complex.arg_eq_arg_iff hx hy],
+  field_simp [hx, hy],
+  rw [mul_comm, eq_comm]
+end
+
+lemma complex.abs_add_eq_iff : (x + y).abs = x.abs + y.abs ↔ x = 0 ∨ y = 0 ∨ x.arg = y.arg :=
+same_ray_iff_norm_add.symm.trans complex.same_ray_iff
+
+lemma complex.same_ray_of_arg_eq (h : x.arg = y.arg) : same_ray ℝ x y :=
+complex.same_ray_iff.mpr $ or.inr $ or.inr h
+
+lemma complex.abs_add_eq (h : x.arg = y.arg) : (x + y).abs = x.abs + y.abs :=
+(complex.same_ray_of_arg_eq h).norm_add
+
+lemma complex.abs_sub_eq (h : x.arg = y.arg) : (x - y).abs = ∥x.abs - y.abs∥ :=
+(complex.same_ray_of_arg_eq h).norm_sub

@@ -1510,7 +1510,7 @@ lemma span_eq_restrict_scalars (X : set M) (hsur : function.surjective (algebra_
   span R X = restrict_scalars R (span A X) :=
 begin
   apply (span_le_restrict_scalars R A X).antisymm (λ m hm, _),
-  refine span_induction hm subset_span (zero_mem _) (λ _ _, add_mem _) (λ a m hm, _),
+  refine span_induction hm subset_span (zero_mem _) (λ _ _, add_mem) (λ a m hm, _),
   obtain ⟨r, rfl⟩ := hsur a,
   simpa [algebra_map_smul] using smul_mem _ r hm
 end

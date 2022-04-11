@@ -145,12 +145,13 @@ variables [has_zero α] [preorder α] [decidable_rel ((<) : α → α → Prop)]
 
 /-- The sign of an element is 1 if it's positive, -1 if negative, 0 otherwise. -/
 def sign : α →o sign_type :=
-⟨λ a, if 0 < a then 1 else if a < 0 then -1 else 0, λ a b h, begin
+⟨λ a, if 0 < a then 1 else if a < 0 then -1 else 0,
+ λ a b h, begin
   dsimp,
-  split_ifs; try {constructor},
-  { cases lt_irrefl 0 (h_1.trans $ h.trans_lt h_3) },
-  { cases h_2 (h_1.trans_le h) },
-  { cases h_2 (h.trans_lt h_4) }
+  split_ifs with h₁ h₂ h₃ h₄ _ _ h₂ h₃; try {constructor},
+  { cases lt_irrefl 0 (h₁.trans $ h.trans_lt h₃) },
+  { cases h₂ (h₁.trans_le h) },
+  { cases h₄ (h.trans_lt h₃) }
   end⟩
 
 lemma sign_apply : sign a = ite (0 < a) 1 (ite (a < 0) (-1) 0) := rfl

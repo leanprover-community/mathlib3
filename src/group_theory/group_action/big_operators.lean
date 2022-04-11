@@ -3,10 +3,10 @@ Copyright (c) 2020 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
-import group_theory.group_action.defs
-import data.multiset.basic
-import data.finset.basic
 import algebra.big_operators.basic
+import data.finset.basic
+import data.multiset.basic
+import group_theory.group_action.defs
 
 /-!
 # Lemmas about group actions on big operators

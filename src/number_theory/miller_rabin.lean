@@ -333,6 +333,15 @@ begin
   }
 end
 
+lemma one_or_coprime_factorization_or_prime_power (n : ℕ) (h : 0 < n) :
+  (n = 1) ∨
+  (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1) ∨
+  (∃ (p k : ℕ), 1 ≤ k ∧ p.prime ∧ p^k = n) :=
+begin
+  -- This is a slight modification of the lemma coprime_factorization_or_prime_power above.
+  -- TODO(Sean): Try to prove this using coprime_factorization_or_prime_power (no other lemmas from this file should be needed) (first do a have statement to get the coprime_factorization_or_prime_power result into the hypotheses here)
+end
+
 lemma card_le_half_of_proper_subgroup {G : Type} [fintype G] [group G] {H : subgroup G} [fintype H]
   (x : G) (proper : x ∉ H) : (fintype.card H) * 2 ≤ (fintype.card G) :=
 begin
@@ -353,7 +362,7 @@ begin
     have thing2 : 0 < fintype.card G,
     exact fintype.card_pos,
     rw hindex at thing2,
-    -- TODO(Sean): try to prove 0 < fintype.card G, then again prove a contradiction using h1 and hindex
+    -- try to prove 0 < fintype.card G, then again prove a contradiction using h1 and hindex
     -- TODO(Bolton): Check the hypotheses here
     sorry,
   },
@@ -400,7 +409,7 @@ begin
   sorry,
 end
 
-lemma unlikely_strong_probable_prime_of_prime_power (n : ℕ) [hn_pos : fact (0 < n)]
+lemma unlikely_strong_probable_prime_of_prime_power (n : ℕ) [hn_pos : fact (0 < n)] (h1 : 1 < n)
   (h : (∃ (p k : ℕ), p.prime ∧ p^k = n)) (not_prime : ¬ n.prime) :
   ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
 begin
@@ -413,6 +422,7 @@ begin
     interval_cases k,
     -- TODO(Sean): try to solve these two sorrys, shouldn't need any other lemmas in this file.
     -- These hypotheses all seem true to me? Is proof by contradiction actually used here?
+    --    Good catch. There needed to be an extra hypothesis, where 1 < n, I've added hypothesis, hopefully now you can finish this.
     { sorry, },
     { apply not_prime,
       sorry, },
@@ -425,7 +435,8 @@ end
 lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [hn_pos : fact (0 < n)] (not_prime : ¬ n.prime) :
   ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
 begin
-  cases coprime_factorization_or_prime_power n (hn_pos.out),
+  cases one_or_coprime_factorization_or_prime_power n (hn_pos.out),
+  { sorry, },
   { apply unlikely_strong_probable_prime_of_coprime_mul,
     exact h,
     exact not_prime,

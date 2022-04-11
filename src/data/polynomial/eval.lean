@@ -243,7 +243,7 @@ zero_dvd_iff.mp (h0 ▸ eval₂_dvd f x h)
 
 lemma eval₂_list_prod (l : list R[X]) (x : S) :
   eval₂ f x l.prod = (l.map (eval₂ f x)).prod :=
-_root_.map_list_prod (eval₂_ring_hom f x) l
+map_list_prod (eval₂_ring_hom f x) l
 
 end
 
@@ -632,7 +632,7 @@ ring_hom.ext $ λ x, map_id
   (map_ring_hom f).comp (map_ring_hom g) = map_ring_hom (f.comp g) :=
 ring_hom.ext $ polynomial.map_map g f
 
-lemma map_list_prod (L : list R[X]) : L.prod.map f = (L.map $ map f).prod :=
+protected lemma map_list_prod (L : list R[X]) : L.prod.map f = (L.map $ map f).prod :=
 eq.symm $ list.prod_hom _ (map_ring_hom f).to_monoid_hom
 
 @[simp] protected lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n :=
@@ -785,11 +785,11 @@ lemma root_mul_right_of_is_root {p : R[X]} (q : R[X]) :
 
 lemma eval₂_multiset_prod (s : multiset R[X]) (x : S) :
   eval₂ f x s.prod = (s.map (eval₂ f x)).prod :=
-_root_.map_multiset_prod (eval₂_ring_hom f x) s
+map_multiset_prod (eval₂_ring_hom f x) s
 
 lemma eval₂_finset_prod (s : finset ι) (g : ι → R[X]) (x : S) :
   (∏ i in s, g i).eval₂ f x = ∏ i in s, (g i).eval₂ f x :=
-_root_.map_prod (eval₂_ring_hom f x) _ _
+map_prod (eval₂_ring_hom f x) _ _
 
 /--
 Polynomial evaluation commutes with `list.prod`

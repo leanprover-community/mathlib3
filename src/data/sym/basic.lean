@@ -66,20 +66,6 @@ Construct an element of the `n`th symmetric power from a multiset of cardinality
 @[simps, pattern]
 abbreviation mk (m : multiset α) (h : m.card = n) : sym α n := ⟨m, h⟩
 
-lemma coe_injective : injective (coe : sym α n → multiset α) := subtype.coe_injective
-
-@[simp, norm_cast] lemma coe_inj {s₁ s₂ : sym α n} : (s₁ : multiset α) = s₂ ↔ s₁ = s₂ :=
-coe_injective.eq_iff
-
-/--
-Construct an element of the `n`th symmetric power from a multiset of cardinality `n`.
--/
-@[simps, pattern]
-abbreviation mk (m : multiset α) (h : m.card = n) : sym α n := ⟨m, h⟩
-
-lemma exists_mk : Π (s : sym α n), ∃ m h, s = mk m h
-| (mk m h) := ⟨m, h, rfl⟩
-
 /--
 The unique element in `sym α 0`.
 -/
@@ -300,34 +286,8 @@ lemma map_injective {f : α → β} (hf : injective f) (n : ℕ) :
 def equiv_congr (e : α ≃ β) : sym α n ≃ sym β n :=
 { to_fun := map e,
   inv_fun := map e.symm,
-  left_inv := λ x, by { rw [map_map, equiv.symm_comp_self], simp only [id.def, map_id], },
-  right_inv := λ x, by { simp only [equiv.self_comp_symm, id.def, map_id, map_map], }, }
-
-/-- "Attach" a proof that `a ∈ s` to each element `a` in `s` to produce
-an element of the symmetric power on `{x // x ∈ s}`. -/
-def attach (s : sym α n) : sym {x // x ∈ s} n := ⟨s.val.attach, by rw [multiset.card_attach, s.2]⟩
-
-@[simp] lemma attach_mk {m : multiset α} {hc : m.card = n} :
-  attach (mk m hc) = mk m.attach (by simp [hc]) := rfl
-
-@[simp] lemma coe_attach (s : sym α n) : (s.attach : multiset {a // a ∈ s}) = multiset.attach s :=
-rfl
-
-lemma attach_map_coe (s : sym α n) : s.attach.map coe = s :=
-coe_injective $ multiset.attach_map_val _
-
-@[simp] lemma mem_attach : Π (s : sym α n), ∀ x, x ∈ s.attach
-| (mk s _) := by simp
-
-@[simp] lemma attach_nil : (nil : sym α 0).attach = nil := rfl
-
-@[simp] lemma attach_cons {x : α} {s : sym α n} :
-  (cons x s).attach = cons ⟨x, by simp⟩ (s.attach.map (λ x, ⟨x.1, mem_cons_of_mem x.2⟩)) :=
-begin
-  cases s,
-  simp only [cons, map, attach, subtype.mk_eq_mk, subtype.val_eq_coe],
-  apply multiset.attach_cons,
-end
+  left_inv := λ x, by rw [map_map, equiv.symm_comp_self, map_id],
+  right_inv := λ x, by rw [map_map, equiv.self_comp_symm, map_id] }
 
 /-- "Attach" a proof that `a ∈ s` to each element `a` in `s` to produce
 an element of the symmetric power on `{x // x ∈ s}`. -/

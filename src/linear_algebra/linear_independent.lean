@@ -262,7 +262,7 @@ begin
   forall_true_iff, imp_self, fin.succ_inj, finset.sum_image] at total_eq,
   have : g 0 = 0,
   { refine x_ortho (g 0) ⟨∑ (i : fin m), g i.succ • v i, _⟩ total_eq,
-    exact sum_mem _ (λ i _, smul_mem _ _ (subset_span ⟨i, rfl⟩)) },
+    exact sum_mem (λ i _, smul_mem _ _ (subset_span ⟨i, rfl⟩)) },
   refine fin.cases this (λ j, _) j,
   apply hli (λ i, g i.succ),
   simpa only [this, zero_smul, zero_add] using total_eq
@@ -626,7 +626,7 @@ begin
     { exact finset.disjoint_filter.2 (λ x hx, disjoint_left.1 is_compl_range_inl_range_inr.1) } },
   { rw ← eq_neg_iff_add_eq_zero at this,
     rw [disjoint_def'] at hlr,
-    have A := hlr _ (sum_mem _ $ λ i hi, _) _ (neg_mem _ $ sum_mem _ $ λ i hi, _) this,
+    have A := hlr _ (sum_mem $ λ i hi, _) _ (neg_mem $ sum_mem $ λ i hi, _) this,
     { cases i with i i,
       { exact hl _ _ A i (finset.mem_preimage.2 hi) },
       { rw [this, neg_eq_zero] at A,
@@ -700,21 +700,22 @@ variables (hv : linear_independent R v)
 
 /-- Canonical isomorphism between linear combinations and the span of linearly independent vectors.
 -/
-@[simps] def linear_independent.total_equiv (hv : linear_independent R v) :
+@[simps {rhs_md := semireducible}]
+def linear_independent.total_equiv (hv : linear_independent R v) :
   (ι →₀ R) ≃ₗ[R] span R (range v) :=
 begin
-apply linear_equiv.of_bijective
-  (linear_map.cod_restrict (span R (range v)) (finsupp.total ι M R v) _),
-{ rw [← linear_map.ker_eq_bot, linear_map.ker_cod_restrict],
-  apply hv },
-{ rw [← linear_map.range_eq_top, linear_map.range_eq_map, linear_map.map_cod_restrict,
-    ← linear_map.range_le_iff_comap, range_subtype, map_top],
-  rw finsupp.range_total,
-  exact le_rfl },
-{ intro l,
-  rw ← finsupp.range_total,
-  rw linear_map.mem_range,
-  apply mem_range_self l }
+  apply linear_equiv.of_bijective
+    (linear_map.cod_restrict (span R (range v)) (finsupp.total ι M R v) _),
+  { rw [← linear_map.ker_eq_bot, linear_map.ker_cod_restrict],
+    apply hv },
+  { rw [← linear_map.range_eq_top, linear_map.range_eq_map, linear_map.map_cod_restrict,
+      ← linear_map.range_le_iff_comap, range_subtype, map_top],
+    rw finsupp.range_total,
+    exact le_rfl },
+  { intro l,
+    rw ← finsupp.range_total,
+    rw linear_map.mem_range,
+    apply mem_range_self l }
 end
 
 /-- Linear combination representing a vector in the span of linearly independent vectors.
@@ -766,7 +767,8 @@ begin
     hv.repr x,
   { apply (linear_independent.total_equiv hv).injective,
     ext,
-    simp, },
+    simp only [linear_independent.total_equiv_apply_coe, equiv.self_comp_of_injective_symm,
+       linear_independent.total_repr, finsupp.total_equiv_map_domain, span.finsupp_total_repr], },
   ext ⟨_, ⟨i, rfl⟩⟩,
   simp [←p],
 end
@@ -850,7 +852,7 @@ begin
   rw [← finset.insert_erase hfi', finset.sum_insert (finset.not_mem_erase _ _),
       add_eq_zero_iff_eq_neg] at sum_f,
   rw sum_f,
-  refine neg_mem _ (sum_mem _ (λ c hc, smul_mem _ _ (subset_span ⟨c, _, rfl⟩))),
+  refine neg_mem (sum_mem (λ c hc, smul_mem _ _ (subset_span ⟨c, _, rfl⟩))),
   exact (memJ.mp (supp_f (finset.erase_subset _ _ hc))).resolve_left (finset.ne_of_mem_erase hc),
 end
 end repr
@@ -1082,7 +1084,7 @@ lemma linear_independent.insert (hs : linear_independent K (λ b, b : s → V)) 
   linear_independent K (λ b, b : insert x s → V) :=
 begin
   rw ← union_singleton,
-  have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem _) hx,
+  have x0 : x ≠ 0 := mt (by rintro rfl; apply zero_mem (span K s)) hx,
   apply hs.union (linear_independent_singleton x0),
   rwa [disjoint_span_singleton' x0]
 end

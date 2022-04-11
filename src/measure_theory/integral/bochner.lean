@@ -1292,13 +1292,13 @@ lemma integral_map_of_strongly_measurable {β} [measurable_space β] {φ : α �
 begin
   by_cases hfi : integrable f (measure.map φ μ), swap,
   { rw [integral_undef hfi, integral_undef],
-    rwa [← integrable_map_measure hfm.ae_strongly_measurable hφ] },
+    rwa [← integrable_map_measure hfm.ae_strongly_measurable hφ.ae_measurable] },
   borelize E,
   haveI : separable_space (range f ∪ {0} : set E) := hfm.separable_space_range_union_singleton,
   refine tendsto_nhds_unique
     (tendsto_integral_approx_on_of_measurable_of_range_subset hfm.measurable hfi _ subset.rfl) _,
   convert tendsto_integral_approx_on_of_measurable_of_range_subset (hfm.measurable.comp hφ)
-    ((integrable_map_measure hfm.ae_strongly_measurable hφ).1 hfi) (range f ∪ {0})
+    ((integrable_map_measure hfm.ae_strongly_measurable hφ.ae_measurable).1 hfi) (range f ∪ {0})
     (by simp [insert_subset_insert, set.range_comp_subset_range]) using 1,
   ext1 i,
   simp only [simple_func.approx_on_comp, simple_func.integral_eq, measure.map_apply, hφ,
@@ -1309,12 +1309,16 @@ begin
   simp,
 end
 
-lemma integral_map {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)
+lemma integral_map {β} [measurable_space β] {φ : α → β} (hφ : ae_measurable φ μ)
   {f : β → E} (hfm : ae_strongly_measurable f (measure.map φ μ)) :
   ∫ y, f y ∂(measure.map φ μ) = ∫ x, f (φ x) ∂μ :=
 let g := hfm.mk f in calc
 ∫ y, f y ∂(measure.map φ μ) = ∫ y, g y ∂(measure.map φ μ) : integral_congr_ae hfm.ae_eq_mk
-... = ∫ x, g (φ x) ∂μ : integral_map_of_strongly_measurable hφ hfm.strongly_measurable_mk
+... = ∫ y, g y ∂(measure.map (hφ.mk φ) μ) :
+  by { congr' 1, exact measure.map_congr hφ.ae_eq_mk }
+... = ∫ x, g (hφ.mk φ x) ∂μ :
+  integral_map_of_strongly_measurable hφ.measurable_mk hfm.strongly_measurable_mk
+... = ∫ x, g (φ x) ∂μ : integral_congr_ae (hφ.ae_eq_mk.symm.fun_comp _)
 ... = ∫ x, f (φ x) ∂μ : integral_congr_ae $ ae_eq_comp hφ (hfm.ae_eq_mk).symm
 
 lemma _root_.measurable_embedding.integral_map {β} {_ : measurable_space β} {f : α → β}
@@ -1322,7 +1326,7 @@ lemma _root_.measurable_embedding.integral_map {β} {_ : measurable_space β} {f
   ∫ y, g y ∂(measure.map f μ) = ∫ x, g (f x) ∂μ :=
 begin
   by_cases hgm : ae_strongly_measurable g (measure.map f μ),
-  { exact integral_map hf.measurable hgm },
+  { exact integral_map hf.measurable.ae_measurable hgm },
   { rw [integral_non_ae_strongly_measurable hgm, integral_non_ae_strongly_measurable],
     rwa ← hf.ae_strongly_measurable_map_iff }
 end

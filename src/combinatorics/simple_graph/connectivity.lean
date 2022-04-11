@@ -228,6 +228,9 @@ begin
     exact ⟨nil, rfl⟩, },
 end
 
+@[simp] lemma length_eq_zero_iff {u : V} {p : G.walk u u} : p.length = 0 ↔ p = nil :=
+by cases p; simp
+
 /-- The `support` of a walk is the list of vertices it visits in order. -/
 def support : Π {u v : V}, G.walk u v → list V
 | u v nil := [u]
@@ -899,5 +902,95 @@ by { rw ← set.nonempty_iff_univ_nonempty, exact hconn u v }
 
 lemma connected.set_univ_walk_nonempty (hconn : G.connected) (u v : V) :
   (set.univ : set (G.walk u v)).nonempty := hconn.preconnected.set_univ_walk_nonempty u v
+
+/-! ### Walks of a given length -/
+
+section walk_counting
+
+lemma set_walk_self_length_zero_eq (u : V) :
+  {p : G.walk u u | p.length = 0} = {walk.nil} :=
+by { ext p, simp }
+
+lemma set_walk_length_zero_eq_of_ne {u v : V} (h : u ≠ v) :
+  {p : G.walk u v | p.length = 0} = ∅ :=
+begin
+  ext p,
+  simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+  exact λ h', absurd (walk.eq_of_length_eq_zero h') h,
+end
+
+lemma set_walk_length_succ_eq (u v : V) (n : ℕ) :
+  {p : G.walk u v | p.length = n.succ} =
+    ⋃ (w : V) (h : G.adj u w), walk.cons h '' {p' : G.walk w v | p'.length = n} :=
+begin
+  ext p,
+  cases p with _ _ w _ huw pwv,
+  { simp [eq_comm], },
+  { simp only [nat.succ_eq_add_one, set.mem_set_of_eq, walk.length_cons, add_left_inj,
+      set.mem_Union, set.mem_image, exists_prop],
+    split,
+    { rintro rfl,
+      exact ⟨w, huw, pwv, rfl, rfl, heq.rfl⟩, },
+    { rintro ⟨w, huw, pwv, rfl, rfl, rfl⟩,
+      refl, } },
+end
+
+variables (G) [fintype V] [decidable_rel G.adj] [decidable_eq V]
+
+/-- The `finset` of length-`n` walks from `u` to `v`.
+This is used to give `{p : G.walk u v | p.length = n}` a `fintype` instance, and it
+can also be useful as a recursive description of this set when `V` is finite.
+
+See `simple_graph.coe_finset_walk_length_eq` for the relationship between this `finset` and
+the set of length-`n` walks. -/
+def finset_walk_length : Π (n : ℕ) (u v : V), finset (G.walk u v)
+| 0 u v := if h : u = v
+           then by { subst u, exact {walk.nil} }
+           else ∅
+| (n+1) u v := finset.univ.bUnion (λ (w : V),
+                 if h : G.adj u w
+                 then (finset_walk_length n w v).map ⟨λ p, walk.cons h p, λ p q, by simp⟩
+                 else ∅)
+
+lemma coe_finset_walk_length_eq (n : ℕ) (u v : V) :
+  (G.finset_walk_length n u v : set (G.walk u v)) = {p : G.walk u v | p.length = n} :=
+begin
+  induction n with n ih generalizing u v,
+  { obtain rfl | huv := eq_or_ne u v;
+    simp [finset_walk_length, set_walk_length_zero_eq_of_ne, *], },
+  { simp only [finset_walk_length, set_walk_length_succ_eq,
+      finset.coe_bUnion, finset.mem_coe, finset.mem_univ, set.Union_true],
+    ext p,
+    simp only [set.mem_Union, finset.mem_coe, set.mem_image, set.mem_set_of_eq],
+    congr' 2,
+    ext w,
+    simp only [set.ext_iff, finset.mem_coe, set.mem_set_of_eq] at ih,
+    split_ifs with huw; simp [huw, ih], },
+end
+
+variables {G}
+
+lemma walk.length_eq_of_mem_finset_walk_length {n : ℕ} {u v : V} (p : G.walk u v) :
+  p ∈ G.finset_walk_length n u v → p.length = n :=
+(set.ext_iff.mp (G.coe_finset_walk_length_eq n u v) p).mp
+
+variables (G)
+
+instance fintype_set_walk_length (u v : V) (n : ℕ) : fintype {p : G.walk u v | p.length = n} :=
+fintype.subtype (G.finset_walk_length n u v) $ λ p,
+by rw [←finset.mem_coe, coe_finset_walk_length_eq]
+
+lemma set_walk_length_to_finset_eq (n : ℕ) (u v : V) :
+  {p : G.walk u v | p.length = n}.to_finset = G.finset_walk_length n u v :=
+by { ext p, simp [←coe_finset_walk_length_eq] }
+
+/- See `simple_graph.adj_matrix_pow_apply_eq_card_walk` for the cardinality in terms of the `n`th
+power of the adjacency matrix. -/
+lemma card_set_walk_length_eq (u v : V) (n : ℕ) :
+  fintype.card {p : G.walk u v | p.length = n} = (G.finset_walk_length n u v).card :=
+fintype.card_of_subtype (G.finset_walk_length n u v) $ λ p,
+by rw [←finset.mem_coe, coe_finset_walk_length_eq]
+
+end walk_counting
 
 end simple_graph

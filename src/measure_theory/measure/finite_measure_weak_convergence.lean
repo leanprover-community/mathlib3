@@ -230,7 +230,7 @@ begin
   simp only [←ennreal.coe_eq_coe, bounded_continuous_function.coe_smul,
              test_against_nn_coe_eq, ennreal.coe_smul],
   simp_rw [←smul_one_smul ℝ≥0∞ c (f _ : ℝ≥0∞), ←smul_one_smul ℝ≥0∞ c (lintegral _ _ : ℝ≥0∞),
-    smul_eq_mul],
+           smul_eq_mul],
   exact @lintegral_const_mul _ _ (μ : measure α) (c • 1)  _
                    (bounded_continuous_function.nnreal.to_ennreal_comp_measurable f),
 end
@@ -314,12 +314,7 @@ theorem tendsto_iff_forall_test_against_nn_tendsto {γ : Type*} {F : filter γ}
   ∀ (f : α →ᵇ ℝ≥0),
     tendsto (λ i, (μs(i)).to_weak_dual_bounded_continuous_nnreal f)
       F (𝓝 (μ.to_weak_dual_bounded_continuous_nnreal f)) :=
-begin
-  rw [tendsto_iff_weak_star_tendsto, tendsto_iff_forall_eval_tendsto],
-  swap,
-  exact continuous_linear_map.coe_injective,
-  refl,
-end
+by { rw [tendsto_iff_weak_star_tendsto, tendsto_iff_forall_eval_tendsto_top_dual_pairing], refl, }
 
 theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :

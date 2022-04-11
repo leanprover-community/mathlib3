@@ -224,4 +224,13 @@ def weak_space (𝕜 E) [comm_semiring 𝕜] [topological_space 𝕜] [has_conti
   [has_continuous_const_smul 𝕜 𝕜] [add_comm_monoid E] [module 𝕜 E] [topological_space E] :=
 weak_bilin (top_dual_pairing 𝕜 E).flip
 
+theorem tendsto_iff_forall_eval_tendsto_top_dual_pairing
+  {l : filter α} {f : α → weak_dual 𝕜 E} {x : weak_dual 𝕜 E} :
+  tendsto f l (𝓝 x) ↔
+    ∀ y, tendsto (λ i, top_dual_pairing 𝕜 E (f i) y) l (𝓝 (top_dual_pairing 𝕜 E x y)) :=
+begin
+  apply tendsto_iff_forall_eval_tendsto,
+  exact continuous_linear_map.coe_injective,
+end
+
 end weak_star_topology

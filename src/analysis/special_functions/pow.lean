@@ -181,7 +181,7 @@ begin
 end
 
 /-- The function `z ^ w` is continuous in `(z, w)` provided that `z` does not belong to the interval
-`(-∞, 0]` on the real line. See also `complex.continuous_at_cpow_of_re_pos` for a version that
+`(-∞, 0]` on the real line. See also `complex.continuous_at_cpow_zero_of_re_pos` for a version that
 works for `z = 0` but assumes `0 < re w`. -/
 lemma continuous_at_cpow {p : ℂ × ℂ} (hp_fst : 0 < p.fst.re ∨ p.fst.im ≠ 0) :
   continuous_at (λ x : ℂ × ℂ, x.1 ^ x.2) p :=
@@ -949,6 +949,30 @@ begin
   refine (tendsto_exp_mul_div_rpow_at_top s b hb).inv_tendsto_at_top.congr' _,
   filter_upwards with x using by simp [exp_neg, inv_div, div_eq_mul_inv _ (exp _)]
 end
+
+open asymptotics
+
+/-- `x ^ s = o(exp(b * x))` as `x → ∞` for any real `s` and positive `b`. -/
+lemma is_o_rpow_exp_pos_mul_at_top (s : ℝ) {b : ℝ} (hb : 0 < b) :
+  is_o (λ x : ℝ, x ^ s) (λ x, exp (b * x)) at_top :=
+iff.mpr (is_o_iff_tendsto $ λ x h, absurd h (exp_pos _).ne') $
+  by simpa only [div_eq_mul_inv, exp_neg, neg_mul]
+    using tendsto_rpow_mul_exp_neg_mul_at_top_nhds_0 s b hb
+
+/-- `x ^ k = o(exp(b * x))` as `x → ∞` for any integer `k` and positive `b`. -/
+lemma is_o_zpow_exp_pos_mul_at_top (k : ℤ) {b : ℝ} (hb : 0 < b) :
+  is_o (λ x : ℝ, x ^ k) (λ x, exp (b * x)) at_top :=
+by simpa only [rpow_int_cast] using is_o_rpow_exp_pos_mul_at_top k hb
+
+/-- `x ^ k = o(exp(b * x))` as `x → ∞` for any natural `k` and positive `b`. -/
+lemma is_o_pow_exp_pos_mul_at_top (k : ℕ) {b : ℝ} (hb : 0 < b) :
+  is_o (λ x : ℝ, x ^ k) (λ x, exp (b * x)) at_top :=
+is_o_zpow_exp_pos_mul_at_top k hb
+
+/-- `x ^ s = o(exp x)` as `x → ∞` for any real `s`. -/
+lemma is_o_rpow_exp_at_top (s : ℝ) : is_o (λ x : ℝ, x ^ s) exp at_top :=
+by simpa only [one_mul] using is_o_rpow_exp_pos_mul_at_top s one_pos
+
 end limits
 
 namespace complex

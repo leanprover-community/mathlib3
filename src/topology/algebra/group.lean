@@ -530,7 +530,7 @@ begin
   rintro _ ⟨a, b, ha, hb, rfl⟩,
   rw mem_closure_iff at hb,
   have hbU : b ∈ U⁻¹ * {a * b},
-    from ⟨a⁻¹, a * b, inv_mem_inv.2 ha, rfl, inv_mul_cancel_left _ _⟩,
+    from ⟨a⁻¹, a * b, set.inv_mem_inv.2 ha, rfl, inv_mul_cancel_left _ _⟩,
   rcases hb _ hU.inv.mul_right hbU with ⟨_, ⟨c, d, hc, (rfl : d = _), rfl⟩, hcs⟩,
   exact ⟨c⁻¹, _, hc, hcs, inv_mul_cancel_left _ _⟩
 end

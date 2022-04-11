@@ -1051,7 +1051,7 @@ variables [Π i, has_zero (β i)]
 variables {κ : Type*}
 /--Reindexing (and possibly removing) terms of a dfinsupp.-/
 noncomputable def comap_domain (h : κ → ι) (hh : function.injective h) :
-(Π₀ i, β i) → Π₀ k, β (h k) :=
+  (Π₀ i, β i) → Π₀ k, β (h k) :=
 begin
   refine quotient.lift (λ f, ⟦_⟧) (λ f f' h, _),
   exact { to_fun := λ x, f.to_fun (h x),
@@ -1060,7 +1060,7 @@ begin
   exact quot.sound (λ x, h _)
 end
 @[simp] lemma comap_domain_apply (h : κ → ι) (hh : function.injective h) (f : Π₀ i, β i) (k : κ) :
-comap_domain h hh f k = f (h k) :=
+  comap_domain h hh f k = f (h k) :=
 by { rcases f, refl }
 
 omit dec
@@ -1152,7 +1152,7 @@ end
 @[simp] lemma extend_with_none (f : Π₀ i, α (some i)) (a : α none) : f.extend_with a none = a :=
 by { rcases f, refl }
 @[simp] lemma extend_with_some (f : Π₀ i, α (some i)) (a : α none) (i : ι) :
-f.extend_with a (some i) = f i :=
+  f.extend_with a (some i) = f i :=
 by { rcases f, refl }
 
 include dec

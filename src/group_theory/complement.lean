@@ -315,6 +315,14 @@ subtype.ext_iff.mp $ @unique_of_exists_unique ↥(f • T) (λ s, (↑s)⁻¹ * 
   ⟨f • to_fun T.2 g, set.smul_mem_smul_set (subtype.coe_prop _)⟩ (to_fun (f • T).2 (f • g))
   (quotient_action.inv_mul_mem f (inv_to_fun_mul_mem T.2 g)) (inv_to_fun_mul_mem (f • T).2 (f • g))
 
+@[to_additive] lemma smul_to_equiv (f : F) (T : left_transversals (H : set G)) (q : G ⧸ H) :
+  f • (to_equiv T.2 q : G) = to_equiv (f • T).2 (f • q) :=
+quotient.induction_on' q (λ g, smul_to_fun f T g)
+
+@[to_additive] lemma smul_apply_eq_smul_apply_inv_smul (f : F) (T : left_transversals (H : set G))
+  (q : G ⧸ H) : (to_equiv (f • T).2 q : G) = f • (to_equiv T.2 (f⁻¹ • q) : G) :=
+by rw [smul_to_equiv, smul_inv_smul]
+
 end action
 
 @[to_additive] instance : inhabited (left_transversals (H : set G)) :=

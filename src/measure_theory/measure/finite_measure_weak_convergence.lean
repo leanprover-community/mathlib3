@@ -295,11 +295,21 @@ instance : topological_space (finite_measure α) :=
 topological_space.induced
   (λ (μ : finite_measure α), μ.to_weak_dual_bounded_continuous_nnreal) infer_instance
 
-/- Integration of (nonnegative bounded continuous) test functions against finite Borel measures
-depends continuously on the measure. -/
 lemma to_weak_dual_continuous :
   continuous (@finite_measure.to_weak_dual_bounded_continuous_nnreal α _ _ _) :=
 continuous_induced_dom
+
+/- Integration of (nonnegative bounded continuous) test functions against finite Borel measures
+depends continuously on the measure. -/
+lemma continuous_test_against_nn_eval (f : α →ᵇ ℝ≥0) :
+  continuous (λ (μ : finite_measure α), μ.test_against_nn f) :=
+begin
+  let F₂ := (λ (φ : weak_dual ℝ≥0 (α →ᵇ ℝ≥0)), φ f),
+  let F₁ := (λ (μ : finite_measure α), to_weak_dual_bounded_continuous_nnreal μ),
+  change continuous (F₂ ∘ F₁),
+  apply continuous.comp _ to_weak_dual_continuous,
+  apply eval_continuous,
+end
 
 lemma tendsto_iff_weak_star_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
@@ -434,11 +444,21 @@ instance : topological_space (probability_measure α) :=
 topological_space.induced
   (λ (μ : probability_measure α), μ.to_weak_dual_bounded_continuous_nnreal) infer_instance
 
-/- Integration of (nonnegative bounded continuous) test functions against Borel probability
-measures depends continuously on the measure. -/
 lemma to_weak_dual_continuous :
   continuous (@probability_measure.to_weak_dual_bounded_continuous_nnreal α _ _ _) :=
 continuous_induced_dom
+
+/- Integration of (nonnegative bounded continuous) test functions against Borel probability
+measures depends continuously on the measure. -/
+lemma continuous_test_against_nn_eval (f : α →ᵇ ℝ≥0) :
+  continuous (λ (μ : probability_measure α), μ.test_against_nn f) :=
+begin
+  let F₂ := (λ (φ : weak_dual ℝ≥0 (α →ᵇ ℝ≥0)), φ f),
+  let F₁ := (λ (μ : probability_measure α), to_weak_dual_bounded_continuous_nnreal μ),
+  change continuous (F₂ ∘ F₁),
+  apply continuous.comp _ to_weak_dual_continuous,
+  apply eval_continuous,
+end
 
 /- The canonical mapping from probability measures to finite measures is an embedding. -/
 lemma to_finite_measure_embedding (α : Type*)

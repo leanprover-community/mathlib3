@@ -84,15 +84,15 @@ def ennreal := with_top ℝ≥0
 localized "notation `ℝ≥0∞` := ennreal" in ennreal
 localized "notation `∞` := (⊤ : ennreal)" in ennreal
 
--- TODO: why are the two covariant instances necessary? why aren't they inferred?
-instance covariant_class_mul : covariant_class ℝ≥0∞ ℝ≥0∞ (*) (≤) :=
-canonically_ordered_comm_semiring.to_covariant_mul_le
-
-instance covariant_class_add : covariant_class ℝ≥0∞ ℝ≥0∞ (+) (≤) :=
-ordered_add_comm_monoid.to_covariant_class_left ℝ≥0∞
-
 namespace ennreal
 variables {a b c d : ℝ≥0∞} {r p q : ℝ≥0}
+
+-- TODO: why are the two covariant instances necessary? why aren't they inferred?
+instance covariant_class_mul_le : covariant_class ℝ≥0∞ ℝ≥0∞ (*) (≤) :=
+canonically_ordered_comm_semiring.to_covariant_mul_le
+
+instance covariant_class_add_le : covariant_class ℝ≥0∞ ℝ≥0∞ (+) (≤) :=
+ordered_add_comm_monoid.to_covariant_class_left ℝ≥0∞
 
 instance : inhabited ℝ≥0∞ := ⟨0⟩
 
@@ -484,17 +484,22 @@ by simpa only [pos_iff_ne_zero] using ennreal.pow_pos
 
 @[simp] lemma not_lt_zero : ¬ a < 0 := by simp
 
-lemma add_lt_add_iff_left (ha : a ≠ ∞) : a + c < a + b ↔ c < b :=
-with_top.add_lt_add_iff_left ha
-
-lemma add_lt_add_left (ha : a ≠ ∞) (h : b < c) : a + b < a + c :=
-(add_lt_add_iff_left ha).2 h
-
-lemma add_lt_add_iff_right (ha : a ≠ ∞) : c + a < b + a ↔ c < b :=
-with_top.add_lt_add_iff_right ha
-
-lemma add_lt_add_right (ha : a ≠ ∞) (h : b < c) : b + a < c + a :=
-(add_lt_add_iff_right ha).2 h
+protected lemma le_of_add_le_add_left : a ≠ ⊤ → a + b ≤ a + c → b ≤ c :=
+with_top.le_of_add_le_add_left
+protected lemma le_of_add_le_add_right : a ≠ ⊤ → b + a ≤ c + a → b ≤ c :=
+with_top.le_of_add_le_add_right
+protected lemma add_lt_add_left : a ≠ ⊤ → b < c → a + b < a + c := with_top.add_lt_add_left
+protected lemma add_lt_add_right : a ≠ ⊤ → b < c → b + a < c + a := with_top.add_lt_add_right
+protected lemma add_le_add_iff_left : a ≠ ⊤ → a + b ≤ a + c ↔ b ≤ c := with_top.add_le_add_iff_left
+protected lemma add_le_add_iff_right : a ≠ ⊤ → b + a ≤ c + a ↔ b ≤ c :=
+with_top.add_le_add_iff_right
+protected lemma add_lt_add_iff_left : a ≠ ⊤ → a + b < a + c ↔ b < c := with_top.add_lt_add_iff_left
+protected lemma add_lt_add_iff_right : a ≠ ⊤ → b + a < c + a ↔ b < c :=
+with_top.add_lt_add_iff_right
+protected lemma add_lt_add_of_le_of_lt : a ≠ ⊤ → a ≤ b → c < d → a + c < b + d :=
+with_top.add_lt_add_of_le_of_lt
+protected lemma add_lt_add_of_lt_of_le : c ≠ ⊤ → a < b → c ≤ d → a + c < b + d :=
+with_top.add_lt_add_of_lt_of_le
 
 instance contravariant_class_add_lt : contravariant_class ℝ≥0∞ ℝ≥0∞ (+) (<) :=
 with_top.contravariant_class_add_lt

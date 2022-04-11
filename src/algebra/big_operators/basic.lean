@@ -959,6 +959,17 @@ prod_bij (λ x _, x.1) (λ x _, multiset.mem_to_finset.mpr x.2)
   (λ _ _ _ _ h, by { ext, assumption })
   (λ y hy, ⟨⟨y, multiset.mem_to_finset.mp hy⟩, finset.mem_univ _, rfl⟩)
 
+@[to_additive]
+lemma prod_list_count [decidable_eq α] [comm_monoid α] (l : list α) :
+  l.prod = ∏ x in l.to_finset, (x ^ (count x l)) :=
+by { convert prod_multiset_count (l : multiset α), rw multiset.coe_prod l }
+
+@[to_additive]
+lemma prod_list_count_of_subset [decidable_eq α] [comm_monoid α]
+  (l : list α) (s : finset α) (hs : l.to_finset ⊆ s) :
+  l.prod = ∏ i in s, i ^ (l.count i) :=
+by { convert prod_multiset_count_of_subset (l : multiset α) s hs, rw multiset.coe_prod l }
+
 /--
 To prove a property of a product, it suffices to prove that
 the property is multiplicative and holds on factors.

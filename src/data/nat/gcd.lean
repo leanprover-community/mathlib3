@@ -435,7 +435,7 @@ theorem coprime.pow_right {m k : ℕ} (n : ℕ) (H1 : coprime k m) : coprime k (
 theorem coprime.pow {k l : ℕ} (m n : ℕ) (H1 : coprime k l) : coprime (k ^ m) (l ^ n) :=
 (H1.pow_left _).pow_right _
 
-lemma coprime_pow_left_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+@[simp] lemma coprime_pow_left_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
   nat.coprime (a ^ n) b ↔ nat.coprime a b :=
 begin
   obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero hn.ne',
@@ -443,7 +443,7 @@ begin
   exact ⟨and.left, λ hab, ⟨hab, hab.pow_left _⟩⟩
 end
 
-lemma coprime_pow_right_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
+@[simp] lemma coprime_pow_right_iff {n : ℕ} (hn : 0 < n) (a b : ℕ)  :
   nat.coprime a (b ^ n) ↔ nat.coprime a b :=
 by rw [nat.coprime_comm, coprime_pow_left_iff hn, nat.coprime_comm]
 
@@ -466,6 +466,15 @@ by simp [coprime]
 
 @[simp] theorem coprime_self (n : ℕ) : coprime n n ↔ n = 1 :=
 by simp [coprime]
+
+lemma gcd_mul_of_coprime_of_dvd {a b c : ℕ} (hac : coprime a c) (b_dvd_c : b ∣ c) :
+  gcd (a * b) c = b :=
+begin
+  rcases exists_eq_mul_left_of_dvd b_dvd_c with ⟨d, rfl⟩,
+  rw [gcd_mul_right],
+  convert one_mul b,
+  exact coprime.coprime_mul_right_right hac,
+end
 
 section big_operators
 
@@ -563,6 +572,19 @@ begin
   have h1 := dvd_gcd hka hkb,
   rw h_ab_coprime at h1,
   exact nat.dvd_one.mp h1,
+end
+
+lemma coprime.mul_add_mul_ne_mul {m n a b : ℕ} (cop : coprime m n) (ha : a ≠ 0) (hb : b ≠ 0) :
+  a * m + b * n ≠ m * n :=
+begin
+  intro h,
+  obtain ⟨x, rfl⟩ : n ∣ a := cop.symm.dvd_of_dvd_mul_right
+    ((nat.dvd_add_iff_left (dvd_mul_left n b)).mpr ((congr_arg _ h).mpr (dvd_mul_left n m))),
+  obtain ⟨y, rfl⟩ : m ∣ b := cop.dvd_of_dvd_mul_right
+    ((nat.dvd_add_iff_right (dvd_mul_left m (n*x))).mpr ((congr_arg _ h).mpr (dvd_mul_right m n))),
+  rw [mul_comm, mul_ne_zero_iff, ←one_le_iff_ne_zero] at ha hb,
+  refine mul_ne_zero hb.2 ha.2 (eq_zero_of_mul_eq_self_left (ne_of_gt (add_le_add ha.1 hb.1)) _),
+  rw [← mul_assoc, ← h, add_mul, add_mul, mul_comm _ n, ←mul_assoc, mul_comm y]
 end
 
 end nat

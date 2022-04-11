@@ -96,6 +96,16 @@ have tendsto (λ y, ∥c • (y - x)∥) (𝓝 x) (𝓝 0),
   from ((continuous_id.sub continuous_const).const_smul _).norm.tendsto' _ _ (by simp),
 this.eventually (gt_mem_nhds h)
 
+lemma filter.tendsto.zero_smul_is_bounded_under_le {f : ι → α} {g : ι → E} {l : filter ι}
+  (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) :
+  tendsto (λ x, f x • g x) l (𝓝 0) :=
+hf.op_zero_is_bounded_under_le hg (•) (λ x y, (norm_smul x y).le)
+
+lemma filter.is_bounded_under.smul_tendsto_zero {f : ι → α} {g : ι → E} {l : filter ι}
+  (hf : is_bounded_under (≤) l (norm ∘ f)) (hg : tendsto g l (𝓝 0)) :
+  tendsto (λ x, f x • g x) l (𝓝 0) :=
+hg.op_zero_is_bounded_under_le hf (flip (•)) (λ x y, ((norm_smul y x).trans (mul_comm _ _)).le)
+
 theorem closure_ball [normed_space ℝ E] (x : E) {r : ℝ} (hr : r ≠ 0) :
   closure (ball x r) = closed_ball x r :=
 begin
@@ -283,23 +293,6 @@ up in applications. -/
 lemma rescale_to_shell {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
   ∃d:α, d ≠ 0 ∧ ∥d • x∥ < ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
 rescale_to_shell_semi_normed hc εpos (ne_of_lt (norm_pos_iff.2 hx)).symm
-
-section
-local attribute [instance] matrix.normed_group
-
-/-- Normed space instance (using sup norm of sup norm) for matrices over a normed field.  Not
-declared as an instance because there are several natural choices for defining the norm of a
-matrix. -/
-def matrix.normed_space {α : Type*} [normed_field α] {n m : Type*} [fintype n] [fintype m] :
-  normed_space α (matrix n m α) :=
-pi.normed_space
-
-lemma matrix.norm_entry_le_entrywise_sup_norm {α : Type*} [normed_ring α] {n m : Type*} [fintype n]
-  [fintype m] (M : (matrix n m α)) {i : n} {j : m} :
-  ∥M i j∥ ≤ ∥M∥ :=
-(norm_le_pi_norm (M i) j).trans (norm_le_pi_norm M i)
-
-end
 
 end normed_group
 

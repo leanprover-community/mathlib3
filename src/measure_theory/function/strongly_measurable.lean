@@ -261,11 +261,7 @@ lemma _root_.continuous.comp_strongly_measurable
 lemma measurable_set_mul_support {m : measurable_space α}
   [has_one β] [topological_space β] [metrizable_space β] (hf : strongly_measurable f) :
   measurable_set (mul_support f) :=
-begin
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
-  exact measurable_set_mul_support hf.measurable,
-end
+by { borelize β, exact measurable_set_mul_support hf.measurable }
 
 protected lemma mono {m m' : measurable_space α} [topological_space β]
   (hf : strongly_measurable[m'] f) (h_mono : m' ≤ m) :
@@ -545,8 +541,7 @@ lemma _root_.continuous.strongly_measurable [measurable_space α]
   {f : α → β} (hf : continuous f) :
   strongly_measurable f :=
 begin
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
+  borelize β,
   casesI h.out,
   { rw strongly_measurable_iff_measurable_separable,
     refine ⟨hf.measurable, _⟩,
@@ -562,10 +557,7 @@ lemma _root_.embedding.comp_strongly_measurable_iff {m : measurable_space α}
   strongly_measurable (λ x, g (f x)) ↔ strongly_measurable f :=
 begin
   letI := metrizable_space_metric γ,
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
-  letI : measurable_space γ := borel γ,
-  haveI : borel_space γ := ⟨rfl⟩,
+  borelize [β, γ],
   refine ⟨λ H, strongly_measurable_iff_measurable_separable.2 ⟨_, _⟩,
     λ H, hg.continuous.comp_strongly_measurable H⟩,
   { let G : β → range g := cod_restrict g (range g) mem_range_self,
@@ -593,8 +585,7 @@ lemma _root_.strongly_measurable_of_tendsto {ι : Type*} {m : measurable_space �
   strongly_measurable g :=
 begin
   letI := metrizable_space_metric β,
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
+  borelize β,
   refine strongly_measurable_iff_measurable_separable.2 ⟨_, _⟩,
   { apply measurable_of_tendsto_metrizable' u (λ i, _) lim,
     exact (hf i).measurable },
@@ -773,8 +764,7 @@ begin
   let f' : α → β' := cod_restrict f _ (by simp),
   let g' : α → β' := cod_restrict g _ (by simp),
   change measurable_set {a | f' a < g' a},
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
+  borelize β,
   exact measurable_set_lt hf.measurable.subtype_mk hg.measurable.subtype_mk,
 end
 
@@ -792,8 +782,7 @@ begin
   let f' : α → β' := cod_restrict f _ (by simp),
   let g' : α → β' := cod_restrict g _ (by simp),
   change measurable_set {a | f' a ≤ g' a},
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
+  borelize β,
   exact measurable_set_le hf.measurable.subtype_mk hg.measurable.subtype_mk,
 end
 
@@ -1299,10 +1288,16 @@ lemma _root_.ae_strongly_measurable_of_ae_strongly_measurable_trim {α} {m m0 : 
   ae_strongly_measurable f μ :=
 ⟨hf.mk f, strongly_measurable.mono hf.strongly_measurable_mk hm, ae_eq_of_ae_eq_trim hf.ae_eq_mk⟩
 
+lemma comp_ae_measurable {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α} {f : γ → α}
+  {μ : measure γ} (hg : ae_strongly_measurable g (measure.map f μ)) (hf : ae_measurable f μ) :
+  ae_strongly_measurable (g ∘ f) μ :=
+⟨(hg.mk g) ∘ hf.mk f, hg.strongly_measurable_mk.comp_measurable hf.measurable_mk,
+  (ae_eq_comp hf hg.ae_eq_mk).trans ((hf.ae_eq_mk).fun_comp (hg.mk g))⟩
+
 lemma comp_measurable {γ : Type*} {mγ : measurable_space γ} {mα : measurable_space α} {f : γ → α}
   {μ : measure γ} (hg : ae_strongly_measurable g (measure.map f μ)) (hf : measurable f) :
   ae_strongly_measurable (g ∘ f) μ :=
-⟨(hg.mk g) ∘ f, hg.strongly_measurable_mk.comp_measurable hf, ae_eq_comp hf hg.ae_eq_mk⟩
+hg.comp_ae_measurable hf.ae_measurable
 
 lemma is_separable_ae_range (hf : ae_strongly_measurable f μ) :
   ∃ (t : set β), is_separable t ∧ ∀ᵐ x ∂μ, f x ∈ t :=
@@ -1350,10 +1345,7 @@ lemma _root_.embedding.ae_strongly_measurable_comp_iff
   ae_strongly_measurable (λ x, g (f x)) μ ↔ ae_strongly_measurable f μ :=
 begin
   letI := metrizable_space_metric γ,
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
-  letI : measurable_space γ := borel γ,
-  haveI : borel_space γ := ⟨rfl⟩,
+  borelize [β, γ],
   refine ⟨λ H, ae_strongly_measurable_iff_ae_measurable_separable.2 ⟨_, _⟩,
     λ H, hg.continuous.comp_ae_strongly_measurable H⟩,
   { let G : β → range g := cod_restrict g (range g) mem_range_self,
@@ -1387,8 +1379,7 @@ lemma _root_.ae_strongly_measurable_of_tendsto_ae {ι : Type*}
   ae_strongly_measurable g μ :=
 begin
   letI := metrizable_space_metric β,
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
+  borelize β,
   refine ae_strongly_measurable_iff_ae_measurable_separable.2 ⟨_, _⟩,
   { exact ae_measurable_of_tendsto_metric_ae _ (λ n, (hf n).ae_measurable) lim },
   { rcases u.exists_seq_tendsto with ⟨v, hv⟩,
@@ -1411,8 +1402,7 @@ lemma _root_.exists_strongly_measurable_limit_of_tendsto_ae [metrizable_space β
   ∃ (f_lim : α → β) (hf_lim_meas : strongly_measurable f_lim),
     ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (f_lim x)) :=
 begin
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
+  borelize β,
   letI := metrizable_space_metric β,
   obtain ⟨g, g_meas, hg⟩ : ∃ (g : α → β) (g_meas : measurable g),
       ∀ᵐ x ∂μ, tendsto (λ n, f n x) at_top (𝓝 (g x)) :=
@@ -1427,8 +1417,7 @@ lemma sum_measure [metrizable_space β]
   {m : measurable_space α} {μ : ι → measure α} (h : ∀ i, ae_strongly_measurable f (μ i)) :
   ae_strongly_measurable f (measure.sum μ) :=
 begin
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
+  borelize β,
   refine ae_strongly_measurable_iff_ae_measurable_separable.2
     ⟨ae_measurable.sum_measure (λ i, (h i).ae_measurable), _⟩,
   have A : ∀ (i : ι), ∃ (t : set β), is_separable t ∧ f ⁻¹' t ∈ (μ i).ae :=
@@ -1725,8 +1714,7 @@ lemma strongly_measurable_uncurry_of_continuous_of_strongly_measurable {α β ι
   (hu_cont : ∀ x, continuous (λ i, u i x)) (h : ∀ i, strongly_measurable (u i)) :
   strongly_measurable (function.uncurry u) :=
 begin
-  letI : measurable_space β := borel β,
-  haveI : borel_space β := ⟨rfl⟩,
+  borelize β,
   obtain ⟨t_sf, ht_sf⟩ : ∃ t : ℕ → simple_func ι ι, ∀ j x,
     tendsto (λ n, u (t n j) x) at_top (𝓝 $ u j x),
   { have h_str_meas : strongly_measurable (id : ι → ι), from strongly_measurable_id,

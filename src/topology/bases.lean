@@ -102,7 +102,7 @@ begin
     refine (@is_open_iff_nhds α (generate_from s) u).mpr (λ a ha, _),
     rcases h_nhds a u ha hu with ⟨v, hvs, hav, hvu⟩,
     rw nhds_generate_from,
-    exact binfi_le_of_le v ⟨hav, hvs⟩ (le_principal_iff.2 hvu) }
+    exact infi₂_le_of_le v ⟨hav, hvs⟩ (le_principal_iff.2 hvu) }
 end
 
 /-- A set `s` is in the neighbourhood of `a` iff there is some basis set `t`, which

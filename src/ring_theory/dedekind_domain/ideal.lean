@@ -20,7 +20,7 @@ Then we prove some results on the unique factorization monoid structure of the i
    every nonzero fractional ideal is invertible.
  - `is_dedekind_domain_inv_iff` shows that this does note depend on the choice of field of
    fractions.
- - `height_one_spectrum` defines the type of nonzero prime ideals of `R`.
+ - `is_dedekind_domain.height_one_spectrum` defines the type of nonzero prime ideals of `R`.
 
 ## Main results:
  - `is_dedekind_domain_iff_is_dedekind_domain_inv`
@@ -684,6 +684,12 @@ lemma ideal.exists_mem_pow_not_mem_pow_succ (I : ideal A) (hI0 : I ≠ ⊥) (hI1
   ∃ x ∈ I^e, x ∉ I^(e+1) :=
 set_like.exists_of_lt (I.strict_anti_pow hI0 hI1 e.lt_succ_self)
 
+lemma associates.le_singleton_iff (x : A) (n : ℕ) (I : ideal A) :
+  associates.mk I^n ≤ associates.mk (ideal.span {x}) ↔ x ∈ I^n :=
+begin
+  rw [← associates.dvd_eq_le, ← associates.mk_pow, associates.mk_dvd_mk, ideal.dvd_span_singleton],
+end
+
 open fractional_ideal
 variables {A K}
 
@@ -821,7 +827,7 @@ variables [is_domain R] [is_dedekind_domain R]
 
 /-- The height one prime spectrum of a Dedekind domain `R` is the type of nonzero prime ideals of
 `R`. Note that this equals the maximal spectrum if `R` has Krull dimension 1. -/
-@[nolint has_inhabited_instance unused_arguments]
+@[ext, nolint has_inhabited_instance unused_arguments]
 structure height_one_spectrum :=
 (as_ideal : ideal R)
 (is_prime : as_ideal.is_prime)
@@ -839,7 +845,7 @@ begin
   apply v.prime,
 end
 
-lemma height_one_spectrum.associates.irreducible (v : height_one_spectrum R) :
+lemma height_one_spectrum.associates_irreducible (v : height_one_spectrum R) :
   irreducible (associates.mk v.as_ideal) :=
 begin
   rw [associates.irreducible_mk _],

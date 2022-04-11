@@ -33,17 +33,6 @@ section technical
 
 namespace subgroup
 
-/-- **Schreier's Lemma** -/
-lemma closure_mul_image_eq_top' {G : Type*} [group G] {H : subgroup G} {R S : finset G}
-  (hR : (R : set G) ∈ right_transversals (H : set G)) (hR1 : (1 : G) ∈ R)
-  (hS : closure (S : set G) = ⊤) :
-  closure ((((R * S).image (λ g, ⟨g * (mem_right_transversals.to_fun hR g)⁻¹,
-    mem_right_transversals.mul_inv_to_fun_mem hR g⟩)) : finset H) : set H) = ⊤ :=
-begin
-  rw [finset.coe_image, finset.coe_mul],
-  exact closure_mul_image_eq_top hR hR1 hS,
-end
-
 lemma fg_of_index_ne_zero {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
   (hH : H.index ≠ 0) : group.fg H :=
 begin
@@ -57,9 +46,10 @@ begin
   exact ⟨⟨_, closure_mul_image_eq_top' hR hR1 hS⟩⟩,
 end
 
-lemma schreier_aux3 {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
+lemma rank_le_index_mul_rank {G : Type*} [group G] [hG : group.fg G] {H : subgroup G}
   (hH : H.index ≠ 0) : @group.rank H _ (fg_of_index_ne_zero hH) _ ≤ H.index * group.rank G :=
 begin
+  haveI := fg_of_index_ne_zero hH,
   obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
   haveI : fintype (G ⧸ H) := fintype_of_index_ne_zero hH,
@@ -67,8 +57,6 @@ begin
   let R : finset G := set.to_finset R₀,
   replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
   replace hR1 : (1 : G) ∈ R := by rwa set.mem_to_finset,
-  letI hH' : group.fg H := ⟨⟨_, closure_mul_image_eq_top' hR hR1 hS⟩⟩,
-  change @group.rank H _ hH' _ ≤ H.index * group.rank G,
   calc group.rank H ≤ _ : group.rank_le H (closure_mul_image_eq_top' hR hR1 hS)
   ... ≤ (R * S).card : finset.card_image_le
   ... ≤ (R.product S).card : finset.card_image_le

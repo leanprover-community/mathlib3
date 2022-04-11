@@ -197,7 +197,7 @@ begin
     rw [← hζ.power_basis_gen K, power_basis.norm_gen_eq_coeff_zero_minpoly, hζ.power_basis_gen K,
       ← hζ.minpoly_eq_cyclotomic_of_irreducible hirr, cyclotomic_coeff_zero _ h1, mul_one,
       hζ.power_basis_dim K, ← hζ.minpoly_eq_cyclotomic_of_irreducible hirr, nat_degree_cyclotomic],
-    exact (totient_even $ h1.lt_of_ne $ λ h, hn $ pnat.coe_inj.1 h.symm).neg_one_pow }
+    exact (totient_even $ h1.lt_of_ne hn.symm).neg_one_pow }
 end
 
 /-- If `K` is linearly ordered, the norm of a primitive root is `1`

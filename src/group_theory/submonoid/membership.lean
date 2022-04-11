@@ -388,14 +388,14 @@ def closure_comm_monoid_of_comm {s : set M} (hcomm : ∀ (a ∈ s) (b ∈ s), a 
 { mul_comm := λ x y,
   begin
     ext,
-    simp only [submonoid.coe_mul],
+    simp only [submonoid_class.coe_mul],
     exact closure_induction₂ x.prop y.prop hcomm
       (λ x, by simp only [mul_one, one_mul])
       (λ x, by simp only [mul_one, one_mul])
       (λ x y z h₁ h₂, by rw [mul_assoc, h₂, ←mul_assoc, h₁, mul_assoc])
       (λ x y z h₁ h₂, by rw [←mul_assoc, h₁, mul_assoc, h₂, ←mul_assoc]),
   end,
-  ..(closure s).to_monoid }
+  .. submonoid_class.to_monoid (closure s) }
 
 end submonoid
 

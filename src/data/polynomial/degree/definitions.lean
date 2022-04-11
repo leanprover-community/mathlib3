@@ -267,6 +267,22 @@ lemma sum_over_range [add_comm_monoid S] (p : R[X]) {f : ℕ → R → S} (h : �
   p.sum f = ∑ (a : ℕ) in range (p.nat_degree + 1), f a (coeff p a) :=
 sum_over_range' p h (p.nat_degree + 1) (lt_add_one _)
 
+-- TODO this is essentially a duplicate of `sum_over_range`, and should be removed.
+lemma sum_fin [add_comm_monoid S]
+  (f : ℕ → R → S) (hf : ∀ i, f i 0 = 0) {n : ℕ} {p : R[X]} (hn : p.degree < n) :
+  ∑ (i : fin n), f i (p.coeff i) = p.sum f :=
+begin
+  by_cases hp : p = 0,
+  { rw [hp, sum_zero_index, finset.sum_eq_zero], intros i _, exact hf i },
+  rw [degree_eq_nat_degree hp, with_bot.coe_lt_coe] at hn,
+  calc  ∑ (i : fin n), f i (p.coeff i)
+      = ∑ i in finset.range n, f i (p.coeff i) : fin.sum_univ_eq_sum_range (λ i, f i (p.coeff i)) _
+  ... = ∑ i in p.support, f i (p.coeff i) : (finset.sum_subset
+    (supp_subset_range_nat_degree_succ.trans (finset.range_subset.mpr hn))
+    (λ i _ hi, show f i (p.coeff i) = 0, by rw [not_mem_support_iff.mp hi, hf])).symm
+  ... = p.sum f : p.sum_def _
+end
+
 lemma as_sum_range' (p : R[X]) (n : ℕ) (w : p.nat_degree < n) :
   p = ∑ i in range n, monomial i (coeff p i) :=
 p.sum_monomial_eq.symm.trans $ p.sum_over_range' monomial_zero_right _ w

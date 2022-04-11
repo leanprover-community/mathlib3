@@ -359,8 +359,8 @@ end
 
 end comm_ring
 
-section is_domain
-variables [ring R] [is_domain R]
+section no_zero_divisors
+variables [ring R] [no_zero_divisors R]
 
 lemma mem_support_derivative [char_zero R] (p : R[X]) (n : ℕ) :
   n ∈ (derivative p).support ↔ n + 1 ∈ p.support :=
@@ -388,7 +388,7 @@ begin
     exact hp }
 end
 
-end is_domain
+end no_zero_divisors
 
 end derivative
 end polynomial

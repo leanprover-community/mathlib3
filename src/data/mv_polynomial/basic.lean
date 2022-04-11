@@ -90,7 +90,7 @@ variables {R : Type u} {S₁ : Type v} {S₂ : Type w} {S₃ : Type x}
 
 /-- Multivariate polynomial, where `σ` is the index set of the variables and
   `R` is the coefficient ring -/
-def mv_polynomial (σ : Type*) (R : Type*) [comm_semiring R] := add_monoid_algebra R (σ →₀ ℕ)
+def mv_polynomial (σ : Type*) (R : Type*) [semiring R] := add_monoid_algebra R (σ →₀ ℕ)
 
 namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : R} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
@@ -99,31 +99,32 @@ section comm_semiring
 
 section instances
 
-instance decidable_eq_mv_polynomial [comm_semiring R] [decidable_eq σ] [decidable_eq R] :
+instance decidable_eq_mv_polynomial [semiring R] [decidable_eq σ] [decidable_eq R] :
   decidable_eq (mv_polynomial σ R) := finsupp.decidable_eq
+instance [semiring R] : semiring (mv_polynomial σ R) := add_monoid_algebra.semiring
 instance [comm_semiring R] : comm_semiring (mv_polynomial σ R) := add_monoid_algebra.comm_semiring
-instance [comm_semiring R] : inhabited (mv_polynomial σ R) := ⟨0⟩
-instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] :
+instance [semiring R] : inhabited (mv_polynomial σ R) := ⟨0⟩
+instance [monoid R] [semiring S₁] [distrib_mul_action R S₁] :
   distrib_mul_action R (mv_polynomial σ S₁) :=
 add_monoid_algebra.distrib_mul_action
-instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [has_faithful_scalar R S₁] :
+instance [monoid R] [semiring S₁] [distrib_mul_action R S₁] [has_faithful_scalar R S₁] :
   has_faithful_scalar R (mv_polynomial σ S₁) :=
 add_monoid_algebra.has_faithful_scalar
-instance [semiring R] [comm_semiring S₁] [module R S₁] : module R (mv_polynomial σ S₁) :=
+instance [semiring R] [semiring S₁] [module R S₁] : module R (mv_polynomial σ S₁) :=
 add_monoid_algebra.module
-instance [monoid R] [monoid S₁] [comm_semiring S₂]
+instance [monoid R] [monoid S₁] [semiring S₂]
   [has_scalar R S₁] [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [is_scalar_tower R S₁ S₂] :
   is_scalar_tower R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.is_scalar_tower
-instance [monoid R] [monoid S₁][comm_semiring S₂]
+instance [monoid R] [monoid S₁][semiring S₂]
   [distrib_mul_action R S₂] [distrib_mul_action S₁ S₂] [smul_comm_class R S₁ S₂] :
   smul_comm_class R S₁ (mv_polynomial σ S₂) :=
 add_monoid_algebra.smul_comm_class
-instance [monoid R] [comm_semiring S₁] [distrib_mul_action R S₁] [distrib_mul_action Rᵐᵒᵖ S₁]
+instance [monoid R] [semiring S₁] [distrib_mul_action R S₁] [distrib_mul_action Rᵐᵒᵖ S₁]
   [is_central_scalar R S₁] :
   is_central_scalar R (mv_polynomial σ S₁) :=
 add_monoid_algebra.is_central_scalar
-instance [comm_semiring R] [comm_semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
+instance [comm_semiring R] [semiring S₁] [algebra R S₁] : algebra R (mv_polynomial σ S₁) :=
 add_monoid_algebra.algebra
 -- Register with high priority to avoid timeout in `data.mv_polynomial.pderiv`
 instance is_scalar_tower' [comm_semiring R] [comm_semiring S₁] [algebra R S₁] :
@@ -131,7 +132,7 @@ instance is_scalar_tower' [comm_semiring R] [comm_semiring S₁] [algebra R S₁
 is_scalar_tower.right
 -- TODO[gh-6025]: make this an instance once safe to do so
 /-- If `R` is a subsingleton, then `mv_polynomial σ R` has a unique element -/
-protected def unique [comm_semiring R] [subsingleton R] : unique (mv_polynomial σ R) :=
+protected def unique [semiring R] [subsingleton R] : unique (mv_polynomial σ R) :=
 add_monoid_algebra.unique
 
 end instances

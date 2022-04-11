@@ -186,8 +186,26 @@ as long as target ring is commutative
 (even if the source ring is not).
 -/
 section eval₂
-variables [comm_semiring S]
-variables (f : R →+* S) (x : S)
+
+section
+variables [semiring S] (f : R →+* S) (x : S)
+
+lemma eval₂_eq_sum_range :
+  p.eval₂ f x = ∑ i in finset.range (p.nat_degree + 1), f (p.coeff i) * x^i :=
+trans (congr_arg _ p.as_sum_range) (trans (eval₂_finset_sum f _ _ x) (congr_arg _ (by simp)))
+
+lemma eval₂_eq_sum_range' (f : R →+* S) {p : R[X]} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
+  eval₂ f x p = ∑ i in finset.range n, f (p.coeff i) * x ^ i :=
+begin
+  rw [eval₂_eq_sum, p.sum_over_range' _ _ hn],
+  intro i,
+  rw [f.map_zero, zero_mul]
+end
+
+end
+
+section
+variables [comm_semiring S] (f : R →+* S) (x : S)
 
 @[simp] lemma eval₂_mul : (p * q).eval₂ f x = p.eval₂ f x * q.eval₂ f x :=
 eval₂_mul_noncomm _ _ $ λ k, commute.all _ _
@@ -216,18 +234,6 @@ def eval₂_ring_hom (f : R →+* S) (x : S) : R[X] →+* S :=
 
 lemma eval₂_pow (n : ℕ) : (p ^ n).eval₂ f x = p.eval₂ f x ^ n := (eval₂_ring_hom _ _).map_pow _ _
 
-lemma eval₂_eq_sum_range :
-  p.eval₂ f x = ∑ i in finset.range (p.nat_degree + 1), f (p.coeff i) * x^i :=
-trans (congr_arg _ p.as_sum_range) (trans (eval₂_finset_sum f _ _ x) (congr_arg _ (by simp)))
-
-lemma eval₂_eq_sum_range' (f : R →+* S) {p : R[X]} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
-  eval₂ f x p = ∑ i in finset.range n, f (p.coeff i) * x ^ i :=
-begin
-  rw [eval₂_eq_sum, p.sum_over_range' _ _ hn],
-  intro i,
-  rw [f.map_zero, zero_mul]
-end
-
 lemma eval₂_dvd : p ∣ q → eval₂ f x p ∣ eval₂ f x q :=
 (eval₂_ring_hom f x).map_dvd
 
@@ -238,6 +244,8 @@ zero_dvd_iff.mp (h0 ▸ eval₂_dvd f x h)
 lemma eval₂_list_prod (l : list R[X]) (x : S) :
   eval₂ f x l.prod = (l.map (eval₂ f x)).prod :=
 _root_.map_list_prod (eval₂_ring_hom f x) l
+
+end
 
 end eval₂
 
@@ -725,11 +733,26 @@ section comm_semiring
 
 section eval
 
-variables [comm_semiring R] {p q : R[X]} {x : R} [comm_semiring S] (f : R →+* S)
+section
+variables [semiring R] {p q : R[X]} {x : R} [semiring S] (f : R →+* S)
+
+lemma eval₂_hom (x : R) :
+  p.eval₂ f (f x) = f (p.eval x) :=
+(ring_hom.comp_id f) ▸ (hom_eval₂ p (ring_hom.id R) f x).symm
+
+end
+
+section
+variables [semiring R] {p q : R[X]} {x : R} [comm_semiring S] (f : R →+* S)
 
 lemma eval₂_comp {x : S} :
   eval₂ f x (p.comp q) = eval₂ f (eval₂ f x q) p :=
 by rw [comp, p.as_sum_range]; simp [eval₂_finset_sum, eval₂_pow]
+
+end
+
+section
+variables [comm_semiring R] {p q : R[X]} {x : R} [comm_semiring S] (f : R →+* S)
 
 @[simp] lemma eval_mul : (p * q).eval x = p.eval x * q.eval x := eval₂_mul _ _
 
@@ -751,10 +774,6 @@ end
 /-- `comp p`, regarded as a ring homomorphism from `polynomial R` to itself. -/
 def comp_ring_hom : R[X] → R[X] →+* R[X] :=
 eval₂_ring_hom C
-
-lemma eval₂_hom (x : R) :
-  p.eval₂ f (f x) = f (p.eval x) :=
-(ring_hom.comp_id f) ▸ (hom_eval₂ p (ring_hom.id R) f x).symm
 
 lemma root_mul_left_of_is_root (p : R[X]) {q : R[X]} :
   is_root q a → is_root (p * q) a :=
@@ -808,6 +827,8 @@ eval₂_eq_zero_of_dvd_of_eval₂_eq_zero _ _
 lemma eval_geom_sum {R} [comm_semiring R] {n : ℕ} {x : R} : eval x (geom_sum X n) = geom_sum x n :=
 by simp [geom_sum_def, eval_finset_sum]
 
+end
+
 end eval
 
 section map
@@ -815,6 +836,14 @@ section map
 --TODO rename to `map_dvd_map`
 lemma map_dvd {R S} [semiring R] [comm_semiring S] (f : R →+* S) {x y : R[X]} :
   x ∣ y → x.map f ∣ y.map f := eval₂_dvd _ _
+
+lemma support_map_subset [semiring R] [comm_semiring S] (f : R →+* S) (p : R[X]) :
+  (map f p).support ⊆ p.support :=
+begin
+  intros x,
+  contrapose!,
+  simp { contextual := tt },
+end
 
 variables [comm_semiring R] [comm_semiring S] (f : R →+* S)
 
@@ -824,13 +853,6 @@ eq.symm $ multiset.prod_hom _ (map_ring_hom f).to_monoid_hom
 protected lemma map_prod {ι : Type*} (g : ι → R[X]) (s : finset ι) :
   (∏ i in s, g i).map f = ∏ i in s, (g i).map f :=
 (map_ring_hom f).map_prod _ _
-
-lemma support_map_subset (p : R[X]) : (map f p).support ⊆ p.support :=
-begin
-  intros x,
-  contrapose!,
-  simp { contextual := tt },
-end
 
 lemma is_root.map {f : R →+* S} {x : R} {p : R[X]} (h : is_root p x) :
   is_root (p.map f) (f x) :=

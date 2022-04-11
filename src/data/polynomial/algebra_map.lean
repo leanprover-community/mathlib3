@@ -20,7 +20,7 @@ open_locale big_operators polynomial
 namespace polynomial
 universes u v w z
 variables {R : Type u} {S : Type v} {T : Type w} {A : Type z} {A' B' : Type*} {a b : R} {n : ℕ}
-variables [comm_semiring A'] [comm_semiring B']
+variables [comm_semiring A'] [semiring B']
 
 section comm_semiring
 variables [comm_semiring R] {p q r : R[X]}
@@ -105,7 +105,7 @@ end⟩⟩
 
 @[simp]
 lemma alg_hom_eval₂_algebra_map
-  {R A B : Type*} [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B]
+  {R A B : Type*} [comm_semiring R] [semiring A] [semiring B] [algebra R A] [algebra R B]
   (p : R[X]) (f : A →ₐ[R] B) (a : A) :
   f (eval₂ (algebra_map R A) a p) = eval₂ (algebra_map R B) (f a) p :=
 begin
@@ -115,7 +115,7 @@ begin
 end
 
 @[simp]
-lemma eval₂_algebra_map_X {R A : Type*} [comm_ring R] [ring A] [algebra R A]
+lemma eval₂_algebra_map_X {R A : Type*} [comm_semiring R] [semiring A] [algebra R A]
   (p : R[X]) (f : R[X] →ₐ[R] A) :
   eval₂ (algebra_map R A) (f X) p = f p :=
 begin
@@ -261,6 +261,16 @@ by rw [← algebra.map_top, ← adjoin_X, alg_hom.map_adjoin, set.image_singleto
 
 variable {R}
 
+section semiring
+
+variables [semiring S]
+
+lemma aeval_sum {ι : Type*} [algebra R S] (s : finset ι) (f : ι → R[X])
+  (g : S) : aeval g (∑ i in s, f i) = ∑ i in s, aeval g (f i) :=
+(polynomial.aeval g : R[X] →ₐ[_] _).map_sum f s
+
+end semiring
+
 section comm_semiring
 
 variables [comm_semiring S] {f : R →+* S}
@@ -272,10 +282,6 @@ by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range (algebra_map R S) x }
 lemma aeval_eq_sum_range' [algebra R S] {p : R[X]} {n : ℕ} (hn : p.nat_degree < n) (x : S) :
   aeval x p = ∑ i in finset.range n, p.coeff i • x ^ i :=
 by { simp_rw algebra.smul_def, exact eval₂_eq_sum_range' (algebra_map R S) hn x }
-
-lemma aeval_sum {ι : Type*} [algebra R S] (s : finset ι) (f : ι → R[X])
-  (g : S) : aeval g (∑ i in s, f i) = ∑ i in s, aeval g (f i) :=
-(polynomial.aeval g : R[X] →ₐ[_] _).map_sum f s
 
 @[to_additive]
 lemma aeval_prod {ι : Type*} [algebra R S] (s : finset ι)

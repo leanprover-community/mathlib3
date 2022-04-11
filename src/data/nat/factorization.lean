@@ -290,7 +290,7 @@ begin
     lt_self_iff_false] at hp
 end
 
-lemma dvd_iff_prime_pow_dvd_dvd {n d : ℕ} :
+lemma dvd_iff_prime_pow_dvd_dvd (n d : ℕ) :
   d ∣ n ↔ ∀ p k : ℕ, prime p → p ^ k ∣ d → p ^ k ∣ n :=
 begin
   by_cases hn : n = 0,

@@ -65,12 +65,11 @@ theorem nfp_family_le {a b} : (∀ l, list.foldr f a l ≤ b) → nfp_family f a
 sup_le
 
 theorem nfp_family_empty [is_empty ι] (f : ι → ordinal → ordinal) : nfp_family f = id :=
-funext (λ a, le_antisymm begin
-  rw nfp_family_le,
+funext $ λ a, le_antisymm (nfp_family_le begin
   rintro (_ | i),
   { refl },
   { exact is_empty_elim i }
-end (self_le_nfp_family f a))
+end) (self_le_nfp_family f a)
 
 theorem nfp_family_monotone (hf : ∀ i, monotone (f i)) : monotone (nfp_family f) :=
 λ a b h, sup_le $ λ l, (list.foldr_monotone hf l h).trans (le_sup _ l)

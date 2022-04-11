@@ -338,7 +338,7 @@ end
 calc ∫ x in t, f x ∂μ = ∑' g : G, ∫ x in g • s, f x ∂(μ.restrict t) :
   h.integral_eq_tsum_of_ac restrict_le_self.absolutely_continuous f hf
 ... = ∑' g : G, ∫ x in t ∩ g • s, f x ∂μ :
-  by simp only [restrict_restrict, h.measurable_set_smul, inter_comm]
+  by simp only [h.restrict_restrict, measure_smul_set, inter_comm]
 
 
 @[to_additive] lemma set_integral_eq_tsum (h : is_fundamental_domain G s μ) (f : α → E)

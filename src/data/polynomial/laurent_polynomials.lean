@@ -54,7 +54,8 @@ end
 lemma add_full_lift_single (n : N) (r : R) :
   add_full_lift f (finsupp.single n r) = finsupp.single (f n) r :=
 begin
-  simp only [add_full_lift, add_monoid_algebra.lift_single, monoid_hom.coe_mk, to_add_of_add, finsupp.smul_single', mul_one],
+  simp only [add_full_lift, add_monoid_algebra.lift_single, monoid_hom.coe_mk, to_add_of_add,
+    finsupp.smul_single', mul_one],
   congr,
 end
 

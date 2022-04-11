@@ -97,13 +97,16 @@ protected def Theory.partial_order : language.order.Theory :=
 protected def Theory.linear_order : language.order.Theory :=
 {le_symb.reflexive, le_symb.antisymmetric, le_symb.transitive, le_symb.total}
 
-/-- A sentence indicating that an order has no top element. -/
+/-- A sentence indicating that an order has no top element:
+$\forall x, \exists y, \not y \le x$.   -/
 protected def sentence.no_top_order : language.order.sentence := ∀' ∃' ∼ ((&1).le &0)
 
-/-- A sentence indicating that an order has no bottom element. -/
+/-- A sentence indicating that an order has no bottom element:
+$\forall x, \exists y, \not x \le y$. -/
 protected def sentence.no_bot_order : language.order.sentence := ∀' ∃' ∼ ((&0).le &1)
 
-/-- A sentence indicating that an order is dense. -/
+/-- A sentence indicating that an order is dense:
+$\forall x, \forall y, x < y \to \exists z, x < z \wedge z < y$. -/
 protected def sentence.densely_ordered : language.order.sentence :=
 ∀' ∀' (((&0).lt &1) ⟹ (∃' (((&0).lt &2) ⊓ ((&2).lt &1))))
 

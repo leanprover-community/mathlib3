@@ -1948,11 +1948,14 @@ begin
 end
 
 lemma lintegral_map' {mβ : measurable_space β} {f : β → ℝ≥0∞} {g : α → β}
-  (hf : ae_measurable f (measure.map g μ)) (hg : measurable g) :
+  (hf : ae_measurable f (measure.map g μ)) (hg : ae_measurable g μ) :
   ∫⁻ a, f a ∂(measure.map g μ) = ∫⁻ a, f (g a) ∂μ :=
 calc ∫⁻ a, f a ∂(measure.map g μ) = ∫⁻ a, hf.mk f a ∂(measure.map g μ) :
   lintegral_congr_ae hf.ae_eq_mk
-... = ∫⁻ a, hf.mk f (g a) ∂μ : lintegral_map hf.measurable_mk hg
+... = ∫⁻ a, hf.mk f a ∂(measure.map (hg.mk g) μ) :
+  by { congr' 1, exact measure.map_congr hg.ae_eq_mk }
+... = ∫⁻ a, hf.mk f (hg.mk g a) ∂μ : lintegral_map hf.measurable_mk hg.measurable_mk
+... = ∫⁻ a, hf.mk f (g a) ∂μ : lintegral_congr_ae $ hg.ae_eq_mk.symm.fun_comp _
 ... = ∫⁻ a, f (g a) ∂μ : lintegral_congr_ae (ae_eq_comp hg hf.ae_eq_mk.symm)
 
 lemma lintegral_map_le {mβ : measurable_space β} (f : β → ℝ≥0∞) {g : α → β} (hg : measurable g) :

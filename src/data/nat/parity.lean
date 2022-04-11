@@ -194,15 +194,9 @@ end
 lemma even_sub_one_of_prime_ne_two {p : ℕ} (hp : prime p) (hodd : p ≠ 2) : even (p - 1) :=
 odd.sub_odd (odd_iff.2 $ hp.eq_two_or_odd.resolve_left hodd) (odd_iff.2 rfl)
 
-variables {R : Type*} [ring R]
+section distrib_neg_monoid
 
-theorem neg_one_pow_eq_one_iff_even (h1 : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
-begin
-  rcases n.even_or_odd' with ⟨n, rfl | rfl⟩,
-  { simp [neg_one_pow_eq_pow_mod_two, pow_zero] },
-  { rw [← not_iff_not, neg_one_pow_eq_pow_mod_two, not_even_iff, add_mod],
-    simp only [h1, mul_mod_right, one_mod, pow_one, not_false_iff, eq_self_iff_true] }
-end
+variables {R : Type*} [monoid R] [has_distrib_neg R]
 
 @[simp] theorem neg_one_sq : (-1 : R) ^ 2 = 1 := by simp
 
@@ -228,6 +222,15 @@ by { convert nat.div_add_mod' n 2, rw odd_iff.mp h }
 
 lemma one_add_div_two_mul_two_of_odd (h : odd n) : 1 + n / 2 * 2 = n :=
 by { rw add_comm, convert nat.div_add_mod' n 2, rw odd_iff.mp h }
+
+theorem neg_one_pow_eq_one_iff_even (h1 : (-1 : R) ≠ 1) : (-1 : R) ^ n = 1 ↔ even n :=
+begin
+  refine ⟨λ h, _, neg_one_pow_of_even⟩,
+  contrapose! h1,
+  exact (neg_one_pow_of_odd $ odd_iff_not_even.mpr h1).symm.trans h
+end
+
+end distrib_neg_monoid
 
 -- Here are examples of how `parity_simps` can be used with `nat`.
 

@@ -83,12 +83,10 @@ instance subring_class.add_subgroup_class (S : Type*) (R : out_param $ Type u) [
 variables [set_like S R] [hSR : subring_class S R] (s : S)
 include hSR
 
-namespace subring_class
-
-open one_mem_class add_subgroup_class
-
 lemma coe_int_mem (n : ℤ) : (n : R) ∈ s :=
 by simp only [← zsmul_one, zsmul_mem, one_mem]
+
+namespace subring_class
 
 /-- A subring of a ring inherits a ring structure -/
 @[priority 75] -- Prefer subclasses of `ring` over subclasses of `subring_class`.
@@ -295,64 +293,53 @@ namespace subring
 variables (s : subring R)
 
 /-- A subring contains the ring's 1. -/
-theorem one_mem : (1 : R) ∈ s := s.one_mem'
+protected theorem one_mem : (1 : R) ∈ s := one_mem _
 
 /-- A subring contains the ring's 0. -/
-theorem zero_mem : (0 : R) ∈ s := s.zero_mem'
+protected theorem zero_mem : (0 : R) ∈ s := zero_mem _
 
 /-- A subring is closed under multiplication. -/
-theorem mul_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x * y ∈ s := s.mul_mem'
+protected theorem mul_mem {x y : R} : x ∈ s → y ∈ s → x * y ∈ s := mul_mem
 
 /-- A subring is closed under addition. -/
-theorem add_mem : ∀ {x y : R}, x ∈ s → y ∈ s → x + y ∈ s := s.add_mem'
+protected theorem add_mem {x y : R} : x ∈ s → y ∈ s → x + y ∈ s := add_mem
 
 /-- A subring is closed under negation. -/
-theorem neg_mem : ∀ {x : R}, x ∈ s → -x ∈ s := s.neg_mem'
+protected theorem neg_mem {x : R} : x ∈ s → -x ∈ s := neg_mem
 
 /-- A subring is closed under subtraction -/
-theorem sub_mem {x y : R} (hx : x ∈ s) (hy : y ∈ s) : x - y ∈ s :=
-by { rw sub_eq_add_neg, exact s.add_mem hx (s.neg_mem hy) }
+protected theorem sub_mem {x y : R} (hx : x ∈ s) (hy : y ∈ s) : x - y ∈ s := sub_mem hx hy
 
 /-- Product of a list of elements in a subring is in the subring. -/
-lemma list_prod_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.prod ∈ s :=
-s.to_submonoid.list_prod_mem
+protected lemma list_prod_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.prod ∈ s := list_prod_mem
 
 /-- Sum of a list of elements in a subring is in the subring. -/
-lemma list_sum_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.sum ∈ s :=
-s.to_add_subgroup.list_sum_mem
+protected lemma list_sum_mem {l : list R} : (∀x ∈ l, x ∈ s) → l.sum ∈ s := list_sum_mem
 
 /-- Product of a multiset of elements in a subring of a `comm_ring` is in the subring. -/
-lemma multiset_prod_mem {R} [comm_ring R] (s : subring R) (m : multiset R) :
+protected lemma multiset_prod_mem {R} [comm_ring R] (s : subring R) (m : multiset R) :
   (∀a ∈ m, a ∈ s) → m.prod ∈ s :=
-s.to_submonoid.multiset_prod_mem m
+multiset_prod_mem _
 
 /-- Sum of a multiset of elements in an `subring` of a `ring` is
 in the `subring`. -/
-lemma multiset_sum_mem {R} [ring R] (s : subring R) (m : multiset R) :
+protected lemma multiset_sum_mem {R} [ring R] (s : subring R) (m : multiset R) :
   (∀a ∈ m, a ∈ s) → m.sum ∈ s :=
-s.to_add_subgroup.multiset_sum_mem m
+multiset_sum_mem _
 
 /-- Product of elements of a subring of a `comm_ring` indexed by a `finset` is in the
     subring. -/
-lemma prod_mem {R : Type*} [comm_ring R] (s : subring R)
+protected lemma prod_mem {R : Type*} [comm_ring R] (s : subring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
   ∏ i in t, f i ∈ s :=
-s.to_submonoid.prod_mem h
+prod_mem h
 
 /-- Sum of elements in a `subring` of a `ring` indexed by a `finset`
 is in the `subring`. -/
-lemma sum_mem {R : Type*} [ring R] (s : subring R)
+protected lemma sum_mem {R : Type*} [ring R] (s : subring R)
   {ι : Type*} {t : finset ι} {f : ι → R} (h : ∀c ∈ t, f c ∈ s) :
   ∑ i in t, f i ∈ s :=
-s.to_add_subgroup.sum_mem h
-
-lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := s.to_submonoid.pow_mem hx n
-
-lemma zsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) :
-  n • x ∈ s := s.to_add_subgroup.zsmul_mem hx n
-
-lemma coe_int_mem (n : ℤ) : (n : R) ∈ s :=
-by simp only [← zsmul_one, zsmul_mem, one_mem]
+sum_mem h
 
 /-- A subring of a ring inherits a ring structure -/
 instance to_ring : ring s :=
@@ -360,13 +347,19 @@ instance to_ring : ring s :=
   left_distrib := λ x y z, subtype.eq $ left_distrib x y z,
   .. s.to_submonoid.to_monoid, .. s.to_add_subgroup.to_add_comm_group }
 
+protected lemma zsmul_mem {x : R} (hx : x ∈ s) (n : ℤ) : n • x ∈ s := zsmul_mem hx n
+
+protected lemma pow_mem {x : R} (hx : x ∈ s) (n : ℕ) : x^n ∈ s := pow_mem hx n
+
 @[simp, norm_cast] lemma coe_add (x y : s) : (↑(x + y) : R) = ↑x + ↑y := rfl
 @[simp, norm_cast] lemma coe_neg (x : s) : (↑(-x) : R) = -↑x := rfl
 @[simp, norm_cast] lemma coe_mul (x y : s) : (↑(x * y) : R) = ↑x * ↑y := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : s) : R) = 0 := rfl
 @[simp, norm_cast] lemma coe_one : ((1 : s) : R) = 1 := rfl
-@[simp, norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n := rfl
+@[simp, norm_cast] lemma coe_pow (x : s) (n : ℕ) : (↑(x ^ n) : R) = x ^ n :=
+submonoid_class.coe_pow x n
 
+-- TODO: can be generalized to `add_submonoid_class`
 @[simp] lemma coe_eq_zero_iff {x : s} : (x : R) = 0 ↔ x = 0 :=
 ⟨λ h, subtype.ext (trans h s.coe_zero.symm),
  λ h, h.symm ▸ s.coe_zero⟩
@@ -583,7 +576,7 @@ lemma mem_Inf {S : set (subring R)} {x : R} : x ∈ Inf S ↔ ∀ p ∈ S, x ∈
 /-- Subrings of a ring form a complete lattice. -/
 instance : complete_lattice (subring R) :=
 { bot := (⊥),
-  bot_le := λ s x hx, let ⟨n, hn⟩ := mem_bot.1 hx in hn ▸ s.coe_int_mem n,
+  bot_le := λ s x hx, let ⟨n, hn⟩ := mem_bot.1 hx in hn ▸ coe_int_mem s n,
   top := (⊤),
   le_top := λ s x hx, trivial,
   inf := (⊓),
@@ -717,30 +710,30 @@ end
 
 lemma mem_closure_iff {s : set R} {x} :
   x ∈ closure s ↔ x ∈ add_subgroup.closure (submonoid.closure s : set R) :=
-⟨ λ h, closure_induction h (λ x hx, add_subgroup.subset_closure $ submonoid.subset_closure hx )
+⟨λ h, closure_induction h (λ x hx, add_subgroup.subset_closure $ submonoid.subset_closure hx)
  (add_subgroup.zero_mem _)
  (add_subgroup.subset_closure ( submonoid.one_mem (submonoid.closure s)) )
  (λ x y hx hy, add_subgroup.add_mem _ hx hy )
  (λ x hx, add_subgroup.neg_mem _ hx )
- ( λ x y hx hy, add_subgroup.closure_induction hy
-  (λ q hq, add_subgroup.closure_induction hx
-    ( λ p hp, add_subgroup.subset_closure ((submonoid.closure s).mul_mem hp hq) )
-    ( begin rw zero_mul q, apply add_subgroup.zero_mem _, end )
-    ( λ p₁ p₂ ihp₁ ihp₂, begin rw add_mul p₁ p₂ q, apply add_subgroup.add_mem _ ihp₁ ihp₂, end )
-    ( λ x hx, begin have f : -x * q = -(x*q) :=
-      by simp, rw f, apply add_subgroup.neg_mem _ hx, end ) )
-  ( begin rw mul_zero x, apply add_subgroup.zero_mem _, end )
-  ( λ q₁ q₂ ihq₁ ihq₂, begin rw mul_add x q₁ q₂, apply add_subgroup.add_mem _ ihq₁ ihq₂ end )
-  ( λ z hz, begin have f : x * -z = -(x*z) := by simp,
-            rw f, apply add_subgroup.neg_mem _ hz, end ) ),
+   (λ x y hx hy, add_subgroup.closure_induction hy
+     (λ q hq, add_subgroup.closure_induction hx
+       (λ p hp, add_subgroup.subset_closure ((submonoid.closure s).mul_mem hp hq))
+       (begin rw zero_mul q, apply add_subgroup.zero_mem _, end)
+       (λ p₁ p₂ ihp₁ ihp₂, begin rw add_mul p₁ p₂ q, apply add_subgroup.add_mem _ ihp₁ ihp₂, end)
+       (λ x hx, begin have f : -x * q = -(x*q) :=
+         by simp, rw f, apply add_subgroup.neg_mem _ hx, end))
+     (begin rw mul_zero x, apply add_subgroup.zero_mem _, end)
+     (λ q₁ q₂ ihq₁ ihq₂, begin rw mul_add x q₁ q₂, apply add_subgroup.add_mem _ ihq₁ ihq₂ end)
+     (λ z hz, begin have f : x * -z = -(x*z) := by simp,
+       rw f, apply add_subgroup.neg_mem _ hz, end)),
  λ h, add_subgroup.closure_induction h
- ( λ x hx, submonoid.closure_induction hx
-  ( λ x hx, subset_closure hx )
-  ( one_mem _ )
-  ( λ x y hx hy, mul_mem _ hx hy ) )
- ( zero_mem _ )
- (λ x y hx hy, add_mem _ hx hy)
- ( λ x hx, neg_mem _ hx ) ⟩
+   (λ x hx, submonoid.closure_induction hx
+     (λ x hx, subset_closure hx)
+     (one_mem _)
+     (λ x y hx hy, mul_mem hx hy))
+ (zero_mem _)
+ (λ x y hx hy, add_mem hx hy)
+ (λ x hx, neg_mem hx)⟩
 
 /-- If all elements of `s : set A` commute pairwise, then `closure s` is a commutative ring.  -/
 def closure_comm_ring_of_comm {s : set R} (hcomm : ∀ (a ∈ s) (b ∈ s), a * b = b * a) :
@@ -996,7 +989,7 @@ lemma range_snd : (snd R S).srange = ⊤ :=
 lemma prod_bot_sup_bot_prod (s : subring R) (t : subring S) :
   (s.prod ⊥) ⊔ (prod ⊥ t) = s.prod t :=
 le_antisymm (sup_le (prod_mono_right s bot_le) (prod_mono_left t bot_le)) $
-assume p hp, prod.fst_mul_snd p ▸ mul_mem _
+assume p hp, prod.fst_mul_snd p ▸ mul_mem
   ((le_sup_left : s.prod ⊥ ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨hp.1, set_like.mem_coe.2 $ one_mem ⊥⟩)
   ((le_sup_right : prod ⊥ t ≤ s.prod ⊥ ⊔ prod ⊥ t) ⟨set_like.mem_coe.2 $ one_mem ⊥, hp.2⟩)
 
@@ -1089,7 +1082,6 @@ end subring
 lemma add_subgroup.int_mul_mem {G : add_subgroup R} (k : ℤ) {g : R} (h : g ∈ G) :
   (k : R) * g ∈ G :=
 by { convert add_subgroup.zsmul_mem G h k, simp }
-
 
 /-! ## Actions by `subring`s
 

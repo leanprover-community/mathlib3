@@ -3,7 +3,7 @@ Copyright (c) 2022 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aaron Anderson
 -/
-import model_theory.semantics
+import model_theory.elementary_maps
 import category_theory.concrete_category.bundled
 /-!
 # Bundled First-Order Structures
@@ -105,5 +105,10 @@ lemma coe_of {M : Type w} [L.Structure M] [nonempty M] (h : M ⊨ T) :
   (h.bundled : Type w) = M := rfl
 
 end Theory
+
+/-- An elementary substructure of a bundled model as a bundled model. -/
+def elementary_substructure.to_Model {M : T.Model} (S : L.elementary_substructure M) : T.Model :=
+Theory.Model.of T S
+
 end language
 end first_order

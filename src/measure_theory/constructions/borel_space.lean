@@ -739,7 +739,7 @@ hf.borel_measurable.mono opens_measurable_space.borel_le
 
 /-- A continuous function from an `opens_measurable_space` to a `borel_space`
 is ae-measurable. -/
-lemma continuous.ae_measurable {f : α → γ} (h : continuous f) (μ : measure α) : ae_measurable f μ :=
+lemma continuous.ae_measurable {f : α → γ} (h : continuous f) {μ : measure α} : ae_measurable f μ :=
 h.measurable.ae_measurable
 
 lemma closed_embedding.measurable {f : α → γ} (hf : closed_embedding f) :

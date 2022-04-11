@@ -220,10 +220,6 @@ lemma foldl.unop_of_free_monoid  (f : β → α → β) (xs : free_monoid α) (a
 
 variables (m : Type u → Type u) [monad m] [is_lawful_monad m]
 
-@[simp]
-lemma mfoldl.unop_of_free_monoid  (f : β → α → m β) (xs : free_monoid α) (a : β) :
-  unop (mfoldl.of_free_monoid f xs) a = list.mfoldl f a xs := rfl
-
 variables {t : Type u → Type u} [traversable t] [is_lawful_traversable t]
 open is_lawful_traversable
 

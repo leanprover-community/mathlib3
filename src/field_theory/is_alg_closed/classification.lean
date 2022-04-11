@@ -192,9 +192,9 @@ begin
       from ring_hom.injective _) with t ht,
   have : #s = #t,
   { rw [← cardinal_eq_cardinal_transcendence_basis_of_omega_lt _ hs
-      (lt_omega_of_fintype (zmod p)).le hK,
+      (fintype.lt_omega (zmod p)).le hK,
         ← cardinal_eq_cardinal_transcendence_basis_of_omega_lt _ ht
-      (lt_omega_of_fintype (zmod p)).le, hKL],
+      (fintype.lt_omega (zmod p)).le, hKL],
     rwa ← hKL },
   cases cardinal.eq.1 this with e,
   exact ⟨equiv_of_transcendence_basis _ _ e hs ht⟩

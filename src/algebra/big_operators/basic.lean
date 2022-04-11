@@ -967,7 +967,7 @@ by { convert prod_multiset_count (l : multiset α), rw multiset.coe_prod l }
 @[to_additive]
 lemma prod_list_count_of_subset [decidable_eq α] [comm_monoid α]
   (l : list α) (s : finset α) (hs : l.to_finset ⊆ s) :
-  l.prod = ∏ i in s, i ^ (l.count i) :=
+  l.prod = ∏ x in s, x ^ (l.count x) :=
 by { convert prod_multiset_count_of_subset (l : multiset α) s hs, rw multiset.coe_prod l }
 
 /--

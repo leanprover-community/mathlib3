@@ -54,6 +54,8 @@ by { simp_rw is_clique_iff, exact set.pairwise.mono h }
 @[simp] lemma is_clique_bot_iff : (⊥ : simple_graph α).is_clique s ↔ (s : set α).subsingleton :=
 set.pairwise_bot_iff
 
+alias is_clique_bot_iff ↔ simple_graph.is_clique.subsingleton _
+
 end clique
 
 /-! ### `n`-cliques -/

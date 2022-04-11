@@ -382,126 +382,6 @@ end
       apply subsingleton.elim } }
 end, λ ⟨a, e⟩, by simp [e]⟩
 
-/-- A fundamental sequence for `a`, or FS for short, is an increasing sequence of length
-    `o = cof a` that converges at `a`. We provide `o` explicitly in order to avoid type rewrites. -/
-def is_fs (a o : ordinal.{u}) (f : Π b < o, ordinal.{u}) : Prop :=
-o ≤ a.cof.ord ∧ (∀ {i j} (hi hj), i < j → f i hi < f j hj) ∧ blsub.{u u} o f = a
-
-section fs
-variables {a o : ordinal.{u}} {f : Π b < o, ordinal.{u}} (hf : is_fs a o f)
-
-theorem is_fs.cof_eq : a.cof.ord = o :=
-hf.1.antisymm' (by { rw ←hf.2.2, exact (ord_le_ord.2 (cof_blsub_le f)).trans (ord_card_le o) })
-
-theorem is_fs.strict_mono : ∀ {i j : ordinal} (hi : i < o) (hj : j < o), i < j → f i hi < f j hj :=
-hf.2.1
-
-theorem is_fs.blsub_eq : blsub.{u u} o f = a :=
-hf.2.2
-
-include hf
-theorem is_fs.monotone {i j : ordinal} (hi : i < o) (hj : j < o) (hij : i ≤ j) : f i hi ≤ f j hj :=
-begin
-  rcases lt_or_eq_of_le hij with hij | rfl,
-  { exact le_of_lt (hf.2.1 hi hj hij) },
-  { refl }
-end
-
-end fs
-
-theorem is_fs.trans {a o o' : ordinal.{u}} {f : Π b < o, ordinal.{u}} (hf : is_fs a o f)
-  {g : Π b < o', ordinal.{u}} (hg : is_fs o o' g) :
-  is_fs a o' (λ i hi, f (g i hi) (by { rw ←hg.2.2, apply lt_blsub })) :=
-begin
-  refine ⟨_, λ i j _ _ h, hf.2.1 _ _ (hg.2.1 _ _ h), _⟩,
-  { rw hf.cof_eq,
-    exact hg.1.trans (ord_cof_le o) },
-  { rw @blsub_comp.{u u u} o _ f (@is_fs.monotone _ _ f hf),
-    exact hf.2.2 }
-end
-
-theorem is_normal.is_fs {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {a o} (ha : is_limit a)
-  {g} (hg : is_fs a o g) : is_fs (f a) o (λ b hb, f (g b hb)) :=
-begin
-  refine ⟨_, λ i j _ _ h, hf.strict_mono (hg.2.1 _ _ h), _⟩,
-  { rcases exists_lsub_cof (f a) with ⟨ι, f', hf', hι⟩,
-    rw [←hg.cof_eq, ord_le_ord, ←hι],
-    suffices : lsub.{u u} (λ i, (Inf {b : ordinal | f' i ≤ f b})) = a,
-    { rw ←this,
-      apply cof_lsub_le },
-    have H : ∀ i, ∃ b < a, f' i ≤ f b := λ i, begin
-      have := lt_lsub.{u u} f' i,
-      rwa [hf', ←is_normal.blsub_eq.{u u} hf ha, lt_blsub_iff] at this
-    end,
-    refine le_antisymm (lsub_le (λ i, _)) (le_of_forall_lt (λ b hb, _)),
-    { rcases H i with ⟨b, hb, hb'⟩,
-      exact lt_of_le_of_lt (cInf_le' hb') hb },
-    { have := hf.strict_mono hb,
-      rw [←hf', lt_lsub_iff] at this,
-      cases this with i hi,
-      rcases H i with ⟨b, _, hb⟩,
-      exact lt_of_le_of_lt ((le_cInf_iff'' ⟨b, hb⟩).2
-        (λ c hc, hf.strict_mono.le_iff_le.1 (hi.trans hc))) (lt_lsub _ i) } },
-  { rw @blsub_comp.{u u u} a _ (λ b _, f b) (λ i j hi hj h, hf.strict_mono.monotone h) g hg.2.2,
-    exact is_normal.blsub_eq.{u u} hf ha }
-end
-
-/-- Every ordinal has a fundamental sequence. -/
-theorem exists_fs (a : ordinal.{u}) : ∃ f, is_fs a a.cof.ord f :=
-begin
-  suffices : ∃ o f, is_fs a o f,
-  { rcases this with ⟨o, f, hf⟩,
-    convert exists.intro f hf;
-    rw hf.cof_eq },
-  rcases exists_lsub_cof a with ⟨ι, f, hf, hι⟩,
-  rcases ord_eq ι with ⟨r, wo, hr⟩,
-  haveI := wo,
-  let r' := subrel r {i | ∀ j, r j i → f j < f i},
-  let hrr' : r' ↪r r := subrel.rel_embedding _ _,
-  haveI := hrr'.is_well_order,
-  refine ⟨_, _, (type_le'.2 ⟨hrr'⟩).trans _, λ i j _ h _, (enum r' j h).prop _ _,
-    le_antisymm (blsub_le (λ i hi, lsub_le_iff.1 hf.le _)) _⟩,
-  { rw [←hι, hr] },
-  { change r (hrr'.1 _ ) (hrr'.1 _ ),
-    rwa [hrr'.2, @enum_lt_enum _ r'] },
-  { rw [←hf, lsub_le_iff],
-    intro i,
-    suffices : ∃ i' hi', f i ≤ bfamily_of_family' r' (λ i, f i) i' hi',
-    { rcases this with ⟨i', hi', hfg⟩,
-      exact hfg.trans_lt (lt_blsub _ _ _) },
-    by_cases h : ∀ j, r j i → f j < f i,
-    { refine ⟨typein r' ⟨i, h⟩, typein_lt_type _ _, _⟩,
-      rw bfamily_of_family'_typein,
-      refl },
-    { push_neg at h,
-      cases wo.wf.min_mem _ h with hji hij,
-      refine ⟨typein r' ⟨_, λ k hkj, lt_of_lt_of_le _ hij⟩, typein_lt_type _ _, _⟩,
-      { by_contra' H,
-        exact (wo.wf.not_lt_min _ h ⟨is_trans.trans _ _ _ hkj hji, H⟩) hkj },
-      { rwa bfamily_of_family'_typein } } }
-end
-
-theorem is_normal.cof_eq {f} (hf : is_normal f) {a} (ha : is_limit a) : cof (f a) = cof a :=
-let ⟨g, hg⟩ := exists_fs a in ord_injective (hf.is_fs ha hg).cof_eq
-
-theorem is_normal.cof_le {f} (hf : is_normal f) (a) : cof a ≤ cof (f a) :=
-begin
-  rcases zero_or_succ_or_limit a with rfl | ⟨b, rfl⟩ | ha,
-  { rw cof_zero,
-    exact zero_le _ },
-  { rw [cof_succ, cardinal.one_le_iff_ne_zero, cof_ne_zero, ←ordinal.pos_iff_ne_zero],
-    exact (ordinal.zero_le (f b)).trans_lt (hf.1 b) },
-  { rw hf.cof_eq ha }
-end
-
-@[simp] theorem cof_add (a b : ordinal) : b ≠ 0 → cof (a + b) = cof b :=
-λ h, begin
-  rcases zero_or_succ_or_limit b with rfl | ⟨c, rfl⟩ | hb,
-  { contradiction },
-  { rw [add_succ, cof_succ, cof_succ] },
-  { exact (add_is_normal a).cof_eq hb }
-end
-
 /-- A fundamental sequence for `a` is an increasing sequence of length `o = cof a` that converges at
     `a`. We provide `o` explicitly in order to avoid type rewrites. -/
 def is_fundamental_sequence (a o : ordinal.{u}) (f : Π b < o, ordinal.{u}) : Prop :=
@@ -579,11 +459,60 @@ begin
       { rwa bfamily_of_family'_typein } } }
 end
 
+theorem is_normal.is_fundamental_sequence {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {a o}
+  (ha : is_limit a) {g} (hg : is_fundamental_sequence a o g) :
+  is_fundamental_sequence (f a) o (λ b hb, f (g b hb)) :=
+begin
+  refine ⟨_, λ i j _ _ h, hf.strict_mono (hg.2.1 _ _ h), _⟩,
+  { rcases exists_lsub_cof (f a) with ⟨ι, f', hf', hι⟩,
+    rw [←hg.cof_eq, ord_le_ord, ←hι],
+    suffices : lsub.{u u} (λ i, (Inf {b : ordinal | f' i ≤ f b})) = a,
+    { rw ←this,
+      apply cof_lsub_le },
+    have H : ∀ i, ∃ b < a, f' i ≤ f b := λ i, begin
+      have := lt_lsub.{u u} f' i,
+      rwa [hf', ←is_normal.blsub_eq.{u u} hf ha, lt_blsub_iff] at this
+    end,
+    refine le_antisymm (lsub_le (λ i, _)) (le_of_forall_lt (λ b hb, _)),
+    { rcases H i with ⟨b, hb, hb'⟩,
+      exact lt_of_le_of_lt (cInf_le' hb') hb },
+    { have := hf.strict_mono hb,
+      rw [←hf', lt_lsub_iff] at this,
+      cases this with i hi,
+      rcases H i with ⟨b, _, hb⟩,
+      exact lt_of_le_of_lt ((le_cInf_iff'' ⟨b, hb⟩).2
+        (λ c hc, hf.strict_mono.le_iff_le.1 (hi.trans hc))) (lt_lsub _ i) } },
+  { rw @blsub_comp.{u u u} a _ (λ b _, f b) (λ i j hi hj h, hf.strict_mono.monotone h) g hg.2.2,
+    exact is_normal.blsub_eq.{u u} hf ha }
+end
+
 @[simp] theorem cof_cof (a : ordinal.{u}) : cof (cof a).ord = cof a :=
 begin
   cases exists_fundamental_sequence a with f hf,
   cases exists_fundamental_sequence a.cof.ord with g hg,
   exact ord_injective ((hf.trans hg).cof_eq.symm)
+end
+
+theorem is_normal.cof_eq {f} (hf : is_normal f) {a} (ha : is_limit a) : cof (f a) = cof a :=
+let ⟨g, hg⟩ := exists_fundamental_sequence a in
+  ord_injective (hf.is_fundamental_sequence ha hg).cof_eq
+
+theorem is_normal.cof_le {f} (hf : is_normal f) (a) : cof a ≤ cof (f a) :=
+begin
+  rcases zero_or_succ_or_limit a with rfl | ⟨b, rfl⟩ | ha,
+  { rw cof_zero,
+    exact zero_le _ },
+  { rw [cof_succ, cardinal.one_le_iff_ne_zero, cof_ne_zero, ←ordinal.pos_iff_ne_zero],
+    exact (ordinal.zero_le (f b)).trans_lt (hf.1 b) },
+  { rw hf.cof_eq ha }
+end
+
+@[simp] theorem cof_add (a b : ordinal) : b ≠ 0 → cof (a + b) = cof b :=
+λ h, begin
+  rcases zero_or_succ_or_limit b with rfl | ⟨c, rfl⟩ | hb,
+  { contradiction },
+  { rw [add_succ, cof_succ, cof_succ] },
+  { exact (add_is_normal a).cof_eq hb }
 end
 
 theorem omega_le_cof {o} : ω ≤ cof o ↔ is_limit o :=

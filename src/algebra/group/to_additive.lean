@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Yury Kudryashov, Floris van Doorn
 import tactic.transform_decl
 import tactic.algebra
 import tactic.lint.basic
+import tactic.alias
 
 /-!
 # Transport multiplicative to additive
@@ -579,6 +580,9 @@ them has one -/
 @[linter] meta def linter.to_additive_doc : linter :=
 { test := (λ d, do
     let mul_name := d.to_name,
+    /- Disable this linter for aliases -/
+    is_alias ← tactic.alias.get_alias_target mul_name,
+    if is_alias.is_some then return none else do
     dict ← to_additive.aux_attr.get_cache,
     match dict.find mul_name with
     | some add_name := do

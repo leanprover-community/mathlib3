@@ -5,6 +5,7 @@ Authors: Alex Kontorovich, Heather Macbeth
 -/
 
 import measure_theory.measure.haar
+import measure_theory.integral.periodic
 import measure_theory.group.fundamental_domain
 import topology.compact_open
 import algebra.group.opposite
@@ -37,7 +38,7 @@ lemma measure_theory.integral_tsum {α : Type*} {β : Type*} {m : measurable_spa
   [measurable_space E] [borel_space E] [complete_space E]
   [topological_space.second_countable_topology E] {f : β → α → E}
   (hf : ∀ (i : β), measurable (f i)) :
-∫ (a : α), (∑' (i : β), f i a) ∂μ = ∑' (i : β), ∫ (a : α), f i a ∂μ :=
+  ∫ (a : α), (∑' (i : β), f i a) ∂μ = ∑' (i : β), ∫ (a : α), f i a ∂μ :=
 begin
   sorry,
 end
@@ -46,89 +47,55 @@ open_locale ennreal
 
 open measure_theory
 
+-- move to facts about integrable functions
 lemma integrable.mul_ℒ_infinity  {G : Type*} {E : Type*} [normed_ring E] [normed_algebra ℝ E]
-  [measurable_space E] [measurable_space G] {μ : measure G}
+  [measurable_space E] [borel_space E] [has_measurable_mul₂ E] [measurable_space G]
+  {μ : measure G}
   (f : G → E)
   (f_measurable : measurable f)
+  (f_ℒ_1 : integrable f μ)
   (g : G → E)
   (g_measurable : measurable g)
-  (g_ℒ_infinity : mem_ℒp g ⊤ μ)
-  (f_ℒ_1 : integrable f μ) :
+  (g_ℒ_infinity : ess_sup (λ x, (∥g x∥₊ : ℝ≥0∞)) μ < ∞) :
   integrable (λ (x : G), f x * g x) μ :=
 begin
-  have ess_sup_bdd_by_bigger : ∀ (a:ennreal), ess_sup (λ x, ↑∥g x∥₊) μ < a →
-    (λ x, ↑∥g x∥₊) ≤ᵐ[μ] (λ x, a),
-  {
-    intros a ha,
-    sorry,
-
-  },
-
-  have : ess_sup (λ x, ↑∥g x∥₊) μ < ∞,
-  {
-    sorry,
-  },
-  obtain ⟨B, hB⟩ : ∃ B : nnreal, ess_sup (λ x, (∥g x∥₊:ennreal)) μ = B,
-  {
-    sorry,
-  },
-
-  have := ess_sup_bdd_by_bigger (B+1) _,
-
+  let s : set ℝ≥0∞ := {a : ℝ≥0∞ | μ {x : G | a < (λ (x : G), ↑∥g x∥₊) x} = 0},
+  have : ess_sup (λ x, (∥g x∥₊ : ℝ≥0∞)) μ = Inf s := ess_sup_eq_Inf _ _,
+  obtain ⟨a₀, has : μ _ = 0, ha₀⟩ : ∃ (a : ℝ≥0∞) (H : a ∈ s), a < ⊤,
+  { rw ← Inf_lt_iff,
+    rw ← ess_sup_eq_Inf,
+    exact g_ℒ_infinity },
+  rw ennreal.lt_iff_exists_coe at ha₀,
+  obtain ⟨a, rfl, -⟩ := ha₀,
   rw integrable at f_ℒ_1 ⊢,
-
   rw measure_theory.has_finite_integral_iff_norm at f_ℒ_1 ⊢,
-
-  split,
-  {
-    -- product of measurables is measurable
-    sorry,
-  },
-  {
-    calc ∫⁻ (x : G), ennreal.of_real (∥f x * g x∥) ∂μ ≤
-      ∫⁻ (x : G), ennreal.of_real (∥f x∥ * ∥g x∥) ∂μ : _
-      ... ≤  ∫⁻ (x : G), ennreal.of_real (∥f x∥ * (B+1)) ∂μ : _
-      ... =  ∫⁻ (x : G), (ennreal.of_real (∥f x∥) * (B+1)) ∂μ : _
-      ... = ∫⁻ (x : G), ennreal.of_real (∥f x∥) ∂μ * (B+1) : _
-      ... < ⊤ : _ ,
-
-    { mono,
-      { exact rfl.le, },
-      { intros x,
-        apply ennreal.of_real_le_of_real,
-        exact norm_mul_le _ _, }, },
-    { apply measure_theory.lintegral_mono_ae,
-      filter_upwards [this],
-      intros x hx,
+  refine ⟨f_ℒ_1.1.mul g_measurable.ae_measurable, _⟩,
+  calc ∫⁻ (x : G), ennreal.of_real (∥f x * g x∥) ∂μ ≤
+    ∫⁻ (x : G), ennreal.of_real (∥f x∥ * ∥g x∥) ∂μ : _
+    ... ≤  ∫⁻ (x : G), ennreal.of_real (∥f x∥ * a) ∂μ : _
+    ... =  ∫⁻ (x : G), (ennreal.of_real (∥f x∥) * a) ∂μ : _
+    ... = ∫⁻ (x : G), ennreal.of_real (∥f x∥) ∂μ * a : _
+    ... < ⊤ : _ ,
+  { mono,
+    { exact rfl.le, },
+    { intros x,
       apply ennreal.of_real_le_of_real,
-      norm_cast at hx,
-      refine mul_le_mul _ hx  _ _,
-      refl,
-      exact norm_nonneg _,
-      exact norm_nonneg _, },
-    {
-      congr,
-      ext1 x,
-      rw ennreal.of_real_mul,
-      repeat {sorry}, -- ALEX HOMEWORK
-    },
-    {
-      refine measure_theory.lintegral_mul_const _ _,
-      sorry, -- ∥ f ∥ is measurable
-    },
-    { apply ennreal.mul_lt_top f_ℒ_1.2.ne,
-      simp, },
-
-  },
-  {
-    norm_cast,
-    rw hB,
-    norm_cast,
-    sorry, --ALEX HOMEWORK
-  --  have := ennreal.add_lt_add,
-  --  linarith,
-  }
-
+      exact norm_mul_le _ _, }, },
+  { apply measure_theory.lintegral_mono_ae,
+    rw ← compl_mem_ae_iff at has,
+    filter_upwards [has] with x hx,
+    apply ennreal.of_real_le_of_real,
+    refine mul_le_mul rfl.le _ (norm_nonneg _) (norm_nonneg _),
+    exact_mod_cast le_of_not_lt hx },
+  { congr,
+    ext1 x,
+    rw ennreal.of_real_mul,
+    { simp },
+    { exact norm_nonneg _ } },
+  { refine measure_theory.lintegral_mul_const _ _,
+    exact (ennreal.measurable_of_real.comp continuous_norm.measurable).comp f_measurable },
+  { apply ennreal.mul_lt_top f_ℒ_1.2.ne,
+    simp, }
 end
 
 open set measure_theory topological_space
@@ -315,25 +282,30 @@ by simp [subgroup.opposite]
 
 
 
-lemma ess_sup_of_g [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
+@[to_additive]
+lemma mul_ess_sup_of_g [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
   (g : G ⧸ Γ → ℝ≥0∞) (g_measurable : measurable g) :
   ess_sup g μ_𝓕 = ess_sup (λ (x : G), g x) μ :=
 begin
-  have hπ : measurable (quotient_group.mk : G → G ⧸ Γ) := sorry,
+  have hπ : measurable (quotient_group.mk : G → G ⧸ Γ) := continuous_quotient_mk.measurable,
   rw ess_sup_map_measure_of_measurable g_measurable hπ,
   refine h𝓕.ess_sup_measure_restrict _,
-  sorry,
+  rintros ⟨γ, hγ⟩ x,
+  dsimp,
+  congr' 1,
+  exact quotient_group.mk_mul_of_mem x (mul_opposite.unop γ) hγ,
 end
 
-#exit
-
 /-- This is the "unfolding" trick -/
-lemma unfolding_trick [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
+@[to_additive]
+lemma mul_unfolding_trick [μ.is_mul_left_invariant] [μ.is_mul_right_invariant]
   {f : G → ℂ}
   (f_summable: ∀ x : G, summable (λ (γ : Γ.opposite), f (γ⁻¹ • x))) -- NEEDED??
+  (hf : measurable f)
   (f_ℒ_1 : integrable f μ)
   {g : G ⧸ Γ → ℂ}
-  (g_ℒ_infinity : mem_ℒp g ∞ μ_𝓕)
+  (hg : measurable g)
+  (g_ℒ_infinity : ess_sup (λ x, ↑∥g x∥₊) μ_𝓕 < ∞)
   {F : G ⧸ Γ → ℂ}
   (F_ae_measurable : ae_measurable F μ_𝓕) -- NEEDED??
   (hFf : ∀ (x : G), F (x : G ⧸ Γ) = ∑' (γ : Γ.opposite), f(γ • x)) :
@@ -366,25 +338,39 @@ begin
       congr' 1,
       simpa [quotient_group.eq, (•)] using hγ₀, },
     rw this, },
-  {
-    apply integrable.mul_ℒ_infinity,
-    { sorry },
-      -- exact f_measurable, },
-    {
-      sorry, -- g is measurable on G
-    },
-    {
-      --extract_goal,
-      sorry, -- g_ℒ_infinity from G/Γ to G
-    },
-    { convert f_ℒ_1,
-      simp, }, },
+  { refine integrable.mul_ℒ_infinity f hf _ (λ x : G, g (x : G ⧸ Γ)) (hg.comp meas_π) _,
+    { rw measure.restrict_univ,
+      exact f_ℒ_1 },
+    { have hg' : measurable (λ x, ↑∥g x∥₊) :=
+        (ennreal.continuous_coe.comp continuous_nnnorm).measurable.comp hg,
+      rw [measure.restrict_univ, ← mul_ess_sup_of_g h𝓕 (λ x, ↑∥g x∥₊) hg'],
+      exact g_ℒ_infinity } },
   { intros γ,
-    have hf : ae_measurable f (measure.map ((•) γ⁻¹) μ),
+    have hf' : ae_measurable f (measure.map ((•) γ⁻¹) μ),
     { rw measure_theory.map_smul,
-      exact f_ℒ_1.ae_measurable },
-    refine ((hf.comp_measurable (measurable_const_smul _)).mono_measure _).mul _,
-    { exact measure.restrict_le_self },
-    { exact g_ℒ_infinity.ae_measurable.comp_measurable meas_π } },
-  { exact F_ae_measurable.mul g_ℒ_infinity.ae_measurable, },
+      exact hf.ae_measurable },
+    sorry },
+  sorry
+    -- refine ((hf'.comp_measurable (measurable_const_smul _)).mono_measure _).mul _,
+    -- { exact measure.restrict_le_self },
+    -- { exact g_ℒ_infinity.ae_measurable.comp_measurable meas_π } },
+  -- { exact F_ae_measurable.mul g_ℒ_infinity.ae_measurable, },
+end
+
+
+example : true :=
+begin
+  have : is_add_fundamental_domain (add_subgroup.zmultiples (1:ℝ)).opposite
+    (Ioc (0:ℝ) (0 + 1)) measure_space.volume,
+  { -- have := is_add_fundamental_domain_Ioc zero_lt_one 0,
+    sorry }, -- something stupid
+  haveI : encodable (add_subgroup.zmultiples (1:ℝ)) := sorry, -- easy?
+  haveI : second_countable_topology (ℝ ⧸ (add_subgroup.zmultiples (1:ℝ))),
+  { sorry }, -- easy?
+  haveI : t2_space (ℝ ⧸ (add_subgroup.zmultiples (1:ℝ))),
+  { sorry }, -- we proved this!  modulo the action being discrete
+  haveI : borel_space (ℝ ⧸ (add_subgroup.zmultiples (1:ℝ))),
+  { -- borel sigma-algebra of quotient topology equals quotient sigma-algebra of borel topology
+    sorry },
+  have := add_unfolding_trick this,
 end

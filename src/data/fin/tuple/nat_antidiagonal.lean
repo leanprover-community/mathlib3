@@ -208,7 +208,6 @@ lemma mem_antidiagonal_tuple {n : ℕ} {k : ℕ} (x : fin k → ℕ) :
   x ∈ antidiagonal_tuple k n ↔ ∑ i, x i = n :=
 list.nat.mem_antidiagonal_tuple _
 
-
 lemma antidiagonal_tuple_zero_right (k : ℕ) : antidiagonal_tuple k 0 = {0} :=
 finset.eq_of_veq (multiset.nat.antidiagonal_tuple_zero_right k)
 

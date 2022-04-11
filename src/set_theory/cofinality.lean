@@ -532,6 +532,12 @@ begin
       exact not_succ_is_limit _ l } }
 end
 
+@[simp] theorem aleph'_cof {o : ordinal} (ho : o.is_limit) : (aleph' o).ord.cof = o.cof :=
+aleph'_is_normal.cof_eq ho
+
+@[simp] theorem aleph_cof {o : ordinal} (ho : o.is_limit) : (aleph o).ord.cof = o.cof :=
+aleph_is_normal.cof_eq ho
+
 @[simp] theorem cof_omega : cof omega = ω :=
 le_antisymm
   (by rw ← card_omega; apply cof_le_card)

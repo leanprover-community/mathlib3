@@ -221,30 +221,31 @@ include dec_ι
 end option
 
 section sigma
-variables {α : ι → Type u} {δ : (Σ i, α i) → Type w} [Π i, add_comm_monoid (δ i)]
+variables {α : ι → Type u} {δ : Π i, α i → Type w} [Π i j, add_comm_monoid (δ i j)]
 
-/--The natural map between `⨁ (i : Σ i, α i), δ i` and `⨁ i (j : α i), δ ⟨i, j⟩`.-/
-noncomputable def curry : (⨁ i, δ i) →+ ⨁ i j, δ ⟨i, j⟩ :=
-⟨dfinsupp.curry, by { ext i j, rw dfinsupp.curry_apply, refl },
-λ f g, by { ext i j, rw [@dfinsupp.add_apply _ (λ i, Π₀ j, δ ⟨i,j⟩) _ f.curry, dfinsupp.add_apply,
-  (f + g).curry_apply, f.curry_apply, g.curry_apply, add_apply] }⟩
+/--The natural map between `⨁ (i : Σ i, α i), δ i.1 i.2` and `⨁ i (j : α i), δ i j`.-/
+noncomputable def sigma_curry : (⨁ (i : Σ i, _), δ i.1 i.2) →+ ⨁ i j, δ i j :=
+⟨@dfinsupp.sigma_curry _ _ δ _, by { ext i j, rw dfinsupp.sigma_curry_apply, refl },
+λ f g, by { ext i j, rw [@dfinsupp.add_apply _ (λ i, Π₀ j, δ i j) _ (dfinsupp.sigma_curry _),
+  dfinsupp.add_apply, dfinsupp.sigma_curry_apply, dfinsupp.sigma_curry_apply,
+  dfinsupp.sigma_curry_apply, add_apply] }⟩
 
-@[simp] lemma curry_apply (f : ⨁ i, δ i) (i : ι) (j : α i) : curry f i j = f ⟨i, j⟩ :=
-dfinsupp.curry_apply f i j
+@[simp] lemma sigma_curry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
+sigma_curry f i j = f ⟨i, j⟩ := dfinsupp.sigma_curry_apply f i j
 
-/--The natural map between `⨁ i (j : α i), δ ⟨i, j⟩` and `Π₀ (i : Σ i, α i), δ i`, inverse of
+/--The natural map between `⨁ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
 `curry`.-/
-noncomputable def uncurry : (⨁ i j, δ ⟨i, j⟩) →+ ⨁ i, δ i :=
-⟨@dfinsupp.uncurry _ _ δ _, by { ext ⟨i, j⟩, rw dfinsupp.uncurry_apply, refl },
-λ f g, by { ext ⟨i, j⟩, rw [dfinsupp.add_apply, dfinsupp.uncurry_apply, dfinsupp.uncurry_apply,
-  dfinsupp.uncurry_apply, add_apply, add_apply] }⟩
+noncomputable def sigma_uncurry : (⨁ i j, δ i j) →+ ⨁ (i : Σ i, _), δ i.1 i.2 :=
+⟨dfinsupp.sigma_uncurry, by { ext ⟨i, j⟩, rw dfinsupp.sigma_uncurry_apply, refl },
+λ f g, by { ext ⟨i, j⟩, rw [dfinsupp.add_apply, dfinsupp.sigma_uncurry_apply,
+  dfinsupp.sigma_uncurry_apply, dfinsupp.sigma_uncurry_apply, add_apply, add_apply] }⟩
 
-@[simp] lemma uncurry_apply (f : ⨁ i j, δ ⟨i, j⟩) (i : ι) (j : α i) : uncurry f ⟨i, j⟩ = f i j :=
-dfinsupp.uncurry_apply f i j
+@[simp] lemma sigma_uncurry_apply (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
+sigma_uncurry f ⟨i, j⟩ = f i j := dfinsupp.sigma_uncurry_apply f i j
 
-/--The natural map between `⨁ (i : Σ i, α i), δ i` and `⨁ i (j : α i), δ ⟨i, j⟩`.-/
-noncomputable def curry_equiv : (⨁ i, δ i) ≃+ ⨁ i j, δ ⟨i, j⟩ :=
-{ inv_fun := uncurry, ..dfinsupp.curry_equiv, ..curry }
+/--The natural map between `⨁ (i : Σ i, α i), δ i.1 i.2` and `⨁ i (j : α i), δ i j`.-/
+noncomputable def sigma_curry_equiv : (⨁ (i : Σ i, _), δ i.1 i.2) ≃+ ⨁ i j, δ i j :=
+{ ..sigma_curry, ..dfinsupp.sigma_curry_equiv }
 
 end sigma
 

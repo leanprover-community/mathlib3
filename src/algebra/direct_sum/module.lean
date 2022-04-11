@@ -211,30 +211,32 @@ lequiv_congr_left R h f k = f (h.symm k) := equiv_congr_left_apply _ _ _
 end congr_left
 
 section sigma
-variables {α : ι → Type u} {δ : (Σ i, α i) → Type w}
-variables [Π i, add_comm_monoid (δ i)] [Π i, module R (δ i)]
-instance inst : module R (⨁ i j, δ ⟨i, j⟩) := by apply_instance
+variables {α : ι → Type u} {δ : Π i, α i → Type w}
+variables [Π i j, add_comm_monoid (δ i j)] [Π i j, module R (δ i j)]
+instance inst : module R (⨁ i j, δ i j) := by apply_instance
 
 /--`curry` as a linear map.-/
-noncomputable def lcurry : (⨁ i, δ i) →ₗ[R] ⨁ i j, δ ⟨i, j⟩ :=
-{ map_smul' := λ a f, by { ext i j, change curry (a • f) i j = (a • curry f) i j,
-    rw [curry_apply, smul_apply, smul_apply, smul_apply, curry_apply] },
-  ..curry }
+noncomputable def sigma_lcurry : (⨁ (i : Σ i, _), δ i.1 i.2) →ₗ[R] ⨁ i j, δ i j :=
+{ map_smul' := λ a f, by { ext i j, change sigma_curry (a • f) i j = (a • sigma_curry f) i j,
+    rw [sigma_curry_apply, smul_apply, smul_apply, smul_apply, sigma_curry_apply] },
+  ..sigma_curry }
 
-@[simp] lemma lcurry_apply (f : ⨁ i, δ i) (i : ι) (j : α i) : lcurry R f i j = f ⟨i, j⟩ :=
-curry_apply f i j
+@[simp] lemma sigma_lcurry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
+sigma_lcurry R f i j = f ⟨i, j⟩ := sigma_curry_apply f i j
 
 /--`uncurry` as a linear map.-/
-noncomputable def luncurry : (⨁ i j, δ ⟨i, j⟩) →ₗ[R] ⨁ i, δ i :=
-{ map_smul' := λ a f, by { ext ⟨i, j⟩, change uncurry (a • f) ⟨i, j⟩ = (a • uncurry f) ⟨i, j⟩,
-    rw [uncurry_apply, smul_apply, smul_apply, smul_apply, uncurry_apply] },
-  ..uncurry }
+noncomputable def sigma_luncurry : (⨁ i j, δ i j) →ₗ[R] ⨁ (i : Σ i, _), δ i.1 i.2 :=
+{ map_smul' := λ a f, by { ext ⟨i, j⟩,
+    change sigma_uncurry (a • f) ⟨i, j⟩ = (a • sigma_uncurry f) ⟨i, j⟩,
+    rw [sigma_uncurry_apply, smul_apply, smul_apply, smul_apply, sigma_uncurry_apply] },
+  ..sigma_uncurry }
 
-@[simp] lemma luncurry_apply (f : ⨁ i j, δ ⟨i, j⟩) (i : ι) (j : α i) :
-luncurry R f ⟨i, j⟩ = f i j := uncurry_apply f i j
+@[simp] lemma sigma_luncurry_apply (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
+sigma_luncurry R f ⟨i, j⟩ = f i j := sigma_uncurry_apply f i j
 
 /--`curry_equiv` as a linear equiv.-/
-noncomputable def lcurry_equiv : (⨁ i, δ i) ≃ₗ[R] ⨁ i j, δ ⟨i, j⟩ := { ..curry_equiv, ..lcurry R }
+noncomputable def sigma_lcurry_equiv : (⨁ (i : Σ i, _), δ i.1 i.2) ≃ₗ[R] ⨁ i j, δ i j :=
+{ ..sigma_curry_equiv, ..sigma_lcurry R }
 
 end sigma
 

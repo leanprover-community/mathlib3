@@ -1048,7 +1048,7 @@ section equiv
 open finset
 variables [Π i, has_zero (β i)]
 
-variables {κ : Type*} --[decidable_eq κ] --[Π i (x : β i), decidable (x ≠ 0)]
+variables {κ : Type*}
 /--Reindexing (and possibly removing) terms of a dfinsupp.-/
 noncomputable def comap_domain (h : κ → ι) (hh : function.injective h) :
 (Π₀ i, β i) → Π₀ k, β (h k) :=
@@ -1094,44 +1094,49 @@ def equiv_congr_left (h : ι ≃ κ) : (Π₀ i, β i) ≃ (Π₀ k, β (h.symm 
 equiv_congr_left h f k = f (h.symm k) := comap_domain'_apply h.symm h.right_inv f k
 
 section curry
-variables {α : ι → Type*} {δ : (Σ i, α i) → Type v} [Π i, has_zero (δ i)]
+variables {α : ι → Type*} {δ : Π i, α i → Type v} [Π i j, has_zero (δ i j)]
 
-/--The natural map between `Π₀ (i : Σ i, α i), δ i` and `Π₀ i (j : α i), δ ⟨i, j⟩`.-/
-noncomputable def curry (f : Π₀ i, δ i) : Π₀ i j, δ ⟨i, j⟩ := by { classical, exact
-mk (f.support.image $ λ i, i.1)
-  (λ i, mk (f.support.preimage (sigma.mk i) $ sigma_mk_injective.inj_on _) $ λ j, f ⟨i, j⟩) }
+/--The natural map between `Π₀ (i : Σ i, α i), δ i.1 i.2` and `Π₀ i (j : α i), δ i j`.-/
+noncomputable def sigma_curry (f : Π₀ (i : Σ i, _), δ i.1 i.2) : Π₀ i j, δ i j :=
+by { classical,
+  exact mk (f.support.image $ λ i, i.1)
+    (λ i, mk (f.support.preimage (sigma.mk i) $ sigma_mk_injective.inj_on _) $ λ j, f ⟨i, j⟩) }
 
-@[simp] lemma curry_apply (f : Π₀ i, δ i) (i : ι) (j : α i) : curry f i j = f ⟨i, j⟩ :=
+@[simp] lemma sigma_curry_apply (f : Π₀ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
+sigma_curry f i j = f ⟨i, j⟩ :=
 begin
-  dunfold curry, by_cases h : f ⟨i, j⟩ = 0,
+  dunfold sigma_curry, by_cases h : f ⟨i, j⟩ = 0,
   { rw [h, mk_apply], split_ifs, { rw mk_apply, split_ifs, { exact h }, { refl } }, { refl } },
   { rw [mk_of_mem, mk_of_mem], { refl },
     { rw [mem_preimage, mem_support_to_fun], exact h },
     { rw mem_image, refine ⟨⟨i, j⟩, _, rfl⟩, rw mem_support_to_fun, exact h } }
 end
 
-/--The natural map between `Π₀ i (j : α i), δ ⟨i, j⟩` and `Π₀ (i : Σ i, α i), δ i`, inverse of
+/--The natural map between `Π₀ i (j : α i), δ i j` and `Π₀ (i : Σ i, α i), δ i.1 i.2`, inverse of
 `curry`.-/
-noncomputable def uncurry (f : Π₀ i j, δ ⟨i, j⟩) : Π₀ i, δ i := by { classical, exact
-mk (f.support.bUnion $ λ i, (f i).support.image $ sigma.mk i) (λ ⟨⟨i, j⟩, _⟩, f i j) }
+noncomputable def sigma_uncurry (f : Π₀ i j, δ i j) : Π₀ (i : Σ i, _), δ i.1 i.2 :=
+by { classical,
+  exact mk (f.support.bUnion $ λ i, (f i).support.image $ sigma.mk i) (λ ⟨⟨i, j⟩, _⟩, f i j) }
 
-@[simp] lemma uncurry_apply (f : Π₀ i j, δ ⟨i, j⟩) (i : ι) (j : α i) : uncurry f ⟨i, j⟩ = f i j :=
+@[simp] lemma sigma_uncurry_apply (f : Π₀ i j, δ i j) (i : ι) (j : α i) :
+sigma_uncurry f ⟨i, j⟩ = f i j :=
 begin
-  dunfold uncurry, by_cases h : f i j = 0,
+  dunfold sigma_uncurry, by_cases h : f i j = 0,
   { rw mk_apply, split_ifs, { refl }, { exact h.symm } },
   { apply mk_of_mem, rw mem_bUnion, refine ⟨i, _, _⟩,
     { rw mem_support_to_fun, intro H, rw ext_iff at H, exact h (H j) },
     { apply mem_image_of_mem, rw mem_support_to_fun, exact h } }
 end
 
-/--The natural bijection between `Π₀ (i : Σ i, α i), δ i` and `Π₀ i (j : α i), δ ⟨i, j⟩`.-/
-noncomputable def curry_equiv : (Π₀ i, δ i) ≃ Π₀ i j, δ ⟨i, j⟩ := ⟨curry, uncurry,
-λ f, by { ext ⟨i, j⟩, rw [uncurry_apply, curry_apply] },
-λ f, by { ext i j, rw [curry_apply, uncurry_apply] }⟩
+/--The natural bijection between `Π₀ (i : Σ i, α i), δ i.1 i.2` and `Π₀ i (j : α i), δ i j`.-/
+noncomputable def sigma_curry_equiv : (Π₀ (i : Σ i, _), δ i.1 i.2) ≃ Π₀ i j, δ i j :=
+⟨sigma_curry, sigma_uncurry,
+λ f, by { ext ⟨i, j⟩, rw [sigma_uncurry_apply, sigma_curry_apply] },
+λ f, by { ext i j, rw [sigma_curry_apply, sigma_uncurry_apply] }⟩
 
 end curry
 
-variables {α : option ι → Type v} [Π i, has_zero (α i)] --[Π i (x : α i), decidable (x ≠ 0)]
+variables {α : option ι → Type v} [Π i, has_zero (α i)]
 
 /--Adds a term to a dfinsupp, making a dfinsupp indexed by an `option`.-/
 def extend_with (a : α none) : (Π₀ i, α (some i)) → Π₀ i, α i :=

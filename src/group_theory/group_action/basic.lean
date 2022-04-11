@@ -3,6 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
+import algebra.hom.group_action
 import group_theory.group_action.defs
 import group_theory.group_action.group
 import group_theory.quotient_group
@@ -12,7 +13,7 @@ import data.fintype.card
 /-!
 # Basic properties of group actions
 
-This file primarily concerns itselfs with orbits, stabilizers, and other objects defined in terms of
+This file primarily concerns itself with orbits, stabilizers, and other objects defined in terms of
 actions. Despite this file being called `basic`, low-level helper lemmas for algebraic manipulation
 of `•` belong elsewhere.
 
@@ -339,6 +340,13 @@ open quotient_group
 
 @[simp, to_additive] lemma quotient.smul_coe (H : subgroup α) (a x : α) :
   (a • x : α ⧸ H) = ↑(a * x) := rfl
+
+/-- The canonical map to the left cosets. -/
+def _root_.mul_action_hom.to_quotient (H : subgroup α) : α →[α] α ⧸ H :=
+⟨coe, quotient.smul_coe H⟩
+
+@[simp] lemma _root_.mul_action_hom.to_quotient_apply (H : subgroup α) (g : α) :
+  mul_action_hom.to_quotient H g = g := rfl
 
 @[to_additive] instance mul_left_cosets_comp_subtype_val (H I : subgroup α) :
   mul_action I (α ⧸ H) :=

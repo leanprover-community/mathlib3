@@ -46,7 +46,8 @@ namespace list.nat
 
 /-- `list.antidiagonal_tuple k n` is a list of all `k`-tuples which sum to `n`.
 
-This list contains no duplicates, and is sorted lexicographically, starting with `![0, ..., n]`
+This list contains no duplicates (`list.nat.nodup_antidiagonal_tuple`), and is sorted
+lexicographically (`list.nat.antidiagonal_tuple_pairwise_pi_lex`), starting with `![0, ..., n]`
 and ending with `![n, ..., 0]`.
 
 ```
@@ -129,6 +130,31 @@ begin
   simp_rw [antidiagonal_tuple_one, list.map_singleton],
   rw [list.map_eq_bind],
   refl,
+end
+
+lemma antidiagonal_tuple_pairwise_pi_lex (k n : ℕ) :
+  (antidiagonal_tuple k n).pairwise (pi.lex (<) (λ _, (<))) :=
+begin
+  induction k with k ih generalizing n,
+  { cases n,
+    { simp only [antidiagonal_tuple_zero_zero, list.pairwise_singleton] },
+    { simp only [antidiagonal_tuple_zero_succ, list.pairwise.nil] }, },
+  simp_rw [antidiagonal_tuple, list.pairwise_bind, list.pairwise_map, list.mem_map,
+    forall_exists_index, and_imp, forall_apply_eq_imp_iff₂],
+  simp only [mem_antidiagonal, prod.forall, and_imp, forall_apply_eq_imp_iff₂],
+  simp only [fin.pi_lex_lt_cons_cons, eq_self_iff_true, true_and, lt_self_iff_false, false_or],
+  refine ⟨λ _ _ _, ih _, _⟩,
+  induction n,
+  { rw [antidiagonal_zero],
+    exact list.pairwise_singleton _ _ },
+  { rw [antidiagonal_succ, list.pairwise_cons, list.pairwise_map],
+    refine ⟨λ p hp x hx y hy, _, _⟩,
+    { rw [list.mem_map, prod.exists] at hp,
+      obtain ⟨a, b, hab, (rfl : (nat.succ a, b) = p)⟩ := hp,
+      exact or.inl (nat.zero_lt_succ _), },
+    dsimp,
+    simp_rw [nat.succ_inj', nat.succ_lt_succ_iff],
+    exact n_ih },
 end
 
 end list.nat

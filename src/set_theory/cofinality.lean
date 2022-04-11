@@ -459,6 +459,13 @@ begin
       { rwa bfamily_of_family'_typein } } }
 end
 
+@[simp] theorem cof_cof (a : ordinal.{u}) : cof (cof a).ord = cof a :=
+begin
+  cases exists_fundamental_sequence a with f hf,
+  cases exists_fundamental_sequence a.cof.ord with g hg,
+  exact ord_injective ((hf.trans hg).cof_eq.symm)
+end
+
 theorem is_normal.is_fundamental_sequence {f : ordinal.{u} → ordinal.{u}} (hf : is_normal f) {a o}
   (ha : is_limit a) {g} (hg : is_fundamental_sequence a o g) :
   is_fundamental_sequence (f a) o (λ b hb, f (g b hb)) :=
@@ -484,13 +491,6 @@ begin
         (λ c hc, hf.strict_mono.le_iff_le.1 (hi.trans hc))) (lt_lsub _ i) } },
   { rw @blsub_comp.{u u u} a _ (λ b _, f b) (λ i j hi hj h, hf.strict_mono.monotone h) g hg.2.2,
     exact is_normal.blsub_eq.{u u} hf ha }
-end
-
-@[simp] theorem cof_cof (a : ordinal.{u}) : cof (cof a).ord = cof a :=
-begin
-  cases exists_fundamental_sequence a with f hf,
-  cases exists_fundamental_sequence a.cof.ord with g hg,
-  exact ord_injective ((hf.trans hg).cof_eq.symm)
 end
 
 theorem is_normal.cof_eq {f} (hf : is_normal f) {a} (ha : is_limit a) : cof (f a) = cof a :=

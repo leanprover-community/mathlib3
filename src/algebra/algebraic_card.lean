@@ -23,7 +23,7 @@ Although this can be used to prove transcendental numbers exist, a more direct p
 open cardinal polynomial topological_space
 open_locale cardinal
 
-lemma algebraic_cardinal_mk_le_mul
+theorem algebraic_cardinal_mk_le_mul
   {R A : Type*} [comm_ring R] [is_domain R] [comm_ring A] [is_domain A] [algebra R A]
   [no_zero_smul_divisors R A] : #{x : A | is_algebraic R x} ≤ #(polynomial R) * ω :=
 begin
@@ -47,10 +47,13 @@ begin
   exact fintype.of_injective h (λ _ _, subtype.ext ∘ subtype.ext ∘ subtype.ext_iff.mp),
 end
 
-theorem algebraic_cardinal_mk_le_mul' (R) {A} [comm_ring R] [is_domain R] [comm_ring A]
-  [is_domain A] [algebra R A] [no_zero_smul_divisors R A] [topological_space A] [t1_space A]
-  {s : set (set A)} (hs : is_topological_basis s) : #{x : A | is_algebraic R x} ≤ max (#R) ω * #s :=
-(algebraic_cardinal_mk_le_mul R hs).trans (mul_le_mul_right' polynomial.cardinal_mk_le_max _)
+theorem algebraic_cardinal_mk_le_max
+  {R A : Type*} [comm_ring R] [is_domain R] [comm_ring A] [is_domain A] [algebra R A]
+  [no_zero_smul_divisors R A] : #{x : A | is_algebraic R x} ≤ max (#R) ω :=
+calc #{x : A | is_algebraic R x} ≤ #(polynomial R) * ω : algebraic.cardinal_mk_le_mul
+... ≤ max (max (#(polynomial R)) ω) ω : mul_le_max (#(polynomial R)) ω
+... = max (#(polynomial R)) ω : max_eq_left (le_max_right (#(polynomial R)) ω)
+... ≤ max (#R) ω : max_le cardinal_mk_le_max (le_max_right (#R) ω)
 
 theorem omega_le_algebraic_cardinal_mk_of_char_zero (R A : Type*) [comm_ring R] [is_domain R]
   [ring A] [algebra R A] [char_zero A] : ω ≤ #{x : A | is_algebraic R x} :=

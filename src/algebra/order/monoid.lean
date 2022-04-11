@@ -871,26 +871,6 @@ instance contravariant_class_swap_add_lt [contravariant_class α α (swap (+)) (
   { exact some_lt_some.2 (lt_of_add_lt_add_right $ some_lt_some.1 h) }
 end⟩
 
-protected lemma add_lt_add_left [covariant_class α α (+) (<)] (ha : a ≠ ⊤) (h : b < c) :
-  a + b < a + c :=
-begin
-  lift a to α using ha,
-  cases b, exact (not_none_lt _ h).elim,
-  cases c, exact coe_lt_top _,
-  rw some_lt_some at h, simp only [h, some_eq_coe, ← coe_add, coe_lt_coe],
-  exact add_lt_add_left h _
-end
-
-protected lemma add_lt_add_right [covariant_class α α (swap (+)) (<)] (ha : a ≠ ⊤) (h : b < c) :
-  b + a < c + a :=
-begin
-  lift a to α using ha,
-  cases b, exact (not_none_lt _ h).elim,
-  cases c, exact coe_lt_top _,
-  rw some_lt_some at h, simp only [h, some_eq_coe, ← coe_add, coe_lt_coe],
-  exact add_lt_add_right h _
-end
-
 protected lemma le_of_add_le_add_left [contravariant_class α α (+) (≤)] (ha : a ≠ ⊤)
   (h : a + b ≤ a + c) : b ≤ c :=
 begin
@@ -912,13 +892,25 @@ begin
   { exact some_le_some.2 (le_of_add_le_add_right $ some_le_some.1 h) }
 end
 
-protected lemma add_lt_add_iff_left [covariant_class α α (+) (<)] [contravariant_class α α (+) (<)]
-  (ha : a ≠ ⊤) : a + b < a + c ↔ b < c :=
-⟨lt_of_add_lt_add_left, with_top.add_lt_add_left ha⟩
+protected lemma add_lt_add_left [covariant_class α α (+) (<)] (ha : a ≠ ⊤) (h : b < c) :
+  a + b < a + c :=
+begin
+  lift a to α using ha,
+  lift b to α using (h.trans_le le_top).ne,
+  cases c,
+  { exact coe_lt_top _ },
+  { exact some_lt_some.2 (add_lt_add_left $ some_lt_some.1 h) }
+end
 
-protected lemma add_lt_add_iff_right [covariant_class α α (swap (+)) (<)]
-  [contravariant_class α α (swap (+)) (<)] (ha : a ≠ ⊤) : b + a < c + a ↔ b < c :=
-⟨lt_of_add_lt_add_right, with_top.add_lt_add_right ha⟩
+protected lemma add_lt_add_right [covariant_class α α (swap (+)) (<)] (ha : a ≠ ⊤) (h : b < c) :
+  b + a < c + a :=
+begin
+  lift a to α using ha,
+  lift b to α using (h.trans_le le_top).ne,
+  cases c,
+  { exact coe_lt_top _ },
+  { exact some_lt_some.2 (add_lt_add_right $ some_lt_some.1 h) }
+end
 
 protected lemma add_le_add_iff_left [covariant_class α α (+) (≤)] [contravariant_class α α (+) (≤)]
   (ha : a ≠ ⊤) : a + b ≤ a + c ↔ b ≤ c :=
@@ -927,6 +919,14 @@ protected lemma add_le_add_iff_left [covariant_class α α (+) (≤)] [contravar
 protected lemma add_le_add_iff_right [covariant_class α α (swap (+)) (≤)]
   [contravariant_class α α (swap (+)) (≤)] (ha : a ≠ ⊤) : b + a ≤ c + a ↔ b ≤ c :=
 ⟨with_top.le_of_add_le_add_right ha, λ h, add_le_add_right h a⟩
+
+protected lemma add_lt_add_iff_left [covariant_class α α (+) (<)] [contravariant_class α α (+) (<)]
+  (ha : a ≠ ⊤) : a + b < a + c ↔ b < c :=
+⟨lt_of_add_lt_add_left, with_top.add_lt_add_left ha⟩
+
+protected lemma add_lt_add_iff_right [covariant_class α α (swap (+)) (<)]
+  [contravariant_class α α (swap (+)) (<)] (ha : a ≠ ⊤) : b + a < c + a ↔ b < c :=
+⟨lt_of_add_lt_add_right, with_top.add_lt_add_right ha⟩
 
 protected lemma add_lt_add_of_le_of_lt [covariant_class α α (+) (<)]
   [covariant_class α α (swap (+)) (≤)] (ha : a ≠ ⊤) (hab : a ≤ b) (hcd : c < d) : a + c < b + d :=
@@ -1097,47 +1097,19 @@ variables [preorder α]
 
 instance covariant_class_add_le [covariant_class α α (+) (≤)] :
   covariant_class (with_bot α) (with_bot α) (+) (≤) :=
-⟨λ a b c h, begin
-  cases a; cases b; try { exact bot_le },
-  cases c,
-  { exact (not_coe_le_bot _ h).elim },
-  { exact some_le_some.2 (add_le_add_left (some_le_some.1 h) _) }
-end⟩
+@order_dual.covariant_class_add_le (with_top $ order_dual α) _ _ _
 
 instance covariant_class_swap_add_le [covariant_class α α (swap (+)) (≤)] :
   covariant_class (with_bot α) (with_bot α) (swap (+)) (≤) :=
-⟨λ a b c h, begin
-  cases a; cases b; try { exact bot_le },
-  cases c,
-  { exact (not_coe_le_bot _ h).elim },
-  { exact some_le_some.2 (add_le_add_right (some_le_some.1 h) _) }
-end⟩
+@order_dual.covariant_class_swap_add_le (with_top $ order_dual α) _ _ _
 
 instance contravariant_class_add_lt [contravariant_class α α (+) (<)] :
   contravariant_class (with_bot α) (with_bot α) (+) (<) :=
-⟨λ a b c h, begin
-  cases a; cases c; try { exact (not_lt_bot h).elim },
-  cases b,
-  { exact bot_lt_coe _ },
-  { exact some_lt_some.2 (lt_of_add_lt_add_left $ some_lt_some.1 h) }
-end⟩
+@order_dual.contravariant_class_add_lt (with_top $ order_dual α) _ _ _
 
 instance contravariant_class_swap_add_lt [contravariant_class α α (swap (+)) (<)] :
   contravariant_class (with_bot α) (with_bot α) (swap (+)) (<) :=
-⟨λ a b c h, begin
-  cases a; cases c; try { exact (not_lt_bot h).elim },
-  cases b,
-  { exact bot_lt_coe _ },
-  { exact some_lt_some.2 (lt_of_add_lt_add_right $ some_lt_some.1 h) }
-end⟩
-
-protected lemma add_lt_add_left [covariant_class α α (+) (<)] (ha : a ≠ ⊥) (h : b < c) :
-  a + b < a + c :=
-@with_top.add_lt_add_left (order_dual α) _ _ _ _ _ _ ha h
-
-protected lemma add_lt_add_right [covariant_class α α (swap (+)) (<)] (ha : a ≠ ⊥) (h : b < c) :
-  b + a < c + a :=
-@with_top.add_lt_add_right (order_dual α) _ _ _ _ _ _ ha h
+@order_dual.contravariant_class_swap_add_lt (with_top $ order_dual α) _ _ _
 
 protected lemma le_of_add_le_add_left [contravariant_class α α (+) (≤)] (ha : a ≠ ⊥)
   (h : a + b ≤ a + c) : b ≤ c :=
@@ -1147,13 +1119,13 @@ protected lemma le_of_add_le_add_right [contravariant_class α α (swap (+)) (�
   (h : b + a ≤ c + a) : b ≤ c :=
 @with_top.le_of_add_le_add_right (order_dual α) _ _ _ _ _ _ ha h
 
-protected lemma add_lt_add_iff_left [covariant_class α α (+) (<)] [contravariant_class α α (+) (<)]
-  (ha : a ≠ ⊥) : a + b < a + c ↔ b < c :=
-⟨lt_of_add_lt_add_left, with_bot.add_lt_add_left ha⟩
+protected lemma add_lt_add_left [covariant_class α α (+) (<)] (ha : a ≠ ⊥) (h : b < c) :
+  a + b < a + c :=
+@with_top.add_lt_add_left (order_dual α) _ _ _ _ _ _ ha h
 
-protected lemma add_lt_add_iff_right [covariant_class α α (swap (+)) (<)]
-  [contravariant_class α α (swap (+)) (<)] (ha : a ≠ ⊥) : b + a < c + a ↔ b < c :=
-⟨lt_of_add_lt_add_right, with_bot.add_lt_add_right ha⟩
+protected lemma add_lt_add_right [covariant_class α α (swap (+)) (<)] (ha : a ≠ ⊥) (h : b < c) :
+  b + a < c + a :=
+@with_top.add_lt_add_right (order_dual α) _ _ _ _ _ _ ha h
 
 protected lemma add_le_add_iff_left [covariant_class α α (+) (≤)] [contravariant_class α α (+) (≤)]
   (ha : a ≠ ⊥) : a + b ≤ a + c ↔ b ≤ c :=
@@ -1162,6 +1134,14 @@ protected lemma add_le_add_iff_left [covariant_class α α (+) (≤)] [contravar
 protected lemma add_le_add_iff_right [covariant_class α α (swap (+)) (≤)]
   [contravariant_class α α (swap (+)) (≤)] (ha : a ≠ ⊥) : b + a ≤ c + a ↔ b ≤ c :=
 ⟨with_bot.le_of_add_le_add_right ha, λ h, add_le_add_right h a⟩
+
+protected lemma add_lt_add_iff_left [covariant_class α α (+) (<)] [contravariant_class α α (+) (<)]
+  (ha : a ≠ ⊥) : a + b < a + c ↔ b < c :=
+⟨lt_of_add_lt_add_left, with_bot.add_lt_add_left ha⟩
+
+protected lemma add_lt_add_iff_right [covariant_class α α (swap (+)) (<)]
+  [contravariant_class α α (swap (+)) (<)] (ha : a ≠ ⊥) : b + a < c + a ↔ b < c :=
+⟨lt_of_add_lt_add_right, with_bot.add_lt_add_right ha⟩
 
 protected lemma add_lt_add_of_le_of_lt [covariant_class α α (+) (<)]
   [covariant_class α α (swap (+)) (≤)] (hb : b ≠ ⊥) (hab : a ≤ b) (hcd : c < d) : a + c < b + d :=

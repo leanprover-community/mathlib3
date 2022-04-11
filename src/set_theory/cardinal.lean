@@ -920,7 +920,7 @@ lt_omega.trans ⟨λ ⟨n, e⟩, begin
   exact ⟨fintype.of_equiv _ f.symm⟩
 end, λ ⟨_⟩, by exactI ⟨_, mk_fintype _⟩⟩
 
-theorem _root_.fintype.lt_omega (α : Type u) [fintype α] : #α < ω :=
+theorem lt_omega_of_fintype (α : Type u) [fintype α] : #α < ω :=
 lt_omega_iff_fintype.2 ⟨infer_instance⟩
 
 theorem lt_omega_iff_finite {α} {S : set α} : #S < ω ↔ finite S :=

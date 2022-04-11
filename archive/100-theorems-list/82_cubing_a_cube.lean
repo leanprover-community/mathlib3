@@ -509,7 +509,7 @@ omit h
 /-- The infinite sequence of cubes contradicts the finiteness of the family. -/
 theorem not_correct : ¬correct cs :=
 begin
-  intro h, apply (fintype.lt_omega ι).not_le,
+  intro h, apply (lt_omega_of_fintype ι).not_le,
   rw [omega, lift_id], fapply mk_le_of_injective, exact λ n, (sequence_of_cubes h n).1,
   intros n m hnm, apply strict_mono.injective (strict_mono_sequence_of_cubes h),
   dsimp only [decreasing_sequence], rw hnm

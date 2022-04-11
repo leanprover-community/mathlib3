@@ -423,9 +423,9 @@ hf.2.1
 theorem is_fundamental_sequence.blsub_eq : blsub.{u u} o f = a :=
 hf.2.2
 
-theorem is_fundamental_sequence_id_of_cof_eq (h : o.cof.ord = o) :
+theorem is_fundamental_sequence_id_of_le_cof (h : o ≤ o.cof.ord) :
   is_fundamental_sequence o o (λ a _, a) :=
-⟨h.ge, λ i j _ _ h, h, blsub_id o⟩
+⟨h, λ i j _ _ h, h, blsub_id o⟩
 
 theorem is_fundamental_sequence_zero {f : Π b < (0 : ordinal), ordinal} :
   is_fundamental_sequence 0 0 f :=

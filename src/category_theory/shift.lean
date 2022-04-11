@@ -290,7 +290,7 @@ local attribute [reducible] discrete.add_monoidal
 
 lemma shift_shift_neg_hom_shift (n : A) (X : C) :
   (shift_shift_neg X n).hom ⟦n⟧' = (shift_neg_shift (X⟦n⟧) n).hom :=
-by { dsimp, simp, }
+by simp
 
 end
 

@@ -227,8 +227,7 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
   map_id' := by { intros X, ext1, dsimp, rw functor.map_id },
   map_comp' := by { intros X Y Z f g, ext1, dsimp, rw functor.map_comp } }
 
-local attribute [instance] endofunctor_monoidal_category discrete.add_monoidal
-local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal shift_comm
+local attribute [reducible] discrete.add_monoidal shift_comm
 
 /-- The shift functor on `differential_object C` is additive. -/
 @[simps] def shift_functor_add (m n : ℤ) :
@@ -238,9 +237,14 @@ begin
   { dsimp,
     simp only [obj_μ_app, μ_naturality_assoc, μ_naturalityₗ_assoc, μ_inv_hom_app_assoc,
       category.assoc, obj_μ_inv_app, functor.map_comp, μ_inv_naturalityᵣ_assoc],
-    simp [opaque_eq_to_iso] },
+    simp [opaque_eq_to_iso], },
   { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end
+
+local attribute [reducible] endofunctor_monoidal_category
+
+section
+local attribute [instance] endofunctor_monoidal_category
 
 /-- The shift by zero is naturally isomorphic to the identity. -/
 @[simps]
@@ -249,6 +253,8 @@ begin
   refine nat_iso.of_components (λ X, mk_iso ((shift_monoidal_functor C ℤ).ε_iso.app X.X) _) _,
   { dsimp, simp, dsimp, simp },
   { introv, ext, dsimp, simp }
+end
+
 end
 
 instance : has_shift (differential_object C) ℤ :=

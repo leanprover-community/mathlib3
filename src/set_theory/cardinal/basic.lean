@@ -1001,7 +1001,7 @@ end
 
 /-- See also `cardinal.nsmul_lt_omega_iff` for a hypothesis-free version. -/
 lemma nsmul_lt_omega_iff_of_ne_zero {n : ℕ} {a : cardinal} (h : n ≠ 0) : n • a < ω ↔ a < ω :=
-by simp only [nsmul_lt_omega_iff, h, false_or]
+nsmul_lt_omega_iff.trans $ or_iff_right h
 
 theorem mul_lt_omega {a b : cardinal} (ha : a < ω) (hb : b < ω) : a * b < ω :=
 match a, b, lt_omega.1 ha, lt_omega.1 hb with

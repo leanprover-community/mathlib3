@@ -498,33 +498,18 @@ begin
   { simp [S, coe_T_zpow, matrix.mul_apply, fin.sum_univ_succ], },
 end
 
-lemma cast_one_le_of_pos {α : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
-  [linear_order α] [has_abs α] {n : ℤ} (hn : 0 < n) :
-  (1 : α) ≤ n :=
-begin
-  suffices h : (1 : ℤ) ≤ n,
-  {
-    sorry,
---    exact_mod_cast h,
-  },
-  { exact int.add_one_le_of_lt hn, },
-end
+lemma cast_one_le_of_pos {α : Type*} [linear_ordered_ring α] {n : ℤ} (hn : 0 < n) :
+  (1 : α) ≤ n := by exact_mod_cast int.add_one_le_of_lt hn
 
-lemma cast_le_neg_one_of_neg {n : ℤ} (hn : n < 0) : (n : ℝ) ≤ -1 := by exact_mod_cast
-  int.le_sub_one_of_lt hn
+lemma cast_le_neg_one_of_neg {α : Type*} [linear_ordered_ring α] {n : ℤ} (hn : n < 0) :
+  (n : α) ≤ -1 := by exact_mod_cast int.le_sub_one_of_lt hn
 
-lemma nneg_mul_add_sq_of_abs_le_one {α : Type*} [ring α] [linear_ordered_add_comm_group α]
-  [covariant_class α α (function.swap has_add.add) has_le.le]
-  [covariant_class α α has_add.add has_le.le] (n : ℤ) (x : α) (hx : |x| ≤ 1)
-  : (0 : α) ≤ n * x + n * n :=
+lemma nneg_mul_add_sq_of_abs_le_one {α : Type*} [linear_ordered_ring α] (n : ℤ) (x : α)
+  (hx : |x| ≤ 1) : (0 : α) ≤ n * x + n * n :=
 begin
   have hnx : 0 < n → 0 ≤ x + n := λ hn, by
-  {
-    have : (1:α) ≤ n := cast_one_le_of_pos hn,
-    convert add_le_add (neg_le_of_abs_le hx) this,
-    sorry,
-    --exact (add_left_neg (1 : α)).symm,
-  },
+  { convert add_le_add (neg_le_of_abs_le hx) (cast_one_le_of_pos hn),
+    rw add_left_neg, },
   have hnx' : n < 0 → x + n ≤ 0 := λ hn, by
   { convert add_le_add (le_of_abs_le hx) (cast_le_neg_one_of_neg hn),
     rw add_right_neg, },
@@ -603,25 +588,22 @@ begin
 /-  The argument overview is: either `c=0`, in which case the action is translation, which must be
   by `0`, OR
   `c=±1`, which gives a contradiction from considering `im z`, `im(g•z)`, and `norm_sq(T^* z)`. -/
-  have g_det : matrix.det g = (↑ₘg 0 0) * (↑ₘg 1 1) - (↑ₘg 1 0) * (↑ₘg 0 1),
-  { convert det_fin_two g using 1,
+  have g_det : matrix.det ↑ₘg = (↑ₘg 0 0) * (↑ₘg 1 1) - (↑ₘg 1 0) * (↑ₘg 0 1),
+  { convert det_fin_two ↑ₘg using 1,
     ring, },
   by_cases (↑ₘg 1 0 = 0),
-  { -- case c=0
+  { -- case `c=0`
     have := g_det,
     rw h at this,
-    simp only [matrix.special_linear_group.coe_fn_eq_coe, matrix.special_linear_group.det_coe,
-      zero_mul, sub_zero] at this,
+    simp only [det_coe, zero_mul, sub_zero] at this,
     have := int.eq_one_or_neg_one_of_mul_eq_one' (this.symm),
     have gzIs : ∀ (gg : SL(2,ℤ)), ↑ₘgg 1 0 = 0 → ↑ₘgg 0 0 = 1 → ↑ₘgg 1 1 = 1 →
       ↑(gg • z : ℍ) = (z : ℂ) + ↑ₘgg 0 1,
     { intros gg h₀ h₁ h₂,
-      simp only [coe_fn_eq_coe] at h₀ h₁ h₂,
       simp [h₀, h₁, h₂], },
     have gIsId : ∀ (gg : SL(2,ℤ)), gg • z ∈ 𝒟ᵒ → ↑ₘgg 1 0 = 0 → ↑ₘgg 0 0 = 1 → ↑ₘgg 1 1 = 1
       → gg = 1,
     { intros gg hh h₀ h₁ h₂,
-      simp only [coe_fn_eq_coe] at h₀ h₁ h₂,
       ext i,
       fin_cases i; fin_cases j,
       simp only [h₁, coe_one, one_apply_eq],
@@ -651,24 +633,24 @@ begin
       rw this,
       simp, },
     cases this,
-    { -- case a = d = 1
+    { -- case `a = d = 1`
       exact zIsGz g h this_1.1 this_1.2 hg, },
-    { -- case a = d = -1
+    { -- case `a = d = -1`
       rw ← neg_smul,
       apply zIsGz; simp,
       exact_mod_cast h,
       simp only [this_1, neg_neg],
       simp only [this_1, neg_neg],
       exact hg, }, },
-  { -- case c ≠ 0
+  { -- case `c ≠ 0`
     exfalso,
-    -- argue first that c=± 1
+    -- argue first that `c=± 1`
     have := ineq_2 _ (ineq_1 z g hz hg h) h,
     -- then show this is impossible
     cases this with hc,
-    { -- c = 1
+    { -- `c = 1`
       exact c_ne_one hz hg  hc, },
-    { -- c = -1
+    { -- `c = -1`
       have neg_c_one : ↑ₘ(-g) 1 0 = 1,
       { have := eq_neg_of_eq_neg this,
         simp [this], },

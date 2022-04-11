@@ -462,10 +462,12 @@ end
 end
 
 lemma snorm_sub_le_of_dist_bdd
-  {p : ℝ≥0∞} (hp : p ≠ 0) (hp' : p ≠ ∞) {s : set α} (hs : measurable_set[m] s)
+  {p : ℝ≥0∞} (hp' : p ≠ ∞) {s : set α} (hs : measurable_set[m] s)
   {f g : α → β} {c : ℝ} (hc : 0 ≤ c) (hf : ∀ x ∈ s, dist (f x) (g x) ≤ c) :
   snorm (s.indicator (f - g)) p μ ≤ ennreal.of_real c * μ s ^ (1 / p.to_real) :=
 begin
+  by_cases hp : p = 0,
+  { simp [hp], },
   have : ∀ x, ∥s.indicator (f - g) x∥ ≤ ∥s.indicator (λ x, c) x∥,
   { intro x,
     by_cases hx : x ∈ s,
@@ -527,7 +529,7 @@ begin
     exact min_le_right _ _ },
   have hlt : snorm (tᶜ.indicator (f n - g)) p μ ≤ ennreal.of_real (ε.to_real / 3),
   { specialize hN n hn,
-    have := snorm_sub_le_of_dist_bdd μ ((lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm)
+    have := snorm_sub_le_of_dist_bdd μ
       hp' htm.compl _ (λ x hx, (dist_comm (g x) (f n x) ▸ (hN x hx).le :
       dist (f n x) (g x) ≤ ε.to_real / (3 * measure_univ_nnreal μ ^ (1 / p.to_real)))),
     refine le_trans this _,

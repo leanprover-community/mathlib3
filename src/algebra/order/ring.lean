@@ -690,7 +690,6 @@ lemma add_le_mul' (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ b * a :=
 (le_of_eq (add_comm _ _)).trans (add_le_mul b2 a2)
 
 section
-variables [nontrivial α]
 
 @[simp] lemma bit0_le_bit0 : bit0 a ≤ bit0 b ↔ a ≤ b :=
 by rw [bit0, bit0, ← two_mul, ← two_mul, mul_le_mul_left (zero_lt_two : 0 < (2:α))]

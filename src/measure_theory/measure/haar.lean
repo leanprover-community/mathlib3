@@ -645,25 +645,32 @@ begin
 end
 
 /-- **Steinhaus Theorem** In any locally compact group `G` with a haar measure `μ`, for any
-  measurable set `E` of positive measure, the set `E/E` contains a neighborhood of `1`. -/
+  measurable set `E` of positive measure, the set `E/E` is a neighbourhood of `1`. -/
 @[to_additive "**Steinhaus Theorem** In any locally compact group `G` with a haar measure `μ`,
-  for any measurable set `E` of positive measure, the set `E - E` contains a neighborhood of `0`."]
+  for any measurable set `E` of positive measure, the set `E - E` is a neighbourhood of `0`."]
 theorem steinhaus_theorem_mul (μ : measure G) [is_haar_measure μ] [locally_compact_space G]
   (E : set G) (hE : measurable_set E) (hEpos : 0 < μ E) :
-  ∃ (U : set G) , U ∈ nhds (1 : G) ∧ U ⊆ E / E :=
+  E / E ∈ 𝓝 (1 : G) :=
 begin
-  rcases (exists_subset_measure_lt_top hE hEpos) with ⟨L, hL, hLE, hLpos, hLtop⟩,
-  have hK := measurable_set.exists_lt_is_compact_of_ne_top hL (ne_of_lt hLtop) hLpos,
-  rcases hK with ⟨K, hKL, hK, hKpos⟩,
-  have hKtop : μ K ≠ ⊤,
+  -- For any regular measure `μ` and set `E` of positive measure, we can find a compact set `K` of
+  -- positive measure inside `E`. Further, for any outer regular measure `μ` there exists an open
+  -- set `U` containing `K` with measure arbitrarily close to `K` (here `μ U < 2 * μ K` suffices).
+  -- Then, we can pick an open neighborhood of `1`, say `V` such that such that `V * K` is contained
+  -- in `U`. Now note that for any `v` in `V`, the sets `K` and `{v} * K` can not be disjoint
+  -- because they are both of measure `μ K` (since `μ` is left regular) and also contained in `U`,
+  -- yet we have that `μ U < 2 * μ K`. But now have that `V ⊆ K / K`, which proves that
+  -- `E / E ∈ 𝓝 1` by taking an open subset `T` of `V` containing `1` and noting that `V ⊆ E / E`.
+  obtain ⟨L, hL, hLE, hLpos, hLtop⟩ : ∃ (L : set G), measurable_set L ∧ L ⊆ E ∧ 0 < μ L ∧ μ L < ⊤,
+    from exists_subset_measure_lt_top hE hEpos,
+  obtain ⟨K, hKL, hK, hKpos⟩ : ∃ (K : set G) (H : K ⊆ L), is_compact K ∧ 0 < μ K,
+    from measurable_set.exists_lt_is_compact_of_ne_top hL (ne_of_lt hLtop) hLpos,
+  have hKtop : μ K ≠ ∞,
   { apply ne_top_of_le_ne_top (ne_of_lt hLtop),
     apply measure_mono hKL },
-  have h2 : μ K ≠ 0,
-  { exact ne_of_gt hKpos },
-  have hU := set.exists_is_open_lt_add K hKtop h2,
-  rcases hU with ⟨U, hUK, hU, hμUK⟩,
-  have hV := compact_open_separated_mul_left hK hU hUK,
-  rcases hV with ⟨V, hV1, hVKU⟩,
+  obtain ⟨U, hUK, hU, hμUK⟩ : ∃ (U : set G) (H : U ⊇ K), is_open U ∧ μ U < μ K + μ K,
+   from set.exists_is_open_lt_add K hKtop hKpos.ne',
+  obtain ⟨V, hV1, hVKU⟩ : ∃ (V ∈ 𝓝 (1 : G)), V * K ⊆ U,
+    from compact_open_separated_mul_left hK hU hUK,
   have hv : ∀ (v : G), v ∈ V → ¬ disjoint ({v}* K) K,
   { intros v hv hKv,
     have hKvsub : {v} * K ∪ K ⊆ U,
@@ -675,22 +682,24 @@ begin
     have hcontr := lt_of_le_of_lt hKvsub hμUK,
     rw measure_union hKv (is_compact.measurable_set hK) at hcontr,
     have hKtranslate : μ ({v} * K) = μ K,
-    { simp only [singleton_mul, image_mul_left, measure_preimage_mul] },
+    by simp only [singleton_mul, image_mul_left, measure_preimage_mul],
     rw [hKtranslate, lt_self_iff_false] at hcontr,
     assumption },
-    refine ⟨V, hV1, _⟩,
-    { intros v hvV,
-      specialize hv v hvV,
-      rw set.not_disjoint_iff at hv,
-      rcases hv with ⟨x, hxK, hxvK⟩,
-      rw set.mem_div,
-      refine ⟨x, v⁻¹ * x, _, _, _⟩,
-      { apply hLE (hKL hxvK) },
-      { apply hLE,
-        apply hKL,
-        simp only [singleton_mul, image_mul_left, mem_preimage] at hxK,
-        exact hxK },
-        simp only [div_eq_iff_eq_mul, ← mul_assoc, mul_right_inv, one_mul] }
+  rw mem_nhds_iff,
+  obtain ⟨T, hTV, hT⟩ : ∃ (T ⊆ V), is_open T ∧ (1 : G) ∈ T,
+    from mem_nhds_iff.mp hV1,
+  refine ⟨T, _, hT⟩,
+  { intros t ht,
+    specialize hv t (hTV ht),
+    rw set.not_disjoint_iff at hv,
+    rcases hv with ⟨x, hxK, hxvK⟩,
+    rw set.mem_div,
+    refine ⟨x, t⁻¹ * x, hLE (hKL hxvK), _, _⟩,
+    { apply hLE,
+      apply hKL,
+      simp only [singleton_mul, image_mul_left, mem_preimage] at hxK,
+      exact hxK },
+    { simp only [div_eq_iff_eq_mul, ← mul_assoc, mul_right_inv, one_mul] } }
 end
 
 end second_countable

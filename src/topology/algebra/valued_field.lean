@@ -83,7 +83,7 @@ open valued
     [BouAC, VI.5.1 middle of Proposition 1] -/
 @[priority 100]
 instance valued.topological_division_ring [valued K Γ₀] : topological_division_ring K :=
-{ continuous_inv :=
+{ continuous_at_inv₀ :=
     begin
       intros x x_ne s s_in,
       cases valued.mem_nhds.mp s_in with γ hs, clear s_in,
@@ -231,7 +231,7 @@ lemma valued.continuous_extension : continuous (valued.extension : hat K → Γ�
         conv {congr, skip, skip, rw ← (one_mul (1 : hat K))},
         refine tendsto.mul continuous_fst.continuous_at
                            (tendsto.comp _ continuous_snd.continuous_at),
-        convert topological_division_ring.continuous_inv (1 : hat K) zero_ne_one.symm,
+        convert continuous_at_inv₀ (zero_ne_one.symm : 1 ≠ (0 : hat K)),
         exact inv_one.symm },
       rcases tendsto_prod_self_iff.mp this V V_in with ⟨U, U_in, hU⟩,
       let hatKstar := ({0}ᶜ : set $ hat K),

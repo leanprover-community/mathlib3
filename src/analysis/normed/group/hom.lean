@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import analysis.normed_space.basic
-import analysis.specific_limits
-import topology.sequences
+import analysis.specific_limits.normed
 
 /-!
 # Normed groups homomorphisms

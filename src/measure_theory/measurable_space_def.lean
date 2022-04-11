@@ -3,11 +3,11 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
 -/
-import order.symm_diff
-import order.disjointed
-import order.conditionally_complete_lattice
-import data.equiv.encodable.lattice
 import data.set.countable
+import logic.encodable.lattice
+import order.conditionally_complete_lattice
+import order.disjointed
+import order.symm_diff
 
 /-!
 # Measurable spaces and measurable functions
@@ -194,7 +194,7 @@ h₁.inter h₂.compl
 
 @[simp] lemma measurable_set.symm_diff {s₁ s₂ : set α}
   (h₁ : measurable_set s₁) (h₂ : measurable_set s₂) :
-  measurable_set (s₁ Δ s₂) :=
+  measurable_set (s₁ ∆ s₂) :=
 (h₁.diff h₂).union (h₂.diff h₁)
 
 @[simp] lemma measurable_set.ite {t s₁ s₂ : set α} (ht : measurable_set t) (h₁ : measurable_set s₁)

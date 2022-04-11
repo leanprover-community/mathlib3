@@ -257,13 +257,14 @@ The structure sheaf on $Spec R$, valued in `CommRing`.
 
 This is provided as a bundled `SheafedSpace` as `Spec.SheafedSpace R` later.
 -/
-def structure_sheaf : sheaf CommRing (prime_spectrum.Top R) :=
+def Spec.structure_sheaf : sheaf CommRing (prime_spectrum.Top R) :=
 ⟨structure_presheaf_in_CommRing R,
   -- We check the sheaf condition under `forget CommRing`.
   (is_sheaf_iff_is_sheaf_comp _ _).mpr
     (is_sheaf_of_iso (structure_presheaf_comp_forget R).symm
       (structure_sheaf_in_Type R).property)⟩
 
+open Spec (structure_sheaf)
 
 namespace structure_sheaf
 

@@ -6,7 +6,7 @@ Authors: Simon Hudon
 import control.monad.basic
 import control.monad.cont
 import control.monad.writer
-import data.equiv.basic
+import logic.equiv.basic
 import tactic.interactive
 
 /-!

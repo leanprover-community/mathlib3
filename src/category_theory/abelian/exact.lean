@@ -55,7 +55,7 @@ iff `image_subobject f = kernel_subobject g`.
 theorem exact_iff_image_eq_kernel : exact f g ↔ image_subobject f = kernel_subobject g :=
 begin
   split,
-  { introI h,
+  { intro h,
     fapply subobject.eq_of_comm,
     { suffices : is_iso (image_to_kernel _ _ h.w),
       { exactI as_iso (image_to_kernel _ _ h.w), },
@@ -67,8 +67,8 @@ end
 theorem exact_iff : exact f g ↔ f ≫ g = 0 ∧ kernel.ι g ≫ cokernel.π f = 0 :=
 begin
   split,
-  { introI h,
-    exact ⟨h.1, kernel_comp_cokernel f g⟩ },
+  { intro h,
+    exact ⟨h.1, kernel_comp_cokernel f g h⟩ },
   { refine λ h, ⟨h.1, _⟩,
     suffices hl : is_limit
       (kernel_fork.of_ι (image_subobject f).arrow (image_subobject_arrow_comp_eq_zero h.1)),
@@ -83,15 +83,16 @@ begin
         kernel.lift (cokernel.π f) u _ ≫ (image_iso_image f).hom ≫ (image_subobject_iso _).inv,
       rw [←kernel.lift_ι g u hu, category.assoc, h.2, has_zero_morphisms.comp_zero] },
     { tidy },
-    { intros, rw [←cancel_mono (image_subobject f).arrow, w], simp, } }
+    { intros, rw [←cancel_mono (image_subobject f).arrow, w],
+      simp, } }
 end
 
 theorem exact_iff' {cg : kernel_fork g} (hg : is_limit cg)
   {cf : cokernel_cofork f} (hf : is_colimit cf) : exact f g ↔ f ≫ g = 0 ∧ cg.ι ≫ cf.π = 0 :=
 begin
   split,
-  { introI h,
-    exact ⟨h.1, fork_ι_comp_cofork_π f g cg cf⟩ },
+  { intro h,
+    exact ⟨h.1, fork_ι_comp_cofork_π f g h cg cf⟩ },
   { rw exact_iff,
     refine λ h, ⟨h.1, _⟩,
     apply zero_of_epi_comp (is_limit.cone_point_unique_up_to_iso hg (limit.is_limit _)).hom,
@@ -115,15 +116,15 @@ lemma is_equivalence.exact_iff {D : Type u₁} [category.{v₁} D] [abelian D]
   exact (F.map f) (F.map g) ↔ exact f g :=
 begin
   simp only [exact_iff, ← F.map_eq_zero_iff, F.map_comp, category.assoc,
-    ← kernel_comparison_comp_π g F, ← ι_comp_cokernel_comparison f F],
+    ← kernel_comparison_comp_ι g F, ← π_comp_cokernel_comparison f F],
   rw [is_iso.comp_left_eq_zero (kernel_comparison g F), ← category.assoc,
     is_iso.comp_right_eq_zero _ (cokernel_comparison f F)],
 end
 
 /-- If `(f, g)` is exact, then `images.image.ι f` is a kernel of `g`. -/
-def is_limit_image [h : exact f g] :
+def is_limit_image (h : exact f g) :
   is_limit
-    (kernel_fork.of_ι (images.image.ι f) (images.image_ι_comp_eq_zero h.1) : kernel_fork g) :=
+    (kernel_fork.of_ι (abelian.image.ι f) (image_ι_comp_eq_zero h.1) : kernel_fork g) :=
 begin
   rw exact_iff at h,
   refine is_limit.of_ι _ _ _ _ _,
@@ -133,13 +134,13 @@ begin
 end
 
 /-- If `(f, g)` is exact, then `image.ι f` is a kernel of `g`. -/
-def is_limit_image' [h : exact f g] :
-  is_limit (kernel_fork.of_ι (image.ι f) (image_ι_comp_eq_zero h.1)) :=
-is_kernel.iso_kernel _ _ (is_limit_image f g) (image_iso_image f).symm $ is_image.lift_fac _ _
+def is_limit_image' (h : exact f g) :
+  is_limit (kernel_fork.of_ι (limits.image.ι f) (limits.image_ι_comp_eq_zero h.1)) :=
+is_kernel.iso_kernel _ _ (is_limit_image f g h) (image_iso_image f).symm $ is_image.lift_fac _ _
 
 /-- If `(f, g)` is exact, then `coimages.coimage.π g` is a cokernel of `f`. -/
-def is_colimit_coimage [h : exact f g] : is_colimit (cokernel_cofork.of_π (coimages.coimage.π g)
-  (coimages.comp_coimage_π_eq_zero h.1) : cokernel_cofork f) :=
+def is_colimit_coimage (h : exact f g) : is_colimit (cokernel_cofork.of_π (abelian.coimage.π g)
+  (abelian.comp_coimage_π_eq_zero h.1) : cokernel_cofork f) :=
 begin
   rw exact_iff at h,
   refine is_colimit.of_π _ _ _ _ _,
@@ -149,19 +150,36 @@ begin
 end
 
 /-- If `(f, g)` is exact, then `factor_thru_image g` is a cokernel of `f`. -/
-def is_colimit_image [h : exact f g] :
-  is_colimit (cokernel_cofork.of_π (factor_thru_image g) (comp_factor_thru_image_eq_zero h.1)) :=
-is_cokernel.cokernel_iso _ _ (is_colimit_coimage f g) (coimage_iso_image' g) $
-  (cancel_mono (image.ι g)).1 $ by simp
+def is_colimit_image (h : exact f g) : is_colimit
+  (cokernel_cofork.of_π (limits.factor_thru_image g) (comp_factor_thru_image_eq_zero h.1)) :=
+is_cokernel.cokernel_iso _ _ (is_colimit_coimage f g h) (coimage_iso_image' g) $
+  (cancel_mono (limits.image.ι g)).1 $ by simp
 
 lemma exact_cokernel : exact f (cokernel.π f) :=
 by { rw exact_iff, tidy }
 
-instance [exact f g] : mono (cokernel.desc f g (by simp)) :=
-suffices h : cokernel.desc f g (by simp) =
-  (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _) (is_colimit_image f g)).hom
-    ≫ image.ι g, by { rw h, apply mono_comp },
+instance (h : exact f g) : mono (cokernel.desc f g h.w) :=
+suffices h : cokernel.desc f g h.w =
+  (is_colimit.cocone_point_unique_up_to_iso (colimit.is_colimit _) (is_colimit_image f g h)).hom
+    ≫ limits.image.ι g, by { rw h, apply mono_comp },
 (cancel_epi (cokernel.π f)).1 $ by simp
+
+/-- If `ex : exact f g` and `epi g`, then `cokernel.desc _ _ ex.w` is an isomorphism. -/
+instance (ex : exact f g) [epi g] : is_iso (cokernel.desc f g ex.w) :=
+is_iso_of_mono_of_epi (limits.cokernel.desc f g ex.w)
+
+@[simp, reassoc]
+lemma cokernel.desc.inv [epi g] (ex : exact f g) :
+  g ≫ inv (cokernel.desc _ _ ex.w) = cokernel.π _ :=
+by simp
+
+instance (ex : exact f g) [mono f] : is_iso (kernel.lift g f ex.w) :=
+  is_iso_of_mono_of_epi (limits.kernel.lift g f ex.w)
+
+@[simp, reassoc]
+lemma kernel.lift.inv [mono f] (ex : exact f g) :
+  inv (kernel.lift _ _ ex.w) ≫ f = kernel.ι g :=
+by simp
 
 /-- If `X ⟶ Y ⟶ Z ⟶ 0` is exact, then the second map is a cokernel of the first. -/
 def is_colimit_of_exact_of_epi [epi g] (h : exact f g) :
@@ -201,7 +219,7 @@ variables (Z)
 lemma tfae_mono : tfae [mono f, kernel.ι f = 0, exact (0 : Z ⟶ X) f] :=
 begin
   tfae_have : 3 → 2,
-  { introsI, exact kernel_ι_eq_zero_of_exact_zero_left Z },
+  { exact kernel_ι_eq_zero_of_exact_zero_left Z },
   tfae_have : 1 → 3,
   { introsI, exact exact_zero_left_of_mono Z },
   tfae_have : 2 → 1,
@@ -240,23 +258,22 @@ end
 
 section opposite
 
-instance exact.op [exact f g] : exact g.op f.op :=
+lemma exact.op (h : exact f g) : exact g.op f.op :=
 begin
   rw exact_iff,
-  refine ⟨by simp [← op_comp], _⟩,
-  apply_fun quiver.hom.unop using quiver.hom.unop_inj,
+  refine ⟨by simp [← op_comp, h.w], quiver.hom.unop_inj _⟩,
   simp only [unop_comp, cokernel.π_op, eq_to_hom_refl, kernel.ι_op, category.id_comp,
-    category.assoc, kernel_comp_cokernel_assoc, zero_comp, comp_zero, unop_zero],
+    category.assoc, kernel_comp_cokernel_assoc _ _ h, zero_comp, comp_zero, unop_zero],
 end
 
 lemma exact.op_iff : exact g.op f.op ↔ exact f g :=
 ⟨λ e, begin
   rw ← is_equivalence.exact_iff _ _ (op_op_equivalence C).inverse,
-  dsimp, resetI, apply_instance,
-end, λ e, @@exact.op _ _ _ _ e⟩
+  exact exact.op _ _ e
+end, exact.op _ _⟩
 
 
-instance exact.unop {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) [h : exact g f] : exact f.unop g.unop :=
+lemma exact.unop {X Y Z : Cᵒᵖ} (g : X ⟶ Y) (f : Y ⟶ Z) (h : exact g f) : exact f.unop g.unop :=
 begin
   rw [← f.op_unop, ← g.op_unop] at h,
   rwa ← exact.op_iff,

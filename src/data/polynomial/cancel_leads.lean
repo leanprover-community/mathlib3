@@ -39,7 +39,7 @@ variables {p q}
 end comm_ring
 
 section comm_ring
-variables [comm_ring R] (p q : R[X])
+variables [comm_ring R] {p q : R[X]}
 
 lemma dvd_cancel_leads_of_dvd_of_dvd {r : R[X]} (pq : p ∣ q) (pr : p ∣ r) :
   p ∣ q.cancel_leads r :=

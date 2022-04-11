@@ -20,7 +20,7 @@ that all standard intervals are `ord_connected`.
 
 namespace set
 section preorder
-variables {α : Type*} [preorder α] {s t : set α}
+variables {α β : Type*} [preorder α] [preorder β] {s t : set α}
 
 /--
 We say that a set `s : set α` is `ord_connected` if for all `x y ∈ s` it includes the
@@ -130,10 +130,21 @@ by { rw ← Icc_self, exact ord_connected_Icc }
 @[instance] lemma ord_connected_univ : ord_connected (univ : set α) := ⟨λ _ _ _ _, subset_univ _⟩
 
 /-- In a dense order `α`, the subtype from an `ord_connected` set is also densely ordered. -/
-instance [densely_ordered α] {s : set α} [hs : ord_connected s] :
+@[instance] lemma [densely_ordered α] {s : set α} [hs : ord_connected s] :
   densely_ordered s :=
 ⟨λ a b (h : (a : α) < b), let ⟨x, H⟩ := exists_between h in
     ⟨⟨x, (hs.out a.2 b.2) (Ioo_subset_Icc_self H)⟩, H⟩ ⟩
+
+@[instance] lemma _root_.order_iso.ord_connected_image (e : α ≃o β) {s : set α}
+  [hs : ord_connected s] : ord_connected (e '' s) :=
+begin
+  constructor,
+  rintro _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩ z ⟨hxz, hzy⟩,
+  exact ⟨e.symm z, hs.out hx hy ⟨e.le_symm_apply.mpr hxz, e.symm_apply_le.mpr hzy⟩, e.right_inv z⟩
+end
+
+@[instance] lemma _root_.order_iso.ord_connected_range (e : α ≃o β) : ord_connected (range e) :=
+by simp_rw [← image_univ, e.ord_connected_image]
 
 end preorder
 

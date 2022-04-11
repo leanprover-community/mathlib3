@@ -221,7 +221,7 @@ namespace coherence
 
 /--
 Auxiliary simp lemma for the `coherence` tactic:
-this move brackets to the left in order to expose a maximal prefix
+this moves brackets to the left in order to expose a maximal prefix
 built out of unitors and associators.
 -/
 -- We have unused typeclass arguments here.
@@ -275,7 +275,7 @@ do
   -- To prove an equality `f = g` in a monoidal category,
   -- first try the `pure_coherence` tactic on the entire equation:
   pure_coherence <|> do
-  -- Otherewise, rearrange so we have a maximal prefix of each side
+  -- Otherwise, rearrange so we have a maximal prefix of each side
   -- that is built out of unitors and associators:
   liftable_prefixes <|>
     fail ("Something went wrong in the `coherence` tactic: " ++

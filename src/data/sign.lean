@@ -157,7 +157,7 @@ def sign : α →o sign_type :=
 lemma sign_apply : sign a = ite (0 < a) 1 (ite (a < 0) (-1) 0) := rfl
 
 @[simp] lemma sign_zero : sign (0 : α) = 0 := by simp [sign_apply]
-@[simp] lemma sign_pos (ha : 0 < a) :  sign a = 1 := by rwa [sign_apply, if_pos]
+@[simp] lemma sign_pos (ha : 0 < a) : sign a = 1 := by rwa [sign_apply, if_pos]
 @[simp] lemma sign_neg (ha : a < 0) : sign a = -1 := by rwa [sign_apply, if_neg $ asymm ha, if_pos]
 
 end preorder

@@ -16,11 +16,11 @@ Define local rings as commutative rings having a unique maximal ideal.
 
 ## Main definitions
 
-* `local_ring`: A predicate on commutative rings, stating that every element `a` is either a unit
-  or `1 - a` is a unit. This is shown to be equivalent to the condition that there exists a unique
+* `local_ring`: A predicate on commutative semirings, stating that the set of nonunits is closed
+  under the addition. This is shown to be equivalent to the condition that there exists a unique
   maximal ideal.
-* `local_ring.maximal_ideal`: The unique maximal ideal for a local rings. Its carrier set is the set
-  of non units.
+* `local_ring.maximal_ideal`: The unique maximal ideal for a local rings. Its carrier set is the
+  set of non units.
 * `is_local_ring_hom`: A predicate on semiring homomorphisms, requiring that it maps nonunits
   to nonunits. For local rings, this means that the image of the unique maximal ideal is again
   contained in the unique maximal ideal.
@@ -32,28 +32,89 @@ universes u v w
 
 /-- A commutative ring is local if it has a unique maximal ideal. Note that
   `local_ring` is a predicate. -/
-class local_ring (R : Type u) [comm_ring R] extends nontrivial R : Prop :=
-(is_local : ∀ (a : R), (is_unit a) ∨ (is_unit (1 - a)))
+class local_ring (R : Type u) [comm_semiring R] extends nontrivial R : Prop :=
+(nonunits_add : ∀ {a b : R}, a ∈ nonunits R → b ∈ nonunits R → a + b ∈ nonunits R)
 
 namespace local_ring
 
-variables {R : Type u} [comm_ring R] [local_ring R]
+variables {R : Type u}
 
-lemma is_unit_or_is_unit_one_sub_self (a : R) :
+lemma is_unit_or_is_unit_one_sub_self [comm_ring R] [local_ring R] (a : R) :
   (is_unit a) ∨ (is_unit (1 - a)) :=
-is_local a
-
-lemma is_unit_of_mem_nonunits_one_sub_self (a : R) (h : (1 - a) ∈ nonunits R) :
-  is_unit a :=
-or_iff_not_imp_right.1 (is_local a) h
-
-lemma is_unit_one_sub_self_of_mem_nonunits (a : R) (h : a ∈ nonunits R) :
-  is_unit (1 - a) :=
-or_iff_not_imp_left.1 (is_local a) h
-
-lemma nonunits_add {x y} (hx : x ∈ nonunits R) (hy : y ∈ nonunits R) :
-  x + y ∈ nonunits R :=
+or_iff_not_imp_left.mpr $ λ ha,
 begin
+  by_contra ha',
+  apply nonunits_add ha ha',
+  simp [-sub_eq_add_neg, add_sub_cancel'_right]
+end
+
+lemma is_unit_of_mem_nonunits_one_sub_self [comm_ring R] [local_ring R]
+  (a : R) (h : (1 - a) ∈ nonunits R) :
+  is_unit a :=
+or_iff_not_imp_right.1 (is_unit_or_is_unit_one_sub_self a) h
+
+lemma is_unit_one_sub_self_of_mem_nonunits [comm_ring R] [local_ring R]
+  (a : R) (h : a ∈ nonunits R) :
+  is_unit (1 - a) :=
+or_iff_not_imp_left.1 (is_unit_or_is_unit_one_sub_self a) h
+
+variable (R)
+
+/-- The ideal of elements that are not units. -/
+def maximal_ideal [comm_semiring R] [local_ring R] : ideal R :=
+{ carrier := nonunits R,
+  zero_mem' := zero_mem_nonunits.2 $ zero_ne_one,
+  add_mem' := λ x y hx hy, nonunits_add hx hy,
+  smul_mem' := λ a x, mul_mem_nonunits_right }
+
+instance maximal_ideal.is_maximal [comm_semiring R] [local_ring R] :
+  (maximal_ideal R).is_maximal :=
+begin
+  rw ideal.is_maximal_iff,
+  split,
+  { intro h, apply h, exact is_unit_one },
+  { intros I x hI hx H,
+    erw not_not at hx,
+    rcases hx with ⟨u,rfl⟩,
+    simpa using I.mul_mem_left ↑u⁻¹ H }
+end
+
+lemma maximal_ideal_unique [comm_semiring R] [local_ring R] :
+  ∃! I : ideal R, I.is_maximal :=
+⟨maximal_ideal R, maximal_ideal.is_maximal R,
+  λ I hI, hI.eq_of_le (maximal_ideal.is_maximal R).1.1 $
+  λ x hx, hI.1.1 ∘ I.eq_top_of_is_unit_mem hx⟩
+
+variable {R}
+
+lemma eq_maximal_ideal [comm_semiring R] [local_ring R] {I : ideal R} (hI : I.is_maximal) :
+  I = maximal_ideal R :=
+unique_of_exists_unique (maximal_ideal_unique R) hI $ maximal_ideal.is_maximal R
+
+lemma le_maximal_ideal [comm_semiring R] [local_ring R] {J : ideal R} (hJ : J ≠ ⊤) :
+  J ≤ maximal_ideal R :=
+begin
+  rcases ideal.exists_le_maximal J hJ with ⟨M, hM1, hM2⟩,
+  rwa ←eq_maximal_ideal hM1
+end
+
+@[simp] lemma mem_maximal_ideal [comm_semiring R] [local_ring R] (x) :
+  x ∈ maximal_ideal R ↔ x ∈ nonunits R := iff.rfl
+
+end local_ring
+
+variables {R : Type u} {S : Type v} {T : Type w}
+
+lemma local_of_nonunits_ideal [comm_semiring R] (hnze : (0:R) ≠ 1)
+  (h : ∀ x y ∈ nonunits R, x + y ∈ nonunits R) : local_ring R :=
+{ exists_pair_ne := ⟨0, 1, hnze⟩,
+  nonunits_add := λ x y hx hy, h x hx y hy }
+
+lemma local_of_is_unit_or_is_unit_one_sub_self [comm_ring R] [nontrivial R]
+  (h : ∀ {a : R}, is_unit a ∨ is_unit (1 - a)) : local_ring R :=
+local_ring.mk
+begin
+  intros x y hx hy,
   rintros ⟨u, hu⟩,
   apply hy,
   suffices : is_unit ((↑u⁻¹ : R) * y),
@@ -65,65 +126,11 @@ begin
   { rw eq_sub_iff_add_eq,
     replace hu := congr_arg (λ z, (↑u⁻¹ : R) * z) hu.symm,
     simpa [mul_add, add_comm] using hu },
-  apply is_unit_one_sub_self_of_mem_nonunits,
+  apply or_iff_not_imp_left.1 h,
   exact mul_mem_nonunits_right hx
 end
 
-variable (R)
-
-/-- The ideal of elements that are not units. -/
-def maximal_ideal : ideal R :=
-{ carrier := nonunits R,
-  zero_mem' := zero_mem_nonunits.2 $ zero_ne_one,
-  add_mem' := λ x y hx hy, nonunits_add hx hy,
-  smul_mem' := λ a x, mul_mem_nonunits_right }
-
-instance maximal_ideal.is_maximal : (maximal_ideal R).is_maximal :=
-begin
-  rw ideal.is_maximal_iff,
-  split,
-  { intro h, apply h, exact is_unit_one },
-  { intros I x hI hx H,
-    erw not_not at hx,
-    rcases hx with ⟨u,rfl⟩,
-    simpa using I.mul_mem_left ↑u⁻¹ H }
-end
-
-lemma maximal_ideal_unique :
-  ∃! I : ideal R, I.is_maximal :=
-⟨maximal_ideal R, maximal_ideal.is_maximal R,
-  λ I hI, hI.eq_of_le (maximal_ideal.is_maximal R).1.1 $
-  λ x hx, hI.1.1 ∘ I.eq_top_of_is_unit_mem hx⟩
-
-variable {R}
-
-lemma eq_maximal_ideal {I : ideal R} (hI : I.is_maximal) : I = maximal_ideal R :=
-unique_of_exists_unique (maximal_ideal_unique R) hI $ maximal_ideal.is_maximal R
-
-lemma le_maximal_ideal {J : ideal R} (hJ : J ≠ ⊤) : J ≤ maximal_ideal R :=
-begin
-  rcases ideal.exists_le_maximal J hJ with ⟨M, hM1, hM2⟩,
-  rwa ←eq_maximal_ideal hM1
-end
-
-@[simp] lemma mem_maximal_ideal (x) :
-  x ∈ maximal_ideal R ↔ x ∈ nonunits R := iff.rfl
-
-end local_ring
-
-variables {R : Type u} {S : Type v} {T : Type w}
-
-lemma local_of_nonunits_ideal [comm_ring R] (hnze : (0:R) ≠ 1)
-  (h : ∀ x y ∈ nonunits R, x + y ∈ nonunits R) : local_ring R :=
-{ exists_pair_ne := ⟨0, 1, hnze⟩,
-  is_local := λ x, or_iff_not_imp_left.mpr $ λ hx,
-  begin
-    by_contra H,
-    apply h _ hx _ H,
-    simp [-sub_eq_add_neg, add_sub_cancel'_right]
-  end }
-
-lemma local_of_unique_max_ideal [comm_ring R] (h : ∃! I : ideal R, I.is_maximal) :
+lemma local_of_unique_max_ideal [comm_semiring R] (h : ∃! I : ideal R, I.is_maximal) :
   local_ring R :=
 local_of_nonunits_ideal
 (let ⟨I, Imax, _⟩ := h in (λ (H : 0 = 1), Imax.1.1 $ I.eq_top_iff_one.2 $ H ▸ I.zero_mem))
@@ -135,7 +142,7 @@ have xmemI : x ∈ I, from ((Iuniq Ix Ixmax) ▸ Hx),
 have ymemI : y ∈ I, from ((Iuniq Iy Iymax) ▸ Hy),
 Imax.1.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
 
-lemma local_of_unique_nonzero_prime (R : Type u) [comm_ring R]
+lemma local_of_unique_nonzero_prime (R : Type u) [comm_semiring R]
   (h : ∃! P : ideal R, P ≠ ⊥ ∧ ideal.is_prime P) : local_ring R :=
 local_of_unique_max_ideal begin
   rcases h with ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩,
@@ -149,15 +156,14 @@ end
 lemma local_of_surjective [comm_ring R] [local_ring R] [comm_ring S] [nontrivial S]
   (f : R →+* S) (hf : function.surjective f) :
   local_ring S :=
-{ is_local :=
-  begin
-    intros b,
-    obtain ⟨a, rfl⟩ := hf b,
-    apply (local_ring.is_unit_or_is_unit_one_sub_self a).imp f.is_unit_map _,
-    rw [← f.map_one, ← f.map_sub],
-    apply f.is_unit_map,
-  end,
-  .. ‹nontrivial S› }
+local_of_is_unit_or_is_unit_one_sub_self
+begin
+  intros b,
+  obtain ⟨a, rfl⟩ := hf b,
+  apply (local_ring.is_unit_or_is_unit_one_sub_self a).imp f.is_unit_map _,
+  rw [← f.map_one, ← f.map_sub],
+  apply f.is_unit_map,
+end
 
 /-- A local ring homomorphism is a homomorphism between local rings
   such that the image of the maximal ideal of the source is contained within
@@ -172,6 +178,11 @@ instance is_local_ring_hom_id (R : Type*) [semiring R] : is_local_ring_hom (ring
   [is_local_ring_hom f] (a) :
   is_unit (f a) ↔ is_unit a :=
 ⟨is_local_ring_hom.map_nonunit a, f.is_unit_map⟩
+
+@[simp] lemma mem_nonunits_map_iff [semiring R] [semiring S] (f : R →+* S)
+  [is_local_ring_hom f] (a) :
+  f a ∈ nonunits S ↔ a ∈ nonunits R :=
+⟨λ h ha, h $ (is_unit_map_iff f a).mpr ha, λ h ha, h $ (is_unit_map_iff f a).mp ha⟩
 
 instance is_local_ring_hom_comp [semiring R] [semiring S] [semiring T]
   (g : S →+* T) (f : R →+* S) [is_local_ring_hom g] [is_local_ring_hom f] :
@@ -189,9 +200,9 @@ lemma _root_.ring_hom.domain_local_ring {R S : Type*} [comm_ring R] [comm_ring S
 begin
   haveI : nontrivial R := pullback_nonzero f f.map_zero f.map_one,
   constructor,
-  intro x,
-  rw [← is_unit_map_iff f, ← is_unit_map_iff f, f.map_sub, f.map_one],
-  exact _root_.local_ring.is_local (f x)
+  intros a b,
+  simp_rw [←mem_nonunits_map_iff f, f.map_add],
+  exact local_ring.nonunits_add
 end
 
 lemma is_local_ring_hom_of_comp {R S T: Type*} [comm_ring R] [comm_ring S] [comm_ring T]
@@ -210,7 +221,7 @@ instance is_local_ring_hom_equiv [semiring R] [semiring S] (f : R ≃+* S) :
   (a) (h : is_unit (f a)) : is_unit a :=
 is_local_ring_hom.map_nonunit a h
 
-theorem of_irreducible_map [semiring R] [semiring S] (f : R →+* S) [h : is_local_ring_hom f] {x : R}
+theorem of_irreducible_map [semiring R] [semiring S] (f : R →+* S) [h : is_local_ring_hom f] {x}
   (hfx : irreducible (f x)) : irreducible x :=
 ⟨λ h, hfx.not_unit $ is_unit.map f h, λ p q hx, let ⟨H⟩ := h in
 or.imp (H p) (H q) $ hfx.is_unit_or_is_unit $ f.map_mul p q ▸ congr_arg f hx⟩
@@ -234,7 +245,7 @@ end
 
 section
 open local_ring
-variables [comm_ring R] [local_ring R] [comm_ring S] [local_ring S]
+variables [comm_semiring R] [local_ring R] [comm_semiring S] [local_ring S]
 variables (f : R →+* S) [is_local_ring_hom f]
 
 lemma map_nonunit (a : R) (h : a ∈ maximal_ideal R) : f a ∈ maximal_ideal S :=
@@ -243,7 +254,8 @@ lemma map_nonunit (a : R) (h : a ∈ maximal_ideal R) : f a ∈ maximal_ideal S 
 end
 
 namespace local_ring
-variables [comm_ring R] [local_ring R] [comm_ring S] [local_ring S]
+section
+variables [comm_semiring R] [local_ring R] [comm_semiring S] [local_ring S]
 
 /--
 A ring homomorphism between local rings is a local ring hom iff it reflects units,
@@ -267,7 +279,10 @@ begin
   tfae_finish,
 end
 
-variable (R)
+end
+
+section
+variables (R) [comm_ring R] [local_ring R]
 /-- The residue field of a local ring is the quotient of the ring by its maximal ideal. -/
 def residue_field := R ⧸ maximal_ideal R
 
@@ -280,12 +295,15 @@ noncomputable instance : inhabited (residue_field R) := ⟨37⟩
 def residue : R →+* (residue_field R) :=
 ideal.quotient.mk _
 
-noncomputable instance residue_field.algebra : algebra R (residue_field R) := (residue R).to_algebra
+noncomputable
+instance residue_field.algebra : algebra R (residue_field R) := (residue R).to_algebra
+
+end
 
 namespace residue_field
 
 
-variables {R S}
+variables {R S} [comm_ring R] [local_ring R] [comm_ring S] [local_ring S]
 /-- The map on residue fields induced by a local homomorphism between local rings -/
 noncomputable def map (f : R →+* S) [is_local_ring_hom f] :
   residue_field R →+* residue_field S :=
@@ -298,7 +316,7 @@ end
 
 end residue_field
 
-variables {R}
+variables {R} [comm_ring R] [local_ring R]
 
 lemma ker_eq_maximal_ideal {K : Type*} [field K]
   (φ : R →+* K) (hφ : function.surjective φ) : φ.ker = maximal_ideal R :=
@@ -313,9 +331,9 @@ open_locale classical
 
 @[priority 100] -- see Note [lower instance priority]
 instance : local_ring R :=
-{ is_local := λ a,
+local_of_is_unit_or_is_unit_one_sub_self $ λ a,
   if h : a = 0
   then or.inr (by rw [h, sub_zero]; exact is_unit_one)
-  else or.inl $ is_unit.mk0 a h }
+  else or.inl $ is_unit.mk0 a h
 
 end field

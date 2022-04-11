@@ -426,6 +426,23 @@ lemma coinduced_compose [tα : topological_space α]
   {f : α → β} {g : β → γ} : (tα.coinduced f).coinduced g = tα.coinduced (g ∘ f) :=
 topological_space_eq rfl
 
+lemma equiv.induced_symm {α β : Type*} (e : α ≃ β) :
+  topological_space.induced e.symm = topological_space.coinduced e :=
+begin
+  ext t U,
+  split,
+  { rintros ⟨V, hV, rfl⟩,
+    change t.is_open (e ⁻¹' _),
+    rwa [← preimage_comp, ← equiv.coe_trans, equiv.self_trans_symm] },
+  { intros hU,
+    refine ⟨e ⁻¹' U, hU, _⟩,
+    rw [← preimage_comp, ← equiv.coe_trans, equiv.symm_trans_self, equiv.coe_refl, preimage_id] }
+end
+
+lemma equiv.coinduced_symm {α β : Type*} (e : α ≃ β) :
+  topological_space.coinduced e.symm = topological_space.induced e :=
+by rw [← e.symm.induced_symm, e.symm_symm]
+
 end galois_connection
 
 /- constructions using the complete lattice structure -/

@@ -2229,6 +2229,23 @@ begin
     apply hl _ (list.mem_cons_self _ _) }
 end
 
+lemma foldr_range_subset_of_range_subset {f : α → γ → γ} {g : β → γ → γ}
+  (hfg : set.range f ⊆ set.range g) (a) : set.range (list.foldr f a) ⊆ set.range (list.foldr g a) :=
+begin
+  rintro _ ⟨l, rfl⟩,
+  induction l with b l H,
+  { exact ⟨[], rfl⟩ },
+  { cases hfg (set.mem_range_self b) with c hgf,
+    cases H with m hgf',
+    rw [foldr_cons, ←hgf, ←hgf'],
+    exact ⟨c :: m, rfl⟩ }
+end
+
+lemma foldr_range_eq_of_range_eq {f : α → γ → γ} {g : β → γ → γ} (hfg : set.range f = set.range g)
+  (a) : set.range (list.foldr f a) = set.range (list.foldr g a) :=
+(list.foldr_range_subset_of_range_subset hfg.le a).antisymm
+  (list.foldr_range_subset_of_range_subset hfg.ge a)
+
 /-- Induction principle for values produced by a `foldr`: if a property holds
 for the seed element `b : β` and for all incremental `op : α → β → β`
 performed on the elements `(a : α) ∈ l`. The principle is given for

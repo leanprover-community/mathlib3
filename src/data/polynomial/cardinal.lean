@@ -23,8 +23,11 @@ calc #R[X] = #(mv_polynomial punit.{u + 1} R) :
   cardinal.eq.2 ⟨(mv_polynomial.punit_alg_equiv.{u u} R).to_equiv.symm⟩
 ... ≤ _ : mv_polynomial.cardinal_mk_le_max
 ... ≤ _ : begin
-  have : #(punit.{u + 1}) ≤ ω, from le_of_lt (lt_omega_iff_fintype.2 ⟨infer_instance⟩),
+  have : #(punit.{u + 1}) ≤ ω, from (lt_omega_iff_fintype.2 ⟨infer_instance⟩).le,
   rw [max_assoc, max_eq_right this]
 end
+
+@[simp] lemma cardinal_mk_eq_of_infinite {R : Type u} [comm_semiring R] [infinite R] : #R[X] = #R :=
+le_antisymm (by { convert cardinal_mk_le_max, simp }) (mk_le_of_injective (λ a b h, C_inj.1 h))
 
 end polynomial

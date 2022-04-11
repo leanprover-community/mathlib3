@@ -99,9 +99,9 @@ by simp only [le_antisymm_iff, pow_le_one_iff hn, one_le_pow_iff hn]
 
 end linear_order
 
-section group
+section div_inv_monoid
 
-variables [group G] [preorder G] [covariant_class G G (*) (≤)]
+variables [div_inv_monoid G] [preorder G] [covariant_class G G (*) (≤)]
 
 @[to_additive zsmul_nonneg]
 theorem one_le_zpow {x : G} (H : 1 ≤ x) {n : ℤ} (hn : 0 ≤ n) :
@@ -112,7 +112,7 @@ begin
   apply one_le_pow_of_one_le' H,
 end
 
-end group
+end div_inv_monoid
 
 namespace canonically_ordered_comm_semiring
 

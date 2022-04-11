@@ -11,10 +11,6 @@ apply_nolint CommGroup.has_limits to_additive_doc
 -- algebra/free_algebra.lean
 apply_nolint free_algebra.semiring check_reducibility
 
--- algebra/group/semiconj.lean
-apply_nolint semiconj_by.one_left to_additive_doc
-apply_nolint semiconj_by.one_right to_additive_doc
-
 -- algebra/hom/freiman.lean
 apply_nolint freiman_hom.has_coe_to_fun to_additive_doc
 
@@ -60,9 +56,6 @@ apply_nolint right.one_le_inv_iff to_additive_doc
 
 -- algebra/order/lattice_group.lean
 apply_nolint lattice_ordered_comm_group.mabs_mul_le to_additive_doc
-
--- algebra/order/monoid.lean
-apply_nolint with_zero.canonically_ordered_add_monoid check_reducibility
 
 -- algebra/order/monoid_lemmas.lean
 apply_nolint mul_le_one' to_additive_doc
@@ -216,22 +209,6 @@ apply_nolint ctop.realizer.nhds_σ unused_arguments
 apply_nolint ctop.realizer.of_equiv doc_blame
 apply_nolint ctop.to_realizer doc_blame
 apply_nolint locally_finite.realizer doc_blame has_inhabited_instance
-
--- data/equiv/list.lean
-apply_nolint encodable.fintype_arrow doc_blame
-apply_nolint encodable.fintype_pi doc_blame
-apply_nolint encodable.trunc_encodable_of_fintype doc_blame
-
--- data/equiv/mul_add.lean
-apply_nolint equiv.mul_left_symm_apply to_additive_doc
-apply_nolint equiv.mul_right_symm_apply to_additive_doc
-apply_nolint mul_equiv.apply_symm_apply to_additive_doc
-apply_nolint mul_equiv.map_div to_additive_doc
-apply_nolint mul_equiv.map_inv to_additive_doc
-apply_nolint mul_equiv.map_mul to_additive_doc
-apply_nolint mul_equiv.map_one to_additive_doc
-apply_nolint mul_equiv.symm_apply_apply to_additive_doc
-apply_nolint mul_equiv.unique to_additive_doc
 
 -- data/finset/noncomm_prod.lean
 apply_nolint finset.noncomm_prod_union_of_disjoint to_additive_doc
@@ -502,7 +479,6 @@ apply_nolint mul_action.to_perm_injective to_additive_doc
 apply_nolint has_mul.to_has_opposite_scalar to_additive_doc
 apply_nolint left_cancel_monoid.to_has_faithful_opposite_scalar to_additive_doc
 apply_nolint monoid.to_opposite_mul_action to_additive_doc
-apply_nolint mul_action.opposite_regular.is_pretransitive to_additive_doc
 
 -- group_theory/group_action/pi.lean
 apply_nolint pi.has_faithful_scalar_at to_additive_doc
@@ -538,11 +514,6 @@ apply_nolint monoid_hom.eq_on_mclosure to_additive_doc
 -- group_theory/sylow.lean
 apply_nolint sylow.fixed_points_mul_left_cosets_equiv_quotient doc_blame
 
--- group_theory/torsion.lean
-apply_nolint exponent_exists.is_torsion to_additive_doc
-apply_nolint is_torsion.exponent_exists to_additive_doc
-apply_nolint is_torsion_of_fintype to_additive_doc
-
 -- linear_algebra/affine_space/affine_subspace.lean
 apply_nolint affine_span.nonempty fails_quickly
 apply_nolint affine_subspace.to_add_torsor fails_quickly
@@ -550,6 +521,11 @@ apply_nolint affine_subspace.to_add_torsor fails_quickly
 -- linear_algebra/pi.lean
 apply_nolint function.has_scalar to_additive_doc
 apply_nolint function.smul_comm_class to_additive_doc
+
+-- logic/equiv/list.lean
+apply_nolint encodable.fintype_arrow doc_blame
+apply_nolint encodable.fintype_pi doc_blame
+apply_nolint encodable.trunc_encodable_of_fintype doc_blame
 
 -- logic/relator.lean
 apply_nolint relator.bi_total doc_blame
@@ -1186,10 +1162,6 @@ apply_nolint group_topology.partial_order to_additive_doc
 apply_nolint separable_locally_compact_group.sigma_compact_space to_additive_doc
 apply_nolint topological_space.positive_compacts.locally_compact_space_of_group to_additive_doc
 
--- topology/algebra/monoid.lean
-apply_nolint mul_opposite.has_continuous_mul to_additive_doc
-apply_nolint units.has_continuous_mul to_additive_doc
-
 -- topology/algebra/nonarchimedean/basic.lean
 apply_nolint nonarchimedean_group.nonarchimedean_of_emb to_additive_doc
 apply_nolint nonarchimedean_group.prod.nonarchimedean_group to_additive_doc
@@ -1204,10 +1176,6 @@ apply_nolint continuous.exists_forall_le_of_has_compact_mul_support to_additive_
 
 -- topology/category/Top/open_nhds.lean
 apply_nolint topological_space.open_nhds.map doc_blame
-
--- topology/metric_space/emetric_space.lean
-apply_nolint mul_opposite.emetric_space to_additive_doc
-apply_nolint mul_opposite.pseudo_emetric_space to_additive_doc
 
 -- topology/uniform_space/completion.lean
 apply_nolint Cauchy.extend doc_blame

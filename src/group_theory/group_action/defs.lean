@@ -46,7 +46,7 @@ group action
 
 variables {M N G A B α β γ : Type*}
 
-open function
+open function (injective surjective)
 
 /-!
 ### Faithful actions
@@ -275,6 +275,35 @@ by exact {smul_comm := λ _ n, @smul_comm _ _ _ _ _ _ _ (g n) }
 
 end has_scalar
 
+section
+
+/-- Note that the `smul_comm_class α β β` typeclass argument is usually satisfied by `algebra α β`.
+-/
+@[to_additive]
+lemma mul_smul_comm [has_mul β] [has_scalar α β] [smul_comm_class α β β] (s : α) (x y : β) :
+  x * (s • y) = s • (x * y) :=
+(smul_comm s x y).symm
+
+/-- Note that the `is_scalar_tower α β β` typeclass argument is usually satisfied by `algebra α β`.
+-/
+lemma smul_mul_assoc [has_mul β] [has_scalar α β] [is_scalar_tower α β β] (r : α) (x y : β)  :
+  (r • x) * y = r • (x * y) :=
+smul_assoc r x y
+
+variables [has_scalar M α]
+
+lemma commute.smul_right [has_mul α] [smul_comm_class M α α] [is_scalar_tower M α α]
+  {a b : α} (h : commute a b) (r : M) :
+  commute a (r • b) :=
+(mul_smul_comm _ _ _).trans ((congr_arg _ h).trans $ (smul_mul_assoc _ _ _).symm)
+
+lemma commute.smul_left [has_mul α] [smul_comm_class M α α] [is_scalar_tower M α α]
+  {a b : α} (h : commute a b) (r : M) :
+  commute (r • a) b :=
+(h.symm.smul_right r).symm
+
+end
+
 section ite
 variables [has_scalar M α] (p : Prop) [decidable p]
 
@@ -363,19 +392,6 @@ instance is_scalar_tower.left : is_scalar_tower M M α :=
 
 variables {M}
 
-/-- Note that the `smul_comm_class α β β` typeclass argument is usually satisfied by `algebra α β`.
--/
-@[to_additive]
-lemma mul_smul_comm [has_mul β] [has_scalar α β] [smul_comm_class α β β] (s : α) (x y : β) :
-  x * (s • y) = s • (x * y) :=
-(smul_comm s x y).symm
-
-/-- Note that the `is_scalar_tower α β β` typeclass argument is usually satisfied by `algebra α β`.
--/
-lemma smul_mul_assoc [has_mul β] [has_scalar α β] [is_scalar_tower α β β] (r : α) (x y : β)  :
-  (r • x) * y = r • (x * y) :=
-smul_assoc r x y
-
 /-- Note that the `is_scalar_tower M α α` and `smul_comm_class M α α` typeclass arguments are
 usually satisfied by `algebra M α`. -/
 lemma smul_mul_smul [has_mul α] (r s : M) (x y : α)
@@ -434,8 +450,8 @@ by rw [smul_assoc, one_smul]
   (y : N) : (x • 1) * y = x • y :=
 smul_one_smul N x y
 
-@[simp, to_additive] lemma mul_smul_one {M N} [monoid N] [has_scalar M N] [smul_comm_class M N N]
-  (x : M) (y : N) :
+@[simp, to_additive] lemma mul_smul_one
+  {M N} [mul_one_class N] [has_scalar M N] [smul_comm_class M N N] (x : M) (y : N) :
   y * (x • 1) = x • y :=
 by rw [← smul_eq_mul, ← smul_comm, smul_eq_mul, mul_one]
 

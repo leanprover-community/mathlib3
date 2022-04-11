@@ -111,7 +111,7 @@ lemma local_of_nonunits_ideal [comm_semiring R] (hnze : (0:R) ≠ 1)
   nonunits_add := λ x y hx hy, h x hx y hy }
 
 lemma local_of_is_unit_or_is_unit_one_sub_self [comm_ring R] [nontrivial R]
-  (h : ∀ {a : R}, is_unit a ∨ is_unit (1 - a)) : local_ring R :=
+  (h : ∀ a : R, is_unit a ∨ is_unit (1 - a)) : local_ring R :=
 local_ring.mk
 begin
   intros x y hx hy,
@@ -126,7 +126,7 @@ begin
   { rw eq_sub_iff_add_eq,
     replace hu := congr_arg (λ z, (↑u⁻¹ : R) * z) hu.symm,
     simpa [mul_add, add_comm] using hu },
-  apply or_iff_not_imp_left.1 h,
+  apply or_iff_not_imp_left.1 (h _),
   exact mul_mem_nonunits_right hx
 end
 

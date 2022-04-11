@@ -66,6 +66,21 @@ lemma disjoint_at_bot_principal_Ici [preorder α] [no_min_order α] (x : α) :
   disjoint at_bot (𝓟 (Ici x)) :=
 @disjoint_at_top_principal_Iic (order_dual α) _ _ _
 
+lemma disjoint_at_bot_at_top [partial_order α] [nontrivial α] :
+  disjoint (at_bot : filter α) at_top :=
+begin
+  rcases exists_pair_ne α with ⟨x, y, hne⟩,
+  by_cases hle : x ≤ y,
+  { refine disjoint_of_disjoint_of_mem _ (Iic_mem_at_bot x) (Ici_mem_at_top y),
+    exact Iic_disjoint_Ici.2 (hle.lt_of_ne hne).not_le },
+  { refine disjoint_of_disjoint_of_mem _ (Iic_mem_at_bot y) (Ici_mem_at_top x),
+    exact Iic_disjoint_Ici.2 hle }
+end
+
+lemma disjoint_at_top_at_bot [partial_order α] [nontrivial α] :
+  disjoint (at_top : filter α) at_bot :=
+disjoint_at_bot_at_top.symm
+
 lemma at_top_basis [nonempty α] [semilattice_sup α] :
   (@at_top α _).has_basis (λ _, true) Ici :=
 has_basis_infi_principal (directed_of_sup $ λ a b, Ici_subset_Ici.2)

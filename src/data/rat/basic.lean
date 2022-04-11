@@ -661,7 +661,7 @@ end
 theorem num_div_denom (r : ℚ) : (r.num / r.denom : ℚ) = r :=
 by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
 
-lemma exists_eq_mul_div_num_and_eq_mul_div_denom {n d : ℤ} (d_ne_zero : d ≠ 0) :
+lemma exists_eq_mul_div_num_and_eq_mul_div_denom (n : ℤ) {d : ℤ} (d_ne_zero : d ≠ 0) :
   ∃ (c : ℤ), n = c * ((n : ℚ) / d).num ∧ (d : ℤ) = c * ((n : ℚ) / d).denom :=
 begin
   have : ((n : ℚ) / d) = rat.mk n d, by rw [←rat.mk_eq_div],

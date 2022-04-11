@@ -454,10 +454,10 @@ begin
   { apply measure_congr,
     apply eventually_eq.rfl.inter,
     exact
-      ((ae_eq_comp' measurable_fst hf.ae_eq_mk measure.prod_fst_absolutely_continuous).comp₂ _
-        eventually_eq.rfl).inter
-      (eventually_eq.rfl.comp₂ _
-        (ae_eq_comp' measurable_fst hg.ae_eq_mk measure.prod_fst_absolutely_continuous)) },
+      ((ae_eq_comp' measurable_fst.ae_measurable
+        hf.ae_eq_mk measure.prod_fst_absolutely_continuous).comp₂ _ eventually_eq.rfl).inter
+      (eventually_eq.rfl.comp₂ _ (ae_eq_comp' measurable_fst.ae_measurable
+        hg.ae_eq_mk measure.prod_fst_absolutely_continuous)) },
   rw [lintegral_congr_ae h₁,
       ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
   convert h₂ using 1,

@@ -31,10 +31,6 @@ end of the list. This file implements the latter.
 
 open_locale big_operators
 
-@[simp]
-lemma finset.card_disj_union {α} (s t : finset α) (h) : (s.disj_union t h).card = s.card + t.card :=
-multiset.card_add _ _
-
 /-- The type of `s` stars and `b` bars.
 
 This is the version that allows bars to be adjacent to each other. -/

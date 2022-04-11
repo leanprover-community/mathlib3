@@ -203,7 +203,7 @@ variables (R)
 
 @[simp] lemma coe_zero [has_zero R] [has_zero A] : ↑(0 : A) = (0 : unitization R A) := rfl
 
-@[simp] lemma coe_add [add_zero_class R] [add_zero_class A] (m₁ m₂ : A) :
+@[simp] lemma coe_add [add_zero_class R] [has_add A] (m₁ m₂ : A) :
   (↑(m₁ + m₂) : unitization R A)  = m₁ + m₂ :=
 ext (add_zero 0).symm rfl
 
@@ -289,20 +289,20 @@ end
 section
 variables (R)
 
-@[simp] lemma coe_mul [semiring R] [non_unital_non_assoc_semiring A] [module R A] (a₁ a₂ : A) :
-  (↑(a₁ * a₂) : unitization R A) = a₁ * a₂ :=
+@[simp] lemma coe_mul [semiring R] [add_comm_monoid A] [has_mul A] [smul_with_zero R A]
+  (a₁ a₂ : A) : (↑(a₁ * a₂) : unitization R A) = a₁ * a₂ :=
 ext (mul_zero _).symm $ show a₁ * a₂ = (0 : R) • a₂ + (0 : R) • a₁ + a₁ * a₂,
   by simp only [zero_smul, zero_add]
 
 end
 
-lemma inl_mul_coe [semiring R] [non_unital_non_assoc_semiring A] [module R A] (r : R) (a : A) :
-  (inl r * a : unitization R A) = ↑(r • a) :=
+lemma inl_mul_coe [semiring R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
+  (r : R) (a : A) : (inl r * a : unitization R A) = ↑(r • a) :=
 ext (mul_zero r) $ show r • a + (0 : R) • 0 + 0 * a = r • a,
   by rw [smul_zero, add_zero, zero_mul, add_zero]
 
-lemma coe_mul_inl [semiring R] [non_unital_non_assoc_semiring A] [module R A] (r : R) (a : A) :
-  (a * inl r : unitization R A) = ↑(r • a) :=
+lemma coe_mul_inl [semiring R] [non_unital_non_assoc_semiring A] [distrib_mul_action R A]
+  (r : R) (a : A) : (a * inl r : unitization R A) = ↑(r • a) :=
 ext (zero_mul r) $ show (0 : R) • 0 + r • a + a * 0 = r • a,
   by rw [smul_zero, zero_add, mul_zero, add_zero]
 
@@ -324,11 +324,11 @@ instance [semiring R] [non_unital_non_assoc_semiring A] [module R A] :
   left_distrib := λ x₁ x₂ x₃, ext (mul_add x₁.1 x₂.1 x₃.1) $
     show x₁.1 • (x₂.2 + x₃.2) + (x₂.1 + x₃.1) • x₁.2 + x₁.2 * (x₂.2 + x₃.2) =
       x₁.1 • x₂.2 + x₂.1 • x₁.2 + x₁.2 * x₂.2 + (x₁.1 • x₃.2 + x₃.1 • x₁.2 + x₁.2 * x₃.2),
-    by { rw [smul_add, add_smul, mul_add], ac_refl },
+    by { simp only [smul_add, add_smul, mul_add], abel },
   right_distrib := λ x₁ x₂ x₃, ext (add_mul x₁.1 x₂.1 x₃.1) $
     show (x₁.1 + x₂.1) • x₃.2 + x₃.1 • (x₁.2 + x₂.2) + (x₁.2 + x₂.2) * x₃.2 =
       x₁.1 • x₃.2 + x₃.1 • x₁.2 + x₁.2 * x₃.2 + (x₂.1 • x₃.2 + x₃.1 • x₂.2 + x₂.2 * x₃.2),
-    by { rw [add_smul, smul_add, add_mul], ac_refl },
+    by { simp only [add_smul, smul_add, add_mul], abel },
   .. unitization.mul_one_class,
   .. unitization.add_comm_monoid }
 
@@ -376,6 +376,49 @@ def inl_ring_hom [semiring R] [non_unital_semiring A] [module R A] : R →+* uni
   map_add' := inl_add A }
 
 end mul
+
+/-! ### Star structure -/
+
+section star
+
+variables {R A : Type*}
+
+instance [has_star R] [has_star A] : has_star (unitization R A) :=
+⟨λ ra, (star ra.fst, star ra.snd)⟩
+
+@[simp] lemma fst_star [has_star R] [has_star A] (x : unitization R A) :
+  (star x).fst = star x.fst := rfl
+
+@[simp] lemma snd_star [has_star R] [has_star A] (x : unitization R A) :
+  (star x).snd = star x.snd := rfl
+
+@[simp] lemma inl_star [has_star R] [add_monoid A] [star_add_monoid A] (r : R) :
+  inl (star r) = star (inl r : unitization R A) :=
+ext rfl (by simp only [snd_star, star_zero, snd_inl])
+
+@[simp] lemma coe_star [add_monoid R] [star_add_monoid R] [has_star A] (a : A) :
+  ↑(star a) = star (a : unitization R A) :=
+ext (by simp only [fst_star, star_zero, fst_coe]) rfl
+
+instance [add_monoid R] [add_monoid A] [star_add_monoid R] [star_add_monoid A] :
+  star_add_monoid (unitization R A) :=
+{ star_involutive := λ x, ext (star_star x.fst) (star_star x.snd),
+  star_add := λ x y, ext (star_add x.fst y.fst) (star_add x.snd y.snd) }
+
+instance [comm_semiring R] [star_ring R] [add_comm_monoid A] [star_add_monoid A]
+  [module R A] [star_module R A] : star_module R (unitization R A) :=
+{ star_smul := λ r x, ext (by simp) (by simp) }
+
+instance [comm_semiring R] [star_ring R] [non_unital_semiring A] [star_ring A]
+  [module R A] [is_scalar_tower R A A] [smul_comm_class R A A] [star_module R A] :
+  star_ring (unitization R A) :=
+{ star_mul := λ x y, ext (by simp [star_mul])
+    (by simp [star_mul, add_comm (star x.fst • star y.snd)]),
+  ..unitization.star_add_monoid }
+
+end star
+
+/-! ### Algebra structure -/
 
 section algebra
 variables (S R A : Type*)
@@ -438,7 +481,7 @@ section alg_hom
 variables {S R A : Type*}
   [comm_semiring S] [comm_semiring R] [non_unital_semiring A]
   [module R A] [smul_comm_class R A A] [is_scalar_tower R A A]
-  {B : Type*} [ring B] [algebra S B]
+  {B : Type*} [semiring B] [algebra S B]
   [algebra S R] [distrib_mul_action S A] [is_scalar_tower S R A]
   {C : Type*} [ring C] [algebra R C]
 

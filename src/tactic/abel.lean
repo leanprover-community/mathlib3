@@ -196,7 +196,7 @@ theorem zero_smul {α} [add_comm_monoid α] (c) : smul c (0 : α) = 0 :=
 by simp [smul, nsmul_zero]
 
 theorem zero_smulg {α} [add_comm_group α] (c) : smulg c (0 : α) = 0 :=
-by simp [smulg]
+by simp [smulg, zsmul_zero]
 
 theorem term_smul {α} [add_comm_monoid α] (c n x a n' a')
   (h₁ : c * n = n') (h₂ : smul c a = a') :

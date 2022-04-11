@@ -177,8 +177,11 @@ funext (assume x, propext (h x))
 theorem ext_iff {s t : set α} : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
 ⟨λ h x, by rw h, ext⟩
 
-@[trans] theorem mem_of_mem_of_subset {x : α} {s t : set α}
-  (hx : x ∈ s) (h : s ⊆ t) : x ∈ t := h hx
+@[trans] theorem mem_of_mem_of_subset {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t := h hx
+
+lemma forall_in_swap {p : α → β → Prop} :
+  (∀ (a ∈ s) b, p a b) ↔ ∀ b (a ∈ s), p a b :=
+by tauto
 
 /-! ### Lemmas about `mem` and `set_of` -/
 
@@ -224,8 +227,7 @@ lemma ssubset_def : s ⊂ t = (s ⊆ t ∧ ¬ t ⊆ s) := rfl
 @[refl] theorem subset.refl (a : set α) : a ⊆ a := assume x, id
 theorem subset.rfl {s : set α} : s ⊆ s := subset.refl s
 
-@[trans] theorem subset.trans {a b c : set α} (ab : a ⊆ b) (bc : b ⊆ c) : a ⊆ c :=
-assume x h, bc (ab h)
+@[trans] theorem subset.trans {a b c : set α} (ab : a ⊆ b) (bc : b ⊆ c) : a ⊆ c := λ x h, bc $ ab h
 
 @[trans] theorem mem_of_eq_of_mem {x y : α} {s : set α} (hx : x = y) (h : y ∈ s) : x ∈ s :=
 hx.symm ▸ h
@@ -1350,6 +1352,11 @@ subset.antisymm
 lemma image_image (g : β → γ) (f : α → β) (s : set α) : g '' (f '' s) = (λ x, g (f x)) '' s :=
 (image_comp g f s).symm
 
+lemma image_comm {β'} {f : β → γ} {g : α → β} {f' : α → β'} {g' : β' → γ}
+  (h_comm : ∀ a, f (g a) = g' (f' a)) :
+  (s.image g).image f = (s.image f').image g' :=
+by simp_rw [image_image, h_comm]
+
 /-- Image is monotone with respect to `⊆`. See `set.monotone_image` for the statement in
 terms of `≤`. -/
 theorem image_subset {a b : set α} (f : α → β) (h : a ⊆ b) : f '' a ⊆ f '' b :=
@@ -2269,11 +2276,15 @@ by rw [← image_eq_image hf.1, hf.2.image_preimage]
 
 end image_preimage
 
-/-! ### Lemmas about images of binary and ternary functions -/
+/-!
+### Images of binary and ternary functions
+
+This section is very similar to `order.filter.n_ary`. Please keep them in sync.
+-/
 
 section n_ary_image
 
-variables {α β γ δ ε : Type*} {f f' : α → β → γ} {g g' : α → β → γ → δ}
+variables {α α' β β' γ γ' δ δ' ε ε' : Type*} {f f' : α → β → γ} {g g' : α → β → γ → δ}
 variables {s s' : set α} {t t' : set β} {u u' : set γ} {a a' : α} {b b' : β} {c c' : γ} {d d' : δ}
 
 
@@ -2302,6 +2313,12 @@ lemma image2_subset_left (ht : t ⊆ t') : image2 f s t ⊆ image2 f s t' := ima
 
 lemma image2_subset_right (hs : s ⊆ s') : image2 f s t ⊆ image2 f s' t :=
 image2_subset hs subset.rfl
+
+lemma image_subset_image2_left (hb : b ∈ t) : (λ a, f a b) '' s ⊆ image2 f s t :=
+ball_image_of_ball $ λ a ha, mem_image2_of_mem ha hb
+
+lemma image_subset_image2_right (ha : a ∈ s) : f a '' t ⊆ image2 f s t :=
+ball_image_of_ball $ λ b, mem_image2_of_mem ha
 
 lemma forall_image2_iff {p : γ → Prop} :
   (∀ z ∈ image2 f s t, p z) ↔ ∀ (x ∈ s) (y ∈ t), p (f x y) :=
@@ -2431,7 +2448,7 @@ by simp [nonempty_def.mp h, ext_iff]
 @[simp] lemma image2_right (h : s.nonempty) : image2 (λ x y, y) s t = t :=
 by simp [nonempty_def.mp h, ext_iff]
 
-lemma image2_assoc {ε'} {f : δ → γ → ε} {g : α → β → δ} {f' : α → ε' → ε} {g' : β → γ → ε'}
+lemma image2_assoc {f : δ → γ → ε} {g : α → β → δ} {f' : α → ε' → ε} {g' : β → γ → ε'}
   (h_assoc : ∀ a b c, f (g a b) c = f' a (g' b c)) :
   image2 f (image2 g s t) u = image2 f' s (image2 g' t u) :=
 by simp only [image2_image2_left, image2_image2_right, h_assoc]
@@ -2439,30 +2456,73 @@ by simp only [image2_image2_left, image2_image2_right, h_assoc]
 lemma image2_comm {g : β → α → γ} (h_comm : ∀ a b, f a b = g b a) : image2 f s t = image2 g t s :=
 (image2_swap _ _ _).trans $ by simp_rw h_comm
 
-lemma image2_left_comm {δ'} {f : α → δ → ε} {g : β → γ → δ} {f' : α → γ → δ'} {g' : β → δ' → ε}
+lemma image2_left_comm {f : α → δ → ε} {g : β → γ → δ} {f' : α → γ → δ'} {g' : β → δ' → ε}
   (h_left_comm : ∀ a b c, f a (g b c) = g' b (f' a c)) :
   image2 f s (image2 g t u) = image2 g' t (image2 f' s u) :=
 by { rw [image2_swap f', image2_swap f], exact image2_assoc (λ _ _ _, h_left_comm _ _ _) }
 
-lemma image2_right_comm {δ'} {f : δ → γ → ε} {g : α → β → δ} {f' : α → γ → δ'} {g' : δ' → β → ε}
+lemma image2_right_comm {f : δ → γ → ε} {g : α → β → δ} {f' : α → γ → δ'} {g' : δ' → β → ε}
   (h_right_comm : ∀ a b c, f (g a b) c = g' (f' a c) b) :
   image2 f (image2 g s t) u = image2 g' (image2 f' s u) t :=
 by { rw [image2_swap g, image2_swap g'], exact image2_assoc (λ _ _ _, h_right_comm _ _ _) }
 
-lemma image_image2_distrib {α' β'} {g : γ → δ} {f' : α' → β' → δ} {g₁ : α → α'} {g₂ : β → β'}
+lemma image_image2_distrib {g : γ → δ} {f' : α' → β' → δ} {g₁ : α → α'} {g₂ : β → β'}
   (h_distrib : ∀ a b, g (f a b) = f' (g₁ a) (g₂ b)) :
   (image2 f s t).image g = image2 f' (s.image g₁) (t.image g₂) :=
 by simp_rw [image_image2, image2_image_left, image2_image_right, h_distrib]
 
-lemma image_image2_distrib_left {α'} {g : γ → δ} {f' : α' → β → δ} {g' : α → α'}
+/-- Symmetric of `set.image2_image_left_comm`. -/
+lemma image_image2_distrib_left {g : γ → δ} {f' : α' → β → δ} {g' : α → α'}
   (h_distrib : ∀ a b, g (f a b) = f' (g' a) b) :
   (image2 f s t).image g = image2 f' (s.image g') t :=
 (image_image2_distrib h_distrib).trans $ by rw image_id'
 
-lemma image_image2_distrib_right {β'} {g : γ → δ} {f' : α → β' → δ} {g' : β → β'}
+/-- Symmetric of `set.image_image2_right_comm`. -/
+lemma image_image2_distrib_right {g : γ → δ} {f' : α → β' → δ} {g' : β → β'}
   (h_distrib : ∀ a b, g (f a b) = f' a (g' b)) :
   (image2 f s t).image g = image2 f' s (t.image g') :=
 (image_image2_distrib h_distrib).trans $ by rw image_id'
+
+/-- Symmetric of `set.image_image2_distrib_left`. -/
+lemma image2_image_left_comm {f : α' → β → γ} {g : α → α'} {f' : α → β → δ} {g' : δ → γ}
+  (h_left_comm : ∀ a b, f (g a) b = g' (f' a b)) :
+  image2 f (s.image g) t = (image2 f' s t).image g' :=
+(image_image2_distrib_left $ λ a b, (h_left_comm a b).symm).symm
+
+/-- Symmetric of `set.image_image2_distrib_right`. -/
+lemma image_image2_right_comm {f : α → β' → γ} {g : β → β'} {f' : α → β → δ} {g' : δ → γ}
+  (h_right_comm : ∀ a b, f a (g b) = g' (f' a b)) :
+  image2 f s (t.image g) = (image2 f' s t).image g' :=
+(image_image2_distrib_right $ λ a b, (h_right_comm a b).symm).symm
+
+lemma image_image2_antidistrib {g : γ → δ} {f' : β' → α' → δ} {g₁ : β → β'} {g₂ : α → α'}
+  (h_antidistrib : ∀ a b, g (f a b) = f' (g₁ b) (g₂ a)) :
+  (image2 f s t).image g = image2 f' (t.image g₁) (s.image g₂) :=
+by { rw image2_swap f, exact image_image2_distrib (λ _ _, h_antidistrib _ _) }
+
+/-- Symmetric of `set.image2_image_left_anticomm`. -/
+lemma image_image2_antidistrib_left {g : γ → δ} {f' : β' → α → δ} {g' : β → β'}
+  (h_antidistrib : ∀ a b, g (f a b) = f' (g' b) a) :
+  (image2 f s t).image g = image2 f' (t.image g') s :=
+(image_image2_antidistrib h_antidistrib).trans $ by rw image_id'
+
+/-- Symmetric of `set.image_image2_right_anticomm`. -/
+lemma image_image2_antidistrib_right {g : γ → δ} {f' : β → α' → δ} {g' : α → α'}
+  (h_antidistrib : ∀ a b, g (f a b) = f' b (g' a)) :
+  (image2 f s t).image g = image2 f' t (s.image g') :=
+(image_image2_antidistrib h_antidistrib).trans $ by rw image_id'
+
+/-- Symmetric of `set.image_image2_antidistrib_left`. -/
+lemma image2_image_left_anticomm {f : α' → β → γ} {g : α → α'} {f' : β → α → δ} {g' : δ → γ}
+  (h_left_anticomm : ∀ a b, f (g a) b = g' (f' b a)) :
+  image2 f (s.image g) t = (image2 f' t s).image g' :=
+(image_image2_antidistrib_left $ λ a b, (h_left_anticomm b a).symm).symm
+
+/-- Symmetric of `set.image_image2_antidistrib_right`. -/
+lemma image_image2_right_anticomm {f : α → β' → γ} {g : β → β'} {f' : β → α → δ} {g' : δ → γ}
+  (h_right_anticomm : ∀ a b, f a (g b) = g' (f' b a)) :
+  image2 f s (t.image g) = (image2 f' t s).image g' :=
+(image_image2_antidistrib_right $ λ a b, (h_right_anticomm b a).symm).symm
 
 end n_ary_image
 

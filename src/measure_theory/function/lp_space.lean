@@ -131,7 +131,8 @@ by simp_rw [snorm_eq_lintegral_rpow_nnnorm one_ne_zero ennreal.coe_ne_top, ennre
 
 /-- The property that `f:α→E` is ae strongly measurable and `(∫ ∥f a∥^p ∂μ)^(1/p)` is finite
 if `p < ∞`, or `ess_sup f < ∞` if `p = ∞`. -/
-def mem_ℒp {α} {m : measurable_space α} (f : α → E) (p : ℝ≥0∞) (μ : measure α) : Prop :=
+def mem_ℒp {α} {m : measurable_space α}
+  (f : α → E) (p : ℝ≥0∞) (μ : measure α . volume_tac) : Prop :=
 ae_strongly_measurable f μ ∧ snorm f p μ < ∞
 
 lemma mem_ℒp.ae_strongly_measurable {f : α → E} {p : ℝ≥0∞} (h : mem_ℒp f p μ) :

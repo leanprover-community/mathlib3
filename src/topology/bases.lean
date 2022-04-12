@@ -291,7 +291,7 @@ def dense_seq [separable_space α] [nonempty α] : ℕ → α := classical.some 
 variable {α}
 
 @[priority 100]
-instance encodable.separable_space [encodable α] : separable_space α :=
+instance encodable.to_separable_space [encodable α] : separable_space α :=
 { exists_countable_dense := ⟨set.univ, set.countable_encodable set.univ, dense_univ⟩ }
 
 lemma separable_space_of_dense_range {ι : Type*} [encodable ι] (u : ι → α) (hu : dense_range u) :

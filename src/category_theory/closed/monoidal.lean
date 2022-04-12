@@ -26,7 +26,7 @@ open category monoidal_category
 -- Note that this class carries a particular choice of right adjoint,
 -- (which is only unique up to isomorphism),
 -- not merely the existence of such, and
--- so definitional properties of instances  may be important.
+-- so definitional properties of instances may be important.
 class closed {C : Type u} [category.{v} C] [monoidal_category.{v} C] (X : C) :=
 (is_adj : is_left_adjoint (tensor_left X))
 

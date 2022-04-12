@@ -1680,20 +1680,16 @@ variable {H}
 @[to_additive] lemma mem_normalizer_iff' {g : G} : g ∈ normalizer H ↔ ∀ n, n * g ∈ H ↔ g * n ∈ H :=
 begin
   refine ⟨λ h n, _, λ h n, _⟩,
-  { specialize h (n * g),
-    rwa [mul_assoc, mul_inv_cancel_right] at h },
-  { specialize h (n * g⁻¹),
-    rwa [inv_mul_cancel_right, ←mul_assoc] at h },
+  { rw [h, mul_assoc, mul_inv_cancel_right] },
+  { rw [mul_assoc, ←h, inv_mul_cancel_right] },
 end
 
 @[to_additive] lemma mem_normalizer_iff'' {g : G} :
   g ∈ H.normalizer ↔ ∀ h : G, h ∈ H ↔ g⁻¹ * h * g ∈ H :=
 begin
   refine ⟨λ h n, _, λ h n, _⟩,
-  { specialize h (g⁻¹ * n * g),
-    rwa [←mul_assoc, mul_inv_cancel_left, mul_inv_cancel_right, iff.comm] at h },
-  { specialize h (g * n * g⁻¹),
-    rwa [←mul_assoc, inv_mul_cancel_left, inv_mul_cancel_right, iff.comm] at h },
+  { rw [h (g⁻¹ * n * g), mul_assoc, mul_inv_cancel_right, mul_inv_cancel_left] },
+  { rw [h (g * n * g⁻¹), mul_assoc, inv_mul_cancel_right, inv_mul_cancel_left] },
 end
 
 @[to_additive] lemma le_normalizer : H ≤ normalizer H :=

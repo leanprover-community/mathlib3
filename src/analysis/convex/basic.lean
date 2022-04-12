@@ -145,9 +145,6 @@ begin
   exact h (mem_open_segment_of_ne_left_right 𝕜 hxz hyz hz),
 end
 
-lemma convex.combo_self {a b : 𝕜} (h : a + b = 1) (x : E) : a • x + b • x = x :=
-by rw [←add_smul, h, one_smul]
-
 end module
 end ordered_semiring
 

@@ -177,7 +177,7 @@ by simp only [←two_mul, mul_inv_of_self]
 instance invertible_inv_of [has_one α] [has_mul α] {a : α} [invertible a] : invertible (⅟a) :=
 ⟨ a, mul_inv_of_self a, inv_of_mul_self a ⟩
 
-@[simp] lemma inv_of_inv_of [monoid α] {a : α} [invertible a] :
+@[simp] lemma inv_of_inv_of [monoid α] {a : α} [invertible a] [invertible (⅟a)] :
   ⅟(⅟a) = a :=
 inv_of_eq_right_inv (inv_of_mul_self _)
 

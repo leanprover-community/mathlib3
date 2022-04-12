@@ -92,25 +92,6 @@ begin
     rwa [inv_mul_cancel_left, iff.comm] at h },
 end
 
-lemma smul_diff_smul' [is_commutative H] (g : H.normalizer.opposite) :
-  diff (monoid_hom.id H) (g • S) (g • T) =
-    ⟨(g : Gᵐᵒᵖ).unop⁻¹ * (diff (monoid_hom.id H) S T : H) * (g : Gᵐᵒᵖ).unop,
-      (mem_normalizer_iff''.mp g.2 _).mp (set_like.coe_mem _)⟩ :=
-begin
-  let ϕ : H →* H :=
-  { to_fun := λ h, ⟨(g : Gᵐᵒᵖ).unop⁻¹ * h * (g : Gᵐᵒᵖ).unop, (mem_normalizer_iff''.mp g.2 h).mp h.2⟩,
-    map_one' := by rw [subtype.ext_iff, coe_mk, coe_one, mul_one, inv_mul_self],
-    map_mul' := λ h₁ h₂, by rw [subtype.ext_iff, coe_mk, coe_mul, coe_mul, coe_mk, coe_mk,
-      mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_inv_cancel_left] },
-  refine eq.trans (finset.prod_bij' (λ q _, g⁻¹ • q) (λ _ _, finset.mem_univ _)
-    (λ q _, subtype.ext _) (λ q _, g • q) (λ _ _, finset.mem_univ _)
-    (λ q _, smul_inv_smul _ q) (λ q _, inv_smul_smul _ q)) (ϕ.map_prod _ _).symm,
-  rw [monoid_hom.id_apply, monoid_hom.id_apply, monoid_hom.coe_mk, coe_mk, coe_mk, coe_mk,
-      smul_apply_eq_smul_apply_inv_smul, smul_apply_eq_smul_apply_inv_smul, smul_def, smul_def,
-      mul_opposite.smul_eq_mul_unop, mul_opposite.smul_eq_mul_unop, mul_inv_rev,
-      mul_assoc, mul_assoc, mul_assoc],
-end
-
 end left_transversals
 
 end subgroup

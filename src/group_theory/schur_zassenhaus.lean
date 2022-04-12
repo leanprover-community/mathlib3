@@ -40,27 +40,50 @@ quotient (setoid.mk (λ α β, diff (monoid_hom.id H) α β = 1) ⟨λ α, diff_
 
 instance : inhabited H.quotient_diff := quotient.inhabited _
 
-def to_normalizer_opposite [h : H.normal] : G → H.normalizer.opposite :=
-λ g, ⟨mul_opposite.op g, eq_top_iff.mp (normalizer_eq_top.mpr h) (mem_top g)⟩
-
 variables {H}
 
+instance tada [H.normal] : quotient_action Gᵐᵒᵖ H := sorry
+
+lemma smul_diff_smul' [is_commutative H] [H.normal] (g : Gᵐᵒᵖ) :
+  diff (monoid_hom.id H) (g • α) (g • β) =
+    ⟨g.unop⁻¹ * (diff (monoid_hom.id H) α β : H) * g.unop, begin
+      refine (mem_normalizer_iff''.mp _ _).mp (set_like.coe_mem _),
+      sorry,
+    end⟩ :=
+begin
+  let ϕ : H →* H :=
+  { to_fun := λ h, ⟨g.unop⁻¹ * h * g.unop, sorry⟩,
+    map_one' := by rw [subtype.ext_iff, coe_mk, coe_one, mul_one, inv_mul_self],
+    map_mul' := λ h₁ h₂, by rw [subtype.ext_iff, coe_mk, coe_mul, coe_mul, coe_mk, coe_mk,
+      mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_inv_cancel_left] },
+  refine eq.trans (finset.prod_bij' (λ q _, g⁻¹ • q) (λ _ _, finset.mem_univ _)
+    (λ q _, subtype.ext _) (λ q _, g • q) (λ _ _, finset.mem_univ _)
+    (λ q _, smul_inv_smul _ q) (λ q _, inv_smul_smul _ q)) (ϕ.map_prod _ _).symm,
+  rw [monoid_hom.id_apply, monoid_hom.id_apply, monoid_hom.coe_mk, coe_mk, coe_mk, coe_mk,
+      smul_apply_eq_smul_apply_inv_smul, smul_apply_eq_smul_apply_inv_smul,
+      mul_opposite.smul_eq_mul_unop, mul_opposite.smul_eq_mul_unop, mul_inv_rev,
+      mul_assoc, mul_assoc, mul_assoc],
+end
+
 instance [H.normal] : mul_action G H.quotient_diff :=
-{ smul := λ g, quotient.map' (λ α, (to_normalizer_opposite H g⁻¹) • α) (λ S T h, (smul_diff_smul' _ _ _).trans
-    (by rwa [subtype.ext_iff, coe_one, coe_mk, mul_eq_one_iff_eq_inv,
-      mul_right_eq_self, ←coe_one, ←subtype.ext_iff])),
-  mul_smul := λ g₁ g₂ q, quotient.induction_on' q (λ T, congr_arg quotient.mk' (by
-  { rw mul_inv_rev, exact mul_smul (H.to_normalizer_opposite g₁⁻¹) (H.to_normalizer_opposite g₂⁻¹) T })),
-  one_smul := λ q, quotient.induction_on' q (λ T, congr_arg quotient.mk' (by
-  { rw one_inv, apply one_smul })) }
+{ smul := λ g, quotient.map' (λ α, mul_opposite.op g⁻¹ • α) (λ α β h, begin
+  refine (smul_diff_smul' _ _ _).trans _,
+  rwa [subtype.ext_iff, coe_one, coe_mk, mul_eq_one_iff_eq_inv,
+      mul_right_eq_self, ←coe_one, ←subtype.ext_iff],
+end),
+  mul_smul := λ g₁ g₂ q, quotient.induction_on' q (λ T, congr_arg quotient.mk' (begin
+    rw mul_inv_rev, exact mul_smul (mul_opposite.op g₁⁻¹) (mul_opposite.op g₂⁻¹) T,
+  end)),
+  one_smul := λ q, quotient.induction_on' q (λ T, congr_arg quotient.mk'
+  (by { rw one_inv, exact one_smul Gᵐᵒᵖ T})) }
 
 lemma smul_diff' [H.normal] [is_commutative H] (h : H) :
-  diff (monoid_hom.id H) α ((to_normalizer_opposite H h) • β) = diff (monoid_hom.id H) α β * h ^ H.index :=
+  diff (monoid_hom.id H) α ((mul_opposite.op (h : G)) • β) = diff (monoid_hom.id H) α β * h ^ H.index :=
 begin
   rw [diff, diff, index_eq_card, ←finset.card_univ, ←finset.prod_const, ←finset.prod_mul_distrib],
   refine finset.prod_congr rfl (λ q _, _),
   rw [subtype.ext_iff, coe_mul, monoid_hom.id_apply, monoid_hom.id_apply, coe_mk, coe_mk,
-      mul_assoc, mul_left_cancel_iff, smul_apply_eq_smul_apply_inv_smul, smul_def,
+      mul_assoc, mul_left_cancel_iff, smul_apply_eq_smul_apply_inv_smul,
       mul_opposite.smul_eq_mul_unop],
   congr,
   exact inv_smul_eq_iff.mpr (self_eq_mul_right.mpr ((quotient_group.eq_one_iff _).mpr h.2)),
@@ -71,7 +94,7 @@ variables [fintype H]
 lemma eq_one_of_smul_eq_one [H.normal] (hH : nat.coprime (fintype.card H) H.index)
   (α : H.quotient_diff) (h : H) : h • α = α → h = 1 :=
 quotient.induction_on' α (λ α hα, by
-{ replace hα : diff (monoid_hom.id H) (H.to_normalizer_opposite ↑h⁻¹ • α) α = 1 := quotient.exact' hα,
+{ replace hα : diff (monoid_hom.id H) ((mul_opposite.op ((h⁻¹ : H) : G)) • α) α = 1 := quotient.exact' hα,
   rw [←diff_inv, smul_diff', diff_self, one_mul, inv_pow, inv_inv] at hα,
   exact (pow_coprime hH).injective (hα.trans (one_pow H.index).symm) })
 

@@ -551,15 +551,15 @@ by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
 mapping `n : G` to `finsupp.single (f x) 1`. -/
 def single_one_right_hom (k : Type*) {H : Type*} [semiring k] [mul_one_class G] [mul_one_class H]
   (f : G →* H) : G →* monoid_algebra k H :=
-by refine ⟨λ x, single (f x) 1, _, _⟩; simp ; refl
+(of k H).comp f
 
 @[simp] lemma single_one_right_hom_apply (k : Type*) {H : Type*} [semiring k] [mul_one_class G]
   [mul_one_class H] (f : G →* H) (n : G) :
   single_one_right_hom k f n = single (f n) 1 := rfl
 
 /--  A multiplicative homomorphism `f : G →* H` between two monoids induces a `k`-algebra
-homomorphism `monoid_ring_hom_lift f : monoid_algebra k G →+* monoid_algebra k H`. -/
-def monoid_ring_hom_lift (k : Type*) {H : Type*} [semiring k] [monoid G] [monoid H]
+homomorphism `monoid_ring_hom_map f : monoid_algebra k G →+* monoid_algebra k H`. -/
+def monoid_ring_hom_map (k : Type*) {H : Type*} [semiring k] [monoid G] [monoid H]
   (f : G →* H) : monoid_algebra k G →+* monoid_algebra k H :=
 lift_nc_ring_hom single_one_ring_hom (single_one_right_hom k f) $ λ r n,
 show (single 1 r * (single (f n) 1) : monoid_algebra k H) = single (f n) 1 * (single 1 r),
@@ -1245,11 +1245,11 @@ monoid_algebra.single_one_right_hom k f.to_multiplicative
   [add_zero_class G] [add_zero_class H] (f : G →+ H) (n : G) :
   single_one_right_add_hom k f n = single (f n) 1 := rfl
 
---  `by convert monoid_algebra.monoid_ring_hom_lift k f.to_multiplicative` appears to be the same
+--  `by convert monoid_algebra.monoid_ring_hom_map k f.to_multiplicative` appears to be the same
 --  mathematical definition, but is harder to use.
 /--  An additive homomorphism `f : G →+ H` induces a `k`-algebra homomorphism
-`add_monoid_ring_hom_lift f : add_monoid_algebra k G →+* add_monoid_algebra k H`. -/
-def add_monoid_ring_hom_lift (k : Type*) [semiring k] {H : Type*} [add_monoid G] [add_monoid H]
+`add_monoid_ring_hom_map f : add_monoid_algebra k G →+* add_monoid_algebra k H`. -/
+def add_monoid_ring_hom_map (k : Type*) [semiring k] {H : Type*} [add_monoid G] [add_monoid H]
   (f : G →+ H) : add_monoid_algebra k G →+* add_monoid_algebra k H :=
 begin
   -- using `refine` times out.  Substituting the first `exact` into `_` yields a type mismatch.

@@ -547,10 +547,24 @@ def distrib_mul_action.to_add_monoid_End : M →* add_monoid.End A :=
   map_one' := add_monoid_hom.ext $ one_smul M,
   map_mul' := λ x y, add_monoid_hom.ext $ mul_smul x y }
 
+instance add_monoid.nat_smul_comm_class : smul_comm_class ℕ M A :=
+{ smul_comm := λ n x y, ((distrib_mul_action.to_add_monoid_hom A x).map_nsmul y n).symm }
+
+-- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
+instance add_monoid.nat_smul_comm_class' : smul_comm_class M ℕ A :=
+smul_comm_class.symm _ _ _
+
 end
 
 section
 variables [monoid M] [add_group A] [distrib_mul_action M A]
+
+instance add_group.int_smul_comm_class : smul_comm_class ℤ M A :=
+{ smul_comm := λ n x y, ((distrib_mul_action.to_add_monoid_hom A x).map_zsmul y n).symm }
+
+-- `smul_comm_class.symm` is not registered as an instance, as it would cause a loop
+instance add_group.int_smul_comm_class' : smul_comm_class M ℤ A :=
+smul_comm_class.symm _ _ _
 
 @[simp] theorem smul_neg (r : M) (x : A) : r • (-x) = -(r • x) :=
 eq_neg_of_add_eq_zero $ by rw [← smul_add, neg_add_self, smul_zero]

@@ -137,6 +137,16 @@ lemma nnnorm_mul_le (a b : α) : ∥a * b∥₊ ≤ ∥a∥₊ * ∥b∥₊ :=
 by simpa only [←norm_to_nnreal, ←real.to_nnreal_mul (norm_nonneg _)]
   using real.to_nnreal_mono (norm_mul_le _ _)
 
+lemma filter.tendsto.zero_mul_is_bounded_under_le {f g : ι → α} {l : filter ι}
+  (hf : tendsto f l (𝓝 0)) (hg : is_bounded_under (≤) l (norm ∘ g)) :
+  tendsto (λ x, f x * g x) l (𝓝 0) :=
+hf.op_zero_is_bounded_under_le hg (*) norm_mul_le
+
+lemma filter.is_bounded_under_le.mul_tendsto_zero {f g : ι → α} {l : filter ι}
+  (hf : is_bounded_under (≤) l (norm ∘ f)) (hg : tendsto g l (𝓝 0)) :
+  tendsto (λ x, f x * g x) l (𝓝 0) :=
+hg.op_zero_is_bounded_under_le hf (flip (*)) (λ x y, ((norm_mul_le y x).trans_eq (mul_comm _ _)))
+
 /-- In a seminormed ring, the left-multiplication `add_monoid_hom` is bounded. -/
 lemma mul_left_bound (x : α) :
   ∀ (y:α), ∥add_monoid_hom.mul_left x y∥ ≤ ∥x∥ * ∥y∥ :=

@@ -1153,10 +1153,16 @@ else if hq0 : q = 0 then  by simp only [hq0, degree_zero, mul_zero, with_bot.add
 else degree_mul' $ mul_ne_zero (mt leading_coeff_eq_zero.1 hp0)
     (mt leading_coeff_eq_zero.1 hq0)
 
+/-- `degree` as a monoid homomorphism between `R[X]` and `multiplicative (with_bot ℕ)`.
+  This is useful to prove results about multiplication and degree. -/
+def degree_monoid_hom [nontrivial R] : R[X] →* multiplicative (with_bot ℕ) :=
+{ to_fun := degree,
+  map_one' := degree_one,
+  map_mul' := λ _ _, degree_mul }
+
 @[simp] lemma degree_pow [nontrivial R] (p : R[X]) (n : ℕ) :
   degree (p ^ n) = n • (degree p) :=
-by induction n; [simp only [pow_zero, degree_one, zero_nsmul],
-simp only [*, pow_succ, succ_nsmul, degree_mul]]
+map_pow (degree_monoid_hom : R[X] →* _) _ _
 
 @[simp] lemma leading_coeff_mul (p q : R[X]) : leading_coeff (p * q) =
   leading_coeff p * leading_coeff q :=

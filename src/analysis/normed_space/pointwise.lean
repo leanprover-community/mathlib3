@@ -162,15 +162,11 @@ begin
   exact ⟨mul_lt_of_lt_one_left hδ h, mul_lt_of_lt_one_left hε h⟩,
 end
 
-lemma ball_disjoint_closed_ball (x y : E) (rx ry : ℝ) (h : rx + ry ≤ dist x y) :
-  disjoint (ball x rx) (closed_ball y ry) :=
-(closed_ball_disjoint_ball _ _ _ _ $ by rwa [add_comm, dist_comm]).symm
-
 -- This is also true for `ℚ`-normed spaces
 lemma disjoint_ball_ball_iff (hδ : 0 < δ) (hε : 0 < ε) :
   disjoint (ball x δ) (ball y ε) ↔ δ + ε ≤ dist x y :=
 begin
-  refine ⟨λ h, le_of_not_lt $ λ hxy, _, ball_disjoint_ball _ _ _ _⟩,
+  refine ⟨λ h, le_of_not_lt $ λ hxy, _, ball_disjoint_ball⟩,
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_lt hδ hε hxy,
   rw dist_comm at hxz,
@@ -181,7 +177,7 @@ end
 lemma disjoint_ball_closed_ball_iff (hδ : 0 < δ) (hε : 0 ≤ ε) :
   disjoint (ball x δ) (closed_ball y ε) ↔ δ + ε ≤ dist x y :=
 begin
-  refine ⟨λ h, le_of_not_lt $ λ hxy, _, ball_disjoint_closed_ball _ _ _ _⟩,
+  refine ⟨λ h, le_of_not_lt $ λ hxy, _, ball_disjoint_closed_ball⟩,
   rw add_comm at hxy,
   obtain ⟨z, hxz, hzy⟩ := exists_dist_lt_le hδ hε hxy,
   rw dist_comm at hxz,

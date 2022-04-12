@@ -438,3 +438,40 @@ def mapq_linear : compatible_maps p q →ₗ[R] (M ⧸ p) →ₗ[R] (M₂ ⧸ q)
 end submodule
 
 end comm_ring
+
+section as_quotient_group
+
+namespace submodule
+
+/-- The group underlying the module `M ⧸ S` is isomorphic to the quotient group `M ⧸ S`. -/
+noncomputable def quotient_equiv_quotient_group {R M : Type*} [ring R] [add_comm_group M]
+  [module R M] (S : submodule R M) : M ⧸ S ≃+ M ⧸ S.to_add_subgroup :=
+let φ₁ : M ⧸ S.to_add_subgroup ≃+ M ⧸ S.mkq.to_add_monoid_hom.ker :=
+      quotient_add_group.equiv_quotient_of_eq
+      (by rw [← S.mkq.ker_subgroup_eq_group_hom_ker, S.ker_mkq]),
+    φ₂ : M ⧸ S.mkq.to_add_monoid_hom.ker ≃+ M ⧸ S :=
+      quotient_add_group.quotient_ker_equiv_of_surjective S.mkq.to_add_monoid_hom
+      (submodule.quotient.mk_surjective S)
+in (φ₁.trans φ₂).symm
+
+lemma quotient_equiv_quotient_group_symm_apply {R M : Type*} [ring R] [add_comm_group M]
+  [module R M] (S : submodule R M) {x : M} :
+  S.quotient_equiv_quotient_group.symm (quotient_add_group.mk x) = (S.mkq x) := rfl
+
+lemma quotient_equiv_quotient_group_symm_comp_mk {R M : Type*} [ring R] [add_comm_group M]
+  [module R M] (S : submodule R M) :
+  S.quotient_equiv_quotient_group.symm ∘ quotient_add_group.mk = S.mkq := rfl
+
+lemma quotient_equiv_quotient_group_apply {R M : Type*} [ring R] [add_comm_group M]
+  [module R M] (S : submodule R M) {x : M} :
+  S.quotient_equiv_quotient_group (S.mkq x) = (quotient_add_group.mk x) :=
+by rw [add_equiv.apply_eq_iff_symm_apply]; refl
+
+lemma quotient_equiv_quotient_group_comp_mkq {R M : Type*} [ring R] [add_comm_group M]
+  [module R M] (S : submodule R M) :
+  S.quotient_equiv_quotient_group ∘ S.mkq = quotient_add_group.mk :=
+by funext; exact S.quotient_equiv_quotient_group_apply
+
+end submodule
+
+end as_quotient_group

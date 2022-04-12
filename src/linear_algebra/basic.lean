@@ -1112,6 +1112,9 @@ variables {f : M →ₛₗ[τ₁₂] M₂}
 include R
 open submodule
 
+lemma ker_subgroup_eq_group_hom_ker (f : M →ₛₗ[τ₁₂] M₂) :
+f.ker.to_add_subgroup = f.to_add_monoid_hom.ker := rfl
+
 theorem sub_mem_ker_iff {x y} : x - y ∈ f.ker ↔ f x = f y :=
 by rw [mem_ker, map_sub, sub_eq_zero]
 

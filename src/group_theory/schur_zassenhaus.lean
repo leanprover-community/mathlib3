@@ -133,19 +133,8 @@ end
 lemma is_complement'_stabilizer_of_coprime [fintype G] [H.normal] {α : H.quotient_diff}
   (hH : nat.coprime (fintype.card H) H.index) :
   is_complement' H (mul_action.stabilizer G α) :=
-begin
-  classical,
-  let ϕ : H ≃ mul_action.orbit G α := equiv.of_bijective (λ h, ⟨h • α, h, rfl⟩)
-    ⟨λ h₁ h₂ hh, smul_left_injective α hH (subtype.ext_iff.mp hh),
-      λ β, exists_imp_exists (λ h hh, subtype.ext hh) (exists_smul_eq α β hH)⟩,
-  have key := card_eq_card_quotient_mul_card_subgroup (mul_action.stabilizer G α),
-  rw ← fintype.card_congr (ϕ.trans (mul_action.orbit_equiv_quotient_stabilizer G α)) at key,
-  apply is_complement'_of_coprime key.symm,
-  rw [card_eq_card_quotient_mul_card_subgroup H, mul_comm, mul_right_inj'] at key,
-  { rwa [←key, ←index_eq_card] },
-  { rw [←pos_iff_ne_zero, fintype.card_pos_iff],
-    apply_instance },
-end
+is_complement'_stabilizer α (λ h hh, smul_left_injective α hH (hh.trans (one_smul H α).symm))
+  (λ g, exists_smul_eq (g • α) α hH)
 
 /-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma exists_right_complement'_of_coprime_aux [fintype G] [H.normal]

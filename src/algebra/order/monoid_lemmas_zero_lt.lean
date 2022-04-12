@@ -204,8 +204,42 @@ end preorder
 
 end has_mul_zero
 
-section mul_zero_class_partial_order
-variables [mul_zero_class α] [partial_order α]
+section mul_zero_class
+variables [mul_zero_class α]
+
+section preorder
+variables [preorder α]
+
+/-- Assumes left covariance. -/
+lemma left.mul_pos [pos_mul_strict_mono α]
+  (ha : 0 < a) (hb : 0 < b) :
+  0 < a * b :=
+have h : a * 0 < a * b, from mul_lt_mul_left' hb ha,
+by rwa [mul_zero] at h
+
+lemma mul_neg_of_pos_of_neg [pos_mul_strict_mono α]
+  (ha : 0 < a) (hb : b < 0) :
+  a * b < 0 :=
+have h : a * b < a * 0, from mul_lt_mul_left' hb ha,
+by rwa [mul_zero] at h
+
+/-- Assumes right covariance. -/
+lemma right.mul_pos [mul_pos_strict_mono α]
+  (ha : 0 < a) (hb : 0 < b) :
+  0 < a * b :=
+have h : 0 * b < a * b, from mul_lt_mul_right' ha hb,
+by rwa [zero_mul] at h
+
+lemma mul_neg_of_neg_of_pos [mul_pos_strict_mono α]
+  (ha : a < 0) (hb : 0 < b) :
+  a * b < 0 :=
+have h : a * b < 0 * b, from mul_lt_mul_right' ha hb,
+by rwa [zero_mul] at h
+
+end preorder
+
+section partial_order
+variables [partial_order α]
 
 lemma lt_of_mul_lt_mul_left'' [pos_mul_reflect_lt α]
   (bc : a * b < a * c) (a0 : 0 ≤ a) :
@@ -225,7 +259,9 @@ begin
   { exact lt_of_mul_lt_mul_right' bc ((ne.symm a₀).le_iff_lt.mp a0) }
 end
 
-end mul_zero_class_partial_order
+end partial_order
+
+end mul_zero_class
 
 section mul_one_class
 variables [mul_one_class α] [has_zero α]

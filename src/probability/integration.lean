@@ -1,9 +1,9 @@
 /-
 Copyright (c) 2021 Martin Zinkevich. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Martin Zinkevich
+Authors: Martin Zinkevich, Vincent Beffara
 -/
-import measure_theory.integral.bochner
+import measure_theory.integral.set_integral
 import probability.independence
 
 /-!
@@ -233,6 +233,28 @@ begin
     hi2.integral_mul_of_nonneg hp2 hp3 hm2 hm3, hi3.integral_mul_of_nonneg hp1 hp4 hm1 hm4,
     hi4.integral_mul_of_nonneg hp2 hp4 hm2 hm4],
   ring
+end
+
+/-- Independence of functions `f` and `g` into arbitrary types is characterized by the relation
+  `E[(φ ∘ f) * (ψ ∘ g)] = E[φ ∘ f] * E[ψ ∘ g]` for all measurable `φ` and `ψ` with values in `ℝ`
+  satisfying appropriate integrability conditions. -/
+theorem indep_fun_iff_integral_comp_mul [is_finite_measure μ]
+  {β β' : Type*} {mβ : measurable_space β} {mβ' : measurable_space β'}
+  {f : α → β} {g : α → β'} {hfm : measurable f} {hgm : measurable g} :
+  indep_fun f g μ ↔
+  ∀ {φ : β → ℝ} {ψ : β' → ℝ},
+    measurable φ → measurable ψ → integrable (φ ∘ f) μ → integrable (ψ ∘ g) μ →
+    integral μ ((φ ∘ f) * (ψ ∘ g)) = integral μ (φ ∘ f) * integral μ (ψ ∘ g) :=
+begin
+  refine ⟨λ hfg _ _ hφ hψ, indep_fun.integral_mul_of_integrable (hfg.comp hφ hψ), _⟩,
+  rintro h _ _ ⟨A, hA, rfl⟩ ⟨B, hB, rfl⟩,
+  specialize h (measurable_one.indicator hA) (measurable_one.indicator hB)
+    ((integrable_const 1).indicator (hfm.comp measurable_id hA))
+    ((integrable_const 1).indicator (hgm.comp measurable_id hB)),
+  rwa [← ennreal.to_real_eq_to_real (measure_ne_top μ _), ennreal.to_real_mul,
+    ← integral_indicator_one ((hfm hA).inter (hgm hB)), ← integral_indicator_one (hfm hA),
+    ← integral_indicator_one (hgm hB), set.inter_indicator_one],
+  exact ennreal.mul_ne_top (measure_ne_top μ _) (measure_ne_top μ _)
 end
 
 end probability_theory

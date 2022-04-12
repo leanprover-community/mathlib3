@@ -1106,16 +1106,14 @@ by rw [pow_succ, pow_succ, single_pow n, single_mul_single, add_comm, add_nsmul,
 
 /-- Like `finsupp.map_domain_zero`, but for the `1` we define in this file -/
 @[simp] lemma map_domain_one {α : Type*} {β : Type*} {α₂ : Type*}
-  [semiring β] [has_zero α] [has_zero α₂]
-  {F} [zero_hom_class F α α₂] (f : F) (x y : add_monoid_algebra β α):
+  [semiring β] [has_zero α] [has_zero α₂] {F : Type*} [zero_hom_class F α α₂] (f : F) :
   (map_domain f (1 : add_monoid_algebra β α) : add_monoid_algebra β α₂) =
     (1 : add_monoid_algebra β α₂) :=
 by simp_rw [one_def, map_domain_single, map_zero]
 
 /-- Like `finsupp.map_domain_add`, but for the convolutive multiplication we define in this file -/
-lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*}
-  [semiring β] [has_add α] [has_add α₂]
-  {F} [add_hom_class F α α₂] (f : F) (x y : add_monoid_algebra β α):
+lemma map_domain_mul {α : Type*} {β : Type*} {α₂ : Type*} [semiring β] [has_add α] [has_add α₂]
+  {F : Type*} [add_hom_class F α α₂] (f : F) (x y : add_monoid_algebra β α) :
   (map_domain f (x * y : add_monoid_algebra β α) : add_monoid_algebra β α₂) =
     (map_domain f x * map_domain f y : add_monoid_algebra β α₂) :=
 begin

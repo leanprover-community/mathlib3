@@ -128,10 +128,8 @@ begin
   ext,
   rw ← norm_sub_eq_zero_iff,
   have e1 : ∥Q x∥ ≥ ∥Q x∥ + 2 • ∥ (P * Q) x - (Q * P * Q) x∥ :=
-  calc ∥Q x∥ = ∥P (Q x)∥ + ∥(1 - P) (Q x)∥ : by rw h₁.right
-  ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + ∥(1 - P) (Q x)∥ : by rw h₂.right
-  ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q ((1 - P) (Q x))∥ + ∥(1-Q) ((1 - P) (Q x))∥) :
-    by rw h₂.right ((1 - P) (Q x))
+  calc ∥Q x∥ = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q ((1 - P) (Q x))∥ + ∥(1-Q) ((1 - P) (Q x))∥) :
+    by rw [h₁.right, h₂.right, h₂.right ((1 - P) (Q x))]
   ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q (Q x - P (Q x))∥ + ∥(1-Q) ((1 - P) (Q x))∥) : rfl
   ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q (Q x) - Q (P (Q x))∥ + ∥(1-Q) ((1 - P) (Q x))∥) :
     by rw map_sub
@@ -165,7 +163,7 @@ begin
   have e1: P * (1 - Q) = P * (1 - Q) - (Q * P - Q * P * Q) :=
   calc P * (1 - Q) = (1 - Q) * P * (1 - Q) : by rw PQ_eq_QPQ P (1 - Q) h₁ h₂.Lcomplement
   ... = P * (1 - Q) - (Q * P - Q * P * Q) :
-    by rw [mul_assoc, sub_mul, one_mul, mul_sub, mul_one, mul_sub Q, mul_assoc], 
+    by rw [mul_assoc, sub_mul, one_mul, mul_sub, mul_one, mul_sub Q, mul_assoc],
   rwa [eq_sub_iff_add_eq, add_right_eq_self, sub_eq_zero] at e1
 end
 

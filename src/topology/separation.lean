@@ -676,10 +676,9 @@ t2_space.t2 x y h
 lemma t2_separation_finset [t2_space α] (s : finset α) :
   ∃ f : α → set α, set.pairwise_disjoint ↑s f ∧ ∀ x ∈ s, x ∈ f x ∧ is_open (f x) :=
 finset.induction_on s (by simp) begin
-  have t2_separation₂ : ∀ {x y}, x ≠ y → ∃ u : set α × set α, is_open u.1 ∧ is_open u.2 ∧
-    x ∈ u.1 ∧ y ∈ u.2 ∧ u.1 ∩ u.2 = ∅ := λ x y h, let ⟨u, v, H⟩ := t2_separation h in ⟨⟨u, v⟩, H⟩,
   rintros t s ht ⟨f, hf, hf'⟩,
-  have hty : ∀ y : s, t ≠ y.1 := by { rintros y rfl, exact ht y.2 },
+  have hty : ∀ y : s, t ≠ y := by { rintros y rfl, exact ht y.2 },
+  choose u v hu hv htu hxv huv using λ y : s, t2_separation (hty y),
   refine ⟨λ x, if ht : t = x then ⋂ y : s, (classical.some (t2_separation₂ (hty y))).1
     else f x ∩ (classical.some (t2_separation₂ ht)).2, _, _⟩,
   { rintros x hx₁ y hy₁ hxy a ⟨hx, hy⟩,

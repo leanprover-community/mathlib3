@@ -130,16 +130,14 @@ lemma smul_left_injective [H.normal] (α : H.quotient_diff)
   exact (pow_coprime hH).injective hα,
 end
 
-lemma is_complement'_stabilizer_of_coprime [fintype G] [H.normal] {α : H.quotient_diff}
-  (hH : nat.coprime (fintype.card H) H.index) :
-  is_complement' H (mul_action.stabilizer G α) :=
+lemma is_complement'_stabilizer_of_coprime [H.normal] {α : H.quotient_diff}
+  (hH : nat.coprime (fintype.card H) H.index) : is_complement' H (mul_action.stabilizer G α) :=
 is_complement'_stabilizer α (λ h hh, smul_left_injective α hH (hh.trans (one_smul H α).symm))
   (λ g, exists_smul_eq (g • α) α hH)
 
 /-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
-private lemma exists_right_complement'_of_coprime_aux [fintype G] [H.normal]
-  (hH : nat.coprime (fintype.card H) H.index) :
-  ∃ K : subgroup G, is_complement' H K :=
+private lemma exists_right_complement'_of_coprime_aux [H.normal]
+  (hH : nat.coprime (fintype.card H) H.index) : ∃ K : subgroup G, is_complement' H K :=
 nonempty_of_inhabited.elim
   (λ α : H.quotient_diff, ⟨mul_action.stabilizer G α, is_complement'_stabilizer_of_coprime hH⟩)
 

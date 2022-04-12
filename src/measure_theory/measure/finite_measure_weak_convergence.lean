@@ -303,20 +303,15 @@ continuous_induced_dom
 depends continuously on the measure. -/
 lemma continuous_test_against_nn_eval (f : α →ᵇ ℝ≥0) :
   continuous (λ (μ : finite_measure α), μ.test_against_nn f) :=
-begin
-  let F₂ := (λ (φ : weak_dual ℝ≥0 (α →ᵇ ℝ≥0)), φ f),
-  let F₁ := (λ (μ : finite_measure α), to_weak_dual_bounded_continuous_nnreal μ),
-  change continuous (F₂ ∘ F₁),
-  apply continuous.comp _ to_weak_dual_continuous,
-  apply eval_continuous,
-end
+(by apply (eval_continuous _ _).comp to_weak_dual_continuous :
+  continuous ((λ φ : weak_dual ℝ≥0 (α →ᵇ ℝ≥0), φ f) ∘ to_weak_dual_bounded_continuous_nnreal))
 
 lemma tendsto_iff_weak_star_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
   tendsto μs F (𝓝 μ) ↔
     tendsto (λ i, (μs(i)).to_weak_dual_bounded_continuous_nnreal)
       F (𝓝 μ.to_weak_dual_bounded_continuous_nnreal) :=
-by { apply inducing.tendsto_nhds_iff, exact ⟨rfl⟩, }
+inducing.tendsto_nhds_iff ⟨rfl⟩
 
 theorem tendsto_iff_forall_test_against_nn_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :

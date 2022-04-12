@@ -104,7 +104,9 @@ def Type_to_Cat : Type u ⥤ Cat :=
   map_id' := λ X, begin apply functor.ext, tidy, end,
   map_comp' := λ X Y Z f g, begin apply functor.ext, tidy, end }
 
-instance : faithful Type_to_Cat.{u} := {}
+instance : faithful Type_to_Cat.{u} :=
+{ map_injective' := λ X Y f g h, funext (λ x, congr_arg discrete.as (functor.congr_obj h ⟨x⟩)), }
+
 instance : full Type_to_Cat.{u} :=
 { preimage := λ X Y F, discrete.as ∘ F.obj ∘ discrete.mk,
   witness' :=

@@ -505,14 +505,6 @@ add_tactic_doc
   tags       := ["structures"],
   inherit_description_from := `tactic.interactive.refine_struct }
 
-/-- Given a pexpr parsed by the interactive parser, return a name if it is a single identifier,
-otherwise the original pexpr. -/
-meta def pexpr.to_name_or_pexpr (p : pexpr) : name ⊕ pexpr :=
-match p.local_pp_name with
-| name.anonymous := sum.inr p
-| n := sum.inl n
-end
-
 /--
 `apply_rules hs with attrs n` applies the list of lemmas `hs` and all lemmas tagged with an
 attribute from the list `attrs`, as well as the `assumption` tactic on the

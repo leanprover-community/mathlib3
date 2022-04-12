@@ -947,8 +947,7 @@ lemma prod_list_count_of_subset [decidable_eq α] [comm_monoid α]
   m.prod = ∏ i in s, i ^ (m.count i) :=
 begin
   rw prod_list_count,
-  apply prod_subset hs,
-  rintros x - hx,
+  refine prod_subset hs (λ x _ hx, _),
   rw [mem_to_finset] at hx,
   rw [count_eq_zero_of_not_mem hx, pow_zero],
 end

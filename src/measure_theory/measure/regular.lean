@@ -151,7 +151,7 @@ variables {α : Type*} {m : measurable_space α} {μ : measure α} {p q : set α
 
 lemma measure_eq_supr (H : inner_regular μ p q) (hU : q U) : μ U = ⨆ (K ⊆ U) (hK : p K), μ K :=
 begin
-  refine le_antisymm (le_of_forall_lt (λ r hr, _)) (bsupr_le $ λ K hK, supr_le $ λ _, μ.mono hK),
+  refine le_antisymm (le_of_forall_lt $ λ r hr, _) (supr₂_le $ λ K hK, supr_le $ λ _, μ.mono hK),
   simpa only [lt_supr_iff, exists_prop] using H hU r hr
 end
 
@@ -167,22 +167,22 @@ begin
 end
 
 lemma map {α β} [measurable_space α] [measurable_space β] {μ : measure α} {pa qa : set α → Prop}
-  (H : inner_regular μ pa qa) (f : α ≃ β) (hf : measurable f)
+  (H : inner_regular μ pa qa) (f : α ≃ β) (hf : ae_measurable f μ)
   {pb qb : set β → Prop} (hAB : ∀ U, qb U → qa (f ⁻¹' U)) (hAB' : ∀ K, pa K → pb (f '' K))
   (hB₁ : ∀ K, pb K → measurable_set K) (hB₂ : ∀ U, qb U → measurable_set U) :
   inner_regular (map f μ) pb qb :=
 begin
   intros U hU r hr,
-  rw [map_apply hf (hB₂ _ hU)] at hr,
+  rw [map_apply_of_ae_measurable hf (hB₂ _ hU)] at hr,
   rcases H (hAB U hU) r hr with ⟨K, hKU, hKc, hK⟩,
   refine ⟨f '' K, image_subset_iff.2 hKU, hAB' _ hKc, _⟩,
-  rwa [map_apply hf (hB₁ _ $ hAB' _ hKc), f.preimage_image]
+  rwa [map_apply_of_ae_measurable hf (hB₁ _ $ hAB' _ hKc), f.preimage_image]
 end
 
 lemma smul (H : inner_regular μ p q) (c : ℝ≥0∞) : inner_regular (c • μ) p q :=
 begin
   intros U hU r hr,
-  rw [smul_apply, H.measure_eq_supr hU] at hr,
+  rw [smul_apply, H.measure_eq_supr hU, smul_eq_mul] at hr,
   simpa only [ennreal.mul_supr, lt_supr_iff, exists_prop] using hr
 end
 
@@ -247,7 +247,7 @@ containing it. -/
 lemma _root_.set.measure_eq_infi_is_open (A : set α) (μ : measure α) [outer_regular μ] :
   μ A = (⨅ (U : set α) (h : A ⊆ U) (h2 : is_open U), μ U) :=
 begin
-  refine le_antisymm (le_binfi $ λ s hs, le_infi $ λ h2s, μ.mono hs) _,
+  refine le_antisymm (le_infi₂ $ λ s hs, le_infi $ λ h2s, μ.mono hs) _,
   refine le_of_forall_lt' (λ r hr, _),
   simpa only [infi_lt_iff, exists_prop] using A.exists_is_open_lt_of_lt r hr
 end
@@ -295,7 +295,7 @@ begin
   rcases eq_or_ne x 0 with rfl|h0,
   { rw zero_smul, exact outer_regular.zero },
   { refine ⟨λ A hA r hr, _⟩,
-    rw [smul_apply, A.measure_eq_infi_is_open] at hr,
+    rw [smul_apply, A.measure_eq_infi_is_open, smul_eq_mul] at hr,
     simpa only [ennreal.mul_infi_of_ne h0 hx, gt_iff_lt, infi_lt_iff, exists_prop] using hr }
 end
 
@@ -328,7 +328,7 @@ begin
     rw [H₁, H₁, inter_eq_self_of_subset_left (hAs _)] at hU,
     exact ⟨U ∩ s.set n, subset_inter hAU (hAs _), hUo.inter (s.set_mem n).1, hU⟩ },
   choose U hAU hUo hU,
-  refine ⟨⋃ n, U n, Union_subset_Union hAU, is_open_Union hUo, _⟩,
+  refine ⟨⋃ n, U n, Union_mono hAU, is_open_Union hUo, _⟩,
   calc μ (⋃ n, U n) ≤ ∑' n, μ (U n)             : measure_Union_le _
                 ... ≤ ∑' n, (μ (A n) + δ n)     : ennreal.tsum_le_tsum (λ n, (hU n).le)
                 ... = ∑' n, μ (A n) + ∑' n, δ n : ennreal.tsum_add
@@ -404,8 +404,8 @@ begin
     rcases (this.eventually $ lt_mem_nhds $ ennreal.lt_add_right hfin ε0').exists with ⟨t, ht⟩,
     -- the approximating open set is constructed by taking for each `s n` an approximating open set
     -- `U n` with measure at most `μ (s n) + δ n` for a summable `δ`, and taking the union of these.
-    refine ⟨⋃ k ∈ t, F k, Union_subset_Union $ λ k, Union_subset $ λ _, hFs _,
-      ⋃ n, U n, Union_subset_Union hsU, is_closed_bUnion t.finite_to_set $ λ k _, hFc k,
+    refine ⟨⋃ k ∈ t, F k, Union_mono $ λ k, Union_subset $ λ _, hFs _,
+      ⋃ n, U n, Union_mono hsU, is_closed_bUnion t.finite_to_set $ λ k _, hFc k,
       is_open_Union hUo, ht.le.trans _, _⟩,
     { calc ∑ k in t, μ (s k) + ε / 2 ≤ ∑ k in t, μ (F k) + ∑ k in t, δ k + ε / 2 :
         by { rw ← sum_add_distrib, exact add_le_add_right (sum_le_sum $ λ k hk, hF k) _ }
@@ -422,20 +422,20 @@ end
 
 /-- In a metric space (or even a pseudo emetric space), an open set can be approximated from inside
 by closed sets. -/
-lemma of_pseudo_emetric_space {X : Type*} [pseudo_emetric_space X] [measurable_space X]
-  [opens_measurable_space X] (μ : measure X) :
+lemma of_pseudo_emetric_space {X : Type*} [pseudo_emetric_space X]
+  [measurable_space X] (μ : measure X) :
   inner_regular μ is_closed is_open :=
 begin
   intros U hU r hr,
   rcases hU.exists_Union_is_closed with ⟨F, F_closed, -, rfl, F_mono⟩,
-  rw measure_Union_eq_supr (λ n, (F_closed n).measurable_set) F_mono.directed_le at hr,
+  rw measure_Union_eq_supr F_mono.directed_le at hr,
   rcases lt_supr_iff.1 hr with ⟨n, hn⟩,
   exact ⟨F n, subset_Union _ _, F_closed n, hn⟩
 end
 
 /-- In a `σ`-compact space, any closed set can be approximated by a compact subset. -/
-lemma is_compact_is_closed {X : Type*} [topological_space X] [t2_space X]
-  [sigma_compact_space X] [measurable_space X] [opens_measurable_space X] (μ : measure X) :
+lemma is_compact_is_closed {X : Type*} [topological_space X]
+  [sigma_compact_space X] [measurable_space X] (μ : measure X) :
   inner_regular μ is_compact is_closed :=
 begin
   intros F hF r hr,
@@ -444,8 +444,8 @@ begin
   have hBU : (⋃ n, F ∩ B n) = F, by rw [← inter_Union, Union_compact_covering, set.inter_univ],
   have : μ F = ⨆ n, μ (F ∩ B n),
   { rw [← measure_Union_eq_supr, hBU],
-    exacts [λ n, (hBc n).measurable_set, monotone.directed_le $
-      λ m n h, inter_subset_inter_right _ (compact_covering_subset _ h)] },
+    exact monotone.directed_le
+      (λ m n h, inter_subset_inter_right _ (compact_covering_subset _ h)) },
   rw this at hr, rcases lt_supr_iff.1 hr with ⟨n, hn⟩,
   exact ⟨_, inter_subset_left _ _, hBc n, hn⟩
 end
@@ -519,8 +519,9 @@ protected lemma map [opens_measurable_space α] [measurable_space β] [topologic
 begin
   haveI := outer_regular.map f μ,
   haveI := is_finite_measure_on_compacts.map μ f,
-  exact ⟨regular.inner_regular.map f.to_equiv f.measurable (λ U hU, hU.preimage f.continuous)
-      (λ K hK, hK.image f.continuous) (λ K hK, hK.measurable_set) (λ U hU, hU.measurable_set)⟩
+  exact ⟨regular.inner_regular.map f.to_equiv f.measurable.ae_measurable
+    (λ U hU, hU.preimage f.continuous) (λ K hK, hK.image f.continuous)
+    (λ K hK, hK.measurable_set) (λ U hU, hU.measurable_set)⟩
 end
 
 protected lemma smul [regular μ] {x : ℝ≥0∞} (hx : x ≠ ∞) :

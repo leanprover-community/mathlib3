@@ -219,7 +219,7 @@ def shift_functor (n : ℤ) : differential_object C ⥤ differential_object C :=
   { X := X.X⟦n⟧,
     d := X.d⟦n⟧' ≫ (shift_comm _ _ _).hom,
     d_squared' := by rw [functor.map_comp, category.assoc, shift_comm_hom_comp_assoc,
-        ←functor.map_comp_assoc, X.d_squared, is_equivalence_preserves_zero_morphisms, zero_comp] },
+        ←functor.map_comp_assoc, X.d_squared, functor.map_zero, zero_comp] },
   map := λ X Y f,
   { f := f.f⟦n⟧',
     comm' := by { dsimp, rw [category.assoc, shift_comm_hom_comp, ← functor.map_comp_assoc,
@@ -236,8 +236,9 @@ local attribute [reducible] endofunctor_monoidal_category discrete.add_monoidal 
 begin
   refine nat_iso.of_components (λ X, mk_iso (shift_add X.X _ _) _) _,
   { dsimp,
-    simp only [obj_μ_app, μ_naturality_assoc, μ_naturalityₗ_assoc, μ_inv_hom_app_assoc,
-      category.assoc, obj_μ_inv_app, functor.map_comp, μ_inv_naturalityᵣ_assoc],
+    simp_rw [category.assoc, obj_μ_inv_app, μ_inv_hom_app_assoc, functor.map_comp, obj_μ_app,
+      category.assoc, μ_naturality_assoc, μ_inv_hom_app_assoc, obj_μ_inv_app, category.assoc,
+      μ_naturalityₗ_assoc, μ_inv_hom_app_assoc, μ_inv_naturalityᵣ_assoc],
     simp [opaque_eq_to_iso] },
   { intros X Y f, ext, dsimp, exact nat_trans.naturality _ _ }
 end

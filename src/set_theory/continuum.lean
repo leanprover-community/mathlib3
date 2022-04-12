@@ -48,6 +48,9 @@ lemma continuum_pos : 0 < 𝔠 := nat_lt_continuum 0
 
 lemma continuum_ne_zero : 𝔠 ≠ 0 := continuum_pos.ne'
 
+lemma aleph_one_le_continuum : aleph 1 ≤ 𝔠 :=
+by { rw ← succ_omega, exact succ_le.2 omega_lt_continuum }
+
 /-!
 ### Addition
 -/

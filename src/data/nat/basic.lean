@@ -378,6 +378,17 @@ lemma two_lt_of_ne : ∀ {n}, n ≠ 0 → n ≠ 1 → n ≠ 2 → 2 < n
 | 2 _ _ h := (h rfl).elim
 | (n+3) _ _ _ := dec_trivial
 
+theorem forall_lt_succ {P : ℕ → Prop} {n : ℕ} : (∀ m < n.succ, P m) ↔ (∀ m < n, P m) ∧ P n :=
+⟨λ H, ⟨λ m hm, H m (lt_succ_iff.2 hm.le), H n (lt_succ_self n)⟩, begin
+  rintro ⟨H, hn⟩ m hm,
+  rcases eq_or_lt_of_le (lt_succ_iff.1 hm) with rfl | hmn,
+  { exact hn },
+  { exact H m hmn }
+end⟩
+
+theorem exists_lt_succ {P : ℕ → Prop} {n : ℕ} : (∃ m < n.succ, P m) ↔ (∃ m < n, P m) ∨ P n :=
+by { rw ←not_iff_not, push_neg, exact forall_lt_succ }
+
 /-! ### `add` -/
 
 -- Sometimes a bare `nat.add` or similar appears as a consequence of unfolding
@@ -546,7 +557,7 @@ theorem mul_self_lt_mul_self_iff {n m : ℕ} : n < m ↔ n * n < m * m :=
 le_iff_le_iff_lt_iff_lt.1 mul_self_le_mul_self_iff
 
 theorem le_mul_self : Π (n : ℕ), n ≤ n * n
-| 0     := le_refl _
+| 0     := le_rfl
 | (n+1) := let t := nat.mul_le_mul_left (n+1) (succ_pos n) in by simp at t; exact t
 
 lemma le_mul_of_pos_left {m n : ℕ} (h : 0 < n) : m ≤ n * m :=
@@ -606,6 +617,12 @@ lt_succ_iff.trans decidable.le_iff_lt_or_eq
 theorem mul_self_inj {n m : ℕ} : n * n = m * m ↔ n = m :=
 le_antisymm_iff.trans (le_antisymm_iff.trans
   (and_congr mul_self_le_mul_self_iff mul_self_le_mul_self_iff)).symm
+
+lemma le_add_pred_of_pos (n : ℕ) {i : ℕ} (hi : i ≠ 0) : n ≤ i + (n - 1) :=
+begin
+  refine le_trans _ (add_tsub_le_assoc),
+  simp [add_comm, nat.add_sub_assoc, one_le_iff_ne_zero.2 hi]
+end
 
 /-!
 ### Recursion and induction principles
@@ -794,6 +811,12 @@ le_div_iff_mul_le x y k0
 theorem div_lt_iff_lt_mul' {x y : ℕ} {k : ℕ} (k0 : 0 < k) : x / k < y ↔ x < y * k :=
 lt_iff_lt_of_le_iff_le $ le_div_iff_mul_le' k0
 
+lemma one_le_div_iff {a b : ℕ} (hb : 0 < b) : 1 ≤ a / b ↔ b ≤ a :=
+by rw [le_div_iff_mul_le _ _ hb, one_mul]
+
+lemma div_lt_one_iff {a b : ℕ} (hb : 0 < b) : a / b < 1 ↔ a < b :=
+lt_iff_lt_of_le_iff_le $ one_le_div_iff hb
+
 protected theorem div_le_div_right {n m : ℕ} (h : n ≤ m) {k : ℕ} : n / k ≤ m / k :=
 (nat.eq_zero_or_pos k).elim (λ k0, by simp [k0]) $ λ hk,
 (le_div_iff_mul_le' hk).2 $ le_trans (nat.div_mul_le_self _ _) h
@@ -843,7 +866,7 @@ else calc a / c * b / a ≤ b * a / c / a :
       nat.mul_div_mul _ _ (nat.pos_of_ne_zero ha0)]
 
 lemma eq_zero_of_le_half {a : ℕ} (h : a ≤ a / 2) : a = 0 :=
-eq_zero_of_le_div (le_refl _) h
+eq_zero_of_le_div le_rfl h
 
 protected theorem eq_mul_of_div_eq_right {a b c : ℕ} (H1 : b ∣ a) (H2 : a / b = c) :
   a = b * c :=
@@ -874,6 +897,18 @@ lemma lt_div_mul_add {a b : ℕ} (hb : 0 < b) : a < a/b*b + b :=
 begin
   rw [←nat.succ_mul, ←nat.div_lt_iff_lt_mul _ _ hb],
   exact nat.lt_succ_self _,
+end
+
+lemma div_eq_iff_eq_of_dvd_dvd {n x y : ℕ} (hn : n ≠ 0) (hx : x ∣ n) (hy : y ∣ n) :
+  n / x = n / y ↔ x = y :=
+begin
+  split,
+  { intros h,
+    rw ←mul_right_inj' hn,
+    apply nat.eq_mul_of_div_eq_left (dvd_mul_of_dvd_left hy x),
+    rw [eq_comm, mul_comm, nat.mul_div_assoc _ hy],
+    exact nat.eq_mul_of_div_eq_right hx h },
+  { intros h, rw h },
 end
 
 /-! ### `mod`, `dvd` -/
@@ -1003,6 +1038,15 @@ lemma succ_div_of_not_dvd {a b : ℕ} (hba : ¬ b ∣ a + 1) :
   (a + 1) / b = a / b :=
 by rw [succ_div, if_neg hba, add_zero]
 
+lemma dvd_iff_div_mul_eq (n d : ℕ) : d ∣ n ↔ n / d * d = n :=
+⟨λ h, nat.div_mul_cancel h, λ h, dvd.intro_left (n / d) h⟩
+
+lemma dvd_iff_le_div_mul (n d : ℕ) : d ∣ n ↔ n ≤ n / d * d :=
+((dvd_iff_div_mul_eq _ _).trans le_antisymm_iff).trans (and_iff_right (div_mul_le_self n d))
+
+lemma dvd_iff_dvd_dvd (n d : ℕ) : d ∣ n ↔ ∀ k : ℕ, k ∣ d → k ∣ n :=
+⟨λ h k hkd, dvd_trans hkd h, λ h, h _ dvd_rfl⟩
+
 @[simp] theorem mod_mod_of_dvd (n : nat) {m k : nat} (h : m ∣ k) : n % k % m = n % m :=
 begin
   conv { to_rhs, rw ←mod_add_div n k },
@@ -1083,7 +1127,7 @@ show ∃ d, b = c * a * d, from ⟨d, by cc⟩
 @[simp] lemma dvd_div_iff {a b c : ℕ} (hbc : c ∣ b) : a ∣ b / c ↔ c * a ∣ b :=
 ⟨λ h, mul_dvd_of_dvd_div hbc h, λ h, dvd_div_of_mul_dvd h⟩
 
-lemma div_mul_div {a b c d : ℕ} (hab : b ∣ a) (hcd : d ∣ c) :
+lemma div_mul_div_comm {a b c d : ℕ} (hab : b ∣ a) (hcd : d ∣ c) :
       (a / b) * (c / d) = (a * c) / (b * d) :=
 have exi1 : ∃ x, a = b * x, from hab,
 have exi2 : ∃ y, c = d * y, from hcd,
@@ -1423,7 +1467,7 @@ theorem bit_lt_bit0 : ∀ (b) {n m : ℕ}, n < m → bit b n < bit0 m
 | ff n m h := nat.bit0_lt h
 
 theorem bit_lt_bit (a b) {n m : ℕ} (h : n < m) : bit a n < bit b m :=
-lt_of_lt_of_le (bit_lt_bit0 _ h) (bit0_le_bit _ (le_refl _))
+lt_of_lt_of_le (bit_lt_bit0 _ h) (bit0_le_bit _ le_rfl)
 
 @[simp] lemma bit0_le_bit1_iff : bit0 k ≤ bit1 n ↔ k ≤ n :=
 ⟨λ h, by rwa [← nat.lt_succ_iff, n.bit1_eq_succ_bit0, ← n.bit0_succ_eq,

@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Simon Hudon, Mario Carneiro
 -/
 
 import algebra.group.defs
+import data.bracket
 import logic.function.basic
 
 /-!
@@ -150,6 +151,36 @@ eq_comm.trans mul_left_eq_self
 
 end right_cancel_monoid
 
+section has_involutive_inv
+variables {G : Type u} [has_involutive_inv G] {a b : G}
+
+@[simp, to_additive]
+lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
+
+@[simp, to_additive]
+lemma inv_surjective : function.surjective (has_inv.inv : G → G) :=
+inv_involutive.surjective
+
+@[to_additive]
+lemma inv_injective : function.injective (has_inv.inv : G → G) :=
+inv_involutive.injective
+
+@[simp, to_additive] theorem inv_inj {a b : G} : a⁻¹ = b⁻¹ ↔ a = b := inv_injective.eq_iff
+
+@[to_additive]
+lemma eq_inv_of_eq_inv (h : a = b⁻¹) : b = a⁻¹ :=
+by simp [h]
+
+@[to_additive]
+theorem eq_inv_iff_eq_inv : a = b⁻¹ ↔ b = a⁻¹ :=
+⟨eq_inv_of_eq_inv, eq_inv_of_eq_inv⟩
+
+@[to_additive]
+theorem inv_eq_iff_inv_eq  : a⁻¹ = b ↔ b⁻¹ = a :=
+eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
+
+end has_involutive_inv
+
 section div_inv_monoid
 
 variables {G : Type u} [div_inv_monoid G]
@@ -194,19 +225,6 @@ theorem left_inverse_inv (G) [group G] :
 inv_inv
 
 @[simp, to_additive]
-lemma inv_involutive : function.involutive (has_inv.inv : G → G) := inv_inv
-
-@[simp, to_additive]
-lemma inv_surjective : function.surjective (has_inv.inv : G → G) :=
-inv_involutive.surjective
-
-@[to_additive]
-lemma inv_injective : function.injective (has_inv.inv : G → G) :=
-inv_involutive.injective
-
-@[simp, to_additive] theorem inv_inj : a⁻¹ = b⁻¹ ↔ a = b := inv_injective.eq_iff
-
-@[simp, to_additive]
 theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 := inv_injective.eq_iff' one_inv
 
 @[simp, to_additive]
@@ -233,10 +251,6 @@ theorem mul_right_surjective (a : G) : function.surjective (λ x, x * a) :=
 @[simp, to_additive neg_add_rev]
 lemma mul_inv_rev (a b : G) : (a * b)⁻¹ = b⁻¹ * a⁻¹ :=
 inv_eq_of_mul_eq_one $ by simp
-
-@[to_additive]
-lemma eq_inv_of_eq_inv (h : a = b⁻¹) : b = a⁻¹ :=
-by simp [h]
 
 @[to_additive]
 lemma eq_inv_of_mul_eq_one (h : a * b = 1) : a = b⁻¹ :=
@@ -274,14 +288,6 @@ by rw [h, mul_inv_cancel_left]
 @[to_additive]
 lemma mul_eq_of_eq_mul_inv (h : a = c * b⁻¹) : a * b = c :=
 by simp [h]
-
-@[to_additive]
-theorem eq_inv_iff_eq_inv : a = b⁻¹ ↔ b = a⁻¹ :=
-⟨eq_inv_of_eq_inv, eq_inv_of_eq_inv⟩
-
-@[to_additive]
-theorem inv_eq_iff_inv_eq : a⁻¹ = b ↔ b⁻¹ = a :=
-eq_comm.trans $ eq_inv_iff_eq_inv.trans eq_comm
 
 @[to_additive]
 theorem mul_eq_one_iff_eq_inv : a * b = 1 ↔ a = b⁻¹ :=
@@ -461,10 +467,23 @@ theorem left_inverse_inv_mul_mul_right (c : G) :
   function.left_inverse (λ x, c⁻¹ * x) (λ x, c * x) :=
 assume x, inv_mul_cancel_left c x
 
+@[to_additive]
+lemma exists_npow_eq_one_of_zpow_eq_one {n : ℤ} (hn : n ≠ 0) {x : G} (h : x ^ n = 1) :
+  ∃ n : ℕ, 0 < n ∧ x ^ n = 1 :=
+begin
+  cases n with n n,
+  { rw zpow_of_nat at h,
+    refine ⟨n, nat.pos_of_ne_zero (λ n0, hn _), h⟩, rw n0, refl },
+  { rw [zpow_neg_succ_of_nat, inv_eq_one] at h,
+    refine ⟨n + 1, n.succ_pos, h⟩ }
+end
+
 end group
 
 section comm_group
-variables {G : Type u} [comm_group G]
+variables {G : Type u} [comm_group G] {a b c d : G}
+
+local attribute [simp] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
 
 @[to_additive neg_add]
 lemma mul_inv (a b : G) : (a * b)⁻¹ = a⁻¹ * b⁻¹ :=
@@ -475,13 +494,12 @@ lemma div_eq_of_eq_mul' {a b c : G} (h : a = b * c) : a / b = c :=
 by rw [h, div_eq_mul_inv, mul_comm, inv_mul_cancel_left]
 
 @[to_additive]
-lemma div_mul_comm (a b c d : G) : a / b * (c / d) = a * c / (b * d) :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, div_eq_mul_inv, mul_inv_rev, mul_assoc, mul_assoc,
-  mul_left_cancel_iff, mul_comm, mul_assoc]
+lemma mul_div_left_comm {x y z : G} : x * (y / z) = y * (x / z) :=
+by simp_rw [div_eq_mul_inv, mul_left_comm]
 
-variables {a b c d : G}
-
-local attribute [simp] mul_assoc mul_comm mul_left_comm div_eq_mul_inv
+@[to_additive]
+lemma div_mul_div_comm (a b c d : G) : a / b * (c / d) = a * c / (b * d) :=
+by simp
 
 @[to_additive]
 lemma div_mul_eq_div_div (a b c : G) : a / (b * c) = a / b / c :=
@@ -614,3 +632,14 @@ end
 by rw [div_eq_iff_eq_mul, div_mul_eq_mul_div', div_eq_iff_eq_mul', mul_div_assoc]
 
 end comm_group
+
+section commutator
+
+/-- The commutator of two elements `g₁` and `g₂`. -/
+instance commutator_element {G : Type*} [group G] : has_bracket G G :=
+⟨λ g₁ g₂, g₁ * g₂ * g₁⁻¹ * g₂⁻¹⟩
+
+lemma commutator_element_def  {G : Type*} [group G] (g₁ g₂ : G) :
+  ⁅g₁, g₂⁆ = g₁ * g₂ * g₁⁻¹ * g₂⁻¹ := rfl
+
+end commutator

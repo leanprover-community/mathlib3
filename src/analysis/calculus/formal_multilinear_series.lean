@@ -10,7 +10,7 @@ import analysis.normed_space.multilinear
 
 In this file we define `formal_multilinear_series 𝕜 E F` to be a family of `n`-multilinear maps for
 all `n`, designed to model the sequence of derivatives of a function. In other files we use this
-notion to define `C^n` functions (called `times_cont_diff` in `mathlib`) and analytic functions.
+notion to define `C^n` functions (called `cont_diff` in `mathlib`) and analytic functions.
 
 ## Notations
 
@@ -115,3 +115,24 @@ normed algebra over `𝕜`. -/
 λ n, (p n).restrict_scalars 𝕜
 
 end formal_multilinear_series
+
+namespace continuous_linear_map
+
+/-- Composing each term `pₙ` in a formal multilinear series with a continuous linear map `f` on the
+left gives a new formal multilinear series `f.comp_formal_multilinear_series p` whose general term
+is `f ∘ pₙ`. -/
+def comp_formal_multilinear_series (f : F →L[𝕜] G) (p : formal_multilinear_series 𝕜 E F) :
+  formal_multilinear_series 𝕜 E G :=
+λ n, f.comp_continuous_multilinear_map (p n)
+
+@[simp] lemma comp_formal_multilinear_series_apply
+  (f : F →L[𝕜] G) (p : formal_multilinear_series 𝕜 E F) (n : ℕ) :
+  (f.comp_formal_multilinear_series p) n = f.comp_continuous_multilinear_map (p n) :=
+rfl
+
+lemma comp_formal_multilinear_series_apply'
+  (f : F →L[𝕜] G) (p : formal_multilinear_series 𝕜 E F) (n : ℕ) (v : fin n → E) :
+  (f.comp_formal_multilinear_series p) n v = f (p n v) :=
+rfl
+
+end continuous_linear_map

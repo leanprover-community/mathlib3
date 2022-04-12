@@ -7,7 +7,7 @@ import algebraic_geometry.prime_spectrum.basic
 import algebra.category.CommRing.colimits
 import algebra.category.CommRing.limits
 import topology.sheaves.local_predicate
-import ring_theory.localization
+import ring_theory.localization.at_prime
 import ring_theory.subring.basic
 
 /-!
@@ -190,7 +190,7 @@ def sections_subring (U : (opens (prime_spectrum.Top R))ᵒᵖ) :
     { exact nm, },
     { simp only [ring_hom.map_neg, pi.neg_apply],
       erw [←w],
-      simp only [neg_mul_eq_neg_mul_symm], }
+      simp only [neg_mul], }
   end,
   mul_mem' :=
   begin
@@ -257,13 +257,14 @@ The structure sheaf on $Spec R$, valued in `CommRing`.
 
 This is provided as a bundled `SheafedSpace` as `Spec.SheafedSpace R` later.
 -/
-def structure_sheaf : sheaf CommRing (prime_spectrum.Top R) :=
+def Spec.structure_sheaf : sheaf CommRing (prime_spectrum.Top R) :=
 ⟨structure_presheaf_in_CommRing R,
   -- We check the sheaf condition under `forget CommRing`.
   (is_sheaf_iff_is_sheaf_comp _ _).mpr
     (is_sheaf_of_iso (structure_presheaf_comp_forget R).symm
       (structure_sheaf_in_Type R).property)⟩
 
+open Spec (structure_sheaf)
 
 namespace structure_sheaf
 

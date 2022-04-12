@@ -93,7 +93,7 @@ by simpa only [inv_inv] using h.const_smul a⁻¹
 lemma periodic.const_inv_smul₀ [add_comm_monoid α] [division_ring γ] [module γ α]
   (h : periodic f c) (a : γ) :
   periodic (λ x, f (a⁻¹ • x)) (a • c) :=
-by simpa only [inv_inv₀] using h.const_smul₀ a⁻¹
+by simpa only [inv_inv] using h.const_smul₀ a⁻¹
 
 lemma periodic.const_inv_mul [division_ring α]
   (h : periodic f c) (a : α) :
@@ -357,7 +357,7 @@ lemma antiperiodic.nat_mul_eq_of_eq_zero [comm_semiring α] [add_group β]
 begin
   rcases nat.even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
   have hk : (k : α) * (2 * c) = 2 * k * c := by rw [mul_left_comm, ← mul_assoc],
-  { simpa [hk, hi] using (h.nat_even_mul_periodic k).eq },
+  { simpa [← two_mul, hk, hi] using (h.nat_even_mul_periodic k).eq },
   { simpa [add_mul, hk, hi] using (h.nat_odd_mul_antiperiodic k).eq },
 end
 
@@ -367,7 +367,7 @@ lemma antiperiodic.int_mul_eq_of_eq_zero [comm_ring α] [add_group β]
 begin
   rcases int.even_or_odd n with ⟨k, rfl⟩ | ⟨k, rfl⟩;
   have hk : (k : α) * (2 * c) = 2 * k * c := by rw [mul_left_comm, ← mul_assoc],
-  { simpa [hk, hi] using (h.int_even_mul_periodic k).eq },
+  { simpa [← two_mul, hk, hi] using (h.int_even_mul_periodic k).eq },
   { simpa [add_mul, hk, hi] using (h.int_odd_mul_antiperiodic k).eq },
 end
 
@@ -414,7 +414,7 @@ by simpa only [inv_inv] using h.const_smul a⁻¹
 lemma antiperiodic.const_inv_smul₀ [add_comm_monoid α] [has_neg β] [division_ring γ] [module γ α]
   (h : antiperiodic f c) {a : γ} (ha : a ≠ 0) :
   antiperiodic (λ x, f (a⁻¹ • x)) (a • c) :=
-by simpa only [inv_inv₀] using h.const_smul₀ (inv_ne_zero ha)
+by simpa only [inv_inv] using h.const_smul₀ (inv_ne_zero ha)
 
 lemma antiperiodic.const_inv_mul [division_ring α] [has_neg β]
   (h : antiperiodic f c) {a : α} (ha : a ≠ 0) :

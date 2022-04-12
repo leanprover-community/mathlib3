@@ -363,7 +363,7 @@ begin
       end
     ... ≤ ρ (to_measurable (ρ + μ) (u m) ∩ w n) : begin
         rw [← coe_nnreal_smul_apply],
-        refine v.measure_le_of_frequently_le _ (absolutely_continuous.rfl.coe_nnreal_smul _) _ _,
+        refine v.measure_le_of_frequently_le _ (absolutely_continuous.rfl.smul _) _ _,
         assume x hx,
         have L : tendsto (λ (a : set α), ρ a / μ a) (v.filter_at x) (𝓝 (v.lim_ratio ρ x)) :=
           tendsto_nhds_lim hx.2.1.1,
@@ -460,7 +460,7 @@ begin
       end
     ... ≤ ρ s :
       by { rw [A, mul_zero, add_zero], exact measure_mono (inter_subset_left _ _) },
-  refine v.measure_le_of_frequently_le _ (absolutely_continuous.rfl.coe_nnreal_smul _) _ _,
+  refine v.measure_le_of_frequently_le _ (absolutely_continuous.rfl.smul _) _ _,
   assume x hx,
   have I : ∀ᶠ a in v.filter_at x, (q : ℝ≥0∞) < ρ a / μ a := (tendsto_order.1 hx.2).1 _ (h hx.1),
   apply I.frequently.mono (λ a ha, _),
@@ -515,8 +515,7 @@ begin
     exact nhds_within_le_nhds },
   simp only [zero_mul, ennreal.coe_zero] at B,
   apply ge_of_tendsto B,
-  filter_upwards [self_mem_nhds_within],
-  exact A
+  filter_upwards [self_mem_nhds_within] using A,
 end
 
 /-- As an intermediate step to show that `μ.with_density (v.lim_ratio_meas hρ) = ρ`, we show here
@@ -650,17 +649,15 @@ begin
                    not_false_iff] } },
     simp only [one_pow, one_mul, ennreal.coe_one] at this,
     refine ge_of_tendsto this _,
-    filter_upwards [self_mem_nhds_within],
-    assume t ht,
-    exact v.with_density_le_mul hρ hs ht },
+    filter_upwards [self_mem_nhds_within] with _ ht,
+    exact v.with_density_le_mul hρ hs ht, },
   { have : tendsto (λ (t : ℝ≥0), (t : ℝ≥0∞) * μ.with_density (v.lim_ratio_meas hρ) s) (𝓝[>] 1)
             (𝓝 ((1 : ℝ≥0) * μ.with_density (v.lim_ratio_meas hρ) s)),
     { refine ennreal.tendsto.mul_const (ennreal.tendsto_coe.2 nhds_within_le_nhds) _,
       simp only [ennreal.coe_one, true_or, ne.def, not_false_iff, one_ne_zero], },
     simp only [one_mul, ennreal.coe_one] at this,
     refine ge_of_tendsto this _,
-    filter_upwards [self_mem_nhds_within],
-    assume t ht,
+    filter_upwards [self_mem_nhds_within] with _ ht,
     exact v.le_mul_with_density hρ hs ht }
 end
 
@@ -678,12 +675,13 @@ begin
   have A : (μ.with_density (v.lim_ratio_meas hρ)).rn_deriv μ =ᵐ[μ] v.lim_ratio_meas hρ :=
     rn_deriv_with_density μ (v.lim_ratio_meas_measurable hρ),
   rw v.with_density_lim_ratio_meas_eq hρ at A,
-  filter_upwards [v.ae_tendsto_lim_ratio_meas hρ, A],
-  assume x hx h'x,
+  filter_upwards [v.ae_tendsto_lim_ratio_meas hρ, A] with _ _ h'x,
   rwa h'x,
 end
 
 end absolutely_continuous
+
+variable (ρ)
 
 /-- Main theorem on differentiation of measures: given a Vitali family `v` for a locally finite
 measure `μ`, and another locally finite measure `ρ`, then for `μ`-almost every `x` the
@@ -700,13 +698,51 @@ begin
     rn_deriv_with_density μ (measurable_rn_deriv ρ μ),
   have C : ∀ᵐ x ∂μ, tendsto (λ a, t a / μ a) (v.filter_at x) (𝓝 (t.rn_deriv μ x)) :=
     v.ae_tendsto_rn_deriv_of_absolutely_continuous (with_density_absolutely_continuous _ _),
-  filter_upwards [A, B, C],
-  assume x Ax Bx Cx,
+  filter_upwards [A, B, C] with _ Ax Bx Cx,
   convert Ax.add Cx,
   { ext1 a,
     conv_lhs { rw [eq_add] },
     simp only [pi.add_apply, coe_add, ennreal.add_div] },
   { simp only [Bx, zero_add] }
+end
+
+/-- Given a measurable set `s`, then `μ (s ∩ a) / μ a` converges when `a` shrinks to a typical
+point `x` along a Vitali family. The limit is `1` for `x ∈ s` and `0` for `x ∉ s`. This shows that
+almost every point of `s` is a Lebesgue density point for `s`. A version for non-measurable sets
+holds, but it only gives the first conclusion, see `ae_tendsto_measure_inter_div`. -/
+lemma ae_tendsto_measure_inter_div_of_measurable_set {s : set α} (hs : measurable_set s) :
+  ∀ᵐ x ∂μ, tendsto (λ a, μ (s ∩ a) / μ a) (v.filter_at x) (𝓝 (s.indicator 1 x)) :=
+begin
+  haveI : is_locally_finite_measure (μ.restrict s) :=
+    is_locally_finite_measure_of_le restrict_le_self,
+  filter_upwards [ae_tendsto_rn_deriv v (μ.restrict s), rn_deriv_restrict μ hs],
+  assume x hx h'x,
+  simpa only [h'x, restrict_apply' hs, inter_comm] using hx,
+end
+
+/-- Given an arbitrary set `s`, then `μ (s ∩ a) / μ a` converges to `1` when `a` shrinks to a
+typical point of `s` along a Vitali family. This shows that almost every point of `s` is a
+Lebesgue density point for `s`. A stronger version for measurable sets is given
+in `ae_tendsto_measure_inter_div_of_measurable_set`. -/
+lemma ae_tendsto_measure_inter_div (s : set α) :
+  ∀ᵐ x ∂(μ.restrict s), tendsto (λ a, μ (s ∩ a) / μ a) (v.filter_at x) (𝓝 1) :=
+begin
+  let t := to_measurable μ s,
+  have A : ∀ᵐ x ∂(μ.restrict s),
+    tendsto (λ a, μ (t ∩ a) / μ a) (v.filter_at x) (𝓝 (t.indicator 1 x)),
+  { apply ae_mono restrict_le_self,
+    apply ae_tendsto_measure_inter_div_of_measurable_set,
+    exact measurable_set_to_measurable _ _ },
+  have B : ∀ᵐ x ∂(μ.restrict s), t.indicator 1 x = (1 : ℝ≥0∞),
+  { refine ae_restrict_of_ae_restrict_of_subset (subset_to_measurable μ s) _,
+    filter_upwards [ae_restrict_mem (measurable_set_to_measurable μ s)] with _ hx,
+    simp only [hx, pi.one_apply, indicator_of_mem] },
+  filter_upwards [A, B] with x hx h'x,
+  rw [h'x] at hx,
+  apply hx.congr' _,
+  filter_upwards [v.eventually_filter_at_measurable_set x] with _ ha,
+  congr' 1,
+  exact measure_to_measurable_inter_of_sigma_finite ha _,
 end
 
 end

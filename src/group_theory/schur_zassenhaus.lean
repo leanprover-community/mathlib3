@@ -29,31 +29,16 @@ namespace subgroup
 
 section schur_zassenhaus_abelian
 
-variables {G : Type*} [group G] {H : subgroup G}
+open mem_left_transversals
 
-@[to_additive] instance : mul_action G (left_transversals (H : set G)) :=
-{ smul := λ g T, ⟨left_coset g T, mem_left_transversals_iff_exists_unique_inv_mul_mem.mpr (λ g', by
-  { obtain ⟨t, ht1, ht2⟩ := mem_left_transversals_iff_exists_unique_inv_mul_mem.mp T.2 (g⁻¹ * g'),
-    simp_rw [←mul_assoc, ←mul_inv_rev] at ht1 ht2,
-    refine ⟨⟨g * t, mem_left_coset g t.2⟩, ht1, _⟩,
-    rintros ⟨_, t', ht', rfl⟩ h,
-    exact subtype.ext ((mul_right_inj g).mpr (subtype.ext_iff.mp (ht2 ⟨t', ht'⟩ h))) })⟩,
-  one_smul := λ T, subtype.ext (one_left_coset T),
-  mul_smul := λ g g' T, subtype.ext (left_coset_assoc ↑T g g').symm }
+variables {G : Type*} [group G] {H : subgroup G}
 
 lemma smul_symm_apply_eq_mul_symm_apply_inv_smul
   (g : G) (α : left_transversals (H : set G)) (q : G ⧸ H) :
-  ↑((equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp (g • α).2)).symm q) =
-    g * ((equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)).symm
-      (g⁻¹ • q : G ⧸ H)) :=
-begin
-  let w := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)),
-  let y := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp (g • α).2)),
-  change ↑(y.symm q) = ↑(⟨_, mem_left_coset g (subtype.mem _)⟩ : (g • α).1),
-  refine subtype.ext_iff.mp (y.symm_apply_eq.mpr _),
-  change q = g • (w (w.symm (g⁻¹ • q : G ⧸ H))),
-  rw [equiv.apply_symm_apply, ←mul_smul, mul_inv_self, one_smul],
-end
+  ↑(to_equiv (g • α).2 q) = g * (to_equiv α.2 (g⁻¹ • q : G ⧸ H)) :=
+(subtype.ext_iff.mp (by exact (to_equiv (g • α).2).apply_eq_iff_eq_symm_apply.mpr
+  ((congr_arg _ ((to_equiv α.2).symm_apply_apply _)).trans (smul_inv_smul g q)).symm)).trans
+  (subtype.coe_mk _ (mem_left_coset g (subtype.mem _)))
 
 variables [is_commutative H] [fintype (G ⧸ H)]
 
@@ -62,10 +47,8 @@ variables (α β γ : left_transversals (H : set G))
 /-- The difference of two left transversals -/
 @[to_additive "The difference of two left transversals"]
 noncomputable def diff [hH : normal H] : H :=
-let α' := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)).symm,
-    β' := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp β.2)).symm in
-∏ (q : G ⧸ H), ⟨(α' q) * (β' q)⁻¹,
-  hH.mem_comm (quotient.exact' ((β'.symm_apply_apply q).trans (α'.symm_apply_apply q).symm))⟩
+∏ (q : G ⧸ H), ⟨(to_equiv α.2 q) * (to_equiv β.2 q)⁻¹, hH.mem_comm (quotient.exact'
+  (((to_equiv β.2).symm_apply_apply q).trans ((to_equiv α.2).symm_apply_apply q).symm))⟩
 
 @[to_additive] lemma diff_mul_diff [normal H] : diff α β * diff β γ = diff α γ :=
 finset.prod_mul_distrib.symm.trans (finset.prod_congr rfl (λ x hx, subtype.ext
@@ -114,8 +97,7 @@ setoid.mk (λ α β, diff α β = 1) ⟨λ α, diff_self α, λ α β h₁,
 def quotient_diff [H.normal] :=
 quotient H.setoid_diff
 
-instance [H.normal] : inhabited H.quotient_diff :=
-quotient.inhabited
+instance [H.normal] : inhabited H.quotient_diff := quotient.inhabited _
 
 variables {H}
 

@@ -25,7 +25,7 @@ open function
 class has_set_prod (α β : Type*) (γ : out_param Type*) :=
 (prod : α → β → γ)
 
-infix ` ×ˢ `:72 := has_set_prod.prod
+infixr ` ×ˢ `:72 := has_set_prod.prod
 
 namespace set
 
@@ -186,6 +186,12 @@ lemma prod_sub_preimage_iff {W : set γ} {f : α × β → γ} :
   s ×ˢ t ⊆ f ⁻¹' W ↔ ∀ a b, a ∈ s → b ∈ t → f (a, b) ∈ W :=
 by simp [subset_def]
 
+lemma image_prod_mk_subset_prod_left (hb : b ∈ t) : (λ a, (a, b)) '' s ⊆ s ×ˢ t :=
+by { rintro _ ⟨a, ha, rfl⟩, exact ⟨ha, hb⟩ }
+
+lemma image_prod_mk_subset_prod_right (ha : a ∈ s) : prod.mk a '' t ⊆ s ×ˢ t :=
+by { rintro _ ⟨b, hb, rfl⟩, exact ⟨ha, hb⟩ }
+
 lemma fst_image_prod_subset (s : set α) (t : set β) : prod.fst '' (s ×ˢ t) ⊆ s :=
 λ _ h, let ⟨_, ⟨h₂, _⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
 
@@ -222,6 +228,17 @@ begin
   { intro H,
     simp only [st.1.ne_empty, st.2.ne_empty, or_false] at H,
     exact prod_mono H.1 H.2 }
+end
+
+@[simp] lemma prod_eq_iff_eq (ht : t.nonempty) : s ×ˢ t = s₁ ×ˢ t ↔ s = s₁ :=
+begin
+  obtain ⟨b, hb⟩ := ht,
+  split,
+  { simp only [set.ext_iff],
+    intros h a,
+    simpa [hb, set.mem_prod] using h (a, b) },
+  { rintros rfl,
+    refl },
 end
 
 @[simp] lemma image_prod (f : α → β → γ) : (λ x : α × β, f x.1 x.2) '' (s ×ˢ t) = image2 f s t :=

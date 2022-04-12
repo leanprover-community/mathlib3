@@ -43,6 +43,8 @@ lemma verschiebung_zmod (x : 𝕎 (zmod p)) :
   verschiebung x = x * p :=
 by rw [← frobenius_verschiebung, frobenius_zmodp]
 
+variables (p R)
+
 lemma coeff_p_pow [char_p R p] (i : ℕ) : (p ^ i : 𝕎 R).coeff i = 1 :=
 begin
   induction i with i h,
@@ -64,6 +66,28 @@ begin
       { exact nat.prime.pos hp.out },
       { exact ne_of_apply_ne (λ (j : ℕ), j.succ) hj } } }
 end
+
+lemma coeff_p [char_p R p] (i : ℕ) : (p : 𝕎 R).coeff i = if i = 1 then 1 else 0 :=
+begin
+  split_ifs with hi,
+  { simpa only [hi, pow_one] using coeff_p_pow p R 1, },
+  { simpa only [pow_one] using coeff_p_pow_eq_zero p R hi, }
+end
+
+@[simp] lemma coeff_p_zero [char_p R p] : (p : 𝕎 R).coeff 0 = 0 :=
+by { rw [coeff_p, if_neg], exact zero_ne_one }
+
+@[simp] lemma coeff_p_one [char_p R p] : (p : 𝕎 R).coeff 1 = 1 :=
+by rw [coeff_p, if_pos rfl]
+
+lemma p_nonzero [nontrivial R] [char_p R p] : (p : 𝕎 R) ≠ 0 :=
+by { intros h, simpa only [h, zero_coeff, zero_ne_one] using coeff_p_one p R }
+
+lemma fraction_ring.p_nonzero [nontrivial R] [char_p R p] :
+  (p : fraction_ring (𝕎 R)) ≠ 0 :=
+by simpa using (is_fraction_ring.injective (𝕎 R) (fraction_ring (𝕎 R))).ne (p_nonzero _ _)
+
+variables {p R}
 
 /-- The “projection formula” for Frobenius and Verschiebung. -/
 lemma verschiebung_mul_frobenius (x y : 𝕎 R) :

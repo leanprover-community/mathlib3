@@ -135,7 +135,7 @@ begin
   intros B A,
   let q : i.obj (L.obj (A ⟹ i.obj B)) ⟶ A ⟹ i.obj B,
     apply cartesian_closed.curry (ir.hom_equiv _ _ _),
-    apply _ ≫ (ir.hom_equiv _ _).symm ((ev A).app (i.obj B)),
+    apply _ ≫ (ir.hom_equiv _ _).symm ((exp.ev A).app (i.obj B)),
     refine prod_comparison L A _ ≫ limits.prod.map (𝟙 _) (ε.app _) ≫ inv (prod_comparison _ _ _),
   have : η.app (A ⟹ i.obj B) ≫ q = 𝟙 (A ⟹ i.obj B),
   { dsimp,
@@ -154,7 +154,7 @@ If `i` witnesses that `D` is a reflective subcategory and an exponential ideal, 
 itself cartesian closed.
 -/
 def cartesian_closed_of_reflective : cartesian_closed D :=
-{ closed := λ B,
+{ closed' := λ B,
   { is_adj :=
     { right := i ⋙ exp (i.obj B) ⋙ left_adjoint i,
       adj :=

@@ -15,6 +15,7 @@ the same ideas, or similar results with a few minor differences. The file is div
 different general ideas.
 -/
 
+namespace set
 variables {α : Type*} {r : α → α → Prop} {s t : set α}
 
 /-! ### Subsets of bounded and unbounded sets -/
@@ -94,6 +95,20 @@ lemma bounded_ge_iff_bounded_gt [preorder α] [no_min_order α] : bounded (≥) 
 lemma unbounded_gt_iff_unbounded_ge [preorder α] [no_min_order α] :
   unbounded (>) s ↔ unbounded (≥) s :=
 @unbounded_lt_iff_unbounded_le (order_dual α) _ _ _
+
+/-! ### The universal set -/
+
+theorem unbounded_le_univ [has_le α] [no_top_order α] : unbounded (≤) (@set.univ α) :=
+λ a, let ⟨b, hb⟩ := exists_not_le a in ⟨b, ⟨⟩, hb⟩
+
+theorem unbounded_lt_univ [preorder α] [no_top_order α] : unbounded (<) (@set.univ α) :=
+unbounded_lt_of_unbounded_le unbounded_le_univ
+
+theorem unbounded_ge_univ [has_le α] [no_bot_order α] : unbounded (≥) (@set.univ α) :=
+λ a, let ⟨b, hb⟩ := exists_not_ge a in ⟨b, ⟨⟩, hb⟩
+
+theorem unbounded_gt_univ [preorder α] [no_bot_order α] : unbounded (>) (@set.univ α) :=
+unbounded_gt_of_unbounded_ge unbounded_ge_univ
 
 /-! ### Bounded and unbounded intervals -/
 
@@ -328,3 +343,5 @@ theorem bounded_gt_inter_gt [linear_order α] [no_min_order α] (a : α) :
 theorem unbounded_gt_inter_gt [linear_order α] [no_min_order α] (a : α) :
   unbounded (>) (s ∩ {b | b < a}) ↔ unbounded (>) s :=
 @unbounded_lt_inter_lt (order_dual α) s _ _ a
+
+end set

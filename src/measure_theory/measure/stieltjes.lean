@@ -57,9 +57,7 @@ by { rw left_lim, exact f.mono.tendsto_nhds_within_Iio x }
 lemma left_lim_le {x y : ℝ} (h : x ≤ y) : f.left_lim x ≤ f y :=
 begin
   apply le_of_tendsto (f.tendsto_left_lim x),
-  filter_upwards [self_mem_nhds_within],
-  assume z hz,
-  exact (f.mono (le_of_lt hz)).trans (f.mono h)
+  filter_upwards [self_mem_nhds_within] with _ hz using (f.mono (le_of_lt hz)).trans (f.mono h),
 end
 
 lemma le_left_lim {x y : ℝ} (h : x < y) : f x ≤ f.left_lim y :=
@@ -101,7 +99,7 @@ nonpos_iff_eq_zero.1 $ infi_le_of_le 0 $ infi_le_of_le 0 $ by simp
 @[simp] lemma length_Ioc (a b : ℝ) :
   f.length (Ioc a b) = of_real (f b - f a) :=
 begin
-  refine le_antisymm (infi_le_of_le a $ binfi_le b (subset.refl _))
+  refine le_antisymm (infi_le_of_le a $ infi₂_le b subset.rfl)
     (le_infi $ λ a', le_infi $ λ b', le_infi $ λ h, ennreal.coe_le_coe.2 _),
   cases le_or_lt b a with ab ab,
   { rw real.to_nnreal_of_nonpos (sub_nonpos.2 (f.mono ab)), apply zero_le, },
@@ -109,9 +107,8 @@ begin
   exact real.to_nnreal_le_to_nnreal (sub_le_sub (f.mono h₁) (f.mono h₂))
 end
 
-lemma length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) :
-  f.length s₁ ≤ f.length s₂ :=
-infi_le_infi $ λ a, infi_le_infi $ λ b, infi_le_infi2 $ λ h', ⟨subset.trans h h', le_refl _⟩
+lemma length_mono {s₁ s₂ : set ℝ} (h : s₁ ⊆ s₂) : f.length s₁ ≤ f.length s₂ :=
+infi_mono $ λ a, binfi_mono $ λ b, h.trans
 
 open measure_theory
 
@@ -145,7 +142,7 @@ begin
   refine λ s, finset.strong_induction_on s (λ s IH b cv, _),
   cases le_total b a with ab ab,
   { rw ennreal.of_real_eq_zero.2 (sub_nonpos.2 (f.mono ab)), exact zero_le _, },
-  have := cv ⟨ab, le_refl _⟩, simp at this,
+  have := cv ⟨ab, le_rfl⟩, simp at this,
   rcases this with ⟨i, is, cb, bd⟩,
   rw [← finset.insert_erase is] at cv ⊢,
   rw [finset.coe_insert, bUnion_insert] at cv,
@@ -174,7 +171,7 @@ begin
   will get an open interval `(p i, q' i)` covering `s i` with `f (q' i) - f (p i)` within `ε' i`
   of the `f`-length of `s i`. -/
   refine le_antisymm (by { rw ← f.length_Ioc, apply outer_le_length })
-    (le_binfi $ λ s hs, ennreal.le_of_forall_pos_le_add $ λ ε εpos h, _),
+    (le_infi₂ $ λ s hs, ennreal.le_of_forall_pos_le_add $ λ ε εpos h, _),
   let δ := ε / 2,
   have δpos : 0 < (δ : ℝ≥0∞), by simpa using εpos.ne',
   rcases ennreal.exists_pos_sum_of_encodable δpos.ne' ℕ with ⟨ε', ε'0, hε⟩,
@@ -202,7 +199,7 @@ begin
   have I_subset : Icc a' b ⊆ ⋃ i, Ioo (g i).1 (g i).2 := calc
     Icc a' b ⊆ Ioc a b : λ x hx, ⟨aa'.trans_le hx.1, hx.2⟩
     ... ⊆ ⋃ i, s i : hs
-    ... ⊆ ⋃ i, Ioo (g i).1 (g i).2 : Union_subset_Union (λ i, (hg i).1),
+    ... ⊆ ⋃ i, Ioo (g i).1 (g i).2 : Union_mono (λ i, (hg i).1),
   calc of_real (f b - f a)
       = of_real ((f b - f a') + (f a' - f a)) : by rw sub_add_sub_cancel
   ... ≤ of_real (f b - f a') + of_real (f a' - f a) : ennreal.of_real_add_le
@@ -259,7 +256,7 @@ begin
     exact ⟨_, h₁, measurable_set_Ioc, le_of_lt $ by simpa using h₂⟩ },
   simp at hg,
   apply infi_le_of_le (Union g) _,
-  apply infi_le_of_le (subset.trans ht $ Union_subset_Union (λ i, (hg i).1)) _,
+  apply infi_le_of_le (ht.trans $ Union_mono (λ i, (hg i).1)) _,
   apply infi_le_of_le (measurable_set.Union (λ i, (hg i).2.1)) _,
   exact le_trans (f.outer.Union _) (ennreal.tsum_le_tsum $ λ i, (hg i).2.2)
 end

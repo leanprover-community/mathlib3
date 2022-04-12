@@ -3,9 +3,9 @@ Copyright (c) 2021 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import topology.instances.ennreal
-import topology.algebra.ordered.monotone_continuity
 import data.real.ereal
+import topology.algebra.order.monotone_continuity
+import topology.instances.ennreal
 
 /-!
 # Topological structure on `ereal`
@@ -196,7 +196,7 @@ lemma nhds_top' : 𝓝 (⊤ : ereal) = ⨅ a : ℝ, 𝓟 (Ioi a) :=
 begin
   rw [nhds_top],
   apply le_antisymm,
-  { exact infi_le_infi2 (λ x, ⟨x, by simp⟩) },
+  { exact infi_mono' (λ x, ⟨x, by simp⟩) },
   { refine le_infi (λ r, le_infi (λ hr, _)),
     induction r using ereal.rec,
     { exact (infi_le _ 0).trans (by simp) },
@@ -223,7 +223,7 @@ lemma nhds_bot' : 𝓝 (⊥ : ereal) = ⨅ a : ℝ, 𝓟 (Iio a) :=
 begin
   rw [nhds_bot],
   apply le_antisymm,
-  { exact infi_le_infi2 (λ x, ⟨x, by simp⟩) },
+  { exact infi_mono' (λ x, ⟨x, by simp⟩) },
   { refine le_infi (λ r, le_infi (λ hr, _)),
     induction r using ereal.rec,
     { simpa using hr },

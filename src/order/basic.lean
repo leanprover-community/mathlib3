@@ -25,9 +25,8 @@ classes and allows to transfer order instances.
 - `partial_order.lift`, `linear_order.lift`: Transfers a partial (resp., linear) order on `β` to a
   partial (resp., linear) order on `α` using an injective function `f`.
 
-### Extra classes
+### Extra class
 
-- `no_max_order`, `no_min_order`: An order without a maximal/minimal element.
 - `densely_ordered`: An order with no gap, i.e. for any two elements `a < b` there exists `c` such
   that `a < c < b`.
 
@@ -184,9 +183,12 @@ lemma eq_iff_le_not_lt [partial_order α] {a b : α} : a = b ↔ a ≤ b ∧ ¬ 
 by haveI := classical.dec; exact decidable.eq_iff_le_not_lt
 
 lemma eq_or_lt_of_le [partial_order α] {a b : α} (h : a ≤ b) : a = b ∨ a < b := h.lt_or_eq.symm
+lemma eq_or_gt_of_le [partial_order α] {a b : α} (h : a ≤ b) : b = a ∨ a < b :=
+h.lt_or_eq.symm.imp eq.symm id
 
 alias decidable.eq_or_lt_of_le ← has_le.le.eq_or_lt_dec
 alias eq_or_lt_of_le ← has_le.le.eq_or_lt
+alias eq_or_gt_of_le ← has_le.le.eq_or_gt
 
 attribute [nolint decidable_classical] has_le.le.eq_or_lt_dec
 
@@ -465,35 +467,53 @@ function `f : α → β`. See note [reducible non-instances]. -/
   decidable_eq := λ x y, decidable_of_iff _ inj.eq_iff,
   .. partial_order.lift f inj }
 
-instance subtype.preorder {α} [preorder α] (p : α → Prop) : preorder (subtype p) :=
-preorder.lift (coe : subtype p → α)
+/-! ### Subtype of an order -/
 
-@[simp] lemma subtype.mk_le_mk {α} [preorder α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
+namespace subtype
+
+instance [has_le α] {p : α → Prop} : has_le (subtype p) := ⟨λ x y, (x : α) ≤ y⟩
+instance [has_lt α] {p : α → Prop} : has_lt (subtype p) := ⟨λ x y, (x : α) < y⟩
+
+@[simp] lemma mk_le_mk [has_le α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
   (⟨x, hx⟩ : subtype p) ≤ ⟨y, hy⟩ ↔ x ≤ y :=
 iff.rfl
 
-@[simp] lemma subtype.mk_lt_mk {α} [preorder α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
+@[simp] lemma mk_lt_mk [has_lt α] {p : α → Prop} {x y : α} {hx : p x} {hy : p y} :
   (⟨x, hx⟩ : subtype p) < ⟨y, hy⟩ ↔ x < y :=
 iff.rfl
 
-@[simp, norm_cast] lemma subtype.coe_le_coe {α} [preorder α] {p : α → Prop} {x y : subtype p} :
-  (x : α) ≤ y ↔ x ≤ y :=
-iff.rfl
+@[simp, norm_cast]
+lemma coe_le_coe [has_le α] {p : α → Prop} {x y : subtype p} : (x : α) ≤ y ↔ x ≤ y := iff.rfl
 
-@[simp, norm_cast] lemma subtype.coe_lt_coe {α} [preorder α] {p : α → Prop} {x y : subtype p} :
-  (x : α) < y ↔ x < y :=
-iff.rfl
+@[simp, norm_cast]
+lemma coe_lt_coe [has_lt α] {p : α → Prop} {x y : subtype p} : (x : α) < y ↔ x < y := iff.rfl
 
-instance subtype.partial_order {α} [partial_order α] (p : α → Prop) :
+instance [preorder α] (p : α → Prop) : preorder (subtype p) := preorder.lift (coe : subtype p → α)
+
+instance partial_order [partial_order α] (p : α → Prop) :
   partial_order (subtype p) :=
 partial_order.lift coe subtype.coe_injective
 
-/-- A subtype of a linear order is a linear order. We explicitly give the proof of decidable
-  equality as the existing instance, in order to not have two instances of decidable equality that
-  are not definitionally equal. -/
-instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
+instance decidable_le [preorder α] [@decidable_rel α (≤)] {p : α → Prop} :
+  @decidable_rel (subtype p) (≤) :=
+λ a b, decidable_of_iff _ subtype.coe_le_coe
+
+instance decidable_lt [preorder α] [@decidable_rel α (<)] {p : α → Prop} :
+  @decidable_rel (subtype p) (<) :=
+λ a b, decidable_of_iff _ subtype.coe_lt_coe
+
+/-- A subtype of a linear order is a linear order. We explicitly give the proofs of decidable
+equality and decidable order in order to ensure the decidability instances are all definitionally
+equal. -/
+instance [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
 { decidable_eq := subtype.decidable_eq,
+  decidable_le := subtype.decidable_le,
+  decidable_lt := subtype.decidable_lt,
+  max_def := by { ext a b, convert rfl },
+  min_def := by { ext a b, convert rfl },
   .. linear_order.lift coe subtype.coe_injective }
+
+end subtype
 
 /-!
 ### Pointwise order on `α × β`
@@ -513,11 +533,17 @@ lemma le_def [has_le α] [has_le β] {x y : α × β} : x ≤ y ↔ x.1 ≤ y.1 
   (x₁, y₁) ≤ (x₂, y₂) ↔ x₁ ≤ x₂ ∧ y₁ ≤ y₂ :=
 iff.rfl
 
+@[simp] lemma swap_le_swap [has_le α] [has_le β] {x y : α × β} : x.swap ≤ y.swap ↔ x ≤ y :=
+and_comm _ _
+
 instance (α : Type u) (β : Type v) [preorder α] [preorder β] : preorder (α × β) :=
 { le_refl  := λ ⟨a, b⟩, ⟨le_refl a, le_refl b⟩,
   le_trans := λ ⟨a, b⟩ ⟨c, d⟩ ⟨e, f⟩ ⟨hac, hbd⟩ ⟨hce, hdf⟩,
     ⟨le_trans hac hce, le_trans hbd hdf⟩,
   .. prod.has_le α β }
+
+@[simp] lemma swap_lt_swap [preorder α] [preorder β] {x y : α × β} : x.swap < y.swap ↔ x < y :=
+and_congr swap_le_swap (not_congr swap_le_swap)
 
 lemma lt_iff [preorder α] [preorder β] {a b : α × β} :
   a < b ↔ a.1 < b.1 ∧ a.2 ≤ b.2 ∨ a.1 ≤ b.1 ∧ a.2 < b.2 :=
@@ -547,66 +573,6 @@ instance (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
 end prod
 
 /-! ### Additional order classes -/
-
-/-- Order without a maximal element. Sometimes called cofinal. -/
-class no_max_order (α : Type u) [has_lt α] : Prop :=
-(exists_gt (a : α) : ∃ b, a < b)
-
-lemma exists_gt [has_lt α] [no_max_order α] : ∀ a : α, ∃ a', a < a' :=
-no_max_order.exists_gt
-
-instance nonempty_gt [has_lt α] [no_max_order α] (a : α) : nonempty {x // a < x} :=
-nonempty_subtype.2 (exists_gt a)
-
-/-- `a : α` is a top element of `α` if it is greater than or equal to any other element of `α`.
-This predicate is roughly an unbundled version of `order_bot`, except that a preorder may have
-several top elements. When `α` is linear, this is useful to make a case disjunction on
-`no_max_order α` within a proof. -/
-def is_top {α : Type u} [has_le α] (a : α) : Prop := ∀ b, b ≤ a
-
-@[simp] lemma not_is_top [preorder α] [no_max_order α] (a : α) : ¬is_top a :=
-λ h, let ⟨b, hb⟩ := exists_gt a in hb.not_le (h b)
-
-lemma is_top.unique {α : Type u} [partial_order α] {a b : α} (ha : is_top a) (hb : a ≤ b) :
-  a = b :=
-le_antisymm hb (ha b)
-
-lemma is_top_or_exists_gt [linear_order α] (a : α) : is_top a ∨ ∃ b, a < b :=
-by simpa only [or_iff_not_imp_left, is_top, not_forall, not_le] using id
-
-/-- Order without a minimal element. Sometimes called coinitial or dense. -/
-class no_min_order (α : Type u) [has_lt α] : Prop :=
-(exists_lt (a : α) : ∃ b, b < a)
-
-lemma exists_lt [has_lt α] [no_min_order α] : ∀ a : α, ∃ a', a' < a :=
-no_min_order.exists_lt
-
-/-- `a : α` is a bottom element of `α` if it is less than or equal to any other element of `α`.
-This predicate is roughly an unbundled version of `order_bot`, except that a preorder may have
-several bottom elements. When `α` is linear, this is useful to make a case disjunction on
-`no_min_order α` within a proof. -/
-def is_bot {α : Type u} [has_le α] (a : α) : Prop := ∀ b, a ≤ b
-
-@[simp] lemma not_is_bot [preorder α] [no_min_order α] (a : α) : ¬is_bot a :=
-λ h, let ⟨b, hb⟩ := exists_lt a in hb.not_le (h b)
-
-lemma is_bot.unique {α : Type u} [partial_order α] {a b : α} (ha : is_bot a) (hb : b ≤ a) :
-  a = b :=
-le_antisymm (ha b) hb
-
-lemma is_bot_or_exists_lt [linear_order α] (a : α) : is_bot a ∨ ∃ b, b < a :=
-@is_top_or_exists_gt (order_dual α) _ a
-
-instance order_dual.no_max_order (α : Type u) [has_lt α] [no_min_order α] :
-  no_max_order (order_dual α) :=
-⟨λ a, @exists_lt α _ _ a⟩
-
-instance order_dual.no_min_order (α : Type u) [has_lt α] [no_max_order α] :
-  no_min_order (order_dual α) :=
-⟨λ a, @exists_gt α _ _ a⟩
-
-instance nonempty_lt [has_lt α] [no_min_order α] (a : α) : nonempty {x // x < a} :=
-nonempty_subtype.2 (exists_lt a)
 
 /-- An order is dense if there is an element between any pair of distinct elements. -/
 class densely_ordered (α : Type u) [has_lt α] : Prop :=

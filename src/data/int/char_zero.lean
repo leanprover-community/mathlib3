@@ -36,3 +36,7 @@ theorem cast_ne_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n :
 not_congr cast_eq_zero
 
 end int
+
+lemma ring_hom.injective_int {α : Type*} [ring α] (f : ℤ →+* α) [char_zero α] :
+  function.injective f :=
+subsingleton.elim (int.cast_ring_hom _) f ▸ int.cast_injective

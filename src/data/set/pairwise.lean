@@ -17,9 +17,14 @@ This file defines pairwise relations and pairwise disjoint indexed sets.
 * `set.pairwise`: `s.pairwise r` states that `r i j` for all `i ≠ j` with `i, j ∈ s`.
 * `set.pairwise_disjoint`: `s.pairwise_disjoint f` states that images under `f` of distinct elements
   of `s` are either equal or `disjoint`.
+
+## Notes
+
+The spelling `s.pairwise_disjoint id` is preferred over `s.pairwise disjoint` to permit dot notation
+on `set.pairwise_disjoint`, even though the latter unfolds to something nicer.
 -/
 
-open set
+open set function
 
 variables {α ι ι' : Type*} {r p q : α → α → Prop}
 
@@ -54,6 +59,11 @@ symmetric.pairwise_on disjoint.symm f
 lemma pairwise_disjoint.mono [semilattice_inf α] [order_bot α]
   (hs : pairwise (disjoint on f)) (h : g ≤ f) : pairwise (disjoint on g) :=
 hs.mono (λ i j hij, disjoint.mono (h i) (h j) hij)
+
+lemma function.injective_iff_pairwise_ne : injective f ↔ pairwise ((≠) on f) :=
+forall₂_congr $ λ i j, not_imp_not.symm
+
+alias function.injective_iff_pairwise_ne ↔ function.injective.pairwise_ne _
 
 namespace set
 
@@ -147,9 +157,18 @@ lemma pairwise_insert :
 by simp only [insert_eq, pairwise_union, pairwise_singleton, true_and,
   mem_singleton_iff, forall_eq]
 
+lemma pairwise.insert (hs : s.pairwise r) (h : ∀ b ∈ s, a ≠ b → r a b ∧ r b a) :
+  (insert a s).pairwise r :=
+pairwise_insert.2 ⟨hs, h⟩
+
 lemma pairwise_insert_of_symmetric (hr : symmetric r) :
   (insert a s).pairwise r ↔ s.pairwise r ∧ ∀ b ∈ s, a ≠ b → r a b :=
 by simp only [pairwise_insert, hr.iff a, and_self]
+
+lemma pairwise.insert_of_symmetric (hs : s.pairwise r) (hr : symmetric r)
+  (h : ∀ b ∈ s, a ≠ b → r a b) :
+  (insert a s).pairwise r :=
+(pairwise_insert_of_symmetric hr).2 ⟨hs, h⟩
 
 lemma pairwise_pair : set.pairwise {a, b} r ↔ (a ≠ b → r a b ∧ r b a) :=
 by simp [pairwise_insert]
@@ -210,7 +229,11 @@ section semilattice_inf_bot
 variables [semilattice_inf α] [order_bot α] {s t : set ι} {f g : ι → α}
 
 /-- A set is `pairwise_disjoint` under `f`, if the images of any distinct two elements under `f`
-are disjoint. -/
+are disjoint.
+
+`s.pairwise disjoint` is (definitionally) the same as `s.pairwise_disjoint id`. We prefer the latter
+in order to allow dot notation on `set.pairwise_disjoint`, even though the former unfolds more
+nicely. -/
 def pairwise_disjoint (s : set ι) (f : ι → α) : Prop := s.pairwise (disjoint on f)
 
 lemma pairwise_disjoint.subset (ht : t.pairwise_disjoint f) (h : s ⊆ t) : s.pairwise_disjoint f :=
@@ -287,6 +310,11 @@ lemma pairwise_disjoint.elim' (hs : s.pairwise_disjoint f) {i j : ι} (hi : i �
   i = j :=
 hs.elim hi hj $ λ hij, h hij.eq_bot
 
+lemma pairwise_disjoint.eq_of_le (hs : s.pairwise_disjoint f) {i j : ι} (hi : i ∈ s) (hj : j ∈ s)
+  (hf : f i ≠ ⊥) (hij : f i ≤ f j) :
+  i = j :=
+hs.elim' hi hj $ λ h, hf $ (inf_of_le_left hij).symm.trans h
+
 end semilattice_inf_bot
 
 section complete_lattice
@@ -305,7 +333,7 @@ begin
   obtain ⟨d, hd, hb⟩ := hb,
   obtain hcd | hcd := eq_or_ne (g c) (g d),
   { exact hg d hd (hcd.subst ha) hb hab },
-  { exact (hs hc hd (ne_of_apply_ne _ hcd)).mono (le_bsupr a ha) (le_bsupr b hb) }
+  { exact (hs hc hd $ ne_of_apply_ne _ hcd).mono (le_supr₂ a ha) (le_supr₂ b hb) }
 end
 
 end complete_lattice
@@ -331,14 +359,14 @@ lemma bUnion_diff_bUnion_eq {s t : set ι} {f : ι → set α} (h : (s ∪ t).pa
   (⋃ i ∈ s, f i) \ (⋃ i ∈ t, f i) = (⋃ i ∈ s \ t, f i) :=
 begin
   refine (bUnion_diff_bUnion_subset f s t).antisymm
-    (bUnion_subset $ λ i hi a ha, (mem_diff _).2 ⟨mem_bUnion hi.1 ha, _⟩),
+    (Union₂_subset $ λ i hi a ha, (mem_diff _).2 ⟨mem_bUnion hi.1 ha, _⟩),
   rw mem_Union₂, rintro ⟨j, hj, haj⟩,
   exact h (or.inl hi.1) (or.inr hj) (ne_of_mem_of_not_mem hj hi.2).symm ⟨ha, haj⟩,
 end
 
 /-- Equivalence between a disjoint bounded union and a dependent sum. -/
 noncomputable def bUnion_eq_sigma_of_disjoint {s : set ι} {f : ι → set α}
-  (h : s.pairwise (disjoint on f)) :
+  (h : s.pairwise_disjoint f) :
   (⋃ i ∈ s, f i) ≃ (Σ i : s, f i) :=
 (equiv.set_congr (bUnion_eq_Union _ _)).trans $ Union_eq_sigma_of_disjoint $
   λ ⟨i, hi⟩ ⟨j, hj⟩ ne, h hi hj $ λ eq, ne $ subtype.eq eq

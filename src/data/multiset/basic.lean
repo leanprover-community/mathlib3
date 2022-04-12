@@ -228,6 +228,7 @@ section subset
 protected def subset (s t : multiset α) : Prop := ∀ ⦃a : α⦄, a ∈ s → a ∈ t
 
 instance : has_subset (multiset α) := ⟨multiset.subset⟩
+instance : has_ssubset (multiset α) := ⟨λ s t, s ⊆ t ∧ ¬ t ⊆ s⟩
 
 @[simp] theorem coe_subset {l₁ l₂ : list α} : (l₁ : multiset α) ⊆ l₂ ↔ l₁ ⊆ l₂ := iff.rfl
 
@@ -243,8 +244,16 @@ theorem mem_of_subset {s t : multiset α} {a : α} (h : s ⊆ t) : a ∈ s → a
 @[simp] theorem zero_subset (s : multiset α) : 0 ⊆ s :=
 λ a, (not_mem_nil a).elim
 
+lemma subset_cons (s : multiset α) (a : α) : s ⊆ a ::ₘ s := λ _, mem_cons_of_mem
+
+lemma ssubset_cons {s : multiset α} {a : α} (ha : a ∉ s) : s ⊂ a ::ₘ s :=
+⟨subset_cons _ _, λ h, ha $ h $ mem_cons_self _ _⟩
+
 @[simp] theorem cons_subset {a : α} {s t : multiset α} : (a ::ₘ s) ⊆ t ↔ a ∈ t ∧ s ⊆ t :=
 by simp [subset_iff, or_imp_distrib, forall_and_distrib]
+
+lemma cons_subset_cons {a : α} {s t : multiset α} : s ⊆ t → a ::ₘ s ⊆ a ::ₘ t :=
+quotient.induction_on₂ s t $ λ _ _, cons_subset_cons _
 
 theorem eq_zero_of_subset_zero {s : multiset α} (h : s ⊆ 0) : s = 0 :=
 eq_zero_of_forall_not_mem h
@@ -1596,7 +1605,7 @@ theorem count_cons (a b : α) (s : multiset α) :
   count a (b ::ₘ s) = count a s + (if a = b then 1 else 0) :=
 by by_cases h : a = b; simp [h]
 
-theorem count_singleton_self (a : α) : count a ({a} : multiset α) = 1 :=
+@[simp] theorem count_singleton_self (a : α) : count a ({a} : multiset α) = 1 :=
 by simp only [count_cons_self, singleton_eq_cons, eq_self_iff_true, count_zero]
 
 theorem count_singleton (a b : α) : count a ({b} : multiset α) = if a = b then 1 else 0 :=
@@ -1767,7 +1776,41 @@ end
 lemma filter_eq (s : multiset α) (b : α) : s.filter (eq b) = repeat b (count b s) :=
 by simp_rw [←filter_eq', eq_comm]
 
+@[simp] lemma repeat_inter (x : α) (n : ℕ) (s : multiset α) :
+  repeat x n ∩ s = repeat x (min n (s.count x)) :=
+begin
+  refine le_antisymm _ _,
+  { simp only [le_iff_count, count_inter, count_repeat],
+    intro a,
+    split_ifs with h,
+    { rw h },
+    { rw [nat.zero_min] } },
+  simp only [le_inter_iff, ← le_count_iff_repeat_le, count_inter, count_repeat_self],
 end
+
+@[simp] lemma inter_repeat (s : multiset α) (x : α) (n : ℕ) :
+  s ∩ repeat x n = repeat x (min (s.count x) n) :=
+by rw [inter_comm, repeat_inter, min_comm]
+
+end
+
+section embedding
+
+@[simp] lemma map_le_map_iff {f : α → β} (hf : function.injective f) {s t : multiset α} :
+  s.map f ≤ t.map f ↔ s ≤ t :=
+begin
+  classical,
+  refine ⟨λ h, le_iff_count.mpr (λ a, _), map_le_map⟩,
+  simpa [count_map_eq_count' f _ hf] using le_iff_count.mp h (f a),
+end
+
+/-- Associate to an embedding `f` from `α` to `β` the order embedding that maps a multiset to its
+image under `f`. -/
+@[simps]
+def map_embedding (f : α ↪ β) : multiset α ↪o multiset β :=
+order_embedding.of_map_le_iff (map f) (λ _ _, map_le_map_iff f.inj')
+
+end embedding
 
 lemma count_eq_card_filter_eq [decidable_eq α] (s : multiset α) (a : α) :
   s.count a = (s.filter (eq a)).card :=

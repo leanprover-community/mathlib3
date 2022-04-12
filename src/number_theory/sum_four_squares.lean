@@ -34,7 +34,8 @@ have hxsuby : even (x - y), by simpa [sq] with parity_simps,
 (mul_right_inj' (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
 calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
 ... = (2 * ((x - y) / 2))^2 + (2 * ((x + y) / 2))^2 :
-  by rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy]
+  by { rw even_iff_two_dvd at hxsuby hxaddy,
+    rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy] }
 ... = 2 * 2 * (((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2) :
   by simp [mul_add, pow_succ, mul_comm, mul_assoc, mul_left_comm]
 
@@ -60,7 +61,7 @@ have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
           (add_le_add
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _)
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
-          (le_refl _)
+          le_rfl
       ... < (p / 2) ^ 2 + (p / 2)^ 2 + (p % 2)^2 + ((2 * (p / 2)^2 + (4 * (p / 2) * (p % 2)))) :
         by rw [hp1, one_pow, mul_one];
           exact (lt_add_iff_pos_right _).2

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Anatole Dedecker
 -/
 import algebra.order.floor
-import topology.algebra.ordered.basic
+import topology.algebra.order.basic
 
 /-!
 # Topological facts about `int.floor`, `int.ceil` and `int.fract`
@@ -73,7 +73,7 @@ begin
   norm_cast,
   convert ← floor_mono hx,
   rw floor_eq_iff,
-  exact ⟨le_refl _, lt_add_one _⟩
+  exact ⟨le_rfl, lt_add_one _⟩
 end
 
 lemma tendsto_ceil_left [order_closed_topology α] (n : ℤ) :
@@ -85,7 +85,7 @@ begin
   norm_cast,
   convert ← ceil_mono hx,
   rw ceil_eq_iff,
-  exact ⟨sub_one_lt _, le_refl _⟩
+  exact ⟨sub_one_lt _, le_rfl⟩
 end
 
 lemma tendsto_floor_left [order_closed_topology α] (n : ℤ) :
@@ -94,7 +94,7 @@ begin
   rw ← nhds_within_Ico_eq_nhds_within_Iio (sub_one_lt (n : α)),
   convert (tendsto_nhds_within_congr $ (λ x hx, (floor_eq_on_Ico' (n-1) x hx).symm))
     (tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ tendsto_const_nhds
-      (eventually_of_forall (λ _, mem_Iic.mpr $ le_refl _)));
+      (eventually_of_forall (λ _, mem_Iic.mpr $ le_rfl)));
   norm_cast <|> apply_instance,
   ring
 end
@@ -105,7 +105,7 @@ begin
   rw ← nhds_within_Ioc_eq_nhds_within_Ioi (lt_add_one (n : α)),
   convert (tendsto_nhds_within_congr $ (λ x hx, (ceil_eq_on_Ioc' (n+1) x hx).symm))
     (tendsto_nhds_within_of_tendsto_nhds_of_eventually_within _ tendsto_const_nhds
-      (eventually_of_forall (λ _, mem_Ici.mpr $ le_refl _)));
+      (eventually_of_forall (λ _, mem_Ici.mpr $ le_rfl)));
   norm_cast <|> apply_instance,
   ring
 end

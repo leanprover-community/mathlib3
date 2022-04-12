@@ -67,11 +67,14 @@ instance : add_monoid_hom_class (E →ₛₗᵢ[σ₁₂] E₂) E E₂ :=
   map_add := λ f, map_add f.to_linear_map,
   map_zero := λ f, map_zero f.to_linear_map }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly.
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly.
 -/
 instance : has_coe_to_fun (E →ₛₗᵢ[σ₁₂] E₂) (λ _, E → E₂) := ⟨λ f, f.to_fun⟩
 
 @[simp] lemma coe_to_linear_map : ⇑f.to_linear_map = f := rfl
+
+@[simp] lemma coe_mk (f : E →ₛₗ[σ₁₂] E₂) (hf) : ⇑(mk f hf) = f := rfl
 
 lemma coe_injective : @injective (E →ₛₗᵢ[σ₁₂] E₂) (E → E₂) coe_fn :=
 fun_like.coe_injective
@@ -167,6 +170,9 @@ def id : E →ₗᵢ[R] E := ⟨linear_map.id, λ x, rfl⟩
 @[simp] lemma id_apply (x : E) : (id : E →ₗᵢ[R] E) x = x := rfl
 
 @[simp] lemma id_to_linear_map : (id.to_linear_map : E →ₗ[R] E) = linear_map.id := rfl
+
+@[simp] lemma id_to_continuous_linear_map :
+  id.to_continuous_linear_map = continuous_linear_map.id R E := rfl
 
 instance : inhabited (E →ₗᵢ[R] E) := ⟨id⟩
 
@@ -266,7 +272,8 @@ instance : add_monoid_hom_class (E ≃ₛₗᵢ[σ₁₂] E₂) E E₂ :=
   map_add := λ f, map_add f.to_linear_equiv,
   map_zero := λ f, map_zero f.to_linear_equiv }
 
-/-- Helper instance for when there's too many metavariables to apply `to_fun.to_coe_fn` directly.
+/-- Helper instance for when there's too many metavariables to apply `fun_like.has_coe_to_fun`
+directly.
 -/
 instance : has_coe_to_fun (E ≃ₛₗᵢ[σ₁₂] E₂) (λ _, E → E₂) := ⟨λ f, f.to_fun⟩
 
@@ -396,6 +403,15 @@ def trans (e' : E₂ ≃ₛₗᵢ[σ₂₃] E₃) : E ≃ₛₗᵢ[σ₁₃] E�
 include σ₁₃ σ₂₁
 @[simp] lemma coe_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) : ⇑(e₁.trans e₂) = e₂ ∘ e₁ :=
 rfl
+
+@[simp] lemma trans_apply (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) (c : E) :
+  (e₁.trans e₂ : E ≃ₛₗᵢ[σ₁₃] E₃) c = e₂ (e₁ c) :=
+rfl
+
+@[simp] lemma to_linear_equiv_trans (e' : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
+  (e.trans e').to_linear_equiv = e.to_linear_equiv.trans e'.to_linear_equiv :=
+rfl
+
 omit σ₁₃ σ₂₁ σ₃₁ σ₃₂
 
 @[simp] lemma trans_refl : e.trans (refl R₂ E₂) = e := ext $ λ x, rfl
@@ -406,7 +422,11 @@ omit σ₁₃ σ₂₁ σ₃₁ σ₃₂
 @[simp] lemma self_comp_symm : e ∘ e.symm = id := e.symm.symm_comp_self
 
 include σ₁₃ σ₂₁ σ₃₂ σ₃₁
-@[simp] lemma coe_symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
+@[simp] lemma symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
+  (e₁.trans e₂).symm = e₂.symm.trans e₁.symm :=
+rfl
+
+lemma coe_symm_trans (e₁ : E ≃ₛₗᵢ[σ₁₂] E₂) (e₂ : E₂ ≃ₛₗᵢ[σ₂₃] E₃) :
   ⇑(e₁.trans e₂).symm = e₁.symm ∘ e₂.symm :=
 rfl
 
@@ -432,6 +452,19 @@ instance : group (E ≃ₗᵢ[R] E) :=
 lemma one_def : (1 : E ≃ₗᵢ[R] E) = refl _ _ := rfl
 lemma mul_def (e e' : E ≃ₗᵢ[R] E) : (e * e' : E ≃ₗᵢ[R] E) = e'.trans e := rfl
 lemma inv_def (e : E ≃ₗᵢ[R] E) : (e⁻¹ : E ≃ₗᵢ[R] E) = e.symm := rfl
+
+/-! Lemmas about mixing the group structure with definitions. Because we have multiple ways to
+express `linear_isometry_equiv.refl`, `linear_isometry_equiv.symm`, and
+`linear_isometry_equiv.trans`, we want simp lemmas for every combination.
+The assumption made here is that if you're using the group structure, you want to preserve it
+after simp.
+
+This copies the approach used by the lemmas near `equiv.perm.trans_one`. -/
+
+@[simp] lemma trans_one : e.trans (1 : E₂ ≃ₗᵢ[R₂] E₂) = e := trans_refl _
+@[simp] lemma one_trans : (1 : E ≃ₗᵢ[R] E).trans e = e := refl_trans _
+@[simp] lemma refl_mul (e : E ≃ₗᵢ[R] E) : (refl _ _) * e = e := trans_refl _
+@[simp] lemma mul_refl (e : E ≃ₗᵢ[R] E) : e * (refl _ _) = e := refl_trans _
 
 include σ₂₁
 
@@ -528,7 +561,7 @@ variables {R}
 variables (R E E₂ E₃)
 
 /-- The natural equivalence `(E × E₂) × E₃ ≃ E × (E₂ × E₃)` is a linear isometry. -/
-noncomputable def prod_assoc [module R E₂] [module R E₃] : (E × E₂) × E₃ ≃ₗᵢ[R] E × E₂ × E₃ :=
+def prod_assoc [module R E₂] [module R E₃] : (E × E₂) × E₃ ≃ₗᵢ[R] E × E₂ × E₃ :=
 { to_fun    := equiv.prod_assoc E E₂ E₃,
   inv_fun   := (equiv.prod_assoc E E₂ E₃).symm,
   map_add'  := by simp,

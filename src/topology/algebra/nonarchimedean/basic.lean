@@ -3,10 +3,9 @@ Copyright (c) 2021 Ashwin Iyengar. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard, Johan Commelin, Ashwin Iyengar, Patrick Massot
 -/
-import topology.algebra.ring
+import group_theory.subgroup.basic
 import topology.algebra.open_subgroup
-import data.set.basic
-import group_theory.subgroup
+import topology.algebra.ring
 
 /-!
 # Nonarchimedean Topology
@@ -25,6 +24,8 @@ group is nonarchimedean.
 - `nonarchimedean_ring`: nonarchimedean ring.
 
 -/
+
+open_locale pointwise
 
 /-- An topological additive group is nonarchimedean if every neighborhood of 0
   contains an open subgroup. -/
@@ -61,7 +62,7 @@ variables {K : Type*} [group K] [topological_space K] [nonarchimedean_group K]
 @[to_additive nonarchimedean_add_group.nonarchimedean_of_emb]
 lemma nonarchimedean_of_emb (f : G →* H) (emb : open_embedding f) : nonarchimedean_group H :=
 { is_nonarchimedean := λ U hU, have h₁ : (f ⁻¹' U) ∈ nhds (1 : G), from
-    by {apply emb.continuous.tendsto, rwa is_group_hom.map_one f},
+    by {apply emb.continuous.tendsto, rwa f.map_one},
   let ⟨V, hV⟩ := is_nonarchimedean (f ⁻¹' U) h₁ in
     ⟨{is_open' := emb.is_open_map _ V.is_open, ..subgroup.map f V},
       set.image_subset_iff.2 hV⟩ }
@@ -70,7 +71,7 @@ lemma nonarchimedean_of_emb (f : G →* H) (emb : open_embedding f) : nonarchime
   contains the cartesian product of an open neighborhood in each group. -/
 @[to_additive nonarchimedean_add_group.prod_subset]
 lemma prod_subset {U} (hU : U ∈ nhds (1 : G × K)) :
-  ∃ (V : open_subgroup G) (W : open_subgroup K), (V : set G).prod (W : set K) ⊆ U :=
+  ∃ (V : open_subgroup G) (W : open_subgroup K), (V : set G) ×ˢ (W : set K) ⊆ U :=
 begin
   erw [nhds_prod_eq, filter.mem_prod_iff] at hU,
   rcases hU with ⟨U₁, hU₁, U₂, hU₂, h⟩,
@@ -86,7 +87,7 @@ end
   contains the cartesian square of an open neighborhood in the group. -/
 @[to_additive nonarchimedean_add_group.prod_self_subset]
 lemma prod_self_subset {U} (hU : U ∈ nhds (1 : G × G)) :
-  ∃ (V : open_subgroup G), (V : set G).prod (V : set G) ⊆ U :=
+  ∃ (V : open_subgroup G), (V : set G) ×ˢ (V : set G) ⊆ U :=
 let ⟨V, W, h⟩ := prod_subset hU in
   ⟨V ⊓ W, by {refine set.subset.trans (set.prod_mono _ _) ‹_›; simp}⟩
 

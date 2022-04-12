@@ -3,8 +3,10 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Johan Commelin
 -/
+import algebra.hom.equiv
 import algebra.ring.basic
-import data.equiv.basic
+import logic.equiv.basic
+import logic.equiv.option
 
 /-!
 # Adjoining a zero/one to semigroups and related algebraic structures
@@ -19,13 +21,20 @@ information about these structures (which are not that standard in informal math
 -/
 
 universes u v w
-variable {α : Type u}
+variables {α : Type u} {β : Type v} {γ : Type w}
 
 /-- Add an extra element `1` to a type -/
 @[to_additive "Add an extra element `0` to a type"]
 def with_one (α) := option α
 
 namespace with_one
+
+instance [has_repr α] : has_repr (with_zero α) :=
+⟨λ o, match o with | none := "0" | (some a) := "↑" ++ repr a end⟩
+
+@[to_additive]
+instance [has_repr α] : has_repr (with_one α) :=
+⟨λ o, match o with | none := "1" | (some a) := "↑" ++ repr a end⟩
 
 @[to_additive]
 instance : monad with_one := option.monad
@@ -35,6 +44,9 @@ instance : has_one (with_one α) := ⟨none⟩
 
 @[to_additive]
 instance [has_mul α] : has_mul (with_one α) := ⟨option.lift_or_get (*)⟩
+
+@[to_additive]
+instance [has_inv α] : has_inv (with_one α) := ⟨λ a, option.map has_inv.inv a⟩
 
 @[to_additive]
 instance : inhabited (with_one α) := ⟨1⟩
@@ -60,18 +72,15 @@ coe_ne_one.symm
 lemma ne_one_iff_exists {x : with_one α} : x ≠ 1 ↔ ∃ (a : α), ↑a = x :=
 option.ne_none_iff_exists
 
--- `to_additive` fails to generate some meta info around eqn lemmas, so `lift` doesn't work
--- unless we explicitly define this instance
+@[to_additive]
 instance : can_lift (with_one α) α :=
 { coe := coe,
   cond := λ a, a ≠ 1,
   prf := λ a, ne_one_iff_exists.1 }
 
-@[simp, to_additive]
+@[simp, norm_cast, to_additive]
 lemma coe_inj {a b : α} : (a : with_one α) = b ↔ a = b :=
 option.some_inj
-
-attribute [norm_cast] coe_inj with_zero.coe_inj
 
 @[elab_as_eliminator, to_additive]
 protected lemma cases_on {P : with_one α → Prop} :
@@ -114,7 +123,7 @@ end
 
 section lift
 
-variables [has_mul α] {β : Type v} [mul_one_class β]
+variables [has_mul α] [mul_one_class β]
 
 /-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism. -/
 @[to_additive "Lift an add_semigroup homomorphism `f` to a bundled add_monoid homorphism."]
@@ -144,9 +153,11 @@ theorem lift_unique (f : with_one α →* β) : f = lift (f.to_mul_hom.comp coe_
 
 end lift
 
+attribute [irreducible] with_one
+
 section map
 
-variables {β : Type v} [has_mul α] [has_mul β]
+variables [has_mul α] [has_mul β] [has_mul γ]
 
 /-- Given a multiplicative map from `α → β` returns a monoid homomorphism
   from `with_one α` to `with_one β` -/
@@ -155,34 +166,56 @@ variables {β : Type v} [has_mul α] [has_mul β]
 def map (f : mul_hom α β) : with_one α →* with_one β :=
 lift (coe_mul_hom.comp f)
 
+@[simp, to_additive] lemma map_coe (f : mul_hom α β) (a : α) : map f (a : with_one α) = f a :=
+lift_coe _ _
+
 @[simp, to_additive]
 lemma map_id : map (mul_hom.id α) = monoid_hom.id (with_one α) :=
-by { ext, cases x; refl }
+by { ext, induction x using with_one.cases_on; refl }
+
+@[to_additive]
+lemma map_map (f : mul_hom α β) (g : mul_hom β γ) (x) :
+  map g (map f x) = map (g.comp f) x :=
+by { induction x using with_one.cases_on; refl }
 
 @[simp, to_additive]
-lemma map_comp {γ : Type w} [has_mul γ] (f : mul_hom α β) (g : mul_hom β γ) :
-map (g.comp f) = (map g).comp (map f) :=
-by { ext, cases x; refl }
+lemma map_comp (f : mul_hom α β) (g : mul_hom β γ) :
+  map (g.comp f) = (map g).comp (map f) :=
+monoid_hom.ext $ λ x, (map_map f g x).symm
+
+/-- A version of `equiv.option_congr` for `with_one`. -/
+@[to_additive "A version of `equiv.option_congr` for `with_zero`.", simps apply]
+def _root_.mul_equiv.with_one_congr (e : α ≃* β) : with_one α ≃* with_one β :=
+{ to_fun := map e.to_mul_hom,
+  inv_fun := map e.symm.to_mul_hom,
+  left_inv := λ x, (map_map _ _ _).trans $ by induction x using with_one.cases_on; { simp },
+  right_inv := λ x, (map_map _ _ _).trans $ by induction x using with_one.cases_on; { simp },
+  .. map e.to_mul_hom }
+
+@[simp]
+lemma _root_.mul_equiv.with_one_congr_refl : (mul_equiv.refl α).with_one_congr = mul_equiv.refl _ :=
+mul_equiv.to_monoid_hom_injective map_id
+
+@[simp]
+lemma _root_.mul_equiv.with_one_congr_symm (e : α ≃* β) :
+  e.with_one_congr.symm = e.symm.with_one_congr := rfl
+
+@[simp]
+lemma _root_.mul_equiv.with_one_congr_trans (e₁ : α ≃* β) (e₂ : β ≃* γ) :
+  e₁.with_one_congr.trans e₂.with_one_congr = (e₁.trans e₂).with_one_congr :=
+mul_equiv.to_monoid_hom_injective (map_comp _ _).symm
 
 end map
-
-attribute [irreducible] with_one
 
 @[simp, norm_cast, to_additive]
 lemma coe_mul [has_mul α] (a b : α) : ((a * b : α) : with_one α) = a * b := rfl
 
+@[simp, norm_cast, to_additive]
+lemma coe_inv [has_inv α] (a : α) : ((a⁻¹ : α) : with_one α) = a⁻¹ := rfl
+
 end with_one
 
 namespace with_zero
-
--- `to_additive` fails to generate some meta info around eqn lemmas, so `lift` doesn't work
--- unless we explicitly define this instance
-instance : can_lift (with_zero α) α :=
-{ coe := coe,
-  cond := λ a, a ≠ 0,
-  prf := λ a, ne_zero_iff_exists.1 }
-
-attribute [to_additive] with_one.can_lift
 
 instance [one : has_one α] : has_one (with_zero α) :=
 { ..one }
@@ -233,25 +266,81 @@ instance [mul_one_class α] : mul_zero_one_class (with_zero α) :=
   ..with_zero.mul_zero_class,
   ..with_zero.has_one }
 
+instance [has_one α] [has_pow α ℕ] : has_pow (with_zero α) ℕ :=
+⟨λ x n, match x, n with
+  | none, 0 := 1
+  | none, n + 1 := 0
+  | some x, n := ↑(x ^ n)
+  end⟩
+
+@[simp, norm_cast] lemma coe_pow [has_one α] [has_pow α ℕ] {a : α} (n : ℕ) :
+  ↑(a ^ n : α) = (↑a ^ n : with_zero α) := rfl
+
 instance [monoid α] : monoid_with_zero (with_zero α) :=
-{ ..with_zero.mul_zero_one_class,
-  ..with_zero.semigroup_with_zero }
+{ npow := λ n x, x ^ n,
+  npow_zero' := λ x, match x with
+    | none   := rfl
+    | some x := congr_arg some $ pow_zero _
+    end,
+  npow_succ' := λ n x, match x with
+    | none   := rfl
+    | some x := congr_arg some $ pow_succ _ _
+    end,
+  .. with_zero.mul_zero_one_class,
+  .. with_zero.semigroup_with_zero }
 
 instance [comm_monoid α] : comm_monoid_with_zero (with_zero α) :=
 { ..with_zero.monoid_with_zero, ..with_zero.comm_semigroup }
 
 /-- Given an inverse operation on `α` there is an inverse operation
   on `with_zero α` sending `0` to `0`-/
-definition inv [has_inv α] (x : with_zero α) : with_zero α :=
-do a ← x, return a⁻¹
-
-instance [has_inv α] : has_inv (with_zero α) := ⟨with_zero.inv⟩
+instance [has_inv α] : has_inv (with_zero α) := ⟨λ a, option.map has_inv.inv a⟩
 
 @[simp, norm_cast] lemma coe_inv [has_inv α] (a : α) :
   ((a⁻¹ : α) : with_zero α) = a⁻¹ := rfl
 
 @[simp] lemma inv_zero [has_inv α] :
   (0 : with_zero α)⁻¹ = 0 := rfl
+
+instance [has_div α] : has_div (with_zero α) :=
+⟨λ o₁ o₂, o₁.bind (λ a, option.map (λ b, a / b) o₂)⟩
+
+@[norm_cast] lemma coe_div [has_div α] (a b : α) : ↑(a / b : α) = (a / b : with_zero α) := rfl
+
+instance [has_one α] [has_pow α ℤ] : has_pow (with_zero α) ℤ :=
+⟨λ x n, match x, n with
+  | none, int.of_nat 0            := 1
+  | none, int.of_nat (nat.succ n) := 0
+  | none, int.neg_succ_of_nat n   := 0
+  | some x, n                     := ↑(x ^ n)
+  end⟩
+
+@[simp, norm_cast] lemma coe_zpow [div_inv_monoid α] {a : α} (n : ℤ) :
+  ↑(a ^ n : α) = (↑a ^ n : with_zero α) := rfl
+
+instance [div_inv_monoid α] : div_inv_monoid (with_zero α) :=
+{ div_eq_mul_inv := λ a b, match a, b with
+    | none,   _      := rfl
+    | some a, none   := rfl
+    | some a, some b := congr_arg some (div_eq_mul_inv _ _)
+    end,
+  zpow := λ n x, x ^ n,
+  zpow_zero' := λ x, match x with
+    | none   := rfl
+    | some x := congr_arg some $ zpow_zero _
+    end,
+  zpow_succ' := λ n x, match x with
+    | none   := rfl
+    | some x := congr_arg some $ div_inv_monoid.zpow_succ' _ _
+    end,
+  zpow_neg' := λ n x, match x with
+    | none   := rfl
+    | some x := congr_arg some $ div_inv_monoid.zpow_neg' _ _
+    end,
+  .. with_zero.has_div,
+  .. with_zero.has_inv,
+  .. with_zero.monoid_with_zero, }
+
 
 section group
 variables [group α]
@@ -262,13 +351,10 @@ show ((1⁻¹ : α) : with_zero α) = 1, by simp
 /-- if `G` is a group then `with_zero G` is a group with zero. -/
 instance : group_with_zero (with_zero α) :=
 { inv_zero := inv_zero,
-  mul_inv_cancel := by { intros a ha, lift a to α using ha, norm_cast, apply mul_right_inv },
+  mul_inv_cancel := λ a ha, by { lift a to α using ha, norm_cast, apply mul_right_inv },
   .. with_zero.monoid_with_zero,
-  .. with_zero.has_inv,
+  .. with_zero.div_inv_monoid,
   .. with_zero.nontrivial }
-
-@[norm_cast]
-lemma div_coe (a b : α) : (a : with_zero α) / b = (a * b⁻¹ : α) := rfl
 
 end group
 

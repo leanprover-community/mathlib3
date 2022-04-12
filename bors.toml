@@ -4,6 +4,6 @@ status = ["Build mathlib", "Lint mathlib", "Run tests", "Lint style"]
 # status = ["Build mathlib (fork)", "Lint mathlib (fork)", "Run tests (fork)", "Lint style (fork)"]
 use_squash_merge = true
 timeout_sec = 28800
-block_labels = ["not-ready-to-merge", "WIP", "blocked-by-other-PR"]
+block_labels = ["not-ready-to-merge", "WIP", "blocked-by-other-PR", "merge-conflict", "awaiting-CI"]
 delete_merged_branches = true
 cut_body_after = "---"

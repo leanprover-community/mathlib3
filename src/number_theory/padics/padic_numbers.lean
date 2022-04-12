@@ -2,10 +2,9 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
-
 -/
-import number_theory.padics.padic_norm
 import analysis.normed_space.basic
+import number_theory.padics.padic_norm
 
 /-!
 # p-adic numbers
@@ -49,7 +48,7 @@ Coercions from `ℚ` to `ℚ_p` are set up to work with the `norm_cast` tactic.
 
 ## References
 
-* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [F. Q. Gouvêa, *p-adic numbers*][gouvea1997]
 * [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
 * <https://en.wikipedia.org/wiki/P-adic_number>
 
@@ -81,7 +80,7 @@ let ⟨ε, hε, N1, hN1⟩ := this,
     ⟨N2, hN2⟩ := cau_seq.cauchy₂ f hε in
 ⟨ max N1 N2,
   λ n m hn hm,
-  have padic_norm p (f n - f m) < ε, from hN2 _ _ (max_le_iff.1 hn).2 (max_le_iff.1 hm).2,
+  have padic_norm p (f n - f m) < ε, from hN2 _ (max_le_iff.1 hn).2 _ (max_le_iff.1 hm).2,
   have padic_norm p (f n - f m) < padic_norm p (f n),
     from lt_of_lt_of_le this $ hN1 _ (max_le_iff.1 hn).1,
   have  padic_norm p (f n - f m) < max (padic_norm p (f n)) (padic_norm p (f m)),
@@ -119,7 +118,7 @@ begin
     intros ε hε,
     existsi stationary_point hf,
     intros j hj,
-    have heq := stationary_point_spec hf (le_refl _) hj,
+    have heq := stationary_point_spec hf le_rfl hj,
     simpa [h, heq] },
   { intro h,
     simp [norm, h] }
@@ -163,7 +162,7 @@ lemma lift_index_left_left {f : padic_seq p} (hf : ¬ f ≈ 0) (v2 v3 : ℕ) :
 begin
   apply stationary_point_spec hf,
   { apply le_max_left },
-  { apply le_refl }
+  { exact le_rfl }
 end
 
 /-- An auxiliary lemma for manipulating sequence indices. -/
@@ -175,7 +174,7 @@ begin
   { apply le_trans,
     { apply le_max_left _ v3 },
     { apply le_max_right } },
-  { apply le_refl }
+  { exact le_rfl }
 end
 
 /-- An auxiliary lemma for manipulating sequence indices. -/
@@ -187,7 +186,7 @@ begin
   { apply le_trans,
     { apply le_max_right v2 },
     { apply le_max_right } },
-  { apply le_refl }
+  { exact le_rfl }
 end
 
 end embedding
@@ -214,14 +213,14 @@ begin
   intros ε hε,
   use (stationary_point hf),
   intros n hn,
-  rw stationary_point_spec hf (le_refl _) hn,
+  rw stationary_point_spec hf le_rfl hn,
   simpa [H] using hε,
 end
 
 lemma val_eq_iff_norm_eq {f g : padic_seq p} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) :
   f.valuation = g.valuation ↔ f.norm = g.norm :=
 begin
-  rw [norm_eq_pow_val hf, norm_eq_pow_val hg, ← neg_inj, fpow_inj],
+  rw [norm_eq_pow_val hf, norm_eq_pow_val hg, ← neg_inj, zpow_inj],
   { exact_mod_cast (fact.out p.prime).pos },
   { exact_mod_cast (fact.out p.prime).ne_one },
 end
@@ -389,9 +388,9 @@ else
     simp only [hg, hf, norm, dif_neg, not_false_iff],
     let i := max (stationary_point hf) (stationary_point hg),
     have hpf : padic_norm p (f (stationary_point hf)) = padic_norm p (f i),
-    { apply stationary_point_spec, apply le_max_left, apply le_refl },
+    { apply stationary_point_spec, apply le_max_left, exact le_rfl },
     have hpg : padic_norm p (g (stationary_point hg)) = padic_norm p (g i),
-    { apply stationary_point_spec, apply le_max_right, apply le_refl },
+    { apply stationary_point_spec, apply le_max_right, exact le_rfl },
     rw [hpf, hpg, h]
   end
 
@@ -554,10 +553,10 @@ begin
   apply not_le_of_gt _ hge,
   cases decidable.em (N ≤ stationary_point hne) with hgen hngen,
   { apply hN; assumption },
-  { have := stationary_point_spec hne (le_refl _) (le_of_not_le hngen),
+  { have := stationary_point_spec hne le_rfl (le_of_not_le hngen),
     rw ←this,
     apply hN,
-    apply le_refl, assumption }
+    exact le_rfl, assumption }
 end
 
 protected lemma nonneg (q : ℚ_[p]) : 0 ≤ padic_norm_e q :=
@@ -648,11 +647,11 @@ quotient.induction_on q $ λ q',
         change padic_norm p (q' _ - q' _) < ε,
         have := stationary_point_spec hne',
         cases decidable.em (stationary_point hne' ≤ N) with hle hle,
-        { have := eq.symm (this (le_refl _) hle),
+        { have := eq.symm (this le_rfl hle),
           simp only [const_apply, sub_apply, padic_norm.zero, sub_self] at this,
           simpa only [this] },
         { apply hN,
-          apply le_of_lt, apply lt_of_not_ge, apply hle, apply le_refl }}
+          apply le_of_lt, apply lt_of_not_ge, apply hle, exact le_rfl }}
     end⟩
 
 variables {p : ℕ} [fact p.prime] (f : cau_seq _ (@padic_norm_e p _))
@@ -813,35 +812,28 @@ begin
   rw [← padic_norm_e.eq_padic_norm', ← padic.cast_eq_of_rat]
 end
 
-instance : nondiscrete_normed_field ℚ_[p] :=
-{ non_trivial := ⟨padic.of_rat p (p⁻¹), begin
-    have h0 : p ≠ 0 := ne_of_gt (hp.1.pos),
-    have h1 : 1 < p := hp.1.one_lt,
-    rw [← padic.cast_eq_of_rat, eq_padic_norm],
-    simp only [padic_norm, inv_eq_zero],
-    simp only [if_neg] {discharger := `[exact_mod_cast h0]},
-    norm_cast,
-    simp only [padic_val_rat.inv] {discharger := `[exact_mod_cast h0]},
-    rw [neg_neg, padic_val_rat.padic_val_rat_self h1, gpow_one],
-    exact_mod_cast h1,
-  end⟩ }
-
 @[simp] lemma norm_p : ∥(p : ℚ_[p])∥ = p⁻¹ :=
 begin
   have p₀ : p ≠ 0 := hp.1.ne_zero,
   have p₁ : p ≠ 1 := hp.1.ne_one,
-  simp [p₀, p₁, norm, padic_norm, padic_val_rat, fpow_neg, padic.cast_eq_of_rat_of_nat],
+  simp [p₀, p₁, norm, padic_norm, padic_val_rat, zpow_neg, padic.cast_eq_of_rat_of_nat],
 end
 
 lemma norm_p_lt_one : ∥(p : ℚ_[p])∥ < 1 :=
 begin
-  rw [norm_p, inv_eq_one_div, div_lt_iff, one_mul],
-  { exact_mod_cast hp.1.one_lt },
-  { exact_mod_cast hp.1.pos }
+  rw norm_p,
+  apply inv_lt_one,
+  exact_mod_cast hp.1.one_lt
 end
 
 @[simp] lemma norm_p_pow (n : ℤ) : ∥(p^n : ℚ_[p])∥ = p^-n :=
-by rw [normed_field.norm_fpow, norm_p]; field_simp
+by rw [norm_zpow, norm_p]; field_simp
+
+instance : nondiscrete_normed_field ℚ_[p] :=
+{ non_trivial := ⟨p⁻¹, begin
+    rw [norm_inv, norm_p, inv_inv],
+    exact_mod_cast hp.1.one_lt
+  end⟩ }
 
 protected theorem image {q : ℚ_[p]} : q ≠ 0 → ∃ n : ℤ, ∥q∥ = ↑((↑p : ℚ) ^ (-n)) :=
 quotient.induction_on q $ λ f hf,
@@ -872,11 +864,11 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
         from mt rat.zero_iff_num_zero.1 hnz,
       rw [padic_norm_e.eq_padic_norm],
       norm_cast,
-      rw [padic_norm.eq_fpow_of_nonzero p hnz', padic_val_rat_def p hnz'],
+      rw [padic_norm.eq_zpow_of_nonzero p hnz', padic_val_rat_def p hnz'],
       have h : (multiplicity p d).get _ = 0, by simp [multiplicity_eq_zero_of_not_dvd, hq],
       simp only, norm_cast,
       rw_mod_cast [h, sub_zero],
-      apply fpow_le_one_of_nonpos,
+      apply zpow_le_one_of_nonpos,
       { exact_mod_cast le_of_lt hp.1.one_lt, },
       { apply neg_nonpos_of_nonneg, norm_cast, simp, }
     end
@@ -903,16 +895,16 @@ begin
       rw H,
       apply dvd_zero },
     { norm_cast at H ⊢,
-      convert gpow_zero _,
+      convert zpow_zero _,
       simp only [neg_eq_zero],
       rw padic_val_rat.padic_val_rat_of_int _ hp.1.ne_one H,
       norm_cast,
-      rw [← enat.coe_inj, enat.coe_get, enat.coe_zero],
+      rw [← enat.coe_inj, enat.coe_get, nat.cast_zero],
       apply multiplicity.multiplicity_eq_zero_of_not_dvd h } },
   { rintro ⟨x, rfl⟩,
     push_cast,
     rw padic_norm_e.mul,
-    calc _ ≤ ∥(p : ℚ_[p])∥ * 1 : mul_le_mul (le_refl _) (by simpa using norm_int_le_one _)
+    calc _ ≤ ∥(p : ℚ_[p])∥ * 1 : mul_le_mul le_rfl (by simpa using norm_int_le_one _)
                                             (norm_nonneg _) (norm_nonneg _)
     ... < 1 : _,
     { rw [mul_one, padic_norm_e.norm_p],
@@ -942,7 +934,8 @@ end normed_space
 end padic_norm_e
 
 namespace padic
-variables {p : ℕ} [fact p.prime]
+variables {p : ℕ} [hp_prime : fact p.prime]
+include hp_prime
 
 set_option eqn_compiler.zeta true
 instance complete : cau_seq.is_complete ℚ_[p] norm :=
@@ -971,7 +964,21 @@ lemma padic_norm_e_lim_le {f : cau_seq ℚ_[p] norm} {a : ℝ} (ha : 0 < a)
 let ⟨N, hN⟩ := setoid.symm (cau_seq.equiv_lim f) _ ha in
 calc ∥f.lim∥ = ∥f.lim - f N + f N∥ : by simp
                 ... ≤ max (∥f.lim - f N∥) (∥f N∥) : padic_norm_e.nonarchimedean _ _
-                ... ≤ a : max_le (le_of_lt (hN _ (le_refl _))) (hf _)
+                ... ≤ a : max_le (le_of_lt (hN _ le_rfl)) (hf _)
+
+open filter set
+
+instance : complete_space ℚ_[p] :=
+begin
+  apply complete_of_cauchy_seq_tendsto,
+  intros u hu,
+  let c : cau_seq ℚ_[p] norm := ⟨u, metric.cauchy_seq_iff'.mp hu⟩,
+  refine ⟨c.lim, λ s h, _⟩,
+  rcases metric.mem_nhds_iff.1 h with ⟨ε, ε0, hε⟩,
+  have := c.equiv_lim ε ε0,
+  simp only [mem_map, mem_at_top_sets, mem_set_of_eq],
+  exact this.imp (λ N hN n hn, hε (hN n hn))
+end
 
 /-!
 ### Valuation on `ℚ_[p]`
@@ -1010,7 +1017,7 @@ begin
   change (padic_seq.norm _ : ℝ) = (p : ℝ) ^ -padic_seq.valuation _,
   rw padic_seq.norm_eq_pow_val,
   change ↑((p : ℚ) ^ -padic_seq.valuation f) = (p : ℝ) ^ -padic_seq.valuation f,
-  { rw rat.cast_fpow,
+  { rw rat.cast_zpow,
     congr' 1,
     norm_cast },
   { apply cau_seq.not_lim_zero_of_not_congr_zero,
@@ -1023,11 +1030,30 @@ end
 begin
   have h : (1 : ℝ) < p := by exact_mod_cast (fact.out p.prime).one_lt,
   rw ← neg_inj,
-  apply (fpow_strict_mono h).injective,
+  apply (zpow_strict_mono h).injective,
   dsimp only,
   rw ← norm_eq_pow_val,
   { simp },
   { exact_mod_cast (fact.out p.prime).ne_zero }
 end
 
+section norm_le_iff
+/-! ### Various characterizations of open unit balls -/
+lemma norm_le_pow_iff_norm_lt_pow_add_one (x : ℚ_[p]) (n : ℤ) :
+  ∥x∥ ≤ p ^ n ↔ ∥x∥ < p ^ (n + 1) :=
+begin
+  have aux : ∀ n : ℤ, 0 < (p ^ n : ℝ),
+  { apply nat.zpow_pos_of_pos, exact hp_prime.1.pos },
+  by_cases hx0 : x = 0, { simp [hx0, norm_zero, aux, le_of_lt (aux _)], },
+  rw norm_eq_pow_val hx0,
+  have h1p : 1 < (p : ℝ), { exact_mod_cast hp_prime.1.one_lt },
+  have H := zpow_strict_mono h1p,
+  rw [H.le_iff_le, H.lt_iff_lt, int.lt_add_one_iff],
+end
+
+lemma norm_lt_pow_iff_norm_le_pow_sub_one (x : ℚ_[p]) (n : ℤ) :
+  ∥x∥ < p ^ n ↔ ∥x∥ ≤ p ^ (n - 1) :=
+by rw [norm_le_pow_iff_norm_lt_pow_add_one, sub_add_cancel]
+
+end norm_le_iff
 end padic

@@ -41,7 +41,6 @@ open_locale classical
 /-! We also want to use the notation `∑` for sums. -/
 open_locale big_operators
 
-notation `|`x`|` := abs x
 notation `√` := real.sqrt
 
 open function bool linear_map fintype finite_dimensional dual_pair
@@ -191,13 +190,13 @@ begin
     simp },
   { dsimp [ε, e],
     cases hp : p 0 ; cases hq : q 0,
-    all_goals {
-      repeat {rw cond_tt},
+    all_goals
+    { repeat {rw cond_tt},
       repeat {rw cond_ff},
       simp only [linear_map.fst_apply, linear_map.snd_apply, linear_map.comp_apply, IH],
       try { congr' 1, rw Q.succ_n_eq, finish },
-      try {
-        erw (ε _).map_zero,
+      try
+      { erw (ε _).map_zero,
         have : p ≠ q, { intro h, rw p.succ_n_eq q at h, finish },
         simp [this] } } }
 end
@@ -211,8 +210,8 @@ begin
     ext ; change _ = (0 : V n) ; simp only ; apply ih ; intro p ;
     [ let q : Q (n+1) := λ i, if h : i = 0 then tt else p (i.pred h),
       let q : Q (n+1) := λ i, if h : i = 0 then ff else p (i.pred h)],
-    all_goals {
-      specialize h q,
+    all_goals
+    { specialize h q,
       rw [ε, show q 0 = tt, from rfl, cond_tt] at h <|>
         rw [ε, show q 0 = ff, from rfl, cond_ff] at h,
       rwa show p = π q, by { ext, simp [q, fin.succ_ne_zero, π] } } }
@@ -260,7 +259,7 @@ lemma f_succ_apply (v : V (n+1)) :
 begin
   cases v,
   rw f,
-  simp only [linear_map.id_apply, linear_map.prod_apply, prod.mk.inj_iff,
+  simp only [linear_map.id_apply, linear_map.prod_apply, pi.prod, prod.mk.inj_iff,
     linear_map.neg_apply, sub_eq_add_neg, linear_map.coprod_apply],
   exact ⟨rfl, rfl⟩
 end
@@ -289,7 +288,7 @@ begin
   { intros p q,
     have ite_nonneg : ite (π q = π p) (1 : ℝ) 0 ≥ 0,
     { split_ifs ; norm_num },
-    have f_map_zero := (show linear_map ℝ (V (n+0)) (V n), from f n).map_zero,
+    have f_map_zero := (show (V (n+0)) →ₗ[ℝ] (V n), from f n).map_zero,
     dsimp [e, ε, f], cases hp : p 0 ; cases hq : q 0,
     all_goals
     { repeat {rw cond_tt}, repeat {rw cond_ff},
@@ -312,7 +311,7 @@ lemma g_injective : injective (g m) :=
 begin
   rw g,
   intros x₁ x₂ h,
-  simp only [linear_map.prod_apply, linear_map.id_apply, prod.mk.inj_iff] at h,
+  simp only [linear_map.prod_apply, linear_map.id_apply, prod.mk.inj_iff, pi.prod] at h,
   exact h.right
 end
 
@@ -367,14 +366,14 @@ begin
     rw ← dim_eq_of_injective (g m) g_injective,
     apply dim_V },
   have dimW : dim W = card H,
-  { have li : linear_independent ℝ (set.restrict e H),
+  { have li : linear_independent ℝ (H.restrict e),
     { convert (dual_pair_e_ε _).basis.linear_independent.comp _ subtype.val_injective,
       rw (dual_pair_e_ε _).coe_basis },
     have hdW := dim_span li,
     rw set.range_restrict at hdW,
     convert hdW,
     rw [← (dual_pair_e_ε _).coe_basis, cardinal.mk_image_eq (dual_pair_e_ε _).basis.injective,
-        cardinal.fintype_card] },
+        cardinal.mk_fintype] },
   rw ← finrank_eq_dim ℝ at ⊢ dim_le dim_add dimW,
   rw [← finrank_eq_dim ℝ, ← finrank_eq_dim ℝ] at dim_add,
   norm_cast at ⊢ dim_le dim_add dimW,

@@ -3,9 +3,7 @@ Copyright (c) 2020 Yury G. Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury G. Kudryashov, Patrick Massot
 -/
-import data.set.intervals.basic
-import data.equiv.mul_add
-import algebra.pointwise
+import data.set.pointwise
 
 /-!
 # (Pre)images of intervals
@@ -17,6 +15,7 @@ lemmas about preimages and images of all intervals. We also prove a few lemmas a
 -/
 
 universe u
+open_locale pointwise
 
 namespace set
 
@@ -526,7 +525,7 @@ lemma image_inv_Ioo_0_left {a : k} (ha : 0 < a) : has_inv.inv '' Ioo 0 a = Ioi a
 begin
   ext x,
   exact ⟨λ ⟨y, ⟨hy0, hya⟩, hyx⟩, hyx ▸ (inv_lt_inv ha hy0).2 hya, λ h, ⟨x⁻¹, ⟨inv_pos.2 (lt_trans
-    (inv_pos.2 ha) h), (inv_lt ha (lt_trans (inv_pos.2 ha) h)).1 h⟩, inv_inv' x⟩⟩,
+    (inv_pos.2 ha) h), (inv_lt ha (lt_trans (inv_pos.2 ha) h)).1 h⟩, inv_inv x⟩⟩,
 end
 
 
@@ -538,7 +537,7 @@ end
   (λ x, a * x + b) '' Icc c d = Icc (a * c + b) (a * d + b) :=
 begin
   suffices : (λ x, x + b) '' ((λ x, a * x) '' Icc c d) = Icc (a * c + b) (a * d + b),
-  { rwa set.image_image at this,  },
+  { rwa set.image_image at this, },
   rw [image_mul_left_Icc' h, image_add_const_Icc],
 end
 

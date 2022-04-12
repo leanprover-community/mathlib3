@@ -3,10 +3,11 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
+import algebra.group.ext
 import category_theory.simple
 import category_theory.linear
 import category_theory.endomorphism
-import field_theory.algebraic_closure
+import algebra.algebra.spectrum
 
 /-!
 # Schur's lemma
@@ -86,8 +87,6 @@ variables [is_alg_closed 𝕜] [linear 𝕜 C]
 -- These are definitionally equal, but without eta reduction Lean can't see this.
 -- To get around this, we use `convert I`,
 -- then check the various instances agree field-by-field,
--- using `ext` equipped with the following extra lemmas:
-local attribute [ext] add_comm_group module distrib_mul_action mul_action has_scalar
 
 /--
 An auxiliary lemma for Schur's lemma.
@@ -108,11 +107,11 @@ begin
   { exact id_nonzero, },
   { intro f,
     haveI : nontrivial (End X) := nontrivial_of_ne _ _ id_nonzero,
-    obtain ⟨c, nu⟩ := @exists_spectrum_of_is_alg_closed_of_finite_dimensional 𝕜 _ _ (End X) _ _ _
-      (by { convert I, ext; refl, ext; refl, }) (End.of f),
+    obtain ⟨c, nu⟩ := @spectrum.nonempty_of_is_alg_closed_of_finite_dimensional 𝕜 (End X) _ _ _ _ _
+      (by { convert I, ext, refl, ext, refl, }) (End.of f),
     use c,
-    rw [is_unit_iff_is_iso, is_iso_iff_nonzero, ne.def, not_not, sub_eq_zero,
-      algebra.algebra_map_eq_smul_one] at nu,
+    rw [spectrum.mem_iff, is_unit.sub_iff, is_unit_iff_is_iso, is_iso_iff_nonzero, ne.def,
+      not_not, sub_eq_zero, algebra.algebra_map_eq_smul_one] at nu,
     exact nu.symm, },
 end
 
@@ -175,9 +174,9 @@ end
 
 lemma finrank_hom_simple_simple_eq_zero_iff
   (X Y : C) [∀ X Y : C, finite_dimensional 𝕜 (X ⟶ Y)] [simple.{v} X] [simple.{v} Y] :
-  finrank 𝕜 (X ⟶ Y) = 0 ↔ ¬ nonempty (X ≅ Y) :=
+  finrank 𝕜 (X ⟶ Y) = 0 ↔ is_empty (X ≅ Y) :=
 begin
-  rw ←not_congr (finrank_hom_simple_simple_eq_one_iff 𝕜 X Y),
+  rw [← not_nonempty_iff, ← not_congr (finrank_hom_simple_simple_eq_one_iff 𝕜 X Y)],
   refine ⟨λ h, by { rw h, simp, }, λ h, _⟩,
   have := finrank_hom_simple_simple_le_one 𝕜 X Y,
   interval_cases finrank 𝕜 (X ⟶ Y) with h',

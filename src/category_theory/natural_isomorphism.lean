@@ -3,7 +3,7 @@ Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
 -/
-import category_theory.functor_category
+import category_theory.functor.category
 import category_theory.isomorphism
 
 /-!
@@ -123,15 +123,26 @@ by simp only [←category.assoc, cancel_mono]
   f ≫ g ≫ α.inv.app Y = f' ≫ g' ≫ α.inv.app Y ↔ f ≫ g = f' ≫ g' :=
 by simp only [←category.assoc, cancel_mono]
 
+@[simp] lemma inv_inv_app {F G : C ⥤ D} (e : F ≅ G) (X : C) :
+  inv (e.inv.app X) = e.hom.app X := by { ext, simp }
+
 end
 
 variables {X Y : C}
+
 lemma naturality_1 (α : F ≅ G) (f : X ⟶ Y) :
-  (α.inv.app X) ≫ (F.map f) ≫ (α.hom.app Y) = G.map f :=
-by rw [naturality, ←category.assoc, ←nat_trans.comp_app, α.inv_hom_id, id_app, category.id_comp]
+  α.inv.app X ≫ F.map f ≫ α.hom.app Y = G.map f :=
+by simp
 lemma naturality_2 (α : F ≅ G) (f : X ⟶ Y) :
-  (α.hom.app X) ≫ (G.map f) ≫ (α.inv.app Y) = F.map f :=
-by rw [naturality, ←category.assoc, ←nat_trans.comp_app, α.hom_inv_id, id_app, category.id_comp]
+  α.hom.app X ≫ G.map f ≫ α.inv.app Y = F.map f :=
+by simp
+
+lemma naturality_1' (α : F ⟶ G) (f : X ⟶ Y) [is_iso (α.app X)] :
+  inv (α.app X) ≫ F.map f ≫ α.app Y = G.map f :=
+by simp
+@[simp, reassoc] lemma naturality_2' (α : F ⟶ G) (f : X ⟶ Y) [is_iso (α.app Y)] :
+  α.app X ≫ G.map f ≫ inv (α.app Y) = F.map f :=
+by rw [←category.assoc, ←naturality, category.assoc, is_iso.hom_inv_id, category.comp_id]
 
 /--
 The components of a natural isomorphism are isomorphisms.

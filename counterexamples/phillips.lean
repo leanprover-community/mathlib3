@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 import analysis.normed_space.hahn_banach
-import measure_theory.lebesgue_measure
+import measure_theory.measure.lebesgue
 
 /-!
 # A counterexample on Pettis integrability
@@ -83,7 +83,7 @@ def discrete_copy (α : Type u) : Type u := α
 
 instance : topological_space (discrete_copy α) := ⊥
 instance : discrete_topology (discrete_copy α) := ⟨rfl⟩
-instance [inhabited α] : inhabited (discrete_copy α) := ⟨id default α⟩
+instance [inhabited α] : inhabited (discrete_copy α) := ⟨show α, from default⟩
 
 namespace phillips_1940
 
@@ -108,7 +108,7 @@ def bounded_integrable_functions [measurable_space α] (μ : measure α) :
 of all bounded functions on a type. This is a technical device, that we will extend through
 Hahn-Banach. -/
 def bounded_integrable_functions_integral_clm [measurable_space α]
-  (μ : measure α) [finite_measure μ] : bounded_integrable_functions μ →L[ℝ] ℝ :=
+  (μ : measure α) [is_finite_measure μ] : bounded_integrable_functions μ →L[ℝ] ℝ :=
 linear_map.mk_continuous
   { to_fun := λ f, ∫ x, f x ∂μ,
     map_add' := λ f g, integral_add f.2 g.2,
@@ -126,7 +126,7 @@ linear_map.mk_continuous
 /-- Given a measure, there exists a continuous linear form on the space of all bounded functions
 (not necessarily measurable) that coincides with the integral on bounded measurable functions. -/
 lemma exists_linear_extension_to_bounded_functions
-  [measurable_space α] (μ : measure α) [finite_measure μ] :
+  [measurable_space α] (μ : measure α) [is_finite_measure μ] :
   ∃ φ : (discrete_copy α →ᵇ ℝ) →L[ℝ] ℝ, ∀ (f : discrete_copy α →ᵇ ℝ),
     integrable f μ → φ f = ∫ x, f x ∂μ :=
 begin
@@ -137,11 +137,11 @@ end
 /-- An arbitrary extension of the integral to all bounded functions, as a continuous linear map.
 It is not at all canonical, and constructed using Hahn-Banach. -/
 def _root_.measure_theory.measure.extension_to_bounded_functions
-  [measurable_space α] (μ : measure α) [finite_measure μ] : (discrete_copy α →ᵇ ℝ) →L[ℝ] ℝ :=
+  [measurable_space α] (μ : measure α) [is_finite_measure μ] : (discrete_copy α →ᵇ ℝ) →L[ℝ] ℝ :=
 (exists_linear_extension_to_bounded_functions μ).some
 
-lemma extension_to_bounded_functions_apply [measurable_space α] (μ : measure α) [finite_measure μ]
-  (f : discrete_copy α →ᵇ ℝ) (hf : integrable f μ) :
+lemma extension_to_bounded_functions_apply [measurable_space α] (μ : measure α)
+  [is_finite_measure μ] (f : discrete_copy α →ᵇ ℝ) (hf : integrable f μ) :
   μ.extension_to_bounded_functions f = ∫ x, f x ∂μ :=
 (exists_linear_extension_to_bounded_functions μ).some_spec f hf
 
@@ -156,14 +156,14 @@ and show that such an object can be split into a discrete part and a continuous 
 structure bounded_additive_measure (α : Type u) :=
 (to_fun : set α → ℝ)
 (additive' : ∀ s t, disjoint s t → to_fun (s ∪ t) = to_fun s + to_fun t)
-(exists_bound : ∃ (C : ℝ), ∀ s, abs (to_fun s) ≤ C)
+(exists_bound : ∃ (C : ℝ), ∀ s, |to_fun s| ≤ C)
 
 instance : inhabited (bounded_additive_measure α) :=
 ⟨{ to_fun := λ s, 0,
   additive' := λ s t hst, by simp,
   exists_bound := ⟨0, λ s, by simp⟩ }⟩
 
-instance : has_coe_to_fun (bounded_additive_measure α) := ⟨_, λ f, f.to_fun⟩
+instance : has_coe_to_fun (bounded_additive_measure α) (λ _, set α → ℝ) := ⟨λ f, f.to_fun⟩
 
 namespace bounded_additive_measure
 
@@ -175,7 +175,7 @@ lemma additive (f : bounded_additive_measure α) (s t : set α)
 f.additive' s t h
 
 lemma abs_le_bound (f : bounded_additive_measure α) (s : set α) :
-  abs (f s) ≤ f.C :=
+  |f s| ≤ f.C :=
 f.exists_bound.some_spec s
 
 lemma le_bound (f : bounded_additive_measure α) (s : set α) :
@@ -224,8 +224,7 @@ begin
   We argue from the start by contradiction, as this means that our inductive construction will
   never be stuck, so we won't have to consider this case separately.
   -/
-  by_contra h,
-  push_neg at h,
+  by_contra' h,
   -- We will formulate things in terms of the type of countable subsets of `α`, as this is more
   -- convenient to formalize the inductive construction.
   let A : set (set α) := {t | countable t},
@@ -406,7 +405,7 @@ let f := (eval_clm ℝ x).to_bounded_additive_measure in calc
 ... = indicator ((univ \ f.discrete_support) ∩ (s \ {x})) 1 x : rfl
 ... = 0 : by simp
 
-lemma to_functions_to_measure [measurable_space α] (μ : measure α) [finite_measure μ]
+lemma to_functions_to_measure [measurable_space α] (μ : measure α) [is_finite_measure μ]
   (s : set α) (hs : measurable_set s) :
   μ.extension_to_bounded_functions.to_bounded_additive_measure s = (μ s).to_real :=
 begin
@@ -417,13 +416,14 @@ begin
     simp [integral_indicator hs] },
   { change integrable (indicator s 1) μ,
     have : integrable (λ x, (1 : ℝ)) μ := integrable_const (1 : ℝ),
-    apply this.mono' (measurable.indicator (@measurable_const _ _ _ _ (1 : ℝ)) hs).ae_measurable,
+    apply this.mono'
+      (measurable.indicator (@measurable_const _ _ _ _ (1 : ℝ)) hs).ae_strongly_measurable,
     apply filter.eventually_of_forall,
     exact norm_indicator_le_one _ }
 end
 
 lemma to_functions_to_measure_continuous_part [measurable_space α] [measurable_singleton_class α]
-  (μ : measure α) [finite_measure μ] [has_no_atoms μ]
+  (μ : measure α) [is_finite_measure μ] [has_no_atoms μ]
   (s : set α) (hs : measurable_set s) :
   μ.extension_to_bounded_functions.to_bounded_additive_measure.continuous_part s = (μ s).to_real :=
 begin
@@ -434,7 +434,7 @@ begin
       (measurable_set.univ.diff (countable.measurable_set f.countable_discrete_support)) hs },
   congr' 1,
   rw [inter_comm, ← inter_diff_assoc, inter_univ],
-  exact measure_diff_null f.countable_discrete_support.measure_zero
+  exact measure_diff_null (f.countable_discrete_support.measure_zero _)
 end
 
 end
@@ -540,7 +540,7 @@ lemma comp_ae_eq_const (Hcont : #ℝ = aleph 1) (φ : (discrete_copy ℝ →ᵇ 
     φ.to_bounded_additive_measure.continuous_part univ = φ (f Hcont x) :=
 begin
   apply ae_restrict_of_ae,
-  refine measure_mono_null _ (countable_ne Hcont φ).measure_zero,
+  refine measure_mono_null _ ((countable_ne Hcont φ).measure_zero _),
   assume x,
   simp only [imp_self, mem_set_of_eq, mem_compl_eq],
 end

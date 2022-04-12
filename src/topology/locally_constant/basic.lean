@@ -6,6 +6,7 @@ Authors: Johan Commelin
 import topology.subset_properties
 import topology.connected
 import topology.algebra.monoid
+import topology.continuous_function.basic
 import tactic.tfae
 import tactic.fin_cases
 
@@ -150,7 +151,7 @@ begin
   letI : topological_space Y := ⊥,
   haveI : discrete_topology Y := ⟨rfl⟩,
   rw @iff_continuous X Y ‹_› ‹_› at hf,
-  exact finite_of_is_compact_of_discrete _ (is_compact_range hf)
+  exact (is_compact_range hf).finite_of_discrete
 end
 
 @[to_additive] lemma one [has_one Y] : is_locally_constant (1 : X → Y) := const 1
@@ -194,9 +195,9 @@ structure locally_constant (X Y : Type*) [topological_space X] :=
 namespace locally_constant
 
 instance [inhabited Y] : inhabited (locally_constant X Y) :=
-⟨⟨_, is_locally_constant.const (default Y)⟩⟩
+⟨⟨_, is_locally_constant.const default⟩⟩
 
-instance : has_coe_to_fun (locally_constant X Y) := ⟨_, locally_constant.to_fun⟩
+instance : has_coe_to_fun (locally_constant X Y) (λ _, X → Y) := ⟨locally_constant.to_fun⟩
 
 initialize_simps_projections locally_constant (to_fun → apply)
 
@@ -210,7 +211,7 @@ congr_arg (λ h : locally_constant X Y, h x) h
 theorem congr_arg (f : locally_constant X Y) {x y : X} (h : x = y) : f x = f y :=
 congr_arg (λ x : X, f x) h
 
-theorem coe_injective : function.injective (λ (f : locally_constant X Y) (x : X), f x)
+theorem coe_injective : @function.injective (locally_constant X Y) (X → Y) coe_fn
 | ⟨f, hf⟩ ⟨g, hg⟩ h := have f = g, from h, by subst f
 
 @[simp, norm_cast] theorem coe_inj {f g : locally_constant X Y} : (f : X → Y) = g ↔ f = g :=
@@ -222,13 +223,34 @@ coe_injective (funext h)
 theorem ext_iff {f g : locally_constant X Y} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
-protected lemma continuous [topological_space Y] (f : locally_constant X Y) : continuous f :=
-f.is_locally_constant.continuous
+section codomain_topological_space
+
+variables [topological_space Y] (f : locally_constant X Y)
+
+protected lemma continuous : continuous f := f.is_locally_constant.continuous
+
+/-- We can turn a locally-constant function into a bundled `continuous_map`. -/
+def to_continuous_map : C(X, Y) := ⟨f, f.continuous⟩
+
+/-- As a shorthand, `locally_constant.to_continuous_map` is available as a coercion -/
+instance : has_coe (locally_constant X Y) C(X, Y) := ⟨to_continuous_map⟩
+
+@[simp] lemma to_continuous_map_eq_coe : f.to_continuous_map = f := rfl
+
+@[simp] lemma coe_continuous_map : ((f : C(X, Y)) : X → Y) = (f : X → Y) := rfl
+
+lemma to_continuous_map_injective :
+  function.injective (to_continuous_map : locally_constant X Y → C(X, Y)) :=
+λ _ _ h, ext (continuous_map.congr_fun h)
+
+end codomain_topological_space
 
 /-- The constant locally constant function on `X` with value `y : Y`. -/
 def const (X : Type*) {Y : Type*} [topological_space X] (y : Y) :
   locally_constant X Y :=
 ⟨function.const X y, is_locally_constant.const _⟩
+
+@[simp] lemma coe_const (y : Y) : (const X y : X → Y) = function.const X y := rfl
 
 /-- The locally constant function to `fin 2` associated to a clopen set. -/
 def of_clopen {X : Type*} [topological_space X] {U : set X} [∀ x, decidable (x ∈ U)]
@@ -273,10 +295,7 @@ lemma locally_constant_eq_of_fiber_zero_eq {X : Type*} [topological_space X]
 begin
   simp only [set.ext_iff, mem_singleton_iff, mem_preimage] at h,
   ext1 x,
-  have := h x,
-  set a := f x,
-  set b := g x,
-  fin_cases a; fin_cases b; finish
+  exact fin.fin_two_eq_of_eq_zero_iff (h x)
 end
 
 lemma range_finite [compact_space X] (f : locally_constant X Y) :

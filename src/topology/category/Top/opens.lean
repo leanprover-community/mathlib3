@@ -3,8 +3,10 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.category.Top.basic
+import category_theory.category.preorder
 import category_theory.eq_to_hom
+import topology.category.Top.epi_mono
+import topology.sets.opens
 
 /-!
 # The category of open sets in a topological space.
@@ -42,9 +44,8 @@ the morphisms `U ⟶ V` are not just proofs `U ≤ V`, but rather
 `ulift (plift (U ≤ V))`.
 -/
 
-instance opens_hom_has_coe_to_fun {U V : opens X} : has_coe_to_fun (U ⟶ V) :=
-{ F := λ f, U → V,
-  coe := λ f x, ⟨x, f.le x.2⟩ }
+instance opens_hom_has_coe_to_fun {U V : opens X} : has_coe_to_fun (U ⟶ V) (λ f, U → V) :=
+⟨λ f x, ⟨x, f.le x.2⟩⟩
 
 /-!
 We now construct as morphisms various inclusions of open sets.
@@ -117,23 +118,30 @@ def inclusion {X : Top.{u}} (U : opens X) : (to_Top X).obj U ⟶ X :=
 lemma open_embedding {X : Top.{u}} (U : opens X) : open_embedding (inclusion U) :=
 is_open.open_embedding_subtype_coe U.2
 
+/--
+The inclusion of the top open subset (i.e. the whole space) is an isomorphism.
+-/
+def inclusion_top_iso (X : Top.{u}) : (to_Top X).obj ⊤ ≅ X :=
+{ hom := inclusion ⊤,
+  inv := ⟨λ x, ⟨x, trivial⟩, continuous_def.2 $ λ U ⟨S, hS, hSU⟩, hSU ▸ hS⟩ }
+
 /-- `opens.map f` gives the functor from open sets in Y to open set in X,
     given by taking preimages under f. -/
 def map (f : X ⟶ Y) : opens Y ⥤ opens X :=
 { obj := λ U, ⟨ f ⁻¹' U.val, U.property.preimage f.continuous ⟩,
-  map := λ U V i, ⟨ ⟨ λ a b, i.le b ⟩ ⟩ }.
+  map := λ U V i, ⟨ ⟨ λ x h, i.le h ⟩ ⟩ }.
 
 @[simp] lemma map_obj (f : X ⟶ Y) (U) (p) :
   (map f).obj ⟨U, p⟩ = ⟨f ⁻¹' U, p.preimage f.continuous⟩ := rfl
 
 @[simp] lemma map_id_obj (U : opens X) : (map (𝟙 X)).obj U = U :=
-by { ext, refl } -- not quite `rfl`, since we don't have eta for records
+let ⟨_,_⟩ := U in rfl
 
 @[simp] lemma map_id_obj' (U) (p) : (map (𝟙 X)).obj ⟨U, p⟩ = ⟨U, p⟩ :=
 rfl
 
 @[simp] lemma map_id_obj_unop (U : (opens X)ᵒᵖ) : (map (𝟙 X)).obj (unop U) = unop U :=
-by simp
+let ⟨_,_⟩ := U.unop in rfl
 @[simp] lemma op_map_id_obj (U : (opens X)ᵒᵖ) : (map (𝟙 X)).op.obj U = U :=
 by simp
 
@@ -141,11 +149,11 @@ by simp
 The inclusion `U ⟶ (map f).obj ⊤` as a morphism in the category of open sets.
 -/
 def le_map_top (f : X ⟶ Y) (U : opens X) : U ⟶ (map f).obj ⊤ :=
-hom_of_le $ λ _ _, trivial
+le_top U
 
 @[simp] lemma map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
   (map (f ≫ g)).obj U = (map f).obj ((map g).obj U) :=
-by { ext, refl } -- not quite `rfl`, since we don't have eta for records
+rfl
 
 @[simp] lemma map_comp_obj' (f : X ⟶ Y) (g : Y ⟶ Z) (U) (p) :
   (map (f ≫ g)).obj ⟨U, p⟩ = (map f).obj ((map g).obj ⟨U, p⟩) :=
@@ -157,11 +165,18 @@ rfl
 
 @[simp] lemma map_comp_obj_unop (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
   (map (f ≫ g)).obj (unop U) = (map f).obj ((map g).obj (unop U)) :=
-map_comp_obj f g (unop U)
+rfl
 
 @[simp] lemma op_map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) :
   (map (f ≫ g)).op.obj U = (map f).op.obj ((map g).op.obj U) :=
-by simp
+rfl
+
+lemma map_supr (f : X ⟶ Y) {ι : Type*} (U : ι → opens Y) :
+  (map f).obj (supr U) = supr ((map f).obj ∘ U) :=
+begin
+  apply subtype.eq, rw [supr_def, supr_def, map_obj],
+  dsimp, rw set.preimage_Union, refl,
+end
 
 section
 variable (X)
@@ -175,6 +190,9 @@ def map_id : map (𝟙 X) ≅ 𝟭 (opens X) :=
 { hom := { app := λ U, eq_to_hom (map_id_obj U) },
   inv := { app := λ U, eq_to_hom (map_id_obj U).symm } }
 
+lemma map_id_eq : map (𝟙 X) = 𝟭 (opens X) :=
+by { unfold map, congr, ext, refl, ext }
+
 end
 
 /--
@@ -186,6 +204,9 @@ def map_comp (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
 { hom := { app := λ U, eq_to_hom (map_comp_obj f g U) },
   inv := { app := λ U, eq_to_hom (map_comp_obj f g U).symm } }
 
+lemma map_comp_eq (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) = map g ⋙ map f :=
+rfl
+
 /--
 If two continuous maps `f g : X ⟶ Y` are equal,
 then the functors `opens Y ⥤ opens X` they induce are isomorphic.
@@ -195,6 +216,9 @@ then the functors `opens Y ⥤ opens X` they induce are isomorphic.
 def map_iso (f g : X ⟶ Y) (h : f = g) : map f ≅ map g :=
 nat_iso.of_components (λ U, eq_to_iso (congr_fun (congr_arg functor.obj (congr_arg map h)) U) )
   (by obviously)
+
+lemma map_eq (f g : X ⟶ Y) (h : f = g) : map f = map g :=
+by { unfold map, congr, ext, rw h, rw h, assumption' }
 
 @[simp] lemma map_iso_refl (f : X ⟶ Y) (h) : map_iso f f h = iso.refl (map _) := rfl
 
@@ -206,6 +230,15 @@ rfl
   (map_iso f g h).inv.app U =
      eq_to_hom (congr_fun (congr_arg functor.obj (congr_arg map h.symm)) U) :=
 rfl
+
+/-- A homeomorphism of spaces gives an equivalence of categories of open sets. -/
+@[simps] def map_map_iso {X Y : Top.{u}} (H : X ≅ Y) : opens Y ≌ opens X :=
+{ functor := map H.hom,
+  inverse := map H.inv,
+  unit_iso := nat_iso.of_components (λ U, eq_to_iso (by simp [map, set.preimage_preimage]))
+    (by { intros _ _ _, simp }),
+  counit_iso := nat_iso.of_components (λ U, eq_to_iso (by simp [map, set.preimage_preimage]))
+    (by { intros _ _ _, simp }) }
 
 end topological_space.opens
 
@@ -226,3 +259,39 @@ def is_open_map.adjunction {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) :
 adjunction.mk_of_unit_counit
 { unit := { app := λ U, hom_of_le $ λ x hxU, ⟨x, hxU, rfl⟩ },
   counit := { app := λ V, hom_of_le $ λ y ⟨x, hfxV, hxy⟩, hxy ▸ hfxV } }
+
+instance is_open_map.functor_full_of_mono {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f)
+  [H : mono f] : full hf.functor :=
+{ preimage := λ U V i, hom_of_le (λ x hx, by
+  { obtain ⟨y, hy, eq⟩ := i.le ⟨x, hx, rfl⟩, exact (Top.mono_iff_injective f).mp H eq ▸ hy }) }
+
+instance is_open_map.functor_faithful {X Y : Top} {f : X ⟶ Y} (hf : is_open_map f) :
+  faithful hf.functor := {}
+
+namespace topological_space.opens
+open topological_space
+
+@[simp] lemma open_embedding_obj_top {X : Top} (U : opens X) :
+  U.open_embedding.is_open_map.functor.obj ⊤ = U :=
+by { ext1, exact set.image_univ.trans subtype.range_coe }
+
+@[simp] lemma inclusion_map_eq_top {X : Top} (U : opens X) :
+  (opens.map U.inclusion).obj U = ⊤ :=
+by { ext1, exact subtype.coe_preimage_self _ }
+
+@[simp]
+lemma adjunction_counit_app_self {X : Top} (U : opens X) :
+  U.open_embedding.is_open_map.adjunction.counit.app U = eq_to_hom (by simp) :=
+by ext
+
+lemma inclusion_top_functor (X : Top) :
+  (@opens.open_embedding X ⊤).is_open_map.functor =
+  map (inclusion_top_iso X).inv :=
+begin
+  apply functor.hext, intro, abstract obj_eq { ext,
+  exact ⟨ λ ⟨⟨_,_⟩,h,rfl⟩, h, λ h, ⟨⟨x,trivial⟩,h,rfl⟩ ⟩ },
+  intros, apply subsingleton.helim, congr' 1,
+  iterate 2 {apply inclusion_top_functor.obj_eq},
+end
+
+end topological_space.opens

@@ -60,7 +60,7 @@ lemma polynomial_comp_attach_bound (A : subalgebra ℝ C(X, ℝ)) (f : A) (g : p
     polynomial.aeval f g :=
 begin
   ext,
-  simp only [continuous_map.comp_coe, function.comp_app,
+  simp only [continuous_map.coe_comp, function.comp_app,
     continuous_map.attach_bound_apply_coe,
     polynomial.to_continuous_map_on_to_fun,
     polynomial.aeval_subalgebra_coe,
@@ -112,7 +112,7 @@ begin
   let M := ∥f∥,
   let f' := attach_bound (f : C(X, ℝ)),
   let abs : C(set.Icc (-∥f∥) (∥f∥), ℝ) :=
-  { to_fun := λ x : set.Icc (-∥f∥) (∥f∥), _root_.abs (x : ℝ) },
+  { to_fun := λ x : set.Icc (-∥f∥) (∥f∥), |(x : ℝ)| },
   change (abs.comp f') ∈ A.topological_closure,
   apply comp_attach_bound_mem_closure,
 end
@@ -179,7 +179,7 @@ begin
   -- so we get that out of the way here.
   by_cases nX : nonempty X,
   swap,
-  exact ⟨nA.some, (dist_lt_iff _ _ pos).mpr (λ x, false.elim (nX ⟨x⟩)), nA.some_spec⟩,
+  exact ⟨nA.some, (dist_lt_iff pos).mpr (λ x, false.elim (nX ⟨x⟩)), nA.some_spec⟩,
 
   /-
   The strategy now is to pick a family of continuous functions `g x y` in `A`
@@ -230,9 +230,10 @@ begin
   { intros x z,
     obtain ⟨y, ym, zm⟩ := set.exists_set_mem_of_union_eq_top _ _ (ys_w x) z,
     dsimp [h],
-    simp only [finset.lt_sup'_iff, continuous_map.sup'_apply],
-    exact ⟨y, ym, zm⟩, },
-  have h_eq : ∀ x, h x x = f x, by { intro x, simp only [coe_fn_coe_base] at w₁, simp [w₁], },
+    simp only [coe_fn_coe_base', subtype.coe_mk, sup'_coe, finset.sup'_apply, finset.lt_sup'_iff],
+    exact ⟨y, ym, zm⟩ },
+  have h_eq : ∀ x, h x x = f x,
+  { intro x, simp only [coe_fn_coe_base'] at w₁, simp [coe_fn_coe_base', w₁], },
 
   -- For each `x`, we define `W x` to be `{z | h x z < f z + ε}`,
   let W : Π x, set X := λ x, {z | h x z < f z + ε},
@@ -261,7 +262,7 @@ begin
   refine ⟨k.1, _, k.2⟩,
 
   -- We just need to verify the bound, which we do pointwise.
-  rw dist_lt_iff _ _ pos,
+  rw dist_lt_iff pos,
   intro z,
 
   -- We rewrite into this particular form,
@@ -280,7 +281,7 @@ begin
 end
 
 /--
-The Stone-Weierstrass approximation theorem,
+The **Stone-Weierstrass Approximation Theorem**,
 that a subalgebra `A` of `C(X, ℝ)`, where `X` is a compact topological space,
 is dense if it separates points.
 -/
@@ -297,8 +298,8 @@ begin
     ⟨(1 : C(X, ℝ)), A.subalgebra_topological_closure A.one_mem⟩,
   convert sublattice_closure_eq_top
     (L : set C(X, ℝ)) n
-    (λ f g fm gm, inf_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
-    (λ f g fm gm, sup_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
+    (λ f fm g gm, inf_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
+    (λ f fm g gm, sup_mem_closed_subalgebra L A.is_closed_topological_closure ⟨f, fm⟩ ⟨g, gm⟩)
     (subalgebra.separates_points.strongly
       (subalgebra.separates_points_monotone (A.subalgebra_topological_closure) w)),
   { simp, },
@@ -389,7 +390,7 @@ begin
   intros x₁ x₂ hx,
   -- Let `f` in the subalgebra `A` separate the points `x₁`, `x₂`
   obtain ⟨_, ⟨f, hfA, rfl⟩, hf⟩ := hA hx,
-  let F : C(X, ℂ) := f - const (f x₂),
+  let F : C(X, ℂ) := f - const _ (f x₂),
   -- Subtract the constant `f x₂` from `f`; this is still an element of the subalgebra
   have hFA : F ∈ A,
   { refine A.sub_mem hfA _,

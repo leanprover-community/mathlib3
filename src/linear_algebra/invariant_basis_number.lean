@@ -3,8 +3,8 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel, Scott Morrison
 -/
+import ring_theory.ideal.quotient
 import ring_theory.principal_ideal_domain
-import ring_theory.ideal.basic
 
 /-!
 # Invariant basis number property
@@ -34,9 +34,11 @@ We show that every nontrivial left-noetherian ring satisfies the strong rank con
 (and so in particular every division ring or field),
 and then use this to show every nontrivial commutative ring has the invariant basis number property.
 
-## Future work
+More generally, every commutative ring satisfies the strong rank condition. This is proved in
+`linear_algebra/free_module/strong_rank_condition`. We keep
+`invariant_basis_number_of_nontrivial_of_comm_ring` here since it imports fewer files.
 
-We can improve these results: in fact every commutative ring satisfies the strong rank condition.
+## Future work
 
 So far, there is no API at all for the `invariant_basis_number` class. There are several natural
 ways to formulate that a module `M` is finitely generated and free, for example
@@ -71,12 +73,44 @@ variables (R : Type u) [ring R]
 
 /-- We say that `R` satisfies the strong rank condition if `(fin n → R) →ₗ[R] (fin m → R)` injective
     implies `n ≤ m`. -/
+@[mk_iff]
 class strong_rank_condition : Prop :=
 (le_of_fin_injective : ∀ {n m : ℕ} (f : (fin n → R) →ₗ[R] (fin m → R)), injective f → n ≤ m)
 
 lemma le_of_fin_injective [strong_rank_condition R] {n m : ℕ} (f : (fin n → R) →ₗ[R] (fin m → R)) :
   injective f → n ≤ m :=
 strong_rank_condition.le_of_fin_injective f
+
+/-- A ring satisfies the strong rank condition if and only if, for all `n : ℕ`, any linear map
+`(fin (n + 1) → R) →ₗ[R] (fin n → R)` is not injective. -/
+lemma strong_rank_condition_iff_succ : strong_rank_condition R ↔
+  ∀ (n : ℕ) (f : (fin (n + 1) → R) →ₗ[R] (fin n → R)), ¬function.injective f :=
+begin
+  refine ⟨λ h n, λ f hf, _, λ h, ⟨λ n m f hf, _⟩⟩,
+  { letI : strong_rank_condition R := h,
+    exact nat.not_succ_le_self n (le_of_fin_injective R f hf) },
+  { by_contra H,
+    exact h m (f.comp (function.extend_by_zero.linear_map R (fin.cast_le (not_le.1 H))))
+      (hf.comp (function.extend_injective (rel_embedding.injective _) 0)) }
+end
+
+lemma card_le_of_injective [strong_rank_condition R] {α β : Type*} [fintype α] [fintype β]
+  (f : (α → R) →ₗ[R] (β → R)) (i : injective f) : fintype.card α ≤ fintype.card β :=
+begin
+  let P := linear_equiv.fun_congr_left R R (fintype.equiv_fin α),
+  let Q := linear_equiv.fun_congr_left R R (fintype.equiv_fin β),
+  exact le_of_fin_injective R ((Q.symm.to_linear_map.comp f).comp P.to_linear_map)
+    (((linear_equiv.symm Q).injective.comp i).comp (linear_equiv.injective P)),
+end
+
+lemma card_le_of_injective' [strong_rank_condition R] {α β : Type*} [fintype α] [fintype β]
+  (f : (α →₀ R) →ₗ[R] (β →₀ R)) (i : injective f) : fintype.card α ≤ fintype.card β :=
+begin
+  let P := (finsupp.linear_equiv_fun_on_fintype R R β),
+  let Q := (finsupp.linear_equiv_fun_on_fintype R R α).symm,
+  exact card_le_of_injective R ((P.to_linear_map.comp f).comp Q.to_linear_map)
+    ((P.injective.comp i).comp Q.injective)
+end
 
 /-- We say that `R` satisfies the rank condition if `(fin n → R) →ₗ[R] (fin m → R)` surjective
     implies `m ≤ n`. -/
@@ -86,6 +120,24 @@ class rank_condition : Prop :=
 lemma le_of_fin_surjective [rank_condition R] {n m : ℕ} (f : (fin n → R) →ₗ[R] (fin m → R)) :
   surjective f → m ≤ n :=
 rank_condition.le_of_fin_surjective f
+
+lemma card_le_of_surjective [rank_condition R] {α β : Type*} [fintype α] [fintype β]
+  (f : (α → R) →ₗ[R] (β → R)) (i : surjective f) : fintype.card β ≤ fintype.card α :=
+begin
+  let P := linear_equiv.fun_congr_left R R (fintype.equiv_fin α),
+  let Q := linear_equiv.fun_congr_left R R (fintype.equiv_fin β),
+  exact le_of_fin_surjective R ((Q.symm.to_linear_map.comp f).comp P.to_linear_map)
+    (((linear_equiv.symm Q).surjective.comp i).comp (linear_equiv.surjective P)),
+end
+
+lemma card_le_of_surjective' [rank_condition R] {α β : Type*} [fintype α] [fintype β]
+  (f : (α →₀ R) →ₗ[R] (β →₀ R)) (i : surjective f) : fintype.card β ≤ fintype.card α :=
+begin
+  let P := (finsupp.linear_equiv_fun_on_fintype R R β),
+  let Q := (finsupp.linear_equiv_fun_on_fintype R R α).symm,
+  exact card_le_of_surjective R ((P.to_linear_map.comp f).comp Q.to_linear_map)
+    ((P.surjective.comp i).comp Q.surjective)
+end
 
 /--
 By the universal property for free modules, any surjective map `(fin n → R) →ₗ[R] (fin m → R)`
@@ -116,6 +168,11 @@ variables (R : Type u) [ring R] [invariant_basis_number R]
 
 lemma eq_of_fin_equiv {n m : ℕ} : ((fin n → R) ≃ₗ[R] (fin m → R)) → n = m :=
 invariant_basis_number.eq_of_fin_equiv
+
+lemma card_eq_of_lequiv {α β : Type*} [fintype α] [fintype β]
+  (f : (α → R) ≃ₗ[R] (β → R)) : fintype.card α = fintype.card β :=
+eq_of_fin_equiv R (((linear_equiv.fun_congr_left R R (fintype.equiv_fin α)).trans f) ≪≫ₗ
+  ((linear_equiv.fun_congr_left R R (fintype.equiv_fin β)).symm))
 
 lemma nontrivial_of_invariant_basis_number : nontrivial R :=
 begin
@@ -151,7 +208,7 @@ begin
   let e : fin (n + 1 + m) ≃ fin n ⊕ fin (1 + m) :=
     (fin_congr (add_assoc _ _ _)).trans fin_sum_fin_equiv.symm,
   let f' := f.comp ((linear_equiv.sum_arrow_lequiv_prod_arrow _ _ R R).symm.trans
-    (linear_map.fun_congr_left R R e)).to_linear_map,
+    (linear_equiv.fun_congr_left R R e)).to_linear_map,
   have i' : injective f' := i.comp (linear_equiv.injective _),
   apply @zero_ne_one (fin (1 + m) → R) _ _,
   apply (is_noetherian.equiv_punit_of_prod_injective f' i').injective,
@@ -179,7 +236,7 @@ variables {R : Type u} [comm_ring R] (I : ideal R) {ι : Type v} [fintype ι] {�
 
 /-- An `R`-linear map `R^n → R^m` induces a function `R^n/I^n → R^m/I^m`. -/
 private def induced_map (I : ideal R) (e : (ι → R) →ₗ[R] (ι' → R)) :
-  (I.pi ι).quotient → (I.pi ι').quotient :=
+  (ι → R) ⧸ (I.pi ι) → (ι' → R) ⧸ I.pi ι' :=
 λ x, quotient.lift_on' x (λ y, ideal.quotient.mk _ (e y))
 begin
   refine λ a b hab, ideal.quotient.eq.2 (λ h, _),
@@ -190,7 +247,7 @@ end
 /-- An isomorphism of `R`-modules `R^n ≃ R^m` induces an isomorphism of `R/I`-modules
     `R^n/I^n ≃ R^m/I^m`. -/
 private def induced_equiv [fintype ι'] (I : ideal R) (e : (ι → R) ≃ₗ[R] (ι' → R)) :
-  (I.pi ι).quotient ≃ₗ[I.quotient] (I.pi ι').quotient :=
+  ((ι → R) ⧸ I.pi ι) ≃ₗ[R ⧸ I] (ι' → R) ⧸ I.pi ι' :=
 begin
   refine { to_fun := induced_map I e, inv_fun := induced_map I e.symm, .. },
   all_goals { rintro ⟨a⟩ ⟨b⟩ <|> rintro ⟨a⟩,
@@ -216,7 +273,7 @@ local attribute [instance] ideal.quotient.field
 instance invariant_basis_number_of_nontrivial_of_comm_ring {R : Type u} [comm_ring R]
   [nontrivial R] : invariant_basis_number R :=
 ⟨λ n m e, let ⟨I, hI⟩ := ideal.exists_maximal R in
-  by exactI eq_of_fin_equiv I.quotient
-    ((ideal.pi_quot_equiv _ _).symm.trans ((induced_equiv _ e).trans (ideal.pi_quot_equiv _ _)))⟩
+  by exactI eq_of_fin_equiv (R ⧸ I)
+    ((ideal.pi_quot_equiv _ _).symm ≪≫ₗ ((induced_equiv _ e) ≪≫ₗ (ideal.pi_quot_equiv _ _)))⟩
 
 end

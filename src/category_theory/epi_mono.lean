@@ -2,15 +2,17 @@
 Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton, Scott Morrison
-
-Facts about epimorphisms and monomorphisms.
-
-The definitions of `epi` and `mono` are in `category_theory.category`,
-since they are used by some lemmas for `iso`, which is used everywhere.
 -/
 import category_theory.adjunction.basic
 import category_theory.opposites
 import category_theory.groupoid
+
+/-!
+# Facts about epimorphisms and monomorphisms.
+
+The definitions of `epi` and `mono` are in `category_theory.category`,
+since they are used by some lemmas for `iso`, which is used everywhere.
+-/
 
 universes v₁ v₂ u₁ u₂
 
@@ -167,6 +169,29 @@ begin
   trunc_cases all_split_mono (retraction f),
   apply is_iso.of_mono_retraction,
 end
+
+section
+variables (C)
+
+/-- A split mono category is a category in which every monomorphism is split. -/
+class split_mono_category :=
+(split_mono_of_mono : ∀ {X Y : C} (f : X ⟶ Y) [mono f], split_mono f)
+
+/-- A split epi category is a category in which every epimorphism is split. -/
+class split_epi_category :=
+(split_epi_of_epi : ∀ {X Y : C} (f : X ⟶ Y) [epi f], split_epi f)
+
+end
+
+/-- In a category in which every monomorphism is split, every monomorphism splits. This is not an
+    instance because it would create an instance loop. -/
+def split_mono_of_mono [split_mono_category C] {X Y : C} (f : X ⟶ Y) [mono f] : split_mono f :=
+split_mono_category.split_mono_of_mono _
+
+/-- In a category in which every epimorphism is split, every epimorphism splits. This is not an
+    instance because it would create an instance loop. -/
+def split_epi_of_epi [split_epi_category C] {X Y : C} (f : X ⟶ Y) [epi f] : split_epi f :=
+split_epi_category.split_epi_of_epi _
 
 section
 variables {D : Type u₂} [category.{v₂} D]

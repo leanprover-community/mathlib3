@@ -41,7 +41,7 @@ attribute [instance] congruence.is_equiv
 @[ext]
 structure quotient := (as : C)
 
-instance [inhabited C] : inhabited (quotient r) := ⟨ { as := default C } ⟩
+instance [inhabited C] : inhabited (quotient r) := ⟨ { as := default } ⟩
 
 namespace quotient
 

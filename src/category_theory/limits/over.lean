@@ -34,11 +34,12 @@ variable {X : C}
 
 namespace category_theory.over
 
-instance (F : J ⥤ over X) [i : has_colimit (F ⋙ forget X)] : has_colimit F :=
+instance has_colimit_of_has_colimit_comp_forget
+  (F : J ⥤ over X) [i : has_colimit (F ⋙ forget X)] : has_colimit F :=
 @@costructured_arrow.has_colimit _ _ _ _ i _
 
 instance [has_colimits_of_shape J C] : has_colimits_of_shape J (over X) := {}
-instance [has_colimits C] : has_colimits (over X) := {}
+instance [has_colimits C] : has_colimits (over X) := ⟨infer_instance⟩
 
 instance creates_colimits : creates_colimits (forget X) := costructured_arrow.creates_colimits
 
@@ -107,11 +108,12 @@ end category_theory.over
 
 namespace category_theory.under
 
-instance (F : J ⥤ under X) [i : has_limit (F ⋙ forget X)] : has_limit F :=
+instance has_limit_of_has_limit_comp_forget
+  (F : J ⥤ under X) [i : has_limit (F ⋙ forget X)] : has_limit F :=
 @@structured_arrow.has_limit _ _ _ _ i _
 
 instance [has_limits_of_shape J C] : has_limits_of_shape J (under X) := {}
-instance [has_limits C] : has_limits (under X) := {}
+instance [has_limits C] : has_limits (under X) := ⟨infer_instance⟩
 
 instance creates_limits : creates_limits (forget X) := structured_arrow.creates_limits
 

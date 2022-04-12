@@ -33,12 +33,14 @@ This should not be applied by hand.
 meta def can_lift_attr : user_attribute (list name) :=
 { name := "_can_lift",
   descr := "internal attribute used by the lift tactic",
-  cache_cfg := { mk_cache := λ _,
-    do { ls ← attribute.get_instances `instance,
-        ls.mfilter $ λ l,
-        do { (_,t) ← mk_const l >>= infer_type >>= open_pis,
-         return $ t.is_app_of `can_lift } },
-  dependencies := [`instance] } }
+  parser := failed,
+  cache_cfg :=
+  { mk_cache := λ _,
+      do { ls ← attribute.get_instances `instance,
+          ls.mfilter $ λ l,
+          do { (_,t) ← mk_const l >>= infer_type >>= open_pis,
+          return $ t.is_app_of `can_lift } },
+    dependencies := [`instance] } }
 
 instance : can_lift ℤ ℕ :=
 ⟨coe, λ n, 0 ≤ n, λ n hn, ⟨n.nat_abs, int.nat_abs_of_nonneg hn⟩⟩
@@ -145,9 +147,8 @@ do
   if h_prf_nm : prf_nm.is_some ∧ n.nth 2 ≠ prf_nm then
     get_local (option.get h_prf_nm.1) >>= clear else skip
 
-open lean.parser interactive interactive.types
+setup_tactic_parser
 
-local postfix `?`:9001 := optional
 /-- Parses an optional token "using" followed by a trailing `pexpr`. -/
 meta def using_texpr := (tk "using" *> texpr)?
 

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
 import data.nat.choose.sum
-import algebra.algebra.basic
+import algebra.algebra.bilinear
+import ring_theory.ideal.operations
 
 /-!
 # Nilpotent elements
@@ -22,7 +23,7 @@ import algebra.algebra.basic
 
 universes u v
 
-variables {R : Type u} {x y : R}
+variables {R S : Type u} {x y : R}
 
 /-- An element is said to be nilpotent if some natural-number-power of it equals zero.
 
@@ -30,6 +31,9 @@ Note that we require only the bare minimum assumptions for the definition to mak
 `monoid_with_zero` is too strong since nilpotency is important in the study of rings that are only
 power-associative. -/
 def is_nilpotent [has_zero R] [has_pow R ℕ] (x : R) : Prop := ∃ (n : ℕ), x^n = 0
+
+lemma is_nilpotent.mk [has_zero R] [has_pow R ℕ] (x : R) (n : ℕ)
+  (e : x ^ n = 0) : is_nilpotent x := ⟨n, e⟩
 
 lemma is_nilpotent.zero [monoid_with_zero R] : is_nilpotent (0 : R) := ⟨1, pow_one 0⟩
 
@@ -43,13 +47,41 @@ end
 @[simp] lemma is_nilpotent_neg_iff [ring R] : is_nilpotent (-x) ↔ is_nilpotent x :=
 ⟨λ h, neg_neg x ▸ h.neg, λ h, h.neg⟩
 
-lemma is_nilpotent.eq_zero [monoid_with_zero R] [no_zero_divisors R]
-  (h : is_nilpotent x) : x = 0 :=
-by { obtain ⟨n, hn⟩ := h, exact pow_eq_zero hn, }
+lemma is_nilpotent.map [monoid_with_zero R] [monoid_with_zero S] {r : R}
+  {F : Type*} [monoid_with_zero_hom_class F R S] (hr : is_nilpotent r) (f : F) :
+    is_nilpotent (f r) :=
+by { use hr.some, rw [← map_pow, hr.some_spec, map_zero] }
 
-@[simp] lemma is_nilpotent_iff_eq_zero [monoid_with_zero R] [no_zero_divisors R] :
+/-- A structure that has zero and pow is reduced if it has no nonzero nilpotent elements. -/
+class is_reduced (R : Type*) [has_zero R] [has_pow R ℕ] : Prop :=
+(eq_zero : ∀ (x : R), is_nilpotent x → x = 0)
+
+@[priority 900]
+instance is_reduced_of_no_zero_divisors [monoid_with_zero R] [no_zero_divisors R] : is_reduced R :=
+⟨λ _ ⟨_, hn⟩, pow_eq_zero hn⟩
+
+@[priority 900]
+instance is_reduced_of_subsingleton [has_zero R] [has_pow R ℕ] [subsingleton R] :
+  is_reduced R := ⟨λ _ _, subsingleton.elim _ _⟩
+
+lemma is_nilpotent.eq_zero [has_zero R] [has_pow R ℕ] [is_reduced R]
+  (h : is_nilpotent x) : x = 0 :=
+is_reduced.eq_zero x h
+
+@[simp] lemma is_nilpotent_iff_eq_zero [monoid_with_zero R] [is_reduced R] :
   is_nilpotent x ↔ x = 0 :=
 ⟨λ h, h.eq_zero, λ h, h.symm ▸ is_nilpotent.zero⟩
+
+lemma is_reduced_of_injective [monoid_with_zero R] [monoid_with_zero S]
+  {F : Type*} [monoid_with_zero_hom_class F R S] (f : F)
+  (hf : function.injective f) [_root_.is_reduced S] : _root_.is_reduced R :=
+begin
+  constructor,
+  intros x hx,
+  apply hf,
+  rw map_zero,
+  exact (hx.map f).eq_zero,
+end
 
 namespace commute
 
@@ -103,6 +135,30 @@ end ring
 
 end commute
 
+section comm_semiring
+
+variable [comm_semiring R]
+
+/-- The nilradical of a commutative semiring is the ideal of nilpotent elements. -/
+def nilradical (R : Type*) [comm_semiring R] : ideal R := (0 : ideal R).radical
+
+lemma mem_nilradical : x ∈ nilradical R ↔ is_nilpotent x := iff.rfl
+
+lemma nilradical_eq_Inf (R : Type*) [comm_semiring R] :
+  nilradical R = Inf { J : ideal R | J.is_prime } :=
+by { convert ideal.radical_eq_Inf 0, simp }
+
+lemma nilpotent_iff_mem_prime : is_nilpotent x ↔ ∀ (J : ideal R), J.is_prime → x ∈ J :=
+by { rw [← mem_nilradical, nilradical_eq_Inf, submodule.mem_Inf], refl }
+
+lemma nilradical_le_prime (J : ideal R) [H : J.is_prime] : nilradical R ≤ J :=
+(nilradical_eq_Inf R).symm ▸ Inf_le H
+
+@[simp] lemma nilradical_eq_zero (R : Type*) [comm_semiring R] [is_reduced R] : nilradical R = 0 :=
+ideal.ext $ λ _, is_nilpotent_iff_eq_zero
+
+end comm_semiring
+
 namespace algebra
 
 variables (R) {A : Type v} [comm_semiring R] [semiring A] [algebra R A]
@@ -124,3 +180,17 @@ begin
 end
 
 end algebra
+
+namespace module.End
+
+variables {M : Type v} [ring R] [add_comm_group M] [module R M]
+variables {f : module.End R M} {p : submodule R M} (hp : p ≤ p.comap f)
+
+lemma is_nilpotent.mapq (hnp : is_nilpotent f) : is_nilpotent (p.mapq p f hp) :=
+begin
+  obtain ⟨k, hk⟩ := hnp,
+  use k,
+  simp [← p.mapq_pow, hk],
+end
+
+end module.End

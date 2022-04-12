@@ -5,6 +5,7 @@ Authors: Markus Himmel, Scott Morrison
 -/
 import algebra.homology.exact
 import category_theory.types
+import category_theory.limits.shapes.biproducts
 
 /-!
 # Projective objects and categories with enough projectives
@@ -96,7 +97,7 @@ instance (X : Type u) : projective X :=
   ⟨λ x, ((epi_iff_surjective _).mp epi (f x)).some,
   by { ext x, exact ((epi_iff_surjective _).mp epi (f x)).some_spec, }⟩ }
 
-instance Type_enough_projectives : enough_projectives (Type u) :=
+instance Type.enough_projectives : enough_projectives (Type u) :=
 { presentation := λ X, ⟨{ P := X, f := 𝟙 X, }⟩, }
 
 instance {P Q : C} [has_binary_coproduct P Q] [projective P] [projective Q] :
@@ -180,15 +181,15 @@ the middle object `R` of a pair of exact morphisms `f : Q ⟶ R` and `g : R ⟶ 
 such that `h ≫ g = 0`, there is a lift of `h` to `Q`.
 -/
 def exact.lift {P Q R S : C} [projective P] (h : P ⟶ R) (f : Q ⟶ R) (g : R ⟶ S)
-  [exact f g] (w : h ≫ g = 0) : P ⟶ Q :=
+  (hfg : exact f g) (w : h ≫ g = 0) : P ⟶ Q :=
 factor_thru
   (factor_thru
     (factor_thru_kernel_subobject g h w)
-    (image_to_kernel f g (by simp)))
+    (image_to_kernel f g hfg.w))
   (factor_thru_image_subobject f)
 
 @[simp] lemma exact.lift_comp {P Q R S : C} [projective P] (h : P ⟶ R) (f : Q ⟶ R) (g : R ⟶ S)
-  [exact f g] (w : h ≫ g = 0) : exact.lift h f g w ≫ f = h :=
+  (hfg : exact f g) (w : h ≫ g = 0) : exact.lift h f g hfg w ≫ f = h :=
 begin
   simp [exact.lift],
   conv_lhs { congr, skip, rw ← image_subobject_arrow_comp f, },

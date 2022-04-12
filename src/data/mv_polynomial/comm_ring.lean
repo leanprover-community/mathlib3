@@ -52,13 +52,11 @@ variables {p q : mv_polynomial σ R}
 
 instance : comm_ring (mv_polynomial σ R) := add_monoid_algebra.comm_ring
 
-instance C.is_ring_hom : is_ring_hom (C : R → mv_polynomial σ R) :=
-by apply is_ring_hom.of_semiring
-
 variables (σ a a')
-@[simp] lemma C_sub : (C (a - a') : mv_polynomial σ R) = C a - C a' := is_ring_hom.map_sub _
 
-@[simp] lemma C_neg : (C (-a) : mv_polynomial σ R) = -C a := is_ring_hom.map_neg _
+@[simp] lemma C_sub : (C (a - a') : mv_polynomial σ R) = C a - C a' := ring_hom.map_sub _ _ _
+
+@[simp] lemma C_neg : (C (-a) : mv_polynomial σ R) = -C a := ring_hom.map_neg _ _
 
 @[simp] lemma coeff_neg (m : σ →₀ ℕ) (p : mv_polynomial σ R) :
   coeff m (-p) = -coeff m p := finsupp.neg_apply _ _
@@ -66,19 +64,11 @@ variables (σ a a')
 @[simp] lemma coeff_sub (m : σ →₀ ℕ) (p q : mv_polynomial σ R) :
   coeff m (p - q) = coeff m p - coeff m q := finsupp.sub_apply _ _ _
 
-@[simp] lemma monomial_neg (m : σ →₀ ℕ) (a : R) : -(monomial m a) = monomial m (-a) :=
-single_neg.symm
-
-@[simp] lemma monomial_sub (m : σ →₀ ℕ) (a b : R) :
-  monomial m a - monomial m b = monomial m (a - b) :=
-single_sub.symm
-
 @[simp] lemma support_neg : (- p).support = p.support :=
-finsupp.support_neg
+finsupp.support_neg p
 
-instance coeff.is_add_group_hom (m : σ →₀ ℕ) :
-  is_add_group_hom (coeff m : mv_polynomial σ R → R) :=
-{ map_add := coeff_add m }
+lemma support_sub (p q : mv_polynomial σ R) : (p - q).support ⊆ p.support ∪ q.support :=
+finsupp.support_sub
 
 variables {σ} (p)
 
@@ -125,8 +115,8 @@ variables (f : R →+* S) (g : σ → S)
 
 @[simp] lemma eval₂_neg : (-p).eval₂ f g = -(p.eval₂ f g) := (eval₂_hom f g).map_neg _
 
-lemma hom_C (f : mv_polynomial σ ℤ → S) [is_ring_hom f] (n : ℤ) : f (C n) = (n : S) :=
-((ring_hom.of f).comp (ring_hom.of C)).eq_int_cast n
+lemma hom_C (f : mv_polynomial σ ℤ →+* S) (n : ℤ) : f (C n) = (n : S) :=
+(f.comp C).eq_int_cast n
 
 /-- A ring homomorphism f : Z[X_1, X_2, ...] → R
 is determined by the evaluations f(X_1), f(X_2), ... -/
@@ -134,9 +124,9 @@ is determined by the evaluations f(X_1), f(X_2), ... -/
   (f : mv_polynomial R ℤ →+* S) (x : mv_polynomial R ℤ) :
   eval₂ c (f ∘ X) x = f x :=
 mv_polynomial.induction_on x
-(λ n, by { rw [hom_C f, eval₂_C], exact (ring_hom.of c).eq_int_cast n })
-(λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (is_ring_hom.map_add f).symm })
-(λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm })
+(λ n, by { rw [hom_C f, eval₂_C], exact c.eq_int_cast n })
+(λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (f.map_add _ _).symm })
+(λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (f.map_mul _ _).symm })
 
 /-- Ring homomorphisms out of integer polynomials on a type `σ` are the same as
 functions out of the type `σ`, -/
@@ -147,6 +137,26 @@ def hom_equiv : (mv_polynomial σ ℤ →+* S) ≃ (σ → S) :=
   right_inv := λ f, funext $ λ x, by simp only [coe_eval₂_hom, function.comp_app, eval₂_X] }
 
 end eval₂
+
+section degree_of
+
+lemma degree_of_sub_lt {x : σ} {f g : mv_polynomial σ R} {k : ℕ} (h : 0 < k)
+  (hf : ∀ (m : σ →₀ ℕ), m ∈ f.support → (k ≤ m x) → coeff m f = coeff m g)
+  (hg : ∀ (m : σ →₀ ℕ), m ∈ g.support → (k ≤ m x) → coeff m f = coeff m g) :
+  degree_of x (f - g) < k :=
+begin
+  rw degree_of_lt_iff h,
+  intros m hm,
+  by_contra hc,
+  simp only [not_lt] at hc,
+  have h := support_sub σ f g hm,
+  simp only [mem_support_iff, ne.def, coeff_sub, sub_eq_zero] at hm,
+  cases (finset.mem_union).1 h with cf cg,
+  { exact hm (hf m cf hc), },
+  { exact hm (hg m cg hc), },
+end
+
+end degree_of
 
 section total_degree
 

@@ -3,7 +3,6 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.rat
 import set_theory.cardinal
 
 /-!
@@ -37,7 +36,9 @@ end
 end rat
 
 namespace cardinal
-lemma mk_rat : cardinal.mk ℚ = omega :=
-denumerable_iff.mp ⟨by apply_instance⟩
+
+open_locale cardinal
+
+@[simp] lemma mk_rat : #ℚ = ω := mk_denumerable ℚ
 
 end cardinal

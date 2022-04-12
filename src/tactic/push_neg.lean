@@ -7,7 +7,6 @@ A tactic pushing negations into an expression
 -/
 
 import logic.basic
-import algebra.order
 
 open tactic expr
 
@@ -168,7 +167,7 @@ lemma imp_of_not_imp_not (P Q : Prop) : (¬ Q → ¬ P) → (P → Q) :=
 
 /-- Matches either an identifier "h" or a pair of identifiers "h with k" -/
 meta def name_with_opt : lean.parser (name × option name) :=
-prod.mk <$> ident <*> (some <$> (tk "with" >> ident) <|> return none)
+prod.mk <$> ident <*> (some <$> (tk "with" *> ident) <|> return none)
 
 /--
 Transforms the goal into its contrapositive.
@@ -185,8 +184,10 @@ meta def tactic.interactive.contrapose (push : parse (tk "!" )?) :
 | (some (h, h')) := get_local h >>= revert >> tactic.interactive.contrapose none >>
   intro (h'.get_or_else h) >> skip
 | none :=
-  do `(%%P → %%Q) ← target | fail "The goal is not an implication, and you didn't specify an assumption",
-  cp ← mk_mapp ``imp_of_not_imp_not [P, Q] <|> fail "contrapose only applies to nondependent arrows between props",
+  do `(%%P → %%Q) ← target | fail
+    "The goal is not an implication, and you didn't specify an assumption",
+  cp ← mk_mapp ``imp_of_not_imp_not [P, Q] <|> fail
+    "contrapose only applies to nondependent arrows between props",
   apply cp,
   when push.is_some $ try (tactic.interactive.push_neg (loc.ns [none]))
 

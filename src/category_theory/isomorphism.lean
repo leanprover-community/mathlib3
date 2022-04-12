@@ -236,6 +236,11 @@ variables {f g : X ⟶ Y} {h : Y ⟶ Z}
 instance inv_is_iso [is_iso f] : is_iso (inv f) :=
 is_iso.of_iso_inv (as_iso f)
 
+/- The following instance has lower priority for the following reason:
+Suppose we are given `f : X ≅ Y` with `X Y : Type u`.
+Without the lower priority, typeclass inference cannot deduce `is_iso f.hom`
+because `f.hom` is defeq to `(λ x, x) ≫ f.hom`, triggering a loop. -/
+@[priority 900]
 instance comp_is_iso [is_iso f] [is_iso h] : is_iso (f ≫ h) :=
 is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
 
@@ -260,6 +265,22 @@ lemma comp_inv_eq (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : f ≫
 @[simp]
 lemma eq_comp_inv (α : X ⟶ Y) [is_iso α] {f : Z ⟶ Y} {g : Z ⟶ X} : g = f ≫ inv α ↔ g ≫ α = f :=
 (as_iso α).eq_comp_inv
+
+lemma of_is_iso_comp_left {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [is_iso f] [is_iso (f ≫ g)] : is_iso g :=
+by { rw [← id_comp g, ← inv_hom_id f, assoc], apply_instance, }
+
+lemma of_is_iso_comp_right {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
+  [is_iso g] [is_iso (f ≫ g)] : is_iso f :=
+by { rw [← comp_id f, ← hom_inv_id g, ← assoc], apply_instance, }
+
+lemma of_is_iso_fac_left {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z}
+  [is_iso f] [hh : is_iso h] (w : f ≫ g = h) : is_iso g :=
+by { rw ← w at hh, haveI := hh, exact of_is_iso_comp_left f g, }
+
+lemma of_is_iso_fac_right {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z}
+  [is_iso g] [hh : is_iso h] (w : f ≫ g = h) : is_iso f :=
+by { rw ← w at hh, haveI := hh, exact of_is_iso_comp_right f g, }
 
 end is_iso
 
@@ -386,12 +407,5 @@ lemma map_inv_hom (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
 by simp
 
 end functor
-
-section partial_order
-variables {α β : Type*} [partial_order α] [partial_order β]
-
-lemma iso.to_eq {X Y : α} (f : X ≅ Y) : X = Y := le_antisymm f.hom.le f.inv.le
-
-end partial_order
 
 end category_theory

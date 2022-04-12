@@ -393,7 +393,17 @@ local attribute [tidy] tactic.case_bash
 /-- `multifork.to_pi_fork` is functorial. -/
 @[simps] noncomputable
 def to_pi_fork_functor : multifork I ⥤ fork I.fst_pi_map I.snd_pi_map :=
-{ obj := multifork.to_pi_fork, map := λ K₁ K₂ f, { hom := f.hom, } }
+{ obj := multifork.to_pi_fork,
+  map := λ K₁ K₂ f,
+  { hom := f.hom,
+    w' := begin
+      rintro (_|_),
+      { ext, dsimp, simp },
+      { ext,
+        simp only [multifork.to_pi_fork_π_app_one, multifork.pi_condition, category.assoc],
+        dsimp [snd_pi_map],
+        simp },
+    end } }
 
 /-- `multifork.of_pi_fork` is functorial. -/
 @[simps] noncomputable
@@ -411,7 +421,7 @@ def multifork_equiv_pi_fork : multifork I ≌ fork I.fst_pi_map I.snd_pi_map :=
   inverse := of_pi_fork_functor I,
   unit_iso := nat_iso.of_components (λ K, cones.ext (iso.refl _) (by rintros (_|_); dsimp; simp))
     (λ K₁ K₂ f, by { ext, simp }),
-  counit_iso := nat_iso.of_components (λ K, fork.ext (iso.refl _) (by { ext, dsimp, simp }))
+  counit_iso := nat_iso.of_components (λ K, fork.ext (iso.refl _) (by { ext ⟨j⟩, dsimp, simp }))
     (λ K₁ K₂ f, by { ext, simp }) }
 
 end multicospan_index
@@ -572,7 +582,7 @@ def multicofork_equiv_sigma_cofork : multicofork I ≌ cofork I.fst_sigma_map I.
   inverse := of_sigma_cofork_functor I,
   unit_iso := nat_iso.of_components (λ K, cocones.ext (iso.refl _) (by rintros (_|_); dsimp; simp))
     (λ K₁ K₂ f, by { ext, simp }),
-  counit_iso := nat_iso.of_components (λ K, cofork.ext (iso.refl _) (by { ext, dsimp, simp }))
+  counit_iso := nat_iso.of_components (λ K, cofork.ext (iso.refl _) (by { ext ⟨j⟩, dsimp, simp }))
     (λ K₁ K₂ f, by { ext, dsimp, simp, }) }
 
 end multispan_index

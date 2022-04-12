@@ -55,11 +55,8 @@ exists.elim H₁ H₂
 
 local attribute [simp] mul_assoc mul_comm mul_left_comm
 
-@[trans] theorem dvd_trans (h₁ : a ∣ b) (h₂ : b ∣ c) : a ∣ c :=
-match h₁, h₂ with
-| ⟨d, (h₃ : b = a * d)⟩, ⟨e, (h₄ : c = b * e)⟩ :=
-  ⟨d * e, show c = a * (d * e), by simp [h₃, h₄]⟩
-end
+@[trans] theorem dvd_trans : a ∣ b → b ∣ c → a ∣ c
+| ⟨d, h₁⟩ ⟨e, h₂⟩ := ⟨d * e, h₁ ▸ h₂.trans $ mul_assoc a d e⟩
 
 alias dvd_trans ← has_dvd.dvd.trans
 

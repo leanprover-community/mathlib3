@@ -281,7 +281,7 @@ variables [semiring R] [no_zero_divisors R]
 
 lemma degree_list_prod [nontrivial R] (l : list R[X]) :
   l.prod.degree = (l.map degree).sum :=
-_root_.map_list_prod (degree_monoid_hom : R[X] →* _) l
+_root_.map_list_prod (@degree_monoid_hom R _ _ _) l
 
 end semiring
 
@@ -318,14 +318,14 @@ the sum of the degrees, where the degree of the zero polynomial is ⊥.
 -/
 lemma degree_multiset_prod [nontrivial R] :
   t.prod.degree = (t.map (λ f, degree f)).sum :=
-map_multiset_prod (degree_monoid_hom : R[X] →* _) _
+map_multiset_prod (@degree_monoid_hom R _ _ _) _
 
 /--
 The degree of a product of polynomials is equal to
 the sum of the degrees, where the degree of the zero polynomial is ⊥.
 -/
 lemma degree_prod [nontrivial R] : (∏ i in s, f i).degree = ∑ i in s, (f i).degree :=
-map_prod (degree_monoid_hom : R[X] →* _) _ _
+map_prod (@degree_monoid_hom R _ _ _) _ _
 
 /--
 The leading coefficient of a product of polynomials is equal to

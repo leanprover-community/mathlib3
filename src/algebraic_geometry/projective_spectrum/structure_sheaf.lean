@@ -225,11 +225,15 @@ open projective_spectrum projective_spectrum.structure_sheaf opens
   ((Proj.structure_sheaf 𝒜).1.map i.op s).1 x = (s.1 (i x) : _) :=
 rfl
 
+/--`Proj` of a graded ring as a `SheafedSpace`-/
 def Proj.to_SheafedSpace : SheafedSpace CommRing :=
 { carrier := Top.of (projective_spectrum 𝒜),
   presheaf := (Proj.structure_sheaf 𝒜).1,
   is_sheaf := (Proj.structure_sheaf 𝒜).2 }
 
+/-- The ring homomorphism that takes a section of the structure sheaf of `Proj` on the open set `U`,
+implemented as a subtype of dependent functions to localizations at homogeneous prime ideals, and
+evaluates the section on the point corresponding to a given homogeneous prime ideal. -/
 def open_to_localization (U : opens (projective_spectrum.Top 𝒜)) (x : projective_spectrum.Top 𝒜)
   (hx : x ∈ U) :
   (Proj.structure_sheaf 𝒜).1.obj (op U) ⟶ CommRing.of (at x) :=
@@ -239,6 +243,9 @@ def open_to_localization (U : opens (projective_spectrum.Top 𝒜)) (x : project
   map_zero' := rfl,
   map_add' := λ _ _, rfl }
 
+/-- The ring homomorphism from the stalk of the structure sheaf of `Proj` at a point corresponding
+to a homogeneous prime ideal `x` to the *homogeneous localization* at `x`,
+formed by gluing the `open_to_localization` maps. -/
 def stalk_to_fiber_ring_hom (x : projective_spectrum.Top 𝒜) :
   (Proj.structure_sheaf 𝒜).1.stalk x ⟶ CommRing.of (at x) :=
 limits.colimit.desc (((open_nhds.inclusion x).op) ⋙ (Proj.structure_sheaf 𝒜).1)
@@ -270,6 +277,9 @@ end
 
 variable (𝒜)
 
+/--Given a point `x` corresponding to a homogeneous prime ideal, there is a (dependent) function
+such that, for any `f` in the homogeneous localization at `x`, it returns the obvious section in the
+basic open set `D(f.denom)`-/
 def section_in_basic_open (x : projective_spectrum.Top 𝒜) :
   Π (f : at x),
     (Proj.structure_sheaf 𝒜).1.obj (op (projective_spectrum.basic_open 𝒜 f.denom)) :=
@@ -278,16 +288,17 @@ def section_in_basic_open (x : projective_spectrum.Top 𝒜) :
     ⟨𝟙 _, ⟨f.deg, ⟨⟨f.num, f.num_mem⟩, ⟨f.denom, f.denom_mem⟩,
       λ z, ⟨z.2, rfl⟩⟩⟩⟩⟩⟩
 
-def section_in_basic_open.apply (x : projective_spectrum.Top 𝒜) (f) (y) :
-  (section_in_basic_open 𝒜 x f).1 y =
-  quotient.mk' ⟨f.deg, ⟨f.num, f.num_mem⟩, ⟨f.denom, f.denom_mem⟩, y.2⟩ := rfl
-
+/--Given any point `x` and `f` in the homogeneous localizatoin at `x`, there is an element in the
+stalk at `x` obtained by `section_in_basic_open`. This is the inverse of `stalk_to_fiber_ring_hom`.
+-/
 def homogeneous_localization_to_stalk (x : projective_spectrum.Top 𝒜) :
   (at x) → (Proj.structure_sheaf 𝒜).1.stalk x :=
 λ f, (Proj.structure_sheaf 𝒜).1.germ
   (⟨x, homogeneous_localization.mem_basic_open _ x f⟩ : projective_spectrum.basic_open _ f.denom)
   (section_in_basic_open _ x f)
 
+/--Using `homogeneous_localization_to_stalk`, we construct a ring isomorphism between stalk at `x`
+and homogeneous localization at `x` for any point `x` in `Proj`.-/
 def Proj.stalk_iso' (x : projective_spectrum.Top 𝒜) :
   (Proj.structure_sheaf 𝒜).1.stalk x ≃+* CommRing.of (at x)  :=
 ring_equiv.of_bijective (stalk_to_fiber_ring_hom _ x)
@@ -354,6 +365,7 @@ end, function.surjective_iff_has_right_inverse.mpr ⟨homogeneous_localization_t
     refl,
   end⟩⟩
 
+/--`Proj` of a graded ring as a `LocallyRingedSpace`-/
 def Proj.to_LocallyRingedSpace : LocallyRingedSpace :=
 { local_ring := λ x, @@ring_equiv.local_ring _
     (show local_ring (at x), from infer_instance) _

@@ -329,7 +329,33 @@ in `category_theory.monoidal.braided`.
 
 -/
 
-variables {C} [braided_category C]
+variable {C}
+
+-- The proofs that associators and unitors preserve monoid units don't require braiding.
+
+lemma one_associator {M N P : Mon_ C} :
+    ((λ_ (𝟙_ C)).inv ≫ ((λ_ (𝟙_ C)).inv ≫ (M.one ⊗ N.one) ⊗ P.one)) ≫ (α_ M.X N.X P.X).hom
+  = (λ_ (𝟙_ C)).inv ≫ (M.one ⊗ (λ_ (𝟙_ C)).inv ≫ (N.one ⊗ P.one)) :=
+begin
+  simp,
+  slice_lhs 1 3 { rw [←category.id_comp P.one, tensor_comp] },
+  slice_lhs 2 3 { rw associator_naturality },
+  slice_rhs 1 2 { rw [←category.id_comp M.one, tensor_comp] },
+  slice_lhs 1 2 { rw [←left_unitor_tensor_inv] },
+  rw ←(cancel_epi (λ_ (𝟙_ C)).inv),
+  slice_lhs 1 2 { rw [left_unitor_inv_naturality] },
+  simp only [category.assoc],
+end
+
+lemma one_left_unitor {M : Mon_ C} :
+  ((λ_ (𝟙_ C)).inv ≫ (𝟙 (𝟙_ C) ⊗ M.one)) ≫ (λ_ M.X).hom = M.one :=
+by { slice_lhs 2 3 { rw left_unitor_naturality }, simp }
+
+lemma one_right_unitor {M : Mon_ C} :
+  ((λ_ (𝟙_ C)).inv ≫ (M.one ⊗ 𝟙 (𝟙_ C))) ≫ (ρ_ M.X).hom = M.one :=
+by { slice_lhs 2 3 { rw [right_unitor_naturality, ←unitors_equal] }, simp }
+
+variable [braided_category C]
 
 lemma Mon_tensor_one_mul (M N : Mon_ C) :
     ((λ_ (𝟙_ C)).inv ≫ (M.one ⊗ N.one) ⊗ 𝟙 (M.X ⊗ N.X)) ≫
@@ -373,20 +399,6 @@ begin
   simp only [category.assoc],
 end
 
-lemma one_associator {C : Type u₁} [category.{v₁} C] [monoidal_category.{v₁} C] {M N P : Mon_ C} :
-    ((λ_ (𝟙_ C)).inv ≫ ((λ_ (𝟙_ C)).inv ≫ (M.one ⊗ N.one) ⊗ P.one)) ≫ (α_ M.X N.X P.X).hom
-  = (λ_ (𝟙_ C)).inv ≫ (M.one ⊗ (λ_ (𝟙_ C)).inv ≫ (N.one ⊗ P.one)) :=
-begin
-  simp,
-  slice_lhs 1 3 { rw [←category.id_comp P.one, tensor_comp] },
-  slice_lhs 2 3 { rw associator_naturality },
-  slice_rhs 1 2 { rw [←category.id_comp M.one, tensor_comp] },
-  slice_lhs 1 2 { rw [←left_unitor_tensor_inv] },
-  rw ←(cancel_epi (λ_ (𝟙_ C)).inv),
-  slice_lhs 1 2 { rw [left_unitor_inv_naturality] },
-  simp only [category.assoc],
-end
-
 lemma mul_associator {M N P : Mon_ C} :
     (tensor_μ C (M.X ⊗ N.X, P.X) (M.X ⊗ N.X, P.X) ≫
       (tensor_μ C (M.X, N.X) (M.X, N.X) ≫ (M.mul ⊗ N.mul) ⊗ P.mul)) ≫
@@ -403,10 +415,6 @@ begin
   simp only [category.assoc],
 end
 
-lemma one_left_unitor {C : Type u₁} [category.{v₁} C] [monoidal_category.{v₁} C] {M : Mon_ C} :
-  ((λ_ (𝟙_ C)).inv ≫ (𝟙 (𝟙_ C) ⊗ M.one)) ≫ (λ_ M.X).hom = M.one :=
-by { slice_lhs 2 3 { rw left_unitor_naturality }, simp }
-
 lemma mul_left_unitor {M : Mon_ C}:
     (tensor_μ C (𝟙_ C, M.X) (𝟙_ C, M.X) ≫ ((λ_ (𝟙_ C)).hom ⊗ M.mul)) ≫ (λ_ M.X).hom
   = ((λ_ M.X).hom ⊗ (λ_ M.X).hom) ≫ M.mul :=
@@ -416,10 +424,6 @@ begin
   slice_lhs 1 3 { rw ←left_unitor_monoidal },
   simp only [category.assoc, category.id_comp],
 end
-
-lemma one_right_unitor {C : Type u₁} [category.{v₁} C] [monoidal_category.{v₁} C] {M : Mon_ C} :
-  ((λ_ (𝟙_ C)).inv ≫ (M.one ⊗ 𝟙 (𝟙_ C))) ≫ (ρ_ M.X).hom = M.one :=
-by { slice_lhs 2 3 { rw [right_unitor_naturality, ←unitors_equal] }, simp }
 
 lemma mul_right_unitor {M : Mon_ C} :
     (tensor_μ C (M.X, 𝟙_ C) (M.X, 𝟙_ C) ≫ (M.mul ⊗ (λ_ (𝟙_ C)).hom)) ≫ (ρ_ M.X).hom

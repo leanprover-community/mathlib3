@@ -147,9 +147,11 @@ lemma pi_premeasure_pi {s : Π i, set (α i)} (hs : (pi univ s).nonempty) :
   pi_premeasure m (pi univ s) = ∏ i, m i (s i) :=
 by simp [hs]
 
-lemma pi_premeasure_pi' [nonempty ι] {s : Π i, set (α i)} :
+lemma pi_premeasure_pi' {s : Π i, set (α i)} :
   pi_premeasure m (pi univ s) = ∏ i, m i (s i) :=
 begin
+  casesI is_empty_or_nonempty ι,
+  { simp, },
   cases (pi univ s).eq_empty_or_nonempty with h h,
   { rcases univ_pi_eq_empty_iff.mp h with ⟨i, hi⟩,
     have : ∃ i, m i (s i) = 0 := ⟨i, by simp [hi]⟩,
@@ -162,7 +164,7 @@ lemma pi_premeasure_pi_mono {s t : set (Π i, α i)} (h : s ⊆ t) :
   pi_premeasure m s ≤ pi_premeasure m t :=
 finset.prod_le_prod' (λ i _, (m i).mono' (image_subset _ h))
 
-lemma pi_premeasure_pi_eval [nonempty ι] {s : set (Π i, α i)} :
+lemma pi_premeasure_pi_eval {s : set (Π i, α i)} :
   pi_premeasure m (pi univ (λ i, eval i '' s)) = pi_premeasure m s :=
 by simp [pi_premeasure_pi']
 
@@ -297,8 +299,12 @@ def finite_spanning_sets_in.pi {C : Π i, set (set (α i))}
 begin
   haveI := λ i, (hμ i).sigma_finite,
   haveI := fintype.encodable ι,
+  refine ⟨λ n, pi univ (λ i, (hμ i).set ((decode (ι → ℕ) n).iget i)), λ n, _, λ n, _, _⟩;
+  -- TODO (kmill) If this let comes before the refine, while the noncomputability checker
+  -- correctly sees this definition is computable, the Lean VM fails to see the binding is
+  -- computationally irrelevant. The `noncomputable theory` doesn't help because all it does
+  -- is insert `noncomputable` for you when necessary.
   let e : ℕ → (ι → ℕ) := λ n, (decode (ι → ℕ) n).iget,
-  refine ⟨λ n, pi univ (λ i, (hμ i).set (e n i)), λ n, _, λ n, _, _⟩,
   { refine mem_image_of_mem _ (λ i _, (hμ i).set_mem _) },
   { calc measure.pi μ (pi univ (λ i, (hμ i).set (e n i)))
         ≤ measure.pi μ (pi univ (λ i, to_measurable (μ i) ((hμ i).set (e n i)))) :

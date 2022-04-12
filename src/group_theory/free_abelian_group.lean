@@ -481,7 +481,7 @@ def punit_equiv (T : Type*) [unique T] : free_abelian_group T ≃+ ℤ :=
     (λ x y hx hy, by { simp only [add_monoid_hom.map_add, add_smul] at *, rw [hx, hy]}),
   right_inv := λ n,
   begin
-    rw [add_monoid_hom.map_int_module_smul, lift.of],
+    rw [add_monoid_hom.map_zsmul, lift.of],
     exact zsmul_int_one n
   end,
   map_add' := add_monoid_hom.map_add _ }

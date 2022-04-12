@@ -35,12 +35,14 @@ local attribute [-instance] matrix.special_linear_group.has_coe_to_fun
 local prefix `↑ₘ`:1024 := @coe _ (matrix (fin 2) (fin 2) _) _
 
 /-- The open upper half plane -/
-abbreviation upper_half_plane :=
-{point : ℂ // 0 < point.im}
+@[derive [topological_space, λ α, has_coe α ℂ]]
+def upper_half_plane := {point : ℂ // 0 < point.im}
 
 localized "notation `ℍ` := upper_half_plane" in upper_half_plane
 
 namespace upper_half_plane
+
+instance : inhabited ℍ := ⟨⟨complex.I, by simp⟩⟩
 
 /-- Imaginary part -/
 def im (z : ℍ) := (z : ℂ).im

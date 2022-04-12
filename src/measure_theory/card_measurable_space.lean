@@ -58,7 +58,7 @@ begin
     have D : # {j // j < i} ≤ aleph 1 := (mk_subtype_le _).trans (le_of_eq (aleph 1).mk_ord_out),
     have E : cardinal.sup.{u u}
       (λ (j : {j // j < i}), #(generate_measurable_rec s j.1)) ≤ (max (#s) 2) ^ omega.{u} :=
-    cardinal.sup_le.2 (λ ⟨j, hj⟩, IH j hj),
+    cardinal.sup_le (λ ⟨j, hj⟩, IH j hj),
     apply (mul_le_mul' D E).trans,
     rw mul_eq_max A C,
     exact max_le B le_rfl },
@@ -79,7 +79,7 @@ begin
   apply (mk_Union_le _).trans,
   rw [(aleph 1).mk_ord_out],
   refine le_trans (mul_le_mul' aleph_one_le_continuum
-    (cardinal.sup_le.2 (λ i, cardinal_generate_measurable_rec_le s i))) _,
+    (cardinal.sup_le (λ i, cardinal_generate_measurable_rec_le s i))) _,
   have := power_le_power_right (le_max_right (#s) 2),
   rw mul_eq_max omega_le_continuum (omega_le_continuum.trans this),
   exact max_le this le_rfl
@@ -93,7 +93,6 @@ theorem generate_measurable_subset_rec (s : set (set α)) ⦃t : set α⦄
   (ht : generate_measurable s t) :
   t ∈ ⋃ i, generate_measurable_rec s i :=
 begin
-  haveI : nonempty ω₁, by simp [← mk_ne_zero_iff, ne_of_gt, (aleph 1).mk_ord_out, aleph_pos 1],
   inhabit ω₁,
   induction ht with u hu u hu IH f hf IH,
   { refine mem_Union.2 ⟨default, _⟩,
@@ -103,8 +102,8 @@ begin
     rw generate_measurable_rec,
     simp only [union_singleton, mem_union_eq, mem_insert_iff, eq_self_iff_true, true_or] },
   { rcases mem_Union.1 IH with ⟨i, hi⟩,
-    obtain ⟨j, hj⟩ : ∃ j, i < j := ordinal.has_succ_of_is_limit
-      (by { rw ordinal.type_lt, exact ord_aleph_is_limit 1 }) _,
+    obtain ⟨j, hj⟩ : ∃ j, i < j := ordinal.has_succ_of_type_succ_lt
+      (by { rw ordinal.type_lt, exact (ord_aleph_is_limit 1).2 }) _,
     apply mem_Union.2 ⟨j, _⟩,
     rw generate_measurable_rec,
     have : ∃ a, (a < j) ∧ u ∈ generate_measurable_rec s a := ⟨i, hj, hi⟩,

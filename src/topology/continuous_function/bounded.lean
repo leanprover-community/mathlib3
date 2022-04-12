@@ -191,6 +191,17 @@ begin
   exact dist_set_exists.imp (λ C hC, forall_range_iff.2 hC.2)
 end
 
+lemma tendsto_iff_tendsto_uniformly {ι : Type*} {F : ι → (α →ᵇ β)} {f : α →ᵇ β} {l : filter ι} :
+  tendsto F l (𝓝 f) ↔ tendsto_uniformly (λ i, F i) f l :=
+iff.intro
+  (λ h, tendsto_uniformly_iff.2
+    (λ ε ε0, (metric.tendsto_nhds.mp h ε ε0).mp (eventually_of_forall $
+    λ n hn x, lt_of_le_of_lt (dist_coe_le_dist x) (dist_comm (F n) f ▸ hn))))
+  (λ h, metric.tendsto_nhds.mpr $ λ ε ε_pos,
+    (h _ (dist_mem_uniformity $ half_pos ε_pos)).mp (eventually_of_forall $
+    λ n hn, lt_of_le_of_lt ((dist_le (half_pos ε_pos).le).mpr $
+    λ x, dist_comm (f x) (F n x) ▸ le_of_lt (hn x)) (half_lt_self ε_pos)))
+
 variables (α) {β}
 
 /-- Constant as a continuous bounded function. -/
@@ -214,7 +225,7 @@ lemma continuous_coe : continuous (λ (f : α →ᵇ β) x, f x) :=
 uniform_continuous.continuous uniform_continuous_coe
 
 /-- When `x` is fixed, `(f : α →ᵇ β) ↦ f x` is continuous -/
-@[continuity] theorem continuous_evalx {x : α} : continuous (λ f : α →ᵇ β, f x) :=
+@[continuity] theorem continuous_eval_const {x : α} : continuous (λ f : α →ᵇ β, f x) :=
 (continuous_apply x).comp continuous_coe
 
 /-- The evaluation map is continuous, as a joint function of `u` and `x` -/
@@ -983,15 +994,31 @@ In this section, if `R` is a normed ring, then we show that the space of bounded
 continuous functions from `α` to `R` inherits a normed ring structure, by using
 pointwise operations and checking that they are compatible with the uniform distance. -/
 
-variables [topological_space α] {R : Type*} [normed_ring R]
+variables [topological_space α] {R : Type*}
+
+section non_unital
+
+variables [non_unital_normed_ring R]
 
 instance : has_mul (α →ᵇ R) :=
 { mul := λ f g, of_normed_group (f * g) (f.continuous.mul g.continuous) (∥f∥ * ∥g∥) $ λ x,
-    le_trans (normed_ring.norm_mul (f x) (g x)) $
+    le_trans (non_unital_normed_ring.norm_mul (f x) (g x)) $
       mul_le_mul (f.norm_coe_le_norm x) (g.norm_coe_le_norm x) (norm_nonneg _) (norm_nonneg _) }
 
 @[simp] lemma coe_mul (f g : α →ᵇ R) : ⇑(f * g) = f * g := rfl
 lemma mul_apply (f g : α →ᵇ R) (x : α) : (f * g) x = f x * g x := rfl
+
+instance : non_unital_ring (α →ᵇ R) :=
+fun_like.coe_injective.non_unital_ring _ coe_zero coe_add coe_mul coe_neg coe_sub
+  (λ _ _, coe_nsmul _ _) (λ _ _, coe_zsmul _ _)
+
+instance : non_unital_normed_ring (α →ᵇ R) :=
+{ norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
+  .. bounded_continuous_function.normed_group }
+
+end non_unital
+
+variables [normed_ring R]
 
 @[simp] lemma coe_npow_rec (f : α →ᵇ R) : ∀ n, ⇑(npow_rec n f) = f ^ n
 | 0 := by rw [npow_rec, pow_zero, coe_one]
@@ -1012,8 +1039,7 @@ fun_like.coe_injective.ring _ coe_zero coe_one coe_add coe_mul coe_neg coe_sub
   (λ _ _, coe_pow _ _)
 
 instance : normed_ring (α →ᵇ R) :=
-{ norm_mul := λ f g, norm_of_normed_group_le _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) _,
-  .. bounded_continuous_function.normed_group }
+{ ..bounded_continuous_function.non_unital_normed_ring }
 
 end normed_ring
 
@@ -1162,7 +1188,7 @@ end normed_group
 section cstar_ring
 
 variables [topological_space α]
-variables [normed_ring β] [star_ring β]
+variables [non_unital_normed_ring β] [star_ring β]
 
 instance [normed_star_group β] : star_ring (α →ᵇ β) :=
 { star_mul := λ f g, ext $ λ x, star_mul (f x) (g x),

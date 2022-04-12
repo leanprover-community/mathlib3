@@ -20,15 +20,14 @@ open_locale measure_theory
 lemma is_add_fundamental_domain_Ioc {T : ℝ} (hT : 0 < T) (t : ℝ) (μ : measure ℝ . volume_tac) :
   is_add_fundamental_domain (add_subgroup.zmultiples T) (Ioc t (t + T)) μ :=
 begin
-  refine is_add_fundamental_domain.mk' measurable_set_Ioc (λ x, _),
+  refine is_add_fundamental_domain.mk' measurable_set_Ioc.null_measurable_set (λ x, _),
   have : bijective (cod_restrict (λ n : ℤ, n • T) (add_subgroup.zmultiples T) _),
     from (equiv.of_injective (λ n : ℤ, n • T) (zsmul_strict_mono_left hT).injective).bijective,
   refine this.exists_unique_iff.2 _,
   simpa only [add_comm x] using exists_unique_add_zsmul_mem_Ioc hT x t
 end
 
-variables {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
-  [complete_space E] [second_countable_topology E]
+variables {E : Type*} [normed_group E] [normed_space ℝ E] [complete_space E]
 
 namespace function
 

@@ -5,7 +5,7 @@ Authors: Eric Wieser, Kevin Buzzard, Jujian Zhang
 -/
 
 import algebra.algebra.operations
-import algebra.algebra.subalgebra
+import algebra.algebra.subalgebra.basic
 import algebra.direct_sum.algebra
 
 /-!
@@ -43,6 +43,14 @@ internally graded ring
 open_locale direct_sum big_operators
 
 variables {ι : Type*} {S R : Type*}
+
+lemma set_like.has_graded_one.algebra_map_mem [has_zero ι]
+  [comm_semiring S] [semiring R] [algebra S R]
+  (A : ι → submodule S R) [set_like.has_graded_one A] (s : S) : algebra_map S R s ∈ A 0 :=
+begin
+  rw algebra.algebra_map_eq_smul_one,
+  exact ((A 0).smul_mem s set_like.has_graded_one.one_mem),
+end
 
 section direct_sum
 variables [decidable_eq ι]
@@ -89,7 +97,7 @@ lemma direct_sum.coe_mul_apply_add_submonoid [add_monoid ι] [semiring R]
       r ij.1 * r' ij.2 :=
 begin
   rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
-    add_submonoid.coe_finset_sum],
+    add_submonoid_class.coe_finset_sum],
   simp_rw [direct_sum.coe_of_add_submonoid_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 
@@ -131,7 +139,7 @@ lemma direct_sum.coe_mul_apply_add_subgroup [add_monoid ι] [ring R]
       r ij.1 * r' ij.2 :=
 begin
   rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
-    add_subgroup.coe_finset_sum],
+    add_submonoid_class.coe_finset_sum],
   simp_rw [direct_sum.coe_of_add_subgroup_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 
@@ -160,10 +168,8 @@ instance galgebra [add_monoid ι]
   [comm_semiring S] [semiring R] [algebra S R]
   (A : ι → submodule S R) [h : set_like.graded_monoid A] :
   direct_sum.galgebra S (λ i, A i) :=
-{ to_fun := begin
-    refine ((algebra.linear_map S R).cod_restrict (A 0) $ λ r, _).to_add_monoid_hom,
-    exact submodule.one_le.mpr set_like.has_graded_one.one_mem (submodule.algebra_map_mem _),
-  end,
+{ to_fun := ((algebra.linear_map S R).cod_restrict (A 0) $
+    set_like.has_graded_one.algebra_map_mem A).to_add_monoid_hom,
   map_one := subtype.ext $ by exact (algebra_map S R).map_one,
   map_mul := λ x y, sigma.subtype_ext (add_zero 0).symm $ (algebra_map S R).map_mul _ _,
   commutes := λ r ⟨i, xi⟩,

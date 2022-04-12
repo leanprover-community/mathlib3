@@ -168,10 +168,7 @@ begin
 end
 
 lemma Lproj_commute {P Q: X →L[𝕜] X} (h₁: is_Lprojection P) (h₂ : is_Lprojection Q) : commute P Q :=
-begin
-  rw [commute, semiconj_by, PQ_eq_QPQ P Q h₁ h₂],
-  nth_rewrite_rhs 0 QP_eq_QPQ P Q h₁ h₂
-end
+show P * Q = Q * P, by rw [QP_eq_QPQ P Q h₁ h₂, PQ_eq_QPQ P Q h₁ h₂]
 
 lemma mul {P Q : X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :
   is_Lprojection (P*Q) :=

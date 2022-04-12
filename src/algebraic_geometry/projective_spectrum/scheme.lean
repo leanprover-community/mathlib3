@@ -6,8 +6,6 @@ Authors: Jujian Zhang
 import algebraic_geometry.projective_spectrum.structure_sheaf
 import algebraic_geometry.Spec
 
-noncomputable theory
-
 /-!
 # Proj as a scheme
 
@@ -55,6 +53,8 @@ For a homogeneous element `f` of degree `n`
 
 * [Robin Hartshorne, *Algebraic Geometry*][Har77]
 -/
+
+noncomputable theory
 
 namespace algebraic_geometry
 

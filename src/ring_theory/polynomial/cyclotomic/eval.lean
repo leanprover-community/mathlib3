@@ -8,6 +8,7 @@ import ring_theory.polynomial.cyclotomic.basic
 import tactic.by_contra
 import topology.algebra.polynomial
 import number_theory.padics.padic_norm
+import analysis.complex.arg
 
 /-!
 # Evaluating cyclotomic polynomials
@@ -226,50 +227,100 @@ lemma cyclotomic.eval_apply {C R : Type*} (q : R) (n : ℕ) [ring C] [ring R] (f
   eval (f q) (cyclotomic n C) = f (eval q (cyclotomic n R)) :=
 by rw [← map_cyclotomic n f, eval_map, eval₂_at_apply]
 
+lemma _root_.is_primitive_root.ne_zero {M} [comm_monoid_with_zero M] [nontrivial M] {ζ : M} {n : ℕ}
+  (h : is_primitive_root ζ n) : n ≠ 0 → ζ ≠ 0 :=
+mt $ λ hn, h.unique (hn.symm ▸ is_primitive_root.zero)
+
+lemma _root_.mul_rotate  {S} [comm_semigroup S] (a b c : S) : a * b * c = b * c * a :=
+by simp only [mul_left_comm, mul_comm]
+lemma _root_.mul_rotate' {S} [comm_semigroup S] (a b c : S) : a * (b * c) = b * (c * a) :=
+by simp only [mul_left_comm, mul_comm]
+
+lemma _root_.add_one_mul {R} [non_assoc_semiring R] (a b : R) : a * b + b = (a + 1) * b :=
+by rw [add_mul, one_mul]
+lemma _root_.sub_one_mul {R} [non_assoc_ring R] (a b : R) : a * b - b = (a - 1) * b :=
+by rw [sub_mul, one_mul]
+
+lemma _root_.is_primitive_root.arg {n : ℕ} {ζ : ℂ} (h : is_primitive_root ζ n) (hn : n ≠ 0) :
+  ∃ i : ℤ, ζ.arg = i / n * (2 * real.pi) ∧ is_coprime i n ∧ i.nat_abs < n :=
+begin
+  rw complex.is_primitive_root_iff _ _ hn at h,
+  obtain ⟨i, h, hin, rfl⟩ := h,
+  rw [mul_comm, ←mul_assoc, complex.exp_mul_I],
+  refine ⟨if i * 2 ≤ n then i else i - n, _, _, _⟩,
+  work_on_goal 2
+  {sorry;{ replace hin := nat.is_coprime_iff_coprime.mpr hin,
+    split_ifs with _,
+    { exact hin },
+    { convert hin.add_mul_left_left (-1),
+      rw [mul_neg_one, sub_eq_add_neg] } }},
+  work_on_goal 2
+  {sorry;{ split_ifs with h₂,
+    { exact_mod_cast h },
+    suffices : (i - n : ℤ).nat_abs = n - i,
+    { rw this,
+      apply tsub_lt_self hn.bot_lt,
+      contrapose! h₂,
+      rw [nat.eq_zero_of_le_zero h₂, zero_mul],
+      exact zero_le _ },
+    rw [←int.nat_abs_neg, neg_sub, int.nat_abs_eq_iff],
+    exact or.inl (int.coe_nat_sub h.le).symm }},
+  split_ifs with h₂,
+  sorry{ convert complex.arg_cos_add_sin_mul_I _,
+    { push_cast },
+    { push_cast },
+    field_simp [hn],
+    refine ⟨(neg_lt_neg real.pi_pos).trans_le _, _⟩,
+    { rw neg_zero,
+      exact mul_nonneg (mul_nonneg (cast_nonneg _) $ by simp [real.pi_pos.le]) (by simp) },
+    rw [←mul_rotate', mul_div_assoc],
+    rw ←mul_one n at h₂,
+    exact mul_le_of_le_one_right real.pi_pos.le
+      ((div_le_iff' $ by exact_mod_cast (pos_of_gt h)).mpr $ by exact_mod_cast h₂) },
+  rw [←complex.cos_sub_two_pi, ←complex.sin_sub_two_pi],
+  convert complex.arg_cos_add_sin_mul_I _,
+  sorry{ push_cast,
+    rw [sub_one_mul, sub_div, div_self],
+    exact_mod_cast hn },
+  sorry{ push_cast,
+    rw [sub_one_mul, sub_div, div_self],
+    exact_mod_cast hn },
+  field_simp [hn],
+  refine ⟨_, le_trans _ real.pi_pos.le⟩,
+  work_on_goal 2
+  { rw [mul_div_assoc],
+    exact mul_nonpos_of_nonpos_of_nonneg (sub_nonpos.mpr $ by exact_mod_cast h.le)
+      (div_nonneg (by simp [real.pi_pos.le]) $ by simp) },
+  rw [←mul_rotate', mul_div_assoc, neg_lt, ←mul_neg_one, mul_assoc],
+  sorry,
+end
+
+#exit
 lemma sub_one_pow_totient_lt_cyclotomic_eval (n : ℕ) (q : ℝ) (hn' : 2 ≤ n) (hq' : 1 < q) :
   (q - 1) ^ totient n < (cyclotomic n ℝ).eval q :=
 begin
   have hn : 0 < n := pos_of_gt hn',
+  have hq := zero_lt_one.trans hq',
   have hfor : ∀ ζ' ∈ primitive_roots n ℂ, q - 1 ≤ ∥↑q - ζ'∥,
   { intros ζ' hζ',
     rw mem_primitive_roots hn at hζ',
     convert norm_sub_norm_le (↑q) ζ',
-    { rw [complex.norm_real, real.norm_of_nonneg (zero_le_one.trans_lt hq').le], },
+    { rw [complex.norm_real, real.norm_of_nonneg hq.le], },
     { rw [hζ'.nnnorm_eq_one hn.ne'], }, },
   let ζ := complex.exp (2 * ↑real.pi * complex.I / ↑n),
   have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn.ne',
   have hex : ∃ ζ' ∈ primitive_roots n ℂ, q - 1 < ∥↑q - ζ'∥,
   -- todo: when Yael gets the strictly convex stuff in master, this will be very easy
   -- (the triangle inequality will be strict as q and ζ are not in the `same_ray`)
-  { rw ← mem_primitive_roots hn at hζ,
-    refine ⟨ζ, hζ, (hfor ζ hζ).lt_of_ne (λ h, _)⟩,
-    have : (q - 1)^2 = ∥↑q - ζ∥^2 := congr_fun (congr_arg pow h) 2,
-    apply_fun (coe : ℝ → ℂ) at this,
-    rw [complex.norm_eq_abs, ← complex.norm_sq_eq_abs, complex.norm_sq_eq_conj_mul_self] at this,
-    simp only [ζ, pow_two, mul_sub, sub_mul, mul_one, one_mul, complex.of_real_sub,
-      complex.of_real_mul, complex.of_real_one, ring_hom.map_sub, -- squeeze_simp is bad
-      is_R_or_C.conj_of_real, conj_exp_primitive_root] at this,
-    rw [← complex.exp_add, add_left_neg, complex.exp_zero, ← sub_eq_zero] at this,
-    ring_nf at this,
-    rw [mul_eq_zero, complex.of_real_eq_zero, ← add_sub_assoc, sub_eq_zero,
-      ← div_eq_one_iff_eq (two_ne_zero' : (2 : ℂ) ≠ 0),
-      (by ring : 2 * ↑real.pi * complex.I / ↑n = 2 * ↑real.pi / ↑n * complex.I), ← neg_mul] at this,
-    simp only [(zero_lt_one.trans hq').ne.symm, or_false] at this,
-    -- squeeze_simp adds field_notation TODO
-    revert this,
-    change complex.cos (2 * ↑real.pi / ↑n) ≠ 1,
-    norm_cast,
-    rw real.cos_eq_one_iff_of_lt_of_lt,
-    { simp only [hn.ne.symm, real.pi_ne_zero, not_or_distrib, _root_.div_eq_zero_iff, mul_eq_zero,
-        bit0_eq_zero, one_ne_zero, or_self, cast_eq_zero, not_false_iff], },
-    { transitivity (0 : ℝ),
-      { linarith only [real.pi_pos], },
-      { apply div_pos,
-        linarith only [real.pi_pos, hn],
-        exact_mod_cast hn, }, },
-    { apply _root_.div_lt_self,
-      linarith only [real.pi_pos],
-      exact_mod_cast hn', }, }, --END TOFIX
+  { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
+    suffices : ¬ same_ray ℝ (q : ℂ) ζ,
+    { convert lt_norm_sub_of_not_same_ray this;
+      simp [real.norm_of_nonneg hq.le, hζ.nnnorm_eq_one hn.ne'] },
+    rw complex.same_ray_iff,
+    push_neg,
+    refine ⟨by exact_mod_cast hq.ne', hζ.ne_zero hn.ne', _⟩,
+    rw [complex.arg_of_real_of_nonneg hq.le],
+  },
   have : ¬eval ↑q (cyclotomic n ℂ) = 0, -- this is also a general lemma
   { erw cyclotomic.eval_apply q n (algebra_map ℝ ℂ),
     simp only [complex.coe_algebra_map, complex.of_real_eq_zero],

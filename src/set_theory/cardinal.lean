@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Floris van Doorn
 -/
 import data.nat.enat
 import data.set.countable
+import logic.small
 import order.conditionally_complete_lattice
 import set_theory.schroeder_bernstein
 
@@ -183,6 +184,12 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
 ⟨induction_on c $ λ β ⟨⟨f, hf⟩⟩,
   ⟨set.range f, (equiv.of_injective f hf).cardinal_eq.symm⟩,
 λ ⟨p, e⟩, e ▸ ⟨⟨subtype.val, λ a b, subtype.eq⟩⟩⟩
+
+theorem mk_subtype_le {α : Type u} (p : α → Prop) : #(subtype p) ≤ #α :=
+⟨embedding.subtype p⟩
+
+lemma mk_set_le (s : set α) : #s ≤ #α :=
+mk_subtype_le s
 
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=
 by { transitivity _, rw [←quotient.out_eq c, ←quotient.out_eq c'], refl }
@@ -616,13 +623,36 @@ calc #α = #Σ b, f⁻¹' {b} : mk_congr (equiv.sigma_preimage_equiv f).symm
 ... ≤ sum (λ b : β, c) : sum_le_sum (λ b, #(f ⁻¹' {b})) (λ b, c) hf
 ... = #β * c : sum_const' β c
 
+/-- The range of an indexed cardinal function, whose outputs live in a higher universe than the
+    inputs, is always bounded above. -/
+theorem bdd_above_range {ι : Type u} (f : ι → cardinal.{max u v}) : bdd_above (set.range f) :=
+⟨_, by { rintros a ⟨i, rfl⟩, exact le_sum f i }⟩
+
+instance (a : cardinal.{u}) : small.{u} (set.Iic a) :=
+begin
+  rw ←mk_out a,
+  apply @small_of_surjective (set a.out) (Iic (#a.out)) _ (λ x, ⟨#x, mk_set_le x⟩),
+  rintro ⟨x, hx⟩,
+  simpa using le_mk_iff_exists_set.1 hx
+end
+
+theorem bdd_above_iff_small (s : set cardinal.{u}) : bdd_above s ↔ small.{u} s :=
+⟨λ ⟨a, ha⟩, @small_subset _ (Iic a) s (λ x h, ha h) _, begin
+  rintro ⟨ι, ⟨e⟩⟩,
+  suffices : range (λ x : ι, (e.symm x).1) = s,
+  { rw ←this,
+    apply bdd_above_range.{u u} },
+  ext x,
+  refine ⟨_, λ hx, ⟨e ⟨x, hx⟩, _⟩⟩,
+  { rintro ⟨a, rfl⟩,
+    exact (e.symm a).prop },
+  { simp_rw [subtype.val_eq_coe, equiv.symm_apply_apply], refl }
+end⟩
+
 /-- The indexed supremum of cardinals is the smallest cardinal above
   everything in the family. -/
 def sup {ι : Type u} (f : ι → cardinal.{max u v}) : cardinal :=
 Sup (set.range f)
-
-theorem bdd_above_range {ι : Type u} (f : ι → cardinal.{max u v}) : bdd_above (set.range f) :=
-⟨_, by { rintros a ⟨i, rfl⟩, exact le_sum f i }⟩
 
 theorem le_sup {ι} (f : ι → cardinal.{max u v}) (i) : f i ≤ sup f :=
 le_cSup (bdd_above_range f) (mem_range_self i)

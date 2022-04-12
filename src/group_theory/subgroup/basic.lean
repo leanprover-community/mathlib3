@@ -2965,8 +2965,8 @@ end
   ((A ⊔ B : subgroup G) : set G) = A * B :=
 begin
   suffices h : ((A ⊔ B).subgroup_of C : set C) = A.subgroup_of C * B.subgroup_of C,
-  have key : (C.subtype) ⁻¹' (↑A * ↑B) = (C.subtype) ⁻¹' ↑A * (C.subtype) ⁻¹' ↑B,
-  { refine set.preimage_mul_of_injective C.subtype ↑A ↑B subtype.coe_injective _ _;
+  have key : C.subtype ⁻¹' (↑A * ↑B) = C.subtype ⁻¹' ↑A * C.subtype ⁻¹' ↑B,
+  { refine set.preimage_mul_of_injective C.subtype subtype.coe_injective _ _;
     simp only [← monoid_hom.coe_range, subtype_range]; assumption, },
   have hsub : (A : set G) * B ⊆ C,
   { rintro _ ⟨p, q, hp, hq, rfl⟩,

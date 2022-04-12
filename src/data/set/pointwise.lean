@@ -1056,6 +1056,17 @@ lemma image_mul : (m : α → β) '' (s * t) = m '' s * m '' t := image_image2_d
 lemma preimage_mul_preimage_subset {s t : set β} : (m : α → β) ⁻¹' s * m ⁻¹' t ⊆ m ⁻¹' (s * t) :=
 by { rintro _ ⟨_, _, _, _, rfl⟩, exact ⟨_, _, ‹_›, ‹_›, (map_mul m _ _).symm ⟩ }
 
+@[to_additive] lemma preimage_mul_of_injective {s t : set β} (hm : injective (m : α → β))
+  (hs : s ⊆ set.range m) (ht : t ⊆ set.range m) :
+  m ⁻¹' (s * t) = m ⁻¹' s * m ⁻¹' t :=
+begin
+  refine (preimage_mul_preimage_subset m).antisymm' _,
+  rintro x ⟨a, b, ha, hb, h⟩,
+  obtain ⟨a, rfl⟩ := hs ha,
+  obtain ⟨b, rfl⟩ := ht hb,
+  exact ⟨a, b, ha, hb, by rwa [←map_mul m, hm.eq_iff] at h⟩,
+end
+
 instance set_semiring.no_zero_divisors : no_zero_divisors (set_semiring α) :=
 ⟨λ a b ab, a.eq_empty_or_nonempty.imp_right $ λ ha, b.eq_empty_or_nonempty.resolve_right $
   λ hb, nonempty.ne_empty ⟨_, mul_mem_mul ha.some_mem hb.some_mem⟩ ab⟩

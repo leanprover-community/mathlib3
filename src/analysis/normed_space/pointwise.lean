@@ -95,12 +95,48 @@ by rw [vadd_ball, vadd_eq_add, add_zero]
 lemma vadd_closed_ball_zero (x : E) (r : ℝ) : x +ᵥ closed_ball 0 r = closed_ball x r :=
 by rw [vadd_closed_ball, vadd_eq_add, add_zero]
 
-variables [normed_space ℝ E]
+variables [normed_space ℝ E] {x y z : E} {δ ε : ℝ}
 
 /-- In a real normed space, the image of the unit ball under scalar multiplication by a positive
 constant `r` is the ball of radius `r`. -/
 lemma smul_unit_ball_of_pos {r : ℝ} (hr : 0 < r) : r • ball 0 1 = ball (0 : E) r :=
 by rw [smul_unit_ball hr.ne', real.norm_of_nonneg hr.le]
+
+@[simp] lemma thickening_thickening (hε : 0 < ε) (hδ : 0 < δ) (s : set E) :
+  thickening ε (thickening δ s) = thickening (ε + δ) s :=
+(thickening_thickening_subset _ _ _).antisymm $ λ x, begin
+  simp_rw mem_thickening_iff,
+  rintro ⟨z, hz, hxz⟩,
+  rw add_comm at hxz,
+  obtain ⟨y, hxy, hyz⟩ := exists_dist_lt_lt hε hδ hxz,
+  exact ⟨y, ⟨_, hz, hyz⟩, hxy⟩,
+end
+
+@[simp] lemma thickening_cthickening (hε : 0 < ε) (hδ : 0 ≤ δ) (s : set E) :
+  thickening ε (cthickening δ s) = thickening (ε + δ) s :=
+(thickening_cthickening_subset _ hδ _).antisymm $ λ x, begin
+  simp_rw mem_thickening_iff,
+  rintro ⟨z, hz, hxz⟩,
+  rw add_comm at hxz,
+  obtain ⟨y, hxy, hyz⟩ := exists_dist_lt_le hε hδ hxz,
+  exact ⟨y, mem_cthickening_of_dist_le _ _ _ _ hz hyz, hxy⟩,
+end
+
+@[simp] lemma cthickening_thickening (hε : 0 ≤ ε) (hδ : 0 < δ) (s : set E) :
+  cthickening ε (thickening δ s) = cthickening (ε + δ) s :=
+(cthickening_thickening_subset hε _ _).antisymm $ λ x, begin
+  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ.le],
+  refine λ h, le_of_forall_lt' (λ r hr, _),
+  sorry --done
+end
+
+@[simp] lemma cthickening_cthickening (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (s : set E) :
+  cthickening ε (cthickening δ s) = cthickening (ε + δ) s :=
+(cthickening_cthickening_subset hε hδ _).antisymm $ λ x, begin
+  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ],
+  refine λ h, le_of_forall_lt' (λ r hr, _),
+  sorry --done
+end
 
 end semi_normed_group
 

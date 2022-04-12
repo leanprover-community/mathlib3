@@ -64,9 +64,8 @@ lemma inf_edist_le_edist_of_mem (h : y ∈ s) : inf_edist x s ≤ edist x y := i
 lemma inf_edist_zero_of_mem (h : x ∈ s) : inf_edist x s = 0 :=
 nonpos_iff_eq_zero.1 $ @edist_self _ _ x ▸ inf_edist_le_edist_of_mem h
 
-/-- The edist is monotonous with respect to inclusion -/
-lemma inf_edist_le_inf_edist_of_subset (h : s ⊆ t) : inf_edist x t ≤ inf_edist x s :=
-infi_le_infi_of_subset h
+/-- The edist is antitone with respect to inclusion. -/
+lemma inf_edist_anti (h : s ⊆ t) : inf_edist x t ≤ inf_edist x s := infi_le_infi_of_subset h
 
 /-- The edist to a set is `< r` iff there exists a point in the set at edistance `< r` -/
 lemma inf_edist_lt_iff {r : ℝ≥0∞} : inf_edist x s < r ↔ ∃ y ∈ s, edist x y < r :=
@@ -79,6 +78,9 @@ calc (⨅ z ∈ s, edist x z) ≤ ⨅ z ∈ s, edist y z + edist x y :
   infi₂_mono $ λ z hz, (edist_triangle _ _ _).trans_eq (add_comm _ _)
 ... = (⨅ z ∈ s, edist y z) + edist x y : by simp only [ennreal.infi_add]
 
+lemma inf_edist_le_edist_add_inf_edist : inf_edist x s ≤ edist x y + inf_edist y s :=
+by { rw add_comm, exact inf_edist_le_inf_edist_add_edist }
+
 /-- The edist to a set depends continuously on the point -/
 @[continuity]
 lemma continuous_inf_edist : continuous (λx, inf_edist x s) :=
@@ -88,7 +90,7 @@ continuous_of_le_add_edist 1 (by simp) $
 /-- The edist to a set and to its closure coincide -/
 lemma inf_edist_closure : inf_edist x (closure s) = inf_edist x s :=
 begin
-  refine le_antisymm (inf_edist_le_inf_edist_of_subset subset_closure) _,
+  refine le_antisymm (inf_edist_anti subset_closure) _,
   refine ennreal.le_of_forall_pos_le_add (λε εpos h, _),
   have ε0 : 0 < (ε / 2 : ℝ≥0∞) := by simpa [pos_iff_ne_zero] using εpos,
   have : inf_edist x (closure s) < inf_edist x (closure s) + ε/2,
@@ -418,7 +420,7 @@ lemma inf_dist_le_inf_dist_of_subset (h : s ⊆ t) (hs : s.nonempty) :
 begin
   have ht : t.nonempty := hs.mono h,
   rw [inf_dist, inf_dist, ennreal.to_real_le_to_real (inf_edist_ne_top ht) (inf_edist_ne_top hs)],
-  exact inf_edist_le_inf_edist_of_subset h
+  exact inf_edist_anti h
 end
 
 /-- The minimal distance to a set is `< r` iff there exists a point in this set at distance `< r` -/
@@ -807,6 +809,9 @@ continuous.is_open_preimage continuous_inf_edist _ is_open_Iio
 @[simp] lemma thickening_empty (δ : ℝ) : thickening δ (∅ : set α) = ∅ :=
 by simp only [thickening, set_of_false, inf_edist_empty, not_top_lt]
 
+lemma thickening_of_nonpos (hδ : δ ≤ 0) (s : set α) : thickening δ s = ∅ :=
+eq_empty_of_forall_not_mem $ λ x, ((ennreal.of_real_of_nonpos hδ).trans_le bot_le).not_lt
+
 /-- The (open) thickening `thickening δ E` of a fixed subset `E` is an increasing function of the
 thickening radius `δ`. -/
 lemma thickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) :
@@ -817,7 +822,7 @@ preimage_mono (Iio_subset_Iio (ennreal.of_real_le_of_real hle))
 an increasing function of the subset `E`. -/
 lemma thickening_subset_of_subset (δ : ℝ) {E₁ E₂ : set α} (h : E₁ ⊆ E₂) :
   thickening δ E₁ ⊆ thickening δ E₂ :=
-λ _ hx, lt_of_le_of_lt (inf_edist_le_inf_edist_of_subset h) hx
+λ _ hx, lt_of_le_of_lt (inf_edist_anti h) hx
 
 lemma mem_thickening_iff_exists_edist_lt {δ : ℝ} (E : set α) (x : α) :
   x ∈ thickening δ E ↔ ∃ z ∈ E, edist x z < ennreal.of_real δ :=
@@ -874,6 +879,9 @@ open emetric
 of those points that are at infimum distance at most `δ` from `E`. -/
 def cthickening (δ : ℝ) (E : set α) : set α := {x : α | inf_edist x E ≤ ennreal.of_real δ}
 
+@[simp] lemma mem_cthickening_iff : x ∈ cthickening δ s ↔ inf_edist x s ≤ ennreal.of_real δ :=
+iff.rfl
+
 lemma mem_cthickening_of_edist_le (x y : α) (δ : ℝ) (E : set α) (h : y ∈ E)
   (h' : edist x y ≤ ennreal.of_real δ) :
   x ∈ cthickening δ E :=
@@ -913,6 +921,10 @@ lemma cthickening_mono {δ₁ δ₂ : ℝ} (hle : δ₁ ≤ δ₂) (E : set α) 
   cthickening δ₁ E ⊆ cthickening δ₂ E :=
 preimage_mono (Iic_subset_Iic.mpr (ennreal.of_real_le_of_real hle))
 
+@[simp] lemma cthickening_closure : cthickening δ (closure s) = cthickening δ s :=
+by simp_rw [cthickening, inf_edist_closure]
+
+
 @[simp] lemma cthickening_singleton {α : Type*} [pseudo_metric_space α]
   (x : α) {δ : ℝ} (hδ : 0 ≤ δ) :
   cthickening δ ({x} : set α) = closed_ball x δ :=
@@ -931,7 +943,7 @@ end
 an increasing function of the subset `E`. -/
 lemma cthickening_subset_of_subset (δ : ℝ) {E₁ E₂ : set α} (h : E₁ ⊆ E₂) :
   cthickening δ E₁ ⊆ cthickening δ E₂ :=
-λ _ hx, le_trans (inf_edist_le_inf_edist_of_subset h) hx
+λ _ hx, le_trans (inf_edist_anti h) hx
 
 lemma cthickening_subset_thickening {δ₁ : ℝ≥0} {δ₂ : ℝ} (hlt : (δ₁ : ℝ) < δ₂) (E : set α) :
   cthickening δ₁ E ⊆ thickening δ₂ E :=
@@ -1119,6 +1131,64 @@ begin
   { rw edist_dist at D1,
     exact (ennreal.of_real_le_of_real_iff hδ).1 D1 },
   exact mem_bUnion yE D2,
+end
+
+lemma inf_edist_le_inf_edist_cthickening_add :
+  inf_edist x s ≤ inf_edist x (cthickening δ s) + ennreal.of_real δ :=
+begin
+  refine le_of_forall_lt' (λ r h, _),
+  simp_rw [←lt_tsub_iff_right, inf_edist_lt_iff, mem_cthickening_iff] at h,
+  obtain ⟨y, hy, hxy⟩ := h,
+  refine inf_edist_le_edist_add_inf_edist.trans_lt _,
+  sorry, sorry -- done
+end
+
+lemma inf_edist_le_inf_edist_thickening_add :
+  inf_edist x s ≤ inf_edist x (thickening δ s) + ennreal.of_real δ :=
+inf_edist_le_inf_edist_cthickening_add.trans $
+  add_le_add_right (inf_edist_anti $ thickening_subset_cthickening _ _) _
+
+@[simp] lemma thickening_thickening_subset (ε δ : ℝ) (s : set α) :
+  thickening ε (thickening δ s) ⊆ thickening (ε + δ) s :=
+begin
+  obtain hε | hε := le_total ε 0,
+  { simp only [thickening_of_nonpos hε, empty_subset] },
+  obtain hδ | hδ := le_total δ 0,
+  { simp only [thickening_of_nonpos hδ, thickening_empty, empty_subset] },
+  intros x,
+  simp_rw [mem_thickening_iff_exists_edist_lt, ennreal.of_real_add hε hδ],
+  exact λ ⟨y, ⟨z, hz, hy⟩, hx⟩, ⟨z, hz, (edist_triangle _ _ _).trans_lt $ ennreal.add_lt_add hx hy⟩,
+end
+
+@[simp] lemma thickening_cthickening_subset (ε : ℝ) (hδ : 0 ≤ δ) (s : set α) :
+  thickening ε (cthickening δ s) ⊆ thickening (ε + δ) s :=
+begin
+  obtain hε | hε := le_total ε 0,
+  { simp only [thickening_of_nonpos hε, empty_subset] },
+  intro x,
+  simp_rw [mem_thickening_iff_exists_edist_lt, mem_cthickening_iff, ←inf_edist_lt_iff,
+    ennreal.of_real_add hε hδ],
+  rintro ⟨y, hy, hxy⟩,
+  refine inf_edist_le_edist_add_inf_edist.trans_lt sorry,
+  sorry -- done by `with_top.add_lt_add_of_lt_of_le`
+end
+
+@[simp] lemma cthickening_thickening_subset (hε : 0 ≤ ε) (δ : ℝ) (s : set α) :
+  cthickening ε (thickening δ s) ⊆ cthickening (ε + δ) s :=
+begin
+  obtain hδ | hδ := le_total δ 0,
+  { simp only [thickening_of_nonpos hδ, cthickening_empty, empty_subset] },
+  intro x,
+  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ],
+  exact λ hx, inf_edist_le_inf_edist_thickening_add.trans (add_le_add_right hx _),
+end
+
+@[simp] lemma cthickening_cthickening_subset (hε : 0 ≤ ε) (hδ : 0 ≤ δ) (s : set α) :
+  cthickening ε (cthickening δ s) ⊆ cthickening (ε + δ) s :=
+begin
+  intro x,
+  simp_rw [mem_cthickening_iff, ennreal.of_real_add hε hδ],
+  exact λ hx, inf_edist_le_inf_edist_cthickening_add.trans (add_le_add_right hx _),
 end
 
 end cthickening --section

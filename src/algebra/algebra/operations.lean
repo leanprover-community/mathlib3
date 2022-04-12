@@ -121,7 +121,7 @@ end
 @[elab_as_eliminator] protected theorem mul_induction_on'
   {C : Π r, r ∈ M * N → Prop}
   (hm : ∀ (m ∈ M) (n ∈ N), C (m * n) (mul_mem_mul ‹_› ‹_›))
-  (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  (ha : ∀ x hx y hy, C x hx → C y hy → C (x + y) (add_mem ‹_› ‹_›))
   {r : A} (hr : r ∈ M * N) : C r hr :=
 begin
   refine exists.elim _ (λ (hr : r ∈ M * N) (hc : C r hr), hc),
@@ -139,7 +139,8 @@ begin
       work_on_goal 1 { intros, exact subset_span ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
     all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
         left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
-      try {apply add_mem _ _ _}, try {apply smul_mem _ _ _} }, assumption' },
+      solve_by_elim [add_mem _ _, zero_mem _, smul_mem _ _ _]
+        { max_depth := 4, discharger := tactic.interactive.apply_instance } } },
   { rw span_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
     exact mul_mem_mul (subset_span ha) (subset_span hb) }
 end
@@ -357,7 +358,7 @@ end
 @[elab_as_eliminator] protected theorem pow_induction_on'
   {C : Π (n : ℕ) x, x ∈ M ^ n → Prop}
   (hr : ∀ r : R, C 0 (algebra_map _ _ r) (algebra_map_mem r))
-  (hadd : ∀ x y i hx hy, C i x hx → C i y hy → C i (x + y) (add_mem _ ‹_› ‹_›))
+  (hadd : ∀ x y i hx hy, C i x hx → C i y hy → C i (x + y) (add_mem ‹_› ‹_›))
   (hmul : ∀ (m ∈ M) i x hx, C i x hx → C (i.succ) (m * x) (mul_mem_mul H hx))
   {x : A} {n : ℕ} (hx : x ∈ M ^ n) : C n x hx :=
 begin

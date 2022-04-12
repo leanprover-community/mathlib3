@@ -69,6 +69,7 @@ full.preimage.{v₁ v₂} f
 by unfold preimage; obviously
 end functor
 
+section
 variables {F : C ⥤ D} [full F] [faithful F] {X Y Z : C}
 
 @[simp] lemma preimage_id : F.preimage (𝟙 (F.obj X)) = 𝟙 X :=
@@ -119,6 +120,36 @@ def iso_equiv_of_fully_faithful {X Y} : (X ≅ Y) ≃ (F.obj X ≅ F.obj Y) :=
   inv_fun := λ f, preimage_iso f,
   left_inv := λ f, by simp,
   right_inv := λ f, by { ext, simp, } }
+
+end
+
+section
+variables {E : Type*} [category E] {F G : C ⥤ D} (H : D ⥤ E) [full H] [faithful H]
+
+/-- We can construct a natural transformation between functors by constructing a
+natural transformation between those functors composed with a fully faithful functor. -/
+@[simps]
+def nat_trans_of_comp_fully_faithful (α : F ⋙ H ⟶ G ⋙ H) : F ⟶ G :=
+{ app := λ X, (equiv_of_fully_faithful H).symm (α.app X),
+  naturality' := λ X Y f, by { dsimp, apply H.map_injective, simpa using α.naturality f, } }
+
+/-- We can construct a natural isomorphism between functors by constructing a natural isomorphism
+between those functors composed with a fully faithful functor. -/
+@[simps]
+def nat_iso_of_comp_fully_faithful (i : F ⋙ H ≅ G ⋙ H) : F ≅ G :=
+nat_iso.of_components
+  (λ X, (iso_equiv_of_fully_faithful H).symm (i.app X))
+  (λ X Y f, by { dsimp, apply H.map_injective, simpa using i.hom.naturality f, })
+
+lemma nat_iso_of_comp_fully_faithful_hom (i : F ⋙ H ≅ G ⋙ H) :
+  (nat_iso_of_comp_fully_faithful H i).hom = nat_trans_of_comp_fully_faithful H i.hom :=
+by { ext, simp [nat_iso_of_comp_fully_faithful], }
+
+lemma nat_iso_of_comp_fully_faithful_inv (i : F ⋙ H ≅ G ⋙ H) :
+  (nat_iso_of_comp_fully_faithful H i).inv = nat_trans_of_comp_fully_faithful H i.inv :=
+by { ext, simp [←preimage_comp], dsimp, simp, }
+
+end
 
 end category_theory
 

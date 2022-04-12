@@ -40,22 +40,22 @@ quotient (setoid.mk (λ α β, diff (monoid_hom.id H) α β = 1) ⟨λ α, diff_
 
 instance : inhabited H.quotient_diff := quotient.inhabited _
 
-def key_map [h : H.normal] : G → H.normalizer.opposite :=
+def to_normalizer_opposite [h : H.normal] : G → H.normalizer.opposite :=
 λ g, ⟨mul_opposite.op g, eq_top_iff.mp (normalizer_eq_top.mpr h) (mem_top g)⟩
 
 variables {H}
 
 instance [H.normal] : mul_action G H.quotient_diff :=
-{ smul := λ g, quotient.map' (λ α, (key_map H g⁻¹) • α) (λ S T h, (smul_diff_smul' _ _ _).trans
+{ smul := λ g, quotient.map' (λ α, (to_normalizer_opposite H g⁻¹) • α) (λ S T h, (smul_diff_smul' _ _ _).trans
     (by rwa [subtype.ext_iff, coe_one, coe_mk, mul_eq_one_iff_eq_inv,
       mul_right_eq_self, ←coe_one, ←subtype.ext_iff])),
   mul_smul := λ g₁ g₂ q, quotient.induction_on' q (λ T, congr_arg quotient.mk' (by
-  { rw mul_inv_rev, exact mul_smul (H.key_map g₁⁻¹) (H.key_map g₂⁻¹) T })),
+  { rw mul_inv_rev, exact mul_smul (H.to_normalizer_opposite g₁⁻¹) (H.to_normalizer_opposite g₂⁻¹) T })),
   one_smul := λ q, quotient.induction_on' q (λ T, congr_arg quotient.mk' (by
   { rw one_inv, apply one_smul })) }
 
 lemma smul_diff' [H.normal] [is_commutative H] (h : H) :
-  diff (monoid_hom.id H) α ((key_map H h) • β) = diff (monoid_hom.id H) α β * h ^ H.index :=
+  diff (monoid_hom.id H) α ((to_normalizer_opposite H h) • β) = diff (monoid_hom.id H) α β * h ^ H.index :=
 begin
   rw [diff, diff, index_eq_card, ←finset.card_univ, ←finset.prod_const, ←finset.prod_mul_distrib],
   refine finset.prod_congr rfl (λ q _, _),
@@ -71,7 +71,7 @@ variables [fintype H]
 lemma eq_one_of_smul_eq_one [H.normal] (hH : nat.coprime (fintype.card H) H.index)
   (α : H.quotient_diff) (h : H) : h • α = α → h = 1 :=
 quotient.induction_on' α (λ α hα, by
-{ replace hα : diff (monoid_hom.id H) (H.key_map ↑h⁻¹ • α) α = 1 := quotient.exact' hα,
+{ replace hα : diff (monoid_hom.id H) (H.to_normalizer_opposite ↑h⁻¹ • α) α = 1 := quotient.exact' hα,
   rw [←diff_inv, smul_diff', diff_self, one_mul, inv_pow, inv_inv] at hα,
   exact (pow_coprime hH).injective (hα.trans (one_pow H.index).symm) })
 
@@ -82,24 +82,9 @@ quotient.induction_on' α (quotient.induction_on' β (λ β α, exists_imp_exist
   ((smul_diff' β α ((pow_coprime hH).symm (diff (monoid_hom.id H) β α))⁻¹).trans
   (by rw [inv_pow, ←pow_coprime_apply hH, equiv.apply_symm_apply, mul_inv_self])))⟩))
 
-lemma is_complement'_stabilizer
-  {G : Type*} [group G] (H : subgroup G) {α : Type*} [mul_action G α] (a : α)
-  (h1 : ∀ (h : H), h • a = a → h = 1) (h2 : ∀ g : G, ∃ h : H, h • (g • a) = a) :
-  is_complement' H (stabilizer G a) :=
-begin
-  refine is_complement_iff_exists_unique.mpr (λ g, _),
-  obtain ⟨h, hh⟩ := h2 g,
-  have hh' : (↑h * g) • a = a := by rwa [mul_smul],
-  refine ⟨⟨h⁻¹, h * g, hh'⟩, inv_mul_cancel_left h g, _⟩,
-  rintros ⟨h', g, hg : g • a = a⟩ rfl,
-  specialize h1 (h * h') (by rwa [mul_smul, smul_def h', ←hg, ←mul_smul, hg]),
-  refine prod.ext (eq_inv_of_eq_inv (eq_inv_of_mul_eq_one h1)) (subtype.ext _),
-  rwa [subtype.ext_iff, coe_one, coe_mul, ←self_eq_mul_left, mul_assoc ↑h ↑h' g] at h1,
-end
-
 lemma is_complement'_stabilizer_of_coprime [H.normal] {α : H.quotient_diff}
   (hH : nat.coprime (fintype.card H) H.index) : is_complement' H (stabilizer G α) :=
-is_complement'_stabilizer H α (eq_one_of_smul_eq_one hH α) (λ g, exists_smul_eq hH (g • α) α)
+is_complement'_stabilizer α (eq_one_of_smul_eq_one hH α) (λ g, exists_smul_eq hH (g • α) α)
 
 /-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
 private lemma exists_right_complement'_of_coprime_aux [H.normal]

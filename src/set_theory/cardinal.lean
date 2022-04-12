@@ -636,6 +636,7 @@ begin
   simpa using le_mk_iff_exists_set.1 hx
 end
 
+/-- A set of cardinals is bounded above iff it's small, i.e. it corresponds to an usual ZFC set. -/
 theorem bdd_above_iff_small (s : set cardinal.{u}) : bdd_above s ↔ small.{u} s :=
 ⟨λ ⟨a, ha⟩, @small_subset _ (Iic a) s (λ x h, ha h) _, begin
   rintro ⟨ι, ⟨e⟩⟩,

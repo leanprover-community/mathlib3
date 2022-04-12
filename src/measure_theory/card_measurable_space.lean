@@ -30,9 +30,7 @@ variables {α : Type u}
 open_locale cardinal
 open cardinal set
 
-local notation `ω₁`:= (aleph 1 : cardinal.{u}).ord.out.α
-
-instance : no_max_order ω₁ := ordinal.out_no_max_of_succ_lt (ord_aleph_is_limit 1).2
+local notation `ω₁` := (aleph 1 : cardinal.{u}).ord.out.α
 
 namespace measurable_space
 
@@ -119,8 +117,7 @@ theorem generate_measurable_eq_rec (s : set (set α)) :
   {t | generate_measurable s t} = ⋃ i, generate_measurable_rec s i :=
 begin
   ext t, refine ⟨λ ht, _, λ ht, _⟩,
-  { haveI : nonempty ω₁, by simp [← mk_ne_zero_iff, ne_of_gt, (aleph 1).mk_ord_out, aleph_pos 1],
-    inhabit ω₁,
+  { inhabit ω₁,
     induction ht with u hu u hu IH f hf IH,
     { exact mem_Union.2 ⟨default, self_subset_generate_measurable_rec s _ hu⟩ },
     { exact mem_Union.2 ⟨default, empty_mem_generate_measurable_rec s _⟩ },

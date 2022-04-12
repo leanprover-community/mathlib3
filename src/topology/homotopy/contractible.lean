@@ -25,11 +25,11 @@ def nullhomotopic (f : C(X, Y)) : Prop :=
 lemma nullhomotopic_of_constant (y : Y) : nullhomotopic (continuous_map.const X y) :=
 ⟨y, by refl⟩
 
-lemma nullhomotopic_comp_right {f : C(X, Y)} (hf : f.nullhomotopic) (g : C(Y, Z)) :
+lemma nullhomotopic.comp_right {f : C(X, Y)} (hf : f.nullhomotopic) (g : C(Y, Z)) :
   (g.comp f).nullhomotopic :=
 by { cases hf with y hy, use g y, exact homotopic.hcomp hy (homotopic.refl g), }
 
-lemma nullhomotopic_comp_left {f : C(Y, Z)} (hf : f.nullhomotopic) (g : C(X, Y)) :
+lemma nullhomotopic.comp_left {f : C(Y, Z)} (hf : f.nullhomotopic) (g : C(X, Y)) :
   (f.comp g).nullhomotopic :=
 by { cases hf with y hy, use y, exact homotopic.hcomp (homotopic.refl g) hy, }
 

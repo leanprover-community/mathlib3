@@ -1686,6 +1686,16 @@ begin
     rwa [inv_mul_cancel_right, ←mul_assoc] at h },
 end
 
+@[to_additive] lemma mem_normalizer_iff'' {g : G} :
+  g ∈ H.normalizer ↔ ∀ h : G, h ∈ H ↔ g⁻¹ * h * g ∈ H :=
+begin
+  refine mem_normalizer_iff'.trans ⟨λ h n, _, λ h n, _⟩,
+  { specialize h (g⁻¹ * n),
+    rwa [mul_inv_cancel_left, iff.comm] at h },
+  { specialize h (g * n),
+    rwa [inv_mul_cancel_left, iff.comm] at h },
+end
+
 @[to_additive] lemma le_normalizer : H ≤ normalizer H :=
 λ x xH n, by rw [H.mul_mem_cancel_right (H.inv_mem xH), H.mul_mem_cancel_left xH]
 

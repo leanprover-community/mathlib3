@@ -366,6 +366,10 @@ variables (k G)
   map_one' := rfl,
   .. of_magma k G }
 
+@[simp] lemma comp_of_hom_apply {H : Type*} [mul_one_class G] [mul_one_class H]
+  (f : G →* H) (n : G) : (of k H).comp f n = single (f n) 1 :=
+rfl
+
 end
 
 lemma smul_of [mul_one_class G] (g : G) (r : k) :
@@ -547,21 +551,11 @@ by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
   map_mul' := λ x y, by rw [single_add_hom, single_mul_single, one_mul],
   ..finsupp.single_add_hom 1}
 
-/--  A monoid homomorphism `f : G →* H` extends to a monoid homomorphism `G →* monoid_algebra k H`,
-mapping `n : G` to `finsupp.single (f x) 1`. -/
-def single_one_right_hom (k : Type*) {H : Type*} [semiring k] [mul_one_class G] [mul_one_class H]
-  (f : G →* H) : G →* monoid_algebra k H :=
-(of k H).comp f
-
-@[simp] lemma single_one_right_hom_apply (k : Type*) {H : Type*} [semiring k] [mul_one_class G]
-  [mul_one_class H] (f : G →* H) (n : G) :
-  single_one_right_hom k f n = single (f n) 1 := rfl
-
 /--  A multiplicative homomorphism `f : G →* H` between two monoids induces a `k`-algebra
 homomorphism `monoid_ring_hom_map f : monoid_algebra k G →+* monoid_algebra k H`. -/
 def monoid_ring_hom_map (k : Type*) {H : Type*} [semiring k] [monoid G] [monoid H]
   (f : G →* H) : monoid_algebra k G →+* monoid_algebra k H :=
-lift_nc_ring_hom single_one_ring_hom (single_one_right_hom k f) $ λ r n,
+lift_nc_ring_hom single_one_ring_hom ((of k H).comp f) $ λ r n,
 show (single 1 r * (single (f n) 1) : monoid_algebra k H) = single (f n) 1 * (single 1 r),
 by simp only [single_mul_single, mul_one, one_mul]
 
@@ -700,7 +694,7 @@ by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 homomorphism `monoid_hom_alg_hom_map f : monoid_algebra k G →ₐ[k] monoid_algebra k H`. -/
 def monoid_hom_alg_hom_map (k : Type*) [comm_semiring k] {H : Type*} [monoid H] (f : G →* H) :
   monoid_algebra k G →ₐ[k] monoid_algebra k H :=
-lift _ _ (monoid_algebra k H) (single_one_right_hom k f)
+lift _ _ (monoid_algebra k H) ((of k H).comp f)
 
 end lift
 
@@ -1234,16 +1228,9 @@ begin
     simp only [mul_one, to_add_of_add, smul_single', of_apply] },
 end
 
-/--  An additive homomorphism `f : G →+ H` extends to a multiplicative homomorphism
-`multiplicative G →* monoid_algebra k H`, mapping `n : G` to `finsupp.single (f x) 1`. -/
-def single_one_right_add_hom (k : Type*) [semiring k] {H : Type*}
-  [add_zero_class G] [add_zero_class H] (f : G →+ H) :
-  multiplicative G →* monoid_algebra k (multiplicative H) :=
-monoid_algebra.single_one_right_hom k f.to_multiplicative
-
 @[simp] lemma single_one_right_add_hom_apply (k : Type*) [semiring k] {H : Type*}
   [add_zero_class G] [add_zero_class H] (f : G →+ H) (n : G) :
-  single_one_right_add_hom k f n = single (f n) 1 := rfl
+  (of k H).comp f.to_multiplicative n = single (f n) 1 := rfl
 
 --  `by convert monoid_algebra.monoid_ring_hom_map k f.to_multiplicative` appears to be the same
 --  mathematical definition, but is harder to use.
@@ -1252,9 +1239,9 @@ monoid_algebra.single_one_right_hom k f.to_multiplicative
 def add_monoid_ring_hom_map (k : Type*) [semiring k] {H : Type*} [add_monoid G] [add_monoid H]
   (f : G →+ H) : add_monoid_algebra k G →+* add_monoid_algebra k H :=
 begin
-  -- using `refine` times out.  Substituting the first `exact` into `_` yields a type mismatch.
-  apply lift_nc_ring_hom _ (single_one_right_add_hom k f) (λ r n, _),
-  { exact monoid_algebra.single_one_ring_hom },
+  refine lift_nc_ring_hom _ ((of k H).comp f.to_multiplicative) (λ r n, _),
+  { -- Without the explicit Type annotation, the proof times out.
+    exact (monoid_algebra.single_one_ring_hom : k →+* monoid_algebra k (multiplicative H)) },
   { show (single 1 r * single (f n) 1 : monoid_algebra k (multiplicative H)) =
       single (f n) 1 * single 1 r,
     simp only [monoid_algebra.single_mul_single, one_mul, mul_one] }
@@ -1543,7 +1530,7 @@ end
 `add_monoid_alg_hom_map f : add_monoid_algebra k G →ₐ[k] add_monoid_algebra k H`. -/
 def add_monoid_alg_hom_map (k : Type*) [comm_semiring k] [add_monoid G] {H : Type*} [add_monoid H]
   (f : G →+ H) : add_monoid_algebra k G →ₐ[k] add_monoid_algebra k H :=
-lift k G (add_monoid_algebra k H) (single_one_right_add_hom _ f)
+lift k G (add_monoid_algebra k H) ((of k H).comp f.to_multiplicative)
 
 @[simp]
 lemma add_monoid_alg_hom_map_single (k : Type*) [comm_semiring k] [add_monoid G] {H : Type*}

@@ -1,9 +1,8 @@
 /-
 Copyright (c) 2020 Aaron Anderson. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Aaron Anderson, Kyle Miller, Jalex Stark, Lu-Ming Zhang
+Authors: Aaron Anderson, Jalex Stark, Kyle Miller, Lu-Ming Zhang
 -/
-import algebra.indicator_function
 import combinatorics.simple_graph.basic
 import combinatorics.simple_graph.connectivity
 import data.rel
@@ -30,6 +29,10 @@ properties to computational properties of the matrix.
   the adjacency matrix of the complement graph of the graph induced by `A`.
 
 * `simple_graph.adj_matrix`: the adjacency matrix of a `simple_graph`.
+
+* `simple_graph.adj_matrix_pow_apply_eq_card_walk`: each entry of the `n`th power of
+  a graph's adjacency matrix counts the number of length-`n` walks between the corresponding
+  pair of vertices.
 
 -/
 
@@ -101,12 +104,12 @@ by simp [compl]
 @[simp]
 lemma compl_apply [has_zero α] [has_one α] (i j : V) :
   A.compl i j = 0 ∨ A.compl i j = 1 :=
-by { unfold compl, split_ifs; simp }
+by { unfold compl, split_ifs; simp, }
 
 @[simp]
 lemma is_symm_compl [has_zero α] [has_one α] (h : A.is_symm) :
   A.compl.is_symm :=
-by { ext, simp [compl, h.apply, eq_comm] }
+by { ext, simp [compl, h.apply, eq_comm], }
 
 @[simp]
 lemma is_adj_matrix_compl [has_zero α] [has_one α] (h : A.is_symm) :
@@ -242,111 +245,30 @@ lemma adj_matrix_mul_vec_const_apply_of_regular [semiring α] {d : ℕ} {a : α}
   (G.adj_matrix α).mul_vec (function.const _ a) v = (d * a) :=
 by simp [hd v]
 
-section walks
-variables (G) [decidable_eq V]
-
-/-- The `finset` of length-`n` walks from `u` to `v`. -/
-def walk_len : Π (n : ℕ) (u v : V), finset (G.walk u v)
-| 0 u v := if h : u = v
-           then by { subst u, exact {walk.nil} }
-           else ∅
-| (n+1) u v := finset.univ.bUnion (λ (w : V),
-                 if h : G.adj u w
-                 then (walk_len n w v).map ⟨λ p, walk.cons h p, begin
-                     intros p q, simp,
-                   end⟩
-                 else ∅)
-
-lemma walk_len_eq (n : ℕ) (u v : V) :
-  ↑(G.walk_len n u v) = {p : G.walk u v | p.length = n} :=
+theorem adj_matrix_pow_apply_eq_card_walk [decidable_eq V] [semiring α] (n : ℕ) (u v : V) :
+  (G.adj_matrix α ^ n) u v = fintype.card {p : G.walk u v | p.length = n} :=
 begin
-  induction n generalizing u v,
-  { ext p,
-    simp only [walk_len, nat.nat_zero_eq_zero, mem_coe, set.mem_set_of_eq],
-    by_cases h : u = v,
-    { subst h,
-      cases p; simp },
-    { cases p,
-      simp,
-      simp [h] } },
-  { ext p,
-    simp [walk_len],
-    split,
-    { rintro ⟨w, h⟩,
-      by_cases huw : G.adj u w,
-      { simp [huw] at h,
-        obtain ⟨q, hq, rfl⟩ := h,
-        simp [walk.length],
-        rw [←finset.mem_coe, n_ih] at hq,
-        exact hq },
-      { simp [huw] at h,
-        exact h.elim } },
-    { intro hp,
-      cases p,
-      { exfalso,
-        simp at hp,
-        injection hp },
-      { use p_v,
-        simp [p_h],
-        rw [←finset.mem_coe, n_ih],
-        injection hp } } },
-end
-
-instance walk_of_len_fintype {u v : V} (n : ℕ) : fintype {p : G.walk u v // p.length = n} :=
-begin
-  apply fintype.subtype (G.walk_len n u v),
-  intro p,
-  rw ←finset.mem_coe,
-  rw walk_len_eq,
-  simp,
-end
-
-lemma fintype_card_walk_eq (u v : V) (n : ℕ) :
-  (G.walk_len n u v).card = fintype.card {p : G.walk u v // p.length = n} :=
-begin
-  rw fintype.card_of_subtype (G.walk_len n u v),
-  intro p,
-  rw ←finset.mem_coe,
-  rw walk_len_eq,
-  simp,
-end
-
-theorem adj_matrix_pow_apply_eq_card_walk [semiring α] (n : ℕ) (u v : V) :
-  (G.adj_matrix α ^ n) u v = fintype.card {p : G.walk u v // p.length = n} :=
-begin
-  rw ←fintype_card_walk_eq,
-  induction n generalizing u v,
-  { by_cases h : u = v,
-    { subst h,
-      simp [walk_len] },
-    { simp [walk_len, h] } },
-  { rw [nat.succ_eq_add_one, add_comm, pow_add, pow_one],
-    simp only [adj_matrix_mul_apply, mul_eq_mul],
-    rw set.sum_indicator_subset _ (subset_univ _),
-    simp_rw [set.indicator_apply, mem_coe, mem_neighbor_finset, n_ih],
-    rw add_comm,
-    simp only [walk_len],
+  rw card_set_walk_length_eq,
+  induction n with n ih generalizing u v,
+  { obtain rfl | h := eq_or_ne u v; simp [finset_walk_length, *] },
+  { nth_rewrite 0 [nat.succ_eq_one_add],
+    simp only [pow_add, pow_one, finset_walk_length, ih, mul_eq_mul, adj_matrix_mul_apply],
     rw finset.card_bUnion,
     { norm_cast,
+      rw set.sum_indicator_subset _ (subset_univ (G.neighbor_finset u)),
       congr' 2,
       ext x,
-      by_cases hux : G.adj u x,
-      { simp [hux] },
-      { simp [hux] } },
-    { intros x hx y hy hxy,
-      intros p hp,
-      simp at hp,
-      split_ifs at hp;
-      simp at hp; try { exact hp.elim },
+      split_ifs with hux; simp [hux], },
+    /- Disjointness for card_bUnion -/
+    { intros x hx y hy hxy p hp,
+      split_ifs at hp with hx hy;
+      simp only [inf_eq_inter, empty_inter, inter_empty, not_mem_empty, mem_inter, mem_map,
+        function.embedding.coe_fn_mk, exists_prop] at hp;
+      try { simpa using hp },
       obtain ⟨⟨qx, hql, hqp⟩, ⟨rx, hrl, hrp⟩⟩ := hp,
-      cases p,
-      injection hqp,
-      injection hqp,
-      injection hrp,
-      exact (hxy (h_2.trans h_4.symm)).elim } },
+      unify_equations hqp hrp,
+      exact absurd rfl hxy, } },
 end
-
-end walks
 
 end simple_graph
 

@@ -59,10 +59,18 @@ end
   gram_schmidt 𝕜 f 0 = f 0 :=
 by simp only [gram_schmidt, fintype.univ_of_is_empty, finset.sum_empty, sub_zero]
 
-/-- Gram-Schmidt process produces an orthogonal system of vectors. -/
-theorem gram_schmidt_orthogonal' (f : ℕ → E) (a b : ℕ) (h₀ : a < b) :
+/-- **Gram-Schmidt Orthogonalisation**
+Gram-Schmidt process produces an orthogonal system of vectors. -/
+theorem gram_schmidt_orthogonal (f : ℕ → E) (a b : ℕ) (h₀ : a ≠ b) :
   ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0 :=
 begin
+  suffices : ∀ a b : ℕ, a < b → ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0,
+  { cases h₀.lt_or_lt with ha hb,
+    { exact this _ _ ha, },
+    { rw inner_eq_zero_sym,
+      exact this _ _ hb, }, },
+  clear h₀ a b,
+  intros a b h₀,
   obtain ⟨c, hbc⟩ : ∃ c, b ≤ c := ⟨b, le_rfl⟩,
   revert a b,
   apply nat.strong_induction_on c; clear c,
@@ -85,17 +93,6 @@ begin
   { rw inner_eq_zero_sym,
     exact hc a h₀ i a hia₁ le_rfl, },
   { exact hc i hi a i hia₂ le_rfl, },
-end
-
-/-- **Gram-Schmidt Orthogonalisation**
-This version is stronger than `gram_schmidt_orthogonal'` as it doesn't require `a < b` -/
-theorem gram_schmidt_orthogonal (f : ℕ → E) (a b : ℕ) (h₀ : a ≠ b) :
-  ⟪gram_schmidt 𝕜 f a, gram_schmidt 𝕜 f b⟫ = 0 :=
-begin
-  cases h₀.lt_or_lt with ha hb,
-  { exact gram_schmidt_orthogonal' 𝕜 f a b ha, },
-  { rw inner_eq_zero_sym,
-    exact gram_schmidt_orthogonal' 𝕜 f b a hb, },
 end
 
 open submodule set

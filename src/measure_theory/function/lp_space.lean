@@ -1424,7 +1424,7 @@ instance : has_norm (Lp E p μ) := { norm := λ f, ennreal.to_real (snorm f p μ
 
 instance : has_dist (Lp E p μ) := { dist := λ f g, ∥f - g∥}
 
-instance : has_edist (Lp E p μ) := { edist := λ f g, ennreal.of_real (dist f g) }
+instance : has_edist (Lp E p μ) := { edist := λ f g, snorm (f - g) p μ }
 
 lemma norm_def (f : Lp E p μ) : ∥f∥ = ennreal.to_real (snorm f p μ) := rfl
 
@@ -1440,10 +1440,7 @@ begin
 end
 
 lemma edist_def (f g : Lp E p μ) : edist f g = snorm (f - g) p μ :=
-begin
-  simp_rw [edist, dist, norm_def, ennreal.of_real_to_real (snorm_ne_top _)],
-  exact snorm_congr_ae (coe_fn_sub _ _)
-end
+rfl
 
 @[simp] lemma edist_to_Lp_to_Lp (f g : α → E) (hf : mem_ℒp f p μ) (hg : mem_ℒp g p μ) :
   edist (hf.to_Lp f) (hg.to_Lp g) = snorm (f - g) p μ :=

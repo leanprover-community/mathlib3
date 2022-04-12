@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 
+import mwe_laurent_to_mathlib
 import data.polynomial.algebra_map
 import data.polynomial.denoms_clearable
 
@@ -15,143 +16,35 @@ noncomputable theory
 
 variables {R N Z : Type*}
 
-section monoid_algebra_homs
-open finsupp
-
-namespace monoid_algebra
-
-section semiring
-variables (R) [semiring R] [monoid N] [monoid Z]
-
-/--  A monoid homomorphism `f : N →* Z` extends to a monoid homomorphism `N →* monoid_algebra R Z`,
-mapping `n : N` to `finsupp.single (f x) 1`. -/
-def single_one_right_hom (f : N →* Z) : N →* monoid_algebra R Z :=
-by refine ⟨λ x, single (f x) 1, _, _⟩; simp ; refl
-
-@[simp] lemma single_one_right_hom_apply (f : N →* Z) (n : N) :
-  single_one_right_hom R f n = single (f n) 1 := rfl
-
-/--  A multiplicative homomorphism `f : N →* Z` between two monoids induces a `k`-algebra
-homomorphism `monoid_hom_lift f : monoid_algebra R N →+* monoid_algebra R Z`. -/
-def monoid_hom_lift (f : N →* Z) : monoid_algebra R N →+* monoid_algebra R Z :=
-lift_nc_ring_hom single_one_ring_hom (single_one_right_hom R f) $ λ r n,
-show (single 1 r * (single (f n) 1) : monoid_algebra R Z) =
-  (single (f n) 1 : monoid_algebra R Z) * (single 1 r),
-by simp only [single_mul_single, mul_one, one_mul]
-
-end semiring
-
-section comm_semiring
-variables [comm_semiring R] [monoid N] [monoid Z]
-
-/--  A multiplicative homomorphism `f : N →* Z` between two monoids induces an `R`-algebra
-homomorphism `full_lift f : monoid_algebra R N →ₐ[R] monoid_algebra R Z`. -/
-def full_lift (f : N →* Z) : monoid_algebra R N →ₐ[R] monoid_algebra R Z :=
-lift _ _ (monoid_algebra R Z) (single_one_right_hom _ f)
-
-end comm_semiring
-
-end monoid_algebra
-
-namespace add_monoid_algebra
-section semiring
-variables (R) [semiring R] [add_monoid N] [add_monoid Z]
-
-/--  An additive homomorphism `f : N →+ Z` extends to a multiplicative homomorphism
-`multiplicative N →* monoid_algebra R Z`, mapping `n : N` to `finsupp.single (f x) 1`. -/
-def single_one_right_add_hom (f : N →+ Z) :
-  multiplicative N →* monoid_algebra R (multiplicative Z) :=
-monoid_algebra.single_one_right_hom _ f.to_multiplicative
-
-@[simp] lemma single_one_right_add_hom_apply (f : N →+ Z) (n : N) :
-  single_one_right_add_hom R f n = single (f n) 1 := rfl
-
---  `by convert monoid_algebra.monoid_hom_lift R f.to_multiplicative` appears to be the same
---  mathematical definition, but is harder to use.
-/--  An additive homomorphism `f : N →+ Z` induces a `k`-algebra homomorphism
-`add_monoid_hom_lift f : add_monoid_algebra R N →+* add_monoid_algebra R Z`. -/
-def add_monoid_hom_lift (f : N →+ Z) : add_monoid_algebra R N →+* add_monoid_algebra R Z :=
-begin
-  -- using `refine` times out.  Substituting the first `exact` into `_` yields a type mismatch.
-  apply lift_nc_ring_hom _ (single_one_right_add_hom R f) (λ r n, _),
-  { exact monoid_algebra.single_one_ring_hom },
-  { show (single 1 r * single (f n) 1 : monoid_algebra R (multiplicative Z)) =
-      single (f n) 1 * single 1 r,
-    simp only [monoid_algebra.single_mul_single, one_mul, mul_one] }
-end
-
-end semiring
-
-section comm_semiring
-variables [comm_semiring R] [add_monoid N] [add_monoid Z]
-
-/--  An additive homomorphism `f : N →+ Z` induces an `R`-algebra homomorphism
-`add_full_lift f : add_monoid_algebra R N →ₐ[R] add_monoid_algebra R Z`. -/
-def add_full_lift (f : N →+ Z) : add_monoid_algebra R N →ₐ[R] add_monoid_algebra R Z :=
-lift R N (add_monoid_algebra R Z) (single_one_right_add_hom _ f)
-
-@[simp]
-lemma add_full_lift_single (f : N →+ Z) (n : N) (r : R) :
-  add_full_lift f (single n r) = single (f n) r :=
-begin
-  simp only [add_full_lift, lift_single, single_one_right_add_hom_apply, smul_single', mul_one],
-  refl,
-end
-
-end comm_semiring
-
-
-
-/-
-variables [comm_semiring R] [add_monoid Z] [add_monoid N] (f : N →+ Z)
-
-/--  An additive homomorphism `f : N →+ Z` between two additive monoids induces an `R`-algebra
-homomorphism `full_lift f : add_monoid_algebra R N →ₐ[R] add_monoid_algebra R Z`. -/
-def add_full_lift (f : N →+ Z) :
-  add_monoid_algebra R N →ₐ[R] add_monoid_algebra R Z :=
-begin
-  refine add_monoid_algebra.lift R N (monoid_algebra R (multiplicative Z)) _,
-  refine ⟨λ x, finsupp.single (of_add (f (to_add x))) 1, _, _⟩,
-  { rw [to_add_one, _root_.map_zero, of_add_zero],
-    refl },
-  { exact λ x y, by simp only [single_mul_single, mul_one, to_add_mul, _root_.map_add, of_add_add]},
-end
-
-@[simp]
-lemma add_full_lift_single (n : N) (r : R) :
-  add_full_lift f (finsupp.single n r) = finsupp.single (f n) r :=
-begin
-  simp only [add_full_lift, add_monoid_algebra.lift_single, monoid_hom.coe_mk, to_add_of_add,
-    finsupp.smul_single', mul_one],
-  congr,
-end
--/
-
-end add_monoid_algebra
-
-end monoid_algebra_homs
-
 /--  The semiring of Laurent polynomials with coefficients in the semiring `R`.
 We denote it by `R[T;T⁻¹]`.
-The ring homomorphism `C : R →+* R[T;T⁻¹]` includes `R` as the constant polynomials.
- -/
+The ring homomorphism `C : R →+* R[T;T⁻¹]` includes `R` as the constant polynomials. -/
 abbreviation laurent_polynomial (R : Type*) [semiring R] := add_monoid_algebra R ℤ
 
 local notation R`[T;T⁻¹]`:9000 := laurent_polynomial R
 
+/--  The ring homomorphism, taking a polynomial with coefficients in `R` to a Laurent polynomial
+with coefficients in `R`. -/
+def polynomial.to_laurent_polynomial {R : Type*} [semiring R] :
+  R[X] →+* R[T;T⁻¹] :=
+begin
+  refine ring_hom.comp _ (to_finsupp_iso R).to_ring_hom,
+  exact (add_monoid_algebra.add_monoid_ring_hom_lift R (nat.cast_add_monoid_hom ℤ)),
+end
+
 /--  The `R`-algebra map, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/
-def polynomial.to_laurent_polynomial {R : Type*} [comm_semiring R] :
+def polynomial.to_laurent_polynomial_alg {R : Type*} [comm_semiring R] :
   R[X] →ₐ[R] R[T;T⁻¹] :=
 begin
   refine alg_hom.comp _ (to_finsupp_iso_alg R).to_alg_hom,
-  exact (add_monoid_algebra.add_full_lift (nat.cast_add_monoid_hom ℤ)),
+  exact (add_monoid_algebra.add_monoid_alg_hom_lift R (nat.cast_add_monoid_hom ℤ)),
 end
 
 namespace laurent_polynomial
 
 section comm_semiring
-variables [comm_semiring R]
+variables [semiring R]
 
 /--  The ring homomorphism `C`, including `R` into the ring of Laurent polynomials over `R` as
 the constant Laurent polynomials. -/
@@ -180,13 +73,17 @@ lemma T_add_rev (m n : ℤ) : (T m * T n : R[T;T⁻¹]) = T (m + n) :=
 (T_add _ _).symm
 
 lemma is_unit_T (n : ℤ) : is_unit (T n : R[T;T⁻¹]) :=
-is_unit_of_mul_eq_one _ (T (- n)) (by simp)
+by refine ⟨⟨T n, T (- n), _, _⟩, _⟩; simp
 
-lemma is_left_regular_T (n : ℤ) : is_left_regular (T n : R[T;T⁻¹]) :=
-is_left_regular_of_mul_eq_one (by simp : T (-n) * T n = 1)
+lemma is_regular_T (n : ℤ) : is_regular (T n : R[T;T⁻¹]) :=
+⟨is_left_regular_of_mul_eq_one (by simp : T (-n) * T n = 1),
+  is_right_regular_of_mul_eq_one (by simp : T n * T (-n) = 1)⟩
 
 lemma mul_T_injective (n : ℤ) : function.injective ((*) (T n) : R[T;T⁻¹] → R[T;T⁻¹]) :=
-is_left_regular_T _
+(is_regular_T n).left
+
+lemma T_mul_injective (n : ℤ) : function.injective (λ f : R[T;T⁻¹], f * (T n)) :=
+(is_regular_T n).right
 
 @[simp]
 lemma T_pow (m : ℤ) (n : ℕ) : (T m ^ n : R[T;T⁻¹]) = T (n * m) :=
@@ -198,12 +95,10 @@ by { convert add_monoid_algebra.single_pow n, simp [T] }
 @[simp]
 lemma full_lift_monomial (n : ℕ) (r : R) :
   (monomial n r : R[X]).to_laurent_polynomial = finsupp.single n r :=
-by {simp [polynomial.to_laurent_polynomial], }
-
---by simp only [polynomial.to_laurent_polynomial, alg_equiv.to_alg_hom_eq_coe, alg_hom.coe_comp,
---    alg_equiv.coe_alg_hom, function.comp_app, to_finsupp_iso_alg_apply, ring_equiv.to_fun_eq_coe,
---    to_finsupp_iso_apply, to_finsupp_monomial, add_monoid_algebra.add_full_lift_single, nat.coe_cast_add_monoid_hom,
---    int.nat_cast_eq_coe_nat], }
+by simp only [polynomial.to_laurent_polynomial, alg_equiv.to_alg_hom_eq_coe, alg_hom.coe_comp,
+    alg_equiv.coe_alg_hom, function.comp_app, to_finsupp_iso_alg_apply, ring_equiv.to_fun_eq_coe,
+    to_finsupp_iso_apply, to_finsupp_monomial, add_monoid_alg_hom_lift_single,
+    nat.coe_cast_add_monoid_hom, int.nat_cast_eq_coe_nat]
 
 @[simp]
 lemma full_lift_one_zero : (finsupp.single 0 1 : R[T;T⁻¹]) = (1 : R[T;T⁻¹]) := rfl

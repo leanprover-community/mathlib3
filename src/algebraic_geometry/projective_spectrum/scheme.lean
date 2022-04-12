@@ -484,8 +484,8 @@ begin
               dsimp only,
               ring,
             end
-        ... = localization.mk (f^N) 1* localization.mk (f^n) 1 * ∑ i in c.support, c i * i.1 : by erw eq1
-        ... = localization.mk (f^N) 1* localization.mk (f^n) 1 * ∑ i in c.support.attach, c i.1 * i.1.1
+        ... = mk (f^N) 1* mk (f^n) 1 * ∑ i in c.support, c i * i.1 : by erw eq1
+        ... = mk (f^N) 1* mk (f^n) 1 * ∑ i in c.support.attach, c i.1 * i.1.1
             : begin
               congr' 1,
               apply finset.sum_bij',
@@ -524,11 +524,13 @@ begin
               erw [finset.sum_insert ha, finset.sum_insert ha, ih, localization.add_mk,
                 one_mul, one_mul, one_mul, add_comm],
             end
-        ... = localization.mk (f^n * ∑ i in c.support.attach, after_clear_denominator (c i.1 * i.1.1) (prop1 i.1 i.2)) 1
+        ... = mk (f^n * ∑ i in c.support.attach,
+                after_clear_denominator (c i.1 * i.1.1) (prop1 i.1 i.2)) 1
             : begin
               erw [localization.mk_mul, one_mul],
             end
-        ... = localization.mk (∑ i in c.support.attach, f^n * after_clear_denominator (c i.1 * i.1.1) (prop1 i.1 i.2)) 1
+        ... = mk (∑ i in c.support.attach,
+                f^n * after_clear_denominator (c i.1 * i.1.1) (prop1 i.1 i.2)) 1
                 : by erw finset.mul_sum,
 
     simp only [localization.mk_eq_mk', is_localization.eq] at eq2,
@@ -536,7 +538,9 @@ begin
     erw [mul_one, mul_one, ←subtype.val_eq_coe] at eq2,
     dsimp only at eq2,
 
-    have mem1 : (∑ i in c.support.attach, f^n * after_clear_denominator (c i.1 * i.1.1) (prop1 i.1 i.2)) * f^k1 ∈ y.1.as_homogeneous_ideal,
+    have mem1 : (∑ i in c.support.attach,
+      f^n * after_clear_denominator (c i.1 * i.1.1) (prop1 i.1 i.2)) * f^k1 ∈
+      y.1.as_homogeneous_ideal,
     { apply ideal.mul_mem_right,
       apply ideal.sum_mem,
       intros j hj,
@@ -555,9 +559,9 @@ begin
 
       have eq6 := calc localization.mk (after_clear_denominator (c j.1 * j.1.1) (prop1 j.1 j.2)) 1
           = c j.1 * j.1.1 * localization.mk (f^N) 1 : eq4
-      ... = (localization.mk α ⟨f^z, ⟨z, rfl⟩⟩ : localization.away f) * j.1.1 * localization.mk (f^N) 1
+      ... = (mk α ⟨f^z, ⟨z, rfl⟩⟩ : away f) * j.1.1 * mk (f^N) 1
           : by erw hz
-      ... = (localization.mk α ⟨f^z, ⟨z, rfl⟩⟩ : localization.away f) * localization.mk g 1 * localization.mk (f^N) 1
+      ... = (mk α ⟨f^z, ⟨z, rfl⟩⟩ : away f) * mk g 1 * mk (f^N) 1
           : by erw eq3
       ... = localization.mk (α * g * f^N) ⟨f^z, ⟨z, rfl⟩⟩
           : begin
@@ -631,13 +635,11 @@ def forward {f : A} (m : ℕ) (f_deg : f ∈ 𝒜 m) :
     dsimp only,
 
     -- we want to use `projective_spectrum.basic_open 𝒜 (f*a) = preimage`
-    set set1 : set ((Proj .restrict (@opens.open_embedding (projective_spectrum.Top 𝒜)
-    (projective_spectrum.basic_open 𝒜 f))).to_SheafedSpace.to_PresheafedSpace.1) :=
-    { x | x.1 ∈ projective_spectrum.basic_open 𝒜 f ⊓ projective_spectrum.basic_open 𝒜 a } with set1_eq,
+    set set1 : set (Proj.T| (pbo f)) :=
+    { x | x.1 ∈ (pbo f) ⊓ (pbo a) } with set1_eq,
     have o1 : is_open set1,
     { rw is_open_induced_iff,
-      refine ⟨(projective_spectrum.basic_open 𝒜 f).1 ⊓ (projective_spectrum.basic_open 𝒜 a).1,
-        is_open.inter (projective_spectrum.basic_open 𝒜 f).2 (projective_spectrum.basic_open 𝒜 a).2, _⟩,
+      refine ⟨(pbo f).1 ⊓ (pbo a).1, is_open.inter (pbo f).2 (pbo a).2, _⟩,
       ext z, split; intros hz,
       { erw set.mem_preimage at hz,
         erw set1_eq,

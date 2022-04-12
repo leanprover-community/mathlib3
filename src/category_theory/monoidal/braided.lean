@@ -382,8 +382,7 @@ begin
 end
 
 /-
-Diagram B6 from Proposition 1 of André Joyal and Ross Street,
-"Braided monoidal categories", Macquarie Math Reports 860081 (1986).
+Diagram B6 from Proposition 1 of [Joyal and Street, *Braided monoidal categories*][Joyal_Street].
 -/
 lemma tensor_associativity_aux (W X Y Z : C) :
     ((β_ W X).hom ⊗ 𝟙 (Y ⊗ Z)) ≫

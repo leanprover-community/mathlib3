@@ -97,7 +97,7 @@ lemma direct_sum.coe_mul_apply_add_submonoid [add_monoid ι] [semiring R]
       r ij.1 * r' ij.2 :=
 begin
   rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
-    add_submonoid.coe_finset_sum],
+    add_submonoid_class.coe_finset_sum],
   simp_rw [direct_sum.coe_of_add_submonoid_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 
@@ -139,7 +139,7 @@ lemma direct_sum.coe_mul_apply_add_subgroup [add_monoid ι] [ring R]
       r ij.1 * r' ij.2 :=
 begin
   rw [direct_sum.mul_eq_sum_support_ghas_mul, dfinsupp.finset_sum_apply,
-    add_subgroup.coe_finset_sum],
+    add_submonoid_class.coe_finset_sum],
   simp_rw [direct_sum.coe_of_add_subgroup_apply, ←finset.sum_filter, set_like.coe_ghas_mul],
 end
 

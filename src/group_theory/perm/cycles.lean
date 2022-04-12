@@ -3,9 +3,9 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.equiv.fintype
 import data.finset.noncomm_prod
 import group_theory.perm.sign
+import logic.equiv.fintype
 /-!
 # Cyclic permutations
 
@@ -897,7 +897,7 @@ begin
   simp only [noncomm_prod_to_finset, hl, exists_prop, list.mem_to_finset, and.congr_left_iff,
              and.congr_right_iff, list.map_id, ne.def],
   intros,
-  exact ⟨list.forall_of_pairwise disjoint.symmetric, hl.pairwise_of_forall_ne⟩
+  exact ⟨list.pairwise.forall disjoint.symmetric, hl.pairwise_of_forall_ne⟩
 end
 
 lemma cycle_factors_finset_pairwise_disjoint (p : perm α) (hp : p ∈ cycle_factors_finset f)
@@ -1084,7 +1084,7 @@ begin
       (disjoint_prod_right _ (list.pairwise_cons.mp h2).1)
       (h1 _ (list.mem_cons_self _ _))
       (base_cycles σ (h1 σ (l.mem_cons_self σ)))
-      (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },
+      (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) h2.of_cons) }
 end
 
 lemma cycle_factors_finset_mul_inv_mem_eq_sdiff [fintype α] {f g : perm α}

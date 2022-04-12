@@ -3,11 +3,11 @@ Copyright (c) 2020 Markus Himmel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Markus Himmel
 -/
-import algebra.group.hom
-import category_theory.limits.shapes.kernels
 import algebra.big_operators.basic
+import algebra.hom.group
 import algebra.module.basic
 import category_theory.endomorphism
+import category_theory.limits.shapes.kernels
 
 /-!
 # Preadditive categories
@@ -133,16 +133,16 @@ map_neg (left_comp R f) g
 by simp
 
 lemma nsmul_comp (n : ℕ) : (n • f) ≫ g = n • (f ≫ g) :=
-map_nsmul (right_comp P g) f n
+map_nsmul (right_comp P g) n f
 
 lemma comp_nsmul (n : ℕ) : f ≫ (n • g) = n • (f ≫ g) :=
-map_nsmul (left_comp R f) g n
+map_nsmul (left_comp R f) n g
 
 lemma zsmul_comp (n : ℤ) : (n • f) ≫ g = n • (f ≫ g) :=
-map_zsmul (right_comp P g) f n
+map_zsmul (right_comp P g) n f
 
 lemma comp_zsmul (n : ℤ) : f ≫ (n • g) = n • (f ≫ g) :=
-map_zsmul (left_comp R f) g n
+map_zsmul (left_comp R f) n g
 
 @[reassoc] lemma comp_sum {P Q R : C} {J : Type*} (s : finset J) (f : P ⟶ Q) (g : J → (Q ⟶ R)) :
   f ≫ ∑ j in s, g j = ∑ j in s, f ≫ g j :=

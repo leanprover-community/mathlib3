@@ -24,20 +24,21 @@ the image of `A` under `algebra_map A K` agrees with `(valuation A K).integer`.
 We also show that valuation rings are local and that their lattice of ideals is totally ordered.
 -/
 
+universes u v w
+
 /-- An integral domain is called a `valuation ring` provided that for any pair
 of elements `a b : A`, either `a` divides `b` or vice versa. -/
-
-class valuation_ring (A : Type*) [comm_ring A] [is_domain A] : Prop :=
+class valuation_ring (A : Type u) [comm_ring A] [is_domain A] : Prop :=
 (cond [] : ∀ a b : A, ∃ c : A, a * c = b ∨ b * c = a)
 
 namespace valuation_ring
 
 section
-variables (A : Type*) [comm_ring A]
-variables (K : Type*) [field K] [algebra A K]
+variables (A : Type u) [comm_ring A]
+variables (K : Type v) [field K] [algebra A K]
 
 /-- The value group of the valuation ring `A`. -/
-def value_group : Type* := quotient (mul_action.orbit_rel Aˣ K)
+def value_group : Type v := quotient (mul_action.orbit_rel Aˣ K)
 
 instance : inhabited (value_group A K) := ⟨quotient.mk' 0⟩
 
@@ -46,7 +47,7 @@ quotient.lift_on₂' x y (λ a b, ∃ c : A, c • b = a)
 begin
   rintros _ _ a b ⟨c,rfl⟩ ⟨d,rfl⟩, ext,
   split,
-  { rintros ⟨e,he⟩, dsimp at he, use ((c⁻¹ : Aˣ) * e * d),
+  { rintros ⟨e,he⟩, use ((c⁻¹ : Aˣ) * e * d),
     apply_fun (λ t, c⁻¹ • t) at he,
     simpa [mul_smul] using he },
   { rintros ⟨e,he⟩, dsimp,
@@ -232,7 +233,7 @@ end
 
 section
 
-variables (A : Type*) [comm_ring A] [is_domain A] [valuation_ring A]
+variables (A : Type u) [comm_ring A] [is_domain A] [valuation_ring A]
 
 @[priority 100]
 instance : local_ring A :=
@@ -270,7 +271,7 @@ end
 
 section
 
-variables {𝒪 K Γ : Type*}
+variables {𝒪 : Type u} {K : Type v} {Γ : Type w}
   [comm_ring 𝒪] [is_domain 𝒪] [field K] [algebra 𝒪 K]
   [linear_ordered_comm_group_with_zero Γ]
   (v : _root_.valuation K Γ) (hh : v.integers 𝒪)
@@ -294,8 +295,9 @@ end
 
 section
 
-variables (K : Type*) [field K]
+variables (K : Type u) [field K]
 
+/-- A field is a valuation ring. -/
 @[priority 100]
 instance of_field : valuation_ring K :=
 begin
@@ -310,8 +312,9 @@ end
 
 section
 
-variables (A : Type*) [comm_ring A] [is_domain A] [discrete_valuation_ring A]
+variables (A : Type u) [comm_ring A] [is_domain A] [discrete_valuation_ring A]
 
+/-- A DVR is a valuation ring. -/
 @[priority 100]
 instance of_discrete_valuation_ring : valuation_ring A :=
 begin

@@ -100,7 +100,7 @@ preserved under addition and scalar multiplication, then `p` holds for all eleme
   (Hs : ∀ x ∈ s, p x) (H0 : p 0)
   (H1 : ∀ x y, p x → p y → p (x + y))
   (H2 : ∀ (a:R) x, p x → p (a • x)) : p x :=
-(@span_le _ _ _ _ _ _ ⟨p, H0, H1, H2⟩).2 Hs h
+(@span_le _ _ _ _ _ _ ⟨p, H1, H0, H2⟩).2 Hs h
 
 /-- A dependent version of `submodule.span_induction`. -/
 lemma span_induction' {p : Π x, x ∈ span R s → Prop}
@@ -113,7 +113,7 @@ begin
   refine exists.elim _ (λ (hx : x ∈ span R s) (hc : p x hx), hc),
   refine span_induction hx (λ m hm, ⟨subset_span hm, Hs m hm⟩) ⟨zero_mem _, H0⟩
     (λ x y hx hy, exists.elim hx $ λ hx' hx, exists.elim hy $ λ hy' hy,
-    ⟨add_mem _ hx' hy', H1 _ _ _ _ hx hy⟩) (λ r x hx, exists.elim hx $ λ hx' hx,
+    ⟨add_mem hx' hy', H1 _ _ _ _ hx hy⟩) (λ r x hx, exists.elim hx $ λ hx' hx,
     ⟨smul_mem _ _ hx', H2 r _ _ hx⟩)
 end
 
@@ -122,7 +122,7 @@ eq_top_iff.2 $ λ x, subtype.rec_on x $ λ x hx _, begin
   refine span_induction' (λ x hx, _) _ (λ x y _ _, _) (λ r x _, _) hx,
   { exact subset_span hx },
   { exact zero_mem _ },
-  { exact add_mem _ },
+  { exact add_mem },
   { exact smul_mem _ _ }
 end
 
@@ -171,6 +171,10 @@ lemma span_union (s t : set M) : span R (s ∪ t) = span R s ⊔ span R t :=
 
 lemma span_Union {ι} (s : ι → set M) : span R (⋃ i, s i) = ⨆ i, span R (s i) :=
 (submodule.gi R M).gc.l_supr
+
+lemma span_Union₂ {ι} {κ : ι → Sort*} (s : Π i, κ i → set M) :
+  span R (⋃ i j, s i j) = ⨆ i j, span R (s i j) :=
+(submodule.gi R M).gc.l_supr₂
 
 lemma span_attach_bUnion [decidable_eq M] {α : Type*} (s : finset α) (f : s → finset M) :
   span R (s.attach.bUnion f : set M) = ⨆ x, span R (f x) :=
@@ -223,7 +227,7 @@ begin
   { exact hι.elim (λ i, ⟨i, (S i).zero_mem⟩) },
   { intros x y i hi j hj,
     rcases H i j with ⟨k, ik, jk⟩,
-    exact ⟨k, add_mem _ (ik hi) (jk hj)⟩ },
+    exact ⟨k, add_mem (ik hi) (jk hj)⟩ },
   { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
 
@@ -267,11 +271,11 @@ lemma mem_sup : x ∈ p ⊔ p' ↔ ∃ (y ∈ p) (z ∈ p'), y + z = x :=
     { exact ⟨0, by simp, y, h, by simp⟩ } },
   { exact ⟨0, by simp, 0, by simp⟩ },
   { rintro _ _ ⟨y₁, hy₁, z₁, hz₁, rfl⟩ ⟨y₂, hy₂, z₂, hz₂, rfl⟩,
-    exact ⟨_, add_mem _ hy₁ hy₂, _, add_mem _ hz₁ hz₂, by simp [add_assoc]; cc⟩ },
+    exact ⟨_, add_mem hy₁ hy₂, _, add_mem hz₁ hz₂, by simp [add_assoc]; cc⟩ },
   { rintro a _ ⟨y, hy, z, hz, rfl⟩,
     exact ⟨_, smul_mem _ a hy, _, smul_mem _ a hz, by simp [smul_add]⟩ }
 end,
-by rintro ⟨y, hy, z, hz, rfl⟩; exact add_mem _
+by rintro ⟨y, hy, z, hz, rfl⟩; exact add_mem
   ((le_sup_left : p ≤ p ⊔ p') hy)
   ((le_sup_right : p' ≤ p ⊔ p') hz)⟩
 
@@ -333,6 +337,8 @@ lemma le_span_singleton_iff {s : submodule R M} {v₀ : M} :
   s ≤ (R ∙ v₀) ↔ ∀ v ∈ s, ∃ r : R, r • v₀ = v :=
 by simp_rw [set_like.le_def, mem_span_singleton]
 
+variables (R)
+
 lemma span_singleton_eq_top_iff (x : M) : (R ∙ x) = ⊤ ↔ ∀ v, ∃ r : R, r • x = v :=
 by { rw [eq_top_iff, le_span_singleton_iff], tauto }
 
@@ -342,18 +348,28 @@ by { ext, simp [mem_span_singleton, eq_comm] }
 lemma span_singleton_eq_range (y : M) : ↑(R ∙ y) = range ((• y) : R → M) :=
 set.ext $ λ x, mem_span_singleton
 
-lemma span_singleton_smul_le (r : R) (x : M) : (R ∙ (r • x)) ≤ R ∙ x :=
+lemma span_singleton_smul_le {S} [monoid S] [has_scalar S R] [mul_action S M]
+  [is_scalar_tower S R M] (r : S) (x : M) : (R ∙ (r • x)) ≤ R ∙ x :=
 begin
   rw [span_le, set.singleton_subset_iff, set_like.mem_coe],
-  exact smul_mem _ _ (mem_span_singleton_self _)
+  exact smul_of_tower_mem _ _ (mem_span_singleton_self _)
 end
 
-lemma span_singleton_smul_eq {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
-  {r : K} (x : E) (hr : r ≠ 0) : (K ∙ (r • x)) = K ∙ x :=
+lemma span_singleton_group_smul_eq {G} [group G] [has_scalar G R] [mul_action G M]
+  [is_scalar_tower G R M] (g : G) (x : M) : (R ∙ (g • x)) = R ∙ x :=
 begin
-  refine le_antisymm (span_singleton_smul_le r x) _,
-  convert span_singleton_smul_le r⁻¹ (r • x),
-  exact (inv_smul_smul₀ hr _).symm
+  refine le_antisymm (span_singleton_smul_le R g x) _,
+  convert span_singleton_smul_le R (g⁻¹) (g • x),
+  exact (inv_smul_smul g x).symm
+end
+
+variables {R}
+
+lemma span_singleton_smul_eq {r : R} (hr : is_unit r) (x : M) : (R ∙ (r • x)) = R ∙ x :=
+begin
+  lift r to Rˣ using hr,
+  rw ←units.smul_def,
+  exact span_singleton_group_smul_eq R r x,
 end
 
 lemma disjoint_span_singleton {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
@@ -362,11 +378,11 @@ lemma disjoint_span_singleton {K E : Type*} [division_ring K] [add_comm_group E]
 begin
   refine disjoint_def.trans ⟨λ H hx, H x hx $ subset_span $ mem_singleton x, _⟩,
   assume H y hy hyx,
-  obtain ⟨c, hc⟩ := mem_span_singleton.1 hyx,
-  subst y,
-  classical, by_cases hc : c = 0, by simp only [hc, zero_smul],
-  rw [s.smul_mem_iff hc] at hy,
-  rw [H hy, smul_zero]
+  obtain ⟨c, rfl⟩ := mem_span_singleton.1 hyx,
+  by_cases hc : c = 0,
+  { rw [hc, zero_smul] },
+  { rw [s.smul_mem_iff hc] at hy,
+    rw [H hy, smul_zero] }
 end
 
 lemma disjoint_span_singleton' {K E : Type*} [division_ring K] [add_comm_group E] [module K E]
@@ -426,6 +442,28 @@ eq_bot_iff.trans ⟨
 span_eq_bot.trans $ by simp
 
 @[simp] lemma span_zero : span R (0 : set M) = ⊥ := by rw [←singleton_zero, span_singleton_eq_bot]
+
+lemma span_singleton_eq_span_singleton {R M : Type*} [ring R] [add_comm_group M] [module R M]
+  [no_zero_smul_divisors R M] {x y : M} : (R ∙ x) = (R ∙ y) ↔ ∃ z : Rˣ, z • x = y :=
+begin
+  by_cases hx : x = 0,
+  { rw [hx, span_zero_singleton, eq_comm, span_singleton_eq_bot],
+    exact ⟨λ hy, ⟨1, by rw [hy, smul_zero]⟩, λ ⟨_, hz⟩, by rw [← hz, smul_zero]⟩ },
+  by_cases hy : y = 0,
+  { rw [hy, span_zero_singleton, span_singleton_eq_bot],
+    exact ⟨λ hx, ⟨1, by rw [hx, smul_zero]⟩, λ ⟨z, hz⟩, (smul_eq_zero_iff_eq z).mp hz⟩ },
+  split,
+  { intro hxy,
+    cases mem_span_singleton.mp (by { rw [hxy], apply mem_span_singleton_self }) with v hv,
+    cases mem_span_singleton.mp (by { rw [← hxy], apply mem_span_singleton_self }) with i hi,
+    have vi : v * i = 1 :=
+    by { rw [← one_smul R y, ← hi, smul_smul] at hv, exact smul_left_injective R hy hv },
+    have iv : i * v = 1 :=
+    by { rw [← one_smul R x, ← hv, smul_smul] at hi, exact smul_left_injective R hx hi },
+    exact ⟨⟨v, i, vi, iv⟩, hv⟩ },
+  { rintro ⟨v, rfl⟩,
+    rw span_singleton_group_smul_eq }
+end
 
 @[simp] lemma span_image [ring_hom_surjective σ₁₂] (f : M →ₛₗ[σ₁₂] M₂) :
   span R₂ (f '' s) = map f (span R s) :=
@@ -495,7 +533,7 @@ end
 lemma supr_induction' {ι : Sort*} (p : ι → submodule R M) {C : Π x, (x ∈ ⨆ i, p i) → Prop}
   (hp : ∀ i (x ∈ p i), C x (mem_supr_of_mem i ‹_›))
   (h0 : C 0 (zero_mem _))
-  (hadd : ∀ x y hx hy, C x hx → C y hy → C (x + y) (add_mem _ ‹_› ‹_›))
+  (hadd : ∀ x y hx hy, C x hx → C y hy → C (x + y) (add_mem ‹_› ‹_›))
   {x : M} (hx : x ∈ ⨆ i, p i) : C x hx :=
 begin
   refine exists.elim _ (λ (hx : x ∈ ⨆ i, p i) (hc : C x hx), hc),

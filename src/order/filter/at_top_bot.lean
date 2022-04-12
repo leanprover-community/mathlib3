@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Jeremy Avigad, Yury Kudryashov, Patrick Massot
 -/
 import order.filter.bases
 import data.finset.preimage
+import data.set.intervals.disjoint
 
 /-!
 # `at_top` and `at_bot` filters on preorded sets, monoids and groups.
@@ -46,8 +47,39 @@ let ⟨z, hz⟩ := exists_gt x in mem_of_superset (mem_at_top z) $ λ y h,  lt_o
 lemma mem_at_bot [preorder α] (a : α) : {b : α | b ≤ a} ∈ @at_bot α _ :=
 mem_infi_of_mem a $ subset.refl _
 
+lemma Iic_mem_at_bot [preorder α] (a : α) : Iic a ∈ (at_bot : filter α) := mem_at_bot a
+
 lemma Iio_mem_at_bot [preorder α] [no_min_order α] (x : α) : Iio x ∈ (at_bot : filter α) :=
 let ⟨z, hz⟩ := exists_lt x in mem_of_superset (mem_at_bot z) $ λ y h, lt_of_le_of_lt h hz
+
+lemma disjoint_at_bot_principal_Ioi [preorder α] (x : α) : disjoint at_bot (𝓟 (Ioi x)) :=
+disjoint_of_disjoint_of_mem (Iic_disjoint_Ioi le_rfl) (Iic_mem_at_bot x) (mem_principal_self _)
+
+lemma disjoint_at_top_principal_Iio [preorder α] (x : α) : disjoint at_top (𝓟 (Iio x)) :=
+@disjoint_at_bot_principal_Ioi (order_dual α) _ _
+
+lemma disjoint_at_top_principal_Iic [preorder α] [no_max_order α] (x : α) :
+  disjoint at_top (𝓟 (Iic x)) :=
+disjoint_of_disjoint_of_mem (Iic_disjoint_Ioi le_rfl).symm (Ioi_mem_at_top x) (mem_principal_self _)
+
+lemma disjoint_at_bot_principal_Ici [preorder α] [no_min_order α] (x : α) :
+  disjoint at_bot (𝓟 (Ici x)) :=
+@disjoint_at_top_principal_Iic (order_dual α) _ _ _
+
+lemma disjoint_at_bot_at_top [partial_order α] [nontrivial α] :
+  disjoint (at_bot : filter α) at_top :=
+begin
+  rcases exists_pair_ne α with ⟨x, y, hne⟩,
+  by_cases hle : x ≤ y,
+  { refine disjoint_of_disjoint_of_mem _ (Iic_mem_at_bot x) (Ici_mem_at_top y),
+    exact Iic_disjoint_Ici.2 (hle.lt_of_ne hne).not_le },
+  { refine disjoint_of_disjoint_of_mem _ (Iic_mem_at_bot y) (Ici_mem_at_top x),
+    exact Iic_disjoint_Ici.2 hle }
+end
+
+lemma disjoint_at_top_at_bot [partial_order α] [nontrivial α] :
+  disjoint (at_top : filter α) at_bot :=
+disjoint_at_bot_at_top.symm
 
 lemma at_top_basis [nonempty α] [semilattice_sup α] :
   (@at_top α _).has_basis (λ _, true) Ici :=
@@ -1327,6 +1359,17 @@ begin
     rw [this, ← mem_map'] at hx_freq,
     contrapose! hx_freq,
     exact hx_tendsto hx_freq, },
+end
+
+lemma eventually_iff_seq_eventually {ι : Type*} {l : filter ι} {p : ι → Prop}
+  [hl : l.is_countably_generated] :
+  (∀ᶠ n in l, p n) ↔ ∀ (x : ℕ → ι), tendsto x at_top l → ∀ᶠ (n : ℕ) in at_top, p (x n) :=
+begin
+  have : (∀ᶠ n in l, p n) ↔ ¬ ∃ᶠ n in l, ¬(p n),
+  { rw not_frequently, simp_rw not_not, },
+  rw [this, frequently_iff_seq_frequently],
+  push_neg,
+  simp_rw [not_frequently, not_not],
 end
 
 lemma subseq_forall_of_frequently {ι : Type*} {x : ℕ → ι} {p : ι → Prop} {l : filter ι}

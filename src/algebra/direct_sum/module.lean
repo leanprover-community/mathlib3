@@ -222,7 +222,7 @@ noncomputable def sigma_lcurry : (⨁ (i : Σ i, _), δ i.1 i.2) →ₗ[R] ⨁ i
   ..sigma_curry }
 
 @[simp] lemma sigma_lcurry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
-sigma_lcurry R f i j = f ⟨i, j⟩ := sigma_curry_apply f i j
+  sigma_lcurry R f i j = f ⟨i, j⟩ := sigma_curry_apply f i j
 
 /--`uncurry` as a linear map.-/
 noncomputable def sigma_luncurry : (⨁ i j, δ i j) →ₗ[R] ⨁ (i : Σ i, _), δ i.1 i.2 :=
@@ -232,7 +232,7 @@ noncomputable def sigma_luncurry : (⨁ i j, δ i j) →ₗ[R] ⨁ (i : Σ i, _)
   ..sigma_uncurry }
 
 @[simp] lemma sigma_luncurry_apply (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
-sigma_luncurry R f ⟨i, j⟩ = f i j := sigma_uncurry_apply f i j
+  sigma_luncurry R f ⟨i, j⟩ = f i j := sigma_uncurry_apply f i j
 
 /--`curry_equiv` as a linear equiv.-/
 noncomputable def sigma_lcurry_equiv : (⨁ (i : Σ i, _), δ i.1 i.2) ≃ₗ[R] ⨁ i j, δ i j :=
@@ -251,8 +251,11 @@ include dec_ι
     simp only [add_equiv.to_fun_eq_coe, add_equiv_prod_direct_sum_apply, equiv.to_fun_as_coe,
       dfinsupp.equiv_prod_dfinsupp_apply, dfinsupp.coe_smul, pi.smul_apply, ring_hom.id_apply,
       prod.smul_mk, prod.mk.inj_iff, eq_self_iff_true, true_and],
-    ext i, simp only [dfinsupp.comap_domain_apply, dfinsupp.coe_smul, pi.smul_apply],
-  end, ..add_equiv_prod_direct_sum }
+    ext i,
+    simp only [dfinsupp.comap_domain_apply, dfinsupp.coe_smul, pi.smul_apply],
+  end,
+  ..add_equiv_prod_direct_sum }
+
 end option
 
 end general

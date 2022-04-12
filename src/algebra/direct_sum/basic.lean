@@ -227,9 +227,11 @@ variables {α : ι → Type u} {δ : Π i, α i → Type w} [Π i j, add_comm_mo
 noncomputable def sigma_curry : (⨁ (i : Σ i, _), δ i.1 i.2) →+ ⨁ i j, δ i j :=
 { to_fun := @dfinsupp.sigma_curry _ _ δ _,
   map_zero' := by { ext i j, rw dfinsupp.sigma_curry_apply, refl },
-  map_add' := λ f g, by { ext i j, rw [@dfinsupp.add_apply _ (λ i, Π₀ j, δ i j) _ (dfinsupp.sigma_curry _),
-    dfinsupp.add_apply, dfinsupp.sigma_curry_apply, dfinsupp.sigma_curry_apply,
-    dfinsupp.sigma_curry_apply, add_apply] } }
+  map_add' := λ f g, by {
+    ext i j,
+    rw [@dfinsupp.add_apply _ (λ i, Π₀ j, δ i j) _ (dfinsupp.sigma_curry _),
+      dfinsupp.add_apply, dfinsupp.sigma_curry_apply, dfinsupp.sigma_curry_apply,
+      dfinsupp.sigma_curry_apply, add_apply] } }
 
 @[simp] lemma sigma_curry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
   sigma_curry f i j = f ⟨i, j⟩ := dfinsupp.sigma_curry_apply f i j

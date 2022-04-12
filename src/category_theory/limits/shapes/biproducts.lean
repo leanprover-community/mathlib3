@@ -85,24 +85,27 @@ by simpa [h] using B.ι_π j j'
 variables {F : J → C}
 
 namespace bicone
+
+local attribute [tidy] discrete.discrete_cases
+
 /-- Extract the cone from a bicone. -/
 @[simps]
 def to_cone (B : bicone F) : cone (discrete.functor F) :=
 { X := B.X,
-  π := { app := λ j, B.π j }, }
+  π := { app := λ j, B.π j.as }, }
 
 /-- Extract the cocone from a bicone. -/
 @[simps]
 def to_cocone (B : bicone F) : cocone (discrete.functor F) :=
 { X := B.X,
-  ι := { app := λ j, B.ι j }, }
+  ι := { app := λ j, B.ι j.as }, }
 
 /-- We can turn any limit cone over a discrete collection of objects into a bicone. -/
 @[simps]
 def of_limit_cone {f : J → C} {t : cone (discrete.functor f)} (ht : is_limit t) :
   bicone f :=
 { X := t.X,
-  π := t.π.app,
+  π := λ j, t.π.app ⟨j⟩,
   ι := λ j, ht.lift (fan.mk _ (λ j', if h : j = j' then eq_to_hom (congr_arg f h) else 0)),
   ι_π := λ j j', by simp }
 
@@ -116,7 +119,7 @@ def of_colimit_cocone {f : J → C} {t : cocone (discrete.functor f)} (ht : is_c
   bicone f :=
 { X := t.X,
   π := λ j, ht.desc (cofan.mk _ (λ j', if h : j' = j then eq_to_hom (congr_arg f h) else 0)),
-  ι := t.ι.app,
+  ι := λ j, t.ι.app ⟨j⟩,
   ι_π := λ j j', by simp }
 
 lemma π_of_is_colimit {f : J → C} {t : bicone f} (ht : is_colimit t.to_cocone) (j : J) :
@@ -278,34 +281,36 @@ abbreviation biproduct.desc
 @[simp, reassoc]
 lemma biproduct.lift_π {f : J → C} [has_biproduct f] {P : C} (p : Π b, P ⟶ f b) (j : J) :
   biproduct.lift p ≫ biproduct.π f j = p j :=
-(biproduct.is_limit f).fac _ _
+(biproduct.is_limit f).fac _ ⟨j⟩
 
 @[simp, reassoc]
 lemma biproduct.ι_desc {f : J → C} [has_biproduct f] {P : C} (p : Π b, f b ⟶ P) (j : J) :
   biproduct.ι f j ≫ biproduct.desc p = p j :=
-(biproduct.is_colimit f).fac _ _
+(biproduct.is_colimit f).fac _ ⟨j⟩
 
 /-- Given a collection of maps between corresponding summands of a pair of biproducts
 indexed by the same type, we obtain a map between the biproducts. -/
 abbreviation biproduct.map {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π b, f b ⟶ g b) : ⨁ f ⟶ ⨁ g :=
-is_limit.map (biproduct.bicone f).to_cone (biproduct.is_limit g) (discrete.nat_trans p)
+is_limit.map (biproduct.bicone f).to_cone (biproduct.is_limit g)
+  (discrete.nat_trans (λ j, p j.as))
 
 /-- An alternative to `biproduct.map` constructed via colimits.
 This construction only exists in order to show it is equal to `biproduct.map`. -/
 abbreviation biproduct.map' {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π b, f b ⟶ g b) : ⨁ f ⟶ ⨁ g :=
-is_colimit.map (biproduct.is_colimit f) (biproduct.bicone g).to_cocone (discrete.nat_trans p)
+is_colimit.map (biproduct.is_colimit f) (biproduct.bicone g).to_cocone
+  (discrete.nat_trans (λ j, p j.as))
 
 @[ext] lemma biproduct.hom_ext {f : J → C} [has_biproduct f]
   {Z : C} (g h : Z ⟶ ⨁ f)
   (w : ∀ j, g ≫ biproduct.π f j = h ≫ biproduct.π f j) : g = h :=
-(biproduct.is_limit f).hom_ext w
+(biproduct.is_limit f).hom_ext (λ j, w j.as)
 
 @[ext] lemma biproduct.hom_ext' {f : J → C} [has_biproduct f]
   {Z : C} (g h : ⨁ f ⟶ Z)
   (w : ∀ j, biproduct.ι f j ≫ g = biproduct.ι f j ≫ h) : g = h :=
-(biproduct.is_colimit f).hom_ext w
+(biproduct.is_colimit f).hom_ext (λ j, w j.as)
 
 lemma biproduct.map_eq_map' {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π b, f b ⟶ g b) : biproduct.map p = biproduct.map' p :=
@@ -638,10 +643,10 @@ lemma to_cone_X (c : binary_bicone P Q) :
 
 @[simp]
 lemma to_cone_π_app_left (c : binary_bicone P Q) :
-  c.to_cone.π.app (walking_pair.left) = c.fst := rfl
+  c.to_cone.π.app ⟨walking_pair.left⟩ = c.fst := rfl
 @[simp]
 lemma to_cone_π_app_right (c : binary_bicone P Q) :
-  c.to_cone.π.app (walking_pair.right) = c.snd := rfl
+  c.to_cone.π.app ⟨walking_pair.right⟩ = c.snd := rfl
 @[simp]
 lemma binary_fan_fst_to_cone (c : binary_bicone P Q) : binary_fan.fst c.to_cone = c.fst := rfl
 @[simp]
@@ -657,10 +662,10 @@ lemma to_cocone_X (c : binary_bicone P Q) :
 
 @[simp]
 lemma to_cocone_ι_app_left (c : binary_bicone P Q) :
-  c.to_cocone.ι.app (walking_pair.left) = c.inl := rfl
+  c.to_cocone.ι.app ⟨walking_pair.left⟩ = c.inl := rfl
 @[simp]
 lemma to_cocone_ι_app_right (c : binary_bicone P Q) :
-  c.to_cocone.ι.app (walking_pair.right) = c.inr := rfl
+  c.to_cocone.ι.app ⟨walking_pair.right⟩ = c.inr := rfl
 @[simp]
 lemma binary_cofan_inl_to_cocone (c : binary_bicone P Q) : binary_cofan.inl c.to_cocone = c.inl :=
 rfl
@@ -672,9 +677,9 @@ rfl
 @[simps]
 def to_bicone {X Y : C} (b : binary_bicone X Y) : bicone (pair X Y).obj :=
 { X := b.X,
-  π := λ j, walking_pair.cases_on j b.fst b.snd,
-  ι := λ j, walking_pair.cases_on j b.inl b.inr,
-  ι_π := λ j j', by { cases j; cases j', tidy } }
+  π := λ j, discrete.rec_on j (λ j, walking_pair.cases_on j b.fst b.snd),
+  ι := λ j, discrete.rec_on j (λ j, walking_pair.cases_on j b.inl b.inr),
+  ι_π := λ j j', by { rcases j with ⟨⟨⟩⟩; rcases j' with ⟨⟨⟩⟩, tidy } }
 
 /-- A binary bicone is a limit cone if and only if the corresponding bicone is a limit cone. -/
 def to_bicone_is_limit {X Y : C} (b : binary_bicone X Y) :

@@ -1899,7 +1899,8 @@ end linear_ordered_field
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
 (image_eq_preimage_of_inverse neg_neg neg_neg).symm
 
-lemma filter.map_neg [add_group α] : map (has_neg.neg : α → α) = comap (has_neg.neg : α → α) :=
+lemma filter.map_neg_eq_comap_neg [add_group α] :
+  map (has_neg.neg : α → α) = comap (has_neg.neg : α → α) :=
 funext $ assume f, map_eq_comap_of_inverse (funext neg_neg) (funext neg_neg)
 
 section order_topology

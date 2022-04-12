@@ -254,9 +254,10 @@ lemma prod_X_sub_C_next_coeff {s : finset ι} (f : ι → R) :
   next_coeff ∏ i in s, (X - C (f i)) = -∑ i in s, f i :=
 by simpa using multiset_prod_X_sub_C_next_coeff (s.1.map f)
 
-lemma multiset_prod_X_sub_C_coeff_card_pred [nontrivial R] (t : multiset R) (ht : 0 < t.card) :
+lemma multiset_prod_X_sub_C_coeff_card_pred (t : multiset R) (ht : 0 < t.card) :
   (t.map (λ x, (X - C x))).prod.coeff (t.card - 1) = -t.sum :=
 begin
+  nontriviality R,
   convert multiset_prod_X_sub_C_next_coeff (by assumption),
   rw next_coeff, split_ifs,
   { rw nat_degree_multiset_prod_of_monic at h; simp only [multiset.mem_map] at *,
@@ -268,7 +269,7 @@ begin
   congr, rw nat_degree_multiset_prod_of_monic; { simp [nat_degree_X_sub_C, monic_X_sub_C] },
 end
 
-lemma prod_X_sub_C_coeff_card_pred [nontrivial R] (s : finset ι) (f : ι → R) (hs : 0 < s.card) :
+lemma prod_X_sub_C_coeff_card_pred (s : finset ι) (f : ι → R) (hs : 0 < s.card) :
   (∏ i in s, (X - C (f i))).coeff (s.card - 1) = - ∑ i in s, f i :=
 by simpa using multiset_prod_X_sub_C_coeff_card_pred (s.1.map f) (by simpa using hs)
 

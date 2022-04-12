@@ -303,8 +303,8 @@ section tensor
 /-- The strength of the tensor product functor from `C × C` to `C`. -/
 def tensor_μ (X Y : C × C) : (tensor C).obj X ⊗ (tensor C).obj Y ⟶ (tensor C).obj (X ⊗ Y) :=
 (α_ X.1 X.2 (Y.1 ⊗ Y.2)).hom ≫ (𝟙 X.1 ⊗ (α_ X.2 Y.1 Y.2).inv) ≫
-(𝟙 X.1 ⊗ ((β_ X.2 Y.1).hom ⊗ 𝟙 Y.2)) ≫
-(𝟙 X.1 ⊗ (α_ Y.1 X.2 Y.2).hom) ≫ (α_ X.1 Y.1 (X.2 ⊗ Y.2)).inv
+  (𝟙 X.1 ⊗ ((β_ X.2 Y.1).hom ⊗ 𝟙 Y.2)) ≫
+  (𝟙 X.1 ⊗ (α_ Y.1 X.2 Y.2).hom) ≫ (α_ X.1 Y.1 (X.2 ⊗ Y.2)).inv
 
 lemma tensor_μ_def₁ (X₁ X₂ Y₁ Y₂ : C) :
     tensor_μ C (X₁, X₂) (Y₁, Y₂) ≫ (α_ X₁ Y₁ (X₂ ⊗ Y₂)).hom ≫ (𝟙 X₁ ⊗ (α_ Y₁ X₂ Y₂).inv)
@@ -382,8 +382,7 @@ begin
 end
 
 /-
-Diagram B6 from Proposition 1 of André Joyal and Ross Street,
-"Braided monoidal categories", Macquarie Math Reports 860081 (1986).
+Diagram B6 from Proposition 1 of [Joyal and Street, *Braided monoidal categories*][Joyal_Street].
 -/
 lemma tensor_associativity_aux (W X Y Z : C) :
     ((β_ W X).hom ⊗ 𝟙 (Y ⊗ Z)) ≫

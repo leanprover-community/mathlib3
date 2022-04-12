@@ -359,6 +359,7 @@ fork.is_limit.mk t
 
 /-- This is a slightly more convenient method to verify that a cofork is a colimit cocone. It
     only asks for a proof of facts that carry any mathematical content -/
+@[simps]
 def cofork.is_colimit.mk (t : cofork f g)
   (desc : Π (s : cofork f g), t.X ⟶ s.X)
   (fac : ∀ (s : cofork f g), cofork.π t ≫ desc s = cofork.π s)

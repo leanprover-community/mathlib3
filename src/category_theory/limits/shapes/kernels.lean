@@ -462,6 +462,12 @@ cofork.is_colimit.mk' _ $ λ s,
   ⟨l.1, l.2, 
     λ m hm, by apply cofork.is_colimit.hom_ext i; rw cofork.π_of_π at hm; rw hm; exact l.2.symm⟩
 
+@[simp]
+lemma is_cokernel_epi_comp_desc {c : cokernel_cofork f} (i : is_colimit c) {W}
+  (g : W ⟶ X) [hg : epi g] {h : W ⟶ Y} (hh : h = g ≫ f) (s : cokernel_cofork h) :
+  (is_cokernel_epi_comp i g hh).desc s
+  = i.desc (cofork.of_π s.π (by { rw [←cancel_epi g, ←category.assoc, ←hh], simp })) := rfl
+
 end
 
 section

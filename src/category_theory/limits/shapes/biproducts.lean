@@ -1554,7 +1554,11 @@ def binary_bicone_of_split_mono_of_cokernel {X Y : C} {f : X ⟶ Y} [split_mono 
   inl_snd' := by simp,
   inr_fst' := 
     begin
-      change i.desc (cofork.of_π (𝟙 Y - retraction f ≫ f) _) ≫ _ = _,
+      dsimp only,
+      rw [split_epi_of_idempotent_of_is_colimit_cofork_section_,
+        is_colimit_cofork_of_cokernel_cofork_desc, is_cokernel_epi_comp_desc],
+      -- TODO rw [cokernel_cofork_of_cofork_of_π], why does this fail?
+      change i.desc (cofork.of_π (𝟙 Y - retraction f ≫ f) _) ≫ _ = _, --TODO get rid of this
       letI := epi_of_is_colimit_parallel_pair i,
       apply zero_of_epi_comp c.π,
       simp only [sub_comp, category.comp_id, category.assoc, split_mono.id, is_colimit.fac_assoc,
@@ -1573,9 +1577,12 @@ begin
   simp only [binary_bicone_of_split_mono_of_cokernel_fst,
     binary_bicone_of_split_mono_of_cokernel_inr, binary_bicone_of_split_mono_of_cokernel_snd,
     split_epi_of_idempotent_of_is_colimit_cofork_section_],
+  -- TODO why does rw [binary_bicone_of_split_mono_of_cokernel_X] fail here
   change _ = 𝟙 Y,
-  erw cofork.is_colimit.π_desc_of_π, -- TODO remove the `erw` here
-  simp only [cofork.is_colimit.π_desc_of_π, cokernel_cofork_of_cofork_π, 
+  rw [is_colimit_cofork_of_cokernel_cofork_desc, is_cokernel_epi_comp_desc],
+  -- TODO why does rw [cokernel_cofork_of_cofork_of_π], fail here
+  rw cofork.is_colimit.π_desc_of_π,
+  simp only [cofork.is_colimit.π_desc_of_π, cokernel_cofork_of_cofork_π,
     cofork.π_of_π, binary_bicone_of_split_mono_of_cokernel_inl, add_sub_cancel'_right],
 end
 

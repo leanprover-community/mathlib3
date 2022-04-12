@@ -272,12 +272,21 @@ cofork.of_π c.π $ by rw [sub_comp, zero_comp, sub_eq_zero, c.condition]
 @[simp] lemma cokernel_cofork_of_cofork_π (c : cofork f g) :
   (cokernel_cofork_of_cofork c).π = c.π := rfl
 
+@[simp] lemma cokernel_cofork_of_cofork_of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
+  (cokernel_cofork_of_cofork (cofork.of_π π w)) = limits.cokernel_cofork.of_π π (by simp [w]) :=
+rfl
+
 /-- A cokernel of `f - g` is a coequalizer of `f` and `g`. -/
 def is_colimit_cofork_of_cokernel_cofork {c : cokernel_cofork (f - g)} (i : is_colimit c) :
   is_colimit (cofork_of_cokernel_cofork c) :=
 cofork.is_colimit.mk' _ $ λ s,
   ⟨i.desc (cokernel_cofork_of_cofork s), i.fac _ _,
    λ m h, by { apply cofork.is_colimit.hom_ext i, rw [i.fac], exact h }⟩
+
+@[simp]
+lemma is_colimit_cofork_of_cokernel_cofork_desc {c : cokernel_cofork (f - g)} 
+  (i : is_colimit c) (s : cofork f g) :
+  (is_colimit_cofork_of_cokernel_cofork i).desc s = i.desc (cokernel_cofork_of_cofork s) := rfl
 
 /-- A coequalizer of `f` and `g` is a cokernel of `f - g`. -/
 def is_colimit_cokernel_cofork_of_cofork {c : cofork f g} (i : is_colimit c) :

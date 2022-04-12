@@ -98,8 +98,7 @@ lemma smul_diff_smul' [is_commutative H] (g : H.normalizer.opposite) :
       (mem_normalizer_iff''.mp g.2 _).mp (set_like.coe_mem _)⟩ :=
 begin
   let ϕ : H →* H :=
-  { to_fun := λ h, ⟨(g : Gᵐᵒᵖ).unop⁻¹ * h * (g : Gᵐᵒᵖ).unop,
-      (mem_normalizer_iff''.mp g.2 _).mp (set_like.coe_mem _)⟩,
+  { to_fun := λ h, ⟨(g : Gᵐᵒᵖ).unop⁻¹ * h * (g : Gᵐᵒᵖ).unop, (mem_normalizer_iff''.mp g.2 h).mp h.2⟩,
     map_one' := by rw [subtype.ext_iff, coe_mk, coe_one, mul_one, inv_mul_self],
     map_mul' := λ h₁ h₂, by rw [subtype.ext_iff, coe_mk, coe_mul, coe_mul, coe_mk, coe_mk,
       mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_assoc, mul_inv_cancel_left] },

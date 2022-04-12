@@ -230,12 +230,6 @@ def to_finsupp_iso : R[X] ≃+* add_monoid_algebra R ℕ :=
 
 end add_monoid_algebra
 
-/-- Ring isomorphism between `R[X]ᵐᵒᵖ` and `Rᵐᵒᵖ[X]` sending each coefficient of a polynomial
-to the corresponding element of the opposite ring. -/
-@[simps]
-def op_ring_equiv : R[X]ᵐᵒᵖ ≃+* Rᵐᵒᵖ[X] :=
-((to_finsupp_iso R).op.trans add_monoid_algebra.op_ring_equiv).trans (to_finsupp_iso _).symm
-
 variable {R}
 
 lemma of_finsupp_sum {ι : Type*} (s : finset ι) (f : ι → add_monoid_algebra R ℕ) :

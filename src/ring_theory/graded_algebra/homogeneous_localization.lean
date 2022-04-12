@@ -139,7 +139,7 @@ instance : has_add (num_denom_same_deg 𝒜 x) :=
 { add := λ c1 c2,
   { deg := c1.deg + c2.deg,
     num := ⟨c1.denom * c2.num + c2.denom * c1.num,
-      add_mem _ (mul_mem c1.denom.2 c2.num.2)
+      add_mem (mul_mem c1.denom.2 c2.num.2)
         (add_comm c2.deg c1.deg ▸ mul_mem c2.denom.2 c1.num.2)⟩,
     denom := ⟨c1.denom * c2.denom, mul_mem c1.denom.2 c2.denom.2⟩,
     denom_not_mem := λ r, or.elim
@@ -152,7 +152,7 @@ instance : has_add (num_denom_same_deg 𝒜 x) :=
   ((c1 + c2).denom : A) = c1.denom * c2.denom := rfl
 
 instance : has_neg (num_denom_same_deg 𝒜 x) :=
-{ neg := λ c, ⟨c.deg, ⟨-c.num, neg_mem _ c.num.2⟩, c.denom, c.denom_not_mem⟩ }
+{ neg := λ c, ⟨c.deg, ⟨-c.num, neg_mem c.num.2⟩, c.denom, c.denom_not_mem⟩ }
 
 @[simp] lemma deg_neg (c : num_denom_same_deg 𝒜 x) : (-c).deg = c.deg := rfl
 @[simp] lemma num_neg (c : num_denom_same_deg 𝒜 x) : ((-c).num : A) = -c.num := rfl

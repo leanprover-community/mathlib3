@@ -128,14 +128,10 @@ begin
   ext,
   rw ← norm_sub_eq_zero_iff,
   have e1 : ∥Q x∥ ≥ ∥Q x∥ + 2 • ∥ (P * Q) x - (Q * P * Q) x∥ :=
-  calc ∥Q x∥ = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q ((1 - P) (Q x))∥ + ∥(1-Q) ((1 - P) (Q x))∥) :
-    by rw [h₁.right, h₂.right, h₂.right ((1 - P) (Q x))]
-  ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q (Q x - P (Q x))∥ + ∥(1-Q) ((1 - P) (Q x))∥) :
-    by rw [continuous_linear_map.sub_apply 1 P, continuous_linear_map.one_apply]
-  ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q (Q x) - Q (P (Q x))∥ + ∥(1-Q) ((1 - P) (Q x))∥) :
-    by rw map_sub
-  ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥(Q * Q) x - Q (P (Q x))∥ + ∥(1-Q) ((1 - P) (Q x))∥) :
-    by rw continuous_linear_map.coe_mul
+  calc ∥Q x∥ = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥(Q * Q) x - Q (P (Q x))∥
+    + ∥(1-Q) ((1 - P) (Q x))∥) :
+    by rw [h₁.right, h₂.right, h₂.right ((1 - P) (Q x)), continuous_linear_map.sub_apply 1 P,
+      continuous_linear_map.one_apply, map_sub, continuous_linear_map.coe_mul]
   ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q x - Q (P (Q x))∥ + ∥(1-Q) ((1 - P) (Q x))∥) :
     by rw [← sq, projection_def h₂.left]
   ... = ∥Q (P (Q x))∥ + ∥(1-Q) (P (Q x))∥ + (∥Q x - Q (P (Q x))∥ + ∥(1-Q) (Q x - P (Q x))∥) :

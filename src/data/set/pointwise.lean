@@ -1283,7 +1283,7 @@ begin
   { exact ⟨0, by simpa using one_mem _⟩ },
   { rintro x y ⟨nx, hx⟩ ⟨ny, hy⟩,
     use nx + ny,
-    convert mul_mem _ hx hy,
+    convert mul_mem hx hy,
     rw [pow_add, smul_mul_assoc, mul_smul, mul_comm, ← smul_mul_assoc, mul_comm] }
 end
 

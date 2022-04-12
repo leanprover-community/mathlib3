@@ -1257,9 +1257,6 @@ mk_le_of_surjective quot.exists_rep
 theorem mk_quotient_le {α : Type u} {s : setoid α} : #(quotient s) ≤ #α :=
 mk_quot_le
 
-theorem mk_subtype_le {α : Type u} (p : α → Prop) : #(subtype p) ≤ #α :=
-⟨embedding.subtype p⟩
-
 theorem mk_subtype_le_of_subset {α : Type u} {p q : α → Prop} (h : ∀ ⦃x⦄, p x → q x) :
   #(subtype p) ≤ #(subtype q) :=
 ⟨embedding.subtype_map (embedding.refl α) h⟩
@@ -1367,9 +1364,6 @@ lemma mk_le_mk_of_subset {α} {s t : set α} (h : s ⊆ t) : #s ≤ #t :=
 
 lemma mk_subtype_mono {p q : α → Prop} (h : ∀x, p x → q x) : #{x // p x} ≤ #{x // q x} :=
 ⟨embedding_of_subset _ _ h⟩
-
-lemma mk_set_le (s : set α) : #s ≤ #α :=
-mk_subtype_le s
 
 lemma mk_union_le_omega {α} {P Q : set α} : #((P ∪ Q : set α)) ≤ ω ↔ #P ≤ ω ∧ #Q ≤ ω :=
 by simp

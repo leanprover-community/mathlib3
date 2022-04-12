@@ -68,7 +68,7 @@ meta def apply_continuous.comp : tactic unit :=
 meta def continuity_tactics (md : transparency := reducible) : list (tactic string) :=
 [
   intros1               >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
-  apply_rules [sum.inl ``continuity] 50 { md := md }
+  apply_rules [] [``continuity] 50 { md := md }
                         >> pure "apply_rules continuity",
   apply_continuous.comp >> pure "refine continuous.comp _ _"
 ]

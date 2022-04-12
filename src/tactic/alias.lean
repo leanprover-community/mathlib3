@@ -42,7 +42,7 @@ The `..` notation attempts to generate the 'of'-names automatically when the
 input theorem has the form `A_iff_B` or `A_iff_B_left` etc.
 -/
 
-open lean.parser tactic interactive --  parser
+open lean.parser tactic interactive
 
 namespace tactic.alias
 

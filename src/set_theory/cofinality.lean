@@ -3,7 +3,9 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Floris van Doorn
 -/
+
 import set_theory.cardinal_ordinal
+
 /-!
 # Cofinality
 
@@ -39,9 +41,8 @@ This file contains the definition of cofinality of a ordinal number and regular 
 
 cofinality, regular cardinals, limits cardinals, inaccessible cardinals,
 infinite pigeonhole principle
-
-
 -/
+
 noncomputable theory
 
 open function cardinal set
@@ -53,20 +54,29 @@ variables {α : Type*} {r : α → α → Prop}
 /-! ### Cofinality of orders -/
 
 namespace order
+
 /-- Cofinality of a reflexive order `≼`. This is the smallest cardinality
   of a subset `S : set α` such that `∀ a, ∃ b ∈ S, a ≼ b`. -/
-def cof (r : α → α → Prop) [is_refl α r] : cardinal :=
-@cardinal.min {S : set α // ∀ a, ∃ b ∈ S, r a b}
-  ⟨⟨set.univ, λ a, ⟨a, ⟨⟩, refl _⟩⟩⟩
-  (λ S, #S)
+def cof (r : α → α → Prop) : cardinal :=
+Inf {c | ∃ S : set α, #S = c ∧ ∀ a, ∃ b ∈ S, r a b}
 
-lemma cof_le (r : α → α → Prop) [is_refl α r] {S : set α} (h : ∀a, ∃(b ∈ S), r a b) :
+/-- The set in the definition of `cof` is nonempty. -/
+theorem cof_nonempty (r : α → α → Prop) [is_refl α r] :
+  {c | ∃ S : set α, #S = c ∧ ∀ a, ∃ b ∈ S, r a b}.nonempty :=
+⟨_, set.univ, rfl, λ a, ⟨a, ⟨⟩, refl _⟩⟩
+
+lemma cof_le (r : α → α → Prop) {S : set α} (h : ∀ a, ∃ b ∈ S, r a b) :
   order.cof r ≤ #S :=
-le_trans (cardinal.min_le _ ⟨S, h⟩) le_rfl
+le_trans (cInf_le' ⟨S, rfl, h⟩) le_rfl
 
 lemma le_cof {r : α → α → Prop} [is_refl α r] (c : cardinal) :
-  c ≤ order.cof r ↔ ∀ {S : set α} (h : ∀a, ∃(b ∈ S), r a b) , c ≤ #S :=
-by { rw [order.cof, cardinal.le_min], exact ⟨λ H S h, H ⟨S, h⟩, λ H ⟨S, h⟩, H h ⟩ }
+  c ≤ order.cof r ↔ ∀ {S : set α}, (∀ a, ∃ b ∈ S, r a b) → c ≤ #S :=
+begin
+  rw [order.cof, le_cInf_iff'' (cof_nonempty r)],
+  use λ H S h, H _ ⟨S, rfl, h⟩,
+  rintro H d ⟨S, rfl, h⟩,
+  exact H h
+end
 
 end order
 

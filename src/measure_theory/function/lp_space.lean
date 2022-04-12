@@ -1540,19 +1540,28 @@ begin
 end
 
 instance [hp : fact (1 ≤ p)] : normed_group (Lp E p μ) :=
-normed_group.of_core _
-{ norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
-  triangle := begin
-    assume f g,
-    simp only [norm_def],
-    rw ← ennreal.to_real_add (snorm_ne_top f) (snorm_ne_top g),
-    suffices h_snorm : snorm ⇑(f + g) p μ ≤ snorm ⇑f p μ + snorm ⇑g p μ,
-    { rwa ennreal.to_real_le_to_real (snorm_ne_top (f + g)),
-      exact ennreal.add_ne_top.mpr ⟨snorm_ne_top f, snorm_ne_top g⟩, },
-    rw [snorm_congr_ae (coe_fn_add _ _)],
-    exact snorm_add_le (Lp.ae_strongly_measurable f) (Lp.ae_strongly_measurable g) hp.1,
-  end,
-  norm_neg := by simp }
+{ edist := edist,
+  edist_dist := λ f g, by
+    rw [edist_def, dist_def, ←snorm_congr_ae (coe_fn_sub _ _),
+      ennreal.of_real_to_real (snorm_ne_top (f - g))],
+  .. normed_group.of_core (Lp E p μ)
+    { norm_eq_zero_iff := λ f, norm_eq_zero_iff (ennreal.zero_lt_one.trans_le hp.1),
+      triangle := begin
+        assume f g,
+        simp only [norm_def],
+        rw ← ennreal.to_real_add (snorm_ne_top f) (snorm_ne_top g),
+        suffices h_snorm : snorm ⇑(f + g) p μ ≤ snorm ⇑f p μ + snorm ⇑g p μ,
+        { rwa ennreal.to_real_le_to_real (snorm_ne_top (f + g)),
+          exact ennreal.add_ne_top.mpr ⟨snorm_ne_top f, snorm_ne_top g⟩, },
+        rw [snorm_congr_ae (coe_fn_add _ _)],
+        exact snorm_add_le (Lp.ae_strongly_measurable f) (Lp.ae_strongly_measurable g) hp.1,
+      end,
+      norm_neg := by simp } }
+
+-- check no diamond is created
+example [fact (1 ≤ p)] :
+  pseudo_emetric_space.to_has_edist = (Lp.has_edist : has_edist (Lp E p μ)) :=
+rfl
 
 section normed_space
 

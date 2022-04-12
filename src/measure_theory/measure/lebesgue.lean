@@ -225,11 +225,11 @@ begin
   cases lt_or_gt_of_ne h with h h,
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt $ neg_pos.2 h),
       measure.map_apply (measurable_const_mul a) measurable_set_Ioo, neg_sub_neg,
-      neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub,
+      neg_mul, preimage_const_mul_Ioo_of_neg _ _ h, abs_of_neg h, mul_sub, smul_eq_mul,
       mul_div_cancel' _ (ne_of_lt h)] },
   { simp only [real.volume_Ioo, measure.smul_apply, ← ennreal.of_real_mul (le_of_lt h),
       measure.map_apply (measurable_const_mul a) measurable_set_Ioo, preimage_const_mul_Ioo _ _ h,
-      abs_of_pos h, mul_sub, mul_div_cancel' _ (ne_of_gt h)] }
+      abs_of_pos h, mul_sub, mul_div_cancel' _ (ne_of_gt h), smul_eq_mul] }
 end
 
 lemma map_volume_mul_left {a : ℝ} (h : a ≠ 0) :
@@ -258,19 +258,13 @@ calc volume ((* a) ⁻¹' s) = measure.map (* a) volume s :
   ((homeomorph.mul_right₀ a h).to_measurable_equiv.map_apply s).symm
 ... = ennreal.of_real (abs a⁻¹) * volume s : by { rw map_volume_mul_right h, refl }
 
-@[simp] lemma map_volume_neg : measure.map has_neg.neg (volume : measure ℝ) = volume :=
-eq.symm $ real.measure_ext_Ioo_rat $ λ p q,
-  by simp [show measure.map has_neg.neg volume (Ioo (p : ℝ) q) = _,
-    from measure.map_apply measurable_neg measurable_set_Ioo]
+instance : is_neg_invariant (volume : measure ℝ) :=
+⟨eq.symm $ real.measure_ext_Ioo_rat $ λ p q, by simp [show volume.neg (Ioo (p : ℝ) q) = _,
+  from measure.map_apply measurable_neg measurable_set_Ioo]⟩
 
 /-!
 ### Images of the Lebesgue measure under translation/linear maps in ℝⁿ
 -/
-
--- for some reason `apply_instance` doesn't find this
-instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
-  is_add_left_invariant (volume : measure (ι → ℝ)) :=
-pi.is_add_left_invariant_volume
 
 open matrix
 
@@ -362,7 +356,7 @@ begin
       ennreal.of_real_one, one_smul] },
   { simp only [matrix.transvection_struct.det, ennreal.of_real_one, map_transvection_volume_pi,
       one_smul, _root_.inv_one, abs_one] },
-  { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, linear_map.map_smul,
+  { rw [to_lin'_mul, det_mul, linear_map.coe_comp, ← measure.map_map, IHB, measure.map_smul,
       IHA, smul_smul, ← ennreal.of_real_mul (abs_nonneg _), ← abs_mul, mul_comm, mul_inv₀],
     { apply continuous.measurable,
       apply linear_map.continuous_on_pi },
@@ -460,10 +454,10 @@ begin
   { apply measure_congr,
     apply eventually_eq.rfl.inter,
     exact
-      ((ae_eq_comp' measurable_fst hf.ae_eq_mk measure.prod_fst_absolutely_continuous).comp₂ _
-        eventually_eq.rfl).inter
-      (eventually_eq.rfl.comp₂ _
-        (ae_eq_comp' measurable_fst hg.ae_eq_mk measure.prod_fst_absolutely_continuous)) },
+      ((ae_eq_comp' measurable_fst.ae_measurable
+        hf.ae_eq_mk measure.prod_fst_absolutely_continuous).comp₂ _ eventually_eq.rfl).inter
+      (eventually_eq.rfl.comp₂ _ (ae_eq_comp' measurable_fst.ae_measurable
+        hg.ae_eq_mk measure.prod_fst_absolutely_continuous)) },
   rw [lintegral_congr_ae h₁,
       ← volume_region_between_eq_lintegral' hf.measurable_mk hg.measurable_mk hs],
   convert h₂ using 1,
@@ -473,7 +467,6 @@ begin
     exact (measure.restrict_eq_self _
       (region_between_subset (ae_measurable.mk f hf) (ae_measurable.mk g hg) s)).symm },
 end
-
 
 theorem volume_region_between_eq_integral' [sigma_finite μ]
   (f_int : integrable_on f s μ) (g_int : integrable_on g s μ)
@@ -499,28 +492,3 @@ volume_region_between_eq_integral' f_int g_int hs
   ((ae_restrict_iff' hs).mpr (eventually_of_forall hfg))
 
 end region_between
-
-/-
-section vitali
-
-def vitali_aux_h (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) :
-  ∃ y ∈ Icc (0:ℝ) 1, ∃ q:ℚ, ↑q = x - y :=
-⟨x, h, 0, by simp⟩
-
-def vitali_aux (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) : ℝ :=
-classical.some (vitali_aux_h x h)
-
-theorem vitali_aux_mem (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) : vitali_aux x h ∈ Icc (0:ℝ) 1 :=
-Exists.fst (classical.some_spec (vitali_aux_h x h):_)
-
-theorem vitali_aux_rel (x : ℝ) (h : x ∈ Icc (0:ℝ) 1) :
- ∃ q:ℚ, ↑q = x - vitali_aux x h :=
-Exists.snd (classical.some_spec (vitali_aux_h x h):_)
-
-def vitali : set ℝ := {x | ∃ h, x = vitali_aux x h}
-
-theorem vitali_nonmeasurable : ¬ null_measurable_set measure_space.μ vitali :=
-sorry
-
-end vitali
--/

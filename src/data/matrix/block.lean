@@ -28,6 +28,7 @@ section block_matrices
 
 /-- We can form a single large matrix by flattening smaller 'block' matrices of compatible
 dimensions. -/
+@[pp_nodot]
 def from_blocks (A : matrix n l α) (B : matrix n m α) (C : matrix o l α) (D : matrix o m α) :
   matrix (n ⊕ o) (l ⊕ m) α :=
 sum.elim (λ i, sum.elim (A i) (B i))

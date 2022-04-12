@@ -238,6 +238,9 @@ ext_iff.1 (f.eq_int_cast_hom h1)
 
 end add_monoid_hom
 
+@[simp] lemma int.cast_add_hom_int : int.cast_add_hom ℤ = add_monoid_hom.id ℤ :=
+((add_monoid_hom.id ℤ).eq_int_cast_hom rfl).symm
+
 namespace monoid_hom
 variables {M : Type*} [monoid M]
 open multiplicative
@@ -303,6 +306,9 @@ end ring_hom
 @[simp, norm_cast] theorem int.cast_id (n : ℤ) : ↑n = n :=
 ((ring_hom.id ℤ).eq_int_cast n).symm
 
+@[simp] lemma int.cast_ring_hom_int : int.cast_ring_hom ℤ = ring_hom.id ℤ :=
+(ring_hom.id ℤ).eq_int_cast'.symm
+
 namespace pi
 
 variables {α β : Type*}
@@ -318,3 +324,17 @@ by rw [cast_neg_succ_of_nat, cast_neg_succ_of_nat, neg_apply, add_apply, one_app
 by { ext, rw pi.int_apply }
 
 end pi
+
+namespace mul_opposite
+
+variables {α : Type*} [has_zero α] [has_one α] [has_add α] [has_neg α]
+
+@[simp, norm_cast] lemma op_int_cast : ∀ z : ℤ, op (z : α) = z
+| (n:ℕ) := op_nat_cast n
+| -[1+n] := congr_arg (λ a : αᵐᵒᵖ, -(a + 1)) $ op_nat_cast n
+
+@[simp, norm_cast] lemma unop_int_cast : ∀ n : ℤ, unop (n : αᵐᵒᵖ) = n
+| (n:ℕ) := unop_nat_cast n
+| -[1+n] := congr_arg (λ a : α, -(a + 1)) $ unop_nat_cast n
+
+end mul_opposite

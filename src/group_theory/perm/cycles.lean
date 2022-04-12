@@ -3,9 +3,9 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.equiv.fintype
 import data.finset.noncomm_prod
 import group_theory.perm.sign
+import logic.equiv.fintype
 /-!
 # Cyclic permutations
 
@@ -741,6 +741,18 @@ begin
         ←order_of_is_cycle (is_cycle_cycle_of f hx), ←pow_eq_mod_order_of] }
 end
 
+/-- x is in the support of f iff cycle_of f x is a cycle.-/
+lemma is_cycle_cycle_of_iff [fintype α] (f : perm α) {x : α} :
+  is_cycle (cycle_of f x) ↔ (f x ≠ x) :=
+begin
+  split,
+  { intro hx, rw ne.def, rw ← cycle_of_eq_one_iff f,
+    exact equiv.perm.is_cycle.ne_one hx, },
+  { intro hx,
+    apply equiv.perm.is_cycle_cycle_of, exact hx }
+end
+
+
 /-!
 ### `cycle_factors`
 -/
@@ -885,7 +897,7 @@ begin
   simp only [noncomm_prod_to_finset, hl, exists_prop, list.mem_to_finset, and.congr_left_iff,
              and.congr_right_iff, list.map_id, ne.def],
   intros,
-  exact ⟨list.forall_of_pairwise disjoint.symmetric, hl.pairwise_of_forall_ne⟩
+  exact ⟨list.pairwise.forall disjoint.symmetric, hl.pairwise_of_forall_ne⟩
 end
 
 lemma cycle_factors_finset_pairwise_disjoint (p : perm α) (hp : p ∈ cycle_factors_finset f)
@@ -1032,6 +1044,25 @@ begin
     rwa [←support_inv, apply_mem_support, support_inv, mem_support] }
 end
 
+/-- If c is a cycle, a ∈ c.support and c is a cycle of f, then `c = f.cycle_of a` -/
+lemma cycle_is_cycle_of {f c : equiv.perm α} {a : α}
+  (ha : a ∈ c.support) (hc : c ∈ f.cycle_factors_finset) : c = f.cycle_of a :=
+begin
+  suffices : f.cycle_of a = c.cycle_of a,
+  { rw this,
+    apply symm,
+    exact equiv.perm.is_cycle.cycle_of_eq
+     ((equiv.perm.mem_cycle_factors_finset_iff.mp hc).left)
+     (equiv.perm.mem_support.mp ha), },
+  let hfc := (equiv.perm.disjoint_mul_inv_of_mem_cycle_factors_finset hc).symm,
+  let hfc2 := (perm.disjoint.commute hfc),
+  rw ← equiv.perm.cycle_of_mul_of_apply_right_eq_self hfc2,
+  simp only [hfc2.eq, inv_mul_cancel_right],
+  -- a est dans le support de c, donc pas dans celui de g c⁻¹
+  exact equiv.perm.not_mem_support.mp
+    (finset.disjoint_left.mp (equiv.perm.disjoint.disjoint_support  hfc) ha),
+end
+
 end cycle_factors_finset
 
 @[elab_as_eliminator] lemma cycle_induction_on [fintype β] (P : perm β → Prop) (σ : perm β)
@@ -1053,7 +1084,7 @@ begin
       (disjoint_prod_right _ (list.pairwise_cons.mp h2).1)
       (h1 _ (list.mem_cons_self _ _))
       (base_cycles σ (h1 σ (l.mem_cons_self σ)))
-      (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) (list.pairwise_of_pairwise_cons h2)) },
+      (ih (λ τ hτ, h1 τ (list.mem_cons_of_mem σ hτ)) h2.of_cons) }
 end
 
 lemma cycle_factors_finset_mul_inv_mem_eq_sdiff [fintype α] {f g : perm α}

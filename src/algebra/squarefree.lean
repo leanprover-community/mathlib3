@@ -6,6 +6,7 @@ Authors: Aaron Anderson
 import ring_theory.unique_factorization_domain
 import ring_theory.int.basic
 import number_theory.divisors
+import algebra.is_prime_pow
 
 /-!
 # Squarefree elements of monoids
@@ -49,6 +50,13 @@ begin
   exact ⟨0, by simp⟩,
 end
 
+lemma squarefree.ne_zero [monoid_with_zero R] [nontrivial R] {m : R}
+  (hm : squarefree (m : R)) : m ≠ 0 :=
+begin
+  rintro rfl,
+  exact not_squarefree_zero hm,
+end
+
 @[simp]
 lemma irreducible.squarefree [comm_monoid R] {x : R} (h : irreducible x) :
   squarefree x :=
@@ -65,12 +73,21 @@ lemma prime.squarefree [cancel_comm_monoid_with_zero R] {x : R} (h : prime x) :
   squarefree x :=
 h.irreducible.squarefree
 
+lemma squarefree.of_mul_left [comm_monoid R] {m n : R} (hmn : squarefree (m * n)) : squarefree m :=
+(λ p hp, hmn p (dvd_mul_of_dvd_left hp n))
+
+lemma squarefree.of_mul_right [comm_monoid R] {m n : R} (hmn : squarefree (m * n)) : squarefree n :=
+(λ p hp, hmn p (dvd_mul_of_dvd_right hp m))
+
 lemma squarefree_of_dvd_of_squarefree [comm_monoid R]
   {x y : R} (hdvd : x ∣ y) (hsq : squarefree y) :
   squarefree x :=
 λ a h, hsq _ (h.trans hdvd)
 
 namespace multiplicity
+
+section comm_monoid
+
 variables [comm_monoid R] [decidable_rel (has_dvd.dvd : R → R → Prop)]
 
 lemma squarefree_iff_multiplicity_le_one (r : R) :
@@ -82,6 +99,31 @@ begin
   convert enat.add_one_le_iff_lt (enat.coe_ne_top 1),
   norm_cast,
 end
+
+end comm_monoid
+
+section cancel_comm_monoid_with_zero
+
+variables [cancel_comm_monoid_with_zero R] [wf_dvd_monoid R]
+
+lemma finite_prime_left {a b : R} (ha : prime a) (hb : b ≠ 0) :
+  multiplicity.finite a b :=
+begin
+  classical,
+  revert hb,
+  refine wf_dvd_monoid.induction_on_irreducible b (by contradiction) (λ u hu hu', _)
+    (λ b p hb hp ih hpb, _),
+  { rw [multiplicity.finite_iff_dom, multiplicity.is_unit_right ha.not_unit hu],
+    exact enat.dom_coe 0, },
+  { refine multiplicity.finite_mul ha
+      (multiplicity.finite_iff_dom.mpr (enat.dom_of_le_coe (show multiplicity a p ≤ ↑1, from _)))
+      (ih hb),
+    norm_cast,
+    exact (((multiplicity.squarefree_iff_multiplicity_le_one p).mp hp.squarefree a)
+      .resolve_right ha.not_unit) }
+end
+
+end cancel_comm_monoid_with_zero
 
 end multiplicity
 
@@ -321,7 +363,7 @@ lemma divisors_filter_squarefree {n : ℕ} (h0 : n ≠ 0) :
     (unique_factorization_monoid.normalized_factors n).to_finset.powerset.val.map
       (λ x, x.val.prod) :=
 begin
-  rw multiset.nodup_ext (finset.nodup _) (multiset.nodup_map_on _ (finset.nodup _)),
+  rw (finset.nodup _).ext ((finset.nodup _).map_on _),
   { intro a,
     simp only [multiset.mem_filter, id.def, multiset.mem_map, finset.filter_val, ← finset.mem_def,
       mem_divisors],
@@ -332,7 +374,7 @@ begin
       rcases an with ⟨b, rfl⟩,
       rw mul_ne_zero_iff at h0,
       rw unique_factorization_monoid.squarefree_iff_nodup_normalized_factors h0.1 at hsq,
-      rw [multiset.to_finset_subset, multiset.to_finset_val, hsq.erase_dup, ← associated_iff_eq,
+      rw [multiset.to_finset_subset, multiset.to_finset_val, hsq.dedup, ← associated_iff_eq,
         normalized_factors_mul h0.1 h0.2],
       exact ⟨multiset.subset_of_le (multiset.le_add_right _ _), normalized_factors_prod h0.1⟩ },
     { rintro ⟨s, hs, rfl⟩,
@@ -342,12 +384,12 @@ begin
         simp only [exists_prop, id.def, exists_eq_right],
         intro con,
         apply not_irreducible_zero (irreducible_of_normalized_factor 0
-            (multiset.mem_erase_dup.1 (multiset.mem_of_le hs con))) },
+            (multiset.mem_dedup.1 (multiset.mem_of_le hs con))) },
       rw (normalized_factors_prod h0).symm.dvd_iff_dvd_right,
-      refine ⟨⟨multiset.prod_dvd_prod_of_le (le_trans hs (multiset.erase_dup_le _)), h0⟩, _⟩,
+      refine ⟨⟨multiset.prod_dvd_prod_of_le (le_trans hs (multiset.dedup_le _)), h0⟩, _⟩,
       have h := unique_factorization_monoid.factors_unique irreducible_of_normalized_factor
         (λ x hx, irreducible_of_normalized_factor x (multiset.mem_of_le
-          (le_trans hs (multiset.erase_dup_le _)) hx)) (normalized_factors_prod hs0),
+          (le_trans hs (multiset.dedup_le _)) hx)) (normalized_factors_prod hs0),
       rw [associated_eq_eq, multiset.rel_eq] at h,
       rw [unique_factorization_monoid.squarefree_iff_nodup_normalized_factors hs0, h],
       apply s.nodup } },
@@ -421,6 +463,17 @@ lemma squarefree_iff_prime_sq_not_dvd (n : ℕ) :
   squarefree n ↔ ∀ x : ℕ, x.prime → ¬ x * x ∣ n :=
 squarefree_iff_irreducible_sq_not_dvd_of_exists_irreducible
   ⟨2, (irreducible_iff_nat_prime _).2 prime_two⟩
+
+/-- `squarefree` is multiplicative. Note that the → direction does not require `hmn`
+and generalizes to arbitrary commutative monoids. See `squarefree.of_mul_left` and
+`squarefree.of_mul_right` above for auxiliary lemmas. -/
+lemma squarefree_mul {m n : ℕ} (hmn : m.coprime n) :
+  squarefree (m * n) ↔ squarefree m ∧ squarefree n :=
+begin
+  simp only [squarefree_iff_prime_squarefree, ←sq, ←forall_and_distrib],
+  refine ball_congr (λ p hp, _),
+  simp only [hmn.is_prime_pow_dvd_mul (hp.is_prime_pow.pow two_ne_zero), not_or_distrib],
+end
 
 end nat
 

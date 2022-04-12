@@ -5,11 +5,12 @@ Authors: Anne Baanen
 -/
 
 import analysis.special_functions.pow
-import ring_theory.class_group
-import ring_theory.norm
 import linear_algebra.free_module.pid
 import linear_algebra.matrix.absolute_value
 import number_theory.class_number.admissible_absolute_value
+import ring_theory.class_group
+import ring_theory.dedekind_domain.integral_closure
+import ring_theory.norm
 
 /-!
 # Class numbers of global fields

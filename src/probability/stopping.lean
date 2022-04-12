@@ -5,6 +5,8 @@ Authors: Kexing Ying
 -/
 import measure_theory.constructions.borel_space
 import measure_theory.function.l1_space
+import measure_theory.function.strongly_measurable
+import topology.instances.discrete
 
 /-!
 # Filtration and stopping time
@@ -17,7 +19,11 @@ at a specific time and is the first step in formalizing stochastic processes.
 
 * `measure_theory.filtration`: a filtration on a measurable space
 * `measure_theory.adapted`: a sequence of functions `u` is said to be adapted to a
-  filtration `f` if at each point in time `i`, `u i` is `f i`-measurable
+  filtration `f` if at each point in time `i`, `u i` is `f i`-strongly measurable
+* `measure_theory.prog_measurable`: a sequence of functions `u` is said to be progressively
+  measurable with respect to a filtration `f` if at each point in time `i`, `u` restricted to
+  `set.Iic i × α` is strongly measurable with respect to the product `measurable_space` structure
+  where the σ-algebra used for `α` is `f i`.
 * `measure_theory.filtration.natural`: the natural filtration with respect to a sequence of
   measurable functions is the smallest filtration to which it is adapted to
 * `measure_theory.is_stopping_time`: a stopping time with respect to some filtration `f` is a
@@ -25,101 +31,353 @@ at a specific time and is the first step in formalizing stochastic processes.
   `f i`-measurable
 * `measure_theory.is_stopping_time.measurable_space`: the σ-algebra associated with a stopping time
 
+## Main results
+
+* `adapted.prog_measurable_of_continuous`: a continuous adapted process is progressively measurable.
+* `prog_measurable.stopped_process`: the stopped process of a progressively measurable process is
+  progressively measurable.
+* `mem_ℒp_stopped_process`: if a process belongs to `ℒp` at every time in `ℕ`, then its stopped
+  process belongs to `ℒp` as well.
+
 ## Tags
 
 filtration, stopping time, stochastic process
 
 -/
 
-noncomputable theory
+open filter order topological_space
 open_locale classical measure_theory nnreal ennreal topological_space big_operators
 
 namespace measure_theory
 
+/-! ### Filtrations -/
+
 /-- A `filtration` on measurable space `α` with σ-algebra `m` is a monotone
-sequence of of sub-σ-algebras of `m`. -/
+sequence of sub-σ-algebras of `m`. -/
 structure filtration {α : Type*} (ι : Type*) [preorder ι] (m : measurable_space α) :=
-(seq : ι → measurable_space α)
-(mono : monotone seq)
-(le : ∀ i : ι, seq i ≤ m)
+(seq   : ι → measurable_space α)
+(mono' : monotone seq)
+(le'   : ∀ i : ι, seq i ≤ m)
 
 variables {α β ι : Type*} {m : measurable_space α}
 
-open topological_space
-
-section preorder
-
-variables [preorder ι]
-
-instance : has_coe_to_fun (filtration ι m) (λ _, ι → measurable_space α) :=
+instance [preorder ι] : has_coe_to_fun (filtration ι m) (λ _, ι → measurable_space α) :=
 ⟨λ f, f.seq⟩
 
+namespace filtration
+variables [preorder ι]
+
+protected lemma mono {i j : ι} (f : filtration ι m) (hij : i ≤ j) : f i ≤ f j := f.mono' hij
+
+protected lemma le (f : filtration ι m) (i : ι) : f i ≤ m := f.le' i
+
+@[ext] protected lemma ext {f g : filtration ι m} (h : (f : ι → measurable_space α) = g) : f = g :=
+by { cases f, cases g, simp only, exact h, }
+
+variable (ι)
 /-- The constant filtration which is equal to `m` for all `i : ι`. -/
-def const_filtration (m : measurable_space α) : filtration ι m :=
-⟨λ _, m, monotone_const, λ _, le_rfl⟩
+def const (m' : measurable_space α) (hm' : m' ≤ m) : filtration ι m :=
+⟨λ _, m', monotone_const, λ _, hm'⟩
+variable {ι}
 
-instance : inhabited (filtration ι m) :=
-⟨const_filtration m⟩
+@[simp]
+lemma const_apply {m' : measurable_space α} {hm' : m' ≤ m} (i : ι) : const ι m' hm' i = m' := rfl
 
-lemma measurable_set_of_filtration {f : filtration ι m} {s : set α} {i : ι}
+instance : inhabited (filtration ι m) := ⟨const ι m le_rfl⟩
+
+instance : has_le (filtration ι m) := ⟨λ f g, ∀ i, f i ≤ g i⟩
+
+instance : has_bot (filtration ι m) := ⟨const ι ⊥ bot_le⟩
+
+instance : has_top (filtration ι m) := ⟨const ι m le_rfl⟩
+
+instance : has_sup (filtration ι m) := ⟨λ f g,
+{ seq   := λ i, f i ⊔ g i,
+  mono' := λ i j hij, sup_le ((f.mono hij).trans le_sup_left) ((g.mono hij).trans le_sup_right),
+  le'   := λ i, sup_le (f.le i) (g.le i) }⟩
+
+@[norm_cast] lemma coe_fn_sup {f g : filtration ι m} : ⇑(f ⊔ g) = f ⊔ g := rfl
+
+instance : has_inf (filtration ι m) := ⟨λ f g,
+{ seq   := λ i, f i ⊓ g i,
+  mono' := λ i j hij, le_inf (inf_le_left.trans (f.mono hij)) (inf_le_right.trans (g.mono hij)),
+  le'   := λ i, inf_le_left.trans (f.le i) }⟩
+
+@[norm_cast] lemma coe_fn_inf {f g : filtration ι m} : ⇑(f ⊓ g) = f ⊓ g := rfl
+
+instance : has_Sup (filtration ι m) := ⟨λ s,
+{ seq   := λ i, Sup ((λ f : filtration ι m, f i) '' s),
+  mono' := λ i j hij,
+  begin
+    refine Sup_le (λ m' hm', _),
+    rw [set.mem_image] at hm',
+    obtain ⟨f, hf_mem, hfm'⟩ := hm',
+    rw ← hfm',
+    refine (f.mono hij).trans _,
+    have hfj_mem : f j ∈ ((λ g : filtration ι m, g j) '' s), from ⟨f, hf_mem, rfl⟩,
+    exact le_Sup hfj_mem,
+  end,
+  le'   := λ i,
+  begin
+    refine Sup_le (λ m' hm', _),
+    rw [set.mem_image] at hm',
+    obtain ⟨f, hf_mem, hfm'⟩ := hm',
+    rw ← hfm',
+    exact f.le i,
+  end, }⟩
+
+lemma Sup_def (s : set (filtration ι m)) (i : ι) :
+  Sup s i = Sup ((λ f : filtration ι m, f i) '' s) :=
+rfl
+
+noncomputable
+instance : has_Inf (filtration ι m) := ⟨λ s,
+{ seq   := λ i, if set.nonempty s then Inf ((λ f : filtration ι m, f i) '' s) else m,
+  mono' := λ i j hij,
+  begin
+    by_cases h_nonempty : set.nonempty s,
+    swap, { simp only [h_nonempty, set.nonempty_image_iff, if_false, le_refl], },
+    simp only [h_nonempty, if_true, le_Inf_iff, set.mem_image, forall_exists_index, and_imp,
+      forall_apply_eq_imp_iff₂],
+    refine λ f hf_mem, le_trans _ (f.mono hij),
+    have hfi_mem : f i ∈ ((λ g : filtration ι m, g i) '' s), from ⟨f, hf_mem, rfl⟩,
+    exact Inf_le hfi_mem,
+  end,
+  le'   := λ i,
+  begin
+    by_cases h_nonempty : set.nonempty s,
+    swap, { simp only [h_nonempty, if_false, le_refl], },
+    simp only [h_nonempty, if_true],
+    obtain ⟨f, hf_mem⟩ := h_nonempty,
+    exact le_trans (Inf_le ⟨f, hf_mem, rfl⟩) (f.le i),
+  end, }⟩
+
+lemma Inf_def (s : set (filtration ι m)) (i : ι) :
+  Inf s i = if set.nonempty s then Inf ((λ f : filtration ι m, f i) '' s) else m :=
+rfl
+
+noncomputable
+instance : complete_lattice (filtration ι m) :=
+{ le           := (≤),
+  le_refl      := λ f i, le_rfl,
+  le_trans     := λ f g h h_fg h_gh i, (h_fg i).trans (h_gh i),
+  le_antisymm  := λ f g h_fg h_gf, filtration.ext $ funext $ λ i, (h_fg i).antisymm (h_gf i),
+  sup          := (⊔),
+  le_sup_left  := λ f g i, le_sup_left,
+  le_sup_right := λ f g i, le_sup_right,
+  sup_le       := λ f g h h_fh h_gh i, sup_le (h_fh i) (h_gh _),
+  inf          := (⊓),
+  inf_le_left  := λ f g i, inf_le_left,
+  inf_le_right := λ f g i, inf_le_right,
+  le_inf       := λ f g h h_fg h_fh i, le_inf (h_fg i) (h_fh i),
+  Sup          := Sup,
+  le_Sup       := λ s f hf_mem i, le_Sup ⟨f, hf_mem, rfl⟩,
+  Sup_le       := λ s f h_forall i, Sup_le $ λ m' hm',
+  begin
+    obtain ⟨g, hg_mem, hfm'⟩ := hm',
+    rw ← hfm',
+    exact h_forall g hg_mem i,
+  end,
+  Inf          := Inf,
+  Inf_le       := λ s f hf_mem i,
+  begin
+    have hs : s.nonempty := ⟨f, hf_mem⟩,
+    simp only [Inf_def, hs, if_true],
+    exact Inf_le ⟨f, hf_mem, rfl⟩,
+  end,
+  le_Inf       := λ s f h_forall i,
+  begin
+    by_cases hs : s.nonempty,
+    swap, { simp only [Inf_def, hs, if_false], exact f.le i, },
+    simp only [Inf_def, hs, if_true, le_Inf_iff, set.mem_image, forall_exists_index, and_imp,
+      forall_apply_eq_imp_iff₂],
+    exact λ g hg_mem, h_forall g hg_mem i,
+  end,
+  top          := ⊤,
+  bot          := ⊥,
+  le_top       := λ f i, f.le' i,
+  bot_le       := λ f i, bot_le, }
+
+end filtration
+
+lemma measurable_set_of_filtration [preorder ι] {f : filtration ι m} {s : set α} {i : ι}
   (hs : measurable_set[f i] s) : measurable_set[m] s :=
 f.le i s hs
 
 /-- A measure is σ-finite with respect to filtration if it is σ-finite with respect
 to all the sub-σ-algebra of the filtration. -/
-class sigma_finite_filtration (μ : measure α) (f : filtration ι m) : Prop :=
+class sigma_finite_filtration [preorder ι] (μ : measure α) (f : filtration ι m) : Prop :=
 (sigma_finite : ∀ i : ι, sigma_finite (μ.trim (f.le i)))
 
-instance sigma_finite_of_sigma_finite_filtration (μ : measure α) (f : filtration ι m)
+instance sigma_finite_of_sigma_finite_filtration [preorder ι] (μ : measure α) (f : filtration ι m)
   [hf : sigma_finite_filtration μ f] (i : ι) :
   sigma_finite (μ.trim (f.le i)) :=
 by apply hf.sigma_finite -- can't exact here
 
-variable [measurable_space β]
+
+section adapted_process
+
+variables [topological_space β] [preorder ι]
+  {u v : ι → α → β} {f : filtration ι m}
 
 /-- A sequence of functions `u` is adapted to a filtration `f` if for all `i`,
 `u i` is `f i`-measurable. -/
 def adapted (f : filtration ι m) (u : ι → α → β) : Prop :=
-∀ i : ι, measurable[f i] (u i)
+∀ i : ι, strongly_measurable[f i] (u i)
 
 namespace adapted
 
-lemma add [has_add β] [has_measurable_add₂ β] {u v : ι → α → β} {f : filtration ι m}
-  (hu : adapted f u) (hv : adapted f v) : adapted f (u + v) :=
-λ i, @measurable.add _ _ _ _ (f i) _ _ _ (hu i) (hv i)
+lemma add [has_add β] [has_continuous_add β] (hu : adapted f u) (hv : adapted f v) :
+  adapted f (u + v) :=
+λ i, (hu i).add (hv i)
 
-lemma neg [has_neg β] [has_measurable_neg β] {u : ι → α → β} {f : filtration ι m}
-  (hu : adapted f u) : adapted f (-u) :=
-λ i, @measurable.neg _ α _ _ _ (f i) _ (hu i)
+lemma neg [add_group β] [topological_add_group β] (hu : adapted f u) : adapted f (-u) :=
+λ i, (hu i).neg
 
-lemma smul [has_scalar ℝ β] [has_measurable_smul ℝ β] {u : ι → α → β} {f : filtration ι m}
-  (c : ℝ) (hu : adapted f u) : adapted f (c • u) :=
-λ i, @measurable.const_smul ℝ β α _ _ _ (f i) _ _ (hu i) c
+lemma smul [has_scalar ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adapted f u) :
+  adapted f (c • u) :=
+λ i, (hu i).const_smul c
 
 end adapted
 
 variable (β)
-
 lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → α → β) :=
-λ i, @measurable_zero β α (f i) _ _
-
+λ i, @strongly_measurable_zero α β (f i) _ _
 variable {β}
 
+/-- Progressively measurable process. A sequence of functions `u` is said to be progressively
+measurable with respect to a filtration `f` if at each point in time `i`, `u` restricted to
+`set.Iic i × α` is measurable with respect to the product `measurable_space` structure where the
+σ-algebra used for `α` is `f i`.
+The usual definition uses the interval `[0,i]`, which we replace by `set.Iic i`. We recover the
+usual definition for index types `ℝ≥0` or `ℕ`. -/
+def prog_measurable [measurable_space ι] (f : filtration ι m) (u : ι → α → β) : Prop :=
+∀ i, strongly_measurable[subtype.measurable_space.prod (f i)] (λ p : set.Iic i × α, u p.1 p.2)
+
+lemma prog_measurable_const [measurable_space ι] (f : filtration ι m) (b : β) :
+  prog_measurable f ((λ _ _, b) : ι → α → β) :=
+λ i, @strongly_measurable_const _ _ (subtype.measurable_space.prod (f i)) _ _
+
+namespace prog_measurable
+
+variables [measurable_space ι]
+
+protected lemma adapted (h : prog_measurable f u) : adapted f u :=
+begin
+  intro i,
+  have : u i = (λ p : set.Iic i × α, u p.1 p.2) ∘ (λ x, (⟨i, set.mem_Iic.mpr le_rfl⟩, x)) := rfl,
+  rw this,
+  exact (h i).comp_measurable ((@measurable_const _ _ _ (f i) _).prod_mk (@measurable_id _ (f i))),
+end
+
+protected lemma comp {t : ι → α → ι} [topological_space ι] [borel_space ι] [metrizable_space ι]
+  (h : prog_measurable f u) (ht : prog_measurable f t)
+  (ht_le : ∀ i x, t i x ≤ i) :
+  prog_measurable f (λ i x, u (t i x) x) :=
+begin
+  intro i,
+  have : (λ p : ↥(set.Iic i) × α, u (t (p.fst : ι) p.snd) p.snd)
+    = (λ p : ↥(set.Iic i) × α, u (p.fst : ι) p.snd) ∘ (λ p : ↥(set.Iic i) × α,
+      (⟨t (p.fst : ι) p.snd, set.mem_Iic.mpr ((ht_le _ _).trans p.fst.prop)⟩, p.snd)) := rfl,
+  rw this,
+  exact (h i).comp_measurable ((ht i).measurable.subtype_mk.prod_mk (@measurable_snd _ _ _ (f i))),
+end
+
+section arithmetic
+
+@[to_additive] protected lemma mul [has_mul β] [has_continuous_mul β]
+  (hu : prog_measurable f u) (hv : prog_measurable f v) :
+  prog_measurable f (λ i x, u i x * v i x) :=
+λ i, (hu i).mul (hv i)
+
+@[to_additive] protected lemma finset_prod' {γ} [comm_monoid β] [has_continuous_mul β]
+  {U : γ → ι → α → β} {s : finset γ} (h : ∀ c ∈ s, prog_measurable f (U c)) :
+  prog_measurable f (∏ c in s, U c) :=
+finset.prod_induction U (prog_measurable f) (λ _ _, prog_measurable.mul)
+  (prog_measurable_const _ 1) h
+
+@[to_additive] protected lemma finset_prod {γ} [comm_monoid β] [has_continuous_mul β]
+  {U : γ → ι → α → β} {s : finset γ} (h : ∀ c ∈ s, prog_measurable f (U c)) :
+  prog_measurable f (λ i a, ∏ c in s, U c i a) :=
+by { convert prog_measurable.finset_prod' h, ext i a, simp only [finset.prod_apply], }
+
+@[to_additive] protected lemma inv [group β] [topological_group β] (hu : prog_measurable f u) :
+  prog_measurable f (λ i x, (u i x)⁻¹) :=
+λ i, (hu i).inv
+
+@[to_additive] protected lemma div [group β] [topological_group β]
+  (hu : prog_measurable f u) (hv : prog_measurable f v) :
+  prog_measurable f (λ i x, u i x / v i x) :=
+λ i, (hu i).div (hv i)
+
+end arithmetic
+
+end prog_measurable
+
+lemma prog_measurable_of_tendsto' {γ} [measurable_space ι] [metrizable_space β]
+  (fltr : filter γ) [fltr.ne_bot] [fltr.is_countably_generated] {U : γ → ι → α → β}
+  (h : ∀ l, prog_measurable f (U l)) (h_tendsto : tendsto U fltr (𝓝 u)) :
+  prog_measurable f u :=
+begin
+  assume i,
+  apply @strongly_measurable_of_tendsto (set.Iic i × α) β γ (measurable_space.prod _ (f i))
+   _ _ fltr _ _ _ _ (λ l, h l i),
+  rw tendsto_pi_nhds at h_tendsto ⊢,
+  intro x,
+  specialize h_tendsto x.fst,
+  rw tendsto_nhds at h_tendsto ⊢,
+  exact λ s hs h_mem, h_tendsto {g | g x.snd ∈ s} (hs.preimage (continuous_apply x.snd)) h_mem,
+end
+
+lemma prog_measurable_of_tendsto [measurable_space ι] [metrizable_space β]
+  {U : ℕ → ι → α → β}
+  (h : ∀ l, prog_measurable f (U l)) (h_tendsto : tendsto U at_top (𝓝 u)) :
+  prog_measurable f u :=
+prog_measurable_of_tendsto' at_top h h_tendsto
+
+
+/-- A continuous and adapted process is progressively measurable. -/
+theorem adapted.prog_measurable_of_continuous
+  [topological_space ι] [metrizable_space ι] [measurable_space ι]
+  [second_countable_topology ι] [opens_measurable_space ι] [metrizable_space β]
+  (h : adapted f u) (hu_cont : ∀ x, continuous (λ i, u i x)) :
+  prog_measurable f u :=
+λ i, @strongly_measurable_uncurry_of_continuous_of_strongly_measurable _ _ (set.Iic i) _ _ _ _ _ _ _
+  (f i) _ (λ x, (hu_cont x).comp continuous_induced_dom) (λ j, (h j).mono (f.mono j.prop))
+
+end adapted_process
+
 namespace filtration
+variables [topological_space β] [metrizable_space β] [mβ : measurable_space β] [borel_space β]
+  [preorder ι]
+
+include mβ
 
 /-- Given a sequence of functions, the natural filtration is the smallest sequence
 of σ-algebras such that that sequence of functions is measurable with respect to
 the filtration. -/
-def natural (u : ι → α → β) (hum : ∀ i, measurable (u i)) : filtration ι m :=
-{ seq := λ i, ⨆ j ≤ i, measurable_space.comap (u j) infer_instance,
-  mono := λ i j hij, bsupr_le_bsupr' $ λ k hk, le_trans hk hij,
-  le := λ i, bsupr_le (λ j hj s hs, let ⟨t, ht, ht'⟩ := hs in ht' ▸ hum j ht) }
+def natural (u : ι → α → β) (hum : ∀ i, strongly_measurable (u i)) : filtration ι m :=
+{ seq   := λ i, ⨆ j ≤ i, measurable_space.comap (u j) mβ,
+  mono' := λ i j hij, bsupr_mono $ λ k, ge_trans hij,
+  le'   := λ i,
+  begin
+    refine supr₂_le _,
+    rintros j hj s ⟨t, ht, rfl⟩,
+    exact (hum j).measurable ht,
+  end }
 
-lemma adapted_natural {u : ι → α → β} (hum : ∀ i, measurable[m] (u i)) :
+lemma adapted_natural {u : ι → α → β} (hum : ∀ i, strongly_measurable[m] (u i)) :
   adapted (natural u hum) u :=
-λ i, measurable.le (le_bsupr_of_le i (le_refl i) le_rfl) (λ s hs, ⟨s, hs, rfl⟩)
+begin
+  assume i,
+  refine strongly_measurable.mono _ (le_supr₂_of_le i (le_refl i) le_rfl),
+  rw strongly_measurable_iff_measurable_separable,
+  exact ⟨measurable_iff_comap_le.2 le_rfl, (hum i).is_separable_range⟩
+end
 
 end filtration
+
+/-! ### Stopping times -/
 
 /-- A stopping time with respect to some filtration `f` is a function
 `τ` such that for all `i`, the preimage of `{j | j ≤ i}` along `τ` is measurable
@@ -127,66 +385,129 @@ with respect to `f i`.
 
 Intuitively, the stopping time `τ` describes some stopping rule such that at time
 `i`, we may determine it with the information we have at time `i`. -/
-def is_stopping_time (f : filtration ι m) (τ : α → ι) :=
+def is_stopping_time [preorder ι] (f : filtration ι m) (τ : α → ι) :=
 ∀ i : ι, measurable_set[f i] $ {x | τ x ≤ i}
 
-variables {f : filtration ℕ m} {τ : α → ℕ}
+lemma is_stopping_time_const [preorder ι] {f : filtration ι m} (i : ι) :
+  is_stopping_time f (λ x, i) :=
+λ j, by simp only [measurable_set.const]
 
-lemma is_stopping_time.measurable_set_le (hτ : is_stopping_time f τ) (i : ℕ) :
+section measurable_set
+
+section preorder
+variables [preorder ι] {f : filtration ι m} {τ : α → ι}
+
+lemma is_stopping_time.measurable_set_le (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {x | τ x ≤ i} :=
 hτ i
 
-lemma is_stopping_time.measurable_set_eq (hτ : is_stopping_time f τ) (i : ℕ) :
-  measurable_set[f i] {x | τ x = i} :=
+lemma is_stopping_time.measurable_set_lt_of_pred [pred_order ι]
+  (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[f i] {x | τ x < i} :=
 begin
-  cases i,
-  { convert (hτ 0),
-    simp only [set.set_of_eq_eq_singleton, le_zero_iff] },
-  { rw (_ : {x | τ x = i + 1} = {x | τ x ≤ i + 1} \ {x | τ x ≤ i}),
-    { exact (hτ (i + 1)).diff (f.mono (nat.le_succ _) _ (hτ i)) },
-    { ext, simp only [set.mem_diff, not_le, set.mem_set_of_eq],
-      split,
-      { intro h, simp [h] },
-      { rintro ⟨h₁, h₂⟩,
-        linarith } } }
+  by_cases hi_min : is_min i,
+  { suffices : {x : α | τ x < i} = ∅, by { rw this, exact @measurable_set.empty _ (f i), },
+    ext1 x,
+    simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+    rw is_min_iff_forall_not_lt at hi_min,
+    exact hi_min (τ x), },
+  have : {x : α | τ x < i} = τ ⁻¹' (set.Iio i) := rfl,
+  rw [this, ←Iic_pred_of_not_is_min hi_min],
+  exact f.mono (pred_le i) _ (hτ.measurable_set_le $ pred i),
 end
 
-lemma is_stopping_time.measurable_set_ge (hτ : is_stopping_time f τ) (i : ℕ) :
+end preorder
+
+section linear_order
+variables [linear_order ι] {f : filtration ι m} {τ : α → ι}
+
+lemma is_stopping_time.measurable_set_gt (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[f i] {x | i < τ x} :=
+begin
+  have : {x | i < τ x} = {x | τ x ≤ i}ᶜ,
+  { ext1 x, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_le], },
+  rw this,
+  exact (hτ.measurable_set_le i).compl,
+end
+
+variables [topological_space ι] [order_topology ι] [first_countable_topology ι]
+
+/-- Auxiliary lemma for `is_stopping_time.measurable_set_lt`. -/
+lemma is_stopping_time.measurable_set_lt_of_is_lub
+  (hτ : is_stopping_time f τ) (i : ι) (h_lub : is_lub (set.Iio i) i) :
+  measurable_set[f i] {x | τ x < i} :=
+begin
+  by_cases hi_min : is_min i,
+  { suffices : {x : α | τ x < i} = ∅, by { rw this, exact @measurable_set.empty _ (f i), },
+    ext1 x,
+    simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
+    exact is_min_iff_forall_not_lt.mp hi_min (τ x), },
+  obtain ⟨seq, -, -, h_tendsto, h_bound⟩ : ∃ seq : ℕ → ι,
+      monotone seq ∧ (∀ j, seq j ≤ i) ∧ tendsto seq at_top (𝓝 i) ∧ (∀ j, seq j < i),
+    from h_lub.exists_seq_monotone_tendsto (not_is_min_iff.mp hi_min),
+  have h_Ioi_eq_Union : set.Iio i = ⋃ j, { k | k ≤ seq j},
+  { ext1 k,
+    simp only [set.mem_Iio, set.mem_Union, set.mem_set_of_eq],
+    refine ⟨λ hk_lt_i, _, λ h_exists_k_le_seq, _⟩,
+    { rw tendsto_at_top' at h_tendsto,
+      have h_nhds : set.Ici k ∈ 𝓝 i,
+        from mem_nhds_iff.mpr ⟨set.Ioi k, set.Ioi_subset_Ici le_rfl, is_open_Ioi, hk_lt_i⟩,
+      obtain ⟨a, ha⟩ : ∃ (a : ℕ), ∀ (b : ℕ), b ≥ a → k ≤ seq b := h_tendsto (set.Ici k) h_nhds,
+      exact ⟨a, ha a le_rfl⟩, },
+    { obtain ⟨j, hk_seq_j⟩ := h_exists_k_le_seq,
+      exact hk_seq_j.trans_lt (h_bound j), }, },
+  have h_lt_eq_preimage : {x : α | τ x < i} = τ ⁻¹' (set.Iio i),
+  { ext1 x, simp only [set.mem_set_of_eq, set.mem_preimage, set.mem_Iio], },
+  rw [h_lt_eq_preimage, h_Ioi_eq_Union],
+  simp only [set.preimage_Union, set.preimage_set_of_eq],
+  exact measurable_set.Union
+    (λ n, f.mono (h_bound n).le _ (hτ.measurable_set_le (seq n))),
+end
+
+lemma is_stopping_time.measurable_set_lt (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[f i] {x | τ x < i} :=
+begin
+  obtain ⟨i', hi'_lub⟩ : ∃ i', is_lub (set.Iio i) i', from exists_lub_Iio i,
+  cases lub_Iio_eq_self_or_Iio_eq_Iic i hi'_lub with hi'_eq_i h_Iio_eq_Iic,
+  { rw ← hi'_eq_i at hi'_lub ⊢,
+    exact hτ.measurable_set_lt_of_is_lub i' hi'_lub, },
+  { have h_lt_eq_preimage : {x : α | τ x < i} = τ ⁻¹' (set.Iio i) := rfl,
+    rw [h_lt_eq_preimage, h_Iio_eq_Iic],
+    exact f.mono (lub_Iio_le i hi'_lub) _ (hτ.measurable_set_le i'), },
+end
+
+lemma is_stopping_time.measurable_set_ge (hτ : is_stopping_time f τ) (i : ι) :
   measurable_set[f i] {x | i ≤ τ x} :=
 begin
-  have : {a : α | i ≤ τ a} = (set.univ \ {a | τ a ≤ i}) ∪ {a | τ a = i},
-  { ext1 a,
-    simp only [true_and, set.mem_univ, set.mem_diff, not_le, set.mem_union_eq,
-      set.mem_set_of_eq],
-    rw le_iff_lt_or_eq,
-    by_cases h : τ a = i,
-    { simp [h], },
-    { simp only [h, ne.symm h, or_false, or_iff_left_iff_imp], }, },
+  have : {x | i ≤ τ x} = {x | τ x < i}ᶜ,
+  { ext1 x, simp only [set.mem_set_of_eq, set.mem_compl_eq, not_lt], },
   rw this,
-  exact (measurable_set.univ.diff (hτ i)).union (hτ.measurable_set_eq i),
+  exact (hτ.measurable_set_lt i).compl,
 end
 
-lemma is_stopping_time.measurable_set_eq_le
-  {f : filtration ℕ m} {τ : α → ℕ} (hτ : is_stopping_time f τ) {i j : ℕ} (hle : i ≤ j) :
+lemma is_stopping_time.measurable_set_eq (hτ : is_stopping_time f τ) (i : ι) :
+  measurable_set[f i] {x | τ x = i} :=
+begin
+  have : {x | τ x = i} = {x | τ x ≤ i} ∩ {x | τ x ≥ i},
+  { ext1 x, simp only [set.mem_set_of_eq, ge_iff_le, set.mem_inter_eq, le_antisymm_iff], },
+  rw this,
+  exact (hτ.measurable_set_le i).inter (hτ.measurable_set_ge i),
+end
+
+lemma is_stopping_time.measurable_set_eq_le (hτ : is_stopping_time f τ) {i j : ι} (hle : i ≤ j) :
   measurable_set[f j] {x | τ x = i} :=
 f.mono hle _ $ hτ.measurable_set_eq i
 
-lemma is_stopping_time.measurable_set_lt (hτ : is_stopping_time f τ) (i : ℕ) :
-  measurable_set[f i] {x | τ x < i} :=
-begin
-  convert (hτ i).diff (hτ.measurable_set_eq i),
-  ext,
-  change τ x < i ↔ τ x ≤ i ∧ τ x ≠ i,
-  rw lt_iff_le_and_ne,
-end
-
-lemma is_stopping_time.measurable_set_lt_le
-  (hτ : is_stopping_time f τ) {i j : ℕ} (hle : i ≤ j) :
+lemma is_stopping_time.measurable_set_lt_le (hτ : is_stopping_time f τ) {i j : ι} (hle : i ≤ j) :
   measurable_set[f j] {x | τ x < i} :=
 f.mono hle _ $ hτ.measurable_set_lt i
 
-lemma is_stopping_time_of_measurable_set_eq
-  {f : filtration ℕ m} {τ : α → ℕ} (hτ : ∀ i, measurable_set[f i] {x | τ x = i}) :
+end linear_order
+
+section encodable
+
+lemma is_stopping_time_of_measurable_set_eq [preorder ι] [encodable ι]
+  {f : filtration ι m} {τ : α → ι} (hτ : ∀ i, measurable_set[f i] {x | τ x = i}) :
   is_stopping_time f τ :=
 begin
   intro i,
@@ -195,15 +516,13 @@ begin
   exact f.mono hk _ (hτ k),
 end
 
-lemma is_stopping_time_const {f : filtration ι m} (i : ι) :
-  is_stopping_time f (λ x, i) :=
-λ j, by simp
+end encodable
 
-end preorder
+end measurable_set
 
 namespace is_stopping_time
 
-lemma max [linear_order ι] {f : filtration ι m} {τ π : α → ι}
+protected lemma max [linear_order ι] {f : filtration ι m} {τ π : α → ι}
   (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   is_stopping_time f (λ x, max (τ x) (π x)) :=
 begin
@@ -212,7 +531,7 @@ begin
   exact (hτ i).inter (hπ i),
 end
 
-lemma min [linear_order ι] {f : filtration ι m} {τ π : α → ι}
+protected lemma min [linear_order ι] {f : filtration ι m} {τ π : α → ι}
   (hτ : is_stopping_time f τ) (hπ : is_stopping_time f π) :
   is_stopping_time f (λ x, min (τ x) (π x)) :=
 begin
@@ -221,8 +540,7 @@ begin
   exact (hτ i).union (hπ i),
 end
 
-lemma add_const
-  [add_group ι] [preorder ι] [covariant_class ι ι (function.swap (+)) (≤)]
+lemma add_const [add_group ι] [preorder ι] [covariant_class ι ι (function.swap (+)) (≤)]
   [covariant_class ι ι (+) (≤)]
   {f : filtration ι m} {τ : α → ι} (hτ : is_stopping_time f τ) {i : ι} (hi : 0 ≤ i) :
   is_stopping_time f (λ x, τ x + i) :=
@@ -330,8 +648,8 @@ begin
   refine @measurable_of_Iic ι α _ _ _ hτ.measurable_space _ _ _ _ _,
   simp_rw [hτ.measurable_set, set.preimage, set.mem_Iic],
   intros i j,
-  rw (_ : {x | τ x ≤ i} ∩ {x | τ x ≤ j} = {x | τ x ≤ linear_order.min i j}),
-  { exact f.mono (min_le_right i j) _ (hτ (linear_order.min i j)) },
+  rw (_ : {x | τ x ≤ i} ∩ {x | τ x ≤ j} = {x | τ x ≤ min i j}),
+  { exact f.mono (min_le_right i j) _ (hτ (min i j)) },
   { ext,
     simp only [set.mem_inter_eq, iff_self, le_min_iff, set.mem_set_of_eq] }
 end
@@ -341,6 +659,8 @@ end linear_order
 end is_stopping_time
 
 section linear_order
+
+/-! ## Stopped value and stopped process -/
 
 /-- Given a map `u : ι → α → E`, its stopped value with respect to the stopping
 time `τ` is the map `x ↦ u (τ x) x`. -/
@@ -354,7 +674,7 @@ variable [linear_order ι]
 
 Intuitively, the stopped process stops evolving once the stopping time has occured. -/
 def stopped_process (u : ι → α → β) (τ : α → ι) : ι → α → β :=
-λ i x, u (linear_order.min i (τ x)) x
+λ i x, u (min i (τ x)) x
 
 lemma stopped_process_eq_of_le {u : ι → α → β} {τ : α → ι}
   {i : ι} {x : α} (h : i ≤ τ x) : stopped_process u τ i x = u i x :=
@@ -364,8 +684,70 @@ lemma stopped_process_eq_of_ge {u : ι → α → β} {τ : α → ι}
   {i : ι} {x : α} (h : τ x ≤ i) : stopped_process u τ i x = u (τ x) x :=
 by simp [stopped_process, min_eq_right h]
 
--- We will need cadlag to generalize the following to continuous processes
+section prog_measurable
+
+variables [measurable_space ι] [topological_space ι] [order_topology ι]
+  [second_countable_topology ι] [borel_space ι] [metrizable_space ι]
+  [topological_space β]
+  {u : ι → α → β} {τ : α → ι} {f : filtration ι m}
+
+lemma prog_measurable_min_stopping_time (hτ : is_stopping_time f τ) :
+  prog_measurable f (λ i x, min i (τ x)) :=
+begin
+  intro i,
+  let m_prod : measurable_space (set.Iic i × α) := measurable_space.prod _ (f i),
+  let m_set : ∀ t : set (set.Iic i × α), measurable_space t :=
+    λ _, @subtype.measurable_space (set.Iic i × α) _ m_prod,
+  let s := {p : set.Iic i × α | τ p.2 ≤ i},
+  have hs : measurable_set[m_prod] s, from @measurable_snd (set.Iic i) α _ (f i) _ (hτ i),
+  have h_meas_fst : ∀ t : set (set.Iic i × α),
+      measurable[m_set t] (λ x : t, ((x : set.Iic i × α).fst : ι)),
+    from λ t, (@measurable_subtype_coe (set.Iic i × α) m_prod _).fst.subtype_coe,
+  apply measurable.strongly_measurable,
+  refine measurable_of_restrict_of_restrict_compl hs _ _,
+  { refine @measurable.min _ _ _ _ _ (m_set s) _ _ _ _ _ (h_meas_fst s) _,
+    refine @measurable_of_Iic ι s _ _ _ (m_set s) _ _ _ _ (λ j, _),
+    have h_set_eq : (λ x : s, τ (x : set.Iic i × α).snd) ⁻¹' set.Iic j
+      = (λ x : s, (x : set.Iic i × α).snd) ⁻¹' {x | τ x ≤ min i j},
+    { ext1 x,
+      simp only [set.mem_preimage, set.mem_Iic, iff_and_self, le_min_iff, set.mem_set_of_eq],
+      exact λ _, x.prop, },
+    rw h_set_eq,
+    suffices h_meas : @measurable _ _ (m_set s) (f i) (λ x : s, (x : set.Iic i × α).snd),
+      from h_meas (f.mono (min_le_left _ _) _ (hτ.measurable_set_le (min i j))),
+    exact (@measurable_snd _ _ _ (f i)).comp (@measurable_subtype_coe _ m_prod _), },
+  { suffices h_min_eq_left : (λ x : sᶜ, min ↑((x : set.Iic i × α).fst) (τ (x : set.Iic i × α).snd))
+      = λ x : sᶜ, ↑((x : set.Iic i × α).fst),
+    { rw [set.restrict, h_min_eq_left],
+      exact h_meas_fst _, },
+    ext1 x,
+    rw min_eq_left,
+    have hx_fst_le : ↑(x : set.Iic i × α).fst ≤ i, from (x : set.Iic i × α).fst.prop,
+    refine hx_fst_le.trans (le_of_lt _),
+    convert x.prop,
+    simp only [not_le, set.mem_compl_eq, set.mem_set_of_eq], },
+end
+
+lemma prog_measurable.stopped_process (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
+  prog_measurable f (stopped_process u τ) :=
+h.comp (prog_measurable_min_stopping_time hτ) (λ i x, min_le_left _ _)
+
+lemma prog_measurable.adapted_stopped_process
+  (h : prog_measurable f u) (hτ : is_stopping_time f τ) :
+  adapted f (stopped_process u τ) :=
+(h.stopped_process hτ).adapted
+
+lemma prog_measurable.measurable_stopped_process
+  (hu : prog_measurable f u) (hτ : is_stopping_time f τ) (i : ι) :
+  strongly_measurable (stopped_process u τ i) :=
+(hu.adapted_stopped_process hτ i).mono (f.le _)
+
+end prog_measurable
+
+end linear_order
+
 section nat
+/-! ### Filtrations indexed by `ℕ` -/
 
 open filtration
 
@@ -397,6 +779,43 @@ end
 section add_comm_monoid
 
 variables [add_comm_monoid β]
+
+/-- For filtrations indexed by `ℕ`, `adapted` and `prog_measurable` are equivalent. This lemma
+provides `adapted f u → prog_measurable f u`. See `prog_measurable.adapted` for the reverse
+direction, which is true more generally. -/
+lemma adapted.prog_measurable_of_nat [topological_space β] [has_continuous_add β]
+  (h : adapted f u) : prog_measurable f u :=
+begin
+  intro i,
+  have : (λ p : ↥(set.Iic i) × α, u ↑(p.fst) p.snd)
+    = λ p : ↥(set.Iic i) × α, ∑ j in finset.range (i + 1), if ↑p.fst = j then u j p.snd else 0,
+  { ext1 p,
+    rw finset.sum_ite_eq,
+    have hp_mem : (p.fst : ℕ) ∈ finset.range (i + 1) := finset.mem_range_succ_iff.mpr p.fst.prop,
+    simp only [hp_mem, if_true], },
+  rw this,
+  refine finset.strongly_measurable_sum _ (λ j hj, strongly_measurable.ite _ _ _),
+  { suffices h_meas : measurable[measurable_space.prod _ (f i)]
+        (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
+      from h_meas (measurable_set_singleton j),
+    exact (@measurable_fst _ α _ (f i)).subtype_coe, },
+  { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
+    exact (strongly_measurable.mono (h j) (f.mono h_le)).comp_measurable
+      (@measurable_snd _ α _ (f i)), },
+  { exact strongly_measurable_const, },
+end
+
+/-- For filtrations indexed by `ℕ`, the stopped process obtained from an adapted process is
+adapted. -/
+lemma adapted.stopped_process_of_nat [topological_space β] [has_continuous_add β]
+  (hu : adapted f u) (hτ : is_stopping_time f τ) :
+  adapted f (stopped_process u τ) :=
+(hu.prog_measurable_of_nat.stopped_process hτ).adapted
+
+lemma adapted.measurable_stopped_process_of_nat [topological_space β] [has_continuous_add β]
+  (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
+  strongly_measurable (stopped_process u τ n) :=
+hu.prog_measurable_of_nat.measurable_stopped_process hτ n
 
 lemma stopped_value_eq {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
   stopped_value u τ =
@@ -435,39 +854,13 @@ begin
       exact hneq.symm } },
 end
 
-lemma adapted.stopped_process [measurable_space β] [has_measurable_add₂ β]
-  (hu : adapted f u) (hτ : is_stopping_time f τ) :
-  adapted f (stopped_process u τ) :=
-begin
-  intro i,
-  rw stopped_process_eq,
-  refine @measurable.add _ _ _ _ (f i) _ _ _ _ _,
-  { refine (hu i).indicator _,
-    convert measurable_set.union (hτ i).compl (hτ.measurable_set_eq i),
-    ext x,
-    change i ≤ τ x ↔ ¬ τ x ≤ i ∨ τ x = i,
-    rw [not_le, le_iff_lt_or_eq, eq_comm] },
-  { refine @finset.measurable_sum' _ _ _ _ _ _ (f i) _ _ _,
-    refine λ j hij, measurable.indicator _ _,
-    { rw finset.mem_range at hij,
-      exact measurable.le (f.mono hij.le) (hu j) },
-    { rw finset.mem_range at hij,
-      refine f.mono hij.le _ _,
-      convert hτ.measurable_set_eq j, } }
-end
-
 end add_comm_monoid
 
 section normed_group
 
-variables [measurable_space β] [normed_group β] [has_measurable_add₂ β]
+variables [normed_group β] {p : ℝ≥0∞} {μ : measure α}
 
-lemma measurable_stopped_process (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
-  measurable (stopped_process u τ n) :=
-(hu.stopped_process hτ n).le (f.le _)
-
-lemma mem_ℒp_stopped_process {p : ℝ≥0∞} [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
-  (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :
+lemma mem_ℒp_stopped_process (hτ : is_stopping_time f τ) (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :
   mem_ℒp (stopped_process u τ n) p μ :=
 begin
   rw stopped_process_eq,
@@ -479,15 +872,12 @@ begin
     exact f.le i {a : α | τ a = i} (hτ.measurable_set_eq i) },
 end
 
-lemma integrable_stopped_process [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
+lemma integrable_stopped_process (hτ : is_stopping_time f τ)
   (hu : ∀ n, integrable (u n) μ) (n : ℕ) :
   integrable (stopped_process u τ n) μ :=
-begin
-  simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢,
-  exact mem_ℒp_stopped_process hτ hu n,
-end
+by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_process hτ hu n, }
 
-lemma mem_ℒp_stopped_value {p : ℝ≥0∞} [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
+lemma mem_ℒp_stopped_value (hτ : is_stopping_time f τ)
   (hu : ∀ n, mem_ℒp (u n) p μ) {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
   mem_ℒp (stopped_value u τ) p μ :=
 begin
@@ -499,18 +889,13 @@ begin
   exact f.le i {a : α | τ a = i} (hτ.measurable_set_eq i)
 end
 
-lemma integrable_stopped_value [borel_space β] {μ : measure α} (hτ : is_stopping_time f τ)
+lemma integrable_stopped_value (hτ : is_stopping_time f τ)
   (hu : ∀ n, integrable (u n) μ) {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
   integrable (stopped_value u τ) μ :=
-begin
-  simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢,
-  exact mem_ℒp_stopped_value hτ hu hbdd,
-end
+by { simp_rw ← mem_ℒp_one_iff_integrable at hu ⊢, exact mem_ℒp_stopped_value hτ hu hbdd, }
 
 end normed_group
 
 end nat
-
-end linear_order
 
 end measure_theory

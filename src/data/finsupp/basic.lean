@@ -3,9 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
-import data.finset.preimage
+import algebra.hom.group_action
 import algebra.indicator_function
-import algebra.group_action_hom
+import data.finset.preimage
 
 /-!
 # Type of functions with finite support
@@ -523,6 +523,15 @@ support_on_finset_subset
   map_range f hf (single a b) = single a (f b) :=
 ext $ λ a', show f (ite _ _ _) = ite _ _ _, by split_ifs; [refl, exact hf]
 
+lemma support_map_range_of_injective
+  {e : M → N} (he0 : e 0 = 0) (f : ι →₀ M) (he : function.injective e) :
+  (finsupp.map_range e he0 f).support = f.support :=
+begin
+  ext,
+  simp only [finsupp.mem_support_iff, ne.def, finsupp.map_range_apply],
+  exact he.ne_iff' he0,
+end
+
 end map_range
 
 /-! ### Declarations about `emb_domain` -/
@@ -819,9 +828,9 @@ begin
 end
 
 @[to_additive]
-lemma _root_.submonoid.finsupp_prod_mem (S : submonoid N) (f : α →₀ M) (g : α → M → N)
-  (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
-S.prod_mem $ λ i hi, h _ (finsupp.mem_support_iff.mp hi)
+lemma _root_.submonoid_class.finsupp_prod_mem {S : Type*} [set_like S N] [submonoid_class S N]
+  (s : S) (f : α →₀ M) (g : α → M → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ s) : f.prod g ∈ s :=
+prod_mem $ λ i hi, h _ (finsupp.mem_support_iff.mp hi)
 
 @[to_additive]
 lemma prod_congr {f : α →₀ M} {g1 g2 : α → M → N}
@@ -867,10 +876,7 @@ begin
 end
 
 instance : add_zero_class (α →₀ M) :=
-{ zero      := 0,
-  add       := (+),
-  zero_add  := assume ⟨s, f, hf⟩, ext $ assume a, zero_add _,
-  add_zero  := assume ⟨s, f, hf⟩, ext $ assume a, add_zero _ }
+fun_like.coe_injective.add_zero_class _ coe_zero coe_add
 
 /-- `finsupp.single` as an `add_monoid_hom`.
 
@@ -1032,37 +1038,45 @@ section add_monoid
 
 variables [add_monoid M]
 
+/-- Note the general `finsupp.has_scalar` instance doesn't apply as `ℕ` is not distributive
+unless `β i`'s addition is commutative. -/
+instance has_nat_scalar : has_scalar ℕ (α →₀ M) :=
+⟨λ n v, v.map_range ((•) n) (nsmul_zero _)⟩
+
 instance : add_monoid (α →₀ M) :=
-{ add_monoid .
-  zero      := 0,
-  add       := (+),
-  add_assoc := assume ⟨s, f, hf⟩ ⟨t, g, hg⟩ ⟨u, h, hh⟩, ext $ assume a, add_assoc _ _ _,
-  nsmul := λ n v, v.map_range ((•) n) (nsmul_zero _),
-  nsmul_zero' := λ v, by { ext i, simp },
-  nsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_nsmul] },
-  .. finsupp.add_zero_class }
+fun_like.coe_injective.add_monoid _ coe_zero coe_add (λ _ _, rfl)
 
 end add_monoid
 
 end finsupp
 
 @[to_additive]
-lemma mul_equiv.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
+lemma map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P] {H : Type*}
+  [monoid_hom_class H N P] (h : H) (f : α →₀ M) (g : α → M → N) :
+  h (f.prod g) = f.prod (λ a b, h (g a b)) :=
+map_prod h _ _
+
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
+protected lemma mul_equiv.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
   (h : N ≃* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
+map_finsupp_prod h f g
 
-@[to_additive]
-lemma monoid_hom.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+@[to_additive "Deprecated, use `_root_.map_finsupp_sum` instead."]
+protected lemma monoid_hom.map_finsupp_prod [has_zero M] [comm_monoid N] [comm_monoid P]
   (h : N →* P) (f : α →₀ M) (g : α → M → N) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
+map_finsupp_prod h f g
 
-lemma ring_hom.map_finsupp_sum [has_zero M] [semiring R] [semiring S]
+/-- Deprecated, use `_root_.map_finsupp_sum` instead. -/
+protected lemma ring_hom.map_finsupp_sum [has_zero M] [semiring R] [semiring S]
   (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.sum g) = f.sum (λ a b, h (g a b)) :=
-h.map_sum _ _
+map_finsupp_sum h f g
 
-lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
+/-- Deprecated, use `_root_.map_finsupp_prod` instead. -/
+protected lemma ring_hom.map_finsupp_prod [has_zero M] [comm_semiring R] [comm_semiring S]
   (h : R →+* S) (f : α →₀ M) (g : α → M → R) : h (f.prod g) = f.prod (λ a b, h (g a b)) :=
-h.map_prod _ _
+map_finsupp_prod h f g
 
 @[to_additive]
 lemma monoid_hom.coe_finsupp_prod [has_zero β] [monoid N] [comm_monoid P]
@@ -1079,26 +1093,28 @@ monoid_hom.finset_prod_apply _ _ _
 namespace finsupp
 
 instance [add_comm_monoid M] : add_comm_monoid (α →₀ M) :=
-{ add_comm := assume ⟨s, f, _⟩ ⟨t, g, _⟩, ext $ assume a, add_comm _ _,
-  .. finsupp.add_monoid }
+fun_like.coe_injective.add_comm_monoid _ coe_zero coe_add (λ _ _, rfl)
+
+instance [add_group G] : has_neg (α →₀ G) := ⟨map_range (has_neg.neg) neg_zero⟩
+
+@[simp] lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
+lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
 
 instance [add_group G] : has_sub (α →₀ G) := ⟨zip_with has_sub.sub (sub_zero _)⟩
 
+@[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
+lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
+
+/-- Note the general `finsupp.has_scalar` instance doesn't apply as `ℤ` is not distributive
+unless `β i`'s addition is commutative. -/
+instance has_int_scalar [add_group G] : has_scalar ℤ (α →₀ G) :=
+⟨λ n v, v.map_range ((•) n) (zsmul_zero _)⟩
+
 instance [add_group G] : add_group (α →₀ G) :=
-{ neg            := map_range (has_neg.neg) neg_zero,
-  sub            := has_sub.sub,
-  sub_eq_add_neg := λ x y, ext (λ i, sub_eq_add_neg _ _),
-  add_left_neg   := assume ⟨s, f, _⟩, ext $ assume x, add_left_neg _,
-  zsmul := λ n v, v.map_range ((•) n) (zsmul_zero _),
-  zsmul_zero' := λ v, by { ext i, simp },
-  zsmul_succ' := λ n v, by { ext i, simp [nat.succ_eq_one_add, add_zsmul] },
-  zsmul_neg' := λ n v, by { ext i, simp only [nat.succ_eq_add_one, map_range_apply,
-    zsmul_neg_succ_of_nat, int.coe_nat_succ, neg_inj,
-    add_zsmul, add_nsmul, one_zsmul, coe_nat_zsmul, one_nsmul] },
-  .. finsupp.add_monoid }
+fun_like.coe_injective.add_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 instance [add_comm_group G] : add_comm_group (α →₀ G) :=
-{ add_comm := add_comm, ..finsupp.add_group }
+fun_like.coe_injective.add_comm_group _ coe_zero coe_add coe_neg coe_sub (λ _ _, rfl) (λ _ _, rfl)
 
 lemma single_multiset_sum [add_comm_monoid M] (s : multiset M) (a : α) :
   single a s.sum = (s.map (single a)).sum :=
@@ -1123,12 +1139,6 @@ lemma prod_neg_index [add_group G] [comm_monoid M] {g : α →₀ G} {h : α →
   (h0 : ∀a, h a 0 = 1) :
   (-g).prod h = g.prod (λa b, h a (- b)) :=
 prod_map_range_index h0
-
-@[simp] lemma coe_neg [add_group G] (g : α →₀ G) : ⇑(-g) = -g := rfl
-lemma neg_apply [add_group G] (g : α →₀ G) (a : α) : (- g) a = - g a := rfl
-
-@[simp] lemma coe_sub [add_group G] (g₁ g₂ : α →₀ G) : ⇑(g₁ - g₂) = g₁ - g₂ := rfl
-lemma sub_apply [add_group G] (g₁ g₂ : α →₀ G) (a : α) : (g₁ - g₂) a = g₁ a - g₂ a := rfl
 
 @[simp] lemma support_neg [add_group G] (f : α →₀ G) : support (-f) = support f :=
 finset.subset.antisymm
@@ -1204,44 +1214,62 @@ finset.prod_mul_distrib
 @[simp, to_additive]
 lemma prod_inv [has_zero M] [comm_group G] {f : α →₀ M}
   {h : α → M → G} : f.prod (λa b, (h a b)⁻¹) = (f.prod h)⁻¹ :=
-(((monoid_hom.id G)⁻¹).map_prod _ _).symm
+(map_prod ((monoid_hom.id G)⁻¹) _ _).symm
 
 @[simp] lemma sum_sub [has_zero M] [add_comm_group G] {f : α →₀ M}
   {h₁ h₂ : α → M → G} :
   f.sum (λa b, h₁ a b - h₂ a b) = f.sum h₁ - f.sum h₂ :=
 finset.sum_sub_distrib
 
-@[to_additive]
-lemma prod_add_index [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
+/-- Taking the product under `h` is an additive-to-multiplicative homomorphism of finsupps,
+if `h` is an additive-to-multiplicative homomorphism on the support.
+This is a more general version of `finsupp.prod_add_index'`; the latter has simpler hypotheses. -/
+@[to_additive "Taking the product under `h` is an additive homomorphism of finsupps,
+if `h` is an additive homomorphism on the support.
+This is a more general version of `finsupp.sum_add_index'`; the latter has simpler hypotheses."]
+lemma prod_add_index [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
+  {h : α → M → N} (h_zero : ∀ a ∈ f.support ∪ g.support, h a 0 = 1)
+  (h_add : ∀ (a ∈ f.support ∪ g.support) b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
+  (f + g).prod h = f.prod h * g.prod h :=
+begin
+  rw [finsupp.prod_of_support_subset f (subset_union_left _ g.support) h h_zero,
+      finsupp.prod_of_support_subset g (subset_union_right f.support _) h h_zero,
+      ←finset.prod_mul_distrib,
+      finsupp.prod_of_support_subset (f + g) finsupp.support_add h h_zero],
+  exact finset.prod_congr rfl (λ x hx, (by apply h_add x hx)),
+end
+
+/-- Taking the product under `h` is an additive-to-multiplicative homomorphism of finsupps,
+if `h` is an additive-to-multiplicative homomorphism.
+This is a more specialized version of `finsupp.prod_add_index` with simpler hypotheses. -/
+@[to_additive "Taking the product under `h` is an additive homomorphism of finsupps,
+if `h` is an additive homomorphism.
+This is a more specific version of `finsupp.sum_add_index` with simpler hypotheses."]
+lemma prod_add_index' [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   (f + g).prod h = f.prod h * g.prod h :=
-have hf : f.prod h = ∏ a in f.support ∪ g.support, h a (f a),
-  from f.prod_of_support_subset (subset_union_left _ _) _ $ λ a ha, h_zero a,
-have hg : g.prod h = ∏ a in f.support ∪ g.support, h a (g a),
-  from g.prod_of_support_subset (subset_union_right _ _) _ $ λ a ha, h_zero a,
-have hfg : (f + g).prod h = ∏ a in f.support ∪ g.support, h a ((f + g) a),
-  from (f + g).prod_of_support_subset support_add _ $ λ a ha, h_zero a,
-by simp only [*, add_apply, prod_mul_distrib]
+prod_add_index (λ a ha, h_zero a) (λ a ha, h_add a)
 
 @[simp]
-lemma sum_add_index' [add_comm_monoid M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
+lemma sum_hom_add_index [add_zero_class M] [add_comm_monoid N] {f g : α →₀ M} (h : α → M →+ N) :
   (f + g).sum (λ x, h x) = f.sum (λ x, h x) + g.sum (λ x, h x) :=
-sum_add_index (λ a, (h a).map_zero) (λ a, (h a).map_add)
+sum_add_index' (λ a, (h a).map_zero) (λ a, (h a).map_add)
 
 @[simp]
-lemma prod_add_index' [add_comm_monoid M] [comm_monoid N] {f g : α →₀ M}
+lemma prod_hom_add_index [add_zero_class M] [comm_monoid N] {f g : α →₀ M}
   (h : α → multiplicative M →* N) :
   (f + g).prod (λ a b, h a (multiplicative.of_add b)) =
     f.prod (λ a b, h a (multiplicative.of_add b)) * g.prod (λ a b, h a (multiplicative.of_add b)) :=
-prod_add_index (λ a, (h a).map_one) (λ a, (h a).map_mul)
+prod_add_index' (λ a, (h a).map_one) (λ a, (h a).map_mul)
+
 
 /-- The canonical isomorphism between families of additive monoid homomorphisms `α → (M →+ N)`
 and monoid homomorphisms `(α →₀ M) →+ N`. -/
-def lift_add_hom [add_comm_monoid M] [add_comm_monoid N] : (α → M →+ N) ≃+ ((α →₀ M) →+ N) :=
+def lift_add_hom [add_zero_class M] [add_comm_monoid N] : (α → M →+ N) ≃+ ((α →₀ M) →+ N) :=
 { to_fun := λ F,
   { to_fun := λ f, f.sum (λ x, F x),
     map_zero' := finset.sum_empty,
-    map_add' := λ _ _, sum_add_index (λ x, (F x).map_zero) (λ x, (F x).map_add) },
+    map_add' := λ _ _, sum_add_index' (λ x, (F x).map_zero) (λ x, (F x).map_add) },
   inv_fun := λ F x, F.comp $ single_add_hom x,
   left_inv := λ F, by { ext, simp },
   right_inv := λ F, by { ext, simp },
@@ -1305,7 +1333,7 @@ lemma prod_finset_sum_index [add_comm_monoid M] [comm_monoid N]
   {h : α → M → N} (h_zero : ∀a, h a 0 = 1) (h_add : ∀a b₁ b₂, h a (b₁ + b₂) = h a b₁ * h a b₂) :
   ∏ i in s, (g i).prod h = (∑ i in s, g i).prod h :=
 finset.induction_on s rfl $ λ a s has ih,
-by rw [prod_insert has, ih, sum_insert has, prod_add_index h_zero h_add]
+by rw [prod_insert has, ih, sum_insert has, prod_add_index' h_zero h_add]
 
 @[to_additive]
 lemma prod_sum_index
@@ -1321,7 +1349,7 @@ lemma multiset_sum_sum_index
   (h₀ : ∀a, h a 0 = 0) (h₁ : ∀ (a : α) (b₁ b₂ : M), h a (b₁ + b₂) = h a b₁ + h a b₂) :
   (f.sum.sum h) = (f.map $ λg:α →₀ M, g.sum h).sum :=
 multiset.induction_on f rfl $ assume a s ih,
-by rw [multiset.sum_cons, multiset.map_cons, multiset.sum_cons, sum_add_index h₀ h₁, ih]
+by rw [multiset.sum_cons, multiset.map_cons, multiset.sum_cons, sum_add_index' h₀ h₁, ih]
 
 lemma support_sum_eq_bUnion {α : Type*} {ι : Type*} {M : Type*} [add_comm_monoid M]
   {g : ι → α →₀ M} (s : finset ι) (h : ∀ i₁ i₂, i₁ ≠ i₂ → disjoint (g i₁).support (g i₂).support) :
@@ -1560,7 +1588,7 @@ lemma map_domain_congr {f g : α → β} (h : ∀x∈v.support, f x = g x) :
 finset.sum_congr rfl $ λ _ H, by simp only [h _ H]
 
 lemma map_domain_add {f : α → β} : map_domain f (v₁ + v₂) = map_domain f v₁ + map_domain f v₂ :=
-sum_add_index (λ _, single_zero) (λ _ _ _, single_add)
+sum_add_index' (λ _, single_zero) (λ _ _ _, single_add)
 
 @[simp] lemma map_domain_equiv_apply {f : α ≃ β} (x : α →₀ M) (a : β) :
   map_domain f x a = x (f.symm a) :=
@@ -1709,9 +1737,9 @@ lemma sum_update_add [add_comm_monoid α] [add_comm_monoid β]
   (hgg : ∀ (j : ι) (a₁ a₂ : α), g j (a₁ + a₂) = g j a₁ + g j a₂) :
   (f.update i a).sum g + g i (f i) = f.sum g + g i a :=
 begin
-  rw [update_eq_erase_add_single, sum_add_index hg hgg],
+  rw [update_eq_erase_add_single, sum_add_index' hg hgg],
   conv_rhs { rw ← finsupp.update_self f i },
-  rw [update_eq_erase_add_single, sum_add_index hg hgg, add_assoc, add_assoc],
+  rw [update_eq_erase_add_single, sum_add_index' hg hgg, add_assoc, add_assoc],
   congr' 1,
   rw [add_comm, sum_single_index (hg _), sum_single_index (hg _)],
 end
@@ -2141,7 +2169,7 @@ begin
   rw [finsupp.curry],
   transitivity,
   { exact sum_sum_index (assume a, sum_zero_index)
-      (assume a b₀ b₁, sum_add_index (assume a, hg₀ _ _) (assume c d₀ d₁, hg₁ _ _ _ _)) },
+      (assume a b₀ b₁, sum_add_index' (assume a, hg₀ _ _) (assume c d₀ d₁, hg₁ _ _ _ _)) },
   congr, funext p c,
   transitivity,
   { exact sum_single_index sum_zero_index },

@@ -64,6 +64,13 @@ protected meta def of_int (α : expr) : ℤ → tactic expr
   e ← expr.of_nat α (n+1),
   tactic.mk_app ``has_neg.neg [e]
 
+/-- Convert a list of expressions to an expression denoting the list of those expressions. -/
+meta def of_list (α : expr) : list expr → tactic expr
+| [] := tactic.mk_app ``list.nil [α]
+| (x :: xs) := do
+  exs ← of_list xs,
+  tactic.mk_app ``list.cons [α, x, exs]
+
 /-- Generates an expression of the form `∃(args), inner`. `args` is assumed to be a list of local
 constants. When possible, `p ∧ q` is used instead of `∃(_ : p), q`. -/
 meta def mk_exists_lst (args : list expr) (inner : expr) : tactic expr :=
@@ -241,7 +248,7 @@ private meta def add_local_consts_as_local_hyps_aux
 meta def add_local_consts_as_local_hyps (vars : list expr) : tactic (list (expr × expr)) :=
 /- The `list.reverse` below is a performance optimisation since the list of available variables
    reported by the system is often mostly the reverse of the order in which they are dependent. -/
-add_local_consts_as_local_hyps_aux [] vars.reverse.erase_dup
+add_local_consts_as_local_hyps_aux [] vars.reverse.dedup
 
 private meta def get_expl_pi_arity_aux : expr → tactic nat
 | (expr.pi n bi d b) :=

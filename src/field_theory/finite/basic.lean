@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
 import tactic.apply_fun
-import data.equiv.ring
+import algebra.ring.equiv
 import data.zmod.algebra
 import linear_algebra.finite_dimensional
 import ring_theory.integral_domain
@@ -20,7 +20,7 @@ and `q` is notation for the cardinality of `K`.
 
 See `ring_theory.integral_domain` for the fact that the unit group of a finite field is a
 cyclic group, as well as the fact that every finite integral domain is a field
-(`field_of_is_domain`).
+(`fintype.field_of_domain`).
 
 ## Main results
 
@@ -140,7 +140,7 @@ variables (K) [field K] [fintype K]
 theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
 begin
   haveI hp : fact p.prime := ⟨char_p.char_is_prime K p⟩,
-  letI : module (zmod p) K := { .. (zmod.cast_hom dvd_rfl K).to_module },
+  letI : module (zmod p) K := { .. (zmod.cast_hom dvd_rfl K : zmod p →+* _).to_module },
   obtain ⟨n, h⟩ := vector_space.card_fintype (zmod p) K,
   rw zmod.card at h,
   refine ⟨⟨n, _⟩, hp.1, h⟩,
@@ -263,13 +263,13 @@ begin
     intro x,
     rw [multiset.mem_to_finset, mem_roots aux, is_root.def, eval_sub, eval_pow, eval_X, sub_eq_zero,
       pow_card] },
-  rw [←this, multiset.to_finset_val, eq_comm, multiset.erase_dup_eq_self],
+  rw [←this, multiset.to_finset_val, eq_comm, multiset.dedup_eq_self],
   apply nodup_roots,
   rw separable_def,
-  convert is_coprime_one_right.neg_right,
-  rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
-    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub],
-end
+  convert is_coprime_one_right.neg_right using 1,
+  { rw [derivative_sub, derivative_X, derivative_X_pow, ←C_eq_nat_cast,
+    C_eq_zero.mpr (char_p.cast_card_eq_zero K), zero_mul, zero_sub], },
+  end
 
 instance : is_splitting_field (zmod p) K (X^q - X) :=
 { splits :=

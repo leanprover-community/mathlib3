@@ -79,7 +79,7 @@ we do *not* require. This gives `filter X` better formal properties, in particul
 `[ne_bot f]` in a number of lemmas and definitions.
 -/
 
-open set function
+open function set order
 
 universes u v w x y
 
@@ -178,6 +178,10 @@ begin
     hP (inter_subset_left _ _) hPu, hQ (inter_subset_right _ _) hQv⟩ },
   { rintro ⟨u, huf, hPu, hQu⟩, exact ⟨⟨u, huf, hPu⟩, u, huf, hQu⟩ }
 end
+
+lemma forall_in_swap {β : Type*} {p : set α → β → Prop} :
+  (∀ (a ∈ f) b, p a b) ↔ ∀ b (a ∈ f), p a b :=
+set.forall_in_swap
 
 end filter
 
@@ -281,7 +285,7 @@ inductive generate_sets (g : set (set α)) : set α → Prop
 | superset {s t : set α} : generate_sets s → s ⊆ t → generate_sets t
 | inter {s t : set α}    : generate_sets s → generate_sets t → generate_sets (s ∩ t)
 
-/-- `generate g` is the smallest filter containing the sets `g`. -/
+/-- `generate g` is the largest filter containing the sets `g`. -/
 def generate (g : set (set α)) : filter α :=
 { sets             := generate_sets g,
   univ_sets        := generate_sets.univ,
@@ -708,7 +712,7 @@ lemma infi_sets_eq_finite {ι : Type*} (f : ι → filter α) :
   (⨅ i, f i).sets = (⋃ t : finset ι, (⨅ i ∈ t, f i).sets) :=
 begin
   rw [infi_eq_infi_finset, infi_sets_eq],
-  exact (directed_of_sup $ λ s₁ s₂ hs, infi_le_infi $ λ i, infi_le_infi_const $ λ h, hs h),
+  exact directed_of_sup (λ s₁ s₂, binfi_mono),
 end
 
 lemma infi_sets_eq_finite' (f : ι → filter α) :
@@ -745,32 +749,23 @@ instance : distrib_lattice (filter α) :=
   end,
   ..filter.complete_lattice }
 
-/- the complementary version with ⨆ i, f ⊓ g i does not hold! -/
-lemma infi_sup_left {f : filter α} {g : ι → filter α} : (⨅ x, f ⊔ g x) = f ⊔ infi g :=
-begin
-  refine le_antisymm _ (le_infi $ λ i, sup_le_sup_left (infi_le _ _) _),
-  rintro t ⟨h₁, h₂⟩,
-  rw [infi_sets_eq_finite'] at h₂,
-  simp only [mem_Union, (finset.inf_eq_infi _ _).symm] at h₂,
-  rcases h₂ with ⟨s, hs⟩,
-  suffices : (⨅ i, f ⊔ g i) ≤ f ⊔ s.inf (λ i, g i.down), { exact this ⟨h₁, hs⟩ },
-  refine finset.induction_on s _ _,
-  { exact le_sup_of_le_right le_top },
-  { rintro ⟨i⟩ s his ih,
+-- The dual version does not hold! `filter α` is not a `complete_distrib_lattice`. -/
+instance : coframe (filter α) :=
+{ Inf := Inf,
+  infi_sup_le_sup_Inf := λ f s, begin
+    rw [Inf_eq_infi', infi_subtype'],
+    rintro t ⟨h₁, h₂⟩,
+    rw infi_sets_eq_finite' at h₂,
+    simp only [mem_Union, (finset.inf_eq_infi _ _).symm] at h₂,
+    obtain ⟨u, hu⟩ := h₂,
+    suffices : (⨅ i, f ⊔ ↑i) ≤ f ⊔ u.inf (λ i, ↑i.down),
+    { exact this ⟨h₁, hu⟩ },
+    refine finset.induction_on u (le_sup_of_le_right le_top) _,
+    rintro ⟨i⟩ u _ ih,
     rw [finset.inf_insert, sup_inf_left],
-    exact le_inf (infi_le _ _) ih }
-end
-
-lemma infi_sup_right {f : filter α} {g : ι → filter α} : (⨅ x, g x ⊔ f) = infi g ⊔ f :=
-by simp [sup_comm, ← infi_sup_left]
-
-lemma binfi_sup_right (p : ι → Prop) (f : ι → filter α) (g : filter α) :
-  (⨅ i (h : p i), (f i ⊔ g)) = (⨅ i (h : p i), f i) ⊔ g :=
-by rw [infi_subtype', infi_sup_right, infi_subtype']
-
-lemma binfi_sup_left (p : ι → Prop) (f : ι → filter α) (g : filter α) :
-  (⨅ i (h : p i), (g ⊔ f i)) = g ⊔ (⨅ i (h : p i), f i) :=
-by rw [infi_subtype', infi_sup_left, infi_subtype']
+    exact le_inf (infi_le _ _) ih,
+  end,
+  ..filter.complete_lattice }
 
 lemma mem_infi_finset {s : finset α} {f : α → filter β} {t : set β} :
   t ∈ (⨅ a ∈ s, f a) ↔ (∃ p : α → set β, (∀ a ∈ s, p a ∈ f a) ∧ t = ⋂ a ∈ s, p a) :=
@@ -1251,9 +1246,8 @@ lemma eventually_eq.rfl {l : filter α} {f : α → β} : f =ᶠ[l] f := eventua
   g =ᶠ[l] f :=
 H.mono $ λ _, eq.symm
 
-@[trans] lemma eventually_eq.trans {f g h : α → β} {l : filter α}
-  (H₁ : f =ᶠ[l] g) (H₂ : g =ᶠ[l] h) :
-  f =ᶠ[l] h :=
+@[trans] lemma eventually_eq.trans {l : filter α} {f g h : α → β}
+  (H₁ : f =ᶠ[l] g) (H₂ : g =ᶠ[l] h) : f =ᶠ[l] h :=
 H₂.rw (λ x y, f x = y) H₁
 
 lemma eventually_eq.prod_mk {l} {f f' : α → β} (hf : f =ᶠ[l] f') {g g' : α → γ} (hg : g =ᶠ[l] g') :
@@ -1280,20 +1274,11 @@ lemma eventually_eq.inv [has_inv β] {f g : α → β} {l : filter α} (h : f =�
   ((λ x, (f x)⁻¹) =ᶠ[l] (λ x, (g x)⁻¹)) :=
 h.fun_comp has_inv.inv
 
-lemma eventually_eq.div [group_with_zero β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
+@[to_additive]
+lemma eventually_eq.div [has_div β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
   (h' : f' =ᶠ[l] g') :
   ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
-by simpa only [div_eq_mul_inv] using h.mul h'.inv
-
-lemma eventually_eq.div' [group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
-  (h' : f' =ᶠ[l] g') :
-  ((λ x, f x / f' x) =ᶠ[l] (λ x, g x / g' x)) :=
-by simpa only [div_eq_mul_inv] using h.mul h'.inv
-
-lemma eventually_eq.sub [add_group β] {f f' g g' : α → β} {l : filter α} (h : f =ᶠ[l] g)
-  (h' : f' =ᶠ[l] g') :
-  ((λ x, f x - f' x) =ᶠ[l] (λ x, g x - g' x)) :=
-by simpa only [sub_eq_add_neg] using h.add h'.neg
+h.comp₂ (/) h'
 
 @[to_additive] lemma eventually_eq.const_smul {𝕜} [has_scalar 𝕜 β] {l : filter α} {f g : α → β}
   (h : f =ᶠ[l] g) (c : 𝕜) :
@@ -1314,6 +1299,10 @@ lemma eventually_eq.inf [has_inf β] {l : filter α} {f f' g g' : α → β}
   (hf : f =ᶠ[l] f') (hg : g =ᶠ[l] g') :
   (λ x, f x ⊓ g x) =ᶠ[l] λ x, f' x ⊓ g' x :=
 hf.comp₂ (⊓) hg
+
+lemma eventually_eq.preimage {l : filter α} {f g : α → β}
+  (h : f =ᶠ[l] g) (s : set β) : f ⁻¹' s =ᶠ[l] g ⁻¹' s :=
+h.fun_comp s
 
 lemma eventually_eq.inter {s t s' t' : set α} {l : filter α} (h : s =ᶠ[l] t) (h' : s' =ᶠ[l] t') :
   (s ∩ s' : set α) =ᶠ[l] (t ∩ t' : set α) :=
@@ -1654,6 +1643,9 @@ begin
     use univ,
     simp [univ_mem] },
 end
+
+lemma map_const [ne_bot f] {c : α} : f.map (λ x, c) = pure c :=
+by { ext s, by_cases h : c ∈ s; simp [h] }
 
 lemma comap_comap {m : γ → β} {n : β → α} : comap m (comap n f) = comap (n ∘ m) f :=
 le_antisymm
@@ -1999,6 +1991,14 @@ le_antisymm
       ... ⊆ preimage m b : preimage_mono h)
   (λ b (hb : preimage m b ∈ f),
     ⟨preimage m b, hb, show preimage (m ∘ n) b ⊆ b, by simp only [h₁]; apply subset.refl⟩)
+
+lemma map_equiv_symm (e : α ≃ β) (f : filter β) :
+  map e.symm f = comap e f :=
+map_eq_comap_of_inverse e.symm_comp_self e.self_comp_symm
+
+lemma comap_equiv_symm (e : α ≃ β) (f : filter α) :
+  comap e.symm f = map e f :=
+(map_eq_comap_of_inverse e.self_comp_symm e.symm_comp_self).symm
 
 lemma map_swap_eq_comap_swap {f : filter (α × β)} : prod.swap <$> f = comap prod.swap f :=
 map_eq_comap_of_inverse prod.swap_swap_eq prod.swap_swap_eq
@@ -2571,6 +2571,16 @@ lemma eventually.prod_mk {la : filter α} {pa : α → Prop} (ha : ∀ᶠ x in l
   ∀ᶠ p in la ×ᶠ lb, pa (p : α × β).1 ∧ pb p.2 :=
 (ha.prod_inl lb).and (hb.prod_inr la)
 
+lemma eventually_eq.prod_map {δ} {la : filter α} {fa ga : α → γ} (ha : fa =ᶠ[la] ga)
+  {lb : filter β} {fb gb : β → δ} (hb : fb =ᶠ[lb] gb) :
+  prod.map fa fb =ᶠ[la ×ᶠ lb] prod.map ga gb :=
+(eventually.prod_mk ha hb).mono $ λ x h, prod.ext h.1 h.2
+
+lemma eventually_le.prod_map {δ} [has_le γ] [has_le δ] {la : filter α} {fa ga : α → γ}
+  (ha : fa ≤ᶠ[la] ga) {lb : filter β} {fb gb : β → δ} (hb : fb ≤ᶠ[lb] gb) :
+  prod.map fa fb ≤ᶠ[la ×ᶠ lb] prod.map ga gb :=
+eventually.prod_mk ha hb
+
 lemma eventually.curry {la : filter α} {lb : filter β} {p : α × β → Prop}
   (h : ∀ᶠ x in la ×ᶠ lb, p x) :
   ∀ᶠ x in la, ∀ᶠ y in lb, p (x, y) :=
@@ -2631,7 +2641,7 @@ begin
   exact filter.prod_mono hf hg,
 end
 
-lemma map_prod (m : α × β → γ) (f : filter α) (g : filter β) :
+protected lemma map_prod (m : α × β → γ) (f : filter α) (g : filter β) :
   map m (f ×ᶠ g) = (f.map (λ a b, m (a, b))).seq g :=
 begin
   simp [filter.ext_iff, mem_prod_iff, mem_map_seq_iff],
@@ -2642,7 +2652,7 @@ begin
 end
 
 lemma prod_eq {f : filter α} {g : filter β} : f ×ᶠ g = (f.map prod.mk).seq g  :=
-have h : _ := map_prod id f g, by rwa [map_id] at h
+have h : _ := f.map_prod id g, by rwa [map_id] at h
 
 lemma prod_inf_prod {f₁ f₂ : filter α} {g₁ g₂ : filter β} :
   (f₁ ×ᶠ g₁) ⊓ (f₂ ×ᶠ g₂) = (f₁ ⊓ f₂) ×ᶠ (g₁ ⊓ g₂) :=
@@ -2658,6 +2668,10 @@ by simp only [filter.prod, comap_principal, principal_eq_iff_eq, comap_principal
 
 @[simp] lemma pure_prod {a : α} {f : filter β} : pure a ×ᶠ f = map (prod.mk a) f :=
 by rw [prod_eq, map_pure, pure_seq_eq_map]
+
+lemma map_pure_prod (f : α → β → γ) (a : α) (B : filter β) :
+  filter.map (function.uncurry f) (pure a ×ᶠ B) = filter.map (f a) B :=
+by { rw filter.pure_prod, refl }
 
 @[simp] lemma prod_pure {f : filter α} {b : β} : f ×ᶠ pure b = map (λ a, (a, b)) f :=
 by rw [prod_eq, seq_pure, map_map]

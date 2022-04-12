@@ -28,7 +28,7 @@ variables (C : Type*) [category C]
 /-- The canonical functor `karoubi (karoubi C) ⥤ karoubi C` -/
 @[simps]
 def inverse : karoubi (karoubi C) ⥤ karoubi C :=
-{ obj := λ P, ⟨P.X.X, P.p.f, by simpa only [hom_ext] using P.idempotence⟩,
+{ obj := λ P, ⟨P.X.X, P.p.f, by simpa only [hom_ext] using P.idem⟩,
   map := λ P Q f, ⟨f.f.f, by simpa only [hom_ext] using f.comm⟩, }
 
 instance [preadditive C] : functor.additive (inverse C) := { }
@@ -57,12 +57,12 @@ def counit_iso : inverse C ⋙ to_karoubi (karoubi C) ≅ 𝟭 (karoubi (karoubi
     { f :=
       { f := P.p.1,
         comm := begin
-          have h := P.idempotence,
+          have h := P.idem,
           simp only [hom_ext, comp] at h,
           erw [← assoc, h, comp_p],
         end, },
       comm := begin
-        have h := P.idempotence,
+        have h := P.idem,
         simp only [hom_ext, comp] at h ⊢,
         erw [h, h],
       end, },
@@ -72,18 +72,18 @@ def counit_iso : inverse C ⋙ to_karoubi (karoubi C) ≅ 𝟭 (karoubi (karoubi
     { f :=
       { f := P.p.1,
         comm := begin
-          have h := P.idempotence,
+          have h := P.idem,
           simp only [hom_ext, comp] at h,
           erw [h, p_comp],
         end, },
       comm := begin
-        have h := P.idempotence,
+        have h := P.idem,
         simp only [hom_ext, comp] at h ⊢,
         erw [h, h],
       end, },
     naturality' := λ P Q f, by simpa [hom_ext] using (p_comm f).symm, },
-  hom_inv_id' := by { ext P, simpa only [hom_ext, id_eq] using P.idempotence, },
-  inv_hom_id' := by { ext P, simpa only [hom_ext, id_eq] using P.idempotence, }, }
+  hom_inv_id' := by { ext P, simpa only [hom_ext, id_eq] using P.idem, },
+  inv_hom_id' := by { ext P, simpa only [hom_ext, id_eq] using P.idem, }, }
 
 /-- The equivalence `karoubi C ≌ karoubi (karoubi C)` -/
 @[simps]
@@ -96,7 +96,7 @@ def equivalence : karoubi C ≌ karoubi (karoubi C) :=
     ext,
     simp only [eq_to_hom_f, eq_to_hom_refl, comp_id, counit_iso_hom_app_f_f,
       to_karoubi_obj_p, id_eq, assoc, comp, unit_iso_hom, eq_to_hom_app, eq_to_hom_map],
-    erw [P.idempotence, P.idempotence],
+    erw [P.idem, P.idem],
   end, }
 
 instance equivalence.additive_functor [preadditive C] :

@@ -10,9 +10,9 @@ import order.category.Lattice
 
 This file defines `DistribLattice`, the category of distributive lattices.
 
-Note that `DistribLattice` doesn't correspond to the literature definition of [`DistLat`]
-[https://ncatlab.org/nlab/show/DistLat] as we don't require bottom or top elements. Instead,
-`DistLat` corresponds to `BoundedDistribLattice` (not yet in mathlib).
+Note that [`DistLat`](https://ncatlab.org/nlab/show/DistLat) in the literature doesn't always
+correspond to `DistribLattice` as we don't require bottom or top elements. Instead, this `DistLat`
+corresponds to `BoundedDistribLattice`.
 -/
 
 universes u
@@ -29,6 +29,8 @@ instance (X : DistribLattice) : distrib_lattice X := X.str
 
 /-- Construct a bundled `DistribLattice` from a `distrib_lattice` underlying type and typeclass. -/
 def of (α : Type*) [distrib_lattice α] : DistribLattice := bundled.of α
+
+@[simp] lemma coe_of (α : Type*) [distrib_lattice α] : ↥(of α) = α := rfl
 
 instance : inhabited DistribLattice := ⟨of punit⟩
 

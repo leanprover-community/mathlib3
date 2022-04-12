@@ -461,6 +461,9 @@ lemma differentiable_on.eventually_differentiable_at (h : differentiable_on 𝕜
 lemma has_fderiv_at.fderiv (h : has_fderiv_at f f' x) : fderiv 𝕜 f x = f' :=
 by { ext, rw h.unique h.differentiable_at.has_fderiv_at }
 
+lemma fderiv_eq {f' : E → E →L[𝕜] F} (h : ∀ x, has_fderiv_at f (f' x) x) : fderiv 𝕜 f = f' :=
+funext $ λ x, (h x).fderiv
+
 /-- Converse to the mean value inequality: if `f` is differentiable at `x₀` and `C`-lipschitz
 on a neighborhood of `x₀` then it its derivative at `x₀` has norm bounded by `C`.
 Version using `fderiv`. -/
@@ -503,6 +506,20 @@ lemma differentiable_within_at_inter' (ht : t ∈ 𝓝[s] x) :
 by simp only [differentiable_within_at, has_fderiv_within_at, has_fderiv_at_filter,
     nhds_within_restrict'' s ht]
 
+lemma differentiable_within_at.antimono (h : differentiable_within_at 𝕜 f s x) (hst : s ⊆ t)
+  (hx : s ∈ 𝓝[t] x) :
+  differentiable_within_at 𝕜 f t x :=
+by rwa [← differentiable_within_at_inter' hx, inter_eq_self_of_subset_right hst]
+
+lemma has_fderiv_within_at.antimono (h : has_fderiv_within_at f f' s x) (hst : s ⊆ t)
+  (hs : unique_diff_within_at 𝕜 s x) (hx : s ∈ 𝓝[t] x) :
+  has_fderiv_within_at f f' t x :=
+begin
+  have h' : has_fderiv_within_at f _ t x :=
+    (h.differentiable_within_at.antimono hst hx).has_fderiv_within_at,
+  rwa hs.eq h (h'.mono hst),
+end
+
 lemma differentiable_at.differentiable_within_at
   (h : differentiable_at 𝕜 f x) : differentiable_within_at 𝕜 f s x :=
 (differentiable_within_at_univ.2 h).mono (subset_univ _)
@@ -542,6 +559,11 @@ lemma fderiv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
   (h : differentiable_within_at 𝕜 f t x) :
   fderiv_within 𝕜 f s x = fderiv_within 𝕜 f t x :=
 ((differentiable_within_at.has_fderiv_within_at h).mono st).fderiv_within ht
+
+lemma fderiv_within_subset' (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x) (hx : s ∈ 𝓝[t] x)
+  (h : differentiable_within_at 𝕜 f s x) :
+  fderiv_within 𝕜 f s x = fderiv_within 𝕜 f t x :=
+fderiv_within_subset st ht (h.antimono st hx)
 
 @[simp] lemma fderiv_within_univ : fderiv_within 𝕜 f univ = fderiv 𝕜 f :=
 begin
@@ -899,15 +921,25 @@ end
 lemma differentiable_on_const (c : F) : differentiable_on 𝕜 (λx, c) s :=
 (differentiable_const _).differentiable_on
 
-lemma has_fderiv_at_of_subsingleton {R X Y : Type*} [nondiscrete_normed_field R]
-  [normed_group X] [normed_group Y] [normed_space R X] [normed_space R Y] [h : subsingleton X]
-  (f : X → Y) (x : X) :
-  has_fderiv_at f (0 : X →L[R] Y) x :=
+lemma has_fderiv_within_at_singleton (f : E → F) (x : E) :
+  has_fderiv_within_at f (0 : E →L[𝕜] F) {x} x :=
+by simp only [has_fderiv_within_at, nhds_within_singleton, has_fderiv_at_filter, is_o_pure,
+  continuous_linear_map.zero_apply, sub_self]
+
+lemma has_fderiv_at_of_subsingleton [h : subsingleton E] (f : E → F) (x : E) :
+  has_fderiv_at f (0 : E →L[𝕜] F) x :=
 begin
-  rw subsingleton_iff at h,
-  have key : function.const X (f 0) = f := by ext x'; rw h x' 0,
-  exact key ▸ (has_fderiv_at_const (f 0) _),
+  rw [← has_fderiv_within_at_univ, subsingleton_univ.eq_singleton_of_mem (mem_univ x)],
+  exact has_fderiv_within_at_singleton f x
 end
+
+lemma differentiable_on_empty : differentiable_on 𝕜 f ∅ := λ x, false.elim
+
+lemma differentiable_on_singleton : differentiable_on 𝕜 f {x} :=
+forall_eq.2 (has_fderiv_within_at_singleton f x).differentiable_within_at
+
+lemma set.subsingleton.differentiable_on (hs : s.subsingleton) : differentiable_on 𝕜 f s :=
+hs.induction_on differentiable_on_empty (λ x, differentiable_on_singleton)
 
 end const
 
@@ -1093,7 +1125,7 @@ lemma fderiv.comp_fderiv_within {g : F → G}
 (hg.has_fderiv_at.comp_has_fderiv_within_at x hf.has_fderiv_within_at).fderiv_within hxs
 
 lemma differentiable_on.comp {g : F → G} {t : set F}
-  (hg : differentiable_on 𝕜 g t) (hf : differentiable_on 𝕜 f s) (st : s ⊆ f ⁻¹' t) :
+  (hg : differentiable_on 𝕜 g t) (hf : differentiable_on 𝕜 f s) (st : maps_to f s t) :
   differentiable_on 𝕜 (g ∘ f) s :=
 λx hx, differentiable_within_at.comp x (hg (f x) (st hx)) (hf x hx) st
 
@@ -1104,7 +1136,7 @@ lemma differentiable.comp {g : F → G} (hg : differentiable 𝕜 g) (hf : diffe
 lemma differentiable.comp_differentiable_on {g : F → G} (hg : differentiable 𝕜 g)
   (hf : differentiable_on 𝕜 f s) :
   differentiable_on 𝕜 (g ∘ f) s :=
-(differentiable_on_univ.2 hg).comp hf (by simp)
+hg.differentiable_on.comp hf (maps_to_univ _ _)
 
 /-- The chain rule for derivatives in the sense of strict differentiability. -/
 protected lemma has_strict_fderiv_at.comp {g : F → G} {g' : F →L[𝕜] G}
@@ -2501,7 +2533,7 @@ begin
   have h_is_o : is_o (λ (t : R), inverse (↑x + t) - ↑x⁻¹ + ↑x⁻¹ * t * ↑x⁻¹)
     (λ (t : R), t) (𝓝 0),
   { refine (inverse_add_norm_diff_second_order x).trans_is_o ((is_o_norm_norm).mp _),
-    simp only [normed_field.norm_pow, norm_norm],
+    simp only [norm_pow, norm_norm],
     have h12 : 1 < 2 := by norm_num,
     convert (asymptotics.is_o_pow_pow h12).comp_tendsto tendsto_norm_zero,
     ext, simp },
@@ -2987,3 +3019,25 @@ begin
 end
 
 end restrict_scalars
+
+/-! ### Support of derivatives -/
+
+section support
+
+open function
+variables (𝕜 : Type*) {E F : Type*} [nondiscrete_normed_field 𝕜]
+variables [normed_group E] [normed_space 𝕜 E] [normed_group F] [normed_space 𝕜 F] {f : E → F}
+
+lemma support_fderiv_subset : support (fderiv 𝕜 f) ⊆ tsupport f :=
+begin
+  intros x,
+  rw [← not_imp_not],
+  intro h2x,
+  rw [not_mem_closure_support_iff_eventually_eq] at h2x,
+  exact nmem_support.mpr (h2x.fderiv_eq.trans $ fderiv_const_apply 0),
+end
+
+lemma has_compact_support.fderiv (hf : has_compact_support f) : has_compact_support (fderiv 𝕜 f) :=
+hf.mono' $ support_fderiv_subset 𝕜
+
+end support

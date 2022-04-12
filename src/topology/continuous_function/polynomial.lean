@@ -29,7 +29,7 @@ namespace polynomial
 
 
 section
-variables [semiring R] [topological_space R] [topological_ring R]
+variables [semiring R] [topological_space R] [topological_semiring R]
 
 /--
 Every polynomial with coefficients in a topological semiring gives a (bundled) continuous function.
@@ -54,7 +54,7 @@ end
 
 section
 variables {α : Type*} [topological_space α]
-  [comm_semiring R] [topological_space R] [topological_ring R]
+  [comm_semiring R] [topological_space R] [topological_semiring R]
 
 @[simp] lemma aeval_continuous_map_apply (g : R[X]) (f : C(α, R)) (x : α) :
   ((polynomial.aeval f) g) x = g.eval (f x) :=
@@ -71,7 +71,7 @@ section
 
 noncomputable theory
 
-variables [comm_semiring R] [topological_space R] [topological_ring R]
+variables [comm_semiring R] [topological_space R] [topological_semiring R]
 
 /--
 The algebra map from `polynomial R` to continuous functions `C(R, R)`.
@@ -102,10 +102,11 @@ end
 end polynomial
 
 section
-variables [comm_semiring R] [topological_space R] [topological_ring R]
+variables [comm_semiring R] [topological_space R] [topological_semiring R]
 
 /--
-The subalgebra of polynomial functions in `C(X, R)`, for `X` a subset of some topological ring `R`.
+The subalgebra of polynomial functions in `C(X, R)`, for `X` a subset of some topological semiring
+`R`.
 -/
 def polynomial_functions (X : set R) : subalgebra R C(X, R) :=
 (⊤ : subalgebra R R[X]).map (polynomial.to_continuous_map_on_alg_hom X)
@@ -143,7 +144,7 @@ begin
   ext f,
   fsplit,
   { rintro ⟨p, ⟨-,w⟩⟩,
-    rw continuous_map.ext_iff at w,
+    rw fun_like.ext_iff at w,
     dsimp at w,
     let q := p.comp ((b - a)⁻¹ • polynomial.X + polynomial.C (-a * (b-a)⁻¹)),
     refine ⟨q, ⟨_, _⟩⟩,

@@ -329,14 +329,14 @@ def completion := quotient (separation_setoid $ Cauchy α)
 namespace completion
 
 instance [inhabited α] : inhabited (completion α) :=
-by unfold completion; apply_instance
+quotient.inhabited (separation_setoid (Cauchy α))
 
 @[priority 50]
-instance : uniform_space (completion α) := by dunfold completion ; apply_instance
+instance : uniform_space (completion α) := separation_setoid.uniform_space
 
-instance : complete_space (completion α) := by dunfold completion ; apply_instance
+instance : complete_space (completion α) := uniform_space.complete_space_separation (Cauchy α)
 
-instance : separated_space (completion α) := by dunfold completion ; apply_instance
+instance : separated_space (completion α) := uniform_space.separated_separation
 
 instance : regular_space (completion α) := separated_regular
 
@@ -447,6 +447,11 @@ this (a, b, c)
 lemma ext {Y : Type*} [topological_space Y] [t2_space Y] {f g : completion α → Y}
   (hf : continuous f) (hg : continuous g) (h : ∀a:α, f a = g a) : f = g :=
 cpkg.funext hf hg h
+
+lemma ext' {Y : Type*} [topological_space Y] [t2_space Y] {f g : completion α → Y}
+  (hf : continuous f) (hg : continuous g) (h : ∀a:α, f a = g a) (a : completion α) :
+  f a = g a :=
+congr_fun (ext hf hg h) a
 
 section extension
 variables {f : α → β}

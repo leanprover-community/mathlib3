@@ -284,6 +284,18 @@ is_open.inter (hs.preimage continuous_fst) (ht.preimage continuous_snd)
 lemma nhds_prod_eq {a : α} {b : β} : 𝓝 (a, b) = 𝓝 a ×ᶠ 𝓝 b :=
 by rw [filter.prod, prod.topological_space, nhds_inf, nhds_induced, nhds_induced]
 
+/-- If a function `f x y` is such that `y ↦ f x y` is continuous for all `x`, and `x` lives in a
+discrete space, then `f` is continuous. -/
+lemma continuous_uncurry_of_discrete_topology [discrete_topology α]
+  {f : α → β → γ} (hf : ∀ a, continuous (f a)) : continuous (function.uncurry f) :=
+begin
+  apply continuous_iff_continuous_at.2,
+  rintros ⟨a, x⟩,
+  change map _ _ ≤ _,
+  rw [nhds_prod_eq, nhds_discrete, filter.map_pure_prod],
+  exact (hf a).continuous_at
+end
+
 lemma mem_nhds_prod_iff {a : α} {b : β} {s : set (α × β)} :
   s ∈ 𝓝 (a, b) ↔ ∃ (u ∈ 𝓝 a) (v ∈ 𝓝 b), u ×ˢ v ⊆ s :=
 by rw [nhds_prod_eq, mem_prod_iff]
@@ -642,6 +654,12 @@ is_open_sum_iff.2 $ by simp
 lemma is_open_range_inr : is_open (range (inr : β → α ⊕ β)) :=
 is_open_sum_iff.2 $ by simp
 
+lemma is_closed_range_inl : is_closed (range (inl : α → α ⊕ β)) :=
+by { rw [← is_open_compl_iff, compl_range_inl], exact is_open_range_inr }
+
+lemma is_closed_range_inr : is_closed (range (inr : β → α ⊕ β)) :=
+by { rw [← is_open_compl_iff, compl_range_inr], exact is_open_range_inl }
+
 lemma open_embedding_inl : open_embedding (inl : α → α ⊕ β) :=
 { open_range := is_open_range_inl,
   .. embedding_inl }
@@ -650,10 +668,23 @@ lemma open_embedding_inr : open_embedding (inr : β → α ⊕ β) :=
 { open_range := is_open_range_inr,
   .. embedding_inr }
 
+lemma closed_embedding_inl : closed_embedding (inl : α → α ⊕ β) :=
+{ closed_range := is_closed_range_inl,
+  .. embedding_inl }
+
+lemma closed_embedding_inr : closed_embedding (inr : β → α ⊕ β) :=
+{ closed_range := is_closed_range_inr,
+  .. embedding_inr }
+
 end sum
 
 section subtype
 variables [topological_space α] [topological_space β] [topological_space γ] {p : α → Prop}
+
+lemma inducing_coe {b : set β} : inducing (coe : b → β) := ⟨rfl⟩
+
+lemma inducing.of_cod_restrict {f : α → β} {b : set β} (hb : ∀ a, f a ∈ b)
+  (h : inducing (b.cod_restrict f hb)) : inducing f := inducing_coe.comp h
 
 lemma embedding_subtype_coe : embedding (coe : subtype p → α) :=
 ⟨⟨rfl⟩, subtype.coe_injective⟩
@@ -755,6 +786,17 @@ continuous_iff_is_closed.mpr $
 lemma closure_subtype {x : {a // p a}} {s : set {a // p a}}:
   x ∈ closure s ↔ (x : α) ∈ closure ((coe : _ → α) '' s) :=
 closure_induced
+
+@[continuity] lemma continuous.cod_restrict {f : α → β} {s : set β} (hf : continuous f)
+  (hs : ∀ a, f a ∈ s) : continuous (s.cod_restrict f hs) := continuous_subtype_mk hs hf
+
+lemma inducing.cod_restrict {e : α → β} (he : inducing e) {s : set β} (hs : ∀ x, e x ∈ s) :
+  inducing (cod_restrict e s hs) :=
+inducing_of_inducing_compose (he.continuous.cod_restrict hs) continuous_subtype_coe he
+
+lemma embedding.cod_restrict {e : α → β} (he : embedding e) (s : set β) (hs : ∀ x, e x ∈ s) :
+  embedding (cod_restrict e s hs) :=
+embedding_of_embedding_compose (he.continuous.cod_restrict hs) continuous_subtype_coe he
 
 end subtype
 
@@ -999,19 +1041,6 @@ by simp only [is_open_supr_iff, is_open_coinduced]
 lemma is_closed_sigma_iff {s : set (sigma σ)} : is_closed s ↔ ∀ i, is_closed (sigma.mk i ⁻¹' s) :=
 by simp only [← is_open_compl_iff, is_open_sigma_iff, preimage_compl]
 
-lemma is_open_sigma_fst_preimage (s : set ι) :  is_open (sigma.fst ⁻¹' s : set (Σ a, σ a)) :=
-begin
-  rw is_open_sigma_iff,
-  intros a,
-  by_cases h : a ∈ s,
-  { convert is_open_univ,
-    ext x,
-    simp only [h, set.mem_preimage, set.mem_univ] },
-  { convert is_open_empty,
-    ext x,
-    simp only [h, set.mem_empty_eq, set.mem_preimage] }
-end
-
 lemma is_open_map_sigma_mk {i : ι} : is_open_map (@sigma.mk ι σ i) :=
 begin
   intros s hs,
@@ -1056,6 +1085,13 @@ closed_embedding_of_continuous_injective_closed
 
 lemma embedding_sigma_mk {i : ι} : embedding (@sigma.mk ι σ i) :=
 closed_embedding_sigma_mk.1
+
+lemma is_open_sigma_fst_preimage (s : set ι) :  is_open (sigma.fst ⁻¹' s : set (Σ a, σ a)) :=
+begin
+  rw [← bUnion_of_singleton s, preimage_Union₂],
+  simp only [← range_sigma_mk],
+  exact is_open_bUnion (λ _ _, is_open_range_sigma_mk)
+end
 
 /-- A map out of a sum type is continuous if its restriction to each summand is. -/
 @[continuity]

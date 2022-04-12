@@ -271,6 +271,10 @@ lemma monomial_finsupp_sum_index {α β : Type*} [has_zero β] (f : α →₀ β
   (monomial (f.sum g) a) = C a * f.prod (λ a b, monomial (g a b) 1) :=
 monomial_sum_index _ _ _
 
+lemma monomial_eq_monomial_iff {α : Type*} (a₁ a₂ : α →₀ ℕ) (b₁ b₂ : R) :
+  monomial a₁ b₁ = monomial a₂ b₂ ↔ a₁ = a₂ ∧ b₁ = b₂ ∨ b₁ = 0 ∧ b₂ = 0 :=
+finsupp.single_eq_single_iff _ _ _ _
+
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ R) :=
 by simp only [X_pow_eq_monomial, ← monomial_finsupp_sum_index, finsupp.sum_single]
 
@@ -539,7 +543,7 @@ begin
 end
 
 lemma support_symm_diff_support_subset_support_add [decidable_eq σ] (p q : mv_polynomial σ R) :
-  p.support Δ q.support ⊆ (p + q).support :=
+  p.support ∆ q.support ⊆ (p + q).support :=
 begin
   rw [symm_diff_def, finset.sup_eq_union],
   apply finset.union_subset,

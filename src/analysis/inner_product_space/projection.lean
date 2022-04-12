@@ -550,7 +550,7 @@ lemma orthogonal_projection_singleton {v : E} (w : E) :
   (orthogonal_projection (𝕜 ∙ v) w : E) = (⟪v, w⟫ / ∥v∥ ^ 2) • v :=
 begin
   by_cases hv : v = 0,
-  { rw [hv, eq_orthogonal_projection_of_eq_submodule submodule.span_zero_singleton],
+  { rw [hv, eq_orthogonal_projection_of_eq_submodule (submodule.span_zero_singleton 𝕜)],
     { simp },
     { apply_instance } },
   have hv' : ∥v∥ ≠ 0 := ne_of_gt (norm_pos_iff.mpr hv),
@@ -820,6 +820,23 @@ begin
   { rw add_comm at hwyz,
     refine eq_orthogonal_projection_of_mem_orthogonal' hz _ hwyz,
     simp [hy] }
+end
+
+/-- The Pythagorean theorem, for an orthogonal projection.-/
+lemma norm_sq_eq_add_norm_sq_projection
+  (x : E) (S : submodule 𝕜 E) [complete_space E] [complete_space S] :
+  ∥x∥^2 = ∥orthogonal_projection S x∥^2 + ∥orthogonal_projection Sᗮ x∥^2 :=
+begin
+  let p1 := orthogonal_projection S,
+  let p2 := orthogonal_projection Sᗮ,
+  have x_decomp : x = p1 x + p2 x :=
+    eq_sum_orthogonal_projection_self_orthogonal_complement S x,
+  have x_orth : ⟪ p1 x, p2 x ⟫ = 0 :=
+    submodule.inner_right_of_mem_orthogonal (set_like.coe_mem (p1 x)) (set_like.coe_mem (p2 x)),
+  nth_rewrite 0 [x_decomp],
+  simp only [sq, norm_add_sq_eq_norm_sq_add_norm_sq_of_inner_eq_zero ((p1 x) : E) (p2 x) x_orth,
+             add_left_inj, mul_eq_mul_left_iff, norm_eq_zero, true_or, eq_self_iff_true,
+             submodule.coe_norm, submodule.coe_eq_zero]
 end
 
 /-- In a complete space `E`, the projection maps onto a complete subspace `K` and its orthogonal
@@ -1158,7 +1175,7 @@ lemma std_orthonormal_basis_orthonormal :
 (exists_subset_is_orthonormal_basis (orthonormal_empty 𝕜 E)).some_spec.some_spec.some_spec.2
 
 instance : fintype (orthonormal_basis_index 𝕜 E) :=
-@is_noetherian.fintype_basis_index _ _ _ _ _ _ _
+@is_noetherian.fintype_basis_index _ _ _ _ _ _
   (is_noetherian.iff_fg.2 infer_instance) (std_orthonormal_basis 𝕜 E)
 
 variables {𝕜 E}

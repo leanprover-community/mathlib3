@@ -12,7 +12,7 @@ import order.hom.lattice
 This defines `Lattice`, the category of lattices.
 
 Note that `Lattice` doesn't correspond to the literature definition of [`Lat`]
-[https://ncatlab.org/nlab/show/Lat] as we don't require bottom or top elements. Instead, `Lat`
+(https://ncatlab.org/nlab/show/Lat) as we don't require bottom or top elements. Instead, `Lat`
 corresponds to `BoundedLattice` (not yet in mathlib).
 
 ## TODO
@@ -34,6 +34,8 @@ instance (X : Lattice) : lattice X := X.str
 
 /-- Construct a bundled `Lattice` from a `lattice`. -/
 def of (α : Type*) [lattice α] : Lattice := bundled.of α
+
+@[simp] lemma coe_of (α : Type*) [lattice α] : ↥(of α) = α := rfl
 
 instance : inhabited Lattice := ⟨of bool⟩
 
@@ -71,4 +73,4 @@ end Lattice
 
 lemma Lattice_dual_comp_forget_to_PartialOrder :
   Lattice.dual ⋙ forget₂ Lattice PartialOrder =
-    forget₂ Lattice PartialOrder ⋙ PartialOrder.to_dual := rfl
+    forget₂ Lattice PartialOrder ⋙ PartialOrder.dual := rfl

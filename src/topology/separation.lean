@@ -114,11 +114,31 @@ open separated
 lemma comm (s t : set α) : separated s t ↔ separated t s :=
 ⟨symm, symm⟩
 
+lemma preimage [topological_space β] {f : α → β} {s t : set β} (h : separated s t)
+  (hf : continuous f) : separated (f ⁻¹' s) (f ⁻¹' t) :=
+let ⟨U, V, oU, oV, sU, tV, UV⟩ := h in
+⟨f ⁻¹' U, f ⁻¹' V, oU.preimage hf, oV.preimage hf, preimage_mono sU, preimage_mono tV,
+  UV.preimage f⟩
+
+protected lemma disjoint {s t : set α} (h : separated s t) : disjoint s t :=
+let ⟨U, V, hU, hV, hsU, htV, hd⟩ := h in hd.mono hsU htV
+
+lemma disjoint_closure_left {s t : set α} (h : separated s t) : disjoint (closure s) t :=
+let ⟨U, V, hU, hV, hsU, htV, hd⟩ := h
+in (hd.closure_left hV).mono (closure_mono hsU) htV
+
+lemma disjoint_closure_right {s t : set α} (h : separated s t) : disjoint s (closure t) :=
+h.symm.disjoint_closure_left.symm
+
 lemma empty_right (a : set α) : separated a ∅ :=
 ⟨_, _, is_open_univ, is_open_empty, λ a h, mem_univ a, λ a h, by cases h, disjoint_empty _⟩
 
 lemma empty_left (a : set α) : separated ∅ a :=
 (empty_right _).symm
+
+lemma mono {s₁ s₂ t₁ t₂ : set α} (h : separated s₂ t₂) (hs : s₁ ⊆ s₂) (ht : t₁ ⊆ t₂) :
+  separated s₁ t₁ :=
+let ⟨U, V, hU, hV, hsU, htV, hd⟩ := h in ⟨U, V, hU, hV, hs.trans hsU, ht.trans htV, hd⟩
 
 lemma union_left {a b c : set α} : separated a c → separated b c → separated (a ∪ b) c :=
 λ ⟨U, V, oU, oV, aU, bV, UV⟩ ⟨W, X, oW, oX, aW, bX, WX⟩,
@@ -242,9 +262,17 @@ begin
   exact ⟨x, hx⟩
 end
 
+lemma t0_space_of_injective_of_continuous [topological_space β] {f : α → β}
+  (hf : function.injective f) (hf' : continuous f) [t0_space β] : t0_space α :=
+⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (f x) (f y) (hf.ne hxy) in
+  ⟨f ⁻¹' U, hU.preimage hf', hxyU⟩⟩
+
+protected lemma embedding.t0_space [topological_space β] [t0_space β] {f : α → β}
+  (hf : embedding f) : t0_space α :=
+t0_space_of_injective_of_continuous hf.inj hf.continuous
+
 instance subtype.t0_space [t0_space α] {p : α → Prop} : t0_space (subtype p) :=
-⟨λ x y hxy, let ⟨U, hU, hxyU⟩ := t0_space.t0 (x:α) y ((not_congr subtype.ext_iff_val).1 hxy) in
-  ⟨(coe : subtype p → α) ⁻¹' U, is_open_induced hU, hxyU⟩⟩
+embedding_subtype_coe.t0_space
 
 theorem t0_space_iff_or_not_mem_closure (α : Type u) [topological_space α] :
   t0_space α ↔ (∀ a b : α, (a ≠ b) → (a ∉ closure ({b} : set α) ∨ b ∉ closure ({a} : set α))) :=
@@ -259,15 +287,6 @@ begin
         or.inr ⟨h h', not_not.mpr (subset_closure (set.mem_singleton a))⟩⟩ },
     { exact ⟨(closure {b})ᶜ, is_closed_closure.1,
         or.inl ⟨h', not_not.mpr (subset_closure (set.mem_singleton b))⟩⟩ } }
-end
-
-lemma t0_space_of_injective_of_continuous {α β : Type u} [topological_space α] [topological_space β]
-  {f : α → β} (hf : function.injective f) (hf' : continuous f) [t0_space β] : t0_space α :=
-begin
-  constructor,
-  intros x y h,
-  obtain ⟨U, hU, e⟩ := t0_space.t0 _ _ (hf.ne h),
-  exact ⟨f ⁻¹' U, hf'.1 U hU, e⟩
 end
 
 /-- A T₁ space, also known as a Fréchet space, is a topological space
@@ -301,6 +320,34 @@ protected lemma set.finite.is_closed [t1_space α] {s : set α} (hs : set.finite
 begin
   rw ← bUnion_of_singleton s,
   exact is_closed_bUnion hs (λ i hi, is_closed_singleton)
+end
+
+lemma filter.coclosed_compact_le_cofinite [t1_space α] :
+  filter.coclosed_compact α ≤ filter.cofinite :=
+λ s hs, compl_compl s ▸ hs.is_compact.compl_mem_coclosed_compact_of_is_closed hs.is_closed
+
+variable (α)
+
+/-- In a `t1_space`, relatively compact sets form a bornology. Its cobounded filter is
+`filter.coclosed_compact`. See also `bornology.in_compact` the bornology of sets contained
+in a compact set. -/
+def bornology.relatively_compact [t1_space α] : bornology α :=
+{ cobounded := filter.coclosed_compact α,
+  le_cofinite := filter.coclosed_compact_le_cofinite }
+
+variable {α}
+
+lemma bornology.relatively_compact.is_bounded_iff [t1_space α] {s : set α} :
+  @bornology.is_bounded _ (bornology.relatively_compact α) s ↔ is_compact (closure s) :=
+begin
+  change sᶜ ∈ filter.coclosed_compact α ↔ _,
+  rw filter.mem_coclosed_compact,
+  split,
+  { rintros ⟨t, ht₁, ht₂, hst⟩,
+    rw compl_subset_compl at hst,
+    exact compact_of_is_closed_subset ht₂ is_closed_closure (closure_minimal hst ht₁) },
+  { intros h,
+    exact ⟨closure s, is_closed_closure, h, compl_subset_compl.mpr subset_closure⟩ }
 end
 
 protected lemma finset.is_closed [t1_space α] (s : finset α) : is_closed (s : set α) :=
@@ -443,13 +490,16 @@ begin
   exact ⟨i, hi, λ h, hsub h rfl⟩
 end
 
-@[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
+@[simp] lemma pure_le_nhds_iff [t1_space α] {a b : α} : pure a ≤ 𝓝 b ↔ a = b :=
 begin
-  refine ⟨λ h, _, λ h, h ▸ le_rfl⟩,
+  refine ⟨λ h, _, λ h, h ▸ pure_le_nhds a⟩,
   by_contra hab,
-  have := h (compl_singleton_mem_nhds $ ne.symm hab),
-  refine mem_of_mem_nhds this (mem_singleton a)
+  simpa only [mem_pure, mem_compl_iff, mem_singleton, not_true] using
+    h (compl_singleton_mem_nhds $ ne.symm hab)
 end
+
+@[simp] lemma nhds_le_nhds_iff [t1_space α] {a b : α} : 𝓝 a ≤ 𝓝 b ↔ a = b :=
+⟨λ h, pure_le_nhds_iff.mp $ (pure_le_nhds a).trans h, λ h, h ▸ le_rfl⟩
 
 @[simp] lemma nhds_eq_nhds_iff [t1_space α] {a b : α} : 𝓝 a = 𝓝 b ↔ a = b :=
 ⟨λ h, nhds_le_nhds_iff.mp h.le, λ h, h ▸ rfl⟩
@@ -521,6 +571,10 @@ fact₂ fact₁ (eq.refl $ f a)
 lemma continuous_at_of_tendsto_nhds [topological_space β] [t1_space β] {f : α → β} {a : α} {b : β}
   (h : tendsto f (𝓝 a) (𝓝 b)) : continuous_at f a :=
 show tendsto f (𝓝 a) (𝓝 $ f a), by rwa eq_of_tendsto_nhds h
+
+lemma tendsto_const_nhds_iff [t1_space α] {l : filter α} [ne_bot l] {c d : α} :
+  tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
+by simp_rw [tendsto, filter.map_const, pure_le_nhds_iff]
 
 /-- If the punctured neighborhoods of a point form a nontrivial filter, then any neighborhood is
 infinite. -/
@@ -646,7 +700,7 @@ end
 /-- A T₂ space, also known as a Hausdorff space, is one in which for every
   `x ≠ y` there exists disjoint open sets around `x` and `y`. This is
   the most widely used of the separation axioms. -/
-class t2_space (α : Type u) [topological_space α] : Prop :=
+@[mk_iff] class t2_space (α : Type u) [topological_space α] : Prop :=
 (t2 : ∀x y, x ≠ y → ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅)
 
 lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :
@@ -786,10 +840,6 @@ lemma tendsto_nhds_unique_of_frequently_eq [t2_space α] {f g : β → α} {l : 
   a = b :=
 have ∃ᶠ z : α × α in 𝓝 (a, b), z.1 = z.2 := (ha.prod_mk_nhds hb).frequently hfg,
 not_not.1 $ λ hne, this (is_closed_diagonal.is_open_compl.mem_nhds hne)
-
-lemma tendsto_const_nhds_iff [t2_space α] {l : filter α} [ne_bot l] {c d : α} :
-  tendsto (λ x, c) l (𝓝 d) ↔ c = d :=
-⟨λ h, tendsto_nhds_unique (tendsto_const_nhds) h, λ h, h ▸ tendsto_const_nhds⟩
 
 /-- A T₂.₅ space, also known as a Urysohn space, is a topological space
   where for every pair `x ≠ y`, there are two open sets, with the intersection of closures
@@ -1025,6 +1075,10 @@ is_open_compl_iff.1 $ is_open_iff_forall_mem_open.mpr $ assume x hx,
   coclosed_compact α = cocompact α :=
 by simp [coclosed_compact, cocompact, infi_and', and_iff_right_of_imp is_compact.is_closed]
 
+@[simp] lemma bornology.relatively_compact_eq_in_compact [t2_space α] :
+  bornology.relatively_compact α = bornology.in_compact α :=
+by rw bornology.ext_iff; exact filter.coclosed_compact_eq_cocompact
+
 /-- If `V : ι → set α` is a decreasing family of compact sets then any neighborhood of
 `⋂ i, V i` contains some `V i`. This is a version of `exists_subset_nhd_of_compact'` where we
 don't need to assume each `V i` closed because it follows from compactness since `α` is
@@ -1149,32 +1203,22 @@ begin
 end
 
 lemma is_preirreducible_iff_subsingleton [t2_space α] (S : set α) :
-  is_preirreducible S ↔ subsingleton S :=
+  is_preirreducible S ↔ set.subsingleton S :=
 begin
   split,
-  { intro h,
-    constructor,
-    intros x y,
-    ext,
+  { intros h x hx y hy,
     by_contradiction e,
     obtain ⟨U, V, hU, hV, hxU, hyV, h'⟩ := t2_separation e,
-    have := h U V hU hV ⟨x, x.prop, hxU⟩ ⟨y, y.prop, hyV⟩,
+    have := h U V hU hV ⟨x, hx, hxU⟩ ⟨y, hy, hyV⟩,
     rw [h', inter_empty] at this,
     exact this.some_spec },
-  { exact @@is_preirreducible_of_subsingleton _ _ }
+  { exact set.subsingleton.is_preirreducible }
 end
 
 lemma is_irreducible_iff_singleton [t2_space α] (S : set α) :
   is_irreducible S ↔ ∃ x, S = {x} :=
-begin
-  split,
-  { intro h,
-    rw exists_eq_singleton_iff_nonempty_unique_mem,
-    use h.1,
-    intros a ha b hb,
-    injection @@subsingleton.elim ((is_preirreducible_iff_subsingleton _).mp h.2) ⟨_, ha⟩ ⟨_, hb⟩ },
-  { rintro ⟨x, rfl⟩, exact is_irreducible_singleton }
-end
+by rw [is_irreducible, is_preirreducible_iff_subsingleton,
+  exists_eq_singleton_iff_nonempty_subsingleton]
 
 end separation
 

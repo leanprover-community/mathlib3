@@ -38,7 +38,6 @@ begin
   intros x hx,
   have : x = taylor (r - r) x,
   { simp },
-  have ht := polynomial.taylor_injective r,
   rwa [this, sub_eq_add_neg, ←taylor_taylor, ←taylor_mul,
        linear_map.map_eq_zero_iff _ (taylor_injective _),
        mul_right_mem_non_zero_divisors_eq_zero_iff hp,

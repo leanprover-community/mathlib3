@@ -126,7 +126,7 @@ instance : has_sub (free_lie_algebra R X) :=
 { sub := quot.map₂ has_sub.sub (λ _ _ _, rel.sub_left _) (λ _ _ _, rel.sub_right _) }
 
 instance : add_group (free_lie_algebra R X) :=
-function.surjective.add_group_smul (quot.mk _) (surjective_quot_mk _)
+function.surjective.add_group (quot.mk _) (surjective_quot_mk _)
   rfl (λ _ _, rfl) (λ _, rfl) (λ _ _, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance : add_comm_semigroup (free_lie_algebra R X) :=

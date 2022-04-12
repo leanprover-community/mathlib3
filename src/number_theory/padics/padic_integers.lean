@@ -38,7 +38,7 @@ Coercions into `ℤ_p` are set up to work with the `norm_cast` tactic.
 
 ## References
 
-* [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
+* [F. Q. Gouvêa, *p-adic numbers*][gouvea1997]
 * [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
 * <https://en.wikipedia.org/wiki/P-adic_number>
 
@@ -144,7 +144,7 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
   map_add' := coe_add }
 
 @[simp, norm_cast] lemma coe_pow (x : ℤ_[p]) (n : ℕ) : (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n :=
-coe.ring_hom.map_pow x n
+(coe.ring_hom : ℤ_[p] →+* ℚ_[p]).map_pow x n
 
 @[simp] lemma mk_coe : ∀ (k : ℤ_[p]), (⟨k, k.2⟩ : ℤ_[p]) = k
 | ⟨_, _⟩ := rfl

@@ -325,6 +325,21 @@ lemma is_extr_on.on_preimage (g : δ → α) {b : δ} (hf : is_extr_on f s (g b)
   is_extr_on (f ∘ g) (g ⁻¹' s) b :=
 hf.elim (λ hf, (hf.on_preimage g).is_extr) (λ hf, (hf.on_preimage g).is_extr)
 
+lemma is_min_on.comp_maps_to {t : set δ} {g : δ → α} {b : δ} (hf : is_min_on f s a)
+  (hg : maps_to g t s) (ha : g b = a) :
+  is_min_on (f ∘ g) t b :=
+λ y hy, by simpa only [mem_set_of_eq, ha, (∘)] using hf (hg hy)
+
+lemma is_max_on.comp_maps_to {t : set δ} {g : δ → α} {b : δ} (hf : is_max_on f s a)
+  (hg : maps_to g t s) (ha : g b = a) :
+  is_max_on (f ∘ g) t b :=
+hf.dual.comp_maps_to hg ha
+
+lemma is_extr_on.comp_maps_to {t : set δ} {g : δ → α} {b : δ} (hf : is_extr_on f s a)
+  (hg : maps_to g t s) (ha : g b = a) :
+  is_extr_on (f ∘ g) t b :=
+hf.elim (λ h, or.inl $ h.comp_maps_to hg ha) (λ h, or.inr $ h.comp_maps_to hg ha)
+
 end preorder
 
 /-! ### Pointwise addition -/

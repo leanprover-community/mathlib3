@@ -134,7 +134,7 @@ theorem find_aux_iff {a : α} {b : β a} :
   { clear find_aux_iff, subst h,
     suffices : b' = b ↔ b' = b ∨ sigma.mk a' b ∈ t, {simpa [find_aux, eq_comm]},
     refine (or_iff_left_of_imp (λ m, _)).symm,
-    have : a' ∉ t.map sigma.fst, from list.not_mem_of_nodup_cons nd,
+    have : a' ∉ t.map sigma.fst, from nd.not_mem,
     exact this.elim (list.mem_map_of_mem sigma.fst m) },
   { have : sigma.mk a b ≠ ⟨a', b'⟩,
     { intro e, injection e with e, exact h e.symm },

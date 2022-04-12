@@ -3,10 +3,11 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Patrick Massot
 -/
+import algebra.hom.group_instances
 import data.pi
 import data.set.function
+import data.set.pairwise
 import tactic.pi_instances
-import algebra.group.hom_instances
 
 /-!
 # Pi instances for groups and monoids
@@ -43,7 +44,7 @@ by refine_struct { one := (1 : Π i, f i), mul := (*), npow := λ n x i, (x i) ^
 tactic.pi_instance_derive_field
 
 -- the attributes are intentionally out of order. `smul_apply` proves `nsmul_apply`.
-@[to_additive nsmul_apply, simp]
+@[to_additive, simp]
 lemma pow_apply [∀ i, monoid $ f i] (n : ℕ) : (x^n) i = (x i)^n := rfl
 
 @[to_additive]
@@ -122,6 +123,14 @@ by refine_struct { zero := (0 : Π i, f i), one := (1 : Π i, f i), mul := (*),
 
 end pi
 
+namespace mul_hom
+
+@[to_additive] lemma coe_mul {M N} {mM : has_mul M} {mN : comm_semigroup N}
+  (f g : mul_hom M N) :
+  (f * g : M → N) = λ x, f x * g x := rfl
+
+end mul_hom
+
 section monoid_hom
 
 variables (f) [Π i, mul_one_class (f i)]
@@ -181,10 +190,14 @@ This is the `one_hom` version of `pi.mul_single`. -/
 @[to_additive zero_hom.single "The zero-preserving homomorphism including a single value
 into a dependent family of values, as functions supported at a point.
 
-This is the `zero_hom` version of `pi.single`.", simps]
+This is the `zero_hom` version of `pi.single`."]
 def one_hom.single [Π i, has_one $ f i] (i : I) : one_hom (f i) (Π i, f i) :=
 { to_fun := mul_single i,
   map_one' := mul_single_one i }
+
+@[simp, to_additive]
+lemma one_hom.single_apply [Π i, has_one $ f i] (i : I) (x : f i) :
+  one_hom.single f i x = mul_single i x := rfl
 
 /-- The monoid homomorphism including a single monoid into a dependent family of additive monoids,
 as functions supported at a point.
@@ -193,10 +206,14 @@ This is the `monoid_hom` version of `pi.mul_single`. -/
 @[to_additive "The additive monoid homomorphism including a single additive
 monoid into a dependent family of additive monoids, as functions supported at a point.
 
-This is the `add_monoid_hom` version of `pi.single`.", simps]
+This is the `add_monoid_hom` version of `pi.single`."]
 def monoid_hom.single [Π i, mul_one_class $ f i] (i : I) : f i →* Π i, f i :=
 { map_mul' := mul_single_op₂ (λ _, (*)) (λ _, one_mul _) _,
   .. (one_hom.single f i) }
+
+@[simp, to_additive]
+lemma monoid_hom.single_apply [Π i, mul_one_class $ f i] (i : I) (x : f i) :
+  monoid_hom.single f i x = mul_single i x := rfl
 
 /-- The multiplicative homomorphism including a single `mul_zero_class`
 into a dependent family of `mul_zero_class`es, as functions supported at a point.
@@ -226,6 +243,31 @@ lemma pi.single_div [Π i, group $ f i] (i : I) (x y : f i) :
 lemma pi.single_mul [Π i, mul_zero_class $ f i] (i : I) (x y : f i) :
   single i (x * y) = single i x * single i y :=
 (mul_hom.single f i).map_mul x y
+
+/-- The injection into a pi group at different indices commutes.
+
+For injections of commuting elements at the same index, see `commute.map` -/
+@[to_additive "The injection into an additive pi group at different indices commutes.
+
+For injections of commuting elements at the same index, see `add_commute.map`"]
+lemma pi.mul_single_commute [Π i, mul_one_class $ f i] :
+  pairwise (λ i j, ∀ (x : f i) (y : f j), commute (mul_single i x) (mul_single j y)) :=
+begin
+  intros i j hij x y, ext k,
+  by_cases h1 : i = k, { subst h1, simp [hij], },
+  by_cases h2 : j = k, { subst h2, simp [hij], },
+  simp [h1,  h2],
+end
+
+/-- The injection into a pi group with the same values commutes. -/
+@[to_additive "The injection into an additive pi group with the same values commutes."]
+lemma pi.mul_single_apply_commute [Π i, mul_one_class $ f i] (x : Π i, f i) (i j : I) :
+  commute (mul_single i (x i)) (mul_single j (x j)) :=
+begin
+  obtain rfl | hij := decidable.eq_or_ne i j,
+  { refl },
+  { exact pi.mul_single_commute _ _ hij _ _, },
+end
 
 @[to_additive update_eq_sub_add_single]
 lemma pi.update_eq_div_mul_single [Π i, group $ f i] (g : Π (i : I), f i) (x : f i) :

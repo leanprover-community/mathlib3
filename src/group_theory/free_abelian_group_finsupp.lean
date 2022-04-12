@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
+import algebra.module.equiv
+import data.finsupp.basic
 import group_theory.free_abelian_group
 import group_theory.is_free_group
-import data.finsupp.basic
-import data.equiv.module
 import linear_algebra.dimension
 
 /-!

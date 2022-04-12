@@ -90,7 +90,27 @@ set_option old_structure_cmd true
 universe u
 variable {α : Type u}
 
-lemma add_one_le_two_mul [preorder α] [semiring α] [covariant_class α α (+) (≤)]
+namespace order_dual
+
+/-! Note that `order_dual` does not satisfy any of the ordered ring typeclasses due to the
+`zero_le_one` field. -/
+
+instance [h : distrib α] : distrib (order_dual α) := h
+instance [has_mul α] [h : has_distrib_neg α] : has_distrib_neg (order_dual α) := h
+instance [h : non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring (order_dual α) := h
+instance [h : non_unital_semiring α] : non_unital_semiring (order_dual α) := h
+instance [h : non_assoc_semiring α] : non_assoc_semiring (order_dual α) := h
+instance [h : semiring α] : semiring (order_dual α) := h
+instance [h : comm_semiring α] : comm_semiring (order_dual α) := h
+instance [h : non_unital_non_assoc_ring α] : non_unital_non_assoc_ring (order_dual α) := h
+instance [h : non_unital_ring α] : non_unital_ring (order_dual α) := h
+instance [h : non_assoc_ring α] : non_assoc_ring (order_dual α) := h
+instance [h : ring α] : ring (order_dual α) := h
+instance [h : comm_ring α] : comm_ring (order_dual α) := h
+
+end order_dual
+
+lemma add_one_le_two_mul [has_le α] [semiring α] [covariant_class α α (+) (≤)]
   {a : α} (a1 : 1 ≤ a) :
   a + 1 ≤ 2 * a :=
 calc  a + 1 ≤ a + a : add_le_add_left a1 a
@@ -210,6 +230,10 @@ by rwa [zero_mul] at h
 
 lemma mul_nonneg : 0 ≤ a → 0 ≤ b → 0 ≤ a * b := by classical; exact decidable.mul_nonneg
 
+@[simp] theorem pow_nonneg (H : 0 ≤ a) : ∀ (n : ℕ), 0 ≤ a ^ n
+| 0     := by { rw pow_zero, exact zero_le_one}
+| (n+1) := by { rw pow_succ, exact mul_nonneg H (pow_nonneg _) }
+
 -- See Note [decidable namespace]
 protected lemma decidable.mul_nonpos_of_nonneg_of_nonpos [@decidable_rel α (≤)]
   (ha : 0 ≤ a) (hb : b ≤ 0) : a * b ≤ 0 :=
@@ -251,6 +275,10 @@ by classical; exact decidable.mul_lt_mul'
 lemma mul_pos (ha : 0 < a) (hb : 0 < b) : 0 < a * b :=
 have h : 0 * b < a * b, from mul_lt_mul_of_pos_right ha hb,
 by rwa zero_mul at h
+
+@[simp] theorem pow_pos (H : 0 < a) : ∀ (n : ℕ), 0 < a ^ n
+| 0     := by { nontriviality, rw pow_zero, exact zero_lt_one }
+| (n+1) := by { rw pow_succ, exact mul_pos H (pow_pos _) }
 
 lemma mul_neg_of_pos_of_neg (ha : 0 < a) (hb : b < 0) : a * b < 0 :=
 have h : a * b < a * 0, from mul_lt_mul_of_pos_left hb ha,
@@ -331,6 +359,9 @@ decidable.mul_lt_mul h le_rfl hb (zero_le_one.trans h.le)
 lemma lt_mul_of_one_lt_left : 0 < b → 1 < a → b < a * b :=
 by classical; exact decidable.lt_mul_of_one_lt_left
 
+lemma lt_two_mul_self [nontrivial α] (ha : 0 < a) : a < 2 * a :=
+lt_mul_of_one_lt_left ha one_lt_two
+
 -- See Note [decidable namespace]
 protected lemma decidable.add_le_mul_two_add [@decidable_rel α (≤)] {a b : α}
   (a2 : 2 ≤ a) (b0 : 0 ≤ b) : a + (2 + b) ≤ a * (2 + b) :=
@@ -353,9 +384,10 @@ by classical; exact decidable.one_le_mul_of_one_le_of_one_le
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.ordered_semiring {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_scalar ℕ β] [has_pow β ℕ]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   ordered_semiring β :=
 { zero_le_one := show f 0 ≤ f 1, by simp only [zero, one, zero_le_one],
   mul_lt_mul_of_pos_left := λ  a b c ab c0, show f (c * a) < f (c * b),
@@ -370,8 +402,8 @@ def function.injective.ordered_semiring {β : Type*}
       refine mul_lt_mul_of_pos_right ab _,
       rwa ← zero,
     end,
-  ..hf.ordered_cancel_add_comm_monoid f zero add,
-  ..hf.semiring f zero one add mul }
+  ..hf.ordered_cancel_add_comm_monoid f zero add nsmul,
+  ..hf.semiring f zero one add mul nsmul npow }
 
 section
 variable [nontrivial α]
@@ -485,12 +517,13 @@ class ordered_comm_semiring (α : Type u) extends ordered_semiring α, comm_semi
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.ordered_comm_semiring [ordered_comm_semiring α] {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_scalar ℕ β] [has_pow β ℕ]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   ordered_comm_semiring β :=
-{ ..hf.comm_semiring f zero one add mul,
-  ..hf.ordered_semiring f zero one add mul }
+{ ..hf.comm_semiring f zero one add mul nsmul npow,
+  ..hf.ordered_semiring f zero one add mul nsmul npow }
 
 end ordered_comm_semiring
 
@@ -657,7 +690,6 @@ lemma add_le_mul' (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ b * a :=
 (le_of_eq (add_comm _ _)).trans (add_le_mul b2 a2)
 
 section
-variables [nontrivial α]
 
 @[simp] lemma bit0_le_bit0 : bit0 a ≤ bit0 b ↔ a ≤ b :=
 by rw [bit0, bit0, ← two_mul, ← two_mul, mul_le_mul_left (zero_lt_two : 0 < (2:α))]
@@ -740,13 +772,14 @@ instance linear_ordered_semiring.to_no_max_order {α : Type*} [linear_ordered_se
 See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_semiring {β : Type*}
-  [has_zero β] [has_one β] [has_add β] [has_mul β]
+  [has_zero β] [has_one β] [has_add β] [has_mul β] [has_scalar ℕ β] [has_pow β ℕ]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
-  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y) :
+  (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   linear_ordered_semiring β :=
 { .. linear_order.lift f hf,
   .. pullback_nonzero f zero one,
-  .. hf.ordered_semiring f zero one add mul }
+  .. hf.ordered_semiring f zero one add mul nsmul npow }
 
 @[simp] lemma units.inv_pos {u : αˣ} : (0 : α) < ↑u⁻¹ ↔ (0 : α) < u :=
 have ∀ {u : αˣ}, (0 : α) < u → (0 : α) < ↑u⁻¹ := λ u h,
@@ -953,13 +986,16 @@ See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.ordered_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   ordered_ring β :=
 { mul_pos := λ a b a0 b0, show f 0 < f (a * b), by { rw [zero, mul], apply mul_pos; rwa ← zero },
-  ..hf.ordered_semiring f zero one add mul,
-  ..hf.ring f zero one add mul neg sub }
+  ..hf.ordered_semiring f zero one add mul nsmul npow,
+  ..hf.ring f zero one add mul neg sub nsmul zsmul npow }
 
 lemma le_iff_exists_nonneg_add (a b : α) : a ≤ b ↔ ∃ c ≥ 0, b = a + c :=
 ⟨λ h, ⟨b - a, sub_nonneg.mpr h, by simp⟩,
@@ -985,12 +1021,15 @@ See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.ordered_comm_ring [ordered_comm_ring α] {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (- x) = - f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   ordered_comm_ring β :=
-{ ..hf.ordered_ring f zero one add mul neg sub,
-  ..hf.comm_ring f zero one add mul neg sub }
+{ ..hf.ordered_ring f zero one add mul neg sub nsmul zsmul npow,
+  ..hf.comm_ring f zero one add mul neg sub nsmul zsmul npow }
 
 end ordered_comm_ring
 
@@ -1003,6 +1042,32 @@ addition is monotone and multiplication by a positive number is strictly monoton
 instance linear_ordered_ring.to_linear_ordered_add_comm_group [s : linear_ordered_ring α] :
   linear_ordered_add_comm_group α :=
 { .. s }
+
+section linear_ordered_semiring
+variables [linear_ordered_semiring α] {a b c : α}
+
+local attribute [instance] linear_ordered_semiring.decidable_le
+
+lemma le_of_mul_le_of_one_le {a b c : α} (h : a * c ≤ b) (hb : 0 ≤ b) (hc : 1 ≤ c) : a ≤ b :=
+have h' : a * c ≤ b * c, from calc
+     a * c ≤ b : h
+       ... = b * 1 : by rewrite mul_one
+       ... ≤ b * c : decidable.mul_le_mul_of_nonneg_left hc hb,
+le_of_mul_le_mul_right h' (zero_lt_one.trans_le hc)
+
+lemma nonneg_le_nonneg_of_sq_le_sq {a b : α} (hb : 0 ≤ b) (h : a * a ≤ b * b) : a ≤ b :=
+le_of_not_gt (λhab, (decidable.mul_self_lt_mul_self hb hab).not_le h)
+
+lemma mul_self_le_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a ≤ b ↔ a * a ≤ b * b :=
+⟨decidable.mul_self_le_mul_self h1, nonneg_le_nonneg_of_sq_le_sq h2⟩
+
+lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b ↔ a * a < b * b :=
+((@decidable.strict_mono_on_mul_self α _ _).lt_iff_lt h1 h2).symm
+
+lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
+(@decidable.strict_mono_on_mul_self α _ _).inj_on.eq_iff h1 h2
+
+end linear_ordered_semiring
 
 section linear_ordered_ring
 variables [linear_ordered_ring α] {a b c : α}
@@ -1119,30 +1184,6 @@ lt_of_mul_lt_mul_left h3 nhc
 
 lemma neg_one_lt_zero : -1 < (0:α) := neg_lt_zero.2 zero_lt_one
 
-lemma le_of_mul_le_of_one_le {a b c : α} (h : a * c ≤ b) (hb : 0 ≤ b) (hc : 1 ≤ c) : a ≤ b :=
-by haveI := @linear_order.decidable_le α _; exact
-have h' : a * c ≤ b * c, from calc
-     a * c ≤ b : h
-       ... = b * 1 : by rewrite mul_one
-       ... ≤ b * c : decidable.mul_le_mul_of_nonneg_left hc hb,
-le_of_mul_le_mul_right h' (zero_lt_one.trans_le hc)
-
-lemma nonneg_le_nonneg_of_sq_le_sq {a b : α} (hb : 0 ≤ b) (h : a * a ≤ b * b) : a ≤ b :=
-by haveI := @linear_order.decidable_le α _; exact
-le_of_not_gt (λhab, (decidable.mul_self_lt_mul_self hb hab).not_le h)
-
-lemma mul_self_le_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a ≤ b ↔ a * a ≤ b * b :=
-by haveI := @linear_order.decidable_le α _; exact
-⟨decidable.mul_self_le_mul_self h1, nonneg_le_nonneg_of_sq_le_sq h2⟩
-
-lemma mul_self_lt_mul_self_iff {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a < b ↔ a * a < b * b :=
-by haveI := @linear_order.decidable_le α _; exact
-((@decidable.strict_mono_on_mul_self α _ _).lt_iff_lt h1 h2).symm
-
-lemma mul_self_inj {a b : α} (h1 : 0 ≤ a) (h2 : 0 ≤ b) : a * a = b * b ↔ a = b :=
-by haveI := @linear_order.decidable_le α _; exact
-(@decidable.strict_mono_on_mul_self α _ _).inj_on.eq_iff h1 h2
-
 @[simp] lemma mul_le_mul_left_of_neg {a b c : α} (h : c < 0) : c * a ≤ c * b ↔ b ≤ a :=
 by haveI := @linear_order.decidable_le α _; exact
 ⟨le_imp_le_of_lt_imp_lt $ λ h', mul_lt_mul_of_neg_left h' h,
@@ -1231,13 +1272,16 @@ See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   linear_ordered_ring β :=
 { .. linear_order.lift f hf,
   .. pullback_nonzero f zero one,
-  .. hf.ordered_ring f zero one add mul neg sub }
+  .. hf.ordered_ring f zero one add mul neg sub nsmul zsmul npow }
 
 end linear_ordered_ring
 
@@ -1297,12 +1341,6 @@ lemma self_dvd_abs (a : α) : a ∣ |a| :=
 lemma abs_dvd_abs (a b : α) : |a| ∣ |b| ↔ a ∣ b :=
 (abs_dvd _ _).trans (dvd_abs _ _)
 
-lemma even_abs {a : α} : even (|a|) ↔ even a :=
-dvd_abs _ _
-
-lemma odd_abs {a : α} : odd (abs a) ↔ odd a :=
-by { cases abs_choice a with h h; simp only [h, odd_neg] }
-
 end
 
 section linear_ordered_comm_ring
@@ -1314,13 +1352,16 @@ See note [reducible non-instances]. -/
 @[reducible]
 def function.injective.linear_ordered_comm_ring {β : Type*}
   [has_zero β] [has_one β] [has_add β] [has_mul β] [has_neg β] [has_sub β]
+  [has_scalar ℕ β] [has_scalar ℤ β] [has_pow β ℕ]
   (f : β → α) (hf : function.injective f) (zero : f 0 = 0) (one : f 1 = 1)
   (add : ∀ x y, f (x + y) = f x + f y) (mul : ∀ x y, f (x * y) = f x * f y)
-  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y) :
+  (neg : ∀ x, f (-x) = -f x) (sub : ∀ x y, f (x - y) = f x - f y)
+  (nsmul : ∀ x (n : ℕ), f (n • x) = n • f x) (zsmul : ∀ x (n : ℤ), f (n • x) = n • f x)
+  (npow : ∀ x (n : ℕ), f (x ^ n) = f x ^ n) :
   linear_ordered_comm_ring β :=
 { .. linear_order.lift f hf,
   .. pullback_nonzero f zero one,
-  .. hf.ordered_comm_ring f zero one add mul neg sub }
+  .. hf.ordered_comm_ring f zero one add mul neg sub nsmul zsmul npow }
 
 end linear_ordered_comm_ring
 
@@ -1514,7 +1555,7 @@ begin
   { simp [← coe_mul] }
 end
 
-lemma mul_lt_top [partial_order α] {a b : with_top α} (ha : a ≠ ⊤) (hb : b ≠ ⊤) : a * b < ⊤ :=
+lemma mul_lt_top [preorder α] {a b : with_top α} (ha : a ≠ ⊤) (hb : b ≠ ⊤) : a * b < ⊤ :=
 begin
   lift a to α using ha,
   lift b to α using hb,
@@ -1644,7 +1685,7 @@ with_top.mul_coe hb
 @[simp] lemma mul_eq_bot_iff {a b : with_bot α} : a * b = ⊥ ↔ (a ≠ 0 ∧ b = ⊥) ∨ (a = ⊥ ∧ b ≠ 0) :=
 with_top.mul_eq_top_iff
 
-lemma bot_lt_mul [partial_order α] {a b : with_bot α} (ha : ⊥ < a) (hb : ⊥ < b) : ⊥ < a * b :=
+lemma bot_lt_mul [preorder α] {a b : with_bot α} (ha : ⊥ < a) (hb : ⊥ < b) : ⊥ < a * b :=
 begin
   lift a to α using ne_bot_of_gt ha,
   lift b to α using ne_bot_of_gt hb,

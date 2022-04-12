@@ -414,7 +414,7 @@ by field_simp
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
 
 @[priority 100] instance : cstar_ring K :=
-{ norm_star_mul_self := λ x, (normed_field.norm_mul _ _).trans $ congr_arg (* ∥x∥) norm_conj }
+{ norm_star_mul_self := λ x, (norm_mul _ _).trans $ congr_arg (* ∥x∥) norm_conj }
 
 /-! ### Cast lemmas -/
 
@@ -668,6 +668,15 @@ ring_hom.map_finsupp_prod _ f g
 
 end is_R_or_C
 
+namespace polynomial
+
+open_locale polynomial
+
+lemma of_real_eval (p : ℝ[X]) (x : ℝ) : (p.eval x : K) = aeval ↑x p :=
+(@aeval_algebra_map_apply ℝ K _ _ _ x p).symm
+
+end polynomial
+
 namespace finite_dimensional
 
 open_locale classical
@@ -705,8 +714,9 @@ end
 
 variable {E}
 
-instance is_R_or_C.proper_space_span_singleton (x : E) : proper_space (K ∙ x) :=
-proper_is_R_or_C K (K ∙ x)
+instance is_R_or_C.proper_space_submodule (S : submodule K E) [finite_dimensional K ↥S] :
+  proper_space S :=
+proper_is_R_or_C K S
 
 end finite_dimensional
 
@@ -766,7 +776,7 @@ end cleanup_lemmas
 section linear_maps
 
 /-- The real part in a `is_R_or_C` field, as a linear map. -/
-noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
+def re_lm : K →ₗ[ℝ] ℝ :=
 { map_smul' := smul_re,  .. re }
 
 @[simp, is_R_or_C_simps] lemma re_lm_coe : (re_lm : K → ℝ) = re := rfl
@@ -792,7 +802,7 @@ end
 @[continuity] lemma continuous_re : continuous (re : K → ℝ) := re_clm.continuous
 
 /-- The imaginary part in a `is_R_or_C` field, as a linear map. -/
-noncomputable def im_lm : K →ₗ[ℝ] ℝ :=
+def im_lm : K →ₗ[ℝ] ℝ :=
 { map_smul' := smul_im,  .. im }
 
 @[simp, is_R_or_C_simps] lemma im_lm_coe : (im_lm : K → ℝ) = im := rfl
@@ -810,7 +820,7 @@ linear_map.mk_continuous im_lm 1 $ by
 @[continuity] lemma continuous_im : continuous (im : K → ℝ) := im_clm.continuous
 
 /-- Conjugate as an `ℝ`-algebra equivalence -/
-noncomputable def conj_ae : K ≃ₐ[ℝ] K :=
+def conj_ae : K ≃ₐ[ℝ] K :=
 { inv_fun := conj,
   left_inv := conj_conj,
   right_inv := conj_conj,

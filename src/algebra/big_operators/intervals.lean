@@ -5,8 +5,10 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.big_operators.basic
+import algebra.module.basic
 import data.nat.interval
 import tactic.linarith
+import tactic.abel
 
 /-!
 # Results about big operators over intervals
@@ -79,9 +81,22 @@ lemma prod_Ico_eq_mul_inv {δ : Type*} [comm_group δ] (f : ℕ → δ) {m n : �
   (∏ k in Ico m n, f k) = (∏ k in range n, f k) * (∏ k in range m, f k)⁻¹ :=
 eq_mul_inv_iff_mul_eq.2 $ by rw [mul_comm]; exact prod_range_mul_prod_Ico f h
 
-lemma sum_Ico_eq_sub {δ : Type*} [add_comm_group δ] (f : ℕ → δ) {m n : ℕ} (h : m ≤ n) :
-  (∑ k in Ico m n, f k) = (∑ k in range n, f k) - (∑ k in range m, f k) :=
-by simpa only [sub_eq_add_neg] using sum_Ico_eq_add_neg f h
+@[to_additive]
+lemma prod_Ico_eq_div {δ : Type*} [comm_group δ] (f : ℕ → δ) {m n : ℕ} (h : m ≤ n) :
+  (∏ k in Ico m n, f k) = (∏ k in range n, f k) / (∏ k in range m, f k) :=
+by simpa only [div_eq_mul_inv] using prod_Ico_eq_mul_inv f h
+
+@[to_additive]
+lemma prod_range_sub_prod_range {α : Type*} [comm_group α] {f : ℕ → α}
+  {n m : ℕ} (hnm : n ≤ m) : (∏ k in range m, f k) / (∏ k in range n, f k) =
+  ∏ k in (range m).filter (λ k, n ≤ k), f k :=
+begin
+  rw [← prod_Ico_eq_div f hnm],
+  congr,
+  apply finset.ext,
+  simp only [mem_Ico, mem_filter, mem_range, *],
+  tauto,
+end
 
 /-- The two ways of summing over `(i,j)` in the range `a<=i<=j<b` are equal. -/
 lemma sum_Ico_Ico_comm {M : Type*} [add_comm_monoid M]
@@ -198,38 +213,51 @@ div_eq_iff_eq_mul.mpr $ prod_Ico_succ_top hmn _
 
 end group
 
+end nat
+
+section module
+
+variables {R M : Type*} [ring R] [add_comm_group M] [module R M] (f : ℕ → R) (g : ℕ → M) {m n : ℕ}
+open finset
 -- The partial sum of `g`, starting from zero
 local notation `G` n:80 := ∑ i in range n, g i
 
-variable [comm_ring β]
-
 /-- **Summation by parts**, also known as **Abel's lemma** or an **Abel transformation** -/
 theorem sum_Ico_by_parts (hmn : m < n) :
-  ∑ i in Ico m n, f i * g i =
-    f (n-1) * G n - f m * G m - ∑ i in Ico m (n-1), G (i+1) * (f (i+1) - f i) :=
+  ∑ i in Ico m n, f i • g i =
+  f (n-1) • G n - f m • G m - ∑ i in Ico m (n-1), (f (i+1) - f i) • G (i+1) :=
 begin
-  have h₁ : ∑ i in Ico (m+1) n, (f i * G i) = ∑ i in Ico m (n-1), (f (i+1) * G (i+1)),
+  have h₁ : ∑ i in Ico (m+1) n, (f i • G i) = ∑ i in Ico m (n-1), (f (i+1) • G (i+1)),
   { conv in n { rw ←nat.sub_add_cancel (nat.one_le_of_lt hmn) },
     rw ←sum_Ico_add' },
-  have h₂ : ∑ i in Ico (m+1) n, (f i * G (i+1))
-          = ∑ i in Ico m (n-1), (f i * G (i+1)) + f (n-1) * G n - f m * G (m+1) :=
+  have h₂ : ∑ i in Ico (m+1) n, (f i • G (i+1))
+          = ∑ i in Ico m (n-1), (f i • G (i+1)) + f (n-1) • G n - f m • G (m+1) :=
   by rw [←sum_Ico_sub_bot _ hmn, ←sum_Ico_succ_sub_top _ (nat.le_pred_of_lt hmn),
          nat.sub_add_cancel (pos_of_gt hmn), sub_add_cancel],
-
   rw sum_eq_sum_Ico_succ_bot hmn,
-  conv { for (f _ * g _) [2] { rw [←sum_range_succ_sub_sum g, mul_sub_left_distrib] }},
-  rw [sum_sub_distrib, h₂, h₁],
+  conv { for (f _ • g _) [2] { rw ← sum_range_succ_sub_sum g } },
+  simp_rw [smul_sub, sum_sub_distrib, h₂, h₁],
   conv_lhs { congr, skip, rw [←add_sub, add_comm, ←add_sub, ←sum_sub_distrib] },
-  conv in (f _ * G (_+1) - _) { rw [←sub_mul, ←neg_sub, mul_comm, mul_neg] },
-  rw [sum_neg_distrib, ←sub_eq_add_neg, add_sub, add_comm, sub_add, ←mul_sub,
-      sum_range_succ_sub_top]
+  have : ∀ i, f i • G (i+1) - f (i+1) • G (i+1) = -((f (i+1) - f i) • G (i+1)),
+  { intro i,
+    rw sub_smul,
+    abel },
+  simp_rw [this, sum_neg_distrib, sum_range_succ, smul_add],
+  abel,
 end
 
-/-- **Summation by parts** for ranges -/
-lemma sum_range_by_parts (hn : 0 < n) :
-  ∑ i in range n, (f i * g i) = f (n-1) * G n - ∑ i in range (n-1), G (i+1) * (f (i+1) - f i) :=
-by rw [range_eq_Ico, sum_Ico_by_parts f g hn, sum_range_zero, mul_zero, sub_zero, range_eq_Ico]
+variable (n)
 
-end nat
+/-- **Summation by parts** for ranges -/
+lemma sum_range_by_parts :
+  ∑ i in range n, (f i • g i) = f (n-1) • G n - ∑ i in range (n-1), (f (i+1) - f i) • G (i+1) :=
+begin
+  by_cases hn : n = 0,
+  { simp [hn], },
+  { rw [range_eq_Ico, sum_Ico_by_parts f g (nat.pos_of_ne_zero hn), sum_range_zero,
+      smul_zero, sub_zero, range_eq_Ico] },
+end
+
+end module
 
 end finset

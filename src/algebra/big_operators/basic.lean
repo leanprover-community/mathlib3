@@ -5,8 +5,8 @@ Authors: Johannes Hölzl
 -/
 
 import algebra.group.pi
+import algebra.hom.equiv
 import algebra.ring.opposite
-import data.equiv.mul_add
 import data.finset.fold
 import data.fintype.basic
 import data.set.pairwise
@@ -106,50 +106,70 @@ by simp only [sum_eq_multiset_sum, multiset.sum_map_singleton]
 
 end finset
 
-
 @[to_additive]
-lemma monoid_hom.map_prod [comm_monoid β] [comm_monoid γ] (g : β →* γ) (f : α → β) (s : finset α) :
+lemma map_prod [comm_monoid β] [comm_monoid γ] {G : Type*} [monoid_hom_class G β γ] (g : G)
+  (f : α → β) (s : finset α) :
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-by simp only [finset.prod_eq_multiset_prod, g.map_multiset_prod, multiset.map_map]
+by simp only [finset.prod_eq_multiset_prod, map_multiset_prod, multiset.map_map]
 
-@[to_additive]
-lemma mul_equiv.map_prod [comm_monoid β] [comm_monoid γ] (g : β ≃* γ) (f : α → β) (s : finset α) :
-  g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-g.to_monoid_hom.map_prod f s
+section deprecated
 
-lemma ring_hom.map_list_prod [semiring β] [semiring γ] (f : β →+* γ) (l : list β) :
+/-- Deprecated: use `_root_.map_prod` instead. -/
+@[to_additive "Deprecated: use `_root_.map_sum` instead."]
+protected lemma monoid_hom.map_prod [comm_monoid β] [comm_monoid γ] (g : β →* γ) (f : α → β)
+  (s : finset α) : g (∏ x in s, f x) = ∏ x in s, g (f x) :=
+map_prod g f s
+
+/-- Deprecated: use `_root_.map_prod` instead. -/
+@[to_additive "Deprecated: use `_root_.map_sum` instead."]
+protected lemma mul_equiv.map_prod [comm_monoid β] [comm_monoid γ] (g : β ≃* γ) (f : α → β)
+  (s : finset α) : g (∏ x in s, f x) = ∏ x in s, g (f x) :=
+map_prod g f s
+
+/-- Deprecated: use `_root_.map_list_prod` instead. -/
+protected lemma ring_hom.map_list_prod [semiring β] [semiring γ] (f : β →+* γ) (l : list β) :
   f l.prod = (l.map f).prod :=
-f.to_monoid_hom.map_list_prod l
+map_list_prod f l
 
-lemma ring_hom.map_list_sum [non_assoc_semiring β] [non_assoc_semiring γ]
+/-- Deprecated: use `_root_.map_list_sum` instead. -/
+protected lemma ring_hom.map_list_sum [non_assoc_semiring β] [non_assoc_semiring γ]
   (f : β →+* γ) (l : list β) :
   f l.sum = (l.map f).sum :=
-f.to_add_monoid_hom.map_list_sum l
+map_list_sum f l
 
-/-- A morphism into the opposite ring acts on the product by acting on the reversed elements -/
-lemma ring_hom.unop_map_list_prod [semiring β] [semiring γ] (f : β →+* γᵐᵒᵖ) (l : list β) :
-  mul_opposite.unop (f l.prod) = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
-f.to_monoid_hom.unop_map_list_prod l
+/-- A morphism into the opposite ring acts on the product by acting on the reversed elements.
 
-lemma ring_hom.map_multiset_prod [comm_semiring β] [comm_semiring γ] (f : β →+* γ)
+Deprecated: use `_root_.unop_map_list_prod` instead.
+-/
+protected lemma ring_hom.unop_map_list_prod [semiring β] [semiring γ] (f : β →+* γᵐᵒᵖ)
+  (l : list β) : mul_opposite.unop (f l.prod) = (l.map (mul_opposite.unop ∘ f)).reverse.prod :=
+unop_map_list_prod f l
+
+/-- Deprecated: use `_root_.map_multiset_prod` instead. -/
+protected lemma ring_hom.map_multiset_prod [comm_semiring β] [comm_semiring γ] (f : β →+* γ)
   (s : multiset β) :
   f s.prod = (s.map f).prod :=
-f.to_monoid_hom.map_multiset_prod s
+map_multiset_prod f s
 
-lemma ring_hom.map_multiset_sum [non_assoc_semiring β] [non_assoc_semiring γ]
+/-- Deprecated: use `_root_.map_multiset_sum` instead. -/
+protected lemma ring_hom.map_multiset_sum [non_assoc_semiring β] [non_assoc_semiring γ]
   (f : β →+* γ) (s : multiset β) :
   f s.sum = (s.map f).sum :=
-f.to_add_monoid_hom.map_multiset_sum s
+map_multiset_sum f s
 
-lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ] (g : β →+* γ) (f : α → β)
+/-- Deprecated: use `_root_.map_prod` instead. -/
+protected lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ] (g : β →+* γ) (f : α → β)
   (s : finset α) :
   g (∏ x in s, f x) = ∏ x in s, g (f x) :=
-g.to_monoid_hom.map_prod f s
+map_prod g f s
 
-lemma ring_hom.map_sum [non_assoc_semiring β] [non_assoc_semiring γ]
+/-- Deprecated: use `_root_.map_sum` instead. -/
+protected lemma ring_hom.map_sum [non_assoc_semiring β] [non_assoc_semiring γ]
   (g : β →+* γ) (f : α → β) (s : finset α) :
   g (∑ x in s, f x) = ∑ x in s, g (f x) :=
-g.to_add_monoid_hom.map_sum f s
+map_sum g f s
+
+end deprecated
 
 @[to_additive]
 lemma monoid_hom.coe_finset_prod [mul_one_class β] [comm_monoid γ] (f : α → β →* γ) (s : finset α) :
@@ -645,16 +665,30 @@ begin
   exact finset.prod_congr rfl h
 end
 
+variables (f s)
+
+@[to_additive]
+lemma prod_coe_sort_eq_attach (f : s → β) :
+  ∏ (i : s), f i = ∏ i in s.attach, f i :=
+rfl
+
+@[to_additive]
+lemma prod_coe_sort :
+  ∏ (i : s), f i = ∏ i in s, f i :=
+prod_attach
+
 @[to_additive]
 lemma prod_finset_coe (f : α → β) (s : finset α) :
   ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
-prod_attach
+prod_coe_sort s f
+
+variables {f s}
 
 @[to_additive]
 lemma prod_subtype {p : α → Prop} {F : fintype (subtype p)} (s : finset α)
   (h : ∀ x, x ∈ s ↔ p x) (f : α → β) :
   ∏ a in s, f a = ∏ a : subtype p, f a :=
-have (∈ s) = p, from set.ext h, by { substI p, rw [←prod_finset_coe], congr }
+have (∈ s) = p, from set.ext h, by { substI p, rw ← prod_coe_sort, congr }
 
 @[to_additive] lemma prod_apply_dite {s : finset α} {p : α → Prop} {hp : decidable_pred p}
   [decidable_pred (λ x, ¬ p x)] (f : Π (x : α), p x → γ) (g : Π (x : α), ¬p x → γ)
@@ -746,13 +780,15 @@ end
   (∏ x in s, (ite (a = x) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
 prod_dite_eq s a (λ x _, b x)
 
-/--
-  When a product is taken over a conditional whose condition is an equality test on the index
-  and whose alternative is 1, then the product's value is either the term at that index or `1`.
+/-- A product taken over a conditional whose condition is an equality test on the index and whose
+alternative is `1` has value either the term at that index or `1`.
 
-  The difference with `prod_ite_eq` is that the arguments to `eq` are swapped.
--/
-@[simp, to_additive] lemma prod_ite_eq' [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
+The difference with `finset.prod_ite_eq` is that the arguments to `eq` are swapped. -/
+@[simp, to_additive "A sum taken over a conditional whose condition is an equality test on the index
+and whose alternative is `0` has value either the term at that index or `0`.
+
+The difference with `finset.sum_ite_eq` is that the arguments to `eq` are swapped."]
+lemma prod_ite_eq' [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
   (∏ x in s, (ite (x = a) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
 prod_dite_eq' s a (λ x _, b x)
 
@@ -971,7 +1007,7 @@ lemma sum_range_induction {M : Type*} [add_comm_monoid M]
   ∑ k in finset.range n, f k = s n :=
 @prod_range_induction (multiplicative M) _ f s h0 h n
 
-/-- A telescoping sum along `{0, ..., n-1}` of an additive commutative group valued function
+/-- A telescoping sum along `{0, ..., n - 1}` of an additive commutative group valued function
 reduces to the difference of the last and first terms.-/
 lemma sum_range_sub {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
   ∑ i in range n, (f (i+1) - f i) = f n - f 0 :=
@@ -981,8 +1017,8 @@ lemma sum_range_sub' {G : Type*} [add_comm_group G] (f : ℕ → G) (n : ℕ) :
   ∑ i in range n, (f i - f (i+1)) = f 0 - f n :=
 by { apply sum_range_induction; simp }
 
-/-- A telescoping product along `{0, ..., n-1}` of a commutative group valued function
-reduces to the ratio of the last and first factors.-/
+/-- A telescoping product along `{0, ..., n - 1}` of a commutative group valued function reduces to
+the ratio of the last and first factors. -/
 @[to_additive]
 lemma prod_range_div {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
   ∏ i in range n, (f (i+1) * (f i)⁻¹) = f n * (f 0)⁻¹ :=
@@ -990,7 +1026,7 @@ by simpa only [← div_eq_mul_inv] using @sum_range_sub (additive M) _ f n
 
 @[to_additive]
 lemma prod_range_div' {M : Type*} [comm_group M] (f : ℕ → M) (n : ℕ) :
-  ∏ i in range n, (f i * (f (i+1))⁻¹) = (f 0) * (f n)⁻¹ :=
+  ∏ i in range n, (f i * (f (i+1))⁻¹) = f 0 * (f n)⁻¹ :=
 by simpa only [← div_eq_mul_inv] using @sum_range_sub' (additive M) _ f n
 
 /--
@@ -1015,7 +1051,7 @@ by rw [prod_insert has, card_insert_of_not_mem has, pow_succ, ih])
 @[to_additive]
 lemma pow_eq_prod_const (b : β) : ∀ n, b ^ n = ∏ k in range n, b := by simp
 
-@[to_additive sum_nsmul]
+@[to_additive]
 lemma prod_pow (s : finset α) (n : ℕ) (f : α → β) :
   ∏ x in s, f x ^ n = (∏ x in s, f x) ^ n :=
 by haveI := classical.dec_eq α; exact
@@ -1072,9 +1108,10 @@ finset.strong_induction_on s
         prod_insert (not_mem_erase _ _), ih', mul_one, h x hx]))
 
 
-/-- The product of the composition of functions `f` and `g`, is the product
-over `b ∈ s.image g` of `f b` to the power of the cardinality of the fibre of `b`. See also
-`finset.prod_image`. -/
+/-- The product of the composition of functions `f` and `g`, is the product over `b ∈ s.image g` of
+`f b` to the power of the cardinality of the fibre of `b`. See also `finset.prod_image`. -/
+@[to_additive "The sum of the composition of functions `f` and `g`, is the sum over `b ∈ s.image g`
+of `f b` times of the cardinality of the fibre of `b`. See also `finset.sum_image`."]
 lemma prod_comp [decidable_eq γ] (f : γ → β) (g : α → γ) :
   ∏ a in s, f (g a) = ∏ b in s.image g, f b ^ (s.filter (λ a, g a = b)).card  :=
 calc ∏ a in s, f (g a)
@@ -1242,6 +1279,10 @@ begin
   exact mul_dvd_mul (h a haS) IH,
 end
 
+lemma prod_dvd_prod_of_subset {ι M : Type*} [comm_monoid M] (s t : finset ι) (f : ι → M)
+  (h : s ⊆ t) : ∏ i in s, f i ∣ ∏ i in t, f i :=
+multiset.prod_dvd_prod_of_le $ multiset.map_le_map $ by simpa
+
 end comm_monoid
 
 /-- If `f = g = h` everywhere but at `i`, where `f i = g i + h i`, then the product of `f` over `s`
@@ -1267,13 +1308,6 @@ lemma sum_boole {s : finset α} {p : α → Prop} [non_assoc_semiring β] {hp : 
   (∑ x in s, if p x then (1 : β) else (0 : β)) = (s.filter p).card :=
 by simp [sum_ite]
 
-lemma sum_comp [add_comm_monoid β] [decidable_eq γ] (f : γ → β) (g : α → γ) :
-  ∑ a in s, f (g a) = ∑ b in s.image g, (s.filter (λ a, g a = b)).card • (f b) :=
-@prod_comp (multiplicative β) _ _ _ _ _ _ _
-attribute [to_additive "The sum of the composition of functions `f` and `g`, is the sum
-over `b ∈ s.image g` of `f b` times of the cardinality of the fibre of `b`. See also
-`finset.sum_image`."] prod_comp
-
 lemma eq_sum_range_sub [add_comm_group β] (f : ℕ → β) (n : ℕ) :
   f n = f 0 + ∑ i in range n, (f (i+1) - f i) :=
 by rw [finset.sum_range_sub, add_sub_cancel'_right]
@@ -1284,6 +1318,19 @@ begin
   conv_lhs { rw [finset.eq_sum_range_sub f] },
   simp [finset.sum_range_succ', add_comm]
 end
+
+lemma _root_.commute.sum_right [non_unital_non_assoc_semiring β] (s : finset α)
+  (f : α → β) (b : β) (h : ∀ i ∈ s, commute b (f i)) :
+  commute b (∑ i in s, f i) :=
+commute.multiset_sum_right _ _ $ λ b hb, begin
+  obtain ⟨i, hi, rfl⟩ := multiset.mem_map.mp hb,
+  exact h _ hi
+end
+
+lemma _root_.commute.sum_left [non_unital_non_assoc_semiring β] (s : finset α)
+  (f : α → β) (b : β) (h : ∀ i ∈ s, commute (f i) b) :
+  commute (∑ i in s, f i) b :=
+(commute.sum_right _ _ _ $ λ i hi, (h _ hi).symm).symm
 
 section opposite
 
@@ -1353,6 +1400,15 @@ card_eq_sum_card_fiberwise (λ _, mem_image_of_mem _)
 @[simp] lemma sum_sub_distrib [add_comm_group β] :
   ∑ x in s, (f x - g x) = (∑ x in s, f x) - (∑ x in s, g x) :=
 by simpa only [sub_eq_add_neg] using sum_add_distrib.trans (congr_arg _ sum_neg_distrib)
+
+lemma mem_sum {f : α → multiset β} (s : finset α) (b : β) :
+  b ∈ ∑ x in s, f x ↔ ∃ a ∈ s, b ∈ f a :=
+begin
+  classical,
+  refine s.induction_on (by simp) _,
+  { intros a t hi ih,
+    simp [sum_insert hi, ih, or_and_distrib_right, exists_or_distrib] }
+end
 
 section prod_eq_zero
 variables [comm_monoid_with_zero β]
@@ -1457,10 +1513,7 @@ lemma prod_equiv {α β M : Type*} [fintype α] [fintype β] [comm_monoid M]
   ∏ x : α, f x = ∏ x : β, g x :=
 prod_bijective e e.bijective f g h
 
-@[to_additive]
-lemma prod_finset_coe [comm_monoid β] :
-  ∏ (i : (s : set α)), f i = ∏ i in s, f i :=
-(finset.prod_subtype s (λ _, iff.rfl) f).symm
+variables {f s}
 
 @[to_additive]
 lemma prod_unique {α β : Type*} [comm_monoid β] [unique α] (f : α → β) :
@@ -1565,7 +1618,7 @@ lemma to_finset_prod_dvd_prod [comm_monoid α] (S : multiset α) : S.to_finset.p
 begin
   rw finset.prod_eq_multiset_prod,
   refine multiset.prod_dvd_prod_of_le _,
-  simp [multiset.erase_dup_le S],
+  simp [multiset.dedup_le S],
 end
 
 @[to_additive]

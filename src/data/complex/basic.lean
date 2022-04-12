@@ -69,6 +69,8 @@ def _root_.set.re_prod_im (s t : set ℝ) : set ℂ := re ⁻¹' s ∩ im ⁻¹'
 
 infix ` ×ℂ `:72 := set.re_prod_im
 
+lemma mem_re_prod_im {z : ℂ} {s t : set ℝ} : z ∈ s ×ℂ t ↔ z.re ∈ s ∧ z.im ∈ t := iff.rfl
+
 instance : has_zero ℂ := ⟨(0 : ℝ)⟩
 instance : inhabited ℂ := ⟨0⟩
 
@@ -145,6 +147,11 @@ ext_iff.2 $ by simp
 
 @[simp] lemma re_add_im (z : ℂ) : (z.re : ℂ) + z.im * I = z :=
 ext_iff.2 $ by simp
+
+lemma mul_I_re (z : ℂ) : (z * I).re = -z.im := by simp
+lemma mul_I_im (z : ℂ) : (z * I).im = z.re := by simp
+lemma I_mul_re (z : ℂ) : (I * z).re = -z.im := by simp
+lemma I_mul_im (z : ℂ) : (I * z).im = z.re := by simp
 
 /-! ### Commutative ring instance and lemmas -/
 
@@ -470,11 +477,22 @@ by simp [abs]
 @[simp] lemma abs_mul (z w : ℂ) : abs (z * w) = abs z * abs w :=
 by rw [abs, norm_sq_mul, real.sqrt_mul (norm_sq_nonneg _)]; refl
 
+/-- `complex.abs` as a `monoid_with_zero_hom`. -/
+@[simps] noncomputable def abs_hom : ℂ →*₀ ℝ :=
+{ to_fun := abs,
+  map_zero' := abs_zero,
+  map_one' := abs_one,
+  map_mul' := abs_mul }
+
+@[simp] lemma abs_prod {ι : Type*} (s : finset ι) (f : ι → ℂ) :
+  abs (s.prod f) = s.prod (λ i, abs (f i)) :=
+map_prod abs_hom _ _
+
 @[simp] lemma abs_pow (z : ℂ) (n : ℕ) : abs (z ^ n) = abs z ^ n :=
-monoid_hom.map_pow ⟨abs, abs_one, abs_mul⟩ z n
+map_pow abs_hom z n
 
 @[simp] lemma abs_zpow (z : ℂ) (n : ℤ) : abs (z ^ n) = abs z ^ n :=
-monoid_with_zero_hom.map_zpow ⟨abs, abs_zero, abs_one, abs_mul⟩ z n
+abs_hom.map_zpow z n
 
 lemma abs_re_le_abs (z : ℂ) : |z.re| ≤ abs z :=
 by rw [mul_self_le_mul_self_iff (_root_.abs_nonneg z.re) (abs_nonneg _),
@@ -491,6 +509,13 @@ lemma re_le_abs (z : ℂ) : z.re ≤ abs z :=
 
 lemma im_le_abs (z : ℂ) : z.im ≤ abs z :=
 (abs_le.1 (abs_im_le_abs _)).2
+
+@[simp] lemma abs_re_lt_abs {z : ℂ} : |z.re| < abs z ↔ z.im ≠ 0 :=
+by rw [abs, real.lt_sqrt (_root_.abs_nonneg _) (norm_sq_nonneg z), norm_sq_apply,
+  _root_.sq_abs, ← sq, lt_add_iff_pos_right, mul_self_pos]
+
+@[simp] lemma abs_im_lt_abs {z : ℂ} : |z.im| < abs z ↔ z.re ≠ 0 :=
+by simpa using @abs_re_lt_abs (z * I)
 
 /--
 The **triangle inequality** for complex numbers.
@@ -650,7 +675,7 @@ theorem equiv_lim_aux (f : cau_seq ℂ abs) : f ≈ cau_seq.const abs (lim_aux f
   rwa add_halves at this,
 end
 
-noncomputable instance : cau_seq.is_complete ℂ abs :=
+instance : cau_seq.is_complete ℂ abs :=
 ⟨λ f, ⟨lim_aux f, equiv_lim_aux f⟩⟩
 
 open cau_seq

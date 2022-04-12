@@ -33,7 +33,7 @@ open function multiset nat
 variables {α β : Type*}
 
 namespace finset
-variables {s t : finset α} {a : α}
+variables {s t : finset α} {a b : α}
 
 /-- `s.card` is the number of elements of `s`, aka its cardinality. -/
 def card (s : finset α) : ℕ := s.1.card
@@ -88,6 +88,9 @@ begin
   { rw [card_insert_of_not_mem h, if_neg h] }
 end
 
+@[simp] lemma card_doubleton (h : a ≠ b) : ({a, b} : finset α).card = 2 :=
+by rw [card_insert_of_not_mem (not_mem_singleton.2 h), card_singleton]
+
 @[simp] lemma card_erase_of_mem : a ∈ s → (s.erase a).card = s.card - 1 := card_erase_of_mem
 @[simp] lemma card_erase_add_one : a ∈ s → (s.erase a).card + 1 = s.card := card_erase_add_one
 
@@ -118,14 +121,14 @@ end finset
 section to_list_multiset
 variables [decidable_eq α] (m : multiset α) (l : list α)
 
-lemma multiset.card_to_finset : m.to_finset.card = m.erase_dup.card := rfl
+lemma multiset.card_to_finset : m.to_finset.card = m.dedup.card := rfl
 
-lemma multiset.to_finset_card_le : m.to_finset.card ≤ m.card := card_le_of_le $ erase_dup_le _
+lemma multiset.to_finset_card_le : m.to_finset.card ≤ m.card := card_le_of_le $ dedup_le _
 
 lemma multiset.to_finset_card_of_nodup {m : multiset α} (h : m.nodup) : m.to_finset.card = m.card :=
-congr_arg card $ multiset.erase_dup_eq_self.mpr h
+congr_arg card $ multiset.dedup_eq_self.mpr h
 
-lemma list.card_to_finset : l.to_finset.card = l.erase_dup.length := rfl
+lemma list.card_to_finset : l.to_finset.card = l.dedup.length := rfl
 
 lemma list.to_finset_card_le : l.to_finset.card ≤ l.length := multiset.to_finset_card_le ⟦l⟧
 
@@ -148,12 +151,12 @@ by simp only [card, image_val_of_inj_on H, card_map]
 
 lemma inj_on_of_card_image_eq [decidable_eq β] (H : (s.image f).card = s.card) : set.inj_on f s :=
 begin
-  change (s.1.map f).erase_dup.card = s.1.card at H,
-  have : (s.1.map f).erase_dup = s.1.map f,
-  { refine multiset.eq_of_le_of_card_le (multiset.erase_dup_le _) _,
+  change (s.1.map f).dedup.card = s.1.card at H,
+  have : (s.1.map f).dedup = s.1.map f,
+  { refine multiset.eq_of_le_of_card_le (multiset.dedup_le _) _,
     rw H,
     simp only [multiset.card_map] },
-  rw multiset.erase_dup_eq_self at this,
+  rw multiset.dedup_eq_self at this,
   exact inj_on_of_nodup_map this,
 end
 
@@ -287,6 +290,9 @@ have hif : injective f',
       (right_inverse_surj_inv _)).injective,
 subtype.ext_iff_val.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
 
+@[simp] lemma card_disj_union (s t : finset α) (h) : (s.disj_union t h).card = s.card + t.card :=
+multiset.card_add _ _
+
 /-! ### Lattice structure -/
 
 section lattice
@@ -299,14 +305,23 @@ lemma card_union_le (s t : finset α) : (s ∪ t).card ≤ s.card + t.card :=
 card_union_add_card_inter s t ▸ nat.le_add_right _ _
 
 lemma card_union_eq (h : disjoint s t) : (s ∪ t).card = s.card + t.card :=
-by rw [←card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empty, add_zero]
+by rw [←disj_union_eq_union s t $ λ x, disjoint_left.mp h, card_disj_union _ _ _]
 
 @[simp] lemma card_disjoint_union (h : disjoint s t) : card (s ∪ t) = s.card + t.card :=
-by rw [←card_union_add_card_inter, disjoint_iff_inter_eq_empty.1 h, card_empty, add_zero]
+card_union_eq h
 
 lemma card_sdiff (h : s ⊆ t) : card (t \ s) = t.card - s.card :=
 suffices card (t \ s) = card ((t \ s) ∪ s) - s.card, by rwa sdiff_union_of_subset h at this,
 by rw [card_disjoint_union sdiff_disjoint, add_tsub_cancel_right]
+
+lemma card_sdiff_add_card_eq_card {s t : finset α} (h : s ⊆ t) : card (t \ s) + card s = card t :=
+((nat.sub_eq_iff_eq_add (card_le_of_subset h)).mp (card_sdiff h).symm).symm
+
+lemma le_card_sdiff (s t : finset α) : t.card - s.card ≤ card (t \ s) :=
+calc card t - card s
+      ≤ card t - card (s ∩ t) : tsub_le_tsub_left (card_le_of_subset (inter_subset_left s t)) _
+  ... = card (t \ (s ∩ t)) : (card_sdiff (inter_subset_right s t)).symm
+  ... ≤ card (t \ s) : by rw sdiff_inter_self_right t s
 
 lemma card_sdiff_add_card : (s \ t).card + t.card = (s ∪ t).card :=
 by rw [←card_disjoint_union sdiff_disjoint, sdiff_union_self_eq_union]
@@ -454,8 +469,8 @@ begin
     simp_rw [card_eq_one],
     rintro ⟨a, _, hab, rfl, b, rfl⟩,
     exact ⟨a, b, not_mem_singleton.1 hab, rfl⟩ },
-  { rintro ⟨x, y, hxy, rfl⟩,
-    simp only [hxy, card_insert_of_not_mem, not_false_iff, mem_singleton, card_singleton] }
+  { rintro ⟨x, y, h, rfl⟩,
+    exact card_doubleton h }
 end
 
 lemma card_eq_three [decidable_eq α] :

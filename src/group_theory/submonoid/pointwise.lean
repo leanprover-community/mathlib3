@@ -3,8 +3,8 @@ Copyright (c) 2021 Eric Wieser. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Eric Wieser
 -/
+import data.set.pointwise
 import group_theory.submonoid.operations
-import algebra.pointwise
 
 /-! # Pointwise instances on `submonoid`s and `add_submonoid`s
 
@@ -329,7 +329,7 @@ theorem mul_le {M N P : add_submonoid R} : M * N ≤ P ↔ ∀ (m ∈ M) (n ∈ 
   {C : R → Prop} {r : R} (hr : r ∈ M * N)
   (hm : ∀ (m ∈ M) (n ∈ N), C (m * n))
   (ha : ∀ x y, C x → C y → C (x + y)) : C r :=
-(@mul_le _ _ _ _ ⟨C, by simpa only [zero_mul] using hm _ (zero_mem _) _ (zero_mem _), ha⟩).2 hm hr
+(@mul_le _ _ _ _ ⟨C, ha, by simpa only [zero_mul] using hm _ (zero_mem _) _ (zero_mem _)⟩).2 hm hr
 
 open_locale pointwise
 
@@ -340,11 +340,12 @@ begin
   apply le_antisymm,
   { rw mul_le, intros a ha b hb,
     apply closure_induction ha,
-    work_on_goal 0 { intros, apply closure_induction hb,
-      work_on_goal 0 { intros, exact subset_closure ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
+    work_on_goal 1 { intros, apply closure_induction hb,
+      work_on_goal 1 { intros, exact subset_closure ⟨_, _, ‹_›, ‹_›, rfl⟩ } },
     all_goals { intros, simp only [mul_zero, zero_mul, zero_mem,
         left_distrib, right_distrib, mul_smul_comm, smul_mul_assoc],
-      try {apply add_mem _ _ _}, try {apply smul_mem _ _ _} }, assumption' },
+      solve_by_elim [add_mem _ _, zero_mem _]
+        { max_depth := 4, discharger := tactic.interactive.apply_instance } } },
   { rw closure_le, rintros _ ⟨a, b, ha, hb, rfl⟩,
     exact mul_mem_mul (subset_closure ha) (subset_closure hb) }
 end

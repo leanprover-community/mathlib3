@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard, Yury Kudryashov, Eric Wieser
 -/
-import linear_algebra.basic
+import linear_algebra.span
 import order.partial_sups
 
 /-! ### Products of modules
@@ -195,7 +195,7 @@ See note [bundled maps over different rings] for why separate `R` and `S` semiri
   left_inv := λ f, by simp only [prod.mk.eta, coprod_inl, coprod_inr],
   right_inv := λ f, by simp only [←comp_coprod, comp_id, coprod_inl_inr],
   map_add' := λ a b,
-    by { ext, simp only [prod.snd_add, add_apply, coprod_apply, prod.fst_add], ac_refl },
+    by { ext, simp only [prod.snd_add, add_apply, coprod_apply, prod.fst_add, add_add_add_comm] },
   map_smul' := λ r a,
     by { dsimp, ext, simp only [smul_add, smul_apply, prod.smul_snd, prod.smul_fst,
                                 coprod_apply] } }
@@ -459,12 +459,12 @@ begin
   split,
   { intros h,
     split,
-    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨hx, (zero_mem _)⟩, },
-    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨zero_mem _, hx⟩, }, },
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨hx, zero_mem p₂⟩, },
+    { rintros _ ⟨x, hx, rfl⟩, apply h, exact ⟨zero_mem p₁, hx⟩, }, },
   { rintros ⟨hH, hK⟩ ⟨x1, x2⟩ ⟨h1, h2⟩,
     have h1' : (linear_map.inl R _ _) x1 ∈ q, { apply hH, simpa using h1, },
     have h2' : (linear_map.inr R _ _) x2 ∈ q, { apply hK, simpa using h2, },
-    simpa using add_mem _ h1' h2', }
+    simpa using add_mem h1' h2', }
 end
 
 lemma prod_eq_bot_iff {p₁ : submodule R M} {p₂ : submodule R M₂} :

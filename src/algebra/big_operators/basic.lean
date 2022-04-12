@@ -939,7 +939,7 @@ end
 @[to_additive]
 lemma prod_list_count [decidable_eq α] [comm_monoid α] (s : list α) :
   s.prod = ∏ m in s.to_finset, m ^ (s.count m) :=
-by { convert prod_list_map_count s id, rw map_id }
+by simpa using prod_list_map_count s id
 
 @[to_additive]
 lemma prod_list_count_of_subset [decidable_eq α] [comm_monoid α]

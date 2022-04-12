@@ -33,6 +33,7 @@ end
 
 /-
 Test that there are no conflicts between attribute and declaration names.
+After #13227 there is little chance of ambiguity here, but this is still a valid test.
 -/
 
 @[user_attribute]

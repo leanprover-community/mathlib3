@@ -152,12 +152,17 @@ variables (β : Type)
 variables (C : Type u) [category.{v} C]
 variables [has_coproducts C]
 
+section
+local attribute [tidy] discrete.discrete_cases
+
 /--
 The total object of a graded object is the coproduct of the graded components.
 -/
 noncomputable def total : graded_object β C ⥤ C :=
 { obj := λ X, ∐ (λ i : ulift.{v} β, X i.down),
   map := λ X Y f, limits.sigma.map (λ i, f i.down) }.
+
+end
 
 variables [has_zero_morphisms C]
 

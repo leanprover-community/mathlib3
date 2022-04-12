@@ -29,19 +29,6 @@ variables (α : Type*) {β : Type*} [monoid α] [mul_action α β] [group β] (H
   mul_opposite.smul_eq_mul_unop,
   ←mul_assoc, ←subtype.val_eq_coe, mem_normalizer_iff'.mp b.2, mul_assoc, mul_inv_cancel_left]⟩
 
-@[to_additive] instance [quotient_action α H] : mul_action α (β ⧸ H) :=
-{ smul := λ a, quotient.map' ((•) a) (λ b c h, quotient_action.inv_mul_mem a h),
-  one_smul := λ q, quotient.induction_on' q (λ b, congr_arg quotient.mk' (one_smul α b)),
-  mul_smul := λ a a' q, quotient.induction_on' q (λ b, congr_arg quotient.mk' (mul_smul a a' b)) }
-
-variables {α}
-
-@[simp, to_additive] lemma quotient_action.smul_mk [quotient_action α H] (a : α) (b : β) :
-  (a • quotient_group.mk b : β ⧸ H) = quotient_group.mk (a • b) := rfl
-
-@[simp, to_additive] lemma quotient_action.smul_coe [quotient_action α H] (a : α) (b : β) :
-  (a • b : β ⧸ H) = ↑(a • b) := rfl
-
 end mul_action
 
 open_locale big_operators
@@ -60,31 +47,6 @@ open mul_action
 open_locale pointwise
 
 variables {F : Type*} [group F] [mul_action F G] [mul_action.quotient_action F H]
-
-@[to_additive] instance : mul_action F (left_transversals (H : set G)) :=
-{ smul := λ f T, ⟨f • T, by
-  { refine mem_left_transversals_iff_exists_unique_inv_mul_mem.mpr (λ g, _),
-    obtain ⟨t, ht1, ht2⟩ := mem_left_transversals_iff_exists_unique_inv_mul_mem.mp T.2 (f⁻¹ • g),
-    refine ⟨⟨f • t, set.smul_mem_smul_set t.2⟩, _, _⟩,
-    { exact (congr_arg (λ g', (f • (t : G))⁻¹ * g' ∈ H) (smul_inv_smul f g)).mp
-        (quotient_action.inv_mul_mem f ht1) },
-    { rintros ⟨-, t', ht', rfl⟩ h,
-      simp_rw [subtype.ext_iff, subtype.coe_mk, smul_left_cancel_iff],
-      refine subtype.ext_iff.mp (ht2 ⟨t', ht'⟩ _),
-      exact (congr_arg (λ g', g'⁻¹ * f⁻¹ • g ∈ H) (inv_smul_smul f t')).mp
-        (quotient_action.inv_mul_mem f⁻¹ h) } }⟩,
-  one_smul := λ T, subtype.ext (one_smul F T),
-  mul_smul := λ f₁ f₂ T, subtype.ext (mul_smul f₁ f₂ T) }
-
-@[to_additive] lemma smul_to_fun (f : F) (T : left_transversals (H : set G)) (g : G) :
-  (f • mem_left_transversals.to_fun T.2 g : G) = mem_left_transversals.to_fun (f • T).2 (f • g) :=
-begin
-  change ↑(⟨_, set.smul_mem_smul_set (subtype.coe_prop _)⟩ : f • T) = _,
-  exact subtype.ext_iff.mp (unique_of_exists_unique
-    (mem_left_transversals_iff_exists_unique_inv_mul_mem.mp (f • T).2 (f • g))
-      (quotient_action.inv_mul_mem f (mem_left_transversals.inv_to_fun_mul_mem T.2 g))
-      (mem_left_transversals.inv_to_fun_mul_mem (f • T).2 (f • g))),
-end
 
 @[to_additive] lemma smul_to_equiv (f : F) (T : left_transversals (H : set G)) (q : G ⧸ H) :
   f • (mem_left_transversals.to_equiv T.2 q : G) =

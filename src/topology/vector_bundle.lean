@@ -1052,8 +1052,10 @@ section sections
 
 open topological_vector_bundle
 
-variables {R B E F} [topological_space (total_space E)]
-  [∀ x, topological_space (E x)] [topological_vector_bundle R F E]
+variables {R B E F} [nondiscrete_normed_field R] [topological_space (total_space E)]
+  [∀ x, topological_space (E x)] [Π (x : B), add_comm_monoid (E x)]
+  [Π (x : B), module R (E x)] [normed_group F] [normed_space R F]
+  [topological_space B] [topological_vector_bundle R F E]
 
 lemma right_inv.image_mem_trivialization_at_source (f : right_inv (proj E)) (b : B) :
   f b ∈ (trivialization_at R F E b).source :=
@@ -1150,31 +1152,38 @@ section group
 open topological_vector_bundle
 
 variables {E R F}
-variables [nondiscrete_normed_field R] [∀ x, add_comm_monoid (E x)] [∀ x, module R (E x)]
+variables [nondiscrete_normed_field R] [∀ x, add_comm_group (E x)] [∀ x, module R (E x)]
   [normed_group F] [normed_space R F] [topological_space B]
   [topological_space (total_space E)] [∀ x, topological_space (E x)]
   [topological_vector_bundle R F E]
 
-lemma trivialization.map_neg {g : bundle_section E}
+namespace trivialization
+
+lemma map_neg {g : bundle_section E}
   {e : trivialization R F E} {b : B} (hb : b ∈ e.base_set) :
   (e ((- (g : bundle_section E)) b)).snd = - (e ((g : right_inv (proj E)) b)).snd :=
 begin
-  rw [(continuous_linear_equiv_apply hb).symm, pi.neg_apply, continuous_linear_equiv.map_neg],
+
+  rw [(trivialization.continuous_linear_equiv_apply hb).symm, pi.neg_apply,
+    continuous_linear_equiv.map_neg],
   refl,
 end
 
-lemma trivialization.snd_map_sub {g h : bundle_section E} {e : trivialization R F E} {b : B}
+lemma snd_map_sub {g h : bundle_section E} {e : trivialization R F E} {b : B}
   (hb : b ∈ e.base_set) : (e ((g - h) b)).snd = (e (g b)).snd - (e (h b)).snd :=
 begin
-  rw [(continuous_linear_equiv_apply hb).symm, pi.sub_apply, continuous_linear_equiv.map_sub],
+  rw [(trivialization.continuous_linear_equiv_apply hb).symm, pi.sub_apply,
+    continuous_linear_equiv.map_sub],
   refl,
 end
+
+end trivialization
 
 include R F
 
 section neg
 
-variables (R F) [topological_add_group F]
+variables (R F) [has_continuous_neg F]
 
 lemma continuous_within_at.neg_section {g : bundle_section E} {U : set B} {b : B}
   (hg : continuous_within_at g U b) : continuous_within_at ⇑(- g) U b :=

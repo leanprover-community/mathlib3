@@ -1924,12 +1924,13 @@ begin
   exact continuous_quot_mk.comp continuous_smul
 end
 
-lemma submodule.regular_quotient_of_is_closed [topological_add_group M] (hS : is_closed (S : set M)) :
+lemma submodule.regular_quotient_of_is_closed [topological_add_group M]
+  (hS : is_closed (S : set M)) :
   regular_space (M ⧸ S) :=
 begin
-  letI : regular_space (M ⧸ S.to_add_subgroup) := sorry, --S.to_add_subgroup.regular_quotient_of_is_closed hS,
-  --exact S.quotient_homeomorph_quotient_group.symm.regular_space
-  sorry
+  letI : regular_space (M ⧸ S.to_add_subgroup) :=
+    S.to_add_subgroup.regular_quotient_of_is_closed hS,
+  exact S.quotient_homeomorph_quotient_group.symm.regular_space
 end
 
 end submodule

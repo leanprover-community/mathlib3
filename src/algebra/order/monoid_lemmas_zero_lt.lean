@@ -543,6 +543,50 @@ lemma le_mul_of_one_le_left [mul_pos_mono α] (h : 1 ≤ a) (b0 : 0 < b) :
   b ≤ a * b :=
 le_mul_of_one_le_of_le h le_rfl b0
 
+-- proven with `a0 : 0 ≤ a` as `le_of_mul_le_of_one_le_left'`
+lemma le_of_mul_le_of_one_le_left [pos_mul_mono α]
+  (h : a * b ≤ c) (hle : 1 ≤ b) (a0 : 0 < a) :
+  a ≤ c :=
+(le_mul_of_one_le_right hle a0).trans h
+
+lemma lt_of_mul_lt_of_one_le_left [pos_mul_mono α]
+  (h : a * b < c) (hle : 1 ≤ b) (a0 : 0 < a) :
+  a < c :=
+(le_mul_of_one_le_right hle a0).trans_lt h
+
+-- proven with `b0 : 0 ≤ b` as `le_of_le_mul_of_le_one_left'`
+lemma le_of_le_mul_of_le_one_left [pos_mul_mono α]
+  (h : a ≤ b * c) (hle : c ≤ 1) (b0 : 0 < b) :
+  a ≤ b :=
+h.trans (mul_le_of_le_one_right hle b0)
+
+lemma lt_of_lt_mul_of_le_one_left [pos_mul_mono α]
+  (h : a < b * c) (hle : c ≤ 1) (b0 : 0 < b) :
+  a < b :=
+h.trans_le (mul_le_of_le_one_right hle b0)
+
+-- proven with `b0 : 0 ≤ b` as `le_of_mul_le_of_one_le_right'`
+lemma le_of_mul_le_of_one_le_right [mul_pos_mono α]
+  (h : a * b ≤ c) (hle : 1 ≤ a) (b0 : 0 < b) :
+  b ≤ c :=
+(le_mul_of_one_le_left hle b0).trans h
+
+lemma lt_of_mul_lt_of_one_le_right [mul_pos_mono α]
+  (h : a * b < c) (hle : 1 ≤ a) (b0 : 0 < b) :
+  b < c :=
+(le_mul_of_one_le_left hle b0).trans_lt h
+
+-- proven with `c0 : 0 ≤ b` as `le_of_le_mul_of_le_one_right'`
+lemma le_of_le_mul_of_le_one_right [mul_pos_mono α]
+  (h : a ≤ b * c) (hle : b ≤ 1) (c0 : 0 < c) :
+  a ≤ c :=
+h.trans (mul_le_of_le_one_left hle c0)
+
+lemma lt_of_lt_mul_of_le_one_right [mul_pos_mono α]
+  (h : a < b * c) (hle : b ≤ 1) (c0 : 0 < c) :
+  a < c :=
+h.trans_le (mul_le_of_le_one_left hle c0)
+
 end preorder
 
 section linear_order

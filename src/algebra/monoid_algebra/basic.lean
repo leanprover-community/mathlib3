@@ -337,8 +337,8 @@ subset.trans support_sum $ bUnion_mono $ assume a₁ _,
 section
 
 /-- Like `finsupp.map_domain_zero`, but for the `1` we define in this file -/
-@[simp] lemma map_domain_one {α : Type*} {β : Type*} {α₂ : Type*} [semiring β] [has_one α] [has_one α₂]
-  {F : Type*} [one_hom_class F α α₂] (f : F) :
+@[simp] lemma map_domain_one {α : Type*} {β : Type*} {α₂ : Type*}
+  [semiring β] [has_one α] [has_one α₂] {F : Type*} [one_hom_class F α α₂] (f : F) :
   (map_domain f (1 : monoid_algebra β α) : monoid_algebra β α₂) = (1 : monoid_algebra β α₂) :=
 by simp_rw [one_def, map_domain_single, map_one]
 

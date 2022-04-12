@@ -58,7 +58,7 @@ begin
     simp }
 end
 
-/-- `biprod.snd ≫ x` is pseudequal to `biprod.snd y`. -/
+/-- `biprod.snd ≫ x` is pseudoequal to `biprod.snd y`. -/
 lemma snd_x_pseudo_eq_snd_y : pseudo_equal _
   (app biprod.snd x) (app biprod.snd y) :=
 begin

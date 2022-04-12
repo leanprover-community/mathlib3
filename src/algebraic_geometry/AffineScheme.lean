@@ -37,6 +37,8 @@ universe u
 
 namespace algebraic_geometry
 
+open Spec (structure_sheaf)
+
 /-- The category of affine schemes -/
 def AffineScheme := Scheme.Spec.ess_image
 

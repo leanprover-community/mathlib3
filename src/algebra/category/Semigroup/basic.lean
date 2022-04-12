@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 import algebra.pempty_instances
+import algebra.hom.equiv
 import category_theory.concrete_category.bundled_hom
 import category_theory.functor.reflects_isomorphisms
 
@@ -61,6 +62,9 @@ add_decl_doc AddMagma.of
 /-- Typecheck a `add_hom` as a morphism in `AddMagma`. -/
 add_decl_doc AddMagma.of_hom
 
+@[simp, to_additive] lemma of_hom_apply {X Y : Type u} [has_mul X] [has_mul Y] (f : mul_hom X Y)
+  (x : X) : of_hom f x = f x := rfl
+
 @[to_additive]
 instance : inhabited Magma := ⟨Magma.of pempty⟩
 
@@ -101,6 +105,9 @@ add_decl_doc AddSemigroup.of
 
 /-- Typecheck a `add_hom` as a morphism in `AddSemigroup`. -/
 add_decl_doc AddSemigroup.of_hom
+
+@[simp, to_additive] lemma of_hom_apply {X Y : Type u} [semigroup X] [semigroup Y] (f : mul_hom X Y)
+  (x : X) : of_hom f x = f x := rfl
 
 @[to_additive]
 instance : inhabited Semigroup := ⟨Semigroup.of pempty⟩

@@ -179,7 +179,7 @@ variables {K : Type u} {L : Type v} {M : Type w} [field K] [field L] [algebra K 
 
 variables (K L M)
 include hL
-open zorn subalgebra alg_hom function
+open subalgebra alg_hom function
 
 /-- This structure is used to prove the existence of a homomorphism from any algebraic extension
 into an algebraic closure -/
@@ -215,7 +215,7 @@ instance : preorder (subfield_with_hom K L M hL) :=
 open lattice
 
 lemma maximal_subfield_with_hom_chain_bounded (c : set (subfield_with_hom K L M hL))
-  (hc : chain (≤) c) :
+  (hc : is_chain (≤) c) :
   ∃ ub : subfield_with_hom K L M hL, ∀ N, N ∈ c → N ≤ ub :=
 if hcn : c.nonempty then
 let ub : subfield_with_hom K L M hL :=
@@ -246,7 +246,7 @@ variables (hL M)
 
 lemma exists_maximal_subfield_with_hom : ∃ E : subfield_with_hom K L M hL,
   ∀ N, E ≤ N → N ≤ E :=
-zorn.exists_maximal_of_chains_bounded
+exists_maximal_of_chains_bounded
   maximal_subfield_with_hom_chain_bounded (λ _ _ _, le_trans)
 
 /-- The maximal `subfield_with_hom`. We later prove that this is equal to `⊤`. -/
@@ -265,7 +265,7 @@ begin
   intros x _,
   let p := minpoly K x,
   let N : subalgebra K L := (maximal_subfield_with_hom M hL).carrier,
-  letI : field N := is_field.to_field _ (subalgebra.is_field_of_algebraic N hL),
+  letI : field N := (subalgebra.is_field_of_algebraic N hL).to_field,
   letI : algebra N M := (maximal_subfield_with_hom M hL).emb.to_ring_hom.to_algebra,
   cases is_alg_closed.exists_aeval_eq_zero M (minpoly N x)
     (ne_of_gt (minpoly.degree_pos

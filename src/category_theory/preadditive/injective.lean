@@ -223,13 +223,14 @@ Q --- f --> R --- g --> S
             J
 ```
 -/
-def exact.desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S) [exact g.op f.op]
-  (w : f ≫ h = 0)  : S ⟶ J :=
-(exact.lift h.op g.op f.op (congr_arg quiver.hom.op w)).unop
+def exact.desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S)
+  (hgf : exact g.op f.op) (w : f ≫ h = 0)  : S ⟶ J :=
+(exact.lift h.op g.op f.op hgf (congr_arg quiver.hom.op w)).unop
 
 @[simp] lemma exact.comp_desc {J Q R S : C} [injective J] (h : R ⟶ J) (f : Q ⟶ R) (g : R ⟶ S)
-  [exact g.op f.op] (w : f ≫ h = 0) : g ≫ exact.desc h f g w = h :=
-by convert congr_arg quiver.hom.unop (exact.lift_comp h.op g.op f.op (congr_arg quiver.hom.op w))
+  (hgf : exact g.op f.op) (w : f ≫ h = 0) : g ≫ exact.desc h f g hgf w = h :=
+by convert congr_arg quiver.hom.unop
+  (exact.lift_comp h.op g.op f.op hgf (congr_arg quiver.hom.op w))
 
 end
 

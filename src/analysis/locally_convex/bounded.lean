@@ -5,6 +5,8 @@ Authors: Moritz Doll
 -/
 import analysis.locally_convex.basic
 import topology.bornology.basic
+import topology.algebra.uniform_group
+import analysis.locally_convex.balanced_core_hull
 
 /-!
 # Von Neumann Boundedness
@@ -125,3 +127,35 @@ is_bounded_of_bounded_iff _
 end normed_field
 
 end bornology
+
+section uniform_add_group
+
+variables [nondiscrete_normed_field 𝕜] [add_comm_group E] [module 𝕜 E]
+variables [uniform_space E] [uniform_add_group E] [has_continuous_smul 𝕜 E]
+variables [regular_space E]
+
+lemma totally_bounded.is_vonN_bounded {s : set E} (hs : totally_bounded s) :
+  bornology.is_vonN_bounded 𝕜 s :=
+begin
+  rw totally_bounded_iff_subset_finite_Union_nhds_zero at hs,
+  intros U hU,
+  have h : filter.tendsto (λ (x : E × E), x.fst + x.snd) (𝓝 (0,0)) (𝓝 ((0 : E) + (0 : E))) :=
+    tendsto_add,
+  rw add_zero at h,
+  have h' := (nhds_basis_closed_balanced 𝕜 E).prod (nhds_basis_closed_balanced 𝕜 E),
+  simp_rw [←nhds_prod_eq, id.def] at h',
+  rcases h.basis_left h' U hU with ⟨x, hx, h''⟩,
+  rcases hs x.snd hx.2.1 with ⟨t, ht, hs⟩,
+  refine absorbs.mono_right _ hs,
+  rw ht.absorbs_Union,
+  have hx_fstsnd : x.fst + x.snd ⊆ U,
+  { intros z hz,
+    rcases set.mem_add.mp hz with ⟨z1, z2, hz1, hz2, hz⟩,
+    have hz' : (z1, z2) ∈ x.fst ×ˢ x.snd := ⟨hz1, hz2⟩,
+    simpa only [hz] using h'' hz' },
+  refine λ y hy, absorbs.mono_left _ hx_fstsnd,
+  rw [←set.singleton_vadd, vadd_eq_add],
+  exact (absorbent_nhds_zero hx.1.1).absorbs.add hx.2.2.2.absorbs_self,
+end
+
+end uniform_add_group

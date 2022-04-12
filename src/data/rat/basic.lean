@@ -549,8 +549,10 @@ else
          ... = (q.num /. q.denom) * (r.denom /. r.num) : by rw inv_def
          ... = (q.num * r.denom) /. (q.denom * r.num) : mul_def (by simpa using denom_ne_zero q) hr
 
-lemma num_denom_mk {q : ℚ} {n d : ℤ} (hn : n ≠ 0) (hd : d ≠ 0) (qdf : q = n /. d) :
+lemma num_denom_mk {q : ℚ} {n d : ℤ} (hd : d ≠ 0) (qdf : q = n /. d) :
       ∃ c : ℤ, n = c * q.num ∧ d = c * q.denom :=
+(eq_or_ne n 0).by_cases
+(λ hn, by simp [*] at *) $ λ hn,
 have hq : q ≠ 0, from
   assume : q = 0,
   hn $ (rat.mk_eq_zero hd).1 (by cc),
@@ -659,12 +661,11 @@ end
 theorem num_div_denom (r : ℚ) : (r.num / r.denom : ℚ) = r :=
 by rw [← int.cast_coe_nat, ← mk_eq_div, num_denom]
 
-lemma exists_eq_mul_div_num_and_eq_mul_div_denom {n d : ℤ} (n_ne_zero : n ≠ 0)
-  (d_ne_zero : d ≠ 0) :
+lemma exists_eq_mul_div_num_and_eq_mul_div_denom (n : ℤ) {d : ℤ} (d_ne_zero : d ≠ 0) :
   ∃ (c : ℤ), n = c * ((n : ℚ) / d).num ∧ (d : ℤ) = c * ((n : ℚ) / d).denom :=
 begin
   have : ((n : ℚ) / d) = rat.mk n d, by rw [←rat.mk_eq_div],
-  exact rat.num_denom_mk n_ne_zero d_ne_zero this
+  exact rat.num_denom_mk d_ne_zero this
 end
 
 theorem coe_int_eq_of_int (z : ℤ) : ↑z = of_int z :=

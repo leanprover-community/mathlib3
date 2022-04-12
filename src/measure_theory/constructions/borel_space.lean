@@ -378,15 +378,26 @@ end
 
 variables {α' : Type*} [topological_space α'] [measurable_space α']
 
-lemma measure_interior_of_null_bdry {μ : measure α'} {s : set α'}
-  (h_nullbdry : μ (frontier s) = 0) : μ (interior s) = μ s :=
-measure_eq_measure_smaller_of_between_null_diff
-  interior_subset subset_closure h_nullbdry
+lemma interior_ae_eq_of_null_frontier {μ : measure α'} {s : set α'}
+  (h : μ (frontier s) = 0) : interior s =ᵐ[μ] s :=
+interior_subset.eventually_le.antisymm $
+  subset_closure.eventually_le.trans (ae_le_set.2 h)
 
-lemma measure_closure_of_null_bdry {μ : measure α'} {s : set α'}
-  (h_nullbdry : μ (frontier s) = 0) : μ (closure s) = μ s :=
-(measure_eq_measure_larger_of_between_null_diff
-  interior_subset subset_closure h_nullbdry).symm
+lemma measure_interior_of_null_frontier {μ : measure α'} {s : set α'}
+  (h : μ (frontier s) = 0) : μ (interior s) = μ s :=
+measure_congr (interior_ae_eq_of_null_frontier h)
+
+lemma null_measurable_set_of_null_frontier {s : set α} {μ : measure α}
+  (h : μ (frontier s) = 0) : null_measurable_set s μ :=
+⟨interior s, is_open_interior.measurable_set, (interior_ae_eq_of_null_frontier h).symm⟩
+
+lemma closure_ae_eq_of_null_frontier {μ : measure α'} {s : set α'}
+  (h : μ (frontier s) = 0) : closure s =ᵐ[μ] s :=
+((ae_le_set.2 h).trans interior_subset.eventually_le).antisymm $ subset_closure.eventually_le
+
+lemma measure_closure_of_null_frontier {μ : measure α'} {s : set α'}
+  (h : μ (frontier s) = 0) : μ (closure s) = μ s :=
+measure_congr (closure_ae_eq_of_null_frontier h)
 
 section preorder
 variables [preorder α] [order_closed_topology α] {a b x : α}
@@ -739,7 +750,7 @@ hf.borel_measurable.mono opens_measurable_space.borel_le
 
 /-- A continuous function from an `opens_measurable_space` to a `borel_space`
 is ae-measurable. -/
-lemma continuous.ae_measurable {f : α → γ} (h : continuous f) (μ : measure α) : ae_measurable f μ :=
+lemma continuous.ae_measurable {f : α → γ} (h : continuous f) {μ : measure α} : ae_measurable f μ :=
 h.measurable.ae_measurable
 
 lemma closed_embedding.measurable {f : α → γ} (hf : closed_embedding f) :

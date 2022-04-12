@@ -492,7 +492,7 @@ meta def explicit_vars_of_iff (d : declaration) :
 A linter for checking if variables appearing on both sides of an iff are explicit. Ideally, such
 variables should be implicit instead.
 -/
-@[linter] meta def linter.explicit_vars_of_iff : linter :=
+meta def linter.explicit_vars_of_iff : linter :=
 { test := explicit_vars_of_iff,
   auto_decls := ff,
   no_errors_found := "No explicit variables on both sides of iff",

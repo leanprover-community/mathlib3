@@ -164,10 +164,8 @@ lemma QP_eq_QPQ (P Q : X →L[𝕜] X) (h₁: is_Lprojection P) (h₂: is_Lproje
 begin
   have e1: P * (1 - Q) = P * (1 - Q) - (Q * P - Q * P * Q) :=
   calc P * (1 - Q) = (1 - Q) * P * (1 - Q) : by rw PQ_eq_QPQ P (1 - Q) h₁ h₂.Lcomplement
-  ... = 1 * (P * (1 - Q)) - Q * (P * (1 - Q)) : by {rw mul_assoc, rw sub_mul,}
-  ... = P * (1 - Q) - Q * (P * (1 - Q)) : by rw one_mul
-  ... = P * (1 - Q) - Q * (P - P * Q) : by rw [mul_sub, mul_one]
-  ... = P * (1 - Q) - (Q * P - Q * P * Q) : by rw [mul_sub Q, mul_assoc],
+  ... = P * (1 - Q) - (Q * P - Q * P * Q) :
+    by rw [mul_assoc, sub_mul, one_mul, mul_sub, mul_one, mul_sub Q, mul_assoc], 
   rwa [eq_sub_iff_add_eq, add_right_eq_self, sub_eq_zero] at e1
 end
 

@@ -72,10 +72,11 @@ def is_product (J : Type v) (f : J → ωCPO) : is_limit (product f) :=
   uniq' := λ s m w,
   begin
     ext t j,
-    change m t j = s.π.app j t,
-    rw ← w j,
+    change m t j = s.π.app ⟨j⟩ t,
+    rw ← w ⟨j⟩,
     refl,
-  end }.
+  end,
+  fac' := λ s j, by { cases j, tidy, } }.
 
 instance (J : Type v) (f : J → ωCPO.{v}) : has_product f :=
 has_limit.mk ⟨_, is_product _ f⟩

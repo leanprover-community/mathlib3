@@ -68,7 +68,7 @@ def res : F.obj (op (supr U)) ⟶ pi_opens F U :=
 pi.lift (λ i : ι, F.map (topological_space.opens.le_supr U i).op)
 
 @[simp, elementwise]
-lemma res_π (i : ι) : res F U ≫ limit.π _ i = F.map (opens.le_supr U i).op :=
+lemma res_π (i : ι) : res F U ≫ limit.π _ ⟨i⟩ = F.map (opens.le_supr U i).op :=
 by rw [res, limit.lift_π, fan.mk_π_app]
 
 @[elementwise]
@@ -237,7 +237,7 @@ begin
       inv := hom_of_le
       (by simp only [supr_s, supr_mk, le_def, subtype.coe_mk, set.le_eq_subset,
                      set.image_Union]) }), },
-  { ext,
+  { ext ⟨j⟩,
     dunfold fork.ι, -- Ugh, it is unpleasant that we need this.
     simp only [res, diagram.iso_of_open_embedding, discrete.nat_iso_inv_app, functor.map_iso_inv,
       limit.lift_π, cones.postcompose_obj_π, functor.comp_map,

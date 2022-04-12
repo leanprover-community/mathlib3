@@ -128,7 +128,7 @@ lemma is_gluing_iff_eq_res (sf : pi_opens F U) (s : F.obj (op (supr U))):
   is_gluing F U ((pi_opens_iso_sections_family F U).hom sf) s ↔ res F U s = sf :=
 begin
   split ; intros h,
-  { ext i,
+  { ext ⟨i⟩,
     rw [res, types.limit.lift_π_apply, fan.mk_π_app],
     exact h i, },
   { intro i,
@@ -155,7 +155,7 @@ begin
   choose m m_spec m_uniq using
     λ x : s.X, Fsh U ((pi_opens_iso_sections_family F U).hom (s.ι x)) (h_compatible x),
   refine ⟨m, _, _⟩,
-  { ext i x,
+  { ext ⟨i⟩ x,
     simp [res],
     exact m_spec x i, },
   { intros l hl,

@@ -700,10 +700,10 @@ namespace bicone
 @[simps]
 def to_binary_bicone {X Y : C} (b : bicone (pair X Y).obj) : binary_bicone X Y :=
 { X := b.X,
-  fst := b.π walking_pair.left,
-  snd := b.π walking_pair.right,
-  inl := b.ι walking_pair.left,
-  inr := b.ι walking_pair.right,
+  fst := b.π ⟨walking_pair.left⟩,
+  snd := b.π ⟨walking_pair.right⟩,
+  inl := b.ι ⟨walking_pair.left⟩,
+  inr := b.ι ⟨walking_pair.right⟩,
   inl_fst' := by { simp [bicone.ι_π], refl, },
   inr_fst' := by simp [bicone.ι_π],
   inl_snd' := by simp [bicone.ι_π],
@@ -905,22 +905,22 @@ abbreviation biprod.desc {W X Y : C} [has_binary_biproduct X Y] (f : X ⟶ W) (g
 @[simp, reassoc]
 lemma biprod.lift_fst {W X Y : C} [has_binary_biproduct X Y] (f : W ⟶ X) (g : W ⟶ Y) :
   biprod.lift f g ≫ biprod.fst = f :=
-(binary_biproduct.is_limit X Y).fac _ walking_pair.left
+(binary_biproduct.is_limit X Y).fac _ ⟨walking_pair.left⟩
 
 @[simp, reassoc]
 lemma biprod.lift_snd {W X Y : C} [has_binary_biproduct X Y] (f : W ⟶ X) (g : W ⟶ Y) :
   biprod.lift f g ≫ biprod.snd = g :=
-(binary_biproduct.is_limit X Y).fac _ walking_pair.right
+(binary_biproduct.is_limit X Y).fac _ ⟨walking_pair.right⟩
 
 @[simp, reassoc]
 lemma biprod.inl_desc {W X Y : C} [has_binary_biproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) :
   biprod.inl ≫ biprod.desc f g = f :=
-(binary_biproduct.is_colimit X Y).fac _ walking_pair.left
+(binary_biproduct.is_colimit X Y).fac _ ⟨walking_pair.left⟩
 
 @[simp, reassoc]
 lemma biprod.inr_desc {W X Y : C} [has_binary_biproduct X Y] (f : X ⟶ W) (g : Y ⟶ W) :
   biprod.inr ≫ biprod.desc f g = g :=
-(binary_biproduct.is_colimit X Y).fac _ walking_pair.right
+(binary_biproduct.is_colimit X Y).fac _ ⟨walking_pair.right⟩
 
 instance biprod.mono_lift_of_mono_left {W X Y : C} [has_binary_biproduct X Y] (f : W ⟶ X)
   (g : W ⟶ Y) [mono f] : mono (biprod.lift f g) :=
@@ -1021,7 +1021,7 @@ lemma biprod.inl_map {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biprod
   biprod.inl ≫ biprod.map f g = f ≫ biprod.inl :=
 begin
   rw biprod.map_eq_map',
-  exact is_colimit.ι_map (binary_biproduct.is_colimit W X) _ _ walking_pair.left
+  exact is_colimit.ι_map (binary_biproduct.is_colimit W X) _ _ ⟨walking_pair.left⟩
 end
 
 @[simp,reassoc]
@@ -1030,7 +1030,7 @@ lemma biprod.inr_map {W X Y Z : C} [has_binary_biproduct W X] [has_binary_biprod
   biprod.inr ≫ biprod.map f g = g ≫ biprod.inr :=
 begin
   rw biprod.map_eq_map',
-  exact is_colimit.ι_map (binary_biproduct.is_colimit W X) _ _ walking_pair.right
+  exact is_colimit.ι_map (binary_biproduct.is_colimit W X) _ _ ⟨walking_pair.right⟩
 end
 
 /-- Given a pair of isomorphisms between the summands of a pair of binary biproducts,
@@ -1056,7 +1056,7 @@ lemma biprod.cone_point_unique_up_to_iso_inv (X Y : C) [has_binary_biproduct X Y
 begin
   refine biprod.hom_ext' _ _ (hb.is_limit.hom_ext (λ j, _)) (hb.is_limit.hom_ext (λ j, _)),
   all_goals { simp only [category.assoc, is_limit.cone_point_unique_up_to_iso_inv_comp],
-    cases j },
+    rcases j with ⟨⟨⟩⟩ },
   all_goals { simp }
 end
 
@@ -1197,31 +1197,33 @@ any bicone `b` for `f` satisfying `total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b
 def is_bilimit_of_total {f : J → C} (b : bicone f) (total : ∑ j : J, b.π j ≫ b.ι j = 𝟙 b.X) :
   b.is_bilimit :=
 { is_limit :=
-  { lift := λ s, ∑ j, s.π.app j ≫ b.ι j,
+  { lift := λ s, ∑ (j : J), s.π.app ⟨j⟩ ≫ b.ι j,
     uniq' := λ s m h,
     begin
       erw [←category.comp_id m, ←total, comp_sum],
       apply finset.sum_congr rfl,
       intros j m,
-      erw [reassoc_of (h j)],
+      erw [reassoc_of (h ⟨j⟩)],
     end,
     fac' := λ s j,
     begin
+      cases j,
       simp only [sum_comp, category.assoc, bicone.to_cone_π_app, b.ι_π, comp_dite],
       -- See note [dsimp, simp].
       dsimp, simp,
     end },
   is_colimit :=
-  { desc := λ s, ∑ j, b.π j ≫ s.ι.app j,
+  { desc := λ s, ∑ (j : J), b.π j ≫ s.ι.app ⟨j⟩,
     uniq' := λ s m h,
     begin
       erw [←category.id_comp m, ←total, sum_comp],
             apply finset.sum_congr rfl,
       intros j m,
-      erw [category.assoc, h],
+      erw [category.assoc, h ⟨j⟩],
     end,
     fac' := λ s j,
     begin
+      cases j,
       simp only [comp_sum, ←category.assoc, bicone.to_cocone_ι_app, b.ι_π, dite_comp],
       dsimp, simp,
     end } }
@@ -1366,18 +1368,18 @@ def is_binary_bilimit_of_total {X Y : C} (b : binary_bicone X Y)
   { lift := λ s, binary_fan.fst s ≫ b.inl +
       binary_fan.snd s ≫ b.inr,
     uniq' := λ s m h, by erw [←category.comp_id m, ←total,
-      comp_add, reassoc_of (h walking_pair.left), reassoc_of (h walking_pair.right)],
-    fac' := λ s j, by cases j; simp, },
+      comp_add, reassoc_of (h ⟨walking_pair.left⟩), reassoc_of (h ⟨walking_pair.right⟩)],
+    fac' := λ s j, by rcases j with ⟨⟨⟩⟩; simp, },
   is_colimit :=
   { desc := λ s, b.fst ≫ binary_cofan.inl s +
       b.snd ≫ binary_cofan.inr s,
     uniq' := λ s m h, by erw [←category.id_comp m, ←total,
-      add_comp, category.assoc, category.assoc, h walking_pair.left, h walking_pair.right],
-    fac' := λ s j, by cases j; simp, } }
+      add_comp, category.assoc, category.assoc, h ⟨walking_pair.left⟩, h ⟨walking_pair.right⟩],
+    fac' := λ s j, by rcases j with ⟨⟨⟩⟩; simp, } }
 
 lemma is_bilimit.binary_total {X Y : C} {b : binary_bicone X Y} (i : b.is_bilimit) :
   b.fst ≫ b.inl + b.snd ≫ b.inr = 𝟙 b.X :=
-i.is_limit.hom_ext (λ j, by { cases j; simp, })
+i.is_limit.hom_ext (λ j, by { rcases j with ⟨⟨⟩⟩; simp, })
 
 /--
 In a preadditive category, we can construct a binary biproduct for `X Y : C` from
@@ -1396,18 +1398,18 @@ has_binary_biproduct.mk
 def binary_bicone.of_limit_cone {X Y : C} {t : cone (pair X Y)} (ht : is_limit t) :
   binary_bicone X Y :=
 { X := t.X,
-  fst := t.π.app walking_pair.left,
-  snd := t.π.app walking_pair.right,
+  fst := t.π.app ⟨walking_pair.left⟩,
+  snd := t.π.app ⟨walking_pair.right⟩,
   inl := ht.lift (binary_fan.mk (𝟙 X) 0),
   inr := ht.lift (binary_fan.mk 0 (𝟙 Y)) }
 
 lemma inl_of_is_limit {X Y : C} {t : binary_bicone X Y} (ht : is_limit t.to_cone) :
   t.inl = ht.lift (binary_fan.mk (𝟙 X) 0) :=
-ht.hom_ext $ λ j, by { rw ht.fac, cases j; simp }
+ht.hom_ext $ λ j, by { rw ht.fac, rcases j with ⟨⟨⟩⟩; simp }
 
 lemma inr_of_is_limit {X Y : C} {t : binary_bicone X Y} (ht : is_limit t.to_cone) :
   t.inr = ht.lift (binary_fan.mk 0 (𝟙 Y)) :=
-ht.hom_ext $ λ j, by { rw ht.fac, cases j; simp }
+ht.hom_ext $ λ j, by { rw ht.fac, rcases j with ⟨⟨⟩⟩; simp }
 
 /-- In a preadditive category, any binary bicone which is a limit cone is in fact a bilimit
     bicone. -/
@@ -1449,15 +1451,15 @@ def binary_bicone.of_colimit_cocone {X Y : C} {t : cocone (pair X Y)} (ht : is_c
 { X := t.X,
   fst := ht.desc (binary_cofan.mk (𝟙 X) 0),
   snd := ht.desc (binary_cofan.mk 0 (𝟙 Y)),
-  inl := t.ι.app walking_pair.left,
-  inr := t.ι.app walking_pair.right }
+  inl := t.ι.app ⟨walking_pair.left⟩,
+  inr := t.ι.app ⟨walking_pair.right⟩ }
 
 lemma fst_of_is_colimit {X Y : C} {t : binary_bicone X Y} (ht : is_colimit t.to_cocone) :
   t.fst = ht.desc (binary_cofan.mk (𝟙 X) 0) :=
 begin
   refine ht.hom_ext (λ j, _),
   rw ht.fac,
-  cases j,
+  rcases j with ⟨⟨⟩⟩,
   all_goals { simp only [binary_bicone.to_cocone_ι_app_left, binary_bicone.inl_fst,
       binary_cofan.mk_ι_app_left, binary_bicone.to_cocone_ι_app_right, binary_bicone.inr_fst,
       binary_cofan.mk_ι_app_right] },
@@ -1469,7 +1471,7 @@ lemma snd_of_is_colimit {X Y : C} {t : binary_bicone X Y} (ht : is_colimit t.to_
 begin
   refine ht.hom_ext (λ j, _),
   rw ht.fac,
-  cases j,
+  rcases j with ⟨⟨⟩⟩,
   all_goals { simp only [binary_bicone.to_cocone_ι_app_left, binary_bicone.inl_snd,
     binary_cofan.mk_ι_app_left, binary_bicone.to_cocone_ι_app_right, binary_bicone.inr_snd,
     binary_cofan.mk_ι_app_right] },
@@ -1497,7 +1499,7 @@ end
 def binary_bicone_is_bilimit_of_colimit_cocone_of_is_colimit {X Y : C} {t : cocone (pair X Y)}
   (ht : is_colimit t) : (binary_bicone.of_colimit_cocone ht).is_bilimit :=
 is_binary_bilimit_of_is_colimit (binary_bicone.of_colimit_cocone ht) $
-  is_colimit.of_iso_colimit ht $ cocones.ext (iso.refl _) $ λ j, by { cases j, tidy }
+  is_colimit.of_iso_colimit ht $ cocones.ext (iso.refl _) $ λ j, by { rcases j with ⟨⟨⟩⟩, tidy }
 
 /-- In a preadditive category, if the coproduct of `X` and `Y` exists, then the
     binary biproduct of `X` and `Y` exists. -/

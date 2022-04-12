@@ -69,7 +69,7 @@ meta def continuity_tactics (md : transparency := reducible) : list (tactic stri
 [
   intros1               >>= λ ns, pure ("intros " ++ (" ".intercalate (ns.map (λ e, e.to_string)))),
   apply_rules [] [``continuity] 50 { md := md }
-                        >> pure "apply_rules continuity",
+                        >> pure "apply_rules with continuity",
   apply_continuous.comp >> pure "refine continuous.comp _ _"
 ]
 

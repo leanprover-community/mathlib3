@@ -130,7 +130,7 @@ begin
     simp_rw [map_map (measurable_id'.const_div g) (measurable_id'.const_mul g⁻¹).inv,
       function.comp, div_inv_eq_mul, mul_inv_cancel_left, map_id'],
     exact hf.ae_strongly_measurable },
-  { exact (measurable_id'.const_mul g⁻¹).inv }
+  { exact (measurable_id'.const_mul g⁻¹).inv.ae_measurable }
 end
 
 @[to_additive]

@@ -35,7 +35,7 @@ def evaluation_left_adjoint (c : C) : D ⥤ C ⥤ D :=
   { obj := λ t, ∐ (λ i : c ⟶ t, d),
     map := λ u v f, sigma.desc $ λ g, sigma.ι (λ _, d) $ g ≫ f,
     map_id' := begin
-      intros, ext, simp only [cofan.mk_ι_app, colimit.ι_desc, category.comp_id],
+      intros, ext ⟨j⟩, simp only [cofan.mk_ι_app, colimit.ι_desc, category.comp_id],
       congr' 1, rw category.comp_id,
     end,
     map_comp' := begin
@@ -45,7 +45,7 @@ def evaluation_left_adjoint (c : C) : D ⥤ C ⥤ D :=
   map := λ d₁ d₂ f,
   { app := λ e, sigma.desc $ λ h, f ≫ sigma.ι (λ _, d₂) h,
     naturality' := by { intros, ext, dsimp, simp } },
-  map_id' := by { intros, ext, dsimp, simp },
+  map_id' := by { intros, ext x ⟨j⟩, dsimp, simp },
   map_comp' := by { intros, ext, dsimp, simp } }
 
 /-- The adjunction showing that evaluation is a right adjoint. -/
@@ -60,7 +60,7 @@ adjunction.mk_of_hom_equiv
       naturality' := by { intros, ext, dsimp, simp } },
     left_inv := begin
       intros f,
-      ext x g,
+      ext x ⟨g⟩,
       dsimp,
       simp only [colimit.ι_desc, limits.cofan.mk_ι_app, category.assoc, ← f.naturality,
         evaluation_left_adjoint_obj_map, colimit.ι_desc_assoc, cofan.mk_ι_app],
@@ -98,19 +98,19 @@ def evaluation_right_adjoint (c : C) : D ⥤ C ⥤ D :=
   { obj := λ t, ∏ (λ i : t ⟶ c, d),
     map := λ u v f, pi.lift $ λ g, pi.π _ $ f ≫ g,
     map_id' := begin
-      intros, ext, dsimp,
+      intros, ext ⟨j⟩, dsimp,
       simp only [limit.lift_π, category.id_comp, fan.mk_π_app],
       congr, simp,
     end,
     map_comp' := begin
-      intros, ext, dsimp,
+      intros, ext ⟨j⟩, dsimp,
       simp only [limit.lift_π, fan.mk_π_app, category.assoc],
       congr' 1, simp,
     end },
   map := λ d₁ d₂ f,
   { app := λ t, pi.lift $ λ g, pi.π _ g ≫ f,
     naturality' := by { intros, ext, dsimp, simp } },
-  map_id' := by { intros, ext, dsimp, simp },
+  map_id' := by { intros, ext x ⟨j⟩, dsimp, simp },
   map_comp' := by { intros, ext, dsimp, simp } }
 
 /-- The adjunction showing that evaluation is a left adjoint. -/
@@ -126,7 +126,7 @@ adjunction.mk_of_hom_equiv
     left_inv := λ f, by { dsimp, simp },
     right_inv := begin
       intros f,
-      ext x g,
+      ext x ⟨g⟩,
       dsimp,
       simp only [limit.lift_π, evaluation_right_adjoint_obj_map,
         nat_trans.naturality_assoc, fan.mk_π_app],

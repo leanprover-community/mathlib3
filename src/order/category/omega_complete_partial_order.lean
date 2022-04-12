@@ -67,8 +67,8 @@ fan.mk (of (Π j, f j)) (λ j, continuous_hom.of_mono (pi.eval_order_hom j) (λ 
 /-- The pi-type is a limit cone for the product. -/
 def is_product (J : Type v) (f : J → ωCPO) : is_limit (product f) :=
 { lift := λ s,
-    ⟨⟨λ t j, s.π.app j t, λ x y h j, (s.π.app j).monotone h⟩,
-     λ x, funext (λ j, (s.π.app j).continuous x)⟩,
+    ⟨⟨λ t j, s.π.app ⟨j⟩ t, λ x y h j, (s.π.app ⟨j⟩).monotone h⟩,
+     λ x, funext (λ j, (s.π.app ⟨j⟩).continuous x)⟩,
   uniq' := λ s m w,
   begin
     ext t j,

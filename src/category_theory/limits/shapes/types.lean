@@ -92,8 +92,8 @@ rfl
 @[simps]
 def binary_product_limit (X Y : Type u) : is_limit (binary_product_cone X Y) :=
 { lift := λ (s : binary_fan X Y) x, (s.fst x, s.snd x),
-  fac' := λ s j, walking_pair.cases_on j rfl rfl,
-  uniq' := λ s m w, funext $ λ x, prod.ext (congr_fun (w left) x) (congr_fun (w right) x) }
+  fac' := λ s j, discrete.rec_on j (λ j, walking_pair.cases_on j rfl rfl),
+  uniq' := λ s m w, funext $ λ x, prod.ext (congr_fun (w ⟨left⟩) x) (congr_fun (w ⟨right⟩) x) }
 
 /--
 The category of types has `X × Y`, the usual cartesian product,
@@ -140,8 +140,8 @@ binary_cofan.mk sum.inl sum.inr
 @[simps]
 def binary_coproduct_colimit (X Y : Type u) : is_colimit (binary_coproduct_cocone X Y) :=
 { desc := λ (s : binary_cofan X Y), sum.elim s.inl s.inr,
-  fac' := λ s j, walking_pair.cases_on j rfl rfl,
-  uniq' := λ s m w, funext $ λ x, sum.cases_on x (congr_fun (w left)) (congr_fun (w right)) }
+  fac' := λ s j, discrete.rec_on j (λ j, walking_pair.cases_on j rfl rfl),
+  uniq' := λ s m w, funext $ λ x, sum.cases_on x (congr_fun (w ⟨left⟩)) (congr_fun (w ⟨right⟩)) }
 
 /--
 The category of types has `X ⊕ Y`,
@@ -156,10 +156,10 @@ The category of types has `Π j, f j` as the product of a type family `f : J →
 def product_limit_cone {J : Type u} (F : J → Type u) : limits.limit_cone (discrete.functor F) :=
 { cone :=
   { X := Π j, F j,
-    π := { app := λ j f, f j }, },
+    π := { app := λ j f, f j.as }, },
   is_limit :=
-  { lift := λ s x j, s.π.app j x,
-    uniq' := λ s m w, funext $ λ x, funext $ λ j, (congr_fun (w j) x : _) } }
+  { lift := λ s x j, s.π.app ⟨j⟩ x,
+    uniq' := λ s m w, funext $ λ x, funext $ λ j, (congr_fun (w ⟨j⟩) x : _) } }
 
 /--
 The category of types has `Σ j, f j` as the coproduct of a type family `f : J → Type`.
@@ -169,13 +169,13 @@ def coproduct_colimit_cocone {J : Type u} (F : J → Type u) :
 { cocone :=
   { X := Σ j, F j,
     ι :=
-    { app := λ j x, ⟨j, x⟩ }, },
+    { app := λ j x, ⟨j.as, x⟩ }, },
   is_colimit :=
-  { desc := λ s x, s.ι.app x.1 x.2,
+  { desc := λ s x, s.ι.app ⟨x.1⟩ x.2,
     uniq' := λ s m w,
     begin
       ext ⟨j, x⟩,
-      have := congr_fun (w j) x,
+      have := congr_fun (w ⟨j⟩) x,
       exact this,
     end }, }
 

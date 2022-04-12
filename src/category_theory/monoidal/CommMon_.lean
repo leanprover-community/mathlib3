@@ -133,6 +133,8 @@ def CommMon_to_lax_braided : CommMon_ C ⥤ lax_braided_functor (discrete punit.
     unit' := f.one_hom,
     tensor' := λ _ _, f.mul_hom, }, }
 
+local attribute [tidy] discrete.discrete_cases
+
 /-- Implementation of `CommMon_.equiv_lax_braided_functor_punit`. -/
 @[simps]
 def unit_iso :

@@ -7,6 +7,9 @@ import algebra.module
 import linear_algebra.quotient
 import ring_theory.ideal.quotient
 import ring_theory.non_zero_divisors
+import algebra.direct_sum.module
+import group_theory.torsion
+import linear_algebra.isomorphisms
 import group_theory.torsion
 
 /-!
@@ -14,6 +17,7 @@ import group_theory.torsion
 
 ## Main definitions
 
+* `torsion_of R M x` : the torsion ideal of `x`, containing all `a` such that `a • x = 0`.
 * `submodule.torsion_by R M a` : the `a`-torsion submodule, containing all elements `x` of `M` such
   that `a • x = 0`.
 * `submodule.torsion' R M S` : the `S`-torsion submodule, containing all elements `x` of `M` such
@@ -25,6 +29,8 @@ import group_theory.torsion
 
 ## Main statements
 
+* `quot_torsion_of_equiv_span_singleton` : isomorphism between the span of an element of `M` and
+  the quotient by its torsion ideal.
 * `torsion' R M S` and `torsion R M` are submodules.
 * `torsion_by R M a` can be viewed as a `(R ⧸ R∙a)`-module.
 * `submodule.torsion_by_is_torsion_by` : the `a`-torsion submodule is a `a`-torsion module.
@@ -47,6 +53,27 @@ import group_theory.torsion
 
 Torsion, submodule, module, quotient
 -/
+
+section
+variables (R M : Type*) [semiring R] [add_comm_monoid M] [module R M]
+/--The torsion ideal of `x`, containing all `a` such that `a • x = 0`.-/
+@[simps] def torsion_of (x : M) : ideal R := (linear_map.to_span_singleton R M x).ker
+variables {R M}
+@[simp] lemma mem_torsion_of_iff (x : M) (a : R) : a ∈ torsion_of R M x ↔ a • x = 0 := iff.rfl
+end
+
+section
+variables (R M : Type*) [ring R] [add_comm_group M] [module R M]
+/--The span of `x` in `M` is isomorphic to `R` quotiented by the torsion ideal of `x`.-/
+noncomputable def quot_torsion_of_equiv_span_singleton (x : M) :
+(R ⧸ torsion_of R M x) ≃ₗ[R] (R ∙ x) :=
+(linear_map.to_span_singleton R M x).quot_ker_equiv_range.trans $
+linear_equiv.of_eq _ _ (linear_map.span_singleton_eq_range R M x).symm
+
+@[simp] lemma quot_torsion_of_equiv_span_singleton_apply_mk (x : M) (a : R) :
+  quot_torsion_of_equiv_span_singleton R M x (submodule.quotient.mk a) =
+    a • ⟨x, submodule.mem_span_singleton_self x⟩ := rfl
+end
 
 open_locale non_zero_divisors
 
@@ -117,11 +144,85 @@ lemma torsion_by_is_torsion_by : is_torsion_by R (torsion_by R M a) a := λ _, s
 @[simp] lemma torsion_by_torsion_by_eq_top : torsion_by R (torsion_by R M a) a = ⊤ :=
 (is_torsion_by_iff_torsion_by_eq_top a).mp $ torsion_by_is_torsion_by a
 
+lemma torsion_by_le_torsion_by_of_dvd (a b : R) (dvd : a ∣ b) :
+  torsion_by R M a ≤ torsion_by R M b :=
+λ x hx, begin
+  cases dvd with c h,
+  change _ • _ = _, change _ • _ = _ at hx,
+  rw [h, mul_comm, mul_smul, hx, smul_zero]
+end
+
+lemma torsion_by_one : torsion_by R M 1 = ⊥ :=
+eq_bot_iff.mpr (λ _ h, by { rw [mem_torsion_by_iff, one_smul] at h, exact h })
+
+section coprime
+open_locale big_operators
+open dfinsupp
+variables {ι : Type*} {p : ι → R} {S : finset ι} (hp : pairwise (is_coprime on λ s : S, p s))
+include hp
+lemma supr_torsion_by_eq_torsion_by_prod :
+  (⨆ i : S, torsion_by R M (p i)) = torsion_by R M (∏ i in S, p i) :=
+begin
+  cases S.eq_empty_or_nonempty,
+  { rw [h, finset.prod_empty, torsion_by_one],
+    convert supr_of_empty _, exact subtype.is_empty_false },
+  apply le_antisymm,
+  { apply supr_le _, rintro ⟨i, is⟩,
+    exact torsion_by_le_torsion_by_of_dvd _ _ (finset.dvd_prod_of_mem p is) },
+  { intros x hx, classical, rw mem_supr_iff_exists_dfinsupp',
+    cases (exists_sum_eq_one_iff_pairwise_coprime h).mpr hp with f hf,
+    use equiv_fun_on_fintype.inv_fun (λ i, ⟨(f i * ∏ j in S \ {i}, p j) • x, begin
+      obtain ⟨i, is⟩ := i,
+      change p i • (f i * ∏ j in S \ {i}, _) • _ = _, change _ • _ = _ at hx,
+      rw [smul_smul, mul_comm, mul_assoc, mul_smul, ← finset.prod_eq_prod_diff_singleton_mul is,
+        hx, smul_zero]
+    end⟩),
+    simp only [equiv.inv_fun_as_coe, sum_eq_sum_fintype, coe_eq_zero, eq_self_iff_true,
+      implies_true_iff, finset.univ_eq_attach, equiv_fun_on_fintype_apply],
+    change ∑ i : S, ((f i * ∏ j in S \ {i}, p j) • x) = x,
+    have : ∑ i : S, _ = _ := S.sum_finset_coe (λ i, f i * ∏ j in S \ {i}, p j),
+    rw [← finset.sum_smul, this, hf, one_smul] }
+end
+lemma torsion_by_independent : complete_lattice.independent (λ i : S, torsion_by R M (p i)) :=
+λ i, begin
+  classical,
+  dsimp, rw [disjoint_iff, eq_bot_iff], intros x hx,
+  rw submodule.mem_inf at hx, obtain ⟨hxi, hxj⟩ := hx,
+  have hxi : p i • x = 0 := hxi,
+  rw mem_supr_iff_exists_dfinsupp' at hxj, cases hxj with f hf,
+  obtain ⟨b, c, h1⟩ := pairwise_coprime_iff_coprime_prod.mp hp i i.2,
+  rw [mem_bot, ← one_smul _ x, ← h1, add_smul],
+  convert (zero_add (0:M)),
+  { rw [mul_smul, hxi, smul_zero] },
+  { rw [← hf, smul_sum, sum_eq_zero],
+    intro j, by_cases ji : j = i,
+    { convert smul_zero _,
+      rw ← mem_bot _, convert coe_mem (f j),
+      symmetry, rw supr_eq_bot, intro hj',
+      exfalso, exact hj' ji },
+    { have hj' : ↑j ∈ S \ {i},
+      { rw finset.mem_sdiff, refine ⟨j.2, λ hj', ji _⟩, ext, rw ← finset.mem_singleton, exact hj' },
+      rw [finset.prod_eq_prod_diff_singleton_mul hj', ← mul_assoc, mul_smul],
+      have : (⨆ (H : ¬j = i), torsion_by R M (p j)) ≤ torsion_by R M (p j) := supr_const_le,
+      have : (f j : M) ∈ torsion_by R M (p j) := this (coe_mem _),
+      have : _ • _ = _ := this,
+      rw [this, smul_zero] } }
+end
+end coprime
 end torsion_by
 
-section quotient
-
+section needs_group
 variables [comm_ring R] [add_comm_group M] [module R M] (a : R)
+
+section
+open_locale big_operators
+variables {ι : Type*} {p : ι → R} {S : finset ι} (hp : pairwise (is_coprime on λ s : S, p s))
+include hp
+lemma torsion_is_internal [decidable_eq ι] (hM : torsion_by R M (∏ i in S, p i) = ⊤) :
+  direct_sum.submodule_is_internal (λ i : S, torsion_by R M (p i)) :=
+direct_sum.submodule_is_internal_of_independent_of_supr_eq_top
+  (torsion_by_independent hp) (by { rw ← hM, exact supr_torsion_by_eq_torsion_by_prod hp})
+end
 
 instance : has_scalar (R ⧸ R ∙ a) (torsion_by R M a) :=
 { smul := λ b x, quotient.lift_on' b (• x) $ λ b₁ b₂ (h : b₁ - b₂ ∈ _), begin
@@ -143,7 +244,7 @@ instance {S : Type*} [has_scalar S R] [has_scalar S M]
   is_scalar_tower S (R ⧸ R ∙ a) (torsion_by R M a) :=
 { smul_assoc := λ b d x, quotient.induction_on' d $ λ c, (smul_assoc b c x : _) }
 
-end quotient
+end needs_group
 
 section torsion'
 
@@ -175,6 +276,10 @@ torsion module. -/
 
 /-- The torsion submodule is always a torsion module. -/
 lemma torsion_is_torsion : module.is_torsion R (torsion R M) := torsion'_is_torsion' R⁰
+
+lemma is_torsion'_powers_iff (p : R) :
+is_torsion' M (submonoid.powers p) ↔ ∀ x : M, ∃ n : ℕ, p ^ n • x = 0 :=
+⟨λ h x, let ⟨⟨a, ⟨n, rfl⟩⟩, hx⟩ := @h x in ⟨n, hx⟩, λ h x, let ⟨n, hn⟩ := h x in ⟨⟨_, ⟨n, rfl⟩⟩, hn⟩⟩
 
 end torsion'
 
@@ -227,8 +332,26 @@ instance no_zero_smul_divisors [is_domain R] : no_zero_smul_divisors R (M ⧸ to
 no_zero_smul_divisors_iff_torsion_eq_bot.mpr torsion_eq_bot
 
 end quotient_torsion
-
 end submodule
+
+namespace ideal.quotient
+
+open submodule
+
+lemma torsion_by_eq_span_singleton {R : Type*} [comm_ring R] (a b : R) (ha : a ∈ R⁰) :
+  torsion_by R (R ⧸ R ∙ a * b) a = R ∙ (mk _ b) :=
+begin
+  ext x, rw [mem_torsion_by_iff, mem_span_singleton],
+  obtain ⟨x, rfl⟩ := mk_surjective x, split; intro h,
+  { rw [← mk_eq_mk, ← quotient.mk_smul, quotient.mk_eq_zero, mem_span_singleton] at h,
+    obtain ⟨c, h⟩ := h, rw [smul_eq_mul, smul_eq_mul, mul_comm, mul_assoc,
+      mul_cancel_left_mem_non_zero_divisor ha, mul_comm] at h,
+    use c, rw [← h, ← mk_eq_mk, ← quotient.mk_smul, smul_eq_mul, mk_eq_mk] },
+  { obtain ⟨c, h⟩ := h,
+    rw [← h, smul_comm, ← mk_eq_mk, ← quotient.mk_smul,
+      (quotient.mk_eq_zero _).mpr $ mem_span_singleton_self _, smul_zero] }
+end
+end ideal.quotient
 
 namespace add_monoid
 

@@ -899,7 +899,7 @@ begin
   lift b to α using (h.trans_le le_top).ne,
   cases c,
   { exact coe_lt_top _ },
-  { exact some_lt_some.2 (add_lt_add_left $ some_lt_some.1 h) }
+  { exact some_lt_some.2 (add_lt_add_left (some_lt_some.1 h) _) }
 end
 
 protected lemma add_lt_add_right [covariant_class α α (swap (+)) (<)] (ha : a ≠ ⊤) (h : b < c) :
@@ -909,7 +909,7 @@ begin
   lift b to α using (h.trans_le le_top).ne,
   cases c,
   { exact coe_lt_top _ },
-  { exact some_lt_some.2 (add_lt_add_right $ some_lt_some.1 h) }
+  { exact some_lt_some.2 (add_lt_add_right (some_lt_some.1 h) _) }
 end
 
 protected lemma add_le_add_iff_left [covariant_class α α (+) (≤)] [contravariant_class α α (+) (≤)]

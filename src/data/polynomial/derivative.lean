@@ -126,12 +126,12 @@ end
 we want to prove this statement also for noncommutative rings.-/
 @[simp]
 lemma derivative_C_mul (a : R) (p : R[X]) : derivative (C a * p) = C a * derivative p :=
-by convert derivative_smul a p; apply C_mul'
+by simp_rw [← smul_eq_C_mul, derivative_smul]
 
 @[simp]
 lemma iterate_derivative_C_mul (a : R) (p : R[X]) (k : ℕ) :
   derivative^[k] (C a * p) = C a * (derivative^[k] p) :=
-by convert iterate_derivative_smul a p k; apply C_mul'
+by simp_rw [← smul_eq_C_mul, iterate_derivative_smul]
 
 theorem of_mem_support_derivative {p : R[X]} {n : ℕ} (h : n ∈ p.derivative.support) :
   n + 1 ∈ p.support :=

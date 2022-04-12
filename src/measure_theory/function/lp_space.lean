@@ -1306,7 +1306,7 @@ by simp [hfp.2]
 
 /-- Lp space -/
 def Lp {α} (E : Type*) {m : measurable_space α} [normed_group E]
-  (p : ℝ≥0∞) (μ : measure α) : add_subgroup (α →ₘ[μ] E) :=
+  (p : ℝ≥0∞) (μ : measure α . volume_tac) : add_subgroup (α →ₘ[μ] E) :=
 { carrier := {f | snorm f p μ < ∞},
   zero_mem' := by simp [snorm_congr_ae ae_eq_fun.coe_fn_zero, snorm_zero],
   add_mem' := λ f g hf hg, by simp [snorm_congr_ae (ae_eq_fun.coe_fn_add _ _),

@@ -103,7 +103,7 @@ begin
   have h := (mk_le_of_injective list_encode_injective),
   refine h.trans _,
   casesI fintype_or_infinite (α ⊕ (Σ i, L.functions i)) with ft inf,
-  { haveI := fintype.encodable (α ⊕ (Σ i, L.functions i)),
+  { haveI := fintype.to_encodable (α ⊕ (Σ i, L.functions i)),
     exact le_add_left (encodable_iff.1 ⟨encodable.list⟩) },
   { rw mk_list_eq_mk,
     exact le_self_add }

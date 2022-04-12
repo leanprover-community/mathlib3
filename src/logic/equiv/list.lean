@@ -104,9 +104,9 @@ def _root_.fintype.trunc_encodable (α : Type*) [decidable_eq α] [fintype α] :
   finset.mem_univ
 
 /-- A noncomputable way to arbitrarily choose an ordering on a finite type.
-  It is not made into a global instance, since it involves an arbitrary choice.
-  This can be locally made into an instance with `local attribute [instance] fintype.encodable`. -/
-noncomputable def _root_.fintype.encodable (α : Type*) [fintype α] : encodable α :=
+It is not made into a global instance, since it involves an arbitrary choice.
+This can be locally made into an instance with `local attribute [instance] fintype.to_encodable`. -/
+noncomputable def _root_.fintype.to_encodable (α : Type*) [fintype α] : encodable α :=
 by { classical, exact (fintype.trunc_encodable α).out }
 
 /-- If `α` is encodable, then so is `vector α n`. -/

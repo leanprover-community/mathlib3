@@ -665,7 +665,7 @@ mk_le_omega.antisymm (omega_le_mk _)
 theorem mk_list_le_max (α : Type u) : #(list α) ≤ max ω (#α) :=
 begin
   casesI fintype_or_infinite α,
-  { haveI := fintype.encodable α,
+  { haveI := fintype.to_encodable α,
     exact mk_le_omega.trans (le_max_left _ _) },
   { rw mk_list_eq_mk,
     apply le_max_right }

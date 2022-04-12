@@ -274,8 +274,9 @@ def section_in_basic_open (x : projective_spectrum.Top 𝒜) :
   Π (f : at x),
     (Proj.structure_sheaf 𝒜).1.obj (op (projective_spectrum.basic_open 𝒜 f.denom)) :=
 λ f, ⟨λ y, quotient.mk' ⟨f.deg, ⟨f.num, f.num_mem⟩, ⟨f.denom, f.denom_mem⟩, y.2⟩,
-  λ y, ⟨projective_spectrum.basic_open 𝒜 f.denom, y.2, 𝟙 _, f.num, f.denom, f.deg,
-      f.num_mem, f.denom_mem, λ z, ⟨z.2, rfl⟩⟩⟩
+  λ y, ⟨projective_spectrum.basic_open 𝒜 f.denom, y.2,
+    ⟨𝟙 _, ⟨f.deg, ⟨⟨f.num, f.num_mem⟩, ⟨f.denom, f.denom_mem⟩,
+      λ z, ⟨z.2, rfl⟩⟩⟩⟩⟩⟩
 
 def section_in_basic_open.apply (x : projective_spectrum.Top 𝒜) (f) (y) :
   (section_in_basic_open 𝒜 x f).1 y =
@@ -293,8 +294,8 @@ ring_equiv.of_bijective (stalk_to_fiber_ring_hom _ x)
 ⟨λ z1 z2 eq1, begin
   obtain ⟨u1, memu1, s1, rfl⟩ := (Proj.structure_sheaf 𝒜).1.germ_exist x z1,
   obtain ⟨u2, memu2, s2, rfl⟩ := (Proj.structure_sheaf 𝒜).1.germ_exist x z2,
-  obtain ⟨v1, memv1, i1, a1, b1, j1, a1_hom, b1_hom, hs1⟩ := s1.2 ⟨x, memu1⟩,
-  obtain ⟨v2, memv2, i2, a2, b2, j2, a2_hom, b2_hom, hs2⟩ := s2.2 ⟨x, memu2⟩,
+  obtain ⟨v1, memv1, i1, ⟨j1, ⟨a1, a1_mem⟩, ⟨b1, b1_mem⟩, hs1⟩⟩ := s1.2 ⟨x, memu1⟩,
+  obtain ⟨v2, memv2, i2, ⟨j2, ⟨a2, a2_mem⟩, ⟨b2, b2_mem⟩, hs2⟩⟩ := s2.2 ⟨x, memu2⟩,
   obtain ⟨b1_nin_x, eq2⟩ := hs1 ⟨x, memv1⟩,
   obtain ⟨b2_nin_x, eq3⟩ := hs2 ⟨x, memv2⟩,
   dsimp only at eq1 eq2 eq3,

@@ -41,7 +41,7 @@ variables {M} {N : Type u} [monoid N]
 A multiplicative morphism between monoids gives a monoidal functor between the corresponding
 discrete monoidal categories.
 -/
-@[to_additive dicrete.add_monoidal_functor "An additive morphism between add_monoids gives a
+@[to_additive discrete.add_monoidal_functor "An additive morphism between add_monoids gives a
   monoidal functor between the corresponding discrete monoidal categories.", simps]
 def discrete.monoidal_functor (F : M →* N) : monoidal_functor (discrete M) (discrete N) :=
 { obj := F,
@@ -54,7 +54,7 @@ variables {K : Type u} [monoid K]
 /--
 The monoidal natural isomorphism corresponding to composing two multiplicative morphisms.
 -/
-@[to_additive dicrete.add_monoidal_functor_comp "The monoidal natural isomorphism corresponding to
+@[to_additive discrete.add_monoidal_functor_comp "The monoidal natural isomorphism corresponding to
 composing two additive morphisms."]
 def discrete.monoidal_functor_comp (F : M →* N) (G : N →* K) :
   discrete.monoidal_functor F ⊗⋙ discrete.monoidal_functor G ≅

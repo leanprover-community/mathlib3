@@ -133,14 +133,6 @@ notation f`⟦`n`⟧'`:80 := (shift_functor _ n).map f
 
 end defs
 
-section examples
-variables [has_shift C ℤ]
-
-example {X Y : C} (f : X ⟶ Y) : X⟦(1 : ℤ)⟧ ⟶ Y⟦1⟧ := f⟦1⟧'
-example {X Y : C} (f : X ⟶ Y) : X⟦(-2 : ℤ)⟧ ⟶ Y⟦-2⟧ := f⟦-2⟧'
-
-end examples
-
 section add_monoid
 
 variables {C A} [add_monoid A] [has_shift C A] (X Y : C) (f : X ⟶ Y)

@@ -558,8 +558,8 @@ by refine ⟨λ x, single (f x) 1, _, _⟩; simp ; refl
   single_one_right_hom k f n = single (f n) 1 := rfl
 
 /--  A multiplicative homomorphism `f : G →* H` between two monoids induces a `k`-algebra
-homomorphism `monoid_hom_lift f : monoid_algebra k G →+* monoid_algebra k H`. -/
-def monoid_hom_lift (k : Type*) {H : Type*} [semiring k] [monoid G] [monoid H]
+homomorphism `monoid_ring_hom_lift f : monoid_algebra k G →+* monoid_algebra k H`. -/
+def monoid_ring_hom_lift (k : Type*) {H : Type*} [semiring k] [monoid G] [monoid H]
   (f : G →* H) : monoid_algebra k G →+* monoid_algebra k H :=
 lift_nc_ring_hom single_one_ring_hom (single_one_right_hom k f) $ λ r n,
 show (single 1 r * (single (f n) 1) : monoid_algebra k H) = single (f n) 1 * (single 1 r),
@@ -697,8 +697,8 @@ lemma lift_unique (F : monoid_algebra k G →ₐ[k] A) (f : monoid_algebra k G) 
 by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
 /--  A multiplicative homomorphism `f : G →* H` between two monoids induces a `k`-algebra
-homomorphism `full_lift f : monoid_algebra k G →ₐ[k] monoid_algebra k H`. -/
-def full_lift (k : Type*) [comm_semiring k] {H : Type*} [monoid H] (f : G →* H) :
+homomorphism `monoid_hom_alg_hom_lift f : monoid_algebra k G →ₐ[k] monoid_algebra k H`. -/
+def monoid_hom_alg_hom_lift (k : Type*) [comm_semiring k] {H : Type*} [monoid H] (f : G →* H) :
   monoid_algebra k G →ₐ[k] monoid_algebra k H :=
 lift _ _ (monoid_algebra k H) (single_one_right_hom k f)
 
@@ -1245,7 +1245,7 @@ monoid_algebra.single_one_right_hom k f.to_multiplicative
   [add_zero_class G] [add_zero_class H] (f : G →+ H) (n : G) :
   single_one_right_add_hom k f n = single (f n) 1 := rfl
 
---  `by convert monoid_algebra.monoid_hom_lift k f.to_multiplicative` appears to be the same
+--  `by convert monoid_algebra.monoid_ring_hom_lift k f.to_multiplicative` appears to be the same
 --  mathematical definition, but is harder to use.
 /--  An additive homomorphism `f : G →+ H` induces a `k`-algebra homomorphism
 `add_monoid_ring_hom_lift f : add_monoid_algebra k G →+* add_monoid_algebra k H`. -/

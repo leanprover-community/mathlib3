@@ -94,6 +94,8 @@ show (coe ⁻¹' ((* I) ⁻¹' (exp ⁻¹' ((*) R ⁻¹' ((+) c ⁻¹' s))))).co
   circle_map c R θ - c = circle_map 0 R θ :=
 by simp [circle_map]
 
+lemma circle_map_zero (R θ : ℝ) : circle_map 0 R θ = R * exp (θ * I) := zero_add _
+
 @[simp] lemma abs_circle_map_zero (R : ℝ) (θ : ℝ) : abs (circle_map 0 R θ) = |R| :=
 by simp [circle_map]
 
@@ -275,6 +277,11 @@ def circle_integral (f : ℂ → E) (c : ℂ) (R : ℝ) : E :=
 ∫ (θ : ℝ) in 0..2 * π, deriv (circle_map c R) θ • f (circle_map c R θ)
 
 notation `∮` binders ` in ` `C(` c `, ` R `)` `, ` r:(scoped:60 f, circle_integral f c R) := r
+
+lemma circle_integral_def_Icc (f : ℂ → E) (c : ℂ) (R : ℝ) :
+  ∮ z in C(c, R), f z = ∫ θ in Icc 0 (2 * π), deriv (circle_map c R) θ • f (circle_map c R θ) :=
+by simp only [circle_integral, interval_integral.integral_of_le real.two_pi_pos.le,
+  measure.restrict_congr_set Ioc_ae_eq_Icc]
 
 namespace circle_integral
 

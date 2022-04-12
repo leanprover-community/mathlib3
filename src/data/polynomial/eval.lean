@@ -245,8 +245,6 @@ lemma eval₂_list_prod (l : list R[X]) (x : S) :
   eval₂ f x l.prod = (l.map (eval₂ f x)).prod :=
 map_list_prod (eval₂_ring_hom f x) l
 
-end
-
 end eval₂
 
 section eval

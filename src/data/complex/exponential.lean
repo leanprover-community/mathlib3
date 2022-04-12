@@ -198,20 +198,6 @@ by rw [sum_sigma', sum_sigma']; exact sum_bij
     mem_range.2 (nat.lt_succ_of_le (nat.le_add_left _ _))⟩,
   sigma.mk.inj_iff.2 ⟨rfl, heq_of_eq (add_tsub_cancel_right _ _).symm⟩⟩⟩)
 
--- TODO move to src/algebra/big_operators/basic.lean, rewrite with comm_group, and make to_additive
-lemma sum_range_sub_sum_range {α : Type*} [add_comm_group α] {f : ℕ → α}
-  {n m : ℕ} (hnm : n ≤ m) : ∑ k in range m, f k - ∑ k in range n, f k =
-  ∑ k in (range m).filter (λ k, n ≤ k), f k :=
-begin
-  rw [← sum_sdiff (@filter_subset _ (λ k, n ≤ k) _ (range m)),
-    sub_eq_iff_eq_add, ← eq_sub_iff_add_eq, add_sub_cancel'],
-  refine finset.sum_congr
-    (finset.ext $ λ a, ⟨λ h, by simp at *; tauto,
-    λ h, have ham : a < m := lt_of_lt_of_le (mem_range.1 h) hnm,
-      by simp * at *⟩)
-    (λ _ _, rfl),
-end
-
 end
 
 section no_archimedean

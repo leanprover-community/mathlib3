@@ -1092,18 +1092,23 @@ begin
   { exact nat_degree_eq_of_degree_eq_some (degree_X_pow_add_C (pos_iff_ne_zero.mpr hn) r) },
 end
 
+end semiring
+end nonzero_ring
+
+section semiring
+variable [semiring R]
+
 @[simp] lemma leading_coeff_X_pow_add_C {n : ℕ} (hn : 0 < n) {r : R} :
   (X ^ n + C r).leading_coeff = 1 :=
-by rw [leading_coeff, nat_degree_X_pow_add_C, coeff_add, coeff_X_pow_self,
-  coeff_C, if_neg (pos_iff_ne_zero.mp hn), add_zero]
+begin
+  nontriviality R,
+  rw [leading_coeff, nat_degree_X_pow_add_C, coeff_add, coeff_X_pow_self,
+    coeff_C, if_neg (pos_iff_ne_zero.mp hn), add_zero]
+end
 
 @[simp] lemma leading_coeff_X_add_C [semiring S] (r : S) :
   (X + C r).leading_coeff = 1 :=
-begin
-  nontriviality,
-  rw [←pow_one (X : S[X]), leading_coeff_X_pow_add_C zero_lt_one],
-  apply_instance
-end
+by rw [←pow_one (X : S[X]), leading_coeff_X_pow_add_C zero_lt_one]
 
 @[simp] lemma leading_coeff_X_pow_add_one {n : ℕ} (hn : 0 < n) :
   (X ^ n + 1 : R[X]).leading_coeff = 1 :=
@@ -1115,7 +1120,18 @@ by { nontriviality, rw leading_coeff_pow'; simp }
 
 end semiring
 
-variables [ring R]
+section ring
+variable [ring R]
+
+@[simp] lemma leading_coeff_X_pow_sub_C {n : ℕ} (hn : 0 < n) {r : R} :
+  (X ^ n - C r).leading_coeff = 1 :=
+by rw [sub_eq_add_neg, ←map_neg C r, leading_coeff_X_pow_add_C hn]; apply_instance
+
+@[simp] lemma leading_coeff_X_pow_sub_one {n : ℕ} (hn : 0 < n) :
+  (X ^ n - 1 : R[X]).leading_coeff = 1 :=
+leading_coeff_X_pow_sub_C hn
+
+variables [nontrivial R]
 
 @[simp] lemma degree_X_sub_C (a : R) : degree (X - C a) = 1 :=
 by rw [sub_eq_add_neg, ←map_neg C a, degree_X_add_C]
@@ -1146,19 +1162,11 @@ lemma nat_degree_X_pow_sub_C {n : ℕ} {r : R} :
   (X ^ n - C r).nat_degree = n :=
 by rw [sub_eq_add_neg, ←map_neg C r, nat_degree_X_pow_add_C]
 
-@[simp] lemma leading_coeff_X_pow_sub_C {n : ℕ} (hn : 0 < n) {r : R} :
-  (X ^ n - C r).leading_coeff = 1 :=
-by rw [sub_eq_add_neg, ←map_neg C r, leading_coeff_X_pow_add_C hn]; apply_instance
-
 @[simp] lemma leading_coeff_X_sub_C [ring S] (r : S) :
   (X - C r).leading_coeff = 1 :=
 by rw [sub_eq_add_neg, ←map_neg C r, leading_coeff_X_add_C]
 
-@[simp] lemma leading_coeff_X_pow_sub_one {n : ℕ} (hn : 0 < n) :
-  (X ^ n - 1 : R[X]).leading_coeff = 1 :=
-leading_coeff_X_pow_sub_C hn
-
-end nonzero_ring
+end ring
 
 section no_zero_divisors
 variables [semiring R] [no_zero_divisors R] {p q : R[X]}

@@ -195,10 +195,8 @@ end
 lemma join {P Q: X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :
   is_Lprojection (P + Q - P * Q) :=
 begin
-  have e1:  1 - (1 - P) * (1 - Q) = P + Q - P * Q :=
-  calc 1 - (1 - P) * (1 - Q) = 1 -(1 - Q - P * (1 - Q)) : by rw [sub_mul, one_mul]
-  ... = Q + P * (1 - Q) : by rw [sub_sub, sub_sub_self]
-  ... = P + Q - P * Q : by rw [mul_sub, mul_one, add_sub, add_comm],
+  have e1:  1 - (1 - P) * (1 - Q) = P + Q - P * Q,
+  { rw [sub_mul, one_mul, sub_sub, sub_sub_self, mul_sub, mul_one, add_sub, add_comm] },
   rw [← e1, ← is_Lprojection.Lcomplement_iff],
   exact is_Lprojection.mul (is_Lprojection.Lcomplement h₁) (is_Lprojection.Lcomplement h₂)
 end

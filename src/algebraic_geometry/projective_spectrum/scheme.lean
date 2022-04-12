@@ -657,5 +657,3 @@ end
 end Top_component
 
 end algebraic_geometry
-
-#lint

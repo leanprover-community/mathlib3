@@ -458,7 +458,8 @@ have dioph (λ v : vector3 ℕ 3, (v &2 = 0 ∨ v &0 < v &2) ∧ ∃ (x : ℕ), 
 from (D&2 D= D.0 D∨ D&0 D< D&2) D∧ (D∃3 $ D&1 D+ D&3 D* D&0 D= D&2),
 dioph_fn_comp2 df dg $ (dioph_fn_vec _).2 $ ext this $ (vector_all_iff_forall _).1 $ λ z x y,
 show ((y = 0 ∨ z < y) ∧ ∃ c, z + y * c = x) ↔ x % y = z, from
-⟨λ ⟨h, c, hc⟩, begin rw ← hc; simp; cases h with x0 hl, rw [x0, mod_zero], exact mod_eq_of_lt hl end,
+⟨λ ⟨h, c, hc⟩, begin rw ← hc; simp; cases h with x0 hl, rw [x0, mod_zero],
+  exact mod_eq_of_lt hl end,
 λ e, by rw ← e; exact ⟨or_iff_not_imp_left.2 $ λ h, mod_lt _ (nat.pos_of_ne_zero h), x / y,
   mod_add_div _ _⟩⟩
 

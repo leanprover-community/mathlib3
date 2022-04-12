@@ -3727,8 +3727,8 @@ lemma all₂.imp (h : ∀ x, p x → q x) : ∀ {l : list α}, all₂ p l → al
 @[simp] lemma all₂_map_iff {p : β → Prop} (f : α → β) : all₂ p (l.map f) ↔ all₂ (p ∘ f) l :=
 by induction l; simp *
 
-instance decidable_all₂ (p : α → Prop) [decidable_pred p] (l : list α) : decidable (all₂ p l) :=
-decidable_of_iff' _ all₂_iff_forall
+instance (p : α → Prop) [decidable_pred p] : decidable_pred (all₂ p) :=
+λ l, decidable_of_iff' _ all₂_iff_forall
 
 end list
 

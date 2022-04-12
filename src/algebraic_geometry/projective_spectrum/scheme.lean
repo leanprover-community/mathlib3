@@ -154,7 +154,7 @@ section clear_denominator
 
 -- this is a wrapper around `is_localization.exist_integer_multiples_of_finset`, the main purpose
 -- of this lemma is to make the degree of denominator explicit.
-lemma clear_denominator {f : A} (s : finset (away f)) :
+private lemma clear_denominator {f : A} (s : finset (away f)) :
   ∃ (n : ℕ), ∀ (x : away f), x ∈ s →
     x * (mk (f^n) 1 : away f) ∈
     (λ y, (mk y 1 : localization.away f)) '' set.univ :=

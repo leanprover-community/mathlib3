@@ -48,7 +48,7 @@ begin
   exact biprod.lift (of_hom id) (of_hom id),
 end
 
-/-- `biprod.fst ≫ x` is pseudequal to `biprod.fst y`. -/
+/-- `biprod.fst ≫ x` is pseudoequal to `biprod.fst y`. -/
 lemma fst_x_pseudo_eq_fst_y : pseudo_equal _ (app biprod.fst x) (app biprod.fst y) :=
 begin
   refine ⟨of ℤ ℚ, (of_hom id), (of_hom id),

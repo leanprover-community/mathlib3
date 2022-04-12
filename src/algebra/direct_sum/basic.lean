@@ -198,12 +198,11 @@ variables {κ : Type*}
 
 /--Reindexing terms of a direct sum.-/
 def equiv_congr_left (h : ι ≃ κ) : (⨁ i, β i) ≃+ ⨁ k, β (h.symm k) :=
-{ map_add' := λ f g,
-    by { ext i, simp only [equiv.to_fun_as_coe, dfinsupp.equiv_congr_left_apply, add_apply] },
+{ map_add' := dfinsupp.comap_domain'_add _ _,
   ..dfinsupp.equiv_congr_left h }
 
 @[simp] lemma equiv_congr_left_apply (h : ι ≃ κ) (f : ⨁ i, β i) (k : κ) :
-equiv_congr_left h f k = f (h.symm k) := dfinsupp.equiv_congr_left_apply _ _ _
+  equiv_congr_left h f k = f (h.symm k) := dfinsupp.comap_domain'_apply _ _ _ _
 
 end congr_left
 
@@ -213,11 +212,8 @@ include dec_ι
 
 /--Isomorphism obtained by separating the term of index `none` of a direct sum over `option ι`.-/
 @[simps] noncomputable def add_equiv_prod_direct_sum : (⨁ i, α i) ≃+ α none × ⨁ i, α (some i) :=
-{ map_add' := λ f g, begin
-    simp only [equiv.to_fun_as_coe, dfinsupp.equiv_prod_dfinsupp_apply, add_apply, prod.mk_add_mk,
-      prod.mk.inj_iff, eq_self_iff_true, true_and],
-    ext i, simp only [dfinsupp.comap_domain_apply, add_apply]
-  end, ..dfinsupp.equiv_prod_dfinsupp }
+{ map_add' := dfinsupp.equiv_prod_dfinsupp_add, ..dfinsupp.equiv_prod_dfinsupp }
+
 end option
 
 section sigma
@@ -226,12 +222,8 @@ variables {α : ι → Type u} {δ : Π i, α i → Type w} [Π i j, add_comm_mo
 /--The natural map between `⨁ (i : Σ i, α i), δ i.1 i.2` and `⨁ i (j : α i), δ i j`.-/
 noncomputable def sigma_curry : (⨁ (i : Σ i, _), δ i.1 i.2) →+ ⨁ i j, δ i j :=
 { to_fun := @dfinsupp.sigma_curry _ _ δ _,
-  map_zero' := by { ext i j, rw dfinsupp.sigma_curry_apply, refl },
-  map_add' := λ f g, by {
-    ext i j,
-    rw [@dfinsupp.add_apply _ (λ i, Π₀ j, δ i j) _ (dfinsupp.sigma_curry _),
-      dfinsupp.add_apply, dfinsupp.sigma_curry_apply, dfinsupp.sigma_curry_apply,
-      dfinsupp.sigma_curry_apply, add_apply] } }
+  map_zero' := dfinsupp.sigma_curry_zero,
+  map_add' := λ f g, dfinsupp.sigma_curry_add f g }
 
 @[simp] lemma sigma_curry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
   sigma_curry f i j = f ⟨i, j⟩ := dfinsupp.sigma_curry_apply f i j
@@ -240,9 +232,8 @@ noncomputable def sigma_curry : (⨁ (i : Σ i, _), δ i.1 i.2) →+ ⨁ i j, δ
 `curry`.-/
 noncomputable def sigma_uncurry : (⨁ i j, δ i j) →+ ⨁ (i : Σ i, _), δ i.1 i.2 :=
 { to_fun := dfinsupp.sigma_uncurry,
-  map_zero' := by { ext ⟨i, j⟩, rw dfinsupp.sigma_uncurry_apply, refl },
-  map_add' := λ f g, by { ext ⟨i, j⟩, rw [dfinsupp.add_apply, dfinsupp.sigma_uncurry_apply,
-    dfinsupp.sigma_uncurry_apply, dfinsupp.sigma_uncurry_apply, add_apply, add_apply] } }
+  map_zero' := dfinsupp.sigma_uncurry_zero,
+  map_add' := dfinsupp.sigma_uncurry_add }
 
 @[simp] lemma sigma_uncurry_apply (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
   sigma_uncurry f ⟨i, j⟩ = f i j := dfinsupp.sigma_uncurry_apply f i j

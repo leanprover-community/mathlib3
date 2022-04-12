@@ -200,9 +200,7 @@ variables {κ : Type*}
 
 /--Reindexing terms of a direct sum is linear.-/
 def lequiv_congr_left (h : ι ≃ κ) : (⨁ i, M i) ≃ₗ[R] ⨁ k, M (h.symm k) :=
-{ map_smul' := λ a f,
-    by { ext i, simp only [add_equiv.to_fun_eq_coe, equiv_congr_left_apply, dfinsupp.coe_smul,
-      pi.smul_apply, ring_hom.id_apply] },
+{ map_smul' := dfinsupp.comap_domain'_smul _ _,
   ..equiv_congr_left h }
 
 @[simp] lemma lequiv_congr_left_apply (h : ι ≃ κ) (f : ⨁ i, M i) (k : κ) :
@@ -213,12 +211,10 @@ end congr_left
 section sigma
 variables {α : ι → Type u} {δ : Π i, α i → Type w}
 variables [Π i j, add_comm_monoid (δ i j)] [Π i j, module R (δ i j)]
-instance inst : module R (⨁ i j, δ i j) := by apply_instance
 
 /--`curry` as a linear map.-/
 noncomputable def sigma_lcurry : (⨁ (i : Σ i, _), δ i.1 i.2) →ₗ[R] ⨁ i j, δ i j :=
-{ map_smul' := λ a f, by { ext i j, change sigma_curry (a • f) i j = (a • sigma_curry f) i j,
-    rw [sigma_curry_apply, smul_apply, smul_apply, smul_apply, sigma_curry_apply] },
+{ map_smul' := λ r, by convert (@dfinsupp.sigma_curry_smul _ _ _ δ _ _ _ r),
   ..sigma_curry }
 
 @[simp] lemma sigma_lcurry_apply (f : ⨁ (i : Σ i, _), δ i.1 i.2) (i : ι) (j : α i) :
@@ -226,9 +222,7 @@ noncomputable def sigma_lcurry : (⨁ (i : Σ i, _), δ i.1 i.2) →ₗ[R] ⨁ i
 
 /--`uncurry` as a linear map.-/
 noncomputable def sigma_luncurry : (⨁ i j, δ i j) →ₗ[R] ⨁ (i : Σ i, _), δ i.1 i.2 :=
-{ map_smul' := λ a f, by { ext ⟨i, j⟩,
-    change sigma_uncurry (a • f) ⟨i, j⟩ = (a • sigma_uncurry f) ⟨i, j⟩,
-    rw [sigma_uncurry_apply, smul_apply, smul_apply, smul_apply, sigma_uncurry_apply] },
+{ map_smul' := dfinsupp.sigma_uncurry_smul,
   ..sigma_uncurry }
 
 @[simp] lemma sigma_luncurry_apply (f : ⨁ i j, δ i j) (i : ι) (j : α i) :
@@ -247,13 +241,7 @@ include dec_ι
 /--Linear isomorphism obtained by separating the term of index `none` of a direct sum over
 `option ι`.-/
 @[simps] noncomputable def lequiv_prod_direct_sum : (⨁ i, α i) ≃ₗ[R] α none × ⨁ i, α (some i) :=
-{ map_smul' := λ a f, begin
-    simp only [add_equiv.to_fun_eq_coe, add_equiv_prod_direct_sum_apply, equiv.to_fun_as_coe,
-      dfinsupp.equiv_prod_dfinsupp_apply, dfinsupp.coe_smul, pi.smul_apply, ring_hom.id_apply,
-      prod.smul_mk, prod.mk.inj_iff, eq_self_iff_true, true_and],
-    ext i,
-    simp only [dfinsupp.comap_domain_apply, dfinsupp.coe_smul, pi.smul_apply],
-  end,
+{ map_smul' := dfinsupp.equiv_prod_dfinsupp_smul,
   ..add_equiv_prod_direct_sum }
 
 end option

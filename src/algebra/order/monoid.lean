@@ -998,8 +998,7 @@ instance [linear_ordered_add_comm_monoid α] :
   ..with_top.ordered_add_comm_monoid,
   ..option.nontrivial }
 
-instance canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_monoid α] :
-  canonically_ordered_add_monoid (with_top α) :=
+instance [canonically_ordered_add_monoid α] : canonically_ordered_add_monoid (with_top α) :=
 { le_iff_exists_add := assume a b,
   match a, b with
   | ⊤, ⊤ := by simp
@@ -1016,6 +1015,10 @@ instance canonically_ordered_add_monoid {α : Type u} [canonically_ordered_add_m
   end,
   .. with_top.order_bot,
   .. with_top.ordered_add_comm_monoid }
+
+instance [canonically_linear_ordered_add_monoid α] :
+  canonically_linear_ordered_add_monoid (with_top α) :=
+{ ..with_top.canonically_ordered_add_monoid, ..with_top.linear_order }
 
 /-- Coercion from `α` to `with_top α` as an `add_monoid_hom`. -/
 def coe_add_hom [add_monoid α] : α →+ with_top α :=

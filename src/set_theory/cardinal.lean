@@ -188,7 +188,7 @@ theorem le_mk_iff_exists_set {c : cardinal} {α : Type u} :
 theorem mk_subtype_le {α : Type u} (p : α → Prop) : #(subtype p) ≤ #α :=
 ⟨embedding.subtype p⟩
 
-lemma mk_set_le (s : set α) : #s ≤ #α :=
+theorem mk_set_le (s : set α) : #s ≤ #α :=
 mk_subtype_le s
 
 theorem out_embedding {c c' : cardinal} : c ≤ c' ↔ nonempty (c.out ↪ c'.out) :=

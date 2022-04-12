@@ -269,13 +269,8 @@ begin
     ... = localization.mk (f^N) 1 * ∑ i in c.support, (c i) • i.1
         : begin
           congr' 1,
-          apply finset.sum_bij',
-          work_on_goal 5 { rintros a ha, exact a.2, },
-          work_on_goal 4 { rintros a ha, exact ⟨a, ha⟩, },
-          { rintros, dsimp only, refl, },
-          { rintros, dsimp only, rw subtype.ext_iff, refl, },
-          { rintros, dsimp only, rw subtype.ext_iff, },
-          { rintros, dsimp only, apply finset.mem_attach, },
+          nth_rewrite 1 [←finset.sum_attach],
+          refl,
         end
     ... = localization.mk (f^N) 1 * 1 : by erw eq1
     ... = localization.mk (f^N) 1 : by rw mul_one,
@@ -349,14 +344,8 @@ def to_fun : (Proj.T| (pbo f)) → (Spec.T (degree_zero_part m f_deg)) := λ x,
             ∑ i in c.support.attach, c (i.1) • i.1.1
           : begin
             congr' 1,
-            apply finset.sum_bij',
-            work_on_goal 4 { rintros a ha, exact ⟨a, ha⟩ },
-            work_on_goal 5 { rintros a ha, refine ⟨a.1.1, a.1.2⟩ },
-            { rintros, dsimp only, refl },
-            { rintros, dsimp only, simp only [subtype.ext_iff_val] },
-            { rintros, dsimp only, simp only [subtype.ext_iff_val] },
-            { rintros, dsimp only, apply mem_attach },
-            { rintros, dsimp only, convert a.2, simp only [subtype.ext_iff_val] }
+            rw ← finset.sum_attach,
+            refl,
           end
       ... = localization.mk (f^(n1+n2)) 1 * localization.mk (f^N) 1 *
             ∑ i in c.support.attach, c (i.1) * i.1.1
@@ -487,15 +476,8 @@ begin
         ... = mk (f^N) 1* mk (f^n) 1 * ∑ i in c.support, c i * i.1 : by erw eq1
         ... = mk (f^N) 1* mk (f^n) 1 * ∑ i in c.support.attach, c i.1 * i.1.1
             : begin
+              rw ← finset.sum_attach,
               congr' 1,
-              apply finset.sum_bij',
-              work_on_goal 4 { rintros a ha, exact ⟨a, ha⟩ },
-              work_on_goal 5 { rintros a ha, refine ⟨a.1.1, a.1.2⟩ },
-              { rintros, dsimp only, refl },
-              { rintros, dsimp only, simp only [subtype.ext_iff_val] },
-              { rintros, dsimp only, simp only [subtype.ext_iff_val] },
-              { rintros, dsimp only, apply mem_attach },
-              { rintros b hb, dsimp only, convert b.2, simp only [subtype.ext_iff_val] }
             end
         ... = mk (f^n) 1 * (mk (f^N) 1 * ∑ i in c.support.attach, c i.1 * i.1.1) : by ring
         ... = mk (f^n) 1 * ∑ i in c.support.attach, mk (f^N) 1 * (c i.1 * i.1.1)

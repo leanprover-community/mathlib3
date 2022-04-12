@@ -114,19 +114,15 @@ derivative.map_sum
   (m : M) (p : R[X]) : derivative (m • p) = m • derivative p :=
 derivative.map_smul_of_tower m p
 
-@[simp] lemma iterate_derivative_smul (r : R) (p : R[X]) (k : ℕ) :
-  derivative^[k] (r • p) = r • (derivative^[k] p) :=
+@[simp] lemma iterate_derivative_smul {M : Type*} [monoid M]
+  [distrib_mul_action M R] [is_scalar_tower M R R]
+  (m : M) (p : R[X]) (k : ℕ) :
+  derivative^[k] (m • p) = m • (derivative^[k] p) :=
 begin
   induction k with k ih generalizing p,
   { simp, },
   { simp [ih], },
 end
-
-/- We can't use `derivative_mul` here because
-we want to prove this statement also for noncommutative rings.-/
-@[simp]
-lemma derivative_C_mul (a : R) (p : R[X]) : derivative (C a * p) = C a * derivative p :=
-by simp_rw [← smul_eq_C_mul, derivative_smul]
 
 @[simp]
 lemma iterate_derivative_C_mul (a : R) (p : R[X]) (k : ℕ) :

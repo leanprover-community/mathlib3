@@ -318,7 +318,10 @@ together form a strength that equips the tensor product functor with a monoidal 
 monoid axioms for the tensor product follow from the monoid axioms for the tensor factors plus the
 properties of the strength (i.e., monoidal functor axioms).  The strength `tensor_μ` of the tensor
 product functor has been defined in `category_theory.monoidal.braided`.  Its properties, stated as
-independent lemmas in that module, are used extensively in the proofs below.
+independent lemmas in that module, are used extensively in the proofs below.  Notice that we could
+have followed the above plan not only conceptually but also as a possible implementation and could
+have constructed the tensor product of monoids via `map_Mon`, but we chose to give a more explicit
+definition directly in terms of `tensor_μ`.
 
 To complete the definition of the monoidal category structure on the category of monoids, we need
 to provide definitions of associator and unitors.  The obvious candidates are the associator and

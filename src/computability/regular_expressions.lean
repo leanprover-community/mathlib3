@@ -13,7 +13,8 @@ This file contains the formal definition for regular expressions and basic lemma
 regular expressions in terms of formal language theory. Note this is different to regex's used in
 computer science such as the POSIX standard.
 
-TODO
+## TODO
+
 * Show that this regular expressions and DFA/NFA's are equivalent.
 * `attribute [pattern] has_mul.mul` has been added into this file, it could be moved.
 -/
@@ -323,15 +324,16 @@ omit dec
 | (R * S) := by simp_rw [map, map_id]
 | (star R) := by simp_rw [map, map_id]
 
-lemma map_comp (g : β → γ) (f : α → β) :
-  ∀ (P : regular_expression α), P.map (g ∘ f) = (P.map f).map g
+@[simp] lemma map_map (g : β → γ) (f : α → β) :
+  ∀ (P : regular_expression α), (P.map f).map g = P.map (g ∘ f)
 | 0 := rfl
 | 1 := rfl
 | (char a) := rfl
-| (R + S) := by simp_rw [map, map_comp]
-| (R * S) := by simp_rw [map, map_comp]
-| (star R) := by simp_rw [map, map_comp]
+| (R + S) := by simp_rw [map, map_map]
+| (R * S) := by simp_rw [map, map_map]
+| (star R) := by simp_rw [map, map_map]
 
+/-- The language of the map is the map of the language. -/
 @[simp] lemma matches_map (f : α → β) :
   ∀ P : regular_expression α, (P.map f).matches = language.map f P.matches
 | 0 := (map_zero _).symm

@@ -17,7 +17,7 @@ terms of pseudoelements.
 The construction, suggested in https://mathoverflow.net/a/419951/7845, is the following.
 We work in the category of `Module ℤ` and we consider the special case of `ℚ ⊞ ℚ` (that is the
 pullback over the terminal object). We consider the pseudoelements associated to `x : ℚ ⟶ ℚ ⊞ ℚ`
-given by `t ↦ (t, t)` and `y : ℚ ⟶ ℚ ⊞ ℚ` given by `t ↦ (t, 2 * t)`.
+given by `t ↦ (t, 2 * t)` and `y : ℚ ⟶ ℚ ⊞ ℚ` given by `t ↦ (t, t)`.
 
 ## Main results
 * `category_theory.abelian.pseudoelement.exist_ne_and_fst_eq_fst_and_snd_eq_snd` : there are two
@@ -34,14 +34,14 @@ noncomputable theory
 
 namespace category_theory.abelian.pseudoelement
 
-/-- `x` is given by `t ↦ (t, t)`. -/
+/-- `x` is given by `t ↦ (t, 2 * t)`. -/
 def x : over ((of ℤ ℚ) ⊞ (of ℤ ℚ)) :=
 begin
   constructor,
   exact biprod.lift (of_hom id) (of_hom (2 * id)),
 end
 
-/-- `x` is given by `t ↦ (t, 2 * t)`. -/
+/-- `y` is given by `t ↦ (t, t)`. -/
 def y : over ((of ℤ ℚ) ⊞ (of ℤ ℚ)) :=
 begin
   constructor,
@@ -70,8 +70,7 @@ begin
     change char_zero ℚ,
     apply_instance },
   { dsimp [x, y],
-    refine concrete_category.hom_ext _ _ (λ a, _),
-    simpa }
+    exact concrete_category.hom_ext _ _ (λ a, by simpa) }
 end
 
 /-- `x` is not pseudoequal to `y`. -/
@@ -95,7 +94,9 @@ begin
   have ha₂ := congr_arg π₂ ha,
   simp only [← linear_map.comp_apply, ← comp_def] at ha₂,
   have : (2 : ℚ →ₗ[ℤ] ℚ) 1 = 1 + 1 := rfl,
-  simp [ha₁, this] at ha₂,
+  simp only [ha₁, this, biprod.lift_snd, of_hom_apply, id_coe, id.def, preadditive.add_comp,
+    category.assoc, biprod.inl_snd, limits.comp_zero, biprod.inr_snd, category.comp_id, zero_add,
+    mul_apply, self_eq_add_left] at ha₂,
   exact @one_ne_zero ℚ _ _ ha₂,
 end
 

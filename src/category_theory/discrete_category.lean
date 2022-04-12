@@ -85,11 +85,17 @@ local attribute [tidy] discrete_cases
 /-- Extract the equation from a morphism in a discrete category. -/
 lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X.as = Y.as := i.down.down
 
-def eq_to_hom {X Y : discrete α} (h : X.as = Y.as) : X ⟶ Y :=
+abbreviation eq_to_hom {X Y : discrete α} (h : X.as = Y.as) : X ⟶ Y :=
 eq_to_hom (by { ext, exact h, })
 
-def eq_to_iso {X Y : discrete α} (h : X.as = Y.as) : X ≅ Y :=
+abbreviation eq_to_iso {X Y : discrete α} (h : X.as = Y.as) : X ≅ Y :=
 eq_to_iso (by { ext, exact h, })
+
+abbreviation eq_to_hom' {a b : α} (h : a = b) : discrete.mk a ⟶ discrete.mk b :=
+eq_to_hom h
+
+abbreviation eq_to_iso' {a b : α} (h : a = b) : discrete.mk a ≅ discrete.mk b :=
+eq_to_iso h
 
 @[simp] lemma id_def (X : discrete α) : ulift.up (plift.up (eq.refl X.as)) = 𝟙 X := rfl
 

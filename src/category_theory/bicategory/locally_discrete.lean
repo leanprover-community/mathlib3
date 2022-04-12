@@ -30,19 +30,26 @@ variables (C : Type u)
 A type alias for promoting any category to a bicategory,
 with the only 2-morphisms being equalities.
 -/
-def locally_discrete := C
+def locally_discrete := discrete C
 
 namespace locally_discrete
 
-instance : Π [inhabited C], inhabited (locally_discrete C) := id
+instance [inhabited C] : inhabited (locally_discrete C) :=
+by { dsimp [locally_discrete], apply_instance, }
 
-instance : Π [category_struct.{v} C], category_struct (locally_discrete C) := id
+instance [category_struct.{v} C] : category_struct (locally_discrete C) :=
+by { dsimp [locally_discrete], apply_instance, }
 
 variables {C} [category_struct.{v} C]
 
 @[priority 900]
 instance hom_small_category (X Y : locally_discrete C) : small_category (X ⟶ Y) :=
-category_theory.discrete_category (X ⟶ Y)
+{ hom  := λ X Y, ulift (plift (X = Y)),
+  id   := λ X, ulift.up (plift.up rfl),
+  comp := λ X Y Z g f, by { cases X, cases Y, cases Z, rcases f with ⟨⟨⟨⟩⟩⟩, exact g } }
+
+/-- Extract the equation from a 2-morphism in a locally discrete 2-category. -/
+lemma eq_of_hom {X Y : locally_discrete C} {f g : X ⟶ Y} (η : f ⟶ g) : f = g := η.down.down
 
 end locally_discrete
 
@@ -54,8 +61,8 @@ The locally discrete bicategory on a category is a bicategory in which the objec
 equalities between 1-morphisms.
 -/
 instance locally_discrete_bicategory : bicategory (locally_discrete C) :=
-{ whisker_left  := λ X Y Z f g h η, eq_to_hom (congr_arg2 (≫) rfl (eq_of_hom η)),
-  whisker_right := λ X Y Z f g η h, eq_to_hom (congr_arg2 (≫) (eq_of_hom η) rfl),
+{ whisker_left  := λ X Y Z f g h η, eq_to_hom (congr_arg2 (≫) rfl (locally_discrete.eq_of_hom η)),
+  whisker_right := λ X Y Z f g η h, eq_to_hom (congr_arg2 (≫) (locally_discrete.eq_of_hom η) rfl),
   associator := λ W X Y Z f g h, eq_to_iso (category.assoc f g h),
   left_unitor  := λ X Y f, eq_to_iso (category.id_comp f),
   right_unitor := λ X Y f, eq_to_iso (category.comp_id f) }
@@ -71,7 +78,7 @@ be promoted to an oplax functor from `locally_discrete I` to `B`.
 -/
 @[simps]
 def functor.to_oplax_functor (F : I ⥤ B) : oplax_functor (locally_discrete I) B :=
-{ map₂ := λ i j f g η, eq_to_hom (congr_arg _ (eq_of_hom η)),
+{ map₂ := λ i j f g η, eq_to_hom (congr_arg _ (locally_discrete.eq_of_hom η)),
   map_id := λ i, eq_to_hom (F.map_id i),
   map_comp := λ i j k f g, eq_to_hom (F.map_comp f g),
   .. F }

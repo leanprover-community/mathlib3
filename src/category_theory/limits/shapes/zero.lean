@@ -140,7 +140,7 @@ class has_zero_object :=
 (unique_from : Π X : C, unique (X ⟶ zero))
 
 instance has_zero_object_punit : has_zero_object (discrete punit) :=
-{ zero := punit.star,
+{ zero := ⟨⟨⟩⟩,
   unique_to := by tidy,
   unique_from := by tidy, }
 

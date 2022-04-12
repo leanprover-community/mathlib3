@@ -68,6 +68,9 @@ end
 
 namespace limits
 
+section
+local attribute [tidy] discrete.discrete_cases
+
 /--
 A `c : cone F` is:
 * an object `c.X` and
@@ -80,8 +83,9 @@ structure cone (F : J ⥤ C) :=
 (π : (const J).obj X ⟶ F)
 
 instance inhabited_cone (F : discrete punit ⥤ C) : inhabited (cone F) :=
-⟨{ X := F.obj punit.star,
-   π := { app := λ ⟨⟩, 𝟙 _ } }⟩
+⟨{ X := F.obj ⟨⟨⟩⟩,
+   π :=
+   { app := λ ⟨⟨⟩⟩, 𝟙 _, }, }⟩
 
 @[simp, reassoc] lemma cone.w {F : J ⥤ C} (c : cone F) {j j' : J} (f : j ⟶ j') :
   c.π.app j ≫ F.map f = c.π.app j' :=
@@ -99,12 +103,15 @@ structure cocone (F : J ⥤ C) :=
 (ι : F ⟶ (const J).obj X)
 
 instance inhabited_cocone (F : discrete punit ⥤ C) : inhabited (cocone F) :=
-⟨{ X := F.obj punit.star,
-   ι := { app := λ ⟨⟩, 𝟙 _ } }⟩
+⟨{ X := F.obj ⟨⟨⟩⟩,
+   ι :=
+  { app := λ ⟨⟨⟩⟩, 𝟙 _, }, }⟩
 
 @[simp, reassoc] lemma cocone.w {F : J ⥤ C} (c : cocone F) {j j' : J} (f : j ⟶ j') :
   F.map f ≫ c.ι.app j' = c.ι.app j :=
 by { rw c.ι.naturality f, apply comp_id }
+
+end
 
 variables {F : J ⥤ C}
 

@@ -330,7 +330,8 @@ variables [has_product I.left] [has_product I.right]
 
 @[simp, reassoc]
 lemma pi_condition :
-  pi.lift K.ι ≫ I.fst_pi_map = pi.lift K.ι ≫ I.snd_pi_map := by { ext, simp }
+  pi.lift K.ι ≫ I.fst_pi_map = pi.lift K.ι ≫ I.snd_pi_map :=
+by { ext, discrete.discrete_cases, simp, }
 
 /-- Given a multifork, we may obtain a fork over `∏ I.left ⇉ ∏ I.right`. -/
 @[simps X] noncomputable
@@ -392,7 +393,7 @@ local attribute [tidy] tactic.case_bash
 /-- `multifork.to_pi_fork` is functorial. -/
 @[simps] noncomputable
 def to_pi_fork_functor : multifork I ⥤ fork I.fst_pi_map I.snd_pi_map :=
-{ obj := multifork.to_pi_fork, map := λ K₁ K₂ f, { hom := f.hom } }
+{ obj := multifork.to_pi_fork, map := λ K₁ K₂ f, { hom := f.hom, } }
 
 /-- `multifork.of_pi_fork` is functorial. -/
 @[simps] noncomputable
@@ -485,7 +486,8 @@ variables [has_coproduct I.left] [has_coproduct I.right]
 
 @[simp, reassoc]
 lemma sigma_condition :
-  I.fst_sigma_map ≫ sigma.desc K.π = I.snd_sigma_map ≫ sigma.desc K.π := by { ext, simp }
+  I.fst_sigma_map ≫ sigma.desc K.π = I.snd_sigma_map ≫ sigma.desc K.π :=
+by { ext, discrete.discrete_cases, simp, }
 
 /-- Given a multicofork, we may obtain a cofork over `∐ I.left ⇉ ∐ I.right`. -/
 @[simps X] noncomputable

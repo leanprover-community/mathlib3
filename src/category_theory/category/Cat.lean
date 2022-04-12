@@ -100,19 +100,19 @@ This ought to be modelled as a 2-functor!
 @[simps]
 def Type_to_Cat : Type u ⥤ Cat :=
 { obj := λ X, Cat.of (discrete X),
-  map := λ X Y f, discrete.functor f,
+  map := λ X Y f, discrete.functor (discrete.mk ∘ f),
   map_id' := λ X, begin apply functor.ext, tidy, end,
   map_comp' := λ X Y Z f g, begin apply functor.ext, tidy, end }
 
 instance : faithful Type_to_Cat.{u} := {}
 instance : full Type_to_Cat.{u} :=
-{ preimage := λ X Y F, F.obj,
+{ preimage := λ X Y F, discrete.as ∘ F.obj ∘ discrete.mk,
   witness' :=
   begin
     intros X Y F,
     apply functor.ext,
     { intros x y f, dsimp, ext, },
-    { intros x, refl, }
+    { rintros ⟨x⟩, ext, refl, }
   end }
 
 end category_theory

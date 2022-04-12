@@ -41,9 +41,9 @@ def proj (S : D) (T : C ⥤ D) : structured_arrow S T ⥤ C := comma.snd _ _
 variables {S S' S'' : D} {Y Y' : C} {T : C ⥤ D}
 
 /-- Construct a structured arrow from a morphism. -/
-def mk (f : S ⟶ T.obj Y) : structured_arrow S T := ⟨⟨⟩, Y, f⟩
+def mk (f : S ⟶ T.obj Y) : structured_arrow S T := ⟨⟨⟨⟩⟩, Y, f⟩
 
-@[simp] lemma mk_left (f : S ⟶ T.obj Y) : (mk f).left = punit.star := rfl
+@[simp] lemma mk_left (f : S ⟶ T.obj Y) : (mk f).left = ⟨⟨⟩⟩ := rfl
 @[simp] lemma mk_right (f : S ⟶ T.obj Y) : (mk f).right = Y := rfl
 @[simp] lemma mk_hom_eq_self (f : S ⟶ T.obj Y) : (mk f).hom = f := rfl
 
@@ -112,6 +112,8 @@ instance proj_reflects_iso : reflects_isomorphisms (proj S T) :=
 
 open category_theory.limits
 
+local attribute [tidy] discrete.discrete_cases
+
 /-- The identity structured arrow is initial. -/
 def mk_id_initial [full T] [faithful T] : is_initial (mk (𝟙 (T.obj Y))) :=
 { desc := λ c, hom_mk (T.preimage c.X.hom) (by { dsimp, simp, }),
@@ -155,10 +157,10 @@ def proj (S : C ⥤ D) (T : D) : costructured_arrow S T ⥤ C := comma.fst _ _
 variables {T T' T'' : D} {Y Y' : C} {S : C ⥤ D}
 
 /-- Construct a costructured arrow from a morphism. -/
-def mk (f : S.obj Y ⟶ T) : costructured_arrow S T := ⟨Y, ⟨⟩, f⟩
+def mk (f : S.obj Y ⟶ T) : costructured_arrow S T := ⟨Y, ⟨⟨⟩⟩, f⟩
 
 @[simp] lemma mk_left (f : S.obj Y ⟶ T) : (mk f).left = Y := rfl
-@[simp] lemma mk_right (f : S.obj Y ⟶ T) : (mk f).right = punit.star := rfl
+@[simp] lemma mk_right (f : S.obj Y ⟶ T) : (mk f).right = ⟨⟨⟩⟩ := rfl
 @[simp] lemma mk_hom_eq_self (f : S.obj Y ⟶ T) : (mk f).hom = f := rfl
 
 @[simp, reassoc] lemma w {A B : costructured_arrow S T} (f : A ⟶ B) :
@@ -218,6 +220,8 @@ instance proj_reflects_iso : reflects_isomorphisms (proj S T) :=
   ⟨⟨costructured_arrow.hom_mk (inv ((proj S T).map f)) (by simp), by tidy⟩⟩ }
 
 open category_theory.limits
+
+local attribute [tidy] discrete.discrete_cases
 
 /-- The identity costructured arrow is terminal. -/
 def mk_id_terminal [full S] [faithful S] : is_terminal (mk (𝟙 (S.obj Y))) :=

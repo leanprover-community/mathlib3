@@ -41,12 +41,14 @@ open category_theory.limits
 
 namespace category_theory.limits.types
 
+local attribute [tidy] discrete.discrete_cases
+
 /-- A restatement of `types.lift_π_apply` that uses `pi.π` and `pi.lift`. -/
 @[simp]
 lemma pi_lift_π_apply
   {β : Type u} (f : β → Type u) {P : Type u} (s : Π b, P ⟶ f b) (b : β) (x : P) :
   (pi.π f b : (∏ f) → f b) (@pi.lift β _ _ f _ P s x) = s b x :=
-congr_fun (limit.lift_π (fan.mk P s) b) x
+congr_fun (limit.lift_π (fan.mk P s) ⟨b⟩) x
 
 /-- A restatement of `types.map_π_apply` that uses `pi.π` and `pi.map`. -/
 @[simp]

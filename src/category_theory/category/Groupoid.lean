@@ -79,13 +79,15 @@ lemma id_to_functor {C : Groupoid.{v u}} : 𝟭 C = 𝟙 C := rfl
 
 section products
 
+local attribute [tidy] discrete.discrete_cases
+
 /-- The cone for the product of a family of groupoids indexed by J is a limit cone -/
 @[simps]
 def pi_limit_cone {J : Type u} (F : discrete J ⥤ Groupoid.{u u}) :
   limits.limit_cone F :=
 { cone :=
-    { X := @of (Π j : J, F.obj j) _,
-      π := { app := λ j : J, category_theory.pi.eval _ j, } },
+    { X := @of (Π j : discrete J, F.obj j) _,
+      π := { app := λ j : discrete J, category_theory.pi.eval _ j, } },
   is_limit :=
   { lift := λ s, functor.pi' s.π.app,
     fac' := by { intros, simp [hom_to_functor], },

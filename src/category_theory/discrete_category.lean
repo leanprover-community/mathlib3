@@ -39,7 +39,20 @@ universes v₁ v₂ v₃ u₁ u₂ u₃
 A type synonym for promoting any type to a category,
 with the only morphisms being equalities.
 -/
-def discrete (α : Type u₁) := α
+@[ext] structure discrete (α : Type u₁) :=
+(as : α)
+
+@[simp] lemma discrete.mk_as {α : Type u₁} (X : discrete α) : discrete.mk X.as = X :=
+by { ext, refl, }
+
+@[simps] def discrete_equiv {α : Type u₁} : discrete α ≃ α :=
+{ to_fun := discrete.as,
+  inv_fun := discrete.mk,
+  left_inv := by tidy,
+  right_inv := by tidy, }
+
+instance {α : Type u₁} [decidable_eq α] : decidable_eq (discrete α) :=
+discrete_equiv.decidable_eq
 
 /--
 The "discrete" category on a type, whose morphisms are equalities.
@@ -50,24 +63,35 @@ somewhat annoyingly we have to define `X ⟶ Y` as `ulift (plift (X = Y))`.
 See https://stacks.math.columbia.edu/tag/001A
 -/
 instance discrete_category (α : Type u₁) : small_category (discrete α) :=
-{ hom  := λ X Y, ulift (plift (X = Y)),
+{ hom  := λ X Y, ulift (plift (X.as = Y.as)),
   id   := λ X, ulift.up (plift.up rfl),
-  comp := λ X Y Z g f, by { rcases f with ⟨⟨rfl⟩⟩, exact g } }
+  comp := λ X Y Z g f, by { cases X, cases Y, cases Z, rcases f with ⟨⟨⟨⟩⟩⟩, exact g } }
 
 namespace discrete
 
 variables {α : Type u₁}
 
 instance [inhabited α] : inhabited (discrete α) :=
-by { dsimp [discrete], apply_instance }
+⟨⟨default⟩⟩
 
 instance [subsingleton α] : subsingleton (discrete α) :=
-by { dsimp [discrete], apply_instance }
+⟨by { intros, ext, apply subsingleton.elim, }⟩
+
+meta def discrete_cases : tactic unit :=
+`[cases_matching* [discrete _, (_ : discrete _) ⟶ (_ : discrete _), plift _]]
+
+local attribute [tidy] discrete_cases
 
 /-- Extract the equation from a morphism in a discrete category. -/
-lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X = Y := i.down.down
+lemma eq_of_hom {X Y : discrete α} (i : X ⟶ Y) : X.as = Y.as := i.down.down
 
-@[simp] lemma id_def (X : discrete α) : ulift.up (plift.up (eq.refl X)) = 𝟙 X := rfl
+def eq_to_hom {X Y : discrete α} (h : X.as = Y.as) : X ⟶ Y :=
+eq_to_hom (by { ext, exact h, })
+
+def eq_to_iso {X Y : discrete α} (h : X.as = Y.as) : X ≅ Y :=
+eq_to_iso (by { ext, exact h, })
+
+@[simp] lemma id_def (X : discrete α) : ulift.up (plift.up (eq.refl X.as)) = 𝟙 X := rfl
 
 variables {C : Type u₂} [category.{v₂} C]
 
@@ -78,61 +102,49 @@ instance {I : Type u₁} {i j : discrete I} (f : i ⟶ j) : is_iso f :=
 Any function `I → C` gives a functor `discrete I ⥤ C`.
 -/
 def functor {I : Type u₁} (F : I → C) : discrete I ⥤ C :=
-{ obj := F,
-  map := λ X Y f, begin cases f, cases f, cases f, exact 𝟙 (F X) end }
+{ obj := F ∘ discrete.as,
+  map := λ X Y f, by { discrete_cases, cases f, exact 𝟙 (F X), } }
 
 @[simp] lemma functor_obj  {I : Type u₁} (F : I → C) (i : I) :
-  (discrete.functor F).obj i = F i := rfl
+  (discrete.functor F).obj (discrete.mk i) = F i := rfl
 
 lemma functor_map  {I : Type u₁} (F : I → C) {i : discrete I} (f : i ⟶ i) :
-  (discrete.functor F).map f = 𝟙 (F i) :=
-by { cases f, cases f, cases f, refl }
+  (discrete.functor F).map f = 𝟙 (F i.as) :=
+by tidy
 
 /--
 For functors out of a discrete category,
 a natural transformation is just a collection of maps,
 as the naturality squares are trivial.
 -/
+@[simps]
 def nat_trans {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ⟶ G.obj i) : F ⟶ G :=
-{ app := f }
-
-@[simp] lemma nat_trans_app  {I : Type u₁} {F G : discrete I ⥤ C}
-  (f : Π i : discrete I, F.obj i ⟶ G.obj i) (i) : (discrete.nat_trans f).app i = f i :=
-rfl
+{ app := f,
+  naturality' := λ X Y g, by { discrete_cases, cases g, simp, } }
 
 /--
 For functors out of a discrete category,
 a natural isomorphism is just a collection of isomorphisms,
 as the naturality squares are trivial.
 -/
+@[simps]
 def nat_iso {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ≅ G.obj i) : F ≅ G :=
-nat_iso.of_components f (by tidy)
-
-@[simp]
-lemma nat_iso_hom_app {I : Type u₁} {F G : discrete I ⥤ C}
-  (f : Π i : discrete I, F.obj i ≅ G.obj i) (i : I) :
-  (discrete.nat_iso f).hom.app i = (f i).hom :=
-rfl
-
-@[simp]
-lemma nat_iso_inv_app {I : Type u₁} {F G : discrete I ⥤ C}
-  (f : Π i : discrete I, F.obj i ≅ G.obj i) (i : I) :
-  (discrete.nat_iso f).inv.app i = (f i).inv :=
-rfl
+nat_iso.of_components f (λ X Y g, by { discrete_cases, cases g, simp, })
 
 @[simp]
 lemma nat_iso_app {I : Type u₁} {F G : discrete I ⥤ C}
-  (f : Π i : discrete I, F.obj i ≅ G.obj i) (i : I) :
+  (f : Π i : discrete I, F.obj i ≅ G.obj i) (i : discrete I) :
   (discrete.nat_iso f).app i = f i :=
 by tidy
 
 /-- Every functor `F` from a discrete category is naturally isomorphic (actually, equal) to
   `discrete.functor (F.obj)`. -/
 @[simp]
-def nat_iso_functor {I : Type u₁} {F : discrete I ⥤ C} : F ≅ discrete.functor (F.obj) :=
-nat_iso $ λ i, iso.refl _
+def nat_iso_functor {I : Type u₁} {F : discrete I ⥤ C} :
+  F ≅ discrete.functor (F.obj ∘ discrete.mk) :=
+nat_iso $ λ i, by { discrete_cases, refl, }
 
 /-- Composing `discrete.functor F` with another functor `G` amounts to composing `F` with `G.obj` -/
 @[simp]
@@ -146,18 +158,18 @@ an equivalence between the corresponding `discrete` categories.
 -/
 @[simps]
 def equivalence {I : Type u₁} {J : Type u₂} (e : I ≃ J) : discrete I ≌ discrete J :=
-{ functor := discrete.functor (e : I → J),
-  inverse := discrete.functor (e.symm : J → I),
-  unit_iso := discrete.nat_iso (λ i, eq_to_iso (by simp)),
-  counit_iso := discrete.nat_iso (λ j, eq_to_iso (by simp)), }
+{ functor := discrete.functor (discrete.mk ∘ (e : I → J)),
+  inverse := discrete.functor (discrete.mk ∘ (e.symm : J → I)),
+  unit_iso := discrete.nat_iso (λ i, eq_to_iso (by { discrete_cases, simp })),
+  counit_iso := discrete.nat_iso (λ j, eq_to_iso (by { discrete_cases, simp })), }
 
 /-- We can convert an equivalence of `discrete` categories to a type-level `equiv`. -/
 @[simps]
 def equiv_of_equivalence {α : Type u₁} {β : Type u₂} (h : discrete α ≌ discrete β) : α ≃ β :=
-{ to_fun := h.functor.obj,
-  inv_fun := h.inverse.obj,
-  left_inv := λ a, eq_of_hom (h.unit_iso.app a).2,
-  right_inv := λ a, eq_of_hom (h.counit_iso.app a).1 }
+{ to_fun := discrete.as ∘ h.functor.obj ∘ discrete.mk,
+  inv_fun := discrete.as ∘ h.inverse.obj ∘ discrete.mk,
+  left_inv := λ a, by simpa using eq_of_hom (h.unit_iso.app (discrete.mk a)).2,
+  right_inv := λ a, by simpa using eq_of_hom (h.counit_iso.app (discrete.mk a)).1, }
 
 end discrete
 
@@ -167,11 +179,13 @@ variables {J : Type v₁}
 open opposite
 
 /-- A discrete category is equivalent to its opposite category. -/
+@[simps functor_obj_as inverse_obj]
 protected def opposite (α : Type u₁) : (discrete α)ᵒᵖ ≌ discrete α :=
-let F : discrete α ⥤ (discrete α)ᵒᵖ := discrete.functor (λ x, op x) in
+let F : discrete α ⥤ (discrete α)ᵒᵖ := discrete.functor (λ x, op (discrete.mk x)) in
 begin
-  refine equivalence.mk (functor.left_op F) F _ (discrete.nat_iso $ λ X, by simp [F]),
-  refine nat_iso.of_components (λ X, by simp [F]) _,
+  refine equivalence.mk (functor.left_op F) F _
+    (discrete.nat_iso $ λ X, by { discrete_cases, simp [F] }),
+  refine nat_iso.of_components (λ X, by { tactic.op_induction', discrete_cases, simp [F], }) _,
   tidy
 end
 

@@ -45,6 +45,8 @@ variables {C : Type u} [category.{v} C]
 -- We don't need an analogue of `pair` (for binary products), `parallel_pair` (for equalizers),
 -- or `(co)span`, since we already have `discrete.functor`.
 
+local attribute [tidy] discrete.discrete_cases
+
 /-- A fan over `f : β → C` consists of a collection of maps from an object `P` to every `f b`. -/
 abbreviation fan (f : β → C) := cone (discrete.functor f)
 /-- A cofan over `f : β → C` consists of a collection of maps from every `f b` to an object `P`. -/
@@ -54,13 +56,13 @@ abbreviation cofan (f : β → C) := cocone (discrete.functor f)
 @[simps]
 def fan.mk {f : β → C} (P : C) (p : Π b, P ⟶ f b) : fan f :=
 { X := P,
-  π := { app := p } }
+  π := { app := λ X, p X.as } }
 
 /-- A cofan over `f : β → C` consists of a collection of maps from every `f b` to an object `P`. -/
 @[simps]
 def cofan.mk {f : β → C} (P : C) (p : Π b, f b ⟶ P) : cofan f :=
 { X := P,
-  ι := { app := p } }
+  ι := { app := λ X, p X.as } }
 
 /-- An abbreviation for `has_limit (discrete.functor f)`. -/
 abbreviation has_product (f : β → C) := has_limit (discrete.functor f)
@@ -91,10 +93,10 @@ notation `∐ ` f:20 := sigma_obj f
 
 /-- The `b`-th projection from the pi object over `f` has the form `∏ f ⟶ f b`. -/
 abbreviation pi.π (f : β → C) [has_product f] (b : β) : ∏ f ⟶ f b :=
-limit.π (discrete.functor f) b
+limit.π (discrete.functor f) (discrete.mk b)
 /-- The `b`-th inclusion into the sigma object over `f` has the form `f b ⟶ ∐ f`. -/
 abbreviation sigma.ι (f : β → C) [has_coproduct f] (b : β) : f b ⟶ ∐ f :=
-colimit.ι (discrete.functor f) b
+colimit.ι (discrete.functor f) (discrete.mk b)
 
 /-- The fan constructed of the projections from the product is limiting. -/
 def product_is_product (f : β → C) [has_product f] :
@@ -120,28 +122,28 @@ from a family of morphisms between the factors.
 -/
 abbreviation pi.map {f g : β → C} [has_product f] [has_product g]
   (p : Π b, f b ⟶ g b) : ∏ f ⟶ ∏ g :=
-lim_map (discrete.nat_trans p)
+lim_map (discrete.nat_trans (λ X, p X.as))
 /--
 Construct an isomorphism between categorical products (indexed by the same type)
 from a family of isomorphisms between the factors.
 -/
 abbreviation pi.map_iso {f g : β → C} [has_products_of_shape β C]
   (p : Π b, f b ≅ g b) : ∏ f ≅ ∏ g :=
-lim.map_iso (discrete.nat_iso p)
+lim.map_iso (discrete.nat_iso (λ X, p X.as))
 /--
 Construct a morphism between categorical coproducts (indexed by the same type)
 from a family of morphisms between the factors.
 -/
 abbreviation sigma.map {f g : β → C} [has_coproduct f] [has_coproduct g]
   (p : Π b, f b ⟶ g b) : ∐ f ⟶ ∐ g :=
-colim_map (discrete.nat_trans p)
+colim_map (discrete.nat_trans (λ X, p X.as))
 /--
 Construct an isomorphism between categorical coproducts (indexed by the same type)
 from a family of isomorphisms between the factors.
 -/
 abbreviation sigma.map_iso {f g : β → C} [has_coproducts_of_shape β C]
   (p : Π b, f b ≅ g b) : ∐ f ≅ ∐ g :=
-colim.map_iso (discrete.nat_iso p)
+colim.map_iso (discrete.nat_iso (λ X, p X.as))
 
 section comparison
 
@@ -157,13 +159,13 @@ pi.lift (λ b, G.map (pi.π f b))
 @[simp, reassoc]
 lemma pi_comparison_comp_π [has_product f] [has_product (λ b, G.obj (f b))] (b : β) :
   pi_comparison G f ≫ pi.π _ b = G.map (pi.π f b) :=
-limit.lift_π _ b
+limit.lift_π _ (discrete.mk b)
 
 @[simp, reassoc]
 lemma map_lift_pi_comparison [has_product f] [has_product (λ b, G.obj (f b))]
   (P : C) (g : Π j, P ⟶ f j) :
   G.map (pi.lift g) ≫ pi_comparison G f = pi.lift (λ j, G.map (g j)) :=
-by { ext, simp [← G.map_comp] }
+by { ext, discrete.discrete_cases, simp [← G.map_comp] }
 
 /-- The comparison morphism for the coproduct of `f`. This is an iso iff `G` preserves the coproduct
 of `f`, see `preserves_coproduct.of_iso_comparison`. -/
@@ -174,13 +176,13 @@ sigma.desc (λ b, G.map (sigma.ι f b))
 @[simp, reassoc]
 lemma ι_comp_sigma_comparison [has_coproduct f] [has_coproduct (λ b, G.obj (f b))] (b : β) :
   sigma.ι _ b ≫ sigma_comparison G f = G.map (sigma.ι f b) :=
-colimit.ι_desc _ b
+colimit.ι_desc _ (discrete.mk b)
 
 @[simp, reassoc]
 lemma sigma_comparison_map_desc [has_coproduct f] [has_coproduct (λ b, G.obj (f b))]
   (P : C) (g : Π j, f j ⟶ P) :
   sigma_comparison G f ≫ G.map (sigma.desc g) = sigma.desc (λ j, G.map (g j)) :=
-by { ext, simp [← G.map_comp] }
+by { ext, discrete.discrete_cases, simp [← G.map_comp] }
 
 end comparison
 

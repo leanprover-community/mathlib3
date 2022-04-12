@@ -28,20 +28,20 @@ def is_product_of_is_terminal_is_pullback {W X Y Z : C} (f : X ⟶ Z) (g : Y ⟶
   (H₂ : is_limit (pullback_cone.mk _ _ (show h ≫ f = k ≫ g, from H₁.hom_ext _ _))) :
   is_limit (binary_fan.mk h k) :=
 { lift := λ c, H₂.lift (pullback_cone.mk
-    (c.π.app walking_pair.left) (c.π.app walking_pair.right) (H₁.hom_ext _ _)),
+    (c.π.app ⟨walking_pair.left⟩) (c.π.app ⟨walking_pair.right⟩) (H₁.hom_ext _ _)),
   fac' := λ c j,
   begin
     convert H₂.fac (pullback_cone.mk
-      (c.π.app walking_pair.left) (c.π.app walking_pair.right) (H₁.hom_ext _ _)) (some j) using 1,
+      (c.π.app ⟨walking_pair.left⟩) (c.π.app ⟨walking_pair.right⟩) (H₁.hom_ext _ _)) (some j.as) using 1,
     cases j; refl
   end,
   uniq' := λ c m hm,
   begin
     apply pullback_cone.is_limit.hom_ext H₂,
-    { exact (hm walking_pair.left).trans (H₂.fac (pullback_cone.mk (c.π.app walking_pair.left)
-        (c.π.app walking_pair.right) (H₁.hom_ext _ _)) walking_cospan.left).symm },
-    { exact (hm walking_pair.right).trans (H₂.fac (pullback_cone.mk (c.π.app walking_pair.left)
-        (c.π.app walking_pair.right) (H₁.hom_ext _ _)) walking_cospan.right).symm },
+    { exact (hm walking_pair.left).trans (H₂.fac (pullback_cone.mk (c.π.app ⟨walking_pair.left⟩)
+        (c.π.app ⟨walking_pair.right⟩) (H₁.hom_ext _ _)) walking_cospan.left).symm },
+    { exact (hm walking_pair.right).trans (H₂.fac (pullback_cone.mk (c.π.app ⟨walking_pair.left⟩)
+        (c.π.app ⟨walking_pair.right⟩) (H₁.hom_ext _ _)) walking_cospan.right).symm },
   end }
 
 /-- The product is the pullback over the terminal object. -/

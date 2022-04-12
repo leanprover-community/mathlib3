@@ -41,8 +41,8 @@ variables {F : J ⥤ C}
           {c₁ : fan F.obj}
           {c₂ : fan (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.2)}
           (s t : c₁.X ⟶ c₂.X)
-          (hs : ∀ (f : Σ p : J × J, p.1 ⟶ p.2), s ≫ c₂.π.app f = c₁.π.app f.1.1 ≫ F.map f.2)
-          (ht : ∀ (f : Σ p : J × J, p.1 ⟶ p.2), t ≫ c₂.π.app f = c₁.π.app f.1.2)
+          (hs : ∀ (f : Σ p : J × J, p.1 ⟶ p.2), s ≫ c₂.π.app ⟨f⟩ = c₁.π.app ⟨f.1.1⟩ ≫ F.map f.2)
+          (ht : ∀ (f : Σ p : J × J, p.1 ⟶ p.2), t ≫ c₂.π.app ⟨f⟩ = c₁.π.app ⟨f.1.2⟩)
           (i : fork s t)
 
 include hs ht
@@ -54,7 +54,7 @@ limiting if the given cones are also.
 def build_limit : cone F :=
 { X := i.X,
   π :=
-  { app := λ j, i.ι ≫ c₁.π.app _,
+  { app := λ j, i.ι ≫ c₁.π.app ⟨_⟩,
     naturality' := λ j₁ j₂ f, begin
       dsimp,
       rw [category.id_comp, category.assoc, ← hs ⟨⟨_, _⟩, f⟩, i.condition_assoc, ht],
@@ -73,9 +73,11 @@ def build_is_limit (t₁ : is_limit c₁) (t₂ : is_limit c₂) (hi : is_limit 
     { refine t₁.lift (fan.mk _ (λ j, _)),
       apply q.π.app j },
     { apply t₂.hom_ext,
+      intro j, discrete.discrete_cases,
       simp [hs, ht] },
   end,
-  uniq' := λ q m w, hi.hom_ext (i.equalizer_ext (t₁.hom_ext (by simpa using w))) }
+  uniq' := λ q m w, hi.hom_ext (i.equalizer_ext (t₁.hom_ext
+    (λ j, by { cases j, simpa using w j }))) }
 
 end has_limit_of_has_products_of_has_equalizers
 
@@ -94,8 +96,8 @@ has_limit.mk
 { cone := _,
   is_limit :=
     build_is_limit
-      (pi.lift (λ f, limit.π _ _ ≫ F.map f.2))
-      (pi.lift (λ f, limit.π _ f.1.2))
+      (pi.lift (λ f, limit.π (discrete.functor F.obj) ⟨_⟩ ≫ F.map f.2))
+      (pi.lift (λ f, limit.π (discrete.functor F.obj) ⟨f.1.2⟩))
       (by simp)
       (by simp)
       (limit.is_limit _)
@@ -141,8 +143,8 @@ def preserves_limit_of_preserves_equalizers_and_product :
   begin
     let P := ∏ K.obj,
     let Q := ∏ (λ (f : (Σ (p : J × J), p.fst ⟶ p.snd)), K.obj f.1.2),
-    let s : P ⟶ Q := pi.lift (λ f, limit.π _ _ ≫ K.map f.2),
-    let t : P ⟶ Q := pi.lift (λ f, limit.π _ f.1.2),
+    let s : P ⟶ Q := pi.lift (λ f, limit.π (discrete.functor K.obj) ⟨_⟩ ≫ K.map f.2),
+    let t : P ⟶ Q := pi.lift (λ f, limit.π (discrete.functor K.obj) ⟨f.1.2⟩),
     let I := equalizer s t,
     let i : I ⟶ P := equalizer.ι s t,
     apply preserves_limit_of_preserves_limit_cone
@@ -202,8 +204,8 @@ variables {F : J ⥤ C}
           {c₁ : cofan (λ f : (Σ p : J × J, p.1 ⟶ p.2), F.obj f.1.1)}
           {c₂ : cofan F.obj}
           (s t : c₁.X ⟶ c₂.X)
-          (hs : ∀ (f : Σ p : J × J, p.1 ⟶ p.2), c₁.ι.app f ≫ s = F.map f.2 ≫ c₂.ι.app f.1.2)
-          (ht : ∀ (f : Σ p : J × J, p.1 ⟶ p.2), c₁.ι.app f ≫ t = c₂.ι.app f.1.1)
+          (hs : ∀ (f : Σ p : J × J, p.1 ⟶ p.2), c₁.ι.app ⟨f⟩ ≫ s = F.map f.2 ≫ c₂.ι.app ⟨f.1.2⟩)
+          (ht : ∀ (f : Σ p : J × J, p.1 ⟶ p.2), c₁.ι.app ⟨f⟩ ≫ t = c₂.ι.app ⟨f.1.1⟩)
           (i : cofork s t)
 
 include hs ht
@@ -215,7 +217,7 @@ build the cocone for `F` which is colimiting if the given cocones are also.
 def build_colimit : cocone F :=
 { X := i.X,
   ι :=
-  { app := λ j, c₂.ι.app _ ≫ i.π,
+  { app := λ j, c₂.ι.app ⟨_⟩ ≫ i.π,
     naturality' := λ j₁ j₂ f, begin
       dsimp,
       rw [category.comp_id, ←reassoc_of (hs ⟨⟨_, _⟩, f⟩), i.condition, ←category.assoc, ht],
@@ -234,9 +236,11 @@ def build_is_colimit (t₁ : is_colimit c₁) (t₂ : is_colimit c₂) (hi : is_
     { refine t₂.desc (cofan.mk _ (λ j, _)),
       apply q.ι.app j },
     { apply t₁.hom_ext,
+      intro j, discrete.discrete_cases,
       simp [reassoc_of hs, reassoc_of ht] },
   end,
-  uniq' := λ q m w, hi.hom_ext (i.coequalizer_ext (t₂.hom_ext (by simpa using w))) }
+  uniq' := λ q m w, hi.hom_ext (i.coequalizer_ext (t₂.hom_ext
+    (λ j, by { cases j, simpa using w j }))) }
 
 end has_colimit_of_has_coproducts_of_has_coequalizers
 
@@ -255,8 +259,8 @@ has_colimit.mk
 { cocone := _,
   is_colimit :=
     build_is_colimit
-      (sigma.desc (λ f, F.map f.2 ≫ colimit.ι (discrete.functor F.obj) f.1.2))
-      (sigma.desc (λ f, colimit.ι (discrete.functor F.obj) f.1.1))
+      (sigma.desc (λ f, F.map f.2 ≫ colimit.ι (discrete.functor F.obj) ⟨f.1.2⟩))
+      (sigma.desc (λ f, colimit.ι (discrete.functor F.obj) ⟨f.1.1⟩))
       (by simp)
       (by simp)
       (colimit.is_colimit _)
@@ -301,8 +305,8 @@ def preserves_colimit_of_preserves_coequalizers_and_coproduct :
   begin
     let P := ∐ K.obj,
     let Q := ∐ (λ (f : (Σ (p : J × J), p.fst ⟶ p.snd)), K.obj f.1.1),
-    let s : Q ⟶ P := sigma.desc (λ f, K.map f.2 ≫ colimit.ι (discrete.functor K.obj) _),
-    let t : Q ⟶ P := sigma.desc (λ f, colimit.ι (discrete.functor K.obj) f.1.1),
+    let s : Q ⟶ P := sigma.desc (λ f, K.map f.2 ≫ colimit.ι (discrete.functor K.obj) ⟨_⟩),
+    let t : Q ⟶ P := sigma.desc (λ f, colimit.ι (discrete.functor K.obj) ⟨f.1.1⟩),
     let I := coequalizer s t,
     let i : P ⟶ I := coequalizer.π s t,
     apply preserves_colimit_of_preserves_colimit_cocone

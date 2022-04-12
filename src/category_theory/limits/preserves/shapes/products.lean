@@ -39,8 +39,8 @@ def is_limit_map_cone_fan_mk_equiv {P : C} (g : Π j, P ⟶ f j) :
   is_limit (fan.mk _ (λ j, G.map (g j)) : fan (λ j, G.obj (f j))) :=
 begin
   refine (is_limit.postcompose_hom_equiv _ _).symm.trans (is_limit.equiv_iso_limit _),
-  refine discrete.nat_iso (λ j, iso.refl (G.obj (f j))),
-  refine cones.ext (iso.refl _) (λ j, by { dsimp, simp }),
+  refine discrete.nat_iso (λ j, iso.refl (G.obj (f j.as))),
+  refine cones.ext (iso.refl _) (λ j, by { discrete.discrete_cases, dsimp, simp }),
 end
 
 /-- The property of preserving products expressed in terms of fans. -/
@@ -111,8 +111,8 @@ def is_colimit_map_cocone_cofan_mk_equiv {P : C} (g : Π j, f j ⟶ P) :
   is_colimit (cofan.mk _ (λ j, G.map (g j)) : cofan (λ j, G.obj (f j))) :=
 begin
   refine (is_colimit.precompose_hom_equiv _ _).symm.trans (is_colimit.equiv_iso_colimit _),
-  refine discrete.nat_iso (λ j, iso.refl (G.obj (f j))),
-  refine cocones.ext (iso.refl _) (λ j, by { dsimp, simp }),
+  refine discrete.nat_iso (λ j, iso.refl (G.obj (f j.as))),
+  refine cocones.ext (iso.refl _) (λ j, by { discrete.discrete_cases, dsimp, simp }),
 end
 
 /-- The property of preserving coproducts expressed in terms of cofans. -/

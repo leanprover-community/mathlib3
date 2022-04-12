@@ -147,9 +147,11 @@ lemma pi_premeasure_pi {s : Π i, set (α i)} (hs : (pi univ s).nonempty) :
   pi_premeasure m (pi univ s) = ∏ i, m i (s i) :=
 by simp [hs]
 
-lemma pi_premeasure_pi' [nonempty ι] {s : Π i, set (α i)} :
+lemma pi_premeasure_pi' {s : Π i, set (α i)} :
   pi_premeasure m (pi univ s) = ∏ i, m i (s i) :=
 begin
+  casesI is_empty_or_nonempty ι,
+  { simp, },
   cases (pi univ s).eq_empty_or_nonempty with h h,
   { rcases univ_pi_eq_empty_iff.mp h with ⟨i, hi⟩,
     have : ∃ i, m i (s i) = 0 := ⟨i, by simp [hi]⟩,
@@ -162,7 +164,7 @@ lemma pi_premeasure_pi_mono {s t : set (Π i, α i)} (h : s ⊆ t) :
   pi_premeasure m s ≤ pi_premeasure m t :=
 finset.prod_le_prod' (λ i _, (m i).mono' (image_subset _ h))
 
-lemma pi_premeasure_pi_eval [nonempty ι] {s : set (Π i, α i)} :
+lemma pi_premeasure_pi_eval {s : set (Π i, α i)} :
   pi_premeasure m (pi univ (λ i, eval i '' s)) = pi_premeasure m s :=
 by simp [pi_premeasure_pi']
 

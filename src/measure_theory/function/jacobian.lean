@@ -86,11 +86,11 @@ Change of variables in integrals
 -/
 
 open measure_theory measure_theory.measure metric filter set finite_dimensional asymptotics
+topological_space
 open_locale nnreal ennreal topological_space pointwise
 
 variables {E F : Type*} [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E]
-[normed_group F] [normed_space ℝ F] [topological_space.second_countable_topology F]
-{s : set E} {f : E → E} {f' : E → E →L[ℝ] E}
+[normed_group F] [normed_space ℝ F] {s : set E} {f : E → E} {f' : E → E →L[ℝ] E}
 
 /-!
 ### Decomposition lemmas
@@ -102,6 +102,7 @@ measurable pieces, by linear maps (with a prescribed precision depending on the 
 /-- Assume that a function `f` has a derivative at every point of a set `s`. Then one may cover `s`
 with countably many closed sets `t n` on which `f` is well approximated by linear maps `A n`. -/
 lemma exists_closed_cover_approximates_linear_on_of_has_fderiv_within_at
+  [second_countable_topology F]
   (f : E → F) (s : set E) (f' : E → E →L[ℝ] F) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
   (r : (E →L[ℝ] F) → ℝ≥0) (rpos : ∀ A, r A ≠ 0) :
   ∃ (t : ℕ → set E) (A : ℕ → (E →L[ℝ] F)), (∀ n, is_closed (t n)) ∧ (s ⊆ ⋃ n, t n)
@@ -247,6 +248,7 @@ variables [measurable_space E] [borel_space E] (μ : measure E) [is_add_haar_mea
 partition `s` into countably many disjoint relatively measurable sets (i.e., intersections
 of `s` with measurable sets `t n`) on which `f` is well approximated by linear maps `A n`. -/
 lemma exists_partition_approximates_linear_on_of_has_fderiv_within_at
+  [second_countable_topology F]
   (f : E → F) (s : set E) (f' : E → E →L[ℝ] F) (hf' : ∀ x ∈ s, has_fderiv_within_at f (f' x) s x)
   (r : (E →L[ℝ] F) → ℝ≥0) (rpos : ∀ A, r A ≠ 0) :
   ∃ (t : ℕ → set E) (A : ℕ → (E →L[ℝ] F)), pairwise (disjoint on t)
@@ -1206,8 +1208,6 @@ begin
   { simp only [eventually_true, ennreal.of_real_lt_top] },
   { exact ae_measurable_of_real_abs_det_fderiv_within μ hs hf' }
 end
-
-variables [measurable_space F] [borel_space F]
 
 /-- Integrability in the change of variable formula for differentiable functions: if a
 function `f` is injective and differentiable on a measurable set `s`, then a function

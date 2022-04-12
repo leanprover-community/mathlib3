@@ -3,9 +3,9 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Scott Morrison
 -/
-import data.finset.preimage
+import algebra.hom.group_action
 import algebra.indicator_function
-import algebra.group_action_hom
+import data.finset.preimage
 
 /-!
 # Type of functions with finite support
@@ -523,6 +523,15 @@ support_on_finset_subset
   map_range f hf (single a b) = single a (f b) :=
 ext $ λ a', show f (ite _ _ _) = ite _ _ _, by split_ifs; [refl, exact hf]
 
+lemma support_map_range_of_injective
+  {e : M → N} (he0 : e 0 = 0) (f : ι →₀ M) (he : function.injective e) :
+  (finsupp.map_range e he0 f).support = f.support :=
+begin
+  ext,
+  simp only [finsupp.mem_support_iff, ne.def, finsupp.map_range_apply],
+  exact he.ne_iff' he0,
+end
+
 end map_range
 
 /-! ### Declarations about `emb_domain` -/
@@ -819,9 +828,9 @@ begin
 end
 
 @[to_additive]
-lemma _root_.submonoid.finsupp_prod_mem (S : submonoid N) (f : α →₀ M) (g : α → M → N)
-  (h : ∀ c, f c ≠ 0 → g c (f c) ∈ S) : f.prod g ∈ S :=
-S.prod_mem $ λ i hi, h _ (finsupp.mem_support_iff.mp hi)
+lemma _root_.submonoid_class.finsupp_prod_mem {S : Type*} [set_like S N] [submonoid_class S N]
+  (s : S) (f : α →₀ M) (g : α → M → N) (h : ∀ c, f c ≠ 0 → g c (f c) ∈ s) : f.prod g ∈ s :=
+prod_mem $ λ i hi, h _ (finsupp.mem_support_iff.mp hi)
 
 @[to_additive]
 lemma prod_congr {f : α →₀ M} {g1 g2 : α → M → N}

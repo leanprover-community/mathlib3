@@ -697,8 +697,8 @@ lemma lift_unique (F : monoid_algebra k G →ₐ[k] A) (f : monoid_algebra k G) 
 by conv_lhs { rw lift_unique' F, simp [lift_apply] }
 
 /--  A multiplicative homomorphism `f : G →* H` between two monoids induces a `k`-algebra
-homomorphism `monoid_hom_alg_hom_lift f : monoid_algebra k G →ₐ[k] monoid_algebra k H`. -/
-def monoid_hom_alg_hom_lift (k : Type*) [comm_semiring k] {H : Type*} [monoid H] (f : G →* H) :
+homomorphism `monoid_hom_alg_hom_map f : monoid_algebra k G →ₐ[k] monoid_algebra k H`. -/
+def monoid_hom_alg_hom_map (k : Type*) [comm_semiring k] {H : Type*} [monoid H] (f : G →* H) :
   monoid_algebra k G →ₐ[k] monoid_algebra k H :=
 lift _ _ (monoid_algebra k H) (single_one_right_hom k f)
 
@@ -1540,17 +1540,17 @@ finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
 end
 
 /--  An additive homomorphism `f : G →+ H` induces a `k`-algebra homomorphism
-`add_monoid_alg_hom_lift f : add_monoid_algebra k G →ₐ[k] add_monoid_algebra k H`. -/
-def add_monoid_alg_hom_lift (k : Type*) [comm_semiring k] [add_monoid G] {H : Type*} [add_monoid H]
+`add_monoid_alg_hom_map f : add_monoid_algebra k G →ₐ[k] add_monoid_algebra k H`. -/
+def add_monoid_alg_hom_map (k : Type*) [comm_semiring k] [add_monoid G] {H : Type*} [add_monoid H]
   (f : G →+ H) : add_monoid_algebra k G →ₐ[k] add_monoid_algebra k H :=
 lift k G (add_monoid_algebra k H) (single_one_right_add_hom _ f)
 
 @[simp]
-lemma add_monoid_alg_hom_lift_single (k : Type*) [comm_semiring k] [add_monoid G] {H : Type*}
+lemma add_monoid_alg_hom_map_single (k : Type*) [comm_semiring k] [add_monoid G] {H : Type*}
   [add_monoid H] (f : G →+ H) (n : G) (r : k) :
-  add_monoid_alg_hom_lift k f (single n r) = single (f n) r :=
+  add_monoid_alg_hom_map k f (single n r) = single (f n) r :=
 begin
-  simp only [add_monoid_alg_hom_lift, lift_single, single_one_right_add_hom_apply, smul_single',
+  simp only [add_monoid_alg_hom_map, lift_single, single_one_right_add_hom_apply, smul_single',
     mul_one],
   refl,
 end

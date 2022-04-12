@@ -261,10 +261,7 @@ instance : has_zero {P : X →L[𝕜] X // is_Lprojection P}  :=
 rfl
 
 instance : has_one {P : X →L[𝕜] X // is_Lprojection P}  :=
-⟨⟨1, begin
-  rw ← sub_zero (1:X →L[𝕜] X),
-  exact is_Lprojection.Lcomplement (0 : {P : X →L[𝕜] X // is_Lprojection P}).prop,
-end⟩⟩
+⟨⟨1, sub_zero (1 : X →L[𝕜] X) ▸ (0 : {P : X →L[𝕜] X // is_Lprojection P}).prop.Lcomplement⟩⟩
 
 @[simp] lemma coe_one : ↑(1 : {P : X →L[𝕜] X // is_Lprojection P}) = (1 : X →L[𝕜] X) :=
 rfl

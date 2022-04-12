@@ -951,10 +951,15 @@ begin
 end
 
 @[to_additive]
+lemma subgroup.regular_quotient_of_is_closed (S : subgroup G) [S.normal]
+  (hS : is_closed (S : set G)) :
+  regular_space (G ⧸ S) :=
+@topological_group.regular_space (G ⧸ S) _ _ _ (S.t1_quotient_of_is_closed hS)
+
+@[to_additive]
 lemma subgroup.t2_quotient_of_is_closed (S : subgroup G) [S.normal] (hS : is_closed (S : set G)) :
   t2_space (G ⧸ S) :=
-@topological_group.t2_space (G ⧸ S) _ _ _ (S.t1_quotient_of_is_closed hS)
-
+@regular_space.t2_space (G ⧸ S) _ (S.regular_quotient_of_is_closed hS)
 
 end
 

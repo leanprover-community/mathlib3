@@ -530,6 +530,177 @@ def tensor_monoidal : monoidal_functor (C × C) C :=
   μ_is_iso := by { dsimp [tensor_μ], apply_instance },
   .. tensor C }
 
+lemma left_unitor_monoidal (X₁ X₂ : C) :
+    (λ_ X₁).hom ⊗ (λ_ X₂).hom
+  = tensor_μ C (𝟙_ C, X₁) (𝟙_ C, X₂) ≫
+    ((λ_ (𝟙_ C)).hom ⊗ 𝟙 (X₁ ⊗ X₂)) ≫
+    (λ_ (X₁ ⊗ X₂)).hom :=
+begin
+  dsimp [tensor_μ],
+  have :
+      (λ_ X₁).hom ⊗ (λ_ X₂).hom
+    = (α_ (𝟙_ C) X₁ (𝟙_ C ⊗ X₂)).hom ≫
+      (𝟙 (𝟙_ C) ⊗ (α_ X₁ (𝟙_ C) X₂).inv) ≫
+      (λ_ ((X₁ ⊗ (𝟙_ C)) ⊗ X₂)).hom ≫
+      ((ρ_ X₁).hom ⊗ (𝟙 X₂)) := by pure_coherence,
+  rw this, clear this,
+  rw ←braiding_left_unitor,
+  slice_lhs 3 4 { rw [←id_comp (𝟙 X₂), tensor_comp] },
+  slice_lhs 3 4 { rw [←left_unitor_naturality] },
+  coherence,
+end
+
+lemma right_unitor_monoidal (X₁ X₂ : C) :
+    (ρ_ X₁).hom ⊗ (ρ_ X₂).hom
+  = tensor_μ C (X₁, 𝟙_ C) (X₂, 𝟙_ C) ≫
+    (𝟙 (X₁ ⊗ X₂) ⊗ (λ_ (𝟙_ C)).hom) ≫
+    (ρ_ (X₁ ⊗ X₂)).hom :=
+begin
+  dsimp [tensor_μ],
+  have :
+      (ρ_ X₁).hom ⊗ (ρ_ X₂).hom
+    = (α_ X₁ (𝟙_ C) (X₂ ⊗ (𝟙_ C))).hom ≫
+      (𝟙 X₁ ⊗ (α_ (𝟙_ C) X₂ (𝟙_ C)).inv) ≫
+      (𝟙 X₁ ⊗ (ρ_ (𝟙_ C ⊗ X₂)).hom) ≫
+      (𝟙 X₁ ⊗ (λ_ X₂).hom) := by pure_coherence,
+  rw this, clear this,
+  rw ←braiding_right_unitor,
+  slice_lhs 3 4 { rw [←id_comp (𝟙 X₁), tensor_comp, id_comp] },
+  slice_lhs 3 4 { rw [←tensor_comp,
+                      ←right_unitor_naturality,
+                      tensor_comp] },
+  coherence,
+end
+
+lemma associator_monoidal_aux (W X Y Z : C) :
+    (𝟙 W ⊗ (β_ X (Y ⊗ Z)).hom) ≫
+    (𝟙 W ⊗ (α_ Y Z X).hom) ≫
+    (α_ W Y (Z ⊗ X)).inv ≫
+    ((β_ W Y).hom ⊗ 𝟙 (Z ⊗ X))
+  = (α_ W X (Y ⊗ Z)).inv ≫
+    (α_ (W ⊗ X) Y Z).inv ≫
+    ((β_ (W ⊗ X) Y).hom ⊗ 𝟙 Z) ≫
+    ((α_ Y W X).inv ⊗ 𝟙 Z) ≫
+    (α_ (Y ⊗ W) X Z).hom ≫
+    (𝟙 (Y ⊗ W) ⊗ (β_ X Z).hom) :=
+begin
+  slice_rhs 1 2 { rw ←pentagon_inv },
+  slice_rhs 3 5 { rw [←tensor_comp, ←tensor_comp,
+                      hexagon_reverse,
+                      tensor_comp, tensor_comp] },
+  slice_rhs 5 6 { rw associator_naturality },
+  slice_rhs 6 7 { rw [tensor_id,
+                      tensor_id_comp_id_tensor,
+                      ←id_tensor_comp_tensor_id] },
+  slice_rhs 2 3 { rw ←associator_inv_naturality },
+  slice_rhs 3 5 { rw pentagon_inv_inv_hom },
+  slice_rhs 4 5 { rw [←tensor_id,
+                      ←associator_inv_naturality] },
+  slice_rhs 2 4 { rw [←tensor_comp, ←tensor_comp,
+                      ←hexagon_forward,
+                      tensor_comp, tensor_comp] },
+  simp,
+end
+
+lemma associator_monoidal (X₁ X₂ X₃ Y₁ Y₂ Y₃ : C) :
+    tensor_μ C (X₁ ⊗ X₂, X₃) (Y₁ ⊗ Y₂, Y₃) ≫
+    (tensor_μ C (X₁, X₂) (Y₁, Y₂) ⊗ 𝟙 (X₃ ⊗ Y₃)) ≫
+    (α_ (X₁ ⊗ Y₁) (X₂ ⊗ Y₂) (X₃ ⊗ Y₃)).hom
+  = ((α_ X₁ X₂ X₃).hom ⊗ (α_ Y₁ Y₂ Y₃).hom) ≫
+    tensor_μ C (X₁, X₂ ⊗ X₃) (Y₁, Y₂ ⊗ Y₃) ≫
+    (𝟙 (X₁ ⊗ Y₁) ⊗ tensor_μ C (X₂, X₃) (Y₂, Y₃)) :=
+begin
+  have :
+      (α_ (X₁ ⊗ Y₁) (X₂ ⊗ Y₂) (X₃ ⊗ Y₃)).hom
+    = ((α_ X₁ Y₁ (X₂ ⊗ Y₂)).hom ⊗ 𝟙 (X₃ ⊗ Y₃)) ≫
+      ((𝟙 X₁ ⊗ (α_ Y₁ X₂ Y₂).inv) ⊗ 𝟙 (X₃ ⊗ Y₃)) ≫
+      (α_ (X₁ ⊗ ((Y₁ ⊗ X₂) ⊗ Y₂)) X₃ Y₃).inv ≫
+      ((α_ X₁ ((Y₁ ⊗ X₂) ⊗ Y₂) X₃).hom ⊗ 𝟙 Y₃) ≫
+      ((𝟙 X₁ ⊗ (α_ (Y₁ ⊗ X₂) Y₂ X₃).hom) ⊗ 𝟙 Y₃) ≫
+      (α_ X₁ ((Y₁ ⊗ X₂) ⊗ (Y₂ ⊗ X₃)) Y₃).hom ≫
+      (𝟙 X₁ ⊗ (α_ (Y₁ ⊗ X₂) (Y₂ ⊗ X₃) Y₃).hom) ≫
+      (𝟙 X₁ ⊗ (α_ Y₁ X₂ ((Y₂ ⊗ X₃) ⊗ Y₃)).hom) ≫
+      (α_ X₁ Y₁ (X₂ ⊗ ((Y₂ ⊗ X₃) ⊗ Y₃))).inv ≫
+      (𝟙 (X₁ ⊗ Y₁) ⊗ (𝟙 X₂ ⊗ (α_ Y₂ X₃ Y₃).hom)) ≫
+      (𝟙 (X₁ ⊗ Y₁) ⊗ (α_ X₂ Y₂ (X₃ ⊗ Y₃)).inv) := by pure_coherence,
+  rw this, clear this,
+  slice_lhs 2 4 { rw [←tensor_comp, ←tensor_comp,
+                      tensor_μ_def₁,
+                      tensor_comp, tensor_comp] },
+  slice_lhs 4 5 { rw [←tensor_id,
+                      associator_inv_naturality] },
+  slice_lhs 5 6 { rw [←tensor_comp,
+                      associator_naturality,
+                      tensor_comp] },
+  slice_lhs 6 7 { rw [←tensor_comp, ←tensor_comp,
+                      associator_naturality,
+                      tensor_comp, tensor_comp] },
+  have :
+      ((α_ X₁ X₂ (Y₁ ⊗ Y₂)).hom ⊗ 𝟙 (X₃ ⊗ Y₃)) ≫
+      ((𝟙 X₁ ⊗ (α_ X₂ Y₁ Y₂).inv) ⊗ 𝟙 (X₃ ⊗ Y₃)) ≫
+      (α_ (X₁ ⊗ ((X₂ ⊗ Y₁) ⊗ Y₂)) X₃ Y₃).inv ≫
+      ((α_ X₁ ((X₂ ⊗ Y₁) ⊗ Y₂) X₃).hom ⊗ 𝟙 Y₃) ≫
+      ((𝟙 X₁ ⊗ (α_ (X₂ ⊗ Y₁) Y₂ X₃).hom) ⊗ 𝟙 Y₃)
+    = (α_ (X₁ ⊗ X₂) (Y₁ ⊗ Y₂) (X₃ ⊗ Y₃)).hom ≫
+      (𝟙 (X₁ ⊗ X₂) ⊗ (α_ (Y₁ ⊗ Y₂) X₃ Y₃).inv) ≫
+      (α_ X₁ X₂ (((Y₁ ⊗ Y₂) ⊗ X₃) ⊗ Y₃)).hom ≫
+      (𝟙 X₁ ⊗ (α_ X₂ ((Y₁ ⊗ Y₂) ⊗ X₃) Y₃).inv) ≫
+      (α_ X₁ (X₂ ⊗ ((Y₁ ⊗ Y₂) ⊗ X₃)) Y₃).inv ≫
+      ((𝟙 X₁ ⊗ (𝟙 X₂ ⊗ (α_ Y₁ Y₂ X₃).hom)) ⊗ 𝟙 Y₃) ≫
+      ((𝟙 X₁ ⊗ (α_ X₂ Y₁ (Y₂ ⊗ X₃)).inv) ⊗ 𝟙 Y₃) := by pure_coherence,
+  slice_lhs 2 6 { rw this }, clear this,
+  slice_lhs 1 3 { rw tensor_μ_def₁ },
+  slice_lhs 3 4 { rw [←tensor_id,
+                      associator_naturality] },
+  slice_lhs 4 5 { rw [←tensor_comp,
+                      associator_inv_naturality,
+                      tensor_comp] },
+  slice_lhs 5 6 { rw associator_inv_naturality },
+  slice_lhs 6 9 { rw [←tensor_comp, ←tensor_comp, ←tensor_comp,
+                      ←tensor_comp, ←tensor_comp, ←tensor_comp,
+                      tensor_id,
+                      associator_monoidal_aux,
+                      ←id_comp (𝟙 X₁ ≫ 𝟙 X₁ ≫ 𝟙 X₁ ≫ 𝟙 X₁),
+                      ←id_comp (𝟙 X₁ ≫ 𝟙 X₁ ≫ 𝟙 X₁ ≫ 𝟙 X₁ ≫ 𝟙 X₁),
+                      ←id_comp (𝟙 Y₃ ≫ 𝟙 Y₃ ≫ 𝟙 Y₃ ≫ 𝟙 Y₃),
+                      ←id_comp (𝟙 Y₃ ≫ 𝟙 Y₃ ≫ 𝟙 Y₃ ≫ 𝟙 Y₃ ≫ 𝟙 Y₃),
+                      tensor_comp, tensor_comp, tensor_comp, tensor_comp, tensor_comp,
+                      tensor_comp, tensor_comp, tensor_comp, tensor_comp, tensor_comp] },
+  slice_lhs 11 12 { rw associator_naturality },
+  slice_lhs 12 13 { rw [←tensor_comp,
+                        associator_naturality,
+                        tensor_comp] },
+  slice_lhs 13 14 { rw [←tensor_comp, ←tensor_id,
+                        associator_naturality,
+                        tensor_comp] },
+  slice_lhs 14 15 { rw associator_inv_naturality },
+  slice_lhs 15 17 { rw [tensor_id, ←tensor_comp, ←tensor_comp,
+                        ←tensor_μ_def₂,
+                        tensor_comp, tensor_comp] },
+  have :
+      ((𝟙 X₁ ⊗ ((α_ Y₁ X₂ X₃).inv ⊗ 𝟙 Y₂)) ⊗ 𝟙 Y₃) ≫
+      ((𝟙 X₁ ⊗ (α_ (Y₁ ⊗ X₂) X₃ Y₂).hom) ⊗ 𝟙 Y₃) ≫
+      (α_ X₁ ((Y₁ ⊗ X₂) ⊗ (X₃ ⊗ Y₂)) Y₃).hom ≫
+      (𝟙 X₁ ⊗ (α_ (Y₁ ⊗ X₂) (X₃ ⊗ Y₂) Y₃).hom) ≫
+      (𝟙 X₁ ⊗ (α_ Y₁ X₂ ((X₃ ⊗ Y₂) ⊗ Y₃)).hom) ≫
+      (α_ X₁ Y₁ (X₂ ⊗ ((X₃ ⊗ Y₂) ⊗ Y₃))).inv ≫
+      (𝟙 (X₁ ⊗ Y₁) ⊗ (𝟙 X₂ ⊗ (α_ X₃ Y₂ Y₃).hom)) ≫
+      (𝟙 (X₁ ⊗ Y₁) ⊗ (α_ X₂ X₃ (Y₂ ⊗ Y₃)).inv)
+    = (α_ X₁ ((Y₁ ⊗ (X₂ ⊗ X₃)) ⊗ Y₂) Y₃).hom ≫
+      (𝟙 X₁ ⊗ (α_ (Y₁ ⊗ (X₂ ⊗ X₃)) Y₂ Y₃).hom) ≫
+      (𝟙 X₁ ⊗ (α_ Y₁ (X₂ ⊗ X₃) (Y₂ ⊗ Y₃)).hom) ≫
+      (α_ X₁ Y₁ ((X₂ ⊗ X₃) ⊗ (Y₂ ⊗ Y₃))).inv := by pure_coherence,
+  slice_lhs 9 16 { rw this }, clear this,
+  slice_lhs 8 9 { rw associator_naturality },
+  slice_lhs 9 10 { rw [←tensor_comp,
+                       associator_naturality,
+                       tensor_comp] },
+  slice_lhs 10 12 { rw [tensor_id,
+                        ←tensor_μ_def₂] },
+  dsimp,
+  coherence,
+end
+
 end tensor
 
 end category_theory

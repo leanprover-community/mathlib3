@@ -1042,14 +1042,16 @@ lemma coe_top [order_top α] [order_top (subtype p)] (htop : p ⊤) : ((⊤ : su
 congr_arg coe (mk_top htop).symm
 
 @[simp]
-lemma mem_subtype_eq_top_iff [preorder α] [order_top α] (htop : p ⊤) {x : α} (px : p x) :
-  (⟨x, px⟩ : {y : α // p y}) = (by haveI := subtype.order_top htop; exact ⊤) ↔ x = ⊤ :=
-subtype.ext_iff
+lemma mem_subtype_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : α} (hx : p x):
+  (⟨x, hx⟩ : subtype p) = ⊤ ↔ x = ⊤ :=
+⟨λ h, by {rw [subtype.ext_iff, coe_top htop, coe_mk] at h ; exact h},
+  λ h, by {rw (mk_top htop).symm ; exact mk_eq_mk.mpr h} ⟩
 
 @[simp]
-lemma mem_subtype_eq_bot_iff [preorder α] [order_bot α] (hbot : p ⊥) {x : α} (Px : p x) :
-  (⟨x, Px⟩ : {y : α // p y}) = (by haveI := subtype.order_bot hbot; exact ⊥) ↔ x = ⊥ :=
-subtype.ext_iff
+lemma mem_subtype_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : α} (hx : p x) :
+  (⟨x, hx⟩ : subtype p) = ⊥ ↔ x = ⊥ :=
+⟨λ h, by {rw [subtype.ext_iff, coe_bot hbot, coe_mk] at h ; exact h},
+  λ h, by {rw (mk_bot hbot).symm ; exact mk_eq_mk.mpr h} ⟩
 
 end subtype
 

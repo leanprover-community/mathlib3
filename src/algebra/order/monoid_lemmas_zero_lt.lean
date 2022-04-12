@@ -241,6 +241,42 @@ end preorder
 section partial_order
 variables [partial_order α]
 
+lemma mul_le_mul_left'' [pos_mul_mono α]
+  (bc : b ≤ c) (a0 : 0 ≤ a) :
+  a * b ≤ a * c :=
+a0.lt_or_eq.elim (mul_le_mul_left' bc) (λ h, by simp only [← h, zero_mul])
+
+lemma mul_le_mul_right'' [mul_pos_mono α]
+  (bc : b ≤ c) (a0 : 0 ≤ a) :
+  b * a ≤ c * a :=
+a0.lt_or_eq.elim (mul_le_mul_right' bc) (λ h, by simp only [← h, mul_zero])
+
+/-- Assumes left covariance. -/
+lemma left.mul_nonneg [pos_mul_mono α]
+  (ha : 0 ≤ a) (hb : 0 ≤ b) :
+  0 ≤ a * b :=
+have h : a * 0 ≤ a * b, from mul_le_mul_left'' hb ha,
+by rwa [mul_zero] at h
+
+lemma mul_nonpos_of_nonneg_of_nonpos [pos_mul_mono α]
+  (ha : 0 ≤ a) (hb : b ≤ 0) :
+  a * b ≤ 0 :=
+have h : a * b ≤ a * 0, from mul_le_mul_left'' hb ha,
+by rwa [mul_zero] at h
+
+/-- Assumes right covariance. -/
+lemma right.mul_nonneg [mul_pos_mono α]
+  (ha : 0 ≤ a) (hb : 0 ≤ b) :
+  0 ≤ a * b :=
+have h : 0 * b ≤ a * b, from mul_le_mul_right'' ha hb,
+by rwa [zero_mul] at h
+
+lemma mul_nonpos_of_nonpos_of_nonneg [mul_pos_mono α]
+  (ha : a ≤ 0) (hb : 0 ≤ b) :
+  a * b ≤ 0 :=
+have h : a * b ≤ 0 * b, from mul_le_mul_right'' ha hb,
+by rwa [zero_mul] at h
+
 lemma lt_of_mul_lt_mul_left'' [pos_mul_reflect_lt α]
   (bc : a * b < a * c) (a0 : 0 ≤ a) :
   b < c :=
@@ -249,6 +285,10 @@ begin
   { exact (lt_irrefl (0 : α) (by simpa only [a₀, zero_mul] using bc)).elim },
   { exact lt_of_mul_lt_mul_left' bc ((ne.symm a₀).le_iff_lt.mp a0) }
 end
+
+lemma pos_of_mul_pos_left [pos_mul_reflect_lt α] (h : 0 < a * b) (ha : 0 ≤ a) :
+  0 < b :=
+lt_of_mul_lt_mul_left'' ((mul_zero a).symm ▸ h : a * 0 < a * b) ha
 
 lemma lt_of_mul_lt_mul_right'' [mul_pos_reflect_lt α]
   (bc : b * a < c * a) (a0 : 0 ≤ a) :
@@ -259,7 +299,65 @@ begin
   { exact lt_of_mul_lt_mul_right' bc ((ne.symm a₀).le_iff_lt.mp a0) }
 end
 
+lemma pos_of_mul_pos_right [mul_pos_reflect_lt α] (h : 0 < a * b) (hb : 0 ≤ b) :
+  0 < a :=
+lt_of_mul_lt_mul_right'' ((zero_mul b).symm ▸ h : 0 * b < a * b) hb
+
+lemma pos_iff_pos_of_mul_pos [pos_mul_reflect_lt α] [mul_pos_reflect_lt α] (hab : 0 < a * b) :
+  0 < a ↔ 0 < b :=
+⟨pos_of_mul_pos_left hab ∘ le_of_lt, pos_of_mul_pos_right hab ∘ le_of_lt⟩
+
 end partial_order
+
+section linear_order
+variables [linear_order α]
+
+lemma pos_and_pos_or_neg_and_neg_of_mul_pos [pos_mul_mono α] [mul_pos_mono α]
+  (hab : 0 < a * b) :
+  (0 < a ∧ 0 < b) ∨ (a < 0 ∧ b < 0) :=
+begin
+  rcases lt_trichotomy 0 a with ha | rfl | ha,
+  { refine or.inl ⟨ha, lt_imp_lt_of_le_imp_le (λ hb, _) hab⟩,
+    exact mul_nonpos_of_nonneg_of_nonpos ha.le hb },
+  { rw [zero_mul] at hab, exact hab.false.elim },
+  { refine or.inr ⟨ha, lt_imp_lt_of_le_imp_le (λ hb, _) hab⟩,
+    exact mul_nonpos_of_nonpos_of_nonneg ha.le hb }
+end
+
+lemma neg_of_mul_pos_left [pos_mul_mono α] [mul_pos_mono α]
+  (h : 0 < a * b) (ha : a ≤ 0) :
+  b < 0 :=
+((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_left $ λ h, h.1.not_le ha).2
+
+lemma neg_of_mul_pos_right [pos_mul_mono α] [mul_pos_mono α]
+  (h : 0 < a * b) (ha : b ≤ 0) :
+  a < 0 :=
+((pos_and_pos_or_neg_and_neg_of_mul_pos h).resolve_left $ λ h, h.2.not_le ha).1
+
+lemma neg_iff_neg_of_mul_pos [pos_mul_mono α] [mul_pos_mono α]
+  (hab : 0 < a * b) :
+  a < 0 ↔ b < 0 :=
+⟨neg_of_mul_pos_left hab ∘ le_of_lt, neg_of_mul_pos_right hab ∘ le_of_lt⟩
+
+lemma left.neg_of_mul_neg_left [pos_mul_mono α]
+  (h : a * b < 0) (h1 : 0 ≤ a) :
+  b < 0 :=
+lt_of_not_ge (assume h2 : b ≥ 0, (left.mul_nonneg h1 h2).not_lt h)
+
+lemma right.neg_of_mul_neg_left [mul_pos_mono α]
+  (h : a * b < 0) (h1 : 0 ≤ a) :
+  b < 0 :=
+lt_of_not_ge (assume h2 : b ≥ 0, (right.mul_nonneg h1 h2).not_lt h)
+
+lemma left.neg_of_mul_neg_right [pos_mul_mono α]
+  (h : a * b < 0) (h1 : 0 ≤ b) : a < 0 :=
+lt_of_not_ge (assume h2 : a ≥ 0, (left.mul_nonneg h2 h1).not_lt h)
+
+lemma right.neg_of_mul_neg_right [mul_pos_mono α]
+  (h : a * b < 0) (h1 : 0 ≤ b) : a < 0 :=
+lt_of_not_ge (assume h2 : a ≥ 0, (right.mul_nonneg h2 h1).not_lt h)
+
+end linear_order
 
 end mul_zero_class
 
@@ -681,4 +779,5 @@ a0.lt_or_eq.elim exists_square_le (λ h, by rw [← h]; exact ⟨0, by simp⟩)
 end linear_order
 
 end mul_zero_one_class
+
 end zero_lt

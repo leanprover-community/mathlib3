@@ -468,6 +468,10 @@ protected lemma tsub_tsub_assoc (hbc : add_le_cancellable (b - c)) (h₁ : b ≤
 by rw [hbc.tsub_eq_iff_eq_add_of_le (tsub_le_self.trans h₁), add_assoc,
   add_tsub_cancel_of_le h₂, tsub_add_cancel_of_le h₁]
 
+protected lemma tsub_add_tsub_comm (hb : add_le_cancellable b) (hd : add_le_cancellable d)
+  (hba : b ≤ a) (hdc : d ≤ c) : a - b + (c - d) = a + c - (b + d) :=
+by rw [hb.tsub_add_eq_add_tsub hba, ←hd.add_tsub_assoc_of_le hdc, tsub_tsub, add_comm d]
+
 protected lemma le_tsub_iff_left (ha : add_le_cancellable a) (h : a ≤ c) : b ≤ c - a ↔ a + b ≤ c :=
 ⟨add_le_of_le_tsub_left_of_le h, ha.le_tsub_of_add_le_left⟩
 
@@ -588,6 +592,9 @@ contravariant.add_le_cancellable.tsub_add_eq_add_tsub h
 
 lemma tsub_tsub_assoc (h₁ : b ≤ a) (h₂ : c ≤ b) : a - (b - c) = a - b + c :=
 contravariant.add_le_cancellable.tsub_tsub_assoc h₁ h₂
+
+lemma tsub_add_tsub_comm (hba : b ≤ a) (hdc : d ≤ c) : a - b + (c - d) = a + c - (b + d) :=
+contravariant.add_le_cancellable.tsub_add_tsub_comm contravariant.add_le_cancellable hba hdc
 
 lemma le_tsub_iff_left (h : a ≤ c) : b ≤ c - a ↔ a + b ≤ c :=
 contravariant.add_le_cancellable.le_tsub_iff_left h

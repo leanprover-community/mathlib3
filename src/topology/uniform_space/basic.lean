@@ -1034,11 +1034,19 @@ le_antisymm
   (le_infi $ assume i, infi_le_of_le (u i) $ infi_le _ ⟨i, rfl⟩)
   (le_infi $ assume a, le_infi $ assume ⟨i, (ha : u i = a)⟩, ha ▸ infi_le _ _)
 
+lemma infi_uniformity' {ι : Sort*} {u : ι → uniform_space α} :
+  @uniformity α (infi u) = (⨅i, @uniformity α (u i)) :=
+infi_uniformity
+
 lemma inf_uniformity {u v : uniform_space α} :
   (u ⊓ v).uniformity = u.uniformity ⊓ v.uniformity :=
 have (u ⊓ v) = (⨅i (h : i = u ∨ i = v), i), by simp [infi_or, infi_inf_eq],
 calc (u ⊓ v).uniformity = ((⨅i (h : i = u ∨ i = v), i) : uniform_space α).uniformity : by rw [this]
   ... = _ : by simp [infi_uniformity, infi_or, infi_inf_eq]
+
+lemma inf_uniformity' {u v : uniform_space α} :
+  @uniformity α (u ⊓ v) = @uniformity α u ⊓ @uniformity α v :=
+inf_uniformity
 
 instance inhabited_uniform_space : inhabited (uniform_space α) := ⟨⊥⟩
 instance inhabited_uniform_space_core : inhabited (uniform_space.core α) :=
@@ -1085,6 +1093,10 @@ by ext ; dsimp [uniform_space.comap] ; rw filter.comap_comap
 lemma uniform_continuous_iff {α β} [uα : uniform_space α] [uβ : uniform_space β] {f : α → β} :
   uniform_continuous f ↔ uα ≤ uβ.comap f :=
 filter.map_le_iff_le_comap
+
+lemma le_iff_uniform_continuous_id {u v : uniform_space α} :
+  u ≤ v ↔ @uniform_continuous _ _ u v id :=
+by rw [uniform_continuous_iff, uniform_space_comap_id, id]
 
 lemma uniform_continuous_comap {f : α → β} [u : uniform_space β] :
   @uniform_continuous α β (uniform_space.comap f u) u f :=

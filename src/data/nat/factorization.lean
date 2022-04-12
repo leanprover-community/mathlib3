@@ -7,6 +7,7 @@ import data.nat.prime
 import data.finsupp.multiset
 import algebra.big_operators.finsupp
 import tactic.linarith
+import tactic.interval_cases
 
 /-!
 # Prime factorizations
@@ -289,9 +290,20 @@ begin
     lt_self_iff_false] at hp
 end
 
-lemma dvd_iff_prime_pow_dvd_dvd {n d : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
+lemma dvd_iff_prime_pow_dvd_dvd (n d : ℕ) :
   d ∣ n ↔ ∀ p k : ℕ, prime p → p ^ k ∣ d → p ^ k ∣ n :=
 begin
+  by_cases hn : n = 0,
+  { simp [hn], },
+  by_cases hd : d = 0,
+  { simp only [hd, hn, zero_dvd_iff, dvd_zero, forall_true_left, false_iff,
+      not_forall, exists_prop, exists_and_distrib_left],
+    refine ⟨2, prime_two, n, λ h, _⟩,
+    have := le_of_dvd (nat.pos_of_ne_zero hn) h,
+    revert this,
+    change ¬ _,
+    rw [not_le],
+    exact lt_two_pow n, },
   refine ⟨λ h p k _ hpkd, dvd_trans hpkd h, _⟩,
   rw [←factorization_le_iff_dvd hd hn, finsupp.le_def],
   intros h p,
@@ -379,7 +391,7 @@ end
 we can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
 def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
-  (h : ∀ a p n : ℕ, p.prime → ¬ p ∣ a → P a → P (p ^ n * a)) : ∀ (a : ℕ), P a :=
+  (h : ∀ a p n : ℕ, p.prime → ¬ p ∣ a → 0 < n → P a → P (p ^ n * a)) : ∀ (a : ℕ), P a :=
 λ a, nat.strong_rec_on a $ λ n,
   match n with
   | 0     := λ _, h0
@@ -395,10 +407,11 @@ def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
     have hpt : p ^ t ∣ k + 2 := by { rw ht, exact pow_factorization_dvd _ _ },
     have htp : 0 < t :=
     by { rw ht, exact hp.factorization_pos_of_dvd (nat.succ_ne_zero _) (min_fac_dvd _) },
-    convert h ((k + 2) / p ^ t) p t hp _ _,
-    { rw nat.mul_div_cancel' hpt },
+    convert h ((k + 2) / p ^ t) p t hp _ _ _,
+    { rw nat.mul_div_cancel' hpt, },
     { rw [nat.dvd_div_iff hpt, ←pow_succ', ht],
       exact pow_succ_factorization_not_dvd (k + 1).succ_ne_zero hp },
+    { exact htp },
     { apply hk _ (nat.div_lt_of_lt_mul _),
       simp [lt_mul_iff_one_lt_left nat.succ_pos', one_lt_pow_iff htp.ne, hp.one_lt] },
     end
@@ -408,18 +421,28 @@ def rec_on_prime_pow {P : ℕ → Sort*} (h0 : P 0) (h1 : P 1)
 `P b` to `P (a * b)` when `a, b` are positive coprime, we can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
 def rec_on_pos_prime_pos_coprime {P : ℕ → Sort*} (hp : ∀ p n : ℕ, prime p → 0 < n → P (p ^ n))
-  (h0 : P 0) (h1 : P 1) (h : ∀ a b, 0 < a → 0 < b → coprime a b → P a → P b → P (a * b)) :
+  (h0 : P 0) (h1 : P 1) (h : ∀ a b, 1 < a → 1 < b → coprime a b → P a → P b → P (a * b)) :
   ∀ a, P a :=
-rec_on_prime_pow h0 h1 $ λ a p n hp' hpa ha,
-  (h (p ^ n) a (pow_pos hp'.pos _) (nat.pos_of_ne_zero (λ t, by simpa [t] using hpa))
-  (prime.coprime_pow_of_not_dvd hp' hpa).symm
-  (if h : n = 0 then eq.rec h1 h.symm else hp p n hp' $ nat.pos_of_ne_zero h) ha)
+rec_on_prime_pow h0 h1 $
+begin
+  intros a p n hp' hpa hn hPa,
+  by_cases ha1 : a = 1,
+  { rw [ha1, mul_one],
+    exact hp p n hp' hn },
+  refine h (p^n) a ((hp'.one_lt).trans_le (le_self_pow (prime.one_lt hp').le (succ_le_iff.mpr hn)))
+    _ _ (hp _ _ hp' hn) hPa,
+  { refine lt_of_not_ge (λ (h : a ≤ 1), _),
+    interval_cases a,
+    { simpa only [dvd_zero, not_true] using hpa },
+    { contradiction } },
+  simpa [hn, prime.coprime_iff_not_dvd hp'],
+end
 
 /-- Given `P 0`, `P (p ^ n)` for all prime powers, and a way to extend `P a` and `P b` to
 `P (a * b)` when `a, b` are positive coprime, we can define `P` for all natural numbers. -/
 @[elab_as_eliminator]
 def rec_on_prime_coprime {P : ℕ → Sort*} (h0 : P 0) (hp : ∀ p n : ℕ, prime p → P (p ^ n))
-  (h : ∀ a b, 0 < a → 0 < b → coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
+  (h : ∀ a b, 1 < a → 1 < b → coprime a b → P a → P b → P (a * b)) : ∀ a, P a :=
 rec_on_pos_prime_pos_coprime (λ p n h _, hp p n h) h0 (hp 2 0 prime_two) h
 
 /-- Given `P 0`, `P 1`, `P p` for all primes, and a way to extend `P a` and `P b` to

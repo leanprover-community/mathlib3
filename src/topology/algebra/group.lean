@@ -530,7 +530,7 @@ begin
   rintro _ ⟨a, b, ha, hb, rfl⟩,
   rw mem_closure_iff at hb,
   have hbU : b ∈ U⁻¹ * {a * b},
-    from ⟨a⁻¹, a * b, inv_mem_inv.2 ha, rfl, inv_mul_cancel_left _ _⟩,
+    from ⟨a⁻¹, a * b, set.inv_mem_inv.2 ha, rfl, inv_mul_cancel_left _ _⟩,
   rcases hb _ hU.inv.mul_right hbU with ⟨_, ⟨c, d, hc, (rfl : d = _), rfl⟩, hcs⟩,
   exact ⟨c⁻¹, _, hc, hcs, inv_mul_cancel_left _ _⟩
 end
@@ -559,7 +559,7 @@ itself a subgroup. -/
 `has_continuous_add` is itself an additive subgroup."]
 def subgroup.topological_closure (s : subgroup G) : subgroup G :=
 { carrier := closure (s : set G),
-  inv_mem' := λ g m, by simpa [←mem_inv, inv_closure] using m,
+  inv_mem' := λ g m, by simpa [←set.mem_inv, inv_closure] using m,
   ..s.to_submonoid.topological_closure }
 
 @[simp, to_additive] lemma subgroup.topological_closure_coe {s : subgroup G} :

@@ -1061,6 +1061,10 @@ end
 theorem erase_eq_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : erase s a = s :=
 eq_of_veq $ erase_of_not_mem h
 
+@[simp] lemma erase_insert_eq_erase (s : finset α) (a : α) :
+  (insert a s).erase a = s.erase a :=
+by by_cases ha : a ∈ s; { simp [ha, erase_insert] }
+
 lemma erase_idem {a : α} {s : finset α} : erase (erase s a) a = erase s a :=
 by simp
 
@@ -1834,20 +1838,6 @@ mem_map.trans $ by simp only [exists_prop]; refl
 @[simp] lemma mem_map_equiv {f : α ≃ β} {b : β} : b ∈ s.map f.to_embedding ↔ f.symm b ∈ s :=
 by { rw mem_map, exact ⟨by { rintro ⟨a, H, rfl⟩, simpa }, λ h, ⟨_, h, by simp⟩⟩ }
 
-/-- If the only elements outside `s` are those left fixed by `σ`, then mapping by `σ` has no effect.
--/
-lemma map_perm {σ : equiv.perm α} (hs : {a | σ a ≠ a} ⊆ s) : s.map (σ : α ↪ α) = s :=
-begin
-  ext i,
-  rw mem_map,
-  obtain hi | hi := eq_or_ne (σ i) i,
-  { refine ⟨_, λ h, ⟨i, h, hi⟩⟩,
-    rintro ⟨j, hj, h⟩,
-    rwa σ.injective (hi.trans h.symm) },
-  { refine iff_of_true ⟨σ.symm i, hs $ λ h, hi _, σ.apply_symm_apply _⟩ (hs hi),
-    convert congr_arg σ h; exact (σ.apply_symm_apply _).symm }
-end
-
 lemma mem_map' (f : α ↪ β) {a} {s : finset α} : f a ∈ s.map f ↔ a ∈ s := mem_map_of_injective f.2
 
 lemma mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f := (mem_map' _).2
@@ -1861,6 +1851,11 @@ set.ext $ λ x, mem_map.trans set.mem_image_iff_bex.symm
 theorem coe_map_subset_range (f : α ↪ β) (s : finset α) : (s.map f : set β) ⊆ set.range f :=
 calc ↑(s.map f) = f '' s      : coe_map f s
             ... ⊆ set.range f : set.image_subset_range f ↑s
+
+/-- If the only elements outside `s` are those left fixed by `σ`, then mapping by `σ` has no effect.
+-/
+lemma map_perm {σ : equiv.perm α} (hs : {a | σ a ≠ a} ⊆ s) : s.map (σ : α ↪ α) = s :=
+coe_injective $ (coe_map _ _).trans $ set.image_perm hs
 
 theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
   s.to_finset.map f = (s.map f).to_finset :=
@@ -1887,6 +1882,8 @@ order_embedding.of_map_le_iff (map f) (λ _ _, map_subset_map)
 
 @[simp] theorem map_inj {s₁ s₂ : finset α} : s₁.map f = s₂.map f ↔ s₁ = s₂ :=
 (map_embedding f).injective.eq_iff
+
+lemma map_injective (f : α ↪ β) : injective (map f) := (map_embedding f).injective
 
 @[simp] theorem map_embedding_apply : map_embedding f s = map f s := rfl
 
@@ -2526,6 +2523,36 @@ lemma choose_mem (hp : ∃! a, a ∈ l ∧ p a) : choose p l hp ∈ l := (choose
 lemma choose_property (hp : ∃! a, a ∈ l ∧ p a) : p (choose p l hp) := (choose_spec _ _ _).2
 
 end choose
+
+section pairwise
+variables {s : finset α}
+
+lemma pairwise_subtype_iff_pairwise_finset' (r : β → β → Prop) (f : α → β) :
+  pairwise (r on λ x : s, f x) ↔ (s : set α).pairwise (r on f) :=
+begin
+  refine ⟨λ h x hx y hy hxy, h ⟨x, hx⟩ ⟨y, hy⟩ (by simpa only [subtype.mk_eq_mk, ne.def]), _⟩,
+  rintros h ⟨x, hx⟩ ⟨y, hy⟩ hxy,
+  exact h hx hy (subtype.mk_eq_mk.not.mp hxy)
+end
+
+lemma pairwise_subtype_iff_pairwise_finset (r : α → α → Prop) :
+  pairwise (r on λ x : s, x) ↔ (s : set α).pairwise r :=
+pairwise_subtype_iff_pairwise_finset' r id
+
+lemma pairwise_cons' {a : α} (ha : a ∉ s) (r : β → β → Prop) (f : α → β) :
+  pairwise (r on λ a : s.cons a ha, f a) ↔
+  pairwise (r on λ a : s, f a) ∧ ∀ b ∈ s, r (f a) (f b) ∧ r (f b) (f a) :=
+begin
+  simp only [pairwise_subtype_iff_pairwise_finset', finset.coe_cons, set.pairwise_insert,
+             finset.mem_coe, and.congr_right_iff],
+  exact λ hsr, ⟨λ h b hb, h b hb $ by { rintro rfl, contradiction }, λ h b hb _, h b hb⟩,
+end
+
+lemma pairwise_cons {a : α} (ha : a ∉ s) (r : α → α → Prop) :
+  pairwise (r on λ a : s.cons a ha, a) ↔ pairwise (r on λ a : s, a) ∧ ∀ b ∈ s, r a b ∧ r b a :=
+pairwise_cons' ha r id
+
+end pairwise
 end finset
 
 namespace equiv
@@ -2547,6 +2574,24 @@ rfl
 @[simp] lemma finset_congr_trans (e : α ≃ β) (e' : β ≃ γ) :
   e.finset_congr.trans (e'.finset_congr) = (e.trans e').finset_congr :=
 by { ext, simp [-finset.mem_map, -equiv.trans_to_embedding] }
+
+/--
+Inhabited types are equivalent to `option β` for some `β` by identifying `default α` with `none`.
+-/
+def sigma_equiv_option_of_inhabited (α : Type u) [inhabited α] [decidable_eq α] :
+  Σ (β : Type u), α ≃ option β :=
+⟨{x : α // x ≠ default},
+{ to_fun := λ (x : α), if h : x = default then none else some ⟨x, h⟩,
+  inv_fun := λ o, option.elim o (default) coe,
+  left_inv := λ x, by { dsimp only, split_ifs; simp [*] },
+  right_inv := begin
+    rintro (_|⟨x,h⟩),
+    { simp },
+    { dsimp only,
+      split_ifs with hi,
+      { simpa [h] using hi },
+      { simp } }
+  end }⟩
 
 end equiv
 

@@ -179,7 +179,7 @@ instance is_local_ring_hom_id (R : Type*) [semiring R] : is_local_ring_hom (ring
   is_unit (f a) ↔ is_unit a :=
 ⟨is_local_ring_hom.map_nonunit a, f.is_unit_map⟩
 
-@[simp] lemma mem_nonunits_map_iff [semiring R] [semiring S] (f : R →+* S)
+@[simp] lemma map_mem_nonunits_iff [semiring R] [semiring S] (f : R →+* S)
   [is_local_ring_hom f] (a) :
   f a ∈ nonunits S ↔ a ∈ nonunits R :=
 ⟨λ h ha, h $ (is_unit_map_iff f a).mpr ha, λ h ha, h $ (is_unit_map_iff f a).mp ha⟩
@@ -201,7 +201,7 @@ begin
   haveI : nontrivial R := pullback_nonzero f f.map_zero f.map_one,
   constructor,
   intros a b,
-  simp_rw [←mem_nonunits_map_iff f, f.map_add],
+  simp_rw [←map_mem_nonunits_iff f, f.map_add],
   exact local_ring.nonunits_add
 end
 

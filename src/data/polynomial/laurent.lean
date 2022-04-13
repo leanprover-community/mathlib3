@@ -35,7 +35,7 @@ inverting `X`.  This should be mostly in place, given `exists_X_pow`.
 -/
 
 open_locale polynomial big_operators
-open polynomial add_monoid_algebra multiplicative
+open polynomial add_monoid_algebra finsupp
 noncomputable theory
 
 variables {R N Z : Type*}
@@ -70,25 +70,25 @@ namespace laurent_polynomial
 section semiring
 variables [semiring R]
 
-lemma single_zero_one_eq_one : (finsupp.single 0 1 : R[T;T⁻¹]) = (1 : R[T;T⁻¹]) := rfl
+lemma single_zero_one_eq_one : (single 0 1 : R[T;T⁻¹]) = (1 : R[T;T⁻¹]) := rfl
 
 /-!  ### The functions `C` and `T`. -/
 /--  The ring homomorphism `C`, including `R` into the ring of Laurent polynomials over `R` as
 the constant Laurent polynomials. -/
 def C : R →+* R[T;T⁻¹] :=
-{ to_fun    := finsupp.single 0,
+{ to_fun    := single 0,
   map_one'  := rfl,
   map_mul'  := λ x y, by simp only [add_monoid_algebra.single_mul_single, add_zero],
-  map_zero' := finsupp.single_zero,
-  map_add'  := λ x y, finsupp.single_add }
+  map_zero' := single_zero,
+  map_add'  := λ x y, single_add }
 
-lemma single_eq_C (r : R) : finsupp.single 0 r = C r := rfl
+lemma single_eq_C (r : R) : single 0 r = C r := rfl
 
 /--  The variable of the ring of Laurent polynomials. -/
-def T' : R[T;T⁻¹] := finsupp.single 1 1
+def T' : R[T;T⁻¹] := single 1 1
 
 /--  The function `n ↦ T ^ n`, implemented as a sequence `ℤ ↦ R[T;T⁻¹]`. -/
-def T (n : ℤ) : R[T;T⁻¹] := finsupp.single n 1
+def T (n : ℤ) : R[T;T⁻¹] := single n 1
 
 @[simp]
 lemma T_zero : (T 0 : R[T;T⁻¹]) = 1 := rfl
@@ -107,7 +107,7 @@ by simp [← T_add, mul_assoc]
 
 @[simp]
 lemma single_eq_C_mul_T (r : R) (n : ℤ) :
-  (finsupp.single n r : R[T;T⁻¹]) = (C r * T n : R[T;T⁻¹]) :=
+  (single n r : R[T;T⁻¹]) = (C r * T n : R[T;T⁻¹]) :=
 by convert add_monoid_algebra.single_mul_single.symm; simp
 
 -- This lemma locks in the right changes and is what Lean proved directly.
@@ -116,9 +116,9 @@ by convert add_monoid_algebra.single_mul_single.symm; simp
 lemma monomial_eq_C_mul_T (n : ℕ) (r : R) :
   ((polynomial.monomial n r).to_laurent_polynomial : R[T;T⁻¹]) = C r * T n :=
 begin
-  show finsupp.map_domain (nat.cast_add_monoid_hom ℤ) ((to_finsupp_iso R) (monomial n r)) =
+  show map_domain (nat.cast_add_monoid_hom ℤ) ((to_finsupp_iso R) (monomial n r)) =
     (C r * T n : R[T;T⁻¹]),
-  convert (finsupp.map_domain_single : _ = finsupp.single (nat.cast_add_monoid_hom ℤ n) r),
+  convert (map_domain_single : _ = single (nat.cast_add_monoid_hom ℤ n) r),
   { exact to_finsupp_monomial n r },
   { simp only [nat.coe_cast_add_monoid_hom, int.nat_cast_eq_coe_nat, single_eq_C_mul_T] },
 end
@@ -185,7 +185,7 @@ begin
     { exact h_add A ih } } },
   convert B p.support,
   ext a,
-  simp_rw [← single_eq_C_mul_T, finset.sum_apply', finsupp.single_apply, finset.sum_ite_eq'],
+  simp_rw [← single_eq_C_mul_T, finset.sum_apply', single_apply, finset.sum_ite_eq'],
   split_ifs with h h,
   { refl },
   { exact finsupp.not_mem_support_iff.mp h }

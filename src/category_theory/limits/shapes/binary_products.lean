@@ -73,9 +73,12 @@ def walking_pair.equiv_bool : walking_pair ≃ bool :=
 
 variables {C : Type u} [category.{v} C]
 
+/-- The function on the walking pair, sending the two points to `X` and `Y`. -/
+def pair_function (X Y : C) : walking_pair → C := λ j, walking_pair.cases_on j X Y
+
 /-- The diagram on the walking pair, sending the two points to `X` and `Y`. -/
 def pair (X Y : C) : discrete walking_pair.{v} ⥤ C :=
-discrete.functor (λ j, walking_pair.cases_on j X Y)
+discrete.functor (pair_function X Y)
 
 @[simp] lemma pair_obj_left (X Y : C) : (pair X Y).obj ⟨left⟩ = X := rfl
 @[simp] lemma pair_obj_right (X Y : C) : (pair X Y).obj ⟨right⟩ = Y := rfl

@@ -1151,8 +1151,9 @@ variables [nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂] [no
   {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₃ : 𝕜₂ →+* 𝕜₃}
   (f g : E →SL[σ₁₂] F) (x y z : E)
 
-lemma linear_map.bound_of_shell [ring_hom_isometric σ₁₂] (f : E →ₛₗ[σ₁₂] F) {ε C : ℝ} (ε_pos : 0 < ε)
-  {c : 𝕜} (hc : 1 < ∥c∥) (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) (x : E) :
+lemma linear_map.bound_of_shell [ring_hom_isometric σ₁₂] (f : E →ₛₗ[σ₁₂] F) {ε C : ℝ}
+  (ε_pos : 0 < ε) {c : 𝕜} (hc : 1 < ∥c∥)
+  (hf : ∀ x, ε / ∥c∥ ≤ ∥x∥ → ∥x∥ < ε → ∥f x∥ ≤ C * ∥x∥) (x : E) :
   ∥f x∥ ≤ C * ∥x∥ :=
 begin
   by_cases hx : x = 0, { simp [hx] },

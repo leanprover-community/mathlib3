@@ -1250,6 +1250,10 @@ def add_monoid_ring_hom_map (k : Type*) [semiring k] {H : Type*} [add_monoid G] 
   map_mul' := λ x y, map_domain_mul f x y,
   ..(finsupp.map_domain.add_monoid_hom f : monoid_algebra k G →+ monoid_algebra k H) }
 
+@[simp] lemma single_one_right_add_hom_apply (k : Type*) [semiring k] {H : Type*}
+  [add_zero_class G] [add_zero_class H] (f : G →+ H) (n : G) :
+  (of k H).comp f.to_multiplicative n = single (f n) 1 := rfl
+
 end misc_theorems
 
 section span
@@ -1534,6 +1538,16 @@ end
 def add_monoid_alg_hom_map (k : Type*) [comm_semiring k] [add_monoid G] {H : Type*} [add_monoid H]
   (f : G →+ H) : add_monoid_algebra k G →ₐ[k] add_monoid_algebra k H :=
 lift k G (add_monoid_algebra k H) ((of k H).comp f.to_multiplicative)
+
+@[simp]
+lemma add_monoid_alg_hom_map_single (k : Type*) [comm_semiring k] [add_monoid G] {H : Type*}
+  [add_monoid H] (f : G →+ H) (n : G) (r : k) :
+  add_monoid_alg_hom_map k f (single n r) = single (f n) r :=
+begin
+  simp only [add_monoid_alg_hom_map, single_one_right_add_hom_apply, lift_single, smul_single',
+    mul_one],
+  refl,
+end
 
 end add_monoid_algebra
 

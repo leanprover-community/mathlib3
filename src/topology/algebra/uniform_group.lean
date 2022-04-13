@@ -12,6 +12,16 @@ import tactic.abel
 /-!
 # Uniform structure on topological groups
 
+This file defines uniform groups and its additive counterpart. These typeclasses should be
+preferred over using `[topological_space α] [topological_group α]` since every topological
+group naturally induces a uniform structure.
+
+## Main declarations
+* `uniform_group` and `uniform_add_group`: Multiplicative and additive uniform groups, that
+  i.e., groups with uniformly continuous `(*)` and `(⁻¹)` / `(+)` and `(-)`.
+
+## Main results
+
 * `topological_add_group.to_uniform_space` and `topological_add_group_is_uniform` can be used to
   construct a canonical uniformity for a topological add group.
 
@@ -106,6 +116,14 @@ namespace mul_opposite
   uniform_continuous_unop.comp uniform_continuous_fst)⟩
 
 end mul_opposite
+
+namespace subgroup
+
+@[to_additive] instance (S : subgroup α) : uniform_group S :=
+⟨uniform_continuous_comap' (uniform_continuous_div.comp $
+  uniform_continuous_subtype_val.prod_map uniform_continuous_subtype_val)⟩
+
+end subgroup
 
 section
 variables (α)

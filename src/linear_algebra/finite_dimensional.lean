@@ -98,7 +98,7 @@ iff_fg.1 is_noetherian_pi
 
 /-- A finite dimensional vector space over a finite field is finite -/
 noncomputable def fintype_of_fintype [fintype K] [finite_dimensional K V] : fintype V :=
-module.fintype_of_fintype (@finset_basis K V _ _ _ _ (iff_fg.2 infer_instance))
+module.fintype_of_fintype (@finset_basis K V _ _ _ (iff_fg.2 infer_instance))
 
 variables {K V}
 
@@ -229,9 +229,9 @@ variables (K V)
 
 /-- A finite dimensional vector space has a basis indexed by `fin (finrank K V)`. -/
 noncomputable def fin_basis [finite_dimensional K V] : basis (fin (finrank K V)) K V :=
-have h : fintype.card (@finset_basis_index K V _ _ _ _ (iff_fg.2 infer_instance)) = finrank K V,
-from (finrank_eq_card_basis (@finset_basis K V _ _ _ _ (iff_fg.2 infer_instance))).symm,
-(@finset_basis K V _ _ _ _ (iff_fg.2 infer_instance)).reindex (fintype.equiv_fin_of_card_eq h)
+have h : fintype.card (@finset_basis_index K V _ _ _ (iff_fg.2 infer_instance)) = finrank K V,
+from (finrank_eq_card_basis (@finset_basis K V _ _ _ (iff_fg.2 infer_instance))).symm,
+(@finset_basis K V _ _ _ (iff_fg.2 infer_instance)).reindex (fintype.equiv_fin_of_card_eq h)
 
 /-- An `n`-dimensional vector space has a basis indexed by `fin n`. -/
 noncomputable def fin_basis_of_finrank_eq [finite_dimensional K V] {n : ℕ} (hn : finrank K V = n) :
@@ -1293,7 +1293,7 @@ begin
   -- To show `b i ∈ span (b '' (univ \ {i}))`, we use that it's a weighted sum
   -- of the other `b j`s.
   rw [j_eq, set_like.mem_coe, show b i = -((g i)⁻¹ • (s.erase i).sum (λ j, g j • b j)), from _],
-  { refine submodule.neg_mem _ (smul_mem _ _ (sum_mem _ (λ k hk, _))),
+  { refine neg_mem (smul_mem _ _ (sum_mem (λ k hk, _))),
     obtain ⟨k_ne_i, k_mem⟩ := finset.mem_erase.mp hk,
     refine smul_mem _ _ (subset_span ⟨k, _, rfl⟩),
     simpa using k_mem },

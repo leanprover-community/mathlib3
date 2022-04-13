@@ -5,6 +5,7 @@ Authors: Bhavik Mehta
 -/
 import category_theory.natural_isomorphism
 import category_theory.full_subcategory
+import data.set.basic
 
 /-!
 # Essential image of a functor

@@ -108,6 +108,8 @@ theorem rel_iso.cof_eq {α β : Type u} {r s} [is_refl α r] [is_refl β s] (f :
   order.cof r = order.cof s :=
 lift_inj.1 (rel_iso.cof_eq_lift f)
 
+/-- Cofinality of a strict order `≺`. This is the smallest cardinality of a set `S : set α` such
+that `∀ a, ∃ b ∈ S, ¬ b ≺ a`. -/
 def strict_order.cof (r : α → α → Prop) : cardinal :=
 order.cof (λ x y, ¬ r y x)
 

@@ -217,7 +217,9 @@ lemma T_mul (n : ℤ) (f : R[T;T⁻¹]) : T n * f = f * T n :=
 
 /--  `trunc : R[T;T⁻¹] →+ R[X]` maps a Laurent polynomial `f` to the polynomial whose terms of
 strictly positive degree coincide with the ones of `f`.  The coefficients of the terms of
-non-positive degree of `f` are summed up and used as constant term. -/
+non-positive degree of `f` are summed up and used as constant term.
+
+`trunc` is a left-inverse to `polynomial.to_laurent_polynomial`. -/
 def trunc : R[T;T⁻¹] →+ R[X] :=
 ((to_finsupp_iso R).symm.to_add_monoid_hom).comp (map_domain.add_monoid_hom int.to_nat)
 
@@ -245,7 +247,7 @@ begin
   refl,
 end
 
-lemma polynomial.to_laurent_polynomial_injective :
+lemma _root_.polynomial.to_laurent_polynomial_injective :
   function.injective (polynomial.to_laurent_polynomial : R[X] → R[T;T⁻¹]) :=
 begin
   refine function.has_left_inverse.injective ⟨trunc, λ f, f.induction_on' _ _⟩,

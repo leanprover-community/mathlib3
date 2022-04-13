@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Damiano Testa
 -/
 
-import mwe_laurent_to_mathlib
 import data.polynomial.algebra_map
 import data.polynomial.denoms_clearable
 

@@ -318,6 +318,16 @@ lemma _root_.is_primitive_root.arg_eq_pi_iff {n : ℕ} {ζ : ℂ} (hζ : is_prim
 ⟨λ h, hζ.arg_ext (is_primitive_root.neg_one 0 two_ne_zero.symm) hn two_ne_zero
       (h.trans complex.arg_neg_one.symm), λ h, h.symm ▸ complex.arg_neg_one⟩
 
+lemma _root_.complex.arg_eq_zero_iff {z : ℂ} : z.arg = 0 ↔ 0 ≤ z.re ∧ z.im = 0 :=
+begin
+  refine ⟨λ h, _, _⟩,
+  { rw [← complex.abs_mul_cos_add_sin_mul_I z, h],
+    simp [complex.abs_nonneg] },
+  { cases z with x y,
+    rintro ⟨h, rfl : y = 0⟩,
+    exact complex.arg_of_real_of_nonneg h }
+end
+
 lemma sub_one_pow_totient_lt_cyclotomic_eval (n : ℕ) (q : ℝ) (hn' : 2 ≤ n) (hq' : 1 < q) :
   (q - 1) ^ totient n < (cyclotomic n ℝ).eval q :=
 begin
@@ -339,8 +349,10 @@ begin
     rw complex.same_ray_iff,
     push_neg,
     refine ⟨by exact_mod_cast hq.ne', hζ.ne_zero hn.ne', _⟩,
-    rw [complex.arg_of_real_of_nonneg hq.le],
-    exact (hζ.arg_ne_zero hn').symm },
+    rw [complex.arg_of_real_of_nonneg hq.le, ne.def, eq_comm, hζ.arg_eq_zero_iff hn.ne'],
+    clear_value ζ,
+    rintro rfl,
+    linarith [hζ.unique is_primitive_root.one] },
   have : ¬eval ↑q (cyclotomic n ℂ) = 0, -- this is also a general lemma
   { erw cyclotomic.eval_apply q n (algebra_map ℝ ℂ),
     simp only [complex.coe_algebra_map, complex.of_real_eq_zero],
@@ -383,44 +395,26 @@ begin
   let ζ := complex.exp (2 * ↑real.pi * complex.I / ↑n),
   have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn.ne',
   have hex : ∃ ζ' ∈ primitive_roots n ℂ, ∥↑q - ζ'∥ < q + 1,
-  -- todo: when Yael gets the strictly convex stuff in master, this will be very easy
-  -- (the triangle inequality will be strict as q and ζ are not in the `same_ray`)
-  { rw ← mem_primitive_roots hn at hζ,
-    refine ⟨ζ, hζ, (hfor ζ hζ).lt_of_ne (λ h, _)⟩,
-    have : ∥↑q - ζ∥^2 = (q + 1)^2 := (congr_fun (congr_arg pow h) 2),
-    apply_fun (coe : ℝ → ℂ) at this,
-    rw [complex.norm_eq_abs, ← complex.norm_sq_eq_abs, complex.norm_sq_eq_conj_mul_self] at this,
-    simp only [ζ, pow_two, mul_sub, sub_mul, mul_one, one_mul,
-      complex.of_real_sub, complex.of_real_mul, complex.of_real_one, ring_hom.map_sub,
-      is_R_or_C.conj_of_real, conj_exp_primitive_root] at this,
-    rw [← complex.exp_add, add_left_neg, complex.exp_zero, ← sub_eq_zero] at this,
-    push_cast at this,
-    ring_nf at this,
-    rw [mul_eq_zero, complex.of_real_eq_zero, ← add_sub_assoc, sub_eq_zero,
-      ← div_eq_one_iff_eq (two_ne_zero' : (2 : ℂ) ≠ 0),
-      (by ring : 2 * ↑real.pi * complex.I / ↑n = 2 * ↑real.pi / ↑n * complex.I), ← neg_mul] at this,
-    simp only [(zero_lt_one.trans hq').ne.symm, or_false] at this,
-    -- squeeze_simp adds field_notation TODO
-    revert this,
-    rw [← neg_add, neg_div],
-    change -complex.cos (2 * ↑real.pi / ↑n) ≠ 1,
-    norm_cast,
-    rw neg_eq_iff_add_eq_zero,
-    rw add_eq_zero_iff_eq_neg,
+  { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
+    suffices : ¬ same_ray ℝ (q : ℂ) (-ζ),
+    { convert norm_add_lt_of_not_same_ray this;
+      simp [real.norm_of_nonneg hq.le, hζ.nnnorm_eq_one hn.ne', -complex.norm_eq_abs] },
+    rw complex.same_ray_iff,
+    push_neg,
+    refine ⟨by exact_mod_cast hq.ne', neg_ne_zero.mpr $ hζ.ne_zero hn.ne', _⟩,
+    rw [complex.arg_of_real_of_nonneg hq.le, ne.def, eq_comm],
     intro h,
-    have := real.sin_eq_zero_iff_cos_eq.mpr (or.inr h),
-    revert this,
-    rw real.sin_eq_zero_iff_of_lt_of_lt,
-    { simp [hn.ne.symm, real.pi_ne_zero, not_or_distrib, _root_.div_eq_zero_iff, mul_eq_zero,
-        bit0_eq_zero, one_ne_zero, or_self, cast_eq_zero, not_false_iff], },
-    { transitivity (0 : ℝ),
-      { linarith only [real.pi_pos], },
-      { apply div_pos,
-        linarith only [real.pi_pos, hn],
-        exact_mod_cast hn, }, },
-    { rw div_lt_iff,
-      sorry,
-      exact_mod_cast hn, }, }, --END TOFIX
+    rw [complex.arg_eq_zero_iff, complex.neg_re, neg_nonneg, complex.neg_im, neg_eq_zero] at h,
+    have hζ₀ : ζ ≠ 0,
+    { clear_value ζ,
+      rintro rfl,
+      exact hn.ne' (hζ.unique is_primitive_root.zero) },
+    have : ζ.re < 0 ∧ ζ.im = 0 := ⟨h.1.lt_of_ne _, h.2⟩,
+    rw [←complex.arg_eq_pi_iff, hζ.arg_eq_pi_iff hn.ne'] at this,
+    rw this at hζ,
+    linarith [hζ.unique $ is_primitive_root.neg_one 0 two_ne_zero.symm],
+    { contrapose! hζ₀,
+      ext; simp [hζ₀, h.2] } },
   have : ¬eval ↑q (cyclotomic n ℂ) = 0, -- this is also a general lemma
   { erw cyclotomic.eval_apply q n (algebra_map ℝ ℂ),
     simp only [complex.coe_algebra_map, complex.of_real_eq_zero],

@@ -103,19 +103,48 @@ begin
   exact closure_mul_image_eq_top hR hR1 hS,
 end
 
-/-- **Schreier's Lemma**: A finite index subgroup of a finitely generated
-  group is finitely generated. -/
-lemma fg_of_index_ne_zero [hG : group.fg G] (hH : H.index ≠ 0) : group.fg H :=
+lemma schreier_aux (hH : H.index ≠ 0) {S : finset G} (hS : closure (S : set G) = ⊤) :
+  ∃ T : finset H, T.card ≤ H.index * S.card ∧ closure (T : set H) = ⊤ :=
 begin
-  classical,
-  obtain ⟨S, hS⟩ := hG.1,
+  haveI : decidable_eq G := classical.dec_eq G,
   obtain ⟨R₀, hR : R₀ ∈ right_transversals (H : set G), hR1⟩ := exists_right_transversal (1 : G),
   haveI : fintype (G ⧸ H) := fintype_of_index_ne_zero hH,
   haveI : fintype R₀ := fintype.of_equiv _ (mem_right_transversals.to_equiv hR),
   let R : finset G := set.to_finset R₀,
   replace hR : (R : set G) ∈ right_transversals (H : set G) := by rwa set.coe_to_finset,
   replace hR1 : (1 : G) ∈ R := by rwa set.mem_to_finset,
-  exact ⟨⟨_, closure_mul_image_eq_top' hR hR1 hS⟩⟩,
+  have key := closure_mul_image_eq_top' hR hR1 hS,
+  refine ⟨_, _, closure_mul_image_eq_top' hR hR1 hS⟩,
+  calc _ ≤ (R * S).card : finset.card_image_le
+  ... ≤ (R.product S).card : finset.card_image_le
+  ... = R.card * S.card : R.card_product S
+  ... = H.index * S.card : congr_arg (* S.card) _,
+  calc R.card = fintype.card R : (fintype.card_coe R).symm
+  ... = _ : (fintype.card_congr (mem_right_transversals.to_equiv hR)).symm
+  ... = fintype.card (G ⧸ H) : quotient_group.card_quotient_right_rel H
+  ... = H.index : H.index_eq_card.symm,
+end
+
+/-- **Schreier's Lemma**: A finite index subgroup of a finitely generated
+  group is finitely generated. -/
+lemma fg_of_index_ne_zero [hG : group.fg G] (hH : H.index ≠ 0) : group.fg H :=
+begin
+  obtain ⟨S, hS⟩ := hG.1,
+  obtain ⟨T, -, hT⟩ := schreier_aux hH hS,
+  exact ⟨⟨T, hT⟩⟩,
+end
+
+lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index ≠ 0)
+  [decidable_pred (λ n, ∃ (S : finset G), S.card = n ∧ subgroup.closure (S : set G) = ⊤)]
+  [decidable_pred (λ n, ∃ (S : finset H), S.card = n ∧ subgroup.closure (S : set H) = ⊤)] :
+  @group.rank H _ (fg_of_index_ne_zero hH) _ ≤ H.index * group.rank G :=
+begin
+  haveI := fg_of_index_ne_zero hH,
+  obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,
+  obtain ⟨T, hT₀, hT⟩ := schreier_aux hH hS,
+  calc group.rank H ≤ T.card : group.rank_le H hT
+  ... ≤ H.index * S.card : hT₀
+  ... = H.index * group.rank G : congr_arg ((*) H.index) hS₀,
 end
 
 end subgroup

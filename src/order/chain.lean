@@ -273,6 +273,7 @@ subtype.bounded_order s.bot_mem s.top_mem
 
 end preorder
 
+section partial_order
 variables [partial_order α]
 
 lemma chain_lt (s : flag α) : is_chain (<) (s : set α) :=
@@ -285,5 +286,11 @@ instance [decidable_eq α] [@decidable_rel α (≤)] [@decidable_rel α (<)] (s 
   decidable_le := subtype.decidable_le,
   decidable_lt := subtype.decidable_lt,
   ..subtype.partial_order _ }
+
+end partial_order
+
+instance [linear_order α] : unique (flag α) :=
+{ default := ⟨univ, is_chain_of_trichotomous _, λ s _, s.subset_univ.antisymm'⟩,
+  uniq := λ s, set_like.coe_injective $ s.3 (is_chain_of_trichotomous _) $ subset_univ _ }
 
 end flag

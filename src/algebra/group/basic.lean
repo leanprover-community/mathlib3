@@ -370,8 +370,6 @@ mt eq_of_div_eq_one' h
 lemma div_inv_eq_mul (a b : G) : a / (b⁻¹) = a * b :=
 by rw [div_eq_mul_inv, inv_inv]
 
-local attribute [simp] mul_assoc
-
 @[to_additive]
 lemma div_mul_eq_div_div_swap (a b c : G) : a / (b * c) = a / c / b :=
 by simp only [mul_assoc, mul_inv_rev , div_eq_mul_inv]

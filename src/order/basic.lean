@@ -98,7 +98,7 @@ lemma trans_le [preorder α] {x y z : α} (h1 : x = y) (h2 : y ≤ z) : x ≤ z 
 
 lemma not_lt [preorder α] {x y : α} (h : x = y) : ¬(x < y) := λ h', h'.ne h
 
-lemma not_gt [partial_order α] {x y : α} (h : x = y) : ¬(y < x) := h.symm.not_lt
+lemma not_gt [preorder α] {x y : α} (h : x = y) : ¬(y < x) := h.symm.not_lt
 
 end eq
 
@@ -148,9 +148,9 @@ protected lemma gt.lt [has_lt α] {x y : α} (h : x > y) : y < x := h
 theorem ge_of_eq [preorder α] {a b : α} (h : a = b) : a ≥ b := h.ge
 
 @[simp, nolint ge_or_gt] -- see Note [nolint_ge]
-lemma ge_iff_le [has_le α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
+lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
 @[simp, nolint ge_or_gt] -- see Note [nolint_ge]
-lemma gt_iff_lt [has_lt α] {a b : α} : a > b ↔ b < a := iff.rfl
+lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.rfl
 
 lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a := (le_not_le_of_lt h).right
 

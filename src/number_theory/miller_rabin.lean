@@ -251,11 +251,7 @@ begin
       have thing := sub_one_dvd_pow_sub_one p α one_le_p,
       rw dvd_iff_exists_eq_mul_left at thing,
       rcases thing with ⟨c, hc⟩,
-      rw hc,
-      rw mul_odd_part,
-      -- TODO(Sean): this should now be solvable with only hfoo.
-
-      sorry,
+      rw [hc, mul_odd_part, mul_comm, pow_mul, hfoo, one_pow],
     },
     {
       sorry,
@@ -338,6 +334,8 @@ lemma one_or_coprime_factorization_or_prime_power (n : ℕ) (h : 0 < n) :
   (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1) ∨
   (∃ (p k : ℕ), 1 ≤ k ∧ p.prime ∧ p^k = n) :=
 begin
+  have stuff : coprime_factorization_or_prime_power n h,
+  sorry,
   -- This is a slight modification of the lemma coprime_factorization_or_prime_power above.
   -- TODO(Sean): Try to prove this using coprime_factorization_or_prime_power (no other lemmas from this file should be needed) (first do a have statement to get the coprime_factorization_or_prime_power result into the hypotheses here)
 end
@@ -420,9 +418,9 @@ begin
     by_contra,
     simp at h,
     interval_cases k,
-    -- TODO(Sean): try to solve these two sorrys, shouldn't need any other lemmas in this file.
-    -- These hypotheses all seem true to me? Is proof by contradiction actually used here?
-    --    Good catch. There needed to be an extra hypothesis, where 1 < n, I've added hypothesis, hopefully now you can finish this.
+    simp at n_pow,
+    rw n_pow at h1,
+    exact nat.lt_asymm h1 h1,
     { sorry, },
     { apply not_prime,
       sorry, },

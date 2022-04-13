@@ -1041,27 +1041,21 @@ congr_arg coe (mk_bot hbot).symm
 lemma coe_top [order_top α] [order_top (subtype p)] (htop : p ⊤) : ((⊤ : subtype p) : α) = ⊤ :=
 congr_arg coe (mk_top htop).symm
 
-@[simp]
-lemma mk_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : α} (hx : p x) :
-  (⟨x, hx⟩ : subtype p) = ⊥ ↔ x = ⊥ :=
-⟨λ h, by {rw [subtype.ext_iff, coe_bot hbot, coe_mk] at h ; exact h},
-  λ h, by {rw (mk_bot hbot).symm ; exact mk_eq_mk.mpr h} ⟩
-
-@[simp]
-lemma mk_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : α} (hx : p x):
-  (⟨x, hx⟩ : subtype p) = ⊤ ↔ x = ⊤ :=
-⟨λ h, by {rw [subtype.ext_iff, coe_top htop, coe_mk] at h ; exact h},
-  λ h, by {rw (mk_top htop).symm ; exact mk_eq_mk.mpr h} ⟩
-
-@[simp]
-lemma coe_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : {x // p x}} :
+@[simp] lemma coe_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : {x // p x}} :
   (x : α) = ⊥ ↔ x = ⊥ :=
-by obtain ⟨u, hu⟩ := x ; rw coe_mk ; exact (mk_eq_bot_iff hbot hu).symm
+by rw [←coe_bot hbot, ext_iff]
 
-@[simp]
-lemma coe_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : {x // p x}} :
+@[simp] lemma coe_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : {x // p x}} :
   (x : α) = ⊤ ↔ x = ⊤ :=
-by obtain ⟨u, hu⟩ := x ; rw coe_mk ; exact (mk_eq_top_iff htop hu).symm
+by rw [←coe_top htop, ext_iff]
+
+@[simp] lemma mk_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : α} (hx : p x) :
+  (⟨x, hx⟩ : subtype p) = ⊥ ↔ x = ⊥ :=
+(coe_eq_bot_iff hbot).symm
+
+@[simp] lemma mk_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : α} (hx : p x) :
+  (⟨x, hx⟩ : subtype p) = ⊤ ↔ x = ⊤ :=
+(coe_eq_top_iff htop).symm
 
 end subtype
 

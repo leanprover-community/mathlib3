@@ -671,26 +671,9 @@ section
 
 variables (𝕜 ι) (A : Type*) [normed_comm_ring A] [normed_algebra 𝕜 A]
 
-/-- The continuous multilinear map on `A^ι`, where `A` is a normed commutative algebra
-over `𝕜`, associating to `m` the product of all the `m i`.
-
-See also `continuous_multilinear_map.mk_pi_algebra_fin`. -/
-protected def mk_pi_algebra : continuous_multilinear_map 𝕜 (λ i : ι, A) A :=
-multilinear_map.mk_continuous
-  (multilinear_map.mk_pi_algebra 𝕜 ι A) (if nonempty ι then 1 else ∥(1 : A)∥) $
-  begin
-    intro m,
-    casesI is_empty_or_nonempty ι with hι hι,
-    { simp [eq_empty_of_is_empty univ, not_nonempty_iff.2 hι] },
-    { simp [norm_prod_le' univ univ_nonempty, hι] }
-  end
-
 variables {A 𝕜 ι}
 
-@[simp] lemma mk_pi_algebra_apply (m : ι → A) :
-  continuous_multilinear_map.mk_pi_algebra 𝕜 ι A m = ∏ i, m i :=
-rfl
-
+@[simp]
 lemma norm_mk_pi_algebra_le [nonempty ι] :
   ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ ≤ 1 :=
 calc ∥continuous_multilinear_map.mk_pi_algebra 𝕜 ι A∥ ≤ if nonempty ι then 1 else ∥(1 : A)∥ :
@@ -724,26 +707,7 @@ section
 
 variables (𝕜 n) (A : Type*) [normed_ring A] [normed_algebra 𝕜 A]
 
-/-- The continuous multilinear map on `A^n`, where `A` is a normed algebra over `𝕜`, associating to
-`m` the product of all the `m i`.
-
-See also: `multilinear_map.mk_pi_algebra`. -/
-protected def mk_pi_algebra_fin : continuous_multilinear_map 𝕜 (λ i : fin n, A) A :=
-multilinear_map.mk_continuous
-  (multilinear_map.mk_pi_algebra_fin 𝕜 n A) (nat.cases_on n ∥(1 : A)∥ (λ _, 1)) $
-  begin
-    intro m,
-    cases n,
-    { simp },
-    { have : @list.of_fn A n.succ m ≠ [] := by simp,
-      simpa [← fin.prod_of_fn] using list.norm_prod_le' this }
-  end
-
 variables {A 𝕜 n}
-
-@[simp] lemma mk_pi_algebra_fin_apply (m : fin n → A) :
-  continuous_multilinear_map.mk_pi_algebra_fin 𝕜 n A m = (list.of_fn m).prod :=
-rfl
 
 lemma norm_mk_pi_algebra_fin_succ_le :
   ∥continuous_multilinear_map.mk_pi_algebra_fin 𝕜 n.succ A∥ ≤ 1 :=

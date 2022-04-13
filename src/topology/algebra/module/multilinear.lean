@@ -409,4 +409,48 @@ def pi_linear_equiv {ι' : Type*} {M' : ι' → Type*}
 
 end module
 
+section comm_algebra
+
+variables (R ι) (A : Type*) [fintype ι] [comm_semiring R] [comm_semiring A] [algebra R A]
+  [topological_space A] [has_continuous_mul A]
+
+/-- The continuous multilinear map on `A^ι`, where `A` is a normed commutative algebra
+over `𝕜`, associating to `m` the product of all the `m i`.
+
+See also `continuous_multilinear_map.mk_pi_algebra_fin`. -/
+protected def mk_pi_algebra : continuous_multilinear_map R (λ i : ι, A) A :=
+{ cont := continuous_finset_prod _ $ λ i hi, continuous_apply _,
+  to_multilinear_map := multilinear_map.mk_pi_algebra R ι A}
+
+@[simp] lemma mk_pi_algebra_apply (m : ι → A) :
+  continuous_multilinear_map.mk_pi_algebra R ι A m = ∏ i, m i :=
+rfl
+
+end comm_algebra
+
+section algebra
+
+variables (R n) (A : Type*) [comm_semiring R] [semiring A] [algebra R A]
+  [topological_space A] [has_continuous_mul A]
+
+/-- The continuous multilinear map on `A^n`, where `A` is a normed algebra over `𝕜`, associating to
+`m` the product of all the `m i`.
+
+See also: `continuous_multilinear_map.mk_pi_algebra`. -/
+protected def mk_pi_algebra_fin : continuous_multilinear_map R (λ i : fin n, A) A :=
+{ cont := begin
+    change continuous (λ m, (list.of_fn m).prod),
+    simp_rw list.of_fn_eq_map,
+    exact continuous_list_prod _ (λ i hi, continuous_apply _),
+  end,
+  to_multilinear_map := multilinear_map.mk_pi_algebra_fin R n A}
+
+variables {R n A}
+
+@[simp] lemma mk_pi_algebra_fin_apply (m : fin n → A) :
+  continuous_multilinear_map.mk_pi_algebra_fin R n A m = (list.of_fn m).prod :=
+rfl
+
+end algebra
+
 end continuous_multilinear_map

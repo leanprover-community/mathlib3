@@ -97,16 +97,17 @@ lemma le_rfl [preorder α] {x : α} : x ≤ x := le_refl x
 ⟨lt_irrefl x, false.elim⟩
 
 namespace eq
+variables [preorder α] {x y z : α}
 
 /-- If `x = y` then `y ≤ x`. Note: this lemma uses `y ≤ x` instead of `x ≥ y`, because `le` is used
 almost exclusively in mathlib. -/
-protected lemma ge [preorder α] {x y : α} (h : x = y) : y ≤ x := h.symm.le
+protected lemma ge (h : x = y) : y ≤ x := h.symm.le
 
-lemma trans_le [preorder α] {x y z : α} (h1 : x = y) (h2 : y ≤ z) : x ≤ z := h1.le.trans h2
+lemma trans_le (h₁ : x = y) (h₂ : y ≤ z) : x ≤ z := h₁.le.trans h₂
+lemma trans_ge (h₁ : y = z) (h₂ : x ≤ y) : x ≤ z := h₂.trans h₁.le
 
-lemma not_lt [partial_order α] {x y : α} (h : x = y) : ¬(x < y) := λ h', h'.ne h
-
-lemma not_gt [partial_order α] {x y : α} (h : x = y) : ¬(y < x) := h.symm.not_lt
+lemma not_lt (h : x = y) : ¬ x < y := λ h', h'.ne h
+lemma not_gt (h : x = y) : ¬ y < x := h.symm.not_lt
 
 end eq
 
@@ -156,9 +157,9 @@ protected lemma gt.lt [has_lt α] {x y : α} (h : x > y) : y < x := h
 theorem ge_of_eq [preorder α] {a b : α} (h : a = b) : a ≥ b := h.ge
 
 @[simp, nolint ge_or_gt] -- see Note [nolint_ge]
-lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
+lemma ge_iff_le [has_le α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
 @[simp, nolint ge_or_gt] -- see Note [nolint_ge]
-lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.rfl
+lemma gt_iff_lt [has_lt α] {a b : α} : a > b ↔ b < a := iff.rfl
 
 lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a := (le_not_le_of_lt h).right
 
@@ -213,8 +214,8 @@ lemma ne.le_iff_lt [partial_order α] {a b : α} (h : a ≠ b) : a ≤ b ↔ a <
 ⟨λ h', lt_of_le_of_ne h' h, λ h, h.le⟩
 
 -- See Note [decidable namespace]
-protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [@decidable_rel α (≤)]
-  {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
+protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [decidable_eq α] {a b : α} :
+  (a ≠ b ↔ a < b) ↔ a ≤ b :=
 ⟨λ h, decidable.by_cases le_of_eq (le_of_lt ∘ h.mp), λ h, ⟨lt_of_le_of_ne h, ne_of_lt⟩⟩
 
 @[simp] lemma ne_iff_lt_iff_le [partial_order α] {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=

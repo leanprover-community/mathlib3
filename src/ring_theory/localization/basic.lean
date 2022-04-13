@@ -893,37 +893,6 @@ by rw [mk_eq_mk', alg_equiv_symm_mk']
 
 end localization
 
-open is_localization
-
-section algebra
-
-variables {R S} {Rₘ Sₘ : Type*} [comm_semiring Rₘ] [comm_semiring Sₘ]
-variables [algebra R Rₘ] [is_localization M Rₘ]
-variables [algebra S Sₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
-
-section
-
-variables (S M)
-
-/-- Definition of the natural algebra induced by the localization of an algebra.
-Given an algebra `R → S`, a submonoid `R` of `M`, and a localization `Rₘ` for `M`,
-let `Sₘ` be the localization of `S` to the image of `M` under `algebra_map R S`.
-Then this is the natural algebra structure on `Rₘ → Sₘ`, such that the entire square commutes,
-where `localization_map.map_comp` gives the commutativity of the underlying maps -/
-noncomputable def localization_algebra : algebra Rₘ Sₘ :=
-(map Sₘ (algebra_map R S)
-    (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map)
-  : Rₘ →+* Sₘ).to_algebra
-
-end
-
-lemma algebra_map_mk' (r : R) (m : M) :
-  (@algebra_map Rₘ Sₘ _ _ (localization_algebra M S)) (mk' Rₘ r m) =
-    mk' Sₘ (algebra_map R S r) ⟨algebra_map R S m, algebra.mem_algebra_map_submonoid_of_mem m⟩ :=
-map_mk' _ _ _
-
-end algebra
-
 end comm_semiring
 
 section comm_ring
@@ -1086,6 +1055,27 @@ section algebra
 variables {R S} {Rₘ Sₘ : Type*} [comm_ring Rₘ] [comm_ring Sₘ]
 variables [algebra R Rₘ] [is_localization M Rₘ]
 variables [algebra S Sₘ] [is_localization (algebra.algebra_map_submonoid S M) Sₘ]
+
+section
+
+variables (S M)
+
+/-- Definition of the natural algebra induced by the localization of an algebra.
+Given an algebra `R → S`, a submonoid `R` of `M`, and a localization `Rₘ` for `M`,
+let `Sₘ` be the localization of `S` to the image of `M` under `algebra_map R S`.
+Then this is the natural algebra structure on `Rₘ → Sₘ`, such that the entire square commutes,
+where `localization_map.map_comp` gives the commutativity of the underlying maps -/
+noncomputable def localization_algebra : algebra Rₘ Sₘ :=
+(map Sₘ (algebra_map R S)
+    (show _ ≤ (algebra.algebra_map_submonoid S M).comap _, from M.le_comap_map)
+  : Rₘ →+* Sₘ).to_algebra
+
+end
+
+lemma algebra_map_mk' (r : R) (m : M) :
+  (@algebra_map Rₘ Sₘ _ _ (localization_algebra M S)) (mk' Rₘ r m) =
+    mk' Sₘ (algebra_map R S r) ⟨algebra_map R S m, algebra.mem_algebra_map_submonoid_of_mem m⟩ :=
+map_mk' _ _ _
 
 variables (Rₘ Sₘ)
 

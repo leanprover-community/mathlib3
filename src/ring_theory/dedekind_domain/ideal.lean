@@ -883,8 +883,9 @@ def ideal_factors_equiv_of_quot_equiv (f : R ⧸I ≃+* A ⧸J) (hI : I ≠ ⊥)
       exact dvd_iff_le.mpr this,
     end⟩,
   left_inv := λ ⟨p, hp⟩, by rwa [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk,
-    map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, map_of_equiv _ f, comap_map_of_surjective _
-    quotient.mk_surjective, ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left] ;
+      map_comap_of_surjective J^.quotient.mk quotient.mk_surjective, map_of_equiv _ f,
+      comap_map_of_surjective _ quotient.mk_surjective,
+      ← ring_hom.ker_eq_comap_bot, mk_ker, sup_of_le_left] ;
     exact dvd_iff_le.mp hp,
   right_inv := λ ⟨p, hp⟩, by {
     rw [subtype.mk_eq_mk, subtype.coe_mk, subtype.coe_mk, map_comap_of_surjective
@@ -895,8 +896,8 @@ def ideal_factors_equiv_of_quot_equiv (f : R ⧸I ≃+* A ⧸J) (hI : I ≠ ⊥)
     exact dvd_iff_le.1 hp }
 }
 
-lemma ideal_factors_equiv_of_quot_equiv_le_iff_le (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
-  {X Y : ideal R} (hX : I ≤ X) (hY : I ≤ Y)
+lemma le_of_ideal_factors_equiv_of_quot_equiv_le (hI : I ≠ ⊥) (hJ : J ≠ ⊥) {X Y : ideal R}
+  (hX : I ≤ X) (hY : I ≤ Y)
   (h : (ideal_factors_equiv_of_quot_equiv f hI hJ ⟨X, dvd_iff_le.mpr hX⟩ : ideal A) ≤
   ↑(ideal_factors_equiv_of_quot_equiv f hI hJ ⟨Y, dvd_iff_le.mpr hY⟩)) :
   X ≤ Y :=
@@ -909,6 +910,13 @@ begin
     ← ring_hom.ker_eq_comap_bot, mk_ker, sup_eq_left.mpr hY] at h,
   exact h,
 end
+
+lemma ideal_factors_equiv_of_quot_equiv_le_of_le (hI : I ≠ ⊥) (hJ : J ≠ ⊥)
+  {X Y : ideal R} (hX : I ≤ X) (hY : I ≤ Y) (h : X ≤ Y) :
+  (ideal_factors_equiv_of_quot_equiv f hI hJ ⟨X, dvd_iff_le.mpr hX⟩ : ideal A) ≤
+  ↑(ideal_factors_equiv_of_quot_equiv f hI hJ ⟨Y, dvd_iff_le.mpr hY⟩)
+:= sorry
+
 
 
 end

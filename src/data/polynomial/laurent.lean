@@ -9,7 +9,8 @@ import data.polynomial.denoms_clearable
 
 /-!  # Laurent polynomials
 
-Following a suggestion by Eric, they are defined via `add_monoid_algebra R ℤ`.  Thus, they are essentially `finsupp`s `ℤ →₀ R `.
+Following a suggestion by Eric, they are defined via `add_monoid_algebra R ℤ`.
+Thus, they are essentially `finsupp`s `ℤ →₀ R `.
 
 This means that they play well with polynomials, but there is a little roughness in establishing
 the API, since the `finsupp` implementation of `polynomial R` is well-shielded.

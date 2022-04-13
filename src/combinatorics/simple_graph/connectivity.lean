@@ -57,10 +57,10 @@ walks, trails, paths, circuits, cycles
 
 -/
 
-universes u
+universes u v
 
 namespace simple_graph
-variables {V V' : Type u} (G G' : simple_graph V)
+variables {V : Type u} {V' : Type v} (G : simple_graph V) (G' : simple_graph V')
 
 /-- A walk is a sequence of adjacent vertices.  For vertices `u v : V`,
 the type `walk u v` consists of all walks starting at `u` and ending at `v`.

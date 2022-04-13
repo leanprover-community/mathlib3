@@ -19,11 +19,6 @@ def two_power_part (n : ℕ) := 2 ^ (padic_val_nat 2 n)
 
 def odd_part (n : ℕ) := n / two_power_part n
 
-lemma mul_odd_part (n m : ℕ) : odd_part(n * m) = odd_part(n) * odd_part(m) :=
-begin
-  sorry,
-end
-
 lemma two_power_part_mul_odd_part (n : ℕ) : (two_power_part n) * (odd_part n) = n :=
 begin
   have : two_power_part n ∣ n,
@@ -31,6 +26,24 @@ begin
     exact pow_padic_val_nat_dvd, },
   rw odd_part,
   exact nat.mul_div_cancel' this,
+end
+
+lemma mul_two_power_part (n m : ℕ) :
+  two_power_part (n * m) = two_power_part(n) * two_power_part(m) :=
+begin
+  simp_rw [two_power_part],
+  sorry,
+end
+
+lemma mul_odd_part (n m : ℕ) : odd_part (n * m) = odd_part(n) * odd_part(m) :=
+begin
+  have hnm := two_power_part_mul_odd_part (n * m),
+  have hn := two_power_part_mul_odd_part (n),
+  have hm := two_power_part_mul_odd_part (m),
+  have hnm' := mul_two_power_part n m,
+  have pos_two_power_part : 0 < two_power_part (n * m), sorry,
+  -- TODO(Sean): See if you can prove this. I've given a bunch of have statements for things I think are necessary.
+  sorry,
 end
 
 def strong_probable_prime (n : nat) (a : zmod n) : Prop :=
@@ -379,7 +392,7 @@ end
 
 lemma unlikely_strong_probable_prime_of_coprime_mul (n : ℕ) [hn_pos : fact (0 < n)]
   (h : (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1)) (not_prime : ¬ n.prime) :
-  ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
+  ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card * 2 ≤ n :=
 begin
   rcases h with ⟨n0, n1, h_coprime, h_mul, hn0, hn1⟩,
   let i0 := ((finset.range (odd_part (n-1))).filter (λ i, ∃ a_0 : zmod n, a_0^(2^i) = -1)).max' (
@@ -411,7 +424,7 @@ end
 
 lemma unlikely_strong_probable_prime_of_prime_power (n : ℕ) [hn_pos : fact (0 < n)] (h1 : 1 < n)
   (h : (∃ (p k : ℕ), p.prime ∧ p^k = n)) (not_prime : ¬ n.prime) :
-  ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
+  ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card * 2 ≤ n :=
 begin
   rcases h with ⟨p, k, p_prime, n_pow⟩,
   have n_pos : 0 < n, exact hn_pos.out,
@@ -433,10 +446,11 @@ end
 
 
 lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [hn_pos : fact (0 < n)] (not_prime : ¬ n.prime) :
-  ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card ≤ n / 4 :=
+  ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card * 2 ≤ n :=
 begin
   cases one_or_coprime_factorization_or_prime_power n (hn_pos.out),
   { sorry, },
+  cases h,
   { apply unlikely_strong_probable_prime_of_coprime_mul,
     exact h,
     exact not_prime,

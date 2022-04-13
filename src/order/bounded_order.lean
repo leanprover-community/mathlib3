@@ -1041,6 +1041,22 @@ congr_arg coe (mk_bot hbot).symm
 lemma coe_top [order_top α] [order_top (subtype p)] (htop : p ⊤) : ((⊤ : subtype p) : α) = ⊤ :=
 congr_arg coe (mk_top htop).symm
 
+@[simp] lemma coe_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : {x // p x}} :
+  (x : α) = ⊥ ↔ x = ⊥ :=
+by rw [←coe_bot hbot, ext_iff]
+
+@[simp] lemma coe_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : {x // p x}} :
+  (x : α) = ⊤ ↔ x = ⊤ :=
+by rw [←coe_top htop, ext_iff]
+
+@[simp] lemma mk_eq_bot_iff [order_bot α] [order_bot (subtype p)] (hbot : p ⊥) {x : α} (hx : p x) :
+  (⟨x, hx⟩ : subtype p) = ⊥ ↔ x = ⊥ :=
+(coe_eq_bot_iff hbot).symm
+
+@[simp] lemma mk_eq_top_iff [order_top α] [order_top (subtype p)] (htop : p ⊤) {x : α} (hx : p x) :
+  (⟨x, hx⟩ : subtype p) = ⊤ ↔ x = ⊤ :=
+(coe_eq_top_iff htop).symm
+
 end subtype
 
 namespace order_dual

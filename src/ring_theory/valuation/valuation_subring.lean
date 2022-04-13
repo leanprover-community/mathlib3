@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Adam Topaz
 -/
 import ring_theory.valuation.valuation_ring
+import ring_theory.localization.as_subring
 
 /-!
 
@@ -233,6 +234,15 @@ begin
       { contradiction },
       { assumption } },
     { rwa [this, one_mul] at hh, } }
+end
+
+def of_prime (A : valuation_subring K) (P : ideal A) [hP : P.is_prime] :
+  valuation_subring K :=
+of_le A (localization.subring K P.prime_compl $
+  le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem)
+begin
+  rintros a ha,
+  refine ⟨⟨a, ha⟩, 1, P.prime_compl.one_mem, by simp⟩,
 end
 
 end order

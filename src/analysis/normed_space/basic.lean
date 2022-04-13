@@ -419,6 +419,16 @@ end
 lemma normed_algebra.nontrivial : nontrivial 𝕜' :=
 ⟨⟨0, 1, normed_algebra.zero_ne_one 𝕜 𝕜'⟩⟩
 
+/-- Any normed characteristic-zero division ring that is a normed_algebra over the reals is also a
+normed algebra over the rationals.
+
+Phrased another way, if `𝕜` is a normed algebra over the reals, then `algebra_rat` respects that
+norm. -/
+instance normed_algebra_rat {𝕜} [normed_division_ring 𝕜] [char_zero 𝕜] [normed_algebra ℝ 𝕜] :
+  normed_algebra ℚ 𝕜 :=
+{ norm_algebra_map_eq := λ q,
+    by simpa only [ring_hom.map_rat_algebra_map] using norm_algebra_map_eq 𝕜 (algebra_map _ ℝ q) }
+
 end normed_algebra
 
 section restrict_scalars

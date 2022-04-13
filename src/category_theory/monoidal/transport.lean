@@ -180,8 +180,7 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
     rw equivalence.counit_app_functor,
     simp only [←e.functor.map_comp],
     congr' 1,
-    rw [←left_unitor_naturality],
-    simp,
+    simp only [←left_unitor_naturality, id_comp, ←tensor_comp_assoc, comp_id],
   end,
   right_unitality' := λ X,
   begin
@@ -190,8 +189,7 @@ def lax_to_transported (e : C ≌ D) : lax_monoidal_functor C (transported e) :=
     rw equivalence.counit_app_functor,
     simp only [←e.functor.map_comp],
     congr' 1,
-    rw [←right_unitor_naturality],
-    simp,
+    simp only [←right_unitor_naturality, id_comp, ←tensor_comp_assoc, comp_id],
   end, }.
 
 /--

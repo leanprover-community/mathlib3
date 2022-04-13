@@ -125,13 +125,13 @@ instance monoidal_category_op : monoidal_category Cᵒᵖ :=
   begin
     intros,
     apply quiver.hom.unop_inj,
-    simp [left_unitor_inv_naturality],
+    simp,
   end,
   right_unitor_naturality' :=
   begin
     intros,
     apply quiver.hom.unop_inj,
-    simp [right_unitor_inv_naturality],
+    simp,
   end,
   triangle' :=
   begin
@@ -168,13 +168,13 @@ instance monoidal_category_mop : monoidal_category Cᴹᵒᵖ :=
   begin
     intros,
     apply unmop_inj,
-    simp [right_unitor_naturality],
+    simp,
   end,
   right_unitor_naturality' :=
   begin
     intros,
     apply unmop_inj,
-    simp [left_unitor_naturality],
+    simp,
   end,
   triangle' :=
   begin

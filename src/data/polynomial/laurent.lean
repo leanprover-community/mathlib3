@@ -48,20 +48,20 @@ local notation R`[T;T⁻¹]`:9000 := laurent_polynomial R
 
 /--  The ring homomorphism, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/
-def polynomial.to_laurent_polynomial {R : Type*} [semiring R] :
+def polynomial.to_laurent {R : Type*} [semiring R] :
   R[X] →+* R[T;T⁻¹] :=
 begin
   refine ring_hom.comp _ (to_finsupp_iso R).to_ring_hom,
-  exact (add_monoid_algebra.add_monoid_ring_hom_map R (nat.cast_add_monoid_hom ℤ)),
+  exact (add_monoid_ring_hom_map R (nat.cast_add_monoid_hom ℤ)),
 end
 
 /--  The `R`-algebra map, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/
-def polynomial.to_laurent_polynomial_alg {R : Type*} [comm_semiring R] :
+def polynomial.to_laurent_alg {R : Type*} [comm_semiring R] :
   R[X] →ₐ[R] R[T;T⁻¹] :=
 begin
   refine alg_hom.comp _ (to_finsupp_iso_alg R).to_alg_hom,
-  exact (add_monoid_algebra.add_monoid_alg_hom_map R (nat.cast_add_monoid_hom ℤ)),
+  exact (add_monoid_alg_hom_map R (nat.cast_add_monoid_hom ℤ)),
 end
 
 namespace laurent_polynomial
@@ -77,7 +77,7 @@ the constant Laurent polynomials. -/
 def C : R →+* R[T;T⁻¹] :=
 { to_fun    := single 0,
   map_one'  := rfl,
-  map_mul'  := λ x y, by simp only [add_monoid_algebra.single_mul_single, add_zero],
+  map_mul'  := λ x y, by simp only [single_mul_single, add_zero],
   map_zero' := single_zero,
   map_add'  := λ x y, single_add }
 
@@ -107,13 +107,13 @@ by simp [← T_add, mul_assoc]
 @[simp]
 lemma single_eq_C_mul_T (r : R) (n : ℤ) :
   (single n r : R[T;T⁻¹]) = (C r * T n : R[T;T⁻¹]) :=
-by convert add_monoid_algebra.single_mul_single.symm; simp
+by convert single_mul_single.symm; simp
 
 -- This lemma locks in the right changes and is what Lean proved directly.
 -- The actual `simp`-normal form of a Laurent monomial is `C a * T n`, whenever it can be reached.
 @[simp]
 lemma monomial_eq_C_mul_T (n : ℕ) (r : R) :
-  ((polynomial.monomial n r).to_laurent_polynomial : R[T;T⁻¹]) = C r * T n :=
+  ((polynomial.monomial n r).to_laurent : R[T;T⁻¹]) = C r * T n :=
 begin
   show map_domain (nat.cast_add_monoid_hom ℤ) ((to_finsupp_iso R) (monomial n r)) =
     (C r * T n : R[T;T⁻¹]),
@@ -124,7 +124,7 @@ end
 
 @[simp]
 lemma C_eq_C (r : R) :
-  (polynomial.C r).to_laurent_polynomial = C r :=
+  (polynomial.C r).to_laurent = C r :=
 begin
   convert monomial_eq_C_mul_T 0 r,
   simp only [int.coe_nat_zero, T_zero, mul_one],
@@ -132,29 +132,29 @@ end
 
 @[simp]
 lemma X_eq_T :
-  (polynomial.X.to_laurent_polynomial : R[T;T⁻¹]) = T 1 :=
+  (polynomial.X.to_laurent : R[T;T⁻¹]) = T 1 :=
 begin
   have : (polynomial.X : R[X]) = monomial 1 1,
   { simp [monomial_eq_C_mul_X] },
   simp [this, monomial_eq_C_mul_T],
 end
 
-@[simp] lemma polynomial_one_eq_one : (polynomial.to_laurent_polynomial : R[X] → R[T;T⁻¹]) 1 = 1 :=
+@[simp] lemma polynomial_one_eq_one : (polynomial.to_laurent : R[X] → R[T;T⁻¹]) 1 = 1 :=
 C_eq_C (1 : R)
 
 @[simp]
 lemma polynomial_C_mul_eq (r : R) (f : R[X]):
-  (polynomial.C r * f).to_laurent_polynomial = C r * f.to_laurent_polynomial :=
+  (polynomial.C r * f).to_laurent = C r * f.to_laurent :=
 by simp only [_root_.map_mul, C_eq_C]
 
 @[simp]
 lemma X_pow_eq_T (n : ℕ) :
-  (X ^ n : R[X]).to_laurent_polynomial = T n :=
+  (X ^ n : R[X]).to_laurent = T n :=
 by simp only [map_pow, X_eq_T, T_pow, mul_one]
 
 @[simp]
 lemma C_mul_X_pow (n : ℕ) (r : R) :
-  (polynomial.C r * X ^ n).to_laurent_polynomial = C r * T n :=
+  (polynomial.C r * X ^ n).to_laurent = C r * T n :=
 by simp only [_root_.map_mul, C_eq_C, X_pow_eq_T]
 
 lemma is_unit_T (n : ℤ) : is_unit (T n : R[T;T⁻¹]) :=
@@ -219,7 +219,7 @@ lemma T_mul (n : ℤ) (f : R[T;T⁻¹]) : T n * f = f * T n :=
 strictly positive degree coincide with the ones of `f`.  The coefficients of the terms of
 non-positive degree of `f` are summed up and used as constant term.
 
-`trunc` is a left-inverse to `polynomial.to_laurent_polynomial`. -/
+`trunc` is a left-inverse to `polynomial.to_laurent`. -/
 def trunc : R[T;T⁻¹] →+ R[X] :=
 ((to_finsupp_iso R).symm.to_add_monoid_hom).comp (map_domain.add_monoid_hom int.to_nat)
 
@@ -247,15 +247,15 @@ begin
   refl,
 end
 
-lemma _root_.polynomial.to_laurent_polynomial_injective :
-  function.injective (polynomial.to_laurent_polynomial : R[X] → R[T;T⁻¹]) :=
+lemma _root_.polynomial.to_laurent_injective :
+  function.injective (polynomial.to_laurent : R[X] → R[T;T⁻¹]) :=
 begin
   refine function.has_left_inverse.injective ⟨trunc, λ f, f.induction_on' _ _⟩,
   { exact λ f g hf hg, by simp only [hf, hg, _root_.map_add] },
   { exact λ n r, by simp only [monomial_eq_C_mul_T, trunc_single_nat] }
 end
 
-lemma exists_T_pow (f : R[T;T⁻¹]) : ∃ (n : ℕ) (f' : R[X]), f'.to_laurent_polynomial = f * T n :=
+lemma exists_T_pow (f : R[T;T⁻¹]) : ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=
 begin
   apply f.induction_on' _ (λ n a, _); clear f,
   { rintros f g ⟨m, fn, hf⟩ ⟨n, gn, hg⟩,
@@ -271,7 +271,7 @@ begin
 end
 
 lemma exists_T_pow_T' (f : R[T;T⁻¹]) :
-  ∃ (n : ℕ) (f' : R[X]), f'.to_laurent_polynomial = f * T' ^ n :=
+  ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T' ^ n :=
 begin
   rcases exists_T_pow f with ⟨n, f', hf⟩,
   refine ⟨n, f', _⟩,
@@ -280,7 +280,7 @@ end
 
 /--  This version of `exists_T_pow` can be called as `rcases f.exists_T_pow' with ⟨n, f', rfl⟩`. -/
 lemma exists_T_pow' (f : R[T;T⁻¹]) : ∃ (n : ℤ) (f' : R[X]),
-  f = f'.to_laurent_polynomial * T n :=
+  f = f'.to_laurent * T n :=
 begin
   rcases f.exists_T_pow with ⟨n, f', hf⟩,
   exact ⟨(- n), f', by simp [hf]⟩,
@@ -292,7 +292,7 @@ end
 
 is true on all Laurent polynomials. -/
 lemma proprop (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
-  (PQ : ∀ (f : R[X]), Q f.to_laurent_polynomial)
+  (PQ : ∀ (f : R[X]), Q f.to_laurent)
   (Tn : ∀ f, Q (f * T 1) → Q f) :
   Q f :=
 begin
@@ -307,7 +307,7 @@ begin
 end
 
 instance : module R[X] R[T;T⁻¹] :=
-{ smul      := λ f l, f.to_laurent_polynomial * l,
+{ smul      := λ f l, f.to_laurent * l,
   one_smul  := λ f, by simp only [polynomial_one_eq_one, one_mul],
   mul_smul  := λ f g l, by simp only [mul_assoc, _root_.map_mul],
   smul_add  := λ f x y, by simp only [mul_add],

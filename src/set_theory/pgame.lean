@@ -31,11 +31,11 @@ pregame `g`, if the predicate holds for every game resulting from making a move,
 for `g`.
 
 While it is often convenient to work "by induction" on pregames, in some situations this becomes
-awkward, so we also define accessor functions `left_moves`, `right_moves`, `move_left` and
-`move_right`. There is a relation `subsequent p q`, saying that `p` can be reached by playing some
-non-empty sequence of moves starting from `q`, an instance `well_founded subsequent`, and a local
-tactic `pgame_wf_tac` which is helpful for discharging proof obligations in inductive proofs relying
-on this relation.
+awkward, so we also define accessor functions `pgame.left_moves`, `pgame.right_moves`,
+`pgame.move_left` and `pgame.move_right`. There is a relation `pgame.subsequent p q`, saying that
+`p` can be reached by playing some non-empty sequence of moves starting from `q`, an instance
+`well_founded subsequent`, and a local tactic `pgame_wf_tac` which is helpful for discharging proof
+obligations in inductive proofs relying on this relation.
 
 ## Order properties
 
@@ -128,10 +128,10 @@ def of_lists (L R : list pgame.{0}) : pgame.{0} :=
 pgame.mk (fin L.length) (fin R.length) (λ i, L.nth_le i i.is_lt) (λ j, R.nth_le j.val j.is_lt)
 
 /-- The indexing type for allowable moves by Left. -/
-def left_moves : pgame → Type u
+@[nolint has_inhabited_instance] def left_moves : pgame → Type u
 | (mk l _ _ _) := l
 /-- The indexing type for allowable moves by Right. -/
-def right_moves : pgame → Type u
+@[nolint has_inhabited_instance] def right_moves : pgame → Type u
 | (mk _ r _ _) := r
 
 /-- The new game after Left makes an allowed move. -/

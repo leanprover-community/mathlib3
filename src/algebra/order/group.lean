@@ -93,6 +93,7 @@ instance ordered_comm_group.has_exists_mul_of_le (α : Type u)
 
 @[to_additive] instance [h : has_inv α] : has_inv (order_dual α) := h
 @[to_additive] instance [h : has_div α] : has_div (order_dual α) := h
+@[to_additive] instance [h : has_involutive_inv α] : has_involutive_inv (order_dual α) := h
 @[to_additive] instance [h : div_inv_monoid α] : div_inv_monoid (order_dual α) := h
 @[to_additive] instance [h : group α] : group (order_dual α) := h
 @[to_additive] instance [h : comm_group α] : comm_group (order_dual α) := h
@@ -1049,7 +1050,7 @@ end
 
 lemma abs_sub_comm (a b : α) : |a - b| = |b - a| :=
 calc  |a - b| = | - (b - a)| : congr_arg _ (neg_sub b a).symm
-              ... = |b - a|     : abs_neg (b - a)
+          ... = |b - a|      : abs_neg (b - a)
 
 variables [covariant_class α α (+) (≤)] {a b c : α}
 

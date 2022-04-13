@@ -24,6 +24,21 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 namespace finset
 variables {s s₁ s₂ : finset α} {a : α} {b : β}  {f g : α → β}
 
+section comm_monoid
+variables [comm_monoid β]
+
+open_locale classical
+
+lemma prod_pow_eq_pow_sum {x : β} {f : α → ℕ} :
+  ∀ {s : finset α}, (∏ i in s, x ^ (f i)) = x ^ (∑ x in s, f x) :=
+begin
+  apply finset.induction,
+  { simp },
+  { assume a s has H,
+    rw [finset.prod_insert has, finset.sum_insert has, pow_add, H] }
+end
+
+end comm_monoid
 
 section semiring
 variables [non_unital_non_assoc_semiring β]
@@ -178,15 +193,6 @@ begin
   rw [← prod_const, prod_add],
   refine finset.sum_congr rfl (λ t ht, _),
   rw [prod_const, prod_const, ← card_sdiff (mem_powerset.1 ht)]
-end
-
-lemma prod_pow_eq_pow_sum {x : β} {f : α → ℕ} :
-  ∀ {s : finset α}, (∏ i in s, x ^ (f i)) = x ^ (∑ x in s, f x) :=
-begin
-  apply finset.induction,
-  { simp },
-  { assume a s has H,
-    rw [finset.prod_insert has, finset.sum_insert has, pow_add, H] }
 end
 
 theorem dvd_sum {b : β} {s : finset α} {f : α → β}

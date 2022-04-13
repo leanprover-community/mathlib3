@@ -2,19 +2,19 @@ import algebra.group.to_additive
 
 /-- Docstring -/
 @[to_additive add_foo]
-lemma foo (α : Type*) [has_one α] : α := 1
+def foo (α : Type*) [has_one α] : α := 1
 
 @[to_additive add_bar "docstring"]
-lemma bar (α : Type*) [has_one α] : α := 1
+def bar (α : Type*) [has_one α] : α := 1
 
 /-- Docstring -/
 @[to_additive add_baz "docstring"]
-lemma baz (α : Type*) [has_one α] : α := 1
+def baz (α : Type*) [has_one α] : α := 1
 
 @[to_additive add_quuz]
-lemma quux (α : Type*) [has_one α] : α := 1
+def quux (α : Type*) [has_one α] : α := 1
 
-lemma no_to_additive (α : Type*) [has_one α] : α := 1
+def no_to_additive (α : Type*) [has_one α] : α := 1
 
 open tactic
 run_cmd do

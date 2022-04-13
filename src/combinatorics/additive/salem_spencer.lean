@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.asymptotics.asymptotics
+import analysis.convex.strict_convex_space
 
 /-!
 # Salem-Spencer sets and Roth numbers
@@ -35,9 +36,9 @@ Can `add_salem_spencer_iff_eq_right` be made more general?
 Salem-Spencer, Roth, arithmetic progression, average, three-free
 -/
 
-open finset nat
+open finset metric nat
 
-variables {α β : Type*}
+variables {α β 𝕜 E : Type*}
 
 section salem_spencer
 section monoid
@@ -219,6 +220,31 @@ begin
 end
 
 end nat
+
+/-- The frontier of a closed strictly convex set only contains trivial arithmetic progressions.
+The idea is that an arithmetic progression is contained on a line and the frontier of a strictly
+convex set does not contain lines. -/
+lemma add_salem_spencer_frontier [linear_ordered_field 𝕜] [topological_space E] [add_comm_monoid E]
+  [module 𝕜 E] {s : set E} (hs₀ : is_closed s) (hs₁ : strict_convex 𝕜 s) :
+  add_salem_spencer (frontier s) :=
+begin
+  intros a b c ha hb hc habc,
+  obtain rfl : (1 / 2 : 𝕜) • a + (1 / 2 : 𝕜) • b = c,
+  { rwa [←smul_add, one_div, inv_smul_eq_iff₀ (show (2 : 𝕜) ≠ 0, by norm_num), two_smul] },
+  exact hs₁.eq (hs₀.frontier_subset ha) (hs₀.frontier_subset hb) one_half_pos one_half_pos
+    (add_halves _) hc.2,
+end
+
+lemma add_salem_spencer_sphere [normed_group E] [normed_space ℝ E] [strict_convex_space ℝ E] (x : E)
+  (r : ℝ) : add_salem_spencer (sphere x r) :=
+begin
+  obtain rfl | hr := eq_or_ne r 0,
+  { rw sphere_zero,
+    exact add_salem_spencer_singleton _ },
+  { convert add_salem_spencer_frontier is_closed_ball (strict_convex_closed_ball ℝ x r),
+    exact (frontier_closed_ball _ hr).symm }
+end
+
 end salem_spencer
 
 section roth_number

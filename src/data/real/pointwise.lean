@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yaël Dillies, Eric Wieser
 -/
 import algebra.order.module
-import algebra.pointwise
 import data.real.basic
 
 /-!

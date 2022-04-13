@@ -3,7 +3,7 @@ Copyright (c) 2022 Yuma Mizuno. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuma Mizuno
 -/
-import tactic.coherence
+import category_theory.bicategory.functor
 
 /-!
 # Oplax natural transformations
@@ -127,21 +127,27 @@ def vcomp (η : oplax_nat_trans F G) (θ : oplax_nat_trans G H) : oplax_nat_tran
     (α_ _ _ _).inv ≫ η.naturality f ▷ θ.app b ≫ (α_ _ _ _).hom ≫
       η.app a ◁ θ.naturality f ≫ (α_ _ _ _).inv,
   naturality_comp' := λ a b c f g, by
-  { simp only [assoc, comp_whisker_right, bicategory.whisker_left_comp, comp_whisker_left,
-      iso.inv_hom_id_assoc, whisker_left_naturality_comp_assoc,
-      whisker_right_naturality_comp_assoc, pentagon_assoc, bicategory.whisker_right_comp,
-      whisker_assoc, pentagon_inv_inv_hom_hom_inv, pentagon_inv_assoc,
-      pentagon_hom_hom_inv_hom_hom_assoc, iso.cancel_iso_inv_left],
-    rw [associator_inv_naturality_right_assoc, ←associator_inv_naturality_left_assoc,
-      whisker_exchange_assoc],
-    simp } }
+  { calc _ =  _ ≫
+    F.map_comp f g ▷ η.app c ▷ θ.app c ≫ _ ≫
+      F.map f ◁ η.naturality g ▷ θ.app c ≫ _ ≫
+        (F.map f ≫ η.app b) ◁ θ.naturality g ≫
+          η.naturality f ▷ (θ.app b ≫ H.map g) ≫ _ ≫
+            η.app a ◁ θ.naturality f ▷ H.map g ≫ _  : _
+    ... =  _ : _,
+    exact (α_ _ _ _).inv,
+    exact (α_ _ _ _).hom ▷ _ ≫ (α_ _ _ _).hom,
+    exact _ ◁ (α_ _ _ _).hom ≫ (α_ _ _ _).inv,
+    exact (α_ _ _ _).hom ≫ _ ◁ (α_ _ _ _).inv,
+    exact _ ◁ (α_ _ _ _).hom ≫ (α_ _ _ _).inv,
+    { rw [whisker_exchange_assoc], simp },
+    { simp } } }
 
 variables (B C)
 
 @[simps]
 instance : category_struct (oplax_functor B C) :=
-{ hom := λ F G, oplax_nat_trans F G,
-  id := oplax_nat_trans.id,
+{ hom  := oplax_nat_trans,
+  id   := oplax_nat_trans.id,
   comp := λ F G H, oplax_nat_trans.vcomp }
 
 end

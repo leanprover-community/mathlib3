@@ -38,23 +38,12 @@ def whisker_left (η : F ⟶ G) {θ ι : G ⟶ H} (Γ : θ ⟶ ι) : η ≫ θ �
 def whisker_right {η θ : F ⟶ G} (Γ : η ⟶ θ) (ι : G ⟶ H) : η ≫ ι ⟶ θ ≫ ι :=
 { app := λ a, Γ.app a ▷ ι.app a,
   naturality' := λ a b f, by
-  { dsimp,
-    simp only [modification.whisker_right_naturality_assoc, assoc],
-    rw [←associator_inv_naturality_left, whisker_exchange_assoc],
-    simp } }
+  { dsimp, simp_rw [assoc, ←associator_inv_naturality_left, whisker_exchange_assoc], simp } }
 
 /-- Associator for the vertical composition of oplax natural transformations. -/
 @[simps]
 def associator (η : F ⟶ G) (θ : G ⟶ H) (ι : H ⟶ I) : (η ≫ θ) ≫ ι ≅ η ≫ (θ ≫ ι) :=
-modification_iso.of_components (λ a, α_ (η.app a) (θ.app a) (ι.app a))
-begin
-  intros a b f,
-  dsimp,
-  simp only [bicategory.whisker_right_comp, bicategory.whisker_left_comp, assoc,
-    pentagon_hom_hom_inv_hom_hom_assoc, pentagon_hom_inv_inv_inv_inv_assoc, comp_whisker_right,
-    whisker_assoc, comp_whisker_left, pentagon_inv_hom_hom_hom_hom_assoc,
-    iso.inv_hom_id_assoc, pentagon_inv_inv_hom_inv_inv]
-end
+modification_iso.of_components (λ a, α_ (η.app a) (θ.app a) (ι.app a)) (by tidy)
 
 /-- Left unitor for the vertical composition of oplax natural transformations. -/
 @[simps]
@@ -78,11 +67,6 @@ instance oplax_functor.bicategory : bicategory (oplax_functor B C) :=
   associator    := λ F G H I, oplax_nat_trans.associator,
   left_unitor   := λ F G, oplax_nat_trans.left_unitor,
   right_unitor  := λ F G, oplax_nat_trans.right_unitor,
-  whisker_exchange' := by { intros, ext, apply whisker_exchange },
-  associator_naturality_left'   := by { intros, ext, apply associator_naturality_left },
-  associator_naturality_middle' := by { intros, ext, apply associator_naturality_middle },
-  associator_naturality_right'  := by { intros, ext, apply associator_naturality_right },
-  left_unitor_naturality'   := by { intros, ext, apply left_unitor_naturality },
-  right_unitor_naturality'  := by { intros, ext, apply right_unitor_naturality } }
+  whisker_exchange' := by { intros, ext, apply whisker_exchange } }
 
 end category_theory

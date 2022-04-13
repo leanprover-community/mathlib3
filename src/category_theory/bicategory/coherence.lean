@@ -71,8 +71,9 @@ def preinclusion (B : Type u) [quiver.{v+1} B] :
   map   := λ a b, (inclusion_path a b).obj,
   map₂  := λ a b, (inclusion_path a b).map }
 
-@[simp] lemma preinclusion_obj (a : locally_discrete (paths B)) :
-  (preinclusion B).obj a = of.obj a :=
+@[simp]
+lemma preinclusion_obj (a : B) :
+  (preinclusion B).obj a = a :=
 rfl
 
 /--
@@ -150,24 +151,14 @@ begin
     slice_lhs 1 2 { rw ihf },
     simp },
   case whisker_left : _ _ _ _ _ _ _ ih
-  { dsimp,
-    /- p ≠ nil required! See the docstring of `normalize_aux`. -/
-    rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc, ih],
-    simp only [assoc] },
+  /- p ≠ nil required! See the docstring of `normalize_aux`. -/
+  { dsimp, simp_rw [associator_inv_naturality_right_assoc, whisker_exchange_assoc, ih, assoc] },
   case whisker_right : _ _ _ _ _ h η ih
   { dsimp,
     rw [associator_inv_naturality_middle_assoc, ←comp_whisker_right_assoc, ih, comp_whisker_right],
     have := dcongr_arg (λ x, (normalize_iso x h).hom) (normalize_aux_congr p (quot.mk _ η)),
     dsimp at this, simp [this] },
-  --pentagon_inv_inv_hom_hom_inv_assoc
-  case associator       { dsimp, dsimp [id_def, comp_def], simp },
-  case associator_inv   { dsimp, dsimp [id_def, comp_def], simp },
-  --triangle_assoc_comp_right_assoc
-  case left_unitor      { dsimp, dsimp [id_def, comp_def], simp },
-  case left_unitor_inv  { dsimp, dsimp [id_def, comp_def], simp },
-  --right_unitor_comp
-  case right_unitor     { dsimp, dsimp [id_def, comp_def], simp },
-  case right_unitor_inv { dsimp, dsimp [id_def, comp_def], simp }
+  all_goals { dsimp, dsimp [id_def, comp_def], simp }
 end
 
 @[simp]

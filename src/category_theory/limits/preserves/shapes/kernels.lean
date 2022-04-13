@@ -75,6 +75,9 @@ def is_limit_of_has_kernel_of_preserves_limit [preserves_limit (parallel_pair f 
       : fork (G.map f) 0) :=
 is_limit_fork_map_of_is_limit' G (kernel.condition f) (kernel_is_kernel f)
 
+instance [preserves_limit (parallel_pair f 0) G] : has_kernel (G.map f) :=
+{ exists_limit := ⟨⟨_, is_limit_of_has_kernel_of_preserves_limit G f⟩⟩, }
+
 variables [has_kernel (G.map f)]
 
 /--
@@ -160,6 +163,9 @@ def is_colimit_of_has_cokernel_of_preserves_colimit [preserves_colimit (parallel
     (by simp only [←G.map_comp, coequalizer.condition, zero_comp, functor.map_zero])
       : cofork (G.map f) 0) :=
 is_colimit_cofork_map_of_is_colimit' G (cokernel.condition f) (cokernel_is_cokernel f)
+
+instance [preserves_colimit (parallel_pair f 0) G] : has_cokernel (G.map f) :=
+{ exists_colimit := ⟨⟨_, is_colimit_of_has_cokernel_of_preserves_colimit G f⟩⟩, }
 
 variables [has_cokernel (G.map f)]
 

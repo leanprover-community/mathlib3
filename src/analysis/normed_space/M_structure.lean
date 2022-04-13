@@ -173,17 +173,14 @@ begin
     ... ≤ ∥(P * Q) x∥ + ∥ x - (P * Q) x ∥ : by apply norm_add_le
     ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : by rw [continuous_linear_map.sub_apply,
       continuous_linear_map.one_apply] },
-  { calc ∥x∥ = ∥Q x∥ + ∥(1-Q) x∥ : by rw h₂.right x
-    ... = ∥P(Q x)∥ + ∥(1-P)(Q x)∥ + ∥(1-Q) x∥ : by rw h₁.right (Q x)
-    ... = ∥P(Q x)∥ + ∥Q x - P (Q x)∥ + ∥x - Q x∥ : by rw [continuous_linear_map.sub_apply,
-      continuous_linear_map.one_apply, continuous_linear_map.sub_apply,
-      continuous_linear_map.one_apply]
-    ... = ∥P(Q x)∥ + (∥Q x - P (Q x)∥ + ∥x - Q x∥) : by rw add_assoc
+  { calc ∥x∥ = ∥P(Q x)∥ + (∥Q x - P (Q x)∥ + ∥x - Q x∥) : by rw [h₂.right x, h₁.right (Q x),
+      continuous_linear_map.sub_apply, continuous_linear_map.one_apply,
+      continuous_linear_map.sub_apply, continuous_linear_map.one_apply, add_assoc]
     ... ≥ ∥P(Q x)∥ + ∥(Q x - P (Q x)) + (x - Q x)∥ :
       by apply (add_le_add_iff_left (∥P(Q x)∥)).mpr (norm_add_le (Q x - P (Q x)) (x - Q x))
-    ... = ∥P(Q x)∥ + ∥x - P (Q x)∥ : by rw sub_add_sub_cancel'
-    ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : by rw [continuous_linear_map.sub_apply,
-      continuous_linear_map.one_apply, continuous_linear_map.coe_mul] }
+    ... = ∥(P * Q) x∥ + ∥(1 - P * Q) x∥ : by rw [sub_add_sub_cancel',
+      continuous_linear_map.sub_apply, continuous_linear_map.one_apply,
+      continuous_linear_map.coe_mul] }
 end
 
 lemma join {P Q: X →L[𝕜] X} (h₁ : is_Lprojection P) (h₂ : is_Lprojection Q) :

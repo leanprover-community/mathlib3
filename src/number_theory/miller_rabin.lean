@@ -19,6 +19,11 @@ def two_power_part (n : ℕ) := 2 ^ (padic_val_nat 2 n)
 
 def odd_part (n : ℕ) := n / two_power_part n
 
+@[simp] lemma odd_part_zero : odd_part 0 = 0 :=
+begin
+  sorry,
+end
+
 lemma two_power_part_mul_odd_part (n : ℕ) : (two_power_part n) * (odd_part n) = n :=
 begin
   have : two_power_part n ∣ n,
@@ -447,10 +452,23 @@ end
 
 
 lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [hn_pos : fact (0 < n)] (not_prime : ¬ n.prime) :
-  ((finset.univ : finset (zmod n)).filter (strong_probable_prime n)).card * 2 ≤ n :=
+  (((finset.univ : finset (zmod n))).filter (λ a, strong_probable_prime n a)).card * 2 ≤ n :=
 begin
   cases one_or_coprime_factorization_or_prime_power n (hn_pos.out),
-  { sorry, },
+  { have : (finset.univ : finset (zmod n)).card = 0,
+    { rw finset.univ,
+      simp [h],
+    },
+    simp_rw strong_probable_prime,
+    simp_rw [h],
+    simp,
+    rw finset.card,
+
+    -- simp,
+    rw univ.card,
+    rw nat.le_one,
+
+    sorry, },
   cases h,
   { apply unlikely_strong_probable_prime_of_coprime_mul,
     exact h,

@@ -139,7 +139,7 @@ meta def measurability_tactics (md : transparency := semireducible) : list (tact
   `[ refine measurable.ae_measurable _ ]
                         >> pure "refine measurable.ae_measurable _",
   `[ refine measurable.ae_strongly_measurable _ ]
-                        >> pure "refine measurable.ae_strongly_measurable _",
+                        >> pure "refine measurable.ae_strongly_measurable _"
 ]
 
 namespace interactive

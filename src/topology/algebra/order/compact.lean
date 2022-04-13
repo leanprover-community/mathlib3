@@ -256,7 +256,7 @@ lemma continuous.exists_forall_ge [nonempty β] {f : β → α}
   ∃ x, ∀ y, f y ≤ f x :=
 @continuous.exists_forall_le (order_dual α) _ _ _ _ _ _ _ hf hlim
 
-lemma is_compact.Sup_lt_of_continuous {f : β → α}
+lemma is_compact.Sup_lt_iff_of_continuous {f : β → α}
   {K : set β} (hK : is_compact K) (h0K : K.nonempty) (hf : continuous_on f K) (y : α) :
     Sup (f '' K) < y ↔ ∀ x ∈ K, f x < y :=
 begin
@@ -266,12 +266,12 @@ begin
   rintro _ ⟨x', hx', rfl⟩, exact h2x x' hx'
 end
 
-lemma is_compact.lt_Inf_of_continuous {α β : Type*}
+lemma is_compact.lt_Inf_iff_of_continuous {α β : Type*}
   [conditionally_complete_linear_order α] [topological_space α]
   [order_topology α] [topological_space β] {f : β → α}
   {K : set β} (hK : is_compact K) (h0K : K.nonempty) (hf : continuous_on f K) (y : α) :
     y < Inf (f '' K) ↔ ∀ x ∈ K, y < f x :=
-@is_compact.Sup_lt_of_continuous (order_dual α) β _ _ _ _ _ _ hK h0K hf y
+@is_compact.Sup_lt_iff_of_continuous (order_dual α) β _ _ _ _ _ _ hK h0K hf y
 
 /-- A continuous function with compact support has a global minimum. -/
 @[to_additive]
@@ -329,16 +329,15 @@ begin
     hf.comp $ continuous_id.prod_mk continuous_const).tendsto x),
   refine ⟨λ z hz, _, λ z hz, _⟩,
   { refine (this.1 z hz).mono (λ x' hx', hx'.trans_le $ le_cSup _ $ mem_image_of_mem (f x') hyK),
-    refine hK.bdd_above_image (hf.comp $ continuous.prod.mk x').continuous_on },
+    exact hK.bdd_above_image (hf.comp $ continuous.prod.mk x').continuous_on },
   { have h : ({x} : set γ) ×ˢ K ⊆ ↿f ⁻¹' (Iio z),
     { rintro ⟨x', y'⟩ ⟨hx', hy'⟩, cases hx', exact (hy y' hy').trans_lt hz },
     obtain ⟨u, v, hu, hv, hxu, hKv, huv⟩ :=
       generalized_tube_lemma is_compact_singleton hK (is_open_Iio.preimage hf) h,
     refine eventually_of_mem (hu.mem_nhds (singleton_subset_iff.mp hxu)) (λ x' hx', _),
-    rw [hK.Sup_lt_of_continuous h0K
+    rw [hK.Sup_lt_iff_of_continuous h0K
       (show continuous (f x'), from (hf.comp $ continuous.prod.mk x')).continuous_on],
-    intros y' hy',
-    refine huv (mk_mem_prod hx' (hKv hy')) }
+    exact λ y' hy', huv (mk_mem_prod hx' (hKv hy')) }
 end
 
 lemma is_compact.continuous_Inf {f : γ → β → α}

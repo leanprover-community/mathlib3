@@ -1404,8 +1404,9 @@ end
 end nnreal
 
 section prod
+variables [pseudo_metric_space β]
 
-noncomputable instance prod.pseudo_metric_space_max [pseudo_metric_space β] :
+noncomputable instance prod.pseudo_metric_space_max :
   pseudo_metric_space (α × β) :=
 { dist := λ x y, max (dist x.1 y.1) (dist x.2 y.2),
   dist_self := λ x, by simp,
@@ -1427,14 +1428,22 @@ noncomputable instance prod.pseudo_metric_space_max [pseudo_metric_space β] :
   end,
   to_uniform_space := prod.uniform_space }
 
-lemma prod.dist_eq [pseudo_metric_space β] {x y : α × β} :
+lemma prod.dist_eq {x y : α × β} :
   dist x y = max (dist x.1 y.1) (dist x.2 y.2) := rfl
 
-theorem ball_prod_same [pseudo_metric_space β] (x : α) (y : β) (r : ℝ) :
+@[simp]
+lemma dist_prod_same_left {x : α} {y₁ y₂ : β} : dist (x, y₁) (x, y₂) = dist y₁ y₂ :=
+by simp [prod.dist_eq, dist_nonneg]
+
+@[simp]
+lemma dist_prod_same_right {x₁ x₂ : α} {y : β} : dist (x₁, y) (x₂, y) = dist x₁ x₂ :=
+by simp [prod.dist_eq, dist_nonneg]
+
+theorem ball_prod_same (x : α) (y : β) (r : ℝ) :
   ball x r ×ˢ ball y r = ball (x, y) r :=
 ext $ λ z, by simp [prod.dist_eq]
 
-theorem closed_ball_prod_same [pseudo_metric_space β] (x : α) (y : β) (r : ℝ) :
+theorem closed_ball_prod_same (x : α) (y : β) (r : ℝ) :
   closed_ball x r ×ˢ closed_ball y r = closed_ball (x, y) r :=
 ext $ λ z, by simp [prod.dist_eq]
 

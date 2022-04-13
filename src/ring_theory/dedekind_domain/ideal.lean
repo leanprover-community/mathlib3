@@ -791,12 +791,13 @@ lemma irreducible_pow_sup (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ) :
 by rw [sup_eq_prod_inf_factors (pow_ne_zero n hJ.ne_zero) hI, ← inf_eq_inter,
        normalized_factors_of_irreducible_pow hJ, normalize_eq J, repeat_inf, prod_repeat]
 
-lemma irreducible_pow_sup_of_le (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ)
+lemma irreducible_pow_sup_of_le (hJ : irreducible J) (n : ℕ)
   (hn : ↑n ≤ multiplicity J I) : J^n ⊔ I = J^n :=
 begin
+  by_cases hI : I = ⊥,
+  { simp [*] at *, },
   rw [irreducible_pow_sup hI hJ, min_eq_right],
-  rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J]
-    at hn
+  rwa [multiplicity_eq_count_normalized_factors hJ hI, enat.coe_le_coe, normalize_eq J] at hn
 end
 
 lemma irreducible_pow_sup_of_ge (hI : I ≠ ⊥) (hJ : irreducible J) (n : ℕ)

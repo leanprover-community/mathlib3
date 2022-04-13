@@ -821,10 +821,7 @@ end
 
 theorem irreducible_iff_prime_iff :
   (∀ a : α, irreducible a ↔ prime a) ↔ (∀ a : (associates α), irreducible a ↔ prime a) :=
-begin
-  rw forall_associated, split;
-  intros h a; have ha := h a; rw irreducible_mk at *; rw prime_mk at *; exact ha,
-end
+by simp_rw [forall_associated, irreducible_mk, prime_mk]
 
 end comm_monoid_with_zero
 

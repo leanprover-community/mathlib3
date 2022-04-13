@@ -504,7 +504,7 @@ non_unital_alg_hom_ext k $ mul_hom.congr_fun h
 /-- The functor `G ↦ monoid_algebra k G`, from the category of magmas to the category of non-unital,
 non-associative algebras over `k` is adjoint to the forgetful functor in the other direction. -/
 @[simps] def lift_magma [module k A] [is_scalar_tower k A A] [smul_comm_class k A A] :
-  mul_hom G A ≃ (monoid_algebra k G) →ₙₐ[k] A :=
+  mul_hom G A ≃ ((monoid_algebra k G) →ₙₐ[k] A) :=
 { to_fun    := λ f,
     { to_fun    := λ a, a.sum (λ m t, t • f m),
       map_smul' :=  λ t' a,

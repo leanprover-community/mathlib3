@@ -103,7 +103,7 @@ begin
   exact closure_mul_image_eq_top hR hR1 hS,
 end
 
-lemma exists_finset_card_mul_le (hH : H.index ≠ 0) {S : finset G} (hS : closure (S : set G) = ⊤) :
+lemma exists_finset_card_le_mul (hH : H.index ≠ 0) {S : finset G} (hS : closure (S : set G) = ⊤) :
   ∃ T : finset H, T.card ≤ H.index * S.card ∧ closure (T : set H) = ⊤ :=
 begin
   haveI : decidable_eq G := classical.dec_eq G,
@@ -129,7 +129,7 @@ end
 lemma fg_of_index_ne_zero [hG : group.fg G] (hH : H.index ≠ 0) : group.fg H :=
 begin
   obtain ⟨S, hS⟩ := hG.1,
-  obtain ⟨T, -, hT⟩ := exists_finset_card_mul_le hH hS,
+  obtain ⟨T, -, hT⟩ := exists_finset_card_le_mul hH hS,
   exact ⟨⟨T, hT⟩⟩,
 end
 
@@ -140,7 +140,7 @@ lemma rank_le_index_mul_rank [hG : group.fg G] {H : subgroup G} (hH : H.index �
 begin
   haveI := fg_of_index_ne_zero hH,
   obtain ⟨S, hS₀, hS⟩ := group.rank_spec G,
-  obtain ⟨T, hT₀, hT⟩ := exists_finset_card_mul_le hH hS,
+  obtain ⟨T, hT₀, hT⟩ := exists_finset_card_le_mul hH hS,
   calc group.rank H ≤ T.card : group.rank_le H hT
   ... ≤ H.index * S.card : hT₀
   ... = H.index * group.rank G : congr_arg ((*) H.index) hS₀,

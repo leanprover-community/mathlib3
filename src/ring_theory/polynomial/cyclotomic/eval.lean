@@ -240,6 +240,10 @@ lemma _root_.add_one_mul {R} [non_assoc_semiring R] (a b : R) : a * b + b = (a +
 by rw [add_mul, one_mul]
 lemma _root_.sub_one_mul {R} [non_assoc_ring R] (a b : R) : a * b - b = (a - 1) * b :=
 by rw [sub_mul, one_mul]
+lemma _root_.mul_add_one {R} [non_assoc_semiring R] (a b : R) : a * b + a = a * (b + 1) :=
+by rw [mul_add, mul_one]
+lemma _root_.mul_sub_one {R} [non_assoc_ring R] (a b : R) : a * b - a = a * (b - 1) :=
+by rw [mul_sub, mul_one]
 
 lemma _root_.is_primitive_root.arg {n : ℕ} {ζ : ℂ} (h : is_primitive_root ζ n) (hn : n ≠ 0) :
   ∃ i : ℤ, ζ.arg = i / n * (2 * real.pi) ∧ is_coprime i n ∧ i.nat_abs < n :=
@@ -249,13 +253,13 @@ begin
   rw [mul_comm, ←mul_assoc, complex.exp_mul_I],
   refine ⟨if i * 2 ≤ n then i else i - n, _, _, _⟩,
   work_on_goal 2
-  {sorry;{ replace hin := nat.is_coprime_iff_coprime.mpr hin,
+  { replace hin := nat.is_coprime_iff_coprime.mpr hin,
     split_ifs with _,
     { exact hin },
     { convert hin.add_mul_left_left (-1),
-      rw [mul_neg_one, sub_eq_add_neg] } }},
+      rw [mul_neg_one, sub_eq_add_neg] } },
   work_on_goal 2
-  {sorry;{ split_ifs with h₂,
+  { split_ifs with h₂,
     { exact_mod_cast h },
     suffices : (i - n : ℤ).nat_abs = n - i,
     { rw this,
@@ -264,9 +268,9 @@ begin
       rw [nat.eq_zero_of_le_zero h₂, zero_mul],
       exact zero_le _ },
     rw [←int.nat_abs_neg, neg_sub, int.nat_abs_eq_iff],
-    exact or.inl (int.coe_nat_sub h.le).symm }},
+    exact or.inl (int.coe_nat_sub h.le).symm },
   split_ifs with h₂,
-  sorry{ convert complex.arg_cos_add_sin_mul_I _,
+  { convert complex.arg_cos_add_sin_mul_I _,
     { push_cast },
     { push_cast },
     field_simp [hn],
@@ -279,10 +283,10 @@ begin
       ((div_le_iff' $ by exact_mod_cast (pos_of_gt h)).mpr $ by exact_mod_cast h₂) },
   rw [←complex.cos_sub_two_pi, ←complex.sin_sub_two_pi],
   convert complex.arg_cos_add_sin_mul_I _,
-  sorry{ push_cast,
+  { push_cast,
     rw [sub_one_mul, sub_div, div_self],
     exact_mod_cast hn },
-  sorry{ push_cast,
+  { push_cast,
     rw [sub_one_mul, sub_div, div_self],
     exact_mod_cast hn },
   field_simp [hn],
@@ -291,11 +295,26 @@ begin
   { rw [mul_div_assoc],
     exact mul_nonpos_of_nonpos_of_nonneg (sub_nonpos.mpr $ by exact_mod_cast h.le)
       (div_nonneg (by simp [real.pi_pos.le]) $ by simp) },
-  rw [←mul_rotate', mul_div_assoc, neg_lt, ←mul_neg_one, mul_assoc],
-  sorry,
+  rw [←mul_rotate', mul_div_assoc, neg_lt, ←mul_neg, mul_lt_iff_lt_one_right real.pi_pos,
+      ←neg_div, ←neg_mul, neg_sub, div_lt_iff, one_mul, sub_mul, sub_lt, mul_sub_one],
+  norm_num,
+  exact_mod_cast not_le.mp h₂,
+  exact (cast_pos.mpr hn.bot_lt),
 end
 
-#exit
+.
+
+lemma _root_.is_primitive_root.arg_ne_zero {n : ℕ} {ζ : ℂ} (hζ : is_primitive_root ζ n)
+  (hn : 1 < n) : ζ.arg ≠ 0 :=
+begin
+  obtain ⟨k, h, hin, hi⟩ := hζ.arg (pos_of_gt hn).ne',
+  rw [h, ne.def, mul_eq_zero, _root_.div_eq_zero_iff, not_or_distrib, not_or_distrib],
+  refine ⟨⟨_, _⟩, by linarith [real.pi_pos]⟩; norm_cast; rintro rfl,
+  { rw [is_coprime_zero_left, int.is_unit_iff_nat_abs_eq, int.nat_abs_of_nat] at hin,
+    subst hin,
+    exact lt_irrefl 1 hn },
+  exact lt_irrefl 0 (zero_lt_one.trans hn),
+end
 lemma sub_one_pow_totient_lt_cyclotomic_eval (n : ℕ) (q : ℝ) (hn' : 2 ≤ n) (hq' : 1 < q) :
   (q - 1) ^ totient n < (cyclotomic n ℝ).eval q :=
 begin
@@ -310,8 +329,6 @@ begin
   let ζ := complex.exp (2 * ↑real.pi * complex.I / ↑n),
   have hζ : is_primitive_root ζ n := complex.is_primitive_root_exp n hn.ne',
   have hex : ∃ ζ' ∈ primitive_roots n ℂ, q - 1 < ∥↑q - ζ'∥,
-  -- todo: when Yael gets the strictly convex stuff in master, this will be very easy
-  -- (the triangle inequality will be strict as q and ζ are not in the `same_ray`)
   { refine ⟨ζ, (mem_primitive_roots hn).mpr hζ, _⟩,
     suffices : ¬ same_ray ℝ (q : ℂ) ζ,
     { convert lt_norm_sub_of_not_same_ray this;
@@ -320,7 +337,7 @@ begin
     push_neg,
     refine ⟨by exact_mod_cast hq.ne', hζ.ne_zero hn.ne', _⟩,
     rw [complex.arg_of_real_of_nonneg hq.le],
-  },
+    exact (hζ.arg_ne_zero hn').symm },
   have : ¬eval ↑q (cyclotomic n ℂ) = 0, -- this is also a general lemma
   { erw cyclotomic.eval_apply q n (algebra_map ℝ ℂ),
     simp only [complex.coe_algebra_map, complex.of_real_eq_zero],
@@ -353,6 +370,7 @@ lemma cyclotomic_eval_lt_sub_one_pow_totient (n : ℕ) (q : ℝ) (hn' : 3 ≤ n)
   (cyclotomic n ℝ).eval q < (q + 1) ^ totient n :=
 begin
   have hn : 0 < n := pos_of_gt hn',
+  have hq := zero_lt_one.trans hq',
   have hfor : ∀ ζ' ∈ primitive_roots n ℂ, ∥↑q - ζ'∥ ≤ q + 1,
   { intros ζ' hζ',
     rw mem_primitive_roots hn at hζ',

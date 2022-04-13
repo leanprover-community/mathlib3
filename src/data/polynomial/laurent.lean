@@ -7,7 +7,26 @@ Authors: Damiano Testa
 import data.polynomial.algebra_map
 import data.polynomial.denoms_clearable
 
-/-!  # Laurent polynomials -/
+/-!  # Laurent polynomials
+
+Following a suggestion by Eric, they are defined via `add_monoid_algebra R ℤ`.  Thus, they are essentially `finsupp`s `ℤ →₀ R `.
+
+This means that they play well with polynomials, but there is a little roughness in establishing the API, since the `finsupp` implementation of `polynomial R` is well-shielded.
+
+## Notation
+The symbol `R[T;T⁻¹]` stands for `laurent_polynomial R`.
+
+## Implementation notes
+* `C : R →+* R[T;T⁻¹]` denotes the inclusion of constant polynomials, analogous to the one for `R[X]`;
+* `T : ℤ → R[T;T⁻¹]` is the sequence of powers of the variable `T`.
+Unlike the case of polynomials, I felt that the exponent notation was not too easy to use, as only natural exponents would be allowed.  Moreover, in the end, it seems likely that we should aim to performing computations on exponents in `ℤ` anyway and separating this via the symbol `T` seems convenient.
+
+I made some *heavy* use of `simp` lemmas, aiming to bring Laurent polynomials to the form `C a * T n`.  Any comments or suggestions for improvements is greatly appreciated!
+
+##  Future work
+Lots is missing!  I would certainly like to show that `R[T;T⁻¹]` is the localization of `R[X]`
+inverting `X`.  This should be mostly in place, given `exists_X_pow`.
+-/
 
 open_locale polynomial big_operators
 open polynomial add_monoid_algebra multiplicative

@@ -561,9 +561,9 @@ by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
 homomorphism `monoid_ring_hom_map f : monoid_algebra k G →+* monoid_algebra k H`. -/
 def monoid_ring_hom_map (k : Type*) {H : Type*} [semiring k] [monoid G] [monoid H]
   (f : G →* H) : monoid_algebra k G →+* monoid_algebra k H :=
-lift_nc_ring_hom single_one_ring_hom ((of k H).comp f) $ λ r n,
-show (single 1 r * (single (f n) 1) : monoid_algebra k H) = single (f n) 1 * (single 1 r),
-by simp only [single_mul_single, mul_one, one_mul]
+{ map_one' := map_domain_one f,
+  map_mul' := λ x y, map_domain_mul f x y,
+  ..(finsupp.map_domain.add_monoid_hom f : monoid_algebra k G →+ monoid_algebra k H) }
 
 /-- If two ring homomorphisms from `monoid_algebra k G` are equal on all `single a 1`
 and `single 1 b`, then they are equal. -/
@@ -1250,6 +1250,10 @@ end
 `add_monoid_ring_hom_map f : add_monoid_algebra k G →+* add_monoid_algebra k H`. -/
 def add_monoid_ring_hom_map (k : Type*) [semiring k] {H : Type*} [add_monoid G] [add_monoid H]
   (f : G →+ H) : add_monoid_algebra k G →+* add_monoid_algebra k H :=
+{ map_one' := map_domain_one f,
+  map_mul' := λ x y, map_domain_mul f x y,
+  ..(finsupp.map_domain.add_monoid_hom f : monoid_algebra k G →+ monoid_algebra k H) }
+/-
 begin
   refine lift_nc_ring_hom _ ((of k H).comp f.to_multiplicative) (λ r n, _),
   { -- Without the explicit Type annotation, the proof times out.
@@ -1258,6 +1262,7 @@ begin
       single (f n) 1 * single 1 r,
     simp only [monoid_algebra.single_mul_single, one_mul, mul_one] }
 end
+-/
 
 end misc_theorems
 

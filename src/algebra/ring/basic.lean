@@ -231,9 +231,9 @@ end non_unital_semiring
 section non_assoc_semiring
 variables [non_assoc_semiring α]
 
-lemma add_one_mul (a b : α) : a * b + b = (a + 1) * b :=
+lemma add_one_mul (a b : α) : (a + 1) * b = a * b + b :=
 by rw [add_mul, one_mul]
-lemma mul_add_one (a b : α) : a * b + a = a * (b + 1) :=
+lemma mul_add_one (a b : α) : a * (b + 1) = a * b + a :=
 by rw [mul_add, mul_one]
 
 theorem two_mul (n : α) : 2 * n = n + n :=
@@ -860,10 +860,9 @@ protected def function.surjective.non_assoc_ring
 { .. hf.add_comm_group f zero add neg sub nsmul gsmul, .. hf.mul_zero_class f zero mul,
   .. hf.distrib f add mul, .. hf.mul_one_class f one mul }
 
-lemma sub_one_mul (a b : α) : a * b - b = (a - 1) * b :=
+lemma sub_one_mul (a b : α) : (a - 1) * b = a * b - b :=
 by rw [sub_mul, one_mul]
-
-lemma mul_sub_one (a b : α) : a * b - a = a * (b - 1) :=
+lemma mul_sub_one (a b : α) : a * (b - 1) = a * b - a :=
 by rw [mul_sub, mul_one]
 
 end non_assoc_ring

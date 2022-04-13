@@ -51,7 +51,7 @@ Matiyasevic's theorem, Hilbert's tenth problem
 
 open fin2 function nat sum
 
-local infixr ` ::ₒ `:67 := option.cons a b
+local infixr ` ::ₒ `:67 := option.cons
 local infixr ` ⊗ `:65 := sum.elim
 
 universe u
@@ -166,9 +166,9 @@ lemma sumsq_nonneg (x : α → ℕ) : ∀ l, 0 ≤ sumsq l x
 | (p::ps) := by rw sumsq; simp [-add_comm];
                 exact add_nonneg (mul_self_nonneg _) (sumsq_nonneg ps)
 
-lemma sumsq_eq_zero (x) : ∀ l, sumsq l x = 0 ↔ l.all2 (λ a : poly α, a x = 0)
+lemma sumsq_eq_zero (x) : ∀ l, sumsq l x = 0 ↔ l.all₂ (λ a : poly α, a x = 0)
 | []      := eq_self_iff_true _
-| (p::ps) := by rw [list.all2_cons, ← sumsq_eq_zero ps]; rw sumsq; simp [-add_comm]; exact
+| (p::ps) := by rw [list.all₂_cons, ← sumsq_eq_zero ps]; rw sumsq; simp [-add_comm]; exact
   ⟨λ (h : p x * p x + sumsq ps x = 0),
    have p x = 0, from eq_zero_of_mul_self_eq_zero $ le_antisymm
      (by rw ← h; have t := add_le_add_left (sumsq_nonneg x ps) (p x * p x); rwa [add_zero] at t)
@@ -233,10 +233,10 @@ lemma reindex_dioph (f : α → β) : Π (d : dioph S), dioph {v | v ∘ f ∈ S
 
 variables {β}
 
-lemma dioph_list.all2 (l : list (set $ α → ℕ)) (d : l.all2 dioph) :
-  dioph {v | l.all2 (λ S : set (α → ℕ), v ∈ S)} :=
+lemma dioph_list.all₂ (l : list (set $ α → ℕ)) (d : l.all₂ dioph) :
+  dioph {v | l.all₂ (λ S : set (α → ℕ), v ∈ S)} :=
 suffices ∃ β (pl : list (poly (α ⊕ β))), ∀ v,
-  list.all2 (λ S : set _, S v) l ↔ ∃ t, list.all2 (λ p : poly (α ⊕ β), p (v ⊗ t) = 0) pl,
+  list.all₂ (λ S : set _, S v) l ↔ ∃ t, list.all₂ (λ p : poly (α ⊕ β), p (v ⊗ t) = 0) pl,
 from let ⟨β, pl, h⟩ := this
   in ⟨β, poly.sumsq pl, λ v, (h v).trans $ exists_congr $ λ t, (poly.sumsq_eq_zero _ _).symm⟩,
 begin
@@ -250,7 +250,7 @@ begin
       ⟨m ⊗ n, by rw [
         show (v ⊗ m ⊗ n) ∘ (inl ⊗ inr ∘ inl) = v ⊗ m,
         from funext $ λ s, by cases s with a b; refl]; exact hm,
-      by { refine list.all2.imp (λ q hq, _) hn, dsimp [(∘)],
+      by { refine list.all₂.imp (λ q hq, _) hn, dsimp [(∘)],
            rw [show (λ (x : α ⊕ γ), (v ⊗ m ⊗ n) ((inl ⊗ λ (x : γ), inr (inr x)) x)) = v ⊗ n,
                from funext $ λ s, by cases s with a b; refl]; exact hq }⟩,
     λ ⟨t, hl, hr⟩,
@@ -258,12 +258,12 @@ begin
         show (v ⊗ t) ∘ (inl ⊗ inr ∘ inl) = v ⊗ t ∘ inl,
         from funext $ λ s, by cases s with a b; refl] at hl⟩,
       ⟨t ∘ inr, by
-      { refine list.all2.imp (λ q hq, _) hr, dsimp [(∘)] at hq,
+      { refine list.all₂.imp (λ q hq, _) hr, dsimp [(∘)] at hq,
         rwa [show (λ (x : α ⊕ γ), (v ⊗ t) ((inl ⊗ λ (x : γ), inr (inr x)) x)) = v ⊗ t ∘ inr,
              from funext $ λ s, by cases s with a b; refl] at hq }⟩⟩⟩⟩
 end
 
-lemma inter (d : dioph S) (d' : dioph S') : dioph (S ∩ S') := dioph_list.all2 [S, S'] ⟨d, d'⟩
+lemma inter (d : dioph S) (d' : dioph S') : dioph (S ∩ S') := dioph_list.all₂ [S, S'] ⟨d, d'⟩
 
 lemma union : ∀ (d : dioph S) (d' : dioph S'), dioph (S ∪ S')
 | ⟨β, p, pe⟩ ⟨γ, q, qe⟩ := ⟨β ⊕ γ, p.map (inl ⊗ inr ∘ inl) * q.map (inl ⊗ inr ∘ inr), λ v,
@@ -355,8 +355,7 @@ ext (ex1_dioph $ reindex_dioph _ (none :: some) d) $ λ v, exists_congr $ λ x, 
 lemma dioph_fn_vec (f : vector3 ℕ n → ℕ) : dioph_fn f ↔ dioph {v | f (v ∘ fs) = v fz} :=
 ⟨reindex_dioph _ (fz ::ₒ fs), reindex_dioph _ (none :: some)⟩
 
-lemma dioph_pfun_vec (f : vector3 ℕ n →. ℕ) :
-  dioph_pfun f ↔ dioph {v | f.graph (v ∘ fs, v fz)} :=
+lemma dioph_pfun_vec (f : vector3 ℕ n →. ℕ) : dioph_pfun f ↔ dioph {v | f.graph (v ∘ fs, v fz)} :=
 ⟨reindex_dioph _ (fz ::ₒ fs), reindex_dioph _ (none :: some)⟩
 
 lemma dioph_fn_compn : ∀ {n} {S : set (α ⊕ fin2 n → ℕ)} (d : dioph S)
@@ -374,7 +373,7 @@ lemma dioph_fn_compn : ∀ {n} {S : set (α ⊕ fin2 n → ℕ)} (d : dioph S)
   ext this $ λ v, by { dsimp, congr', ext x, obtain (_ | _ | _) := x; refl }
 
 lemma dioph_comp {S : set (vector3 ℕ n)} (d : dioph S) (f : vector3 ((α → ℕ) → ℕ) n)
-  (df : vector_allp dioph_fn f) : dioph (λ v, S (λ i, f i v)) :=
+  (df : vector_allp dioph_fn f) : dioph {v | (λ i, f i v) ∈ S} :=
 dioph_fn_compn (reindex_dioph _ inr d) df
 
 lemma dioph_fn_comp {f : vector3 ℕ n → ℕ} (df : dioph_fn f) (g : vector3 ((α → ℕ) → ℕ) n)

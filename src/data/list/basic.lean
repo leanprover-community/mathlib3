@@ -3709,7 +3709,7 @@ end to_chunks
 
 /-! ### all₂ -/
 
-namespace list
+section all₂
 variables {p q : α → Prop} {l : list α}
 
 @[simp] lemma all₂_cons (p : α → Prop) (x : α) : ∀ (l : list α), all₂ p (x :: l) ↔ p x ∧ all₂ p l
@@ -3730,7 +3730,7 @@ by induction l; simp *
 instance (p : α → Prop) [decidable_pred p] : decidable_pred (all₂ p) :=
 λ l, decidable_of_iff' _ all₂_iff_forall
 
-end list
+end all₂
 
 /-! ### Retroattributes
 

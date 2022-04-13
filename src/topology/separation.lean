@@ -447,10 +447,22 @@ begin
   { exact continuous_within_at_update_same }
 end
 
+lemma t1_space_of_injective_of_continuous [topological_space β] {f : α → β}
+  (hf : function.injective f) (hf' : continuous f) [t1_space β] : t1_space α :=
+{ t1 :=
+  begin
+    intros x,
+    rw [← function.injective.preimage_image hf {x}, image_singleton],
+    exact (t1_space.t1 $ f x).preimage hf'
+  end }
+
+protected lemma embedding.t1_space [topological_space β] [t1_space β] {f : α → β}
+  (hf : embedding f) : t1_space α :=
+t1_space_of_injective_of_continuous hf.inj hf.continuous
+
 instance subtype.t1_space {α : Type u} [topological_space α] [t1_space α] {p : α → Prop} :
   t1_space (subtype p) :=
-⟨λ ⟨x, hx⟩, is_closed_induced_iff.2 $ ⟨{x}, is_closed_singleton, set.ext $ λ y,
-  by simp [subtype.ext_iff_val]⟩⟩
+embedding_subtype_coe.t1_space
 
 @[priority 100] -- see Note [lower instance priority]
 instance t1_space.t0_space [t1_space α] : t0_space α :=
@@ -1275,14 +1287,21 @@ lemma topological_space.is_topological_basis.nhds_basis_closure [regular_space �
 ⟨λ s, ⟨λ h, let ⟨t, htB, hat, hts⟩ := hB.exists_closure_subset h in ⟨t, ⟨hat, htB⟩, hts⟩,
   λ ⟨t, ⟨hat, htB⟩, hts⟩, mem_of_superset (hB.mem_nhds htB hat) (subset_closure.trans hts)⟩⟩
 
+protected lemma embedding.regular_space [topological_space β] [regular_space β] {f : α → β}
+  (hf : embedding f) : regular_space α :=
+{ to_t0_space := hf.t0_space,
+  regular :=
+  begin
+    intros s a hs ha,
+    rcases hf.to_inducing.is_closed_iff.1 hs with ⟨s, hs', rfl⟩,
+    rcases regular_space.regular hs' ha with ⟨t, ht, hst, hat⟩,
+    refine ⟨f ⁻¹' t, ht.preimage hf.continuous, preimage_mono hst, _⟩,
+    rw [nhds_within, hf.to_inducing.nhds_eq_comap, ← comap_principal, ← comap_inf,
+        ← nhds_within, hat, comap_bot]
+  end }
+
 instance subtype.regular_space [regular_space α] {p : α → Prop} : regular_space (subtype p) :=
-⟨begin
-   intros s a hs ha,
-   rcases is_closed_induced_iff.1 hs with ⟨s, hs', rfl⟩,
-   rcases regular_space.regular hs' ha with ⟨t, ht, hst, hat⟩,
-   refine ⟨coe ⁻¹' t, is_open_induced ht, preimage_mono hst, _⟩,
-   rw [nhds_within, nhds_induced, ← comap_principal, ← comap_inf, ← nhds_within, hat, comap_bot]
- end⟩
+embedding_subtype_coe.regular_space
 
 variable (α)
 @[priority 100] -- see Note [lower instance priority]
@@ -1402,6 +1421,19 @@ begin
   simp only [disjoint_iff],
   exact compact_compact_separated hs.is_compact ht.is_compact st.eq_bot
 end
+
+protected lemma closed_embedding.normal_space [topological_space β] [normal_space β] {f : α → β}
+  (hf : closed_embedding f) : normal_space α :=
+{ to_t1_space := hf.to_embedding.t1_space,
+  normal :=
+  begin
+    intros s t hs ht hst,
+    rcases normal_space.normal (f '' s) (f '' t) (hf.is_closed_map s hs) (hf.is_closed_map t ht)
+      (disjoint_image_of_injective hf.inj hst) with ⟨u, v, hu, hv, hsu, htv, huv⟩,
+    rw image_subset_iff at hsu htv,
+    exact ⟨f ⁻¹' u, f ⁻¹' v, hu.preimage hf.continuous, hv.preimage hf.continuous,
+            hsu, htv, huv.preimage f⟩
+  end }
 
 variable (α)
 

@@ -940,6 +940,27 @@ local attribute [instance] topological_group.regular_space
 @[to_additive]
 lemma topological_group.t2_space [t1_space G] : t2_space G := regular_space.t2_space G
 
+variables {G}
+
+@[to_additive]
+lemma subgroup.t1_quotient_of_is_closed (S : subgroup G) [S.normal] (hS : is_closed (S : set G)) :
+  t1_space (G ⧸ S) :=
+begin
+  rw ← quotient_group.ker_mk S at hS,
+  exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS)
+end
+
+@[to_additive]
+lemma subgroup.regular_quotient_of_is_closed (S : subgroup G) [S.normal]
+  (hS : is_closed (S : set G)) :
+  regular_space (G ⧸ S) :=
+@topological_group.regular_space (G ⧸ S) _ _ _ (S.t1_quotient_of_is_closed hS)
+
+@[to_additive]
+lemma subgroup.t2_quotient_of_is_closed (S : subgroup G) [S.normal] (hS : is_closed (S : set G)) :
+  t2_space (G ⧸ S) :=
+@regular_space.t2_space (G ⧸ S) _ (S.regular_quotient_of_is_closed hS)
+
 end
 
 section

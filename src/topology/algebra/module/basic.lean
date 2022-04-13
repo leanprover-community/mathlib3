@@ -1875,3 +1875,64 @@ lemma continuous_linear_map.closed_complemented_ker_of_right_inverse {R : Type*}
   (h : function.right_inverse f₂ f₁) :
   f₁.ker.closed_complemented :=
 ⟨f₁.proj_ker_of_right_inverse f₂ h, f₁.proj_ker_of_right_inverse_apply_idem f₂ h⟩
+
+section quotient
+
+namespace submodule
+
+variables {R M : Type*} [ring R] [add_comm_group M] [module R M] [topological_space M]
+  (S : submodule R M)
+
+noncomputable def quotient_homeomorph_quotient_group : M ⧸ S ≃ₜ M ⧸ S.to_add_subgroup :=
+{ continuous_to_fun :=
+  begin
+    refine continuous_coinduced_dom _,
+    change continuous (S.quotient_equiv_quotient_group ∘ S.mkq),
+    rw S.quotient_equiv_quotient_group_comp_mkq,
+    exact continuous_quot_mk
+  end,
+  continuous_inv_fun := continuous_coinduced_dom continuous_quot_mk,
+  .. S.quotient_equiv_quotient_group }
+
+lemma is_open_map_mkq [topological_add_group M] : is_open_map S.mkq :=
+begin
+  rw ← S.quotient_equiv_quotient_group_symm_comp_mk,
+  exact S.quotient_homeomorph_quotient_group.symm.is_open_map.comp
+    (quotient_add_group.is_open_map_coe _)
+end
+
+instance topological_add_group_quotient [topological_add_group M] :
+    topological_add_group (M ⧸ S) :=
+begin
+  have : inducing S.quotient_equiv_quotient_group :=
+    S.quotient_homeomorph_quotient_group.inducing,
+  rw this.1,
+  exact topological_add_group_induced _
+end
+
+instance has_continuous_smul_quotient [topological_space R] [topological_add_group M]
+  [has_continuous_smul R M] :
+  has_continuous_smul R (M ⧸ S) :=
+begin
+  split,
+  have quot : quotient_map (λ au : R × M, (au.1, S.mkq au.2)),
+    from is_open_map.to_quotient_map
+      (is_open_map.id.prod S.is_open_map_mkq)
+      (continuous_id.prod_map continuous_quot_mk)
+      (function.surjective_id.prod_map $ surjective_quot_mk _),
+  rw quot.continuous_iff,
+  exact continuous_quot_mk.comp continuous_smul
+end
+
+lemma submodule.regular_quotient_of_is_closed [topological_add_group M]
+  (hS : is_closed (S : set M)) :
+  regular_space (M ⧸ S) :=
+begin
+  letI : regular_space (M ⧸ S.to_add_subgroup) :=
+    S.to_add_subgroup.regular_quotient_of_is_closed hS,
+  exact S.quotient_homeomorph_quotient_group.symm.regular_space
+end
+
+end submodule
+
+end quotient

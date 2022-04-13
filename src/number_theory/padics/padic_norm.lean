@@ -593,13 +593,13 @@ begin
   simp only [le_refl, or_true],
 end
 
-lemma padic_val_int_eq_one (p : ℕ) [fact p.prime] : padic_val_int p p = 1 :=
+lemma padic_val_int_self (p : ℕ) [pp : fact p.prime] : padic_val_int p p = 1 :=
 begin
   apply padic_val_int.self,
-  exact _inst_1.out.one_lt,
+  exact pp.out.one_lt,
 end
 
-lemma padic_val_int_add_of_mul (p : ℕ) [fact p.prime] {a b : ℤ} (ha : a ≠ 0) (hb : b ≠ 0) :
+lemma padic_val_int.mul (p : ℕ) [fact p.prime] {a b : ℤ} (ha : a ≠ 0) (hb : b ≠ 0) :
   padic_val_int p (a*b) = padic_val_int p a + padic_val_int p b :=
 begin
   simp_rw padic_val_int,
@@ -609,15 +609,15 @@ begin
   exact int.nat_abs_ne_zero.mpr hb,
 end
 
-lemma padic_val_int_succ_mul_p (p : ℕ) [fact p.prime] (a : ℤ) (ha : a ≠ 0) :
+lemma padic_val_int_mul_eq_succ (p : ℕ) [pp : fact p.prime] (a : ℤ) (ha : a ≠ 0) :
   padic_val_int p (a * p) = (padic_val_int p a) + 1 :=
 begin
-  rw padic_val_int_add_of_mul,
+  rw padic_val_int.mul,
   congr,
   simp only [eq_self_iff_true, padic_val_int.of_nat, padic_val_nat_self],
   assumption,
   simp only [int.coe_nat_eq_zero, ne.def],
-  exact (_inst_1.out).ne_zero,
+  exact (pp.out).ne_zero,
 end
 
 end padic_val_int

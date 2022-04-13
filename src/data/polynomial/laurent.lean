@@ -69,7 +69,6 @@ namespace laurent_polynomial
 section semiring
 variables [semiring R]
 
-@[simp]
 lemma single_zero_one_eq_one : (finsupp.single 0 1 : R[T;T⁻¹]) = (1 : R[T;T⁻¹]) := rfl
 
 /-!  ### The functions `C` and `T`. -/
@@ -96,11 +95,6 @@ lemma T_zero : (T 0 : R[T;T⁻¹]) = 1 := rfl
 lemma T_add (m n : ℤ) : (T (m + n) : R[T;T⁻¹]) = T m * T n :=
 by {convert single_mul_single.symm, simp [T] }
 
-/--  `T_mul_T` is the `simp`-normal form of `T_add`. -/
-@[simp]
-lemma T_mul_T (m n : ℤ) : (T m * T n : R[T;T⁻¹]) = T (m + n) :=
-(T_add _ _).symm
-
 @[simp]
 lemma T_pow (m : ℤ) (n : ℕ) : (T m ^ n : R[T;T⁻¹]) = T (n * m) :=
 by rw [T, T, single_pow n, one_pow, nsmul_eq_mul, int.nat_cast_eq_coe_nat]
@@ -108,7 +102,7 @@ by rw [T, T, single_pow n, one_pow, nsmul_eq_mul, int.nat_cast_eq_coe_nat]
 /-- The `simp` version of `mul_assoc`, in the presence of `T`'s. -/
 @[simp]
 lemma mul_T_assoc (f : R[T;T⁻¹]) (m n : ℤ) : f * T m * T n = f * T (m + n) :=
-by simp [mul_assoc]
+by simp [← T_add, mul_assoc]
 
 @[simp]
 lemma single_eq_C_mul_T (r : R) (n : ℤ) :
@@ -145,11 +139,6 @@ begin
   simp [this, monomial_eq_C_mul_T],
 end
 
-@[simp]
-lemma C_one_eq_C_one :
-  (polynomial.C (1 : R)).to_laurent_polynomial = C 1 :=
-by simp only [_root_.map_one]
-
 @[simp] lemma polynomial_one_eq_one : (polynomial.to_laurent_polynomial : R[X] → R[T;T⁻¹]) 1 = 1 :=
 C_eq_C (1 : R)
 
@@ -169,11 +158,11 @@ lemma C_mul_X_pow (n : ℕ) (r : R) :
 by simp only [_root_.map_mul, C_eq_C, X_pow_eq_T]
 
 lemma is_unit_T (n : ℤ) : is_unit (T n : R[T;T⁻¹]) :=
-by refine ⟨⟨T n, T (- n), _, _⟩, _⟩; simp
+by refine ⟨⟨T n, T (- n), _, _⟩, _⟩; simp [← T_add]
 
 lemma is_regular_T (n : ℤ) : is_regular (T n : R[T;T⁻¹]) :=
-⟨is_left_regular_of_mul_eq_one (by simp : T (-n) * T n = 1),
-  is_right_regular_of_mul_eq_one (by simp : T n * T (-n) = 1)⟩
+⟨is_left_regular_of_mul_eq_one (by simp [← T_add] : T (-n) * T n = 1),
+  is_right_regular_of_mul_eq_one (by simp [← T_add] : T n * T (-n) = 1)⟩
 
 @[elab_as_eliminator] protected lemma induction_on {M : R[T;T⁻¹] → Prop} (p : R[T;T⁻¹])
   (h_C         : ∀ a, M (C a))

@@ -131,7 +131,7 @@ begin
 end
 
 /-- The product of two independent, integrable, real_valued random variables is integrable. -/
-lemma indep_fun.integrable_mul {β : Type*} {mβ : measurable_space β} {X Y : α → β}
+lemma indep_fun.integrable_mul {β : Type*} [measurable_space β] {X Y : α → β}
   [normed_division_ring β] [borel_space β]
   (hXY : indep_fun X Y μ) (hX : integrable X μ) (hY : integrable Y μ) :
   integrable (X * Y) μ :=
@@ -234,5 +234,10 @@ begin
     hi4.integral_mul_of_nonneg hp2 hp4 hm2 hm4],
   ring
 end
+
+theorem indep_fun.integral_mul_of_integrable' (hXY : indep_fun X Y μ)
+  (hX : integrable X μ) (hY : integrable Y μ) :
+  integral μ (λ x, X x * Y x) = integral μ X * integral μ Y :=
+hXY.integral_mul_of_integrable hX hY
 
 end probability_theory

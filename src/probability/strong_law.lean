@@ -4,14 +4,12 @@ import probability.integration
 
 open measure_theory filter set
 
-open_locale probability_theory
-
-localized "notation `Var[` X `]` := 𝔼[X^2] - 𝔼[X]^2" in probability_theory
-localized "notation `ℙ` := volume" in probability_theory
-
+noncomputable theory
 
 open_locale topological_space big_operators measure_theory probability_theory ennreal
 
+lemma sq_add {α : Type*} [comm_semiring α] (x y : α) : (x + y)^2 = x^2 + y^2 + 2 * x * y :=
+by ring
 
 lemma ennreal.one_le_two : (1 : ℝ≥0∞) ≤ 2 := ennreal.one_lt_two.le
 
@@ -27,16 +25,29 @@ begin
   simp only [pow_bit0_abs],
 end
 
+open measure_theory finset
+
 namespace probability_theory
 
-variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
+def variance {Ω : Type*} {m : measurable_space Ω} (f : Ω → ℝ) (μ : measure Ω) :=
+μ[f ^ 2] - μ[f] ^ 2
+
+@[simp] lemma variance_zero {Ω : Type*} {m : measurable_space Ω} (μ : measure Ω) :
+  variance 0 μ = 0 :=
+by simp [variance]
+
+localized "notation `Var[` X `]` := probability_theory.variance X volume" in probability_theory
+localized "notation `ℙ` := volume" in probability_theory
+
+
+variables {Ω : Type*} [measure_space Ω] [is_finite_measure (ℙ : measure Ω)]
 
 
 theorem indep_fun.Var_add {X Y : Ω → ℝ} (hX : mem_ℒp X 2) (hY : mem_ℒp Y 2) (h : indep_fun X Y) :
   Var[X + Y] = Var[X] + Var[Y] :=
 calc
 Var[X + Y] = 𝔼[λ a, (X a)^2 + (Y a)^2 + 2 * X a * Y a] - 𝔼[X+Y]^2 :
-  by { congr' 2, ext a, simp only [pi.pow_apply, pi.add_apply], ring }
+  by simp [variance, sq_add]
 ... = (𝔼[X^2] + 𝔼[Y^2] + 2 * 𝔼[X * Y]) - (𝔼[X] + 𝔼[Y])^2 :
 begin
   simp only [pi.add_apply, pi.pow_apply, pi.mul_apply, mul_assoc],
@@ -55,54 +66,80 @@ begin
   exact h.integral_mul_of_integrable
     (hX.integrable ennreal.one_le_two) (hY.integrable ennreal.one_le_two),
 end
-... = Var[X] + Var[Y] : by ring
+... = Var[X] + Var[Y] :
+  by { simp_rw [variance], ring }
 
-open_locale classical
 
-lemma sq_add (x y : ℝ) : (x + y)^2 = x^2 + y^2 + 2 * x * y := by ring
-
-lemma sq_sum {ι : Type*} {s : finset ι} (f : ι → ℝ) :
-  (∑ i in s, f i) ^ 2 = (∑ i in s, (f i)^2) + ∑ i in s, ∑ j in s \ {i}, f i * f j :=
-begin
-  induction s using finset.induction_on with k s ks IH,
-  { simp only [finset.sum_empty, zero_pow', ne.def, bit0_eq_zero, nat.one_ne_zero, not_false_iff,
-    add_zero] },
-  have A : ∑ (i : ι) in s, ∑ (j : ι) in insert k s \ {i}, f i * f j
-    = ∑ (i : ι) in s, (f i * f k + ∑ (j : ι) in s \ {i}, f i * f j),
-  { refine finset.sum_congr rfl _,
-    assume i hi,
-    rw [finset.insert_sdiff_of_not_mem, finset.sum_insert],
-    { simpa only [finset.mem_sdiff, not_and] using ks },
-    { assume hk,
-      apply ks,
-      rwa finset.mem_singleton.1 hk } },
-  rw [finset.sum_insert ks, finset.sum_insert ks, finset.sum_insert ks,
-      finset.insert_sdiff_of_mem _ (finset.mem_singleton_self _),
-      finset.sdiff_eq_self_of_disjoint (finset.disjoint_singleton_right.2 ks), sq_add, IH, A,
-      finset.sum_add_distrib, ← finset.mul_sum, ← finset.sum_mul,
-      mul_comm ((∑ (x : ι) in s, f x)) (f k)],
-  ring,
-end
+open finset
 
 theorem indep_fun.Var_sum {ι : Type*} {X : ι → Ω → ℝ} {s : finset ι}
   (hs : ∀ i ∈ s, mem_ℒp (X i) 2) (h : set.pairwise ↑s (λ i j, indep_fun (X i) (X j))) :
   Var[∑ i in s, X i] = ∑ i in s, Var[X i] :=
-calc
-Var[∑ i in s, X i]
-    = 𝔼[∑ i in s, (X i)^2 + ∑ i in s, ∑ j in s \ {i}, X i * X j] - 𝔼[∑ i in s, X i]^2 :
-by { congr, ext x, simp only [sq_sum, pi.pow_apply, finset.sum_apply, pi.add_apply, pi.mul_apply] }
-... = (𝔼[∑ i in s, (X i)^2] + 𝔼[∑ i in s, ∑ j in s \ {i}, X i * X j]) - (∑ i in s, 𝔼[X i])^2 :
 begin
-  simp only [pi.add_apply, finset.sum_apply, pi.pow_apply, pi.mul_apply],
-  rw integral_add,
-  sorry,
-  { exact integrable_finset_sum _ (λ i hi, (hs i hi).integrable_sq) },
-  { apply integrable_finset_sum _ (λ i hi, _),
-    apply integrable_finset_sum _ (λ j hj, _),
-
-  }
+  classical,
+  induction s using finset.induction_on with k s ks IH,
+  { simp only [finset.sum_empty, variance_zero] },
+  rw [variance, sum_insert ks, sum_insert ks],
+  simp only [sq_add],
+  calc 𝔼[X k ^ 2 + (∑ i in s, X i) ^ 2 + 2 * X k * ∑ i in s, X i] - 𝔼[X k + ∑ i in s, X i] ^ 2
+  = (𝔼[X k ^ 2] + 𝔼[(∑ i in s, X i) ^ 2] + 𝔼[2 * X k * ∑ i in s, X i])
+    - (𝔼[X k] + 𝔼[∑ i in s, X i]) ^ 2 :
+  begin
+    rw [integral_add', integral_add', integral_add'],
+    { exact mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_self _ _)) },
+    { apply integrable_finset_sum' _ (λ i hi, _),
+      exact mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi)) },
+    { exact mem_ℒp.integrable_sq (hs _ (mem_insert_self _ _)) },
+    { apply mem_ℒp.integrable_sq,
+      exact mem_ℒp_finset_sum' _ (λ i hi, (hs _ (mem_insert_of_mem hi))) },
+    { apply integrable.add,
+      { exact mem_ℒp.integrable_sq (hs _ (mem_insert_self _ _)) },
+      { apply mem_ℒp.integrable_sq,
+        exact mem_ℒp_finset_sum' _ (λ i hi, (hs _ (mem_insert_of_mem hi))) } },
+    { rw mul_assoc,
+      apply integrable.const_mul _ 2,
+      simp only [mul_sum, sum_apply, pi.mul_apply],
+      apply integrable_finset_sum _ (λ i hi, _),
+      apply indep_fun.integrable_mul _
+        (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_self _ _)))
+        (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi))),
+      apply h (mem_insert_self _ _) (mem_insert_of_mem hi),
+      assume hki,
+      rw hki at ks,
+      exact ks hi }
+  end
+  ... = Var[X k] + Var[∑ i in s, X i] +
+    (𝔼[2 * X k * ∑ i in s, X i] - 2 * 𝔼[X k] * 𝔼[∑ i in s, X i]) :
+      by { simp_rw [variance], ring }
+  ... = Var[X k] + Var[∑ i in s, X i] :
+  begin
+    simp only [mul_assoc, integral_mul_left, pi.mul_apply, pi.bit0_apply, pi.one_apply, sum_apply,
+      add_right_eq_self, mul_sum],
+    rw integral_finset_sum s (λ i hi, _), swap,
+    { apply integrable.const_mul _ 2,
+      apply indep_fun.integrable_mul _
+        (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_self _ _)))
+        (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi))),
+      apply h (mem_insert_self _ _) (mem_insert_of_mem hi),
+      assume hki,
+      rw hki at ks,
+      exact ks hi },
+    rw [integral_finset_sum s
+      (λ i hi, (mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi)))),
+      mul_sum, mul_sum, ← sum_sub_distrib],
+    apply finset.sum_eq_zero (λ i hi, _),
+    rw [integral_mul_left, indep_fun.integral_mul_of_integrable', sub_self],
+    { apply h (mem_insert_self _ _) (mem_insert_of_mem hi),
+      assume hki,
+      rw hki at ks,
+      exact ks hi },
+    { exact mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_self _ _)) },
+    { exact mem_ℒp.integrable ennreal.one_le_two (hs _ (mem_insert_of_mem hi)) }
+  end
+  ... = Var[X k] + ∑ i in s, Var[X i] :
+    by rw IH (λ i hi, hs i (mem_insert_of_mem hi))
+      (h.mono (by simp only [coe_insert, set.subset_insert]))
 end
-... = ∑ i in s, Var[X i] : sorry
 
 
 theorem
@@ -121,6 +158,11 @@ begin
   have : pairwise (λ i j, indep_fun (Y i) (Y j) ℙ),
   { assume i j hij,
     exact (hindep i j hij).comp (A i).measurable (A j).measurable },
+  have : ∀ i, mem_ℒp (Y i) 2,
+  { assume i,
+
+
+  }
 
 end
 

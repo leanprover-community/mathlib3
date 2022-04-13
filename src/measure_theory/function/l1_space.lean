@@ -560,6 +560,10 @@ begin
     (integrable_zero _ _ _) hf,
 end
 
+lemma integrable_finset_sum' {ι} (s : finset ι)
+  {f : ι → α → β} (hf : ∀ i ∈ s, integrable (f i) μ) : integrable (∑ i in s, f i) μ :=
+by { convert integrable_finset_sum s hf, ext x, simp }
+
 lemma integrable.neg {f : α → β} (hf : integrable f μ) : integrable (-f) μ :=
 ⟨hf.ae_strongly_measurable.neg, hf.has_finite_integral.neg⟩
 
@@ -829,9 +833,17 @@ lemma integrable.const_mul {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
   integrable (λ x, c * f x) μ :=
 integrable.smul c h
 
+lemma integrable.const_mul' {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
+  integrable ((λ (x : α), c) * f) μ :=
+integrable.smul c h
+
 lemma integrable.mul_const {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
   integrable (λ x, f x * c) μ :=
 by simp_rw [mul_comm, h.const_mul _]
+
+lemma integrable.mul_const' {f : α → ℝ} (h : integrable f μ) (c : ℝ) :
+  integrable (f * (λ (x : α), c)) μ :=
+integrable.mul_const h c
 
 end normed_space
 

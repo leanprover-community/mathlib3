@@ -286,8 +286,7 @@ instance : algebra R[X] R[T;T⁻¹] :=
 { commutes' := λ f l, by simp [mul_comm],
   smul_def' := λ f l, rfl,
   .. ((add_monoid_alg_hom_map R (nat.cast_add_monoid_hom ℤ)).to_ring_hom.comp
-    (to_finsupp_iso R).to_ring_hom : R[X] →+* R[T;T⁻¹])
-   }
+    (to_finsupp_iso R).to_ring_hom : R[X] →+* R[T;T⁻¹]) }
 
 end comm_semiring
 -/

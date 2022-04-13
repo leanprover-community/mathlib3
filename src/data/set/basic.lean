@@ -194,7 +194,7 @@ nevertheless be useful for various reasons, e.g. to apply further projection not
 argument to `simp`. -/
 lemma has_mem.mem.out {p : α → Prop} {a : α} (h : a ∈ {x | p x}) : p a := h
 
-theorem nmem_set_of_eq {a : α} {p : α → Prop} : a ∉ {x | p x} = ¬ P a := rfl
+theorem nmem_set_of_eq {a : α} {p : α → Prop} : a ∉ {x | p x} = ¬ p a := rfl
 
 @[simp] theorem set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
 

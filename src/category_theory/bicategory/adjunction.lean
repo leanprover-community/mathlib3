@@ -3,7 +3,7 @@ Copyright (c) 2022 Yuma Mizuno. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yuma Mizuno
 -/
-import category_theory.bicategory.coherence_tactic
+import category_theory.monoidal.coherence
 
 namespace category_theory
 
@@ -268,8 +268,6 @@ def adjointify_unit (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : 𝟙 a
 def adjointify_counit (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) : g ≫ f ≅ 𝟙 b :=
 whisker_left_iso g ((ρ_ f).symm ≪≫ right_zigzag_iso ε.symm η.symm ≪≫ λ_ f) ≪≫ ε
 
-set_option class.instance_max_depth 40
-
 @[simp]
 lemma adjointify_counit_symm (η : 𝟙 a ≅ f ≫ g) (ε : g ≫ f ≅ 𝟙 b) :
   (adjointify_counit η ε).symm = adjointify_unit ε.symm η.symm :=
@@ -299,13 +297,10 @@ begin
   { coherence },
   { rw whisker_exchange, coherence },
   { rw [whisker_exchange, whisker_exchange], coherence },
-  { rw whisker_exchange,
-    --simp_rw [whisker_right_id, id_whisker_left, unitors_equal, assoc, iso.inv_hom_id_assoc],
-    coherence },
+  { rw whisker_exchange, coherence },
   { rw iso.inv_hom_id, coherence },
   { rw ←whisker_exchange, coherence },
   { simp [bicategorical_comp] }
---  { rw iso.inv_hom_id }
 end
 
 @[simp]

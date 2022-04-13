@@ -1021,10 +1021,10 @@ quot.lift f (λ v w (h' : G.reachable v w), h'.elim_path (λ hp, h v w hp hp.2))
 
 end connected_component
 
-/-- A subgraph is connected if it is connected as a simple graph. -/
-abbreviation subgraph.connected {G : simple_graph V} (H : G.subgraph) : Prop := H.coe.connected
-
 variables {G}
+
+/-- A subgraph is connected if it is connected as a simple graph. -/
+abbreviation subgraph.connected (H : G.subgraph) : Prop := H.coe.connected
 
 lemma preconnected.set_univ_walk_nonempty (hconn : G.preconnected) (u v : V) :
   (set.univ : set (G.walk u v)).nonempty :=

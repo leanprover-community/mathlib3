@@ -512,7 +512,7 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
     from calc _ ⊆ preimage (λp:(β×β), (e p.1, e p.2)) (interior t) : preimage_mono hm
     ... ⊆ preimage (λp:(β×β), (e p.1, e p.2)) t : preimage_mono interior_subset
     ... ⊆ preimage (λp:(β×β), (f p.1, f p.2)) s : ts,
-  have f '' (e ⁻¹' m₁) ×ˢ f '' (e ⁻¹' m₂) ⊆ s,
+  have (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) ⊆ s,
     from calc (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) =
       (λp:(β×β), (f p.1, f p.2)) '' ((e ⁻¹' m₁) ×ˢ (e ⁻¹' m₂)) : prod_image_image_eq
     ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' ((λp:(β×β), (f p.1, f p.2)) ⁻¹' s) : monotone_image this

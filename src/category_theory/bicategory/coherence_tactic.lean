@@ -76,7 +76,10 @@ instance lift_hom₂_whisker_right {f g : a ⟶ b} (η : f ⟶ g) [lift_hom f] [
   {h : b ⟶ c} [lift_hom h] : lift_hom₂ (η ▷ h) :=
 { lift := lift_hom₂.lift η ▷ lift_hom.lift h }
 
--- We could likely turn this into a `Prop` valued existential if that proves useful.
+/--
+A typeclass carrying a choice of bicategorical structural isomorphism between two objects.
+Used by the `⊗≫` bicategorical composition operator, and the `coherence` tactic.
+-/
 class bicategorical_coherence (f g : a ⟶ b) [lift_hom f] [lift_hom g] :=
 (hom [] : f ⟶ g)
 [is_iso : is_iso hom . tactic.apply_instance]
@@ -174,7 +177,7 @@ example {f' : a ⟶ d} {f : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} {h' : a ⟶ d}
   (η : f' ⟶ f ≫ (g ≫ h)) (θ : (f ≫ g) ≫ h ⟶ h') : f' ⟶ h' := η ⊗≫ θ
 
 -- To automatically insert unitors/associators at the beginning or end,
--- you can use `f ⊗≫ 𝟙 _`
+-- you can use `η ⊗≫ 𝟙 _`
 example {f' : a ⟶ d } {f : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} (η : f' ⟶ (f ≫ g) ≫ h) :
   f' ⟶ f ≫ (g ≫ h) := η ⊗≫ 𝟙 _
 
@@ -225,6 +228,10 @@ Auxiliary simp lemma for the `coherence` tactic:
 this move brackets to the left in order to expose a maximal prefix
 built out of unitors and associators.
 -/
+-- We have unused typeclass arguments here.
+-- They are intentional, to ensure that `simp only [assoc_lift_hom₂]` only left associates
+-- bicategorical structural morphisms.
+@[nolint unused_arguments]
 lemma assoc_lift_hom₂ {f g h i : a ⟶ b} [lift_hom f] [lift_hom g] [lift_hom h]
   (η : f ⟶ g) (θ : g ⟶ h) (ι : h ⟶ i) [lift_hom₂ η] [lift_hom₂ θ] :
   η ≫ (θ ≫ ι) = (η ≫ θ) ≫ ι :=

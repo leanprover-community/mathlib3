@@ -42,6 +42,11 @@ instance : set_like (valuation_subring K) K :=
 @[ext] lemma ext (A B : valuation_subring K)
   (h : ∀ x, x ∈ A ↔ x ∈ B) : A = B := set_like.ext h
 
+lemma zero_mem : (0 : K) ∈ A := A.to_subring.zero_mem
+lemma one_mem : (1 : K) ∈ A := A.to_subring.one_mem
+lemma add_mem (x y : K) : x ∈ A → y ∈ A → x + y ∈ A := A.to_subring.add_mem
+lemma mul_mem (x y : K) : x ∈ A → y ∈ A → x * y ∈ A := A.to_subring.mul_mem
+
 lemma mem_or_inv_mem (x : K) : x ∈ A ∨ x⁻¹ ∈ A := A.mem_or_inv_mem' _
 
 instance : comm_ring A := show comm_ring A.to_subring, by apply_instance
@@ -212,32 +217,21 @@ def subtype (R : valuation_subring K) : R →+* K :=
 subring.subtype R.to_subring
 
 def map_of_le (R S : valuation_subring K) (h : R ≤ S) :
-  R.value_group → S.value_group :=
-quotient.map' id $
-begin
-  rintros x y ⟨u,hu : u • _ = _⟩,
-  use units.map (R.inclusion S h).to_monoid_hom u,
-  exact hu
-end
-
-@[simp]
-lemma map_of_le_map_zero (R S : valuation_subring K) (h : R ≤ S) :
-  R.map_of_le S h 0 = 0 := rfl
-
-@[simp]
-lemma map_of_le_map_one (R S : valuation_subring K) (h : R ≤ S) :
-  R.map_of_le S h 1 = 1 := rfl
-
-@[simp]
-lemma map_of_le_map_mul (R S : valuation_subring K) (h : R ≤ S) (x y : R.value_group) :
-  R.map_of_le S h (x * y) = R.map_of_le S h x * R.map_of_le S h y :=
-by { rcases x, rcases y, refl }
+  R.value_group →*₀ S.value_group :=
+{ to_fun := quotient.map' id begin
+    rintros x y ⟨u,hu : u • _ = _⟩,
+    use units.map (R.inclusion S h).to_monoid_hom u,
+    exact hu
+  end,
+  map_zero' := rfl,
+  map_one' := rfl,
+  map_mul' := by { rintro ⟨⟩ ⟨⟩, refl } }
 
 @[mono]
-lemma map_of_le_mono (R S : valuation_subring K) (h : R ≤ S) (x y : R.value_group) (hh : x ≤ y) :
-  R.map_of_le S h x ≤ R.map_of_le S h y :=
+lemma monotone_map_of_le (R S : valuation_subring K) (h : R ≤ S) :
+  monotone (R.map_of_le S h) :=
 begin
-  induction x, induction y, obtain ⟨a,ha⟩ := hh,
+  rintros ⟨x⟩ ⟨y⟩ ⟨a,ha⟩,
   use [R.inclusion S h a, ha],
   all_goals { refl }
 end
@@ -340,7 +334,7 @@ begin
   ext a,
   change (A.of_prime P).valuation a < 1 ↔ _,
   have : (A.of_prime P).valuation a ≤ 1,
-  { rw [← A.map_of_le_map_one (A.of_prime P) (le_of_prime _ _),
+  { rw [← (A.map_of_le (A.of_prime P) (A.le_of_prime _)).map_one,
       ← A.map_of_le_valuation_apply (A.of_prime P) (le_of_prime _ _)],
     mono,
     apply valuation_le_one },
@@ -389,8 +383,8 @@ begin
       { rwa valuation_le_one_iff, },
       { exact one_ne_zero },
       { intro c, rw ← R.valuation.map_one at hγ,
-        replace hγ := le_of_lt hγ, replace hγ := map_of_le_mono R S h _ _ hγ,
-        simp only [valuation.map_one, map_of_le_map_one, map_of_le_valuation_apply] at hγ,
+        replace hγ := le_of_lt hγ, replace hγ := monotone_map_of_le R S h hγ,
+        simp only [valuation.map_one, (map_of_le _ _ _).map_one, map_of_le_valuation_apply] at hγ,
         rw c at hγ,
         apply not_lt_of_le hγ, exact zero_lt_one₀ } },
     { simp } }
@@ -409,8 +403,8 @@ lemma ideal_of_le_le_of_le (R S : valuation_subring K)
 begin
   rintros x (hx : S.valuation _ < 1),
   change R.valuation _ < 1,
-  by_contra c, push_neg at c, replace c := map_of_le_mono R S h _ _ c,
-  rw [map_of_le_map_one, map_of_le_valuation_apply] at c,
+  by_contra c, push_neg at c, replace c := monotone_map_of_le R S h c,
+  rw [(map_of_le _ _ _).map_one, map_of_le_valuation_apply] at c,
   apply not_le_of_lt hx c,
 end
 

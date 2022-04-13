@@ -677,19 +677,19 @@ end
 
 @[simp] theorem lift_Inf (s : set cardinal) : lift (Inf s) = Inf (lift '' s) :=
 begin
-  by_cases hs : s.nonempty,{
-  apply le_antisymm,
-  { have hs' : (lift '' s).nonempty := sorry,
-    rw le_cInf_iff'' hs',
-    rintros a ⟨b, hb, rfl⟩,
-    apply lift_le,
-  },sorry},
+  by_cases hs : s.nonempty,
+  { have hs' := nonempty_image_iff.2 hs,
+    apply le_antisymm,
+    { rw le_cInf_iff'' hs',
+      rintros a ⟨b, hb, rfl⟩,
+      exact lift_le.2 (cInf_le' hb) },
+    { rcases Inf_mem hs' with ⟨a, ha, ha'⟩,
+      rw ←ha',
+      apply lift_le.2 (le_cInf hs (λ b hb, lift_le.1 _)),
+      rw ha',
+      exact cInf_le' ⟨b, hb, rfl⟩ } },
   simp [not_nonempty_iff_eq_empty.1 hs]
 end
---le_antisymm (le_min.2 $ λ a, lift_le.2 $ min_le _ a) $
---let ⟨i, e⟩ := min_eq I (lift ∘ f) in
---by rw e; exact lift_le.2 (le_min.2 $ λ j, lift_le.1 $
---by have := min_le (lift ∘ f) j; rwa e at this)
 
 theorem lift_down {a : cardinal.{u}} {b : cardinal.{max u v}} :
   b ≤ lift a → ∃ a', lift a' = b :=

@@ -58,52 +58,63 @@ namespace order
 /-- Cofinality of a reflexive order `≼`. This is the smallest cardinality
   of a subset `S : set α` such that `∀ a, ∃ b ∈ S, a ≼ b`. -/
 def cof (r : α → α → Prop) : cardinal :=
-Inf {c | ∃ S : set α, #S = c ∧ ∀ a, ∃ b ∈ S, r a b}
+Inf {c | ∃ S : set α, (∀ a, ∃ b ∈ S, r a b) ∧ #S = c}
 
-/-- The set in the definition of `cof` is nonempty. -/
+/-- The set in the definition of `order.cof` is nonempty. -/
 theorem cof_nonempty (r : α → α → Prop) [is_refl α r] :
-  {c | ∃ S : set α, #S = c ∧ ∀ a, ∃ b ∈ S, r a b}.nonempty :=
-⟨_, set.univ, rfl, λ a, ⟨a, ⟨⟩, refl _⟩⟩
+  {c | ∃ S : set α, (∀ a, ∃ b ∈ S, r a b) ∧ #S = c}.nonempty :=
+⟨_, set.univ, λ a, ⟨a, ⟨⟩, refl _⟩, rfl⟩
 
 lemma cof_le (r : α → α → Prop) {S : set α} (h : ∀ a, ∃ b ∈ S, r a b) :
   order.cof r ≤ #S :=
-le_trans (cInf_le' ⟨S, rfl, h⟩) le_rfl
+cInf_le' ⟨S, h, rfl⟩
 
 lemma le_cof {r : α → α → Prop} [is_refl α r] (c : cardinal) :
   c ≤ order.cof r ↔ ∀ {S : set α}, (∀ a, ∃ b ∈ S, r a b) → c ≤ #S :=
 begin
   rw [order.cof, le_cInf_iff'' (cof_nonempty r)],
-  use λ H S h, H _ ⟨S, rfl, h⟩,
-  rintro H d ⟨S, rfl, h⟩,
+  use λ H S h, H _ ⟨S, h, rfl⟩,
+  rintro H d ⟨S, h, rfl⟩,
   exact H h
 end
 
 end order
 
-theorem rel_iso.cof.aux {α : Type u} {β : Type v} {r s}
-  [is_refl α r] [is_refl β s] (f : r ≃r s) :
-  cardinal.lift.{(max u v)} (order.cof r) ≤
-  cardinal.lift.{(max u v)} (order.cof s) :=
+theorem rel_iso.cof_le_lift {α : Type u} {β : Type v} {r : α → α → Prop} {s}
+  [is_refl β s] (f : r ≃r s) :
+  cardinal.lift.{(max u v)} (order.cof r) ≤ cardinal.lift.{(max u v)} (order.cof s) :=
 begin
-  rw [order.cof, order.cof, lift_min, lift_min, cardinal.le_min],
-  intro S, cases S with S H, simp only [comp, coe_sort_coe_base, subtype.coe_mk],
-  refine le_trans (min_le _ _) _,
-  { exact ⟨f ⁻¹' S, λ a,
-    let ⟨b, bS, h⟩ := H (f a) in ⟨f.symm b, by simp [bS, ← f.map_rel_iff, h,
-      -coe_fn_coe_base, -coe_fn_coe_trans, principal_seg.coe_coe_fn', initial_seg.coe_coe_fn]⟩⟩ },
-  { exact lift_mk_le.{u v (max u v)}.2
-    ⟨⟨λ ⟨x, h⟩, ⟨f x, h⟩, λ ⟨x, h₁⟩ ⟨y, h₂⟩ h₃,
-      by congr; injection h₃ with h'; exact f.to_equiv.injective h'⟩⟩ }
+  rw [order.cof, order.cof, lift_Inf, lift_Inf,
+    le_cInf_iff'' (nonempty_image_iff.2 (order.cof_nonempty s))],
+  rintros - ⟨-, ⟨u, H, rfl⟩, rfl⟩,
+  apply cInf_le',
+  refine ⟨_, ⟨f.symm '' u, λ a, _, rfl⟩,
+    lift_mk_eq.{u v (max u v)}.2 ⟨((f.symm).to_equiv.image u).symm⟩⟩,
+  rcases H (f a) with ⟨b, hb, hb'⟩,
+  refine ⟨f.symm b,  mem_image_of_mem _ hb, f.map_rel_iff.1 _⟩,
+  rwa [rel_iso.apply_symm_apply]
 end
 
-theorem rel_iso.cof {α : Type u} {β : Type v} {r s}
+theorem rel_iso.cof_eq_lift {α : Type u} {β : Type v} {r s}
   [is_refl α r] [is_refl β s] (f : r ≃r s) :
-  cardinal.lift.{(max u v)} (order.cof r) =
-  cardinal.lift.{(max u v)} (order.cof s) :=
-le_antisymm (rel_iso.cof.aux f) (rel_iso.cof.aux f.symm)
+  cardinal.lift.{(max u v)} (order.cof r) = cardinal.lift.{(max u v)} (order.cof s) :=
+le_antisymm (rel_iso.cof_le_lift f) (rel_iso.cof_le_lift f.symm)
 
-def strict_order.cof (r : α → α → Prop) [h : is_irrefl α r] : cardinal :=
-@order.cof α (λ x y, ¬ r y x) ⟨h.1⟩
+theorem rel_iso.cof_le {α β : Type u} {r : α → α → Prop} {s} [is_refl β s] (f : r ≃r s) :
+  order.cof r ≤ order.cof s :=
+lift_le.1 (rel_iso.cof_le_lift f)
+
+theorem rel_iso.cof_eq {α β : Type u} {r s} [is_refl α r] [is_refl β s] (f : r ≃r s) :
+  order.cof r = order.cof s :=
+lift_inj.1 (rel_iso.cof_eq_lift f)
+
+def strict_order.cof (r : α → α → Prop) : cardinal :=
+order.cof (λ x y, ¬ r y x)
+
+/-- The set in the definition of `strict_order.cof` is nonempty. -/
+theorem strict_order.cof_nonempty (r : α → α → Prop) [h : is_irrefl α r] :
+  {c | ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ #S = c}.nonempty :=
+by { apply @order.cof_nonempty α _ _, exact ⟨h.1⟩ }
 
 /-! ### Cofinality of ordinals -/
 
@@ -115,20 +126,24 @@ namespace ordinal
   `cof 0 = 0` and `cof (succ o) = 1`, so it is only really
   interesting on limit ordinals (when it is an infinite cardinal). -/
 def cof (o : ordinal.{u}) : cardinal.{u} :=
-quot.lift_on o (λ a, by exactI strict_order.cof a.r)
+quot.lift_on o (λ a, strict_order.cof a.r)
 begin
-  rintros ⟨α, r, _⟩ ⟨β, s, _⟩ ⟨⟨f, hf⟩⟩,
-  rw ← cardinal.lift_inj,
-  apply rel_iso.cof ⟨f, _⟩,
-  simp [hf]
+  rintros ⟨α, r, wo₁⟩ ⟨β, s, wo₂⟩ ⟨⟨f, hf⟩⟩,
+  haveI := wo₁, haveI := wo₂,
+  apply @rel_iso.cof_eq _ _ _ _ _ _ ,
+  { split, exact λ a b, not_iff_not.2 hf },
+  { exact ⟨(is_well_order.is_irrefl r).1⟩ },
+  { exact ⟨(is_well_order.is_irrefl s).1⟩ },
 end
 
 lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = strict_order.cof r := rfl
 
 theorem le_cof_type [is_well_order α r] {c} : c ≤ cof (type r) ↔
   ∀ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) → c ≤ #S :=
-by dsimp [cof, strict_order.cof, order.cof, type, quotient.mk, quot.lift_on];
-   rw [cardinal.le_min, subtype.forall]; refl
+(le_cInf_iff'' (strict_order.cof_nonempty r)).trans ⟨λ H S h, H _ ⟨S, h, rfl⟩, begin
+  rintros H d ⟨S, h, rfl⟩,
+  exact H _ h
+end⟩
 
 theorem cof_type_le [is_well_order α r] (S : set α) (h : ∀ a, ∃ b ∈ S, ¬ r b a) :
   cof (type r) ≤ #S :=
@@ -140,12 +155,7 @@ not_forall_not.1 $ λ h, not_le_of_lt hl $ cof_type_le S (λ a, not_ball.1 (h a)
 
 theorem cof_eq (r : α → α → Prop) [is_well_order α r] :
   ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ #S = cof (type r) :=
-begin
-  have : ∃ i, cof (type r) = _,
-  { dsimp [cof, order.cof, type, quotient.mk, quot.lift_on],
-    apply cardinal.min_eq },
-  exact let ⟨⟨S, hl⟩, e⟩ := this in ⟨S, hl, e.symm⟩,
-end
+Inf_mem (strict_order.cof_nonempty r)
 
 theorem ord_cof_eq (r : α → α → Prop) [is_well_order α r] :
   ∃ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) ∧ type (subrel r S) = (cof (type r)).ord :=
@@ -558,15 +568,10 @@ theorem unbounded_of_unbounded_sUnion (r : α → α → Prop) [wo : is_well_ord
   (h₁ : unbounded r $ ⋃₀ s) (h₂ : #s < strict_order.cof r) : ∃(x ∈ s), unbounded r x :=
 begin
   by_contra h, simp only [not_exists, exists_prop, not_and, not_unbounded_iff] at h,
-  apply not_le_of_lt h₂,
   let f : s → α := λ x : s, wo.wf.sup x (h x.1 x.2),
-  let t : set α := range f,
-  have : #t ≤ #s, exact mk_range_le, refine le_trans _ this,
-  have : unbounded r t,
-  { intro x, rcases h₁ x with ⟨y, ⟨c, hc, hy⟩, hxy⟩,
-    refine ⟨f ⟨c, hc⟩, mem_range_self _, _⟩, intro hxz, apply hxy,
-    refine trans (wo.wf.lt_sup _ hy) hxz },
-  exact cardinal.min_le _ (subtype.mk t this)
+  refine h₂.not_le (le_trans (cInf_le' ⟨range f, λ x, _, rfl⟩) mk_range_le),
+  rcases h₁ x with ⟨y, ⟨c, hc, hy⟩, hxy⟩,
+  exact ⟨f ⟨c, hc⟩, mem_range_self _, λ hxz, hxy (trans (wo.wf.lt_sup _ hy) hxz)⟩
 end
 
 /-- If the union of s is unbounded and s is smaller than the cofinality,

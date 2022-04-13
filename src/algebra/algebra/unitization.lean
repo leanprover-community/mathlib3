@@ -467,7 +467,7 @@ section coe
 realized as a non-unital algebra homomorphism. -/
 @[simps]
 def coe_non_unital_alg_hom (R A : Type*) [comm_semiring R] [non_unital_semiring A] [module R A] :
-  non_unital_alg_hom R A (unitization R A) :=
+  A →ₙₐ[R] (unitization R A) :=
 { to_fun := coe,
   map_smul' := coe_smul R,
   map_zero' := coe_zero R,
@@ -505,7 +505,7 @@ alg_hom_ext (non_unital_alg_hom.congr_fun h) (by simp [alg_hom.commutes])
 /-- Non-unital algebra homomorphisms from `A` into a unital `R`-algebra `C` lift uniquely to
 `unitization R A →ₐ[R] C`. This is the universal property of the unitization. -/
 @[simps apply_apply]
-def lift : non_unital_alg_hom R A C ≃ (unitization R A →ₐ[R] C) :=
+def lift : (A →ₙₐ[R] C) ≃ (unitization R A →ₐ[R] C) :=
 { to_fun := λ φ,
   { to_fun := λ x, algebra_map R C x.fst + φ x.snd,
     map_one' := by simp only [fst_one, map_one, snd_one, φ.map_zero, add_zero],

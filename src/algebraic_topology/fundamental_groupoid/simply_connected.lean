@@ -48,15 +48,12 @@ lemma unique_homotopic (x y : X) : nonempty (unique (path.homotopic.quotient x y
 instance (x y : X) : subsingleton (path.homotopic.quotient x y) :=
 @unique.subsingleton _ (unique_homotopic x y).some
 
-@[priority 100]
-instance : nonempty X := ((simply_connected_iff_unique_homotopic X).mp infer_instance).1
-
 local attribute [instance] path.homotopic.setoid
 
 @[priority 100]
 instance : path_connected_space X :=
-{ nonempty := infer_instance,
-  joined := λ x y, nonempty.intro (unique_homotopic x y).some.default.out }
+{ nonempty := ((simply_connected_iff_unique_homotopic X).mp infer_instance).1,
+  joined := λ x y, ⟨(unique_homotopic x y).some.default.out⟩ }
 
 /-- In a simply connected space, any two paths are homotopic -/
 lemma paths_homotopic {x y : X} (p₁ p₂ : path x y) : path.homotopic p₁ p₂ :=

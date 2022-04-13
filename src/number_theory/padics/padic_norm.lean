@@ -478,6 +478,28 @@ begin
   { apply_instance }
 end
 
+lemma padic_val_nat_dvd_iff (p : ℕ) [fact p.prime] (n : ℕ) (a : ℕ) :
+  p^n ∣ a ↔ a = 0 ∨ n ≤ padic_val_nat p a :=
+begin
+  split,
+  { rw pow_dvd_iff_le_multiplicity,
+    rw padic_val_nat,
+    split_ifs,
+    rw enat.coe_le_iff,
+    intro hn,
+    right,
+    apply hn,
+    have : p ≠ 1, exact _inst_1.out.ne_one,
+    simp [this] at h,
+    rw h,
+    simp, },
+  { intro h,
+    cases h,
+    rw h,
+    exact dvd_zero (p ^ n),
+    exact dvd_trans (pow_dvd_pow p h) pow_padic_val_nat_dvd, },
+end
+
 lemma padic_val_nat_primes {p q : ℕ} [p_prime : fact p.prime] [q_prime : fact q.prime]
   (neq : p ≠ q) : padic_val_nat p q = 0 :=
 @padic_val_nat.eq_zero_of_not_dvd p q $
@@ -562,13 +584,13 @@ variables (p : ℕ) [p_prime : fact p.prime]
 
 lemma padic_val_int_dvd_iff (p : ℕ) [fact p.prime] (n : ℕ) (a : ℤ) :
   ↑p^n ∣ a ↔ a = 0 ∨ n ≤ padic_val_int p a :=
-begin
-  sorry,
-end
+by rw [padic_val_int, ←int.nat_abs_eq_zero, ←padic_val_nat_dvd_iff, ←int.coe_nat_dvd_left,
+       int.coe_nat_pow]
 
 lemma padic_val_int_dvd (p : ℕ) [fact p.prime] (a : ℤ) : ↑p^(padic_val_int p a) ∣ a :=
 begin
-  sorry,
+  rw padic_val_int_dvd_iff,
+  simp only [le_refl, or_true],
 end
 
 lemma padic_val_int_eq_one (p : ℕ) [fact p.prime] : padic_val_int p p = 1 :=
@@ -580,13 +602,22 @@ end
 lemma padic_val_int_add_of_mul (p : ℕ) [fact p.prime] {a b : ℤ} (ha : a ≠ 0) (hb : b ≠ 0) :
   padic_val_int p (a*b) = padic_val_int p a + padic_val_int p b :=
 begin
-  sorry,
+  simp_rw padic_val_int,
+  rw int.nat_abs_mul,
+  rw padic_val_nat.mul,
+  exact int.nat_abs_ne_zero.mpr ha,
+  exact int.nat_abs_ne_zero.mpr hb,
 end
 
 lemma padic_val_int_succ_mul_p (p : ℕ) [fact p.prime] (a : ℤ) (ha : a ≠ 0) :
   padic_val_int p (a * p) = (padic_val_int p a) + 1 :=
 begin
-  sorry,
+  rw padic_val_int_add_of_mul,
+  congr,
+  simp only [eq_self_iff_true, padic_val_int.of_nat, padic_val_nat_self],
+  assumption,
+  simp only [int.coe_nat_eq_zero, ne.def],
+  exact (_inst_1.out).ne_zero,
 end
 
 end padic_val_int

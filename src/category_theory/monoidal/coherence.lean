@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Yuma Mizuno, Oleksandr Manzyuk
 -/
 import category_theory.monoidal.free.coherence
+import category_theory.bicategory.coherence_tactic
 
 /-!
 # A `coherence` tactic for monoidal categories, and `⊗≫` (composition up to associators)
@@ -209,7 +210,7 @@ Users will typicall just use the `coherence` tactic, which can also cope with id
 where `a = a'`, `b = b'`, and `c = c'` can be proved using `pure_coherence`
 -/
 -- TODO: provide the `bicategory_coherence` tactic, and add that here.
-meta def pure_coherence : tactic unit := monoidal_coherence
+meta def pure_coherence : tactic unit := monoidal_coherence <|> bicategorical_coherence
 
 example (X₁ X₂ : C) :
   ((λ_ (𝟙_ C)).inv ⊗ 𝟙 (X₁ ⊗ X₂)) ≫ (α_ (𝟙_ C) (𝟙_ C) (X₁ ⊗ X₂)).hom ≫
@@ -241,9 +242,8 @@ where `f₀` and `g₀` are maximal prefixes of `f` and `g` (possibly after reas
 which are "liftable" (i.e. expressible as compositions of unitors and associators).
 -/
 meta def liftable_prefixes : tactic unit :=
-try `[simp only [monoidal_comp, category_theory.category.assoc]] >>
-  `[apply (cancel_epi (𝟙 _)).1; try { apply_instance }] >>
-  try `[simp only [tactic.coherence.assoc_lift_hom]]
+`[apply (cancel_epi (𝟙 _)).1; try { apply_instance }] >>
+  try `[simp only [tactic.coherence.assoc_lift_hom, tactic.bicategory.coherence.assoc_lift_hom₂]]
 
 example {W X Y Z : C} (f : Y ⟶ Z) (g) (w : false) : (λ_ _).hom ≫ f = g :=
 begin
@@ -256,26 +256,12 @@ end coherence
 
 open coherence
 
-/--
-Use the coherence theorem for monoidal categories to solve equations in a monoidal equation,
-where the two sides only differ by replacing strings of monoidal structural morphisms
-(that is, associators, unitors, and identities)
-with different strings of structural morphisms with the same source and target.
-
-That is, `coherence` can handle goals of the form
-`a ≫ f ≫ b ≫ g ≫ c = a' ≫ f ≫ b' ≫ g ≫ c'`
-where `a = a'`, `b = b'`, and `c = c'` can be proved using `pure_coherence`.
-
-(If you have very large equations on which `coherence` is unexpectedly failing,
-you may need to increase the typeclass search depth,
-using e.g. `set_option class.instance_max_depth 500`.)
--/
-meta def coherence : tactic unit :=
+meta def coherence_loop : tactic unit :=
 do
   -- To prove an equality `f = g` in a monoidal category,
   -- first try the `pure_coherence` tactic on the entire equation:
   pure_coherence <|> do
-  -- Otherwise, rearrange so we have a maximal prefix of each side
+  -- Otherewise, rearrange so we have a maximal prefix of each side
   -- that is built out of unitors and associators:
   liftable_prefixes <|>
     fail ("Something went wrong in the `coherence` tactic: " ++
@@ -295,7 +281,29 @@ do
     -- with identical first terms,
     reflexivity <|> fail "`coherence` tactic failed, non-structural morphisms don't match",
     -- and whose second terms can be identified by recursively called `coherence`.
-    coherence)
+    coherence_loop)
+
+/--
+Use the coherence theorem for monoidal categories to solve equations in a monoidal equation,
+where the two sides only differ by replacing strings of monoidal structural morphisms
+(that is, associators, unitors, and identities)
+with different strings of structural morphisms with the same source and target.
+
+That is, `coherence` can handle goals of the form
+`a ≫ f ≫ b ≫ g ≫ c = a' ≫ f ≫ b' ≫ g ≫ c'`
+where `a = a'`, `b = b'`, and `c = c'` can be proved using `pure_coherence`.
+
+(If you have very large equations on which `coherence` is unexpectedly failing,
+you may need to increase the typeclass search depth,
+using e.g. `set_option class.instance_max_depth 500`.)
+-/
+meta def coherence : tactic unit :=
+do
+  try `[simp only [bicategorical_comp]],
+  try `[simp only [monoidal_comp]],
+  -- TODO: put similar normalization simp lemmas for monoidal categories
+  try bicategory.whisker_simps,
+  coherence_loop
 
 run_cmd add_interactive [`pure_coherence, `coherence]
 

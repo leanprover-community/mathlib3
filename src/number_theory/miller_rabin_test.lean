@@ -37,7 +37,7 @@ set_option profiler true
 --#eval (multiplicity 2 99999997)
 --#eval to_bool (nat.prime 100123456789)
 
-example : nat.prime 1000000009 :=
+example : nat.prime 48389681 :=
 begin
   norm_num,
 end

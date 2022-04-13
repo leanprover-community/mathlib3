@@ -347,7 +347,7 @@ lemma one_or_coprime_factorization_or_prime_power (n : ℕ) (h : 0 < n) :
   (∃ (n0 n1 : ℕ), nat.coprime n0 n1 ∧ n0 * n1 = n ∧ 1 < n0 ∧ 1 < n1) ∨
   (∃ (p k : ℕ), 1 ≤ k ∧ p.prime ∧ p^k = n) :=
 begin
-  have stuff : coprime_factorization_or_prime_power n h,
+  have stuff := coprime_factorization_or_prime_power n h,
   sorry,
   -- This is a slight modification of the lemma coprime_factorization_or_prime_power above.
   -- TODO(Sean): Try to prove this using coprime_factorization_or_prime_power (no other lemmas from this file should be needed) (first do a have statement to get the coprime_factorization_or_prime_power result into the hypotheses here)

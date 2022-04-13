@@ -263,12 +263,62 @@ lemma of_prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
   of_prime R (ideal_of_le R S h) = S :=
 sorry
 
+lemma of_prime_le_of_le (P Q : ideal A) [P.is_prime] [Q.is_prime]
+  (h : P ≤ Q) : of_prime A Q ≤ of_prime A P :=
+sorry
+
+lemma ideal_of_le_le_of_le (R S : valuation_subring K)
+  (hR : A ≤ R) (hS : A ≤ S) (h : R ≤ S) :
+  ideal_of_le A S hS ≤ ideal_of_le A R hR := sorry
+
+@[simps]
 def prime_spectrum_equiv :
   prime_spectrum A ≃ { S | A ≤ S } :=
 { to_fun := λ P, ⟨of_prime A P.as_ideal, le_of_prime _ _⟩,
   inv_fun := λ S, ⟨ideal_of_le _ S S.2, infer_instance⟩,
   left_inv := λ P, by { ext1, simpa },
   right_inv := λ S, by { ext1, simp } }
+
+@[simps]
+def prime_spectrum_order_equiv :
+  order_dual (prime_spectrum A) ≃o { S | A ≤ S } :=
+{ map_rel_iff' := begin
+    intros P Q, dsimp, split,
+    { intros h,
+      let P' : prime_spectrum A := P,
+      let Q' : prime_spectrum A := Q,
+      change Q' ≤ P',
+      rw ← (prime_spectrum_equiv A).symm_apply_apply P',
+      rw ← (prime_spectrum_equiv A).symm_apply_apply Q',
+      apply ideal_of_le_le_of_le,
+      exact h },
+    { intros h,
+      apply of_prime_le_of_le,
+      exact h }
+  end,
+  ..(prime_spectrum_equiv A) }
+
+
+open_locale classical
+
+noncomputable
+instance linear_order_overring : linear_order { S | A ≤ S } :=
+{ le_total := begin
+    intros R S,
+    let P := ideal_of_le A R R.2,
+    let Q := ideal_of_le A S S.2,
+    cases le_total P Q,
+    { right, change S.1 ≤ R.1,
+      rw ← of_prime_ideal_of_le A R.1 R.2,
+      rw ← of_prime_ideal_of_le A S.1 S.2,
+      apply of_prime_le_of_le, exact h },
+    { left, change R.1 ≤ S.1,
+      rw ← of_prime_ideal_of_le A R.1 R.2,
+      rw ← of_prime_ideal_of_le A S.1 S.2,
+      apply of_prime_le_of_le, exact h }
+  end,
+  decidable_le := infer_instance,
+  ..(infer_instance : partial_order _) }
 
 end order
 

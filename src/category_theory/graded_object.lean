@@ -101,8 +101,6 @@ def comap_equiv {β γ : Type w} (e : β ≃ γ) :
 
 end
 
-local attribute [reducible, instance] endofunctor_monoidal_category discrete.add_monoidal
-
 instance has_shift {β : Type*} [add_comm_group β] (s : β) :
   has_shift (graded_object_with_shift s C) ℤ :=
 has_shift_mk _ _

@@ -155,8 +155,17 @@ assume ⟨h⟩, h.elim
 lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
 | a _ rfl := heq.rfl
 
-lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a = b
+lemma ulift.down_injective {α : Sort*} : function.injective (@ulift.down α)
 | ⟨a⟩ ⟨b⟩ rfl := rfl
+
+@[simp] lemma ulift.down_inj {α : Sort*} {a b : ulift α} : a.down = b.down ↔ a = b :=
+⟨λ h, ulift.down_injective h, λ h, by rw h⟩
+
+lemma plift.down_injective {α : Sort*} : function.injective (@plift.down α)
+| ⟨a⟩ ⟨b⟩ rfl := rfl
+
+@[simp] lemma plift.down_inj {α : Sort*} {a b : plift α} : a.down = b.down ↔ a = b :=
+⟨λ h, plift.down_injective h, λ h, by rw h⟩
 
 -- missing [symm] attribute for ne in core.
 attribute [symm] ne.symm
@@ -200,7 +209,15 @@ library_note "fact non-instances"
 lemma fact.elim {p : Prop} (h : fact p) : p := h.1
 lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
 
+/-- Swaps two pairs of arguments to a function. -/
+@[reducible] def function.swap₂ {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  {φ : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Sort*} (f : Π i₁ j₁ i₂ j₂, φ i₁ j₁ i₂ j₂) :
+  Π i₂ j₂ i₁ j₁, φ i₁ j₁ i₂ j₂ :=
+λ i₂ j₂ i₁ j₁, f i₁ j₁ i₂ j₂
+
 end miscellany
+
+open function
 
 /-!
 ### Declarations about propositional connectives
@@ -869,7 +886,7 @@ end equality
 section quantifiers
 variables {α : Sort*}
 
-section congr
+section dependent
 variables {β : α → Sort*} {γ : Π a, β a → Sort*} {δ : Π a b, γ a b → Sort*}
   {ε : Π a b c, δ a b c → Sort*}
 
@@ -890,7 +907,7 @@ lemma forall₅_congr {p q : Π a b c d, ε a b c d → Prop}
   (∀ a b c d e, p a b c d e) ↔ ∀ a b c d e, q a b c d e :=
 forall_congr $ λ a, forall₄_congr $ h a
 
-lemma exists₂_congr {p q : Π a, β a → Prop}  (h : ∀ a b, p a b ↔ q a b) :
+lemma exists₂_congr {p q : Π a, β a → Prop} (h : ∀ a b, p a b ↔ q a b) :
   (∃ a b, p a b) ↔ ∃ a b, q a b :=
 exists_congr $ λ a, exists_congr $ h a
 
@@ -907,22 +924,30 @@ lemma exists₅_congr {p q : Π a b c d, ε a b c d → Prop}
   (∃ a b c d e, p a b c d e) ↔ ∃ a b c d e, q a b c d e :=
 exists_congr $ λ a, exists₄_congr $ h a
 
-end congr
+lemma forall_imp {p q : α → Prop} (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a := λ h' a, h a (h' a)
 
-variables {ι β : Sort*} {κ : ι → Sort*} {p q : α → Prop} {b : Prop}
-
-lemma forall_imp (h : ∀ a, p a → q a) : (∀ a, p a) → ∀ a, q a :=
-λ h' a, h a (h' a)
-
-lemma forall₂_imp {p q : Π i, κ i → Prop} (h : ∀ i j, p i j → q i j) :
-  (∀ i j, p i j) → ∀ i j, q i j :=
+lemma forall₂_imp {p q : Π a, β a → Prop} (h : ∀ a b, p a b → q a b) :
+  (∀ a b, p a b) → ∀ a b, q a b :=
 forall_imp $ λ i, forall_imp $ h i
 
-lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
+lemma forall₃_imp {p q : Π a b, γ a b → Prop} (h : ∀ a b c, p a b c → q a b c) :
+  (∀ a b c, p a b c) → ∀ a b c, q a b c :=
+forall_imp $ λ a, forall₂_imp $ h a
 
-lemma Exists₂.imp {p q : Π i, κ i → Prop} (h : ∀ i j, p i j → q i j) :
-  (∃ i j, p i j) → ∃ i j, q i j :=
-Exists.imp $ λ i, Exists.imp $ h i
+lemma Exists.imp {p q : α → Prop}  (h : ∀ a, (p a → q a)) : (∃ a, p a) → ∃ a, q a :=
+exists_imp_exists h
+
+lemma Exists₂.imp {p q : Π a, β a → Prop} (h : ∀ a b, p a b → q a b) :
+  (∃ a b, p a b) → ∃ a b, q a b :=
+Exists.imp $ λ a, Exists.imp $ h a
+
+lemma Exists₃.imp {p q : Π a b, γ a b → Prop} (h : ∀ a b c, p a b c → q a b c) :
+  (∃ a b c, p a b c) → ∃ a b c, q a b c :=
+Exists.imp $ λ a, Exists₂.imp $ h a
+
+end dependent
+
+variables {ι β : Sort*} {κ : ι → Sort*} {p q : α → Prop} {b : Prop}
 
 lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
   (hp : ∃ a, p a) : ∃ b, q b :=
@@ -930,6 +955,11 @@ exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
 ⟨swap, swap⟩
+
+lemma forall₂_swap {ι₁ ι₂ : Sort*} {κ₁ : ι₁ → Sort*} {κ₂ : ι₂ → Sort*}
+  {p : Π i₁, κ₁ i₁ → Π i₂, κ₂ i₂ → Prop} :
+  (∀ i₁ j₁ i₂ j₂, p i₁ j₁ i₂ j₂) ↔ ∀ i₂ j₂ i₁ j₁, p i₁ j₁ i₂ j₂ :=
+⟨swap₂, swap₂⟩
 
 /-- We intentionally restrict the type of `α` in this lemma so that this is a safer to use in simp
 than `forall_swap`. -/

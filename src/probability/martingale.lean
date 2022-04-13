@@ -40,10 +40,9 @@ open_locale nnreal ennreal measure_theory probability_theory big_operators
 
 namespace measure_theory
 
-variables {α E ι : Type*} [preorder ι] [measurable_space E]
+variables {α E ι : Type*} [preorder ι]
   {m0 : measurable_space α} {μ : measure α}
-  [normed_group E] [normed_space ℝ E] [complete_space E] [borel_space E]
-  [second_countable_topology E]
+  [normed_group E] [normed_space ℝ E] [complete_space E]
   {f g : ι → α → E} {ℱ : filtration ι m0} [sigma_finite_filtration μ ℱ]
 
 /-- A family of functions `f : ι → α → E` is a martingale with respect to a filtration `ℱ` if `f`
@@ -78,7 +77,8 @@ namespace martingale
 lemma adapted (hf : martingale f ℱ μ) : adapted ℱ f := hf.1
 
 @[protected]
-lemma measurable (hf : martingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) := hf.adapted i
+lemma strongly_measurable (hf : martingale f ℱ μ) (i : ι) : strongly_measurable[ℱ i] (f i) :=
+hf.adapted i
 
 lemma condexp_ae_eq (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j) :
   μ[f j | ℱ i, ℱ.le i] =ᵐ[μ] f i :=
@@ -92,7 +92,7 @@ lemma set_integral_eq (hf : martingale f ℱ μ) {i j : ι} (hij : i ≤ j) {s :
   (hs : measurable_set[ℱ i] s) :
   ∫ x in s, f i x ∂μ = ∫ x in s, f j x ∂μ :=
 begin
-  rw ← @set_integral_condexp _ _ _ _ _ _ _ _ (ℱ i) m0 _ (ℱ.le i) _ _ _ (hf.integrable j) hs,
+  rw ← @set_integral_condexp _ _ _ _ _ (ℱ i) m0 _ (ℱ.le i) _ _ _ (hf.integrable j) hs,
   refine set_integral_congr_ae (ℱ.le i s hs) _,
   filter_upwards [hf.2 i j hij] with _ heq _ using heq.symm,
 end
@@ -133,7 +133,7 @@ lemma martingale_iff [partial_order E] : martingale f ℱ μ ↔
 lemma martingale_condexp (f : α → E) (ℱ : filtration ι m0) (μ : measure α)
   [sigma_finite_filtration μ ℱ] :
   martingale (λ i, μ[f | ℱ i, ℱ.le i]) ℱ μ :=
-⟨λ i, measurable_condexp, λ i j hij, condexp_condexp_of_le (ℱ.mono hij) _⟩
+⟨λ i, strongly_measurable_condexp, λ i j hij, condexp_condexp_of_le (ℱ.mono hij) _⟩
 
 namespace supermartingale
 
@@ -141,7 +141,8 @@ namespace supermartingale
 lemma adapted [has_le E] (hf : supermartingale f ℱ μ) : adapted ℱ f := hf.1
 
 @[protected]
-lemma measurable [has_le E] (hf : supermartingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) :=
+lemma strongly_measurable [has_le E] (hf : supermartingale f ℱ μ) (i : ι) :
+  strongly_measurable[ℱ i] (f i) :=
 hf.adapted i
 
 @[protected]
@@ -191,7 +192,8 @@ namespace submartingale
 lemma adapted [has_le E] (hf : submartingale f ℱ μ) : adapted ℱ f := hf.1
 
 @[protected]
-lemma measurable [has_le E] (hf : submartingale f ℱ μ) (i : ι) : measurable[ℱ i] (f i) :=
+lemma strongly_measurable [has_le E] (hf : submartingale f ℱ μ) (i : ι) :
+  strongly_measurable[ℱ i] (f i) :=
 hf.adapted i
 
 @[protected]
@@ -253,9 +255,8 @@ hf.sub_submartingale hg.submartingale
 
 section
 
-variables {F : Type*} [measurable_space F] [normed_lattice_add_comm_group F]
-  [normed_space ℝ F] [complete_space F] [borel_space F] [second_countable_topology F]
-  [ordered_smul ℝ F]
+variables {F : Type*} [normed_lattice_add_comm_group F]
+  [normed_space ℝ F] [complete_space F] [ordered_smul ℝ F]
 
 lemma smul_nonneg {f : ι → α → F}
   {c : ℝ} (hc : 0 ≤ c) (hf : supermartingale f ℱ μ) :
@@ -284,9 +285,8 @@ namespace submartingale
 
 section
 
-variables {F : Type*} [measurable_space F] [normed_lattice_add_comm_group F]
-  [normed_space ℝ F] [complete_space F] [borel_space F] [second_countable_topology F]
-  [ordered_smul ℝ F]
+variables {F : Type*} [normed_lattice_add_comm_group F]
+  [normed_space ℝ F] [complete_space F] [ordered_smul ℝ F]
 
 lemma smul_nonneg {f : ι → α → F}
   {c : ℝ} (hc : 0 ≤ c) (hf : submartingale f ℱ μ) :
@@ -323,7 +323,7 @@ integrable_stopped_value hτ hf.integrable hbdd
 -- Similarly, generalize `(super/)submartingale.set_integral_le`.
 
 /-- Given a submartingale `f` and bounded stopping times `τ` and `π` such that `τ ≤ π`, the
-expectation of `stopped_value f τ` is less or equal to the expectation of `stopped_value f π`.
+expectation of `stopped_value f τ` is less than or equal to the expectation of `stopped_value f π`.
 This is the forward direction of the optional stopping theorem. -/
 lemma expected_stopped_value_mono {f : ℕ → α → ℝ} (hf : submartingale f 𝒢 μ) {τ π : α → ℕ}
   (hτ : is_stopping_time 𝒢 τ) (hπ : is_stopping_time 𝒢 π) (hle : τ ≤ π)

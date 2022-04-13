@@ -99,7 +99,7 @@ begin
     rw [geom_sum_neg_iff hn''] at h,
     have h2 : {2} ⊆ n.proper_divisors \ {1},
     { rw [singleton_subset_iff, mem_sdiff, mem_proper_divisors, not_mem_singleton],
-      exact ⟨⟨h.1, hn⟩, (nat.one_lt_bit0 one_ne_zero).ne'⟩ },
+      exact ⟨⟨even_iff_two_dvd.mp h.1, hn⟩, (nat.one_lt_bit0 one_ne_zero).ne'⟩ },
     rw [eval_prod, ←prod_sdiff h2, prod_singleton]; try { apply_instance },
     apply mul_nonpos_of_nonneg_of_nonpos,
     { refine prod_nonneg (λ i hi, le_of_lt _),

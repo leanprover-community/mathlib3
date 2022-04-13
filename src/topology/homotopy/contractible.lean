@@ -15,12 +15,23 @@ In this file, we define `contractible_space`, a space that is homotopy equivalen
 
 noncomputable theory
 
-
 namespace continuous_map
+variables {X Y Z : Type*} [topological_space X] [topological_space Y] [topological_space Z]
 
-/-- A map is nullhomotopic if it is homotopic to some constant map -/
-def nullhomotopic {X Y : Type*} [topological_space X] [topological_space Y] (f : C(X, Y)) : Prop :=
+/-- A map is nullhomotopic if it is homotopic to a constant map. -/
+def nullhomotopic (f : C(X, Y)) : Prop :=
 ∃ y : Y, homotopic f (continuous_map.const _ y)
+
+lemma nullhomotopic_of_constant (y : Y) : nullhomotopic (continuous_map.const X y) :=
+⟨y, by refl⟩
+
+lemma nullhomotopic.comp_right {f : C(X, Y)} (hf : f.nullhomotopic) (g : C(Y, Z)) :
+  (g.comp f).nullhomotopic :=
+by { cases hf with y hy, use g y, exact homotopic.hcomp hy (homotopic.refl g), }
+
+lemma nullhomotopic.comp_left {f : C(Y, Z)} (hf : f.nullhomotopic) (g : C(X, Y)) :
+  (f.comp g).nullhomotopic :=
+by { cases hf with y hy, use y, exact homotopic.hcomp (homotopic.refl g) hy, }
 
 end continuous_map
 
@@ -47,21 +58,19 @@ lemma contractible_iff_id_nullhomotopic (Y : Type*) [topological_space Y] :
 begin
   split, { introI, apply id_nullhomotopic, },
   rintro ⟨p, h⟩,
-  refine_struct { hequiv_unit := ⟨{ to_fun := continuous_map.const _ (),
+  refine_struct { hequiv_unit := ⟨
+  { to_fun := continuous_map.const _ (),
     inv_fun := continuous_map.const _ p }⟩ },
   { exact h.symm, }, { convert homotopic.refl (continuous_map.id unit), ext, },
 end
 
 namespace contractible_space
 
-@[priority 50]
-instance : nonempty X := nonempty.map (λ h, homotopy_equiv.inv_fun h ()) (hequiv_unit X)
-
 @[priority 100]
 instance : path_connected_space X :=
 begin
   obtain ⟨p, ⟨h⟩⟩ := id_nullhomotopic X,
-  have : ∀ x, joined p x := λ x, nonempty.intro (h.eval_at x).symm,
+  have : ∀ x, joined p x := λ x, ⟨(h.eval_at x).symm⟩,
   rw path_connected_space_iff_eq, use p, ext, tauto,
 end
 

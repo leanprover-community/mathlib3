@@ -164,8 +164,7 @@ by simp only [continuous_iff_continuous_at, continuous_at_const_smul_iff]
 
 /-- The homeomorphism given by scalar multiplication by a given element of a group `Γ` acting on
   `T` is a homeomorphism from `T` to itself. -/
-@[to_additive] def homeomorph.smul {G : Type*} [group G]
-  [mul_action G α] [has_continuous_const_smul G α] (γ : G) : α ≃ₜ α :=
+@[to_additive] def homeomorph.smul (γ : G) : α ≃ₜ α :=
 { to_equiv := mul_action.to_perm γ,
   continuous_to_fun  := continuous_const_smul γ,
   continuous_inv_fun := continuous_const_smul γ⁻¹ }
@@ -187,6 +186,12 @@ lemma is_closed_map_smul (c : G) : is_closed_map (λ x : α, c • x) :=
 
 @[to_additive] lemma is_closed.smul {s : set α} (hs : is_closed s) (c : G) : is_closed (c • s) :=
 is_closed_map_smul c s hs
+
+@[to_additive] lemma closure_smul (c : G) (s : set α) : closure (c • s) = c • closure s :=
+((homeomorph.smul c).image_closure s).symm
+
+@[to_additive] lemma interior_smul (c : G) (s : set α) : interior (c • s) = c • interior s :=
+((homeomorph.smul c).image_interior s).symm
 
 end group
 
@@ -230,6 +235,17 @@ is_open_map_smul₀ hc s hs
 
 lemma interior_smul₀ {c : G₀} (hc : c ≠ 0) (s : set α) : interior (c • s) = c • interior s :=
 ((homeomorph.smul_of_ne_zero c hc).image_interior s).symm
+
+lemma closure_smul₀ {E} [has_zero E] [mul_action_with_zero G₀ E] [topological_space E]
+  [t1_space E] [has_continuous_const_smul G₀ E] (c : G₀) (s : set E) :
+  closure (c • s) = c • closure s :=
+begin
+  rcases eq_or_ne c 0 with rfl|hc,
+  { rcases eq_empty_or_nonempty s with rfl|hs,
+    { simp },
+    { rw [zero_smul_set hs, zero_smul_set hs.closure], exact closure_singleton } },
+  { exact ((homeomorph.smul_of_ne_zero c hc).image_closure s).symm }
+end
 
 /-- `smul` is a closed map in the second argument.
 
@@ -375,3 +391,45 @@ begin
     simp only [image_smul, not_not, mem_set_of_eq, ne.def] at H,
     exact eq_empty_iff_forall_not_mem.mp H (γ • x) ⟨mem_image_of_mem _ x_in_K₀, h'⟩ },
 end
+
+section nhds
+
+section mul_action
+
+variables {G₀ : Type*} [group_with_zero G₀] [mul_action G₀ α]
+  [topological_space α] [has_continuous_const_smul G₀ α]
+
+/-- Scalar multiplication preserves neighborhoods. -/
+lemma set_smul_mem_nhds_smul {c : G₀} {s : set α} {x : α} (hs : s ∈ 𝓝 x) (hc : c ≠ 0) :
+  c • s ∈ 𝓝 (c • x : α) :=
+begin
+  rw mem_nhds_iff at hs ⊢,
+  obtain ⟨U, hs', hU, hU'⟩ := hs,
+  exact ⟨c • U, set.smul_set_mono hs', hU.smul₀ hc, set.smul_mem_smul_set hU'⟩,
+end
+
+lemma set_smul_mem_nhds_smul_iff {c : G₀} {s : set α} {x : α} (hc : c ≠ 0) :
+  c • s ∈ 𝓝 (c • x : α) ↔ s ∈ 𝓝 x :=
+begin
+  refine ⟨λ h, _, λ h, set_smul_mem_nhds_smul h hc⟩,
+  rw [←inv_smul_smul₀ hc x, ←inv_smul_smul₀ hc s],
+  exact set_smul_mem_nhds_smul h (inv_ne_zero hc),
+end
+
+end mul_action
+
+section distrib_mul_action
+
+variables {G₀ : Type*} [group_with_zero G₀] [add_monoid α] [distrib_mul_action G₀ α]
+  [topological_space α] [has_continuous_const_smul G₀ α]
+
+lemma set_smul_mem_nhds_zero_iff {s : set α} {c : G₀} (hc : c ≠ 0) :
+  c • s ∈ 𝓝 (0 : α) ↔ s ∈ 𝓝 (0 : α) :=
+begin
+  refine iff.trans _ (set_smul_mem_nhds_smul_iff hc),
+  rw smul_zero,
+end
+
+end distrib_mul_action
+
+end nhds

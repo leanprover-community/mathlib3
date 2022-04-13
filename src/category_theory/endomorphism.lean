@@ -3,9 +3,9 @@ Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov, Scott Morrison, Simon Hudon
 -/
+import algebra.hom.equiv
 import category_theory.groupoid
 import category_theory.opposites
-import data.equiv.mul_add
 import group_theory.group_action.defs
 
 /-!

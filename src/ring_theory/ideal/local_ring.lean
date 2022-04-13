@@ -37,38 +37,17 @@ class local_ring (R : Type u) [comm_semiring R] extends nontrivial R : Prop :=
 
 namespace local_ring
 
-variables {R : Type u}
-
-lemma is_unit_or_is_unit_one_sub_self [comm_ring R] [local_ring R] (a : R) :
-  (is_unit a) ∨ (is_unit (1 - a)) :=
-or_iff_not_imp_left.mpr $ λ ha,
-begin
-  by_contra ha',
-  apply nonunits_add ha ha',
-  simp [-sub_eq_add_neg, add_sub_cancel'_right]
-end
-
-lemma is_unit_of_mem_nonunits_one_sub_self [comm_ring R] [local_ring R]
-  (a : R) (h : (1 - a) ∈ nonunits R) :
-  is_unit a :=
-or_iff_not_imp_right.1 (is_unit_or_is_unit_one_sub_self a) h
-
-lemma is_unit_one_sub_self_of_mem_nonunits [comm_ring R] [local_ring R]
-  (a : R) (h : a ∈ nonunits R) :
-  is_unit (1 - a) :=
-or_iff_not_imp_left.1 (is_unit_or_is_unit_one_sub_self a) h
-
-variable (R)
+section comm_semiring
+variables (R : Type u) [comm_semiring R] [local_ring R]
 
 /-- The ideal of elements that are not units. -/
-def maximal_ideal [comm_semiring R] [local_ring R] : ideal R :=
+def maximal_ideal : ideal R :=
 { carrier := nonunits R,
   zero_mem' := zero_mem_nonunits.2 $ zero_ne_one,
   add_mem' := λ x y hx hy, nonunits_add hx hy,
   smul_mem' := λ a x, mul_mem_nonunits_right }
 
-instance maximal_ideal.is_maximal [comm_semiring R] [local_ring R] :
-  (maximal_ideal R).is_maximal :=
+instance maximal_ideal.is_maximal : (maximal_ideal R).is_maximal :=
 begin
   rw ideal.is_maximal_iff,
   split,
@@ -79,27 +58,46 @@ begin
     simpa using I.mul_mem_left ↑u⁻¹ H }
 end
 
-lemma maximal_ideal_unique [comm_semiring R] [local_ring R] :
-  ∃! I : ideal R, I.is_maximal :=
+lemma maximal_ideal_unique : ∃! I : ideal R, I.is_maximal :=
 ⟨maximal_ideal R, maximal_ideal.is_maximal R,
   λ I hI, hI.eq_of_le (maximal_ideal.is_maximal R).1.1 $
   λ x hx, hI.1.1 ∘ I.eq_top_of_is_unit_mem hx⟩
 
 variable {R}
 
-lemma eq_maximal_ideal [comm_semiring R] [local_ring R] {I : ideal R} (hI : I.is_maximal) :
-  I = maximal_ideal R :=
+lemma eq_maximal_ideal {I : ideal R} (hI : I.is_maximal) : I = maximal_ideal R :=
 unique_of_exists_unique (maximal_ideal_unique R) hI $ maximal_ideal.is_maximal R
 
-lemma le_maximal_ideal [comm_semiring R] [local_ring R] {J : ideal R} (hJ : J ≠ ⊤) :
-  J ≤ maximal_ideal R :=
+lemma le_maximal_ideal {J : ideal R} (hJ : J ≠ ⊤) : J ≤ maximal_ideal R :=
 begin
   rcases ideal.exists_le_maximal J hJ with ⟨M, hM1, hM2⟩,
   rwa ←eq_maximal_ideal hM1
 end
 
-@[simp] lemma mem_maximal_ideal [comm_semiring R] [local_ring R] (x) :
-  x ∈ maximal_ideal R ↔ x ∈ nonunits R := iff.rfl
+@[simp] lemma mem_maximal_ideal (x) : x ∈ maximal_ideal R ↔ x ∈ nonunits R := iff.rfl
+
+end comm_semiring
+
+section comm_ring
+variables {R : Type u} [comm_ring R] [local_ring R]
+
+lemma is_unit_or_is_unit_one_sub_self (a : R) : (is_unit a) ∨ (is_unit (1 - a)) :=
+or_iff_not_imp_left.mpr $ λ ha,
+begin
+  by_contra ha',
+  apply nonunits_add ha ha',
+  simp [-sub_eq_add_neg, add_sub_cancel'_right]
+end
+
+lemma is_unit_of_mem_nonunits_one_sub_self (a : R) (h : (1 - a) ∈ nonunits R) :
+  is_unit a :=
+or_iff_not_imp_right.1 (is_unit_or_is_unit_one_sub_self a) h
+
+lemma is_unit_one_sub_self_of_mem_nonunits (a : R) (h : a ∈ nonunits R) :
+  is_unit (1 - a) :=
+or_iff_not_imp_left.1 (is_unit_or_is_unit_one_sub_self a) h
+
+end comm_ring
 
 end local_ring
 

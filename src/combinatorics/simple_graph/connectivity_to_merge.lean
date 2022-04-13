@@ -21,13 +21,17 @@ walks, trails, paths, circuits, cycles
 
 -/
 
-@[simp] lemma function.injective.mem_list_map_iff {α β : Type*} {f : α → β} {l : list α} {a : α}
+/-- this doesn't seem to be used in this file anymore (was a simp lemma) -/
+lemma function.injective.mem_list_map_iff {α β : Type*} {f : α → β} {l : list α} {a : α}
   (hf : function.injective f) :
-  f a ∈ l.map f ↔ a ∈ l :=
+  (∃ (a' : α), a' ∈ l ∧ f a' = f a) ↔ a ∈ l :=
 begin
-  refine ⟨λ h, _, list.mem_map_of_mem f⟩,
-  obtain ⟨y, hy, heq⟩ := list.mem_map.1 h,
-  exact hf heq ▸ hy,
+  split,
+  { rintro ⟨a', ha', h⟩,
+    cases hf h,
+    assumption },
+  { intro h,
+    exact ⟨_, h, rfl⟩ },
 end
 
 universes u
@@ -60,8 +64,10 @@ end walk
 namespace walk
 variables {G}
 
-def to_delete_edges (s : set (sym2 V)) : Π {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s),
-  (G.delete_edges s).walk v w
+/-- Given a walk that avoids a set of edges, produce a walk in the graph
+with those edges deleted. -/
+def to_delete_edges (s : set (sym2 V)) :
+  Π {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s), (G.delete_edges s).walk v w
 | _ _ nil _ := nil
 | _ _ (cons' u v w h p) hp := cons' u v w
   (by { simp only [h, delete_edges_adj, true_and],
@@ -107,8 +113,7 @@ by simp [singleton]
 
 /-- The reverse of a path is another path.  See `simple_graph.walk.reverse`. -/
 @[symm] def reverse {u v : V} (p : G.path u v) : G.path v u :=
-by { classical,
-     exact ⟨walk.reverse p, p.property.reverse⟩ }
+⟨walk.reverse p, p.property.reverse⟩
 
 lemma support_count_eq_one [decidable_eq V] {u v w : V} {p : G.path u v}
   (hw : w ∈ (p : G.walk u v).support) : (p : G.walk u v).support.count w = 1 :=
@@ -117,6 +122,16 @@ list.count_eq_one_of_mem p.property.support_nodup hw
 lemma edges_count_eq_one [decidable_eq V] {u v : V} {p : G.path u v} (e : sym2 V)
   (hw : e ∈ (p : G.walk u v).edges) : (p : G.walk u v).edges.count e = 1 :=
 list.count_eq_one_of_mem p.property.to_trail.edges_nodup hw
+
+lemma nonempty_path_not_loop {v : V} {e : sym2 V} (p : G.path v v)
+  (h : e ∈ walk.edges (p : G.walk v v)) : false :=
+begin
+  cases p with p hp,
+  cases p,
+  { exact h },
+  { cases hp,
+    simpa using hp_support_nodup },
+end
 
 end path
 
@@ -163,9 +178,6 @@ let C' := h ∅ (by simp) (by simp [hk]) in
 
 variables (G)
 
-section
-variables [decidable_eq V]
-
 /-- A graph is *acyclic* (or a *forest*) if it has no cycles.
 
 A characterization: `simple_graph.is_acyclic_iff`.-/
@@ -173,8 +185,6 @@ def is_acyclic : Prop := ∀ (v : V) (c : G.walk v v), ¬c.is_cycle
 
 /-- A *tree* is a connected acyclic graph. -/
 def is_tree : Prop := G.connected ∧ G.is_acyclic
-
-end
 
 namespace subgraph
 variables {G} (H : subgraph G)
@@ -218,9 +228,9 @@ begin
     simpa using this }
 end
 
-variables [decidable_eq V]
+--variables [decidable_eq V]
 
-lemma is_bridge_iff_no_cycle_contains.aux1
+lemma is_bridge_iff_no_cycle_contains.aux1 [decidable_eq V]
   {u v w : V}
   (c : G.walk u u)
   (he : ⟦(v, w)⟧ ∈ c.edges)
@@ -278,6 +288,7 @@ end
 lemma is_bridge_iff_no_cycle_contains {v w : V} (h : G.adj v w) :
   G.is_bridge v w ↔ ∀ {u : V} (p : G.walk u u), p.is_cycle → ⟦(v, w)⟧ ∉ p.edges :=
 begin
+  classical,
   split,
   { intros hb u c hc he,
     rw is_bridge_iff_walks_contain at hb,
@@ -404,6 +415,7 @@ end
 
 lemma is_tree_iff : G.is_tree ↔ nonempty V ∧ ∀ (v w : V), ∃!(p : G.walk v w), p.is_path :=
 begin
+  classical,
   simp only [is_tree, is_acyclic_iff],
   split,
   { intro h,
@@ -461,6 +473,7 @@ G.adj v w ∧ ⟦(v, w)⟧ ∈ (G.tree_path h v root : G.walk v root).edges
 
 lemma is_rootward_antisymm (h : G.is_tree) (root : V) : anti_symmetric (is_rootward h root) :=
 begin
+  classical,
   rintros v w ⟨ha, hvw⟩ ⟨ha', hwv⟩,
   by_contra hne,
   rw sym2.eq_swap at hwv,
@@ -495,6 +508,7 @@ end
 lemma is_rootward_or_reverse (h : G.is_tree) (root : V) {v w : V} (hvw : G.adj v w) :
   is_rootward h root v w ∨ is_rootward h root w v :=
 begin
+  classical,
   have h' := h.2,
   rw is_acyclic_iff at h',
   by_contra hr,
@@ -520,16 +534,6 @@ open fintype
 def next_edge (G : simple_graph V) : ∀ (v w : V) (h : v ≠ w) (p : G.walk v w), G.incidence_set v
 | v w h walk.nil := (h rfl).elim
 | v w h (@walk.cons _ _ _ u _ hvw _) := ⟨⟦(v, u)⟧, hvw, sym2.mem_mk_left _ _⟩
-
-lemma nonempty_path_not_loop {v : V} {e : sym2 V} (p : G.path v v)
-  (h : e ∈ walk.edges (p : G.walk v v)) : false :=
-begin
-  cases p with p hp,
-  cases p,
-  { exact h },
-  { cases hp,
-    simpa using hp_support_nodup },
-end
 
 lemma eq_next_edge_if_mem_path {u v w : V}
   (hne : u ≠ v) (hinc : ⟦(u, w)⟧ ∈ G.incidence_set u)
@@ -564,6 +568,7 @@ lemma is_tree.card_edges_eq_card_vertices_sub_one
   [fintype G.edge_set] [fintype V] [nonempty V] (h : G.is_tree) :
   card G.edge_set = card V - 1 :=
 begin
+  classical,
   have root := classical.arbitrary V,
   rw ←set.card_ne_eq root,
   let f : {v | v ≠ root} → G.edge_set := λ v,
@@ -611,14 +616,14 @@ begin
     { use u₁,
       rintro rfl,
       dsimp only [is_rootward] at hr,
-      exact nonempty_path_not_loop _ hr.2,
+      exact path.nonempty_path_not_loop _ hr.2,
       cases hr,
       simp only [f],
       erw eq_next_edge_if_mem_path _ ⟨he, _⟩ _ hr_right; simp [he]},
     { use u₂,
       rintro rfl,
       dsimp only [is_rootward] at hr,
-      exact nonempty_path_not_loop _ hr.2,
+      exact path.nonempty_path_not_loop _ hr.2,
       cases hr,
       simp only [f],
       erw eq_next_edge_if_mem_path _ ⟨_ , _⟩ _ hr_right; simp [he, sym2.eq_swap] } },

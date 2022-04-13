@@ -1253,16 +1253,6 @@ def add_monoid_ring_hom_map (k : Type*) [semiring k] {H : Type*} [add_monoid G] 
 { map_one' := map_domain_one f,
   map_mul' := λ x y, map_domain_mul f x y,
   ..(finsupp.map_domain.add_monoid_hom f : monoid_algebra k G →+ monoid_algebra k H) }
-/-
-begin
-  refine lift_nc_ring_hom _ ((of k H).comp f.to_multiplicative) (λ r n, _),
-  { -- Without the explicit Type annotation, the proof times out.
-    exact (monoid_algebra.single_one_ring_hom : k →+* monoid_algebra k (multiplicative H)) },
-  { show (single 1 r * single (f n) 1 : monoid_algebra k (multiplicative H)) =
-      single (f n) 1 * single 1 r,
-    simp only [monoid_algebra.single_mul_single, one_mul, mul_one] }
-end
--/
 
 end misc_theorems
 

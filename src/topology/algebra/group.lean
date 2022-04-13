@@ -321,7 +321,8 @@ section topological_group
 
 A topological group is a group in which the multiplication and inversion operations are
 continuous. Topological additive groups are defined in the same way. Equivalently, we can require
-that the division operation `λ x y, x * y⁻¹` (resp., subtraction) is continuous.
+that the division operation `λ x y, x * y⁻¹` (resp., subtraction) is continuous,
+see `topological_group_iff_has_continuous_div`.
 -/
 
 /-- A topological (additive) group is a group in which the addition and negation operations are
@@ -861,6 +862,20 @@ lemma continuous_on.div' (hf : continuous_on f s) (hg : continuous_on g s) :
 λ x hx, (hf x hx).div' (hg x hx)
 
 end has_continuous_div
+
+@[to_additive]
+lemma topological_group_iff_has_continuous_div {G : Type*} [topological_space G] [group G] :
+  topological_group G ↔ has_continuous_div G :=
+begin
+  refine ⟨@topological_group.to_has_continuous_div _ _ _, _⟩,
+  introI,
+  haveI : has_continuous_inv G,
+  { constructor, simpa only [← one_div] using continuous_const.div' continuous_id },
+  haveI : has_continuous_mul G,
+  { constructor, simpa only [← div_inv_eq_mul] using continuous_fst.div' continuous_snd.inv },
+  constructor
+end
+
 
 section div_in_topological_group
 variables [group G] [topological_space G] [topological_group G]

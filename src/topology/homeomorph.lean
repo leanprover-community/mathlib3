@@ -87,6 +87,9 @@ protected def trans (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) : α ≃ₜ γ :
 
 @[simp] lemma trans_apply (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) (a : α) : h₁.trans h₂ a = h₂ (h₁ a) := rfl
 
+@[simp] lemma symm_trans (h₁ : α ≃ₜ β) (h₂ : β ≃ₜ γ) :
+  (h₁.trans h₂).symm = h₂.symm.trans h₁.symm := rfl
+
 @[simp] lemma homeomorph_mk_coe_symm (a : equiv α β) (b c) :
   ((homeomorph.mk a b c).symm : β → α) = a.symm :=
 rfl

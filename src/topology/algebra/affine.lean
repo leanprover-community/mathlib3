@@ -164,6 +164,9 @@ lemma continuous_on.line_map {f₁ f₂ : X → PE} {g : X → R} {s : set X}
   continuous (λ x, line_map (f₁ x) (f₂ x) (g x)) :=
 (hg.smul (h₂.vsub h₁)).vadd h₁
 
+lemma continuous_line_map (p₁ p₂ : PE) : continuous ⇑(line_map p₁ p₂ : R →ᵃ[R] PE) :=
+continuous_const.line_map continuous_const continuous_id
+
 end ring
 
 section midpoint

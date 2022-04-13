@@ -40,14 +40,14 @@ open computability list Structure cardinal fin
 namespace term
 
 /-- Encodes a term as a list of variables and function symbols. -/
-def list_encode : L.term α → list (α ⊕ (Σ i, L.functions i))
+def list_encode : L.term α → list (α ⊕ Σ i, L.functions i)
 | (var i) := [sum.inl i]
 | (func f ts) := ((sum.inr (⟨_, f⟩ : Σ i, L.functions i)) ::
     ((list.fin_range _).bind (λ i, (ts i).list_encode)))
 
 /-- Decodes a list of variables and function symbols as a list of terms. -/
 def list_decode [inhabited (L.term α)] :
-  list (α ⊕ (Σ i, L.functions i)) → list (L.term α)
+  list (α ⊕ Σ i, L.functions i) → list (L.term α)
 | [] := []
 | ((sum.inl a) :: l) := var a :: list_decode l
 | ((sum.inr ⟨n, f⟩) :: l) := func f (λ i, ((list_decode l).nth i).iget) :: ((list_decode l).drop n)
@@ -55,7 +55,7 @@ def list_decode [inhabited (L.term α)] :
 @[simp] theorem list_decode_encode_list [inhabited (L.term α)] (l : list (L.term α)) :
   list_decode (l.bind list_encode) = l :=
 begin
-  suffices h : ∀ (t : L.term α) (l : list (α ⊕ (Σ i, L.functions i))),
+  suffices h : ∀ (t : L.term α) (l : list (α ⊕ Σ i, L.functions i)),
     list_decode (t.list_encode ++ l) = t :: list_decode l,
   { induction l with t l lih,
     { refl },
@@ -86,7 +86,7 @@ end
 
 /-- An encoding of terms as lists. -/
 @[simps] protected def encoding [inhabited (L.term α)] : encoding (L.term α) :=
-{ Γ := (α ⊕ (Σ i, L.functions i)),
+{ Γ := α ⊕ Σ i, L.functions i,
   encode := list_encode,
   decode := λ l, (list_decode l).head',
   decode_encode := λ t, begin
@@ -96,7 +96,7 @@ end
   end }
 
 lemma list_encode_injective :
-  function.injective (list_encode : L.term α → list (α ⊕ (Σ i, L.functions i))) :=
+  function.injective (list_encode : L.term α → list (α ⊕ Σ i, L.functions i)) :=
 begin
   casesI is_empty_or_nonempty (L.term α) with he hne,
   { exact he.elim },
@@ -104,12 +104,12 @@ begin
     exact term.encoding.encode_injective }
 end
 
-theorem card_le : # (L.term α) ≤ # (α ⊕ (Σ i, L.functions i)) + ω :=
+theorem card_le : # (L.term α) ≤ # (α ⊕ Σ i, L.functions i) + ω :=
 begin
   have h := (mk_le_of_injective list_encode_injective),
   refine h.trans _,
-  casesI fintype_or_infinite (α ⊕ (Σ i, L.functions i)) with ft inf,
-  { haveI := fintype.encodable (α ⊕ (Σ i, L.functions i)),
+  casesI fintype_or_infinite (α ⊕ Σ i, L.functions i) with ft inf,
+  { haveI := fintype.encodable (α ⊕ Σ i, L.functions i),
     exact le_add_left (encodable_iff.1 ⟨encodable.list⟩) },
   { rw mk_list_eq_mk,
     exact le_self_add }

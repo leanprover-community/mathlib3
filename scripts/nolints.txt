@@ -124,7 +124,6 @@ apply_nolint traversable.free.mk doc_blame
 apply_nolint traversable.length doc_blame
 apply_nolint traversable.map_fold doc_blame
 apply_nolint traversable.mfoldl doc_blame
-apply_nolint traversable.mfoldl.unop_of_free_monoid unused_arguments
 apply_nolint traversable.mfoldr doc_blame
 
 -- control/monad/cont.lean
@@ -625,10 +624,6 @@ apply_nolint gaussian_int.mod doc_blame
 
 -- order/filter/at_top_bot.lean
 apply_nolint filter.map_at_top_finset_prod_le_of_prod_eq to_additive_doc
-
--- order/filter/pointwise.lean
-apply_nolint filter.has_add check_reducibility
-apply_nolint filter.has_mul check_reducibility
 
 -- order/prime_ideal.lean
 apply_nolint order.ideal.is_prime.is_maximal fails_quickly

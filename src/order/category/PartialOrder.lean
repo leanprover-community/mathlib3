@@ -30,6 +30,8 @@ instance : has_coe_to_sort PartialOrder Type* := bundled.has_coe_to_sort
 /-- Construct a bundled PartialOrder from the underlying type and typeclass. -/
 def of (α : Type*) [partial_order α] : PartialOrder := bundled.of α
 
+@[simp] lemma coe_of (α : Type*) [partial_order α] : ↥(of α) = α := rfl
+
 instance : inhabited PartialOrder := ⟨of punit⟩
 
 instance (α : PartialOrder) : partial_order α := α.str
@@ -44,20 +46,20 @@ instance has_forget_to_Preorder : has_forget₂ PartialOrder Preorder := bundled
   inv_hom_id' := by { ext, exact e.apply_symm_apply x } }
 
 /-- `order_dual` as a functor. -/
-@[simps] def to_dual : PartialOrder ⥤ PartialOrder :=
+@[simps] def dual : PartialOrder ⥤ PartialOrder :=
 { obj := λ X, of (order_dual X), map := λ X Y, order_hom.dual }
 
 /-- The equivalence between `PartialOrder` and itself induced by `order_dual` both ways. -/
 @[simps functor inverse] def dual_equiv : PartialOrder ≌ PartialOrder :=
-equivalence.mk to_dual to_dual
+equivalence.mk dual dual
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
   (nat_iso.of_components (λ X, iso.mk $ order_iso.dual_dual X) $ λ X Y f, rfl)
 
 end PartialOrder
 
-lemma PartialOrder_to_dual_comp_forget_to_Preorder :
-  PartialOrder.to_dual ⋙ forget₂ PartialOrder Preorder =
-    forget₂ PartialOrder Preorder ⋙ Preorder.to_dual := rfl
+lemma PartialOrder_dual_comp_forget_to_Preorder :
+  PartialOrder.dual ⋙ forget₂ PartialOrder Preorder =
+    forget₂ PartialOrder Preorder ⋙ Preorder.dual := rfl
 
 /-- `antisymmetrization` as a functor. It is the free functor. -/
 def Preorder_to_PartialOrder : Preorder.{u} ⥤ PartialOrder :=
@@ -85,7 +87,7 @@ adjunction.mk_of_hom_equiv
 
 /-- `Preorder_to_PartialOrder` and `order_dual` commute. -/
 @[simps] def Preorder_to_PartialOrder_comp_to_dual_iso_to_dual_comp_Preorder_to_PartialOrder :
- (Preorder_to_PartialOrder.{u} ⋙ PartialOrder.to_dual) ≅
-    (Preorder.to_dual ⋙ Preorder_to_PartialOrder) :=
+ (Preorder_to_PartialOrder.{u} ⋙ PartialOrder.dual) ≅
+    (Preorder.dual ⋙ Preorder_to_PartialOrder) :=
 nat_iso.of_components (λ X, PartialOrder.iso.mk $ order_iso.dual_antisymmetrization _) $
   λ X Y f, order_hom.ext _ _ $ funext $ λ x, quotient.induction_on' x $ λ x, rfl

@@ -3,8 +3,8 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.equiv.denumerable
 import data.nat.lattice
+import logic.denumerable
 import logic.function.iterate
 import order.hom.basic
 
@@ -176,12 +176,12 @@ end
 type, `monotonic_sequence_limit_index a` is the least natural number `n` for which `aₙ` reaches the
 constant value. For sequences that are not eventually constant, `monotonic_sequence_limit_index a`
 is defined, but is a junk value. -/
-noncomputable def monotonic_sequence_limit_index {α : Type*} [partial_order α] (a : ℕ →o α) : ℕ :=
+noncomputable def monotonic_sequence_limit_index {α : Type*} [preorder α] (a : ℕ →o α) : ℕ :=
 Inf { n | ∀ m, n ≤ m → a n = a m }
 
 /-- The constant value of an eventually-constant monotone sequence `a₀ ≤ a₁ ≤ a₂ ≤ ...` in a
 partially-ordered type. -/
-noncomputable def monotonic_sequence_limit {α : Type*} [partial_order α] (a : ℕ →o α) :=
+noncomputable def monotonic_sequence_limit {α : Type*} [preorder α] (a : ℕ →o α) :=
 a (monotonic_sequence_limit_index a)
 
 lemma well_founded.supr_eq_monotonic_sequence_limit {α : Type*} [complete_lattice α]

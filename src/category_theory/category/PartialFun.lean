@@ -22,8 +22,8 @@ constructive.
 
 ## References
 
-* [nLab, *The category of sets and partial functions]
-[http://nlab-pages.s3.us-east-2.amazonaws.com/nlab/show/partial+function]
+* [nLab, *The category of sets and partial functions*]
+  (https://ncatlab.org/nlab/show/partial+function)
 -/
 
 open category_theory option
@@ -40,6 +40,8 @@ instance : has_coe_to_sort PartialFun Type* := ⟨id⟩
 
 /-- Turns a type into a `PartialFun`. -/
 @[nolint has_inhabited_instance] def of : Type* → PartialFun := id
+
+@[simp] lemma coe_of (X : Type*) : ↥(of X) = X := rfl
 
 instance : inhabited PartialFun := ⟨Type*⟩
 

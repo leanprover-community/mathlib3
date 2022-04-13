@@ -8,13 +8,18 @@ import linear_algebra.special_linear_group
 
 /-!
 # The General Linear group $GL(n, R)$
+
 This file defines the elements of the General Linear group `general_linear_group n R`,
 consisting of all invertible `n` by `n` `R`-matrices.
+
 ## Main definitions
+
 * `matrix.general_linear_group` is the type of matrices over R which are units in the matrix ring.
 * `matrix.GL_pos` gives the subgroup of matrices with
   positive determinant (over a linear ordered ring).
+
 ## Tags
+
 matrix group, group, matrix inverse
 -/
 
@@ -22,6 +27,9 @@ namespace matrix
 universes u v
 open_locale matrix
 open linear_map
+
+-- disable this instance so we do not accidentally use it in lemmas.
+local attribute [-instance] special_linear_group.has_coe_to_fun
 
 /-- `GL n R` is the group of `n` by `n` `R`-matrices with unit determinant.
 Defined as a subtype of matrices-/
@@ -62,9 +70,6 @@ def mk_of_det_ne_zero {K : Type*} [field K] (A : matrix n n K) (h : matrix.det A
   GL n K :=
 mk' A (invertible_of_nonzero h)
 
-instance coe_fun : has_coe_to_fun (GL n R) (λ _, n → n → R) :=
-{ coe := λ A, A.val }
-
 lemma ext_iff (A B : GL n R) : A = B ↔ (∀ i j, (A : matrix n n R) i j = (B : matrix n n R) i j) :=
 units.ext_iff.trans matrix.ext_iff.symm
 
@@ -76,8 +81,6 @@ units.ext $ matrix.ext h
 section coe_lemmas
 
 variables (A B : GL n R)
-
-@[simp] lemma coe_fn_eq_coe : ⇑A = (↑A : matrix n n R) := rfl
 
 @[simp] lemma coe_mul : ↑(A * B) = (↑A : matrix n n R) ⬝ (↑B : matrix n n R) := rfl
 
@@ -103,7 +106,7 @@ units.map_equiv matrix.to_lin_alg_equiv'.to_ring_equiv.to_mul_equiv
 rfl
 
 @[simp] lemma to_linear_apply (v : n → R) :
-  (@to_linear n ‹_› ‹_› _ _ A) v = matrix.mul_vec_lin A v :=
+  (@to_linear n ‹_› ‹_› _ _ A) v = matrix.mul_vec_lin ↑A v :=
 rfl
 
 end coe_lemmas
@@ -116,6 +119,9 @@ variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
 
 instance has_coe_to_general_linear_group : has_coe (special_linear_group n R) (GL n R) :=
 ⟨λ A, ⟨↑A, ↑(A⁻¹), congr_arg coe (mul_right_inv A), congr_arg coe (mul_left_inv A)⟩⟩
+
+@[simp] lemma coe_to_GL_det (g : special_linear_group n R) : (g : GL n R).det = 1 :=
+units.ext g.prop
 
 end special_linear_group
 
@@ -143,17 +149,10 @@ variables {n : Type u} {R : Type v} [decidable_eq n] [fintype n] [linear_ordered
 /-- Formal operation of negation on general linear group on even cardinality `n` given by negating
 each element. -/
 instance : has_neg (GL_pos n R) :=
-⟨λ g,
-   ⟨- g,
-  begin
-    simp only [mem_GL_pos, general_linear_group.coe_det_apply, units.coe_neg],
-    have := det_smul g (-1),
-    simp only [general_linear_group.coe_fn_eq_coe, one_smul, coe_fn_coe_base', neg_smul] at this,
-    rw this,
-    simp [nat.neg_one_pow_of_even (fact.out (even (fintype.card n)))],
-    have gdet := g.property,
-    simp only [mem_GL_pos, general_linear_group.coe_det_apply, subtype.val_eq_coe] at gdet,
-    exact gdet,
+⟨λ g, ⟨-g, begin
+    rw [mem_GL_pos, general_linear_group.coe_det_apply, units.coe_neg, det_neg,
+      (fact.out $ even $ fintype.card n).neg_one_pow, one_mul],
+    exact g.prop,
   end⟩⟩
 
 instance : has_distrib_neg (GL_pos n R) :=
@@ -162,13 +161,12 @@ instance : has_distrib_neg (GL_pos n R) :=
   neg_mul := λ x y, subtype.ext $ neg_mul _ _,
   mul_neg := λ x y, subtype.ext $ mul_neg _ _ }
 
-@[simp] lemma GL_pos_coe_neg (g : GL_pos n R) : ↑(- g) = - (↑g : matrix n n R) :=
+@[simp] lemma GL_pos.coe_neg (g : GL_pos n R) : ↑(- g) = - (↑g : matrix n n R) :=
 rfl
 
-@[simp]lemma GL_pos_neg_elt (g : GL_pos n R): ∀ i j, ( ↑(-g): matrix n n R) i j= - (g i j):=
-begin
-  simp [coe_fn_coe_base'],
-end
+@[simp] lemma GL_pos.coe_neg_apply (g : GL_pos n R) (i j : n) :
+  (↑(-g) : matrix n n R) i j = -((↑g : matrix n n R) i j) :=
+rfl
 
 end has_neg
 
@@ -191,11 +189,26 @@ lemma to_GL_pos_injective :
 (show function.injective ((coe : GL_pos n R → matrix n n R) ∘ to_GL_pos),
  from subtype.coe_injective).of_comp
 
+/-- Coercing a `special_linear_group` via `GL_pos` and `GL` is the same as coercing striaght to a
+matrix. -/
+@[simp]
+lemma coe_GL_pos_coe_GL_coe_matrix (g : special_linear_group n R) :
+    (↑(↑(↑g : GL_pos n R) : GL n R) : matrix n n R) = ↑g := rfl
+
+@[simp] lemma coe_to_GL_pos_to_GL_det (g : special_linear_group n R) :
+  ((g : GL_pos n R) : GL n R).det = 1 :=
+units.ext g.prop
+
+variable [fact (even (fintype.card n))]
+
+@[norm_cast] lemma coe_GL_pos_neg (g : special_linear_group n R) :
+  ↑(-g) = -(↑g : GL_pos n R) := subtype.ext $ units.ext rfl
+
 end special_linear_group
 
 section examples
 
-/-- The matrix [a, b; -b, a] (inspired by multiplication by a complex number); it is an element of
+/-- The matrix [a, -b; b, a] (inspired by multiplication by a complex number); it is an element of
 $GL_2(R)$ if `a ^ 2 + b ^ 2` is nonzero. -/
 @[simps coe {fully_applied := ff}]
 def plane_conformal_matrix {R} [field R] (a b : R) (hab : a ^ 2 + b ^ 2 ≠ 0) :
@@ -208,5 +221,21 @@ general_linear_group.mk_of_det_ne_zero ![![a, -b], ![b, a]]
 -/
 
 end examples
+
+namespace general_linear_group
+variables {n : Type u} [decidable_eq n] [fintype n] {R : Type v} [comm_ring R]
+
+-- this section should be last to ensure we do not use it in lemmas
+section coe_fn_instance
+
+/-- This instance is here for convenience, but is not the simp-normal form. -/
+instance : has_coe_to_fun (GL n R) (λ _, n → n → R) :=
+{ coe := λ A, A.val }
+
+@[simp] lemma coe_fn_eq_coe (A : GL n R) : ⇑A = (↑A : matrix n n R) := rfl
+
+end coe_fn_instance
+
+end general_linear_group
 
 end matrix

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
-import set_theory.ordinal_arithmetic
+import set_theory.principal
 
 /-!
 # Ordinal notation
@@ -629,7 +629,7 @@ begin
   cases NF_repr_split h with h₁ h₂,
   cases h₁.of_dvd_omega (split_dvd h) with e0 d,
   have := h₁.fst, have := h₁.snd,
-  refine add_lt_omega_opow h₁.snd'.repr_lt (lt_of_lt_of_le (nat_lt_omega _) _),
+  apply principal_add_omega_opow _ h₁.snd'.repr_lt (lt_of_lt_of_le (nat_lt_omega _) _),
   simpa using opow_le_opow_right omega_pos (one_le_iff_ne_zero.2 e0),
 end
 
@@ -676,19 +676,18 @@ begin
   have No := Ne.oadd n (Na.below_of_lt' h),
   have := omega_le_oadd e n a, unfold repr at this,
   refine le_antisymm _ (opow_le_opow_left _ this),
-  apply (opow_le_of_limit
-    (ne_of_gt $ lt_of_lt_of_le (opow_pos _ omega_pos) this) omega_is_limit).2,
+  apply (opow_le_of_limit ((opow_pos _ omega_pos).trans_le this).ne' omega_is_limit).2,
   intros b l,
   have := (No.below_of_lt (lt_succ_self _)).repr_lt, unfold repr at this,
-  apply le_trans (opow_le_opow_left b $ le_of_lt this),
+  apply (opow_le_opow_left b $ this.le).trans,
   rw [← opow_mul, ← opow_mul],
   apply opow_le_opow_right omega_pos,
   cases le_or_lt ω (repr e) with h h,
-  { apply le_trans (mul_le_mul_left' (le_of_lt (lt_succ_self _)) _),
+  { apply (mul_le_mul_left' (lt_succ_self _).le _).trans,
     rw [succ, add_mul_succ _ (one_add_of_omega_le h), ← succ,
         succ_le, mul_lt_mul_iff_left (ordinal.pos_iff_ne_zero.2 e0)],
     exact omega_is_limit.2 _ l },
-  { refine le_trans (le_of_lt $ mul_lt_omega (omega_is_limit.2 _ h) l) _,
+  { apply (principal_mul_omega (omega_is_limit.2 _ h) l).le.trans,
     simpa using mul_le_mul_right' (one_le_iff_ne_zero.2 e0) ω }
 end
 
@@ -726,7 +725,7 @@ begin
   { rw [RR, ← opow_mul _ _ (succ k.succ)],
     have e0 := ordinal.pos_iff_ne_zero.2 e0,
     have rr0 := lt_of_lt_of_le e0 (le_add_left _ _),
-    apply add_lt_omega_opow,
+    apply principal_add_omega_opow,
     { simp [opow_mul, ω0, opow_add, mul_assoc],
       rw [mul_lt_mul_iff_left ω00, ← ordinal.opow_add],
       have := (No.below_of_lt _).repr_lt, unfold repr at this,
@@ -746,7 +745,7 @@ begin
         add_mul_limit _ (is_limit_iff_omega_dvd.2 ⟨ne_of_gt α0, αd⟩), mul_assoc,
         @mul_omega_dvd n (nat_cast_pos.2 n.pos) (nat_lt_omega _) _ αd],
     apply @add_absorp _ (repr a0 * succ k),
-    { refine add_lt_omega_opow _ Rl,
+    { refine principal_add_omega_opow _ _ Rl,
       rw [opow_mul, opow_succ, mul_lt_mul_iff_left ω00],
       exact No.snd'.repr_lt },
     { have := mul_le_mul_left' (one_le_iff_pos.2 $ nat_cast_pos.2 n.pos) (ω0 ^ succ k),

@@ -264,7 +264,7 @@ end prod
 
 section add_monoid_hom_class
 
-variables {A B F : Type*} [add_monoid A] [add_monoid B] [has_one B]
+variables {A B F : Type*} [add_zero_class A] [add_monoid B] [has_one B]
 
 lemma ext_nat' [add_monoid_hom_class F ℕ A] (f g : F) (h : f 1 = g 1) : f = g :=
 fun_like.ext f g $ begin
@@ -283,7 +283,8 @@ lemma eq_nat_cast' [add_monoid_hom_class F ℕ A] (f : F) (h1 : f 1 = 1) :
 | 0     := by simp
 | (n+1) := by rw [map_add, h1, eq_nat_cast' n, nat.cast_add_one]
 
-lemma map_nat_cast' [add_monoid_hom_class F A B] (f : F) (h : f 1 = 1) : ∀ (n : ℕ), f n = n
+lemma map_nat_cast' {A} [add_monoid A] [has_one A] [add_monoid_hom_class F A B]
+                    (f : F) (h : f 1 = 1) : ∀ (n : ℕ), f n = n
 | 0     := by simp
 | (n+1) := by rw [nat.cast_add, map_add, nat.cast_add, map_nat_cast', nat.cast_one, h, nat.cast_one]
 
@@ -291,7 +292,7 @@ end add_monoid_hom_class
 
 section monoid_with_zero_hom_class
 
-variables {A F : Type*} [monoid_with_zero A]
+variables {A F : Type*} [mul_zero_one_class A]
 
 /-- If two `monoid_with_zero_hom`s agree on the positive naturals they are equal. -/
 theorem ext_nat'' [monoid_with_zero_hom_class F ℕ A] (f g : F)
@@ -323,8 +324,19 @@ ext_nat' f g $ by simp only [map_one]
 
 end ring_hom_class
 
+namespace ring_hom
+
+/-- This is primed to match `ring_hom.eq_int_cast'`. -/
+lemma eq_nat_cast' {R} [non_assoc_semiring R] (f : ℕ →+* R) : f = nat.cast_ring_hom R :=
+ring_hom.ext $ eq_nat_cast f
+
+end ring_hom
+
 @[simp, norm_cast] theorem nat.cast_id (n : ℕ) : ↑n = n :=
 (eq_nat_cast (ring_hom.id ℕ) n).symm
+
+@[simp] lemma nat.cast_ring_hom_nat : nat.cast_ring_hom ℕ = ring_hom.id ℕ :=
+((ring_hom.id ℕ).eq_nat_cast').symm
 
 @[simp] theorem nat.cast_with_bot : ∀ (n : ℕ),
   @coe ℕ (with_bot ℕ) (@coe_to_lift _ _ nat.cast_coe) n = n
@@ -332,8 +344,22 @@ end ring_hom_class
 | (n+1) := by rw [with_bot.coe_add, nat.cast_add, nat.cast_with_bot n]; refl
 
 -- I don't think `ring_hom_class` is good here, because of the `subsingleton` TC slowness
-instance nat.subsingleton_ring_hom {R : Type*} [non_assoc_semiring R] : subsingleton (ℕ →+* R) :=
-⟨ext_nat⟩
+instance nat.unique_ring_hom {R : Type*} [non_assoc_semiring R] : unique (ℕ →+* R) :=
+{ default := nat.cast_ring_hom R, uniq := ring_hom.eq_nat_cast' }
+
+namespace mul_opposite
+
+variables {α : Type*} [has_zero α] [has_one α] [has_add α]
+
+@[simp, norm_cast] lemma op_nat_cast : ∀ n : ℕ, op (n : α) = n
+| 0 := rfl
+| (n + 1) := congr_arg (+ (1 : αᵐᵒᵖ)) $ op_nat_cast n
+
+@[simp, norm_cast] lemma unop_nat_cast : ∀ n : ℕ, unop (n : αᵐᵒᵖ) = n
+| 0 := rfl
+| (n + 1) := congr_arg (+ (1 : α)) $ unop_nat_cast n
+
+end mul_opposite
 
 namespace with_top
 variables {α : Type*}

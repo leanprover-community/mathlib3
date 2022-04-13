@@ -144,7 +144,7 @@ def coe.ring_hom : ℤ_[p] →+* ℚ_[p]  :=
   map_add' := coe_add }
 
 @[simp, norm_cast] lemma coe_pow (x : ℤ_[p]) (n : ℕ) : (↑(x^n) : ℚ_[p]) = (↑x : ℚ_[p])^n :=
-coe.ring_hom.map_pow x n
+(coe.ring_hom : ℤ_[p] →+* ℚ_[p]).map_pow x n
 
 @[simp] lemma mk_coe : ∀ (k : ℤ_[p]), (⟨k, k.2⟩ : ℤ_[p]) = k
 | ⟨_, _⟩ := rfl

@@ -221,9 +221,10 @@ lemma card_parts_equitabilise_subset_le (h : a * m + b * (m + 1) = s.card) :
 variables (s)
 
 /-- We can find equipartitions of arbitrary size. -/
-lemma exists_equipartition_card_eq (hn : 0 < n) (hs : n ≤ s.card) :
+lemma exists_equipartition_card_eq (hn : n ≠ 0) (hs : n ≤ s.card) :
   ∃ P : finpartition s, P.is_equipartition ∧ P.parts.card = n :=
 begin
+  rw ←pos_iff_ne_zero at hn,
   have : (n - s.card % n) * (s.card / n) + (s.card % n) * (s.card / n + 1) = s.card,
   { rw [tsub_mul, mul_add, ←add_assoc, tsub_add_cancel_of_le, mul_one, add_comm,
       mod_add_div],

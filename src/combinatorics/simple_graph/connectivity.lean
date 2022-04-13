@@ -998,6 +998,9 @@ def connected_component := quot G.reachable
 /-- Gives the connected component containing a particular vertex. -/
 def connected_component_of (v : V) : G.connected_component := quot.mk G.reachable v
 
+instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
+⟨G.connected_component_of default⟩
+
 section connected_component
 variables {G}
 
@@ -1018,6 +1021,12 @@ quot.lift f (λ v w (h' : G.reachable v w), h'.elim_path (λ hp, h v w hp hp.2))
 @[simp] protected lemma connected_component.lift_of {β : Sort*} {f : V → β}
   {h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w} {v : V} :
   connected_component.lift f h (G.connected_component_of v) = f v := rfl
+
+lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
+  subsingleton G.connected_component :=
+⟨λ c d, connected_component.ind
+        (λ v d, connected_component.ind
+                (λ w, connected_component.sound (h v w)) d) c d⟩
 
 end connected_component
 

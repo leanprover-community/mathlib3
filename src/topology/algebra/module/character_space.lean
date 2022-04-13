@@ -36,6 +36,8 @@ character space, Gelfand transform, functional calculus
 
 -/
 
+variables {𝕜 : Type*} {A : Type*}
+
 namespace weak_dual
 
 /-- The character space of a topological algebra is the subset of elements of the weak dual that
@@ -44,8 +46,6 @@ def character_space (𝕜 : Type*) (A : Type*) [comm_semiring 𝕜] [topological
   [has_continuous_add 𝕜] [has_continuous_const_smul 𝕜 𝕜]
   [non_unital_non_assoc_semiring A] [topological_space A] [module 𝕜 A] :=
   {φ : weak_dual 𝕜 A | (φ ≠ 0) ∧ (∀ (x y : A), φ (x * y) = (φ x) * (φ y))}
-
-variables {𝕜 : Type*} {A : Type*}
 
 namespace character_space
 
@@ -122,3 +122,22 @@ end ring
 end character_space
 
 end weak_dual
+
+section gelfand_transform
+
+open weak_dual
+
+variables [comm_semiring 𝕜] [topological_space 𝕜] [has_continuous_add 𝕜]
+  [has_continuous_const_smul 𝕜 𝕜] [semiring A] [topological_space A] [module 𝕜 A]
+
+variables (𝕜) (A)
+
+def gelfand_transform (a : A) : C(character_space 𝕜 A, 𝕜) :=
+{ to_fun := λ φ, φ a,
+  continuous_to_fun := (weak_dual.eval_continuous a).comp (continuous_subtype_coe) }
+
+class bijective_gelfand_transform : Prop :=
+(bijective : function.bijective (gelfand_transform 𝕜 A))
+
+
+end gelfand_transform

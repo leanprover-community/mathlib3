@@ -9,13 +9,17 @@ import category_theory.bicategory.coherence
 # A `coherence` tactic for bicategories, and `⊗≫` (composition up to associators)
 
 We provide a `coherence` tactic,
-which proves that any two morphisms (with the same source and target)
+which proves that any two 2-morphisms (with the same source and target)
 in a bicategory which are built out of associators and unitors
 are equal.
 
 We also provide `f ⊗≫ g`, the `bicategorical_comp` operation,
 which automatically inserts associators and unitors as needed
 to make the target of `f` match the source of `g`.
+
+This file mainly deals with the type class setup for the coherence tactic. The actual front end
+tactic is given in `category_theory/monooidal/coherence.lean` at the same time as the coherence
+tactic for monoidal categories.
 -/
 
 noncomputable theory
@@ -62,8 +66,8 @@ instance lift_hom₂_associator_inv (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d)
   [lift_hom f] [lift_hom g] [lift_hom h] :
   lift_hom₂ (α_ f g h).inv :=
 { lift := (α_ (lift_hom.lift f) (lift_hom.lift g) (lift_hom.lift h)).inv, }
-instance lift_hom₂_comp {f g h : a ⟶ b} [lift_hom f] [lift_hom g] [lift_hom h] (η : f ⟶ g) (θ : g ⟶ h)
-  [lift_hom₂ η] [lift_hom₂ θ] : lift_hom₂ (η ≫ θ) :=
+instance lift_hom₂_comp {f g h : a ⟶ b} [lift_hom f] [lift_hom g] [lift_hom h]
+  (η : f ⟶ g) (θ : g ⟶ h) [lift_hom₂ η] [lift_hom₂ θ] : lift_hom₂ (η ≫ θ) :=
 { lift := lift_hom₂.lift η ≫ lift_hom₂.lift θ }
 instance lift_hom₂_whisker_left (f : a ⟶ b) [lift_hom f] {g h : b ⟶ c} (η : g ⟶ h)
   [lift_hom g] [lift_hom h] [lift_hom₂ η] : lift_hom₂ (f ◁ η) :=
@@ -72,7 +76,10 @@ instance lift_hom₂_whisker_right {f g : a ⟶ b} (η : f ⟶ g) [lift_hom f] [
   {h : b ⟶ c} [lift_hom h] : lift_hom₂ (η ▷ h) :=
 { lift := lift_hom₂.lift η ▷ lift_hom.lift h }
 
--- We could likely turn this into a `Prop` valued existential if that proves useful.
+/--
+A typeclass carrying a choice of bicategorical structural isomorphism between two objects.
+Used by the `⊗≫` bicategorical composition operator, and the `coherence` tactic.
+-/
 class bicategorical_coherence (f g : a ⟶ b) [lift_hom f] [lift_hom g] :=
 (hom [] : f ⟶ g)
 [is_iso : is_iso hom . tactic.apply_instance]
@@ -170,7 +177,7 @@ example {f' : a ⟶ d} {f : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} {h' : a ⟶ d}
   (η : f' ⟶ f ≫ (g ≫ h)) (θ : (f ≫ g) ≫ h ⟶ h') : f' ⟶ h' := η ⊗≫ θ
 
 -- To automatically insert unitors/associators at the beginning or end,
--- you can use `f ⊗≫ 𝟙 _`
+-- you can use `η ⊗≫ 𝟙 _`
 example {f' : a ⟶ d } {f : a ⟶ b} {g : b ⟶ c} {h : c ⟶ d} (η : f' ⟶ (f ≫ g) ≫ h) :
   f' ⟶ f ≫ (g ≫ h) := η ⊗≫ 𝟙 _
 
@@ -221,6 +228,10 @@ Auxiliary simp lemma for the `coherence` tactic:
 this move brackets to the left in order to expose a maximal prefix
 built out of unitors and associators.
 -/
+-- We have unused typeclass arguments here.
+-- They are intentional, to ensure that `simp only [assoc_lift_hom₂]` only left associates
+-- bicategorical structural morphisms.
+@[nolint unused_arguments]
 lemma assoc_lift_hom₂ {f g h i : a ⟶ b} [lift_hom f] [lift_hom g] [lift_hom h]
   (η : f ⟶ g) (θ : g ⟶ h) (ι : h ⟶ i) [lift_hom₂ η] [lift_hom₂ θ] :
   η ≫ (θ ≫ ι) = (η ≫ θ) ≫ ι :=

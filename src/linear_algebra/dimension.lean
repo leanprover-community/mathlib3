@@ -524,7 +524,7 @@ end
 /-- Given two basis indexed by `ι` and `ι'` of an `R`-module, where `R` satisfies the invariant
 basis number property, an equiv `ι ≃ ι' `. -/
 def basis.index_equiv (v : basis ι R M) (v' : basis ι' R M) : ι ≃ ι' :=
-nonempty.some (cardinal.lift_mk_eq.1 (cardinal.lift_max.2 (mk_eq_mk_of_basis v v')))
+nonempty.some (cardinal.lift_mk_eq.1 (cardinal.lift_umax_eq.2 (mk_eq_mk_of_basis v v')))
 
 theorem mk_eq_mk_of_basis' {ι' : Type w} (v : basis ι R M) (v' : basis ι' R M) :
   #ι = #ι' :=

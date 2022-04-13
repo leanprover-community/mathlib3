@@ -1240,10 +1240,6 @@ begin
     simp only [mul_one, to_add_of_add, smul_single', of_apply] },
 end
 
-@[simp] lemma single_one_right_add_hom_apply (k : Type*) [semiring k] {H : Type*}
-  [add_zero_class G] [add_zero_class H] (f : G →+ H) (n : G) :
-  (of k H).comp f.to_multiplicative n = single (f n) 1 := rfl
-
 --  `by convert monoid_algebra.monoid_ring_hom_map k f.to_multiplicative` appears to be the same
 --  mathematical definition, but is harder to use.
 /--  An additive homomorphism `f : G →+ H` induces a `k`-algebra homomorphism
@@ -1538,16 +1534,6 @@ end
 def add_monoid_alg_hom_map (k : Type*) [comm_semiring k] [add_monoid G] {H : Type*} [add_monoid H]
   (f : G →+ H) : add_monoid_algebra k G →ₐ[k] add_monoid_algebra k H :=
 lift k G (add_monoid_algebra k H) ((of k H).comp f.to_multiplicative)
-
-@[simp]
-lemma add_monoid_alg_hom_map_single (k : Type*) [comm_semiring k] [add_monoid G] {H : Type*}
-  [add_monoid H] (f : G →+ H) (n : G) (r : k) :
-  add_monoid_alg_hom_map k f (single n r) = single (f n) r :=
-begin
-  simp only [add_monoid_alg_hom_map, lift_single, single_one_right_add_hom_apply, smul_single',
-    mul_one],
-  refl,
-end
 
 end add_monoid_algebra
 

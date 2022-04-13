@@ -30,7 +30,7 @@ I made some *heavy* use of `simp` lemmas, aiming to bring Laurent polynomials to
 
 ##  Future work
 Lots is missing!  I would certainly like to show that `R[T;T⁻¹]` is the localization of `R[X]`
-inverting `X`.  This should be mostly in place, given `exists_X_pow`.
+inverting `X`.  This should be mostly in place, given `exists_T_pow`.
 -/
 
 open_locale polynomial big_operators
@@ -255,7 +255,7 @@ begin
   { exact λ n r, by simp only [monomial_eq_C_mul_T, trunc_single_nat] }
 end
 
-lemma exists_X_pow (f : R[T;T⁻¹]) : ∃ (n : ℕ) (f' : R[X]), f'.to_laurent_polynomial = f * T n :=
+lemma exists_T_pow (f : R[T;T⁻¹]) : ∃ (n : ℕ) (f' : R[X]), f'.to_laurent_polynomial = f * T n :=
 begin
   apply f.induction_on' _ (λ n a, _); clear f,
   { rintros f g ⟨m, fn, hf⟩ ⟨n, gn, hg⟩,
@@ -270,19 +270,19 @@ begin
         mul_one, C_eq_C] } }
 end
 
-lemma exists_X_pow_T' (f : R[T;T⁻¹]) :
+lemma exists_T_pow_T' (f : R[T;T⁻¹]) :
   ∃ (n : ℕ) (f' : R[X]), f'.to_laurent_polynomial = f * T' ^ n :=
 begin
-  rcases exists_X_pow f with ⟨n, f', hf⟩,
+  rcases exists_T_pow f with ⟨n, f', hf⟩,
   refine ⟨n, f', _⟩,
   rwa [T', ← T, T_pow, mul_one],
 end
 
-/--  This version of `exists_X_pow` can be called as `rcases f.exists_X_pow' with ⟨n, f', rfl⟩`. -/
-lemma exists_X_pow' (f : R[T;T⁻¹]) : ∃ (n : ℤ) (f' : R[X]),
+/--  This version of `exists_T_pow` can be called as `rcases f.exists_T_pow' with ⟨n, f', rfl⟩`. -/
+lemma exists_T_pow' (f : R[T;T⁻¹]) : ∃ (n : ℤ) (f' : R[X]),
   f = f'.to_laurent_polynomial * T n :=
 begin
-  rcases f.exists_X_pow with ⟨n, f', hf⟩,
+  rcases f.exists_T_pow with ⟨n, f', hf⟩,
   exact ⟨(- n), f', by simp [hf]⟩,
 end
 
@@ -296,7 +296,7 @@ lemma proprop (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
   (Tn : ∀ f, Q (f * T 1) → Q f) :
   Q f :=
 begin
-  rcases f.exists_X_pow' with ⟨n, f', rfl⟩,
+  rcases f.exists_T_pow' with ⟨n, f', rfl⟩,
   cases n with n n,
   { simpa using PQ (f' * X ^ n) },
   { induction n with n hn,

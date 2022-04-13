@@ -7,6 +7,7 @@ import linear_algebra.matrix.to_lin
 import linear_algebra.matrix.trace
 import linear_algebra.contraction
 import linear_algebra.tensor_product_basis
+import linear_algebra.free_module.strong_rank_condition
 
 /-!
 # Trace of a linear map
@@ -138,35 +139,29 @@ lemma trace_eq_contract_of_basis' [decidable_eq ι] (b : basis ι R M) :
   (contract_left R M) ∘ₗ (dual_tensor_hom_equiv_of_basis b).symm.to_linear_map :=
 by simp [linear_equiv.eq_comp_to_linear_map_symm, trace_eq_contract_of_basis R b]
 
-end
+variables [module.free R M] [module.finite R M] [nontrivial R]
 
-section
-variables (R : Type u) [field R] {M : Type v} [add_comm_group M] [module R M]
-
-/-- The trace of a linear map correspond to the contraction pairing under the isomorphism
- `End(M) ≃ M* ⊗ M`-/
-@[simp] lemma trace_eq_contract [finite_dimensional R M] :
+/-- When `M` is finite free, the trace of a linear map correspond to the contraction pairing under
+the isomorphism `End(M) ≃ M* ⊗ M`-/
+@[simp] theorem trace_eq_contract :
   (linear_map.trace R M) ∘ₗ (dual_tensor_hom R M M) = contract_left R M :=
-  trace_eq_contract_of_basis R (fin_basis R M)
+  trace_eq_contract_of_basis R (module.free.choose_basis R M)
 
-/-- The trace of a linear map correspond to the contraction pairing under the isomorphism
- `End(M) ≃ M* ⊗ M`-/
-lemma trace_eq_contract' [finite_dimensional R M] :
+open_locale classical
+
+/-- When `M` is finite free, the trace of a linear map correspond to the contraction pairing under
+the isomorphism `End(M) ≃ M* ⊗ M`-/
+theorem trace_eq_contract' :
   (linear_map.trace R M) =
-  (contract_left R M) ∘ₗ (dual_tensor_hom_equiv R M M).symm.to_linear_map :=
-  trace_eq_contract_of_basis' R (fin_basis R M)
+  (contract_left R M) ∘ₗ (dual_tensor_hom_equiv).symm.to_linear_map :=
+  trace_eq_contract_of_basis' R (module.free.choose_basis R M)
 
-
-/-- The trace of the identity endomorphism is the dimension of the vector space -/
+/-- The trace of the identity endomorphism is the dimension of the free module -/
 @[simp] theorem trace_one : trace R M 1 = (finrank R M : R) :=
 begin
-  classical,
-  by_cases H : ∃ (s : finset M), nonempty (basis s R M),
-  { obtain ⟨s, ⟨b⟩⟩ := H,
-    rw [trace_eq_matrix_trace R b, to_matrix_one, finrank_eq_card_finset_basis b],
-    simp, },
-  { suffices : (finrank R M : R) = 0, { simp [this, trace, H], },
-    simp [finrank_eq_zero_of_not_exists_basis H], },
+  have b := module.free.choose_basis R M,
+  rw [trace_eq_matrix_trace R b, to_matrix_one, module.free.finrank_eq_card_choose_basis_index],
+  simp,
 end
 
 end

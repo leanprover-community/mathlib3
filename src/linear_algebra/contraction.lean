@@ -98,17 +98,15 @@ end)
   dual_tensor_hom R M N :=
 rfl
 
-end comm_ring
+variables [module.free R M] [module.finite R M] [nontrivial R]
 
-section field
+open_locale classical
 
-variables [field R] [module R M] [module R N] [finite_dimensional R M]
-
-/-- If `M` is finite-dimensional over a field, the natural map $M^* ⊗ N → Hom(M, N)$ is an
+/-- If `M` is finite free, the natural map $M^* ⊗ N → Hom(M, N)$ is an
 equivalence. -/
 @[simp] noncomputable def dual_tensor_hom_equiv : (module.dual R M) ⊗[R] N ≃ₗ[R] M →ₗ[R] N :=
-dual_tensor_hom_equiv_of_basis (finite_dimensional.fin_basis R M)
+dual_tensor_hom_equiv_of_basis (module.free.choose_basis R M)
 
-end field
+end comm_ring
 
 end contraction

@@ -534,17 +534,86 @@ meta def find_provable_edge_cases (oe : expr) : expr → tactic (list string)
     return l
 | _ := return []
 
-/--
-Return a list of theorems with edge case type assumptions that are easily provable without,
+meta def find_provable_hyps (oe : expr) : expr → tactic (list string)
+| opi@(pi var_name bi var_type body) := do
+  l ← find_provable_hyps body,
+  o ← ((do
+    -- trace var_type,
+    -- new_var_type ← negate_hyp var_type,
+    -- trace "MMHMM",
+    -- trace new_var_type,
+  -- tt ← is_simp_lemma d.to_name | pure none,
+    try_for 400000 $
+    retrieve $ do
+    -- unfreezing intros,
+    -- (lhs, rhs) ← target >>= simp_lhs_rhs,
+    sls ← simp_lemmas.mk_default,
+    -- let sls' := sls.erase [d.to_name],
+    let ne := oe.replace (λ ee nn, match ee with -- TODO this is inefficient
+    | npi@(pi _ _ _ _) := if opi = npi then var_type else none
+    | _ := none end),
+    g ← mk_meta_var ne,
+    set_goals [g], -- TODO idk if ths is needed
+    unfreezing intros,
+    -- reset_instance_cache,
+    tactic.simp_all sls [],--
+    -- (out, prf1, ns1) ← decorate_error "simplify fails on left-hand side:" $
+      -- simplify sls [] ne {fail_if_unchanged := ff},
+    out ← target,
+    if out = `(true) then
+      return (some $ "Argument " ++ var_name.to_string ++
+        " is provable with simp")
+    else
+      return none) <|> pure none),
+  -- trace o,
+  if h : o.is_some then
+    return (option.get h :: l)
+  else
+    return l
+| _ := return []
 
--/
-meta def provable_edge_cases : declaration → tactic (list string)
-| (declaration.thm _ _ tp bd) := find_provable_edge_cases tp tp
+meta def find_inferrable_hyps (oe : expr) : expr → tactic (list string)
+| opi@(pi var_name bi var_type body) := do
+  l ← find_inferrable_hyps body,
+  o ← ((do
+    -- trace var_type,
+    -- new_var_type ← negate_hyp var_type,
+    -- trace "MMHMM",
+    -- trace new_var_type,
+  -- tt ← is_simp_lemma d.to_name | pure none,
+    try_for 200000 $
+    retrieve $ do
+    -- unfreezing intros,
+    -- (lhs, rhs) ← target >>= simp_lhs_rhs,
+    -- let sls' := sls.erase [d.to_name],
+    let ne := oe.replace (λ ee nn, match ee with -- TODO this is inefficient
+    | npi@(pi _ _ _ _) := if opi = npi then var_type else none
+    | _ := none end),
+    i ← mk_instance ne,
+      return (some $ "Argument " ++ var_name.to_string ++
+        " is inferrable")
+      ) <|> pure none),
+  -- trace o,
+  if h : o.is_some then
+    return (option.get h :: l)
+  else
+    return l
 | _ := return []
 
 /--
-Checks whether a declaration has assumptions that are easily provable with the negation or
-weakened version
+Return a list of unused have and suffices terms in a declaration
+-/
+meta def provable_edge_cases : declaration → tactic (list string)
+| (declaration.thm _ _ tp bd) := do
+  l₁ ← find_provable_edge_cases tp tp,
+  l₂ ← find_provable_hyps tp tp,
+  l₃ ← find_inferrable_hyps tp tp,
+  return  $ l₁ ++ l₂ ++ l₃
+| _ := return []
+
+/--
+Checks whether a declaration contains term mode have statements that have no effect on the resulting
+term.
 -/
 meta def has_provable_edge_cases (d : declaration) : tactic (option string) := do
   ns ← provable_edge_cases d,

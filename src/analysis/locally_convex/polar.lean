@@ -106,7 +106,7 @@ lemma polar_weak_closed (s : set E) :
 begin
   rw polar_eq_Inter,
   refine is_closed_Inter (λ x, is_closed_Inter (λ _, _)),
-  exact is_closed_le (eval_continuous B.flip x).norm continuous_const,
+  exact is_closed_le (weak_bilin.eval_continuous B.flip x).norm continuous_const,
 end
 
 end normed_ring

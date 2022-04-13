@@ -55,6 +55,9 @@ by coherence
 lemma unitors_equal : (λ_ (𝟙_ C)).hom = (ρ_ (𝟙_ C)).hom :=
 by coherence
 
+lemma unitors_inv_equal : (λ_ (𝟙_ C)).inv = (ρ_ (𝟙_ C)).inv :=
+by coherence
+
 @[reassoc]
 lemma pentagon_hom_inv {W X Y Z : C} :
   (α_ W X (Y ⊗ Z)).hom ≫ (𝟙 W ⊗ (α_ X Y Z).inv)

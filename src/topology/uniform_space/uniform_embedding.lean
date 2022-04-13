@@ -514,7 +514,7 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
     ... ⊆ preimage (λp:(β×β), (f p.1, f p.2)) s : ts,
   have f '' (e ⁻¹' m₁) ×ˢ f '' (e ⁻¹' m₂) ⊆ s,
     from calc (f '' (e ⁻¹' m₁)) ×ˢ (f '' (e ⁻¹' m₂)) =
-      (λp:(β×β), (f p.1, f p.2)) '' (e ⁻¹' m₁ ×ˢ e ⁻¹' m₂) : prod_image_image_eq
+      (λp:(β×β), (f p.1, f p.2)) '' ((e ⁻¹' m₁) ×ˢ (e ⁻¹' m₂)) : prod_image_image_eq
     ... ⊆ (λp:(β×β), (f p.1, f p.2)) '' ((λp:(β×β), (f p.1, f p.2)) ⁻¹' s) : monotone_image this
     ... ⊆ s : image_preimage_subset _ _,
   have (a, b) ∈ s, from @this (a, b) ⟨ha₁, hb₁⟩,

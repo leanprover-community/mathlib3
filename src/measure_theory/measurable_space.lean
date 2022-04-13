@@ -561,8 +561,8 @@ lemma measurable_set_prod_of_nonempty {s : set α} {t : set β} (h : (s ×ˢ t :
 begin
   rcases h with ⟨⟨x, y⟩, hx, hy⟩,
   refine ⟨λ hst, _, λ h, h.1.prod h.2⟩,
-  have : measurable_set ((λ x, (x, y)) ⁻¹' (s ×ˢ t)) := measurable_id.prod_mk measurable_const hst,
-  have : measurable_set (prod.mk x ⁻¹' (s ×ˢ t)) := measurable_const.prod_mk measurable_id hst,
+  have : measurable_set ((λ x, (x, y)) ⁻¹' s ×ˢ t) := measurable_id.prod_mk measurable_const hst,
+  have : measurable_set (prod.mk x ⁻¹' s ×ˢ t) := measurable_const.prod_mk measurable_id hst,
   simp * at *
 end
 

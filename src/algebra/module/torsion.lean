@@ -35,6 +35,8 @@ import group_theory.torsion
 * `torsion_by R M a` can be viewed as a `(R ⧸ R∙a)`-module.
 * `submodule.torsion_by_is_torsion_by` : the `a`-torsion submodule is a `a`-torsion module.
   Similar lemmas for `torsion'` and `torsion`.
+* `submodule.tosion_is_internal` : a `∏ i, p i`-torsion module is the internal direct sum of its
+  `p i`-torsion submodules when the `p i` are pairwise coprime.
 * `submodule.no_zero_smul_divisors_iff_torsion_bot` : a module over a domain has
   `no_zero_smul_divisors` (that is, there is no non-zero `a`, `x` such that `a • x = 0`)
   iff its torsion submodule is trivial.
@@ -218,6 +220,8 @@ section
 open_locale big_operators
 variables {ι : Type*} {p : ι → R} {S : finset ι} (hp : pairwise (is_coprime on λ s : S, p s))
 include hp
+/--If the `p i` are pairwise coprime, a `∏ i, p i`-torsion module is the internal direct sum of
+its `p i`-torsion submodules.-/
 lemma torsion_is_internal [decidable_eq ι] (hM : torsion_by R M (∏ i in S, p i) = ⊤) :
   direct_sum.submodule_is_internal (λ i : S, torsion_by R M (p i)) :=
 direct_sum.submodule_is_internal_of_independent_of_supr_eq_top

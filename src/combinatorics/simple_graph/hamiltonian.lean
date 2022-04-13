@@ -34,7 +34,7 @@ lemma is_hamiltonian.is_path [decidable_eq V] {u v : V} {p : G.walk u v}
 begin
   rw is_hamiltonian at h,
   split,
-  { exact h.1, },
+  { use h.1, },
   { rw list.nodup_iff_count_le_one,
     simp [h], },
 end

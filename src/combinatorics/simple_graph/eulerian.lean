@@ -38,7 +38,7 @@ def is_eulerian {u v : V} (p : G.walk u v) : Prop :=
 lemma is_eulerian.is_trail {u v : V} {p : G.walk u v}
   (h : p.is_eulerian) : p.is_trail :=
 begin
-  rw [is_trail, list.nodup_iff_count_le_one],
+  rw [is_trail_def, list.nodup_iff_count_le_one],
   intro e,
   by_cases he : e ∈ p.edges,
   { specialize h e (edges_subset_edge_set _ he),
@@ -50,16 +50,16 @@ lemma length_of_eulerian [fintype V] [decidable_rel G.adj]
   {u v : V} (p : G.walk u v) (h : p.is_eulerian) :
   p.length = G.edge_finset.card :=
 begin
-  rw [←edges_length, ←multiset.coe_card],
+  rw [←length_edges, ←multiset.coe_card],
   have hnd := h.is_trail,
-  rw is_trail at hnd,
+  rw is_trail_def at hnd,
   let f := finset.mk (p.edges : multiset (sym2 V)) hnd,
   change f.card = _,
   congr',
   ext e,
   simp,
   split,
-  exact edges_subset_edge_set p,
+  apply edges_subset_edge_set p,
   intro he,
   specialize h e he,
   rw ←list.count_pos,
@@ -71,9 +71,9 @@ lemma is_eulerian_of_max_trail [fintype V] [decidable_rel G.adj]
   p.is_eulerian :=
 begin
   intros e he,
-  apply list.count_eq_one_of_mem h,
-  rw [←edges_length, ←multiset.coe_card] at hl,
-  let f := finset.mk (p.edges : multiset (sym2 V)) h,
+  apply list.count_eq_one_of_mem h.edges_nodup,
+  rw [←length_edges, ←multiset.coe_card] at hl,
+  let f := finset.mk (p.edges : multiset (sym2 V)) h.edges_nodup,
   change f.card = _ at hl,
   have : f ⊆ G.edge_finset,
   { intros e he,
@@ -122,13 +122,14 @@ variables {G}
 lemma trail_of_len_eq (n : ℕ) (u v : V) :
   ↑(G.trail_of_len n u v) = {p : G.walk u v | p.length = n ∧ p.is_trail} :=
 begin
-  dsimp only [walk.is_trail],
+  dsimp only [walk.is_trail_def],
   induction n generalizing u v,
   { ext p,
     cases p,
     { simp! only [dite_eq_ite, set.mem_singleton, if_true, finset.coe_singleton, eq_self_iff_true,
       and_self, list.nodup_nil,
-      set.mem_set_of_eq], },
+      set.mem_set_of_eq],
+      simp, },
     simp! only [set.mem_set_of_eq, iff_false, finset.mem_coe, false_and],
     split_ifs,
     { subst u, simp, },
@@ -146,8 +147,9 @@ begin
       intro q, split_ifs, simp, simp, simp, },
     { simp! only [set.mem_Union, finset.coe_bUnion, finset.mem_univ, set.Union_true,
         list.nodup_cons, set.mem_set_of_eq, finset.mem_coe],
+      simp only [walk.cons_is_trail_iff],
       split,
-      { rintro ⟨w, -, hh⟩,
+      { rintro ⟨w, hh⟩,
         split_ifs at hh,
         simp! only [exists_prop, finset.mem_bUnion] at hh,
         obtain ⟨q, hq, hh⟩ := hh,

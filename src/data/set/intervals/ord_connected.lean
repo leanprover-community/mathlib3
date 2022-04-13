@@ -130,7 +130,7 @@ by { rw ← Icc_self, exact ord_connected_Icc }
 @[instance] lemma ord_connected_univ : ord_connected (univ : set α) := ⟨λ _ _ _ _, subset_univ _⟩
 
 /-- In a dense order `α`, the subtype from an `ord_connected` set is also densely ordered. -/
-@[instance] lemma [densely_ordered α] {s : set α} [hs : ord_connected s] :
+instance [densely_ordered α] {s : set α} [hs : ord_connected s] :
   densely_ordered s :=
 ⟨λ a b (h : (a : α) < b), let ⟨x, H⟩ := exists_between h in
     ⟨⟨x, (hs.out a.2 b.2) (Ioo_subset_Icc_self H)⟩, H⟩ ⟩

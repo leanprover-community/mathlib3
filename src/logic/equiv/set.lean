@@ -114,7 +114,7 @@ by { ext, simp [and_assoc] }
 
 @[simp]
 lemma prod_assoc_symm_preimage {α β γ} {s : set α} {t : set β} {u : set γ} :
-  (equiv.prod_assoc α β γ).symm ⁻¹' (s ×ˢ t) ×ˢ u) = s ×ˢ (t ×ˢ u) :=
+  (equiv.prod_assoc α β γ).symm ⁻¹' (s ×ˢ t) ×ˢ u = s ×ˢ (t ×ˢ u) :=
 by { ext, simp [and_assoc] }
 
 -- `@[simp]` doesn't like these lemmas, as it uses `set.image_congr'` to turn `equiv.prod_assoc`

@@ -5,6 +5,7 @@ Authors: Adam Topaz
 -/
 import ring_theory.valuation.valuation_ring
 import ring_theory.localization.as_subring
+import algebraic_geometry.prime_spectrum.basic
 
 /-!
 
@@ -219,7 +220,7 @@ def ideal_of_le (R S : valuation_subring K) (h : R ≤ S) : ideal R :=
     exact h c.2
   end }
 
-lemma prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
+instance prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
   (ideal_of_le R S h).is_prime :=
 begin
   constructor,
@@ -244,6 +245,30 @@ begin
   rintros a ha,
   refine ⟨⟨a, ha⟩, 1, P.prime_compl.one_mem, by simp⟩,
 end
+
+lemma le_of_prime (A : valuation_subring K) (P : ideal A) [hP : P.is_prime] :
+  A ≤ of_prime A P :=
+begin
+  intros a ha,
+  refine ⟨⟨a, ha⟩, 1, P.prime_compl.one_mem, by simp⟩,
+end
+
+@[simp]
+lemma ideal_of_le_of_prime (A : valuation_subring K) (P : ideal A) [hP : P.is_prime] :
+  ideal_of_le A (of_prime A P) (le_of_prime A P) = P :=
+sorry
+
+@[simp]
+lemma of_prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
+  of_prime R (ideal_of_le R S h) = S :=
+sorry
+
+def prime_spectrum_equiv :
+  prime_spectrum A ≃ { S | A ≤ S } :=
+{ to_fun := λ P, ⟨of_prime A P.as_ideal, le_of_prime _ _⟩,
+  inv_fun := λ S, ⟨ideal_of_le _ S S.2, infer_instance⟩,
+  left_inv := λ P, by { ext1, simpa },
+  right_inv := λ S, by { ext1, simp } }
 
 end order
 

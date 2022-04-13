@@ -89,16 +89,22 @@ namespace bicone
 local attribute [tidy] discrete.discrete_cases
 
 /-- Extract the cone from a bicone. -/
-@[simps]
 def to_cone (B : bicone F) : cone (discrete.functor F) :=
 { X := B.X,
   π := { app := λ j, B.π j.as }, }
 
+@[simp] lemma to_cone_X (B : bicone F) : B.to_cone.X = B.X := rfl
+
+@[simp] lemma to_cone_π_app (B : bicone F) (j : J) : B.to_cone.π.app ⟨j⟩ = B.π j := rfl
+
 /-- Extract the cocone from a bicone. -/
-@[simps]
 def to_cocone (B : bicone F) : cocone (discrete.functor F) :=
 { X := B.X,
   ι := { app := λ j, B.ι j.as }, }
+
+@[simp] lemma to_cocone_X (B : bicone F) : B.to_cocone.X = B.X := rfl
+
+@[simp] lemma to_cocone_ι_app (B : bicone F) (j : J) : B.to_cocone.ι.app ⟨j⟩ = B.ι j := rfl
 
 /-- We can turn any limit cone over a discrete collection of objects into a bicone. -/
 @[simps]
@@ -111,7 +117,7 @@ def of_limit_cone {f : J → C} {t : cone (discrete.functor f)} (ht : is_limit t
 
 lemma ι_of_is_limit {f : J → C} {t : bicone f} (ht : is_limit t.to_cone) (j : J) :
   t.ι j = ht.lift (fan.mk _ (λ j', if h : j = j' then eq_to_hom (congr_arg f h) else 0)) :=
-ht.hom_ext (λ j', by { rw ht.fac, simp [t.ι_π] })
+ht.hom_ext (λ j', by { rw ht.fac, discrete.discrete_cases, simp [t.ι_π] })
 
 /-- We can turn any colimit cocone over a discrete collection of objects into a bicone. -/
 @[simps]
@@ -124,7 +130,7 @@ def of_colimit_cocone {f : J → C} {t : cocone (discrete.functor f)} (ht : is_c
 
 lemma π_of_is_colimit {f : J → C} {t : bicone f} (ht : is_colimit t.to_cocone) (j : J) :
   t.π j = ht.desc (cofan.mk _ (λ j', if h : j' = j then eq_to_hom (congr_arg f h) else 0)) :=
-ht.hom_ext (λ j', by { rw ht.fac, simp [t.ι_π] })
+ht.hom_ext (λ j', by { rw ht.fac, discrete.discrete_cases, simp [t.ι_π] })
 
 /-- Structure witnessing that a bicone is both a limit cone and a colimit cocone. -/
 @[nolint has_inhabited_instance]
@@ -319,6 +325,7 @@ begin
   simp only [discrete.nat_trans_app, limits.is_colimit.ι_map, limits.is_limit.map_π, category.assoc,
     ←bicone.to_cone_π_app, ←biproduct.bicone_π, ←bicone.to_cocone_ι_app, ←biproduct.bicone_ι],
   simp only [biproduct.bicone_ι, biproduct.bicone_π, bicone.to_cocone_ι_app, bicone.to_cone_π_app],
+  dsimp,
   rw [biproduct.ι_π_assoc, biproduct.ι_π],
   split_ifs,
   { subst h, rw [eq_to_hom_refl, category.id_comp], erw category.comp_id, },
@@ -329,7 +336,7 @@ end
 lemma biproduct.map_π {f g : J → C} [has_biproduct f] [has_biproduct g]
   (p : Π j, f j ⟶ g j) (j : J) :
   biproduct.map p ≫ biproduct.π g j = biproduct.π f j ≫ p j :=
-limits.is_limit.map_π _ _ _ _
+limits.is_limit.map_π _ _ _ (discrete.mk j)
 
 @[simp, reassoc]
 lemma biproduct.ι_map {f g : J → C} [has_biproduct f] [has_biproduct g]
@@ -337,7 +344,7 @@ lemma biproduct.ι_map {f g : J → C} [has_biproduct f] [has_biproduct g]
   biproduct.ι f j ≫ biproduct.map p = p j ≫ biproduct.ι g j :=
 begin
   rw biproduct.map_eq_map',
-  convert limits.is_colimit.ι_map _ _ _ _; refl
+  convert limits.is_colimit.ι_map _ _ _ (discrete.mk j); refl
 end
 
 @[simp, reassoc]
@@ -577,6 +584,7 @@ lemma biproduct.cone_point_unique_up_to_iso_inv (f : J → C) [has_biproduct f] 
   (hb.is_limit.cone_point_unique_up_to_iso (biproduct.is_limit _)).inv = biproduct.desc b.ι :=
 begin
   refine biproduct.hom_ext' _ _ (λ j, hb.is_limit.hom_ext (λ j', _)),
+  discrete.discrete_cases,
   rw [category.assoc, is_limit.cone_point_unique_up_to_iso_inv_comp, bicone.to_cone_π_app,
     biproduct.bicone_π, biproduct.ι_desc, biproduct.ι_π, b.to_cone_π_app, b.ι_π]
 end

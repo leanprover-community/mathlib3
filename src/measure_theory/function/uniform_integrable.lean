@@ -462,10 +462,12 @@ end
 end
 
 lemma snorm_sub_le_of_dist_bdd
-  {p : ℝ≥0∞} (hp : p ≠ 0) (hp' : p ≠ ∞) {s : set α} (hs : measurable_set[m] s)
+  {p : ℝ≥0∞} (hp' : p ≠ ∞) {s : set α} (hs : measurable_set[m] s)
   {f g : α → β} {c : ℝ} (hc : 0 ≤ c) (hf : ∀ x ∈ s, dist (f x) (g x) ≤ c) :
   snorm (s.indicator (f - g)) p μ ≤ ennreal.of_real c * μ s ^ (1 / p.to_real) :=
 begin
+  by_cases hp : p = 0,
+  { simp [hp], },
   have : ∀ x, ∥s.indicator (f - g) x∥ ≤ ∥s.indicator (λ x, c) x∥,
   { intro x,
     by_cases hx : x ∈ s,
@@ -527,7 +529,7 @@ begin
     exact min_le_right _ _ },
   have hlt : snorm (tᶜ.indicator (f n - g)) p μ ≤ ennreal.of_real (ε.to_real / 3),
   { specialize hN n hn,
-    have := snorm_sub_le_of_dist_bdd μ ((lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm)
+    have := snorm_sub_le_of_dist_bdd μ
       hp' htm.compl _ (λ x hx, (dist_comm (g x) (f n x) ▸ (hN x hx).le :
       dist (f n x) (g x) ≤ ε.to_real / (3 * measure_univ_nnreal μ ^ (1 / p.to_real)))),
     refine le_trans this _,
@@ -731,7 +733,6 @@ of function `(fₙ)` satisfies for all `ε > 0`, there exists some `C ≥ 0` suc
 
 In this section, we will develope some API for `uniform_integrable` and prove that
 `uniform_integrable` is equivalent to this definition of uniform integrability.
-(Currently we only have the forward direction.)
 -/
 
 variables {p : ℝ≥0∞} {f : ι → α → β}
@@ -833,6 +834,54 @@ begin
       (measure_lt_top _ _).ne), ennreal.one_ne_top⟩,
   end
 end
+
+lemma uniform_integrable.spec (hp : p ≠ 0) (hp' : p ≠ ∞)
+  (hfu : uniform_integrable f p μ) {ε : ℝ} (hε : 0 < ε) :
+  ∃ C : ℝ≥0, ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε :=
+begin
+  obtain ⟨hf₀, hfu, M, hM⟩ := hfu,
+  obtain ⟨δ, hδpos, hδ⟩ := hfu hε,
+  obtain ⟨C, hC⟩ : ∃ C : ℝ≥0, ∀ i, μ {x | C ≤ ∥f i x∥₊} ≤ ennreal.of_real δ,
+  { by_contra hcon, push_neg at hcon,
+    choose ℐ hℐ using hcon,
+    lift δ to ℝ≥0 using hδpos.le,
+    have : ∀ C : ℝ≥0, C • (δ : ℝ≥0∞) ^ (1 / p.to_real) ≤ snorm (f (ℐ C)) p μ,
+    { intros C,
+      calc C • (δ : ℝ≥0∞) ^ (1 / p.to_real) ≤ C • μ {x | C ≤ ∥f (ℐ C) x∥₊} ^ (1 / p.to_real):
+      begin
+        rw [ennreal.smul_def, ennreal.smul_def, smul_eq_mul, smul_eq_mul],
+        simp_rw ennreal.of_real_coe_nnreal at hℐ,
+        refine ennreal.mul_le_mul le_rfl (ennreal.rpow_le_rpow (hℐ C).le
+          (one_div_nonneg.2 ennreal.to_real_nonneg)),
+      end
+      ... ≤ snorm ({x | C ≤ ∥f (ℐ C) x∥₊}.indicator (f (ℐ C))) p μ :
+      begin
+        refine snorm_indicator_ge_of_bdd_below hp hp' _
+          (measurable_set_le measurable_const (hf₀ _).nnnorm.measurable)
+          (eventually_of_forall $ λ x hx, _),
+        rwa [nnnorm_indicator_eq_indicator_nnnorm, indicator_of_mem hx],
+      end
+      ... ≤ snorm (f (ℐ C)) p μ : snorm_indicator_le _ },
+    specialize this ((2 * (max M 1) * (δ⁻¹ ^ (1 / p.to_real)))),
+    rw [ennreal.coe_rpow_of_nonneg _ (one_div_nonneg.2 ennreal.to_real_nonneg),
+      ← ennreal.coe_smul, smul_eq_mul, mul_assoc, nnreal.inv_rpow,
+      inv_mul_cancel (nnreal.rpow_pos (nnreal.coe_pos.1 hδpos)).ne.symm, mul_one,
+      ennreal.coe_mul, ← nnreal.inv_rpow] at this,
+    refine (lt_of_le_of_lt (le_trans (hM $ ℐ $ 2 * (max M 1) * (δ⁻¹ ^ (1 / p.to_real)))
+      (le_max_left M 1)) (lt_of_lt_of_le _ this)).ne rfl,
+    rw [← ennreal.coe_one, ← with_top.coe_max, ← ennreal.coe_mul, ennreal.coe_lt_coe],
+    exact lt_two_mul_self (lt_max_of_lt_right one_pos) },
+  exact ⟨C, λ i, hδ i _ (measurable_set_le measurable_const (hf₀ i).nnnorm.measurable) (hC i)⟩,
+end
+
+/-- The definition of uniform integrable in mathlib is equivalent to the definition commonly
+found in literature. -/
+lemma uniform_integrable_iff [is_finite_measure μ] (hp : 1 ≤ p) (hp' : p ≠ ∞) :
+  uniform_integrable f p μ ↔ (∀ i, strongly_measurable (f i)) ∧
+  ∀ ε : ℝ, 0 < ε → ∃ C : ℝ≥0,
+    ∀ i, snorm ({x | C ≤ ∥f i x∥₊}.indicator (f i)) p μ ≤ ennreal.of_real ε  :=
+⟨λ h, ⟨h.1, λ ε, h.spec (lt_of_lt_of_le ennreal.zero_lt_one hp).ne.symm hp'⟩,
+ λ h, uniform_integrable_of hp hp' h.1 h.2⟩
 
 end uniform_integrable
 

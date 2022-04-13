@@ -195,7 +195,7 @@ variables [fact (even (fintype.card n))]
 each element. -/
 instance : has_neg (special_linear_group n R) :=
 ⟨λ g,
-  ⟨- g, by simpa [nat.neg_one_pow_of_even (fact.out (even (fintype.card n))), g.det_coe] using
+  ⟨- g, by simpa [(fact.out $ even $ fintype.card n).neg_one_pow, g.det_coe] using
   det_smul ↑ₘg (-1)⟩⟩
 
 @[simp] lemma coe_neg (g : special_linear_group n R) :

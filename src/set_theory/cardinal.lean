@@ -238,9 +238,6 @@ lift_injective.eq_iff
 @[simp] theorem lift_lt {a b : cardinal} : lift a < lift b ↔ a < b :=
 lift_order_embedding.lt_iff_lt
 
-theorem strict_mono_lift : strict_mono lift :=
-λ a b, lift_lt.2
-
 instance : has_zero cardinal.{u} := ⟨#pempty⟩
 
 instance : inhabited cardinal.{u} := ⟨0⟩

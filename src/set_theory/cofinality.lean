@@ -142,10 +142,8 @@ lemma cof_type (r : α → α → Prop) [is_well_order α r] : (type r).cof = st
 
 theorem le_cof_type [is_well_order α r] {c} : c ≤ cof (type r) ↔
   ∀ S : set α, (∀ a, ∃ b ∈ S, ¬ r b a) → c ≤ #S :=
-(le_cInf_iff'' (strict_order.cof_nonempty r)).trans ⟨λ H S h, H _ ⟨S, h, rfl⟩, begin
-  rintros H d ⟨S, h, rfl⟩,
-  exact H _ h
-end⟩
+(le_cInf_iff'' (strict_order.cof_nonempty r)).trans ⟨λ H S h, H _ ⟨S, h, rfl⟩,
+  by { rintros H d ⟨S, h, rfl⟩, exact H _ h }⟩
 
 theorem cof_type_le [is_well_order α r] (S : set α) (h : ∀ a, ∃ b ∈ S, ¬ r b a) :
   cof (type r) ≤ #S :=

@@ -494,7 +494,7 @@ rfl
 /-- Functions from `option` can be combined similarly to `vector.cons`. -/
 def cons (a : β) (f : α → β) : option α → β := λ o, o.elim a f
 
-@[simp] lemma cons_none_some (f : option α → β) : cons (f none) (f ∘ some) = v :=
+@[simp] lemma cons_none_some (f : option α → β) : cons (f none) (f ∘ some) = f :=
 funext $ λ o, by cases o; refl
 
 end option

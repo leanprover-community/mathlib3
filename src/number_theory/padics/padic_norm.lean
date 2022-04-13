@@ -258,7 +258,8 @@ protected lemma defn {q : ℚ} {n d : ℤ} (hqz : q ≠ 0) (qdf : q = n /. d) :
     λ hd, by simp * at *⟩) :=
 have hd : d ≠ 0, from rat.mk_denom_ne_zero_of_ne_zero hqz qdf,
 let ⟨c, hc1, hc2⟩ := rat.num_denom_mk hd qdf in
-by rw [padic_val_rat, dif_pos];
+begin
+  rw [padic_val_rat.multiplicity_sub_multiplicity];
   simp [hc1, hc2, multiplicity.mul' (nat.prime_iff_prime_int.1 p_prime.1),
     (ne.symm (ne_of_lt p_prime.1.one_lt)), hqz, pos_iff_ne_zero],
   simp_rw [int.coe_nat_multiplicity p q.denom],

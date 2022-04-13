@@ -186,24 +186,6 @@ by { rw [←tensor_comp], simp }
   (g ⊗ (𝟙 W)) ≫ ((𝟙 Z) ⊗ f) = g ⊗ f :=
 by { rw [←tensor_comp], simp }
 
-@[reassoc]
-lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
-  f ≫ (λ_ X').inv = (λ_ X).inv ≫ (𝟙 _ ⊗ f) :=
-begin
-  apply (cancel_mono (λ_ X').hom).1,
-  simp only [assoc, comp_id, iso.inv_hom_id],
-  rw [left_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
-end
-
-@[reassoc]
-lemma right_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
-  f ≫ (ρ_ X').inv = (ρ_ X).inv ≫ (f ⊗ 𝟙 _) :=
-begin
-  apply (cancel_mono (ρ_ X').hom).1,
-  simp only [assoc, comp_id, iso.inv_hom_id],
-  rw [right_unitor_naturality, ←category.assoc, iso.inv_hom_id, category.id_comp]
-end
-
 @[simp]
 lemma right_unitor_conjugation {X Y : C} (f : X ⟶ Y) :
   (f ⊗ (𝟙 (𝟙_ C))) = (ρ_ X).hom ≫ f ≫ (ρ_ Y).inv :=
@@ -214,15 +196,25 @@ lemma left_unitor_conjugation {X Y : C} (f : X ⟶ Y) :
   ((𝟙 (𝟙_ C)) ⊗ f) = (λ_ X).hom ≫ f ≫ (λ_ Y).inv :=
 by rw [←left_unitor_naturality_assoc, iso.hom_inv_id, category.comp_id]
 
-@[simp] lemma tensor_left_iff
+@[reassoc]
+lemma left_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
+  f ≫ (λ_ X').inv = (λ_ X).inv ≫ (𝟙 _ ⊗ f) :=
+by simp
+
+@[reassoc]
+lemma right_unitor_inv_naturality {X X' : C} (f : X ⟶ X') :
+  f ≫ (ρ_ X').inv = (ρ_ X).inv ≫ (f ⊗ 𝟙 _) :=
+by simp
+
+lemma tensor_left_iff
   {X Y : C} (f g : X ⟶ Y) :
   ((𝟙 (𝟙_ C)) ⊗ f = (𝟙 (𝟙_ C)) ⊗ g) ↔ (f = g) :=
-by { rw [←cancel_mono (λ_ Y).hom, left_unitor_naturality, left_unitor_naturality], simp }
+by simp
 
-@[simp] lemma tensor_right_iff
+lemma tensor_right_iff
   {X Y : C} (f g : X ⟶ Y) :
   (f ⊗ (𝟙 (𝟙_ C)) = g ⊗ (𝟙 (𝟙_ C))) ↔ (f = g) :=
-by { rw [←cancel_mono (ρ_ Y).hom, right_unitor_naturality, right_unitor_naturality], simp }
+by simp
 
 /-! The lemmas in the next section are true by coherence,
 but we prove them directly as they are used in proving the coherence theorem. -/
@@ -247,13 +239,9 @@ lemma right_unitor_tensor_inv (X Y : C) :
   ((ρ_ (X ⊗ Y)).inv) = ((𝟙 X) ⊗ (ρ_ Y).inv) ≫ (α_ X Y (𝟙_ C)).inv :=
 eq_of_inv_eq_inv (by simp)
 
-lemma triangle_assoc_comp_left (X Y : C) :
-  (α_ X (𝟙_ C) Y).hom ≫ ((𝟙 X) ⊗ (λ_ Y).hom) = (ρ_ X).hom ⊗ 𝟙 Y :=
-monoidal_category.triangle X Y
-
 @[simp, reassoc] lemma triangle_assoc_comp_right (X Y : C) :
   (α_ X (𝟙_ C) Y).inv ≫ ((ρ_ X).hom ⊗ 𝟙 Y) = ((𝟙 X) ⊗ (λ_ Y).hom) :=
-by rw [←triangle_assoc_comp_left, iso.inv_hom_id_assoc]
+by rw [←triangle, iso.inv_hom_id_assoc]
 
 @[simp, reassoc] lemma triangle_assoc_comp_left_inv (X Y : C) :
   ((𝟙 X) ⊗ (λ_ Y).inv) ≫ (α_ X (𝟙_ C) Y).inv = ((ρ_ X).inv ⊗ 𝟙 Y) :=
@@ -270,7 +258,7 @@ lemma associator_inv_naturality {X Y Z X' Y' Z' : C} (f : X ⟶ X') (g : Y ⟶ Y
   (f ⊗ (g ⊗ h)) ≫ (α_ X' Y' Z').inv = (α_ X Y Z).inv ≫ ((f ⊗ g) ⊗ h) :=
 by { rw [comp_inv_eq, assoc, associator_naturality], simp }
 
-@[reassoc]
+@[reassoc, simp]
 lemma associator_conjugation {X X' Y Y' Z Z' : C} (f : X ⟶ X') (g : Y ⟶ Y') (h : Z ⟶ Z') :
   (f ⊗ g) ⊗ h = (α_ X Y Z).hom ≫ (f ⊗ (g ⊗ h)) ≫ (α_ X' Y' Z').inv :=
 by rw [associator_inv_naturality, hom_inv_id_assoc]

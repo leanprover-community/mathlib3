@@ -119,7 +119,7 @@ instance monoidal_category_op : monoidal_category Cᵒᵖ :=
   begin
     intros,
     apply quiver.hom.unop_inj,
-    simp [associator_inv_naturality],
+    simp,
   end,
   left_unitor_naturality' :=
   begin
@@ -162,7 +162,7 @@ instance monoidal_category_mop : monoidal_category Cᴹᵒᵖ :=
   begin
     intros,
     apply unmop_inj,
-    simp [associator_inv_naturality],
+    simp,
   end,
   left_unitor_naturality' :=
   begin

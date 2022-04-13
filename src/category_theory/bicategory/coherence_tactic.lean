@@ -9,13 +9,17 @@ import category_theory.bicategory.coherence
 # A `coherence` tactic for bicategories, and `⊗≫` (composition up to associators)
 
 We provide a `coherence` tactic,
-which proves that any two morphisms (with the same source and target)
+which proves that any two 2-morphisms (with the same source and target)
 in a bicategory which are built out of associators and unitors
 are equal.
 
 We also provide `f ⊗≫ g`, the `bicategorical_comp` operation,
 which automatically inserts associators and unitors as needed
 to make the target of `f` match the source of `g`.
+
+This file mainly deals with the type class setup for the coherence tactic. The actual front end
+tactic is given in `category_theory/monooidal/coherence.lean` at the same time as the coherence
+tactic for monoidal categories.
 -/
 
 noncomputable theory
@@ -62,8 +66,8 @@ instance lift_hom₂_associator_inv (f : a ⟶ b) (g : b ⟶ c) (h : c ⟶ d)
   [lift_hom f] [lift_hom g] [lift_hom h] :
   lift_hom₂ (α_ f g h).inv :=
 { lift := (α_ (lift_hom.lift f) (lift_hom.lift g) (lift_hom.lift h)).inv, }
-instance lift_hom₂_comp {f g h : a ⟶ b} [lift_hom f] [lift_hom g] [lift_hom h] (η : f ⟶ g) (θ : g ⟶ h)
-  [lift_hom₂ η] [lift_hom₂ θ] : lift_hom₂ (η ≫ θ) :=
+instance lift_hom₂_comp {f g h : a ⟶ b} [lift_hom f] [lift_hom g] [lift_hom h]
+  (η : f ⟶ g) (θ : g ⟶ h) [lift_hom₂ η] [lift_hom₂ θ] : lift_hom₂ (η ≫ θ) :=
 { lift := lift_hom₂.lift η ≫ lift_hom₂.lift θ }
 instance lift_hom₂_whisker_left (f : a ⟶ b) [lift_hom f] {g h : b ⟶ c} (η : g ⟶ h)
   [lift_hom g] [lift_hom h] [lift_hom₂ η] : lift_hom₂ (f ◁ η) :=

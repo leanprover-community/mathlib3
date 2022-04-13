@@ -209,7 +209,6 @@ Users will typicall just use the `coherence` tactic, which can also cope with id
 `a ≫ f ≫ b ≫ g ≫ c = a' ≫ f ≫ b' ≫ g ≫ c'`
 where `a = a'`, `b = b'`, and `c = c'` can be proved using `pure_coherence`
 -/
--- TODO: provide the `bicategory_coherence` tactic, and add that here.
 meta def pure_coherence : tactic unit := monoidal_coherence <|> bicategorical_coherence
 
 example (X₁ X₂ : C) :
@@ -256,12 +255,13 @@ end coherence
 
 open coherence
 
+/-- The main part of `coherence` tactic. -/
 meta def coherence_loop : tactic unit :=
 do
   -- To prove an equality `f = g` in a monoidal category,
   -- first try the `pure_coherence` tactic on the entire equation:
   pure_coherence <|> do
-  -- Otherewise, rearrange so we have a maximal prefix of each side
+  -- Otherwise, rearrange so we have a maximal prefix of each side
   -- that is built out of unitors and associators:
   liftable_prefixes <|>
     fail ("Something went wrong in the `coherence` tactic: " ++

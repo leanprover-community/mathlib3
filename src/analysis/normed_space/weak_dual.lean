@@ -112,7 +112,7 @@ weak_dual.to_normed_dual.injective.eq_iff
 theorem to_weak_dual_continuous :
   continuous (λ (x' : dual 𝕜 E), x'.to_weak_dual) :=
 begin
-  apply continuous_of_continuous_eval,
+  apply weak_dual.continuous_of_continuous_eval,
   intros z,
   exact (inclusion_in_double_dual 𝕜 E z).continuous,
 end

@@ -92,6 +92,8 @@ theorem rel_iso.cof {α : Type u} {β : Type v} {r s}
   cardinal.lift.{(max u v)} (order.cof s) :=
 le_antisymm (rel_iso.cof.aux f) (rel_iso.cof.aux f.symm)
 
+/-- Cofinality of a strict order `≺`. This is the smallest cardinality of a set `S : set α` such
+that `∀ a, ∃ b ∈ S, ¬ b ≺ a`. -/
 def strict_order.cof (r : α → α → Prop) [h : is_irrefl α r] : cardinal :=
 @order.cof α (λ x y, ¬ r y x) ⟨h.1⟩
 

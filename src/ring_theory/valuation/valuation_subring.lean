@@ -53,6 +53,10 @@ lemma mem_top (x : K) : x ∈ (⊤ : valuation_subring K) := trivial
 
 lemma le_top : A ≤ ⊤ := λ a ha, mem_top _
 
+instance : order_top (valuation_subring K) :=
+{ top := ⊤,
+  le_top := le_top }
+
 instance : inhabited (valuation_subring K) := ⟨⊤⟩
 
 instance : valuation_ring A :=
@@ -132,5 +136,105 @@ lemma valuation_le_iff (x y : K) : A.valuation x ≤ A.valuation y ↔
   ∃ a : A, (a : K) * y = x := iff.rfl
 
 lemma valuation_surjective : function.surjective A.valuation := surjective_quot_mk _
+
+lemma valuation_unit (a : Aˣ) : A.valuation a = 1 :=
+begin
+  rw [← A.valuation.map_one, valuation_eq_iff],
+  use a, simp,
+end
+
+lemma valuation_eq_one_iff (a : A) : is_unit a ↔ A.valuation a = 1 :=
+begin
+  split,
+  { intros h, exact A.valuation_unit h.unit, },
+  { intros h,
+    have ha : (a : K) ≠ 0,
+    { intro c, rw [c, A.valuation.map_zero] at h, exact zero_ne_one h },
+    have ha' : (a : K)⁻¹ ∈ A,
+    { rw [← valuation_le_one_iff, A.valuation.map_inv, h, inv_one] },
+    use [a, a⁻¹, ha'],
+    { ext, field_simp },
+    { ext, field_simp },
+    { ext, refl } }
+end
+
+lemma valuation_lt_one_or_eq_one (a : A) : A.valuation a < 1 ∨ A.valuation a = 1 :=
+lt_or_eq_of_le (A.valuation_le_one a)
+
+lemma valuation_lt_one_iff (a : A) : a ∈ local_ring.maximal_ideal A ↔ A.valuation a < 1 :=
+begin
+  rw local_ring.mem_maximal_ideal,
+  dsimp [nonunits], rw valuation_eq_one_iff,
+  cases A.valuation_lt_one_or_eq_one a; split,
+  { intro _, exact h },
+  { intro _, exact ne_of_lt h },
+  { contradiction },
+  { intros hh c, exact ne_of_lt hh c }
+end
+
+/-- A subring `R` of `K` such that for all `x : K` either `x ∈ R` or `x⁻¹ ∈ R` is
+  a valuation subring of `K`. -/
+def of_subring (R : subring K) (hR : ∀ x : K, x ∈ R ∨ x⁻¹ ∈ R) : valuation_subring K :=
+{ mem_or_inv_mem' := hR, ..R }
+
+@[simp]
+lemma mem_of_subring (R : subring K) (hR : ∀ x : K, x ∈ R ∨ x⁻¹ ∈ R) (x : K) :
+  x ∈ of_subring R hR ↔ x ∈ R := iff.refl _
+
+def of_le (R : valuation_subring K) (S : subring K) (h : R.to_subring ≤ S) :
+  valuation_subring K :=
+{ mem_or_inv_mem' := begin
+    intros x, cases R.mem_or_inv_mem x with hx hx,
+    { left, exact h hx, },
+    { right, exact h hx, },
+  end, ..S}
+
+section order
+
+instance : semilattice_sup (valuation_subring K) :=
+{ sup := λ R S, of_le R (R.to_subring ⊔ S.to_subring) $ le_sup_left,
+  le_sup_left := λ R S x hx, (le_sup_left : R.to_subring ≤ R.to_subring ⊔ S.to_subring) hx,
+  le_sup_right := λ R S x hx, (le_sup_right : S.to_subring ≤ R.to_subring ⊔ S.to_subring) hx,
+  sup_le := λ R S T hR hT x hx, (sup_le hR hT : R.to_subring ⊔ S.to_subring ≤ T.to_subring) hx,
+  ..(infer_instance : partial_order (valuation_subring K)) }
+
+def ideal_of_le (R S : valuation_subring K) (h : R ≤ S) : ideal R :=
+{ carrier := { r | S.valuation r < 1 },
+  add_mem' := begin
+    rintros a b (ha : S.valuation _ < _) (hb : S.valuation _ < _ ),
+    have hu := S.valuation.map_add a b,
+    refine lt_of_le_of_lt hu _,
+    exact max_lt ha hb,
+  end,
+  zero_mem' := by { dsimp, rw S.valuation.map_zero, exact zero_lt_one₀ },
+  smul_mem' := begin
+    rintros c a (ha : S.valuation _ < _), rw smul_eq_mul,
+    let t : S := ⟨c, h c.2⟩,
+    change S.valuation (c * a) < _,
+    rw S.valuation.map_mul,
+    refine lt_of_le_of_lt _ ha,
+    refine mul_le_of_le_one_left' _,
+    rw S.valuation_le_one_iff,
+    exact h c.2
+  end }
+
+lemma prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
+  (ideal_of_le R S h).is_prime :=
+begin
+  constructor,
+  { rw ideal.ne_top_iff_one, rintro (c : S.valuation _ < _),
+    push_cast at c, rw S.valuation.map_one at c, exact ne_of_lt c rfl },
+  { rintros x y (hh : S.valuation _ < _), push_cast at hh,
+    rw S.valuation.map_mul at hh,
+    by_cases hx : S.valuation x < 1, { exact or.inl hx },
+    right,
+    have : S.valuation x = 1,
+    { cases S.valuation_lt_one_or_eq_one ⟨x, h x.2⟩ with h1 h1,
+      { contradiction },
+      { assumption } },
+    { rwa [this, one_mul] at hh, } }
+end
+
+end order
 
 end valuation_subring

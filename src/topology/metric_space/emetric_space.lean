@@ -399,8 +399,8 @@ theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist
 
 namespace mul_opposite
 
-/-- Pseudoemetric space instance on multiplicative opposites of pseudoemetric spaces -/
-@[to_additive]
+/-- Pseudoemetric space instance on the multiplicative opposite of a pseudoemetric space. -/
+@[to_additive "Pseudoemetric space instance on the additive opposite of a pseudoemetric space."]
 instance {α : Type*} [pseudo_emetric_space α] : pseudo_emetric_space αᵐᵒᵖ :=
 pseudo_emetric_space.induced unop ‹_›
 
@@ -925,8 +925,8 @@ def emetric_space.induced {γ β} (f : γ → β) (hf : function.injective f)
 instance {α : Type*} {p : α → Prop} [emetric_space α] : emetric_space (subtype p) :=
 emetric_space.induced coe subtype.coe_injective ‹_›
 
-/-- Emetric space instance on multiplicative opposites of emetric spaces -/
-@[to_additive]
+/-- Emetric space instance on the multiplicative opposite of an emetric space. -/
+@[to_additive "Emetric space instance on the additive opposite of an emetric space."]
 instance {α : Type*} [emetric_space α] : emetric_space αᵐᵒᵖ :=
 emetric_space.induced mul_opposite.unop mul_opposite.unop_injective ‹_›
 

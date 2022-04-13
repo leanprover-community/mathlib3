@@ -568,8 +568,8 @@ section roots
 variables {R : Type*} {n : ℕ} [comm_ring R] [is_domain R]
 
 /-- Any `n`-th primitive root of unity is a root of `cyclotomic n K`.-/
-lemma is_root_cyclotomic (hpos : 0 < n) {μ : R} (h : is_primitive_root μ n) :
-  is_root (cyclotomic n R) μ :=
+lemma _root_.is_primitive_root.is_root_cyclotomic (hpos : 0 < n) {μ : R}
+  (h : is_primitive_root μ n) : is_root (cyclotomic n R) μ :=
 begin
   rw [← mem_roots (cyclotomic_ne_zero n R),
       cyclotomic_eq_prod_X_sub_primitive_roots h, roots_prod_X_sub_C, ← finset.mem_def],
@@ -581,7 +581,7 @@ private lemma is_root_cyclotomic_iff' {n : ℕ} {K : Type*} [field K] {μ : K} [
 begin
   -- in this proof, `o` stands for `order_of μ`
   have hnpos : 0 < n := (ne_zero.of_ne_zero_coe K).out.bot_lt,
-  refine ⟨λ hμ, _, is_root_cyclotomic hnpos⟩,
+  refine ⟨λ hμ, _, is_primitive_root.is_root_cyclotomic hnpos⟩,
   have hμn : μ ^ n = 1,
   { rw is_root_of_unity_iff hnpos,
     exact ⟨n, n.mem_divisors_self hnpos.ne', hμ⟩ },

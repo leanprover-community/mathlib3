@@ -448,7 +448,7 @@ noncomputable def quotient_equiv_quotient_group {R M : Type*} [ring R] [add_comm
   [module R M] (S : submodule R M) : M ⧸ S ≃+ M ⧸ S.to_add_subgroup :=
 let φ₁ : M ⧸ S.to_add_subgroup ≃+ M ⧸ S.mkq.to_add_monoid_hom.ker :=
       quotient_add_group.equiv_quotient_of_eq
-      (by rw [← S.mkq.ker_subgroup_eq_group_hom_ker, S.ker_mkq]),
+      (by rw [← S.mkq.ker_to_add_subgroup, S.ker_mkq]),
     φ₂ : M ⧸ S.mkq.to_add_monoid_hom.ker ≃+ M ⧸ S :=
       quotient_add_group.quotient_ker_equiv_of_surjective S.mkq.to_add_monoid_hom
       (submodule.quotient.mk_surjective S)

@@ -50,6 +50,9 @@ add_decl_doc AddGroup.of
 /-- Typecheck a `add_monoid_hom` as a morphism in `AddGroup`. -/
 add_decl_doc AddGroup.of_hom
 
+@[simp, to_additive] lemma of_hom_apply {X Y : Type*} [group X] [group Y] (f : X →* Y) (x : X) :
+  of_hom f x = f x := rfl
+
 @[to_additive]
 instance (G : Group) : group G := G.str
 
@@ -111,6 +114,9 @@ add_decl_doc AddCommGroup.of
 
 /-- Typecheck a `add_monoid_hom` as a morphism in `AddCommGroup`. -/
 add_decl_doc AddCommGroup.of_hom
+
+@[simp, to_additive] lemma of_hom_apply {X Y : Type*} [comm_group X] [comm_group Y] (f : X →* Y)
+  (x : X) : of_hom f x = f x := rfl
 
 @[to_additive]
 instance comm_group_instance (G : CommGroup) : comm_group G := G.str

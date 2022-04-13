@@ -19,11 +19,11 @@ at a specific time and is the first step in formalizing stochastic processes.
 
 * `measure_theory.filtration`: a filtration on a measurable space
 * `measure_theory.adapted`: a sequence of functions `u` is said to be adapted to a
-  filtration `f` if at each point in time `i`, `u i` is `f i`-measurable
+  filtration `f` if at each point in time `i`, `u i` is `f i`-strongly measurable
 * `measure_theory.prog_measurable`: a sequence of functions `u` is said to be progressively
   measurable with respect to a filtration `f` if at each point in time `i`, `u` restricted to
-  `set.Iic i × α` is measurable with respect to the product `measurable_space` structure where the
-  σ-algebra used for `α` is `f i`.
+  `set.Iic i × α` is strongly measurable with respect to the product `measurable_space` structure
+  where the σ-algebra used for `α` is `f i`.
 * `measure_theory.filtration.natural`: the natural filtration with respect to a sequence of
   measurable functions is the smallest filtration to which it is adapted to
 * `measure_theory.is_stopping_time`: a stopping time with respect to some filtration `f` is a
@@ -45,7 +45,7 @@ filtration, stopping time, stochastic process
 
 -/
 
-open topological_space filter
+open filter order topological_space
 open_locale classical measure_theory nnreal ennreal topological_space big_operators
 
 namespace measure_theory
@@ -217,24 +217,24 @@ by apply hf.sigma_finite -- can't exact here
 
 section adapted_process
 
-variables [measurable_space β] [preorder ι]
+variables [topological_space β] [preorder ι]
   {u v : ι → α → β} {f : filtration ι m}
 
 /-- A sequence of functions `u` is adapted to a filtration `f` if for all `i`,
 `u i` is `f i`-measurable. -/
 def adapted (f : filtration ι m) (u : ι → α → β) : Prop :=
-∀ i : ι, measurable[f i] (u i)
+∀ i : ι, strongly_measurable[f i] (u i)
 
 namespace adapted
 
-lemma add [has_add β] [has_measurable_add₂ β] (hu : adapted f u) (hv : adapted f v) :
+lemma add [has_add β] [has_continuous_add β] (hu : adapted f u) (hv : adapted f v) :
   adapted f (u + v) :=
 λ i, (hu i).add (hv i)
 
-lemma neg [has_neg β] [has_measurable_neg β] (hu : adapted f u) : adapted f (-u) :=
+lemma neg [add_group β] [topological_add_group β] (hu : adapted f u) : adapted f (-u) :=
 λ i, (hu i).neg
 
-lemma smul [has_scalar ℝ β] [has_measurable_smul ℝ β] (c : ℝ) (hu : adapted f u) :
+lemma smul [has_scalar ℝ β] [has_continuous_smul ℝ β] (c : ℝ) (hu : adapted f u) :
   adapted f (c • u) :=
 λ i, (hu i).const_smul c
 
@@ -242,7 +242,7 @@ end adapted
 
 variable (β)
 lemma adapted_zero [has_zero β] (f : filtration ι m) : adapted f (0 : ι → α → β) :=
-λ i, @measurable_zero β α _ (f i) _
+λ i, @strongly_measurable_zero α β (f i) _ _
 variable {β}
 
 /-- Progressively measurable process. A sequence of functions `u` is said to be progressively
@@ -252,11 +252,11 @@ measurable with respect to a filtration `f` if at each point in time `i`, `u` re
 The usual definition uses the interval `[0,i]`, which we replace by `set.Iic i`. We recover the
 usual definition for index types `ℝ≥0` or `ℕ`. -/
 def prog_measurable [measurable_space ι] (f : filtration ι m) (u : ι → α → β) : Prop :=
-∀ i, measurable[subtype.measurable_space.prod (f i)] (λ p : set.Iic i × α, u p.1 p.2)
+∀ i, strongly_measurable[subtype.measurable_space.prod (f i)] (λ p : set.Iic i × α, u p.1 p.2)
 
 lemma prog_measurable_const [measurable_space ι] (f : filtration ι m) (b : β) :
   prog_measurable f ((λ _ _, b) : ι → α → β) :=
-λ i, @measurable_const _ _ _ (subtype.measurable_space.prod (f i)) _
+λ i, @strongly_measurable_const _ _ (subtype.measurable_space.prod (f i)) _ _
 
 namespace prog_measurable
 
@@ -267,10 +267,11 @@ begin
   intro i,
   have : u i = (λ p : set.Iic i × α, u p.1 p.2) ∘ (λ x, (⟨i, set.mem_Iic.mpr le_rfl⟩, x)) := rfl,
   rw this,
-  exact (h i).comp ((@measurable_const _ _ _ (f i) _).prod_mk (@measurable_id _ (f i))),
+  exact (h i).comp_measurable ((@measurable_const _ _ _ (f i) _).prod_mk (@measurable_id _ (f i))),
 end
 
-protected lemma comp {t : ι → α → ι} (h : prog_measurable f u) (ht : prog_measurable f t)
+protected lemma comp {t : ι → α → ι} [topological_space ι] [borel_space ι] [metrizable_space ι]
+  (h : prog_measurable f u) (ht : prog_measurable f t)
   (ht_le : ∀ i x, t i x ≤ i) :
   prog_measurable f (λ i x, u (t i x) x) :=
 begin
@@ -279,32 +280,32 @@ begin
     = (λ p : ↥(set.Iic i) × α, u (p.fst : ι) p.snd) ∘ (λ p : ↥(set.Iic i) × α,
       (⟨t (p.fst : ι) p.snd, set.mem_Iic.mpr ((ht_le _ _).trans p.fst.prop)⟩, p.snd)) := rfl,
   rw this,
-  exact (h i).comp ((ht i).subtype_mk.prod_mk (@measurable_snd _ _ _ (f i))),
+  exact (h i).comp_measurable ((ht i).measurable.subtype_mk.prod_mk (@measurable_snd _ _ _ (f i))),
 end
 
 section arithmetic
 
-@[to_additive] protected lemma mul [has_mul β] [has_measurable_mul₂ β]
+@[to_additive] protected lemma mul [has_mul β] [has_continuous_mul β]
   (hu : prog_measurable f u) (hv : prog_measurable f v) :
   prog_measurable f (λ i x, u i x * v i x) :=
 λ i, (hu i).mul (hv i)
 
-@[to_additive] protected lemma finset_prod' {γ} [comm_monoid β] [has_measurable_mul₂ β]
+@[to_additive] protected lemma finset_prod' {γ} [comm_monoid β] [has_continuous_mul β]
   {U : γ → ι → α → β} {s : finset γ} (h : ∀ c ∈ s, prog_measurable f (U c)) :
   prog_measurable f (∏ c in s, U c) :=
 finset.prod_induction U (prog_measurable f) (λ _ _, prog_measurable.mul)
   (prog_measurable_const _ 1) h
 
-@[to_additive] protected lemma finset_prod {γ} [comm_monoid β] [has_measurable_mul₂ β]
+@[to_additive] protected lemma finset_prod {γ} [comm_monoid β] [has_continuous_mul β]
   {U : γ → ι → α → β} {s : finset γ} (h : ∀ c ∈ s, prog_measurable f (U c)) :
   prog_measurable f (λ i a, ∏ c in s, U c i a) :=
 by { convert prog_measurable.finset_prod' h, ext i a, simp only [finset.prod_apply], }
 
-@[to_additive] protected lemma inv [has_inv β] [has_measurable_inv β] (hu : prog_measurable f u) :
+@[to_additive] protected lemma inv [group β] [topological_group β] (hu : prog_measurable f u) :
   prog_measurable f (λ i x, (u i x)⁻¹) :=
 λ i, (hu i).inv
 
-@[to_additive] protected lemma div [has_div β] [has_measurable_div₂ β]
+@[to_additive] protected lemma div [group β] [topological_group β]
   (hu : prog_measurable f u) (hv : prog_measurable f v) :
   prog_measurable f (λ i x, u i x / v i x) :=
 λ i, (hu i).div (hv i)
@@ -313,13 +314,14 @@ end arithmetic
 
 end prog_measurable
 
-lemma prog_measurable_of_tendsto' {γ} [measurable_space ι] [metric_space β] [borel_space β]
+lemma prog_measurable_of_tendsto' {γ} [measurable_space ι] [metrizable_space β]
   (fltr : filter γ) [fltr.ne_bot] [fltr.is_countably_generated] {U : γ → ι → α → β}
   (h : ∀ l, prog_measurable f (U l)) (h_tendsto : tendsto U fltr (𝓝 u)) :
   prog_measurable f u :=
 begin
-  refine λ i, @measurable_of_tendsto_metric' (set.Iic i × α) β (measurable_space.prod _ (f i))
-    _ _ _ γ _ _ fltr _ _ (λ l, h l i) _,
+  assume i,
+  apply @strongly_measurable_of_tendsto (set.Iic i × α) β γ (measurable_space.prod _ (f i))
+   _ _ fltr _ _ _ _ (λ l, h l i),
   rw tendsto_pi_nhds at h_tendsto ⊢,
   intro x,
   specialize h_tendsto x.fst,
@@ -327,38 +329,51 @@ begin
   exact λ s hs h_mem, h_tendsto {g | g x.snd ∈ s} (hs.preimage (continuous_apply x.snd)) h_mem,
 end
 
-lemma prog_measurable_of_tendsto [measurable_space ι] [metric_space β] [borel_space β]
+lemma prog_measurable_of_tendsto [measurable_space ι] [metrizable_space β]
   {U : ℕ → ι → α → β}
   (h : ∀ l, prog_measurable f (U l)) (h_tendsto : tendsto U at_top (𝓝 u)) :
   prog_measurable f u :=
 prog_measurable_of_tendsto' at_top h h_tendsto
 
+
 /-- A continuous and adapted process is progressively measurable. -/
-theorem adapted.prog_measurable_of_continuous [emetric_space ι] [measurable_space ι]
-  [second_countable_topology ι] [opens_measurable_space ι] [metric_space β] [borel_space β]
+theorem adapted.prog_measurable_of_continuous
+  [topological_space ι] [metrizable_space ι] [measurable_space ι]
+  [second_countable_topology ι] [opens_measurable_space ι] [metrizable_space β]
   (h : adapted f u) (hu_cont : ∀ x, continuous (λ i, u i x)) :
   prog_measurable f u :=
-λ i, @measurable_uncurry_of_continuous_of_measurable _ _ (set.Iic i) _ _ _ _ _ _ _ _ _
-  (λ x, (hu_cont x).comp continuous_induced_dom) (λ j, (h j).mono (f.mono j.prop) le_rfl)
+λ i, @strongly_measurable_uncurry_of_continuous_of_strongly_measurable _ _ (set.Iic i) _ _ _ _ _ _ _
+  (f i) _ (λ x, (hu_cont x).comp continuous_induced_dom) (λ j, (h j).mono (f.mono j.prop))
 
 end adapted_process
 
 namespace filtration
-variables {mβ : measurable_space β} [preorder ι]
+variables [topological_space β] [metrizable_space β] [mβ : measurable_space β] [borel_space β]
+  [preorder ι]
 
 include mβ
 
 /-- Given a sequence of functions, the natural filtration is the smallest sequence
 of σ-algebras such that that sequence of functions is measurable with respect to
 the filtration. -/
-def natural (u : ι → α → β) (hum : ∀ i, measurable (u i)) : filtration ι m :=
-{ seq   := λ i, ⨆ j ≤ i, measurable_space.comap (u j) infer_instance,
-  mono' := λ i j hij, bsupr_le_bsupr' $ λ k hk, le_trans hk hij,
-  le'   := λ i, bsupr_le (λ j hj s hs, let ⟨t, ht, ht'⟩ := hs in ht' ▸ hum j ht) }
+def natural (u : ι → α → β) (hum : ∀ i, strongly_measurable (u i)) : filtration ι m :=
+{ seq   := λ i, ⨆ j ≤ i, measurable_space.comap (u j) mβ,
+  mono' := λ i j hij, bsupr_mono $ λ k, ge_trans hij,
+  le'   := λ i,
+  begin
+    refine supr₂_le _,
+    rintros j hj s ⟨t, ht, rfl⟩,
+    exact (hum j).measurable ht,
+  end }
 
-lemma adapted_natural {u : ι → α → β} (hum : ∀ i, measurable[m] (u i)) :
+lemma adapted_natural {u : ι → α → β} (hum : ∀ i, strongly_measurable[m] (u i)) :
   adapted (natural u hum) u :=
-λ i, measurable.le (le_bsupr_of_le i (le_refl i) le_rfl) (λ s hs, ⟨s, hs, rfl⟩)
+begin
+  assume i,
+  refine strongly_measurable.mono _ (le_supr₂_of_le i (le_refl i) le_rfl),
+  rw strongly_measurable_iff_measurable_separable,
+  exact ⟨measurable_iff_comap_le.2 le_rfl, (hum i).is_separable_range⟩
+end
 
 end filtration
 
@@ -396,13 +411,9 @@ begin
     simp only [set.mem_set_of_eq, set.mem_empty_eq, iff_false],
     rw is_min_iff_forall_not_lt at hi_min,
     exact hi_min (τ x), },
-  have : {x : α | τ x < i} = τ ⁻¹' (set.Iio i),
-  { ext1 x, simp only [set.mem_set_of_eq, set.mem_preimage, set.mem_Iio], },
-  rw [this, pred_order.Iio_eq_Iic_pred' hi_min],
-  have : τ ⁻¹' set.Iic (pred_order.pred i) = {x : α | τ x ≤ pred_order.pred i},
-  { ext1 x, simp only [set.mem_preimage, set.mem_Iic, set.mem_set_of_eq], },
-  rw this,
-  exact f.mono (pred_order.pred_le i) _ (hτ.measurable_set_le (pred_order.pred i)),
+  have : {x : α | τ x < i} = τ ⁻¹' (set.Iio i) := rfl,
+  rw [this, ←Iic_pred_of_not_is_min hi_min],
+  exact f.mono (pred_le i) _ (hτ.measurable_set_le $ pred i),
 end
 
 end preorder
@@ -676,8 +687,8 @@ by simp [stopped_process, min_eq_right h]
 section prog_measurable
 
 variables [measurable_space ι] [topological_space ι] [order_topology ι]
-  [second_countable_topology ι] [borel_space ι]
-  [measurable_space β]
+  [second_countable_topology ι] [borel_space ι] [metrizable_space ι]
+  [topological_space β]
   {u : ι → α → β} {τ : α → ι} {f : filtration ι m}
 
 lemma prog_measurable_min_stopping_time (hτ : is_stopping_time f τ) :
@@ -692,6 +703,7 @@ begin
   have h_meas_fst : ∀ t : set (set.Iic i × α),
       measurable[m_set t] (λ x : t, ((x : set.Iic i × α).fst : ι)),
     from λ t, (@measurable_subtype_coe (set.Iic i × α) m_prod _).fst.subtype_coe,
+  apply measurable.strongly_measurable,
   refine measurable_of_restrict_of_restrict_compl hs _ _,
   { refine @measurable.min _ _ _ _ _ (m_set s) _ _ _ _ _ (h_meas_fst s) _,
     refine @measurable_of_Iic ι s _ _ _ (m_set s) _ _ _ _ (λ j, _),
@@ -727,8 +739,8 @@ lemma prog_measurable.adapted_stopped_process
 
 lemma prog_measurable.measurable_stopped_process
   (hu : prog_measurable f u) (hτ : is_stopping_time f τ) (i : ι) :
-  measurable (stopped_process u τ i) :=
-(hu.adapted_stopped_process hτ i).le (f.le _)
+  strongly_measurable (stopped_process u τ i) :=
+(hu.adapted_stopped_process hτ i).mono (f.le _)
 
 end prog_measurable
 
@@ -771,7 +783,7 @@ variables [add_comm_monoid β]
 /-- For filtrations indexed by `ℕ`, `adapted` and `prog_measurable` are equivalent. This lemma
 provides `adapted f u → prog_measurable f u`. See `prog_measurable.adapted` for the reverse
 direction, which is true more generally. -/
-lemma adapted.prog_measurable_of_nat [measurable_space β] [has_measurable_add₂ β]
+lemma adapted.prog_measurable_of_nat [topological_space β] [has_continuous_add β]
   (h : adapted f u) : prog_measurable f u :=
 begin
   intro i,
@@ -782,26 +794,27 @@ begin
     have hp_mem : (p.fst : ℕ) ∈ finset.range (i + 1) := finset.mem_range_succ_iff.mpr p.fst.prop,
     simp only [hp_mem, if_true], },
   rw this,
-  refine finset.measurable_sum _ (λ j hj, measurable.ite _ _ _),
+  refine finset.strongly_measurable_sum _ (λ j hj, strongly_measurable.ite _ _ _),
   { suffices h_meas : measurable[measurable_space.prod _ (f i)]
         (λ a : ↥(set.Iic i) × α, (a.fst : ℕ)),
       from h_meas (measurable_set_singleton j),
     exact (@measurable_fst _ α _ (f i)).subtype_coe, },
   { have h_le : j ≤ i, from finset.mem_range_succ_iff.mp hj,
-    exact (measurable.le (f.mono h_le) (h j)).comp (@measurable_snd _ α _ (f i)), },
-  { exact @measurable_const _ (set.Iic i × α) _ (measurable_space.prod _ (f i)) _, },
+    exact (strongly_measurable.mono (h j) (f.mono h_le)).comp_measurable
+      (@measurable_snd _ α _ (f i)), },
+  { exact strongly_measurable_const, },
 end
 
 /-- For filtrations indexed by `ℕ`, the stopped process obtained from an adapted process is
 adapted. -/
-lemma adapted.stopped_process_of_nat [measurable_space β] [has_measurable_add₂ β]
+lemma adapted.stopped_process_of_nat [topological_space β] [has_continuous_add β]
   (hu : adapted f u) (hτ : is_stopping_time f τ) :
   adapted f (stopped_process u τ) :=
 (hu.prog_measurable_of_nat.stopped_process hτ).adapted
 
-lemma adapted.measurable_stopped_process_of_nat [measurable_space β] [has_measurable_add₂ β]
+lemma adapted.measurable_stopped_process_of_nat [topological_space β] [has_continuous_add β]
   (hτ : is_stopping_time f τ) (hu : adapted f u) (n : ℕ) :
-  measurable (stopped_process u τ n) :=
+  strongly_measurable (stopped_process u τ n) :=
 hu.prog_measurable_of_nat.measurable_stopped_process hτ n
 
 lemma stopped_value_eq {N : ℕ} (hbdd : ∀ x, τ x ≤ N) :
@@ -845,8 +858,7 @@ end add_comm_monoid
 
 section normed_group
 
-variables [measurable_space β] [normed_group β] [has_measurable_add₂ β] [borel_space β] {p : ℝ≥0∞}
-  {μ : measure α}
+variables [normed_group β] {p : ℝ≥0∞} {μ : measure α}
 
 lemma mem_ℒp_stopped_process (hτ : is_stopping_time f τ) (hu : ∀ n, mem_ℒp (u n) p μ) (n : ℕ) :
   mem_ℒp (stopped_process u τ n) p μ :=

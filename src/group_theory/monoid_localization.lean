@@ -257,6 +257,7 @@ attribute [irreducible] localization
 
 @[to_additive] lemma mk_mul (a c : M) (b d : S) : mk a b * mk c d = mk (a * c) (b * d) := rfl
 @[to_additive] lemma mk_one : mk 1 (1 : S) = 1 := rfl
+@[to_additive] lemma mk_pow (n : ℕ) (a : M) (b : S) : (mk a b) ^ n = mk (a ^ n) (b ^ n) := rfl
 
 @[simp, to_additive] lemma rec_mk {p : localization S → Sort u}
   (f : ∀ (a : M) (b : S), p (mk a b)) (H) (a : M) (b : S) :

@@ -9,6 +9,7 @@ import data.nat.gcd
 import data.nat.sqrt_norm_num
 import data.set.finite
 import tactic.wlog
+import algebra.parity
 
 /-!
 # Prime numbers
@@ -178,8 +179,7 @@ by { rw ← h, exact not_prime_mul h₁ h₂ }
 
 lemma prime_mul_iff {a b : ℕ} :
   nat.prime (a * b) ↔ (a.prime ∧ b = 1) ∨ (b.prime ∧ a = 1) :=
-by cases a; cases b; try { cases a; cases b };
-  simp [not_prime_zero, not_prime_one, not_prime_mul]
+by simp only [iff_self, irreducible_mul_iff, ←irreducible_iff_nat_prime, nat.is_unit_iff]
 
 lemma prime.dvd_iff_eq {p a : ℕ} (hp : p.prime) (a1 : a ≠ 1) : a ∣ p ↔ p = a :=
 begin

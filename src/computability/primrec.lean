@@ -3,8 +3,8 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import data.equiv.list
 import data.list.join
+import logic.equiv.list
 import logic.function.iterate
 
 /-!

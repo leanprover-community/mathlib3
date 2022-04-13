@@ -90,7 +90,7 @@ lemma exists_mem_adjoin_mul_eq_pow_nat_degree {x : S} (hx : aeval x f = 0)
   (hmo : f.monic) (hf : f.is_weakly_eisenstein_at P) : ∃ y ∈ adjoin R ({x} : set S),
   (algebra_map R S) p * y = x ^ (f.map (algebra_map R S)).nat_degree :=
 begin
-  rw [aeval_def, polynomial.eval₂_eq_eval_map, eval_eq_finset_sum, range_add_one,
+  rw [aeval_def, polynomial.eval₂_eq_eval_map, eval_eq_sum_range, range_add_one,
     sum_insert not_mem_range_self, sum_range, (hmo.map
     (algebra_map R S)).coeff_nat_degree, one_mul] at hx,
   replace hx := eq_neg_of_add_eq_zero hx,
@@ -135,7 +135,7 @@ begin
   rw [hk, pow_add],
   suffices : x ^ f.nat_degree ∈ 𝓟,
   { exact mul_mem_right (x ^ k) 𝓟 this },
-  rw [is_root.def, eval_eq_finset_sum, finset.range_add_one, finset.sum_insert
+  rw [is_root.def, eval_eq_sum_range, finset.range_add_one, finset.sum_insert
     finset.not_mem_range_self, finset.sum_range, hmo.coeff_nat_degree, one_mul] at hroot,
   rw [eq_neg_of_add_eq_zero hroot, neg_mem_iff],
   refine submodule.sum_mem _ (λ i hi,  mul_mem_right _ _ (hf.mem (fin.is_lt i)))
@@ -163,6 +163,17 @@ namespace is_eisenstein_at
 section comm_semiring
 
 variables [comm_semiring R] {𝓟 : ideal R} {f : R[X]} (hf : f.is_eisenstein_at 𝓟)
+
+lemma _root_.polynomial.monic.leading_coeff_not_mem (hf : f.monic) (h : 𝓟 ≠ ⊤) :
+  ¬f.leading_coeff ∈ 𝓟 :=
+hf.leading_coeff.symm ▸ (ideal.ne_top_iff_one _).1 h
+
+lemma _root_.polynomial.monic.is_eisenstein_at_of_mem_of_not_mem (hf : f.monic) (h : 𝓟 ≠ ⊤)
+  (hmem : ∀ {n}, n < f.nat_degree → f.coeff n ∈ 𝓟) (hnot_mem : f.coeff 0 ∉ 𝓟 ^ 2) :
+  f.is_eisenstein_at 𝓟 :=
+{ leading := hf.leading_coeff_not_mem h,
+  mem := λ n hn, hmem hn,
+  not_mem := hnot_mem }
 
 include hf
 
@@ -197,7 +208,7 @@ end polynomial
 
 section cyclotomic
 
-variables {p : ℕ}
+variables (p : ℕ)
 
 local notation `𝓟` := submodule.span ℤ {p}
 
@@ -205,20 +216,15 @@ open polynomial
 
 lemma cyclotomic_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] :
   ((cyclotomic p ℤ).comp (X + 1)).is_eisenstein_at 𝓟 :=
-{ leading :=
-  begin
-    intro h,
-    rw [show (X + 1 : ℤ[X]) = X + C 1, by simp] at h,
-    suffices : ((cyclotomic p ℤ).comp (X + C 1)).monic,
-    { rw [monic.def.1 this, ideal.submodule_span_eq, ideal.mem_span_singleton] at h,
-      exact nat.prime.not_dvd_one hp.out (by exact_mod_cast h) },
-    refine monic.comp (cyclotomic.monic p ℤ) (monic_X_add_C 1) (λ h₁, _),
-    rw [nat_degree_X_add_C] at h₁,
-    exact zero_ne_one h₁.symm,
-  end,
-  mem := λ i hi,
-  begin
-    rw [cyclotomic_eq_geom_sum hp.out, geom_sum_X_comp_X_add_one_eq_sum, ← lcoeff_apply,
+begin
+  refine monic.is_eisenstein_at_of_mem_of_not_mem _
+    (ideal.is_prime.ne_top $(ideal.span_singleton_prime (by exact_mod_cast hp.out.ne_zero)).2 $
+    nat.prime_iff_prime_int.1 hp.out) (λ i hi, _) _,
+  { rw [show (X + 1 : ℤ[X]) = X + C 1, by simp],
+    refine ((cyclotomic.monic p ℤ).comp (monic_X_add_C 1) (λ h, _)),
+    rw [nat_degree_X_add_C] at h,
+    exact zero_ne_one h.symm },
+  { rw [cyclotomic_eq_geom_sum hp.out, geom_sum_X_comp_X_add_one_eq_sum, ← lcoeff_apply,
       linear_map.map_sum],
     conv { congr, congr, skip, funext,
       rw [lcoeff_apply, ← C_eq_nat_cast, ← monomial_eq_C_mul_X, coeff_monomial] },
@@ -227,11 +233,8 @@ lemma cyclotomic_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] :
     simp only [lt_of_lt_of_le hi (nat.sub_le _ _), int.nat_cast_eq_coe_nat, sum_ite_eq', mem_range,
       if_true, ideal.submodule_span_eq, ideal.mem_span_singleton],
     exact int.coe_nat_dvd.2
-      (nat.prime.dvd_choose_self (nat.succ_pos i) (lt_tsub_iff_right.1 hi) hp.out)
-  end,
-  not_mem :=
-  begin
-    rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_eq_geom_sum hp.out, eval_add, eval_X,
+      (nat.prime.dvd_choose_self (nat.succ_pos i) (lt_tsub_iff_right.1 hi) hp.out) },
+  { rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_eq_geom_sum hp.out, eval_add, eval_X,
       eval_one, zero_add, eval_geom_sum, one_geom_sum, int.nat_cast_eq_coe_nat,
       ideal.submodule_span_eq, ideal.span_singleton_pow, ideal.mem_span_singleton],
     intro h,
@@ -239,8 +242,52 @@ lemma cyclotomic_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] :
     rw [← mul_assoc, mul_one, mul_assoc] at hk,
     nth_rewrite 0 [← nat.mul_one p] at hk,
     rw [nat.mul_right_inj hp.out.pos] at hk,
-    exact nat.prime.not_dvd_one hp.out (dvd.intro k (hk.symm)),
-  end }
+    exact nat.prime.not_dvd_one hp.out (dvd.intro k (hk.symm)) }
+end
+
+lemma cyclotomic_prime_pow_comp_X_add_one_is_eisenstein_at [hp : fact p.prime] (n : ℕ) :
+  ((cyclotomic (p ^ (n + 1)) ℤ).comp (X + 1)).is_eisenstein_at 𝓟 :=
+begin
+  refine monic.is_eisenstein_at_of_mem_of_not_mem _
+    (ideal.is_prime.ne_top $(ideal.span_singleton_prime (by exact_mod_cast hp.out.ne_zero)).2 $
+    nat.prime_iff_prime_int.1 hp.out) _ _,
+  { rw [show (X + 1 : ℤ[X]) = X + C 1, by simp],
+    refine ((cyclotomic.monic _ ℤ).comp (monic_X_add_C 1) (λ h, _)),
+    rw [nat_degree_X_add_C] at h,
+    exact zero_ne_one h.symm },
+  { induction n with n hn,
+    { intros i hi,
+      rw [zero_add, pow_one] at hi ⊢,
+      exact (cyclotomic_comp_X_add_one_is_eisenstein_at p).mem hi },
+    { intros i hi,
+      rw [ideal.submodule_span_eq, ideal.mem_span_singleton, ← zmod.int_coe_zmod_eq_zero_iff_dvd,
+        ← int.coe_cast_ring_hom, ← coeff_map, map_comp, map_cyclotomic, polynomial.map_add, map_X,
+        polynomial.map_one, pow_add, pow_one, cyclotomic_mul_prime_dvd_eq_pow, pow_comp,
+        ← zmod.expand_card, coeff_expand hp.out.pos],
+      { simp only [ite_eq_right_iff],
+        rintro ⟨k, hk⟩,
+        rw [nat_degree_comp, show (X + 1 : ℤ[X]) = X + C 1, by simp, nat_degree_X_add_C,
+          mul_one, nat_degree_cyclotomic, nat.totient_prime_pow hp.out (nat.succ_pos _),
+          nat.succ_sub_one] at hn hi,
+        rw [hk, pow_succ, mul_assoc] at hi,
+        rw [hk, mul_comm, nat.mul_div_cancel _ hp.out.pos],
+        replace hn := hn (lt_of_mul_lt_mul_left' hi),
+        rw [ideal.submodule_span_eq, ideal.mem_span_singleton,
+          ← zmod.int_coe_zmod_eq_zero_iff_dvd, ← int.coe_cast_ring_hom, ← coeff_map] at hn,
+        simpa [map_comp] using hn },
+      { exact ⟨p ^ n, by rw [pow_succ]⟩ } } },
+  { rw [coeff_zero_eq_eval_zero, eval_comp, cyclotomic_prime_pow_eq_geom_sum hp.out, eval_add,
+      eval_X, eval_one, zero_add, geom_sum_def, eval_finset_sum],
+    simp only [eval_pow, eval_X, one_pow, sum_const, card_range, nat.smul_one_eq_coe,
+      int.nat_cast_eq_coe_nat, submodule_span_eq, ideal.submodule_span_eq,
+      ideal.span_singleton_pow, ideal.mem_span_singleton],
+    intro h,
+    obtain ⟨k, hk⟩ := int.coe_nat_dvd.1 h,
+    rw [← mul_assoc, mul_one, mul_assoc] at hk,
+    nth_rewrite 0 [← nat.mul_one p] at hk,
+    rw [nat.mul_right_inj hp.out.pos] at hk,
+    exact nat.prime.not_dvd_one hp.out (dvd.intro k (hk.symm)) }
+end
 
 end cyclotomic
 

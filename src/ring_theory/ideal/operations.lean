@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
 import algebra.algebra.operations
-import ring_theory.non_zero_divisors
+import algebra.ring.equiv
 import data.nat.choose.sum
 import ring_theory.coprime.lemmas
-import data.equiv.ring
 import ring_theory.ideal.quotient
+import ring_theory.non_zero_divisors
 /-!
 # More operations on modules and ideals
 -/
@@ -598,7 +598,7 @@ theorem radical_eq_Inf (I : ideal R) :
   radical I = Inf { J : ideal R | I ≤ J ∧ is_prime J } :=
 le_antisymm (le_Inf $ λ J hJ, hJ.2.radical_le_iff.2 hJ.1) $
 λ r hr, classical.by_contradiction $ λ hri,
-let ⟨m, (hrm : r ∉ radical m), him, hm⟩ := zorn.zorn_nonempty_partial_order₀
+let ⟨m, (hrm : r ∉ radical m), him, hm⟩ := zorn_nonempty_partial_order₀
   {K : ideal R | r ∉ radical K}
   (λ c hc hcc y hyc, ⟨Sup c, λ ⟨n, hrnc⟩, let ⟨y, hyc, hrny⟩ :=
       (submodule.mem_Sup_of_directed ⟨y, hyc⟩ hcc.directed_on).1 hrnc in hc hyc ⟨n, hrny⟩,
@@ -1242,17 +1242,6 @@ variables [comm_ring R] [comm_ring S]
 variables (f : R →+* S)
 variables {I J : ideal R} {K L : ideal S}
 
-lemma mem_quotient_iff_mem (hIJ : I ≤ J) {x : R} :
-  quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J :=
-begin
-  refine iff.trans (mem_map_iff_of_surjective _ quotient.mk_surjective) _,
-  split,
-  { rintros ⟨x, x_mem, x_eq⟩,
-    simpa using J.add_mem (hIJ (quotient.eq.mp x_eq.symm)) x_mem },
-  { intro x_mem,
-    exact ⟨x, x_mem, rfl⟩ }
-end
-
 variables (I J K L)
 
 theorem map_mul : map f (I * J) = map f I * map f J :=
@@ -1335,6 +1324,10 @@ end⟩
 end is_primary
 
 end ideal
+
+lemma associates.mk_ne_zero' {R : Type*} [comm_ring R] {r : R} :
+  (associates.mk (ideal.span {r} : ideal R)) ≠ 0 ↔ (r ≠ 0):=
+by rw [associates.mk_ne_zero, ideal.zero_eq_bot, ne.def, ideal.span_singleton_eq_bot]
 
 namespace ring_hom
 
@@ -1572,6 +1565,18 @@ end
 ⟨λ hI, (@mk_ker _ _ I) ▸
   @comap_is_maximal_of_surjective _ _ _ _ (quotient.mk I) quotient.mk_surjective ⊥ hI,
  λ hI, @bot_is_maximal _ (@field.to_division_ring _ (@quotient.field _ _ I hI)) ⟩
+
+/-- See also `ideal.mem_quotient_iff_mem` in case `I ≤ J`. -/
+@[simp]
+lemma mem_quotient_iff_mem_sup {I J : ideal R} {x : R} :
+  quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J ⊔ I :=
+by rw [← mem_comap, comap_map_of_surjective _ quotient.mk_surjective, ← ring_hom.ker_eq_comap_bot,
+  mk_ker]
+
+/-- See also `ideal.mem_quotient_iff_mem_sup` if the assumption `I ≤ J` is not available. -/
+lemma mem_quotient_iff_mem {I J : ideal R} (hIJ : I ≤ J) {x : R} :
+  quotient.mk I x ∈ J.map (quotient.mk I) ↔ x ∈ J :=
+by rw [mem_quotient_iff_mem_sup, sup_eq_left.mpr hIJ]
 
 section quotient_algebra
 

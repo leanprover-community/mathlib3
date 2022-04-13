@@ -5,7 +5,6 @@ Authors: Damiano Testa
 -/
 
 import data.polynomial.algebra_map
-import data.polynomial.denoms_clearable
 
 /-!  # Laurent polynomials
 

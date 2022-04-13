@@ -557,7 +557,7 @@ by { ext, rw [single_one_mul_apply, mul_single_one_apply, mul_comm] }
   map_mul' := λ x y, by rw [single_add_hom, single_mul_single, one_mul],
   ..finsupp.single_add_hom 1}
 
-/--  A multiplicative homomorphism `f : G →* H` between two monoids induces a `k`-algebra
+/--  A multiplicative homomorphism `f : G →* H` between two monoids induces a ring
 homomorphism `monoid_ring_hom_map f : monoid_algebra k G →+* monoid_algebra k H`. -/
 def monoid_ring_hom_map (k : Type*) {H : Type*} [semiring k] [monoid G] [monoid H]
   (f : G →* H) : monoid_algebra k G →+* monoid_algebra k H :=
@@ -1242,7 +1242,7 @@ end
 
 --  `by convert monoid_algebra.monoid_ring_hom_map k f.to_multiplicative` appears to be the same
 --  mathematical definition, but is harder to use.
-/--  An additive homomorphism `f : G →+ H` induces a `k`-algebra homomorphism
+/--  An additive homomorphism `f : G →+ H` induces a ring homomorphism
 `add_monoid_ring_hom_map f : add_monoid_algebra k G →+* add_monoid_algebra k H`. -/
 def add_monoid_ring_hom_map (k : Type*) [semiring k] {H : Type*} [add_monoid G] [add_monoid H]
   (f : G →+ H) : add_monoid_algebra k G →+* add_monoid_algebra k H :=

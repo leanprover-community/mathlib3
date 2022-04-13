@@ -99,8 +99,8 @@ variables [partial_order α] [order_top α] {a b : α}
 lemma not_is_max_iff_ne_top : ¬ is_max a ↔ a ≠ ⊤ := is_max_iff_eq_top.not
 lemma not_is_top_iff_ne_top : ¬ is_top a ↔ a ≠ ⊤ := is_top_iff_eq_top.not
 
-alias is_max_iff_eq_top ↔ _ is_max.eq_top
-alias is_top_iff_eq_top ↔ _ is_top.eq_top
+alias is_max_iff_eq_top ↔ is_max.eq_top _
+alias is_top_iff_eq_top ↔ is_top.eq_top _
 
 @[simp] lemma top_le_iff : ⊤ ≤ a ↔ a = ⊤ := le_top.le_iff_eq.trans eq_comm
 lemma top_unique (h : ⊤ ≤ a) : a = ⊤ := le_top.antisymm h
@@ -179,8 +179,8 @@ variables [partial_order α] [order_bot α] {a b : α}
 lemma not_is_min_iff_ne_bot : ¬ is_min a ↔ a ≠ ⊥ := is_min_iff_eq_bot.not
 lemma not_is_bot_iff_ne_bot : ¬ is_bot a ↔ a ≠ ⊥ := is_bot_iff_eq_bot.not
 
-alias is_min_iff_eq_bot ↔ _ is_min.eq_bot
-alias is_bot_iff_eq_bot ↔ _ is_bot.eq_bot
+alias is_min_iff_eq_bot ↔ is_min.eq_bot _
+alias is_bot_iff_eq_bot ↔ is_bot.eq_bot _
 
 @[simp] lemma le_bot_iff : a ≤ ⊥ ↔ a = ⊥ := bot_le.le_iff_eq
 lemma bot_unique (h : a ≤ ⊥) : a = ⊥ := h.antisymm bot_le

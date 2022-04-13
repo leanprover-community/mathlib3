@@ -57,8 +57,15 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
-lemma ge_antisymm [partial_order α] {a b : α} (hab : a ≤ b) (hba : b ≤ a) : b = a :=
-le_antisymm hba hab
+section partial_order
+variables [partial_order α] {a b : α}
+
+lemma ge_antisymm : a ≤ b → b ≤ a → b = a := flip le_antisymm
+lemma lt_of_le_of_ne' : a ≤ b → b ≠ a → a < b := λ h₁ h₂, lt_of_le_of_ne h₁ h₂.symm
+lemma ne.lt_of_le : a ≠ b → a ≤ b → a < b := flip lt_of_le_of_ne
+lemma ne.lt_of_le' : b ≠ a → a ≤ b → a < b := flip lt_of_le_of_ne'
+
+end partial_order
 
 attribute [simp] le_refl
 attribute [ext] has_le
@@ -68,6 +75,7 @@ alias lt_of_le_of_lt  ← has_le.le.trans_lt
 alias le_antisymm     ← has_le.le.antisymm
 alias ge_antisymm     ← has_le.le.antisymm'
 alias lt_of_le_of_ne  ← has_le.le.lt_of_ne
+alias lt_of_le_of_ne' ← has_le.le.lt_of_ne'
 alias lt_of_le_not_le ← has_le.le.lt_of_not_le
 alias lt_or_eq_of_le  ← has_le.le.lt_or_eq
 alias decidable.lt_or_eq_of_le ← has_le.le.lt_or_eq_dec
@@ -212,10 +220,10 @@ protected lemma decidable.ne_iff_lt_iff_le [partial_order α] [@decidable_rel α
 @[simp] lemma ne_iff_lt_iff_le [partial_order α] {a b : α} : (a ≠ b ↔ a < b) ↔ a ≤ b :=
 by haveI := classical.dec; exact decidable.ne_iff_lt_iff_le
 
-lemma lt_of_not_ge' [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
+lemma lt_of_not_le [linear_order α] {a b : α} (h : ¬ b ≤ a) : a < b :=
 ((le_total _ _).resolve_right h).lt_of_not_le h
 
-lemma lt_iff_not_ge' [linear_order α] {x y : α} : x < y ↔ ¬ y ≤ x := ⟨not_le_of_gt, lt_of_not_ge'⟩
+lemma lt_iff_not_le [linear_order α] {x y : α} : x < y ↔ ¬ y ≤ x := ⟨not_le_of_lt, lt_of_not_le⟩
 
 lemma ne.lt_or_lt [linear_order α] {x y : α} (h : x ≠ y) : x < y ∨ y < x := lt_or_gt_of_ne h
 
@@ -234,7 +242,7 @@ end
 
 lemma lt_imp_lt_of_le_imp_le {β} [linear_order α] [preorder β] {a b : α} {c d : β}
   (H : a ≤ b → c ≤ d) (h : d < c) : b < a :=
-lt_of_not_ge' $ λ h', (H h').not_lt h
+lt_of_not_le $ λ h', (H h').not_lt h
 
 lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [linear_order β] {a b : α} {c d : β} :
   (a ≤ b → c ≤ d) ↔ (d < c → b < a) :=

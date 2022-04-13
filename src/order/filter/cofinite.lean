@@ -23,7 +23,7 @@ Define filters for other cardinalities of the complement.
 open set function
 open_locale classical
 
-variables {α : Type*}
+variables {ι α β : Type*}
 
 namespace filter
 
@@ -52,58 +52,24 @@ lemma frequently_cofinite_iff_infinite {p : α → Prop} :
 by simp only [filter.frequently, filter.eventually, mem_cofinite, compl_set_of, not_not,
   set.infinite]
 
-/-- The coproduct of the cofinite filters on two types is the cofinite filter on their product. -/
-lemma coprod_cofinite {β : Type*} :
-  (cofinite : filter α).coprod (cofinite : filter β) = cofinite :=
-begin
-  ext S,
-  simp only [mem_coprod_iff, exists_prop, mem_comap, mem_cofinite],
-  split,
-  { rintro ⟨⟨A, hAf, hAS⟩, B, hBf, hBS⟩,
-    rw [← compl_subset_compl, ← preimage_compl] at hAS hBS,
-    exact (hAf.prod hBf).subset (subset_inter hAS hBS) },
-  { intro hS,
-    refine ⟨⟨(prod.fst '' Sᶜ)ᶜ, _, _⟩, ⟨(prod.snd '' Sᶜ)ᶜ, _, _⟩⟩,
-    { simpa using hS.image prod.fst },
-    { simpa [compl_subset_comm] using subset_preimage_image prod.fst Sᶜ },
-    { simpa using hS.image prod.snd },
-    { simpa [compl_subset_comm] using subset_preimage_image prod.snd Sᶜ } },
-end
-
-/-- Finite product of finite sets is finite -/
-lemma Coprod_cofinite {δ : Type*} {κ : δ → Type*} [fintype δ] :
-  filter.Coprod (λ d, (cofinite : filter (κ d))) = cofinite :=
-begin
-  ext S,
-  rcases compl_surjective S with ⟨S, rfl⟩,
-  simp_rw [compl_mem_Coprod_iff, mem_cofinite, compl_compl],
-  split,
-  { rintro ⟨t, htf, hsub⟩,
-    exact (finite.pi htf).subset hsub },
-  { exact λ hS, ⟨λ i, eval i '' S, λ i, hS.image _, subset_pi_eval_image _ _⟩ }
-end
-
-end filter
-
-open filter
-
-lemma set.finite.compl_mem_cofinite {s : set α} (hs : s.finite) : sᶜ ∈ (@cofinite α) :=
+lemma _root_.set.finite.compl_mem_cofinite {s : set α} (hs : s.finite) : sᶜ ∈ (@cofinite α) :=
 mem_cofinite.2 $ (compl_compl s).symm ▸ hs
 
-lemma set.finite.eventually_cofinite_nmem {s : set α} (hs : s.finite) : ∀ᶠ x in cofinite, x ∉ s :=
+lemma _root_.set.finite.eventually_cofinite_nmem {s : set α} (hs : s.finite) :
+  ∀ᶠ x in cofinite, x ∉ s :=
 hs.compl_mem_cofinite
 
-lemma finset.eventually_cofinite_nmem (s : finset α) : ∀ᶠ x in cofinite, x ∉ s :=
+lemma _root_.finset.eventually_cofinite_nmem (s : finset α) : ∀ᶠ x in cofinite, x ∉ s :=
 s.finite_to_set.eventually_cofinite_nmem
 
-lemma set.infinite_iff_frequently_cofinite {s : set α} :
+lemma _root_.set.infinite_iff_frequently_cofinite {s : set α} :
   set.infinite s ↔ (∃ᶠ x in cofinite, x ∈ s) :=
 frequently_cofinite_iff_infinite.symm
 
-lemma filter.eventually_cofinite_ne (x : α) : ∀ᶠ a in cofinite, a ≠ x :=
+lemma eventually_cofinite_ne (x : α) : ∀ᶠ a in cofinite, a ≠ x :=
 (set.finite_singleton x).eventually_cofinite_nmem
 
-lemma filter.le_cofinite_iff_compl_singleton_mem {l : filter α} :
+lemma le_cofinite_iff_compl_singleton_mem {l : filter α} :
   l ≤ cofinite ↔ ∀ x, {x}ᶜ ∈ l :=
 begin
   refine ⟨λ h x, h (finite_singleton x).compl_mem_cofinite, λ h s (hs : sᶜ.finite), _⟩,
@@ -111,16 +77,41 @@ begin
   exact λ x _, h x
 end
 
-/-- If `α` is a sup-semilattice with no maximal element, then `at_top ≤ cofinite`. -/
-lemma at_top_le_cofinite [semilattice_sup α] [no_max_order α] : (at_top : filter α) ≤ cofinite :=
+lemma le_cofinite_iff_eventually_ne {l : filter α} :
+  l ≤ cofinite ↔ ∀ x, ∀ᶠ y in l, y ≠ x :=
+le_cofinite_iff_compl_singleton_mem
+
+/-- If `α` is a preorder with no maximal element, then `at_top ≤ cofinite`. -/
+lemma at_top_le_cofinite [preorder α] [no_max_order α] : (at_top : filter α) ≤ cofinite :=
+le_cofinite_iff_eventually_ne.mpr eventually_ne_at_top
+
+lemma comap_cofinite_le (f : α → β) : comap f cofinite ≤ cofinite :=
+le_cofinite_iff_eventually_ne.mpr $ λ x,
+  mem_comap.2 ⟨{f x}ᶜ, (finite_singleton _).compl_mem_cofinite, λ y, ne_of_apply_ne f⟩
+
+/-- The coproduct of the cofinite filters on two types is the cofinite filter on their product. -/
+lemma coprod_cofinite : (cofinite : filter α).coprod (cofinite : filter β) = cofinite :=
 begin
-  refine compl_surjective.forall.2 (λ s hs, _),
-  rcases eq_empty_or_nonempty s with rfl|hne, { simp only [compl_empty, univ_mem] },
-  rw [mem_cofinite, compl_compl] at hs, lift s to finset α using hs,
-  rcases exists_gt (s.sup' hne id) with ⟨y, hy⟩,
-  filter_upwards [mem_at_top y] with x hx hxs,
-  exact (finset.le_sup' id hxs).not_lt (hy.trans_le hx)
+  refine le_antisymm (sup_le (comap_cofinite_le _) (comap_cofinite_le _)) (λ S, _),
+  simp only [mem_coprod_iff, exists_prop, mem_comap, mem_cofinite],
+  rintro ⟨⟨A, hAf, hAS⟩, B, hBf, hBS⟩,
+  rw [← compl_subset_compl, ← preimage_compl] at hAS hBS,
+  exact (hAf.prod hBf).subset (subset_inter hAS hBS)
 end
+
+/-- Finite product of finite sets is finite -/
+lemma Coprod_cofinite {α : ι → Type*} [fintype ι] :
+  filter.Coprod (λ i, (cofinite : filter (α i))) = cofinite :=
+begin
+  refine le_antisymm (supr_le $ λ i, comap_cofinite_le _) (compl_surjective.forall.2 $ λ S, _),
+  simp_rw [compl_mem_Coprod_iff, mem_cofinite, compl_compl],
+  rintro ⟨t, htf, hsub⟩,
+  exact (finite.pi htf).subset hsub
+end
+
+end filter
+
+open filter
 
 /-- For natural numbers the filters `cofinite` and `at_top` coincide. -/
 lemma nat.cofinite_eq_at_top : @cofinite ℕ = at_top :=
@@ -132,7 +123,7 @@ end
 
 lemma nat.frequently_at_top_iff_infinite {p : ℕ → Prop} :
   (∃ᶠ n in at_top, p n) ↔ set.infinite {n | p n} :=
-by simp only [← nat.cofinite_eq_at_top, frequently_cofinite_iff_infinite]
+by rw [← nat.cofinite_eq_at_top, frequently_cofinite_iff_infinite]
 
 lemma filter.tendsto.exists_within_forall_le {α β : Type*} [linear_order β] {s : set α}
   (hs : s.nonempty)
@@ -153,26 +144,32 @@ begin
     exact ⟨a₀, ha₀s, λ a ha, not_all_top a ha (f a₀)⟩ }
 end
 
-lemma filter.tendsto.exists_forall_le {α β : Type*} [nonempty α] [linear_order β]
-  {f : α → β} (hf : tendsto f cofinite at_top) :
+lemma filter.tendsto.exists_forall_le [nonempty α] [linear_order β] {f : α → β}
+  (hf : tendsto f cofinite at_top) :
   ∃ a₀, ∀ a, f a₀ ≤ f a :=
 let ⟨a₀, _, ha₀⟩ := hf.exists_within_forall_le univ_nonempty in ⟨a₀, λ a, ha₀ a (mem_univ _)⟩
 
-lemma filter.tendsto.exists_within_forall_ge {α β : Type*} [linear_order β] {s : set α}
-  (hs : s.nonempty)
+lemma filter.tendsto.exists_within_forall_ge [linear_order β] {s : set α} (hs : s.nonempty)
   {f : α → β} (hf : filter.tendsto f filter.cofinite filter.at_bot) :
   ∃ a₀ ∈ s, ∀ a ∈ s, f a ≤ f a₀ :=
 @filter.tendsto.exists_within_forall_le _ (order_dual β) _ _ hs _ hf
 
-lemma filter.tendsto.exists_forall_ge {α β : Type*} [nonempty α] [linear_order β]
-  {f : α → β} (hf : tendsto f cofinite at_bot) :
+lemma filter.tendsto.exists_forall_ge [nonempty α] [linear_order β] {f : α → β}
+  (hf : tendsto f cofinite at_bot) :
   ∃ a₀, ∀ a, f a ≤ f a₀ :=
 @filter.tendsto.exists_forall_le _ (order_dual β) _ _ _ hf
 
-/-- For an injective function `f`, inverse images of finite sets are finite. -/
-lemma function.injective.tendsto_cofinite {α β : Type*} {f : α → β} (hf : injective f) :
+/-- For an injective function `f`, inverse images of finite sets are finite. See also
+`filter.comap_cofinite_le` and `function.injective.comap_cofinite_eq`. -/
+lemma function.injective.tendsto_cofinite {f : α → β} (hf : injective f) :
   tendsto f cofinite cofinite :=
 λ s h, h.preimage (hf.inj_on _)
+
+/-- The pullback of the `filter.cofinite` under an injective function is equal to `filter.cofinite`.
+See also `filter.comap_cofinite_le` and `function.injective.tendsto_cofinite`. -/
+lemma function.injective.comap_cofinite_eq {f : α → β} (hf : injective f) :
+  comap f cofinite = cofinite :=
+(comap_cofinite_le f).antisymm hf.tendsto_cofinite.le_comap
 
 /-- An injective sequence `f : ℕ → ℕ` tends to infinity at infinity. -/
 lemma function.injective.nat_tendsto_at_top {f : ℕ → ℕ} (hf : injective f) :

@@ -82,20 +82,9 @@ by simp only [funext_iff, mul_indicator_apply_eq_one, set.disjoint_left, mem_mul
   mul_indicator s f = 1 ↔ disjoint (mul_support f) s :=
 mul_indicator_eq_one
 
-@[to_additive] lemma mul_indicator_eq_one_iff (a : α) :
+@[to_additive] lemma mul_indicator_apply_ne_one {a : α} :
   s.mul_indicator f a ≠ 1 ↔ a ∈ s ∩ mul_support f :=
-begin
-  split; intro h,
-  { by_contra hmem,
-    simp only [set.mem_inter_eq, not_and, not_not, function.mem_mul_support] at hmem,
-    refine h _,
-    by_cases a ∈ s,
-    { simp_rw [set.mul_indicator, if_pos h],
-      exact hmem h },
-    { simp_rw [set.mul_indicator, if_neg h] } },
-  { simp_rw [set.mul_indicator, if_pos h.1],
-    exact h.2 }
-end
+by simp only [ne.def, mul_indicator_apply_eq_one, not_imp, mem_inter_eq, mem_mul_support]
 
 @[simp, to_additive] lemma mul_support_mul_indicator :
   function.mul_support (s.mul_indicator f) = s ∩ function.mul_support f :=
@@ -430,6 +419,10 @@ end mul_zero_class
 section mul_zero_one_class
 
 variables [mul_zero_one_class M]
+
+lemma inter_indicator_one {s t : set α} :
+  (s ∩ t).indicator (1 : _ → M) = s.indicator 1 * t.indicator 1 :=
+funext (λ _, by simpa only [← inter_indicator_mul, pi.mul_apply, pi.one_apply, one_mul])
 
 lemma indicator_prod_one {s : set α} {t : set β} {x : α} {y : β} :
   (s ×ˢ t : set _).indicator (1 : _ → M) (x, y) = s.indicator 1 x * t.indicator 1 y :=

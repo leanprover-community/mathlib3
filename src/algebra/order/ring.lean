@@ -90,6 +90,26 @@ set_option old_structure_cmd true
 universe u
 variable {α : Type u}
 
+namespace order_dual
+
+/-! Note that `order_dual` does not satisfy any of the ordered ring typeclasses due to the
+`zero_le_one` field. -/
+
+instance [h : distrib α] : distrib (order_dual α) := h
+instance [has_mul α] [h : has_distrib_neg α] : has_distrib_neg (order_dual α) := h
+instance [h : non_unital_non_assoc_semiring α] : non_unital_non_assoc_semiring (order_dual α) := h
+instance [h : non_unital_semiring α] : non_unital_semiring (order_dual α) := h
+instance [h : non_assoc_semiring α] : non_assoc_semiring (order_dual α) := h
+instance [h : semiring α] : semiring (order_dual α) := h
+instance [h : comm_semiring α] : comm_semiring (order_dual α) := h
+instance [h : non_unital_non_assoc_ring α] : non_unital_non_assoc_ring (order_dual α) := h
+instance [h : non_unital_ring α] : non_unital_ring (order_dual α) := h
+instance [h : non_assoc_ring α] : non_assoc_ring (order_dual α) := h
+instance [h : ring α] : ring (order_dual α) := h
+instance [h : comm_ring α] : comm_ring (order_dual α) := h
+
+end order_dual
+
 lemma add_one_le_two_mul [has_le α] [semiring α] [covariant_class α α (+) (≤)]
   {a : α} (a1 : 1 ≤ a) :
   a + 1 ≤ 2 * a :=
@@ -338,6 +358,9 @@ decidable.mul_lt_mul h le_rfl hb (zero_le_one.trans h.le)
 
 lemma lt_mul_of_one_lt_left : 0 < b → 1 < a → b < a * b :=
 by classical; exact decidable.lt_mul_of_one_lt_left
+
+lemma lt_two_mul_self [nontrivial α] (ha : 0 < a) : a < 2 * a :=
+lt_mul_of_one_lt_left ha one_lt_two
 
 -- See Note [decidable namespace]
 protected lemma decidable.add_le_mul_two_add [@decidable_rel α (≤)] {a b : α}
@@ -667,7 +690,6 @@ lemma add_le_mul' (a2 : 2 ≤ a) (b2 : 2 ≤ b) : a + b ≤ b * a :=
 (le_of_eq (add_comm _ _)).trans (add_le_mul b2 a2)
 
 section
-variables [nontrivial α]
 
 @[simp] lemma bit0_le_bit0 : bit0 a ≤ bit0 b ↔ a ≤ b :=
 by rw [bit0, bit0, ← two_mul, ← two_mul, mul_le_mul_left (zero_lt_two : 0 < (2:α))]

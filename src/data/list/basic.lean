@@ -3710,7 +3710,7 @@ end to_chunks
 /-! ### all₂ -/
 
 namespace list
-variables {α β : Type*} {p q : α → Prop} {l : list α}
+variables {p q : α → Prop} {l : list α}
 
 @[simp] lemma all₂_cons (p : α → Prop) (x : α) : ∀ (l : list α), all₂ p (x :: l) ↔ p x ∧ all₂ p l
 | []       := (and_true _).symm

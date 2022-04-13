@@ -648,13 +648,13 @@ omega_pos.trans_le H.1
 lemma is_regular.ord_pos {c : cardinal} (H : c.is_regular) : 0 < c.ord :=
 by { rw cardinal.lt_ord, exact H.pos }
 
-theorem cof_is_regular {o : ordinal} (h : o.is_limit) : is_regular o.cof :=
+theorem is_regular_cof {o : ordinal} (h : o.is_limit) : is_regular o.cof :=
 ⟨omega_le_cof.2 h, cof_cof _⟩
 
-theorem omega_is_regular : is_regular ω :=
+theorem is_regular_omega : is_regular ω :=
 ⟨le_rfl, by simp⟩
 
-theorem succ_is_regular {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) :=
+theorem is_regular_succ {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) :=
 ⟨le_trans h (le_of_lt $ lt_succ_self _), begin
   refine le_antisymm (cof_ord_le _) (succ_le.2 _),
   cases quotient.exists_rep (succ c) with α αe, simp at αe,
@@ -677,13 +677,13 @@ theorem succ_is_regular {c : cardinal.{u}} (h : ω ≤ c) : is_regular (succ c) 
 end⟩
 
 theorem is_regular_aleph_one : is_regular (aleph 1) :=
-by { rw ← succ_omega, exact succ_is_regular le_rfl }
+by { rw ← succ_omega, exact is_regular_succ le_rfl }
 
-theorem aleph'_succ_is_regular {o : ordinal} (h : ordinal.omega ≤ o) : is_regular (aleph' o.succ) :=
-by { rw aleph'_succ, exact succ_is_regular (omega_le_aleph'.2 h) }
+theorem is_regular_aleph'_succ {o : ordinal} (h : ordinal.omega ≤ o) : is_regular (aleph' o.succ) :=
+by { rw aleph'_succ, exact is_regular_succ (omega_le_aleph'.2 h) }
 
-theorem aleph_succ_is_regular {o : ordinal} : is_regular (aleph o.succ) :=
-by { rw aleph_succ, exact succ_is_regular (omega_le_aleph o) }
+theorem is_regular_aleph_succ (o : ordinal) : is_regular (aleph o.succ) :=
+by { rw aleph_succ, exact is_regular_succ (omega_le_aleph o) }
 
 /--
 A function whose codomain's cardinality is infinite but strictly smaller than its domain's
@@ -696,7 +696,7 @@ begin
   simp_rw [← succ_le],
   exact ordinal.infinite_pigeonhole_card f (#α).succ (succ_le.mpr w)
     (w'.trans (lt_succ_self _).le)
-    ((lt_succ_self _).trans_le (succ_is_regular w').2.ge),
+    ((lt_succ_self _).trans_le (is_regular_succ w').2.ge),
 end
 
 /--

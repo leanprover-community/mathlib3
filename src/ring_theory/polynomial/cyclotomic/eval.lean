@@ -304,17 +304,20 @@ end
 
 .
 
-lemma _root_.is_primitive_root.arg_ne_zero {n : ℕ} {ζ : ℂ} (hζ : is_primitive_root ζ n)
-  (hn : 1 < n) : ζ.arg ≠ 0 :=
-begin
-  obtain ⟨k, h, hin, hi⟩ := hζ.arg (pos_of_gt hn).ne',
-  rw [h, ne.def, mul_eq_zero, _root_.div_eq_zero_iff, not_or_distrib, not_or_distrib],
-  refine ⟨⟨_, _⟩, by linarith [real.pi_pos]⟩; norm_cast; rintro rfl,
-  { rw [is_coprime_zero_left, int.is_unit_iff_nat_abs_eq, int.nat_abs_of_nat] at hin,
-    subst hin,
-    exact lt_irrefl 1 hn },
-  exact lt_irrefl 0 (zero_lt_one.trans hn),
-end
+lemma _root_.is_primitive_root.arg_ext {n m : ℕ} {ζ μ : ℂ} (hζ : is_primitive_root ζ n)
+  (hμ : is_primitive_root μ m) (hn : n ≠ 0) (hm : m ≠ 0) (h : ζ.arg = μ.arg) : ζ = μ :=
+complex.ext_abs_arg ((hζ.nnnorm_eq_one hn).trans (hμ.nnnorm_eq_one hm).symm) h
+
+lemma _root_.is_primitive_root.arg_eq_zero_iff {n : ℕ} {ζ : ℂ} (hζ : is_primitive_root ζ n)
+  (hn : n ≠ 0) : ζ.arg = 0 ↔ ζ = 1 :=
+⟨λ h, hζ.arg_ext is_primitive_root.one hn one_ne_zero (h.trans complex.arg_one.symm),
+ λ h, h.symm ▸ complex.arg_one⟩
+
+lemma _root_.is_primitive_root.arg_eq_pi_iff {n : ℕ} {ζ : ℂ} (hζ : is_primitive_root ζ n)
+  (hn : n ≠ 0) : ζ.arg = real.pi ↔ ζ = -1 :=
+⟨λ h, hζ.arg_ext (is_primitive_root.neg_one 0 two_ne_zero.symm) hn two_ne_zero
+      (h.trans complex.arg_neg_one.symm), λ h, h.symm ▸ complex.arg_neg_one⟩
+
 lemma sub_one_pow_totient_lt_cyclotomic_eval (n : ℕ) (q : ℝ) (hn' : 2 ≤ n) (hq' : 1 < q) :
   (q - 1) ^ totient n < (cyclotomic n ℝ).eval q :=
 begin

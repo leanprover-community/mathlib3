@@ -106,8 +106,12 @@ instance : is_fraction_ring A K :=
       { exact false.elim (non_zero_divisors.ne_zero c.2 h) } },
   end }
 
+/-- The value group of the valuation associated to `A`. -/
+@[derive linear_ordered_comm_group_with_zero]
+def value_group := valuation_ring.value_group A K
+
 /-- Any valuation subring of `K` induces a natural valuation on `K`. -/
-def valuation := valuation_ring.valuation A K
+def valuation : valuation K A.value_group := valuation_ring.valuation A K
 
 lemma valuation_le_one (a : A) : A.valuation a ≤ 1 :=
 begin
@@ -200,6 +204,52 @@ instance : semilattice_sup (valuation_subring K) :=
   sup_le := λ R S T hR hT x hx, (sup_le hR hT : R.to_subring ⊔ S.to_subring ≤ T.to_subring) hx,
   ..(infer_instance : partial_order (valuation_subring K)) }
 
+/-- The ring homomorphism induced by the partial order. -/
+def inclusion (R S : valuation_subring K) (h : R ≤ S) : R →+* S :=
+subring.inclusion h
+
+def subtype (R : valuation_subring K) : R →+* K :=
+subring.subtype R.to_subring
+
+def map_of_le (R S : valuation_subring K) (h : R ≤ S) :
+  R.value_group → S.value_group :=
+quotient.map' id $
+begin
+  rintros x y ⟨u,hu : u • _ = _⟩,
+  use units.map (R.inclusion S h).to_monoid_hom u,
+  exact hu
+end
+
+@[simp]
+lemma map_of_le_map_zero (R S : valuation_subring K) (h : R ≤ S) :
+  R.map_of_le S h 0 = 0 := rfl
+
+@[simp]
+lemma map_of_le_map_one (R S : valuation_subring K) (h : R ≤ S) :
+  R.map_of_le S h 1 = 1 := rfl
+
+@[simp]
+lemma map_of_le_map_mul (R S : valuation_subring K) (h : R ≤ S) (x y : R.value_group) :
+  R.map_of_le S h (x * y) = R.map_of_le S h x * R.map_of_le S h y :=
+by { rcases x, rcases y, refl }
+
+@[mono]
+lemma map_of_le_mono (R S : valuation_subring K) (h : R ≤ S) (x y : R.value_group) (hh : x ≤ y) :
+  R.map_of_le S h x ≤ R.map_of_le S h y :=
+begin
+  induction x, induction y, obtain ⟨a,ha⟩ := hh,
+  use [R.inclusion S h a, ha],
+  all_goals { refl }
+end
+
+@[simp]
+lemma map_of_le_comp_valuation (R S : valuation_subring K) (h : R ≤ S) :
+  R.map_of_le S h ∘ R.valuation = S.valuation := by { ext, refl }
+
+@[simp]
+lemma map_of_le_valuation_apply (R S : valuation_subring K) (h : R ≤ S) (x : K) :
+  R.map_of_le S h (R.valuation x) = S.valuation x := rfl
+
 def ideal_of_le (R S : valuation_subring K) (h : R ≤ S) : ideal R :=
 { carrier := { r | S.valuation r < 1 },
   add_mem' := begin
@@ -246,6 +296,25 @@ begin
   refine ⟨⟨a, ha⟩, 1, P.prime_compl.one_mem, by simp⟩,
 end
 
+instance of_prime_algebra (A : valuation_subring K) (P : ideal A) [hP : P.is_prime] :
+  algebra A (A.of_prime P) :=
+show algebra A (localization.subring _ P.prime_compl
+  (le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem)),
+by apply_instance
+
+instance of_prime_scalar_tower (A : valuation_subring K) (P : ideal A) [hP : P.is_prime] :
+  is_scalar_tower A (A.of_prime P) K :=
+show is_scalar_tower A (localization.subring _ P.prime_compl
+  (le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem)) K,
+by apply_instance
+
+instance of_prime_localization (A : valuation_subring K) (P : ideal A) [hP : P.is_prime] :
+  is_localization.at_prime (A.of_prime P) P :=
+show is_localization P.prime_compl
+  (localization.subring _ P.prime_compl
+  (le_non_zero_divisors_of_no_zero_divisors $ not_not_intro P.zero_mem)),
+  by apply_instance
+
 lemma le_of_prime (A : valuation_subring K) (P : ideal A) [hP : P.is_prime] :
   A ≤ of_prime A P :=
 begin
@@ -253,23 +322,97 @@ begin
   refine ⟨⟨a, ha⟩, 1, P.prime_compl.one_mem, by simp⟩,
 end
 
+lemma of_prime_valuation_eq_one_iff_mem_prime_compl
+  (A : valuation_subring K)
+  (P : ideal A) [hP : P.is_prime] (x : A) :
+  (of_prime A P).valuation x = 1 ↔ x ∈ P.prime_compl :=
+begin
+  rw ← is_localization.at_prime.is_unit_to_map_iff (A.of_prime P) P x,
+  let y : A.of_prime P := ⟨x, le_of_prime _ _ x.2⟩,
+  change (A.of_prime P).valuation y = 1 ↔ is_unit y,
+  exact (valuation_eq_one_iff _ _).symm,
+end
+
 @[simp]
 lemma ideal_of_le_of_prime (A : valuation_subring K) (P : ideal A) [hP : P.is_prime] :
   ideal_of_le A (of_prime A P) (le_of_prime A P) = P :=
-sorry
+begin
+  ext a,
+  change (A.of_prime P).valuation a < 1 ↔ _,
+  have : (A.of_prime P).valuation a ≤ 1,
+  { rw [← A.map_of_le_map_one (A.of_prime P) (le_of_prime _ _),
+      ← A.map_of_le_valuation_apply (A.of_prime P) (le_of_prime _ _)],
+    mono,
+    apply valuation_le_one },
+  replace this := lt_or_eq_of_le this,
+  cases this,
+  { refine ⟨_, λ _, this⟩,
+    intro _, rw ← is_localization.at_prime.to_map_mem_maximal_iff (A.of_prime P) P,
+    rwa valuation_lt_one_iff },
+  { split,
+    { intro h, rw this at h, exact false.elim (ne_of_lt h rfl) },
+    { intro h,
+      rw ← is_localization.at_prime.to_map_mem_maximal_iff (A.of_prime P) P at h,
+      rwa valuation_lt_one_iff at h } }
+end
 
 @[simp]
 lemma of_prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
   of_prime R (ideal_of_le R S h) = S :=
-sorry
+begin
+  ext x,
+  split,
+  { intro h,
+    obtain ⟨a,r,hr,rfl⟩ := h,
+    change _ ∉ _ at hr, dsimp [ideal_of_le] at hr,
+    let s : S := R.inclusion S h r,
+    change ¬ S.valuation s < 1 at hr,
+    have hs : S.valuation s = 1,
+    { cases S.valuation_lt_one_or_eq_one s, { contradiction }, { assumption } },
+    rw [← valuation_le_one_iff, valuation.map_mul, valuation.map_inv],
+    rw [mul_inv_le_iff₀, one_mul], erw hs,
+    rw valuation_le_one_iff, apply h, exact a.2,
+    { erw hs, exact one_ne_zero } },
+  { intro hx,
+    by_cases hγ : R.valuation x ≤ 1,
+    { use x, rwa valuation_le_one_iff at hγ, use 1, split, apply submonoid.one_mem _, simp },
+    use 1, simp only [ring_hom.map_one, one_mul], push_neg at hγ,
+    use x⁻¹, rw [← valuation_le_one_iff, valuation.map_inv,
+      ← inv_one, inv_le_inv₀], exact le_of_lt hγ,
+    { intro c, rw c at hγ,
+      apply not_lt_of_lt hγ,
+      exact zero_lt_one₀, },
+    { exact one_ne_zero },
+    split,
+    { change ¬ (S.valuation _ < 1),
+      push_neg, push_cast, rw [valuation.map_inv, ← inv_one, inv_le_inv₀],
+      { rwa valuation_le_one_iff, },
+      { exact one_ne_zero },
+      { intro c, rw ← R.valuation.map_one at hγ,
+        replace hγ := le_of_lt hγ, replace hγ := map_of_le_mono R S h _ _ hγ,
+        simp only [valuation.map_one, map_of_le_map_one, map_of_le_valuation_apply] at hγ,
+        rw c at hγ,
+        apply not_lt_of_le hγ, exact zero_lt_one₀ } },
+    { simp } }
+end
 
 lemma of_prime_le_of_le (P Q : ideal A) [P.is_prime] [Q.is_prime]
   (h : P ≤ Q) : of_prime A Q ≤ of_prime A P :=
-sorry
+begin
+  rintros x ⟨a,s,hs,rfl⟩,
+  refine ⟨a, s, λ c, hs (h c), rfl⟩,
+end
 
 lemma ideal_of_le_le_of_le (R S : valuation_subring K)
   (hR : A ≤ R) (hS : A ≤ S) (h : R ≤ S) :
-  ideal_of_le A S hS ≤ ideal_of_le A R hR := sorry
+  ideal_of_le A S hS ≤ ideal_of_le A R hR :=
+begin
+  rintros x (hx : S.valuation _ < 1),
+  change R.valuation _ < 1,
+  by_contra c, push_neg at c, replace c := map_of_le_mono R S h _ _ c,
+  rw [map_of_le_map_one, map_of_le_valuation_apply] at c,
+  apply not_le_of_lt hx c,
+end
 
 @[simps]
 def prime_spectrum_equiv :
@@ -297,7 +440,6 @@ def prime_spectrum_order_equiv :
       exact h }
   end,
   ..(prime_spectrum_equiv A) }
-
 
 open_locale classical
 

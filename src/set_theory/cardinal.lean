@@ -719,9 +719,7 @@ le_antisymm
 
 @[simp] theorem lift_umax_eq {a : cardinal.{u}} {b : cardinal.{v}} :
   lift.{(max v w)} a = lift.{(max u w)} b ↔ lift.{v} a = lift.{u} b :=
-calc lift.{(max v w)} a = lift.{(max u w)} b
-  ↔ lift.{w} (lift.{v} a) = lift.{w} (lift.{u} b) : by simp
-  ... ↔ lift.{v} a = lift.{u} b : lift_inj
+by rw [←lift_lift, ←lift_lift, lift_inj]
 
 @[simp] theorem lift_min {a b : cardinal} : lift (min a b) = min (lift a) (lift b) :=
 begin

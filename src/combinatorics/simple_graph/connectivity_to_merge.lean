@@ -50,7 +50,7 @@ variables {G} [decidable_eq V]
 def prefix_of : Π {u v w : V} (p : G.walk u v) (q : G.walk u w), Prop
 | u v w nil _ := true
 | u v w (cons _ _) nil := false
-| u v w (@cons _ _ _ x _ r p) (@cons _ _ _ y _ s q) :=
+| u v w (cons' _ x _ r p) (@cons _ _ _ y _ s q) :=
   if h : x = y
   then by { subst y, exact prefix_of p q }
   else false
@@ -58,19 +58,30 @@ def prefix_of : Π {u v w : V} (p : G.walk u v) (q : G.walk u w), Prop
 end walk
 
 namespace walk
+variables {G}
+
+def to_delete_edges (s : set (sym2 V)) : Π {v w : V} (p : G.walk v w) (hp : ∀ e, e ∈ p.edges → ¬ e ∈ s),
+  (G.delete_edges s).walk v w
+| _ _ nil _ := nil
+| _ _ (cons' u v w h p) hp := cons' u v w
+  (by { simp only [h, delete_edges_adj, true_and],
+        apply hp,
+        simp only [edges_cons, list.mem_cons_iff, eq_self_iff_true, true_or] })
+  (to_delete_edges p (λ e he, hp e (by simp only [he, edges_cons, list.mem_cons_iff, or_true])))
+
+@[simp] lemma to_delete_edges_nil {s : set (sym2 V)} {v : V} :
+  (nil : G.walk v v).to_delete_edges s (by simp) = nil := rfl
+
+@[simp] lemma to_delete_edges_cons {s : set (sym2 V)} {u v w : V} {huv : G.adj u v} {p : G.walk v w}
+  {hp : ∀ e, e ∈ (cons huv p).edges → ¬ e ∈ s} :
+  (cons huv p).to_delete_edges s hp =
+    cons (by { simp only [huv, delete_edges_adj, true_and], apply hp, simp [-quotient.eq], })
+      (p.to_delete_edges s (λ e he, hp e (by simp [he]))) := rfl
 
 /-- Given a walk that avoids an edge, create a walk in the subgraph with that edge deleted. -/
-def walk_of_avoiding_walk {v w : V} (e : sym2 V) (p : G.walk v w) (hp : e ∉ p.edges) :
+def to_delete_edge {v w : V} (e : sym2 V) (p : G.walk v w) (hp : e ∉ p.edges) :
   (G.delete_edges {e}).walk v w :=
-begin
-  induction p,
-  { refl },
-  { simp only [walk.edges, list.mem_cons_iff, list.mem_map] at hp,
-    push_neg at hp,
-    sorry;
-    apply walk.cons _ (p_ih hp.2);
-    simp [*, hp.1.symm] }
-end
+p.to_delete_edges {e} (λ e', by { contrapose!, simp [hp] { contextual := tt } })
 
 end walk
 
@@ -194,7 +205,7 @@ lemma is_bridge_iff_walks_contain {v w : V} :
 begin
   refine ⟨λ  hb p, _, _⟩,
   { by_contra he,
-    exact hb ⟨p.walk_of_avoiding_walk _ _ he⟩ },
+    exact hb ⟨p.to_delete_edge _ he⟩ },
   { rintro hpe ⟨p'⟩,
     specialize hpe (p'.map (hom.map_spanning_subgraphs (G.delete_edges_le _))),
     simp only [set_coe.exists, walk.edges_map, list.mem_map] at hpe,
@@ -354,18 +365,15 @@ begin
       { exfalso,
         simpa [walk.is_path_def] using hp },
       { rw walk.cons_is_path_iff at hp hq,
-        simp [walk.edges] at h,
+        simp only [walk.edges_cons, list.mem_cons_iff, sym2.eq_iff] at h,
         cases h,
-        { cases h,
+        { obtain ⟨h,rfl⟩|⟨rfl,rfl⟩ := h,
           { congr,
             exact p_ih hp.1 _ hq.1 },
           { exfalso,
             apply hq.2,
             simp } },
-        { obtain ⟨a, ha, h⟩ := h,
-          sorry -- some glue missing again?
-          -- refine (hq.2 $ walk.mem_support_of_mem_edges _ _).elim,
-           } } },
+        { exact (hq.2 (walk.mem_support_of_mem_edges q_p h)).elim, } } },
     { rw walk.cons_is_path_iff at hp,
       exact (hp.2 (walk.mem_support_of_mem_edges _ h)).elim } }
 end

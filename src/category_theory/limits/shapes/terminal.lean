@@ -302,6 +302,52 @@ def initial_unop_of_terminal {X : Cᵒᵖ} (t : is_terminal X) : is_initial X.un
 { desc := λ s, (t.from (opposite.op s.X)).unop,
   uniq' := λ s m w, quiver.hom.op_inj (t.hom_ext _ _) }
 
+instance {J : Type*} [category J] {C : Type*} [category C] [has_terminal C] :
+  has_limit ((category_theory.functor.const J).obj (⊤_ C)) :=
+has_limit.mk
+{ cone :=
+  { X := ⊤_ C,
+    π := { app := λ _, terminal.from _, }, },
+  is_limit :=
+  { lift := λ s, terminal.from _, }, }
+
+/-- The limit of the constant `⊤_ C` functor is `⊤_ C`. -/
+@[simps hom]
+def limit_const_terminal {J : Type*} [category J] {C : Type*} [category C] [has_terminal C] :
+  limit ((category_theory.functor.const J).obj (⊤_ C)) ≅ ⊤_ C :=
+{ hom := terminal.from _,
+  inv := limit.lift ((category_theory.functor.const J).obj (⊤_ C))
+    { X := ⊤_ C, π := { app := λ j, terminal.from _, }}, }
+
+@[simp, reassoc] lemma limit_const_terminal_inv_π
+  {J : Type*} [category J] {C : Type*} [category C] [has_terminal C] {j : J} :
+  limit_const_terminal.inv ≫ limit.π ((category_theory.functor.const J).obj (⊤_ C)) j =
+    terminal.from _ :=
+by ext ⟨⟩
+
+instance {J : Type*} [category J] {C : Type*} [category C] [has_initial C] :
+  has_colimit ((category_theory.functor.const J).obj (⊥_ C)) :=
+has_colimit.mk
+{ cocone :=
+  { X := ⊥_ C,
+    ι := { app := λ _, initial.to _, }, },
+  is_colimit :=
+  { desc := λ s, initial.to _, }, }
+
+/-- The colimit of the constant `⊥_ C` functor is `⊥_ C`. -/
+@[simps inv]
+def colimit_const_initial {J : Type*} [category J] {C : Type*} [category C] [has_initial C] :
+  colimit ((category_theory.functor.const J).obj (⊥_ C)) ≅ ⊥_ C :=
+{ hom := colimit.desc ((category_theory.functor.const J).obj (⊥_ C))
+    { X := ⊥_ C, ι := { app := λ j, initial.to _, }, },
+  inv := initial.to _, }
+
+@[simp, reassoc] lemma ι_colimit_const_initial_hom
+  {J : Type*} [category J] {C : Type*} [category C] [has_initial C] {j : J} :
+  colimit.ι ((category_theory.functor.const J).obj (⊥_ C)) j ≫ colimit_const_initial.hom =
+    initial.to _ :=
+by ext ⟨⟩
+
 /-- A category is a `initial_mono_class` if the canonical morphism of an initial object is a
 monomorphism.  In practice, this is most useful when given an arbitrary morphism out of the chosen
 initial object, see `initial.mono_from`.

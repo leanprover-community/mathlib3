@@ -74,6 +74,14 @@ protected theorem is_asymm.is_irrefl [is_asymm α r] : is_irrefl α r :=
 protected theorem is_total.is_trichotomous (r) [is_total α r] : is_trichotomous α r :=
 ⟨λ a b, or.left_comm.1 (or.inr $ total_of r a b)⟩
 
+instance is_refl_of_irrefl {α : Type u} (r : α → α → Prop) [is_irrefl α r] :
+  is_refl α (λ x y, ¬ r y x) :=
+⟨@is_irrefl.irrefl α r _⟩
+
+instance is_irrefl_of_refl {α : Type u} (r : α → α → Prop) [is_refl α r] :
+  is_irrefl α (λ x y, ¬ r y x) :=
+⟨λ a, not_not_intro (is_refl.refl a)⟩
+
 @[priority 100]  -- see Note [lower instance priority]
 instance is_total.to_is_refl (r) [is_total α r] : is_refl α r :=
 ⟨λ a, (or_self _).1 $ total_of r a a⟩

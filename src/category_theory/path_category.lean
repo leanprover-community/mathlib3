@@ -124,9 +124,13 @@ def path_composition : paths C ⥤ C :=
 
 /-- The canonical relation on the path category of a category:
 two paths are related if they compose to the same morphism. -/
+-- TODO: This, and what follows, should be generalized to
+-- the `hom_rel` for the kernel of any functor.
+-- Indeed, this should be part of an equivalence between congruence relations on a category `C`
+-- and full, essentially surjective functors out of `C`.
 @[simp]
 def paths_hom_rel : hom_rel (paths C) :=
-λ X Y p q, compose_path p = compose_path q
+λ X Y p q, (path_composition C).map p = (path_composition C).map q
 
 /-- The functor from a category to the canonical quotient of its path category. -/
 @[simps]

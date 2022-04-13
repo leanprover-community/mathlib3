@@ -790,7 +790,10 @@ monoid_hom.ext_iff.1 (f.lift_of_comp $ monoid_hom.id N) x
 /-- Given two localization maps `f : M →* N, k : M →* P` for a submonoid `S ⊆ M`,
 the hom from `P` to `N` induced by `f` is left inverse to the hom from `N` to `P`
 induced by `k`. -/
-@[simp, to_additive] lemma lift_left_inverse {k : localization_map S P} (z : N) :
+@[simp, to_additive "Given two localization maps `f : M →+ N, k : M →+ P` for a submonoid `S ⊆ M`,
+the hom from `P` to `N` induced by `f` is left inverse to the hom from `N` to `P`
+induced by `k`."]
+lemma lift_left_inverse {k : localization_map S P} (z : N) :
   k.lift f.map_units (f.lift k.map_units z) = z :=
 begin
   rw lift_spec,

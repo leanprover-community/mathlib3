@@ -215,6 +215,44 @@ show T n * _ = _, by
 lemma T_mul (n : ℤ) (f : R[T;T⁻¹]) : T n * f = f * T n :=
 (commute_T n f).eq
 
+/--  `trunc : R[T;T⁻¹] →+ R[X]` maps a Laurent polynomial `f` to the polynomial whose terms of
+strictly positive degree coincide with the ones of `f`.  The coefficients of the terms of
+non-positive degree of `f` are summed up and used as constant term. -/
+def trunc : R[T;T⁻¹] →+ R[X] :=
+((to_finsupp_iso R).symm.to_add_monoid_hom).comp (map_domain.add_monoid_hom int.to_nat)
+
+@[simp]
+lemma trunc_single_nat (n : ℕ) (r : R) : trunc (C r * T n) = monomial n r :=
+begin
+  apply (to_finsupp_iso R).injective,
+  -- after `rw ← single_eq_C_mul_T`, the combination `simp [-single_eq_C_mul_T, trunc], refl`
+  -- closes the goal, but involves a non-terminal `simp`.
+  rw [← single_eq_C_mul_T, trunc, add_monoid_hom.coe_comp, function.comp_app,
+    map_domain.add_monoid_hom_apply, map_domain_single, int.to_nat_coe_nat, to_finsupp_iso_apply,
+    to_finsupp_iso_apply, to_finsupp_monomial],
+  refl,
+end
+
+@[simp]
+lemma trunc_single_neg_nat (n : ℕ) (r : R) : trunc (C r * T (- n)) = polynomial.C r :=
+begin
+  apply (to_finsupp_iso R).injective,
+  -- after `rw ← single_eq_C_mul_T`, the combination `simp [-single_eq_C_mul_T, trunc], refl`
+  -- closes the goal, but involves a non-terminal `simp`.
+  rw [← single_eq_C_mul_T, trunc, add_monoid_hom.coe_comp, function.comp_app,
+    map_domain.add_monoid_hom_apply, to_finsupp_iso_apply, map_domain_single, int.to_nat_neg_nat,
+    to_finsupp_iso_apply, to_finsupp_C],
+  refl,
+end
+
+lemma polynomial.to_laurent_polynomial_injective :
+  function.injective (polynomial.to_laurent_polynomial : R[X] → R[T;T⁻¹]) :=
+begin
+  refine function.has_left_inverse.injective ⟨trunc, λ f, f.induction_on' _ _⟩,
+  { exact λ f g hf hg, by simp only [hf, hg, _root_.map_add] },
+  { exact λ n r, by simp only [monomial_eq_C_mul_T, trunc_single_nat] }
+end
+
 lemma exists_X_pow (f : R[T;T⁻¹]) : ∃ (n : ℕ) (f' : R[X]), f'.to_laurent_polynomial = f * T n :=
 begin
   apply f.induction_on' _ (λ n a, _); clear f,

@@ -81,15 +81,10 @@ end comm_semiring
 section comm_ring
 variables {R : Type u} [comm_ring R] [local_ring R]
 
-lemma is_unit_or_is_unit_one_sub_self (a : R) : (is_unit a) ∨ (is_unit (1 - a)) :=
-or_iff_not_imp_left.mpr $ λ ha,
-begin
-  by_contra ha',
-  apply nonunits_add ha ha',
-  simp [-sub_eq_add_neg, add_sub_cancel'_right]
-end
+lemma is_unit_or_is_unit_one_sub_self (a : R) : is_unit a ∨ is_unit (1 - a) :=
+or_iff_not_and_not.2 $ λ h, nonunits_add h.1 h.2 (by simp)
 
-lemma is_unit_of_mem_nonunits_one_sub_self (a : R) (h : (1 - a) ∈ nonunits R) :
+lemma is_unit_of_mem_nonunits_one_sub_self (a : R) (h : 1 - a ∈ nonunits R) :
   is_unit a :=
 or_iff_not_imp_right.1 (is_unit_or_is_unit_one_sub_self a) h
 

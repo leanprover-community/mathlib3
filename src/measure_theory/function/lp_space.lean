@@ -1142,6 +1142,14 @@ begin
     exact (hf i (s.mem_insert_self i)).add (ih (λ j hj, hf j (finset.mem_insert_of_mem hj))), },
 end
 
+lemma mem_ℒp_finset_sum' {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i ∈ s, mem_ℒp (f i) p μ) :
+  mem_ℒp (∑ i in s, f i) p μ :=
+begin
+  convert mem_ℒp_finset_sum s hf,
+  ext x,
+  simp,
+end
+
 end has_measurable_add
 
 end borel_space

@@ -17,192 +17,6 @@ noncomputable theory
 open set finite_dimensional topological_space filter
 open_locale classical big_operators filter topological_space nnreal uniformity
 
-section move_me
-
-@[to_additive]
-instance subgroup.uniform_group {G : Type*} [group G] [uniform_space G] [uniform_group G]
-  (S : subgroup G) : uniform_group S :=
-{ uniform_continuous_div := uniform_continuous_comap' (uniform_continuous_div.comp $
-    uniform_continuous_subtype_val.prod_map uniform_continuous_subtype_val) }
-
-@[to_additive]
-lemma subgroup.t1_quotient_of_is_closed {G : Type*} [group G] [topological_space G]
-  [topological_group G] (S : subgroup G) [S.normal] (hS : is_closed (S : set G)) :
-  t1_space (G ⧸ S) :=
-begin
-  rw ← quotient_group.ker_mk S at hS,
-  exact topological_group.t1_space (G ⧸ S) ((quotient_map_quotient_mk.is_closed_preimage).mp hS)
-end
-
-@[to_additive]
-lemma subgroup.t2_quotient_of_is_closed {G : Type*} [group G] [topological_space G]
-  [topological_group G] (S : subgroup G) [S.normal] (hS : is_closed (S : set G)) :
-  t2_space (G ⧸ S) :=
-@topological_group.t2_space (G ⧸ S) _ _ _ (S.t1_quotient_of_is_closed hS)
-
-lemma linear_map.ker_subgroup_eq_group_hom_ker {R M M' : Type*} [ring R] [add_comm_group M]
-  [add_comm_monoid M'] [module R M] [module R M'] (f : M →ₗ[R] M') :
-f.ker.to_add_subgroup = f.to_add_monoid_hom.ker := rfl
-
-def submodule.quotient_equiv_quotient_group {R M : Type*} [ring R] [add_comm_group M] [module R M]
-  (S : submodule R M) : M ⧸ S ≃+ M ⧸ S.to_add_subgroup :=
-let φ₁ : M ⧸ S.to_add_subgroup ≃+ M ⧸ S.mkq.to_add_monoid_hom.ker :=
-      quotient_add_group.equiv_quotient_of_eq
-      (by rw [← S.mkq.ker_subgroup_eq_group_hom_ker, S.ker_mkq]),
-    φ₂ : M ⧸ S.mkq.to_add_monoid_hom.ker ≃+ M ⧸ S :=
-      quotient_add_group.quotient_ker_equiv_of_surjective S.mkq.to_add_monoid_hom
-      (submodule.quotient.mk_surjective S)
-in (φ₁.trans φ₂).symm
-
-lemma submodule.quotient_equiv_quotient_group_symm_apply {R M : Type*} [ring R] [add_comm_group M]
-  [module R M] (S : submodule R M) {x : M} :
-  S.quotient_equiv_quotient_group.symm (quotient_add_group.mk x) = (S.mkq x) := rfl
-
-lemma submodule.quotient_equiv_quotient_group_symm_comp_mk {R M : Type*} [ring R] [add_comm_group M]
-  [module R M] (S : submodule R M) :
-  S.quotient_equiv_quotient_group.symm ∘ quotient_add_group.mk = S.mkq := rfl
-
-lemma submodule.quotient_equiv_quotient_group_apply {R M : Type*} [ring R] [add_comm_group M]
-  [module R M] (S : submodule R M) {x : M} :
-  S.quotient_equiv_quotient_group (S.mkq x) = (quotient_add_group.mk x) :=
-by rw [add_equiv.apply_eq_iff_symm_apply]; refl
-
-lemma submodule.quotient_equiv_quotient_group_comp_mkq {R M : Type*} [ring R] [add_comm_group M]
-  [module R M] (S : submodule R M) :
-  S.quotient_equiv_quotient_group ∘ S.mkq = quotient_add_group.mk :=
-by funext; exact S.quotient_equiv_quotient_group_apply
-
-def submodule.quotient_homeomorph_quotient_group {R M : Type*} [ring R] [add_comm_group M]
-  [module R M] (S : submodule R M) [topological_space M] : M ⧸ S ≃ₜ M ⧸ S.to_add_subgroup :=
-{ continuous_to_fun :=
-  begin
-    refine continuous_coinduced_dom _,
-    change continuous (S.quotient_equiv_quotient_group ∘ S.mkq),
-    rw S.quotient_equiv_quotient_group_comp_mkq,
-    exact continuous_quot_mk
-  end,
-  continuous_inv_fun := continuous_coinduced_dom continuous_quot_mk,
-  .. S.quotient_equiv_quotient_group }
-
-lemma submodule.is_open_map_mkq {R M : Type*} [ring R] [add_comm_group M] [module R M]
-  (S : submodule R M) [topological_space M] [topological_add_group M] : is_open_map S.mkq :=
-begin
-  rw ← S.quotient_equiv_quotient_group_symm_comp_mk,
-  exact S.quotient_homeomorph_quotient_group.symm.is_open_map.comp
-    (quotient_add_group.is_open_map_coe _)
-end
-
-instance submodule.topological_add_group_quotient {R M : Type*} [ring R] [add_comm_group M]
-  [module R M] [topological_space M] [topological_add_group M] (S : submodule R M) :
-    topological_add_group (M ⧸ S) :=
-begin
-  have : inducing S.quotient_equiv_quotient_group :=
-    S.quotient_homeomorph_quotient_group.inducing,
-  rw this.1,
-  exact topological_add_group_induced _
-end
-
-instance submodule.has_continuous_smul_quotient {R M : Type*} [ring R] [add_comm_group M]
-  [module R M] [topological_space R] [topological_space M] [topological_add_group M]
-  [has_continuous_smul R M] (S : submodule R M) :
-  has_continuous_smul R (M ⧸ S) :=
-begin
-  split,
-  have quot : quotient_map (λ au : R × M, (au.1, S.mkq au.2)),
-    from is_open_map.to_quotient_map
-      (is_open_map.id.prod S.is_open_map_mkq)
-      (continuous_id.prod_map continuous_quot_mk)
-      (function.surjective_id.prod_map $ surjective_quot_mk _),
-  rw quot.continuous_iff,
-  exact continuous_quot_mk.comp continuous_smul
-end
-
-lemma submodule.t2_quotient_of_is_closed {R M : Type*} [ring R] [add_comm_group M]
-  [module R M] [topological_space M] [topological_add_group M] (S : submodule R M)
-  (hS : is_closed (S : set M)) :
-  t2_space (M ⧸ S) :=
-begin
-  letI : t2_space (M ⧸ S.to_add_subgroup) := S.to_add_subgroup.t2_quotient_of_is_closed hS,
-  exact S.quotient_homeomorph_quotient_group.symm.t2_space
-end
-
-lemma induced_symm {α β : Type*} {e : α ≃ β} : induced e.symm = coinduced e :=
-begin
-  ext t U,
-  split,
-  { rintros ⟨V, hV, rfl⟩,
-    change t.is_open (e ⁻¹' _),
-    rwa [← preimage_comp, ← equiv.coe_trans, equiv.self_trans_symm] },
-  { intros hU,
-    refine ⟨e ⁻¹' U, hU, _⟩,
-    rw [← preimage_comp, ← equiv.coe_trans, equiv.symm_trans_self, equiv.coe_refl, preimage_id] }
-end
-
-lemma coinduced_symm {α β : Type*} {e : α ≃ β} : coinduced e.symm = induced e :=
-by rw [← induced_symm, equiv.symm_symm]
-
-lemma equiv.uniform_embedding {α β : Type*} [uniform_space α] [uniform_space β] (f : α ≃ β)
-  (h₁ : uniform_continuous f) (h₂ : uniform_continuous f.symm) : uniform_embedding f :=
-{ comap_uniformity :=
-  begin
-    refine le_antisymm _ _,
-    { change comap (f.prod_congr f) _ ≤ _,
-      rw ← map_equiv_symm (f.prod_congr f),
-      exact h₂ },
-    { rw ← map_le_iff_le_comap,
-      exact h₁ }
-  end,
-  inj := f.injective }
-
---#check
---
---example {α₁ α₂ β₁ β₂ : Type*} {t₁ : topological_space β₁} {t₂ : topological_space β₂}
---  {f₁ : α₁ → β₁} {f₂ : α₂ → β₂} : topological_space.prod
---
---instance submodule.topological_add_group_quotient {𝕜 E : Type*} [ring 𝕜] [add_comm_group E]
---  [module 𝕜 E] [topological_space E] [topological_add_group E] (N : submodule 𝕜 E) :
---    topological_add_group (E ⧸ N) :=
---{ continuous_add := begin
---    have cont : continuous ((N.mkq : E → E ⧸ N) ∘ (λ (p : E × E), p.fst + p.snd)) :=
---      continuous_quot_mk.comp continuous_add,
---    have quot : quotient_map (λ p : E × E, (N.mkq p.1, N.mkq p.2)),
---    { apply is_open_map.to_quotient_map,
---      { exact (quotient_add_group.is_open_map_coe N).prod (quotient_group.is_open_map_coe N) },
---      { exact continuous_quot_mk.prod_map continuous_quot_mk },
---      { exact (surjective_quot_mk _).prod_map (surjective_quot_mk _) } },
---    exact (quotient_map.continuous_iff quot).2 cont,
---  end,
---  continuous_neg := begin
---    have : continuous ((coe : G → G ⧸ N) ∘ (λ (a : G), a⁻¹)) :=
---      continuous_quot_mk.comp continuous_inv,
---    convert continuous_quotient_lift _ this,
---  end }
-
-variables {𝕜 𝕜₂ E F : Type*} [semiring 𝕜] [semiring 𝕜₂]
-  [add_comm_group E] [add_comm_group F] [module 𝕜 E] [module 𝕜₂ F]
-  [uniform_space E] [uniform_space F] [uniform_add_group E] [uniform_add_group F]
-  {σ₁₂ : 𝕜 →+* 𝕜₂} {σ₂₁ : 𝕜₂ →+* 𝕜}
-
-lemma continuous_linear_map.uniform_continuous' (f : E →SL[σ₁₂] F) : uniform_continuous f :=
-uniform_continuous_add_monoid_hom_of_continuous f.continuous
-
-lemma continuous_linear_equiv.uniform_embedding'
-  [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂] (e : E ≃SL[σ₁₂] F) :
-  uniform_embedding e :=
-e.to_linear_equiv.to_equiv.uniform_embedding
-  e.to_continuous_linear_map.uniform_continuous'
-  e.symm.to_continuous_linear_map.uniform_continuous'
-
-lemma linear_equiv.uniform_embedding' [ring_hom_inv_pair σ₁₂ σ₂₁] [ring_hom_inv_pair σ₂₁ σ₁₂]
-  (e : E ≃ₛₗ[σ₁₂] F) (h₁ : continuous e)
-  (h₂ : continuous e.symm) : uniform_embedding e :=
-continuous_linear_equiv.uniform_embedding'
-({ continuous_to_fun := h₁,
-  continuous_inv_fun := h₂,
-  .. e } : E ≃SL[σ₁₂] F)
-
-end move_me
-
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi' {ι : Type w} [fintype ι] {𝕜 : Type u} [field 𝕜]
   [topological_space 𝕜] {E : Type v}  [add_comm_group E] [module 𝕜 E] [topological_space E]
@@ -299,7 +113,7 @@ begin
     suffices : continuous φ.to_equiv,
     { rw hlφ,
       exact this.comp continuous_quot_mk },
-    rw [continuous_iff_coinduced_le, ← induced_symm],
+    rw [continuous_iff_coinduced_le, ← equiv.induced_symm],
     refine le_of_eq (unique_topology_of_t2 (topological_add_group_induced φ.symm.to_linear_map)
       (has_continuous_smul_induced φ.symm.to_linear_map) _),
     rw t2_space_iff,
@@ -333,7 +147,7 @@ begin
       { have : fintype.card (basis.of_vector_space_index 𝕜 s) = n,
           by { rw ← s_dim, exact (finrank_eq_card_basis b).symm },
         have : continuous b.equiv_fun := IH b this,
-        exact b.equiv_fun.symm.uniform_embedding' b.equiv_fun.symm.to_linear_map.continuous_on_pi
+        exact b.equiv_fun.symm.uniform_embedding b.equiv_fun.symm.to_linear_map.continuous_on_pi
           this },
       have : is_complete (s : set E),
         from complete_space_coe_iff_is_complete.1 ((complete_space_congr U).1 (by apply_instance)),

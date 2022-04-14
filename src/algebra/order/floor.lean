@@ -214,68 +214,6 @@ ext $ λ x, ceil_eq_iff hn
 
 /-! #### Intervals -/
 
-lemma floor_mem_Icc_of_mem_Icc {a b : ℕ} {x : α} (hx : x ∈ set.Icc (a : α) (b : α)) :
-  ↑⌊x⌋₊ ∈ set.Icc (a : α) (b : α) :=
-begin
-  rw set.mem_Icc,
-  norm_cast,
-  refine ⟨le_floor hx.left, _⟩,
-  have := floor_mono hx.right,
-  rwa floor_coe at this,
-end
-
-lemma floor_mem_Icc_of_mem_Ico {a b : ℕ} {x : α} (hx : x ∈ set.Ico (a : α) (b : α)) :
-  ↑⌊x⌋₊ ∈ set.Icc (a : α) (b : α) := floor_mem_Icc_of_mem_Icc (mem_Icc_of_Ico hx)
-
-lemma floor_mem_Icc_of_mem_Ioo {a b : ℕ} {x : α} (hx : x ∈ set.Ioo (a : α) (b : α)) :
-  ↑⌊x⌋₊ ∈ set.Icc (a : α) (b : α) := floor_mem_Icc_of_mem_Icc (mem_Icc_of_Ioo hx)
-
-lemma floor_mem_Icc_of_mem_Ioc {a b : ℕ} {x : α} (hx : x ∈ set.Ioc (a : α) (b : α)) :
-  ↑⌊x⌋₊ ∈ set.Icc (a : α) (b : α) := floor_mem_Icc_of_mem_Icc (mem_Icc_of_Ioc hx)
-
-lemma floor_mem_Ico_of_mem_Ico {a b : ℕ} {x : α} (hx : x ∈ set.Ico (a : α) (b : α)) :
-  ↑⌊x⌋₊ ∈ set.Ico (a : α) (b : α) :=
-begin
-  rw set.mem_Ico,
-  norm_cast,
-  refine ⟨le_floor hx.left, _⟩,
-  refine (floor_lt _).mpr hx.right,
-  exact le_trans (cast_nonneg a) hx.left,
-end
-
-lemma floor_mem_Ico_of_mem_Ioo {a b : ℕ} {x : α} (hx : x ∈ set.Ioo (a : α) (b : α)) :
-  ↑⌊x⌋₊ ∈ set.Ico (a : α) (b : α) := floor_mem_Ico_of_mem_Ico (mem_Ico_of_Ioo hx)
-
-lemma ceil_mem_Icc_of_mem_Icc {a b : ℕ} {x : α} (hx : x ∈ set.Icc (a : α) (b : α)) :
-  ↑⌈x⌉₊ ∈ set.Icc (a : α) (b : α) :=
-begin
-  rw set.mem_Icc,
-  norm_cast,
-  refine ⟨_, ceil_le.mpr hx.right⟩,
-  have := ceil_mono hx.left,
-  rwa ceil_coe at this,
-end
-
-lemma ceil_mem_Icc_of_mem_Ico {a b : ℕ} {x : α} (hx : x ∈ set.Ico (a : α) (b : α)) :
-  ↑⌈x⌉₊ ∈ set.Icc (a : α) (b : α) := ceil_mem_Icc_of_mem_Icc (mem_Icc_of_Ico hx)
-
-lemma ceil_mem_Icc_of_mem_Ioo {a b : ℕ} {x : α} (hx : x ∈ set.Ioo (a : α) (b : α)) :
-  ↑⌈x⌉₊ ∈ set.Icc (a : α) (b : α) := ceil_mem_Icc_of_mem_Icc (mem_Icc_of_Ioo hx)
-
-lemma ceil_mem_Icc_of_mem_Ioc {a b : ℕ} {x : α} (hx : x ∈ set.Ioc (a : α) (b : α)) :
-  ↑⌈x⌉₊ ∈ set.Icc (a : α) (b : α) := ceil_mem_Icc_of_mem_Icc (mem_Icc_of_Ioc hx)
-
-lemma ceil_mem_Ioc_of_mem_Ioc {a b : ℕ} {x : α} (hx : x ∈ set.Ioc (a : α) (b : α)) :
-  ↑⌈x⌉₊ ∈ set.Ioc (a : α) (b : α) :=
-begin
-  rw set.mem_Ioc,
-  norm_cast,
-  refine ⟨lt_ceil.mpr hx.left, ceil_le.mpr hx.right⟩,
-end
-
-lemma ceil_mem_Ioc_of_mem_Ioo {a b : ℕ} {x : α} (hx : x ∈ set.Ioo (a : α) (b : α)) :
-  ↑⌈x⌉₊ ∈ set.Ioc (a : α) (b : α) := ceil_mem_Ioc_of_mem_Ioc (mem_Ioc_of_Ioo hx)
-
 @[simp] lemma preimage_Ioo {a b : α} (ha : 0 ≤ a) :
   ((coe : ℕ → α) ⁻¹' (set.Ioo a b)) = set.Ioo ⌊a⌋₊ ⌈b⌉₊ :=
 by { ext, simp [floor_lt, lt_ceil, ha] }

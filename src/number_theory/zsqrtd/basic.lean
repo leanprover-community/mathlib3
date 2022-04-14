@@ -754,13 +754,15 @@ begin
     exact mul_nonpos_of_nonpos_of_nonneg h.le (mul_self_nonneg _) }
 end
 
-variables {R : Type} [comm_ring R]
+variables {R : Type}
 
-@[ext] lemma hom_ext {d : ℤ} (f g : ℤ√d →+* R) (h : f sqrtd = g sqrtd) : f = g :=
+@[ext] lemma hom_ext [ring R] {d : ℤ} (f g : ℤ√d →+* R) (h : f sqrtd = g sqrtd) : f = g :=
 begin
   ext ⟨x_re, x_im⟩,
   simp [decompose, h],
 end
+
+variables [comm_ring R]
 
 /-- The unique `ring_hom` from `ℤ√d` to a ring `R`, constructed by replacing `√d` with the provided
 root. Conversely, this associates to every mapping `ℤ√d →+* R` a value of `√d` in `R`. -/

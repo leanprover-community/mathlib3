@@ -331,7 +331,7 @@ theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
     (𝓝 ((∫⁻ x, (f x) ∂(μ : measure α)))) :=
 begin
   rw tendsto_iff_forall_test_against_nn_tendsto,
-  simp_rw [to_weak_dual_bcnn_eval_def _ _,
+  simp_rw [to_weak_dual_bcnn_eval' _ _,
            ←test_against_nn_coe_eq, ennreal.tendsto_coe],
 end
 
@@ -408,6 +408,8 @@ lemma to_finite_measure_continuous :
   continuous (to_finite_measure : probability_measure α → finite_measure α) :=
 continuous_induced_dom
 
+/-- Probability measures yield elements of the `weak_dual` of bounded continuous nonnegative
+functions via `finite_measure.test_against_nn`, i.e., integration. -/
 def to_weak_dual_bcnn : probability_measure α → weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
 finite_measure.to_weak_dual_bcnn ∘ to_finite_measure
 

@@ -104,7 +104,7 @@ begin
       set_of_eq_eq_singleton, image_singleton], },
   have h : Iic c.succ = insert c.succ (Iic c),
   { ext,
-    simp only [set.Iic, mem_set_of_eq, mem_insert_iff,
+    simp only [Iic, mem_set_of_eq, mem_insert_iff,
       nat.lt_succ_iff, le_iff_lt_or_eq, or_comm], },
   have h₀ : ∀ b, b ∈ finset.range c.succ → gram_schmidt 𝕜 f b ∈ span 𝕜 (f '' Iic c),
   { intros b hb,

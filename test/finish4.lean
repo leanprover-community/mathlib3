@@ -42,3 +42,18 @@ example (h : ∀ x : man, shaves barber x ↔ ¬ shaves x x) : false :=
 by finish using [h barber]
 
 end barber
+
+constant real : Type
+@[instance] constant orreal : ordered_ring real
+
+-- TODO(Mario): suspicious fix
+@[irreducible] noncomputable instance : has_lt real := by apply_instance
+constants (log exp : real → real)
+constant  log_exp_eq : ∀ x, log (exp x) = x
+constant  exp_log_eq : ∀ {x}, x > 0 → exp (log x) = x
+constant  exp_pos    : ∀ x, exp x > 0
+constant  exp_add    : ∀ x y, exp (x + y) = exp x * exp y
+
+theorem log_mul' {x y : real} (hx : x > 0) (hy : y > 0) :
+  log (x * y) = log x + log y :=
+by rw [←log_exp_eq (log x + log y), exp_add, exp_log_eq hx, exp_log_eq hy]

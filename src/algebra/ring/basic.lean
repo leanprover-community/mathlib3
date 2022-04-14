@@ -388,8 +388,6 @@ instance : has_coe_to_fun (α →ₙ+* β) (λ _, α → β) := ⟨non_unital_ri
 @[simp] lemma coe_coe {F : Type*} [non_unital_ring_hom_class F α β] (f : F) :
   ((f : α →ₙ+* β) : α → β) = f := rfl
 
-instance has_coe_mul_hom : has_coe (α →ₙ+* β) (mul_hom α β) := ⟨non_unital_ring_hom.to_mul_hom⟩
-
 @[simp, norm_cast] lemma coe_mul_hom (f : α →ₙ+* β) : ⇑(f : mul_hom α β) = f := rfl
 
 @[simp] lemma to_mul_hom_eq_coe (f : α →ₙ+* β) : f.to_mul_hom = f := rfl
@@ -408,7 +406,7 @@ rfl
 
 /-- Copy of a `ring_hom` with a new `to_fun` equal to the old one. Useful to fix definitional
 equalities. -/
-def copy (f : α →ₙ+* β) (f' : α → β) (h : f' = f) : α →ₙ+* β :=
+protected def copy (f : α →ₙ+* β) (f' : α → β) (h : f' = f) : α →ₙ+* β :=
 { ..f.to_mul_hom.copy f' h, ..f.to_add_monoid_hom.copy f' h }
 
 end coe
@@ -419,15 +417,6 @@ section
 include rα rβ
 
 variables (f : α →ₙ+* β) {x y : α} {rα rβ}
-
-theorem congr_fun {f g : α →ₙ+* β} (h : f = g) (x : α) : f x = g x :=
-fun_like.congr_fun h x
-
-theorem congr_arg (f : α →ₙ+* β) {x y : α} (h : x = y) : f x = f y :=
-fun_like.congr_arg f h
-
-theorem coe_inj ⦃f g : α →ₙ+* β⦄ (h : (f : α → β) = g) : f = g :=
-fun_like.coe_injective h
 
 @[ext] theorem ext ⦃f g : α →ₙ+* β⦄ (h : ∀ x, f x = g x) : f = g :=
 fun_like.ext _ _ h
@@ -447,13 +436,13 @@ theorem coe_mul_hom_injective : function.injective (coe : (α →ₙ+* β) → (
 end
 
 /-- The identity non-unital ring homomorphism from a non-unital semiring to itself. -/
-def id (α : Type*) [non_unital_non_assoc_semiring α] : α →ₙ+* α :=
+protected def id (α : Type*) [non_unital_non_assoc_semiring α] : α →ₙ+* α :=
 by refine {to_fun := id, ..}; intros; refl
 
 /-- The zero non-unital ring homomorphism between non-unital semirings.  -/
 def zero (α : Type*) (β : Type*) [non_unital_non_assoc_semiring α]
   [non_unital_non_assoc_semiring β] : α →ₙ+* β :=
-{ to_fun := λ x, 0,
+{ to_fun := function.const α 0,
   map_mul' := λ x y, (mul_zero (0 : β)).symm,
   map_zero' := rfl,
   map_add' := λ x y, (add_zero (0 : β)).symm }
@@ -463,13 +452,15 @@ include rα rβ
 instance : has_zero (α →ₙ+* β) := ⟨zero α β⟩
 instance : inhabited (α →ₙ+* β) := ⟨0⟩
 
+@[simp] lemma coe_zero : ⇑(0 : α →ₙ+* β) = function.const α 0 := rfl
 @[simp] lemma zero_apply (x : α) : (0 : α →ₙ+* β) x = 0 := rfl
 
 omit rβ
 
 @[simp] lemma id_apply (x : α) : non_unital_ring_hom.id α x = x := rfl
-@[simp] lemma coe_add_monoid_hom_id : (id α : α →+ α) = add_monoid_hom.id α := rfl
-@[simp] lemma coe_monoid_hom_id : (id α : mul_hom α α) = mul_hom.id α := rfl
+@[simp] lemma coe_add_monoid_hom_id :
+  (non_unital_ring_hom.id α : α →+ α) = add_monoid_hom.id α := rfl
+@[simp] lemma coe_mul_hom_id : (non_unital_ring_hom.id α : mul_hom α α) = mul_hom.id α := rfl
 
 variable {rγ : non_unital_non_assoc_semiring γ}
 include rβ rγ
@@ -485,24 +476,25 @@ def comp (hnp : β →ₙ+* γ) (hmn : α →ₙ+* β) : α →ₙ+* γ :=
 lemma comp_assoc {δ} {rδ : non_unital_non_assoc_semiring δ} (f : α →ₙ+* β) (g : β →ₙ+* γ)
   (h : γ →ₙ+* δ) : (h.comp g).comp f = h.comp (g.comp f) := rfl
 
-@[simp] lemma coe_comp (hnp : β →ₙ+* γ) (hmn : α →ₙ+* β) : (hnp.comp hmn : α → γ) = hnp ∘ hmn := rfl
-
-lemma comp_apply (hnp : β →ₙ+* γ) (hmn : α →ₙ+* β) (x : α) : (hnp.comp hmn : α → γ) x =
+@[simp] lemma coe_comp (g : β →ₙ+* γ) (f : α →ₙ+* β) : (g.comp f : α → γ) = g ∘ f := rfl
+@[simp] lemma coe_comp_add_monoid_hom (g : β →ₙ+* γ) (f : α →ₙ+* β) :
+  (g.comp f : α →+ γ) = (g : β →+ γ).comp f := rfl
+@[simp] lemma coe_comp_mul_hom (g : β →ₙ+* γ) (f : α →ₙ+* β) :
+  (g.comp f : mul_hom α γ) = (g : mul_hom β γ).comp f := rfl
+@[simp] lemma comp_apply (hnp : β →ₙ+* γ) (hmn : α →ₙ+* β) (x : α) : (hnp.comp hmn : α → γ) x =
   (hnp (hmn x)) := rfl
-
 @[simp] lemma comp_zero (g : β →ₙ+* γ) : g.comp (0 : α →ₙ+* β) = 0 := by { ext, simp }
 @[simp] lemma zero_comp (f : α →ₙ+* β) : (0 : β →ₙ+* γ).comp f = 0 := by { ext, refl }
 
 omit rγ
 
-@[simp] lemma comp_id (f : α →ₙ+* β) : f.comp (id α) = f := ext $ λ x, rfl
-
-@[simp] lemma id_comp (f : α →ₙ+* β) : (id β).comp f = f := ext $ λ x, rfl
+@[simp] lemma comp_id (f : α →ₙ+* β) : f.comp (non_unital_ring_hom.id α) = f := ext $ λ x, rfl
+@[simp] lemma id_comp (f : α →ₙ+* β) : (non_unital_ring_hom.id β).comp f = f := ext $ λ x, rfl
 
 omit rβ
 
 instance : monoid_with_zero (α →ₙ+* α) :=
-{ one := id α,
+{ one := non_unital_ring_hom.id α,
   mul := comp,
   mul_one := comp_id,
   one_mul := id_comp,
@@ -511,9 +503,9 @@ instance : monoid_with_zero (α →ₙ+* α) :=
   mul_zero := comp_zero,
   zero_mul := zero_comp }
 
-lemma one_def : (1 : α →ₙ+* α) = id α := rfl
+lemma one_def : (1 : α →ₙ+* α) = non_unital_ring_hom.id α := rfl
 
-@[simp] lemma coe_one : ⇑(1 : α →ₙ+* α) = _root_.id := rfl
+@[simp] lemma coe_one : ⇑(1 : α →ₙ+* α) = id := rfl
 
 lemma mul_def (f g : α →ₙ+* α) : f * g = f.comp g := rfl
 
@@ -579,6 +571,9 @@ by simp [bit1]
 instance : has_coe_t F (α →+* β) :=
 ⟨λ f, { to_fun := f, map_zero' := map_zero f, map_one' := map_one f, map_mul' := map_mul f,
   map_add' := map_add f }⟩
+
+instance ring_hom_class.to_non_unital_ring_hom_class : non_unital_ring_hom_class F α β :=
+{ .. ‹ring_hom_class F α β› }
 
 end ring_hom_class
 

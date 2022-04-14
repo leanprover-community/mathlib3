@@ -8,10 +8,6 @@ noncomputable theory
 
 open_locale topological_space big_operators measure_theory probability_theory ennreal
 
-lemma sq_add {α : Type*} [comm_semiring α] (x y : α) : (x + y)^2 = x^2 + y^2 + 2 * x * y :=
-by ring
-
-lemma ennreal.one_le_two : (1 : ℝ≥0∞) ≤ 2 := ennreal.one_lt_two.le
 
 lemma measure_theory.mem_ℒp.integrable_sq
   {α : Type*} {m : measurable_space α} {μ : measure α} {f : α → ℝ} (h : mem_ℒp f 2 μ) :
@@ -39,15 +35,71 @@ by simp [variance]
 localized "notation `Var[` X `]` := probability_theory.variance X volume" in probability_theory
 localized "notation `ℙ` := volume" in probability_theory
 
+variables {Ω : Type*} [measure_space Ω] [is_probability_measure (ℙ : measure Ω)]
 
-variables {Ω : Type*} [measure_space Ω] [is_finite_measure (ℙ : measure Ω)]
+lemma variance_def' {X : Ω → ℝ} (hX : mem_ℒp X 2) :
+  Var[X] = 𝔼[(X - (λ x, 𝔼[X]))^2] :=
+begin
+  rw [sub_sq, integral_sub', integral_add'], rotate,
+  { exact hX.integrable_sq },
+  { convert integrable_const (𝔼[X] ^ 2),
+    apply_instance },
+  { apply hX.integrable_sq.add,
+    convert integrable_const (𝔼[X] ^ 2),
+    apply_instance },
+  { apply integrable.mul_const',
+    apply integrable.const_mul _ 2,
+    exact hX.integrable ennreal.one_le_two },
+  simp only [integral_mul_right, pi.pow_apply, pi.mul_apply, pi.bit0_apply, pi.one_apply,
+    integral_const (integral ℙ X ^ 2), integral_mul_left (2 : ℝ), one_mul,
+    variance, pi.pow_apply, measure_univ, ennreal.one_to_real, algebra.id.smul_eq_mul],
+  ring,
+end
 
+lemma variance_nonneg {X : Ω → ℝ} (hX : mem_ℒp X 2) :
+  0 ≤ Var[X] :=
+begin
+  rw variance_def' hX,
+  apply integral_nonneg (λ x, _),
+  exact sq_nonneg _
+end
+
+open_locale nnreal
+
+theorem meas_ge_le_mul_variance {X : Ω → ℝ} (hX : mem_ℒp X 2) {c : ℝ≥0} (hc : c ≠ 0) :
+  ℙ {ω | (c : ℝ) ≤ |X ω - 𝔼[X]|} ≤ 1/c^2 * ennreal.of_real (Var[X]) :=
+begin
+  have B : ae_strongly_measurable (λ (ω : Ω), 𝔼[X]) ℙ := ae_strongly_measurable_const,
+  convert meas_ge_le_mul_pow_snorm ℙ ennreal.two_ne_zero ennreal.two_ne_top
+    (hX.ae_strongly_measurable.sub B) (ennreal.coe_ne_zero.2 hc),
+  { ext ω,
+    simp only [pi.sub_apply, ennreal.coe_le_coe, ← real.norm_eq_abs, ← coe_nnnorm,
+      nnreal.coe_le_coe] },
+  { norm_cast,
+    simp only [hc, one_div, inv_pow₀, ennreal.coe_inv, ne.def, pow_eq_zero_iff, nat.succ_pos',
+      not_false_iff] },
+  { rw (hX.sub (mem_ℒp_const _)).snorm_eq_rpow_integral_rpow_norm
+      ennreal.two_ne_zero ennreal.two_ne_top,
+    simp only [pi.sub_apply, ennreal.to_real_bit0, ennreal.one_to_real],
+    rw ennreal.of_real_rpow_of_nonneg _ zero_le_two, rotate,
+    { apply real.rpow_nonneg_of_nonneg,
+      apply integral_nonneg (λ x, _),
+      apply real.rpow_nonneg_of_nonneg (norm_nonneg _) },
+    rw [variance_def' hX, ← real.rpow_mul, inv_mul_cancel], rotate,
+    { exact two_ne_zero },
+    { apply integral_nonneg (λ x, _),
+      apply real.rpow_nonneg_of_nonneg (norm_nonneg _) },
+    simp,
+    congr' 2 with ω,
+    rw [← sq_abs, ← real.rpow_nat_cast, real.norm_eq_abs],
+    simp only [nat.cast_bit0, nat.cast_one] }
+end
 
 theorem indep_fun.Var_add {X Y : Ω → ℝ} (hX : mem_ℒp X 2) (hY : mem_ℒp Y 2) (h : indep_fun X Y) :
   Var[X + Y] = Var[X] + Var[Y] :=
 calc
 Var[X + Y] = 𝔼[λ a, (X a)^2 + (Y a)^2 + 2 * X a * Y a] - 𝔼[X+Y]^2 :
-  by simp [variance, sq_add]
+  by simp [variance, add_sq]
 ... = (𝔼[X^2] + 𝔼[Y^2] + 2 * 𝔼[X * Y]) - (𝔼[X] + 𝔼[Y])^2 :
 begin
   simp only [pi.add_apply, pi.pow_apply, pi.mul_apply, mul_assoc],
@@ -80,7 +132,7 @@ begin
   induction s using finset.induction_on with k s ks IH,
   { simp only [finset.sum_empty, variance_zero] },
   rw [variance, sum_insert ks, sum_insert ks],
-  simp only [sq_add],
+  simp only [add_sq],
   calc 𝔼[X k ^ 2 + (∑ i in s, X i) ^ 2 + 2 * X k * ∑ i in s, X i] - 𝔼[X k + ∑ i in s, X i] ^ 2
   = (𝔼[X k ^ 2] + 𝔼[(∑ i in s, X i) ^ 2] + 𝔼[2 * X k * ∑ i in s, X i])
     - (𝔼[X k] + 𝔼[∑ i in s, X i]) ^ 2 :

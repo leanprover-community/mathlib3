@@ -29,31 +29,9 @@ namespace subgroup
 
 section schur_zassenhaus_abelian
 
+open mem_left_transversals
+
 variables {G : Type*} [group G] {H : subgroup G}
-
-@[to_additive] instance : mul_action G (left_transversals (H : set G)) :=
-{ smul := λ g T, ⟨left_coset g T, mem_left_transversals_iff_exists_unique_inv_mul_mem.mpr (λ g', by
-  { obtain ⟨t, ht1, ht2⟩ := mem_left_transversals_iff_exists_unique_inv_mul_mem.mp T.2 (g⁻¹ * g'),
-    simp_rw [←mul_assoc, ←mul_inv_rev] at ht1 ht2,
-    refine ⟨⟨g * t, mem_left_coset g t.2⟩, ht1, _⟩,
-    rintros ⟨_, t', ht', rfl⟩ h,
-    exact subtype.ext ((mul_right_inj g).mpr (subtype.ext_iff.mp (ht2 ⟨t', ht'⟩ h))) })⟩,
-  one_smul := λ T, subtype.ext (one_left_coset T),
-  mul_smul := λ g g' T, subtype.ext (left_coset_assoc ↑T g g').symm }
-
-lemma smul_symm_apply_eq_mul_symm_apply_inv_smul
-  (g : G) (α : left_transversals (H : set G)) (q : G ⧸ H) :
-  ↑((equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp (g • α).2)).symm q) =
-    g * ((equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)).symm
-      (g⁻¹ • q : G ⧸ H)) :=
-begin
-  let w := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)),
-  let y := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp (g • α).2)),
-  change ↑(y.symm q) = ↑(⟨_, mem_left_coset g (subtype.mem _)⟩ : (g • α).1),
-  refine subtype.ext_iff.mp (y.symm_apply_eq.mpr _),
-  change q = g • (w (w.symm (g⁻¹ • q : G ⧸ H))),
-  rw [equiv.apply_symm_apply, ←mul_smul, mul_inv_self, one_smul],
-end
 
 variables [is_commutative H] [fintype (G ⧸ H)]
 
@@ -62,10 +40,8 @@ variables (α β γ : left_transversals (H : set G))
 /-- The difference of two left transversals -/
 @[to_additive "The difference of two left transversals"]
 noncomputable def diff [hH : normal H] : H :=
-let α' := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp α.2)).symm,
-    β' := (equiv.of_bijective _ (mem_left_transversals_iff_bijective.mp β.2)).symm in
-∏ (q : G ⧸ H), ⟨(α' q) * (β' q)⁻¹,
-  hH.mem_comm (quotient.exact' ((β'.symm_apply_apply q).trans (α'.symm_apply_apply q).symm))⟩
+∏ (q : G ⧸ H), ⟨(to_equiv α.2 q) * (to_equiv β.2 q)⁻¹, hH.mem_comm (quotient.exact'
+  (((to_equiv β.2).symm_apply_apply q).trans ((to_equiv α.2).symm_apply_apply q).symm))⟩
 
 @[to_additive] lemma diff_mul_diff [normal H] : diff α β * diff β γ = diff α γ :=
 finset.prod_mul_distrib.symm.trans (finset.prod_congr rfl (λ x hx, subtype.ext
@@ -89,7 +65,7 @@ begin
     (λ q _, subtype.ext _) (λ q _, ↑g * q) (λ _ _, finset.mem_univ _)
     (λ q _, mul_inv_cancel_left g q) (λ q _, inv_mul_cancel_left g q)) (ϕ.map_prod _ _).symm,
   change _ * _ = g * (_ * _) * g⁻¹,
-  simp_rw [smul_symm_apply_eq_mul_symm_apply_inv_smul, mul_inv_rev, mul_assoc],
+  simp_rw [smul_apply_eq_smul_apply_inv_smul, smul_eq_mul, mul_inv_rev, mul_assoc],
   refl,
 end
 
@@ -99,7 +75,7 @@ begin
   rw [diff, diff, index_eq_card, ←finset.card_univ, ←finset.prod_const, ←finset.prod_mul_distrib],
   refine finset.prod_congr rfl (λ q _, _),
   rw [subtype.ext_iff, coe_mul, coe_mk, coe_mk, ←mul_assoc, mul_right_cancel_iff],
-  rw [show h • α = (h : G) • α, from rfl, smul_symm_apply_eq_mul_symm_apply_inv_smul],
+  rw [smul_def, smul_apply_eq_smul_apply_inv_smul, smul_eq_mul],
   rw [mul_left_cancel_iff, ←subtype.ext_iff, equiv.apply_eq_iff_eq, inv_smul_eq_iff],
   exact self_eq_mul_left.mpr ((quotient_group.eq_one_iff _).mpr h.2),
 end
@@ -147,27 +123,14 @@ lemma smul_left_injective [H.normal] (α : H.quotient_diff)
   exact (pow_coprime hH).injective hα,
 end
 
-lemma is_complement'_stabilizer_of_coprime [fintype G] [H.normal] {α : H.quotient_diff}
-  (hH : nat.coprime (fintype.card H) H.index) :
-  is_complement' H (mul_action.stabilizer G α) :=
-begin
-  classical,
-  let ϕ : H ≃ mul_action.orbit G α := equiv.of_bijective (λ h, ⟨h • α, h, rfl⟩)
-    ⟨λ h₁ h₂ hh, smul_left_injective α hH (subtype.ext_iff.mp hh),
-      λ β, exists_imp_exists (λ h hh, subtype.ext hh) (exists_smul_eq α β hH)⟩,
-  have key := card_eq_card_quotient_mul_card_subgroup (mul_action.stabilizer G α),
-  rw ← fintype.card_congr (ϕ.trans (mul_action.orbit_equiv_quotient_stabilizer G α)) at key,
-  apply is_complement'_of_coprime key.symm,
-  rw [card_eq_card_quotient_mul_card_subgroup H, mul_comm, mul_right_inj'] at key,
-  { rwa [←key, ←index_eq_card] },
-  { rw [←pos_iff_ne_zero, fintype.card_pos_iff],
-    apply_instance },
-end
+lemma is_complement'_stabilizer_of_coprime [H.normal] {α : H.quotient_diff}
+  (hH : nat.coprime (fintype.card H) H.index) : is_complement' H (mul_action.stabilizer G α) :=
+is_complement'_stabilizer α (λ h hh, smul_left_injective α hH (hh.trans (one_smul H α).symm))
+  (λ g, exists_smul_eq (g • α) α hH)
 
 /-- Do not use this lemma: It is made obsolete by `exists_right_complement'_of_coprime` -/
-private lemma exists_right_complement'_of_coprime_aux [fintype G] [H.normal]
-  (hH : nat.coprime (fintype.card H) H.index) :
-  ∃ K : subgroup G, is_complement' H K :=
+private lemma exists_right_complement'_of_coprime_aux [H.normal]
+  (hH : nat.coprime (fintype.card H) H.index) : ∃ K : subgroup G, is_complement' H K :=
 nonempty_of_inhabited.elim
   (λ α : H.quotient_diff, ⟨mul_action.stabilizer G α, is_complement'_stabilizer_of_coprime hH⟩)
 

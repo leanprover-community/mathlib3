@@ -207,9 +207,11 @@ end circle_integrable
 by simp [circle_integrable]
 
 lemma circle_integrable_iff [normed_space ℂ E]
-  {f : ℂ → E} {c : ℂ} {R : ℝ} (h₀ : R ≠ 0) : circle_integrable f c R ↔
+  {f : ℂ → E} {c : ℂ} (R : ℝ) : circle_integrable f c R ↔
   interval_integrable (λ θ : ℝ, deriv (circle_map c R) θ • f (circle_map c R θ)) volume 0 (2 * π) :=
 begin
+  by_cases h₀ : R = 0,
+  { simp [h₀], },
   refine ⟨λ h, h.out, λ h, _⟩,
   simp only [circle_integrable, interval_integrable_iff, deriv_circle_map] at h ⊢,
   refine (h.norm.const_mul (|R|⁻¹)).mono' _ _,
@@ -238,7 +240,7 @@ radius `|R|` if and only if `R = 0` or `0 ≤ n`, or `w` does not belong to this
 begin
   split,
   { intro h, contrapose! h, rcases h with ⟨hR, hn, hw⟩,
-    simp only [circle_integrable_iff hR, deriv_circle_map],
+    simp only [circle_integrable_iff R, deriv_circle_map],
     rw ← image_circle_map_Ioc at hw, rcases hw with ⟨θ, hθ, rfl⟩,
     replace hθ : θ ∈ [0, 2 * π], from Icc_subset_interval (Ioc_subset_Icc_self hθ),
     refine not_interval_integrable_of_sub_inv_is_O_punctured _ real.two_pi_pos.ne hθ,
@@ -297,10 +299,7 @@ end
 
 lemma integral_undef {f : ℂ → E} {c : ℂ} {R : ℝ} (hf : ¬circle_integrable f c R) :
   ∮ z in C(c, R), f z = 0 :=
-begin
-  rcases eq_or_ne R 0 with rfl|h0, { simp },
-  exact interval_integral.integral_undef (mt (circle_integrable_iff h0).mpr hf)
-end
+interval_integral.integral_undef (mt (circle_integrable_iff R).mpr hf)
 
 lemma integral_sub {f g : ℂ → E} {c : ℂ} {R : ℝ} (hf : circle_integrable f c R)
   (hg : circle_integrable g c R) :

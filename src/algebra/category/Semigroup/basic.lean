@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Julian Kuelshammer
 -/
 import algebra.pempty_instances
+import algebra.hom.equiv
 import category_theory.concrete_category.bundled_hom
 import category_theory.functor.reflects_isomorphisms
 

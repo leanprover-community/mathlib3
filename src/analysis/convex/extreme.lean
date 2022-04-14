@@ -71,8 +71,7 @@ is_extreme.refl 𝕜 A
 @[trans] protected lemma is_extreme.trans (hAB : is_extreme 𝕜 A B) (hBC : is_extreme 𝕜 B C) :
   is_extreme 𝕜 A C :=
 begin
-  use subset.trans hBC.1 hAB.1,
-  rintro x₁ hx₁A x₂ hx₂A x hxC hx,
+  refine ⟨subset.trans hBC.1 hAB.1, λ x₁ hx₁A x₂ hx₂A x hxC hx, _⟩,
   obtain ⟨hx₁B, hx₂B⟩ := hAB.2 x₁ hx₁A x₂ hx₂A x (hBC.1 hxC) hx,
   exact hBC.2 x₁ hx₁B x₂ hx₂B x hxC hx,
 end
@@ -186,12 +185,13 @@ convex_iff_open_segment_subset.2 (λ x₁ x₂ ⟨hx₁A, hx₁B⟩ ⟨hx₂A, h
 
 end ordered_semiring
 
-section linear_ordered_field
-variables {𝕜} [linear_ordered_field 𝕜] [add_comm_group E] [module 𝕜 E] {A B : set E} {x : E}
+section linear_ordered_ring
+variables {𝕜} [linear_ordered_ring 𝕜] [add_comm_group E] [module 𝕜 E]
+variables [densely_ordered 𝕜] [no_zero_smul_divisors 𝕜 E] {A B : set E} {x : E}
 
 /-- A useful restatement using `segment`: `x` is an extreme point iff the only (closed) segments
 that contain it are those with `x` as one of their endpoints. -/
-lemma mem_extreme_points_iff_forall_segment [no_zero_smul_divisors 𝕜 E] :
+lemma mem_extreme_points_iff_forall_segment :
   x ∈ A.extreme_points 𝕜 ↔ x ∈ A ∧ ∀ (x₁ x₂ ∈ A), x ∈ segment 𝕜 x₁ x₂ → x₁ = x ∨ x₂ = x :=
 begin
   split,
@@ -233,6 +233,7 @@ begin
   by_contra,
   exact (convex_hull_min (subset_diff.2 ⟨subset_convex_hull 𝕜 _, disjoint_singleton_right.2 h⟩) hx.2
     hx.1).2 rfl,
+  apply_instance
 end
 
-end linear_ordered_field
+end linear_ordered_ring

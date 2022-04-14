@@ -376,12 +376,12 @@ calc  a * b ≤ a * 1 : mul_le_mul_left' h a
 end mul_one_class
 
 @[to_additive]
-lemma mul_left_cancel'' [semigroup α] [partial_order α]
+lemma mul_left_cancel'' [has_mul α] [partial_order α]
   [contravariant_class α α (*) (≤)] {a b c : α} (h : a * b = a * c) : b = c :=
 (le_of_mul_le_mul_left' h.le).antisymm (le_of_mul_le_mul_left' h.ge)
 
 @[to_additive]
-lemma mul_right_cancel'' [semigroup α] [partial_order α]
+lemma mul_right_cancel'' [has_mul α] [partial_order α]
   [contravariant_class α α (swap (*)) (≤)] {a b c : α} (h : a * b = c * b) :
   a = c :=
 le_antisymm (le_of_mul_le_mul_right' h.le) (le_of_mul_le_mul_right' h.ge)

@@ -387,6 +387,60 @@ begin
   { simp only [H, true_or, ne.def, not_false_iff] }
 end
 
+lemma ennreal.continuous_on_sub :
+  continuous_on (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) { p : ℝ≥0∞ × ℝ≥0∞ | p ≠ ⟨∞, ∞⟩ } :=
+begin
+  rw continuous_on,
+  rintros ⟨x, y⟩ hp,
+  simp only [ne.def, set.mem_set_of_eq, prod.mk.inj_iff] at hp,
+  refine tendsto_nhds_within_of_tendsto_nhds (ennreal.tendsto_sub (not_and_distrib.mp hp)),
+end
+
+lemma ennreal.continuous_sub_left {a : ℝ≥0∞} (a_ne_top : a ≠ ⊤) :
+  continuous (λ x, a - x) :=
+begin
+  rw (show (λ x, a - x) = (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) ∘ (λ x, ⟨a, x⟩), by refl),
+  apply continuous_on.comp_continuous ennreal.continuous_on_sub (continuous.prod.mk a),
+  intro x,
+  simp only [a_ne_top, ne.def, mem_set_of_eq, prod.mk.inj_iff, false_and, not_false_iff],
+end
+
+lemma ennreal.continuous_nnreal_sub {a : ℝ≥0} :
+  continuous (λ (x : ℝ≥0∞), (a : ℝ≥0∞) - x) :=
+ennreal.continuous_sub_left ennreal.coe_ne_top
+
+lemma ennreal.continuous_on_sub_left (a : ℝ≥0∞) :
+  continuous_on (λ x, a - x) {x : ℝ≥0∞ | x ≠ ∞} :=
+begin
+  rw (show (λ x, a - x) = (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) ∘ (λ x, ⟨a, x⟩), by refl),
+  apply continuous_on.comp ennreal.continuous_on_sub (continuous.continuous_on (continuous.prod.mk a)),
+  rintros _ h (_|_),
+  exact h ennreal.none_eq_top,
+end
+
+lemma ennreal.continuous_sub_right (a : ℝ≥0∞) :
+  continuous (λ x : ℝ≥0∞, x - a) :=
+begin
+  by_cases a_infty : a = ∞,
+  { simp [a_infty, continuous_const], },
+  { rw (show (λ x, x - a) = (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) ∘ (λ x, ⟨x, a⟩), by refl),
+    apply continuous_on.comp_continuous
+      ennreal.continuous_on_sub (continuous_id'.prod_mk continuous_const),
+    intro x,
+    simp only [a_infty, ne.def, mem_set_of_eq, prod.mk.inj_iff, and_false, not_false_iff], },
+end
+
+lemma ennreal.continuous_sub_nnreal {a : ℝ≥0} :
+  continuous (λ (x : ℝ≥0∞), x - a) :=
+begin
+  let f := λ (x : ℝ≥0∞), (⟨x, a⟩ : ℝ≥0∞ × ℝ≥0∞),
+  rw (show (λ (x : ℝ≥0∞), x - a) = (λ p : ℝ≥0∞ × ℝ≥0∞, p.fst - p.snd) ∘ f, by refl),
+  apply continuous_on.comp_continuous ennreal.continuous_on_sub
+    (continuous_id'.prod_mk continuous_const),
+  intros x con,
+  simpa using (show (f x).2 = ∞, from (congr_arg prod.snd con).trans rfl),
+end
+
 protected lemma tendsto.pow {f : filter α} {m : α → ℝ≥0∞} {a : ℝ≥0∞} {n : ℕ}
   (hm : tendsto m f (𝓝 a)) :
   tendsto (λ x, (m x) ^ n) f (𝓝 (a ^ n)) :=

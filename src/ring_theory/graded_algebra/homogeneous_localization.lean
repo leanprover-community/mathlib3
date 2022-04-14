@@ -379,9 +379,31 @@ begin
   congr' 1,
 end
 
+variables (y : homogeneous_localization 𝒜 x) (n : ℕ)
+
+set_option pp.implicit true
+set_option pp.full_names true
+set_option pp.notation false
+
+#check smul_val x y n
+
+#check function.injective.comm_ring
+
+
+set_option trace.class_instances false
 instance : comm_ring (homogeneous_localization 𝒜 x) :=
-(homogeneous_localization.val_injective x).comm_ring _ zero_val one_val add_val mul_val neg_val
-  sub_val (λ z n, smul_val x z n) (λ z n, smul_val x z n) pow_val
+begin
+  refine (homogeneous_localization.val_injective x).comm_ring _ zero_val one_val add_val mul_val neg_val
+  sub_val _ _ pow_val,
+  apply_instance,
+  apply_instance,
+  intros z n,
+  convert smul_val x z n,
+  convert smul_val' x,
+end
+
+#exit
+
 
 end homogeneous_localization
 

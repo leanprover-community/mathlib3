@@ -307,6 +307,11 @@ lemma map_div [group G] [group H] [monoid_hom_class F G H]
   (f : F) (x y : G) : f (x / y) = f x / f y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul_inv]
 
+@[to_additive]
+theorem map_div' [div_inv_monoid G] [div_inv_monoid H] [monoid_hom_class F G H] (f : F)
+  (hf : ∀ x, f (x⁻¹) = (f x)⁻¹) (a b : G) : f (a / b) = f a / f b :=
+by rw [div_eq_mul_inv, div_eq_mul_inv, map_mul, hf]
+
 -- to_additive puts the arguments in the wrong order, so generate an auxiliary lemma, then
 -- swap its arguments.
 @[to_additive map_nsmul.aux, simp] theorem map_pow [monoid G] [monoid H] [monoid_hom_class F G H]
@@ -662,30 +667,26 @@ add_decl_doc add_monoid_hom.map_add
 
 namespace monoid_hom
 variables {mM : mul_one_class M} {mN : mul_one_class N} {mP : mul_one_class P}
-variables [group G] [comm_group H]
+variables [group G] [comm_group H] [monoid_hom_class F M N]
 
 include mM mN
-
-@[to_additive]
-lemma map_mul_eq_one (f : M →* N) {a b : M} (h : a * b = 1) : f a * f b = 1 :=
-map_mul_eq_one f h
 
 /-- Given a monoid homomorphism `f : M →* N` and an element `x : M`, if `x` has a right inverse,
 then `f x` has a right inverse too. For elements invertible on both sides see `is_unit.map`. -/
 @[to_additive "Given an add_monoid homomorphism `f : M →+ N` and an element `x : M`, if `x` has
 a right inverse, then `f x` has a right inverse too."]
-lemma map_exists_right_inv (f : M →* N) {x : M} (hx : ∃ y, x * y = 1) :
+lemma map_exists_right_inv (f : F) {x : M} (hx : ∃ y, x * y = 1) :
   ∃ y, f x * y = 1 :=
-let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
+let ⟨y, hy⟩ := hx in ⟨f y, map_mul_eq_one f hy⟩
 
 /-- Given a monoid homomorphism `f : M →* N` and an element `x : M`, if `x` has a left inverse,
 then `f x` has a left inverse too. For elements invertible on both sides see `is_unit.map`. -/
 @[to_additive "Given an add_monoid homomorphism `f : M →+ N` and an element `x : M`, if `x` has
 a left inverse, then `f x` has a left inverse too. For elements invertible on both sides see
 `is_add_unit.map`."]
-lemma map_exists_left_inv (f : M →* N) {x : M} (hx : ∃ y, y * x = 1) :
+lemma map_exists_left_inv (f : F) {x : M} (hx : ∃ y, y * x = 1) :
   ∃ y, y * f x = 1 :=
-let ⟨y, hy⟩ := hx in ⟨f y, f.map_mul_eq_one hy⟩
+let ⟨y, hy⟩ := hx in ⟨f y, map_mul_eq_one f hy⟩
 
 end monoid_hom
 
@@ -885,11 +886,6 @@ protected theorem monoid_hom.map_zpow' [div_inv_monoid M] [div_inv_monoid N] (f 
   f (a ^ n) = (f a) ^ n :=
 map_zpow' f hf a n
 
-@[to_additive]
-theorem monoid_hom.map_div' [div_inv_monoid M] [div_inv_monoid N] (f : M →* N)
-  (hf : ∀ x, f (x⁻¹) = (f x)⁻¹) (a b : M) : f (a / b) = f a / f b :=
-by rw [div_eq_mul_inv, div_eq_mul_inv, f.map_mul, hf]
-
 section End
 
 namespace monoid
@@ -1055,10 +1051,10 @@ by { ext, simp only [mul_apply, function.comp_app, map_mul, coe_comp] }
 /-- If two homomorphism from a group to a monoid are equal at `x`, then they are equal at `x⁻¹`. -/
 @[to_additive "If two homomorphism from an additive group to an additive monoid are equal at `x`,
 then they are equal at `-x`." ]
-lemma eq_on_inv {G} [group G] [monoid M] {f g : G →* M} {x : G} (h : f x = g x) :
-  f x⁻¹ = g x⁻¹ :=
+lemma eq_on_inv {G} [group G] [monoid M] [monoid_hom_class F G M] {f g : F} {x : G}
+  (h : f x = g x) : f x⁻¹ = g x⁻¹ :=
 left_inv_eq_right_inv (map_mul_eq_one f $ inv_mul_self x) $
-  h.symm ▸ g.map_mul_eq_one $ mul_inv_self x
+  h.symm ▸ map_mul_eq_one g $ mul_inv_self x
 
 /-- Group homomorphisms preserve inverse. -/
 @[to_additive]

@@ -127,7 +127,7 @@ lemma valuation_eq_one_iff (a : A) : is_unit a ↔ A.valuation a = 1 :=
     { intro c, rw [c, A.valuation.map_zero] at h, exact zero_ne_one h },
     have ha' : (a : K)⁻¹ ∈ A,
     { rw [← valuation_le_one_iff, A.valuation.map_inv, h, inv_one] },
-    exact is_unit_of_mul_eq_one a ⟨a⁻¹, ha'⟩ (by { ext, field_simp }),
+    apply is_unit_of_mul_eq_one a ⟨a⁻¹, ha'⟩, ext, field_simp,
   end ⟩
 
 lemma valuation_lt_one_or_eq_one (a : A) : A.valuation a < 1 ∨ A.valuation a = 1 :=
@@ -190,7 +190,8 @@ lemma map_of_le_valuation_apply (R S : valuation_subring K) (h : R ≤ S) (x : K
   R.map_of_le S h (R.valuation x) = S.valuation x := rfl
 
 def ideal_of_le (R S : valuation_subring K) (h : R ≤ S) : ideal R :=
-{ carrier := { r | S.valuation r < 1 },
+(local_ring.maximal_ideal S).comap (R.inclusion S h)
+/-{ carrier := { r | S.valuation r < 1 },
   add_mem' := λ a b ha hb, lt_of_le_of_lt (S.valuation.map_add a b) (max_lt ha hb),
   zero_mem' := zero_lt_one₀,
   smul_mem' := begin
@@ -202,7 +203,7 @@ def ideal_of_le (R S : valuation_subring K) (h : R ≤ S) : ideal R :=
     refine mul_le_of_le_one_left' _,
     rw S.valuation_le_one_iff,
     exact h c.2
-  end }
+  end }-/
 
 instance prime_ideal_of_le (R S : valuation_subring K) (h : R ≤ S) :
   (ideal_of_le R S h).is_prime :=

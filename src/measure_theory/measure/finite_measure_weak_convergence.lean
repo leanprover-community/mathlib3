@@ -401,10 +401,6 @@ the weak-*  topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function
 instance : topological_space (probability_measure α) :=
 topological_space.induced (λ (μ : probability_measure α), μ.to_finite_measure) infer_instance
 
-#check finite_measure.to_weak_dual_bounded_continuous_nnreal
-#check probability_measure.to_finite_measure
-#check probability_measure.to_finite_measure
-
 lemma to_finite_measure_continuous :
   continuous (to_finite_measure : probability_measure α → finite_measure α) :=
 continuous_induced_dom

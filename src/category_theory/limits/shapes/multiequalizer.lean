@@ -264,19 +264,16 @@ namespace multifork
 variables {I : multicospan_index C} (K : multifork I)
 
 /-- The maps from the cone point of a multifork to the objects on the left. -/
-def ι (a : I.L) : K.X ⟶ I.left a :=
-K.π.app (walking_multicospan.left _)
+def ι (a : I.L) : K.X ⟶ I.left a := K.π.app (walking_multicospan.left _)
 
-@[simp] lemma ι_eq_app_left (a) : K.ι a = K.π.app (walking_multicospan.left _) := rfl
+@[simp] lemma app_left_eq_ι (a) : K.π.app (walking_multicospan.left a) = K.ι a := rfl
 
-@[simp] lemma app_left_fst (b) :
-  K.π.app (walking_multicospan.left (I.fst_to b)) ≫ I.fst b =
-    K.π.app (walking_multicospan.right b) :=
+@[reassoc] lemma app_right_eq_ι_comp_fst (b) :
+  K.π.app (walking_multicospan.right b) = K.ι (I.fst_to b) ≫ I.fst b :=
 by { rw ← K.w (walking_multicospan.hom.fst b), refl }
 
-@[simp] lemma app_left_snd (b) :
-  K.π.app (walking_multicospan.left (I.snd_to b)) ≫ I.snd b =
-    K.π.app (walking_multicospan.right b) :=
+@[reassoc] lemma app_right_eq_ι_comp_snd (b) :
+  K.π.app (walking_multicospan.right b) =  K.ι (I.snd_to b) ≫ I.snd b :=
 by { rw ← K.w (walking_multicospan.hom.snd b), refl }
 
 /-- Construct a multifork using a collection `ι` of morphisms. -/
@@ -300,7 +297,8 @@ def of_ι (I : multicospan_index C) (P : C) (ι : Π a, P ⟶ I.left a)
 
 @[reassoc]
 lemma condition (b) :
-  K.ι (I.fst_to b) ≫ I.fst b = K.ι (I.snd_to b) ≫ I.snd b := by simp
+  K.ι (I.fst_to b) ≫ I.fst b = K.ι (I.snd_to b) ≫ I.snd b :=
+by simp[←app_right_eq_ι_comp_fst, ←app_right_eq_ι_comp_snd]
 
 /-- This definition provides a convenient way to show that a multifork is a limit. -/
 @[simps]
@@ -329,8 +327,8 @@ def is_limit.mk
 variables [has_product I.left] [has_product I.right]
 
 @[simp, reassoc]
-lemma pi_condition :
-  pi.lift K.ι ≫ I.fst_pi_map = pi.lift K.ι ≫ I.snd_pi_map := by { ext, simp }
+lemma pi_condition : pi.lift K.ι ≫ I.fst_pi_map = pi.lift K.ι ≫ I.snd_pi_map :=
+by { ext, simp[←app_right_eq_ι_comp_fst, ←app_right_eq_ι_comp_snd] }
 
 /-- Given a multifork, we may obtain a fork over `∏ I.left ⇉ ∏ I.right`. -/
 @[simps X] noncomputable
@@ -349,8 +347,7 @@ def to_pi_fork (K : multifork I) : fork I.fst_pi_map I.snd_pi_map :=
       all_goals { change 𝟙 _ ≫ _ ≫ _ = pi.lift _ ≫ _, simp }
     end } }
 
-@[simp] lemma to_pi_fork_π_app_zero :
-  K.to_pi_fork.π.app walking_parallel_pair.zero = pi.lift K.ι := rfl
+@[simp] lemma to_pi_fork_π_app_zero : K.to_pi_fork.ι = pi.lift K.ι := rfl
 
 @[simp] lemma to_pi_fork_π_app_one :
   K.to_pi_fork.π.app walking_parallel_pair.one = pi.lift K.ι ≫ I.fst_pi_map := rfl
@@ -376,10 +373,13 @@ def of_pi_fork (c : fork I.fst_pi_map I.snd_pi_map) : multifork I :=
     end } }
 
 @[simp] lemma of_pi_fork_π_app_left (c : fork I.fst_pi_map I.snd_pi_map) (a) :
-  (of_pi_fork I c).π.app (walking_multicospan.left a) = c.ι ≫ pi.π _ _ := rfl
+  (of_pi_fork I c).ι a = c.ι ≫ pi.π _ _ := rfl
 
 @[simp] lemma of_pi_fork_π_app_right (c : fork I.fst_pi_map I.snd_pi_map) (a) :
   (of_pi_fork I c).π.app (walking_multicospan.right a) = c.ι ≫ I.fst_pi_map ≫ pi.π _ _ := rfl
+
+@[simp] lemma hom_comp_ι (K₁ K₂ : multifork I) (f : K₁ ⟶ K₂) (j : I.L) :
+  f.hom ≫ K₂.ι j = K₁.ι j := f.w (walking_multicospan.left j)
 
 end multifork
 
@@ -392,7 +392,15 @@ local attribute [tidy] tactic.case_bash
 /-- `multifork.to_pi_fork` is functorial. -/
 @[simps] noncomputable
 def to_pi_fork_functor : multifork I ⥤ fork I.fst_pi_map I.snd_pi_map :=
-{ obj := multifork.to_pi_fork, map := λ K₁ K₂ f, { hom := f.hom } }
+{ obj := multifork.to_pi_fork,
+  map := λ K₁ K₂ f, { hom := f.hom, w' := by {
+    intros j,
+    tactic.case_bash,
+    { ext1, simp,  },
+    { ext1,
+      simp only [multifork.to_pi_fork_π_app_one, multifork.pi_condition,
+        category.assoc, snd_pi_map_π, limit.lift_π_assoc, fan.mk_π_app], rw [←category.assoc],
+      simp } } } }
 
 /-- `multifork.of_pi_fork` is functorial. -/
 @[simps] noncomputable
@@ -409,7 +417,7 @@ def multifork_equiv_pi_fork : multifork I ≌ fork I.fst_pi_map I.snd_pi_map :=
 { functor := to_pi_fork_functor I,
   inverse := of_pi_fork_functor I,
   unit_iso := nat_iso.of_components (λ K, cones.ext (iso.refl _)
-    (by { rintros (_|_); dsimp; simp,  }))
+    (by { rintros (_|_); dsimp; simp[←fork.app_one_eq_ι_comp_left],  }))
     (λ K₁ K₂ f, by { ext, simp }),
   counit_iso := nat_iso.of_components (λ K, fork.ext (iso.refl _) (by { ext, dsimp, simp }))
     (λ K₁ K₂ f, by { ext, simp }) }

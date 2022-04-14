@@ -16,9 +16,9 @@ Define local rings as commutative rings having a unique maximal ideal.
 
 ## Main definitions
 
-* `local_ring`: A predicate on commutative semirings, stating that the set of nonunits is closed
-  under the addition. This is shown to be equivalent to the condition that there exists a unique
-  maximal ideal.
+* `local_ring`: A predicate on commutative semirings, stating that for any pair of elements that
+  add up to `1`, one of them is a unit. This is shown to be equivalent to the condition that there
+  exists a unique maximal ideal.
 * `local_ring.maximal_ideal`: The unique maximal ideal for a local rings. Its carrier set is the
   set of non units.
 * `is_local_ring_hom`: A predicate on semiring homomorphisms, requiring that it maps nonunits
@@ -35,32 +35,18 @@ variables {R : Type u} {S : Type v} {T : Type w} {K : Type u'}
 /-- A commutative ring is local if it has a unique maximal ideal. Note that
   `local_ring` is a predicate. -/
 class local_ring (R : Type u) [semiring R] extends nontrivial R : Prop :=
-(nonunits_add : ∀ {a b : R}, a ∈ nonunits R → b ∈ nonunits R → a + b ∈ nonunits R)
+(is_unit_or_is_unit_of_add_one (a b : R) (h : a + b = 1) : is_unit a ∨ is_unit b)
 
 section comm_semiring
 variables [comm_semiring R]
 
 namespace local_ring
 
-lemma of_is_unit_or_is_unit_of_is_unit_add [nontrivial R]
-  (h : ∀ a b : R, is_unit (a + b) → is_unit a ∨ is_unit b) : local_ring R :=
-⟨λ a b ha hb H, not_or ha hb (h a b H)⟩
-
-lemma of_is_unit_or_is_unit_of_add_one [nontrivial R]
-  (h : ∀ a b : R, a + b = 1 → is_unit a ∨ is_unit b) : local_ring R :=
-of_is_unit_or_is_unit_of_is_unit_add
-begin
-  rintros a b ⟨u, hu⟩,
-  replace hu : ↑u⁻¹ * a + ↑u⁻¹ * b = 1, from by rw [←mul_add, ←hu, units.inv_mul],
-  cases h (↑u⁻¹ * a) (↑u⁻¹ * b) hu,
-  case inl : hu { exact or.inl (is_unit_of_mul_is_unit_right hu) },
-  case inr : hu { exact or.inr (is_unit_of_mul_is_unit_right hu) }
-end
-
 lemma of_nonunits_ideal (hnze : (0:R) ≠ 1) (h : ∀ x y ∈ nonunits R, x + y ∈ nonunits R) :
   local_ring R :=
 { exists_pair_ne := ⟨0, 1, hnze⟩,
-  nonunits_add := λ x y hx hy, h x hx y hy }
+  is_unit_or_is_unit_of_add_one :=
+    λ a b hab, or_iff_not_and_not.2 $ λ H, h a H.1 b H.2 $ hab.symm ▸ is_unit_one }
 
 lemma of_unique_max_ideal (h : ∃! I : ideal R, I.is_maximal) :
   local_ring R :=
@@ -87,8 +73,18 @@ end
 
 variables [local_ring R]
 
-lemma is_unit_or_is_unit_of_is_unit_add (a b : R) (h : is_unit (a + b)) : is_unit a ∨ is_unit b :=
-or_iff_not_and_not.2 $ λ H, nonunits_add H.1 H.2 h
+lemma is_unit_or_is_unit_of_is_unit_add (a b : R) (h : is_unit (a + b)) :
+  is_unit a ∨ is_unit b :=
+begin
+  rcases h with ⟨u, hu⟩,
+  replace hu : ↑u⁻¹ * a + ↑u⁻¹ * b = 1, from by rw [←mul_add, ←hu, units.inv_mul],
+  cases is_unit_or_is_unit_of_add_one (↑u⁻¹ * a) (↑u⁻¹ * b) hu,
+  case inl : hu { exact or.inl (is_unit_of_mul_is_unit_right hu) },
+  case inr : hu { exact or.inr (is_unit_of_mul_is_unit_right hu) }
+end
+
+lemma nonunits_add {a b : R} (ha : a ∈ nonunits R) (hb : b ∈ nonunits R) : a + b ∈ nonunits R:=
+λ H, not_or ha hb (is_unit_or_is_unit_of_is_unit_add a b H)
 
 variables (R)
 
@@ -139,7 +135,7 @@ namespace local_ring
 
 lemma of_is_unit_or_is_unit_one_sub_self [nontrivial R]
   (h : ∀ a : R, is_unit a ∨ is_unit (1 - a)) : local_ring R :=
-of_is_unit_or_is_unit_of_add_one $ λ a b hab, add_sub_cancel' a b ▸ hab.symm ▸ h a
+⟨λ a b hab, add_sub_cancel' a b ▸ hab.symm ▸ h a⟩
 
 variables [local_ring R]
 
@@ -225,10 +221,11 @@ lemma _root_.ring_hom.domain_local_ring {R S : Type*} [comm_semiring R] [comm_se
   [is_local_ring_hom f] : _root_.local_ring R :=
 begin
   haveI : nontrivial R := pullback_nonzero f f.map_zero f.map_one,
-  constructor,
-  intros a b,
+  apply local_ring.of_nonunits_ideal,
+  exact zero_ne_one,
   simp_rw [←map_mem_nonunits_iff f, f.map_add],
-  exact local_ring.nonunits_add
+  intros a ha b hb,
+  exact local_ring.nonunits_add ha hb
 end
 
 section

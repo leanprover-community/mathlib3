@@ -26,7 +26,7 @@ variables {α β : Type*}
 section weakly_covers
 
 section preorder
-variables [preorder α] [preorder β] {a b c: α} {f : α ↪o β} {e : α ≃o β}
+variables [preorder α] [preorder β] {a b c: α}
 
 /-- `wcovby a b` means that `a = b` or `b` covers `a`.
 This means that `a ≤ b` and there is no element in between.
@@ -65,10 +65,10 @@ instance wcovby.is_refl : is_refl α (⩿) := ⟨wcovby.refl⟩
 lemma wcovby.Ioo_eq (h : a ⩿ b) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x hx, h.2 hx.1 hx.2
 
-lemma wcovby.of_image (h : f a ⩿ f b) : a ⩿ b :=
+lemma wcovby.of_image (f : α ↪o β) (h : f a ⩿ f b) : a ⩿ b :=
 ⟨f.le_iff_le.mp h.le, λ c hac hcb, h.2 (f.lt_iff_lt.mpr hac) (f.lt_iff_lt.mpr hcb)⟩
 
-lemma wcovby.image (hab : a ⩿ b) (h : (range f).ord_connected) : f a ⩿ f b :=
+lemma wcovby.image (f : α ↪o β) (hab : a ⩿ b) (h : (range f).ord_connected) : f a ⩿ f b :=
 begin
   refine ⟨f.monotone hab.le, λ c ha hb, _⟩,
   obtain ⟨c, rfl⟩ := h.out (mem_range_self _) (mem_range_self _) ⟨ha.le, hb.le⟩,
@@ -76,12 +76,13 @@ begin
   exact hab.2 ha hb,
 end
 
-lemma set.ord_connected.apply_wcovby_apply_iff (h : (range f).ord_connected) :
+lemma set.ord_connected.apply_wcovby_apply_iff (f : α ↪o β) (h : (range f).ord_connected) :
   f a ⩿ f b ↔ a ⩿ b :=
-⟨λ h2, h2.of_image, λ hab, hab.image h⟩
+⟨λ h2, h2.of_image f, λ hab, hab.image f h⟩
 
-@[simp] lemma order_iso.apply_wcovby_apply_iff (e : α ≃o β) : e a ⩿ e b ↔ a ⩿ b :=
-e.ord_connected_range.apply_wcovby_apply_iff
+@[simp] lemma apply_wcovby_apply_iff {E : Type*} [order_iso_class E α β] (e : E) :
+  e a ⩿ e b ↔ a ⩿ b :=
+(ord_connected_range (e : α ≃o β)).apply_wcovby_apply_iff ((e : α ≃o β) : α ↪o β)
 
 @[simp] lemma to_dual_wcovby_to_dual_iff : to_dual b ⩿ to_dual a ↔ a ⩿ b :=
 and_congr_right' $ forall_congr $ λ c, forall_swap
@@ -160,7 +161,7 @@ alias of_dual_covby_of_dual_iff ↔ _ covby.of_dual
 end has_lt
 
 section preorder
-variables [preorder α] [preorder β] {a b : α} {f : α ↪o β}
+variables [preorder α] [preorder β] {a b : α}
 
 lemma covby.le (h : a ⋖ b) : a ≤ b := h.1.le
 protected lemma covby.ne (h : a ⋖ b) : a ≠ b := h.lt.ne
@@ -188,18 +189,19 @@ instance covby.is_irrefl : is_irrefl α (⋖) := ⟨λ a ha, ha.ne rfl⟩
 lemma covby.Ioo_eq (h : a ⋖ b) : Ioo a b = ∅ :=
 h.wcovby.Ioo_eq
 
-lemma covby.of_image (h : f a ⋖ f b) : a ⋖ b :=
+lemma covby.of_image (f : α ↪o β) (h : f a ⋖ f b) : a ⋖ b :=
 ⟨f.lt_iff_lt.mp h.lt, λ c hac hcb, h.2 (f.lt_iff_lt.mpr hac) (f.lt_iff_lt.mpr hcb)⟩
 
-lemma covby.image (hab : a ⋖ b) (h : (range f).ord_connected) : f a ⋖ f b :=
-(hab.wcovby.image h).covby_of_lt $ f.strict_mono hab.lt
+lemma covby.image (f : α ↪o β) (hab : a ⋖ b) (h : (range f).ord_connected) : f a ⋖ f b :=
+(hab.wcovby.image f h).covby_of_lt $ f.strict_mono hab.lt
 
-lemma set.ord_connected.apply_covby_apply_iff (h : (range f).ord_connected) :
+lemma set.ord_connected.apply_covby_apply_iff (f : α ↪o β) (h : (range f).ord_connected) :
   f a ⋖ f b ↔ a ⋖ b :=
-⟨covby.of_image, λ hab, hab.image h⟩
+⟨covby.of_image f, λ hab, hab.image f h⟩
 
-@[simp] lemma order_iso.apply_covby_apply_iff (e : α ≃o β) : e a ⋖ e b ↔ a ⋖ b :=
-e.ord_connected_range.apply_covby_apply_iff
+@[simp] lemma apply_covby_apply_iff {E : Type*} [order_iso_class E α β] (e : E) :
+  e a ⋖ e b ↔ a ⋖ b :=
+(ord_connected_range (e : α ≃o β)).apply_covby_apply_iff ((e : α ≃o β) : α ↪o β)
 
 end preorder
 

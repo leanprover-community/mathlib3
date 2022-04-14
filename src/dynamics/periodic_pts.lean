@@ -282,8 +282,7 @@ begin
     ((is_periodic_pt_of_mem_periodic_pts_of_is_periodic_pt_iterate hx
       (is_periodic_pt_minimal_period f _)).minimal_period_le
     (minimal_period_pos_of_mem_periodic_pts _)),
-  { change (f^[_] (f^[n] x)) = (f^[n] x),
-    rw [←iterate_add_apply, add_comm, iterate_add_apply, iterate_minimal_period] },
+  { exact (is_periodic_pt_minimal_period f x).apply_iterate n, },
   { rcases hx with ⟨m, hm, hx⟩,
     exact ⟨m, hm, hx.apply_iterate n⟩ }
 end

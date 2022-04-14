@@ -152,6 +152,12 @@ by simp only [sub_eq_add_neg, dist_add_left, dist_neg_neg]
 @[simp] lemma dist_sub_right (g₁ g₂ h : E) : dist (g₁ - h) (g₂ - h) = dist g₁ g₂ :=
 by simpa only [sub_eq_add_neg] using dist_add_right _ _ _
 
+@[simp] theorem dist_self_add_right (g h : E) : dist g (g + h) = ∥h∥ :=
+by rw [← dist_zero_left, ← dist_add_left g 0 h, add_zero]
+
+@[simp] theorem dist_self_add_left (g h : E) : dist (g + h) g = ∥h∥ :=
+by rw [dist_comm, dist_self_add_right]
+
 /-- **Triangle inequality** for the norm. -/
 lemma norm_add_le (g h : E) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
 by simpa [dist_eq_norm] using dist_triangle g 0 (-h)
@@ -584,6 +590,21 @@ lemma edist_add_add_le (g₁ g₂ h₁ h₂ : E) :
   edist (g₁ + g₂) (h₁ + h₂) ≤ edist g₁ h₁ + edist g₂ h₂ :=
 by { simp only [edist_nndist], norm_cast, apply nndist_add_add_le }
 
+@[simp] lemma edist_add_left (g h₁ h₂ : E) : edist (g + h₁) (g + h₂) = edist h₁ h₂ :=
+by simp [edist_dist]
+
+@[simp] lemma edist_add_right (g₁ g₂ h : E) : edist (g₁ + h) (g₂ + h) = edist g₁ g₂ :=
+by simp [edist_dist]
+
+@[simp] lemma edist_neg_neg (x y : E) : edist (-x) (-y) = edist x y :=
+by rw [edist_dist, dist_neg_neg, edist_dist]
+
+@[simp] lemma edist_sub_left (g h₁ h₂ : E) : edist (g - h₁) (g - h₂) = edist h₁ h₂ :=
+by simp only [sub_eq_add_neg, edist_add_left, edist_neg_neg]
+
+@[simp] lemma edist_sub_right (g₁ g₂ h : E) : edist (g₁ - h) (g₂ - h) = edist g₁ g₂ :=
+by simpa only [sub_eq_add_neg] using edist_add_right _ _ _
+
 lemma nnnorm_sum_le (s : finset ι) (f : ι → E) :
   ∥∑ a in s, f a∥₊ ≤ ∑ a in s, ∥f a∥₊ :=
 s.le_sum_of_subadditive nnnorm nnnorm_zero nnnorm_add_le f
@@ -599,7 +620,7 @@ namespace lipschitz_with
 variables [pseudo_emetric_space α] {K Kf Kg : ℝ≥0} {f g : α → E}
 
 lemma neg (hf : lipschitz_with K f) : lipschitz_with K (λ x, -f x) :=
-λ x y, by simpa only [edist_dist, dist_neg_neg] using hf x y
+λ x y, (edist_neg_neg _ _).trans_le $ hf x y
 
 lemma add (hf : lipschitz_with Kf f) (hg : lipschitz_with Kg g) :
   lipschitz_with (Kf + Kg) (λ x, f x + g x) :=

@@ -121,8 +121,7 @@ begin
     rw ← norm_neg,
     exact ⟨-m, by simp only [(mk' S).map_neg, set.mem_set_of_eq], rfl⟩ },
   { rintros ⟨m, hm : mk' S m = -x, rfl⟩,
-    use -m,
-    simpa using hm, }
+    exact ⟨-m, by simpa [eq_comm] using eq_neg_iff_eq_neg.mp ((mk'_apply _ _).symm.trans hm)⟩ }
 end
 
 lemma quotient_norm_sub_rev {S : add_subgroup M} (x y : M ⧸ S) : ∥x - y∥ = ∥y - x∥ :=

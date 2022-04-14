@@ -48,7 +48,7 @@ local notation R`[T;T⁻¹]`:9000 := laurent_polynomial R
 
 /--  The ring homomorphism, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/
-def polynomial.to_laurent {R : Type*} [semiring R] :
+def polynomial.to_laurent [semiring R] :
   R[X] →+* R[T;T⁻¹] :=
 begin
   refine ring_hom.comp _ (to_finsupp_iso R).to_ring_hom,
@@ -57,7 +57,7 @@ end
 
 /--  The `R`-algebra map, taking a polynomial with coefficients in `R` to a Laurent polynomial
 with coefficients in `R`. -/
-def polynomial.to_laurent_alg {R : Type*} [comm_semiring R] :
+def polynomial.to_laurent_alg [comm_semiring R] :
   R[X] →ₐ[R] R[T;T⁻¹] :=
 begin
   refine alg_hom.comp _ (to_finsupp_iso_alg R).to_alg_hom,
@@ -82,9 +82,6 @@ def C : R →+* R[T;T⁻¹] :=
   map_add'  := λ x y, single_add }
 
 lemma single_eq_C (r : R) : single 0 r = C r := rfl
-
-/--  The variable of the ring of Laurent polynomials. -/
-def T' : R[T;T⁻¹] := single 1 1
 
 /--  The function `n ↦ T ^ n`, implemented as a sequence `ℤ ↦ R[T;T⁻¹]`. -/
 def T (n : ℤ) : R[T;T⁻¹] := single n 1
@@ -224,26 +221,13 @@ def trunc : R[T;T⁻¹] →+ R[X] :=
 ((to_finsupp_iso R).symm.to_add_monoid_hom).comp (map_domain.add_monoid_hom int.to_nat)
 
 @[simp]
-lemma trunc_single_nat (n : ℕ) (r : R) : trunc (C r * T n) = monomial n r :=
+lemma trunc_C_mul_T (n : ℤ) (r : R) : trunc (C r * T n) = monomial n.to_nat r :=
 begin
   apply (to_finsupp_iso R).injective,
-  -- after `rw ← single_eq_C_mul_T`, the combination `simp [-single_eq_C_mul_T, trunc], refl`
+  -- the combination `rw ← single_eq_C_mul_T, simp [-single_eq_C_mul_T, trunc], refl`
   -- closes the goal, but involves a non-terminal `simp`.
   rw [← single_eq_C_mul_T, trunc, add_monoid_hom.coe_comp, function.comp_app,
-    map_domain.add_monoid_hom_apply, map_domain_single, int.to_nat_coe_nat, to_finsupp_iso_apply,
-    to_finsupp_iso_apply, to_finsupp_monomial],
-  refl,
-end
-
-@[simp]
-lemma trunc_single_neg_nat (n : ℕ) (r : R) : trunc (C r * T (- n)) = polynomial.C r :=
-begin
-  apply (to_finsupp_iso R).injective,
-  -- after `rw ← single_eq_C_mul_T`, the combination `simp [-single_eq_C_mul_T, trunc], refl`
-  -- closes the goal, but involves a non-terminal `simp`.
-  rw [← single_eq_C_mul_T, trunc, add_monoid_hom.coe_comp, function.comp_app,
-    map_domain.add_monoid_hom_apply, to_finsupp_iso_apply, map_domain_single, int.to_nat_neg_nat,
-    to_finsupp_iso_apply, to_finsupp_C],
+    map_domain.add_monoid_hom_apply, to_finsupp_iso_apply, map_domain_single, to_finsupp_iso_apply, to_finsupp_monomial],
   refl,
 end
 
@@ -252,8 +236,13 @@ lemma _root_.polynomial.to_laurent_injective :
 begin
   refine function.has_left_inverse.injective ⟨trunc, λ f, f.induction_on' _ _⟩,
   { exact λ f g hf hg, by simp only [hf, hg, _root_.map_add] },
-  { exact λ n r, by simp only [monomial_eq_C_mul_T, trunc_single_nat] }
+  { exact λ n r, by simp only [monomial_eq_C_mul_T, trunc_C_mul_T, int.to_nat_coe_nat] }
 end
+
+@[simp]
+lemma _root_.polynomial.to_laurent_inj (f g : R[X]) :
+  f.to_laurent = g.to_laurent ↔ f = g :=
+⟨λ h, polynomial.to_laurent_injective h, λ h, congr_arg _ h⟩
 
 lemma exists_T_pow (f : R[T;T⁻¹]) : ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=
 begin
@@ -271,11 +260,10 @@ begin
 end
 
 lemma exists_T_pow_T' (f : R[T;T⁻¹]) :
-  ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T' ^ n :=
+  ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=
 begin
   rcases exists_T_pow f with ⟨n, f', hf⟩,
-  refine ⟨n, f', _⟩,
-  rwa [T', ← T, T_pow, mul_one],
+  refine ⟨n, f', hf⟩,
 end
 
 /--  This version of `exists_T_pow` can be called as `rcases f.exists_T_pow' with ⟨n, f', rfl⟩`. -/
@@ -292,17 +280,17 @@ end
 
 is true on all Laurent polynomials. -/
 lemma proprop (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
-  (PQ : ∀ (f : R[X]), Q f.to_laurent)
-  (Tn : ∀ f, Q (f * T 1) → Q f) :
+  (Qf : ∀ (f : R[X]), Q f.to_laurent)
+  (QT : ∀ f, Q (f * T 1) → Q f) :
   Q f :=
 begin
   rcases f.exists_T_pow' with ⟨n, f', rfl⟩,
   cases n with n n,
-  { simpa using PQ (f' * X ^ n) },
+  { simpa using Qf (f' * X ^ n) },
   { induction n with n hn,
-    { refine Tn _ _,
-      simpa [int.neg_succ_of_nat_eq] using PQ f' },
-    { convert Tn _ _,
+    { refine QT _ _,
+      simpa [int.neg_succ_of_nat_eq] using Qf f' },
+    { convert QT _ _,
       simpa using hn } }
 end
 

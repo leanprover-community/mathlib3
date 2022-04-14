@@ -42,7 +42,8 @@ We also define a predicate saying that `f ∘ torus_map c R` is integrable on th
   `fin (n + 1) → ℝ`, respectively;
 - `ℂ⁰`, `ℂ¹`, `ℂⁿ`, `ℂⁿ⁺¹`: local notation for `fin 0 → ℂ`, `fin 1 → ℂ`, `fin n → ℂ`, and
   `fin (n + 1) → ℂ`, respectively;
-  similar notation is used for `fin 0 → _`, `fin 1 → _`
+- `∯ z in T(c, R), f z`: notation for `torus_integral f c R`;
+- `∮ z in C(c, R), f z`: notation for `circle_integral f c R`, defined elsewhere;
 - `∏ k, f k`: notation for `finset.prod`, defined elsewhere;
 - `π`: notation for `real.pi`, defined elsewhere.
 

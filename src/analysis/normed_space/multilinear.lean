@@ -655,8 +655,8 @@ namespace continuous_multilinear_map
 these variables, and fixing the other ones equal to a given value `z`. It is denoted by
 `f.restr s hk z`, where `hk` is a proof that the cardinality of `s` is `k`. The implicit
 identification between `fin k` and `s` that we use is the canonical (increasing) bijection. -/
-def restr {k n : ℕ} (f : (G [×n]→L[𝕜] G' : _))
-  (s : finset (fin n)) (hk : s.card = k) (z : G) : G [×k]→L[𝕜] G' :=
+def restr {k n : ℕ} (f : (G [×n]→L[𝕜] G' : _)) (s : finset (fin n)) (hk : s.card = k) (z : G) :
+  G [×k]→L[𝕜] G' :=
 (f.to_multilinear_map.restr s hk z).mk_continuous
 (∥f∥ * ∥z∥^(n-k)) $ λ v, multilinear_map.restr_norm_le _ _ _ _ f.le_op_norm _
 
@@ -728,7 +728,7 @@ variables (𝕜 n) (A : Type*) [normed_ring A] [normed_algebra 𝕜 A]
 `m` the product of all the `m i`.
 
 See also: `multilinear_map.mk_pi_algebra`. -/
-protected def mk_pi_algebra_fin : continuous_multilinear_map 𝕜 (λ i : fin n, A) A :=
+protected def mk_pi_algebra_fin : A [×n]→L[𝕜] A :=
 multilinear_map.mk_continuous
   (multilinear_map.mk_pi_algebra_fin 𝕜 n A) (nat.cases_on n ∥(1 : A)∥ (λ _, 1)) $
   begin
@@ -1203,11 +1203,11 @@ variables {n 𝕜 G Ei G'}
   (continuous_multilinear_curry_right_equiv 𝕜 Ei G).symm f v x = f (snoc v x) := rfl
 
 @[simp] lemma continuous_multilinear_curry_right_equiv_apply'
-  (f : G [×n]→L[𝕜] (G →L[𝕜] G')) (v : Π (i : fin n.succ), G) :
+  (f : G [×n]→L[𝕜] (G →L[𝕜] G')) (v : fin (n + 1) → G) :
   continuous_multilinear_curry_right_equiv' 𝕜 n G G' f v = f (init v) (v (last n)) := rfl
 
 @[simp] lemma continuous_multilinear_curry_right_equiv_symm_apply'
-  (f : G [×n.succ]→L[𝕜] G') (v : Π (i : fin n), G) (x : G) :
+  (f : G [×n.succ]→L[𝕜] G') (v : fin n → G) (x : G) :
   (continuous_multilinear_curry_right_equiv' 𝕜 n G G').symm f v x = f (snoc v x) := rfl
 
 @[simp] lemma continuous_multilinear_map.curry_right_norm

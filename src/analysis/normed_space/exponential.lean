@@ -126,6 +126,8 @@ end topological_algebra
 
 section any_field_any_algebra
 
+variables {𝕂 𝔸 : Type*} [nondiscrete_normed_field 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
+
 lemma norm_exp_series_summable_of_mem_ball (x : 𝔸)
   (hx : x ∈ emetric.ball (0 : 𝔸) (exp_series 𝕂 𝔸).radius) :
   summable (λ n, ∥exp_series 𝕂 𝔸 n (λ _, x)∥) :=

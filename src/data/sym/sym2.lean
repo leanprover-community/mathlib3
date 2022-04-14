@@ -214,8 +214,8 @@ by { convert mem_mk_right a h.other, rw other_spec h }
 
 lemma mem_and_mem_iff {x y : α} {z : sym2 α} (hne : x ≠ y) : x ∈ z ∧ y ∈ z ↔ z = ⟦(x, y)⟧ :=
 begin
-  refine ⟨sym2.ind _ z, _⟩,
-  { intros x' y',
+  split,
+  { induction z using sym2.ind with x' y',
     rw [mem_iff, mem_iff],
     rintro ⟨rfl | rfl, rfl | rfl⟩;
     try { trivial };
@@ -230,8 +230,8 @@ lemma eq_of_ne_mem {x y : α} {z z' : sym2 α} (h : x ≠ y)
 @[ext]
 protected lemma ext (z z' : sym2 α) (h : ∀ x, x ∈ z ↔ x ∈ z') : z = z' :=
 begin
-  refine sym2.ind (λ x y, _) z h,
-  refine sym2.ind (λ x' y' h, _) z',
+  induction z using sym2.ind with x y,
+  induction z' using sym2.ind with x' y',
   have hx := h x, have hy := h y, have hx' := h x', have hy' := h y',
   simp only [mem_iff, eq_self_iff_true, or_true, iff_true, true_or, true_iff] at hx hy hx' hy',
   cases hx; cases hy; cases hx'; cases hy'; subst_vars,
@@ -246,7 +246,7 @@ end membership
 @[simp] lemma mem_map {f : α → β} {b : β} {z : sym2 α} :
   b ∈ sym2.map f z ↔ ∃ a, a ∈ z ∧ f a = b :=
 begin
-  refine sym2.ind (λ x y, _) z,
+  induction z using sym2.ind with x y,
   simp only [map, quotient.map_mk, prod.map_mk, mem_iff],
   split,
   { rintro (rfl | rfl),

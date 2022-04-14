@@ -65,7 +65,7 @@ variables [fintype (G ⧸ H)]
 open subgroup subgroup.left_transversals
 
 /-- Given `ϕ : H →* A` from `H : subgroup G` to a commutative group `A`,
-the transfer homomorphism is `transfer ϕ : H →* A`. -/
+the transfer homomorphism is `transfer ϕ : G →* A`. -/
 @[to_additive "Given `ϕ : H →+ A` from `H : add_subgroup G` to an additive commutative group `A`,
 the transfer homomorphism is `transfer ϕ : H →+ A`."]
 noncomputable def transfer : G →* A :=

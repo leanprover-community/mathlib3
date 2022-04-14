@@ -40,13 +40,15 @@ lemma wcovby.le (h : a ⩿ b) : a ≤ b := h.1
 lemma wcovby.refl (a : α) : a ⩿ a := ⟨le_rfl, λ c hc, hc.not_lt⟩
 lemma wcovby.rfl : a ⩿ a := wcovby.refl a
 
-lemma eq.wcovby (h : a = b) : a ⩿ b := h ▸ wcovby.rfl
+protected lemma eq.wcovby (h : a = b) : a ⩿ b := h ▸ wcovby.rfl
 
 lemma wcovby_of_le_of_le (h1 : a ≤ b) (h2 : b ≤ a) : a ⩿ b :=
 ⟨h1, λ c hac hcb, (hac.trans hcb).not_le h2⟩
 
+alias wcovby_of_le_of_le ← has_le.le.wcovby_of_le
+
 lemma wcovby.wcovby_iff_le (hab : a ⩿ b) : b ⩿ a ↔ b ≤ a :=
-⟨λ h, h.le, λ h, wcovby_of_le_of_le h hab.le⟩
+⟨λ h, h.le, λ h, h.wcovby_of_le hab.le⟩
 
 lemma wcovby_of_eq_or_eq (hab : a ≤ b) (h : ∀ c, a ≤ c → c ≤ b → c = a ∨ c = b) : a ⩿ b :=
 begin
@@ -176,7 +178,7 @@ lemma covby_iff_wcovby_and_not_le : a ⋖ b ↔ a ⩿ b ∧ ¬ b ≤ a :=
 
 lemma wcovby_iff_covby_or_le_and_le : a ⩿ b ↔ a ⋖ b ∨ (a ≤ b ∧ b ≤ a) :=
 ⟨λ h, or_iff_not_imp_right.mpr $ λ h', h.covby_of_not_le $ λ hba, h' ⟨h.le, hba⟩,
-  λ h', h'.elim (λ h, h.wcovby) (λ h, wcovby_of_le_of_le h.1 h.2)⟩
+  λ h', h'.elim (λ h, h.wcovby) (λ h, h.1.wcovby_of_le h.2)⟩
 
 instance : is_nonstrict_strict_order α (⩿) (⋖) :=
 ⟨λ a b, covby_iff_wcovby_and_not_le.trans $ and_congr_right $ λ h, h.wcovby_iff_le.not.symm⟩

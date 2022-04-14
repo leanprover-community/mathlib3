@@ -812,16 +812,18 @@ begin
 end
 
 lemma coe_Inf {s : set α} (hs : s.nonempty) : (↑(Inf s) : with_top α) = ⨅ a ∈ s, ↑a :=
-let ⟨x, hx⟩ := hs in
-have (⨅ a ∈ s, ↑a : with_top α) ≤ x, from infi_le_of_le x $ infi_le_of_le hx $ le_rfl,
-let ⟨r, r_eq, hr⟩ := le_coe_iff.1 this in
-le_antisymm
-  (le_infi $ λ a, le_infi $ λ ha, coe_le_coe.2 $ cInf_le (order_bot.bdd_below s) ha)
-  begin
-    refine (r_eq.symm ▸ coe_le_coe.2 $ le_cInf hs $ λ a has, coe_le_coe.1 $ _),
-    refine (r_eq ▸ infi_le_of_le a _),
-    exact (infi_le_of_le has $ le_rfl),
-  end
+begin
+  obtain ⟨x, hx⟩ := hs,
+  have : (⨅ a ∈ s, ↑a : with_top α) ≤ x := (infi_le_of_le x (infi_le_of_le hx le_rfl)),
+  rcases le_coe_iff.1 this with ⟨r, r_eq, hr⟩,
+  refine le_antisymm
+    (le_infi (λ a, le_infi (λ ha, coe_le_coe.2 (cInf_le (order_bot.bdd_below s) ha)))) _,
+  { rw r_eq,
+    apply coe_le_coe.2 (le_cInf ⟨x, hx⟩ (λ a has, coe_le_coe.1 _)),
+    rw ←r_eq,
+    apply @infi_le_of_le (with_top α) _ _,
+    exact infi_le_of_le has le_rfl }
+end
 
 end with_top
 

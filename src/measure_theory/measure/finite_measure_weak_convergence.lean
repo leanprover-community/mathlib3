@@ -286,8 +286,11 @@ def to_weak_dual_bcnn (μ : finite_measure α) :
   map_smul' := test_against_nn_smul μ,
   cont := μ.test_against_nn_lipschitz.continuous, }
 
-lemma to_weak_dual_bcnn_eval_def (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+lemma to_weak_dual_bcnn_eval' (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
   μ.to_weak_dual_bcnn f = μ.test_against_nn f := rfl
+
+lemma to_weak_dual_bcnn_eval (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+  μ.to_weak_dual_bcnn f = (∫⁻ x, f x ∂(μ : measure α)).to_nnreal := rfl
 
 /-- The topology of weak convergence on `finite_measures α` is inherited (induced) from the weak-*
 topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function `finite_measures.to_weak_dual_bcnn`. -/
@@ -295,7 +298,7 @@ instance : topological_space (finite_measure α) :=
 topological_space.induced
   (λ (μ : finite_measure α), μ.to_weak_dual_bcnn) infer_instance
 
-lemma to_weak_dual_continuous :
+lemma to_weak_dual_bcnn_continuous :
   continuous (@finite_measure.to_weak_dual_bcnn α _ _ _) :=
 continuous_induced_dom
 
@@ -303,7 +306,7 @@ continuous_induced_dom
 depends continuously on the measure. -/
 lemma continuous_test_against_nn_eval (f : α →ᵇ ℝ≥0) :
   continuous (λ (μ : finite_measure α), μ.test_against_nn f) :=
-(by apply (eval_continuous _ _).comp to_weak_dual_continuous :
+(by apply (eval_continuous _ _).comp to_weak_dual_bcnn_continuous :
   continuous ((λ φ : weak_dual ℝ≥0 (α →ᵇ ℝ≥0), φ f) ∘ to_weak_dual_bcnn))
 
 lemma tendsto_iff_weak_star_tendsto {γ : Type*} {F : filter γ}
@@ -405,10 +408,15 @@ lemma to_finite_measure_continuous :
   continuous (to_finite_measure : probability_measure α → finite_measure α) :=
 continuous_induced_dom
 
-lemma to_weak_dual_continuous :
-  continuous
-    (λ (μ : probability_measure α), μ.to_finite_measure.to_weak_dual_bcnn) :=
-continuous.comp finite_measure.to_weak_dual_continuous to_finite_measure_continuous
+def to_weak_dual_bcnn : probability_measure α → weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
+finite_measure.to_weak_dual_bcnn ∘ to_finite_measure
+
+lemma to_weak_dual_bcnn_eval (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
+  μ.to_weak_dual_bcnn f = (∫⁻ x, f x ∂(μ : measure α)).to_nnreal := rfl
+
+lemma to_weak_dual_bcnn_continuous :
+  continuous (λ (μ : probability_measure α), μ.to_weak_dual_bcnn) :=
+by apply continuous.comp finite_measure.to_weak_dual_bcnn_continuous to_finite_measure_continuous
 
 /- Integration of (nonnegative bounded continuous) test functions against Borel probability
 measures depends continuously on the measure. -/

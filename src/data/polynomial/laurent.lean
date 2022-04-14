@@ -274,8 +274,7 @@ end
 /--  Suppose that `Q` is a statement about Laurent polynomials such that
 * `Q` is true on *ordinary* polynomials;
 * `Q (f * T)` implies `Q f`;
-
-is true on all Laurent polynomials. -/
+it follow that `Q` is true on all Laurent polynomials. -/
 lemma proprop (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
   (Qf : ∀ (f : R[X]), Q f.to_laurent)
   (QT : ∀ f, Q (f * T 1) → Q f) :

@@ -1161,20 +1161,6 @@ lemma is_unit.sub_iff [ring α] {x y : α} :
   is_unit (x - y) ↔ is_unit (y - x) :=
 (is_unit.neg_iff _).symm.trans $ neg_sub x y ▸ iff.rfl
 
-namespace non_unital_ring_hom
-
-/-- A non-unital ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff {α β} [non_unital_non_assoc_ring α] [non_unital_non_assoc_semiring β]
-  (f : α →ₙ+* β) : function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
-(f : α →+ β).injective_iff
-
-/-- A ring homomorphism is injective iff its kernel is trivial. -/
-theorem injective_iff' {α β} [non_unital_non_assoc_ring α] [non_unital_non_assoc_semiring β]
-  (f : α →ₙ+* β) : function.injective f ↔ (∀ a, f a = 0 ↔ a = 0) :=
-(f : α →+ β).injective_iff'
-
-end non_unital_ring_hom
-
 namespace ring_hom
 
 /-- Ring homomorphisms preserve additive inverse. -/

@@ -344,7 +344,7 @@ by rw ke; exact dvd_mul_of_dvd_right
 theorem pell_zd_succ_succ (n) : pell_zd (n + 2) + pell_zd n = (2 * a : ℕ) * pell_zd (n + 1) :=
 have (1:ℤ√d) + ⟨a, 1⟩ * ⟨a, 1⟩ = ⟨a, 1⟩ * (2 * a),
 by { rw zsqrtd.coe_nat_val, change (⟨_,_⟩:ℤ√(d a1))=⟨_,_⟩,
-    rw dz_val, dsimp [az], rw zsqrtd.ext, dsimp, split; ring_nf},
+    rw dz_val, dsimp [az], rw zsqrtd.ext, dsimp, split; ring },
 by simpa [mul_add, mul_comm, mul_left_comm, add_comm] using congr_arg (* pell_zd a1 n) this
 
 theorem xy_succ_succ (n) : xn (n + 2) + xn n = (2 * a) * xn (n + 1) ∧

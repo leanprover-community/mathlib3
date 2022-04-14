@@ -127,7 +127,7 @@ variables [ring R] [module R E] [module R F]
 include E F
 
 /-- The linear part of an affine map is continuous iff the affine map is continuous. -/
-lemma affine_map.continuous_linear_iff (f : PE →ᵃ[R] PF) : continuous f.linear ↔ continuous f :=
+lemma affine_map.continuous_linear_iff {f : PE →ᵃ[R] PF} : continuous f.linear ↔ continuous f :=
 begin
   inhabit PE,
   have : ⇑f.linear = (homeomorph.vadd_const (f default)).symm ∘ f ∘ (homeomorph.vadd_const default),
@@ -136,7 +136,7 @@ begin
 end
 
 /-- The linear part of an affine map is an open map iff the affine map is open. -/
-lemma affine_map.is_open_map_linear_iff (f : PE →ᵃ[R] PF) : is_open_map f.linear ↔ is_open_map f :=
+lemma affine_map.is_open_map_linear_iff {f : PE →ᵃ[R] PF} : is_open_map f.linear ↔ is_open_map f :=
 begin
   inhabit PE,
   have : ⇑f.linear = (homeomorph.vadd_const (f default)).symm ∘ f ∘ (homeomorph.vadd_const default),

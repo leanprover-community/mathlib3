@@ -241,7 +241,7 @@ end
 theorem affine_map.continuous_of_finite_dimensional {PE PF : Type*}
   [metric_space PE] [normed_add_torsor E PE] [metric_space PF] [normed_add_torsor F PF]
   [finite_dimensional 𝕜 E] (f : PE →ᵃ[𝕜] PF) : continuous f :=
-(affine_map.continuous_linear_iff _).1 f.linear.continuous_of_finite_dimensional
+affine_map.continuous_linear_iff.1 f.linear.continuous_of_finite_dimensional
 
 lemma continuous_linear_map.continuous_det :
   continuous (λ (f : E →L[𝕜] E), f.det) :=

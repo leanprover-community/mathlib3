@@ -62,13 +62,16 @@ open_locale nat topological_space big_operators ennreal
 
 section any_field_any_algebra
 
-variables (𝕂 𝔸 : Type*) [nondiscrete_normed_field 𝕂] [normed_ring 𝔸] [normed_algebra 𝕂 𝔸]
+variables (𝕂 𝔸 : Type*) [field 𝕂] [ring 𝔸] [algebra 𝕂 𝔸] [topological_space 𝔸]
+  [topological_ring 𝔸] [has_continuous_const_smul 𝕂 𝔸]
 
 /-- In a Banach algebra `𝔸` over a normed field `𝕂`, `exp_series 𝕂 𝔸` is the
 `formal_multilinear_series` whose `n`-th term is the map `(xᵢ) : 𝔸ⁿ ↦ (1/n! : 𝕂) • ∏ xᵢ`.
 Its sum is the exponential map `exp 𝕂 𝔸 : 𝔸 → 𝔸`. -/
 def exp_series : formal_multilinear_series 𝕂 𝔸 𝔸 :=
   λ n, (1/n! : 𝕂) • continuous_multilinear_map.mk_pi_algebra_fin 𝕂 n 𝔸
+
+#check formal_multilinear_series.sum
 
 /-- In a Banach algebra `𝔸` over a normed field `𝕂`, `exp 𝕂 𝔸 : 𝔸 → 𝔸` is the exponential map
 determined by the action of `𝕂` on `𝔸`.

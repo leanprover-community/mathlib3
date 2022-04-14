@@ -54,10 +54,10 @@ attribute [simp, reassoc] hom.left_act_hom hom.right_act_hom
 
 /-- The identity morphism on a bimodule object. -/
 @[simps]
-def id (M : Bimod A B) : hom M M :=
+def id' (M : Bimod A B) : hom M M :=
 { hom := 𝟙 M.X, }
 
-instance hom_inhabited (M : Bimod A B) : inhabited (hom M M) := ⟨id M⟩
+instance hom_inhabited (M : Bimod A B) : inhabited (hom M M) := ⟨id' M⟩
 
 /-- Composition of bimodule object morphisms. -/
 @[simps]
@@ -66,7 +66,7 @@ def comp {M N O : Bimod A B} (f : hom M N) (g : hom N O) : hom M O :=
 
 instance : category (Bimod A B) :=
 { hom := λ M N, hom M N,
-  id := id,
+  id := id',
   comp := λ M N O f g, comp f g, }
 
 @[simp] lemma id_hom' (M : Bimod A B) : (𝟙 M : hom M M).hom = 𝟙 M.X := rfl
@@ -103,10 +103,23 @@ def tensor_Bimod {X Y Z : Mon_ C} (M : Bimod X Y) (N : Bimod Y Z) : Bimod X Z :=
     apply colim_map,
     fapply parallel_pair_hom,
     dsimp,
-    refine 𝟙 _ ⊗≫ (M.act_left ⊗ 𝟙 Y.X ⊗ 𝟙 N.X) ⊗≫ 𝟙 _,
+    refine
+      (α_ _ _ _).inv ≫ ((α_ _ _ _).inv ⊗ 𝟙 _) ≫ (α_ _ _ _).hom ≫
+      (M.act_left ⊗ 𝟙 Y.X ⊗ 𝟙 N.X) ≫
+      (α_ _ _ _).inv,
     refine (α_ _ _ _).inv ≫ (M.act_left ⊗ 𝟙 N.X),
-    sorry,
-    sorry,
+    { dsimp,
+      slice_lhs 1 2 { rw associator_inv_naturality },
+      slice_rhs 4 5 { rw associator_inv_naturality },
+      slice_rhs 5 6 { rw [←tensor_comp,
+                          middle_assoc,
+                          ←category.id_comp (𝟙 N.X ≫ 𝟙 N.X), tensor_comp, tensor_comp] },
+      coherence, },
+    { dsimp,
+      simp,
+      slice_lhs 2 3 { rw associator_inv_naturality },
+      simp,
+      coherence, },
   end,
   act_right := begin
     refine (preserves_coequalizer.iso (tensor_right Z.X) _ _).inv ≫ _,

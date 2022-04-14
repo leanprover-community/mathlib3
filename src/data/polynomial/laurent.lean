@@ -90,7 +90,7 @@ def T (n : ℤ) : R[T;T⁻¹] := single n 1
 lemma T_zero : (T 0 : R[T;T⁻¹]) = 1 := rfl
 
 lemma T_add (m n : ℤ) : (T (m + n) : R[T;T⁻¹]) = T m * T n :=
-by {convert single_mul_single.symm, simp [T] }
+by { convert single_mul_single.symm, simp [T] }
 
 @[simp]
 lemma T_pow (m : ℤ) (n : ℕ) : (T m ^ n : R[T;T⁻¹]) = T (n * m) :=
@@ -227,7 +227,8 @@ begin
   -- the combination `rw ← single_eq_C_mul_T, simp [-single_eq_C_mul_T, trunc], refl`
   -- closes the goal, but involves a non-terminal `simp`.
   rw [← single_eq_C_mul_T, trunc, add_monoid_hom.coe_comp, function.comp_app,
-    map_domain.add_monoid_hom_apply, to_finsupp_iso_apply, map_domain_single, to_finsupp_iso_apply, to_finsupp_monomial],
+    map_domain.add_monoid_hom_apply, to_finsupp_iso_apply, map_domain_single, to_finsupp_iso_apply,
+    to_finsupp_monomial],
   refl,
 end
 

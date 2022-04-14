@@ -244,7 +244,8 @@ lemma _root_.polynomial.to_laurent_inj (f g : R[X]) :
   f.to_laurent = g.to_laurent ↔ f = g :=
 ⟨λ h, polynomial.to_laurent_injective h, λ h, congr_arg _ h⟩
 
-lemma exists_T_pow (f : R[T;T⁻¹]) : ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=
+lemma exists_T_pow (f : R[T;T⁻¹]) :
+  ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=
 begin
   apply f.induction_on' _ (λ n a, _); clear f,
   { rintros f g ⟨m, fn, hf⟩ ⟨n, gn, hg⟩,
@@ -259,19 +260,12 @@ begin
         mul_one, C_eq_C] } }
 end
 
-lemma exists_T_pow_T' (f : R[T;T⁻¹]) :
-  ∃ (n : ℕ) (f' : R[X]), f'.to_laurent = f * T n :=
-begin
-  rcases exists_T_pow f with ⟨n, f', hf⟩,
-  refine ⟨n, f', hf⟩,
-end
-
 /--  This version of `exists_T_pow` can be called as `rcases f.exists_T_pow' with ⟨n, f', rfl⟩`. -/
-lemma exists_T_pow' (f : R[T;T⁻¹]) : ∃ (n : ℤ) (f' : R[X]),
-  f = f'.to_laurent * T n :=
+lemma exists_T_pow' (f : R[T;T⁻¹]) :
+  ∃ (n : ℕ) (f' : R[X]), f = f'.to_laurent * T (- n) :=
 begin
   rcases f.exists_T_pow with ⟨n, f', hf⟩,
-  exact ⟨(- n), f', by simp [hf]⟩,
+  exact ⟨n, f', by simp [hf]⟩,
 end
 
 /--  Suppose that `Q` is a statement about Laurent polynomials such that
@@ -285,13 +279,10 @@ lemma proprop (f : R[T;T⁻¹]) {Q : R[T;T⁻¹] → Prop}
   Q f :=
 begin
   rcases f.exists_T_pow' with ⟨n, f', rfl⟩,
-  cases n with n n,
-  { simpa using Qf (f' * X ^ n) },
-  { induction n with n hn,
-    { refine QT _ _,
-      simpa [int.neg_succ_of_nat_eq] using Qf f' },
-    { convert QT _ _,
-      simpa using hn } }
+  induction n with n hn,
+  { simpa using Qf _ },
+  { convert QT _ _,
+    simpa using hn }
 end
 
 instance : module R[X] R[T;T⁻¹] :=

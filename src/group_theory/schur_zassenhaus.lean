@@ -33,13 +33,6 @@ open mem_left_transversals
 
 variables {G : Type*} [group G] {H : subgroup G}
 
-lemma smul_symm_apply_eq_mul_symm_apply_inv_smul
-  (g : G) (α : left_transversals (H : set G)) (q : G ⧸ H) :
-  ↑(to_equiv (g • α).2 q) = g * (to_equiv α.2 (g⁻¹ • q : G ⧸ H)) :=
-(subtype.ext_iff.mp (by exact (to_equiv (g • α).2).apply_eq_iff_eq_symm_apply.mpr
-  ((congr_arg _ ((to_equiv α.2).symm_apply_apply _)).trans (smul_inv_smul g q)).symm)).trans
-  (subtype.coe_mk _ (mem_left_coset g (subtype.mem _)))
-
 variables [is_commutative H] [fintype (G ⧸ H)]
 
 variables (α β γ : left_transversals (H : set G))
@@ -72,7 +65,7 @@ begin
     (λ q _, subtype.ext _) (λ q _, ↑g * q) (λ _ _, finset.mem_univ _)
     (λ q _, mul_inv_cancel_left g q) (λ q _, inv_mul_cancel_left g q)) (ϕ.map_prod _ _).symm,
   change _ * _ = g * (_ * _) * g⁻¹,
-  simp_rw [smul_symm_apply_eq_mul_symm_apply_inv_smul, mul_inv_rev, mul_assoc],
+  simp_rw [smul_apply_eq_smul_apply_inv_smul, smul_eq_mul, mul_inv_rev, mul_assoc],
   refl,
 end
 
@@ -82,7 +75,7 @@ begin
   rw [diff, diff, index_eq_card, ←finset.card_univ, ←finset.prod_const, ←finset.prod_mul_distrib],
   refine finset.prod_congr rfl (λ q _, _),
   rw [subtype.ext_iff, coe_mul, coe_mk, coe_mk, ←mul_assoc, mul_right_cancel_iff],
-  rw [show h • α = (h : G) • α, from rfl, smul_symm_apply_eq_mul_symm_apply_inv_smul],
+  rw [smul_def, smul_apply_eq_smul_apply_inv_smul, smul_eq_mul],
   rw [mul_left_cancel_iff, ←subtype.ext_iff, equiv.apply_eq_iff_eq, inv_smul_eq_iff],
   exact self_eq_mul_left.mpr ((quotient_group.eq_one_iff _).mpr h.2),
 end

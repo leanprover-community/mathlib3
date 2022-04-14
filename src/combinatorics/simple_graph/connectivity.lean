@@ -996,21 +996,27 @@ components of a graph. -/
 def connected_component := quot G.reachable
 
 /-- Gives the connected component containing a particular vertex. -/
-def connected_component_of (v : V) : G.connected_component := quot.mk G.reachable v
+def connected_component_mk (v : V) : G.connected_component := quot.mk G.reachable v
 
 instance connected_component.inhabited [inhabited V] : inhabited G.connected_component :=
-⟨G.connected_component_of default⟩
+⟨G.connected_component_mk default⟩
 
 section connected_component
 variables {G}
 
 @[elab_as_eliminator]
 protected lemma connected_component.ind {β : G.connected_component → Prop}
-  (h : ∀ (v : V), β (G.connected_component_of v)) (c : G.connected_component) : β c :=
+  (h : ∀ (v : V), β (G.connected_component_mk v)) (c : G.connected_component) : β c :=
 quot.ind h c
 
+@[elab_as_eliminator]
+protected lemma connected_component.ind₂ {β : G.connected_component → G.connected_component → Prop}
+  (h : ∀ (v w : V), β (G.connected_component_mk v) (G.connected_component_mk w))
+  (c d : G.connected_component) : β c d :=
+quot.induction_on₂ c d h
+
 protected lemma connected_component.sound {v w : V} :
-  G.reachable v w → G.connected_component_of v = G.connected_component_of w := quot.sound
+  G.reachable v w → G.connected_component_mk v = G.connected_component_mk w := quot.sound
 
 /-- The `connected_component` specialization of `quot.lift`. Provides the stronger
 assumption that the vertices are connected by a path. -/
@@ -1018,15 +1024,13 @@ protected def connected_component.lift {β : Sort*} (f : V → β)
   (h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w) : G.connected_component → β :=
 quot.lift f (λ v w (h' : G.reachable v w), h'.elim_path (λ hp, h v w hp hp.2))
 
-@[simp] protected lemma connected_component.lift_of {β : Sort*} {f : V → β}
+@[simp] protected lemma connected_component.lift_eq {β : Sort*} {f : V → β}
   {h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w} {v : V} :
-  connected_component.lift f h (G.connected_component_of v) = f v := rfl
+  connected_component.lift f h (G.connected_component_mk v) = f v := rfl
 
 lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
   subsingleton G.connected_component :=
-⟨λ c d, connected_component.ind
-        (λ v d, connected_component.ind
-                (λ w, connected_component.sound (h v w)) d) c d⟩
+⟨connected_component.ind₂ (λ v w, connected_component.sound (h v w))⟩
 
 end connected_component
 

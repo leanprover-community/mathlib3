@@ -106,13 +106,10 @@ by rw [smul_unit_ball hr.ne', real.norm_of_nonneg hr.le]
 lemma exists_dist_eq (x z : E) {a b : ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1) :
   ∃ y, dist x y = b * dist x z ∧ dist y z = a * dist x z :=
 begin
-  refine ⟨a • x + b • z, _, _⟩; simp_rw dist_eq_norm,
-  calc _ = ∥(a • x - a • x) + b • (x - z)∥
-    : by rw [smul_sub, sub_add_sub_comm, convex.combo_self hab]
-  ... = _ : by rw [sub_self, zero_add, norm_smul_of_nonneg hb],
-  calc _ = ∥a • (x - z) + (b • z - b • z)∥
-    : by rw [smul_sub, sub_add_sub_comm, convex.combo_self hab]
-  ... = _ : by rw [sub_self, add_zero, norm_smul_of_nonneg ha],
+  use a • x + b • z,
+  nth_rewrite 0 [←one_smul ℝ x],
+  nth_rewrite 3 [←one_smul ℝ z],
+  simp [dist_eq_norm, ←hab, add_smul, ←smul_sub, norm_smul_of_nonneg, ha, hb],
 end
 
 lemma exists_dist_le_le (hδ : 0 ≤ δ) (hε : 0 ≤ ε) (h : dist x z ≤ ε + δ) :
@@ -132,9 +129,8 @@ end
 lemma exists_dist_le_lt (hδ : 0 ≤ δ) (hε : 0 < ε) (h : dist x z < ε + δ) :
   ∃ y, dist x y ≤ δ ∧ dist y z < ε :=
 begin
-  refine (exists_dist_eq x z (div_nonneg hε.le $ add_nonneg hε.le hδ)
-    (div_nonneg hδ $ add_nonneg hε.le hδ) $
-    by rw [←add_div, div_self (add_pos_of_pos_of_nonneg hε hδ).ne']).imp (λ y hy, _),
+  refine (exists_dist_eq x z (div_nonneg hε.le $ add_nonneg hε.le hδ) (div_nonneg hδ $ add_nonneg
+    hε.le hδ) $ by rw [←add_div, div_self (add_pos_of_pos_of_nonneg hε hδ).ne']).imp (λ y hy, _),
   rw [hy.1, hy.2, div_mul_comm', div_mul_comm' ε],
   rw ←div_lt_one (add_pos_of_pos_of_nonneg hε hδ) at h,
   exact ⟨mul_le_of_le_one_left hδ h.le, mul_lt_of_lt_one_left hε h⟩,
@@ -144,11 +140,9 @@ end
 lemma exists_dist_lt_le (hδ : 0 < δ) (hε : 0 ≤ ε) (h : dist x z < ε + δ) :
   ∃ y, dist x y < δ ∧ dist y z ≤ ε :=
 begin
-  refine (exists_dist_eq x z (div_nonneg hε $ add_nonneg hε hδ.le) (div_nonneg hδ.le $ add_nonneg hε
-    hδ.le) $ by rw [←add_div, div_self (add_pos_of_nonneg_of_pos hε hδ).ne']).imp (λ y hy, _),
-  rw [hy.1, hy.2, div_mul_comm', div_mul_comm' ε],
-  rw ←div_lt_one (add_pos_of_nonneg_of_pos hε hδ) at h,
-  exact ⟨mul_lt_of_lt_one_left hδ h, mul_le_of_le_one_left hε h.le⟩,
+  obtain ⟨y, yz, xy⟩ := exists_dist_le_lt hε hδ
+    (show dist z x < δ + ε, by simpa only [dist_comm, add_comm] using h),
+  exact ⟨y, by simp [dist_comm x y, dist_comm y z, *]⟩,
 end
 
 -- This is also true for `ℚ`-normed spaces

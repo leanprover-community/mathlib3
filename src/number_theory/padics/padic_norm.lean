@@ -478,7 +478,7 @@ begin
   { apply_instance }
 end
 
-lemma padic_val_nat_dvd_iff (p : ℕ) [fact p.prime] (n : ℕ) (a : ℕ) :
+lemma padic_val_nat_dvd_iff (p : ℕ) [hp :fact p.prime] (n : ℕ) (a : ℕ) :
   p^n ∣ a ↔ a = 0 ∨ n ≤ padic_val_nat p a :=
 begin
   split,
@@ -489,8 +489,7 @@ begin
     intro hn,
     right,
     apply hn,
-    have : p ≠ 1, exact _inst_1.out.ne_one,
-    simp [this] at h,
+    simp [hp.out.ne_one] at h,
     rw h,
     simp, },
   { intro h,

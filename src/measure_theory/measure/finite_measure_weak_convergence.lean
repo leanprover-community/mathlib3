@@ -382,14 +382,6 @@ by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
 
 variables [topological_space α]
 
-/- /-- The pairing of a (Borel) probability measure `μ` with a nonnegative bounded continuous
-function is obtained by (Lebesgue) integrating the (test) function against the measure. This
-is `probability_measure.test_against_nn`. -/
-def test_against_nn
-  (μ : probability_measure α) (f : α →ᵇ ℝ≥0) : ℝ≥0 :=
-(lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)).to_nnreal
- -/
-
 lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
   ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
 μ.to_finite_measure.lintegral_lt_top_of_bounded_continuous_to_nnreal f

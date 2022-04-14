@@ -79,13 +79,9 @@ instance : has_neg ℤ√d := ⟨λ z, ⟨-z.1, -z.2⟩⟩
 @[simp] lemma neg_im (z : ℤ√d) : (-z).im = -z.im := rfl
 
 /-- Multiplication in `ℤ√d` -/
-def mul : ℤ√d → ℤ√d → ℤ√d
-| ⟨x, y⟩ ⟨x', y'⟩ := ⟨x * x' + d * y * y', x * y' + y * x'⟩
-instance : has_mul ℤ√d := ⟨zsqrtd.mul⟩
-@[simp] theorem mul_re : ∀ z w : ℤ√d, (z * w).re = z.re * w.re + d * z.im * w.im
-| ⟨x, y⟩ ⟨x', y'⟩ := rfl
-@[simp] theorem mul_im : ∀ z w : ℤ√d, (z * w).im = z.re * w.im + z.im * w.re
-| ⟨x, y⟩ ⟨x', y'⟩ := rfl
+instance : has_mul ℤ√d := ⟨λ z w, ⟨z.1 * w.1 + d * z.2 * w.2, z.1 * w.2 + z.2 * w.1⟩⟩
+@[simp] lemma mul_re (z w : ℤ√d) : (z * w).re = z.re * w.re + d * z.im * w.im := rfl
+@[simp] lemma mul_im (z w : ℤ√d) : (z * w).im = z.re * w.im + z.im * w.re := rfl
 
 instance : comm_ring ℤ√d :=
 by refine_struct
@@ -445,9 +441,6 @@ parameter {d : ℕ}
 def nonneg : ℤ√d → Prop | ⟨a, b⟩ := nonnegg d 1 a b
 
 instance : has_le ℤ√d := ⟨λ a b, nonneg (b - a)⟩
-
-protected def lt (a b : ℤ√d) : Prop := ¬(b ≤ a)
-
 instance : has_lt ℤ√d := ⟨λ a b, ¬ b ≤ a⟩
 
 instance decidable_nonnegg (c d a b) : decidable (nonnegg c d a b) :=
@@ -456,7 +449,7 @@ by cases a; cases b; repeat {rw int.of_nat_eq_coe}; unfold nonnegg sq_le; apply_
 instance decidable_nonneg : Π (a : ℤ√d), decidable (nonneg a)
 | ⟨a, b⟩ := zsqrtd.decidable_nonnegg _ _ _ _
 
-instance decidable_le (a b : ℤ√d) : decidable (a ≤ b) := decidable_nonneg _
+instance decidable_le : @decidable_rel (ℤ√d) (≤) := λ _ _, decidable_nonneg _
 
 theorem nonneg_cases : Π {a : ℤ√d}, nonneg a → ∃ x y : ℕ, a = ⟨x, y⟩ ∨ a = ⟨x, -y⟩ ∨ a = ⟨-x, y⟩
 | ⟨(x : ℕ), (y : ℕ)⟩ h := ⟨x, y, or.inl rfl⟩

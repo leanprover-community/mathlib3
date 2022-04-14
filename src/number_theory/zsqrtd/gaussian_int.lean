@@ -108,7 +108,7 @@ lemma nat_abs_norm_eq (x : ℤ[i]) : x.norm.nat_abs =
 int.coe_nat_inj $ begin simp, simp [norm] end
 
 instance : has_div ℤ[i] :=
-⟨λ x y, let n := (rat.of_int (norm y))⁻¹ in let c := y.conj in
+⟨λ x y, let n := (rat.of_int (norm y))⁻¹, c := y.conj in
   ⟨round (rat.of_int (x * c).re * n : ℚ), round (rat.of_int (x * c).im * n : ℚ)⟩⟩
 
 lemma div_def (x y : ℤ[i]) : x / y = ⟨round ((x * conj y).re / norm y : ℚ),

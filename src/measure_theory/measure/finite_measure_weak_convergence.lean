@@ -382,88 +382,58 @@ by { rw [← coe_fn_comp_to_finite_measure_eq_coe_fn,
 
 variables [topological_space α]
 
-/-- The pairing of a (Borel) probability measure `μ` with a nonnegative bounded continuous
+/- /-- The pairing of a (Borel) probability measure `μ` with a nonnegative bounded continuous
 function is obtained by (Lebesgue) integrating the (test) function against the measure. This
 is `probability_measure.test_against_nn`. -/
 def test_against_nn
   (μ : probability_measure α) (f : α →ᵇ ℝ≥0) : ℝ≥0 :=
 (lintegral (μ : measure α) ((coe : ℝ≥0 → ℝ≥0∞) ∘ f)).to_nnreal
+ -/
 
 lemma lintegral_lt_top_of_bounded_continuous_to_nnreal (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
   ∫⁻ x, f x ∂(μ : measure α) < ∞ :=
 μ.to_finite_measure.lintegral_lt_top_of_bounded_continuous_to_nnreal f
 
-@[simp] lemma test_against_nn_coe_eq {μ : probability_measure α} {f : α →ᵇ ℝ≥0} :
-  (μ.test_against_nn f : ℝ≥0∞) = ∫⁻ x, f x ∂(μ : measure α) :=
-ennreal.coe_to_nnreal (lintegral_lt_top_of_bounded_continuous_to_nnreal μ f).ne
-
-@[simp] lemma to_finite_measure_test_against_nn_eq_test_against_nn
-  {μ : probability_measure α} {f : α →ᵇ nnreal} :
-  μ.to_finite_measure.test_against_nn f = μ.test_against_nn f := rfl
-
-lemma test_against_nn_const (μ : probability_measure α) (c : ℝ≥0) :
-  μ.test_against_nn (bounded_continuous_function.const α c) = c :=
-by simp [← ennreal.coe_eq_coe, (measure_theory.is_probability_measure μ).measure_univ]
-
-lemma test_against_nn_mono (μ : probability_measure α)
-  {f g : α →ᵇ ℝ≥0} (f_le_g : (f : α → ℝ≥0) ≤ g) :
-  μ.test_against_nn f ≤ μ.test_against_nn g :=
-by simpa using μ.to_finite_measure.test_against_nn_mono f_le_g
-
 variables [opens_measurable_space α]
 
 lemma test_against_nn_lipschitz (μ : probability_measure α) :
-  lipschitz_with 1 (λ (f : α →ᵇ ℝ≥0), μ.test_against_nn f) :=
+  lipschitz_with 1 (λ (f : α →ᵇ ℝ≥0), μ.to_finite_measure.test_against_nn f) :=
 begin
   have key := μ.to_finite_measure.test_against_nn_lipschitz,
   rwa μ.mass_to_finite_measure at key,
 end
 
-/-- Probability measures yield elements of the `weak_dual` of bounded continuous nonnegative
-functions via `probability_measure.test_against_nn`, i.e., integration. -/
-def to_weak_dual_bounded_continuous_nnreal (μ : probability_measure α) :
-  weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
-{ to_fun := λ f, μ.test_against_nn f,
-  map_add' := μ.to_finite_measure.test_against_nn_add,
-  map_smul' := μ.to_finite_measure.test_against_nn_smul,
-  cont := μ.test_against_nn_lipschitz.continuous, }
-
-lemma to_weak_dual_bounded_continuous_nnreal_eval_def
-  (μ : probability_measure α) (f : α →ᵇ ℝ≥0) :
-  μ.to_weak_dual_bounded_continuous_nnreal f = μ.test_against_nn f := rfl
-
 /-- The topology of weak convergence on `probability_measures α`. This is inherited (induced) from
 the weak-*  topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function
 `probability_measures.to_weak_dual_bcnn`. -/
 instance : topological_space (probability_measure α) :=
-topological_space.induced
-  (λ (μ : probability_measure α), μ.to_weak_dual_bounded_continuous_nnreal) infer_instance
+topological_space.induced (λ (μ : probability_measure α), μ.to_finite_measure) infer_instance
+
+#check finite_measure.to_weak_dual_bounded_continuous_nnreal
+#check probability_measure.to_finite_measure
+#check probability_measure.to_finite_measure
+
+lemma to_finite_measure_continuous :
+  continuous (to_finite_measure : probability_measure α → finite_measure α) :=
+continuous_induced_dom
 
 lemma to_weak_dual_continuous :
-  continuous (@probability_measure.to_weak_dual_bounded_continuous_nnreal α _ _ _) :=
-continuous_induced_dom
+  continuous
+    (λ (μ : probability_measure α), μ.to_finite_measure.to_weak_dual_bounded_continuous_nnreal) :=
+continuous.comp finite_measure.to_weak_dual_continuous to_finite_measure_continuous
 
 /- Integration of (nonnegative bounded continuous) test functions against Borel probability
 measures depends continuously on the measure. -/
 lemma continuous_test_against_nn_eval (f : α →ᵇ ℝ≥0) :
-  continuous (λ (μ : probability_measure α), μ.test_against_nn f) :=
-begin
-  let F₂ := (λ (φ : weak_dual ℝ≥0 (α →ᵇ ℝ≥0)), φ f),
-  let F₁ := (λ (μ : probability_measure α), to_weak_dual_bounded_continuous_nnreal μ),
-  change continuous (F₂ ∘ F₁),
-  apply continuous.comp _ to_weak_dual_continuous,
-  apply eval_continuous,
-end
+  continuous (λ (μ : probability_measure α), μ.to_finite_measure.test_against_nn f) :=
+by apply continuous.comp
+  (finite_measure.continuous_test_against_nn_eval f) to_finite_measure_continuous
 
 /- The canonical mapping from probability measures to finite measures is an embedding. -/
 lemma to_finite_measure_embedding (α : Type*)
   [measurable_space α] [topological_space α] [opens_measurable_space α] :
   embedding (to_finite_measure : probability_measure α → finite_measure α) :=
-{ induced := begin
-    have key := @induced_compose (probability_measure α) (finite_measure α) _ _ to_finite_measure
-      (@finite_measure.to_weak_dual_bounded_continuous_nnreal α _ _ _),
-    exact key.symm,
-  end,
+{ induced := rfl,
   inj := begin
     intros μ ν h,
     apply subtype.eq,
@@ -476,13 +446,6 @@ lemma tendsto_nhds_iff_to_finite_measures_tendsto_nhds {δ : Type*}
   (F : filter δ) {μs : δ → probability_measure α} {μ₀ : probability_measure α} :
   tendsto μs F (𝓝 μ₀) ↔ tendsto (to_finite_measure ∘ μs) F (𝓝 (μ₀.to_finite_measure)) :=
 embedding.tendsto_nhds_iff (probability_measure.to_finite_measure_embedding α)
-
-lemma tendsto_iff_weak_star_tendsto {γ : Type*} {F : filter γ}
-  {μs : γ → probability_measure α} {μ : probability_measure α} :
-  tendsto μs F (𝓝 μ) ↔
-    tendsto (λ i, (μs(i)).to_weak_dual_bounded_continuous_nnreal)
-      F (𝓝 μ.to_weak_dual_bounded_continuous_nnreal) :=
-by { apply inducing.tendsto_nhds_iff, exact ⟨rfl⟩, }
 
 /-- The usual definition of weak convergence of probability measures is given in terms of sequences
 of probability measures: it is the requirement that the integrals of all continuous bounded

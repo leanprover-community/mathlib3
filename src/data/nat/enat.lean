@@ -3,9 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.equiv.mul_add
-import tactic.norm_num
+import algebra.hom.equiv
 import data.part
+import tactic.norm_num
 
 /-!
 # Natural numbers with infinity
@@ -160,7 +160,7 @@ def coe_hom : ℕ →+ enat := ⟨coe, nat.cast_zero, nat.cast_add⟩
 
 instance : partial_order enat :=
 { le          := (≤),
-  le_refl     := λ x, ⟨id, λ _, le_refl _⟩,
+  le_refl     := λ x, ⟨id, λ _, le_rfl⟩,
   le_trans    := λ x y z ⟨hxy₁, hxy₂⟩ ⟨hyz₁, hyz₂⟩,
     ⟨hxy₁ ∘ hyz₁, λ _, le_trans (hxy₂ _) (hyz₂ _)⟩,
   le_antisymm := λ x y ⟨hxy₁, hxy₂⟩ ⟨hyx₁, hyx₂⟩, part.ext' ⟨hyx₁, hxy₁⟩

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn
 -/
 import algebra.order.archimedean
+import algebra.order.floor
 import algebra.order.sub
 import algebra.order.with_zero
 import order.lattice_intervals
@@ -106,22 +107,33 @@ rfl
 protected lemma coe_add [add_zero_class α] [preorder α] [covariant_class α α (+) (≤)]
   (a b : {x : α // 0 ≤ x}) : ((a + b : {x : α // 0 ≤ x}) : α) = a + b := rfl
 
+instance has_nsmul [add_monoid α] [preorder α] [covariant_class α α (+) (≤)] :
+  has_scalar ℕ {x : α // 0 ≤ x} :=
+⟨λ n x, ⟨n • x, nsmul_nonneg x.prop n⟩⟩
+
+@[simp] lemma nsmul_mk [add_monoid α] [preorder α] [covariant_class α α (+) (≤)] (n : ℕ)
+  {x : α} (hx : 0 ≤ x) : (n • ⟨x, hx⟩ : {x : α // 0 ≤ x}) = ⟨n • x, nsmul_nonneg hx n⟩ :=
+rfl
+
+@[simp, norm_cast]
+protected lemma coe_nsmul [add_monoid α] [preorder α] [covariant_class α α (+) (≤)]
+  (n : ℕ) (a : {x : α // 0 ≤ x}) : ((n • a : {x : α // 0 ≤ x}) : α) = n • a := rfl
+
 instance ordered_add_comm_monoid [ordered_add_comm_monoid α] :
   ordered_add_comm_monoid {x : α // 0 ≤ x} :=
-subtype.coe_injective.ordered_add_comm_monoid (coe : {x : α // 0 ≤ x} → α) rfl (λ x y, rfl)
+subtype.coe_injective.ordered_add_comm_monoid _ rfl (λ x y, rfl) (λ _ _, rfl)
 
 instance linear_ordered_add_comm_monoid [linear_ordered_add_comm_monoid α] :
   linear_ordered_add_comm_monoid {x : α // 0 ≤ x} :=
-subtype.coe_injective.linear_ordered_add_comm_monoid (coe : {x : α // 0 ≤ x} → α) rfl (λ x y, rfl)
+subtype.coe_injective.linear_ordered_add_comm_monoid _ rfl (λ x y, rfl) (λ _ _, rfl)
 
 instance ordered_cancel_add_comm_monoid [ordered_cancel_add_comm_monoid α] :
   ordered_cancel_add_comm_monoid {x : α // 0 ≤ x} :=
-subtype.coe_injective.ordered_cancel_add_comm_monoid (coe : {x : α // 0 ≤ x} → α) rfl (λ x y, rfl)
+subtype.coe_injective.ordered_cancel_add_comm_monoid _ rfl (λ x y, rfl) (λ _ _, rfl)
 
 instance linear_ordered_cancel_add_comm_monoid [linear_ordered_cancel_add_comm_monoid α] :
   linear_ordered_cancel_add_comm_monoid {x : α // 0 ≤ x} :=
-subtype.coe_injective.linear_ordered_cancel_add_comm_monoid
-  (coe : {x : α // 0 ≤ x} → α) rfl (λ x y, rfl)
+subtype.coe_injective.linear_ordered_cancel_add_comm_monoid _ rfl (λ x y, rfl) (λ _ _, rfl)
 
 /-- Coercion `{x : α // 0 ≤ x} → α` as a `add_monoid_hom`. -/
 def coe_add_monoid_hom [ordered_add_comm_monoid α] : {x : α // 0 ≤ x} →+ α :=
@@ -158,13 +170,24 @@ protected lemma coe_mul [ordered_semiring α] (a b : {x : α // 0 ≤ x}) :
   (⟨x, hx⟩ : {x : α // 0 ≤ x}) * ⟨y, hy⟩ = ⟨x * y, mul_nonneg hx hy⟩ :=
 rfl
 
+instance has_pow [ordered_semiring α] : has_pow {x : α // 0 ≤ x} ℕ :=
+{ pow := λ x n, ⟨x ^ n, pow_nonneg x.2 n⟩ }
+
+@[simp, norm_cast]
+protected lemma coe_pow [ordered_semiring α] (a : {x : α // 0 ≤ x}) (n : ℕ) :
+  ((a ^ n: {x : α // 0 ≤ x}) : α) = a ^ n := rfl
+
+@[simp] lemma mk_pow [ordered_semiring α] {x : α} (hx : 0 ≤ x) (n : ℕ) :
+  (⟨x, hx⟩ : {x : α // 0 ≤ x}) ^ n = ⟨x ^ n, pow_nonneg hx n⟩ :=
+rfl
+
 instance ordered_semiring [ordered_semiring α] : ordered_semiring {x : α // 0 ≤ x} :=
-subtype.coe_injective.ordered_semiring
-  (coe : {x : α // 0 ≤ x} → α) rfl rfl (λ x y, rfl) (λ x y, rfl)
+subtype.coe_injective.ordered_semiring _
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance ordered_comm_semiring [ordered_comm_semiring α] : ordered_comm_semiring {x : α // 0 ≤ x} :=
-subtype.coe_injective.ordered_comm_semiring
-  (coe : {x : α // 0 ≤ x} → α) rfl rfl (λ x y, rfl) (λ x y, rfl)
+subtype.coe_injective.ordered_comm_semiring _
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 -- These prevent noncomputable instances being found, as it does not require `linear_order` which
 -- is frequently non-computable.
@@ -179,8 +202,8 @@ instance nontrivial [linear_ordered_semiring α] : nontrivial {x : α // 0 ≤ x
 
 instance linear_ordered_semiring [linear_ordered_semiring α] :
   linear_ordered_semiring {x : α // 0 ≤ x} :=
-subtype.coe_injective.linear_ordered_semiring
-  (coe : {x : α // 0 ≤ x} → α) rfl rfl (λ x y, rfl) (λ x y, rfl)
+subtype.coe_injective.linear_ordered_semiring _
+  rfl rfl (λ x y, rfl) (λ x y, rfl) (λ _ _, rfl) (λ _ _, rfl)
 
 instance linear_ordered_comm_monoid_with_zero [linear_ordered_comm_ring α] :
   linear_ordered_comm_monoid_with_zero {x : α // 0 ≤ x} :=
@@ -191,6 +214,10 @@ instance linear_ordered_comm_monoid_with_zero [linear_ordered_comm_ring α] :
 /-- Coercion `{x : α // 0 ≤ x} → α` as a `ring_hom`. -/
 def coe_ring_hom [ordered_semiring α] : {x : α // 0 ≤ x} →+* α :=
 ⟨coe, nonneg.coe_one, nonneg.coe_mul, nonneg.coe_zero, nonneg.coe_add⟩
+
+@[simp, norm_cast]
+protected lemma coe_nat_cast [ordered_semiring α] (n : ℕ) : ((↑n : {x : α // 0 ≤ x}) : α) = n :=
+map_nat_cast (coe_ring_hom : {x : α // 0 ≤ x} →+* α) n
 
 instance has_inv [linear_ordered_field α] : has_inv {x : α // 0 ≤ x} :=
 { inv := λ x, ⟨x⁻¹, inv_nonneg.mpr x.2⟩ }
@@ -238,6 +265,25 @@ instance canonically_ordered_comm_semiring [ordered_comm_ring α] [no_zero_divis
 instance canonically_linear_ordered_add_monoid [linear_ordered_ring α] :
   canonically_linear_ordered_add_monoid {x : α // 0 ≤ x} :=
 { ..subtype.linear_order _, ..nonneg.canonically_ordered_add_monoid }
+
+instance floor_semiring [ordered_semiring α] [floor_semiring α] : floor_semiring {r : α // 0 ≤ r} :=
+{ floor := λ a, ⌊(a : α)⌋₊,
+  ceil := λ a, ⌈(a : α)⌉₊,
+  floor_of_neg := λ a ha, floor_semiring.floor_of_neg ha,
+  gc_floor := λ a n ha, begin
+    refine (floor_semiring.gc_floor (show 0 ≤ (a : α), from ha)).trans _,
+    rw [←subtype.coe_le_coe, nonneg.coe_nat_cast]
+  end,
+  gc_ceil := λ a n, begin
+    refine (floor_semiring.gc_ceil (a : α) n).trans _,
+    rw [←subtype.coe_le_coe, nonneg.coe_nat_cast]
+  end}
+
+@[norm_cast] lemma nat_floor_coe [ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
+  ⌊(a : α)⌋₊ = ⌊a⌋₊ := rfl
+
+@[norm_cast] lemma nat_ceil_coe [ordered_semiring α] [floor_semiring α] (a : {r : α // 0 ≤ r}) :
+  ⌈(a : α)⌉₊ = ⌈a⌉₊  := rfl
 
 section linear_order
 

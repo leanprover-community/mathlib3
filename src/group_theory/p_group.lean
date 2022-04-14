@@ -46,13 +46,13 @@ of_card (subgroup.card_bot.trans (pow_zero p).symm)
 lemma iff_card [fact p.prime] [fintype G] :
   is_p_group p G ↔ ∃ n : ℕ, card G = p ^ n :=
 begin
-  have hG : 0 < card G := card_pos_iff.mpr has_one.nonempty,
+  have hG : card G ≠ 0 := card_ne_zero,
   refine ⟨λ h, _, λ ⟨n, hn⟩, of_card hn⟩,
   suffices : ∀ q ∈ nat.factors (card G), q = p,
   { use (card G).factors.length,
     rw [←list.prod_repeat, ←list.eq_repeat_of_mem this, nat.prod_factors hG] },
   intros q hq,
-  obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG.ne').mp hq,
+  obtain ⟨hq1, hq2⟩ := (nat.mem_factors hG).mp hq,
   haveI : fact q.prime := ⟨hq1⟩,
   obtain ⟨g, hg⟩ := equiv.perm.exists_prime_order_of_dvd_card q hq2,
   obtain ⟨k, hk⟩ := (iff_order_of.mp h) g,
@@ -247,5 +247,36 @@ let hHK' := to_sup_of_normal_right (hH.of_equiv (subgroup.comap_subtype_equiv_of
 lemma to_sup_of_normal_left' {H K : subgroup G} (hH : is_p_group p H) (hK : is_p_group p K)
   (hHK : K ≤ H.normalizer) : is_p_group p (H ⊔ K : subgroup G) :=
 (congr_arg (λ H : subgroup G, is_p_group p H) sup_comm).mp (to_sup_of_normal_right' hK hH hHK)
+
+/-- finite p-groups with different p have coprime orders -/
+lemma coprime_card_of_ne {G₂ : Type*} [group G₂]
+  (p₁ p₂ : ℕ) [hp₁ : fact p₁.prime] [hp₂ : fact p₂.prime] (hne : p₁ ≠ p₂)
+  (H₁ : subgroup G) (H₂ : subgroup G₂) [fintype H₁] [fintype H₂]
+  (hH₁ : is_p_group p₁ H₁) (hH₂ : is_p_group p₂ H₂) :
+  nat.coprime (fintype.card H₁) (fintype.card H₂) :=
+begin
+  obtain ⟨n₁, heq₁⟩ := iff_card.mp hH₁, rw heq₁, clear heq₁,
+  obtain ⟨n₂, heq₂⟩ := iff_card.mp hH₂, rw heq₂, clear heq₂,
+  exact nat.coprime_pow_primes _ _ (hp₁.elim) (hp₂.elim) hne,
+end
+
+/-- p-groups with different p are disjoint -/
+lemma disjoint_of_ne (p₁ p₂ : ℕ) [hp₁ : fact p₁.prime] [hp₂ : fact p₂.prime] (hne : p₁ ≠ p₂)
+  (H₁ H₂ : subgroup G) (hH₁ : is_p_group p₁ H₁) (hH₂ : is_p_group p₂ H₂) :
+  disjoint H₁ H₂ :=
+begin
+  rintro x ⟨hx₁, hx₂⟩,
+  rw subgroup.mem_bot,
+  obtain ⟨n₁, hn₁⟩ := iff_order_of.mp hH₁ ⟨x, hx₁⟩,
+  obtain ⟨n₂, hn₂⟩ := iff_order_of.mp hH₂ ⟨x, hx₂⟩,
+  rw [← order_of_subgroup, subgroup.coe_mk] at hn₁ hn₂,
+  have : p₁ ^ n₁ = p₂ ^ n₂, by rw [← hn₁, ← hn₂],
+  have : n₁ = 0,
+  { contrapose! hne with h,
+    rw ← associated_iff_eq at this ⊢,
+    exact associated.of_pow_associated_of_prime
+      (nat.prime_iff.mp hp₁.elim) (nat.prime_iff.mp hp₂.elim) (ne.bot_lt h) this },
+  simpa [this] using hn₁,
+end
 
 end is_p_group

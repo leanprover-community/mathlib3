@@ -40,16 +40,19 @@ open_locale ennreal pointwise topological_space
 
 /-- The interval `[0,1]` as a compact set with non-empty interior. -/
 def topological_space.positive_compacts.Icc01 : positive_compacts ℝ :=
-⟨Icc 0 1, is_compact_Icc, by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one]⟩
+{ carrier := Icc 0 1,
+  compact' := is_compact_Icc,
+  interior_nonempty' := by simp_rw [interior_Icc, nonempty_Ioo, zero_lt_one] }
 
 universe u
 
 /-- The set `[0,1]^ι` as a compact set with non-empty interior. -/
 def topological_space.positive_compacts.pi_Icc01 (ι : Type*) [fintype ι] :
   positive_compacts (ι → ℝ) :=
-⟨set.pi set.univ (λ i, Icc 0 1), is_compact_univ_pi (λ i, is_compact_Icc),
-by simp only [interior_pi_set, finite.of_fintype, interior_Icc, univ_pi_nonempty_iff, nonempty_Ioo,
-  implies_true_iff, zero_lt_one]⟩
+{ carrier := pi univ (λ i, Icc 0 1),
+  compact' := is_compact_univ_pi (λ i, is_compact_Icc),
+  interior_nonempty' := by simp only [interior_pi_set, finite.of_fintype, interior_Icc,
+    univ_pi_nonempty_iff, nonempty_Ioo, implies_true_iff, zero_lt_one] }
 
 namespace measure_theory
 
@@ -59,10 +62,6 @@ open measure topological_space.positive_compacts finite_dimensional
 ### The Lebesgue measure is a Haar measure on `ℝ` and on `ℝ^ι`.
 -/
 
-instance is_add_left_invariant_real_volume :
-  is_add_left_invariant (volume : measure ℝ) :=
-⟨by simp [real.map_volume_add_left]⟩
-
 /-- The Haar measure equals the Lebesgue measure on `ℝ`. -/
 lemma add_haar_measure_eq_volume : add_haar_measure Icc01 = volume :=
 by { convert (add_haar_measure_unique volume Icc01).symm, simp [Icc01] }
@@ -70,17 +69,14 @@ by { convert (add_haar_measure_unique volume Icc01).symm, simp [Icc01] }
 instance : is_add_haar_measure (volume : measure ℝ) :=
 by { rw ← add_haar_measure_eq_volume, apply_instance }
 
-instance is_add_left_invariant_real_volume_pi (ι : Type*) [fintype ι] :
-  is_add_left_invariant (volume : measure (ι → ℝ)) :=
-⟨by simp [real.map_volume_pi_add_left]⟩
-
 /-- The Haar measure equals the Lebesgue measure on `ℝ^ι`. -/
 lemma add_haar_measure_eq_volume_pi (ι : Type*) [fintype ι] :
   add_haar_measure (pi_Icc01 ι) = volume :=
 begin
   convert (add_haar_measure_unique volume (pi_Icc01 ι)).symm,
-  simp only [pi_Icc01, volume_pi_pi (λ i, Icc (0 : ℝ) 1),
-    finset.prod_const_one, ennreal.of_real_one, real.volume_Icc, one_smul, sub_zero]
+  simp only [pi_Icc01, volume_pi_pi (λ i, Icc (0 : ℝ) 1), positive_compacts.coe_mk,
+    compacts.coe_mk, finset.prod_const_one, ennreal.of_real_one, real.volume_Icc, one_smul,
+    sub_zero],
 end
 
 instance is_add_haar_measure_volume_pi (ι : Type*) [fintype ι] :
@@ -167,6 +163,21 @@ begin
   exact hx this
 end
 
+/-- A strict affine subspace has measure zero. -/
+lemma add_haar_affine_subspace
+  {E : Type*} [normed_group E] [normed_space ℝ E] [measurable_space E] [borel_space E]
+  [finite_dimensional ℝ E] (μ : measure E) [is_add_haar_measure μ]
+  (s : affine_subspace ℝ E) (hs : s ≠ ⊤) : μ s = 0 :=
+begin
+  rcases s.eq_bot_or_nonempty with rfl|hne,
+  { rw [affine_subspace.bot_coe, measure_empty] },
+  rw [ne.def, ← affine_subspace.direction_eq_top_iff_of_nonempty hne] at hs,
+  rcases hne with ⟨x, hx : x ∈ s⟩,
+  simpa only [affine_subspace.coe_direction_eq_vsub_set_right hx, vsub_eq_sub,
+    sub_eq_add_neg, image_add_right, neg_neg, measure_preimage_add_right]
+    using add_haar_submodule μ s.direction hs
+end
+
 /-!
 ### Applying a linear map rescales Haar measure by the determinant
 
@@ -218,7 +229,7 @@ begin
   haveI : is_add_haar_measure (map e μ) := is_add_haar_measure_map μ e.to_add_equiv Ce Cesymm,
   have ecomp : (e.symm) ∘ e = id,
     by { ext x, simp only [id.def, function.comp_app, linear_equiv.symm_apply_apply] },
-  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), linear_map.map_smul,
+  rw [map_linear_map_add_haar_pi_eq_smul_add_haar hf (map e μ), map_smul,
     map_map Cesymm.measurable Ce.measurable, ecomp, measure.map_id]
 end
 
@@ -337,7 +348,7 @@ calc μ (((•) r) ⁻¹' s) = measure.map ((•) r) μ s :
   μ (r • s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
 begin
   rcases ne_or_eq r 0 with h|rfl,
-  { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow₀, inv_inv₀] },
+  { rw [← preimage_smul_inv₀ h, add_haar_preimage_smul μ (inv_ne_zero h), inv_pow₀, inv_inv] },
   rcases eq_empty_or_nonempty s with rfl|hs,
   { simp only [measure_empty, mul_zero, smul_set_empty] },
   rw [zero_smul_set hs, ← singleton_zero],
@@ -349,6 +360,13 @@ begin
     simp only [h, zero_mul, ennreal.of_real_zero, abs_zero, ne.def, not_false_iff, zero_pow',
       measure_singleton] }
 end
+
+@[simp] lemma add_haar_image_homothety (x : E) (r : ℝ) (s : set E) :
+  μ (affine_map.homothety x r '' s) = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :=
+calc μ (affine_map.homothety x r '' s) = μ ((λ y, y + x) '' (r • ((λ y, y + (-x)) '' s))) :
+  by { simp only [← image_smul, image_image, ← sub_eq_add_neg], refl }
+... = ennreal.of_real (abs (r ^ (finrank ℝ E))) * μ s :
+  by simp only [image_add_right, measure_preimage_add_right, add_haar_smul]
 
 /-! We don't need to state `map_add_haar_neg` here, because it has already been proved for
 general Haar measures on general commutative groups. -/

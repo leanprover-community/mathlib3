@@ -10,7 +10,7 @@ import data.polynomial.eval
 # The Pochhammer polynomials
 
 We define and prove some basic relations about
-`pochhammer S n : polynomial S := X * (X + 1) * ... * (X + n - 1)`
+`pochhammer S n : S[X] := X * (X + 1) * ... * (X + n - 1)`
 which is also known as the rising factorial. A version of this definition
 that is focused on `nat` can be found in `data.nat.factorial` as `nat.asc_factorial`.
 
@@ -28,6 +28,7 @@ There is lots more in this direction:
 universes u v
 
 open polynomial
+open_locale polynomial
 
 section semiring
 variables (S : Type u) [semiring S]
@@ -36,7 +37,7 @@ variables (S : Type u) [semiring S]
 `pochhammer S n` is the polynomial `X * (X+1) * ... * (X + n - 1)`,
 with coefficients in the semiring `S`.
 -/
-noncomputable def pochhammer : ℕ → polynomial S
+noncomputable def pochhammer : ℕ → S[X]
 | 0 := 1
 | (n+1) := X * (pochhammer n).comp (X + 1)
 
@@ -87,11 +88,30 @@ begin
   { simp, },
   { conv_lhs
   { rw [pochhammer_succ_left, ih, mul_comp, ←mul_assoc, ←pochhammer_succ_left, add_comp, X_comp,
-      nat_cast_comp, add_assoc, add_comm (1 : polynomial ℕ)], },
+      nat_cast_comp, add_assoc, add_comm (1 : ℕ[X])], },
     refl, },
 end
 
-lemma polynomial.mul_X_add_nat_cast_comp {p q : polynomial S} {n : ℕ} :
+lemma pochhammer_succ_eval {S : Type*} [semiring S] (n : ℕ) (k : S) :
+  (pochhammer S (n + 1)).eval k = (pochhammer S n).eval k * (k + n) :=
+by rw [pochhammer_succ_right, mul_add, eval_add, eval_mul_X, ← nat.cast_comm, ← C_eq_nat_cast,
+    eval_C_mul, nat.cast_comm, ← mul_add]
+
+lemma pochhammer_succ_comp_X_add_one (n : ℕ) :
+  (pochhammer S (n + 1)).comp (X + 1) =
+    pochhammer S (n + 1) + (n + 1) • (pochhammer S n).comp (X + 1) :=
+begin
+  suffices : (pochhammer ℕ (n + 1)).comp (X + 1) =
+              pochhammer ℕ (n + 1) + (n + 1) * (pochhammer ℕ n).comp (X + 1),
+  { simpa [map_comp] using congr_arg (polynomial.map (nat.cast_ring_hom S)) this },
+  cases n,
+  { simp },
+  { nth_rewrite 1 pochhammer_succ_left,
+    rw [← add_mul, pochhammer_succ_right ℕ (n + 1), mul_comp, mul_comm, add_comp, X_comp,
+      nat_cast_comp, add_comm ↑(n + 1), ← add_assoc] }
+end
+
+lemma polynomial.mul_X_add_nat_cast_comp {p q : S[X]} {n : ℕ} :
   (p * (X + n)).comp q = (p.comp q) * (q + n) :=
 by rw [mul_add, add_comp, mul_X_comp, ←nat.cast_comm, nat_cast_mul_comp, nat.cast_comm, mul_add]
 
@@ -127,16 +147,6 @@ begin
 end
 
 end semiring
-
-section comm_semiring
-variables {S : Type*} [comm_semiring S]
-
-lemma pochhammer_succ_eval (n : ℕ) (k : S) :
-  (pochhammer S n.succ).eval k = (pochhammer S n).eval k * (k + ↑n) :=
-by rw [pochhammer_succ_right, polynomial.eval_mul, polynomial.eval_add, polynomial.eval_X,
-    polynomial.eval_nat_cast]
-
-end comm_semiring
 
 section ordered_semiring
 variables {S : Type*} [ordered_semiring S] [nontrivial S]

@@ -98,8 +98,8 @@ begin
     rw [← smul_smul],
     apply s_conv.interior.add_smul_mem this _ ht,
     rw add_assoc at hw,
-    convert s_conv.add_smul_mem_interior xs hw ⟨hpos, h_lt_1.le⟩ using 1,
-    simp only [add_assoc, smul_add] },
+    rw [add_assoc, ← smul_add],
+    exact s_conv.add_smul_mem_interior xs hw ⟨hpos, h_lt_1.le⟩ },
   -- define a function `g` on `[0,1]` (identified with `[v, v + w]`) such that `g 1 - g 0` is the
   -- quantity to be estimated. We will check that its derivative is given by an explicit
   -- expression `g'`, that we can bound. Then the desired bound for `g 1 - g 0` follows from the
@@ -136,7 +136,7 @@ begin
         by simp only [norm_smul, real.norm_eq_abs, hpos.le, abs_of_nonneg, abs_mul, ht.left,
                       mul_assoc]
       ... ≤ h * ∥v∥ + 1 * (h * ∥w∥) :
-        add_le_add (le_refl _) (mul_le_mul_of_nonneg_right ht.2.le
+        add_le_add le_rfl (mul_le_mul_of_nonneg_right ht.2.le
           (mul_nonneg hpos.le (norm_nonneg _)))
       ... = h * (∥v∥ + ∥w∥) : by ring,
     calc ∥g' t∥ = ∥(f' (x + h • v + (t * h) • w) - f' x - f'' (h • v + (t * h) • w)) (h • w)∥ :
@@ -163,7 +163,7 @@ begin
       apply mul_le_mul_of_nonneg_right _ (norm_nonneg _),
       apply mul_le_mul_of_nonneg_left _ (εpos.le),
       apply (norm_add_le _ _).trans,
-      refine add_le_add (le_refl _) _,
+      refine add_le_add le_rfl _,
       simp only [norm_smul, real.norm_eq_abs, abs_mul, abs_of_nonneg, ht.1, hpos.le, mul_assoc],
       exact mul_le_of_le_one_left (mul_nonneg hpos.le (norm_nonneg _)) ht.2.le,
     end
@@ -265,7 +265,7 @@ begin
       field_simp [has_lt.lt.ne' hpos] },
     { filter_upwards [self_mem_nhds_within] with _ hpos,
       field_simp [has_lt.lt.ne' hpos, has_scalar.smul], }, },
-  simpa only [sub_eq_zero] using (is_o_const_const_iff (@one_ne_zero ℝ _ _)).1 B,
+  simpa only [sub_eq_zero] using is_o_const_const_iff.1 B,
 end
 
 omit s_conv xs hx hf

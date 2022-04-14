@@ -62,8 +62,10 @@ generalized Boolean algebras, Boolean algebras, lattices, sdiff, compl
 -/
 set_option old_structure_cmd true
 
+open function order_dual
+
 universes u v
-variables {α : Type u} {w x y z : α}
+variables {α : Type u} {β : Type*} {w x y z : α}
 
 /-!
 ### Generalized Boolean algebras
@@ -120,25 +122,6 @@ begin
   rw inf_comm at i,
   exact (eq_of_inf_eq_sup_eq i s).symm,
 end
-
-theorem sdiff_symm (hy : y ≤ x) (hz : z ≤ x) (H : x \ y = z) : x \ z = y :=
-have hyi : x ⊓ y = y := inf_eq_right.2 hy,
-have hzi : x ⊓ z = z := inf_eq_right.2 hz,
-eq_of_inf_eq_sup_eq
-  (begin
-    have ixy := inf_inf_sdiff x y,
-    rw [H, hyi] at ixy,
-    have ixz := inf_inf_sdiff x z,
-    rwa [hzi, inf_comm, ←ixy] at ixz,
-  end)
-  (begin
-    have sxz := sup_inf_sdiff x z,
-    rw [hzi, sup_comm] at sxz,
-    rw sxz,
-    symmetry,
-    have sxy := sup_inf_sdiff x y,
-    rwa [H, hyi] at sxy,
-  end)
 
 lemma sdiff_le : x \ y ≤ x :=
 calc x \ y ≤ (x ⊓ y) ⊔ (x \ y) : le_sup_right
@@ -370,6 +353,8 @@ lemma sdiff_le_iff : y \ x ≤ z ↔ y ≤ x ⊔ z :=
               ... ≤ (x ⊔ z) ⊔ x : sup_le_sup_right h x
               ... ≤ z ⊔ x       : by rw [sup_assoc, sup_comm, sup_assoc, sup_idem])⟩
 
+lemma sdiff_sdiff_le : x \ (x \ y) ≤ y := sdiff_le_iff.2 le_sdiff_sup
+
 @[simp] lemma le_sdiff_iff : x ≤ y \ x ↔ x = ⊥ :=
 ⟨λ h, disjoint_self.1 (disjoint_sdiff_self_right.mono_right h), λ h, h.le.trans bot_le⟩
 
@@ -440,11 +425,21 @@ calc  x \ (y \ z) = (x \ y) ⊔ (x ⊓ y ⊓ z) : sdiff_sdiff_right
               ... = z ⊓ x ⊓ y ⊔ (x \ y)   : by ac_refl
               ... = (x \ y) ⊔ (x ⊓ z)     : by rw [sup_inf_inf_sdiff, sup_comm, inf_comm]
 
+lemma sdiff_sdiff_eq_sdiff_sup (h : z ≤ x) : x \ (y \ z) = x \ y ⊔ z :=
+by rw [sdiff_sdiff_right', inf_eq_right.2 h]
+
 @[simp] lemma sdiff_sdiff_right_self : x \ (x \ y) = x ⊓ y :=
 by rw [sdiff_sdiff_right, inf_idem, sdiff_self, bot_sup_eq]
 
 lemma sdiff_sdiff_eq_self (h : y ≤ x) : x \ (x \ y) = y :=
 by rw [sdiff_sdiff_right_self, inf_of_le_right h]
+
+lemma sdiff_eq_symm (hy : y ≤ x) (h : x \ y = z) : x \ z = y := by rw [←h, sdiff_sdiff_eq_self hy]
+lemma sdiff_eq_comm (hy : y ≤ x) (hz : z ≤ x) : x \ y = z ↔ x \ z = y :=
+⟨sdiff_eq_symm hy, sdiff_eq_symm hz⟩
+
+lemma eq_of_sdiff_eq_sdiff (hxz : x ≤ z) (hyz : y ≤ z) (h : z \ x = z \ y) : x = y :=
+by rw [←sdiff_sdiff_eq_self hxz, h, sdiff_sdiff_eq_self hyz]
 
 lemma sdiff_sdiff_left : (x \ y) \ z = x \ (y ⊔ z) :=
 begin
@@ -525,6 +520,19 @@ sdiff_unique
                             ... = x ⊓ y                     : by rw sup_inf_sdiff)
   (calc x ⊓ y ⊓ z ⊓ (x ⊓ (y \ z)) = x ⊓ x ⊓ ((y ⊓ z) ⊓ (y \ z)) : by ac_refl
                               ... = ⊥                           : by rw [inf_inf_sdiff, inf_bot_eq])
+
+lemma inf_sdiff_right_comm : x \ z ⊓ y = (x ⊓ y) \ z :=
+by rw [@inf_comm _ _ x, inf_comm, inf_sdiff_assoc]
+
+lemma inf_sdiff_distrib_left (a b c : α) : a ⊓ b \ c = (a ⊓ b) \ (a ⊓ c) :=
+by rw [sdiff_inf, sdiff_eq_bot_iff.2 inf_le_left, bot_sup_eq, inf_sdiff_assoc]
+
+lemma inf_sdiff_distrib_right (a b c : α) : a \ b ⊓ c = (a ⊓ c) \ (b ⊓ c) :=
+by simp_rw [@inf_comm _ _ _ c, inf_sdiff_distrib_left]
+
+lemma sdiff_sup_sdiff_cancel (hyx : y ≤ x) (hzy : z ≤ y) : x \ y ⊔ y \ z = x \ z :=
+by rw [←sup_sdiff_inf (x \ z) y, sdiff_sdiff_left, sup_eq_right.2 hzy, inf_sdiff_right_comm,
+  inf_eq_right.2 hyx]
 
 lemma sup_eq_sdiff_sup_sdiff_sup_inf : x ⊔ y = (x \ y) ⊔ (y \ x) ⊔ (x ⊓ y) :=
 eq.symm $
@@ -752,6 +760,14 @@ end of_core
 section boolean_algebra
 variables [boolean_algebra α]
 
+--TODO@Yaël: Once we have co-Heyting algebras, we won't need to go through `boolean_algebra.of_core`
+instance : boolean_algebra (order_dual α) :=
+boolean_algebra.of_core
+{ compl := λ a, to_dual (of_dual a)ᶜ,
+  inf_compl_le_bot := λ _, sup_compl_eq_top.ge,
+  top_le_sup_compl := λ _, inf_compl_eq_bot.ge,
+  ..order_dual.distrib_lattice α, ..order_dual.bounded_order α }
+
 theorem sdiff_eq : x \ y = x ⊓ yᶜ := boolean_algebra.sdiff_eq x y
 
 @[simp] theorem sdiff_compl : x \ yᶜ = x ⊓ y := by rw [sdiff_eq, compl_compl]
@@ -823,3 +839,48 @@ instance : boolean_algebra bool := boolean_algebra.of_core
   inf_compl_le_bot := λ a, a.band_bnot_self.le,
   top_le_sup_compl := λ a, a.bor_bnot_self.ge,
   ..bool.linear_order, ..bool.bounded_order }
+
+section lift
+
+/-- Pullback a `generalized_boolean_algebra` along an injection. -/
+@[reducible] -- See note [reducible non-instances]
+protected def function.injective.generalized_boolean_algebra [has_sup α] [has_inf α] [has_bot α]
+  [has_sdiff α] [generalized_boolean_algebra β] (f : α → β) (hf : injective f)
+  (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b)
+  (map_bot : f ⊥ = ⊥) (map_sdiff : ∀ a b, f (a \ b) = f a \ f b) :
+  generalized_boolean_algebra α :=
+{ sdiff := (\),
+  bot := ⊥,
+  sup_inf_sdiff := λ a b, hf $ (map_sup _ _).trans begin
+    rw map_sdiff,
+    convert sup_inf_sdiff _ _,
+    exact map_inf _ _,
+  end,
+  inf_inf_sdiff := λ a b, hf $ (map_inf _ _).trans begin
+    rw map_sdiff,
+    convert inf_inf_sdiff _ _,
+    exact map_inf _ _,
+  end,
+  le_sup_inf := λ a b c, (map_inf _ _).le.trans $ by { convert le_sup_inf, exact map_sup _ _,
+    exact map_sup _ _, convert map_sup _ _, exact (map_inf _ _).symm },
+  ..hf.lattice f map_sup map_inf }
+
+/-- Pullback a `boolean_algebra` along an injection. -/
+@[reducible] -- See note [reducible non-instances]
+protected def function.injective.boolean_algebra [has_sup α] [has_inf α] [has_top α] [has_bot α]
+  [has_compl α] [has_sdiff α] [boolean_algebra β] (f : α → β) (hf : injective f)
+  (map_sup : ∀ a b, f (a ⊔ b) = f a ⊔ f b) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊓ f b)
+  (map_top : f ⊤ = ⊤) (map_bot : f ⊥ = ⊥) (map_compl : ∀ a, f aᶜ = (f a)ᶜ)
+  (map_sdiff : ∀ a b, f (a \ b) = f a \ f b) :
+  boolean_algebra α :=
+{ compl := compl,
+  top := ⊤,
+  le_top := λ a, (@le_top β _ _ _).trans map_top.ge,
+  bot_le := λ a, map_bot.le.trans bot_le,
+  inf_compl_le_bot := λ a, ((map_inf _ _).trans $ by rw [map_compl, inf_compl_eq_bot, map_bot]).le,
+  top_le_sup_compl := λ a, ((map_sup _ _).trans $ by rw [map_compl, sup_compl_eq_top, map_top]).ge,
+  sdiff_eq := λ a b, hf $ (map_sdiff _ _).trans $ sdiff_eq.trans $
+    by { convert (map_inf _ _).symm, exact (map_compl _).symm },
+  ..hf.generalized_boolean_algebra f map_sup map_inf map_bot map_sdiff }
+
+end lift

@@ -70,8 +70,9 @@ end
 
 mk_simp_attribute is_R_or_C_simps "Simp attribute for lemmas about `is_R_or_C`"
 
-namespace is_R_or_C
 variables {K : Type*} [is_R_or_C K]
+
+namespace is_R_or_C
 
 open_locale complex_conjugate
 
@@ -234,6 +235,8 @@ begin
   { rintros ⟨r, rfl⟩, apply conj_of_real }
 end
 
+@[simp] lemma star_def : (has_star.star : K → K) = conj := rfl
+
 variables (K)
 /-- Conjugation as a ring equivalence. This is used to convert the inner product into a
 sesquilinear product. -/
@@ -273,15 +276,15 @@ by rw [lt_iff_le_and_ne, ne, eq_comm]; simp [norm_sq_nonneg]
 by simp only [norm_sq_eq_def', norm_neg]
 
 @[simp, is_R_or_C_simps] lemma norm_sq_conj (z : K) : norm_sq (conj z) = norm_sq z :=
-by simp only [norm_sq, neg_mul_eq_neg_mul_symm, monoid_with_zero_hom.coe_mk,
-              mul_neg_eq_neg_mul_symm, neg_neg] with is_R_or_C_simps
+by simp only [norm_sq, neg_mul, monoid_with_zero_hom.coe_mk,
+              mul_neg, neg_neg] with is_R_or_C_simps
 
 @[simp, is_R_or_C_simps] lemma norm_sq_mul (z w : K) : norm_sq (z * w) = norm_sq z * norm_sq w :=
 norm_sq.map_mul z w
 
 lemma norm_sq_add (z w : K) :
   norm_sq (z + w) = norm_sq z + norm_sq w + 2 * (re (z * conj w)) :=
-by { simp only [norm_sq, map_add, monoid_with_zero_hom.coe_mk, mul_neg_eq_neg_mul_symm,
+by { simp only [norm_sq, map_add, monoid_with_zero_hom.coe_mk, mul_neg,
                 sub_neg_eq_add] with is_R_or_C_simps, ring }
 
 lemma re_sq_le_norm_sq (z : K) : re z * re z ≤ norm_sq z :=
@@ -293,7 +296,7 @@ le_add_of_nonneg_left (mul_self_nonneg _)
 theorem mul_conj (z : K) : z * conj z = ((norm_sq z) : K) :=
 by simp only [map_add, add_zero, ext_iff, monoid_with_zero_hom.coe_mk,
               add_left_inj, mul_eq_mul_left_iff, zero_mul, add_comm, true_or, eq_self_iff_true,
-              mul_neg_eq_neg_mul_symm, add_right_neg, zero_add, norm_sq, mul_comm, and_self,
+              mul_neg, add_right_neg, zero_add, norm_sq, mul_comm, and_self,
               neg_neg, mul_zero, sub_eq_neg_add, neg_zero] with is_R_or_C_simps
 
 theorem add_conj (z : K) : z + conj z = 2 * (re z) :=
@@ -324,7 +327,7 @@ by simp only [ext_iff, two_mul, sub_eq_add_neg, add_mul, map_add, add_zero, add_
               with is_R_or_C_simps
 
 lemma norm_sq_sub (z w : K) : norm_sq (z - w) = norm_sq z + norm_sq w - 2 * re (z * conj w) :=
-by simp only [norm_sq_add, sub_eq_add_neg, ring_equiv.map_neg, mul_neg_eq_neg_mul_symm,
+by simp only [norm_sq_add, sub_eq_add_neg, ring_equiv.map_neg, mul_neg,
               norm_sq_neg, map_neg]
 
 lemma sqrt_norm_sq_eq_norm {z : K} : real.sqrt (norm_sq z) = ∥z∥ :=
@@ -362,11 +365,14 @@ by rw [inv_def, ←mul_assoc, mul_conj, ←of_real_mul, ←norm_sq_eq_def',
       mul_inv_cancel (mt norm_sq_eq_zero.1 h), of_real_one]
 
 lemma div_re (z w : K) : re (z / w) = re z * re w / norm_sq w + im z * im w / norm_sq w :=
-by simp only [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, neg_mul_eq_neg_mul_symm,
-              mul_neg_eq_neg_mul_symm, neg_neg, map_neg] with is_R_or_C_simps
+by simp only [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, neg_mul,
+              mul_neg, neg_neg, map_neg] with is_R_or_C_simps
 lemma div_im (z w : K) : im (z / w) = im z * re w / norm_sq w - re z * im w / norm_sq w :=
-by simp only [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm, neg_mul_eq_neg_mul_symm,
-              mul_neg_eq_neg_mul_symm, map_neg] with is_R_or_C_simps
+by simp only [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm, neg_mul,
+              mul_neg, map_neg] with is_R_or_C_simps
+
+@[simp, is_R_or_C_simps]
+lemma conj_inv (x : K) : conj (x⁻¹) = (conj x)⁻¹ := star_inv' _
 
 @[simp, norm_cast, is_R_or_C_simps, priority 900] lemma of_real_div (r s : ℝ) :
   ((r / s : ℝ) : K) = r / s :=
@@ -408,7 +414,7 @@ by field_simp
 by simp only [←sqrt_norm_sq_eq_norm, norm_sq_conj]
 
 @[priority 100] instance : cstar_ring K :=
-{ norm_star_mul_self := λ x, (normed_field.norm_mul _ _).trans $ congr_arg (* ∥x∥) norm_conj }
+{ norm_star_mul_self := λ x, (norm_mul _ _).trans $ congr_arg (* ∥x∥) norm_conj }
 
 /-! ### Cast lemmas -/
 
@@ -445,29 +451,20 @@ by rw [← of_real_rat_cast, of_real_re]
 by rw [← of_real_rat_cast, of_real_im]
 
 /-! ### Characteristic zero -/
-
--- TODO: I think this can be instance, because it is a `Prop`
-
-/--
-ℝ and ℂ are both of characteristic zero.
-
-Note: This is not registered as an instance to avoid having multiple instances on ℝ and ℂ.
--/
-lemma char_zero_R_or_C : char_zero K :=
+/-- ℝ and ℂ are both of characteristic zero.  -/
+@[priority 100] -- see Note [lower instance priority]
+instance char_zero_R_or_C : char_zero K :=
 char_zero_of_inj_zero $ λ n h,
 by rwa [← of_real_nat_cast, of_real_eq_zero, nat.cast_eq_zero] at h
 
 theorem re_eq_add_conj (z : K) : ↑(re z) = (z + conj z) / 2 :=
-begin
-  haveI : char_zero K := char_zero_R_or_C,
-  rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero'],
-end
+by rw [add_conj, mul_div_cancel_left ((re z):K) two_ne_zero']
 
 theorem im_eq_conj_sub (z : K) : ↑(im z) = I * (conj z - z) / 2 :=
 begin
   rw [← neg_inj, ← of_real_neg, ← I_mul_re, re_eq_add_conj],
-  simp only [mul_add, sub_eq_add_neg, neg_div', neg_mul_eq_neg_mul_symm, conj_I,
-             mul_neg_eq_neg_mul_symm, neg_add_rev, neg_neg, ring_hom.map_mul]
+  simp only [mul_add, sub_eq_add_neg, neg_div', neg_mul, conj_I,
+             mul_neg, neg_add_rev, neg_neg, ring_hom.map_mul]
 end
 
 /-! ### Absolute value -/
@@ -621,9 +618,9 @@ by simp only [sq, ←norm_sq_eq_abs, norm_sq, map_add, add_zero, monoid_with_zer
 lemma conj_mul_eq_norm_sq_left (x : K) : conj x * x = ((norm_sq x) : K) :=
 begin
   rw ext_iff,
-  refine ⟨by simp only [norm_sq, neg_mul_eq_neg_mul_symm, monoid_with_zero_hom.coe_mk,
+  refine ⟨by simp only [norm_sq, neg_mul, monoid_with_zero_hom.coe_mk,
                         sub_neg_eq_add, map_add, sub_zero, mul_zero] with is_R_or_C_simps, _⟩,
-  simp only [mul_comm, mul_neg_eq_neg_mul_symm, add_left_neg] with is_R_or_C_simps
+  simp only [mul_comm, mul_neg, add_left_neg] with is_R_or_C_simps
 end
 
 /-! ### Cauchy sequences -/
@@ -671,8 +668,16 @@ ring_hom.map_finsupp_prod _ f g
 
 end is_R_or_C
 
+namespace polynomial
+
+open_locale polynomial
+
+lemma of_real_eval (p : ℝ[X]) (x : ℝ) : (p.eval x : K) = aeval ↑x p :=
+(@aeval_algebra_map_apply ℝ K _ _ _ x p).symm
+
+end polynomial
+
 namespace finite_dimensional
-variables {K : Type*} [is_R_or_C K]
 
 open_locale classical
 open is_R_or_C
@@ -709,8 +714,9 @@ end
 
 variable {E}
 
-instance is_R_or_C.proper_space_span_singleton (x : E) : proper_space (K ∙ x) :=
-proper_is_R_or_C K (K ∙ x)
+instance is_R_or_C.proper_space_submodule (S : submodule K E) [finite_dimensional K ↥S] :
+  proper_space S :=
+proper_is_R_or_C K S
 
 end finite_dimensional
 
@@ -769,10 +775,8 @@ end cleanup_lemmas
 
 section linear_maps
 
-variables {K : Type*} [is_R_or_C K]
-
 /-- The real part in a `is_R_or_C` field, as a linear map. -/
-noncomputable def re_lm : K →ₗ[ℝ] ℝ :=
+def re_lm : K →ₗ[ℝ] ℝ :=
 { map_smul' := smul_re,  .. re }
 
 @[simp, is_R_or_C_simps] lemma re_lm_coe : (re_lm : K → ℝ) = re := rfl
@@ -798,7 +802,7 @@ end
 @[continuity] lemma continuous_re : continuous (re : K → ℝ) := re_clm.continuous
 
 /-- The imaginary part in a `is_R_or_C` field, as a linear map. -/
-noncomputable def im_lm : K →ₗ[ℝ] ℝ :=
+def im_lm : K →ₗ[ℝ] ℝ :=
 { map_smul' := smul_im,  .. im }
 
 @[simp, is_R_or_C_simps] lemma im_lm_coe : (im_lm : K → ℝ) = im := rfl
@@ -816,7 +820,7 @@ linear_map.mk_continuous im_lm 1 $ by
 @[continuity] lemma continuous_im : continuous (im : K → ℝ) := im_clm.continuous
 
 /-- Conjugate as an `ℝ`-algebra equivalence -/
-noncomputable def conj_ae : K ≃ₐ[ℝ] K :=
+def conj_ae : K ≃ₐ[ℝ] K :=
 { inv_fun := conj,
   left_inv := conj_conj,
   right_inv := conj_conj,

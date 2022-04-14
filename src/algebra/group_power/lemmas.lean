@@ -32,10 +32,6 @@ begin
   { simp }
 end
 
-@[simp, norm_cast, to_additive]
-lemma units.coe_pow (u : Mˣ) (n : ℕ) : ((u ^ n : Mˣ) : M) = u ^ n :=
-(units.coe_hom M).map_pow u n
-
 instance invertible_pow (m : M) [invertible m] (n : ℕ) : invertible (m ^ n) :=
 { inv_of := ⅟ m ^ n,
   inv_of_mul_self := by rw [← (commute_inv_of m).symm.mul_pow, inv_of_mul_self, one_pow],
@@ -170,10 +166,6 @@ theorem zpow_bit0 (a : G) (n : ℤ) : a ^ bit0 n = a ^ n * a ^ n := zpow_add _ _
 @[to_additive bit1_zsmul]
 theorem zpow_bit1 (a : G) (n : ℤ) : a ^ bit1 n = a ^ n * a ^ n * a :=
 by rw [bit1, zpow_add, zpow_bit0, zpow_one]
-
-@[simp, norm_cast, to_additive]
-lemma units.coe_zpow (u : Gˣ) (n : ℤ) : ((u ^ n : Gˣ) : G) = u ^ n :=
-(units.coe_hom G).map_zpow u n
 
 end group
 
@@ -343,18 +335,28 @@ end linear_ordered_add_comm_group
   ((n • a : A) : with_bot A) = n • a :=
 add_monoid_hom.map_nsmul ⟨(coe : A → with_bot A), with_bot.coe_zero, with_bot.coe_add⟩ a n
 
-theorem nsmul_eq_mul' [semiring R] (a : R) (n : ℕ) : n • a = a * n :=
+theorem nsmul_eq_mul' [non_assoc_semiring R] (a : R) (n : ℕ) : n • a = a * n :=
 by induction n with n ih; [rw [zero_nsmul, nat.cast_zero, mul_zero],
   rw [succ_nsmul', ih, nat.cast_succ, mul_add, mul_one]]
 
-@[simp] theorem nsmul_eq_mul [semiring R] (n : ℕ) (a : R) : n • a = n * a :=
+@[simp] theorem nsmul_eq_mul [non_assoc_semiring R] (n : ℕ) (a : R) : n • a = n * a :=
 by rw [nsmul_eq_mul', (n.cast_commute a).eq]
 
-theorem mul_nsmul_left [semiring R] (a b : R) (n : ℕ) : n • (a * b) = a * (n • b) :=
-by rw [nsmul_eq_mul', nsmul_eq_mul', mul_assoc]
+/-- Note that `add_comm_monoid.nat_smul_comm_class` requires stronger assumptions on `R`. -/
+instance non_unital_non_assoc_semiring.nat_smul_comm_class [non_unital_non_assoc_semiring R] :
+  smul_comm_class ℕ R R :=
+⟨λ n x y, match n with
+  | 0 := by simp_rw [zero_nsmul, smul_eq_mul, mul_zero]
+  | (n + 1) := by simp_rw [succ_nsmul, smul_eq_mul, mul_add, ←smul_eq_mul, _match n]
+  end⟩
 
-theorem mul_nsmul_assoc [semiring R] (a b : R) (n : ℕ) : n • (a * b) = n • a * b :=
-by rw [nsmul_eq_mul, nsmul_eq_mul, mul_assoc]
+/-- Note that `add_comm_monoid.nat_is_scalar_tower` requires stronger assumptions on `R`. -/
+instance non_unital_non_assoc_semiring.nat_is_scalar_tower [non_unital_non_assoc_semiring R] :
+  is_scalar_tower ℕ R R :=
+⟨λ n x y, match n with
+  | 0 := by simp_rw [zero_nsmul, smul_eq_mul, zero_mul]
+  | (n + 1) := by simp_rw [succ_nsmul, ←_match n, smul_eq_mul, add_mul]
+  end⟩
 
 @[simp, norm_cast] theorem nat.cast_pow [semiring R] (n m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 begin
@@ -372,30 +374,40 @@ by induction k with k ih; [refl, rw [pow_succ', int.nat_abs_mul, pow_succ', ih]]
 -- The next four lemmas allow us to replace multiplication by a numeral with a `zsmul` expression.
 -- They are used by the `noncomm_ring` tactic, to normalise expressions before passing to `abel`.
 
-lemma bit0_mul [ring R] {n r : R} : bit0 n * r = (2 : ℤ) • (n * r) :=
+lemma bit0_mul [non_unital_non_assoc_ring R] {n r : R} : bit0 n * r = (2 : ℤ) • (n * r) :=
 by { dsimp [bit0], rw [add_mul, add_zsmul, one_zsmul], }
 
-lemma mul_bit0 [ring R] {n r : R} : r * bit0 n = (2 : ℤ) • (r * n) :=
+lemma mul_bit0 [non_unital_non_assoc_ring R] {n r : R} : r * bit0 n = (2 : ℤ) • (r * n) :=
 by { dsimp [bit0], rw [mul_add, add_zsmul, one_zsmul], }
 
-lemma bit1_mul [ring R] {n r : R} : bit1 n * r = (2 : ℤ) • (n * r) + r :=
+lemma bit1_mul [non_assoc_ring R] {n r : R} : bit1 n * r = (2 : ℤ) • (n * r) + r :=
 by { dsimp [bit1], rw [add_mul, bit0_mul, one_mul], }
 
-lemma mul_bit1 [ring R] {n r : R} : r * bit1 n = (2 : ℤ) • (r * n) + r :=
+lemma mul_bit1 [non_assoc_ring R] {n r : R} : r * bit1 n = (2 : ℤ) • (r * n) + r :=
 by { dsimp [bit1], rw [mul_add, mul_bit0, mul_one], }
 
-@[simp] theorem zsmul_eq_mul [ring R] (a : R) : ∀ (n : ℤ), n • a = n * a
+@[simp] theorem zsmul_eq_mul [non_assoc_ring R] (a : R) : ∀ (n : ℤ), n • a = n * a
 | (n : ℕ) := by { rw [coe_nat_zsmul, nsmul_eq_mul], refl }
 | -[1+ n] := by simp [nat.cast_succ, neg_add_rev, int.cast_neg_succ_of_nat, add_mul]
 
 theorem zsmul_eq_mul' [ring R] (a : R) (n : ℤ) : n • a = a * n :=
 by rw [zsmul_eq_mul, (n.cast_commute a).eq]
 
-theorem mul_zsmul_left [ring R] (a b : R) (n : ℤ) : n • (a * b) = a * (n • b) :=
-by rw [zsmul_eq_mul', zsmul_eq_mul', mul_assoc]
+/-- Note that `add_comm_group.int_smul_comm_class` requires stronger assumptions on `R`. -/
+instance non_unital_non_assoc_ring.int_smul_comm_class [non_unital_non_assoc_ring R] :
+  smul_comm_class ℤ R R :=
+⟨λ n x y, match n with
+  | (n : ℕ) := by simp_rw [coe_nat_zsmul, smul_comm]
+  | -[1+n]  := by simp_rw [zsmul_neg_succ_of_nat, smul_eq_mul, mul_neg, mul_smul_comm]
+  end⟩
 
-theorem mul_zsmul_assoc [ring R] (a b : R) (n : ℤ) : n • (a * b) = n • a * b :=
-by rw [zsmul_eq_mul, zsmul_eq_mul, mul_assoc]
+/-- Note that `add_comm_group.int_is_scalar_tower` requires stronger assumptions on `R`. -/
+instance non_unital_non_assoc_ring.int_is_scalar_tower [non_unital_non_assoc_ring R] :
+  is_scalar_tower ℤ R R :=
+⟨λ n x y, match n with
+  | (n : ℕ) := by simp_rw [coe_nat_zsmul, smul_assoc]
+  | -[1+n]  := by simp_rw [zsmul_neg_succ_of_nat, smul_eq_mul, neg_mul, smul_mul_assoc]
+  end⟩
 
 lemma zsmul_int_int (a b : ℤ) : a • b = a * b := by simp
 
@@ -485,41 +497,6 @@ by simp only [le_iff_lt_or_eq, pow_bit1_neg_iff, pow_eq_zero_iff (bit1_pos (zero
 @[simp] theorem pow_bit1_pos_iff : 0 < a ^ bit1 n ↔ 0 < a :=
 lt_iff_lt_of_le_iff_le pow_bit1_nonpos_iff
 
-lemma even.pow_nonneg (hn : even n) (a : R) : 0 ≤ a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_nonneg a k
-
-lemma even.pow_pos (hn : even n) (ha : a ≠ 0) : 0 < a ^ n :=
-by cases hn with k hk; simpa only [hk, two_mul] using pow_bit0_pos ha k
-
-lemma odd.pow_nonpos (hn : odd n) (ha : a ≤ 0) : a ^ n ≤ 0:=
-by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_nonpos_iff.mpr ha
-
-lemma odd.pow_neg (hn : odd n) (ha : a < 0) : a ^ n < 0:=
-by cases hn with k hk; simpa only [hk, two_mul] using pow_bit1_neg_iff.mpr ha
-
-lemma odd.pow_nonneg_iff (hn : odd n) : 0 ≤ a ^ n ↔ 0 ≤ a :=
-⟨λ h, le_of_not_lt (λ ha, h.not_lt $ hn.pow_neg ha), λ ha, pow_nonneg ha n⟩
-
-lemma odd.pow_nonpos_iff (hn : odd n) : a ^ n ≤ 0 ↔ a ≤ 0 :=
-⟨λ h, le_of_not_lt (λ ha, h.not_lt $ pow_pos ha _), hn.pow_nonpos⟩
-
-lemma odd.pow_pos_iff (hn : odd n) : 0 < a ^ n ↔ 0 < a :=
-⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ hn.pow_nonpos ha), λ ha, pow_pos ha n⟩
-
-lemma odd.pow_neg_iff (hn : odd n) : a ^ n < 0 ↔ a < 0 :=
-⟨λ h, lt_of_not_ge' (λ ha, h.not_le $ pow_nonneg ha _), hn.pow_neg⟩
-
-lemma even.pow_pos_iff (hn : even n) (h₀ : 0 < n) : 0 < a ^ n ↔ a ≠ 0 :=
-⟨λ h ha, by { rw [ha, zero_pow h₀] at h, exact lt_irrefl 0 h }, hn.pow_pos⟩
-
-lemma even.pow_abs {p : ℕ} (hp : even p) (a : R) : |a| ^ p = a ^ p :=
-begin
-  rw [←abs_pow, abs_eq_self],
-  exact hp.pow_nonneg _
-end
-
-@[simp] lemma pow_bit0_abs (a : R) (p : ℕ) : |a| ^ bit0 p = a ^ bit0 p := (even_bit0 _).pow_abs _
-
 lemma strict_mono_pow_bit1 (n : ℕ) : strict_mono (λ a : R, a ^ bit1 n) :=
 begin
   intros a b hab,
@@ -530,9 +507,6 @@ begin
     { exact (pow_bit1_nonpos_iff.2 ha).trans_lt (pow_bit1_pos_iff.2 hb) } },
   { exact pow_lt_pow_of_lt_left hab ha (bit1_pos (zero_le n)) }
 end
-
-lemma odd.strict_mono_pow (hn : odd n) : strict_mono (λ a : R, a ^ n) :=
-by cases hn with k hk; simpa only [hk, two_mul] using strict_mono_pow_bit1 _
 
 /-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/
 theorem one_add_mul_le_pow (H : -2 ≤ a) (n : ℕ) : 1 + (n : R) * a ≤ (1 + a) ^ n :=

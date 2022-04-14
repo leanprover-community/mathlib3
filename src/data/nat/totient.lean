@@ -49,8 +49,8 @@ calc totient n ≤ ((range n).filter (≠ 0)).card :
     intros n1 hn1 hn1',
     simpa only [hn1', coprime_zero_right, hn.ne'] using hn1,
   end
-... = n - 1 : by simp only [filter_ne' (range n) 0, card_erase_of_mem, n.pred_eq_sub_one,
-                card_range, pos_of_gt hn, mem_range]
+... = n - 1
+    : by simp only [filter_ne' (range n) 0, card_erase_of_mem, card_range, pos_of_gt hn, mem_range]
 ... < n : nat.sub_lt (pos_of_gt hn) zero_lt_one
 
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
@@ -287,5 +287,58 @@ end
 
 @[simp] lemma totient_two : φ 2 = 1 :=
 (totient_prime prime_two).trans (by norm_num)
+
+/-! ### Euler's product formula for the totient function
+
+We prove several different statements of this formula. -/
+
+/-- Euler's product formula for the totient function. -/
+theorem totient_eq_prod_factorization {n : ℕ} (hn : n ≠ 0) :
+  φ n = n.factorization.prod (λ p k, p ^ (k - 1) * (p - 1)) :=
+begin
+  rw multiplicative_factorization φ @totient_mul totient_one hn,
+  apply finsupp.prod_congr (λ p hp, _),
+  have h := zero_lt_iff.mpr (finsupp.mem_support_iff.mp hp),
+  rw [totient_prime_pow (prime_of_mem_factorization hp) h],
+end
+
+/-- Euler's product formula for the totient function. -/
+theorem totient_mul_prod_factors (n : ℕ) :
+  φ n * ∏ p in n.factors.to_finset, p = n * ∏ p in n.factors.to_finset, (p - 1) :=
+begin
+  by_cases hn : n = 0, { simp [hn] },
+  rw totient_eq_prod_factorization hn,
+  nth_rewrite 2 ←factorization_prod_pow_eq_self hn,
+  simp only [←prod_factorization_eq_prod_factors, ←finsupp.prod_mul],
+  refine finsupp.prod_congr (λ p hp, _),
+  rw [finsupp.mem_support_iff, ← zero_lt_iff] at hp,
+  rw [mul_comm, ←mul_assoc, ←pow_succ, nat.sub_add_cancel hp],
+end
+
+/-- Euler's product formula for the totient function. -/
+theorem totient_eq_div_factors_mul (n : ℕ) :
+  φ n = n / (∏ p in n.factors.to_finset, p) * (∏ p in n.factors.to_finset, (p - 1)) :=
+begin
+  rw [← mul_div_left n.totient, totient_mul_prod_factors, mul_comm,
+      nat.mul_div_assoc _ (prod_prime_factors_dvd n), mul_comm],
+  simpa [prod_factorization_eq_prod_factors] using prod_pos (λ p, pos_of_mem_factorization),
+end
+
+/-- Euler's product formula for the totient function. -/
+theorem totient_eq_mul_prod_factors (n : ℕ) :
+  (φ n : ℚ) = n * ∏ p in n.factors.to_finset, (1 - p⁻¹) :=
+begin
+  by_cases hn : n = 0, { simp [hn] },
+  have hn' : (n : ℚ) ≠ 0, { simp [hn] },
+  have hpQ : ∏ p in n.factors.to_finset, (p : ℚ) ≠ 0,
+  { rw [←cast_prod, cast_ne_zero, ←zero_lt_iff, ←prod_factorization_eq_prod_factors],
+    exact prod_pos (λ p hp, pos_of_mem_factorization hp) },
+  simp only [totient_eq_div_factors_mul n, prod_prime_factors_dvd n, cast_mul, cast_prod,
+      cast_dvd_char_zero, mul_comm_div', mul_right_inj' hn', div_eq_iff hpQ, ←prod_mul_distrib],
+  refine prod_congr rfl (λ p hp, _),
+  have hp := pos_of_mem_factors (list.mem_to_finset.mp hp),
+  have hp' : (p : ℚ) ≠ 0 := cast_ne_zero.mpr hp.ne.symm,
+  rw [sub_mul, one_mul, mul_comm, mul_inv_cancel hp', cast_pred hp],
+end
 
 end nat

@@ -29,8 +29,7 @@ namespace measure_theory
 namespace L2
 
 variables {α E F 𝕜 : Type*} [is_R_or_C 𝕜] [measurable_space α] {μ : measure α}
-  [measurable_space E] [inner_product_space 𝕜 E] [borel_space E] [second_countable_topology E]
-  [normed_group F] [measurable_space F] [borel_space F] [second_countable_topology F]
+  [inner_product_space 𝕜 E] [normed_group F]
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 _ _ x y
 
@@ -53,8 +52,8 @@ begin
     ring, },
   simp_rw [← is_R_or_C.norm_eq_abs, ← real.rpow_nat_cast] at h',
   refine (snorm_mono_ae (ae_of_all _ h')).trans_lt ((snorm_add_le _ _ le_rfl).trans_lt _),
-  { exact (Lp.ae_measurable f).norm.pow_const _ },
-  { exact (Lp.ae_measurable g).norm.pow_const _ },
+  { exact ((Lp.ae_strongly_measurable f).norm.ae_measurable.pow_const _).ae_strongly_measurable },
+  { exact ((Lp.ae_strongly_measurable g).norm.ae_measurable.pow_const _).ae_strongly_measurable },
   simp only [nat.cast_bit0, ennreal.add_lt_top, nat.cast_one],
   exact ⟨snorm_rpow_two_norm_lt_top f, snorm_rpow_two_norm_lt_top g⟩,
 end
@@ -74,8 +73,9 @@ begin
   simp_rw inner_self_eq_norm_sq_to_K,
   norm_cast,
   rw integral_eq_lintegral_of_nonneg_ae,
-  swap, { exact filter.eventually_of_forall (λ x, sq_nonneg _), },
-  swap, { exact (Lp.ae_measurable f).norm.pow_const _ },
+  rotate,
+  { exact filter.eventually_of_forall (λ x, sq_nonneg _), },
+  { exact ((Lp.ae_strongly_measurable f).norm.ae_measurable.pow_const _).ae_strongly_measurable },
   congr,
   ext1 x,
   have h_two : (2 : ℝ) = ((2 : ℕ) : ℝ), by simp,
@@ -98,12 +98,13 @@ begin
 end
 
 lemma mem_L1_inner (f g : α →₂[μ] E) :
-  ae_eq_fun.mk (λ x, ⟪f x, g x⟫) ((Lp.ae_measurable f).inner (Lp.ae_measurable g)) ∈ Lp 𝕜 1 μ :=
+  ae_eq_fun.mk (λ x, ⟪f x, g x⟫)
+    ((Lp.ae_strongly_measurable f).inner (Lp.ae_strongly_measurable g)) ∈ Lp 𝕜 1 μ :=
 by { simp_rw [mem_Lp_iff_snorm_lt_top, snorm_ae_eq_fun], exact snorm_inner_lt_top f g, }
 
 lemma integrable_inner (f g : α →₂[μ] E) : integrable (λ x : α, ⟪f x, g x⟫) μ :=
 (integrable_congr (ae_eq_fun.coe_fn_mk (λ x, ⟪f x, g x⟫)
-    ((Lp.ae_measurable f).inner (Lp.ae_measurable g)))).mp
+    ((Lp.ae_strongly_measurable f).inner (Lp.ae_strongly_measurable g)))).mp
   (ae_eq_fun.integrable_iff_mem_L1.mpr (mem_L1_inner f g))
 
 private lemma add_left' (f f' g : α →₂[μ] E) : ⟪f + f', g⟫ = inner f g + inner f' g :=
@@ -195,8 +196,6 @@ variables {α : Type*} [topological_space α] [measure_space α] [borel_space α
 variables (μ : measure α) [is_finite_measure μ]
 
 open_locale bounded_continuous_function complex_conjugate
-
-local attribute [instance] fact_one_le_two_ennreal
 
 local notation `⟪`x`, `y`⟫` := @inner 𝕜 (α →₂[μ] 𝕜) _ x y
 

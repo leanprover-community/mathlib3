@@ -345,11 +345,11 @@ begin
       have A1 : min (f z) (f x) ∈ u,
       { by_cases H : f z ≤ f x,
         { simp [H], exact h₁ ⟨h₁z, H⟩ },
-        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_refl _⟩, } },
+        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_rfl⟩, } },
       have A2 : min (g z) (g x) ∈ v,
       { by_cases H : g z ≤ g x,
         { simp [H], exact h₂ ⟨h₂z, H⟩ },
-        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_refl _⟩, } },
+        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_rfl⟩, } },
       have : (min (f z) (f x), min (g z) (g x)) ∈ u ×ˢ v := ⟨A1, A2⟩,
       calc y < min (f z) (f x) + min (g z) (g x) : h this
       ... ≤ f z + g z : add_le_add (min_le_left _ _) (min_le_left _ _) },
@@ -358,7 +358,7 @@ begin
       have A1 : min (f z) (f x) ∈ u,
       { by_cases H : f z ≤ f x,
         { simp [H], exact h₁ ⟨h₁z, H⟩ },
-        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_refl _⟩, } },
+        { simp [le_of_not_le H], exact h₁ ⟨z₁lt, le_rfl⟩, } },
       have : (min (f z) (f x), g x) ∈ u ×ˢ v := ⟨A1, xv⟩,
       calc y < min (f z) (f x) + g x : h this
       ... ≤ f z + g z : add_le_add (min_le_left _ _) (hx₂ (g z)) } },
@@ -370,7 +370,7 @@ begin
       have A2 : min (g z) (g x) ∈ v,
       { by_cases H : g z ≤ g x,
         { simp [H], exact h₂ ⟨h₂z, H⟩ },
-        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_refl _⟩, } },
+        { simp [le_of_not_le H], exact h₂ ⟨z₂lt, le_rfl⟩, } },
       have : (f x, min (g z) (g x)) ∈ u ×ˢ v := ⟨xu, A2⟩,
       calc y < f x + min (g z) (g x) : h this
       ... ≤ f z + g z : add_le_add (hx₁ (f z)) (min_le_left _ _) },

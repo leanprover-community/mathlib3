@@ -53,11 +53,12 @@ noncomputable theory
 namespace polynomial.chebyshev
 
 open polynomial
+open_locale polynomial
 
 variables (R S : Type*) [comm_ring R] [comm_ring S]
 
 /-- `T n` is the `n`-th Chebyshev polynomial of the first kind -/
-noncomputable def T : ℕ → polynomial R
+noncomputable def T : ℕ → R[X]
 | 0       := 1
 | 1       := X
 | (n + 2) := 2 * X * T (n + 1) - T n
@@ -94,7 +95,7 @@ end
 variables (R S)
 
 /-- `U n` is the `n`-th Chebyshev polynomial of the second kind -/
-noncomputable def U : ℕ → polynomial R
+noncomputable def U : ℕ → R[X]
 | 0       := 1
 | 1       := 2 * X
 | (n + 2) := 2 * X * U (n + 1) - U n
@@ -198,7 +199,7 @@ lemma one_sub_X_sq_mul_derivative_T_eq_poly_in_T (n : ℕ) :
   ... = (n + 1) * (T R n - X * T R (n+1)) : by ring
 
 lemma add_one_mul_T_eq_poly_in_U (n : ℕ) :
-  ((n : polynomial R) + 1) * T R (n+1) =
+  ((n : R[X]) + 1) * T R (n+1) =
     X * U R n - (1 - X ^ 2) * derivative ( U R n) :=
 begin
   have h : derivative (T R (n + 2)) = (U R (n + 1) - X * U R n) + X * derivative (T R (n + 1))
@@ -208,8 +209,8 @@ begin
   one_mul, T_derivative_eq_U],
   rw [T_eq_U_sub_X_mul_U, nat.cast_bit0, nat.cast_one],
   ring },
-  calc ((n : polynomial R) + 1) * T R (n + 1)
-      = ((n : polynomial R) + 1 + 1) * (X * U R n + T R (n + 1))
+  calc ((n : R[X]) + 1) * T R (n + 1)
+      = ((n : R[X]) + 1 + 1) * (X * U R n + T R (n + 1))
         - X * ((n + 1) * U R n) - (X * U R n + T R (n + 1)) : by ring
   ... = derivative (T R (n + 2)) - X * derivative (T R (n + 1)) - U R (n + 1) :
             by rw [←U_eq_X_mul_U_add_T, ←T_derivative_eq_U, ←nat.cast_one, ←nat.cast_add,

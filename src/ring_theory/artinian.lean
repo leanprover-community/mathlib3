@@ -178,7 +178,7 @@ begin
       set.image_subset_image_iff (subtype.coe_injective.comp f.injective),
       set.subset_def],
     simp only [set.mem_set_of_eq],
-    exact ⟨λ hab x, le_trans hab, λ h, (h _ (le_refl _))⟩ },
+    exact ⟨λ hab x, le_trans hab, λ h, (h _ le_rfl)⟩ },
   exact ⟨⟨λ n, span R ((coe ∘ f) '' {m | n ≤ m}),
       λ x y, by simp [le_antisymm_iff, (this _ _).symm] {contextual := tt}⟩,
     begin
@@ -425,7 +425,7 @@ begin
   have : ideal.span {x} * Jac ^ (n + 1) ≤ ⊥,
     calc ideal.span {x} * Jac ^ (n + 1) = ideal.span {x} * Jac * Jac ^ n :
       by rw [pow_succ, ← mul_assoc]
-    ... ≤ J * Jac ^ n : mul_le_mul (by rwa mul_comm) (le_refl _)
+    ... ≤ J * Jac ^ n : mul_le_mul (by rwa mul_comm) le_rfl
     ... = ⊥ : by simp [J],
   refine hxJ (mem_annihilator.2 (λ y hy, (mem_bot R).1 _)),
   refine this (mul_mem_mul (mem_span_singleton_self x) _),

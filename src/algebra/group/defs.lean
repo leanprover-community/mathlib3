@@ -43,7 +43,7 @@ class has_vadd (G : Type*) (P : Type*) := (vadd : G → P → P)
 class has_vsub (G : out_param Type*) (P : Type*) := (vsub : P → P → G)
 
 /-- Typeclass for types with a scalar multiplication operation, denoted `•` (`\bu`) -/
-@[to_additive has_vadd]
+@[ext, to_additive has_vadd]
 class has_scalar (M : Type*) (α : Type*) := (smul : M → α → α)
 
 infix ` +ᵥ `:65 := has_vadd.vadd
@@ -595,6 +595,33 @@ lemma div_eq_mul_inv {G : Type u} [div_inv_monoid G] :
   ∀ a b : G, a / b = a * b⁻¹ :=
 div_inv_monoid.div_eq_mul_inv
 
+section
+-- ensure that we don't go via these typeclasses to find `has_inv` on groups and groups with zero
+set_option extends_priority 50
+
+/-- Auxiliary typeclass for types with an involutive `has_inv`. -/
+@[ancestor has_inv]
+class has_involutive_inv (G : Type*) extends has_inv G :=
+(inv_inv : ∀ x : G, x⁻¹⁻¹ = x)
+
+/-- Auxiliary typeclass for types with an involutive `has_neg`. -/
+@[ancestor has_neg]
+class has_involutive_neg (A : Type*) extends has_neg A :=
+(neg_neg : ∀ x : A, - -x = x)
+
+attribute [to_additive] has_involutive_inv
+
+end
+
+section has_involutive_inv
+variables {G : Type*} [has_involutive_inv G]
+
+@[simp, to_additive]
+lemma inv_inv (a : G) : (a⁻¹)⁻¹ = a :=
+has_involutive_inv.inv_inv _
+
+end has_involutive_inv
+
 /-- A `group` is a `monoid` with an operation `⁻¹` satisfying `a⁻¹ * a = 1`.
 
 There is also a division operation `/` such that `a / b = a * b⁻¹`,
@@ -646,9 +673,10 @@ by rw [← mul_assoc, mul_left_inv, one_mul]
 lemma inv_eq_of_mul_eq_one (h : a * b = 1) : a⁻¹ = b :=
 left_inv_eq_right_inv (inv_mul_self a) h
 
-@[simp, to_additive]
-lemma inv_inv (a : G) : (a⁻¹)⁻¹ = a :=
-inv_eq_of_mul_eq_one (mul_left_inv a)
+@[priority 100, to_additive]
+instance group.to_has_involutive_inv : has_involutive_inv G :=
+{ inv := has_inv.inv,
+  inv_inv := λ a, inv_eq_of_mul_eq_one (mul_left_inv a) }
 
 @[simp, to_additive]
 lemma mul_right_inv (a : G) : a * a⁻¹ = 1 :=

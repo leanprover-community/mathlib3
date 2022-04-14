@@ -129,24 +129,6 @@ instance : has_zero_morphisms (C ⥤ D) :=
 
 @[simp] lemma zero_app (F G : C ⥤ D) (j : C) : (0 : F ⟶ G).app j = 0 := rfl
 
-variables [has_zero_morphisms C]
-
-lemma equivalence_preserves_zero_morphisms (F : C ≌ D) (X Y : C) :
-  F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=
-begin
-  have t : F.functor.map (0 : X ⟶ Y) =
-    F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
-  { apply faithful.map_injective (F.inverse),
-    rw [functor.map_comp, equivalence.inv_fun_map],
-    dsimp,
-    rw [zero_comp, comp_zero, zero_comp], },
-  exact t.trans (by simp)
-end
-
-@[simp] lemma is_equivalence_preserves_zero_morphisms (F : C ⥤ D) [is_equivalence F] (X Y : C) :
-  F.map (0 : X ⟶ Y) = 0 :=
-by rw [←functor.as_equivalence_functor F, equivalence_preserves_zero_morphisms]
-
 end
 
 variables (C)
@@ -224,6 +206,55 @@ has_initial_of_unique 0
 @[priority 10]
 instance has_terminal : has_terminal C :=
 has_terminal_of_unique 0
+
+/-- The (unique) isomorphism between any initial object and the zero object. -/
+def zero_iso_is_initial {X : C} (t : is_initial X) : 0 ≅ X :=
+zero_is_initial.unique_up_to_iso t
+
+/-- The (unique) isomorphism between any terminal object and the zero object. -/
+def zero_iso_is_terminal {X : C} (t : is_terminal X) : 0 ≅ X :=
+zero_is_terminal.unique_up_to_iso t
+
+/-- The (unique) isomorphism between the chosen initial object and the chosen zero object. -/
+def zero_iso_initial [has_initial C] : 0 ≅ ⊥_ C :=
+zero_is_initial.unique_up_to_iso initial_is_initial
+
+/-- The (unique) isomorphism between the chosen terminal object and the chosen zero object. -/
+def zero_iso_terminal [has_terminal C] : 0 ≅ ⊤_ C :=
+zero_is_terminal.unique_up_to_iso terminal_is_terminal
+
+section has_zero_morphisms
+variables [has_zero_morphisms C]
+
+@[simp] lemma zero_iso_is_initial_hom {X : C} (t : is_initial X) :
+  (zero_iso_is_initial t).hom = 0 :=
+by ext
+
+@[simp] lemma zero_iso_is_initial_inv {X : C} (t : is_initial X) :
+  (zero_iso_is_initial t).inv = 0 :=
+by ext
+
+@[simp] lemma zero_iso_is_terminal_hom {X : C} (t : is_terminal X) :
+  (zero_iso_is_terminal t).hom = 0 :=
+by ext
+
+@[simp] lemma zero_iso_is_terminal_inv {X : C} (t : is_terminal X) :
+  (zero_iso_is_terminal t).inv = 0 :=
+by ext
+
+@[simp] lemma zero_iso_initial_hom [has_initial C] : zero_iso_initial.hom = (0 : 0 ⟶ ⊥_ C) :=
+by ext
+
+@[simp] lemma zero_iso_initial_inv [has_initial C] : zero_iso_initial.inv = (0 : ⊥_ C ⟶ 0) :=
+by ext
+
+@[simp] lemma zero_iso_terminal_hom [has_terminal C] : zero_iso_terminal.hom = (0 : 0 ⟶ ⊤_ C) :=
+by ext
+
+@[simp] lemma zero_iso_terminal_inv [has_terminal C] : zero_iso_terminal.inv = (0 : ⊤_ C ⟶ 0) :=
+by ext
+
+end has_zero_morphisms
 
 @[priority 100]
 instance has_strict_initial : initial_mono_class C :=

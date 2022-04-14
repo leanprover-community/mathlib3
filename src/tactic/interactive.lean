@@ -28,7 +28,7 @@ meta def try_for (max : parse parser.pexpr) (tac : itactic) : tactic unit :=
 do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
   λ s, match _root_.try_for max (tac s) with
   | some r := r
-  | none   := (tactic.trace "try_for timeout, using sorry" >> admit) s
+  | none   := (tactic.trace "try_for timeout, using sorry" >> tactic.admit) s
   end
 
 /-- Multiple `subst`. `substs x y z` is the same as `subst x, subst y, subst z`. -/
@@ -87,7 +87,7 @@ non-interactive tactic for patterns like `tac1; id {tac2}` where `tac2` is non-i
 @[inline] protected meta def id (tac : itactic) : tactic unit := tac
 
 /--
-`work_on_goal n { tac }` creates a block scope for the `n`-goal (indexed from zero),
+`work_on_goal n { tac }` creates a block scope for the `n`-goal,
 and does not require that the goal be solved at the end
 (any remaining subgoals are inserted back into the list of goals).
 
@@ -96,16 +96,17 @@ Typically usage might look like:
 intros,
 simp,
 apply lemma_1,
-work_on_goal 2
+work_on_goal 3
 { dsimp,
   simp },
 refl
 ````
 
-See also `id { tac }`, which is equivalent to `work_on_goal 0 { tac }`.
+See also `id { tac }`, which is equivalent to `work_on_goal 1 { tac }`.
 -/
 meta def work_on_goal : parse small_nat → itactic → tactic unit
-| n t := do
+| 0 t := fail "work_on_goal failed: goals are 1-indexed"
+| (n+1) t := do
   goals ← get_goals,
   let earlier_goals := goals.take n,
   let later_goals := goals.drop (n+1),
@@ -203,6 +204,7 @@ private meta def generalize_arg_p : parser (pexpr × name) :=
 with_desc "expr = id" $ parser.pexpr 0 >>= generalize_arg_p_aux
 
 @[nolint def_lemma]
+noncomputable
 lemma {u} generalize_a_aux {α : Sort u}
   (h : ∀ x : Sort u, (α → x) → x) : α := h α id
 
@@ -412,6 +414,28 @@ meta def guard_hyp_nums (n : ℕ) : tactic unit :=
 do k ← local_context,
    guard (n = k.length) <|> fail format!"{k.length} hypotheses found"
 
+/--
+`guard_hyp_mod_implicit h : t` fails if the type of the hypothesis `h`
+is not definitionally equal to `t` modulo none transparency
+(i.e., unifying the implicit arguments modulo semireducible transparency).
+We use this tactic for writing tests.
+-/
+meta def guard_hyp_mod_implicit (n : parse ident) (p : parse $ tk ":" *> texpr) : tactic unit := do
+h ← get_local n >>= infer_type >>= instantiate_mvars,
+e ← to_expr p,
+is_def_eq h e transparency.none
+
+/--
+`guard_target_mod_implicit t` fails if the target of the main goal
+is not definitionally equal to `t` modulo none transparency
+(i.e., unifying the implicit arguments modulo semireducible transparency).
+We use this tactic for writing tests.
+-/
+meta def guard_target_mod_implicit (p : parse texpr) : tactic unit := do
+tgt ← target,
+e ← to_expr p,
+is_def_eq tgt e transparency.none
+
 /-- Test that `t` is the tag of the main goal. -/
 meta def guard_tags (tags : parse ident*) : tactic unit :=
 do (t : list name) ← get_main_tag,
@@ -576,7 +600,7 @@ meta def h_generalize (rev : parse (tk "!")?)
      (h : parse ident_?)
      (_ : parse (tk ":"))
      (arg : parse h_generalize_arg_p)
-     (eqs_h : parse ( (tk "with" >> pure <$> ident_) <|> pure [])) :
+     (eqs_h : parse ( (tk "with" *> pure <$> ident_) <|> pure [])) :
   tactic unit :=
 do let (e,n) := arg,
    let h' := if h = `_ then none else h,
@@ -774,10 +798,7 @@ add_tactic_doc
   inherit_description_from := `tactic.interactive.change' }
 
 private meta def opt_dir_with : parser (option (bool × name)) :=
-(do tk "with",
-   arrow ← (tk "<-")?,
-   h ← ident,
-   return (arrow.is_some, h)) <|> return none
+(tk "with" *> ((λ arrow h, (option.is_some arrow, h)) <$> (tk "<-")? <*> ident))?
 
 /--
 `set a := t with h` is a variant of `let a := t`. It adds the hypothesis `h : a = t` to
@@ -801,7 +822,7 @@ h : y = 3
 end
 ```
 -/
-meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") >> texpr)?)
+meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") *> texpr)?)
   (_ : parse (tk ":=")) (pv : parse texpr)
   (rev_name : parse opt_dir_with) :=
 do tp ← i_to_expr $ tp.get_or_else pexpr.mk_placeholder,
@@ -945,7 +966,7 @@ end
 ```
 
 -/
-meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
+meta def extract_goal (print_use : parse $ (tk "!" *> pure tt) <|> pure ff)
   (n : parse ident?) (vs : parse (tk "with" *> ident*)?)
   : tactic unit :=
 do tgt ← target,

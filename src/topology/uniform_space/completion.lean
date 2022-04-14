@@ -82,7 +82,7 @@ calc map prod.swap ((𝓤 α).lift' gen) =
       begin
         have h := λ(p:Cauchy α×Cauchy α), @filter.prod_comm _ _ (p.2.val) (p.1.val),
         simp [function.comp, h, -subtype.val_eq_coe, mem_map'],
-        exact le_refl _,
+        exact le_rfl,
       end
 
 private lemma comp_rel_gen_gen_subset_gen_comp_rel {s t : set (α×α)} : comp_rel (gen s) (gen t) ⊆
@@ -120,7 +120,7 @@ calc ((𝓤 α).lift' gen).lift' (λs, comp_rel s s) =
     exact (monotone_comp_rel monotone_id monotone_id),
     exact monotone_gen
   end
-  ... ≤ (𝓤 α).lift' gen : lift'_mono comp_le_uniformity (le_refl _)
+  ... ≤ (𝓤 α).lift' gen : lift'_mono comp_le_uniformity le_rfl
 
 instance : uniform_space (Cauchy α) :=
 uniform_space.of_core
@@ -329,14 +329,14 @@ def completion := quotient (separation_setoid $ Cauchy α)
 namespace completion
 
 instance [inhabited α] : inhabited (completion α) :=
-by unfold completion; apply_instance
+quotient.inhabited (separation_setoid (Cauchy α))
 
 @[priority 50]
-instance : uniform_space (completion α) := by dunfold completion ; apply_instance
+instance : uniform_space (completion α) := separation_setoid.uniform_space
 
-instance : complete_space (completion α) := by dunfold completion ; apply_instance
+instance : complete_space (completion α) := uniform_space.complete_space_separation (Cauchy α)
 
-instance : separated_space (completion α) := by dunfold completion ; apply_instance
+instance : separated_space (completion α) := uniform_space.separated_separation
 
 instance : regular_space (completion α) := separated_regular
 
@@ -444,9 +444,14 @@ have ∀x : completion α × completion β × completion γ, p x.1 x.2.1 x.2.2, 
   is_closed_property dense_range_coe₃ hp $ assume ⟨a, b, c⟩, ih a b c,
 this (a, b, c)
 
-lemma ext [t2_space β] {f g : completion α → β} (hf : continuous f) (hg : continuous g)
-  (h : ∀a:α, f a = g a) : f = g :=
+lemma ext {Y : Type*} [topological_space Y] [t2_space Y] {f g : completion α → Y}
+  (hf : continuous f) (hg : continuous g) (h : ∀a:α, f a = g a) : f = g :=
 cpkg.funext hf hg h
+
+lemma ext' {Y : Type*} [topological_space Y] [t2_space Y] {f g : completion α → Y}
+  (hf : continuous f) (hg : continuous g) (h : ∀a:α, f a = g a) (a : completion α) :
+  f a = g a :=
+congr_fun (ext hf hg h) a
 
 section extension
 variables {f : α → β}

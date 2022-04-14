@@ -3,7 +3,7 @@ Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad
 -/
-import data.equiv.list
+import logic.equiv.list
 
 /-!
 # W types
@@ -60,7 +60,7 @@ def of_sigma : (Σ a : α, β a → W_type β) → W_type β
 variable (β)
 
 /-- The canonical bijection with the sigma type, showing that `W_type` is a fixed point of
-  the polynomial `Σ a : α, β a → W_type β`.  -/
+  the polynomial functor `X ↦ Σ a : α, β a → X`. -/
 @[simps] def equiv_sigma : W_type β ≃ Σ a : α, β a → W_type β :=
 { to_fun := to_sigma,
   inv_fun := of_sigma,
@@ -170,7 +170,7 @@ instance : encodable (W_type β) :=
 begin
   haveI h' : Π n, encodable (W_type' β n) :=
     λ n, nat.rec_on n encodable_zero encodable_succ,
-  let f    : W_type β → Σ n, W_type' β n   := λ t, ⟨t.depth, ⟨t, le_refl _⟩⟩,
+  let f    : W_type β → Σ n, W_type' β n   := λ t, ⟨t.depth, ⟨t, le_rfl⟩⟩,
   let finv : (Σ n, W_type' β n) → W_type β := λ p, p.2.1,
   have : ∀ t, finv (f t) = t, from λ t, rfl,
   exact encodable.of_left_inverse f finv this

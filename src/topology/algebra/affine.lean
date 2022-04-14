@@ -26,7 +26,7 @@ variables {α X : Type*} [topological_space X]
 
 class topological_add_torsor (E : out_param Type*) [out_param (topological_space E)]
   [out_param (add_group E)] (P : Type*) [topological_space P]
-  extends add_torsor E P,  has_continuous_vadd E P :=
+  extends add_torsor E P, has_continuous_vadd E P :=
 (continuous_vsub : continuous (λ p : P × P, p.1 -ᵥ p.2))
 
 @[priority 200]

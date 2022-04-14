@@ -135,6 +135,15 @@ begin
   rw [this, homeomorph.comp_continuous_iff, homeomorph.comp_continuous_iff']
 end
 
+/-- The linear part of an affine map is an open map iff the affine map is open. -/
+lemma affine_map.is_open_map_linear_iff (f : PE →ᵃ[R] PF) : is_open_map f.linear ↔ is_open_map f :=
+begin
+  inhabit PE,
+  have : ⇑f.linear = (homeomorph.vadd_const (f default)).symm ∘ f ∘ (homeomorph.vadd_const default),
+    from f.coe_linear default,
+  rw [this, homeomorph.comp_is_open_map_iff, homeomorph.comp_is_open_map_iff']
+end
+
 variables [topological_space R] [has_continuous_smul R E]
 omit F
 

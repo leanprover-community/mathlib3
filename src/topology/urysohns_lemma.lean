@@ -220,7 +220,7 @@ lemma lim_eq_midpoint (c : CU X) (x : X) :
 begin
   refine tendsto_nhds_unique (c.tendsto_approx_at_top x) ((tendsto_add_at_top_iff_nat 1).1 _),
   simp only [approx],
-  exact (c.left.tendsto_approx_at_top x).midpoint (c.right.tendsto_approx_at_top x)
+  exact (c.left.tendsto_approx_at_top x).midpoint' (c.right.tendsto_approx_at_top x)
 end
 
 lemma approx_le_lim (c : CU X) (x : X) (n : ℕ) : c.approx n x ≤ c.lim x :=

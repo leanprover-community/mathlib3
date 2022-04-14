@@ -536,31 +536,3 @@ affine_equiv.point_reflection_midpoint_right x y
 end constructions
 
 end affine_isometry_equiv
-
-include V V₂
-
-/-- If `f` is an affine map, then its linear part is continuous iff `f` is continuous. -/
-lemma affine_map.continuous_linear_iff {f : P →ᵃ[𝕜] P₂} :
-  continuous f.linear ↔ continuous f :=
-begin
-  inhabit P,
-  have : (f.linear : V → V₂) =
-    (affine_isometry_equiv.vadd_const 𝕜 $ f default).to_homeomorph.symm ∘ f ∘
-      (affine_isometry_equiv.vadd_const 𝕜 default).to_homeomorph,
-  { ext v, simp },
-  rw this,
-  simp only [homeomorph.comp_continuous_iff, homeomorph.comp_continuous_iff'],
-end
-
-/-- If `f` is an affine map, then its linear part is an open map iff `f` is an open map. -/
-lemma affine_map.is_open_map_linear_iff {f : P →ᵃ[𝕜] P₂} :
-  is_open_map f.linear ↔ is_open_map f :=
-begin
-  inhabit P,
-  have : (f.linear : V → V₂) =
-    (affine_isometry_equiv.vadd_const 𝕜 $ f default).to_homeomorph.symm ∘ f ∘
-      (affine_isometry_equiv.vadd_const 𝕜 default).to_homeomorph,
-  { ext v, simp },
-  rw this,
-  simp only [homeomorph.comp_is_open_map_iff, homeomorph.comp_is_open_map_iff'],
-end

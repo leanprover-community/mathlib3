@@ -512,7 +512,8 @@ begin
   rw [mul_assoc, mul_left_comm (J : fractional_ideal A⁰ K), coe_ideal_mul_inv, mul_one,
       fractional_ideal.span_singleton_mul_span_singleton, inv_mul_cancel,
       fractional_ideal.span_singleton_one],
-  { exact mt ((injective_iff_map_eq_zero (algebra_map A K)).mp (is_fraction_ring.injective A K) _) ha },
+  { exact mt ((injective_iff_map_eq_zero (algebra_map A K)).mp
+      (is_fraction_ring.injective A K) _) ha },
   { exact fractional_ideal.coe_ideal_ne_zero_iff.mp (right_ne_zero_of_mul hne) }
 end
 

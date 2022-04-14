@@ -6,6 +6,15 @@ Authors: Chris Hughes
 import field_theory.finite.basic
 import data.zmod.basic
 
+/-!
+# Lemmas of Gauss and Eisenstein
+
+This file contains code for the proof of the Lemmas of Gauss and Eisenstein
+on the Legendre symbol. The main results are `gauss_lemma_aux` and
+`eisenstein_lemma_aux`; they are used in `quadratic_reciprocity.lean`
+to prove `gauss_lemma` and `eisenstein_lemma`, respectively.
+-/
+
 open function finset nat finite_field zmod
 open_locale big_operators nat
 

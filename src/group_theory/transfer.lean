@@ -40,8 +40,8 @@ let α := mem_left_transversals.to_equiv S.2, β := mem_left_transversals.to_equ
 ∏ q, ϕ ⟨(α q)⁻¹ * β q, quotient.exact' ((α.symm_apply_apply q).trans (β.symm_apply_apply q).symm)⟩
 
 @[to_additive] lemma diff_mul_diff : diff ϕ R S * diff ϕ S T = diff ϕ R T :=
-prod_mul_distrib.symm.trans (prod_congr rfl (λ q hq, (ϕ.map_mul _ _).symm.trans
-  (congr_arg ϕ (by simp_rw [subtype.ext_iff, coe_mul, coe_mk, mul_assoc, mul_inv_cancel_left]))))
+prod_mul_distrib.symm.trans (prod_congr rfl (λ q hq, (ϕ.map_mul _ _).symm.trans (congr_arg ϕ
+  (by simp_rw [subtype.ext_iff, coe_mul, coe_mk, mul_assoc, mul_inv_cancel_left]))))
 
 @[to_additive] lemma diff_self : diff ϕ T T = 1 :=
 mul_right_eq_self.mp (diff_mul_diff ϕ T T T)

@@ -8,8 +8,8 @@ import data.polynomial.algebra_map
 
 /-!  # Laurent polynomials
 
-Following a suggestion by Eric, they are defined via `add_monoid_algebra R ℤ`.
-Thus, they are essentially `finsupp`s `ℤ →₀ R `.
+Following a suggestion by Eric, Laurent polynomials are defined via `add_monoid_algebra R ℤ`.
+Thus, they are essentially `finsupp`s `ℤ →₀ R`.
 
 This means that they play well with polynomials, but there is a little roughness in establishing
 the API, since the `finsupp` implementation of `polynomial R` is well-shielded.
@@ -18,8 +18,10 @@ the API, since the `finsupp` implementation of `polynomial R` is well-shielded.
 The symbol `R[T;T⁻¹]` stands for `laurent_polynomial R`.
 
 ## Implementation notes
+
 * `C : R →+* R[T;T⁻¹]` is the inclusion of constant polynomials, analogous to the one for `R[X]`;
 * `T : ℤ → R[T;T⁻¹]` is the sequence of powers of the variable `T`.
+
 Unlike the case of polynomials, I felt that the exponent notation was not too easy to use, as only
 natural exponents would be allowed.  Moreover, in the end, it seems likely that we should aim to
 performing computations on exponents in `ℤ` anyway and separating this via the symbol `T` seems
@@ -83,7 +85,7 @@ def C : R →+* R[T;T⁻¹] :=
 
 lemma single_eq_C (r : R) : single 0 r = C r := rfl
 
-/--  The function `n ↦ T ^ n`, implemented as a sequence `ℤ ↦ R[T;T⁻¹]`. -/
+/--  The function `n ↦ T ^ n`, implemented as a sequence `ℤ → R[T;T⁻¹]`. -/
 def T (n : ℤ) : R[T;T⁻¹] := single n 1
 
 @[simp]

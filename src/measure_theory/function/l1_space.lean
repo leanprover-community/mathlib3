@@ -397,6 +397,12 @@ ae_strongly_measurable f μ ∧ has_finite_integral f μ
 lemma mem_ℒp_one_iff_integrable {f : α → β} : mem_ℒp f 1 μ ↔ integrable f μ :=
 by simp_rw [integrable, has_finite_integral, mem_ℒp, snorm_one_eq_lintegral_nnnorm]
 
+lemma mem_ℒp.integrable_sq
+  {α : Type*} {m : measurable_space α} {μ : measure α} {f : α → ℝ} (h : mem_ℒp f 2 μ) :
+  integrable (λ x, (f x)^2) μ :=
+by simpa [real.norm_eq_abs, ← mem_ℒp_one_iff_integrable]
+  using h.norm_rpow ennreal.two_ne_zero ennreal.two_ne_top
+
 lemma integrable.ae_strongly_measurable {f : α → β} (hf : integrable f μ) :
   ae_strongly_measurable f μ :=
 hf.1

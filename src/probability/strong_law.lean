@@ -2,30 +2,11 @@ import probability.martingale
 import probability.independence
 import probability.integration
 
-open measure_theory filter set
+open measure_theory filter set finset
 
 noncomputable theory
 
-open_locale topological_space big_operators measure_theory probability_theory ennreal
-
-#check real.rpow_one
-
-lemma real.rpow_two (x : ℝ) : x ^ (2 : ℝ) = x ^ 2 :=
-by { rw ← real.rpow_nat_cast, simp only [nat.cast_bit0, nat.cast_one] }
-
-lemma measure_theory.mem_ℒp.integrable_sq
-  {α : Type*} {m : measurable_space α} {μ : measure α} {f : α → ℝ} (h : mem_ℒp f 2 μ) :
-  integrable (λ x, (f x)^2) μ :=
-begin
-  rw ← mem_ℒp_one_iff_integrable,
-  convert h.norm_rpow ennreal.two_ne_zero ennreal.two_ne_top,
-  ext x,
-  simp only [real.norm_eq_abs, ennreal.to_real_bit0, ennreal.one_to_real],
-  conv_rhs { rw [← nat.cast_two, real.rpow_nat_cast] },
-  simp only [pow_bit0_abs],
-end
-
-open measure_theory finset
+open_locale topological_space big_operators measure_theory probability_theory ennreal nnreal
 
 namespace probability_theory
 
@@ -64,8 +45,6 @@ begin
   ring,
 end
 
-open_locale nnreal
-
 theorem meas_ge_le_mul_variance {X : Ω → ℝ} (hX : mem_ℒp X 2) {c : ℝ≥0} (hc : c ≠ 0) :
   ℙ {ω | (c : ℝ) ≤ |X ω - 𝔼[X]|} ≤ 1/c^2 * ennreal.of_real (Var[X]) :=
 begin
@@ -89,10 +68,9 @@ begin
     { exact two_ne_zero },
     { apply integral_nonneg (λ x, _),
       apply real.rpow_nonneg_of_nonneg (norm_nonneg _) },
-    simp,
-    congr' 2 with ω,
-    rw [← sq_abs, ← real.rpow_nat_cast, real.norm_eq_abs],
-    simp only [nat.cast_bit0, nat.cast_one] }
+    simp only [pi.pow_apply, pi.sub_apply, real.rpow_two, real.rpow_one, real.norm_eq_abs,
+      pow_bit0_abs],
+}
 end
 
 theorem indep_fun.Var_add {X Y : Ω → ℝ} (hX : mem_ℒp X 2) (hY : mem_ℒp Y 2) (h : indep_fun X Y) :

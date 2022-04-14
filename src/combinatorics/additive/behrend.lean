@@ -53,53 +53,6 @@ smul_left_cancel_iff $ units.mk0 _ hg
 
 end smul
 
-namespace multiset
-variables {α : Type*}
-
-lemma card_pair (a b : α) : ({a, b} : multiset α).card = 2 :=
-by rw [insert_eq_cons, card_cons, card_singleton]
-
-variables [comm_monoid α]
-
-@[to_additive]
-lemma prod_pair (a b : α) : ({a, b} : multiset α).prod = a * b :=
-by rw [insert_eq_cons, prod_cons, prod_singleton]
-
-end multiset
-
-namespace mul_salem_spencer
-open function set multiset
-variables {F α β : Type*} [comm_monoid α] [comm_monoid β] {A : set α} {a b c d : α}
-
-@[to_additive]
-lemma map_mul_map_eq_map_mul_map [fun_like F α (λ _, β)] [freiman_hom_class F A β 2] (f : F)
-  (ha : a ∈ A) (hb : b ∈ A) (hc : c ∈ A) (hd : d ∈ A) (h : a * b = c * d) :
-  f a * f b = f c * f d :=
-begin
-  simp_rw ←prod_pair at ⊢ h,
-  refine map_prod_eq_map_prod f _ _ (card_pair _ _) (card_pair _ _) h; simp [ha, hb, hc, hd],
-end
-
-@[to_additive]
-lemma of_image {s : set α} (f : s →*[2] β) (hf : injective f) (h : mul_salem_spencer (f '' s)) :
-  mul_salem_spencer s :=
-λ a b c ha hb hc habc, hf $ h (mem_image_of_mem _ ha) (mem_image_of_mem _ hb)
-  (mem_image_of_mem _ hc) $ map_mul_map_eq_map_mul_map f ha hb hc hc habc
-
-open_locale pointwise
-
--- TODO: Generalize to Freiman homs
-@[to_additive]
-lemma image [mul_hom_class F α β] {s : set α} (f : F) (hf : (s * s).inj_on f)
-  (h : mul_salem_spencer s) :
-  mul_salem_spencer (f '' s) :=
-begin
-  rintro _ _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩ ⟨c, hc, rfl⟩ habc,
-  rw h ha hb hc (hf (mul_mem_mul ha hb) (mul_mem_mul hc hc) $ by rwa [map_mul, map_mul]),
-end
-
-end mul_salem_spencer
-
 namespace nat
 
 lemma le_succ_mul_neg (n : ℕ) : ∀ d, d ≤ (n + 1) * d - n
@@ -255,9 +208,9 @@ begin
   { to_fun := λ f, (coe : ℕ → ℝ) ∘ f,
     map_zero' := rfl,
     map_add' := λ _ _, funext $ λ _, cast_add _ _ },
-  refine ((add_salem_spencer_sphere 0 $ sqrt k).mono _).of_image (f.to_add_freiman_hom _ _)
-    cast_injective.comp_left,
-  refine set.image_subset_iff.2 (λ x, _),
+  refine add_salem_spencer.of_image (f.to_add_freiman_hom (sphere n d k) 2) _ _,
+  { exact cast_injective.comp_left.inj_on _ },
+  refine (add_salem_spencer_sphere 0 $ sqrt k).mono (set.image_subset_iff.2 $ λ x, _),
   rw [set.mem_preimage, mem_sphere_zero_iff_norm],
   exact norm_of_mem_sphere,
 end
@@ -266,7 +219,7 @@ lemma add_salem_spencer_image_sphere :
   add_salem_spencer ((sphere n d k).image (map (2 * d - 1)) : set ℕ) :=
 begin
   rw coe_image,
-  refine @add_salem_spencer.image _ (fin n → ℕ) ℕ _ _ _ (sphere n d k) (map (2 * d - 1)) _
+  refine @add_salem_spencer.image _ (fin n → ℕ) ℕ _ _ (sphere n d k) _ (map (2 * d - 1)) _
     add_salem_spencer_sphere,
   refine map_inj_on.mono _,
   rw set.add_subset_iff,

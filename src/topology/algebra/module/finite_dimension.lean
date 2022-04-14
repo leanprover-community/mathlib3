@@ -3,9 +3,7 @@ Copyright (c) 2022 Anatole Dedecker. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Anatole Dedecker
 -/
-import analysis.normed.normed_field
 import analysis.locally_convex.balanced_core_hull
-
 /-!
 # TODO
 -/
@@ -32,18 +30,19 @@ begin
   exact (continuous_apply i).smul continuous_const
 end
 
---/-- The space of continuous linear maps between finite-dimensional spaces is finite-dimensional.
----/
---instance {𝕜 E F : Type*} [field 𝕜] [topological_space 𝕜]
---  [topological_space E] [add_comm_group E] [module 𝕜 E] [finite_dimensional 𝕜 E]
---  [topological_space F] [add_comm_group F] [module 𝕜 F] [topological_add_group F]
---  [has_continuous_smul 𝕜 F] [finite_dimensional 𝕜 F] :
---  finite_dimensional 𝕜 (E →L[𝕜] F) :=
---begin
---  haveI : is_noetherian 𝕜 (E →ₗ[𝕜] F) := is_noetherian.iff_fg.mpr (by apply_instance),
---  let I : (E →L[𝕜] F) →ₗ[𝕜] (E →ₗ[𝕜] F) := continuous_linear_map.coe_lm 𝕜,
---  exact module.finite.of_injective I continuous_linear_map.coe_injective
---end
+#check continuous_linear_map.finite_dimensional
+
+/-- The space of continuous linear maps between finite-dimensional spaces is finite-dimensional. -/
+instance {𝕜 E F : Type*} [field 𝕜] [topological_space 𝕜]
+  [topological_space E] [add_comm_group E] [module 𝕜 E] [finite_dimensional 𝕜 E]
+  [topological_space F] [add_comm_group F] [module 𝕜 F] [topological_add_group F]
+  [has_continuous_smul 𝕜 F] [finite_dimensional 𝕜 F] :
+  finite_dimensional 𝕜 (E →L[𝕜] F) :=
+begin
+  haveI : is_noetherian 𝕜 (E →ₗ[𝕜] F) := is_noetherian.iff_fg.mpr (by apply_instance),
+  let I : (E →L[𝕜] F) →ₗ[𝕜] (E →ₗ[𝕜] F) := continuous_linear_map.coe_lm 𝕜,
+  exact module.finite.of_injective I continuous_linear_map.coe_injective
+end
 
 section complete_field
 

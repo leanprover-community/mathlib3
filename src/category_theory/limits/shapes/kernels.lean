@@ -74,7 +74,7 @@ variables {f}
 by erw [fork.condition, has_zero_morphisms.comp_zero]
 
 @[simp] lemma kernel_fork.app_one (s : kernel_fork f) : s.π.app one = 0 :=
-by rw [←fork.app_zero_left, kernel_fork.condition]
+by simp [fork.app_one_eq_ι_comp_right]
 
 /-- A morphism `ι` satisfying `ι ≫ f = 0` determines a kernel fork over `f`. -/
 abbreviation kernel_fork.of_ι {Z : C} (ι : Z ⟶ X) (w : ι ≫ f = 0) : kernel_fork f :=
@@ -399,11 +399,11 @@ abbreviation cokernel_cofork := cofork f 0
 
 variables {f}
 
-@[simp, reassoc] lemma cokernel_cofork.condition (s : cokernel_cofork f) : f ≫ cofork.π s = 0 :=
+@[simp, reassoc] lemma cokernel_cofork.condition (s : cokernel_cofork f) : f ≫ s.π = 0 :=
 by rw [cofork.condition, zero_comp]
 
-@[simp] lemma cokernel_cofork.app_zero (s : cokernel_cofork f) : s.ι.app zero = 0 :=
-by rw [←cofork.left_app_one, cokernel_cofork.condition]
+@[simp] lemma cokernel_cofork.π_eq_zero (s : cokernel_cofork f) : s.ι.app zero = 0 :=
+by simp [cofork.app_zero_eq_comp_π_right]
 
 /-- A morphism `π` satisfying `f ≫ π = 0` determines a cokernel cofork on `f`. -/
 abbreviation cokernel_cofork.of_π {Z : C} (π : Y ⟶ Z) (w : f ≫ π = 0) : cokernel_cofork f :=

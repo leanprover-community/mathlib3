@@ -69,8 +69,7 @@ begin
     { apply integral_nonneg (λ x, _),
       apply real.rpow_nonneg_of_nonneg (norm_nonneg _) },
     simp only [pi.pow_apply, pi.sub_apply, real.rpow_two, real.rpow_one, real.norm_eq_abs,
-      pow_bit0_abs],
-}
+      pow_bit0_abs] }
 end
 
 theorem indep_fun.Var_add {X Y : Ω → ℝ} (hX : mem_ℒp X 2) (hY : mem_ℒp Y 2) (h : indep_fun X Y) :
@@ -98,9 +97,6 @@ begin
 end
 ... = Var[X] + Var[Y] :
   by { simp only [variance_def', hX, hY, pi.pow_apply], ring }
-
-
-open finset
 
 theorem indep_fun.Var_sum {ι : Type*} {X : ι → Ω → ℝ} {s : finset ι}
   (hs : ∀ i ∈ s, mem_ℒp (X i) 2) (h : set.pairwise ↑s (λ i j, indep_fun (X i) (X j))) :
@@ -175,6 +171,74 @@ begin
       (h.mono (by simp only [coe_insert, set.subset_insert]))
 end
 
+section truncation
+
+variables {α : Type*}
+
+def truncation {α : Type*} (f : α → ℝ) (A : ℝ) :=
+(indicator (Icc (-A) A) id) ∘ f
+
+variables {m : measurable_space α} {μ : measure α} {f : α → ℝ}
+
+lemma _root_.measure_theory.ae_strongly_measurable.truncation
+  (hf : ae_strongly_measurable f μ) {A : ℝ} :
+  ae_strongly_measurable (truncation f A) μ :=
+begin
+  apply ae_strongly_measurable.comp_ae_measurable _ hf.ae_measurable,
+  exact (strongly_measurable_id.indicator measurable_set_Icc).ae_strongly_measurable,
+end
+
+lemma neg_abs_le_neg (a : ℝ) : -|a| ≤ -a :=
+by simp [le_abs_self]
+
+lemma abs_truncation_le_bound (f : α → ℝ) (A : ℝ) (x : α) :
+  abs (truncation f A x) ≤ |A| :=
+begin
+  simp only [truncation, indicator, set.mem_Icc, id.def, function.comp_app],
+  split_ifs,
+  { simp only [real.norm_eq_abs, abs_le],
+    split,
+    { linarith [neg_abs_le_neg A, h.1] },
+    { linarith [le_abs_self A, h.2] } },
+  { simp [abs_nonneg] }
+end
+
+lemma abs_truncation_le_abs_self (f : α → ℝ) (A : ℝ) (x : α) :
+  |truncation f A x| ≤ |f x| :=
+begin
+  simp only [truncation, indicator, set.mem_Icc, id.def, function.comp_app],
+  split_ifs,
+  { exact le_rfl },
+  { simp [abs_nonneg] },
+end
+
+lemma _root_.measure_theory.ae_strongly_measurable.mem_ℒp_truncation [is_finite_measure μ]
+  (hf : ae_strongly_measurable f μ) {A : ℝ} {p : ℝ≥0∞} :
+  mem_ℒp (truncation f A) p μ :=
+begin
+  refine mem_ℒp.mem_ℒp_of_exponent_le _ le_top,
+  apply mem_ℒp_top_of_bound hf.truncation _
+    (eventually_of_forall (λ x, abs_truncation_le_bound _ _ _)),
+end
+
+lemma tendsto_integral_truncation {f : α → ℝ} (hf : integrable f μ) :
+  tendsto (λ A, ∫ x, truncation f A x ∂μ) at_top (𝓝 (∫ x, f x ∂μ)) :=
+begin
+  apply tendsto_integral_filter_of_dominated_convergence (λ x, abs (f x)),
+  { exact eventually_of_forall (λ A, hf.ae_strongly_measurable.truncation) },
+  { apply eventually_of_forall (λ A, _),
+    apply eventually_of_forall (λ x, _),
+    rw real.norm_eq_abs,
+    exact abs_truncation_le_abs_self _ _ _ },
+  { apply integrable.norm,
+
+  }
+
+end
+
+
+
+#exit
 
 theorem
   strong_law1
@@ -187,16 +251,19 @@ begin
   have A : ∀ i, strongly_measurable (indicator (Icc (0 : ℝ) i) id) :=
     λ i, strongly_measurable_id.indicator measurable_set_Icc,
   let Y := λ (n : ℕ), (indicator (Icc (0 : ℝ) n) id) ∘ (X n),
-  have : ∀ n, ae_strongly_measurable (Y n) ℙ :=
+  have Y_meas : ∀ n, ae_strongly_measurable (Y n) ℙ :=
     λ n, (A n).ae_strongly_measurable.comp_ae_measurable (hint n).ae_measurable,
   have : pairwise (λ i j, indep_fun (Y i) (Y j) ℙ),
   { assume i j hij,
     exact (hindep i j hij).comp (A i).measurable (A j).measurable },
-  have : ∀ i, mem_ℒp (Y i) 2,
+  have Itop : ∀ i, mem_ℒp (Y i) ∞,
   { assume i,
-
-
-  }
+    apply mem_ℒp_top_of_bound (Y_meas i) i (eventually_of_forall (λ x, _)),
+    simp only [Y, indicator, set.mem_Icc, id.def, function.comp_app],
+    split_ifs,
+    { simp only [h.1, h.2, real.norm_eq_abs, abs_of_nonneg] },
+    { simp only [norm_zero, nat.cast_nonneg] } },
+  have : ∀ i, mem_ℒp (Y i) 2 := λ i, (Itop i).mem_ℒp_of_exponent_le le_top,
 
 end
 

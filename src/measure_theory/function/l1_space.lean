@@ -594,6 +594,10 @@ lemma integrable.norm {f : α → β} (hf : integrable f μ) :
   integrable (λa, ∥f a∥) μ :=
 ⟨hf.ae_strongly_measurable.norm, hf.has_finite_integral.norm⟩
 
+lemma integrable.abs {f : α → ℝ} (hf : integrable f μ) :
+  integrable (λa, |f a|) μ :=
+by simpa [← real.norm_eq_abs] using hf.norm
+
 lemma integrable_norm_iff {f : α → β} (hf : ae_strongly_measurable f μ) :
   integrable (λa, ∥f a∥) μ ↔ integrable f μ :=
 by simp_rw [integrable, and_iff_right hf, and_iff_right hf.norm, has_finite_integral_norm_iff]

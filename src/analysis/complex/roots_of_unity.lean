@@ -97,3 +97,17 @@ end complex
 
 lemma is_primitive_root.nnnorm_eq_one {ζ : ℂ} {n : ℕ} (h : is_primitive_root ζ n) (hn : n ≠ 0) :
   ∥ζ∥ = 1 := complex.norm_eq_one_of_pow_eq_one h.pow_eq_one hn
+
+lemma is_primitive_root.arg_ext {n m : ℕ} {ζ μ : ℂ} (hζ : is_primitive_root ζ n)
+  (hμ : is_primitive_root μ m) (hn : n ≠ 0) (hm : m ≠ 0) (h : ζ.arg = μ.arg) : ζ = μ :=
+complex.ext_abs_arg ((hζ.nnnorm_eq_one hn).trans (hμ.nnnorm_eq_one hm).symm) h
+
+lemma is_primitive_root.arg_eq_zero_iff {n : ℕ} {ζ : ℂ} (hζ : is_primitive_root ζ n)
+  (hn : n ≠ 0) : ζ.arg = 0 ↔ ζ = 1 :=
+⟨λ h, hζ.arg_ext is_primitive_root.one hn one_ne_zero (h.trans complex.arg_one.symm),
+ λ h, h.symm ▸ complex.arg_one⟩
+
+lemma is_primitive_root.arg_eq_pi_iff {n : ℕ} {ζ : ℂ} (hζ : is_primitive_root ζ n)
+  (hn : n ≠ 0) : ζ.arg = real.pi ↔ ζ = -1 :=
+⟨λ h, hζ.arg_ext (is_primitive_root.neg_one 0 two_ne_zero.symm) hn two_ne_zero
+      (h.trans complex.arg_neg_one.symm), λ h, h.symm ▸ complex.arg_neg_one⟩

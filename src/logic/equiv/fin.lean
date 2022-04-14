@@ -209,6 +209,23 @@ fin_succ_equiv'_symm_some_below i.2
   fin_succ_equiv_last.symm none = fin.last n :=
 fin_succ_equiv'_symm_none _
 
+/-- Equivalence between `Π j : fin (n + 1), α j` and `α i × Π j : fin n, α (fin.succ_above i j)`. -/
+@[simps { fully_applied := ff}]
+def equiv.pi_fin_succ_above_equiv {n : ℕ} (α : fin (n + 1) → Type u) (i : fin (n + 1)) :
+  (Π j, α j) ≃ α i × (Π j, α (i.succ_above j)) :=
+{ to_fun := λ f, (f i, λ j, f (i.succ_above j)),
+  inv_fun := λ f, i.insert_nth f.1 f.2,
+  left_inv := λ f, by simp [fin.insert_nth_eq_iff],
+  right_inv := λ f, by simp }
+
+/-- Order isomorphism between `Π j : fin (n + 1), α j` and
+`α i × Π j : fin n, α (fin.succ_above i j)`. -/
+def order_iso.pi_fin_succ_above_iso {n : ℕ} (α : fin (n + 1) → Type u) [Π i, has_le (α i)]
+  (i : fin (n + 1)) :
+  (Π j, α j) ≃o α i × (Π j, α (i.succ_above j)) :=
+{ to_equiv := equiv.pi_fin_succ_above_equiv α i,
+  map_rel_iff' := λ f g, i.forall_iff_succ_above.symm }
+
 /-- Equivalence between `fin m ⊕ fin n` and `fin (m + n)` -/
 def fin_sum_fin_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
 { to_fun := sum.elim (fin.cast_add n) (fin.nat_add m),

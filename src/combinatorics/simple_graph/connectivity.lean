@@ -1018,15 +1018,31 @@ quot.induction_on₂ c d h
 protected lemma connected_component.sound {v w : V} :
   G.reachable v w → G.connected_component_mk v = G.connected_component_mk w := quot.sound
 
+protected lemma connected_component.exact {v w : V} :
+  G.connected_component_mk v = G.connected_component_mk w → G.reachable v w :=
+@quotient.exact _ G.reachable_setoid _ _
+
+@[simp] protected lemma connected_component.eq {v w : V} :
+  G.connected_component_mk v = G.connected_component_mk w ↔ G.reachable v w :=
+@quotient.eq _ G.reachable_setoid _ _
+
 /-- The `connected_component` specialization of `quot.lift`. Provides the stronger
 assumption that the vertices are connected by a path. -/
 protected def connected_component.lift {β : Sort*} (f : V → β)
   (h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w) : G.connected_component → β :=
 quot.lift f (λ v w (h' : G.reachable v w), h'.elim_path (λ hp, h v w hp hp.2))
 
-@[simp] protected lemma connected_component.lift_eq {β : Sort*} {f : V → β}
+@[simp] protected lemma connected_component.lift_mk {β : Sort*} {f : V → β}
   {h : ∀ (v w : V) (p : G.walk v w), p.is_path → f v = f w} {v : V} :
   connected_component.lift f h (G.connected_component_mk v) = f v := rfl
+
+protected lemma connected_component.«exists» {p : G.connected_component → Prop} :
+  (∃ (c : G.connected_component), p c) ↔ ∃ v, p (G.connected_component_mk v) :=
+(surjective_quot_mk G.reachable).exists
+
+protected lemma connected_component.«forall» {p : G.connected_component → Prop} :
+  (∀ (c : G.connected_component), p c) ↔ ∀ v, p (G.connected_component_mk v) :=
+(surjective_quot_mk G.reachable).forall
 
 lemma preconnected.subsingleton_connected_component (h : G.preconnected) :
   subsingleton G.connected_component :=

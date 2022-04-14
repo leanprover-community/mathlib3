@@ -51,7 +51,7 @@ begin
   sorry,
 end
 
-def strong_probable_prime (n : nat) (a : zmod n) : Prop :=
+def strong_probable_prime (n : nat) (a : (zmod n)) : Prop :=
 a^(odd_part (n-1)) = 1 ∨ (∃ r : ℕ, r < padic_val_nat 2 (n-1) ∧ a^(2^r * odd_part(n-1)) = -1)
 
 instance {n : ℕ} {a : zmod n} : decidable (strong_probable_prime n a) := or.decidable
@@ -110,8 +110,9 @@ begin
      },
 end
 
+
 lemma strong_probable_prime_of_prime (p : ℕ) [fact (p.prime)] (a : zmod p) (ha : a ≠ 0) :
-  strong_probable_prime p a :=
+  strong_probable_prime p a  :=
 begin
   have fermat := zmod.pow_card_sub_one_eq_one ha, -- you'll need this lemma for this
   rw strong_probable_prime,
@@ -447,26 +448,37 @@ begin
   sorry,
 end
 
+instance (n : ℕ) [hn_pos : fact (0 < n)] :
+  decidable_pred (@is_unit (zmod n) _) :=
+begin
+  sorry,
+end
+
+/-- The finset of units of zmod n -/
+def finset_units (n : ℕ) [hn_pos : fact (0 < n)] : finset (zmod n) :=
+(finset.univ : finset (zmod n)).filter is_unit
+
+example : is_unit (0 : zmod 1) :=
+begin
+  simp,
+end
 
 
-lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [hn_pos : fact (0 < n)] (not_prime : ¬ n.prime) :
-  (((finset.univ : finset (zmod n))).filter (λ a, strong_probable_prime n a)).card * 2 ≤ n :=
+lemma unlikely_strong_probable_prime_of_composite (n : ℕ) [hn_pos : fact (0 < n)]
+  (not_prime : ¬ n.prime) :
+  ((finset_units n).filter (λ a, strong_probable_prime n a)).card * 2 ≤ (finset_units n).card :=
 begin
   cases one_or_coprime_factorization_or_prime_power n (hn_pos.out),
-  { have : (finset.univ : finset (zmod n)).card = 0,
-    { rw finset.univ,
-      simp [h],
+  { have : (finset_units n).card = 0,
+    { rw finset_units,
+      simp only [finset.card_eq_zero],
+      rw finset.filter_eq_empty_iff,
+      intros x hx,
+      rw h at x,
+      sorry,
     },
     simp_rw strong_probable_prime,
-    simp_rw [h],
-    simp,
-    rw finset.card,
-
-    -- simp,
-    rw univ.card,
-    rw nat.le_one,
-
-    sorry, },
+    simp [this, h], },
   cases h,
   { apply unlikely_strong_probable_prime_of_coprime_mul,
     exact h,

@@ -20,7 +20,7 @@ This file is to prove that `Proj` is a scheme.
 * `pbo f`     : basic open set at `f` in `Proj`
 * `Spec`      : `Spec` as a locally ringed space
 * `Spec.T`    : the underlying topological space of `Spec`
-* `spo g`     : basic open set at `g` in `Spec`
+* `sbo g`     : basic open set at `g` in `Spec`
 * `A⁰ₓ`       : the degree zero part of localized ring `Aₓ`
 
 ## Implementation

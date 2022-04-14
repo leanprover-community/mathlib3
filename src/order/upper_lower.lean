@@ -382,6 +382,11 @@ variables [semilattice_sup α]
 
 @[simp] lemma Ici_sup (a b : α) : Ici (a ⊔ b) = Ici a ⊓ Ici b := ext Ici_inter_Ici.symm
 
+/-- `upper_set.Ici` as a `sup_hom`. -/
+def Ici_sup_hom : sup_hom α (order_dual $ upper_set α) := ⟨Ici, Ici_sup⟩
+
+@[simp] lemma Ici_sup_hom_apply (a : α) : Ici_sup_hom a = to_dual (Ici a) := rfl
+
 end semilattice_sup
 
 section complete_lattice
@@ -395,6 +400,12 @@ set_like.ext $ λ c, by simp only [mem_Ici_iff, mem_infi_iff, supr_le_iff]
 
 @[simp] lemma Ici_supr₂ (f : Π i, κ i → α) : Ici (⨆ i j, f i j) = ⨅ i j, Ici (f i j) :=
 by simp_rw Ici_supr
+
+/-- `upper_set.Ici` as a `Sup_hom`. -/
+def Ici_Sup_hom : Sup_hom α (order_dual $ upper_set α) :=
+⟨Ici, λ s, (Ici_Sup s).trans Inf_image.symm⟩
+
+@[simp] lemma Ici_Sup_hom_apply (a : α) : Ici_Sup_hom a = to_dual (Ici a) := rfl
 
 end complete_lattice
 end upper_set

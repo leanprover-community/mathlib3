@@ -37,7 +37,25 @@ class local_ring (R : Type u) [comm_ring R] extends nontrivial R : Prop :=
 
 namespace local_ring
 
-variables {R : Type u} [comm_ring R] [local_ring R]
+lemma of_is_unit_or_is_unit_of_is_unit_add [nontrivial R]
+  (h : ∀ a b : R, is_unit (a + b) → is_unit a ∨ is_unit b) : local_ring R :=
+⟨λ a b ha hb H, not_or ha hb (h a b H)⟩
+
+lemma of_is_unit_or_is_unit_of_add_one [nontrivial R]
+  (h : ∀ a b : R, a + b = 1 → is_unit a ∨ is_unit b) : local_ring R :=
+of_is_unit_or_is_unit_of_is_unit_add
+begin
+  rintros a b ⟨u, hu⟩,
+  replace hu : ↑u⁻¹ * a + ↑u⁻¹ * b = 1, from by rw [←mul_add, ←hu, units.inv_mul],
+  cases h (↑u⁻¹ * a) (↑u⁻¹ * b) hu,
+  case inl : hu { exact or.inl (is_unit_of_mul_is_unit_right hu) },
+  case inr : hu { exact or.inr (is_unit_of_mul_is_unit_right hu) }
+end
+
+lemma of_nonunits_ideal (hnze : (0:R) ≠ 1) (h : ∀ x y ∈ nonunits R, x + y ∈ nonunits R) :
+  local_ring R :=
+{ exists_pair_ne := ⟨0, 1, hnze⟩,
+  nonunits_add := λ x y hx hy, h x hx y hy }
 
 lemma is_unit_or_is_unit_one_sub_self (a : R) :
   (is_unit a) ∨ (is_unit (1 - a)) :=
@@ -69,7 +87,12 @@ begin
   exact mul_mem_nonunits_right hx
 end
 
-variable (R)
+variables [local_ring R]
+
+lemma is_unit_or_is_unit_of_is_unit_add (a b : R) (h : is_unit (a + b)) : is_unit a ∨ is_unit b :=
+or_iff_not_and_not.2 $ λ H, nonunits_add H.1 H.2 h
+
+variables (R)
 
 /-- The ideal of elements that are not units. -/
 def maximal_ideal : ideal R :=
@@ -135,19 +158,24 @@ have xmemI : x ∈ I, from ((Iuniq Ix Ixmax) ▸ Hx),
 have ymemI : y ∈ I, from ((Iuniq Iy Iymax) ▸ Hy),
 Imax.1.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
 
-lemma local_of_unique_nonzero_prime (R : Type u) [comm_ring R]
-  (h : ∃! P : ideal R, P ≠ ⊥ ∧ ideal.is_prime P) : local_ring R :=
-local_of_unique_max_ideal begin
-  rcases h with ⟨P, ⟨hPnonzero, hPnot_top, _⟩, hPunique⟩,
-  refine ⟨P, ⟨⟨hPnot_top, _⟩⟩, λ M hM, hPunique _ ⟨_, ideal.is_maximal.is_prime hM⟩⟩,
-  { refine ideal.maximal_of_no_maximal (λ M hPM hM, ne_of_lt hPM _),
-    exact (hPunique _ ⟨ne_bot_of_gt hPM, ideal.is_maximal.is_prime hM⟩).symm },
-  { rintro rfl,
-    exact hPnot_top (hM.1.2 P (bot_lt_iff_ne_bot.2 hPnonzero)) },
-end
+lemma of_is_unit_or_is_unit_one_sub_self [nontrivial R]
+  (h : ∀ a : R, is_unit a ∨ is_unit (1 - a)) : local_ring R :=
+of_is_unit_or_is_unit_of_add_one $ λ a b hab, add_sub_cancel' a b ▸ hab.symm ▸ h a
 
-lemma local_of_surjective [comm_ring R] [local_ring R] [comm_ring S] [nontrivial S]
-  (f : R →+* S) (hf : function.surjective f) :
+variables [local_ring R]
+
+lemma is_unit_or_is_unit_one_sub_self (a : R) : is_unit a ∨ is_unit (1 - a) :=
+is_unit_or_is_unit_of_is_unit_add a (1 - a) $ (add_sub_cancel'_right a 1).symm ▸ is_unit_one
+
+lemma is_unit_of_mem_nonunits_one_sub_self (a : R) (h : 1 - a ∈ nonunits R) :
+  is_unit a :=
+or_iff_not_imp_right.1 (is_unit_or_is_unit_one_sub_self a) h
+
+lemma is_unit_one_sub_self_of_mem_nonunits (a : R) (h : a ∈ nonunits R) :
+  is_unit (1 - a) :=
+or_iff_not_imp_left.1 (is_unit_or_is_unit_one_sub_self a) h
+
+lemma of_surjective [comm_ring S] [nontrivial S] (f : R →+* S) (hf : function.surjective f) :
   local_ring S :=
 { is_local :=
   begin

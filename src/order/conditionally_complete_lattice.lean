@@ -282,11 +282,11 @@ lemma subset_Icc_cInf_cSup (hb : bdd_below s) (ha : bdd_above s) :
   s ⊆ Icc (Inf s) (Sup s) :=
 λ x hx, ⟨cInf_le hb hx, le_cSup ha hx⟩
 
-theorem cSup_le_iff (hb : bdd_above s) (ne : s.nonempty) : Sup s ≤ a ↔ (∀ b ∈ s, b ≤ a) :=
-is_lub_le_iff (is_lub_cSup ne hb)
+theorem cSup_le_iff (hb : bdd_above s) (hs : s.nonempty) : Sup s ≤ a ↔ ∀ b ∈ s, b ≤ a :=
+is_lub_le_iff (is_lub_cSup hs hb)
 
-theorem le_cInf_iff (hb : bdd_below s) (ne : s.nonempty) : a ≤ Inf s ↔ (∀ b ∈ s, a ≤ b) :=
-le_is_glb_iff (is_glb_cInf ne hb)
+theorem le_cInf_iff (hb : bdd_below s) (hs : s.nonempty) : a ≤ Inf s ↔ ∀ b ∈ s, a ≤ b :=
+le_is_glb_iff (is_glb_cInf hs hb)
 
 lemma cSup_lower_bounds_eq_cInf {s : set α} (h : bdd_below s) (hs : s.nonempty) :
   Sup (lower_bounds s) = Inf s :=
@@ -319,7 +319,7 @@ show Sup s = b, by { cases this with h1, { cases h h1 }, { assumption } }
 is smaller than all elements of `s`, and that this is not the case of any `w>b`.
 See `Inf_eq_of_forall_ge_of_forall_gt_exists_lt` for a version in complete lattices. -/
 theorem cInf_eq_of_forall_ge_of_forall_gt_exists_lt : s.nonempty → (∀ a ∈ s, b ≤ a) →
-  (∀ w, b < w → (∃ a ∈ s, a < w)) → Inf s = b :=
+  (∀ w, b < w → ∃ a ∈ s, a < w) → Inf s = b :=
 @cSup_eq_of_forall_le_of_forall_lt_exists_gt (order_dual α) _ _ _
 
 /--b < Sup s when there is an element a in s with b < a, when s is bounded above.
@@ -327,8 +327,8 @@ This is essentially an iff, except that the assumptions for the two implications
 slightly different (one needs boundedness above for one direction, nonemptiness and linear
 order for the other one), so we formulate separately the two implications, contrary to
 the complete_lattice case.-/
-lemma lt_cSup_of_lt (hs : bdd_above s) (hs' : a ∈ s) (h : b < a) : b < Sup s :=
-lt_of_lt_of_le h (le_cSup hs hs')
+lemma lt_cSup_of_lt (hs : bdd_above s) (ha : a ∈ s) (h : b < a) : b < Sup s :=
+lt_of_lt_of_le h (le_cSup hs ha)
 
 /--Inf s < b when there is an element a in s with a < b, when s is bounded below.
 This is essentially an iff, except that the assumptions for the two implications are
@@ -727,7 +727,7 @@ begin
   { show ite _ _ _ ∈ _,
     split_ifs,
     { rintro (⟨⟩|a) ha,
-      { exact _root_.le_rfl },
+      { exact le_rfl },
       { exact false.elim (not_top_le_coe a (ha h)) } },
     { rintro (⟨⟩|b) hb,
       { exact le_top },
@@ -737,7 +737,7 @@ begin
         { exact ⟨b, hb⟩ } },
       { intros a ha, exact some_le_some.1 (hb ha) } },
     { rintro (⟨⟩|b) hb,
-      { exact _root_.le_rfl },
+      { exact le_rfl },
       { exfalso, apply h_1, use b, intros a ha, exact some_le_some.1 (hb ha) } } }
 end
 
@@ -801,26 +801,26 @@ noncomputable instance : complete_linear_order (with_top α) :=
   Inf := Inf, le_Inf := λ s, (is_glb_Inf s).2, Inf_le := λ s, (is_glb_Inf s).1,
   .. with_top.linear_order, ..with_top.lattice, ..with_top.order_top, ..with_top.order_bot }
 
-lemma coe_Sup {s : set α} (hb : bdd_above s) : (↑(Sup s) : with_top α) = (⨆a∈s, ↑a) :=
+lemma coe_Sup {s : set α} (hb : bdd_above s) : (↑(Sup s) : with_top α) = ⨆ a ∈ s, ↑a :=
 begin
   cases s.eq_empty_or_nonempty with hs hs,
   { rw [hs, cSup_empty], simp only [set.mem_empty_eq, supr_bot, supr_false], refl },
   apply le_antisymm,
   { refine (coe_le_iff.2 $ λ b hb, cSup_le hs $ λ a has, coe_le_coe.1 $ hb ▸ _),
-    exact (le_supr_of_le a $ le_supr_of_le has $ _root_.le_rfl) },
+    exact le_supr₂_of_le a has le_rfl },
   { exact (supr_le $ λ a, supr_le $ λ ha, coe_le_coe.2 $ le_cSup hb ha) }
 end
 
-lemma coe_Inf {s : set α} (hs : s.nonempty) : (↑(Inf s) : with_top α) = (⨅a∈s, ↑a) :=
+lemma coe_Inf {s : set α} (hs : s.nonempty) : (↑(Inf s) : with_top α) = ⨅ a ∈ s, ↑a :=
 let ⟨x, hx⟩ := hs in
-have (⨅a∈s, ↑a : with_top α) ≤ x, from infi_le_of_le x $ infi_le_of_le hx $ _root_.le_rfl,
+have (⨅ a ∈ s, ↑a : with_top α) ≤ x, from infi_le_of_le x $ infi_le_of_le hx $ le_rfl,
 let ⟨r, r_eq, hr⟩ := le_coe_iff.1 this in
 le_antisymm
   (le_infi $ λ a, le_infi $ λ ha, coe_le_coe.2 $ cInf_le (order_bot.bdd_below s) ha)
   begin
     refine (r_eq.symm ▸ coe_le_coe.2 $ le_cInf hs $ λ a has, coe_le_coe.1 $ _),
     refine (r_eq ▸ infi_le_of_le a _),
-    exact (infi_le_of_le has $ _root_.le_rfl),
+    exact (infi_le_of_le has $ le_rfl),
   end
 
 end with_top
@@ -1032,7 +1032,7 @@ noncomputable instance with_top.with_bot.complete_lattice {α : Type*}
     show ite _ _ _ ≤ a,
     begin
       split_ifs,
-      { cases a with a, exact _root_.le_rfl,
+      { cases a with a, exact le_rfl,
         cases (h haS); tauto },
       { cases a,
         { exact le_top },

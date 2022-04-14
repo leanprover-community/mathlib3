@@ -39,13 +39,6 @@ end
 
 include V
 
-lemma interior_image_homothety {c : 𝕜} (hc : c ≠ 0) (x : P) (s : set P) :
-  interior (homothety x c '' s) = homothety x c '' interior s :=
-eq.symm $ homeomorph.image_interior
-  ⟨(affine_equiv.homothety_units_mul_hom x (units.mk0 c hc)).to_equiv,
-    continuous_const.homothety continuous_const continuous_id,
-    continuous_const.homothety continuous_const continuous_id⟩ s
-
 @[simp] lemma dist_center_homothety (p₁ p₂ : P) (c : 𝕜) :
   dist p₁ (homothety p₁ c p₂) = ∥c∥ * dist p₁ p₂ :=
 by simp [homothety_def, norm_smul, ← dist_eq_norm_vsub, dist_comm]

@@ -241,7 +241,7 @@ end
 @[simp] lemma iterate_minimal_period : f^[minimal_period f x] x = x :=
 is_periodic_pt_minimal_period f x
 
-@[simp] lemma iterate_eq_add_minimal_period : f^[n + minimal_period f x] x = (f^[n] x) :=
+@[simp] lemma iterate_add_minimal_period_eq : f^[n + minimal_period f x] x = (f^[n] x) :=
 by { rw iterate_add_apply, congr, exact is_periodic_pt_minimal_period f x }
 
 @[simp] lemma iterate_eq_mod_minimal_period : f^[n % minimal_period f x] x = (f^[n] x) :=

@@ -51,7 +51,7 @@ For a homogeneous element `f` of degree `n`
   of `sbo a/f^m` under `forward f` is `pbo f ∩ pbo a`.
 
 
-* [Robin Hartshorne, *Algebraic Geometry*][Har77]
+* [Robin Hartshorne, *Algebraic Geometry*][Har77]: Chapter II.2 Proposition 2.5
 -/
 
 noncomputable theory

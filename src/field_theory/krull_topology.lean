@@ -323,7 +323,8 @@ lemma alg_hom_of_finite_dimensional_of_ultrafilter_spec {K L : Type*} [field K] 
   [algebra K L] {E : intermediate_field K L} (h_findim : finite_dimensional K E)
   (f : ultrafilter (L ≃ₐ[K] L)) : (f.map (λ σ : L ≃ₐ[K] L, σ.to_alg_hom.comp
   (intermediate_field.val E)) : filter (E →ₐ[K] L)) =
-  pure (alg_hom_of_finite_dimensional_of_ultrafilter h_findim f) := classical.some_spec
+  pure (alg_hom_of_finite_dimensional_of_ultrafilter h_findim f) :=
+classical.some_spec
   (@ultrafilter.eq_principal_of_fintype (E →ₐ[K] L) _
   (f.map (λ σ, σ.to_alg_hom.comp (intermediate_field.val E))))
 

@@ -18,11 +18,11 @@ In this file we define and prove properties about finite products of measures
   Given `μ : Π i : ι, measure (α i)` for `[fintype ι]` it has type `measure (Π i : ι, α i)`.
 
 To apply Fubini along some subset of the variables, use
-`measure_theory.measure.map_pi_equiv_pi_subtype_prod` to reduce to the situation of a product
-of two measures: this lemma states that the bijection `equiv.pi_equiv_pi_subtype_prod p α`
-between `(Π i : ι, α i)` and `(Π i : {i // p i}, α i) × (Π i : {i // ¬ p i}, α i)` maps a product
-measure to a direct product of product measures, to which one can apply the usual Fubini for
-direct product of measures.
+`measure_theory.measure_preserving_pi_equiv_pi_subtype_prod` to reduce to the situation of a product
+of two measures: this lemma states that the bijection
+`measurable_equiv.pi_equiv_pi_subtype_prod α p` between `(Π i : ι, α i)` and
+`(Π i : {i // p i}, α i) × (Π i : {i // ¬ p i}, α i)` maps a product measure to a direct product of
+product measures, to which one can apply the usual Fubini for direct product of measures.
 
 ## Implementation Notes
 
@@ -507,40 +507,6 @@ end
 
 variable (μ)
 
-/-- Separating the indices into those that satisfy a predicate `p` and those that don't maps
-a product measure to a product of product measures. This is useful to apply Fubini to some subset
-of the variables. The converse is `measure_theory.measure.map_pi_equiv_pi_subtype_prod`. -/
-lemma map_pi_equiv_pi_subtype_prod_symm (p : ι → Prop) [decidable_pred p] :
-  map (equiv.pi_equiv_pi_subtype_prod p α).symm
-    (measure.prod (measure.pi (λ i, μ i)) (measure.pi (λ i, μ i))) = measure.pi μ :=
-begin
-  refine (measure.pi_eq (λ s hs, _)).symm,
-  have A : (equiv.pi_equiv_pi_subtype_prod p α).symm ⁻¹' (set.pi set.univ (λ (i : ι), s i)) =
-    (set.pi set.univ (λ i : {i // p i}, s i)) ×ˢ (set.pi set.univ (λ i : {i // ¬p i}, s i)),
-  { ext x,
-    simp only [equiv.pi_equiv_pi_subtype_prod_symm_apply, mem_prod, mem_univ_pi, mem_preimage,
-      subtype.forall],
-    split,
-    { exact λ h, ⟨λ i hi, by simpa [dif_pos hi] using h i,
-                  λ i hi, by simpa [dif_neg hi] using h i⟩ },
-    { assume h i,
-      by_cases hi : p i,
-      { simpa only [dif_pos hi] using h.1 i hi },
-      {simpa only [dif_neg hi] using h.2 i hi } } },
-  rw [measure.map_apply (measurable_pi_equiv_pi_subtype_prod_symm _ p)
-        (measurable_set.univ_pi_fintype hs), A,
-      measure.prod_prod, pi_pi, pi_pi, ← fintype.prod_subtype_mul_prod_subtype p (λ i, μ i (s i))],
-end
-
-lemma map_pi_equiv_pi_subtype_prod (p : ι → Prop) [decidable_pred p] :
-  map (equiv.pi_equiv_pi_subtype_prod p α) (measure.pi μ) =
-    measure.prod (measure.pi (λ i, μ i)) (measure.pi (λ i, μ i)) :=
-begin
-  rw [← map_pi_equiv_pi_subtype_prod_symm μ p, measure.map_map
-      (measurable_pi_equiv_pi_subtype_prod _ p) (measurable_pi_equiv_pi_subtype_prod_symm _ p)],
-  simp only [equiv.self_comp_symm, map_id]
-end
-
 @[to_additive] instance pi.is_mul_left_invariant [∀ i, group (α i)] [∀ i, has_measurable_mul (α i)]
   [∀ i, is_mul_left_invariant (μ i)] : is_mul_left_invariant (measure.pi μ) :=
 begin
@@ -613,6 +579,47 @@ measures of corresponding sets (images or preimages) have equal measures and fun
 -/
 
 section measure_preserving
+
+lemma measure_preserving_pi_equiv_pi_subtype_prod {ι : Type u} {α : ι → Type v} [fintype ι]
+  {m : Π i, measurable_space (α i)} (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)]
+  (p : ι → Prop) [decidable_pred p] :
+  measure_preserving (measurable_equiv.pi_equiv_pi_subtype_prod α p) (measure.pi μ)
+    ((measure.pi $ λ i : subtype p, μ i).prod (measure.pi $ λ i, μ i)) :=
+begin
+  set e := (measurable_equiv.pi_equiv_pi_subtype_prod α p).symm,
+  suffices : measure_preserving e _ _, from this.symm,
+  refine ⟨e.measurable, (pi_eq $ λ s hs, _).symm⟩,
+  have : e ⁻¹' (pi univ s) =
+    (pi univ (λ i : {i // p i}, s i)) ×ˢ (pi univ (λ i : {i // ¬p i}, s i)),
+    from equiv.preimage_pi_equiv_pi_subtype_prod_symm_pi p s,
+  rw [e.map_apply, this, prod_prod, pi_pi, pi_pi],
+  exact fintype.prod_subtype_mul_prod_subtype p (λ i, μ i (s i))
+end
+
+lemma volume_preserving_pi_equiv_pi_subtype_prod {ι : Type*} (α : ι → Type*) [fintype ι]
+  [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))]
+  (p : ι → Prop) [decidable_pred p] :
+  measure_preserving (measurable_equiv.pi_equiv_pi_subtype_prod α p) :=
+measure_preserving_pi_equiv_pi_subtype_prod (λ i, volume) p
+
+lemma measure_preserving_pi_fin_succ_above_equiv {n : ℕ} {α : fin (n + 1) → Type u}
+  {m : Π i, measurable_space (α i)} (μ : Π i, measure (α i)) [∀ i, sigma_finite (μ i)]
+  (i : fin (n + 1)) :
+  measure_preserving (measurable_equiv.pi_fin_succ_above_equiv α i) (measure.pi μ)
+    ((μ i).prod $ measure.pi $ λ j, μ (i.succ_above j)) :=
+begin
+  set e := (measurable_equiv.pi_fin_succ_above_equiv α i).symm,
+  suffices : measure_preserving e _ _, from this.symm,
+  refine ⟨e.measurable, (pi_eq $ λ s hs, _).symm⟩,
+  rw [e.map_apply, i.prod_univ_succ_above _, ← pi_pi, ← prod_prod],
+  congr' 1 with ⟨x, f⟩,
+  simp [i.forall_iff_succ_above]
+end
+
+lemma volume_preserving_pi_fin_succ_above_equiv {n : ℕ} (α : fin (n + 1) → Type u)
+  [Π i, measure_space (α i)] [∀ i, sigma_finite (volume : measure (α i))] (i : fin (n + 1)) :
+  measure_preserving (measurable_equiv.pi_fin_succ_above_equiv α i) :=
+measure_preserving_pi_fin_succ_above_equiv (λ _, volume) i
 
 lemma measure_preserving_fun_unique {β : Type u} {m : measurable_space β} (μ : measure β)
   (α : Type v) [unique α] :

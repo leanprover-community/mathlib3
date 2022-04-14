@@ -28,7 +28,7 @@ TODOs:
 
 The main definitions are the
  * types `finite_measure α` and `probability_measure α`;
- * `to_weak_dual_bounded_continuous_nnreal : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`
+ * `to_weak_dual_bcnn : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`
    allowing to interpret a finite measure as a continuous linear functional on the space of
    bounded continuous nonnegative functions on `α`. This will be used for the definition of the
    topology of weak convergence.
@@ -40,7 +40,7 @@ TODO:
 
  * Finite measures `μ` on `α` give rise to continuous linear functionals on the space of
    bounded continuous nonnegative functions on `α` via integration:
-   `to_weak_dual_bounded_continuous_nnreal : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`.
+   `to_weak_dual_bcnn : finite_measure α → (weak_dual ℝ≥0 (α →ᵇ ℝ≥0))`.
 
 TODO:
 * Portmanteau theorem.
@@ -279,24 +279,24 @@ end
 
 /-- Finite measures yield elements of the `weak_dual` of bounded continuous nonnegative
 functions via `finite_measure.test_against_nn`, i.e., integration. -/
-def to_weak_dual_bounded_continuous_nnreal (μ : finite_measure α) :
+def to_weak_dual_bcnn (μ : finite_measure α) :
   weak_dual ℝ≥0 (α →ᵇ ℝ≥0) :=
 { to_fun := λ f, μ.test_against_nn f,
   map_add' := test_against_nn_add μ,
   map_smul' := test_against_nn_smul μ,
   cont := μ.test_against_nn_lipschitz.continuous, }
 
-lemma to_weak_dual_bounded_continuous_nnreal_eval_def (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
-  μ.to_weak_dual_bounded_continuous_nnreal f = μ.test_against_nn f := rfl
+lemma to_weak_dual_bcnn_eval_def (μ : finite_measure α) (f : α →ᵇ ℝ≥0) :
+  μ.to_weak_dual_bcnn f = μ.test_against_nn f := rfl
 
 /-- The topology of weak convergence on `finite_measures α` is inherited (induced) from the weak-*
 topology on `weak_dual ℝ≥0 (α →ᵇ ℝ≥0)` via the function `finite_measures.to_weak_dual_bcnn`. -/
 instance : topological_space (finite_measure α) :=
 topological_space.induced
-  (λ (μ : finite_measure α), μ.to_weak_dual_bounded_continuous_nnreal) infer_instance
+  (λ (μ : finite_measure α), μ.to_weak_dual_bcnn) infer_instance
 
 lemma to_weak_dual_continuous :
-  continuous (@finite_measure.to_weak_dual_bounded_continuous_nnreal α _ _ _) :=
+  continuous (@finite_measure.to_weak_dual_bcnn α _ _ _) :=
 continuous_induced_dom
 
 /- Integration of (nonnegative bounded continuous) test functions against finite Borel measures
@@ -304,21 +304,21 @@ depends continuously on the measure. -/
 lemma continuous_test_against_nn_eval (f : α →ᵇ ℝ≥0) :
   continuous (λ (μ : finite_measure α), μ.test_against_nn f) :=
 (by apply (eval_continuous _ _).comp to_weak_dual_continuous :
-  continuous ((λ φ : weak_dual ℝ≥0 (α →ᵇ ℝ≥0), φ f) ∘ to_weak_dual_bounded_continuous_nnreal))
+  continuous ((λ φ : weak_dual ℝ≥0 (α →ᵇ ℝ≥0), φ f) ∘ to_weak_dual_bcnn))
 
 lemma tendsto_iff_weak_star_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
   tendsto μs F (𝓝 μ) ↔
-    tendsto (λ i, (μs(i)).to_weak_dual_bounded_continuous_nnreal)
-      F (𝓝 μ.to_weak_dual_bounded_continuous_nnreal) :=
+    tendsto (λ i, (μs(i)).to_weak_dual_bcnn)
+      F (𝓝 μ.to_weak_dual_bcnn) :=
 inducing.tendsto_nhds_iff ⟨rfl⟩
 
 theorem tendsto_iff_forall_test_against_nn_tendsto {γ : Type*} {F : filter γ}
   {μs : γ → finite_measure α} {μ : finite_measure α} :
   tendsto μs F (𝓝 μ) ↔
   ∀ (f : α →ᵇ ℝ≥0),
-    tendsto (λ i, (μs(i)).to_weak_dual_bounded_continuous_nnreal f)
-      F (𝓝 (μ.to_weak_dual_bounded_continuous_nnreal f)) :=
+    tendsto (λ i, (μs(i)).to_weak_dual_bcnn f)
+      F (𝓝 (μ.to_weak_dual_bcnn f)) :=
 by { rw [tendsto_iff_weak_star_tendsto, tendsto_iff_forall_eval_tendsto_top_dual_pairing], refl, }
 
 theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
@@ -328,7 +328,7 @@ theorem tendsto_iff_forall_lintegral_tendsto {γ : Type*} {F : filter γ}
     (𝓝 ((∫⁻ x, (f x) ∂(μ : measure α)))) :=
 begin
   rw tendsto_iff_forall_test_against_nn_tendsto,
-  simp_rw [to_weak_dual_bounded_continuous_nnreal_eval_def _ _,
+  simp_rw [to_weak_dual_bcnn_eval_def _ _,
            ←test_against_nn_coe_eq, ennreal.tendsto_coe],
 end
 
@@ -407,7 +407,7 @@ continuous_induced_dom
 
 lemma to_weak_dual_continuous :
   continuous
-    (λ (μ : probability_measure α), μ.to_finite_measure.to_weak_dual_bounded_continuous_nnreal) :=
+    (λ (μ : probability_measure α), μ.to_finite_measure.to_weak_dual_bcnn) :=
 continuous.comp finite_measure.to_weak_dual_continuous to_finite_measure_continuous
 
 /- Integration of (nonnegative bounded continuous) test functions against Borel probability

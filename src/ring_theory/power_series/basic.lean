@@ -649,7 +649,7 @@ variable [comm_ring R]
 
 /-- Multivariate formal power series over a local ring form a local ring. -/
 instance [local_ring R] : local_ring (mv_power_series σ R) :=
-local_of_is_unit_or_is_unit_one_sub_self $ by
+local_ring.of_is_unit_or_is_unit_one_sub_self $ by
 { intro φ,
   rcases local_ring.is_unit_or_is_unit_one_sub_self (constant_coeff σ R φ) with ⟨u,h⟩|⟨u,h⟩;
     [left, right];

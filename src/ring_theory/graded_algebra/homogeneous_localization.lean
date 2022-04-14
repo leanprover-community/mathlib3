@@ -474,7 +474,7 @@ instance : nontrivial (homogeneous_localization 𝒜 x) :=
 ⟨⟨0, 1, λ r, by simpa [ext_iff_val, zero_val, one_val, zero_ne_one] using r⟩⟩
 
 instance : local_ring (homogeneous_localization 𝒜 x) :=
-local_of_is_unit_or_is_unit_one_sub_self $ λ a, begin
+local_ring.of_is_unit_or_is_unit_one_sub_self $ λ a, begin
   simp only [← is_unit_iff_is_unit_val, sub_val, one_val],
   induction a using quotient.induction_on',
   simp only [homogeneous_localization.val_mk', ← subtype.val_eq_coe],
